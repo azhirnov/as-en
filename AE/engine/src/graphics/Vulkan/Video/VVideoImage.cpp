@@ -125,7 +125,7 @@ namespace AE::Graphics
 			vk_desc.tiling			= image_ci.tiling;
 			vk_desc.dimension		= uint3{ _desc.dimension, 1u };
 			vk_desc.arrayLayers		= image_ci.arrayLayers;
-			vk_desc.maxLevels		= image_ci.mipLevels;
+			vk_desc.mipLevels		= image_ci.mipLevels;
 			vk_desc.queues			= _desc.queues;
 			vk_desc.memFlags		= VEnumCast( _desc.memType );
 			vk_desc.canBeDestroyed	= false;
@@ -146,7 +146,7 @@ namespace AE::Graphics
 			{
 				_ycbcrSampler	= Strong<SamplerID>{ samp_id };
 				ycbcr_conv		= samp->YcbcrConversion();
-				CHECK_ERR( ycbcr_conv );
+				CHECK_ERR( ycbcr_conv != Default );
 			}
 		}
 
@@ -262,7 +262,7 @@ namespace AE::Graphics
 			vk_desc.tiling			= image_ci.tiling;
 			vk_desc.dimension		= uint3{ _desc.dimension, 1u };
 			vk_desc.arrayLayers		= image_ci.arrayLayers;
-			vk_desc.maxLevels		= image_ci.mipLevels;
+			vk_desc.mipLevels		= image_ci.mipLevels;
 			vk_desc.queues			= _desc.queues;
 			vk_desc.memFlags		= VEnumCast( _desc.memType );
 			vk_desc.aspectMask		= VK_IMAGE_ASPECT_COLOR_BIT;
@@ -293,7 +293,7 @@ namespace AE::Graphics
 
 			_ycbcrSampler	= Strong<SamplerID>{ samp_id };
 			ycbcr_conv		= samp->YcbcrConversion();
-			CHECK_ERR( ycbcr_conv );
+			CHECK_ERR( ycbcr_conv != Default );
 			CHECK_ERR( image_ci.format == samp->YcbcrFormat() );
 		}
 

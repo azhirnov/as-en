@@ -1,8 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "profiler/Utils/ArmProfiler.h"
-
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
+# include "profiler/Utils/ArmProfiler.h"
 
 namespace AE::Profiler
 {
@@ -10,7 +9,6 @@ namespace AE::Profiler
 
 	struct ArmProfiler::Impl
 	{
-		ECounterSet		supported;
 		ECounterSet		enabled;
 
 		RDevice const&	dev;
@@ -24,7 +22,6 @@ namespace AE::Profiler
 	bool  ArmProfiler::IsInitialized ()								C_NE___	{ return bool{_impl}; }
 	void  ArmProfiler::Deinitialize ()								__NE___	{ _impl.reset( null ); }
 
-	ArmProfiler::ECounterSet  ArmProfiler::SupportedCounterSet ()	C_NE___	{ return _impl ? _impl->supported : Default; }
 	ArmProfiler::ECounterSet  ArmProfiler::EnabledCounterSet ()		C_NE___	{ return _impl ? _impl->enabled : Default; }
 
 /*
@@ -35,6 +32,7 @@ namespace AE::Profiler
 	bool  ArmProfiler::Initialize (const ECounterSet &cs) __NE___
 	{
 		CHECK_ERR( not IsInitialized() );
+		CHECK_ERR( cs.Any() );
 
 		Msg::ProfArm_Initialize					msg;
 		RC<Msg::ProfArm_Initialize_Response>	res;
@@ -47,8 +45,7 @@ namespace AE::Profiler
 		if ( res->ok )
 		{
 			_impl = MakeUnique<Impl>( dev );
-			_impl->supported	= res->supported;
-			_impl->enabled		= res->enabled;
+			_impl->enabled = res->enabled;
 		}
 		return res->ok;
 	}
@@ -75,161 +72,24 @@ namespace AE::Profiler
 } // AE::Profiler
 //-----------------------------------------------------------------------------
 
-#elif defined(AE_ENABLE_ARM_HWCPIPE)
+#elif defined(AE_ENABLE_ARM_PMU)
 
-# pragma clang diagnostic push
-# pragma clang diagnostic ignored "-Wdouble-promotion"
+# include "base/Defines/StdInclude.h"
 
-# include "hwcpipe.h"
+# include <linux/perf_event.h>
+# include <linux/hw_breakpoint.h>
+# include <sys/syscall.h>
+# include <unistd.h>
 
-# pragma clang diagnostic pop
+# include "profiler/Utils/ArmProfiler.h"
 
+// based on https://github.com/ARM-software/HWCPipe/tree/1.x
+// MIT License
+
+// specs https://man7.org/linux/man-pages/man2/perf_event_open.2.html
 
 namespace AE::Profiler
 {
-namespace
-{
-/*
-=================================================
-	CpuCounterCast
-=================================================
-*/
-#define CPU_COUNTERS( _visitor_ )\
-	_visitor_( CPU_Cycles,				Cycles				)\
-	_visitor_( CPU_Instructions,		Instructions		)\
-	_visitor_( CPU_CacheReferences,		CacheReferences		)\
-	_visitor_( CPU_CacheMisses,			CacheMisses			)\
-	_visitor_( CPU_BranchInstructions,	BranchInstructions	)\
-	_visitor_( CPU_BranchMisses,		BranchMisses		)\
-	_visitor_( CPU_L1Accesses,			L1Accesses			)\
-	_visitor_( CPU_InstrRetired,		InstrRetired		)\
-	_visitor_( CPU_L2Accesses,			L2Accesses			)\
-	_visitor_( CPU_L3Accesses,			L3Accesses			)\
-	_visitor_( CPU_BusReads,			BusReads			)\
-	_visitor_( CPU_BusWrites,			BusWrites			)\
-	_visitor_( CPU_MemReads,			MemReads			)\
-	_visitor_( CPU_MemWrites,			MemWrites			)\
-	_visitor_( CPU_ASESpec,				ASESpec				)\
-	_visitor_( CPU_VFPSpec,				VFPSpec				)\
-	_visitor_( CPU_CryptoSpec,			CryptoSpec			)\
-
-	ND_ static hwcpipe::CpuCounter  CpuCounterCast (ArmProfiler::ECounter value)
-	{
-		switch ( value )
-		{
-			#define CPU_COUNTERS_VISITOR( _src_, _dst_ )	case ArmProfiler::ECounter::_src_ :  return hwcpipe::CpuCounter::_dst_;
-			CPU_COUNTERS( CPU_COUNTERS_VISITOR )
-			#undef CPU_COUNTERS_VISITOR
-		}
-		StaticAssert( uint(hwcpipe::CpuCounter::MaxValue) == 17 );
-		return hwcpipe::CpuCounter::MaxValue;
-	}
-
-	ND_ static ArmProfiler::ECounter  CpuCounterCast (hwcpipe::CpuCounter value)
-	{
-		switch_enum( value )
-		{
-			#define CPU_COUNTERS_VISITOR( _dst_, _src_ )	case hwcpipe::CpuCounter::_src_ :  return ArmProfiler::ECounter::_dst_;
-			CPU_COUNTERS( CPU_COUNTERS_VISITOR )
-			#undef CPU_COUNTERS_VISITOR
-			case hwcpipe::CpuCounter::MaxValue :	break;
-		}
-		switch_end
-		return Default;
-	}
-
-/*
-=================================================
-	GpuCounterCast
-=================================================
-*/
-#define GPU_COUNTERS( _visitor_ )\
-	_visitor_( GPU_Cycles,						GpuCycles					)\
-	_visitor_( GPU_ComputeCycles,				ComputeCycles				)\
-	_visitor_( GPU_VertexCycles,				VertexCycles				)\
-	_visitor_( GPU_VertexComputeCycles,			VertexComputeCycles			)\
-	_visitor_( GPU_FragmentCycles,				FragmentCycles				)\
-	_visitor_( GPU_TilerCycles,					TilerCycles					)\
-	_visitor_( GPU_ComputeJobs,					ComputeJobs					)\
-	_visitor_( GPU_VertexJobs,					VertexJobs					)\
-	_visitor_( GPU_VertexComputeJobs,			VertexComputeJobs			)\
-	_visitor_( GPU_FragmentJobs,				FragmentJobs				)\
-	_visitor_( GPU_Pixels,						Pixels						)\
-	_visitor_( GPU_CulledPrimitives,			CulledPrimitives			)\
-	_visitor_( GPU_VisiblePrimitives,			VisiblePrimitives			)\
-	_visitor_( GPU_InputPrimitives,				InputPrimitives				)\
-	_visitor_( GPU_Tiles,						Tiles						)\
-	_visitor_( GPU_TransactionEliminations,		TransactionEliminations		)\
-	_visitor_( GPU_EarlyZTests,					EarlyZTests					)\
-	_visitor_( GPU_EarlyZKilled,				EarlyZKilled				)\
-	_visitor_( GPU_LateZTests,					LateZTests					)\
-	_visitor_( GPU_LateZKilled,					LateZKilled					)\
-	_visitor_( GPU_Instructions,				Instructions				)\
-	_visitor_( GPU_DivergedInstructions,		DivergedInstructions		)\
-	_visitor_( GPU_ShaderComputeCycles,			ShaderComputeCycles			)\
-	_visitor_( GPU_ShaderFragmentCycles,		ShaderFragmentCycles		)\
-	_visitor_( GPU_ShaderCycles,				ShaderCycles				)\
-	_visitor_( GPU_ShaderArithmeticCycles,		ShaderArithmeticCycles		)\
-	_visitor_( GPU_ShaderInterpolatorCycles,	ShaderInterpolatorCycles	)\
-	_visitor_( GPU_ShaderLoadStoreCycles,		ShaderLoadStoreCycles		)\
-	_visitor_( GPU_ShaderTextureCycles,			ShaderTextureCycles			)\
-	_visitor_( GPU_CacheReadLookups,			CacheReadLookups			)\
-	_visitor_( GPU_CacheWriteLookups,			CacheWriteLookups			)\
-	_visitor_( GPU_ExternalMemoryReadAccesses,	ExternalMemoryReadAccesses	)\
-	_visitor_( GPU_ExternalMemoryWriteAccesses,	ExternalMemoryWriteAccesses	)\
-	_visitor_( GPU_ExternalMemoryReadStalls,	ExternalMemoryReadStalls	)\
-	_visitor_( GPU_ExternalMemoryWriteStalls,	ExternalMemoryWriteStalls	)\
-	_visitor_( GPU_ExternalMemoryReadBytes,		ExternalMemoryReadBytes		)\
-	_visitor_( GPU_ExternalMemoryWriteBytes,	ExternalMemoryWriteBytes	)\
-
-	ND_ static hwcpipe::GpuCounter  GpuCounterCast (ArmProfiler::ECounter value)
-	{
-		switch ( value )
-		{
-			#define GPU_COUNTERS_VISITOR( _src_, _dst_ )	case ArmProfiler::ECounter::_src_ :  return hwcpipe::GpuCounter::_dst_;
-			GPU_COUNTERS( GPU_COUNTERS_VISITOR )
-			#undef GPU_COUNTERS_VISITOR
-		}
-		StaticAssert( uint(hwcpipe::GpuCounter::MaxValue) == 37 );
-		return hwcpipe::GpuCounter::MaxValue;
-	}
-
-	ND_ static ArmProfiler::ECounter  GpuCounterCast (hwcpipe::GpuCounter value)
-	{
-		switch_enum( value )
-		{
-			#define GPU_COUNTERS_VISITOR( _dst_, _src_ )	case hwcpipe::GpuCounter::_src_ :  return ArmProfiler::ECounter::_dst_;
-			GPU_COUNTERS( GPU_COUNTERS_VISITOR )
-			#undef GPU_COUNTERS_VISITOR
-			case hwcpipe::GpuCounter::MaxValue :	break;
-		}
-		switch_end
-		return Default;
-	}
-
-/*
-=================================================
-	GetCpuCounterValue / GetGpuCounterValue
-=================================================
-*/
-	ND_ static double  GetCpuCounterValue (const hwcpipe::CpuMeasurements* cpu, hwcpipe::CpuCounter counter)
-	{
-		auto	hwcpipe_ctr = cpu->find( counter );
-		if ( hwcpipe_ctr != cpu->end() )
-			return hwcpipe_ctr->second.get<double>();
-		return 0.0;
-	}
-
-	ND_ static double  GetGpuCounterValue (const hwcpipe::GpuMeasurements* gpu, hwcpipe::GpuCounter counter)
-	{
-		auto	hwcpipe_ctr = gpu->find( counter );
-		if ( hwcpipe_ctr != gpu->end() )
-			return hwcpipe_ctr->second.get<double>();
-		return 0.0;
-	}
-
-} // namespace
-
 /*
 =================================================
 	Impl
@@ -237,40 +97,137 @@ namespace
 */
 	struct ArmProfiler::Impl
 	{
+	// types
+		enum class EPerfType : uint
+		{
+			Hardware		= PERF_TYPE_HARDWARE,
+			Software		= PERF_TYPE_SOFTWARE,
+			Cache			= PERF_TYPE_HW_CACHE,
+			Raw				= PERF_TYPE_RAW,
+		};
+
+		enum class EPerfCount : uint
+		{
+			Hw_CPUCycles				= PERF_COUNT_HW_CPU_CYCLES,
+			Hw_Instructions				= PERF_COUNT_HW_INSTRUCTIONS,
+			Hw_CacheReferences			= PERF_COUNT_HW_CACHE_REFERENCES,
+			Hw_CacheMisses				= PERF_COUNT_HW_CACHE_MISSES,
+			Hw_BranchInstructions		= PERF_COUNT_HW_BRANCH_INSTRUCTIONS,
+			Hw_BranchMisses				= PERF_COUNT_HW_BRANCH_MISSES,
+			Hw_BusCycles				= PERF_COUNT_HW_BUS_CYCLES,
+			Hw_StalledCyclesFrontend	= PERF_COUNT_HW_STALLED_CYCLES_FRONTEND,
+			Hw_StalledCyclesBackend		= PERF_COUNT_HW_STALLED_CYCLES_BACKEND,
+			Hw_RefCPUCycles				= PERF_COUNT_HW_REF_CPU_CYCLES,
+
+			Sw_CPUClock					= PERF_COUNT_SW_CPU_CLOCK,
+			Sw_TaskClock				= PERF_COUNT_SW_TASK_CLOCK,
+			Sw_PageFaults				= PERF_COUNT_SW_PAGE_FAULTS,
+			Sw_ContextSwitches			= PERF_COUNT_SW_CONTEXT_SWITCHES,
+			Sw_CPUMigrations			= PERF_COUNT_SW_CPU_MIGRATIONS,
+			Sw_PageFaultsMin			= PERF_COUNT_SW_PAGE_FAULTS_MIN,
+			Sw_PageFaultsMaj			= PERF_COUNT_SW_PAGE_FAULTS_MAJ,
+			Sw_AlignmentFaults			= PERF_COUNT_SW_ALIGNMENT_FAULTS,
+			Sw_EmulationFaults			= PERF_COUNT_SW_EMULATION_FAULTS,
+
+			L1_Accesses					= 0x4,
+			InstructionRetired			= 0x8,
+			L2_Accesses					= 0x16,
+			L3_Accesses					= 0x2b,
+			BusReads					= 0x60,
+			BusWrites					= 0x61,
+			MemReads					= 0x66,
+			MemWrites					= 0x67,
+			ASE_Spec					= 0x74,
+			VFP_Spec					= 0x75,
+			Crypto_Spec					= 0x77,
+		};
+
+		struct Counter
+		{
+			::perf_event_attr	_perfConfig;
+			int					_fd				= -1;
+			ECounter			_type			= ECounter::_Count;
+			slong				_prev			= 0;
+
+			Counter ()											__NE___ {}
+			Counter (Counter &&other)							__NE___ : _perfConfig{other._perfConfig}, _fd{other._fd}, _type{other._type}  { other._fd = -1; }
+			~Counter ()											__NE___	{ if ( _fd != -1 ) ::close( _fd ); }
+
+			ND_	bool  Open (EPerfType, EPerfCount, ECounter)	__NE___;
+				bool  Reset ()									__NE___;
+			ND_ bool  GetValue (OUT slong &value)				__NE___;
+
+			ND_ auto  CounterType ()							C_NE___	{ return _type; }
+		};
+		using Counters_t	= Array<Counter>;
+
+
 	// variables
-		hwcpipe::HWCPipe	pipe;
-		ECounterSet			supported;
-		ECounterSet			enabled;
+		Counters_t		counters;
+		ECounterSet		enabled;
 
 
 	// methods
-		Impl (hwcpipe::CpuCounterSet cpu_cs, hwcpipe::GpuCounterSet gpu_cs) :
-			pipe{ RVRef(cpu_cs), RVRef(gpu_cs) }
-		{}
-
-		ND_ bool							HasCpuCounters ()		__NE___	{ return pipe.cpu_profiler(); }
-		ND_ hwcpipe::CpuCounterSet const&	SupportedCpuCounters ()	__NE___	{ return pipe.cpu_profiler()->supported_counters(); }
-		ND_ hwcpipe::CpuCounterSet const&	EnabledCpuCounters ()	__NE___	{ return pipe.cpu_profiler()->enabled_counters(); }
-
-		ND_ bool							HasGpuCounters ()		__NE___	{ return pipe.gpu_profiler(); }
-		ND_ hwcpipe::GpuCounterSet const&	SupportedGpuCounters ()	__NE___	{ return pipe.gpu_profiler()->supported_counters(); }
-		ND_ hwcpipe::GpuCounterSet const&	EnabledGpuCounters ()	__NE___	{ return pipe.gpu_profiler()->enabled_counters(); }
+		Impl () __NE___ {}
 	};
+
 
 /*
 =================================================
-	_IsCPUcounter / _IsGPUcounter
+	Impl::Counter::Open
 =================================================
 */
-	inline bool  ArmProfiler::_IsCPUcounter (ECounter value) __NE___
+	bool  ArmProfiler::Impl::Counter::Open (EPerfType type, EPerfCount counter, ECounter cntType) __NE___
 	{
-		return (value >= ECounter::_CPU_Begin) and (value <= ECounter::_CPU_End);
+		_perfConfig				= {};
+		_perfConfig.size		= sizeof(_perfConfig);
+		_perfConfig.type		= uint(type);
+		_perfConfig.config		= ulong(counter);
+		_perfConfig.disabled	= 1;
+		_perfConfig.inherit		= 1;	// should count events of child tasks as well as the task specified
+		_perfConfig.inherit_stat = 1;	// enables saving of event counts on context switch for inherited tasks
+
+		_fd = syscall( __NR_perf_event_open, &_perfConfig, 0, -1, -1, 0 );
+
+		if_unlikely( _fd < 0 )
+			return false;
+
+		if_unlikely( ::ioctl( _fd, PERF_EVENT_IOC_ENABLE, 0 ) == -1 )
+			return false;
+
+		_type = cntType;
+		return true;
 	}
 
-	inline bool  ArmProfiler::_IsGPUcounter (ECounter value) __NE___
+/*
+=================================================
+	Impl::Counter::Reset
+=================================================
+*/
+	bool  ArmProfiler::Impl::Counter::Reset () __NE___
 	{
-		return (value >= ECounter::_GPU_Begin) and (value <= ECounter::_GPU_End);
+		int err = ::ioctl( _fd, PERF_EVENT_IOC_RESET, 0 );
+		return err != -1;
 	}
+
+/*
+=================================================
+	Impl::Counter::GetValue
+=================================================
+*/
+	forceinline bool  ArmProfiler::Impl::Counter::GetValue (OUT slong &value) __NE___
+	{
+		slong	val = 0;
+		if_likely( ::read( _fd, OUT &val, sizeof(val) ) == sizeof(val) )
+		{
+			value	= val - _prev;
+			_prev	= val;
+			return true;
+		}
+		return false;
+	}
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
@@ -291,66 +248,70 @@ namespace
 	bool  ArmProfiler::Initialize (const ECounterSet &counterSet) __NE___
 	{
 		CHECK_ERR( not IsInitialized() );
+		CHECK_ERR( counterSet.Any() );
 
-		bool	res = false;
-		TRY{
-			res = _Initialize( counterSet );
-		}
-		CATCH_ALL();
+		auto	impl = MakeUnique<Impl>();
 
-		if ( res )
-			return true;
+		using EPerfType		= Impl::EPerfType;
+		using EPerfCount	= Impl::EPerfCount;
 
-		Deinitialize();
-		return false;
-	}
-
-	bool  ArmProfiler::_Initialize (ECounterSet counterSet) __Th___
-	{
-		hwcpipe::CpuCounterSet	cpu_cs;
-		hwcpipe::GpuCounterSet	gpu_cs;
-
-		for (;;)
+		static const Tuple< EPerfType, EPerfCount, ECounter >	s_Counters [] =
 		{
-			ECounter	counter = counterSet.ExtractFirst();
-			if_unlikely( counter >= ECounter::_Count )
-				break;
+			Tuple{ EPerfType::Hardware,	EPerfCount::Hw_CPUCycles,				ECounter::Cycles			},
+			Tuple{ EPerfType::Hardware,	EPerfCount::Hw_Instructions,			ECounter::Instructions		},
+			Tuple{ EPerfType::Hardware,	EPerfCount::Hw_CacheReferences,			ECounter::CacheReferences	},
+			Tuple{ EPerfType::Hardware,	EPerfCount::Hw_CacheMisses,				ECounter::CacheMisses		},
+			Tuple{ EPerfType::Hardware,	EPerfCount::Hw_BranchInstructions,		ECounter::BranchInstructions },
+			Tuple{ EPerfType::Hardware,	EPerfCount::Hw_BranchMisses,			ECounter::BranchMisses		},
+			Tuple{ EPerfType::Hardware,	EPerfCount::Hw_BusCycles,				ECounter::BusCycles			},
+		//	Tuple{ EPerfType::Hardware,	EPerfCount::Hw_StalledCyclesFrontend,	ECounter:: },
+		//	Tuple{ EPerfType::Hardware,	EPerfCount::Hw_StalledCyclesBackend,	ECounter:: },
+		//	Tuple{ EPerfType::Hardware,	EPerfCount::Hw_RefCPUCycles,			ECounter:: },
 
-			if ( _IsCPUcounter( counter ))
+			Tuple{ EPerfType::Software,	EPerfCount::Sw_CPUClock,				ECounter::Clock				},
+		//	Tuple{ EPerfType::Software,	EPerfCount::Sw_TaskClock,				ECounter:: },
+		//	Tuple{ EPerfType::Software,	EPerfCount::Sw_PageFaults,				ECounter:: },
+			Tuple{ EPerfType::Software,	EPerfCount::Sw_ContextSwitches,			ECounter::ContextSwitches	},
+		//	Tuple{ EPerfType::Software,	EPerfCount::Sw_CPUMigrations,			ECounter:: },
+		//	Tuple{ EPerfType::Software,	EPerfCount::Sw_PageFaultsMin,			ECounter:: },
+		//	Tuple{ EPerfType::Software,	EPerfCount::Sw_PageFaultsMaj,			ECounter:: },
+		//	Tuple{ EPerfType::Software,	EPerfCount::Sw_AlignmentFaults,			ECounter:: },
+		//	Tuple{ EPerfType::Software,	EPerfCount::Sw_EmulationFaults,			ECounter:: },
+
+			Tuple{ EPerfType::Raw,		EPerfCount::L1_Accesses,				ECounter::L1Accesses	},
+			Tuple{ EPerfType::Raw,		EPerfCount::InstructionRetired,			ECounter::InstrRetired	},
+			Tuple{ EPerfType::Raw,		EPerfCount::L2_Accesses,				ECounter::L2Accesses	},
+			Tuple{ EPerfType::Raw,		EPerfCount::L3_Accesses,				ECounter::L3Accesses	},
+			Tuple{ EPerfType::Raw,		EPerfCount::BusReads,					ECounter::BusReads		},
+			Tuple{ EPerfType::Raw,		EPerfCount::BusWrites,					ECounter::BusWrites		},
+			Tuple{ EPerfType::Raw,		EPerfCount::MemReads,					ECounter::MemReads		},
+			Tuple{ EPerfType::Raw,		EPerfCount::MemWrites,					ECounter::MemWrites		},
+			Tuple{ EPerfType::Raw,		EPerfCount::ASE_Spec,					ECounter::ASESpec		},
+			Tuple{ EPerfType::Raw,		EPerfCount::VFP_Spec,					ECounter::VFPSpec		},
+			Tuple{ EPerfType::Raw,		EPerfCount::Crypto_Spec,				ECounter::CryptoSpec	},
+		};
+		StaticAssert( CountOf(s_Counters) == uint(ECounter::_Count) );
+
+		for (ECounter c : counterSet)
+		{
+			auto&	v = s_Counters[uint(c)];
+			ASSERT( v.Get<ECounter>() == c );
+
+			Impl::Counter	cnt;
+			if ( cnt.Open( v.Get<0>(), v.Get<1>(), c ))
 			{
-				cpu_cs.insert( CpuCounterCast( counter ));
-			}
-			else
-			if ( _IsGPUcounter( counter ))
-			{
-				gpu_cs.insert( GpuCounterCast( counter ));
+				cnt.Reset();
+				impl->counters.push_back( RVRef(cnt) );
+				impl->enabled.insert( c );
 			}
 		}
 
-		_impl.reset( new Impl{ RVRef(cpu_cs), RVRef(gpu_cs) });
-
-		if ( _impl->HasCpuCounters() ) {
-			for (auto counter : _impl->SupportedCpuCounters()) {
-				_impl->supported.insert( CpuCounterCast( counter ));
-			}
-			for (auto counter : _impl->EnabledCpuCounters()) {
-				_impl->enabled.insert( CpuCounterCast( counter ));
-			}
-		}
-
-		if ( _impl->HasGpuCounters() ) {
-			for (auto counter : _impl->SupportedGpuCounters()) {
-				_impl->supported.insert( GpuCounterCast( counter ));
-			}
-			for (auto counter : _impl->EnabledGpuCounters()) {
-				_impl->enabled.insert( GpuCounterCast( counter ));
-			}
-		}
-
-		if ( _impl->supported.None() or _impl->enabled.None() )
+		if ( impl->enabled.None() )
 			return false;
 
-		_impl->pipe.run();
+		_impl = RVRef(impl);
+
+		AE_LOGI( "Started ARM CPU profiler" );
 		return true;
 	}
 
@@ -376,15 +337,9 @@ namespace
 
 /*
 =================================================
-	SupportedCounterSet / EnabledCounterSet
+	EnabledCounterSet
 =================================================
 */
-	ArmProfiler::ECounterSet  ArmProfiler::SupportedCounterSet () C_NE___
-	{
-		CHECK_ERR( IsInitialized() );
-		return _impl->supported;
-	}
-
 	ArmProfiler::ECounterSet  ArmProfiler::EnabledCounterSet () C_NE___
 	{
 		CHECK_ERR( IsInitialized() );
@@ -403,35 +358,20 @@ namespace
 		if ( not _impl )
 			return;  // not initialized
 
-		ECounterSet				counter_set = _impl->enabled;
-		hwcpipe::Measurements	m			= _impl->pipe.sample();
-		Counters_t				result;
-
-		for (;;)
+		for (auto& c : _impl->counters)
 		{
-			ECounter	counter = counter_set.ExtractFirst();
-			if_unlikely( counter >= ECounter::_Count )
-				break;
-
-			double&	value = outCounters[counter];
-
-			if ( _IsCPUcounter( counter ))
-			{
-				value = GetCpuCounterValue( m.cpu, CpuCounterCast( counter ));
-			}
-			else
-			if ( _IsGPUcounter( counter ))
-			{
-				value = GetGpuCounterValue( m.gpu, GpuCounterCast( counter ));
-			}
+			slong	val;
+			if_likely( c.GetValue( OUT val ))
+				outCounters.emplace( c.CounterType(), val );
 		}
 	}
 
 } // AE::Profiler
 //-----------------------------------------------------------------------------
 
-#else // not AE_ENABLE_ARM_HWCPIPE and not AE_ENABLE_REMOTE_GRAPHICS
+#else // not AE_ENABLE_ARM_PMU and not AE_ENABLE_REMOTE_GRAPHICS
 
+# include "profiler/Utils/ArmProfiler.h"
 # include "profiler/Remote/RemoteArmProfiler.h"
 
 namespace AE::Profiler
@@ -449,7 +389,6 @@ namespace AE::Profiler
 	bool  ArmProfiler::Initialize (const ECounterSet &cs)			__NE___	{ return _impl and _impl->client->Initialize( cs ); }
 	bool  ArmProfiler::IsInitialized ()								C_NE___	{ return _impl and _impl->client->IsInitialized(); }
 
-	ArmProfiler::ECounterSet  ArmProfiler::SupportedCounterSet ()	C_NE___	{ return _impl ? _impl->client->SupportedCounterSet() : Default; }
 	ArmProfiler::ECounterSet  ArmProfiler::EnabledCounterSet ()		C_NE___	{ return _impl ? _impl->client->EnabledCounterSet() : Default; }
 
 	void  ArmProfiler::Sample (OUT Counters_t &result)				C_NE___	{ if (_impl) return _impl->client->Sample( OUT result ); }
@@ -470,83 +409,4 @@ namespace AE::Profiler
 
 } // AE::Profiler
 
-#endif // AE_ENABLE_ARM_HWCPIPE
-//-----------------------------------------------------------------------------
-
-
-namespace AE::Profiler
-{
-/*
-=================================================
-	CounterToString
-=================================================
-*
-	StringView  ArmProfiler::CounterToString (ArmProfiler::ECounter value) __NE___
-	{
-		switch_enum( value )
-		{
-			#define COUNTER( _name_ )	case ArmProfiler::ECounter::_name_ : return AE_TOSTRING( _name_ );
-			COUNTER( CPU_Cycles );
-			COUNTER( CPU_Instructions );
-			COUNTER( CPU_CacheReferences );
-			COUNTER( CPU_CacheMisses );
-			COUNTER( CPU_BranchInstructions );
-			COUNTER( CPU_BranchMisses );
-			COUNTER( CPU_L1Accesses );
-			COUNTER( CPU_InstrRetired );
-			COUNTER( CPU_L2Accesses );
-			COUNTER( CPU_L3Accesses );
-			COUNTER( CPU_BusReads );
-			COUNTER( CPU_BusWrites );
-			COUNTER( CPU_MemReads );
-			COUNTER( CPU_MemWrites );
-			COUNTER( CPU_ASESpec );
-			COUNTER( CPU_VFPSpec );
-			COUNTER( CPU_CryptoSpec );
-			COUNTER( GPU_Cycles );
-			COUNTER( GPU_ComputeCycles );
-			COUNTER( GPU_VertexCycles );
-			COUNTER( GPU_VertexComputeCycles );
-			COUNTER( GPU_FragmentCycles );
-			COUNTER( GPU_TilerCycles );
-			COUNTER( GPU_ComputeJobs );
-			COUNTER( GPU_VertexJobs );
-			COUNTER( GPU_VertexComputeJobs );
-			COUNTER( GPU_FragmentJobs );
-			COUNTER( GPU_Pixels );
-			COUNTER( GPU_CulledPrimitives );
-			COUNTER( GPU_VisiblePrimitives );
-			COUNTER( GPU_InputPrimitives );
-			COUNTER( GPU_Tiles );
-			COUNTER( GPU_TransactionEliminations );
-			COUNTER( GPU_EarlyZTests );
-			COUNTER( GPU_EarlyZKilled );
-			COUNTER( GPU_LateZTests );
-			COUNTER( GPU_LateZKilled );
-			COUNTER( GPU_Instructions );
-			COUNTER( GPU_DivergedInstructions );
-			COUNTER( GPU_ShaderComputeCycles );
-			COUNTER( GPU_ShaderFragmentCycles );
-			COUNTER( GPU_ShaderCycles );
-			COUNTER( GPU_ShaderArithmeticCycles );
-			COUNTER( GPU_ShaderInterpolatorCycles );
-			COUNTER( GPU_ShaderLoadStoreCycles );
-			COUNTER( GPU_ShaderTextureCycles );
-			COUNTER( GPU_CacheReadLookups );
-			COUNTER( GPU_CacheWriteLookups );
-			COUNTER( GPU_ExternalMemoryReadAccesses );
-			COUNTER( GPU_ExternalMemoryWriteAccesses );
-			COUNTER( GPU_ExternalMemoryReadStalls );
-			COUNTER( GPU_ExternalMemoryWriteStalls );
-			COUNTER( GPU_ExternalMemoryReadBytes );
-			COUNTER( GPU_ExternalMemoryWriteBytes );
-			#undef COUNTER
-
-			case ArmProfiler::ECounter::_Count :
-			case ArmProfiler::ECounter::Unknown :	break;
-		}
-		switch_end
-		return "";
-	}
-*/
-} // AE::Profiler
+#endif // AE_ENABLE_ARM_PMU

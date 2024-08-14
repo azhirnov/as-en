@@ -32,7 +32,7 @@ namespace
 
 	StaticAssert( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
 
-	StaticAssert( VK_HEADER_VERSION == 280 );
+	StaticAssert( VK_HEADER_VERSION == 290 );
 
 	static constexpr usize	c_MaxMemTypes = List<EMemoryType>{
 												EMemoryType::DeviceLocal,	EMemoryType::Transient,		EMemoryType::HostCoherent,
@@ -670,6 +670,27 @@ namespace
 
 /*
 =================================================
+	AdapterType
+=================================================
+*/
+	EGraphicsAdapterType  VDevice::AdapterType () C_NE___
+	{
+		switch_enum( _properties.properties.deviceType )
+		{
+			case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU :		return EGraphicsAdapterType::Discrete;
+			case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU :	return EGraphicsAdapterType::Integrated;
+			case VK_PHYSICAL_DEVICE_TYPE_CPU :				return EGraphicsAdapterType::Software;
+			case VK_PHYSICAL_DEVICE_TYPE_OTHER :
+			case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU :
+			case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM :
+			default :										break;
+		}
+		switch_end
+		return Default;
+	}
+
+/*
+=================================================
 	PrintPipelineExecutableStatistics
 =================================================
 */
@@ -990,6 +1011,7 @@ namespace
 	LoadNvPerf
 =================================================
 */
+#ifndef AE_CFG_RELEASE
 	bool  VDeviceInitializer::LoadNvPerf () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
@@ -998,25 +1020,29 @@ namespace
 
 		return _nvPerf.Load();
 	}
-
+#endif
 /*
 =================================================
-	LoadArmProfiler
+	LoadAmdPerf
 =================================================
 */
-	bool  VDeviceInitializer::LoadArmProfiler () __NE___
+#ifndef AE_CFG_RELEASE
+	bool  VDeviceInitializer::LoadAmdPerf () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
-		// TODO
-		return false;
-	}
+		CHECK_ERR( not _amdPerf.IsLoaded() );
+		CHECK_ERR( GetVkInstance() == Default );
 
+		return _amdPerf.Load();
+	}
+#endif
 /*
 =================================================
-	LoadArmProfiler
+	LoadRenderDoc
 =================================================
 */
+#ifndef AE_CFG_RELEASE
 	bool  VDeviceInitializer::LoadRenderDoc () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
@@ -1025,7 +1051,7 @@ namespace
 
 		return _rdc.Initialize( GetVkInstance(), NativeWindow{} );
 	}
-
+#endif
 /*
 =================================================
 	CreateInstance
@@ -1044,13 +1070,14 @@ namespace
 
 		NOTHROW_ERR(
 			return _CreateInstance( ci.appName, ci.engineName, ci.instanceLayers, ci.instanceExtensions,
-									ci.version, ci.appVer, ci.engineVer, &validation );
+									ci.version, ci.appVer, ci.engineVer, &validation, ci.devFlags );
 		)
 	}
 
 	bool  VDeviceInitializer::_CreateInstance (NtStringView appName, NtStringView engineName, ArrayView<const char*> layers,
 											   ArrayView<const char*> extensions, InstanceVersion version,
-											   uint appVer, uint engineVer, const VkValidationFeaturesEXT* pValidation) __Th___
+											   uint appVer, uint engineVer, const VkValidationFeaturesEXT* pValidation,
+											   EDeviceFlags devFlags) __Th___
 	{
 		CHECK_ERR( _vkInstance == Default );
 		CHECK_ERR( VulkanLoader::Initialize() );
@@ -1067,8 +1094,21 @@ namespace
 		Array< const char* >	instance_extensions = _GetInstanceExtensions( _vkInstanceVersion );			// throw
 		instance_extensions.insert( instance_extensions.end(), extensions.begin(), extensions.end() );		// throw
 
-		if ( _nvPerf.IsLoaded() )
-			_nvPerf.GetInstanceExtensions( *this, INOUT instance_extensions );
+	  #ifndef AE_CFG_RELEASE
+		if ( AnyBits( devFlags, EDeviceFlags::_NvApiMask ))
+		{
+			if ( LoadNvPerf() )
+				_nvPerf.GetInstanceExtensions( *this, INOUT instance_extensions );
+		}
+		if ( AnyBits( devFlags, EDeviceFlags::_AmdApiMask ))
+		{
+			if ( LoadAmdPerf() )
+				_amdPerf.GetInstanceExtensions( *this, INOUT instance_extensions );
+		}
+		if ( AnyBits( devFlags, EDeviceFlags::EnableRenderDoc ))
+			instance_layers.push_back( RenderDocApi::GetVkLayer() );
+	  #endif
+		Unused( devFlags );
 
 		_ValidateInstanceLayers( INOUT instance_layers, Bool{not _enableInfoLog} );								// throw
 		_ValidateInstanceExtensions( instance_layers, INOUT instance_extensions, Bool{not _enableInfoLog} );	// throw
@@ -1105,6 +1145,12 @@ namespace
 		CHECK_ERR( VulkanLoader::LoadInstance( _vkInstance ));
 
 		_OnCreateInstance( instance_extensions, instance_layers );	// throw
+
+	  #ifndef AE_CFG_RELEASE
+		if ( AnyBits( devFlags, EDeviceFlags::EnableRenderDoc ))
+			LoadRenderDoc();
+	  #endif
+
 		return true;
 	}
 
@@ -1182,8 +1228,13 @@ namespace
 
 		VulkanLoader::Unload();
 
+	  #ifndef AE_CFG_RELEASE
 		if ( _nvPerf.IsLoaded() )
 			_nvPerf.Deinitialize();
+
+		if ( _amdPerf.IsLoaded() )
+			_amdPerf.Deinitialize();
+	  #endif
 
 		_vkInstance			= Default;
 		_vkPhysicalDevice	= Default;
@@ -1222,7 +1273,7 @@ namespace {
 	bool  VDeviceInitializer::ChooseDevice (StringView deviceName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( _vkInstance );
+		CHECK_ERR( _vkInstance != Default );
 		CHECK_ERR( _vkLogicalDevice == Default );
 
 		if ( deviceName.empty() )
@@ -1296,7 +1347,7 @@ namespace {
 
 
 		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( _vkInstance );
+		CHECK_ERR( _vkInstance != Default );
 		CHECK_ERR( _vkLogicalDevice == Default );
 
 		FixedArray< VkPhysicalDevice, 16 >	devices;
@@ -1567,6 +1618,8 @@ namespace {
 */
 	void  VDeviceInitializer::_InitMemoryTypeToTypeBits (OUT MemTypeToTypeBits_t &result) C_Th___
 	{
+		result.clear();
+
 		const auto&	mem_props = GetVProperties().memoryProperties;
 
 		// Is all memory types are device local or has separated device and host memory.
@@ -1584,17 +1637,28 @@ namespace {
 			if ( dst == Default )
 				continue;
 
-			if ( AllBits( dst, EMemoryType::Transient ))  { result( EMemoryType::Transient ) |= bit; continue; }
+			const auto	AddBit = [&result, dst, bit] (EMemoryType expected)
+			{{
+				if ( AllBits( dst, expected ))
+				{
+					result( expected ) |= bit;
+					return true;
+				}
+				return false;
+			}};
+
+			if ( AddBit( EMemoryType::Transient )) continue;
 
 			if ( all_device_local )
 			{
 				// integrated GPU
-				if ( AllBits( dst, EMemoryType::Unified ))				result( EMemoryType::Unified )				|= bit;
-				if ( AllBits( dst, EMemoryType::UnifiedCached ))		result( EMemoryType::UnifiedCached )		|= bit;
-				if ( AllBits( dst, EMemoryType::HostCoherent ))			result( EMemoryType::HostCoherent )			|= bit;
-				if ( AllBits( dst, EMemoryType::HostCached ))			result( EMemoryType::HostCached )			|= bit;
-				if ( AllBits( dst, EMemoryType::HostCachedCoherent ))	result( EMemoryType::HostCachedCoherent )	|= bit;
-				if ( not AllBits( dst, EMemoryType::HostCached ))		result( EMemoryType::DeviceLocal )			|= bit;
+				AddBit( EMemoryType::Unified );
+				AddBit( EMemoryType::UnifiedCached );
+
+				if ( Any( AddBit( EMemoryType::HostCached ), AddBit( EMemoryType::HostCachedCoherent ), AddBit( EMemoryType::HostCoherent )))
+					continue;
+
+				result( EMemoryType::DeviceLocal ) |= bit;
 			}
 			else
 			{
@@ -1602,16 +1666,20 @@ namespace {
 				if ( AllBits( dst, EMemoryType::Unified ))
 				{
 					result( EMemoryType::Unified ) |= bit;
-					if ( AllBits( dst, EMemoryType::UnifiedCached ))  result( EMemoryType::UnifiedCached ) |= bit;
+					AddBit( EMemoryType::UnifiedCached );
 					continue;
 				}
 
-				if ( AllBits( dst, EMemoryType::DeviceLocal ))			{ result( EMemoryType::DeviceLocal ) |= bit; continue; }
-
-				if ( AllBits( dst, EMemoryType::HostCoherent ))			result( EMemoryType::HostCoherent )			|= bit;
-				if ( AllBits( dst, EMemoryType::HostCached ))			result( EMemoryType::HostCached )			|= bit;
-				if ( AllBits( dst, EMemoryType::HostCachedCoherent ))	result( EMemoryType::HostCachedCoherent )	|= bit;
+				(AddBit( EMemoryType::DeviceLocal ) or
+				 Any( AddBit( EMemoryType::HostCachedCoherent ), AddBit( EMemoryType::HostCached ))	or
+				 AddBit( EMemoryType::HostCoherent ));
 			}
+		}
+
+		if ( all_device_local and not result.contains( EMemoryType::DeviceLocal ))
+		{
+			ASSERT( result.contains( EMemoryType::Unified ));
+			result( EMemoryType::DeviceLocal ) |= result.GetIf( EMemoryType::Unified, 0u );
 		}
 
 		// validate
@@ -1927,14 +1995,14 @@ namespace {
 	CreateLogicalDevice
 =================================================
 */
-	bool  VDeviceInitializer::CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures) __NE___
+	bool  VDeviceInitializer::CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures, EDeviceFlags devFlags) __NE___
 	{
 		NOTHROW_ERR(
-			return _CreateLogicalDevice( extensions, fsToDeviceFeatures );
+			return _CreateLogicalDevice( extensions, fsToDeviceFeatures, devFlags );
 		)
 	}
 
-	bool  VDeviceInitializer::_CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures) __Th___
+	bool  VDeviceInitializer::_CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures, EDeviceFlags devFlags) __Th___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _vkPhysicalDevice != Default );
@@ -1950,8 +2018,14 @@ namespace {
 		Array<const char *>		device_extensions = _GetDeviceExtensions( _vkDeviceVersion );		// throw
 		device_extensions.insert( device_extensions.end(), extensions.begin(), extensions.end() );	// throw
 
+	  #ifndef AE_CFG_RELEASE
 		if ( _nvPerf.IsLoaded() )
 			_nvPerf.GetDeviceExtensions( *this, INOUT device_extensions );
+
+		if ( _amdPerf.IsLoaded() )
+			_amdPerf.GetDeviceExtensions( *this, INOUT device_extensions );
+	  #endif
+		Unused( devFlags );
 
 		_ValidateDeviceExtensions( _vkPhysicalDevice, INOUT device_extensions );	// throw
 
@@ -2067,6 +2141,12 @@ namespace {
 				_properties.cooperativeMatrixFeats.cooperativeMatrixRobustBufferAccess = VK_FALSE;
 			}
 
+			if ( not IsEnabledDebugCallback() )
+			{
+				// enabled only with env variable 'NV_ALLOW_RAYTRACING_VALIDATION=1'
+				_properties.rayTracingValidationFeats.rayTracingValidation = VK_FALSE;
+			}
+
 			device_info.pEnabledFeatures	= &_properties.features;
 			device_info.pNext				= dev_info_pnext;
 		}
@@ -2100,8 +2180,16 @@ namespace {
 			_LogExternalTools();	// throw
 		}
 
+	  #ifndef AE_CFG_RELEASE
 		if ( not (_nvPerf.IsLoaded() and _nvPerf.Initialize( *this )) )
 			_nvPerf.Deinitialize();
+
+		if ( AllBits( devFlags, EDeviceFlags::SetStableClock ) and _nvPerf.IsInitialized() )
+			_nvPerf.SetStableClockState( true );
+
+		if ( not (_amdPerf.IsLoaded() and _amdPerf.Initialize( *this, devFlags )) )
+			_amdPerf.Deinitialize();
+	  #endif
 
 		return true;
 	}
@@ -2217,12 +2305,22 @@ namespace {
 				case VK_DRIVER_ID_MESA_DOZEN :					str << "Mesa Dozen";					break;
 				case VK_DRIVER_ID_MESA_NVK :					str << "Mesa NVK";						break;
 				case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:	str << "Mesa Img open source";			break;
-				case VK_DRIVER_ID_MESA_AGXV :					str << "Mesa AGXV";						break;
+			//	case VK_DRIVER_ID_MESA_AGXV :					str << "Mesa AGXV";						break;
+				case VK_DRIVER_ID_MESA_HONEYKRISP :				str << "Mesa HoneyKrisp";				break;
+				case VK_DRIVER_ID_RESERVED_27 :
 				case VK_DRIVER_ID_MAX_ENUM :
 				default :										str << "unknown";						break;
 			}
 			switch_end
 		}
+
+		if (_extensions.subgroup ) {
+			str	<< "\n  subgroupSize:               " << ToString( _properties.subgroupProperties.subgroupSize );
+		}
+		if ( _extensions.subgroupSizeControl ) {
+			str	<< "\n  subgroupSizeMinMax:         " << ToString( _properties.subgroupSizeControlProps.minSubgroupSize ) << " - " << ToString( _properties.subgroupSizeControlProps.maxSubgroupSize );
+		}
+
 		str	<< _GetVulkanExtensionsString();
 		str << "\n----";
 		AE_LOGI( str );
@@ -2235,7 +2333,7 @@ namespace {
 				<< q.debugName.c_str()
 				<< ", family: " << ToString( uint(q.familyIndex) )
 				<< ", familyFlags: " << VkQueueFlagsToString( q.familyFlags )
-				<< ' ' << ToString( q.minImageTransferGranularity );
+				<< ", imgGran: " << ToString( q.minImageTransferGranularity );
 		}
 		str << "\n----";
 		AE_LOGI( str );
@@ -2732,7 +2830,7 @@ namespace {
 	bool  VDeviceInitializer::CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT severity, DebugReport_t &&callback) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( GetVkInstance() );
+		CHECK_ERR( GetVkInstance() != Default );
 
 		#ifdef AE_CFG_RELEASE
 		AE_LOGW( "Vulkan debug utils should not be used in release build" );
@@ -2799,6 +2897,18 @@ namespace {
 
 		dbg_report->debugUtilsMessenger	= Default;
 		dbg_report->debugReportCallback	= Default;
+	}
+
+/*
+=================================================
+	IsEnabledDebugCallback
+=================================================
+*/
+	bool  VDeviceInitializer::IsEnabledDebugCallback () C_NE___
+	{
+		auto	dbg_report = _dbgReport.ReadLock();
+		return	dbg_report->debugUtilsMessenger != Default or
+				dbg_report->debugReportCallback != Default;
 	}
 
 /*
@@ -2949,14 +3059,6 @@ namespace {
 		static const char*	instance_layers[] =
 		{
 			"VK_LAYER_KHRONOS_validation"
-
-		  #if defined(AE_PLATFORM_WINDOWS) and defined(AE_DEBUG)
-		//	, "VK_LAYER_LUNARG_device_simulation"
-		  #endif
-
-		  #if defined(AE_PLATFORM_ANDROID) and defined(AE_DEBUG)
-			, "VK_LAYER_POWERVR_gpu_timestamps"
-		  #endif
 		};
 		return instance_layers;
 	}
@@ -3039,21 +3141,6 @@ namespace {
 	{
 		DRC_EXLOCK( _drCheck );
 
-		EDeviceFlags	dev_flags = ci.device.devFlags;
-
-		#ifdef AE_CFG_RELEASE
-		{
-			constexpr auto	dbg_flags = EDeviceFlags::_NvApiMask | EDeviceFlags::_ArmProfMask | EDeviceFlags::EnableRenderDoc;
-			dev_flags &= dbg_flags;
-		}
-		#endif
-
-		if ( AnyBits( dev_flags, EDeviceFlags::_NvApiMask ))
-			LoadNvPerf();
-
-		if ( AnyBits( dev_flags, EDeviceFlags::_ArmProfMask ))
-			LoadArmProfiler();
-
 		// instance
 		{
 			const bool	enable_validation = (ci.device.validation != EDeviceValidation::Disabled);
@@ -3082,14 +3169,12 @@ namespace {
 				layers.insert( layers.end(), validation_layers.begin(), validation_layers.end() );
 			}
 
-			if ( AnyBits( dev_flags, EDeviceFlags::EnableRenderDoc ))
-				layers.push_back( RenderDocApi::GetVkLayer() );
-
 			InstanceCreateInfo	instance_ci;
 			instance_ci.appName				= ci.device.appName;
 			instance_ci.engineName			= AE_ENGINE_NAME;
 			instance_ci.instanceLayers		= layers;
 			instance_ci.instanceExtensions	= instanceExtensions;
+			instance_ci.devFlags			= ci.device.devFlags;
 
 			switch_enum( ci.device.validation )
 			{
@@ -3135,9 +3220,6 @@ namespace {
 				CreateDebugCallback( DefaultDebugMessageSeverity,
 									 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
 			}
-
-			if ( AnyBits( dev_flags, EDeviceFlags::EnableRenderDoc ))
-				LoadRenderDoc();
 		}
 
 		// device
@@ -3149,11 +3231,8 @@ namespace {
 				CHECK_ERR( ChooseHighPerformanceDevice() );
 
 			CHECK_ERR( CreateDefaultQueues( ci.device.requiredQueues, ci.device.optionalQueues ));
-			CHECK_ERR( CreateLogicalDevice() );
+			CHECK_ERR( CreateLogicalDevice( Default, null, ci.device.devFlags ));
 		}
-
-		if ( AllBits( dev_flags, EDeviceFlags::SetStableClock ) and _nvPerf.IsInitialized() )
-			_nvPerf.SetStableClockState( true );
 
 		return true;
 	}

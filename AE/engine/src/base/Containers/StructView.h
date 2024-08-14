@@ -456,8 +456,8 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 #ifndef AE_DEBUG
-	template <typename T>	struct TMemCopyAvailable< StructView<T> >	{ static constexpr bool  value = true; };
-	template <typename T>	struct TZeroMemAvailable< StructView<T> >	{ static constexpr bool  value = true; };
+	template <typename T>	struct TMemCopyAvailable< StructView<T> >	: CT_True {};
+	template <typename T>	struct TZeroMemAvailable< StructView<T> >	: CT_True {};
 #endif
 
 } // AE::Base

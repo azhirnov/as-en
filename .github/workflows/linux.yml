@@ -17,16 +17,17 @@ jobs:
        
     - name: Configure dependencies
       run: |
-        sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
+        sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
           libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
-          libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev
+          libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
+          libxkbcommon-dev
  
     - name: Create Build Environment
       working-directory: ${{github.workspace}}
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/8pkMenTvHYT6-g"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/m_u0aI_bssVzRA"
         unzip external.zip
     
     - name: Configure CMake
@@ -58,11 +59,17 @@ jobs:
       
     - uses: actions/upload-artifact@v4
       with:
-        name: AsEn-linux-x64-gcc13-${{matrix.config}}
+        name: AsEn-ResourceEditor-linux-x64-gcc13-${{matrix.config}}
+        path: |
+            ${{github.workspace}}/_build/bin/ResourceEditor.elf
+            
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-Tools-linux-x64-gcc13-${{matrix.config}}
         path: |
             ${{github.workspace}}/_build/bin/CICD.elf
+            ${{github.workspace}}/_build/bin/GraphicsLib.so
             ${{github.workspace}}/_build/bin/OfflinePacker.elf
-            ${{github.workspace}}/_build/bin/ResourceEditor.elf
             ${{github.workspace}}/_build/bin/RemoteGraphicsDevice.elf
             
       
@@ -79,17 +86,17 @@ jobs:
        
     - name: Configure dependencies
       run: |
-        sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
+        sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
           libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
-          libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev \
-          libc++-dev libc++abi-dev
+          libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
+          libxkbcommon-dev libc++-dev libc++abi-dev
  
     - name: Create Build Environment
       working-directory: ${{github.workspace}}
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/W1W_M_CnbD-8Hw"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/yGUJ9v-Fug03aw"
         unzip external.zip
     
     - name: Configure CMake
@@ -123,10 +130,64 @@ jobs:
       
     - uses: actions/upload-artifact@v4
       with:
-        name: AsEn-linux-x64-clang16-${{matrix.config}}
+        name: AsEn-ResourceEditor-linux-x64-clang16-${{matrix.config}}
+        path: |
+            ${{github.workspace}}/_build/bin/ResourceEditor.elf
+            
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-Tools-linux-x64-clang16-${{matrix.config}}
         path: |
             ${{github.workspace}}/_build/bin/CICD.elf
+            ${{github.workspace}}/_build/bin/GraphicsLib.so
             ${{github.workspace}}/_build/bin/OfflinePacker.elf
-            ${{github.workspace}}/_build/bin/ResourceEditor.elf
             ${{github.workspace}}/_build/bin/RemoteGraphicsDevice.elf
+            
+            
+  build-clang-16-rg:
+    strategy:
+      matrix:
+        config: [Debug, Develop, Profile, Release]
+        
+    runs-on: ubuntu-24.04
+    name: Linux x64, Clang 16, ${{matrix.config}}, RemoteGraphics
+    
+    steps:
+    - uses: actions/checkout@v4
+       
+    - name: Configure dependencies
+      run: |
+        sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+          libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
+          libxkbcommon-dev libc++-dev libc++abi-dev
+ 
+    - name: Create Build Environment
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir _build
+        cd AE-Bin
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/yGUJ9v-Fug03aw"
+        unzip external.zip
+    
+    - name: Configure CMake
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_ENABLE_REMOTE_GRAPHICS=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+    
+    - name: Build
+      working-directory: ${{github.workspace}}
+      run: cmake --build "_build" --config ${{matrix.config}} -j 2 --target "ResourceEditor"
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AsEn-ResourceEditor-linux-x64-clang16-${{matrix.config}}-RemoteGraphics
+        path: |
+            ${{github.workspace}}/_build/bin/ResourceEditor.elf
+            
             

@@ -43,7 +43,7 @@
 #	pragma message("GLSL-Trace library is missing, shader debugging and profiling will be disabled")
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 14 or GLSLANG_VERSION_MINOR != 1 or GLSLANG_VERSION_PATCH != 0
+#if GLSLANG_VERSION_MAJOR != 14 or GLSLANG_VERSION_MINOR != 3
 #	error invalid glslang version
 #endif
 
@@ -145,7 +145,7 @@ namespace AE::PipelineCompiler
 	SpirvCompiler::ShaderIncluder::IncludeResult*
 		SpirvCompiler::ShaderIncluder::includeLocal (const char* headerName, const char *, usize)
 	{
-		ASSERT( _directories.size() );
+		ASSERT( not _directories.empty() );
 
 		for (auto& folder : _directories)
 		{

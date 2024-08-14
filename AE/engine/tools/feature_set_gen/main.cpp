@@ -26,8 +26,9 @@ using namespace AE::Graphics;
 
 #define FS_INIT( _name_ )		min_fs._name_ = fs._name_;
 #define FS_MERGE( _name_ )		min_fs._name_ = FS_MergeMin( min_fs._name_, fs._name_, AE_TOSTRING( _name_ ));
-#define FS_ISFALSE( _name_ )	(fs._name_ != EFeature::RequireTrue) and
-#define FS_ISFALSE2( _name_ )	(min_fs._name_ != EFeature::RequireTrue) and
+#define FS_ALL_TRUE( _name_ )	(fs._name_ == EFeature::RequireTrue) and
+#define FS_ANY_TRUE( _name_ )	(fs._name_ == EFeature::RequireTrue) or
+#define FS_ANY_TRUE2( _name_ )	(min_fs._name_ == EFeature::RequireTrue) or
 
 
 enum class EType : uint
@@ -191,6 +192,7 @@ static bool  GenMinDescriptorIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing	)
 
 	#define FS_LIST2( _visitor_ ) \
+		_visitor_( runtimeDescriptorArray				)\
 		_visitor_( perDescrSet							)\
 		_visitor_( perStage								)\
 		_visitor_( maxUniformBufferSize					)\
@@ -210,14 +212,14 @@ static bool  GenMinDescriptorIndexing (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( FS_LIST( FS_ISFALSE ) true )
+		if ( not (FS_LIST( FS_ANY_TRUE ) false) )
 			continue;
 
 		if ( init )
 		{
 			FS_LIST( FS_MERGE );
 			FS_LIST2( FS_MERGE );
-			CHECK( not (FS_LIST( FS_ISFALSE2 ) true) );
+			CHECK( FS_LIST( FS_ANY_TRUE2 ) false );
 		}
 		else
 		{
@@ -262,24 +264,29 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		_visitor_( shaderInputAttachmentArrayNonUniformIndexing	)\
 
 	#define FS_LIST2( _visitor_ ) \
-		_visitor_( runtimeDescriptorArray							)\
-		_visitor_( shaderUniformTexelBufferArrayNonUniformIndexing	)\
-		_visitor_( shaderStorageTexelBufferArrayNonUniformIndexing	)\
-		_visitor_( shaderSampledImageArrayDynamicIndexing			)\
-		_visitor_( shaderStorageBufferArrayDynamicIndexing			)\
-		_visitor_( shaderStorageImageArrayDynamicIndexing			)\
-		_visitor_( shaderUniformBufferArrayDynamicIndexing			)\
-		_visitor_( shaderInputAttachmentArrayDynamicIndexing		)\
-		_visitor_( shaderUniformTexelBufferArrayDynamicIndexing		)\
-		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing		)\
-		_visitor_( perDescrSet										)\
-		_visitor_( perStage											)\
-		_visitor_( maxUniformBufferSize								)\
-		_visitor_( maxStorageBufferSize								)\
-		_visitor_( maxDescriptorSets								)\
-		_visitor_( maxPushConstantsSize								)\
-		_visitor_( maxFragmentOutputAttachments						)\
-		_visitor_( maxFragmentCombinedOutputResources				)
+		_visitor_( runtimeDescriptorArray								)\
+		_visitor_( shaderUniformTexelBufferArrayNonUniformIndexing		)\
+		_visitor_( shaderStorageTexelBufferArrayNonUniformIndexing		)\
+		_visitor_( shaderUniformBufferArrayNonUniformIndexingNative		)\
+		_visitor_( shaderSampledImageArrayNonUniformIndexingNative		)\
+		_visitor_( shaderStorageBufferArrayNonUniformIndexingNative		)\
+		_visitor_( shaderStorageImageArrayNonUniformIndexingNative		)\
+		_visitor_( shaderInputAttachmentArrayNonUniformIndexingNative	)\
+		_visitor_( shaderSampledImageArrayDynamicIndexing				)\
+		_visitor_( shaderStorageBufferArrayDynamicIndexing				)\
+		_visitor_( shaderStorageImageArrayDynamicIndexing				)\
+		_visitor_( shaderUniformBufferArrayDynamicIndexing				)\
+		_visitor_( shaderInputAttachmentArrayDynamicIndexing			)\
+		_visitor_( shaderUniformTexelBufferArrayDynamicIndexing			)\
+		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing			)\
+		_visitor_( perDescrSet											)\
+		_visitor_( perStage												)\
+		_visitor_( maxUniformBufferSize									)\
+		_visitor_( maxStorageBufferSize									)\
+		_visitor_( maxDescriptorSets									)\
+		_visitor_( maxPushConstantsSize									)\
+		_visitor_( maxFragmentOutputAttachments							)\
+		_visitor_( maxFragmentCombinedOutputResources					)
 
 	FeatureSet	min_fs;
 	String		comment;
@@ -291,7 +298,7 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 	{
 		const auto&	fs = info.fs;
 
-		if ( FS_LIST( FS_ISFALSE ) true )
+		if ( not (FS_LIST( FS_ANY_TRUE ) false) )
 			continue;
 
 		if ( fs.shaderSampledImageArrayNonUniformIndexing != EFeature::RequireTrue )
@@ -301,7 +308,7 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		{
 			FS_LIST( FS_MERGE );
 			FS_LIST2( FS_MERGE );
-			CHECK( not (FS_LIST( FS_ISFALSE2 ) true) );
+			CHECK( FS_LIST( FS_ANY_TRUE2 ) false );
 		}
 		else
 		{
@@ -325,6 +332,95 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 	dst_path.append( "parts/min_nonuniform_desc_idx.as" );
 
 	CHECK_ERR( FeatureSetToScript( dst_path, "part.MinNonUniformDescriptorIndexing", min_fs, comment ));
+	return true;
+
+#undef FS_LIST
+#undef FS_LIST2
+}
+
+/*
+=================================================
+	GenMinNativeNonUniformDescIndexing
+=================================================
+*/
+static bool  GenMinNativeNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
+{
+	#define FS_LIST( _visitor_ ) \
+		_visitor_( shaderUniformBufferArrayNonUniformIndexingNative		)\
+		_visitor_( shaderSampledImageArrayNonUniformIndexingNative		)\
+		_visitor_( shaderStorageBufferArrayNonUniformIndexingNative		)\
+		_visitor_( shaderStorageImageArrayNonUniformIndexingNative		)\
+		_visitor_( shaderInputAttachmentArrayNonUniformIndexingNative	)\
+
+	#define FS_LIST2( _visitor_ ) \
+		_visitor_( runtimeDescriptorArray								)\
+		_visitor_( shaderUniformTexelBufferArrayNonUniformIndexing		)\
+		_visitor_( shaderStorageTexelBufferArrayNonUniformIndexing		)\
+		_visitor_( shaderUniformBufferArrayNonUniformIndexing			)\
+		_visitor_( shaderSampledImageArrayNonUniformIndexing			)\
+		_visitor_( shaderStorageBufferArrayNonUniformIndexing			)\
+		_visitor_( shaderStorageImageArrayNonUniformIndexing			)\
+		_visitor_( shaderInputAttachmentArrayNonUniformIndexing			)\
+		_visitor_( shaderSampledImageArrayDynamicIndexing				)\
+		_visitor_( shaderStorageBufferArrayDynamicIndexing				)\
+		_visitor_( shaderStorageImageArrayDynamicIndexing				)\
+		_visitor_( shaderUniformBufferArrayDynamicIndexing				)\
+		_visitor_( shaderInputAttachmentArrayDynamicIndexing			)\
+		_visitor_( shaderUniformTexelBufferArrayDynamicIndexing			)\
+		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing			)\
+		_visitor_( perDescrSet											)\
+		_visitor_( perStage												)\
+		_visitor_( maxUniformBufferSize									)\
+		_visitor_( maxStorageBufferSize									)\
+		_visitor_( maxDescriptorSets									)\
+		_visitor_( maxPushConstantsSize									)\
+		_visitor_( maxFragmentOutputAttachments							)\
+		_visitor_( maxFragmentCombinedOutputResources					)
+
+	FeatureSet	min_fs;
+	String		comment;
+	bool		init	= false;
+
+	comment << "\t// include:\n";
+
+	for (auto& info : fsInfo)
+	{
+		const auto&	fs = info.fs;
+
+		if ( not (FS_LIST( FS_ANY_TRUE ) false) )
+			continue;
+
+		if ( fs.shaderSampledImageArrayNonUniformIndexingNative != EFeature::RequireTrue )
+			continue;
+
+		if ( init )
+		{
+			FS_LIST( FS_MERGE );
+			FS_LIST2( FS_MERGE );
+			CHECK( FS_LIST( FS_ANY_TRUE2 ) false );
+		}
+		else
+		{
+			FS_LIST( FS_INIT );
+			FS_LIST2( FS_INIT );
+			init = true;
+		}
+
+		comment << "\t//\t" << info.name << "\n";
+	}
+
+	CHECK_ERR( init );
+
+	comment << "\n";
+
+	ValidateFS( INOUT min_fs );
+	//min_fs.Validate();
+	//CHECK( min_fs.IsValid() );
+
+	Path	dst_path = FEATURE_SET_FOLDER;
+	dst_path.append( "parts/min_native_nonuniform_desc_idx.as" );
+
+	CHECK_ERR( FeatureSetToScript( dst_path, "part.MinNativeNonUniformDescriptorIndexing", min_fs, comment ));
 	return true;
 
 #undef FS_LIST
@@ -1444,6 +1540,7 @@ int main ()
 	CHECK_ERR( GenMinimalFS					( fs_infos ),	-10 );
 	CHECK_ERR( GenMinDescriptorIndexing		( fs_infos ),	-10 );
 	CHECK_ERR( GenMinNonUniformDescIndexing	( fs_infos ),	-10 );
+	CHECK_ERR( GenMinNativeNonUniformDescIndexing( fs_infos ),	-10 );
 	CHECK_ERR( GenMinRecursiveRayTracing	( fs_infos ),	-10 );
 	CHECK_ERR( GenMinInlineRayTracing		( fs_infos ),	-10 );
 	CHECK_ERR( GenMinMeshShader				( fs_infos ),	-10 );

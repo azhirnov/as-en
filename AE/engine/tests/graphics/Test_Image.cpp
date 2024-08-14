@@ -70,7 +70,7 @@ namespace
 							++unsupported;
 
 						// multisampled
-						desc.maxLevel	= 1_mipmap;
+						desc.mipLevels	= 1_mipmap;
 						desc.samples	= 4_samples;
 
 						if ( resMngr.IsSupported( desc ))
@@ -95,7 +95,7 @@ namespace
 							++unsupported;
 
 						// multisampled array
-						desc.maxLevel	  = 1_mipmap;
+						desc.mipLevels	  = 1_mipmap;
 						desc.samples	  = 4_samples;
 						desc.arrayLayers *= 2;
 

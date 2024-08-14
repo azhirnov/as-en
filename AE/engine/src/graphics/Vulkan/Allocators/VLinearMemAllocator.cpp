@@ -161,7 +161,7 @@ namespace
 		const Key	key{ mem_alloc.memoryTypeIndex, shaderAddress, isImage };
 
 		auto&	page_arr = _pages( key );
-		CHECK_ERR( page_arr.size() < page_arr.capacity() );
+		CHECK_ERR_MSG( not page_arr.IsFull(), "overflow!" );
 
 		auto&	page		= page_arr.emplace_back();
 		auto&	mem_props	= dev.GetVProperties().memoryProperties;

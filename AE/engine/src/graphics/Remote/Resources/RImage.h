@@ -50,7 +50,7 @@ namespace AE::Graphics
 		ND_ uint const			Height ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.y; }
 		ND_ uint const			Depth ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.z; }
 		ND_ uint const			ArrayLayers ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.arrayLayers.Get(); }
-		ND_ uint const			MipmapLevels ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.maxLevel.Get(); }
+		ND_ uint const			MipmapLevels ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.mipLevels.Get(); }
 		ND_ EPixelFormat		PixelFormat ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.format; }
 		ND_ uint const			Samples ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.samples.Get(); }
 

@@ -374,7 +374,8 @@ namespace
 						Unused( file->WriteBlock( offset, mem->Size(), mem ));
 					},
 					"Buffer::Readback",
-					ETaskQueue::Background );
+					ETaskQueue::Background
+				);
 
 		if ( _storeOp.stream.IsCompleted() )
 		{

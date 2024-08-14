@@ -148,8 +148,6 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( List{ t.result0, t.result1, t.result2 });
 		}
 	};
 

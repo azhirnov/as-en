@@ -306,7 +306,12 @@ namespace AE::Graphics
 
 	ND_ inline constexpr bool  EPixelFormat_IsASTC_LDR (EPixelFormat format)__NE___
 	{
-		return (format >= EPixelFormat::ASTC_RGBA_4x4) and (format <= EPixelFormat::ASTC_sRGB8_A8_12x12);
+		return (format >= EPixelFormat::ASTC_RGBA8_4x4) and (format <= EPixelFormat::ASTC_RGBA8_12x12);
+	}
+
+	ND_ inline constexpr bool  EPixelFormat_IsASTC_LDR_sRGB (EPixelFormat format)__NE___
+	{
+		return (format >= EPixelFormat::ASTC_sRGB8_A8_4x4) and (format <= EPixelFormat::ASTC_sRGB8_A8_12x12);
 	}
 
 	ND_ inline constexpr bool  EPixelFormat_IsASTC_HDR (EPixelFormat format)__NE___
@@ -316,7 +321,7 @@ namespace AE::Graphics
 
 	ND_ inline constexpr bool  EPixelFormat_IsASTC (EPixelFormat format)__NE___
 	{
-		return EPixelFormat_IsASTC_LDR( format ) or EPixelFormat_IsASTC_HDR( format );
+		return (format >= EPixelFormat::ASTC_RGBA8_4x4) and (format <= EPixelFormat::ASTC_RGBA16F_12x12);
 	}
 
 	ND_ inline constexpr bool  EPixelFormat_IsYcbcr (EPixelFormat format)__NE___

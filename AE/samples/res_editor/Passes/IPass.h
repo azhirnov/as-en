@@ -44,6 +44,15 @@ namespace AE::ResEditor
 			_Count
 		};
 
+		enum class ECompare : ubyte
+		{
+			Unknown,
+			Equal,
+			Less,
+			Greater,
+			AnyBit,
+		};
+
 		struct Debugger
 		{
 			void const*					target		= null;
@@ -118,11 +127,12 @@ namespace AE::ResEditor
 	public:
 		using DynamicFloatTypes_t	= TypeList< DynamicFloat, DynamicFloat2, DynamicFloat3, DynamicFloat4 >;
 		using DynamicIntTypes_t		= TypeList< DynamicInt, DynamicInt2, DynamicInt3, DynamicInt4,
-												DynamicUInt, DynamicUInt2, DynamicUInt3, DynamicUInt4 >;
+												DynamicUInt, DynamicUInt2, DynamicUInt3, DynamicUInt4,
+												DynamicDim >;
 
 		struct Constants
 		{
-			static constexpr uint	MaxCount = 4;
+			static constexpr uint	MaxCount = 8;
 
 			StaticArray< RC<>, MaxCount >	f;
 			StaticArray< RC<>, MaxCount >	i;
@@ -140,7 +150,7 @@ namespace AE::ResEditor
 		struct {
 			RC<DynamicUInt>		dynamic;
 			uint				ref			= 0;
-			ECompareOp			op			= ECompareOp::Always;
+			ECompare			op			= Default;
 		}					_enablePass;
 
 
@@ -177,10 +187,10 @@ namespace AE::ResEditor
 		IPass ();
 		explicit IPass (StringView dbgName, RGBA8u dbgColor = Default);
 
-		void  _CopySliders (OUT StaticArray<float4,4> &, OUT StaticArray<int4,4> &,
-							OUT StaticArray<float4,4> &)									const;
-		void  _CopyConstants (const Constants &, OUT StaticArray<float4,4> &,
-							  OUT StaticArray<int4,4> &)									const;
+		void  _CopySliders (OUT StaticArray<float4,8> &, OUT StaticArray<int4,8> &,
+							OUT StaticArray<float4,8> &)									const;
+		void  _CopyConstants (const Constants &, OUT StaticArray<float4,8> &,
+							  OUT StaticArray<int4,8> &)									const;
 
 		ND_ bool  _IsEnabled ()																const;
 	};

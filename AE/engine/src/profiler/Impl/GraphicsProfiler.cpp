@@ -4,7 +4,6 @@
 # include "imgui.h"
 #endif
 #include "profiler/Impl/GraphicsProfiler.h"
-#include "base/Algorithms/StringUtils.h"
 
 namespace AE::Profiler
 {
@@ -41,8 +40,9 @@ namespace AE::Profiler
 	constructor
 =================================================
 */
-	GraphicsProfiler::GraphicsProfiler (TimePoint_t startTime) __NE___ :
-		ProfilerUtils{ startTime }
+	GraphicsProfiler::GraphicsProfiler (TimePoint_t startTime, PowerVRProfiler* pvrProfiler) __NE___ :
+		ProfilerUtils{ startTime },
+		_pvrProfiler{ pvrProfiler }
 	{}
 
 /*
@@ -136,7 +136,7 @@ namespace AE::Profiler
 
 		// fps
 		{
-			double	accum_time	= _fps.accumframeTime.exchange( 0.0 );
+			double	accum_time	= _fps.accumFrameTime.exchange( 0.0 );
 
 			_fps.result	= float(frame_count) / dt.count();
 			_fps.dt		= nanosecondsf{ float( accum_time / frame_count )};
@@ -221,7 +221,17 @@ namespace AE::Profiler
 			_writeIndex	= idx[1];
 			_readIndex	= idx[0];
 		}{
-			auto	task = MakeRCNe< Threading::AsyncTaskFn >( [this]() { _ReadResults(); }, "GraphicsProfiler::ReadResults", ETaskQueue::PerFrame );
+			auto	task = MakeRCNe< Threading::AsyncTaskFn >( [this]()
+										{
+										  #if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_ENABLE_PVRCOUNTER)
+											if ( _pvrProfiler and _pvrProfiler->IsInitialized() )
+												_ReadResultsPVR();
+											else
+										  #endif
+												_ReadResults();
+										},
+										"GraphicsProfiler::ReadResults",
+										ETaskQueue::PerFrame );
 			if ( Scheduler().Run( task ))
 				rts.AddNextFrameDeps( task );
 		}{
@@ -283,9 +293,60 @@ namespace AE::Profiler
 			}
 		}
 
+		_gpuTime.min = Min( _gpuTime.min, _gpuTime.max );
+
 		_imHistory.End( _gpuTime.min, _gpuTime.max );
 
-		_fps.accumframeTime.fetch_add( (_gpuTime.max - _gpuTime.min).count() );
+		_fps.accumFrameTime.fetch_add( (_gpuTime.max - _gpuTime.min).count() );
+	}
+
+/*
+=================================================
+	_ReadResultsPVR
+=================================================
+*/
+	void  GraphicsProfiler::_ReadResultsPVR ()
+	{
+		auto&	f = _perFrame[_readIndex];
+		EXLOCK( f.guard );
+
+		_gpuTime.min	= nanosecondsd{MaxValue<double>()};
+		_gpuTime.max	= nanosecondsd{0.0};
+
+		_imHistory.Begin();
+
+		_pvrProfiler->ReadTimingData( OUT _pvrTimings );
+
+		for (auto& t : _pvrTimings)
+		{
+			ASSERT( t.begin <= t.end );
+			_gpuTime.min = Min( _gpuTime.min, t.begin );
+			_gpuTime.max = Max( _gpuTime.max, t.end );
+
+			StringView	name;
+			RGBA8u		color;
+
+			using EPass = PowerVRProfiler::EPass;
+			switch_enum( t.pass )
+			{
+				case EPass::Compute :		name = "Compute";		color = HtmlColor::Yellow;	break;
+				case EPass::TileAccel :		name = "TileAccel";		color = HtmlColor::Blue;	break;
+				case EPass::TBDR :			name = "TBDR";			color = HtmlColor::Lime;	break;
+				case EPass::Blit :			name = "Blit";			color = HtmlColor::Red;		break;
+				case EPass::RayTracing :	name = "RayTracing";	color = HtmlColor::Violet;	break;
+				case EPass::RTASBuild :		name = "RTASBuild";		color = HtmlColor::Pink;	break;
+				case EPass::Unknown :		break;
+			}
+			switch_end
+
+			_imHistory.Add( name, color, t.begin, t.end );
+		}
+
+		_gpuTime.min = Min( _gpuTime.min, _gpuTime.max );
+
+		_imHistory.End( _gpuTime.min, _gpuTime.max );
+
+		_fps.accumFrameTime.fetch_add( (_gpuTime.max - _gpuTime.min).count() );
 	}
 //-----------------------------------------------------------------------------
 

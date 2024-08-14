@@ -39,6 +39,7 @@ namespace AE::Base
 		Marvell,
 		HuaxintongSemiconductor,
 		Ampere,
+		Loongson
 	};
 
 	enum class ECoreType : ubyte
@@ -131,13 +132,15 @@ namespace AE::Base
 
 		struct Core
 		{
-			FixedString<64>	name;
-			ECoreType		type			= Default;
-			MHz_t			baseClock		= 0;
-			MHz_t			maxClock		= 0;
-			CoreBits_t		logicalBits		= {};	// \__ in global space, must not intersects with other cores
-			CoreBits_t		physicalBits	= {};	// /
+		// variables
+			FixedString<64>		name;
+			ECoreType			type			= Default;
+			MHz_t				baseClock		= 0;
+			MHz_t				maxClock		= 0;
+			CoreBits_t			logicalBits		= {};	// \__ in global space, must not intersects with other cores
+			CoreBits_t			physicalBits	= {};	// /
 
+		// methods
 			Core ()							__NE___ = default;
 
 			ND_ uint  LogicalCount ()		C_NE___	{ return uint(logicalBits.count()); }
@@ -226,6 +229,7 @@ namespace AE::Base
 
 
 
+#ifdef AE_ENABLE_LOGS
 /*
 =================================================
 	ToString (ECPUArch)
@@ -291,10 +295,13 @@ namespace AE::Base
 			case ECPUVendor::Marvell :		return "Marvell";
 			case ECPUVendor::HuaxintongSemiconductor :	return "HuaxintongSemiconductor";
 			case ECPUVendor::Ampere :		return "Ampere";
+			case ECPUVendor::Loongson :		return "Loongson";
 			case ECPUVendor::Unknown:		break;
 		}
 		switch_end
 		return "";
 	}
+
+#endif // AE_ENABLE_LOGS
 
 } // AE::Base

@@ -290,7 +290,7 @@ namespace AE::Graphics
 			DRC_SHAREDLOCK( _drCheck );
 			const auto	bit = Bits_t{1} << idx;
 
-			PlacementNew<NativeCmdBuffer_t>( OUT &_pool[idx].native, RVRef(cmdbuf) );
+			PlacementNew<NativeCmdBuffer_t>( OUT std::addressof(_pool[idx].native), RVRef(cmdbuf) );
 
 			MaybeUnused auto	old_bits = _ready.fetch_or( bit, EMemoryOrder::Release );
 			ASSERT( (old_bits & bit) == 0 );
@@ -316,7 +316,7 @@ namespace AE::Graphics
 			DRC_SHAREDLOCK( _drCheck );
 			const auto	bit = Bits_t{1} << idx;
 
-			PlacementNew<BakedCommands_t>( OUT &_pool[idx].baked, RVRef(ctx) );
+			PlacementNew<BakedCommands_t>( OUT std::addressof(_pool[idx].baked), RVRef(ctx) );
 			_cmdTypes.fetch_or( bit );
 
 			MaybeUnused auto	old_bits = _ready.fetch_or( bit, EMemoryOrder::Release );

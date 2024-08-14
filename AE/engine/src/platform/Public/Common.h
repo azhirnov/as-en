@@ -24,11 +24,11 @@ namespace AE::App
 	using Threading::AsyncTask;
 	using Threading::Promise;
 
-#  if AE_ENABLE_DATA_RACE_CHECK
+	#if AE_ENABLE_DATA_RACE_CHECK
 	using Threading::DataRaceCheck;
 	using Threading::RWDataRaceCheck;
 	using Threading::SingleThreadCheck;
-#  endif
+	#endif
 
 	using VFS::IVirtualFileStorage;
 

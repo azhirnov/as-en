@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-using ImgPackHeader_t	= AssetPacker::ImagePacker::Header;
-using ImgPackHeader2_t	= AssetPacker::ImagePacker::Header2;
-using ImageUtils_t		= Graphics::ImageUtils;
+using ImgPackHeader_t		= AssetPacker::ImagePacker::Header;
+using ImgPackFileHeader_t	= AssetPacker::ImagePacker::FileHeader;
+using ImageUtils_t			= Graphics::ImageUtils;
 
 
 /*
@@ -33,7 +33,7 @@ using ImageUtils_t		= Graphics::ImageUtils;
 */
 	inline void  ImagePacker_GetOffset (const ImgPackHeader_t &header, ImageLayer layer, MipmapLevel mipmap, const uint3 &imageOffset,
 										OUT uint3 &imageDim, OUT Bytes &dataOffset,
-										OUT Bytes &size, OUT Bytes &rowSize, OUT Bytes &sliceSize) __NE___
+										OUT Bytes &rowSize, OUT Bytes &sliceSize) __NE___
 	{
 		ASSERT( ImagePacker_IsValid( header ));
 		ASSERT( layer.Get() < 1 or header.dimension.z == 1 );
@@ -54,8 +54,7 @@ using ImageUtils_t		= Graphics::ImageUtils;
 				ASSERT( All( imageOffset < imageDim ));
 				ASSERT( All( IsMultipleOf( uint2{imageOffset}, texblock_dim )));
 
-				size		 = sliceSize * imageDim.z;
-				dataOffset	+= size * layer.Get();
+				dataOffset	+= sliceSize * imageDim.z * layer.Get();
 				dataOffset	+= ImageUtils_t::ImageOffset( imageOffset, rowSize, sliceSize, fmt_info.bitsPerBlock, texblock_dim );
 				return;
 			}
@@ -82,7 +81,7 @@ using ImageUtils_t		= Graphics::ImageUtils;
 	ReadHeader
 =================================================
 */
-	ND_ inline bool  ImagePacker_ReadHeader (RStream &stream, OUT ImgPackHeader2_t &header) __NE___
+	ND_ inline bool  ImagePacker_ReadHeader (RStream &stream, OUT ImgPackFileHeader_t &header) __NE___
 	{
 		ASSERT( stream.IsOpen() );
 
@@ -96,7 +95,7 @@ using ImageUtils_t		= Graphics::ImageUtils;
 
 	ND_ inline bool  ImagePacker_ReadHeader (RStream &stream, OUT ImgPackHeader_t &header) __NE___
 	{
-		ImgPackHeader2_t	tmp;
+		ImgPackFileHeader_t	tmp;
 		bool	res = ImagePacker_ReadHeader( stream, OUT tmp );
 		header = tmp.hdr;
 		return res;
@@ -107,7 +106,7 @@ using ImageUtils_t		= Graphics::ImageUtils;
 	ImagePacker_SaveHeader
 =================================================
 */
-	ND_ inline bool  ImagePacker_SaveHeader (WStream &stream, const ImgPackHeader2_t &header) __NE___
+	ND_ inline bool  ImagePacker_SaveHeader (WStream &stream, const ImgPackFileHeader_t &header) __NE___
 	{
 		ASSERT( stream.IsOpen() );
 		ASSERT( ImagePacker_IsValid( header.hdr ));
@@ -116,7 +115,7 @@ using ImageUtils_t		= Graphics::ImageUtils;
 
 	ND_ inline bool  ImagePacker_SaveHeader (WStream &stream, const ImgPackHeader_t &header) __NE___
 	{
-		return ImagePacker_SaveHeader( stream, ImgPackHeader2_t{header} );
+		return ImagePacker_SaveHeader( stream, ImgPackFileHeader_t{header} );
 	}
 
 /*
@@ -148,16 +147,16 @@ using ImageUtils_t		= Graphics::ImageUtils;
 				}
 
 				uint3	dim;
-				Bytes	off, size, row_size, slice_size;
+				Bytes	off, row_size, slice_size;
 				ImagePacker_GetOffset( header, ImageLayer{layer}, MipmapLevel{mip}, uint3{0},
-									   OUT dim, OUT off, OUT size, OUT row_size, OUT slice_size );
+									   OUT dim, OUT off, OUT row_size, OUT slice_size );
 
 				CHECK( src_view.Format() == header.format );
 				CHECK( All( dim == src_view.Dimension() ));
 				CHECK( row_size == src_view.RowPitch() );
 				CHECK( slice_size == src_view.SlicePitch() );
 				CHECK_Eq( base_off + off, pos );
-				CHECK_Eq( base_off + off + size, stream.Position() );
+				CHECK_Eq( base_off + off + slice_size * dim.z, stream.Position() );
 			}
 		}
 		return true;

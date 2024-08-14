@@ -183,6 +183,24 @@ namespace
 
 /*
 =================================================
+	HasHashCollisions
+=================================================
+*/
+	bool  ObjectStorage::HasHashCollisions () C_NE___
+	{
+		bool	has_collision = false;
+
+		if ( _android )	has_collision |= _android->HasHashCollisions();
+		if ( _glfw )	has_collision |= _glfw	->HasHashCollisions();
+		if ( _winapi )	has_collision |= _winapi->HasHashCollisions();
+		if ( _openvr )	has_collision |= _openvr->HasHashCollisions();
+	//	if ( _openxr )	has_collision |= _openxr->HasHashCollisions();
+
+		return has_collision;
+	}
+
+/*
+=================================================
 	SaveCppTypes
 =================================================
 */

@@ -63,7 +63,7 @@ namespace AE::Graphics::_hidden_
 		GCTX_CHECK( stage != 0 );
 		GCTX_CHECK( index < q.count );
 
-		_cmdbuf->WriteTimestamp( stage, q.pool, q.first );
+		_cmdbuf->WriteTimestamp( stage, q.pool, q.first + index );
 	}
 //-----------------------------------------------------------------------------
 
@@ -108,7 +108,7 @@ namespace AE::Graphics::_hidden_
 		cmd.bindPoint			= bindPoint;
 		cmd.index				= CheckCast<ushort>( index );
 		cmd.dynamicOffsetCount	= CheckCast<ushort>( dynamicOffsets.size() );
-		MemCopy( OUT offsets, dynamicOffsets.data(), ArraySizeOf(dynamicOffsets) );
+		MemCopy_NullCheck( OUT offsets, dynamicOffsets.data(), ArraySizeOf(dynamicOffsets) );
 	}
 
 /*
@@ -158,7 +158,7 @@ namespace AE::Graphics::_hidden_
 		cmd.type	= type;
 		cmd.color	= color;
 
-		MemCopy( OUT str, taskName.data(), Bytes{taskName.size()} );
+		MemCopy_NullCheck( OUT str, taskName.data(), Bytes{taskName.size()} );
 		str[taskName.size()] = '\0';
 	}
 
@@ -208,7 +208,7 @@ namespace AE::Graphics::_hidden_
 		auto*	str	= Cast<char>( &cmd + 1 );
 
 		cmd.color = dbg.color;
-		MemCopy( OUT str, dbg.label.data(), Bytes{dbg.label.size()} );
+		MemCopy_NullCheck( OUT str, dbg.label.data(), Bytes{dbg.label.size()} );
 		str[dbg.label.size()] = '\0';
 	}
 
@@ -225,7 +225,7 @@ namespace AE::Graphics::_hidden_
 		auto*	str	= Cast<char>( &cmd + 1 );
 
 		cmd.color = dbg.color;
-		MemCopy( OUT str, dbg.label.data(), Bytes{dbg.label.size()} );
+		MemCopy_NullCheck( OUT str, dbg.label.data(), Bytes{dbg.label.size()} );
 		str[dbg.label.size()] = '\0';
 	}
 
@@ -270,13 +270,13 @@ namespace AE::Graphics::_hidden_
 		cmd->imageBarrierCount	= CheckCast<ushort>( barrier.imageMemoryBarrierCount );
 		cmd->dependencyFlags	= CheckCast<ushort>( barrier.dependencyFlags );
 
-		MemCopy( OUT ptr, barrier.pMemoryBarriers, SizeOf<VkMemoryBarrier2> * barrier.memoryBarrierCount );
+		MemCopy_NullCheck( OUT ptr, barrier.pMemoryBarriers, SizeOf<VkMemoryBarrier2> * barrier.memoryBarrierCount );
 		ptr = AlignUp( ptr + SizeOf<VkMemoryBarrier2> * barrier.memoryBarrierCount, align );
 
-		MemCopy( OUT ptr, barrier.pBufferMemoryBarriers, SizeOf<VkBufferMemoryBarrier2> * barrier.bufferMemoryBarrierCount );
+		MemCopy_NullCheck( OUT ptr, barrier.pBufferMemoryBarriers, SizeOf<VkBufferMemoryBarrier2> * barrier.bufferMemoryBarrierCount );
 		ptr = AlignUp( ptr + SizeOf<VkBufferMemoryBarrier2> * barrier.bufferMemoryBarrierCount, align );
 
-		MemCopy( OUT ptr, barrier.pImageMemoryBarriers, SizeOf<VkImageMemoryBarrier2> * barrier.imageMemoryBarrierCount );
+		MemCopy_NullCheck( OUT ptr, barrier.pImageMemoryBarriers, SizeOf<VkImageMemoryBarrier2> * barrier.imageMemoryBarrierCount );
 		ptr = AlignUp( ptr + SizeOf<VkImageMemoryBarrier2> * barrier.imageMemoryBarrierCount, align );
 	}
 
@@ -450,7 +450,8 @@ namespace AE::Graphics::_hidden_
 		static void  Fn_GenerateMipmapsCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const GenerateMipmapsCmd &cmd) __NE___
 		{
 			auto*	ranges	= Cast<ImageSubresourceRange>( AlignUp( static_cast< const void *>(&cmd + 1), AlignOf<ImageSubresourceRange> ));
-			GenerateMipmapsImpl( fn, cmdbuf, cmd.image, cmd.dimension, ArrayView<ImageSubresourceRange>{ ranges, cmd.rangeCount } );
+			GenerateMipmapsImpl( fn, cmdbuf, cmd.image, cmd.dimension, ArrayView<ImageSubresourceRange>{ ranges, cmd.rangeCount },
+								 cmd.srcStageMask, cmd.srcAccessMask, cmd.oldLayout );
 		}
 
 		static void  Fn_CopyQueryPoolResultsCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const CopyQueryPoolResultsCmd &cmd) __NE___

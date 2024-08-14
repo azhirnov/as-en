@@ -83,7 +83,7 @@
 		float3			norm		= ComputeNormalInWS_dxdy( In.worldPos );
 		float			n_dot_l		= Max( Dot( light_dir, norm ), 0.1f );
 
-		out_Color = float4(n_dot_l);
+		out_Color = float2(n_dot_l, 1.0).rrrg;
 	}
 
 #endif

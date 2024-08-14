@@ -121,6 +121,8 @@ namespace AE::PipelineCompiler
 		Depth				= 0x8 << 4,
 		Stencil				= 0x9 << 4,
 		DepthStencil		= 0xA << 4,
+		SLong				= 0xB << 4,
+		ULong				= 0xC << 4,
 		_LastVal,
 
 		_QualMask			= 0xF << 8,
@@ -1241,13 +1243,13 @@ namespace AE::PipelineCompiler
 
 namespace AE::Base
 {
-	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableRayTracingPipeline::GeneralShader >		{ static constexpr bool  value = true; };
-	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableRayTracingPipeline::TriangleHitGroup >		{ static constexpr bool  value = true; };
-	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableRayTracingPipeline::ProceduralHitGroup >	{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableRayTracingPipeline::GeneralShader >		: CT_True {};
+	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableRayTracingPipeline::TriangleHitGroup >		: CT_True {};
+	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableRayTracingPipeline::ProceduralHitGroup >	: CT_True {};
 
-	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib >			{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib >			: CT_True {};
 
-	template <> struct TTriviallyDestructible< PipelineCompiler::SerializableRenderTechnique::Pass >					{ static constexpr bool  value = true; };
+	template <> struct TTriviallyDestructible< PipelineCompiler::SerializableRenderTechnique::Pass >					: CT_True {};
 
 } // AE::Base
 

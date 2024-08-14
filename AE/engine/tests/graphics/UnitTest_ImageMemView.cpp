@@ -38,8 +38,7 @@ namespace
 		TEST( image_b.RowPitch() == pitch_b );
 		TEST( image_a.BitsPerBlock() == 4*8 );
 
-		Bytes	d = image_a.Compare( image_b );
-		TEST( d == 0_b );
+		TEST_Eq( image_a.Compare( image_b ), 0_b );
 	}
 
 
@@ -105,8 +104,7 @@ namespace
 		TEST( image_b.RowPitch() == pitch_b );
 		TEST( image_a.BitsPerBlock() == 4*8 );
 
-		Bytes	d = image_a.Compare( off_a, off_b, image_b, dim );
-		TEST( d == 0_b );
+		TEST_Eq( image_a.Compare( off_a, off_b, image_b, dim ), 0_b );
 	}
 
 
@@ -283,6 +281,28 @@ namespace
 		image.Load( uint3{2,2,0}, OUT c1 );
 		TEST( All( Equal( RGBA32u{ 0xE6, 0xB3, 0x8C, 0x80 }, c1 )));
 	}
+
+
+	static void  ImageMemView_Test8 ()
+	{
+		const EPixelFormat	fmt			= EPixelFormat::BC1_RGB8_A1_UNorm;
+		const auto&			info		= EPixelFormat_GetInfo( fmt );
+		const uint3			dim			{32, 32, 1};
+		const Bytes			data_size	= ImageUtils::SliceSize( uint2{dim}, info.bitsPerBlock, info.TexBlockDim() );
+		Array<ubyte>		src_data;	src_data.resize( usize{data_size} );
+		Array<ubyte>		dst_data;	dst_data.resize( usize{data_size} );
+
+		for (usize i = 0; i < src_data.size(); ++i)
+			src_data[i] = ubyte(i);
+
+		ImageMemView	src	{ src_data.data(), data_size, uint3{}, dim, 0_b, 0_b, fmt, EImageAspect::Color };
+		ImageMemView	dst	{ dst_data.data(), data_size, uint3{}, dim, 0_b, 0_b, fmt, EImageAspect::Color };
+
+		TEST( dst.CopyFrom( src ));
+		TEST( src_data == dst_data );
+
+		TEST_Eq( src.Compare( dst ), 0_b );
+	}
 }
 
 
@@ -295,6 +315,7 @@ extern void UnitTest_ImageMemView ()
 	ImageMemView_Test5();
 	ImageMemView_Test6();
 	ImageMemView_Test7();
+	ImageMemView_Test8();
 
 	TEST_PASSED();
 }

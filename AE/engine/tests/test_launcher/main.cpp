@@ -81,14 +81,15 @@ public:
 		AE_LOGI( "<< Tests complete" );
 
 
-		#ifdef AE_RELEASE
 		AE_LOGI( ">> Begin performance tests" );
 		{
+			_LoadAndRun( "libPerfGraphics.so",			"Perf_Graphics2",	asset_storage.get() );
+		  #ifdef AE_RELEASE
 			_LoadAndRun( "libPerfBase.so",				"Perf_Base",			cache_path.c_str() );
 			_LoadAndRun( "libPerfThreading.so",			"Perf_Threading",		cache_path.c_str() );
+		  #endif
 		}
 		AE_LOGI( "<< Performance tests complete" );
-		#endif
 	}
 };
 

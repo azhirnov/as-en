@@ -8,7 +8,7 @@ android {
 		applicationId 		'AE.Test'
 		minSdkVersion 		24 // 24+ for vulkan
 		targetSdkVersion 	34
-		
+
 		ndk {
 			abiFilters "arm64-v8a", "armeabi-v7a" //, "x86", "x86_64"
 		}
@@ -20,7 +20,7 @@ android {
 			}
 		}
 	}
-	
+
 	buildTypes {
 		release {
 			debuggable true // to enable logcat in release
@@ -30,7 +30,7 @@ android {
 		}
 	}
 
-    ndkVersion "26.3.11579264"
+	ndkVersion "26.3.11579264"
 
 	externalNativeBuild {
 		cmake {
@@ -40,18 +40,20 @@ android {
 	}
 	sourceSets {
 		main {
-			assets.srcDirs = ['../../../AE-Temp/engine/graphics', '../../../AE-Temp/engine/graphics_hl']
+			assets.srcDirs = [	'../../../AE-Temp/engine/graphics',			// TODO: include only vulkan pipelines
+								'../../../AE-Temp/engine/graphics_hl',
+								'../../../AE-Temp/engine/perf_graphics' ]
 		}
 	}
 	packagingOptions {
 		jniLibs {
 			excludes += ['lib/**/*.so']
-			pickFirsts += ['lib/**/libTestLauncher.so', 'lib/**/libTestsBase.so', 'lib/**/libTestsScripting.so',
-						   'lib/**/libTestsThreading.so', 'lib/**/libTestsNetworking.so', 'lib/**/libTestsSerializing.so',
-						   'lib/**/libTestsPlatform.so', 'lib/**/libTestsGraphics.so', 'lib/**/libTestsGraphicsHL.so',
-						   'lib/**/libTestsECS-st.so', 'lib/**/libTestsVFS.so', 'lib/**/libTestsHuLang.so',
-						   'lib/**/libTestsAtlasTools.so', 'lib/**/libTestsGeometryTools.so',
-						   'lib/**/libPerfBase.so', 'lib/**/libPerfThreading.so']
+			pickFirsts += ['lib/**/libTestLauncher.so',		'lib/**/libTestsBase.so',		'lib/**/libTestsScripting.so',
+						   'lib/**/libTestsThreading.so',	'lib/**/libTestsNetworking.so',	'lib/**/libTestsSerializing.so',
+						   'lib/**/libTestsPlatform.so',	'lib/**/libTestsGraphics.so',	'lib/**/libTestsGraphicsHL.so',
+						   'lib/**/libTestsECS-st.so',		'lib/**/libTestsVFS.so',		'lib/**/libTestsHuLang.so',
+						   'lib/**/libTestsAtlasTools.so',	'lib/**/libTestsGeometryTools.so',
+						   'lib/**/libPerfBase.so',			'lib/**/libPerfThreading.so',	'lib/**/libPerfGraphics.so']
 			pickFirsts += ['lib/**/libVkLayer_khronos_validation.so']
 		}
 		resources  {

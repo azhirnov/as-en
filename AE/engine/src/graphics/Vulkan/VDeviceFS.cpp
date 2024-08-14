@@ -88,7 +88,7 @@ namespace
 
 		if ( _extensions.subgroupSizeControl )
 		{
-			CHECK( _properties.subgroupSizeControlFeats.subgroupSizeControl );
+			CHECK( _properties.subgroupSizeControlFeats.subgroupSizeControl == VK_TRUE );
 			CHECK( IsPowerOfTwo( _properties.subgroupSizeControlProps.minSubgroupSize ));
 			CHECK( IsPowerOfTwo( _properties.subgroupSizeControlProps.maxSubgroupSize ));
 			CHECK( outFeatureSet.minSubgroupSize <= _properties.subgroupProperties.subgroupSize );
@@ -102,7 +102,7 @@ namespace
 
 		if ( _extensions.subgroupExtendedTypes )
 		{
-			CHECK( _properties.subgroupExtendedTypesFeats.shaderSubgroupExtendedTypes );
+			CHECK( _properties.subgroupExtendedTypesFeats.shaderSubgroupExtendedTypes == VK_TRUE );
 
 			if ( feats10.shaderInt16 )	outFeatureSet.subgroupTypes |= ESubgroupTypes::Int16;
 			if ( feats10.shaderInt64 )	outFeatureSet.subgroupTypes |= ESubgroupTypes::Int64;
@@ -113,11 +113,23 @@ namespace
 			}
 		}
 
-		/*if ( _extensions.shaderSubgroupUniformControlFlow )
+		if ( _extensions.shaderSubgroupUniformControlFlow )
 		{
-			CHECK( _properties.shaderSubgroupUniformControlFlowFeats.shaderSubgroupUniformControlFlow );
+			CHECK( _properties.shaderSubgroupUniformControlFlowFeats.shaderSubgroupUniformControlFlow == VK_TRUE );
 			outFeatureSet.shaderSubgroupUniformControlFlow = True;
-		}*/
+		}
+
+		if ( _extensions.shaderMaximalReconvergence )
+		{
+			CHECK( _properties.shaderMaximalReconvergenceFeats.shaderMaximalReconvergence == VK_TRUE );
+			outFeatureSet.shaderMaximalReconvergence = True;
+		}
+
+		if ( _extensions.shaderQuadControl )
+		{
+			CHECK( _properties.shaderQuadControlFeats.shaderQuadControl == VK_TRUE );
+			outFeatureSet.shaderQuadControl = True;
+		}
 
 		if ( _extensions.shaderFloat16Int8 )
 		{
@@ -229,32 +241,22 @@ namespace
 
 		if ( _extensions.descriptorIndexing )
 		{
-			SET_FEAT2( shaderInputAttachmentArrayDynamicIndexing,		_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderUniformTexelBufferArrayDynamicIndexing,	_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderStorageTexelBufferArrayDynamicIndexing,	_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderUniformBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderSampledImageArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderStorageBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderStorageImageArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderInputAttachmentArrayNonUniformIndexing,	_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderUniformTexelBufferArrayNonUniformIndexing,	_properties.descriptorIndexingFeats );
-			SET_FEAT2( shaderStorageTexelBufferArrayNonUniformIndexing,	_properties.descriptorIndexingFeats );
-			SET_FEAT2( runtimeDescriptorArray,							_properties.descriptorIndexingFeats );
-
-			if ( not _properties.descriptorIndexingProps.shaderUniformBufferArrayNonUniformIndexingNative )
-				outFeatureSet.shaderUniformBufferArrayNonUniformIndexing = False;
-
-			if ( not _properties.descriptorIndexingProps.shaderSampledImageArrayNonUniformIndexingNative )
-				outFeatureSet.shaderSampledImageArrayNonUniformIndexing = False;
-
-			if ( not _properties.descriptorIndexingProps.shaderStorageBufferArrayNonUniformIndexingNative )
-				outFeatureSet.shaderStorageBufferArrayNonUniformIndexing = False;
-
-			if ( not _properties.descriptorIndexingProps.shaderStorageImageArrayNonUniformIndexingNative )
-				outFeatureSet.shaderStorageImageArrayNonUniformIndexing = False;
-
-			if ( not _properties.descriptorIndexingProps.shaderInputAttachmentArrayNonUniformIndexingNative )
-				outFeatureSet.shaderInputAttachmentArrayNonUniformIndexing = False;
+			SET_FEAT2( shaderInputAttachmentArrayDynamicIndexing,			_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderUniformTexelBufferArrayDynamicIndexing,		_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderStorageTexelBufferArrayDynamicIndexing,		_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderUniformBufferArrayNonUniformIndexing,			_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderSampledImageArrayNonUniformIndexing,			_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderStorageBufferArrayNonUniformIndexing,			_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderStorageImageArrayNonUniformIndexing,			_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderInputAttachmentArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderUniformTexelBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderStorageTexelBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
+			SET_FEAT2( runtimeDescriptorArray,								_properties.descriptorIndexingFeats );
+			SET_FEAT2( shaderUniformBufferArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
+			SET_FEAT2( shaderSampledImageArrayNonUniformIndexingNative,		_properties.descriptorIndexingProps );
+			SET_FEAT2( shaderStorageBufferArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
+			SET_FEAT2( shaderStorageImageArrayNonUniformIndexingNative,		_properties.descriptorIndexingProps );
+			SET_FEAT2( shaderInputAttachmentArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
 		}
 
 		SET_FEAT( shaderStorageImageMultisample );
@@ -695,19 +697,43 @@ namespace
 			_properties.subgroupSizeControlFeats.subgroupSizeControl	= false;
 		}
 
+		if ( inFS.shaderSubgroupUniformControlFlow == True )
+		{
+			_properties.shaderSubgroupUniformControlFlowFeats.shaderSubgroupUniformControlFlow = VK_TRUE;
+			_extensions.shaderSubgroupUniformControlFlow = true;
+		}
+
+		if ( inFS.shaderMaximalReconvergence == True )
+		{
+			_properties.shaderMaximalReconvergenceFeats.shaderMaximalReconvergence = VK_TRUE;
+			_extensions.shaderMaximalReconvergence = true;
+		}
+
+		if ( inFS.shaderQuadControl == True )
+		{
+			_properties.shaderQuadControlFeats.shaderQuadControl = VK_TRUE;
+			_extensions.shaderQuadControl = true;
+		}
+
+		if ( inFS.subgroupBroadcastDynamicId == True )
+		{
+			CHECK_ERR( _extensions.subgroup );
+			CHECK_ERR( _vkDeviceVersion >= DeviceVersion(1,2) );
+		}
+
 		if ( AnyBits( inFS.subgroupTypes, ~(ESubgroupTypes::Float32 | ESubgroupTypes::Int32) ))
 		{
 			CHECK_ERR( _extensions.subgroupExtendedTypes );
 			_properties.subgroupExtendedTypesFeats.shaderSubgroupExtendedTypes	= true;
 
-			if ( AllBits( inFS.subgroupTypes, ESubgroupTypes::Int16 ))	CHECK_ERR( feats10.shaderInt16 )	else feats10.shaderInt16 = false;
-			if ( AllBits( inFS.subgroupTypes, ESubgroupTypes::Int64 ))	CHECK_ERR( feats10.shaderInt64 )	else feats10.shaderInt64 = false;
+			if ( AllBits( inFS.subgroupTypes, ESubgroupTypes::Int16 ))	CHECK_ERR( feats10.shaderInt16 == VK_TRUE )	else feats10.shaderInt16 = false;
+			if ( AllBits( inFS.subgroupTypes, ESubgroupTypes::Int64 ))	CHECK_ERR( feats10.shaderInt64 == VK_TRUE )	else feats10.shaderInt64 = false;
 
 			if ( AnyBits( inFS.subgroupTypes, ESubgroupTypes::Int8 | ESubgroupTypes::Float16 ))
 			{
 				CHECK_ERR( _extensions.shaderFloat16Int8 );
-				if ( AllBits( inFS.subgroupTypes, ESubgroupTypes::Int8 ))		CHECK_ERR( f16i8_feats.shaderInt8 )		else f16i8_feats.shaderInt8		= false;
-				if ( AllBits( inFS.subgroupTypes, ESubgroupTypes::Float16 ))	CHECK_ERR( f16i8_feats.shaderFloat16 )	else f16i8_feats.shaderFloat16	= false;
+				if ( AllBits( inFS.subgroupTypes, ESubgroupTypes::Int8 ))		CHECK_ERR( f16i8_feats.shaderInt8 == VK_TRUE )		else f16i8_feats.shaderInt8		= false;
+				if ( AllBits( inFS.subgroupTypes, ESubgroupTypes::Float16 ))	CHECK_ERR( f16i8_feats.shaderFloat16 == VK_TRUE )	else f16i8_feats.shaderFloat16	= false;
 			}
 			else
 			{

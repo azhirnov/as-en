@@ -128,7 +128,6 @@ namespace AE::RG::_hidden_
 	// variables
 	private:
 		ResStateInBatch_t			_batchStates;
-		AtomicBits_t				_uploadMemory		{0};
 		AtomicBits_t				_readbackMemory		{0};
 
 		PerTaskStates_t				_perTask;
@@ -149,11 +148,7 @@ namespace AE::RG::_hidden_
 
 
 	// task api //
-		ND_ bool  HasUploadMemoryBarrier (uint taskIdx, EResourceState dstState)				__NE___;
 		ND_ bool  HasReadbackMemoryBarrier (uint taskIdx, EResourceState srcState)				__NE___;
-
-			template <typename Ctx>
-			void  UploadMemoryBarrier (uint taskIdx, Ctx &ctx, EResourceState dstState)			__NE___;
 
 			template <typename Ctx>
 			void  ReadbackMemoryBarrier (uint taskIdx, Ctx &ctx, EResourceState srcState)		__NE___;
@@ -349,36 +344,6 @@ namespace AE::RG::_hidden_
 		}
 
 		ctx.CommitBarriers();	// throw
-	}
-
-/*
-=================================================
-	UploadMemoryBarrier
-=================================================
-*/
-	inline bool  RGCommandBatchPtr::RGBatchData::HasUploadMemoryBarrier (uint taskIdx, EResourceState dstState) __NE___
-	{
-		ASSERT( taskIdx < GraphicsConfig::MaxCmdBufPerBatch );
-		ASSERT( AnyEqual( dstState, EResourceState::VertexBuffer, EResourceState::IndexBuffer, EResourceState::CopySrc ));
-		Unused( dstState );
-
-		// memory barrier 'Host -> Vertex|Index|Copy' is already issued if added in previous tasks too
-
-		constexpr	uint	mask	= ToBitMask<uint>( GraphicsConfig::MaxCmdBufPerBatch );
-		const		uint	bits	= (_uploadMemory.load() & mask) & ToBitMask<uint>( taskIdx+1 );
-		return bits != 0;
-	}
-
-	template <typename Ctx>
-	void  RGCommandBatchPtr::RGBatchData::UploadMemoryBarrier (uint taskIdx, Ctx &ctx, EResourceState dstState) __NE___
-	{
-		if_unlikely( not HasUploadMemoryBarrier( taskIdx, dstState ))
-		{
-			_uploadMemory.Or( 1u << taskIdx );
-			ctx.MemoryBarrier( EResourceState::Host_Write, EResourceState::VertexBuffer );
-			ctx.MemoryBarrier( EResourceState::Host_Write, EResourceState::IndexBuffer );
-			ctx.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc );
-		}
 	}
 
 /*

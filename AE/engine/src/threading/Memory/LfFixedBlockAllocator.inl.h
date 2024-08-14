@@ -41,9 +41,9 @@ namespace AE::Threading
 
 			top.Set( i % CT_SizeOfInBits<TopLevelBits_t> );
 
-			#if AE_LFFIXEDBLOCKALLOC_DEBUG
+		  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 			chunk.dbgInfo.store( null );
-			#endif
+		  #endif
 		}
 
 		for (usize i = 0; i < _topChunks.size(); ++i)
@@ -85,9 +85,9 @@ namespace AE::Threading
 				CHECK( not top_bits.Has( i % CT_SizeOfInBits<TopLevelBits_t> ));
 			}
 
-			#if AE_LFFIXEDBLOCKALLOC_DEBUG
+		  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 			SourceLoc*	dbg_info = chunk.dbgInfo.exchange( null );
-			#endif
+		  #endif
 
 			for (usize j = 0; j < HiLevel_Count; ++j)
 			{
@@ -98,7 +98,7 @@ namespace AE::Threading
 					CHECK( old_low_level.None() );	// some blocks is still allocated
 
 					// dump allocated memory blocks
-					#if AE_LFFIXEDBLOCKALLOC_DEBUG
+				  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 					if ( dbg_info != null )
 					{
 						int		low_idx = old_low_level.ExtractBitIndex();
@@ -112,23 +112,23 @@ namespace AE::Threading
 							low_idx = old_low_level.ExtractBitIndex();
 						}
 					}
-					#endif
+				  #endif
 				}
 			}
 
-			#if AE_LFFIXEDBLOCKALLOC_DEBUG
+		  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 			if ( dbg_info != null )
 				_genAlloc.Deallocate( dbg_info, SizeAndAlign{ _DbgInfoSize(), _DbgInfoAlign() });
-			#endif
+		  #endif
 		}
 
+	  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 		ulong	atom_cnt	= _dbgCounter.exchange( 0 );
 		ulong	lock_cnt	= _dbgLockCounter.exchange( 0 );
 
 		if ( atom_cnt and lock_cnt )
-		{
 			AE_LOGI( "atomic iteration count: "s << ToString( atom_cnt ) << ",  lock count: " << ToString( lock_cnt ));
-		}
+	  #endif
 	}
 
 /*
@@ -153,8 +153,10 @@ namespace AE::Threading
 
 			~Dbg ()
 			{
+			  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 				ref._dbgCounter.fetch_add( counter );
 				ref._dbgLockCounter.fetch_add( locks );
+			  #endif
 			}
 		} dbg{ *this };
 
@@ -190,9 +192,9 @@ namespace AE::Threading
 		BottomChunk&	chunk	= _bottomChunks[ chunkIndex ];
 		auto*			ptr		= chunk.memBlock.load( EMemoryOrder::Acquire );
 
-		#if AE_LFFIXEDBLOCKALLOC_DEBUG
+	  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 		SourceLoc*	dbg_info = chunk.dbgInfo.load( EMemoryOrder::Acquire );
-		#endif
+	  #endif
 
 		// allocate new block
 		if_unlikely( ptr == null )
@@ -310,13 +312,13 @@ namespace AE::Threading
 						const uint	idx_in_chunk	= hi_lvl_idx * LowLevel_Count + low_lvl_idx;
 						ASSERT( idx_in_chunk < ChunkSize );
 
-						#if AE_LFFIXEDBLOCKALLOC_DEBUG
+					  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 						if ( dbg_info != null )
 						{
 							dbg_info[idx_in_chunk] = loc;
 							MemoryBarrier( EMemoryOrder::Release );
 						}
-						#endif
+					  #endif
 						Unused( loc );
 
 						void*	result = ptr + BlockSize() * idx_in_chunk;

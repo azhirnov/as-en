@@ -18,7 +18,16 @@ namespace AE::ResEditor
 	{
 		Unknown,
 		Mul,
+		Div,
+		DivNear,
+		DivCeil,
+		Add,
+		Sub,
+		Pow,
 	};
+
+	template <typename T, int I>
+	class TDynamicVec;
 
 
 
@@ -61,8 +70,13 @@ namespace AE::ResEditor
 
 		ND_ RC<Self>	Clone ()							__NE___;
 
+		ND_ RC<TDynamicVec<T,2>>	ToX1 ()					__NE___;
+		ND_ RC<TDynamicVec<T,3>>	ToX11 ()				__NE___;
+
 	private:
-		ND_ static T  _Get (EnableRCBase*)					__NE___;
+		ND_ static T		_Get (EnableRCBase*)			__NE___;
+		ND_ static Vec<T,2>	_GetX1 (EnableRCBase*)			__NE___;
+		ND_ static Vec<T,3>	_GetX11 (EnableRCBase*)			__NE___;
 	};
 
 
@@ -116,7 +130,19 @@ namespace AE::ResEditor
 		switch_enum( _op )
 		{
 			case_likely EOperator::Unknown :	break;
-			case EOperator::Mul :				result *= _opValue;	break;
+			case EOperator::Mul :				result *= _opValue;							break;
+			case EOperator::Div :				result /= _opValue;							break;
+			case EOperator::DivNear :			result = (result + _opValue/2) / _opValue;	break;
+			case EOperator::DivCeil :			result = (result + _opValue-1) / _opValue;	break;
+			case EOperator::Add :				result += _opValue;							break;
+			case EOperator::Sub :				result -= _opValue;							break;
+
+			case EOperator::Pow :
+				if constexpr( IsFloatPoint<T> )
+					result = Pow( result, _opValue );
+				else
+					result = IPow( result, _opValue );
+				break;
 		}
 		switch_end
 

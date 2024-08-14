@@ -70,7 +70,7 @@ namespace AE::Math
 		ND_ constexpr uint		GetPOT ()							C_NE___	{ return _pot; }
 
 		template <typename IT>
-		ND_ constexpr IT		BitMask ()							C_NE___	{ StaticAssert( IsUnsignedInteger<IT> );  return _pot < CT_SizeOfInBits<IT> ? (IT{1} << _pot) - 1 : ~IT{0}; }
+		ND_ constexpr IT		BitMask ()							C_NE___	{ return ToBitMask<IT>( _pot ); }
 
 		template <typename IT>
 		ND_ constexpr IT		InvBitMask ()						C_NE___	{ return ~BitMask(); }
@@ -150,14 +150,10 @@ namespace AE::Math
 	namespace _hidden_
 	{
 		template <typename T>
-		struct _IsPowerOf2Value {
-			static constexpr bool	value = false;
-		};
+		struct _IsPowerOf2Value : CT_False {};
 
 		template <typename T>
-		struct _IsPowerOf2Value< TPowerOf2Value<T> > {
-			static constexpr bool	value = true;
-		};
+		struct _IsPowerOf2Value< TPowerOf2Value<T> > : CT_True {};
 	}
 
 	template <typename T>
@@ -222,26 +218,24 @@ namespace AE::Math
 	{
 		StaticAssert( not IsPowerOf2Value<T> );
 
-		const auto	pot = alignPOT.GetPOT();
-
 		if constexpr( IsPointer<T> )
 		{
-			const usize	mask = (usize{1} << pot) - 1;
+			const usize	mask = alignPOT.template BitMask<usize>();
 			return BitCast<T>( (BitCast<usize>(value) + mask) & ~mask );
 		}else
 		if constexpr( IsBytes<T> )
 		{
-			const auto	mask = (typename T::Value_t{1} << pot) - 1;
+			const auto	mask = alignPOT.template BitMask< typename T::Value_t >();
 			return T{ (value.get() + mask) & ~mask };
 		}else
 		if constexpr( IsInteger<T> )
 		{
-			const auto	mask = (T{1} << pot) - 1;
+			const auto	mask = alignPOT.template BitMask<T>();
 			return (value + mask) & ~mask;
 		}else
 		if constexpr( IsIntegerVec<T> )
 		{
-			const auto	mask = (T{1} << pot) - 1;
+			const auto	mask = alignPOT.template BitMask<T>();
 			return (value + mask) & ~mask;
 		}
 	}
@@ -256,24 +250,22 @@ namespace AE::Math
 	{
 		StaticAssert( not IsPowerOf2Value<T> );
 
-		const auto	pot = alignPOT.GetPOT();
-
 		if constexpr( IsPointer<T> )
-			return (BitCast<usize>(value) & ((usize{1} << pot) - 1)) == 0;
+			return (BitCast<usize>(value) & alignPOT.template BitMask<usize>()) == 0;
 		else
 		if constexpr( IsBytes<T> )
-			return (value.get() & ((typename T::Value_t{1} << pot) - 1)) == 0;
+			return (value.get() & alignPOT.template BitMask< typename T::Value_t >()) == 0;
 		else
 		if constexpr( IsInteger<T> )
-			return (value & ((T{1} << pot) - 1)) == 0;
+			return (value & alignPOT.template BitMask<T>()) == 0;
 	}
 
 } // AE::Math
 
 namespace AE::Base
 {
-	template <typename T>	struct TMemCopyAvailable< TPowerOf2Value<T> >		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
-	template <typename T>	struct TZeroMemAvailable< TPowerOf2Value<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
-	template <typename T>	struct TTriviallySerializable< TPowerOf2Value<T> >	{ static constexpr bool  value = IsTriviallySerializable<T>; };
+	template <typename T>	struct TMemCopyAvailable< TPowerOf2Value<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
+	template <typename T>	struct TZeroMemAvailable< TPowerOf2Value<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
+	template <typename T>	struct TTriviallySerializable< TPowerOf2Value<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
 
 } // AE::Base

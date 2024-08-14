@@ -152,15 +152,15 @@ namespace AE::Base
 	}
 
 
-	template <usize Size, uint UID, uint Seed>	struct TMemCopyAvailable<		NamedID< Size, UID, true, Seed >>	{ static constexpr bool  value = true;  };
-	template <usize Size, uint UID, uint Seed>	struct TZeroMemAvailable<		NamedID< Size, UID, true, Seed >>	{ static constexpr bool  value = false; };
-	template <usize Size, uint UID, uint Seed>	struct TTriviallySerializable<	NamedID< Size, UID, true, Seed >>	{ static constexpr bool  value = true;  };
-	template <usize Size, uint UID, uint Seed>	struct TTriviallyDestructible<	NamedID< Size, UID, true, Seed >>	{ static constexpr bool  value = true;  };
+	template <usize Size, uint UID, uint Seed>	struct TMemCopyAvailable<		NamedID< Size, UID, true, Seed >>	: CT_True  {};
+	template <usize Size, uint UID, uint Seed>	struct TZeroMemAvailable<		NamedID< Size, UID, true, Seed >>	: CT_False {};
+	template <usize Size, uint UID, uint Seed>	struct TTriviallySerializable<	NamedID< Size, UID, true, Seed >>	: CT_True  {};
+	template <usize Size, uint UID, uint Seed>	struct TTriviallyDestructible<	NamedID< Size, UID, true, Seed >>	: CT_True  {};
 
-	template <usize Size, uint UID, uint Seed>	struct TMemCopyAvailable<		NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = true;  };
-	template <usize Size, uint UID, uint Seed>	struct TZeroMemAvailable<		NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = false; };
-	template <usize Size, uint UID, uint Seed>	struct TTriviallySerializable<	NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = false; };
-	template <usize Size, uint UID, uint Seed>	struct TTriviallyDestructible<	NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = true;  };
+	template <usize Size, uint UID, uint Seed>	struct TMemCopyAvailable<		NamedID< Size, UID, false, Seed >>	: CT_True  {};
+	template <usize Size, uint UID, uint Seed>	struct TZeroMemAvailable<		NamedID< Size, UID, false, Seed >>	: CT_False {};
+	template <usize Size, uint UID, uint Seed>	struct TTriviallySerializable<	NamedID< Size, UID, false, Seed >>	: CT_False {};
+	template <usize Size, uint UID, uint Seed>	struct TTriviallyDestructible<	NamedID< Size, UID, false, Seed >>	: CT_True  {};
 
 } // AE::Base
 

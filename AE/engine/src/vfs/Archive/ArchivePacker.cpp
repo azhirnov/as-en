@@ -33,7 +33,7 @@ namespace AE::VFS
 	bool  ArchivePacker::Create (const Path &tempFile)
 	{
 		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( not _archive );
+		CHECK_ERR( _archive == null );
 
 		_archive = MakeRC<FileWStream>( tempFile, FileWStream::EMode::OpenRewrite );
 		CHECK_ERR( _archive->IsOpen() );
@@ -42,6 +42,28 @@ namespace AE::VFS
 		_tempFile = FileSystem::ToAbsolute( tempFile );
 
 		return true;
+	}
+
+/*
+=================================================
+	IsCreated
+=================================================
+*/
+	bool  ArchivePacker::IsCreated () const
+	{
+		DRC_EXLOCK( _drCheck );
+		return _archive != null;
+	}
+
+/*
+=================================================
+	TempFilePath
+=================================================
+*/
+	Path  ArchivePacker::TempFilePath () const
+	{
+		DRC_EXLOCK( _drCheck );
+		return _tempFile;
 	}
 
 /*
@@ -205,7 +227,7 @@ namespace AE::VFS
 				break;
 		}
 		switch_end
-		return false;
+		RETURN_ERR( "unknown file type" );
 	}
 
 	bool  ArchivePacker::Add (const FileName::WithString_t &name, RStream &stream, EFileType type)
@@ -366,6 +388,17 @@ namespace AE::VFS
 		}
 
 		return true;
+	}
+
+/*
+=================================================
+	Exists
+=================================================
+*/
+	bool  ArchivePacker::Exists (FileName::Ref name) const
+	{
+		DRC_EXLOCK( _drCheck );
+		return _map.contains( name );
 	}
 
 

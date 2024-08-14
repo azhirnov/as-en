@@ -72,6 +72,12 @@ namespace AE::Base
 			if constexpr( Is_MacOS )	return ver >= macos;
 			if constexpr( Is_iOS )		return ver >= ios;
 		}
+
+
+		// Clipboard //
+		ND_ static bool		ClipboardExtract (OUT String &result)							__NE___;
+		ND_ static bool		ClipboardPut (StringView str)									__NE___;
+		ND_ static bool		ClipboardClear ()												__NE___;
 	};
 
 

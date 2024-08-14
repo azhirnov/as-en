@@ -50,9 +50,6 @@ namespace
 		{
 			cfg.graphics.maxFrames = 2;
 
-			cfg.graphics.staging.readStaticSize .fill( 4_Kb );
-			cfg.graphics.staging.writeStaticSize.fill( 1_Mb );
-
 			cfg.graphics.device.appName			= "Demo";
 			cfg.graphics.device.requiredQueues	= EQueueMask::Graphics;
 			cfg.graphics.device.optionalQueues	= Default; //EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer;

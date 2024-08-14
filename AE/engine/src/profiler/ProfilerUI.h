@@ -65,6 +65,7 @@ namespace AE::Profiler
 
 	private:
 		void  _Update ();
+		void  _SampleGraphicsCounters ();
 	};
 
 

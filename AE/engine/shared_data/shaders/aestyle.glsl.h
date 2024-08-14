@@ -14,6 +14,18 @@
 #ifdef __INTELLISENSE__
 #	define AE_memory_scope_semantics
 #	define AE_HAS_ATOMICS
+#	define AE_shader_subgroup_basic
+#	define AE_shader_subgroup_vote
+#	define AE_shader_subgroup_ballot
+#	define AE_shader_subgroup_arithmetic
+#	define AE_shader_subgroup_shuffle
+#	define AE_shader_subgroup_shuffle_relative
+#	define AE_shader_subgroup_clustered
+#	define AE_shader_subgroup_quad
+#	define AE_nonuniform_qualifier
+#	define AE_NV_shader_sm_builtins
+#	define AE_ARM_shader_core_builtins
+#	define AE_fragment_shading_rate
 #endif
 
 #define isinf	_IsInf
@@ -322,7 +334,7 @@ public:
 	template <typename T> struct Image2DMSArray 		: _ImageBase<T> { Image2DMSArray ();	using Coord = int3; };
 
 
-	// Use it if array index is not dynamically uniform.
+	// Use it if array index is not dynamically uniform when accessing resource (image/buffer/...).
 	// Dynamically uniform:
 	//	- Data from uniform buffer, for arrays it must be constant or dynamically uniform indexing.
 	//	- Data from push constants.
@@ -339,7 +351,12 @@ public:
   #endif
 
 	// GL_EXT_subgroupuniform_qualifier
-  #ifdef AE_subgroupuniform_qualifier
+  #ifdef AE_subgroup_uniform_qualifier
+	// It can be applied to:
+	//  * variable declarations qualified as 'in'
+    //  * global variable declarations with no storage qualifier
+    //  * local variable declarations with no storage qualifier
+    //  * function parameter declarations and function return types.
 	template <typename T>
 	ND_ T	SubgroupUniform (const T &);
   #endif
@@ -837,8 +854,7 @@ public:
 	} subpass {};
 
 	const struct {
-		// sync
-		void	ExecutionBarrier () const;
+	  #ifdef AE_shader_subgroup_basic
 		const struct {
 			void  All ()		const;	// all memory accesses, scope: shader invocation
 			void  Buffer ()		const;
@@ -849,11 +865,18 @@ public:
 		  #endif
 		} memoryBarrier {};
 
+			void	ExecutionBarrier () const;
 		ND_ bool	Elect () const;
+	  #endif
+
+	  #ifdef AE_shader_subgroup_vote
 		ND_ bool	All (bool) const;
 		ND_ bool	Any (bool) const;
 
 		template <typename T>	ND_ bool	AllEqual (const T) const;
+	  #endif
+
+	  #ifdef AE_shader_subgroup_ballot
 		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;
 		template <typename T>	ND_ T		BroadcastFirst (const T) const;
 
@@ -865,12 +888,18 @@ public:
 		ND_ uint	BallotExclusiveBitCount (const uint4) const;
 		ND_ uint	BallotFindLSB (const uint4) const;
 		ND_ uint	BallotFindMSB (const uint4) const;
+	  #endif
 
+	  #ifdef AE_shader_subgroup_shuffle
 		template <typename T>	ND_ T		Shuffle (const T value, uint id) const;
 		template <typename T>	ND_ T		ShuffleXor (const T value, uint mask) const;
+	  #endif
+	  #ifdef AE_shader_subgroup_shuffle_relative
 		template <typename T>	ND_ T		ShuffleUp (const T value, uint delta) const;
 		template <typename T>	ND_ T		ShuffleDown (const T value, uint delta) const;
+	  #endif
 
+	  #ifdef AE_shader_subgroup_arithmetic
 		template <typename T>	ND_ T		Add (const T) const;
 		template <typename T>	ND_ T		Mul (const T) const;
 		template <typename T>	ND_ T		Min (const T) const;
@@ -894,7 +923,9 @@ public:
 		template <typename T>	ND_ T		ExclusiveAnd (const T) const;
 		template <typename T>	ND_ T		ExclusiveOr  (const T) const;
 		template <typename T>	ND_ T		ExclusiveXor (const T) const;
+	  #endif
 
+	  #ifdef AE_shader_subgroup_clustered
 		template <typename T>	ND_ T		ClusteredAdd (const T value, uint clasterSize) const;
 		template <typename T>	ND_ T		ClusteredMul (const T value, uint clasterSize) const;
 		template <typename T>	ND_ T		ClusteredMin (const T value, uint clasterSize) const;
@@ -902,30 +933,47 @@ public:
 		template <typename T>	ND_ T		ClusteredAnd (const T value, uint clasterSize) const;
 		template <typename T>	ND_ T		ClusteredOr  (const T value, uint clasterSize) const;
 		template <typename T>	ND_ T		ClusteredXor (const T value, uint clasterSize) const;
-
-		// quad ids:
-		//   0  1
-		//   2  3
-		template <typename T>	ND_ T		QuadBroadcast (const T value, uint id) const;
-		template <typename T>	ND_ T		QuadSwapHorizontal (const T) const;
-		template <typename T>	ND_ T		QuadSwapVertical (const T) const;
-		template <typename T>	ND_ T		QuadSwapDiagonal (const T) const;
+	  #endif
 
 
 		// in
+	  #ifdef AE_shader_subgroup_basic
 		const	uint	Size;
-		const	uint	Index;			// QuadIndex = Index & 3
+		const	uint	Index;			// in FS QuadIndex = Index & 3
+	  # ifdef SH_COMPUTE
+		const	uint	GroupCount;		// in workgroup
+		const	uint	GroupIndex;		// in workgroup
+	  # endif
+	  #endif
+	  #ifdef AE_shader_subgroup_ballot
 		const	uint4	EqMask;
 		const	uint4	GeMask;
 		const	uint4	GtMask;
 		const	uint4	LeMask;
 		const	uint4	LtMask;
-	  #ifdef SH_COMPUTE
-		const	uint	GroupCount;		// in workgroup
-		const	uint	GroupIndex;		// in workgroup
 	  #endif
 
 	} subgroup {};
+
+	struct {
+
+	  #ifdef AE_shader_subgroup_quad
+		// quad ids:	bits:
+		//   0  1		00  01
+		//   2  3		10  11
+		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;	// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id',
+																						// otherwise it must be constant
+		template <typename T>	ND_ T		SwapHorizontal (const T) const;
+		template <typename T>	ND_ T		SwapVertical (const T) const;
+		template <typename T>	ND_ T		SwapDiagonal (const T) const;
+	  #endif
+
+	  #ifdef AE_shader_quad
+		ND_ bool  All (bool) const;
+		ND_ bool  Any (bool) const;
+	  #endif
+
+	} quadGroup {};
 
 
   #ifdef SH_VERT
@@ -933,16 +981,26 @@ public:
 	const	int		InstanceIndex		= {};
 	const	int		VertexIndex			= {};
 	const	int		PrimitiveID			= {};
+
+	#ifdef AE_shader_draw_parameters
 	const	int		BaseInstance		= {};
 	const	int		BaseVertex			= {};
 	const	int		DrawIndex			= {};
+	#endif
 
 	// out
 			float4	Position;
 			float  	ClipDistance [_MaxClipDistance];
 			float  	CullDistance [_MaxCullDistance];
-			int		Layer;
 			float	PointSize;
+
+	#ifdef AE_shader_viewport_layer_array
+			int		Layer;
+			int		ViewportIndex;
+	#endif
+	#ifdef AE_multiview
+			int		ViewIndex;
+	#endif
   #endif
 
 
@@ -1070,19 +1128,19 @@ public:
 		ShadingRateFlag	PrimitiveShadingRate;	// GL_EXT_fragment_shading_rate
 	  #endif
 	};
-	MeshPerPrimitive MeshPrimitives [_MaxMeshPrimitives];
+	MeshPerPrimitive  MeshPrimitives [_MaxMeshPrimitives];
   #endif
 
 
   #ifdef SH_FRAG
 	// derivatives
-	template <typename T>	ND_ T  dFdx (const T &);
-	template <typename T>	ND_ T  dFdy (const T &);
-	template <typename T>	ND_ T  dFdxCoarse (const T &);
-	template <typename T>	ND_ T  dFdyCoarse (const T &);
+	template <typename T>	ND_ T  dFdx (const T &p);			// QuadBroadcast( p, (Index&2)|1 ) - QuadBroadcast( p, Index&2 )
+	template <typename T>	ND_ T  dFdy (const T &p);			// QuadBroadcast( p, (Index&1)|2 ) - QuadBroadcast( p, Index&1 )
 	template <typename T>	ND_ T  dFdxFine (const T &);
 	template <typename T>	ND_ T  dFdyFine (const T &);
-	template <typename T>	ND_ T  fwidth (const T &);
+	template <typename T>	ND_ T  dFdxCoarse (const T &);		// 'coarse' compute the same derivative for all quad
+	template <typename T>	ND_ T  dFdyCoarse (const T &);
+	template <typename T>	ND_ T  fwidth (const T &p);			// Abs(dFdx(p)) + Abs(dFdy(p))
 	template <typename T>	ND_ T  fwidthCoarse (const T &);
 	template <typename T>	ND_ T  fwidthFine (const T &);
 
@@ -1108,7 +1166,7 @@ public:
 	const	_Uns_	Demote							= {};
 
 	// Returns true if the invocation is currently a helper invocation, otherwise returns false.
-	ND_		bool	HelperInvocation ();
+	ND_		bool	IsHelperInvocation ();
 	#endif
 
 
@@ -1503,14 +1561,29 @@ public:
 	// NVidia extensions
 	struct {
 
-	  // AE_NV_shader_sm_builtins
+		// GL_NV_shader_sm_builtins
+		#ifdef AE_NV_shader_sm_builtins
 		// in
 		const	uint	WarpsPerSM;
 		const	uint	SMCount;
-		const	uint	WarpID;
-		const	uint	SMID;
-
+		const	uint	WarpID;		// range: 0 .. WarpsPerSM
+		const	uint	SMID;		// range: 0 .. SMCount
+		#endif
 	} NV;
+
+	// ARM extenions
+	struct {
+
+		// GL_ARM_shader_core_builtins
+		#ifdef AE_ARM_shader_core_builtins
+		// in
+		const	uint	CoreID;		// range: 0 .. CoreMaxID
+		const	uint	CoreCount;
+		const	uint	CoreMaxID;
+		const	uint	WarpID;		// range: 0 .. WarpMaxID
+		const	uint	WarpMaxID;
+		#endif
+	} ARM;
 
 } gl;
 

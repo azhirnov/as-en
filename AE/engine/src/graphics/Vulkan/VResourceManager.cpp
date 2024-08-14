@@ -70,17 +70,17 @@ namespace AE::Graphics
 */
 	Strong<MemoryID>  VResourceManager::CreateMemoryObj (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		return _CreateResource<MemoryID>( "failed when creating memory object", buffer, desc, _ChooseMemAllocator( RVRef(allocator) ), dbgName );
+		return _CreateResource<MemoryID>( ERR_MSG( "failed when creating memory object", dbgName ), buffer, desc, _ChooseMemAllocator( RVRef(allocator) ), dbgName );
 	}
 
 	Strong<MemoryID>  VResourceManager::CreateMemoryObj (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
-		return _CreateResource<MemoryID>( "failed when creating memory object", image, desc, _ChooseMemAllocator( RVRef(allocator) ), dbgName );
+		return _CreateResource<MemoryID>( ERR_MSG( "failed when creating memory object", dbgName ), image, desc, _ChooseMemAllocator( RVRef(allocator) ), dbgName );
 	}
 
 	Strong<RenderPassID>  VResourceManager::CreateRenderPass (const SerializableRenderPassInfo &info, const SerializableVkRenderPass &vkInfo, RenderPassID compatId, StringView dbgName) __NE___
 	{
-		return _CreateResource<RenderPassID>( "failed when creating render pass", *this, info, vkInfo, compatId, dbgName );
+		return _CreateResource<RenderPassID>( ERR_MSG( "failed when creating render pass", dbgName ), *this, info, vkInfo, compatId, dbgName );
 	}
 
 /*
@@ -93,7 +93,7 @@ namespace AE::Graphics
 												  DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		auto*	pack = GetResource( packId ? packId : _defaultPack.Get() );
-		CHECK_ERR( pack );
+		CHECK_ERR( pack != null );
 
 		auto	layout_id = pack->GetDSLayout( dslName );
 		CHECK_ERR( layout_id );
@@ -114,7 +114,7 @@ namespace AE::Graphics
 
 		for (; created and (i < count); ++i)
 		{
-			dst[i]  = _CreateResource<DescriptorSetID>( "failed when creating descriptor set", *this, layoutId, allocator, dbgName );
+			dst[i]  = _CreateResource<DescriptorSetID>( ERR_MSG( "failed when creating descriptor set", dbgName ), *this, layoutId, allocator, dbgName );
 			created = (dst[i].IsValid());
 		}
 
@@ -137,7 +137,7 @@ namespace AE::Graphics
 */
 	Strong<SamplerID>  VResourceManager::CreateSampler (const SamplerDesc &info, StringView dbgName, const VkSamplerYcbcrConversionCreateInfo* ycbcrInfo) __NE___
 	{
-		return _CreateResource<SamplerID>( "failed when creating sampler", *this, info, ycbcrInfo, dbgName );
+		return _CreateResource<SamplerID>( ERR_MSG( "failed when creating sampler", dbgName ), *this, info, ycbcrInfo, dbgName );
 	}
 
 /*

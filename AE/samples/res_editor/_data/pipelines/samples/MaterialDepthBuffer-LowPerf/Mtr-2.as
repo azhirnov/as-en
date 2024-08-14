@@ -38,7 +38,7 @@
 
 		// specialization
 		{
-			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( prefix );
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( prefix+".ZTest" );
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
@@ -80,11 +80,20 @@
 #ifdef SH_FRAG
 	#include "Color.glsl"
 	#include "Noise.glsl"
+	#include "FragHelper.glsl"
+
+	FBM_NOISE_Hash( PerlinNoise )
 
 	void Main ()
 	{
-		float	h = ToUNorm( PerlinFBM( float3(gl.FragCoord.xy, 0.0), 1.5, 1.1, 2 ));
+		float	h = ToUNorm( PerlinNoiseFBM( float3(gl.FragCoord.xy, 0.0), 1.5, 1.1, 2 ));
 		out_Color = Rainbow( h );
+
+		if ( iShowHelpInvoc == 1 )
+		{
+			uint	cnt = HelperInvocationCountPerQuad();
+			out_Color = cnt > 0 ? Rainbow( cnt / 4.0 ) : float4(0.0);
+		}
 	}
 
 #endif

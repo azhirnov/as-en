@@ -56,8 +56,7 @@
 			gen_map.ArgInOut( "un_CBuf",	cbuf );
 			gen_map.LocalSize( 8, 8 );
 			gen_map.DispatchThreads( sdf_map.Dimension2() );
-
-
+		}{
 			RC<ComputePass>		logic = ComputePass( "", "GAME_LOGIC" );
 			logic.ArgIn(	"un_SDFMap",	sdf_map,	Sampler_LinearClamp );
 			logic.ArgIn(	"un_RT",		rt,			Sampler_LinearClamp );
@@ -65,8 +64,7 @@
 			logic.Set(		camera );
 			logic.LocalSize( 1 );
 			logic.DispatchGroups( 1 );
-
-
+		}{
 			RC<Postprocess>		draw = Postprocess( EPostprocess::Shadertoy, "DRAW_GAME" );
 			draw.ArgIn( "un_SDFMap",	sdf_map,	Sampler_LinearClamp );
 			draw.ArgIn( "un_CBuf",		cbuf );

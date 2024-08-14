@@ -54,6 +54,8 @@ namespace AE::Base
 			static void   TabsToSpaces (OUT String &dst, StringView src, uint tabSize = 4)				__Th___;
 
 		ND_ static bool  IsWhiteSpacesOnly (StringView str)												__NE___;
+
+		    static void  Align (INOUT String &str, usize pos, usize lineSize, char c = ' ')				__Th___;
 	};
 
 

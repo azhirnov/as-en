@@ -27,7 +27,7 @@ namespace AE::Graphics
 		VkImageTiling				tiling			= VK_IMAGE_TILING_MAX_ENUM;
 		uint3						dimension;
 		uint						arrayLayers		= 0;
-		uint						maxLevels		= 0;
+		uint						mipLevels		= 0;
 		EQueueMask					queues			= Default;
 		VkMemoryPropertyFlagBits	memFlags		= Zero;
 		VkImageAspectFlagBits		aspectMask		= Zero;

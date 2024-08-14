@@ -7,6 +7,10 @@
 # include "base/DataSource/ZStdStream.h"
 # include "base/Algorithms/StringUtils.h"
 
+# if ZSTD_VERSION_MAJOR != 1 or ZSTD_VERSION_MINOR != 5 or ZSTD_VERSION_RELEASE != 6
+#	error required zstd version 1.5.6
+# endif
+
 namespace AE::Base
 {
 

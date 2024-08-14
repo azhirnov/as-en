@@ -158,7 +158,7 @@ namespace AE::PipelineCompiler
 		Unique< CompatRTConsts >	_compatRPConstPtr;
 		Unique< StructTypeConsts >	_structTypeConstPtr;
 
-		NamedID_HashCollisionCheck	hashCollisionCheck;
+		NamedID_HashCollisionCheck	_hashCollisionCheck;
 
 		// config
 		ECompilationTarget		target				= Default;
@@ -208,6 +208,8 @@ namespace AE::PipelineCompiler
 		template <usize Size, uint UID, bool Optimize, uint Seed>
 		ND_ bool  HasHashName (const NamedID<Size, UID, Optimize, Seed> &id)														C_NE___;
 
+		ND_ bool  HasHashCollisions ()																								C_NE___	{ return _hashCollisionCheck.HasCollisions(); }
+
 		ND_ Array<ScriptFeatureSetPtr>	GetDefaultFeatureSets ()																	__Th___;
 		ND_ FSNameArr_t					CopyFeatures (ArrayView<ScriptFeatureSetPtr> feats);
 
@@ -249,7 +251,7 @@ namespace AE::PipelineCompiler
 
 /*
 =================================================
-	GetString
+	AddName
 =================================================
 */
 	template <typename NameType>
@@ -260,14 +262,14 @@ namespace AE::PipelineCompiler
 
 		typename NameType::WithString_t		name_hash {name};
 
-		hashCollisionCheck.Add( name_hash, name );
+		_hashCollisionCheck.Add( name_hash, name );
 
 		hashToName.emplace( HashToName::NameHash{ uint(name_hash.GetHash32()), NameType::GetUID() }, name );
 	}
 
 /*
 =================================================
-	GetString
+	GetName
 =================================================
 */
 	template <usize Size, uint UID, bool Optimize, uint Seed>

@@ -85,7 +85,7 @@
 	void Main ()
 	{
 		const float3	light_dir	= float3( 0.f, 0.f, 1.f );
-		const float3	norm		= gl.texture.Sample( un_NormalMap, In.texcoord ).xyz;
+		const float3	norm		= Normalize( gl.texture.Sample( un_NormalMap, In.texcoord ).xyz );
 		const float3	color		= gl.texture.Sample( un_AlbedoMap, In.texcoord ).xyz;
 		const float		light		= Dot( norm, light_dir );
 

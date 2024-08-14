@@ -34,14 +34,18 @@ namespace AE::Graphics
 	enum class EDeviceFlags : uint
 	{
 		Unknown					= 0,
-		SetStableClock			= 1 << 0,		// required for GPU profiling, not supported in release config.
 
-		EnableRenderDoc			= 1 << 1,		// allow to use RenderDoc API to trigger capture, not supported in release config.
+		// not supported in release config //
+		SetStableClock			= 1 << 0,		// required for GPU profiling
+		SetStableMemClock		= 1 << 1,		// required for GPU profiling
+
+		EnablePerfCounters		= 1 << 2,
+		EnableRenderDoc			= 1 << 3,		// allow to use RenderDoc API to trigger capture
 
 		_Last,
 		All						= ((_Last - 1) << 1) - 1,
-		_NvApiMask				= SetStableClock,
-		_ArmProfMask			= 0,
+		_NvApiMask				= SetStableClock | EnablePerfCounters,
+		_AmdApiMask				= SetStableClock | SetStableMemClock | EnablePerfCounters,
 	};
 	AE_BIT_OPERATORS( EDeviceFlags );
 
@@ -55,13 +59,12 @@ namespace AE::Graphics
 		uint					maxFrames	= 2;
 
 		// staging buffers //
-		using SizePerQueue_t = StaticArray< Bytes32u, uint(EQueueType::_Count) >;
 		struct {
-			// static staging buffers allocated at engine start
-			SizePerQueue_t			writeStaticSize			= {};
-			SizePerQueue_t			readStaticSize			= {};
+			// Static staging buffers allocated at engine start
+			Bytes32u				writeStaticSize			= 2_Mb;
+			Bytes32u				readStaticSize			= 1_Mb;
 
-			// dynamic buffers will be allocated when needed and will be released after,
+			// Dynamic buffers will be allocated when needed and will be released after,
 			// but total size can be limited
 			//   expected FPS:           60
 			//   PCI-E 3 x16 bandwidth:  16 Gb/s
@@ -69,17 +72,17 @@ namespace AE::Graphics
 			Bytes					maxWriteDynamicSize		= 256_Mb;
 			Bytes					maxReadDynamicSize		= 64_Mb;	// some GPUs has limited bandwidth for read access
 
-			// granularity of the dynamic staging buffers
+			// Granularity of the dynamic staging buffers
 			Bytes					dynamicBlockSize		= 16_Mb;
 
-			// wait X frames before release dynamic buffer
+			// Wait X frames before release dynamic buffer
 			uint					maxFramesToRelease		= 1 << 10;
 
-			// vertex & index buffer size for single frame
+			// Vertex & index buffer size for single frame
 			Bytes32u				vstreamSize				= 4_Mb;
 
-			// total size of staging memory is:
-			//   (writeStaticSize + readStaticSize) * maxFrames + (maxWriteDynamicSize + maxReadDynamicSize)
+			// Total size of staging memory is:
+			//   (writeStaticSize * maxFrames) + (readStaticSize * (maxFrames+1)) + (maxWriteDynamicSize + maxReadDynamicSize)
 		}						staging;
 
 

@@ -233,7 +233,7 @@ namespace AE::Graphics::_hidden_
 			}
 		}
 
-		CHECK_THROW_MSG( _blocks.size() < _blocks.capacity(), "overflow" );
+		CHECK_THROW_MSG( not _blocks.IsFull(), "overflow" );
 
 		auto&	sbm		= GraphicsScheduler().GetResourceManager().GetStagingManager();
 		auto&	block	= _blocks.emplace_back();

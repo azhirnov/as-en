@@ -30,11 +30,14 @@ namespace AE::ResEditor
 			PipelineName	pplnName;
 			usize			objId		= 0;
 			EDebugMode		dbgMode		= Default;
+			EShaderStages	dbgStages	= Default;
 
-			PplnNameAndObjectId ()														= default;
-			PplnNameAndObjectId (const PplnNameAndObjectId &)							= default;
-			explicit PplnNameAndObjectId (PipelineName::Ref name)						: pplnName{name} {}
-			PplnNameAndObjectId (PipelineName::Ref name, usize objId, EDebugMode dbg)	: pplnName{name}, objId{objId}, dbgMode{dbg} {}
+			PplnNameAndObjectId ()										= default;
+			PplnNameAndObjectId (const PplnNameAndObjectId &)			= default;
+			explicit PplnNameAndObjectId (PipelineName::Ref name)		: pplnName{name} {}
+			PplnNameAndObjectId (PipelineName::Ref name, usize objId)	: pplnName{name}, objId{objId} {}
+			PplnNameAndObjectId (PipelineName::Ref name, usize objId,
+								 EDebugMode dbg, EShaderStages s)		: pplnName{name}, objId{objId}, dbgMode{dbg}, dbgStages{s} {}
 		};
 
 		using PipelineNames_t			= Array< PplnNameAndObjectId >;
@@ -88,7 +91,7 @@ namespace AE::ResEditor
 
 	protected:
 		template <typename B>
-		static void  _BindBase (B &binder)																			__Th___;
+		static void  _BindBase (B &binder, Bool withArgs = True{})													__Th___;
 
 		virtual void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)												C_Th___ = 0;
 	};
@@ -104,6 +107,7 @@ namespace AE::ResEditor
 	private:
 		uint				_minLod		= 0;
 		uint				_maxLod		= 0;
+		uint				_instCount	= 1;
 
 		RC<IGeomSource>		_geomSrc;
 
@@ -115,6 +119,7 @@ namespace AE::ResEditor
 
 		void  SetDetailLevel1 (uint maxLod)																	__Th___;
 		void  SetDetailLevel2 (uint minLod, uint maxLod)													__Th___;
+		void  SetInstanceCount (uint count)																	__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)														__Th___;
 		static void  GetShaderTypes (INOUT CppStructsFromShaders &)											__Th___;
@@ -217,6 +222,7 @@ namespace AE::ResEditor
 			packed_uint3			taskCount				{1};
 
 			void  SetDynTaskCount (const ScriptDynamicUInt3Ptr &);
+			void  SetDynTaskCount1 (const ScriptDynamicUIntPtr &);
 
 			static void  Bind (const ScriptEnginePtr &se) __Th___;
 		};
@@ -390,6 +396,7 @@ namespace AE::ResEditor
 		Transformation					_initialTransform;
 
 		const uint						_maxTextures	= 128;
+		uint							_instanceCount	= 1;
 
 		RC<IGeomSource>					_geomSrc;
 
@@ -406,6 +413,8 @@ namespace AE::ResEditor
 			void  SetInitialTransform2 (const packed_float3 &position,
 										const packed_float3 &rotation,
 										float scale)														__Th___;
+
+			void  SetInstanceCount (uint value)																__Th___;
 
 			void  AddOmniLight (const packed_float3	&pos,
 								const packed_float3	&atten,

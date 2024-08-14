@@ -108,6 +108,7 @@ namespace AE::ResEditor
 		DescriptorSetID		ds	= _descSets[ ctx.GetFrameId().Index() ];
 
 		_resources.SetStates( ctx, Default );
+		ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
 		ctx.CommitBarriers();
 
 		ctx.BindPipeline( ppln );
@@ -154,7 +155,8 @@ namespace AE::ResEditor
 			ShaderTypes::ComputePassUB	ub_data;
 			ub_data.time		= pd.totalTime.count();
 			ub_data.timeDelta	= pd.frameTime.count();
-			ub_data.frame		= _dynData.frame;
+			ub_data.frame		= pd.frameId;
+			ub_data.passFrameId	= _dynData.frame;
 			ub_data.seed		= pd.seed;
 			ub_data.mouse		= pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
 			ub_data.customKeys	= pd.customKeys[0];
@@ -165,7 +167,11 @@ namespace AE::ResEditor
 			_CopySliders( OUT ub_data.floatSliders, OUT ub_data.intSliders, OUT ub_data.colors );
 			_CopyConstants( _shConst, OUT ub_data.floatConst, OUT ub_data.intConst );
 
-			++_dynData.frame;
+			if ( _dynData.prevFrame != pd.frameId )
+			{
+				++_dynData.frame;
+				_dynData.prevFrame = pd.frameId;
+			}
 			CHECK_ERR( ctx.UploadBuffer( _ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
 		}
 

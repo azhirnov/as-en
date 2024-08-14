@@ -138,7 +138,7 @@ namespace AE::ECS
 */
 	inline void*  ArchetypeStorage::GetComponents (ComponentID id) C_NE___
 	{
-		ASSERT( _memory );
+		NonNull( _memory );
 		usize	pos = _IndexOf( id );
 		return	pos < _components.size() ?
 					_components.at<3>( pos ) :
@@ -155,7 +155,7 @@ namespace AE::ECS
 	{
 		StaticAssert( not IsEmpty<T> );
 		ASSERT( usize(idx) < Count() );
-		ASSERT( _memory );
+		NonNull( _memory );
 
 		usize	pos = _IndexOf( ComponentTypeInfo<T>::id );
 		return	pos < _components.size() ?
@@ -172,7 +172,7 @@ namespace AE::ECS
 	inline Pair<void*, Bytes>  ArchetypeStorage::GetComponent (Index_t idx, ComponentID id) C_NE___
 	{
 		ASSERT( usize(idx) < Count() );
-		ASSERT( _memory );
+		NonNull( _memory );
 
 		usize	pos = _IndexOf( id );
 		return	pos < _components.size() ?
@@ -197,7 +197,7 @@ namespace AE::ECS
 */
 	inline EntityID const*  ArchetypeStorage::GetEntities () C_NE___
 	{
-		ASSERT( _memory );
+		NonNull( _memory );
 		return Cast<EntityID>( _memory );
 	}
 
@@ -208,7 +208,7 @@ namespace AE::ECS
 */
 	inline EntityID*  ArchetypeStorage::_GetEntities () __NE___
 	{
-		ASSERT( _memory );
+		NonNull( _memory );
 		return Cast<EntityID>( _memory );
 	}
 

@@ -30,11 +30,14 @@ namespace AE::Math
 
 	// methods
 		BoundingSphere ()												__NE___	{}
-		BoundingSphere (const Vec3_t &center, T radius)					__NE___	: center{center}, radius{abs(radius)} {}
+		BoundingSphere (const Vec3_t &center, T radius)					__NE___	: center{center}, radius{Abs(radius)} {}
 
 
-		Self&  Move (const Vec3_t &delta)								__NE___	{ center += delta;  return *this; }
-		Self&  Scale (T scale)											__NE___	{ radius *= Abs(scale);  return *this; }
+		Self&  Move (const Vec3_t &delta)								__NE___	{ center += delta;			return *this; }
+		Self&  Scale (T scale)											__NE___	{ radius *= Abs(scale);		return *this; }
+
+		Self&  SetPosition (const Vec3_t &pos)							__NE___	{ center = pos;				return *this; }
+		Self&  SetRadius (T value)										__NE___	{ radius = value;			return *this; }
 
 
 		Self&  Transform (const TTransformation<T> &tr)					__NE___

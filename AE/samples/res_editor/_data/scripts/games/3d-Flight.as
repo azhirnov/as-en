@@ -1,9 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Simple flight game.
+	Simple flight simulation with collision detection.
+	Has 2 projection types:
+		1. from projection matrix
+		2. used distortion correction
+
 	Map is ray marched (skyline shader from shadertoy).
 	SDF used to calculate collision with camera (player).
 	Camera rotation used to calculate lift force.
+	To restart press '1' in 3D mode (press 'Esc' to switch between UI and 3D mode).
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -39,7 +44,7 @@
 
 		// render loop
 		{
-			RC<ComputePass>		logic = ComputePass( "" );
+			RC<ComputePass>		logic = ComputePass();
 			logic.ArgInOut(	"un_CBuf",		cbuf );
 			logic.Set(		camera );
 			logic.LocalSize( 1 );
@@ -47,6 +52,7 @@
 		}{
 			RC<Postprocess>		draw = Postprocess( EPostprocess::Shadertoy );
 			draw.ArgIn(	"un_CBuf",	cbuf );
+			draw.Slider( "iProj",	0,	1 );
 			draw.Set(	camera );
 			draw.Output( rt );
 		}
@@ -92,7 +98,7 @@
 	}
 	// <<<< 3rd party code
 
-	// Lift force - gravity force
+	// Lift force minus gravity force
 	ND_ float  LiftMinusGravity ()
 	{
 		float3	v0	= (un_PerPass.camera.view * float4(-1.f, 0.f, 0.f, 0.f)).xyz;	v0.y = 0.f;
@@ -160,7 +166,28 @@
 			fragColor = float4(1.0, 0.0, 0.0, 1.0);
 			return;
 		}
-		Ray	ray = Ray_From( un_PerPass.camera.invViewProj, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, fragCoord / iResolution.xy );
+
+		Ray	ray;
+		if ( iProj == 0 )
+		{
+			ray = Ray_From( un_PerPass.camera.invViewProj, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, fragCoord / iResolution.xy );
+		}
+		else
+		{
+			// lerp between sphere and flat projection to minimize distortion effect
+			const float2	screen_size		= un_PerPass.resolution.xy * un_PerPass.pixToMm * 0.001f;	// meters
+			const float		z_near			= un_PerPass.camera.clipPlanes.x;
+			const float		dist_to_eye		= 0.19;
+			const float2	uv				= fragCoord / iResolution.xy;
+			const float2	fov				= ToRad(70.0 * (1.0 - dist_to_eye)) * float2(un_PerPass.resolution.x / un_PerPass.resolution.y, 1.0);
+			Ray				r				= Ray_PlaneToSphere( fov, un_CBuf.actualPos, z_near, ToSNorm(uv) );
+
+			ray = Ray_FromFlatScreen( un_CBuf.actualPos, dist_to_eye, screen_size, z_near, ToSNorm(uv) );
+			ray.dir = Normalize( Lerp( ray.dir, r.dir, 0.5 ));
+
+			Ray_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );
+		}
+
 		fragColor = Trace( ray, fragCoord );
 	}
 

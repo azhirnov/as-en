@@ -21,7 +21,7 @@ namespace AE::Profiler
 	// ImGui Column History Diagram
 	//
 
-	class ImColumnHistoryDiagram
+	class ImColumnHistoryDiagram final : public Noncopyable
 	{
 	// types
 	private:
@@ -70,7 +70,7 @@ namespace AE::Profiler
 		void  Draw (INOUT RectF &region) const;
 
 		void  Begin ();
-		void  Add (const String &name, RGBA8u color, nanosecondsd begin, nanosecondsd end);
+		void  Add (StringView name, RGBA8u color, nanosecondsd begin, nanosecondsd end);
 		void  End (nanosecondsd min, nanosecondsd max);
 		void  End ();
 	};

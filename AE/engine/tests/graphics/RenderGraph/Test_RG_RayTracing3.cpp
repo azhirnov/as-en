@@ -161,8 +161,6 @@ namespace
 								})};
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 

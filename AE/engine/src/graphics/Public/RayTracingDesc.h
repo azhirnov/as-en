@@ -48,6 +48,7 @@ namespace AE::Graphics
 		struct TrianglesData
 		{
 			BufferID		vertexData;			// requires EBufferUsage::ASBuild_ReadOnly,	content: 'vertexFormat',	access: EResourceState::BuildRTAS_Read
+												// - if x component of vertex is NaN then triangle is inactive.
 			BufferID		indexData;			// requires EBufferUsage::ASBuild_ReadOnly,	content: 'indexType',		access: EResourceState::BuildRTAS_Read,  optional?
 			BufferID		transformData;		// requires EBufferUsage::ASBuild_ReadOnly,	content: RTMatrixStorage,	access: EResourceState::BuildRTAS_Read,  optional
 			Bytes32u		vertexStride;
@@ -65,6 +66,7 @@ namespace AE::Graphics
 		struct AABBsData
 		{
 			BufferID		data;				// requires EBufferUsage::ASBuild_ReadOnly,	content: float[6],	access: EResourceState::BuildRTAS_Read
+												// - if min.x coordinate is NaN then AABB is inactive.
 			Bytes			dataOffset;
 			Bytes			stride;
 		};
@@ -140,7 +142,7 @@ namespace AE::Graphics
 			uint				mask				:  8;
 			uint				instanceSBTOffset	: 24;
 			uint				flags				:  8;	// ERTInstanceOpt | VkGeometryInstanceFlags
-			DeviceAddress		rtas;
+			DeviceAddress		rtas;						// - if 0 then instance is inactive.
 
 			InstanceVk ()												__NE___ = default;
 			InstanceVk&  Init ()										__NE___;
@@ -280,11 +282,11 @@ namespace AE::Graphics
 
 namespace AE::Base
 {
-	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::TrianglesInfo > { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::TrianglesData > { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::AABBsInfo		> { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::AABBsData		> { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::ScratchBuffer	> { static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::TrianglesInfo > : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::TrianglesData > : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::AABBsInfo		> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::AABBsData		> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::RTGeometryBuild::ScratchBuffer	> : CT_True {};
 
-	template <> struct TTriviallySerializable< Graphics::RTSceneBuild::InstanceBuffer	> { static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< Graphics::RTSceneBuild::InstanceBuffer	> : CT_True {};
 }

@@ -3,6 +3,10 @@
 #include "scripting/Impl/ScriptEngine.h"
 #include "scripting/Impl/ScriptTypes.h"
 
+#if ANGELSCRIPT_VERSION != 23700
+#	error required AngelScript 2.37
+#endif
+
 namespace AE::Scripting
 {
 
@@ -597,7 +601,7 @@ namespace
 		CHECK_ERR( ctx != null );
 
 		asIScriptFunction* func = module->_module->GetFunctionByDecl( signature.c_str() );
-		CHECK_ERR_MSG( func, "can't find function '"s << signature << "' in module '" << module->GetName() << "'" );
+		CHECK_ERR_MSG( func != null, "can't find function '"s << signature << "' in module '" << module->GetName() << "'" );
 
 		AS_CHECK_ERR( ctx->Prepare( func ));
 		return true;
@@ -698,6 +702,8 @@ namespace
 
 		str << "#include <vector>\n";
 		str << "#include <string>\n\n";
+
+		str << "#define funcdef // typedef for function\n\n";
 
 		str << "using int8		= std::int8_t;\n";
 		str << "using uint8		= std::uint8_t;\n";

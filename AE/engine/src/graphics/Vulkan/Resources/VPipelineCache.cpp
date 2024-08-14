@@ -36,14 +36,14 @@ namespace AE::Graphics
 		if ( initialData.size() > sizeof(VkPipelineCacheHeaderVersionOne) )
 		{
 			VkPipelineCacheHeaderVersionOne		header;
-			std::memcpy( &header, initialData.data(), sizeof(header) );
+			MemCopy( OUT &header, initialData.data(), Sizeof(header) );
 
 			auto&	props = dev.GetVProperties().properties;
 
-			if ( header.headerVersion	== VK_PIPELINE_CACHE_HEADER_VERSION_ONE and
-				 header.headerSize		== 32									and
-				 header.deviceID		== props.deviceID						and
-				 header.vendorID		== props.vendorID						and
+			if ( header.headerVersion	== VK_PIPELINE_CACHE_HEADER_VERSION_ONE		and
+				 header.headerSize		== sizeof(VkPipelineCacheHeaderVersionOne)	and
+				 header.deviceID		== props.deviceID							and
+				 header.vendorID		== props.vendorID							and
 				 MemEqual( header.pipelineCacheUUID, props.pipelineCacheUUID ))
 			{
 				info.initialDataSize	= usize(ArraySizeOf( initialData ));
@@ -53,6 +53,10 @@ namespace AE::Graphics
 			{
 				RETURN_ERR( "invalid or incompatible pipeline cache header" );
 			}
+		}
+		else
+		{
+			CHECK_ERR( initialData.empty(), "pipeline cache initial data is too small" );
 		}
 
 		VK_CHECK_ERR( dev.vkCreatePipelineCache( dev.GetVkDevice(), &info, null, OUT &_cache ));
@@ -70,11 +74,13 @@ namespace AE::Graphics
 */
 	bool  VPipelineCache::Create (const VResourceManager& resMngr, StringView dbgName, RC<RStream> stream) __NE___
 	{
-		CHECK_ERR( stream != null and stream->IsOpen() );
-
 		Array<char>	data;
-		CHECK_ERR( stream->Read( stream->RemainingSize(), data ));
 
+		if ( stream )
+		{
+			CHECK_ERR( stream->IsOpen() );
+			CHECK_ERR( stream->Read( stream->RemainingSize(), OUT data ));
+		}
 		return _Create( resMngr, dbgName, data );
 	}
 

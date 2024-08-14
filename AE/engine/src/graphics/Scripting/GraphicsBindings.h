@@ -72,6 +72,12 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerYcbcrModelConversion,"ESamplerYcbcrMo
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ESamplerYcbcrRange,			"ESamplerYcbcrRange"	);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ESurfaceFormat,				"ESurfaceFormat"		);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ERTInstanceOpt,				"ERTInstanceOpt"		);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EImageUsage,					"EImageUsage"			);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EImageOpt,					"EImageOpt"				);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EBufferUsage,				"EBufferUsage"			);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EBufferOpt,					"EBufferOpt"			);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EShadingRate,				"EShadingRate"			);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EShadingRateCombinerOp,		"EShadingRateCombinerOp");
 
 // BindTypes
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::MultiSamples,				"MultiSamples"			);

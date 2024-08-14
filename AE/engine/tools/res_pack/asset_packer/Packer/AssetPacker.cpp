@@ -155,7 +155,7 @@ namespace
 					continue;
 				}
 
-				src.name = ToString( path.filename().replace_extension("") );
+				src.name = ToString( path.stem() );
 
 				if ( not file.Read( file.RemainingSize(), OUT src.script ))
 				{
@@ -186,6 +186,7 @@ namespace
 			if ( not fn->Run() )
 				return false;
 		}
+		CHECK_ERR_MSG( not obj_storage.HasHashCollisions(), "Hash collision detected!" );
 
 		const Path	arch_fname	= FileSystem::ToAbsolute( info->outputArchive );
 		CHECK_ERR( obj_storage.SaveArchive( arch_fname ));

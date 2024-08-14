@@ -217,7 +217,7 @@ namespace AE::VFS
 	{
 		TRY{
 			const Path		abs_path	= (_folder / inoutPath).lexically_normal();	// path without '..'
-			String			fname		= ToString( abs_path.filename().replace_extension("") );
+			String			fname		= ToString( abs_path.stem() );
 			const String	ext			= ToString( abs_path.extension() );
 			const usize		len			= fname.length();
 			Path			path		= abs_path.parent_path();

@@ -45,6 +45,9 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicDim*	DivRound3 (const packed_int3 &value)	C_Th___;
 		ND_ ScriptDynamicDim*	DivCeil3 (const packed_int3 &value)		C_Th___;
 
+		ND_ ScriptDynamicUInt*  X ()									C_Th___;
+		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
+		ND_ ScriptDynamicUInt2* XY ()									C_Th___;
 		ND_ ScriptDynamicUInt*  Area ()									C_Th___;
 		ND_ ScriptDynamicUInt*  Volume ()								C_Th___;
 
@@ -89,12 +92,18 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicUInt ()									__Th___ : _value{ MakeRC<DynamicUInt>() } {}
+		explicit ScriptDynamicUInt ()									__Th___ : _value{ MakeRCTh<DynamicUInt>() } {}
 		explicit ScriptDynamicUInt (RC<DynamicUInt> dv)					__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicUInt>		Get ()									C_NE___	{ return _value; }
 
 		ND_ ScriptDynamicUInt*	Mul (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*	Div (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*	DivNear (uint value)					__Th___;
+		ND_ ScriptDynamicUInt*	DivCeil (uint value)					__Th___;
+		ND_ ScriptDynamicUInt*	Add (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*	Sub (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*	Pow (uint value)						__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -113,10 +122,13 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicUInt2 ()									__Th___ : _value{ MakeRC<DynamicUInt2>() } {}
+		explicit ScriptDynamicUInt2 ()									__Th___ : _value{ MakeRCTh<DynamicUInt2>() } {}
 		explicit ScriptDynamicUInt2 (RC<DynamicUInt2> dv)				__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicUInt2>  Get ()									C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicUInt*  X ()									C_Th___;
+		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -135,10 +147,14 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicUInt3 ()									__Th___ : _value{ MakeRC<DynamicUInt3>() } {}
+		explicit ScriptDynamicUInt3 ()									__Th___ : _value{ MakeRCTh<DynamicUInt3>() } {}
 		explicit ScriptDynamicUInt3 (RC<DynamicUInt3> dv)				__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicUInt3>  Get ()									C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicUInt*  X ()									C_Th___;
+		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
+		ND_ ScriptDynamicUInt*  Z ()									C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -157,10 +173,15 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicUInt4 ()									__Th___ : _value{ MakeRC<DynamicUInt4>() } {}
+		explicit ScriptDynamicUInt4 ()									__Th___ : _value{ MakeRCTh<DynamicUInt4>() } {}
 		explicit ScriptDynamicUInt4 (RC<DynamicUInt4> dv)				__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicUInt4>  Get ()									C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicUInt*  X ()									C_Th___;
+		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
+		ND_ ScriptDynamicUInt*  Z ()									C_Th___;
+		ND_ ScriptDynamicUInt*  W ()									C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -179,7 +200,7 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicInt ()									__Th___ : _value{ MakeRC<DynamicInt>() } {}
+		explicit ScriptDynamicInt ()									__Th___ : _value{ MakeRCTh<DynamicInt>() } {}
 		explicit ScriptDynamicInt (RC<DynamicInt> dv)					__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicInt>  Get ()										C_NE___	{ return _value; }
@@ -201,10 +222,13 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicInt2 ()									__Th___ : _value{ MakeRC<DynamicInt2>() } {}
+		explicit ScriptDynamicInt2 ()									__Th___ : _value{ MakeRCTh<DynamicInt2>() } {}
 		explicit ScriptDynamicInt2 (RC<DynamicInt2> dv)					__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicInt2>  Get ()										C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicInt*  X ()										C_Th___;
+		ND_ ScriptDynamicInt*  Y ()										C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -223,10 +247,14 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicInt3 ()									__Th___ : _value{ MakeRC<DynamicInt3>() } {}
+		explicit ScriptDynamicInt3 ()									__Th___ : _value{ MakeRCTh<DynamicInt3>() } {}
 		explicit ScriptDynamicInt3 (RC<DynamicInt3> dv)					__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicInt3>  Get ()										C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicInt*  X ()										C_Th___;
+		ND_ ScriptDynamicInt*  Y ()										C_Th___;
+		ND_ ScriptDynamicInt*  Z ()										C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -245,10 +273,15 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicInt4 ()									__Th___ : _value{ MakeRC<DynamicInt4>() } {}
+		explicit ScriptDynamicInt4 ()									__Th___ : _value{ MakeRCTh<DynamicInt4>() } {}
 		explicit ScriptDynamicInt4 (RC<DynamicInt4> dv)					__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicInt4>  Get ()										C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicInt*  X ()										C_Th___;
+		ND_ ScriptDynamicInt*  Y ()										C_Th___;
+		ND_ ScriptDynamicInt*  Z ()										C_Th___;
+		ND_ ScriptDynamicInt*  W ()										C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -267,7 +300,7 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicFloat ()									__Th___ : _value{ MakeRC<DynamicFloat>() } {}
+		explicit ScriptDynamicFloat ()									__Th___ : _value{ MakeRCTh<DynamicFloat>() } {}
 		explicit ScriptDynamicFloat (RC<DynamicFloat> dv)				__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicFloat>  Get ()									C_NE___	{ return _value; }
@@ -289,10 +322,13 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicFloat2 ()									__Th___ : _value{ MakeRC<DynamicFloat2>() } {}
+		explicit ScriptDynamicFloat2 ()									__Th___ : _value{ MakeRCTh<DynamicFloat2>() } {}
 		explicit ScriptDynamicFloat2 (RC<DynamicFloat2> dv)				__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicFloat2>  Get ()									C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicFloat*  X ()									C_Th___;
+		ND_ ScriptDynamicFloat*  Y ()									C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -311,10 +347,14 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicFloat3 ()									__Th___ : _value{ MakeRC<DynamicFloat3>() } {}
+		explicit ScriptDynamicFloat3 ()									__Th___ : _value{ MakeRCTh<DynamicFloat3>() } {}
 		explicit ScriptDynamicFloat3 (RC<DynamicFloat3> dv)				__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicFloat3>  Get ()									C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicFloat*  X ()									C_Th___;
+		ND_ ScriptDynamicFloat*  Y ()									C_Th___;
+		ND_ ScriptDynamicFloat*  Z ()									C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -333,10 +373,15 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicFloat4 ()									__Th___ : _value{ MakeRC<DynamicFloat4>() } {}
+		explicit ScriptDynamicFloat4 ()									__Th___ : _value{ MakeRCTh<DynamicFloat4>() } {}
 		explicit ScriptDynamicFloat4 (RC<DynamicFloat4> dv)				__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicFloat4>  Get ()									C_NE___	{ return _value; }
+
+		ND_ ScriptDynamicFloat*  X ()									C_Th___;
+		ND_ ScriptDynamicFloat*  Y ()									C_Th___;
+		ND_ ScriptDynamicFloat*  Z ()									C_Th___;
+		ND_ ScriptDynamicFloat*  W ()									C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -355,7 +400,7 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit ScriptDynamicULong ()									__Th___ : _value{ MakeRC<DynamicULong>() } {}
+		explicit ScriptDynamicULong ()									__Th___ : _value{ MakeRCTh<DynamicULong>() } {}
 		explicit ScriptDynamicULong (RC<DynamicULong> dv)				__NE___ : _value{RVRef(dv)} {}
 
 		ND_ RC<DynamicULong>  Get ()									C_NE___	{ return _value; }

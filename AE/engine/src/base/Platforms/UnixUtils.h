@@ -48,6 +48,10 @@ namespace AE::Base
 		ND_ static MemoryPageInfo  GetMemoryPageInfo ()										__NE___;
 
 
+		// FileSystem //
+			static void		ClearFileCache ()												__NE___;
+
+
 		// Thread //
 		ND_ static constexpr auto  NanoSleepTimeStep ()										__NE___;
 		ND_ static constexpr auto  MicroSleepTimeStep ()									__NE___	{ return nanoseconds{10'000}; }

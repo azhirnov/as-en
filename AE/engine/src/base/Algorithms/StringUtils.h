@@ -320,8 +320,8 @@ namespace _hidden_
 	template <typename T>
 	ND_ forceinline BasicStringView<T>  SubString (BasicStringView<T> src, usize pos, usize count = UMax) __NE___
 	{
-		pos		= std::min( pos, src.size() );
-		count	= std::min( count, src.size()-pos );
+		pos		= Min( pos, src.size() );
+		count	= Min( count, src.size()-pos );
 		return BasicStringView<T>{ src.data() + pos, count };
 	}
 
@@ -329,6 +329,17 @@ namespace _hidden_
 	ND_ forceinline BasicStringView<T>  SubString (const BasicString<T> &src, usize pos, usize count = UMax) __NE___
 	{
 		return SubString( BasicStringView<T>{src}, pos, count );
+	}
+
+	template <typename T>
+	ND_ forceinline BasicStringView<T>  SubString2 (const BasicString<T> &src, usize begin, usize end) __NE___
+	{
+		ASSERT( begin <= end );
+		ASSERT( end <= src.size() );
+
+		begin	= Min( begin, end );
+		end		= Min( end, src.size() );
+		return BasicStringView<T>{ src.data() + begin, src.data() + end };
 	}
 
 /*
@@ -342,7 +353,21 @@ namespace _hidden_
 	ND_ forceinline BasicStringView<T>  SubString (const T* first, const T* last) __NE___
 	{
 		ASSERT( first <= last );
-		return BasicStringView<T>{ first, usize(last - first) };
+		first = Min( first, last );
+		return BasicStringView<T>{ first, usize(Max( 0, ssize(last - first) ))};
+	}
+
+	template <typename T>
+	ND_ forceinline BasicStringView<T>  SubString (const BasicString<T> &src, const T* first, const T* last) __NE___
+	{
+		ASSERT( first <= last );
+		ASSERT( first >= src.data() );
+		ASSERT( last <= src.data()+src.size() );
+
+		first = Max( first, src.data() );
+		last  = Min( last,  src.data()+src.size() );
+		first = Min( first, last );
+		return BasicStringView<T>{ first, usize(Max( 0, ssize(last - first) ))};
 	}
 
 /*
@@ -721,10 +746,22 @@ namespace _hidden_
 	{
 		return IsAnsiString( str.c_str(), str.length() );
 	}
+
+/*
+=================================================
+	StringLessThan
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr bool  StringLessThan (BasicStringView<T> lhs, BasicStringView<T> rhs) __NE___
+	{
+		return std::lexicographical_compare( lhs.begin(), lhs.end(), rhs.begin(), rhs.end() );
+	}
 //-----------------------------------------------------------------------------
 
 
 
+#ifdef AE_ENABLE_LOGS
 /*
 =================================================
 	ToString
@@ -764,17 +801,10 @@ namespace _hidden_
 			return std::to_string( value );
 		}
 		else
-		if constexpr( Radix == 16 and sizeof(T) > sizeof(uint) )
-		{
-			std::stringstream	str;
-			str << std::hex << ulong{BitCast<ToUnsignedInteger<T>>(value)};
-			return str.str();
-		}
-		else
 		if constexpr( Radix == 16 )
 		{
 			std::stringstream	str;
-			str << std::hex << uint{BitCast<ToUnsignedInteger<T>>(value)};
+			str << std::hex << ToNearUInt( value );
 			return str.str();
 		}
 	}
@@ -1311,6 +1341,70 @@ namespace _hidden_
 	{
 		return "["s << ToString( range.begin ) << "; " << ToString( range.end ) << "]";
 	}
+
+/*
+=================================================
+	ToString2
+=================================================
+*/
+	template <typename T>
+	ND_ EnableIf< IsUnsignedInteger<T>, String >  ToString2 (T v) __Th___
+	{
+		char	suffix = 0;
+		if ( v < T(10'000) )			{}																else
+		if ( v < T(10'000'000) )		{ v = (v + T(500))			/ T(1000);			suffix = 'K'; }	else
+		if ( v < T(10'000'000'000) )	{ v = (v + T(500'000))		/ T(1000'000);		suffix = 'M'; }	else
+										{ v = (v + T(500'000'000))	/ T(1000'000'000);	suffix = 'G'; }
+		String	str = ToString( v );
+		if ( suffix ) str << suffix;
+		return str;
+	}
+
+	template <typename T>
+	ND_ EnableIf< IsSignedInteger<T>, String >  ToString2 (const T value) __Th___
+	{
+		T		v		= Abs(value);
+		char	suffix	= 0;
+
+		if ( v < T(10'000) )			{}																else
+		if ( v < T(10'000'000) )		{ v = (v + T(500))			/ T(1000);			suffix = 'K'; }	else
+		if ( v < T(10'000'000'000) )	{ v = (v + T(500'000))		/ T(1000'000);		suffix = 'M'; }	else
+										{ v = (v + T(500'000'000))	/ T(1000'000'000);	suffix = 'G'; }
+		String	str = ToString( v * Sign(value) );
+		if ( suffix ) str << suffix;
+		return str;
+	}
+
+	template <typename T>
+	ND_ EnableIf< IsFloatPoint<T>, String >  ToString2 (T value) __Th___
+	{
+		const T	v			= Abs(value);
+		char	suffix		= 0;
+		uint	fract_part;
+
+		if_likely( v >= T(1) )
+		{
+			if ( v < T(1000) )			{}											else
+			if ( v < T(500'000) )		{ value /= T(1000);			suffix = 'K'; }	else
+			if ( v < T(500'000'000) )	{ value /= T(1000'000);		suffix = 'M'; }	else
+										{ value /= T(1000'000'000);	suffix = 'G'; }
+			fract_part = 1;
+		}
+		else
+		if ( BitEqual( v, T(0) ))
+			return "0.0";
+		else
+		{
+			if ( v > T(1.0e-3) )		{}											else
+			if ( v > T(1.0e-6) )		{ value *= T(1000);			suffix = 'm'; }	else	// milli
+			if ( v > T(1.0e-9) )		{ value *= T(1000'000);		suffix = 'u'; }	else	// micro
+										{ value *= T(1000'000'000);	suffix = 'n'; }			// nano
+			fract_part = 3;
+		}
+		String	str = ToString( value, fract_part );
+		if ( suffix ) str << suffix;
+		return str;
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -1418,16 +1512,30 @@ namespace _hidden_
 				FormatAlignedI<10>( uint(sec) % 60, 2, '0' );
 	}
 //-----------------------------------------------------------------------------
+#endif // AE_ENABLE_LOGS
 
 
 
 /*
 =================================================
-	StringTo***
+	FromChars
 =================================================
 */
+	struct FromCharsResult
+	{
+		uint	processed	: 31;
+		uint	ok			: 1;
+
+		explicit FromCharsResult (const std::from_chars_result &res, const void* begin) __NE___ :
+			processed{ uint( usize(res.ptr) - usize(begin) )},
+			ok{ res.ec == std::errc{} }
+		{}
+
+		ND_ constexpr explicit operator bool ()	C_NE___	{ return ok; }
+	};
+
 	template <typename T>
-	ND_ usize  StringToValue (StringView str, OUT T &result) __NE___
+	ND_ FromCharsResult  FromChars (OUT T &result, StringView str) __NE___
 	{
 		if constexpr( IsInteger<T> )
 		{
@@ -1442,55 +1550,51 @@ namespace _hidden_
 				off = 1;
 
 			auto	err	= std::from_chars( str.data() + off, str.data() + str.size(), OUT result, off ? 16 : 10 );
-			ASSERT( err.ec == std::errc() );
-
-			return usize(err.ptr) - usize(str.data() + off);
+			return	FromCharsResult{ err, str.data() };
 		}
 
 	  #ifdef AE_COMPILER_MSVC
 		if constexpr( IsFloatPoint<T> )
 		{
 			auto	err	= std::from_chars( str.data(), str.data() + str.size(), OUT result, std::chars_format::general );
-			ASSERT( err.ec == std::errc() );
-
-			return usize(err.ptr) - usize(str.data());
+			return	FromCharsResult{ err, str.data() };
 		}
 	  #endif
 	}
 
-	ND_ inline int  StringToInt (StringView str, int base = 10) __NE___
+	template <typename T, ENABLEIF( IsInteger<T> )>
+	ND_ inline FromCharsResult  FromChars (OUT T &val, StringView str, int base) __NE___
 	{
 		ASSERT( base == 10 or base == 16 );
 		ASSERT( not StartsWith( str, "0x" ));
 
-		int		val = 0;
 		auto	err	= std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
-		Unused( err );
-		ASSERT( err.ec == std::errc() );
+		return	FromCharsResult{ err, str.data() };
+	}
+
+/*
+=================================================
+	StringTo***
+=================================================
+*/
+	ND_ inline uint  StringToUInt (StringView str, int base = 10) __NE___
+	{
+		uint	val = 0;
+		auto	ok	= FromChars( OUT val, str, base );	ASSERT( ok );	Unused( ok );
 		return val;
 	}
 
-	ND_ inline uint  StringToUInt (StringView str, int base = 10) __NE___
+	ND_ inline int  StringToInt (StringView str, int base = 10) __NE___
 	{
-		ASSERT( base == 10 or base == 16 );
-		ASSERT( not StartsWith( str, "0x" ));
-
-		uint	val = 0;
-		auto	err	= std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
-		Unused( err );
-		ASSERT( err.ec == std::errc() );
+		int		val = 0;
+		auto	ok	= FromChars( OUT val, str, base );	ASSERT( ok );	Unused( ok );
 		return val;
 	}
 
 	ND_ inline ulong  StringToUInt64 (StringView str, int base = 10) __NE___
 	{
-		ASSERT( base == 10 or base == 16 );
-		ASSERT( not StartsWith( str, "0x" ));
-
 		ulong	val = 0;
-		auto	err	= std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
-		Unused( err );
-		ASSERT( err.ec == std::errc() );
+		auto	ok	= FromChars( OUT val, str, base );	ASSERT( ok );	Unused( ok );
 		return val;
 	}
 
@@ -1498,14 +1602,14 @@ namespace _hidden_
 	ND_ inline float  StringToFloat (StringView str) __NE___
 	{
 		float	val = 0.0f;
-		Unused( StringToValue( str, OUT val ));
+		auto	ok	= FromChars( OUT val, str );	ASSERT( ok );	Unused( ok );
 		return val;
 	}
 
 	ND_ inline double  StringToDouble (StringView str) __NE___
 	{
 		double	val = 0.0;
-		Unused( StringToValue( str, OUT val ));
+		auto	ok	= FromChars( OUT val, str );	ASSERT( ok );	Unused( ok );
 		return val;
 	}
 #endif

@@ -41,6 +41,38 @@
 	StaticAssert( offsetof(VB_UVf2_Col8, Color) == 8 );
 	StaticAssert( sizeof(VB_UVf2_Col8) == 12 );
 
+#ifndef imgui_ub_DEFINED
+#	define imgui_ub_DEFINED
+	// size: 16, align: 8 (16)
+	struct imgui_ub
+	{
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xb41e4542u}};  // 'imgui_ub'
+
+		float2  scale;
+		float2  translate;
+	};
+#endif
+	StaticAssert( offsetof(imgui_ub, scale) == 0 );
+	StaticAssert( offsetof(imgui_ub, translate) == 8 );
+	StaticAssert( sizeof(imgui_ub) == 16 );
+
+#ifndef imgui_vertex_DEFINED
+#	define imgui_vertex_DEFINED
+	// size: 20, align: 4
+	struct imgui_vertex
+	{
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x9e6b2802u}};  // 'imgui_vertex'
+
+		packed_float2  Position;
+		packed_float2  UV;
+		packed_ubyte4  Color;
+	};
+#endif
+	StaticAssert( offsetof(imgui_vertex, Position) == 0 );
+	StaticAssert( offsetof(imgui_vertex, UV) == 8 );
+	StaticAssert( offsetof(imgui_vertex, Color) == 16 );
+	StaticAssert( sizeof(imgui_vertex) == 20 );
+
 #ifndef camera3d_ub_DEFINED
 #	define camera3d_ub_DEFINED
 	// size: 64, align: 16
@@ -93,38 +125,6 @@
 	StaticAssert( offsetof(SphericalCubeVertex, Tangent) == 16 );
 	StaticAssert( offsetof(SphericalCubeVertex, BiTangent) == 24 );
 	StaticAssert( sizeof(SphericalCubeVertex) == 32 );
-
-#ifndef imgui_ub_DEFINED
-#	define imgui_ub_DEFINED
-	// size: 16, align: 8 (16)
-	struct imgui_ub
-	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xb41e4542u}};  // 'imgui_ub'
-
-		float2  scale;
-		float2  translate;
-	};
-#endif
-	StaticAssert( offsetof(imgui_ub, scale) == 0 );
-	StaticAssert( offsetof(imgui_ub, translate) == 8 );
-	StaticAssert( sizeof(imgui_ub) == 16 );
-
-#ifndef imgui_vertex_DEFINED
-#	define imgui_vertex_DEFINED
-	// size: 20, align: 4
-	struct imgui_vertex
-	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x9e6b2802u}};  // 'imgui_vertex'
-
-		packed_float2  Position;
-		packed_float2  UV;
-		packed_ubyte4  Color;
-	};
-#endif
-	StaticAssert( offsetof(imgui_vertex, Position) == 0 );
-	StaticAssert( offsetof(imgui_vertex, UV) == 8 );
-	StaticAssert( offsetof(imgui_vertex, Color) == 16 );
-	StaticAssert( sizeof(imgui_vertex) == 20 );
 
 #ifndef sdf_font_ublock_DEFINED
 #	define sdf_font_ublock_DEFINED

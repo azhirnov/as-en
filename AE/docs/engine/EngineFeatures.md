@@ -56,18 +56,18 @@ Always tested on multiple devices:
 ## Graphics
 
 Low-level Graphics features:
-- [Vulkan](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/VulkanFeatures.md)
-- [Metal](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/MetalFeatures.md)
+- [Vulkan](VulkanFeatures.md)
+- [Metal](MetalFeatures.md)
 
 All graphics API wrappers supports:
 * Multithreaded command buffer recording
 * Only precompiled shaders
-* Uses [FeatureSet](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/FeatureSet.md) to detect hardware capabilities
+* Uses [FeatureSet](FeatureSet.md) to detect hardware capabilities
 
 ### Pipeline Compiler
 
 Designed to compile pipelines and render techniques.
-[Details](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/ResourceCompilation.md).
+[Details](ResourceCompilation.md).
 
 
 ## Networking

@@ -68,6 +68,7 @@
 		{
 			RC<RayTracingPipelineSpec>	spec = ppln.AddSpecialization( "spec" );
 
+			spec.MaxRecursionDepth( 2 );
 			spec.AddToRenderTech( "rtech", "main" );  // in SceneRayTracingPass
 
 			// shader binding table
@@ -245,7 +246,7 @@ struct ShadowRayPayload
 
 			float	atten	= 1.0 / light.attenuation.x;		// only const attenuation
 					atten	*= CastShadow( ray_origin, light.direction, max_dist );
-			diffuse += Lambert( UnpackRGBM( light.colorRGBM ).rgb, light.direction, worldNormal ) * atten;
+			diffuse += UnpackRGBM( light.colorRGBM ).rgb * LambertDiffuse( light.direction, worldNormal ) * atten;
 		}
 
 		for (uint i = 0; i < un_Lights.coneCount; ++i)
@@ -256,7 +257,7 @@ struct ShadowRayPayload
 			float	atten	= Attenuation( light.attenuation, dist );
 					atten	*= CastShadow( ray_origin, light.direction, dist );
 			// TODO: test cone
-			diffuse += Lambert( UnpackRGBM( light.colorRGBM ).rgb, light.direction, worldNormal ) * atten;
+			diffuse += UnpackRGBM( light.colorRGBM ).rgb * LambertDiffuse( light.direction, worldNormal ) * atten;
 		}
 
 		for (uint i = 0; i < un_Lights.omniCount; ++i)
@@ -267,7 +268,7 @@ struct ShadowRayPayload
 			float3	dir		= (light.position - worldPos) / dist;
 			float	atten	= Attenuation( light.attenuation, dist );
 					atten	*= CastShadow( ray_origin, dir, dist );
-			diffuse += Lambert( UnpackRGBM( light.colorRGBM ).rgb, dir, worldNormal ) * atten;
+			diffuse += UnpackRGBM( light.colorRGBM ).rgb * LambertDiffuse( dir, worldNormal ) * atten;
 		}
 
 		return float4( diffuse, 1.f );

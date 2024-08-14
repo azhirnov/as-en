@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "video/Public/Common.h"
-#include "graphics/Private/EnumToString.h"
+#ifdef AE_ENABLE_LOGS
+# include "video/Public/Common.h"
+# include "graphics/Private/EnumToString.h"
 
 namespace AE::Base
 {
@@ -51,3 +52,4 @@ namespace AE::Base
 
 
 } // AE::Base
+#endif // AE_ENABLE_LOGS

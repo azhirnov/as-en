@@ -43,6 +43,17 @@ namespace AE::Graphics
 
 /*
 =================================================
+	Create
+=================================================
+*/
+	bool  RPipelineCache::Create (const RResourceManager &resMngr, StringView dbgName, RC<RStream> stream) __NE___
+	{
+		// TODO
+		return false;
+	}
+
+/*
+=================================================
 	Destroy
 =================================================
 */
@@ -55,6 +66,17 @@ namespace AE::Graphics
 
 		_cacheId = Default;
 		GFX_DBG_ONLY( _debugName.clear() );
+	}
+
+/*
+=================================================
+	GetData
+=================================================
+*/
+	bool  RPipelineCache::GetData (const RDevice &dev, OUT Array<char> &data) C_NE___
+	{
+		// TODO
+		return false;
 	}
 
 

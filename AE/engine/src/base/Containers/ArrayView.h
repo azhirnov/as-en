@@ -138,6 +138,8 @@ namespace AE::Base
 		ND_ constexpr const T*	end ()							C_NE___	{ return _view.end(); }
 		ND_ constexpr usize		size ()							C_NE___	{ return _view.size(); }
 
+		ND_ constexpr T const&	operator [] (usize idx)			C_NE___	{ return _view[idx]; }
+
 		ND_ constexpr bool  operator == (ArrayView<T> rhs)		C_NE___	{ return _view == rhs; }
 		ND_ constexpr bool  operator != (ArrayView<T> rhs)		C_NE___	{ return _view != rhs; }
 		ND_ constexpr bool  operator >  (ArrayView<T> rhs)		C_NE___	{ return _view >  rhs; }
@@ -265,8 +267,8 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-	template <typename T>	struct TMemCopyAvailable< ArrayView<T> >	{ static constexpr bool  value = true; };
-	template <typename T>	struct TZeroMemAvailable< ArrayView<T> >	{ static constexpr bool  value = true; };
+	template <typename T>	struct TMemCopyAvailable< ArrayView<T> >	: CT_True {};
+	template <typename T>	struct TZeroMemAvailable< ArrayView<T> >	: CT_True {};
 
 } // AE::Base
 

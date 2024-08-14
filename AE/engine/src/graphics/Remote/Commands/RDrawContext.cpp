@@ -725,7 +725,7 @@ namespace AE::Graphics
 */
 	void  RDrawContext::CommitBarriers ()
 	{
-	    auto	bar = _mngr.GetBarriers();
+		auto	bar = _mngr.GetBarriers();
 		if_unlikely( bar )
 		{
 			_cmdbuf->PipelineBarrier( bar );

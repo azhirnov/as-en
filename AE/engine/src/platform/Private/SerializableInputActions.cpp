@@ -202,6 +202,7 @@ namespace AE::App
 	ToString
 =================================================
 */
+#ifdef AE_ENABLE_LOGS
 	String  SerializableInputActions::ToString (const Reflection &refl) C_Th___
 	{
 		String		str		 = "InputActions"s << GetApiName() << " {\n";
@@ -236,6 +237,7 @@ namespace AE::App
 
 		return str;
 	}
+#endif
 //-----------------------------------------------------------------------------
 
 

@@ -1,6 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Simulate particles in gravimagnetic field and draw them using geometry shader.
+
+	'Dots-tl' a bit slower than 'Dots-i' on mobile.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -9,16 +11,31 @@
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
 
+	const uint	Mode_GS			= 0;	// Supports_GeometryShader()
+	const uint	Mode_Instancing	= 1;
+	const uint	Mode_TriList	= 2;
+//	const uint	Mode_MS			= 3;	// Supports_MeshShader()
+	const uint	Mode_Count		= 3;
+
+
 	void ASmain ()
 	{
 		RC<Image>			rt					= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
-		RC<Image>			ds					= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 
-		RC<Scene>			scene				= Scene();
+		array<RC<Scene>>	scenes;
 		RC<Buffer>			particles			= Buffer();
-		const bool			use_rays			= true;
-		const uint			max_particle_count	= 1000 * 1000;
+		const uint			max_particle_count	= IsDiscreteGPU() ? (1000 * 1000) : (100 * 1000);
 		RC<DynamicUInt>		particle_count		= DynamicUInt();
+		RC<DynamicUInt>		draw_mode			= DynamicUInt();
+		RC<DynamicUInt>		sim_steps			= DynamicUInt();
+		RC<DynamicFloat>	particle_size		= DynamicFloat();
+
+		Slider( draw_mode,		"DrawMode",		0,		Mode_Count*2-1,	Mode_Instancing );
+		Slider( sim_steps,		"Steps",		0,		10,				1 );
+		Slider( particle_size,	"Size",			0.5f,	4.f,			1.f );
+
+		for (uint i = 0; i < Mode_Count*2; ++i)
+			scenes.push_back( Scene() );
 
 		// setup camera
 		{
@@ -26,13 +43,15 @@
 
 			camera.ClipPlanes( 0.1f, 100.f );
 			camera.FovY( 60.f );
+			camera.Position( float3( 0.f, 0.f, -5.f ));
 
 			const float	s = 0.3f;
 			camera.ForwardBackwardScale( s );
 			camera.UpDownScale( s );
 			camera.SideMovementScale( s );
 
-			scene.Set( camera );
+			for (uint i = 0; i < scenes.size(); ++i)
+				scenes[i].Set( camera );
 		}
 
 		// setup particles
@@ -45,36 +64,102 @@
 				"	uint2	iParams;",
 				max_particle_count );
 
-			Slider( particle_count, "Particle count", max_particle_count/100, max_particle_count );
+			Slider( particle_count, "Particle count", max_particle_count/100, max_particle_count, max_particle_count/50 );
 		}
 
 		// how to draw geometry
 		{
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
 			UnifiedGeometry_Draw	cmd;
 			cmd.VertexCount( particle_count );
-
-			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
-
 			geometry.Draw( cmd );
 			geometry.ArgIn( "un_Particles", particles );
-
-			scene.Add( geometry, float3( 0.f, 0.f, 5.f ));
-		}
+			scenes[ Mode_GS ].Add( geometry );
+			scenes[ Mode_GS + Mode_Count ].Add( geometry );
+		}{
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			UnifiedGeometry_Draw	cmd;
+			cmd.vertexCount = 3;
+			cmd.InstanceCount( particle_count );
+			geometry.Draw( cmd );
+			geometry.ArgIn( "un_Particles", particles );
+			scenes[ Mode_Instancing ].Add( geometry );
+		}{
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			UnifiedGeometry_Draw	cmd;
+			cmd.vertexCount = 4;
+			cmd.InstanceCount( particle_count );
+			geometry.Draw( cmd );
+			geometry.ArgIn( "un_Particles", particles );
+			scenes[ Mode_Instancing + Mode_Count ].Add( geometry );
+		}{
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			UnifiedGeometry_Draw	cmd;
+			cmd.VertexCount( particle_count.Mul( 3 ));
+			geometry.Draw( cmd );
+			geometry.ArgIn( "un_Particles", particles );
+			scenes[ Mode_TriList ].Add( geometry );
+		}{
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			UnifiedGeometry_Draw	cmd;
+			cmd.VertexCount( particle_count.Mul( 6 ));
+			geometry.Draw( cmd );
+			geometry.ArgIn( "un_Particles", particles );
+			scenes[ Mode_TriList + Mode_Count ].Add( geometry );
+		}/*{
+			RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+			UnifiedGeometry_DrawMeshTasks	cmd;
+			cmd.TaskCount( particle_count.DivCeil( 32 ));
+			geometry.Draw( cmd );
+			geometry.ArgIn( "un_Particles", particles );
+			scenes[ Mode_MS ].Add( geometry );
+			scenes[ Mode_MS + Mode_Count ].Add( geometry );
+		}*/
 
 		// render loop
 		{
 			RC<ComputePass>			sim_pass = ComputePass();
+			sim_pass.SetDebugLabel( "sim", RGBA8u(0, 255, 0, 255) );
 			sim_pass.ArgInOut( "un_Particles", particles );
 			sim_pass.LocalSize( 64 );
 			sim_pass.DispatchThreads( particle_count );
-			sim_pass.Slider( "iSteps",		1,		10 );
-			sim_pass.Slider( "iTimeScale",	1.f,	4.f );
-		}{
-			RC<SceneGraphicsPass>	draw_pass = scene.AddGraphicsPass( "draw" );
-			draw_pass.AddPipeline( use_rays ? "particles/Rays.as" :		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays.as)
-											  "particles/Dots.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots.as)
+			sim_pass.Constant( "iSteps",	sim_steps );
+			sim_pass.Slider( "iTimeScale",	1.f,	4.f,	(IsRemoteGPU() ? 4.f : 1.f) );
+			sim_pass.EnableIfGreater( sim_steps, 0 );
+		}
+
+		for (uint i = 0; i < scenes.size(); ++i)
+		{
+			//if ( (i % Mode_Count == Mode_MS) and not Supports_MeshShader() )
+			//	continue;
+			if ( (i % Mode_Count == Mode_GS) and not Supports_GeometryShader() )
+				continue;
+
+			RC<SceneGraphicsPass>	draw_pass = scenes[i].AddGraphicsPass( "draw" );
+			draw_pass.SetDebugLabel( "draw", RGBA8u(200, 200, 0, 255) );
+			draw_pass.EnableIfEqual( draw_mode, i );
+			draw_pass.Constant( "iSize", particle_size );
+			switch ( i )
+			{
+				case Mode_GS :
+					draw_pass.AddPipeline( "particles/Rays-gs.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-gs.as)
+				case Mode_GS + Mode_Count :
+					draw_pass.AddPipeline( "particles/Dots-gs.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-gs.as)
+				case Mode_Instancing :
+					draw_pass.AddPipeline( "particles/Rays-i.as" );		break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-i.as)
+				case Mode_Instancing + Mode_Count :
+					draw_pass.AddPipeline( "particles/Dots-i.as" );		break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-i.as)
+				case Mode_TriList :
+					draw_pass.AddPipeline( "particles/Rays-tl.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-tl.as)
+				case Mode_TriList + Mode_Count :
+					draw_pass.AddPipeline( "particles/Dots-tl.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-tl.as)
+
+			//	case Mode_MS :
+			//		draw_pass.AddPipeline( "particles/Rays-ms.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-ms.as)
+			//	case Mode_MS + Mode_Count :
+			//		draw_pass.AddPipeline( "particles/Dots-ms.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-ms.as)
+			}
 			draw_pass.Output( "out_Color", rt, RGBA32f(0.0) );
-			draw_pass.Output( ds, DepthStencil(1.f, 0) );
 		}
 		Present( rt );
 	}

@@ -1,5 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#ifdef AE_ENABLE_IMGUI
+# include "imgui.h"
+# include "graphics_hl/ImGui/ImGuiRenderer.h"
+#endif
+
 #include "profiler/ProfilerUI.h"
 
 namespace AE::Profiler
@@ -33,13 +38,18 @@ namespace AE::Profiler
 			CHECK( client->Add( _msgProducer ));
 		}
 
-		_task		= MakeRC<TaskProfiler>( start_time );
-		_graphics	= MakeRC<GraphicsProfiler>( start_time );
-		_memory		= MakeRC<MemoryProfiler>( start_time );
-
 		_hwpcProf.reset( new HwpcProfiler{ start_time });
-		if ( not _hwpcProf->Initialize( client, _msgProducer ))
+		if ( _hwpcProf->Initialize( client, _msgProducer ))
+		{
+			//_graphics->AddNextFrameListener( [this]() { _SampleGraphicsCounters(); });
+			//_graphics->SetPowerVRProfiler( _hwpcProf->GetPowerVRProfiler() );
+		}
+		else
 			_hwpcProf.reset( null );
+
+		_task		= MakeRC<TaskProfiler>( start_time );
+		_graphics	= MakeRC<GraphicsProfiler>( start_time, (_hwpcProf ? &_hwpcProf->GetPowerVRProfiler() : null) );
+		_memory		= MakeRC<MemoryProfiler>( start_time );
 
 		Scheduler().SetProfiler( _task );
 		MemoryManager().SetProfiler( _memory );
@@ -118,6 +128,15 @@ namespace AE::Profiler
 
 /*
 =================================================
+	_SampleGraphicsCounters
+=================================================
+*/
+	void  ProfilerUI::_SampleGraphicsCounters ()
+	{
+	}
+
+/*
+=================================================
 	DrawImGUI
 =================================================
 */
@@ -129,11 +148,13 @@ namespace AE::Profiler
 		if_likely( not _enabled.load() )
 			return;
 
+		Graphics::ImGuiRenderer::AEStyleScope	imgui_style {ImGui::GetCurrentContext()};
+
 		_Update();
 
-		if ( _task )		_task->DrawImGUI();
+		if ( _task )		_task	 ->DrawImGUI();
 		if ( _graphics )	_graphics->DrawImGUI();
-		if ( _memory )		_memory->DrawImGUI();
+		if ( _memory )		_memory	 ->DrawImGUI();
 		if ( _hwpcProf )	_hwpcProf->DrawImGUI();
 	}
 #endif
@@ -152,9 +173,9 @@ namespace AE::Profiler
 
 		_Update();
 
-		if ( _task )		_task->Draw( canvas );
+		if ( _task )		_task	 ->Draw( canvas );
 		if ( _graphics )	_graphics->Draw( canvas );
-		if ( _memory )		_memory->Draw( canvas );
+		if ( _memory )		_memory	 ->Draw( canvas );
 		if ( _hwpcProf )	_hwpcProf->Draw( canvas );
 	}
 

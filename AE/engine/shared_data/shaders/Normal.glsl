@@ -5,6 +5,12 @@
 	TBN matrix:
 		tan_view_dir = Normalize( MatTranspose(TBN) * viewDir );
 		world_normal = Normalize( TBN * normalMap );
+
+	Coordinate space:
+		up:		+Y
+		right:	+X
+		front:	+Z
+	For *_dxdy version normal is inversed.
 */
 
 #ifdef __cplusplus
@@ -15,20 +21,20 @@
 
 // as macros
 #if 0
-	void  SmoothNormal2x1i (out float3 outNormalInWS, float3 (*getPos)(int2, int2), int2 coord);
-	void  SmoothNormal2x2i (out float3 outNormalInWS, float3 (*getPos)(int2, int2), int2 coord);
-	void  SmoothNormal3x3i (out float3 outNormalInWS, float3 (*getPos)(int2, int2), int2 coord);
+	void  SmoothNormal2x1i (out float3 outNormalInWS, float3 (*getPos)(int2 coord, int2 offset), int2/float2 coord);
+	void  SmoothNormal2x2i (out float3 outNormalInWS, float3 (*getPos)(int2 coord, int2 offset), int2/float2 coord);
+	void  SmoothNormal3x3i (out float3 outNormalInWS, float3 (*getPos)(int2 coord, int2 offset), int2/float2 coord);
 
-	void  SmoothNormal2x1f (out float3 outNormalInWS, float3 (*getPos)(float2, float2), float2 coord, float scale);
-	void  SmoothNormal2x2f (out float3 outNormalInWS, float3 (*getPos)(float2, float2), float2 coord, float scale);
-	void  SmoothNormal3x3f (out float3 outNormalInWS, float3 (*getPos)(float2, float2), float2 coord, float scale);
+	void  SmoothNormal2x1f (out float3 outNormalInWS, float3 (*getPos)(float2 coord, float2 offset), float2 coord, float scale);
+	void  SmoothNormal2x2f (out float3 outNormalInWS, float3 (*getPos)(float2 coord, float2 offset), float2 coord, float scale);
+	void  SmoothNormal3x3f (out float3 outNormalInWS, float3 (*getPos)(float2 coord, float2 offset), float2 coord, float scale);
 
 
-	void  SmoothTBN2x2i (out float3x3 outTBNinWS, float3 (*getPos)(int2, int2), float2 (*getUV)(int2, int2), int2 coord);
-	void  SmoothTBN3x3i (out float3x3 outTBNinWS, float3 (*getPos)(int2, int2), float2 (*getUV)(int2, int2), int2 coord);
+	void  SmoothTBN2x2i (out float3x3 outTBNinWS, float3 (*getPos)(int2 c, int2 dc), float2 (*getUV)(int2 c, int2 dc), int2/float2 coord);
+	void  SmoothTBN3x3i (out float3x3 outTBNinWS, float3 (*getPos)(int2 c, int2 dc), float2 (*getUV)(int2 c, int2 dc), int2/float2 coord);
 
-	void  SmoothTBN2x2f (out float3x3 outTBNinWS, float3 (*getPos)(float2, float2), float2 (*getUV)(float2, float2), float2 coord, float scale);
-	void  SmoothTBN3x3f (out float3x3 outTBNinWS, float3 (*getPos)(float2, float2), float2 (*getUV)(float2, float2), float2 coord, float scale);
+	void  SmoothTBN2x2f (out float3x3 outTBNinWS, float3 (*getPos)(float2 c, float2 dc), float2 (*getUV)(float2 c, float2 dc), float2 coord, float scale);
+	void  SmoothTBN3x3f (out float3x3 outTBNinWS, float3 (*getPos)(float2 c, float2 dc), float2 (*getUV)(float2 c, float2 dc), float2 coord, float scale);
 #endif
 
 #ifdef SH_FRAG
@@ -60,25 +66,25 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 		2
 =================================================
 */
-#define _impl_SmoothNormal2x1( _outNormalInWS_, _getPos_, _coord_ )		\
-																		\
-		const float3	v0	= _getPos_( _coord_, offset.xx ).xyz;		\
-		const float3	v1	= _getPos_( _coord_, offset.yx ).xyz;		\
-		const float3	v2	= _getPos_( _coord_, offset.xy ).xyz;		\
-																		\
-		_outNormalInWS_  = Cross( v1 - v0, v2 - v0 );	/* 1-0, 2-0 */	\
-		_outNormalInWS_  = Normalize( _outNormalInWS_ );				\
+#define _impl_SmoothNormal2x1( _outNormalInWS_, _getPos_, _coord_ )			\
+																			\
+		const float3	v0	= _getPos_( (_coord_), offset.xx ).xyz;			\
+		const float3	v1	= _getPos_( (_coord_), offset.yx ).xyz;			\
+		const float3	v2	= _getPos_( (_coord_), offset.xy ).xyz;			\
+																			\
+		_outNormalInWS_  = Cross( v1 - v0, v2 - v0 );	/* 1-0, 2-0 */		\
+		_outNormalInWS_  = Normalize( _outNormalInWS_ );					\
 
-#define SmoothNormal2x1i( _outNormalInWS_, _getPos_, _coord_ )			\
-	{																	\
-		const int2		offset = int2(0, 1);							\
-		_impl_SmoothNormal2x1( _outNormalInWS_, _getPos_, _coord_ )		\
+#define SmoothNormal2x1i( _outNormalInWS_, _getPos_, _coord_ )				\
+	{																		\
+		const int2		offset = int2(0, 1);								\
+		_impl_SmoothNormal2x1( (_outNormalInWS_), _getPos_, (_coord_) )		\
 	}
 
-#define SmoothNormal2x1f( _outNormalInWS_, _getPos_, _coord_, _scale_ )	\
-	{																	\
-		const float2	offset = float2(0.0, _scale_);					\
-		_impl_SmoothNormal2x1( _outNormalInWS_, _getPos_, _coord_ )		\
+#define SmoothNormal2x1f( _outNormalInWS_, _getPos_, _coord_, _scale_ )		\
+	{																		\
+		const float2	offset = float2( 0.0, (_scale_) );					\
+		_impl_SmoothNormal2x1( (_outNormalInWS_), _getPos_, (_coord_) )		\
 	}
 
 /*
@@ -90,27 +96,27 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 		2 3
 =================================================
 */
-#define _impl_SmoothNormal2x2( _outNormalInWS_, _getPos_, _coord_ )		\
-																		\
-		const float3	v0	= _getPos_( _coord_, offset.xx ).xyz;		\
-		const float3	v1	= _getPos_( _coord_, offset.yx ).xyz;		\
-		const float3	v2	= _getPos_( _coord_, offset.xy ).xyz;		\
-		const float3	v3	= _getPos_( _coord_, offset.yy ).xyz;		\
-																		\
-		_outNormalInWS_  = Cross( v1 - v0, v3 - v0 );	/* 1-0, 3-0 */	\
-		_outNormalInWS_ += Cross( v3 - v0, v2 - v0 );	/* 3-0, 2-0 */	\
-		_outNormalInWS_  = Normalize( _outNormalInWS_ );				\
+#define _impl_SmoothNormal2x2( _outNormalInWS_, _getPos_, _coord_ )			\
+																			\
+		const float3	v0	= _getPos_( (_coord_), offset.xx ).xyz;			\
+		const float3	v1	= _getPos_( (_coord_), offset.yx ).xyz;			\
+		const float3	v2	= _getPos_( (_coord_), offset.xy ).xyz;			\
+		const float3	v3	= _getPos_( (_coord_), offset.yy ).xyz;			\
+																			\
+		_outNormalInWS_  = Cross( v1 - v0, v3 - v0 );	/* 1-0, 3-0 */		\
+		_outNormalInWS_ += Cross( v3 - v0, v2 - v0 );	/* 3-0, 2-0 */		\
+		_outNormalInWS_  = Normalize( _outNormalInWS_ );					\
 
-#define SmoothNormal2x2i( _outNormalInWS_, _getPos_, _coord_ )			\
-	{																	\
-		const int2		offset = int2(0, 1);							\
-		_impl_SmoothNormal2x2( _outNormalInWS_, _getPos_, _coord_ )		\
+#define SmoothNormal2x2i( _outNormalInWS_, _getPos_, _coord_ )				\
+	{																		\
+		const int2		offset = int2(0, 1);								\
+		_impl_SmoothNormal2x2( (_outNormalInWS_), _getPos_, (_coord_) )		\
 	}
 
-#define SmoothNormal2x2f( _outNormalInWS_, _getPos_, _coord_, _scale_ )	\
-	{																	\
-		const float2	offset = float2(0.0, _scale_);					\
-		_impl_SmoothNormal2x2( _outNormalInWS_, _getPos_, _coord_ )		\
+#define SmoothNormal2x2f( _outNormalInWS_, _getPos_, _coord_, _scale_ )		\
+	{																		\
+		const float2	offset = float2( 0.0, (_scale_) );					\
+		_impl_SmoothNormal2x2( (_outNormalInWS_), _getPos_, (_coord_) )		\
 	}
 
 /*
@@ -123,39 +129,39 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 		6 7 8
 =================================================
 */
-#define _impl_SmoothNormal3x3( _outNormalInWS_, _getPos_, _coord_ )		\
-																		\
-		const float3	v0	= _getPos_( _coord_, offset.xx ).xyz;		\
-		const float3	v1	= _getPos_( _coord_, offset.yx ).xyz;		\
-		const float3	v2	= _getPos_( _coord_, offset.zx ).xyz;		\
-		const float3	v3	= _getPos_( _coord_, offset.xy ).xyz;		\
-		const float3	v4	= _getPos_( _coord_, offset.yy ).xyz;		\
-		const float3	v5	= _getPos_( _coord_, offset.zy ).xyz;		\
-		const float3	v6	= _getPos_( _coord_, offset.xz ).xyz;		\
-		const float3	v7	= _getPos_( _coord_, offset.yz ).xyz;		\
-		const float3	v8	= _getPos_( _coord_, offset.zz ).xyz;		\
-																		\
-		_outNormalInWS_  = Cross( v1 - v4, v2 - v4 );	/* 1-4, 2-4 */	\
-		_outNormalInWS_ += Cross( v2 - v4, v5 - v4 );	/* 2-4, 5-4 */	\
-		_outNormalInWS_ += Cross( v5 - v4, v8 - v4 );	/* 5-4, 8-4 */	\
-		_outNormalInWS_ += Cross( v8 - v4, v7 - v4 );	/* 8-4, 7-4 */	\
-		_outNormalInWS_ += Cross( v7 - v4, v6 - v4 );	/* 7-4, 6-4 */	\
-		_outNormalInWS_ += Cross( v6 - v4, v3 - v4 );	/* 6-4, 3-4 */	\
-		_outNormalInWS_ += Cross( v3 - v4, v0 - v4 );	/* 3-4, 0-4 */	\
-		_outNormalInWS_ += Cross( v0 - v4, v1 - v4 );	/* 0-4, 1-4 */	\
-		_outNormalInWS_  = Normalize( _outNormalInWS_ );				\
+#define _impl_SmoothNormal3x3( _outNormalInWS_, _getPos_, _coord_ )			\
+																			\
+		const float3	v0	= _getPos_( (_coord_), offset.xx ).xyz;			\
+		const float3	v1	= _getPos_( (_coord_), offset.yx ).xyz;			\
+		const float3	v2	= _getPos_( (_coord_), offset.zx ).xyz;			\
+		const float3	v3	= _getPos_( (_coord_), offset.xy ).xyz;			\
+		const float3	v4	= _getPos_( (_coord_), offset.yy ).xyz;			\
+		const float3	v5	= _getPos_( (_coord_), offset.zy ).xyz;			\
+		const float3	v6	= _getPos_( (_coord_), offset.xz ).xyz;			\
+		const float3	v7	= _getPos_( (_coord_), offset.yz ).xyz;			\
+		const float3	v8	= _getPos_( (_coord_), offset.zz ).xyz;			\
+																			\
+		_outNormalInWS_  = Cross( v1 - v4, v2 - v4 );	/* 1-4, 2-4 */		\
+		_outNormalInWS_ += Cross( v2 - v4, v5 - v4 );	/* 2-4, 5-4 */		\
+		_outNormalInWS_ += Cross( v5 - v4, v8 - v4 );	/* 5-4, 8-4 */		\
+		_outNormalInWS_ += Cross( v8 - v4, v7 - v4 );	/* 8-4, 7-4 */		\
+		_outNormalInWS_ += Cross( v7 - v4, v6 - v4 );	/* 7-4, 6-4 */		\
+		_outNormalInWS_ += Cross( v6 - v4, v3 - v4 );	/* 6-4, 3-4 */		\
+		_outNormalInWS_ += Cross( v3 - v4, v0 - v4 );	/* 3-4, 0-4 */		\
+		_outNormalInWS_ += Cross( v0 - v4, v1 - v4 );	/* 0-4, 1-4 */		\
+		_outNormalInWS_  = Normalize( _outNormalInWS_ );					\
 
 
-#define SmoothNormal3x3i( _outNormalInWS_, _getPos_, _coord_ )			\
-	{																	\
-		const int3		offset = int3(-1, 0, 1);						\
-		_impl_SmoothNormal3x3( _outNormalInWS_, _getPos_, _coord_ )		\
+#define SmoothNormal3x3i( _outNormalInWS_, _getPos_, _coord_ )				\
+	{																		\
+		const int3		offset = int3(-1, 0, 1);							\
+		_impl_SmoothNormal3x3( (_outNormalInWS_), _getPos_, (_coord_) )		\
 	}
 
-#define SmoothNormal3x3f( _outNormalInWS_, _getPos_, _coord_, _scale_ )	\
-	{																	\
-		const float3	offset = float3(-_scale_, 0.0, _scale_);		\
-		_impl_SmoothNormal3x3( _outNormalInWS_, _getPos_, _coord_ )		\
+#define SmoothNormal3x3f( _outNormalInWS_, _getPos_, _coord_, _scale_ )		\
+	{																		\
+		const float3	offset = float3(-(_scale_), 0.0, (_scale_) );		\
+		_impl_SmoothNormal3x3( (_outNormalInWS_), _getPos_, (_coord_) )		\
 	}
 
 /*
@@ -166,7 +172,6 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 =================================================
 */
 #ifdef SH_FRAG
-
 	// Calc normal using derivatives
 	float3  ComputeNormalInWS_dxdy (const float3 worldPos)
 	{
@@ -175,13 +180,15 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 		float3	norm = Cross( dy, dx );
 		return Normalize( norm );
 	}
+#endif
 
+#ifdef AE_shader_subgroup_quad
 	// Calc normal using quad subgroup
 	float3  ComputeNormalInWS_quadSg (const float3 worldPos)
 	{
-		float3	p0   = gl.subgroup.QuadBroadcast( worldPos, 0 );
-		float3	p1   = gl.subgroup.QuadBroadcast( worldPos, 1 );
-		float3	p2   = gl.subgroup.QuadBroadcast( worldPos, 2 );
+		float3	p0   = gl.quadGroup.Broadcast( worldPos, 0 );
+		float3	p1   = gl.quadGroup.Broadcast( worldPos, 1 );
+		float3	p2   = gl.quadGroup.Broadcast( worldPos, 2 );
 		float3	norm = Cross( p2 - p0, p1 - p0 );
 		return Normalize( norm );
 	}
@@ -255,22 +262,22 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 		float3	tangent;
 		float3	bitangent;
 
-		tangent.x	= IsNotZero( cp.x ) ? -cp.y / cp.x : 0.0;
-		bitangent.x	= IsNotZero( cp.x ) ? -cp.z / cp.x : 0.0;
+		tangent.x	= -cp.y / cp.x;		tangent.x	= IsFinite( tangent.x )		? tangent.x		: 0.0;
+		bitangent.x	= -cp.z / cp.x;		bitangent.x = IsFinite( bitangent.x )	? bitangent.x	: 0.0;
 
 		e0.x = position1.y - position0.y;
 		e1.x = position2.y - position0.y;
 		cp   = Cross( e0, e1 );
 
-		tangent.y   = IsNotZero( cp.x ) ? -cp.y / cp.x : 0.0;
-		bitangent.y = IsNotZero( cp.x ) ? -cp.z / cp.x : 0.0;
+		tangent.y   = -cp.y / cp.x;		tangent.y   = IsFinite( tangent.y )		? tangent.y		: 0.0;
+		bitangent.y = -cp.z / cp.x;		bitangent.y = IsFinite( bitangent.y )	? bitangent.y	: 0.0;
 
 		e0.x = position1.z - position0.z;
 		e1.x = position2.z - position0.z;
 		cp   = Cross( e0, e1 );
 
-		tangent.z   = IsNotZero( cp.x ) ? -cp.y / cp.x : 0.0;
-		bitangent.z = IsNotZero( cp.x ) ? -cp.z / cp.x : 0.0;
+		tangent.z   = -cp.y / cp.x;		tangent.z   = IsFinite( tangent.z )		? tangent.z		: 0.0;
+		bitangent.z = -cp.z / cp.x;		bitangent.z = IsFinite( bitangent.z )	? bitangent.z	: 0.0;
 
 		tangent		= Normalize( tangent );
 		bitangent	= Normalize( bitangent );
@@ -289,19 +296,19 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 */
 #define _impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )			\
 																				\
-		const float3	pos0	= _getPos_( _coord_, offset.xx ).xyz;			\
-		const float3	pos1	= _getPos_( _coord_, offset.yx ).xyz;			\
-		const float3	pos2	= _getPos_( _coord_, offset.zx ).xyz;			\
-		const float3	pos3	= _getPos_( _coord_, offset.xy ).xyz;			\
+		const float3	pos0	= _getPos_( (_coord_), offset.xx ).xyz;			\
+		const float3	pos1	= _getPos_( (_coord_), offset.yx ).xyz;			\
+		const float3	pos2	= _getPos_( (_coord_), offset.xy ).xyz;			\
+		const float3	pos3	= _getPos_( (_coord_), offset.yy ).xyz;			\
 																				\
-		const float2	uv0		= _getUV_( _coord_, offset.xx );				\
-		const float2	uv1		= _getUV_( _coord_, offset.yx );				\
-		const float2	uv2		= _getUV_( _coord_, offset.zx );				\
-		const float2	uv3		= _getUV_( _coord_, offset.xy );				\
+		const float2	uv0		= _getUV_( (_coord_), offset.xx );				\
+		const float2	uv1		= _getUV_( (_coord_), offset.yx );				\
+		const float2	uv2		= _getUV_( (_coord_), offset.xy );				\
+		const float2	uv3		= _getUV_( (_coord_), offset.yy );				\
 																				\
 		float3x3	tbn0, tbn1;													\
-		ComputeTBN( pos0, uv0, pos1, uv1, pos3, uv3, OUT tbn0 );/* 1-0, 3-0 */	\
-		ComputeTBN( pos0, uv0, pos3, uv3, pos2, uv2, OUT tbn1 );/* 3-0, 2-0 */	\
+		ComputeTBN( pos0, uv0, pos1, uv1, pos3, uv3, OUT tbn0 ); /* 0,1,3 */	\
+		ComputeTBN( pos0, uv0, pos3, uv3, pos2, uv2, OUT tbn1 ); /* 0,3,2 */	\
 																				\
 		_outTBNinWS_[0] = Normalize( tbn0[0] + tbn1[0] );						\
 		_outTBNinWS_[1] = Normalize( tbn0[1] + tbn1[1] );						\
@@ -311,13 +318,13 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 #define SmoothTBN2x2i( _outTBNinWS_, _getPos_, _getUV_, _coord_ )				\
 	{																			\
 		const int2		offset = int2(0, 1);									\
-		_impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )			\
+		_impl_SmoothTBN2x2( (_outTBNinWS_), _getPos_, _getUV_, (_coord_) )		\
 	}
 
 #define SmoothTBN2x2f( _outTBNinWS_, _getPos_, _getUV_, _coord_, _scale_ )		\
 	{																			\
-		const float2	offset = float2(0.0, _scale_);							\
-		_impl_SmoothTBN2x2( _outTBNinWS_, _getPos_, _getUV_, _coord_ )			\
+		const float2	offset = float2( 0.0, (_scale_) );						\
+		_impl_SmoothTBN2x2( (_outTBNinWS_), _getPos_, _getUV_, (_coord_) )		\
 	}
 
 /*
@@ -332,25 +339,25 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 */
 #define _impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )			\
 																				\
-		const float3	pos0	= _getPos_( _coord_, offset.xx ).xyz;			\
-		const float3	pos1	= _getPos_( _coord_, offset.yx ).xyz;			\
-		const float3	pos2	= _getPos_( _coord_, offset.zx ).xyz;			\
-		const float3	pos3	= _getPos_( _coord_, offset.xy ).xyz;			\
-		const float3	pos4	= _getPos_( _coord_, offset.yy ).xyz;			\
-		const float3	pos5	= _getPos_( _coord_, offset.zy ).xyz;			\
-		const float3	pos6	= _getPos_( _coord_, offset.xz ).xyz;			\
-		const float3	pos7	= _getPos_( _coord_, offset.yz ).xyz;			\
-		const float3	pos8	= _getPos_( _coord_, offset.zz ).xyz;			\
+		const float3	pos0	= _getPos_( (_coord_), offset.xx ).xyz;			\
+		const float3	pos1	= _getPos_( (_coord_), offset.yx ).xyz;			\
+		const float3	pos2	= _getPos_( (_coord_), offset.zx ).xyz;			\
+		const float3	pos3	= _getPos_( (_coord_), offset.xy ).xyz;			\
+		const float3	pos4	= _getPos_( (_coord_), offset.yy ).xyz;			\
+		const float3	pos5	= _getPos_( (_coord_), offset.zy ).xyz;			\
+		const float3	pos6	= _getPos_( (_coord_), offset.xz ).xyz;			\
+		const float3	pos7	= _getPos_( (_coord_), offset.yz ).xyz;			\
+		const float3	pos8	= _getPos_( (_coord_), offset.zz ).xyz;			\
 																				\
-		const float2	uv0		= _getUV_( _coord_, offset.xx );				\
-		const float2	uv1		= _getUV_( _coord_, offset.yx );				\
-		const float2	uv2		= _getUV_( _coord_, offset.zx );				\
-		const float2	uv3		= _getUV_( _coord_, offset.xy );				\
-		const float2	uv4		= _getUV_( _coord_, offset.yy );				\
-		const float2	uv5		= _getUV_( _coord_, offset.zy );				\
-		const float2	uv6		= _getUV_( _coord_, offset.xz );				\
-		const float2	uv7		= _getUV_( _coord_, offset.yz );				\
-		const float2	uv8		= _getUV_( _coord_, offset.zz );				\
+		const float2	uv0		= _getUV_( (_coord_), offset.xx );				\
+		const float2	uv1		= _getUV_( (_coord_), offset.yx );				\
+		const float2	uv2		= _getUV_( (_coord_), offset.zx );				\
+		const float2	uv3		= _getUV_( (_coord_), offset.xy );				\
+		const float2	uv4		= _getUV_( (_coord_), offset.yy );				\
+		const float2	uv5		= _getUV_( (_coord_), offset.zy );				\
+		const float2	uv6		= _getUV_( (_coord_), offset.xz );				\
+		const float2	uv7		= _getUV_( (_coord_), offset.yz );				\
+		const float2	uv8		= _getUV_( (_coord_), offset.zz );				\
 																				\
 		float3x3	tbn0, tbn1, tbn2, tbn3;										\
 		ComputeTBN( pos4, uv4, pos1, uv1, pos2, uv2, OUT tbn0 );/* 1-4, 2-4 */	\
@@ -366,11 +373,11 @@ ND_ float3  ComputeNormal (const float3 position0, const float3 position1, const
 #define SmoothTBN3x3i( _outTBNinWS_, _getPos_, _getUV_, _coord_ )				\
 	{																			\
 		const int3		offset = int3(-1, 0, 1);								\
-		_impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )			\
+		_impl_SmoothTBN3x3( (_outTBNinWS_), _getPos_, _getUV_, (_coord_) )		\
 	}
 
 #define SmoothTBN3x3f( _outTBNinWS_, _getPos_, _getUV_, _coord_, _scale_ )		\
 	{																			\
-		const float3	offset = float3(-_scale_, 0.0, _scale_);				\
-		_impl_SmoothTBN3x3( _outTBNinWS_, _getPos_, _getUV_, _coord_ )			\
+		const float3	offset = float3(-(_scale_), 0.0, (_scale_) );			\
+		_impl_SmoothTBN3x3( (_outTBNinWS_), _getPos_, _getUV_, (_coord_) )		\
 	}

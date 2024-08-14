@@ -107,8 +107,9 @@ namespace AE::Base
 		// Clipboard //
 		ND_ static bool		ClipboardExtract (OUT WString &result, void* wnd = null)		__NE___;
 		ND_ static bool		ClipboardExtract (OUT String &result, void* wnd = null)			__NE___;
-		ND_ static bool		ClipboardPut (WStringView str, void* wnd = null)				__NE___;
-		ND_ static bool		ClipboardPut (StringView str, void* wnd = null)					__NE___;
+		ND_ static bool		ClipboardPut (NtWStringView str, void* wnd = null)				__NE___;
+		ND_ static bool		ClipboardPut (NtStringView str, void* wnd = null)				__NE___;
+		ND_ static bool		ClipboardClear (void* wnd = null)								__NE___;
 
 
 	private:

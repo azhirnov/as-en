@@ -192,9 +192,12 @@ namespace AE::Graphics::_hidden_
 
 		struct GenerateMipmapsCmd : BaseCmd
 		{
-			VkImage				image;
-			packed_uint3		dimension;
-			uint				rangeCount;
+			VkImage					image;
+			packed_uint3			dimension;
+			VkPipelineStageFlags2	srcStageMask;
+			VkAccessFlags2			srcAccessMask;
+			VkImageLayout			oldLayout;
+			uint					rangeCount;
 			//ImageSubresourceRange	ranges[];
 		};
 

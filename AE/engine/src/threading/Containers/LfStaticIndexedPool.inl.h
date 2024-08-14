@@ -213,7 +213,7 @@ namespace AE::Threading
 		Bitfield_t	mask		= Bitfield_t{1} << bit_idx;
 		Bitfield_t	old_bits	= (*_arr)[ chunk_idx ].assigned.fetch_and( ~mask ); // 1 -> 0
 		Unused( old_bits );
-		ASSERT( old_bits & mask );	// prev bit must be 1
+		ASSERT( !!(old_bits & mask) );	// prev bit must be 1
 
 		return !!(old_bits & mask);
 	}

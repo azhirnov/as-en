@@ -4,6 +4,11 @@
 
 set( LZ4_PATH "${AE_DST_PATH}/lz4" )
 
+if (NOT EXISTS "${LZ4_PATH}/lib")
+	message( FATAL_ERROR "'${LZ4_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "lz4-lib" INTERFACE )
 target_include_directories( "lz4-lib" INTERFACE "${LZ4_PATH}/include" )
 target_compile_definitions( "lz4-lib" INTERFACE "AE_ENABLE_LZ4" "AE_LICENSE_BSD_2" )
@@ -16,6 +21,7 @@ else()
 	set_property( TARGET "lz4-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${LZ4_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}lz4${CMAKE_STATIC_LIBRARY_SUFFIX}" )
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.lz4" "tests/main.cpp" )

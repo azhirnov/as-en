@@ -42,6 +42,7 @@ ND_ float4  ToRGBM (const float3 rgb);
 
 ND_ float3  LerpHSV (float3 a, float3 b, float factor);
 ND_ float3  RGBLerpHSV (float3 a, float3 b, const float factor);
+ND_ float4  RGBLerpHSV (float4 a, float4 b, const float factor);
 ND_ float3  RGBLerpOklab (const float3 a, const float3 b, const float factor);
 //-----------------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ ND_ float3  RGBLerpOklab (const float3 a, const float3 b, const float factor);
 
 float4  Rainbow (const float factor)
 {
-	return float4( HSVtoRGB( float3( Saturate( factor * 0.8f ), 1.f, 1.f )), 1.f );
+	return float4( HSVtoRGB( float3( Saturate(factor) * 0.8f, 1.f, 1.f )), 1.f );
 }
 
 float4  RainbowWrap (const float factor)
@@ -66,6 +67,21 @@ float3  RGBLerpHSV (float3 a, float3 b, const float factor)
 	a = RGBtoHSV( a );
 	b = RGBtoHSV( b );
 	return HSVtoRGB( LerpHSV( a, b, factor ));
+}
+
+float4  RGBLerpHSV (float4 a, float4 b, const float factor)
+{
+	a.rgb = RGBtoHSV( a.rgb );
+	b.rgb = RGBtoHSV( b.rgb );
+	return float4( HSVtoRGB( LerpHSV( a.rgb, b.rgb, factor )), Lerp( a.a, b.a, factor ));
+}
+
+float4  RGBLerpOklab (const float4 a, const float4 b, const float factor)
+{
+	float4	res;
+	res.rgb = RGBLerpOklab( a.rgb, b.rgb, factor );
+	res.a   = Lerp( a.a, b.a, factor );
+	return res;
 }
 //-----------------------------------------------------------------------------
 

@@ -423,7 +423,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 				break;
 
 			case ETraceMode::TimeMap :
-				CHECK_ERR( GetShaderClockFeats().shaderDeviceClock );
+				CHECK_ERR( GetShaderClockFeats().shaderDeviceClock == VK_TRUE );
 				CHECK_ERR( dbgInfo->InsertShaderClockHeatmap( INOUT *intermediate, dbgBufferSetIndex ));
 				break;
 
@@ -450,7 +450,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 	GlslangToSpv( *intermediate, OUT spirvData, &logger, &spv_options );
 
 	//AE_LOGI( logger.getAllMessages() );
-	CHECK_ERR( spirvData.size() );
+	CHECK_ERR( not spirvData.empty() );
 
 	// for debugging
 	#if 0 //def AE_ENABLE_SPIRV_CROSS
@@ -1650,8 +1650,8 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 */
 bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String referenceFile)
 {
-	CHECK_ERR( referenceFile.size() );
-	CHECK_ERR( modules.size() );
+	CHECK_ERR( not referenceFile.empty() );
+	CHECK_ERR( not modules.empty() );
 
 	String			merged;
 	Array<String>	debug_output;
@@ -1660,7 +1660,7 @@ bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String re
 	{
 		Array<String>	temp;
 		CHECK_ERR( _GetDebugOutput( module, readBackPtr, debugOutputSize, OUT temp ));
-		CHECK( temp.size() );
+		CHECK( not temp.empty() );
 		debug_output.insert( debug_output.end(), temp.begin(), temp.end() );
 	}
 
@@ -1707,14 +1707,14 @@ bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String re
 */
 bool  TestDevice::TestPerformanceOutput (Array<VkShaderModule> modules, Array<String> fnNames)
 {
-	CHECK_ERR( fnNames.size() );
-	CHECK_ERR( modules.size() );
+	CHECK_ERR( not fnNames.empty() );
+	CHECK_ERR( not modules.empty() );
 
 	for (auto& module : modules)
 	{
 		Array<String>	temp;
 		CHECK_ERR( _GetDebugOutput( module, readBackPtr, debugOutputSize, OUT temp ));
-		CHECK_ERR( temp.size() );
+		CHECK_ERR( not temp.empty() );
 
 		for (auto& output : temp)
 		{
@@ -1736,7 +1736,7 @@ bool  TestDevice::TestPerformanceOutput (Array<VkShaderModule> modules, Array<St
 */
 bool  TestDevice::CheckTimeMap (Array<VkShaderModule> modules, float emptyPxFactor)
 {
-	CHECK_ERR( modules.size() );
+	CHECK_ERR( not modules.empty() );
 
 	for (auto& module : modules)
 	{

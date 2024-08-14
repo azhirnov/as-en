@@ -63,7 +63,7 @@ namespace AE::Graphics
 		ND_ Bytes			BytesPerBlock ()				C_NE___	{ ASSERT( (_bitsPerBlock & 7) == 0 );  return Bytes{uint{_bitsPerBlock} >> 3}; }
 		ND_ Bytes			MinRowSize ()					C_NE___	{ return ImageUtils::RowSize( _dimension.x, _bitsPerBlock, TexBlockDim() ); };
 		ND_ Bytes			MinSliceSize ()					C_NE___	{ return ImageUtils::SliceSize( _dimension.y, RowPitch(), TexBlockDim() ); }
-		ND_ Bytes			Image2DSize ()					C_NE___	{ return RowPitch() * _dimension.y; }
+		ND_ Bytes			Image2DSize ()					C_NE___	{ return MinSliceSize(); }
 		ND_ Bytes			Image3DSize ()					C_NE___	{ return SlicePitch() * _dimension.z; }
 		ND_ Bytes			ContentSize ()					C_NE___	{ return _content.DataSize(); }
 		ND_ EPixelFormat	Format ()						C_NE___	{ return _format; }
@@ -72,7 +72,7 @@ namespace AE::Graphics
 		ND_ auto			Parts ()						C_NE___	{ return _content.Parts(); }
 		ND_ bool			Empty ()						C_NE___	{ return _content.Empty(); }
 		ND_ uint2			TexBlockDim ()					C_NE___	{ return uint2{_texBlockDim}; }
-		ND_ uint2			TexelBlocks ()					C_NE___	{ return uint2{_dimension.x, _dimension.y} / TexBlockDim(); }
+		ND_ uint2			TexelBlocks ()					C_NE___	{ return ImageUtils::TexelBlocks( uint2{_dimension}, TexBlockDim() ); }
 
 			bool	PushBack (void* ptr, Bytes size)		__NE___	{ return _content.PushBack( ptr, size ); }
 

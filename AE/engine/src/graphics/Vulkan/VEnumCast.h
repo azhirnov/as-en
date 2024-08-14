@@ -211,7 +211,7 @@ namespace AE::Graphics
 */
 	ND_ inline VkShaderStageFlagBits  VEnumCast (EShaderStages values) __NE___
 	{
-		if ( values == EShaderStages::GraphicsStages )
+		if ( values == EShaderStages::GraphicsPipeStages )
 			return VK_SHADER_STAGE_ALL_GRAPHICS;
 
 		if ( values == EShaderStages::All )
@@ -239,8 +239,8 @@ namespace AE::Graphics
 				case EShaderStages::Tile :				flags |= VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI;	break;
 
 				case EShaderStages::Unknown :
-				case EShaderStages::GraphicsStages :
-				case EShaderStages::MeshStages :
+				case EShaderStages::GraphicsPipeStages :
+				case EShaderStages::MeshPipeStages :
 				case EShaderStages::AllGraphics :
 				case EShaderStages::AllRayTracing :
 				case EShaderStages::VertexProcessingStages :
@@ -1673,11 +1673,11 @@ namespace AE::Graphics
 			switch_enum( t )
 			{
 				// VK_EXT_fragment_density_map
-				//case ESamplerOpt::Subsampled :						flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;
-				//case ESamplerOpt::SubsampledCoarseReconstruction :	flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT | VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;
+				//case ESamplerOpt::Subsampled :						flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;	break;
+				//case ESamplerOpt::SubsampledCoarseReconstruction :	flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT | VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;	break;
 
 				// VK_EXT_non_seamless_cube_map
-				case ESamplerOpt::NonSeamlessCubeMap :					flags |= VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT;
+				case ESamplerOpt::NonSeamlessCubeMap :					flags |= VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT;	break;
 
 				case ESamplerOpt::UnnormalizedCoordinates :
 				case ESamplerOpt::ArgumentBuffer :

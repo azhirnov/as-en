@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Helper functions for compute shader
+	Helper functions to get workgroup coords in compute shader and
+	global coord for fragment/compute/ray_tracing/mesh/task shaders.
 */
 
 #ifdef __cplusplus
@@ -14,31 +15,36 @@
 
 // local linear index
 ND_ int    GetLocalIndexSize ();
-ND_ int    GetLocalIndex ();		// 0..size-1
-ND_ float  GetLocalIndexUNorm ();	//  0..1
-ND_ float  GetLocalIndexSNorm ();	// -1..1
+ND_ int    GetLocalIndex ();						// 0..size-1
+ND_ float  GetLocalIndexUNorm ();					//  0..1
+ND_ float  GetLocalIndexSNorm ();					// -1..1
 
 // local coordinate in 3D
 ND_ int3    GetLocalSize ();
-ND_ int3    GetLocalCoord ();		// 0..size-1
-ND_ float3  GetLocalCoordUNorm ();	//  0..1
-ND_ float3  GetLocalCoordSNorm ();	// -1..1
+ND_ int3    GetLocalCoord ();						// 0..size-1
+ND_ float3  GetLocalCoordUNorm ();					//  0..1
+ND_ float3  GetLocalCoordSNorm ();					// -1..1
+ND_ float3  GetLocalCoordUNorm (int3 offset);		//  0..1
+ND_ float3  GetLocalCoordSNorm (int3 offset);		// -1..1
 
+ND_ int2    GetLocalCoordQuadCorrected ();			// 0..size-1	- for quad subgroup operations
 
 //-----------------------------------------------------------------------------
 // group
 
 // group linear index
 ND_ int    GetGroupIndexSize ();
-ND_ int    GetGroupIndex ();		// 0..size-1
-ND_ float  GetGroupIndexUNorm ();	//  0..1
-ND_ float  GetGroupIndexSNorm ();	// -1..1
+ND_ int    GetGroupIndex ();						// 0..size-1
+ND_ float  GetGroupIndexUNorm ();					//  0..1
+ND_ float  GetGroupIndexSNorm ();					// -1..1
 
 // group coordinate in 3D
 ND_ int3    GetGroupSize ();
-ND_ int3    GetGroupCoord ();		// 0..size-1
-ND_ float3  GetGroupCoordUNorm ();	//  0..1
-ND_ float3  GetGroupCoordSNorm ();	// -1..1
+ND_ int3    GetGroupCoord ();						// 0..size-1
+ND_ float3  GetGroupCoordUNorm ();					//  0..1
+ND_ float3  GetGroupCoordSNorm ();					// -1..1
+ND_ float3  GetGroupCoordUNorm (int3 offset);		//  0..1
+ND_ float3  GetGroupCoordSNorm (int3 offset);		// -1..1
 
 
 //-----------------------------------------------------------------------------
@@ -46,21 +52,25 @@ ND_ float3  GetGroupCoordSNorm ();	// -1..1
 
 // global linear index
 ND_ int    GetGlobalIndexSize ();
-ND_ int    GetGlobalIndex ();			// 0..size-1
-ND_ float  GetGlobalIndexUNorm ();		//  0..1
-ND_ float  GetGlobalIndexSNorm ();		// -1..1
+ND_ int    GetGlobalIndex ();						// 0..size-1
+ND_ float  GetGlobalIndexUNorm ();					//  0..1
+ND_ float  GetGlobalIndexSNorm ();					// -1..1
 
 // global coordinate in 3D
 ND_ int3    GetGlobalSize ();
-ND_ int3    GetGlobalCoord ();			// 0..size-1
-ND_ float3  GetGlobalCoordUNorm ();		//  0..1
-ND_ float3  GetGlobalCoordSNorm ();		// -1..1
-ND_ float3  GetGlobalCoordSFloat ();	// -size/2 .. +size/2
+ND_ int3    GetGlobalCoord ();						// 0..size-1
+ND_ float3  GetGlobalCoordUNorm ();					//  0..1
+ND_ float3  GetGlobalCoordSNorm ();					// -1..1
+ND_ float3  GetGlobalCoordUNorm (int3 offset);		//  0..1
+ND_ float3  GetGlobalCoordSNorm (int3 offset);		// -1..1
+ND_ float3  GetGlobalCoordFloat ();					// -size/2 .. +size/2
 
 // global normalized coordinate in 2D with same aspect ratio
 ND_ float2  GetGlobalCoordUNormCorrected ();		//  0..1
 ND_ float2  GetGlobalCoordSNormCorrected ();		// -1..1
 ND_ float2  GetGlobalCoordSNormCorrected2 ();		// -X..X,	X may be > 1
+
+ND_ int3    GetGlobalCoordQuadCorrected ();			// 0..size-1	- for quad subgroup operations
 
 //-----------------------------------------------------------------------------
 
@@ -76,6 +86,7 @@ ND_ float2  MapPixCoordToSNormCorrected2 (const float2 posPx, const float2 sizeP
 
 // map pixels to unorm coords with correct aspect ratio.
 ND_ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx);
+ND_ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx, const float snormScale);
 //-----------------------------------------------------------------------------
 
 
@@ -112,13 +123,18 @@ float2  MapPixCoordToSNormCorrected2 (const float2 posPx, const float2 sizePx)
 
 float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx)
 {
+	return MapPixCoordToUNormCorrected( srcPosPx, srcSizePx, dstSizePx, 1.f );
+}
+
+float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx, const float snormScale)
+{
 	const float2	snorm		= ToSNorm( srcPosPx / srcSizePx );
 	const float		src_aspect	= srcSizePx.x / srcSizePx.y;
 	const float		dst_aspect	= dstSizePx.x / dstSizePx.y;
 	const float		scale1		= Max( src_aspect, dst_aspect ) / dst_aspect;
 	const float		scale2		= Min( src_aspect, dst_aspect ) / dst_aspect;
 	const float2	scale		= src_aspect >= dst_aspect ? float2(scale1, 1.0f) : float2(1.0f, 1.0f/scale2);
-	return ToUNorm( snorm * scale );
+	return ToUNorm( snorm * scale * snormScale );
 }
 //-----------------------------------------------------------------------------
 
@@ -136,7 +152,11 @@ int3  GetGlobalCoord ()
   #endif
 }
 
-// implement GetGlobalSize() with 'un_PerPass.screenSize'
+
+int3  GetGlobalCoordQuadCorrected ()
+{
+	return GetGlobalCoord();
+}
 
 #endif // SH_FRAG
 //-----------------------------------------------------------------------------
@@ -188,6 +208,26 @@ int3  GetGroupSize ()
 }
 
 #endif // SH_COMPUTE or SH_MESH_TASK or SH_MESH
+
+
+#if defined(SH_COMPUTE) and defined(AE_shader_subgroup_basic)
+	// correct index order to make quad as in FS
+	// TODO: tested only on 8x8
+
+	int2  GetLocalCoordQuadCorrected ()
+	{
+		int	idx = int(gl.subgroup.Index + gl.subgroup.Size * gl.subgroup.GroupIndex) / 2;
+		return int2( int(idx / gl.WorkGroupSize.x) * 2 + int(gl.subgroup.Index & 1),
+					 int(idx % gl.WorkGroupSize.x) );
+	}
+
+	int3  GetGlobalCoordQuadCorrected ()
+	{
+		int2	pos	 = int2(gl.WorkGroupID.xy * gl.WorkGroupSize.xy);
+				pos += GetLocalCoordQuadCorrected();
+		return int3( pos, gl.GlobalInvocationID.z );
+	}
+#endif
 //-----------------------------------------------------------------------------
 
 
@@ -319,9 +359,19 @@ float3  GetGlobalCoordSNorm ()
 	return ToSNorm( GetGlobalCoordUNorm() );
 }
 
-float3  GetGlobalCoordSFloat ()
+float3  GetGlobalCoordUNorm (int3 offset)
 {
-	return float3(GetGlobalCoord()) - float3(GetGlobalSize()) * 0.5f;
+	return (float3(GetGlobalCoord()+offset)+0.5f) / float3(GetGlobalSize());
+}
+
+float3  GetGlobalCoordSNorm (int3 offset)
+{
+	return ToSNorm( GetGlobalCoordUNorm( offset ));
+}
+
+float3  GetGlobalCoordFloat ()
+{
+	return float3(GetGlobalCoord()) - float3(GetGlobalSize()-1) * 0.5f;
 }
 
 
@@ -336,6 +386,16 @@ float3  GetLocalCoordSNorm ()
 	return ToSNorm( GetLocalCoordUNorm() );
 }
 
+float3  GetLocalCoordUNorm (int3 offset)
+{
+	return (float3(GetLocalCoord()+offset)+0.5f) / float3(GetLocalSize());
+}
+
+float3  GetLocalCoordSNorm (int3 offset)
+{
+	return ToSNorm( GetLocalCoordUNorm( offset ));
+}
+
 
 // group coordinate in 3D
 float3  GetGroupCoordUNorm ()
@@ -346,6 +406,16 @@ float3  GetGroupCoordUNorm ()
 float3  GetGroupCoordSNorm ()
 {
 	return ToSNorm( GetGroupCoordUNorm() );
+}
+
+float3  GetGroupCoordUNorm (int3 offset)
+{
+	return (float3(GetGroupCoord()+offset)+0.5f) / float3(GetGroupSize());
+}
+
+float3  GetGroupCoordSNorm (int3 offset)
+{
+	return ToSNorm( GetGroupCoordUNorm( offset ));
 }
 
 

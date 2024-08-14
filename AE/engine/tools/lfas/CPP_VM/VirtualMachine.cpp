@@ -386,7 +386,7 @@ namespace LFAS::CPP
 */
 	void  VirtualMachine::RunParallel (ArrayView<ScriptPtr> scripts, secondsf timeout)
 	{
-		CHECK_ERRV( scripts.size() );
+		CHECK_ERRV( not scripts.empty() );
 
 		const usize	max_threads	= Max( 8u, std::thread::hardware_concurrency() );	// 1.5x of hw threads for more chaos
 

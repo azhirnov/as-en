@@ -31,6 +31,7 @@ struct std::hash< AE::Graphics::FeatureSet::VRSTexelSize > :
 {};
 
 
+#ifdef AE_ENABLE_LOGS
 namespace AE::Base
 {
 	using namespace AE::Graphics;
@@ -136,6 +137,7 @@ namespace AE::Base
 	}
 
 } // AE::Base
+#endif // AE_ENABLE_LOGS
 
 
 namespace AE::Graphics
@@ -1232,7 +1234,7 @@ namespace
 
 		bool	result = true;
 
-		if ( (desc.format >= EPixelFormat::ASTC_RGBA_4x4 and desc.format <= EPixelFormat::ASTC_RGBA_12x12) or
+		if ( (desc.format >= EPixelFormat::ASTC_RGBA8_4x4 and desc.format <= EPixelFormat::ASTC_RGBA8_12x12) or
 			 (desc.format >= EPixelFormat::ASTC_sRGB8_A8_4x4 and desc.format <= EPixelFormat::ASTC_sRGB8_A8_12x12) )
 			result &= (textureCompressionASTC_LDR == EFeature::RequireTrue);
 
@@ -1579,7 +1581,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0xe0c3d467fec6541eull};
+		return HashVal64{0xd7baaa85cc5124fbull};
 	}
 
 /*

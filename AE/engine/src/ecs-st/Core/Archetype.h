@@ -296,7 +296,7 @@ namespace AE::ECS
 			Chunk_t	u = _bits[i];
 			int		j = u.ExtractBitIndex();
 
-			for (; (j >= 0) and (result.size() <= result.capacity()); j = u.ExtractBitIndex())
+			for (; (j >= 0) and (not result.IsFull()); j = u.ExtractBitIndex())
 			{
 				ComponentID	id{ CheckCast<ushort>( j + i*BitsPerChunk )};
 

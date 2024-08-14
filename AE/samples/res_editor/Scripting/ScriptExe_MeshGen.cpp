@@ -45,23 +45,23 @@ namespace AE::ResEditor
 							    OUT ScriptArray<packed_float2>	&texcoords,
 							    OUT ScriptArray<uint>			&indices) __Th___
 	{
-		positions.clear();
-		normals.clear();
-		tangents.clear();
+		positions .clear();
+		normals   .clear();
+		tangents  .clear();
 		bitangents.clear();
-		texcoords.clear();
-		indices.clear();
+		texcoords .clear();
+		indices   .clear();
 
 		GeometryTools::CubeGen	cube;
 		CHECK_THROW( cube.Create( False{"2d"} ));
 
 		for (auto& vert : cube.GetVertices())
 		{
-			positions	.push_back( float3{SNormShortToFloat( vert.position )});
-			normals		.push_back( float3{SNormShortToFloat( vert.normal )});
-			tangents	.push_back( float3{SNormShortToFloat( vert.tangent )});
-			bitangents	.push_back( float3{SNormShortToFloat( vert.bitangent )});
-			texcoords	.push_back( float2{SNormShortToFloat( vert.texcoord )});
+			positions .push_back( float3{SNormShortToFloat( vert.position )});
+			normals   .push_back( float3{SNormShortToFloat( vert.normal )});
+			tangents  .push_back( float3{SNormShortToFloat( vert.tangent )});
+			bitangents.push_back( float3{SNormShortToFloat( vert.bitangent )});
+			texcoords .push_back( float2{SNormShortToFloat( vert.texcoord )});
 		}
 
 		for (auto idx : cube.GetIndices()) {
@@ -76,23 +76,23 @@ namespace AE::ResEditor
 							    OUT ScriptArray<packed_float3>	&texcoords,
 							    OUT ScriptArray<uint>			&indices) __Th___
 	{
-		positions.clear();
-		normals.clear();
-		tangents.clear();
+		positions .clear();
+		normals   .clear();
+		tangents  .clear();
 		bitangents.clear();
-		texcoords.clear();
-		indices.clear();
+		texcoords .clear();
+		indices   .clear();
 
 		GeometryTools::CubeGen	cube;
 		CHECK_THROW( cube.Create( True{"cubeMap"} ));
 
 		for (auto& vert : cube.GetVertices())
 		{
-			positions	.push_back( float3{SNormShortToFloat( vert.position )});
-			normals		.push_back( float3{SNormShortToFloat( vert.normal )});
-			tangents	.push_back( float3{SNormShortToFloat( vert.tangent )});
-			bitangents	.push_back( float3{SNormShortToFloat( vert.bitangent )});
-			texcoords	.push_back( float3{SNormShortToFloat( vert.texcoord )});
+			positions .push_back( float3{SNormShortToFloat( vert.position )});
+			normals   .push_back( float3{SNormShortToFloat( vert.normal )});
+			tangents  .push_back( float3{SNormShortToFloat( vert.tangent )});
+			bitangents.push_back( float3{SNormShortToFloat( vert.bitangent )});
+			texcoords .push_back( float3{SNormShortToFloat( vert.texcoord )});
 		}
 
 		for (auto idx : cube.GetIndices()) {
@@ -110,7 +110,7 @@ namespace AE::ResEditor
 								  OUT ScriptArray<uint>				&indices) __Th___
 	{
 		positions.clear();
-		indices.clear();
+		indices  .clear();
 
 		GeometryTools::SphericalCubeGen	sphere;
 		CHECK_THROW( sphere.Create( lod, lod, False{"tris"}, True{"cubeMap"} ));
@@ -120,6 +120,9 @@ namespace AE::ResEditor
 
 		ArrayView<GeometryTools::SphericalCubeGen::Index>	idxs;
 		CHECK_THROW( sphere.GetIndices( lod, OUT idxs ));
+
+		positions.reserve( verts.size() );
+		indices  .reserve( idxs.size() );
 
 		for (auto& vert : verts) {
 			positions.push_back( float3{SNormShortToFloat( vert.position )});
@@ -136,7 +139,7 @@ namespace AE::ResEditor
 	{
 		positions.clear();
 		texcoords.clear();
-		indices.clear();
+		indices  .clear();
 
 		GeometryTools::SphericalCubeGen	sphere;
 		CHECK_THROW( sphere.Create( lod, lod, False{"tris"}, True{"cubeMap"} ));
@@ -146,6 +149,10 @@ namespace AE::ResEditor
 
 		ArrayView<GeometryTools::SphericalCubeGen::Index>	idxs;
 		CHECK_THROW( sphere.GetIndices( lod, OUT idxs ));
+
+		positions.reserve( verts.size() );
+		texcoords.reserve( verts.size() );
+		indices  .reserve( idxs.size() );
 
 		for (auto& vert : verts) {
 			positions.push_back( float3{SNormShortToFloat( vert.position )});
@@ -164,12 +171,12 @@ namespace AE::ResEditor
 							      OUT ScriptArray<packed_float3>	&texcoords,
 							      OUT ScriptArray<uint>				&indices) __Th___
 	{
-		positions.clear();
-		normals.clear();
-		tangents.clear();
+		positions .clear();
+		normals   .clear();
+		tangents  .clear();
 		bitangents.clear();
-		texcoords.clear();
-		indices.clear();
+		texcoords .clear();
+		indices   .clear();
 
 		GeometryTools::SphericalCubeGen	sphere;
 		CHECK_THROW( sphere.Create( lod, lod, False{"tris"}, True{"cubeMap"} ));
@@ -179,6 +186,13 @@ namespace AE::ResEditor
 
 		ArrayView<GeometryTools::SphericalCubeGen::Index>	idxs;
 		CHECK_THROW( sphere.GetIndices( lod, OUT idxs ));
+
+		positions .reserve( verts.size() );
+		normals   .reserve( verts.size() );
+		tangents  .reserve( verts.size() );
+		bitangents.reserve( verts.size() );
+		texcoords .reserve( verts.size() );
+		indices   .reserve( idxs.size() );
 
 		for (auto& vert : verts) {
 			positions .push_back( float3{SNormShortToFloat( vert.position )});
@@ -200,12 +214,12 @@ namespace AE::ResEditor
 							      OUT ScriptArray<packed_float2>	&texcoords,
 							      OUT ScriptArray<uint>				&indices) __Th___
 	{
-		positions.clear();
-		normals.clear();
-		tangents.clear();
+		positions .clear();
+		normals   .clear();
+		tangents  .clear();
 		bitangents.clear();
-		texcoords.clear();
-		indices.clear();
+		texcoords .clear();
+		indices   .clear();
 
 		GeometryTools::SphericalCubeGen	sphere;
 		CHECK_THROW( sphere.Create( lod, lod, False{"tris"}, False{"2d"} ));
@@ -215,6 +229,13 @@ namespace AE::ResEditor
 
 		ArrayView<GeometryTools::SphericalCubeGen::Index>	idxs;
 		CHECK_THROW( sphere.GetIndices( lod, OUT idxs ));
+
+		positions .reserve( verts.size() );
+		normals   .reserve( verts.size() );
+		tangents  .reserve( verts.size() );
+		bitangents.reserve( verts.size() );
+		texcoords .reserve( verts.size() );
+		indices   .reserve( idxs.size() );
 
 		for (auto& vert : verts) {
 			positions .push_back( float3{SNormShortToFloat( vert.position )});
@@ -238,10 +259,13 @@ namespace AE::ResEditor
 								OUT ScriptArray<uint>			&indices) __Th___
 	{
 		positions.clear();
-		indices.clear();
+		indices  .clear();
 
 		GeometryTools::GridGen	grid;
 		CHECK_THROW( grid.Create( size, 3u ));
+
+		positions.reserve( grid.GetVertices().size() );
+		indices  .reserve( grid.GetIndices().size() );
 
 		for (auto& vert : grid.GetVertices()) {
 			positions.push_back( vert.uv );
@@ -257,10 +281,13 @@ namespace AE::ResEditor
 								OUT ScriptArray<uint>			&indices) __Th___
 	{
 		positions.clear();
-		indices.clear();
+		indices  .clear();
 
 		GeometryTools::GridGen	grid;
 		CHECK_THROW( grid.Create( size, 3u ));
+
+		positions.reserve( grid.GetVertices().size() );
+		indices  .reserve( grid.GetIndices().size() );
 
 		for (auto& vert : grid.GetVertices()) {
 			positions.push_back(packed_float3{ vert.uv.x, vert.uv.y, 0.f });
@@ -284,10 +311,14 @@ namespace AE::ResEditor
 	{
 		positions.clear();
 		texcoords.clear();
-		indices.clear();
+		indices  .clear();
 
 		GeometryTools::CylinderGen	cylinder;
 		CHECK_THROW( cylinder.Create( segments, Bool{inner} ));
+
+		positions.reserve( cylinder.GetVertices().size() );
+		texcoords.reserve( cylinder.GetVertices().size() );
+		indices  .reserve( cylinder.GetIndices().size() );
 
 		for (auto& vert : cylinder.GetVertices()) {
 			positions.push_back( float3{SNormShortToFloat( vert.position )});
@@ -307,15 +338,22 @@ namespace AE::ResEditor
 									OUT ScriptArray<packed_float2>	&texcoords,
 									OUT ScriptArray<uint>			&indices) __Th___
 	{
-		positions.clear();
-		normals.clear();
-		tangents.clear();
+		positions .clear();
+		normals   .clear();
+		tangents  .clear();
 		bitangents.clear();
-		texcoords.clear();
-		indices.clear();
+		texcoords .clear();
+		indices   .clear();
 
 		GeometryTools::CylinderGen	cylinder;
 		CHECK_THROW( cylinder.Create( segments, Bool{inner} ));
+
+		positions .reserve( cylinder.GetVertices().size() );
+		normals   .reserve( cylinder.GetVertices().size() );
+		texcoords .reserve( cylinder.GetVertices().size() );
+		tangents  .reserve( cylinder.GetVertices().size() );
+		bitangents.reserve( cylinder.GetVertices().size() );
+		indices   .reserve( cylinder.GetIndices().size() );
 
 		for (auto& vert : cylinder.GetVertices()) {
 			positions .push_back( float3{SNormShortToFloat( vert.position )});
@@ -432,6 +470,7 @@ namespace AE::ResEditor
 		}
 	}
 
+#ifdef AE_ENABLE_CDT
 /*
 =================================================
 	_TriangulateAndMerge1
@@ -642,6 +681,7 @@ namespace AE::ResEditor
 			outIndices[ base3_idx+j+5 ] = uint(base1_v + e0);
 		}
 	}
+#endif // AE_ENABLE_CDT
 
 /*
 =================================================

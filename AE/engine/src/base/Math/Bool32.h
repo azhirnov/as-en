@@ -53,8 +53,8 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	template <>	struct TMemCopyAvailable< Bool32 >		{ static constexpr bool  value = true; };
-	template <>	struct TZeroMemAvailable< Bool32 >		{ static constexpr bool  value = true; };
-	template <>	struct TTriviallySerializable< Bool32 >	{ static constexpr bool  value = true; };
+	template <>	struct TMemCopyAvailable< Bool32 >		: CT_True {};
+	template <>	struct TZeroMemAvailable< Bool32 >		: CT_True {};
+	template <>	struct TTriviallySerializable< Bool32 >	: CT_True {};
 
 } // AE::Base

@@ -217,6 +217,24 @@ namespace AE::ResEditor
 
 /*
 =================================================
+	SetFragmentShadingRate
+=================================================
+*/
+	void  ScriptSceneGraphicsPass::SetFragmentShadingRate (EShadingRate rate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp) __Th___
+	{
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		CHECK_THROW_MSG( fs.pipelineFragmentShadingRate		== FeatureSet::EFeature::RequireTrue	or
+						 fs.primitiveFragmentShadingRate	== FeatureSet::EFeature::RequireTrue	or
+						 fs.attachmentFragmentShadingRate	== FeatureSet::EFeature::RequireTrue,
+			"Fragment shading rate is not supported." );
+
+		_shadingRate.rate			= rate;
+		_shadingRate.primitiveOp	= primitiveOp;
+		_shadingRate.textureOp		= textureOp;
+	}
+
+/*
+=================================================
 	_OnAddArg
 =================================================
 */
@@ -258,12 +276,13 @@ namespace AE::ResEditor
 
 		result->_depthRange		= this->_depthRange;
 		result->_renderLayer	= this->_renderLayer;
+		result->_shadingRate	= this->_shadingRate;
 
 		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::SceneGraphicsPassUB>, "SceneGraphicsPassUB",
 											EResourceState::UniformRead | EResourceState::AllGraphicsShaders );  // throw
 
 		// create descriptor set
-		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), max_frames, result->_rtech.packId, DSLayoutName{"pass.ds"} ));
+		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), max_frames, result->_rtech.packId, DSLayoutName{"pass.ds"}, null, _dbgName ));
 		_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
 
 		uint	min_layer_count = UMax;
@@ -290,7 +309,7 @@ namespace AE::ResEditor
 			auto	rt	= src.rt->ToResource();
 			CHECK_THROW( rt );
 
-			ImageViewDesc	view;
+			ImageViewDesc		view;
 			view.viewType		= (min_layer_count > 1 ? EImage_2DArray : EImage_2D);
 			view.baseLayer		= src.layer;
 			view.layerCount		= ushort(min_layer_count);
@@ -339,10 +358,11 @@ namespace AE::ResEditor
 
 			binder.Comment( "Add path to single pipeline or folder with pipelines.\n"
 							"Scene geometry will be linked with compatible pipeline or error will be generated." );
-			binder.AddMethod( &ScriptSceneGraphicsPass::AddPipeline,		"AddPipeline",	{"pplnFile"} );
-			binder.AddMethod( &ScriptSceneGraphicsPass::AddPipelines,		"AddPipelines",	{"pplnFolder"} );
+			binder.AddMethod( &ScriptSceneGraphicsPass::AddPipeline,			"AddPipeline",			{"pplnFile"} );
+			binder.AddMethod( &ScriptSceneGraphicsPass::AddPipelines,			"AddPipelines",			{"pplnFolder"} );
 
-			binder.AddMethod( &ScriptSceneGraphicsPass::SetLayer,			"Layer",		{} );
+			binder.AddMethod( &ScriptSceneGraphicsPass::SetLayer,				"Layer",				{} );
+			binder.AddMethod( &ScriptSceneGraphicsPass::SetFragmentShadingRate,	"FragmentShadingRate",	{"rate", "primitiveOp", "textureOp"} );
 		}
 	}
 
@@ -367,24 +387,24 @@ namespace AE::ResEditor
 				float2		resolution;				// viewport resolution (in pixels)
 				float		time;					// shader playback time (in seconds)
 				float		timeDelta;				// render time (in seconds)
-				uint		frame;					// shader playback frame
+				uint		frame;					// shader playback frame, global frame counter
 				uint		seed;					// unique value, updated on each shader reloading
 
 				// controller //
 				CameraData	camera;
 
 				// sliders //
-				float4		floatSliders [4];
-				int4		intSliders [4];
-				float4		colors [4];
+				float4		floatSliders [8];
+				int4		intSliders [8];
+				float4		colors [8];
 
 				// constants //
-				float4		floatConst [4];
-				int4		intConst [4];
+				float4		floatConst [8];
+				int4		intConst [8];
 			)#");
 
-		StaticAssert( UIInteraction::MaxSlidersPerType == 4 );
-		StaticAssert( IPass::Constants::MaxCount == 4 );
+		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
+		StaticAssert( IPass::Constants::MaxCount == 8 );
 		return st;
 	}
 
@@ -461,7 +481,7 @@ namespace AE::ResEditor
 			Unused( _CreateUBType() );	// throw
 
 			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "pass.ds" }};
-			const auto				stage	= EShaderStages::Fragment;
+			const auto				stage	= EShaderStages::AllGraphics;
 
 			ds_layout->AddUniformBuffer( EShaderStages::AllGraphics, "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform, False{} );
 			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
@@ -477,7 +497,10 @@ namespace AE::ResEditor
 
 		auto	include_dirs = ScriptExe::ScriptPassApi::GetPipelineIncludeDirs();
 		CHECK_THROW( storage.CompilePipeline( se, ScriptExe::ScriptPassApi::ToPipelinePath( "VertexInput.as" ), include_dirs ));
-		CHECK_THROW( storage.CompilePipeline( se, ScriptExe::ScriptPassApi::ToPipelinePath( "ModelShared.as" ), include_dirs ));
+
+		if ( GraphicsScheduler().GetFeatureSet().bufferDeviceAddress == FeatureSet::EFeature::RequireTrue )
+			CHECK_THROW( storage.CompilePipeline( se, ScriptExe::ScriptPassApi::ToPipelinePath( "ModelShared.as" ), include_dirs ));
+
 		for (auto& ppln : _pipelines) {
 			if ( not storage.CompilePipeline( se, ppln, include_dirs ))
 				continue;
@@ -644,8 +667,10 @@ namespace AE::ResEditor
 		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::SceneRayTracingPassUB>, "SceneRayTracingPassUB",
 											EResourceState::UniformRead | EResourceState::RayTracingShaders );  // throw
 
-		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_passDSIndex, OUT result->_passDescSets.data(), max_frames, result->_pipeline, DescriptorSetName{"pass"} ));
-		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_objDSIndex,  OUT result->_objDescSets.data(),  max_frames, result->_pipeline, DescriptorSetName{"material"} ));
+		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_passDSIndex, OUT result->_passDescSets.data(), max_frames, result->_pipeline,
+													DescriptorSetName{"pass"}, null, _dbgName + "-PassDS" ));
+		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_objDSIndex,  OUT result->_objDescSets.data(),  max_frames, result->_pipeline,
+													DescriptorSetName{"material"}, null, _dbgName + "-MtrDS" ));
 
 		_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
 
@@ -716,24 +741,24 @@ namespace AE::ResEditor
 				// view //
 				float		time;					// shader playback time (in seconds)
 				float		timeDelta;				// render time (in seconds)
-				uint		frame;					// shader playback frame
+				uint		frame;					// shader playback frame, global frame counter
 				uint		seed;					// unique value, updated on each shader reloading
 
 				// controller //
 				CameraData	camera;
 
 				// sliders //
-				float4		floatSliders [4];
-				int4		intSliders [4];
-				float4		colors [4];
+				float4		floatSliders [8];
+				int4		intSliders [8];
+				float4		colors [8];
 
 				// constants //
-				float4		floatConst [4];
-				int4		intConst [4];
+				float4		floatConst [8];
+				int4		intConst [8];
 			)#");
 
-		StaticAssert( UIInteraction::MaxSlidersPerType == 4 );
-		StaticAssert( IPass::Constants::MaxCount == 4 );
+		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
+		StaticAssert( IPass::Constants::MaxCount == 8 );
 		return st;
 	}
 

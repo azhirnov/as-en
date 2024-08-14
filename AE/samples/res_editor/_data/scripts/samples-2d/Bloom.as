@@ -46,7 +46,8 @@
 		{
 			RC<Postprocess>		main_pass = Postprocess( "", "MAIN" );
 			main_pass.Output(  "out_Color",			main_rt );
-			main_pass.Slider( "iBrightnessScale",	0.5, 20.0, 5.0 );
+			main_pass.Slider( "iBrightnessScale",	0.5,	20.0,	15.0 );
+			main_pass.Slider( "iWhiteFactor",		0.0,	0.25,	0.006 );
 
 			RC<Postprocess>		init_bloom = Postprocess( "", "INIT_BLOOM" );
 			init_bloom.ArgIn(  "un_Texture",	main_rt,		"NearestClamp" );
@@ -135,7 +136,7 @@
 			final_pass.ArgIn(  "un_Bloom",		up_rt1,		Sampler_LinearClamp );
 			final_pass.ArgIn(  "un_Origin",		main_rt,	Sampler_LinearClamp );
 			final_pass.Output( "out_Color",		final_rt );
-			final_pass.Slider( "iToneMapping",	0, 10 );
+			final_pass.Slider( "iToneMapping",	0, 10,	7 );
 		}
 		Present( final_rt );
 	}
@@ -146,9 +147,24 @@
 	#include "GlobalIndex.glsl"
 	#include "SDF.glsl"
 
-	float4  DrawDot (float2 uv, float2 point, float r, float3 col)
+	float4  DrawDot (float2 uv, float2 pos, float3 col, float colScale)
 	{
-		return Max( 0.0, SDF_Sphere( float3(uv + point, 0.0), r ) < r ? 1.0 : 0.0) * float4(col, 1.0);
+		const float r = 0.001;
+		float	f = Max( 0.0, (r - LengthSq( uv - pos )) / r );
+		float4	c;	c.rgb = f * Lerp( col, float3(1.0), iWhiteFactor );	c.a = 1.0;
+		return c * colScale;
+	}
+
+	float4  DrawQuad (float2 uv, float2 pos, float3 col, float colScale)
+	{
+		float	f = Max( 0.0, -SDF2_Rect( uv - pos, float2(0.02) ) / 0.04 );
+		float4	c;	c.rgb = f * Lerp( col, float3(1.0), iWhiteFactor );	c.a = 1.0;
+		return c * colScale;
+	}
+
+	float4  Blend (float4 src, float4 col)
+	{
+		return src + col;
 	}
 
 	void Main ()
@@ -156,11 +172,17 @@
 		float2	uv	= GetGlobalCoordSNormCorrected();
 
 		out_Color = float4(0.0);
-		out_Color += DrawDot( uv, float2( 0.0,  0.0), 0.01, float3(1.0, 0.0, 0.0) * 10.0 );
-		out_Color += DrawDot( uv, float2(-0.6,  0.5), 0.01, float3(0.0, 1.0, 0.0) *  1.0 );
-		out_Color += DrawDot( uv, float2( 0.3,  0.5), 0.01, float3(0.0, 0.0, 1.0) *  2.0 );
-		out_Color += DrawDot( uv, float2( 0.7, -0.3), 0.01, float3(1.0, 0.0, 1.0) *  4.0 );
-		out_Color += DrawDot( uv, float2(-0.6, -0.4), 0.01, float3(1.0, 1.0, 0.0) *  3.0 );
+		out_Color = Blend( out_Color, DrawDot( uv, float2( 0.00, 0.00), float3(1.0, 0.0, 0.0), 8.0 ));
+		out_Color = Blend( out_Color, DrawDot( uv, float2( 0.05, 0.05), float3(0.0, 1.0, 0.0), 4.0 ));
+		out_Color = Blend( out_Color, DrawDot( uv, float2(-0.05, 0.05), float3(0.0, 0.0, 1.0), 6.0 ));
+
+		out_Color = Blend( out_Color, DrawDot( uv, float2( 0.6, -0.5), float3(0.0, 1.0, 0.0),  1.0 ));
+		out_Color = Blend( out_Color, DrawDot( uv, float2(-0.3, -0.4), float3(0.0, 0.0, 1.0),  2.0 ));
+		out_Color = Blend( out_Color, DrawDot( uv, float2(-0.7,  0.3), float3(1.0, 0.0, 1.0),  4.0 ));
+		out_Color = Blend( out_Color, DrawDot( uv, float2( 0.6,  0.4), float3(1.0, 1.0, 0.0),  3.0 ));
+		out_Color = Blend( out_Color, DrawDot( uv, float2( 0.8, -0.1), float3(1.0, 0.0, 0.0), 10.0 ));
+
+		out_Color = Blend( out_Color, DrawQuad( uv, float2( 0.0, 0.5), float3(0.5, 1.0, 0.2), 6.0 ));
 		out_Color *= iBrightnessScale;
 	}
 

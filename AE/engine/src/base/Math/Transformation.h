@@ -219,8 +219,8 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	template <typename T>	struct TMemCopyAvailable< TTransformation<T> >	{ static constexpr bool  value = IsMemCopyAvailable<T>; };
-	template <typename T>	struct TZeroMemAvailable< TTransformation<T> >	{ static constexpr bool  value = IsZeroMemAvailable<T>; };
+	template <typename T>	struct TMemCopyAvailable< TTransformation<T> >	: CT_Bool< IsMemCopyAvailable<T> >{};
+	template <typename T>	struct TZeroMemAvailable< TTransformation<T> >	: CT_Bool< IsZeroMemAvailable<T> >{};
 
 	// 'IsTriviallySerializable< TTransformation<> > = false' - because SIMD and packed types has different alignment
 

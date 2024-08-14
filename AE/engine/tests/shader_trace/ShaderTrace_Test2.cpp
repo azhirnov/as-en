@@ -84,6 +84,8 @@ static bool CreatePipeline (TestDevice &vulkan, VkShaderModule compShader, Array
 */
 extern bool ShaderTrace_Test2 (TestDevice& vulkan)
 {
+	ON_DESTROY( [&vulkan]() { vulkan.FreeTempHandles(); });
+
 	// create image
 	VkImage			image;
 	VkImageView		image_view;
@@ -244,8 +246,6 @@ extern bool ShaderTrace_Test2 (TestDevice& vulkan)
 	}
 
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {comp_shader}, "ShaderTrace_Test2.txt" ));
-
-	vulkan.FreeTempHandles();
 
 	TEST_PASSED();
 	return true;

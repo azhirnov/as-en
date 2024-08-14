@@ -96,7 +96,7 @@ namespace AE::ResEditor
 		auto&	dst	= _output.emplace_back();
 		uint	idx	= 0;
 
-		FixedArray< EBlendFactor, 4 >	b_factors;	// src, dst	| srcRGB, srcA, dstRGB, dstA
+		FixedArray< EBlendFactor, 4 >	b_factors;	// src, dst	| srcRGB, dstRGB, srcA, dstA
 		FixedArray< EBlendOp, 2 >		b_ops;		// op		| opRGB, opA
 
 		if ( args.IsArg< String const& >(idx) ) {
@@ -134,12 +134,12 @@ namespace AE::ResEditor
 		{
 			if ( args.IsArg< EBlendFactor >(idx) )
 			{
-				CHECK_THROW_MSG( b_factors.try_push_back( args.Arg<EBlendFactor>(idx++) ));
+				CHECK_THROW_MSG( b_factors.try_push_back( args.Arg<EBlendFactor>(idx++) ), "too many 'EBlendFactor'" );
 			}
 			else
 			if ( args.IsArg< EBlendOp >(idx) )
 			{
-				CHECK_THROW_MSG( b_ops.try_push_back( args.Arg<EBlendOp>(idx++) ));
+				CHECK_THROW_MSG( b_ops.try_push_back( args.Arg<EBlendOp>(idx++) ), "too many 'EBlendOp'" );
 			}
 			else
 				CHECK_THROW_MSG( false, "unsupported arg type '"s << args.GetArgTypename(idx) << "' in arg (" << ToString(idx) << ")" );
@@ -157,8 +157,8 @@ namespace AE::ResEditor
 		if ( b_factors.size() == 4 and b_ops.size() == 2 )
 		{
 			dst.srcFactorRGB	= b_factors[0];
-			dst.srcFactorA		= b_factors[1];
-			dst.dstFactorRGB	= b_factors[2];
+			dst.srcFactorA		= b_factors[2];
+			dst.dstFactorRGB	= b_factors[1];
 			dst.dstFactorA		= b_factors[3];
 			dst.blendOpRGB		= b_ops[0];
 			dst.blendOpA		= b_ops[1];

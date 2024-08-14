@@ -57,7 +57,7 @@ namespace
 			return	iter != _cachedSymbols.end() ? iter->second : null;
 		}
 
-		ND_ TIntermSymbol*	GetDebugStorage ()						const	{ CHECK( _dbgStorage );  return _dbgStorage; }
+		ND_ TIntermSymbol*	GetDebugStorage ()						const	{ CHECK( _dbgStorage != null );  return _dbgStorage; }
 			bool			SetDebugStorage (TIntermSymbol* symb);
 		ND_ TIntermBinary*  GetDebugStorageField (const char* name)	const;
 
@@ -71,7 +71,7 @@ namespace
 */
 void  DebugInfo::AddSymbol (TIntermSymbol* node, bool isUserDefined)
 {
-	ASSERT( node );
+	NonNull( node );
 	ASSERT( isUserDefined or not _startedUserDefinedSymbols );
 	Unused( isUserDefined );
 
@@ -112,7 +112,7 @@ bool  DebugInfo::SetDebugStorage (TIntermSymbol* symb)
 */
 TIntermBinary*  DebugInfo::GetDebugStorageField (const char* name) const
 {
-	CHECK_ERR( _dbgStorage );
+	CHECK_ERR( _dbgStorage != null );
 
 	TPublicType		index_type;		index_type.init( Default );
 	index_type.basicType			= TBasicType::EbtInt;
@@ -402,7 +402,7 @@ ND_ static TIntermBinary*  GetFragmentCoord (TIntermSymbol* coord, DebugInfo &db
 	TIntermSymbol*			fragcoord		= dbgInfo.GetCachedSymbolNode( "gl_FragCoord" );
 	TIntermAggregate*		xy_field		= new TIntermAggregate{ TOperator::EOpSequence };
 	TIntermBinary*			fragcoord_xy	= new TIntermBinary{ TOperator::EOpVectorSwizzle };
-	CHECK_ERR( fragcoord );
+	CHECK_ERR( fragcoord != null );
 
 	xy_field->getSequence().push_back( x_field );
 	xy_field->getSequence().push_back( y_field );
@@ -416,7 +416,7 @@ ND_ static TIntermBinary*  GetFragmentCoord (TIntermSymbol* coord, DebugInfo &db
 	// "... gl_FragCoord.xy * dbg_ShaderTrace.scale"
 	TIntermBinary*		frag_mul_scale	= new TIntermBinary{ TOperator::EOpMul };
 	TIntermBinary*		scale			= dbgInfo.GetDebugStorageField( "scale" );
-	CHECK_ERR( scale );
+	CHECK_ERR( scale != null );
 	frag_mul_scale->setType( TType{type} );
 	frag_mul_scale->setLeft( fragcoord_xy );
 	frag_mul_scale->setRight( scale );
@@ -443,7 +443,7 @@ ND_ static TIntermBinary*  GetFragmentCoord (TIntermSymbol* coord, DebugInfo &db
 	// "... dimension - ivec2(1) ..."
 	TIntermBinary*		dim_sub_one		= new TIntermBinary{ TOperator::EOpSub };
 	TIntermBinary*		dimension		= dbgInfo.GetDebugStorageField( "dimension" );
-	CHECK_ERR( dimension );
+	CHECK_ERR( dimension != null );
 	dim_sub_one->setType( TType{type} );
 	dim_sub_one->setLeft( dimension );
 	dim_sub_one->setRight( one_ivec );
@@ -487,7 +487,7 @@ ND_ static TIntermBinary*  GetComputeCoord (TIntermSymbol* coord, DebugInfo &dbg
 	// "... vec2(gl_GlobalInvocationID) ..."
 	TIntermSymbol*		workgroup	= dbgInfo.GetCachedSymbolNode( "gl_GlobalInvocationID" );
 	TIntermUnary*		to_vec2		= new TIntermUnary{ TOperator::EOpConvUintToFloat };
-	CHECK_ERR( workgroup );
+	CHECK_ERR( workgroup != null );
 
 	to_vec2->setType( TType{type} );
 	to_vec2->setOperand( workgroup );
@@ -495,7 +495,7 @@ ND_ static TIntermBinary*  GetComputeCoord (TIntermSymbol* coord, DebugInfo &dbg
 	// "... vec2(gl_GlobalInvocationID) * dbg_ShaderTrace.scale ..."
 	TIntermBinary*		work_mul_scale	= new TIntermBinary{ TOperator::EOpMul };
 	TIntermBinary*		scale			= dbgInfo.GetDebugStorageField( "scale" );
-	CHECK_ERR( scale );
+	CHECK_ERR( scale != null );
 	work_mul_scale->setType( TType{type} );
 	work_mul_scale->setLeft( to_vec2 );
 	work_mul_scale->setRight( scale );
@@ -521,7 +521,7 @@ ND_ static TIntermBinary*  GetComputeCoord (TIntermSymbol* coord, DebugInfo &dbg
 	// "... dimension - ivec2(1) ..."
 	TIntermBinary*		dim_sub_one		= new TIntermBinary{ TOperator::EOpSub };
 	TIntermBinary*		dimension		= dbgInfo.GetDebugStorageField( "dimension" );
-	CHECK_ERR( dimension );
+	CHECK_ERR( dimension != null );
 	dim_sub_one->setType( TType{type} );
 	dim_sub_one->setLeft( dimension );
 	dim_sub_one->setRight( one_ivec );
@@ -565,7 +565,7 @@ ND_ static TIntermBinary*  GetRayTracingCoord (TIntermSymbol* coord, DebugInfo &
 	// "... vec2(gl_LaunchID) ..."
 	TIntermSymbol*		launch_id	= dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
 	TIntermUnary*		to_vec3		= new TIntermUnary{ TOperator::EOpConvUintToFloat };
-	CHECK_ERR( launch_id );
+	CHECK_ERR( launch_id != null );
 
 	type.vectorSize = 3;
 	to_vec3->setType( TType{type} );
@@ -578,7 +578,7 @@ ND_ static TIntermBinary*  GetRayTracingCoord (TIntermSymbol* coord, DebugInfo &
 	// "... ivec2(vec2(gl_LaunchID) * dbg_ShaderTrace.scale) ..."
 	TIntermBinary*		launch_mul_scale	= new TIntermBinary{ TOperator::EOpMul };
 	TIntermBinary*		scale				= dbgInfo.GetDebugStorageField( "scale" );
-	CHECK_ERR( scale );
+	CHECK_ERR( scale != null );
 	launch_mul_scale->setType( TType{type} );
 	launch_mul_scale->setLeft( to_vec2 );
 	launch_mul_scale->setRight( scale );
@@ -604,7 +604,7 @@ ND_ static TIntermBinary*  GetRayTracingCoord (TIntermSymbol* coord, DebugInfo &
 	// "... dimension - ivec2(1) ..."
 	TIntermBinary*		dim_sub_one		= new TIntermBinary{ TOperator::EOpSub };
 	TIntermBinary*		dimension		= dbgInfo.GetDebugStorageField( "dimension" );
-	CHECK_ERR( dimension );
+	CHECK_ERR( dimension != null );
 	dim_sub_one->setType( TType{type} );
 	dim_sub_one->setLeft( dimension );
 	dim_sub_one->setRight( one_ivec );
@@ -695,7 +695,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 				return false;	// unknown
 		}
 		switch_end
-		CHECK_ERR( assign_coord );
+		CHECK_ERR( assign_coord != null );
 	}
 
 	type.basicType			= TBasicType::EbtUint;
@@ -881,7 +881,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 			// "dbg_ShaderTrace.dimension.x"
 			TIntermBinary*		dimension		= dbgInfo.GetDebugStorageField( "dimension" );
 			TIntermBinary*		dimension_x		= new TIntermBinary{ TOperator::EOpIndexDirect };
-			CHECK_ERR( dimension );
+			CHECK_ERR( dimension != null );
 			dimension_x->setType( TType{type} );
 			dimension_x->setLeft( dimension );
 			dimension_x->setRight( x_field );
@@ -965,7 +965,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 			// "dbg_ShaderTrace.outPixels[dbg_Index]"
 			TIntermBinary*		out_pixel		= dbgInfo.GetDebugStorageField( "outPixels" );
 			TIntermBinary*		curr_pixel		= new TIntermBinary{ TOperator::EOpIndexIndirect };
-			CHECK_ERR( out_pixel );
+			CHECK_ERR( out_pixel != null );
 			curr_pixel->setType( TType{type} );
 			curr_pixel->getWritableType().setFieldName( "outPixels" );
 			curr_pixel->setLeft( out_pixel );
@@ -1023,7 +1023,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 ND_ static bool  InsertShaderTimeMeasurement (TIntermNode* root, DebugInfo &dbgInfo)
 {
 	TIntermAggregate*	aggr = root->getAsAggregate();
-	CHECK_ERR( aggr );
+	CHECK_ERR( aggr != null );
 
 	// find shader resources entry
 	TIntermAggregate*	linker_objs	= null;
@@ -1059,7 +1059,7 @@ ND_ static bool  InsertShaderTimeMeasurement (TIntermNode* root, DebugInfo &dbgI
 			 aggr2->getSequence().size() >= 2 )
 		{
 			auto*	body = aggr2->getSequence()[1]->getAsAggregate();
-			CHECK_ERR( body );
+			CHECK_ERR( body != null );
 
 			CHECK_ERR( InsertShaderTimeMeasurementToEntry( body, dbgInfo ));
 			return true;
@@ -1086,7 +1086,7 @@ ND_ static bool  InsertShaderTimeMeasurement (TIntermNode* root, DebugInfo &dbgI
 		DebugInfo		dbg_info{ intermediate };
 
 		TIntermNode*	root = intermediate.getTreeRoot();
-		CHECK_ERR( root );
+		CHECK_ERR( root != null );
 
 		_posOffset = ~0ull;
 		CreateShaderDebugStorage( descSetIndex, dbg_info, OUT _dataOffset );

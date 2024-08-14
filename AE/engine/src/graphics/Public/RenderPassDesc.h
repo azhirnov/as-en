@@ -19,8 +19,8 @@ namespace AE::Graphics
 	};
 }
 namespace AE::Base {
-	template <> struct TTriviallySerializable< Graphics::Viewport > { static constexpr bool  value = true; };
-	template <> struct TTriviallyDestructible< Graphics::Viewport > { static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< Graphics::Viewport > : CT_True {};
+	template <> struct TTriviallyDestructible< Graphics::Viewport > : CT_True {};
 }
 namespace AE::Graphics
 {

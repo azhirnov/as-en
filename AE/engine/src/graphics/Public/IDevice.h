@@ -22,6 +22,15 @@ namespace AE::Graphics
 		Metal	= 2,
 	};
 
+	enum class EGraphicsAdapterType : ubyte
+	{
+		Unknown,
+		Discrete,
+		Integrated,
+		Software,
+	};
+
+
 
 	//
 	// Graphics Device interface
@@ -47,6 +56,8 @@ namespace AE::Graphics
 
 		ND_ virtual DeviceMemoryInfo			GetMemoryInfo ()					C_NE___ = 0;
 		ND_ virtual DevMemoryUsageOpt			GetMemoryUsage ()					C_NE___ = 0;
+
+		ND_ virtual EGraphicsAdapterType		AdapterType ()						C_NE___ = 0;
 
 		ND_ virtual bool						IsInitialized ()					C_NE___	= 0;
 		ND_ virtual bool						IsUnderDebugger ()					C_NE___ = 0;

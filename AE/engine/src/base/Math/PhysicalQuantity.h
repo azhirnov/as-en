@@ -299,14 +299,10 @@ namespace AE::Math
 	namespace _hidden_
 	{
 		template <typename T>
-		struct _IsPhysicalQuantity {
-			static constexpr bool	value = false;
-		};
+		struct _IsPhysicalQuantity : CT_False {};
 
 		template <typename ValueType, typename Dimension, typename ValueScale>
-		struct _IsPhysicalQuantity< PhysicalQuantity< ValueType, Dimension, ValueScale >> {
-			static constexpr bool	value = true;
-		};
+		struct _IsPhysicalQuantity< PhysicalQuantity< ValueType, Dimension, ValueScale >> : CT_True {};
 	}
 	template <typename T>
 	static constexpr bool	IsPhysicalQuantity = Math::_hidden_::_IsPhysicalQuantity<T>::value;
@@ -650,12 +646,12 @@ namespace AE::Math
 namespace AE::Base
 {
 	template <typename V, typename D, typename S>
-	struct TMemCopyAvailable< PhysicalQuantity< V, D, S >>		{ static constexpr bool  value = IsMemCopyAvailable<V>; };
+	struct TMemCopyAvailable< PhysicalQuantity< V, D, S >>		: CT_Bool< IsMemCopyAvailable<V> >{};
 
 	template <typename V, typename D, typename S>
-	struct TZeroMemAvailable< PhysicalQuantity< V, D, S >>		{ static constexpr bool  value = IsZeroMemAvailable<V>; };
+	struct TZeroMemAvailable< PhysicalQuantity< V, D, S >>		: CT_Bool< IsZeroMemAvailable<V> >{};
 
 	template <typename V, typename D, typename S>
-	struct TTriviallySerializable< PhysicalQuantity< V, D, S >>	{ static constexpr bool  value = IsTriviallySerializable<V>; };
+	struct TTriviallySerializable< PhysicalQuantity< V, D, S >>	: CT_Bool< IsTriviallySerializable<V> >{};
 
 } // AE::Base

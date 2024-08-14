@@ -61,7 +61,7 @@
 			// try to submit
 			case ESubmitMode::Immediately :
 			case ESubmitMode::Force :
-				rts._FlushQueue( batch.GetQueueType(), batch.GetFrameId(), (mode == ESubmitMode::Force) );
+				rts._FlushQueue( batch.GetQueueType(), batch.GetFrameId(), Bool{mode == ESubmitMode::Force} );
 				break;
 		}
 		switch_end
@@ -153,6 +153,60 @@
 
 /*
 =================================================
+	OnNextFrame
+=================================================
+*/
+	void  RenderTaskScheduler::FrameNextCycleDepsManager::OnNextFrame (FrameUID frameId) __NE___
+	{
+		auto&	f = _frames[ frameId.Index() ];
+		EXLOCK( f.guard );
+
+		for (auto dep : f.deps) {
+			_SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, False{"not canceled"} );
+		}
+
+		f.deps.clear();
+	}
+
+/*
+=================================================
+	Resolve
+=================================================
+*/
+	bool  RenderTaskScheduler::FrameNextCycleDepsManager::Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE___
+	{
+		if_likely( auto* frame_p = dep.GetIf< OnFrameNextCycle >() )
+		{
+			auto&	f = _frames[ frame_p->frameId.Index() ];
+			EXLOCK( f.guard );
+
+			f.deps.push_back( RVRef(task), TaskDependency{ bitIndex, True{"strong ref"} });
+
+			++bitIndex;
+			return true;
+		}
+
+		return false;
+	}
+
+/*
+=================================================
+	DbgDetectDeadlock
+=================================================
+*/
+#ifdef AE_DEBUG
+	void  RenderTaskScheduler::FrameNextCycleDepsManager::DbgDetectDeadlock (const CheckDepFn_t &fn) __NE___
+	{
+		GraphicsScheduler().DbgForEachBatch( fn, True{"pending only"} );
+		GraphicsScheduler().DbgForEachBatch( fn, False{"submitted only"} );
+	}
+#endif
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
 	EndFrameTask::Run
 =================================================
 */
@@ -186,7 +240,7 @@
 		// Timeline semaphore allow to submit commands without strict ordering.
 		for (auto q = q_mask; q != Zero;)
 		{
-			rts._FlushQueue( ExtractBitIndex<EQueueType>( INOUT q ), _frameId, true );
+			rts._FlushQueue( ExtractBitIndex<EQueueType>( INOUT q ), _frameId, True{"force flush"} );
 		}
 
 		for (auto& q : rts._queueMap)
@@ -203,7 +257,7 @@
 		rts._resMngr->_OnEndFrame( _frameId );
 
 		CHECK_ERR_MSG( rts._status.Set( RTS_EStatus::RecordFrame, RTS_EStatus::Idle ),
-			"incorrect render task scheduler status, must be 'EStatus::RecordFrame'" );
+			"Incorrect render task scheduler status, must be 'EStatus::RecordFrame'" );
 
 		GFX_DBG_ONLY(
 			CHECK( _frameId == rts.DbgFrameId() );
@@ -257,9 +311,7 @@
 =================================================
 */
 	RenderTaskScheduler::RenderTaskScheduler (const Device_t &dev) __NE___ :
-		_device{ dev },
-		_submitDepMngr{ MakeRC<BatchSubmitDepsManager>() },
-		_completeDepMngr{ MakeRC<BatchCompleteDepsManager>() }
+		_device{ dev }
 	{
 		_lastUpdate.store( TimePoint_t::clock::now() );
 	}
@@ -350,8 +402,13 @@
 		_cmdPoolMngr.reset( new VCommandPoolManager{ _device });
 	  #endif
 
+		_submitDepMngr		= MakeRC<BatchSubmitDepsManager>();
+		_completeDepMngr	= MakeRC<BatchCompleteDepsManager>();
+		_nextCycleDepMngr	= MakeRC<FrameNextCycleDepsManager>();
+
 		Scheduler().RegisterDependency< CmdBatchOnSubmit >( _submitDepMngr );
 		Scheduler().RegisterDependency< RC<CommandBatch_t> >( _completeDepMngr );
+		Scheduler().RegisterDependency< OnFrameNextCycle >( _nextCycleDepMngr );
 
 		if ( info.useRenderGraph )
 			_rg.reset( new RenderGraph_t{} );
@@ -371,8 +428,10 @@
 		if ( AnyEqual( state, EStatus::Destroyed, EStatus::Initial ))
 			return;
 
+		const EThreadArray	threads { ETaskQueue::Renderer, ETaskQueue::PerFrame };
+
 		CHECK( state == EStatus::Idle );
-		CHECK( _WaitAll( seconds{1} ));
+		CHECK( _WaitAll( threads, seconds{1} ));
 
 		_rg.reset();
 
@@ -386,6 +445,7 @@
 
 		Scheduler().UnregisterDependency< CmdBatchOnSubmit >();
 		Scheduler().UnregisterDependency< RC<CommandBatch_t> >();
+		Scheduler().UnregisterDependency< OnFrameNextCycle >();
 
 	  #ifdef AE_ENABLE_VULKAN
 		_cmdPoolMngr = null;
@@ -404,8 +464,7 @@
 	{
 		ASSERT( timeout != Default );
 
-		using TimePoint2_t		= Threading::TaskScheduler::TimePoint_t;
-		const auto	end_time	= TimePoint2_t::clock::now() + timeout;
+		const auto	end_time = TimePoint_t::clock::now() + timeout;
 
 		// wait for 'EndFrameTask' and other dependencies
 		const auto	frame_id = _frameId.load().Inc();
@@ -429,7 +488,7 @@
 			if ( _IsFrameCompleted( frame_id ))
 				break;
 
-			if_unlikely( TimePoint2_t::clock::now() > end_time )
+			if_unlikely( TimePoint_t::clock::now() > end_time )
 				return false;  // time is out
 
 			if_unlikely( not Scheduler().ProcessTasks( threads, Threading::EThreadSeed(usize(this) & 0xF), _ProcessTasksPerTick ))
@@ -439,6 +498,7 @@
 			}
 		}
 	  #endif
+
 		return true;
 	}
 
@@ -470,7 +530,11 @@
 		// recycle per-frame memory
 		MemoryManager().GetGraphicsFrameAllocator().BeginFrame( frame_id );
 
+		// staging buffer host-visible memory invalidated here
 		_resMngr->_OnBeginFrame( frame_id, cfg );
+
+		// allow to run tasks which depends on 'OnFrameNextCycle'
+		_nextCycleDepMngr->OnNextFrame( frame_id );
 
 	  #ifdef AE_ENABLE_VULKAN
 		CHECK( _cmdPoolMngr->NextFrame( frame_id ));
@@ -503,6 +567,15 @@
 
 /*
 =================================================
+	ReleaseExpiredResourcesTask ctor
+=================================================
+*/
+	inline ResourceManager::ReleaseExpiredResourcesTask::ReleaseExpiredResourcesTask (FrameUID frameId) __NE___ :
+		IAsyncTask{ETaskQueue::PerFrame}, _frameId{frameId}
+	{}
+
+/*
+=================================================
 	AddFrameDeps
 =================================================
 */
@@ -526,7 +599,7 @@
 
 		for (auto& dep : deps)
 		{
-			if_unlikely( begin_deps->size() == begin_deps->capacity() )
+			if_unlikely( begin_deps->IsFull() )
 			{
 				FrameDepsArray_t	temp {RVRef(*begin_deps)};
 				begin_deps->clear();
@@ -549,7 +622,7 @@
 	_FlushQueue
 =================================================
 */
-	bool  RenderTaskScheduler::_FlushQueue (const EQueueType queueType, const FrameUID frameId, const bool forceFlush) __NE___
+	bool  RenderTaskScheduler::_FlushQueue (const EQueueType queueType, const FrameUID frameId, const Bool forceFlush) __NE___
 	{
 		TempBatches_t	pending;
 
@@ -736,7 +809,7 @@
 
 		CHECK( AnyEqual( state, EStatus::Idle, EStatus::BeginFrame, EStatus::RecordFrame ));
 
-		return _WaitAll( timeout );
+		return _WaitAll( Default, timeout );
 	}
 
 	bool  RenderTaskScheduler::WaitAll (const EThreadArray &threads, nanoseconds timeout) __NE___
@@ -747,37 +820,7 @@
 
 		CHECK( AnyEqual( state, EStatus::Idle, EStatus::BeginFrame, EStatus::RecordFrame ));
 
-		const auto	end_time = TimePoint_t::clock::now() + timeout;
-
-		return _WaitAllBatches( end_time ) and _WaitAllTasks( threads, end_time );
-	}
-
-/*
-=================================================
-	_WaitAllTasks
-=================================================
-*/
-	bool  RenderTaskScheduler::_WaitAllTasks (const EThreadArray &threads, const TimePoint_t endTime) __NE___
-	{
-		bool	complete = true;
-
-		for (auto& frame_deps : _beginDeps)
-		{
-			auto	deps = frame_deps.WriteLock();
-
-			if ( deps->empty() )
-				continue;
-
-			if ( not Scheduler().Wait( *deps, threads, endTime, _ProcessTasksPerTick ))
-			{
-				complete = false;
-				break;
-			}
-			else
-				deps->clear();
-		}
-
-		return complete;
+		return _WaitAll( threads, timeout );
 	}
 
 /*
@@ -785,51 +828,86 @@
 	_WaitAll
 =================================================
 */
-	bool  RenderTaskScheduler::_WaitAll (const nanoseconds timeout) __NE___
-	{
-		const auto	end_time = TimePoint_t::clock::now() + timeout;
-
-		return _WaitAllBatches( end_time );
-	}
-
-/*
-=================================================
-	_WaitAllBatches
-=================================================
-*/
 #ifndef AE_ENABLE_REMOTE_GRAPHICS
-	bool  RenderTaskScheduler::_WaitAllBatches (const TimePoint_t endTime) __NE___
+	bool  RenderTaskScheduler::_WaitAll (const EThreadArray &threads, nanoseconds timeout) __NE___
 	{
-		const auto	q_mask = _device.GetAvailableQueues();
+		const auto	end_time	= TimePoint_t::clock::now() + timeout;
+		const auto	q_mask		= _device.GetAvailableQueues();
+		FrameUID	frame_id	= _frameId.load();
+		const uint	cnt			= frame_id.MaxFrames();
 
-		for (;;)
+		for (uint f = 0; f < cnt; ++f, frame_id.Inc())
 		{
-			FrameUID	frame_id	= GetFrameId();
-			bool		complete	= true;
+			// as in 'EndFrameTask'
+			//----
 
 			for (auto q = q_mask; q != Zero;) {
-				_FlushQueue( ExtractBitIndex<EQueueType>( INOUT q ), frame_id, false );
+				_FlushQueue( ExtractBitIndex<EQueueType>( INOUT q ), frame_id, False{"no force flush"} );
 			}
 
-			for (uint f = 0, cnt = frame_id.MaxFrames(); f < cnt; ++f)
-			{
-				frame_id.Inc();
+			// as 'WaitNextFrame()'
+			//----
 
-				if_unlikely( not _IsFrameCompleted( frame_id ))
+			// wait for 'EndFrameTask' and other dependencies
+			if ( not threads.empty() )
+			{
+				auto	begin_deps = _beginDeps[ frame_id.Remap( _FrameDepsHistory )].WriteLock();
+
+				if_unlikely( not Scheduler().Wait( *begin_deps, threads, end_time, _ProcessTasksPerTick ))
+					return false;  // time is out
+
+				begin_deps->clear();
+			}
+
+			// wait for GPU frame completion
+			for (;;)
+			{
+				if ( _IsFrameCompleted( frame_id ))
+					break;
+
+				if_unlikely( TimePoint_t::clock::now() > end_time )
+					return false;  // time is out
+
+				if ( threads.empty() )
 				{
-					complete = false;
+					ThreadUtils::Sleep_15ms();
+					continue;
+				}
+
+				if_unlikely( not Scheduler().ProcessTasks( threads, Threading::EThreadSeed(usize(this) & 0xF), _ProcessTasksPerTick ))
+				{
+					Scheduler().DbgDetectDeadlock();
 					ThreadUtils::Sleep_15ms();
 				}
 			}
 
-			if ( complete )
-				return true;
+			// as in 'BeginFrame()'
+			//----
 
-			if ( TimePoint_t::clock::now() > endTime )
-				return false;
+			// staging buffer host-visible memory invalidated here
+			_resMngr->GetStagingManager().InvalidateMappedMemory( frame_id );
+
+			// allow to run tasks which depends on 'OnFrameNextCycle'
+			_nextCycleDepMngr->OnNextFrame( frame_id );
 		}
+
+		// wait for all begin dependencies
+		if ( not threads.empty() )
+		{
+			for (auto& deps : _beginDeps)
+			{
+				auto	begin_deps = deps.WriteLock();
+
+				if_unlikely( not Scheduler().Wait( *begin_deps, threads, end_time, _ProcessTasksPerTick ))
+					return false;  // time is out
+
+				begin_deps->clear();
+			}
+		}
+		return true;
 	}
 #endif
+
 /*
 =================================================
 	SetProfiler
@@ -918,4 +996,16 @@
 		}
 	}
 #endif // AE_DEBUG
+//----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	_AddNextCycleEndDeps
+=================================================
+*/
+	void  ITransferContext::_ReadbackResult::_AddNextCycleEndDeps (AsyncTask task) __NE___
+	{
+		GraphicsScheduler().AddNextCycleEndDeps( RVRef(task) );
+	}
 

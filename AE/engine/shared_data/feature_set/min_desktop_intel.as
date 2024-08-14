@@ -98,6 +98,8 @@ void ASmain ()
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 	fset.shaderUniformTexelBufferArrayDynamicIndexing (True);
 	fset.shaderStorageTexelBufferArrayDynamicIndexing (True);
+	fset.shaderSampledImageArrayNonUniformIndexing (True);
+	fset.shaderStorageBufferArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.vulkanMemoryModel (True);
@@ -268,7 +270,7 @@ void ASmain ()
 		EPixelFormat::BC1_sRGB8_A1, EPixelFormat::BC2_RGBA8_UNorm, EPixelFormat::BC2_sRGB8, EPixelFormat::BC3_RGBA8_UNorm, 
 		EPixelFormat::BC3_sRGB8, EPixelFormat::BC4_R8_SNorm, EPixelFormat::BC4_R8_UNorm, EPixelFormat::BC5_RG8_SNorm, 
 		EPixelFormat::BC5_RG8_UNorm, EPixelFormat::BC6H_RGB16F, EPixelFormat::BC6H_RGB16UF, EPixelFormat::BC7_RGBA8_UNorm, 
-		EPixelFormat::BC7_sRGB8_A8, EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ECT2_sRGB8, EPixelFormat::ETC2_RGB8_A1_UNorm, 
+		EPixelFormat::BC7_sRGB8_A8, EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ETC2_sRGB8, EPixelFormat::ETC2_RGB8_A1_UNorm, 
 		EPixelFormat::ETC2_sRGB8_A1, EPixelFormat::ETC2_RGBA8_UNorm, EPixelFormat::ETC2_sRGB8_A8, EPixelFormat::EAC_R11_SNorm, 
 		EPixelFormat::EAC_R11_UNorm, EPixelFormat::EAC_RG11_SNorm, EPixelFormat::EAC_RG11_UNorm
 	});

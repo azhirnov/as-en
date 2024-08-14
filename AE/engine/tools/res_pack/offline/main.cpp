@@ -452,12 +452,18 @@ namespace
 	{
 	private:
 		VFS::ArchivePacker		_archive;
-		BasicString<CharType>	_tempFile;
 		EFileType				_defaultType	= EFileType::Raw;
 
 	public:
+		ND_ VFS::ArchivePacker&  GetArchive ()
+		{
+			CHECK_THROW_MSG( _archive.IsCreated() );
+			return _archive;
+		}
+
 		void  Add1 (const String &name, const String &filename, EFileType type) __Th___
 		{
+			CHECK_THROW_MSG( _archive.IsCreated() );
 			CHECK_THROW_MSG( name.length() < VFS::FileName::MaxStringLength() );
 			CHECK_THROW_MSG( _archive.Add( VFS::FileName::WithString_t{name}, FindPath( filename, "VFS file" ), type ));
 		}
@@ -479,16 +485,19 @@ namespace
 
 		void  AddArchive (const String &filename) __Th___
 		{
+			CHECK_THROW_MSG( _archive.IsCreated() );
 			CHECK_THROW_MSG( _archive.AddArchive( FindPath( filename, "Archive" )));
 		}
 
 		void  Store (const String &filename) __Th___
 		{
+			CHECK_THROW_MSG( _archive.IsCreated() );
+
+			Path	path = _archive.TempFilePath();
 			CHECK_THROW_MSG( _archive.Store( Path{filename} ),
 				"Failed to store archive to '"s << filename << "'" );
 
-			FileSystem::DeleteFile( _tempFile );
-			_tempFile.clear();
+			FileSystem::DeleteFile( path );
 		}
 
 		void  SetDefaultFileType (EFileType type)
@@ -498,6 +507,7 @@ namespace
 
 		void  SetTempFile (const String &fileName) __Th___
 		{
+			CHECK_THROW_MSG( not _archive.IsCreated() );
 			CHECK_THROW_MSG( not FileSystem::IsDirectory( fileName ) or
 							 FileSystem::IsFile( fileName ),
 				"Temp file '"s << fileName << "' must not be an existing folder" );
@@ -508,7 +518,6 @@ namespace
 			FileSystem::CreateDirectories( path.parent_path() );
 
 			CHECK_THROW_MSG( _archive.Create( path ));
-			_tempFile = ConvertString( path );
 		}
 	};
 
@@ -678,6 +687,7 @@ namespace
 		{
 			ClassBinder<ScriptArchive>		binder{ se };
 			binder.CreateRef();
+			binder.Comment( "Initialize archive, set path to temporary file which will be used to store archive before 'Store()' call." );
 			binder.AddMethod( &ScriptArchive::SetTempFile,				"SetTempFile"			);
 			binder.AddMethod( &ScriptArchive::SetDefaultFileType,		"SetDefaultFileType"	);
 			binder.AddMethod( &ScriptArchive::Add1,						"Add",					{"nameInArchive", "filePath", "archiveFileType"} );

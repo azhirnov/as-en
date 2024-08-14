@@ -52,7 +52,7 @@ namespace AE::Video
 		};
 		CodecCtx	codec_ctx	{_ffmpeg};
 		const auto	codec_id	= videoStream->codecpar->codec_id;
-		const auto	format		= AVPixelFormat(videoStream->codecpar->format);
+		//const auto	format	= AVPixelFormat(videoStream->codecpar->format);
 
 		ASSERT( outCodec == null );
 		ASSERT( outCodecCtx == null );
@@ -62,7 +62,7 @@ namespace AE::Video
 			if ( codec == null )
 				return false;
 
-			ASSERT( _ffmpeg->av_codec_is_decoder( codec ));
+			ASSERT( _ffmpeg->av_codec_is_decoder( codec ) != 0 );
 
 			if ( not (codec->capabilities & AV_CODEC_CAP_HARDWARE) and _config.hwAccelerated == EHwAcceleration::Require )
 				return false;
@@ -707,7 +707,7 @@ namespace AE::Video
 		return false;
 
 	  #else
-		Unused( inoutSamples );
+		Unused( memView );
 		return false;
 	  #endif
 	}
@@ -910,7 +910,7 @@ namespace AE::Video
 						if ( codec == null )
 							return false;
 
-						ASSERT( _ffmpeg->av_codec_is_decoder( codec ));
+						ASSERT( _ffmpeg->av_codec_is_decoder( codec ) != 0 );
 
 						if ( not (codec->capabilities & AV_CODEC_CAP_HARDWARE) and _config.hwAccelerated == EHwAcceleration::Require )
 							return false;

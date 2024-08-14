@@ -167,6 +167,8 @@ extern bool ShaderTrace_Test9 (TestDevice& vulkan)
 	if ( vulkan.GetRayTracingFeats().rayTracingPipeline == VK_FALSE )
 		return true;	// not supported
 
+	ON_DESTROY( [&vulkan]() { vulkan.FreeTempHandles(); });
+
 	// create image
 	VkImage			image;
 	VkImageView		image_view;
@@ -368,8 +370,6 @@ extern bool ShaderTrace_Test9 (TestDevice& vulkan)
 	}
 
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {raygen_shader, miss_shader/*, hit_shader*/}, "ShaderTrace_Test9.txt" ));
-
-	vulkan.FreeTempHandles();
 
 	TEST_PASSED();
 	return true;

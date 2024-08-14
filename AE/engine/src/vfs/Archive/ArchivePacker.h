@@ -36,10 +36,7 @@ namespace AE::VFS
 		RC<WStream>		_archive;
 
 		NamedID_HashCollisionCheck	_hashCollisionCheck;
-
-		DRC_ONLY(
-			DataRaceCheck	_drCheck;
-		)
+		DRC_ONLY( DataRaceCheck		_drCheck;)
 
 
 	// methods
@@ -58,6 +55,10 @@ namespace AE::VFS
 
 		ND_ bool  AddArchive (const Path &filename);
 		ND_ bool  AddArchive (RC<RDataSource> archive);
+
+		ND_ bool  Exists (FileName::Ref	name)	const;
+		ND_ bool  IsCreated ()					const;
+		ND_ Path  TempFilePath ()				const;
 
 	private:
 		ND_ bool  _AddFile (FileName::Optimized_t name, const FileInfo &info);

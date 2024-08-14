@@ -87,6 +87,7 @@ void ASmain ()
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 	fset.shaderUniformTexelBufferArrayDynamicIndexing (True);
 	fset.shaderStorageTexelBufferArrayDynamicIndexing (True);
+	fset.shaderSampledImageArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.maxSpirvVersion (130);
@@ -173,6 +174,8 @@ void ASmain ()
 	fset.imageCubeArray (True);
 	fset.textureCompressionBC (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewFormatList (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImage, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 

@@ -17,6 +17,7 @@ namespace
 	Properties::ToString
 =================================================
 */
+#ifdef AE_ENABLE_LOGS
 	String  IVideoDecoder::Properties::ToString () C_Th___
 	{
 		String	str;
@@ -45,7 +46,7 @@ namespace
 
 		return str;
 	}
-
+#endif
 /*
 =================================================
 	Properties::GetStream

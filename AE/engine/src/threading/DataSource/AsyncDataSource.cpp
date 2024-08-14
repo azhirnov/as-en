@@ -18,7 +18,7 @@ namespace AE::Threading
 		if_unlikely( EStatus stat = Status();  stat > EStatus::_Finished )
 			return stat == EStatus::Completed;
 
-		CHECK_ERR( _deps.size() < _deps.capacity() );	// check for overflow
+		CHECK_ERR( not _deps.IsFull() );	// check for overflow
 
 		TaskDependency	bits;
 		bits.bitIndex	= index++;
@@ -44,9 +44,9 @@ namespace AE::Threading
 			//	weak/strong	& complete	-> complete
 			//	strong		& cancelled	-> cancelled
 			//	weak		& cancelled	-> complete
-			const bool	cancel = dep.Get<1>().isStrong and (not complete);
+			const bool	is_canceled = dep.Get<1>().isStrong and (not complete);
 
-			ITaskDependencyManager::_SetDependencyCompletionStatus( dep.Get<0>(), dep.Get<1>().bitIndex, cancel );
+			ITaskDependencyManager::_SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, Bool{is_canceled} );
 		}
 		_deps.clear();
 	}

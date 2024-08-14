@@ -310,7 +310,7 @@ namespace AE::Networking
 */
 	auto  TcpSocket::Send (const void* data, const Bytes dataSize) C_NE___ -> Tuple< SocketSendError, Bytes >
 	{
-		ASSERT( data != null or dataSize > 0 );
+		ASSERT( (data != null) and (dataSize > 0) );
 
 		if_unlikely( not IsOpen() )
 			return Tuple{ SocketSendError::NoSocket, 0_b };
@@ -333,7 +333,7 @@ namespace AE::Networking
 */
 	auto  TcpSocket::Receive (OUT void* data, const Bytes dataSize) C_NE___ -> Tuple< SocketReceiveError, Bytes >
 	{
-		ASSERT( data != null or dataSize > 0 );
+		ASSERT( (data != null) and (dataSize > 0) );
 
 		if_unlikely( not IsOpen() )
 			return Tuple{ SocketReceiveError::NoSocket, 0_b };

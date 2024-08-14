@@ -13,6 +13,12 @@ AE_DECL_SCRIPT_OBJ(	AE::ResEditor::ResEditorAppConfig,	"Config" );
 # error AE_GRAPHICS_STRONG_VALIDATION must be enabled for public version
 #endif
 
+#if defined(AE_ENABLE_VULKAN) and not defined(AE_CFG_RELEASE)
+# define ENABLE_RDC		1
+#else
+# define ENABLE_RDC		0
+#endif
+
 namespace AE::ResEditor
 {
 	using namespace AE::Threading;
@@ -42,14 +48,12 @@ namespace
 		{
 			cfg.graphics.maxFrames = 2;
 
-			cfg.graphics.staging.readStaticSize .fill( 1_Mb );
-			cfg.graphics.staging.writeStaticSize.fill( 2_Mb );
-
 			cfg.graphics.device.appName			= "ResourceEditor";
 			cfg.graphics.device.requiredQueues	= EQueueMask::Graphics;
 			cfg.graphics.device.optionalQueues	= Default;
 			cfg.graphics.device.devFlags		= (s_REConfig.setStableGPUClock ? EDeviceFlags::SetStableClock : Default) |
-												  (s_REConfig.enableRenderDoc ? EDeviceFlags::EnableRenderDoc : Default) ;
+												  (s_REConfig.enableRenderDoc ? EDeviceFlags::EnableRenderDoc : Default) |
+												  EDeviceFlags::EnablePerfCounters;
 
 		  #if AE_PUBLIC_VERSION and defined(AE_RELEASE)
 			cfg.graphics.device.validation		= EDeviceValidation::Disabled;
@@ -70,14 +74,14 @@ namespace
 		// window
 		{
 			cfg.window.title	= "ResourceEditor";
-			cfg.window.size		= {1600, 896};
+			cfg.window.size		= {1600, 900};
 			cfg.window.mode		= c_WindowMode;
 		}
 
 		// VR
 		{
 			cfg.enableVR		= false;
-			cfg.vr.dimension	= {1024, 1024};
+			cfg.vr.dimension	= uint2{2048};
 			cfg.vr.format		= EPixelFormat::BGRA8_UNorm;
 			cfg.vr.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;	// default
 			cfg.vr.options		= EImageOpt::BlitDst;
@@ -93,6 +97,8 @@ namespace
 		cfg.graphics.enableSyncLog			= false;
 
 		cfg.graphics.deviceAddr	= Networking::IpAddress::FromInt( s_REConfig.ipAddress[0], s_REConfig.ipAddress[1], s_REConfig.ipAddress[2], s_REConfig.ipAddress[3], 0 );
+		CHECK_THROW_MSG( cfg.graphics.deviceAddr.IsValid(),
+			"Invalid RemoveDevice IP address, in 'res_editor_cfg.as' set 'cfg.RemoteDeviceIpAddress(...)' to an existing IP address" );
 	  #endif
 
 		CHECK( cfg.graphics.maxFrames <= cfg.graphics.swapchain.minImageCount );
@@ -413,7 +419,7 @@ namespace
 			FileRStream		file {filename};
 			CHECK_ERR( file.IsOpen() );
 
-			src.name			= ToString( filename.filename().replace_extension("") );
+			src.name			= ToString( filename.stem() );
 			src.dbgLocation		= {};
 			src.usePreprocessor	= false;
 			CHECK_ERR( file.Read( file.RemainingSize(), OUT src.script ));
@@ -490,7 +496,7 @@ void main (Config &out cfg)
 	// pipeline dirs //
 	//	where to search pipelines for 'UnifiedGeometry' and 'Model'.
 	cfg.PipelineSearchDir( local_path + "pipelines" );
-	cfg.PipelineIncludeDir( local_path + "pipelines/include" );
+	cfg.PipelineIncludeDir( local_path + "pipeline_inc" );
 
 	// shaders //
 	//	where to search shaders for pipelines and passes.
@@ -519,18 +525,25 @@ void main (Config &out cfg)
 	cfg.ExportDir( local_path + "../_export" );
 
 	// graphics settings //
-	//	set stable GPU clock for profiling, otherwise driver can move GPU to low power mode.
+	//	NV only: set stable GPU clock for profiling, otherwise driver can move GPU to low power mode.
 	cfg.setStableGPUClock = false;
 
-	//	on start attach RenderDoc to the app, this will disable some new extensions including ray tracing.
+	//	on start attach RenderDoc to the app, this will disable some new extensions.
 	cfg.enableRenderDoc = false;
 
 	// remote input //
 	//cfg.RemoteInputServerPort( 0 );
+)";
 
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+		str << R"(
 	// remote graphics device //
+	cfg.RemoteDeviceIpAddress( 192, 168, 0, 0 );
 	//cfg.GraphicsLibPath( "" );
+)";
+#endif
 
+		str << R"(
 	// tests //
 	//cfg.TestOutput( vfs_path + "/samples/res_editor/ref" );
 	//cfg.TestFolder( "callable" );
@@ -540,6 +553,7 @@ void main (Config &out cfg)
 	//cfg.TestFolder( "samples-rt" );
 	//cfg.TestFolder( "sphere" );
 	//cfg.TestFolder( "tests" );
+	//cfg.TestFolder( "tools" );
 }
 )";
 
@@ -824,7 +838,7 @@ void main (Config &out cfg)
 */
 	ResEditorCore::~ResEditorCore ()
 	{
-	  #ifdef AE_ENABLE_VULKAN
+	  #if ENABLE_RDC
 		GraphicsScheduler().GetDevice().GetRenderDocApi().PrintCaptures();
 	  #endif
 
@@ -1062,7 +1076,7 @@ void main (Config &out cfg)
 */
 	void  ResEditorCore::RenderFrame () __NE___
 	{
-		#ifdef AE_ENABLE_VULKAN
+		#if ENABLE_RDC
 		if ( _ui.IsCaptureRequested() )
 		{
 			auto&	dev = GraphicsScheduler().GetDevice();

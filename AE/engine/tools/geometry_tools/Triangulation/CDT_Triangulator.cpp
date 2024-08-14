@@ -5,6 +5,7 @@
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (push, 0)
 #	pragma warning (disable: 4701)
+#	pragma warning (disable: 4305)
 # endif
 
 # include "CDT.h"
@@ -222,8 +223,8 @@ namespace
 
 		CDT::Triangulation<float>	cdt{ CDT::VertexInsertionOrder::Auto,
 										 AllBits( flags, EFlags::ResolveIntersections ) ?
-											CDT::IntersectingConstraintEdges::Resolve :
-											CDT::IntersectingConstraintEdges::Ignore,
+											CDT::IntersectingConstraintEdges::TryResolve :
+											CDT::IntersectingConstraintEdges::DontCheck,
 										 c_minDistToConstraintEdge };
 
 		// add vertices

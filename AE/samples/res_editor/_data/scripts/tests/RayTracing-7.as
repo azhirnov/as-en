@@ -23,6 +23,8 @@
 			pass.Slider( "iCallable",	0,	4 );
 			pass.Dispatch( rt.Dimension() );
 
+			pass.MaxCallableRecursion( 1 );
+
 			// setup SBT
 			pass.RayGen( RTShader("") );
 			pass.Callable( CallableIndex(0), RTShader("", "CALL_0") );

@@ -12,6 +12,14 @@
 #else
 #	error not implemented
 #endif
+
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+# define ERR_MSG( _msg_, _dbgName_ )	_msg_
+#elif defined(AE_DEBUG)
+# define ERR_MSG( _msg_, _dbgName_ )	(_msg_ ": "s << _dbgName_).c_str()
+#else
+# define ERR_MSG( _msg_, _dbgName_ )	_msg_
+#endif
 //-----------------------------------------------------------------------------
 
 
@@ -537,7 +545,7 @@ namespace {
 
 	  #ifdef AE_ENABLE_VULKAN
 		auto*	rp = GetResource( rp_id );
-		CHECK_ERR( rp );
+		CHECK_ERR( rp != null );
 
 		const auto	compat_id = rp->CompatibleRP();
 		DBG_CHECK_MSG( compat_id, "compatible render pass must not be added to '_renderPassRefs'" );
@@ -568,7 +576,7 @@ namespace {
 		{
 			data.Destroy( *this );
 			_Unassign( id );
-			RETURN_ERR( "failed when creating pipeline layout" );
+			RETURN_ERR( "failed when creating pipeline layout: "s DEBUG_ONLY(<< ci.dbgName) );
 		}
 
 		data.AddRef();
@@ -605,7 +613,7 @@ namespace {
 		{
 			data.Destroy( *this );
 			_Unassign( id );
-			RETURN_ERR( "failed when creating descriptor set layout" );
+			RETURN_ERR( "failed when creating descriptor set layout: "s DEBUG_ONLY(<< ci.dbgName) );
 		}
 
 		data.AddRef();
@@ -622,7 +630,7 @@ namespace {
 */
 	Strong<PipelinePackID>  ResourceManager::LoadPipelinePack (const PipelinePackDesc &desc) __NE___
 	{
-		return _CreateResource<PipelinePackID>( "failed when creating pipeline pack", *this, desc );
+		return _CreateResource<PipelinePackID>( ERR_MSG( "failed when creating pipeline pack", desc.dbgName ), *this, desc );
 	}
 
 /*
@@ -632,67 +640,67 @@ namespace {
 */
 	Strong<ImageID>  ResourceManager::CreateImage (const ImageDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
-		return _CreateResource<ImageID>( "failed when creating image", *this, desc, RVRef(allocator), dbgName );
+		return _CreateResource<ImageID>( ERR_MSG( "failed when creating image", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
 	Strong<BufferID>  ResourceManager::CreateBuffer (const BufferDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
-		return _CreateResource<BufferID>( "failed when creating buffer", *this, desc, RVRef(allocator), dbgName );
+		return _CreateResource<BufferID>( ERR_MSG( "failed when creating buffer", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
 	Strong<ImageID>  ResourceManager::CreateImage (const NativeImageDesc_t &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
-		return _CreateResource<ImageID>( "failed when creating image", *this, desc, RVRef(allocator), dbgName );
+		return _CreateResource<ImageID>( ERR_MSG( "failed when creating image", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
 	Strong<BufferID>  ResourceManager::CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
-		return _CreateResource<BufferID>( "failed when creating buffer", *this, desc, RVRef(allocator), dbgName );
+		return _CreateResource<BufferID>( ERR_MSG( "failed when creating buffer", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
 	Strong<ImageViewID>  ResourceManager::CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName) __NE___
 	{
-		return _CreateResource<ImageViewID>( "failed when creating image view", *this, desc, image, dbgName );
+		return _CreateResource<ImageViewID>( ERR_MSG( "failed when creating image view", dbgName ), *this, desc, image, dbgName );
 	}
 
 	Strong<BufferViewID>  ResourceManager::CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName) __NE___
 	{
-		return _CreateResource<BufferViewID>( "failed when creating buffer view", *this, desc, buffer, dbgName );
+		return _CreateResource<BufferViewID>( ERR_MSG( "failed when creating buffer view", dbgName ), *this, desc, buffer, dbgName );
 	}
 
 	Strong<ImageViewID>  ResourceManager::CreateImageView (const NativeImageViewDesc_t &desc, ImageID image, StringView dbgName) __NE___
 	{
-		return _CreateResource<ImageViewID>( "failed when creating image view", *this, desc, image, dbgName );
+		return _CreateResource<ImageViewID>( ERR_MSG( "failed when creating image view", dbgName ), *this, desc, image, dbgName );
 	}
 
 	Strong<BufferViewID>  ResourceManager::CreateBufferView (const NativeBufferViewDesc_t &desc, BufferID buffer, StringView dbgName) __NE___
 	{
-		return _CreateResource<BufferViewID>( "failed when creating buffer view", *this, desc, buffer, dbgName );
+		return _CreateResource<BufferViewID>( ERR_MSG( "failed when creating buffer view", dbgName ), *this, desc, buffer, dbgName );
 	}
 
 	Strong<RTGeometryID>  ResourceManager::CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
-		return _CreateResource<RTGeometryID>( "failed when creating ray tracing geometry (BLAS)", *this, desc, RVRef(allocator), dbgName );
+		return _CreateResource<RTGeometryID>( ERR_MSG( "failed when creating ray tracing geometry (BLAS)", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
 	Strong<RTSceneID>  ResourceManager::CreateRTScene (const RTSceneDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
-		return _CreateResource<RTSceneID>( "failed when creating ray tracing scene (TLAS)", *this, desc, RVRef(allocator), dbgName );
+		return _CreateResource<RTSceneID>( ERR_MSG( "failed when creating ray tracing scene (TLAS)", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
 	Strong<VideoSessionID>  ResourceManager::CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
-		return _CreateResource<VideoSessionID>( "failed when creating video session", *this, desc, RVRef(allocator), dbgName );
+		return _CreateResource<VideoSessionID>( ERR_MSG( "failed when creating video session", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
 	Strong<VideoBufferID>  ResourceManager::CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
-		return _CreateResource<VideoBufferID>( "failed when creating video buffer", *this, desc, RVRef(allocator), dbgName );
+		return _CreateResource<VideoBufferID>( ERR_MSG( "failed when creating video buffer", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
 	Strong<VideoImageID>  ResourceManager::CreateVideoImage (const VideoImageDesc &desc, StringView dbgName, GfxMemAllocatorPtr allocator) __NE___
 	{
-		return _CreateResource<VideoImageID>( "failed when creating video image", *this, desc, RVRef(allocator), dbgName );
+		return _CreateResource<VideoImageID>( ERR_MSG( "failed when creating video image", dbgName ), *this, desc, RVRef(allocator), dbgName );
 	}
 
 /*
@@ -827,10 +835,10 @@ namespace {
 		CHECK_ERR( dst != null and count > 0 );
 
 		auto*	ppln = GetResource( pplnId );
-		CHECK_ERR( ppln );
+		CHECK_ERR( ppln != null );
 
 		auto*	ppln_layout = GetResource( ppln->LayoutId() );
-		CHECK_ERR( ppln_layout );
+		CHECK_ERR( ppln_layout != null );
 
 		DescriptorSetLayoutID	layout_id;
 
@@ -868,7 +876,7 @@ namespace {
 
 		for (; created and (i < count); ++i)
 		{
-			dst[i]  = _CreateResource<DescriptorSetID>( "failed when creating descriptor set", *this, layout_id, allocator, dbgName );
+			dst[i]  = _CreateResource<DescriptorSetID>( ERR_MSG( "failed when creating descriptor set", dbgName ), *this, layout_id, allocator, dbgName );
 			created = (dst[i].IsValid());
 		}
 
@@ -988,7 +996,7 @@ namespace {
 	CreatePipelineCache
 =================================================
 */
-	Strong<PipelineCacheID>  ResourceManager::CreatePipelineCache () __NE___
+	Strong<PipelineCacheID>  ResourceManager::CreatePipelineCache (RC<RStream> stream, StringView dbgName) __NE___
 	{
 		PipelineCacheID		id;
 		CHECK_ERR( _Assign( OUT id ));
@@ -996,7 +1004,7 @@ namespace {
 		auto&	data = _GetResourcePool( id )[ id.Index() ];
 		Replace( data );
 
-		if_unlikely( not data.Create( *this, Default ))
+		if_unlikely( not data.Create( *this, dbgName, RVRef(stream) ))
 		{
 			data.Destroy( *this );
 			_Unassign( id );
@@ -1005,6 +1013,25 @@ namespace {
 
 		data.AddRef();
 		return Strong<PipelineCacheID>{ id };
+	}
+
+/*
+=================================================
+	SerializePipelineCache
+=================================================
+*/
+	bool  ResourceManager::SerializePipelineCache (PipelineCacheID id, RC<WStream> dst) C_NE___
+	{
+		CHECK_ERR( dst and dst->IsOpen() );
+
+		auto*	res = GetResources( id );
+		CHECK_ERR( res != null );
+
+		Array<char>	data;
+		CHECK_ERR( res->GetData( GetDevice(), OUT data ));
+
+		CHECK_ERR( dst->Write( ArrayView<char>{ data }));
+		return true;
 	}
 
 /*
@@ -1042,27 +1069,27 @@ namespace {
 */
 	Strong<ComputePipelineID>  ResourceManager::CreatePipeline (const ComputePipeline_t::CreateInfo &ci) __NE___
 	{
-		return _CreateResource<ComputePipelineID>( "failed when creating compute pipeline", *this, ci );
+		return _CreateResource<ComputePipelineID>( ERR_MSG( "failed when creating compute pipeline", ci.specCI.dbgName ), *this, ci );
 	}
 
 	Strong<GraphicsPipelineID>  ResourceManager::CreatePipeline (const GraphicsPipeline_t::CreateInfo &ci) __NE___
 	{
-		return _CreateResource<GraphicsPipelineID>( "failed when creating graphics pipeline", *this, ci );
+		return _CreateResource<GraphicsPipelineID>( ERR_MSG( "failed when creating graphics pipeline", ci.specCI.dbgName ), *this, ci );
 	}
 
 	Strong<MeshPipelineID>  ResourceManager::CreatePipeline (const MeshPipeline_t::CreateInfo &ci) __NE___
 	{
-		return _CreateResource<MeshPipelineID>( "failed when creating mesh pipeline", *this, ci );
+		return _CreateResource<MeshPipelineID>( ERR_MSG( "failed when creating mesh pipeline", ci.specCI.dbgName ), *this, ci );
 	}
 
 	Strong<RayTracingPipelineID>  ResourceManager::CreatePipeline (const RayTracingPipeline_t::CreateInfo &ci) __NE___
 	{
-		return _CreateResource<RayTracingPipelineID>( "failed when creating ray tracing pipeline", *this, ci );
+		return _CreateResource<RayTracingPipelineID>( ERR_MSG( "failed when creating ray tracing pipeline", ci.specCI.dbgName ), *this, ci );
 	}
 
 	Strong<TilePipelineID>  ResourceManager::CreatePipeline (const TilePipeline_t::CreateInfo &ci) __NE___
 	{
-		return _CreateResource<TilePipelineID>( "failed when creating tile pipeline", *this, ci );
+		return _CreateResource<TilePipelineID>( ERR_MSG( "failed when creating tile pipeline", ci.specCI.dbgName ), *this, ci );
 	}
 
 /*
@@ -1072,7 +1099,7 @@ namespace {
 */
 	Strong<RTShaderBindingID>  ResourceManager::CreateRTShaderBinding (const ShaderBindingTable_t::CreateInfo &ci) __NE___
 	{
-		return _CreateResource<RTShaderBindingID>( "failed when creating RT shader binding table", *this, ci );
+		return _CreateResource<RTShaderBindingID>( ERR_MSG( "failed when creating RT shader binding table", ci.dbgName ), *this, ci );
 	}
 //-----------------------------------------------------------------------------
 

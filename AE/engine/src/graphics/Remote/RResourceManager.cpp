@@ -51,7 +51,7 @@ namespace AE::Graphics
 		CHECK_ERR( ppln != null );
 
 		auto*	ppln_layout = GetResource( ppln->LayoutId() );
-		CHECK_ERR( ppln_layout );
+		CHECK_ERR( ppln_layout != null );
 
 		DescriptorSetLayoutID	layoutId;
 		CHECK_ERR( ppln_layout->GetDescriptorSetLayout( dsName, OUT layoutId, OUT binding ));
@@ -105,7 +105,7 @@ namespace AE::Graphics
 
 		for (; created and (i < count); ++i)
 		{
-			dst[i]  = _CreateResource<DescriptorSetID>( "failed when creating descriptor set", *this, res->ds[i], layoutId, allocator, dbgName );
+			dst[i]  = _CreateResource<DescriptorSetID>( ERR_MSG( "failed when creating descriptor set", dbgName ), *this, res->ds[i], layoutId, allocator, dbgName );
 			created = (dst[i].IsValid());
 		}
 

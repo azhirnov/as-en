@@ -210,7 +210,7 @@ namespace _hidden_
 
 
 		// for structured bindings
-	#if 1
+	  #if 1
 		template <usize I>
 		ND_ constexpr decltype(auto)	get ()			r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
@@ -219,7 +219,7 @@ namespace _hidden_
 
 		template <usize I>
 		ND_ constexpr decltype(auto)	get ()			rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
-	#endif
+	  #endif
 
 
 		template <usize I>
@@ -278,8 +278,8 @@ namespace _hidden_
 */
 	namespace _hidden_
 	{
-		template <typename T>			struct _IsTuple						{ static constexpr bool  value = false; };
-		template <typename ...Types>	struct _IsTuple< Tuple<Types...> >	{ static constexpr bool  value = true; };
+		template <typename T>			struct _IsTuple						: CT_False	{};
+		template <typename ...Types>	struct _IsTuple< Tuple<Types...> >	: CT_True	{};
 	}
 
 	template <typename T>

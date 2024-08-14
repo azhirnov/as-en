@@ -130,7 +130,7 @@ namespace {
 */
 	void JavaEnv::ThrowException (NtStringView msg) C_NE___
 	{
-		CHECK_ERRV( _env );
+		CHECK_ERRV( _env != null );
 
 		JavaClass	jc{ "java/lang/Error" };
 		_env->ThrowNew( jc.Get(), msg.c_str() );
@@ -143,7 +143,7 @@ namespace {
 */
 	void JavaEnv::ExceptionClear () C_NE___
 	{
-		CHECK_ERRV( _env );
+		CHECK_ERRV( _env != null );
 
 		_env->ExceptionClear();
 	}
@@ -155,8 +155,7 @@ namespace {
 */
 	bool JavaEnv::HasException () C_NE___
 	{
-		CHECK_ERR( _env, false );
-
+		CHECK_ERR( _env != null );
 		return _env->ExceptionCheck() == JNI_TRUE;
 	}
 

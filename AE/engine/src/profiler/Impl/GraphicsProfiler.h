@@ -3,15 +3,18 @@
 #pragma once
 
 #include "profiler/Impl/ProfilerUtils.h"
+#include "profiler/Utils/PowerVRProfiler.h"
 
 namespace AE::Profiler
 {
 	using AE::Graphics::EQueueType;
 
-#ifdef AE_ENABLE_METAL
+	class PowerVRProfiler;
+
+  #ifdef AE_ENABLE_METAL
 	using AE::Graphics::MetalSampleBufferAttachments;
 	using AE::Graphics::MetalCommandBuffer;
-#endif
+  #endif
 
 
 
@@ -22,6 +25,9 @@ namespace AE::Profiler
 	class GraphicsProfiler final : public Graphics::IGraphicsProfiler, public ProfilerUtils
 	{
 	// types
+	public:
+		using OnNextFrame_t		= Function< void() >;
+
 	private:
 		using BatchNameMap_t	= FlatHashMap< const void*, String >;
 		using PipelineStatistic	= Graphics::IQueryManager::GraphicsPipelineStatistic;
@@ -103,7 +109,7 @@ namespace AE::Profiler
 			EContextType	ctxType		= Default;
 			Array<Pass>		passes;
 		};
-		using ActiveCmdbufs_t = FlatHashMap< BatchCmdbufKey, ContextInfo, DefaultHasher_CalcHash<BatchCmdbufKey> >;
+		using ActiveCmdbufs_t	= FlatHashMap< BatchCmdbufKey, ContextInfo, DefaultHasher_CalcHash<BatchCmdbufKey> >;
 
 
 		struct PerFrameData
@@ -115,39 +121,43 @@ namespace AE::Profiler
 
 			void  Clear ();
 		};
-		using PerFrame_t = StaticArray< PerFrameData, Graphics::GraphicsConfig::MaxFrames+1 >;
+		using PerFrame_t		= StaticArray< PerFrameData, Graphics::GraphicsConfig::MaxFrames+1 >;
 
-		using MemoryUsage_t = Optional< Graphics::DeviceMemoryUsage >;
+		using MemoryUsage_t		= Optional< Graphics::DeviceMemoryUsage >;
+		using TimeScopeArr_t	= PowerVRProfiler::TimeScopeArr_t;
 
 
 	// variables
 	private:
 		struct {
-			Atomic<uint>		frameCount		{0};
-			FAtomic<double>		accumframeTime	{0.0};	// nanoseconds
-			float				result			= 0.f;	// fps
-			nanosecondsf		dt				{0.f};
-			nanosecondsf		ext				{0.f};	// external time per frame, may be vsync, video dec/enc or other apps
-		}					_fps;
+			Atomic<uint>			frameCount		{0};
+			FAtomic<double>			accumFrameTime	{0.0};	// nanoseconds
+			float					result			= 0.f;	// fps
+			nanosecondsf			dt				{0.f};
+			nanosecondsf			ext				{0.f};	// external time per frame, may be vsync, video dec/enc or other apps
+		}						_fps;
 
 		struct {
-			nanosecondsd		min		{0.0};
-			nanosecondsd		max		{0.0};
-		}					_gpuTime;
+			nanosecondsd			min		{0.0};
+			nanosecondsd			max		{0.0};
+		}						_gpuTime;
 
 		struct {
-			AtomicByte<Bytes>	accumWrite;
-			AtomicByte<Bytes>	accumRead;
-			Bytes				avgWrite;
-			Bytes				avgRead;
-		}					_memTraffic;
+			AtomicByte<Bytes>		accumWrite;
+			AtomicByte<Bytes>		accumRead;
+			Bytes					avgWrite;
+			Bytes					avgRead;
+		}						_memTraffic;
 
-		MemoryUsage_t		_memUsage;
+		MemoryUsage_t			_memUsage;
 
-		PerFrame_t			_perFrame;
+		PerFrame_t				_perFrame;
 
-		uint				_writeIndex	: 8;
-		uint				_readIndex	: 8;
+		uint					_writeIndex	: 8;
+		uint					_readIndex	: 8;
+
+		Ptr<PowerVRProfiler>	_pvrProfiler;
+		TimeScopeArr_t			_pvrTimings;
 
 	  #ifdef AE_ENABLE_IMGUI
 		ImColumnHistoryDiagram	_imHistory;
@@ -156,7 +166,7 @@ namespace AE::Profiler
 
 	// methods
 	public:
-		explicit GraphicsProfiler (TimePoint_t startTime)																		__NE___;
+		GraphicsProfiler (TimePoint_t startTime, PowerVRProfiler* pvrProfiler)													__NE___;
 
 		void  DrawImGUI ();
 		void  Draw (Canvas &canvas);
@@ -202,6 +212,7 @@ namespace AE::Profiler
 
 	private:
 		void  _ReadResults ();
+		void  _ReadResultsPVR ();
 	};
 
 

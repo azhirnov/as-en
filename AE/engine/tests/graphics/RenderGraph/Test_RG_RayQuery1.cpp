@@ -63,9 +63,6 @@ namespace
 
 			typename CtxTypes::Transfer	copy_ctx{ *this };
 
-			copy_ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
-
 			RTSceneBuild	scene_build{ 1u, Default };
 			scene_build.SetScratchBuffer( t.scratch );
 			scene_build.SetInstanceData( t.instances );
@@ -172,7 +169,7 @@ namespace
 			Ctx		ctx{ *this };
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then( [p = &t] (const ImageMemView &view)
+						.Then(	[p = &t] (const ImageMemView &view)
 								{
 									p->isOK = p->imgCmp->Compare( view );
 								})};
@@ -180,8 +177,6 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 

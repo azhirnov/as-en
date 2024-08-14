@@ -8,6 +8,7 @@
 # include "profiler/ImGui/ImColumnHistoryDiagram.h"
 # include "profiler/ImGui/ImTaskRangeHorDiagram.h"
 # include "profiler/ImGui/ImLineGraph.h"
+# include "profiler/ImGui/ImLineGraphTable.h"
 #endif
 
 namespace AE::Profiler
@@ -22,6 +23,7 @@ namespace AE::Profiler
 
 	using AE::Threading::Atomic;
 	using AE::Threading::FAtomic;
+	using AE::Threading::Synchronized;
 
 	using AE::Networking::EChannel;
 	using AE::Networking::CSMessageGroupID;

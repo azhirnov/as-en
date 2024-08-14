@@ -65,9 +65,6 @@ namespace
 
 			typename CtxTypes::Transfer	copy_ctx{ *this };
 
-			copy_ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
-
 			RTSceneBuild	scene_build{ 1u, Default };
 			scene_build.SetScratchBuffer( t.scratch );
 			scene_build.SetInstanceData( t.instances );

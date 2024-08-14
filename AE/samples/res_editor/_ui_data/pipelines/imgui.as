@@ -11,7 +11,7 @@ void  CreateRenderPass (EPixelFormat fmt, string name)
 	{
 		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
 		rt.format		= fmt;
-		rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
+		rt.Usage( pass, EAttachment::Color, ShaderIO( "out_Color", EShaderIO::AnyColor ));
 	}
 
 	// specialization
@@ -29,7 +29,9 @@ void  CreateRenderPass (EPixelFormat fmt, string name)
 void  CreateRenderTech (array<string> &out passNames)
 {
 	CreateRenderPass( EPixelFormat::BGRA8_UNorm,	"UI.RPass.BGRA8" );		passNames.push_back( "BGRA8" );
+	CreateRenderPass( EPixelFormat::sBGR8_A8,		"UI.RPass.sBGR8_A8" );	passNames.push_back( "sBGR8_A8" );
 	CreateRenderPass( EPixelFormat::RGBA8_UNorm,	"UI.RPass.RGBA8" );		passNames.push_back( "RGBA8" );
+	CreateRenderPass( EPixelFormat::sRGB8_A8,		"UI.RPass.sRGB8_A8" );	passNames.push_back( "sRGB8_A8" );
 	CreateRenderPass( EPixelFormat::RGB10_A2_UNorm,	"UI.RPass.RGB10_A2" );	passNames.push_back( "RGB10_A2" );
 	CreateRenderPass( EPixelFormat::RGBA16F,		"UI.RPass.RGBA16F" );	passNames.push_back( "RGBA16F" );
 
@@ -140,6 +142,6 @@ void ASmain ()
 {
 	array<string>	pass_names;
 
-	CreateRenderTech( pass_names );
+	CreateRenderTech( OUT pass_names );
 	CreatePipeline( pass_names );
 }

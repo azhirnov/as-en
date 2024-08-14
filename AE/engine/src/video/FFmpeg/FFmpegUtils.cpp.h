@@ -480,7 +480,7 @@ namespace AE::Video
 //-----------------------------------------------------------------------------
 
 
-
+# ifdef AE_ENABLE_LOGS
 namespace AE::Base
 {
 /*
@@ -509,14 +509,6 @@ namespace AE::Base
 	ToString (AVPixelFormat)
 =================================================
 */
-#ifdef AE_CFG_RELEASE
-	ND_ inline StringView  ToString (AVPixelFormat value) __NE___
-	{
-		return ToString( Video::EnumCast( value ));
-	}
-
-#else
-
 	ND_ inline StringView  ToString (AVPixelFormat value) __NE___
 	{
 		switch_enum( value )
@@ -755,7 +747,6 @@ namespace AE::Base
 		switch_end
 		return "Unknown";
 	}
-#endif
 
 /*
 =================================================
@@ -946,5 +937,6 @@ namespace AE::Base
 
 
 } // AE::Base
+# endif // AE_ENABLE_LOGS
 
 #endif // AE_ENABLE_FFMPEG

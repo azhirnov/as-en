@@ -220,85 +220,83 @@ namespace AE::Graphics
 	#define AE_GRAPHICS_DEVICE_LIST( _visit_ )\
 		/*---- Adreno ----*/\
 		_visit_( Adreno_500 )			\
-		_visit_( Adreno_600 )			/* 605, 608, 610, 612, 615, 616, 618, 619L, 620		with dual channel LPDDR4							*/\
-		_visit_( Adreno_600_QC4 )		/* 630, 640, 643, 675								with quad channel LPDDR4							*/\
-		_visit_( Adreno_600_OC4 )		/* 680, 685, 690									with octa channel LPDDR4X							*/\
-		_visit_( Adreno_600_QC5 )		/* 643, 650, 660									with quad channel LPDDR5							*/\
-		_visit_( Adreno_700_SC3 )		/* 702												with single channel LPDDR3							*/\
-		_visit_( Adreno_700_DC4_SC5 )	/* 725, 730, 740									with dual channel LPDDR4 or single channel LPDDR5	*/\
-		_visit_( Adreno_700_QC5X )		/* 740, 750											with quad channel LPDDR5X							*/\
+		_visit_( Adreno_600 )			/* 													- VRS		*/\
+		_visit_( Adreno_700 )			/* 																*/\
 		\
 		/*---- AMD ----*/\
-		_visit_( AMD_GCN1 )				/* R5-R9, RX 520, 610, HD 7970							*/\
-		_visit_( AMD_GCN2 )				/* PS4, XBox One X										*/\
-		_visit_( AMD_GCN3 )				/* RX 530												*/\
-		_visit_( AMD_GCN4 )				/* PS4 Pro, RX 540-590, RX 620-640						*/\
-		_visit_( AMD_GCN5 )				/* RX Vega, Radeon VII									*/\
-		_visit_( AMD_GCN5_APU )			/* Ryzen 2xxx - 5xxx APU, Ryzen 7x30 APU				*/\
-		_visit_( AMD_RDNA1 )			/* RX 5300 - 5700										*/\
-		_visit_( AMD_RDNA2 )			/* N6: RX 6400 - 6500, N7: RX 6600 - 6900				*/\
-		_visit_( AMD_RDNA2_APU )		/* PS5, SteamDeck, Ryzen 6xxx / 7x20 / 7x35 / 7x45 APU 	*/\
-		_visit_( AMD_RDNA3 )			/* N5/N6: 7600 - 7900									*/\
-		_visit_( AMD_RDNA3_APU )		/* Ryzen 7x40 APU, Z1, Radeon 7xxM						*/\
+		_visit_( AMD_GCN1 )				/* R5-R9, RX 520, 610, HD 7970									*/\
+		_visit_( AMD_GCN2 )				/* PS4, XBox One X												*/\
+		_visit_( AMD_GCN3 )				/* RX 530														*/\
+		_visit_( AMD_GCN4 )				/* PS4 Pro, RX 540-590, RX 620-640								*/\
+		_visit_( AMD_GCN5 )				/* RX Vega, Radeon VII											*/\
+		_visit_( AMD_GCN5_APU )			/* Ryzen 2xxx - 5xxx APU, Ryzen 7x30 APU						*/\
+		_visit_( AMD_RDNA1 )			/* RX 5300 - 5700												*/\
+		_visit_( AMD_RDNA2 )			/* N6: RX 6400 - 6500, N7: RX 6600 - 6900		- RT, MS, VRS	*/\
+		_visit_( AMD_RDNA2_APU )		/* PS5, SteamDeck, Ryzen 6xxx / 7x20 / 7x35 / 7x45 APU 			*/\
+		_visit_( AMD_RDNA3 )			/* N5/N6: 7600 - 7900, Radeon 7xxM								*/\
+		_visit_( AMD_RDNA3_APU )		/* Ryzen 7x40 APU, Z1											*/\
+		_visit_( AMD_RDNA4 )			/*																*/\
 		\
 		/*---- Apple ----*/\
-		_visit_( Apple_A8 )				/*											- Apple2 */\
-		_visit_( Apple_A9_A10 )			/*					(Hurricane / Zephyr)	- Apple3 */\
-		_visit_( Apple_A11 )			/*					(Monsoon / Mistral)		- Apple4 */\
-		_visit_( Apple_A12 )			/* A12X, A12Z		(Vortex / Tempest)		- Apple5 */\
-		_visit_( Apple_A13 )			/*					(Lightning / Thunder)	- Apple6 */\
-		_visit_( Apple_A14_M1 )			/* M1 Pro, M1 Max	(Firestorm / Icestorm)	- Apple7 */\
-		_visit_( Apple_A15_M2 )			/* M2 Pro, M2 Max	(Avalanche / Blizzard)	- Apple8 */\
-		_visit_( Apple_A16 )			/*					(Everest / Sawtooth)	- Apple8 */\
-		_visit_( Apple_A17_M3 )			/* A17, M3...		( )						- Apple9 */\
+		_visit_( Apple_A8 )				/*										- Apple2				*/\
+		_visit_( Apple_A9_A10 )			/*				(Hurricane / Zephyr)	- Apple3				*/\
+		_visit_( Apple_A11 )			/*				(Monsoon / Mistral)		- Apple4	- TS		*/\
+		_visit_( Apple_A12 )			/* A12X, A12Z	(Vortex / Tempest)		- Apple5				*/\
+		_visit_( Apple_A13 )			/*				(Lightning / Thunder)	- Apple6	- RT		*/\
+		_visit_( Apple_A14_M1 )			/* all M1		(Firestorm / Icestorm)	- Apple7	- MS		*/\
+		_visit_( Apple_A15_M2 )			/* all M2		(Avalanche / Blizzard)	- Apple8				*/\
+		_visit_( Apple_A16 )			/*				(Everest / Sawtooth)	- Apple8				*/\
+		_visit_( Apple_A17_M3 )			/* A17, M3, M4	( )						- Apple9	- HwRT		*/\
 		\
 		/*---- Mali ----*/\
-		_visit_( Mali_Midgard_Gen2 )	/* T622, T624, T628, T678		*/\
-		_visit_( Mali_Midgard_Gen3 )	/* T720, T760					*/\
-		_visit_( Mali_Midgard_Gen4 )	/* T820 ... T880	- vector	*/\
-		_visit_( Mali_Bifrost_Gen1 )	/* G31, G51, G71	- scalar	*/\
-		_visit_( Mali_Bifrost_Gen2 )	/* G52, G72						*/\
-		_visit_( Mali_Bifrost_Gen3 )	/* G76							*/\
-		_visit_( Mali_Valhall_Gen1 )	/* G57, G77						*/\
-		_visit_( Mali_Valhall_Gen2 )	/* G68, G78						*/\
-		_visit_( Mali_Valhall_Gen3 )	/* G310, G510, G610, G710		*/\
-		_visit_( Mali_Valhall_Gen4 )	/* G615, G715		- VRS, HwRT	*/\
-		_visit_( Mali_Valhall_Gen5 )	/* G620, G720		- DVS		*/\
+		_visit_( Mali_Midgard_Gen2 )	/* T622, T624, T628, T678										*/\
+		_visit_( Mali_Midgard_Gen3 )	/* T720, T760													*/\
+		_visit_( Mali_Midgard_Gen4 )	/* T820 ... T880						- vector				*/\
+		_visit_( Mali_Bifrost_Gen1 )	/* G31, G51, G71						- scalar, warp 4		*/\
+		_visit_( Mali_Bifrost_Gen2 )	/* G52, G72														*/\
+		_visit_( Mali_Bifrost_Gen3 )	/* G76									- warp 8				*/\
+		_visit_( Mali_Valhall_Gen1 )	/* G57, G77								- warp 16				*/\
+		_visit_( Mali_Valhall_Gen2 )	/* G68, G78								- 2 queues				*/\
+		_visit_( Mali_Valhall_Gen3 )	/* G310, G510, G610, G710				- 3 queues				*/\
+		_visit_( Mali_Valhall_Gen4 )	/* G615, G715							- VRS, RT				*/\
+		_visit_( Mali_5thGen_Gen1 )		/* G620, G720							- DVS					*/\
+		_visit_( Mali_5thGen_Gen2 )		/* G625, G725													*/\
 		\
 		/*---- NVidia ----*/\
-		_visit_( NV_Maxwell )			/* GTX 9xx, Titan X, Quadro Mxxxx						*/\
-		_visit_( NV_Maxwell_Tegra )		/* Tegra X1, Nintendo Switch, Shield TV					*/\
-		_visit_( NV_Pascal )			/* GTX 10xx, Titan X, Titan Xp, Quadro Pxxx				*/\
-		_visit_( NV_Pascal_MX )			/* MX 1xx, GTX 10xx Max-Q								*/\
-		_visit_( NV_Pascal_Tegra )		/* Tegra X2												*/\
-		_visit_( NV_Volta )				/* Volta, Xavier, Titan V								*/\
-		_visit_( NV_Turing_16 )			/* GTX 16xx, 16xx Max-Q, Quadro Txxx, Txxx				*/\
-		_visit_( NV_Turing )			/* 20xx, Quadro RTX	x000								*/\
-		_visit_( NV_Turing_MX )			/* MX230, MX250, MX330, MX350, MX450, MX550, MX570		*/\
-		_visit_( NV_Ampere )			/* RTX 30xx, RTX Ax000									*/\
-		_visit_( NV_Ampere_Orin )		/* Orin													*/\
-		_visit_( NV_Ada )				/* RTX 40xx												*/\
+		_visit_( NV_Maxwell )			/* GTX 9xx, Titan X, Quadro Mxxxx, MX130						*/\
+		_visit_( NV_Maxwell_Tegra )		/* Tegra X1, Nintendo Switch, Shield TV							*/\
+		_visit_( NV_Pascal )			/* GTX 10xx, Titan X, Titan Xp, Quadro Pxxx						*/\
+		_visit_( NV_Pascal_MX )			/* MX 150, GTX 10xx Max-Q, MX2xx, MX3xx							*/\
+		_visit_( NV_Pascal_Tegra )		/* Tegra X2														*/\
+		_visit_( NV_Volta )				/* Volta, Xavier, Titan V										*/\
+		_visit_( NV_Turing_16 )			/* GTX 16xx, 16xx Max-Q, Quadro Txxx			- MS, VRS		*/\
+		_visit_( NV_Turing )			/* 20xx, Quadro RTX x000						- RT, MS		*/\
+		_visit_( NV_Turing_MX )			/* MX4xx, MX550													*/\
+		_visit_( NV_Ampere )			/* RTX 30xx, RTX Ax000, MX570									*/\
+		_visit_( NV_Ampere_Orin )		/* Orin															*/\
+		_visit_( NV_Ada )				/* RTX 40xx														*/\
+		_visit_( NV_Blackwell )			/* RTX 50xx														*/\
 		\
 		/*---- Intel ----*/\
-		_visit_( Intel_Gen9_HD500 )		/* HD 510..550								- Skylake	*/\
-		_visit_( Intel_Gen9_HD600 )		/* HD 610..650								- Kaby Lake	*/\
-		_visit_( Intel_Gen9_UHD600 )	/* UHD 610..650											*/\
-		_visit_( Intel_Gen11 )			/* Iris Plus, Core 10xxx								*/\
-		_visit_( Intel_Gen12 )			/* UHD Graphics 7xx, Iris Xe, Core 11xxx				*/\
-		_visit_( Intel_Gen12_7 )		/* Arc 3/5/7											*/\
+		_visit_( Intel_Gen7 )			/* 																*/\
+		_visit_( Intel_Gen8 )			/* 																*/\
+		_visit_( Intel_Gen9 )			/* HD 510..550, HD 610..650, UHD 610..650						*/\
+		_visit_( Intel_Gen11 )			/* Iris Plus, Core 10xxx		(Ice Lake)						*/\
+		_visit_( Intel_Gen12 )			/* UHD Graphics 7xx, Iris Xe, Core 11xxx						*/\
+		_visit_( Intel_Gen12_7 )		/* Arc 3/5/7									- RT, MS, VRS	*/\
 		\
 		/*---- PowerVR ----*/\
-		_visit_( PowerVR_Series8XE )	/* GE8100, GE8200, GE8300, GE8310, GE8430			*/\
-		_visit_( PowerVR_Series8XEP )	/* GE8320, GE8325, GE8340							*/\
-		_visit_( PowerVR_Series8XT )	/* GT8525, GT8540									*/\
-		_visit_( PowerVR_Series9XE )	/* GE9000, GE9100, GE9115, GE9210, GE9215, GE9420	*/\
-		_visit_( PowerVR_BSeries )		/* B-Series	BXE										*/\
+		_visit_( PowerVR_Series8 )		/* GE8xxx														*/\
+		_visit_( PowerVR_Series9 )		/* GE9xxx														*/\
+		_visit_( PowerVR_SeriesA )		/* AXE, AXM														*/\
+		_visit_( PowerVR_SeriesB )		/* BXE, BXM														*/\
 		\
 		/*---- Other ----*/\
-		_visit_( VeriSilicon )			/*  */\
-		/*_visit_( V3D_4 )				/ * Raspberry Pi 4 */\
-		/*_visit_( V3D_6 )				/ * Raspberry Pi 5 */\
-		_visit_( SwiftShader )			/* emulation */\
+		_visit_( VeriSilicon )			/*																*/\
+		/*_visit_( V3D_4 )				/ * Raspberry Pi 4												*/\
+		/*_visit_( V3D_6 )				/ * Raspberry Pi 5												*/\
+		_visit_( SwiftShader )			/* emulation													*/\
+		/*_visit_( Huawei_Maleoon910 )	/ *												- TS, VRS		*/\
 
 		#define AE_GRAPHICS_DEVICE_VISIT( _name_ )				_name_,
 		AE_GRAPHICS_DEVICE_LIST( AE_GRAPHICS_DEVICE_VISIT )
@@ -308,25 +306,25 @@ namespace AE::Graphics
 		Unknown			= _Count,
 
 		_Adreno_Begin	= Adreno_500,
-		_Adreno_End		= Adreno_700_QC5X,
+		_Adreno_End		= Adreno_700,
 
 		_AMD_Begin		= AMD_GCN1,
-		_AMD_End		= AMD_RDNA3_APU,
+		_AMD_End		= AMD_RDNA4,
 
 		_Apple_Begin	= Apple_A8,
 		_Apple_End		= Apple_A17_M3,
 
 		_Mali_Begin		= Mali_Midgard_Gen2,
-		_Mali_End		= Mali_Valhall_Gen5,
+		_Mali_End		= Mali_5thGen_Gen2,
 
 		_NV_Begin		= NV_Maxwell,
-		_NV_End			= NV_Ada,
+		_NV_End			= NV_Blackwell,
 
-		_Intel_Begin	= Intel_Gen9_HD500,
+		_Intel_Begin	= Intel_Gen7,
 		_Intel_End		= Intel_Gen12_7,
 
-		_PowerVR_Begin	= PowerVR_Series8XE,
-		_PowerVR_End	= PowerVR_BSeries,
+		_PowerVR_Begin	= PowerVR_Series8,
+		_PowerVR_End	= PowerVR_SeriesB,
 
 		_Other_Begin	= VeriSilicon,
 	};

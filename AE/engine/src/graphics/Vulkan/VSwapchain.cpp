@@ -372,7 +372,7 @@ namespace AE::Graphics
 			surface_info.hwnd		= BitCast< HWND >(window.hWnd);
 
 			auto  fpCreateWin32SurfaceKHR = BitCast<PFN_vkCreateWin32SurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateWin32SurfaceKHR" ));
-			CHECK_ERR( fpCreateWin32SurfaceKHR );
+			CHECK_ERR( fpCreateWin32SurfaceKHR != null );
 
 			VK_CHECK_ERR( fpCreateWin32SurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
 			AE_LOG_DBG( "Created WinAPI Vulkan surface" );
@@ -386,7 +386,7 @@ namespace AE::Graphics
 			surface_info.window	= BitCast< ANativeWindow *>( window.nativeWindow );
 
 			auto  fpCreateAndroidSurfaceKHR = BitCast<PFN_vkCreateAndroidSurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateAndroidSurfaceKHR" ));
-			CHECK_ERR( fpCreateAndroidSurfaceKHR );
+			CHECK_ERR( fpCreateAndroidSurfaceKHR != null );
 
 			VK_CHECK_ERR( fpCreateAndroidSurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
 			AE_LOG_DBG( "Created Android Vulkan surface" );
@@ -399,7 +399,7 @@ namespace AE::Graphics
 			surface_info.window	= BitCast< ::Window >( window.x11Window );
 
 			auto  fpCreateXlibSurfaceKHR = BitCast<PFN_vkCreateXlibSurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateXlibSurfaceKHR" ));
-			CHECK_ERR( fpCreateXlibSurfaceKHR );
+			CHECK_ERR( fpCreateXlibSurfaceKHR != null );
 
 			VK_CHECK_ERR( fpCreateXlibSurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
 			AE_LOG_DBG( "Created X11 Vulkan surface" );
@@ -431,7 +431,7 @@ namespace AE::Graphics
 				surface_info.pView	= window.nsView.Ptr();
 
 				auto  fpCreateMacOSSurfaceMVK = BitCast<PFN_vkCreateMacOSSurfaceMVK>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateMacOSSurfaceMVK" ));
-				CHECK_ERR( fpCreateMacOSSurfaceMVK );
+				CHECK_ERR( fpCreateMacOSSurfaceMVK != null );
 
 				VK_CHECK_ERR( fpCreateMacOSSurfaceMVK( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
 				AE_LOG_DBG( "Created MacOS MoltenVK surface" );
@@ -444,7 +444,7 @@ namespace AE::Graphics
 				surface_info.pView	= window.metalLayer.Ptr();
 
 				auto  fpCreateIOSSurfaceMVK = BitCast<PFN_vkCreateIOSSurfaceMVK>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateIOSSurfaceMVK" ));
-				CHECK_ERR( fpCreateIOSSurfaceMVK );
+				CHECK_ERR( fpCreateIOSSurfaceMVK != null );
 
 				VK_CHECK_ERR( fpCreateIOSSurfaceMVK( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
 				AE_LOG_DBG( "Created iOS MoltenVK surface" );
@@ -810,7 +810,7 @@ namespace AE::Graphics
 		desc.options		= options;
 		desc.format			= info.imageFormat;
 		desc.imageType		= VK_IMAGE_TYPE_2D;
-		desc.maxLevels		= 1;
+		desc.mipLevels		= 1;
 		desc.samples		= VK_SAMPLE_COUNT_1_BIT;
 		desc.usage			= VkImageUsageFlagBits(info.imageUsage);
 		desc.memFlags		= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;

@@ -351,7 +351,7 @@ namespace AE::Graphics
 		range.baseMipLevel	= 0_mipmap;
 		range.baseLayer		= 0_layer;
 		range.layerCount	= ushort(desc.arrayLayers.Get());
-		range.mipmapCount	= ushort(desc.maxLevel.Get());
+		range.mipmapCount	= ushort(desc.mipLevels.Get());
 
 		VALIDATE_GCTX( GenerateMipmaps( desc, ArrayView<ImageSubresourceRange>{ &range, 1 }));
 		GenerateMipmaps( img.Handle(), state, ArrayView<ImageSubresourceRange>{ &range, 1 });

@@ -8,16 +8,16 @@
 
 namespace AE::Base
 {
-	template <> struct TTriviallySerializable< Graphics::ImageSubresourceRange	> { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::ImageSubresourceLayers	> { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::BufferCopy				> { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::ImageCopy				> { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::BufferImageCopy		> { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::BufferImageCopy2		> { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::ImageBlit				> { static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::ImageResolve			> { static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< Graphics::ImageSubresourceRange	> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::ImageSubresourceLayers	> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::BufferCopy				> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::ImageCopy				> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::BufferImageCopy		> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::BufferImageCopy2		> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::ImageBlit				> : CT_True {};
+	template <> struct TTriviallySerializable< Graphics::ImageResolve			> : CT_True {};
 
-	template <> struct TTriviallyDestructible< RemoteGraphics::Msg::CmdBuf_Bake::Graphics_BeginRenderPass::SerAttachment > { static constexpr bool  value = true; };
+	template <> struct TTriviallyDestructible< RemoteGraphics::Msg::CmdBuf_Bake::Graphics_BeginRenderPass::SerAttachment > : CT_True {};
 }
 
 namespace AE::RemoteGraphics::Msg
@@ -38,9 +38,9 @@ namespace AE::RemoteGraphics::Msg
 		_desc_.colorFormat, _desc_.colorSpace, _desc_.presentMode, _desc_.minImageCount, _desc_.usage, _desc_.options
 
   #ifdef AE_ENABLE_REMOTE_GRAPHICS
-	StaticAssert64( sizeof(GraphicsCreateInfo) == 200 );
-  #else
 	StaticAssert64( sizeof(GraphicsCreateInfo) == 168 );
+  #else
+	StaticAssert64( sizeof(GraphicsCreateInfo) == 136 );
   #endif
 	#define Ser_GraphicsCreateInfo( _desc_ )\
 		_desc_.maxFrames, \
@@ -63,7 +63,7 @@ namespace AE::RemoteGraphics::Msg
 		engineVersion, name, fs, props,
 		resFlags.bufferUsage, resFlags.bufferOptions, resFlags.imageUsage,
 		resFlags.imageOptions, resFlags.descrTypes, resFlags.memTypes,
-		queues, memInfo, features, api, cpuArch, os,
+		queues, memInfo, features, api, cpuArch, os, adapterType,
 		checkConstantLimitsOK, checkExtensionsOK, initialized, underDebugger
 	)
 
@@ -122,7 +122,7 @@ namespace AE::RemoteGraphics::Msg
 
 	StaticAssert64( sizeof(ImageDesc) == 48 );
 	#define Ser_ImageDesc( _desc_ )\
-		_desc_.dimension, _desc_.arrayLayers, _desc_.maxLevel, _desc_.imageDim, _desc_.options, \
+		_desc_.dimension, _desc_.arrayLayers, _desc_.mipLevels, _desc_.imageDim, _desc_.options, \
 		_desc_.usage, _desc_.format, _desc_.samples, _desc_.memType, _desc_.queues, _desc_.viewFormats
 
 	StaticAssert64( sizeof(ImageViewDesc) == 20 );
@@ -344,20 +344,31 @@ namespace AE::RemoteGraphics::Msg
 
 
 	DECL_SERIALIZER( ProfArm_Initialize,				required )
-	DECL_SERIALIZER( ProfArm_Initialize_Response,		ok, supported, enabled )
+	DECL_SERIALIZER( ProfArm_Initialize_Response,		ok, enabled )
 	DECL_EMPTY_SERIALIZER( ProfArm_Sample				)
 	DECL_SERIALIZER( ProfArm_Sample_Response,			counters )
 
+	DECL_SERIALIZER( ProfMali_Initialize,				required )
+	DECL_SERIALIZER( ProfMali_Initialize_Response,		ok, enabled, info )
+	DECL_EMPTY_SERIALIZER( ProfMali_Sample				)
+	DECL_SERIALIZER( ProfMali_Sample_Response,			counters )
+
 	DECL_SERIALIZER( ProfAdreno_Initialize,				required )
-	DECL_SERIALIZER( ProfAdreno_Initialize_Response,	ok, enabled )
+	DECL_SERIALIZER( ProfAdreno_Initialize_Response,	ok, enabled, info )
 	DECL_EMPTY_SERIALIZER( ProfAdreno_Sample			)
 	DECL_SERIALIZER( ProfAdreno_Sample_Response,		counters )
 
 	DECL_SERIALIZER( ProfPVR_Initialize,				required )
-	DECL_SERIALIZER( ProfPVR_Initialize_Response,		ok, supported, enabled )
+	DECL_SERIALIZER( ProfPVR_Initialize_Response,		ok, enabled )
 	DECL_EMPTY_SERIALIZER( ProfPVR_Tick					)
+	DECL_SERIALIZER( ProfPVR_Tick_Response,				timings )
 	DECL_EMPTY_SERIALIZER( ProfPVR_Sample				)
 	DECL_SERIALIZER( ProfPVR_Sample_Response,			counters )
+
+	DECL_SERIALIZER( ProfNVidia_Initialize,				required )
+	DECL_SERIALIZER( ProfNVidia_Initialize_Response,	ok, enabled )
+	DECL_EMPTY_SERIALIZER( ProfNVidia_Sample			)
+	DECL_SERIALIZER( ProfNVidia_Sample_Response,		counters )
 //-----------------------------------------------------------------------------
 
 
@@ -383,12 +394,12 @@ namespace AE::RemoteGraphics::Msg
 		_desc_.dynamicWrite, _desc_.dynamicRead, _desc_.staticWrite, _desc_.staticRead
 
 
-	DECL_SERIALIZER( SBM_GetBufferRanges,					reqSize, blockSize, memOffsetAlign, frameId, heap, queue, upload )
+	DECL_SERIALIZER( SBM_GetBufferRanges,					reqSize, blockSize, memOffsetAlign, frameId, heap, upload )
 	DECL_SERIALIZER( SBM_GetBufferRanges_Response,			ranges )
 	DECL_SERIALIZER( SBM_GetBufferRanges_Response::Result,	buffer, bufferOffset, size, mapped )
 
-	DECL_SERIALIZER( SBM_GetImageRanges,					Ser_UploadImageDesc( uploadDesc ), Ser_ImageDesc( imageDesc ), imageGranularity, frameId, queue, upload )
-	DECL_SERIALIZER( SBM_GetImageRanges2,					Ser_UploadImageDesc( uploadDesc ), Ser_VideoImageDesc( videoDesc ), imageGranularity, frameId, queue, upload )
+	DECL_SERIALIZER( SBM_GetImageRanges,					Ser_UploadImageDesc( uploadDesc ), Ser_ImageDesc( imageDesc ), imageGranularity, frameId, upload )
+	DECL_SERIALIZER( SBM_GetImageRanges2,					Ser_UploadImageDesc( uploadDesc ), Ser_VideoImageDesc( videoDesc ), imageGranularity, frameId, upload )
 	DECL_SERIALIZER( SBM_GetImageRanges_Response,			ranges, bufferRowLength, planeScaleY, format, dataRowPitch, dataSlicePitch )
 	DECL_SERIALIZER( SBM_GetImageRanges_Response::Result,	buffer, bufferOffset, size, mapped, imageOffset, imageDim, bufferSlicePitch )
 

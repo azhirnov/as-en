@@ -90,7 +90,7 @@ namespace
 
 				q.AppendBack( aq );
 				v.insert( v.end(), av.begin(), av.end() );
-				TEST( (q == ArrayView<Elem_t>( Cast<Elem_t>(&v[0]), v.size() )) );
+				TEST( (q == ArrayView<Elem_t>( Cast<Elem_t>(std::addressof(v[0])), v.size() )) );
 			}
 		}
 		TEST( Elem_t::CheckStatistic() );
@@ -124,7 +124,7 @@ namespace
 
 				q.AppendFront( aq );
 				v.insert( v.begin(), av.begin(), av.end() );
-				TEST( (q == ArrayView<Elem_t>( Cast<Elem_t>(&v[0]), v.size() )) );
+				TEST( (q == ArrayView<Elem_t>( Cast<Elem_t>(std::addressof(v[0])), v.size() )) );
 			}
 		}
 		TEST( Elem_t::CheckStatistic() );

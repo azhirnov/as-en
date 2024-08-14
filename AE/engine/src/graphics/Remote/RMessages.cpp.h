@@ -260,17 +260,26 @@
 		CHECK_ERR(\
 			_regMsg_(  ProfArm_Initialize						)	and\
 			_regMsg_(  ProfArm_Sample							)	and\
+			_regMsg_(  ProfMali_Initialize						)	and\
+			_regMsg_(  ProfMali_Sample							)	and\
 			_regMsg_(  ProfAdreno_Initialize					)	and\
 			_regMsg_(  ProfAdreno_Sample						)	and\
 			_regMsg_(  ProfPVR_Initialize						)	and\
 			_regMsg_(  ProfPVR_Tick								)	and\
 			_regMsg_(  ProfPVR_Sample							)	and\
+			_regMsg_(  ProfNVidia_Initialize					)	and\
+			_regMsg_(  ProfNVidia_Sample						)	and\
 			_regResp_( ProfArm_Initialize_Response				)	and\
 			_regResp_( ProfArm_Sample_Response					)	and\
+			_regResp_( ProfMali_Initialize_Response				)	and\
+			_regResp_( ProfMali_Sample_Response					)	and\
 			_regResp_( ProfAdreno_Initialize_Response			)	and\
 			_regResp_( ProfAdreno_Sample_Response				)	and\
 			_regResp_( ProfPVR_Initialize_Response				)	and\
-			_regResp_( ProfPVR_Sample_Response					));\
+			_regResp_( ProfPVR_Tick_Response					)	and\
+			_regResp_( ProfPVR_Sample_Response					)	and\
+			_regResp_( ProfNVidia_Initialize_Response			)	and\
+			_regResp_( ProfNVidia_Sample_Response				));\
 		\
 		CHECK_ERR(\
 			_regMsg_(  DescUpd_Flush					)	and\

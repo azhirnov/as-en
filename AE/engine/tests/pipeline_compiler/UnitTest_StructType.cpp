@@ -1474,6 +1474,138 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
 	StaticAssert( offsetof(StType15, arr) == 0 );
 	StaticAssert( sizeof(StType15) == 256 );
 //-----------------------------------------------------------------------------
+
+
+	static void  StructType_Test16 ()
+	{
+		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType16A" }};
+		st1->Set( EStructLayout::Compatible_Std430,
+				  "float	a;"
+				  "float	b;"
+				  "float	c;" );
+
+		ShaderStructTypePtr	st{ new ShaderStructType{ "StType16" }};
+		st->Set( EStructLayout::Compatible_Std430,
+				 "float2	aa;"
+				 "float2	bb;"
+				 "float		cc;"
+				 "StType16A	arr [];" );
+
+		const String	glsl = ToGLSL( st );
+		const String	msl  = ToMSL( st );
+		const String	cpp  = ToCPP( st );
+
+		const String	ref_glsl = R"#(
+#define StType16A_defined
+struct StType16A
+{
+	float  a;  // offset: 0
+	float  b;  // offset: 4
+	float  c;  // offset: 8
+};
+
+Buffer {
+	layout(offset=0, align=8) vec2  aa;
+	layout(offset=8, align=8) vec2  bb;
+	layout(offset=16, align=4) float  cc;
+	layout(offset=20, align=4) StType16A  arr [];
+}
+)#";
+		const String	ref_msl = R"#(
+struct StType16A
+{
+	float  a;  // offset: 0
+	float  b;  // offset: 4
+	float  c;  // offset: 8
+};
+static_assert( sizeof(StType16A) == 12, "size mismatch" );
+
+struct StType16
+{
+	float2  aa;  // offset: 0
+	float2  bb;  // offset: 8
+	float  cc;  // offset: 16
+	device StType16A*  arr;  // offset: 20
+};
+
+)#";
+		const String	ref_cpp = R"#(
+#ifndef StType16A_DEFINED
+#	define StType16A_DEFINED
+	// size: 12, align: 4
+	struct StType16A
+	{
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x263feff0u}};  // 'StType16A'
+
+		float  a;
+		float  b;
+		float  c;
+	};
+#endif
+	StaticAssert( offsetof(StType16A, a) == 0 );
+	StaticAssert( offsetof(StType16A, b) == 4 );
+	StaticAssert( offsetof(StType16A, c) == 8 );
+	StaticAssert( sizeof(StType16A) == 12 );
+
+#ifndef StType16_DEFINED
+#	define StType16_DEFINED
+	// size: 20 (24), align: 8
+	struct alignas(8) StType16
+	{
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xe9b52c57u}};  // 'StType16'
+
+		float2  aa;
+		float2  bb;
+		float  cc;
+	//	StType16A  arr [];
+	};
+#endif
+	StaticAssert( offsetof(StType16, aa) == 0 );
+	StaticAssert( offsetof(StType16, bb) == 8 );
+	StaticAssert( offsetof(StType16, cc) == 16 );
+	StaticAssert( sizeof(StType16) == 24 );
+
+)#";
+		TEST( glsl == ref_glsl );
+		TEST( msl == ref_msl );
+		TEST( cpp == ref_cpp );
+	}
+
+#ifndef StType16A_DEFINED
+#	define StType16A_DEFINED
+	// size: 12, align: 4
+	struct StType16A
+	{
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x263feff0u}};  // 'StType16A'
+
+		float  a;
+		float  b;
+		float  c;
+	};
+#endif
+	StaticAssert( offsetof(StType16A, a) == 0 );
+	StaticAssert( offsetof(StType16A, b) == 4 );
+	StaticAssert( offsetof(StType16A, c) == 8 );
+	StaticAssert( sizeof(StType16A) == 12 );
+
+#ifndef StType16_DEFINED
+#	define StType16_DEFINED
+	// size: 20 (24), align: 8
+	struct alignas(8) StType16
+	{
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xe9b52c57u}};  // 'StType16'
+
+		float2  aa;
+		float2  bb;
+		float  cc;
+	//	StType16A  arr [];
+	};
+#endif
+	StaticAssert( offsetof(StType16, aa) == 0 );
+	StaticAssert( offsetof(StType16, bb) == 8 );
+	StaticAssert( offsetof(StType16, cc) == 16 );
+	StaticAssert( sizeof(StType16) == 24 );
+//-----------------------------------------------------------------------------
 }
 
 
@@ -1510,6 +1642,7 @@ extern void  UnitTest_StructType ()
 		StructType_Test13();
 		StructType_Test14();
 		StructType_Test15();
+		StructType_Test16();
 	} catch(...) {
 		TEST( false );
 	}

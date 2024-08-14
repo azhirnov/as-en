@@ -116,8 +116,8 @@ namespace AE::AssetPacker
 
 namespace AE::Base
 {
-	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::Header2 >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::SDFConfig >	{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::GlyphKey >	{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::Glyph >		{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::Header2 >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::SDFConfig >	: CT_True {};
+	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::GlyphKey >	: CT_True {};
+	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::Glyph >		: CT_True {};
 }

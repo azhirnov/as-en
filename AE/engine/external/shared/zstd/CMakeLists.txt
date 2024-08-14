@@ -4,6 +4,11 @@
 
 set( ZSTD_PATH "${AE_DST_PATH}/zstd" )
 
+if (NOT EXISTS "${ZSTD_PATH}/lib")
+	message( FATAL_ERROR "'${ZSTD_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "zstd-lib" INTERFACE )
 target_include_directories( "zstd-lib" INTERFACE "${ZSTD_PATH}/include" )
 target_compile_definitions( "zstd-lib" INTERFACE "AE_ENABLE_ZSTD" "AE_LICENSE_BSD_3" )
@@ -19,6 +24,7 @@ else()
 	set_property( TARGET "zstd-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${ZSTD_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}zstd${CMAKE_STATIC_LIBRARY_SUFFIX}" )
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.zstd" "tests/main.cpp" )

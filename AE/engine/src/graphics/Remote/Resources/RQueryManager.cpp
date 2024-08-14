@@ -143,7 +143,7 @@ namespace AE::Graphics
 		StaticAssert( sizeof(*result) == sizeof(ulong) );
 
 		CHECK_ERR( q and result != null and maxDeviation != null );
-		CHECK_ERR( _calibratedTs );
+		CHECK_ERR( _calibratedTs != 0 );
 		CHECK_ERR( q.count <= 2 );
 		CHECK_ERR( size >= (SizeOf<ulong> * q.count) );
 		ASSERT( q.type == EQueryType::Timestamp );

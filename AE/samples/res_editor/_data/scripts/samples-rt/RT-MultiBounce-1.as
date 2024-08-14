@@ -34,6 +34,10 @@
 		array<ulong>	texcoords_addr;
 		array<ulong>	indices_addr;
 
+		const uint		max_ray_types	= 1;
+		const uint		max_recursion	= 16;
+
+
 		// load cubemap
 		{
 			cubemap.LoadLayer( cm_addr+ "posx" +cm_ext, 0, ImageLoadOpFlags::GenMipmaps );	// -Z
@@ -55,7 +59,6 @@
 			camera.SideMovementScale( s );
 		}
 
-		const uint	max_ray_types = 1;
 		scene.MaxRayTypes( max_ray_types );
 
 		// create cube
@@ -108,10 +111,12 @@
 
 			pass.ColorSelector( "iMaterialColor",		RGBA32f(0.33f, 0.93f, 0.29f, 1.f) );
 			pass.ColorSelector( "iReflectionColorMask",	RGBA32f(0.22f, 0.83f, 0.93f, 1.f) );
-			pass.Slider( "iAbsorptionScale",	1.f,	10.f,	2.5f );
-			pass.Slider( "iAmbientLight",		0.f,	1.f,	0.2f );
-			pass.Slider( "iIndexOfRefraction",	1.f,	3.f,	1.1f );
-			pass.Slider( "iMaxRecursion",		1,		16,		5 );
+			pass.Slider( "iAbsorptionScale",	1.f,	10.f,			2.5f );
+			pass.Slider( "iAmbientLight",		0.f,	1.f,			0.2f );
+			pass.Slider( "iIndexOfRefraction",	1.f,	3.f,			1.1f );
+			pass.Slider( "iMaxRecursion",		1,		max_recursion,	5 );
+
+			pass.MaxRayRecursion( max_recursion );
 
 			// setup SBT
 			pass.RayGen( RTShader("") );
@@ -265,7 +270,7 @@ layout(std430, buffer_reference) buffer readonly IndicesRef		{ uint		indices	[];
 			hwray.rayOrigin	= gl.WorldRayOrigin + (gl.WorldRayDirection * gl.HitT) - (objNormal * c_SmallOffset);
 			hwray.rayDir	= Normalize( Refract( gl.WorldRayDirection, objNormal, eta ));
 
-			if ( IsFinite( hwray.rayDir ))
+			if ( AllEqual( hwray.rayDir, hwray.rayDir ))
 			{
 				CastPrimaryRay( hwray, recursion+1 );
 				result_color = PrimaryRay.color;

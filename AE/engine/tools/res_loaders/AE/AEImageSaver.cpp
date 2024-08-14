@@ -24,8 +24,8 @@ namespace {
 		if ( not (fileFormat == Default or fileFormat == EImageFormat::AEImg) )
 			return false;
 
-		CHECK_ERR( image.GetData().size() );
-		CHECK_ERR( image.GetData()[0].size() );
+		CHECK_ERR( not image.GetData().empty() );
+		CHECK_ERR( not image.GetData()[0].empty() );
 
 		AssetPacker::ImagePacker::Header	header;
 		header.dimension	= packed_ushort3{image.GetData()[0][0].dimension};

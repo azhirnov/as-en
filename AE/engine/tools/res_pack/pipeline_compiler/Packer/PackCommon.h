@@ -4,6 +4,7 @@
 
 #include "base/Memory/IAllocator.h"
 #include "HashToName.h"
+#include "../shared/DefaultPackHeader.h"
 
 namespace AE::PipelineCompiler
 {
@@ -94,7 +95,7 @@ namespace AE::PipelineCompiler
 
 namespace AE::Base
 {
-	template <> struct TMemCopyAvailable< AE::PipelineCompiler::PipelinePackOffsets >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::PipelineCompiler::PipelinePackOffsets >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::PipelineCompiler::PipelinePackOffsets >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::PipelineCompiler::PipelinePackOffsets >	: CT_True {};
 
 } // AE::Base

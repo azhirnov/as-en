@@ -62,7 +62,7 @@ namespace AE::ResEditor
 		RenderTask&	rtask	= co_await RenderTask_GetRef;
 		const auto	filter	= self->_filterMode->Get() == 0 ? EBlitFilter::Nearest : EBlitFilter::Linear;
 
-		DirectCtx::Transfer		ctx {rtask, Default, DebugLabel{self->_dbgName, HtmlColor::Blue}};
+		DirectCtx::Transfer		ctx{ rtask, Default, DebugLabel{ self->_dbgName, HtmlColor::Blue }};
 
 		ctx.AddSurfaceTargets( targets );
 
@@ -76,32 +76,31 @@ namespace AE::ResEditor
 
 		ctx.BlitImage( src->GetImageId(), dst.imageId, filter, ArrayView<ImageBlit>{ &blit, 1 });
 
-		auto&	rts = GraphicsScheduler();
-
 		// read pixel color for debugging
 		{
+			float2	unorm_pos = UIInteraction::Instance().selectedPixel.ConstPtr()->pendingPos;
+
 			ReadbackImageDesc		readback;
 			readback.heapType		= EStagingHeapType::Static;
 			readback.imageDim		= uint3{1};
-			readback.imageOffset	= uint3{ UIInteraction::Instance().selectedPixel.ConstPtr()->pendingPos, 0 };
+			readback.imageOffset	= uint3{float3{ unorm_pos * float2{desc.dimension}, 0.f }};
 			readback.imageOffset	= Min( readback.imageOffset, desc.dimension-1u );
 
-			auto	task = ctx.ReadbackImage( src->GetImageId(), readback )
-							.Then(	[fid = ctx.GetFrameId()] (const ImageMemView &inView)
-									{
-										RWImageMemView	view {inView};
-										RGBA32f			color;
-										view.Load( uint3{}, OUT color );
+			ctx.ReadbackImage( src->GetImageId(), readback )
+				.Then(	[fid = ctx.GetFrameId()] (const ImageMemView &inView)
+						{
+							RWImageMemView	view {inView};
+							RGBA32f			color;
+							view.Load( uint3{}, OUT color );
 
-										auto	sp	= UIInteraction::Instance().selectedPixel.WriteLock();
-										sp->frame	= fid;
-										sp->pos		= uint2{view.Offset()};
-										sp->color	= color;
-									},
-									"Read color under cursor",
-									ETaskQueue::PerFrame
-								  );
-			rts.AddNextCycleEndDeps( AsyncTask{task} );
+							auto	sp	= UIInteraction::Instance().selectedPixel.WriteLock();
+							sp->frame	= fid;
+							sp->pos		= uint2{view.Offset()};
+							sp->color	= color;
+						},
+						"Read color under cursor",
+						ETaskQueue::PerFrame
+					);
 		}
 
 		// read image for screenshot / video
@@ -118,7 +117,7 @@ namespace AE::ResEditor
 			if ( capture.video )
 			{
 				auto&		vi		= self->_videoInfo;
-				auto		dt		= Min( rts.GetFrameTimeDelta(), secondsf{vi.frameTime} );
+				auto		dt		= Min( GraphicsScheduler().GetFrameTimeDelta(), secondsf{vi.frameTime} );
 				secondsd	exp_dur	{vi.frameTime * (vi.frameCount+1)};
 
 				vi.duration += dt;
@@ -135,19 +134,25 @@ namespace AE::ResEditor
 				readback.heapType	= EStagingHeapType::Dynamic;
 				readback.imageDim	= desc.dimension;
 
-				auto	task = ctx.ReadbackImage( src->GetImageId(), readback )
-								.Then(	[self, capture, encoder = self->_videoEncoder.load()] (const ImageMemView &inView)
-										{
-											if ( capture.screenshot or capture.testScreenshot )
-												_SaveScreenshot( inView, capture.imageFormat, capture.testScreenshot );
+				ctx.ReadbackImage( src->GetImageId(), readback )
+					.Then(	[self, capture, encoder = self->_videoEncoder.load()] (const ImageMemView &inView)
+							{
+								if ( capture.screenshot or capture.testScreenshot )
+								{
+									auto	image = MakeRC<ResLoader::IntermImage>();
+									CHECK_ERRV( image->Copy( inView ));
 
-											if ( capture.video and encoder )
-												Unused( encoder->AddFrame( inView, True{"end encoding on error"} ));
-										},
-										"Screen capture",
-										ETaskQueue::Background
-									  );
-				rts.AddNextCycleEndDeps( AsyncTask{task} );
+									Scheduler().Run(
+										ETaskQueue::Background,
+										_SaveScreenshot( RVRef(image), capture.imageFormat, capture.testScreenshot ));
+								}
+
+								if ( capture.video and encoder )
+									Unused( encoder->AddFrame( inView, True{"end encoding on error"} ));
+							},
+							"Screen capture",
+							ETaskQueue::PerFrame
+						);
 			}
 		}
 
@@ -159,25 +164,24 @@ namespace AE::ResEditor
 	_SaveScreenshot
 =================================================
 */
-	void  Present::_SaveScreenshot (const ImageMemView &inView, EImageFormat fmt, const bool testScreenshot)
+	CoroTask  Present::_SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt, const bool testScreenshot)
 	{
-		ResLoader::IntermImage	image;
-		CHECK_ERRV( image.Copy( inView ));
+		CHECK_CE( image );
 
 		const auto&	cfg = ResEditorAppConfig::Get();
 
 		if ( testScreenshot )
 		{
-			if ( inView.Format() != EPixelFormat::RGBA8_UNorm )
+			if ( image->PixelFormat() != EPixelFormat::RGBA8_UNorm )
 				fmt = EImageFormat::DDS;
 
 			const auto	fname = (cfg.testOutput / cfg.screenshotPrefix.Read()).replace_extension( ImageFileFormatToExt( fmt ));
 
 			FileWStream		file { fname };
-			CHECK_ERRV( file.IsOpen() );
+			CHECK_CE( file.IsOpen() );
 
 			ResLoader::AllImageSavers	saver;
-			CHECK_ERRV( saver.SaveImage( file, image, fmt ));
+			CHECK_CE( saver.SaveImage( file, *image, fmt ));
 
 			AE_LOGI( "Save screenshot to '"s << ToString(fname) << "'" );
 			// TODO: compare with previous
@@ -195,13 +199,13 @@ namespace AE::ResEditor
 				fname = screenshot_folder / (String{prefix} << ToString(index) << '.' << ImageFileFormatToExt( fmt ));
 			}};
 
-			const auto	WriteToFile = [&image, fmt] (const Path &fname) -> bool
+			const auto	WriteToFile = [image, fmt] (const Path &fname) -> bool
 			{{
 				FileWStream		file {fname};
 				if ( file.IsOpen() )
 				{
 					ResLoader::AllImageSavers	saver;
-					if ( saver.SaveImage( file, image, fmt ))
+					if ( saver.SaveImage( file, *image, fmt ))
 					{
 						AE_LOGI( "Save screenshot to '"s << ToString(fname) << "'" );
 						return true; // exit
@@ -212,6 +216,7 @@ namespace AE::ResEditor
 
 			FileSystem::FindUnusedFilename( BuildName, WriteToFile );
 		}
+		co_return;
 	}
 
 /*
@@ -372,7 +377,8 @@ namespace AE::ResEditor
 		switch_enum( flags )
 		{
 			case EFlags::Copy :
-				img_desc.usage = EImageUsage::Transfer | EImageUsage::Sampled;
+				img_desc.usage		= EImageUsage::Transfer | EImageUsage::Sampled;
+				img_desc.options	|= EImageOpt::BlitDst;
 				break;
 
 			case EFlags::Histogram :
@@ -531,7 +537,7 @@ namespace AE::ResEditor
 	{
 		constexpr auto&		RTech		= RenderTechs::Histogram_RTech;
 
-		const uint2			src_dim		= uint2{srcImage.GetImageDesc().dimension};
+		const uint2			src_dim		= uint2{srcImage.GetImageDesc().dimension};		// TODO: GetViewDimension ?
 		const uint2			dst_dim		= uint2{dstImage.GetImageDesc().dimension};
 
 		DirectCtx::Transfer	copy_ctx	{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"Histogram pass1", HtmlColor::Blue} };
@@ -658,7 +664,7 @@ namespace AE::ResEditor
 	{
 		constexpr auto&	RTech = RenderTechs::LinearDepth_RTech;
 
-		const uint2			dst_dim		= uint2{dstImage.GetImageDesc().dimension};
+		const uint2			dst_dim		= uint2{dstImage.GetImageDesc().dimension};		// TODO: GetViewDimension ?
 		DirectCtx::Graphics	ctx			{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ToLinearDepth", HtmlColor::Blue} };
 		DescriptorSetID		ds			= _pplnDS[ ctx.GetFrameId().Index() ];
 
@@ -740,7 +746,7 @@ namespace AE::ResEditor
 	{
 		constexpr auto&	RTech = RenderTechs::StencilView_RTech;
 
-		const uint2			dst_dim		= uint2{dstImage.GetImageDesc().dimension};
+		const uint2			dst_dim		= uint2{dstImage.GetImageDesc().dimension};		// TODO: GetViewDimension ?
 		DirectCtx::Graphics	ctx			{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"StencilView", HtmlColor::Blue} };
 		DescriptorSetID		ds			= _pplnDS[ ctx.GetFrameId().Index() ];
 

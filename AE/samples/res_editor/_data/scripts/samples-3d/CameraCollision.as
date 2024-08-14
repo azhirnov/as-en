@@ -90,8 +90,8 @@
 	ND_ DistAndMtr  SDFScene (const float3 pos)
 	{
 		DistAndMtr	dm = DM_Create( 99.0, MTR_Sky );
-		dm = DM_Min( dm, SDFColumns( pos ));
-		dm = DM_Min( dm, SDFGround( pos ));
+		dm = DM_Unite( dm, SDFColumns( pos ));
+		dm = DM_Unite( dm, SDFGround( pos ));
 		return dm;
 	}
 
@@ -150,13 +150,13 @@
 	{
 		Ray			ray			= Ray_From( un_PerPass.camera.invViewProj, un_CollisionData.actualPos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 
-		const int	max_iter	= 256;
+		const uint	max_iter	= 256;
 		const float	min_dist	= 0.00625;
 		const float	max_dist	= 100.0;
 		int			mtr_index	= -1;
 
 		// ray marching
-		for (int i = 0; i < max_iter; ++i)
+		for (uint i = 0; i < max_iter; ++i)
 		{
 			DistAndMtr	dm = SDFScene( ray.pos );
 

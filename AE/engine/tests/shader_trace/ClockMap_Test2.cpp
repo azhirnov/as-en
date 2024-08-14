@@ -167,6 +167,8 @@ extern bool ClockMap_Test2 (TestDevice& vulkan)
 	if ( vulkan.GetRayTracingFeats().rayTracingPipeline == VK_FALSE )
 		return true;	// not supported
 
+	ON_DESTROY( [&vulkan]() { vulkan.FreeTempHandles(); });
+
 	// create image
 	VkImage			image;
 	VkImageView		image_view;
@@ -369,8 +371,6 @@ extern bool ClockMap_Test2 (TestDevice& vulkan)
 	}
 
 	CHECK_ERR( vulkan.CheckTimeMap( {raygen_shader}, 0.5f ));
-
-	vulkan.FreeTempHandles();
 
 	TEST_PASSED();
 	return true;

@@ -22,6 +22,12 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
+#ifdef AE_ENABLE_LOGS
+/*
+=================================================
+	ToString (EOperationSystem)
+=================================================
+*/
 	ND_ inline StringView  ToString (EOperationSystem value)
 	{
 		switch_enum( value )
@@ -40,5 +46,6 @@ namespace AE::Base
 		return Default;
 	}
 
+#endif // AE_ENABLE_LOGS
 
 } // AE::Base

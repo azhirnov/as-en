@@ -235,8 +235,8 @@ namespace _hidden_
 	template <int VecLength, typename ValueType, typename Dimension,
 			  typename LhsScale, typename RhsScale, glm::qualifier Q
 			 >
-	ND_ auto  operator + (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
-						  const PhysicalQuantity< ValueType, Dimension, RhsScale >                     rhs) __NE___
+	ND_ auto  operator + (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&	lhs,
+						  const PhysicalQuantity< ValueType, Dimension, RhsScale >						rhs) __NE___
 	{
 		using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
@@ -252,8 +252,8 @@ namespace _hidden_
 	template <int VecLength, typename ValueType, typename Dimension,
 			  typename LhsScale, typename RhsScale, glm::qualifier Q
 			 >
-	ND_ auto  operator + (const PhysicalQuantity< ValueType, Dimension, RhsScale >                     lhs,
-						  const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  rhs) __NE___
+	ND_ auto  operator + (const PhysicalQuantity< ValueType, Dimension, RhsScale >						lhs,
+						  const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&	rhs) __NE___
 	{
 		using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
@@ -286,8 +286,8 @@ namespace _hidden_
 	template <int VecLength, typename ValueType, typename Dimension,
 			  typename LhsScale, typename RhsScale, glm::qualifier Q
 			 >
-	ND_ auto  operator - (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
-						  const PhysicalQuantity< ValueType, Dimension, RhsScale >                     rhs) __NE___
+	ND_ auto  operator - (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&	lhs,
+						  const PhysicalQuantity< ValueType, Dimension, RhsScale >						rhs) __NE___
 	{
 		using Scale = PhysicalQuantity_Scale::template Sub< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
@@ -303,8 +303,8 @@ namespace _hidden_
 	template <int VecLength, typename ValueType, typename Dimension,
 			  typename LhsScale, typename RhsScale, glm::qualifier Q
 			 >
-	ND_ auto  operator - (const PhysicalQuantity< ValueType, Dimension, RhsScale >                     lhs,
-						  const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  rhs) __NE___
+	ND_ auto  operator - (const PhysicalQuantity< ValueType, Dimension, RhsScale >						lhs,
+						  const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&	rhs) __NE___
 	{
 		using Scale = PhysicalQuantity_Scale::template Sub< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
@@ -331,7 +331,7 @@ namespace _hidden_
 
 	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q
 			 >
-	ND_ auto  operator * (const TVec< ValueType, VecLength, Q >                                  &  lhs,
+	ND_ auto  operator * (const TVec< ValueType, VecLength, Q >									 &  lhs,
 						  const TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >&  rhs) __NE___
 	{
 		return TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >{ lhs * rhs.GetNonScaled() };
@@ -340,7 +340,7 @@ namespace _hidden_
 	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q
 			 >
 	ND_ auto  operator * (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >&  lhs,
-						  const TVec< ValueType, VecLength, Q >                                  &  rhs) __NE___
+						  const TVec< ValueType, VecLength, Q >									 &  rhs) __NE___
 	{
 		return TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >{ lhs.GetNonScaled() * rhs };
 	}
@@ -364,8 +364,8 @@ namespace _hidden_
 
 	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q
 			 >
-	ND_ auto  operator * (const TVec< ValueType, VecLength, Q >               &  lhs,
-						  const PhysicalQuantity< ValueType, Dimension, Scale >  rhs) __NE___
+	ND_ auto  operator * (const TVec< ValueType, VecLength, Q >					&	lhs,
+						  const PhysicalQuantity< ValueType, Dimension, Scale >		rhs) __NE___
 	{
 		return TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >{ lhs * rhs.GetNonScaled() };
 	}
@@ -378,8 +378,8 @@ namespace _hidden_
 	template <int VecLength, typename ValueType,
 			  typename LhsDim, typename LhsScale, typename RhsDim, typename RhsScale, glm::qualifier Q
 			 >
-	ND_ auto  operator * (const PhysicalQuantity< ValueType, LhsDim, RhsScale >                     lhs,
-						  const TPhysicalQuantityVec< VecLength, ValueType, RhsDim, LhsScale, Q >&  rhs) __NE___
+	ND_ auto  operator * (const PhysicalQuantity< ValueType, LhsDim, RhsScale >						lhs,
+						  const TPhysicalQuantityVec< VecLength, ValueType, RhsDim, LhsScale, Q >&	rhs) __NE___
 	{
 		using Scale = PhysicalQuantity_Scale::template Mul< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Mul<RhsDim>, Scale >;
@@ -389,8 +389,8 @@ namespace _hidden_
 
 	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q
 			 >
-	ND_ auto  operator * (const PhysicalQuantity< ValueType, Dimension, Scale >  lhs,
-						  const TVec< ValueType, VecLength, Q >               &  rhs) __NE___
+	ND_ auto  operator * (const PhysicalQuantity< ValueType, Dimension, Scale >		lhs,
+						  const TVec< ValueType, VecLength, Q >					&	rhs) __NE___
 	{
 		return TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >{ lhs.GetNonScaled() * rhs };
 	}
@@ -414,7 +414,7 @@ namespace _hidden_
 
 	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q
 			 >
-	ND_ auto  operator / (const TVec< ValueType, VecLength, Q >                                  &  lhs,
+	ND_ auto  operator / (const TVec< ValueType, VecLength, Q >									 &  lhs,
 						  const TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >&  rhs) __NE___
 	{
 		return TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >{ lhs / rhs.GetNonScaled() };
@@ -423,7 +423,7 @@ namespace _hidden_
 	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q
 			 >
 	ND_ auto  operator / (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >&  lhs,
-						  const TVec< ValueType, VecLength, Q >                                  &  rhs) __NE___
+						  const TVec< ValueType, VecLength, Q >									 &  rhs) __NE___
 	{
 		return TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >{ lhs.GetNonScaled() / rhs };
 	}
@@ -436,8 +436,8 @@ namespace _hidden_
 	template <int VecLength, typename ValueType,
 			  typename LhsDim, typename LhsScale, typename RhsDim, typename RhsScale, glm::qualifier Q
 			 >
-	ND_ auto  operator / (const TPhysicalQuantityVec< VecLength, ValueType, LhsDim, LhsScale, Q >&  lhs,
-						  const PhysicalQuantity< ValueType, RhsDim, RhsScale >                     rhs) __NE___
+	ND_ auto  operator / (const TPhysicalQuantityVec< VecLength, ValueType, LhsDim, LhsScale, Q >&	lhs,
+						  const PhysicalQuantity< ValueType, RhsDim, RhsScale >						rhs) __NE___
 	{
 		using Scale = PhysicalQuantity_Scale::template Div< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Div<RhsDim>, Scale >;
@@ -447,8 +447,8 @@ namespace _hidden_
 
 	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q
 			 >
-	ND_ auto  operator / (const TVec< ValueType, VecLength, Q >               &  lhs,
-						  const PhysicalQuantity< ValueType, Dimension, Scale >  rhs) __NE___
+	ND_ auto  operator / (const TVec< ValueType, VecLength, Q >					&	lhs,
+						  const PhysicalQuantity< ValueType, Dimension, Scale >		rhs) __NE___
 	{
 		return TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >{ lhs / rhs.GetNonScaled() };
 	}
@@ -461,8 +461,8 @@ namespace _hidden_
 	template <int VecLength, typename ValueType,
 			  typename LhsDim, typename LhsScale, typename RhsDim, typename RhsScale, glm::qualifier Q
 			 >
-	ND_ auto  operator / (const PhysicalQuantity< ValueType, LhsDim, RhsScale >                     lhs,
-						  const TPhysicalQuantityVec< VecLength, ValueType, RhsDim, LhsScale, Q >&  rhs) __NE___
+	ND_ auto  operator / (const PhysicalQuantity< ValueType, LhsDim, RhsScale >						lhs,
+						  const TPhysicalQuantityVec< VecLength, ValueType, RhsDim, LhsScale, Q >&	rhs) __NE___
 	{
 		using Scale = PhysicalQuantity_Scale::template Div< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Div<RhsDim>, Scale >;
@@ -472,8 +472,8 @@ namespace _hidden_
 
 	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q
 			  >
-	ND_ auto  operator / (const PhysicalQuantity< ValueType, Dimension, Scale >  lhs,
-						  const TVec< ValueType, VecLength, Q >               &  rhs) __NE___
+	ND_ auto  operator / (const PhysicalQuantity< ValueType, Dimension, Scale >		lhs,
+						  const TVec< ValueType, VecLength, Q >					&	rhs) __NE___
 	{
 		return TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >{ lhs.GetNonScaled() / rhs };
 	}
@@ -571,7 +571,7 @@ namespace _hidden_
 */
 	template <int VecLength, typename ValueType, typename Dimension, typename LhsScale, typename RhsScale, glm::qualifier Q
 			 >
-	ND_ auto  DistanceSq (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
+	ND_ auto  DistanceSq (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q > &  lhs,
 						   const TPhysicalQuantityVec< VecLength, ValueType, Dimension, RhsScale, Q >&  rhs) __NE___
 	{
 		using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
@@ -661,10 +661,10 @@ namespace _hidden_
 namespace AE::Base
 {
 	template <typename Qt, int I, glm::qualifier Ql>
-	struct TMemCopyAvailable< PhysicalQuantityVec<Qt,I,Ql> >		{ static constexpr bool  value = IsMemCopyAvailable<Qt>; };
+	struct TMemCopyAvailable< PhysicalQuantityVec<Qt,I,Ql> >	: CT_Bool< IsMemCopyAvailable<Qt> >{};
 
 	template <typename Qt, int I, glm::qualifier Ql>
-	struct TZeroMemAvailable< PhysicalQuantityVec<Qt,I,Ql> >		{ static constexpr bool  value = IsZeroMemAvailable<Qt>; };
+	struct TZeroMemAvailable< PhysicalQuantityVec<Qt,I,Ql> >	: CT_Bool< IsZeroMemAvailable<Qt> >{};
 
 	// 'IsTriviallySerializable< PhysicalQuantityVec<> > = false' - because SIMD and packed types has different alignment
 

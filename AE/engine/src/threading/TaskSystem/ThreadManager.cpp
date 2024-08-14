@@ -315,14 +315,14 @@ namespace
 			CpuArchInfo::Core const*	hp_core	= cpuInfo.GetCore( ECoreType::HighPerformance );
 			CpuArchInfo::Core const*	p_core	= cpuInfo.GetCore( ECoreType::Performance );
 			if ( p_core != null )
-            {
-                // bind main thread to the high performance core
-                int	id = BitScanForward( (hp_core != null ? hp_core : p_core)->physicalBits.to_ullong() );
-                cfg.mainThreadCoreId = ECpuCoreId(id);
+			{
+				// bind main thread to the high performance core
+				int	id = BitScanForward( (hp_core != null ? hp_core : p_core)->physicalBits.to_ullong() );
+				cfg.mainThreadCoreId = ECpuCoreId(id);
 
-                id = BitScanForward( (p_core->physicalBits & ~CpuArchInfo::CoreBits_t{}.set(id)).to_ullong() );
-                second_thread_id = ECpuCoreId(id);
-            }
+				id = BitScanForward( (p_core->physicalBits & ~CpuArchInfo::CoreBits_t{}.set(id)).to_ullong() );
+				second_thread_id = ECpuCoreId(id);
+			}
 		}
 
 		auto&	scheduler = Scheduler();

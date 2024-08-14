@@ -4,7 +4,7 @@ Install clang:
 
 or with specified version:
 
-> sudo apt install clang-15
+> sudo apt install clang-16
 
 Install libc++
 

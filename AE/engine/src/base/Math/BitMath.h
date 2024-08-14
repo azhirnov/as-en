@@ -17,7 +17,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ AE_INTRINSIC constexpr EnableIf<IsScalar<T>, ToUnsignedInteger<T>>  ToNearUInt (const T value) __NE___
+	ND_ AE_INTRINSIC constexpr EnableIf<IsInteger<T> or IsEnum<T>, ToUnsignedInteger<T>>  ToNearUInt (const T value) __NE___
 	{
 		StaticAssert( IsScalarOrEnum<T> );
 		StaticAssert( not IsFloatPoint<T> );
@@ -32,7 +32,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ AE_INTRINSIC constexpr EnableIf<IsScalar<T>, ToSignedInteger<T>>  ToNearInt (const T value) __NE___
+	ND_ AE_INTRINSIC constexpr EnableIf<IsInteger<T> or IsEnum<T>, ToSignedInteger<T>>  ToNearInt (const T value) __NE___
 	{
 		StaticAssert( IsScalarOrEnum<T> );
 		StaticAssert( not IsFloatPoint<T> );
@@ -573,9 +573,10 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr EnableIf<IsUnsignedInteger<T>, bool>  HasBit (const T x, const usize index) __NE___
+	ND_ constexpr EnableIf<IsInteger<T> or IsEnum<T>, bool>  HasBit (const T x, const usize index) __NE___
 	{
-		return (x & (T{1} << index)) != 0;
+		using U = ToUnsignedInteger<T>;
+		return (static_cast<U>(x) & (U{1} << index)) != 0;
 	}
 
 /*

@@ -87,6 +87,7 @@ namespace AE::ResEditor
 		class ScriptBuildRTScene;
 		class ScriptExportImage;
 		class ScriptExportBuffer;
+		class ScriptCompressImage;
 
 		using ScriptPassGroupPtr	= ScriptRC<ScriptPassGroup>;
 		using DynSlider_t			= Renderer::DynSlider_t;
@@ -182,6 +183,9 @@ namespace AE::ResEditor
 
 		static void  _GenMipmaps (const ScriptImagePtr &rt)														__Th___;
 		static void  _CopyImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)							__Th___;
+		static void  _CompressImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)						__Th___;
+		static void  _CompressImage2 (const ScriptImagePtr &src, const ScriptImagePtr &dst,
+									  EPixelFormat dstFormat)													__Th___;
 
 		static void  _ClearImage1 (const ScriptImagePtr &image, const RGBA32f &value)							__Th___;
 		static void  _ClearImage2 (const ScriptImagePtr &image, const RGBA32u &value)							__Th___;
@@ -413,6 +417,7 @@ namespace AE::ResEditor
 		friend class ScriptRTGeometry;
 		friend class ScriptRTScene;
 		friend class ScriptModelGeometrySrc;
+		friend class ScriptChunkedTerrain;
 
 		ND_ static Renderer&	GetRenderer ()											__Th___;
 		ND_ static bool			IsPassGroup (const ScriptBasePassPtr &pass)				__NE___;
@@ -421,6 +426,9 @@ namespace AE::ResEditor
 
 	public:
 		ND_ static Graphics::FeatureSet const&  GetFeatureSet ()						__NE___;
+
+		ND_ static EPixelFormat		Supported_DepthFormat ();
+		ND_ static EPixelFormat		Supported_DepthStencilFormat ();
 	};
 
 
@@ -458,6 +466,7 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptGeomSource,				"GeomSource"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptSphericalCube,				"SphericalCube"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptUniGeometry,				"UnifiedGeometry"	);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptModelGeometrySrc,			"Model"				);
+AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptChunkedTerrain,			"ChunkedTerrain"	);
 
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::ScriptUniGeometry::DrawCmd3,							"UnifiedGeometry_Draw" );
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::ScriptUniGeometry::DrawIndexedCmd3,					"UnifiedGeometry_DrawIndexed" );

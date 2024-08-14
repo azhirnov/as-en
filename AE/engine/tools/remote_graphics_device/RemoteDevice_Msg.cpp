@@ -63,6 +63,7 @@ namespace AE::RemoteGraphics
 			res.checkExtensionsOK		= _device.CheckExtensions();
 			res.initialized				= _device.IsInitialized();
 			res.underDebugger			= _device.IsUnderDebugger();
+			res.adapterType				= _device.AdapterType();
 			res.cpuArch					= CpuArchInfo::Get().cpu.arch;
 			res.os						= PlatformUtils::GetOSType();
 
@@ -425,6 +426,10 @@ namespace AE::RemoteGraphics
 			sync->frameId = msg.frameId;
 		}
 		_Send( res );
+
+	  #ifdef AE_ENABLE_PVRCOUNTER
+		_profilers.pvr.ReadTimingData( OUT _profilers.pvrTimings );
+	  #endif
 	}
 
 	void  RmGAppListener::_Cb_RTS_EndFrame (const Msg::RTS_EndFrame &msg)
@@ -1372,10 +1377,10 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_ProfArm_Initialize (const Msg::ProfArm_Initialize &msg)
 	{
 		Msg::ProfArm_Initialize_Response  res;
-		#ifdef AE_ENABLE_ARM_HWCPIPE
-			res.ok			= _profilers.arm.Initialize( msg.required );
-			res.supported	= _profilers.arm.SupportedCounterSet();
-			res.enabled		= _profilers.arm.EnabledCounterSet();
+		#ifdef AE_ENABLE_ARM_PMU
+			res.ok = _profilers.arm.Initialize( msg.required );
+			if ( res.ok )
+				res.enabled	= _profilers.arm.EnabledCounterSet();
 		#else
 			Unused( msg );
 			res.ok = false;
@@ -1386,18 +1391,46 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_ProfArm_Sample (const Msg::ProfArm_Sample &)
 	{
 		Msg::ProfArm_Sample_Response  res;
-		#ifdef AE_ENABLE_ARM_HWCPIPE
+		#ifdef AE_ENABLE_ARM_PMU
 			_profilers.arm.Sample( OUT res.counters );
 		#endif
 		_Send( res );
 	}
 
+
+	void  RmGAppListener::_Cb_ProfMali_Initialize (const Msg::ProfMali_Initialize &msg)
+	{
+		Msg::ProfMali_Initialize_Response  res;
+		#ifdef AE_ENABLE_MALI_HWCPIPE
+			res.ok = _profilers.mali.Initialize( msg.required );
+			if ( res.ok ) {
+				res.enabled = _profilers.mali.EnabledCounterSet();
+				res.info	= _profilers.mali.GetHWInfo();
+			}
+		#else
+			Unused( msg );
+			res.ok = false;
+		#endif
+		_Send( res );
+	}
+
+	void  RmGAppListener::_Cb_ProfMali_Sample (const Msg::ProfMali_Sample &)
+	{
+		Msg::ProfMali_Sample_Response  res;
+		#ifdef AE_ENABLE_MALI_HWCPIPE
+			_profilers.mali.Sample( OUT res.counters );
+		#endif
+		_Send( res );
+	}
+
+
 	void  RmGAppListener::_Cb_ProfAdreno_Initialize (const Msg::ProfAdreno_Initialize &msg)
 	{
 		Msg::ProfAdreno_Initialize_Response  res;
 		#ifdef AE_ENABLE_ADRENO_PERFCOUNTER
-			res.ok			= _profilers.adreno.Initialize( msg.required );
-			res.enabled		= _profilers.adreno.EnabledCounterSet();
+			res.ok = _profilers.adreno.Initialize( msg.required );
+			if ( res.ok )
+				res.enabled = _profilers.adreno.EnabledCounterSet();
 		#else
 			Unused( msg );
 			res.ok = false;
@@ -1414,13 +1447,14 @@ namespace AE::RemoteGraphics
 		_Send( res );
 	}
 
+
 	void  RmGAppListener::_Cb_ProfPVR_Initialize (const Msg::ProfPVR_Initialize &msg)
 	{
 		Msg::ProfPVR_Initialize_Response  res;
 		#ifdef AE_ENABLE_PVRCOUNTER
-			res.ok			= _profilers.pvr.Initialize( msg.required );
-			res.supported	= _profilers.pvr.SupportedCounterSet();
-			res.enabled		= _profilers.pvr.EnabledCounterSet();
+			res.ok = _profilers.pvr.Initialize( msg.required );
+			if ( res.ok )
+				res.enabled	= _profilers.pvr.EnabledCounterSet();
 		#else
 			Unused( msg );
 			res.ok = false;
@@ -1430,9 +1464,10 @@ namespace AE::RemoteGraphics
 
 	void  RmGAppListener::_Cb_ProfPVR_Tick (const Msg::ProfPVR_Tick &)
 	{
-		Msg::DefaultResponse  res;
+		Msg::ProfPVR_Tick_Response  res;
 		#ifdef AE_ENABLE_PVRCOUNTER
 			_profilers.pvr.Tick();
+			res.timings = _profilers.pvrTimings;
 		#endif
 		_Send( res );
 	}
@@ -1442,6 +1477,30 @@ namespace AE::RemoteGraphics
 		Msg::ProfPVR_Sample_Response  res;
 		#ifdef AE_ENABLE_PVRCOUNTER
 			_profilers.pvr.Sample( OUT res.counters );
+		#endif
+		_Send( res );
+	}
+
+
+	void  RmGAppListener::_Cb_ProfNVidia_Initialize (const Msg::ProfNVidia_Initialize &msg)
+	{
+		Msg::ProfNVidia_Initialize_Response  res;
+		#ifdef AE_ENABLE_NVML
+			res.ok = _profilers.nv.Initialize( msg.required );
+			if ( res.ok )
+				res.enabled = _profilers.nv.EnabledCounterSet();
+		#else
+			Unused( msg );
+			res.ok = false;
+		#endif
+		_Send( res );
+	}
+
+	void  RmGAppListener::_Cb_ProfNVidia_Sample (const Msg::ProfNVidia_Sample &)
+	{
+		Msg::ProfNVidia_Sample_Response  res;
+		#ifdef AE_ENABLE_NVML
+			_profilers.nv.Sample( OUT res.counters );
 		#endif
 		_Send( res );
 	}
@@ -1463,7 +1522,7 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_SBM_GetBufferRanges (const Msg::SBM_GetBufferRanges &msg)
 	{
 		StagingBufferMngr::BufferRanges_t	result;
-		_resMngr->GetStagingManager().GetBufferRanges( OUT result, msg.reqSize, msg.blockSize, msg.memOffsetAlign, msg.frameId, msg.heap, msg.queue, Bool{msg.upload} );
+		_resMngr->GetStagingManager().GetBufferRanges( OUT result, msg.reqSize, msg.blockSize, msg.memOffsetAlign, msg.frameId, msg.heap, Bool{msg.upload} );
 
 		Msg::SBM_GetBufferRanges_Response	res;
 		for (usize i = 0; i < result.size(); ++i)
@@ -1482,7 +1541,7 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_SBM_GetImageRanges (const Msg::SBM_GetImageRanges &msg)
 	{
 		StagingBufferMngr::StagingImageResultRanges	result;
-		_resMngr->GetStagingManager().GetImageRanges( OUT result, msg.uploadDesc, msg.imageDesc, msg.imageGranularity, msg.frameId, msg.queue, Bool{msg.upload} );
+		_resMngr->GetStagingManager().GetImageRanges( OUT result, msg.uploadDesc, msg.imageDesc, msg.imageGranularity, msg.frameId, Bool{msg.upload} );
 
 		Msg::SBM_GetImageRanges_Response	res;
 		for (usize i = 0; i < result.buffers.size(); ++i)
@@ -1514,7 +1573,7 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_SBM_GetImageRanges2 (const Msg::SBM_GetImageRanges2 &msg)
 	{
 		StagingBufferMngr::StagingImageResultRanges	result;
-		_resMngr->GetStagingManager().GetImageRanges( OUT result, msg.uploadDesc, msg.videoDesc, msg.imageGranularity, msg.frameId, msg.queue, Bool{msg.upload} );
+		_resMngr->GetStagingManager().GetImageRanges( OUT result, msg.uploadDesc, msg.videoDesc, msg.imageGranularity, msg.frameId, Bool{msg.upload} );
 
 		Msg::SBM_GetImageRanges_Response	res;
 		for (usize i = 0; i < result.buffers.size(); ++i)

@@ -30,8 +30,8 @@ namespace AE::ResEditor
 	IGSMaterials::DebugModeBits  SphericalCube::Material::GetDebugModeBits () C_NE___
 	{
 		DebugModeBits	result;
-		for (auto [mode, ppln] : pplnMap) {
-			result.insert( mode );
+		for (auto [key, ppln] : pplnMap) {
+			result.insert( key.Get<EDebugMode>() );
 		}
 		return result;
 	}
@@ -44,9 +44,9 @@ namespace AE::ResEditor
 	constructor
 =================================================
 */
-	SphericalCube::SphericalCube (Renderer &r, uint minLod, uint maxLod) __NE___ :
+	SphericalCube::SphericalCube (Renderer &r, uint minLod, uint maxLod, uint inst) __NE___ :
 		IGeomSource{ r },
-		_minLod{minLod}, _maxLod{maxLod}
+		_minLod{minLod}, _maxLod{maxLod}, _instanceCount{inst}
 	{}
 
 /*
@@ -70,7 +70,7 @@ namespace AE::ResEditor
 		ASSERT( dd.dbg.IsEnabled() );
 
 		auto&	mtr	= RefCast<Material>(dd.mtr);
-		auto	it	= mtr.pplnMap.find( dd.dbg.mode );
+		auto	it	= mtr.pplnMap.find( Tuple{ dd.dbg.mode, dd.dbg.stage });
 
 		if ( it == mtr.pplnMap.end() )
 			return;
@@ -79,9 +79,23 @@ namespace AE::ResEditor
 		CHECK_ERRV( dd.outDbgStorage != null );
 
 		Visit( it->second,
-			[&] (GraphicsPipelineID ppln)	{ CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln )); },
-			[&] (MeshPipelineID ppln)		{ CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln )); },
-			[] (NullUnion)					{ CHECK_MSG( false, "pipeline is not defined" ); }
+			[&] (GraphicsPipelineID ppln) {
+				if ( AllBits( dd.dbg.stage, EShaderStages::Fragment )) {
+					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln, dd.dbgCoord ));
+				}else{
+					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln ));
+				}
+			},
+			[&] (MeshPipelineID ppln) {
+				if ( AllBits( dd.dbg.stage, EShaderStages::Fragment )) {
+					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln, dd.dbgCoord ));
+				}else{
+					CHECK( dd.dbg.debugger->AllocForGraphics( OUT *dd.outDbgStorage, dd.ctx, ppln ));
+				}
+			},
+			[] (NullUnion) {
+				CHECK_MSG( false, "pipeline is not defined" );
+			}
 		);
 	}
 
@@ -121,7 +135,7 @@ namespace AE::ResEditor
 
 		if ( in.IsDebuggerEnabled( 0 ))
 		{
-			auto	it = mtr.pplnMap.find( in.dbgMode );
+			auto	it = mtr.pplnMap.find( Tuple{ in.dbgMode, in.dbgStage });
 			if ( it != mtr.pplnMap.end() )
 			{
 				use_debugger = true;
@@ -129,14 +143,17 @@ namespace AE::ResEditor
 			}
 		}
 		if ( IsNullUnion( ppln ))
-			ppln = mtr.pplnMap.find( IPass::EDebugMode::Unknown )->second;
+			ppln = mtr.pplnMap.find( Tuple{ EDebugMode::Unknown, EShaderStages::Unknown })->second;
 
 		BindPipeline( ppln );
 		ctx.BindDescriptorSet( mtr.passDSIndex, in.passDS );
 		ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
 		if ( use_debugger ) ctx.BindDescriptorSet( in.dbgStorage->DSIndex(), in.dbgStorage->DescSet() );
 
-		CHECK_ERR( _cube.Draw( ctx, _maxLod ));
+		DrawIndexedCmd	cmd;
+		cmd.instanceCount = _instanceCount;
+
+		CHECK_ERR( _cube.Draw( ctx, _maxLod, cmd ));
 		return true;
 	}
 

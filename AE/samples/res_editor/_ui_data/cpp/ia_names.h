@@ -197,11 +197,12 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0xcedcb9fbu}}; }  // 'Main.UI'
 
-		static constexpr uint  actionCount = 15;
+		static constexpr uint  actionCount = 16;
 		enum Bindings : uint {
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
 			ShowHelp  = 0x3d738410u,  // InputActionName{"ShowHelp"}
+			UI_CopySliderState  = 0xaba80018u,  // InputActionName{"UI.CopySliderState"}
 			UI_FrameCapture  = 0x678708edu,  // InputActionName{"UI.FrameCapture"}
 			UI_MouseLBDown  = 0x27e160bu,  // InputActionName{"UI.MouseLBDown"}
 			UI_MousePos  = 0x2b2426e3u,  // InputActionName{"UI.MousePos"}

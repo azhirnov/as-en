@@ -62,10 +62,10 @@ namespace AE::Threading
 			LowLevels_t							lowLevel;		// 0 - is unassigned bit, 1 - assigned bit
 			Atomic< void * >					memBlock;
 
-			#if AE_LFFIXEDBLOCKALLOC_DEBUG
+		  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 			Atomic< SourceLoc *>				dbgInfo;
 			SyncEvent							dbgInfoEvent {SyncEvent::EFlags::ManualReset};
-			#endif
+		  #endif
 		};
 
 		static constexpr auto	MaxHighLevel		= Bitfield<HiLevelBits_t>{ ToBitMask<HiLevelBits_t>( HiLevel_Count )};
@@ -96,8 +96,10 @@ namespace AE::Threading
 		NO_UNIQUE_ADDRESS GenAllocator_t	_genAlloc;
 		NO_UNIQUE_ADDRESS BottomChunks_t	_bottomChunks;
 
+	  #if AE_LFFIXEDBLOCKALLOC_DEBUG
 		Atomic<ulong>		_dbgCounter		{0};
 		Atomic<ulong>		_dbgLockCounter	{0};
+	  #endif
 
 		DRC_ONLY( RWDataRaceCheck	_drCheck;)
 

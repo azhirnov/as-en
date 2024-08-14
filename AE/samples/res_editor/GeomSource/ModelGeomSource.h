@@ -152,10 +152,12 @@ namespace AE::ResEditor
 				void  StateTransition (Ctx &)												C_Th___;
 
 				void  Draw (DirectCtx::Draw					&ctx,
-							const Material::GPplnGroups_t	&drawGroups)					C_Th___;
+							const Material::GPplnGroups_t	&drawGroups,
+							uint							instanceCount)					C_Th___;
 
 				void  Draw (DirectCtx::Draw					&ctx,
-							const Material::MPplnGroups_t	&drawGroups)					C_Th___;
+							const Material::MPplnGroups_t	&drawGroups,
+							uint							instanceCount)					C_Th___;
 
 				void  BindBuffers (DirectCtx::Draw	&ctx)									C_Th___;
 
@@ -219,6 +221,7 @@ namespace AE::ResEditor
 	private:
 		RC<Mesh>			_meshData;
 		RC<Textures>		_textures;
+		const uint			_instanceCount	= 1;	// for multiview, ...
 
 
 	// methods
@@ -228,7 +231,8 @@ namespace AE::ResEditor
 						 const Transformation		&initialTransform,
 						 ArrayView<Path>			texSearchDirs,
 						 uint						maxTextures,
-						 RTGeometryTypes_t &&		rtGeoms)				__Th___;
+						 RTGeometryTypes_t &&		rtGeoms,
+						 uint						instanceCount)			__Th___;
 		~ModelGeomSource ();
 
 

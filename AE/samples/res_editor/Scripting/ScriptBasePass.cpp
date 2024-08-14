@@ -20,7 +20,7 @@ namespace AE::ResEditor
 		type{ other.type },
 		count{ other.count }
 	{
-		std::memcpy( OUT intRange, other.intRange, sizeof(intRange) );
+		MemCopy( OUT intRange, other.intRange, Sizeof(intRange) );
 	}
 
 	ScriptBasePass::Slider::Slider (Slider &&other) :
@@ -29,7 +29,7 @@ namespace AE::ResEditor
 		type{ other.type },
 		count{ other.count }
 	{
-		std::memcpy( OUT intRange, other.intRange, sizeof(intRange) );
+		MemCopy( OUT intRange, other.intRange, Sizeof(intRange) );
 	}
 //-----------------------------------------------------------------------------
 
@@ -78,9 +78,9 @@ namespace AE::ResEditor
 
 		val = Clamp( val, min, max );
 
-		std::memcpy( OUT &dst.intRange[0], &min, sizeof(min) );
-		std::memcpy( OUT &dst.intRange[1], &max, sizeof(max) );
-		std::memcpy( OUT &dst.intRange[2], &val, sizeof(val) );
+		MemCopy( OUT &dst.intRange[0], &min, Sizeof(min) );
+		MemCopy( OUT &dst.intRange[1], &max, Sizeof(max) );
+		MemCopy( OUT &dst.intRange[2], &val, Sizeof(val) );
 	}
 
 /*
@@ -223,20 +223,52 @@ namespace AE::ResEditor
 	ConstantI*
 =================================================
 */
-	void  ScriptBasePass::ConstantI1 (const String &name, const ScriptDynamicIntPtr  &dynVal) __Th___	{ return _Constant( name, dynVal, ESlider::Int, 1 ); }
-	void  ScriptBasePass::ConstantI2 (const String &name, const ScriptDynamicInt2Ptr &dynVal) __Th___	{ return _Constant( name, dynVal, ESlider::Int, 2 ); }
-	void  ScriptBasePass::ConstantI3 (const String &name, const ScriptDynamicInt3Ptr &dynVal) __Th___	{ return _Constant( name, dynVal, ESlider::Int, 3 ); }
-	void  ScriptBasePass::ConstantI4 (const String &name, const ScriptDynamicInt4Ptr &dynVal) __Th___	{ return _Constant( name, dynVal, ESlider::Int, 4 ); }
+	void  ScriptBasePass::ConstantI1 (const String &name, const ScriptDynamicIntPtr  &dynVal)	__Th___	{ return _Constant( name, dynVal, ESlider::Int, 1 ); }
+	void  ScriptBasePass::ConstantI2 (const String &name, const ScriptDynamicInt2Ptr &dynVal)	__Th___	{ return _Constant( name, dynVal, ESlider::Int, 2 ); }
+	void  ScriptBasePass::ConstantI3 (const String &name, const ScriptDynamicInt3Ptr &dynVal)	__Th___	{ return _Constant( name, dynVal, ESlider::Int, 3 ); }
+	void  ScriptBasePass::ConstantI4 (const String &name, const ScriptDynamicInt4Ptr &dynVal)	__Th___	{ return _Constant( name, dynVal, ESlider::Int, 4 ); }
 
 /*
 =================================================
 	ConstantU*
 =================================================
 */
-	void  ScriptBasePass::ConstantU1 (const String &name, const ScriptDynamicUIntPtr  &dynVal) __Th___	{ return _Constant( name, dynVal, ESlider::Int, 1 ); }
-	void  ScriptBasePass::ConstantU2 (const String &name, const ScriptDynamicUInt2Ptr &dynVal) __Th___	{ return _Constant( name, dynVal, ESlider::Int, 2 ); }
-	void  ScriptBasePass::ConstantU3 (const String &name, const ScriptDynamicUInt3Ptr &dynVal) __Th___	{ return _Constant( name, dynVal, ESlider::Int, 3 ); }
-	void  ScriptBasePass::ConstantU4 (const String &name, const ScriptDynamicUInt4Ptr &dynVal) __Th___	{ return _Constant( name, dynVal, ESlider::Int, 4 ); }
+	void  ScriptBasePass::ConstantU1 (const String &name, const ScriptDynamicUIntPtr  &dynVal)	__Th___	{ return _Constant( name, dynVal, ESlider::Int, 1 ); }
+	void  ScriptBasePass::ConstantU2 (const String &name, const ScriptDynamicUInt2Ptr &dynVal)	__Th___	{ return _Constant( name, dynVal, ESlider::Int, 2 ); }
+	void  ScriptBasePass::ConstantU3 (const String &name, const ScriptDynamicUInt3Ptr &dynVal)	__Th___	{ return _Constant( name, dynVal, ESlider::Int, 3 ); }
+	void  ScriptBasePass::ConstantU4 (const String &name, const ScriptDynamicUInt4Ptr &dynVal)	__Th___	{ return _Constant( name, dynVal, ESlider::Int, 4 ); }
+
+	void  ScriptBasePass::ConstantDD (const String &name, const ScriptDynamicDimPtr &dynVal)	__Th___	{ return _Constant( name, dynVal, ESlider::Int, 3 ); }
+
+/*
+=================================================
+	ConstantCF*
+=================================================
+*/
+	void  ScriptBasePass::ConstantCF1 (const String &name, float value)					__Th___	{ _Constant2( name, MakeRCTh<DynamicFloat >(value), ESlider::Float, 1 ); }
+	void  ScriptBasePass::ConstantCF2 (const String &name, const packed_float2 &value)	__Th___	{ _Constant2( name, MakeRCTh<DynamicFloat2>(value), ESlider::Float, 2 ); }
+	void  ScriptBasePass::ConstantCF3 (const String &name, const packed_float3 &value)	__Th___	{ _Constant2( name, MakeRCTh<DynamicFloat3>(value), ESlider::Float, 3 ); }
+	void  ScriptBasePass::ConstantCF4 (const String &name, const packed_float4 &value)	__Th___	{ _Constant2( name, MakeRCTh<DynamicFloat4>(value), ESlider::Float, 4 ); }
+
+/*
+=================================================
+	ConstantCI*
+=================================================
+*/
+	void  ScriptBasePass::ConstantCI1 (const String &name, int value)					__Th___	{ _Constant2( name, MakeRCTh<DynamicInt >(value), ESlider::Int, 1 ); }
+	void  ScriptBasePass::ConstantCI2 (const String &name, const packed_int2 &value)	__Th___	{ _Constant2( name, MakeRCTh<DynamicInt2>(value), ESlider::Int, 2 ); }
+	void  ScriptBasePass::ConstantCI3 (const String &name, const packed_int3 &value)	__Th___	{ _Constant2( name, MakeRCTh<DynamicInt3>(value), ESlider::Int, 3 ); }
+	void  ScriptBasePass::ConstantCI4 (const String &name, const packed_int4 &value)	__Th___	{ _Constant2( name, MakeRCTh<DynamicInt4>(value), ESlider::Int, 4 ); }
+
+/*
+=================================================
+	ConstantCU*
+=================================================
+*/
+	void  ScriptBasePass::ConstantCU1 (const String &name, uint value)					__Th___	{ _Constant2( name, MakeRCTh<DynamicUInt >(value), ESlider::Int, 1 ); }
+	void  ScriptBasePass::ConstantCU2 (const String &name, const packed_uint2 &value)	__Th___	{ _Constant2( name, MakeRCTh<DynamicUInt2>(value), ESlider::Int, 2 ); }
+	void  ScriptBasePass::ConstantCU3 (const String &name, const packed_uint3 &value)	__Th___	{ _Constant2( name, MakeRCTh<DynamicUInt3>(value), ESlider::Int, 3 ); }
+	void  ScriptBasePass::ConstantCU4 (const String &name, const packed_uint4 &value)	__Th___	{ _Constant2( name, MakeRCTh<DynamicUInt4>(value), ESlider::Int, 4 ); }
 
 /*
 =================================================
@@ -246,8 +278,14 @@ namespace AE::ResEditor
 	template <typename T>
 	void  ScriptBasePass::_Constant (const String &name, const T &dynVal, ESlider type, ubyte count) __Th___
 	{
-		CHECK_THROW_MSG( dynVal and dynVal->Get() );
+		CHECK_THROW_MSG( dynVal );
+		return _Constant2( name, dynVal->Get(), type, count );
+	}
 
+	template <typename T>
+	void  ScriptBasePass::_Constant2 (const String &name, const T &dynVal, const ESlider type, const ubyte count) __Th___
+	{
+		CHECK_THROW_MSG( dynVal );
 		CHECK_THROW_MSG( _uniqueSliderNames.insert( name ).second,
 			"Constant/Slider '"s << name << "' is already exists" );
 
@@ -260,7 +298,7 @@ namespace AE::ResEditor
 		dst.index	= idx;
 		dst.type	= type;
 		dst.count	= count;
-		dst.rc		= dynVal->Get();
+		dst.rc		= dynVal;
 	}
 
 /*
@@ -336,7 +374,7 @@ namespace AE::ResEditor
 	{
 		for (auto& c : _constants)
 		{
-			switch ( c.type )
+			switch_enum( c.type )
 			{
 				case ESlider::Float :
 					dst.f[ c.index ] = c.rc;
@@ -345,7 +383,11 @@ namespace AE::ResEditor
 				case ESlider::Int :
 					dst.i[ c.index ] = c.rc;
 					break;
+
+				case ESlider::Color :
+				case ESlider::_Count :  break;
 			}
+			switch_end
 		}
 	}
 
@@ -459,6 +501,32 @@ namespace AE::ResEditor
 				}
 				header << "\n";
 			}
+
+			// add min/max for integer
+			const auto	AddValue = [&header] (int4 val, const ubyte count)
+			{{
+				switch ( count )
+				{
+					case 1:	header << "(" << ToString( val.x ) << ")";  break;
+					case 2:	header << "int2(" << ToString( val.x ) << ", " << ToString( val.y ) << ")"; break;
+					case 3:	header << "int3(" << ToString( val.x ) << ", " << ToString( val.y ) << ToString( val.z )<< ")";  break;
+					case 4:	header << "int4(" << ToString( val.x ) << ", " << ToString( val.y ) << ", " << ToString( val.z ) << ", " << ToString( val.w ) << ")";  break;
+				}
+			}};
+
+			for (auto& slider : _sliders)
+			{
+				if ( slider.type == ESlider::Int )
+				{
+					header << "#define " << slider.name << "_min ";
+					AddValue( slider.intRange[0], slider.count );
+
+					header << "\n#define " << slider.name << "_max ";
+					AddValue( slider.intRange[1], slider.count );
+
+					header << '\n';
+				}
+			}
 		}
 
 		// add constants
@@ -542,7 +610,7 @@ namespace AE::ResEditor
 
 		_enablePass.dynamic	= dyn;
 		_enablePass.ref		= ref;
-		_enablePass.op		= ECompareOp::Equal;
+		_enablePass.op		= ECompare::Equal;
 	}
 
 	void  ScriptBasePass::EnableIfLess (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___
@@ -552,7 +620,7 @@ namespace AE::ResEditor
 
 		_enablePass.dynamic	= dyn;
 		_enablePass.ref		= ref;
-		_enablePass.op		= ECompareOp::Less;
+		_enablePass.op		= ECompare::Less;
 	}
 
 	void  ScriptBasePass::EnableIfGreater (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___
@@ -562,7 +630,17 @@ namespace AE::ResEditor
 
 		_enablePass.dynamic	= dyn;
 		_enablePass.ref		= ref;
-		_enablePass.op		= ECompareOp::Greater;
+		_enablePass.op		= ECompare::Greater;
+	}
+
+	void  ScriptBasePass::EnableIfAnyBit (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___
+	{
+		CHECK_THROW_MSG( dyn );
+		CHECK_THROW_MSG( not _enablePass.dynamic, "EnableIf is already used" );
+
+		_enablePass.dynamic	= dyn;
+		_enablePass.ref		= ref;
+		_enablePass.op		= ECompare::AnyBit;
 	}
 
 /*

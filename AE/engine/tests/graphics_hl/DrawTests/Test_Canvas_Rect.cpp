@@ -53,10 +53,6 @@ namespace
 
 			typename CtxType::Graphics	ctx{ *this };
 
-			ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::Host_Write, EResourceState::VertexBuffer )
-				.MemoryBarrier( EResourceState::Host_Write, EResourceState::IndexBuffer );
-
 			t.canvas.NextFrame( GetFrameId() );
 
 			// draw
@@ -126,7 +122,7 @@ namespace
 			Ctx		ctx{ *this };
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then( [p = &t] (const ImageMemView &view)
+						.Then(	[p = &t] (const ImageMemView &view)
 								{
 									p->isOK = p->imgCmp->Compare( view );
 								})};

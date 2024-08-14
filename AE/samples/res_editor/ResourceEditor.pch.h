@@ -24,3 +24,5 @@
 #else
 # define PIPELINE_STATISTICS	0	// not supported
 #endif
+
+#define OPTIMIZE_SHADER		1

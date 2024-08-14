@@ -10,6 +10,8 @@ namespace AE::Base
 	//
 	// On Destroy
 	//
+namespace _hidden_
+{
 	struct OnDestroy
 	{
 	private:
@@ -19,7 +21,8 @@ namespace AE::Base
 		explicit OnDestroy (Function<void ()> &&fn)			__NE___ : _fn{ RVRef(fn) } {}
 		~OnDestroy ()										__NE___	{ _fn(); }
 	};
-#	define ON_DESTROY( _fn_ )	AE::Base::OnDestroy  AE_PRIVATE_UNITE_RAW( __atFnExit, __COUNTER__ ) { _fn_ }
+}
+#	define ON_DESTROY( _fn_ )	AE::Base::_hidden_::OnDestroy  AE_PRIVATE_UNITE_RAW( __atFnExit, __COUNTER__ ) { _fn_ }
 
 
 

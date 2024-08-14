@@ -10,37 +10,73 @@ namespace
 
 	static void  Frustum_Test1 ()
 	{
-		Camera		camera;
 		Frustum		frustum;
-		AABB		bbox;
 
-		camera.SetPerspective( 60.0_deg, 1.5f, float2{0.1f, 100.0f} );
-		frustum.Setup( camera );
+		// initialize
+		{
+			Camera	camera;
+			camera.SetPerspective( 60.0_deg, 1.5f, float2{0.1f, 100.0f} );
+			frustum.Setup( camera );
+		}
 
-		TEST( frustum.IsVisible( float3{0.0f, 0.0f, 10.0f} ));
-		TEST( frustum.IsVisible( float3{5.0f, 0.0f, 10.0f} ));
-		TEST( frustum.IsVisible( float3{0.0f, 30.0f, 90.0f} ));
-		TEST( frustum.IsVisible( float3{0.0f, 0.0f, 0.1f} ));
-		TEST( not frustum.IsVisible( float3{0.0f, 0.0f, 110.0f} ));
-		TEST( not frustum.IsVisible( float3{0.0f, 0.0f, -10.0f} ));
-		TEST( not frustum.IsVisible( float3{0.0f, 10.0f, 10.0f} ));
-		TEST( not frustum.IsVisible( float3{0.0f, -10.0f, 10.0f} ));
-		TEST( not frustum.IsVisible( float3{ 10.0f, 0.0f, 10.0f} ));
-		TEST( not frustum.IsVisible( float3{-10.0f, 0.0f, 10.0f} ));
+		// test point
+		{
+			TEST( frustum.IsVisible( float3{0.0f, 0.0f, 10.0f} ));
+			TEST( frustum.IsVisible( float3{5.0f, 0.0f, 10.0f} ));
+			TEST( frustum.IsVisible( float3{0.0f, 30.0f, 90.0f} ));
+			TEST( frustum.IsVisible( float3{0.0f, 0.0f, 0.1f} ));
+			TEST( not frustum.IsVisible( float3{0.0f, 0.0f, 110.0f} ));
+			TEST( not frustum.IsVisible( float3{0.0f, 0.0f, -10.0f} ));
+			TEST( not frustum.IsVisible( float3{0.0f, 10.0f, 10.0f} ));
+			TEST( not frustum.IsVisible( float3{0.0f, -10.0f, 10.0f} ));
+			TEST( not frustum.IsVisible( float3{ 10.0f, 0.0f, 10.0f} ));
+			TEST( not frustum.IsVisible( float3{-10.0f, 0.0f, 10.0f} ));
+		}
 
-		bbox.SetExtent( float3{ 2.0f }).SetCenter( float3{ 0.0f, 0.0f, 10.0f });
-		TEST( frustum.IsVisible( bbox ));
+		// test AABB
+		{
+			AABB		bbox;
+			bbox.SetExtent( float3{ 2.0f }).SetCenter( float3{ 0.0f, 0.0f, 10.0f });
+			TEST( frustum.IsVisible( bbox ));
 
-		bbox.SetCenter( float3{ 0.0f, 0.0f, -10.0f });
-		TEST( not frustum.IsVisible( bbox ));
+			bbox.SetCenter( float3{ 0.0f, 0.0f, -10.0f });
+			TEST( not frustum.IsVisible( bbox ));
 
-		float3	rays[4];
-		TEST( frustum.GetRays( OUT rays[0], OUT rays[1], OUT rays[2], OUT rays[3] ));
+			bbox.SetCenter( float3{ 0.0f, 0.0f, 110.0f });
+			TEST( not frustum.IsVisible( bbox ));
 
-		TEST( All(Equal( rays[0], float3{ 0.6f, -0.4f, -0.69f}, 5_pct )));
-		TEST( All(Equal( rays[1], float3{ 0.6f,  0.4f, -0.69f}, 5_pct )));
-		TEST( All(Equal( rays[2], float3{-0.6f, -0.4f, -0.69f}, 5_pct )));
-		TEST( All(Equal( rays[3], float3{-0.6f,  0.4f, -0.69f}, 5_pct )));
+			bbox.SetCenter( float3{ 5.0f, 0.0f, 10.0f });
+			TEST( frustum.IsVisible( bbox ));
+		}
+
+		// test sphere
+		{
+			Sphere		sphere;
+			sphere.SetRadius( 1.f );
+
+			sphere.SetPosition( float3{ 0.0f, 0.0f, 10.0f });
+			TEST( frustum.IsVisible( sphere ));
+
+			sphere.SetPosition( float3{ 5.0f, 0.0f, 10.0f });
+			TEST( frustum.IsVisible( sphere ));
+
+			sphere.SetPosition( float3{ 0.0f, 0.0f, 110.0f });
+			TEST( not frustum.IsVisible( sphere ));
+
+			sphere.SetPosition( float3{ 0.0f, 0.0f, -10.0f });
+			TEST( not frustum.IsVisible( sphere ));
+		}
+
+		// frustum to rays
+		{
+			float3	rays[4];
+			TEST( frustum.GetRays( OUT rays[0], OUT rays[1], OUT rays[2], OUT rays[3] ));
+
+			TEST( All(Equal( rays[0], float3{ 0.6f, -0.4f, -0.69f}, 5_pct )));
+			TEST( All(Equal( rays[1], float3{ 0.6f,  0.4f, -0.69f}, 5_pct )));
+			TEST( All(Equal( rays[2], float3{-0.6f, -0.4f, -0.69f}, 5_pct )));
+			TEST( All(Equal( rays[3], float3{-0.6f,  0.4f, -0.69f}, 5_pct )));
+		}
 	}
 
 

@@ -155,7 +155,7 @@ namespace AE::Networking::_hidden_
 		ASSERT_MSG( dst + data_size <= (Cast<void>(_msg) + SizeOf<T> + _extraSize),
 			"'extraSize' must include alignment to dst type" );
 
-		MemCopy( OUT dst, data, data_size );
+		MemCopy_NullCheck( OUT dst, data, data_size );
 		return dst;
 	}
 
@@ -166,7 +166,7 @@ namespace AE::Networking::_hidden_
 		ASSERT( dataSize <= _extraSize );
 
 		void*	dst = Extra<char>();
-		MemCopy( OUT dst, data, dataSize );
+		MemCopy_NullCheck( OUT dst, data, dataSize );
 
 		return dst;
 	}
@@ -190,7 +190,7 @@ namespace AE::Networking::_hidden_
 		void*	dst = &(_msg->*member);
 		ASSERT( dst + srcDataSize <= (Cast<void>(_msg) + SizeOf<T> + _extraSize) );
 
-		MemCopy( OUT dst, srcData, srcDataSize );
+		MemCopy_NullCheck( OUT dst, srcData, srcDataSize );
 	}
 
 	template <typename T>
@@ -225,7 +225,7 @@ namespace AE::Networking::_hidden_
 		void*	src = &(_msg->*member);
 		ASSERT( src + dstDataSize <= (Cast<void>(_msg) + SizeOf<T> + _extraSize) );
 
-		MemCopy( OUT dst, src, dstDataSize );
+		MemCopy_NullCheck( OUT dst, src, dstDataSize );
 	}
 
 	template <typename T>

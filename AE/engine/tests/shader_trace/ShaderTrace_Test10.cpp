@@ -87,6 +87,8 @@ extern bool ShaderTrace_Test10 (TestDevice& vulkan)
 	if ( not vulkan.GetMeshShaderFeats().meshShader )
 		return true;
 
+	ON_DESTROY( [&vulkan]() { vulkan.FreeTempHandles(); });
+
 	// create renderpass and framebuffer
 	uint			width = 16, height = 16;
 	VkRenderPass	render_pass;
@@ -228,8 +230,6 @@ extern bool ShaderTrace_Test10 (TestDevice& vulkan)
 	}
 
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {mesh_shader}, "ShaderTrace_Test10.txt" ));
-
-	vulkan.FreeTempHandles();
 
 	TEST_PASSED();
 	return true;

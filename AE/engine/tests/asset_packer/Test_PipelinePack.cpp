@@ -83,12 +83,12 @@ namespace
 
 		PipelineStorage::BlockOffsets_t		block_offsets;
 		{
-			uint	version = 0;
-			uint	name	= 0;
-			TEST( mem_stream->Read( OUT name ));
-			TEST( mem_stream->Read( OUT version ));
-			TEST_Eq( name, PipelinePack_Name );
-			TEST_Eq( version, PipelinePack_Version );
+			DefaultPackHeader	hdr;
+			TEST( mem_stream->Read( OUT hdr ));
+
+			TEST( hdr.name == PipelinePack_Name );
+			TEST( hdr.ver == PipelinePack_Version );
+
 			TEST( mem_stream->Read( OUT block_offsets ));
 		}
 
@@ -97,17 +97,21 @@ namespace
 		EnumSet< EMarker >	unique;
 		unique.insert( EMarker::Unknown );
 
-		for (auto off : block_offsets)
+		for (usize i = 0; i < block_offsets.size(); ++i)
 		{
-			if ( off == UMax )
+			const auto	base_off = block_offsets[i];
+			if ( base_off == UMax )
 				continue;
 
 			EMarker						marker;
-			Serializing::Deserializer	des{ mem_stream->ToSubStream( off ), alloc.get() };
+			Serializing::Deserializer	des{ mem_stream->ToSubStream( base_off ), alloc.get() };
 
 			TEST( des( OUT marker ));
+			TEST_Eq( usize(marker), i );
+
 			TEST_Lt( uint(marker), unique.size() );
 			TEST( not unique.contains( marker ));
+
 			unique.insert( marker );
 
 			switch_enum( marker )
@@ -158,8 +162,8 @@ namespace
 					TEST( des( OUT ppln_names ));
 
 					ser_str << "\nPipelineTemplNames {";
-					for (usize i = 0; i < ppln_names.size(); ++i) {
-						ser_str << "\n  [" << ToString(i) << "]  '" << hash_to_name( ppln_names[i].first ) << "', " << ToString<16>(usize(ppln_names[i].second));
+					for (usize j = 0; j < ppln_names.size(); ++j) {
+						ser_str << "\n  [" << ToString(j) << "]  '" << hash_to_name( ppln_names[j].first ) << "', " << ToString<16>(usize(ppln_names[j].second));
 					}
 					ser_str << "\n}\n";
 					break;

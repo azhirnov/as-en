@@ -45,7 +45,7 @@ namespace
 		_pplnPath{ ScriptExe::ScriptPassApi::ToShaderPath( name )},
 		_ppFlags{ ppFlags }
 	{
-		_dbgName = ToString( _pplnPath.filename().replace_extension("") );
+		_dbgName = ToString( _pplnPath.stem() );
 		_defines = defines;
 
 		if ( not _defines.empty() )
@@ -173,7 +173,7 @@ namespace
 		// create descriptor set
 		{
 			CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
-														ppln, DescriptorSetName{"ds0"} ));
+														ppln, DescriptorSetName{"ds0"}, null, _dbgName ));
 			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
 		}
 
@@ -260,7 +260,8 @@ namespace AE::ResEditor
 				float3		resolution;				// viewport resolution (in pixels)
 				float		time;					// shader playback time (in seconds)
 				float		timeDelta;				// render time (in seconds)
-				uint		frame;					// shader playback frame
+				uint		frame;					// shader playback frame, global frame counter
+				uint		passFrameId;			// current pass frame index
 				uint		seed;					// unique value, updated on each shader reloading
 				float4		channelTime;			// channel playback time (in seconds)
 				float4		channelResolution [4];	// channel resolution (in pixels)
@@ -274,17 +275,17 @@ namespace AE::ResEditor
 				CameraData	camera;
 
 				// sliders //
-				float4		floatSliders [4];
-				int4		intSliders [4];
-				float4		colors [4];
+				float4		floatSliders [8];
+				int4		intSliders [8];
+				float4		colors [8];
 
 				// constants //
-				float4		floatConst [4];
-				int4		intConst [4];
+				float4		floatConst [8];
+				int4		intConst [8];
 			)#");
 
-		StaticAssert( UIInteraction::MaxSlidersPerType == 4 );
-		StaticAssert( IPass::Constants::MaxCount == 4 );
+		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
+		StaticAssert( IPass::Constants::MaxCount == 8 );
 		StaticAssert( IPass::CustomKeys_t{}.max_size() == 1 );
 		return st;
 	}
@@ -403,7 +404,7 @@ ND_ int3  GetGlobalSize() {
 #define iFrame				int(un_PerPass.frame)
 #define iChannelTime		un_PerPass.channelTime
 #define iChannelResolution	un_PerPass.channelResolution
-#define iMouse				float4( un_PerPass.mouse.xy * un_PerPass.resolution.xy, un_PerPass.mouse.zw )
+#define iMouse				float4( un_PerPass.mouse.x * un_PerPass.resolution.x, (1.0 - un_PerPass.mouse.y) * un_PerPass.resolution.y, un_PerPass.mouse.zw )
 #define iDate				un_PerPass.date
 #define iSampleRate			un_PerPass.sampleRate
 )#";
@@ -482,13 +483,15 @@ void Main ()
 			}
 		}
 
-		const EShaderOpt	sh_opt = EShaderOpt::Optimize | EShaderOpt::OptimizeSize;
-	//	const EShaderOpt	sh_opt = EShaderOpt::DebugInfo;	// for shader debugging in RenderDoc
+		EShaderOpt		sh_opt	 = Default;		//EShaderOpt::DebugInfo;	// for shader debugging in RenderDoc
+		EPipelineOpt	ppln_opt = Default;
 
+	  #if OPTIMIZE_SHADER
+		sh_opt   = EShaderOpt::Optimize;
+		ppln_opt |= EPipelineOpt::Optimize;
+	  #endif
 	  #if PIPELINE_STATISTICS
-		const EPipelineOpt	ppln_opt = EPipelineOpt::Optimize | EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
-	  #else
-		const EPipelineOpt	ppln_opt = EPipelineOpt::Optimize;
+		ppln_opt |= EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
 	  #endif
 
 		_CompilePipeline3( subpass, vs, fs, fs_line, "postprocess", uint(sh_opt), ppln_opt );

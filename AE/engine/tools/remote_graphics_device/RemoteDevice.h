@@ -246,14 +246,21 @@ namespace AE::RemoteGraphics
 		}									_res;
 
 		struct {
-		  #ifdef AE_ENABLE_ARM_HWCPIPE
+		  #ifdef AE_ENABLE_ARM_PMU
 			Profiler::ArmProfiler				arm;
+		  #endif
+		  #ifdef AE_ENABLE_MALI_HWCPIPE
+			Profiler::MaliProfiler				mali;
 		  #endif
 		  #ifdef AE_ENABLE_ADRENO_PERFCOUNTER
 			Profiler::AdrenoProfiler			adreno;
 		  #endif
 		  #ifdef AE_ENABLE_PVRCOUNTER
-			Profiler::PowerVRProfiler			pvr;
+			Profiler::PowerVRProfiler					pvr;
+			Profiler::PowerVRProfiler::TimeScopeArr_t	pvrTimings;
+		  #endif
+		  #ifdef AE_ENABLE_NVML
+			Profiler::NVidiaProfiler			nv;
 		  #endif
 		}									_profilers;
 
@@ -444,12 +451,18 @@ namespace AE::RemoteGraphics
 		void  _Cb_ProfArm_Initialize (const Msg::ProfArm_Initialize &);
 		void  _Cb_ProfArm_Sample (const Msg::ProfArm_Sample &);
 
+		void  _Cb_ProfMali_Initialize (const Msg::ProfMali_Initialize &);
+		void  _Cb_ProfMali_Sample (const Msg::ProfMali_Sample &);
+
 		void  _Cb_ProfAdreno_Initialize (const Msg::ProfAdreno_Initialize &);
 		void  _Cb_ProfAdreno_Sample (const Msg::ProfAdreno_Sample &);
 
 		void  _Cb_ProfPVR_Initialize (const Msg::ProfPVR_Initialize &);
 		void  _Cb_ProfPVR_Tick (const Msg::ProfPVR_Tick &);
 		void  _Cb_ProfPVR_Sample (const Msg::ProfPVR_Sample &);
+
+		void  _Cb_ProfNVidia_Initialize (const Msg::ProfNVidia_Initialize &);
+		void  _Cb_ProfNVidia_Sample (const Msg::ProfNVidia_Sample &);
 
 		void  _Cb_DescUpd_Flush (const Msg::DescUpd_Flush &);
 

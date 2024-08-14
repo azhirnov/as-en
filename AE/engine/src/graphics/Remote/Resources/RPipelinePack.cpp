@@ -549,9 +549,10 @@ namespace AE::Graphics
 
 			// check header & version
 			{
-				uint	name_version [2] = {};
-				CHECK_ERR( mem_stream->Read( OUT name_version ));
-				CHECK_ERR( name_version[0] == PipelinePack_Name and name_version[1] == PipelinePack_Version );
+				DefaultPackHeader	hdr;
+				CHECK_ERR( mem_stream->Read( OUT hdr ));
+				CHECK_ERR( hdr.name == PipelinePack_Name );
+				CHECK_ERR( hdr.ver == PipelinePack_Version );
 			}
 
 			PipelineStorage::BlockOffsets_t		block_offsets;

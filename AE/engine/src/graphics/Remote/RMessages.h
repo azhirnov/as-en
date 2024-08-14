@@ -17,6 +17,8 @@
 #include "graphics/Public/IDevice.h"
 
 #include "profiler/Utils/ArmProfiler.h"
+#include "profiler/Utils/MaliProfiler.h"
+#include "profiler/Utils/NVidiaProfiler.h"
 #include "profiler/Utils/AdrenoProfiler.h"
 #include "profiler/Utils/PowerVRProfiler.h"
 
@@ -163,6 +165,7 @@ namespace AE::RemoteGraphics::Msg
 		EGraphicsAPI			api;
 		ECPUArch				cpuArch;
 		EOperationSystem		os;
+		EGraphicsAdapterType	adapterType;
 		bool					checkConstantLimitsOK	= false;	// IDevice::CheckConstantLimits()
 		bool					checkExtensionsOK		= false;	// IDevice::CheckExtensions()
 		bool					initialized				= false;	// IDevice::IsInitialized()
@@ -877,7 +880,6 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_RESP( ProfArm_Initialize_Response,
 		bool									ok;
-		Profiler::ArmProfiler::ECounterSet		supported;
 		Profiler::ArmProfiler::ECounterSet		enabled;
 	)
 
@@ -889,14 +891,32 @@ namespace AE::RemoteGraphics::Msg
 //-----------------------------------------------------------------------------
 
 
+	DECL_MSG( ProfMali_Initialize,
+		Profiler::MaliProfiler::ECounterSet		required;
+	)
+
+	DECL_RESP( ProfMali_Initialize_Response,
+		bool									ok;
+		Profiler::MaliProfiler::ECounterSet		enabled;
+		Profiler::MaliProfiler::HWInfo			info;
+	)
+
+	DECL_MSG( ProfMali_Sample )
+
+	DECL_RESP( ProfMali_Sample_Response,
+		Profiler::MaliProfiler::Counters_t		counters;
+	)
+//-----------------------------------------------------------------------------
+
+
 	DECL_MSG( ProfAdreno_Initialize,
 		Profiler::AdrenoProfiler::ECounterSet	required;
 	)
 
 	DECL_RESP( ProfAdreno_Initialize_Response,
 		bool									ok;
-		Profiler::AdrenoProfiler::ECounterSet	supported;
 		Profiler::AdrenoProfiler::ECounterSet	enabled;
+		Profiler::AdrenoProfiler::HWInfo		info;
 	)
 
 	DECL_MSG( ProfAdreno_Sample )
@@ -913,15 +933,37 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_RESP( ProfPVR_Initialize_Response,
 		bool									ok;
-		Profiler::PowerVRProfiler::ECounterSet	supported;
 		Profiler::PowerVRProfiler::ECounterSet	enabled;
 	)
 
 	DECL_MSG( ProfPVR_Tick )
+
+	DECL_RESP( ProfPVR_Tick_Response,
+		Profiler::PowerVRProfiler::TimeScopeArr_t	timings;
+	)
+
 	DECL_MSG( ProfPVR_Sample )
 
 	DECL_RESP( ProfPVR_Sample_Response,
 		Profiler::PowerVRProfiler::Counters_t	counters;
+	)
+//-----------------------------------------------------------------------------
+
+
+	DECL_MSG( ProfNVidia_Initialize,
+		Profiler::NVidiaProfiler::ECounterSet	required;
+	)
+
+	DECL_RESP( ProfNVidia_Initialize_Response,
+		bool									ok;
+		Profiler::NVidiaProfiler::ECounterSet	enabled;
+	//	Profiler::NVidiaProfiler::HWInfo		info;
+	)
+
+	DECL_MSG( ProfNVidia_Sample )
+
+	DECL_RESP( ProfNVidia_Sample_Response,
+		Profiler::NVidiaProfiler::Counters_t	counters;
 	)
 //-----------------------------------------------------------------------------
 
@@ -1040,7 +1082,6 @@ namespace AE::RemoteGraphics::Msg
 		Bytes						memOffsetAlign;
 		FrameUID					frameId;
 		EStagingHeapType			heap;
-		EQueueType					queue;
 		bool						upload;
 	)
 
@@ -1063,7 +1104,6 @@ namespace AE::RemoteGraphics::Msg
 		ImageDesc					imageDesc;
 		uint3						imageGranularity;
 		FrameUID					frameId;
-		EQueueType					queue;
 		bool						upload;
 	)
 
@@ -1072,7 +1112,6 @@ namespace AE::RemoteGraphics::Msg
 		VideoImageDesc				videoDesc;
 		uint3						imageGranularity;
 		FrameUID					frameId;
-		EQueueType					queue;
 		bool						upload;
 	)
 

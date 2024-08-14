@@ -57,8 +57,8 @@ namespace AE::Java
 			void  ExceptionClear ()						C_NE___;
 		ND_ bool  HasException ()						C_NE___;
 
-		ND_ JNIEnv*  Env ()								C_NE___	{ ASSERT( _env );  return _env; }
-		ND_ JNIEnv*  operator -> ()						C_NE___	{ ASSERT( _env );  return _env; }
+		ND_ JNIEnv*  Env ()								C_NE___	{ NonNull( _env );  return _env; }
+		ND_ JNIEnv*  operator -> ()						C_NE___	{ NonNull( _env );  return _env; }
 
 			static void  SetVM (JavaVM* ptr)			__NE___;
 	};
@@ -744,7 +744,7 @@ namespace AE::Java
 	template <typename Ret, typename ...Args>
 	bool  JavaClass::RegisterStaticMethod (NtStringView name, Ret (JNICALL *fn)(JNIEnv*, jclass, Args...)) C_NE___
 	{
-		CHECK_ERR( _class );
+		CHECK_ERR( _class != null );
 
 		JavaEnv	je;
 		Java::_hidden_::JavaMethodSignature<Ret (Args...)> sig;
@@ -767,7 +767,7 @@ namespace AE::Java
 	template <typename Ret, typename ...Args>
 	bool  JavaClass::RegisterMethod (NtStringView name, Ret (JNICALL *fn)(JNIEnv*, jobject, Args...)) C_NE___
 	{
-		CHECK_ERR( _class );
+		CHECK_ERR( _class != null );
 
 		JavaEnv	je;
 		Java::_hidden_::JavaMethodSignature<Ret (Args...)> sig;
@@ -797,7 +797,7 @@ namespace AE::Java
 	template <typename Fn>
 	bool  JavaClass::StaticMethod (NtStringView name, OUT JavaStaticMethod<Fn> &m) C_NE___
 	{
-		CHECK_ERR( _class );
+		CHECK_ERR( _class != null );
 
 		JavaEnv	je;
 		Java::_hidden_::JavaMethodSignature<Fn> sig;
@@ -878,7 +878,7 @@ namespace AE::Java
 	template <typename Fn>
 	bool  JavaObj::Method (NtStringView name, OUT JavaMethod<Fn> &m) C_NE___
 	{
-		CHECK_ERR( _obj );
+		CHECK_ERR( _obj != null );
 
 		JavaEnv	je;
 		Java::_hidden_::JavaMethodSignature<Fn> sig;
@@ -1093,7 +1093,7 @@ namespace AE::Java
 	template <typename ...ArgTypes>
 	Java::_hidden_::JavaMethodResult<Ret>  JavaStaticMethod< Ret (Args...) >::operator () (const ArgTypes&... args) C_NE___
 	{
-		ASSERT( _method );
+        NonNull( _method );
 		return Java::_hidden_::JavaMethodCaller<Ret>::CallStatic( _class, _method, Java::_hidden_::TypeToJava(args)... );
 	}
 
@@ -1101,7 +1101,7 @@ namespace AE::Java
 	template <typename ...ArgTypes>
 	Java::_hidden_::JavaMethodResult<Ret>  JavaMethod< Ret (Args...) >::operator () (const ArgTypes&... args) C_NE___
 	{
-		ASSERT( _method );
+        NonNull( _method );
 		return Java::_hidden_::JavaMethodCaller<Ret>::Call( _obj, _method, Java::_hidden_::TypeToJava(args)... );
 	}
 

@@ -17,7 +17,7 @@ Samsung monitor with VA matrix with a brightness of 1000 nit (cd/m^2^). Surface 
 
 * An analog of ACES tonemapping is used, so blue turns into pink, and only then into white.
 
-![](ru/img/HDR-monitor.jpg)
+![](img/HDR-monitor.jpg)
 
 
 ## Smartphone
@@ -27,7 +27,7 @@ ASUS smartphone with AMOLED screen with a brightness of 800 nit. Surface with `R
 * Color value range 0..100 on monitor is approximately the same as range 0..24 on the smartphone.
 * Smartphone uses much simpler tonemapping which doesn't change the blue color.
 
-![](ru/img/HDR-smartphone.jpg)
+![](img/HDR-smartphone.jpg)
 
 
 ## Surface format in Engine

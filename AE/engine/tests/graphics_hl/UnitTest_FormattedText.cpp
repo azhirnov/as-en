@@ -8,47 +8,47 @@ namespace
 	{
 		FormattedText	text1{ "123456789" };
 
-		TEST( text1.GetFirst() );
+		TEST( text1.GetFirst() != null );
 		TEST( text1.GetFirst()->length == sizeof("123456789")-1 );
 		TEST( MemEqual( text1.GetFirst()->string, "123456789", Sizeof("123456789") ));
 
 
 		FormattedText	text2{ "[b]12[/b]3456789" };
 
-		TEST( text2.GetFirst() );
+		TEST( text2.GetFirst() != null );
 		TEST( text2.GetFirst()->length == sizeof("12")-1 );
-		TEST( text2.GetFirst()->bold );
+		TEST( text2.GetFirst()->bold != 0 );
 		TEST( MemEqual( text2.GetFirst()->string, "12", Sizeof("12") ));
 
-		TEST( text2.GetFirst()->next );
+		TEST( text2.GetFirst()->next != null );
 		TEST( text2.GetFirst()->next->length == sizeof("3456789")-1 );
-		TEST( not text2.GetFirst()->next->bold );
+		TEST( text2.GetFirst()->next->bold == 0 );
 		TEST( MemEqual( text2.GetFirst()->next->string, "3456789", Sizeof("3456789") ));
 
 
 		FormattedText	text3{ "12[i]3456789[/i]" };
 
-		TEST( text3.GetFirst() );
+		TEST( text3.GetFirst() != null );
 		TEST( text3.GetFirst()->length == sizeof("12")-1 );
-		TEST( not text3.GetFirst()->italic );
+		TEST( text3.GetFirst()->italic == 0 );
 		TEST( MemEqual( text3.GetFirst()->string, "12", Sizeof("12") ));
 
-		TEST( text3.GetFirst()->next );
+		TEST( text3.GetFirst()->next != null );
 		TEST( text3.GetFirst()->next->length == sizeof("3456789")-1 );
-		TEST( text3.GetFirst()->next->italic );
+		TEST( text3.GetFirst()->next->italic != 0 );
 		TEST( MemEqual( text3.GetFirst()->next->string, "3456789", Sizeof("3456789") ));
 
 
 		FormattedText	text4{ "12[i]3456789" };
 
-		TEST( text4.GetFirst() );
+		TEST( text4.GetFirst() != null );
 		TEST( text4.GetFirst()->length == sizeof("12")-1 );
-		TEST( not text4.GetFirst()->italic );
+		TEST( text4.GetFirst()->italic == 0 );
 		TEST( MemEqual( text4.GetFirst()->string, "12", Sizeof("12") ));
 
-		TEST( text4.GetFirst()->next );
+		TEST( text4.GetFirst()->next != null );
 		TEST( text4.GetFirst()->next->length == sizeof("3456789")-1 );
-		TEST( text4.GetFirst()->next->italic );
+		TEST( text4.GetFirst()->next->italic != 0 );
 		TEST( MemEqual( text4.GetFirst()->next->string, "3456789", Sizeof("3456789") ));
 	}
 
@@ -57,64 +57,64 @@ namespace
 	{
 		FormattedText	text1{ "[b]1[i]23[/i]4567[/b]89" };
 
-		TEST( text1.GetFirst() );
+		TEST( text1.GetFirst() != null );
 		TEST( text1.GetFirst()->length == sizeof("1")-1 );
-		TEST( text1.GetFirst()->bold );
-		TEST( not text1.GetFirst()->italic );
+		TEST( text1.GetFirst()->bold != 0 );
+		TEST( text1.GetFirst()->italic == 0 );
 		TEST( MemEqual( text1.GetFirst()->string, "1", Sizeof("1") ));
 
-		TEST( text1.GetFirst()->next );
+		TEST( text1.GetFirst()->next != null );
 		TEST( text1.GetFirst()->next->length == sizeof("23")-1 );
-		TEST( text1.GetFirst()->next->bold );
-		TEST( text1.GetFirst()->next->italic );
+		TEST( text1.GetFirst()->next->bold != 0 );
+		TEST( text1.GetFirst()->next->italic != 0 );
 		TEST( MemEqual( text1.GetFirst()->next->string, "23", Sizeof("23") ));
 
-		TEST( text1.GetFirst()->next->next );
+		TEST( text1.GetFirst()->next->next != null );
 		TEST( text1.GetFirst()->next->next->length == sizeof("4567")-1 );
-		TEST( text1.GetFirst()->next->next->bold );
-		TEST( not text1.GetFirst()->next->next->italic );
+		TEST( text1.GetFirst()->next->next->bold != 0 );
+		TEST( text1.GetFirst()->next->next->italic == 0 );
 		TEST( MemEqual( text1.GetFirst()->next->next->string, "4567", Sizeof("4567") ));
 
-		TEST( text1.GetFirst()->next->next->next );
+		TEST( text1.GetFirst()->next->next->next != null );
 		TEST( text1.GetFirst()->next->next->next->length == sizeof("89")-1 );
-		TEST( not text1.GetFirst()->next->next->next->bold );
-		TEST( not text1.GetFirst()->next->next->next->italic );
+		TEST( text1.GetFirst()->next->next->next->bold == 0 );
+		TEST( text1.GetFirst()->next->next->next->italic == 0 );
 		TEST( MemEqual( text1.GetFirst()->next->next->next->string, "89", Sizeof("89") ));
 
 
 		FormattedText	text2{ "[b]1[i]23[/j]4567[/b]89" };
 
-		TEST( text2.GetFirst() );
+		TEST( text2.GetFirst() != null );
 		TEST( text2.GetFirst()->length == 1 );
-		TEST( text2.GetFirst()->bold );
-		TEST( not text2.GetFirst()->italic );
+		TEST( text2.GetFirst()->bold != 0 );
+		TEST( text2.GetFirst()->italic == 0 );
 		TEST( MemEqual( text2.GetFirst()->string, "1", Sizeof("1") ));
 
-		TEST( text2.GetFirst()->next );
+		TEST( text2.GetFirst()->next != null );
 		TEST( text2.GetFirst()->next->length == sizeof("23[/j]4567[/b]89")-1 );
-		TEST( text2.GetFirst()->next->bold );
-		TEST( text2.GetFirst()->next->italic );
+		TEST( text2.GetFirst()->next->bold != 0 );
+		TEST( text2.GetFirst()->next->italic != 0 );
 		TEST( MemEqual( text2.GetFirst()->next->string, "23[/j]4567[/b]89", Sizeof("23[/j]4567[/b]89") ));
 
 
 		FormattedText	text3{ "[b]1[i]23[/i][/b]456789" };
 
-		TEST( text3.GetFirst() );
+		TEST( text3.GetFirst() != null );
 		TEST( text3.GetFirst()->length == 1 );
-		TEST( text3.GetFirst()->bold );
-		TEST( not text3.GetFirst()->italic );
+		TEST( text3.GetFirst()->bold != 0 );
+		TEST( text3.GetFirst()->italic == 0 );
 		TEST( MemEqual( text3.GetFirst()->string, "1", Sizeof("1") ));
 
-		TEST( text3.GetFirst()->next );
+		TEST( text3.GetFirst()->next != null );
 		TEST( text3.GetFirst()->next->length == sizeof("23")-1 );
-		TEST( text3.GetFirst()->next->bold );
-		TEST( text3.GetFirst()->next->italic );
+		TEST( text3.GetFirst()->next->bold != 0 );
+		TEST( text3.GetFirst()->next->italic != 0 );
 		TEST( MemEqual( text3.GetFirst()->next->string, "23", Sizeof("23") ));
 
-		TEST( text3.GetFirst()->next->next );
+		TEST( text3.GetFirst()->next->next != null );
 		TEST( text3.GetFirst()->next->next->length == sizeof("456789")-1 );
-		TEST( not text3.GetFirst()->next->next->bold );
-		TEST( not text3.GetFirst()->next->next->italic );
+		TEST( text3.GetFirst()->next->next->bold == 0 );
+		TEST( text3.GetFirst()->next->next->italic == 0 );
 		TEST( MemEqual( text3.GetFirst()->next->next->string, "456789", Sizeof("456789") ));
 	}
 
@@ -123,13 +123,13 @@ namespace
 	{
 		FormattedText	text1{ "[style size=10 color=#11223344]abcde[/style]11" };
 
-		TEST( text1.GetFirst() );
+		TEST( text1.GetFirst() != null );
 		TEST( text1.GetFirst()->length == sizeof("abcde")-1 );
 		TEST(( text1.GetFirst()->color == RGBA8u{0x11, 0x22, 0x33, 0x44} ));
 		TEST( text1.GetFirst()->height == 10 );
 		TEST( MemEqual( text1.GetFirst()->string, "abcde", Sizeof("abcde") ));
 
-		TEST( text1.GetFirst()->next );
+		TEST( text1.GetFirst()->next != null );
 		TEST( text1.GetFirst()->next->length == sizeof("11")-1 );
 		TEST(( text1.GetFirst()->next->color == HtmlColor::White ));
 		TEST( text1.GetFirst()->next->height == 16 );

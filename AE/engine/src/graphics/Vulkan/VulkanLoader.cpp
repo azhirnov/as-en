@@ -75,7 +75,7 @@ namespace {
 			Unused( lib.module.Load( NtStringView{ "vulkan-1.dll" }));
 
 		if ( not lib.module )
-			Unused( lib.module.Load( FileSystem::GetWindowsPath() / "System32" / "vulkan-1.dll" ));
+			Unused( lib.module.Load( FileSystem::GetWindowsPath() / "System32/vulkan-1.dll" ));
 
 		// software emulation
 		if ( not lib.module )
@@ -83,6 +83,9 @@ namespace {
 
 
 	#elif defined(AE_PLATFORM_APPLE)
+		if ( not lib.module )
+			Unused( lib.module.Load( NtStringView{ "libvulkan.1.dylib" }));
+
 		if ( not lib.module )
 			Unused( lib.module.Load( NtStringView{ "/usr/local/lib/libvulkan.1.dylib" }));
 

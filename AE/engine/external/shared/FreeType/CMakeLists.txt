@@ -4,6 +4,11 @@
 
 set( FREETYPE_PATH "${AE_DST_PATH}/FreeType" )
 
+if (NOT EXISTS "${FREETYPE_PATH}/lib")
+	message( FATAL_ERROR "'${FREETYPE_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "FreeType-lib" INTERFACE )
 target_include_directories( "FreeType-lib" INTERFACE "${FREETYPE_PATH}/include/freetype2" )
 target_compile_definitions( "FreeType-lib" INTERFACE "AE_ENABLE_FREETYPE" "AE_LICENSE_BSD" )
@@ -21,6 +26,7 @@ else()
 	set_property( TARGET "FreeType-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${FREETYPE_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}freetype${CMAKE_STATIC_LIBRARY_SUFFIX}" )
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	if (ANDROID)

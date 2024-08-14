@@ -32,6 +32,23 @@ namespace AE::Graphics
 
 		using PipelineInfo_t = ArrayView< Tuple< EPixelFormat, RenderTechPassName, PipelineName >>;
 
+		struct StyleScope : Noncopyable
+		{
+		protected:
+			ImGuiContext*	_imguiCtx;
+			const int		_stackSize;
+
+		public:
+			explicit StyleScope (ImGuiContext* ctx)	__NE___;
+			~StyleScope ()							__NE___;
+		};
+
+		struct AEStyleScope : StyleScope
+		{
+		public:
+			explicit AEStyleScope (ImGuiContext* ctx, Bool sRGB = True{})	__NE___;
+		};
+
 	private:
 		struct PipelineSet
 		{

@@ -174,10 +174,6 @@ bool  RGTest::Run (FStorage_t assetStorage, FStorage_t refStorage)
 */
 void  RGTest::_Destroy ()
 {
-  #ifdef AE_ENABLE_VULKAN
-	_syncLog.Deinitialize( INOUT _device.EditDeviceFnTable() );
-  #endif
-
 	_pipelines		= null;
 	_dbgPipelines	= null;
 	_acPipelines	= null;
@@ -188,6 +184,10 @@ void  RGTest::_Destroy ()
 	_ycbcrPipelines	= null;
 
 	RenderTaskScheduler::InstanceCtor::Destroy();
+
+  #ifdef AE_ENABLE_VULKAN
+	_syncLog.Deinitialize( INOUT _device.EditDeviceFnTable() );
+  #endif
 
 	CHECK( _device.DestroyLogicalDevice() );
 	CHECK( _device.DestroyInstance() );
@@ -241,8 +241,8 @@ GraphicsCreateInfo  RGTest::_GetGraphicsCreateInfo ()
 {
 	GraphicsCreateInfo	info;
 	info.maxFrames		= 2;
-	info.staging.readStaticSize .fill( 2_Mb );
-	info.staging.writeStaticSize.fill( 2_Mb );
+	info.staging.readStaticSize		= 2_Mb;
+	info.staging.writeStaticSize	= 2_Mb;
 
 	info.swapchain.colorFormat	= EPixelFormat::RGBA8_UNorm;
 
@@ -529,9 +529,7 @@ bool  RGTest::_Create (FStorage_t refStorage)
 	info.swapchain.presentMode	= EPresentMode::FIFO;
 	info.swapchain.minImageCount= 2;
 
-//	info.deviceAddr				= Networking::IpAddress::FromInt( 192,168,0,105, 0 );	// APC
-//	info.deviceAddr				= Networking::IpAddress::FromInt( 192,168,0,102, 0 );	// MacMini
-	info.deviceAddr				= Networking::IpAddress::FromInt( 192,168,0,100, 0 );	// Mobile
+	info.deviceAddr				= Networking::IpAddress::FromInt( 192,168,0,0, 0 );	// TODO: set RemoveDevice IP address
 
 	info.enableSyncLog			= true;
 

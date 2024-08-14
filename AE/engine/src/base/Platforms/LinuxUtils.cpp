@@ -160,6 +160,28 @@ namespace AE::Base
 		return Version3{};
 	}
 
+/*
+=================================================
+	ClipboardExtract
+=================================================
+*/
+	bool  LinuxUtils::ClipboardExtract (OUT String &result, void* disp, void* wnd) __NE___
+	{
+		// TODO: https://stackoverflow.com/questions/27378318/c-get-string-from-clipboard-on-linux
+		return false;
+	}
+
+/*
+=================================================
+	ClipboardPut
+=================================================
+*/
+	bool  LinuxUtils::ClipboardPut (StringView str, void* disp, void* wnd) __NE___
+	{
+		// TODO
+		return false;
+	}
+
 
 } // AE::Base
 

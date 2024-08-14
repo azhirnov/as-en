@@ -19,7 +19,7 @@ namespace AE::Graphics::_hidden_
 	{
 		GCTX_CHECK( _batch->GetQueueType() == GetQueueType() );
 		GCTX_CHECK( _primaryState.IsValid() );
-		GCTX_CHECK( _primaryState.useSecondaryCmdbuf );
+		GCTX_CHECK( _primaryState.useSecondaryCmdbuf != 0 );
 	}
 
 	RDrawBarrierManager::RDrawBarrierManager (const RPrimaryCmdBufState &primaryState) __NE___ :

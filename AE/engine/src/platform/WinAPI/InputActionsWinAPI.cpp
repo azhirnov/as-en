@@ -359,7 +359,7 @@ namespace
 			case WM_XBUTTONUP :
 			{
 				_UpdateKey( GET_XBUTTON_WPARAM( wParam ) == XBUTTON1 ? EInputType::MouseBtn3 : EInputType::MouseBtn4,
-						    (uMsg == WM_XBUTTONDOWN ? EGestureState::Begin : EGestureState::End) );
+							(uMsg == WM_XBUTTONDOWN ? EGestureState::Begin : EGestureState::End) );
 				return true;
 			}
 		  #endif

@@ -24,15 +24,18 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RPipelineCache ()													__NE___	{}
-		~RPipelineCache ()													__NE___;
+		RPipelineCache ()																	__NE___	{}
+		~RPipelineCache ()																	__NE___;
 
-		ND_ bool  Create (const RResourceManager &, StringView dbgName)		__NE___;
-			void  Destroy (const RResourceManager &)						__NE___;
+		ND_ bool  Create (const RResourceManager&, StringView dbgName)						__NE___;
+		ND_ bool  Create (const RResourceManager&, StringView dbgName, RC<RStream> stream)	__NE___;
+			void  Destroy (const RResourceManager &)										__NE___;
 
-		ND_ RmPipelineCacheID	Handle ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _cacheId; }
+		ND_ bool  GetData (const RDevice &, OUT Array<char> &data)							C_NE___;
 
-		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		ND_ RmPipelineCacheID	Handle ()													C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _cacheId; }
+
+		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()										C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

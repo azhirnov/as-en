@@ -1,9 +1,10 @@
 
-* [HDR Display](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/HDR_Display.md)
+* [HDR Display](papers/HDR_Display.md)
 
 ## rus
 
-* [HDR дисплеи](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/HDR_Display-ru.md)
-* [Асинхронное программирование](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/AsyncProgramming-ru.md)
-* [Заметки по архитектуре](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/ArchitectureNotes-ru.md)
-* [Сферический куб](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/SphericalCube-ru.md)
+* [HDR дисплеи](papers/HDR_Display-ru.md)
+* [Заметки по программированию графики](papers/GraphicsNotes-ru.md)
+* [Асинхронное программирование](papers/AsyncProgramming-ru.md)
+* [Заметки по архитектуре](papers/ArchitectureNotes-ru.md)
+* [Сферический куб](papers/SphericalCube-ru.md)

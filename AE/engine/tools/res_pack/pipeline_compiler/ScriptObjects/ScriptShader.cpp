@@ -95,7 +95,7 @@ namespace
 		switch_end
 
 		ObjectStorage::Instance()->AddName<SpecializationName>( name );
-		CHECK_THROW_MSG( _spec.size() < _spec.capacity() );
+		CHECK_THROW_MSG( not _spec.IsFull() );
 
 		_spec.emplace( SpecializationName{name}, SpecInfo{ valType, _specId });
 		_specConst.emplace( SpecializationName{name}, _specId );
@@ -853,7 +853,7 @@ namespace
 		binder.AddMethod( &ScriptShader::AddSpec,					"AddSpec",					{"valueType", "name"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
-						"Format: MACROS = value; DEF" );
+						"Format: MACROS = value \\n DEF \\n ..." );
 		binder.AddMethod( &ScriptShader::Define,					"Define",					{} );
 
 		binder.Comment( "Load shader source from current file." );

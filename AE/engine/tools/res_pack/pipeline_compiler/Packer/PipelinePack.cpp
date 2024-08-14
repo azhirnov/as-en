@@ -1491,7 +1491,7 @@ namespace {
 		}
 		data2Size = file->Position();
 
-		CHECK( GetDataSize() <= MaxBytecodeSize );
+		CHECK_LE( GetDataSize(), MaxBytecodeSize );
 	}
 
 /*
@@ -2014,8 +2014,13 @@ namespace {
 
 		offsets.fill( UMax );
 		CHECK_ERR( stream.Position() == 0_b );
-		CHECK_ERR( stream.Write( PipelinePack_Name ));
-		CHECK_ERR( stream.Write( PipelinePack_Version ));
+		{
+			DefaultPackHeader	hdr;
+			hdr.name	= PipelinePack_Name;
+			hdr.ver		= PipelinePack_Version;
+			hdr.license	= 0;	// TODO
+			CHECK_ERR( stream.Write( hdr ));
+		}
 
 		offsetsPosInStream = stream.Position();
 		CHECK_ERR( stream.Write( offsets ));	// placeholder

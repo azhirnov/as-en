@@ -144,7 +144,7 @@ namespace
 		binder.AddFactoryCtor( &ComputePipelineScriptBinding_Ctor,	{"name"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
-						"Format: MACROS = value; DEF" );
+						"Format: MACROS = value \\n DEF \\n ..." );
 		binder.AddMethod( &ComputePipelineScriptBinding::Define,			"Define",				{} );
 
 		binder.Comment( "Set compute shader.\n"

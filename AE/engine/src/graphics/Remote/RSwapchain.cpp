@@ -292,7 +292,8 @@ namespace AE::Graphics
 	{
 		EXLOCK( _guard );
 
-		CHECK_ERRV( _device != null, "surface is not created" );
+		if ( _device == null )
+			RETURN_ERRV( "surface is not created" );
 
 		Msg::Swapchain_Destroy	msg;
 		CHECK( _device->Send( msg ));

@@ -319,7 +319,7 @@ namespace AE::Base
 	{
 		ASSERT( IsOpen() );
 
-		if ( (ptr >= _data.data() + _pos) and (ptr <= _data.data() + _data.size()) )
+		if ( (ptr >= _data.data()) and (ptr <= _data.data() + _data.size()) )
 		{
 			_pos = Bytes{ptr} - Bytes{_data.data()};
 			_Flush();

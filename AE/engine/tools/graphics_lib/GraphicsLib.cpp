@@ -27,6 +27,8 @@ namespace
 
 	using CtxAlloc_t = LinearAllocator<>;
 
+	static const EThreadArray	c_ThreadArr { ETaskQueue::Renderer, ETaskQueue::PerFrame };
+
 
 
 	//
@@ -129,17 +131,17 @@ namespace
 		void  UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)			__Th_OV	{ _ctx.UploadImage( image, desc, OUT memView ); }
 		void  UploadImage (VideoImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)		__Th_OV	{ _ctx.UploadImage( image, desc, OUT memView ); }
 
-		ReadbackBufferResult  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)				__Th_OV	{ Unused( buffer, desc );  return Default; }
-		ReadbackImageResult   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)					__Th_OV	{ Unused( image, desc );  return Default; }
-		ReadbackImageResult   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)				__Th_OV	{ Unused( image, desc );  return Default; }
+		ReadbackBufferResult2	ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)			__Th_OV	{ Unused( buffer, desc );  return Default; }
+		ReadbackImageResult2	ReadbackImage (ImageID image, const ReadbackImageDesc &desc)				__Th_OV	{ Unused( image, desc );  return Default; }
+		ReadbackImageResult2	ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)			__Th_OV	{ Unused( image, desc );  return Default; }
 
 		void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView)							__Th_OV	{ _ctx.UploadBuffer( INOUT stream, OUT memView ); }
 		void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)							__Th_OV	{ _ctx.UploadImage( INOUT stream, OUT memView ); }
 		void  UploadImage (INOUT VideoImageStream &stream, OUT ImageMemView &memView)						__Th_OV	{ _ctx.UploadImage( INOUT stream, OUT memView ); }
 
-		Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)									__Th_OV	{ Unused( stream );  return Default; }
-		Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)									__Th_OV	{ Unused( stream );  return Default; }
-		Promise<ImageMemView>   ReadbackImage (INOUT VideoImageStream &stream)								__Th_OV	{ Unused( stream );  return Default; }
+		ReadbackBufferResult	ReadbackBuffer (INOUT BufferStream &stream)									__Th_OV	{ Unused( stream );  return Default; }
+		ReadbackImageResult		ReadbackImage (INOUT ImageStream &stream)									__Th_OV	{ Unused( stream );  return Default; }
+		ReadbackImageResult		ReadbackImage (INOUT VideoImageStream &stream)								__Th_OV	{ Unused( stream );  return Default; }
 
 		bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)				__Th_OV	{ return _ctx.UpdateHostBuffer( buffer, offset, size, data ); }
 		VULKAN_ONLY(
@@ -341,7 +343,8 @@ namespace
 		Strong<VideoBufferID>		CreateVideoBuffer  (const VideoBufferDesc  &desc, StringView dbgName, GfxMemAllocatorPtr allocator)	__NE_OV	{ return _rm->CreateVideoBuffer( desc, dbgName, RVRef(allocator) ); }
 		Strong<VideoImageID>		CreateVideoImage   (const VideoImageDesc   &desc, StringView dbgName, GfxMemAllocatorPtr allocator)	__NE_OV	{ return _rm->CreateVideoImage( desc, dbgName, RVRef(allocator) ); }
 
-		Strong<PipelineCacheID>		CreatePipelineCache ()												__NE_OV	{ return _rm->CreatePipelineCache(); }
+		Strong<PipelineCacheID>		CreatePipelineCache (RC<RStream> data, StringView dbgName)			__NE_OV	{ return _rm->CreatePipelineCache( RVRef(data), dbgName ); }
+		bool						SerializePipelineCache (PipelineCacheID id, RC<WStream> dst)		C_NE_OV	{ return _rm->SerializePipelineCache( id, RVRef(dst) ); }
 
 		bool						InitializeResources (Strong<PipelinePackID> defaultPackId)			__NE_OV	{ return _rm->InitializeResources( RVRef(defaultPackId) ); }
 		Strong<PipelinePackID>		LoadPipelinePack (const PipelinePackDesc &desc)						__NE_OV	{ return _rm->LoadPipelinePack( desc ); }
@@ -644,9 +647,12 @@ namespace
 		}
 		if ( engineVersion != Default )
 		{
-			CHECK_ERR( uint(engineVersion.major) == uint(AE_VERSION.Get<0>()) );
-			CHECK_ERR( uint(engineVersion.minor) == uint(AE_VERSION.Get<1>()) );
-			CHECK_ERR( uint(engineVersion.patch) == uint(AE_VERSION.Get<2>()) );
+			CHECK_MSG( engineVersion == Version3( AE_VERSION.Get<0>(), AE_VERSION.Get<1>(), AE_VERSION.Get<2>() ),
+				"Engine version mismatch, GraphicsLib ("s << ToString(Version3{ AE_VERSION.Get<0>(), AE_VERSION.Get<1>(), AE_VERSION.Get<2>() }) <<
+				"), client (" << ToString(engineVersion) << ")" );
+			//CHECK_ERR( uint(engineVersion.major) == uint(AE_VERSION.Get<0>()) );
+			//CHECK_ERR( uint(engineVersion.minor) == uint(AE_VERSION.Get<1>()) );
+			//CHECK_ERR( uint(engineVersion.patch) == uint(AE_VERSION.Get<2>()) );
 		}
 		CHECK_ERR( not _device.IsInitialized() );
 
@@ -691,6 +697,9 @@ namespace
 */
 	void  GraphicsLibImpl::Destroy () __NE___
 	{
+		for (; Scheduler().ProcessTasks( c_ThreadArr, EThreadSeed(0) );)
+		{}
+
 		_swapchain.Destroy();
 		_swapchain.DestroySurface();
 
@@ -799,7 +808,7 @@ namespace
 	{
 		auto&	rts = GraphicsScheduler();
 
-		CHECK_ERR( rts.WaitNextFrame( EThreadArray{ ETaskQueue::Renderer }, _timeout ));
+		CHECK_ERR( rts.WaitNextFrame( c_ThreadArr, _timeout ));
 		CHECK_ERR( rts.BeginFrame() );
 
 		_cmdBatch = rts.BeginCmdBatch( EQueueType::Graphics, 0 );
@@ -910,7 +919,7 @@ namespace
 
 		auto&	rts = GraphicsScheduler();
 		auto	end = rts.EndFrame( Tuple{_rtask} );
-		CHECK_ERR( Scheduler().Wait( {end}, EThreadArray{ETaskQueue::Renderer}, _timeout ));
+		CHECK_ERR( Scheduler().Wait( {end}, c_ThreadArr, _timeout ));
 		CHECK_ERR( end->IsCompleted() );
 
 		_rtask		= null;

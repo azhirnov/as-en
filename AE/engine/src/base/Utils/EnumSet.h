@@ -552,13 +552,13 @@ namespace AE::Base
 	{
 		if constexpr( _ArraySize == 1 )
 		{
-			const Elem_t	bits = (_bits[0] & _LastElemMask) & ~ToBitMask<Elem_t>( Elem_t(value) + 1 );
+			const Elem_t	bits = (_bits[0] & _LastElemMask) & ~ToBitMask<Elem_t>( uint(value) + 1 );
 			return bits != 0 ? E(BitScanForward( bits )) : E::_Count;
 		}
 		else
 		{
-			const uint		first	= uint(Elem_t(value) / _ElemSize);
-			const Elem_t	mask	= ~ToBitMask<Elem_t>( Elem_t(value) + 1 );
+			const uint		first	= uint(value) / _ElemSize;
+			const Elem_t	mask	= ~ToBitMask<Elem_t>( uint(value) % _ElemSize + 1 );
 
 			for (uint i = first; i < _ArraySize - 1; ++i)
 			{
@@ -594,10 +594,10 @@ namespace AE::Base
 	}
 //-----------------------------------------------------------------------------
 
-	template <typename E> struct TMemCopyAvailable< EnumSet<E> >		{ static constexpr bool  value = true; };
-	template <typename E> struct TZeroMemAvailable< EnumSet<E> >		{ static constexpr bool  value = true; };
-	template <typename E> struct TTriviallySerializable< EnumSet<E> >{ static constexpr bool  value = true; };
-	template <typename E> struct TTriviallyDestructible< EnumSet<E> >{ static constexpr bool  value = true; };
+	template <typename E> struct TMemCopyAvailable< EnumSet<E> >		: CT_True {};
+	template <typename E> struct TZeroMemAvailable< EnumSet<E> >		: CT_True {};
+	template <typename E> struct TTriviallySerializable< EnumSet<E> >	: CT_True {};
+	template <typename E> struct TTriviallyDestructible< EnumSet<E> >	: CT_True {};
 
 } // AE::Base
 

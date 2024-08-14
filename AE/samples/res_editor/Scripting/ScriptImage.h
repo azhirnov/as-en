@@ -85,6 +85,7 @@ namespace AE::ResEditor
 		ND_ ImageDesc			Description ()										C_NE___;
 		ND_ ImageViewDesc		ViewDescription ()									C_NE___	{ return _viewDesc; }
 		ND_ uint				ImageType ()										C_NE___	{ return _imageType; }
+		ND_ EPixelFormat		PixelFormat ()										C_NE___	{ return _viewDesc.format == Default ? _desc.format : _viewDesc.format; }
 
 		ND_ bool				IsColor ()											C_NE___	{ return not IsDepthOrStencil(); }
 		ND_ bool				HasDepth ()											C_NE___;

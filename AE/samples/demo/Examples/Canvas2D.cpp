@@ -271,9 +271,7 @@ namespace AE::Samples::Demo
 		DirectCtx::Graphics		gfx_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 
 		gfx_ctx.AccumBarriers()
-			.MemoryBarrier( EResourceState::Host_Write, EResourceState::VertexBuffer )
-			.MemoryBarrier( EResourceState::Host_Write, EResourceState::IndexBuffer )
-			.MemoryBarrier( EResourceState::CopyDst,	EResourceState::UniformRead | EResourceState::PreRasterizationShaders | EResourceState::FragmentShader );
+			.MemoryBarrier( EResourceState::CopyDst, EResourceState::UniformRead | EResourceState::PreRasterizationShaders | EResourceState::FragmentShader );
 
 		auto&	canvas = *t->canvasPtr;
 		canvas.SetDimensions( rt );

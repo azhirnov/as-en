@@ -57,7 +57,7 @@ namespace _hidden_
 			ND_ bool		IsEmpty ()									C_NE___	{ return count == 0; }
 			ND_ bool		IsFull ()									C_NE___	{ return count >= capacity; }
 
-			ND_ explicit operator ArrayView<T> ()						C_NE___	{ return ArrayView<T>{ _data, count }; }
+			ND_ explicit operator ArrayView<T> ()						C_NE___	{ return ArrayView<T>{ std::addressof(_data), count }; }
 
 			ND_ constexpr static usize  CalcCapacity (Bytes size)		__NE___	{ return usize{(size - _HeaderSize) / sizeof(T)}; }
 
@@ -455,7 +455,7 @@ namespace _hidden_
 		if constexpr( std::is_trivially_constructible_v<T> )
 			return this->_data [this->count++];	// skip ctor
 		else
-			return *PlacementNew<T>( OUT &this->_data [this->count++] );
+			return *PlacementNew<T>( OUT std::addressof( this->_data [this->count++] ));
 	}
 
 	template <typename T>
@@ -466,13 +466,13 @@ namespace _hidden_
 		if constexpr( std::is_trivially_constructible_v<T> and CountOf<Types...>() == 0 )
 			return (this->_data [this->count++] = FwdArg<T0>(arg0));
 		else
-			return *PlacementNew<T>( OUT &this->_data [this->count++], FwdArg<T0>(arg0), FwdArg<Types>(args)... );
+			return *PlacementNew<T>( OUT std::addressof( this->_data[this->count++] ), FwdArg<T0>(arg0), FwdArg<Types>(args)... );
 	}
 //-----------------------------------------------------------------------------
 
 
-	template <typename T>	struct TMemCopyAvailable< ChunkList<T> >	{ static constexpr bool  value = true; };
-	template <typename T>	struct TZeroMemAvailable< ChunkList<T> >	{ static constexpr bool  value = true; };
+	template <typename T>	struct TMemCopyAvailable< ChunkList<T> >	: CT_True {};
+	template <typename T>	struct TZeroMemAvailable< ChunkList<T> >	: CT_True {};
 
 
 } // AE::Base

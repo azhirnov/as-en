@@ -57,7 +57,7 @@
 				UnifiedGeometry_Draw	cmd;
 				cmd.vertexCount		= 3;
 				cmd.firstInstance	= i;
-				cmd.PipelineHint( "Mtr-" + ToString(i%3+1) );
+				cmd.PipelineHint( "Mtr-" + ToString(i%3+1) + ".ZTest" );
 				geometry.Draw( cmd );
 			}
 
@@ -88,8 +88,12 @@
 			scenes.push_back( s );
 		}
 
-		RC<DynamicUInt>	mode = DynamicUInt( 0 );
-		Slider( mode,	"Mode",		0, scenes.size() );
+		RC<DynamicUInt>		mode		= DynamicUInt();
+		RC<DynamicUInt>		gen_depth	= DynamicUInt();
+		RC<DynamicUInt>		show_hi		= DynamicUInt();
+		Slider( mode,		"View",				0, scenes.size() );		// MDB, Mat0, Mat1, Mat2, MatID
+		Slider( gen_depth,	"GenDepth",			0, 1, 1 );
+		Slider( show_hi,	"ShowHelpInvoc",	0,	1 );
 
 		// render loop
 		{
@@ -100,6 +104,7 @@
 			pass.Slider( "iScale",	0.0f,	3.0f, 	1.22f );
 			pass.Slider( "iBias",	-1.f,	1.f,	0.f );
 			pass.Slider( "iQuads",	0,		2,		0 );	// FS always executed in quads 2x2, generate noise to match these quads to gen max performance
+			pass.EnableIfEqual( gen_depth, 1 );
 		}
 
 		for (uint i = 0; i < scenes.size(); ++i)
@@ -109,6 +114,7 @@
 			draw.Output( "out_Color", rt, RGBA32f(1.f) );
 			draw.Output( ds );
 			draw.EnableIfEqual( mode, i );
+			draw.Constant( "iShowHelpInvoc", show_hi );
 
 			// choose performance level
 		//	draw.AddPipelines( "samples/MaterialDepthBuffer-HiPerf" );	// [folder](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/MaterialDepthBuffer-HiPerf)

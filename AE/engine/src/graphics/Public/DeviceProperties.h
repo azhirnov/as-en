@@ -232,6 +232,6 @@ namespace AE::Graphics
 
 namespace AE::Base
 {
-	template <> struct TTriviallySerializable< Graphics::DeviceProperties >	{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< Graphics::DeviceMemoryInfo >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< Graphics::DeviceProperties >	: CT_True {};
+	template <> struct TTriviallySerializable< Graphics::DeviceMemoryInfo >	: CT_True {};
 }

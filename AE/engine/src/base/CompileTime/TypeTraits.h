@@ -4,14 +4,17 @@
 
 namespace AE::Base
 {
-namespace _hidden_
-{
-	template <typename T> struct _IsScalar		{ static constexpr bool  value = std::is_scalar_v<T>; };
-	template <typename T> struct _IsFloatPoint	{ static constexpr bool  value = std::is_floating_point_v<T>; };
-	template <typename T> struct _IsSigned		{ static constexpr bool  value = std::is_signed_v<T>; };
+	template <bool Value>
+	using CT_Bool	= std::bool_constant<Value>;
+	using CT_True	= std::bool_constant<true>;
+	using CT_False	= std::bool_constant<false>;
 
-} // _hidden_
-
+	namespace _hidden_
+	{
+		template <typename T> struct _IsScalar		: CT_Bool< std::is_scalar_v<T>			>{};
+		template <typename T> struct _IsFloatPoint	: CT_Bool< std::is_floating_point_v<T>	>{};
+		template <typename T> struct _IsSigned		: CT_Bool< std::is_signed_v<T>			>{};
+	}
 
 	template <typename T>
 	static constexpr bool	IsFloatPoint			= std::is_floating_point_v<T>;
@@ -136,109 +139,77 @@ namespace _hidden_
 
 #ifdef AE_ENABLE_EXCEPTIONS
 	template <typename T>
-	struct TNothrowCopyCtor {
-		StaticAssert( IsCopyConstructible<T> );
-		static constexpr bool	value = std::is_nothrow_copy_constructible_v<T>		or
-										std::is_trivially_copy_constructible_v<T>;
-	};
+	struct TNothrowCopyCtor : CT_Bool<
+								std::is_nothrow_copy_constructible_v<T>		or
+								std::is_trivially_copy_constructible_v<T>	>
+	{ StaticAssert( IsCopyConstructible<T> ); };
 
 	template <typename T>
-	struct TNothrowMoveCtor {
-		StaticAssert( IsMoveConstructible<T> );
-		static constexpr bool	value = std::is_nothrow_move_constructible_v<T>		or
-										std::is_trivially_move_constructible_v<T>;
-	};
+	struct TNothrowMoveCtor : CT_Bool<
+								std::is_nothrow_move_constructible_v<T>		or
+								std::is_trivially_move_constructible_v<T>	>
+	{ StaticAssert( IsMoveConstructible<T> ); };
 
 	template <typename T>
-	struct TNothrowDefaultCtor {
-		StaticAssert( IsDefaultConstructible<T> );
-		static constexpr bool	value = std::is_nothrow_default_constructible_v<T>	or
-										std::is_trivially_default_constructible_v<T>;
-	};
+	struct TNothrowDefaultCtor : CT_Bool<
+									std::is_nothrow_default_constructible_v<T>	or
+									std::is_trivially_default_constructible_v<T> >
+	{ StaticAssert( IsDefaultConstructible<T> ); };
 
 	template <typename T, typename ...Args>
-	struct TNothrowCtor {
-		StaticAssert( IsConstructible< T, Args... >);
-		static constexpr bool	value = std::is_nothrow_constructible_v< T, Args... >	or
-										std::is_trivially_constructible_v< T, Args... >;
-	};
+	struct TNothrowCtor : CT_Bool<
+							std::is_nothrow_constructible_v< T, Args... >	or
+							std::is_trivially_constructible_v< T, Args... >	>
+	{ StaticAssert( IsConstructible< T, Args... >); };
 
 	template <typename T>
-	struct TNothrowCopyAssignable {
-		static constexpr bool	value = std::is_nothrow_copy_assignable_v<T>	or
-										TNothrowCopyCtor<T>::value;		// if used dtor + ctor
-	};
+	struct TNothrowCopyAssignable : CT_Bool<
+										std::is_nothrow_copy_assignable_v<T>	or
+										TNothrowCopyCtor<T>::value				>{};	// if used dtor + ctor
 
 	template <typename T>
-	struct TNothrowMoveAssignable {
-		static constexpr bool	value = std::is_nothrow_move_assignable_v<T>	or
-										TNothrowMoveCtor<T>::value;		// if used dtor + move ctor
-	};
+	struct TNothrowMoveAssignable : CT_Bool<
+										std::is_nothrow_move_assignable_v<T>	or
+										TNothrowMoveCtor<T>::value				>{};	// if used dtor + move ctor
 
 	template <typename Fn, typename ...Args>
-	struct TNothrowInvocable
-	{
-		StaticAssert( std::is_invocable_v< Fn, Args... >);
-		static constexpr bool	value = std::is_nothrow_invocable_v< Fn, Args... >;
-	};
+	struct TNothrowInvocable : CT_Bool< std::is_nothrow_invocable_v< Fn, Args... >>
+	{ StaticAssert( std::is_invocable_v< Fn, Args... >); };
 
 	template <typename T>
-	struct TNothrowable {
-		static constexpr bool	value	= std::is_nothrow_move_constructible_v<T>		and
-										  std::is_nothrow_default_constructible_v<T>	and
-										  std::is_nothrow_copy_assignable_v<T>			and
-										  std::is_nothrow_copy_constructible_v<T>		and
-										  std::is_nothrow_destructible_v<T>				and
-										  std::is_nothrow_move_assignable_v<T>;
-	};
+	struct TNothrowable : CT_Bool<
+							std::is_nothrow_move_constructible_v<T>		and
+							std::is_nothrow_default_constructible_v<T>	and
+							std::is_nothrow_copy_assignable_v<T>		and
+							std::is_nothrow_copy_constructible_v<T>		and
+							std::is_nothrow_destructible_v<T>			and
+							std::is_nothrow_move_assignable_v<T>		>{};
 
 #else
 
 	template <typename T>
-	struct TNothrowCopyCtor {
-		StaticAssert( IsCopyConstructible<T> );
-		static constexpr bool	value = true;
-	};
+	struct TNothrowCopyCtor			: CT_True	{ StaticAssert( IsCopyConstructible<T> ); };
 
 	template <typename T>
-	struct TNothrowMoveCtor {
-		StaticAssert( std::is_move_constructible_v<T> );
-		static constexpr bool	value = true;
-	};
+	struct TNothrowMoveCtor			: CT_True	{ StaticAssert( std::is_move_constructible_v<T> ); };
 
 	template <typename T>
-	struct TNothrowDefaultCtor {
-		StaticAssert( IsDefaultConstructible<T> );
-		static constexpr bool	value = true;
-	};
+	struct TNothrowDefaultCtor		: CT_True	{ StaticAssert( IsDefaultConstructible<T> ); };
 
 	template <typename T, typename ...Args>
-	struct TNothrowCtor {
-		StaticAssert( IsConstructible< T, Args... >);
-		static constexpr bool	value = true;
-	};
+	struct TNothrowCtor				: CT_True	{ StaticAssert( IsConstructible< T, Args... >); };
 
 	template <typename T>
-	struct TNothrowCopyAssignable {
-		static constexpr bool	value = true;
-	};
+	struct TNothrowCopyAssignable	: CT_True	{};
 
 	template <typename T>
-	struct TNothrowMoveAssignable {
-		static constexpr bool	value = true;
-	};
+	struct TNothrowMoveAssignable	: CT_True	{};
 
 	template <typename Fn, typename ...Args>
-	struct TNothrowInvocable
-	{
-		StaticAssert( std::is_invocable_v< Fn, Args... >);
-		static constexpr bool	value = true;
-	};
+	struct TNothrowInvocable		: CT_True	{ StaticAssert( std::is_invocable_v< Fn, Args... >); };
 
 	template <typename T>
-	struct TNothrowable {
-		static constexpr bool	value = true;
-	};
+	struct TNothrowable				: CT_True	{};
 #endif
 
 	template <typename T>
@@ -350,16 +321,16 @@ namespace _hidden_
 	namespace _hidden_
 	{
 		template <typename T, template <typename...> class Templ>
-		struct _IsSpecializationOf : std::bool_constant<false> {};
+		struct _IsSpecializationOf		: CT_False {};
 
 		template <template <typename...> class Templ, typename... Args>
-		struct _IsSpecializationOf< Templ<Args...>, Templ > : std::bool_constant<true> {};
+		struct _IsSpecializationOf< Templ<Args...>, Templ > : CT_True {};
 
 		template <template <typename ...> class Left, template <typename ...> class Right>
-		struct _IsSameTemplates			{ static const bool  value = false; };
+		struct _IsSameTemplates			: CT_False {};
 
 		template <template <typename ...> class T>
-		struct _IsSameTemplates< T, T >	{ static const bool  value = true; };
+		struct _IsSameTemplates< T, T >	: CT_True {};
 
 	} // _hidden_
 
@@ -396,14 +367,10 @@ namespace _hidden_
 	namespace _hidden_
 	{
 		template <typename T>
-		struct _IsStaticArray {
-			static constexpr bool	value = std::is_array_v<T>;
-		};
+		struct _IsStaticArray					: CT_Bool< std::is_array_v<T> > {};
 
 		template <typename T, usize S>
-		struct _IsStaticArray< std::array<T,S> > {
-			static constexpr bool	value = true;
-		};
+		struct _IsStaticArray< std::array<T,S> >: CT_True {};
 	}
 	template <typename T>
 	static constexpr bool	IsStaticArray = Base::_hidden_::_IsStaticArray<T>::value;
@@ -411,14 +378,10 @@ namespace _hidden_
 	namespace _hidden_
 	{
 		template <typename T>
-		struct _IsStdVector {
-			static constexpr bool	value = false;
-		};
+		struct _IsStdVector						: CT_False {};
 
 		template <typename T, typename A>
-		struct _IsStdVector< std::vector<T,A> > {
-			static constexpr bool	value = true;
-		};
+		struct _IsStdVector< std::vector<T,A> >	: CT_True {};
 	}
 	template <typename T>
 	static constexpr bool	IsArray = Base::_hidden_::_IsStdVector<T>::value;
@@ -533,19 +496,13 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	struct TMemCopyAvailable {
-		static constexpr bool	value = IsTrivial<T>;
-	};
+	struct TMemCopyAvailable				: CT_Bool< IsTrivial<T> >{};
 
 	template <typename T, usize I>
-	struct TMemCopyAvailable< T[I] > {
-		static constexpr bool	value = TMemCopyAvailable<T>::value;
-	};
+	struct TMemCopyAvailable< T[I] >		: CT_Bool< TMemCopyAvailable<T>::value >{};
 
 	template <typename T, usize I>
-	struct TMemCopyAvailable< const T[I] > {
-		static constexpr bool	value = TMemCopyAvailable<T>::value;
-	};
+	struct TMemCopyAvailable< const T[I] >	: CT_Bool< TMemCopyAvailable<T>::value >{};
 
 	template <typename T>
 	static constexpr bool	IsMemCopyAvailable = TMemCopyAvailable<T>::value;
@@ -559,19 +516,13 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	struct TZeroMemAvailable {
-		static constexpr bool	value = IsTrivial<T>;
-	};
+	struct TZeroMemAvailable				: CT_Bool< IsTrivial<T> >{};
 
 	template <typename T, usize I>
-	struct TZeroMemAvailable< T[I] > {
-		static constexpr bool	value = TZeroMemAvailable<T>::value;
-	};
+	struct TZeroMemAvailable< T[I] >		: CT_Bool< TZeroMemAvailable<T>::value >{};
 
 	template <typename T, usize I>
-	struct TZeroMemAvailable< const T[I] > {
-		static constexpr bool	value = TZeroMemAvailable<T>::value;
-	};
+	struct TZeroMemAvailable< const T[I] >	: CT_Bool< TZeroMemAvailable<T>::value >{};
 
 	template <typename T>
 	static constexpr bool	IsZeroMemAvailable = TZeroMemAvailable<T>::value;
@@ -585,21 +536,16 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	struct TTriviallySerializable {
-		static constexpr bool	value =	IsTrivial<T>		and
+	struct TTriviallySerializable : CT_Bool<
+										IsTrivial<T>		and
 										not IsPointer<T>	and
-										not IsReference<T>;
-	};
+										not IsReference<T>	>{};
 
 	template <typename T, usize I>
-	struct TTriviallySerializable< T[I] > {
-		static constexpr bool	value = TTriviallySerializable< RemoveCV<T> >::value;
-	};
+	struct TTriviallySerializable< T[I] > : CT_Bool< TTriviallySerializable< RemoveCV<T> >::value >{};
 
 	template <typename T, usize I>
-	struct TTriviallySerializable< const T[I] > {
-		static constexpr bool	value = TTriviallySerializable< RemoveCV<T> >::value;
-	};
+	struct TTriviallySerializable< const T[I] > : CT_Bool< TTriviallySerializable< RemoveCV<T> >::value >{};
 
 
 	template <typename T>
@@ -613,10 +559,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	struct TTriviallyDestructible {
-		static constexpr bool	value =	std::is_trivially_destructible_v<T> or
-										IsZeroMemAvailable<T>;
-	};
+	struct TTriviallyDestructible : CT_Bool<
+										std::is_trivially_destructible_v<T> or
+										IsZeroMemAvailable<T>				>{};
 
 	template <typename T>
 	static constexpr bool	IsTriviallyDestructible = TTriviallyDestructible< RemoveCV<T> >::value;

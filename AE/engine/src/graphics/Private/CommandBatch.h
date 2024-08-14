@@ -19,8 +19,8 @@
 
 	--- Resource state tracking ---
 
-	Use 'DeferredBarriers()' and 'initialBarriers' & 'finalBarriers' arguments in 'Run()' method
-	to transit states in batch planning stage.
+	Use 'DeferredBarriers()' and 'initialBarriers' and 'finalBarriers' arguments in 'Run()' method
+	to transit states in batch planning stage. Same mechanism used by Render Graph to add barriers.
 */
 
 #if defined(AE_ENABLE_VULKAN)

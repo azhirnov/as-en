@@ -143,7 +143,7 @@ namespace
 			Ctx		ctx{ *this };
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then( [p = &t] (const ImageMemView &view)
+						.Then(	[p = &t] (const ImageMemView &view)
 								{
 									p->isOK = p->imgCmp->Compare( view );
 								})};
@@ -151,8 +151,6 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -230,6 +228,10 @@ namespace
 
 bool RGTest::Test_Ycbcr1 ()
 {
+	#ifdef AE_ENABLE_REMOTE_GRAPHICS
+		return true;	// skip
+	#endif
+
 	if ( not _ycbcrPipelines )
 	{
 		AE_LOGI( TEST_NAME << " - skipped" );

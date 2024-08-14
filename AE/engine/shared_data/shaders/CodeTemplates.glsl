@@ -23,25 +23,69 @@ ND_ float2  FullscreenQuadUV ()			{ return float2( gl.VertexIndex>>1, gl.VertexI
 ND_ float2  ProceduralQuadUV ()			{ return float2( (gl.VertexIndex>>1)&1, gl.VertexIndex&1 ); }
 
 #endif
+
+//-----------------------------------------------------------------------------
+// Grid
+
+#if SH_VERT
+
+ND_ int2  GenGridWithInstancingTriStrip ()		{ return int2( (gl.VertexIndex >> 1), (gl.VertexIndex & 1) + gl.InstanceIndex ); }
+
+// if x > gridSize then set NaN to disable triangle
+ND_ int2  GenGridTriStrip (const int gridSize)
+{
+	int		size	= gridSize * 2 + 4;
+	int2	pos		= int2( gl.VertexIndex % size, gl.VertexIndex / size );
+			pos.y	+= pos.x & 1;
+			pos.x	= pos.x >> 1;
+	return pos;
+}
+
+// if x > gridSize then set NaN to disable triangle
+/*ND_ int2  GenGridTriStripSimetric (const int gridSize)
+{
+	int		size	= gridSize * 2 + 4;
+	int2	pos		= int2( gl.VertexIndex % size, gl.VertexIndex / size );
+	bool	flip	= pos.x < gridSize;
+
+	flip = pos.y < gridSize/2 ? flip : !flip;
+
+	// TODO: need transition, 3-4-5 is not correct
+	//  1 - 3 - 4
+	//  | \ | / |
+	//  0 - 2 - 5
+
+	pos.y += flip ? 1 - (pos.x & 1) : (pos.x & 1);
+	pos.x  = pos.x >> 1;
+	return pos;
+}*/
+
+#endif
 //-----------------------------------------------------------------------------
 
 
-#if defined(SH_FRAG) and defined(GL_EXT_fragment_shader_barycentric)
+#ifdef AE_fragment_shader_barycentric
 /*
 =================================================
 	FSBarycentricWireframe
+----
+	Returns zero on edge.
 =================================================
 */
+ND_ float2  FSBarycentricWireframe2 (float thicknessPx, float falloffPx)
+{
+	const float3	dx_barycoord	= gl.dFdxFine( gl.BaryCoord );
+	const float3	dy_barycoord	= gl.dFdyFine( gl.BaryCoord );
+	const float3	d_barycoord		= Diagonal( dx_barycoord, dy_barycoord );
+	const float3	remap			= SmoothStep( gl.BaryCoord, d_barycoord * thicknessPx, d_barycoord * (thicknessPx + falloffPx) );
+	const float		wireframe		= MinOf( remap );
+	const float3	md				= Max( dx_barycoord, dy_barycoord );
+	return float2( wireframe, LengthSq(md) );
+}
+
 ND_ float  FSBarycentricWireframe (float thicknessPx, float falloffPx)
 {
-	const float3	dx_barycoord	= gl.dFdx( gl.BaryCoord );
-	const float3	dy_barycoord	= gl.dFdy( gl.BaryCoord );
-	const float3	d_barycoord		= Sqrt( dx_barycoord * dx_barycoord + dy_barycoord * dy_barycoord );
-	const float3	d_thickness		= d_barycoord * thicknessPx;
-	const float3	d_falloff		= d_barycoord * falloffPx;
-
-	const float3	remap			= SmoothStep( gl.BaryCoord, d_thickness, d_thickness + d_falloff );
-	const float		wireframe		= Min( remap.x, Min( remap.y, remap.z ));
-	return wireframe;
+	return FSBarycentricWireframe2( thicknessPx, falloffPx ).x;
 }
 #endif
+//-----------------------------------------------------------------------------

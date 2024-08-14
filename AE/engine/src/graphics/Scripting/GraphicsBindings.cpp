@@ -658,8 +658,8 @@ namespace
 			BIND( RayCallable )
 			BIND( All )
 			BIND( AllGraphics )
-			BIND( GraphicsStages )
-			BIND( MeshStages )
+			BIND( GraphicsPipeStages )
+			BIND( MeshPipeStages )
 			BIND( VertexProcessingStages )
 			BIND( PreRasterizationStages )
 			BIND( PostRasterizationStages )
@@ -943,8 +943,9 @@ namespace
 			case EPipelineOpt::Unknown :
 			case EPipelineOpt::_Last :
 			case EPipelineOpt::All :
-			#define BIND( _name_ )			case EPipelineOpt::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPipelineOpt::_name_ );
-			BIND( Optimize )
+			#define BIND( _name_ )				case EPipelineOpt::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPipelineOpt::_name_ );
+			#define BIND2( _name_, _comment_ )	case EPipelineOpt::_name_ : binder.Comment( _comment_ );  binder.AddValue( AE_TOSTRING(_name_), EPipelineOpt::_name_ );
+			BIND2( Optimize, "Optimize pipeline during creation, may be slow." )
 			BIND( CS_DispatchBase )
 			BIND( RT_NoNullAnyHitShaders )
 			BIND( RT_NoNullClosestHitShaders )
@@ -952,11 +953,16 @@ namespace
 			BIND( RT_NoNullIntersectionShaders )
 			BIND( RT_SkipTriangles )
 			BIND( RT_SkipAABBs )
-			BIND( DontCompile )
-			BIND( CaptureStatistics )
-			BIND( CaptureInternalRepresentation )
+			BIND2( DontCompile, "Pipeline creation will fail if it is not exists in cache." )
+			BIND2( CaptureStatistics, "When a pipeline is created, its state and shaders are compiled into zero or more device-specific executables,\nwhich are used when executing commands against that pipeline." )
+			BIND2( CaptureInternalRepresentation, "May include the final shader assembly, a binary form of the compiled shader,\nor the shader compiler’s internal representation at any number of intermediate compile steps." )
 			#undef BIND
-			default : break;
+			#undef BIND2
+			default :
+				binder.Comment( "Disable pipeline optimization to speedup creation." );
+				binder.AddValue( "DontOptimize",	EPipelineOpt::Unknown );
+				binder.AddValue( "None",			EPipelineOpt::Unknown );
+				break;
 		}
 		switch_end
 	}
@@ -1087,7 +1093,7 @@ namespace
 
 /*
 =================================================
-	Bind
+	Bind_ERTInstanceOpt
 =================================================
 */
 	static void  Bind_ERTInstanceOpt (const ScriptEnginePtr &se) __Th___
@@ -1109,6 +1115,212 @@ namespace
 				binder.AddValue( "TriangleCullBack",	ERTInstanceOpt::TriangleCullBack	);
 				binder.AddValue( "TriangleFrontCW",		ERTInstanceOpt::TriangleFrontCW		);
 				break;
+		}
+		switch_end
+	}
+
+/*
+=================================================
+	Bind_EImageUsage
+=================================================
+*/
+	static void  Bind_EImageUsage (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EImageUsage>	binder{ se };
+		binder.Create();
+		switch_enum( EImageUsage::Unknown )
+		{
+			case EImageUsage::Unknown :
+			case EImageUsage::_Last :
+			case EImageUsage::All :
+			case EImageUsage::Transfer :
+			case EImageUsage::RWAttachment :
+			#define BIND( _name_ )		case EImageUsage::_name_ : binder.AddValue( AE_TOSTRING(_name_), EImageUsage::_name_ );
+			BIND( TransferSrc )
+			BIND( TransferDst )
+			BIND( Sampled )
+			BIND( Storage )
+			BIND( ColorAttachment )
+			BIND( DepthStencilAttachment )
+			BIND( InputAttachment )
+			BIND( ShadingRate )
+			#undef BIND
+			default :
+				binder.AddValue( "All",				EImageUsage::All			);
+				binder.AddValue( "Transfer",		EImageUsage::Transfer		);
+				binder.AddValue( "RWAttachment",	EImageUsage::RWAttachment	);
+				break;
+		}
+		switch_end
+	}
+
+/*
+=================================================
+	Bind_EImageOpt
+=================================================
+*/
+	static void  Bind_EImageOpt (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EImageOpt>	binder{ se };
+		binder.Create();
+		switch_enum( EImageOpt::Unknown )
+		{
+			case EImageOpt::Unknown :
+			case EImageOpt::_Last :
+			case EImageOpt::All :
+			case EImageOpt::SparseResidencyAliased :
+			#define BIND( _name_ )		case EImageOpt::_name_ : binder.AddValue( AE_TOSTRING(_name_), EImageOpt::_name_ );
+			BIND( BlitSrc )
+			BIND( BlitDst )
+			BIND( CubeCompatible )
+			BIND( MutableFormat )
+			BIND( Array2DCompatible )
+			BIND( BlockTexelViewCompatible )
+			BIND( SparseResidency )
+			BIND( SparseAliased )
+			BIND( Alias )
+			BIND( SampleLocationsCompatible )
+			BIND( StorageAtomic )
+			BIND( ColorAttachmentBlend )
+			BIND( SampledLinear )
+			BIND( SampledMinMax )
+			BIND( VertexPplnStore )
+			BIND( FragmentPplnStore )
+			BIND( LossyRTCompression )
+			#undef BIND
+			default :
+				binder.AddValue( "All",						EImageOpt::All						);
+				binder.AddValue( "SparseResidencyAliased",	EImageOpt::SparseResidencyAliased	);
+				break;
+		}
+		switch_end
+	}
+
+/*
+=================================================
+	Bind_EBufferUsage
+=================================================
+*/
+	static void  Bind_EBufferUsage (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EBufferUsage>	binder{ se };
+		binder.Create();
+		switch_enum( EBufferUsage::Unknown )
+		{
+			case EBufferUsage::Unknown :
+			case EBufferUsage::_Last :
+			case EBufferUsage::All :
+			case EBufferUsage::Transfer :
+			#define BIND( _name_ )		case EBufferUsage::_name_ : binder.AddValue( AE_TOSTRING(_name_), EBufferUsage::_name_ );
+			BIND( TransferSrc )
+			BIND( TransferDst )
+			BIND( UniformTexel )
+			BIND( StorageTexel )
+			BIND( Uniform )
+			BIND( Storage )
+			BIND( Index )
+			BIND( Vertex )
+			BIND( Indirect )
+			BIND( ShaderAddress )
+			BIND( ShaderBindingTable )
+			BIND( ASBuild_ReadOnly )
+			BIND( ASBuild_Scratch )
+			#undef BIND
+			default :
+				binder.AddValue( "All",			EBufferUsage::All		);
+				binder.AddValue( "Transfer",	EBufferUsage::Transfer	);
+				break;
+		}
+		switch_end
+	}
+
+/*
+=================================================
+	Bind_EBufferOpt
+=================================================
+*/
+	static void  Bind_EBufferOpt (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EBufferOpt>	binder{ se };
+		binder.Create();
+		switch_enum( EBufferOpt::Unknown )
+		{
+			case EBufferOpt::Unknown :
+			case EBufferOpt::_Last :
+			case EBufferOpt::All :
+			case EBufferOpt::SparseResidencyAliased :
+			#define BIND( _name_ )		case EBufferOpt::_name_ : binder.AddValue( AE_TOSTRING(_name_), EBufferOpt::_name_ );
+			BIND( SparseResidency )
+			BIND( SparseAliased )
+			BIND( VertexPplnStore )
+			BIND( FragmentPplnStore )
+			BIND( StorageTexelAtomic )
+			#undef BIND
+			default :
+				binder.AddValue( "All",						EBufferOpt::All						);
+				binder.AddValue( "SparseResidencyAliased",	EBufferOpt::SparseResidencyAliased	);
+				break;
+		}
+		switch_end
+	}
+
+/*
+=================================================
+	Bind_EShadingRate
+=================================================
+*/
+	static void  Bind_EShadingRate (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EShadingRate>	binder{ se };
+		binder.Create();
+		switch_enum( EShadingRate::_SizeCount )
+		{
+			case EShadingRate::_SizeCount :
+			case EShadingRate::_SizeMask :
+			case EShadingRate::_SamplesMask :
+			#define BIND( _name_ )		case EShadingRate::_name_ : binder.AddValue( AE_TOSTRING(_name_), EShadingRate::_name_ );
+			BIND( Size1x1 )
+			BIND( Size1x2 )
+			BIND( Size1x4 )
+			BIND( Size2x1 )
+			BIND( Size2x2 )
+			BIND( Size2x4 )
+			BIND( Size4x1 )
+			BIND( Size4x2 )
+			BIND( Size4x4 )
+			#undef BIND
+			case EShadingRate::Samples1 :
+			case EShadingRate::Samples2 :
+			case EShadingRate::Samples4 :
+			case EShadingRate::Samples8 :
+			case EShadingRate::Samples16 :
+			case EShadingRate::Samples1_2_4 :
+			case EShadingRate::Samples1_2_4_8 :	break;	// samples used only in feature set
+		}
+		switch_end
+	}
+
+/*
+=================================================
+	Bind_EShadingRateCombinerOp
+=================================================
+*/
+	static void  Bind_EShadingRateCombinerOp (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EShadingRateCombinerOp>	binder{ se };
+		binder.Create();
+		switch_enum( EShadingRateCombinerOp::Unknown )
+		{
+			case EShadingRateCombinerOp::Unknown :
+			case EShadingRateCombinerOp::_Count :
+			#define BIND( _name_ )		case EShadingRateCombinerOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), EShadingRateCombinerOp::_name_ );
+			BIND( Keep )
+			BIND( Replace )
+			BIND( Min )
+			BIND( Max )
+			BIND( Sum )
+			BIND( Mul )
+			#undef BIND
 		}
 		switch_end
 	}
@@ -1152,7 +1364,6 @@ namespace
 			BIND( InputDepthStencilAttachment )
 			BIND( InputDepthStencilAttachment_RW )
 			BIND( Host_Read )
-			BIND( Host_Write )
 			BIND( PresentImage )
 			BIND( IndirectBuffer )
 			BIND( IndexBuffer )
@@ -1591,6 +1802,12 @@ namespace
 		Bind_ESamplerYcbcrRange( se );
 		Bind_ESurfaceFormat( se );
 		Bind_ERTInstanceOpt( se );
+		Bind_EImageUsage( se );
+		Bind_EImageOpt( se );
+		Bind_EBufferUsage( se );
+		Bind_EBufferOpt( se );
+		Bind_EShadingRate( se );
+		Bind_EShadingRateCombinerOp( se );
 	}
 
 /*

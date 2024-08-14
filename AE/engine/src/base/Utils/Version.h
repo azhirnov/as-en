@@ -102,6 +102,9 @@ namespace AE::Base
 		ND_ constexpr static Self		Max ()					__NE___	{ return {0xFFFFu, 0xFFFFu}; }
 		ND_ constexpr static Self		Min ()					__NE___	{ return {}; }
 
+		ND_ constexpr uint				ToUInt ()				C_NE___	{ return (uint{major} << 16) | uint{minor}; }
+		ND_ constexpr static Self		FromUInt (uint val)		__NE___	{ return Self{ val >> 16, val & 0xFFFF }; }
+
 		ND_ constexpr uint				To100 ()				C_NE___	{ ASSERT( minor < 10 );  return (uint(major) * 100) + (uint(minor) * 10); }
 		ND_ constexpr static Self		From100 (uint val)		__NE___	{ return Self{ val / 100, (val / 10) % 10 }; }
 

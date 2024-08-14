@@ -13,7 +13,7 @@ Add the following code to your project to determine which license you can use.
 #include "base/Defines/DetectLicense.inl.h"
 ```
 Compilation will fail if the required license is not compatible with third-party dependencies.<br/>
-**There are no warranty that [license detection](engine/src/base/Defines/DetectLicense.inl.h) works correctly or that license information is valid for third-party libraries.**
+**There are no warranty that [license detection](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/base/Defines/DetectLicense.inl.h) works correctly or that license information is valid for third-party libraries.**
 
 **Warning**: In cmake use only PUBLIC visibility for `target_link_libraries()`, otherwise it breaks license detection.
 

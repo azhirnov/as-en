@@ -9,12 +9,14 @@
 # pragma once
 #endif
 
+#ifndef DispatchIndirectCommand_defined
 struct DispatchIndirectCommand
 {
 	uint	groupCountX;
 	uint	groupCountY;
 	uint	groupCountZ;
 };
+#endif
 
 ND_ DispatchIndirectCommand  DispatchIndirectCommand_Create (uint groupCountX, uint groupCountY, uint groupCountZ)
 {
@@ -36,6 +38,7 @@ ND_ DispatchIndirectCommand  DispatchIndirectCommand_Create (uint3 groupCount)
 //-----------------------------------------------------------------------------
 
 
+#ifndef DrawIndirectCommand_defined
 struct DrawIndirectCommand
 {
 	uint	vertexCount;
@@ -43,6 +46,7 @@ struct DrawIndirectCommand
 	uint	firstVertex;
 	uint	firstInstance;
 };
+#endif
 
 ND_ DrawIndirectCommand  DrawIndirectCommand_Create (uint	vertexCount,
 													 uint	instanceCount,
@@ -58,6 +62,7 @@ ND_ DrawIndirectCommand  DrawIndirectCommand_Create (uint	vertexCount,
 //-----------------------------------------------------------------------------
 
 
+#ifndef DrawIndexedIndirectCommand_defined
 struct DrawIndexedIndirectCommand
 {
 	uint	indexCount;
@@ -66,6 +71,7 @@ struct DrawIndexedIndirectCommand
 	int		vertexOffset;
 	uint	firstInstance;
 };
+#endif
 
 ND_ DrawIndexedIndirectCommand  DrawIndexedIndirectCommand_Create (uint	indexCount,
 																   uint	instanceCount,
@@ -83,12 +89,14 @@ ND_ DrawIndexedIndirectCommand  DrawIndexedIndirectCommand_Create (uint	indexCou
 //-----------------------------------------------------------------------------
 
 
+#ifndef DrawMeshTasksIndirectCommand_defined
 struct DrawMeshTasksIndirectCommand
 {
 	uint	taskCountX;
 	uint	taskCountY;
 	uint	taskCountZ;
 };
+#endif
 
 ND_ DrawMeshTasksIndirectCommand  DrawMeshTasksIndirectCommand_Create (uint taskCountX, uint taskCountY, uint taskCountZ)
 {
@@ -110,12 +118,14 @@ ND_ DrawMeshTasksIndirectCommand  DrawMeshTasksIndirectCommand_Create (const uin
 //-----------------------------------------------------------------------------
 
 
+#ifndef TraceRayIndirectCommand_defined
 struct TraceRayIndirectCommand
 {
 	uint	width;
 	uint	height;
 	uint	depth;
 };
+#endif
 
 ND_ TraceRayIndirectCommand  TraceRayIndirectCommand_Create (uint width, uint height, uint depth)
 {

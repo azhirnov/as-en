@@ -12,12 +12,6 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-#ifdef AE_ENABLE_REMOTE_GRAPHICS
-# define RmG_UI_ON_HOST		1
-#else
-# define RmG_UI_ON_HOST		0
-#endif
-
 namespace ImGui
 {
 /*
@@ -25,12 +19,12 @@ namespace ImGui
 	PushStyleColor
 =================================================
 */
-	void PushStyleColor (ImGuiCol idx, AE::Base::RGBA8u color)
+	void  PushStyleColor (ImGuiCol idx, AE::Base::RGBA8u color)
 	{
 		ImGui::PushStyleColor( idx, AE::Base::BitCast<ImU32>(color) );
 	}
 
-	void PushStyleColor (ImGuiCol idx, const AE::Base::RGBA32f &color)
+	void  PushStyleColor (ImGuiCol idx, const AE::Base::RGBA32f &color)
 	{
 		ImGui::PushStyleColor( idx, ImVec4{ color.r, color.g, color.b, color.a });
 	}
@@ -598,69 +592,23 @@ namespace
 			io.MouseWheel	= Clamp( imgui->mouseWheel.y, -1.f, 1.f );
 			io.MouseWheelH	= Clamp( imgui->mouseWheel.x, -1.f, 1.f );
 
-			auto	surf_dim = s_UIInteraction.graphics.ConstPtr()->dynSize;
-			s_UIInteraction.selectedPixel.MutablePtr()->pendingPos = surf_dim->Remap( uint2{ imgui->mousePos + 0.5f });
+			s_UIInteraction.selectedPixel->pendingPos = (imgui->mousePos + 0.5f) / float2{rtSize};
 		}
 
 		ImGui::NewFrame();
 
-		const usize		old_stack_size = imgui->ctx->ColorStack.size();
-
-		// setup style
 		{
-			// window / frame
-			ImGui::PushStyleColor( ImGuiCol_WindowBg,				RGBA8u{ 20, 0,  60, 255} );
-			ImGui::PushStyleColor( ImGuiCol_ChildBg,				RGBA8u{ 40, 0, 100, 255} );
+			ImGuiRenderer::AEStyleScope		ae_style {imgui->ctx};
+			ImGuiRenderer::StyleScope		style	 {imgui->ctx};
+			ImGui::PushStyleColor( ImGuiCol_Header, BitCast<uint>(RGBA8u{ 170, 0, 200, 255 }) );
 
-			// window title
-			ImGui::PushStyleColor( ImGuiCol_TitleBg,				RGBA8u{ 30, 0,  80, 255} );
-			ImGui::PushStyleColor( ImGuiCol_TitleBgActive,			RGBA8u{ 30, 0,  80, 255} );
-			ImGui::PushStyleColor( ImGuiCol_TitleBgCollapsed,		RGBA8u{ 30, 0,  80, 255} );
+			float2		wnd_pos	{0.f};
+			_UpdateMain( OUT wnd_pos );
 
-			// background (checkbox, radio button, plot, slider, text input)
-			ImGui::PushStyleColor( ImGuiCol_FrameBg,				RGBA8u{ 40, 0, 100, 255} );
-			ImGui::PushStyleColor( ImGuiCol_FrameBgHovered,			RGBA8u{ 90, 0, 180, 255} );
-			ImGui::PushStyleColor( ImGuiCol_FrameBgActive,			RGBA8u{120, 0, 220, 255} );
-
-			// tabs
-			ImGui::PushStyleColor( ImGuiCol_Tab,					RGBA8u{ 90, 0, 180, 255} );
-			ImGui::PushStyleColor( ImGuiCol_TabUnfocused,			RGBA8u{ 90, 0, 180, 255} );
-			ImGui::PushStyleColor( ImGuiCol_TabHovered,				RGBA8u{120, 0, 220, 255} );
-			ImGui::PushStyleColor( ImGuiCol_TabActive,				RGBA8u{120, 0, 220, 255} );
-			ImGui::PushStyleColor( ImGuiCol_TabUnfocusedActive,		RGBA8u{120, 0, 220, 255} );
-
-			// tree view
-			ImGui::PushStyleColor( ImGuiCol_Header,					RGBA8u{170, 0, 200, 255} );
-			ImGui::PushStyleColor( ImGuiCol_HeaderActive,			RGBA8u{120, 0, 220, 255} );
-			ImGui::PushStyleColor( ImGuiCol_HeaderHovered,			RGBA8u{ 90, 0, 180, 255} );
-
-			// button
-			ImGui::PushStyleColor( ImGuiCol_Button,					RGBA8u{ 90, 0, 180, 255} );
-			ImGui::PushStyleColor( ImGuiCol_ButtonHovered,			RGBA8u{120, 0, 220, 255} );
-			ImGui::PushStyleColor( ImGuiCol_ButtonActive,			RGBA8u{140, 0, 240, 255} );	// pressed
-
-			// scrollbar
-			ImGui::PushStyleColor( ImGuiCol_ScrollbarBg,			RGBA8u{ 30, 0,  80, 255} );
-			ImGui::PushStyleColor( ImGuiCol_ScrollbarGrab,			RGBA8u{ 90, 0, 180, 255} );
-			ImGui::PushStyleColor( ImGuiCol_ScrollbarGrabHovered,	RGBA8u{120, 0, 220, 255} );
-			ImGui::PushStyleColor( ImGuiCol_ScrollbarGrabActive,	RGBA8u{120, 0, 220, 255} );
-
-			// checkbox
-			ImGui::PushStyleColor( ImGuiCol_CheckMark,				RGBA8u{230, 0, 255, 255} );
-
-			// slider
-			ImGui::PushStyleColor( ImGuiCol_SliderGrab,				RGBA8u{120, 0, 220, 255} );
-			ImGui::PushStyleColor( ImGuiCol_SliderGrabActive,		RGBA8u{230, 0, 255, 255} );
+			_UpdateDbgView( INOUT wnd_pos );
+			_UpdatePopups();
+			_ShowHelp();
 		}
-
-		float2		wnd_pos	{0.f};
-		_UpdateMain( OUT wnd_pos );
-
-		_UpdateDbgView( INOUT wnd_pos );
-		_UpdatePopups();
-		_ShowHelp();
-
-		ImGui::PopStyleColor(int( imgui->ctx->ColorStack.size() - old_stack_size ));
 
 		if ( imgui->reloadScript )
 		{
@@ -833,19 +781,28 @@ namespace
 
 		if ( ImGui::TreeNodeEx( "Statistic", ImGuiTreeNodeFlags_DefaultOpen ))
 		{
+			const auto	ColoredButton = [] (RGBA32f col)
+			{{
+				float	h	= ImGui::GetTextLineHeight();
+				col.a = 1.f;
+				ImGui::PushStyleColor( ImGuiCol_Button,			col );
+				ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	col );
+				ImGui::PushStyleColor( ImGuiCol_ButtonActive,	col );
+				ImGui::Button( "##PixelColor", ImVec2{h,h} );
+				ImGui::PopStyleColor(3);
+			}};
 			const auto	sp = s_UIInteraction.selectedPixel.Read();
 
-			ImGui::Text( "mouse pos:   %s", ToString( sp.pos ).c_str() );
-			ImGui::Text( "pixel color: %s", ToString( sp.color, 3 ).c_str() );
-			ImGui::SameLine();
+			ImGui::Text( "mouse pos:  %s", ToString( sp.pos ).c_str() );
 
-			float	h	= ImGui::GetTextLineHeight();
-			RGBA32f	col	= sp.color;		col.a = 1.f;
-			ImGui::PushStyleColor( ImGuiCol_Button,			col );
-			ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	col );
-			ImGui::PushStyleColor( ImGuiCol_ButtonActive,	col );
-			ImGui::Button( "##PixelColor", ImVec2{h,h} );
-			ImGui::PopStyleColor(3);
+			ImGui::Text( "raw color:  %s", ToString( sp.color, 3 ).c_str() );
+			ImGui::SameLine();
+			ColoredButton( sp.color );
+
+			RGBA32f	srgb = RemoveSRGBCurve( Saturate( sp.color ));
+			ImGui::Text( "sRGB color: %s", ToString( srgb, 3 ).c_str() );
+			ImGui::SameLine();
+			ColoredButton( srgb );
 
 			ImGui::TreePop();
 			ImGui::Separator();
@@ -1638,7 +1595,9 @@ namespace
 
 		const Pair< EPixelFormat, const char* >	formats [] = {
 			{ EPixelFormat::BGRA8_UNorm,	"BGRA8" },
+			{ EPixelFormat::sBGR8_A8,		"sBGR8_A8" },
 			{ EPixelFormat::RGBA8_UNorm,	"RGBA8" },
+			{ EPixelFormat::sRGB8_A8,		"sRGB8_A8" },
 			{ EPixelFormat::RGB10_A2_UNorm,	"RGB10_A2" },
 			{ EPixelFormat::RGBA16F,		"RGBA16F" }
 		};
@@ -1761,11 +1720,102 @@ namespace
 				case IA.FullscreenOnOff :
 					_windowMode.current.store( (~_windowMode.current.load() & 1) );	break;
 
+				case IA.UI_CopySliderState :
+					_CopySliderState();												break;
+
 				case IA.UI_MouseRBDown :
 				case IA.UI_ResExport :		break;	// ignore
 			}
 			switch_end
 		}
+	}
+
+/*
+=================================================
+	_CopySliderState
+=================================================
+*/
+	void  EditorUI::_CopySliderState ()
+	{
+		const auto	all_sliders = s_UIInteraction.GetAllSliders();
+		String		str2;
+		Array< Pair< String, StringView >>	arr;
+
+		for (auto& pass : all_sliders)
+		{
+			arr.clear();
+
+			auto	sliders = pass.Get<0>()->WriteLock();
+
+			for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+			{
+				StringView	name	= pass.Get<1>()->names [i] [UIInteraction::IntSliderIdx];
+				int4&		slider	= sliders->intSliders [i];
+				const uint	vsize	= pass.Get<1>()->intVecSize [i];
+
+				if ( name.empty() ) continue;
+
+				String	str;
+				for (uint j = 0; j < vsize; ++j)
+					str << ToString( slider[j] ) << ", ";
+
+				arr.emplace_back( RVRef(str), name );
+			}
+
+			for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+			{
+				StringView	name	= pass.Get<1>()->names [i] [UIInteraction::FloatSliderIdx];
+				float4&		slider	= sliders->floatSliders [i];
+				const uint	vsize	= pass.Get<1>()->floatVecSize [i];
+
+				if ( name.empty() ) continue;
+
+				String	str;
+				for (uint j = 0; j < vsize; ++j)
+					str << ToString( slider[j], 4 ) << "f, ";
+
+				arr.emplace_back( RVRef(str), name );
+			}
+
+			for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+			{
+				StringView	name	= pass.Get<1>()->names [i] [UIInteraction::ColorSelectorIdx];
+				RGBA32f&	slider	= sliders->colors[i];
+
+				if ( name.empty() ) continue;
+
+				String	str;
+				for (uint j = 0; j < 4; ++j)
+					str << ToString( slider[j], 4 ) << "f, ";
+
+				arr.emplace_back( RVRef(str), name );
+			}
+
+			if ( arr.empty() )
+				continue;
+
+			const usize	tab_size	= 4;
+			usize		max_len		= 0;
+
+			for (auto& [params_str, name] : arr) {
+				max_len = Max( max_len, params_str.size() );
+			}
+			max_len = AlignUp( max_len, tab_size ) + 1;
+
+			str2 << "\n// pass: " << pass.Get<1>()->passName;
+
+			for (auto& [params_str, name] : arr)
+			{
+				str2 << "\n\t\t" << params_str;
+				for (usize i = AlignDown( params_str.size(), tab_size ); i < max_len; i += 4)
+					str2 << '\t';
+				str2 << "// " << name;
+			}
+			str2 << '\n';
+		}
+
+		CHECK( PlatformUtils::ClipboardPut( str2 ));
+		AE_LOGI( "slider state copied to clipboard" );
 	}
 
 /*
@@ -1785,6 +1835,7 @@ R"(UI controls:
   'G'         - run shader debugger for pixel under cursor
   'F2'        - RenderDoc frame capture (if enabled)
   'F3'        - export resources from current script (if defined)
+  'F4'        - copy slider state to clipboard
   'F5'        - reload script
   'F11'       - fullscreen / windowed
   'Right mouse btn' - pass mouse position to shader

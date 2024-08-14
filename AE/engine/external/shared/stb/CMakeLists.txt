@@ -8,6 +8,7 @@ add_library( "STB-lib" INTERFACE )
 target_include_directories( "STB-lib" INTERFACE "${STB_PATH}" )
 target_compile_definitions( "STB-lib" INTERFACE "AE_ENABLE_STB" "AE_LICENSE_MIT" )
 install( FILES "${STB_PATH}/LICENSE" DESTINATION "3party_license" RENAME "STB-LICENSE.md" )
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	if (ANDROID)

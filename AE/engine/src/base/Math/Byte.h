@@ -235,14 +235,10 @@ namespace AE::Math
 	namespace _hidden_
 	{
 		template <typename T>
-		struct _IsBytes {
-			static constexpr bool	value = false;
-		};
+		struct _IsBytes				: CT_False {};
 
 		template <typename T>
-		struct _IsBytes< TByte<T> > {
-			static constexpr bool	value = true;
-		};
+		struct _IsBytes< TByte<T> >	: CT_True {};
 	}
 
 	template <typename T>
@@ -298,9 +294,9 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	template <typename T>	struct TMemCopyAvailable< TByte<T> >		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
-	template <typename T>	struct TZeroMemAvailable< TByte<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
-	template <typename T>	struct TTriviallySerializable< TByte<T> >	{ static constexpr bool  value = IsTriviallySerializable<T>; };
+	template <typename T>	struct TMemCopyAvailable< TByte<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
+	template <typename T>	struct TZeroMemAvailable< TByte<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
+	template <typename T>	struct TTriviallySerializable< TByte<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
 
 } // AE::Base
 

@@ -912,19 +912,13 @@ namespace AE::Scripting
 		// Check Input Arg Types
 		//
 		template <typename L, typename R>
-		struct _IsSame {
-			static constexpr bool	value = IsSameTypes< L, R >;
-		};
+		struct _IsSame											: CT_Bool< IsSameTypes< L, R >>{};
 
 		template <typename L, typename R>
-		struct _IsSame< AngelScriptHelper::SharedPtr<L>, R* > {
-			static constexpr bool	value = IsSameTypes< L, R >;
-		};
+		struct _IsSame< AngelScriptHelper::SharedPtr<L>, R* >	: CT_Bool< IsSameTypes< L, R >>{};
 
 		template <typename L, typename R>
-		struct _IsSame< L*, AngelScriptHelper::SharedPtr<R> > {
-			static constexpr bool	value = IsSameTypes< L, R >;
-		};
+		struct _IsSame< L*, AngelScriptHelper::SharedPtr<R> >	: CT_Bool< IsSameTypes< L, R >>{};
 
 
 		template <typename TL1, typename TL2, usize Idx>
@@ -939,10 +933,7 @@ namespace AE::Scripting
 		};
 
 		template <typename TL1, typename TL2>
-		struct CheckInputArgTypes1< TL1, TL2, 0 >
-		{
-			static constexpr bool	value = true;
-		};
+		struct CheckInputArgTypes1< TL1, TL2, 0 >				: CT_True {};
 
 		template <typename TL1, typename TL2>
 		struct CheckInputArgTypes

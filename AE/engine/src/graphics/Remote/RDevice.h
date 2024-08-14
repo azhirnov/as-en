@@ -77,6 +77,8 @@ namespace AE::Graphics
 		ND_ bool					IsInitialized ()				C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _devInfo.initialized; }
 		ND_ bool					IsUnderDebugger ()				C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _devInfo.underDebugger; }
 
+		ND_ EGraphicsAdapterType	AdapterType ()					C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _devInfo.adapterType; }
+
 		ND_ bool					CheckConstantLimits ()			C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _devInfo.checkConstantLimitsOK; }
 		ND_ bool					CheckExtensions ()				C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _devInfo.checkExtensionsOK; }
 

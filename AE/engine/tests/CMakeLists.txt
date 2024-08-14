@@ -16,6 +16,7 @@ add_subdirectory( "video" )
 add_subdirectory( "network_stress_test" )
 add_subdirectory( "atlas_tools" )
 add_subdirectory( "geometry_tools" )
+add_subdirectory( "res_loaders" )
 
 if (${AE_DESKTOP})
     add_subdirectory( "asset_packer" )

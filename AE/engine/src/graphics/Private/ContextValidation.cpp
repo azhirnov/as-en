@@ -113,7 +113,7 @@ namespace
 		GCTX_CHECK( All( offset < dim ));
 		GCTX_CHECK( All( (offset + extent) <= dim ));
 
-		GCTX_CHECK( subres.mipLevel < desc.maxLevel );
+		GCTX_CHECK( subres.mipLevel < desc.mipLevels );
 		GCTX_CHECK( subres.baseLayer < desc.arrayLayers );
 		GCTX_CHECK( subres.aspectMask != Default );
 	}
@@ -175,7 +175,7 @@ namespace
 
 		for (auto& range : ranges)
 		{
-			GCTX_CHECK( range.baseMipLevel < imgDesc.maxLevel );
+			GCTX_CHECK( range.baseMipLevel < imgDesc.mipLevels );
 			GCTX_CHECK( range.baseLayer < imgDesc.arrayLayers );
 		}
 	}
@@ -206,7 +206,7 @@ namespace
 
 		for (auto& range : ranges)
 		{
-			GCTX_CHECK( range.baseMipLevel < imgDesc.maxLevel );
+			GCTX_CHECK( range.baseMipLevel < imgDesc.mipLevels );
 			GCTX_CHECK( range.baseLayer < imgDesc.arrayLayers );
 		}
 	}
@@ -639,8 +639,8 @@ namespace
 			GCTX_CHECK( range.aspectMask == EPixelFormat_ToImageAspect( imgDesc.format ));
 			GCTX_CHECK( range.baseLayer.Get() < imgDesc.arrayLayers.Get() );
 			GCTX_CHECK( range.layerCount + range.baseLayer.Get() <= imgDesc.arrayLayers.Get() );
-			GCTX_CHECK( range.baseMipLevel.Get() < imgDesc.maxLevel.Get() );
-			GCTX_CHECK( range.baseMipLevel.Get() + range.mipmapCount <= imgDesc.maxLevel.Get() );
+			GCTX_CHECK( range.baseMipLevel.Get() < imgDesc.mipLevels.Get() );
+			GCTX_CHECK( range.baseMipLevel.Get() + range.mipmapCount <= imgDesc.mipLevels.Get() );
 			GCTX_CHECK( range.mipmapCount > 1 );
 		}
 	}
@@ -1678,7 +1678,7 @@ namespace
 	{
 		GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
 		GCTX_CHECK( indirectDeviceAddress != Default );
-		GCTX_CHECK( _GetVkDeviceProperties().rayTracingPipelineFeats.rayTracingPipelineTraceRaysIndirect );
+		GCTX_CHECK( _GetVkDeviceProperties().rayTracingPipelineFeats.rayTracingPipelineTraceRaysIndirect == VK_TRUE );	// TODO: use FS
 	}
 # endif
 
@@ -1701,7 +1701,7 @@ namespace
 		GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
 		GCTX_CHECK( indirectDeviceAddress != Default );
 		GCTX_CHECK( IsMultipleOf( indirectDeviceAddress, 4 ));
-		GCTX_CHECK( _GetVkDeviceProperties().rayTracingMaintenance1Feats.rayTracingPipelineTraceRaysIndirect2 );
+		GCTX_CHECK( _GetVkDeviceProperties().rayTracingMaintenance1Feats.rayTracingPipelineTraceRaysIndirect2 == VK_TRUE );	// TODO: use FS
 	}
 # endif
 

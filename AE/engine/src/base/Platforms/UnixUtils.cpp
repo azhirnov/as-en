@@ -4,6 +4,7 @@
 
 #ifdef AE_PLATFORM_UNIX_BASED
 # include <unistd.h>
+# include <fcntl.h>
 
 # include "base/Platforms/UnixUtils.h"
 # include "base/Algorithms/StringUtils.h"
@@ -95,6 +96,19 @@ namespace AE::Base
 		MemoryPageInfo	info;
 		info.pageSize	= Bytes{ ulong(::sysconf( _SC_PAGESIZE ))};
 		return info;
+	}
+
+/*
+=================================================
+	ClearFileCache
+=================================================
+*/
+	void  UnixUtils::ClearFileCache () __NE___
+	{
+		::sync();
+		int	fd = ::open( "/proc/sys/vm/drop_caches", O_WRONLY );
+		::write( fd, "3", 1 );
+		::close( fd );
 	}
 
 /*

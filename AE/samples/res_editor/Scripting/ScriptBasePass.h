@@ -71,13 +71,15 @@ namespace AE::ResEditor
 		using Controllers_t			= Array< RC<IController> >;
 		using ControllersView_t		= ArrayView< RC<IController> >;
 
+		using ECompare				= IPass::ECompare;
+
 		struct Constant
 		{
 			String		name;
 			uint		index		= UMax;
 			ESlider		type		= ESlider::_Count;
 			ubyte		count		= 0;
-			RC<>		rc;			// Dynamic + Int|UInt|Float + 1|2|3|4
+			RC<>		rc;			// Dynamic + Int|UInt|Float|Dim + 1|2|3|4
 		};
 		using Constants_t	= Array< Constant >;
 
@@ -99,7 +101,7 @@ namespace AE::ResEditor
 		struct {
 			ScriptDynamicUIntPtr	dynamic;
 			uint					ref			= 0;
-			ECompareOp				op			= ECompareOp::Always;
+			ECompare				op			= Default;
 		}						_enablePass;
 
 	private:
@@ -168,10 +170,28 @@ namespace AE::ResEditor
 		void  ConstantU3 (const String &name, const ScriptDynamicUInt3Ptr &value)						__Th___;
 		void  ConstantU4 (const String &name, const ScriptDynamicUInt4Ptr &value)						__Th___;
 
+		void  ConstantCF1 (const String &name, float value)												__Th___;
+		void  ConstantCF2 (const String &name, const packed_float2 &value)								__Th___;
+		void  ConstantCF3 (const String &name, const packed_float3 &value)								__Th___;
+		void  ConstantCF4 (const String &name, const packed_float4 &value)								__Th___;
+
+		void  ConstantCI1 (const String &name, int value)												__Th___;
+		void  ConstantCI2 (const String &name, const packed_int2 &value)								__Th___;
+		void  ConstantCI3 (const String &name, const packed_int3 &value)								__Th___;
+		void  ConstantCI4 (const String &name, const packed_int4 &value)								__Th___;
+
+		void  ConstantCU1 (const String &name, uint value)												__Th___;
+		void  ConstantCU2 (const String &name, const packed_uint2 &value)								__Th___;
+		void  ConstantCU3 (const String &name, const packed_uint3 &value)								__Th___;
+		void  ConstantCU4 (const String &name, const packed_uint4 &value)								__Th___;
+
+		void  ConstantDD (const String &name, const ScriptDynamicDimPtr &value)							__Th___;
+
 
 		void  EnableIfEqual (const ScriptDynamicUIntPtr &dyn, uint ref)									__Th___;
 		void  EnableIfLess (const ScriptDynamicUIntPtr &dyn, uint ref)									__Th___;
 		void  EnableIfGreater (const ScriptDynamicUIntPtr &dyn, uint ref)								__Th___;
+		void  EnableIfAnyBit (const ScriptDynamicUIntPtr &dyn, uint ref)								__Th___;
 
 		void  ArgSceneIn (const String &name, const ScriptRTScenePtr &scene)							__Th___	{ _args.ArgSceneIn( name, scene ); }
 
@@ -204,6 +224,9 @@ namespace AE::ResEditor
 
 		template <typename T>
 		void  _Constant (const String &name, const T &dynVal, ESlider type, ubyte count)				__Th___;
+
+		template <typename T>
+		void  _Constant2 (const String &name, const T &dynVal, ESlider type, ubyte count)				__Th___;
 
 		void  _AddSlidersToUIInteraction (IPass* pass)													const;
 		void  _CopyConstants (OUT IPass::Constants &)													const;

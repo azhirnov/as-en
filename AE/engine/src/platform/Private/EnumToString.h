@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "platform/Public/AppEnums.h"
-#include "platform/Public/InputActions.h"
+#ifdef AE_ENABLE_LOGS
+# include "platform/Public/AppEnums.h"
+# include "platform/Public/InputActions.h"
 
 namespace AE::Base
 {
@@ -85,3 +86,4 @@ namespace AE::Base
 
 
 } // AE::Base
+#endif // AE_ENABLE_LOGS

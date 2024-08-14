@@ -327,20 +327,22 @@ namespace AE::Base
 		_array = new_ptr;
 		DEBUG_ONLY( DbgInitMem( _array, new_size ));
 
-		// replace
-		if ( _first >= _end )
-		{
-			usize	off = old_size - _first;
-			CopyPolicy_t::Replace( OUT _array,		 INOUT old_ptr + _first, off );
-			CopyPolicy_t::Replace( OUT _array + off, INOUT old_ptr, _end );
-		}
-		else
-		{
-			CopyPolicy_t::Replace( OUT _array, INOUT old_ptr + _first, _end - _first );
-		}
-
 		if ( old_ptr != null )
+		{
+			// replace
+			if ( _first >= _end )
+			{
+				usize	off = old_size - _first;
+				CopyPolicy_t::Replace( OUT _array,		 INOUT old_ptr + _first, off );
+				CopyPolicy_t::Replace( OUT _array + off, INOUT old_ptr,			_end );
+			}
+			else
+			{
+				CopyPolicy_t::Replace( OUT _array, INOUT old_ptr + _first, _end - _first );
+			}
+
 			_allocator.Deallocate( old_ptr, SizeAndAlign{ SizeOf<T> * old_size, AlignOf<T> });
+		}
 
 		_first = 0;
 		_end   = Offset_t(old_count);
@@ -977,10 +979,10 @@ namespace AE::Base
 	void  RingBuffer<T,A,CP,RP>::_UpdateDbgView () __NE___
 	{
 		DEBUG_ONLY(
-			_dbg_first = BitCast<decltype(_dbg_first)>( &_array[_first] );
+			_dbg_first = BitCast<decltype(_dbg_first)>( std::addressof( _array[_first] ));
 
 			if ( _end < _first )
-				_dbg_end = BitCast<decltype(_dbg_end)>( &_array[_end] );
+				_dbg_end = BitCast<decltype(_dbg_end)>( std::addressof( _array[_end] ));
 			else
 				_dbg_end = null;
 		)

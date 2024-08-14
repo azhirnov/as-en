@@ -60,10 +60,14 @@ namespace AE::ResEditor
 			DirectCtx::Draw &			ctx;
 			DescriptorSetID				passDS;
 
-			ShaderDebugger::Result*		dbgStorage	= null;
-			EDebugMode					dbgMode		= Default;
+			// debugging
+			ShaderDebugger::Result*		dbgStorage		= null;
+			EDebugMode					dbgMode			= Default;
+			EShaderStages				dbgStage		= Default;
 
-			ND_ bool  IsDebuggerEnabled (usize i)	const { return dbgStorage != null and dbgStorage[i] and dbgMode != Default; }
+			ND_ bool			IsDebuggerEnabled (usize i)	const	{ return dbgStorage != null and dbgStorage[i] and dbgMode != Default and dbgStage != Default; }
+			ND_ EDebugMode		GetDebugMode (usize i)		const	{ return IsDebuggerEnabled(i) ? dbgMode : Default; }
+			ND_ EShaderStages	GetDebugStages (usize i)	const	{ return IsDebuggerEnabled(i) ? dbgStage : Default; }
 		};
 
 		struct DebugPrepareData
@@ -73,6 +77,7 @@ namespace AE::ResEditor
 			IGSMaterials &				mtr;
 			DirectCtx::Transfer &		ctx;
 			Debugger const&				dbg;
+			const uint2					dbgCoord;
 			IAllocator &				allocator;
 			PplnToObjID_t &				pplnToObjId;
 			ShaderDebugger::Result* &	outDbgStorage;

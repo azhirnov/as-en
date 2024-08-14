@@ -26,7 +26,7 @@ namespace AE::Base
 	// methods
 	public:
 		template <typename T>
-		ND_ static T*     Allocate (usize count = 1)							__NE___
+		ND_ static T*	  Allocate (usize count = 1)							__NE___
 		{
 			return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
 		}
@@ -97,7 +97,7 @@ namespace AE::Base
 	// methods
 	public:
 		template <typename T>
-		ND_ static T*     Allocate (usize count = 1)							__NE___
+		ND_ static T*	  Allocate (usize count = 1)							__NE___
 		{
 			StaticAssert( alignof(T) <= BaseAlign );
 			return Cast<T>( Allocate( SizeOf<T> * count ));

@@ -38,8 +38,8 @@ namespace
 */
 	void  MeshPipelineScriptBinding::SetShaderIO (EShader output, EShader input, const String &typeName) __Th___
 	{
-		CHECK_THROW_MSG( AnyBits( EShaderStages::MeshStages, (EShaderStages{0} | output) ));
-		CHECK_THROW_MSG( AnyBits( EShaderStages::MeshStages, (EShaderStages{0} | input) ));
+		CHECK_THROW_MSG( AnyBits( EShaderStages::MeshPipeStages, (EShaderStages{0} | output) ));
+		CHECK_THROW_MSG( AnyBits( EShaderStages::MeshPipeStages, (EShaderStages{0} | input) ));
 
 		CHECK_THROW_MSG( not _shaderIO[output].second, String{ToString(output)} << " shader input is already defined" );
 		CHECK_THROW_MSG( not _shaderIO[input].first, String{ToString(input)} << " shader input is already defined" );
@@ -308,7 +308,7 @@ namespace
 		binder.AddFactoryCtor( &MeshPipelineScriptBinding_Ctor, {"name"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
-						"Format: MACROS = value; DEF" );
+						"Format: MACROS = value \\n DEF \\n ..." );
 		binder.AddMethod( &MeshPipelineScriptBinding::Define,				"Define",			{} );
 
 		binder.Comment( "Set task shader. This shader is optional.\n"

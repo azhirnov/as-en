@@ -51,7 +51,7 @@ namespace AE::Base
 		constexpr FixedArray (const Self &other)				__NE___;
 		constexpr FixedArray (Self &&other)						__NE___;
 
-		~FixedArray ()											__NE___	{ clear(); }
+		constexpr ~FixedArray ()								__NE___	{ clear(); }
 
 
 		ND_ constexpr operator ArrayView<T> ()					C_NE___	{ return ArrayView<T>{ data(), size() }; }
@@ -59,8 +59,9 @@ namespace AE::Base
 
 		ND_ constexpr usize				size ()					C_NE___	{ return _count; }
 		ND_ constexpr bool				empty ()				C_NE___	{ return _count == 0; }
-		ND_ constexpr T *				data ()					__NE___	{ return std::addressof( _array[0] ); }
-		ND_ constexpr T const *			data ()					C_NE___	{ return std::addressof( _array[0] ); }
+		ND_ constexpr bool				IsFull ()				C_NE___	{ return size() >= capacity(); }
+		ND_ constexpr T *				data ()					__NE___	{ return _array; }
+		ND_ constexpr T const *			data ()					C_NE___	{ return _array; }
 
 		ND_ constexpr T &				operator [] (usize i)	__NE___	{ ASSERT( i < _count );  return _array[i]; }
 		ND_ constexpr T const &			operator [] (usize i)	C_NE___	{ ASSERT( i < _count );  return _array[i]; }
@@ -119,7 +120,7 @@ namespace AE::Base
 		constexpr void  fast_erase (usize index)				__NE___;
 
 	private:
-		ND_ bool  _IsMemoryAliased (const_iterator beginIter, const_iterator endIter) C_NE___
+		ND_ constexpr bool  _IsMemoryAliased (const_iterator beginIter, const_iterator endIter) C_NE___
 		{
 			return IsIntersects( begin(), end(), beginIter, endIter );
 		}
@@ -286,7 +287,7 @@ namespace AE::Base
 		ASSERT( _count > 0 );
 		--_count;
 
-		CPolicy_t::Destroy( INOUT &_array[_count], 1 );
+		CPolicy_t::Destroy( INOUT std::addressof(_array[_count]), 1 );
 	}
 
 /*
@@ -350,10 +351,10 @@ namespace AE::Base
 		CheckNothrow( IsNothrowMoveCtor<T> );
 
 		pos = Min( pos, _count );
-		CPolicy_t::Replace( OUT &_array[pos+1], INOUT &_array[pos], _count - pos );
+		CPolicy_t::Replace( OUT std::addressof(_array[pos+1]), INOUT std::addressof(_array[pos]), _count - pos );
 
 		++_count;
-		PlacementNew<T>( OUT &_array[pos], RVRef(value) );
+		PlacementNew<T>( OUT std::addressof(_array[pos]), RVRef(value) );
 	}
 
 /*
@@ -368,13 +369,13 @@ namespace AE::Base
 
 		if ( newSize < _count )
 		{
-			CPolicy_t::Destroy( INOUT &_array[newSize], _count - newSize );
+			CPolicy_t::Destroy( INOUT std::addressof(_array[newSize]), _count - newSize );
 		}
 		else
 		if ( newSize > _count )
 		{
 			CheckNothrow( IsNothrowDefaultCtor<T> );
-			CPolicy_t::Create( OUT &_array[_count], newSize - _count );
+			CPolicy_t::Create( OUT std::addressof(_array[_count]), newSize - _count );
 		}
 
 		_count = Count_t(newSize);
@@ -387,13 +388,13 @@ namespace AE::Base
 
 		if ( newSize < _count )
 		{
-			CPolicy_t::Destroy( INOUT &_array[newSize], _count - newSize );
+			CPolicy_t::Destroy( INOUT std::addressof(_array[newSize]), _count - newSize );
 		}
 		else
 		if ( newSize > _count )
 		{
 			CheckNothrow( IsNothrowCopyCtor<T> );
-			CPolicy_t::Create( OUT &_array[_count], newSize - _count, defaultValue );
+			CPolicy_t::Create( OUT std::addressof(_array[_count]), newSize - _count, defaultValue );
 		}
 
 		_count = Count_t(newSize);
@@ -423,13 +424,13 @@ namespace AE::Base
 		ASSERT( index < _count );
 
 		--_count;
-		CPolicy_t::Destroy( INOUT &_array[index], 1 );
+		CPolicy_t::Destroy( INOUT std::addressof(_array[index]), 1 );
 
 		if ( index != _count )
 		{
 			// move element from back to 'index'
 			CheckNothrow( IsNothrowMoveCtor<T> );
-			CPolicy_t::Replace( OUT &_array[index], INOUT &_array[_count], 1 );
+			CPolicy_t::Replace( OUT std::addressof(_array[index]), INOUT std::addressof(_array[_count]), 1 );
 		}
 		else
 		{
@@ -447,21 +448,21 @@ namespace AE::Base
 	{
 		ASSERT( index < _count );
 
-		CPolicy_t::Destroy( INOUT &_array[index], 1 );
+		CPolicy_t::Destroy( INOUT std::addressof(_array[index]), 1 );
 
 		if ( index+1 < _count )
 		{
 			CheckNothrow( IsNothrowMoveCtor<T> );
-			CPolicy_t::Replace( OUT &_array[index], INOUT &_array[index + 1], _count - index - 1 );
+			CPolicy_t::Replace( OUT std::addressof(_array[index]), INOUT std::addressof(_array[index + 1]), _count - index - 1 );
 		}
 		--_count;
 	}
 //-----------------------------------------------------------------------------
 
 
-	template <typename T, usize S, typename CS>	struct TMemCopyAvailable< FixedArray<T,S,CS> >		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
-	template <typename T, usize S, typename CS>	struct TZeroMemAvailable< FixedArray<T,S,CS> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
-	template <typename T, usize S, typename CS>	struct TTriviallyDestructible< FixedArray<T,S,CS> >	{ static constexpr bool  value = IsTriviallyDestructible<T>; };
+	template <typename T, usize S, typename CS>	struct TMemCopyAvailable< FixedArray<T,S,CS> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
+	template <typename T, usize S, typename CS>	struct TZeroMemAvailable< FixedArray<T,S,CS> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
+	template <typename T, usize S, typename CS>	struct TTriviallyDestructible< FixedArray<T,S,CS> >	: CT_Bool< IsTriviallyDestructible<T>	>{};
 
 
 } // AE::Base

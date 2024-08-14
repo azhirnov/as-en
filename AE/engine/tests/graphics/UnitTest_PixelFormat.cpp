@@ -29,9 +29,9 @@ namespace
 		auto	a2 = EPixelFormat_ToNoncompressed( EPixelFormat::BC1_RGB8_UNorm, false );
 		TEST( a2 == EPixelFormat::RGBA8_UNorm );
 
-		auto	a3 = EPixelFormat_ToNoncompressed( EPixelFormat::ASTC_RGBA_4x4, false );
+		auto	a3 = EPixelFormat_ToNoncompressed( EPixelFormat::ASTC_RGBA8_4x4, false );
 		TEST( a3 == EPixelFormat::RGBA8_UNorm );
-		TEST( a3 == EPixelFormat_ToNoncompressed( EPixelFormat::ASTC_RGBA_4x4, true ));
+		TEST( a3 == EPixelFormat_ToNoncompressed( EPixelFormat::ASTC_RGBA8_4x4, true ));
 
 		auto	a4 = EPixelFormat_ToNoncompressed( EPixelFormat::ASTC_sRGB8_A8_6x6, false );
 		TEST( a4 == EPixelFormat::sRGB8_A8 );
@@ -117,10 +117,10 @@ namespace
 		auto	a27 = EPixelFormat_ToNoncompressed( EPixelFormat::ETC2_RGB8_UNorm, false );
 		TEST( a27 == EPixelFormat::RGBA8_UNorm );
 
-		auto	a28 = EPixelFormat_ToNoncompressed( EPixelFormat::ECT2_sRGB8, true );
+		auto	a28 = EPixelFormat_ToNoncompressed( EPixelFormat::ETC2_sRGB8, true );
 		TEST( a28 == EPixelFormat::sRGB8 );
 
-		auto	a29 = EPixelFormat_ToNoncompressed( EPixelFormat::ECT2_sRGB8, false );
+		auto	a29 = EPixelFormat_ToNoncompressed( EPixelFormat::ETC2_sRGB8, false );
 		TEST( a29 == EPixelFormat::sRGB8_A8 );
 
 		auto	a30 = EPixelFormat_ToNoncompressed( EPixelFormat::ETC2_RGB8_A1_UNorm, false );
@@ -190,10 +190,10 @@ namespace
 
 
 		auto	d1 = EPixelFormat_ToASTC( EPixelFormat::RGBA8_UNorm, {4,4} );
-		TEST( d1 == EPixelFormat::ASTC_RGBA_4x4 );
+		TEST( d1 == EPixelFormat::ASTC_RGBA8_4x4 );
 
 		auto	d2 = EPixelFormat_ToASTC( EPixelFormat::RGBA8_UNorm, {8,8} );
-		TEST( d2 == EPixelFormat::ASTC_RGBA_8x8 );
+		TEST( d2 == EPixelFormat::ASTC_RGBA8_8x8 );
 
 		auto	d3 = EPixelFormat_ToASTC( EPixelFormat::sRGB8_A8, {10,10} );
 		TEST( d3 == EPixelFormat::ASTC_sRGB8_A8_10x10 );

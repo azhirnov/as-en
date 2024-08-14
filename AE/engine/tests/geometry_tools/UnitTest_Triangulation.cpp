@@ -10,6 +10,54 @@ namespace
 
 	using CDTFlags = CDT_Triangulator::EFlags;
 
+	static void  CompareTriIndices (List<uint> required, INOUT CDT_Triangulator::OutIndices_t &indices)
+	{
+		TEST_Eq( indices.size(), required.size() );
+		TEST( IsMultipleOf( indices.size(), 3 ));
+
+		for (usize j = 0; j < required.size(); j += 3)
+		{
+			bool	found = false;
+			for (usize i = 0; i < indices.size(); i += 3)
+			{
+				if ( indices[i+0] == required[j+0] and
+					 indices[i+1] == required[j+1] and
+					 indices[i+2] == required[j+2] )
+				{
+					indices.erase( indices.begin() + i, indices.begin() + i + 3 );
+					found = true;
+					break;
+				}
+			}
+			TEST( found );
+		}
+		TEST( indices.empty() );
+	}
+
+
+	static void  CompareBoundary (List<uint> required, INOUT CDT_Triangulator::OutBoundaryEdges_t &boundary)
+	{
+		TEST_Eq( boundary.size(), required.size() );
+		TEST( IsMultipleOf( boundary.size(), 2 ));
+
+		for (usize j = 0; j < required.size(); j += 2)
+		{
+			bool	found = false;
+			for (usize i = 0; i < boundary.size(); i += 2)
+			{
+				if ( boundary[i+0] == required[j+0] and
+					 boundary[i+1] == required[j+1] )
+				{
+					boundary.erase( boundary.begin() + i, boundary.begin() + i + 2 );
+					found = true;
+					break;
+				}
+			}
+			TEST( found );
+		}
+		TEST( boundary.empty() );
+	}
+
 
 	static void  CDT_Triangulation_Test1 ()
 	{
@@ -28,7 +76,7 @@ namespace
 		TEST( vertices.size() == 3 );
 		TEST( indices.size() == 3 );
 		TEST( ArrayView<float2>{in_vertices} == vertices );
-		TEST( List<uint>{ 2, 0, 1 } == indices );
+		CompareTriIndices( List<uint>{ 2, 0, 1 }, indices );
 	}
 
 
@@ -50,7 +98,7 @@ namespace
 		TEST( vertices.size() == 3 );
 		TEST( indices.size() == 3 );
 		TEST( ArrayView<float2>{in_vertices} == vertices );
-		TEST( List<uint>{ 2, 0, 1 } == indices );
+		CompareTriIndices( List<uint>{ 2, 0, 1 }, indices );
 	}
 
 
@@ -74,7 +122,7 @@ namespace
 		TEST( vertices.size() == 3 );
 		TEST( indices.size() == 3 );
 		TEST( ArrayView<float2>{in_vertices} == vertices );
-		TEST( List<uint>{ 2, 0, 1 } == indices );
+		CompareTriIndices( List<uint>{ 2, 0, 1 }, indices );
 	}
 
 
@@ -100,7 +148,7 @@ namespace
 		TEST( vertices.size() == 6 );
 		TEST( ArrayView<float2>{in_vertices} == vertices );
 		TEST( indices.size() == 18 );
-		TEST( List<uint>{ 3,1,0,  1,5,0,  5,1,2,  3,4,5,  3,5,2,  3,0,4 } == indices );
+		CompareTriIndices( List<uint>{ 3,1,0,  1,5,0,  5,1,2,  3,4,5,  3,5,2,  3,0,4 }, indices );
 	}
 
 
@@ -128,10 +176,10 @@ namespace
 		TEST( ArrayView<float2>{in_vertices} == vertices );
 
 		TEST( indices.size() == 18 );
-		TEST( List<uint>{ 3,1,0,  1,5,0,  5,1,2,  3,4,5,  3,5,2,  3,0,4 } == indices );
+		CompareTriIndices( List<uint>{ 3,1,0,  1,5,0,  5,1,2,  3,4,5,  3,5,2,  3,0,4 }, indices );
 
 		TEST( boundary.size() == 12 );
-		TEST( List<uint>{ 3,1,  5,0,  1,2,  4,5,  2,3,  0,4 } == boundary );
+		CompareBoundary( List<uint>{ 3,1,  5,0,  1,2,  4,5,  2,3,  0,4 }, boundary );
 	}
 
 #endif // AE_ENABLE_CDT

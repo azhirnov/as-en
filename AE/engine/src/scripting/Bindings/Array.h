@@ -95,7 +95,7 @@ namespace AE::Scripting::_hidden_
 			friend class ScriptObjArray;
 
 		private:
-			Self *		_arr	= null;
+			Ptr<Self>	_arr;
 			usize		_index	= UMax;
 
 			iterator (Self &arr, usize i)								__NE___	: _arr{&arr}, _index{i} {}
@@ -120,8 +120,8 @@ namespace AE::Scripting::_hidden_
 			friend class ScriptObjArray;
 
 		private:
-			Self const*		_arr	= null;
-			usize			_index	= UMax;
+			Ptr<Self const>		_arr;
+			usize				_index	= UMax;
 
 			const_iterator (const Self &arr, usize i)					__NE___	: _arr{&arr}, _index{i} {}
 
@@ -192,7 +192,7 @@ namespace AE::Scripting::_hidden_
 			friend class ScriptStringArray;
 
 		private:
-			ScriptStringArray *		_arr	= null;
+			Ptr<ScriptStringArray>	_arr;
 			usize					_index	= UMax;
 
 			iterator (ScriptStringArray &arr, usize i)					__NE___	: _arr{&arr}, _index{i} {}
@@ -217,8 +217,8 @@ namespace AE::Scripting::_hidden_
 			friend class ScriptStringArray;
 
 		private:
-			ScriptStringArray const*	_arr	= null;
-			usize						_index	= UMax;
+			Ptr<ScriptStringArray const>	_arr;
+			usize							_index	= UMax;
 
 			const_iterator (const ScriptStringArray &arr, usize i)		__NE___	: _arr{&arr}, _index{i} {}
 

@@ -18,7 +18,7 @@ namespace AE::Graphics
 */
 	bool  Canvas::_Alloc () __NE___
 	{
-		CHECK_ERR( _buffers.size() < _buffers.capacity() );
+		CHECK_ERR( not _buffers.IsFull() );
 
 		BufferRange	range;
 		range.posCapacity		= _PositionVBufSize;
@@ -63,7 +63,7 @@ namespace AE::Graphics
 		// create new draw call
 		if_unlikely( _drawCalls.empty() or not _drawCalls.back().Equal( instanceCount, range_idx ))
 		{
-			CHECK_ERR( _drawCalls.size() < _drawCalls.capacity() );
+			CHECK_ERR( not _drawCalls.IsFull() );
 
 			auto&		buf				= _buffers[range_idx];
 			const uint	pos_vtx_count	= uint( (buf.posSize + posSize - 1) / posSize);

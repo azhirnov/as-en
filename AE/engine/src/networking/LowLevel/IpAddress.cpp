@@ -81,13 +81,14 @@ namespace
 	ToString
 =================================================
 */
+#ifdef AE_ENABLE_LOGS
 	String  IpAddress::ToString () C_Th___
 	{
 		return	Base::ToString( _addressBits.p0 ) << '.' << Base::ToString( _addressBits.p1 ) << '.' <<
 				Base::ToString( _addressBits.p2 ) << '.' << Base::ToString( _addressBits.p3 ) << ':' <<
 				Base::ToString( _port );
 	}
-
+#endif
 /*
 =================================================
 	ToHostName

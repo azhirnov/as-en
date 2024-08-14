@@ -32,8 +32,6 @@ namespace
 		{
 			Ctx		ctx{ *this };
 
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc );
-
 			CHECK_TE( ctx.UploadBuffer( t.buf_1, 0_b, t.buffer_data ));
 
 			ctx.AccumBarriers().BufferBarrier( t.buf_1, EResourceState::CopyDst, EResourceState::CopySrc );
@@ -41,7 +39,7 @@ namespace
 			ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }} );
 
 			t.result = AsyncTask{ ctx.ReadHostBuffer( t.buf_2, 0_b, t.buf_size )
-						.Then( [p = &t] (const ArrayView<ubyte> &view)
+						.Then(	[p = &t] (const ArrayView<ubyte> &view)
 								{
 									p->isOK = (view == p->buffer_data);
 								})};

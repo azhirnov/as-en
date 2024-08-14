@@ -146,14 +146,12 @@ namespace
 			Ctx		ctx{ *this };
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then( [p = &t] (const ImageMemView &view)
+						.Then(	[p = &t] (const ImageMemView &view)
 								{
 									p->isOK = p->imgCmp->Compare( view );
 								})};
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -190,7 +188,6 @@ namespace
 		CHECK_ERR( rg.BeginFrame() );
 
 		auto		batch	= rg.CmdBatch( EQueueType::Graphics, {"Draw4"} )
-									.UploadMemory()
 									.ReadbackMemory()
 									.Begin();
 		CHECK_ERR( batch );

@@ -43,11 +43,12 @@ namespace
 	ND_ static bool  Convert (OUT const char* &result, StringView filename, Alloc &allocator) __NE___
 	{
 		CHECK_ERR( filename.length() <= FileName::MaxStringLength() );
+		CHECK_ERR( not filename.empty() );
 
 		char*	str = allocator.template Allocate<char>( filename.length()+1 );
 		CHECK_ERR( str != null );
 
-		std::memcpy( OUT str, filename.data(), filename.length() );
+		MemCopy( OUT str, filename.data(), filename.length() );
 		str[filename.length()] = 0;
 
 		result = str;

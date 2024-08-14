@@ -24,7 +24,7 @@ namespace AE::Graphics
 	// variables
 		uint3				dimension;				// width, height, depth
 		ImageLayer			arrayLayers		= 1_layer;
-		MipmapLevel			maxLevel		= 1_mipmap;
+		MipmapLevel			mipLevels		= 1_mipmap;
 		EImageDim			imageDim		= Default;
 		EImageOpt			options			= Default;
 		EImageUsage			usage			= Default;
@@ -58,9 +58,9 @@ namespace AE::Graphics
 		ImageDesc&  SetUsage (EImageUsage value)			__NE___	{ usage			= value;				return *this; }
 		ImageDesc&  SetFormat (EPixelFormat value)			__NE___	{ format		= value;				return *this; }
 		ImageDesc&  SetArrayLayers (uint value)				__NE___	{ arrayLayers	= ImageLayer{value};	return *this; }
-		ImageDesc&  SetMaxMipmaps (uint value)				__NE___	{ maxLevel		= MipmapLevel{value};	return *this; }
+		ImageDesc&  SetMaxMipmaps (uint value)				__NE___	{ mipLevels		= MipmapLevel{value};	return *this; }
 		ImageDesc&  SetSamples (uint value)					__NE___	{ samples		= MultiSamples{value};	return *this; }
-		ImageDesc&  SetAllMipmaps ()						__NE___	{ maxLevel		= MipmapLevel::Max();	return *this; }
+		ImageDesc&  SetAllMipmaps ()						__NE___	{ mipLevels		= MipmapLevel::Max();	return *this; }
 		ImageDesc&  SetQueues (EQueueMask value)			__NE___	{ queues		= value;				return *this; }
 		ImageDesc&  SetMemory (EMemoryType value)			__NE___	{ memType		= value;				return *this; }
 		ImageDesc&  AddViewFormat (EPixelFormat value)		__NE___;
@@ -124,11 +124,11 @@ namespace AE::Graphics
 
 namespace AE::Base
 {
-	template <> struct TMemCopyAvailable< AE::Graphics::ImageDesc >			{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::ImageDesc >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::ImageDesc >			: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::ImageDesc >	: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::ImageViewDesc >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::ImageViewDesc >{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::ImageViewDesc >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::ImageViewDesc >: CT_True {};
 
 	StaticAssert( sizeof(AE::Graphics::ImageDesc) == 48 );
 	StaticAssert( sizeof(AE::Graphics::ImageViewDesc) == 20 );

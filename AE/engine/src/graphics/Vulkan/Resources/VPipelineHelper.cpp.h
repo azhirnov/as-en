@@ -303,7 +303,7 @@ namespace
 		outState.pNext						= null;
 		outState.flags						= 0;
 		outState.polygonMode				= VEnumCast( inState.polygonMode );
-		outState.lineWidth					= 1.f; //inState.lineWidth;
+		outState.lineWidth					= 2.f; //inState.lineWidth;
 		outState.depthBiasConstantFactor	= inState.depthBiasConstFactor;
 		outState.depthBiasClamp				= inState.depthBiasClamp;
 		outState.depthBiasSlopeFactor		= inState.depthBiasSlopeFactor;
@@ -559,9 +559,10 @@ namespace
 		__try {
 			return device.vkCreateComputePipelines( device.GetVkDevice(), pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
 		}
-		__except ( (GetExceptionCode() == AE_SEH_STACK_OVERFLOW) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+		__except ( AnyEqual( GetExceptionCode(), AE_SEH_STACK_OVERFLOW, AE_SEH_ACCESS_VIOLATION ) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
 		{
-			_resetstkoflw();
+			if ( GetExceptionCode() == AE_SEH_STACK_OVERFLOW )
+				_resetstkoflw();
 			return VK_ERROR_UNKNOWN;
 		}
 	}
@@ -576,9 +577,10 @@ namespace
 		__try {
 			return device.vkCreateGraphicsPipelines( device.GetVkDevice(), pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
 		}
-		__except ( (GetExceptionCode() == AE_SEH_STACK_OVERFLOW) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+		__except ( AnyEqual( GetExceptionCode(), AE_SEH_STACK_OVERFLOW, AE_SEH_ACCESS_VIOLATION ) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
 		{
-			_resetstkoflw();
+			if ( GetExceptionCode() == AE_SEH_STACK_OVERFLOW )
+				_resetstkoflw();
 			return VK_ERROR_UNKNOWN;
 		}
 	}
@@ -593,9 +595,10 @@ namespace
 		__try {
 			return device.vkCreateRayTracingPipelinesKHR( device.GetVkDevice(), deferredOperation, pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
 		}
-		__except ( (GetExceptionCode() == AE_SEH_STACK_OVERFLOW) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+		__except ( AnyEqual( GetExceptionCode(), AE_SEH_STACK_OVERFLOW, AE_SEH_ACCESS_VIOLATION ) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
 		{
-			_resetstkoflw();
+			if ( GetExceptionCode() == AE_SEH_STACK_OVERFLOW )
+				_resetstkoflw();
 			return VK_ERROR_UNKNOWN;
 		}
 	}

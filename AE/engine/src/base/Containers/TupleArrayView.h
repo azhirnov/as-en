@@ -240,7 +240,7 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-	template <typename ...Types>	struct TMemCopyAvailable< TupleArrayView<Types...> >	{ static constexpr bool  value = true; };
-	template <typename ...Types>	struct TZeroMemAvailable< TupleArrayView<Types...> >	{ static constexpr bool  value = true; };
+	template <typename ...Types>	struct TMemCopyAvailable< TupleArrayView<Types...> >	: CT_True {};
+	template <typename ...Types>	struct TZeroMemAvailable< TupleArrayView<Types...> >	: CT_True {};
 
 } // AE::Base

@@ -53,8 +53,11 @@ namespace AE::Base
 
 		using Helper_t			= AllocatorHelper< EAllocatorType::Stack >;
 
-		static constexpr uint	_PtrOffset		= CT_CeilIntLog2< MaxBlocks >;
+		static constexpr int	_PtrOffset		= CT_CeilIntLog2< MaxBlocks >;
 		static constexpr usize	_BlockIndexMask	= (1u << _PtrOffset) - 1;
+
+		StaticAssert( _PtrOffset >= 0 );
+		StaticAssert( _PtrOffset == 0 or _BlockIndexMask != 0 );
 
 
 	// variables
@@ -170,7 +173,7 @@ namespace AE::Base
 			}
 		}
 
-		if_unlikely( _blocks.size() == _blocks.capacity() )
+		if_unlikely( _blocks.IsFull() )
 		{
 			//DBG_WARNING( "overflow" );
 			return null;
@@ -234,7 +237,7 @@ namespace AE::Base
 			bm = Bookmark( (_blocks.size()-1) | (usize(_blocks.back().size) << _PtrOffset) );
 		}
 
-		if_unlikely( _bookmarks.size() == _bookmarks.capacity() )
+		if_unlikely( _bookmarks.IsFull() )
 		{
 			DBG_WARNING( "overflow" );
 			return Bookmark(~0ull);

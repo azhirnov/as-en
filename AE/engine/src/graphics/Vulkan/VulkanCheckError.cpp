@@ -12,7 +12,7 @@ namespace AE::Graphics
 	__vk_CheckErrors
 =================================================
 */
-	bool __vk_CheckErrors (VkResult errCode, const char* vkcall, const char* func, const SourceLoc &loc) __NE___
+	bool __vk_CheckErrors (const VkResult errCode, const char* vkcall, const char* func, const SourceLoc &loc) __NE___
 	{
 		if_likely( errCode == VK_SUCCESS )
 			return true;
@@ -25,7 +25,7 @@ namespace AE::Graphics
 
 			switch_enum( errCode )
 			{
-				#define CASE( _code_ )	case _code_ :	msg += AE_TOSTRING( _code_ ); break;
+				#define CASE( _code_ )	case _code_ :	msg << AE_TOSTRING( _code_ ); break;
 				CASE( VK_NOT_READY )
 				CASE( VK_TIMEOUT )
 				CASE( VK_EVENT_SET )

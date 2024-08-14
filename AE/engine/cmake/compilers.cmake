@@ -286,7 +286,7 @@ if ( MSVC )
 		/we4305 /we4390 /we4455 /we4456 /we4457 /we4458 /we4459 /we4473 /we4474 /we4522 /we4552 /we4553 /we4554 /we4700 /we4706 /we4715 /we4716 /we4717
 		/we4927 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584 /we4566
 		# disable warnings
-		/wd4061 /wd4062 /wd4063 /wd4310 /wd4324 /wd4365 /wd4503 /wd4514 /wd4530 /wd4623 /wd4625 /wd4626 /wd4710 /wd4714 /wd5026 /wd5027
+		/wd4061 /wd4062 /wd4063 /wd4310 /wd4324 /wd4365 /wd4503 /wd4514 /wd4530 /wd4623 /wd4625 /wd4626 /wd4710 /wd4714 /wd5026 /wd5027 /wd5063
 	)
 	if (${AE_ENABLE_COMPILER_WARNINGS})
 		set( MSVC_WARNING_LIST ${MSVC_WARNING_LIST}
@@ -314,11 +314,11 @@ if ( MSVC )
 			-Werror=init-self -Werror=range-loop-bind-reference -Werror=implicit-exception-spec-mismatch -Werror=return-stack-address -Werror=address
 			-Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization
 			-Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else
-			-Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Werror=parentheses -Werror=return-type -Werror=array-bounds
+			-Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Werror=parentheses -Werror=return-type
 			-Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Werror=invalid-pch -Werror=defaulted-function-deleted
 			-Werror=ignored-qualifiers -Werror=microsoft-template -Werror=nonportable-include-path -Werror=inconsistent-missing-override
 			-Werror=microsoft-cast -Werror=invalid-token-paste -Werror=sign-compare -Werror=bitwise-instead-of-logical -Werror=bitwise-conditional-parentheses
-			-Werror=backslash-newline-escape
+			-Werror=backslash-newline-escape -Werror=array-bounds
 			# warnings
 			-Wunused-parameter -Wnarrowing -Wlogical-op-parentheses  -Wunused  -Wloop-analysis -Wincrement-bool -Wc++14-extensions -Wc++17-extensions
 			-Wunused-private-field -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Wincrement-bool
@@ -327,7 +327,7 @@ if ( MSVC )
 			-Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsizeof-pointer-memaccess
 			# disable warnings
 			-Wno-comment -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-undefined-inline
-			-Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-switch -Wno-missing-braces
+			-Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-switch -Wno-missing-braces -Wno-constant-evaluated
 		)
 	else()
 		set( COMPILER_FLAGS ${COMPILER_FLAGS} /fp:strict /fp:except- )
@@ -388,10 +388,10 @@ endif()
 #==================================================================================================
 # GCC/Clang settings:
 #	global - only for external projects
-#	local - only for AE projects
+#	local  - only for AE projects
 #==================================================================================================
 set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX "-Wno-unused -Wno-switch -Wno-undef -Wno-comment -fPIC -Wno-missing-braces" )
-set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wno-missing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Warray-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC )
+set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wno-missing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Warray-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC  -Wno-constant-evaluated )
 
 if (${AE_ENABLE_EXCEPTIONS})
 	set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_CXX "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX} -frtti -fexceptions" )
@@ -499,7 +499,8 @@ if ( COMPILER_CLANG )
 
 	if (${AE_USE_SANITIZER})
 		set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=address )
-		#  -fsanitize=thread -fsanitize=undefined
+		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=thread )
+		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=undefined )
 	endif()
 
 	# Release
@@ -661,8 +662,9 @@ if ( COMPILER_CLANG_APPLE )
 		 "AE_COMPILER_CLANG" "AE_PLATFORM_TARGET_VERSION_MAJOR=${APPLE_VER_MAJ}" "AE_PLATFORM_TARGET_VERSION_MINOR=${APPLE_VER_MIN}" )
 
 	if (${AE_USE_SANITIZER})
-		set( CLANG_SHARED_OPTS	${CLANG_SHARED_OPTS} -fsanitize=address )
-		#  -fsanitize=thread -fsanitize=undefined
+		set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=address )
+		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=thread )
+		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=undefined )
 	endif()
 
 	# Release
@@ -727,8 +729,9 @@ if ( COMPILER_CLANG_ANDROID )
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_CLANG" )
 
 	if (${AE_USE_SANITIZER})
-		set( CLANG_SHARED_OPTS	${CLANG_SHARED_OPTS} -fsanitize=address )
-		#  -fsanitize=thread -fsanitize=undefined
+		set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=address )
+		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=thread )
+		#set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -fsanitize=undefined )
 	endif()
 
 	# Release
@@ -801,7 +804,6 @@ if ("${CMAKE_EXECUTABLE_SUFFIX}" STREQUAL "")
 else()
 	set( AE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}" CACHE INTERNAL "" FORCE )
 endif()
-message( STATUS "AE_EXECUTABLE_SUFFIX: ${AE_EXECUTABLE_SUFFIX}" )
 
 # print
 if (FALSE)

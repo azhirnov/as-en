@@ -201,7 +201,7 @@ namespace AE::RemoteGraphics
 	bool  RConnection::_SendUploadData (const Msg::UploadDataAndCopy &msg)
 	{
 		ASSERT( msg.size > 0 );
-		ASSERT( msg.data != null );
+		NonNull( msg.data );
 
 		return Send( msg.data, msg.size );
 	}

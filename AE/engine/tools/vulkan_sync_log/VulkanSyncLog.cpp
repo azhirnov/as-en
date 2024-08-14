@@ -18,6 +18,13 @@ using namespace AE::Threading;
 // You should disable 'ENABLE_DEBUG_CLEAR' in 'VulkanExtEmulation' module, otherwise command indices will not match.
 #define ENABLE_SEQNO		0
 
+// Always add objectId to the debug name
+#if 0
+#	define ADD_OBJ_ID( _name_, _id_ )	String{_name_} << " (0x" << ToString<16>( BitCast<ulong>( _id_ )) << ')'
+#else
+#	define ADD_OBJ_ID( _name_, _id_ )	_name_
+#endif
+
 namespace
 {
 #	include "vulkan_loader/vkenum_to_str.h"
@@ -76,10 +83,12 @@ namespace
 
 		struct BufferData
 		{
-			VkBuffer				buffer	= Default;
-			VkDeviceAddress			address	= 0;
-			String					name	= {};
-			VkBufferCreateInfo		info	= {};
+			VkBuffer				buffer		= Default;
+			VkDeviceAddress			address		= 0;
+			String					name		= {};
+			VkBufferCreateInfo		info		= {};
+			VkDeviceMemory			mem			= Default;
+			VkDeviceSize			memOffset	= 0;
 		};
 		using BufferMap_t = FlatHashMap< VkBuffer, BufferData >;
 
@@ -100,6 +109,13 @@ namespace
 			VkDeviceAddress			address	= 0;
 		};
 		using AccelStructMap_t = FlatHashMap< VkAccelerationStructureKHR, AccelStructData >;
+
+
+		struct MemoryData
+		{
+			FlatHashSet< VkBuffer >		bound;
+		};
+		using MemoryMap_t = FlatHashMap< VkDeviceMemory, MemoryData >;
 
 
 		struct FramebufferData
@@ -229,9 +245,16 @@ namespace
 		using CommandPoolMap_t = FlatHashMap< VkCommandPool, CommandPoolData >;
 
 
+		struct QueueData
+		{
+			String				name;
+			ulong				submitId		= 0;
+		};
+		using QueueMap_t = FlatHashMap< VkQueue, QueueData >;
+
+
 		using SemaphoreNameMap_t	= FlatHashMap< VkSemaphore,	String >;
 		using FenceNameMap_t		= FlatHashMap< VkFence,		String >;
-		using QueueNameMap_t		= FlatHashMap< VkQueue,		String >;
 
 
 		struct ResourceStatistic
@@ -259,7 +282,7 @@ namespace
 		bool					enableLog		= false;
 		String					log;
 
-		QueueNameMap_t			queueMap;
+		QueueMap_t				queueMap;
 		SemaphoreNameMap_t		semaphoreMap;
 		FenceNameMap_t			fenceMap;
 		PipelineLayoutMap_t		pplnLayoutMap;
@@ -270,6 +293,7 @@ namespace
 		BufferMap_t				bufferMap;
 		BufferViewMap_t			bufferViewMap;
 		DevAddressToBuffer_t	devAddrToBuffer;
+		MemoryMap_t				memoryMap;
 		AccelStructMap_t		accelStructMap;
 		FramebufferMap_t		framebufferMap;
 		RenderPassMap_t			renderPassMap;
@@ -359,7 +383,7 @@ namespace
 
 		buf.buffer	= *pBuffer;
 		buf.info	= *pCreateInfo;
-		buf.name	= "buffer-" + ToString( logger.resourceStat.bufferCount );
+		buf.name	= ADD_OBJ_ID( "buffer-"s << ToString( logger.resourceStat.bufferCount ), *pBuffer );
 
 		++logger.resourceStat.bufferCount;
 		return VK_SUCCESS;
@@ -382,6 +406,10 @@ namespace
 				usize	idx = LowerBound2( logger.devAddrToBuffer, VulkanLogger::DeviceAddressKey{it->second.address} );
 				if ( idx != UMax )
 					logger.devAddrToBuffer.erase( logger.devAddrToBuffer.begin() + idx );
+
+				auto	it2 = logger.memoryMap.find( it->second.mem );
+				if ( it2 != logger.memoryMap.end() )
+					it2->second.bound.erase( buffer );
 
 				logger.bufferMap.erase( it );
 			}
@@ -409,7 +437,7 @@ namespace
 
 		view.view	= *pView;
 		view.info	= *pCreateInfo;
-		view.name	= "buffer-view-" + ToString( logger.resourceStat.bufferViewCount ) + " (" + buf_it->second.name + ")";
+		view.name	= ADD_OBJ_ID( "buffer-view-"s << ToString( logger.resourceStat.bufferViewCount ) << " (" << buf_it->second.name << ")", *pView );
 
 		++logger.resourceStat.bufferViewCount;
 		return VK_SUCCESS;
@@ -448,7 +476,7 @@ namespace
 
 		img.image	= *pImage;
 		img.info	= *pCreateInfo;
-		img.name	= "image-" + ToString( logger.resourceStat.imageCount );
+		img.name	= ADD_OBJ_ID( "image-"s << ToString( logger.resourceStat.imageCount ), *pImage );
 
 		++logger.resourceStat.imageCount;
 		return VK_SUCCESS;
@@ -491,7 +519,7 @@ namespace
 
 				img.image	= pSwapchainImages[i];
 				img.info	= {};
-				img.name	= "image-" + ToString( logger.resourceStat.imageCount );
+				img.name	= ADD_OBJ_ID( "image-"s << ToString( logger.resourceStat.imageCount ), pSwapchainImages[i] );
 
 				++logger.resourceStat.imageCount;
 			}
@@ -519,7 +547,7 @@ namespace
 
 		view.view	= *pView;
 		view.info	= *pCreateInfo;
-		view.name	= "image-view-" + ToString( logger.resourceStat.imageViewCount ) + " (" + image_it->second.name + ")";
+		view.name	= ADD_OBJ_ID( "image-view-"s << ToString( logger.resourceStat.imageViewCount ) << " (" << image_it->second.name << ")", *pView );
 
 		++logger.resourceStat.imageViewCount;
 		return VK_SUCCESS;
@@ -557,7 +585,7 @@ namespace
 		auto&	fb = logger.framebufferMap.insert_or_assign( *pFramebuffer, VulkanLogger::FramebufferData{} ).first->second;
 
 		fb.fb	= *pFramebuffer;
-		fb.name	= "framebuffer-" + ToString( logger.resourceStat.framebufferCount );
+		fb.name	= ADD_OBJ_ID( "framebuffer-"s << ToString( logger.resourceStat.framebufferCount ), *pFramebuffer );
 		fb.info	= *pCreateInfo;
 
 		fb.attachments.assign( pCreateInfo->pAttachments, pCreateInfo->pAttachments + pCreateInfo->attachmentCount );
@@ -599,7 +627,7 @@ namespace
 		auto&	rp = logger.renderPassMap.insert_or_assign( *pRenderPass, VulkanLogger::RenderPassData{} ).first->second;
 
 		rp.rp	= *pRenderPass;
-		rp.name	= "render-pass-" + ToString( logger.resourceStat.renderPassCount );
+		rp.name	= ADD_OBJ_ID( "render-pass-"s << ToString( logger.resourceStat.renderPassCount ), *pRenderPass );
 		++logger.resourceStat.renderPassCount;
 
 		return VK_SUCCESS;
@@ -622,7 +650,7 @@ namespace
 		auto&	rp  = logger.renderPassMap.insert_or_assign( *pRenderPass, VulkanLogger::RenderPassData{} ).first->second;
 
 		rp.rp	= *pRenderPass;
-		rp.name	= "render-pass-" + ToString( logger.resourceStat.renderPassCount );
+		rp.name	= ADD_OBJ_ID( "render-pass-"s << ToString( logger.resourceStat.renderPassCount ), *pRenderPass );
 		++logger.resourceStat.renderPassCount;
 
 		rp.attachments.assign( pCreateInfo->pAttachments, pCreateInfo->pAttachments + pCreateInfo->attachmentCount );
@@ -656,17 +684,17 @@ namespace
 		{
 			sp.pNext = null;
 
-			std::memcpy( rp.references.data() + ref_count, sp.pInputAttachments, sizeof(*sp.pInputAttachments) * sp.inputAttachmentCount );
+			MemCopy_NullCheck( OUT rp.references.data() + ref_count, sp.pInputAttachments, sp.inputAttachmentCount );
 			sp.pInputAttachments	 = rp.references.data() + ref_count;
 			ref_count				+= sp.inputAttachmentCount;
 
-			std::memcpy( rp.references.data() + ref_count, sp.pColorAttachments, sizeof(*sp.pColorAttachments) * sp.colorAttachmentCount );
+			MemCopy_NullCheck( OUT rp.references.data() + ref_count, sp.pColorAttachments, sp.colorAttachmentCount );
 			sp.pColorAttachments	 = rp.references.data() + ref_count;
 			ref_count				+= sp.colorAttachmentCount;
 
 			if ( sp.pResolveAttachments != null )
 			{
-				std::memcpy( rp.references.data() + ref_count, sp.pResolveAttachments, sizeof(*sp.pResolveAttachments) * sp.colorAttachmentCount );
+				MemCopy_NullCheck( OUT rp.references.data() + ref_count, sp.pResolveAttachments, sp.colorAttachmentCount );
 				sp.pResolveAttachments	 = rp.references.data() + ref_count;
 				ref_count				+= sp.colorAttachmentCount;
 			}
@@ -678,7 +706,7 @@ namespace
 				++ref_count;
 			}
 
-			std::memcpy( rp.preserve.data() + preserve_count, sp.pPreserveAttachments, sizeof(*sp.pPreserveAttachments) * sp.preserveAttachmentCount );
+			MemCopy_NullCheck( OUT rp.preserve.data() + preserve_count, sp.pPreserveAttachments, sp.preserveAttachmentCount );
 			sp.pPreserveAttachments	 = rp.preserve.data() + preserve_count;
 			preserve_count			+= sp.preserveAttachmentCount;
 		}
@@ -765,7 +793,7 @@ namespace
 			ppln.pipeline	= pPipelines[i];
 			ppln.layout		= pCreateInfos[i].layout;
 			ppln.type		= VulkanLogger::PipelineData::EType::Graphics;
-			ppln.name		= "graphics-ppln-" + ToString( logger.resourceStat.pipelineCount );
+			ppln.name		= ADD_OBJ_ID( "graphics-ppln-"s << ToString( logger.resourceStat.pipelineCount ), pPipelines[i] );
 			++logger.resourceStat.pipelineCount;
 		}
 		return VK_SUCCESS;
@@ -793,7 +821,7 @@ namespace
 			ppln.pipeline	= pPipelines[i];
 			ppln.layout		= pCreateInfos[i].layout;
 			ppln.type		= VulkanLogger::PipelineData::EType::Compute;
-			ppln.name		= "compute-ppln-" + ToString( logger.resourceStat.pipelineCount );
+			ppln.name		= ADD_OBJ_ID( "compute-ppln-"s << ToString( logger.resourceStat.pipelineCount ), pPipelines[i] );
 			++logger.resourceStat.pipelineCount;
 		}
 		return VK_SUCCESS;
@@ -821,7 +849,7 @@ namespace
 			ppln.pipeline	= pPipelines[i];
 			ppln.layout		= pCreateInfos[i].layout;
 			ppln.type		= VulkanLogger::PipelineData::EType::RayTracing;
-			ppln.name		= "ray-tracing-ppln-" + ToString( logger.resourceStat.pipelineCount );
+			ppln.name		= ADD_OBJ_ID( "ray-tracing-ppln-"s << ToString( logger.resourceStat.pipelineCount ), pPipelines[i] );
 			++logger.resourceStat.pipelineCount;
 		}
 		return VK_SUCCESS;
@@ -906,7 +934,7 @@ namespace
 			auto&		cmdbuf		= logger.commandBuffers.insert_or_assign( pCommandBuffers[i], VulkanLogger::CommandBufferData{} ).first->second;
 			cmdbuf.cmdBuffer		= pCommandBuffers[i];
 			cmdbuf.state			= VulkanLogger::CommandBufferData::EState::Initial;
-			cmdbuf.name				= "command-buffer"; //+ ToString( logger.resourceStat.commandBufferCount );
+			cmdbuf.name				= "command-buffer"s; //<< ToString( logger.resourceStat.commandBufferCount );
 			cmdbuf.queueFamilyIndex	= family_idx;
 			++logger.resourceStat.commandBufferCount;
 		}
@@ -931,7 +959,7 @@ namespace
 		auto&	ds_layout = logger.descSetLayoutMap.insert_or_assign( *pSetLayout, VulkanLogger::DescSetLayoutData{} ).first->second;
 
 		ds_layout.layout	= *pSetLayout;
-		ds_layout.name		= "desc-set-layout-" + ToString( logger.resourceStat.descSetLayoutCount );
+		ds_layout.name		= ADD_OBJ_ID( "desc-set-layout-"s << ToString( logger.resourceStat.descSetLayoutCount ), *pSetLayout );
 
 		++logger.resourceStat.descSetLayoutCount;
 		return VK_SUCCESS;
@@ -972,7 +1000,7 @@ namespace
 			auto&	desc_set	= logger.descSetMap.insert_or_assign( pDescriptorSets[i], VulkanLogger::DescriptorSetData{} ).first->second;
 			desc_set.ds			= pDescriptorSets[i];
 			desc_set.layout		= pAllocateInfo->pSetLayouts[i];
-			desc_set.name		= "desc-set-" + ToString( logger.resourceStat.descSetCount );
+			desc_set.name		= ADD_OBJ_ID( "desc-set-"s << ToString( logger.resourceStat.descSetCount ), pDescriptorSets[i] );
 			++logger.resourceStat.descSetCount;
 		}
 		return VK_SUCCESS;
@@ -1163,6 +1191,70 @@ namespace
 
 /*
 =================================================
+	Wrap_vkBindBufferMemory
+=================================================
+*/
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkBindBufferMemory (VkDevice device, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset)
+	{
+		auto&	logger = VulkanLogger::Get();
+		{
+			EXLOCK( logger.guard );
+
+			auto	it = logger.bufferMap.find( buffer );
+			if ( it != logger.bufferMap.end() )
+			{
+				it->second.mem			= memory;
+				it->second.memOffset	= memoryOffset;
+			}
+
+			logger.memoryMap[ memory ].bound.insert( buffer );
+		}
+		return logger.vkBindBufferMemory( device, buffer, memory, memoryOffset );
+	}
+
+/*
+=================================================
+	Wrap_vkBindBufferMemory2
+=================================================
+*/
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkBindBufferMemory2 (VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo* pBindInfos)
+	{
+		auto&	logger = VulkanLogger::Get();
+		{
+			EXLOCK( logger.guard );
+
+			for (uint i = 0; i < bindInfoCount; ++i)
+			{
+				auto	it = logger.bufferMap.find( pBindInfos[i].buffer );
+				if ( it != logger.bufferMap.end() )
+				{
+					it->second.mem			= pBindInfos[i].memory;
+					it->second.memOffset	= pBindInfos[i].memoryOffset;
+				}
+
+				logger.memoryMap[ pBindInfos[i].memory ].bound.insert( pBindInfos[i].buffer );
+			}
+		}
+		return logger.vkBindBufferMemory2KHR( device, bindInfoCount, pBindInfos );
+	}
+
+/*
+=================================================
+	Wrap_vkFreeMemory
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkFreeMemory (VkDevice device, VkDeviceMemory memory, const VkAllocationCallbacks* pAllocator)
+	{
+		auto&	 logger = VulkanLogger::Get();
+		{
+			EXLOCK( logger.guard );
+			logger.memoryMap.erase( memory );
+		}
+		return logger.vkFreeMemory( device, memory, pAllocator );
+	}
+
+/*
+=================================================
 	Wrap_vkBeginCommandBuffer
 =================================================
 */
@@ -1223,11 +1315,13 @@ namespace
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
 
+		auto&	q = logger.queueMap[ queue ];
+
 		if ( logger.enableLog )
 		{
 			String	log;
 			log	<< "==================================================\n"
-				<< "Batch in queue: '" << logger.queueMap[ queue ] << '\'';
+				<< "Batch in queue: '" << q.name << '\'';
 
 			const auto	PrintQueueFamilyIdx = [&] ()
 			{{
@@ -1249,6 +1343,10 @@ namespace
 			PrintQueueFamilyIdx();
 			log << '\n';
 
+			#if ENABLE_SEQNO
+			log << "submit: " << ToString( q.submitId ) << '\n';
+			#endif
+
 			if ( fence != Default )
 			{
 				auto	fence_it = logger.fenceMap.find( fence );
@@ -1258,6 +1356,10 @@ namespace
 
 			for (uint i = 0; i < submitCount; ++i)
 			{
+				#if ENABLE_SEQNO
+				log << "batch: " << ToString(i) << '\n';
+				#endif
+
 				auto&	batch = pSubmits[i];
 
 				const VkTimelineSemaphoreSubmitInfo*	timeline = null;
@@ -1355,6 +1457,8 @@ namespace
 				<< "==================================================\n";
 		}
 
+		++q.submitId;
+
 		auto	err = logger.vkQueueSubmit( queue, submitCount, pSubmits, fence );
 		ASSERT( err == VK_SUCCESS );
 		return err;
@@ -1370,11 +1474,13 @@ namespace
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
 
+		auto&	q = logger.queueMap[ queue ];
+
 		if ( logger.enableLog )
 		{
 			String	log;
 			log	<< "==================================================\n"
-				<< "Batch in queue: '" << logger.queueMap[ queue ] << '\'';
+				<< "Batch in queue: '" << q.name << '\'';
 
 			const auto	PrintQueueFamilyIdx = [&] ()
 			{{
@@ -1399,6 +1505,10 @@ namespace
 			PrintQueueFamilyIdx();
 			log << '\n';
 
+			#if ENABLE_SEQNO
+			log << "submit: " << ToString( q.submitId ) << '\n';
+			#endif
+
 			if ( fence != Default )
 			{
 				auto	fence_it = logger.fenceMap.find( fence );
@@ -1408,6 +1518,10 @@ namespace
 
 			for (uint i = 0; i < submitCount; ++i)
 			{
+				#if ENABLE_SEQNO
+				log << "batch: " << ToString(i) << '\n';
+				#endif
+
 				auto&	batch = pSubmits[i];
 
 				if ( batch.waitSemaphoreInfoCount > 0 )
@@ -1481,6 +1595,8 @@ namespace
 				<< "==================================================\n";
 		}
 
+		++q.submitId;
+
 		auto	err = logger.vkQueueSubmit2KHR( queue, submitCount, pSubmits, fence );
 		ASSERT( err == VK_SUCCESS );
 		return err;
@@ -1533,7 +1649,7 @@ namespace
 		{
 			String	log;
 			log	<< "==================================================\n"
-				<< "Present in queue: '" << logger.queueMap[ queue ] << "'\n";
+				<< "Present in queue: '" << logger.queueMap[ queue ].name << "'\n";
 
 			if ( pPresentInfo->waitSemaphoreCount > 0 )
 			{
@@ -1556,17 +1672,62 @@ namespace
 
 /*
 =================================================
+	Wrap_vkInvalidateMappedMemoryRanges
+=================================================
+*/
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkInvalidateMappedMemoryRanges (VkDevice device, uint32_t memoryRangeCount, const VkMappedMemoryRange* pMemoryRanges)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		VkResult	res		= logger.vkInvalidateMappedMemoryRanges( device, memoryRangeCount, pMemoryRanges );
+
+		if_unlikely( res != VK_SUCCESS )
+			return res;
+
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return res;
+
+		String	log;
+		for (uint i = 0; i < memoryRangeCount; ++i)
+		{
+			auto	it = logger.memoryMap.find( pMemoryRanges[i].memory );
+			if ( it == logger.memoryMap.end() )
+				continue;
+
+			for (auto buf : it->second.bound)
+			{
+				auto	it2 = logger.bufferMap.find( buf );
+				if ( it2 == logger.bufferMap.end() )
+					continue;
+
+				if ( IsIntersects( pMemoryRanges[i].offset, pMemoryRanges[i].offset + pMemoryRanges[i].size,
+									it2->second.memOffset, it2->second.memOffset + it2->second.info.size ))
+				{
+					log << "\n  buffer '" << it2->second.name << "' range [" << ToString( Max( pMemoryRanges[i].offset, it2->second.memOffset ) - it2->second.memOffset )
+						<< ", " << ToString( Min( pMemoryRanges[i].offset + pMemoryRanges[i].size - it2->second.memOffset, it2->second.info.size )) << ")";
+				}
+			}
+		}
+
+		if ( not log.empty() )
+			logger.log << "----\nInvalidateMappedMemoryRanges" << log << "\n----\n";
+
+		return res;
+	}
+
+/*
+=================================================
 	VBitCast
 =================================================
 */
 	template <typename To, typename From>
 	ND_ To  VBitCast (const From &src)
 	{
-	#	if AE_PLATFORM_BITS == 64
-			return BitCast<To>( src );
-	#	else
-			return BitCastRlx<To>( src );
-	#	endif
+	#if AE_PLATFORM_BITS == 64
+		return BitCast<To>( src );
+	#else
+		return BitCastRlx<To>( src );
+	#endif
 	}
 
 /*
@@ -2465,8 +2626,8 @@ namespace
 	ND_ static String  SubresourceLayerToString (const VkOffset3D &offset, const VkExtent3D &extent,
 												 const VkImageSubresourceLayers &subres, const VkImageCreateInfo &imgCI)
 	{
-		return	"{ off:("s << ToString( offset.x ) << ", " << ToString( offset.y ) << ", " << ToString( offset.z )
-				<< "), ext:(" << ToString( offset.x + extent.width ) << ", " << ToString( offset.y + extent.height ) << ", " << ToString( offset.z + extent.depth )
+		return	"{ min:("s << ToString( offset.x ) << ", " << ToString( offset.y ) << ", " << ToString( offset.z )
+				<< "), max:(" << ToString( offset.x + extent.width ) << ", " << ToString( offset.y + extent.height ) << ", " << ToString( offset.z + extent.depth )
 				<< ')' << MipmapsToString( ", ", subres.mipLevel, 1, imgCI.mipLevels, true )
 				<< ArrayLayersToString( ", ", subres.baseArrayLayer, subres.layerCount, imgCI.arrayLayers, true ) << ", "
 				<< VkImageAspectFlagsToString( subres.aspectMask ) << " }";
@@ -4608,77 +4769,77 @@ namespace
 			case VK_OBJECT_TYPE_COMMAND_BUFFER : {
 				auto	iter = commandBuffers.find( VBitCast<VkCommandBuffer>(id) );
 				if ( iter != commandBuffers.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_BUFFER : {
 				auto	iter = bufferMap.find( VBitCast<VkBuffer>(id) );
 				if ( iter != bufferMap.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_BUFFER_VIEW : {
 				auto	iter = bufferViewMap.find( VBitCast<VkBufferView>(id) );
 				if ( iter != bufferViewMap.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_IMAGE : {
 				auto	iter = imageMap.find( VBitCast<VkImage>(id) );
 				if ( iter != imageMap.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_IMAGE_VIEW : {
 				auto	iter = imageViewMap.find( VBitCast<VkImageView>(id) );
 				if ( iter != imageViewMap.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_RENDER_PASS : {
 				auto	iter = renderPassMap.find( VBitCast<VkRenderPass>(id) );
 				if ( iter != renderPassMap.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_FRAMEBUFFER : {
 				auto	iter = framebufferMap.find( VBitCast<VkFramebuffer>(id) );
 				if ( iter != framebufferMap.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_PIPELINE : {
 				auto	iter = pipelineMap.find( VBitCast<VkPipeline>(id) );
 				if ( iter != pipelineMap.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT : {
 				auto	iter = descSetLayoutMap.find( VBitCast<VkDescriptorSetLayout>(id) );
 				if ( iter != descSetLayoutMap.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR : {
 				auto	iter = accelStructMap.find( VBitCast<VkAccelerationStructureKHR>(id) );
 				if ( iter != accelStructMap.end() )
-					iter->second.name = name;
+					iter->second.name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_SEMAPHORE : {
-				semaphoreMap[ VBitCast<VkSemaphore>(id) ] = name;
+				semaphoreMap[ VBitCast<VkSemaphore>(id) ] = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_FENCE : {
-				fenceMap[ VBitCast<VkFence>(id) ] = name;
+				fenceMap[ VBitCast<VkFence>(id) ] = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_QUEUE : {
-				queueMap[ VBitCast<VkQueue>(id) ] = name;
+				queueMap[ VBitCast<VkQueue>(id) ].name = ADD_OBJ_ID( name, id );
 				break;
 			}
 			case VK_OBJECT_TYPE_PIPELINE_LAYOUT : {
-				pplnLayoutMap[ VBitCast<VkPipelineLayout>(id) ].name = name;
+				pplnLayoutMap[ VBitCast<VkPipelineLayout>(id) ].name = ADD_OBJ_ID( name, id );
 				break;
 			}
 		}
@@ -4871,9 +5032,12 @@ namespace
 		AE_LOGW( "VulkanSyncLog is used in Release" );
 		#endif
 
-		queueMap = RVRef(queueNames);
+		queueMap.clear();
+		for (auto& [q, name] : queueNames) {
+			queueMap[q].name = RVRef(name);
+		}
 
-		std::memcpy( &_originDeviceFnTable, &fnTable, sizeof(_originDeviceFnTable) );
+		MemCopy( OUT &_originDeviceFnTable, &fnTable, Sizeof(_originDeviceFnTable) );
 		VulkanDeviceFn_Init( reinterpret_cast<VulkanDeviceFnTable*>(&_originDeviceFnTable) );
 
 		auto&	table = *reinterpret_cast<DeviceFnTable *>(&fnTable);
@@ -4915,6 +5079,11 @@ namespace
 		table._var_vkDestroyAccelerationStructureKHR= &Wrap_vkDestroyAccelerationStructureKHR;
 		table._var_vkGetBufferDeviceAddressKHR		= &Wrap_vkGetBufferDeviceAddressKHR;
 		table._var_vkCreatePipelineLayout			= &Wrap_vkCreatePipelineLayout;
+		table._var_vkBindBufferMemory				= &Wrap_vkBindBufferMemory;
+		table._var_vkBindBufferMemory2				= &Wrap_vkBindBufferMemory2;
+		table._var_vkBindBufferMemory2KHR			= &Wrap_vkBindBufferMemory2;
+		table._var_vkFreeMemory						= &Wrap_vkFreeMemory;
+		table._var_vkInvalidateMappedMemoryRanges	= &Wrap_vkInvalidateMappedMemoryRanges;
 
 		table._var_vkQueueSubmit					= &Wrap_vkQueueSubmit;
 		table._var_vkQueueSubmit2KHR				= &Wrap_vkQueueSubmit2KHR;
@@ -5031,7 +5200,7 @@ namespace
 	{
 		EXLOCK( guard );
 
-		std::memcpy( &fnTable, &_originDeviceFnTable, sizeof(_originDeviceFnTable) );
+		MemCopy( OUT &fnTable, &_originDeviceFnTable, Sizeof(_originDeviceFnTable) );
 	}
 
 /*

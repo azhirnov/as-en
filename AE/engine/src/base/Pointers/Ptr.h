@@ -67,8 +67,8 @@ namespace AE::Base
 	using RemovePtr = typename Base::_hidden_::_RemovePtr<T>::type;
 
 
-	template <typename T>	struct TMemCopyAvailable< Ptr<T> >	{ static constexpr bool  value = true; };
-	template <typename T>	struct TZeroMemAvailable< Ptr<T> >	{ static constexpr bool  value = true; };
+	template <typename T>	struct TMemCopyAvailable< Ptr<T> >	: CT_True {};
+	template <typename T>	struct TZeroMemAvailable< Ptr<T> >	: CT_True {};
 
 } // AE::Base
 

@@ -115,6 +115,7 @@
 #ifdef SH_FRAG
 	#include "Sort.glsl"
 	#include "Blend.glsl"
+	#include "ColorSpaceUtility.glsl"
 
 	ND_ uint  UnpackInstanceID (uint data)		{ return data & 0xFFFF; }
 	ND_ bool  IsFrontFace (uint data)			{ return (data >> 31) == 1; }
@@ -135,7 +136,7 @@
 
 	float4  Shading (uint objId)
 	{
-		return un_DrawTasks.tasks[ gl::Nonuniform(objId) ][1];
+		return un_DrawTasks.tasks[ objId ][1];
 	}
 
 
@@ -170,7 +171,7 @@
 		uint	prev_inst	= UnpackInstanceID( points[0].objId );
 		int		face_count	= IsFrontFace( points[0].objId ) ? -1 : 1;
 
-		[[unroll]] for (uint i = 1; i < points.length(); ++i)
+		for (uint i = 1; i < points.length(); ++i)
 		{
 			if ( i >= ip_count )
 				break;
@@ -191,8 +192,8 @@
 
 				SeparateBlendParams		p;
 			  #if FRONT_TO_BACK
-				p.srcColor		= src * src.a;	// from shader
-				p.dstColor		= color;		// from render target
+				p.srcColor		= RemoveSRGBCurve( src * src.a );	// from shader
+				p.dstColor		= color;							// from render target
 				p.srcBlendRGB	= EBlendFactor_DstAlpha;
 				p.srcBlendA		= EBlendFactor_One;
 				p.dstBlendRGB	= EBlendFactor_One;
@@ -200,8 +201,8 @@
 				p.blendOpRGB	= EBlendOp_Add;
 				p.blendOpA		= EBlendOp_Add;
 			  #else
-				p.srcColor		= src;		// from shader
-				p.dstColor		= color;	// from render target
+				p.srcColor		= RemoveSRGBCurve( src );			// from shader
+				p.dstColor		= color;							// from render target
 				p.srcBlendRGB	= EBlendFactor_SrcAlpha;
 				p.srcBlendA		= EBlendFactor_One;
 				p.dstBlendRGB	= EBlendFactor_OneMinusSrcAlpha;
@@ -218,7 +219,7 @@
 			face_count	+= IsFrontFace( points[i].objId ) ? -1 : 1;
 		}
 
-		out_Color = color;
+		out_Color = ApplySRGBCurve( color );
 		out_Color.a = 1.0;
 	}
 

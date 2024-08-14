@@ -272,7 +272,7 @@ namespace
 			{
 				if ( iter->dep.flagRef->load() )
 				{
-					_SetDependencyCompletionStatus( iter->task, iter->bitIndex, false );
+					_SetDependencyCompletionStatus( *iter->task, iter->bitIndex, False{"not canceled"} );
 					iter = _depsList.erase( iter );
 				}
 				else

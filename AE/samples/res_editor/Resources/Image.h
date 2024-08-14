@@ -135,6 +135,8 @@ namespace AE::ResEditor
 		ND_ ImageViewDesc	GetViewDesc ()											C_NE___	{ return _imageDesc.Read<1>(); }
 		ND_ StringView		GetName ()												C_NE___	{ return _dbgName; }
 
+		ND_ uint3			GetViewDimension ()										C_NE___;
+
 		ND_ RC<Image>		CreateView (const ImageViewDesc &, StringView dbgName)	__NE___;
 
 

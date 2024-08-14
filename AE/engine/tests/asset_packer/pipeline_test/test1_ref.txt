@@ -258,12 +258,12 @@ DepthStencilStates {
 PipelineTemplNames {
   [0]  'graphics_2', 10000000
   [1]  'compute_2', 30000002
-  [2]  'mesh_1', 20000000
+  [2]  'mesh_1', 20000001
   [3]  'compute_3', 30000001
   [4]  'graphics_3', 10000001
   [5]  'compute_1', 30000000
   [6]  'graphics_1', 10000000
-  [7]  'mesh_2', 20000001
+  [7]  'mesh_2', 20000000
   [8]  'raytracing_1', 40000000
   [9]  'graphics_4', 10000002
 }
@@ -308,7 +308,7 @@ GraphicsPipelineTempl {
   [2]
     layout  = 4
     shaders = {
-      Vertex = 10000008
+      Vertex = 10000006
       Fragment = 10000003
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
@@ -329,14 +329,15 @@ MeshPipelineTempl {
   [0]
     layout  = 3
     shaders = {
-      Mesh = 10000006
-      Fragment = 10000007
+      Mesh = 10000008
+      Fragment = 10000009
     }
     outputTopology       = TriangleList
-    maxVertices          = 3
-    maxIndices           = 3
+    maxVertices          = 32
+    maxIndices           = 192
     earlyFragmentTests   = true
-    meshDefaultLocalSize = { 3, 1, 1 }
+    meshDefaultLocalSize = { 1, 1, 1 }
+    meshLocalSizeSpec    = { 0, Undefined, Undefined }
     features          = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
   [1]
@@ -346,11 +347,10 @@ MeshPipelineTempl {
       Fragment = 1000000b
     }
     outputTopology       = TriangleList
-    maxVertices          = 32
-    maxIndices           = 192
+    maxVertices          = 3
+    maxIndices           = 3
     earlyFragmentTests   = true
-    meshDefaultLocalSize = { 1, 1, 1 }
-    meshLocalSizeSpec    = { 0, Undefined, Undefined }
+    meshDefaultLocalSize = { 3, 1, 1 }
     features          = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
 }
@@ -372,7 +372,7 @@ ComputePipelineTempl {
   ----------------------
   [2]
     layout  = 2
-    shader  = 10000009
+    shader  = 10000007
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
     features = { 'MinimalFS', 'MinDesktop' }
@@ -522,6 +522,7 @@ MeshPipelineSpec {
     viewportCount = 1
     dynamicState  = 0
     options       = Optimize
+    meshLocalSize = { 3, Default, Default }
   [1]
     templUID      = 20000001
     rStateUID     = 2
@@ -531,7 +532,6 @@ MeshPipelineSpec {
     viewportCount = 1
     dynamicState  = 0
     options       = Optimize
-    meshLocalSize = { 3, Default, Default }
 }
 
 ComputePipelineSpec {
@@ -611,8 +611,8 @@ RenderTechniques {
       }
     }
     pipelines = {
-      [0]  'mesh_2 rp:Simple', 20000001
-      [1]  'mesh_1 rp:Simple', 20000000
+      [0]  'mesh_2 rp:Simple', 20000000
+      [1]  'mesh_1 rp:Simple', 20000001
     }
     shader binding tables = {}
   ----------------------
@@ -656,20 +656,20 @@ SpirvShaders {
   [0]  offset = 0 b
   [1]  offset = 8 Kb
   [2]  offset = 10 Kb
-  [3]  offset = 12 Kb
+  [3]  offset = 11 Kb
   [4]  offset = 13 Kb
   [5]  offset = 14 Kb
   [6]  offset = 16 Kb
-  [7]  offset = 20 Kb
-  [8]  offset = 24 Kb
-  [9]  offset = 25 Kb
-  [10]  offset = 27 Kb
-  [11]  offset = 31 Kb
+  [7]  offset = 17 Kb
+  [8]  offset = 19 Kb
+  [9]  offset = 23 Kb
+  [10]  offset = 25 Kb
+  [11]  offset = 29 Kb
   [12]  offset = 33 Kb
   [13]  offset = 36 Kb
   [14]  offset = 38 Kb
   [15]  offset = 40 Kb
-  [16]  offset = 43 Kb
+  [16]  offset = 42 Kb
 }
 
 SpirvShaderData {
@@ -677,51 +677,51 @@ SpirvShaderData {
     codeSize = 5 Kb
     withTrace
   [1]
-    codeSize = 2004 b
-    codeHash = 7c42dff346ee7699
+    codeSize = 1948 b
+    codeHash = dcaeae1cca0a4f63
   [2]
-    codeSize = 1784 b
-    codeHash = b9d8c86147ad6f9f
+    codeSize = 1820 b
+    codeHash = 549e64ca77d15f57
   [3]
-    codeSize = 1196 b
-    codeHash = 15adaab0348ad250
+    codeSize = 1232 b
+    codeHash = 4c9627beed0949ba
   [4]
-    codeSize = 1784 b
-    codeHash = 7b3067ff83bdfe68
+    codeSize = 1820 b
+    codeHash = 9676cb54b3c1cea0
   [5]
-    codeSize = 1332 b
-    codeHash = 1496b1b57654325b
+    codeSize = 1368 b
+    codeHash = 4580e8d6578dd9f5
   [6]
-    codeSize = 3816 b
-    codeHash = a98a6b3c49ab6ae4
+    codeSize = 1724 b
+    codeHash = 4ec176b7e5df2f6e
   [7]
-    codeSize = 4 Kb
-    codeHash = 7b24d32886b6d5e2
+    codeSize = 1680 b
+    codeHash = 89aa2f36bc81b37a
   [8]
-    codeSize = 1688 b
-    codeHash = 2135ee13a9d39fd6
+    codeSize = 3888 b
+    codeHash = 47bb31a4c181b02e
   [9]
-    codeSize = 1644 b
-    codeHash = f6b0b7e5264c87f0
+    codeSize = 2284 b
+    codeHash = f39a6a9ed6b4dcbf
   [10]
-    codeSize = 3880 b
-    codeHash = 7ab3a43431a392d2
+    codeSize = 3824 b
+    codeHash = 8466dabba1f78b8
   [11]
-    codeSize = 2276 b
-    codeHash = 5865f785f3443feb
+    codeSize = 4 Kb
+    codeHash = 8951c441457e013a
   [12]
-    codeSize = 3148 b
-    codeHash = 90805932b568f90
+    codeSize = 3032 b
+    codeHash = 5767bd21d2fb8e23
   [13]
-    codeSize = 1792 b
-    codeHash = 727fe51fb417f218
+    codeSize = 1736 b
+    codeHash = 1040aba06cf14fa2
   [14]
-    codeSize = 2280 b
-    codeHash = e0b41e48c3be3442
+    codeSize = 2224 b
+    codeHash = f11af4197e504508
   [15]
-    codeSize = 2560 b
-    codeHash = f24fcae8d46a962c
+    codeSize = 2504 b
+    codeHash = fb391321a38d40c2
   [16]
-    codeSize = 2984 b
-    codeHash = d114e7101b777452
+    codeSize = 2928 b
+    codeHash = 3b9bba3e2cbb1d8
 }

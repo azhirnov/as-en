@@ -24,7 +24,6 @@ namespace AE::Graphics
 	using AE::Threading::SpinLock;
 	using AE::Threading::RWSpinLock;
 	using AE::Threading::SpinLockRelaxed;
-	using AE::Threading::AsyncTask;
 	using AE::Threading::GlobalLinearAllocatorRef;
 	using AE::Threading::GraphicsFrameAllocatorRef;
 	using AE::Threading::StructAtomic;

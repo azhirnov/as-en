@@ -188,10 +188,6 @@ namespace AE::Samples::Demo
 
 		DirectCtx::Transfer		copy_ctx{ *this };
 
-		// for staging buffers
-		copy_ctx.AccumBarriers()
-			.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc );
-
 		// update uniforms
 		for (usize i = 0; i < targets.size(); ++i)
 		{

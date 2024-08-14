@@ -24,15 +24,24 @@ namespace
 	BufferLayout::Put
 =================================================
 */
-	uint  ScriptBuffer::BufferLayout::Put (const void* data, const Bytes dataSize, const Bytes align)
+	uint  ScriptBuffer::BufferLayout::Put (const void* data, const Bytes rowDataSize, const usize rowCount, const Bytes align)
 	{
 		Bytes	offset		= AlignUp( Bytes{_data.size()}, align );
-		Bytes	new_size	= AlignUp( offset + dataSize, align );
+		Bytes	aligned_row	= AlignUp( rowDataSize, align );
+		Bytes	new_size	= AlignUp( offset, align ) + aligned_row * rowCount;
 
 		_data.resize( usize(new_size) );
 
-		MemCopy( OUT _data.data() + offset, data, dataSize );
+		for (uint row = 0; row < rowCount; ++row)
+		{
+			MemCopy( OUT _data.data() + offset + aligned_row * row, data + rowDataSize * row, rowDataSize );
+		}
 		return uint{offset};
+	}
+
+	uint  ScriptBuffer::BufferLayout::Put (const void* data, const Bytes dataSize, const Bytes align)
+	{
+		return Put( data, dataSize, 1u, align );
 	}
 
 /*
@@ -447,63 +456,63 @@ namespace
 	{
 		_InitConstDataFromScriptLayout();
 		_layout.source << "  float2x2  " << name << ";\n";
-		return _layout.Put( &m, Sizeof(m), 16_b );
+		return _layout.Put( &m, Sizeof(m[0]), m.size(), 16_b );
 	}
 
 	uint  ScriptBuffer::Float2x3 (const String &name, const packed_float2x3 &m) __Th___
 	{
 		_InitConstDataFromScriptLayout();
 		_layout.source << "  float2x3  " << name << ";\n";
-		return _layout.Put( &m, Sizeof(m), 16_b );
+		return _layout.Put( &m, Sizeof(m[0]), m.size(), 16_b );
 	}
 
 	uint  ScriptBuffer::Float2x4 (const String &name, const packed_float2x4 &m) __Th___
 	{
 		_InitConstDataFromScriptLayout();
 		_layout.source << "  float2x4  " << name << ";\n";
-		return _layout.Put( &m, Sizeof(m), 16_b );
+		return _layout.Put( &m, Sizeof(m[0]), m.size(), 16_b );
 	}
 
 	uint  ScriptBuffer::Float3x2 (const String &name, const packed_float3x2 &m) __Th___
 	{
 		_InitConstDataFromScriptLayout();
 		_layout.source << "  float3x2  " << name << ";\n";
-		return _layout.Put( &m, Sizeof(m), 16_b );
+		return _layout.Put( &m, Sizeof(m[0]), m.size(), 16_b );
 	}
 
 	uint  ScriptBuffer::Float3x3 (const String &name, const packed_float3x3 &m) __Th___
 	{
 		_InitConstDataFromScriptLayout();
 		_layout.source << "  float3x3  " << name << ";\n";
-		return _layout.Put( &m, Sizeof(m), 16_b );
+		return _layout.Put( &m, Sizeof(m[0]), m.size(), 16_b );
 	}
 
 	uint  ScriptBuffer::Float3x4 (const String &name, const packed_float3x4 &m) __Th___
 	{
 		_InitConstDataFromScriptLayout();
 		_layout.source << "  float3x4  " << name << ";\n";
-		return _layout.Put( &m, Sizeof(m), 16_b );
+		return _layout.Put( &m, Sizeof(m[0]), m.size(), 16_b );
 	}
 
 	uint  ScriptBuffer::Float4x2 (const String &name, const packed_float4x2 &m) __Th___
 	{
 		_InitConstDataFromScriptLayout();
 		_layout.source << "  float4x2  " << name << ";\n";
-		return _layout.Put( &m, Sizeof(m), 16_b );
+		return _layout.Put( &m, Sizeof(m[0]), m.size(), 16_b );
 	}
 
 	uint  ScriptBuffer::Float4x3 (const String &name, const packed_float4x3 &m) __Th___
 	{
 		_InitConstDataFromScriptLayout();
 		_layout.source << "  float4x3  " << name << ";\n";
-		return _layout.Put( &m, Sizeof(m), 16_b );
+		return _layout.Put( &m, Sizeof(m[0]), m.size(), 16_b );
 	}
 
 	uint  ScriptBuffer::Float4x4 (const String &name, const packed_float4x4 &m) __Th___
 	{
 		_InitConstDataFromScriptLayout();
 		_layout.source << "  float4x4  " << name << ";\n";
-		return _layout.Put( &m, Sizeof(m), 16_b );
+		return _layout.Put( &m, Sizeof(m[0]), m.size(), 16_b );
 	}
 
 /*
@@ -654,7 +663,7 @@ namespace
 
 		uint	result = UMax;
 		for (auto x : arr) {
-			result = Min( result, _layout.Put( &x, Sizeof(x), 16_b ));
+			result = Min( result, _layout.Put( &x, Sizeof(x[0]), x.size(), 16_b ));
 		}
 		return result;
 	}
@@ -667,7 +676,7 @@ namespace
 
 		uint	result = UMax;
 		for (auto x : arr) {
-			result = Min( result, _layout.Put( &x, Sizeof(x), 16_b ));
+			result = Min( result, _layout.Put( &x, Sizeof(x[0]), x.size(), 16_b ));
 		}
 		return result;
 	}
@@ -680,7 +689,7 @@ namespace
 
 		uint	result = UMax;
 		for (auto x : arr) {
-			result = Min( result, _layout.Put( &x, Sizeof(x), 16_b ));
+			result = Min( result, _layout.Put( &x, Sizeof(x[0]), x.size(), 16_b ));
 		}
 		return result;
 	}
@@ -693,7 +702,7 @@ namespace
 
 		uint	result = UMax;
 		for (auto x : arr) {
-			result = Min( result, _layout.Put( &x, Sizeof(x), 16_b ));
+			result = Min( result, _layout.Put( &x, Sizeof(x[0]), x.size(), 16_b ));
 		}
 		return result;
 	}
@@ -706,7 +715,7 @@ namespace
 
 		uint	result = UMax;
 		for (auto x : arr) {
-			result = Min( result, _layout.Put( &x, Sizeof(x), 16_b ));
+			result = Min( result, _layout.Put( &x, Sizeof(x[0]), x.size(), 16_b ));
 		}
 		return result;
 	}
@@ -719,7 +728,7 @@ namespace
 
 		uint	result = UMax;
 		for (auto x : arr) {
-			result = Min( result, _layout.Put( &x, Sizeof(x), 16_b ));
+			result = Min( result, _layout.Put( &x, Sizeof(x[0]), x.size(), 16_b ));
 		}
 		return result;
 	}
@@ -732,7 +741,7 @@ namespace
 
 		uint	result = UMax;
 		for (auto x : arr) {
-			result = Min( result, _layout.Put( &x, Sizeof(x), 16_b ));
+			result = Min( result, _layout.Put( &x, Sizeof(x[0]), x.size(), 16_b ));
 		}
 		return result;
 	}
@@ -745,7 +754,7 @@ namespace
 
 		uint	result = UMax;
 		for (auto x : arr) {
-			result = Min( result, _layout.Put( &x, Sizeof(x), 16_b ));
+			result = Min( result, _layout.Put( &x, Sizeof(x[0]), x.size(), 16_b ));
 		}
 		return result;
 	}
@@ -758,7 +767,7 @@ namespace
 
 		uint	result = UMax;
 		for (auto x : arr) {
-			result = Min( result, _layout.Put( &x, Sizeof(x), 16_b ));
+			result = Min( result, _layout.Put( &x, Sizeof(x[0]), x.size(), 16_b ));
 		}
 		return result;
 	}
@@ -929,10 +938,10 @@ namespace
 		binder.AddMethod( &ScriptBuffer::SetArrayLayout2,		"ArrayLayout",		{"typeName", "count"} );
 
 		binder.Comment( "Allow to declare array of struct with constant or dynamic size.\n"
-						"Created a new structure with type 'typeName' and fields in 'source'.\n"
+						"Created a new structure with type 'typeName' and fields in 'arrayElementSource'.\n"
 						"See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).");
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout3,		"ArrayLayout",		{"typeName", "source", "count"} );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout4,		"ArrayLayout",		{"typeName", "source", "count"} );
+		binder.AddMethod( &ScriptBuffer::SetArrayLayout3,		"ArrayLayout",		{"typeName", "arrayElementSource", "count"} );
+		binder.AddMethod( &ScriptBuffer::SetArrayLayout4,		"ArrayLayout",		{"typeName", "arrayElementSource", "count"} );
 
 		binder.AddMethod( &ScriptBuffer::SetArrayLayout5,		"ArrayLayout",		{"typeName", "arrayElementSource", "staticSource", "count"} );
 		binder.AddMethod( &ScriptBuffer::SetArrayLayout6,		"ArrayLayout",		{"typeName", "arrayElementSource", "staticSource", "count"} );
@@ -946,7 +955,7 @@ namespace
 		binder.AddMethod( &ScriptBuffer::SetLayout2,			"UseLayout",		{"typeName", "source"} );
 
 		binder.Comment( "Returns buffer device address.\n"
-						"Requires 'GL_EXT_buffer_reference extension' in GLSL.\n"
+						"Requires 'GL_EXT_buffer_reference' extension in GLSL.\n"
 						"It passed as 'uint64' type so you should cast it to buffer reference type." );
 		binder.AddMethod( &ScriptBuffer::GetDeviceAddress,		"DeviceAddress",	{} );
 
@@ -1240,7 +1249,8 @@ namespace
 					ShaderStructTypePtr		tmp{ new ShaderStructType{ tmp_typename }};
 					tmp->Set( EStructLayout::Std430, source );
 
-					CHECK( it->second->Compare( *tmp ));
+					CHECK_MSG( it->second->Compare( *tmp ),
+						"Typename '"s << typeName << "' is already defined with different layout" );
 
 					st_types.erase( tmp_typename );
 				}

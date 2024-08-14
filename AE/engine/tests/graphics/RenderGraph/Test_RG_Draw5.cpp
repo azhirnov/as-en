@@ -146,14 +146,12 @@ namespace
 			Ctx		ctx{ *this };
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then( [p = &t] (const ImageMemView &view)
+						.Then(	[p = &t] (const ImageMemView &view)
 								{
 									p->isOK = p->imgCmp->Compare( view );
 								})};
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -192,7 +190,6 @@ namespace
 		// pass1
 		auto		batch1	= rg.CmdBatch( EQueueType::Graphics, {"Draw5-pass1"} )
 									.UseResource( t.img, EResourceState::ColorAttachment )
-									.UploadMemory()
 									.Begin();
 		CHECK_ERR( batch1 );
 

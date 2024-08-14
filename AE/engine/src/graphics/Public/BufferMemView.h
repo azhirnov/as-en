@@ -92,7 +92,7 @@ namespace AE::Graphics
 
 			void	Clear ()												__NE___	{ _parts.clear(); }
 
-			bool	PushBack (void* ptr, Bytes size)						__NE___	{ return _parts.try_push_back( Data{ ptr, size }); }
+			bool	PushBack (void* ptr, Bytes size)						__NE___;
 
 		ND_ Bytes	DataSize ()												C_NE___;
 
@@ -141,6 +141,18 @@ namespace AE::Graphics
 								 BufferMemView &dst, Bytes dstOffset)		__NE___;
 	};
 
+
+/*
+=================================================
+	PushBack
+=================================================
+*/
+	inline bool  BufferMemView::PushBack (void* ptr, Bytes size) __NE___
+	{
+		NonNull( ptr );
+		ASSERT( size > 0 );
+		return _parts.try_push_back( Data{ ptr, size });
+	}
 
 /*
 =================================================

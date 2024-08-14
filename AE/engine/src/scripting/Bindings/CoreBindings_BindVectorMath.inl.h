@@ -340,6 +340,9 @@ namespace
 		template <typename V> static V   Div_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs / rhs; }
 		template <typename V> static V   Div_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs / rhs; }
 
+		template <typename V> static V   DivCeil_v_v (const V& lhs, const V &rhs)								{ return DivCeil( lhs, rhs ); }
+		template <typename V> static V   DivCeil_v_s (const V &lhs, typename V::value_type rhs)					{ return DivCeil( lhs, rhs ); }
+
 		template <typename V> static FloatOnly<V, V&>  Mod_a_v (V& lhs, const V &rhs)							{ return lhs = glm::mod( lhs, rhs ); }
 		template <typename V> static FloatOnly<V, V&>  Mod_a_s (V& lhs, typename V::value_type rhs)				{ return lhs = glm::mod( lhs, rhs ); }
 		template <typename V> static FloatOnly<V, V>   Mod_v_v (const V& lhs, const V &rhs)						{ return glm::mod( lhs, rhs ); }
@@ -553,10 +556,13 @@ namespace
 			.Binary(		EBinaryOperator::ShiftRight, &VecFunc::template ShiftR_v_s< Vec_t >)
 			.BinaryRH(		EBinaryOperator::ShiftRight, &VecFunc::template ShiftR_s_v< Vec_t >)
 
-			.Equal( &VecFunc::template Equal< Vec_t >)
-			.Compare( &VecFunc::template Cmp< Vec_t >);
+			.Equal(			&VecFunc::template Equal< Vec_t >)
+			.Compare(		&VecFunc::template Cmp< Vec_t >);
 
 		BindIntFloatVec( binder, se );
+
+		se->AddFunction( &VecFunc::template DivCeil_v_v<Vec_t>,	"DivCeil",	{"x", "y"} );
+		se->AddFunction( &VecFunc::template DivCeil_v_s<Vec_t>,	"DivCeil",	{"x", "y"} );
 	}
 
 /*

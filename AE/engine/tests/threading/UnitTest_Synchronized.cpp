@@ -109,12 +109,48 @@ namespace
 		}
 		s_Events.Destroy();
 	}
+
+
+	static void  Synchronized_Test2 ()
+	{
+		s_Events.Create();
+		{
+			Synchronized< DbgMutex, Array<ProtectedObject> >	arr;
+
+			arr->reserve( 16 );
+			CmpEvents({ Event::Lock, Event::Unlock });
+
+			arr->push_back( ProtectedObject{ 1 });
+			arr->push_back( ProtectedObject{ 2 });
+			CmpEvents({ Event::Lock, Event::ObjCopyCtor, Event::Unlock,
+						Event::Lock, Event::ObjCopyCtor, Event::Unlock });
+
+			{
+				int		i = 1;
+				auto	r = arr.ReadLock();
+
+				for (auto& item : *r)
+				{
+					TEST( item.Get() == i );
+					++i;
+				}
+			}
+			CmpEvents({ Event::LockShared, Event::ObjGet, Event::ObjGet, Event::UnlockShared });
+
+			// error
+			//for (auto& item : *arr.ReadLock()) {}
+
+			arr->clear();
+		}
+		s_Events.Destroy();
+	}
 }
 
 
 extern void UnitTest_Synchronized ()
 {
 	Synchronized_Test1();
+	Synchronized_Test2();
 
 	TEST_PASSED();
 }

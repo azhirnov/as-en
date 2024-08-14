@@ -78,13 +78,13 @@ namespace AE::Graphics
 		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView)											__Th_OV	{ _UploadImage( stream, OUT memView ); }
 		void  UploadImage (VideoImageStream &stream, OUT ImageMemView &memView)										__Th_OV	{ _UploadImage( stream, OUT memView ); }
 
-		ReadbackBufferResult  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)						__Th_OV;
-		ReadbackImageResult   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)							__Th_OV	{ return _ReadbackImage( image, desc ); }
-		ReadbackImageResult   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)						__Th_OV	{ return _ReadbackImage( image, desc ); }
+		ReadbackBufferResult2	ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)					__Th_OV;
+		ReadbackImageResult2	ReadbackImage (ImageID image, const ReadbackImageDesc &desc)						__Th_OV	{ return _ReadbackImage( image, desc ); }
+		ReadbackImageResult2	ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)					__Th_OV	{ return _ReadbackImage( image, desc ); }
 
-		Promise<BufferMemView>	ReadbackBuffer (INOUT BufferStream &stream)											__Th_OV;
-		Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)											__Th_OV	{ return _ReadbackImage( stream ); }
-		Promise<ImageMemView>   ReadbackImage (INOUT VideoImageStream &stream)										__Th_OV	{ return _ReadbackImage( stream ); }
+		ReadbackBufferResult	ReadbackBuffer (INOUT BufferStream &stream)											__Th_OV;
+		ReadbackImageResult		ReadbackImage (INOUT ImageStream &stream)											__Th_OV	{ return _ReadbackImage( stream ); }
+		ReadbackImageResult		ReadbackImage (INOUT VideoImageStream &stream)										__Th_OV	{ return _ReadbackImage( stream ); }
 
 		bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)						__Th_OV;
 		bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)					__Th_OV;
@@ -116,10 +116,10 @@ namespace AE::Graphics
 		void  _UploadImage (INOUT StreamType &stream, OUT ImageMemView &memView)									__Th___;
 
 		template <typename ID>
-		ND_ ReadbackImageResult  _ReadbackImage (ID image, const ReadbackImageDesc &desc)							__Th___;
+		ND_ ReadbackImageResult2  _ReadbackImage (ID image, const ReadbackImageDesc &desc)							__Th___;
 
 		template <typename StreamType>
-		ND_ Promise<ImageMemView>  _ReadbackImage (INOUT StreamType &stream)										__Th___;
+		ND_ ReadbackImageResult  _ReadbackImage (INOUT StreamType &stream)											__Th___;
 	};
 
 

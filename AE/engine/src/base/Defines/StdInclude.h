@@ -76,6 +76,7 @@
 #ifdef AE_COMPILER_MSVC
 # include <excpt.h>							// GetExceptionCode()
 #define AE_SEH_STACK_OVERFLOW	0xC00000FDL	// EXCEPTION_STACK_OVERFLOW
+#define AE_SEH_ACCESS_VIOLATION	0xC0000005L	// EXCEPTION_ACCESS_VIOLATION
 
 # include <intrin.h>
 # include <mmintrin.h>		// MMX

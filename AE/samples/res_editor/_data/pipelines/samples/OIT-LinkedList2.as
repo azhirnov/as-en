@@ -71,9 +71,9 @@
 
 	void Main ()
 	{
-		const float3	sphere_pos	= un_DrawTasks.tasks[ gl::Nonuniform(gl.InstanceIndex) ][0].xyz;
-		const float		scale		= un_DrawTasks.tasks[ gl::Nonuniform(gl.InstanceIndex) ][0].w;
-		const float4	color		= un_DrawTasks.tasks[ gl::Nonuniform(gl.InstanceIndex) ][1];
+		const float3	sphere_pos	= un_DrawTasks.tasks[ gl.InstanceIndex ][0].xyz;
+		const float		scale		= un_DrawTasks.tasks[ gl.InstanceIndex ][0].w;
+		const float4	color		= un_DrawTasks.tasks[ gl.InstanceIndex ][1];
 
 		const uint		idx			= gl.VertexIndex;
 		const float3	vert_pos	= sphere_pos + (un_Geometry.positions[idx] * scale);

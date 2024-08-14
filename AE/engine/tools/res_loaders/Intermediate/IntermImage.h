@@ -88,21 +88,27 @@ namespace AE::ResLoader
 		ND_ bool  SetData (Mipmaps_t data, EImage type)											__NE___;
 		ND_ bool  SetData (const ImageMemView &memView, RC<SharedMem> storage)					__NE___;
 
-		ND_ bool  Copy (const ImageMemView &memView, RC<IAllocator> allocator)					__NE___;
-		ND_ bool  Copy (const ImageMemView &memView)											__NE___;
+		ND_ bool  Copy (const ImageMemView &memView, RC<IAllocator> allocator = null)			__NE___;
 
+
+		// Allocate pixel storage for all mips and layers.
+		//
 		ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers,
-							MipmapLevel mipmaps, RC<IAllocator> allocator)						__NE___;
+							MipmapLevel mipmaps, RC<IAllocator> allocator = null)				__NE___;
 		ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim,
-							RC<IAllocator> allocator)											__NE___;
+							RC<IAllocator> allocator = null)									__NE___;
 
-		// with default allocator
-		ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim,
-							ImageLayer layers, MipmapLevel mipmaps)								__NE___;
-		ND_ bool  Allocate (EImage type, EPixelFormat fmt, const uint3 &dim)					__NE___;
-
+		// Reserve space for all mips and layers without pixel storage allocation.
+		//
 		ND_ bool  Reserve (EImage type, EPixelFormat fmt, const uint3 &dim,
 						   ImageLayer layers, MipmapLevel mipmaps)								__NE___;
+
+		// Allocate pixel storage for specified mip & layer.
+		// Image must be already created using 'Allocate()' or 'Reserve()'.
+		//
+		ND_ bool  AllocLevel (MipmapLevel mipmap, ImageLayer layer,
+							  RC<IAllocator> allocator = null)									__NE___;
+
 
 		ND_ ImageMemView		ToView (MipmapLevel mipmap, ImageLayer layer)					__NE___;
 		ND_ ImageMemView		ToView (MipmapLevel mipmap)										__NE___	{ return ToView( mipmap, Default ); }

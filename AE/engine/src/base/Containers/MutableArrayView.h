@@ -143,8 +143,8 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-	template <typename T>	struct TMemCopyAvailable< MutableArrayView<T> >	{ static constexpr bool  value = true; };
-	template <typename T>	struct TZeroMemAvailable< MutableArrayView<T> >	{ static constexpr bool  value = true; };
+	template <typename T>	struct TMemCopyAvailable< MutableArrayView<T> >	: CT_True {};
+	template <typename T>	struct TZeroMemAvailable< MutableArrayView<T> >	: CT_True {};
 
 } // AE::Base
 

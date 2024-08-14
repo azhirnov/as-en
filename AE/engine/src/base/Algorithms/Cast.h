@@ -12,7 +12,7 @@ namespace AE::Base
 	CheckPointerAlignment
 =================================================
 */
-	ND_ inline bool  CheckPointerAlignment (void const* ptr, usize align) __NE___
+	ND_ constexpr inline bool  CheckPointerAlignment (void const* ptr, usize align) __NE___
 	{
 		DBG_CHECK_MSG( ((align & (align - 1)) == 0), "Align must be power of 2" );
 
@@ -35,18 +35,16 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	void  CheckPointerCast (T const* ptr) __NE___
+	cxx20_constexpr void  CheckPointerCast (T const* ptr) __NE___
 	{
 	#ifdef AE_CFG_DEBUG
-		if constexpr( not IsVoid<R> )
+		if constexpr( not IsVoid<R> and not IsConstEvaluated() )
 		{
 			if ( not CheckPointerAlignment<R>( ptr ))
 			{
-				std::stringstream	str;
-				str << "Failed to cast pointer from '" << TypeNameOf<T>() << "' to '" << TypeNameOf<R>()
+				AE_LOGE( (std::stringstream{} << "Failed to cast pointer from '" << TypeNameOf<T>() << "' to '" << TypeNameOf<R>()
 					<< "': memory address " << std::hex << usize(ptr) << " is not aligned to " << std::dec << alignof(R)
-					<< ", it may cause undefined behavior";
-				AE_LOGE( str.str() );
+					<< ", it may cause undefined behavior").str() );
 			}
 		}
 	#else

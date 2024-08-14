@@ -246,7 +246,7 @@ namespace AE::ResEditor
 	{
 		auto&	fmt_info = EPixelFormat_GetInfo( desc.format );
 		return ChooseAllocator( isDynamic,
-					ImageUtils::ImageSize( desc.dimension, desc.arrayLayers, desc.maxLevel, desc.samples, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ));
+					ImageUtils::ImageSize( desc.dimension, desc.arrayLayers, desc.mipLevels, desc.samples, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ));
 	}
 
 	GfxMemAllocatorPtr  DefaultResources::ChooseAllocator (Bool isDynamic, const VideoImageDesc &desc) C_NE___

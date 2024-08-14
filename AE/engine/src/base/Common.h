@@ -125,20 +125,6 @@ namespace AE::Base
 
 /*
 =================================================
-	IsConstEvaluated
-=================================================
-*/
-	ND_ inline constexpr bool  IsConstEvaluated () __NE___
-	{
-	  #ifdef __cpp_if_consteval
-		if consteval { return true; } else { return false; }
-	  #else
-		return false;
-	  #endif
-	}
-
-/*
-=================================================
 	TypeNameOf
 =================================================
 */
@@ -247,16 +233,21 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-	template <typename T>	struct TMemCopyAvailable< BasicStringView<T> >		{ static constexpr bool  value = true; };
-	template <typename T>	struct TZeroMemAvailable< BasicStringView<T> >		{ static constexpr bool  value = false; };
-	template <typename T>	struct TTriviallySerializable< BasicStringView<T> >	{ static constexpr bool  value = false; };
-	template <typename T>	struct TTriviallyDestructible< BasicStringView<T> >	{ static constexpr bool  value = true; };
+	template <typename T>	struct TMemCopyAvailable< BasicStringView<T> >		: CT_True	{};
+	template <typename T>	struct TZeroMemAvailable< BasicStringView<T> >		: CT_False	{};
+	template <typename T>	struct TTriviallySerializable< BasicStringView<T> >	: CT_False	{};
+	template <typename T>	struct TTriviallyDestructible< BasicStringView<T> >	: CT_True	{};
 
 
-	template <usize N>	struct TMemCopyAvailable< BitSet<N> >		{ static constexpr bool  value = true; };
-	template <usize N>	struct TZeroMemAvailable< BitSet<N> >		{ static constexpr bool  value = true; };
-	template <usize N>	struct TTriviallySerializable< BitSet<N> >	{ static constexpr bool  value = false; };
-	template <usize N>	struct TTriviallyDestructible< BitSet<N> >	{ static constexpr bool  value = true; };
+	template <usize N>	struct TMemCopyAvailable< BitSet<N> >		: CT_True	{};
+	template <usize N>	struct TZeroMemAvailable< BitSet<N> >		: CT_True	{};
+	template <usize N>	struct TTriviallySerializable< BitSet<N> >	: CT_False	{};
+	template <usize N>	struct TTriviallyDestructible< BitSet<N> >	: CT_True	{};
+
+	template <typename F, typename S>	struct TMemCopyAvailable< Pair<F,S> >		: CT_Bool< IsMemCopyAvailable<F> and IsMemCopyAvailable<S> >			{};
+	template <typename F, typename S>	struct TZeroMemAvailable< Pair<F,S> >		: CT_Bool< IsZeroMemAvailable<F> and IsZeroMemAvailable<S> >			{};
+	template <typename F, typename S>	struct TTriviallySerializable< Pair<F,S> >	: CT_Bool< IsTriviallySerializable<F> and IsTriviallySerializable<S> >	{};
+	template <typename F, typename S>	struct TTriviallyDestructible< Pair<F,S> >	: CT_Bool< IsTriviallyDestructible<F> and IsTriviallyDestructible<S> >	{};
 
 } // AE::Base
 

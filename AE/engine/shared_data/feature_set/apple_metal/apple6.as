@@ -70,6 +70,7 @@ void ASmain ()
 	fset.shaderDrawParameters (True);
 	fset.runtimeDescriptorArray (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
+	fset.shaderStencilExport (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
@@ -82,6 +83,9 @@ void ASmain ()
 	fset.shaderInputAttachmentArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
+	fset.shaderSampledImageArrayNonUniformIndexingNative (True);
+	fset.shaderStorageImageArrayNonUniformIndexingNative (True);
+	fset.shaderInputAttachmentArrayNonUniformIndexingNative (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.fragmentShaderSampleInterlock (True);
@@ -194,6 +198,8 @@ void ASmain ()
 	fset.textureCompressionASTC_HDR (True);
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewFormatList (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U
@@ -242,13 +248,13 @@ void ASmain ()
 		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, 
 		EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R16F, 
 		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::RGB_11_11_10F, EPixelFormat::RGB9F_E5, 
-		EPixelFormat::Depth16, EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ECT2_sRGB8, EPixelFormat::ETC2_RGB8_A1_UNorm, 
+		EPixelFormat::Depth16, EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ETC2_sRGB8, EPixelFormat::ETC2_RGB8_A1_UNorm, 
 		EPixelFormat::ETC2_sRGB8_A1, EPixelFormat::ETC2_RGBA8_UNorm, EPixelFormat::ETC2_sRGB8_A8, EPixelFormat::EAC_R11_SNorm, 
-		EPixelFormat::EAC_R11_UNorm, EPixelFormat::EAC_RG11_SNorm, EPixelFormat::EAC_RG11_UNorm, EPixelFormat::ASTC_RGBA_4x4, 
-		EPixelFormat::ASTC_RGBA_5x4, EPixelFormat::ASTC_RGBA_5x5, EPixelFormat::ASTC_RGBA_6x5, EPixelFormat::ASTC_RGBA_6x6, 
-		EPixelFormat::ASTC_RGBA_8x5, EPixelFormat::ASTC_RGBA_8x6, EPixelFormat::ASTC_RGBA_8x8, EPixelFormat::ASTC_RGBA_10x5, 
-		EPixelFormat::ASTC_RGBA_10x6, EPixelFormat::ASTC_RGBA_10x8, EPixelFormat::ASTC_RGBA_10x10, EPixelFormat::ASTC_RGBA_12x10, 
-		EPixelFormat::ASTC_RGBA_12x12, EPixelFormat::ASTC_sRGB8_A8_4x4, EPixelFormat::ASTC_sRGB8_A8_5x4, EPixelFormat::ASTC_sRGB8_A8_5x5, 
+		EPixelFormat::EAC_R11_UNorm, EPixelFormat::EAC_RG11_SNorm, EPixelFormat::EAC_RG11_UNorm, EPixelFormat::ASTC_RGBA8_4x4, 
+		EPixelFormat::ASTC_RGBA8_5x4, EPixelFormat::ASTC_RGBA8_5x5, EPixelFormat::ASTC_RGBA8_6x5, EPixelFormat::ASTC_RGBA8_6x6, 
+		EPixelFormat::ASTC_RGBA8_8x5, EPixelFormat::ASTC_RGBA8_8x6, EPixelFormat::ASTC_RGBA8_8x8, EPixelFormat::ASTC_RGBA8_10x5, 
+		EPixelFormat::ASTC_RGBA8_10x6, EPixelFormat::ASTC_RGBA8_10x8, EPixelFormat::ASTC_RGBA8_10x10, EPixelFormat::ASTC_RGBA8_12x10, 
+		EPixelFormat::ASTC_RGBA8_12x12, EPixelFormat::ASTC_sRGB8_A8_4x4, EPixelFormat::ASTC_sRGB8_A8_5x4, EPixelFormat::ASTC_sRGB8_A8_5x5, 
 		EPixelFormat::ASTC_sRGB8_A8_6x5, EPixelFormat::ASTC_sRGB8_A8_6x6, EPixelFormat::ASTC_sRGB8_A8_8x5, EPixelFormat::ASTC_sRGB8_A8_8x6, 
 		EPixelFormat::ASTC_sRGB8_A8_8x8, EPixelFormat::ASTC_sRGB8_A8_10x5, EPixelFormat::ASTC_sRGB8_A8_10x6, EPixelFormat::ASTC_sRGB8_A8_10x8, 
 		EPixelFormat::ASTC_sRGB8_A8_10x10, EPixelFormat::ASTC_sRGB8_A8_12x10, EPixelFormat::ASTC_sRGB8_A8_12x12, EPixelFormat::ASTC_RGBA16F_4x4, 

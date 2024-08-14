@@ -380,7 +380,7 @@ namespace AE::Threading
 					TopLevelBits_t	top_bit	= TopLevelBits_t{1} << chunk_idx;
 					TopLevelBits_t	prev	= _topLevel.fetch_and( ~top_bit );	// 1 -> 0
 					Unused( prev );
-					ASSERT( prev & top_bit );
+					ASSERT( !!( prev & top_bit ));
 					ASSERT( info.hiLevel.load() != hi_max );
 				}
 			}
@@ -427,7 +427,7 @@ namespace AE::Threading
 		const uint		elem_idx	= index % ChunkSize;
 		ValueChunk_t*	chunk		= _chunkData[ chunk_idx ].load();
 
-		ASSERT( chunk );
+		NonNull( chunk );
 		return (*chunk)[ elem_idx ];
 	}
 

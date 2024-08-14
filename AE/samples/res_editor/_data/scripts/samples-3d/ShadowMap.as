@@ -13,8 +13,8 @@
 	{
 		// initialize
 		RC<Image>				rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
-		RC<Image>				ds			= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
-		RC<Image>				sm			= Image( EPixelFormat::Depth32F, uint2(1024) );			sm.Name( "ShadowMap" );
+		RC<Image>				ds			= Image( Supported_DepthFormat(), SurfaceSize() );		ds.Name( "RT-Depth" );
+		RC<Image>				sm			= Image( Supported_DepthFormat(), uint2(1024) );		sm.Name( "ShadowMap" );
 
 		RC<FPVCamera>			camera		= FPVCamera();
 		RC<Scene>				scene		= Scene();
@@ -99,7 +99,7 @@
 
 			RC<UnifiedGeometry>		geometry2	= geometry1.Clone();
 
-			geometry2.ArgIn( "un_ShadowMap",	sm,		Sampler_LinearClamp );
+			geometry2.ArgIn( "un_ShadowMap",	sm,		Sampler_NearestClamp );	// linear sampler may be unsupported
 
 			scene.Add( geometry2 );
 		}

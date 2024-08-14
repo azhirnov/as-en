@@ -242,7 +242,9 @@ namespace AE::Base
 	From low to high bit.
 	Replacement for loop with 'ExtractBit()'.
 ----
-	example:  for (uint bit : BitfieldIterate( bits ))
+	example:
+		for (uint bit : BitfieldIterate( bits ))
+		for (Enum bit : BitfieldIterate( Enum(bits) ))
 =================================================
 */
 	namespace _hidden_

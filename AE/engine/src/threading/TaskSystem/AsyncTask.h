@@ -115,7 +115,7 @@ namespace AE::Threading
 			ubyte	isStrong : 1;	// to increment '_canceledDepsCount'
 
 			TaskDependency ()									__NE___ : bitIndex{0x7F}, isStrong{0} {}
-			explicit TaskDependency (uint index, bool strong)	__NE___ : bitIndex{ubyte(index)}, isStrong{strong} {}
+			explicit TaskDependency (uint index, Bool strong)	__NE___ : bitIndex{ubyte(index)}, isStrong{strong} {}
 		};
 
 	private:

@@ -19,12 +19,14 @@ namespace AE::Graphics
 																						   const RPrimaryCmdBufState &primaryState, const RenderPassDesc &desc,
 																						   DebugLabel dbg) __NE___
 	{
+		// TODO
 		return null;
 	}
 
 	RC<RDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch (RenderTaskScheduler &rts,
 																						  const RDrawCommandBatch &prevBatch, DebugLabel dbg) __NE___
 	{
+		// TODO
 		return null;
 	}
 //-----------------------------------------------------------------------------
@@ -192,39 +194,74 @@ namespace AE::Graphics
 {
 /*
 =================================================
-	_WaitAllBatches
+	_WaitAll
 =================================================
 */
-	bool  RenderTaskScheduler::_WaitAllBatches (const TimePoint_t endTime) __NE___
+	bool  RenderTaskScheduler::_WaitAll (const EThreadArray &threads, nanoseconds timeout) __NE___
 	{
-		const auto	timeout = endTime - TimePoint_t::clock::now();
-
-		Msg::RTS_WaitAll			msg;
-		RC<Msg::DefaultResponse>	res;
-
-		msg.frameId	= GetFrameId();
-		msg.timeout = timeout;
-
-		CHECK_ERR( _device.SendAndWait( msg, OUT res ));
-
-		FrameUID	fid = msg.frameId;
-		for (uint i = 0; i < fid.MaxFrames(); ++i, fid.Inc())
 		{
-			auto&	frame = _perFrame[ fid.Index() ];
+			Msg::RTS_WaitAll			msg;
+			RC<Msg::DefaultResponse>	res;
+
+			msg.frameId	= GetFrameId();
+			msg.timeout = timeout;
+
+			CHECK_ERR( _device.SendAndWait( msg, OUT res ));
+
+			if ( not res->ok )
+				return false;
+		}
+
+		FrameUID	frame_id	= GetFrameId();
+		const uint	cnt			= frame_id.MaxFrames();
+		const auto	end_time	= TimePoint_t::clock::now() + timeout;
+
+		for (uint i = 0; i < cnt; ++i, frame_id.Inc())
+		{
+			// wait for 'EndFrameTask' and other dependencies
+			if ( not threads.empty() )
+			{
+				auto	begin_deps = _beginDeps[ frame_id.Remap( _FrameDepsHistory )].WriteLock();
+
+				if_unlikely( not Scheduler().Wait( *begin_deps, threads, end_time, _ProcessTasksPerTick ))
+					return false;  // time is out
+
+				begin_deps->clear();
+			}
+
+			// mark batches as completed
+			auto&	frame = _perFrame[ frame_id.Index() ];
 			EXLOCK( frame.guard );
 
 			for (auto& batch : frame.submitted) {
 				batch->_OnComplete();
 			}
 			frame.submitted.clear();
+
+			// allow to run tasks which depends on 'OnFrameNextCycle'
+			_nextCycleDepMngr->OnNextFrame( frame_id );
 		}
 
-		const auto	end_time = TimePoint_t::clock::now() + timeout;
+		// wait for all begin dependencies
+		if ( not threads.empty() )
+		{
+			for (auto& deps : _beginDeps)
+			{
+				auto	begin_deps = deps.WriteLock();
+
+				if_unlikely( not Scheduler().Wait( *begin_deps, threads, end_time, _ProcessTasksPerTick ))
+					return false;  // time is out
+
+				begin_deps->clear();
+			}
+		}
 
 		if ( auto glib = _device.GetGraphicsLib() )
-			Unused( glib->WaitAll( timeout ));
-
-		return res->ok;
+		{
+			if ( not glib->WaitAll( timeout ))
+				return false;  // time is out
+		}
+		return true;
 	}
 
 } // AE::Graphics

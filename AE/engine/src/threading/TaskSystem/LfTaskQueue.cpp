@@ -45,8 +45,8 @@ namespace AE::Threading
 				const PackedBits	prev = chunk_ptr->packed.exchange( PackedBits{}.Lock() );
 
 				// chunk must be unlocked and empty
-				CHECK( not prev.IsLocked() );
-				CHECK( prev.pack.count == 0 );
+				CHECK_MSG( not prev.IsLocked(), "chunk is locked by another thread" );
+				CHECK_MSG( prev.pack.count == 0, "queue must be empty" );
 
 				for (usize i = 0, cnt = prev.pack.count; i < cnt; ++i)
 				{
@@ -97,7 +97,7 @@ namespace AE::Threading
 			bool	rerun = false;
 			task->_OnFinish( OUT rerun );	// TODO
 
-			DEBUG_ONLY(
+			#ifdef AE_DEBUG
 			{
 				auto	dt = TimePoint_t::clock::now() - start_time;
 				_workTime += dt.count();
@@ -120,7 +120,8 @@ namespace AE::Threading
 						break;
 				}
 				switch_end
-			})
+			}
+			#endif
 			//AE_LOG_DBG( "--end: "s << task->DbgName() );
 
 			if_unlikely( rerun )

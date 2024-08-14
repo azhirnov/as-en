@@ -145,6 +145,7 @@ namespace
 		StaticArray< uint, 4 >	bits	= {};
 		constexpr uint			px_size = (R+G+B+A+7)/8;
 
+		NonNull( row.ptr );
 		MemCopy( OUT bits.data(), row.ptr + Bytes{x * px_size}, Bytes{px_size} );
 
 		result.r = ReadIntScalar< R, 0 >( bits );
@@ -164,6 +165,7 @@ namespace
 		StaticArray< uint, 4 >	bits	= {};
 		constexpr uint			px_size = (R+G+B+A+7)/8;
 
+		NonNull( row.ptr );
 		MemCopy( OUT bits.data(), row.ptr + Bytes{x * px_size}, Bytes{px_size} );
 
 		result.r = ReadUIntScalar< R, 0 >( bits );
@@ -215,6 +217,7 @@ namespace
 	static void  ReadFloat (const BufferMemView::ConstData &row, uint x, OUT RGBA32f &result) __NE___
 	{
 		constexpr uint	px_size = (R+G+B+A+7)/8;
+		NonNull( row.ptr );
 
 		if constexpr( R == 16 )
 		{
@@ -246,6 +249,8 @@ namespace
 	static void  ReadFloat_11_11_10 (const BufferMemView::ConstData &row, uint x, OUT RGBA32f &result) __NE___
 	{
 		RGBBits	bits = {};
+
+		NonNull( row.ptr );
 		MemCopy( OUT &bits, row.ptr + Bytes{x * sizeof(RGBBits)}, Sizeof(bits) );
 
 		FloatBits	f;
@@ -378,6 +383,7 @@ namespace
 		WriteUIntScalar< B, R+G >( result.b, OUT bits );
 		WriteUIntScalar< A, R+G+B >( result.a, OUT bits );
 
+		NonNull( row.ptr );
 		MemCopy( OUT row.ptr + Bytes{x * px_size}, bits.data(), Bytes{px_size} );
 	}
 
@@ -397,6 +403,7 @@ namespace
 		WriteIntScalar< B, R+G >( result.b, OUT bits );
 		WriteIntScalar< A, R+G+B >( result.a, OUT bits );
 
+		NonNull( row.ptr );
 		MemCopy( OUT row.ptr + Bytes{x * px_size}, bits.data(), Bytes{px_size} );
 	}
 
@@ -443,6 +450,7 @@ namespace
 	static void  WriteFloat (BufferMemView::Data row, uint x, const RGBA32f &result) __NE___
 	{
 		constexpr uint	px_size = (R+G+B+A+7)/8;
+		NonNull( row.ptr );
 
 		if constexpr( R == 16 )
 		{
@@ -490,6 +498,7 @@ namespace
 		bits.b_m = f.bits.m >> (23 - 5);
 		bits.b_e = f.bits.e - (127 - 15);
 
+		NonNull( row.ptr );
 		MemCopy( OUT row.ptr + Bytes{x * sizeof(RGBBits)}, &bits, Sizeof(bits) );
 	}
 
@@ -566,6 +575,8 @@ namespace
 			if ( IsIntersects( cur_offset, cur_offset + part.size, row_offset, row_offset + row_size ))
 			{
 				ASSERT( (cur_offset + part.size) >= (row_offset + row_size) );
+				NonNull( part.ptr );
+
 				return Row_t{ (part.ptr + (row_offset - cur_offset)), row_size };
 			}
 			cur_offset += part.size;
@@ -578,6 +589,7 @@ namespace
 	ImageMemView::CRow_t  ImageMemView::GetRow (uint y, uint z) C_NE___
 	{
 		auto	row = const_cast<ImageMemView*>(this)->GetRow( y, z );
+		NonNull( row.ptr );
 		return CRow_t{ row.ptr, row.size };
 	}
 
@@ -599,6 +611,7 @@ namespace
 		{
 			if ( IsIntersects( cur_offset, cur_offset + part.size, slice_offset, slice_offset + slice_size ))
 			{
+				NonNull( part.ptr );
 				slice.PushBack( part.ptr + (cur_offset - slice_offset),
 								Min( part.size + cur_offset, slice_offset + slice_size ) - cur_offset );
 				slice_offset = cur_offset + part.size;
@@ -623,9 +636,10 @@ namespace
 	{
 		ASSERT( All( point < Dimension() ));
 
-		CRow_t	row		= GetRow( point.y, point.z );
-		Pixel_t	pixel	{ (row.ptr + Bytes{(_bitsPerBlock * point.x) / 8}), Bytes{_bitsPerBlock} / 8 };		// TODO: compressed format
+		CRow_t	row	= GetRow( point.y, point.z );
+		NonNull( row.ptr );
 
+		Pixel_t	pixel{ (row.ptr + Bytes{(_bitsPerBlock * point.x) / 8}), Bytes{_bitsPerBlock} / 8 };	// TODO: compressed format
 		return pixel;
 	}
 
@@ -667,6 +681,12 @@ namespace
 		ASSERT( All( dstOffset + dim <= this->Dimension() ));
 		ASSERT( All( srcOffset + dim <= srcImage.Dimension() ));
 
+		ASSERT( All( IsMultipleOf( uint2{dstOffset}, TexBlockDim() )));
+		ASSERT( All( IsMultipleOf( uint2{srcOffset}, TexBlockDim() )));
+
+		ASSERT( All( IsMultipleOf( uint2{dstOffset + dim}, TexBlockDim() )));
+		ASSERT( All( IsMultipleOf( uint2{srcOffset + dim}, TexBlockDim() )));
+
 		if_unlikely( not All( dstOffset + dim <= this->Dimension() )	or
 					 not All( srcOffset + dim <= srcImage.Dimension() )	or
 					 this->_format != srcImage._format					or
@@ -682,49 +702,56 @@ namespace
 		const Bytes		src_row_pitch	= srcImage.RowPitch();
 		const Bytes		dst_slice_pitch	= this->SlicePitch();
 		const Bytes		src_slice_pitch	= srcImage.SlicePitch();
-		const Bytes		bpp				= Bytes{_bitsPerBlock} / 8;	// TODO: compressed formats
+
+		const uint		block_count_y	= dim.y / TexBlockDim().y;
+		const Bytes		src_row_off		= ImageUtils::RowSize( srcOffset.x, _bitsPerBlock, TexBlockDim() );
+		const Bytes		dst_row_off		= ImageUtils::RowSize( dstOffset.x, _bitsPerBlock, TexBlockDim() );
+		const uint		src_offset_y	= srcOffset.y / TexBlockDim().y;
+		const uint		dst_offset_y	= dstOffset.y / TexBlockDim().y;
 
 		const auto		dst_parts		= this->Parts();
 		const auto		src_parts		= srcImage.Parts();
-		auto			dst_part_iter	= dst_parts.begin();
-		auto			src_part_iter	= src_parts.begin();
+		auto			dst_part_it		= dst_parts.begin();
+		auto			src_part_it		= src_parts.begin();
 
 		Bytes			dst_offset;
 		Bytes			src_offset;
 
 		for (uint z = 0; z < dim.z; ++z)
 		{
-			for (uint y = 0; y < dim.y; ++y)
+			for (uint y = 0; y < block_count_y; ++y)
 			{
-				const Bytes	dst_row_offset	= dst_slice_pitch * (z + dstOffset.z) + dst_row_pitch * (y + dstOffset.y) + bpp * dstOffset.x;
-				const Bytes	src_row_offset	= src_slice_pitch * (z + srcOffset.z) + src_row_pitch * (y + srcOffset.y) + bpp * srcOffset.x;
+				const Bytes	dst_row_offset	= dst_slice_pitch * (z + dstOffset.z) + dst_row_pitch * (y + dst_offset_y) + dst_row_off;
+				const Bytes	src_row_offset	= src_slice_pitch * (z + srcOffset.z) + src_row_pitch * (y + src_offset_y) + src_row_off;
 
 				for (;;)
 				{
-					if_likely( IsIntersects( dst_offset, dst_offset + dst_part_iter->size, dst_row_offset, dst_row_offset + row_size ))
+					if_likely( IsIntersects( dst_offset, dst_offset + dst_part_it->size, dst_row_offset, dst_row_offset + row_size ))
 						break;
 
-					dst_offset += dst_part_iter->size;
+					dst_offset += dst_part_it->size;
 
-					if_unlikely( ++dst_part_iter == dst_parts.end() )
+					if_unlikely( ++dst_part_it == dst_parts.end() )
 						return false;
 				}
 				for (;;)
 				{
-					if_likely( IsIntersects( src_offset, src_offset + src_part_iter->size, src_row_offset, src_row_offset + row_size ))
+					if_likely( IsIntersects( src_offset, src_offset + src_part_it->size, src_row_offset, src_row_offset + row_size ))
 						break;
 
-					src_offset += src_part_iter->size;
+					src_offset += src_part_it->size;
 
-					if_unlikely( ++src_part_iter == src_parts.end() )
+					if_unlikely( ++src_part_it == src_parts.end() )
 						return false;
 				}
 
-				ASSERT( IsCompletelyInside( dst_offset, dst_offset + dst_part_iter->size, dst_row_offset, dst_row_offset + row_size ));
-				ASSERT( IsCompletelyInside( src_offset, src_offset + src_part_iter->size, src_row_offset, src_row_offset + row_size ));
+				ASSERT( IsCompletelyInside( dst_offset, dst_offset + dst_part_it->size, dst_row_offset, dst_row_offset + row_size ));
+				ASSERT( IsCompletelyInside( src_offset, src_offset + src_part_it->size, src_row_offset, src_row_offset + row_size ));
+				NonNull( src_part_it->ptr );
+				NonNull( dst_part_it->ptr );
 
-				ubyte*			dst_row = Cast<ubyte>( dst_part_iter->ptr + (dst_row_offset - dst_offset) );
-				ubyte const*	src_row = Cast<ubyte>( src_part_iter->ptr + (src_row_offset - src_offset) );
+				ubyte*			dst_row = Cast<ubyte>( dst_part_it->ptr + (dst_row_offset - dst_offset) );
+				ubyte const*	src_row = Cast<ubyte>( src_part_it->ptr + (src_row_offset - src_offset) );
 
 				MemCopy( OUT dst_row, src_row, row_size );
 				written += row_size;
@@ -745,6 +772,7 @@ namespace
 		Bytes	offset;
 		for (auto& part : _content.Parts())
 		{
+			NonNull( part.ptr );
 			MemCopy( OUT data + offset, part.ptr, part.size );
 			offset += part.size;
 		}
@@ -770,6 +798,12 @@ namespace
 		ASSERT( All( lhsOffset + dim <= this->Dimension() ));
 		ASSERT( All( rhsOffset + dim <= rhsImage.Dimension() ));
 
+		ASSERT( All( IsMultipleOf( uint2{lhsOffset}, TexBlockDim() )));
+		ASSERT( All( IsMultipleOf( uint2{rhsOffset}, TexBlockDim() )));
+
+		ASSERT( All( IsMultipleOf( uint2{lhsOffset + dim}, TexBlockDim() )));
+		ASSERT( All( IsMultipleOf( uint2{rhsOffset + dim}, TexBlockDim() )));
+
 		if ( not All( lhsOffset + dim <= this->Dimension() )	or
 			 not All( rhsOffset + dim <= rhsImage.Dimension() )	or
 			 this->_format != rhsImage._format					or
@@ -785,23 +819,28 @@ namespace
 		const Bytes		rhs_row_pitch	= rhsImage.RowPitch();
 		const Bytes		lhs_slice_pitch	= this->SlicePitch();
 		const Bytes		rhs_slice_pitch	= rhsImage.SlicePitch();
-		const Bytes		bpp				= Bytes{_bitsPerBlock} / 8;	// TODO: compressed formats
 
-		const auto	lhs_parts		= this->Parts();
-		const auto	rhs_parts		= rhsImage.Parts();
-		auto		lhs_part_iter	= lhs_parts.begin();
-		auto		rhs_part_iter	= rhs_parts.begin();
+		const uint		block_count_y	= dim.y / TexBlockDim().y;
+		const Bytes		lhs_row_off		= ImageUtils::RowSize( lhsOffset.x, _bitsPerBlock, TexBlockDim() );
+		const Bytes		rhs_row_off		= ImageUtils::RowSize( rhsOffset.x, _bitsPerBlock, TexBlockDim() );
+		const uint		lhs_offset_y	= lhsOffset.y / TexBlockDim().y;
+		const uint		rhs_offset_y	= rhsOffset.y / TexBlockDim().y;
 
-		Bytes		lhs_offset;
-		Bytes		rhs_offset;
-		Bytes		diff		= 0_b;
+		const auto		lhs_parts		= this->Parts();
+		const auto		rhs_parts		= rhsImage.Parts();
+		auto			lhs_part_iter	= lhs_parts.begin();
+		auto			rhs_part_iter	= rhs_parts.begin();
+
+		Bytes			lhs_offset;
+		Bytes			rhs_offset;
+		Bytes			diff		= 0_b;
 
 		for (uint z = 0; z < dim.z; ++z)
 		{
-			for (uint y = 0; y < dim.y; ++y)
+			for (uint y = 0; y < block_count_y; ++y)
 			{
-				const Bytes	lhs_row_offset	= lhs_slice_pitch * (z + lhsOffset.z) + lhs_row_pitch * (y + lhsOffset.y) + bpp * lhsOffset.x;
-				const Bytes	rhs_row_offset	= rhs_slice_pitch * (z + rhsOffset.z) + rhs_row_pitch * (y + rhsOffset.y) + bpp * rhsOffset.x;
+				const Bytes	lhs_row_offset	= lhs_slice_pitch * (z + lhsOffset.z) + lhs_row_pitch * (y + lhs_offset_y) + lhs_row_off;
+				const Bytes	rhs_row_offset	= rhs_slice_pitch * (z + rhsOffset.z) + rhs_row_pitch * (y + rhs_offset_y) + rhs_row_off;
 
 				for (;;)
 				{
@@ -826,6 +865,8 @@ namespace
 
 				ASSERT( IsCompletelyInside( lhs_offset, lhs_offset + lhs_part_iter->size, lhs_row_offset, lhs_row_offset + row_size ));
 				ASSERT( IsCompletelyInside( rhs_offset, rhs_offset + rhs_part_iter->size, rhs_row_offset, rhs_row_offset + row_size ));
+				NonNull( lhs_part_iter->ptr );
+				NonNull( rhs_part_iter->ptr );
 
 				const ubyte*	lhs_row = Cast<ubyte>( lhs_part_iter->ptr + (lhs_row_offset - lhs_offset) );
 				const ubyte*	rhs_row = Cast<ubyte>( rhs_part_iter->ptr + (rhs_row_offset - rhs_offset) );
@@ -1267,7 +1308,7 @@ namespace
 			case EPixelFormat::BC6H_RGB16F :
 			case EPixelFormat::BC6H_RGB16UF :
 			case EPixelFormat::ETC2_RGB8_UNorm :
-			case EPixelFormat::ECT2_sRGB8 :
+			case EPixelFormat::ETC2_sRGB8 :
 			case EPixelFormat::ETC2_RGB8_A1_UNorm :
 			case EPixelFormat::ETC2_sRGB8_A1 :
 			case EPixelFormat::ETC2_RGBA8_UNorm :
@@ -1276,20 +1317,20 @@ namespace
 			case EPixelFormat::EAC_R11_UNorm :
 			case EPixelFormat::EAC_RG11_SNorm :
 			case EPixelFormat::EAC_RG11_UNorm :
-			case EPixelFormat::ASTC_RGBA_4x4 :
-			case EPixelFormat::ASTC_RGBA_5x4 :
-			case EPixelFormat::ASTC_RGBA_5x5 :
-			case EPixelFormat::ASTC_RGBA_6x5 :
-			case EPixelFormat::ASTC_RGBA_6x6 :
-			case EPixelFormat::ASTC_RGBA_8x5 :
-			case EPixelFormat::ASTC_RGBA_8x6 :
-			case EPixelFormat::ASTC_RGBA_8x8 :
-			case EPixelFormat::ASTC_RGBA_10x5 :
-			case EPixelFormat::ASTC_RGBA_10x6 :
-			case EPixelFormat::ASTC_RGBA_10x8 :
-			case EPixelFormat::ASTC_RGBA_10x10 :
-			case EPixelFormat::ASTC_RGBA_12x10 :
-			case EPixelFormat::ASTC_RGBA_12x12 :
+			case EPixelFormat::ASTC_RGBA8_4x4 :
+			case EPixelFormat::ASTC_RGBA8_5x4 :
+			case EPixelFormat::ASTC_RGBA8_5x5 :
+			case EPixelFormat::ASTC_RGBA8_6x5 :
+			case EPixelFormat::ASTC_RGBA8_6x6 :
+			case EPixelFormat::ASTC_RGBA8_8x5 :
+			case EPixelFormat::ASTC_RGBA8_8x6 :
+			case EPixelFormat::ASTC_RGBA8_8x8 :
+			case EPixelFormat::ASTC_RGBA8_10x5 :
+			case EPixelFormat::ASTC_RGBA8_10x6 :
+			case EPixelFormat::ASTC_RGBA8_10x8 :
+			case EPixelFormat::ASTC_RGBA8_10x10 :
+			case EPixelFormat::ASTC_RGBA8_12x10 :
+			case EPixelFormat::ASTC_RGBA8_12x12 :
 			case EPixelFormat::ASTC_sRGB8_A8_4x4 :
 			case EPixelFormat::ASTC_sRGB8_A8_5x4 :
 			case EPixelFormat::ASTC_sRGB8_A8_5x5 :

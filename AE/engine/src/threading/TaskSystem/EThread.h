@@ -123,6 +123,7 @@ namespace AE::Threading
 } // AE::Threading
 
 
+#ifdef AE_ENABLE_LOGS
 namespace AE::Base
 {
 
@@ -159,3 +160,4 @@ namespace AE::Base
 	}
 
 } // AE::Base
+#endif // AE_ENABLE_LOGS

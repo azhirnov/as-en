@@ -51,9 +51,9 @@ namespace AE::Graphics
 
 namespace AE::Base
 {
-	template <> struct TMemCopyAvailable< AE::Graphics::MultiSamples >		{ static constexpr bool  value = true; };
-	template <> struct TZeroMemAvailable< AE::Graphics::MultiSamples >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::MultiSamples >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::MultiSamples >		: CT_True {};
+	template <> struct TZeroMemAvailable< AE::Graphics::MultiSamples >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::MultiSamples >	: CT_True {};
 
 } // AE::Base
 

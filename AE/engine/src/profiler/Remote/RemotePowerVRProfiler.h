@@ -82,6 +82,7 @@ namespace AE::Profiler
 		using ECounter		= PowerVRProfiler::ECounter;
 		using ECounterSet	= PowerVRProfiler::ECounterSet;
 		using Counters_t	= PowerVRProfiler::Counters_t;
+		using TimeScopeArr_t= PowerVRProfiler::TimeScopeArr_t;
 
 	private:
 		using MsgProducer	= Networking::IAsyncCSMessageProducer;
@@ -94,17 +95,19 @@ namespace AE::Profiler
 		mutable Threading::RWSpinLock	_guard;
 		RC<MsgProducer>					_msgProducer;
 
-		ubyte							_completeIdx	= 0;
-		ubyte							_pendingIdx		= 0;
+		ubyte							_countersIdx			= 0;
+		ubyte							_timingsIdx				= 0;
+		ubyte							_pendingCountersIdx		= 0;
+		ubyte							_pendingTimingsIdx		= 0;
 
 		Timer							_connectionLostTimer	{seconds{10}};
 		ECounterSet						_requiredCS;
 
 		secondsf						_interval;
 		Counters_t						_counters [2];
+		TimeScopeArr_t					_timings [2];
 		ECounterSet						_enabled;
-		ECounterSet						_supported;
-		EStatus							_status			= EStatus::NotInitialized;
+		EStatus							_status					= EStatus::NotInitialized;
 
 
 	// methods
@@ -117,8 +120,8 @@ namespace AE::Profiler
 
 			void  Tick ()												C_NE___	{}
 			void  Sample (OUT Counters_t &result)						__NE___;
+			void  ReadTimingData (OUT TimeScopeArr_t &)					__NE___;
 
-		ND_ ECounterSet  SupportedCounterSet ()							C_NE___	{ SHAREDLOCK( _guard );  return _supported; }
 		ND_ ECounterSet  EnabledCounterSet ()							C_NE___	{ SHAREDLOCK( _guard );  return _enabled; }
 
 		ND_ RC<MsgConsumer>  GetMsgConsumer ()							__NE___;
@@ -135,6 +138,7 @@ namespace AE::Profiler
 		void  _InitRes (Networking::CSMsg_PVRProf_InitRes const&)		__NE___;
 		void  _NextSample (Networking::CSMsg_PVRProf_NextSample const&)	__NE___;
 		void  _Sample (Networking::CSMsg_PVRProf_Sample const&)			__NE___;
+		void  _Timing (Networking::CSMsg_PVRProf_Timing const&)			__NE___;
 	};
 
 

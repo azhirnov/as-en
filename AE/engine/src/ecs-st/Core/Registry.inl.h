@@ -21,7 +21,7 @@ namespace AE::ECS
 		Index_t				index;
 
 		_AddEntity( Archetype{desc}, ent_id, OUT storage, OUT index );
-		ASSERT( storage );
+		NonNull( storage );
 
 		#if AE_ECS_ENABLE_DEFAULT_MESSAGES
 			for (auto& comp_id : storage->GetComponentIDs())
@@ -65,7 +65,7 @@ namespace AE::ECS
 		Index_t				index;
 
 		_AddEntity( Archetype{desc}, ent_id, OUT storage, OUT index );
-		ASSERT( storage );
+		NonNull( storage );
 
 		(_reg_detail_::CopyComponent( storage, index, FwdArg<Components>(comps) ), ...);
 
@@ -458,83 +458,44 @@ DEBUG_ONLY(
 		struct CompareSingleComponents;
 
 		template <typename LT, typename RT>
-		struct CompareSingleComponents< LT, WriteAccess<RT> >
-		{
-			static constexpr bool	value = IsSameTypes< LT, RT >;
-		};
+		struct CompareSingleComponents< LT, WriteAccess<RT> >		: CT_Bool< IsSameTypes< LT, RT >> {};
 
 		template <typename LT, typename RT>
-		struct CompareSingleComponents< LT, ReadAccess<RT> >
-		{
-			static constexpr bool	value = IsSameTypes< LT, RT >;
-		};
+		struct CompareSingleComponents< LT, ReadAccess<RT> >		: CT_Bool< IsSameTypes< LT, RT >> {};
 
 		template <typename LT, typename RT>
-		struct CompareSingleComponents< LT, OptionalWriteAccess<RT> >
-		{
-			static constexpr bool	value = IsSameTypes< LT, RT >;
-		};
+		struct CompareSingleComponents< LT, OptionalWriteAccess<RT> > : CT_Bool< IsSameTypes< LT, RT >> {};
 
 		template <typename LT, typename RT>
-		struct CompareSingleComponents< LT, OptionalReadAccess<RT> >
-		{
-			static constexpr bool	value = IsSameTypes< LT, RT >;
-		};
+		struct CompareSingleComponents< LT, OptionalReadAccess<RT> > : CT_Bool< IsSameTypes< LT, RT >> {};
 
 		template <typename LT, typename ...RTs>
-		struct CompareSingleComponents< LT, Subtractive<RTs...> >
-		{
-			static constexpr bool	value = TypeList<RTs...>::template HasType<LT>;
-		};
+		struct CompareSingleComponents< LT, Subtractive<RTs...> >	: CT_Bool< TypeList<RTs...>::template HasType<LT> >{};
 
 		template <typename LT, typename ...RTs>
-		struct CompareSingleComponents< LT, Require<RTs...> >
-		{
-			static constexpr bool	value = TypeList<RTs...>::template HasType<LT>;
-		};
+		struct CompareSingleComponents< LT, Require<RTs...> >		: CT_Bool< TypeList<RTs...>::template HasType<LT> >{};
 
 		template <typename LT, typename ...RTs>
-		struct CompareSingleComponents< LT, RequireAny<RTs...> >
-		{
-			static constexpr bool	value = TypeList<RTs...>::template HasType<LT>;	// TODO: allow cases with Optional<A> + RequireAny<A,B,C> ???
-		};
+		struct CompareSingleComponents< LT, RequireAny<RTs...> >	: CT_Bool< TypeList<RTs...>::template HasType<LT> >{};	// TODO: allow cases with Optional<A> + RequireAny<A,B,C> ???
 
 
 		template <typename RawTypeList, typename WrapedType>
-		struct CompareMultiComponents
-		{
-			static constexpr bool	value = false;
-		};
+		struct CompareMultiComponents								: CT_False {};
 
 		template <bool isTL, typename LT, typename ...RTs>
-		struct CompareMultiComponents_Helper
-		{
-			static constexpr bool	value = TypeList<RTs...>::template HasType<LT>;
-		};
+		struct CompareMultiComponents_Helper						: CT_Bool< TypeList<RTs...>::template HasType<LT> >{};
 
 		template <typename LTs, typename ...RTs>
-		struct CompareMultiComponents_Helper< true, LTs, RTs... >
-		{
-			static constexpr bool	value = TypeList<RTs...>::template ForEach_Or< LTs::template HasType >;
-		};
+		struct CompareMultiComponents_Helper< true, LTs, RTs... >	: CT_Bool< TypeList<RTs...>::template ForEach_Or< LTs::template HasType >>{};
 
 		template <typename LTs, typename ...RTs>
-		struct CompareMultiComponents< LTs, Subtractive<RTs...> >
-		{
-			static constexpr bool	value = CompareMultiComponents_Helper< IsTypeList<LTs>, LTs, RTs... >::value;
-		};
+		struct CompareMultiComponents< LTs, Subtractive<RTs...> >	: CT_Bool< CompareMultiComponents_Helper< IsTypeList<LTs>, LTs, RTs... >::value >{};
 
 		template <typename LTs, typename ...RTs>
-		struct CompareMultiComponents< LTs, Require<RTs...> >
-		{
-			static constexpr bool	value = CompareMultiComponents_Helper< IsTypeList<LTs>, LTs, RTs... >::value;
-		};
+		struct CompareMultiComponents< LTs, Require<RTs...> >		: CT_Bool< CompareMultiComponents_Helper< IsTypeList<LTs>, LTs, RTs... >::value >{};
 
 		template <typename LTs, typename ...RTs>
-		struct CompareMultiComponents< LTs, RequireAny<RTs...> >
-		{
-			static constexpr bool	value = CompareMultiComponents_Helper< IsTypeList<LTs>, LTs, RTs... >::value;
-		};
+		struct CompareMultiComponents< LTs, RequireAny<RTs...> >	: CT_Bool< CompareMultiComponents_Helper< IsTypeList<LTs>, LTs, RTs... >::value >{};
 
 
 		template <template <typename, typename> class Comparator,
@@ -651,22 +612,13 @@ DEBUG_ONLY(
 		struct SC_Comparator;
 
 		template <typename LT, typename RT>
-		struct SC_Comparator< LT, RT* >
-		{
-			static constexpr bool	value = IsSameTypes< LT, RT >;
-		};
+		struct SC_Comparator< LT, RT* >			: CT_Bool< IsSameTypes< LT, RT >>{};
 
 		template <typename LT, typename RT>
-		struct SC_Comparator< LT, RT const* >
-		{
-			static constexpr bool	value = IsSameTypes< LT, RT >;
-		};
+		struct SC_Comparator< LT, RT const* >	: CT_Bool< IsSameTypes< LT, RT >>{};
 
 		template <typename LT, typename RT>
-		struct SC_Comparator< LT, RT& >
-		{
-			static constexpr bool	value = IsSameTypes< LT, RT >;
-		};
+		struct SC_Comparator< LT, RT& >			: CT_Bool< IsSameTypes< LT, RT >>{};
 
 
 		template <typename T>

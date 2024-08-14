@@ -23,6 +23,10 @@ namespace
 		{
 			RC_t	a0 = MakeRC<RCObj>( 1 );
 
+			TEST( a0 );
+			TEST( a0 != null );
+			TEST( not (not a0) );
+
 			a0 = a0.get();
 			TEST( a0 );
 
@@ -49,6 +53,9 @@ namespace
 
 		RC<C1>	a0;
 		RC<C2>	a1;
+
+		TEST( not a0 );
+		TEST( a0 == null );
 
 		a0 = a1;
 	//	a1 = a0;			// error

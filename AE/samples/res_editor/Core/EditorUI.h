@@ -22,7 +22,7 @@ namespace AE::ResEditor
 	// types
 	public:
 		static constexpr uint	MaxDebugViews		= 7;
-		static constexpr uint	MaxSlidersPerType	= 4;
+		static constexpr uint	MaxSlidersPerType	= 8;
 
 		static constexpr uint	IntSliderIdx		= 0;
 		static constexpr uint	FloatSliderIdx		= 1;
@@ -76,7 +76,7 @@ namespace AE::ResEditor
 		{
 			FrameUID			frame;
 			uint2				pos;
-			uint2				pendingPos;
+			float2				pendingPos;
 			RGBA32f				color;		// TODO: colors [8]  ???
 		};
 
@@ -276,6 +276,8 @@ namespace AE::ResEditor
 		ND_ bool  _InitSurface (IOutputSurface &);
 
 		ND_ bool  _InitUI (PipelinePackID pack);
+
+			void  _CopySliderState ();
 
 		static void  _CheckScriptDir (INOUT ScriptDirData &);
 		static void  _RecursiveCheckScriptDir (INOUT ScriptFolder &dst, INOUT usize &nodeID, const Path &dir, uint depth, uint maxDepth);

@@ -20,8 +20,10 @@ Source folder: [RemoteGraphics backend](https://github.com/azhirnov/as-en/blob/d
 - [x] ShaderTrace
 - Profiling
 	- [x] WriteTimestamp
-	- [x] ARM HW Profiler
-	- [ ] Mali/Adreno HW Profiler
+	- [x] ARM CPU Perf counters
+	- [x] Adreno GPU Perf counters
+	- [x] Mali GPU Perf counters
+	- [x] PowerVR GPU Perf counters
 - [x] Draw UI & Profiling on Host
 
 
@@ -40,3 +42,8 @@ Host:
 - [ ] Linux
 - [ ] MacOS
 - [ ] Android
+
+
+## Issues
+
+- When hostQueryReset=false CmdBufPool::IsFirst may works incorrect

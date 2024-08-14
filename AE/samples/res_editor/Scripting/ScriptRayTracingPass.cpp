@@ -204,7 +204,7 @@ namespace
 
 		if ( _dbgName.empty() )
 		{
-			_dbgName = ToString( _rayGen.shader.shaderPath.filename().replace_extension("") );
+			_dbgName = ToString( _rayGen.shader.shaderPath.stem() );
 
 			if ( not _defines.empty() )
 				_dbgName << "|" << _defines;
@@ -507,7 +507,7 @@ namespace
 		// create descriptor set
 		{
 			CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
-														ppln, DescriptorSetName{"ds0"} ));
+														ppln, DescriptorSetName{"ds0"}, null, _dbgName ));
 			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
 		}
 
@@ -612,7 +612,8 @@ namespace AE::ResEditor
 		st->Set( EStructLayout::Std140, R"#(
 				float		time;			// shader playback time (in seconds)
 				float		timeDelta;		// render time (in seconds)
-				uint		frame;			// shader playback frame
+				uint		frame;			// shader playback frame, global frame counter
+				uint		passFrameId;	// current pass frame index
 				uint		seed;			// unique value, updated on each shader reloading
 				float4		mouse;			// mouse unorm coords. xy: current (if MRB down), zw: click
 				float		customKeys;
@@ -621,17 +622,17 @@ namespace AE::ResEditor
 				CameraData	camera;
 
 				// sliders //
-				float4		floatSliders [4];
-				int4		intSliders [4];
-				float4		colors [4];
+				float4		floatSliders [8];
+				int4		intSliders [8];
+				float4		colors [8];
 
 				// constants //
-				float4		floatConst [4];
-				int4		intConst [4];
+				float4		floatConst [8];
+				int4		intConst [8];
 			)#");
 
-		StaticAssert( UIInteraction::MaxSlidersPerType == 4 );
-		StaticAssert( IPass::Constants::MaxCount == 4 );
+		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
+		StaticAssert( IPass::Constants::MaxCount == 8 );
 		StaticAssert( IPass::CustomKeys_t{}.max_size() == 1 );
 		return st;
 	}
@@ -678,13 +679,15 @@ namespace AE::ResEditor
 		_AddDefines( _defines, INOUT header );
 		_AddSliders( INOUT header );
 
-		const EShaderOpt	sh_opt = EShaderOpt::Optimize;
-	//	const EShaderOpt	sh_opt = EShaderOpt::DebugInfo;	// for shader debugging in RenderDoc
+		EShaderOpt		sh_opt	 = Default;		//EShaderOpt::DebugInfo;	// for shader debugging in RenderDoc
+		EPipelineOpt	ppln_opt = Default;
 
+	  #if OPTIMIZE_SHADER
+		sh_opt   = EShaderOpt::Optimize;
+		ppln_opt |= EPipelineOpt::Optimize;
+	  #endif
 	  #if PIPELINE_STATISTICS
-		const EPipelineOpt	ppln_opt = EPipelineOpt::Optimize | EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
-	  #else
-		const EPipelineOpt	ppln_opt = EPipelineOpt::Optimize;
+		ppln_opt |= EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
 	  #endif
 
 		_CompilePipeline3( header, "raytrace", uint(sh_opt), ppln_opt );

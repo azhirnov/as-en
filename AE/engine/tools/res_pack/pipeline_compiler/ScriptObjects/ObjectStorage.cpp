@@ -346,7 +346,7 @@ namespace AE::PipelineCompiler
 		vbInputMap.clear();
 		structTypes.clear();
 
-		hashCollisionCheck.Clear();
+		_hashCollisionCheck.Clear();
 	}
 
 /*
@@ -762,7 +762,7 @@ namespace AE::PipelineCompiler
 		const String	ansi_path = ToString(path);
 
 		ScriptEngine::ModuleSource	src;
-		src.name			= ToString( path.filename().replace_extension("") );
+		src.name			= ToString( path.stem() );
 		src.script			= source;
 		src.dbgLocation		= SourceLoc{ ansi_path, 0 };
 		src.usePreprocessor	= true;
@@ -877,6 +877,19 @@ namespace {
 
 		return it != rtech_map.end();
 	}
+
+	static String  CurPipelineFileName () __Th___
+	{
+		return ObjectStorage::Instance()->pipelineFilename.stem().string();
+	}
+
+	static ScriptFeatureSet*  GetDefaultFeatureSet () __Th___
+	{
+		auto	arr = ObjectStorage::Instance()->GetDefaultFeatureSets();
+		if ( arr.empty() )
+			return null;
+		return arr.front().Detach();
+	}
 }
 
 /*
@@ -896,6 +909,7 @@ namespace {
 		CoreBindings::BindArray( se );
 		CoreBindings::BindToString( se, true, true, false, true );
 		CoreBindings::BindLog( se );
+		CoreBindings::BindFileSystem( se, true );
 		GraphicsBindings::BindEnums( se );
 		GraphicsBindings::BindTypes( se );
 		GraphicsBindings::BindRenderState( se );
@@ -942,6 +956,8 @@ namespace {
 		se->AddFunction( &Cfg_IsMetal,					"IsMetal",					{} );
 		se->AddFunction( &GetShaderStructType,			"GetShaderStructType",		{"name"} );
 		se->AddFunction( &HasRenderTech,				"HasRenderTech",			{} );
+		se->AddFunction( &CurPipelineFileName,			"FileName",					{} );
+		se->AddFunction( &GetDefaultFeatureSet,			"GetDefaultFeatureSet",		{} );
 
 		se->AddCppHeader( "", "#define SCRIPT\n\n", 0 );
 	}
@@ -1001,6 +1017,7 @@ namespace {
 	{
 		EnumBinder<EShaderOpt>	binder{ se };
 		binder.Create();
+		binder.AddValue( "None",				EShaderOpt::Unknown );
 		// debug
 		binder.Comment( "Add debug information. Used in RenderDoc shader debugger." );
 		binder.AddValue( "DebugInfo",			EShaderOpt::DebugInfo );
@@ -1119,9 +1136,31 @@ namespace {
 		binder.AddValue( "UImage2DMS",			EImageType::Img2DMS			| EImageType::UInt );
 		binder.AddValue( "UImage2DMSArray",		EImageType::Img2DMSArray	| EImageType::UInt );
 		binder.AddValue( "UImageBuffer",		EImageType::Buffer			| EImageType::UInt );
+		// int64 / slong
+		binder.AddValue( "SLongImage1D",		EImageType::Img1D			| EImageType::SLong );
+		binder.AddValue( "SLongImage2D",		EImageType::Img2D			| EImageType::SLong );
+		binder.AddValue( "SLongImage3D",		EImageType::Img3D			| EImageType::SLong );
+		binder.AddValue( "SLongImage1DArray",	EImageType::Img1DArray		| EImageType::SLong );
+		binder.AddValue( "SLongImage2DArray",	EImageType::Img2DArray		| EImageType::SLong );
+		binder.AddValue( "SLongImageCube",		EImageType::ImgCube			| EImageType::SLong );
+		binder.AddValue( "SLongImageCubeArray",	EImageType::ImgCubeArray	| EImageType::SLong );
+		binder.AddValue( "SLongImage2DMS",		EImageType::Img2DMS			| EImageType::SLong );
+		binder.AddValue( "SLongImage2DMSArray",	EImageType::Img2DMSArray	| EImageType::SLong );
+		binder.AddValue( "SLongImageBuffer",	EImageType::Buffer			| EImageType::SLong );
+		// uint64 / ulong
+		binder.AddValue( "ULongImage1D",		EImageType::Img1D			| EImageType::ULong );
+		binder.AddValue( "ULongImage2D",		EImageType::Img2D			| EImageType::ULong );
+		binder.AddValue( "ULongImage3D",		EImageType::Img3D			| EImageType::ULong );
+		binder.AddValue( "ULongImage1DArray",	EImageType::Img1DArray		| EImageType::ULong );
+		binder.AddValue( "ULongImage2DArray",	EImageType::Img2DArray		| EImageType::ULong );
+		binder.AddValue( "ULongImageCube",		EImageType::ImgCube			| EImageType::ULong );
+		binder.AddValue( "ULongImageCubeArray",	EImageType::ImgCubeArray	| EImageType::ULong );
+		binder.AddValue( "ULongImage2DMS",		EImageType::Img2DMS			| EImageType::ULong );
+		binder.AddValue( "ULongImage2DMSArray",	EImageType::Img2DMSArray	| EImageType::ULong );
+		binder.AddValue( "ULongImageBuffer",	EImageType::Buffer			| EImageType::ULong );
 
 		StaticAssert( uint(EImageType::_TexCount)   == 11 );
-		StaticAssert( uint(EImageType::_LastVal)-1  == 0xA0 );
+		StaticAssert( uint(EImageType::_LastVal)-1  == 0xC0 );
 		StaticAssert( uint(EImageType::_LastQual)-1 == 0x100 );
 	}
 

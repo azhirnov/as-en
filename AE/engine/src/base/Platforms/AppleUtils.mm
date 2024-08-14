@@ -123,5 +123,26 @@ namespace
 
 	// TODO: https://developer.apple.com/library/archive/releasenotes/Performance/RN-AffinityAPI/index.html#//apple_ref/doc/uid/TP40006635
 
+/*
+=================================================
+	ClipboardExtract
+=================================================
+*/
+	bool  AppleUtils::ClipboardExtract (OUT String &result) __NE___
+	{
+		// TODO
+		return false;
+	}
+
+/*
+=================================================
+	ClipboardPut
+=================================================
+*/
+	bool  AppleUtils::ClipboardPut (StringView str) __NE___
+	{
+		// TODO
+		return false;
+	}
 
 } // AE::Base

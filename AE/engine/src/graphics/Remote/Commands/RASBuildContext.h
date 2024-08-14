@@ -101,7 +101,7 @@ namespace AE::Graphics
 		RStagingBufferManager::BufferRanges_t	buffers;
 
 		sbm.GetBufferRanges( OUT buffers, size, size, GraphicsConfig::StagingBufferOffsetAlign,
-							 GetFrameId(), EStagingHeapType::Static, _mngr.GetQueueType(), False{"readback"} );
+							 GetFrameId(), EStagingHeapType::Static, False{"readback"} );
 
 		if_unlikely( buffers.empty() )
 			RETURN_ERR( "failed to allocate staging buffer" );	// TODO: throw?

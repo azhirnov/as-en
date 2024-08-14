@@ -154,8 +154,6 @@ namespace
 									})};
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( List{ t.result[0], t.result[1] });
 		}
 	};
 

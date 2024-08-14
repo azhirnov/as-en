@@ -34,7 +34,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename LT, typename RT>
-	ND_ Bytes  AddressDistance (LT &lhs, RT &rhs) __NE___
+	ND_ constexpr Bytes  AddressDistance (LT &lhs, RT &rhs) __NE___
 	{
 		return Bytes{ usize(AddressOf(lhs)) - usize(AddressOf(rhs)) };
 	}
@@ -54,7 +54,7 @@ namespace AE::Base
 	template <typename T>
 	void  DbgInitMem (OUT T& value) __NE___
 	{
-		DbgInitMem( OUT &value, SizeOf<T> );
+		DbgInitMem( OUT std::addressof(value), SizeOf<T> );
 	}
 #endif
 
@@ -73,7 +73,7 @@ namespace AE::Base
 	template <typename T>
 	void  DbgFreeMem (OUT T& value) __NE___
 	{
-		DbgFreeMem( OUT &value, SizeOf<T> );
+		DbgFreeMem( OUT std::addressof(value), SizeOf<T> );
 	}
 #endif
 
@@ -94,13 +94,22 @@ namespace AE::Base
 		return ( new(ptr) T{ FwdArg<Args>(args)... });
 	}
 
+	template <typename T, typename ...Args>
+	constexpr T*  PlacementNew (OUT T* ptr, Args&&... args)  NoExcept(IsNothrowCtor< T, Args... >)
+	{
+		NonNull( ptr );
+		CheckPointerCast<T>( ptr );
+
+		return std::construct_at( OUT ptr, FwdArg<Args>(args)... );
+	}
+
 /*
 =================================================
 	PlacementDelete
 =================================================
 */
 	template <typename T>
-	void  PlacementDelete (INOUT T &val) __NE___
+	constexpr void  PlacementDelete (INOUT T &val) __NE___
 	{
 		StaticAssert( std::is_nothrow_destructible_v<T> );
 		val.~T();
@@ -114,19 +123,19 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Args>
-	void  Reconstruct (INOUT T &value, Args&& ...args) __NE___
+	constexpr void  Reconstruct (INOUT T &value, Args&& ...args) __NE___
 	{
 		CheckPointerCast<T>( &value );
 
 		StaticAssert( std::is_nothrow_destructible_v<T> );
 		StaticAssert( IsConstructible< T, Args... >);
 
-		if constexpr( IsNothrowCtor< T, Args... >)
+		if constexpr( IsNothrowCtor< T, Args... > or IsConstEvaluated() )
 		{
 			value.~T();
 			DEBUG_ONLY( DbgFreeMem( value ));
 
-			new(&value) T{ FwdArg<Args>(args)... };
+			std::construct_at( OUT &value, FwdArg<Args>(args)... );
 		}
 		else
 		{
@@ -134,7 +143,7 @@ namespace AE::Base
 				value.~T();
 				DEBUG_ONLY( DbgFreeMem( value ));
 
-				new(&value) T{ FwdArg<Args>(args)... };
+				std::construct_at( OUT &value, FwdArg<Args>(args)... );
 			}
 			CATCH_ALL(
 				DBG_WARNING( "exception in ctor!" );
@@ -147,9 +156,29 @@ namespace AE::Base
 =================================================
 	MemCopy
 ----
-	memory must not intersects
+	memory must not intersects,
+	null pointers are not allowed
 =================================================
 */
+namespace _hidden_
+{
+	inline void  MemCopyChecks (const void* dst, const void* src, Bytes size, uint align = 0)
+	{
+		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
+		NonNull( dst );
+		NonNull( src );
+
+		// spec: "If the objects overlap, the behavior is undefined."
+		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
+
+		if ( align != 0 )
+		{
+			ASSERT( CheckPointerAlignment( dst, align ));
+			ASSERT( CheckPointerAlignment( src, align ));
+		}
+	}
+}
+
 	template <typename T1, typename T2>
 	void  MemCopy (OUT T1 &dst, const T2 &src) __NE___
 	{
@@ -157,16 +186,14 @@ namespace AE::Base
 		StaticAssert( IsMemCopyAvailable<T1> );
 		StaticAssert( IsMemCopyAvailable<T2> );
 		StaticAssert( not IsConst<T1> );
-		ASSERT( static_cast<const void *>(&dst) != static_cast<const void *>(&src) );
+		ASSERT( VAddressOf(dst) != VAddressOf(src) );
 
-		std::memcpy( OUT &dst, &src, sizeof(src) );
+		std::memcpy( OUT std::addressof(dst), std::addressof(src), sizeof(src) );
 	}
 
 	inline void  MemCopy (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
-		ASSERT( size == 0 or ((dst != null) and (src != null)) );
-		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
-
+		Base::_hidden_::MemCopyChecks( dst, src, size );
 		std::memcpy( OUT dst, src, usize(size) );
 	}
 
@@ -174,18 +201,51 @@ namespace AE::Base
 	{
 		ASSERT( srcSize <= dstSize );
 
-		MemCopy( OUT dst, src, std::min(srcSize, dstSize) );
+		MemCopy( OUT dst, src, std::min( srcSize, dstSize ));
 	}
 
 	template <typename T>
 	inline void  MemCopy (OUT T* dst, const T* src, const usize count) __NE___
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
-
-		ASSERT( count == 0 or ((dst != null) and (src != null)) );
-		ASSERT( not IsIntersects<const void *>( dst, dst + count, src, src + count ));
+		Base::_hidden_::MemCopyChecks( dst, src, SizeOf<T>*count );
 
 		std::memcpy( OUT dst, src, sizeof(T)*count );
+	}
+
+/*
+=================================================
+	MemCopy_NullCheck
+----
+	memory must not intersects,
+	null pointers are allowed
+=================================================
+*/
+	inline void  MemCopy_NullCheck (OUT void* dst, const void* src, const Bytes size) __NE___
+	{
+		// spec: "If the objects overlap, the behavior is undefined."
+		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
+
+		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
+		if_likely( dst != null and src != null and size != 0 )
+		{
+			std::memcpy( OUT dst, src, usize(size) );
+		}
+	}
+
+	template <typename T>
+	inline void  MemCopy_NullCheck (OUT T* dst, const T* src, const usize count) __NE___
+	{
+		StaticAssert( IsMemCopyAvailable<T> );
+
+		// spec: "If the objects overlap, the behavior is undefined."
+		ASSERT( not IsIntersects<const void *>( dst, dst + count, src, src + count ));
+
+		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
+		if_likely( dst != null and src != null and count != 0 )
+		{
+			std::memcpy( OUT dst, src, sizeof(T)*count );
+		}
 	}
 
 /*
@@ -198,48 +258,51 @@ namespace AE::Base
 */
 	inline void  MemCopy16 (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
-		ASSERT( size == 0 or ((dst != null) and (src != null)) );
-		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
-		ASSERT( CheckPointerAlignment( dst, 16 ));
-		ASSERT( CheckPointerAlignment( src, 16 ));
-
-		// TODO: SSE/Neon
-		std::memcpy( OUT dst, src, usize(size) );
+		Base::_hidden_::MemCopyChecks( dst, src, size, 16 );
+		std::memcpy( OUT dst, src, usize(size) );	// TODO: SSE/Neon
 	}
 
 	inline void  MemCopy32 (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
-		ASSERT( size == 0 or ((dst != null) and (src != null)) );
-		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
-		ASSERT( CheckPointerAlignment( dst, 32 ));
-		ASSERT( CheckPointerAlignment( src, 32 ));
-
-		// TODO: SSE/Neon
-		std::memcpy( OUT dst, src, usize(size) );
+		Base::_hidden_::MemCopyChecks( dst, src, size, 32 );
+		std::memcpy( OUT dst, src, usize(size) );	// TODO: SSE/Neon
 	}
 
 	inline void  MemCopy64 (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
-		ASSERT( size == 0 or ((dst != null) and (src != null)) );
-		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
-		ASSERT( CheckPointerAlignment( dst, 64 ));
-		ASSERT( CheckPointerAlignment( src, 64 ));
-
-		// TODO: SSE/Neon
-		std::memcpy( OUT dst, src, usize(size) );
+		Base::_hidden_::MemCopyChecks( dst, src, size, 64 );
+		std::memcpy( OUT dst, src, usize(size) );	// TODO: SSE/Neon
 	}
 
 /*
 =================================================
 	MemMove
 ----
-	memory may intersects
+	memory may intersects,
+	null pointers are not allowed
 =================================================
 */
+namespace _hidden_
+{
+	inline void  MemMoveChecks (const void* dst, const void* src, uint align = 0)
+	{
+		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
+		NonNull( dst );
+		NonNull( src );
+
+		// spec: "The objects may overlap: copying takes place as if the characters were copied to a temporary character array
+		//        and then the characters were copied from the array to dest."
+
+		if ( align != 0 )
+		{
+			ASSERT( CheckPointerAlignment( dst, align ));
+			ASSERT( CheckPointerAlignment( src, align ));
+		}
+	}
+}
 	inline void  MemMove (OUT void* dst, const void* src, Bytes size) __NE___
 	{
-		ASSERT( (size == 0) or ((dst != null) and (src != null)) );
-
+		Base::_hidden_::MemMoveChecks( dst, src );
 		std::memmove( OUT dst, src, usize(size) );
 	}
 
@@ -247,16 +310,45 @@ namespace AE::Base
 	{
 		ASSERT( srcSize <= dstSize );
 
-		MemMove( OUT dst, src, std::min(srcSize, dstSize) );
+		MemMove( OUT dst, src, std::min( srcSize, dstSize ));
 	}
 
 	template <typename T>
 	inline void  MemMove (OUT T* dst, const T* src, const usize count) __NE___
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
-		ASSERT( (count == 0) or ((dst != null) and (src != null)) );
+		Base::_hidden_::MemMoveChecks( dst, src );
 
 		std::memmove( OUT dst, src, sizeof(T)*count );
+	}
+
+/*
+=================================================
+	MemMove_NullCheck
+----
+	memory may intersects,
+	null pointers are allowed
+=================================================
+*/
+	inline void  MemMove_NullCheck (OUT void* dst, const void* src, Bytes size) __NE___
+	{
+		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
+		if_likely( dst != null and src != null and size != 0 )
+		{
+			std::memmove( OUT dst, src, usize(size) );
+		}
+	}
+
+	template <typename T>
+	inline void  MemMove_NullCheck (OUT T* dst, const T* src, const usize count) __NE___
+	{
+		StaticAssert( IsMemCopyAvailable<T> );
+
+		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
+		if_likely( dst != null and src != null and count != 0 )
+		{
+			std::memmove( OUT dst, src, sizeof(T)*count );
+		}
 	}
 
 /*
@@ -265,13 +357,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  UnsafeZeroMem (OUT T& value) __NE___
+	constexpr void  UnsafeZeroMem (OUT T& value) __NE___
 	{
 		std::memset( OUT &value, 0, sizeof(value) );
 	}
 
 	template <typename T>
-	void  ZeroMem (OUT T& value) __NE___
+	constexpr void  ZeroMem (OUT T& value) __NE___
 	{
 		StaticAssert( IsZeroMemAvailable<T> );
 		StaticAssert( not IsPointer<T> );

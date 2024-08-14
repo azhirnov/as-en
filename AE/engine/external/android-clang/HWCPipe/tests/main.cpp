@@ -1,9 +1,9 @@
 
-#ifndef AE_ENABLE_ARM_HWCPIPE
-#	error AE_ENABLE_ARM_HWCPIPE required
+#ifndef AE_ENABLE_MALI_HWCPIPE
+//#	error AE_ENABLE_MALI_HWCPIPE required
 #endif
 
-#include <hwcpipe.h>
+//#include <hwcpipe.hpp>
 
 extern int AE_HWCPipe_Test ()
 {

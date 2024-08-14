@@ -7,7 +7,7 @@ namespace
 	static void  EResourceState_Test1 ()
 	{
 		TEST( EResourceState_RequireShaderStage( EResourceState::ShaderUniform ));
-		TEST( not EResourceState_RequireShaderStage( EResourceState::Host_Write ));
+		TEST( not EResourceState_RequireShaderStage( EResourceState::Host_Read ));
 
 		TEST( not EResourceState_IsReadOnly( EResourceState::ShaderStorage_Write ));
 		TEST( EResourceState_IsReadOnly( EResourceState::ShaderStorage_Read ));

@@ -77,7 +77,7 @@ namespace
 	{
 		return ::CreateFileA( filename,			// winxp
 							  GENERIC_READ,
-							  FILE_SHARE_READ,
+							  FILE_SHARE_READ | FILE_SHARE_WRITE,	// file may be opened for read and write by another process
 							  null,		// default security
 							  OPEN_EXISTING,
 							  FileFlagCast( flags ) | addFlags,
@@ -88,7 +88,7 @@ namespace
 	{
 		return ::CreateFileW( filename,			// winxp
 							  GENERIC_READ,
-							  FILE_SHARE_READ,
+							  FILE_SHARE_READ | FILE_SHARE_WRITE,	// file may be opened for read and write by another process
 							  null,		// default security
 							  OPEN_EXISTING,
 							  FileFlagCast( flags ) | addFlags,
@@ -104,7 +104,7 @@ namespace
 	{
 		return ::CreateFileA( filename,			// winxp
 							  AllBits( flags, WFileFlags::OpenAppend ) ? FILE_APPEND_DATA : GENERIC_WRITE,
-							  AllBits( flags, WFileFlags::SharedRead ) ? FILE_SHARE_READ : 0,
+							  AllBits( flags, WFileFlags::SharedRead ) ? FILE_SHARE_READ : 0,	// file may be opened for read by another process
 							  null,		// default security
 							  AllBits( flags, WFileFlags::OpenUpdate ) ? OPEN_EXISTING : CREATE_ALWAYS,
 							  FileFlagCast( flags ) | addFlags,
@@ -115,9 +115,10 @@ namespace
 	{
 		return ::CreateFileW( filename,			// winxp
 							  AllBits( flags, WFileFlags::OpenAppend ) ? FILE_APPEND_DATA : GENERIC_WRITE,
-							  AllBits( flags, WFileFlags::SharedRead ) ? FILE_SHARE_READ : 0,
+							  AllBits( flags, WFileFlags::SharedRead ) ? FILE_SHARE_READ : 0,	// file may be opened for read by another process
 							  null,		// default security
-							  AllBits( flags, WFileFlags::OpenUpdate ) ? OPEN_EXISTING : CREATE_ALWAYS,
+							  AllBits( flags, WFileFlags::OpenUpdate ) ? OPEN_EXISTING :
+								(AllBits( flags, WFileFlags::OpenAppend ) ? CREATE_NEW : CREATE_ALWAYS),
 							  FileFlagCast( flags ) | addFlags,
 							  null );
 	}

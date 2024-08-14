@@ -4,6 +4,11 @@
 
 set( ABSEIL_PATH "${AE_DST_PATH}/Abseil" )
 
+if (NOT EXISTS "${ABSEIL_PATH}/lib")
+	message( FATAL_ERROR "'${ABSEIL_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "Abseil-lib" INTERFACE )
 target_include_directories( "Abseil-lib" INTERFACE "${ABSEIL_PATH}" )
 target_compile_definitions( "Abseil-lib" INTERFACE "AE_ENABLE_ABSEIL" "AE_LICENSE_APACHE_2" )
@@ -19,6 +24,7 @@ else()
 		$<$<CONFIG:Develop>: "${ABSEIL_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}Abseil${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 		$<$<CONFIG:Debug>:   "${ABSEIL_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}Abseild${CMAKE_STATIC_LIBRARY_SUFFIX}" > )
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	if (ANDROID)

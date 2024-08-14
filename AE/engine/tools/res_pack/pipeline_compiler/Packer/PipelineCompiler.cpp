@@ -227,7 +227,7 @@ namespace
 
 		CHECK_ERR( LoadPipelines( obj_storage, script_engine, pipelines, ppln_include_dirs ));
 
-		CHECK_ERR( not obj_storage.hashCollisionCheck.HasCollisions() );
+		CHECK_ERR_MSG( not obj_storage.HasHashCollisions(), "Hash collision detected!" );
 
 		CHECK_ERR( obj_storage.SavePack( pack_fname, info->addNameMapping ));
 

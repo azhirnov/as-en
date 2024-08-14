@@ -285,9 +285,7 @@ namespace
 
 extern void UnitTest_Math ()
 {
-	#ifndef AE_PLATFORM_LINUX	// TODO
 	CheckIntrinsics();
-	#endif
 
 	IsIntersects_Test1();
 

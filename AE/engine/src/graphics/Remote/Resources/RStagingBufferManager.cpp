@@ -14,7 +14,7 @@ namespace AE::Graphics
 =================================================
 */
 	void  RStagingBufferManager::GetBufferRanges (OUT BufferRanges_t &result, Bytes reqSize, Bytes blockSize, Bytes memOffsetAlign,
-												  FrameUID frameId, EStagingHeapType heap, EQueueType queue, Bool upload) __NE___
+												  FrameUID frameId, EStagingHeapType heap, Bool upload) __NE___
 	{
 		ASSERT( result.empty() );
 		ASSERT( _frameId.load() == frameId );
@@ -27,7 +27,6 @@ namespace AE::Graphics
 		msg.memOffsetAlign	= memOffsetAlign;
 		msg.frameId			= frameId;
 		msg.heap			= heap;
-		msg.queue			= queue;
 		msg.upload			= upload;
 
 		result.clear();
@@ -55,7 +54,7 @@ namespace AE::Graphics
 =================================================
 */
 	void  RStagingBufferManager::GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &uploadDesc, const ImageDesc &imageDesc,
-												 const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload) __NE___
+												 const uint3 &imageGranularity, FrameUID frameId, Bool upload) __NE___
 	{
 		ASSERT( _frameId.load() == frameId );
 		ASSERT( result.buffers.empty() );
@@ -67,7 +66,6 @@ namespace AE::Graphics
 		msg.imageDesc			= imageDesc;
 		msg.imageGranularity	= imageGranularity;
 		msg.frameId				= frameId;
-		msg.queue				= queue;
 		msg.upload				= upload;
 
 		CHECK_ERRV( _resMngr.GetDevice().SendAndWait( msg, OUT res ));
@@ -104,7 +102,7 @@ namespace AE::Graphics
 =================================================
 */
 	void  RStagingBufferManager::GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &uploadDesc, const VideoImageDesc &videoDesc,
-												 const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload) __NE___
+												 const uint3 &imageGranularity, FrameUID frameId, Bool upload) __NE___
 	{
 		ASSERT( _frameId.load() == frameId );
 		ASSERT( result.buffers.empty() );
@@ -116,7 +114,6 @@ namespace AE::Graphics
 		msg.videoDesc			= videoDesc;
 		msg.imageGranularity	= imageGranularity;
 		msg.frameId				= frameId;
-		msg.queue				= queue;
 		msg.upload				= upload;
 
 		CHECK_ERRV( _resMngr.GetDevice().SendAndWait( msg, OUT res ));

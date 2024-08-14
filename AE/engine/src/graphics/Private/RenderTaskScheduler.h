@@ -68,7 +68,7 @@ namespace AE::Graphics
 		};
 		#endif
 
-		using TimePoint_t		= std::chrono::high_resolution_clock::time_point;
+		using TimePoint_t		= Threading::TaskScheduler::TimePoint_t;
 
 	private:
 		static constexpr uint	_MaxPendingBatches		= GraphicsConfig::MaxPendingCmdBatches;
@@ -131,6 +131,7 @@ namespace AE::Graphics
 
 		class BatchSubmitDepsManager;
 		class BatchCompleteDepsManager;
+		class FrameNextCycleDepsManager;
 
 		class EndFrameTask;
 
@@ -178,6 +179,7 @@ namespace AE::Graphics
 
 		RC<BatchSubmitDepsManager>			_submitDepMngr;
 		RC<BatchCompleteDepsManager>		_completeDepMngr;
+		RC<FrameNextCycleDepsManager>		_nextCycleDepMngr;
 
 		FrameDepsFrames_t					_beginDeps;
 
@@ -265,16 +267,12 @@ namespace AE::Graphics
 
 			void	_AddFrameDeps (uint index, ArrayView<AsyncTask> deps)				__NE___;
 
-			bool	_FlushQueue (EQueueType q, FrameUID frameId, bool forceFlush)		__NE___;
+			bool	_FlushQueue (EQueueType q, FrameUID frameId, Bool forceFlush)		__NE___;
 
 		// returns 'false' if not complete
 		ND_ bool	_IsFrameCompleted (FrameUID frameId)								__NE___;
 
-		ND_ bool	_WaitAll (nanoseconds timeout)										__NE___;
 		ND_ bool	_WaitAll (const EThreadArray &, nanoseconds timeout)				__NE___;
-
-		ND_ bool	_WaitAllBatches (TimePoint_t endTime)								__NE___;
-		ND_ bool	_WaitAllTasks (const EThreadArray &, TimePoint_t endTime)			__NE___;
 
 
 	//-----------------------------------------------------
@@ -418,7 +416,6 @@ namespace AE::Graphics
 	//
 	// Batch Complete Dependency Manager
 	//
-
 	class RenderTaskScheduler::BatchCompleteDepsManager final : public Threading::ITaskDependencyManager
 	{
 	// methods
@@ -435,7 +432,6 @@ namespace AE::Graphics
 	//
 	// Batch Submit Dependency Manager
 	//
-
 	class RenderTaskScheduler::BatchSubmitDepsManager final : public Threading::ITaskDependencyManager
 	{
 	// methods
@@ -450,9 +446,59 @@ namespace AE::Graphics
 
 
 	//
+	// Frame Next Cycle Dependency Manager
+	//
+	class RenderTaskScheduler::FrameNextCycleDepsManager final : public Threading::ITaskDependencyManager
+	{
+	// types
+	private:
+		using TaskDependency	= Threading::IAsyncTask::TaskDependency;
+		using Dependencies_t	= FixedTupleArray< 69, AsyncTask, TaskDependency >;
+
+		struct alignas(AE_CACHE_LINE) PerFrame
+		{
+			SpinLock			guard;
+			Dependencies_t		deps;
+		};
+		StaticAssert64( sizeof(PerFrame) == 640 );
+
+		using Frames_t = StaticArray< PerFrame, GraphicsConfig::MaxFrames >;
+
+
+	// variables
+	private:
+		Frames_t	_frames;
+
+
+	// methods
+	public:
+		FrameNextCycleDepsManager ()											__NE___ {}
+
+		void  OnNextFrame (FrameUID frameId)									__NE___;
+
+		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)	__NE_OV;
+
+		DEBUG_ONLY( void  DbgDetectDeadlock (const CheckDepFn_t &fn)			__NE_OV;)
+
+		AE_GLOBALLY_ALLOC
+	};
+
+
+	//
+	// On Frame Next Cycle
+	//
+	struct OnFrameNextCycle
+	{
+		FrameUID		frameId;
+
+		explicit OnFrameNextCycle (FrameUID fid) __NE___ : frameId{fid} {}
+	};
+
+
+
+	//
 	// End Frame Task
 	//
-
 	class RenderTaskScheduler::EndFrameTask final : public Threading::IAsyncTask
 	{
 	private:

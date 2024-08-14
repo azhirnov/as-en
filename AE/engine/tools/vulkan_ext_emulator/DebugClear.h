@@ -63,52 +63,40 @@
 			VkRect2D				renderArea		{};
 		};
 
-		using RPMap_t			= FlatHashMap< VkRenderPass, RPInfo >;
-		using FBMap_t			= FlatHashMap< VkFramebuffer, FBInfo >;
-		using ImageViewMap_t	= FlatHashMap< VkImageView, ImageViewInfo >;
-		using CmdBufferMap_t	= FlatHashMap< VkCommandBuffer, CmdBufferState >;
+		using RPMap_t			= Threading::Synchronized< SharedMutex, FlatHashMap< VkRenderPass, RPInfo >>;
+		using FBMap_t			= Threading::Synchronized< SharedMutex, FlatHashMap< VkFramebuffer, FBInfo >>;
+		using ImageViewMap_t	= Threading::Synchronized< SharedMutex, FlatHashMap< VkImageView, ImageViewInfo >>;
+		using CmdBufferMap_t	= Threading::Synchronized< SharedMutex, FlatHashMap< VkCommandBuffer, CmdBufferState >>;
+		using CompImageSet_t	= Threading::Synchronized< SharedMutex, FlatHashSet< VkImage >>;
 
 
 	// variables
 		Random			rnd;
 
 		RPMap_t			rpMap;
-		SharedMutex		rpMapGuard;
-
 		FBMap_t			fbMap;
-		SharedMutex		fbMapGuard;
-
 		CmdBufferMap_t	cmdbuf;
-		SharedMutex		cmdbufGuard;
-
 		ImageViewMap_t	imgViewMap;
-		SharedMutex		imgViewMapGuard;
+		CompImageSet_t	compImageSet;
 
 
 	// methods
 		DebugClear ()
 		{
-			rpMap.reserve( 128 );
-			fbMap.reserve( 128 );
-			cmdbuf.reserve( 32 );
-			imgViewMap.reserve( 512 );
+			rpMap->reserve( 128 );
+			fbMap->reserve( 128 );
+			cmdbuf->reserve( 32 );
+			imgViewMap->reserve( 512 );
+			compImageSet->reserve( 128 );
 		}
 
 		~DebugClear ()
 		{
-			{
-				EXLOCK( rpMapGuard );
-				CHECK( rpMap.empty() );
-			}{
-				EXLOCK( fbMapGuard );
-				CHECK( fbMap.empty() );
-			}{
-				EXLOCK( cmdbufGuard );
-				CHECK( cmdbuf.empty() );
-			}{
-				EXLOCK( imgViewMapGuard );
-				CHECK( imgViewMap.empty() );
-			}
+			CHECK( rpMap->empty() );
+			CHECK( fbMap->empty() );
+			CHECK( cmdbuf->empty() );
+			CHECK( imgViewMap->empty() );
+			CHECK( compImageSet->empty() );
 		}
 	};
 
@@ -190,13 +178,16 @@
 
 			for (uint i = 0; i < imageMemoryBarrierCount; ++i)
 			{
-				if_unlikely( img_bars.size() == img_bars.capacity() )
+				if_unlikely( img_bars.IsFull() )
 					ClearImages();
 
-				if ( pImageMemoryBarriers[i].oldLayout			 == VK_IMAGE_LAYOUT_UNDEFINED	and
-					 pImageMemoryBarriers[i].srcQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED )
+				auto&	src = pImageMemoryBarriers[i];
+
+				if ( src.oldLayout			 == VK_IMAGE_LAYOUT_UNDEFINED	and
+					 src.srcQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED		and
+					 not self.compImageSet->contains( src.image ))
 				{
-					auto&	dst = img_bars.emplace_back( pImageMemoryBarriers[i] );
+					auto&	dst = img_bars.emplace_back( src );
 					dst.newLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 					dst.dstAccessMask	= VK_ACCESS_TRANSFER_WRITE_BIT;
 				}
@@ -217,12 +208,14 @@
 
 			for (uint i = 0; i < imageMemoryBarrierCount; ++i)
 			{
-				if_unlikely( img_bars.size() == img_bars.capacity() )
+				if_unlikely( img_bars.IsFull() )
 					CommitImageBarriers();
 
 				auto&	dst = img_bars.emplace_back( pImageMemoryBarriers[i] );
 
-				if ( dst.oldLayout			 == VK_IMAGE_LAYOUT_UNDEFINED	and
+				if ( dst.oldLayout			 == VK_IMAGE_LAYOUT_UNDEFINED				and
+					 dst.newLayout			 == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL	and
+					 dst.dstAccessMask		 == VK_ACCESS_TRANSFER_WRITE_BIT			and
 					 dst.srcQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED )
 				{
 					dst.oldLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -264,7 +257,6 @@
 			return Wrap_vkCmdPipelineBarrier2_DbgClear2( emulator, commandBuffer, pDependencyInfo );
 		}
 
-
 		if ( pDependencyInfo->memoryBarrierCount | pDependencyInfo->bufferMemoryBarrierCount )
 		{
 			VkDependencyInfo	dep_info = *pDependencyInfo;
@@ -274,116 +266,98 @@
 			Wrap_vkCmdPipelineBarrier2_DbgClear2( emulator, commandBuffer, &dep_info );
 		}
 
-		FixedArray< VkImageMemoryBarrier2, 8 >	img_bars;
-		VkDependencyInfo						dep_info = *pDependencyInfo;
+		using FixedImgBars_t	= FixedArray< VkImageMemoryBarrier2, 8 >;
+		using DoubleImgBars_t	= FixedTupleArray< 8, VkImageMemoryBarrier2, VkImageMemoryBarrier2 >;
+
+		FixedImgBars_t		img_bars;
+		DoubleImgBars_t		clear_bars;
+		VkDependencyInfo	dep_info		= *pDependencyInfo;
 
 		dep_info.memoryBarrierCount			= 0;
 		dep_info.pMemoryBarriers			= null;
 		dep_info.bufferMemoryBarrierCount	= 0;
 		dep_info.pBufferMemoryBarriers		= null;
 
+		const auto	CommitImageBarriers = [&emulator, &dep_info, &commandBuffer] (INOUT FixedImgBars_t& imageBarriers)
+		{{
+			dep_info.imageMemoryBarrierCount	= uint(imageBarriers.size());
+			dep_info.pImageMemoryBarriers		= imageBarriers.data();
+
+			Wrap_vkCmdPipelineBarrier2_DbgClear2( emulator, commandBuffer, &dep_info );
+			imageBarriers.clear();
+		}};
+
+		const auto	ClearImages = [&emulator, &self, &dep_info, &commandBuffer] (INOUT DoubleImgBars_t& imageBarriers)
+		{{
+			// undefined -> transfer_dst
+			dep_info.imageMemoryBarrierCount	= uint(imageBarriers.size());
+			dep_info.pImageMemoryBarriers		= imageBarriers.data<0>();
+
+			Wrap_vkCmdPipelineBarrier2_DbgClear2( emulator, commandBuffer, &dep_info );
+
+			for (auto& bar : imageBarriers.get<0>())
+			{
+				if_likely( AllBits( bar.subresourceRange.aspectMask, VK_IMAGE_ASPECT_COLOR_BIT ))
+				{
+					const RGBA32f		rgba = self.rnd.UniformColor();
+					VkClearColorValue	color;
+
+					MemCopy( OUT color.float32, &rgba, Sizeof(color.float32) );
+					StaticAssert( sizeof(color.float32) == sizeof(rgba) );
+
+					// TODO: only compute/graphics queue
+					emulator.origin_vkCmdClearColorImage( commandBuffer, bar.image, bar.newLayout, &color, 1, &bar.subresourceRange );
+				}
+				else
+				if ( AnyBits( bar.subresourceRange.aspectMask, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT ))
+				{
+					VkClearDepthStencilValue	ds;
+					ds.depth	= self.rnd.Uniform( 0.f, 1.f );
+					ds.stencil	= self.rnd.Uniform( 0, 255 );
+
+					// TODO: only graphics queue
+					emulator.origin_vkCmdClearDepthStencilImage( commandBuffer, bar.image, bar.newLayout, &ds, 1, &bar.subresourceRange );
+				}
+				// TODO: multi-planar images
+			}
+
+			// transfer_dst -> expected
+			dep_info.pImageMemoryBarriers = imageBarriers.data<1>();
+			Wrap_vkCmdPipelineBarrier2_DbgClear2( emulator, commandBuffer, &dep_info );
+
+			imageBarriers.clear();
+		}};
+
 		// clear images with undefined layouts
+		for (uint i = 0; i < pDependencyInfo->imageMemoryBarrierCount; ++i)
 		{
-			const auto	ClearImages = [&] ()
-			{{
-				// undefined -> transfer_dst
-				dep_info.imageMemoryBarrierCount	= uint(img_bars.size());
-				dep_info.pImageMemoryBarriers		= img_bars.data();
+			if_unlikely( clear_bars.IsFull() )
+				ClearImages( INOUT clear_bars );
 
-				Wrap_vkCmdPipelineBarrier2_DbgClear2( emulator, commandBuffer, &dep_info );
+			if_unlikely( img_bars.IsFull() )
+				CommitImageBarriers( INOUT img_bars );
 
-				for (auto& bar : img_bars)
-				{
-					if_likely( AllBits( bar.subresourceRange.aspectMask, VK_IMAGE_ASPECT_COLOR_BIT ))
-					{
-						const RGBA32f		rgba = self.rnd.UniformColor();
-						VkClearColorValue	color;
+			auto&	src = pDependencyInfo->pImageMemoryBarriers[i];
 
-						MemCopy( OUT color.float32, &rgba, Sizeof(color.float32) );
-						StaticAssert( sizeof(color.float32) == sizeof(rgba) );
-
-						emulator.origin_vkCmdClearColorImage( commandBuffer, bar.image, bar.newLayout, &color, 1, &bar.subresourceRange );
-					}
-					else
-					if ( AnyBits( bar.subresourceRange.aspectMask, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT ))
-					{
-						VkClearDepthStencilValue	ds;
-						ds.depth	= self.rnd.Uniform( 0.f, 1.f );
-						ds.stencil	= self.rnd.Uniform( 0, 255 );
-
-						emulator.origin_vkCmdClearDepthStencilImage( commandBuffer, bar.image, bar.newLayout, &ds, 1, &bar.subresourceRange );
-					}
-					// TODO: multi-planar images
-				}
-				img_bars.clear();
-			}};
-
-			for (uint i = 0; i < pDependencyInfo->imageMemoryBarrierCount; ++i)
+			if ( src.oldLayout			 == VK_IMAGE_LAYOUT_UNDEFINED	and
+				 src.srcQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED		and
+				 not self.compImageSet->contains( src.image ))
 			{
-				if_unlikely( img_bars.size() == img_bars.capacity() )
-					ClearImages();
-
-				if ( pDependencyInfo->pImageMemoryBarriers[i].oldLayout			  == VK_IMAGE_LAYOUT_UNDEFINED	and
-					 pDependencyInfo->pImageMemoryBarriers[i].srcQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED )
-				{
-					auto&		dst		= img_bars.emplace_back( pDependencyInfo->pImageMemoryBarriers[i] );
-					dst.newLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-					dst.dstStageMask	= VK_PIPELINE_STAGE_2_CLEAR_BIT;
-					dst.dstAccessMask	= VK_ACCESS_2_TRANSFER_WRITE_BIT;
-				}
+				auto [dst0, dst1]	= clear_bars.emplace_back();
+				dst0				= dst1				 = src;
+				dst0.newLayout		= dst1.oldLayout	 = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				dst0.dstStageMask	= dst1.srcStageMask	 = VK_PIPELINE_STAGE_2_CLEAR_BIT;
+				dst0.dstAccessMask	= dst1.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
 			}
-
-			if ( not img_bars.empty() )
-				ClearImages();
+			else
+				img_bars.push_back( src );
 		}
 
-		// commit all image barriers with changes
-		{
-			const auto	CommitImageBarriers = [&] ()
-			{{
-				// transfer_dst -> expected
-				dep_info.imageMemoryBarrierCount	= uint(img_bars.size());
-				dep_info.pImageMemoryBarriers		= img_bars.data();
+		if ( not clear_bars.empty() )
+			ClearImages( INOUT clear_bars );
 
-				Wrap_vkCmdPipelineBarrier2_DbgClear2( emulator, commandBuffer, &dep_info );
-				img_bars.clear();
-			}};
-
-			for (uint i = 0; i < pDependencyInfo->imageMemoryBarrierCount; ++i)
-			{
-				if_unlikely( img_bars.size() == img_bars.capacity() )
-					CommitImageBarriers();
-
-				auto&	dst = img_bars.emplace_back( pDependencyInfo->pImageMemoryBarriers[i] );
-
-				if ( dst.oldLayout			 == VK_IMAGE_LAYOUT_UNDEFINED	and
-					 dst.srcQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED )
-				{
-					dst.oldLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-					dst.srcStageMask	= VK_PIPELINE_STAGE_2_CLEAR_BIT;
-					dst.srcAccessMask	= VK_ACCESS_2_TRANSFER_WRITE_BIT;
-				}
-			}
-
-			if ( not img_bars.empty() )
-				CommitImageBarriers();
-		}
-	}
-
-/*
-=================================================
-	Wrap_vkCreateImage_DbgClear
-=================================================
-*/
-	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateImage_DbgClear (VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, OUT VkImage* pImage)
-	{
-		auto&	emulator = VulkanEmulation::Get();
-		DRC_SHAREDLOCK( emulator.drCheck );
-
-		VkImageCreateInfo	ci = *pCreateInfo;
-		ci.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;	// clear op
-
-		return emulator.origin_vkCreateImage( device, &ci, pAllocator, OUT pImage );
+		if ( not img_bars.empty() )
+			CommitImageBarriers( INOUT img_bars );
 	}
 
 /*
@@ -417,6 +391,58 @@
 				return true;
 		}
 		return false;
+	}
+
+	ND_ static bool  IsCompressedFormat (VkFormat fmt)
+	{
+		if ( fmt >= VK_FORMAT_BC1_RGB_UNORM_BLOCK and fmt <= VK_FORMAT_ASTC_12x12_SRGB_BLOCK )
+			return true;
+
+		if ( fmt >= VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK and fmt <= VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK )
+			return true;
+
+		if ( fmt >= VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG and fmt <= VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG )
+			return true;
+
+		return false;
+	}
+
+/*
+=================================================
+	Wrap_vkCreateImage_DbgClear
+=================================================
+*/
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateImage_DbgClear (VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, OUT VkImage* pImage)
+	{
+		auto&	emulator = VulkanEmulation::Get();
+		auto&	self	 = *emulator.dbgClear;
+		DRC_SHAREDLOCK( emulator.drCheck );
+
+		VkImageCreateInfo	ci = *pCreateInfo;
+		ci.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;	// clear op
+
+		VkResult	res = emulator.origin_vkCreateImage( device, &ci, pAllocator, OUT pImage );
+
+		if ( res == VK_SUCCESS and IsCompressedFormat( ci.format ))
+		{
+			self.compImageSet->insert( *pImage );
+		}
+		return res;
+	}
+
+/*
+=================================================
+	Wrap_vkDestroyImage_DbgClear
+=================================================
+*/
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyImage_DbgClear (VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator)
+	{
+		auto&	emulator = VulkanEmulation::Get();
+		auto&	self	 = *emulator.dbgClear;
+		DRC_SHAREDLOCK( emulator.drCheck );
+
+		self.compImageSet->erase( image );
+		emulator.origin_vkDestroyImage( device, image, pAllocator );
 	}
 
 /*
@@ -617,8 +643,7 @@
 
 		if ( res == VK_SUCCESS and *pRenderPass != Default )
 		{
-			EXLOCK( self.rpMapGuard );
-			self.rpMap.insert_or_assign( *pRenderPass, rp_info );	// throw
+			self.rpMap->insert_or_assign( *pRenderPass, rp_info );	// throw
 		}
 		return res;
 	}
@@ -634,10 +659,7 @@
 		auto&	self		= *emulator.dbgClear;
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		{
-			EXLOCK( self.rpMapGuard );
-			self.rpMap.erase( renderPass );
-		}
+		self.rpMap->erase( renderPass );
 		return emulator.origin_vkDestroyRenderPass( device, renderPass, pAllocator );
 	}
 
@@ -658,9 +680,9 @@
 		VulkanEmulation::DebugClear::RPInfo		rp_info;
 
 		{
-			SHAREDLOCK( self.rpMapGuard );
-			auto	it = self.rpMap.find( rp_begin.renderPass );
-			if ( it != self.rpMap.end() )
+			auto	rp_map	= self.rpMap.ReadLock();
+			auto	it		= rp_map->find( rp_begin.renderPass );
+			if ( it != rp_map->end() )
 				rp_info = it->second;
 		}
 
@@ -703,8 +725,8 @@
 			emulator.origin_vkCmdBeginRenderPass2( commandBuffer, &rp_begin, pSubpassBeginInfo );
 
 		{
-			EXLOCK( self.cmdbufGuard );
-			auto&	cb		= self.cmdbuf[ commandBuffer ];		// throw
+			auto	cb_map	= self.cmdbuf.WriteLock();
+			auto&	cb		= (*cb_map)[ commandBuffer ];		// throw
 			cb.currentRP	= pRenderPassBegin->renderPass;
 			cb.currentFB	= pRenderPassBegin->framebuffer;
 			cb.subpassIndex	= 0;
@@ -725,26 +747,26 @@
 
 		VulkanEmulation::DebugClear::CmdBufferState		cmdbuf_info;
 		{
-			EXLOCK( self.cmdbufGuard );
-			auto	it	= self.cmdbuf.find( commandBuffer );
-			CHECK_ERRV( it != self.cmdbuf.end() );
+			auto	cb_map	= self.cmdbuf.WriteLock();
+			auto	it		= cb_map->find( commandBuffer );
+			CHECK_ERRV( it != cb_map->end() );
 			it->second.subpassIndex++;
 			cmdbuf_info = it->second;
 		}
 
 		VulkanEmulation::DebugClear::RPInfo		rp_info;
 		{
-			SHAREDLOCK( self.rpMapGuard );
-			auto	it = self.rpMap.find( cmdbuf_info.currentRP );
-			CHECK_ERRV( it != self.rpMap.end() );
+			auto	rp_map	= self.rpMap.ReadLock();
+			auto	it		= rp_map->find( cmdbuf_info.currentRP );
+			CHECK_ERRV( it != rp_map->end() );
 			rp_info = it->second;
 		}
 
 		VulkanEmulation::DebugClear::FBInfo		fb_info;
 		{
-			SHAREDLOCK( self.fbMapGuard );
-			auto	it = self.fbMap.find( cmdbuf_info.currentFB );
-			CHECK_ERRV( it != self.fbMap.end() );
+			auto	fb_map	= self.fbMap.ReadLock();
+			auto	it		= fb_map->find( cmdbuf_info.currentFB );
+			CHECK_ERRV( it != fb_map->end() );
 			fb_info = it->second;
 		}
 
@@ -799,17 +821,17 @@
 
 		VulkanEmulation::DebugClear::CmdBufferState		cmdbuf_info;
 		{
-			EXLOCK( self.cmdbufGuard );
-			auto	it = self.cmdbuf.find( commandBuffer );
-			CHECK_ERRV( it != self.cmdbuf.end() );
+			auto	cb_map	= self.cmdbuf.WriteLock();
+			auto	it		= cb_map->find( commandBuffer );
+			CHECK_ERRV( it != cb_map->end() );
 			std::swap( cmdbuf_info, it->second );
 		}
 
 		VulkanEmulation::DebugClear::RPInfo		rp_info;
 		{
-			SHAREDLOCK( self.rpMapGuard );
-			auto	it = self.rpMap.find( cmdbuf_info.currentRP );
-			CHECK_ERRV( it != self.rpMap.end() );
+			auto	rp_map	= self.rpMap.ReadLock();
+			auto	it		= rp_map->find( cmdbuf_info.currentRP );
+			CHECK_ERRV( it != rp_map->end() );
 			rp_info = it->second;
 		}
 
@@ -820,9 +842,9 @@
 
 		VulkanEmulation::DebugClear::FBInfo		fb_info;
 		{
-			SHAREDLOCK( self.fbMapGuard );
-			auto	it = self.fbMap.find( cmdbuf_info.currentFB );
-			CHECK_ERRV( it != self.fbMap.end() );
+			auto	fb_map	= self.fbMap.ReadLock();
+			auto	it		= fb_map->find( cmdbuf_info.currentFB );
+			CHECK_ERRV( it != fb_map->end() );
 			fb_info = it->second;
 		}
 
@@ -862,9 +884,9 @@
 			barrier.srcQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex	= VK_QUEUE_FAMILY_IGNORED;
 			{
-				SHAREDLOCK( self.imgViewMapGuard );
-				auto	it = self.imgViewMap.find( clear.Get<VkImageView>() );
-				CHECK_ERRV( it != self.imgViewMap.end() );
+				auto	view_map = self.imgViewMap.ReadLock();
+				auto	it		 = view_map->find( clear.Get<VkImageView>() );
+				CHECK_ERRV( it != view_map->end() );
 				barrier.image				= it->second.image;
 				barrier.subresourceRange	= it->second.subres;
 			}
@@ -928,10 +950,7 @@
 		auto&	self		= *emulator.dbgClear;
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		{
-			EXLOCK( self.cmdbufGuard );
-			self.cmdbuf.erase( commandBuffer );
-		}
+		self.cmdbuf->erase( commandBuffer );
 		return emulator.origin_vkEndCommandBuffer( commandBuffer );
 	}
 
@@ -956,8 +975,7 @@
 			fb_info.layers			= pCreateInfo->layers;
 			MemCopy( OUT fb_info.attachments.data(), pCreateInfo->pAttachments, Sizeof(pCreateInfo->pAttachments[0]) * pCreateInfo->attachmentCount );
 
-			EXLOCK( self.fbMapGuard );
-			self.fbMap.insert_or_assign( *pFramebuffer, fb_info );	// throw
+			self.fbMap->insert_or_assign( *pFramebuffer, fb_info );	// throw
 		}
 		return res;
 	}
@@ -973,10 +991,7 @@
 		auto&	self		= *emulator.dbgClear;
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		{
-			EXLOCK( self.fbMapGuard );
-			self.fbMap.erase( framebuffer );
-		}
+		self.fbMap->erase( framebuffer );
 		return emulator.origin_vkDestroyFramebuffer( device, framebuffer, pAllocator );
 	}
 
@@ -999,8 +1014,7 @@
 			iv_info.image	= pCreateInfo->image;
 			iv_info.subres	= pCreateInfo->subresourceRange;
 
-			EXLOCK( self.imgViewMapGuard );
-			self.imgViewMap.insert_or_assign( *pView, iv_info );	// throw
+			self.imgViewMap->insert_or_assign( *pView, iv_info );	// throw
 		}
 		return res;
 	}
@@ -1016,9 +1030,6 @@
 		auto&	self		= *emulator.dbgClear;
 		DRC_SHAREDLOCK( emulator.drCheck );
 
-		{
-			EXLOCK( self.imgViewMapGuard );
-			self.imgViewMap.erase( imageView );
-		}
+		self.imgViewMap->erase( imageView );
 		return emulator.origin_vkDestroyImageView( device, imageView, pAllocator );
 	}

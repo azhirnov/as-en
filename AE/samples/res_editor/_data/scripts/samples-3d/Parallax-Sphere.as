@@ -77,7 +77,7 @@
 			draw.Slider( "iMode",			0,		3,		3 );
 		}
 
-		if ( Supported_GeometryShader() )
+		if ( Supports_GeometryShader() )
 		{
 			RC<SceneGraphicsPass>	dbg_draw = scene.AddGraphicsPass( "debug normals" );
 			dbg_draw.AddPipeline( "samples/DebugTBN.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DebugTBN.as)

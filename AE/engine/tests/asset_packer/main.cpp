@@ -12,6 +12,7 @@ extern void Test_PipelinePack ();
 extern void Test_InputActions ();
 
 extern void Test_ImageAtlasPack ();
+extern void Test_ImageCompression ();
 
 
 int main (const int argc, char* argv[])
@@ -34,6 +35,9 @@ int main (const int argc, char* argv[])
 	FileSystem::SetCurrentPath( curr );
 
 	Test_ImageAtlasPack();
+	FileSystem::SetCurrentPath( curr );
+
+	Test_ImageCompression();
 	FileSystem::SetCurrentPath( curr );
 
 	AE_LOGI( "Tests.AssetPacker finished" );

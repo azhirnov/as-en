@@ -62,7 +62,6 @@ namespace AE::ResEditor
 		_temp->indicesOffset		= SizeOf<decltype(MeshDataInRAM::texcoord0)::Value_t> * _meshVertexCount + _temp->texcoord0Offset;
 		const Bytes	mesh_data_size	= SizeOf<decltype(MeshDataInRAM::indices  )::Value_t> * _temp->meshIndexCount + _temp->indicesOffset;
 
-
 		CHECK_THROW( mesh_data_size > 0 );
 		CHECK_THROW( mesh_cnt > 0 );
 		CHECK_THROW( _temp->nodeCount > 0 );
@@ -593,6 +592,9 @@ namespace AE::ResEditor
 
 		for (auto i : IndicesOnly( rt_meshes ))
 		{
+			if ( rt_meshes[i].empty() )
+				continue;
+
 			CHECK_THROW( mem_view.CopyFrom( offset, rt_meshes[i].data(), ArraySizeOf(rt_meshes[i]) ) == ArraySizeOf(rt_meshes[i]) );
 
 			inst_to_mesh.meshesPerInstance[i] = inst_addr + offset;
@@ -605,6 +607,9 @@ namespace AE::ResEditor
 
 		for (auto i : IndicesOnly( rt_materials ))
 		{
+			if ( rt_materials[i].empty() )
+				continue;
+
 			CHECK_THROW( mem_view.CopyFrom( offset, rt_materials[i].data(), ArraySizeOf(rt_materials[i]) ) == ArraySizeOf(rt_materials[i]) );
 
 			inst_to_mesh.materialsPerInstance[i] = inst_addr + offset;
@@ -615,6 +620,9 @@ namespace AE::ResEditor
 
 		for (auto i : IndicesOnly( rt_norm_mats ))
 		{
+			if ( rt_norm_mats[i].empty() )
+				continue;
+
 			CHECK_THROW( mem_view.CopyFrom( offset, rt_norm_mats[i].data(), ArraySizeOf(rt_norm_mats[i]) ) == ArraySizeOf(rt_norm_mats[i]) );
 
 			inst_to_mesh.normalMatPerInstance[i] = inst_addr + offset;
@@ -676,7 +684,7 @@ namespace AE::ResEditor
 	Draw
 =================================================
 */
-	void  ModelGeomSource::Mesh::Draw (DirectCtx::Draw &ctx, const Material::GPplnGroups_t &drawGroups) C_Th___
+	void  ModelGeomSource::Mesh::Draw (DirectCtx::Draw &ctx, const Material::GPplnGroups_t &drawGroups, uint instanceCount) C_Th___
 	{
 		if_unlikely( _drawCalls.empty() )
 			return;  // not uploaded yet
@@ -690,8 +698,15 @@ namespace AE::ResEditor
 			for (auto id : obj_ids)
 			{
 				const auto&		dc = _drawCalls[id];
+				DrawIndexedCmd	cmd;
 
-				ctx.DrawIndexed( dc.indexCount, 1u, dc.firstIndex, dc.vertexOffset, dc.nodeIdx );
+				cmd.indexCount		= dc.indexCount;
+				cmd.instanceCount	= instanceCount;
+				cmd.firstIndex		= dc.firstIndex;
+				cmd.vertexOffset	= dc.vertexOffset;
+				cmd.firstInstance	= dc.nodeIdx;
+
+				ctx.DrawIndexed( cmd );
 			}
 		}
 	}
@@ -816,10 +831,12 @@ namespace AE::ResEditor
 									  const Transformation			&initialTransform,
 									  ArrayView<Path>				texSearchDirs,
 									  uint							maxTextures,
-									  RTGeometryTypes_t &&			rtGeoms) __Th___ :
+									  RTGeometryTypes_t &&			rtGeoms,
+									  uint							instanceCount) __Th___ :
 		IGeomSource{ r },
 		_meshData{ new Mesh{ r, scene, initialTransform, RVRef(rtGeoms) }},
-		_textures{ new Textures{ r, scene, texSearchDirs, maxTextures }}
+		_textures{ new Textures{ r, scene, texSearchDirs, maxTextures }},
+		_instanceCount{ instanceCount }
 	{
 		r.GetDataTransferQueue().EnqueueForUpload( _meshData );
 		r.GetDataTransferQueue().EnqueueForUpload( _textures );
@@ -867,7 +884,7 @@ namespace AE::ResEditor
 				ctx.BindDescriptorSet( mtr.passDSIndex, in.passDS );
 				ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
 
-				_meshData->Draw( ctx, drawGroups );
+				_meshData->Draw( ctx, drawGroups, _instanceCount );
 			},
 			[] (Material::MPplnGroups_t const &) {
 				CHECK_MSG( false, "mesh pipeline is not supported" );

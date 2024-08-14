@@ -48,9 +48,9 @@ namespace AE::Graphics
 
 namespace AE::Base
 {
-	template <> struct TMemCopyAvailable< AE::Graphics::ImageLayer >		{ static constexpr bool  value = true; };
-	template <> struct TZeroMemAvailable< AE::Graphics::ImageLayer >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::ImageLayer >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::ImageLayer >		: CT_True {};
+	template <> struct TZeroMemAvailable< AE::Graphics::ImageLayer >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::ImageLayer >	: CT_True {};
 
 } // AE::Base
 

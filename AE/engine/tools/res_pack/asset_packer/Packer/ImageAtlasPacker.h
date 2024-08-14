@@ -55,5 +55,5 @@ namespace AE::AssetPacker
 
 namespace AE::Base
 {
-	template <> struct TTriviallySerializable< AE::AssetPacker::ImageAtlasPacker::Header2 >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::AssetPacker::ImageAtlasPacker::Header2 >	: CT_True {};
 }

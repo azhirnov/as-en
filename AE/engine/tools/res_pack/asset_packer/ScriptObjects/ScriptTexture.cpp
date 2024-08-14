@@ -2,6 +2,7 @@
 
 #include "base/DataSource/MemStream.h"
 #include "graphics/Private/EnumUtils.h"
+#include "graphics/Private/EnumToString.h"
 
 #include "ScriptObjects/ScriptTexture.h"
 #include "Packer/ImagePacker.h"
@@ -17,6 +18,17 @@ namespace AE::AssetPacker
 {
 namespace {
 #	include "Packer/ImagePacker.cpp.h"
+
+	ND_ inline uint  CompressionThreadCount ()
+	{
+		// use 0 to disable multithreading
+		return Max( 1u, ThreadUtils::MaxThreadCount() / 2 );
+	}
+
+	ND_ inline float  CompressionQuality ()
+	{
+		return 1.f;
+	}
 }
 
 	using namespace AE::Graphics;
@@ -279,48 +291,23 @@ namespace {
 	{
 		// convert images
 		IntermImage		dst_image;
-		{
-			if ( _dstFormat != _intermFormat )
-			{
-				RETURN_ERR( "compression is not supported yet" );	// TODO
-			}
 
-			CHECK_ERR( dst_image.Reserve( _imgData->GetType(), _intermFormat, _imgData->Dimension(), ImageLayer{_imgData->ArrayLayers()}, MipmapLevel{_imgData->MipLevels()} ));
+		if ( _dstFormat == _intermFormat ) {
+			CHECK_ERR( _Convert( OUT dst_image ));
+		}else
+		if ( EPixelFormat_IsETC( _dstFormat ) or EPixelFormat_IsBC( _dstFormat )) {
+			CHECK_ERR( _CompressBC_ETC2( OUT dst_image ));
+		}else
+		if ( EPixelFormat_IsASTC( _dstFormat )) {
+			CHECK_ERR( _CompressASTC( OUT dst_image ));
+		}else
+			RETURN_ERR( "compression is not supported" );
 
-			auto&	src_img_data	= *_imgData->GetMutableData();
-			auto&	dst_img_data	= *dst_image.GetMutableData();
-			CHECK_ERR( src_img_data.size() == dst_img_data.size() );
-
-			for (usize mip = 0; mip < src_img_data.size(); ++mip)
-			{
-				auto&	src_layers = src_img_data[mip];
-				auto&	dst_layers = dst_img_data[mip];
-				CHECK_ERR( src_layers.size() == dst_layers.size() );
-
-				for (usize layer = 0; layer < src_layers.size(); ++layer)
-				{
-					auto&	src	= src_layers[layer];
-					auto&	dst	= dst_layers[layer];
-
-					if ( src == dst )
-					{
-						dst = src;
-						continue;
-					}
-
-					RWImageMemView	dst_view{ dst_image.ToView( MipmapLevel{mip}, ImageLayer{layer} )};
-					RWImageMemView	src_view{ _imgData->ToView( MipmapLevel{mip}, ImageLayer{layer} )};
-
-					CHECK_ERR( dst_view.Blit( src_view ));
-				}
-			}
-
-		}
 		_imgData.reset();
 
 		// serialize
 		{
-			ImagePacker::Header2	img_hdr;
+			ImagePacker::FileHeader	img_hdr;
 			img_hdr.hdr.dimension	= ushort3{dst_image.Dimension()};
 			img_hdr.hdr.arrayLayers	= CheckCast<ushort>(dst_image.ArrayLayers());
 			img_hdr.hdr.mipmaps		= CheckCast<ushort>(dst_image.MipLevels());
@@ -329,6 +316,48 @@ namespace {
 
 			CHECK_ERR( ImagePacker_SaveHeader( *stream, img_hdr ));
 			CHECK_ERR( ImagePacker_SaveImage( *stream, img_hdr.hdr, dst_image ));
+		}
+		return true;
+	}
+
+/*
+=================================================
+	_Convert
+=================================================
+*/
+	bool  ScriptTexture::_Convert (OUT IntermImage &dstImage) const
+	{
+		CHECK_ERR( _dstFormat == _intermFormat );
+		CHECK_ERR( dstImage.Reserve( _imgData->GetType(), _intermFormat, _imgData->Dimension(), ImageLayer{_imgData->ArrayLayers()}, MipmapLevel{_imgData->MipLevels()} ));
+
+		auto&	src_img_data	= *_imgData->GetMutableData();
+		auto&	dst_img_data	= *dstImage.GetMutableData();
+		CHECK_ERR( src_img_data.size() == dst_img_data.size() );
+
+		for (usize mip = 0; mip < src_img_data.size(); ++mip)
+		{
+			auto&	src_layers = src_img_data[mip];
+			auto&	dst_layers = dst_img_data[mip];
+			CHECK_ERR( src_layers.size() == dst_layers.size() );
+
+			for (usize layer = 0; layer < src_layers.size(); ++layer)
+			{
+				auto&	src	= src_layers[layer];
+				auto&	dst	= dst_layers[layer];
+
+				if ( src == dst )
+				{
+					dst = src;
+					continue;
+				}
+
+				CHECK_ERR( dstImage.AllocLevel( MipmapLevel{mip}, ImageLayer{layer} ));
+
+				RWImageMemView	dst_view{ dstImage.ToView( MipmapLevel{mip}, ImageLayer{layer} )};
+				RWImageMemView	src_view{ _imgData->ToView( MipmapLevel{mip}, ImageLayer{layer} )};
+
+				CHECK_ERR( dst_view.Blit( src_view ));
+			}
 		}
 		return true;
 	}
@@ -366,5 +395,127 @@ namespace {
 		binder.AddMethod( &ScriptTexture::SetFormat,	"Format",		{"newFormat"} );
 	}
 
+} // AE::AssetPacker
+//-----------------------------------------------------------------------------
+
+
+#ifdef AE_ENABLE_COMPRESSONATOR
+# include "compressonator.h"
+
+namespace AE::AssetPacker
+{
+namespace {
+#	include "Utils/Compressonator.cpp.h"
+}
+
+/*
+=================================================
+	_CompressBC_ETC2
+=================================================
+*/
+	bool  ScriptTexture::_CompressBC_ETC2 (OUT IntermImage &dstImage) const
+	{
+		CHECK_ERR( not EPixelFormat_IsCompressed( _intermFormat ));
+		CHECK_ERR( EPixelFormat_IsETC( _dstFormat ) or EPixelFormat_IsBC( _dstFormat ));
+
+		CHECK_ERR( dstImage.Allocate( _imgData->GetType(), _dstFormat, _imgData->Dimension(), ImageLayer{_imgData->ArrayLayers()}, MipmapLevel{_imgData->MipLevels()} ));
+
+		Unused( Compressonator_GetBCLib() );
+
+		auto&	src_img_data	= *_imgData->GetMutableData();
+		auto&	dst_img_data	= *dstImage.GetMutableData();
+		CHECK_ERR( src_img_data.size() == dst_img_data.size() );
+
+		for (usize mip = 0; mip < src_img_data.size(); ++mip)
+		{
+			auto&	src_layers = src_img_data[mip];
+			auto&	dst_layers = dst_img_data[mip];
+			CHECK_ERR( src_layers.size() == dst_layers.size() );
+
+			for (usize layer = 0; layer < src_layers.size(); ++layer)
+			{
+				CHECK_ERR( Compressonator_Compress( _imgData->ToView( MipmapLevel{mip}, ImageLayer{layer} ),
+													dstImage.ToView( MipmapLevel{mip}, ImageLayer{layer} ),
+													CompressionThreadCount(),
+													CompressionQuality()
+												));
+			}
+		}
+		return true;
+	}
 
 } // AE::AssetPacker
+
+#else
+
+namespace AE::AssetPacker
+{
+	bool  ScriptTexture::_CompressBC_ETC2 (OUT IntermImage &) const
+	{
+		RETURN_ERR( "BC & ETC compression is not supported" );
+	}
+}
+
+#endif // AE_ENABLE_COMPRESSONATOR
+//-----------------------------------------------------------------------------
+
+
+#ifdef AE_ENABLE_ASTC_ENCODER
+# include "astcenc.h"
+
+namespace AE::AssetPacker
+{
+namespace {
+#	include "Utils/AstcEncoder.cpp.h"
+}
+
+/*
+=================================================
+	_CompressASTC
+=================================================
+*/
+	bool  ScriptTexture::_CompressASTC (OUT IntermImage &dstImage) const
+	{
+		CHECK_ERR( not EPixelFormat_IsCompressed( _intermFormat ));
+		CHECK_ERR( EPixelFormat_IsASTC( _dstFormat ));
+
+		CHECK_ERR( dstImage.Allocate( _imgData->GetType(), _dstFormat, _imgData->Dimension(), ImageLayer{_imgData->ArrayLayers()}, MipmapLevel{_imgData->MipLevels()} ));
+
+		auto&	src_img_data	= *_imgData->GetMutableData();
+		auto&	dst_img_data	= *dstImage.GetMutableData();
+		CHECK_ERR( src_img_data.size() == dst_img_data.size() );
+
+		for (usize mip = 0; mip < src_img_data.size(); ++mip)
+		{
+			auto&	src_layers = src_img_data[mip];
+			auto&	dst_layers = dst_img_data[mip];
+			CHECK_ERR( src_layers.size() == dst_layers.size() );
+
+			for (usize layer = 0; layer < src_layers.size(); ++layer)
+			{
+				CHECK_ERR( AstcEncode( _imgData->ToView( MipmapLevel{mip}, ImageLayer{layer} ),
+									   dstImage.ToView( MipmapLevel{mip}, ImageLayer{layer} ),
+									   CompressionThreadCount(),
+									   CompressionQuality()
+									));
+			}
+		}
+
+		Unused( &AstcDecode );
+		return true;
+	}
+
+} // AE::AssetPacker
+
+#else
+
+namespace AE::AssetPacker
+{
+	bool  ScriptTexture::_CompressASTC (OUT IntermImage &) const
+	{
+		RETURN_ERR( "ASTC compression is not supported" );
+	}
+}
+
+#endif // AE_ENABLE_ASTC_ENCODER
+//-----------------------------------------------------------------------------

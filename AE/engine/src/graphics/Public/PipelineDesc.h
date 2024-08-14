@@ -18,10 +18,10 @@ namespace AE::Graphics
 	{
 		Optimize						= 1 << 0,
 
-		// compute only
+		// compute only //
 		CS_DispatchBase					= 1 << 1,		// Vulkan only
 
-		// ray tracing only
+		// ray tracing only //
 		RT_NoNullAnyHitShaders			= 1 << 2,
 		RT_NoNullClosestHitShaders		= 1 << 3,
 		RT_NoNullMissShaders			= 1 << 4,
@@ -32,11 +32,17 @@ namespace AE::Graphics
 		//RT_OpacityMicromap
 		//RT_DisplacementMicromap
 
-		// cache
-		DontCompile						= 1 << 8,		// pipeline creation will fail if it is not exists in cache
+		// cache //
+		//	Pipeline creation will fail if it is not exists in cache.
+		DontCompile						= 1 << 8,
 
-		// debug / profile
+		// debug / profile //
+		//	When a pipeline is created, its state and shaders are compiled into zero or more device-specific executables,
+		//	which are used when executing commands against that pipeline.
 		CaptureStatistics				= 1 << 9,
+
+		//	May include the final shader assembly, a binary form of the compiled shader,
+		//	or the shader compiler’s internal representation at any number of intermediate compile steps.
 		CaptureInternalRepresentation	= 1 << 10,
 
 		_Last,
@@ -267,23 +273,23 @@ namespace AE::Graphics
 
 namespace AE::Base
 {
-	template <> struct TMemCopyAvailable< AE::Graphics::GraphicsPipelineDesc >			{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::GraphicsPipelineDesc >		{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::GraphicsPipelineDesc >			: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::GraphicsPipelineDesc >		: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::MeshPipelineDesc >				{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::MeshPipelineDesc >			{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::MeshPipelineDesc >				: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::MeshPipelineDesc >			: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::ComputePipelineDesc >			{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::ComputePipelineDesc >		{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::ComputePipelineDesc >			: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::ComputePipelineDesc >		: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::RayTracingPipelineDesc >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::RayTracingPipelineDesc >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RayTracingPipelineDesc >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RayTracingPipelineDesc >	: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::TilePipelineDesc >				{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::TilePipelineDesc >			{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::TilePipelineDesc >				: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::TilePipelineDesc >			: CT_True {};
 
-	template <>	struct TTriviallySerializable< AE::Graphics::GraphicsPipelineDesc::VertexInput >	{ static constexpr bool  value = true; };
-	template <>	struct TTriviallySerializable< AE::Graphics::GraphicsPipelineDesc::VertexBuffer >	{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< AE::Graphics::GraphicsPipelineDesc::VertexInput >	: CT_True {};
+	template <>	struct TTriviallySerializable< AE::Graphics::GraphicsPipelineDesc::VertexBuffer >	: CT_True {};
 
 } // AE::Base
 

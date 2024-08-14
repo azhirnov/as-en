@@ -106,7 +106,7 @@ namespace AE::Threading
 						// invalidate cache to load changes in 'chunk.values[idx]'
 						MemoryBarrier( EMemoryOrder::Acquire );
 
-						PlacementNew<Value_t>( OUT &chunk.values[idx], FwdArg<T>(value) );
+						PlacementNew<Value_t>( OUT std::addressof(chunk.values[idx]), FwdArg<T>(value) );
 
 						// flush cache to make visible changes in 'chunk.values[idx]' for all threads
 						// and set availability bit
@@ -168,7 +168,7 @@ namespace AE::Threading
 						// and unset assigned bit
 						Bitfield_t	old_assign	= chunk.assigned.fetch_and( mask, EMemoryOrder::Release );	// 1 -> 0
 						Unused( old_assign );
-						ASSERT( old_assign & ~mask );		// previous bit must be 1
+						ASSERT( !!( old_assign & ~mask ));		// previous bit must be 1
 
 						return true;
 					}

@@ -121,7 +121,7 @@ namespace AE::Scripting
 
 		ASSERT( IsReturn<T>() );
 
-		if constexpr( IsSameTypes< T, ubyte > or IsSameTypes< T, sbyte > or IsSameTypes< T, char >)
+		if constexpr( IsSameTypes< T, bool > or IsSameTypes< T, ubyte > or IsSameTypes< T, sbyte > or IsSameTypes< T, char >)
 			return _gen->SetReturnByte( asBYTE(value) );
 		else
 		if constexpr( IsSameTypes< T, ushort > or IsSameTypes< T, sshort >)

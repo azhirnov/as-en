@@ -196,7 +196,7 @@ namespace AE::Video
 			if ( codec == null )
 				return false;
 
-			ASSERT( _ffmpeg->av_codec_is_encoder( codec ));
+			ASSERT( _ffmpeg->av_codec_is_encoder( codec ) != 0 );
 
 			if ( not (codec->capabilities & AV_CODEC_CAP_HARDWARE) and _config.hwAccelerated == EHwAcceleration::Require )
 				return false;

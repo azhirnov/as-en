@@ -2,20 +2,21 @@
 
 #pragma once
 
-#include "graphics/Public/EResourceState.h"
-#include "graphics/Public/ResourceEnums.h"
-#include "graphics/Public/ShaderEnums.h"
-#include "graphics/Public/VertexEnums.h"
-#include "graphics/Public/RenderStateEnums.h"
-#include "graphics/Public/FeatureSetEnums.h"
-#include "graphics/Public/Queue.h"
-#include "graphics/Public/SamplerDesc.h"
-#include "graphics/Public/DescriptorSet.h"
-#include "graphics/Public/PipelineDesc.h"
-#include "graphics/Public/RayTracingEnums.h"
-#include "graphics/Public/VideoEnums.h"
-#include "graphics/Public/ImageSwizzle.h"
-#include "graphics/Private/PixelFormatDefines.h"
+#ifdef AE_ENABLE_LOGS
+# include "graphics/Public/EResourceState.h"
+# include "graphics/Public/ResourceEnums.h"
+# include "graphics/Public/ShaderEnums.h"
+# include "graphics/Public/VertexEnums.h"
+# include "graphics/Public/RenderStateEnums.h"
+# include "graphics/Public/FeatureSetEnums.h"
+# include "graphics/Public/Queue.h"
+# include "graphics/Public/SamplerDesc.h"
+# include "graphics/Public/DescriptorSet.h"
+# include "graphics/Public/PipelineDesc.h"
+# include "graphics/Public/RayTracingEnums.h"
+# include "graphics/Public/VideoEnums.h"
+# include "graphics/Public/ImageSwizzle.h"
+# include "graphics/Private/PixelFormatDefines.h"
 
 namespace AE::Base
 {
@@ -184,18 +185,18 @@ namespace AE::Base
 			values &= ~EShaderStages::AllRayTracing;
 		}
 
-		if ( AllBits( values, EShaderStages::MeshStages ))
+		if ( AllBits( values, EShaderStages::MeshPipeStages ))
 		{
 			if ( not str.empty() ) str << " | ";
-			str << "MeshStages";
-			values &= ~EShaderStages::MeshStages;
+			str << "MeshPipeStages";
+			values &= ~EShaderStages::MeshPipeStages;
 		}
 
-		if ( AllBits( values, EShaderStages::GraphicsStages ))
+		if ( AllBits( values, EShaderStages::GraphicsPipeStages ))
 		{
 			if ( not str.empty() ) str << " | ";
-			str << "GraphicsStages";
-			values &= ~EShaderStages::GraphicsStages;
+			str << "GraphicsPipeStages";
+			values &= ~EShaderStages::GraphicsPipeStages;
 		}
 
 		for (auto bit : BitIndexIterate<EShader>( values ))
@@ -406,11 +407,11 @@ namespace AE::Base
 
 			switch_enum( t )
 			{
-				case ESamplerOpt::ArgumentBuffer :					return "ArgumentBuffer";
-				case ESamplerOpt::NonSeamlessCubeMap :				return "NonSeamlessCubeMap";
-				case ESamplerOpt::UnnormalizedCoordinates :			return "UnnormalizedCoordinates";
-			//	case ESamplerOpt::Subsampled :						return "Subsampled";
-			//	case ESamplerOpt::SubsampledCoarseReconstruction:	return "SubsampledCoarseReconstruction";
+				case ESamplerOpt::ArgumentBuffer :					str << "ArgumentBuffer";					break;
+				case ESamplerOpt::NonSeamlessCubeMap :				str << "NonSeamlessCubeMap";				break;
+				case ESamplerOpt::UnnormalizedCoordinates :			str << "UnnormalizedCoordinates";			break;
+			//	case ESamplerOpt::Subsampled :						str << "Subsampled";						break;
+			//	case ESamplerOpt::SubsampledCoarseReconstruction:	str << "SubsampledCoarseReconstruction";	break;
 
 				case ESamplerOpt::Unknown :
 				case ESamplerOpt::_Last :
@@ -979,7 +980,6 @@ namespace AE::Base
 			case _EResState::InputDepthStencilAttachment :		str += "InputDepthStencilAttachment";			break;
 			case _EResState::InputDepthStencilAttachment_RW :	str += "InputDepthStencilAttachment_RW";		break;
 			case _EResState::Host_Read :						str += "Host_Read";								break;
-			case _EResState::Host_Write :						str += "Host_Write";							break;
 			case _EResState::PresentImage :						str += "PresentImage";							break;
 			case _EResState::IndirectBuffer :					str += "IndirectBuffer";						break;
 			case _EResState::IndexBuffer :						str += "IndexBuffer";							break;
@@ -1288,3 +1288,5 @@ namespace AE::Base
 
 
 } // AE::Base
+
+#endif // AE_ENABLE_LOGS

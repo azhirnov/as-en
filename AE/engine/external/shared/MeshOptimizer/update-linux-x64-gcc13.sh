@@ -4,7 +4,7 @@ rm -rf "temp"
 mkdir "build"
 export CC=/usr/bin/gcc-13
 export CXX=/usr/bin/g++-13
-git clone --branch "v0.19" "../../../../../3party/meshoptimizer" "temp"
+git clone --branch "v0.21" "../../../../../3party/meshoptimizer" "temp"
 cp "temp/CMakeLists.txt" "temp/origin_CMakeLists.txt"
 cp "MeshOptimizer_CMakeLists.txt" "temp/CMakeLists.txt"
 cmake -S temp -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-x64-gcc13/MeshOptimizer" 

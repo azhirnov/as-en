@@ -4,6 +4,11 @@
 
 set( KTX_PATH "${AE_DST_PATH}/KTX-Software" )
 
+if (NOT EXISTS "${KTX_PATH}/lib")
+	message( FATAL_ERROR "'${KTX_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "KTX-lib" INTERFACE )
 target_include_directories( "KTX-lib" INTERFACE "${KTX_PATH}/include" )
 target_compile_definitions( "KTX-lib" INTERFACE "AE_ENABLE_KTX" "AE_LICENSE_APACHE_2" )
@@ -15,6 +20,7 @@ set_property( TARGET "KTX-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 	$<$<CONFIG:Develop>: "${KTX_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ktx${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 	$<$<CONFIG:Debug>:   "${KTX_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ktxd${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 )
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.KTX" "tests/main.cpp" )

@@ -3,22 +3,27 @@
 	sRGB <-> linear color space
 */
 
+// to sRGB
 ND_ float   ApplySRGBCurve (float  x);
 ND_ float3  ApplySRGBCurve (float3 v);
 ND_ float4  ApplySRGBCurve (float4 v);
 
+// to linear
 ND_ float   RemoveSRGBCurve (float  x);
 ND_ float3  RemoveSRGBCurve (float3 v);
 ND_ float4  RemoveSRGBCurve (float4 v);
 
 
+// to sRGB
 ND_ float   ApplySRGBCurve_Fast (float  x);
 ND_ float3  ApplySRGBCurve_Fast (float3 v);
 ND_ float4  ApplySRGBCurve_Fast (float4 v);
 
+// to linear
 ND_ float   RemoveSRGBCurve_Fast (float  x);
 ND_ float3  RemoveSRGBCurve_Fast (float3 v);
 ND_ float4  RemoveSRGBCurve_Fast (float4 v);
+
 
 ND_ float   ApplyREC709Curve (float  x);
 ND_ float3  ApplyREC709Curve (float3 v);

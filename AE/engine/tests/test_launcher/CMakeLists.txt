@@ -5,6 +5,8 @@ file( GLOB_RECURSE CPP_SOURCES "*.*" )
 if (ANDROID)
 	add_library( "TestLauncher" SHARED ${CPP_SOURCES} )
 
+	# also add libs to [build.gradle](https://github.com/azhirnov/as-en/blob/dev/AE/android/test/build.gradle)
+
 	if (TARGET "TestsBase")
 		add_dependencies( "TestLauncher" "TestsBase" )
 	endif()
@@ -48,6 +50,9 @@ if (ANDROID)
 
 	if (TARGET "PerfBase")
 		add_dependencies( "TestLauncher" "PerfBase" )
+	endif()
+	if (TARGET "PerfGraphics")
+		add_dependencies( "TestLauncher" "PerfGraphics" )
 	endif()
 	if (TARGET "PerfThreading")
 		add_dependencies( "TestLauncher" "PerfThreading" )

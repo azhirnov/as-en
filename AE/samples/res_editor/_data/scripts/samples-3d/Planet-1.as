@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Generate planet PBR textures and draw.
+	Generate planet PBR (in progress) textures and draw.
 	Used spherical cube with tangential projection to minimize distortion.
 */
 #ifdef __INTELLISENSE__

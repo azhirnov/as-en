@@ -22,7 +22,8 @@ namespace AE::ResEditor
 
 		struct DynamicData
 		{
-			int  frame	= 0;
+			uint	frame		= 0;
+			uint	prevFrame	= UMax;
 		};
 
 	public:

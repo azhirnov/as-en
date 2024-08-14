@@ -4,13 +4,12 @@
 /android-clang/HWCPipe/build
 /android-clang/HWCPipe/temp
 
-/android-clang/HWPerfCounter/.gradle
-/android-clang/HWPerfCounter/build
-/android-clang/HWPerfCounter/temp
-
 /android-clang/PowerVRScopeStats/.gradle
 /android-clang/PowerVRScopeStats/build
 /android-clang/PowerVRScopeStats/temp
+
+/shared/AMDGpuPerf/build
+/shared/AMDGpuPerf/temp
 
 /shared/Abseil/.gradle
 /shared/Abseil/build
@@ -22,6 +21,9 @@
 
 /shared/Assimp/build
 /shared/Assimp/temp
+
+/shared/AstcEncoder/build
+/shared/AstcEncoder/temp
 
 /shared/Brotli/.gradle
 /shared/Brotli/build
@@ -66,6 +68,9 @@
 /shared/zstd/.gradle
 /shared/zstd/build
 /shared/zstd/temp
+
+/windows/Compressonator/build
+/windows/Compressonator/temp
 
 /windows/DevIL/build
 /windows/DevIL/temp

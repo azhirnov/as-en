@@ -718,9 +718,9 @@ namespace AE::AssetPacker
 		ON_DESTROY( [&ft_font](){ destroyFont( ft_font ); });
 
 		// calculate glyph scale
-		double	proj_scale		= 1.0e+10;
+		double	proj_scale		= MaxValue<double>();
 		double	max_height		= 0.0;
-		double2	min_max_advance	{1.0e+10, 0.0};
+		double2	min_max_advance	{MaxValue<double>(), 0.0};
 
 		for (auto& cset : _charset)
 		{
@@ -774,8 +774,8 @@ namespace AE::AssetPacker
 
 		{
 			// find min/max of the SDF
-			float	min		= 1.0e+10f;
-			float	max		= -1.0e+10f;
+			float	min		= MaxValue<float>();
+			float	max		= -MaxValue<float>();
 			float	bias	= 0.f;
 
 			for (auto& glyph : result)
@@ -807,14 +807,32 @@ namespace AE::AssetPacker
 				outSdfScale	= Average( Abs(min), max );
 			}
 
-			const float	scale	= 1.0f / outSdfScale;
-			float		tx_min	= 1.0e+10f;
-			float		tx_max	= -1.0e+10f;
+		  #ifdef AE_DEBUG
+			float		tx_min		= MaxValue<float>();
+			float		tx_max		= -MaxValue<float>();
+			float		max_range	= 0.f;
+		  #endif
+			const float	scale		= 1.0f / outSdfScale;
 
 			for (auto& glyph : result)
 			{
 				float*			ptr		= Cast<float>(glyph.data);
 				const usize		count	= glyph.dataSize / sizeof(float);
+
+			  #ifdef AE_DEBUG
+				if ( fmt_info.channels == 1 )
+				{
+					for (uint y = 1; y < glyph.dimension.y; ++y)
+					for (uint x = 1; x < glyph.dimension.x; ++x)
+					{
+						float	d	= ptr[x + y * glyph.dimension.x];
+						float	dx	= Abs( ptr[(x-1) + y * glyph.dimension.x] - d );
+						float	dy	= Abs( ptr[x + (y-1) * glyph.dimension.x] - d );
+
+						max_range = Max( max_range, Max( dx, dy ));
+					}
+				}
+			  #endif
 
 				for (uint i = 0; i < count; ++i)
 				{
@@ -832,6 +850,9 @@ namespace AE::AssetPacker
 			}
 
 		  #ifdef AE_DEBUG
+			if ( fmt_info.channels == 1 )
+				CHECK( Equal( max_range, 1.f/float(_sdfPixRange), 0.05f ));
+
 			if ( AllBits( fmt_info.valueType, PixelFormatInfo::EType::UNorm )) {
 				CHECK( tx_min >= 0.f );
 				CHECK( tx_max <= 1.f );
@@ -840,7 +861,6 @@ namespace AE::AssetPacker
 				CHECK( tx_max <=  1.f );
 			}
 		  #endif
-			Unused( tx_min, tx_max );
 		}
 
 		// convert float format to '_intermFormat'

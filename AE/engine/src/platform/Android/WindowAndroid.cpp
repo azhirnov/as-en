@@ -60,7 +60,7 @@ namespace {
 	SharedPtr<WindowAndroid>  ApplicationAndroid::_GetAppWindow (WinID id) __NE___
 	{
 		auto*	app = _GetAppInstance();
-		ASSERT( app );
+		NonNull( app );
 		DRC_EXLOCK( app->_drCheck );
 
 		for (auto& obj_wnd : app->_windows)
@@ -78,7 +78,7 @@ namespace {
 	Pair< SharedPtr<WindowAndroid>, ApplicationAndroid::WinID >  ApplicationAndroid::_GetNewWindow () __NE___
 	{
 		auto*	app = _GetAppInstance();
-		ASSERT( app );
+		NonNull( app );
 		DRC_EXLOCK( app->_drCheck );
 
 		auto	wnd = MakeShared<WindowAndroid>();	// throw

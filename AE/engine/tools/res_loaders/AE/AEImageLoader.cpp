@@ -42,9 +42,11 @@ namespace {
 				image_level.mipmap	= MipmapLevel{ uint(mip) };
 				image_level.layer	= ImageLayer{ uint(layer) };
 
-				Bytes	off, size;
+				Bytes	off;
 				ImagePacker_GetOffset( header, image_level.layer, image_level.mipmap, uint3{0},
-									   OUT image_level.dimension, OUT off, OUT size, OUT image_level.rowPitch, OUT image_level.slicePitch );
+									   OUT image_level.dimension, OUT off, OUT image_level.rowPitch, OUT image_level.slicePitch );
+
+				const Bytes	size = image_level.slicePitch * image_level.dimension.z;
 
 				CHECK_ERR( image_level.SetPixelData( SharedMem::Create( allocator, size )));
 

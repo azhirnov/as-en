@@ -70,7 +70,7 @@ namespace AE::RG::_hidden_
 	RGCommandBatchPtr  RenderGraph::_CmdBatch (const EQueueType queue, DebugLabel dbg) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( _rgDataPool.size() < _rgDataPool.capacity() );	// overflow
+		CHECK_ERR( not _rgDataPool.IsFull() );
 
 		auto*	rg_batch = &_rgDataPool.emplace_back( *this );
 
@@ -300,29 +300,6 @@ namespace AE::RG::_hidden_
 		}
 
 		CHECK( rg_batch._batchStates.insert_or_assign( key, RGBatchData::InBatchState{ initial, final }).second );
-	}
-
-/*
-=================================================
-	UploadMemory
-=================================================
-*/
-	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UploadMemory () rvNE___
-	{
-		CHECK_ERR( _batch, RVRef(*this) );
-
-		auto&	rg_batch = *_batch.AsRG();
-
-		rg_batch._uploadMemory.store( UMax );
-
-		rg_batch._initialBarriers->MemoryBarrier( EResourceState::Host_Write, EResourceState::VertexBuffer );
-		rg_batch._initialBarriers->MemoryBarrier( EResourceState::Host_Write, EResourceState::IndexBuffer );
-		rg_batch._initialBarriers->MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc );
-
-		//rg_batch._initialBarriers->MemoryBarrier( EResourceState::Host_Write, EResourceState::IndirectBuffer );
-		//rg_batch._initialBarriers->MemoryBarrier( EResourceState::Host_Write, EResourceState::ShaderUniform );
-
-		return RVRef(*this);
 	}
 
 /*

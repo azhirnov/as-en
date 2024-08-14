@@ -1,6 +1,6 @@
 rm -rf "../../../../../AE-Bin/external/source/tinygltf"
 rm -rf "temp"
-git clone --branch "v2.8.13" "../../../../../3party/tinygltf" "temp"
+git clone --branch "v2.9.2" "../../../../../3party/tinygltf" "temp"
 mkdir "../../../../../AE-Bin/external/source/tinygltf"
 cp "temp/tiny_gltf.h" "../../../../../AE-Bin/external/source/tinygltf/tiny_gltf.h"
 cp "temp/json.hpp" "../../../../../AE-Bin/external/source/tinygltf/json.hpp"

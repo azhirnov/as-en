@@ -101,6 +101,8 @@ namespace AE::Threading
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
+		ASSERT_LE( sizeAndAlign.size, BlockSize() );
+
 		for (auto block_it = _blocks.begin(); block_it != _blocks.end();)
 		{
 			void*	ptr = block_it->mem.load();

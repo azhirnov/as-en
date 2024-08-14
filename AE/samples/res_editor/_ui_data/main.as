@@ -27,7 +27,7 @@ void ASmain ()
 			ppln.AddPipeline( "../_data/pipelines/VertexInput.as" );
 			ppln.AddPipeline( "../_data/pipelines/ModelReflection.as" );
 			ppln.AddPipelineFolder( "pipelines" );
-			ppln.PipelineIncludeDir( "../_data/pipelines/include" );
+			ppln.PipelineIncludeDir( "../_data/pipeline_inc" );
 
 			ppln.AddShaderFolder( "shaders" );
 			ppln.ShaderIncludeDir( GetSharedShadersPath() );

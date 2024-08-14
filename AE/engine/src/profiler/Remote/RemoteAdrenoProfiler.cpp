@@ -77,6 +77,7 @@ namespace AE::Profiler
 			msg->ok = ok;
 			if ( ok ) {
 				msg->enabled = _prof.profiler.EnabledCounterSet();
+				msg->info	 = _prof.profiler.GetHWInfo();
 			}
 			CHECK( _msgProducer->AddMessage( msg ));
 		}
@@ -184,6 +185,8 @@ namespace AE::Profiler
 */
 	bool  AdrenoProfilerClient::Initialize (const ECounterSet &counterSet) __NE___
 	{
+		CHECK_ERR( counterSet.Any() );
+
 		_requiredCS = counterSet;
 		return _Initialize( counterSet );
 	}
@@ -227,7 +230,6 @@ namespace AE::Profiler
 				CASE( InitRes )
 				CASE( NextSample )
 				CASE( Sample )
-				default :					DBG_WARNING( "unknown message id" ); break;
 				#undef CASE
 			}
 		}
@@ -250,7 +252,7 @@ namespace AE::Profiler
 			return;
 		}
 
-		auto&	curr = _counters[ _completeIdx & 1 ];
+		auto&	curr = _counters[ _countersIdx & 1 ];
 
 		std::swap( result, curr );
 		curr.clear();
@@ -267,6 +269,7 @@ namespace AE::Profiler
 
 		_status		= msg.ok ? EStatus::Initialized : EStatus::NotSupported;
 		_enabled	= msg.enabled;
+		_hwInfo		= msg.info;
 
 		_connectionLostTimer.Restart();
 	}
@@ -282,8 +285,9 @@ namespace AE::Profiler
 
 		if ( _IsInitialized() )
 		{
-			_pendingIdx	= msg.index;
-			_interval	= milliseconds{ msg.dtInMs };
+			_countersIdx	= (_countersIdx+1) & 1;
+			_pendingIdx		= msg.index;
+			_interval		= milliseconds{ msg.dtInMs };
 
 			_connectionLostTimer.Restart();
 		}
@@ -300,7 +304,7 @@ namespace AE::Profiler
 
 		if ( _IsInitialized() and _pendingIdx == msg.index )
 		{
-			auto&	curr = _counters[ _pendingIdx & 1 ];
+			auto&	curr = _counters[ _countersIdx & 1 ];
 
 			for (uint i = 0, cnt = msg.count; i < cnt; ++i)
 				curr.insert_or_assign( msg.arr[i].first, msg.arr[i].second );

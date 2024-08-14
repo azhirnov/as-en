@@ -36,10 +36,10 @@ namespace AE::Base
 				ubyte	_data [sizeof(T) * ArraySize];	// unused
 			};
 
-			ElemArray ()					__NE___	{ DEBUG_ONLY( DbgInitMem( arr )); }
-			ElemArray (ElemArray &&)		= delete;
-			ElemArray (const ElemArray &)	= delete;
-			~ElemArray ()					__NE___	{ DEBUG_ONLY( DbgFreeMem( arr )); }
+			constexpr ElemArray ()					__NE___	{ DEBUG_ONLY( DbgInitMem( arr )); }
+			constexpr ElemArray (ElemArray &&)		= delete;
+			constexpr ElemArray (const ElemArray &)	= delete;
+			constexpr ~ElemArray ()					__NE___	{ DEBUG_ONLY( DbgFreeMem( arr )); }
 		};
 
 		using Array_t	= Tuple< ElemArray<Types>... >;
@@ -47,6 +47,7 @@ namespace AE::Base
 		using Types_t	= TypeList< Types... >;
 		using Result_t	= TupleRef< Types ...>;
 		using CResult_t	= TupleRef< const Types ...>;
+		using IdxSeq_t	= MakeIndexSequence< Types_t::Count >;
 
 
 		template <bool IsConst>
@@ -65,23 +66,23 @@ namespace AE::Base
 
 		// methods
 		public:
-			TIterator ()								__NE___ {}
-			TIterator (const Iter &)					__NE___ = default;
-			TIterator (Iter &&)							__NE___ = default;
-			TIterator (ArrPtr ptr, usize idx)			__NE___ : _ptr{ptr}, _index{idx} { NonNull( _ptr ); }
+			constexpr TIterator ()								__NE___ {}
+			constexpr TIterator (const Iter &)					__NE___ = default;
+			constexpr TIterator (Iter &&)						__NE___ = default;
+			constexpr TIterator (ArrPtr ptr, usize idx)			__NE___ : _ptr{ptr}, _index{idx} { NonNull( _ptr ); }
 
-				Iter&	operator = (const Iter &)		__NE___ = default;
-				Iter&	operator = (Iter &&)			__NE___ = default;
+				constexpr Iter&	operator = (const Iter &)		__NE___ = default;
+				constexpr Iter&	operator = (Iter &&)			__NE___ = default;
 
-			ND_ bool	operator != (const Iter &rhs)	C_NE___	{ return not (*this == rhs); }
-			ND_ bool	operator == (const Iter &rhs)	C_NE___	{ return _ptr == rhs._ptr and _index == rhs._index; }
+			ND_ constexpr bool	operator != (const Iter &rhs)	C_NE___	{ return not (*this == rhs); }
+			ND_ constexpr bool	operator == (const Iter &rhs)	C_NE___	{ return _ptr == rhs._ptr and _index == rhs._index; }
 
-				Iter&	operator ++ ()					__NE___	{ NonNull( _ptr );		_index = Min( _index + 1, _ptr->size() );	return *this; }
-				Iter	operator ++ (int)				__NE___	{ Iter res{ *this };	this->operator++();							return res; }
-				Iter&	operator += (usize x)			__NE___	{ NonNull( _ptr );		_index = Min( _index + x, _ptr->size() );	return *this; }
+				constexpr Iter&	operator ++ ()					__NE___	{ NonNull( _ptr );		_index = Min( _index + 1, _ptr->size() );	return *this; }
+				constexpr Iter	operator ++ (int)				__NE___	{ Iter res{ *this };	this->operator++();							return res; }
+				constexpr Iter&	operator += (usize x)			__NE___	{ NonNull( _ptr );		_index = Min( _index + x, _ptr->size() );	return *this; }
 
-			ND_ Iter	operator + (usize x)			C_NE___	{ return (Iter{*this} += x); }
-			ND_ Res_t	operator * ()					C_NE___	{ NonNull( _ptr );  return (*_ptr)[_index]; }
+			ND_ constexpr Iter	operator + (usize x)			C_NE___	{ return (Iter{*this} += x); }
+			ND_ constexpr Res_t	operator * ()					C_NE___	{ NonNull( _ptr );  return (*_ptr)[_index]; }
 		};
 
 	public:
@@ -97,99 +98,103 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr FixedTupleArray ()							__NE___	{}
+		constexpr FixedTupleArray ()								__NE___	{}
 
-		constexpr FixedTupleArray (Self &&)						__NE___;
-		constexpr FixedTupleArray (const Self &)				__NE___;
+		constexpr FixedTupleArray (Self &&)							__NE___;
+		constexpr FixedTupleArray (const Self &)					__NE___;
 
-		constexpr ~FixedTupleArray ()							__NE___	{ clear(); }
+		constexpr ~FixedTupleArray ()								__NE___	{ clear(); }
 
-		constexpr Self&  operator = (Self &&)					__NE___;
-		constexpr Self&  operator = (const Self &)				__NE___;
-
-		template <usize I,
-				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr ArrayView<T>	get ()						C_NE___	{ return ArrayView<T>{ data<I>(), _count }; }
-
-		template <typename T>
-		ND_ constexpr ArrayView<T>	get ()						C_NE___	{ return get< Types_t::template Index<T>, T >(); }
+		constexpr Self&  operator = (Self &&)						__NE___;
+		constexpr Self&  operator = (const Self &)					__NE___;
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr T*			data ()						__NE___	{ return _Data<I>(); }
+		ND_ constexpr ArrayView<T>	get ()							C_NE___	{ return ArrayView<T>{ data<I>(), _count }; }
 
 		template <typename T>
-		ND_ constexpr T*			data ()						__NE___	{ return data< Types_t::template Index<T>, T >(); }
+		ND_ constexpr ArrayView<T>	get ()							C_NE___	{ return get< Types_t::template Index<T>, T >(); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr const T*		data ()						C_NE___	{ return _Data<I>(); }
+		ND_ constexpr T*			data ()							__NE___	{ return _Data<I>(); }
 
 		template <typename T>
-		ND_ constexpr const T*		data ()						C_NE___	{ return data< Types_t::template Index<T>, T >(); }
+		ND_ constexpr T*			data ()							__NE___	{ return data< Types_t::template Index<T>, T >(); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ T&						at (usize i)				__NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
+		ND_ constexpr const T*		data ()							C_NE___	{ return _Data<I>(); }
+
+		template <typename T>
+		ND_ constexpr const T*		data ()							C_NE___	{ return data< Types_t::template Index<T>, T >(); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ T const&				at (usize i)				C_NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
+		ND_ constexpr T&			at (usize i)					__NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
+
+		template <usize I,
+				  typename T = typename Types_t::template Get<I> >
+		ND_ constexpr T const&		at (usize i)					C_NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
 
 		template <typename T>
-		ND_ T&						at (usize i)				__NE___	{ return at< Types_t::template Index<T>, T >( i ); }
+		ND_ constexpr T&			at (usize i)					__NE___	{ return at< Types_t::template Index<T>, T >( i ); }
 
 		template <typename T>
-		ND_ T const&				at (usize i)				C_NE___	{ return at< Types_t::template Index<T>, T >( i ); }
+		ND_ constexpr T const&		at (usize i)					C_NE___	{ return at< Types_t::template Index<T>, T >( i ); }
 
-		ND_ constexpr usize			size ()						C_NE___	{ return _count; }
-		ND_ constexpr bool			empty ()					C_NE___	{ return _count == 0; }
+		ND_ constexpr usize			size ()							C_NE___	{ return _count; }
+		ND_ constexpr bool			empty ()						C_NE___	{ return _count == 0; }
+		ND_ constexpr bool			IsFull ()						C_NE___	{ return size() >= capacity(); }
 
-		ND_ iterator				begin ()					__NE___	{ return iterator{ this, 0 }; }
-		ND_ const_iterator			begin ()					C_NE___	{ return const_iterator{ this, 0 }; }
-		ND_ iterator				end ()						__NE___	{ return begin() + size(); }
-		ND_ const_iterator			end ()						C_NE___	{ return begin() + size(); }
+		ND_ constexpr iterator		 begin ()						__NE___	{ return iterator{ this, 0 }; }
+		ND_ constexpr const_iterator begin ()						C_NE___	{ return const_iterator{ this, 0 }; }
+		ND_ constexpr iterator		 end ()							__NE___	{ return begin() + size(); }
+		ND_ constexpr const_iterator end ()							C_NE___	{ return begin() + size(); }
 
-		ND_ static constexpr usize	capacity ()					__NE___	{ return ArraySize; }
+		ND_ static constexpr usize	capacity ()						__NE___	{ return ArraySize; }
 
-		ND_ constexpr Result_t		operator [] (usize index)	__NE___;
-		ND_ constexpr CResult_t		operator [] (usize index)	C_NE___;
+		ND_ constexpr Result_t		operator [] (usize index)		__NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
+		ND_ constexpr CResult_t		operator [] (usize index)		C_NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
 
-			constexpr Result_t		emplace_back ()				__NE___;
+			constexpr Result_t		emplace_back ()					__NE___;
 
 		template <typename ...Args>
-		constexpr bool  set (usize index, Args&&... values)		__NE___;
+			constexpr bool  set (usize index, Args&&... values)		__NE___;
 
 		template <typename ...Args>
-		constexpr void  push_back (Args&&... values)			__NE___;
+			constexpr void  push_back (Args&&... values)			__NE___;
 
 		template <typename ...Args>
-		constexpr bool  try_push_back (Args&&... values)		__NE___;
+			constexpr bool  try_push_back (Args&&... values)		__NE___;
 
-		constexpr void  pop_back ()								__NE___;
+			constexpr void  pop_back ()								__NE___;
 
 		template <typename ...Args>
-		constexpr void  insert (usize pos, Args&&... values)	__NE___;
+			constexpr void  insert (usize pos, Args&&... values)	__NE___;
 
-		constexpr void  resize (usize newSize)					__NE___;
+			constexpr void  resize (usize newSize)					__NE___;
 
-		constexpr void  erase (usize pos)						__NE___;
-		constexpr void  fast_erase (usize pos)					__NE___;
+			constexpr void  erase (usize pos)						__NE___;
+			constexpr void  fast_erase (usize pos)					__NE___;
 
-		constexpr void  clear ()								__NE___;
+			constexpr void  clear ()								__NE___;
 
-		ND_ constexpr bool  operator == (const Self &rhs)		C_NE___;
-		ND_ constexpr bool  operator != (const Self &rhs)		C_NE___	{ return not (*this == rhs); }
+		ND_ constexpr bool  operator == (const Self &rhs)			C_NE___;
+		ND_ constexpr bool  operator != (const Self &rhs)			C_NE___	{ return not (*this == rhs); }
 
-		ND_ HashVal  CalcHash ()								C_NE___;
+		ND_ HashVal  CalcHash ()									C_NE___;
 
 
 	private:
-		template <usize I>	ND_ constexpr auto*	 _Data ()		C_NE___	{ return _arrays.template Get<I>().arr; }
-		template <usize I>	ND_ constexpr auto*	 _Data ()		__NE___	{ return _arrays.template Get<I>().arr; }
+		template <usize I>	ND_ constexpr auto*	 _Data ()			C_NE___	{ return _arrays.template Get<I>().arr; }
+		template <usize I>	ND_ constexpr auto*	 _Data ()			__NE___	{ return _arrays.template Get<I>().arr; }
 
-		template <typename T>
-		ND_ constexpr T*  _At (usize i)							__NE___	{ return _Data< Types_t::template Index<T> >() + i; }
+		template <usize... Idx>
+		constexpr Result_t	_Elem (usize index, IndexSequence<Idx...>)		__NE___;
+
+		template <usize... Idx>
+		constexpr CResult_t	_Elem (usize index, IndexSequence<Idx...>)		C_NE___;
 
 		template <usize I, typename Arg0, typename ...Args>
 		constexpr void  _PushBack (Arg0 &&arg0, Args&&... args)				__NE___;
@@ -340,26 +345,28 @@ namespace AE::Base
 		const usize	pos = _count;
 		_Create<0>( pos, 1 );
 		++_count;
-		return operator[]( pos );
+		return _Elem( pos, IdxSeq_t{} );
 	}
 
 /*
 =================================================
-	operator []
+	_Elem
 =================================================
 */
 	template <usize S, typename ...Types>
+	template <usize... Idx>
 	constexpr typename FixedTupleArray<S, Types...>::Result_t
-		FixedTupleArray<S, Types...>::operator [] (usize index) __NE___
+		FixedTupleArray<S, Types...>::_Elem (usize index, IndexSequence<Idx...>) __NE___
 	{
-		return Result_t{ _At<Types>( index )... };
+		return Result_t{ _Data<Idx>()+index ... };
 	}
 
 	template <usize S, typename ...Types>
+	template <usize... Idx>
 	constexpr typename FixedTupleArray<S, Types...>::CResult_t
-		FixedTupleArray<S, Types...>::operator [] (usize index) C_NE___
+		FixedTupleArray<S, Types...>::_Elem (usize index, IndexSequence<Idx...>) C_NE___
 	{
-		return CResult_t{ const_cast<Self*>(this)->_At<Types>( index )... };
+		return CResult_t{ _Data<Idx>()+index ... };
 	}
 
 /*
@@ -470,7 +477,7 @@ namespace AE::Base
 	template <usize S, typename ...Types>
 	constexpr bool  FixedTupleArray<S, Types...>::operator == (const Self &rhs) C_NE___
 	{
-		if ( this == &rhs )
+		if ( this == std::addressof(rhs) )
 			return true;
 
 		if ( _count != rhs._count )
@@ -643,19 +650,16 @@ namespace AE::Base
 
 
 	template <usize S, typename ...Types>
-	struct TMemCopyAvailable< FixedTupleArray<S, Types...> > {
-		static constexpr bool  value = TypeList< Types... >::template ForEach_And< TMemCopyAvailable >();
-	};
+	struct TMemCopyAvailable< FixedTupleArray<S, Types...> > :
+		CT_Bool< TypeList< Types... >::template ForEach_And< TMemCopyAvailable >() >{};
 
 	template <usize S, typename ...Types>
-	struct TZeroMemAvailable< FixedTupleArray<S, Types...> > {
-		static constexpr bool  value = TypeList< Types... >::template ForEach_And< TZeroMemAvailable >();
-	};
+	struct TZeroMemAvailable< FixedTupleArray<S, Types...> > :
+		CT_Bool< TypeList< Types... >::template ForEach_And< TZeroMemAvailable >() >{};
 
 	template <usize S, typename ...Types>
-	struct TTriviallyDestructible< FixedTupleArray<S, Types...> > {
-		static constexpr bool  value = TypeList< Types... >::template ForEach_And< TTriviallyDestructible >();
-	};
+	struct TTriviallyDestructible< FixedTupleArray<S, Types...> > :
+		CT_Bool< TypeList< Types... >::template ForEach_And< TTriviallyDestructible >() >{};
 
 } // AE::Base
 

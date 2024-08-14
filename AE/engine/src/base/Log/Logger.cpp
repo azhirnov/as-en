@@ -169,6 +169,9 @@ namespace
 		if_likely( not (_levelBits[ usize(info.level) ] and _scopeBits[ usize(info.scope) ] ))
 			return EResult::Unknown;
 
+		if ( not _enabled )
+			return EResult::Unknown;
+
 		// MessageBox is thread safe, but multiple messages from different thread should be disallowed
 		EXLOCK( _guard );
 
@@ -230,6 +233,9 @@ namespace
 	ILogger::EResult  DialogLogOutputEms::Process (const MessageInfo &info)
 	{
 		if_likely( not (_levelBits[ usize(info.level) ] and _scopeBits[ usize(info.scope) ] ))
+			return EResult::Unknown;
+
+		if ( not _enabled )
 			return EResult::Unknown;
 
 		String	msg = "confirm( \""s << info.message << "\" )";

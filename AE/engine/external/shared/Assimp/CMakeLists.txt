@@ -4,6 +4,11 @@
 
 set( ASSIMP_PATH "${AE_DST_PATH}/Assimp" )
 
+if (NOT EXISTS "${ASSIMP_PATH}/lib")
+	message( FATAL_ERROR "'${ASSIMP_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "Assimp-lib" INTERFACE )
 target_include_directories( "Assimp-lib" INTERFACE "${ASSIMP_PATH}/include" )
 target_compile_definitions( "Assimp-lib" INTERFACE "AE_ENABLE_ASSIMP" "AE_LICENSE_BSD" )
@@ -37,6 +42,7 @@ else()
 		$<$<CONFIG:Debug>:   "${ASSIMP_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}assimpd${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 		$<$<CONFIG:Debug>:   "${ASSIMP_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}zlibstaticd${CMAKE_STATIC_LIBRARY_SUFFIX}" > )
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.Assimp" "tests/main.cpp" )

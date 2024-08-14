@@ -6,10 +6,18 @@
 
 void  ASmain ()
 {
+	RC<FeatureSet>	fs = GetDefaultFeatureSet();
+
+	Assert( fs.hasShaderStorageBufferArrayDynamicIndexing() );
+	Assert( fs.hasShaderSampledImageArrayDynamicIndexing() );
+
 	VertexBuffers();
-	BufferTypes( /*withFS*/false );
+	BufferTypes( /*withFS*/false, fs.hasRayTracingPipeline() );
 	InitPipelineLayout();
 
-	InitMeshPipelineLayout();
-	InitRayTracingPipelineLayout();
+	if ( fs.hasMeshShader() )
+		InitMeshPipelineLayout();
+
+	if ( fs.hasRayTracingPipeline() )
+		InitRayTracingPipelineLayout();
 }

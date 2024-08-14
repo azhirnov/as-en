@@ -58,14 +58,10 @@ namespace AE::Base
 namespace _hidden_
 {
 	template <typename T>
-	struct _IsPackedBits {
-		static constexpr bool	value = false;
-	};
+	struct _IsPackedBits : CT_False {};
 
 	template <uint F, uint B, typename T>
-	struct _IsPackedBits< PackedBits<F,B,T> >{
-		static constexpr bool	value = true;
-	};
+	struct _IsPackedBits< PackedBits<F,B,T> > : CT_True {};
 }
 
 	template <typename T>

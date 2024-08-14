@@ -101,17 +101,17 @@ namespace AE::Graphics
 
 		ND_ bool  SupportsCalibratedTimestamps ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _calibratedTs; }
 
-			bool  GetTimestamp (const IQuery &, OUT ulong* result, Bytes size)										C_NE_OV;	// raw
-			bool  GetTimestamp (const IQuery &, OUT double* result, Bytes size)										C_NE_OV;	// nanoseconds in GPU-space
-			bool  GetTimestamp (const IQuery &, OUT nanosecondsd* result, Bytes size)								C_NE_OV;	// nanoseconds in GPU-space
+			bool  GetTimestamp (const IQuery &, OUT ulong* result, Bytes resultSize)								C_NE_OV;	// raw
+			bool  GetTimestamp (const IQuery &, OUT double* result, Bytes resultSize)								C_NE_OV;	// nanoseconds in GPU-space
+			bool  GetTimestamp (const IQuery &, OUT nanosecondsd* result, Bytes resultSize)							C_NE_OV;	// nanoseconds in GPU-space
 
-			bool  GetTimestampCalibrated (const IQuery &, OUT ulong* result, OUT ulong* maxDeviation, Bytes size)				C_NE_OV;	// nanoseconds in CPU-space
-			bool  GetTimestampCalibrated (const IQuery &, OUT double* result, OUT double* maxDeviation, Bytes size)				C_NE_OV;	// nanoseconds in CPU-space
-			bool  GetTimestampCalibrated (const IQuery &, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes size)	C_NE_OV;	// nanoseconds in CPU-space
+			bool  GetTimestampCalibrated (const IQuery &, OUT ulong* result, OUT ulong* maxDeviation, Bytes resultSize)					C_NE_OV;	// nanoseconds in CPU-space
+			bool  GetTimestampCalibrated (const IQuery &, OUT double* result, OUT double* maxDeviation, Bytes resultSize)				C_NE_OV;	// nanoseconds in CPU-space
+			bool  GetTimestampCalibrated (const IQuery &, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes resultSize)	C_NE_OV;	// nanoseconds in CPU-space
 
-		//	bool  GetPerformanceCounter (const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes size)		C_NE___;
-			bool  GetPipelineStatistic (const IQuery &, OUT GraphicsPipelineStatistic* result, Bytes size)			C_NE_OV;
-			bool  GetRTASProperty (const Query &q, OUT Bytes64u* result, Bytes size)								C_NE___;
+		//	bool  GetPerformanceCounter (const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes resultSize)	C_NE___;
+			bool  GetPipelineStatistic (const IQuery &, OUT GraphicsPipelineStatistic* result, Bytes resultSize)		C_NE_OV;
+			bool  GetRTASProperty (const Query &q, OUT Bytes64u* result, Bytes resultSize)								C_NE___;
 
 	private:
 		static void  _ResetPoolOnHost (const VDevice &, uint idx, QueryPool &pool, uint count)						__NE___;

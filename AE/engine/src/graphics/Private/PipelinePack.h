@@ -102,7 +102,7 @@ namespace AE::Graphics
 	private:
 		template <typename T>
 		using StdAlloc_t			= StdAllocatorRef< T, IAllocatorTS* >;
-		using LinearAllocator_t		= Threading::LfLinearAllocator< usize(SmallAllocationSize * 16), usize{16_b} >;
+		using LinearAllocator_t		= Threading::LfLinearAllocator< usize(SmallAllocationSize * 64), usize{16_b} >;
 
 		using Device_t				= AE_PRIVATE_UNITE_RAW( SUFFIX, Device				);
 		using ResMngr_t				= AE_PRIVATE_UNITE_RAW( SUFFIX, ResourceManager		);

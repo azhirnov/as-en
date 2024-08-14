@@ -21,7 +21,7 @@
 			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject",	"UnifiedGeometryMaterialUB" );
 			ds.StorageBuffer( EShaderStages::Vertex,	"un_Geometry",	"GeometrySBlock",	EResourceState::ShaderStorage_Read );	// external
 			ds.StorageBuffer( EShaderStages::Fragment,	"un_Lights",	"LightsSBlock",		EResourceState::ShaderStorage_Read );	// external
-			ds.CombinedImage( EShaderStages::Fragment,	"un_ShadowMap",	EImageType::FImage2D, Sampler_LinearClamp );
+			ds.CombinedImage( EShaderStages::Fragment,	"un_ShadowMap",	EImageType::FImage2D, Sampler_NearestClamp );
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl" );
 			pl.DSLayout( "pass",	 0, "pass.ds" );
@@ -103,9 +103,9 @@
 	float  SampleShadowPCF (float4 sc)
 	{
 		float	accum = 0.0;
-		[[unroll]] for (int x = -1; x <= 1; x++)
+		for (int x = -1; x <= 1; x++)
 		{
-			[[unroll]] for (int y = -1; y <= 1; y++)
+			for (int y = -1; y <= 1; y++)
 			{
 				accum += SampleShadow( sc, un_Lights.invShadowDim * 1.5 * float2(x, y) );
 			}

@@ -673,7 +673,7 @@ namespace
 	VkPhysicalDevice  OpenVRDevice::GetRequiredVkPhysicalDevice (VkInstance inst) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( _vrSystem );
+		CHECK_ERR( _vrSystem != null );
 
 		ulong	hmd_physical_device = 0;
 		_vrSystem->GetOutputDevice( OUT &hmd_physical_device, ETextureType_TextureType_Vulkan, inst );

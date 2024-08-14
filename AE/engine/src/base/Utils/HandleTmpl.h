@@ -214,10 +214,10 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-	template <usize IdxSz, usize Gen, uint UID>	struct TMemCopyAvailable     < HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = true; };
-	template <usize IdxSz, usize Gen, uint UID> struct TTriviallySerializable< HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = true; };
-	template <usize IdxSz, usize Gen, uint UID> struct TZeroMemAvailable     < HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = false; };
-	template <usize IdxSz, usize Gen, uint UID> struct TTriviallyDestructible< HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = true; };
+	template <usize IdxSz, usize Gen, uint UID>	struct TMemCopyAvailable     < HandleTmpl< IdxSz, Gen, UID >>	: CT_True  {};
+	template <usize IdxSz, usize Gen, uint UID> struct TTriviallySerializable< HandleTmpl< IdxSz, Gen, UID >>	: CT_True  {};
+	template <usize IdxSz, usize Gen, uint UID> struct TZeroMemAvailable     < HandleTmpl< IdxSz, Gen, UID >>	: CT_False {};
+	template <usize IdxSz, usize Gen, uint UID> struct TTriviallyDestructible< HandleTmpl< IdxSz, Gen, UID >>	: CT_True  {};
 
 /*
 =================================================
@@ -227,16 +227,11 @@ namespace AE::Base
 namespace _hidden_
 {
 	template <typename T>
-	struct _IsHandleTmpl {
-		static constexpr bool	value = false;
-	};
+	struct _IsHandleTmpl : CT_False {};
 
 	template <usize IndexSize, usize GenerationSize, uint UID>
-	struct _IsHandleTmpl< HandleTmpl< IndexSize, GenerationSize, UID >> {
-		static constexpr bool	value = true;
-	};
-};
-
+	struct _IsHandleTmpl< HandleTmpl< IndexSize, GenerationSize, UID >> : CT_True {};
+}
 	template <typename T>
 	static constexpr bool	IsHandleTmpl = Base::_hidden_::_IsHandleTmpl< RemoveAllQualifiers< T >>::value;
 

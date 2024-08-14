@@ -1,4 +1,4 @@
-﻿// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "UnitTest_Common.h"
 
@@ -144,6 +144,7 @@ extern void UnitTest_String ()
 
 		CoreBindings::BindString( se );
 		CoreBindings::BindLog( se );
+		CoreBindings::BindFileSystem( se, true );
 
 		ScriptString_Test1( se );
 		ScriptString_Test2( se );

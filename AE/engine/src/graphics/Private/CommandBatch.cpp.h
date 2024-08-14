@@ -140,9 +140,9 @@
 		if_unlikely( IsSubmitted() )
 			return true;
 
-		CHECK_ERR( _onSubmitDeps.size() < _onSubmitDeps.capacity() );	// check for overflow
+		CHECK_ERR( not _onSubmitDeps.IsFull() );
 
-		_onSubmitDeps.push_back( RVRef(task), TaskDependency{ index, true });
+		_onSubmitDeps.push_back( RVRef(task), TaskDependency{ index, True{"strong ref"} });
 		++index;
 
 		return true;
@@ -161,9 +161,9 @@
 		if_unlikely( IsCompleted() )
 			return true;
 
-		CHECK_ERR( _onCompleteDeps.size() < _onCompleteDeps.capacity() );	// check for overflow
+		CHECK_ERR( not _onCompleteDeps.IsFull() );
 
-		_onCompleteDeps.push_back( RVRef(task), TaskDependency{ index, true });
+		_onCompleteDeps.push_back( RVRef(task), TaskDependency{ index, True{"strong ref"} });
 		++index;
 
 		return true;
@@ -183,7 +183,7 @@
 		{
 			EXLOCK( _onSubmitDepsGuard );
 			for (auto dep : _onSubmitDeps) {
-				Threading::ITaskDependencyManager::_SetDependencyCompletionStatus( dep.Get<0>(), dep.Get<1>().bitIndex, false );
+				Threading::ITaskDependencyManager::_SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, False{"not canceled"} );
 			}
 			_onSubmitDeps.clear();
 		}
@@ -216,7 +216,7 @@
 		{
 			EXLOCK( _onCompleteDepsGuard );
 			for (auto dep : _onCompleteDeps) {
-				Threading::ITaskDependencyManager::_SetDependencyCompletionStatus( dep.Get<0>(), dep.Get<1>().bitIndex, false );
+				Threading::ITaskDependencyManager::_SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, False{"not canceled"} );
 			}
 			_onCompleteDeps.clear();
 		}
@@ -268,7 +268,7 @@
 		CHECK_ERR( not IsSubmitted() );
 
 		EXLOCK( _gpuInDepsGuard );
-		CHECK_ERR( _gpuInDeps.size() < _gpuInDeps.capacity() );	// check for overflow
+		CHECK_ERR( not _gpuInDeps.IsFull() );
 
 		auto&	val = _gpuInDeps.emplace( sem, value ).first->second;
 		val = Min( val, value );
@@ -334,7 +334,7 @@
 		CHECK_ERR( not IsSubmitted() );
 
 		EXLOCK( _gpuOutDepsGuard );
-		CHECK_ERR( _gpuOutDeps.size() < _gpuOutDeps.capacity() );	// check for overflow
+		CHECK_ERR( not _gpuOutDeps.IsFull() );
 
 		auto&	val = _gpuOutDeps.emplace( sem, value ).first->second;
 		val = Min( val, value );

@@ -277,37 +277,59 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		struct ReadbackBufferResult
+		struct _ReadbackResult
+		{
+		protected:
+			void  _AddNextCycleEndDeps (AsyncTask task)												__NE___;
+		};
+
+		struct ReadbackBufferResult : _ReadbackResult
 		{
 			Promise<BufferMemView>	readOp;
-			Bytes					remain;		// non-zero if not enough space to read whole buffer
 
 			ReadbackBufferResult ()																	__NE___ = default;
-			ReadbackBufferResult (Promise<BufferMemView> readOp, Bytes remain)						__NE___ : readOp{RVRef(readOp)}, remain{remain} {}
+			explicit ReadbackBufferResult (Promise<BufferMemView> readOp)							__NE___ : readOp{RVRef(readOp)} {}
 
 			template <typename Fn>
-			auto  Then (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)		__NE___ { return readOp.Then( FwdArg<Fn>(fn), dbgName, queueType ); }
+			auto  Then (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)		__NE___ { auto p = readOp.Then( FwdArg<Fn>(fn), dbgName, queueType );  _AddNextCycleEndDeps( AsyncTask{p} );  return p; }
 
 			template <typename Fn>
 			auto  Except (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)	__NE___ { return readOp.Except( FwdArg<Fn>(fn), dbgName, queueType ); }
+		};
+
+
+		struct ReadbackImageResult : _ReadbackResult
+		{
+			Promise<ImageMemView>	readOp;
+
+			ReadbackImageResult ()																	__NE___ = default;
+			explicit ReadbackImageResult (Promise<ImageMemView> readOp)								__NE___ : readOp{RVRef(readOp)} {}
+
+			template <typename Fn>
+			auto  Then (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)		__NE___ { auto p = readOp.Then( FwdArg<Fn>(fn), dbgName, queueType );  _AddNextCycleEndDeps( AsyncTask{p} );  return p; }
+
+			template <typename Fn>
+			auto  Except (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)	__NE___ { return readOp.Except( FwdArg<Fn>(fn), dbgName, queueType ); }
+		};
+
+
+		struct ReadbackBufferResult2 : ReadbackBufferResult
+		{
+			Bytes		remain;		// non-zero if not enough space to read whole buffer
+
+			ReadbackBufferResult2 ()																__NE___ = default;
+			ReadbackBufferResult2 (Promise<BufferMemView> readOp, Bytes remain)						__NE___ : ReadbackBufferResult{RVRef(readOp)}, remain{remain} {}
 
 			ND_ bool  IsCompleted ()																C_NE___	{ return remain == 0; }
 		};
 
 
-		struct ReadbackImageResult
+		struct ReadbackImageResult2 : ReadbackImageResult
 		{
-			Promise<ImageMemView>	readOp;
-			uint3					remain;		// non-zero if not enough space to read whole image
+			uint3		remain;		// non-zero if not enough space to read whole image
 
-			ReadbackImageResult ()																	__NE___ = default;
-			ReadbackImageResult (Promise<ImageMemView> readOp, uint3 remain)						__NE___ : readOp{RVRef(readOp)}, remain{remain} {}
-
-			template <typename Fn>
-			auto  Then (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)		__NE___ { return readOp.Then( FwdArg<Fn>(fn), dbgName, queueType ); }
-
-			template <typename Fn>
-			auto  Except (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)	__NE___ { return readOp.Except( FwdArg<Fn>(fn), dbgName, queueType ); }
+			ReadbackImageResult2 ()																	__NE___ = default;
+			ReadbackImageResult2 (Promise<ImageMemView> readOp, uint3 remain)						__NE___ : ReadbackImageResult{RVRef(readOp)}, remain{remain} {}
 
 			ND_ bool  IsCompleted ()																C_NE___	{ return All( IsZero( remain )); }
 		};
@@ -317,7 +339,7 @@ namespace AE::Graphics
 	public:
 		//		buffer: EResourceState::ClearDst
 		virtual void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)									__Th___	= 0;
-		//		buffer: EResourceState::CopyDst
+		//		buffer: EResourceState::ClearDst
 		virtual void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)						__Th___	= 0; // Vulkan - native, Metal - used UploadBuffer()
 
 		//		srcBuffer, srcImage: EResourceState::CopySrc
@@ -333,18 +355,19 @@ namespace AE::Graphics
 		//		buffer: EResourceState::CopyDst
 		ND_			bool  UploadBuffer (BufferID buffer, Bytes offset, Bytes dataSize, const void* data,
 										EStagingHeapType heapType = EStagingHeapType::Static)							__Th___;
-		// 'memView' data size may be <= 'desc.size' but multiple of 'desc.blockSize'
+		// 'memView' data size may be <= 'desc.size' but multiple of 'desc.blockSize'.
 			virtual void  UploadBuffer (BufferID buffer, const UploadBufferDesc &desc, OUT BufferMemView &memView)		__Th___	= 0;
 
 		//		image: EResourceState::CopyDst
+		// 'memView' dimension may be <= 'desc.imageDim' but multiple of texel block size.
 			virtual void  UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)			__Th___	= 0;
 			virtual void  UploadImage (VideoImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)		__Th___	= 0;
 
 	// read from device local memory using staging buffer //
 		//		buffer, image: EResourceState::CopySrc
-		ND_ virtual ReadbackBufferResult  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &)					__Th___ = 0;
-		ND_ virtual ReadbackImageResult   ReadbackImage (ImageID image, const ReadbackImageDesc &)						__Th___ = 0;
-		ND_ virtual ReadbackImageResult   ReadbackImage (VideoImageID image, const ReadbackImageDesc &)					__Th___ = 0;
+		ND_ virtual ReadbackBufferResult2	ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &)				__Th___ = 0;
+		ND_ virtual ReadbackImageResult2	ReadbackImage (ImageID image, const ReadbackImageDesc &)					__Th___ = 0;
+		ND_ virtual ReadbackImageResult2	ReadbackImage (VideoImageID image, const ReadbackImageDesc &)				__Th___ = 0;
 
 	// partially upload //
 		//		stream.buffer, stream.image: EResourceState::CopyDst
@@ -354,12 +377,11 @@ namespace AE::Graphics
 
 	// partially read //
 		//		stream.buffer, stream.image: EResourceState::CopySrc
-		ND_ virtual Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)									__Th___ = 0;
-		ND_ virtual Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)									__Th___ = 0;
-		ND_ virtual Promise<ImageMemView>   ReadbackImage (INOUT VideoImageStream &stream)								__Th___ = 0;
+		ND_ virtual ReadbackBufferResult	ReadbackBuffer (INOUT BufferStream &stream)									__Th___ = 0;
+		ND_ virtual ReadbackImageResult		ReadbackImage (INOUT ImageStream &stream)									__Th___ = 0;
+		ND_ virtual ReadbackImageResult		ReadbackImage (INOUT VideoImageStream &stream)								__Th___ = 0;
 
 	// only for host-visible memory //
-		//		buffer: EResourceState::Host_Write
 		ND_	virtual bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)				__Th___ = 0;
 		VULKAN_ONLY(
 		ND_	virtual	bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)			__Th___ = 0;
@@ -371,7 +393,7 @@ namespace AE::Graphics
 		ND_ virtual uint3  MinImageTransferGranularity ()																C_NE___ = 0;
 
 
-	// only in compute queue //
+	// only in compute/graphics queue //
 
 		VULKAN_ONLY(
 		//		image: EResourceState::ClearDst
@@ -548,6 +570,9 @@ namespace AE::Graphics
 		//		src:				EResourceState::BuildRTAS_Read
 		//		dst:				EResourceState::BuildRTAS_Write
 		//		all buffers in cmd:	EResourceState::BuildRTAS_Read
+
+		// - inactive primitives (vert, AABB, instance) must not be made active
+		// - active primitives must not be made inactive
 		virtual void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)										__Th___	= 0;
 		virtual void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)												__Th___	= 0;
 

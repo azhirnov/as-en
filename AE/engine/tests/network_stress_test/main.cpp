@@ -64,6 +64,10 @@ int main (const int argc, char* argv[])
 	auto&	mngr = SocketService::Instance();
 	CHECK_ERR( mngr.Initialize() );
 
+	static constexpr ushort	TCP_port		= 3000;
+	static constexpr ushort	UDP_port		= 3001;
+	static constexpr char	IP_address[]	= "192.168.0.xxx";
+
 	// local IPv4/IPv6 using router address
 	#if 0
 		AE_LOGI( "Local address iPv4: "s << GetSelfIPv4AddressFromRouter().ToString() );
@@ -80,8 +84,8 @@ int main (const int argc, char* argv[])
 
 	// server TCP/UDP IPv4
 	#if 0
-		StdThread	tcp_thread{ [](){ TcpServerV4( IpAddress::FromLocalPortTCP( 3000 )); }};
-		StdThread	udp_thread{ [](){ UdpServerV4( IpAddress::FromLocalPortUDP( 3000 )); }};
+		StdThread	tcp_thread{ [](){ TcpServerV4( IpAddress::FromLocalPortTCP( TCP_port )); }};
+		StdThread	udp_thread{ [](){ UdpServerV4( IpAddress::FromLocalPortUDP( UDP_port )); }};
 
 		tcp_thread.join();
 		udp_thread.join();
@@ -91,8 +95,8 @@ int main (const int argc, char* argv[])
 	#if 0
 		IpAddress6	addr = GetSelfIPv6AddressFromRouter();
 
-		StdThread	tcp_thread{ [addr]() mutable { addr.SetPort( 3000 );  TcpServerV6( addr ); }};
-		StdThread	udp_thread{ [addr]() mutable { addr.SetPort( 3000 );  UdpServerV6( addr ); }};
+		StdThread	tcp_thread{ [addr]() mutable { addr.SetPort( TCP_port );  TcpServerV6( addr ); }};
+		StdThread	udp_thread{ [addr]() mutable { addr.SetPort( UDP_port );  UdpServerV6( addr ); }};
 
 		tcp_thread.join();
 		udp_thread.join();
@@ -146,15 +150,15 @@ int main (const int argc, char* argv[])
 
 	// UDP client
 	#if 0
-		UdpClientV4( IpAddress::FromHostPortUDP( "192.168.0.xxx", 3000 ));
+		UdpClientV4( IpAddress::FromHostPortUDP( IP_address, UDP_port ));
 	#endif
 	#if 0
-		UdpClientV6( IpAddress6::FromHostPortUDP( "192.168.0.xxx", 3000 ));
+		UdpClientV6( IpAddress6::FromHostPortUDP( IP_address, UDP_port ));
 	#endif
 
 	// TCP client
 	#if 0
-		TcpClientV4( IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 ));
+		TcpClientV4( IpAddress::FromHostPortTCP( IP_address, TCP_port ));
 	#endif
 	#if 0
 		TcpClientV6( IpAddress6::FromString( "[IPv6 addr]:3000" ));
@@ -163,19 +167,18 @@ int main (const int argc, char* argv[])
 
 
 	#if 1
-		StdThread	server_thread{ [](){ TcpMsgServerV4( 3000 ); }};
-		StdThread	client_thread{ [](){ TcpMsgClientV4( List{	IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 ),
-																IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 )
-															  }); }};
+		StdThread	server_thread{ [](){ TcpMsgServerV4( TCP_port ); }};
+		StdThread	client_thread{ [](){ TcpMsgClientV4( {	IpAddress::FromHostPortTCP( IP_address, TCP_port )
+														 }); }};
 
 		server_thread.join();
 		client_thread.join();
 	#endif
 	#if 0
-		TcpMsgServerV4( 3000 );
+		TcpMsgServerV4( TCP_port );
 	#endif
 	#if 0
-		TcpMsgClientV4({ IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 )});
+		TcpMsgClientV4({ IpAddress::FromHostPortTCP( IP_address, TCP_port )});
 	#endif
 	//-------------------------------------------
 

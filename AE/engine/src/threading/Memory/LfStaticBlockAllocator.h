@@ -8,12 +8,6 @@
 # include "threading/Primitives/DataRaceCheck.h"
 #endif
 
-#ifdef AE_DEBUG
-#	define AE_LFFIXEDBLOCKALLOC_DEBUG	1
-#else
-#	define AE_LFFIXEDBLOCKALLOC_DEBUG	0
-#endif
-
 namespace AE::Threading
 {
 
@@ -107,6 +101,9 @@ namespace AE::Threading
 		ND_ usize	MaxBlockCount ()							C_NE___	{ return MaxChunks * ChunkSize; }
 		ND_ Bytes	AllocatedSize ()							C_NE___;
 
+		// utils //
+		ND_ static Bytes  CalcStorageSize (Bytes blockSize)		__NE___	{ return blockSize * MaxChunks * ChunkSize; }
+
 
 		// IAllocator //
 		ND_ void*	Allocate (const SizeAndAlign sa)			__NE_OV;
@@ -115,9 +112,6 @@ namespace AE::Threading
 			void	Deallocate (void*, const SizeAndAlign)		__NE_OV;
 			void	Deallocate (void* ptr)						__NE_OV	{ CHECK( DeallocBlock( ptr )); }
 			using	IAllocator::Deallocate;
-
-
-		ND_ static Bytes  CalcStorageSize (Bytes blockSize)		__NE___	{ return blockSize * MaxChunks * ChunkSize; }
 
 	private:
 		ND_ Ptr_t  _Alloc (uint chunkIndex)						__NE___;

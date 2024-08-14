@@ -21,7 +21,7 @@ namespace AE::ResEditor
 
 		ShaderDebugger::Result		dbg;
 		GraphicsPipelineID			ppln;
-		const uint2					dim	{_renderTargets[0].image->GetImageDesc().dimension};
+		const uint2					dim	{_renderTargets[0].image->GetViewDimension()};
 
 		if ( pd.dbg.IsEnabled( this ))
 		{
@@ -44,6 +44,7 @@ namespace AE::ResEditor
 		DirectCtx::Graphics		ctx{ pd.rtask, RVRef(pd.cmdbuf) };
 
 		_resources.SetStates( ctx, Default );
+		ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::FragmentShader );
 		ctx.CommitBarriers();
 
 		// render pass
@@ -83,28 +84,25 @@ namespace AE::ResEditor
 		CHECK_ERR( not _renderTargets.empty() );
 
 		// validate dimensions
+		const uint2		cur_dim = uint2{ _renderTargets.front().image->GetViewDimension() };
 		{
-			const uint2		cur_dim = uint2{ _renderTargets.front().image->GetImageDesc().dimension };
-
 			for (auto& rt : _renderTargets)
 			{
-				const uint2		dim = uint2{ rt.image->GetImageDesc().dimension };
+				const uint2		dim = uint2{ rt.image->GetViewDimension() };
 				CHECK_ERR( All( cur_dim == dim ));
 			}
 		}
 
 		// update uniform buffer
 		{
-			const auto&		rt		= *_renderTargets[0].image;
-			const auto		desc	= rt.GetImageDesc();
-
 			ShaderTypes::ShadertoyUB	ub_data;
-			ub_data.resolution	= float3{desc.dimension};
+			ub_data.resolution	= float3{cur_dim.x, cur_dim.y, 1};
 			ub_data.time		= pd.totalTime.count();
 			ub_data.timeDelta	= pd.frameTime.count();
-			ub_data.frame		= _dynData.frame;
+			ub_data.frame		= pd.frameId;
+			ub_data.passFrameId	= _dynData.frame;
 			ub_data.seed		= pd.seed;
-			ub_data.mouse		= pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
+			ub_data.mouse		= pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-MaxValue<float>()};
 			ub_data.customKeys	= pd.customKeys[0];
 			ub_data.pixToMm		= pd.pixToMm;
 
@@ -114,7 +112,11 @@ namespace AE::ResEditor
 			_CopySliders( OUT ub_data.floatSliders, OUT ub_data.intSliders, OUT ub_data.colors );
 			_CopyConstants( _shConst, OUT ub_data.floatConst, OUT ub_data.intConst );
 
-			++_dynData.frame;
+			if ( _dynData.prevFrame != pd.frameId )
+			{
+				++_dynData.frame;
+				_dynData.prevFrame = pd.frameId;
+			}
 			CHECK_ERR( ctx.UploadBuffer( _ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
 		}
 

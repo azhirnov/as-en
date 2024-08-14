@@ -317,36 +317,36 @@ namespace AE::Graphics
 
 namespace AE::Base
 {
-	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::ColorBuffer >				{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::RenderState::ColorBuffer >			{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::ColorBuffer >				: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RenderState::ColorBuffer >			: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::ColorBuffersState >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::RenderState::ColorBuffersState >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::ColorBuffersState >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RenderState::ColorBuffersState >	: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::StencilFaceState >			{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::RenderState::StencilFaceState >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::StencilFaceState >			: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RenderState::StencilFaceState >	: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::StencilBufferState >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::RenderState::StencilBufferState >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::StencilBufferState >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RenderState::StencilBufferState >	: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::InputAssemblyState >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::RenderState::InputAssemblyState >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::InputAssemblyState >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RenderState::InputAssemblyState >	: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::RasterizationState >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::RenderState::RasterizationState >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::RasterizationState >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RenderState::RasterizationState >	: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::MultisampleState >			{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::RenderState::MultisampleState >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RenderState::MultisampleState >			: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RenderState::MultisampleState >	: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::RenderState >							{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::RenderState >						{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RenderState >							: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::RenderState >						: CT_True {};
 
 
-	template <> struct TMemCopyAvailable< AE::Graphics::MDepthStencilState >					{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::MDepthStencilState >				{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::MDepthStencilState >					: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::MDepthStencilState >				: CT_True {};
 
-	template <> struct TMemCopyAvailable< AE::Graphics::MDynamicRenderState >					{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::MDynamicRenderState >				{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::MDynamicRenderState >					: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::MDynamicRenderState >				: CT_True {};
 
 } // AE::Base
 

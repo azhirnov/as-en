@@ -525,10 +525,27 @@ namespace AE::Vulkan
 			{ "fragmentBarycentric",			VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "meshShader",						VK_EXT_MESH_SHADER_EXTENSION_NAME,							NoVer,	{1,1},	{VK_KHR_SPIRV_1_4_EXTENSION_NAME, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "rasterOrderAttachment",			VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME,NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
-		//	{ "maintenance5",					VK_KHR_MAINTENANCE_5_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
 			{ "cooperativeMatrix",				VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "nonSeamlessCubeMap",				VK_EXT_NON_SEAMLESS_CUBE_MAP_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "shaderStencilExport",			VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME,				NoVer,	{1,0},	{} },
+		//	{ "shaderFloatControls2",			VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME,				NoVer,	{1,1},	{VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME} },
+			{ "shaderMaximalReconvergence",		VK_KHR_SHADER_MAXIMAL_RECONVERGENCE_EXTENSION_NAME,			NoVer,	{1,1},	{} },
+			{ "shaderQuadControl",				VK_KHR_SHADER_QUAD_CONTROL_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VULKAN_MEMORY_MODEL_EXTENSION_NAME, VK_KHR_SHADER_MAXIMAL_RECONVERGENCE_EXTENSION_NAME} },
+
+		// dynamic rendering //
+		#if 0
+			{ "dynamicRendering",				VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,					{1,2},	{1,1},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "maintenance5",					VK_KHR_MAINTENANCE_5_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
+			{ "shaderTileImage",				VK_EXT_SHADER_TILE_IMAGE_EXTENSION_NAME,					NoVer,	{1,3},	{} },
+			{ "shaderObject",					VK_EXT_SHADER_OBJECT_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
+			{ "dynRenUnusedAttachments",		VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME,	NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
+			{ "dynRenLocalRead",				VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
+
+			// QCOM //
+		//	{ "tilePropsQCOM",					VK_QCOM_TILE_PROPERTIES_EXTENSION_NAME,						NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+		//	{ "multiviewPerViewViewportsQCOM",	VK_QCOM_MULTIVIEW_PER_VIEW_VIEWPORTS_EXTENSION_NAME,		NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+		//	{ "multiviewPerViewRenderAreaQCOM",	VK_QCOM_MULTIVIEW_PER_VIEW_RENDER_AREAS_EXTENSION_NAME,		NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+		#endif
 
 		// shaders //
 			{ "fragShaderInterlock",			VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -570,8 +587,7 @@ namespace AE::Vulkan
 			{ "rayQuery",						VK_KHR_RAY_QUERY_EXTENSION_NAME,							NoVer,	{1,1},	{VK_KHR_SPIRV_1_4_EXTENSION_NAME, VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
 			{ "rayTracingMaintenance1",			VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
 			{ "rayTracingPositionFetch",		VK_KHR_RAY_TRACING_POSITION_FETCH_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
-			// VK_NV_displacement_micromap
-			// VK_NV_ray_tracing_invocation_reorder
+			{ "rayTracingValidation",			VK_NV_RAY_TRACING_VALIDATION_EXTENSION_NAME,				NoVer,	{1,1},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
 
 		// dynamic state //
 		//	{ "extendedDynamicState",			VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -610,6 +626,7 @@ namespace AE::Vulkan
 		//	{ "representativeFragmentTestNV",	VK_NV_REPRESENTATIVE_FRAGMENT_TEST_EXTENSION_NAME,			NoVer,	{1,0},	{} },
 		//	{ "viewportArrayNV",				VK_NV_VIEWPORT_ARRAY_2_EXTENSION_NAME,						NoVer,	{1,0},	{} },
 		//	{ "viewportSwizzleNV",				VK_NV_VIEWPORT_SWIZZLE_EXTENSION_NAME,						NoVer,	{1,0},	{} },
+		//	{ "linearColorAttachmentNV",		VK_NV_LINEAR_COLOR_ATTACHMENT_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
 		// AMD //
 		//	{ "coherentMemoryAMD",				VK_AMD_DEVICE_COHERENT_MEMORY_EXTENSION_NAME,				NoVer,	{1,0},	{} },
@@ -629,7 +646,6 @@ namespace AE::Vulkan
 			// VK_QCOM_FRAGMENT_DENSITY_MAP_OFFSET_EXTENSION_NAME
 			// VK_QCOM_RENDER_PASS_TRANSFORM_EXTENSION_NAME
 			// VK_QCOM_ROTATED_COPY_COMMANDS_EXTENSION_NAME
-			// VK_QCOM_multiview_per_view_render_areas
 
 		// present //
 			{ "incrementalPresent",				VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_SWAPCHAIN_EXTENSION_NAME} },
@@ -662,11 +678,13 @@ namespace AE::Vulkan
 
 		for (auto& feat : instanceFeatures) {
 			for (auto& ext : feat.requireExts)
-				CHECK_ERR( existing_ext.find( ext ) != existing_ext.end() );
+				CHECK_ERR_MSG( existing_ext.find( ext ) != existing_ext.end(),
+					"Instance extension '"s << feat.extension << "' requires extension '" << ext << "' which is not enabled/exists" );
 		}
 		for (auto& feat : deviceFeatures) {
 			for (auto& ext : feat.requireExts)
-				CHECK_ERR( existing_ext.find( ext ) != existing_ext.end() );
+				CHECK_ERR_MSG( existing_ext.find( ext ) != existing_ext.end(),
+					"Device extension '"s << feat.extension << "' requires extension '" << ext << "' which is not enabled/exists" );
 		}
 
 
@@ -705,10 +723,7 @@ namespace AE::Vulkan
 	ND_ inline String  ExtToName (StringView name)
 	{
 		const HashMap< String, String > FixNames = {
-			{"VK_EXT_SWAPCHAIN_COLORSPACE_EXTENSION_NAME",	"VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME"},
-			{"VK_KHR_MAINTENANCE_1_EXTENSION_NAME",			"VK_KHR_MAINTENANCE1_EXTENSION_NAME"},
-			{"VK_KHR_MAINTENANCE_2_EXTENSION_NAME",			"VK_KHR_MAINTENANCE2_EXTENSION_NAME"},
-			{"VK_KHR_MAINTENANCE_3_EXTENSION_NAME",			"VK_KHR_MAINTENANCE3_EXTENSION_NAME"},
+			{"VK_EXT_SWAPCHAIN_COLORSPACE_EXTENSION_NAME",	"VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME"}
 		};
 
 		String	res;
@@ -720,7 +735,7 @@ namespace AE::Vulkan
 			if ( i+1 == name.size() )
 			{
 				const char	p = name[i-1];
-				if ( not ((p >= '0' and p <= '9') or p == '_') and  (c >= '0' and c <= '4') )
+				if ( not ((p >= '0' and p <= '9') or p == '_') and (c >= '0' and c < '8') )
 					res << '_';
 			}
 			res << ToUpperCase( c );
@@ -728,7 +743,7 @@ namespace AE::Vulkan
 		res << "_EXTENSION_NAME";
 
 		auto iter = FixNames.find( res );
-		if (iter != FixNames.end())
+		if ( iter != FixNames.end() )
 			return iter->second;
 
 		return res;

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	API for ARM CPU / GPU (Mali) hardware performance counters.
+	API for ARM CPU hardware performance counters.
 
 	enable profiling:
 		adb shell setprop security.perf_harden 0
@@ -18,7 +18,7 @@ namespace AE::Profiler
 
 
 	//
-	// ARM Profiler
+	// ARM CPU Profiler
 	//
 
 	class ArmProfiler
@@ -27,83 +27,34 @@ namespace AE::Profiler
 	public:
 		enum class ECounter : ubyte
 		{
-		// CPU //
-			_CPU_Begin,
-			CPU_Cycles				= _CPU_Begin,
-			CPU_Instructions,
-			CPU_CacheReferences,
-			CPU_CacheMisses,
-			CPU_BranchInstructions,
-			CPU_BranchMisses,
+			Cycles,
+			Instructions,
+			CacheReferences,
+			CacheMisses,
+			BranchInstructions,
+			BranchMisses,
+			BusCycles,
 
-			CPU_L1Accesses,
-			CPU_InstrRetired,
-			CPU_L2Accesses,
-			CPU_L3Accesses,
-			CPU_BusReads,
-			CPU_BusWrites,
-			CPU_MemReads,
-			CPU_MemWrites,
-			CPU_ASESpec,
-			CPU_VFPSpec,
-			CPU_CryptoSpec,
-			_CPU_End				= CPU_CryptoSpec,
+			Clock,
+			ContextSwitches,
 
-		// GPU //
-			_GPU_Begin,
-			GPU_Cycles				= _GPU_Begin,
-			GPU_ComputeCycles,
-			GPU_VertexCycles,
-			GPU_VertexComputeCycles,
-			GPU_FragmentCycles,
-			GPU_TilerCycles,
+			L1Accesses,
+			InstrRetired,
+			L2Accesses,
+			L3Accesses,
+			BusReads,
+			BusWrites,
+			MemReads,
+			MemWrites,
+			ASESpec,
+			VFPSpec,
+			CryptoSpec,
 
-			GPU_ComputeJobs,
-			GPU_VertexJobs,
-			GPU_VertexComputeJobs,
-			GPU_FragmentJobs,
-			GPU_Pixels,
-
-			GPU_CulledPrimitives,
-			GPU_VisiblePrimitives,
-			GPU_InputPrimitives,
-
-			GPU_Tiles,
-			GPU_TransactionEliminations,
-
-			GPU_EarlyZTests,
-			GPU_EarlyZKilled,
-			GPU_LateZTests,
-			GPU_LateZKilled,
-
-			GPU_Instructions,
-			GPU_DivergedInstructions,
-
-			GPU_ShaderComputeCycles,
-			GPU_ShaderFragmentCycles,
-			GPU_ShaderCycles,
-			GPU_ShaderArithmeticCycles,
-			GPU_ShaderInterpolatorCycles,
-			GPU_ShaderLoadStoreCycles,
-			GPU_ShaderTextureCycles,
-
-			GPU_CacheReadLookups,
-			GPU_CacheWriteLookups,
-
-			GPU_ExternalMemoryReadAccesses,
-			GPU_ExternalMemoryWriteAccesses,
-			GPU_ExternalMemoryReadStalls,
-			GPU_ExternalMemoryWriteStalls,
-			GPU_ExternalMemoryReadBytes,
-			GPU_ExternalMemoryWriteBytes,
-			_GPU_End				= GPU_ExternalMemoryWriteBytes,
-
-			_Count,
-			Unknown					= 0xFF,
+			_Count
 		};
 
 		using ECounterSet	= EnumSet< ECounter >;
-		using Counters_t	= FlatHashMap< ECounter, double >;
+		using Counters_t	= FlatHashMap< ECounter, slong >;
 
 	private:
 		struct Impl;
@@ -123,24 +74,14 @@ namespace AE::Profiler
 			void  Deinitialize ()										__NE___;
 		ND_ bool  IsInitialized ()										C_NE___;
 
-		ND_ ECounterSet  SupportedCounterSet ()							C_NE___;
 		ND_ ECounterSet  EnabledCounterSet ()							C_NE___;
 
 			void  Sample (OUT Counters_t &)								C_NE___;
 
-		ND_ static StringView  CounterToString (ECounter value)			__NE___;
 
-
-	  #ifndef AE_ENABLE_ARM_HWCPIPE
+	  #ifndef AE_ENABLE_ARM_PMU
 		ND_ bool  InitClient (RC<ArmProfilerClient>)					__NE___;
 	  #endif
-
-
-	private:
-		ND_ bool  _Initialize (ECounterSet counterSet)					__Th___;
-
-		ND_ static bool  _IsCPUcounter (ECounter)						__NE___;
-		ND_ static bool  _IsGPUcounter (ECounter)						__NE___;
 	};
 
 

@@ -34,16 +34,13 @@ namespace
 
 			CHECK_TE( ctx.UpdateHostBuffer( t.buf_1, 0_b, t.buffer_data ));
 
-			ctx.AccumBarriers()
-				.BufferBarrier( t.buf_1, EResourceState::Host_Write, EResourceState::CopySrc );
-
 			ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }});
 
 			ctx.AccumBarriers()
 				.BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::CopySrc );
 
 			auto	read_res = ctx.ReadbackBuffer( t.buf_2, ReadbackBufferDesc{}.DataSize( t.buf_size ));
-			CHECK( read_res.IsCompleted() );
+			CHECK_TE( read_res.IsCompleted() );
 
 			t.result = AsyncTask{ read_res.Then( [p = &t] (const BufferMemView &view)
 								{

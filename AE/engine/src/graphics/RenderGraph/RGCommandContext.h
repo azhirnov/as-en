@@ -69,10 +69,8 @@ namespace AE::RG::_hidden_
 		\
 		void  AddSurfaceTargets (ArrayView<App::IOutputSurface_RenderTarget> targets)											__NE___ { _RGBatch().AddSurfaceTargets( _ExeIdx(), targets ); } \
 		\
-		void  UploadMemoryBarrier (EResourceState dstState)																		__NE___ { _RGBatch().UploadMemoryBarrier( _ExeIdx(), _ctx, dstState ); } \
 		void  ReadbackMemoryBarrier (EResourceState srcState)																	__NE___ { _RGBatch().ReadbackMemoryBarrier( _ExeIdx(), _ctx, srcState ); } \
 		\
-		ND_ bool  HasUploadMemoryBarrier (EResourceState dstState)																__NE___ { return _RGBatch().HasUploadMemoryBarrier( _ExeIdx(), dstState ); } \
 		ND_ bool  HasReadbackMemoryBarrier (EResourceState srcState)															__NE___ { return _RGBatch().HasReadbackMemoryBarrier( _ExeIdx(), srcState ); } \
 
 
@@ -125,13 +123,13 @@ namespace AE::RG::_hidden_
 		void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)								__Th_OV;
 		void  UploadImage (INOUT VideoImageStream &stream, OUT ImageMemView &memView)							__Th_OV;
 
-		ReadbackBufferResult  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)					__Th_OV;
-		ReadbackImageResult   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)						__Th_OV;
-		ReadbackImageResult   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)					__Th_OV;
+		ReadbackBufferResult2	ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)				__Th_OV;
+		ReadbackImageResult2	ReadbackImage (ImageID image, const ReadbackImageDesc &desc)					__Th_OV;
+		ReadbackImageResult2	ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)				__Th_OV;
 
-		Promise<BufferMemView>  ReadbackBuffer (INOUT BufferStream &stream)										__Th_OV;
-		Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)										__Th_OV;
-		Promise<ImageMemView>   ReadbackImage (INOUT VideoImageStream &stream)									__Th_OV;
+		ReadbackBufferResult	ReadbackBuffer (INOUT BufferStream &stream)										__Th_OV;
+		ReadbackImageResult		ReadbackImage (INOUT ImageStream &stream)										__Th_OV;
+		ReadbackImageResult		ReadbackImage (INOUT VideoImageStream &stream)									__Th_OV;
 
 		bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)					__Th_OV;
 
@@ -378,7 +376,6 @@ namespace AE::RG::_hidden_
 
 		ND_ FrameUID	GetFrameId ()																						C_NE_OF { return _ctx.GetFrameId(); }
 
-		ND_ bool  HasUploadMemoryBarrier (EResourceState dstState)															__NE___ { return _RGBatch().HasUploadMemoryBarrier( _ExeIdx(), dstState ); } \
 		ND_ bool  HasReadbackMemoryBarrier (EResourceState srcState)														__NE___ { return _RGBatch().HasReadbackMemoryBarrier( _ExeIdx(), srcState ); } \
 
 	private:
@@ -740,7 +737,6 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadBuffer (BufferID buffer, const UploadBufferDesc &uploadDesc, OUT BufferMemView &memView) __Th___
 	{
-		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( buffer, EResourceState::CopyDst );
 
 		_ctx.CommitBarriers();
@@ -750,7 +746,6 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadImage (ImageID image, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView) __Th___
 	{
-		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( image, EResourceState::CopyDst );
 
 		_ctx.CommitBarriers();
@@ -760,7 +755,6 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadImage (VideoImageID image, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView) __Th___
 	{
-		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( image, EResourceState::CopyDst );
 
 		_ctx.CommitBarriers();
@@ -768,7 +762,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	ITransferContext::ReadbackBufferResult  TransferContext<C>::ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &readDesc) __Th___
+	ITransferContext::ReadbackBufferResult2  TransferContext<C>::ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &readDesc) __Th___
 	{
 		ResourceState( buffer, EResourceState::CopySrc );
 		ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -778,7 +772,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	Promise<BufferMemView>  TransferContext<C>::ReadbackBuffer (INOUT BufferStream &stream) __Th___
+	ITransferContext::ReadbackBufferResult  TransferContext<C>::ReadbackBuffer (INOUT BufferStream &stream) __Th___
 	{
 		ResourceState( stream.BufferId(), EResourceState::CopySrc );
 		ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -788,7 +782,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	ITransferContext::ReadbackImageResult  TransferContext<C>::ReadbackImage (ImageID image, const ReadbackImageDesc &desc) __Th___
+	ITransferContext::ReadbackImageResult2  TransferContext<C>::ReadbackImage (ImageID image, const ReadbackImageDesc &desc) __Th___
 	{
 		ResourceState( image, EResourceState::CopySrc );
 		ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -798,7 +792,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	ITransferContext::ReadbackImageResult  TransferContext<C>::ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc) __Th___
+	ITransferContext::ReadbackImageResult2  TransferContext<C>::ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc) __Th___
 	{
 		ResourceState( image, EResourceState::CopySrc );
 		ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -808,7 +802,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	Promise<ImageMemView>  TransferContext<C>::ReadbackImage (INOUT ImageStream &stream) __Th___
+	ITransferContext::ReadbackImageResult  TransferContext<C>::ReadbackImage (INOUT ImageStream &stream) __Th___
 	{
 		ResourceState( stream.ImageId(), EResourceState::CopySrc );
 		ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -818,7 +812,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	Promise<ImageMemView>  TransferContext<C>::ReadbackImage (INOUT VideoImageStream &stream) __Th___
+	ITransferContext::ReadbackImageResult  TransferContext<C>::ReadbackImage (INOUT VideoImageStream &stream) __Th___
 	{
 		ResourceState( stream.ImageId(), EResourceState::CopySrc );
 		ReadbackMemoryBarrier( EResourceState::CopyDst );
@@ -830,7 +824,6 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView) __Th___
 	{
-		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( stream.BufferId(), EResourceState::CopyDst );
 
 		_ctx.CommitBarriers();
@@ -840,7 +833,6 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView) __Th___
 	{
-		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( stream.ImageId(), EResourceState::CopyDst );
 
 		_ctx.CommitBarriers();
@@ -850,7 +842,6 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadImage (INOUT VideoImageStream &stream, OUT ImageMemView &memView) __Th___
 	{
-		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( stream.ImageId(), EResourceState::CopyDst );
 
 		_ctx.CommitBarriers();
@@ -860,8 +851,6 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	bool  TransferContext<C>::UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data) __Th___
 	{
-		ResourceState( buffer, EResourceState::Host_Write );
-		_ctx.CommitBarriers();
 		return _ctx.UpdateHostBuffer( buffer, offset, size, data );
 	}
 
@@ -949,8 +938,6 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	bool  TransferContext<C>::MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped) __Th___
 	{
-		ResourceState( buffer, EResourceState::Host_Write );
-		_ctx.CommitBarriers();
 		return _ctx.MapHostBuffer( buffer, offset, INOUT size, OUT mapped );
 	}
 #endif
@@ -1073,7 +1060,6 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	bool  DrawContext<C>::AllocVStream (Bytes size, OUT VertexStream &result) __Th___
 	{
-		CHECK( HasUploadMemoryBarrier( EResourceState::VertexBuffer ));
 		return _ctx.AllocVStream( size, OUT result );
 	}
 //-----------------------------------------------------------------------------

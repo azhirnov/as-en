@@ -51,6 +51,7 @@ namespace AE::Base
 
 		constexpr Self&  operator = (T* ptr)			__NE___	{ _ptr = ptr;  return *this; }
 
+		ND_ constexpr explicit operator bool ()			__NE___	{ return _ptr != null; }
 		ND_ constexpr explicit operator bool ()			C_NE___	{ return _ptr != null; }
 
 		ND_ constexpr Self	operator + (Bytes offset)	C_NE___	{ return Self{ _ptr + offset }; }

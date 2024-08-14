@@ -146,7 +146,7 @@ namespace {
 		CHECK_ERR( All( desc.dimension > uint3{0} ));
 		CHECK_ERR( desc.imageDim != Default );
 		CHECK_ERR( desc.arrayLayers > 0_layer );
-		CHECK_ERR( desc.maxLevel > 0_mipmap );
+		CHECK_ERR( desc.mipLevels > 0_mipmap );
 		CHECK_ERR( desc.format != Default );
 		CHECK_ERR( desc.usage != Default );
 		CHECK_ERR( EPixelFormat_PlaneCount( desc.format ) == 0 );	// use VideoImage instead
@@ -169,7 +169,7 @@ namespace {
 		info.extent.width	= _desc.dimension.x;
 		info.extent.height	= _desc.dimension.y;
 		info.extent.depth	= _desc.dimension.z;
-		info.mipLevels		= _desc.maxLevel.Get();
+		info.mipLevels		= _desc.mipLevels.Get();
 		info.arrayLayers	= _desc.arrayLayers.Get();
 		info.samples		= VEnumCast( _desc.samples );
 		info.tiling			= (opt_tiling ? VK_IMAGE_TILING_OPTIMAL : VK_IMAGE_TILING_LINEAR);
@@ -253,7 +253,7 @@ namespace {
 		_desc.dimension		= desc.dimension;
 		_desc.format		= AEEnumCast( desc.format );
 		_desc.arrayLayers	= ImageLayer{ desc.arrayLayers };
-		_desc.maxLevel		= MipmapLevel{ desc.maxLevels };
+		_desc.mipLevels		= MipmapLevel{ desc.mipLevels };
 		_desc.samples		= AEEnumCast( desc.samples );
 		_desc.memType		= AEEnumCast( desc.memFlags, not desc.canBeDestroyed );
 		_desc.queues		= desc.queues;
@@ -328,7 +328,7 @@ namespace {
 		desc.samples		= VEnumCast( _desc.samples );
 		desc.dimension		= _desc.dimension;
 		desc.arrayLayers	= _desc.arrayLayers.Get();
-		desc.maxLevels		= _desc.maxLevel.Get();
+		desc.mipLevels		= _desc.mipLevels.Get();
 		desc.tiling			= AllBits( _desc.memType, EMemoryType::DeviceLocal ) ? VK_IMAGE_TILING_OPTIMAL : VK_IMAGE_TILING_LINEAR;
 		desc.queues			= _desc.queues;
 		desc.memFlags		= VEnumCast( _desc.memType );
@@ -433,7 +433,7 @@ namespace {
 						 desc.dimension.z > props.maxExtent.depth )
 				return false;
 
-			if_unlikely( desc.maxLevel.Get() > props.maxMipLevels )
+			if_unlikely( desc.mipLevels.Get() > props.maxMipLevels )
 				return false;
 
 			if_unlikely( desc.arrayLayers.Get() > props.maxArrayLayers )

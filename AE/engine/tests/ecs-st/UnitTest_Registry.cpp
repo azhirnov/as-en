@@ -351,7 +351,7 @@ namespace
 
 	static void  System_Test1 ()
 	{
-		Registry		reg;
+		Registry	reg;
 		const usize	count = 100;
 
 		InitRegistry( reg );
@@ -405,7 +405,7 @@ namespace
 			usize	sum;
 		};
 
-		Registry		reg;
+		Registry	reg;
 		const usize	count = 100;
 
 		InitRegistry( reg );
@@ -570,7 +570,7 @@ namespace
 
 	static void  Messages_Test1 ()
 	{
-		Registry		reg;
+		Registry	reg;
 		const usize	count = 100;
 
 		InitRegistry( reg );
@@ -608,7 +608,7 @@ namespace
 
 	static void  Messages_Test2 ()
 	{
-		Registry		reg;
+		Registry	reg;
 		const usize	count = 100;
 
 		InitRegistry( reg );
@@ -653,13 +653,18 @@ namespace
 extern void UnitTest_Registry ()
 {
 	ComponentValidator_Test1();
+
 	Entity_Test1();
 	Entity_Test2();
+
 	SingleComponent_Test1();
+
 	System_Test1();
 	System_Test2();
 	System_Test3();
+
 	Events_Test1();
+
 	Messages_Test1();
 	Messages_Test2();
 

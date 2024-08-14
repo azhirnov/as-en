@@ -70,6 +70,8 @@ void  UniformlyAcceleratedMotion (inout float3 pos, inout float3 vel, const floa
 	vel += accel * dt;
 	pos += vel * dt * 0.5;
 }
+//-----------------------------------------------------------------------------
+
 
 
 ND_ uint  ParticleColor_FromNormalizedVelocity (const float3 velocity)
@@ -89,6 +91,8 @@ ND_ uint  ParticleColor_FromVelocityLength (const float3 velocity)
 	const float vel = 1.0 - Saturate( Length( velocity ));
 	return packUnorm4x8( float4( HSVtoRGB( float3( vel, 1.0, 1.0 )), 1.0 ));
 }
+//-----------------------------------------------------------------------------
+
 
 
 ND_ float3  ParticleEmitter_Plane (const float index, const float count)

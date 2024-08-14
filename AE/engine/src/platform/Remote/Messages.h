@@ -99,9 +99,7 @@ namespace AE::Networking
 namespace AE::Base
 {
 	template <>
-	struct TTriviallyDestructible< Networking::CSMsg_RemCtrl_CameraInfoRes > {
-		static constexpr bool	value =	true;
-	};
+	struct TTriviallyDestructible< Networking::CSMsg_RemCtrl_CameraInfoRes > : CT_True {};
 
 } // AE::Base
 //-----------------------------------------------------------------------------

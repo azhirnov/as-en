@@ -50,6 +50,7 @@ namespace AE::Graphics
 			EPixelFormat	format				= Default;	// used for multiplanar image, otherwise equal to image desc
 			Bytes			dataRowPitch;
 			Bytes			dataSlicePitch;
+			uint3			regionDim;						// validated dimension of current image mip level minus offset
 		};
 
 		using FrameStat_t = IResourceManager::StagingBufferStat;
@@ -95,13 +96,13 @@ namespace AE::Graphics
 			void  OnEndFrame (FrameUID)																							__NE___;
 
 			void  GetBufferRanges (OUT BufferRanges_t &result, Bytes reqSize, Bytes blockSize, Bytes memOffsetAlign,
-								   FrameUID frameId, EStagingHeapType heap, EQueueType queue, Bool upload)						__NE___;
+								   FrameUID frameId, EStagingHeapType heap, Bool upload)										__NE___;
 
 			void  GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &desc, const ImageDesc &,
-								  const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload)				__NE___;
+								  const uint3 &imageGranularity, FrameUID frameId, Bool upload)									__NE___;
 
 			void  GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &desc, const VideoImageDesc &,
-								  const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload)				__NE___;
+								  const uint3 &imageGranularity, FrameUID frameId, Bool upload)									__NE___;
 
 			bool  AllocVStream (FrameUID frameId, Bytes size, OUT VertexStream &result)											__NE___;
 

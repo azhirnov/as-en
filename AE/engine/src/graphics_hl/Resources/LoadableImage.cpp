@@ -54,7 +54,7 @@ namespace {
 		auto	image		= MakeRC<LoadableImage>();
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
 
-		ImagePacker::Header2	header;
+		ImagePacker::FileHeader	header;
 		CHECK_ERR( ImagePacker_ReadHeader( *stream, OUT header ));
 
 		image->_imageId = res_mngr.CreateImage( header.hdr.ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, RVRef(alloc) );
@@ -93,9 +93,11 @@ namespace {
 				upload.arrayLayer	= ImageLayer{layer};
 				upload.mipLevel		= MipmapLevel{mip};
 
-				Bytes	off, size;
+				Bytes	off;
 				ImagePacker_GetOffset( header, upload.arrayLayer, upload.mipLevel, uint3{0},
-										OUT upload.imageDim, OUT off, OUT size, OUT upload.dataRowPitch, OUT upload.dataSlicePitch );
+										OUT upload.imageDim, OUT off, OUT upload.dataRowPitch, OUT upload.dataSlicePitch );
+
+				const Bytes	size = upload.dataSlicePitch * upload.imageDim.z;
 
 				CHECK_ERR( stream.Position() == off + base_off );
 				CHECK_ERR( size <= tmp->Size() );

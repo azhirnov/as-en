@@ -19,26 +19,25 @@ namespace AE::ResEditor
 
 		CHECK_ERR( _scene );
 
+		const uint2						dim			{_renderTargets[0].image->GetViewDimension()};
 		const auto&						instances	= _scene->_geomInstances;
 		Array<ShaderDebugger::Result*>	dbg_result;
 		LinearAllocator<>				allocator;
-		EDebugMode						dbg_mode	= Default;
 
 		if_unlikely( pd.dbg.IsEnabled( this ))
 		{
-			DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
+			DirectCtx::Transfer		tctx	{ pd.rtask, RVRef(pd.cmdbuf) };
+			const uint2				coord	= uint2{pd.dbg.coord * float2{dim} + 0.5f};
 
 			dbg_result.resize( instances.size() );
 			for (usize i = 0; i < instances.size(); ++i)
 			{
-				IGeomSource::DebugPrepareData	dd{ *_materials[i], tctx, pd.dbg, allocator, _tempPplnToObjID, dbg_result[i] };
+				IGeomSource::DebugPrepareData	dd{ *_materials[i], tctx, pd.dbg, coord, allocator, _tempPplnToObjID, dbg_result[i] };
 				instances[i].geometry->PrepareForDebugging( INOUT dd );
 			}
-			pd.cmdbuf	= tctx.ReleaseCommandBuffer();
-			dbg_mode	= pd.dbg.mode;
+			pd.cmdbuf = tctx.ReleaseCommandBuffer();
 		}
 
-		const uint2				dim	{_renderTargets[0].image->GetImageDesc().dimension};
 		DirectCtx::Graphics		ctx	{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
 
 		// state transition
@@ -47,6 +46,7 @@ namespace AE::ResEditor
 				instances[i].geometry->StateTransition( *_materials[i], ctx );
 			}
 			_resources.SetStates( ctx, Default );
+			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::AllGraphicsShaders );
 			ctx.CommitBarriers();
 		}
 
@@ -64,40 +64,34 @@ namespace AE::ResEditor
 			DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
 			auto				dctx	= ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
 
-			// draw
+			if ( _shadingRate )
+				dctx.SetFragmentShadingRate( _shadingRate.rate, _shadingRate.primitiveOp, _shadingRate.textureOp );
+
+			decltype(&IGeomSource::Draw)	draw_fn = null;
 			switch_enum( _renderLayer )
 			{
 				case ERenderLayer::Opaque :
-				case ERenderLayer::Translucent :
-					for (usize i = 0; i < instances.size(); ++i)
-					{
-						bool	has_dbg_result = (not dbg_result.empty()) and (dbg_result[i] != null);
-
-						CHECK_ERR( instances[i].geometry->Draw( IGeomSource::DrawData{
-										*_materials[i], dctx, ds,
-										(has_dbg_result ? dbg_result[i] : null),
-										(has_dbg_result ? dbg_mode : Default)
-									}));
-					}
-					break;
-
-				case ERenderLayer::PostProcess :
-					for (usize i = 0; i < instances.size(); ++i)
-					{
-						bool	has_dbg_result = (not dbg_result.empty()) and (dbg_result[i] != null);
-
-						CHECK_ERR( instances[i].geometry->PostProcess( IGeomSource::DrawData{
-										*_materials[i], dctx, ds,
-										(has_dbg_result ? dbg_result[i] : null),
-										(has_dbg_result ? dbg_mode : Default)
-									}));
-					}
-					break;
-
-				case ERenderLayer::_Count :
-					break;
+				case ERenderLayer::Translucent :	draw_fn = &IGeomSource::Draw;		break;
+				case ERenderLayer::PostProcess :	draw_fn = &IGeomSource::PostProcess;	break;
+				case ERenderLayer::_Count :			break;
 			}
 			switch_end
+
+			// draw
+			if ( draw_fn != null )
+			{
+				for (usize i = 0; i < instances.size(); ++i)
+				{
+					bool	has_dbg_result = (not dbg_result.empty()) and (dbg_result[i] != null);
+
+					CHECK_ERR( ((*instances[i].geometry).*draw_fn)( IGeomSource::DrawData{
+									*_materials[i], dctx, ds,
+									(has_dbg_result ? dbg_result[i]	: null),
+									(has_dbg_result ? pd.dbg.mode	: Default),
+									(has_dbg_result ? pd.dbg.stage	: Default)
+								}));
+				}
+			}
 
 			ctx.EndRenderPass( dctx );
 		}
@@ -118,11 +112,11 @@ namespace AE::ResEditor
 
 		// validate dimensions
 		{
-			const uint2		cur_dim = uint2{ _renderTargets.front().image->GetImageDesc().dimension };
+			const uint2		cur_dim = uint2{ _renderTargets.front().image->GetViewDimension() };
 
 			for (auto& rt : _renderTargets)
 			{
-				const uint2		dim = uint2{ rt.image->GetImageDesc().dimension };
+				const uint2		dim = uint2{ rt.image->GetViewDimension() };
 				CHECK_ERR( All( cur_dim == dim ));
 			}
 		}
@@ -227,6 +221,7 @@ namespace AE::ResEditor
 				inst.geometry->StateTransition( ctx );
 			}
 			_resources.SetStates( ctx, Default );
+			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
 			ctx.CommitBarriers();
 		}
 

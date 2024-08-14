@@ -17,17 +17,13 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	static void  GenerateMipmapsImpl (VulkanDeviceFn fn, VkCommandBuffer cmdbuf,
-									  VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges) __NE___
+									  VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges,
+									  VkPipelineStageFlags2 srcStageMask, VkAccessFlags2 srcAccessMask, VkImageLayout oldLayout) __NE___
 	{
 		VkImageMemoryBarrier2	img_bar	= {};
 		auto&					subres	= img_bar.subresourceRange;
 		img_bar.sType					= VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-		img_bar.srcStageMask			= VK_PIPELINE_STAGE_2_BLIT_BIT;
-		img_bar.srcAccessMask			= VK_ACCESS_2_NONE;
 		img_bar.dstStageMask			= VK_PIPELINE_STAGE_2_BLIT_BIT;
-		img_bar.dstAccessMask			= VK_ACCESS_2_NONE;
-		img_bar.oldLayout				= VK_IMAGE_LAYOUT_UNDEFINED;
-		img_bar.newLayout				= VK_IMAGE_LAYOUT_UNDEFINED;
 		img_bar.srcQueueFamilyIndex		= VK_QUEUE_FAMILY_IGNORED;
 		img_bar.dstQueueFamilyIndex		= VK_QUEUE_FAMILY_IGNORED;
 		img_bar.image					= image;
@@ -42,14 +38,29 @@ namespace AE::Graphics::_hidden_
 			subres.aspectMask		= VEnumCast( range.aspectMask );
 			subres.baseArrayLayer	= range.baseLayer.Get();
 			subres.layerCount		= range.layerCount;
+
+			if ( oldLayout != VK_IMAGE_LAYOUT_UNDEFINED )
+			{
+				// src state -> transfer_src
+				img_bar.srcStageMask	= srcStageMask;
+				img_bar.srcAccessMask	= srcAccessMask;
+				img_bar.dstAccessMask	= VK_ACCESS_2_TRANSFER_READ_BIT;
+				img_bar.oldLayout		= oldLayout;
+				img_bar.newLayout		= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+				subres.baseMipLevel		= range.baseMipLevel.Get();
+				subres.levelCount		= 1;
+				fn.vkCmdPipelineBarrier2KHR( cmdbuf, &barrier );
+			}
+
 			subres.baseMipLevel		= range.baseMipLevel.Get()+1;
 			subres.levelCount		= range.mipmapCount-1;
 
 			// undefined -> transfer_dst
+			img_bar.srcStageMask	= srcStageMask;
+			img_bar.srcAccessMask	= srcAccessMask;
+			img_bar.dstAccessMask	= VK_ACCESS_2_TRANSFER_WRITE_BIT;
 			img_bar.oldLayout		= VK_IMAGE_LAYOUT_UNDEFINED;
 			img_bar.newLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-			img_bar.srcAccessMask	= VK_ACCESS_2_NONE;
-			img_bar.dstAccessMask	= VK_ACCESS_2_TRANSFER_WRITE_BIT;
 			fn.vkCmdPipelineBarrier2KHR( cmdbuf, &barrier );
 
 			subres.levelCount		= 1;
@@ -73,10 +84,11 @@ namespace AE::Graphics::_hidden_
 									image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region, VK_FILTER_LINEAR );
 
 				// transfer_dst -> transfer_src
-				img_bar.oldLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-				img_bar.newLayout		= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+				img_bar.srcStageMask	= VK_PIPELINE_STAGE_2_BLIT_BIT;
 				img_bar.srcAccessMask	= VK_ACCESS_2_TRANSFER_WRITE_BIT;
 				img_bar.dstAccessMask	= VK_ACCESS_2_TRANSFER_READ_BIT;
+				img_bar.oldLayout		= VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+				img_bar.newLayout		= VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 				subres.baseMipLevel		= dst_mip;
 				fn.vkCmdPipelineBarrier2KHR( cmdbuf, &barrier );
 			}

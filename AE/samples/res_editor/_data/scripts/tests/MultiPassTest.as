@@ -57,7 +57,8 @@
 		float2 uv = fragCoord / iResolution.xy;
 		uv = Transform2D( un_PerPass.camera.viewProj, uv );
 
-		fragColor = 1.0 - gl.texture.Sample( iTexture2, 1.0 - uv );
+		fragColor.rgb = 1.0 - gl.texture.Sample( iTexture2, 1.0 - uv ).rgb;
+		fragColor.a = 1.0;
 	}
 
 #endif

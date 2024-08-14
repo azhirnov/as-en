@@ -11,13 +11,15 @@ namespace AE::Base
 {
 /*
 =================================================
-	ToString
+	ToString (EImageType)
 =================================================
 */
+#ifdef AE_ENABLE_LOGS
 	ND_ inline String  ToString (PipelineCompiler::EImageType type) __Th___
 	{
 		return PipelineCompiler::EImageType_ToString( type );
 	}
+#endif
 }
 
 namespace AE::Graphics

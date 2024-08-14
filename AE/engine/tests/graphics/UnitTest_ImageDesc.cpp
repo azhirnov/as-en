@@ -48,7 +48,7 @@ namespace
 	}
 
 
-	static void ImageDesc_Test3 ()
+	static void ImageDesc_Test2 ()
 	{
 		{
 			ImageDesc	desc;
@@ -57,13 +57,13 @@ namespace
 			desc.SetArrayLayers( 4 );
 
 			TEST( desc.imageDim == EImageDim_1D );
-			TEST( desc.maxLevel == 1_mipmap );
+			TEST( desc.mipLevels == 1_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 
 			desc.Validate();
 
 			TEST( desc.imageDim == EImageDim_1D );
-			TEST( desc.maxLevel == 1_mipmap );
+			TEST( desc.mipLevels == 1_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 		}
 		{
@@ -74,14 +74,14 @@ namespace
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.maxLevel == 1_mipmap );
+			TEST( desc.mipLevels == 1_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 
 			desc.Validate();
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.maxLevel == 1_mipmap );
+			TEST( desc.mipLevels == 1_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 		}
 		{
@@ -93,14 +93,14 @@ namespace
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.maxLevel == 16_mipmap );
+			TEST( desc.mipLevels == 16_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 
 			desc.Validate();
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.maxLevel == 4_mipmap );
+			TEST( desc.mipLevels == 4_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 		}
 		{
@@ -112,14 +112,14 @@ namespace
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.maxLevel == 1_mipmap );
+			TEST( desc.mipLevels == 1_mipmap );
 			TEST( desc.samples == 8_samples );
 
 			desc.Validate();
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.maxLevel == 1_mipmap );
+			TEST( desc.mipLevels == 1_mipmap );
 			TEST( desc.samples == 8_samples );
 		}
 
@@ -135,7 +135,7 @@ namespace
 			TEST( desc.viewType == Default );
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.maxLevel == 16_mipmap );
+			TEST( desc.mipLevels == 16_mipmap );
 			TEST( desc.samples == 4_samples );
 
 			desc.Validate();
@@ -143,9 +143,46 @@ namespace
 			TEST( desc.viewType == EImage_2DArray );
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
-			TEST( desc.maxLevel == 1_mipmap );
+			TEST( desc.mipLevels == 1_mipmap );
 			TEST( desc.samples == 4_samples );
 		}*/
+	}
+
+
+	static void ImageDesc_Test3 ()
+	{
+		{
+			ImageDesc	desc;
+			desc.format = EPixelFormat::RGBA8_UNorm;
+			desc.SetDimension( 16, 16 );
+			desc.SetAllMipmaps();
+			desc.Validate();
+
+			TEST( desc.imageDim == EImageDim_2D );
+			TEST( desc.mipLevels == 5_mipmap );
+			TEST( All( desc.dimension == uint3{16,16,1} ));
+
+		}{
+			ImageDesc	desc;
+			desc.format = EPixelFormat::RGBA8_UNorm;
+			desc.SetDimension( 15, 15 );
+			desc.SetAllMipmaps();
+			desc.Validate();
+
+			TEST( desc.imageDim == EImageDim_2D );
+			TEST( desc.mipLevels == 4_mipmap );
+			TEST( All( desc.dimension == uint3{15,15,1} ));
+		}{
+			ImageDesc	desc;
+			desc.format = EPixelFormat::RGBA8_UNorm;
+			desc.SetDimension( 17, 15 );
+			desc.SetAllMipmaps();
+			desc.Validate();
+
+			TEST( desc.imageDim == EImageDim_2D );
+			TEST( desc.mipLevels == 5_mipmap );
+			TEST( All( desc.dimension == uint3{17,15,1} ));
+		}
 	}
 
 
@@ -305,6 +342,7 @@ namespace
 extern void UnitTest_ImageDesc ()
 {
 	ImageDesc_Test1();
+	ImageDesc_Test2();
 	ImageDesc_Test3();
 
 	ImageView_Test1();

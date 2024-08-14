@@ -59,14 +59,14 @@ namespace
 		PlacementNew< packed_float4 >( OUT mem, c );
 	}
 
-	static RGBA8u  Ctor_ARGB (uint u)
+	static void  RGBA8u_FromUIntARGB (RGBA8u &self, uint u)
 	{
-		return RGBA8u{ ubyte((u >> 16) & 0xFF), ubyte((u >> 8) & 0xFF), ubyte((u >> 0) & 0xFF), ubyte((u >> 24) & 0xFF) };
+		self = RGBA8u{ ubyte((u >> 16) & 0xFF), ubyte((u >> 8) & 0xFF), ubyte((u >> 0) & 0xFF), ubyte((u >> 24) & 0xFF) };
 	}
 
-	static RGBA8u  Ctor_RGBA (uint u)
+	static void  RGBA8u_FromUIntRGBA (RGBA8u &self, uint u)
 	{
-		return RGBA8u{ ubyte((u >> 24) & 0xFF), ubyte((u >> 16) & 0xFF), ubyte((u >> 8) & 0xFF), ubyte((u >> 0) & 0xFF) };
+		self = RGBA8u{ ubyte((u >> 24) & 0xFF), ubyte((u >> 16) & 0xFF), ubyte((u >> 8) & 0xFF), ubyte((u >> 0) & 0xFF) };
 	}
 
 	static RGBA32f  RGBA32f_mul_RGBA32f (const RGBA32f &lhs, const RGBA32f &rhs)
@@ -119,6 +119,21 @@ namespace
 		return RainbowWrap( factor );
 	}
 
+	static uint  RGBA8u_ToUInt (const RGBA8u &col)
+	{
+		return BitCast<uint>( col );
+	}
+
+	static RGBA32f&  RGBA32f_OpaqueBlack (RGBA32f &self)
+	{
+		return self = RGBA32f{ 0.f, 0.f, 0.f, 1.f };
+	}
+
+	static RGBA8u&  RGBA8u_OpaqueBlack (RGBA8u &self)
+	{
+		return self = RGBA8u{ 0, 0, 0, 255 };
+	}
+
 /*
 =================================================
 	BindRGBAColor
@@ -141,13 +156,14 @@ namespace
 		binder.Operators()
 			.Equal( &T::operator== );
 
-		if constexpr( IsSameTypes< typename T::value_type, float >)
+		if constexpr( IsSameTypes< T, RGBA32f >)
 		{
-			se->AddFunction( &RGBA32f_Lerp,				"Lerp",				{"x", "y", "factor"} );
-			se->AddFunction( &RGBA32f_AdjustContrast,	"AdjustContrast",	{"col", "factor"} );
-			se->AddFunction( &RGBA32f_Luminance,		"Luminance",		{"col"} );
-			se->AddFunction( &RGBA32f_Rainbow,			"Rainbow",			{"factor"} );
-			se->AddFunction( &RGBA32f_RainbowWrap,		"RainbowWrap",		{"factor"} );
+			binder.AddMethodFromGlobal( &RGBA32f_Luminance,		"Luminance",		{} );
+			binder.AddMethodFromGlobal( &RGBA32f_OpaqueBlack,	"OpaqueBlack",		{} );
+			se->AddFunction( &RGBA32f_Lerp,						"Lerp",				{"x", "y", "factor"} );
+			se->AddFunction( &RGBA32f_AdjustContrast,			"AdjustContrast",	{"col", "factor"} );
+			se->AddFunction( &RGBA32f_Rainbow,					"Rainbow",			{"factor"} );
+			se->AddFunction( &RGBA32f_RainbowWrap,				"RainbowWrap",		{"factor"} );
 
 			binder.Operators()
 				.Binary( EBinaryOperator::Mul, &RGBA32f_mul_RGBA32f );
@@ -159,12 +175,16 @@ namespace
 			}
 		}
 
-		if constexpr( IsSameTypes< typename T::value_type, ubyte >)
+		if constexpr( IsSameTypes< T, RGBA8u >)
 		{
-			se->AddFunction( &RGBA8u_AdjustContrast,	"AdjustContrast",	{"col", "factor"} );
-			se->AddFunction( &RGBA8u_Luminance,			"Luminance",		{"col"} );
-			se->AddFunction( &RGBA8u_AdjustSaturation,	"AdjustSaturation",	{"col", "factor"} );
-			se->AddFunction( &RGBA8u_Lerp,				"Lerp",				{"x", "y", "factor"} );
+			se->AddFunction( &RGBA8u_AdjustContrast,			"AdjustContrast",	{"col", "factor"} );
+			se->AddFunction( &RGBA8u_AdjustSaturation,			"AdjustSaturation",	{"col", "factor"} );
+			se->AddFunction( &RGBA8u_Lerp,						"Lerp",				{"x", "y", "factor"} );
+			se->AddFunction( &RGBA8u_OpaqueBlack,				"OpaqueBlack",		{} );
+			binder.AddMethodFromGlobal( &RGBA8u_Luminance,		"Luminance",		{} );
+			binder.AddMethodFromGlobal( &RGBA8u_ToUInt,			"ToUInt",			{} );
+			binder.AddMethodFromGlobal( &RGBA8u_FromUIntARGB,	"FromUintARGB",		{} );
+			binder.AddMethodFromGlobal( &RGBA8u_FromUIntRGBA,	"FromUint",			{} );
 		}
 	}
 
@@ -199,9 +219,6 @@ namespace
 			binder.AddConstructor( &RGBA8u_Ctor_RGBA<int>,		{"c"} );
 			binder.AddConstructor( &RGBA8u_Ctor_RGBA<uint>,		{"c"} );
 			binder.AddConstructor( &RGBA8u_Ctor_RGBA<float>,	{"c"} );
-
-			se->AddFunction( &Ctor_ARGB,	"asARGB",	{} );
-			se->AddFunction( &Ctor_RGBA,	"asRGBA",	{} );
 		}
 	}
 

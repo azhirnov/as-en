@@ -28,7 +28,7 @@
 # define VMA_USE_STL_SHARED_MUTEX			1
 
 # define VMA_IMPLEMENTATION					1
-# define VMA_ASSERT							ASSERT
+# define VMA_ASSERT( ... )					ASSERT( bool(__VA_ARGS__) )
 
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (push, 0)
@@ -54,15 +54,15 @@
 
 # include "vk_mem_alloc.h"
 
-#ifdef AE_COMPILER_MSVC
+# ifdef AE_COMPILER_MSVC
 #	pragma warning (pop)
-#endif
-#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+# endif
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic pop
-#endif
-#ifdef AE_COMPILER_GCC
+# endif
+# ifdef AE_COMPILER_GCC
 #	pragma GCC diagnostic pop
-#endif
+# endif
 
 # define USE_AE_MEM_SELECTOR		1
 
@@ -331,30 +331,31 @@ namespace {
 	{
 		VkDevice				dev		= _device.GetVkDevice();
 		VmaVulkanFunctions		funcs	= {};
+		auto&					vk_fn	= *_device._GetVkTable();
 
 		funcs.vkGetInstanceProcAddr					= _var_vkGetInstanceProcAddr;
 		funcs.vkGetDeviceProcAddr					= _var_vkGetDeviceProcAddr;
 		funcs.vkGetPhysicalDeviceProperties			= _var_vkGetPhysicalDeviceProperties;
 		funcs.vkGetPhysicalDeviceMemoryProperties	= _var_vkGetPhysicalDeviceMemoryProperties;
-		funcs.vkAllocateMemory						= _device._GetVkTable()->_var_vkAllocateMemory;
-		funcs.vkFreeMemory							= _device._GetVkTable()->_var_vkFreeMemory;
-		funcs.vkMapMemory							= _device._GetVkTable()->_var_vkMapMemory;
-		funcs.vkUnmapMemory							= _device._GetVkTable()->_var_vkUnmapMemory;
-		funcs.vkFlushMappedMemoryRanges				= _device._GetVkTable()->_var_vkFlushMappedMemoryRanges;
-		funcs.vkInvalidateMappedMemoryRanges		= _device._GetVkTable()->_var_vkInvalidateMappedMemoryRanges;
-		funcs.vkBindBufferMemory					= _device._GetVkTable()->_var_vkBindBufferMemory;
-		funcs.vkBindImageMemory						= _device._GetVkTable()->_var_vkBindImageMemory;
-		funcs.vkGetBufferMemoryRequirements			= _device._GetVkTable()->_var_vkGetBufferMemoryRequirements;
-		funcs.vkGetImageMemoryRequirements			= _device._GetVkTable()->_var_vkGetImageMemoryRequirements;
-		funcs.vkGetBufferMemoryRequirements2KHR		= _device._GetVkTable()->_var_vkGetBufferMemoryRequirements2KHR;
-		funcs.vkGetImageMemoryRequirements2KHR		= _device._GetVkTable()->_var_vkGetImageMemoryRequirements2KHR;
-		funcs.vkCreateBuffer						= _device._GetVkTable()->_var_vkCreateBuffer;
-		funcs.vkDestroyBuffer						= _device._GetVkTable()->_var_vkDestroyBuffer;
-		funcs.vkCreateImage							= _device._GetVkTable()->_var_vkCreateImage;
-		funcs.vkDestroyImage						= _device._GetVkTable()->_var_vkDestroyImage;
-		funcs.vkCmdCopyBuffer						= _device._GetVkTable()->_var_vkCmdCopyBuffer;
-		funcs.vkBindBufferMemory2KHR				= _device._GetVkTable()->_var_vkBindBufferMemory2KHR;
-		funcs.vkBindImageMemory2KHR					= _device._GetVkTable()->_var_vkBindImageMemory2KHR;
+		funcs.vkAllocateMemory						= vk_fn._var_vkAllocateMemory;
+		funcs.vkFreeMemory							= vk_fn._var_vkFreeMemory;
+		funcs.vkMapMemory							= vk_fn._var_vkMapMemory;
+		funcs.vkUnmapMemory							= vk_fn._var_vkUnmapMemory;
+		funcs.vkFlushMappedMemoryRanges				= vk_fn._var_vkFlushMappedMemoryRanges;
+		funcs.vkInvalidateMappedMemoryRanges		= vk_fn._var_vkInvalidateMappedMemoryRanges;
+		funcs.vkBindBufferMemory					= vk_fn._var_vkBindBufferMemory;
+		funcs.vkBindImageMemory						= vk_fn._var_vkBindImageMemory;
+		funcs.vkGetBufferMemoryRequirements			= vk_fn._var_vkGetBufferMemoryRequirements;
+		funcs.vkGetImageMemoryRequirements			= vk_fn._var_vkGetImageMemoryRequirements;
+		funcs.vkGetBufferMemoryRequirements2KHR		= vk_fn._var_vkGetBufferMemoryRequirements2KHR;
+		funcs.vkGetImageMemoryRequirements2KHR		= vk_fn._var_vkGetImageMemoryRequirements2KHR;
+		funcs.vkCreateBuffer						= vk_fn._var_vkCreateBuffer;
+		funcs.vkDestroyBuffer						= vk_fn._var_vkDestroyBuffer;
+		funcs.vkCreateImage							= vk_fn._var_vkCreateImage;
+		funcs.vkDestroyImage						= vk_fn._var_vkDestroyImage;
+		funcs.vkCmdCopyBuffer						= vk_fn._var_vkCmdCopyBuffer;
+		funcs.vkBindBufferMemory2KHR				= vk_fn._var_vkBindBufferMemory2KHR;
+		funcs.vkBindImageMemory2KHR					= vk_fn._var_vkBindImageMemory2KHR;
 		funcs.vkGetPhysicalDeviceMemoryProperties2KHR = _var_vkGetPhysicalDeviceMemoryProperties2KHR;
 		funcs.vkGetDeviceBufferMemoryRequirements	= null;
 		funcs.vkGetDeviceImageMemoryRequirements	= null;

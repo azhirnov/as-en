@@ -4,6 +4,11 @@
 
 set( GLSLANG_PATH "${AE_DST_PATH}/glslang" )
 
+if (NOT EXISTS "${GLSLANG_PATH}/lib")
+	message( FATAL_ERROR "'${GLSLANG_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "GLSLang-lib" INTERFACE )
 target_include_directories( "GLSLang-lib" INTERFACE "${GLSLANG_PATH}/include" )
 target_compile_definitions( "GLSLang-lib" INTERFACE "AE_ENABLE_GLSLANG" "ENABLE_OPT" "AE_LICENSE_BSD" )
@@ -46,6 +51,7 @@ set_property( TARGET "GLSLang-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 	$<$<CONFIG:Debug>: "${GLSLANG_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}OSDependentd${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 	$<$<CONFIG:Debug>: "${GLSLANG_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}GenericCodeGend${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 )
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.GLSLang" "tests/main.cpp" )

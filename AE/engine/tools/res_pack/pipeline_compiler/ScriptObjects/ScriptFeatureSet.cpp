@@ -51,15 +51,22 @@ namespace
 	using VRSTexelSize			= Graphics::FeatureSet::VRSTexelSize;
 	using EFeature				= Graphics::FeatureSet::EFeature;
 
-	template <typename T>	struct FS_ReplaceType					{ using dst = T;	using src = T;				};
-	template <>				struct FS_ReplaceType< ubyte >			{ using dst = uint;	using src = ubyte;			};
-	template <>				struct FS_ReplaceType< ushort >			{ using dst = uint;	using src = ushort;			};
-	template <>				struct FS_ReplaceType< EShaderStages >	{ using dst = uint;	using src = EShaderStages;	};
-	template <>				struct FS_ReplaceType< ESubgroupTypes >	{ using dst = uint;	using src = ESubgroupTypes;	};
+	template <typename T>	struct FS_ReplaceInType						{ using dst = T;	using src = T;				};
+	template <>				struct FS_ReplaceInType< ubyte >			{ using dst = uint;	using src = ubyte;			};
+	template <>				struct FS_ReplaceInType< ushort >			{ using dst = uint;	using src = ushort;			};
+	template <>				struct FS_ReplaceInType< EShaderStages >	{ using dst = uint;	using src = EShaderStages;	};
+	template <>				struct FS_ReplaceInType< ESubgroupTypes >	{ using dst = uint;	using src = ESubgroupTypes;	};
 
-	#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ ) \
-		static void  Set_FS_ ## _name_ (ScriptFeatureSet* ptr, const typename FS_ReplaceType<_type_>::dst val) {\
-			ptr->fs._name_ = typename FS_ReplaceType<_type_>::src( val );\
+	template <typename T>	struct FS_ReplaceOutType					{ using dst = T;	static T	Cast (T src)		{ return src; }};
+	template <>				struct FS_ReplaceOutType< EFeature >		{ using dst = bool;	static dst	Cast (EFeature src)	{ return src == EFeature::RequireTrue; }};
+
+
+	#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )															\
+		static void  Set_FS_ ## _name_ (ScriptFeatureSet* ptr, const typename FS_ReplaceInType<_type_>::dst val) {	\
+			ptr->fs._name_ = typename FS_ReplaceInType<_type_>::src( val );											\
+		}																											\
+		static typename FS_ReplaceOutType<_type_>::dst  Get_FS_ ## _name_ (ScriptFeatureSet* ptr) {					\
+			 return FS_ReplaceOutType<_type_>::Cast( ptr->fs._name_ );											\
 		}
 	AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
 	#undef AE_FEATURE_SET_VISIT
@@ -383,7 +390,11 @@ namespace
 
 			const auto	ToMethodName = [] (StringView prefix, String s)
 			{{
-				//s[0] = ToUpperCase( s[0] );
+				return String{prefix} + s;
+			}};
+			const auto	ToMethodName2 = [] (StringView prefix, String s)
+			{{
+				s[0] = ToUpperCase( s[0] );
 				return String{prefix} + s;
 			}};
 
@@ -426,7 +437,11 @@ namespace
 							  (not IsSameTypes< _type_, Queues					>)	and	\
 							  (not IsSameTypes< _type_, ShadingRateSet_t		>)	and	\
 							  (not IsSameTypes< _type_, VRSTexelSize			>))		\
-					binder.AddMethodFromGlobalObjFirst( &Set_FS_ ## _name_, ToMethodName( "", AE_TOSTRING( _name_ )), {} );
+					binder.AddMethodFromGlobalObjFirst( &Set_FS_ ## _name_, ToMethodName( "", AE_TOSTRING( _name_ )), {} );\
+				\
+				if constexpr( IsSameTypes< _type_, EFeature >)\
+					binder.AddMethodFromGlobalObjFirst( &Get_FS_ ## _name_, ToMethodName2( "has", AE_TOSTRING( _name_ )), {} );
+
 			AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
 			#undef AE_FEATURE_SET_VISIT
 

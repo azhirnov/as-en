@@ -22,7 +22,8 @@ if (TARGET "GLSLang-lib")
 			"${GRAPHICS_DIR}/Private/FeatureSet.cpp"
 			"${GRAPHICS_DIR}/Private/RenderState.cpp"
 			"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
-			"${GRAPHICS_DIR}/Private/ImageDesc.cpp" )
+			"${GRAPHICS_DIR}/Private/ImageDesc.cpp"
+			"${GRAPHICS_DIR}/Private/BufferDesc.cpp" )
 		if (${HAS_VULKAN_HEADERS})
 			set( GRAPHICS_CPP_SRC ${GRAPHICS_CPP_SRC} "${GRAPHICS_DIR}/Vulkan/VEnumCast.cpp" )
 		endif()

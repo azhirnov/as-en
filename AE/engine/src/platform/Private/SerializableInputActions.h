@@ -175,6 +175,8 @@ namespace AE::App
 
 		ND_ bool  Merge (const SerializableInputActions &other);
 
+		ND_ bool  HasHashCollisions ()									C_NE___	{ return _hashCollisionCheck.HasCollisions(); }
+
 		ND_ virtual String		ToString (const Reflection &refl)		C_Th___;
 		ND_ virtual StringView	GetApiName ()							C_NE___ = 0;
 

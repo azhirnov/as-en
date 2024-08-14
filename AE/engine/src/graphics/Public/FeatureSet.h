@@ -162,7 +162,9 @@ namespace AE::Graphics
 		_visitor_( EFeature,			subgroup,								: 2 )\
 		_visitor_( EFeature,			subgroupBroadcastDynamicId,				: 2 )	/* GL_ARB_shader_ballot																*/\
 		_visitor_( EFeature,			subgroupSizeControl,					: 2 )\
-		_visitor_( EFeature,			shaderSubgroupUniformControlFlow,		: 2 )	/* GL_EXT_subgroupuniform_qualifier													*/\
+		_visitor_( EFeature,			shaderSubgroupUniformControlFlow,		: 2 )	/* GL_EXT_subgroupuniform_qualifier, GL_EXT_subgroup_uniform_control_flow			*/\
+		_visitor_( EFeature,			shaderMaximalReconvergence,				: 2 )	/* GL_EXT_maximal_reconvergence														*/\
+		_visitor_( EFeature,			shaderQuadControl,						: 2 )	/* GL_EXT_shader_quad_control														*/\
 		/* types */\
 		_visitor_( EFeature,			shaderInt8,								: 2 )	/* GL_EXT_shader_8bit_storage														*/\
 		_visitor_( EFeature,			shaderInt16,							: 2 )	/* GL_EXT_shader_16bit_storage														*/\
@@ -239,13 +241,18 @@ namespace AE::Graphics
 		_visitor_( EFeature,			shaderUniformTexelBufferArrayDynamicIndexing,	: 2 )\
 		_visitor_( EFeature,			shaderStorageTexelBufferArrayDynamicIndexing,	: 2 )\
 		/* non uniform indexing */\
-		_visitor_( EFeature,			shaderUniformBufferArrayNonUniformIndexing,		: 2 )	/*\									+ shaderUniformBufferArrayNonUniformIndexingNative		*/\
-		_visitor_( EFeature,			shaderSampledImageArrayNonUniformIndexing,		: 2 )	/*-|								+ shaderSampledImageArrayNonUniformIndexingNative		*/\
-		_visitor_( EFeature,			shaderStorageBufferArrayNonUniformIndexing,		: 2 )	/*-|								+ shaderStorageBufferArrayNonUniformIndexingNative		*/\
-		_visitor_( EFeature,			shaderStorageImageArrayNonUniformIndexing,		: 2 )	/*-|-- GL_EXT_nonuniform_qualifier	+ shaderStorageImageArrayNonUniformIndexingNative		*/\
-		_visitor_( EFeature,			shaderInputAttachmentArrayNonUniformIndexing,	: 2 )	/*-|								+ shaderInputAttachmentArrayNonUniformIndexingNative	*/\
-		_visitor_( EFeature,			shaderUniformTexelBufferArrayNonUniformIndexing,: 2 )	/*-|																		*/\
-		_visitor_( EFeature,			shaderStorageTexelBufferArrayNonUniformIndexing,: 2 )	/*/																			*/\
+		_visitor_( EFeature,			shaderUniformBufferArrayNonUniformIndexing,			: 2 )	/*\																		*/\
+		_visitor_( EFeature,			shaderSampledImageArrayNonUniformIndexing,			: 2 )	/*-|																	*/\
+		_visitor_( EFeature,			shaderStorageBufferArrayNonUniformIndexing,			: 2 )	/*-|																	*/\
+		_visitor_( EFeature,			shaderStorageImageArrayNonUniformIndexing,			: 2 )	/*-|-- GL_EXT_nonuniform_qualifier										*/\
+		_visitor_( EFeature,			shaderInputAttachmentArrayNonUniformIndexing,		: 2 )	/*-|																	*/\
+		_visitor_( EFeature,			shaderUniformTexelBufferArrayNonUniformIndexing,	: 2 )	/*-|																	*/\
+		_visitor_( EFeature,			shaderStorageTexelBufferArrayNonUniformIndexing,	: 2 )	/*-|																	*/\
+		_visitor_( EFeature,			shaderUniformBufferArrayNonUniformIndexingNative,	: 2 )	/*-|\																	*/\
+		_visitor_( EFeature,			shaderSampledImageArrayNonUniformIndexingNative,	: 2 )	/*-|-|																	*/\
+		_visitor_( EFeature,			shaderStorageBufferArrayNonUniformIndexingNative,	: 2 )	/*-|-|-- without native support branching will be used					*/\
+		_visitor_( EFeature,			shaderStorageImageArrayNonUniformIndexingNative,	: 2 )	/*-|-|																	*/\
+		_visitor_( EFeature,			shaderInputAttachmentArrayNonUniformIndexingNative, : 2 )	/*/-/																	*/\
 		/* storage image format */\
 		_visitor_( EFeature,			shaderStorageImageMultisample,					: 2 )\
 		_visitor_( EFeature,			shaderStorageImageReadWithoutFormat,			: 2 )\
@@ -506,7 +513,7 @@ namespace AE::Graphics
 
 namespace AE::Base
 {
-	template <> struct TMemCopyAvailable< AE::Graphics::FeatureSet >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Graphics::FeatureSet >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::FeatureSet >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Graphics::FeatureSet >	: CT_True {};
 
 } // AE::Base

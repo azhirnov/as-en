@@ -66,6 +66,7 @@ void ASmain ()
 	fset.shaderDrawParameters (True);
 	fset.runtimeDescriptorArray (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
+	fset.shaderStencilExport (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageArrayDynamicIndexing (True);
@@ -78,6 +79,9 @@ void ASmain ()
 	fset.shaderInputAttachmentArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
+	fset.shaderSampledImageArrayNonUniformIndexingNative (True);
+	fset.shaderStorageImageArrayNonUniformIndexingNative (True);
+	fset.shaderInputAttachmentArrayNonUniformIndexingNative (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.rayQuery (True);
@@ -183,6 +187,8 @@ void ASmain ()
 	fset.textureCompressionBC (True);
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewFormatList (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U

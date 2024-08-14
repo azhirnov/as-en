@@ -42,20 +42,40 @@ namespace AE::Graphics
 
 /*
 =================================================
+	InvalidateMappedMemory
+----
+	vkInvalidateMappedMemoryRanges performs a visibility operation, with a source scope of the host domain and
+	a destination scope of (agents,references) = (all host threads, all mapped memory ranges passed to the command).
+=================================================
+*/
+	void  VStagingBufferManager::InvalidateMappedMemory (FrameUID frameId) __NE___
+	{
+		EXLOCK( _memRanges.guard );
+		auto&	ranges = _memRanges.ranges[ frameId.Index() ];
+
+		if ( not ranges.empty() )
+		{
+			auto&	dev = _resMngr.GetDevice();
+			VK_CHECK( dev.vkInvalidateMappedMemoryRanges( dev.GetVkDevice(), uint(ranges.size()), ranges.data() ));
+			ranges.clear();
+		}
+	}
+
+/*
+=================================================
 	_CreateStaticBuffers
 =================================================
 */
 	bool  VStagingBufferManager::_CreateStaticBuffers (const GraphicsCreateInfo &info) __NE___
 	{
-		auto&		dev			= _resMngr.GetDevice();
-		auto&		mem_types	= dev.GetResourceFlags().memTypes;
-		const auto	q_mask		= dev.GetAvailableQueues();
+		auto&	dev			= _resMngr.GetDevice();
+		auto&	mem_types	= dev.GetResourceFlags().memTypes;
 
 		_static.writeSize	= info.staging.writeStaticSize;
 		_static.readSize	= info.staging.readStaticSize;
 
-		_static.buffersForWrite.resize( info.maxFrames * _QueueCount );
-		_static.buffersForRead.resize( info.maxFrames * _QueueCount );
+		_static.buffersForWrite.resize( info.maxFrames );
+		_static.buffersForRead.resize( info.maxFrames+1 );
 
 		Bytes	mem_align;
 		{
@@ -74,19 +94,8 @@ namespace AE::Graphics
 			mem_align = Bytes{mem_req2.memoryRequirements.alignment};
 		}
 
-		Bytes	total_write_size;
-		Bytes	total_read_size;
-
-		for (uint i = 0; i < _QueueCount; ++i)
-		{
-			if ( not AllBits( q_mask, EQueueMask(1u << i) ))
-				continue;
-
-			total_write_size = AlignUp( total_write_size + _static.writeSize[i], mem_align );
-			total_read_size  = AlignUp( total_read_size  + _static.readSize[i],  mem_align );
-		}
-		total_write_size *= info.maxFrames;
-		total_read_size  *= info.maxFrames;
+		const Bytes	total_write_size	= AlignUp( _static.writeSize, mem_align ) * uint(_static.buffersForWrite.size());
+		const Bytes	total_read_size		= AlignUp( _static.readSize,  mem_align ) * uint(_static.buffersForRead.size());
 
 		if ( total_write_size == 0_b and total_read_size == 0_b )
 			return true;
@@ -95,22 +104,17 @@ namespace AE::Graphics
 		auto		r_allocator = MakeRC<VLinearMemAllocator>( total_read_size );
 		EMemoryType	mem_type;
 
-		const auto	CreateStaticBuffer = [this, q_mask, &mem_type]
+		const auto	CreateStaticBuffer = [this, &mem_type]
 										 (OUT StaticBuffer& sb, INOUT VkDeviceMemory &mem, Bytes size, usize idx, GfxMemAllocatorPtr alloc, const char* name) -> bool
 		{{
-			const auto	q_idx = (idx % _QueueCount);
-
-			if ( not AllBits( q_mask, EQueueMask(1u << q_idx) ) or size == 0 )
-				return true;	// skip
-
 			BufferDesc	desc;
 			desc.usage		= EBufferUsage::Transfer;
 			desc.size		= size;
 			desc.memType	= mem_type;
 
 			String	dbg_name;
-			GFX_DBG_ONLY( dbg_name = String{name} << " {f:" << ToString(idx / _QueueCount) << "} {q:" << ToString(EQueueType(q_idx)) << "}";)
-			Unused( name );
+			GFX_DBG_ONLY( dbg_name = String{name} << " {f:" << ToString(idx) << "}";)
+			Unused( name, idx );
 
 			sb.bufferId = _resMngr.CreateBuffer( desc, dbg_name, RVRef(alloc) );
 			CHECK_ERR( sb.bufferId );
@@ -141,21 +145,23 @@ namespace AE::Graphics
 			CHECK( mem_types.contains( EMemoryType::HostCoherent ));
 
 			for (usize i = 0; i < _static.buffersForWrite.size(); ++i)
-				CHECK_ERR( CreateStaticBuffer( OUT _static.buffersForWrite[i], INOUT _static.memoryForWrite, _static.writeSize[i % _QueueCount], i, w_allocator, "SSWB" ));
+				CHECK_ERR( CreateStaticBuffer( OUT _static.buffersForWrite[i], INOUT _static.memoryForWrite, _static.writeSize, i, w_allocator, "SSWB" ));
 		}
 
 		if ( total_read_size > 0 )
 		{
-			if ( mem_types.contains( EMemoryType::HostCached ))
-				mem_type = EMemoryType::HostCached;	// better performance for read access on host
-			else
 			if ( mem_types.contains( EMemoryType::HostCachedCoherent ))
-				mem_type = EMemoryType::HostCachedCoherent;
+				mem_type = EMemoryType::HostCachedCoherent;	// better performance for read access on host
+			else
+			if ( mem_types.contains( EMemoryType::HostCached ))
+				mem_type = EMemoryType::HostCached;			// better performance for read access on host
 			else
 				mem_type = EMemoryType::HostCoherent;
 
-			for (usize i = 0; i < _static.buffersForWrite.size(); ++i)
-				CHECK_ERR( CreateStaticBuffer( OUT _static.buffersForRead[i],  INOUT _static.memoryForRead,  _static.readSize[i % _QueueCount],  i, r_allocator, "SSRB" ));
+			_static.isReadNonCoherent = EMemoryType_IsNonCoherent( mem_type );
+
+			for (usize i = 0; i < _static.buffersForRead.size(); ++i)
+				CHECK_ERR( CreateStaticBuffer( OUT _static.buffersForRead[i],  INOUT _static.memoryForRead,  _static.readSize,  i, r_allocator, "SSRB" ));
 		}
 
 		CHECK( w_allocator->GetStatistic().pageCount == 1 );

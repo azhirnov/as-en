@@ -29,7 +29,7 @@ namespace AE::ResEditor
 	{
 		DebugModeBits	result;
 		for (auto& [key, ppln] : pipelineMap) {
-			result.insert( key.second );
+			result.insert( key.Get<EDebugMode>() );
 		}
 		return result;
 	}
@@ -57,14 +57,7 @@ namespace AE::ResEditor
 */
 	void  UnifiedGeometry::PrepareForDebugging (INOUT DebugPrepareData &dd) __Th___
 	{
-		// TODO: array of dbgStorage
 		ASSERT( dd.dbg.IsEnabled() );
-
-		/*if ( _drawCommands.size() > 1 )
-		{
-			AE_LOGW( "shader debugging is not supported for multiple draw calls" );
-			return;	// not supported yet
-		}*/
 
 		dd.outDbgStorage = dd.allocator.Allocate< ShaderDebugger::Result >( _drawCommands.size() );
 		CHECK_ERRV( dd.outDbgStorage != null );
@@ -75,7 +68,7 @@ namespace AE::ResEditor
 
 		for (usize i = 0; i < _drawCommands.size(); ++i)
 		{
-			auto	it = mtr.pipelineMap.find( MakePair( i, dd.dbg.mode ));
+			auto	it = mtr.pipelineMap.find( Tuple{ i, dd.dbg.mode, dd.dbg.stage });
 			if ( it != mtr.pipelineMap.end() )
 			{
 				auto	[it2, inserted]	= dd.pplnToObjId.emplace( it->second, i );
@@ -83,9 +76,23 @@ namespace AE::ResEditor
 
 				if ( inserted ) {
 					Visit( it->second,
-						[&] (GraphicsPipelineID ppln)	{ CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln )); },
-						[&] (MeshPipelineID ppln)		{ CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln )); },
-						[] (NullUnion)					{ CHECK_MSG( false, "pipeline is not defined" ); }
+						[&] (GraphicsPipelineID ppln) {
+							if ( AllBits( dd.dbg.stage, EShaderStages::Fragment )) {
+								CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln, dd.dbgCoord ));
+							}else{
+								CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln ));
+							}
+						},
+						[&] (MeshPipelineID ppln) {
+							if ( AllBits( dd.dbg.stage, EShaderStages::Fragment )) {
+								CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln, dd.dbgCoord ));
+							}else{
+								CHECK( dd.dbg.debugger->AllocForGraphics( OUT dbg_storage, dd.ctx, ppln ));
+							}
+						},
+						[] (NullUnion) {
+							CHECK_MSG( false, "pipeline is not defined" );
+						}
 					);
 				}else{
 					dbg_storage = dd.outDbgStorage[ it2->second ];
@@ -179,9 +186,7 @@ namespace AE::ResEditor
 
 		for (usize i = 0; i < _drawCommands.size(); ++i)
 		{
-			const EDebugMode	dbg_mode	= in.IsDebuggerEnabled( i ) ? in.dbgMode : Default;
-			auto				ppln_it		= mtr.pipelineMap.find( MakePair( i, dbg_mode ));
-
+			auto	ppln_it = mtr.pipelineMap.find( Tuple{ i, in.GetDebugMode(i), in.GetDebugStages(i) });
 			if ( ppln_it == mtr.pipelineMap.end() )
 				continue;
 

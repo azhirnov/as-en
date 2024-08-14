@@ -19,10 +19,6 @@
 #include "Perf_Common.h"
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "threading/TaskSystem/ThreadManager.h"
-
-#include "base/Math/Vec.h"
-#include "base/Algorithms/StringUtils.h"
-#include "base/Platforms/Platform.h"
 #include "PerlinNoise.hpp"
 
 namespace
@@ -53,8 +49,11 @@ namespace
 
 	class FinalTask final : public IAsyncTask
 	{
+	private:
+		const HashVal	_hash;
+
 	public:
-		FinalTask () __NE___ : IAsyncTask{ETaskQueue::PerFrame} {}
+		FinalTask (HashVal h) __NE___ : IAsyncTask{ETaskQueue::PerFrame}, _hash{h} {}
 
 		void Run () __Th_OV
 		{
@@ -73,12 +72,13 @@ namespace
 	private:
 		const uint2		_cell;
 		const uint		_level;
+		const HashVal	_hash;
 		HeightMap_t		_result;
 
 	public:
-		LargeTask1 (const uint2 &cell, uint level) __NE___ :
+		LargeTask1 (const uint2 &cell, uint level, HashVal h = Default) __NE___ :
 			IAsyncTask{ ETaskQueue::PerFrame },
-			_cell{ cell }, _level{ level }, _result{ MakeRC<HeightMap>() }
+			_cell{ cell }, _level{ level }, _hash{ h }, _result{ MakeRC<HeightMap>() }
 		{}
 
 	private:
@@ -98,16 +98,19 @@ namespace
 			task_payload_time.fetch_add( (TimePoint_t::clock::now() - start).count() );
 			task_counter.fetch_add( 1 );
 
+			HashVal	h = _hash + HashOf(_result->data);
+			Unused( h );
+
 			if ( _level < max_levels )
 			{
-				Scheduler().Run<LargeTask1>( Tuple{_cell * 2 + uint2(0,0), _level+1} );
-				Scheduler().Run<LargeTask1>( Tuple{_cell * 2 + uint2(0,1), _level+1} );
-				Scheduler().Run<LargeTask1>( Tuple{_cell * 2 + uint2(1,0), _level+1} );
-				Scheduler().Run<LargeTask1>( Tuple{_cell * 2 + uint2(1,1), _level+1} );
+				Scheduler().Run<LargeTask1>( Tuple{ _cell * 2 + uint2(0,0), _level+1, h });
+				Scheduler().Run<LargeTask1>( Tuple{ _cell * 2 + uint2(0,1), _level+1, h });
+				Scheduler().Run<LargeTask1>( Tuple{ _cell * 2 + uint2(1,0), _level+1, h });
+				Scheduler().Run<LargeTask1>( Tuple{ _cell * 2 + uint2(1,1), _level+1, h });
 			}
 			else
 			{
-				Scheduler().Run<FinalTask>();
+				Scheduler().Run<FinalTask>( Tuple{h} );
 			}
 		}
 
@@ -174,12 +177,13 @@ namespace
 	private:
 		const uint2		_cell;
 		const uint		_level;
+		const HashVal	_hash;
 		HeightMap_t		_result;
 
 	public:
-		LargeTask2 (const uint2 &cell, uint level) __NE___ :
+		LargeTask2 (const uint2 &cell, uint level, HashVal h = Default) __NE___ :
 			IAsyncTask{ ETaskQueue::PerFrame },
-			_cell{ cell }, _level{ level }, _result{ MakeRC<HeightMap>() }
+			_cell{ cell }, _level{ level }, _hash{ h }, _result{ MakeRC<HeightMap>() }
 		{}
 
 	private:
@@ -199,17 +203,20 @@ namespace
 			task_payload_time.fetch_add( (TimePoint_t::clock::now() - start).count() );
 			task_counter.fetch_add( 1 );
 
+			HashVal	h = _hash + HashOf(_result->data);
+			Unused( h );
+
 			if ( _level < max_levels )
 			{
-				auto	t0 = Scheduler().Run<LargeTask2>( Tuple{_cell * 2 + uint2(0,0), _level+1} );
-				auto	t1 = Scheduler().Run<LargeTask2>( Tuple{_cell * 2 + uint2(0,1), _level+1}, Tuple{t0} );
-				auto	t2 = Scheduler().Run<LargeTask2>( Tuple{_cell * 2 + uint2(1,0), _level+1}, Tuple{t0, t1} );
-				auto	t3 = Scheduler().Run<LargeTask2>( Tuple{_cell * 2 + uint2(1,1), _level+1}, Tuple{t0, t1, t2} );
+				auto	t0 = Scheduler().Run<LargeTask2>( Tuple{ _cell * 2 + uint2(0,0), _level+1, h } );
+				auto	t1 = Scheduler().Run<LargeTask2>( Tuple{ _cell * 2 + uint2(0,1), _level+1, h }, Tuple{t0} );
+				auto	t2 = Scheduler().Run<LargeTask2>( Tuple{ _cell * 2 + uint2(1,0), _level+1, h }, Tuple{t0, t1} );
+				auto	t3 = Scheduler().Run<LargeTask2>( Tuple{ _cell * 2 + uint2(1,1), _level+1, h }, Tuple{t0, t1, t2} );
 				Unused( t3 );
 			}
 			else
 			{
-				Scheduler().Run<FinalTask>();
+				Scheduler().Run<FinalTask>( Tuple{h} );
 			}
 		}
 
@@ -276,12 +283,13 @@ namespace
 	private:
 		const uint2		_cell;
 		const uint		_level;
+		const HashVal	_hash;
 		HeightMap_t		_result;
 
 	public:
-		LargeTask3 (const uint2 &cell, uint level) __NE___ :
+		LargeTask3 (const uint2 &cell, uint level, HashVal h = Default) __NE___ :
 			IAsyncTask{ ETaskQueue::PerFrame },
-			_cell{ cell }, _level{ level }, _result{ MakeRC<HeightMap>() }
+			_cell{ cell }, _level{ level }, _hash{ h }, _result{ MakeRC<HeightMap>() }
 		{}
 
 	private:
@@ -289,7 +297,7 @@ namespace
 		{
 			if ( _level < max_levels2 )
 			{
-				Scheduler().Run<LargeTask3>( Tuple{_cell * 2 + uint2(0,0), _level+1} );
+				Scheduler().Run<LargeTask3>( Tuple{ _cell * 2 + uint2(0,0), _level+1, _hash });
 			}
 
 			const TimePoint_t	start	= TimePoint_t::clock::now();
@@ -306,9 +314,12 @@ namespace
 			task_payload_time.fetch_add( (TimePoint_t::clock::now() - start).count() );
 			task_counter.fetch_add( 1 );
 
+			HashVal	h = _hash + HashOf(_result->data);
+			Unused( h );
+
 			if ( not (_level < max_levels2) )
 			{
-				Scheduler().Run<FinalTask>();
+				Scheduler().Run<FinalTask>( Tuple{h} );
 			}
 		}
 

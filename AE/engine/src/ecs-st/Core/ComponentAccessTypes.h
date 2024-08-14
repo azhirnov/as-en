@@ -15,9 +15,9 @@ namespace AE::ECS
 		T*  _elements;
 
 	public:
-		explicit WriteAccess (T* elems)	__NE___	: _elements{ elems } { ASSERT( _elements ); }
+		explicit WriteAccess (T* elems)					__NE___	: _elements{ elems } { NonNull( _elements ); }
 
-		ND_ T&  operator [] (usize i)	C_NE___	{ return _elements[i]; }
+		ND_ T&  operator [] (usize i)					C_NE___	{ return _elements[i]; }
 	};
 
 
@@ -29,9 +29,9 @@ namespace AE::ECS
 		T const*  _elements;
 
 	public:
-		explicit ReadAccess (T const* elems)	__NE___	: _elements{ elems } { ASSERT( _elements ); }
+		explicit ReadAccess (T const* elems)			__NE___	: _elements{ elems } { NonNull( _elements ); }
 
-		ND_ T const&  operator [] (usize i)		C_NE___	{ return _elements[i]; }
+		ND_ T const&  operator [] (usize i)				C_NE___	{ return _elements[i]; }
 	};
 
 
@@ -43,10 +43,10 @@ namespace AE::ECS
 		T*  _elements;			// can be null
 
 	public:
-		explicit OptionalWriteAccess (T* elems)	__NE___	: _elements{ elems } {}
+		explicit OptionalWriteAccess (T* elems)			__NE___	: _elements{ elems } {}
 
-		ND_ T&  operator [] (usize i)			C_NE___	{ NonNull( _elements );  return _elements[i]; }
-		ND_ explicit operator bool ()			C_NE___	{ return _elements != null; }
+		ND_ T&  operator [] (usize i)					C_NE___	{ NonNull( _elements );  return _elements[i]; }
+		ND_ explicit operator bool ()					C_NE___	{ return _elements != null; }
 	};
 
 

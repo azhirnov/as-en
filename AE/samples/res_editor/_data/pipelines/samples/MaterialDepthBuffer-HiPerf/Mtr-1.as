@@ -38,7 +38,7 @@
 
 		// specialization
 		{
-			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( prefix );
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( prefix+".ZTest" );
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
@@ -80,11 +80,18 @@
 #ifdef SH_FRAG
 	#include "Color.glsl"
 	#include "Noise.glsl"
+	#include "FragHelper.glsl"
 
 	void Main ()
 	{
 		float	h = GradientNoise( float3(gl.FragCoord.xy*2.25, 0.0) );
 		out_Color = Rainbow( h );
+
+		if ( iShowHelpInvoc == 1 )
+		{
+			uint	cnt = HelperInvocationCountPerQuad();
+			out_Color = cnt > 0 ? Rainbow( cnt / 4.0 ) : float4(0.0);
+		}
 	}
 
 #endif

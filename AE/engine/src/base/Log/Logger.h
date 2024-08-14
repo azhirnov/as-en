@@ -67,7 +67,8 @@ namespace AE::Base
 		Mutex				_guard;
 		const LevelBits		_levelBits;
 		const ScopeBits		_scopeBits;
-		const ThreadID		_mainThread;	// for Apple
+		const ThreadID		_mainThread;			// for Apple
+		bool				_enabled	= true;		// can be disabled in runtime
 
 	public:
 		DialogLogOutput (LevelBits levelBits, ScopeBits scopeBits)			__NE___ :

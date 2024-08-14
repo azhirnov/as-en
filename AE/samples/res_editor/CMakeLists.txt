@@ -11,20 +11,29 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 	if (MSVC)
 		file( GLOB_RECURSE CONFIGS "${MAIN_BINARY_DIR}/*/res_editor_cfg.as" )
 	endif()
+	set( SOURCES ${LIB_SOURCES} ${DATA_FILES} ${SHADERS_SHARED} ${SHADERS_3PARTY} ${CONFIGS} )
 
-	add_executable( "ResourceEditor" ${LIB_SOURCES} ${DATA_FILES} ${SHADERS_SHARED} ${SHADERS_3PARTY} ${CONFIGS} )
+	if (APPLE)
+		add_executable( "ResourceEditor" MACOSX_BUNDLE ${SOURCES} )
+	else()
+		add_executable( "ResourceEditor" ${SOURCES} )
+	endif()
 
 	source_group( TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${LIB_SOURCES} ${DATA_FILES} )
 	source_group( "_data/shaders/shared" FILES ${SHADERS_SHARED} )
 	source_group( "_data/shaders/3party" FILES ${SHADERS_3PARTY} )
 	source_group( "_data/config" FILES ${CONFIGS} )
 	set_property( TARGET "ResourceEditor" PROPERTY FOLDER "Samples" )
-	target_include_directories( "ResourceEditor" PUBLIC ".." )
 
 	target_include_directories( "ResourceEditor" PUBLIC
+		".."
+		"${MAIN_SOURCE_DIR}/engine/tools/res_pack/asset_packer/Utils"
 		"${AE_ENGINE_SHARED_DATA}/scripts"
 		"${AE_ENGINE_SHARED_DATA}/shaders"
-		"${CMAKE_CURRENT_SOURCE_DIR}/_data/shaders" )
+		"${CMAKE_CURRENT_SOURCE_DIR}/_data/shaders"
+		"${CMAKE_CURRENT_SOURCE_DIR}/_data/script_inc"
+		"${CMAKE_CURRENT_SOURCE_DIR}/_data/pipeline_inc"
+	)
 
 	EnablePCH( "ResourceEditor" )
 
@@ -36,6 +45,12 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 	)
 	if (TARGET "Profiler")
 		target_link_libraries( "ResourceEditor" PUBLIC "Profiler" )
+	endif()
+	if (TARGET "Compressonator-lib")
+		target_link_libraries( "ResourceEditor" PUBLIC "Compressonator-lib" )
+	endif()
+	if (TARGET "AstcEncoder-lib")
+		target_link_libraries( "ResourceEditor" PUBLIC "AstcEncoder-lib" )
 	endif()
 
 	target_compile_definitions( "ResourceEditor" PUBLIC

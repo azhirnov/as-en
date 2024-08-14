@@ -59,6 +59,9 @@ namespace AE::AssetPacker
 
 	private:
 		ND_ bool  _Pack (const String &nameInArchive, RC<WStream> stream);
+		ND_ bool  _Convert (OUT ResLoader::IntermImage &dstImage)														const;
+		ND_ bool  _CompressBC_ETC2 (OUT ResLoader::IntermImage &dstImage)												const;
+		ND_ bool  _CompressASTC (OUT ResLoader::IntermImage &dstImage)													const;
 
 			void  _AddLayer (ResLoader::IntermImage &img, uint layer)													__Th___;
 

@@ -63,15 +63,15 @@ bool  DrawTestCore::Run (FStorage_t assetStorage, FStorage_t refStorage)
 */
 void  DrawTestCore::_Destroy ()
 {
-  #ifdef AE_ENABLE_VULKAN
-	_syncLog.Deinitialize( INOUT _device.EditDeviceFnTable() );
-  #endif
-
 	_canvasPpln		= null;
 	_canvasPplnDesk	= null;
 	_canvas.reset();
 
 	RenderTaskScheduler::InstanceCtor::Destroy();
+
+  #ifdef AE_ENABLE_VULKAN
+	_syncLog.Deinitialize( INOUT _device.EditDeviceFnTable() );
+  #endif
 
 	CHECK( _device.DestroyLogicalDevice() );
 	CHECK( _device.DestroyInstance() );
@@ -176,8 +176,8 @@ GraphicsCreateInfo  DrawTestCore::_GetGraphicsCreateInfo ()
 	GraphicsCreateInfo	info;
 
 	info.maxFrames		= 2;
-	info.staging.readStaticSize .fill( 2_Mb );
-	info.staging.writeStaticSize.fill( 2_Mb );
+	info.staging.readStaticSize		= 2_Mb;
+	info.staging.writeStaticSize	= 2_Mb;
 
 	info.swapchain.colorFormat	= EPixelFormat::RGBA8_UNorm;
 

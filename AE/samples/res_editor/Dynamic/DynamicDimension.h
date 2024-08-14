@@ -3,6 +3,7 @@
 #pragma once
 
 #include "res_editor/Dynamic/DynamicScalar.h"
+#include "res_editor/Dynamic/DynamicVec.h"
 
 namespace AE::ResEditor
 {
@@ -55,6 +56,7 @@ namespace AE::ResEditor
 		ND_ uint3		Dimension3_NonZero ()					C_NE___	{ return Max( Dimension3(), 1u ); }
 		ND_ int3		Scale ()								C_NE___	{ SHAREDLOCK( _guard );  return _scale; }
 		ND_ EImageDim	NumDimensions ()						C_NE___	{ return _numDimensions; }
+		ND_ uint3		BaseDimension ()						C_NE___;
 
 		ND_ uint		Area ()									C_NE___;
 		ND_ uint		Volume ()								C_NE___;
@@ -63,14 +65,25 @@ namespace AE::ResEditor
 		ND_ uint2		Remap (uint2 src)						C_NE___	{ return uint2{Remap(uint3{ src, 0u })}; }
 		ND_ uint3		Remap (uint3 src)						C_NE___;
 
-		ND_ RC<DynamicUInt>  GetDynamicArea ()					__NE___;
-		ND_ RC<DynamicUInt>  GetDynamicVolume ()				__NE___;
+		ND_ uint		Remap (float src)						C_NE___	{ return Remap(float3{ src, 0.f, 0.f }).x; }
+		ND_ uint2		Remap (float2 src)						C_NE___	{ return uint2{Remap(float3{ src, 0.f })}; }
+		ND_ uint3		Remap (float3 src)						C_NE___;
+
+		ND_ RC<DynamicUInt>		GetDynamicX ()					__NE___;
+		ND_ RC<DynamicUInt>		GetDynamicY ()					__NE___;
+		ND_ RC<DynamicUInt2>	GetDynamicXY ()					__NE___;
+		ND_ RC<DynamicUInt>		GetDynamicArea ()				__NE___;
+		ND_ RC<DynamicUInt>		GetDynamicVolume ()				__NE___;
 
 	private:
-		ND_ static uint  _ApplyScale (uint dim, int scale, ERounding)	__NE___;
+		ND_ static uint  _ApplyScale (uint, int, ERounding)		__NE___;
+		ND_ static uint  _ApplyScale (float, int, ERounding)	__NE___;
 
-		ND_ static uint  _GetArea (EnableRCBase*)						__NE___;
-		ND_ static uint  _GetVolume (EnableRCBase*)						__NE___;
+		ND_ static uint		_GetX (EnableRCBase*)				__NE___;
+		ND_ static uint		_GetY (EnableRCBase*)				__NE___;
+		ND_ static uint2	_GetXY (EnableRCBase*)				__NE___;
+		ND_ static uint		_GetArea (EnableRCBase*)			__NE___;
+		ND_ static uint		_GetVolume (EnableRCBase*)			__NE___;
 	};
 
 
@@ -145,6 +158,15 @@ namespace AE::ResEditor
 		return src;
 	}
 
+	inline uint3  DynamicDim::Remap (float3 src) C_NE___
+	{
+		uint3	dst;
+		dst.x = _ApplyScale( src.x, _scale.x, _rounding );
+		dst.y = _ApplyScale( src.y, _scale.y, _rounding );
+		dst.z = _ApplyScale( src.z, _scale.z, _rounding );
+		return dst;
+	}
+
 /*
 =================================================
 	_ApplyScale
@@ -170,6 +192,29 @@ namespace AE::ResEditor
 		return dim;
 	}
 
+	inline uint  DynamicDim::_ApplyScale (float src, int scale, ERounding rounding) __NE___
+	{
+		float	fscale = float(scale);
+
+		if ( scale >= 0 )
+			src = src * fscale + 0.5f;
+		else
+		{
+					fscale	= -fscale;
+			float	bias	= 0.f;
+			switch_enum( rounding )
+			{
+				case ERounding::Floor :		bias = 0.f;				break;
+				case ERounding::Round :		bias = fscale*0.5f;		break;
+				case ERounding::Ceil :		bias = fscale-1.f;		break;
+			}
+			switch_end
+
+			src = ((src + bias) / fscale);
+		}
+		return uint(src);
+	}
+
 /*
 =================================================
 	Dimension3
@@ -188,6 +233,17 @@ namespace AE::ResEditor
 		dim  *= uint3{not was_zero};
 
 		return dim;
+	}
+
+/*
+=================================================
+	BaseDimension
+=================================================
+*/
+	inline uint3  DynamicDim::BaseDimension () C_NE___
+	{
+		SHAREDLOCK( _guard );
+		return _base ? _base->Dimension3() : _dimension;
 	}
 
 /*
@@ -260,10 +316,11 @@ namespace AE::ResEditor
 */
 	inline uint  DynamicDim::Area () C_NE___
 	{
+		uint3	dim = Dimension3_NonZero();
 		switch ( _numDimensions ) {
-			case EImageDim::_1D :	return _dimension.x;
+			case EImageDim::_1D :	return dim.x;
 			case EImageDim::_2D :
-			case EImageDim::_3D :	return _dimension.x * _dimension.y;
+			case EImageDim::_3D :	return dim.x * dim.y;
 		}
 		return 0;
 	}
@@ -275,10 +332,11 @@ namespace AE::ResEditor
 */
 	inline uint  DynamicDim::Volume () C_NE___
 	{
+		uint3	dim = Dimension3_NonZero();
 		switch ( _numDimensions ) {
-			case EImageDim::_1D :	return _dimension.x;
-			case EImageDim::_2D :	return _dimension.x * _dimension.y;
-			case EImageDim::_3D :	return _dimension.x * _dimension.y * _dimension.z;
+			case EImageDim::_1D :	return dim.x;
+			case EImageDim::_2D :	return dim.x * dim.y;
+			case EImageDim::_3D :	return dim.x * dim.y * dim.z;
 		}
 		return 0;
 	}
@@ -313,6 +371,54 @@ namespace AE::ResEditor
 	{
 		ASSERT( _numDimensions == EImageDim_3D );
 		return MakeRC<DynamicUInt>( RC<>{GetRC()}, &_GetVolume );
+	}
+
+/*
+=================================================
+	GetDynamicX
+=================================================
+*/
+	inline uint  DynamicDim::_GetX (EnableRCBase* base) __NE___
+	{
+		return Cast<DynamicDim>(base)->Dimension2().x;
+	}
+
+	inline RC<DynamicUInt>  DynamicDim::GetDynamicX () __NE___
+	{
+		ASSERT( _numDimensions >= EImageDim_1D );
+		return MakeRC<DynamicUInt>( RC<>{GetRC()}, &_GetX );
+	}
+
+/*
+=================================================
+	GetDynamicY
+=================================================
+*/
+	inline uint  DynamicDim::_GetY (EnableRCBase* base) __NE___
+	{
+		return Cast<DynamicDim>(base)->Dimension2().y;
+	}
+
+	inline RC<DynamicUInt>  DynamicDim::GetDynamicY () __NE___
+	{
+		ASSERT( _numDimensions >= EImageDim_2D );
+		return MakeRC<DynamicUInt>( RC<>{GetRC()}, &_GetY );
+	}
+
+/*
+=================================================
+	GetDynamicXY
+=================================================
+*/
+	inline uint2  DynamicDim::_GetXY (EnableRCBase* base) __NE___
+	{
+		return Cast<DynamicDim>(base)->Dimension2();
+	}
+
+	inline RC<DynamicUInt2>  DynamicDim::GetDynamicXY () __NE___
+	{
+		ASSERT( _numDimensions >= EImageDim_2D );
+		return MakeRC<DynamicUInt2>( RC<>{GetRC()}, &_GetXY );
 	}
 
 

@@ -562,7 +562,7 @@ namespace
 					{
 						CHECK_THROW_MSG( not AnyEqual( field.type, EValueType::Bool8, EValueType::Bool32, EValueType::Float64 ),
 							"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
-							"must not be Bool8/Bool32/Float64" );
+							"must not be Bool8/Bool32/Float64 for compatible layout" );
 
 						if ( field.IsMat() and not IsMultipleOf( field.size, 16 ))
 							field.packed = true;	// set 'packed' for compatibility with Metal
@@ -591,7 +591,7 @@ namespace
 					{
 						CHECK_THROW_MSG( not AnyEqual( field.type, EValueType::Bool8, EValueType::Bool32, EValueType::Float64 ),
 							"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
-							"must not be Bool8/Bool32/Float64" );
+							"must not be Bool8/Bool32/Float64 for compatible layout" );
 
 						if ( not field.packed and field.rows > 1 )
 							field.align *= (field.rows == 3 ? 4 : field.rows);
@@ -642,7 +642,7 @@ namespace
 					{
 						CHECK_THROW_MSG( not AnyEqual( field.type, EValueType::Bool8 ),
 							"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
-							"must not be Bool8" );
+							"must not be Bool8, use Bool32 or UInt instead" );
 
 						if ( not field.packed and field.rows > 1 )
 							field.align *= (field.rows == 3 ? 4 : field.rows);
@@ -1350,7 +1350,7 @@ namespace
 		{
 			ValidationData	data{ _features, _layout };
 			_Validate( "", Name(), _fields, INOUT data );
-			_ValidateOffsets( data, HasDynamicArray() ? StaticSize() : _size );
+			_ValidateOffsets( data, HasDynamicArray() ? AlignUp( _size, _fields.back().align ) : _size );
 		}
 
 		_AddPadding( _layout, INOUT _fields );

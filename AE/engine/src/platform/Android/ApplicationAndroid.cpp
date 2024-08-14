@@ -29,7 +29,7 @@ namespace {
 	ND_ static ApplicationAndroid&  GetApp () __NE___
 	{
 		auto*	app = ApplicationAndroid::_GetAppInstance();
-		ASSERT( app );
+		NonNull( app );
 		return *app;
 	}
 }
@@ -63,6 +63,8 @@ namespace {
 	ApplicationAndroid::~ApplicationAndroid () __NE___
 	{
 		_OnDestroy();
+
+		//ASSERT( _hwCamera.release().use_count() <= 1 );
 	}
 
 /*
@@ -415,6 +417,17 @@ namespace {
 */
 	void JNICALL  ApplicationAndroid::native_EnableCamera (JNIEnv*, jclass) __NE___
 	{
+		auto&	app = GetApp();
+		DRC_EXLOCK( app._drCheck );
+
+		/*if ( not app._hwCamera.load() )
+		{
+			auto	camera = MakeRC<HwCameraAndroid>();
+			CHECK_ERRV( camera->Initialize() );
+
+			app._hwCamera.store( RVRef(camera) );
+			app._listener->OnEvent( app, EAppEvent::CameraEnabled );
+		}*/
 	}
 
 /*

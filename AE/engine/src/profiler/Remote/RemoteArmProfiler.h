@@ -94,7 +94,7 @@ namespace AE::Profiler
 		mutable Threading::RWSpinLock	_guard;
 		RC<MsgProducer>					_msgProducer;
 
-		ubyte							_completeIdx	= 0;
+		ubyte							_countersIdx	= 0;
 		ubyte							_pendingIdx		= 0;
 
 		Timer							_connectionLostTimer	{seconds{10}};
@@ -103,7 +103,6 @@ namespace AE::Profiler
 		secondsf						_interval;
 		Counters_t						_counters [2];
 		ECounterSet						_enabled;
-		ECounterSet						_supported;
 		EStatus							_status			= EStatus::NotInitialized;
 
 
@@ -117,7 +116,6 @@ namespace AE::Profiler
 
 			void  Sample (OUT Counters_t &result)						__NE___;
 
-		ND_ ECounterSet  SupportedCounterSet ()							C_NE___	{ SHAREDLOCK( _guard );  return _supported; }
 		ND_ ECounterSet  EnabledCounterSet ()							C_NE___	{ SHAREDLOCK( _guard );  return _enabled; }
 
 		ND_ RC<MsgConsumer>  GetMsgConsumer ()							__NE___;

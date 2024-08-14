@@ -14,7 +14,7 @@
 
 // src - from shader
 // dst - from render target
-// result = srcColor * srcBlend [blendOp] dstColor * dstBlend;
+// result = srcColor * <srcBlend> [blendOp] dstColor * <dstBlend>;
 #define EBlendFactor_Zero				0	// 0
 #define EBlendFactor_One				1	// 1
 #define EBlendFactor_SrcColor			2	// src
@@ -39,7 +39,7 @@
 
 // src - from shader
 // dst - from render target
-// result = srcColor * srcBlend [blendOp] dstColor * dstBlend;
+// result = srcColor * <srcBlend> [blendOp] dstColor * <dstBlend>;
 #define EBlendOp_Add					1	// S+D
 #define EBlendOp_Sub					2	// S-D
 #define EBlendOp_RevSub					3	// D-S
@@ -103,7 +103,7 @@ ND_ float  _BlendFnA (float srcColor, float src1Color, float dstColor, float con
 		case EBlendFactor_Src1Alpha :			return src1Color;
 		case EBlendFactor_OneMinusSrc1Alpha :	return 1.0f - src1Color;
 	}
-	return 1.0e+38f;	// near to NaN/Inf
+	return float_max;
 }
 
 ND_ float4  _BlendFnRGBA (float4 srcColor, float4 src1Color, float4 dstColor, float4 constColor, EBlendFactor factor)
@@ -130,7 +130,7 @@ ND_ float4  _BlendFnRGBA (float4 srcColor, float4 src1Color, float4 dstColor, fl
 		case EBlendFactor_Src1Alpha :			return float4(src1Color.a);
 		case EBlendFactor_OneMinusSrc1Alpha :	return float4(1.0f - src1Color.a);
 	}
-	return float4(1.0e+38f);	// near to NaN/Inf
+	return float4(float_max);
 }
 
 ND_ float4  _BlendOpRGBA (float4 src, float4 dst, EBlendOp blendOp)
@@ -143,7 +143,7 @@ ND_ float4  _BlendOpRGBA (float4 src, float4 dst, EBlendOp blendOp)
 		case EBlendOp_Min :		return Min( src, dst );
 		case EBlendOp_Max :		return Max( src, dst );
 	}
-	return float4(1.0e+38f);	// near to NaN/Inf
+	return float4(float_max);
 }
 
 ND_ float  _BlendOpA (float src, float dst, EBlendOp blendOp)
@@ -156,7 +156,7 @@ ND_ float  _BlendOpA (float src, float dst, EBlendOp blendOp)
 		case EBlendOp_Min :		return Min( src, dst );
 		case EBlendOp_Max :		return Max( src, dst );
 	}
-	return 1.0e+38f;	// near to NaN/Inf
+	return float_max;
 }
 
 

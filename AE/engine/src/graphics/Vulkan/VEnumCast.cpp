@@ -60,8 +60,7 @@ namespace AE::Graphics
 			StateInfo{ UseShaderStages | UseDSStages,										VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,	VK_IMAGE_LAYOUT_GENERAL,									_EResState::InputDepthStencilAttachment_RW	},
 			StateInfo{ UseShaderStages | UseDSStages,										VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,													VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,			_EResState::DepthStencilTest_ShaderSample	},
 			StateInfo{ UseShaderStages | UseDSStages,										VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,	VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL, _EResState::DepthTest_DepthSample_StencilRW	},
-			StateInfo{ VK_PIPELINE_STAGE_2_HOST_BIT,										VK_ACCESS_2_HOST_READ_BIT,																												VK_IMAGE_LAYOUT_GENERAL,									_EResState::Host_Read						},
-			StateInfo{ VK_PIPELINE_STAGE_2_HOST_BIT,										VK_ACCESS_2_HOST_WRITE_BIT,																												VK_IMAGE_LAYOUT_GENERAL,									_EResState::Host_Write						},
+			StateInfo{ VK_PIPELINE_STAGE_2_HOST_BIT | VK_PIPELINE_STAGE_2_COPY_BIT,			VK_ACCESS_2_HOST_READ_BIT | VK_ACCESS_2_TRANSFER_WRITE_BIT,																				VK_IMAGE_LAYOUT_GENERAL,									_EResState::Host_Read						},	// sync with host and with subsequent copy command
 			StateInfo{ UseShaderStages,														VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR,																						VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::ShaderRTAS						},
 			StateInfo{ VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,								VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT,																									VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::IndirectBuffer					},
 			StateInfo{ VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT,									VK_ACCESS_2_INDEX_READ_BIT,																												VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::IndexBuffer						},
@@ -89,7 +88,7 @@ namespace AE::Graphics
 		VkPipelineStageFlagBits2	ds_stages	= Zero;
 
 		// PreRasterizationShaders
-		sh_stages |= AnyBits( value, EResourceState::MeshTaskShader )			? VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT | VK_PIPELINE_STAGE_2_CLUSTER_CULLING_SHADER_BIT_HUAWEI : 0;
+		sh_stages |= AnyBits( value, EResourceState::MeshTaskShader )			? (VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT | VK_PIPELINE_STAGE_2_CLUSTER_CULLING_SHADER_BIT_HUAWEI) : 0;
 		sh_stages |= AnyBits( value, EResourceState::VertexProcessingShaders )	? VertexProcessingShaders						: 0;
 		sh_stages |= AnyBits( value, EResourceState::TileShader )				? VK_PIPELINE_STAGE_2_SUBPASS_SHADING_BIT_HUAWEI: 0;
 		sh_stages |= AnyBits( value, EResourceState::FragmentShader )			? VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT		: 0;
@@ -106,8 +105,8 @@ namespace AE::Graphics
 		outAccess	= info.access;
 		outLayout	= info.layout;
 
-		outStage	= AnyBits( outStage, UseShaderStages )  ? (outStage & ~UseShaderStages) | sh_stages  : outStage;
-		outStage	= AnyBits( outStage, UseDSStages )      ? (outStage & ~UseDSStages)     | ds_stages  : outStage;
+		outStage	= AnyBits( outStage, UseShaderStages )  ? ((outStage & ~UseShaderStages) | sh_stages)  : outStage;
+		outStage	= AnyBits( outStage, UseDSStages )      ? ((outStage & ~UseDSStages)     | ds_stages)  : outStage;
 
 		#ifdef AE_DEBUG
 		CHECK( ToEResState(value) == info._dbgState );

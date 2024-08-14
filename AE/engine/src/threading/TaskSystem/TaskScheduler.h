@@ -128,7 +128,7 @@ namespace AE::Threading
 			virtual void  DbgDetectDeadlock (const CheckDepFn_t &)							__NE___ {};)
 
 		// helper functions
-		static void  _SetDependencyCompletionStatus (const AsyncTask &task, uint depIndex, bool cancel = false) __NE___;
+		static void  _SetDependencyCompletionStatus (IAsyncTask &task, uint depIndex, Bool isCanceled = False{}) __NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -394,7 +394,7 @@ namespace AE::Threading
 
 		ND_ OutputChunkPool_t&  _GetChunkPool ()									__NE___	{ return _chunkPool; }
 
-		ND_ static bool	_IsAllComplete (ArrayView<AsyncTask> tasks)					__NE___;
+		ND_ static bool	 _IsAllComplete (ArrayView<AsyncTask> tasks)				__NE___;
 
 		template <usize I, typename ...Args>
 		ND_ constexpr bool  _AddDependencies (const AsyncTask &task, const Tuple<Args...> &args, INOUT uint &bitIndex)		__NE___;

@@ -142,7 +142,7 @@ namespace
 		binder.AddFactoryCtor( &TilePipelineScriptBinding_Ctor,	{"name"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
-						"Format: MACROS = value; DEF" );
+						"Format: MACROS = value \\n DEF \\n ..." );
 		binder.AddMethod( &TilePipelineScriptBinding::Define,				"Define",			{} );
 
 		binder.Comment( "Set tile shader.\n"

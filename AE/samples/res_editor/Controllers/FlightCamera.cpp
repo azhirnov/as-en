@@ -68,6 +68,8 @@ namespace AE::ResEditor
 		if_unlikely( reset )
 			return _Reset();
 
+		// TODO: reset_roll
+
 		_engineThrust = Clamp( _engineThrust + thrust, _minThrust, _maxThrust );
 		move.x -= _engineThrust * timeDelta.count();
 

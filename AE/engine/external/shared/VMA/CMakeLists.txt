@@ -9,6 +9,7 @@ target_include_directories( "VMA-lib" INTERFACE "${VMA_PATH}" )
 target_compile_definitions( "VMA-lib" INTERFACE "AE_ENABLE_VMA" "AE_LICENSE_MIT" )
 
 install( FILES "${VMA_PATH}/LICENSE.txt" DESTINATION "3party_license" RENAME "VMA-LICENSE.txt" )
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS} AND ${AE_ENABLE_VULKAN})
 	if (ANDROID)

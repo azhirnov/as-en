@@ -27,9 +27,10 @@ namespace
 
 		template <typename T>	static T  AlignDown (T value, T align)		{ return Math::AlignDown( value, align ); }
 		template <typename T>	static T  AlignUp (T value, T align)		{ return Math::AlignUp( value, align ); }
-		template <typename T>	static bool  IsMultipleOf (T value, T align)	{ return Math::IsMultipleOf( value, align ); }
+		template <typename T>	static bool  IsMultipleOf (T value, T align){ return Math::IsMultipleOf( value, align ); }
 
 		template <typename T>	static T  SafeDiv (T lhs, T rhs, T def)		{ return Math::SafeDiv( lhs, rhs, def ); }
+		template <typename T>	static T  DivCeil (T lhs, T rhs)			{ return Math::DivCeil( lhs, rhs ); }
 
 		template <typename T>	static bool  All (T value)					{ return Math::All( value ); }
 		template <typename T>	static bool  Any (T value)					{ return Math::Any( value ); }
@@ -141,6 +142,9 @@ namespace
 		se->AddFunction( &ScalarFunc::AlignDown<T>,			"AlignDown",		{"x", "align"} );
 		se->AddFunction( &ScalarFunc::AlignUp<T>,			"AlignUp",			{"x", "align"} );
 		se->AddFunction( &ScalarFunc::IsMultipleOf<T>,		"IsMultipleOf",		{"x", "align"} );
+
+		se->AddFunction( &ScalarFunc::SafeDiv<T>,			"SafeDiv",			{"x", "y", "defVal"} );
+		se->AddFunction( &ScalarFunc::DivCeil<T>,			"DivCeil",			{"x", "y"} );
 	}
 
 /*

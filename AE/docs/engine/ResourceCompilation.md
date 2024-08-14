@@ -3,7 +3,7 @@
 Engine specific:
 * All shaders must be precompiled and validated.
 * Engine uses only binary data, scripts and configs are allowed only at the resource compilation stage.
-* All graphics resources must have at least one [FeatureSet](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/FeatureSet.md), which is used for validation.
+* All graphics resources must have at least one [FeatureSet](FeatureSet.md), which is used for validation.
 * Engine guarantees that if a resource is compiled with FeatureSet and this FeatureSet is supported by the GPU then the resource is compatible with the GPU.
 
 

@@ -128,9 +128,7 @@ namespace AE::Math
 	namespace _hidden_
 	{
 		template <typename T>
-		struct _IsPhysicalDimension {
-			static constexpr bool	value = false;
-		};
+		struct _IsPhysicalDimension : CT_False {};
 
 		template <int SecondsNum,	int SecondsDenom,
 				  int KilogramsNum,	int KilogramsDenom,
@@ -150,10 +148,8 @@ namespace AE::Math
 															MolesNum,		MolesDenom,
 															CandelasNum,	CandelasDenom,
 															CurrencyNum,	CurrencyDenom,
-															BitsNum,		BitsDenom > >
-		{
-			static constexpr bool	value = true;
-		};
+															BitsNum,		BitsDenom > > :
+			CT_True {};
 	}
 	template <typename T>
 	static constexpr bool	IsPhysicalDimension = Math::_hidden_::_IsPhysicalDimension<T>::value;

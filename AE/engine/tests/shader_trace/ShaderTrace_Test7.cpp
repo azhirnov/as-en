@@ -102,6 +102,8 @@ void main ()
 */
 extern bool ShaderTrace_Test7 (TestDevice& vulkan)
 {
+	ON_DESTROY( [&vulkan]() { vulkan.FreeTempHandles(); });
+
 	// create renderpass and framebuffer
 	uint			width = 16, height = 16;
 	VkRenderPass	render_pass;
@@ -243,8 +245,6 @@ extern bool ShaderTrace_Test7 (TestDevice& vulkan)
 	}
 
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {cont_shader}, "ShaderTrace_Test7.txt" ));
-
-	vulkan.FreeTempHandles();
 
 	TEST_PASSED();
 	return true;

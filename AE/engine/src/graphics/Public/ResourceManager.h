@@ -345,7 +345,9 @@ namespace AE::Graphics
 		ND_ virtual Strong<VideoBufferID>		CreateVideoBuffer  (const VideoBufferDesc  &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)							__NE___	= 0;
 		ND_ virtual Strong<VideoImageID>		CreateVideoImage   (const VideoImageDesc   &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)							__NE___	= 0;
 
-		ND_ virtual Strong<PipelineCacheID>		CreatePipelineCache ()												__NE___ = 0;
+		// pipeline cache
+		ND_ virtual Strong<PipelineCacheID>		CreatePipelineCache (RC<RStream> data = null, StringView dbgName = Default)	__NE___ = 0;
+		ND_	virtual bool						SerializePipelineCache (PipelineCacheID id, RC<WStream> dst)				C_NE___ = 0;
 
 		// load default pack
 		ND_	virtual bool						InitializeResources (Strong<PipelinePackID> defaultPackId)			__NE___	= 0;

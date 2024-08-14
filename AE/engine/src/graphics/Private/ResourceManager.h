@@ -330,7 +330,8 @@ namespace AE::Graphics
 		ND_ RenderPassID			GetCompatibleRenderPass (PipelinePackID packId, RenderPassName::Ref name)										C_NE___;
 		ND_ RenderPassID			GetRenderPass (PipelinePackID packId, RenderPassName::Ref name)													C_NE___;
 
-		ND_ Strong<PipelineCacheID>		CreatePipelineCache ()																						__NE_OV;
+		ND_ Strong<PipelineCacheID>		CreatePipelineCache (RC<RStream> data = null, StringView dbgName = Default)									__NE_OV;
+		ND_	bool						SerializePipelineCache (PipelineCacheID id, RC<WStream> dst)												C_NE_OV;
 
 		ND_ Strong<VideoSessionID>		CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE_OV;
 		ND_ Strong<VideoBufferID>		CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE_OV;
@@ -697,9 +698,7 @@ namespace AE::Graphics
 		const FrameUID	_frameId;
 
 	public:
-		explicit ReleaseExpiredResourcesTask (FrameUID frameId) __NE___ :
-			IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}
-		{}
+		explicit ReleaseExpiredResourcesTask (FrameUID frameId) __NE___;
 
 		void		Run ()		__Th_OV;
 		StringView	DbgName ()	C_NE_OV { return "ReleaseExpiredResources"; }
@@ -961,7 +960,7 @@ namespace AE::Graphics
 	inline ResourceManager::NativeBuffer_t  ResourceManager::GetBufferHandle (BufferID id) C_NE___
 	{
 		auto*	buf = GetResource( id );
-		CHECK_ERR( buf );
+		CHECK_ERR( buf != null );
 
 		return buf->Handle();
 	}
@@ -969,7 +968,7 @@ namespace AE::Graphics
 	inline ResourceManager::NativeImage_t  ResourceManager::GetImageHandle (ImageID id) C_NE___
 	{
 		auto*	img = GetResource( id );
-		CHECK_ERR( img );
+		CHECK_ERR( img != null );
 
 		return img->Handle();
 	}
@@ -977,7 +976,7 @@ namespace AE::Graphics
 	inline ResourceManager::NativeBufferView_t  ResourceManager::GetBufferViewHandle (BufferViewID id) C_NE___
 	{
 		auto*	view = GetResource( id );
-		CHECK_ERR( view );
+		CHECK_ERR( view != null );
 
 		return view->Handle();
 	}
@@ -985,7 +984,7 @@ namespace AE::Graphics
 	inline ResourceManager::NativeImageView_t  ResourceManager::GetImageViewHandle (ImageViewID id) C_NE___
 	{
 		auto*	view = GetResource( id );
-		CHECK_ERR( view );
+		CHECK_ERR( view != null );
 
 		return view->Handle();
 	}

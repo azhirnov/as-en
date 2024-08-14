@@ -4,6 +4,11 @@
 
 set( MSDFGEN_PATH "${AE_DST_PATH}/msdfgen" )
 
+if (NOT EXISTS "${MSDFGEN_PATH}/lib")
+	message( FATAL_ERROR "'${MSDFGEN_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "msdfgen-lib" INTERFACE )
 target_include_directories( "msdfgen-lib" INTERFACE "${MSDFGEN_PATH}/include" )
 target_compile_definitions( "msdfgen-lib" INTERFACE "AE_ENABLE_MSDFGEN" "AE_LICENSE_MIT" )
@@ -22,6 +27,7 @@ set_property( TARGET "msdfgen-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 	$<$<CONFIG:Release>: "${MSDFGEN_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}msdfgen-core${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 	$<$<CONFIG:Release>: "${MSDFGEN_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}msdfgen-ext${CMAKE_STATIC_LIBRARY_SUFFIX}"  >
 )
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.msdfgen" "tests/main.cpp" )

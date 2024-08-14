@@ -13,6 +13,7 @@
 #	pragma warning(disable: 4127)
 #	pragma warning(disable: 4100)
 #	pragma warning(disable: 4946)
+#	pragma warning(disable: 4189)
 # endif
 
 # if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
@@ -28,6 +29,10 @@
 
 # include "absl/container/node_hash_map.h"
 # include "absl/container/node_hash_set.h"
+
+# if ABSL_LTS_RELEASE_VERSION != 20240722
+#	error invalid Abseil version
+# endif
 
 # ifdef AE_COMPILER_MSVC
 #	pragma warning(pop)

@@ -150,7 +150,7 @@ namespace AE::ECS
 			NOTHROW_ERR( _pending.push_back( &msg ));
 
 		ASSERT( msg.entities.empty() or not msg.components.empty() );
-		ASSERT( comp.size() );
+		ASSERT( not comp.empty() );
 
 		NOTHROW_ERR( msg.components.resize( (msg.entities.size() + 1) * comp.size() ));
 		MemCopy( OUT msg.components.data() + Bytes{msg.entities.size() * comp.size()}, comp.data(), ArraySizeOf( comp ));
@@ -168,7 +168,7 @@ namespace AE::ECS
 	template <typename Tag>
 	bool  MessageBuilder::Add (EntityID id, ComponentID compId, const Pair<void*, Bytes> &data) __NE___
 	{
-		ASSERT( data.first );
+		NonNull( data.first );
 		return Add<Tag>( id, compId, ArrayView<ubyte>{ Cast<ubyte>(data.first), usize(data.second) });
 	}
 
@@ -206,7 +206,7 @@ namespace AE::ECS
 				msg.listeners.push_back(
 					[fn = FwdArg<Fn>(fn)] (const MessageData &data)
 					{
-						ASSERT( data.components.size() );
+						ASSERT( not data.components.empty() );
 						fn( ArrayView<EntityID>{ data.entities },
 							ArrayView<Comp>{ Cast<Comp>(data.components.data()), data.entities.size() });
 					}));
@@ -235,8 +235,8 @@ namespace AE::ECS
 			NOTHROW_ERR( _pending.push_back( &msg ));
 
 		ASSERT( msg.entities.empty() or not msg.components.empty() );
-		ASSERT( compData.size() );
-		ASSERT( ids.size() );
+		ASSERT( not compData.empty() );
+		ASSERT( not ids.empty() );
 
 		const usize	comp_size = compData.size() / ids.size();
 		NOTHROW_ERR( msg.components.resize( (msg.entities.size() + 1) * comp_size ));

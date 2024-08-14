@@ -77,13 +77,12 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename T1>
-	struct ClassBinder<T>::_IsSame {
-		static constexpr bool	value =	IsSameTypes< T *, T1 >			or
+	struct ClassBinder<T>::_IsSame : CT_Bool<
+										IsSameTypes< T *, T1 >			or
 										IsSameTypes< T &, T1 >			or
 										IsSameTypes< T const *, T1 >	or
 										IsSameTypes< T const &, T1 >	or
-										IsSameTypes< const AngelScriptHelper::SharedPtr<T> &, T1 >;
-	};
+										IsSameTypes< const AngelScriptHelper::SharedPtr<T> &, T1 >> {};
 
 /*
 =================================================

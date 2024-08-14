@@ -1,7 +1,11 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 if (TARGET "Scripting")
-	add_executable( "OfflinePacker" "main.cpp" )
+	if (APPLE)
+		add_executable( "OfflinePacker" MACOSX_BUNDLE "main.cpp" )
+	else()
+		add_executable( "OfflinePacker" "main.cpp" )
+	endif()
 	source_group( "" FILES "main.cpp" )
 
 	set_property( TARGET "OfflinePacker" PROPERTY FOLDER "Engine/ResPack" )

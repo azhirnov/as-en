@@ -80,6 +80,7 @@ namespace AE::ResEditor
 		using EDebugMode				= IPass::EDebugMode;
 		using PipelineNames_t			= ScriptGeomSource::PipelineNames_t;
 		using PipelinesPerInstance_t	= Array< PipelineNames_t >;
+		using ShadingRate				= SceneGraphicsPass::ShadingRate;
 
 
 	// variables
@@ -91,6 +92,7 @@ namespace AE::ResEditor
 		UniquePipelines_t		_uniquePplns;
 
 		ERenderLayer			_renderLayer	= ERenderLayer::Opaque;
+		ShadingRate				_shadingRate;
 
 
 	// methods
@@ -104,6 +106,8 @@ namespace AE::ResEditor
 		void  AddPipelines (const String &pplnsFolder)										__Th___;
 
 		void  SetLayer (ERenderLayer layer)													__Th___;
+
+		void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp, EShadingRateCombinerOp) __Th___;	// TODO: remove
 
 		static void  Bind (const ScriptEnginePtr &se)										__Th___;
 		static void  GetShaderTypes (INOUT CppStructsFromShaders &)							__Th___;

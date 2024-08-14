@@ -439,7 +439,7 @@ namespace AE::ResEditor
 	void  Renderer::SetController (RC<IController> cont) __Th___
 	{
 		CHECK_THROW( cont );
-		CHECK_THROW( (not _controller) or (_controller == cont) );
+		CHECK_MSG( (not _controller) or (_controller == cont), "multiple controllers are used" );
 
 		_controller = RVRef(cont);
 	}

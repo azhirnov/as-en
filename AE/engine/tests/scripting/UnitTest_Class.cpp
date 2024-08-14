@@ -368,7 +368,7 @@ namespace
 
 		Test6_CL*	res = null;
 		TEST( Run< Test6_CL*() >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
-		TEST( res );
+		TEST( res != null );
 		TEST_Eq( res->__Counter(), 1 );
 		TEST_Eq( res->i, 11 );
 		res->__Release();

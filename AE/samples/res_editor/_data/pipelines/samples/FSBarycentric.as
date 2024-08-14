@@ -70,7 +70,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
-	#include "Math.glsl"
+	#include "CodeTemplates.glsl"
 
 	void Main ()
 	{
@@ -82,15 +82,7 @@
 	#else
 		const float		thickness		= 1.5;	// pixels
 		const float		falloff			= 6.0;	// pixels
-
-		const float3	dx_barycoord	= gl.dFdx( gl.BaryCoord );
-		const float3	dy_barycoord	= gl.dFdy( gl.BaryCoord );
-		const float3	d_barycoord		= Sqrt( dx_barycoord * dx_barycoord + dy_barycoord * dy_barycoord );
-		const float3	d_thickness		= d_barycoord * thickness;
-		const float3	d_falloff		= d_barycoord * falloff;
-
-		const float3	remap			= SmoothStep( gl.BaryCoord, d_thickness, d_thickness + d_falloff );
-		const float		wireframe		= Min( remap.x, Min( remap.y, remap.z ));
+		const float		wireframe		= FSBarycentricWireframe( thickness, falloff );
 
 	#endif
 		out_Color = float4( wireframe );

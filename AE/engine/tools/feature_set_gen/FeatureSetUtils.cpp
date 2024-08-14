@@ -143,7 +143,7 @@ namespace
 	{
 		StringView	value_str = GetToken( tokens );
 		int			val;
-		Unused( StringToValue( value_str, OUT val ));
+		Unused( FromChars( OUT val, value_str ));
 		return val;
 	}
 
@@ -237,7 +237,7 @@ namespace
 			return prev;
 
 		uint	val;
-		Unused( StringToValue( value_str, OUT val ));
+		Unused( FromChars( OUT val, value_str ));
 		return val;
 	}
 
@@ -264,7 +264,7 @@ namespace
 			return prev;
 
 		ulong	val;
-		Unused( StringToValue( value_str, OUT val ));
+		Unused( FromChars( OUT val, value_str ));
 		return val;
 	}
 
@@ -280,7 +280,7 @@ namespace
 			return prev;
 
 		ulong	val;
-		Unused( StringToValue( value_str, OUT val ));
+		Unused( FromChars( OUT val, value_str ));
 		return Bytes{val};
 	}
 
@@ -315,7 +315,7 @@ namespace
 		}
 
 		int		val;
-		Unused( StringToValue( value_str, OUT val ));
+		Unused( FromChars( OUT val, value_str ));
 		return val * sign;
 	}
 
@@ -331,7 +331,7 @@ namespace
 			return prev;
 
 		float	val;
-		Unused( StringToValue( value_str, OUT val ));
+		Unused( FromChars( OUT val, value_str ));
 		return val;
 	}
 
@@ -649,8 +649,8 @@ namespace
 		if ( tokens.size() == 3 )
 		{
 			CHECK( tokens[0] == "value" );
-			Unused( StringToValue( tokens[1], OUT result.width ));
-			Unused( StringToValue( tokens[2], OUT result.height ));
+			Unused( FromChars( OUT result.width, tokens[1] ));
+			Unused( FromChars( OUT result.height, tokens[2] ));
 
 			CHECK_ERR( result.width > 0 and result.height > 0 );
 			return true;
@@ -661,8 +661,8 @@ namespace
 			CHECK( tokens[0] == "width" );
 			CHECK( tokens[2] == "height" );
 
-			Unused( StringToValue( tokens[1], OUT result.width ));
-			Unused( StringToValue( tokens[3], OUT result.height ));
+			Unused( FromChars( OUT result.width, tokens[1] ));
+			Unused( FromChars( OUT result.height, tokens[3] ));
 
 			CHECK_ERR( result.width > 0 and result.height > 0 );
 			return true;
@@ -1033,7 +1033,7 @@ namespace
 
 				StringView	part = json.substr( begin, pos - begin );
 
-				CHECK_ERR( StringToValue( part, OUT val ));
+				CHECK_ERR( FromChars( OUT val, part ));
 			}
 
 			if ( AllBits( val, VK_QUEUE_GRAPHICS_BIT ))
@@ -1192,7 +1192,7 @@ namespace
 		}
 
 		// non uniform
-		{
+		/*{
 			#define NONUNIFORM( _name_ ) \
 				if ( outFeatureSet._name_ == EFeature::RequireTrue ) \
 					outFeatureSet._name_ = FS_ParseJSON( EFeature::Ignore, json, AE_TOSTRING(_name_) "Native" )
@@ -1203,7 +1203,7 @@ namespace
 			NONUNIFORM( shaderStorageImageArrayNonUniformIndexing );
 			NONUNIFORM( shaderInputAttachmentArrayNonUniformIndexing );
 			#undef NONUNIFORM
-		}
+		}*/
 
 		// validate shader stages
 		{

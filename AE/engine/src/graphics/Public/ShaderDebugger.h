@@ -72,6 +72,7 @@ namespace AE::Graphics
 			Strong<BufferID>	readbackBuffer;
 			Bytes				capacity;
 			Bytes				size;
+			FrameUID			lastUsage;
 		};
 
 		static constexpr Bytes	_SingleBufferSize	{1_Mb};

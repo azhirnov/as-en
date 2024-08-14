@@ -45,7 +45,7 @@ namespace AE::Graphics
 		bool	src_write	= EResourceState_HasWriteAccess( srcState );
 		bool	dst_write	= EResourceState_HasWriteAccess( dstState );
 
-		return src_write | dst_write;
+		return src_write or dst_write;
 	}
 
 	bool  EResourceState_RequireImageBarrier (EResourceState srcState, EResourceState dstState, Bool relaxedStateTransition) __NE___
@@ -56,7 +56,7 @@ namespace AE::Graphics
 		bool	src_write	= EResourceState_HasWriteAccess( srcState );
 		bool	dst_write	= EResourceState_HasWriteAccess( dstState );
 
-		if ( src_write | dst_write )
+		if ( src_write or dst_write )
 			return true;
 
 		return not EResourceState_IsSameImageLayouts( srcState, dstState );
@@ -72,7 +72,7 @@ namespace AE::Graphics
 		bool	src_write	= EResourceState_HasWriteAccess( srcState, srcMask );
 		bool	dst_write	= EResourceState_HasWriteAccess( dstState, dstMask );
 
-		if ( src_write | dst_write )
+		if ( src_write or dst_write )
 			return true;
 
 		return not EResourceState_IsSameImageLayouts( srcState, dstState );
@@ -130,7 +130,6 @@ namespace AE::Graphics
 			case _EResState::DepthTest_StencilRW :
 			case _EResState::DepthRW_StencilTest :
 			case _EResState::Host_Read :
-			case _EResState::Host_Write :
 			case _EResState::PresentImage :
 			case _EResState::IndirectBuffer :
 			case _EResState::IndexBuffer :
@@ -197,8 +196,8 @@ namespace AE::Graphics
 				case EShaderStages::Tile :		result |= EResourceState::TileShader;		break;
 
 				case EShaderStages::All :
-				case EShaderStages::GraphicsStages :
-				case EShaderStages::MeshStages :
+				case EShaderStages::GraphicsPipeStages :
+				case EShaderStages::MeshPipeStages :
 				case EShaderStages::AllGraphics :
 				case EShaderStages::AllRayTracing :
 				case EShaderStages::VertexProcessingStages :
@@ -250,7 +249,6 @@ namespace AE::Graphics
 			case _EResState::DepthTest_StencilRW :
 			case _EResState::DepthRW_StencilTest :
 			case _EResState::Host_Read :
-			case _EResState::Host_Write :
 			case _EResState::PresentImage :
 			case _EResState::IndirectBuffer :
 			case _EResState::IndexBuffer :
@@ -359,46 +357,46 @@ namespace AE::Graphics
 			{ EPixelFormat::Depth32F_Stencil8,		{32, 8},			EType::SFloat | EType::DepthStencil,	EImageAspect::DepthStencil },
 
 			// compressed format				  bits	   block  channels	flags				uncompressed
-			{ EPixelFormat::BC1_RGB8_UNorm,			64,		{4,4},	3,	EType::UNorm,				8*3		},
-			{ EPixelFormat::BC1_sRGB8,				64,		{4,4},	3,	EType::UNorm | EType::sRGB,	8*3		},
-			{ EPixelFormat::BC1_RGB8_A1_UNorm,		64,		{4,4},	4,	EType::UNorm,				8*3+1	},
-			{ EPixelFormat::BC1_sRGB8_A1,			64,		{4,4},	4,	EType::UNorm | EType::sRGB,	8*3+1	},
-			{ EPixelFormat::BC2_RGBA8_UNorm,		128,	{4,4},	4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::BC2_sRGB8,				64,		{4,4},	3,	EType::UNorm | EType::sRGB,	8*3		},
-			{ EPixelFormat::BC3_RGBA8_UNorm,		128,	{4,4},	4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::BC3_sRGB8,				128,	{4,4},	3,	EType::UNorm | EType::sRGB,	8*3		},
-			{ EPixelFormat::BC4_R8_SNorm,			64,		{4,4},	1,	EType::SNorm,				8		},
-			{ EPixelFormat::BC4_R8_UNorm,			64,		{4,4},	1,	EType::UNorm,				8		},
-			{ EPixelFormat::BC5_RG8_SNorm,			128,	{4,4},	2,	EType::SNorm,				8*2		},
-			{ EPixelFormat::BC5_RG8_UNorm,			128,	{4,4},	2,	EType::UNorm,				8*2		},
-			{ EPixelFormat::BC6H_RGB16F,			128,	{4,4},	3,	EType::SFloat,				16*3	},
-			{ EPixelFormat::BC6H_RGB16UF,			128,	{4,4},	3,	EType::UFloat,				16*3	},
-			{ EPixelFormat::BC7_RGBA8_UNorm,		128,	{4,4},	4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::BC7_sRGB8_A8,			128,	{4,4},	4,	EType::UNorm | EType::sRGB,	8*4		},
-			{ EPixelFormat::ETC2_RGB8_UNorm,		64,		{4,4},	3,	EType::UNorm,				8*3		},
-			{ EPixelFormat::ECT2_sRGB8,				64,		{4,4},	3,	EType::UNorm | EType::sRGB,	8*3		},
-			{ EPixelFormat::ETC2_RGB8_A1_UNorm,		64,		{4,4},	4,	EType::UNorm,				8*3+1	},
-			{ EPixelFormat::ETC2_sRGB8_A1,			64,		{4,4},	4,	EType::UNorm | EType::sRGB,	8*3+1	},
-			{ EPixelFormat::ETC2_RGBA8_UNorm,		128,	{4,4},	4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ETC2_sRGB8_A8,			128,	{4,4},	4,	EType::UNorm | EType::sRGB,	8*4		},
-			{ EPixelFormat::EAC_R11_SNorm,			64,		{4,4},	1,	EType::SNorm,				11		},
-			{ EPixelFormat::EAC_R11_UNorm,			64,		{4,4},	1,	EType::UNorm,				11		},
-			{ EPixelFormat::EAC_RG11_SNorm,			128,	{4,4},	2,	EType::SNorm,				11*2	},
-			{ EPixelFormat::EAC_RG11_UNorm,			128,	{4,4},	2,	EType::UNorm,				11*2	},
-			{ EPixelFormat::ASTC_RGBA_4x4,			128,	{4,4},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_5x4,			128,	{5,4},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_5x5,			128,	{5,5},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_6x5,			128,	{6,5},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_6x6,			128,	{6,6},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_8x5,			128,	{8,5},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_8x6,			128,	{8,6},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_8x8,			128,	{8,8},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_10x5,			128,	{10,5},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_10x6,			128,	{10,6},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_10x8,			128,	{10,8},	 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_10x10,		128,	{10,10}, 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_12x10,		128,	{12,10}, 4,	EType::UNorm,				8*4		},
-			{ EPixelFormat::ASTC_RGBA_12x12,		128,	{12,12}, 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::BC1_RGB8_UNorm,			 64,	{4,4},	 3,	EType::UNorm,				8*3		},
+			{ EPixelFormat::BC1_sRGB8,				 64,	{4,4},	 3,	EType::UNorm | EType::sRGB,	8*3		},
+			{ EPixelFormat::BC1_RGB8_A1_UNorm,		 64,	{4,4},	 4,	EType::UNorm,				8*3+1	},
+			{ EPixelFormat::BC1_sRGB8_A1,			 64,	{4,4},	 4,	EType::UNorm | EType::sRGB,	8*3+1	},
+			{ EPixelFormat::BC2_RGBA8_UNorm,		128,	{4,4},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::BC2_sRGB8,				 64,	{4,4},	 3,	EType::UNorm | EType::sRGB,	8*3		},
+			{ EPixelFormat::BC3_RGBA8_UNorm,		128,	{4,4},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::BC3_sRGB8,				128,	{4,4},	 3,	EType::UNorm | EType::sRGB,	8*3		},
+			{ EPixelFormat::BC4_R8_SNorm,			 64,	{4,4},	 1,	EType::SNorm,				8		},
+			{ EPixelFormat::BC4_R8_UNorm,			 64,	{4,4},	 1,	EType::UNorm,				8		},
+			{ EPixelFormat::BC5_RG8_SNorm,			128,	{4,4},	 2,	EType::SNorm,				8*2		},
+			{ EPixelFormat::BC5_RG8_UNorm,			128,	{4,4},	 2,	EType::UNorm,				8*2		},
+			{ EPixelFormat::BC6H_RGB16F,			128,	{4,4},	 3,	EType::SFloat,				16*3	},
+			{ EPixelFormat::BC6H_RGB16UF,			128,	{4,4},	 3,	EType::UFloat,				16*3	},
+			{ EPixelFormat::BC7_RGBA8_UNorm,		128,	{4,4},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::BC7_sRGB8_A8,			128,	{4,4},	 4,	EType::UNorm | EType::sRGB,	8*4		},
+			{ EPixelFormat::ETC2_RGB8_UNorm,		 64,	{4,4},	 3,	EType::UNorm,				8*3		},
+			{ EPixelFormat::ETC2_sRGB8,				 64,	{4,4},	 3,	EType::UNorm | EType::sRGB,	8*3		},
+			{ EPixelFormat::ETC2_RGB8_A1_UNorm,		 64,	{4,4},	 4,	EType::UNorm,				8*3+1	},
+			{ EPixelFormat::ETC2_sRGB8_A1,			 64,	{4,4},	 4,	EType::UNorm | EType::sRGB,	8*3+1	},
+			{ EPixelFormat::ETC2_RGBA8_UNorm,		128,	{4,4},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ETC2_sRGB8_A8,			128,	{4,4},	 4,	EType::UNorm | EType::sRGB,	8*4		},
+			{ EPixelFormat::EAC_R11_SNorm,			 64,	{4,4},	 1,	EType::SNorm,				11		},
+			{ EPixelFormat::EAC_R11_UNorm,			 64,	{4,4},	 1,	EType::UNorm,				11		},
+			{ EPixelFormat::EAC_RG11_SNorm,			128,	{4,4},	 2,	EType::SNorm,				11*2	},
+			{ EPixelFormat::EAC_RG11_UNorm,			128,	{4,4},	 2,	EType::UNorm,				11*2	},
+			{ EPixelFormat::ASTC_RGBA8_4x4,			128,	{4,4},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_5x4,			128,	{5,4},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_5x5,			128,	{5,5},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_6x5,			128,	{6,5},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_6x6,			128,	{6,6},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_8x5,			128,	{8,5},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_8x6,			128,	{8,6},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_8x8,			128,	{8,8},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_10x5,		128,	{10,5},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_10x6,		128,	{10,6},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_10x8,		128,	{10,8},	 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_10x10,		128,	{10,10}, 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_12x10,		128,	{12,10}, 4,	EType::UNorm,				8*4		},
+			{ EPixelFormat::ASTC_RGBA8_12x12,		128,	{12,12}, 4,	EType::UNorm,				8*4		},
 			{ EPixelFormat::ASTC_sRGB8_A8_4x4,		128,	{4,4},	 4,	EType::UNorm | EType::sRGB,	8*4		},
 			{ EPixelFormat::ASTC_sRGB8_A8_5x4,		128,	{5,4},	 4,	EType::UNorm | EType::sRGB,	8*4		},
 			{ EPixelFormat::ASTC_sRGB8_A8_5x5,		128,	{5,5},	 4,	EType::UNorm | EType::sRGB,	8*4		},
@@ -428,7 +426,7 @@ namespace AE::Graphics
 			{ EPixelFormat::ASTC_RGBA16F_12x10,		128,	{12,10}, 4,	EType::SFloat,				16*4	},
 			{ EPixelFormat::ASTC_RGBA16F_12x12,		128,	{12,12}, 4,	EType::SFloat,				16*4	},
 
-			// ycbcr format									bits  used bits	channels	flags					aspect (planes)
+			// ycbcr format,							  bits, used bits, channels,	flags,					aspect (planes)
 			{ EPixelFormat::G8B8G8R8_422_UNorm,				8*4,	8*4,	4,	EType::UNorm | EType::Ycbcr,	EImageAspect::Plane_0 },
 			{ EPixelFormat::B8G8R8G8_422_UNorm,				8*4,	8*4,	4,	EType::UNorm | EType::Ycbcr,	EImageAspect::Plane_0 },
 			{ EPixelFormat::G8_B8R8_420_UNorm,				8*3,	8*3,	3,	EType::UNorm | EType::Ycbcr,	EImageAspect::Plane_0 | EImageAspect::Plane_1 },
@@ -545,7 +543,7 @@ namespace AE::Graphics
 			case EPixelFormat::RGB8_UNorm :		return EPixelFormat::ETC2_RGB8_UNorm;
 			case EPixelFormat::RGBA8_UNorm :	return EPixelFormat::ETC2_RGBA8_UNorm;
 
-			case EPixelFormat::sRGB8 :			return EPixelFormat::ECT2_sRGB8;
+			case EPixelFormat::sRGB8 :			return EPixelFormat::ETC2_sRGB8;
 			case EPixelFormat::sRGB8_A8 :		return EPixelFormat::ETC2_sRGB8_A8;
 
 			case EPixelFormat::R8_UNorm :
@@ -590,20 +588,20 @@ namespace AE::Graphics
 	{
 		switch ( (blockDim.x << 4) | blockDim.y )
 		{
-			case 0x44 :	return EPixelFormat::ASTC_RGBA_4x4;
-			case 0x54 :	return EPixelFormat::ASTC_RGBA_5x4;
-			case 0x55 :	return EPixelFormat::ASTC_RGBA_5x5;
-			case 0x65 :	return EPixelFormat::ASTC_RGBA_6x5;
-			case 0x66 :	return EPixelFormat::ASTC_RGBA_6x6;
-			case 0x85 :	return EPixelFormat::ASTC_RGBA_8x5;
-			case 0x86 :	return EPixelFormat::ASTC_RGBA_8x6;
-			case 0x88 :	return EPixelFormat::ASTC_RGBA_8x8;
-			case 0xA5 :	return EPixelFormat::ASTC_RGBA_10x5;
-			case 0xA6 :	return EPixelFormat::ASTC_RGBA_10x6;
-			case 0xA8 :	return EPixelFormat::ASTC_RGBA_10x8;
-			case 0xAA :	return EPixelFormat::ASTC_RGBA_10x10;
-			case 0xCA :	return EPixelFormat::ASTC_RGBA_12x10;
-			case 0xCC :	return EPixelFormat::ASTC_RGBA_12x12;
+			case 0x44 :	return EPixelFormat::ASTC_RGBA8_4x4;
+			case 0x54 :	return EPixelFormat::ASTC_RGBA8_5x4;
+			case 0x55 :	return EPixelFormat::ASTC_RGBA8_5x5;
+			case 0x65 :	return EPixelFormat::ASTC_RGBA8_6x5;
+			case 0x66 :	return EPixelFormat::ASTC_RGBA8_6x6;
+			case 0x85 :	return EPixelFormat::ASTC_RGBA8_8x5;
+			case 0x86 :	return EPixelFormat::ASTC_RGBA8_8x6;
+			case 0x88 :	return EPixelFormat::ASTC_RGBA8_8x8;
+			case 0xA5 :	return EPixelFormat::ASTC_RGBA8_10x5;
+			case 0xA6 :	return EPixelFormat::ASTC_RGBA8_10x6;
+			case 0xA8 :	return EPixelFormat::ASTC_RGBA8_10x8;
+			case 0xAA :	return EPixelFormat::ASTC_RGBA8_10x10;
+			case 0xCA :	return EPixelFormat::ASTC_RGBA8_12x10;
+			case 0xCC :	return EPixelFormat::ASTC_RGBA8_12x12;
 		}
 		return Default;
 	}
@@ -1345,15 +1343,15 @@ namespace AE::Graphics
 			case 0x0601'0600 :	// 616
 			case 0x0601'0900 :	// 619
 			case 0x0603'0500 :	// 642L
-			case 0x0601'0800 :	return EGraphicsDeviceID::Adreno_600;
+			case 0x0601'0800 :
 			case 0x0603'0001 :
-			case 0x0604'0001 :	return EGraphicsDeviceID::Adreno_600_QC4;
+			case 0x0604'0001 :
 			case 0x0605'0002 :
-			case 0x0606'0001 :	return EGraphicsDeviceID::Adreno_600_QC5;
+			case 0x0606'0001 :	return EGraphicsDeviceID::Adreno_600;
 			case 0x0703'0001 :
-			case 0x0703'0002 :	return EGraphicsDeviceID::Adreno_700_DC4_SC5;
+			case 0x0703'0002 :
 			case 0x4305'1401 :
-			case 0x4305'0A01 :	return EGraphicsDeviceID::Adreno_700_QC5X;
+			case 0x4305'0A01 :	return EGraphicsDeviceID::Adreno_700;
 
 			// NV //
 			case 0x0000'1184 :
@@ -1412,14 +1410,14 @@ namespace AE::Graphics
 			case 0x0000'1616 :	break;	// HD 5500
 			case 0x0000'1912 :
 			case 0x0000'1916 :
-			case 0x0000'191B :	return EGraphicsDeviceID::Intel_Gen9_HD500;
+			case 0x0000'191B :
 			case 0x0000'5916 :
-			case 0x0000'591B :	return EGraphicsDeviceID::Intel_Gen9_HD600;
+			case 0x0000'591B :
 			case 0x0000'3EA0 :
 			case 0x0000'3E92 :
 			case 0x0000'3E9B :
 			case 0x0000'9B41 :
-			case 0x0000'5917 :	return EGraphicsDeviceID::Intel_Gen9_UHD600;
+			case 0x0000'5917 :	return EGraphicsDeviceID::Intel_Gen9;
 			case 0x0000'46A6 :
 			case 0x0000'9A49 :
 			case 0x0000'4692 :	// UHD 730
@@ -1450,10 +1448,10 @@ namespace AE::Graphics
 			case 0xB8A2'1020 :	return EGraphicsDeviceID::Mali_Valhall_Gen4;
 
 			// PowerVR //
-			case 0x2205'4030 :	return EGraphicsDeviceID::PowerVR_Series8XE;
+			case 0x2205'4030 :
 			case 0x2210'4018 :
-			case 0x2210'4218 :	return EGraphicsDeviceID::PowerVR_Series8XEP;
-			case 0x2420'8504 :	return EGraphicsDeviceID::PowerVR_Series9XE;
+			case 0x2210'4218 :	return EGraphicsDeviceID::PowerVR_Series8;
+			case 0x2420'8504 :	return EGraphicsDeviceID::PowerVR_Series9;
 
 			// Other //
 			case 0x0000'C0DE :	return EGraphicsDeviceID::SwiftShader;
@@ -1480,20 +1478,11 @@ namespace AE::Graphics
 			if ( HasSubString( name, " 5" ))
 				return EGraphicsDeviceID::Adreno_500;
 
-			if ( HasSubString( name, " 643" )		or
-				 HasSubString( name, " 650" )		or
-				 HasSubString( name, " 660" ))
-				return EGraphicsDeviceID::Adreno_600_QC5;
-
 			if ( HasSubString( name, " 6" ))
 				return EGraphicsDeviceID::Adreno_600;
 
-			if ( HasSubString( name, " 702" ))
-				return EGraphicsDeviceID::Adreno_700_SC3;
-
-			if ( HasSubString( name, " 730" )		or
-				 HasSubString( name, " 740" ))
-				return EGraphicsDeviceID::Adreno_700_DC4_SC5;
+			if ( HasSubString( name, " 7" ))
+				return EGraphicsDeviceID::Adreno_700;
 
 			return Default;
 		}
@@ -1647,13 +1636,13 @@ namespace AE::Graphics
 		if ( HasSubStringIC( name, "Intel" ))
 		{
 			if ( HasSubStringIC( name, "HD Graphics 5" ))
-				return EGraphicsDeviceID::Intel_Gen9_HD500;
+				return EGraphicsDeviceID::Intel_Gen9;
 
 			if ( HasSubStringIC( name, "HD Graphics 6" ))
-				return EGraphicsDeviceID::Intel_Gen9_HD600;
+				return EGraphicsDeviceID::Intel_Gen9;
 
 			if ( HasSubStringIC( name, "UHD Graphics 6" ))
-				return EGraphicsDeviceID::Intel_Gen9_UHD600;
+				return EGraphicsDeviceID::Intel_Gen9;
 
 			if ( HasSubStringIC( name, "Iris Plus" )		or
 				 HasSubStringIC( name, "Iris(R) Plus" )		or
@@ -1673,10 +1662,10 @@ namespace AE::Graphics
 		if ( HasSubStringIC( name, "PowerVR" ))
 		{
 			if ( HasSubStringIC( name, "Rogue GE9" ))
-				return EGraphicsDeviceID::PowerVR_Series9XE;
+				return EGraphicsDeviceID::PowerVR_Series9;
 
-			if ( HasSubStringIC( name, "Rogue GE8" ))		// TODO
-				return EGraphicsDeviceID::PowerVR_Series8XE;
+			if ( HasSubStringIC( name, "Rogue GE8" ))
+				return EGraphicsDeviceID::PowerVR_Series8;
 
 			return Default;
 		}

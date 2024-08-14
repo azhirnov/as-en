@@ -8,16 +8,20 @@ namespace
 	{
 		int	val;
 		val = IntLog2( 0 );				TEST( val < 0 );
+		val = IntLog2( 1 );				TEST( val == 0 );
 		val = IntLog2( 0x100 );			TEST( val == 8 );	TEST( (1u << val) == 0x100 );
 		val = IntLog2( 0x101 );			TEST( val == 8 );	TEST( (1u << val) == 0x100 );
 		val = IntLog2( 0x80000000u );	TEST( val == 31 );	TEST( (1u << val) == 0x80000000u );
 
 		StaticAssert( CT_IntLog2<0> < 0 );
+		StaticAssert( CT_IntLog2<1> == 0 );
 		StaticAssert( CT_IntLog2<0x100> == 8 );
 		StaticAssert( CT_IntLog2<0x101> == 8 );
 		StaticAssert( CT_IntLog2<0x80000000u> == 31 );
 		StaticAssert( CT_IntLog2<0x8000000000000000ull> == 63 );
 
+		StaticAssert( CT_CeilIntLog2<0> < 0 );
+		StaticAssert( CT_CeilIntLog2<1> == 0 );
 		StaticAssert( CT_CeilIntLog2<0x100> == 8 );
 		StaticAssert( CT_CeilIntLog2<0x101> == 9 );
 	}

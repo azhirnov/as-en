@@ -5,22 +5,6 @@
 
 set( BASS_PATH "${AE_DST_SHARED_PATH}/BASS" )
 
-add_library( "BASS-lib" INTERFACE )
-target_include_directories( "BASS-lib" INTERFACE "${BASS_PATH}/include" )
-target_compile_definitions( "BASS-lib" INTERFACE "AE_ENABLE_BASS" "AE_LICENSE_FREE_NON_COMMERCIAL" )
-
-if (ANDROID)
-	add_custom_target( "BASS-copy-dll"
-		COMMAND ${CMAKE_COMMAND} -E copy_directory "${BASS_PATH}/lib/${ANDROID_ABI}" "${AE_ANDROID_JNILIB_PATH}/${ANDROID_ABI}"
-		COMMENT "Copying Android BASS shared libs..." )
-else()
-	add_custom_target( "BASS-copy-dll"
-		COMMAND ${CMAKE_COMMAND} -E copy_directory "${BASS_PATH}/lib" "${MAIN_BINARY_DIR}${AE_RUNTIME_CONFIG}"
-		COMMENT "Copying BASS DLL..." )
-endif()
-set_property( TARGET "BASS-copy-dll" PROPERTY FOLDER "Engine/External" )
-add_dependencies( "BASS-lib" "BASS-copy-dll" )
-
 if (NOT EXISTS "${BASS_PATH}")
 	message( FATAL_ERROR "'${BASS_PATH}' path is not found" )
 endif()
@@ -58,5 +42,22 @@ elseif (AE_TARGET_PLATFORM_MACOS )
 else()
 	message( FATAL_ERROR "BASS is not supported for current platform: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}" )
 endif()
+#------------------------------------------------
+
+add_library( "BASS-lib" INTERFACE )
+target_include_directories( "BASS-lib" INTERFACE "${BASS_PATH}/include" )
+target_compile_definitions( "BASS-lib" INTERFACE "AE_ENABLE_BASS" "AE_LICENSE_FREE_NON_COMMERCIAL" )
+
+if (ANDROID)
+	add_custom_target( "BASS-copy-dll"
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${BASS_PATH}/lib/${ANDROID_ABI}" "${AE_ANDROID_JNILIB_PATH}/${ANDROID_ABI}"
+		COMMENT "Copying Android BASS shared libs..." )
+else()
+	add_custom_target( "BASS-copy-dll"
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${BASS_PATH}/lib" "${MAIN_BINARY_DIR}${AE_RUNTIME_CONFIG}"
+		COMMENT "Copying BASS DLL..." )
+endif()
+set_property( TARGET "BASS-copy-dll" PROPERTY FOLDER "Engine/External" )
+add_dependencies( "BASS-lib" "BASS-copy-dll" )
 
 #install( FILES "${BASS_PATH}/LICENSE" DESTINATION "3party_license" RENAME "BASS-LICENSE" )

@@ -5,8 +5,8 @@
 const bool		c_ForceRebuild	= false;
 const bool		c_PerfTests		= true;
 const string	c_BasePath		= "Tests/";
-const string	c_GitAddress	= "https://github.com/azhirnov/as-en.git";
-const string	c_GitBranch		= "dev";
+const string	c_GitAddress	= c_GitServer+"as-en-dev.git"; // "https://github.com/azhirnov/as-en.git";
+const string	c_GitBranch		= "dev-github";
 
 const array<string>	c_Targets	= { "Tests.Base", "Tests.Serializing", "Tests.Scripting", "Tests.Threading",
 									"Tests.Networking", "Tests.ECS-st", "Tests.Graphics", "Tests.GraphicsHL", "Tests.VFS",
@@ -17,6 +17,8 @@ const array<string>	c_Samples	= { "Sample.Demo", "ResourceEditor" };
 void  CloneRepository (const string binBranch)
 {
 	GitClone( c_GitBranch,	c_GitAddress, "." );
+	RemoveFolder( "AE-Bin" );
+	GitClone( binBranch,	c_GitServer+"AE-Bin.git",	"AE-Bin" );
 	// TODO: download & build 3party libs in 'AE-Bin'
 }
 
@@ -302,24 +304,24 @@ void ASmain ()
 	Server_SetFolder( "AsEn-" + Git_GetShortHash( c_GitAddress, c_GitBranch ));
 
 //	BuildMSVC(  c_BasePath+"Windows/x64-avx2/MSVC_2022",		ECompiler::MSVC,				avx2 + vk + pch		);
-	BuildMSVC(  c_BasePath+"Windows/x64-avx2/MSVC_2022_Clang",	ECompiler::MSVC_Clang,			avx2 + vk + no_pch	);
+//	BuildMSVC(  c_BasePath+"Windows/x64-avx2/MSVC_2022_Clang",	ECompiler::MSVC_Clang,			avx2 + vk + no_pch	);
 
 //	BuildMSVC(  c_BasePath+"Windows/x64/MSVC_2022",				ECompiler::MSVC,				vk + pch			);
 //	BuildMSVC(  c_BasePath+"Windows/x64/MSVC_2022_Clang",		ECompiler::MSVC_Clang,			vk + no_pch			);
 
 //	BuildLinux( c_BasePath+"Linux/x64-avx2/GCC13",				ECompiler::Linux_GCC,	13,		avx2 + vk + pch		);
-//	BuildLinux( c_BasePath+"Linux/x64-avx2/Clang16",			ECompiler::Linux_Clang,	16,		avx2 + vk + pch		);
+	BuildLinux( c_BasePath+"Linux/x64-avx2/Clang16",			ECompiler::Linux_Clang,	16,		avx2 + vk + pch		);
 
 //	BuildLinux( c_BasePath+"Linux/x64/GCC13",					ECompiler::Linux_GCC,	13,		vk + pch			);
 //	BuildLinux( c_BasePath+"Linux/x64/Clang16",					ECompiler::Linux_Clang,	16,		vk + pch			);
 
-	BuildMacOS( c_BasePath+"MacOS/arm64/Clang15",				ECompiler::MacOS_Clang, 15,		osx_targ + vk + no_pch,		CPUArch::Arm64	);
-	BuildMacOS( c_BasePath+"MacOS/x64/Clang15",					ECompiler::MacOS_Clang, 15,		osx_targ + vk + no_pch,		CPUArch::x64	);
+//	BuildMacOS( c_BasePath+"MacOS/arm64/Clang15",				ECompiler::MacOS_Clang, 15,		osx_targ + vk + no_pch,		CPUArch::Arm64	);
+//	BuildMacOS( c_BasePath+"MacOS/x64/Clang15",					ECompiler::MacOS_Clang, 15,		osx_targ + vk + no_pch,		CPUArch::x64	);
 
 //	BuildMacOS( c_BasePath+"MacOS/arm64/Clang15",				ECompiler::MacOS_Clang, 15,		osx_targ + mtl + no_pch,	CPUArch::Arm64	);
-//	BuildMacOS( c_BasePath+"MacOS/x64/Clang15",					ECompiler::MacOS_Clang, 15,		osx_targ + mtl + no_pch,	CPUArch::x64	);
+	BuildMacOS( c_BasePath+"MacOS/x64/Clang15",					ECompiler::MacOS_Clang, 15,		osx_targ + mtl + no_pch,	CPUArch::x64	);
 
-	BuildAndroid( c_BasePath+"Android",	vk );
+//	BuildAndroid( c_BasePath+"Android",	vk );
 
 	// wait for script completion
 //	SessionBarrier();

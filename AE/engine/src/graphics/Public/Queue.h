@@ -31,7 +31,7 @@ namespace AE::Graphics
 		AsyncTransfer	= 1 << uint(EQueueType::AsyncTransfer),
 		VideoEncode		= 1 << uint(EQueueType::VideoEncode),
 		VideoDecode		= 1 << uint(EQueueType::VideoDecode),
-		All				= Graphics | AsyncCompute | AsyncTransfer | VideoEncode | VideoDecode,
+		All				= (1 << uint(EQueueType::_Count)) - 1,
 		Unknown			= 0,
 	};
 	AE_BIT_OPERATORS( EQueueMask );

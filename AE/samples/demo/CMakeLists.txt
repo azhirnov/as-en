@@ -7,6 +7,10 @@ if (TARGET "GraphicsHL")
 		set( APP_NAME "SampleDemo" )
 		add_library( ${APP_NAME} SHARED ${CPP_SOURCES} )
 
+	elseif (APPLE)
+		set( APP_NAME "Sample.Demo" )
+		add_executable( ${APP_NAME} MACOSX_BUNDLE ${CPP_SOURCES} )
+
 	else()
 		set( ANDROID_SRC_PATH "${MAIN_SOURCE_DIR}/android/demo/src/main" )
 		if (NOT EXISTS "${ANDROID_SRC_PATH}")

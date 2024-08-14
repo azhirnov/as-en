@@ -1,7 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-// TODO: VS style output: 'file (line): message'
-
 #include "Common.h"
 
 #ifdef AE_ENABLE_GLSLANG
@@ -134,6 +132,7 @@ namespace
 				break;
 
 			case TBasicType::EbtUint :
+			case TBasicType::EbtFloat16 :
 				value.u[valueIndex] = data[dataIndex++];
 				break;
 
@@ -157,7 +156,7 @@ namespace
 				break;
 
 			default :
-				CHECK( !"not supported" );
+				CHECK_MSG( false, "not supported" );
 				break;
 		}
 	}
@@ -215,7 +214,7 @@ namespace
 				for (uint r = 0, j = 0; r < rows; ++r)
 				{
 					uint	sw = (expr.swizzle >> (r*3)) & 7;
-					if ( sw > 1 )
+					if ( sw >= 1 )
 						CopyValue( type, INOUT var.value, sw-1, data, INOUT j );
 				}
 			}
@@ -304,6 +303,11 @@ namespace
 		return buf;
 	}
 
+	ND_ inline String  TypeToString (half value)
+	{
+		return TypeToString( value.Get() );
+	}
+
 	template <typename T>
 	ND_ inline String  TypeToString (T value)
 	{
@@ -328,6 +332,25 @@ namespace
 		for (uint r = 0; r < rows; ++r)
 		{
 			str << (r ? ", " : "") + TypeToString( values[r] );
+		}
+
+		str << "}\n";
+		return str;
+	}
+
+	template <typename Dst, typename Src>
+	ND_ inline String  TypeToString2 (uint rows, const StaticArray<Src,4> &values)
+	{
+		String	str;
+
+		if ( rows > 1 )
+			str << TypeToString( rows );
+
+		str << " {";
+
+		for (uint r = 0; r < rows; ++r)
+		{
+			str << (r ? ", " : "") + TypeToString( BitCastRlx<Dst>( values[r] ));
 		}
 
 		str << "}\n";
@@ -475,6 +498,11 @@ namespace
 					result << TypeToString( iter->second.count, iter->second.value.u64 );
 					break;
 				}
+				case TBasicType::EbtFloat16 : {
+					result << "half";
+					result << TypeToString2<half>( iter->second.count, iter->second.value.u );
+					break;
+				}
 				default :
 					RETURN_ERR( "not supported" );
 			}
@@ -586,6 +614,9 @@ namespace
 			case TBasicType::EbtInt64 :
 			case TBasicType::EbtUint64 :
 				return 2;
+
+			case TBasicType::EbtFloat16 :
+				return 1;	// as uint
 
 			case ShaderTrace::TBasicType_Clock :
 				return 2;

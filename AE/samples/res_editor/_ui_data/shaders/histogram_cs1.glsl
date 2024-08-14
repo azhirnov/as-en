@@ -18,7 +18,7 @@
 
 uint  ColorToIndex (float col)
 {
-	return Clamp( uint(col * (COUNT-2) + 0.5), 1u, COUNT-2 );
+	return Clamp( uint(col * (COUNT-2) + 0.5), 0u, COUNT-1 );
 }
 
 void Main ()

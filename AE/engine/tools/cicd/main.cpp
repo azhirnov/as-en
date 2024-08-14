@@ -36,7 +36,7 @@ using namespace AE::CICD;
 	{
 		CHECK_FATAL( _RegisterCommands() );
 
-		auto	addr		= IpAddress::FromHostPortTCP( "", 0 );	// TODO: set address
+		auto	addr		= IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 );
 		auto	provider	= MakeRC<DefaultServerProviderV1>( addr );
 		CHECK_FATAL( _StartClient( provider ));
 	}
@@ -162,8 +162,8 @@ using namespace AE::CICD;
 	{
 		LocalSocketMngr		socket_mngr;
 
-		auto	server_addr	= IpAddress::FromLocalPortTCP( 0 );		// TODO: set port
-		auto	addr		= IpAddress::FromHostPortTCP( "", 0 );	// TODO: set address
+		auto	server_addr	= IpAddress::FromLocalPortTCP( 3000 );
+		auto	addr		= IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 );
 		auto	provider	= MakeRC<DefaultServerProviderV1>( addr );
 		auto	work_dir	= dir.empty() ? FS::CurrentPath() : Path{dir};
 

@@ -60,11 +60,11 @@ namespace AE::Base
 			s_attr.nLength			= sizeof(s_attr);
 			s_attr.bInheritHandle	= TRUE;
 
-			CHECK_ERR( ::CreatePipe( OUT &stdout_read, OUT &stdout_write, &s_attr, 0 ));	// win2000
-			CHECK_ERR( ::SetHandleInformation( stdout_read, HANDLE_FLAG_INHERIT, 0 ));		// win2000
+			CHECK_ERR( ::CreatePipe( OUT &stdout_read, OUT &stdout_write, &s_attr, 0 ) != 0 );	// win2000
+			CHECK_ERR( ::SetHandleInformation( stdout_read, HANDLE_FLAG_INHERIT, 0 ) != 0 );	// win2000
 
-			CHECK_ERR( ::CreatePipe( OUT &stdin_read, OUT &stdin_write, &s_attr, 0 ));		// win2000
-			CHECK_ERR( ::SetHandleInformation( stdin_write, HANDLE_FLAG_INHERIT, 0 ));		// win2000
+			CHECK_ERR( ::CreatePipe( OUT &stdin_read, OUT &stdin_write, &s_attr, 0 ) != 0 );	// win2000
+			CHECK_ERR( ::SetHandleInformation( stdin_write, HANDLE_FLAG_INHERIT, 0 ) != 0 );	// win2000
 
 			startup_info.hStdError	= stdout_write;
 			startup_info.hStdOutput	= stdout_write;

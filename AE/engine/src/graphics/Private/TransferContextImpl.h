@@ -39,7 +39,7 @@ namespace AE::Graphics {
 		STAGINGBUF_MNGR::BufferRanges_t	buffers;
 
 		sbm.GetBufferRanges( OUT buffers, data_size, uploadDesc.blockSize, GraphicsConfig::StagingBufferOffsetAlign,
-							 GetFrameId(), uploadDesc.heapType, this->_mngr.GetQueueType(), True{"upload"} );
+							 GetFrameId(), uploadDesc.heapType, True{"upload"} );
 
 		for (auto& src_buf : buffers)
 		{
@@ -80,7 +80,7 @@ namespace AE::Graphics {
 		STAGINGBUF_MNGR::BufferRanges_t	buffers;
 
 		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), stream.BlockSize(), GraphicsConfig::StagingBufferOffsetAlign,
-							 GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), True{"upload"} );
+							 GetFrameId(), stream.HeapType(), True{"upload"} );
 
 		for (auto& src_buf : buffers)
 		{
@@ -121,7 +121,7 @@ namespace AE::Graphics {
 											}();
 
 		STAGINGBUF_MNGR::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, uploadDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+		sbm.GetImageRanges( OUT res, uploadDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), True{"upload"} );
 
 		if_unlikely( res.buffers.empty() )
 			return;
@@ -207,7 +207,7 @@ namespace AE::Graphics {
 		upload_desc.imageDim	-= uint3{ 0, stream.posYZ };
 
 		STAGINGBUF_MNGR::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, upload_desc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+		sbm.GetImageRanges( OUT res, upload_desc, img_desc, MinImageTransferGranularity(), GetFrameId(), True{"upload"} );
 
 		if_unlikely( res.buffers.empty() )
 			return;
@@ -283,7 +283,7 @@ namespace AE::Graphics {
 	ReadbackBuffer
 =================================================
 */
-	TRANSFER_CTX( inline ITransferContext::ReadbackBufferResult, ReadbackBuffer )(BufferID bufferId, const ReadbackBufferDesc &readDesc) __Th___
+	TRANSFER_CTX( inline ITransferContext::ReadbackBufferResult2, ReadbackBuffer )(BufferID bufferId, const ReadbackBufferDesc &readDesc) __Th___
 	{
 		auto&		src_buf			= _GetResourcesOrThrow( bufferId );
 		const auto	handle			= src_buf.Handle();
@@ -296,7 +296,7 @@ namespace AE::Graphics {
 		STAGINGBUF_MNGR&				sbm	= this->_mngr.GetStagingManager();
 		STAGINGBUF_MNGR::BufferRanges_t	buffers;
 		sbm.GetBufferRanges( OUT buffers, data_size, readDesc.blockSize, GraphicsConfig::StagingBufferOffsetAlign,
-							 GetFrameId(), readDesc.heapType, this->_mngr.GetQueueType(), False{"readback"} );
+							 GetFrameId(), readDesc.heapType, False{"readback"} );
 
 		BufferMemView	mem_view;
 		for (auto& dst_buf : buffers)
@@ -319,9 +319,9 @@ namespace AE::Graphics {
 		ASSERT( buffers.size() == mem_view.Parts().size() );
 		ASSERT( offset == dst_buf_size );
 
-		return	ReadbackBufferResult{
+		return	ReadbackBufferResult2{
 					Threading::MakePromiseFromValue( mem_view,
-													 Tuple{ this->_mngr.GetBatchRC() },
+													 Tuple{ OnFrameNextCycle{ GetFrameId() }},
 													 "TransferContext::ReadbackBuffer",
 													 ETaskQueue::PerFrame ),
 					data_size - mem_view.DataSize()
@@ -333,7 +333,7 @@ namespace AE::Graphics {
 	ReadbackBuffer
 =================================================
 */
-	TRANSFER_CTX( inline Promise<BufferMemView>, ReadbackBuffer )(INOUT BufferStream &stream) __Th___
+	TRANSFER_CTX( inline ITransferContext::ReadbackBufferResult, ReadbackBuffer )(INOUT BufferStream &stream) __Th___
 	{
 		GCTX_CHECK_MSG( stream.IsInitialized(), "Buffer stream is not initialized" );
 		GCTX_CHECK_MSG( not stream.IsCompleted(), "Buffer stream is already complete" );
@@ -350,7 +350,7 @@ namespace AE::Graphics {
 		STAGINGBUF_MNGR&				sbm	= this->_mngr.GetStagingManager();
 		STAGINGBUF_MNGR::BufferRanges_t	buffers;
 		sbm.GetBufferRanges( OUT buffers, remain_size, stream.BlockSize(), GraphicsConfig::StagingBufferOffsetAlign,
-							 GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), False{"readback"} );
+							 GetFrameId(), stream.HeapType(), False{"readback"} );
 
 		BufferMemView	mem_view;
 		for (auto& dst_buf : buffers)
@@ -371,11 +371,13 @@ namespace AE::Graphics {
 		}
 		ASSERT( buffers.size() == mem_view.Parts().size() );
 
-		return Threading::MakePromiseFromValue(	mem_view,
-												Tuple{ this->_mngr.GetBatchRC() },
-												"TransferContext::ReadbackBuffer",
-												ETaskQueue::PerFrame
-											   );
+		return ReadbackBufferResult{
+				Threading::MakePromiseFromValue(
+					mem_view,
+					Tuple{ OnFrameNextCycle{ GetFrameId() }},
+					"TransferContext::ReadbackBuffer",
+					ETaskQueue::PerFrame
+				)};
 	}
 
 /*
@@ -383,7 +385,7 @@ namespace AE::Graphics {
 	_ReadbackImage
 =================================================
 */
-	TRANSFER_CTX( template <typename ID> ITransferContext::ReadbackImageResult, _ReadbackImage )(ID imageId, const ReadbackImageDesc &readDesc) __Th___
+	TRANSFER_CTX( template <typename ID> ITransferContext::ReadbackImageResult2, _ReadbackImage )(ID imageId, const ReadbackImageDesc &readDesc) __Th___
 	{
 		StaticAssert( IsSameTypes< ID, ImageID > or IsSameTypes< ID, VideoImageID >);
 
@@ -398,7 +400,7 @@ namespace AE::Graphics {
 											}();
 
 		STAGINGBUF_MNGR::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, readDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
+		sbm.GetImageRanges( OUT res, readDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), False{"readback"} );
 
 		if_unlikely( res.buffers.empty() )
 			return Default;
@@ -452,14 +454,14 @@ namespace AE::Graphics {
 		}
 		ASSERT( res.buffers.size() == mem_view.Parts().size() );
 
-		return	ReadbackImageResult{
+		return	ReadbackImageResult2{
 					Threading::MakePromiseFromValue(
 						ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, readDesc.aspectMask },
-						Tuple{ this->_mngr.GetBatchRC() },
+						Tuple{ OnFrameNextCycle{ GetFrameId() }},
 						"TransferContext::ReadbackImage",
 						ETaskQueue::PerFrame
 					),
-					img_desc.Dimension() - (max - min)
+					res.regionDim - (max - min)
 				};
 	}
 
@@ -469,7 +471,7 @@ namespace AE::Graphics {
 	_ReadbackImage
 =================================================
 */
-	TRANSFER_CTX( template <typename StreamType> Promise<ImageMemView>, _ReadbackImage )(INOUT StreamType &stream) __Th___
+	TRANSFER_CTX( template <typename StreamType> ITransferContext::ReadbackImageResult, _ReadbackImage )(INOUT StreamType &stream) __Th___
 	{
 		StaticAssert( IsSameTypes< StreamType, ImageStream > or
 					  IsSameTypes< StreamType, VideoImageStream >);
@@ -494,7 +496,7 @@ namespace AE::Graphics {
 		read_desc.imageDim		-= uint3{ 0, stream.posYZ };
 
 		STAGINGBUF_MNGR::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, read_desc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
+		sbm.GetImageRanges( OUT res, read_desc, img_desc, MinImageTransferGranularity(), GetFrameId(), False{"readback"} );
 
 		if_unlikely( res.buffers.empty() )
 			return Default;
@@ -557,12 +559,13 @@ namespace AE::Graphics {
 			stream.posYZ[1] ++;
 		}
 
-		return Threading::MakePromiseFromValue(
-					ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, read_desc.aspectMask },
-					Tuple{ this->_mngr.GetBatchRC() },
-					"TransferContext::ReadbackImage",
-					ETaskQueue::PerFrame
-				);
+		return ReadbackImageResult{
+					Threading::MakePromiseFromValue(
+						ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, read_desc.aspectMask },
+						Tuple{ OnFrameNextCycle{ GetFrameId() }},
+						"TransferContext::ReadbackImage",
+						ETaskQueue::PerFrame
+					)};
 	}
 
 

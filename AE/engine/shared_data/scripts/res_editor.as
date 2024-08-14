@@ -1,6 +1,8 @@
-//47243657
+//400c1546
 #include <vector>
 #include <string>
+
+#define funcdef // typedef for function
 
 using int8		= std::int8_t;
 using uint8		= std::uint8_t;
@@ -20,163 +22,169 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct MipmapLevel;
-struct BaseController;
-struct ESurfaceFormat;
-struct FlightCamera;
-struct TopDownCamera;
-struct EReductionMode;
-struct ScaleBiasCamera;
-struct EPixelFormatExternal;
-struct DepthStencil;
-struct Scene;
-struct EPixelFormat;
-struct short4;
-struct ushort2;
-struct sbyte2;
-struct ushort3;
-struct int4;
-struct int2;
-struct ImageLayer;
-struct int3;
-struct EPolygonMode;
-struct float4x3;
-struct float4x2;
-struct float4x4;
-struct DynamicUInt;
-struct Model;
-struct float3x4;
-struct float3x2;
-struct float3x3;
-struct uint4;
-struct EColorSpace;
-struct RayTracingPass;
 struct RectU;
-struct EGPUVendor;
-struct FPSCamera;
-struct ECompareOp;
-struct DynamicDim;
-struct EShaderStages;
-struct RTInstanceMask;
-struct EShader;
-struct DynamicFloat;
-struct uint2;
-struct uint3;
-struct RectI;
-struct RGBA32u;
-struct UnifiedGeometry_DrawMeshTasks;
-struct RectF;
-struct SphericalCube;
-struct EMipmapFilter;
-struct RGBA8u;
-struct UnifiedGeometry_DrawMeshTasksIndirectCount;
-struct OrbitalCamera;
-struct EFeature;
-struct CallableIndex;
-struct Buffer;
-struct UnifiedGeometry_DrawIndirectCount;
-struct EBorderColor;
-struct EImageType;
-struct UnifiedGeometry;
-struct UnifiedGeometry_DrawMeshTasksIndirect;
-struct EResourceState;
-struct ComputePass;
-struct SceneRayTracingPass;
-struct Postprocess;
-struct RTInstanceSBTOffset;
-struct RemoteCamera;
-struct RTInstanceCustomIndex;
-struct ubyte4;
-struct ESamplerYcbcrRange;
-struct Random_Normal4;
-struct ESubgroupOperation;
-struct VideoImage;
-struct FPVCamera;
-struct ubyte2;
-struct ubyte3;
-struct EGraphicsDeviceID;
-struct EPrimitive;
-struct Random_Normal2;
-struct Random_Normal1;
-struct Random_Normal3;
-struct UnifiedGeometry_Draw;
-struct HSVColor;
-struct EQueueMask;
-struct RGBA32f;
-struct EBlendOp;
-struct ECullMode;
-struct ELogicOp;
-struct EVertexType;
-struct RGBA32i;
-struct bool4;
-struct SceneGraphicsPass;
+struct EBlendFactor;
+struct ERTInstanceOpt;
+struct EStencilOp;
+struct EAddressMode;
+struct DbgViewFlags;
+struct RayIndex;
+struct RTScene;
+struct Collection;
+struct EPassFlags;
 struct EImage;
 struct DynamicULong;
 struct bool3;
 struct bool2;
-struct RTScene;
-struct EPassFlags;
-struct RayIndex;
-struct Collection;
-struct EAddressMode;
-struct EStencilOp;
-struct DbgViewFlags;
-struct EBlendFactor;
-struct ERTInstanceOpt;
-struct DynamicFloat4;
-struct EPostprocess;
-struct DynamicUInt2;
-struct RTShader;
-struct DynamicUInt3;
-struct DynamicFloat2;
-struct ImageLoadOpFlags;
-struct float4;
-struct DynamicFloat3;
-struct DynamicUInt4;
-struct RTGeometry;
-struct UnifiedGeometry_DrawIndirect;
-struct GeomSource;
+struct EVertexType;
+struct RGBA32i;
+struct SceneGraphicsPass;
+struct bool4;
+struct EBlendOp;
+struct ELogicOp;
+struct ECullMode;
+struct HSVColor;
+struct RGBA32f;
+struct EQueueMask;
+struct Random_Normal1;
+struct UnifiedGeometry_Draw;
+struct Random_Normal2;
+struct Random_Normal3;
+struct EPrimitive;
+struct ESubgroupOperation;
+struct FPVCamera;
+struct VideoImage;
+struct ubyte2;
+struct ubyte3;
+struct EGraphicsDeviceID;
+struct Random_Normal4;
+struct ubyte4;
+struct RTInstanceCustomIndex;
+struct ESamplerYcbcrRange;
+struct RemoteCamera;
+struct RTInstanceSBTOffset;
+struct EShadingRate;
+struct EShaderIO;
+struct RTInstanceTransform;
+struct EImageAspect;
+struct EPipelineOpt;
+struct ERenderLayer;
+struct InstanceIndex;
+struct float3;
+struct float2;
+struct DynamicInt;
+struct EDescSetUsage;
+struct EVertexInputRate;
+struct ESamplerChromaLocation;
+struct float2x4;
+struct UnifiedGeometry_DrawIndexedIndirect;
+struct float2x2;
+struct float2x3;
+struct EPipelineDynamicState;
+struct Random_Binomial4;
+struct EFilter;
+struct IPass;
+struct Random_Binomial2;
+struct MultiSamples;
+struct Random_Binomial3;
+struct Random_Binomial1;
+struct ESamplerYcbcrModelConversion;
+struct sbyte3;
+struct sbyte4;
+struct short3;
+struct Random;
+struct short2;
+struct UnifiedGeometry_DrawIndexed;
+struct ushort4;
+struct ESamplerOpt;
+struct ESubgroupTypes;
+struct EImageUsage;
+struct UnifiedGeometry_DrawIndexedIndirectCount;
+struct Image;
+struct ScriptFlags;
 struct EIndex;
 struct DynamicInt4;
 struct DynamicInt3;
 struct DynamicInt2;
-struct Image;
-struct UnifiedGeometry_DrawIndexedIndirectCount;
-struct ScriptFlags;
-struct ESamplerOpt;
-struct ESubgroupTypes;
-struct sbyte3;
-struct sbyte4;
-struct UnifiedGeometry_DrawIndexed;
-struct short3;
-struct ushort4;
-struct Random;
-struct short2;
-struct ESamplerYcbcrModelConversion;
-struct IPass;
-struct MultiSamples;
-struct Random_Binomial2;
-struct Random_Binomial3;
-struct Random_Binomial1;
-struct EPipelineDynamicState;
-struct Random_Binomial4;
-struct EFilter;
-struct float2x4;
-struct float2x2;
-struct float2x3;
-struct UnifiedGeometry_DrawIndexedIndirect;
-struct ESamplerChromaLocation;
-struct EDescSetUsage;
-struct EVertexInputRate;
-struct EPipelineOpt;
-struct InstanceIndex;
-struct ERenderLayer;
-struct float3;
-struct DynamicInt;
-struct float2;
-struct EShaderIO;
-struct RTInstanceTransform;
-struct EImageAspect;
+struct UnifiedGeometry_DrawIndirect;
+struct GeomSource;
+struct DynamicFloat2;
+struct DynamicFloat3;
+struct float4;
+struct ImageLoadOpFlags;
+struct RTGeometry;
+struct DynamicUInt4;
+struct DynamicFloat4;
+struct EPostprocess;
+struct RTShader;
+struct DynamicUInt2;
+struct DynamicUInt3;
+struct float3x2;
+struct float3x3;
+struct Model;
+struct float3x4;
+struct float4x2;
+struct float4x4;
+struct DynamicUInt;
+struct EPolygonMode;
+struct float4x3;
+struct int4;
+struct int2;
+struct int3;
+struct ImageLayer;
+struct EPixelFormat;
+struct short4;
+struct ushort2;
+struct ushort3;
+struct sbyte2;
+struct Scene;
+struct DepthStencil;
+struct EPixelFormatExternal;
+struct EReductionMode;
+struct ScaleBiasCamera;
+struct TopDownCamera;
+struct ESurfaceFormat;
+struct FlightCamera;
+struct MipmapLevel;
+struct EShadingRateCombinerOp;
+struct BaseController;
+struct SceneRayTracingPass;
+struct Postprocess;
+struct EResourceState;
+struct EBufferOpt;
+struct UnifiedGeometry_DrawMeshTasksIndirect;
+struct ComputePass;
+struct EBufferUsage;
+struct EBorderColor;
+struct EImageType;
+struct UnifiedGeometry;
+struct UnifiedGeometry_DrawIndirectCount;
+struct CallableIndex;
+struct Buffer;
+struct EImageOpt;
+struct EFeature;
+struct OrbitalCamera;
+struct UnifiedGeometry_DrawMeshTasksIndirectCount;
+struct EMipmapFilter;
+struct RGBA8u;
+struct RectF;
+struct SphericalCube;
+struct RGBA32u;
+struct UnifiedGeometry_DrawMeshTasks;
+struct uint3;
+struct uint2;
+struct RectI;
+struct EShader;
+struct EShaderStages;
+struct DynamicFloat;
+struct RTInstanceMask;
+struct EGPUVendor;
+struct ECompareOp;
+struct FPSCamera;
+struct DynamicDim;
+struct EColorSpace;
+struct uint4;
+struct RayTracingPass;
 
 struct EImageType
 {
@@ -251,6 +259,26 @@ struct EImageType
 	static constexpr uint16 UImage2DMS = 101;
 	static constexpr uint16 UImage2DMSArray = 102;
 	static constexpr uint16 UImageBuffer = 106;
+	static constexpr uint16 SLongImage1D = 177;
+	static constexpr uint16 SLongImage2D = 179;
+	static constexpr uint16 SLongImage3D = 185;
+	static constexpr uint16 SLongImage1DArray = 178;
+	static constexpr uint16 SLongImage2DArray = 180;
+	static constexpr uint16 SLongImageCube = 183;
+	static constexpr uint16 SLongImageCubeArray = 184;
+	static constexpr uint16 SLongImage2DMS = 181;
+	static constexpr uint16 SLongImage2DMSArray = 182;
+	static constexpr uint16 SLongImageBuffer = 186;
+	static constexpr uint16 ULongImage1D = 193;
+	static constexpr uint16 ULongImage2D = 195;
+	static constexpr uint16 ULongImage3D = 201;
+	static constexpr uint16 ULongImage1DArray = 194;
+	static constexpr uint16 ULongImage2DArray = 196;
+	static constexpr uint16 ULongImageCube = 199;
+	static constexpr uint16 ULongImageCubeArray = 200;
+	static constexpr uint16 ULongImage2DMS = 197;
+	static constexpr uint16 ULongImage2DMSArray = 198;
+	static constexpr uint16 ULongImageBuffer = 202;
 };
 
 string  FindAndReplace (const string &, const string &, const string &);
@@ -307,6 +335,8 @@ int  CeilPOT (int x);
 int  AlignDown (int x, int align);
 int  AlignUp (int x, int align);
 bool  IsMultipleOf (int x, int align);
+int  SafeDiv (int x, int y, int defVal);
+int  DivCeil (int x, int y);
 uint  Square (uint x);
 uint  Min (uint x, uint y);
 uint  Max (uint x, uint y);
@@ -331,6 +361,8 @@ uint  CeilPOT (uint x);
 uint  AlignDown (uint x, uint align);
 uint  AlignUp (uint x, uint align);
 bool  IsMultipleOf (uint x, uint align);
+uint  SafeDiv (uint x, uint y, uint defVal);
+uint  DivCeil (uint x, uint y);
 float  Abs (float x);
 float  MirroredWrap (float x, float min, float max);
 float  Square (float x);
@@ -1067,6 +1099,30 @@ bool  All (const bool3 & x);
 bool  Any (const bool3 & x);
 bool  All (const bool4 & x);
 bool  Any (const bool4 & x);
+sbyte2  DivCeil (const sbyte2 & x, const sbyte2 & y);
+sbyte2  DivCeil (const sbyte2 & x, int8 y);
+sbyte3  DivCeil (const sbyte3 & x, const sbyte3 & y);
+sbyte3  DivCeil (const sbyte3 & x, int8 y);
+sbyte4  DivCeil (const sbyte4 & x, const sbyte4 & y);
+sbyte4  DivCeil (const sbyte4 & x, int8 y);
+ubyte2  DivCeil (const ubyte2 & x, const ubyte2 & y);
+ubyte2  DivCeil (const ubyte2 & x, uint8 y);
+ubyte3  DivCeil (const ubyte3 & x, const ubyte3 & y);
+ubyte3  DivCeil (const ubyte3 & x, uint8 y);
+ubyte4  DivCeil (const ubyte4 & x, const ubyte4 & y);
+ubyte4  DivCeil (const ubyte4 & x, uint8 y);
+short2  DivCeil (const short2 & x, const short2 & y);
+short2  DivCeil (const short2 & x, int16 y);
+short3  DivCeil (const short3 & x, const short3 & y);
+short3  DivCeil (const short3 & x, int16 y);
+short4  DivCeil (const short4 & x, const short4 & y);
+short4  DivCeil (const short4 & x, int16 y);
+ushort2  DivCeil (const ushort2 & x, const ushort2 & y);
+ushort2  DivCeil (const ushort2 & x, uint16 y);
+ushort3  DivCeil (const ushort3 & x, const ushort3 & y);
+ushort3  DivCeil (const ushort3 & x, uint16 y);
+ushort4  DivCeil (const ushort4 & x, const ushort4 & y);
+ushort4  DivCeil (const ushort4 & x, uint16 y);
 int2  Abs (const int2 & x);
 int2  MirroredWrap (const int2 & x, const int2 & min, const int2 & max);
 int2  MirroredWrap (const int2 & x, int min, int max);
@@ -1079,6 +1135,8 @@ int2  Clamp (const int2 & val, int min, int max);
 int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
 int2  Wrap (const int2 & val, int min, int max);
 int  VecToLinear (const int2 & pos, const int2 & dim);
+int2  DivCeil (const int2 & x, const int2 & y);
+int2  DivCeil (const int2 & x, int y);
 int3  Abs (const int3 & x);
 int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
 int3  MirroredWrap (const int3 & x, int min, int max);
@@ -1091,6 +1149,8 @@ int3  Clamp (const int3 & val, int min, int max);
 int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
 int3  Wrap (const int3 & val, int min, int max);
 int  VecToLinear (const int3 & pos, const int3 & dim);
+int3  DivCeil (const int3 & x, const int3 & y);
+int3  DivCeil (const int3 & x, int y);
 int4  Abs (const int4 & x);
 int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
 int4  MirroredWrap (const int4 & x, int min, int max);
@@ -1103,6 +1163,8 @@ int4  Clamp (const int4 & val, int min, int max);
 int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
 int4  Wrap (const int4 & val, int min, int max);
 int  VecToLinear (const int4 & pos, const int4 & dim);
+int4  DivCeil (const int4 & x, const int4 & y);
+int4  DivCeil (const int4 & x, int y);
 uint  Sum (const uint2 & x);
 uint  Area (const uint2 & x);
 uint2  Min (const uint2 & x, const uint2 & y);
@@ -1112,6 +1174,8 @@ uint2  Clamp (const uint2 & val, uint min, uint max);
 uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
 uint2  Wrap (const uint2 & val, uint min, uint max);
 uint  VecToLinear (const uint2 & pos, const uint2 & dim);
+uint2  DivCeil (const uint2 & x, const uint2 & y);
+uint2  DivCeil (const uint2 & x, uint y);
 uint  Sum (const uint3 & x);
 uint  Area (const uint3 & x);
 uint3  Min (const uint3 & x, const uint3 & y);
@@ -1121,6 +1185,8 @@ uint3  Clamp (const uint3 & val, uint min, uint max);
 uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
 uint3  Wrap (const uint3 & val, uint min, uint max);
 uint  VecToLinear (const uint3 & pos, const uint3 & dim);
+uint3  DivCeil (const uint3 & x, const uint3 & y);
+uint3  DivCeil (const uint3 & x, uint y);
 uint  Sum (const uint4 & x);
 uint  Area (const uint4 & x);
 uint4  Min (const uint4 & x, const uint4 & y);
@@ -1130,6 +1196,8 @@ uint4  Clamp (const uint4 & val, uint min, uint max);
 uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
 uint4  Wrap (const uint4 & val, uint min, uint max);
 uint  VecToLinear (const uint4 & pos, const uint4 & dim);
+uint4  DivCeil (const uint4 & x, const uint4 & y);
+uint4  DivCeil (const uint4 & x, uint y);
 float2  Abs (const float2 & x);
 float2  MirroredWrap (const float2 & x, const float2 & min, const float2 & max);
 float2  MirroredWrap (const float2 & x, float min, float max);
@@ -1419,7 +1487,6 @@ struct float4x4
 
 RGBA32f  Lerp (const RGBA32f & x, const RGBA32f & y, float factor);
 RGBA32f  AdjustContrast (const RGBA32f & col, float factor);
-float  Luminance (const RGBA32f & col);
 RGBA32f  Rainbow (float factor);
 RGBA32f  RainbowWrap (float factor);
 struct RGBA32f
@@ -1433,6 +1500,8 @@ struct RGBA32f
 	float g;
 	float b;
 	float a;
+	float  Luminance () const;
+	RGBA32f &  OpaqueBlack ();
 	RGBA32f (const HSVColor & hsv, float alpha);
 	RGBA32f (const RGBA8u & c);
 	RGBA32f (const RGBA32u & c);
@@ -1469,9 +1538,9 @@ struct RGBA32u
 };
 
 RGBA8u  AdjustContrast (const RGBA8u & col, float factor);
-float  Luminance (const RGBA8u & col);
 RGBA8u  AdjustSaturation (const RGBA8u & col, float factor);
 RGBA8u  Lerp (const RGBA8u & x, const RGBA8u & y, float factor);
+RGBA8u &  OpaqueBlack (RGBA8u &);
 struct RGBA8u
 {
 	RGBA8u ();
@@ -1483,6 +1552,10 @@ struct RGBA8u
 	uint8 g;
 	uint8 b;
 	uint8 a;
+	float  Luminance () const;
+	uint  ToUInt () const;
+	void  FromUintARGB (uint);
+	void  FromUint (uint);
 	RGBA8u (const RGBA32i & c);
 	RGBA8u (const RGBA32u & c);
 	RGBA8u (const RGBA32f & c);
@@ -1512,8 +1585,6 @@ struct DepthStencil
 	DepthStencil (float depth, int stencil);
 };
 
-RGBA8u  asARGB (uint);
-RGBA8u  asRGBA (uint);
 void  LogError (const string & msg);
 void  LogInfo (const string & msg);
 void  LogDebug (const string & msg);
@@ -1745,7 +1816,7 @@ struct EPixelFormat
 	static constexpr uint8 BC7_RGBA8_UNorm = 83;
 	static constexpr uint8 BC7_sRGB8_A8 = 84;
 	static constexpr uint8 ETC2_RGB8_UNorm = 85;
-	static constexpr uint8 ECT2_sRGB8 = 86;
+	static constexpr uint8 ETC2_sRGB8 = 86;
 	static constexpr uint8 ETC2_RGB8_A1_UNorm = 87;
 	static constexpr uint8 ETC2_sRGB8_A1 = 88;
 	static constexpr uint8 ETC2_RGBA8_UNorm = 89;
@@ -1754,20 +1825,20 @@ struct EPixelFormat
 	static constexpr uint8 EAC_R11_UNorm = 92;
 	static constexpr uint8 EAC_RG11_SNorm = 93;
 	static constexpr uint8 EAC_RG11_UNorm = 94;
-	static constexpr uint8 ASTC_RGBA_4x4 = 95;
-	static constexpr uint8 ASTC_RGBA_5x4 = 96;
-	static constexpr uint8 ASTC_RGBA_5x5 = 97;
-	static constexpr uint8 ASTC_RGBA_6x5 = 98;
-	static constexpr uint8 ASTC_RGBA_6x6 = 99;
-	static constexpr uint8 ASTC_RGBA_8x5 = 100;
-	static constexpr uint8 ASTC_RGBA_8x6 = 101;
-	static constexpr uint8 ASTC_RGBA_8x8 = 102;
-	static constexpr uint8 ASTC_RGBA_10x5 = 103;
-	static constexpr uint8 ASTC_RGBA_10x6 = 104;
-	static constexpr uint8 ASTC_RGBA_10x8 = 105;
-	static constexpr uint8 ASTC_RGBA_10x10 = 106;
-	static constexpr uint8 ASTC_RGBA_12x10 = 107;
-	static constexpr uint8 ASTC_RGBA_12x12 = 108;
+	static constexpr uint8 ASTC_RGBA8_4x4 = 95;
+	static constexpr uint8 ASTC_RGBA8_5x4 = 96;
+	static constexpr uint8 ASTC_RGBA8_5x5 = 97;
+	static constexpr uint8 ASTC_RGBA8_6x5 = 98;
+	static constexpr uint8 ASTC_RGBA8_6x6 = 99;
+	static constexpr uint8 ASTC_RGBA8_8x5 = 100;
+	static constexpr uint8 ASTC_RGBA8_8x6 = 101;
+	static constexpr uint8 ASTC_RGBA8_8x8 = 102;
+	static constexpr uint8 ASTC_RGBA8_10x5 = 103;
+	static constexpr uint8 ASTC_RGBA8_10x6 = 104;
+	static constexpr uint8 ASTC_RGBA8_10x8 = 105;
+	static constexpr uint8 ASTC_RGBA8_10x10 = 106;
+	static constexpr uint8 ASTC_RGBA8_12x10 = 107;
+	static constexpr uint8 ASTC_RGBA8_12x12 = 108;
 	static constexpr uint8 ASTC_sRGB8_A8_4x4 = 109;
 	static constexpr uint8 ASTC_sRGB8_A8_5x4 = 110;
 	static constexpr uint8 ASTC_sRGB8_A8_5x5 = 111;
@@ -2040,20 +2111,19 @@ struct EResourceState
 	static constexpr uint32 InputDepthStencilAttachment = 1302;
 	static constexpr uint32 InputDepthStencilAttachment_RW = 3863;
 	static constexpr uint32 Host_Read = 282;
-	static constexpr uint32 Host_Write = 539;
 	static constexpr uint32 PresentImage = 268;
-	static constexpr uint32 IndirectBuffer = 285;
-	static constexpr uint32 IndexBuffer = 286;
-	static constexpr uint32 VertexBuffer = 287;
+	static constexpr uint32 IndirectBuffer = 284;
+	static constexpr uint32 IndexBuffer = 285;
+	static constexpr uint32 VertexBuffer = 286;
 	static constexpr uint32 ShadingRateImage = 269;
-	static constexpr uint32 CopyRTAS_Read = 288;
-	static constexpr uint32 CopyRTAS_Write = 545;
-	static constexpr uint32 BuildRTAS_Read = 290;
-	static constexpr uint32 BuildRTAS_Write = 547;
-	static constexpr uint32 BuildRTAS_RW = 803;
-	static constexpr uint32 BuildRTAS_IndirectBuffer = 292;
-	static constexpr uint32 ShaderRTAS = 284;
-	static constexpr uint32 RTShaderBindingTable = 293;
+	static constexpr uint32 CopyRTAS_Read = 287;
+	static constexpr uint32 CopyRTAS_Write = 544;
+	static constexpr uint32 BuildRTAS_Read = 289;
+	static constexpr uint32 BuildRTAS_Write = 546;
+	static constexpr uint32 BuildRTAS_RW = 802;
+	static constexpr uint32 BuildRTAS_IndirectBuffer = 291;
+	static constexpr uint32 ShaderRTAS = 283;
+	static constexpr uint32 RTShaderBindingTable = 292;
 	static constexpr uint32 DSTestBeforeFS = 4096;
 	static constexpr uint32 DSTestAfterFS = 8192;
 	static constexpr uint32 Invalidate = 16384;
@@ -2068,7 +2138,7 @@ struct EResourceState
 	static constexpr uint32 RayTracingShaders = 1048576;
 	static constexpr uint32 AllGraphicsShaders = 491520;
 	static constexpr uint32 AllShaders = 2064384;
-	static constexpr uint32 BuildRTAS_ScratchBuffer = 803;
+	static constexpr uint32 BuildRTAS_ScratchBuffer = 802;
 	static constexpr uint32 InputDepthAttachment = 1302;
 	static constexpr uint32 DepthStencilAttachment = 16137;
 };
@@ -2248,8 +2318,8 @@ struct EShaderStages
 	static constexpr uint16 RayCallable = 16384;
 	static constexpr uint16 All = 32767;
 	static constexpr uint16 AllGraphics = 415;
-	static constexpr uint16 GraphicsStages = 31;
-	static constexpr uint16 MeshStages = 400;
+	static constexpr uint16 GraphicsPipeStages = 31;
+	static constexpr uint16 MeshPipeStages = 400;
 	static constexpr uint16 VertexProcessingStages = 271;
 	static constexpr uint16 PreRasterizationStages = 399;
 	static constexpr uint16 PostRasterizationStages = 80;
@@ -2369,68 +2439,65 @@ struct EGraphicsDeviceID
 	operator uint32 () const;
 	static constexpr uint32 Adreno_500 = 0;
 	static constexpr uint32 Adreno_600 = 1;
-	static constexpr uint32 Adreno_600_QC4 = 2;
-	static constexpr uint32 Adreno_600_OC4 = 3;
-	static constexpr uint32 Adreno_600_QC5 = 4;
-	static constexpr uint32 Adreno_700_SC3 = 5;
-	static constexpr uint32 Adreno_700_DC4_SC5 = 6;
-	static constexpr uint32 Adreno_700_QC5X = 7;
-	static constexpr uint32 AMD_GCN1 = 8;
-	static constexpr uint32 AMD_GCN2 = 9;
-	static constexpr uint32 AMD_GCN3 = 10;
-	static constexpr uint32 AMD_GCN4 = 11;
-	static constexpr uint32 AMD_GCN5 = 12;
-	static constexpr uint32 AMD_GCN5_APU = 13;
-	static constexpr uint32 AMD_RDNA1 = 14;
-	static constexpr uint32 AMD_RDNA2 = 15;
-	static constexpr uint32 AMD_RDNA2_APU = 16;
-	static constexpr uint32 AMD_RDNA3 = 17;
-	static constexpr uint32 AMD_RDNA3_APU = 18;
-	static constexpr uint32 Apple_A8 = 19;
-	static constexpr uint32 Apple_A9_A10 = 20;
-	static constexpr uint32 Apple_A11 = 21;
-	static constexpr uint32 Apple_A12 = 22;
-	static constexpr uint32 Apple_A13 = 23;
-	static constexpr uint32 Apple_A14_M1 = 24;
-	static constexpr uint32 Apple_A15_M2 = 25;
-	static constexpr uint32 Apple_A16 = 26;
-	static constexpr uint32 Apple_A17_M3 = 27;
-	static constexpr uint32 Mali_Midgard_Gen2 = 28;
-	static constexpr uint32 Mali_Midgard_Gen3 = 29;
-	static constexpr uint32 Mali_Midgard_Gen4 = 30;
-	static constexpr uint32 Mali_Bifrost_Gen1 = 31;
-	static constexpr uint32 Mali_Bifrost_Gen2 = 32;
-	static constexpr uint32 Mali_Bifrost_Gen3 = 33;
-	static constexpr uint32 Mali_Valhall_Gen1 = 34;
-	static constexpr uint32 Mali_Valhall_Gen2 = 35;
-	static constexpr uint32 Mali_Valhall_Gen3 = 36;
-	static constexpr uint32 Mali_Valhall_Gen4 = 37;
-	static constexpr uint32 Mali_Valhall_Gen5 = 38;
-	static constexpr uint32 NV_Maxwell = 39;
-	static constexpr uint32 NV_Maxwell_Tegra = 40;
-	static constexpr uint32 NV_Pascal = 41;
-	static constexpr uint32 NV_Pascal_MX = 42;
-	static constexpr uint32 NV_Pascal_Tegra = 43;
-	static constexpr uint32 NV_Volta = 44;
-	static constexpr uint32 NV_Turing_16 = 45;
-	static constexpr uint32 NV_Turing = 46;
-	static constexpr uint32 NV_Turing_MX = 47;
-	static constexpr uint32 NV_Ampere = 48;
-	static constexpr uint32 NV_Ampere_Orin = 49;
-	static constexpr uint32 NV_Ada = 50;
-	static constexpr uint32 Intel_Gen9_HD500 = 51;
-	static constexpr uint32 Intel_Gen9_HD600 = 52;
-	static constexpr uint32 Intel_Gen9_UHD600 = 53;
-	static constexpr uint32 Intel_Gen11 = 54;
-	static constexpr uint32 Intel_Gen12 = 55;
-	static constexpr uint32 Intel_Gen12_7 = 56;
-	static constexpr uint32 PowerVR_Series8XE = 57;
-	static constexpr uint32 PowerVR_Series8XEP = 58;
-	static constexpr uint32 PowerVR_Series8XT = 59;
-	static constexpr uint32 PowerVR_Series9XE = 60;
-	static constexpr uint32 PowerVR_BSeries = 61;
-	static constexpr uint32 VeriSilicon = 62;
-	static constexpr uint32 SwiftShader = 63;
+	static constexpr uint32 Adreno_700 = 2;
+	static constexpr uint32 AMD_GCN1 = 3;
+	static constexpr uint32 AMD_GCN2 = 4;
+	static constexpr uint32 AMD_GCN3 = 5;
+	static constexpr uint32 AMD_GCN4 = 6;
+	static constexpr uint32 AMD_GCN5 = 7;
+	static constexpr uint32 AMD_GCN5_APU = 8;
+	static constexpr uint32 AMD_RDNA1 = 9;
+	static constexpr uint32 AMD_RDNA2 = 10;
+	static constexpr uint32 AMD_RDNA2_APU = 11;
+	static constexpr uint32 AMD_RDNA3 = 12;
+	static constexpr uint32 AMD_RDNA3_APU = 13;
+	static constexpr uint32 AMD_RDNA4 = 14;
+	static constexpr uint32 Apple_A8 = 15;
+	static constexpr uint32 Apple_A9_A10 = 16;
+	static constexpr uint32 Apple_A11 = 17;
+	static constexpr uint32 Apple_A12 = 18;
+	static constexpr uint32 Apple_A13 = 19;
+	static constexpr uint32 Apple_A14_M1 = 20;
+	static constexpr uint32 Apple_A15_M2 = 21;
+	static constexpr uint32 Apple_A16 = 22;
+	static constexpr uint32 Apple_A17_M3 = 23;
+	static constexpr uint32 Mali_Midgard_Gen2 = 24;
+	static constexpr uint32 Mali_Midgard_Gen3 = 25;
+	static constexpr uint32 Mali_Midgard_Gen4 = 26;
+	static constexpr uint32 Mali_Bifrost_Gen1 = 27;
+	static constexpr uint32 Mali_Bifrost_Gen2 = 28;
+	static constexpr uint32 Mali_Bifrost_Gen3 = 29;
+	static constexpr uint32 Mali_Valhall_Gen1 = 30;
+	static constexpr uint32 Mali_Valhall_Gen2 = 31;
+	static constexpr uint32 Mali_Valhall_Gen3 = 32;
+	static constexpr uint32 Mali_Valhall_Gen4 = 33;
+	static constexpr uint32 Mali_5thGen_Gen1 = 34;
+	static constexpr uint32 Mali_5thGen_Gen2 = 35;
+	static constexpr uint32 NV_Maxwell = 36;
+	static constexpr uint32 NV_Maxwell_Tegra = 37;
+	static constexpr uint32 NV_Pascal = 38;
+	static constexpr uint32 NV_Pascal_MX = 39;
+	static constexpr uint32 NV_Pascal_Tegra = 40;
+	static constexpr uint32 NV_Volta = 41;
+	static constexpr uint32 NV_Turing_16 = 42;
+	static constexpr uint32 NV_Turing = 43;
+	static constexpr uint32 NV_Turing_MX = 44;
+	static constexpr uint32 NV_Ampere = 45;
+	static constexpr uint32 NV_Ampere_Orin = 46;
+	static constexpr uint32 NV_Ada = 47;
+	static constexpr uint32 NV_Blackwell = 48;
+	static constexpr uint32 Intel_Gen7 = 49;
+	static constexpr uint32 Intel_Gen8 = 50;
+	static constexpr uint32 Intel_Gen9 = 51;
+	static constexpr uint32 Intel_Gen11 = 52;
+	static constexpr uint32 Intel_Gen12 = 53;
+	static constexpr uint32 Intel_Gen12_7 = 54;
+	static constexpr uint32 PowerVR_Series8 = 55;
+	static constexpr uint32 PowerVR_Series9 = 56;
+	static constexpr uint32 PowerVR_SeriesA = 57;
+	static constexpr uint32 PowerVR_SeriesB = 58;
+	static constexpr uint32 VeriSilicon = 59;
+	static constexpr uint32 SwiftShader = 60;
 };
 
 struct EFilter
@@ -2525,6 +2592,8 @@ struct EPipelineOpt
 	EPipelineOpt () {}
 	EPipelineOpt (uint16) {}
 	operator uint16 () const;
+
+	// Optimize pipeline during creation, may be slow.
 	static constexpr uint16 Optimize = 1;
 	static constexpr uint16 CS_DispatchBase = 2;
 	static constexpr uint16 RT_NoNullAnyHitShaders = 4;
@@ -2533,9 +2602,21 @@ struct EPipelineOpt
 	static constexpr uint16 RT_NoNullIntersectionShaders = 32;
 	static constexpr uint16 RT_SkipTriangles = 64;
 	static constexpr uint16 RT_SkipAABBs = 128;
+
+	// Pipeline creation will fail if it is not exists in cache.
 	static constexpr uint16 DontCompile = 256;
+
+	// When a pipeline is created, its state and shaders are compiled into zero or more device-specific executables,
+	// which are used when executing commands against that pipeline.
 	static constexpr uint16 CaptureStatistics = 512;
+
+	// May include the final shader assembly, a binary form of the compiled shader,
+	// or the shader compiler’s internal representation at any number of intermediate compile steps.
 	static constexpr uint16 CaptureInternalRepresentation = 1024;
+
+	// Disable pipeline optimization to speedup creation.
+	static constexpr uint16 DontOptimize = 0;
+	static constexpr uint16 None = 0;
 };
 
 struct EQueueMask
@@ -2611,6 +2692,115 @@ struct ERTInstanceOpt
 	static constexpr uint8 TriangleFrontCW = 0;
 };
 
+struct EImageUsage
+{
+	EImageUsage () {}
+	EImageUsage (uint32) {}
+	operator uint32 () const;
+	static constexpr uint32 TransferSrc = 1;
+	static constexpr uint32 TransferDst = 2;
+	static constexpr uint32 Sampled = 4;
+	static constexpr uint32 Storage = 8;
+	static constexpr uint32 ColorAttachment = 16;
+	static constexpr uint32 DepthStencilAttachment = 32;
+	static constexpr uint32 InputAttachment = 64;
+	static constexpr uint32 ShadingRate = 128;
+	static constexpr uint32 All = 255;
+	static constexpr uint32 Transfer = 3;
+	static constexpr uint32 RWAttachment = 80;
+};
+
+struct EImageOpt
+{
+	EImageOpt () {}
+	EImageOpt (uint32) {}
+	operator uint32 () const;
+	static constexpr uint32 BlitSrc = 1;
+	static constexpr uint32 BlitDst = 2;
+	static constexpr uint32 CubeCompatible = 4;
+	static constexpr uint32 MutableFormat = 8;
+	static constexpr uint32 Array2DCompatible = 16;
+	static constexpr uint32 BlockTexelViewCompatible = 32;
+	static constexpr uint32 SparseResidency = 64;
+	static constexpr uint32 SparseAliased = 128;
+	static constexpr uint32 Alias = 256;
+	static constexpr uint32 SampleLocationsCompatible = 512;
+	static constexpr uint32 StorageAtomic = 1024;
+	static constexpr uint32 ColorAttachmentBlend = 2048;
+	static constexpr uint32 SampledLinear = 4096;
+	static constexpr uint32 SampledMinMax = 8192;
+	static constexpr uint32 VertexPplnStore = 16384;
+	static constexpr uint32 FragmentPplnStore = 32768;
+	static constexpr uint32 LossyRTCompression = 65536;
+	static constexpr uint32 All = 131071;
+	static constexpr uint32 SparseResidencyAliased = 192;
+};
+
+struct EBufferUsage
+{
+	EBufferUsage () {}
+	EBufferUsage (uint32) {}
+	operator uint32 () const;
+	static constexpr uint32 TransferSrc = 1;
+	static constexpr uint32 TransferDst = 2;
+	static constexpr uint32 UniformTexel = 4;
+	static constexpr uint32 StorageTexel = 8;
+	static constexpr uint32 Uniform = 16;
+	static constexpr uint32 Storage = 32;
+	static constexpr uint32 Index = 64;
+	static constexpr uint32 Vertex = 128;
+	static constexpr uint32 Indirect = 256;
+	static constexpr uint32 ShaderAddress = 512;
+	static constexpr uint32 ShaderBindingTable = 1024;
+	static constexpr uint32 ASBuild_ReadOnly = 2048;
+	static constexpr uint32 ASBuild_Scratch = 4096;
+	static constexpr uint32 All = 8191;
+	static constexpr uint32 Transfer = 3;
+};
+
+struct EBufferOpt
+{
+	EBufferOpt () {}
+	EBufferOpt (uint32) {}
+	operator uint32 () const;
+	static constexpr uint32 SparseResidency = 1;
+	static constexpr uint32 SparseAliased = 2;
+	static constexpr uint32 VertexPplnStore = 4;
+	static constexpr uint32 FragmentPplnStore = 8;
+	static constexpr uint32 StorageTexelAtomic = 16;
+	static constexpr uint32 All = 31;
+	static constexpr uint32 SparseResidencyAliased = 3;
+};
+
+struct EShadingRate
+{
+	EShadingRate () {}
+	EShadingRate (uint8) {}
+	operator uint8 () const;
+	static constexpr uint8 Size1x1 = 16;
+	static constexpr uint8 Size1x2 = 32;
+	static constexpr uint8 Size1x4 = 48;
+	static constexpr uint8 Size2x1 = 64;
+	static constexpr uint8 Size2x2 = 80;
+	static constexpr uint8 Size2x4 = 96;
+	static constexpr uint8 Size4x1 = 112;
+	static constexpr uint8 Size4x2 = 128;
+	static constexpr uint8 Size4x4 = 144;
+};
+
+struct EShadingRateCombinerOp
+{
+	EShadingRateCombinerOp () {}
+	EShadingRateCombinerOp (uint8) {}
+	operator uint8 () const;
+	static constexpr uint8 Keep = 0;
+	static constexpr uint8 Replace = 1;
+	static constexpr uint8 Min = 2;
+	static constexpr uint8 Max = 3;
+	static constexpr uint8 Sum = 4;
+	static constexpr uint8 Mul = 5;
+};
+
 struct MultiSamples
 {
 	MultiSamples ();
@@ -2674,24 +2864,39 @@ struct DynamicUInt
 	DynamicUInt ();
 	DynamicUInt (uint);
 	RC<DynamicUInt>  Mul (uint);
+	RC<DynamicUInt>  Div (uint);
+	RC<DynamicUInt>  DivNear (uint);
+	RC<DynamicUInt>  DivCeil (uint);
+	RC<DynamicUInt>  Add (uint);
+	RC<DynamicUInt>  Sub (uint);
+	RC<DynamicUInt>  Pow (uint);
 };
 
 struct DynamicUInt2
 {
 	DynamicUInt2 ();
 	DynamicUInt2 (const uint2 &);
+	RC<DynamicUInt>  X () const;
+	RC<DynamicUInt>  Y () const;
 };
 
 struct DynamicUInt3
 {
 	DynamicUInt3 ();
 	DynamicUInt3 (const uint3 &);
+	RC<DynamicUInt>  X () const;
+	RC<DynamicUInt>  Y () const;
+	RC<DynamicUInt>  Z () const;
 };
 
 struct DynamicUInt4
 {
 	DynamicUInt4 ();
 	DynamicUInt4 (const uint4 &);
+	RC<DynamicUInt>  X () const;
+	RC<DynamicUInt>  Y () const;
+	RC<DynamicUInt>  Z () const;
+	RC<DynamicUInt>  W () const;
 };
 
 struct DynamicInt
@@ -2704,18 +2909,27 @@ struct DynamicInt2
 {
 	DynamicInt2 ();
 	DynamicInt2 (const int2 &);
+	RC<DynamicInt>  X () const;
+	RC<DynamicInt>  Y () const;
 };
 
 struct DynamicInt3
 {
 	DynamicInt3 ();
 	DynamicInt3 (const int3 &);
+	RC<DynamicInt>  X () const;
+	RC<DynamicInt>  Y () const;
+	RC<DynamicInt>  Z () const;
 };
 
 struct DynamicInt4
 {
 	DynamicInt4 ();
 	DynamicInt4 (const int4 &);
+	RC<DynamicInt>  X () const;
+	RC<DynamicInt>  Y () const;
+	RC<DynamicInt>  Z () const;
+	RC<DynamicInt>  W () const;
 };
 
 struct DynamicFloat
@@ -2728,18 +2942,27 @@ struct DynamicFloat2
 {
 	DynamicFloat2 ();
 	DynamicFloat2 (const float2 &);
+	RC<DynamicFloat>  X () const;
+	RC<DynamicFloat>  Y () const;
 };
 
 struct DynamicFloat3
 {
 	DynamicFloat3 ();
 	DynamicFloat3 (const float3 &);
+	RC<DynamicFloat>  X () const;
+	RC<DynamicFloat>  Y () const;
+	RC<DynamicFloat>  Z () const;
 };
 
 struct DynamicFloat4
 {
 	DynamicFloat4 ();
 	DynamicFloat4 (const float4 &);
+	RC<DynamicFloat>  X () const;
+	RC<DynamicFloat>  Y () const;
+	RC<DynamicFloat>  Z () const;
+	RC<DynamicFloat>  W () const;
 };
 
 struct DynamicULong
@@ -2750,6 +2973,7 @@ struct DynamicULong
 
 struct DynamicDim
 {
+	DynamicDim (uint3);
 	RC<DynamicDim>  opMul (int) const;
 	RC<DynamicDim>  opDiv (int) const;
 	RC<DynamicDim>  Mul (int) const;
@@ -2768,6 +2992,9 @@ struct DynamicDim
 	RC<DynamicDim>  Div (const int3 &) const;
 	RC<DynamicDim>  DivRound (const int3 &) const;
 	RC<DynamicDim>  DivCeil (const int3 &) const;
+	RC<DynamicUInt>  X () const;
+	RC<DynamicUInt>  Y () const;
+	RC<DynamicUInt2>  XY () const;
 	RC<DynamicUInt>  Area () const;
 	RC<DynamicUInt>  Volume () const;
 };
@@ -2923,10 +3150,10 @@ struct Buffer
 	void  ArrayLayout (const string & typeName, const RC<DynamicUInt> & count);
 
 	// Allow to declare array of struct with constant or dynamic size.
-	// Created a new structure with type 'typeName' and fields in 'source'.
+	// Created a new structure with type 'typeName' and fields in 'arrayElementSource'.
 	// See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).
-	void  ArrayLayout (const string & typeName, const string & source, uint count);
-	void  ArrayLayout (const string & typeName, const string & source, const RC<DynamicUInt> & count);
+	void  ArrayLayout (const string & typeName, const string & arrayElementSource, uint count);
+	void  ArrayLayout (const string & typeName, const string & arrayElementSource, const RC<DynamicUInt> & count);
 	void  ArrayLayout (const string & typeName, const string & arrayElementSource, const string & staticSource, uint count);
 	void  ArrayLayout (const string & typeName, const string & arrayElementSource, const string & staticSource, const RC<DynamicUInt> & count);
 
@@ -2939,7 +3166,7 @@ struct Buffer
 	void  UseLayout (const string & typeName, const string & source);
 
 	// Returns buffer device address.
-	// Requires 'GL_EXT_buffer_reference extension' in GLSL.
+	// Requires 'GL_EXT_buffer_reference' extension in GLSL.
 	// It passed as 'uint64' type so you should cast it to buffer reference type.
 	uint64  DeviceAddress ();
 
@@ -3061,7 +3288,7 @@ struct RTInstanceMask
 	RTInstanceMask&  operator = (const RTInstanceMask&);
 
 	// Set instance cull mask, used only first 8 bits.
-	// In trace ray call if (cullMask_argument & instance_cullMask) != 0 then instance is visible.
+	// In trace ray call: 'if (cullMask_argument & instance_cullMask) != 0' then instance is visible.
 	RTInstanceMask (uint);
 };
 
@@ -3093,41 +3320,41 @@ struct RTScene
 	void  Name (const string &);
 
 	// Add instance to the scene.
-	void  AddInstance (const RC<RTGeometry> &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceMask &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceSBTOffset &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, const RTInstanceMask &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &);
-	void  AddInstance (const RC<RTGeometry> &, const float3 &);
-	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceMask &);
-	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceSBTOffset &);
-	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceCustomIndex &);
-	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &);
-	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &);
-	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceMask &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceSBTOffset &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceCustomIndex &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &);
-	void  AddInstance (const RC<RTGeometry> &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceMask &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceSBTOffset &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, const RTInstanceMask &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceMask &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceSBTOffset &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceCustomIndex &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &, ERTInstanceOpt);
-	void  AddInstance (const RC<RTGeometry> &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &, ERTInstanceOpt);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceMask & mask);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceSBTOffset & sbtOffset);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceCustomIndex & customIndex);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceCustomIndex & customIndex, const RTInstanceSBTOffset & sbtOffset);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask, const RTInstanceSBTOffset & sbtOffset);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceMask & mask, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceSBTOffset & sbtOffset, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceCustomIndex & customIndex, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceCustomIndex & customIndex, const RTInstanceSBTOffset & sbtOffset, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask, const RTInstanceSBTOffset & sbtOffset, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const float3 & position);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const float3 & position, const RTInstanceMask & mask);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const float3 & position, const RTInstanceSBTOffset & sbtOffset);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const float3 & position, const RTInstanceCustomIndex & customIndex);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const float3 & position, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const float3 & position, const RTInstanceCustomIndex & customIndex, const RTInstanceSBTOffset & sbtOffset);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const float3 & position, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask, const RTInstanceSBTOffset & sbtOffset);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceMask & mask);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceSBTOffset & sbtOffset);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceCustomIndex & customIndex);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceCustomIndex & customIndex, const RTInstanceSBTOffset & sbtOffset);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask, const RTInstanceSBTOffset & sbtOffset);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceMask & mask, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceSBTOffset & sbtOffset, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceCustomIndex & customIndex, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceCustomIndex & customIndex, const RTInstanceSBTOffset & sbtOffset, ERTInstanceOpt options);
+	void  AddInstance (const RC<RTGeometry> & rtGeometry, const RTInstanceTransform & transform, const RTInstanceCustomIndex & customIndex, const RTInstanceMask & mask, const RTInstanceSBTOffset & sbtOffset, ERTInstanceOpt options);
 
 	// Returns instance buffer, can be used to update instances in compute shader.
 	RC<Buffer>  InstanceBuffer ();
@@ -3416,6 +3643,7 @@ struct SphericalCube
 	// Vertex count: (lod+2)^2, index count: 6*(lod+1)^2.
 	void  DetailLevel (uint maxLOD);
 	void  DetailLevel (uint minLOD, uint maxLOD);
+	void  InstanceCount (uint);
 };
 
 struct UnifiedGeometry_Draw
@@ -3426,7 +3654,7 @@ struct UnifiedGeometry_Draw
 	void  VertexCount (const RC<DynamicUInt> &);
 	void  InstanceCount (const RC<DynamicUInt> &);
 
-	// Pattern to choose pipeline if supported multiple pipelines.
+	// Pattern to choose pipeline if found multiple pipelines.
 	void  PipelineHint (const string &);
 	uint vertexCount;
 	uint instanceCount;
@@ -3447,7 +3675,7 @@ struct UnifiedGeometry_DrawIndexed
 	void  IndexBuffer (EIndex type, const RC<Buffer> & buffer, uint64 offset);
 	void  IndexBuffer (const RC<Buffer> & buffer, const string & field);
 
-	// Pattern to choose pipeline if supported multiple pipelines.
+	// Pattern to choose pipeline if found multiple pipelines.
 	void  PipelineHint (const string &);
 	uint indexCount;
 	uint instanceCount;
@@ -3468,7 +3696,7 @@ struct UnifiedGeometry_DrawIndirect
 	void  IndirectBuffer (const RC<Buffer> & buffer, uint64 offset);
 	void  IndirectBuffer (const RC<Buffer> & buffer, const string & field);
 
-	// Pattern to choose pipeline if supported multiple pipelines.
+	// Pattern to choose pipeline if found multiple pipelines.
 	void  PipelineHint (const string &);
 
 	// Stride must be at least 16 bytes and multiple of 4.
@@ -3493,7 +3721,7 @@ struct UnifiedGeometry_DrawIndexedIndirect
 	void  IndirectBuffer (const RC<Buffer> & buffer, uint64 offset);
 	void  IndirectBuffer (const RC<Buffer> & buffer, const string & field);
 
-	// Pattern to choose pipeline if supported multiple pipelines.
+	// Pattern to choose pipeline if found multiple pipelines.
 	void  PipelineHint (const string &);
 
 	// Stride must be at least 20 bytes and multiple of 4.
@@ -3507,6 +3735,7 @@ struct UnifiedGeometry_DrawMeshTasks
 	UnifiedGeometry_DrawMeshTasks (const UnifiedGeometry_DrawMeshTasks&);
 	UnifiedGeometry_DrawMeshTasks&  operator = (const UnifiedGeometry_DrawMeshTasks&);
 	void  TaskCount (const RC<DynamicUInt3> &);
+	void  TaskCount (const RC<DynamicUInt> &);
 	uint3 taskCount;
 };
 
@@ -3522,7 +3751,7 @@ struct UnifiedGeometry_DrawMeshTasksIndirect
 	void  IndirectBuffer (const RC<Buffer> & buffer, uint64 offset);
 	void  IndirectBuffer (const RC<Buffer> & buffer, const string & field);
 
-	// Pattern to choose pipeline if supported multiple pipelines.
+	// Pattern to choose pipeline if found multiple pipelines.
 	void  PipelineHint (const string &);
 
 	// Stride must be at least 12 bytes and multiple of 4.
@@ -3547,7 +3776,7 @@ struct UnifiedGeometry_DrawIndirectCount
 	void  CountBuffer (const RC<Buffer> & buffer, uint64 offset);
 	void  CountBuffer (const RC<Buffer> & buffer, const string & field);
 
-	// Pattern to choose pipeline if supported multiple pipelines.
+	// Pattern to choose pipeline if found multiple pipelines.
 	void  PipelineHint (const string &);
 
 	// Stride must be at least 16 bytes and multiple of 4.
@@ -3577,7 +3806,7 @@ struct UnifiedGeometry_DrawIndexedIndirectCount
 	void  CountBuffer (const RC<Buffer> & buffer, uint64 offset);
 	void  CountBuffer (const RC<Buffer> & buffer, const string & field);
 
-	// Pattern to choose pipeline if supported multiple pipelines.
+	// Pattern to choose pipeline if found multiple pipelines.
 	void  PipelineHint (const string &);
 
 	// Stride must be at least 20 bytes and multiple of 4.
@@ -3602,7 +3831,7 @@ struct UnifiedGeometry_DrawMeshTasksIndirectCount
 	void  CountBuffer (const RC<Buffer> & buffer, uint64 offset);
 	void  CountBuffer (const RC<Buffer> & buffer, const string & field);
 
-	// Pattern to choose pipeline if supported multiple pipelines.
+	// Pattern to choose pipeline if found multiple pipelines.
 	void  PipelineHint (const string &);
 
 	// Stride must be at least 12 bytes and multiple of 4.
@@ -3646,25 +3875,6 @@ struct UnifiedGeometry
 
 struct Model
 {
-
-	// Add resource to all shaders in the current pass.
-	// In - resource is used for read access.
-	// Out - resource is used for write access.
-	void  ArgIn (const string & uniformName, const RC<RTScene> & resource);
-	void  ArgIn (const string & uniformName, const RC<Buffer> & resource);
-	void  ArgOut (const string & uniformName, const RC<Buffer> & resource);
-	void  ArgInOut (const string & uniformName, const RC<Buffer> & resource);
-	void  ArgIn (const string & uniformName, const RC<Image> & resource);
-	void  ArgOut (const string & uniformName, const RC<Image> & resource);
-	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources);
-	void  ArgOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
-	void  ArgTex (const string & uniformName, const RC<Image> & resource);
-	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
-	void  ArgTex (const string & uniformName, const array<Image@> & resources);
-	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
-	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
 	Model (const string & scenePathInVFS);
 
 	// Set resource name. It is used for debugging.
@@ -3676,6 +3886,9 @@ struct Model
 	// Set transformation for model root node.
 	void  InitialTransform (const float4x4 &);
 	void  InitialTransform (const float3 & position, const float3 & rotation, float scale);
+	void  InstanceCount (uint);
+
+	// Add light source.
 	void  AddOmniLight (const float3 & position, const float3 & attenuation, const RGBA32f & color);
 	void  AddConeLight (const float3 & position, const float3 & direction, const float3 & coneAngle, const float2 & attenuation, const RGBA32f & color);
 	void  AddDirLight (const float3 & direction, const float3 & attenuation, const RGBA32f & color);
@@ -3781,7 +3994,8 @@ struct Postprocess
 	void  ColorSelector (const string & name, const RGBA32f & initial);
 	void  ColorSelector (const string & name, const RGBA8u & initial);
 
-	// TODO
+	// Value of 'dynamicValue' will be passed to all shaders in the current pass.
+	// Value of 'dynamicValue' is constant for whole frame and also can be used in draw call or another pass.
 	void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
@@ -3794,6 +4008,19 @@ struct Postprocess
 	void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicDim> & dynamicValue);
+	void  Constant (const string & name, float constValue);
+	void  Constant (const string & name, const float2 & constValue);
+	void  Constant (const string & name, const float3 & constValue);
+	void  Constant (const string & name, const float4 & constValue);
+	void  Constant (const string & name, int constValue);
+	void  Constant (const string & name, const int2 & constValue);
+	void  Constant (const string & name, const int3 & constValue);
+	void  Constant (const string & name, const int4 & constValue);
+	void  Constant (const string & name, uint constValue);
+	void  Constant (const string & name, const uint2 & constValue);
+	void  Constant (const string & name, const uint3 & constValue);
+	void  Constant (const string & name, const uint4 & constValue);
 
 	// Returns dynamic dimension of the pass.
 	// It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -3801,6 +4028,7 @@ struct Postprocess
 	void  EnableIfEqual (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfLess (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
+	void  EnableIfAnyBit (const RC<DynamicUInt> & dynamic, uint refValue);
 
 	// Add resource to all shaders in the current pass.
 	// In  - resource is used for read access.
@@ -3824,7 +4052,7 @@ struct Postprocess
 
 	// Add color/depth render target.
 	// Implicitly name will be 'out_Color' + index.
-	void  Output (const RC<Image> &);
+	void  Output (const RC<Image> & image);
 	void  Output (const RC<Image> & image, const MipmapLevel & mipmap);
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer);
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap);
@@ -3836,85 +4064,85 @@ struct Postprocess
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32f & clearColor);
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32f & clearColor);
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32f & clearColor);
-	void  Output (const RC<Image> &, const RGBA32u &);
-	void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32u &);
-	void  Output (const RC<Image> &, const ImageLayer &, const RGBA32u &);
-	void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32u &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const RGBA32u &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &);
-	void  Output (const RC<Image> &, const RGBA32i &);
-	void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32i &);
-	void  Output (const RC<Image> &, const ImageLayer &, const RGBA32i &);
-	void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32i &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const RGBA32i &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &);
-	void  Output (const RC<Image> &, const DepthStencil &);
-	void  Output (const RC<Image> &, const MipmapLevel &, const DepthStencil &);
-	void  Output (const RC<Image> &, const ImageLayer &, const DepthStencil &);
-	void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const DepthStencil &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const DepthStencil &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &);
+	void  Output (const RC<Image> & image, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
 
 	// Add color/depth render target with explicit name.
-	void  Output (const string &, const RC<Image> &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &);
-	void  Output (const string &, const RC<Image> &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &);
+	void  Output (const string & name, const RC<Image> & image);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap);
+	void  Output (const string & name, const RC<Image> & image, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
 
 	// Add color render target with blend operation.
 	// Implicitly name will be 'out_Color' + index.
-	void  OutputBlend (const RC<Image> &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
+	void  OutputBlend (const RC<Image> & image, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const RC<Image> & image, const MipmapLevel & mipmap, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const RC<Image> & image, const ImageLayer & baseLayer, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const RC<Image> & image, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const RC<Image> & image, const MipmapLevel & mipmap, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const RC<Image> & image, const ImageLayer & baseLayer, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
 
 	// Add color render target with blend operation and with explicit name.
-	void  OutputBlend (const string &, const RC<Image> &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
-	void  OutputBlend (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp);
+	void  OutputBlend (const string & name, const RC<Image> & image, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, EBlendFactor src, EBlendFactor dst, EBlendOp op);
+	void  OutputBlend (const string & name, const RC<Image> & image, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
+	void  OutputBlend (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, EBlendFactor srcRGB, EBlendFactor dstRGB, EBlendOp opRGB, EBlendFactor srcA, EBlendFactor dstA, EBlendOp opA);
 	void  DepthRange (float min, float max);
 
 	// Set path to fragment shader, empty - load current file.
@@ -3957,7 +4185,8 @@ struct ComputePass
 	void  ColorSelector (const string & name, const RGBA32f & initial);
 	void  ColorSelector (const string & name, const RGBA8u & initial);
 
-	// TODO
+	// Value of 'dynamicValue' will be passed to all shaders in the current pass.
+	// Value of 'dynamicValue' is constant for whole frame and also can be used in draw call or another pass.
 	void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
@@ -3970,6 +4199,19 @@ struct ComputePass
 	void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicDim> & dynamicValue);
+	void  Constant (const string & name, float constValue);
+	void  Constant (const string & name, const float2 & constValue);
+	void  Constant (const string & name, const float3 & constValue);
+	void  Constant (const string & name, const float4 & constValue);
+	void  Constant (const string & name, int constValue);
+	void  Constant (const string & name, const int2 & constValue);
+	void  Constant (const string & name, const int3 & constValue);
+	void  Constant (const string & name, const int4 & constValue);
+	void  Constant (const string & name, uint constValue);
+	void  Constant (const string & name, const uint2 & constValue);
+	void  Constant (const string & name, const uint3 & constValue);
+	void  Constant (const string & name, const uint4 & constValue);
 
 	// Returns dynamic dimension of the pass.
 	// It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -3977,6 +4219,7 @@ struct ComputePass
 	void  EnableIfEqual (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfLess (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
+	void  EnableIfAnyBit (const RC<DynamicUInt> & dynamic, uint refValue);
 
 	// Add resource to all shaders in the current pass.
 	// In  - resource is used for read access.
@@ -4102,7 +4345,8 @@ struct RayTracingPass
 	void  ColorSelector (const string & name, const RGBA32f & initial);
 	void  ColorSelector (const string & name, const RGBA8u & initial);
 
-	// TODO
+	// Value of 'dynamicValue' will be passed to all shaders in the current pass.
+	// Value of 'dynamicValue' is constant for whole frame and also can be used in draw call or another pass.
 	void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
@@ -4115,6 +4359,19 @@ struct RayTracingPass
 	void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicDim> & dynamicValue);
+	void  Constant (const string & name, float constValue);
+	void  Constant (const string & name, const float2 & constValue);
+	void  Constant (const string & name, const float3 & constValue);
+	void  Constant (const string & name, const float4 & constValue);
+	void  Constant (const string & name, int constValue);
+	void  Constant (const string & name, const int2 & constValue);
+	void  Constant (const string & name, const int3 & constValue);
+	void  Constant (const string & name, const int4 & constValue);
+	void  Constant (const string & name, uint constValue);
+	void  Constant (const string & name, const uint2 & constValue);
+	void  Constant (const string & name, const uint3 & constValue);
+	void  Constant (const string & name, const uint4 & constValue);
 
 	// Returns dynamic dimension of the pass.
 	// It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -4122,6 +4379,7 @@ struct RayTracingPass
 	void  EnableIfEqual (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfLess (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
+	void  EnableIfAnyBit (const RC<DynamicUInt> & dynamic, uint refValue);
 
 	// Add resource to all shaders in the current pass.
 	// In  - resource is used for read access.
@@ -4213,7 +4471,8 @@ struct SceneGraphicsPass
 	void  ColorSelector (const string & name, const RGBA32f & initial);
 	void  ColorSelector (const string & name, const RGBA8u & initial);
 
-	// TODO
+	// Value of 'dynamicValue' will be passed to all shaders in the current pass.
+	// Value of 'dynamicValue' is constant for whole frame and also can be used in draw call or another pass.
 	void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
@@ -4226,6 +4485,19 @@ struct SceneGraphicsPass
 	void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicDim> & dynamicValue);
+	void  Constant (const string & name, float constValue);
+	void  Constant (const string & name, const float2 & constValue);
+	void  Constant (const string & name, const float3 & constValue);
+	void  Constant (const string & name, const float4 & constValue);
+	void  Constant (const string & name, int constValue);
+	void  Constant (const string & name, const int2 & constValue);
+	void  Constant (const string & name, const int3 & constValue);
+	void  Constant (const string & name, const int4 & constValue);
+	void  Constant (const string & name, uint constValue);
+	void  Constant (const string & name, const uint2 & constValue);
+	void  Constant (const string & name, const uint3 & constValue);
+	void  Constant (const string & name, const uint4 & constValue);
 
 	// Returns dynamic dimension of the pass.
 	// It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -4233,6 +4505,7 @@ struct SceneGraphicsPass
 	void  EnableIfEqual (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfLess (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
+	void  EnableIfAnyBit (const RC<DynamicUInt> & dynamic, uint refValue);
 
 	// Add resource to all shaders in the current pass.
 	// In  - resource is used for read access.
@@ -4256,7 +4529,7 @@ struct SceneGraphicsPass
 
 	// Add color/depth render target.
 	// Implicitly name will be 'out_Color' + index.
-	void  Output (const RC<Image> &);
+	void  Output (const RC<Image> & image);
 	void  Output (const RC<Image> & image, const MipmapLevel & mipmap);
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer);
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap);
@@ -4268,56 +4541,56 @@ struct SceneGraphicsPass
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32f & clearColor);
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32f & clearColor);
 	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32f & clearColor);
-	void  Output (const RC<Image> &, const RGBA32u &);
-	void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32u &);
-	void  Output (const RC<Image> &, const ImageLayer &, const RGBA32u &);
-	void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32u &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const RGBA32u &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &);
-	void  Output (const RC<Image> &, const RGBA32i &);
-	void  Output (const RC<Image> &, const MipmapLevel &, const RGBA32i &);
-	void  Output (const RC<Image> &, const ImageLayer &, const RGBA32i &);
-	void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32i &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const RGBA32i &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &);
-	void  Output (const RC<Image> &, const DepthStencil &);
-	void  Output (const RC<Image> &, const MipmapLevel &, const DepthStencil &);
-	void  Output (const RC<Image> &, const ImageLayer &, const DepthStencil &);
-	void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &, const DepthStencil &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const DepthStencil &);
-	void  Output (const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &);
+	void  Output (const RC<Image> & image, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const RC<Image> & image, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const RC<Image> & image, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const DepthStencil & clearDepthStencil);
+	void  Output (const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
 
 	// Add color/depth render target with explicit name.
-	void  Output (const string &, const RC<Image> &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &);
-	void  Output (const string &, const RC<Image> &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32f &);
-	void  Output (const string &, const RC<Image> &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &);
-	void  Output (const string &, const RC<Image> &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &);
-	void  Output (const string &, const RC<Image> &, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const MipmapLevel &, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, const MipmapLevel &, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const DepthStencil &);
-	void  Output (const string &, const RC<Image> &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &);
+	void  Output (const string & name, const RC<Image> & image);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap);
+	void  Output (const string & name, const RC<Image> & image, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32f & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32u & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const RGBA32i & clearColor);
+	void  Output (const string & name, const RC<Image> & image, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const DepthStencil & clearDepthStencil);
+	void  Output (const string & name, const RC<Image> & image, const ImageLayer & baseLayer, uint layerCount, const MipmapLevel & mipmap, const DepthStencil & clearDepthStencil);
 	void  DepthRange (float min, float max);
 
 	// Add path to single pipeline or folder with pipelines.
@@ -4325,6 +4598,7 @@ struct SceneGraphicsPass
 	void  AddPipeline (const string & pplnFile);
 	void  AddPipelines (const string & pplnFolder);
 	void  Layer (ERenderLayer);
+	void  FragmentShadingRate (EShadingRate rate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp);
 };
 
 struct SceneRayTracingPass
@@ -4358,7 +4632,8 @@ struct SceneRayTracingPass
 	void  ColorSelector (const string & name, const RGBA32f & initial);
 	void  ColorSelector (const string & name, const RGBA8u & initial);
 
-	// TODO
+	// Value of 'dynamicValue' will be passed to all shaders in the current pass.
+	// Value of 'dynamicValue' is constant for whole frame and also can be used in draw call or another pass.
 	void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
@@ -4371,6 +4646,19 @@ struct SceneRayTracingPass
 	void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
 	void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicDim> & dynamicValue);
+	void  Constant (const string & name, float constValue);
+	void  Constant (const string & name, const float2 & constValue);
+	void  Constant (const string & name, const float3 & constValue);
+	void  Constant (const string & name, const float4 & constValue);
+	void  Constant (const string & name, int constValue);
+	void  Constant (const string & name, const int2 & constValue);
+	void  Constant (const string & name, const int3 & constValue);
+	void  Constant (const string & name, const int4 & constValue);
+	void  Constant (const string & name, uint constValue);
+	void  Constant (const string & name, const uint2 & constValue);
+	void  Constant (const string & name, const uint3 & constValue);
+	void  Constant (const string & name, const uint4 & constValue);
 
 	// Returns dynamic dimension of the pass.
 	// It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
@@ -4378,6 +4666,7 @@ struct SceneRayTracingPass
 	void  EnableIfEqual (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfLess (const RC<DynamicUInt> & dynamic, uint refValue);
 	void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
+	void  EnableIfAnyBit (const RC<DynamicUInt> & dynamic, uint refValue);
 
 	// Add resource to all shaders in the current pass.
 	// In  - resource is used for read access.
@@ -4459,6 +4748,14 @@ void  GenMipmaps (const RC<Image> &);
 
 // Pass which copy image content to another image.
 void  CopyImage (const RC<Image> &, const RC<Image> &);
+
+// Pass which compress image on CPU or GPU.
+void  CompressImage (const RC<Image> & src, const RC<Image> & dst);
+
+// Pass which compress image on CPU or GPU.
+// 'dstFormat' may not be supported by current GPU, but may be used for software decoding.
+// 'dst' image must be compatible with 'dstFormat'.
+void  CompressImage (const RC<Image> & src, const RC<Image> & dst, EPixelFormat dstFormat);
 
 // Pass to clear float-color image.
 void  ClearImage (const RC<Image> &, const RGBA32f &);
@@ -4578,157 +4875,37 @@ void  Slider (const RC<DynamicFloat> & dyn, const string & name, float min, floa
 void  Slider (const RC<DynamicFloat2> & dyn, const string & name, const float2 & min, const float2 & max, const float2 & initial);
 void  Slider (const RC<DynamicFloat3> & dyn, const string & name, const float3 & min, const float3 & max, const float3 & initial);
 void  Slider (const RC<DynamicFloat4> & dyn, const string & name, const float4 & min, const float4 & max, const float4 & initial);
+
+// Returns array with 3 elements, where x - wavelength in nm, yzw - RGB color.
 void  WhiteColorSpectrum3 (array<float4> & wavelengthToRGB);
+
+// Returns array with 7 elements, where x - wavelength in nm, yzw - RGB color.
 void  WhiteColorSpectrum7 (array<float4> & wavelengthToRGB, bool normalized);
-void  WhiteColorSpectrumStep50nm (array<float4> & wavelengthToRGB, bool normalized);
+
+// Returns array with visible light spectrum with step 100nm, where x - wavelength in nm, yzw - RGB color.
 void  WhiteColorSpectrumStep100nm (array<float4> & wavelengthToRGB, bool normalized);
-float3  CM_CubeSC_Forward (const float3 &);
-float3  CM_IdentitySC_Forward (const float3 &);
-float3  CM_TangentialSC_Forward (const float3 &);
-bool  Supported_GeometryShader ();
-bool  Supported_TessellationShader ();
-bool  Supported_SamplerAnisotropy ();
+
+// Returns array with visible light spectrum with step 50nm, where x - wavelength in nm, yzw - RGB color.
+void  WhiteColorSpectrumStep50nm (array<float4> & wavelengthToRGB, bool normalized);
+
+// Convert 2D regular grid on cube face to 3D position on cube.
+float3  CM_CubeSC_Forward (const float3 & snormCoord_cubeFace);
+
+// Convert 2D regular grid on cube face to 3D position on sphere using identity projection (normalization).
+float3  CM_IdentitySC_Forward (const float3 & snormCoord_cubeFace);
+
+// Convert 2D regular grid on cube face to 3D position on sphere using tangential projection.
+float3  CM_TangentialSC_Forward (const float3 & snormCoord_cubeFace);
+bool  IsDiscreteGPU ();
+bool  IsRemoteGPU ();
+bool  Supports_GeometryShader ();
+bool  Supports_MeshShader ();
+bool  Supports_TessellationShader ();
+bool  Supports_SamplerAnisotropy ();
 EPixelFormat  Supported_DepthFormat ();
 EPixelFormat  Supported_DepthStencilFormat ();
+bool  Supports_Format (EPixelFormat);
 #define SCRIPT
-
-template <>
-struct RC<BaseController> : BaseController
-{
-	RC (const BaseController &);
-};
-
-template <>
-struct RC<FlightCamera> : FlightCamera
-{
-	RC (const FlightCamera &);
-};
-
-template <>
-struct RC<TopDownCamera> : TopDownCamera
-{
-	RC (const TopDownCamera &);
-};
-
-template <>
-struct RC<ScaleBiasCamera> : ScaleBiasCamera
-{
-	RC (const ScaleBiasCamera &);
-};
-
-template <>
-struct RC<Scene> : Scene
-{
-	RC (const Scene &);
-};
-
-template <>
-struct RC<DynamicUInt> : DynamicUInt
-{
-	RC (const DynamicUInt &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-	RC (const Model &);
-};
-
-template <>
-struct RC<RayTracingPass> : RayTracingPass
-{
-	RC (const RayTracingPass &);
-};
-
-template <>
-struct RC<FPSCamera> : FPSCamera
-{
-	RC (const FPSCamera &);
-};
-
-template <>
-struct RC<DynamicDim> : DynamicDim
-{
-	RC (const DynamicDim &);
-};
-
-template <>
-struct RC<DynamicFloat> : DynamicFloat
-{
-	RC (const DynamicFloat &);
-};
-
-template <>
-struct RC<SphericalCube> : SphericalCube
-{
-	RC (const SphericalCube &);
-};
-
-template <>
-struct RC<OrbitalCamera> : OrbitalCamera
-{
-	RC (const OrbitalCamera &);
-};
-
-template <>
-struct RC<Buffer> : Buffer
-{
-	RC (const Buffer &);
-};
-
-template <>
-struct RC<UnifiedGeometry> : UnifiedGeometry
-{
-	RC (const UnifiedGeometry &);
-};
-
-template <>
-struct RC<ComputePass> : ComputePass
-{
-	RC (const ComputePass &);
-};
-
-template <>
-struct RC<SceneRayTracingPass> : SceneRayTracingPass
-{
-	RC (const SceneRayTracingPass &);
-};
-
-template <>
-struct RC<Postprocess> : Postprocess
-{
-	RC (const Postprocess &);
-};
-
-template <>
-struct RC<RemoteCamera> : RemoteCamera
-{
-	RC (const RemoteCamera &);
-};
-
-template <>
-struct RC<VideoImage> : VideoImage
-{
-	RC (const VideoImage &);
-};
-
-template <>
-struct RC<FPVCamera> : FPVCamera
-{
-	RC (const FPVCamera &);
-};
-
-template <>
-struct RC<SceneGraphicsPass> : SceneGraphicsPass
-{
-	RC (const SceneGraphicsPass &);
-};
-
-template <>
-struct RC<DynamicULong> : DynamicULong
-{
-	RC (const DynamicULong &);
-};
 
 template <>
 struct RC<RTScene> : RTScene
@@ -4743,51 +4920,51 @@ struct RC<Collection> : Collection
 };
 
 template <>
-struct RC<DynamicFloat4> : DynamicFloat4
+struct RC<DynamicULong> : DynamicULong
 {
-	RC (const DynamicFloat4 &);
+	RC (const DynamicULong &);
 };
 
 template <>
-struct RC<DynamicUInt2> : DynamicUInt2
+struct RC<SceneGraphicsPass> : SceneGraphicsPass
 {
-	RC (const DynamicUInt2 &);
+	RC (const SceneGraphicsPass &);
 };
 
 template <>
-struct RC<DynamicUInt3> : DynamicUInt3
+struct RC<FPVCamera> : FPVCamera
 {
-	RC (const DynamicUInt3 &);
+	RC (const FPVCamera &);
 };
 
 template <>
-struct RC<DynamicFloat2> : DynamicFloat2
+struct RC<VideoImage> : VideoImage
 {
-	RC (const DynamicFloat2 &);
+	RC (const VideoImage &);
 };
 
 template <>
-struct RC<DynamicFloat3> : DynamicFloat3
+struct RC<RemoteCamera> : RemoteCamera
 {
-	RC (const DynamicFloat3 &);
+	RC (const RemoteCamera &);
 };
 
 template <>
-struct RC<DynamicUInt4> : DynamicUInt4
+struct RC<DynamicInt> : DynamicInt
 {
-	RC (const DynamicUInt4 &);
+	RC (const DynamicInt &);
 };
 
 template <>
-struct RC<RTGeometry> : RTGeometry
+struct RC<IPass> : IPass
 {
-	RC (const RTGeometry &);
+	RC (const IPass &);
 };
 
 template <>
-struct RC<GeomSource> : GeomSource
+struct RC<Image> : Image
 {
-	RC (const GeomSource &);
+	RC (const Image &);
 };
 
 template <>
@@ -4809,20 +4986,158 @@ struct RC<DynamicInt2> : DynamicInt2
 };
 
 template <>
-struct RC<Image> : Image
+struct RC<GeomSource> : GeomSource
 {
-	RC (const Image &);
+	RC (const GeomSource &);
 };
 
 template <>
-struct RC<IPass> : IPass
+struct RC<DynamicFloat2> : DynamicFloat2
 {
-	RC (const IPass &);
+	RC (const DynamicFloat2 &);
 };
 
 template <>
-struct RC<DynamicInt> : DynamicInt
+struct RC<DynamicFloat3> : DynamicFloat3
 {
-	RC (const DynamicInt &);
+	RC (const DynamicFloat3 &);
+};
+
+template <>
+struct RC<RTGeometry> : RTGeometry
+{
+	RC (const RTGeometry &);
+};
+
+template <>
+struct RC<DynamicUInt4> : DynamicUInt4
+{
+	RC (const DynamicUInt4 &);
+};
+
+template <>
+struct RC<DynamicFloat4> : DynamicFloat4
+{
+	RC (const DynamicFloat4 &);
+};
+
+template <>
+struct RC<DynamicUInt2> : DynamicUInt2
+{
+	RC (const DynamicUInt2 &);
+};
+
+template <>
+struct RC<DynamicUInt3> : DynamicUInt3
+{
+	RC (const DynamicUInt3 &);
+};
+
+template <>
+struct RC<Model> : Model
+{
+	RC (const Model &);
+};
+
+template <>
+struct RC<DynamicUInt> : DynamicUInt
+{
+	RC (const DynamicUInt &);
+};
+
+template <>
+struct RC<Scene> : Scene
+{
+	RC (const Scene &);
+};
+
+template <>
+struct RC<ScaleBiasCamera> : ScaleBiasCamera
+{
+	RC (const ScaleBiasCamera &);
+};
+
+template <>
+struct RC<TopDownCamera> : TopDownCamera
+{
+	RC (const TopDownCamera &);
+};
+
+template <>
+struct RC<FlightCamera> : FlightCamera
+{
+	RC (const FlightCamera &);
+};
+
+template <>
+struct RC<BaseController> : BaseController
+{
+	RC (const BaseController &);
+};
+
+template <>
+struct RC<SceneRayTracingPass> : SceneRayTracingPass
+{
+	RC (const SceneRayTracingPass &);
+};
+
+template <>
+struct RC<Postprocess> : Postprocess
+{
+	RC (const Postprocess &);
+};
+
+template <>
+struct RC<ComputePass> : ComputePass
+{
+	RC (const ComputePass &);
+};
+
+template <>
+struct RC<UnifiedGeometry> : UnifiedGeometry
+{
+	RC (const UnifiedGeometry &);
+};
+
+template <>
+struct RC<Buffer> : Buffer
+{
+	RC (const Buffer &);
+};
+
+template <>
+struct RC<OrbitalCamera> : OrbitalCamera
+{
+	RC (const OrbitalCamera &);
+};
+
+template <>
+struct RC<SphericalCube> : SphericalCube
+{
+	RC (const SphericalCube &);
+};
+
+template <>
+struct RC<DynamicFloat> : DynamicFloat
+{
+	RC (const DynamicFloat &);
+};
+
+template <>
+struct RC<FPSCamera> : FPSCamera
+{
+	RC (const FPSCamera &);
+};
+
+template <>
+struct RC<DynamicDim> : DynamicDim
+{
+	RC (const DynamicDim &);
+};
+
+template <>
+struct RC<RayTracingPass> : RayTracingPass
+{
+	RC (const RayTracingPass &);
 };
 

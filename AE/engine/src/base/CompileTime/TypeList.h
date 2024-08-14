@@ -129,14 +129,10 @@ namespace AE::Base
 namespace _hidden_
 {
 	template <typename T>
-	struct _IsTypeList {
-		static constexpr bool	value = false;
-	};
+	struct _IsTypeList : CT_False {};
 
 	template <typename... Types>
-	struct _IsTypeList< TypeList<Types...>> {
-		static constexpr bool	value = true;
-	};
+	struct _IsTypeList< TypeList<Types...>> : CT_True {};
 
 
 	template <typename Left, typename Right>
@@ -152,9 +148,7 @@ namespace _hidden_
 	struct AreSameTypes
 	{
 		template <typename B>
-		struct Impl {
-			static constexpr bool	value = IsSameTypes< A, B >;
-		};
+		struct Impl : CT_Bool< IsSameTypes< A, B > >{};
 	};
 
 } // _hidden_

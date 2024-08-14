@@ -1,5 +1,42 @@
 Build instructions.
 
+## Install dependencies
+
+### Android
+
+Install [Android Studio](https://developer.android.com/studio) with NDK.
+
+### Linux
+
+In terminal run:
+```
+sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
+    libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+    libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
+    libxkbcommon-dev
+```
+
+Optional: install clang
+```
+sudo apt install clang
+sudo apt install libc++-dev
+sudo apt install libc++abi-dev
+```
+
+Install [CMake](https://cmake.org/download/).<br/>
+Install [VSCode](https://code.visualstudio.com/) with CMake and C++ plugins.
+
+### MacOS
+
+Install [CMake](https://cmake.org/download/).<br/>
+Install XCode.
+
+### Windows
+
+Install [CMake](https://cmake.org/download/).<br/>
+Install [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/).
+
+
 ## Download third party dependencies
 
 Script `AE/build_scripts/clone_3party.bat` will copy git repositories to local folder `AE/../3party`.
@@ -15,26 +52,10 @@ Open folder `AE/engine/external` and run scripts for required platforms and comp
 
 Libraries and headers will be installed to the `AE/../AE-Bin/external` folder.
 
-
 ### Android
 
 `update-all-win.bat` - to load header-only sources.<br/>
 `update-all-android-clang.bat` - to compile static (.a) libs.
-
-### Windows
-
-`update-all-win.bat` - to load header-only sources.<br/>
-`update-all-win-x64-msvc143.bat` - to compile static (.lib) and dynamic (.dll) libs.
-
-To compile Metal shaders put [MetalTools for Windows](https://developer.apple.com/download/all/?q=metal%20developer%20tools%20for%20windows) into the folder `AE-Bin/external/win-x64/MetalTools`:
-```
-bin
-  air-lld.exe
-  metal.exe
-lib
-  clang
-    ...
-```
 
 ### Linux
 
@@ -70,6 +91,21 @@ arch -x86_64 /usr/local/bin/brew install llvm
 **x64:**<br/>
 `update-all-macos-x64-clang15.sh` - to compile static (.a) libs.
 
+### Windows
+
+`update-all-win.bat` - to load header-only sources.<br/>
+`update-all-win-x64-msvc143.bat` - to compile static (.lib) and dynamic (.dll) libs.
+
+To compile Metal shaders put [MetalTools for Windows](https://developer.apple.com/download/all/?q=metal%20developer%20tools%20for%20windows) into the folder `AE-Bin/external/win-x64/MetalTools`:
+```
+bin
+  air-lld.exe
+  metal.exe
+lib
+  clang
+    ...
+```
+
 
 ## Build engine and samples
 
@@ -97,7 +133,7 @@ Compiled resources will be stored in `AE/../AE-Temp` folder. They can be used on
 ## Update file paths (optional)
 
 Visual Studio and some other IDEs and programs (Notepad++) allows to open file in URL format like a `file://absolute/path/to/a/file.txt`, but it requires absolute paths. Source code may contain links to other source files or docs which is written as URLs.<br/>
-Use IDE or another tool to replace path `[](https://github.com/azhirnov/as-en/blob/dev/AE/)` to an absolute path like a `file://C:/Projects/AE/`.
+Use IDE or another tool to replace path `[](file://C:/Projects/AllinOne/AE/)` to an absolute path like a `file://C:/Projects/AE/`.
 
 
 ## Setup IDE and environment (optional)

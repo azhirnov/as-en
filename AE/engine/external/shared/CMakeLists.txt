@@ -5,46 +5,50 @@ cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 #----------------------------------------------------------
 
 # External dependencies
-set( AE_ENABLE_ABSEIL 			ON  CACHE BOOL "use Absel" )
-set( AE_ENABLE_ANGELSCRIPT 		ON  CACHE BOOL "use AngelScript" )
-set( AE_ENABLE_ASSIMP	 		ON  CACHE BOOL "use Assimp" )
+set( AE_ENABLE_ABSEIL 				ON  CACHE BOOL "use Absel" )
+set( AE_ENABLE_ANGELSCRIPT 			ON  CACHE BOOL "use AngelScript" )
+set( AE_ENABLE_ASSIMP	 			ON  CACHE BOOL "use Assimp" )
+set( AE_ENABLE_ASTC_ENCODER	 		ON  CACHE BOOL "use astc-encoder" )
+set( AE_ENABLE_AMD_GPU_PERF 		ON  CACHE BOOL "use AMD GPUPerfAPI" )
 
-set( AE_ENABLE_BASS 			OFF CACHE BOOL "use BASS" )
-set( AE_ENABLE_BROTLI 			ON  CACHE BOOL "use brotli" )
+set( AE_ENABLE_BASS 				ON  CACHE BOOL "use BASS" )
+set( AE_ENABLE_BROTLI 				ON  CACHE BOOL "use brotli" )
 
-set( AE_ENABLE_CDT	 			ON  CACHE BOOL "use CDT" )
+set( AE_ENABLE_CDT	 				ON  CACHE BOOL "use CDT" )
 
-set( AE_ENABLE_GLFW 			ON  CACHE BOOL "use GLFW" )
-set( AE_ENABLE_GLSLANG 			ON  CACHE BOOL "use GLSLang" )
-set( AE_ENABLE_GLM 				ON  CACHE BOOL "use GLM" )
+set( AE_ENABLE_GLFW 				ON  CACHE BOOL "use GLFW" )
+set( AE_ENABLE_GLSLANG 				ON  CACHE BOOL "use GLSLang" )
+set( AE_ENABLE_GLM 					ON  CACHE BOOL "use GLM" )
 
-set( AE_ENABLE_FREETYPE 		ON  CACHE BOOL "use FreeType" )
+set( AE_ENABLE_FREETYPE 			ON  CACHE BOOL "use FreeType" )
 
-set( AE_ENABLE_IMGUI 			ON  CACHE BOOL "use ImGUI" )
+set( AE_ENABLE_IMGUI 				ON  CACHE BOOL "use ImGUI" )
 
-set( AE_ENABLE_KTX	 			ON  CACHE BOOL "use KTX" )
+set( AE_ENABLE_KTX	 				ON  CACHE BOOL "use KTX" )
 
-set( AE_ENABLE_LZ4	 			ON  CACHE BOOL "use lz4" )
+set( AE_ENABLE_LZ4	 				ON  CACHE BOOL "use lz4" )
 
-set( AE_ENABLE_MSDFGEN 			ON  CACHE BOOL "use msdfgen" )
-set( AE_ENABLE_METAL 			OFF CACHE BOOL "enable Metal API" )
-set( AE_ENABLE_MESH_OPTIMIZER	ON  CACHE BOOL "use MeshOptimizer" )
+set( AE_ENABLE_MSDFGEN 				ON  CACHE BOOL "use msdfgen" )
+set( AE_ENABLE_METAL 				OFF CACHE BOOL "enable Metal API" )
+set( AE_ENABLE_MESH_OPTIMIZER		ON  CACHE BOOL "use MeshOptimizer" )
 
-set( AE_ENABLE_REMOTE_GRAPHICS	OFF CACHE BOOL "enable Remote Graphics" )
+set( AE_ENABLE_NVML					ON  CACHE BOOL "use NVIDIA Management Library" )
 
-set( AE_ENABLE_SPIRV_CROSS 		ON  CACHE BOOL "use SPIRV-Cross" )
-set( AE_ENABLE_STB 				ON  CACHE BOOL "use STB" )
+set( AE_ENABLE_REMOTE_GRAPHICS		OFF CACHE BOOL "enable Remote Graphics" )
 
-set( AE_ENABLE_TINYGLTF 		ON  CACHE BOOL "use tinygltf" )
+set( AE_ENABLE_SPIRV_CROSS 			ON  CACHE BOOL "use SPIRV-Cross" )
+set( AE_ENABLE_STB 					ON  CACHE BOOL "use STB" )
 
-set( AE_ENABLE_VULKAN 			OFF CACHE BOOL "enable Vulkan API" )
-set( AE_ENABLE_VMA 				ON  CACHE BOOL "use Vulkan Memory Allocator" )
+set( AE_ENABLE_TINYGLTF 			ON  CACHE BOOL "use tinygltf" )
 
-set( AE_ENABLE_UTF8PROC 		ON  CACHE BOOL "use Utf8Proc" )
+set( AE_ENABLE_VULKAN 				OFF CACHE BOOL "enable Vulkan API" )
+set( AE_ENABLE_VMA 					ON  CACHE BOOL "use Vulkan Memory Allocator" )
 
-set( AE_ENABLE_XXHASH	 		ON  CACHE BOOL "use xxHash" )
+set( AE_ENABLE_UTF8PROC 			ON  CACHE BOOL "use Utf8Proc" )
 
-set( AE_ENABLE_ZSTD	 			ON  CACHE BOOL "use zstd" )
+set( AE_ENABLE_XXHASH	 			ON  CACHE BOOL "use xxHash" )
+
+set( AE_ENABLE_ZSTD	 				ON  CACHE BOOL "use zstd" )
 #----------------------------------------------------------
 
 
@@ -73,6 +77,14 @@ endif()
 
 if (${AE_ENABLE_ASSIMP})
 	add_subdirectory( "Assimp" )
+endif()
+
+if (${AE_ENABLE_ASTC_ENCODER})
+	add_subdirectory( "AstcEncoder" )
+endif()
+
+if (${AE_ENABLE_AMD_GPU_PERF})
+	add_subdirectory( "AMDGpuPerf" )
 endif()
 
 if (${AE_ENABLE_BASS})
@@ -111,6 +123,10 @@ endif()
 
 if (${AE_ENABLE_KTX})
 	add_subdirectory( "KTX-Software" )
+endif()
+
+if (${AE_ENABLE_NVML})
+	add_subdirectory( "nvml" )
 endif()
 
 if (${AE_ENABLE_LZ4})

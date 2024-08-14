@@ -1,5 +1,5 @@
 Сборник нюансов по асинхронному программированию.<br/>
-Про асинхронную архитектуру написано отдельно [тут](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/ArchitectureNotes-ru.md).
+Про асинхронную архитектуру написано отдельно [тут](ArchitectureNotes-ru.md).
 
 ## Атомарные операции (atomics)
 

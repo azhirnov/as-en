@@ -38,8 +38,8 @@ namespace
 */
 	void  GraphicsPipelineScriptBinding::SetShaderIO (EShader output, EShader input, const String &typeName) __Th___
 	{
-		CHECK_THROW_MSG( AnyBits( EShaderStages::GraphicsStages, (EShaderStages{0} | output) ));
-		CHECK_THROW_MSG( AnyBits( EShaderStages::GraphicsStages, (EShaderStages{0} | input) ));
+		CHECK_THROW_MSG( AnyBits( EShaderStages::GraphicsPipeStages, (EShaderStages{0} | output) ));
+		CHECK_THROW_MSG( AnyBits( EShaderStages::GraphicsPipeStages, (EShaderStages{0} | input) ));
 
 		CHECK_THROW_MSG( not _shaderIO[output].second, String{ToString(output)} << " shader input is already defined" );
 		CHECK_THROW_MSG( not _shaderIO[input].first, String{ToString(input)} << " shader input is already defined" );
@@ -430,7 +430,7 @@ namespace
 		binder.AddFactoryCtor( &GraphicsPipelineScriptBinding_Ctor, {"name"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
-						"Format: MACROS = value; DEF" );
+						"Format: MACROS = value \\n DEF \\n ..." );
 		binder.AddMethod( &GraphicsPipelineScriptBinding::Define,				"Define",				{} );
 
 		binder.Comment( "Set vertex shader.\n"

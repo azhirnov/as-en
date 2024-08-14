@@ -92,7 +92,8 @@ namespace
 		classBinder.AddMethod( &ScriptBasePass::ColorSelector2,		"ColorSelector",	{"name", "initial"} );
 		classBinder.AddMethod( &ScriptBasePass::ColorSelector3,		"ColorSelector",	{"name", "initial"} );
 
-		classBinder.Comment( "TODO" );
+		classBinder.Comment( "Value of 'dynamicValue' will be passed to all shaders in the current pass.\n"
+							 "Value of 'dynamicValue' is constant for whole frame and also can be used in draw call or another pass." );
 		classBinder.AddMethod( &ScriptBasePass::ConstantF1,			"Constant",			{"name", "dynamicValue"} );
 		classBinder.AddMethod( &ScriptBasePass::ConstantF2,			"Constant",			{"name", "dynamicValue"} );
 		classBinder.AddMethod( &ScriptBasePass::ConstantF3,			"Constant",			{"name", "dynamicValue"} );
@@ -108,6 +109,23 @@ namespace
 		classBinder.AddMethod( &ScriptBasePass::ConstantU3,			"Constant",			{"name", "dynamicValue"} );
 		classBinder.AddMethod( &ScriptBasePass::ConstantU4,			"Constant",			{"name", "dynamicValue"} );
 
+		classBinder.AddMethod( &ScriptBasePass::ConstantDD,			"Constant",			{"name", "dynamicValue"} );
+
+		classBinder.AddMethod( &ScriptBasePass::ConstantCF1,		"Constant",			{"name", "constValue"} );
+		classBinder.AddMethod( &ScriptBasePass::ConstantCF2,		"Constant",			{"name", "constValue"} );
+		classBinder.AddMethod( &ScriptBasePass::ConstantCF3,		"Constant",			{"name", "constValue"} );
+		classBinder.AddMethod( &ScriptBasePass::ConstantCF4,		"Constant",			{"name", "constValue"} );
+
+		classBinder.AddMethod( &ScriptBasePass::ConstantCI1,		"Constant",			{"name", "constValue"} );
+		classBinder.AddMethod( &ScriptBasePass::ConstantCI2,		"Constant",			{"name", "constValue"} );
+		classBinder.AddMethod( &ScriptBasePass::ConstantCI3,		"Constant",			{"name", "constValue"} );
+		classBinder.AddMethod( &ScriptBasePass::ConstantCI4,		"Constant",			{"name", "constValue"} );
+
+		classBinder.AddMethod( &ScriptBasePass::ConstantCU1,		"Constant",			{"name", "constValue"} );
+		classBinder.AddMethod( &ScriptBasePass::ConstantCU2,		"Constant",			{"name", "constValue"} );
+		classBinder.AddMethod( &ScriptBasePass::ConstantCU3,		"Constant",			{"name", "constValue"} );
+		classBinder.AddMethod( &ScriptBasePass::ConstantCU4,		"Constant",			{"name", "constValue"} );
+
 		classBinder.Comment( "Returns dynamic dimension of the pass.\n"
 							 "It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches." );
 		classBinder.AddMethod( &ScriptBasePass::_Dimension,			"Dimension",		{} );
@@ -115,6 +133,7 @@ namespace
 		classBinder.AddMethod( &ScriptBasePass::EnableIfEqual,		"EnableIfEqual",	{"dynamic", "refValue"} );
 		classBinder.AddMethod( &ScriptBasePass::EnableIfLess,		"EnableIfLess",		{"dynamic", "refValue"} );
 		classBinder.AddMethod( &ScriptBasePass::EnableIfGreater,	"EnableIfGreater",	{"dynamic", "refValue"} );
+		classBinder.AddMethod( &ScriptBasePass::EnableIfAnyBit,		"EnableIfAnyBit",	{"dynamic", "refValue"} );
 
 		if ( withArgs )
 		{
@@ -162,79 +181,79 @@ namespace
 		{
 			classBinder.Comment( "Add color/depth render target.\n"
 								 "Implicitly name will be 'out_Color' + index." );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "mipmap"} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer"} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "mipmap"} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount"} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "mipmap"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &)												>( &ScriptBaseRenderPass::_Output, "Output", {"image"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &)							>( &ScriptBaseRenderPass::_Output, "Output", {"image", "mipmap"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &)							>( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &)		>( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "mipmap"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint)						>( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &)	>( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "mipmap"} );
 
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "clearColor"} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "mipmap", "clearColor"} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "clearColor"} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "mipmap", "clearColor"} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const RGBA32f &)												 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, const RGBA32f &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const RGBA32f &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32f &)		 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32f &)						 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "clearColor"} );
 			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "mipmap", "clearColor"} );
 
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const RGBA32u &)												 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, const RGBA32u &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const RGBA32u &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32u &)		 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32u &)						 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "mipmap", "clearColor"} );
 
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const RGBA32i &)												 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, const RGBA32i &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const RGBA32i &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32i &)		 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32i &)						 >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "mipmap", "clearColor"} );
 
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const DepthStencil &)												  >( &ScriptBaseRenderPass::_Output, "Output", {"image", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, const DepthStencil &)							  >( &ScriptBaseRenderPass::_Output, "Output", {"image", "mipmap", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const DepthStencil &)							  >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const DepthStencil &)		  >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "mipmap", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const DepthStencil &)					  >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {"image", "baseLayer", "layerCount", "mipmap", "clearDepthStencil"} );
 		}
 
 		// with name
 		{
 			classBinder.Comment( "Add color/depth render target with explicit name." );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &)												>( &ScriptBaseRenderPass::_Output, "Output", {"name", "image"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &)							>( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "mipmap"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &)							>( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &)		>( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "mipmap"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint)						>( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &)	>( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "mipmap"} );
 
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const RGBA32f &)												 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, const RGBA32f &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const RGBA32f &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32f &)		 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32f &)						 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32f &) >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "mipmap", "clearColor"} );
 
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const RGBA32u &)												 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, const RGBA32u &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const RGBA32u &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32u &)		 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32u &)						 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32u &) >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "mipmap", "clearColor"} );
 
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const RGBA32i &)												 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, const RGBA32i &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const RGBA32i &)							 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const RGBA32i &)		 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "mipmap", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const RGBA32i &)						 >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const RGBA32i &) >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "mipmap", "clearColor"} );
 
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const DepthStencil &)												  >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, const DepthStencil &)							  >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "mipmap", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const DepthStencil &)							  >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const DepthStencil &)		  >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "mipmap", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const DepthStencil &)					  >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "clearDepthStencil"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "mipmap", "clearDepthStencil"} );
 		}
 
 		// with blend
@@ -242,34 +261,34 @@ namespace
 		{
 			classBinder.Comment( "Add color render target with blend operation.\n"
 								 "Implicitly name will be 'out_Color' + index." );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, EBlendFactor, EBlendFactor, EBlendOp)												  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp)							  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "mipmap", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp)							  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "baseLayer", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp)		  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "baseLayer", "mipmap", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp)					  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "baseLayer", "layerCount", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "baseLayer", "layerCount", "mipmap", "src", "dst", "op"} );
 
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)												>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)							>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "mipmap", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)							>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "baseLayer", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)		>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "baseLayer", "mipmap", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)						>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "baseLayer", "layerCount", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"image", "baseLayer", "layerCount", "mipmap", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
 
 			classBinder.Comment( "Add color render target with blend operation and with explicit name." );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, EBlendFactor, EBlendFactor, EBlendOp)												  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp)							  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "mipmap", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp)							  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "baseLayer", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp)		  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "baseLayer", "mipmap", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp)					  >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "baseLayer", "layerCount", "src", "dst", "op"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "baseLayer", "layerCount", "mipmap", "src", "dst", "op"} );
 
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)												>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)							>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "mipmap", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)							>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "baseLayer", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)		>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "baseLayer", "mipmap", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp)						>( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "baseLayer", "layerCount", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "baseLayer", "layerCount", "mipmap", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
 		}
 
 		// depth

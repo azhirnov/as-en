@@ -128,7 +128,7 @@ namespace AE::Base
 			}
 		}
 
-		if_unlikely( _blocks.size() == _blocks.capacity() )
+		if_unlikely( _blocks.IsFull() )
 		{
 			//DBG_WARNING( "overflow" );
 			return null;

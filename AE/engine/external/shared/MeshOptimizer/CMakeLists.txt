@@ -4,6 +4,11 @@
 
 set( MESHOPT_PATH "${AE_DST_PATH}/MeshOptimizer" )
 
+if (NOT EXISTS "${MESHOPT_PATH}/lib")
+	message( FATAL_ERROR "'${MESHOPT_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "MeshOptimizer-lib" INTERFACE )
 target_include_directories( "MeshOptimizer-lib" INTERFACE "${MESHOPT_PATH}/include" )
 target_compile_definitions( "MeshOptimizer-lib" INTERFACE "AE_ENABLE_MESH_OPTIMIZER" "AE_LICENSE_MIT" )
@@ -13,7 +18,9 @@ set_property( TARGET "MeshOptimizer-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 	$<$<CONFIG:Release>: "${MESHOPT_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}meshoptimizer${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 	$<$<CONFIG:Profile>: "${MESHOPT_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}meshoptimizer${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 	$<$<CONFIG:Develop>: "${MESHOPT_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}meshoptimizer${CMAKE_STATIC_LIBRARY_SUFFIX}" >
-	$<$<CONFIG:Debug>:   "${MESHOPT_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}meshoptimizerd${CMAKE_STATIC_LIBRARY_SUFFIX}" >)
+	$<$<CONFIG:Debug>:   "${MESHOPT_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}meshoptimizerd${CMAKE_STATIC_LIBRARY_SUFFIX}" >
+)
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.MeshOptimizer" "tests/main.cpp" )

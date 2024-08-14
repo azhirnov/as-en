@@ -84,6 +84,8 @@ void main ()
 */
 extern bool ShaderPerf_Test1 (TestDevice& vulkan)
 {
+	ON_DESTROY( [&vulkan]() { vulkan.FreeTempHandles(); });
+
 	// create renderpass and framebuffer
 	uint			width = 16, height = 16;
 	VkRenderPass	render_pass;
@@ -233,8 +235,6 @@ extern bool ShaderPerf_Test1 (TestDevice& vulkan)
 					"float Fn1 (const int i, in vec2 k)"s,
 					"void main ()"s
 					}));
-
-	vulkan.FreeTempHandles();
 
 	TEST_PASSED();
 	return true;

@@ -57,9 +57,6 @@ namespace
 			// upload vertices
 			typename CtxTypes::Transfer		copy_ctx{ *this };
 
-			copy_ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
-
 			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(vertices), vertices, EStagingHeapType::Static ));
 
 			typename CtxTypes::Graphics	ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
@@ -112,7 +109,7 @@ namespace
 			Ctx		ctx{ *this };
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then( [p = &t] (const ImageMemView &view)
+						.Then(	[p = &t] (const ImageMemView &view)
 								{
 									p->isOK = p->imgCmp->Compare( view );
 								})};
@@ -120,8 +117,6 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 

@@ -35,7 +35,6 @@ namespace
 			Ctx		ctx{ *this };
 
 			ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc )
 				.ImageBarrier( t.img_1, EResourceState::Invalidate, EResourceState::CopyDst );
 
 			UploadImageDesc	upload;
@@ -77,8 +76,6 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 

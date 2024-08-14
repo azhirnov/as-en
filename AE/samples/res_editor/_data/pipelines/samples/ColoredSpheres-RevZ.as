@@ -68,9 +68,9 @@
 
 	void Main ()
 	{
-		const float3	sphere_pos	= un_DrawTasks.tasks[ gl::Nonuniform(gl.InstanceIndex) ][0].xyz;
-		const float		scale		= un_DrawTasks.tasks[ gl::Nonuniform(gl.InstanceIndex) ][0].w;
-		const float4	color		= un_DrawTasks.tasks[ gl::Nonuniform(gl.InstanceIndex) ][1];
+		const float3	sphere_pos	= un_DrawTasks.tasks[ gl.InstanceIndex ][0].xyz;
+		const float		scale		= un_DrawTasks.tasks[ gl.InstanceIndex ][0].w;
+		const float4	color		= un_DrawTasks.tasks[ gl.InstanceIndex ][1];
 
 		const uint		idx			= gl.VertexIndex;
 		const float3	vert_pos	= sphere_pos + (un_Geometry.positions[idx] * scale);
@@ -92,7 +92,8 @@
 		float3	light_dir	= Normalize(float3( 0.f, -1.f, 0.5f ));
 		float	lighting	= Remap( float2(0.f, 1.f), float2(0.4f, 1.f), Saturate( Dot( normal, light_dir )));
 
-		out_Color = In.color * lighting;
+		out_Color.rgb = In.color.rgb * lighting;
+		out_Color.a   = In.color.a;
 	}
 
 #endif

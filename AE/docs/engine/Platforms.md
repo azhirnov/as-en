@@ -98,7 +98,8 @@ Supported platforms
 - [x] Graphics: Vulkan (without timeline semaphore)
 - [x] Display Cutout
 - [x] HDR display
-- [x] Profiling: Internal performance counters CPU/GPU
+- Profiling:
+	- [x] Internal performance counters GPU: Adreno/Mali/PowerVR
 - [ ] Crash reporting
 
 
@@ -130,7 +131,6 @@ Supported platforms
 - [x] HDR display (Vulkan)
 - [ ] HDR display (Metal, not tested)
 - [x] Offline resource packing (x64 only)
-- [ ] Scripting (ARM64)
 - Profiling:
 	- [x] XCode profiler
 - [ ] Crash reporting
@@ -144,7 +144,7 @@ same as MacOS, but not tested
 ## Emscripten
 
 - [x] TaskScheduler
-- [ ] Graphics (WebGL or WebGPU ?)
+- [ ] Graphics (WebGL or WebGPU + Remote)
 - [ ] Networking
 
 

@@ -65,7 +65,7 @@ namespace AE::Base
 		ND_ bool		empty ()											C_NE___	{ return _length == 0; }
 
 	private:
-			bool  _Validate ()												__NE___;
+			void  _Validate ()												__NE___;
 		ND_ bool  _IsStatic ()												C_NE___	{ return _data == &_buffer[0]; }
 
 		ND_ static usize  _CalcLength (const T* str)						__NE___;
@@ -166,27 +166,27 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	bool  NtBasicStringView<T>::_Validate () __NE___
+	void  NtBasicStringView<T>::_Validate () __NE___
 	{
 		if ( _data == null )
 		{
 			_buffer[0]	= 0;
 			_data		= _buffer;
 			_length		= 0;
-			return false;
+			return;
 		}
 
 		if ( _data[_length] == NullChar )
-			return false;
+			return;
 
 		T *		new_data;
 		Bytes	size	= SizeOf<T> * (_length+1);
 
-		if ( size > sizeof(_buffer) )
+		if_unlikely( size > sizeof(_buffer) )
 		{
-			_isAllocated= true;
 			new_data	= Cast<T>( Allocator_t::Allocate( size ));
-			NonNull( new_data );
+			CHECK_ERRV( new_data != null );
+			_isAllocated= true;
 		}
 		else
 			new_data = _buffer;
@@ -194,8 +194,6 @@ namespace AE::Base
 		std::memcpy( OUT new_data, _data, usize(size) );
 		new_data[_length] = NullChar;
 		_data = new_data;
-
-		return true;
 	}
 
 /*

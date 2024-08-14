@@ -4,6 +4,11 @@
 
 set( IMGUI_PATH "${AE_DST_PATH}/imgui" )
 
+if (NOT EXISTS "${IMGUI_PATH}/lib")
+	message( FATAL_ERROR "'${IMGUI_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "ImGUI-lib" INTERFACE )
 target_include_directories( "ImGUI-lib" INTERFACE "${IMGUI_PATH}/include" )
 target_compile_definitions( "ImGUI-lib" INTERFACE "AE_ENABLE_IMGUI" "AE_LICENSE_MIT" )
@@ -20,8 +25,12 @@ elseif (APPLE) # Darwin & iOS
 
 else()
 	set_property( TARGET "ImGUI-lib" PROPERTY INTERFACE_LINK_LIBRARIES
-		"${IMGUI_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}imgui${CMAKE_STATIC_LIBRARY_SUFFIX}" )
+		$<$<CONFIG:Release>: "${IMGUI_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}imgui${CMAKE_STATIC_LIBRARY_SUFFIX}" >
+		$<$<CONFIG:Profile>: "${IMGUI_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}imgui${CMAKE_STATIC_LIBRARY_SUFFIX}" >
+		$<$<CONFIG:Develop>: "${IMGUI_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}imguid${CMAKE_STATIC_LIBRARY_SUFFIX}" >
+		$<$<CONFIG:Debug>:   "${IMGUI_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}imguid${CMAKE_STATIC_LIBRARY_SUFFIX}" > )
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	if (ANDROID)

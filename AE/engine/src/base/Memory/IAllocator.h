@@ -67,19 +67,13 @@ namespace AE::Base
 	namespace _hidden_
 	{
 		template <typename T, bool IsInterface>
-		struct _IsThreadSafeAllocator {
-			static constexpr bool	value = IsBaseOfNoQual< IAllocatorTS, T >;
-		};
+		struct _IsThreadSafeAllocator	: CT_Bool< IsBaseOfNoQual< IAllocatorTS, T >>{};
 
 		template <typename T>
-		struct _IsThreadSafeAllocator< T, false > {
-			static constexpr bool	value = T::IsThreadSafe;
-		};
+		struct _IsThreadSafeAllocator< T, false > : CT_Bool< T::IsThreadSafe >{};
 
 		template <typename T>
-		struct _IsThreadSafeAllocator2 {
-			static constexpr bool	value = _IsThreadSafeAllocator< T, (IsBaseOf< IAllocator, T >) >::value;
-		};
+		struct _IsThreadSafeAllocator2	: CT_Bool< _IsThreadSafeAllocator< T, (IsBaseOf< IAllocator, T >) >::value >{};
 	}
 
 	template <typename T>

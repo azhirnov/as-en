@@ -41,7 +41,7 @@ namespace AE::Graphics::_hidden_
 		void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions)				__Th___;
 		void  ResolveImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageResolve> regions)							__Th___;
 
-		void  GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges)				__Th___;
+		void  GenerateMipmaps (VkImage image, const uint3 &, ArrayView<ImageSubresourceRange> ranges, EResourceState)		__Th___;
 
 		ND_ VkCommandBuffer	EndCommandBuffer ()																				__Th___;
 		ND_ VCommandBuffer  ReleaseCommandBuffer ()																			__Th___;
@@ -80,7 +80,7 @@ namespace AE::Graphics::_hidden_
 		void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions)				__Th___;
 		void  ResolveImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageResolve> regions)							__Th___;
 
-		void  GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges)				__Th___;
+		void  GenerateMipmaps (VkImage image, const uint3 &, ArrayView<ImageSubresourceRange> ranges, EResourceState)		__Th___;
 
 		ND_ VBakedCommands		EndCommandBuffer ()																			__Th___;
 		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()																		__Th___;
@@ -162,13 +162,13 @@ namespace AE::Graphics::_hidden_
 		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView)											__Th_OV	{ _UploadImage( stream, OUT memView ); }
 		void  UploadImage (VideoImageStream &stream, OUT ImageMemView &memView)										__Th_OV	{ _UploadImage( stream, OUT memView ); }
 
-		ReadbackBufferResult  ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)						__Th_OV;
-		ReadbackImageResult   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)							__Th_OV	{ return _ReadbackImage( image, desc ); }
-		ReadbackImageResult   ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)						__Th_OV	{ return _ReadbackImage( image, desc ); }
+		ReadbackBufferResult2	ReadbackBuffer (BufferID buffer, const ReadbackBufferDesc &desc)					__Th_OV;
+		ReadbackImageResult2	ReadbackImage (ImageID image, const ReadbackImageDesc &desc)						__Th_OV	{ return _ReadbackImage( image, desc ); }
+		ReadbackImageResult2	ReadbackImage (VideoImageID image, const ReadbackImageDesc &desc)					__Th_OV	{ return _ReadbackImage( image, desc ); }
 
-		Promise<BufferMemView>	ReadbackBuffer (INOUT BufferStream &stream)											__Th_OV;
-		Promise<ImageMemView>   ReadbackImage (INOUT ImageStream &stream)											__Th_OV	{ return _ReadbackImage( stream ); }
-		Promise<ImageMemView>   ReadbackImage (INOUT VideoImageStream &stream)										__Th_OV	{ return _ReadbackImage( stream ); }
+		ReadbackBufferResult	ReadbackBuffer (INOUT BufferStream &stream)											__Th_OV;
+		ReadbackImageResult		ReadbackImage (INOUT ImageStream &stream)											__Th_OV	{ return _ReadbackImage( stream ); }
+		ReadbackImageResult		ReadbackImage (INOUT VideoImageStream &stream)										__Th_OV	{ return _ReadbackImage( stream ); }
 
 		bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)					__Th_OV;
 		bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)						__Th_OV;
@@ -197,10 +197,10 @@ namespace AE::Graphics::_hidden_
 		void  _UploadImage (INOUT StreamType &stream, OUT ImageMemView &memView)									__Th___;
 
 		template <typename ID>
-		ND_ ReadbackImageResult  _ReadbackImage (ID image, const ReadbackImageDesc &desc)							__Th___;
+		ND_ ReadbackImageResult2  _ReadbackImage (ID image, const ReadbackImageDesc &desc)							__Th___;
 
 		template <typename StreamType>
-		ND_ Promise<ImageMemView>  _ReadbackImage (INOUT StreamType &stream)										__Th___;
+		ND_ ReadbackImageResult  _ReadbackImage (INOUT StreamType &stream)											__Th___;
 
 		template <typename ColType>
 		void  _ClearColorImage (ImageID image, const ColType &color, ArrayView<ImageSubresourceRange> ranges)		__Th___;
@@ -264,7 +264,7 @@ namespace AE::Graphics::_hidden_
 
 			_ConvertImageSubresourceRange( OUT dst, src, desc );
 
-			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			if_unlikely( vk_ranges.IsFull() )
 			{
 				RawCtx::ClearColorImage( img.Handle(), clear_value, vk_ranges );
 				vk_ranges.clear();
@@ -300,7 +300,7 @@ namespace AE::Graphics::_hidden_
 
 			_ConvertImageSubresourceRange( OUT dst, src, desc );
 
-			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			if_unlikely( vk_ranges.IsFull() )
 			{
 				RawCtx::ClearDepthStencilImage( img.Handle(), clear_value, vk_ranges );
 				vk_ranges.clear();
@@ -359,11 +359,11 @@ namespace AE::Graphics::_hidden_
 		if_unlikely( not AllBits( mem_info.flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ))
 		{
 			GCTX_CHECK( offset + size <= mem_info.size );
-			this->_mngr.GetStagingManager().AcquireMappedMemory( GetFrameId(), mem_info.memory, mem_info.offset, size );
+			this->_mngr.GetStagingManager().AcquireMappedMemory( GetFrameId(), mem_info.memory, mem_info.offset + offset, size );
 		}
 
 		return Threading::MakePromiseFromValue(	mem_view,
-												Tuple{ this->_mngr.GetBatchRC() },
+												Tuple{ OnFrameNextCycle{ GetFrameId() }},
 												"VTransferContext::ReadHostBuffer",
 												ETaskQueue::PerFrame
 											   );
@@ -455,7 +455,7 @@ namespace AE::Graphics::_hidden_
 			dst.dstOffset	= VkDeviceSize(Min( src.dstOffset, dst_size ));
 			dst.size		= VkDeviceSize(Min( src.size, src_size - src.srcOffset, dst_size - src.dstOffset ));
 
-			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			if_unlikely( vk_ranges.IsFull() )
 			{
 				RawCtx::CopyBuffer( src_buf.Handle(), dst_buf.Handle(), vk_ranges );
 				vk_ranges.clear();
@@ -493,7 +493,7 @@ namespace AE::Graphics::_hidden_
 			_ConvertImageSubresourceLayer( OUT dst.srcSubresource, src.srcSubres, src_desc );
 			_ConvertImageSubresourceLayer( OUT dst.dstSubresource, src.dstSubres, dst_desc );
 
-			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			if_unlikely( vk_ranges.IsFull() )
 			{
 				RawCtx::CopyImage( src_img.Handle(), dst_img.Handle(), vk_ranges );
 				vk_ranges.clear();
@@ -525,7 +525,7 @@ namespace AE::Graphics::_hidden_
 
 			_ConvertBufferImageCopy( OUT dst, src, img_desc );
 
-			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			if_unlikely( vk_ranges.IsFull() )
 			{
 				RawCtx::CopyBufferToImage( src_buf.Handle(), dst_img.Handle(), vk_ranges );
 				vk_ranges.clear();
@@ -558,7 +558,7 @@ namespace AE::Graphics::_hidden_
 
 			_ConvertBufferImageCopy( OUT dst, src, img_desc, fmt_info );
 
-			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			if_unlikely( vk_ranges.IsFull() )
 			{
 				RawCtx::CopyBufferToImage( src_buf.Handle(), dst_img.Handle(), vk_ranges );
 				vk_ranges.clear();
@@ -590,7 +590,7 @@ namespace AE::Graphics::_hidden_
 
 			_ConvertBufferImageCopy( OUT dst, src, img_desc );
 
-			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			if_unlikely( vk_ranges.IsFull() )
 			{
 				RawCtx::CopyImageToBuffer( src_img.Handle(), dst_buf.Handle(), vk_ranges );
 				vk_ranges.clear();
@@ -623,7 +623,7 @@ namespace AE::Graphics::_hidden_
 
 			_ConvertBufferImageCopy( OUT dst, src, img_desc, fmt_info );
 
-			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			if_unlikely( vk_ranges.IsFull() )
 			{
 				RawCtx::CopyImageToBuffer( src_img.Handle(), dst_buf.Handle(), vk_ranges );
 				vk_ranges.clear();
@@ -662,7 +662,7 @@ namespace AE::Graphics::_hidden_
 			this->_ConvertImageSubresourceLayer( OUT dst.srcSubresource, src.srcSubres, src_desc );
 			this->_ConvertImageSubresourceLayer( OUT dst.dstSubresource, src.dstSubres, dst_desc );
 
-			if_unlikely( vk_regions.size() == vk_regions.capacity() )
+			if_unlikely( vk_regions.IsFull() )
 			{
 				RawCtx::BlitImage( src_img.Handle(), dst_img.Handle(), filter, vk_regions );
 				vk_regions.clear();
@@ -700,7 +700,7 @@ namespace AE::Graphics::_hidden_
 			this->_ConvertImageSubresourceLayer( OUT dst.srcSubresource, src.srcSubres, src_desc );
 			this->_ConvertImageSubresourceLayer( OUT dst.dstSubresource, src.dstSubres, dst_desc );
 
-			if_unlikely( vk_regions.size() == vk_regions.capacity() )
+			if_unlikely( vk_regions.IsFull() )
 			{
 				RawCtx::ResolveImage( src_img.Handle(), dst_img.Handle(), vk_regions );
 				vk_regions.clear();
@@ -717,7 +717,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image, EResourceState state) __Th___
+	void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image, EResourceState srcState) __Th___
 	{
 		auto&					img = _GetResourcesOrThrow( image );
 		ImageDesc const&		desc = img.Description();
@@ -727,37 +727,20 @@ namespace AE::Graphics::_hidden_
 		range.baseMipLevel	= 0_mipmap;
 		range.baseLayer		= 0_layer;
 		range.layerCount	= ushort(desc.arrayLayers.Get());
-
-		if ( state != Default and state != EResourceState::BlitSrc )
-		{
-			range.mipmapCount = 1;
-			this->ImageBarrier( image, state, EResourceState::BlitSrc, range );
-			this->CommitBarriers();
-		}
-
-		range.mipmapCount = ushort(desc.maxLevel.Get());
+		range.mipmapCount	= ushort(desc.mipLevels.Get());
 
 		VALIDATE_GCTX( GenerateMipmaps( img.Description(), {range} ));
-		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, {range} );
+		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, {range}, srcState );
 	}
 
 	template <typename C>
-	void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state) __Th___
+	void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState srcState) __Th___
 	{
 		auto&				img = _GetResourcesOrThrow( image );
 		ImageDesc const&	desc = img.Description();
 
-		if ( state != Default and state != EResourceState::BlitSrc )
-		{
-			for (auto range : ranges) {
-				range.mipmapCount = 1;
-				this->ImageBarrier( image, state, EResourceState::BlitSrc, range );
-			}
-			this->CommitBarriers();
-		}
-
 		VALIDATE_GCTX( GenerateMipmaps( img.Description(), ranges ));
-		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, ranges );
+		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, ranges, srcState );
 	}
 
 /*
@@ -780,8 +763,8 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::_ConvertImageSubresourceRange (OUT VkImageSubresourceRange& dst, const ImageSubresourceRange& src, const ImageDesc &desc) __NE___
 	{
 		dst.aspectMask		= VEnumCast( src.aspectMask );
-		dst.baseMipLevel	= Min( src.baseMipLevel.Get(), desc.maxLevel.Get()-1 );
-		dst.levelCount		= Min( src.mipmapCount, desc.maxLevel.Get() - src.baseMipLevel.Get() );
+		dst.baseMipLevel	= Min( src.baseMipLevel.Get(), desc.mipLevels.Get()-1 );
+		dst.levelCount		= Min( src.mipmapCount, desc.mipLevels.Get() - src.baseMipLevel.Get() );
 		dst.baseArrayLayer	= Min( src.baseLayer.Get(), desc.arrayLayers.Get()-1 );
 		dst.layerCount		= Min( src.layerCount, desc.arrayLayers.Get() - src.baseLayer.Get() );
 	}
@@ -833,7 +816,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::_ConvertImageSubresourceLayer (OUT VkImageSubresourceLayers &dst, const ImageSubresourceLayers &src, const ImageDesc &desc) __NE___
 	{
 		dst.aspectMask		= VEnumCast( src.aspectMask );
-		dst.mipLevel		= Min( src.mipLevel.Get(), desc.maxLevel.Get()-1 );
+		dst.mipLevel		= Min( src.mipLevel.Get(), desc.mipLevels.Get()-1 );
 		dst.baseArrayLayer	= Min( src.baseLayer.Get(), desc.arrayLayers.Get()-1 );
 		dst.layerCount		= Min( src.layerCount, desc.arrayLayers.Get() - src.baseLayer.Get() );
 	}

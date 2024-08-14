@@ -486,13 +486,13 @@ namespace AE::Math
 namespace AE::Base
 {
 	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-	struct TMemCopyAvailable< MatrixStorage< T, Columns, Rows, Order, Align >>		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
+	struct TMemCopyAvailable< MatrixStorage< T, Columns, Rows, Order, Align >>		: CT_Bool< IsMemCopyAvailable<T> >{};
 
 	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-	struct TZeroMemAvailable< MatrixStorage< T, Columns, Rows, Order, Align >>		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
+	struct TZeroMemAvailable< MatrixStorage< T, Columns, Rows, Order, Align >>		: CT_Bool< IsZeroMemAvailable<T> >{};
 
 	// alignment is same on all platforms
 	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-	struct TTriviallySerializable< MatrixStorage< T, Columns, Rows, Order, Align >>	{ static constexpr bool  value = IsTriviallySerializable<T>; };
+	struct TTriviallySerializable< MatrixStorage< T, Columns, Rows, Order, Align >>	: CT_Bool< IsTriviallySerializable<T> >{};
 
 } // AE::Base

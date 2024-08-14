@@ -149,7 +149,7 @@ namespace AE::Serializing
 	template <typename T>
 	bool  ObjectFactory::Serialize (Serializer &ser, const RC<T> &obj) C_NE___
 	{
-		StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
+		StaticAssert( not IsTriviallySerializable<T>, "Can not serialize trivial type" );
 
 		if ( obj == null )
 			return ser( SerializedID{} );
@@ -160,7 +160,7 @@ namespace AE::Serializing
 	template <typename T>
 	bool  ObjectFactory::Serialize (Serializer &ser, const Unique<T> &obj) C_NE___
 	{
-		StaticAssert( not IsTriviallySerializable<T>, "Can not deserialize trivial type" );
+		StaticAssert( not IsTriviallySerializable<T>, "Can not serialize trivial type" );
 
 		if ( obj == null )
 			return ser( SerializedID{} );
@@ -170,7 +170,7 @@ namespace AE::Serializing
 
 	inline bool  ObjectFactory::_Serialize (Serializer &ser, const TypeId typeId, const void* obj) C_NE___
 	{
-		ASSERT( obj != null );
+		NonNull( obj );
 
 		ID			id;
 		ObjInfo		info;

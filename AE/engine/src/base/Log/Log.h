@@ -133,17 +133,19 @@ namespace AE
 } // AE
 
 #ifdef AE_ENABLE_LOGS
-# define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ )						\
-	TRY{																											\
-		{switch_enum( AE::Base::StaticLogger::Process(	std::string_view{_msg_}, (AE_FUNCTION_NAME),				\
-														std::string_view{_file_}, (_line_), (_level_), (_scope_) ))	\
-		{																											\
-			case_likely	AE::Base::StaticLogger::EResult::Continue :		break;										\
-			case		AE::Base::StaticLogger::EResult::Break :		AE_PRIVATE_BREAK_POINT();	break;			\
-			case		AE::Base::StaticLogger::EResult::Abort :		AE_PRIVATE_EXIT();			break;			\
-		}}																											\
-		switch_end																									\
-	}CATCH_ALL();	// to catch exceptions in string formatting
+# define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ )							\
+	if ( not IsConstEvaluated() ) {																						\
+		TRY{																											\
+			{switch_enum( AE::Base::StaticLogger::Process(	std::string_view{_msg_}, (AE_FUNCTION_NAME),				\
+															std::string_view{_file_}, (_line_), (_level_), (_scope_) ))	\
+			{																											\
+				case_likely	AE::Base::StaticLogger::EResult::Continue :		break;										\
+				case		AE::Base::StaticLogger::EResult::Break :		AE_PRIVATE_BREAK_POINT();	break;			\
+				case		AE::Base::StaticLogger::EResult::Abort :		AE_PRIVATE_EXIT();			break;			\
+			}}																											\
+			switch_end																									\
+		}CATCH_ALL();	/* to catch exceptions in string formatting */													\
+	}
 
 #else
 # define AE_PRIVATE_LOGX( ... )	{}

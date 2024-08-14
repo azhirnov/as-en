@@ -1,0 +1,7 @@
+rm -rf "../../../../../AE-Bin/external/source/nvml"
+rm -rf "temp"
+git clone "../../../../../3party/nvml" "temp"
+mkdir "../../../../../AE-Bin/external/source/nvml"
+cp "temp/nvml.h" "../../../../../AE-Bin/external/source/nvml/nvml.h"
+rm -rf "temp"
+read -p "press any key..."

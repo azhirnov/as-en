@@ -87,15 +87,12 @@ namespace AE::RG::_hidden_
 			template <typename ArrayType>
 			ND_ CmdBatchBuilder &&	UseResources (const ArrayType &ids)											rvNE___;
 
-			// CPU <-> GPU syncs
-			// Batch is submitted as single command and can be synchronized with host (CPU)
-			// only before and after batch command execution.
-			// So Upload/Readback syncs are defined for command batch instead of specific command buffer.
+			// GPU -> CPU sync
+			// Batch is submitted as single command and can be synchronized with host (CPU) only before and after batch command execution.
+			// So Readback sync is defined for command batch instead of specific command buffer.
 			//
-			// UploadMemory		- barrier: HostRead -> VertexBuffer | IndexBuffer | CopySrc
 			// ReadbackMemory	- barrier: CopyDst -> HostRead
-
-			ND_ CmdBatchBuilder &&	UploadMemory ()																rvNE___;
+			//
 			ND_ CmdBatchBuilder &&	ReadbackMemory ()															rvNE___;
 
 			ND_ RGCommandBatchPtr	Begin ()																	rvNE___	{ return RVRef(_batch); }

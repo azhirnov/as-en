@@ -41,13 +41,13 @@ no source
 //  color: float4 {0.000000, 0.800000, 0.800000, 0.000000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.000000, 0.800000, 0.800000, 0.000000}
+//> color: float4 {0.557365, 0.800000, 0.800000, 0.000000}
 //  cos(): float {0.696707}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {0, 12, 0}
-//  color: float4 {0.000000, 0.800000, 0.800000, 0.000000}
+//  color: float4 {0.557365, 0.800000, 0.800000, 0.000000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -68,13 +68,13 @@ no source
 //  color: float4 {0.000000, 0.266667, 0.266667, 0.000000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.000000, 0.266667, 0.266667, 0.000000}
+//> color: float4 {0.257241, 0.266667, 0.266667, 0.000000}
 //  cos(): float {0.964655}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {0, 4, 0}
-//  color: float4 {0.000000, 0.266667, 0.266667, 0.000000}
+//  color: float4 {0.257241, 0.266667, 0.266667, 0.000000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -95,13 +95,13 @@ no source
 //  color: float4 {0.000000, 0.533333, 0.533333, 0.000000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.000000, 0.533333, 0.533333, 0.000000}
+//> color: float4 {0.459263, 0.533333, 0.533333, 0.000000}
 //  cos(): float {0.861117}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {0, 8, 0}
-//  color: float4 {0.000000, 0.533333, 0.533333, 0.000000}
+//  color: float4 {0.459263, 0.533333, 0.533333, 0.000000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -350,13 +350,13 @@ no source
 //  color: float4 {0.666667, 0.000000, 0.000000, 0.666667}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.666667, 0.000000, 0.000000, 0.666667}
+//> color: float4 {0.000000, 0.000000, 0.000000, 0.666667}
 //  cos(): float {1.000000}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {10, 0, 0}
-//  color: float4 {0.666667, 0.000000, 0.000000, 0.666667}
+//  color: float4 {0.000000, 0.000000, 0.000000, 0.666667}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -377,13 +377,13 @@ no source
 //  color: float4 {0.666667, 0.800000, 0.800000, 0.666667}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.666667, 0.800000, 0.800000, 0.666667}
+//> color: float4 {0.557365, 0.800000, 0.800000, 0.666667}
 //  cos(): float {0.696707}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {10, 12, 0}
-//  color: float4 {0.666667, 0.800000, 0.800000, 0.666667}
+//  color: float4 {0.557365, 0.800000, 0.800000, 0.666667}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -404,13 +404,13 @@ no source
 //  color: float4 {0.666667, 0.266667, 0.266667, 0.666667}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.666667, 0.266667, 0.266667, 0.666667}
+//> color: float4 {0.257241, 0.266667, 0.266667, 0.666667}
 //  cos(): float {0.964655}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {10, 4, 0}
-//  color: float4 {0.666667, 0.266667, 0.266667, 0.666667}
+//  color: float4 {0.257241, 0.266667, 0.266667, 0.666667}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -431,13 +431,13 @@ no source
 //  color: float4 {0.666667, 0.533333, 0.533333, 0.666667}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.666667, 0.533333, 0.533333, 0.666667}
+//> color: float4 {0.459263, 0.533333, 0.533333, 0.666667}
 //  cos(): float {0.861117}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {10, 8, 0}
-//  color: float4 {0.666667, 0.533333, 0.533333, 0.666667}
+//  color: float4 {0.459263, 0.533333, 0.533333, 0.666667}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -534,13 +534,13 @@ no source
 //  color: float4 {0.800000, 0.000000, 0.000000, 0.800000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.800000, 0.000000, 0.000000, 0.800000}
+//> color: float4 {0.000000, 0.000000, 0.000000, 0.800000}
 //  cos(): float {1.000000}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {12, 0, 0}
-//  color: float4 {0.800000, 0.000000, 0.000000, 0.800000}
+//  color: float4 {0.000000, 0.000000, 0.000000, 0.800000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -561,13 +561,13 @@ no source
 //  color: float4 {0.800000, 0.800000, 0.800000, 0.800000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.800000, 0.800000, 0.800000, 0.800000}
+//> color: float4 {0.557365, 0.800000, 0.800000, 0.800000}
 //  cos(): float {0.696707}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {12, 12, 0}
-//  color: float4 {0.800000, 0.800000, 0.800000, 0.800000}
+//  color: float4 {0.557365, 0.800000, 0.800000, 0.800000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -588,13 +588,13 @@ no source
 //  color: float4 {0.800000, 0.266667, 0.266667, 0.800000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.800000, 0.266667, 0.266667, 0.800000}
+//> color: float4 {0.257241, 0.266667, 0.266667, 0.800000}
 //  cos(): float {0.964655}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {12, 4, 0}
-//  color: float4 {0.800000, 0.266667, 0.266667, 0.800000}
+//  color: float4 {0.257241, 0.266667, 0.266667, 0.800000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -615,13 +615,13 @@ no source
 //  color: float4 {0.800000, 0.533333, 0.533333, 0.800000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.800000, 0.533333, 0.533333, 0.800000}
+//> color: float4 {0.459263, 0.533333, 0.533333, 0.800000}
 //  cos(): float {0.861117}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {12, 8, 0}
-//  color: float4 {0.800000, 0.533333, 0.533333, 0.800000}
+//  color: float4 {0.459263, 0.533333, 0.533333, 0.800000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -870,13 +870,13 @@ no source
 //  color: float4 {0.933333, 0.000000, 0.000000, 0.933333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.933333, 0.000000, 0.000000, 0.933333}
+//> color: float4 {0.000000, 0.000000, 0.000000, 0.933333}
 //  cos(): float {1.000000}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {14, 0, 0}
-//  color: float4 {0.933333, 0.000000, 0.000000, 0.933333}
+//  color: float4 {0.000000, 0.000000, 0.000000, 0.933333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -897,13 +897,13 @@ no source
 //  color: float4 {0.933333, 0.800000, 0.800000, 0.933333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.933333, 0.800000, 0.800000, 0.933333}
+//> color: float4 {0.557365, 0.800000, 0.800000, 0.933333}
 //  cos(): float {0.696707}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {14, 12, 0}
-//  color: float4 {0.933333, 0.800000, 0.800000, 0.933333}
+//  color: float4 {0.557365, 0.800000, 0.800000, 0.933333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -924,13 +924,13 @@ no source
 //  color: float4 {0.933333, 0.266667, 0.266667, 0.933333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.933333, 0.266667, 0.266667, 0.933333}
+//> color: float4 {0.257241, 0.266667, 0.266667, 0.933333}
 //  cos(): float {0.964655}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {14, 4, 0}
-//  color: float4 {0.933333, 0.266667, 0.266667, 0.933333}
+//  color: float4 {0.257241, 0.266667, 0.266667, 0.933333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -951,13 +951,13 @@ no source
 //  color: float4 {0.933333, 0.533333, 0.533333, 0.933333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.933333, 0.533333, 0.533333, 0.933333}
+//> color: float4 {0.459263, 0.533333, 0.533333, 0.933333}
 //  cos(): float {0.861117}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {14, 8, 0}
-//  color: float4 {0.933333, 0.533333, 0.533333, 0.933333}
+//  color: float4 {0.459263, 0.533333, 0.533333, 0.933333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1054,13 +1054,13 @@ no source
 //  color: float4 {0.133333, 0.000000, 0.000000, 0.133333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.133333, 0.000000, 0.000000, 0.133333}
+//> color: float4 {0.000000, 0.000000, 0.000000, 0.133333}
 //  cos(): float {1.000000}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {2, 0, 0}
-//  color: float4 {0.133333, 0.000000, 0.000000, 0.133333}
+//  color: float4 {0.000000, 0.000000, 0.000000, 0.133333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1081,13 +1081,13 @@ no source
 //  color: float4 {0.133333, 0.800000, 0.800000, 0.133333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.133333, 0.800000, 0.800000, 0.133333}
+//> color: float4 {0.557365, 0.800000, 0.800000, 0.133333}
 //  cos(): float {0.696707}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {2, 12, 0}
-//  color: float4 {0.133333, 0.800000, 0.800000, 0.133333}
+//  color: float4 {0.557365, 0.800000, 0.800000, 0.133333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1108,13 +1108,13 @@ no source
 //  color: float4 {0.133333, 0.266667, 0.266667, 0.133333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.133333, 0.266667, 0.266667, 0.133333}
+//> color: float4 {0.257241, 0.266667, 0.266667, 0.133333}
 //  cos(): float {0.964655}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {2, 4, 0}
-//  color: float4 {0.133333, 0.266667, 0.266667, 0.133333}
+//  color: float4 {0.257241, 0.266667, 0.266667, 0.133333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1135,13 +1135,13 @@ no source
 //  color: float4 {0.133333, 0.533333, 0.533333, 0.133333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.133333, 0.533333, 0.533333, 0.133333}
+//> color: float4 {0.459263, 0.533333, 0.533333, 0.133333}
 //  cos(): float {0.861117}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {2, 8, 0}
-//  color: float4 {0.133333, 0.533333, 0.533333, 0.133333}
+//  color: float4 {0.459263, 0.533333, 0.533333, 0.133333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1238,13 +1238,13 @@ no source
 //  color: float4 {0.266667, 0.000000, 0.000000, 0.266667}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.266667, 0.000000, 0.000000, 0.266667}
+//> color: float4 {0.000000, 0.000000, 0.000000, 0.266667}
 //  cos(): float {1.000000}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {4, 0, 0}
-//  color: float4 {0.266667, 0.000000, 0.000000, 0.266667}
+//  color: float4 {0.000000, 0.000000, 0.000000, 0.266667}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1265,13 +1265,13 @@ no source
 //  color: float4 {0.266667, 0.800000, 0.800000, 0.266667}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.266667, 0.800000, 0.800000, 0.266667}
+//> color: float4 {0.557365, 0.800000, 0.800000, 0.266667}
 //  cos(): float {0.696707}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {4, 12, 0}
-//  color: float4 {0.266667, 0.800000, 0.800000, 0.266667}
+//  color: float4 {0.557365, 0.800000, 0.800000, 0.266667}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1292,13 +1292,13 @@ no source
 //  color: float4 {0.266667, 0.266667, 0.266667, 0.266667}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.266667, 0.266667, 0.266667, 0.266667}
+//> color: float4 {0.257241, 0.266667, 0.266667, 0.266667}
 //  cos(): float {0.964655}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {4, 4, 0}
-//  color: float4 {0.266667, 0.266667, 0.266667, 0.266667}
+//  color: float4 {0.257241, 0.266667, 0.266667, 0.266667}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1319,13 +1319,13 @@ no source
 //  color: float4 {0.266667, 0.533333, 0.533333, 0.266667}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.266667, 0.533333, 0.533333, 0.266667}
+//> color: float4 {0.459263, 0.533333, 0.533333, 0.266667}
 //  cos(): float {0.861117}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {4, 8, 0}
-//  color: float4 {0.266667, 0.533333, 0.533333, 0.266667}
+//  color: float4 {0.459263, 0.533333, 0.533333, 0.266667}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1574,13 +1574,13 @@ no source
 //  color: float4 {0.400000, 0.000000, 0.000000, 0.400000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.400000, 0.000000, 0.000000, 0.400000}
+//> color: float4 {0.000000, 0.000000, 0.000000, 0.400000}
 //  cos(): float {1.000000}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {6, 0, 0}
-//  color: float4 {0.400000, 0.000000, 0.000000, 0.400000}
+//  color: float4 {0.000000, 0.000000, 0.000000, 0.400000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1601,13 +1601,13 @@ no source
 //  color: float4 {0.400000, 0.800000, 0.800000, 0.400000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.400000, 0.800000, 0.800000, 0.400000}
+//> color: float4 {0.557365, 0.800000, 0.800000, 0.400000}
 //  cos(): float {0.696707}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {6, 12, 0}
-//  color: float4 {0.400000, 0.800000, 0.800000, 0.400000}
+//  color: float4 {0.557365, 0.800000, 0.800000, 0.400000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1628,13 +1628,13 @@ no source
 //  color: float4 {0.400000, 0.266667, 0.266667, 0.400000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.400000, 0.266667, 0.266667, 0.400000}
+//> color: float4 {0.257241, 0.266667, 0.266667, 0.400000}
 //  cos(): float {0.964655}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {6, 4, 0}
-//  color: float4 {0.400000, 0.266667, 0.266667, 0.400000}
+//  color: float4 {0.257241, 0.266667, 0.266667, 0.400000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1655,13 +1655,13 @@ no source
 //  color: float4 {0.400000, 0.533333, 0.533333, 0.400000}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.400000, 0.533333, 0.533333, 0.400000}
+//> color: float4 {0.459263, 0.533333, 0.533333, 0.400000}
 //  cos(): float {0.861117}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {6, 8, 0}
-//  color: float4 {0.400000, 0.533333, 0.533333, 0.400000}
+//  color: float4 {0.459263, 0.533333, 0.533333, 0.400000}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1758,13 +1758,13 @@ no source
 //  color: float4 {0.533333, 0.000000, 0.000000, 0.533333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.533333, 0.000000, 0.000000, 0.533333}
+//> color: float4 {0.000000, 0.000000, 0.000000, 0.533333}
 //  cos(): float {1.000000}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {8, 0, 0}
-//  color: float4 {0.533333, 0.000000, 0.000000, 0.533333}
+//  color: float4 {0.000000, 0.000000, 0.000000, 0.533333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1785,13 +1785,13 @@ no source
 //  color: float4 {0.533333, 0.800000, 0.800000, 0.533333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.533333, 0.800000, 0.800000, 0.533333}
+//> color: float4 {0.557365, 0.800000, 0.800000, 0.533333}
 //  cos(): float {0.696707}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {8, 12, 0}
-//  color: float4 {0.533333, 0.800000, 0.800000, 0.533333}
+//  color: float4 {0.557365, 0.800000, 0.800000, 0.533333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1812,13 +1812,13 @@ no source
 //  color: float4 {0.533333, 0.266667, 0.266667, 0.533333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.533333, 0.266667, 0.266667, 0.533333}
+//> color: float4 {0.257241, 0.266667, 0.266667, 0.533333}
 //  cos(): float {0.964655}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {8, 4, 0}
-//  color: float4 {0.533333, 0.266667, 0.266667, 0.533333}
+//  color: float4 {0.257241, 0.266667, 0.266667, 0.533333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------
@@ -1839,13 +1839,13 @@ no source
 //  color: float4 {0.533333, 0.533333, 0.533333, 0.533333}
 22. 		color.x = cos(color.y) * color.z;
 
-//> color: float4 {0.533333, 0.533333, 0.533333, 0.533333}
+//> color: float4 {0.459263, 0.533333, 0.533333, 0.533333}
 //  cos(): float {0.861117}
 22. color.x = cos(color.y) * color.z;
 
 //> imageStore(): void
 //  gl_GlobalInvocationID: uint3 {8, 8, 0}
-//  color: float4 {0.533333, 0.533333, 0.533333, 0.533333}
+//  color: float4 {0.459263, 0.533333, 0.533333, 0.533333}
 28. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 //---------------------------

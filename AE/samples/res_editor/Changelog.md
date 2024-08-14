@@ -1,7 +1,26 @@
+## 08.2024
+- Tests with sRGB blend/filter.
+- Sample: render scene to cubemap + fisheye projection
+
+
+## 07.2024
+- Sample: SdfFont 2d/3d, regular/bold/outline
+- Sample: anti-aliased grid 2d/3d
+- Sample: shading rate
+- Tool: color gradient
+- Tool: easing functions
+- Tool: noise editor for circle/terrain/cubemap/volume
+- Image compression pass + test (BC, ETC, ASTC)
+- Improved shader debugger for UnifiedGeometry, SphericalCube, ModelGeomSource
+- 'F4' to copy sliders state to clipboard
+
+
 ## 04.2024
 - Remote graphics & profiling
 - Tests
 - Sample: MaterialDepthBuffer
+- Shader debugging for UnifiedGeometry
+
 
 ## 01.2024
 - Remote input (sensors from Android device)
@@ -10,15 +29,15 @@
 
 
 ## 11.2023
-- VR Video projection sample.
-- VR Video player sample (VR to 2D).
+- Sample: VR Video projection.
+- Sample: VR Video player (VR to 2D).
 - Curved screen support.
 - Spherical cube tests.
 - Use dynamic variable as per-pass constant, allow to use global slider in multiple passes.
 
 
 ## 10.2023
-- Dispersion sample.
+- Sample: Dispersion.
 - Used Assimp to load models/scenes.
 - RayTracing pass for model/scene rendering.
 
@@ -38,7 +57,7 @@
 
 - Script: replace `Input(Controller)` by `Set()`
 - Documentation for script.
-- RTX samples.
+- Samples: RTX.
 
 
 ## 07.2023

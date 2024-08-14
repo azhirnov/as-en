@@ -34,7 +34,7 @@ namespace AE::Graphics
 		CHECK_ERR( All( desc.dimension > uint3{0} ));
 		CHECK_ERR( desc.imageDim != Default );
 		CHECK_ERR( desc.arrayLayers > 0_layer );
-		CHECK_ERR( desc.maxLevel > 0_mipmap );
+		CHECK_ERR( desc.mipLevels > 0_mipmap );
 		CHECK_ERR( desc.format != Default );
 		CHECK_ERR( desc.usage != Default );
 		CHECK_ERR( EPixelFormat_PlaneCount( desc.format ) == 0 );	// use VideoImage instead

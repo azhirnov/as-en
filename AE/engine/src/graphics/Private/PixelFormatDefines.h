@@ -94,7 +94,7 @@
 		_visitor_( BC7_RGBA8_UNorm,		VK_FORMAT_BC7_UNORM_BLOCK )\
 		_visitor_( BC7_sRGB8_A8,		VK_FORMAT_BC7_SRGB_BLOCK )\
 		_visitor_( ETC2_RGB8_UNorm,		VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK )\
-		_visitor_( ECT2_sRGB8,			VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK )\
+		_visitor_( ETC2_sRGB8,			VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK )\
 		_visitor_( ETC2_RGB8_A1_UNorm,	VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK )\
 		_visitor_( ETC2_sRGB8_A1,		VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK )\
 		_visitor_( ETC2_RGBA8_UNorm,	VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK )\
@@ -103,20 +103,20 @@
 		_visitor_( EAC_R11_UNorm,		VK_FORMAT_EAC_R11_UNORM_BLOCK )\
 		_visitor_( EAC_RG11_SNorm,		VK_FORMAT_EAC_R11G11_SNORM_BLOCK )\
 		_visitor_( EAC_RG11_UNorm,		VK_FORMAT_EAC_R11G11_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_4x4,		VK_FORMAT_ASTC_4x4_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_5x4,		VK_FORMAT_ASTC_5x4_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_5x5,		VK_FORMAT_ASTC_5x5_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_6x5,		VK_FORMAT_ASTC_6x5_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_6x6,		VK_FORMAT_ASTC_6x6_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_8x5,		VK_FORMAT_ASTC_8x5_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_8x6,		VK_FORMAT_ASTC_8x6_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_8x8,		VK_FORMAT_ASTC_8x8_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_10x5,		VK_FORMAT_ASTC_10x5_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_10x6,		VK_FORMAT_ASTC_10x6_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_10x8,		VK_FORMAT_ASTC_10x8_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_10x10,		VK_FORMAT_ASTC_10x10_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_12x10,		VK_FORMAT_ASTC_12x10_UNORM_BLOCK )\
-		_visitor_( ASTC_RGBA_12x12,		VK_FORMAT_ASTC_12x12_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_4x4,		VK_FORMAT_ASTC_4x4_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_5x4,		VK_FORMAT_ASTC_5x4_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_5x5,		VK_FORMAT_ASTC_5x5_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_6x5,		VK_FORMAT_ASTC_6x5_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_6x6,		VK_FORMAT_ASTC_6x6_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_8x5,		VK_FORMAT_ASTC_8x5_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_8x6,		VK_FORMAT_ASTC_8x6_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_8x8,		VK_FORMAT_ASTC_8x8_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_10x5,		VK_FORMAT_ASTC_10x5_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_10x6,		VK_FORMAT_ASTC_10x6_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_10x8,		VK_FORMAT_ASTC_10x8_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_10x10,	VK_FORMAT_ASTC_10x10_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_12x10,	VK_FORMAT_ASTC_12x10_UNORM_BLOCK )\
+		_visitor_( ASTC_RGBA8_12x12,	VK_FORMAT_ASTC_12x12_UNORM_BLOCK )\
 		_visitor_( ASTC_sRGB8_A8_4x4,	VK_FORMAT_ASTC_4x4_SRGB_BLOCK )\
 		_visitor_( ASTC_sRGB8_A8_5x4,	VK_FORMAT_ASTC_5x4_SRGB_BLOCK )\
 		_visitor_( ASTC_sRGB8_A8_5x5,	VK_FORMAT_ASTC_5x5_SRGB_BLOCK )\
@@ -367,7 +367,7 @@
 		_visitor_( BC7_RGBA8_UNorm,		BC7_RGBAUnorm,			macos 10.11			)\
 		_visitor_( BC7_sRGB8_A8,		BC7_RGBAUnorm_sRGB,		macos 10.11			)\
 		_visitor_( ETC2_RGB8_UNorm,		ETC2_RGB8,				macos 11.0, ios 8	)\
-		_visitor_( ECT2_sRGB8,			ETC2_RGB8_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ETC2_sRGB8,			ETC2_RGB8_sRGB,			macos 11.0, ios 8	)\
 		_visitor_( ETC2_RGB8_A1_UNorm,	ETC2_RGB8A1,			macos 11.0, ios 8	)\
 		_visitor_( ETC2_sRGB8_A1,		ETC2_RGB8A1_sRGB,		macos 11.0, ios 8	)\
 		_visitor_( ETC2_RGBA8_UNorm,	EAC_RGBA8,				macos 11.0, ios 8	) /* TODO: check */ \
@@ -376,20 +376,20 @@
 		_visitor_( EAC_R11_UNorm,		EAC_R11Unorm,			macos 11.0, ios 8	)\
 		_visitor_( EAC_RG11_SNorm,		EAC_RG11Snorm,			macos 11.0, ios 8	)\
 		_visitor_( EAC_RG11_UNorm,		EAC_RG11Unorm,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_4x4,		ASTC_4x4_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_5x4,		ASTC_5x4_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_5x5,		ASTC_5x5_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_6x5,		ASTC_6x5_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_6x6,		ASTC_6x6_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_8x5,		ASTC_8x5_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_8x6,		ASTC_8x6_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_8x8,		ASTC_8x8_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_10x5,		ASTC_10x5_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_10x6,		ASTC_10x6_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_10x8,		ASTC_10x8_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_10x10,		ASTC_10x10_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_12x10,		ASTC_12x10_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA_12x12,		ASTC_12x12_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_4x4,		ASTC_4x4_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_5x4,		ASTC_5x4_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_5x5,		ASTC_5x5_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_6x5,		ASTC_6x5_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_6x6,		ASTC_6x6_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_8x5,		ASTC_8x5_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_8x6,		ASTC_8x6_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_8x8,		ASTC_8x8_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_10x5,		ASTC_10x5_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_10x6,		ASTC_10x6_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_10x8,		ASTC_10x8_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_10x10,		ASTC_10x10_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_12x10,		ASTC_12x10_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_12x12,		ASTC_12x12_LDR,			macos 11.0, ios 8	)\
 		_visitor_( ASTC_sRGB8_A8_4x4,	ASTC_4x4_sRGB,			macos 11.0, ios 8	)\
 		_visitor_( ASTC_sRGB8_A8_5x4,	ASTC_5x4_sRGB,			macos 11.0, ios 8	)\
 		_visitor_( ASTC_sRGB8_A8_5x5,	ASTC_5x5_sRGB,			macos 11.0, ios 8	)\

@@ -252,11 +252,12 @@ namespace AE::Base
 	// types
 	public:
 		using value_type	= T;
+		using Bitfield_t	= Bitfield< T >;
 
 	private:
 		using Self	= TBitfieldAtomic< T, Success, Failure >;
 		using MO_t	= std::memory_order;
-		using BF	= Bitfield< T >;
+		using BF	= Bitfield_t;
 
 		static constexpr MO_t	OnSuccess	= Success;
 		static constexpr MO_t	OnFailure	= Failure;
@@ -303,20 +304,25 @@ namespace AE::Base
 		ND_ bool	All ()													C_NE___	{ return Load().All(); }
 
 		ND_ usize	BitCount ()												C_NE___	{ return Load().BitCount(); }
+		ND_ usize	ZeroBitCount ()											C_NE___	{ return Load().ZeroBitCount(); }
 
+		// 0|1 -> 1
 			BF		Set (usize bit)											__NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_or( T{1} << bit )}; }
 			BF		Set (usize bit, MO_t memOrder)							__NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_or( T{1} << bit, memOrder )}; }
 
+		// 0|1 -> 0
 			BF		Erase (usize bit)										__NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_and( ~(T{1} << bit) )}; }
 			BF		Erase (usize bit, MO_t memOrder)						__NE___ { ASSERT( bit < _BitCount );  return BF{ _value.fetch_and( ~(T{1} << bit), memOrder )}; }
 
-		ND_ bool	Has (usize bit)											C_NE___	{ ASSERT( bit < _BitCount );  return Load().Has( bit ); }
+		ND_ bool	Has (usize bit)											C_NE___	{ return Load().Has( bit ); }
 
-			BF		SetRange (usize first, usize count)						__NE___	{ return _value.fetch_or( _Range( first, count )); }
-			BF		SetRange (usize first, usize count, MO_t memOrder)		__NE___	{ return _value.fetch_or( _Range( first, count ), memOrder ); }
+		// 0|1 -> 1
+			BF		SetRange (usize first, usize count)						__NE___	{ return BF{ _value.fetch_or( _Range( first, count ))}; }
+			BF		SetRange (usize first, usize count, MO_t memOrder)		__NE___	{ return BF{ _value.fetch_or( _Range( first, count ), memOrder )}; }
 
-			BF		ResetRange (usize first, usize count)					__NE___	{ return _value.fetch_or( ~_Range( first, count )); }
-			BF		ResetRange (usize first, usize count, MO_t memOrder)	__NE___	{ return _value.fetch_or( ~_Range( first, count ), memOrder ); }
+		// 0|1 -> 0
+			BF		ResetRange (usize first, usize count)					__NE___	{ return BF{ _value.fetch_or( ~_Range( first, count ))}; }
+			BF		ResetRange (usize first, usize count, MO_t memOrder)	__NE___	{ return BF{ _value.fetch_or( ~_Range( first, count ), memOrder )}; }
 
 		ND_ bool	HasRange (usize first, usize count)						C_NE___	{ return Load().HasRange( first, count ); }
 
@@ -328,17 +334,23 @@ namespace AE::Base
 			BF		fetch_or  (BF arg, MO_t memOrder)						__NE___ { return BF{ _value.fetch_or(  arg.Get(), memOrder )}; }
 			BF		fetch_xor (BF arg, MO_t memOrder)						__NE___ { return BF{ _value.fetch_xor( arg.Get(), memOrder )}; }
 
+		// change first 1 bit to 0
 		ND_ int		ExtractBitIndex ()										__NE___	{ return IntLog2( ExtractBit() ); }
 		ND_ T		ExtractBit ()											__NE___
 		{
 			for (T bits = _value.load( EMemoryOrder::Relaxed );;)
 			{
 				T	result = bits & ~(bits - T{1});
-				if ( _value.compare_exchange_weak( INOUT bits, bits & ~result, OnSuccess, OnFailure )) return result;
+				if_likely( _value.compare_exchange_weak( INOUT bits, bits & ~result, OnSuccess, OnFailure )) return result;
 				ThreadUtils::Pause();
 			}
 		}
 
+		// returns first 1 bit
+		ND_ T		GetFirstBit ()											C_NE___	{ return Load().GetFirstBit(); }
+		ND_ int		GetFirstBitIndex ()										C_NE___	{ return Load().GetFirstBitIndex(); }
+
+		// change first 0 bit to 1
 		ND_ int		SetFirstZeroBitIndex ()									__NE___	{ return IntLog2( SetFirstZeroBit() ); }
 		ND_ T		SetFirstZeroBit ()										__NE___
 		{
@@ -346,16 +358,17 @@ namespace AE::Base
 			{
 				T	inv		= ~bits;
 				T	result	= inv & ~(inv - T{1});
-				if ( _value.compare_exchange_weak( INOUT bits, bits | result, OnSuccess, OnFailure )) return result;
+				if_likely( _value.compare_exchange_weak( INOUT bits, bits | result, OnSuccess, OnFailure )) return result;
 				ThreadUtils::Pause();
 			}
 		}
 
-		ND_ int		GetFirstZeroBitIndex ()									C_NE___	{ return IntLog2( GetFirstZeroBit() ); }
+		// returns first 0 bit
+		ND_ int		GetFirstZeroBitIndex ()									C_NE___	{ return Load().GetFirstZeroBitIndex(); }
 		ND_ T		GetFirstZeroBit ()										C_NE___	{ return Load().GetFirstZeroBit(); }
 
 	private:
-		ND_ static forceinline T  _Range (usize first, usize count)			__NE___	{ ASSERT( first < _BitCount );  ASSERT( first+count <= _BitCount );  return ((T{1} << count)-1) << first; }
+		ND_ static forceinline T  _Range (usize first, usize count)			__NE___	{ ASSERT( first < _BitCount );  ASSERT( first+count <= _BitCount );  return ToBitMask<T>( count ) << first; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -625,32 +638,27 @@ namespace AE::Base
 	namespace _hidden_
 	{
 		template <typename T>
-		struct _IsAtomic {
-			static constexpr bool	value = false;
+		struct _IsAtomic : CT_False {
 			using type = void;
 		};
 
 		template <typename PublicType, typename InternalType, std::memory_order Success, std::memory_order Failure>
-		struct _IsAtomic< TAtomic< PublicType, InternalType, Success, Failure >> {
-			static constexpr bool	value = true;
+		struct _IsAtomic< TAtomic< PublicType, InternalType, Success, Failure >> : CT_True {
 			using type = PublicType;
 		};
 
 		template <typename T, std::memory_order Success, std::memory_order Failure>
-		struct _IsAtomic< TBitfieldAtomic< T, Success, Failure >> {
-			static constexpr bool	value = true;
+		struct _IsAtomic< TBitfieldAtomic< T, Success, Failure >> : CT_True {
 			using type = T;
 		};
 
 		template <typename T, std::memory_order Success, std::memory_order Failure>
-		struct _IsAtomic< TAtomicFloat< T, Success, Failure >> {
-			static constexpr bool	value = true;
+		struct _IsAtomic< TAtomicFloat< T, Success, Failure >> : CT_True {
 			using type = T;
 		};
 
 		template <typename T, std::memory_order Success, std::memory_order Failure>
-		struct _IsAtomic< TStructAtomic< T, Success, Failure >> {
-			static constexpr bool	value = true;
+		struct _IsAtomic< TStructAtomic< T, Success, Failure >> : CT_True {
 			using type = T;
 		};
 	}

@@ -44,7 +44,7 @@ ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal)
 		const SceneDirectionalLight	light = un_Lights.directional[i];
 
 		float	atten	= 1.0 / light.attenuation.x;		// only linear attenuation
-		diffuse += Lambert( UnpackRGBM( light.colorRGBM ).rgb, light.direction, worldNormal ) * atten;
+		diffuse += UnpackRGBM( light.colorRGBM ).rgb * LambertDiffuse( light.direction, worldNormal ) * atten;
 	}
 
 	for (uint i = 0; i < un_Lights.coneCount; ++i)
@@ -55,7 +55,7 @@ ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal)
 		float	dist	= Distance( worldPos, pos );
 		float	atten	= Attenuation( light.attenuation, dist );
 		// TODO: test cone
-		diffuse += Lambert( UnpackRGBM( light.colorRGBM ).rgb, light.direction, worldNormal ) * atten;
+		diffuse += UnpackRGBM( light.colorRGBM ).rgb * LambertDiffuse( light.direction, worldNormal ) * atten;
 	}
 
 	for (uint i = 0; i < un_Lights.omniCount; ++i)
@@ -66,7 +66,7 @@ ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal)
 		float	dist	= Distance( worldPos, pos );
 		float3	dir		= (pos - worldPos) / dist;
 		float	atten	= Attenuation( light.attenuation, dist );
-		diffuse += Lambert( UnpackRGBM( light.colorRGBM ).rgb, dir, worldNormal ) * atten;
+		diffuse += UnpackRGBM( light.colorRGBM ).rgb * LambertDiffuse( dir, worldNormal ) * atten;
 	}
 
 	return float4( diffuse, 1.f );

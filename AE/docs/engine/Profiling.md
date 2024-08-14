@@ -16,9 +16,9 @@ The profiler measures the start and end time of a render pass or a group of comm
 
 ## HW Counters
 
-Used hardware performance counters for the ARM platform (Mali and Adreno).
+Used hardware performance counters for GPUs: Mali, Adreno, PowerVR, NVidia, AMD, Intel.
 
-![](img/ARM-HWCounters.jpg)
+![](img/ARM-HWCounters.png)
 
 
 ## Shader trace
@@ -101,7 +101,7 @@ no source
  * Graphics debug/profile
  * Async compute debug/profile
  * Synchronizations debug/profile
- * [VNvPerf](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Vulkan/Utils/VNvPerf.h) class  for interaction
+ * [VNvPerfProfiler](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Vulkan/Utils/VNvPerfProfiler.h) class  for interaction
 
 #### RenderDoc
 

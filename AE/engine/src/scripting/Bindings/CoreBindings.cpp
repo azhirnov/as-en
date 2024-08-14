@@ -62,12 +62,12 @@ namespace AE::Scripting
 
 		static void  Assert1 (bool expr) __Th___ {
 			if ( not expr )
-				Fatal( "" );
+				Fatal( "" );  // throw
 		}
 
 		static void  Assert2 (bool expr, const String &msg) __Th___ {
 			if ( not expr )
-				Fatal( msg );
+				Fatal( msg );  // throw
 		}
 	};
 

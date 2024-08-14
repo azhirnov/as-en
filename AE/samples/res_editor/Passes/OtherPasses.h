@@ -49,7 +49,7 @@ namespace AE::ResEditor
 	private:
 		ND_ static RenderTaskCoro  _Blit (RC<Present> self, IOutputSurface &);
 
-		static void  _SaveScreenshot (const ImageMemView &, EImageFormat fmt, bool);
+		static CoroTask  _SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt, bool);
 
 		RC<IVideoEncoder>  _CreateEncoder (float bitrate, EVideoFormat, EVideoCodec, EVideoColorPreset) const;
 	};

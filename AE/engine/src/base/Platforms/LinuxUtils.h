@@ -40,6 +40,12 @@ namespace AE::Base
 		#else
 		ND_ static String		GetOSName ()												__NE___;
 		#endif
+
+
+		// Clipboard //
+		ND_ static bool		ClipboardExtract (OUT String &result, void* disp = null, void* wnd = null)	__NE___;
+		ND_ static bool		ClipboardPut (StringView str, void* disp = null, void* wnd = null)			__NE___;
+		ND_ static bool		ClipboardClear (void* disp = null, void* wnd = null)						__NE___;
 	};
 
 

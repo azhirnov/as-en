@@ -115,6 +115,22 @@
 #endif
 
 
+// C++20 is constant evaluated
+#ifdef __cpp_lib_is_constant_evaluated
+#	define cxx20_constexpr		constexpr		// allow 'IsConstEvaluated()' inside
+#	define IsConstEvaluated()	std::is_constant_evaluated()
+#else
+#	define IsConstEvaluated()	false
+#	define cxx20_constexpr
+#endif
+
+
+// C++20 concepts
+#ifdef __cpp_concepts
+#	define if_constexpr_requires( ... )		if constexpr( requires{ __VA_ARGS___ })
+#endif
+
+
 // no inline (for debugging)
 #ifndef AE_NOINLINE
 # if defined(AE_COMPILER_MSVC)
@@ -194,7 +210,7 @@
 
 // variable may be unused (C++17)
 #if __has_cpp_attribute( maybe_unused  )
-#	define MaybeUnused			[[maybe_unused ]]
+#	define MaybeUnused			[[maybe_unused]]
 #else
 #	define MaybeUnused
 #endif
@@ -262,6 +278,15 @@
 #endif
 #ifndef AE_INLINE_ALL
 #	define AE_INLINE_ALL
+#endif
+
+
+// mark function that has no side effects.
+// function can operate only on arguments and can not read global memory.
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	define AE_NOSIDEEFFECTS		__attribute__ ((const))
+#else
+#	define AE_NOSIDEEFFECTS
 #endif
 
 

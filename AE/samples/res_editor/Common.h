@@ -4,12 +4,11 @@
 
 #include "res_editor/ResourceEditor.pch.h"
 
-namespace AE::ResEditor::_hidden_
-{
-	// tag: NamedID UID
-	static constexpr uint	NamedIDs_Start	= 5 << 24;
-
-} // AE::ResEditor::_hidden_
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+# define RmG_UI_ON_HOST		1
+#else
+# define RmG_UI_ON_HOST		0
+#endif
 
 
 namespace AE::ResEditor

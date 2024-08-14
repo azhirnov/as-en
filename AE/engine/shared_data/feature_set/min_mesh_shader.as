@@ -95,6 +95,8 @@ void ASmain ()
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 	fset.shaderUniformTexelBufferArrayDynamicIndexing (True);
 	fset.shaderStorageTexelBufferArrayDynamicIndexing (True);
+	fset.shaderSampledImageArrayNonUniformIndexing (True);
+	fset.shaderStorageImageArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
@@ -207,6 +209,8 @@ void ASmain ()
 	});
 	fset.imageCubeArray (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewFormatList (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U

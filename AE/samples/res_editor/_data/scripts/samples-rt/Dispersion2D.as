@@ -90,6 +90,8 @@
 			rtrace_cbuf.LayoutName( "RTConstants" );
 
 			rtrace_raybuf.ArrayLayout(
+				// dynamic part:
+				//   LightCone elements []
 				"LightCone",
 				"	float2	origin0;" +
 				"	float2	origin1;" +
@@ -152,7 +154,7 @@
 		}{
 			RC<SceneGraphicsPass>	draw = raster_scene.AddGraphicsPass( "draw area" );
 			draw.AddPipeline( "samples/Dispersion2D-area.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Dispersion2D-area.as)
-			draw.Output( "out_Color", hdr, RGBA32f(0.0, 0.0, 0.0, 1.0) );
+			draw.Output( "out_Color", hdr, RGBA32f().OpaqueBlack() );
 			draw.EnableIfEqual( dbg_mode, 0 );
 		}{
 			RC<Postprocess>		pass = Postprocess( EPostprocess::None, "TONEMAPPING" );

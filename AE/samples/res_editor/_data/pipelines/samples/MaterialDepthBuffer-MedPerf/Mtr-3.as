@@ -43,7 +43,7 @@
 
 		// specialization
 		{
-			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( prefix );
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( prefix+".ZTest" );
 			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
 			RenderState	rs;
@@ -86,6 +86,7 @@
 #ifdef SH_FRAG
 	#include "Color.glsl"
 	#include "Hash.glsl"
+	#include "FragHelper.glsl"
 
 	void  RandomTexID (float scale, float bias, uint intBias, out uint texId, out float2 uv)
 	{
@@ -104,6 +105,12 @@
 		out_Color += gl.texture.Sample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex1_id)], un_Sampler ), tex1_uv );
 		out_Color += gl.texture.Sample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex2_id)], un_Sampler ), tex2_uv );
 		out_Color /= 3.0;
+
+		if ( iShowHelpInvoc == 1 )
+		{
+			uint	cnt = HelperInvocationCountPerQuad();
+			out_Color = cnt > 0 ? Rainbow( cnt / 4.0 ) : float4(0.0);
+		}
 	}
 
 #endif

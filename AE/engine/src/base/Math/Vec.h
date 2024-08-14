@@ -416,7 +416,7 @@ namespace _hidden_
 
 /*
 =================================================
-	AdditionIsSafe
+	AdditionIsSafe (signed integer)
 =================================================
 */
 	template <typename T1, typename T2>
@@ -438,7 +438,7 @@ namespace _hidden_
 
 /*
 =================================================
-	AdditionIsSafe
+	AdditionIsSafe (unsigned integer)
 =================================================
 */
 	template <typename T1, typename T2>
@@ -499,7 +499,7 @@ namespace _hidden_
 	Any
 =================================================
 */
-	ND_ forceinline constexpr bool  Any (const bool &value) __NE___
+	ND_ forceinline constexpr bool  Any (const bool value) __NE___
 	{
 		return value;
 	}
@@ -1187,6 +1187,12 @@ namespace _hidden_
 	}
 
 	template <typename T>
+	ND_ EnableIf<IsFloatPoint<T>, T>  RoundToBase (const T x, const T base) __NE___
+	{
+		return std::round( x * base ) / base;
+	}
+
+	template <typename T>
 	ND_ auto  RoundToInt (const T x) __NE___
 	{
 		StaticAssert( IsFloatPoint<T> );
@@ -1221,6 +1227,16 @@ namespace _hidden_
 		TVec<T,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
 			res[i] = Round( v[i] );
+		}
+		return res;
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  RoundToBase (const TVec<T,I,Q>& v, const T base) __NE___
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = RoundToBase( v[i], base );
 		}
 		return res;
 	}
@@ -1734,7 +1750,7 @@ namespace _hidden_
 
 /*
 =================================================
-	Sqrt
+	Sqrt (square root)
 =================================================
 */
 	template <typename T>
@@ -1764,6 +1780,26 @@ namespace _hidden_
 	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  InvSqrt (const TVec<T,I,Q> &v)
 	{
 		return glm::inversesqrt( v );
+	}
+
+/*
+=================================================
+	Cqrt (cube root)
+=================================================
+*/
+	template <typename T>
+	ND_ EnableIf<IsFloatPoint<T>, T>  Cqrt (const T value) __NE___
+	{
+		return std::cbrt( value );
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Cqrt (const TVec<T,I,Q> &v)
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i)
+			res[i] = std::cbrt( v );
+		return res;
 	}
 
 /*
@@ -1834,6 +1870,22 @@ namespace _hidden_
 	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Log (const TVec<T,I,Q>& v, const TVec<T,I,Q>& base) __NE___
 	{
 		return Ln( v ) / Ln( base );
+	}
+
+/*
+=================================================
+	IPow
+----
+	Pow for integer
+=================================================
+*/
+	template <typename T>
+	ND_ EnableIf<IsInteger<T>, T>  IPow (const T base, const T power) __NE___
+	{
+		T	res = T(1);
+		for (T i = 0; i < power; ++i)
+			res *= base;
+		return res;
 	}
 
 /*
@@ -2116,7 +2168,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q, typename S>
-	ND_ EnableIf<IsFloatPoint<T>, T>  LinearStep (const TVec<T,I,Q>& x, const S edge0, const S edge1) __NE___
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  LinearStep (const TVec<T,I,Q>& x, const S edge0, const S edge1) __NE___
 	{
 		StaticAssert( IsVec<S> or IsScalar<S> );
 		ASSERT( All( edge0 < edge1 ));
@@ -2125,17 +2177,17 @@ namespace _hidden_
 	}
 
 	template <typename T, int I, glm::qualifier Q, typename S>
-	ND_ EnableIf<IsFloatPoint<T>, T>  SmoothStep (const TVec<T,I,Q>& x, const S edge0, const S edge1) __NE___
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  SmoothStep (const TVec<T,I,Q>& x, const S edge0, const S edge1) __NE___
 	{
 		StaticAssert( IsVec<S> or IsScalar<S> );
 		ASSERT( All( edge0 < edge1 ));
 
-		T t = Saturate( (x - edge0) / (edge1 - edge0) );
+		TVec<T,I,Q>	t = Saturate( (x - edge0) / (edge1 - edge0) );
 		return t * t * (T(3) - T(2) * t);
 	}
 
 	template <typename T, int I, glm::qualifier Q, typename S>
-	ND_ EnableIf<IsFloatPoint<T>, T>  BumpStep (const TVec<T,I,Q>& x, const S edge0, const S edge1) __NE___
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  BumpStep (const TVec<T,I,Q>& x, const S edge0, const S edge1) __NE___
 	{
 		StaticAssert( IsVec<S> or IsScalar<S> );
 		ASSERT( All( edge0 < edge1 ));
@@ -2144,7 +2196,7 @@ namespace _hidden_
 	}
 
 	template <typename T, int I, glm::qualifier Q, typename S>
-	ND_ EnableIf<IsFloatPoint<T>, T>  SmoothBumpStep (const TVec<T,I,Q>& x, const S edge0, const S edge1) __NE___
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  SmoothBumpStep (const TVec<T,I,Q>& x, const S edge0, const S edge1) __NE___
 	{
 		TVec<T,I,Q>  t = BumpStep( x, edge0, edge1 );
 		return t * t * (T(3) - T(2) * t);
@@ -2465,6 +2517,7 @@ namespace _hidden_
 	template <typename T, int I, glm::qualifier Q>
 	ND_ EnableIf<IsFloatPoint<T>, TVec<bool,I,Q>>  IsFinite (const TVec<T,I,Q> &v) __NE___
 	{
+		// TODO: may not work with compiler optimizations, use std::isfinite
 		return (v == v);
 	}
 

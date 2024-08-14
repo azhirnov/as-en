@@ -79,6 +79,8 @@ namespace AE::AssetPacker
 		template <typename NameType>
 			void  AddName (const String &name)															__Th___;
 
+		ND_ bool  HasHashCollisions ()																	C_NE___	{ return _hashCollisionCheck.HasCollisions(); }
+
 		static void  Bind (const ScriptEnginePtr &se)													__Th___;
 
 		ND_ static Ptr<ObjectStorage>  Instance ();
@@ -97,9 +99,9 @@ namespace AE::AssetPacker
 		CHECK_THROW_MSG( not name.empty() );
 		CHECK_THROW_MSG( name.length() <= NameType::MaxStringLength() );
 
-		typename NameType::WithString_t		name_hash {name};
+		typename NameType::Optimized_t	name_hash {name};
 
-		_hashCollisionCheck.Add( name_hash );
+		_hashCollisionCheck.Add( name_hash, name );
 
 		_hashToName.emplace( HashToName::NameHash{ uint(name_hash.GetHash32()), NameType::GetUID() }, name );
 	}

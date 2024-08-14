@@ -133,7 +133,7 @@
 
 	float4  Shading (uint objId)
 	{
-		return un_DrawTasks.tasks[ gl::Nonuniform(objId) ][1];
+		return un_DrawTasks.tasks[ objId ][1];
 	}
 
 
@@ -164,7 +164,7 @@
 		float4	color	= float4(0.0);
 	  #endif
 
-		[[unroll]] for (uint i = 0; i < points.length(); ++i)
+		for (uint i = 0; i < points.length(); ++i)
 		{
 			if ( i >= ip_count )
 				break;

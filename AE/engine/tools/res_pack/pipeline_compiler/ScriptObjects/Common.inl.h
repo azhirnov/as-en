@@ -22,15 +22,15 @@ namespace AE::PipelineCompiler
 
 	// variables
 	private:
-		StaticArray< uint, uint(EFeature::_Count) >		_count = {};
+		EnumSet< EFeature >		_bits;
 
 
 	// methods
 	public:
 		FeatureSetCounter () {}
 
-			void  Add (EFeature feat)			{ ++_count[uint(feat)]; }
-		ND_ bool  Has (EFeature feat)	const	{ return _count[uint(feat)] > 0; }
+			void  Add (EFeature feat)			{ _bits.insert( feat ); }
+		ND_ bool  Has (EFeature feat)	const	{ return _bits.contains( feat ); }
 		ND_ bool  IsFalse ()			const	{ return Has( EFeature::RequireFalse ); }
 		ND_ bool  IsTrue ()				const	{ return Has( EFeature::RequireTrue ); }
 		ND_ bool  IsEnable ()			const	{ return IsTrue() or not IsFalse(); }

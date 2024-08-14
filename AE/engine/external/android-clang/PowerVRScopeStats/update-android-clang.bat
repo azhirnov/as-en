@@ -1,6 +1,6 @@
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\android-clang\PowerVRScopeStats"
 rmdir /Q /S "temp"
-git clone "..\..\..\..\..\3party\PowerVR-SDK.git" "temp"
+git clone "..\..\..\..\..\3party\PowerVR-SDK" "temp"
 mkdir "..\..\..\..\..\AE-Bin\external\android-clang\PowerVRScopeStats"
 mkdir "..\..\..\..\..\AE-Bin\external\android-clang\PowerVRScopeStats\include"
 mkdir "..\..\..\..\..\AE-Bin\external\android-clang\PowerVRScopeStats\lib"

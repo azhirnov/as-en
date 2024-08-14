@@ -48,9 +48,6 @@ namespace AE::PipelineCompiler
 	void  ObjectStorage::_CompileShaderGLSL (const ShaderSrcKey &info, ArrayView<ScriptFeatureSetPtr> features, const uint debugDSIndex, const PathAndLine &shaderPath,
 											 const String &entry, OUT CompiledShader &compiled) __Th___
 	{
-		#ifndef AE_ENABLE_GLSL_TRACE
-		CHECK_THROW_MSG( false, "GLSL-Trace is not supported" );
-		#endif
 		CHECK_THROW_MSG( spirvCompiler );
 
 		String	header;
@@ -86,6 +83,9 @@ namespace AE::PipelineCompiler
 		const auto	dbg_feats = GetShaderDebuggerFeatures( features );
 		if ( AnyBits( info.options, EShaderOpt::_ShaderTrace_Mask ))
 		{
+			#ifndef AE_ENABLE_GLSL_TRACE
+			CHECK_THROW_MSG( false, "GLSL-Trace is not supported" );
+			#endif
 			switch ( info.type )
 			{
 				case EShader::Vertex :
@@ -164,6 +164,7 @@ namespace AE::PipelineCompiler
 			"#extension GL_GOOGLE_include_directive                     : require\n"
 			"#extension GL_GOOGLE_cpp_style_line_directive              : require\n"
 			"#extension GL_EXT_control_flow_attributes                  : require\n"
+			"#extension GL_EXT_control_flow_attributes2                 : require\n"
 			"#extension GL_EXT_debug_printf                             : enable\n"
 			"#extension GL_EXT_samplerless_texture_functions            : enable\n";
 
@@ -194,6 +195,8 @@ namespace AE::PipelineCompiler
 			ESubgroupTypes			types			= Default;
 			FeatureSetCounter		dynamic_id;
 			FeatureSetCounter		un_control_flow;
+			FeatureSetCounter		max_reconv;
+			FeatureSetCounter		quad_ctrl;
 			//uint					min_size		= 0;
 			//uint					max_size		= UMax;
 
@@ -205,6 +208,8 @@ namespace AE::PipelineCompiler
 					types			|= ptr->fs.subgroupTypes;
 					dynamic_id		.Add( ptr->fs.subgroupBroadcastDynamicId );
 					un_control_flow	.Add( ptr->fs.shaderSubgroupUniformControlFlow );
+					max_reconv		.Add( ptr->fs.shaderMaximalReconvergence );
+					quad_ctrl		.Add( ptr->fs.shaderQuadControl );
 					//min_size		= Max( min_size, ptr->fs.minSubgroupSize );
 					//max_size		= Max( max_size, ptr->fs.maxSubgroupSize );
 					//CHECK( min_size <= max_size );
@@ -278,15 +283,35 @@ namespace AE::PipelineCompiler
 				switch_end
 			}
 
-			if ( dynamic_id.IsTrue() ) {
-				ext << "#extension GL_ARB_shader_ballot                            : require\n";
-				def << "#define AE_shader_ballot 1\n";
+			if ( dynamic_id.IsTrue() and spirvVer >= Version2{1,5} ) {
+				def << "#define AE_subgroupBroadcastDynamicId 1\n";
 			}
 
 			if ( un_control_flow.IsTrue() and spirvVer >= Version2{1,3} )
+			{
+				// not supported by glslang
 				ext	<< "#ifdef GL_EXT_subgroupuniform_qualifier\n"
-					<< "# extension GL_EXT_subgroupuniform_qualifier               : require\n"
+					<< "# extension GL_EXT_subgroupuniform_qualifier              : require\n"
 					<< "#endif\n";
+				def << "#ifdef GL_EXT_subgroupuniform_qualifier\n"
+					<< "#define AE_subgroup_uniform_qualifier  1\n"
+					<< "#endif\n";
+
+				ext	<< "#extension GL_EXT_subgroup_uniform_control_flow           : require\n";
+				def << "#define AE_subgroup_uniform_control_flow  1\n";
+			}
+
+			if ( max_reconv.IsTrue() )
+			{
+				ext	<< "#extension GL_EXT_maximal_reconvergence                   : require\n";
+				def << "#define AE_maximal_reconvergence  1\n";
+			}
+
+			if ( quad_ctrl.IsTrue() )
+			{
+				ext	<< "#extension GL_EXT_shader_quad_control                     : require\n";
+				def << "#define AE_shader_quad_control  1\n";
+			}
 
 			//def << "#define AE_MIN_SUBGROUP_SIZE " << ToString( min_size ) << "\n"
 			//	<< "#define AE_MAX_SUBGROUP_SIZE " << ToString( max_size ) << "\n";
@@ -403,24 +428,26 @@ namespace AE::PipelineCompiler
 				atomic_float2.Add( ptr->fs.sparseImageFloat32AtomicMinMax );
 			}
 
-			if ( has_atomics.IsTrue() ) {
+			if ( has_atomics.IsTrue() )
+			{
 				def << "#define AE_HAS_ATOMICS 1\n";
-			}
-			if ( storage_i64.IsTrue() ) {
-				ext << "#extension GL_EXT_shader_atomic_int64                      : require\n";
-				def << "#define AE_shader_atomic_int64 1\n";
-			}
-			if ( image_i64.IsTrue() ) {
-				ext << "#extension GL_EXT_shader_image_int64                       : require\n";
-				def << "#define AE_shader_image_int64 1\n";
-			}
-			if ( atomic_float.IsTrue() ) {
-				ext << "#extension GL_EXT_shader_atomic_float                      : require\n";
-				def << "#define AE_shader_atomic_float 1\n";
-			}
-			if ( atomic_float2.IsTrue() ) {
-				ext << "#extension GL_EXT_shader_atomic_float2                     : require\n";
-				def << "#define AE_shader_atomic_float2 1\n";
+
+				if ( storage_i64.IsTrue() ) {
+					ext << "#extension GL_EXT_shader_atomic_int64                      : require\n";
+					def << "#define AE_shader_atomic_int64 1\n";
+				}
+				if ( image_i64.IsTrue() and storage_i64.IsTrue() ) {
+					ext << "#extension GL_EXT_shader_image_int64                       : require\n";
+					def << "#define AE_shader_image_int64 1\n";
+				}
+				if ( atomic_float.IsTrue() ) {
+					ext << "#extension GL_EXT_shader_atomic_float                      : require\n";
+					def << "#define AE_shader_atomic_float 1\n";
+				}
+				if ( atomic_float2.IsTrue() ) {
+					ext << "#extension GL_EXT_shader_atomic_float2                     : require\n";
+					def << "#define AE_shader_atomic_float2 1\n";
+				}
 			}
 		}
 
@@ -701,6 +728,17 @@ namespace AE::PipelineCompiler
 			}
 			if ( geometry_shader.IsTrue() )
 				def << "#define AE_GEOMETRY_SHADER 1\n";	// allow: gl_Layer, gl_PrimitiveID
+		}
+
+		// draw parameters
+		if ( stage == EShaderStages::Vertex )
+		{
+			FeatureSetCounter	draw_params;
+			for (auto& ptr : features) {
+				draw_params.Add( ptr->fs.shaderDrawParameters );
+			}
+			if ( draw_params.IsTrue() )
+				def << "#define AE_shader_draw_parameters 1\n";	// allow gl_BaseInstanceARB, gl_BaseVertexARB, gl_DrawIDARB
 		}
 
 		ext << '\n' << def << '\n';

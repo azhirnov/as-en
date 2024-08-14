@@ -174,6 +174,9 @@
 //-----------------------------------------------------------------------------
 #ifdef GEN_COLOR
 
+	FBM_NOISE_Hash( PerlinNoise )
+	TURBULENCE_FBM_Hash( PerlinNoiseFBM )
+
 	shared float3  s_Positions[ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
 	shared float3  s_Normals  [ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
 
@@ -204,9 +207,11 @@
 		float3	albedo		= float3(1.0);
 		float	emission	= 0.0;
 		float	temperature	= 0.0;
-		float3	pos			= s_Positions[ GetLocalIndex() ];
 
-		float	biom		= DHash13( Voronoi( Turbulence( sphere_pos * 8.0, 1.0, 2.0, 0.6, 7 ), float2(3.9672) ).icenter );
+				sphere_pos	*= 8.0;
+				sphere_pos	+= Turbulence_PerlinNoiseFBM( sphere_pos, 2.0, 0.6, 7 ) * 2.0;
+
+		float	biom		= DHash13( Voronoi( sphere_pos, float2(3.9672) ).icenter );
 		int		mtr_id		= int(biom * 255.0f) & 0xF;
 
 		albedo = HSVtoRGB( float3( biom, 1.0, 1.0 ));

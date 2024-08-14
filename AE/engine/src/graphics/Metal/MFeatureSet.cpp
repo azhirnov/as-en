@@ -479,7 +479,7 @@ namespace
 			//outFeatureSet.shaderSMBuiltinsNV
 			//outFeatureSet.shaderCoreBuiltinsARM
 			outFeatureSet.shaderSampleRateInterpolationFunctions	= features.pullModelInterpolation ? True : False;
-			outFeatureSet.shaderStencilExport		= False;
+			outFeatureSet.shaderStencilExport		= True;
 
 			// array dynamic indexing
 			outFeatureSet.shaderSampledImageArrayDynamicIndexing		= features.arrayOfTexturesRead ? True : False;
@@ -498,6 +498,11 @@ namespace
 			outFeatureSet.shaderInputAttachmentArrayNonUniformIndexing		= features.arrayOfTexturesRead ? True : False;
 			outFeatureSet.shaderUniformTexelBufferArrayNonUniformIndexing	= features.arrayOfTexturesRead ? True : False;
 			outFeatureSet.shaderStorageTexelBufferArrayNonUniformIndexing	= features.arrayOfTexturesWrite ? True : False;
+			outFeatureSet.shaderUniformBufferArrayNonUniformIndexingNative	= outFeatureSet.shaderUniformBufferArrayNonUniformIndexing;
+			outFeatureSet.shaderSampledImageArrayNonUniformIndexingNative	= outFeatureSet.shaderSampledImageArrayNonUniformIndexing;
+			outFeatureSet.shaderStorageBufferArrayNonUniformIndexingNative	= outFeatureSet.shaderStorageBufferArrayNonUniformIndexing;
+			outFeatureSet.shaderStorageImageArrayNonUniformIndexingNative	= outFeatureSet.shaderStorageImageArrayNonUniformIndexing;
+			outFeatureSet.shaderInputAttachmentArrayNonUniformIndexingNative= outFeatureSet.shaderInputAttachmentArrayNonUniformIndexing;
 
 			// storage image format
 			//outFeatureSet.shaderStorageImageMultisample			// TODO
@@ -712,8 +717,8 @@ namespace
 			outFeatureSet.imageViewMinLod				= False;
 			outFeatureSet.multisampleArrayImage			= mac_ios14 ? True : False;
 			outFeatureSet.maxImageArrayLayers			= properties.maxNumberOfLayersPerTextureArray_1D_2D_3D;
-			outFeatureSet.imageViewFormatList			= False;	// TODO
-			outFeatureSet.imageViewExtendedUsage		= False;	// TODO
+			outFeatureSet.imageViewFormatList			= True;	// TODO
+			outFeatureSet.imageViewExtendedUsage		= True;	// TODO
 
 			FeatureSet::PixelFormatSet_t	sparseImageFormats;			// TODO
 			FeatureSet::PixelFormatSet_t	multisampleImageFormats;	// TODO
@@ -782,7 +787,7 @@ namespace
 			}
 			if ( f.apple >= 2 )
 			{
-				outFeatureSet.linearSampledFormats.InsertRange( EPixelFormat::ASTC_RGBA_4x4, EPixelFormat::ASTC_RGBA_12x12 );
+				outFeatureSet.linearSampledFormats.InsertRange( EPixelFormat::ASTC_RGBA8_4x4, EPixelFormat::ASTC_RGBA8_12x12 );
 				outFeatureSet.linearSampledFormats.InsertRange( EPixelFormat::ASTC_sRGB8_A8_4x4, EPixelFormat::ASTC_sRGB8_A8_12x12 );
 				outFeatureSet.linearSampledFormats.InsertRange( EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ETC2_sRGB8_A8 );
 				outFeatureSet.linearSampledFormats.InsertRange( EPixelFormat::EAC_R11_SNorm, EPixelFormat::EAC_RG11_UNorm );
@@ -814,7 +819,7 @@ namespace
 					EPixelFormat::RG32F, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16U, EPixelFormat::RGBA16I,
 					EPixelFormat::RGBA16F, EPixelFormat::RGBA32U, EPixelFormat::RGBA32I, EPixelFormat::RGBA32F
 				};
-				sparseImageFormats.InsertRange( EPixelFormat::ASTC_RGBA_4x4, EPixelFormat::ASTC_RGBA_12x12 );
+				sparseImageFormats.InsertRange( EPixelFormat::ASTC_RGBA8_4x4, EPixelFormat::ASTC_RGBA8_12x12 );
 				sparseImageFormats.InsertRange( EPixelFormat::ASTC_sRGB8_A8_4x4, EPixelFormat::ASTC_sRGB8_A8_12x12 );
 				outFeatureSet.linearSampledFormats.InsertRange( EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ETC2_sRGB8_A8 );
 				outFeatureSet.linearSampledFormats.InsertRange( EPixelFormat::EAC_R11_SNorm, EPixelFormat::EAC_RG11_UNorm );

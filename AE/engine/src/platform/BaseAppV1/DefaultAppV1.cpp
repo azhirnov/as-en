@@ -69,6 +69,8 @@ namespace AE::AppV1
 	{
 		_windows.clear();
 
+		for (; Scheduler().ProcessTasks( _allowProcessInMain, EThreadSeed(usize(this) & 0xF) );) {}
+
 		Scheduler().Release();
 
 		if ( _config.enableNetwork )
@@ -293,13 +295,13 @@ namespace AE::AppV1
 		if_unlikely( not _device.IsInitialized() )
 			return;
 
-		#if ENABLE_SYNC_LOG
-			VulkanSyncLog::Deinitialize( INOUT _device.EditDeviceFnTable() );
-		#endif
-
 		Unused( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));	// TODO ???
 
 		RenderTaskScheduler::InstanceCtor::Destroy();
+
+		#if ENABLE_SYNC_LOG
+			VulkanSyncLog::Deinitialize( INOUT _device.EditDeviceFnTable() );
+		#endif
 
 		CHECK_ERRV( _device.DestroyLogicalDevice() );
 		CHECK_ERRV( _device.DestroyInstance() );

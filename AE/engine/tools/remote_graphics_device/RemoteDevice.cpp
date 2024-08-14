@@ -321,14 +321,20 @@ namespace AE::RemoteGraphics
 		}
 		//----------------------------
 
-	  #ifdef AE_ENABLE_ARM_HWCPIPE
+	  #ifdef AE_ENABLE_ARM_PMU
 		_profilers.arm.Deinitialize();
+	  #endif
+	  #ifdef AE_ENABLE_MALI_HWCPIPE
+		_profilers.mali.Deinitialize();
 	  #endif
 	  #ifdef AE_ENABLE_ADRENO_PERFCOUNTER
 		_profilers.adreno.Deinitialize();
 	  #endif
 	  #ifdef AE_ENABLE_PVRCOUNTER
 		_profilers.pvr.Deinitialize();
+	  #endif
+	  #ifdef AE_ENABLE_NVML
+		_profilers.nv.Deinitialize();
 	  #endif
 
 		_swapchain.Destroy();

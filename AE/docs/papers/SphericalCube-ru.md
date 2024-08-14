@@ -13,10 +13,10 @@
 ![](img/SC_Proj.png)
 
 На картинке цветом обозначена площадь треугольника, более равномерный цвет характеризует равномерную площадь треугольников на сфере.<br/>
-[Исходник теста](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-1.as).
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-1.as).
 
 Проекции 5th Poly и COBE в шейдере дают наименьшую точность расчетов. В тесте берется развертка сферы и применяются обратная и прямая проекции, сравниваются вектора и выводится погрешность.<br/>
-[Исходник теста](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/CubeMapTest-1.as).
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/CubeMapTest-1.as).
 
 
 ## Проекция текстуры
@@ -29,7 +29,7 @@
 При применении проекции, кроме identity, текстурные координаты перестают соответствовать 3D вектору, тогда при записи в текстуру требуется применять проекцию.<br/>
 Для всех проекций UV координаты грани куба перестают быть прямоугольными, то есть все формы искажаются.<br/>
 UV куба дает распределение,  близкое к равномерному. При этом чем лучше проекция, тем равномернее результат.<br/>
-[Исходник теста](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-2.as).
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-2.as).
 
 
 ## Топология
@@ -47,7 +47,7 @@ UV куба дает распределение,  близкое к равном
 
 Пример проекции сферы (круга) на сферический куб, ближе к грани куба начинаются небольшие искажения, для круга это не критично.<br/>
 Проекция прямоугольника на сферический куб не имеет искажений только в центре грани куба, на краях начинаются искажения, но радиус вписанной окружности не меняется.<br/>
-[Исходник теста](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-3.as)
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-3.as)
 
 
 ### Погрешность интерполяции
@@ -58,6 +58,6 @@ UV куба дает распределение,  близкое к равном
 
 Улучшить точность можно повторив линейную интерполяцию между контрольными точками. На картинке это вариант справа.
 
-Исходники:<br/>
+Код:<br/>
 [коррекция в вычислительном шейдере](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-4.as).<br/>
 [коррекция во фрагментном шейдере](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-5.as).

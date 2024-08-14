@@ -179,6 +179,34 @@ namespace
 	}
 
 
+	static void  EnumSet_Test5 ()
+	{
+		enum class E : uint
+		{
+			Bit_117 = 117,
+			Bit_124 = 124,
+
+			_Count = 380
+		};
+		using EBits = EnumSet< E >;
+
+		EBits	bits;
+		bits.insert( E::Bit_117 );
+		bits.insert( E::Bit_124 );
+
+		auto	it = bits.begin();
+		TEST( it != bits.end() );
+		TEST( *it == E::Bit_117 );
+
+		++it;
+		TEST( it != bits.end() );
+		TEST( *it == E::Bit_124 );
+
+		++it;
+		TEST( it == bits.end() );
+	}
+
+
 	static void  Bitfield_Test1 ()
 	{
 		Bitfield<uint>	a0;
@@ -212,6 +240,7 @@ extern void UnitTest_EnumSet ()
 	EnumSet_Test2();
 	EnumSet_Test3();
 	EnumSet_Test4();
+	EnumSet_Test5();
 
 	Bitfield_Test1();
 

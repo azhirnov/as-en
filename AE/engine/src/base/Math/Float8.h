@@ -266,19 +266,20 @@ namespace AE::Math
 
 
 } // AE::Math
+//-----------------------------------------------------------------------------
 
 
 namespace AE::Base
 {
-	template <>	struct TMemCopyAvailable< UFloat8 >		{ static constexpr bool  value = true; };
-	template <>	struct TZeroMemAvailable< UFloat8 >		{ static constexpr bool  value = true; };
-	template <>	struct TTriviallySerializable< UFloat8 >{ static constexpr bool  value = true; };
+	template <>	struct TMemCopyAvailable< UFloat8 >		: CT_True {};
+	template <>	struct TZeroMemAvailable< UFloat8 >		: CT_True {};
+	template <>	struct TTriviallySerializable< UFloat8 >: CT_True {};
 
 	namespace _hidden_
 	{
-		template <> struct _IsScalar< AE::Math::UFloat8 >		{ static constexpr bool  value = true; };
-		template <> struct _IsFloatPoint< AE::Math::UFloat8 >	{ static constexpr bool  value = true; };
-		template <> struct _IsSigned< AE::Math::UFloat8 >		{ static constexpr bool  value = false; };
+		template <> struct _IsScalar< AE::Math::UFloat8 >		: CT_True  {};
+		template <> struct _IsFloatPoint< AE::Math::UFloat8 >	: CT_True  {};
+		template <> struct _IsSigned< AE::Math::UFloat8 >		: CT_False {};
 	}
 
 } // AE::Base

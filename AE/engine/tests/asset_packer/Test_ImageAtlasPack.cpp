@@ -31,6 +31,7 @@ namespace
 
 		auto	file = MakeRC<FileRStream>( output );
 		TEST( file->IsOpen() );
+		TEST( file->Size() == 65'688_b );
 	}
 }
 

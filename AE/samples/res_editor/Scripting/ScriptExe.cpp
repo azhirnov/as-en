@@ -3,6 +3,7 @@
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Passes/BuildRTAS.h"
 #include "res_editor/Passes/Export.h"
+#include "res_editor/Passes/ImageCompression.h"
 
 #include "res_editor/Core/EditorCore.h"
 #include "res_editor/Core/EditorUI.h"
@@ -111,6 +112,31 @@ namespace {
 		RC<IPass>	ToPass () C_Th_OV
 		{
 			return MakeRCTh<ResEditor::GenerateMipmapsPass>( rt->ToResource(), "GenMipmaps" );
+		}
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	//
+	// Compress Image Pass
+	//
+	class ScriptExe::ScriptCompressImage final : public ScriptBasePass
+	{
+	private:
+		ScriptImagePtr		src;
+		ScriptImagePtr		dst;
+		EPixelFormat		dstFormat;
+
+	public:
+		ScriptCompressImage (const ScriptImagePtr &src, const ScriptImagePtr &dst, EPixelFormat dstFormat) :
+			src{src}, dst{dst}, dstFormat{dstFormat} {}
+
+		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
+
+		RC<IPass>	ToPass () C_Th_OV
+		{
+			return MakeRCTh<ResEditor::ImageCompressionPass>( src->ToResource(), dst->ToResource(), dstFormat, "CompressImage" );
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -968,7 +994,7 @@ namespace {
 			if ( not file.IsOpen() )
 				RETURN_ERR( "Failed to open script file: '"s << ansi_path << "'" );
 
-			src.name = ToString( filePath.filename().replace_extension("") );
+			src.name = ToString( filePath.stem() );
 
 			if ( not file.Read( file.RemainingSize(), OUT src.script ))
 				RETURN_ERR( "Failed to read script file: '"s << ansi_path << "'" );
@@ -1095,7 +1121,7 @@ namespace {
 		CHECK_THROW_MSG( not data.hasPresent, "'Present()' must be used once" );
 
 		data.hasPresent = true;
-		data.renderer->SetSurfaceFormat( cs != Default ? ESurfaceFormat_Cast( rt->Description().format, cs ) : Default );
+		data.renderer->SetSurfaceFormat( cs != Default ? ESurfaceFormat_Cast( rt->PixelFormat(), cs ) : Default );
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptPresent{ rt, layer, mipmap, data.cfg.dynSize }});
 	}
@@ -1114,6 +1140,46 @@ namespace {
 		CHECK_THROW_MSG( data.passGroup );
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptGenMipmaps{ rt }});
+	}
+
+/*
+=================================================
+	_CompressImage
+=================================================
+*/
+	void  ScriptExe::_CompressImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) __Th___
+	{
+		CHECK_THROW_MSG( dst );
+		_CompressImage2( src, dst, dst->PixelFormat() );
+	}
+
+	void  ScriptExe::_CompressImage2 (const ScriptImagePtr &src, const ScriptImagePtr &dst, EPixelFormat dstFormat) __Th___
+	{
+		CHECK_THROW_MSG( src );
+		CHECK_THROW_MSG( dst );
+
+		CHECK_THROW_MSG( not src->IsMutableDimension() );
+		CHECK_THROW_MSG( not dst->IsMutableDimension() );
+
+		CHECK_THROW_MSG( All( src->Dimension3() == dst->Dimension3() ));
+		CHECK_THROW_MSG( src->ArrayLayers() == dst->ArrayLayers() );
+		CHECK_THROW_MSG( src->MipmapCount() == dst->MipmapCount() );
+
+		auto&	src_fmt	= EPixelFormat_GetInfo( src->PixelFormat() );
+		auto&	dst_fmt	= EPixelFormat_GetInfo( dstFormat );
+
+		CHECK_THROW_MSG( not src_fmt.IsCompressed() and dst_fmt.IsCompressed() );
+		CHECK_THROW_MSG( dst->PixelFormat() == src->PixelFormat() or dstFormat == dst->PixelFormat() );
+		CHECK_THROW_MSG( src_fmt.IsColor() and dst_fmt.IsColor() );
+		CHECK_THROW_MSG( All( IsMultipleOf( uint2{dst->Dimension2()}, dst_fmt.TexBlockDim() )));
+
+		src->AddUsage( EResourceUsage::WillReadback );
+		dst->AddUsage( EResourceUsage::UploadedData );
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptCompressImage{ src, dst, dstFormat }});
 	}
 
 /*
@@ -1346,6 +1412,11 @@ namespace {
 
 	void  ScriptExe::_DbgView4 (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, DebugView::EFlags flags) __Th___
 	{
+	#if RmG_UI_ON_HOST
+		// UI on host can not draw debug view
+		Unused( rt, layer, mipmap, flags );
+
+	#else
 		CHECK_THROW_MSG( rt );
 
 		auto&	data	= _GetTempData();
@@ -1356,7 +1427,7 @@ namespace {
 		switch_enum( flags )
 		{
 			case DebugView::EFlags::Copy :			rt->AddUsage( EResourceUsage::Transfer );		break;
-			case DebugView::EFlags::NoCopy :		rt->AddUsage( EResourceUsage::Present );		break;
+			case DebugView::EFlags::NoCopy :		rt->AddUsage( EResourceUsage::Sampled );		break;
 			case DebugView::EFlags::Histogram :		rt->AddUsage( EResourceUsage::Sampled );		break;
 			case DebugView::EFlags::LinearDepth :	rt->AddUsage( EResourceUsage::Sampled );		break;
 			case DebugView::EFlags::Stencil :		rt->AddUsage( EResourceUsage::DepthStencil );	break;
@@ -1366,6 +1437,7 @@ namespace {
 		switch_end
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptDbgView{ rt, layer, mipmap, flags, idx }});
+	#endif
 	}
 
 /*
@@ -1395,9 +1467,9 @@ namespace {
 		dst.type	= type;
 		dst.dyn		= dyn->Get();
 
-		std::memcpy( OUT &dst.intRange[0], &min, sizeof(min) );
-		std::memcpy( OUT &dst.intRange[1], &max, sizeof(max) );
-		std::memcpy( OUT &dst.intRange[2], &initial, sizeof(initial) );
+		MemCopy( OUT &dst.intRange[0], &min, Sizeof(min) );
+		MemCopy( OUT &dst.intRange[1], &max, Sizeof(max) );
+		MemCopy( OUT &dst.intRange[2], &initial, Sizeof(initial) );
 	}
 
 /*
@@ -1646,41 +1718,73 @@ namespace {
 
 /*
 =================================================
-	_Supported_***
+	_Supports_***
 =================================================
 */
 namespace {
-	static bool  _Supported_GeometryShader ()
+	static bool  _IsDiscreteGPU ()
+	{
+		return GraphicsScheduler().GetDevice().AdapterType() == EGraphicsAdapterType::Discrete;
+	}
+
+	static bool  _IsRemoteGPU ()
+	{
+	#ifdef AE_ENABLE_REMOTE_GRAPHICS
+		return true;
+	#else
+		return false;
+	#endif
+	}
+
+	static bool  _Supports_GeometryShader ()
 	{
 		return GraphicsScheduler().GetFeatureSet().geometryShader == FeatureSet::EFeature::RequireTrue;
 	}
 
-	static bool  _Supported_TessellationShader ()
+	static bool  _Supports_MeshShader ()
+	{
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		return	fs.meshShader == FeatureSet::EFeature::RequireTrue	and
+				fs.taskShader == FeatureSet::EFeature::RequireTrue;
+	}
+
+	static bool  _Supports_TessellationShader ()
 	{
 		return GraphicsScheduler().GetFeatureSet().tessellationShader == FeatureSet::EFeature::RequireTrue;
 	}
 
-	static bool  _Supported_SamplerAnisotropy ()
+	static bool  _Supports_SamplerAnisotropy ()
 	{
 		return GraphicsScheduler().GetFeatureSet().samplerAnisotropy == FeatureSet::EFeature::RequireTrue;
 	}
 
-	static EPixelFormat  _Supported_DepthFormat ()
+	static bool  _Supports_Format (const EPixelFormat fmt)
 	{
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
-		if ( fs.attachmentFormats.contains( EPixelFormat::Depth32F ))	return EPixelFormat::Depth32F;
-		if ( fs.attachmentFormats.contains( EPixelFormat::Depth24 ))	return EPixelFormat::Depth24;
-		if ( fs.attachmentFormats.contains( EPixelFormat::Depth16 ))	return EPixelFormat::Depth16;
-		return Default;
-	}
 
-	static EPixelFormat  _Supported_DepthStencilFormat ()
-	{
-		auto&	fs = GraphicsScheduler().GetFeatureSet();
-		if ( fs.attachmentFormats.contains( EPixelFormat::Depth32F_Stencil8 ))	return EPixelFormat::Depth32F_Stencil8;
-		if ( fs.attachmentFormats.contains( EPixelFormat::Depth24_Stencil8 ))	return EPixelFormat::Depth24_Stencil8;
-		if ( fs.attachmentFormats.contains( EPixelFormat::Depth16_Stencil8 ))	return EPixelFormat::Depth16_Stencil8;
-		return Default;
+		if ( EPixelFormat_IsBC( fmt ))
+		{
+			return fs.textureCompressionBC == FeatureSet::EFeature::RequireTrue;
+		}
+		else
+		if ( EPixelFormat_IsETC( fmt ) or EPixelFormat_IsEAC( fmt ))
+		{
+			return fs.textureCompressionETC2 == FeatureSet::EFeature::RequireTrue;
+		}
+		else
+		if ( EPixelFormat_IsASTC_LDR( fmt ) or EPixelFormat_IsASTC_LDR_sRGB( fmt ))
+		{
+			return fs.textureCompressionASTC_LDR == FeatureSet::EFeature::RequireTrue;
+		}
+		else
+		if ( EPixelFormat_IsASTC_HDR( fmt ))
+		{
+			return fs.textureCompressionASTC_HDR == FeatureSet::EFeature::RequireTrue;
+		}
+		else
+		{
+			return fs.linearSampledFormats.contains( fmt );
+		}
 	}
 }
 
@@ -1794,6 +1898,8 @@ namespace {
 
 		se->AddFunction( &ScriptExe::_GenMipmaps,				"GenMipmaps",				{},		"Pass which generates mipmaps for image." );
 		se->AddFunction( &ScriptExe::_CopyImage,				"CopyImage",				{},		"Pass which copy image content to another image." );
+		se->AddFunction( &ScriptExe::_CompressImage,			"CompressImage",			{"src", "dst"},	"Pass which compress image on CPU or GPU." );
+		se->AddFunction( &ScriptExe::_CompressImage2,			"CompressImage",			{"src", "dst", "dstFormat"}, "Pass which compress image on CPU or GPU.\n'dstFormat' may not be supported by current GPU, but may be used for software decoding.\n'dst' image must be compatible with 'dstFormat'." );
 
 		se->AddFunction( &ScriptExe::_ClearImage1,				"ClearImage",				{},		"Pass to clear float-color image." );
 		se->AddFunction( &ScriptExe::_ClearImage2,				"ClearImage",				{},		"Pass to clear uint-color image." );
@@ -1830,11 +1936,13 @@ namespace {
 		se->AddFunction( &ScriptExe::_GetFrustumPlanes,			"GetFrustumPlanes",			{"viewProj", "outPlanes"},		"Helper function to convert matrix to 6 planes of the frustum." );
 		se->AddFunction( &ScriptExe::_MergeMesh,				"MergeMesh",				{"srcIndices", "srcVertexCount", "indicesToAdd"} );
 
+		#ifdef AE_ENABLE_CDT
 		se->AddFunction( &ScriptExe::_ExtrudeAndMerge,			"Extrude",					{"lineStrip", "height", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
 		se->AddFunction( &ScriptExe::_TriangulateAndMerge1,		"Triangulate",				{"lineStrip", "yCoord", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
 		se->AddFunction( &ScriptExe::_TriangulateAndMerge2,		"Triangulate",				{"vertices", "lineListIndices", "yCoord", "positions", "indices"},	"Output is a TriangleList, front face: CCW" );
 		se->AddFunction( &ScriptExe::_TriangulateExtrudeAndMerge1,"TriangulateAndExtrude",	{"lineStrip", "height", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
 		se->AddFunction( &ScriptExe::_TriangulateExtrudeAndMerge2,"TriangulateAndExtrude",	{"vertices", "lineListIndices", "height", "positions", "indices"},	"Output is a TriangleList, front face: CCW" );
+		#endif
 
 		se->AddFunction( &ScriptExe::_RunScript1,				"RunScript",				{"filePath", "collection"},		"Run script, path to script must be added to 'res_editor_cfg.as' as 'SecondaryScriptDir()'" );
 		se->AddFunction( &ScriptExe::_RunScript2,				"RunScript",				{"filePath", "flags", "collection"} );
@@ -1872,20 +1980,24 @@ namespace {
 		se->AddFunction( &ScriptExe::_SliderF3a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
 		se->AddFunction( &ScriptExe::_SliderF4a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
 
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrum3,			"WhiteColorSpectrum3",			{"wavelengthToRGB"} );
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrum7,			"WhiteColorSpectrum7",			{"wavelengthToRGB", "normalized"} );
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep50nm,	"WhiteColorSpectrumStep50nm",	{"wavelengthToRGB", "normalized"} );
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep100nm,	"WhiteColorSpectrumStep100nm",	{"wavelengthToRGB", "normalized"} );
+		se->AddFunction( &ScriptExe::_WhiteColorSpectrum3,			"WhiteColorSpectrum3",			{"wavelengthToRGB"},				"Returns array with 3 elements, where x - wavelength in nm, yzw - RGB color." );
+		se->AddFunction( &ScriptExe::_WhiteColorSpectrum7,			"WhiteColorSpectrum7",			{"wavelengthToRGB", "normalized"},	"Returns array with 7 elements, where x - wavelength in nm, yzw - RGB color.\nnormalized - sum of colors will be 1." );
+		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep100nm,	"WhiteColorSpectrumStep100nm",	{"wavelengthToRGB", "normalized"},	"Returns array 4 elements with visible light spectrum with step 100nm, where x - wavelength in nm, yzw - RGB color.\nnormalized - sum of colors will be 1." );
+		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep50nm,	"WhiteColorSpectrumStep50nm",	{"wavelengthToRGB", "normalized"},	"Returns array 7 elements with visible light spectrum with step 50nm, where x - wavelength in nm, yzw - RGB color.\nnormalized - sum of colors will be 1." );
 
-		se->AddFunction( &ScriptExe::_CM_CubeSC_Forward,		"CM_CubeSC_Forward",		{} );
-		se->AddFunction( &ScriptExe::_CM_IdentitySC_Forward,	"CM_IdentitySC_Forward",	{} );
-		se->AddFunction( &ScriptExe::_CM_TangentialSC_Forward,	"CM_TangentialSC_Forward",	{} );
+		se->AddFunction( &ScriptExe::_CM_CubeSC_Forward,		"CM_CubeSC_Forward",		{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on cube." );
+		se->AddFunction( &ScriptExe::_CM_IdentitySC_Forward,	"CM_IdentitySC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using identity projection (normalization)." );
+		se->AddFunction( &ScriptExe::_CM_TangentialSC_Forward,	"CM_TangentialSC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using tangential projection." );
 
-		se->AddFunction( &_Supported_GeometryShader,			"Supported_GeometryShader",		{} );
-		se->AddFunction( &_Supported_TessellationShader,		"Supported_TessellationShader",	{} );
-		se->AddFunction( &_Supported_SamplerAnisotropy,			"Supported_SamplerAnisotropy",	{} );
-		se->AddFunction( &_Supported_DepthFormat,				"Supported_DepthFormat",		{} );
-		se->AddFunction( &_Supported_DepthStencilFormat,		"Supported_DepthStencilFormat",	{} );
+		se->AddFunction( &_IsDiscreteGPU,									"IsDiscreteGPU",				{} );
+		se->AddFunction( &_IsRemoteGPU,										"IsRemoteGPU",					{} );
+		se->AddFunction( &_Supports_GeometryShader,							"Supports_GeometryShader",		{} );
+		se->AddFunction( &_Supports_MeshShader,								"Supports_MeshShader",			{} );
+		se->AddFunction( &_Supports_TessellationShader,						"Supports_TessellationShader",	{} );
+		se->AddFunction( &_Supports_SamplerAnisotropy,						"Supports_SamplerAnisotropy",	{} );
+		se->AddFunction( &ScriptResourceApi::Supported_DepthFormat,			"Supported_DepthFormat",		{} );
+		se->AddFunction( &ScriptResourceApi::Supported_DepthStencilFormat,	"Supported_DepthStencilFormat",	{} );
+		se->AddFunction( &_Supports_Format,									"Supports_Format",				{} );
 
 		// TODO:
 		//	PresentVR( left, left_layer, left_mipmap,  right, right_layer, right_mipmap )
@@ -2272,6 +2384,34 @@ namespace {
 	{
 		return GraphicsScheduler().GetFeatureSet();
 	}
+
+/*
+=================================================
+	GetFeatureSet
+=================================================
+*/
+	EPixelFormat  ScriptExe::ScriptResourceApi::Supported_DepthFormat ()
+	{
+		auto&	fs = GetFeatureSet();
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth32F ))	return EPixelFormat::Depth32F;
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth24 ))	return EPixelFormat::Depth24;
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth16 ))	return EPixelFormat::Depth16;
+		return Default;
+	}
+
+/*
+=================================================
+	GetFeatureSet
+=================================================
+*/
+	EPixelFormat  ScriptExe::ScriptResourceApi::Supported_DepthStencilFormat ()
+	{
+		auto&	fs = GetFeatureSet();
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth32F_Stencil8 ))	return EPixelFormat::Depth32F_Stencil8;
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth24_Stencil8 ))	return EPixelFormat::Depth24_Stencil8;
+		if ( fs.attachmentFormats.contains( EPixelFormat::Depth16_Stencil8 ))	return EPixelFormat::Depth16_Stencil8;
+		return Default;
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -2304,15 +2444,23 @@ namespace {
 				PipelineCompiler::ScriptConfig	cfg;
 				cfg.SetTarget( ECompilationTarget::Vulkan );
 				cfg.SetShaderVersion( EShaderVersion(Version2::From100( fs->fs.maxShaderVersion.spirv ).ToHex()) | EShaderVersion::_SPIRV );
-				cfg.SetShaderOptions( EShaderOpt::Optimize );
+
 				cfg.SetDefaultLayout( EStructLayout::Std140 );
 				cfg.SetPreprocessor( EShaderPreprocessor::AEStyle );
 
-			  #if PIPELINE_STATISTICS
-				cfg.SetPipelineOptions( EPipelineOpt::Optimize | EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation );
-			  #else
-				cfg.SetPipelineOptions( EPipelineOpt::Optimize );
+				EShaderOpt		sh_opt	 = Default;		//EShaderOpt::DebugInfo;	// for shader debugging in RenderDoc
+				EPipelineOpt	ppln_opt = Default;
+
+			  #if OPTIMIZE_SHADER
+				sh_opt   = EShaderOpt::Optimize;
+				ppln_opt |= EPipelineOpt::Optimize;
 			  #endif
+			  #if PIPELINE_STATISTICS
+				ppln_opt |= EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
+			  #endif
+
+				cfg.SetPipelineOptions( ppln_opt );
+				cfg.SetShaderOptions( sh_opt );
 			}
 
 			_LoadSamplers();				// throw

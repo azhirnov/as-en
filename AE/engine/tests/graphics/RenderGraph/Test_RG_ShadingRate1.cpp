@@ -207,7 +207,7 @@ namespace
 			for (uint i = 0; i < 3; ++i)
 			{
 				t.result[i] = AsyncTask{ ctx.ReadbackImage( t.img[i], Default )
-							.Then( [p = &t, i] (const ImageMemView &view)
+							.Then(	[p = &t, i] (const ImageMemView &view)
 									{
 										p->isOK[i] = p->imgCmps[i]->Compare( view );
 									})};
@@ -216,8 +216,6 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 

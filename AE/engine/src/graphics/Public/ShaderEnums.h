@@ -65,12 +65,12 @@ namespace AE::Graphics
 		SubpassShading	= 1 << uint(EShader::SubpassShading),
 		All				= (1 << uint(EShader::_Count)) - 1,
 
-		GraphicsStages			= Vertex | TessControl | TessEvaluation | Geometry | Fragment,
-		MeshStages				= MeshTask | Mesh | Fragment,
+		GraphicsPipeStages		= Vertex | TessControl | TessEvaluation | Geometry | Fragment,
+		MeshPipeStages			= MeshTask | Mesh | Fragment,
 		VertexProcessingStages	= Vertex | TessControl | TessEvaluation | Geometry | Mesh,
 		PreRasterizationStages	= MeshTask | VertexProcessingStages,
 		PostRasterizationStages	= Tile | Fragment,
-		AllGraphics				= GraphicsStages | MeshStages,
+		AllGraphics				= GraphicsPipeStages | MeshPipeStages,
 		AllRayTracing			= RayGen | RayAnyHit | RayClosestHit | RayMiss | RayIntersection | RayCallable,
 		Unknown					= 0,
 	};

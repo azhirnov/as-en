@@ -73,7 +73,7 @@ namespace {
 		_typeMap.emplace( "double_mat_t",	"dmat" );
 	  #else
 		// GL_EXT_shader_explicit_arithmetic_types
-		_typeMap.emplace( "double",			"float64_t" );
+		_typeMap.emplace( "double",			"float64_t" );		// suffix 'lf'
 		_typeMap.emplace( "double2",		"f64vec2" );
 		_typeMap.emplace( "double3",		"f64vec3" );
 		_typeMap.emplace( "double4",		"f64vec4" );
@@ -131,19 +131,19 @@ namespace {
 		_typeMap.emplace( "ubyte4",			"u8vec4" );
 		_typeMap.emplace( "ubyte_vec_t",	"u8vec" );
 
-		_typeMap.emplace( "sshort",			"int16_t" );
+		_typeMap.emplace( "sshort",			"int16_t" );	// suffix 's'
 		_typeMap.emplace( "sshort2",		"i16vec2" );
 		_typeMap.emplace( "sshort3",		"i16vec3" );
 		_typeMap.emplace( "sshort4",		"i16vec4" );
 		_typeMap.emplace( "sshort_vec_t",	"i16vec" );
 
-		_typeMap.emplace( "ushort",			"uint16_t" );
+		_typeMap.emplace( "ushort",			"uint16_t" );	// suffix 'us'
 		_typeMap.emplace( "ushort2",		"u16vec2" );
 		_typeMap.emplace( "ushort3",		"u16vec3" );
 		_typeMap.emplace( "ushort4",		"u16vec4" );
 		_typeMap.emplace( "ushort_vec_t",	"u16vec" );
 
-		_typeMap.emplace( "half",			"float16_t" );
+		_typeMap.emplace( "half",			"float16_t" );	// suffix 'hf'
 		_typeMap.emplace( "half2",			"f16vec2" );
 		_typeMap.emplace( "half3",			"f16vec3" );
 		_typeMap.emplace( "half4",			"f16vec4" );
@@ -159,13 +159,13 @@ namespace {
 		_typeMap.emplace( "half4x4",		"f16mat4x4" );
 		_typeMap.emplace( "half_mat_t",		"f16mat" );
 
-		_typeMap.emplace( "slong",			"int64_t" );
+		_typeMap.emplace( "slong",			"int64_t" );	// suffix 'l'
 		_typeMap.emplace( "slong2",			"i64vec2" );
 		_typeMap.emplace( "slong3",			"i64vec3" );
 		_typeMap.emplace( "slong4",			"i64vec4" );
 		_typeMap.emplace( "slong_vec_t",	"i64vec" );
 
-		_typeMap.emplace( "ulong",			"uint64_t" );
+		_typeMap.emplace( "ulong",			"uint64_t" );	// suffix 'ul'
 		_typeMap.emplace( "ulong2",			"u64vec2" );
 		_typeMap.emplace( "ulong3",			"u64vec3" );
 		_typeMap.emplace( "ulong4",			"u64vec4" );
@@ -281,6 +281,28 @@ namespace {
 		_typeMap.emplace( "gl::Image2DMS<uint>",		"uimage2DMS" );
 		_typeMap.emplace( "gl::Image2DMSArray<uint>",	"uimage2DMSArray" );
 
+		_typeMap.emplace( "gl::Image1D<slong>",			"i64image1D" );
+		_typeMap.emplace( "gl::Image2D<slong>",			"i64image2D" );
+		_typeMap.emplace( "gl::Image3D<slong>",			"i64image3D" );
+		_typeMap.emplace( "gl::ImageCube<slong>",		"i64imageCube" );
+		_typeMap.emplace( "gl::ImageBuffer<slong>",		"i64bufferImage" );
+		_typeMap.emplace( "gl::Image1DArray<slong>",	"i64image1DArray" );
+		_typeMap.emplace( "gl::Image2DArray<slong>",	"i64image2DArray" );
+		_typeMap.emplace( "gl::ImageCubeArray<slong>",	"i64imageCubeArray" );
+		_typeMap.emplace( "gl::Image2DMS<slong>",		"i64image2DMS" );
+		_typeMap.emplace( "gl::Image2DMSArray<slong>",	"i64image2DMSArray" );
+
+		_typeMap.emplace( "gl::Image1D<ulong>",			"u64image1D" );
+		_typeMap.emplace( "gl::Image2D<ulong>",			"u64image2D" );
+		_typeMap.emplace( "gl::Image3D<ulong>",			"u64image3D" );
+		_typeMap.emplace( "gl::ImageCube<ulong>",		"u64imageCube" );
+		_typeMap.emplace( "gl::ImageBuffer<ulong>",		"u64bufferImage" );
+		_typeMap.emplace( "gl::Image1DArray<ulong>",	"u64image1DArray" );
+		_typeMap.emplace( "gl::Image2DArray<ulong>",	"u64image2DArray" );
+		_typeMap.emplace( "gl::ImageCubeArray<ulong>",	"u64imageCubeArray" );
+		_typeMap.emplace( "gl::Image2DMS<ulong>",		"u64image2DMS" );
+		_typeMap.emplace( "gl::Image2DMSArray<ulong>",	"u64image2DMSArray" );
+
 		// sync
 		_typeMap.emplace( "gl.PatchBarrier",			"barrier" );
 		_typeMap.emplace( "gl.WorkgroupBarrier",		"barrier" );
@@ -342,6 +364,7 @@ namespace {
 		_typeMap.emplace( "gl.InstanceIndex",		"gl_InstanceIndex" );
 		_typeMap.emplace( "gl.InstanceID",			"gl_InstanceID" );				// in graphics - removed in Vulkan, supported only for ray tracing
 		_typeMap.emplace( "gl::PerVertex",			"gl_PerVertex" );
+		_typeMap.emplace( "gl.ViewIndex",			"gl_ViewIndex" );
 
 		// GL_ARB_shader_draw_parameters
 		_typeMap.emplace( "gl.BaseInstance",		"gl_BaseInstance" );			// or gl_BaseInstanceARB
@@ -458,10 +481,11 @@ namespace {
 		_typeMap.emplace( "gl.subgroup.ClusteredAnd",			"subgroupClusteredAnd" );
 		_typeMap.emplace( "gl.subgroup.ClusteredOr",			"subgroupClusteredOr" );
 		_typeMap.emplace( "gl.subgroup.ClusteredXor",			"subgroupClusteredXor" );
-		_typeMap.emplace( "gl.subgroup.QuadBroadcast",			"subgroupQuadBroadcast" );
-		_typeMap.emplace( "gl.subgroup.QuadSwapHorizontal",		"subgroupQuadSwapHorizontal" );
-		_typeMap.emplace( "gl.subgroup.QuadSwapVertical",		"subgroupQuadSwapVertical" );
-		_typeMap.emplace( "gl.subgroup.QuadSwapDiagonal",		"subgroupQuadSwapDiagonal" );
+
+		_typeMap.emplace( "gl.quadGroup.Broadcast",				"subgroupQuadBroadcast" );
+		_typeMap.emplace( "gl.quadGroup.SwapHorizontal",		"subgroupQuadSwapHorizontal" );
+		_typeMap.emplace( "gl.quadGroup.SwapVertical",			"subgroupQuadSwapVertical" );
+		_typeMap.emplace( "gl.quadGroup.SwapDiagonal",			"subgroupQuadSwapDiagonal" );
 
 		// https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GL_EXT_subgroupuniform_qualifier.txt
 		_typeMap.emplace( "gl::SubgroupUniform",				"subgroupuniformEXT" );
@@ -564,12 +588,12 @@ namespace {
 		_typeMap.emplace( "gl.rayQuery.GetIntersectionTriangleVertexPositions",	"rayQueryGetIntersectionTriangleVertexPositionsEXT" );
 
 		// for VkAccelerationStructureInstance
-		_typeMap.emplace( "DeviceAddress",								"uvec2" );		// same as AE::Graphics::DeviceAddress
-		_typeMap.emplace( "GeometryInstanceFlags",						"uint32_t" );	// type
-		_typeMap.emplace( "GeometryInstanceFlags::TriangleCullDisable",	"1" );			// same as ERTInstanceOpt::TriangleCullDisable
-		_typeMap.emplace( "GeometryInstanceFlags::TriangleFrontCCW",	"2" );			// same as ERTInstanceOpt::TriangleFrontCCW
-		_typeMap.emplace( "GeometryInstanceFlags::ForceOpaque",			"4" );			// same as ERTInstanceOpt::ForceOpaque
-		_typeMap.emplace( "GeometryInstanceFlags::ForceNonOpaque",		"8" );			// same as ERTInstanceOpt::ForceNonOpaque
+		_typeMap.emplace( "gl::DeviceAddress",								"uvec2" );		// same as AE::Graphics::DeviceAddress
+		_typeMap.emplace( "gl::GeometryInstanceFlags",						"uint32_t" );	// type
+		_typeMap.emplace( "gl::GeometryInstanceFlags::TriangleCullDisable",	"1" );			// same as ERTInstanceOpt::TriangleCullDisable
+		_typeMap.emplace( "gl::GeometryInstanceFlags::TriangleFrontCCW",	"2" );			// same as ERTInstanceOpt::TriangleFrontCCW
+		_typeMap.emplace( "gl::GeometryInstanceFlags::ForceOpaque",			"4" );			// same as ERTInstanceOpt::ForceOpaque
+		_typeMap.emplace( "gl::GeometryInstanceFlags::ForceNonOpaque",		"8" );			// same as ERTInstanceOpt::ForceNonOpaque
 
 		// mesh shader
 		// https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_mesh_shader.txt
@@ -679,7 +703,18 @@ namespace {
 		// https://raw.githubusercontent.com/KhronosGroup/GLSL/main/extensions/ext/GLSL_EXT_demote_to_helper_invocation.txt
 		_typeMap.emplace( "gl.Discard",				"discard" );
 		_typeMap.emplace( "gl.Demote",				"demote" );
-		_typeMap.emplace( "gl.HelperInvocation",	"helperInvocationEXT" );
+		_typeMap.emplace( "gl.IsHelperInvocation",	"helperInvocationEXT" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/arm/GLSL_ARM_shader_core_builtins.txt
+		_typeMap.emplace( "gl.ARM.CoreID",			"gl_CoreIDARM" );
+		_typeMap.emplace( "gl.ARM.CoreCount",		"gl_CoreCountARM" );
+		_typeMap.emplace( "gl.ARM.CoreMaxID",		"gl_CoreMaxIDARM" );
+		_typeMap.emplace( "gl.ARM.WarpID",			"gl_WarpIDARM" );
+		_typeMap.emplace( "gl.ARM.WarpMaxID",		"gl_WarpMaxIDARM" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_shader_quad.txt
+		_typeMap.emplace( "gl.quadGroup.All",		"subgroupQuadAll" );
+		_typeMap.emplace( "gl.quadGroup.Any",		"subgroupQuadAny" );
 	}
 
 /*

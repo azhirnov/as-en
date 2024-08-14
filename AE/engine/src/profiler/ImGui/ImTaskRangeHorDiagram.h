@@ -23,7 +23,7 @@ namespace AE::Profiler
 	// ImGui Task Range Horizontal Diagram
 	//
 
-	class ImTaskRangeHorDiagram
+	class ImTaskRangeHorDiagram final : public Noncopyable
 	{
 	// types
 	private:

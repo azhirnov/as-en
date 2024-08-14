@@ -15,9 +15,7 @@ namespace
 	};
 
 	template <typename T>
-	struct GreaterThen4 {
-		static constexpr bool	value = sizeof(T) > 4;
-	};
+	struct GreaterThen4 : CT_Bool< (sizeof(T) > 4) >{};
 
 	template <typename T>
 	struct TypeSize {

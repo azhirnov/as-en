@@ -340,15 +340,13 @@ DEBUG_ONLY(
 	_SetDependencyCompletionStatus
 =================================================
 */
-	void  ITaskDependencyManager::_SetDependencyCompletionStatus (const AsyncTask &task, uint depIndex, bool cancel) __NE___
+	void  ITaskDependencyManager::_SetDependencyCompletionStatus (IAsyncTask &task, uint depIndex, Bool isCanceled) __NE___
 	{
-		ASSERT( task );
-
-		if_unlikely( cancel )
-			task->_canceledDepsCount.fetch_add( 1 );
+		if_unlikely( isCanceled )
+			task._canceledDepsCount.fetch_add( 1 );
 
 		const auto	mask		= IAsyncTask::WaitBits_t{1} << depIndex;
-		const auto	old_bits	= task->_waitBits.fetch_and( ~mask ); // 1 -> 0
+		const auto	old_bits	= task._waitBits.fetch_and( ~mask ); // 1 -> 0
 
 		Unused( old_bits );
 		ASSERT( AllBits( old_bits, mask ));
@@ -793,7 +791,9 @@ DEBUG_ONLY(
 	Wait
 ----
 	Warning: deadlock may occur if 'Wait()' is called in all threads,
-	use it only for debugging and testing
+	use it only for debugging and testing.
+	'maxTasksPerTick' - number of tasks per thread type which
+	will be processed before switching to the next thread type.
 =================================================
 */
 	inline bool  TaskScheduler::_IsAllComplete (ArrayView<AsyncTask> tasks) __NE___

@@ -393,7 +393,7 @@ namespace AE::App
 		hdr.controllerId	= id;
 		hdr.state			= state;
 
-		std::memcpy( OUT _data + data_pos, data, usize(dataSize) );
+		MemCopy( OUT _data + data_pos, data, dataSize );
 
 		_dataPos = data_pos + dataSize;
 		_readPos.store( hdr_idx+1, EMemoryOrder::Release );	// TODO: fetch_add ???
@@ -439,9 +439,6 @@ namespace AE::App
 namespace AE::Base
 {
 	template <>
-	struct TTriviallySerializable< App::IInputActions::GNSData >
-	{
-		static constexpr bool	value =	true;
-	};
+	struct TTriviallySerializable< App::IInputActions::GNSData > : CT_True {};
 
 } // AE::Base

@@ -141,7 +141,7 @@
 		CastRay( hwray );
 
 		// back to front
-		[[unroll]] for (uint i = 0; i < c_MaxIntersections; ++i)
+		for (uint i = 0; i < c_MaxIntersections; ++i)
 		{
 			if ( i >= g_IntersectionCount )
 				break;

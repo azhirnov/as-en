@@ -28,6 +28,9 @@ extern void Test_VulkanDevice (IApplication* app, IWindow* wnd)
 		CHECK_FATAL( dev.CheckConstantLimits() );
 		CHECK_FATAL( dev.CheckExtensions() );
 
+		RenderTaskScheduler::InstanceCtor::Create( dev );
+		CHECK_FATAL( GraphicsScheduler().Initialize( Default ));
+
 		if ( wnd != null )
 		{
 			CHECK_FATAL( swapchain.CreateSurface( wnd->GetNative() ));
@@ -49,6 +52,8 @@ extern void Test_VulkanDevice (IApplication* app, IWindow* wnd)
 		CHECK_FATAL( dev.DestroyLogicalDevice() );
 		CHECK_FATAL( dev.DestroyInstance() );
 		CHECK_FATAL( not dev.IsInitialized() );
+
+		RenderTaskScheduler::InstanceCtor::Destroy();
 	}
 	TEST_PASSED();
 }

@@ -260,7 +260,7 @@ namespace {
 
 			CHECK_ERR( BrotliEncoderCompressStream( static_cast<BrotliEncoderState *>(_instance), BROTLI_OPERATION_PROCESS,
 													INOUT &available_in, INOUT &next_in,
-													INOUT &available_out, INOUT &next_out, null ));
+													INOUT &available_out, INOUT &next_out, null ) == BROTLI_TRUE );
 
 			const Bytes	out_size = Bytes(next_out - &temp[0]);
 
@@ -293,7 +293,7 @@ namespace {
 
 			CHECK_ERR( BrotliEncoderCompressStream( static_cast<BrotliEncoderState *>(_instance), BROTLI_OPERATION_FINISH,
 													INOUT &available_in, null,
-													INOUT &available_out, INOUT &next_out, null ));
+													INOUT &available_out, INOUT &next_out, null ) == BROTLI_TRUE );
 
 			const Bytes	out_size = Bytes(next_out - &temp[0]);
 

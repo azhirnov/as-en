@@ -148,11 +148,11 @@ R"(//> gl_FragCoord: float4 {400.500000, 300.500000, 0.000000, 1.000000}
 //> v_Color: float3 {0.498333, 0.252083, 0.249583}
 no source
 
-//> out_Color: float3 {0.000000, 0.498333, 0.252083}
+//> out_Color: float3 {0.498333, 0.252083, 0.249583}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
 12. out_Color.rgb = v_Color.rgb;
 
-//> out_Color: float4 {0.000000, 0.498333, 0.252083, 0.500000}
+//> out_Color: float4 {0.498333, 0.252083, 0.249583, 0.500000}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
 13. out_Color.a   = fract(v_Color.r + v_Color.g + v_Color.b + 0.5f);
 

@@ -403,6 +403,12 @@ namespace AE::Graphics
 		const auto*	sems	= _gpuInDeps.GetKeyArray().data();
 		const auto*	vals	= _gpuInDeps.GetValueArray().data();
 
+		// from docs (7.7.4.):
+		//	'Since a release and acquire operation does not synchronize with second and first
+		//	 scopes respectively, the VK_PIPELINE_STAGE_ALL_COMMANDS_BIT stage must be used to
+		//	 wait for a release operation to complete.'
+		const auto	stage	= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;
+
 		for (usize i = 0; i < _gpuInDeps.size(); ++i)
 		{
 			auto&	dst		= sem_infos [count++];
@@ -410,7 +416,7 @@ namespace AE::Graphics
 			dst.pNext		= null;
 			dst.semaphore	= sems[i];
 			dst.value		= vals[i];
-			dst.stageMask	= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;		// TODO: optimize
+			dst.stageMask	= stage;
 			dst.deviceIndex	= 0;
 		}
 
@@ -433,6 +439,10 @@ namespace AE::Graphics
 
 		CHECK_ERR( _tlSemaphore != Default );
 
+		// from docs (7.7.4.):
+		//	'With vkQueueSubmit2, stageMask for the signal semaphore must be VK_PIPELINE_STAGE_ALL_COMMANDS_BIT.'
+		const auto	stage	= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;
+
 		auto*	sem_infos = allocator.Allocate<VkSemaphoreSubmitInfoKHR>( _gpuOutDeps.size() + 1 );
 		CHECK_ERR( sem_infos != null );
 		semInfos = sem_infos;
@@ -441,7 +451,7 @@ namespace AE::Graphics
 		sem_infos[0].pNext		= null;
 		sem_infos[0].semaphore	= _tlSemaphore;
 		sem_infos[0].value		= _tlSemaphoreVal.load();
-		sem_infos[0].stageMask	= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;		// TODO: optimize
+		sem_infos[0].stageMask	= stage;
 		sem_infos[0].deviceIndex= 0;
 
 		if_likely( _gpuOutDeps.empty() )
@@ -457,7 +467,7 @@ namespace AE::Graphics
 			dst.pNext		= null;
 			dst.semaphore	= sems[i];
 			dst.value		= vals[i];
-			dst.stageMask	= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;		// TODO: optimize
+			dst.stageMask	= stage;
 			dst.deviceIndex	= 0;
 		}
 
@@ -491,8 +501,14 @@ namespace AE::Graphics
 		const auto*	in_sems = _gpuInDeps.GetKeyArray().data();
 		memcpy( OUT out_sems, in_sems, sizeof(VkSemaphore) * _gpuInDeps.size() );
 
+		// from docs (7.7.4.):
+		//	'Since a release and acquire operation does not synchronize with second and first
+		//	 scopes respectively, the VK_PIPELINE_STAGE_ALL_COMMANDS_BIT stage must be used to
+		//	 wait for a release operation to complete.'
+		const auto	stage	= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+
 		for (usize i = 0; i < _gpuInDeps.size(); ++i, ++count)
-			out_stages[i] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;	// TODO: optimize
+			out_stages[i] = stage;
 
 		_gpuInDeps.clear();
 		return true;

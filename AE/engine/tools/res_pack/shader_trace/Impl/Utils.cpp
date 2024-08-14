@@ -919,7 +919,7 @@ namespace AE::PipelineCompiler
 	bool  ValidateInterm (TIntermediate &intermediate)
 	{
 		TIntermNode*	root = intermediate.getTreeRoot();
-		CHECK_ERR( root );
+		CHECK_ERR( root != null );
 
 		TIntermNode*	linker_obj = null;
 
@@ -943,8 +943,8 @@ namespace AE::PipelineCompiler
 			}
 		}
 
-		CHECK_ERR( root->getAsAggregate() );
-		CHECK_ERR( root->getAsAggregate()->getSequence().back()->getAsAggregate() );
+		CHECK_ERR( root->getAsAggregate() != null );
+		CHECK_ERR( root->getAsAggregate()->getSequence().back()->getAsAggregate() != null );
 		CHECK_ERR( root->getAsAggregate()->getSequence().back()->getAsAggregate()->getOp() == TOperator::EOpLinkerObjects );
 
 		return true;

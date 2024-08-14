@@ -197,7 +197,7 @@ namespace AE::Networking
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( consumer );
-		CHECK_ERR( _consumers.size() < _consumers.capacity() );
+		CHECK_ERR( not _consumers.IsFull() );
 
 		const CSMessageGroupID	group_id = consumer->GetGroupID();
 

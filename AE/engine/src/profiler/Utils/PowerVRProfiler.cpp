@@ -1,8 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "profiler/Utils/PowerVRProfiler.h"
-
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
+# include "profiler/Utils/PowerVRProfiler.h"
 
 namespace AE::Profiler
 {
@@ -15,8 +14,10 @@ namespace AE::Profiler
 */
 	struct PowerVRProfiler::Impl
 	{
-		ECounterSet		supported;
-		ECounterSet		enabled;
+		ECounterSet		_enabled;
+
+		Mutex			_timingsGuard;
+		TimeScopeArr_t	_timings;
 
 		RDevice const&	dev;
 
@@ -29,8 +30,7 @@ namespace AE::Profiler
 	bool  PowerVRProfiler::IsInitialized ()									C_NE___	{ return bool{_impl}; }
 	void  PowerVRProfiler::Deinitialize ()									__NE___	{ _impl.reset( null ); }
 
-	PowerVRProfiler::ECounterSet  PowerVRProfiler::SupportedCounterSet ()	C_NE___	{ return _impl ? _impl->supported : Default; }
-	PowerVRProfiler::ECounterSet  PowerVRProfiler::EnabledCounterSet ()		C_NE___	{ return _impl ? _impl->enabled : Default; }
+	PowerVRProfiler::ECounterSet  PowerVRProfiler::EnabledCounterSet ()		C_NE___	{ return _impl ? _impl->_enabled : Default; }
 
 /*
 =================================================
@@ -40,6 +40,7 @@ namespace AE::Profiler
 	bool  PowerVRProfiler::Initialize (const ECounterSet &cs) __NE___
 	{
 		CHECK_ERR( not IsInitialized() );
+		CHECK_ERR( cs.Any() );
 
 		Msg::ProfPVR_Initialize					msg;
 		RC<Msg::ProfPVR_Initialize_Response>	res;
@@ -52,8 +53,7 @@ namespace AE::Profiler
 		if ( res->ok )
 		{
 			_impl = MakeUnique<Impl>( dev );
-			_impl->supported	= res->supported;
-			_impl->enabled		= res->enabled;
+			_impl->_enabled = res->enabled;
 		}
 		return res->ok;
 	}
@@ -67,10 +67,13 @@ namespace AE::Profiler
 	{
 		if ( not IsInitialized() ) return;
 
-		Msg::ProfPVR_Tick			msg;
-		RC<Msg::DefaultResponse>	res;
+		Msg::ProfPVR_Tick				msg;
+		RC<Msg::ProfPVR_Tick_Response>	res;
 
-		Unused( _impl->dev.SendAndWait( msg, OUT res ));
+		CHECK_ERRV( _impl->dev.SendAndWait( msg, OUT res ));
+
+		EXLOCK( _impl->_timingsGuard );
+		_impl->_timings = RVRef(res->timings);
 	}
 
 /*
@@ -92,12 +95,28 @@ namespace AE::Profiler
 		result = RVRef(res->counters);
 	}
 
+/*
+=================================================
+	ReadTimingData
+=================================================
+*/
+	void  PowerVRProfiler::ReadTimingData (OUT TimeScopeArr_t &result) C_NE___
+	{
+		result.clear();
+
+		if ( not IsInitialized() ) return;
+
+		EXLOCK( _impl->_timingsGuard );
+		result = RVRef(_impl->_timings);
+	}
+
 } // AE::Profiler
 //-----------------------------------------------------------------------------
 
 #elif defined(AE_ENABLE_PVRCOUNTER)
 
-#include "PVRScopeStats.h"
+# include "PVRScopeStats.h"
+# include "profiler/Utils/PowerVRProfiler.h"
 
 namespace AE::Profiler
 {
@@ -197,25 +216,26 @@ namespace
 		uint						_activeGroup			= UMax;
 
 		TypeToData_t				_typeToData;
-		ECounterSet					_supportedCounters;
-		const ECounterSet			_enabledCounters;
+		ECounterSet					_enabledCounters;
+		const ECounterSet			_requiredCounters;
 
 		LastTimeArr_t				_lastTime				= {};
+		TimeScopeArr_t				_timingResult;
 
 		BXMCounters_t				_bxmCountersMap;
 
 
 	// methods
-		Impl (const ECounterSet &enabled)	__NE___;
-		~Impl ()							__NE___;
+		Impl (const ECounterSet &enabled)		__NE___;
+		~Impl ()								__NE___;
 
 		void  Print ();
 
-		void  Tick ()						__NE___;
-		void  Read ()						__NE___;
-		bool  SetActiveGroup (uint group)	__NE___;
-		void  UpdateCounters ()				__NE___;
-		void  ReadTimingData ()				__NE___;
+		void  Tick ()							__NE___;
+		void  Read ()							__NE___;
+		bool  SetActiveGroup (uint group)		__NE___;
+		void  UpdateCounters ()					__NE___;
+		void  ReadTimingData ()					__NE___;
 	};
 
 
@@ -224,8 +244,8 @@ namespace
 	Impl::ctor
 =================================================
 */
-	PowerVRProfiler::Impl::Impl (const ECounterSet &enabled) __NE___ :
-		_enabledCounters{ enabled }
+	PowerVRProfiler::Impl::Impl (const ECounterSet &required) __NE___ :
+		_requiredCounters{ required }
 	{
 		_reading.pfValueBuf				= null;
 		_reading.nValueCnt				= 0;
@@ -235,6 +255,8 @@ namespace
 		for (uint i = uint(ECounter::_BXM_Begin); i < uint(ECounter::_BXM_End); ++i) {
 			_bxmCountersMap.emplace( BXMCounterToName( ECounter(i) ), ECounter(i) );
 		}
+
+		_timingResult.reserve( 32 );
 	}
 
 /*
@@ -271,9 +293,7 @@ namespace
 			_isActiveGroupChanged = false;
 		}
 
-		if ( ::PVRScopeReadCounters( _scopeData, INOUT &_reading ))
-		{
-		}
+		::PVRScopeReadCounters( _scopeData, INOUT &_reading );
 	}
 
 /*
@@ -284,14 +304,16 @@ namespace
 	void  PowerVRProfiler::Impl::UpdateCounters () __NE___
 	{
 		const uint	prev_count	= _numCounter;
-		bool		changed		= ::PVRScopeGetCounters( _scopeData, OUT &_numCounter, OUT &_counters, INOUT &_reading );
 
-		changed = changed and (prev_count != _numCounter or _activeGroup != _reading.nReadingActiveGroup);
+		if ( not ::PVRScopeGetCounters( _scopeData, OUT &_numCounter, OUT &_counters, INOUT &_reading ))
+			return;
+
+		bool	changed = (prev_count != _numCounter or _activeGroup != _reading.nReadingActiveGroup);
 		if ( not changed )
 			return;
 
 		_activeGroup = _reading.nReadingActiveGroup;
-		_supportedCounters.clear();
+		_enabledCounters.clear();
 		std::memset( OUT _typeToData.data(), 0xFF, sizeof(_typeToData) );
 
 		for (uint i = 0; i < _numCounter; ++i)
@@ -307,10 +329,10 @@ namespace
 					name = name.substr( pos+1 );
 
 				auto	it = _bxmCountersMap.find( name );
-				if ( it != _bxmCountersMap.end() and _enabledCounters.contains( it->second ))
+				if ( it != _bxmCountersMap.end() and _requiredCounters.contains( it->second ))
 				{
 					_typeToData[ uint(it->second) ] = Index_t(i);
-					_supportedCounters.insert( it->second );
+					_enabledCounters.insert( it->second );
 				}
 			}
 		}
@@ -373,11 +395,12 @@ namespace
 
 		if ( count > 0 and packets != null )
 		{
-			String	str;
+			_timingResult.clear();
+
 			for (uint i = 0; i < count; ++i)
 			{
 				auto&	packet	= packets[i];
-				bool	is_end	= false;
+				EPass	pass	= Default;
 
 				switch_enum( packet.eEventType )
 				{
@@ -385,28 +408,23 @@ namespace
 					case ePVRScopeEventTABegin :
 					case ePVRScopeEvent3DBegin :
 					case ePVRScopeEvent2DBegin :
-					case ePVRScopeEventRTUBegin :	// RTU time refers to any time taken to carry out frame processing, ray processing,
-													// fixed function ray traversal tests and queries, and frame buffer accumulation.
-					case ePVRScopeEventSHGBegin :	// The SHG unit takes the output of the SHF and is responsible for generating a scene
-													// hierarchy acceleration structure for the provided components which can later be used by the RTU.
+					case ePVRScopeEventRTUBegin :
+					case ePVRScopeEventSHGBegin :
 						_lastTime[ uint(packet.eEventType)/2 ] = packet.dTime;
 						break;
 
-					case ePVRScopeEventComputeEnd :		str << "\nCompute";	is_end = true;	break;
-					case ePVRScopeEventTAEnd :			str << "\nTA";		is_end = true;	break;
-					case ePVRScopeEvent3DEnd :			str << "\n3D";		is_end = true;	break;
-					case ePVRScopeEvent2DEnd :			str << "\n2D";		is_end = true;	break;
-					case ePVRScopeEventRTUEnd :			str << "\nRTU";		is_end = true;	break;
-					case ePVRScopeEventSHGEnd :			str << "\nSHG";		is_end = true;	break;
+					case ePVRScopeEventComputeEnd :		pass = EPass::Compute;		break;
+					case ePVRScopeEventTAEnd :			pass = EPass::TileAccel;	break;
+					case ePVRScopeEvent3DEnd :			pass = EPass::TBDR;			break;
+					case ePVRScopeEvent2DEnd :			pass = EPass::Blit;			break;
+					case ePVRScopeEventRTUEnd :			pass = EPass::RayTracing;	break;
+					case ePVRScopeEventSHGEnd :			pass = EPass::RTASBuild;	break;
 				}
 				switch_end;
 
-				if ( is_end )
-					str << ": " << ToString( secondsd{packet.dTime - _lastTime[uint(packet.eEventType)/2]}, 2 );
+				if ( pass != Default )
+					_timingResult.emplace_back( pass, secondsd{_lastTime[uint(packet.eEventType)/2]}, secondsd{packet.dTime} );
 			}
-
-			if ( not str.empty() )
-				AE_LOGI( str );
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -431,18 +449,21 @@ namespace
 	bool  PowerVRProfiler::Initialize (const ECounterSet &counterSet) __NE___
 	{
 		CHECK_ERR( not IsInitialized() );
+		CHECK_ERR( counterSet.Any() );
 
 		auto	impl = MakeUnique<Impl>( counterSet );
 
 		EPVRScopeInitCode	err = ::PVRScopeInitialise( OUT &impl->_scopeData );
 		if ( err != ePVRScopeInitCodeOk )
-            return false;
+			return false;
 
 		impl->SetActiveGroup( 0 );
 		impl->UpdateCounters();
-		//impl->ReadTimingData();	// initialize
+		impl->ReadTimingData();	// initialize
 
 		_impl = RVRef(impl);
+
+		AE_LOGI( "Started PowerVR GPU profiler" );
 		return true;
 	}
 
@@ -495,13 +516,12 @@ namespace
 
 		_impl->UpdateCounters();
 		_impl->Read();
-        _impl->ReadTimingData();
 
 		const auto*		idx_map		= _impl->_typeToData.data();
 		const auto*		values		= _impl->_reading.pfValueBuf;
 		const uint		count		= _impl->_reading.nValueCnt;	Unused( count );
 
-		for (ECounter c : _impl->_supportedCounters)
+		for (ECounter c : _impl->_enabledCounters)
 		{
 			ASSERT( idx_map[uint(c)] != UMax );
 			ASSERT( idx_map[uint(c)] < count );
@@ -512,15 +532,25 @@ namespace
 
 /*
 =================================================
-	SupportedCounterSet / EnabledCounterSet
+	ReadTimingData
 =================================================
 */
-	PowerVRProfiler::ECounterSet  PowerVRProfiler::SupportedCounterSet () C_NE___
+	void  PowerVRProfiler::ReadTimingData (OUT TimeScopeArr_t &outTimings) C_NE___
 	{
-		CHECK_ERR( IsInitialized() );
-		return _impl->_supportedCounters;
+		outTimings.clear();
+
+		if ( not _impl )
+			return;  // not initialized
+
+		_impl->ReadTimingData();
+		std::swap( _impl->_timingResult, outTimings );
 	}
 
+/*
+=================================================
+	EnabledCounterSet
+=================================================
+*/
 	PowerVRProfiler::ECounterSet  PowerVRProfiler::EnabledCounterSet () C_NE___
 	{
 		CHECK_ERR( IsInitialized() );
@@ -532,6 +562,7 @@ namespace
 
 #else // not AE_ENABLE_PVRCOUNTER and not AE_ENABLE_REMOTE_GRAPHICS
 
+# include "profiler/Utils/PowerVRProfiler.h"
 # include "profiler/Remote/RemotePowerVRProfiler.h"
 
 namespace AE::Profiler
@@ -549,11 +580,11 @@ namespace AE::Profiler
 	bool  PowerVRProfiler::Initialize (const ECounterSet &cs)				__NE___	{ return _impl and _impl->client->Initialize( cs ); }
 	bool  PowerVRProfiler::IsInitialized ()									C_NE___	{ return _impl and _impl->client->IsInitialized(); }
 
-	PowerVRProfiler::ECounterSet  PowerVRProfiler::SupportedCounterSet ()	C_NE___	{ return _impl ? _impl->client->SupportedCounterSet() : Default; }
 	PowerVRProfiler::ECounterSet  PowerVRProfiler::EnabledCounterSet ()		C_NE___	{ return _impl ? _impl->client->EnabledCounterSet() : Default; }
 
 	void  PowerVRProfiler::Tick ()											C_NE___	{ if (_impl) return _impl->client->Tick(); }
 	void  PowerVRProfiler::Sample (OUT Counters_t &result)					C_NE___	{ if (_impl) return _impl->client->Sample( OUT result ); }
+	void  PowerVRProfiler::ReadTimingData (OUT TimeScopeArr_t &result)		C_NE___	{ if (_impl) return _impl->client->ReadTimingData( OUT result ); }
 
 
 	bool  PowerVRProfiler::InitClient (RC<PowerVRProfilerClient> client)	__NE___

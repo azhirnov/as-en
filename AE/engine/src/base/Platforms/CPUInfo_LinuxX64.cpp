@@ -11,9 +11,21 @@
 # include "base/Math/BitMath.h"
 # include "base/Memory/MemUtils.h"
 # include "base/Algorithms/StringUtils.h"
+# include "base/Containers/FixedSet.h"
 
 namespace AE::Base
 {
+namespace
+{
+	ND_ static uint  ReadUint10 (StringView line)
+	{
+		return StringToUInt( line.substr( line.find(": ")+2, line.length() ), 10 );
+	}
+
+	ND_ static uint  ReadUint16 (StringView line)
+	{
+		return StringToUInt( line.substr( line.find(": ")+4, line.length() ), 16 );
+	}
 
 	inline void  CPUID (uint eax, OUT uint* data) __NE___
 	{
@@ -23,6 +35,8 @@ namespace AE::Base
 		uint*	d = data+3;
 		__get_cpuid( eax, a, b, c, d );
 	}
+
+} // namespace
 
 /*
 =================================================
@@ -49,63 +63,155 @@ namespace AE::Base
 			StaticArray<uint, 4>	cpui = {};
 
 			CPUID( 0, OUT cpui.data() );
-			//const int count = cpui[0];
+			const int count = cpui[0];
 
-			CPUID( 0x80000000, OUT cpui.data() );
-			//const int ex_count = cpui[0];
-
-			CPUID( 0x00000001, OUT cpui.data() );
-
-			feats.SSE2		= AllBits( cpui[3], 1u << 26 );
-			feats.SSE3		= AllBits( cpui[2], 1u << 0  );
-			feats.SSSE3		= AllBits( cpui[2], 1u << 9  );
-			feats.POPCNT	= AllBits( cpui[2], 1u << 23 );
-			feats.AES		= AllBits( cpui[2], 1u << 25 );
-			feats.SSE41		= AllBits( cpui[2], 1u << 19 );
-			feats.SSE42		= AllBits( cpui[2], 1u << 20 );
-			feats.AVX		= AllBits( cpui[2], 1u << 28 );
-
-			feats.CmpXchg16 = AllBits( cpui[2], 1u << 13 );
-
-			CPUID( 0x00000007, OUT cpui.data() );
-
-			feats.AVX256	= AllBits( cpui[1], 1u << 5  );
-			feats.AVX512	= AllBits( cpui[1], 1u << 16 );
-
-			feats.SHA256	= AllBits( cpui[1], 1u << 29 );
-			feats.SHA128	= feats.SHA256;
-
-			// get CPU brand name
-			CPUID( 0x80000002, OUT cpui.data() );
-			std::memcpy( cpu_name, cpui.data(), sizeof(cpui) );
-
-			CPUID( 0x80000003, OUT cpui.data() );
-			std::memcpy( cpu_name + sizeof(cpui), cpui.data(), sizeof(cpui) );
-
-			CPUID( 0x80000004, OUT cpui.data() );
-			std::memcpy( cpu_name + sizeof(cpui)*2, cpui.data(), sizeof(cpui) );
-
-			for (usize i = CountOf(cpu_name)-1; i > 0; --i)
+			if ( count >= 0x1 )
 			{
-				const char	c = cpu_name[i];
-				if ( (c == '\0') or (c == ' ') )
-					cpu_name[i] = '\0';
-				else
-					break;
+				CPUID( 0x1, OUT cpui.data() );
+
+				feats.SSE2		= HasBit( cpui[3], 26 );
+				feats.SSE3		= HasBit( cpui[2],  0 );
+				feats.SSSE3		= HasBit( cpui[2],  9 );
+				feats.POPCNT	= HasBit( cpui[2], 23 );
+				feats.AES		= HasBit( cpui[2], 25 );
+				feats.SSE41		= HasBit( cpui[2], 19 );
+				feats.SSE42		= HasBit( cpui[2], 20 );
+				feats.AVX		= HasBit( cpui[2], 28 );
+
+				feats.CmpXchg16 = HasBit( cpui[2], 13 );
 			}
 
-			// TODO: _may_i_use_cpu_feature
+			if ( count >= 0x7 )
+			{
+				CPUID( 0x7, OUT cpui.data() );
+
+				feats.AVX256	= HasBit( cpui[1],  5 );
+				feats.AVX512	= HasBit( cpui[1], 16 );
+
+				feats.SHA256	= HasBit( cpui[1], 29 );
+				feats.SHA128	= feats.SHA256;
+			}
+
+			// get CPU brand name
+			CPUID( 0x80000000, OUT cpui.data() );
+			const uint ex_count = cpui[0];
+
+			if ( ex_count >= 0x8000'0002 )
+			{
+				CPUID( 0x8000'0002, OUT cpui.data() );
+				std::memcpy( OUT cpu_name, cpui.data(), sizeof(cpui) );
+
+				CPUID( 0x8000'0003, OUT cpui.data() );
+				std::memcpy( OUT cpu_name + sizeof(cpui), cpui.data(), sizeof(cpui) );
+
+				CPUID( 0x8000'0004, OUT cpui.data() );
+				std::memcpy( OUT cpu_name + sizeof(cpui)*2, cpui.data(), sizeof(cpui) );
+
+				for (usize i = CountOf(cpu_name)-1; i > 0; --i)
+				{
+					const char	c = cpu_name[i];
+					if ( (c == '\0') or (c == ' ') )
+						cpu_name[i] = '\0';
+					else
+						break;
+				}
+			}
 		}
 
 		cpu.vendor = _NameToVendor( StringView{cpu_name} );
 
-		// TODO: CPU topology
+		// parse processors
+		{
+			struct TmpCore
+			{
+				uint	id		= UMax;
+				uint	part	= 0;
+				uint	vendor	= 0;
+			};
+
+			std::ifstream	stream {"/proc/cpuinfo"};
+			if ( stream )
+			{
+				FixedArray< TmpCore, 64 >	cores;
+				String						line;
+
+				while ( std::getline( stream, OUT line ))
+				{
+					if ( StartsWith( line, "processor" ))
+					{
+						if ( cores.size()+1 == cores.capacity() )
+							break;
+						cores.emplace_back().id = ReadUint10( line );
+					}else
+					if ( not cores.empty() )
+					{
+						if ( StartsWith( line, "CPU part" )) {
+							cores.back().part = ReadUint16( line );
+						}else
+						if ( StartsWith( line, "CPU implementer" )) {
+							cores.back().vendor = ReadUint16( line );
+						}
+					}
+				}
+
+				FixedSet< uint, 64 >	unique_cores;
+				for (auto& core : cores) {
+					unique_cores.insert( (core.vendor << 24) | (core.part & 0xFFFFFF) );
+				}
+
+				for (auto& unique : unique_cores)
+				{
+					const uint	vendor	= (unique >> 24);
+					const uint	part	= (unique & 0xFFFFFF);
+					auto&		dst		= cpu.coreTypes.emplace_back();
+
+					for (auto& core : cores)
+					{
+						if ( core.vendor == vendor and core.part == part ) {
+							dst.logicalBits.set( core.id );
+							dst.physicalBits.set( core.id );
+						}
+					}
+				}
+
+				// sort by max clock
+				std::sort( cpu.coreTypes.begin(), cpu.coreTypes.end(), [](auto& lhs, auto &rhs) { return lhs.maxClock > rhs.maxClock; });
+
+				const ECoreType		types [] = { ECoreType::HighPerformance, ECoreType::Performance, ECoreType::EnergyEfficient };
+				usize				j		 = cpu.coreTypes.size() == 1 ? 1 :
+												Max( 0, 3 - int(cpu.coreTypes.size()) );
+
+				for (usize i = 0; i < cpu.coreTypes.size(); ++i, ++j) {
+					cpu.coreTypes[i].type = types[ Min( j, CountOf(types)-1 )];
+				}
+			}
+		}
 
 		for (auto& core : cpu.coreTypes)
 		{
 			cpu.physicalCoreCount	+= core.PhysicalCount();
 			cpu.logicalCoreCount	+= core.LogicalCount();
 		}
+
+		// read core frequency
+		{
+			StaticArray<uint, 4>	cpui = {};
+
+			CPUID( 0, OUT cpui.data() );
+			const int count = cpui[0];
+
+			if ( count >= 0x16 )
+			{
+				CPUID( 0x16, OUT cpui.data() );
+
+				for (auto& core : cpu.coreTypes)
+				{
+					core.baseClock	= cpui[0];
+					core.maxClock	= cpui[1];
+				}
+			}
+		}
+
 
 		// CPU cache info
 		{

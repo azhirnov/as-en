@@ -15,7 +15,6 @@
 
 namespace AE::Base
 {
-
 namespace
 {
 	ND_ static uint  ReadUint10 (StringView line)
@@ -334,7 +333,8 @@ namespace
 		smei16i64	- SME support for instructions that accumulate into 64-bit integer elements in the ZA array
 		sveebf16	- AArch64 Extended BFloat16 instructions (SVE)
 */
-}
+} // namespace
+
 /*
 =================================================
 	constructor

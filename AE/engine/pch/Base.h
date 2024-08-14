@@ -94,6 +94,7 @@
 #include "base/Math/OrbitalCamera.h"
 #include "base/Math/PackedInt.h"
 #include "base/Math/Spline.h"
+#include "base/Math/sRGB.h"
 
 // Memory
 #include "base/Memory/AllocatorFwdDecl.h"

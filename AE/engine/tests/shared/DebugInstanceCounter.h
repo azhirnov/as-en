@@ -17,25 +17,29 @@ struct DebugInstanceCounter
 	slong					_magicNumber;
 	T						value;
 
-	DebugInstanceCounter () __NE___ : _magicNumber( _counter + (1ll << 62)), value{}
+	DebugInstanceCounter () __NE___ :
+		_magicNumber( _counter + (1ll << 62)), value{}
 	{
 		TEST( _magicNumber != 0 );
 		++_counter;
 		++_emptyCtorCnt;
 	}
 
-	explicit DebugInstanceCounter (const T &val) __NE___ : DebugInstanceCounter()
+	explicit DebugInstanceCounter (const T &val) __NE___ :
+		DebugInstanceCounter()
 	{
 		value = val;
 	}
 
-	DebugInstanceCounter (const DebugInstanceCounter &other) __NE___ : _magicNumber{ other._magicNumber }, value{ other.value }
+	DebugInstanceCounter (const DebugInstanceCounter &other) __NE___ :
+		_magicNumber{ other._magicNumber }, value{ other.value }
 	{
 		++_counter;
 		++_copyCtorCnt;
 	}
 
-	DebugInstanceCounter (DebugInstanceCounter &&other) __NE___ : _magicNumber{ other._magicNumber }, value{ RVRef(other.value) }
+	DebugInstanceCounter (DebugInstanceCounter &&other) __NE___ :
+		_magicNumber{ other._magicNumber }, value{ RVRef(other.value) }
 	{
 		++_counter;
 		++_moveCtorCnt;
@@ -49,38 +53,46 @@ struct DebugInstanceCounter
 		_magicNumber = 0;
 	}
 
-	DebugInstanceCounter& operator = (const DebugInstanceCounter &right) __NE___
+	DebugInstanceCounter& operator = (const DebugInstanceCounter &rhs) __NE___
 	{
-		_magicNumber = right._magicNumber;
-		value = right.value;
+		_magicNumber = rhs._magicNumber;
+		value = rhs.value;
 		return *this;
 	}
 
-	DebugInstanceCounter& operator = (DebugInstanceCounter &&right) __NE___
+	DebugInstanceCounter& operator = (DebugInstanceCounter &&rhs) __NE___
 	{
-		_magicNumber = right._magicNumber;
-		value = RVRef( right.value );
+		_magicNumber = rhs._magicNumber;
+		value = RVRef( rhs.value );
 		return *this;
 	}
 
-	bool operator == (const DebugInstanceCounter &right) C_NE___
+	bool operator == (const DebugInstanceCounter &rhs) C_NE___
 	{
-		return value == right.value;
+		return	value == rhs.value		and
+				(_magicNumber != 0)		and
+				(rhs._magicNumber != 0);
 	}
 
-	bool operator != (const DebugInstanceCounter &right) C_NE___
+	bool operator != (const DebugInstanceCounter &rhs) C_NE___
 	{
-		return value != right.value;
+		return	value != rhs.value		and
+				(_magicNumber != 0)		and
+				(rhs._magicNumber != 0);
 	}
 
-	bool operator < (const DebugInstanceCounter &right) C_NE___
+	bool operator < (const DebugInstanceCounter &rhs) C_NE___
 	{
-		return value < right.value;
+		return	value < rhs.value		and
+				(_magicNumber != 0)		and
+				(rhs._magicNumber != 0);
 	}
 
-	bool operator > (const DebugInstanceCounter &right) C_NE___
+	bool operator > (const DebugInstanceCounter &rhs) C_NE___
 	{
-		return value > right.value;
+		return	value > rhs.value		and
+				(_magicNumber != 0)		and
+				(rhs._magicNumber != 0);
 	}
 
 
@@ -106,6 +118,10 @@ struct DebugInstanceCounter
 		_moveCtorCnt	= 0;
 		_dtorCnt		= 0;
 	}
+
+private:
+	void*  operator & () const;
+	void*  operator & ();
 };
 
 

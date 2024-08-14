@@ -22,18 +22,24 @@ ND_ float  FogFactorExp2 (const float dist, const float density);
 float  FogFactorLinear (const float dist, const float start, const float end)
 {
 	// from https://github.com/hughsk/glsl-fog
+	// MIT license
+
 	return 1.0 - Saturate( (end - dist) / (end - start));
 }
 
 float  FogFactorExp (const float dist, const float density)
 {
 	// from https://github.com/hughsk/glsl-fog
+	// MIT license
+
 	return 1.0 - Saturate( Exp( -density * dist ));
 }
 
 float  FogFactorExp2 (const float dist, const float density)
 {
 	// from https://github.com/hughsk/glsl-fog
+	// MIT license
+
 	const float LOG2 = -1.442695;
 	float   d = density * dist;
 	return  1.0 - Saturate( Exp2( d * d * LOG2 ));

@@ -194,6 +194,8 @@ static bool CreatePipeline (TestDevice &vulkan, VkShaderModule vertShader, VkSha
 */
 extern bool ShaderTrace_Test6 (TestDevice& vulkan)
 {
+	ON_DESTROY( [&vulkan]() { vulkan.FreeTempHandles(); });
+
 	// create renderpass and framebuffer
 	uint			width = 16, height = 16;
 	VkRenderPass	render_pass;
@@ -335,8 +337,6 @@ extern bool ShaderTrace_Test6 (TestDevice& vulkan)
 	}
 
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {geom_shader}, "ShaderTrace_Test6.txt" ));
-
-	vulkan.FreeTempHandles();
 
 	TEST_PASSED();
 	return true;

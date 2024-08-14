@@ -58,21 +58,21 @@ namespace AE::AssetPacker
 		StaticAssert( alignof(Header) == 2 );
 
 
-		struct Header2
+		struct FileHeader
 		{
 			uint			magic		= Magic;
 			ushort			version		= Version;
 			Header			hdr;
 
-			Header2 ()							__NE___ = default;
-			explicit Header2 (const Header &h)	__NE___ : hdr{h} {};
+			FileHeader ()							__NE___ = default;
+			explicit FileHeader (const Header &h)	__NE___ : hdr{h} {};
 		};
-		StaticAssert( sizeof(Header2) == 24 );
+		StaticAssert( sizeof(FileHeader) == 24 );
 
 
 	// variables
 	private:
-		Header2		_header;
+		FileHeader		_header;
 
 
 	// methods
@@ -118,6 +118,6 @@ namespace AE::AssetPacker
 
 namespace AE::Base
 {
-	template <> struct TTriviallySerializable< AE::AssetPacker::ImagePacker::Header >	{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::AssetPacker::ImagePacker::Header2 >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::AssetPacker::ImagePacker::Header >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::AssetPacker::ImagePacker::FileHeader >	: CT_True {};
 }

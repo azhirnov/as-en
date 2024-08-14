@@ -100,7 +100,7 @@ forceinline void  IntervalProfiler::BeginTest (StringView name)
 */
 forceinline void  IntervalProfiler::EndTest ()
 {
-	CHECK_ERRV( _tests.size() );
+	CHECK_ERRV( not _tests.empty() );
 
 	auto&	test = _tests.back();
 	CHECK_ERRV( not test.isEnded );
@@ -122,7 +122,7 @@ forceinline void  IntervalProfiler::EndTest ()
 */
 forceinline void  IntervalProfiler::BeginIteration ()
 {
-	CHECK_ERRV( _tests.size() );
+	CHECK_ERRV( not _tests.empty() );
 
 	// don't reorder instructions
 	CompilerBarrier( EMemoryOrder::Acquire );
@@ -149,13 +149,13 @@ forceinline void  IntervalProfiler::EndIteration ()
 
 	TimePoint_t	end_time = Clock_t::now();
 
-	CHECK_ERRV( _tests.size() );
+	CHECK_ERRV( not _tests.empty() );
 
 	auto&	test = _tests.back();
 	CHECK_ERRV( not test.isEnded );
 
 	ASSERT( end_time >= test.lastStartPoint );
-	ASSERT( test.iterations.size() );
+	ASSERT( not test.iterations.empty() );
 
 	test.iterations.back() = end_time - test.lastStartPoint;
 

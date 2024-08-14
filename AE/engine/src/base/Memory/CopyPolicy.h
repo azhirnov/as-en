@@ -34,12 +34,14 @@ private:
 	template <typename T, uint Flags>
 	struct _DefaultImpl : public Noninstanceable
 	{
-		static void  Create (OUT T* ptr, const usize count) __NE___
+		static constexpr void  Create (OUT T* ptr, const usize count) __NE___
 		{
 			ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
 
 			if constexpr( !!(Flags & NonTrivialCtor) )
 			{
+				StaticAssert( std::is_nothrow_default_constructible_v<T> );
+
 				for (usize i = 0; i < count; ++i)
 					PlacementNew<T>( OUT ptr + i );
 			}
@@ -50,12 +52,14 @@ private:
 			}
 		}
 
-		static void  Destroy (INOUT T* ptr, const usize count) __NE___
+		static constexpr void  Destroy (INOUT T* ptr, const usize count) __NE___
 		{
 			ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
 
 			if constexpr( !!(Flags & NonTrivialDtor) )
 			{
+				StaticAssert( std::is_nothrow_destructible_v<T> );
+
 				for (usize i = 0; i < count; ++i)
 					ptr[i].~T();
 			}
@@ -66,10 +70,10 @@ private:
 			DEBUG_ONLY( DbgInitMem( OUT ptr, SizeOf<T> * count ));
 		}
 
-		static void  Copy (OUT T* dst, const T * const src, const usize count)  NoExcept(IsNothrowCopyCtor<T>)
+		static constexpr void  Copy (OUT T* dst, const T * const src, const usize count)  NoExcept(IsNothrowCopyCtor<T> or !!(Flags & NonTrivialCopyCtor))
 		{
-			ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
-			ASSERT( (count == 0) or ((src != null) == (count != 0)) );
+			NonNull( src );
+			NonNull( dst );
 
 			if constexpr( !!(Flags & NonTrivialCopyCtor) )
 			{
@@ -83,10 +87,10 @@ private:
 			}
 		}
 
-		static void  Move (OUT T* dst, INOUT T* src, const usize count) __NE___
+		static constexpr void  Move (OUT T* dst, INOUT T* src, const usize count) __NE___
 		{
-			ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
-			ASSERT( (count == 0) or ((src != null) == (count != 0)) );
+			NonNull( src );
+			NonNull( dst );
 
 			if constexpr( !!(Flags & NonTrivialMoveCtor) )
 			{
@@ -100,15 +104,17 @@ private:
 			}
 		}
 
-		static void  Replace (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
+		static constexpr void  Replace (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
 		{
-			ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
-			ASSERT( (count == 0) or ((src != null) == (count != 0)) );
+			NonNull( src );
+			NonNull( dst );
 			ASSERT( src != dst );
 			Unused( inSingleMemBlock );
 
 			if constexpr( !!(Flags & NonTrivialMoveCtor) )
 			{
+				StaticAssert( std::is_nothrow_move_constructible_v<T> );
+
 				for (usize i = 0; i < count; ++i)
 				{
 					PlacementNew<T>( OUT dst+i, RVRef( src[i] ));
@@ -136,15 +142,17 @@ private:
 			})
 		}
 
-		static void  ReplaceRev (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
+		static constexpr void  ReplaceRev (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
 		{
-			ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
-			ASSERT( (count == 0) or ((src != null) == (count != 0)) );
+			NonNull( src );
+			NonNull( dst );
 			ASSERT( src != dst );
 			Unused( inSingleMemBlock );
 
 			if constexpr( !!(Flags & NonTrivialMoveCtor) )
 			{
+				StaticAssert( std::is_nothrow_move_constructible_v<T> );
+
 				for (usize i = count-1; i < count; --i)
 				{
 					PlacementNew<T>( OUT dst+i, RVRef( src[i] ));

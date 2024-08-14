@@ -65,6 +65,6 @@ namespace AE::Base
 
 
 
-	template <> struct TTriviallyDestructible< SourceLoc > { static constexpr bool  value = true; };
+	template <> struct TTriviallyDestructible< SourceLoc > : CT_True {};
 
 } // AE::Base

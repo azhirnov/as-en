@@ -90,10 +90,10 @@ namespace AE::Graphics
 			// decode h264
 			case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR :
 			{
-				VkVideoDecodeH264ProfileInfoKHR*					decode_h264_profile;		AllocateOnStack_ZeroMem( OUT decode_h264_profile, 1 );
-				VkVideoDecodeH264SessionParametersCreateInfoKHR*	decode_h264_params;			AllocateOnStack_ZeroMem( OUT decode_h264_params, 1 );
+				VkVideoDecodeH264ProfileInfoKHR*					decode_h264_profile;		AllocateOnStack_ZeroMem( OUT decode_h264_profile,	 1 );
+				VkVideoDecodeH264SessionParametersCreateInfoKHR*	decode_h264_params;			AllocateOnStack_ZeroMem( OUT decode_h264_params,	 1 );
 				VkVideoDecodeH264SessionParametersAddInfoKHR*		decode_h264_params_add;		AllocateOnStack_ZeroMem( OUT decode_h264_params_add, 1 );
-				VkExtensionProperties*								decode_h264_stdhdr;			AllocateOnStack_ZeroMem( OUT decode_h264_stdhdr, 1 );
+				VkExtensionProperties*								decode_h264_stdhdr;			AllocateOnStack_ZeroMem( OUT decode_h264_stdhdr,	 1 );
 				CHECK_ERR(	decode_h264_profile		!= null	and
 							decode_h264_params		!= null	and
 							decode_h264_params_add	!= null	and
@@ -120,10 +120,10 @@ namespace AE::Graphics
 			// decode h265
 			case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR :
 			{
-				VkVideoDecodeH265ProfileInfoKHR*					decode_h265_profile;		AllocateOnStack_ZeroMem( OUT decode_h265_profile, 1 );
-				VkVideoDecodeH265SessionParametersCreateInfoKHR*	decode_h265_params;			AllocateOnStack_ZeroMem( OUT decode_h265_params, 1 );
+				VkVideoDecodeH265ProfileInfoKHR*					decode_h265_profile;		AllocateOnStack_ZeroMem( OUT decode_h265_profile,	 1 );
+				VkVideoDecodeH265SessionParametersCreateInfoKHR*	decode_h265_params;			AllocateOnStack_ZeroMem( OUT decode_h265_params,	 1 );
 				VkVideoDecodeH265SessionParametersAddInfoKHR*		decode_h265_params_add;		AllocateOnStack_ZeroMem( OUT decode_h265_params_add, 1 );
-				VkExtensionProperties*								decode_h265_stdhdr;			AllocateOnStack_ZeroMem( OUT decode_h265_stdhdr, 1 );
+				VkExtensionProperties*								decode_h265_stdhdr;			AllocateOnStack_ZeroMem( OUT decode_h265_stdhdr,	 1 );
 				CHECK_ERR(	decode_h265_profile		!= null	and
 							decode_h265_params		!= null	and
 							decode_h265_params_add	!= null	and
@@ -149,10 +149,10 @@ namespace AE::Graphics
 			// encode h264
 			case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR :
 			{
-				VkVideoEncodeH264ProfileInfoKHR*					encode_h264_profile;		AllocateOnStack_ZeroMem( OUT encode_h264_profile, 1 );
-				VkVideoEncodeH264SessionParametersCreateInfoKHR*	encode_h264_params;			AllocateOnStack_ZeroMem( OUT encode_h264_params, 1 );
+				VkVideoEncodeH264ProfileInfoKHR*					encode_h264_profile;		AllocateOnStack_ZeroMem( OUT encode_h264_profile,	 1 );
+				VkVideoEncodeH264SessionParametersCreateInfoKHR*	encode_h264_params;			AllocateOnStack_ZeroMem( OUT encode_h264_params,	 1 );
 				VkVideoEncodeH264SessionParametersAddInfoKHR*		encode_h264_params_add;		AllocateOnStack_ZeroMem( OUT encode_h264_params_add, 1 );
-				VkExtensionProperties*								encode_h264_stdhdr;			AllocateOnStack_ZeroMem( OUT encode_h264_stdhdr, 1 );
+				VkExtensionProperties*								encode_h264_stdhdr;			AllocateOnStack_ZeroMem( OUT encode_h264_stdhdr,	 1 );
 				CHECK_ERR(	encode_h264_profile		!= null	and
 							encode_h264_params		!= null	and
 							encode_h264_params_add	!= null	and
@@ -178,10 +178,10 @@ namespace AE::Graphics
 			// encode h265
 			case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR :
 			{
-				VkVideoEncodeH265ProfileInfoKHR*					encode_h265_profile;		AllocateOnStack_ZeroMem( OUT encode_h265_profile, 1 );
-				VkVideoEncodeH265SessionParametersCreateInfoKHR*	encode_h265_params;			AllocateOnStack_ZeroMem( OUT encode_h265_params, 1 );
+				VkVideoEncodeH265ProfileInfoKHR*					encode_h265_profile;		AllocateOnStack_ZeroMem( OUT encode_h265_profile,	 1 );
+				VkVideoEncodeH265SessionParametersCreateInfoKHR*	encode_h265_params;			AllocateOnStack_ZeroMem( OUT encode_h265_params,	 1 );
 				VkVideoEncodeH265SessionParametersAddInfoKHR*		encode_h265_params_add;		AllocateOnStack_ZeroMem( OUT encode_h265_params_add, 1 );
-				VkExtensionProperties*								encode_h265_stdhdr;			AllocateOnStack_ZeroMem( OUT encode_h265_stdhdr, 1 );
+				VkExtensionProperties*								encode_h265_stdhdr;			AllocateOnStack_ZeroMem( OUT encode_h265_stdhdr,	 1 );
 				CHECK_ERR(	encode_h265_profile		!= null	and
 							encode_h265_params		!= null	and
 							encode_h265_params_add	!= null	and

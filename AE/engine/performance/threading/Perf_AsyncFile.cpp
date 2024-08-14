@@ -29,6 +29,14 @@ namespace
 	StaticAssert( IsMultipleOf( c_FileSize, c_BufferSize ));
 
 
+	static void  ClearFileCache ()
+	{
+		#ifdef AE_PLATFORM_UNIX_BASED
+			PlatformUtils::ClearFileCache();
+		#endif
+	}
+
+
 	template <typename RFile, typename WFile>
 	static void  SyncSeqReadDS (IntervalProfiler &profiler)
 	{
@@ -53,6 +61,7 @@ namespace
 			}
 
 			TEST_Eq( wfile.Position(), c_FileSize );
+			ClearFileCache();
 		}
 		AE_LOGI( "begin sync read test" );
 		{
@@ -111,6 +120,7 @@ namespace
 			}
 
 			TEST( wfile.Position() == c_FileSize );
+			ClearFileCache();
 		}
 		AE_LOGI( "begin async read test" );
 		{
@@ -206,6 +216,7 @@ namespace
 			}
 
 			TEST_Eq( wfile.Position(), c_FileSize );
+			ClearFileCache();
 		}
 		AE_LOGI( "begin sync read test" );
 		{
@@ -269,6 +280,7 @@ namespace
 			}
 
 			TEST_Eq( wfile.Position(), c_FileSize );
+			ClearFileCache();
 		}
 		AE_LOGI( "begin async read test" );
 		{

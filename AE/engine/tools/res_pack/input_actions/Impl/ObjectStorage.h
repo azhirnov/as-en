@@ -38,6 +38,8 @@ namespace AE::InputActions
 		ND_ bool  Save (const Path &filename)											const;
 		ND_ bool  SaveCppTypes (const Path &filename)									const;
 
+		ND_ bool  HasHashCollisions ()													C_NE___;
+
 			static void  Bind (const Scripting::ScriptEnginePtr &se)					__Th___;
 
 		ND_ static Ptr<ObjectStorage>  Instance ();

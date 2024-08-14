@@ -72,6 +72,7 @@ void ASmain ()
 	fset.shaderClipDistance (True);
 	fset.runtimeDescriptorArray (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
+	fset.shaderStencilExport (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
@@ -83,6 +84,9 @@ void ASmain ()
 	fset.shaderInputAttachmentArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
+	fset.shaderSampledImageArrayNonUniformIndexingNative (True);
+	fset.shaderStorageImageArrayNonUniformIndexingNative (True);
+	fset.shaderInputAttachmentArrayNonUniformIndexingNative (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.maxSpirvVersion (130);
@@ -177,6 +181,8 @@ void ASmain ()
 	fset.textureCompressionASTC_LDR (True);
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
+	fset.imageViewFormatList (True);
+	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImage, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 

@@ -300,7 +300,7 @@ namespace AE::CICD
 			const String	ansi_path = ToString(path);
 
 			ScriptEngine::ModuleSource	src;
-			src.name			= ToString( path.filename().replace_extension("") );
+			src.name			= ToString( path.stem() );
 			src.dbgLocation		= SourceLoc{ ansi_path, 0 };
 			src.usePreprocessor	= true;
 
@@ -496,7 +496,7 @@ namespace AE::CICD
 		const String	ansi_path = ToString(path);
 
 		ScriptEngine::ModuleSource	src;
-		src.name			= ToString( path.filename().replace_extension("") );
+		src.name			= ToString( path.stem() );
 		src.dbgLocation		= SourceLoc{ ansi_path, 0 };
 		src.usePreprocessor	= true;
 

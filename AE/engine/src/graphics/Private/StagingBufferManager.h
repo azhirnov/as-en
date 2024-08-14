@@ -5,8 +5,18 @@
 		readback	- read  (on host)	- from device to host
 
 	Upload staging buffer must use coherent memory and doesn't require FlushMemoryRanges.
-	Readback staging buffer can use cached non-coherent memory.
+	Readback staging buffer can use cached non-coherent memory and require InvalidateMappedMemoryRanges.
 	Vertex buffer use unified memory and doesn't require FlushMemoryRanges.
+
+	If upload use double buffering, then readback must use triple buffering, because read may complete after submitting
+	and GPU commands will start executing when memory used on CPU side which is data race.
+	Double buffering readback is worse for performance and FPS stability, because for reading on CPU we have small interval
+	between 'RenderTaskScheduler::BeginFrame()' and before 'CommandBatch::Submit()', where submit may take a long time,
+	may be multiple submits and present on swapchain may takes a long time. Instead, with triple buffering we have all frame time
+	to read data which is already in RAM (cached host visible memory).
+
+	Warning: don't forget to use 'RenderTaskScheduler::AddNextCycleEndDeps()' for tasks which use readback memory,
+			 otherwise it may cause data race when task takes a long time and next frame will reuse memory.
 */
 
 #if defined(AE_ENABLE_VULKAN)
@@ -81,6 +91,7 @@ namespace AE::Graphics
 			EPixelFormat	format				= Default;	// used for multiplanar image, otherwise equal to image desc
 			Bytes			dataRowPitch;
 			Bytes			dataSlicePitch;
+			uint3			regionDim;						// validated dimension of current image mip level minus offset
 		};
 
 		using FrameStat_t = IResourceManager::StagingBufferStat;
@@ -101,22 +112,21 @@ namespace AE::Graphics
 			NativeBuffer_t		bufferHandle	= Default;
 			void*				mapped			= null;
 		};
-		using SizePerQueue_t	= GraphicsCreateInfo::SizePerQueue_t;
 
-		static constexpr uint	_QueueCount		= uint(EQueueType::_Count);
-		static constexpr Bytes	_BlockAlign		{16};
+		static constexpr Bytes	_BlockAlign	{16};
 
 		struct Static
 		{
-			using PerFrame_t = FixedArray< StaticBuffer, GraphicsConfig::MaxFrames * uint(EQueueType::_Count) >;
+			using WPerFrame_t = FixedArray< StaticBuffer, GraphicsConfig::MaxFrames >;
+			using RPerFrame_t = FixedArray< StaticBuffer, GraphicsConfig::MaxFrames+1 >;
 
-			PerFrame_t					buffersForWrite;
-			PerFrame_t					buffersForRead;
+			WPerFrame_t					buffersForWrite;
+			RPerFrame_t					buffersForRead;
 
 		  #if defined(AE_ENABLE_VULKAN)
 			VkDeviceMemory				memoryForWrite			= Default;
 			VkDeviceMemory				memoryForRead			= Default;
-			bool						isReadCoherent			= false;
+			bool						isReadNonCoherent		= false;
 
 		  #elif defined(AE_ENABLE_METAL)
 			MetalMemoryRC				memory;
@@ -125,8 +135,8 @@ namespace AE::Graphics
 		  #	error not implemented
 		  #endif
 
-			SizePerQueue_t				writeSize;
-			SizePerQueue_t				readSize;
+			Bytes32u					writeSize;
+			Bytes32u					readSize;
 		};
 
 		struct AvailableBuffer
@@ -164,7 +174,7 @@ namespace AE::Graphics
 			AtomicByte<uint>			maxPerFrame		{0_b};
 			mutable AtomicByte<uint>	usedPerFrame	[2];
 			mutable AtomicByte<ulong>	allocated		{0_b};
-			DynamicBuffers				buffers;
+			mutable DynamicBuffers		buffers;
 
 			// immutable
 			Bytes						maxSize;
@@ -248,19 +258,20 @@ namespace AE::Graphics
 			void  OnEndFrame (FrameUID frameId)																					__NE___;
 
 			void  GetBufferRanges (OUT BufferRanges_t &result, Bytes reqSize, Bytes blockSize, Bytes memOffsetAlign,
-								   FrameUID frameId, EStagingHeapType heap, EQueueType queue, Bool upload)						__NE___;
+								   FrameUID frameId, EStagingHeapType heap, Bool upload)										__NE___;
 
 			void  GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &desc, const ImageDesc &,
-								  const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload)				__NE___;
+								  const uint3 &imageGranularity, FrameUID frameId, Bool upload)									__NE___;
 
 			void  GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &desc, const VideoImageDesc &,
-								  const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload)				__NE___;
+								  const uint3 &imageGranularity, FrameUID frameId, Bool upload)									__NE___;
 
 			bool  AllocVStream (FrameUID frameId, Bytes size, OUT VertexStream &result)											__NE___;
 
 		ND_ FrameStat_t  GetFrameStat (FrameUID frameId)																		C_NE___;
 
 		  #ifdef AE_ENABLE_VULKAN
+			void  InvalidateMappedMemory (FrameUID frameId)																		__NE___;
 			void  AcquireMappedMemory (FrameUID frameId, VkDeviceMemory memory, Bytes offset, Bytes size)						__NE___;
 		  #endif
 
@@ -270,15 +281,15 @@ namespace AE::Graphics
 		ND_ bool  _InitDynamicBuffers (const GraphicsCreateInfo &info)															__NE___;
 		ND_ bool  _InitVertexStream (const GraphicsCreateInfo &info)															__NE___;
 
-		ND_ Bytes  _CalcBlockSize (Bytes reqSize, EStagingHeapType heap, EQueueType queue, bool upload)							C_NE___;
+		ND_ Bytes  _CalcBlockSize (Bytes reqSize, EStagingHeapType heap, bool upload)											C_NE___;
 
 		template <typename RangeType, typename BufferType>
 		ND_ static bool  _AllocStatic (Bytes32u reqSize, Bytes32u blockSize, Bytes32u memOffsetAlign,
 										INOUT RangeType &result, BufferType& sb)												__NE___;
 
 		template <bool SingleAlloc, typename RangeType>
-		ND_ bool  _AllocDynamic (FrameUID frameId, INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, bool upload,
-								 INOUT RangeType& buffers, DynamicBuffers &db)													C_NE___;
+		ND_ bool  _AllocDynamic (FrameUID frameId, INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign,
+								 bool upload, INOUT RangeType& buffers)															C_NE___;
 
 		template <typename RangeType>
 		ND_ bool  _AddToCurrent (INOUT Bytes &reqSize, Bytes blockSize, Bytes memOffsetAlign, Strong<BufferID> id,
@@ -290,7 +301,7 @@ namespace AE::Graphics
 
 		void  _AllocDynamicImage (FrameUID frameId, Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign,
 								  const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &imageDataDim, bool upload,
-								  INOUT StagingImageResultRanges &result, DynamicBuffers& db)									C_NE___;
+								  INOUT StagingImageResultRanges &result)														C_NE___;
 	};
 
 

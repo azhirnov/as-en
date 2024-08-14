@@ -10,7 +10,6 @@ namespace AE::ECS
 	//
 	// Component ID
 	//
-
 	namespace _hidden_
 	{
 		template <uint UID>
@@ -35,25 +34,30 @@ namespace AE::ECS
 
 
 	//
+	// Is Trivial Component
+	//
+	template <typename T>
+	struct TTrivialComponent : CT_Bool< Base::IsTrivial<T> >{};
+
+	template <typename T>
+	static constexpr bool	IsTrivialComponent = TTrivialComponent< T >::value;
+
+
+
+	//
 	// Component Type Info
 	//
-
 	template <typename Comp>
 	struct ComponentTypeInfo
 	{
-		//StaticAssert( std::is_trivially_destructible_v<Comp> );
-		//StaticAssert( std::is_trivially_copyable_v<Comp> );
-		StaticAssert( std::is_nothrow_destructible_v<Comp> );
+		StaticAssert( IsTrivialComponent<Comp> );
 
 		using type	= Comp;
 		static inline const ComponentID		id		{ CheckCast<ushort>( Base::_hidden_::StaticTypeIdOf< Comp, 0x1000 >::Get().Get() ) };
 		static constexpr Bytes16u			align	{ushort( IsEmpty<Comp> ? 0 : alignof(Comp) )};
 		static constexpr Bytes16u			size	{ushort( IsEmpty<Comp> ? 0 : sizeof(Comp) )};
 
-		static void  Ctor (OUT void* comp) __NE___
-		{
-			PlacementNew<Comp>( OUT comp );
-		}
+		static void  Ctor (OUT void* comp) __NE___	{ PlacementNew<Comp>( OUT comp ); }
 	};
 
 	template <typename Comp>	struct ComponentTypeInfo< Comp& >		: ComponentTypeInfo<Comp> {};

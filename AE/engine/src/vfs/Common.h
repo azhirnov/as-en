@@ -7,7 +7,7 @@
 namespace AE::VFS::_hidden_
 {
 	// tag: NamedID UID
-	static constexpr uint	NamedIDs_Start	= 4 << 24;
+	static constexpr uint	NamedIDs_Start	= 5 << 24;
 
 } // AE::VFS::_hidden_
 
@@ -29,10 +29,10 @@ namespace AE::VFS
 	using AE::Threading::AsyncRStream;
 	using AE::Threading::AsyncWStream;
 
-#	if AE_ENABLE_DATA_RACE_CHECK
+	#if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::DataRaceCheck;
 	using AE::Threading::RWDataRaceCheck;
-#	endif
+	#endif
 
 
 	using FileName		= NamedID< 128, VFS::_hidden_::NamedIDs_Start + 1, AE_OPTIMIZE_IDS >;

@@ -5,7 +5,8 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Public/IDevice.h"
 # include "graphics/Vulkan/VQueue.h"
-# include "graphics/Vulkan/Utils/VNvPerf.h"
+# include "graphics/Vulkan/Utils/VNvPerfProfiler.h"
+# include "graphics/Vulkan/Utils/VAMDPerfProfiler.h"
 # include "graphics/Vulkan/Utils/RenderDocApi.h"
 # include "VulkanExtEmulation.h"
 
@@ -67,8 +68,11 @@ namespace AE::Graphics
 		VExtensions				_extensions;
 
 		// tools
-		VNvPerf					_nvPerf;
+	  #ifndef AE_CFG_RELEASE
+		VNvPerfProfiler			_nvPerf;
+		VAMDPerfProfiler		_amdPerf;
 		RenderDocApi			_rdc;
+	  #endif
 
 		NO_UNIQUE_ADDRESS
 		  VulkanExtEmulation	_extEmulation;
@@ -109,14 +113,21 @@ namespace AE::Graphics
 
 		ND_ bool					IsInitialized ()								C_NE_OF	{ return GetVkDevice() != Default; }
 
-		ND_ VNvPerf const&			GetNvPerf ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _nvPerf; }
+	  #ifndef AE_CFG_RELEASE
+		ND_ auto const&				GetNvPerf ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _nvPerf; }
 		ND_ bool					HasNvPerf ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _nvPerf.IsInitialized(); }
+
+		ND_ auto const&				GetAMDPerf ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _amdPerf; }
+		ND_ bool					HasAMDPerf ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _amdPerf.IsInitialized(); }
 
 		ND_ RenderDocApi const&		GetRenderDocApi ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rdc; }
 		ND_ bool					HasRenderDocApi ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rdc.IsInitialized(); }
+	  #endif
 
 		ND_ DeviceMemoryInfo		GetMemoryInfo ()								C_NE_OF;
 		ND_ DevMemoryUsageOpt		GetMemoryUsage ()								C_NE_OF;
+
+		ND_ EGraphicsAdapterType	AdapterType ()									C_NE_OF;
 
 		ND_ bool					IsUnderDebugger ()								C_NE_OF;
 
@@ -183,6 +194,7 @@ namespace AE::Graphics
 			uint										engineVer			= 0;
 			ArrayView<VkValidationFeatureEnableEXT>		enableValidations;
 			ArrayView<VkValidationFeatureDisableEXT>	disableValidations;
+			EDeviceFlags								devFlags			= Default;	// pass the same flags to 'CreateLogicalDevice()'
 		};
 
 		struct QueueCreateInfo
@@ -238,7 +250,7 @@ namespace AE::Graphics
 
 	// variable
 	private:
-		Synchronized< Mutex,
+		Synchronized< SharedMutex,
 			DbgReportData >			_dbgReport;
 
 		bool						_enableInfoLog			= false;
@@ -254,18 +266,20 @@ namespace AE::Graphics
 	  // LowLevel //
 		ND_ InstanceVersion  GetMaxInstanceVersion ()												C_NE___;
 
+		#ifndef AE_CFG_RELEASE
 			bool  LoadNvPerf ()																		__NE___;
-			bool  LoadArmProfiler ()																__NE___;
+			bool  LoadAmdPerf ()																	__NE___;
+			bool  LoadRenderDoc ()																	__NE___;
+		#endif
 
 		ND_ bool  CreateInstance (const InstanceCreateInfo &ci)										__NE___;
 		//  bool  SetInstance (VkInstance value, const InstanceCreateInfo &ci)						__NE___;
 			bool  DestroyInstance ()																__NE___;
 
-			bool  LoadRenderDoc ()																	__NE___;
-
 			bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT	severity,
 									   DebugReport_t &&						callback = Default)		__NE___;
 			void  DestroyDebugCallback ()															__NE___;
+		ND_ bool  IsEnabledDebugCallback ()															C_NE___;
 
 		ND_ bool  ChooseDevice (StringView deviceName)												__NE___;
 		ND_ bool  ChooseHighPerformanceDevice ()													__NE___;
@@ -276,7 +290,8 @@ namespace AE::Graphics
 		ND_ bool  CreateQueues (ArrayView<QueueCreateInfo> queues)									__NE___;
 
 		ND_ bool  CreateLogicalDevice (ArrayView<const char*>	extensions			= {},
-									   const FeatureSet*		fsToDeviceFeatures	= null)			__NE___;
+									   const FeatureSet*		fsToDeviceFeatures	= null,
+									   EDeviceFlags				devFlags			= Default)		__NE___;
 		//  bool  SetLogicalDevice (VkDevice value, ArrayView<const char*> extensions = {})			__NE___;
 			bool  DestroyLogicalDevice ()															__NE___;
 
@@ -298,14 +313,15 @@ namespace AE::Graphics
 
 		ND_ bool  _CreateInstance (NtStringView appName, NtStringView engineName, ArrayView<const char*> instanceLayers,
 								   ArrayView<const char*> instanceExtensions, InstanceVersion version,
-								   uint appVer, uint engineVer, const VkValidationFeaturesEXT* pValidation)				__Th___;
+								   uint appVer, uint engineVer, const VkValidationFeaturesEXT* pValidation,
+								   EDeviceFlags devFlags)																__Th___;
 
 		void  _ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers,
 										ArrayView<const char*> extensions, INOUT uint &version)							C_Th___;
 		void  _ValidateInstanceLayers (INOUT Array<const char*> &layers, Bool silent)									C_Th___;
 		void  _ValidateInstanceExtensions (Array<const char*> layers, INOUT Array<const char*> &ext, Bool silent)		C_Th___;
 		bool  _ChooseHighPerformanceDevice ()																			__Th___;
-		bool  _CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures)			__Th___;
+		bool  _CreateLogicalDevice (ArrayView<const char*>, const FeatureSet*, EDeviceFlags)							__Th___;
 		void  _ValidateDeviceExtensions (VkPhysicalDevice physDev, INOUT Array<const char*> &ext)						C_Th___;
 		void  _ValidateSpirvVersion (OUT SpirvVersion &ver)																C_NE___;
 		void  _UpdateDeviceVersion (VkPhysicalDevice physicalDevice, OUT DeviceVersion &devVersion)						C_NE___;

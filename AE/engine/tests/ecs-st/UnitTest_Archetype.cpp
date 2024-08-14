@@ -256,8 +256,11 @@ namespace
 extern void UnitTest_Archetype ()
 {
 	RegisterComponents_Test1();
+
 	ArchetypeStorage_Test1();
+
 	ArchetypeDesc_Test1();
+
 	ArchetypeQuery_Test1();
 
 	TEST_PASSED();

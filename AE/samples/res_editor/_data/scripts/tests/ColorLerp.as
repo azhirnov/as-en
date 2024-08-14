@@ -62,6 +62,13 @@
 		return XYZtoRGB( Lerp( a, b, factor ));
 	}
 
+	float3  ColorLerpOklab (float3 a, float3 b, float factor)
+	{
+		a = RGBtoOklab( a );
+		b = RGBtoOklab( b );
+		return OklabToRGB( Lerp( a, b, factor ));
+	}
+
 	void  Main ()
 	{
 		float2	uv		= GetGlobalCoordUNorm().xy;
@@ -84,7 +91,7 @@
 			const float	f = RemapClamp( float2(0.05, 0.95), float2(0.0, 1.0), uv.x );
 
 			// choose interpolator
-			switch ( int(uv.y * 5*7) % 7 )
+			switch ( int(uv.y * 5*8) % 8 )
 			{
 				case 0 :	color = Lerp( src_col, dst_col, f );			break;
 				case 1 :	color = ColorLerpYUV( src_col, dst_col, f );	break;
@@ -92,10 +99,11 @@
 				case 3 :	color = ColorLerpXYZ( src_col, dst_col, f );	break;
 				case 4 :	color = ColorLerpHSV2( src_col, dst_col, f );	break;
 				case 5 :	color = ColorLerpHSV1( src_col, dst_col, f );	break;
+				case 6 :	color = ColorLerpOklab( src_col, dst_col, f );	break;
 			}
 		}
 
-		if ( (uv.x < 0.04 or uv.x > 0.96) and (int(uv.y * 5*7) % 7 < 6) )
+		if ( (uv.x < 0.04 or uv.x > 0.96) and (int(uv.y * 5*8) % 8 < 7) )
 		{
 			color = uv.x < 0.5 ? src_col : dst_col;
 		}

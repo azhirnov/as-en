@@ -41,7 +41,7 @@
 								 DebugLabel dbg) __NE___
 	{
 		CHECK_ERR( primaryState.IsValid() );
-		ASSERT( primaryState.useSecondaryCmdbuf );
+		ASSERT( primaryState.useSecondaryCmdbuf != 0 );
 
 		_cmdPool.Reset();
 

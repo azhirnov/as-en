@@ -129,7 +129,7 @@
 // check function return value
 #if 1
 #	define CHECK_MSG( _expr_, _text_ )												\
-		{if_likely(( _expr_ )) {}													\
+		{if_likely( bool{_expr_} ) {}												\
 		 else_unlikely {															\
 			AE_LOGE( _text_ );														\
 		}}
@@ -142,7 +142,7 @@
 // check function return value and return error code
 #if 1
 #	define AE_PRIVATE_CHECK_ERR2( _expr_, _ret_, _text_ )							\
-		{if_likely(( _expr_ )) {}													\
+		{if_likely( bool{_expr_} ) {}												\
 		 else_unlikely {															\
 			AE_LOGE( _text_ );														\
 			return (_ret_);															\
@@ -168,7 +168,7 @@
 // check function return value and exit
 #if 1
 #	define CHECK_FATAL_MSG( _expr_, _text_ )										\
-		{if_likely(( _expr_ )) {}													\
+		{if_likely( bool{_expr_} ) {}												\
 		 else_unlikely {															\
 			AE_LOGE( _text_ );														\
 			AE_PRIVATE_EXIT();														\
@@ -197,7 +197,7 @@
 // CHECK_ERR for using inside task
 #if 1
 #	define AE_PRIVATE_CHECK_TASK( _expr_, _text_ )															\
-		{if_likely(( _expr_ )) {}																			\
+		{if_likely( bool{_expr_} ) {}																		\
 		 else_unlikely {																					\
 			AE_LOGE( AE_TOSTRING( _text_ ));																\
 			StaticAssert( AE::Base::IsBaseOfNoQual< AE::Threading::IAsyncTask, decltype(*this) >);			\
@@ -227,7 +227,7 @@
 // same as CHECK_ERR for using inside coroutine
 #if 1
 #	define AE_PRIVATE_CHECK_CORO( _expr_, _text_ )															\
-		{if_likely(( _expr_ )) {}																			\
+		{if_likely( bool{_expr_} ) {}																		\
 		 else_unlikely {																					\
 			AE_LOGE( AE_TOSTRING( _text_ ));																\
 			co_await AE::Threading::_hidden_::AsyncTaskCoro_Error{};	/* call 'IAsyncTask::OnFailure()' */\
@@ -313,7 +313,7 @@
 // check and throw exception
 #ifdef AE_ENABLE_EXCEPTIONS
 #	define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ )													\
-		{if_likely(( _expr_ )) {}																		\
+		{if_likely( bool{_expr_} ) {}																	\
 		 else_unlikely {																				\
 			AE_LOGW( _text_ );																			\
 			throw AE::Exception{ _text_ };																\
@@ -325,7 +325,7 @@
 
 
 #	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ )												\
-		{if_likely(( _expr_ )) {}																		\
+		{if_likely( bool{_expr_} ) {}																	\
 		 else_unlikely {																				\
 			AE_LOGW( AE_TOSTRING( _expr_ ));															\
 			throw (_exception_);																		\
@@ -375,33 +375,33 @@
 			return _return_on_exc_;																		\
 		}
 
-#	define NOTHROW_ERR( /* expr, return_on_exc*/... )													\
+#	define NOTHROW_ERR( /* src, return_on_exc*/... )													\
 		AE_PRIVATE_CATCH_ERR( AE_PRIVATE_GETARG_0( __VA_ARGS__ ),										\
 							  AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
 
-#	define NOTHROW_ERRV( _expr_ )																		\
-		NOTHROW_ERR( (_expr_), void() )
+#	define NOTHROW_ERRV( _src_ )																		\
+		NOTHROW_ERR( (_src_), void() )
 
 #else
 #	define NOTHROW( ... )									{__VA_ARGS__;}
-#	define NOTHROW_ERR( /* expr, return_on_exc*/... )		{AE_PRIVATE_GETARG_0( __VA_ARGS__ );}
-#	define NOTHROW_ERRV( _expr_ )							{_expr_;}
+#	define NOTHROW_ERR( /* src, return_on_exc*/... )		{AE_PRIVATE_GETARG_0( __VA_ARGS__ );}
+#	define NOTHROW_ERRV( _src_ )							{_src_;}
 #endif
 
 
 // assumption
 #if 1
 # if __has_cpp_attribute(assume)
-#	define AE_PRIVATE_ASSUME( _expr_ )		{ [[assume( _expr_ )]]; }
+#	define AE_PRIVATE_ASSUME( _expr_ )		{ [[assume( bool{_expr_} )]]; }
 
 # elif defined(AE_COMPILER_MSVC)
-#	define AE_PRIVATE_ASSUME( _expr_ )		{__assume( _expr_ );}
+#	define AE_PRIVATE_ASSUME( _expr_ )		{__assume( bool{_expr_} );}
 
 # elif defined(AE_COMPILER_CLANG)
-#	define AE_PRIVATE_ASSUME( _expr_ )		{__builtin_assume( _expr_ );}
+#	define AE_PRIVATE_ASSUME( _expr_ )		{__builtin_assume( bool{_expr_} );}
 
 # elif defined(AE_COMPILER_GCC)
-#	define AE_PRIVATE_ASSUME( _expr_ )		{ if (not (_expr_)) __builtin_unreachable(); }
+#	define AE_PRIVATE_ASSUME( _expr_ )		{ if (not bool{_expr_}) __builtin_unreachable(); }
 # else
 #	error not implemented!
 # endif

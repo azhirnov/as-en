@@ -14,7 +14,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - id: config
+    - id: buildConfig
+      uses: actions/github-script@v6
+      with:
+        script: return "${{ matrix.config == 'debug' && 'Debug' || 'RelWithDebInfo' }}"
+        result-encoding: string
+      
+    - id: cmakeConfig
       uses: actions/github-script@v6
       with:
         script: return "${{ matrix.config == 'debug' && 'Debug' || 'Release' }}"
@@ -29,7 +35,7 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/li5pOVEwqcS2gA"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/VSzlOKILCG8UfA"
         unzip external.zip
         rm external.zip
         cd ../AE/android
@@ -37,15 +43,15 @@ jobs:
     
     - name: Build 'Tests' ARM-v8
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :test:buildCMake${{steps.config.outputs.result}}[arm64-v8a]
+      run: ./gradlew :test:buildCMake${{steps.cmakeConfig.outputs.result}}[arm64-v8a]
         
     - name: Build 'Tests' ARM-v7
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :test:buildCMake${{steps.config.outputs.result}}[armeabi-v7a]
+      run: ./gradlew :test:buildCMake${{steps.cmakeConfig.outputs.result}}[armeabi-v7a]
       
     - name: Assemple 'Tests'
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :test:assemble${{steps.config.outputs.result}}
+      run: ./gradlew :test:assemble${{steps.buildConfig.outputs.result}}
       
     - uses: actions/upload-artifact@v4
       with:
@@ -60,15 +66,15 @@ jobs:
       
     - name: Build 'RemoteGraphicsDevice' ARM-v8
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :rg-device:buildCMake${{steps.config.outputs.result}}[arm64-v8a]
+      run: ./gradlew :rg-device:buildCMake${{steps.cmakeConfig.outputs.result}}[arm64-v8a]
         
     - name: Build 'RemoteGraphicsDevice' ARM-v7
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :rg-device:buildCMake${{steps.config.outputs.result}}[armeabi-v7a]
+      run: ./gradlew :rg-device:buildCMake${{steps.cmakeConfig.outputs.result}}[armeabi-v7a]
       
     - name: Assemple 'RemoteGraphicsDevice'
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :rg-device:assemble${{steps.config.outputs.result}}
+      run: ./gradlew :rg-device:assemble${{steps.buildConfig.outputs.result}}
       
     - uses: actions/upload-artifact@v4
       with:
@@ -83,15 +89,15 @@ jobs:
         
     - name: Build 'CICD-Client' ARM-v8
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :cicd:buildCMake${{steps.config.outputs.result}}[arm64-v8a]
+      run: ./gradlew :cicd:buildCMake${{steps.cmakeConfig.outputs.result}}[arm64-v8a]
         
     - name: Build 'CICD-Client' ARM-v7
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :cicd:buildCMake${{steps.config.outputs.result}}[armeabi-v7a]
+      run: ./gradlew :cicd:buildCMake${{steps.cmakeConfig.outputs.result}}[armeabi-v7a]
       
     - name: Assemple 'CICD-Client'
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :cicd:assemble${{steps.config.outputs.result}}
+      run: ./gradlew :cicd:assemble${{steps.buildConfig.outputs.result}}
       
     - uses: actions/upload-artifact@v4
       with:
@@ -106,15 +112,15 @@ jobs:
         
     - name: Build 'Demo' ARM-v8
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :demo:buildCMake${{steps.config.outputs.result}}[arm64-v8a]
+      run: ./gradlew :demo:buildCMake${{steps.cmakeConfig.outputs.result}}[arm64-v8a]
         
     - name: Build 'Demo' ARM-v7
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :demo:buildCMake${{steps.config.outputs.result}}[armeabi-v7a]
+      run: ./gradlew :demo:buildCMake${{steps.cmakeConfig.outputs.result}}[armeabi-v7a]
        
     - name: Assemple 'Demo'
       working-directory: ${{github.workspace}}/AE/android
-      run: ./gradlew :demo:assemble${{steps.config.outputs.result}}
+      run: ./gradlew :demo:assemble${{steps.buildConfig.outputs.result}}
       
     - uses: actions/upload-artifact@v4
       with:

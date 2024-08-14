@@ -9,7 +9,7 @@ namespace AE::Math
 {
 
 	//
-	// Half (SFloat16)
+	// Half (SFloat16) (IEEE 754)
 	//
 
 	struct SFloat16
@@ -384,27 +384,28 @@ namespace AE::Math
 	}
 
 } // AE::Math
+//-----------------------------------------------------------------------------
 
 
 namespace AE::Base
 {
-	template <>	struct TMemCopyAvailable< SFloat16 >		{ static constexpr bool  value = true; };
-	template <>	struct TZeroMemAvailable< SFloat16 >		{ static constexpr bool  value = true; };
-	template <>	struct TTriviallySerializable< SFloat16 >	{ static constexpr bool  value = true; };
+	template <>	struct TMemCopyAvailable< SFloat16 >		: CT_True {};
+	template <>	struct TZeroMemAvailable< SFloat16 >		: CT_True {};
+	template <>	struct TTriviallySerializable< SFloat16 >	: CT_True {};
 
-	template <>	struct TMemCopyAvailable< UFloat16 >		{ static constexpr bool  value = true; };
-	template <>	struct TZeroMemAvailable< UFloat16 >		{ static constexpr bool  value = true; };
-	template <>	struct TTriviallySerializable< UFloat16 >	{ static constexpr bool  value = true; };
+	template <>	struct TMemCopyAvailable< UFloat16 >		: CT_True {};
+	template <>	struct TZeroMemAvailable< UFloat16 >		: CT_True {};
+	template <>	struct TTriviallySerializable< UFloat16 >	: CT_True {};
 
 	namespace _hidden_
 	{
-		template <> struct _IsScalar< AE::Math::SFloat16 >		{ static constexpr bool  value = true; };
-		template <> struct _IsFloatPoint< AE::Math::SFloat16 >	{ static constexpr bool  value = true; };
-		template <> struct _IsSigned< AE::Math::SFloat16 >		{ static constexpr bool  value = true; };
+		template <> struct _IsScalar< AE::Math::SFloat16 >		: CT_True {};
+		template <> struct _IsFloatPoint< AE::Math::SFloat16 >	: CT_True {};
+		template <> struct _IsSigned< AE::Math::SFloat16 >		: CT_True {};
 
-		template <> struct _IsScalar< AE::Math::UFloat16 >		{ static constexpr bool  value = true; };
-		template <> struct _IsFloatPoint< AE::Math::UFloat16 >	{ static constexpr bool  value = true; };
-		template <> struct _IsSigned< AE::Math::UFloat16 >		{ static constexpr bool  value = false; };
+		template <> struct _IsScalar< AE::Math::UFloat16 >		: CT_True {};
+		template <> struct _IsFloatPoint< AE::Math::UFloat16 >	: CT_True {};
+		template <> struct _IsSigned< AE::Math::UFloat16 >		: CT_False {};
 	}
 
 } // AE::Base

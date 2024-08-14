@@ -18,7 +18,7 @@ namespace AE::ResEditor
 
 	// types
 	private:
-		using PipelineMap_t	= FixedMap< EDebugMode, PplnID_t, uint(EDebugMode::_Count) >;
+		using PipelineMap_t	= FixedMap< Tuple< EDebugMode, EShaderStages >, PplnID_t, uint(EDebugMode::_Count)*2 >;
 
 		class Material final : public IGSMaterials
 		{
@@ -49,13 +49,14 @@ namespace AE::ResEditor
 		GeometryTools::SphericalCubeRenderer	_cube;
 		ResourceArray							_resources;
 
-		const uint								_minLod		= 0;
-		const uint								_maxLod		= 0;
+		const uint								_minLod			= 0;
+		const uint								_maxLod			= 0;
+		const uint								_instanceCount	= 1;
 
 
 	// methods
 	public:
-		SphericalCube (Renderer &r, uint minLod, uint maxLod)			__NE___;
+		SphericalCube (Renderer &r, uint minLod, uint maxLod, uint inst)__NE___;
 		~SphericalCube ();
 
 

@@ -172,11 +172,6 @@ namespace AE::ResLoader
 	Copy
 =================================================
 */
-	bool  IntermImage::Copy (const ImageMemView &memView) __NE___
-	{
-		return Copy( memView, null );
-	}
-
 	bool  IntermImage::Copy (const ImageMemView &memView, RC<IAllocator> allocator) __NE___
 	{
 		CHECK_ERR( IsMutable() );
@@ -233,6 +228,7 @@ namespace AE::ResLoader
 		CHECK_ERR( layer.Get() < _data[mipmap.Get()].size() );
 
 		auto&	img = _data [mipmap.Get()] [layer.Get()];
+		CHECK_ERR_MSG( not img.Empty(), "not allocated" );
 
 		return ImageMemView{ img.PixelData(), img.DataSize(), uint3{}, img.dimension, img.rowPitch, img.slicePitch, img.format, EImageAspect::Color };
 	}
@@ -352,16 +348,6 @@ namespace AE::ResLoader
 		return Allocate( type, fmt, dim, ImageLayer{1u}, MipmapLevel{1u}, RVRef(allocator) );
 	}
 
-	bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim, ImageLayer layers, MipmapLevel mipmaps) __NE___
-	{
-		return Allocate( type, fmt, dim, layers, mipmaps, null );
-	}
-
-	bool  IntermImage::Allocate (EImage type, EPixelFormat fmt, const uint3 &dim) __NE___
-	{
-		return Allocate( type, fmt, dim, ImageLayer{1u}, MipmapLevel{1u} );
-	}
-
 /*
 =================================================
 	GetLevel
@@ -373,6 +359,27 @@ namespace AE::ResLoader
 		CHECK_ERR( layer.Get() < _data[mipmap.Get()].size() );
 
 		return &_data [mipmap.Get()] [layer.Get()];
+	}
+
+/*
+=================================================
+	AllocLevel
+=================================================
+*/
+	bool  IntermImage::AllocLevel (MipmapLevel mipmap, ImageLayer layer, RC<IAllocator> allocator) __NE___
+	{
+		CHECK_ERR( mipmap.Get() < _data.size() );
+		CHECK_ERR( layer.Get() < _data[mipmap.Get()].size() );
+
+		if ( not allocator )
+			allocator = AE::GetDefaultAllocator();
+
+		auto&	img = _data [mipmap.Get()] [layer.Get()];
+
+		auto	storage = SharedMem::Create( RVRef(allocator), img.DataSize() );
+		CHECK_ERR( storage );
+
+		return img.SetPixelData( RVRef(storage) );
 	}
 
 

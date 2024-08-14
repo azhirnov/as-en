@@ -4,6 +4,11 @@
 
 set( SPIRVCROSS_PATH "${AE_DST_PATH}/SPIRV-Cross" )
 
+if (NOT EXISTS "${SPIRVCROSS_PATH}/lib")
+	message( FATAL_ERROR "'${SPIRVCROSS_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "SPIRV-Cross-lib" INTERFACE )
 target_include_directories( "SPIRV-Cross-lib" INTERFACE "${SPIRVCROSS_PATH}/include" )
 target_compile_definitions( "SPIRV-Cross-lib" INTERFACE "AE_ENABLE_SPIRV_CROSS" "AE_LICENSE_APACHE_2" )
@@ -26,6 +31,7 @@ set_property( TARGET "SPIRV-Cross-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 	$<$<CONFIG:Debug>: "${SPIRVCROSS_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}spirv-cross-glsld${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 	$<$<CONFIG:Debug>: "${SPIRVCROSS_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}spirv-cross-msld${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 )
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.SPIRV-Cross" "tests/main.cpp" )

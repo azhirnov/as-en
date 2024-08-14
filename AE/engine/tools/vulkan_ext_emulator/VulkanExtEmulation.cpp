@@ -12,6 +12,7 @@
 
 #include "threading/Primitives/DataRaceCheck.h"
 #include "threading/Primitives/SpinLock.h"
+#include "threading/Primitives/Synchronized.h"
 
 #include "graphics/Public/Common.h"
 #include "graphics/Vulkan/VulkanCheckError.h"
@@ -108,6 +109,7 @@ namespace
 		PFN_vkCmdNextSubpass2							origin_vkCmdNextSubpass2			= null;
 		PFN_vkCmdEndRenderPass2							origin_vkCmdEndRenderPass2			= null;
 		PFN_vkCreateImage								origin_vkCreateImage				= null;
+		PFN_vkDestroyImage								origin_vkDestroyImage				= null;
 		PFN_vkCmdClearColorImage						origin_vkCmdClearColorImage			= null;
 		PFN_vkCmdClearDepthStencilImage					origin_vkCmdClearDepthStencilImage	= null;
 		PFN_vkEndCommandBuffer							origin_vkEndCommandBuffer			= null;
@@ -515,6 +517,7 @@ namespace
 		emulator.origin_vkCmdEndRenderPass2		= BitCast<PFN_vkCmdEndRenderPass2>(emulator.origin_vkGetDeviceProcAddr( *pDevice, use_rp2_core ? "vkCmdEndRenderPass2" : "vkCmdEndRenderPass2KHR" ));
 
 		emulator.origin_vkCreateImage			= BitCast<PFN_vkCreateImage>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkCreateImage" ));
+		emulator.origin_vkDestroyImage			= BitCast<PFN_vkDestroyImage>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkDestroyImage" ));
 
 		emulator.origin_vkCmdClearColorImage		= BitCast<PFN_vkCmdClearColorImage>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkCmdClearColorImage" ));
 		emulator.origin_vkCmdClearDepthStencilImage	= BitCast<PFN_vkCmdClearDepthStencilImage>(emulator.origin_vkGetDeviceProcAddr( *pDevice, "vkCmdClearDepthStencilImage" ));
@@ -541,6 +544,7 @@ namespace
 			CHECK( emulator.origin_vkCmdPipelineBarrier != null );
 			CHECK( emulator.origin_vkDestroyRenderPass != null );
 			CHECK( emulator.origin_vkCreateImage != null );
+			CHECK( emulator.origin_vkDestroyImage != null );
 			CHECK( emulator.origin_vkCmdClearColorImage != null );
 			CHECK( emulator.origin_vkCmdClearDepthStencilImage != null );
 			CHECK( emulator.origin_vkEndCommandBuffer != null );
@@ -562,6 +566,7 @@ namespace
 			emulator.fnNameToPtr.emplace( "vkCreateRenderPass2",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCreateRenderPass2_DbgClear ));
 			emulator.fnNameToPtr.emplace( "vkDestroyRenderPass",		BitCast<PFN_vkVoidFunction>( &Wrap_vkDestroyRenderPass_DbgClear ));
 			emulator.fnNameToPtr.emplace( "vkCreateImage",				BitCast<PFN_vkVoidFunction>( &Wrap_vkCreateImage_DbgClear ));
+			emulator.fnNameToPtr.emplace( "vkDestroyImage",				BitCast<PFN_vkVoidFunction>( &Wrap_vkDestroyImage_DbgClear ));
 			emulator.fnNameToPtr.emplace( "vkEndCommandBuffer",			BitCast<PFN_vkVoidFunction>( &Wrap_vkEndCommandBuffer_DbgClear ));
 			emulator.fnNameToPtr.emplace( "vkCreateFramebuffer",		BitCast<PFN_vkVoidFunction>( &Wrap_vkCreateFramebuffer_DbgClear ));
 			emulator.fnNameToPtr.emplace( "vkDestroyFramebuffer",		BitCast<PFN_vkVoidFunction>( &Wrap_vkDestroyFramebuffer_DbgClear ));

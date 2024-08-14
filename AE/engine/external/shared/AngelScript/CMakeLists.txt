@@ -4,6 +4,11 @@
 
 set( ANGELSCRIPT_PATH "${AE_DST_PATH}/AngelScript" )
 
+if (NOT EXISTS "${ANGELSCRIPT_PATH}/lib")
+	message( FATAL_ERROR "'${ANGELSCRIPT_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "AngelScript-lib" INTERFACE )
 target_include_directories( "AngelScript-lib" INTERFACE "${ANGELSCRIPT_PATH}/include" )
 target_compile_definitions( "AngelScript-lib" INTERFACE "AE_ENABLE_ANGELSCRIPT" "AS_USE_NAMESPACE=1" "AS_USE_STLNAMES=1" "AE_LICENSE_ZLIB" )
@@ -33,6 +38,7 @@ else()
 		$<$<CONFIG:Debug>: "${ANGELSCRIPT_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}angelscript_scriptarrayd${CMAKE_STATIC_LIBRARY_SUFFIX}" >
 	)
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	if (ANDROID)

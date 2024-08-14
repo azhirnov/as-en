@@ -196,8 +196,8 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	template <> struct TMemCopyAvailable< AE::Math::VecSwizzle >		{ static constexpr bool  value = true; };
-	template <> struct TTriviallySerializable< AE::Math::VecSwizzle >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Math::VecSwizzle >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Math::VecSwizzle >	: CT_True {};
 
 } // AE::Base
 

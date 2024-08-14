@@ -186,13 +186,13 @@ namespace AE::Graphics
 		// validate samples and mipmaps
 		if ( samples.IsEnabled() )
 		{
-			ASSERT( maxLevel <= 1_mipmap );
-			maxLevel = 1_mipmap;
+			ASSERT( mipLevels <= 1_mipmap );
+			mipLevels = 1_mipmap;
 		}
 		else
 		{
 			samples  = 1_samples;
-			maxLevel = MipmapLevel( Clamp( maxLevel.Get(), 1u, ImageUtils::NumberOfMipmaps( dimension )));
+			mipLevels = MipmapLevel( Clamp( mipLevels.Get(), 1u, ImageUtils::NumberOfMipmaps( dimension )));
 		}
 
 		/*if ( ViewFormatListSize() > 1 )
@@ -216,7 +216,7 @@ namespace AE::Graphics
 	{
 		return	(All( dimension	== rhs.dimension ))	and
 				(arrayLayers	== rhs.arrayLayers)	and
-				(maxLevel		== rhs.maxLevel)	and
+				(mipLevels		== rhs.mipLevels)	and
 				(imageDim		== rhs.imageDim)	and
 				(options		== rhs.options)		and
 				(usage			== rhs.usage)		and
@@ -298,7 +298,7 @@ namespace AE::Graphics
 */
 	ImageViewDesc::ImageViewDesc (const ImageDesc &desc) __NE___ :
 		format{ desc.format },		aspectMask{ EPixelFormat_ToImageAspect( format )},
-		baseMipmap{},				mipmapCount{ ushort(desc.maxLevel.Get()) },
+		baseMipmap{},				mipmapCount{ ushort(desc.mipLevels.Get()) },
 		baseLayer{},				layerCount{ ushort(desc.arrayLayers.Get()) },
 		swizzle{ "RGBA"_swizzle }
 	{}
@@ -310,8 +310,8 @@ namespace AE::Graphics
 */
 	void ImageViewDesc::Validate (const ImageDesc &desc) __NE___
 	{
-		baseMipmap	= MipmapLevel{Clamp( baseMipmap.Get(), 0u, desc.maxLevel.Get()-1 )};
-		mipmapCount	= CheckCast<ushort>( Clamp( mipmapCount, 1u, desc.maxLevel.Get() - baseMipmap.Get() ));
+		baseMipmap	= MipmapLevel{Clamp( baseMipmap.Get(), 0u, desc.mipLevels.Get()-1 )};
+		mipmapCount	= CheckCast<ushort>( Clamp( mipmapCount, 1u, desc.mipLevels.Get() - baseMipmap.Get() ));
 
 		// validate format
 		if ( format == Default )
@@ -353,7 +353,7 @@ namespace AE::Graphics
 					break;
 
 				case EImageDim_2D :
-					if ( layerCount > 6 and AllBits( desc.options, EImageOpt::CubeCompatible ))
+					if ( layerCount > 6 and (layerCount % 6 == 0) and AllBits( desc.options, EImageOpt::CubeCompatible ))
 						viewType = EImage_CubeArray;
 					else
 					if ( layerCount == 6 and AllBits( desc.options, EImageOpt::CubeCompatible ))

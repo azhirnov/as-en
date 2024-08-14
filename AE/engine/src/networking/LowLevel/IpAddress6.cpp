@@ -96,6 +96,7 @@ namespace
 	ToString
 =================================================
 */
+#ifdef AE_ENABLE_LOGS
 	String  IpAddress6::ToString () C_Th___
 	{
 		String	str;
@@ -113,7 +114,7 @@ namespace
 		str << ':' << Base::ToString<10>( _port );
 		return str;
 	}
-
+#endif
 /*
 =================================================
 	FromServiceUDP

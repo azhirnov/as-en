@@ -94,16 +94,16 @@ void ASmain ()
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 
 	fset.maxUniformBufferSize (16 << 10);
-
 	fset.maxStorageBufferSize (64 << 10);
+
 	fset.perDescrSet_maxInputAttachments (4);
 	fset.perDescrSet_maxSampledImages (96);
 	fset.perDescrSet_maxSamplers (80);
 	fset.perDescrSet_maxStorageBuffers (24);
 	fset.perDescrSet_maxStorageImages (24);
 	fset.perDescrSet_maxUniformBuffers (72);
-
 	fset.perDescrSet_maxTotalResources (512);
+
 	fset.perStage_maxInputAttachments (4);
 	fset.perStage_maxSampledImages (16);
 	fset.perStage_maxSamplers (16);

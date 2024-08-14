@@ -44,13 +44,13 @@ namespace AE::Math
 		template <typename B, glm::qualifier Q>
 		explicit RGBAColor (const TVec<B,4,Q> &v)								__NE___ : r{v.x}, g{v.y}, b{v.z}, a{v.w} {}
 
-		ND_ constexpr bool  operator == (const RGBAColor<T> &rhs)				C_NE___ { return	(r == rhs.r) and (g == rhs.g) and (b == rhs.b) and (a == rhs.a); }
+		ND_ constexpr bool  operator == (const RGBAColor<T> &rhs)				C_NE___ { return (r == rhs.r) and (g == rhs.g) and (b == rhs.b) and (a == rhs.a); }
 		ND_ constexpr bool  operator != (const RGBAColor<T> &rhs)				C_NE___ { return not (*this == rhs); }
 
 		template <glm::qualifier Q>
 		ND_ operator TVec<T,4,Q> ()												C_NE___	{ return {r,g,b,a}; }
 
-		ND_ static constexpr T  MaxValue ()										__NE___	{ if constexpr( IsFloatPoint<T> ) return T(1.0); else return Base::MaxValue<T>(); }
+		ND_ static constexpr T		MaxValue ()									__NE___	{ if constexpr( IsFloatPoint<T> ) return T(1.0); else return Base::MaxValue<T>(); }
 		ND_ static constexpr usize	size ()										__NE___	{ return 4; }
 
 		ND_ T *			data ()													__NE___	{ return std::addressof(r); }
@@ -211,6 +211,29 @@ namespace AE::Math
 		result.b = mid + factor * (col.b - mid);
 		result.a = col.a;
 		return result;
+	}
+
+	ND_ inline RGBA32f  Min (const RGBA32f &x, const RGBA32f &y) __NE___
+	{
+		return RGBA32f{ Min( x.r, y.r ), Min( x.g, y.g ), Min( x.b, y.b ), Min( x.a, y.a )};
+	}
+
+	ND_ inline RGBA32f  Max (const RGBA32f &x, const RGBA32f &y) __NE___
+	{
+		return RGBA32f{ Max( x.r, y.r ), Max( x.g, y.g ), Max( x.b, y.b ), Max( x.a, y.a )};
+	}
+
+	ND_ inline RGBA32f  Clamp (const RGBA32f &x, const float minVal, const float maxVal) __NE___
+	{
+		return RGBA32f{ Clamp( x.r, minVal, maxVal ),
+						Clamp( x.g, minVal, maxVal ),
+						Clamp( x.b, minVal, maxVal ),
+						Clamp( x.a, minVal, maxVal )};
+	}
+
+	ND_ inline RGBA32f  Saturate (const RGBA32f &x) __NE___
+	{
+		return RGBA32f{ Saturate( x.r ), Saturate( x.g ), Saturate( x.b ), Saturate( x.a )};
 	}
 //-----------------------------------------------------------------------------
 
@@ -569,17 +592,17 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	template <typename T>	struct TMemCopyAvailable< RGBAColor<T> >		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
-	template <>				struct TMemCopyAvailable< DepthStencil >		{ static constexpr bool  value = true; };
-	template <>				struct TMemCopyAvailable< HSVColor >			{ static constexpr bool  value = true; };
+	template <typename T>	struct TMemCopyAvailable< RGBAColor<T> >		: CT_Bool< IsMemCopyAvailable<T> >{};
+	template <>				struct TMemCopyAvailable< DepthStencil >		: CT_True {};
+	template <>				struct TMemCopyAvailable< HSVColor >			: CT_True {};
 
-	template <typename T>	struct TZeroMemAvailable< RGBAColor<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
-	template <>				struct TZeroMemAvailable< DepthStencil >		{ static constexpr bool  value = true; };
-	template <>				struct TZeroMemAvailable< HSVColor >			{ static constexpr bool  value = true; };
+	template <typename T>	struct TZeroMemAvailable< RGBAColor<T> >		: CT_Bool< IsZeroMemAvailable<T> >{};
+	template <>				struct TZeroMemAvailable< DepthStencil >		: CT_True {};
+	template <>				struct TZeroMemAvailable< HSVColor >			: CT_True {};
 
-	template <typename T>	struct TTriviallySerializable< RGBAColor<T> >	{ static constexpr bool  value = IsTriviallySerializable<T>; };
-	template <>				struct TTriviallySerializable< DepthStencil >	{ static constexpr bool  value = true; };
-	template <>				struct TTriviallySerializable< HSVColor >		{ static constexpr bool  value = true; };
+	template <typename T>	struct TTriviallySerializable< RGBAColor<T> >	: CT_Bool< IsTriviallySerializable<T> >{};
+	template <>				struct TTriviallySerializable< DepthStencil >	: CT_True {};
+	template <>				struct TTriviallySerializable< HSVColor >		: CT_True {};
 
 } // AE::Base
 

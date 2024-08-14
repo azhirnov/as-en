@@ -6,9 +6,12 @@
 #pragma once
 
 #ifdef AE_ENABLE_UTF8PROC
-
 # include "base/Algorithms/Cast.h"
 # include "utf8proc.h"
+
+# if UTF8PROC_VERSION_MAJOR != 2 or UTF8PROC_VERSION_MINOR != 9
+#	error required Utf8Proc 2.9
+# endif
 
 namespace AE::Base
 {

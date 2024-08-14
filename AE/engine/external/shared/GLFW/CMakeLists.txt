@@ -4,6 +4,11 @@
 
 set( GLFW_PATH "${AE_DST_PATH}/GLFW" )
 
+if (NOT EXISTS "${GLFW_PATH}/lib")
+	message( FATAL_ERROR "'${GLFW_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "GLFW-lib" INTERFACE )
 target_include_directories( "GLFW-lib" INTERFACE "${GLFW_PATH}/include" )
 target_compile_definitions( "GLFW-lib" INTERFACE "AE_ENABLE_GLFW" "AE_LICENSE_ZLIB" )
@@ -26,6 +31,7 @@ else()
 	set_property( TARGET "GLFW-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${GLFW_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glfw3${CMAKE_STATIC_LIBRARY_SUFFIX}" )
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.GLFW" "tests/main.cpp" )

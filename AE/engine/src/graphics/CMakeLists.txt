@@ -102,6 +102,9 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 		if (WIN32 AND TARGET "NVPerf-lib")
 			target_link_libraries( "Graphics" PUBLIC "NVPerf-lib" )
 		endif()
+		if ( ((${CMAKE_SYSTEM_NAME} STREQUAL "Linux") OR WIN32) AND (TARGET "AMDGpuPerf-lib") )
+			target_link_libraries( "Graphics" PUBLIC "AMDGpuPerf-lib" )
+		endif()
 
 		if (ANDROID)
 			set( AE_VK_TIMELINE_SEMAPHORE OFF CACHE BOOL "Use Vulkan timeline semaphore" )
@@ -115,15 +118,19 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 			target_compile_definitions( "Graphics" PUBLIC AE_VK_TIMELINE_SEMAPHORE=0 )
 		endif()
 
-		if (FALSE)
+		if (APPLE)
 			if (NOT EXISTS "/usr/local/lib/libMoltenVK.dylib")
 				message( FATAL_ERROR "'/usr/local/lib/libMoltenVK.dylib' is not exists, instal VulkanSDK with MoltenVk and try again" )
 			endif()
 			if (NOT EXISTS "/usr/local/lib/libvulkan.dylib")
 				message( FATAL_ERROR "'/usr/local/lib/libvulkan.dylib' is not exists, instal VulkanSDK with MoltenVk and try again" )
 			endif()
-		endif()
-		if (APPLE)
+
+			# TODO: static linking
+			#target_link_libraries( "Graphics" PUBLIC "AE-Bin/external/macos-arm64/MoltenVK/static/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a" )
+			# another way
+			#target_link_libraries(Vulkan INTERFACE "-L${MOLTENVK_HOME}/MoltenVK.xcframework/ios-arm64" "-lMoltenVK")
+
 			target_compile_definitions( "Graphics" PUBLIC VK_USE_PLATFORM_METAL_EXT=1 )
 		endif()
 

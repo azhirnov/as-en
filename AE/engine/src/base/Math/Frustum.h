@@ -156,13 +156,13 @@ namespace AE::Math
 	{
 		ASSERT( _initialized );
 
-		bool	inside = true;
+		T	invisible = T(0);
 
 		for (auto& plane : _planes)
 		{
-			inside &= (Dot( plane.norm, point ) + plane.dist) > -_err;
+			invisible += T( (Dot( plane.norm, point ) + plane.dist) < -_err );
 		}
-		return inside;
+		return invisible <= T(0);
 	}
 
 /*
@@ -175,14 +175,14 @@ namespace AE::Math
 	{
 		ASSERT( _initialized );
 
-		bool	inside	= true;
-		const T	r		= -(sphere.radius + _err);
+		T		invisible	= T(0);
+		const T	r			= -(sphere.radius + _err);
 
 		for (auto& plane : _planes)
 		{
-			inside &= (Dot( plane.norm, sphere.center ) + plane.dist) > r;
+			invisible += T( (Dot( plane.norm, sphere.center ) + plane.dist) < r );
 		}
-		return inside;
+		return invisible <= T(0);
 	}
 
 /*
@@ -195,24 +195,17 @@ namespace AE::Math
 	{
 		ASSERT( _initialized );
 
-	//	auto	center		= aabb.Center();
-	//	auto	half_extent	= aabb.HalfExtent();
-		bool	inside		= true;
+		T	invisible	= T(0);
 
 		for (auto& plane : _planes)
 		{
-			const T	d = Max(aabb.min.x * plane.norm.x, aabb.max.x * plane.norm.x) +
-						Max(aabb.min.y * plane.norm.y, aabb.max.y * plane.norm.y) +
-						Max(aabb.min.z * plane.norm.z, aabb.max.z * plane.norm.z) +
+			const T	d = Max( aabb.min.x * plane.norm.x, aabb.max.x * plane.norm.x ) +
+						Max( aabb.min.y * plane.norm.y, aabb.max.y * plane.norm.y ) +
+						Max( aabb.min.z * plane.norm.z, aabb.max.z * plane.norm.z ) +
 						plane.dist;
-			inside &= (d > -_err);
-			/*
-			const T	d	= Dot( plane.norm, center ) + plane.dist;
-			const T	m	= Abs( plane.norm.x * half_extent.x ) + Abs( plane.norm.y * half_extent.y ) + Abs( plane.norm.z * half_extent.z );
-
-			inside &= (d > -(m + _err));*/
+			invisible += T(d < -_err);
 		}
-		return inside;
+		return invisible <= T(0);
 	}
 
 /*

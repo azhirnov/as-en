@@ -118,7 +118,6 @@ namespace AE::ResEditor
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		auto	batch = _rg.CmdBatch( EQueueType::Graphics, {name} )
-								.UploadMemory()
 								.Begin();
 		batch.AsBatch()->SetSubmissionMode( ESubmitMode::Immediately );	// TODO: use deferred
 		return batch;
@@ -135,7 +134,6 @@ namespace AE::ResEditor
 		if ( not _uiBatch )
 		{
 			_uiBatch = _rg.CmdBatch( EQueueType::Graphics, {"UI"} )
-								.UploadMemory()
 								.Begin();
 		}
 		return _uiBatch;

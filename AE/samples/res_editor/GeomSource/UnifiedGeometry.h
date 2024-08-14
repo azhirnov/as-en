@@ -23,7 +23,7 @@ namespace AE::ResEditor
 		{
 		// types
 		public:
-			using PipelineMap_t	= FlatHashMap< Pair<usize, EDebugMode>, PplnID_t >;
+			using PipelineMap_t	= FlatHashMap< Tuple<usize, EDebugMode, EShaderStages>, PplnID_t >;
 
 
 		// variables

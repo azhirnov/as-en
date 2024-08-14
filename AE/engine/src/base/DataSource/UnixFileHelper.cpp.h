@@ -123,7 +123,7 @@ namespace
 	{
 		struct stat st;
 
-		if ( ::fstat( file, OUT &st ) == 0 )
+		if_likely( ::fstat( file, OUT &st ) == 0 )
 			return Bytes{ulong( st.st_size )};
 
 		return 0_b;

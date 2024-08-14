@@ -69,8 +69,8 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	template <typename T>	struct TMemCopyAvailable< Range<T> >		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
-	template <typename T>	struct TZeroMemAvailable< Range<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
-	template <typename T>	struct TTriviallySerializable< Range<T> >	{ static constexpr bool  value = IsTriviallySerializable<T>; };
+	template <typename T>	struct TMemCopyAvailable< Range<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
+	template <typename T>	struct TZeroMemAvailable< Range<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
+	template <typename T>	struct TTriviallySerializable< Range<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
 
 } // AE::Base

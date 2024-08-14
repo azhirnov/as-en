@@ -108,6 +108,8 @@ extern bool ClockMap_Test1 (TestDevice& vulkan)
 	if ( not vulkan.GetShaderClockFeats().shaderDeviceClock )
 		return true;	// not supported
 
+	ON_DESTROY( [&vulkan]() { vulkan.FreeTempHandles(); });
+
 	// create renderpass and framebuffer
 	uint			width = 16, height = 16;
 	VkRenderPass	render_pass;
@@ -253,8 +255,6 @@ extern bool ClockMap_Test1 (TestDevice& vulkan)
 	}
 
 	CHECK_ERR( vulkan.CheckTimeMap( {frag_shader} ));
-
-	vulkan.FreeTempHandles();
 
 	TEST_PASSED();
 	return true;

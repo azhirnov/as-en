@@ -89,8 +89,8 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "Matrix.glsl"
-	#include "ReliefMapping.glsl"
 	#include "Normal.glsl"
+	#include "ReliefMapping.glsl"
 
 	// sliders:
 	#ifndef iCalcNormal
@@ -112,7 +112,7 @@
 	#define ExtractNormal( _normalMap_, _uv_ )		(ToSNorm(gl.texture.Sample( _normalMap_, _uv_ ).yzw) * float3(1.f, -1.f, 1.f))
 
 	#define GetPosition( _uv_, _off_ )\
-		float3( _uv_ + float2(_off_) * inv_size, gl.texture.SampleLodOffset( un_HeightNormalMap, _uv_, lod, _off_ ).r ) * float3(1.f, 1.f, iHeightScale)
+		float3( _uv_ + float2(_off_) * inv_size, gl.texture.SampleLodOffset( un_HeightNormalMap, _uv_, lod, _off_ ).r * iHeightScale )
 
 
 	ND_ float3  CalcNormal (const float2 uv)

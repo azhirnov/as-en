@@ -101,6 +101,10 @@ void ASmain ()
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 	fset.shaderUniformTexelBufferArrayDynamicIndexing (True);
 	fset.shaderStorageTexelBufferArrayDynamicIndexing (True);
+	fset.shaderUniformBufferArrayNonUniformIndexing (True);
+	fset.shaderSampledImageArrayNonUniformIndexing (True);
+	fset.shaderStorageBufferArrayNonUniformIndexing (True);
+	fset.shaderStorageImageArrayNonUniformIndexing (True);
 	fset.shaderUniformTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageMultisample (True);

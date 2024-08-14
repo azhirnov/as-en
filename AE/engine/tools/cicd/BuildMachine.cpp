@@ -271,7 +271,7 @@ namespace AE::CICD
 	  #endif
 
 		if ( not target.empty() )
-			cmd << target << ':';
+			cmd << ':' << target << ':';
 
 		cmd << "assemble" << (isDebug ? "Debug" : "Release");
 		return _Execute( cmd, projectFolder, flags );
@@ -530,12 +530,13 @@ namespace AE::CICD
 	{
 		CHECK_ERR( _sessionId == msg.sessionId );
 
-	  #ifdef AE_PLATFORM_WINDOWS
 		const Path	src = _sessionDir / msg.archive;
 		const Path	zip = Path{src}.replace_extension(".zip");
 		const Path	dir = Path{zip}.replace_extension();
 
 		CHECK_ERR( FS::Rename( src, zip ));
+
+	  #ifdef AE_PLATFORM_WINDOWS
 
 		String	cmd = "powershell Expand-Archive \"";
 		cmd << ToString(zip);
@@ -544,8 +545,17 @@ namespace AE::CICD
 		cmd << "\"";
 
 		CHECK_ERR( _Execute( cmd, Path{}, OSProcess::EFlags::UseCommandPrompt ));
+
 	  #else
-		// TODO
+
+		String	cmd = "unzip \"";
+		cmd << ToString(zip);
+		cmd < "\" -d \"";
+		cmd << ToString(dir);
+		cmd << "\"";
+
+		CHECK_ERR( _Execute( cmd, Path{} ));
+
 	  #endif
 		return true;
 	}

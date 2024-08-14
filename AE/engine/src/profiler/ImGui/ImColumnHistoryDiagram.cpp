@@ -7,7 +7,7 @@
 
 namespace AE::Base
 {
-	template <typename ...Args> struct TNothrowCtor< ImVec2, Args... > { static constexpr bool  value = true; };
+	template <typename ...Args> struct TNothrowCtor< ImVec2, Args... > : CT_True {};
 }
 
 namespace AE::Profiler
@@ -148,14 +148,14 @@ namespace AE::Profiler
 	Add
 =================================================
 */
-	void  ImColumnHistoryDiagram::Add (const String &fullName, RGBA8u color, nanosecondsd begin, nanosecondsd end)
+	void  ImColumnHistoryDiagram::Add (StringView fullName, RGBA8u color, nanosecondsd begin, nanosecondsd end)
 	{
 		CHECK_ERRV( not _guard.try_lock() );
 
 		String	name;
 		{
 			usize	pos = fullName.rfind( "| " );
-			name = (pos != UMax ? fullName.substr( pos+2 ) : fullName);
+			name = String{ pos != UMax ? fullName.substr( pos+2 ) : fullName };
 		}
 
 		auto&			f				 = _frames[ _currentFrameIdx ];

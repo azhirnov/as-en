@@ -39,8 +39,8 @@ extern void Test_RemoteDevice (IApplication*, IWindow* wnd)
 		GraphicsCreateInfo		info;
 		RSwapchainInitializer	swapchain;
 
-		info.staging.readStaticSize .fill( 2_Mb );
-		info.staging.writeStaticSize.fill( 2_Mb );
+		info.staging.readStaticSize  = 2_Mb;
+		info.staging.writeStaticSize = 2_Mb;
 
 		info.device.appName			= "TestApp";
 		info.device.requiredQueues	= EQueueMask::Graphics;

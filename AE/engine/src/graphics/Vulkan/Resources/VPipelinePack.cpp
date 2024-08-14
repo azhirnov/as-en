@@ -103,7 +103,7 @@ namespace AE::Graphics
 			for (auto& fs_name : rp_info.features)
 			{
 				supported &= (_unsupportedFS->count( fs_name ) == 0);
-				ASSERT( _allFeatureSets->count( fs_name ));
+				ASSERT( _allFeatureSets->count( fs_name ) != 0 );
 			}
 
 			uint	vk_ver		= 0;

@@ -714,6 +714,8 @@ namespace
 */
 	bool  WindowsUtils::_ClipboardPut (const void* data, Bytes dataSize, uint format, void* wnd) __NE___
 	{
+		CHECK_ERR( data != null );
+
 		HGLOBAL		hmem = ::GlobalAlloc( GMEM_MOVEABLE, SIZE_T(dataSize) ); // winxp
 		if_unlikely( hmem == null )
 			return false;
@@ -736,14 +738,36 @@ namespace
 		return result;
 	}
 
-	bool  WindowsUtils::ClipboardPut (WStringView str, void* wnd) __NE___
+	bool  WindowsUtils::ClipboardPut (NtWStringView str, void* wnd) __NE___
 	{
-		return _ClipboardPut( str.data(), (str.size()+1) * SizeOf<wchar_t>, CF_UNICODETEXT, wnd );
+		if_unlikely( str.empty() )
+			return ClipboardClear();
+
+		return _ClipboardPut( str.c_str(), (str.size()+1) * SizeOf<wchar_t>, CF_UNICODETEXT, wnd );
 	}
 
-	bool  WindowsUtils::ClipboardPut (StringView str, void* wnd) __NE___
+	bool  WindowsUtils::ClipboardPut (NtStringView str, void* wnd) __NE___
 	{
-		return _ClipboardPut( str.data(), (str.size()+1) * SizeOf<char>, CF_TEXT, wnd );
+		if_unlikely( str.empty() )
+			return ClipboardClear();
+
+		return _ClipboardPut( str.c_str(), (str.size()+1) * SizeOf<char>, CF_TEXT, wnd );
+	}
+
+/*
+=================================================
+	ClipboardClear
+=================================================
+*/
+	bool  WindowsUtils::ClipboardClear (void* wnd) __NE___
+	{
+		if_likely( ::OpenClipboard( BitCast<HWND>(wnd) ) != FALSE )	// win2000
+		{
+			::EmptyClipboard();										// win2000
+			::CloseClipboard();										// win2000
+			return true;
+		}
+		return false;
 	}
 
 /*

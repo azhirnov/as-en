@@ -34,7 +34,7 @@
 	{																\
 		BOOL	ok = (__VA_ARGS__);									\
 		DEBUG_ONLY( if ( not ok )  AE::Audio::BASS_CheckError() );	\
-		CHECK_ERR_MSG( ok, AE_TOSTRING( __VA_ARGS__ ));				\
+		CHECK_ERR_MSG( ok != 0, AE_TOSTRING( __VA_ARGS__ ));		\
 	}
 
 namespace AE::Audio

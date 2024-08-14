@@ -1,6 +1,8 @@
-//cb1fc581
+//6e22be57
 #include <vector>
 #include <string>
+
+#define funcdef // typedef for function
 
 using int8		= std::int8_t;
 using uint8		= std::uint8_t;
@@ -20,47 +22,47 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct ActionInfo;
-struct Android_BindingsMode;
-struct sbyte3;
-struct ushort2;
-struct short3;
-struct short2;
-struct ushort3;
-struct sbyte4;
-struct ushort4;
-struct GLFW_BindingsMode;
-struct uint3;
-struct uint4;
-struct Android_Input;
-struct uint2;
-struct float4;
-struct float3;
-struct float2;
-struct WinAPI_BindingsMode;
-struct OpenVR_ActionBindings;
-struct GLFW_ActionBindings;
-struct ubyte2;
-struct ubyte3;
 struct EGestureType;
+struct ubyte3;
+struct ubyte2;
 struct ubyte4;
 struct EGestureState;
-struct WinAPI_ActionBindings;
 struct OpenVR_Input;
+struct WinAPI_ActionBindings;
 struct WinAPI_Input;
 struct EValueType;
 struct VecSwizzle;
 struct Android_ActionBindings;
-struct int4;
 struct bool4;
-struct int2;
-struct bool2;
 struct int3;
-struct GLFW_Input;
+struct bool2;
+struct int2;
 struct bool3;
-struct OpenVR_BindingsMode;
+struct GLFW_Input;
+struct int4;
 struct short4;
+struct OpenVR_BindingsMode;
+struct ushort3;
+struct sbyte4;
+struct Android_BindingsMode;
+struct sbyte3;
+struct ActionInfo;
 struct sbyte2;
+struct ushort4;
+struct ushort2;
+struct short3;
+struct short2;
+struct GLFW_BindingsMode;
+struct uint3;
+struct uint4;
+struct uint2;
+struct Android_Input;
+struct float4;
+struct float2;
+struct float3;
+struct WinAPI_BindingsMode;
+struct GLFW_ActionBindings;
+struct OpenVR_ActionBindings;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -95,6 +97,8 @@ int  CeilPOT (int x);
 int  AlignDown (int x, int align);
 int  AlignUp (int x, int align);
 bool  IsMultipleOf (int x, int align);
+int  SafeDiv (int x, int y, int defVal);
+int  DivCeil (int x, int y);
 uint  Square (uint x);
 uint  Min (uint x, uint y);
 uint  Max (uint x, uint y);
@@ -119,6 +123,8 @@ uint  CeilPOT (uint x);
 uint  AlignDown (uint x, uint align);
 uint  AlignUp (uint x, uint align);
 bool  IsMultipleOf (uint x, uint align);
+uint  SafeDiv (uint x, uint y, uint defVal);
+uint  DivCeil (uint x, uint y);
 float  Abs (float x);
 float  MirroredWrap (float x, float min, float max);
 float  Square (float x);
@@ -854,6 +860,30 @@ bool  All (const bool3 & x);
 bool  Any (const bool3 & x);
 bool  All (const bool4 & x);
 bool  Any (const bool4 & x);
+sbyte2  DivCeil (const sbyte2 & x, const sbyte2 & y);
+sbyte2  DivCeil (const sbyte2 & x, int8 y);
+sbyte3  DivCeil (const sbyte3 & x, const sbyte3 & y);
+sbyte3  DivCeil (const sbyte3 & x, int8 y);
+sbyte4  DivCeil (const sbyte4 & x, const sbyte4 & y);
+sbyte4  DivCeil (const sbyte4 & x, int8 y);
+ubyte2  DivCeil (const ubyte2 & x, const ubyte2 & y);
+ubyte2  DivCeil (const ubyte2 & x, uint8 y);
+ubyte3  DivCeil (const ubyte3 & x, const ubyte3 & y);
+ubyte3  DivCeil (const ubyte3 & x, uint8 y);
+ubyte4  DivCeil (const ubyte4 & x, const ubyte4 & y);
+ubyte4  DivCeil (const ubyte4 & x, uint8 y);
+short2  DivCeil (const short2 & x, const short2 & y);
+short2  DivCeil (const short2 & x, int16 y);
+short3  DivCeil (const short3 & x, const short3 & y);
+short3  DivCeil (const short3 & x, int16 y);
+short4  DivCeil (const short4 & x, const short4 & y);
+short4  DivCeil (const short4 & x, int16 y);
+ushort2  DivCeil (const ushort2 & x, const ushort2 & y);
+ushort2  DivCeil (const ushort2 & x, uint16 y);
+ushort3  DivCeil (const ushort3 & x, const ushort3 & y);
+ushort3  DivCeil (const ushort3 & x, uint16 y);
+ushort4  DivCeil (const ushort4 & x, const ushort4 & y);
+ushort4  DivCeil (const ushort4 & x, uint16 y);
 int2  Abs (const int2 & x);
 int2  MirroredWrap (const int2 & x, const int2 & min, const int2 & max);
 int2  MirroredWrap (const int2 & x, int min, int max);
@@ -866,6 +896,8 @@ int2  Clamp (const int2 & val, int min, int max);
 int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
 int2  Wrap (const int2 & val, int min, int max);
 int  VecToLinear (const int2 & pos, const int2 & dim);
+int2  DivCeil (const int2 & x, const int2 & y);
+int2  DivCeil (const int2 & x, int y);
 int3  Abs (const int3 & x);
 int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
 int3  MirroredWrap (const int3 & x, int min, int max);
@@ -878,6 +910,8 @@ int3  Clamp (const int3 & val, int min, int max);
 int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
 int3  Wrap (const int3 & val, int min, int max);
 int  VecToLinear (const int3 & pos, const int3 & dim);
+int3  DivCeil (const int3 & x, const int3 & y);
+int3  DivCeil (const int3 & x, int y);
 int4  Abs (const int4 & x);
 int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
 int4  MirroredWrap (const int4 & x, int min, int max);
@@ -890,6 +924,8 @@ int4  Clamp (const int4 & val, int min, int max);
 int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
 int4  Wrap (const int4 & val, int min, int max);
 int  VecToLinear (const int4 & pos, const int4 & dim);
+int4  DivCeil (const int4 & x, const int4 & y);
+int4  DivCeil (const int4 & x, int y);
 uint  Sum (const uint2 & x);
 uint  Area (const uint2 & x);
 uint2  Min (const uint2 & x, const uint2 & y);
@@ -899,6 +935,8 @@ uint2  Clamp (const uint2 & val, uint min, uint max);
 uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
 uint2  Wrap (const uint2 & val, uint min, uint max);
 uint  VecToLinear (const uint2 & pos, const uint2 & dim);
+uint2  DivCeil (const uint2 & x, const uint2 & y);
+uint2  DivCeil (const uint2 & x, uint y);
 uint  Sum (const uint3 & x);
 uint  Area (const uint3 & x);
 uint3  Min (const uint3 & x, const uint3 & y);
@@ -908,6 +946,8 @@ uint3  Clamp (const uint3 & val, uint min, uint max);
 uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
 uint3  Wrap (const uint3 & val, uint min, uint max);
 uint  VecToLinear (const uint3 & pos, const uint3 & dim);
+uint3  DivCeil (const uint3 & x, const uint3 & y);
+uint3  DivCeil (const uint3 & x, uint y);
 uint  Sum (const uint4 & x);
 uint  Area (const uint4 & x);
 uint4  Min (const uint4 & x, const uint4 & y);
@@ -917,6 +957,8 @@ uint4  Clamp (const uint4 & val, uint min, uint max);
 uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
 uint4  Wrap (const uint4 & val, uint min, uint max);
 uint  VecToLinear (const uint4 & pos, const uint4 & dim);
+uint4  DivCeil (const uint4 & x, const uint4 & y);
+uint4  DivCeil (const uint4 & x, uint y);
 float2  Abs (const float2 & x);
 float2  MirroredWrap (const float2 & x, const float2 & min, const float2 & max);
 float2  MirroredWrap (const float2 & x, float min, float max);
@@ -1805,6 +1847,24 @@ struct OpenVR_ActionBindings
 };
 
 template <>
+struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+{
+	RC (const WinAPI_ActionBindings &);
+};
+
+template <>
+struct RC<Android_ActionBindings> : Android_ActionBindings
+{
+	RC (const Android_ActionBindings &);
+};
+
+template <>
+struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
+{
+	RC (const OpenVR_BindingsMode &);
+};
+
+template <>
 struct RC<Android_BindingsMode> : Android_BindingsMode
 {
 	RC (const Android_BindingsMode &);
@@ -1823,32 +1883,14 @@ struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
 };
 
 template <>
-struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
-{
-	RC (const OpenVR_ActionBindings &);
-};
-
-template <>
 struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
 {
 	RC (const GLFW_ActionBindings &);
 };
 
 template <>
-struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
 {
-	RC (const WinAPI_ActionBindings &);
-};
-
-template <>
-struct RC<Android_ActionBindings> : Android_ActionBindings
-{
-	RC (const Android_ActionBindings &);
-};
-
-template <>
-struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
-{
-	RC (const OpenVR_BindingsMode &);
+	RC (const OpenVR_ActionBindings &);
 };
 

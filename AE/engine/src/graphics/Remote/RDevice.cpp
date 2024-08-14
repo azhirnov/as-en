@@ -329,6 +329,10 @@ namespace {
 		}
 
 		CHECK_ERR( _devInfo.initialized );
+		CHECK_MSG( _devInfo.engineVersion == Version3( AE_VERSION.Get<0>(), AE_VERSION.Get<1>(), AE_VERSION.Get<2>() ),
+			"Engine version mismatch, remote ("s << ToString(_devInfo.engineVersion) <<
+			"), host (" << ToString(Version3{ AE_VERSION.Get<0>(), AE_VERSION.Get<1>(), AE_VERSION.Get<2>() }) << ")" );
+
 		CHECK_ERR( _InitQueues() );
 
 		if ( _enableInfoLog )

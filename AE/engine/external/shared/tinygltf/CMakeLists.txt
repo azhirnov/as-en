@@ -8,6 +8,7 @@ add_library( "TinyglTF-lib" INTERFACE )
 target_include_directories( "TinyglTF-lib" INTERFACE "${TINYGLTF_PATH}" )
 target_compile_definitions( "TinyglTF-lib" INTERFACE "AE_ENABLE_TINYGLTF" "AE_LICENSE_MIT" ) # TINYGLTF_USE_CPP14 TINYGLTF_NO_FS TINYGLTF_NO_STB_IMAGE TINYGLTF_NO_STB_IMAGE_WRITE JSON_NOEXCEPTION TINYGLTF_NOEXCEPTION
 install( FILES "${TINYGLTF_PATH}/LICENSE" DESTINATION "3party_license" RENAME "TinyglTF-LICENSE" )
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	if (ANDROID)

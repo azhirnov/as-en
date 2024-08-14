@@ -370,7 +370,7 @@ namespace _hidden_
 		_hasValue{ other._hasValue }
 	{
 		if ( _hasValue )
-			PlacementNew<T>( OUT &_value, other._value );
+			PlacementNew<T>( OUT std::addressof(_value), other._value );
 	}
 
 	template <typename T>
@@ -379,7 +379,7 @@ namespace _hidden_
 	{
 		CheckNothrow( IsNothrowMoveCtor<T> );
 		if ( _hasValue )
-			PlacementNew<T>( OUT &_value, RVRef(other._value) );
+			PlacementNew<T>( OUT std::addressof(_value), RVRef(other._value) );
 	}
 
 /*
@@ -396,7 +396,7 @@ namespace _hidden_
 		_hasValue = rhs._hasValue;
 
 		if ( _hasValue )
-			PlacementNew<T>( OUT &_value, rhs._value );
+			PlacementNew<T>( OUT std::addressof(_value), rhs._value );
 
 		return *this;
 	}
@@ -413,7 +413,7 @@ namespace _hidden_
 
 		if ( _hasValue )
 		{
-			PlacementNew<T>( OUT &_value, RVRef(rhs._value) );
+			PlacementNew<T>( OUT std::addressof(_value), RVRef(rhs._value) );
 			rhs._value.~T();
 			rhs._hasValue = false;
 		}
@@ -427,7 +427,7 @@ namespace _hidden_
 			_value.~T();
 
 		_hasValue = true;
-		PlacementNew<T>( OUT &_value, rhs );
+		PlacementNew<T>( OUT std::addressof(_value), rhs );
 
 		return *this;
 	}
@@ -441,7 +441,7 @@ namespace _hidden_
 			_value.~T();
 
 		_hasValue = true;
-		PlacementNew<T>( OUT &_value, RVRef(rhs) );
+		PlacementNew<T>( OUT std::addressof(_value), RVRef(rhs) );
 
 		return *this;
 	}

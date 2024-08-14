@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	TODO Optimization:
-		* add extrnal lock
+		* add external lock
 		* if locked then:
 			* create temporary cache
 			* compile pipeline with cache

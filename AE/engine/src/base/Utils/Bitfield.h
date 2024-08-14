@@ -109,16 +109,24 @@ namespace AE::Base
 		ND_ constexpr T			Get ()								C_NE___	{ return _bits; }
 		ND_ constexpr T &		Ref ()								__NE___	{ return _bits; }
 
+		// change first 1 bit to 0
 		ND_ constexpr T			ExtractBit ()						__NE___;
 		ND_ constexpr int		ExtractBitIndex ()					__NE___	{ return IntLog2( ExtractBit() ); }
 
+		// returns first 1 bit
+		ND_ constexpr T			GetFirstBit ()						C_NE___;
+		ND_ constexpr int		GetFirstBitIndex ()					C_NE___	{ return IntLog2( GetFirstBit() ); }
+
+		// change first 0 bit to 1
 		ND_ constexpr T			SetFirstZeroBit ()					__NE___;
 		ND_ constexpr int		SetFirstZeroBitIndex ()				__NE___	{ return IntLog2( SetFirstZeroBit() ); }
 
+		// returns first 0 bit
 		ND_ constexpr T			GetFirstZeroBit ()					C_NE___;
 		ND_ constexpr int		GetFirstZeroBitIndex ()				C_NE___	{ return IntLog2( GetFirstZeroBit() ); }
 
 		ND_ usize				BitCount ()							C_NE___	{ return Math::BitCount( _bits ); }
+		ND_ usize				ZeroBitCount ()						C_NE___	{ return Math::BitCount( ~_bits ); }
 
 		ND_ HashVal				CalcHash ()							C_NE___;
 	};
@@ -177,7 +185,7 @@ namespace AE::Base
 		StaticAssert( Bit < _BitCount );
 		StaticAssert( Bit+Count <= _BitCount );
 
-		_bits |= ((T{1} << Count)-1) << Bit;
+		_bits |= ToBitMask<T>( Count ) << Bit;
 		return *this;
 	}
 
@@ -188,7 +196,7 @@ namespace AE::Base
 		StaticAssert( Bit < _BitCount );
 		StaticAssert( Bit+Count <= _BitCount );
 
-		_bits &= ~(((T{1} << Count)-1) << Bit);
+		_bits &= ~(ToBitMask<T>( Count ) << Bit);
 		return *this;
 	}
 
@@ -199,7 +207,7 @@ namespace AE::Base
 		StaticAssert( Bit < _BitCount );
 		StaticAssert( Bit+Count <= _BitCount );
 
-		const T	mask = ((T{1} << Count)-1) << Bit;
+		const T	mask = ToBitMask<T>( Count ) << Bit;
 		return (_bits & mask) == mask;
 	}
 
@@ -210,7 +218,7 @@ namespace AE::Base
 		ASSERT( first < _BitCount );
 		ASSERT( first+count <= _BitCount );
 
-		_bits |= ((T{1} << count)-1) << first;
+		_bits |= ToBitMask<T>( count ) << first;
 		return *this;
 	}
 
@@ -221,7 +229,7 @@ namespace AE::Base
 		ASSERT( first < _BitCount );
 		ASSERT( first+count <= _BitCount );
 
-		_bits &= ~(((T{1} << count)-1) << first);
+		_bits &= ~(ToBitMask<T>( count ) << first);
 		return *this;
 	}
 
@@ -232,7 +240,7 @@ namespace AE::Base
 		ASSERT( first < _BitCount );
 		ASSERT( first+count <= _BitCount );
 
-		const T	mask = ((T{1} << count)-1) << first;
+		const T	mask = ToBitMask<T>( count ) << first;
 		return (_bits & mask) == mask;
 	}
 

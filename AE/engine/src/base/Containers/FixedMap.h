@@ -134,6 +134,7 @@ namespace AE::Base
 
 		ND_ usize			size ()										C_NE___	{ return _count; }
 		ND_ bool			empty ()									C_NE___	{ return _count == 0; }
+		ND_ bool			IsFull ()									C_NE___	{ return size() >= capacity(); }
 
 		ND_ iterator		begin ()									__NE___	{ return iterator{ this, 0 }; }
 		ND_ const_iterator	begin ()									C_NE___	{ return const_iterator{ this, 0 }; }
@@ -162,6 +163,9 @@ namespace AE::Base
 		// same as operator [] in std
 			template <typename KeyType>
 		ND_ Value &			operator () (KeyType&& key)					__NE___	{ auto[iter, inst] = emplace( FwdArg<KeyType>(key), Value{} );  return iter->second; }
+
+			template <typename KeyType>
+		ND_ Value			GetIf (const KeyType &key, Value&& defValue)C_NE___;
 
 			template <typename KeyType>
 		ND_ const_iterator	find (const KeyType &key)					C_NE___	{ return _Find<const_iterator>( *this, key ); }
@@ -193,8 +197,8 @@ namespace AE::Base
 		ND_ PairRef_t		operator [] (usize i)						__NE___;
 		ND_ PairCRef_t		operator [] (usize i)						C_NE___;
 
-		ND_ ArrayView<Key>		GetKeyArray ()							C_NE___	{ return { &_keyArray[0], _count }; }
-		ND_ ArrayView<Value>	GetValueArray ()						C_NE___	{ return { &_valArray[0], _count }; }
+		ND_ ArrayView<Key>		GetKeyArray ()							C_NE___	{ return { std::addressof(_keyArray[0]), _count }; }
+		ND_ ArrayView<Value>	GetValueArray ()						C_NE___	{ return { std::addressof(_valArray[0]), _count }; }
 
 		ND_ Pair<ArrayView<Key>, ArrayView<Value>>  ToArray ()			C_NE___	{ return {GetKeyArray(), GetValueArray()}; }
 
@@ -418,8 +422,8 @@ namespace _hidden_
 		if_likely( _count < capacity() )
 		{
 			const usize	j = _count++;
-			PlacementNew<key_type  >( OUT &_keyArray[j], FwdArg<KeyType  >(key)   );
-			PlacementNew<value_type>( OUT &_valArray[j], FwdArg<ValueType>(value) );
+			PlacementNew<key_type  >( OUT std::addressof(_keyArray[j]), FwdArg<KeyType  >(key)   );
+			PlacementNew<value_type>( OUT std::addressof(_valArray[j]), FwdArg<ValueType>(value) );
 
 			if ( i < _count )
 				for (usize k = _count-1; k > i; --k) {
@@ -455,10 +459,10 @@ namespace _hidden_
 		if_likely( i < _count and key == _keyArray[_indices[i]] )
 		{
 			const Index_t	idx = _indices[i];
-			KPolicy_t::Destroy( INOUT &_keyArray[idx], 1 );
-			VPolicy_t::Destroy( INOUT &_valArray[idx], 1 );
-			PlacementNew<key_type  >( OUT &_keyArray[idx], FwdArg<KeyType  >(key)   );
-			PlacementNew<value_type>( OUT &_valArray[idx], FwdArg<ValueType>(value) );
+			KPolicy_t::Destroy( INOUT std::addressof(_keyArray[idx]), 1 );
+			VPolicy_t::Destroy( INOUT std::addressof(_valArray[idx]), 1 );
+			PlacementNew<key_type  >( OUT std::addressof(_keyArray[idx]), FwdArg<KeyType  >(key)   );
+			PlacementNew<value_type>( OUT std::addressof(_valArray[idx]), FwdArg<ValueType>(value) );
 			return { iterator{ this, idx }, false };
 		}
 
@@ -466,8 +470,8 @@ namespace _hidden_
 		if_likely( _count < capacity() )
 		{
 			const usize	j = _count++;
-			PlacementNew<key_type  >( OUT &_keyArray[j], FwdArg<KeyType  >(key)   );
-			PlacementNew<value_type>( OUT &_valArray[j], FwdArg<ValueType>(value) );
+			PlacementNew<key_type  >( OUT std::addressof(_keyArray[j]), FwdArg<KeyType  >(key)   );
+			PlacementNew<value_type>( OUT std::addressof(_valArray[j]), FwdArg<ValueType>(value) );
 
 			if ( i < _count )
 				for (usize k = _count-1; k > i; --k) {
@@ -484,6 +488,22 @@ namespace _hidden_
 			DBG_WARNING( "overflow!" );
 			return {};
 		}
+	}
+
+/*
+=================================================
+	GetIf
+=================================================
+*/
+	template <typename K, typename V, usize S, typename KS, typename VS>
+	template <typename KeyType>
+	V  FixedMap<K,V,S,KS,VS>::GetIf (const KeyType &key, V&& defaultValue) C_NE___
+	{
+		auto	it = find( key );
+		if_likely( it != end() )
+			return it->second;
+		else
+			return RVRef(defaultValue);
 	}
 
 /*
@@ -623,8 +643,8 @@ namespace _hidden_
 		if ( idx != _count )
 		{
 			CheckNothrow( IsNothrowMoveCtor< K > and IsNothrowMoveCtor< V >);
-			KPolicy_t::Replace( OUT &_keyArray[idx], INOUT &_keyArray[_count], 1, True{"single mem block"} );
-			VPolicy_t::Replace( OUT &_valArray[idx], INOUT &_valArray[_count], 1, True{"single mem block"} );
+			KPolicy_t::Replace( OUT std::addressof(_keyArray[idx]), INOUT std::addressof(_keyArray[_count]), 1, True{"single mem block"} );
+			VPolicy_t::Replace( OUT std::addressof(_valArray[idx]), INOUT std::addressof(_valArray[_count]), 1, True{"single mem block"} );
 		}
 		DEBUG_ONLY(
 			DbgInitMem( _indices[_count] );
@@ -684,19 +704,13 @@ namespace _hidden_
 
 
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	struct TMemCopyAvailable< FixedMap<K,V,S,KS,VS> > {
-		static constexpr bool  value = IsMemCopyAvailable<K> and IsMemCopyAvailable<V>;
-	};
+	struct TMemCopyAvailable< FixedMap<K,V,S,KS,VS> >		: CT_Bool< IsMemCopyAvailable<K> and IsMemCopyAvailable<V> >{};
 
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	struct TZeroMemAvailable< FixedMap<K,V,S,KS,VS> > {
-		static constexpr bool  value = IsZeroMemAvailable<K> and IsZeroMemAvailable<V>;
-	};
+	struct TZeroMemAvailable< FixedMap<K,V,S,KS,VS> >		: CT_Bool< IsZeroMemAvailable<K> and IsZeroMemAvailable<V> >{};
 
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	struct TTriviallyDestructible< FixedMap<K,V,S,KS,VS> > {
-		static constexpr bool  value = IsTriviallyDestructible<K> and IsTriviallyDestructible<V>;
-	};
+	struct TTriviallyDestructible< FixedMap<K,V,S,KS,VS> >	: CT_Bool< IsTriviallyDestructible<K> and IsTriviallyDestructible<V> >{};
 
 } // AE::Base
 

@@ -58,7 +58,7 @@ int main (const int argc, char* argv[])
 
 	AE_LOGI( "Engine: "s <<  AE_ENGINE_NAME << " (" << ToString( AE_VERSION ) << ')' );
 	AE_LOGI(
-		"\nPlatform name: "s << AE_PLATFORM_NAME << //" (" << ToString(AE_PLATFORM_TARGET_VERSION_MAJOR) << '.' << ToString(AE_PLATFORM_TARGET_VERSION_MINOR) << ")" <<
+		"\nPlatform name: "s << AE_PLATFORM_NAME <<
 		"\nCPU arch: " << AE_CPU_ARCH_NAME <<
 		"\nCompiler: " << AE_COMPILER_NAME <<
 		"\nCompiler ver: " << ToString(AE_COMPILER_VERSION) <<

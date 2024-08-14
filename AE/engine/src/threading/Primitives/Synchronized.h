@@ -147,10 +147,11 @@ namespace _hidden_
 			ReadNoLock_t&  operator = (ReadNoLock_t &&)			= delete;
 
 			ND_ bool	try_lock_shared ()						__NE___	{ ASSERT( not _locked );	return (_locked = _ref._sync.try_lock_shared()); }
-				void	lock_shared ()							__NE___	{ ASSERT( not _locked );	_ref._sync.lock_shared();    _locked = true;  }
-				void	unlock_shared ()						__NE___	{ ASSERT( _locked );		_ref._sync.unlock_shared();  _locked = false; }
+				void	lock_shared ()							__NE___	{ ASSERT( not _locked );	_ref._sync.lock_shared();		_locked = true;  }
+				void	unlock_shared ()						__NE___	{ ASSERT( _locked );		_ref._sync.unlock_shared();		_locked = false; }
 
-			ND_ auto&	operator * ()							__NE___	{ ASSERT( _locked );		return _ref._values; }
+			ND_ auto&	operator * ()							rvNE___	= delete;
+			ND_ auto&	operator * ()							r_NE___	{ ASSERT( _locked );		return _ref._values; }
 
 			template <typename	T,
 					  usize		Index	= _IndexOf<T>(),
@@ -191,11 +192,12 @@ namespace _hidden_
 			WriteNoLock_t&  operator = (const WriteNoLock_t &)	= delete;
 			WriteNoLock_t&  operator = (WriteNoLock_t &&)		= delete;
 
-			ND_ bool	try_lock ()								__NE___	{ ASSERT( not _locked );  return (_locked = _ref._sync.try_lock()); }
-				void	lock ()									__NE___	{ ASSERT( not _locked );  _ref._sync.lock();    _locked = true;  }
-				void	unlock ()								__NE___	{ ASSERT( _locked );      _ref._sync.unlock();  _locked = false; }
+			ND_ bool	try_lock ()								__NE___	{ ASSERT( not _locked );	return (_locked = _ref._sync.try_lock()); }
+				void	lock ()									__NE___	{ ASSERT( not _locked );	_ref._sync.lock();    _locked = true;  }
+				void	unlock ()								__NE___	{ ASSERT( _locked );		_ref._sync.unlock();  _locked = false; }
 
-			ND_ auto&	operator * ()							__NE___	{ ASSERT( _locked );  return _ref._values; }
+			ND_ auto&	operator * ()							rvNE___	= delete;
+			ND_ auto&	operator * ()							r_NE___	{ ASSERT( _locked );		return _ref._values; }
 
 			template <typename	T,
 					  usize		Index	= _IndexOf<T>(),
@@ -254,7 +256,7 @@ namespace _hidden_
 		{
 			EXLOCK( this->_sync, rhs._sync );	// TODO: sharedlock for 'rhs'
 			this->_values.~Tuple_t();
-			PlacementNew<Tuple_t>( OUT &this->_values, RVRef(rhs._values) );
+			PlacementNew<Tuple_t>( OUT std::addressof(this->_values), RVRef(rhs._values) );
 			return *this;
 		}
 
@@ -262,7 +264,7 @@ namespace _hidden_
 		{
 			EXLOCK( this->_sync, rhs._sync );	// TODO: sharedlock for 'rhs'
 			this->_values.~Tuple_t();
-			PlacementNew<Tuple_t>( OUT &this->_values, rhs._values );
+			PlacementNew<Tuple_t>( OUT std::addressof(this->_values), rhs._values );
 			return *this;
 		}
 
@@ -302,7 +304,7 @@ namespace _hidden_
 			EXLOCK( _sync );
 			auto&	dst = _values.template Get<RawT>();
 			dst.~RawT();
-			PlacementNew<RawT>( OUT &dst, FwdArg<T>(value) );
+			PlacementNew<RawT>( OUT std::addressof(dst), FwdArg<T>(value) );
 		}
 
 		template <typename ...Args>
@@ -322,7 +324,7 @@ namespace _hidden_
 			EXLOCK( _sync );
 			auto&	dst = _values.template Get<Index>();
 			dst.~RawT();
-			PlacementNew<RawT>( OUT &dst );
+			PlacementNew<RawT>( OUT std::addressof( dst ));
 		}
 
 		template <usize		Index,
@@ -333,7 +335,7 @@ namespace _hidden_
 			EXLOCK( _sync );
 			auto&	dst = _values.template Get<Index>();
 			dst.~RawT();
-			PlacementNew<RawT>( OUT &dst );
+			PlacementNew<RawT>( OUT std::addressof( dst ));
 		}
 
 
@@ -421,7 +423,8 @@ namespace _hidden_
 				void		lock_shared ()						__NE___	{ ASSERT( not _locked );	_ref._sync.lock_shared();    _locked = true;  }
 				void		unlock_shared ()					__NE___	{ ASSERT( _locked );		_ref._sync.unlock_shared();  _locked = false; }
 
-			ND_ T const&	operator *  ()						__NE___	{ ASSERT( _locked );		return _ref._value; }
+			ND_ T const&	operator *  ()						rvNE___	= delete;
+			ND_ T const&	operator *  ()						r_NE___	{ ASSERT( _locked );		return _ref._value; }
 			ND_ T const*	operator -> ()						__NE___	{ ASSERT( _locked );		return &_ref._value; }
 		};
 
@@ -448,7 +451,8 @@ namespace _hidden_
 				void	lock ()									__NE___	{ ASSERT( not _locked );	_ref._sync.lock();    _locked = true;  }
 				void	unlock ()								__NE___	{ ASSERT( _locked );		_ref._sync.unlock();  _locked = false; }
 
-			ND_ T &		operator *  ()							__NE___	{ ASSERT( _locked );		return _ref._value; }
+			ND_ T &		operator *  ()							rvNE___	= delete;
+			ND_ T &		operator *  ()							r_NE___	{ ASSERT( _locked );		return _ref._value; }
 			ND_ T *		operator -> ()							__NE___	{ ASSERT( _locked );		return &_ref._value; }
 		};
 
@@ -497,7 +501,7 @@ namespace _hidden_
 		{
 			EXLOCK( this->_sync, rhs._sync );	// TODO: sharedlock for 'rhs'
 			this->_value.~T();
-			PlacementNew<T>( OUT &this->_value, RVRef(rhs._value) );
+			PlacementNew<T>( OUT std::addressof(this->_value), RVRef(rhs._value) );
 			return *this;
 		}
 
@@ -505,7 +509,7 @@ namespace _hidden_
 		{
 			EXLOCK( this->_sync, rhs._sync );	// TODO: sharedlock for 'rhs'
 			this->_value.~T();
-			PlacementNew<T>( OUT &this->_value, rhs._value );
+			PlacementNew<T>( OUT std::addressof(this->_value), rhs._value );
 			return *this;
 		}
 
@@ -521,14 +525,14 @@ namespace _hidden_
 		{
 			EXLOCK( _sync );
 			this->_value.~T();
-			PlacementNew<T>( OUT &this->_value, value );
+			PlacementNew<T>( OUT std::addressof(this->_value), value );
 		}
 
 		void  Write (T &&value)					__NE___
 		{
 			EXLOCK( _sync );
 			this->_value.~T();
-			PlacementNew<T>( OUT &this->_value, RVRef(value) );
+			PlacementNew<T>( OUT std::addressof(this->_value), RVRef(value) );
 		}
 
 
@@ -536,7 +540,7 @@ namespace _hidden_
 		{
 			EXLOCK( _sync );
 			this->_value.~T();
-			PlacementNew<T>( OUT &this->_value );
+			PlacementNew<T>( OUT std::addressof(this->_value) );
 		}
 
 		ND_ T  Extract ()						rvNE___

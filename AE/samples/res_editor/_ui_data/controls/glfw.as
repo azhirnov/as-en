@@ -79,6 +79,8 @@ void ASmain (GLFW_ActionBindings& bindings)
 				  ActionInfo( "UI.ShaderDebugger", EGestureType::Down ));
 		bind.Add( GLFW_Input::F2,
 				  ActionInfo( "UI.FrameCapture", EGestureType::Down ));
+		bind.Add( GLFW_Input::F4,
+				  ActionInfo( "UI.CopySliderState", EGestureType::Down ));
 	}
 
 	// ScaleBias camera

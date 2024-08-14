@@ -80,10 +80,11 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
+	#include "Sort.glsl"
+	#include "Blend.glsl"
 	#include "GlobalIndex.glsl"
 	#include "HWRayTracing.glsl"
-	#include "Blend.glsl"
-	#include "Sort.glsl"
+	#include "ColorSpaceUtility.glsl"
 
 	const float	c_SmallOffset			= 0.0001;
 	const uint	c_MaxIntersections		= 64;
@@ -157,7 +158,7 @@
 			uint	prev_inst	= UnpackInstanceID( g_IntersectionData[0] );
 			int		face_count	= IsFrontFace( g_IntersectionData[0] ) ? -1 : 1;
 
-			[[unroll]] for (uint i = 1; i < c_MaxIntersections; ++i)
+			for (uint i = 1; i < c_MaxIntersections; ++i)
 			{
 				if ( i >= g_IntersectionCount )
 					break;
@@ -177,8 +178,8 @@
 					src.a *= Saturate( depth );
 
 					SeparateBlendParams		p;
-					p.srcColor		= src;		// from shader
-					p.dstColor		= color;	// from render target
+					p.srcColor		= RemoveSRGBCurve( src );	// from shader
+					p.dstColor		= color;					// from render target
 					p.srcBlendRGB	= EBlendFactor_SrcAlpha;
 					p.srcBlendA		= EBlendFactor_One;
 					p.dstBlendRGB	= EBlendFactor_OneMinusSrcAlpha;
@@ -195,7 +196,7 @@
 			}
 		}
 
-		gl.image.Store( un_OutImage, GetGlobalCoord().xy, color );
+		gl.image.Store( un_OutImage, GetGlobalCoord().xy, ApplySRGBCurve( color ));
 	}
 
 #endif

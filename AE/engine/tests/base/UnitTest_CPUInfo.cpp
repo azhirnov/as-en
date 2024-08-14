@@ -32,7 +32,11 @@ namespace
 
 		CpuPerformance::PerProcessCounters	per_proc;
 		CpuPerformance::PerThreadCounters	per_thread;
-		TEST( CpuPerformance::GetPerfCounters( OUT per_proc, OUT per_thread ));
+
+		if ( not CpuPerformance::GetPerfCounters( OUT per_proc, OUT per_thread ))
+		{
+			AE_LOGW( "CpuPerformance::GetPerfCounters() - failed" );
+		}
 	}
 }
 
@@ -40,7 +44,7 @@ namespace
 extern void UnitTest_CPUInfo ()
 {
 	Test_CpuArchInfo();
-	//Test_CpuPerformance();
+	Test_CpuPerformance();
 
 	TEST_PASSED();
 }

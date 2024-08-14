@@ -329,6 +329,11 @@ namespace AE::AppV2
 		const bool	enable_network	= _core ? _core->Config().enableNetwork	: false;
 		const bool	enable_audio	= _core ? _core->Config().enableAudio	: false;
 
+		if ( _core )
+		{
+			for (; Scheduler().ProcessTasks( _core->GetMainThreadMask(), EThreadSeed(usize(this) & 0xF) );) {}
+		}
+
 		_core = null;
 		_windows.clear();
 		_vrDevice = null;
@@ -539,13 +544,13 @@ namespace AE::AppV2
 		if_unlikely( not _device.IsInitialized() )
 			return;
 
-		#if ENABLE_SYNC_LOG
-			VulkanSyncLog::Deinitialize( INOUT _device.EditDeviceFnTable() );
-		#endif
-
 		Unused( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));	// TODO ???
 
 		RenderTaskScheduler::InstanceCtor::Destroy();
+
+		#if ENABLE_SYNC_LOG
+			VulkanSyncLog::Deinitialize( INOUT _device.EditDeviceFnTable() );
+		#endif
 
 		CHECK_ERRV( _device.DestroyLogicalDevice() );
 		CHECK_ERRV( _device.DestroyInstance() );

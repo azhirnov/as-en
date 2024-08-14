@@ -39,6 +39,7 @@ namespace AE::ResEditor
 			BufferLayout () {}
 			explicit BufferLayout (const String &type) : typeName{type} {}
 
+			ND_ uint	Put (const void* data, Bytes rowDataSize, usize rowCount, Bytes align);
 			ND_ uint	Put (const void* data, Bytes dataSize, Bytes align);
 			ND_ uint	Put (Bytes dataSize, Bytes align);
 
@@ -96,7 +97,7 @@ namespace AE::ResEditor
 		ND_ String			GetTypeName ()														C_NE___;
 		ND_ uint			TexelBufferType ()													C_NE___	{ ASSERT( not HasLayout() );  return _texbufType; }
 		ND_ bool			IsDynamicSize ()													C_NE___	{ return _inDynCount != null; }
-		ND_ ulong			GetDeviceAddress ()													__Th___;
+		ND_ ulong			GetDeviceAddress ()													__Th___;	// TODO: return object with address and ref to buffer
 		ND_ EPixelFormat	GetViewFormat ()													C_Th___;	// TODO
 		ND_ bool			WithHistory ()														C_NE___	{ return AllBits( _resUsage, EResourceUsage::WithHistory ); }
 

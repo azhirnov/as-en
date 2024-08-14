@@ -16,16 +16,14 @@ namespace _hidden_
 {
 	template <typename T, T X, usize Bit>
 	struct _IntLog2 {
-		static const int	value = int((X >> Bit) != 0) + _IntLog2<T, X, Bit-1 >::value;
+		static constexpr int	value = int((X >> Bit) != 0) + _IntLog2<T, X, Bit-1 >::value;
 	};
 
 	template <typename T, T X>
 	struct _IntLog2< T, X, 0 > {
-		static const int	value = 0;
+		static constexpr int	value = 0;
 	};
-
-} // _hidden_
-
+}
 	template <auto X>
 	static constexpr int	CT_IntLog2 = (X ? Base::_hidden_::_IntLog2< decltype(X), X, CT_SizeofInBits(X)-1 >::value : -1);
 
@@ -37,11 +35,8 @@ namespace _hidden_
 namespace _hidden_
 {
 	template <ulong X>
-	struct _IsPowerOfTwo {
-		static constexpr bool	value = (X != 0) and ((X & (X - 1)) == 0);
-	};
-} // _hidden_
-
+	struct _IsPowerOfTwo : CT_Bool< (X != 0) and ((X & (X - 1)) == 0) >{};
+}
 	template <auto X>
 	static constexpr bool	CT_IsPowerOfTwo = Base::_hidden_::_IsPowerOfTwo< ulong(X) >::value;
 
@@ -57,8 +52,7 @@ namespace _hidden_
 		static constexpr int	il2		= CT_IntLog2<X>;
 		static constexpr int	value	= il2 >= 0 ? il2 + int(not CT_IsPowerOfTwo<X>) : -1;
 	};
-} // _hidden_
-
+}
 	template <auto X>
 	static constexpr int	CT_CeilIntLog2 = Base::_hidden_::_CeilIntLog2<X>::value;
 
@@ -75,8 +69,7 @@ namespace _hidden_
 		static constexpr int	il2		= CT_IntLog2<X>;
 		static constexpr T		value	= il2 >= 0 ? (T{1} << il2) : T{0};
 	};
-} // _hidden_
-
+}
 	template <auto X>
 	static constexpr auto	CT_FloorPOT = Base::_hidden_::_FloorPOT<X>::value;
 
@@ -150,7 +143,7 @@ namespace _hidden_
 										Count <  0					?  R{0} :
 																	  (R{1} << Count) - 1;
 	};
-} // _hidden_
+}
 
 #ifdef AE_COMPILER_MSVC
 # pragma warning (pop)

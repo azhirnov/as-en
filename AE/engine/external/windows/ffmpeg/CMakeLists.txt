@@ -4,10 +4,16 @@
 
 set( FFMPEG_PATH "${AE_DST_SHARED_PATH}/ffmpeg" )
 
+if (NOT EXISTS "${FFMPEG_PATH}/bin")
+	message( FATAL_ERROR "'${FFMPEG_PATH}/bin' path is not found" )
+endif()
+#------------------------------------------------
+
 add_custom_target( "FFmpeg-copy-dll"
 	COMMAND ${CMAKE_COMMAND} -E copy_directory "${FFMPEG_PATH}/bin" "${MAIN_BINARY_DIR}${AE_RUNTIME_CONFIG}"
 	COMMENT "Copying FFmpeg DLLs..." )
 set_property( TARGET "FFmpeg-copy-dll" PROPERTY FOLDER "Engine/External" )
+#------------------------------------------------
 
 add_library( "FFmpeg-lib" INTERFACE )
 target_include_directories( "FFmpeg-lib" INTERFACE "${FFMPEG_PATH}/include" )

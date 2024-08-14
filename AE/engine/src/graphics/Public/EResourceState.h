@@ -50,7 +50,6 @@ namespace AE::Graphics
 			DepthStencilTest_ShaderSample,
 			DepthTest_DepthSample_StencilRW,
 			Host_Read,
-			Host_Write,
 
 			// buffer state in shader stages
 			ShaderRTAS,
@@ -154,7 +153,6 @@ namespace AE::Graphics
 		DepthTest_DepthSample_StencilRW			= _EResState::DepthTest_DepthSample_StencilRW | _EResState::DepthTest | _EResState::StencilRW,
 
 		Host_Read								= _EResState::Host_Read | _EResState::Read,
-		Host_Write								= _EResState::Host_Write | _EResState::Write,
 
 		PresentImage							= _EResState::PresentImage | _EResState::Read,
 

@@ -22,7 +22,7 @@ namespace AE::Graphics::_hidden_
 	{
 		GCTX_CHECK( _batch->GetQueueType() == GetQueueType() );
 		GCTX_CHECK( _primaryState.IsValid() );
-		GCTX_CHECK( _primaryState.useSecondaryCmdbuf );
+		GCTX_CHECK( _primaryState.useSecondaryCmdbuf != 0 );
 		_Init();
 	}
 
@@ -59,7 +59,7 @@ namespace AE::Graphics::_hidden_
 */
 	void  VDrawBarrierManager::AttachmentBarrier (AttachmentName::Ref name, EResourceState srcState, EResourceState dstState) __NE___
 	{
-		CHECK_ERRV( _imageBarriers.size() == _imageBarriers.capacity() );	// overflow
+		CHECK_ERRV( _imageBarriers.IsFull() );	// overflow
 
 		const auto&		rp_attach = GetPrimaryCtxState().renderPass->AttachmentMap();
 		const auto		fb_attach = GetPrimaryCtxState().framebuffer->Attachments();

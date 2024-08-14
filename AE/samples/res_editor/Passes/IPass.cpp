@@ -25,7 +25,17 @@ namespace
 		{
 			if ( auto* dyn_val = DynCast<T>( _rc.get() ))
 			{
-				auto	val = dyn_val->Get();
+				const auto	GetValue = [dyn_val] ()
+				{{
+					if constexpr( IsSameTypes< T, DynamicDim >)
+						return dyn_val->Dimension3_NonZero();
+					else
+						return dyn_val->Get();
+				}};
+
+				auto	val = GetValue();
+
+				StaticAssert( sizeof(val) <= sizeof(B) );
 				std::memcpy( OUT &_dst, &val, sizeof(val) );
 			}
 		}
@@ -76,21 +86,21 @@ namespace
 	_CopySliders
 =================================================
 */
-	void  IPass::_CopySliders (OUT StaticArray<float4, 4>	&dstFloats,
-							   OUT StaticArray<int4, 4>		&dstInts,
-							   OUT StaticArray<float4, 4>	&dstColors) const
+	void  IPass::_CopySliders (OUT StaticArray<float4, 8>	&dstFloats,
+							   OUT StaticArray<int4, 8>		&dstInts,
+							   OUT StaticArray<float4, 8>	&dstColors) const
 	{
 		if ( auto p_sliders = UIInteraction::Instance().GetSliders( this ))
 		{
 			auto	sliders = p_sliders->ReadLock();
 
 			StaticAssert( sizeof(dstFloats)	== sizeof(sliders->floatSliders) );
-			StaticAssert( sizeof(dstInts)		== sizeof(sliders->intSliders) );
+			StaticAssert( sizeof(dstInts)	== sizeof(sliders->intSliders) );
 			StaticAssert( sizeof(dstColors)	== sizeof(sliders->colors) );
 
-			std::memcpy( OUT dstFloats.data(),	sliders->floatSliders.data(),	sizeof(dstFloats) );
-			std::memcpy( OUT dstInts.data(),	sliders->intSliders.data(),		sizeof(dstInts) );
-			std::memcpy( OUT dstColors.data(),	sliders->colors.data(),			sizeof(dstColors) );
+			MemCopy( OUT dstFloats.data(),	sliders->floatSliders.data(),	Sizeof(dstFloats) );
+			MemCopy( OUT dstInts.data(),	sliders->intSliders.data(),		Sizeof(dstInts) );
+			MemCopy( OUT dstColors.data(),	sliders->colors.data(),			Sizeof(dstColors) );
 		}
 	}
 
@@ -100,11 +110,11 @@ namespace
 =================================================
 */
 	void  IPass::_CopyConstants (const Constants			&c,
-								 OUT StaticArray<float4, 4>	&dstFloats,
-								 OUT StaticArray<int4, 4>	&dstInts) const
+								 OUT StaticArray<float4, 8>	&dstFloats,
+								 OUT StaticArray<int4, 8>	&dstInts) const
 	{
 		StaticAssert( sizeof(dstFloats)	== sizeof(float4) * Constants::MaxCount );
-		StaticAssert( sizeof(dstInts)		== sizeof(int4) * Constants::MaxCount );
+		StaticAssert( sizeof(dstInts)	== sizeof(int4) * Constants::MaxCount );
 
 		for (usize i = 0; i < c.f.size(); ++i)
 		{
@@ -133,17 +143,12 @@ namespace
 
 		switch_enum( _enablePass.op )
 		{
-			case ECompareOp::Less :			return lhs <  rhs;
-			case ECompareOp::Equal :		return lhs == rhs;
-			case ECompareOp::LEqual :		return lhs <= rhs;
-			case ECompareOp::Greater :		return lhs >  rhs;
-			case ECompareOp::NotEqual :		return lhs != rhs;
-			case ECompareOp::GEqual :		return lhs >= rhs;
-			case ECompareOp::Always :		return true;
+			case ECompare::Less :		return lhs <  rhs;
+			case ECompare::Equal :		return lhs == rhs;
+			case ECompare::Greater :	return lhs >  rhs;
+			case ECompare::AnyBit :		return AnyBits( lhs, rhs );
 
-			case ECompareOp::Never :
-			case ECompareOp::_Count :
-			case ECompareOp::Unknown :		break;
+			case ECompare::Unknown :	break;
 		}
 		switch_end
 		return true;

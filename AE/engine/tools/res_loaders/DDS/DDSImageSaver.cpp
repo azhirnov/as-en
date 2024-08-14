@@ -15,8 +15,8 @@ namespace
 */
 	ND_ static bool  SaveDX10Image (WStream &stream, const IntermImage &image)
 	{
-		CHECK_ERR( image.GetData().size() );
-		CHECK_ERR( image.GetData()[0].size() );
+		CHECK_ERR( not image.GetData().empty() );
+		CHECK_ERR( not image.GetData()[0].empty() );
 
 		const uint			arr_layers	= uint(image.GetData()[0].size());
 		const uint			mipmap_count= uint(image.GetData().size());

@@ -117,7 +117,7 @@ namespace AE::Base
 	{
 		StaticAssert( IsConstructible< T, Args... >);
 		ASSERT( IsAllocated() );
-		return *PlacementNew<T>( OUT &Reserve<T>(), FwdArg<Args>( args )... );
+		return *PlacementNew<T>( OUT std::addressof(Reserve<T>()), FwdArg<Args>( args )... );
 	}
 
 /*

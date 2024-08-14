@@ -1,6 +1,6 @@
 rm -rf "../../../../../AE-Bin/external/source/VMA"
 rm -rf "temp"
-git clone --branch "v3.0.1" "../../../../../3party/VulkanMemoryAllocator" "temp"
+git clone --branch "v3.1.0" "../../../../../3party/VulkanMemoryAllocator" "temp"
 mkdir "../../../../../AE-Bin/external/source/VMA"
 cp "temp/include/vk_mem_alloc.h" "../../../../../AE-Bin/external/source/VMA/vk_mem_alloc.h"
 cp "temp/LICENSE.txt" "../../../../../AE-Bin/external/source/VMA/LICENSE.txt"

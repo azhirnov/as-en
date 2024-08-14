@@ -57,7 +57,7 @@ namespace AE::Graphics
 	using DescriptorSetName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 4,  AE_OPTIMIZE_IDS >;
 	using PipelineLayoutName	= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 5,  AE_OPTIMIZE_IDS >;
 	using PipelineName			= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 6,  AE_OPTIMIZE_IDS >;	// precompiled pipeline
-	using PipelineTmplName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 7,  AE_OPTIMIZE_IDS >;	// pipeline template to create custom specialization
+	using PipelineTmplName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 7,  AE_OPTIMIZE_IDS >;	// pipeline template to create custom specialization
 	using RenderTechName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 8,  AE_OPTIMIZE_IDS >;
 	using RenderTechPassName	= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 9,  AE_OPTIMIZE_IDS >;
 	using VertexBufferName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 11, AE_OPTIMIZE_IDS >;

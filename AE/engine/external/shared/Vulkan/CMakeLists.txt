@@ -8,6 +8,7 @@ add_library( "Vulkan-lib" INTERFACE )
 target_include_directories( "Vulkan-lib" INTERFACE "${VULKAN_PATH}" )
 target_compile_definitions( "Vulkan-lib" INTERFACE "AE_LICENSE_APACHE_2" )
 install( FILES "${VULKAN_PATH}/LICENSE.txt" DESTINATION "3party_license" RENAME "VulkanHeader-LICENSE" )
+#------------------------------------------------
 
 if (ANDROID)
 	add_custom_target( "Android-Vulkan-copy-so"
@@ -16,6 +17,7 @@ if (ANDROID)
 	set_property( TARGET "Android-Vulkan-copy-so" PROPERTY FOLDER "Engine/External" )
 	add_dependencies( "Vulkan-lib" "Android-Vulkan-copy-so" )
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	if (ANDROID)

@@ -65,6 +65,7 @@ namespace AE::Graphics::_hidden_
 		ND_ VQueuePtr					GetQueue ()					C_NE___	{ return GetDevice().GetQueue( GetQueueType() ); }
 		ND_ RenderTask const&			GetRenderTask ()			C_NE___	{ NonNull( _task );  return *_task; }
 		ND_ VkPipelineStageFlagBits2	GetSupportedStages ()		C_NE___	{ return _supportedStages; }
+		ND_ VkAccessFlagBits2			GetSupportedAccess ()		C_NE___	{ return _supportedAccess; }
 
 	  #if AE_DBG_GRAPHICS
 		void  ProfilerBeginContext (VkCommandBuffer cmdbuf, DebugLabel dbg, IGraphicsProfiler::EContextType type)						C_NE___;

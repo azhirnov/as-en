@@ -209,6 +209,33 @@ namespace
 		StaticAssert( alignof(TupleArr_t) >= alignof(Elem1) );
 		StaticAssert( alignof(TupleArr_t) >= alignof(Elem2) );
 	}
+
+
+	static void  FixedTupleArray_Test7 ()
+	{
+		using T = DebugInstanceCounter< int, 4 >;
+
+		T::ClearStatistic();
+		{
+			FixedTupleArray< 32, T, T >	arr;
+
+			{ auto [a, b] = arr.emplace_back();	a = T(1);	b = T(22); }
+			{ auto [a, b] = arr.emplace_back();	a = T(2);	b = T(33); }
+			{ auto [a, b] = arr.emplace_back();	a = T(3);	b = T(44); }
+			{ auto [a, b] = arr.emplace_back();	a = T(4);	b = T(55); }
+
+			TEST( arr.get<0>()[0] == T(1) );
+			TEST( arr.get<0>()[1] == T(2) );
+			TEST( arr.get<0>()[2] == T(3) );
+			TEST( arr.get<0>()[3] == T(4) );
+
+			TEST( arr.get<1>()[0] == T(22) );
+			TEST( arr.get<1>()[1] == T(33) );
+			TEST( arr.get<1>()[2] == T(44) );
+			TEST( arr.get<1>()[3] == T(55) );
+		}
+		TEST( T::CheckStatistic() );
+	}
 }
 
 
@@ -220,6 +247,7 @@ extern void UnitTest_FixedTupleArray ()
 	FixedTupleArray_Test4();
 	FixedTupleArray_Test5();
 	FixedTupleArray_Test6();
+	FixedTupleArray_Test7();
 
 	TEST_PASSED();
 }

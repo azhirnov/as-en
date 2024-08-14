@@ -67,7 +67,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	auto  UdpSocket::_Send (const AddressType &addr, const void* data, Bytes dataSize) C_NE___ -> Tuple< SocketSendError, Bytes >
 	{
-		ASSERT( data != null or dataSize > 0 );
+		ASSERT( (data != null) and (dataSize > 0) );
 		ASSERT( addr.IsValid() );
 
 		if_unlikely( not IsOpen() )
@@ -107,7 +107,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	auto  UdpSocket::_Receive (OUT AddressType &addr, OUT void* data, Bytes dataSize) C_NE___ -> Tuple< SocketReceiveError, Bytes >
 	{
-		ASSERT( data != null or dataSize > 0 );
+		ASSERT( (data != null) and (dataSize > 0) );
 
 		addr = Default;
 

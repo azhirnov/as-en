@@ -54,6 +54,8 @@ namespace
 			}
 		}
 
+		CHECK_ERR_MSG( not obj_storage.HasHashCollisions(), "Hash collision detected!" );
+
 		CHECK_ERR( obj_storage.Save( pack_fname ));
 
 		if ( info->outputScriptFile != null )

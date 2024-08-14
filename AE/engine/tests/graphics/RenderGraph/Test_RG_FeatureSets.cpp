@@ -85,8 +85,9 @@ bool RGTest::Test_FeatureSets ()
 				break;
 			case EGPUVendor::Intel :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopIntel"} ));
-				if ( sra )	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.IntelArc"} ))
-				else		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.IntelXe"} ));
+				if ( sra )
+					TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.IntelArc"} ) or
+						  _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.IntelXe"} ));
 				break;
 			case EGPUVendor::ARM :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileMali"} ));
@@ -103,14 +104,14 @@ bool RGTest::Test_FeatureSets ()
 		if ( (dev >= EGraphicsDeviceID::Adreno_500			and dev <= EGraphicsDeviceID::_Adreno_End)	or
 			 (dev >= EGraphicsDeviceID::AMD_GCN4			and dev <= EGraphicsDeviceID::_AMD_End)		or
 			 (dev >= EGraphicsDeviceID::Apple_A12			and dev <= EGraphicsDeviceID::_Apple_End)	or
-			 (dev >= EGraphicsDeviceID::Intel_Gen9_HD500	and dev <= EGraphicsDeviceID::_Intel_End)	or
+			 (dev >= EGraphicsDeviceID::Intel_Gen9			and dev <= EGraphicsDeviceID::_Intel_End)	or
 			 (dev >= EGraphicsDeviceID::NV_Maxwell			and dev <= EGraphicsDeviceID::_NV_End)		or
-			 (dev >= EGraphicsDeviceID::PowerVR_Series8XE	and dev <= EGraphicsDeviceID::_PowerVR_End)	or
+			 (dev >= EGraphicsDeviceID::PowerVR_Series8		and dev <= EGraphicsDeviceID::_PowerVR_End)	or
 			 (dev >= EGraphicsDeviceID::Mali_Midgard_Gen4	and dev <= EGraphicsDeviceID::_Mali_End) )
 		{
 			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.MinDescriptorIndexing"} ));
 		}
-		if ( (dev >= EGraphicsDeviceID::Adreno_600_QC5		and dev <= EGraphicsDeviceID::_Adreno_End)	or
+		if ( (dev >= EGraphicsDeviceID::Adreno_600			and dev <= EGraphicsDeviceID::_Adreno_End)	or
 			 (dev >= EGraphicsDeviceID::Apple_A12			and dev <= EGraphicsDeviceID::_Apple_End)	or
 			 (dev >= EGraphicsDeviceID::NV_Maxwell			and dev <= EGraphicsDeviceID::_NV_End) )
 		{

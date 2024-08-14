@@ -115,8 +115,6 @@ namespace AE::Graphics
 		{
 			Array<VkPerformanceCounterKHR>				vk_counters;
 			Array<VkPerformanceCounterDescriptionKHR>	vk_counter_desc;
-			vk_counters.reserve( 128 );
-			vk_counter_desc.reserve( 128 );
 
 			for (auto& q : _device.GetQueues())
 			{
@@ -129,6 +127,11 @@ namespace AE::Graphics
 
 				vk_counters.resize( count );
 				vk_counter_desc.resize( count );
+
+				for (usize i = 0; i < count; ++i) {
+					vk_counters[i].sType = VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_KHR;
+					vk_counter_desc[i].sType = VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_DESCRIPTION_KHR;
+				}
 
 				VK_CHECK_ERR( vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR(
 									_device.GetVkPhysicalDevice(), uint(q.familyIndex), INOUT &count,
@@ -257,7 +260,7 @@ namespace AE::Graphics
 */
 	bool  VQueryManager::AcquireProfilingLock () __NE___
 	{
-		CHECK_ERR( _perfQuery );
+		CHECK_ERR( _perfQuery != 0 );
 		CHECK_ERR( not _perfLockAcquired.load() );
 
 		VkAcquireProfilingLockInfoKHR	info = {};
@@ -277,7 +280,7 @@ namespace AE::Graphics
 */
 	bool  VQueryManager::ReleaseProfilingLock () __NE___
 	{
-		CHECK_ERR( _perfQuery );
+		CHECK_ERR( _perfQuery != 0 );
 		CHECK_ERR( _perfLockAcquired.load() );
 
 		_device.vkReleaseProfilingLockKHR( _device.GetVkDevice() );
@@ -292,13 +295,9 @@ namespace AE::Graphics
 ----
 	docs:
 This command defines an execution dependency between other query commands that reference the same query.
-
 The first synchronization scope includes all commands which reference the queries in queryPool indicated by firstQuery and queryCount that occur earlier in submission order.
-
 The second synchronization scope includes all commands which reference the queries in queryPool indicated by firstQuery and queryCount that occur later in submission order.
-
 The operation of this command happens after the first scope and happens before the second scope.
-
 Supported queue types: Graphics / Compute
 =================================================
 */
@@ -404,19 +403,19 @@ The second synchronization scope includes all commands which reference the queri
 =================================================
 */
 	template <typename T>
-	bool  VQueryManager::_GetTimestamp (const Query &q, OUT T* result, const Bytes size) C_NE___
+	bool  VQueryManager::_GetTimestamp (const Query &q, OUT T* result, const Bytes resultSize) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		StaticAssert( sizeof(*result) == sizeof(ulong) );
 
 		CHECK_ERR( q and result != null );
-		CHECK_ERR( size >= (SizeOf<ulong> * q.count) );
+		CHECK_ERR( resultSize >= (SizeOf<ulong> * q.count) );
 		ASSERT( q.type == EQueryType::Timestamp );
 
 		auto&	pool = _poolArr[ uint(q.type) ];
 		Unused( pool );
-		ASSERT( q.first >= pool.maxCount * ReadIndex() );
-		ASSERT( q.first <  pool.maxCount * (ReadIndex()+1) );
+	//	ASSERT( q.first >= pool.maxCount * ReadIndex() );
+	//	ASSERT( q.first <  pool.maxCount * (ReadIndex()+1) );
 
 		Result64*	tmp;	AllocateOnStack( OUT tmp, q.count );
 		auto		err	= _device.vkGetQueryPoolResults( _device.GetVkDevice(), q.pool, q.first, q.count, sizeof(Result64) * q.count, tmp,
@@ -443,19 +442,19 @@ The second synchronization scope includes all commands which reference the queri
 		return err == VK_SUCCESS and available;
 	}
 
-	bool  VQueryManager::GetTimestamp (const IQuery &q, OUT ulong* result, Bytes size) C_NE___
+	bool  VQueryManager::GetTimestamp (const IQuery &q, OUT ulong* result, Bytes resultSize) C_NE___
 	{
-		return _GetTimestamp( static_cast<Query const&>(q), OUT result, size );
+		return _GetTimestamp( static_cast<Query const&>(q), OUT result, resultSize );
 	}
 
-	bool  VQueryManager::GetTimestamp (const IQuery &q, OUT double* result, Bytes size) C_NE___
+	bool  VQueryManager::GetTimestamp (const IQuery &q, OUT double* result, Bytes resultSize) C_NE___
 	{
-		return _GetTimestamp( static_cast<Query const&>(q), OUT result, size );
+		return _GetTimestamp( static_cast<Query const&>(q), OUT result, resultSize );
 	}
 
-	bool  VQueryManager::GetTimestamp (const IQuery &q, OUT nanosecondsd* result, Bytes size) C_NE___
+	bool  VQueryManager::GetTimestamp (const IQuery &q, OUT nanosecondsd* result, Bytes resultSize) C_NE___
 	{
-		return _GetTimestamp( static_cast<Query const&>(q), OUT Cast<double>(result), size );
+		return _GetTimestamp( static_cast<Query const&>(q), OUT Cast<double>(result), resultSize );
 	}
 
 /*
@@ -464,15 +463,15 @@ The second synchronization scope includes all commands which reference the queri
 =================================================
 */
 	template <typename T>
-	bool  VQueryManager::_GetTimestampCalibrated (const Query &q, OUT T* result, OUT T* maxDeviation, const Bytes size) C_NE___
+	bool  VQueryManager::_GetTimestampCalibrated (const Query &q, OUT T* result, OUT T* maxDeviation, const Bytes resultSize) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		StaticAssert( sizeof(*result) == sizeof(ulong) );
 
 		CHECK_ERR( q and result != null and maxDeviation != null );
-		CHECK_ERR( _calibratedTs );
+		CHECK_ERR( _calibratedTs != 0 );
 		CHECK_ERR( q.count <= 2 );
-		CHECK_ERR( size >= (SizeOf<ulong> * q.count) );
+		CHECK_ERR( resultSize >= (SizeOf<ulong> * q.count) );
 		ASSERT( q.type == EQueryType::Timestamp );
 
 		auto&	pool = _poolArr[ uint(q.type) ];
@@ -533,19 +532,19 @@ The second synchronization scope includes all commands which reference the queri
 		return err == VK_SUCCESS and available;
 	}
 
-	bool  VQueryManager::GetTimestampCalibrated (const IQuery &q, OUT ulong* result, OUT ulong* maxDeviation, Bytes size) C_NE___
+	bool  VQueryManager::GetTimestampCalibrated (const IQuery &q, OUT ulong* result, OUT ulong* maxDeviation, Bytes resultSize) C_NE___
 	{
-		return _GetTimestampCalibrated( static_cast<Query const&>(q), OUT result, OUT maxDeviation, size );
+		return _GetTimestampCalibrated( static_cast<Query const&>(q), OUT result, OUT maxDeviation, resultSize );
 	}
 
-	bool  VQueryManager::GetTimestampCalibrated (const IQuery &q, OUT double* result, OUT double* maxDeviation, Bytes size) C_NE___
+	bool  VQueryManager::GetTimestampCalibrated (const IQuery &q, OUT double* result, OUT double* maxDeviation, Bytes resultSize) C_NE___
 	{
-		return _GetTimestampCalibrated( static_cast<Query const&>(q), OUT result, OUT maxDeviation, size );
+		return _GetTimestampCalibrated( static_cast<Query const&>(q), OUT result, OUT maxDeviation, resultSize );
 	}
 
-	bool  VQueryManager::GetTimestampCalibrated (const IQuery &q, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes size) C_NE___
+	bool  VQueryManager::GetTimestampCalibrated (const IQuery &q, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes resultSize) C_NE___
 	{
-		return _GetTimestampCalibrated( static_cast<Query const&>(q), OUT Cast<double>(result), OUT Cast<double>(maxDeviation), size );
+		return _GetTimestampCalibrated( static_cast<Query const&>(q), OUT Cast<double>(result), OUT Cast<double>(maxDeviation), resultSize );
 	}
 
 /*
@@ -553,12 +552,12 @@ The second synchronization scope includes all commands which reference the queri
 	GetPerformanceCounter
 =================================================
 *
-	bool  VQueryManager::GetPerformanceCounter (const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes size) C_NE___
+	bool  VQueryManager::GetPerformanceCounter (const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes resultSize) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		CHECK_ERR( q and result != null );
 
-		return _device.vkGetQueryPoolResults( _device.GetVkDevice(), q.pool, q.first, q.count, usize(size), result,
+		return _device.vkGetQueryPoolResults( _device.GetVkDevice(), q.pool, q.first, q.count, usize(resultSize), result,
 											  sizeof(*result), VK_QUERY_RESULT_WAIT_BIT );
 	}
 
@@ -567,7 +566,7 @@ The second synchronization scope includes all commands which reference the queri
 	GetPipelineStatistic
 =================================================
 */
-	bool  VQueryManager::GetPipelineStatistic (const IQuery &iq, OUT GraphicsPipelineStatistic* result, const Bytes size) C_NE___
+	bool  VQueryManager::GetPipelineStatistic (const IQuery &iq, OUT GraphicsPipelineStatistic* result, const Bytes resultSize) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		StaticAssert( IsMultipleOf( sizeof(*result), sizeof(ulong) ));
@@ -575,7 +574,7 @@ The second synchronization scope includes all commands which reference the queri
 		auto&	q = static_cast<Query const&>(iq);
 
 		CHECK_ERR( q and result != null );
-		CHECK_ERR( size >= (SizeOf<GraphicsPipelineStatistic> * q.count) );
+		CHECK_ERR( resultSize >= (SizeOf<GraphicsPipelineStatistic> * q.count) );
 		CHECK( q.type == EQueryType::PipelineStatistic );
 
 		auto&	pool = _poolArr[ uint(q.type) ];
@@ -600,13 +599,13 @@ The second synchronization scope includes all commands which reference the queri
 	GetRTASProperty
 =================================================
 */
-	bool  VQueryManager::GetRTASProperty (const Query &q, OUT Bytes64u* result, const Bytes size) C_NE___
+	bool  VQueryManager::GetRTASProperty (const Query &q, OUT Bytes64u* result, const Bytes resultSize) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		StaticAssert( sizeof(*result) == sizeof(ulong) );
 
 		CHECK_ERR( q and result != null );
-		CHECK_ERR( size >= (SizeOf<Bytes64u> * q.count) );
+		CHECK_ERR( resultSize >= (SizeOf<Bytes64u> * q.count) );
 
 		ASSERT(	q.type == EQueryType::AccelStructCompactedSize		or
 				q.type == EQueryType::AccelStructSerializationSize	or

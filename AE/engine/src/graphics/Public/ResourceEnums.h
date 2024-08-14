@@ -23,7 +23,7 @@ namespace AE::Graphics
 		_Last,
 
 		All					= ((_Last-1) << 1) - 1,
-		HostCachedCoherent	= HostCoherent | HostCached,
+		HostCachedCoherent	= HostCoherent | HostCached,			// may completelly match with 'HostCached'
 		Unified				= HostCoherent | DeviceLocal,			// Metal: don't read from host!
 		UnifiedCached		= HostCachedCoherent | DeviceLocal,
 		Unknown				= 0,
@@ -341,7 +341,7 @@ namespace AE::Graphics
 		_visitor_( BC7_RGBA8_UNorm		)\
 		_visitor_( BC7_sRGB8_A8			)\
 		_visitor_( ETC2_RGB8_UNorm		)\
-		_visitor_( ECT2_sRGB8			)\
+		_visitor_( ETC2_sRGB8			)\
 		_visitor_( ETC2_RGB8_A1_UNorm	)\
 		_visitor_( ETC2_sRGB8_A1		)\
 		_visitor_( ETC2_RGBA8_UNorm		)\
@@ -352,20 +352,20 @@ namespace AE::Graphics
 		_visitor_( EAC_RG11_UNorm		)\
 		\
 		/* requires ASTC LDR feature */\
-		_visitor_( ASTC_RGBA_4x4		)\
-		_visitor_( ASTC_RGBA_5x4		)\
-		_visitor_( ASTC_RGBA_5x5		)\
-		_visitor_( ASTC_RGBA_6x5		)\
-		_visitor_( ASTC_RGBA_6x6		)\
-		_visitor_( ASTC_RGBA_8x5		)\
-		_visitor_( ASTC_RGBA_8x6		)\
-		_visitor_( ASTC_RGBA_8x8		)\
-		_visitor_( ASTC_RGBA_10x5		)\
-		_visitor_( ASTC_RGBA_10x6		)\
-		_visitor_( ASTC_RGBA_10x8		)\
-		_visitor_( ASTC_RGBA_10x10		)\
-		_visitor_( ASTC_RGBA_12x10		)\
-		_visitor_( ASTC_RGBA_12x12		)\
+		_visitor_( ASTC_RGBA8_4x4		)\
+		_visitor_( ASTC_RGBA8_5x4		)\
+		_visitor_( ASTC_RGBA8_5x5		)\
+		_visitor_( ASTC_RGBA8_6x5		)\
+		_visitor_( ASTC_RGBA8_6x6		)\
+		_visitor_( ASTC_RGBA8_8x5		)\
+		_visitor_( ASTC_RGBA8_8x6		)\
+		_visitor_( ASTC_RGBA8_8x8		)\
+		_visitor_( ASTC_RGBA8_10x5		)\
+		_visitor_( ASTC_RGBA8_10x6		)\
+		_visitor_( ASTC_RGBA8_10x8		)\
+		_visitor_( ASTC_RGBA8_10x10		)\
+		_visitor_( ASTC_RGBA8_12x10		)\
+		_visitor_( ASTC_RGBA8_12x12		)\
 		_visitor_( ASTC_sRGB8_A8_4x4	)\
 		_visitor_( ASTC_sRGB8_A8_5x4	)\
 		_visitor_( ASTC_sRGB8_A8_5x5	)\

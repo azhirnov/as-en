@@ -6,6 +6,7 @@
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
 #	include <aestyle.glsl.h>
+#	define USE_QUADS	0
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -175,7 +176,7 @@
 	void Main ()
 	{
 		const float3	light_dir	= float3( 0.f, 0.f, 1.f );
-		const float3	norm		= gl.texture.Sample( un_NormalMap, In.texcoord ).xyz;
+		const float3	norm		= Normalize( gl.texture.Sample( un_NormalMap, In.texcoord ).xyz );
 		const float3	color		= gl.texture.Sample( un_AlbedoMap, In.texcoord ).rgb;
 		const float		light		= Dot( norm, light_dir );
 

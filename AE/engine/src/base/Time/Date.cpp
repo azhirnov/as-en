@@ -151,6 +151,7 @@ namespace AE::Base
 	ms		- millisecond
 =================================================
 */
+#ifdef AE_ENABLE_LOGS
 	String  Date::ToString (StringView fmt) C_NE___
 	{
 		TRY{
@@ -217,6 +218,7 @@ namespace AE::Base
 			return Default;
 		)
 	}
+#endif // AE_ENABLE_LOGS
 
 /*
 =================================================

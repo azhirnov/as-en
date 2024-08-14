@@ -4,6 +4,11 @@
 
 set( U8P_PATH "${AE_DST_PATH}/Utf8Proc" )
 
+if (NOT EXISTS "${U8P_PATH}/lib")
+	message( FATAL_ERROR "'${U8P_PATH}/lib' path is not found" )
+endif()
+#------------------------------------------------
+
 add_library( "Utf8Proc-lib" INTERFACE )
 target_include_directories( "Utf8Proc-lib" INTERFACE "${U8P_PATH}/include" )
 target_compile_definitions( "Utf8Proc-lib" INTERFACE "AE_ENABLE_UTF8PROC" "UTF8PROC_STATIC" "AE_LICENSE_MIT" )
@@ -19,6 +24,7 @@ else()
 	set_property( TARGET "Utf8Proc-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 		"${U8P_PATH}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}utf8proc${CMAKE_STATIC_LIBRARY_SUFFIX}" )
 endif()
+#------------------------------------------------
 
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	if (ANDROID)

@@ -103,14 +103,10 @@ namespace AE::Base
 	namespace _hidden_
 	{
 		template <typename T, bool IsEnum>
-		struct _IsEnumWithUnknown2 {
-			static constexpr bool	value = false;
-		};
+		struct _IsEnumWithUnknown2 : CT_False {};
 
 		template <typename T>
-		struct _IsEnumWithUnknown2< T, true > {
-			static constexpr bool	value = true; //Detect_Unknown<T>::value;
-		};
+		struct _IsEnumWithUnknown2< T, true > : CT_True {};
 
 		template <typename T>
 		static constexpr bool	_IsEnumWithUnknown = _IsEnumWithUnknown2< T, std::is_enum_v<T> >::value;

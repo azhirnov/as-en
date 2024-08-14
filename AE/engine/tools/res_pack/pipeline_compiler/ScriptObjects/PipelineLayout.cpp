@@ -299,8 +299,8 @@ namespace
 				case EShaderStages::RayCallable :		name << "Rc";	break;
 
 				case EShaderStages::All :
-				case EShaderStages::GraphicsStages :
-				case EShaderStages::MeshStages :
+				case EShaderStages::GraphicsPipeStages :
+				case EShaderStages::MeshPipeStages :
 				case EShaderStages::AllGraphics :
 				case EShaderStages::AllRayTracing :
 				case EShaderStages::VertexProcessingStages :
@@ -469,7 +469,7 @@ namespace
 		binder.AddMethod( &PipelineLayout::AddPushConst2,		"PushConst",		{"pcName", "type", "stage"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
-						"Format: MACROS = value; DEF" );
+						"Format: MACROS = value \\n DEF \\n ..." );
 		binder.AddMethod( &PipelineLayout::Define,				"Define",			{} );
 	}
 

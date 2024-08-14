@@ -19,10 +19,11 @@ namespace AE::Graphics
 	using AE::Threading::Synchronized;
 	using AE::Threading::EThreadArray;
 	using AE::Threading::ETaskQueue;
+	using AE::Threading::AsyncTask;
 
-#	if AE_ENABLE_DATA_RACE_CHECK
+	#if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::RWDataRaceCheck;
-#	endif
+	#endif
 
 	class RenderTask;
 	class DrawTask;

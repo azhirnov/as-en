@@ -41,13 +41,13 @@
 		// render loop
 		{
 			RC<SceneGraphicsPass>	draw_pass = scene.AddGraphicsPass( "opaque" );
-			draw_pass.AddPipeline( "samples/DeferredTexturing.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DeferredTexturing.as)
+			draw_pass.AddPipeline( "samples/DeferredTexturing-pass1.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DeferredTexturing-pass1.as)
 			draw_pass.Output( "out_GBuffer", gbuf, RGBA32u(~0) );
 			draw_pass.Output( ds, DepthStencil(1.f, 0) );
 			draw_pass.Layer( ERenderLayer::Opaque );
 		}{
 			RC<SceneGraphicsPass>	draw_pass = scene.AddGraphicsPass( "postprocess" );
-			draw_pass.AddPipeline( "samples/DeferredTexturing-PP.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DeferredTexturing-PP.as)
+			draw_pass.AddPipeline( "samples/DeferredTexturing-pass2.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DeferredTexturing-pass2.as)
 			draw_pass.Output( "out_Color",	rt );
 			draw_pass.ArgIn(  "un_GBuffer", gbuf,	Sampler_NearestClamp );
 			draw_pass.ArgIn(  "un_Depth",	ds,		Sampler_NearestClamp );

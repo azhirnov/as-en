@@ -232,15 +232,15 @@ namespace AE::Graphics::_hidden_
 		CHECK_ERRV( img != null );
 
 		const ImageDesc&	desc = img->Description();
-		ASSERT( subRes.baseMipLevel < desc.maxLevel );
-		ASSERT( subRes.mipmapCount == UMax or subRes.baseMipLevel.Get() + subRes.mipmapCount <= desc.maxLevel.Get() );
+		ASSERT( subRes.baseMipLevel < desc.mipLevels );
+		ASSERT( subRes.mipmapCount == UMax or subRes.baseMipLevel.Get() + subRes.mipmapCount <= desc.mipLevels.Get() );
 		ASSERT( subRes.baseLayer < desc.arrayLayers );
 		ASSERT( subRes.layerCount == UMax or subRes.baseLayer.Get() + subRes.layerCount <= desc.arrayLayers.Get() );
 
 		VkImageSubresourceRange	sub_res;
 		sub_res.aspectMask		= VEnumCast( subRes.aspectMask );
 		sub_res.baseMipLevel	= subRes.baseMipLevel.Get();
-		sub_res.levelCount		= Min( desc.maxLevel.Get() - subRes.baseMipLevel.Get(), subRes.mipmapCount );
+		sub_res.levelCount		= Min( desc.mipLevels.Get() - subRes.baseMipLevel.Get(), subRes.mipmapCount );
 		sub_res.baseArrayLayer	= subRes.baseLayer.Get();
 		sub_res.layerCount		= Min( desc.arrayLayers.Get() - subRes.baseLayer.Get(), subRes.layerCount );
 

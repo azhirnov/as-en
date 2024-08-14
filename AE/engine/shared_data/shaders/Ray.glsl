@@ -23,6 +23,7 @@ ND_ Ray		Ray_Create (const float3 origin, const float3 direction, const float tm
 
 ND_ Ray		Ray_FromScreen (const float3 origin, const float fovX, const float nearPlane,
 							const float2 screenSizePx, const float2 screenCoordPx);
+ND_ Ray		Ray_FromScreen (const float3 origin, const float2 fov, const float nearPlane, float2 snormCoord);
 
 ND_ Ray		Ray_From (const float3 leftBottom, const float3 rightBottom, const float3 leftTop, const float3 rightTop,
 					  const float3 origin, const float nearPlane, const float2 unormCoord);
@@ -76,20 +77,25 @@ Ray  Ray_Create (const float3 origin, const float3 direction, const float tmin)
 	create ray for raytracing, raymarching, ...
 =================================================
 */
-Ray  Ray_FromScreen (const float3 origin, const float fovX, const float nearPlane,
-					 const float2 screenSize, const float2 screenCoord)
+Ray  Ray_FromScreen (const float3 origin, const float2 fov, const float nearPlane, float2 snormCoord)
 {
-	float	ratio	= screenSize.y / screenSize.x;
-	float 	fovY 	= fovX * ratio;
-	float2 	scale	= nearPlane / Cos( float2(fovX, fovY) * 0.5 );
-	float2 	uv 		= (screenCoord - screenSize * 0.5) / (screenSize.x * 0.5) * scale;
+	float2 	scale;
+	scale.x = nearPlane / Cos( fov.x * 0.5 );
+	scale.y = scale.x * (fov.y / fov.x);
 
 	Ray		ray;
 	ray.origin	= origin;
-	ray.dir		= Normalize( float3( uv.x, -uv.y, -0.5 ));
+	ray.dir		= Normalize( float3( snormCoord * scale, 0.25 ));
 
 	Ray_SetLength( INOUT ray, nearPlane );  // set 't' and 'pos'
 	return ray;
+}
+
+Ray  Ray_FromScreen (const float3 origin, const float fovX, const float nearPlane,
+					 const float2 screenSize, const float2 screenCoord)
+{
+	float 	fovY = fovX * (screenSize.y / screenSize.x);
+	return Ray_FromScreen( origin, float2(fovX, fovY), nearPlane, ToSNorm(screenCoord / screenSize) );
 }
 
 /*

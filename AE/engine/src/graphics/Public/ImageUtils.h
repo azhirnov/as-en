@@ -159,7 +159,8 @@ struct ImageUtils final : Noninstanceable
 */
 	ND_ static uint  NumberOfMipmaps (const uint3 &dim) __NE___
 	{
-		return IntLog2( Max( Max( dim.x, dim.y ), dim.z )) + 1;
+		uint	size = Max( dim.x, dim.y, dim.z );
+		return IntLog2( size ) + 1;
 	}
 
 /*
@@ -167,9 +168,10 @@ struct ImageUtils final : Noninstanceable
 	MipmapDimension
 =================================================
 */
-	ND_ static uint3  MipmapDimension (const uint3 &dim, const usize mipLevel, const uint2 &texelBlock) __NE___
+	ND_ static uint3  MipmapDimension (uint3 dim, const usize mipLevel, const uint2 &texelBlock) __NE___
 	{
-		return Max( dim >> mipLevel, uint3{texelBlock, 1} );
+		dim = Max( dim >> mipLevel, 1u );
+		return uint3( AlignUp( uint2{dim}, texelBlock ), dim.z );
 	}
 
 

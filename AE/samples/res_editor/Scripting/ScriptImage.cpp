@@ -74,11 +74,11 @@ namespace
 			case EImageType::Img1D :
 			case EImageType::Img1DArray :		_desc.imageDim = EImageDim_1D;	break;
 			case EImageType::Img2D :
+			case EImageType::Img2DMS :			_desc.imageDim = EImageDim_2D;	break;
 			case EImageType::Img2DArray :
-			case EImageType::Img2DMS :
-			case EImageType::Img2DMSArray :
+			case EImageType::Img2DMSArray :		_desc.imageDim = EImageDim_2D;	_desc.arrayLayers = 6_layer;	break;
 			case EImageType::ImgCube :
-			case EImageType::ImgCubeArray :		_desc.imageDim = EImageDim_2D;	break;
+			case EImageType::ImgCubeArray :		_desc.imageDim = EImageDim_2D;	_desc.arrayLayers = 6_layer;	_desc.options = EImageOpt::CubeCompatible;	break;
 			case EImageType::Img3D :			_desc.imageDim = EImageDim_3D;	break;
 			default :							CHECK_THROW_MSG( false, "unsupported image type" );
 		}
@@ -87,15 +87,15 @@ namespace
 		_desc.format = EPixelFormat::RGBA8_UNorm;
 		switch ( EImageType(imageType) & EImageType::_ValMask )
 		{
-			case EImageType::Float :			_desc.format = EPixelFormat::RGBA32F;			break;
-			case EImageType::Half :				_desc.format = EPixelFormat::RGBA16F;			break;
-			case EImageType::SNorm :			_desc.format = EPixelFormat::RGBA8_SNorm;		break;
-			case EImageType::UNorm :			_desc.format = EPixelFormat::RGBA8_UNorm;		break;
-			case EImageType::Int :				_desc.format = EPixelFormat::RGBA8I;			break;
-			case EImageType::UInt :				_desc.format = EPixelFormat::RGBA8U;			break;
-			case EImageType::sRGB :				_desc.format = EPixelFormat::sRGB8_A8;			break;
-			case EImageType::Depth :			_desc.format = EPixelFormat::Depth32F;			break;
-			case EImageType::DepthStencil :		_desc.format = EPixelFormat::Depth24_Stencil8;	break;
+			case EImageType::Float :			_desc.format = EPixelFormat::RGBA32F;		break;
+			case EImageType::Half :				_desc.format = EPixelFormat::RGBA16F;		break;
+			case EImageType::SNorm :			_desc.format = EPixelFormat::RGBA8_SNorm;	break;
+			case EImageType::UNorm :			_desc.format = EPixelFormat::RGBA8_UNorm;	break;
+			case EImageType::Int :				_desc.format = EPixelFormat::RGBA8I;		break;
+			case EImageType::UInt :				_desc.format = EPixelFormat::RGBA8U;		break;
+			case EImageType::sRGB :				_desc.format = EPixelFormat::sRGB8_A8;		break;
+			case EImageType::Depth :			_desc.format = ScriptExe::ScriptResourceApi::Supported_DepthFormat();			break;
+			case EImageType::DepthStencil :		_desc.format = ScriptExe::ScriptResourceApi::Supported_DepthStencilFormat();	break;
 			default :							CHECK_THROW_MSG( false, "unsupported image type" );
 		}
 
@@ -127,7 +127,7 @@ namespace
 
 		_desc.format		= format;
 		_desc.arrayLayers	= layers;
-		_desc.maxLevel		= mipmaps;
+		_desc.mipLevels		= mipmaps;
 		_desc.imageDim		= dim.z > 1 ? EImageDim_3D : EImageDim_2D;
 		_desc.dimension		= uint3(dim);
 		_desc.Validate();
@@ -145,7 +145,7 @@ namespace
 		_desc.format		= format;
 		_desc.imageDim		= _inDynSize->Get()->NumDimensions();
 		_desc.arrayLayers	= layers;
-		_desc.maxLevel		= mipmaps;
+		_desc.mipLevels		= mipmaps;
 		_desc.Validate();
 
 		_imageType			= uint(GetDescriptorImageType( _desc ));
@@ -370,7 +370,7 @@ namespace
 		if ( _base )
 			return _base->MipmapCount();
 
-		return _desc.maxLevel.Get();
+		return _desc.mipLevels.Get();
 	}
 
 /*
@@ -616,8 +616,8 @@ namespace
 			"Resource is already created, can not change usage or content" );
 		CHECK_THROW_MSG( layer < _desc.arrayLayers,
 			"Image array layer ("s << ToString(layer.Get()) << ") is out of bounds [0," << ToString(_desc.arrayLayers.Get()) << ")" );
-		CHECK_THROW_MSG( mipmap < _desc.maxLevel,
-			"Image mipmap level ("s << ToString(mipmap.Get()) << ") is out of bounds [0," << ToString(_desc.maxLevel.Get()) << ")" )
+		CHECK_THROW_MSG( mipmap < _desc.mipLevels,
+			"Image mipmap level ("s << ToString(mipmap.Get()) << ") is out of bounds [0," << ToString(_desc.mipLevels.Get()) << ")" )
 
 		if ( _dbgName.empty() )
 			_dbgName = Path{filename}.stem().string().substr( 0, ResNameMaxLen );
@@ -705,6 +705,14 @@ namespace
 		const bool				is_mutable	= AnyBits( _desc.usage, mutable_res_usage );
 		const bool				is_dummy	= not (_descDefined and is_mutable);
 		GfxMemAllocatorPtr		gfx_alloc	= renderer.ChooseAllocator( Bool{_inDynSize}, _desc );
+
+		// validate view desc
+		{
+			ImageDesc	desc = _desc;
+			desc.options &= ~EImageOpt::CubeCompatible;
+
+			_viewDesc.Validate( desc );
+		}
 
 		if ( is_dummy )
 		{

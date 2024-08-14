@@ -74,11 +74,11 @@ namespace AE::Scripting
 
 	// variables
 	private:
-		AngelScript::asIScriptModule*	_module;
+		Ptr<AngelScript::asIScriptModule>	_module;
 
 		#if AE_DBG_SCRIPTS
-			mutable RecursiveMutex		_dbgLocationGuard;
-			DbgLocationMap_t			_dbgLocation;
+			mutable RecursiveMutex			_dbgLocationGuard;
+			DbgLocationMap_t				_dbgLocation;
 		#endif
 
 

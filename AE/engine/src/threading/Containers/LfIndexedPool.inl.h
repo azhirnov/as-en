@@ -383,7 +383,7 @@ namespace AE::Threading
 		const auto		low_idx		= index1 % LowLvlCount;
 		LowLevelChunk&	low_chunk	= (*low_chunks)[ chunk_idx ];
 
-		DBG_CHECK_MSG( low_chunk.assigned.load() & (LowLvlBits_t{1} << low_idx), "not assigned" );
+		DBG_CHECK_MSG( HasBit( low_chunk.assigned.load(), low_idx ), "not assigned" );
 
 		return low_chunk.values[ low_idx ];
 	}
@@ -411,7 +411,7 @@ namespace AE::Threading
 				const auto		low_idx		= index1 % LowLvlCount;
 				LowLevelChunk&	low_chunk	= (*low_chunks)[ chunk_idx ];
 
-				DBG_CHECK_MSG( low_chunk.assigned.load() & (LowLvlBits_t{1} << low_idx), "not assigned" );		// TODO: return null ?
+				DBG_CHECK_MSG( HasBit( low_chunk.assigned.load(), low_idx ), "not assigned" );		// TODO: return null ?
 
 				return &low_chunk.values[ low_idx ];
 			}

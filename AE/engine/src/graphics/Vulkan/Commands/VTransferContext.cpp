@@ -11,11 +11,22 @@ namespace AE::Graphics::_hidden_
 	GenerateMipmaps
 =================================================
 */
-	void  _VDirectTransferCtx::GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges) __Th___
+	void  _VDirectTransferCtx::GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges, EResourceState srcState) __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
 
-		GenerateMipmapsImpl( *this, _cmdbuf.Get(), image, dimension, ranges );
+		VkPipelineStageFlags2	src_stage_mask	= VK_PIPELINE_STAGE_2_BLIT_BIT;
+		VkAccessFlags2			src_access_mask	= VK_ACCESS_2_NONE;
+		VkImageLayout			old_layout		= VK_IMAGE_LAYOUT_UNDEFINED;
+
+		if ( srcState != Default )
+		{
+			EResourceState_ToSrcStageAccessLayout( srcState, OUT src_stage_mask, OUT src_access_mask, OUT old_layout );
+			src_stage_mask	&= _mngr.GetSupportedStages();
+			src_access_mask	&= _mngr.GetSupportedAccess();
+		}
+
+		GenerateMipmapsImpl( *this, _cmdbuf.Get(), image, dimension, ranges, src_stage_mask, src_access_mask, old_layout );
 	}
 
 /*
@@ -251,7 +262,7 @@ namespace AE::Graphics::_hidden_
 	GenerateMipmaps
 =================================================
 */
-	void  _VIndirectTransferCtx::GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges) __Th___
+	void  _VIndirectTransferCtx::GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges, EResourceState srcState) __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
 		VALIDATE_GCTX( GenerateMipmaps( image, dimension, ranges ));
@@ -263,6 +274,17 @@ namespace AE::Graphics::_hidden_
 		cmd.dimension	= dimension;
 		cmd.rangeCount	= uint(ranges.size());
 		MemCopy( OUT dst_ranges, ranges.data(), ArraySizeOf(ranges) );
+
+		if ( srcState != Default )
+		{
+			EResourceState_ToSrcStageAccessLayout( srcState, OUT cmd.srcStageMask, OUT cmd.srcAccessMask, OUT cmd.oldLayout );
+			cmd.srcStageMask	&= _mngr.GetSupportedStages();
+			cmd.srcAccessMask	&= _mngr.GetSupportedAccess();
+		}else{
+			cmd.srcStageMask	= VK_PIPELINE_STAGE_2_BLIT_BIT;
+			cmd.srcAccessMask	= VK_ACCESS_2_NONE;
+			cmd.oldLayout		= VK_IMAGE_LAYOUT_UNDEFINED;
+		}
 	}
 
 /*

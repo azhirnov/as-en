@@ -65,8 +65,6 @@ namespace
 								})};
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 
@@ -113,7 +111,6 @@ namespace
 
 		auto		batch	= rg.CmdBatch( EQueueType::Graphics, {"CopyImage2"} )
 								.UseResource( t.img_1 )
-								.UploadMemory()
 								.ReadbackMemory()
 								.Begin();
 		CHECK_ERR( batch );

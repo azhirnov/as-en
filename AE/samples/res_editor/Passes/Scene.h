@@ -51,6 +51,16 @@ namespace AE::ResEditor
 		using Materials_t	= Array< RC<IGSMaterials> >;
 		using PplnToObjID_t	= IGeomSource::DebugPrepareData::PplnToObjID_t;
 
+	public:
+		struct ShadingRate
+		{
+			EShadingRate			rate		= EShadingRate(0);
+			EShadingRateCombinerOp	primitiveOp	= Default;
+			EShadingRateCombinerOp	textureOp	= Default;
+
+			ND_ explicit operator bool ()	const { return rate != EShadingRate(0) and primitiveOp != Default and textureOp != Default; }
+		};
+
 
 	// variables
 	private:
@@ -71,6 +81,8 @@ namespace AE::ResEditor
 		DescSetBinding			_dsIndex;
 
 		PplnToObjID_t			_tempPplnToObjID;
+
+		ShadingRate				_shadingRate;
 
 
 	// methods

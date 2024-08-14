@@ -96,6 +96,21 @@ namespace RenderTechs
 		} UI_BGRA8 = {};
 
 		// graphics (1)
+		static constexpr struct _UI_sBGR8_A8
+		{
+			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x78289e94u}};}  // 'UI.sBGR8_A8'
+
+			// RenderPass 'UI.RPass.sBGR8_A8' subpass 'Main'
+
+			static constexpr uint  attachmentsCount = 1;
+			static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
+
+			// pipelines
+			static constexpr PipelineName_t  imgui_opaque_sBGR8_A8 {Hash_t{0x789fd3adu}};  // 'imgui.opaque.sBGR8_A8'
+			static constexpr PipelineName_t  imgui_sBGR8_A8 {Hash_t{0x3c4b9576u}};  // 'imgui.sBGR8_A8'
+		} UI_sBGR8_A8 = {};
+
+		// graphics (2)
 		static constexpr struct _UI_RGBA8
 		{
 			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x62bf157cu}};}  // 'UI.RGBA8'
@@ -110,7 +125,22 @@ namespace RenderTechs
 			static constexpr PipelineName_t  imgui_opaque_RGBA8 {Hash_t{0x8172fecu}};  // 'imgui.opaque.RGBA8'
 		} UI_RGBA8 = {};
 
-		// graphics (2)
+		// graphics (3)
+		static constexpr struct _UI_sRGB8_A8
+		{
+			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x7f1695d8u}};}  // 'UI.sRGB8_A8'
+
+			// RenderPass 'UI.RPass.sRGB8_A8' subpass 'Main'
+
+			static constexpr uint  attachmentsCount = 1;
+			static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
+
+			// pipelines
+			static constexpr PipelineName_t  imgui_opaque_sRGB8_A8 {Hash_t{0x7fa1d8e1u}};  // 'imgui.opaque.sRGB8_A8'
+			static constexpr PipelineName_t  imgui_sRGB8_A8 {Hash_t{0x3b759e3au}};  // 'imgui.sRGB8_A8'
+		} UI_sRGB8_A8 = {};
+
+		// graphics (4)
 		static constexpr struct _UI_RGB10_A2
 		{
 			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0xb4f28e24u}};}  // 'UI.RGB10_A2'
@@ -125,7 +155,7 @@ namespace RenderTechs
 			static constexpr PipelineName_t  imgui_opaque_RGB10_A2 {Hash_t{0xb445c31du}};  // 'imgui.opaque.RGB10_A2'
 		} UI_RGB10_A2 = {};
 
-		// graphics (3)
+		// graphics (5)
 		static constexpr struct _UI_RGBA16F
 		{
 			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0xb6fcec0eu}};}  // 'UI.RGBA16F'

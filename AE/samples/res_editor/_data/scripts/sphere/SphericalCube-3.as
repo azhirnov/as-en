@@ -82,11 +82,11 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
-	#include "GlobalIndex.glsl"
+	#include "SDF.glsl"
 	#include "Color.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "SDF.glsl"
+	#include "GlobalIndex.glsl"
 
 
 	int  FaceIdx () {

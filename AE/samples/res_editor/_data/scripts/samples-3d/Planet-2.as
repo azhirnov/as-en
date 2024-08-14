@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Generate planet PBR textures and draw with tessellation.
+	Generate planet PBR (in progress) textures and draw with tessellation.
 	Used spherical cube with tangential projection to minimize distortion.
 */
 #ifdef __INTELLISENSE__
@@ -9,6 +9,8 @@
 
 void ASmain ()
 {
+	Assert( Supports_TessellationShader() );
+
 	RC<Image>		rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
 	RC<Image>		ds				= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 

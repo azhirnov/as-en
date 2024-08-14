@@ -64,9 +64,6 @@ namespace
 
 			typename CtxTypes::Transfer	copy_ctx{ *this };
 
-			copy_ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
-
 			RTSceneBuild	scene_build{ 1u, Default };
 			scene_build.SetScratchBuffer( t.scratch );
 			scene_build.SetInstanceData( t.instances );
@@ -140,7 +137,6 @@ namespace
 
 			ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS | EResourceState::RayTracingShaders )
-				//.MemoryBarrier( EResourceState::Host_Write, EResourceState::RTShaderBindingTable )	// optional
 				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 
 			auto	bar = ctx.DeferredBarriers();
@@ -184,8 +180,6 @@ namespace
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
 			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
 		}
 	};
 

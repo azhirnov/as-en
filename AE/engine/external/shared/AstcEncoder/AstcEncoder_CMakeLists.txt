@@ -1,0 +1,53 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "AstcEncoder-main" LANGUAGES CXX )
+
+set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
+include( "${AE_EXTERNAL_PATH}/config.cmake" )
+
+set( ASTCENC_ASAN 			OFF CACHE BOOL "" FORCE )
+set( ASTCENC_CLI 			OFF CACHE BOOL "" FORCE )
+set( ASTCENC_DECOMPRESSOR 	OFF CACHE BOOL "" FORCE )
+set( ASTCENC_DIAGNOSTICS 	OFF CACHE BOOL "" FORCE )
+set( ASTCENC_INVARIANCE 	OFF CACHE BOOL "" FORCE )
+set( ASTCENC_ISA_NATIVE 	OFF CACHE BOOL "" FORCE )
+set( ASTCENC_SHAREDLIB	 	OFF CACHE BOOL "" FORCE )
+set( ASTCENC_UBSAN 			OFF CACHE BOOL "" FORCE )
+set( ASTCENC_UNITTEST		OFF CACHE BOOL "" FORCE )
+
+set( ASTCENC_ISA_AVX2		OFF CACHE BOOL "" FORCE )
+set( ASTCENC_ISA_SSE41		OFF CACHE BOOL "" FORCE )
+set( ASTCENC_ISA_SSE2		OFF CACHE BOOL "" FORCE )
+set( ASTCENC_ISA_NEON		OFF CACHE BOOL "" FORCE )
+set( ASTCENC_ISA_NONE		ON  CACHE BOOL "" FORCE )
+	
+# SIMD
+if (AE_CPU_ARCH_X64 OR AE_CPU_ARCH_X86)
+	set( ASTCENC_ISA_AVX2	ON CACHE BOOL "" FORCE )
+	set( ASTCENC_ISA_SSE41	ON CACHE BOOL "" FORCE )
+	set( ASTCENC_ISA_SSE2	ON CACHE BOOL "" FORCE )
+
+elseif (AE_CPU_ARCH_ARM64)
+	set( ASTCENC_ISA_NEON  	ON  CACHE BOOL "" FORCE )
+endif()
+
+include( "origin_CMakeLists.txt" )
+
+if (TARGET "astcenc-avx2-static")
+	install( TARGETS "astcenc-avx2-static" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib" )
+endif()
+if (TARGET "astcenc-sse4.1-static")
+	install( TARGETS "astcenc-sse4.1-static" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib" )
+endif()
+if (TARGET "astcenc-sse2-static")
+	install( TARGETS "astcenc-sse2-static" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib" )
+endif()
+if (TARGET "astcenc-neon-static")
+	install( TARGETS "astcenc-neon-static" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib" )
+endif()
+if (TARGET "astcenc-none-static")
+	install( TARGETS "astcenc-none-static" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib" )
+endif()
+
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/Source/astcenc.h" 	DESTINATION "include" )
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt"		DESTINATION "." )

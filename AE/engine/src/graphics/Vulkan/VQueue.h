@@ -32,6 +32,7 @@ namespace AE::Graphics
 		mutable RecursiveMutex		guard;				// use when call vkQueueSubmit, vkQueueWaitIdle, vkQueueBindSparse, vkQueuePresentKHR,
 														// warning: don't use vkDeviceWaitIdle because it implicitly use all queues, so 'guard' must be locked for all queues.
 														// TODO: AsyncMutex ?
+														// optimization: use Main thread to submit commands to the queue to avoid stalls in mutex.
 		VkQueue						handle				= Default;
 		EQueueType					type				= Default;
 		VQueueFamily				familyIndex			= Default;

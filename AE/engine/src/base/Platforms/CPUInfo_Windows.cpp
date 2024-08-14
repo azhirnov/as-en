@@ -61,51 +61,59 @@ namespace AE::Base
 			StaticArray<int, 4>	cpui = {};
 
 			__cpuid( OUT cpui.data(), 0 );
-			//const int count = cpui[0];
+			const int count = cpui[0];
 
-			__cpuid( cpui.data(), 0x80000000 );
-			//const int ex_count = cpui[0];
-
-			__cpuid( cpui.data(), 0x00000001 );
-
-			feats.SSE2		= AllBits( cpui[3], 1u << 26 ) or ::IsProcessorFeaturePresent( PF_XMMI64_INSTRUCTIONS_AVAILABLE ) != 0;
-			feats.SSE3		= AllBits( cpui[2], 1u << 0  ) or ::IsProcessorFeaturePresent( PF_SSE3_INSTRUCTIONS_AVAILABLE ) != 0;
-			feats.SSSE3		= AllBits( cpui[2], 1u << 9  ) or ::IsProcessorFeaturePresent( PF_SSSE3_INSTRUCTIONS_AVAILABLE ) != 0;
-			feats.POPCNT	= AllBits( cpui[2], 1u << 23 );
-			feats.AES		= AllBits( cpui[2], 1u << 25 );
-			feats.SSE41		= AllBits( cpui[2], 1u << 19 ) or ::IsProcessorFeaturePresent( PF_SSE4_1_INSTRUCTIONS_AVAILABLE ) != 0;
-			feats.SSE42		= AllBits( cpui[2], 1u << 20 ) or ::IsProcessorFeaturePresent( PF_SSE4_2_INSTRUCTIONS_AVAILABLE ) != 0;
-			feats.AVX		= AllBits( cpui[2], 1u << 28 ) or ::IsProcessorFeaturePresent( PF_AVX_INSTRUCTIONS_AVAILABLE ) != 0;
-
-			feats.CmpXchg16 = AllBits( cpui[2], 1u << 13 );
-
-			__cpuid( cpui.data(), 0x00000007 );
-
-			feats.AVX256	= AllBits( cpui[1], 1u << 5  ) or ::IsProcessorFeaturePresent( PF_AVX2_INSTRUCTIONS_AVAILABLE ) != 0;
-			feats.AVX512	= AllBits( cpui[1], 1u << 16 ) or ::IsProcessorFeaturePresent( PF_AVX512F_INSTRUCTIONS_AVAILABLE ) != 0;
-
-			feats.SHA256	= AllBits( cpui[1], 1u << 29 );
-			feats.SHA128	= feats.SHA256;
-
-			// get CPU brand name
-			__cpuid( cpui.data(), 0x80000002 );
-			std::memcpy( cpu_name, cpui.data(), sizeof(cpui) );
-
-			__cpuid( cpui.data(), 0x80000003 );
-			std::memcpy( cpu_name + 16, cpui.data(), sizeof(cpui) );
-
-			__cpuid( cpui.data(), 0x80000004 );
-			std::memcpy( cpu_name + 32, cpui.data(), sizeof(cpui) );
-
-			for (usize i = CountOf(cpu_name)-1; i > 0; --i)
+			if ( count >= 0x1 )
 			{
-				const char	c = cpu_name[i];
-				if ( (c == '\0') or (c == ' ') )
-					cpu_name[i] = '\0';
-				else
-					break;
+				__cpuid( OUT cpui.data(), 0x1 );
+
+				feats.SSE2		= HasBit( cpui[3], 26 ) or ::IsProcessorFeaturePresent( PF_XMMI64_INSTRUCTIONS_AVAILABLE ) != 0;
+				feats.SSE3		= HasBit( cpui[2],  0 ) or ::IsProcessorFeaturePresent( PF_SSE3_INSTRUCTIONS_AVAILABLE ) != 0;
+				feats.SSSE3		= HasBit( cpui[2],  9 ) or ::IsProcessorFeaturePresent( PF_SSSE3_INSTRUCTIONS_AVAILABLE ) != 0;
+				feats.POPCNT	= HasBit( cpui[2], 23 );
+				feats.AES		= HasBit( cpui[2], 25 );
+				feats.SSE41		= HasBit( cpui[2], 19 ) or ::IsProcessorFeaturePresent( PF_SSE4_1_INSTRUCTIONS_AVAILABLE ) != 0;
+				feats.SSE42		= HasBit( cpui[2], 20 ) or ::IsProcessorFeaturePresent( PF_SSE4_2_INSTRUCTIONS_AVAILABLE ) != 0;
+				feats.AVX		= HasBit( cpui[2], 28 ) or ::IsProcessorFeaturePresent( PF_AVX_INSTRUCTIONS_AVAILABLE ) != 0;
+
+				feats.CmpXchg16 = HasBit( cpui[2], 13 );
 			}
 
+			if ( count >= 0x7 )
+			{
+				__cpuid( OUT cpui.data(), 0x7 );
+
+				feats.AVX256	= HasBit( cpui[1],  5 ) or ::IsProcessorFeaturePresent( PF_AVX2_INSTRUCTIONS_AVAILABLE ) != 0;
+				feats.AVX512	= HasBit( cpui[1], 16 ) or ::IsProcessorFeaturePresent( PF_AVX512F_INSTRUCTIONS_AVAILABLE ) != 0;
+
+				feats.SHA256	= HasBit( cpui[1], 29 );
+				feats.SHA128	= feats.SHA256;
+			}
+
+			// get CPU brand name
+			__cpuid( OUT cpui.data(), 0x8000'0000 );
+			const uint ex_count = cpui[0];
+
+			if ( ex_count >= 0x8000'0002 )
+			{
+				__cpuid( OUT cpui.data(), 0x8000'0002 );
+				std::memcpy( OUT cpu_name, cpui.data(), sizeof(cpui) );
+
+				__cpuid( OUT cpui.data(), 0x8000'0003 );
+				std::memcpy( OUT cpu_name + 16, cpui.data(), sizeof(cpui) );
+
+				__cpuid( OUT cpui.data(), 0x8000'0004 );
+				std::memcpy( OUT cpu_name + 32, cpui.data(), sizeof(cpui) );
+
+				for (usize i = CountOf(cpu_name)-1; i > 0; --i)
+				{
+					const char	c = cpu_name[i];
+					if ( (c == '\0') or (c == ' ') )
+						cpu_name[i] = '\0';
+					else
+						break;
+				}
+			}
 			// TODO: _may_i_use_cpu_feature
 		}
 
@@ -169,8 +177,8 @@ namespace AE::Base
 		{
 			auto&	info		= cpu.coreTypes.emplace_back();
 			info.type			= ECoreType::Performance;
-			info.logicalBits	= CoreBits_t{ (1ull << std::thread::hardware_concurrency()) - 1 };
-			info.physicalBits	= CoreBits_t{ (1ull << std::thread::hardware_concurrency()) - 1 };
+			info.logicalBits	= CoreBits_t{ ToBitMask<ulong>( std::thread::hardware_concurrency() )};
+			info.physicalBits	= info.logicalBits;
 		}
 
 		for (auto& core : cpu.coreTypes)
@@ -181,16 +189,16 @@ namespace AE::Base
 
 		// read core frequency
 		{
-			StaticArray< PROCESSOR_POWER_INFORMATION, 512 >		cores = {};
-			CHECK( cores.size() >= cpu.logicalCoreCount );
-
 			WindowsLibrary	lib;
 			if ( lib.Load( "PowrProf.dll" ))
 			{
+				StaticArray< PROCESSOR_POWER_INFORMATION, 512 >		cores = {};
+				CHECK( cores.size() >= cpu.logicalCoreCount );
+
 				decltype(CallNtPowerInformation)*	fn_CallNtPowerInformation = null;
 
 				if ( lib.GetProcAddr( "CallNtPowerInformation", OUT fn_CallNtPowerInformation ) and
-					 fn_CallNtPowerInformation( ProcessorInformation, null, 0, cores.data(), uint(ArraySizeOf(cores)) ) == 0 )
+					 fn_CallNtPowerInformation( ProcessorInformation, null, 0, OUT cores.data(), uint(ArraySizeOf(cores)) ) == 0 )
 				{
 					for (uint i = 0; i < cpu.logicalCoreCount; ++i)
 					{
@@ -206,6 +214,24 @@ namespace AE::Base
 								break;
 							}
 						}
+					}
+				}
+			}
+			else
+			{
+				StaticArray<int, 4>	cpui = {};
+
+				__cpuid( OUT cpui.data(), 0 );
+				const int count = cpui[0];
+
+				if ( count >= 0x16 )
+				{
+					__cpuid( OUT cpui.data(), 0x16 );
+
+					for (auto& core : cpu.coreTypes)
+					{
+						core.baseClock	= cpui[0];
+						core.maxClock	= cpui[1];
 					}
 				}
 			}

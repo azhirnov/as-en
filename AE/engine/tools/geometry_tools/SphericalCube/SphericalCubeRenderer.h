@@ -55,6 +55,9 @@ namespace AE::GeometryTools
 		ND_ BufferID	IndexBufferId ()																					C_NE___	{ return _indexBuffer; }
 
 			template <typename DrawCtx>
+			bool  Draw (DrawCtx &ctx, uint lod, DrawIndexedCmd drawCmd)														C_NE___;
+
+			template <typename DrawCtx>
 			bool  Draw (DrawCtx &ctx, uint lod)																				C_NE___;
 
 			template <typename DrawCtx>
@@ -84,7 +87,13 @@ namespace AE::GeometryTools
 =================================================
 */
 	template <typename DrawCtx>
-	bool  SphericalCubeRenderer::Draw (DrawCtx &ctx, const uint lod) C_NE___
+	bool  SphericalCubeRenderer::Draw (DrawCtx &ctx, uint lod) C_NE___
+	{
+		return Draw( ctx, lod, DrawIndexedCmd{} );
+	}
+
+	template <typename DrawCtx>
+	bool  SphericalCubeRenderer::Draw (DrawCtx &ctx, const uint lod, DrawIndexedCmd drawCmd) C_NE___
 	{
 		CHECK_ERR( lod >= _minLod and lod <= _maxLod );
 
@@ -100,14 +109,9 @@ namespace AE::GeometryTools
 		ctx.BindIndexBuffer( ib, ib_range.Offset(), EIndex::UInt );
 		StaticAssert( sizeof(Index) == sizeof(uint) );
 
-		DrawIndexedCmd	cmd;
-		cmd.indexCount		= idx_cnt;
-		cmd.instanceCount	= 1;
-		cmd.firstIndex		= 0;
-		cmd.vertexOffset	= 0;
-		cmd.firstInstance	= 0;
+		drawCmd.indexCount	= idx_cnt;
 
-		ctx.DrawIndexed( cmd );
+		ctx.DrawIndexed( drawCmd );
 		return true;
 	}
 
@@ -121,6 +125,7 @@ namespace AE::GeometryTools
 	{
 		CHECK_ERR( lod >= _minLod and lod <= _maxLod );
 
+		// TODO
 	}
 
 

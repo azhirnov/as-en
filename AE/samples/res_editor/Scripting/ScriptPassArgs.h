@@ -117,7 +117,7 @@ namespace AE::ResEditor
 					if ( AllBits( arg.state, EResourceState::ShaderSample ))
 						dsLayout->AddSampledImage( stages, arg.name, array_size, type, arg.state );
 					else
-						dsLayout->AddStorageImage( stages, arg.name, array_size, type, tex->Description().format, accessType, arg.state );
+						dsLayout->AddStorageImage( stages, arg.name, array_size, type, tex->PixelFormat(), accessType, arg.state );
 				},
 				[&] (ScriptVideoImagePtr video) {
 					String	sampler = (video->HasYcbcrSampler() ? video->GetSamplerName() : arg.samplerName);
@@ -137,7 +137,7 @@ namespace AE::ResEditor
 					if ( AllBits( arg.state, EResourceState::ShaderSample )) {
 						dsLayout->AddSampledImage( stages, arg.name, AS{uint(arr.size())}, type, arg.state );
 					}else{
-						dsLayout->AddStorageImage( stages, arg.name, AS{uint(arr.size())}, type, arr[0]->Description().format, accessType, arg.state );
+						dsLayout->AddStorageImage( stages, arg.name, AS{uint(arr.size())}, type, arr[0]->PixelFormat(), accessType, arg.state );
 					}
 				},
 				[] (NullUnion) {

@@ -70,14 +70,17 @@ namespace AE::Graphics
 	_AllocStorage
 =================================================
 */
-	bool  ShaderDebugger::_AllocStorage (Bytes size, INOUT Result &result)
+	bool  ShaderDebugger::_AllocStorage (const Bytes storageSize, INOUT Result &result)
 	{
 		NonNull( result._ppln );
 		NonNull( result._fn );
 		ASSERT( result._ds and result._dsIndex != UMax );
 		ASSERT( result._state != Default );
 
-		CHECK_ERR( size > _TraceHeaderSize );
+		CHECK_ERR( storageSize > _TraceHeaderSize );
+
+		auto&		rts			= GraphicsScheduler();
+		const auto	frame_id	= rts.GetFrameId();
 
 		// find in existing
 		bool	found = false;
@@ -86,16 +89,22 @@ namespace AE::Graphics
 
 			for (auto& buf : *buffers)
 			{
+				if ( frame_id.Diff( buf.lastUsage ) > slong(frame_id.MaxFrames()+2) )
+				{
+					buf.size = 0_b;
+				}
+
 				const Bytes  offset = AlignUp( buf.size, _OffsetAlign );
 
-				if ( offset + size <= buf.capacity )
+				if ( offset + storageSize <= buf.capacity )
 				{
 					result._deviceBuf	= buf.dbgTraceBuffer;
 					result._hostBuf		= buf.readbackBuffer;
 					result._offset		= offset;
-					result._size		= size;
+					result._size		= storageSize;
 
-					buf.size			= offset + size;
+					buf.size			= offset + storageSize;
+					buf.lastUsage		= frame_id;
 
 					found = true;
 					break;
@@ -108,7 +117,7 @@ namespace AE::Graphics
 			return _InitDS( result );
 		}
 
-		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+		auto&	res_mngr = rts.GetResourceManager();
 
 		// create allocator
 		GfxMemAllocatorPtr	gfx_alloc = _gfxAlloc.load();
@@ -153,9 +162,11 @@ namespace AE::Graphics
 			result._deviceBuf	= buf.dbgTraceBuffer;
 			result._hostBuf		= buf.readbackBuffer;
 			result._offset		= 0_b;
-			result._size		= size;
+			result._size		= storageSize;
 
-			buf.size			= size;
+			buf.capacity		= _blockSize;
+			buf.size			= storageSize;
+			buf.lastUsage		= frame_id;
 
 			auto	pending	= _pending.WriteNoLock();
 			auto	buffers	= _buffers.WriteNoLock();
@@ -289,8 +300,10 @@ namespace {
 		ASSERT( pending->empty() );
 		pending->clear();
 
-		for (auto& buf : *buffers) {
-			buf.size = 0_b;
+		for (auto& buf : *buffers)
+		{
+			buf.size		= 0_b;
+			buf.lastUsage	= Default;
 		}
 
 		if ( not ds_arr->empty() )
@@ -368,7 +381,8 @@ namespace {
 		ctx.FillBuffer( result._deviceBuf, result._offset + headerSize, result._size - headerSize, 0 );
 		ctx.UpdateBuffer( result._deviceBuf, result._offset, headerSize, headerData );
 
-		ctx.BufferBarrier( result._deviceBuf, EResourceState::CopyDst, result._state );
+		ctx.BufferBarrier( result._deviceBuf, EResourceState::CopyDst,  result._state );
+		ctx.BufferBarrier( result._deviceBuf, EResourceState::ClearDst, result._state );
 		ctx.CommitBarriers();
 	}
 
@@ -394,11 +408,13 @@ namespace {
 		ctx.BufferBarrier( request._hostBuf, EResourceState::CopyDst, EResourceState::Host_Read );
 		ctx.CommitBarriers();
 
-		return ctx.ReadHostBuffer( request._hostBuf, request._offset, request._size )
-				.Then( [ppln = request._ppln, fn = request._fn, format] (const ArrayView<ubyte> &view)
-						{
-							return _Parse( view, ppln, fn, format );
-						});
+		auto	p = ctx.ReadHostBuffer( request._hostBuf, request._offset, request._size )
+							.Then(	[ppln = request._ppln, fn = request._fn, format] (const ArrayView<ubyte> &view)
+									{
+										return _Parse( view, ppln, fn, format );
+									});
+		GraphicsScheduler().AddNextCycleEndDeps( AsyncTask{p} );
+		return p;
 	}
 
 /*
@@ -438,12 +454,12 @@ namespace {
 
 		for (auto& res : *pending)
 		{
-			temp.push_back(
-				ctx.ReadHostBuffer( res._hostBuf, res._offset, res._size )
-					.Then( [ppln = res._ppln, fn = res._fn, format] (const ArrayView<ubyte> &view)
-							{
-								return _Parse( view, ppln, fn, format );
-							}));
+			temp.push_back( ctx.ReadHostBuffer( res._hostBuf, res._offset, res._size )
+				.Then(	[ppln = res._ppln, fn = res._fn, format] (const ArrayView<ubyte> &view)
+						{
+							return _Parse( view, ppln, fn, format );
+						}
+					));
 
 			if_unlikely( temp.size() >= 32 )
 			{
@@ -455,10 +471,14 @@ namespace {
 		}
 		pending->clear();
 
+		Promise<Array<String>>	result;
 		if ( temp.size() == 1 )
-			return temp[0];
+			result = RVRef( temp[0] );
+		else
+			result = _Merge( RVRef(temp) );
 
-		return _Merge( RVRef(temp) );
+		GraphicsScheduler().AddNextCycleEndDeps( AsyncTask{result} );
+		return result;
 	}
 
 

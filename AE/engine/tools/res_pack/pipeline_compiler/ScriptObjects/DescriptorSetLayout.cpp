@@ -235,7 +235,9 @@ namespace
 				case EImageType::Depth :		break;
 				case EImageType::Stencil :		break;
 				case EImageType::DepthStencil :	break;
-				default :						CHECK(false);
+				case EImageType::SLong :		str << "i64";	break;
+				case EImageType::ULong :		str << "u64";	break;
+				default :						CHECK_MSG( false, "unknown image data type" );
 			}
 			str << typeName;
 			switch ( type & EImageType::_TexMask )
@@ -250,13 +252,13 @@ namespace
 				case EImageType::ImgCubeArray :	str << "CubeArray";	break;
 				case EImageType::Img3D :		str << "3D";		break;
 				case EImageType::Buffer :		str << "Buffer";	break;
-				default :						CHECK(false);
+				default :						CHECK_MSG( false, "unknown image dimension" );
 			}
 			switch ( type & EImageType::_QualMask )
 			{
 				case EImageType::Shadow :	str << "Shadow";	break;
 				case EImageType::Unknown :	break;
-				default :					CHECK(false);
+				default :					CHECK_MSG( false, "unknown image qualifier type" );
 			}
 			return str;
 		}};
@@ -1113,7 +1115,7 @@ namespace
 		binder.AddMethod( &DescriptorSetLayout::AddFeatureSet,					"AddFeatureSet",	{"fsName"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
-						"Format: MACROS = value; DEF" );
+						"Format: MACROS = value \\n DEF \\n ..." );
 		binder.AddMethod( &DescriptorSetLayout::Define,							"Define",			{} );
 
 		binder.Comment( "Set descriptor set usage (EDescSetUsage)." );
@@ -1334,6 +1336,35 @@ namespace
 		binder.AddGenericMethod< void (uint, const String &)								>( &DescriptorSetLayout::_AddRayTracingScene, "RayTracingScene", {"shaderStages", "uniform"} );
 		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &)	>( &DescriptorSetLayout::_AddRayTracingScene, "RayTracingScene", {"shaderStages", "uniform", "arraySize"} );
 		binder.AddGenericMethod< void (uint, const String &, const ArraySize &)				>( &DescriptorSetLayout::_AddRayTracingScene, "RayTracingScene", {"shaderStages", "uniform", "arraySize"} );
+
+		binder.Comment( "Check is image description is supported by feature set." );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, ImageLayer const&, MultiSamples const&) >( &DescriptorSetLayout::_IsImageSupported,	"IsSupported",	{"format", "usage", "options", "arrayLayers", "samples"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, MultiSamples const&)					 >( &DescriptorSetLayout::_IsImageSupported,	"IsSupported",	{"format", "usage", "options", "samples"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, ImageLayer const&)						 >( &DescriptorSetLayout::_IsImageSupported,	"IsSupported",	{"format", "usage", "options", "arrayLayers"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt)										 >( &DescriptorSetLayout::_IsImageSupported,	"IsSupported",	{"format", "usage", "options"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage)													 >( &DescriptorSetLayout::_IsImageSupported,	"IsSupported",	{"format", "usage"} );
+
+		binder.Comment( "Check is image view description is supported by feature set." );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, ImageLayer const&, MultiSamples const&, EImage, EPixelFormat, EImageUsage) >( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "options", "arrayLayers", "samples", "imageType", "viewFormat", "viewUsage"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, ImageLayer const&, MultiSamples const&, EImage, EPixelFormat)				>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "options", "arrayLayers", "samples", "imageType", "viewFormat"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, ImageLayer const&, MultiSamples const&, EImage)							>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "options", "arrayLayers", "samples", "imageType"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, ImageLayer const&, EImage, EPixelFormat, EImageUsage)						>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "options", "arrayLayers", "imageType", "viewFormat", "viewUsage"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, ImageLayer const&, EImage, EPixelFormat)									>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "options", "arrayLayers", "imageType", "viewFormat"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, ImageLayer const&, EImage)													>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "options", "arrayLayers", "imageType"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, EImage, EPixelFormat, EImageUsage)											>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "options", "imageType", "viewFormat", "viewUsage"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, EImage, EPixelFormat)														>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "options", "imageType", "viewFormat"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, EImage)																	>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "options", "imageType"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImage, EPixelFormat, EImageUsage)													>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "imageType", "viewFormat", "viewUsage"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImage, EPixelFormat)																	>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "imageType", "viewFormat"} );
+		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImage)																				>( &DescriptorSetLayout::_IsImageViewSupported,	"IsSupported",	{"format", "usage", "imageType"} );
+
+		binder.Comment( "Check is buffer description is supported by feature set." );
+		binder.AddGenericMethod< bool (EBufferUsage, EBufferOpt) >( &DescriptorSetLayout::_IsBufferSupported,	"IsSupported",	{"usage", "options"} );
+		binder.AddGenericMethod< bool (EBufferUsage)			 >( &DescriptorSetLayout::_IsBufferSupported,	"IsSupported",	{"usage"} );
+
+		binder.Comment( "Check is buffer view description is supported by feature set." );
+		binder.AddGenericMethod< bool (EBufferUsage, EBufferOpt, EPixelFormat)	>( &DescriptorSetLayout::_IsBufferViewSupported,	"IsSupported",	{"usage", "options", "format"} );
+		binder.AddGenericMethod< bool (EBufferUsage, EPixelFormat)				>( &DescriptorSetLayout::_IsBufferViewSupported,	"IsSupported",	{"usage", "format"} );
 	}
 
 /*
@@ -2654,6 +2685,117 @@ namespace
 			return _dsLayout.samplerStorage[ indexInStorage ];
 
 		return Default;
+	}
+
+/*
+=================================================
+	_IsImageSupported
+=================================================
+*/
+	void  DescriptorSetLayout::_IsImageSupported (Scripting::ScriptArgList args) __Th___
+	{
+		ImageDesc	desc;
+		uint		idx = 0;
+
+		if ( args.IsArg< EPixelFormat >(idx) )			desc.format		 = args.Arg< EPixelFormat >(idx++);
+		if ( args.IsArg< EImageUsage >(idx) )			desc.usage		 = args.Arg< EImageUsage >(idx++);
+		if ( args.IsArg< EImageOpt >(idx) )				desc.options	 = args.Arg< EImageOpt >(idx++);
+		if ( args.IsArg< ImageLayer const& >(idx) )		desc.arrayLayers = args.Arg< ImageLayer const& >(idx++);
+		if ( args.IsArg< MultiSamples const& >(idx) )	desc.samples	 = args.Arg< MultiSamples const& >(idx++);
+
+		CHECK_THROW_MSG( idx == args.ArgCount() );
+
+		desc.imageDim = EImageDim_2D;
+		desc.Validate();
+
+		bool	result = false;
+		for (auto& fs : args.GetObject< DescriptorSetLayout >()->_features) {
+			result = result or fs->fs.IsSupported( desc );
+		}
+		args.Return( result );
+	}
+
+/*
+=================================================
+	_IsImageViewSupported
+=================================================
+*/
+	void  DescriptorSetLayout::_IsImageViewSupported (Scripting::ScriptArgList args) __Th___
+	{
+		ImageDesc		img_desc;
+		ImageViewDesc	view_desc;
+		uint			idx = 0;
+
+		if ( args.IsArg< EPixelFormat >(idx) )			img_desc.format		 = args.Arg< EPixelFormat >(idx++);
+		if ( args.IsArg< EImageUsage >(idx) )			img_desc.usage		 = args.Arg< EImageUsage >(idx++);
+		if ( args.IsArg< EImageOpt >(idx) )				img_desc.options	 = args.Arg< EImageOpt >(idx++);
+		if ( args.IsArg< ImageLayer const& >(idx) )		img_desc.arrayLayers = args.Arg< ImageLayer const& >(idx++);
+		if ( args.IsArg< MultiSamples const& >(idx) )	img_desc.samples	 = args.Arg< MultiSamples const& >(idx++);
+
+		if ( args.IsArg< EImage >(idx) )				view_desc.viewType	 = args.Arg< EImage >(idx++);
+		if ( args.IsArg< EPixelFormat >(idx) )			view_desc.format	 = args.Arg< EPixelFormat >(idx++);
+		if ( args.IsArg< EImageUsage >(idx) )			view_desc.extUsage	 = args.Arg< EImageUsage >(idx++);
+
+		CHECK_THROW_MSG( idx == args.ArgCount() );
+
+		img_desc.Validate();
+		view_desc.Validate( img_desc );
+
+		bool	result = false;
+		for (auto& fs : args.GetObject< DescriptorSetLayout >()->_features) {
+			result = result or fs->fs.IsSupported( img_desc, view_desc );
+		}
+		args.Return( result );
+	}
+
+/*
+=================================================
+	_IsBufferSupported
+=================================================
+*/
+	void  DescriptorSetLayout::_IsBufferSupported (Scripting::ScriptArgList args) __Th___
+	{
+		BufferDesc	desc;
+		uint		idx = 0;
+
+		if ( args.IsArg< EBufferUsage >(idx) )	desc.usage	 = args.Arg< EBufferUsage >(idx++);
+		if ( args.IsArg< EBufferOpt >(idx) )	desc.options = args.Arg< EBufferOpt >(idx++);
+
+		CHECK_THROW_MSG( idx == args.ArgCount() );
+		desc.Validate();
+
+		bool	result = false;
+		for (auto& fs : args.GetObject< DescriptorSetLayout >()->_features) {
+			result = result or fs->fs.IsSupported( desc );
+		}
+		args.Return( result );
+	}
+
+/*
+=================================================
+	_IsBufferViewSupported
+=================================================
+*/
+	void  DescriptorSetLayout::_IsBufferViewSupported (Scripting::ScriptArgList args) __Th___
+	{
+		BufferDesc		buf_desc;
+		BufferViewDesc	view_desc;
+		uint			idx = 0;
+
+		if ( args.IsArg< EBufferUsage >(idx) )	buf_desc.usage		= args.Arg< EBufferUsage >(idx++);
+		if ( args.IsArg< EBufferOpt >(idx) )	buf_desc.options	= args.Arg< EBufferOpt >(idx++);
+		if ( args.IsArg< EPixelFormat >(idx) )	view_desc.format	= args.Arg< EPixelFormat >(idx++);
+
+		CHECK_THROW_MSG( idx == args.ArgCount() );
+
+		buf_desc.Validate();
+		view_desc.Validate( buf_desc );
+
+		bool	result = false;
+		for (auto& fs : args.GetObject< DescriptorSetLayout >()->_features) {
+			result = result or fs->fs.IsSupported( buf_desc, view_desc );
+		}
+		args.Return( result );
 	}
 
 

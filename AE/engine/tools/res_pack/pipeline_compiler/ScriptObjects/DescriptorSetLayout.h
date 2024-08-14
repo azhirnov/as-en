@@ -126,6 +126,11 @@ namespace AE::PipelineCompiler
 		static void  _AddImmutableSampler (Scripting::ScriptArgList args)					__Th___;
 		static void  _AddRayTracingScene (Scripting::ScriptArgList args)					__Th___;
 
+		static void  _IsImageSupported (Scripting::ScriptArgList args)						__Th___;
+		static void  _IsImageViewSupported (Scripting::ScriptArgList args)					__Th___;
+		static void  _IsBufferSupported (Scripting::ScriptArgList args)						__Th___;
+		static void  _IsBufferViewSupported (Scripting::ScriptArgList args)					__Th___;
+
 		void  _CheckUniformName (const String &name)										__Th___;
 		void  _CheckArraySize (uint size)													C_Th___;
 		void  _CheckSamplerName (const String &name)										__Th___;

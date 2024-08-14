@@ -19,9 +19,9 @@
 #define BubbleSort( _count_, _cmp_, _swap_ )									\
 	{																			\
 		const int	_sf_count	= int(_count_);									\
-		[[unroll]] for (int _sf_i = _sf_count-2; _sf_i >= 0; --_sf_i)			\
+		for (int _sf_i = _sf_count-2; _sf_i >= 0; --_sf_i)						\
 		{																		\
-			[[unroll]] for (int _sf_j = 0; _sf_j <= _sf_i; ++_sf_j)				\
+			for (int _sf_j = 0; _sf_j <= _sf_i; ++_sf_j)						\
 			{																	\
 				if ( _cmp_( _sf_j, _sf_j+1 ))									\
 				{																\

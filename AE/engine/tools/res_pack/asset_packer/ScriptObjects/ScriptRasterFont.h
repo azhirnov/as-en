@@ -58,7 +58,7 @@ namespace AE::AssetPacker
 		ERasterFontMode		_fontMode			= ERasterFontMode::Raster;
 		uint				_bitmapHeight		= 1;
 		int					_paddingPix			= 1;
-		double				_sdfPixRange		= 1.0;
+		double				_sdfPixRange		= 1.0;	// TODO: remove
 		uint				_sdfBorderSize		= 0;
 
 		EPixelFormat		_dstFormat		= EPixelFormat::R8_UNorm;

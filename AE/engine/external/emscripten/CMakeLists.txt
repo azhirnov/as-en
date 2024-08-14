@@ -37,7 +37,8 @@ set( AE_ENABLE_VMA 				OFF CACHE INTERNAL "" FORCE )
 
 set( AE_ENABLE_UTF8PROC 		OFF CACHE INTERNAL "" FORCE )
 
-set( AE_ENABLE_WEBGL2 			ON  CACHE BOOL "use WebGL2" )
+#set( AE_ENABLE_WEBGL2 			ON  CACHE BOOL "use WebGL2" )
+#set( AE_ENABLE_WEBGPU 			ON  CACHE BOOL "use WebGPU" )
 
 #----------------------------------------------------------
 

@@ -930,5 +930,22 @@ namespace
 		return true;
 	}
 
+/*
+=================================================
+	Align
+=================================================
+*/
+	void  Parser::Align (INOUT String &str, usize pos, usize lineSize, const char c) __Th___
+	{
+		ASSERT( pos <= str.size() );
+
+		pos = str.size() - pos;
+
+		str.reserve( str.size() + lineSize - pos );  // throw
+
+		for (; pos < lineSize; ++pos)
+			str += c;
+	}
+
 
 } // AE::Base

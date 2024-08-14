@@ -310,13 +310,13 @@ namespace AE::ResEditor
 		CHECK_THROW_MSG( arr[0] );
 
 		const auto	img_type	= arr[0]->ImageType();
-		const auto	img_fmt		= arr[0]->Description().format;
+		const auto	img_fmt		= arr[0]->PixelFormat();
 
 		for (auto& img : arr)
 		{
 			CHECK_THROW_MSG( img );
 			CHECK_THROW_MSG( img_type == img->ImageType() );
-			CHECK_THROW_MSG( img_fmt == img->Description().format );
+			CHECK_THROW_MSG( img_fmt == img->PixelFormat() );
 
 			img->AddUsage( usage );
 		}

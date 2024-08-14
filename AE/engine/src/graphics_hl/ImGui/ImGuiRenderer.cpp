@@ -7,6 +7,10 @@
 # include "imgui.h"
 # include "imgui_internal.h"
 
+# if IMGUI_VERSION_NUM != 19100
+#	error required ImGui version 1.91.0
+# endif
+
 namespace AE::Graphics
 {
 	using namespace AE::App;
@@ -127,8 +131,16 @@ namespace AE::Graphics
 
 	void  ImGuiRenderer::_UpdateScale (float pixToMm)
 	{
-		_uiToPix = _scale / pixToMm;
-		_pixToUI = pixToMm / _scale;
+		if ( _scale < 0.f )
+		{
+			_uiToPix = 1.f;
+			_pixToUI = 1.f;
+		}
+		else
+		{
+			_uiToPix = _scale / pixToMm;
+			_pixToUI = pixToMm / _scale;
+		}
 	}
 
 /*
@@ -236,8 +248,6 @@ namespace AE::Graphics
 		DirectCtx::Graphics		gfx_ctx{ rtask, RVRef(cmdbuf) };
 
 		gfx_ctx.AccumBarriers()
-			.MemoryBarrier( EResourceState::Host_Write, EResourceState::VertexBuffer )
-			.MemoryBarrier( EResourceState::Host_Write, EResourceState::IndexBuffer )
 			.MemoryBarrier( EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::FragmentShader | EResourceState::PreRasterizationShaders );
 
 		auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *_rtech, RenderTechPassName{ps.pass}, rt.RegionSize() }
@@ -423,7 +433,6 @@ namespace AE::Graphics
 		_imguiCtx->IO.Fonts->GetTexDataAsRGBA32( OUT &pixels, OUT &width, OUT &height );
 
 		copyCtx.AccumBarriers()
-			.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc )
 			.ImageBarrier( _font.image, EResourceState::Unknown, EResourceState::CopyDst );
 
 		UploadImageDesc		upload;
@@ -458,6 +467,83 @@ namespace AE::Graphics
 	ImGuiRenderer::~ImGuiRenderer () __NE___
 	{
 		Deinitialize();
+	}
+
+/*
+=================================================
+	StyleScope ctor / dtor
+=================================================
+*/
+	ImGuiRenderer::StyleScope::StyleScope (ImGuiContext* ctx) __NE___ :
+		_imguiCtx{ ctx },
+		_stackSize{ _imguiCtx->ColorStack.size() }
+	{}
+
+	ImGuiRenderer::StyleScope::~StyleScope () __NE___
+	{
+		ImGui::PopStyleColor(int( _imguiCtx->ColorStack.size() - _stackSize ));
+	}
+
+/*
+=================================================
+	AEStyleScope ctor
+=================================================
+*/
+	ImGuiRenderer::AEStyleScope::AEStyleScope (ImGuiContext* ctx, Bool sRGB) __NE___ :
+		StyleScope{ ctx }
+	{
+		const auto  PushStyleColor = [sRGB] (ImGuiCol idx, RGBA8u color) __NE___
+		{{
+			ImU32	c = Base::BitCast<ImU32>(color);
+			if_unlikely( not sRGB )
+				c = Base::BitCast<ImU32>( RGBA8u{ RemoveSRGBCurve( RGBA32f{color} )});
+
+			ImGui::PushStyleColor( idx, c );
+		}};
+
+		// window / frame
+		PushStyleColor( ImGuiCol_WindowBg,				RGBA8u{ 20, 0,  60, 255} );
+		PushStyleColor( ImGuiCol_ChildBg,				RGBA8u{ 40, 0, 100, 255} );
+
+		// window title
+		PushStyleColor( ImGuiCol_TitleBg,				RGBA8u{ 30, 0,  80, 255} );
+		PushStyleColor( ImGuiCol_TitleBgActive,			RGBA8u{ 30, 0,  80, 255} );
+		PushStyleColor( ImGuiCol_TitleBgCollapsed,		RGBA8u{ 30, 0,  80, 255} );
+
+		// background (checkbox, radio button, plot, slider, text input)
+		PushStyleColor( ImGuiCol_FrameBg,				RGBA8u{ 40, 0, 100, 255} );
+		PushStyleColor( ImGuiCol_FrameBgHovered,		RGBA8u{ 90, 0, 180, 255} );
+		PushStyleColor( ImGuiCol_FrameBgActive,			RGBA8u{120, 0, 220, 255} );
+
+		// tabs
+		PushStyleColor( ImGuiCol_Tab,					RGBA8u{ 90, 0, 180, 255} );
+		PushStyleColor( ImGuiCol_TabUnfocused,			RGBA8u{ 90, 0, 180, 255} );
+		PushStyleColor( ImGuiCol_TabHovered,			RGBA8u{120, 0, 220, 255} );
+		PushStyleColor( ImGuiCol_TabActive,				RGBA8u{120, 0, 220, 255} );
+		PushStyleColor( ImGuiCol_TabUnfocusedActive,	RGBA8u{120, 0, 220, 255} );
+
+		// tree view
+		PushStyleColor( ImGuiCol_Header,				RGBA8u{ 90, 0, 180, 255} );
+		PushStyleColor( ImGuiCol_HeaderActive,			RGBA8u{120, 0, 220, 255} );
+		PushStyleColor( ImGuiCol_HeaderHovered,			RGBA8u{ 90, 0, 180, 255} );
+
+		// button
+		PushStyleColor( ImGuiCol_Button,				RGBA8u{ 90, 0, 180, 255} );
+		PushStyleColor( ImGuiCol_ButtonHovered,			RGBA8u{120, 0, 220, 255} );
+		PushStyleColor( ImGuiCol_ButtonActive,			RGBA8u{140, 0, 240, 255} );	// pressed
+
+		// scrollbar
+		PushStyleColor( ImGuiCol_ScrollbarBg,			RGBA8u{ 30, 0,  80, 255} );
+		PushStyleColor( ImGuiCol_ScrollbarGrab,			RGBA8u{ 90, 0, 180, 255} );
+		PushStyleColor( ImGuiCol_ScrollbarGrabHovered,	RGBA8u{120, 0, 220, 255} );
+		PushStyleColor( ImGuiCol_ScrollbarGrabActive,	RGBA8u{120, 0, 220, 255} );
+
+		// checkbox
+		PushStyleColor( ImGuiCol_CheckMark,				RGBA8u{230, 0, 255, 255} );
+
+		// slider
+		PushStyleColor( ImGuiCol_SliderGrab,			RGBA8u{120, 0, 220, 255} );
+		PushStyleColor( ImGuiCol_SliderGrabActive,		RGBA8u{230, 0, 255, 255} );
 	}
 
 

@@ -146,11 +146,11 @@ private:
 	_Vec<T,R>	_cols [C];
 
 public:
-	ND_ _Vec<T,C>&			operator [] (int c);
-	ND_ _Vec<T,C>&			operator [] (uint c);
-	ND_ _Vec<T,C> const&	operator [] (int c)		const;
-	ND_ _Vec<T,C> const&	operator [] (uint c)	const;
-	ND_ int					length ()				const	{ return C; }
+	ND_ _Vec<T,R>&			operator [] (int c);
+	ND_ _Vec<T,R>&			operator [] (uint c);
+	ND_ _Vec<T,R> const&	operator [] (int c)					const;
+	ND_ _Vec<T,R> const&	operator [] (uint c)				const;
+	ND_ int					length ()							const	{ return C; }
 };
 
 template <typename T>

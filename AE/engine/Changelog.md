@@ -1,6 +1,27 @@
-## 24.05.xxx
+## 24.08.xxx
 
+- Profiling: NVML runtime profiler
+- Profiling: used AMD GPUPerfAPI tp set stable clock
+- Scripting: enable on MacOS ARM64
+- Vulkan: add VK_KHR_shader_quad_control, GL_EXT_shader_quad
+- Vulkan: add VK_KHR_shader_maximal_reconvergence, GL_EXT_maximal_reconvergence
+- Vulkan: add VK_NV_ray_tracing_validation
+
+
+## 24.07.249
+
+- Graphics: remove some Host_Write -> X barriers, remove UploadMemoryBarrier, HasUploadMemoryBarrier, UploadMemory.
+- Profiling: graphics profiler uses PVR timings
+- ShaderTrace: float16 support
+
+
+## 24.05.247
+
+- Graphics: refactoring for staging buffer (removed per queue static buffer, fixed data race for readback).
+- Profiling: used ARM HWCPipe v2
 - Profiling: added Adreno GPU performance counters
+- Profiling: improved UI
+- AssetPacker: add support for BC, ETC, ASTC compression
 
 
 ## 24.04.243

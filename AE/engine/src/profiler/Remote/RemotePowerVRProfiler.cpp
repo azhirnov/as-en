@@ -76,8 +76,7 @@ namespace AE::Profiler
 		{
 			msg->ok = ok;
 			if ( ok ) {
-				msg->enabled	= _prof.profiler.EnabledCounterSet();
-				msg->supported	= _prof.profiler.SupportedCounterSet();
+				msg->enabled = _prof.profiler.EnabledCounterSet();
 			}
 			CHECK( _msgProducer->AddMessage( msg ));
 		}
@@ -188,6 +187,8 @@ namespace AE::Profiler
 */
 	bool  PowerVRProfilerClient::Initialize (const ECounterSet &counterSet) __NE___
 	{
+		CHECK_ERR( counterSet.Any() );
+
 		_requiredCS = counterSet;
 		return _Initialize( counterSet );
 	}
@@ -231,8 +232,8 @@ namespace AE::Profiler
 				CASE( InitRes )
 				CASE( NextSample )
 				CASE( Sample )
+				CASE( Timing )
 				#undef CASE
-				default :					DBG_WARNING( "unknown message id" ); break;
 			}
 		}
 	}
@@ -254,10 +255,35 @@ namespace AE::Profiler
 			return;
 		}
 
-		auto&	curr = _counters[ _completeIdx & 1 ];
+		auto&	curr = _counters[ _countersIdx & 1 ];
 
 		std::swap( result, curr );
 		curr.clear();
+	}
+
+/*
+=================================================
+	ReadTimingData
+=================================================
+*/
+	void  PowerVRProfilerClient::ReadTimingData (OUT TimeScopeArr_t &result) __NE___
+	{
+		EXLOCK( _guard );
+
+		if ( _IsNotInitialized() )
+		{
+			result.clear();
+			return;
+		}
+
+		auto&	curr = _timings[ _timingsIdx & 1 ];
+
+		// keep previous values if new timings are not available
+		if ( not curr.empty() )
+		{
+			std::swap( result, curr );
+			curr.clear();
+		}
 	}
 
 /*
@@ -271,7 +297,6 @@ namespace AE::Profiler
 
 		_status		= msg.ok ? EStatus::Initialized : EStatus::NotSupported;
 		_enabled	= msg.enabled;
-		_supported	= msg.supported;
 
 		_connectionLostTimer.Restart();
 	}
@@ -287,8 +312,9 @@ namespace AE::Profiler
 
 		if ( _IsInitialized() )
 		{
-			_pendingIdx	= msg.index;
-			_interval	= milliseconds{ msg.dtInMs };
+			_countersIdx		= (_countersIdx+1) & 1;
+			_pendingCountersIdx	= msg.index;
+			_interval			= milliseconds{ msg.dtInMs };
 
 			_connectionLostTimer.Restart();
 		}
@@ -303,13 +329,39 @@ namespace AE::Profiler
 	{
 		EXLOCK( _guard );
 
-		if ( _IsInitialized() and _pendingIdx == msg.index )
+		if ( _IsInitialized() and _pendingCountersIdx == msg.index )
 		{
-			auto&	curr = _counters[ _pendingIdx & 1 ];
+			auto&	curr = _counters[ (_countersIdx+1) & 1 ];
 
 			for (uint i = 0, cnt = msg.count; i < cnt; ++i)
 				curr.insert_or_assign( msg.arr[i].first, msg.arr[i].second );
 		}
+	}
+
+/*
+=================================================
+	_Timing
+=================================================
+*/
+	inline void  PowerVRProfilerClient::_Timing (CSMsg_PVRProf_Timing const& msg) __NE___
+	{
+		EXLOCK( _guard );
+
+		if ( not _IsInitialized() )
+			return;
+
+		if ( _pendingTimingsIdx != msg.index )
+		{
+			_pendingTimingsIdx	= msg.index;
+			_timingsIdx			= (_timingsIdx+1) & 1;
+			_timings[ (_timingsIdx+1) & 1 ].clear();
+		}
+
+		auto&	curr = _timings[ (_timingsIdx+1) & 1 ];
+		curr.reserve( curr.size() + msg.count );
+
+		for (uint i = 0, cnt = msg.count; i < cnt; ++i)
+			curr.push_back( msg.arr[i] );
 	}
 
 /*

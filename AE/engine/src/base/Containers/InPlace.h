@@ -73,9 +73,9 @@ namespace AE::Base
 			ASSERT( not _isCreated );
 
 			CheckNothrow( IsNoExcept( T{ FwdArg<Args>( args )... }));
-			CheckNothrow( IsNoExcept( new (&_value) T{ FwdArg<Args>( args )... }));
+			CheckNothrow( IsNoExcept( new (std::addressof(_value)) T{ FwdArg<Args>( args )... }));
 
-			new (&_value) T{ FwdArg<Args>( args )... };
+			new (std::addressof(_value)) T{ FwdArg<Args>( args )... };
 
 			DEBUG_ONLY( _isCreated = true;)
 			return *this;
@@ -86,9 +86,9 @@ namespace AE::Base
 		{
 			ASSERT( not _isCreated );
 
-			CheckNothrow( not IsNoExcept( new (&_value) T{ FwdArg<Args>( args )... }));
+			CheckNothrow( not IsNoExcept( new (std::addressof(_value)) T{ FwdArg<Args>( args )... }));
 
-			new (&_value) T{ FwdArg<Args>( args )... };
+			new (std::addressof(_value)) T{ FwdArg<Args>( args )... };
 
 			DEBUG_ONLY( _isCreated = true;)
 			return *this;
@@ -154,8 +154,8 @@ namespace AE::Base
 	};
 
 
-	template <typename T>	struct TMemCopyAvailable< InPlace<T> >		{ static constexpr bool  value = false; };
-	template <typename T>	struct TTriviallyDestructible< InPlace<T> >	{ static constexpr bool  value = false; };
+	template <typename T>	struct TMemCopyAvailable< InPlace<T> >		: CT_False {};
+	template <typename T>	struct TTriviallyDestructible< InPlace<T> >	: CT_False {};
 
 
 } // AE::Base
