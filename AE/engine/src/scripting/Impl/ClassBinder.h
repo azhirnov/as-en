@@ -57,6 +57,8 @@ namespace AE::Scripting
 	template <typename T>
 	struct ClassBinder final
 	{
+		StaticAssert( sizeof(T) > 0, "type is not implemented" );
+
 	// types
 	public:
 		using Self			= ClassBinder<T>;

@@ -115,6 +115,7 @@ void ASmain ()
 	fset.shaderStorageBufferArrayNonUniformIndexingNative (True);
 	fset.shaderStorageImageArrayNonUniformIndexingNative (True);
 	fset.shaderInputAttachmentArrayNonUniformIndexingNative (True);
+	fset.quadDivergentImplicitLod (True);
 	fset.shaderStorageImageMultisample (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);

@@ -18,11 +18,10 @@ namespace AE::PipelineCompiler
 #ifdef AE_BUILD_PIPELINE_COMPILER
 	bool  FeatureSetSerializer::Create (const ScriptFeatureSet &fs)
 	{
-		//CHECK_ERR( fs.fs.IsValid() );
-
 		_fs = fs.fs;
 		_fs.Validate();
 
+		CHECK_ERR( _fs.IsValid() );
 		return true;
 	}
 #endif

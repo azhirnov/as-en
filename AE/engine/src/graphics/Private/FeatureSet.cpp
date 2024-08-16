@@ -749,26 +749,27 @@ namespace
 				CHECK_ERR( A(_lhs_) >= A(_ref_) );					\
 			}}
 
-		#define chEqual(     _lhs_, _ref_ )		chEqual2(     (_lhs_), (_ref_), (_lhs_) = (_ref_) )
-		#define chNotEqual(  _lhs_, _ref_ )		chNotEqual2(  (_lhs_), (_ref_), (_ref_) )
-		#define chLessEq(    _lhs_, _ref_ )		chLessEq2(    (_lhs_), (_ref_), (_ref_) )
-		#define chGreaterEq( _lhs_, _ref_ )		chGreaterEq2( (_lhs_), (_ref_), (_ref_) )
+		#define chEqual(     _lhs_, _ref_ )		chEqual2(     (_lhs_), (_ref_), (_lhs_) = (_ref_) )		// if lhs != ref then lhs = ref
+		#define chNotEqual(  _lhs_, _ref_ )		chNotEqual2(  (_lhs_), (_ref_), (_ref_) )				// TODO: check
+		#define chLessEq(    _lhs_, _ref_ )		chLessEq2(    (_lhs_), (_ref_), (_ref_) )				// if lhs > ref then lhs = ref
+		#define chGreaterEq( _lhs_, _ref_ )		chGreaterEq2( (_lhs_), (_ref_), (_ref_) )				// if lhs < ref then lhs = ref
 
 		#define fEqual( _lhs_, _rhs_ )			(EFeature(_lhs_) == (_rhs_))
 		#define fNotEq( _lhs_, _rhs_ )			(EFeature(_lhs_) != (_rhs_))
 
-		EShaderStages	all_stages = EShaderStages::All;
-		if ( fNotEq( computeShader,		 EFeature::RequireTrue ))	all_stages &= ~EShaderStages::Compute;
-		if ( fNotEq( geometryShader,	 EFeature::RequireTrue ))	all_stages &= ~EShaderStages::Geometry;
-		if ( fNotEq( tessellationShader, EFeature::RequireTrue ))	all_stages &= ~(EShaderStages::TessControl | EShaderStages::TessEvaluation);
-		if ( fNotEq( tileShader,		 EFeature::RequireTrue ))	all_stages &= ~EShaderStages::Tile;
-		if ( fNotEq( taskShader,		 EFeature::RequireTrue ))	all_stages &= ~EShaderStages::MeshTask;
-		if ( fNotEq( meshShader,		 EFeature::RequireTrue ))	all_stages &= ~EShaderStages::Mesh;
-		if ( fNotEq( rayTracingPipeline, EFeature::RequireTrue ))	all_stages &= ~EShaderStages::AllRayTracing;
-
+		const auto	True	 = EFeature::RequireTrue;
 		const auto	neg_feat = EFeature::Ignore;
 
-		if ( fEqual( subgroup, EFeature::RequireTrue ))
+		EShaderStages	all_stages = EShaderStages::All;
+		if ( fNotEq( computeShader,		 True ))	all_stages &= ~EShaderStages::Compute;
+		if ( fNotEq( geometryShader,	 True ))	all_stages &= ~EShaderStages::Geometry;
+		if ( fNotEq( tessellationShader, True ))	all_stages &= ~(EShaderStages::TessControl | EShaderStages::TessEvaluation);
+		if ( fNotEq( tileShader,		 True ))	all_stages &= ~EShaderStages::Tile;
+		if ( fNotEq( taskShader,		 True ))	all_stages &= ~EShaderStages::MeshTask;
+		if ( fNotEq( meshShader,		 True ))	all_stages &= ~EShaderStages::Mesh;
+		if ( fNotEq( rayTracingPipeline, True ))	all_stages &= ~EShaderStages::AllRayTracing;
+
+		if ( fEqual( subgroup, True ))
 		{
 			chNotEqual2( subgroupOperations, SubgroupOperationBits{},	SubgroupOperationBits{}.InsertRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End ));
 			chNotEqual2( subgroupTypes,		 ESubgroupTypes::Unknown,	ESubgroupTypes::Float32 );
@@ -778,10 +779,10 @@ namespace
 			chEqual2(	 AllBits( subgroupStages, EShaderStages::Compute ),		true,	subgroupStages |= EShaderStages::Compute  );
 			chEqual2(	 AnyBits( subgroupStages, ~all_stages ),				false,	subgroupStages &= all_stages  );
 
-			if ( fNotEq( shaderInt8,	EFeature::RequireTrue ))	chEqual2(	 AllBits( subgroupTypes, ESubgroupTypes::Int8 ),	false,	subgroupTypes &= ~ESubgroupTypes::Int8 );
-			if ( fNotEq( shaderInt16,	EFeature::RequireTrue ))	chEqual2(	 AllBits( subgroupTypes, ESubgroupTypes::Int16 ),	false,	subgroupTypes &= ~ESubgroupTypes::Int16 );
-			if ( fNotEq( shaderInt64,	EFeature::RequireTrue ))	chEqual2(	 AllBits( subgroupTypes, ESubgroupTypes::Int64 ),	false,	subgroupTypes &= ~ESubgroupTypes::Int64 );
-			if ( fNotEq( shaderFloat16,	EFeature::RequireTrue ))	chEqual2(	 AllBits( subgroupTypes, ESubgroupTypes::Float16 ),	false,	subgroupTypes &= ~ESubgroupTypes::Float16 );
+			if ( fNotEq( shaderInt8,	True ))	chEqual2(	 AllBits( subgroupTypes, ESubgroupTypes::Int8 ),	false,	subgroupTypes &= ~ESubgroupTypes::Int8 );
+			if ( fNotEq( shaderInt16,	True ))	chEqual2(	 AllBits( subgroupTypes, ESubgroupTypes::Int16 ),	false,	subgroupTypes &= ~ESubgroupTypes::Int16 );
+			if ( fNotEq( shaderInt64,	True ))	chEqual2(	 AllBits( subgroupTypes, ESubgroupTypes::Int64 ),	false,	subgroupTypes &= ~ESubgroupTypes::Int64 );
+			if ( fNotEq( shaderFloat16,	True ))	chEqual2(	 AllBits( subgroupTypes, ESubgroupTypes::Float16 ),	false,	subgroupTypes &= ~ESubgroupTypes::Float16 );
 
 			chGreaterEq( minSubgroupSize,					1 );
 			chEqual2(	 IsPowerOfTwo( minSubgroupSize ),	true,	minSubgroupSize = CeilPOT(  minSubgroupSize ));
@@ -804,9 +805,9 @@ namespace
 			chEqual( maxSubgroupSize,		0 );
 		}
 
-		if ( fEqual( subgroupSizeControl, EFeature::RequireTrue ))
+		if ( fEqual( subgroupSizeControl, True ))
 		{
-			chEqual( subgroup, EFeature::RequireTrue );
+			chEqual( subgroup, True );
 			// requiredSubgroupSizeStages can be 0
 			chEqual2( AnyBits( requiredSubgroupSizeStages, ~all_stages ), false, requiredSubgroupSizeStages &= all_stages );
 		}
@@ -816,7 +817,7 @@ namespace
 			chEqual( requiredSubgroupSizeStages,	EShaderStages::Unknown );
 		}
 
-		if ( fEqual( attachmentFragmentShadingRate, EFeature::RequireTrue )) {
+		if ( fEqual( attachmentFragmentShadingRate, True )) {
 			if constexpr( Mutable ) {
 				if (not fragmentShadingRateTexelSize)
 					attachmentFragmentShadingRate = EFeature::Ignore;
@@ -829,9 +830,9 @@ namespace
 				CHECK_ERR( not fragmentShadingRateTexelSize );
 		}
 
-		if ( fEqual( pipelineFragmentShadingRate,   EFeature::RequireTrue ) or
-			 fEqual( primitiveFragmentShadingRate,  EFeature::RequireTrue ) or
-			 fEqual( attachmentFragmentShadingRate, EFeature::RequireTrue ))
+		if ( fEqual( pipelineFragmentShadingRate,   True ) or
+			 fEqual( primitiveFragmentShadingRate,  True ) or
+			 fEqual( attachmentFragmentShadingRate, True ))
 		{
 			if constexpr( Mutable ){
 				if ( fragmentShadingRates.empty() )
@@ -842,16 +843,16 @@ namespace
 		}
 		else
 		{
-			chNotEqual2( primitiveFragmentShadingRateWithMultipleViewports,	EFeature::RequireTrue, neg_feat );
-			chNotEqual2( layeredShadingRateAttachments,						EFeature::RequireTrue, neg_feat );
-			chNotEqual2( fragmentShadingRateWithShaderDepthStencilWrites,	EFeature::RequireTrue, neg_feat );
-			chNotEqual2( fragmentShadingRateWithSampleMask,					EFeature::RequireTrue, neg_feat );
-			chNotEqual2( fragmentShadingRateWithShaderSampleMask,			EFeature::RequireTrue, neg_feat );
-			chNotEqual2( fragmentShadingRateWithFragmentShaderInterlock,	EFeature::RequireTrue, neg_feat );
-			chNotEqual2( fragmentShadingRateWithCustomSampleLocations,		EFeature::RequireTrue, neg_feat );
+			chNotEqual2( primitiveFragmentShadingRateWithMultipleViewports,	True, neg_feat );
+			chNotEqual2( layeredShadingRateAttachments,						True, neg_feat );
+			chNotEqual2( fragmentShadingRateWithShaderDepthStencilWrites,	True, neg_feat );
+			chNotEqual2( fragmentShadingRateWithSampleMask,					True, neg_feat );
+			chNotEqual2( fragmentShadingRateWithShaderSampleMask,			True, neg_feat );
+			chNotEqual2( fragmentShadingRateWithFragmentShaderInterlock,	True, neg_feat );
+			chNotEqual2( fragmentShadingRateWithCustomSampleLocations,		True, neg_feat );
 		}
 
-		if ( fNotEq( bufferDeviceAddress, EFeature::RequireTrue ))
+		if ( fNotEq( bufferDeviceAddress, True ))
 		{
 			if constexpr( Mutable ){
 				rayTracingPipeline	= neg_feat;
@@ -859,18 +860,18 @@ namespace
 			}
 		}
 
-		if ( fEqual( rayTracingPipeline, EFeature::RequireTrue ))
+		if ( fEqual( rayTracingPipeline, True ))
 		{
 			chGreaterEq( maxShaderVersion.spirv, 140 );
-			if constexpr( not Mutable ) { CHECK( fEqual( bufferDeviceAddress, EFeature::RequireTrue )); }
+			if constexpr( not Mutable ) { CHECK( fEqual( bufferDeviceAddress, True )); }
 		}
 		else
 		{
-			chNotEqual2( rayTraversalPrimitiveCulling,	EFeature::RequireTrue, neg_feat );
+			chNotEqual2( rayTraversalPrimitiveCulling,	True, neg_feat );
 			chEqual(	 maxRayRecursionDepth,			0 );
 		}
 
-		if ( fEqual( rayQuery, EFeature::RequireTrue ))
+		if ( fEqual( rayQuery, True ))
 		{
 			chNotEqual2( rayQueryStages,							EShaderStages::Unknown,	EShaderStages::Fragment | EShaderStages::Compute );
 			chEqual2(	 AnyBits( rayQueryStages, ~all_stages ),	false,					rayQueryStages &= all_stages					 );
@@ -883,8 +884,8 @@ namespace
 			chEqual( rayQueryStages, EShaderStages::Unknown );
 		}
 
-		if ( fEqual( rayTracingPipeline, EFeature::RequireTrue ) or
-			 fEqual( rayQuery, EFeature::RequireTrue ))
+		if ( fEqual( rayTracingPipeline, True ) or
+			 fEqual( rayQuery, True ))
 		{
 			chNotEqual2( accelStructVertexFormats,	VertexFormatSet_t{},	VertexFormatSet_t{}.insert( EVertexType::Float3 ));
 		}
@@ -904,18 +905,18 @@ namespace
 			chLessEq(	 maxShaderVersion.metal, MaxMetalVersion );
 		}
 
-		if ( fEqual( multiview, EFeature::RequireTrue ))
+		if ( fEqual( multiview, True ))
 		{
 			chGreaterEq( maxMultiviewViewCount, 1 );
 		}
 		else
 		{
-			chNotEqual2( multiviewGeometryShader,		EFeature::RequireTrue, neg_feat );
-			chNotEqual2( multiviewTessellationShader,	EFeature::RequireTrue, neg_feat );
+			chNotEqual2( multiviewGeometryShader,		True, neg_feat );
+			chNotEqual2( multiviewTessellationShader,	True, neg_feat );
 			chLessEq(	 maxMultiviewViewCount,			1 );
 		}
 
-		if ( fNotEq( multiViewport, EFeature::RequireTrue ))
+		if ( fNotEq( multiViewport, True ))
 		{
 			chEqual( maxViewports, 1 );
 		}
@@ -938,7 +939,7 @@ namespace
 		// maxFragmentDualSrcAttachments can be 0
 		chGreaterEq( maxPushConstantsSize, 16 );
 
-		if ( fEqual( computeShader, EFeature::RequireTrue ))
+		if ( fEqual( computeShader, True ))
 		{
 			chGreaterEq( maxComputeSharedMemorySize,	 16 );
 			chGreaterEq( maxComputeWorkGroupInvocations, 1 );
@@ -961,14 +962,14 @@ namespace
 			chEqual( maxComputeWorkGroupSizeZ,		 0 );
 		}
 
-		if ( fEqual( taskShader, EFeature::RequireTrue ))
+		if ( fEqual( taskShader, True ))
 		{
 			chGreaterEq( maxTaskWorkGroupSize,					32			);
 			chGreaterEq( maxTaskPayloadSize,					(16<<10)	);
 			chGreaterEq( maxTaskSharedMemorySize,				(16<<10)	);
 			chGreaterEq( maxTaskPayloadAndSharedMemorySize,		(16<<10)	);
 			chGreaterEq( maxPreferredTaskWorkGroupInvocations,	32			);
-			chEqual(	 meshShader,							EFeature::RequireTrue );
+			chEqual(	 meshShader,							True );
 			if ( maxShaderVersion.spirv != 0 ) { chGreaterEq( maxShaderVersion.spirv, 140 ); }
 			if ( maxShaderVersion.metal != 0 ) { chGreaterEq( maxShaderVersion.metal, 300 ); }
 		}
@@ -981,13 +982,13 @@ namespace
 			chEqual( maxPreferredTaskWorkGroupInvocations,	0 );
 		}
 
-		if ( fEqual( meshShader, EFeature::RequireTrue ))
+		if ( fEqual( meshShader, True ))
 		{
 			chGreaterEq( maxMeshWorkGroupSize,					32			);
 			chGreaterEq( maxMeshOutputVertices,					128			);
 			chGreaterEq( maxMeshOutputPrimitives,				128			);
-			chGreaterEq( maxMeshOutputPerVertexGranularity,		32			);
-			chGreaterEq( maxMeshOutputPerPrimitiveGranularity,	32			);
+			chGreaterEq( maxMeshOutputPerVertexGranularity,		1			);
+			chGreaterEq( maxMeshOutputPerPrimitiveGranularity,	1			);
 			chGreaterEq( maxMeshSharedMemorySize,				(16<<10)	);
 			chGreaterEq( maxMeshPayloadAndSharedMemorySize,		(16<<10)	);
 			chGreaterEq( maxMeshOutputMemorySize,				(16<<10)	);
@@ -1015,50 +1016,80 @@ namespace
 		chGreaterEq( maxImageArrayLayers,	1 );
 		chGreaterEq( maxFramebufferLayers,	1 );
 
-		//CHECK_ERR( surfaceFormats.Any() ); // can be empty
-		//CHECK_ERR( attachmentBlendFormats.Any() ); // can be empty
-		chNotEqual2( attachmentFormats,	PixelFormatSet_t{},		PixelFormatSet_t{}.insert( EPixelFormat::RGBA8_UNorm ));
-		chNotEqual2( vertexFormats,		VertexFormatSet_t{},	VertexFormatSet_t{}.insert( EVertexType::Float4 ));
+		// must be at least one depth format
+		/*if ( attachmentFormats.Any() )
+		{
+			CHECK_ERR(	attachmentFormats.contains( EPixelFormat::Depth16 )				or
+						attachmentFormats.contains( EPixelFormat::Depth16_Stencil8 )	or
+						attachmentFormats.contains( EPixelFormat::Depth24 )				or
+						attachmentFormats.contains( EPixelFormat::Depth24_Stencil8 )	or
+						attachmentFormats.contains( EPixelFormat::Depth32F )			or
+						attachmentFormats.contains( EPixelFormat::Depth32F_Stencil8 ));
+		}*/
+
+		if ( fEqual( dualSrcBlend, True ) or fEqual( independentBlend, True ) or fEqual( constantAlphaColorBlendFactors, True ))
+			CHECK_ERR( attachmentBlendFormats.Any() );
+
+		if ( attachmentBlendFormats.Any() )
+		{
+			CHECK_ERR( attachmentFormats.Any() );
+			CHECK_ERR( (attachmentFormats & attachmentBlendFormats) == attachmentBlendFormats );
+		}
 
 		CHECK_ERR( (VertexTypeBits & vertexFormats) == vertexFormats );
 
-		if ( fNotEq( vulkanMemoryModel, EFeature::RequireTrue ))
+		if ( fNotEq( vulkanMemoryModel, True ))
 		{
-			chNotEqual2( vulkanMemoryModelDeviceScope,					EFeature::RequireTrue, neg_feat );
-			chNotEqual2( vulkanMemoryModelAvailabilityVisibilityChains,	EFeature::RequireTrue, neg_feat );
+			chNotEqual2( vulkanMemoryModelDeviceScope,					True, neg_feat );
+			chNotEqual2( vulkanMemoryModelAvailabilityVisibilityChains,	True, neg_feat );
 		}
 
-		if ( fEqual( variableSampleLocations, EFeature::RequireTrue )) {
-			 chEqual( sampleLocations, EFeature::RequireTrue );
+		if ( fEqual( variableSampleLocations, True )) {
+			 chEqual( sampleLocations, True );
 		}
-		if ( fEqual( shaderSampleRateInterpolationFunctions, EFeature::RequireTrue )) {
-			 chEqual( sampleRateShading, EFeature::RequireTrue );
+		if ( fEqual( shaderSampleRateInterpolationFunctions, True )) {
+			 chEqual( sampleRateShading, True );
 		}
 		if ( maxShaderVersion.metal != 0 and maxShaderVersion.metal < 230 ) {
-			chNotEqual( shaderInt64, EFeature::RequireTrue );
+			chNotEqual( shaderInt64, True );
 		}
 		// not supported in Metal
 		if ( maxShaderVersion.spirv == 0 and maxShaderVersion.metal != 0 )
 		{
-			chNotEqual( shaderFloat64,			EFeature::RequireTrue );
-			chNotEqual( shaderSubgroupClock,	EFeature::RequireTrue );
-			chNotEqual( shaderDeviceClock,		EFeature::RequireTrue );
-			chNotEqual( rayTracingPipeline,		EFeature::RequireTrue );
+			chNotEqual( shaderFloat64,			True );
+			chNotEqual( shaderSubgroupClock,	True );
+			chNotEqual( shaderDeviceClock,		True );
+			chNotEqual( rayTracingPipeline,		True );
 			// TODO
 		}
 
-		if ( fEqual( cooperativeMatrix, EFeature::RequireTrue )) {
+		if ( fEqual( cooperativeMatrix, True )) {
 			chNotEqual2( cooperativeMatrixStages, EShaderStages::Unknown, EShaderStages::Compute );
 		}else{
 			chEqual( cooperativeMatrixStages, EShaderStages::Unknown );
 		}
 
-		if ( fEqual( externalFormatAndroid, EFeature::RequireTrue )) {
-			 chEqual( samplerYcbcrConversion, EFeature::RequireTrue );
+		if ( fEqual( externalFormatAndroid, True )) {
+			 chEqual( samplerYcbcrConversion, True );
 		}
 
 		chNotEqual2( queues.supported, EQueueMask::Unknown, EQueueMask::Graphics );
 		chEqual2(	 AnyBits( queues.required, ~queues.supported ),  false,  queues.required &= queues.supported );
+
+		if ( fEqual( shaderUniformBufferArrayNonUniformIndexingNative, True ))
+			chEqual( shaderUniformBufferArrayNonUniformIndexing, True );
+
+		if ( fEqual( shaderSampledImageArrayNonUniformIndexingNative, True ))
+			chEqual( shaderSampledImageArrayNonUniformIndexing, True );
+
+		if ( fEqual( shaderStorageBufferArrayNonUniformIndexingNative, True ))
+			chEqual( shaderStorageBufferArrayNonUniformIndexing, True );
+
+		if ( fEqual( shaderStorageImageArrayNonUniformIndexingNative, True ))
+			chEqual( shaderStorageImageArrayNonUniformIndexing, True );
+
+		if ( fEqual( shaderInputAttachmentArrayNonUniformIndexingNative, True ))
+			chEqual( shaderInputAttachmentArrayNonUniformIndexing, True );
 
 		return true;
 
@@ -1581,7 +1612,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0xd7baaa85cc5124fbull};
+		return HashVal64{0x0040013f2f731cb2ull};
 	}
 
 /*

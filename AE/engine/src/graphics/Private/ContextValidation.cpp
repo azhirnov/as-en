@@ -1287,7 +1287,7 @@ namespace
 		Unused( primitiveOp, textureOp );	// TODO
 		GCTX_CHECK( FragmentShadingRateSupported() );
 
-		GCTX_CHECK( AllBits( dynState, EPipelineDynamicState::FragmentShadingRate ));
+	//	GCTX_CHECK( AllBits( dynState, EPipelineDynamicState::FragmentShadingRate ));
 		GCTX_CHECK( not AnyBits( rate, ~uint(EShadingRate::_SizeMask) ));	// only size
 	}
 

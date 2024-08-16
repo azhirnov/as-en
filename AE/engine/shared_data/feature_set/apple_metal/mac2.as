@@ -84,6 +84,8 @@ void ASmain ()
 	fset.shaderInputAttachmentArrayNonUniformIndexingNative (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
+	fset.shaderDemoteToHelperInvocation (True);
+	fset.shaderIntegerDotProduct (True);
 	fset.rayQuery (True);
 	fset.rayQueryStages(EShaderStages(
 		EShaderStages::Compute

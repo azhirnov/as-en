@@ -19,7 +19,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/-izVl3vx1StfCQ"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/d3yxp6smqL7wEg"
         unzip external.zip
       
     - name: Configure CMake
@@ -29,19 +29,6 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: cmake --build "_build" --config ${{matrix.config}} -j 2
-
-    - name: Test
-      working-directory: ${{github.workspace}}/_build
-      run: |
-        ctest -R "Tests.Base" -C ${{matrix.config}}
-        ctest -R "Tests.Serializing" -C ${{matrix.config}}
-        ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}}
-        ctest -R "Tests.Threading" -C ${{matrix.config}}
-        ctest -R "Tests.Networking" -C ${{matrix.config}}
-        ctest -R "Tests.ECS-st" -C ${{matrix.config}}
-        ctest -R "Tests.VFS" -C ${{matrix.config}}
-        ctest -R "Tests.AtlasTools" -C ${{matrix.config}}
-        ctest -R "Tests.GeometryTools" -C ${{matrix.config}}
 
     - uses: actions/upload-artifact@v4
       with:
@@ -57,5 +44,45 @@ jobs:
             ${{github.workspace}}/_build/bin/GraphicsLib.so
             ${{github.workspace}}/_build/bin/OfflinePacker.app
             ${{github.workspace}}/_build/bin/RemoteGraphicsDevice.app
-            
+
+    - name: Tests.Base
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Base" -C ${{matrix.config}} -V
+      
+    - name: Tests.Serializing
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Serializing" -C ${{matrix.config}} -V
+        
+    - name: Tests.Scripting
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Scripting" -C ${{matrix.config}} -V
+        
+    - name: Tests.Threading
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Threading" -C ${{matrix.config}} -V
+       
+    - name: Tests.Networking
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Networking" -C ${{matrix.config}} -V
+       
+    - name: Tests.ECS
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.ECS-st" -C ${{matrix.config}} -V
+       
+    - name: Tests.VFS
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.VFS" -C ${{matrix.config}} -V
+       
+    - name: Tests.AtlasTools
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.AtlasTools" -C ${{matrix.config}} -V
+       
+    - name: Tests.GeometryTools
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.GeometryTools" -C ${{matrix.config}} -V
+       
+    - name: Tests.ResourceLoaders
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}} -V
+     
             

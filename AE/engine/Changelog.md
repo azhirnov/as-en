@@ -6,6 +6,7 @@
 - Vulkan: add VK_KHR_shader_quad_control, GL_EXT_shader_quad
 - Vulkan: add VK_KHR_shader_maximal_reconvergence, GL_EXT_maximal_reconvergence
 - Vulkan: add VK_NV_ray_tracing_validation
+- update to cmake 3.18
 
 
 ## 24.07.249

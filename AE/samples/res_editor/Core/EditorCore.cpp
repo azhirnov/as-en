@@ -545,15 +545,17 @@ void main (Config &out cfg)
 
 		str << R"(
 	// tests //
-	//cfg.TestOutput( vfs_path + "/samples/res_editor/ref" );
-	//cfg.TestFolder( "callable" );
-	//cfg.TestFolder( "games" );
-	//cfg.TestFolder( "samples-2d" );
-	//cfg.TestFolder( "samples-3d" );
-	//cfg.TestFolder( "samples-rt" );
-	//cfg.TestFolder( "sphere" );
-	//cfg.TestFolder( "tests" );
-	//cfg.TestFolder( "tools" );
+	/*
+	cfg.TestOutput( vfs_path + "/samples/res_editor/ref" );
+	cfg.TestFolder( "callable" );
+	cfg.TestFolder( "games" );
+	cfg.TestFolder( "samples-2d" );
+	cfg.TestFolder( "samples-3d" );
+	cfg.TestFolder( "samples-rt" );
+	cfg.TestFolder( "sphere" );
+	cfg.TestFolder( "tests" );
+	cfg.TestFolder( "tools" );
+	//*/
 }
 )";
 

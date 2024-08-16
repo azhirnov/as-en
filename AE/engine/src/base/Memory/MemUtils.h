@@ -162,7 +162,7 @@ namespace AE::Base
 */
 namespace _hidden_
 {
-	inline void  MemCopyChecks (const void* dst, const void* src, Bytes size, uint align = 0)
+	forceinline void  MemCopyChecks (const void* dst, const void* src, Bytes size, uint align = 0)
 	{
 		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
 		NonNull( dst );
@@ -176,6 +176,8 @@ namespace _hidden_
 			ASSERT( CheckPointerAlignment( dst, align ));
 			ASSERT( CheckPointerAlignment( src, align ));
 		}
+
+		Unused( dst, src, size, align );
 	}
 }
 
@@ -205,7 +207,7 @@ namespace _hidden_
 	}
 
 	template <typename T>
-	inline void  MemCopy (OUT T* dst, const T* src, const usize count) __NE___
+	void  MemCopy (OUT T* dst, const T* src, const usize count) __NE___
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
 		Base::_hidden_::MemCopyChecks( dst, src, SizeOf<T>*count );
@@ -221,7 +223,7 @@ namespace _hidden_
 	null pointers are allowed
 =================================================
 */
-	inline void  MemCopy_NullCheck (OUT void* dst, const void* src, const Bytes size) __NE___
+	forceinline void  MemCopy_NullCheck (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
 		// spec: "If the objects overlap, the behavior is undefined."
 		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
@@ -234,7 +236,7 @@ namespace _hidden_
 	}
 
 	template <typename T>
-	inline void  MemCopy_NullCheck (OUT T* dst, const T* src, const usize count) __NE___
+	void  MemCopy_NullCheck (OUT T* dst, const T* src, const usize count) __NE___
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
 
@@ -284,7 +286,7 @@ namespace _hidden_
 */
 namespace _hidden_
 {
-	inline void  MemMoveChecks (const void* dst, const void* src, uint align = 0)
+	forceinline void  MemMoveChecks (const void* dst, const void* src, uint align = 0)
 	{
 		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
 		NonNull( dst );
@@ -298,6 +300,8 @@ namespace _hidden_
 			ASSERT( CheckPointerAlignment( dst, align ));
 			ASSERT( CheckPointerAlignment( src, align ));
 		}
+
+		Unused( dst, src, align );
 	}
 }
 	inline void  MemMove (OUT void* dst, const void* src, Bytes size) __NE___
@@ -314,7 +318,7 @@ namespace _hidden_
 	}
 
 	template <typename T>
-	inline void  MemMove (OUT T* dst, const T* src, const usize count) __NE___
+	void  MemMove (OUT T* dst, const T* src, const usize count) __NE___
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
 		Base::_hidden_::MemMoveChecks( dst, src );
@@ -340,7 +344,7 @@ namespace _hidden_
 	}
 
 	template <typename T>
-	inline void  MemMove_NullCheck (OUT T* dst, const T* src, const usize count) __NE___
+	void  MemMove_NullCheck (OUT T* dst, const T* src, const usize count) __NE___
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
 

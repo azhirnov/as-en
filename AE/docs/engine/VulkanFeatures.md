@@ -124,6 +124,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [ ] VK_NV_ray_tracing_invocation_reorder, GL_NV_shader_invocation_reorder
 - [ ] VK_NV_displacement_micromap, GL_NV_displacement_micromap
 - [ ] VK_KHR_push_descriptor
+- [ ] VK_KHR_shader_integer_dot_product - ML
 
 **Pending for debugging:**
 - [ ] VK_EXT_device_fault

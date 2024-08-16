@@ -62,7 +62,7 @@
 	{
 		int2	coord		= GetGlobalCoord().xy / 4;
 		float4	srgb_col	= Rainbow( DHash12( float2(coord) ));	// sRGB color space
-		float4	linear_col	= RemoveSRGBCurve( col );				// linear color space
+		float4	linear_col	= RemoveSRGBCurve( srgb_col );			// linear color space
 
 		out_Color0	= srgb_col;		// store in sRGB
 		out_Color1	= linear_col;	// write in linear space, store in sRGB

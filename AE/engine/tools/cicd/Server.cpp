@@ -327,7 +327,7 @@ namespace AE::CICD
 =================================================
 	_InitBuildClient
 ----
-	same as [BuildMachine line:71](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/BuildMachine.cpp)
+	same as [BuildMachine](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/BuildMachine.cpp#L71)
 =================================================
 */
 	bool  Server::_ServerClient::_InitBuildClient ()
@@ -368,7 +368,7 @@ namespace AE::CICD
 =================================================
 	_InitTestClient
 ----
-	same as [TestMachine line:70](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/TestMachine.cpp)
+	same as [TestMachine](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/TestMachine.cpp#L70)
 =================================================
 */
 	bool  Server::_ServerClient::_InitTestClient ()
@@ -406,7 +406,7 @@ namespace AE::CICD
 =================================================
 	_InitUserClient
 ----
-	same as [Client line:56](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/Client.cpp)
+	same as [Client](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/Client.cpp#L56)
 =================================================
 */
 	bool  Server::_ServerClient::_InitUserClient ()

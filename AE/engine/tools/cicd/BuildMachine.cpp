@@ -65,7 +65,7 @@ namespace AE::CICD
 =================================================
 	_RegisterCommands
 ----
-	same as [_InitBuildClient line:312](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/Server.cpp)
+	same as [_InitBuildClient](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/Server.cpp#L312)
 =================================================
 */
 	bool  BuildMachine::_RegisterCommands ()

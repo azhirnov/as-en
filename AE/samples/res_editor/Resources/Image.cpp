@@ -738,6 +738,8 @@ namespace {
 				desc.mipLevels			= MipmapLevel::Max();
 				view_desc.mipmapCount	= UMax;
 			}
+			if ( _isDummy.load() )
+				view_desc.format = desc.format;
 
 			desc.Validate();
 			view_desc.Validate( desc );

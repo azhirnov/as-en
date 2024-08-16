@@ -257,6 +257,7 @@ namespace
 			SET_FEAT2( shaderStorageBufferArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
 			SET_FEAT2( shaderStorageImageArrayNonUniformIndexingNative,		_properties.descriptorIndexingProps );
 			SET_FEAT2( shaderInputAttachmentArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
+			SET_FEAT2( quadDivergentImplicitLod,							_properties.descriptorIndexingProps );
 		}
 
 		SET_FEAT( shaderStorageImageMultisample );
@@ -869,17 +870,23 @@ namespace
 		SET_FEAT( shaderStorageBufferArrayDynamicIndexing );
 		SET_FEAT( shaderStorageImageArrayDynamicIndexing );
 
-		SET_FEAT2( shaderInputAttachmentArrayDynamicIndexing,		_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderUniformTexelBufferArrayDynamicIndexing,	_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderStorageTexelBufferArrayDynamicIndexing,	_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderUniformBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderSampledImageArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderStorageBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderStorageImageArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderInputAttachmentArrayNonUniformIndexing,	_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderUniformTexelBufferArrayNonUniformIndexing,	_properties.descriptorIndexingFeats );
-		SET_FEAT2( shaderStorageTexelBufferArrayNonUniformIndexing,	_properties.descriptorIndexingFeats );
-		SET_FEAT2( runtimeDescriptorArray,							_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderInputAttachmentArrayDynamicIndexing,			_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderUniformTexelBufferArrayDynamicIndexing,		_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderStorageTexelBufferArrayDynamicIndexing,		_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderUniformBufferArrayNonUniformIndexing,			_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderSampledImageArrayNonUniformIndexing,			_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderStorageBufferArrayNonUniformIndexing,			_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderStorageImageArrayNonUniformIndexing,			_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderInputAttachmentArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderUniformTexelBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderStorageTexelBufferArrayNonUniformIndexing,		_properties.descriptorIndexingFeats );
+		SET_FEAT2( runtimeDescriptorArray,								_properties.descriptorIndexingFeats );
+		SET_FEAT2( shaderUniformBufferArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
+		SET_FEAT2( shaderSampledImageArrayNonUniformIndexingNative,		_properties.descriptorIndexingProps );
+		SET_FEAT2( shaderStorageBufferArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
+		SET_FEAT2( shaderStorageImageArrayNonUniformIndexingNative,		_properties.descriptorIndexingProps );
+		SET_FEAT2( shaderInputAttachmentArrayNonUniformIndexingNative,	_properties.descriptorIndexingProps );
+		SET_FEAT2( quadDivergentImplicitLod,							_properties.descriptorIndexingProps );
 
 		SET_FEAT( shaderStorageImageMultisample );
 		SET_FEAT( shaderStorageImageReadWithoutFormat );

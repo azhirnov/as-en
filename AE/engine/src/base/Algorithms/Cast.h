@@ -12,7 +12,7 @@ namespace AE::Base
 	CheckPointerAlignment
 =================================================
 */
-	ND_ constexpr inline bool  CheckPointerAlignment (void const* ptr, usize align) __NE___
+	ND_ inline bool  CheckPointerAlignment (void const* ptr, usize align) __NE___
 	{
 		DBG_CHECK_MSG( ((align & (align - 1)) == 0), "Align must be power of 2" );
 

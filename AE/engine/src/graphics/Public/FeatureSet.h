@@ -253,6 +253,7 @@ namespace AE::Graphics
 		_visitor_( EFeature,			shaderStorageBufferArrayNonUniformIndexingNative,	: 2 )	/*-|-|-- without native support branching will be used					*/\
 		_visitor_( EFeature,			shaderStorageImageArrayNonUniformIndexingNative,	: 2 )	/*-|-|																	*/\
 		_visitor_( EFeature,			shaderInputAttachmentArrayNonUniformIndexingNative, : 2 )	/*/-/																	*/\
+		_visitor_( EFeature,			quadDivergentImplicitLod,							: 2 )	/* derivative calculation for non-uniform image 						*/\
 		/* storage image format */\
 		_visitor_( EFeature,			shaderStorageImageMultisample,					: 2 )\
 		_visitor_( EFeature,			shaderStorageImageReadWithoutFormat,			: 2 )\
@@ -401,8 +402,8 @@ namespace AE::Graphics
 		/*_visitor_( PixelFormatSet_t,	minmaxFilterFormats,						)	/ * VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT								*/\
 		/*_visitor_( PixelFormatSet_t,	sparseImageFormats,							)*/\
 		/*_visitor_( PixelFormatSet_t,	multisampleImageFormats,					)*/\
-		_visitor_( PixelFormatSet_t,	hwCompressedAttachmentFormats,				)	/* formats which is compatible with hardware compression							*/\
-		_visitor_( PixelFormatSet_t,	lossyCompressedAttachmentFormats,			)\
+		_visitor_( PixelFormatSet_t,	hwCompressedAttachmentFormats,				)	/* formats which is compatible with lossless hardware compression					*/\
+		_visitor_( PixelFormatSet_t,	lossyCompressedAttachmentFormats,			)	/* formats which is compatible with lossy hardware compression						*/\
 		\
 		\
 	/*---- sampler ----*/\

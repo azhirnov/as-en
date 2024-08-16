@@ -28,7 +28,7 @@ namespace
 		usize	pos = json.find( name );
 		if ( name.empty() or pos == String::npos )
 		{
-			AE_LOGI( "Not found: "s << name );
+			//AE_LOGI( "Not found: "s << name );
 			return {};
 		}
 
@@ -1190,20 +1190,6 @@ namespace
 				outFeatureSet.maxComputeWorkGroupSizeZ = outFeatureSet.maxComputeWorkGroupInvocations;
 			}
 		}
-
-		// non uniform
-		/*{
-			#define NONUNIFORM( _name_ ) \
-				if ( outFeatureSet._name_ == EFeature::RequireTrue ) \
-					outFeatureSet._name_ = FS_ParseJSON( EFeature::Ignore, json, AE_TOSTRING(_name_) "Native" )
-
-			NONUNIFORM( shaderUniformBufferArrayNonUniformIndexing );
-			NONUNIFORM( shaderSampledImageArrayNonUniformIndexing );
-			NONUNIFORM( shaderStorageBufferArrayNonUniformIndexing );
-			NONUNIFORM( shaderStorageImageArrayNonUniformIndexing );
-			NONUNIFORM( shaderInputAttachmentArrayNonUniformIndexing );
-			#undef NONUNIFORM
-		}*/
 
 		// validate shader stages
 		{

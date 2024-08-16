@@ -23,7 +23,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RGfxMemAllocator ()															__NE___ {}
+		RGfxMemAllocator ()															__NE___ : _gfxAllocId{} {}
 		RGfxMemAllocator (RmGfxMemAllocatorID id, Bytes minAlign, Bytes maxSize)	__NE___ : _gfxAllocId{id}, _minAlign{minAlign}, _maxSize{maxSize} {}
 		~RGfxMemAllocator ()														__NE_OV;
 

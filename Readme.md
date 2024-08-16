@@ -1,7 +1,7 @@
-![](https://github.com/azhirnov/as-en/actions/workflows/windows.yml/badge.svg)
-![](https://github.com/azhirnov/as-en/actions/workflows/linux.yml/badge.svg)
-![](https://github.com/azhirnov/as-en/actions/workflows/android.yml/badge.svg)
-![](https://github.com/azhirnov/as-en/actions/workflows/macos.yml/badge.svg)
+[![](https://github.com/azhirnov/as-en/actions/workflows/windows.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/windows.yml)
+[![](https://github.com/azhirnov/as-en/actions/workflows/linux.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/linux.yml)
+[![](https://github.com/azhirnov/as-en/actions/workflows/android.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/android.yml)
+[![](https://github.com/azhirnov/as-en/actions/workflows/macos.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/macos.yml)
 
 ## Async Game Engine
 

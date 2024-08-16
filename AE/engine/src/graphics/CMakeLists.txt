@@ -119,12 +119,12 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 		endif()
 
 		if (APPLE)
-			if (NOT EXISTS "/usr/local/lib/libMoltenVK.dylib")
-				message( FATAL_ERROR "'/usr/local/lib/libMoltenVK.dylib' is not exists, instal VulkanSDK with MoltenVk and try again" )
-			endif()
-			if (NOT EXISTS "/usr/local/lib/libvulkan.dylib")
-				message( FATAL_ERROR "'/usr/local/lib/libvulkan.dylib' is not exists, instal VulkanSDK with MoltenVk and try again" )
-			endif()
+			#if (NOT EXISTS "/usr/local/lib/libMoltenVK.dylib")
+			#	message( FATAL_ERROR "'/usr/local/lib/libMoltenVK.dylib' is not exists, instal VulkanSDK with MoltenVk and try again" )
+			#endif()
+			#if (NOT EXISTS "/usr/local/lib/libvulkan.dylib")
+			#	message( FATAL_ERROR "'/usr/local/lib/libvulkan.dylib' is not exists, instal VulkanSDK with MoltenVk and try again" )
+			#endif()
 
 			# TODO: static linking
 			#target_link_libraries( "Graphics" PUBLIC "AE-Bin/external/macos-arm64/MoltenVK/static/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a" )

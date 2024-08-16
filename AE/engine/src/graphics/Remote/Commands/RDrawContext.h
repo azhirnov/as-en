@@ -56,10 +56,10 @@ namespace AE::Graphics
 		void  SetScissor (const RectI &scissors)																			__Th_OV	{ SetScissors( ArrayView{ &scissors, 1 }); }
 		void  SetScissors (ArrayView<RectI> scissors)																		__Th_OV;
 		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)				__Th_OV;
-		void  SetStencilCompareMask (uint compareMask)																		__Th___	{ SetStencilCompareMask( compareMask, compareMask ); }
-		void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)											__Th___;
-		void  SetStencilWriteMask (uint writeMask)																			__Th___	{ SetStencilWriteMask( writeMask, writeMask ); }
-		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th___;
+		void  SetStencilCompareMask (uint compareMask)																		__Th_OV	{ SetStencilCompareMask( compareMask, compareMask ); }
+		void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)											__Th_OV;
+		void  SetStencilWriteMask (uint writeMask)																			__Th_OV	{ SetStencilWriteMask( writeMask, writeMask ); }
+		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th_OV;
 		void  SetStencilReference (uint reference)																			__Th_OV	{ SetStencilReference( reference, reference ); }
 		void  SetStencilReference (uint frontReference, uint backReference)													__Th_OV;
 		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV;

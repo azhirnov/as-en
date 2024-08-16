@@ -34,7 +34,8 @@ Install XCode.
 ### Windows
 
 Install [CMake](https://cmake.org/download/).<br/>
-Install [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/).
+Install [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/).<br/>
+Optional: install ClangCL in Visual Studio components.
 
 
 ## Download third party dependencies
@@ -60,7 +61,7 @@ Libraries and headers will be installed to the `AE/../AE-Bin/external` folder.
 ### Linux
 
 `update-all-linux.sh` - to load header-only sources.<br/>
-`update-all-linux-x64-clang15.sh` or `update-all-linux-x64-gcc12.sh` - to compile static (.a) libs.
+`update-all-linux-x64-clang16.sh` or `update-all-linux-x64-gcc13.sh` - to compile static (.a) libs.
 
 ### MacOS
 
@@ -94,7 +95,7 @@ arch -x86_64 /usr/local/bin/brew install llvm
 ### Windows
 
 `update-all-win.bat` - to load header-only sources.<br/>
-`update-all-win-x64-msvc143.bat` - to compile static (.lib) and dynamic (.dll) libs.
+`update-all-win-x64-msvc143.bat` or `update-all-win-x64-clang17.bat` - to compile static (.lib) and dynamic (.dll) libs.
 
 To compile Metal shaders put [MetalTools for Windows](https://developer.apple.com/download/all/?q=metal%20developer%20tools%20for%20windows) into the folder `AE-Bin/external/win-x64/MetalTools`:
 ```

@@ -10,6 +10,7 @@ void ASmain ()
 	//	Oculus Quest 3 driver 512.746.0 on Android 12.0
 	//	Adreno (TM) 730 driver 512.615.0 on Android 12.0
 	//	samsung SM-S901E driver 512.744.6 on Android 13.0
+	//	Snapdragon(R) X Elite - X1E80100 - Qualcomm(R) Adreno(TM) GPU driver 512.780.0 on Windows 11
 	//	Adreno (TM) 610 driver 512.502.0 on Android 11.0
 	//	Xiaomi 22081212G driver 512.744.1 on Android 14.0
 	//	Adreno (TM) 612 driver 512.502.0 on Android 12.0

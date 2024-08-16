@@ -195,6 +195,21 @@ namespace AE::Graphics
 			ArrayView<VkValidationFeatureEnableEXT>		enableValidations;
 			ArrayView<VkValidationFeatureDisableEXT>	disableValidations;
 			EDeviceFlags								devFlags			= Default;	// pass the same flags to 'CreateLogicalDevice()'
+
+			InstanceCreateInfo () __NE___ {}
+		};
+
+		using DisableFeaturesFn_t	= void (*) (void* userData, VProperties &);
+
+		struct DeviceCreateInfo
+		{
+			ArrayView<const char*>	extensions;
+			FeatureSet const*		fsToDeviceFeatures	= null;
+			EDeviceFlags			devFlags			= Default;
+			DisableFeaturesFn_t		disableFeatures		= null;
+			void*					userData			= null;
+
+			DeviceCreateInfo () __NE___ {}
 		};
 
 		struct QueueCreateInfo
@@ -289,9 +304,7 @@ namespace AE::Graphics
 		ND_ bool  CreateDefaultQueues (EQueueMask required, EQueueMask optional = Default)			__NE___;
 		ND_ bool  CreateQueues (ArrayView<QueueCreateInfo> queues)									__NE___;
 
-		ND_ bool  CreateLogicalDevice (ArrayView<const char*>	extensions			= {},
-									   const FeatureSet*		fsToDeviceFeatures	= null,
-									   EDeviceFlags				devFlags			= Default)		__NE___;
+		ND_ bool  CreateLogicalDevice (const DeviceCreateInfo &ci = Default)						__NE___;
 		//  bool  SetLogicalDevice (VkDevice value, ArrayView<const char*> extensions = {})			__NE___;
 			bool  DestroyLogicalDevice ()															__NE___;
 
@@ -321,7 +334,7 @@ namespace AE::Graphics
 		void  _ValidateInstanceLayers (INOUT Array<const char*> &layers, Bool silent)									C_Th___;
 		void  _ValidateInstanceExtensions (Array<const char*> layers, INOUT Array<const char*> &ext, Bool silent)		C_Th___;
 		bool  _ChooseHighPerformanceDevice ()																			__Th___;
-		bool  _CreateLogicalDevice (ArrayView<const char*>, const FeatureSet*, EDeviceFlags)							__Th___;
+		bool  _CreateLogicalDevice (const DeviceCreateInfo &ci)															__Th___;
 		void  _ValidateDeviceExtensions (VkPhysicalDevice physDev, INOUT Array<const char*> &ext)						C_Th___;
 		void  _ValidateSpirvVersion (OUT SpirvVersion &ver)																C_NE___;
 		void  _UpdateDeviceVersion (VkPhysicalDevice physicalDevice, OUT DeviceVersion &devVersion)						C_NE___;
@@ -334,6 +347,7 @@ namespace AE::Graphics
 		void  _LogPhysicalDevices ()																					C_NE___;
 		void  _LogLogicalDevice ()																						C_Th___;
 		void  _LogExternalTools ()																						C_Th___;
+		void  _LogMemoryTypes ()																						C_Th___;
 
 		void  _InitQueues (ArrayView<VkQueueFamilyProperties> props, INOUT Queues_t &queues, INOUT QueueTypes_t &qtypes)C_NE___;
 		void  _ValidateQueueStages (INOUT Queues_t &queues)																C_NE___;

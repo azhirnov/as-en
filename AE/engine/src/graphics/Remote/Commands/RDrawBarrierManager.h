@@ -30,8 +30,8 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		RDrawBarrierManager (Ptr<RDrawCommandBatch> batch, uint drawIdx)		__NE___;
-		explicit RDrawBarrierManager (const RPrimaryCmdBufState &primaryState)	__NE___;
+		RDrawBarrierManager (Ptr<RDrawCommandBatch> batch, uint drawIdx)		__Th___;
+		explicit RDrawBarrierManager (const RPrimaryCmdBufState &primaryState)	__Th___;
 
 		template <typename ...IDs>
 		ND_ decltype(auto)			Get (IDs ...ids)							__Th___	{ return _resMngr.GetResourcesOrThrow( ids... ); }

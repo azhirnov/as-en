@@ -211,7 +211,7 @@
 				sphere_pos	*= 8.0;
 				sphere_pos	+= Turbulence_PerlinNoiseFBM( sphere_pos, 2.0, 0.6, 7 ) * 2.0;
 
-		float	biom		= DHash13( Voronoi( sphere_pos, float2(3.9672) ).icenter );
+		float	biom		= DHash13( Voronoi( sphere_pos, float3(3.9672, 0.0, 1.0) ).icenter );
 		int		mtr_id		= int(biom * 255.0f) & 0xF;
 
 		albedo = HSVtoRGB( float3( biom, 1.0, 1.0 ));

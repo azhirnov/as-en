@@ -1248,19 +1248,20 @@ namespace AE::Graphics
 	{
 		switch ( id )
 		{
-			case 0x01002 :	return EGPUVendor::AMD;
-			case 0x010DE :	return EGPUVendor::NVidia;
-			case 0x08086 :	return EGPUVendor::Intel;
-			case 0x013B5 :	return EGPUVendor::ARM;
-			case 0x05143 :	return EGPUVendor::Qualcomm;
-			case 0x01010 :	return EGPUVendor::ImgTech;
-			case 0x01414 :	return EGPUVendor::Microsoft;
-			case 0x0106B :	return EGPUVendor::Apple;
-			case 0x10005 :	return EGPUVendor::Mesa;
-			case 0x014e4 :	return EGPUVendor::Broadcom;
-			case 0x0144d :	return EGPUVendor::Samsung;
-			case 0x10002 :	return EGPUVendor::VeriSilicon;
-			case 0x019E5 :	return EGPUVendor::Huawei;
+			case 0x01002 :		return EGPUVendor::AMD;
+			case 0x010DE :		return EGPUVendor::NVidia;
+			case 0x08086 :		return EGPUVendor::Intel;
+			case 0x013B5 :		return EGPUVendor::ARM;
+			case 0x05143 :		return EGPUVendor::Qualcomm;
+			case 0x01010 :		return EGPUVendor::ImgTech;
+			case 0x01414 :		return EGPUVendor::Microsoft;
+			case 0x0106B :		return EGPUVendor::Apple;
+			case 0x10005 :		return EGPUVendor::Mesa;
+			case 0x014e4 :		return EGPUVendor::Broadcom;
+			case 0x0144d :		return EGPUVendor::Samsung;
+			case 0x10002 :		return EGPUVendor::VeriSilicon;
+			case 0x019E5 :		return EGPUVendor::Huawei;
+			case 0x4d4f4351 :	return EGPUVendor::Qualcomm;	// emulator?
 		}
 		return Default;
 	}

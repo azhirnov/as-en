@@ -115,7 +115,7 @@
 		pos *= 8.0;
 		pos += Turbulence_PerlinNoiseFBM( pos, 2.0, 0.6, 7 );
 
-		float		hash	= DHash13( Voronoi( pos, float2(3.9672) ).icenter );
+		float		hash	= DHash13( Voronoi( pos, float3(3.9672, 0.0, 1.0) ).icenter );
 
 		gl.image.Store( un_OutImage, coord, Rainbow(hash) );
 	}

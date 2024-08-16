@@ -104,7 +104,7 @@ namespace
 
 			for (uint type_idx : BitIndexIterate( memBits ))
 			{
-				const Key	key{ type_idx, shaderAddress, isImage };
+				const Key	key{ type_idx, shaderAddress, isImage, mapMem };
 
 				auto	iter = _pages.find( key );
 				if ( iter == _pages.end() )
@@ -122,6 +122,7 @@ namespace
 						outData.page	= &page;
 						outData.offset	= offset;
 						outData.size	= memSize;
+
 						return true;
 					}
 				}
@@ -153,12 +154,15 @@ namespace
 		// map memory
 		void*	mapped_ptr = null;
 		if ( mapMem )
+		{
 			VK_CHECK_ERR( dev.vkMapMemory( dev.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
+			CHECK_ERR( mapped_ptr != null );
+		}
 
 
 		EXLOCK( _pageGuard );
 
-		const Key	key{ mem_alloc.memoryTypeIndex, shaderAddress, isImage };
+		const Key	key{ mem_alloc.memoryTypeIndex, shaderAddress, isImage, mapMem };
 
 		auto&	page_arr = _pages( key );
 		CHECK_ERR_MSG( not page_arr.IsFull(), "overflow!" );

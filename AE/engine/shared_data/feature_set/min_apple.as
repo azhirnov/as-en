@@ -4,10 +4,10 @@
 void ASmain ()
 {
 	// include:
-	//	Apple M1 driver 0.2.1914 on Osx 12.0
-	//	Apple A12 GPU driver 0.2.1915 on Ios 15.3
-	//	Apple A15 GPU driver 0.2.1914 on Ios 15.3
-	//	Apple A17 Pro GPU driver 0.2.2014 on Ios 17.1
+	//	Apple M1 driver 0.2.2017 on Osx 14.1
+	//	Apple A12 GPU driver 0.2.2018 on Ios 17.5
+	//	Apple A15 GPU driver 0.2.2018 on Ios 17.5
+	//	Apple A17 Pro GPU driver 0.2.2018 on Ios 17.5
 	//	Apple M3 Max driver 0.2.2014 on Osx 14.2
 	//	Apple9
 	//	Apple8
@@ -60,16 +60,24 @@ void ASmain ()
 	fset.minSubgroupSize (4);
 	fset.maxSubgroupSize (4);
 	fset.subgroup (True);
+	fset.subgroupBroadcastDynamicId (True);
 	fset.subgroupSizeControl (True);
 	fset.shaderInt8 (True);
 	fset.shaderInt16 (True);
 	fset.shaderFloat16 (True);
+	fset.storageBuffer16BitAccess (True);
+	fset.uniformAndStorageBuffer16BitAccess (True);
+	fset.storageInputOutput16 (True);
 	fset.storageBuffer8BitAccess (True);
 	fset.uniformAndStorageBuffer8BitAccess (True);
 	fset.uniformBufferStandardLayout (True);
 	fset.scalarBlockLayout (True);
+	fset.bufferDeviceAddress (True);
 	fset.storagePushConstant8 (True);
+	fset.shaderOutputViewportIndex (True);
+	fset.shaderOutputLayer (True);
 	fset.shaderClipDistance (True);
+	fset.shaderDrawParameters (True);
 	fset.runtimeDescriptorArray (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderStencilExport (True);
@@ -89,8 +97,9 @@ void ASmain ()
 	fset.shaderInputAttachmentArrayNonUniformIndexingNative (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
-	fset.maxSpirvVersion (130);
-	fset.maxMetalVersion (220);
+	fset.shaderDemoteToHelperInvocation (True);
+	fset.maxSpirvVersion (140);
+	fset.maxMetalVersion (230);
 	fset.drawIndirectFirstInstance (True);
 	fset.multiViewport (True);
 	fset.maxViewports (16);
@@ -105,7 +114,7 @@ void ASmain ()
 	fset.perDescrSet_maxStorageBuffers (155);
 	fset.perDescrSet_maxStorageImages (40);
 	fset.perDescrSet_maxUniformBuffers (155);
-	fset.perDescrSet_maxTotalResources (512);
+	fset.perDescrSet_maxTotalResources (700);
 	fset.perStage_maxInputAttachments (96);
 	fset.perStage_maxSampledImages (96);
 	fset.perStage_maxSamplers (16);
@@ -184,17 +193,21 @@ void ASmain ()
 	fset.imageViewFormatList (True);
 	fset.imageViewExtendedUsage (True);
 	fset.maxImageArrayLayers (2 << 10);
+	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
+		EPixelFormat::R32I, EPixelFormat::R32U
+	});
 	fset.AddTexelFormats( EFormatFeature::StorageImage, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
 		EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 
 		EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
-		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::R8I, EPixelFormat::RG8I, 
-		EPixelFormat::RGBA8I, EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGBA16I, 
-		EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::R8U, 
-		EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U, 
-		EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, 
-		EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, 
-		EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
+		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, 
+		EPixelFormat::R8I, EPixelFormat::RG8I, EPixelFormat::RGBA8I, EPixelFormat::R16I, 
+		EPixelFormat::RG16I, EPixelFormat::RGBA16I, EPixelFormat::R32I, EPixelFormat::RG32I, 
+		EPixelFormat::RGBA32I, EPixelFormat::R8U, EPixelFormat::RG8U, EPixelFormat::RGBA8U, 
+		EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, 
+		EPixelFormat::RG32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F, 
+		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, 
+		EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
 	});
 	fset.AddTexelFormats( EFormatFeature::AttachmentBlend, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 

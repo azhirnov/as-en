@@ -17,15 +17,18 @@ namespace AE::Graphics
 		struct Key
 		{
 			static constexpr ushort		_IndexMask		= 0xFF;
-			static constexpr ushort		_ShaderAddrBit	= 1 << 8;
-			static constexpr ushort		_IsImageBit		= 1 << 9;
+			static constexpr ubyte		_ShaderAddrBit	= 8;
+			static constexpr ubyte		_IsImageBit		= 9;
+			static constexpr ubyte		_MappedMemBit	= 10;
 
 			ushort		value	= UMax;
 
-			Key ()											__NE___	{}
-
-			Key (uint idx, bool shaderAddr, bool isImage)	__NE___	:
-				value{ushort( (idx & _IndexMask) | (shaderAddr ? _ShaderAddrBit : 0) | (isImage ? _IsImageBit : 0) )}
+			Key () __NE___	{}
+			Key (uint idx, bool shaderAddr, bool isImage, bool mapMem) __NE___	:
+				value{ushort(	(idx & _IndexMask) |
+								(uint(shaderAddr) << _ShaderAddrBit) |
+								(uint(isImage) << _IsImageBit) |
+								(uint(mapMem) << _MappedMemBit) )}
 			{}
 
 			ND_ bool  operator == (const Key &rhs)			C_NE___ { return value == rhs.value; }
@@ -33,8 +36,9 @@ namespace AE::Graphics
 			ND_ bool  operator >  (const Key &rhs)			C_NE___ { return value >  rhs.value; }
 
 			ND_ uint  TypeIndex ()							C_NE___	{ return value & _IndexMask; }
-			ND_ bool  IsShaderAddress ()					C_NE___	{ return value & _ShaderAddrBit; }
-			ND_ bool  IsImage ()							C_NE___	{ return value & _IsImageBit; }
+			ND_ bool  IsShaderAddress ()					C_NE___	{ return HasBit( value, _ShaderAddrBit ); }
+			ND_ bool  IsImage ()							C_NE___	{ return HasBit( value, _IsImageBit ); }
+			ND_ bool  IsMappedMemory ()						C_NE___	{ return HasBit( value, _MappedMemBit ); }
 		};
 	};
 

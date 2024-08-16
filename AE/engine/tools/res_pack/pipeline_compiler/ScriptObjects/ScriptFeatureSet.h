@@ -47,6 +47,7 @@ namespace AE::PipelineCompiler
 
 		ND_ StringView  Name ()								const	{ return _name; }
 		ND_ auto		Hash ()								const	{ return _hash; }
+		ND_ bool		IsIncomplete ()						const	{ return StartsWith( _name, "part." ); }
 
 		static void  Minimize (INOUT Array<ScriptFeatureSetPtr> &feats);
 

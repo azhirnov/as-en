@@ -138,6 +138,24 @@ static void  ValidateAppleFS (INOUT FeatureSet &fs)
 
 /*
 =================================================
+	IsValidFS
+=================================================
+*/
+static void  IsValidFS (const FeatureSet &fs)
+{
+	CHECK( fs.IsValid() );
+
+	CHECK( fs.vertexFormats.Any() );
+	CHECK( fs.attachmentFormats.Any() );
+	CHECK( fs.attachmentBlendFormats.Any() );
+	CHECK( fs.storageImageFormats.Any() );
+	CHECK( fs.linearSampledFormats.Any() );
+
+	CHECK( fs.surfaceFormats.None() );
+}
+
+/*
+=================================================
 	GenMinimalFS
 =================================================
 */
@@ -161,7 +179,7 @@ static bool  GenMinimalFS (ArrayView<FeatureSetInfo> fsInfo)
 	ValidateAppleFS( INOUT min_fs );
 
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	for (auto& info : fsInfo)
 	{
@@ -192,6 +210,7 @@ static bool  GenMinDescriptorIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing	)
 
 	#define FS_LIST2( _visitor_ ) \
+		_visitor_( quadDivergentImplicitLod				)\
 		_visitor_( runtimeDescriptorArray				)\
 		_visitor_( perDescrSet							)\
 		_visitor_( perStage								)\
@@ -264,6 +283,7 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		_visitor_( shaderInputAttachmentArrayNonUniformIndexing	)\
 
 	#define FS_LIST2( _visitor_ ) \
+		_visitor_( quadDivergentImplicitLod								)\
 		_visitor_( runtimeDescriptorArray								)\
 		_visitor_( shaderUniformTexelBufferArrayNonUniformIndexing		)\
 		_visitor_( shaderStorageTexelBufferArrayNonUniformIndexing		)\
@@ -353,6 +373,7 @@ static bool  GenMinNativeNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInf
 		_visitor_( shaderInputAttachmentArrayNonUniformIndexingNative	)\
 
 	#define FS_LIST2( _visitor_ ) \
+		_visitor_( quadDivergentImplicitLod								)\
 		_visitor_( runtimeDescriptorArray								)\
 		_visitor_( shaderUniformTexelBufferArrayNonUniformIndexing		)\
 		_visitor_( shaderStorageTexelBufferArrayNonUniformIndexing		)\
@@ -380,6 +401,7 @@ static bool  GenMinNativeNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInf
 	FeatureSet	min_fs;
 	String		comment;
 	bool		init	= false;
+	const auto	True	= FeatureSet::EFeature::RequireTrue;
 
 	comment << "\t// include:\n";
 
@@ -390,7 +412,7 @@ static bool  GenMinNativeNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInf
 		if ( not (FS_LIST( FS_ANY_TRUE ) false) )
 			continue;
 
-		if ( fs.shaderSampledImageArrayNonUniformIndexingNative != EFeature::RequireTrue )
+		if ( fs.shaderSampledImageArrayNonUniformIndexingNative != True )
 			continue;
 
 		if ( init )
@@ -466,7 +488,7 @@ static bool  GenMinRecursiveRayTracing (ArrayView<FeatureSetInfo> fsInfo)
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -516,7 +538,7 @@ static bool  GenMinInlineRayTracing (ArrayView<FeatureSetInfo> fsInfo)
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -569,7 +591,7 @@ static bool  GenMinMeshShader (ArrayView<FeatureSetInfo> fsInfo)
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -627,7 +649,9 @@ static bool  GenMinMobile (ArrayView<FeatureSetInfo> fsInfo)
 	ValidateAppleFS( INOUT min_fs );
 
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
+
+	CHECK( min_fs.textureCompressionETC2 == EFeature::RequireTrue );
 
 	comment << "\n";
 
@@ -684,7 +708,7 @@ static bool  GenMinMobileMali (ArrayView<FeatureSetInfo> fsInfo)
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -731,10 +755,11 @@ static bool  GenMinMobileAdreno (ArrayView<FeatureSetInfo> fsInfo)
 	CHECK_ERR( init );
 
 	min_fs.maxShaderVersion.metal = 0;
+	min_fs.maxComputeWorkGroupSizeZ = 64; // fix
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -784,7 +809,7 @@ static bool  GenMinMobilePowerVR (ArrayView<FeatureSetInfo> fsInfo)
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -836,7 +861,9 @@ static bool  GenMinDesktop (ArrayView<FeatureSetInfo> fsInfo)
 	ValidateAppleFS( INOUT min_fs );
 
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
+
+	CHECK( min_fs.textureCompressionBC == EFeature::RequireTrue );
 
 	comment << "\n";
 
@@ -886,7 +913,7 @@ static bool  GenMinDesktopAMD (ArrayView<FeatureSetInfo> fsInfo)
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -936,7 +963,7 @@ static bool  GenMinDesktopNV (ArrayView<FeatureSetInfo> fsInfo)
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -986,7 +1013,7 @@ static bool  GenMinDesktopIntel (ArrayView<FeatureSetInfo> fsInfo)
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -1041,7 +1068,7 @@ static bool  GenMinApple (ArrayView<FeatureSetInfo> fsInfo)
 	ValidateAppleFS( INOUT min_fs );
 
 	min_fs.Validate();
-	CHECK( min_fs.IsValid() );
+	IsValidFS( min_fs );
 
 	comment << "\n";
 
@@ -1078,8 +1105,8 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 
 		ValidateFS( INOUT fs );
 
-		CHECK( fs.IsValid() );
 		fs.Validate();
+		IsValidFS( fs );
 	}};
 
 	const auto	InitFeatureSet = [&FixAndValidate] (const MFeatureSet &mfs, const MGPUFamilies &f, OUT FeatureSet &fs)
@@ -1525,14 +1552,16 @@ int main ()
 				CHECK_LE( limit.rayTracing.maxGeometries,				info.fs.ext.maxGeometryCount );
 				CHECK_LE( limit.rayTracing.maxInstances,				info.fs.ext.maxInstanceCount );
 				CHECK_LE( limit.rayTracing.maxPrimitives,				info.fs.ext.maxPrimitiveCount );
-				CHECK_LE( limit.rayTracing.maxRecursion,				info.fs.ext.maxRayRecursionDepth );
 			}
+
+			if ( info.fs.rayTracingPipeline == EFeature::RequireTrue )
+				CHECK_LE( limit.rayTracing.maxRecursion,				info.fs.ext.maxRayRecursionDepth );
 		}
 
 		// not supported
 		info.fs.shaderSubgroupUniformControlFlow = EFeature::Ignore;
 
-		CHECK( info.fs.IsValid() );
+		IsValidFS( info.fs );
 	}
 
 	CHECK_ERR( GenAppleFamily( INOUT fs_infos ), -9 );

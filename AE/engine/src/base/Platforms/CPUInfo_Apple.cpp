@@ -193,7 +193,7 @@ namespace AE::Base
 */
 	bool  CpuPerformance::GetPerfCounters (OUT PerProcessCounters &, OUT PerThreadCounters &) __NE___
 	{
-		return true;
+		return false;
 	}
 
 

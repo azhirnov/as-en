@@ -62,7 +62,7 @@
 	{
 		float2	ncoord		= float2(coord + offset) / float2(GetGlobalSize().xy);
 		float3	sphere_pos	= CM_TangentialSC_Forward( ToSNorm(ncoord), FaceIdx() );
-		float	dist		= Voronoi( sphere_pos * 8.0, float2(3.9672) ).minDist;
+		float	dist		= Voronoi( sphere_pos * 8.0, float3(3.9672, 0.0, 1.0) ).minDist;
 				dist		= Saturate( 0.5 - dist );
 		return float4( sphere_pos * (1.0 + dist * iHeightScale), dist );
 	}

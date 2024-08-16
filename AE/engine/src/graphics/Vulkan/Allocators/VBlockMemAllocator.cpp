@@ -151,7 +151,7 @@ namespace AE::Graphics
 
 			for (uint type_idx : BitIndexIterate( memBits ))
 			{
-				const Key	key{ type_idx, shaderAddress, isImage };
+				const Key	key{ type_idx, shaderAddress, isImage, mapMem };
 
 				auto	iter = _pageMap.find( key );
 				if ( iter == _pageMap.end() )
@@ -190,7 +190,7 @@ namespace AE::Graphics
 			VK_CHECK_ERR( dev.vkMapMemory( dev.GetVkDevice(), memory.Get(), 0, mem_alloc.allocationSize, 0, OUT &mapped_ptr ));
 
 
-		const Key	key{ mem_alloc.memoryTypeIndex, shaderAddress, isImage };
+		const Key	key{ mem_alloc.memoryTypeIndex, shaderAddress, isImage, mapMem };
 		PageArr*	page_arr;
 		{
 			EXLOCK( _pageMapGuard );

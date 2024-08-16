@@ -1812,6 +1812,29 @@ namespace {
 
 /*
 =================================================
+	_LogMemoryTypes
+=================================================
+*/
+	void  VDeviceInitializer::_LogMemoryTypes () C_Th___
+	{
+	#ifdef AE_ENABLE_LOGS
+		String	str;
+		str << "Memory types:";
+
+		for (const auto [type, bits] : _memTypeToBits)
+		{
+			str << "\n  " << ToString( type ) << ':';
+			for (uint bit : BitIndexIterate( bits )) {
+				str << ' ' << ToString( bit );
+			}
+		}
+
+		AE_LOGI( str );
+	#endif
+	}
+
+/*
+=================================================
 	_ValidateSpirvVersion
 =================================================
 */
@@ -1995,14 +2018,14 @@ namespace {
 	CreateLogicalDevice
 =================================================
 */
-	bool  VDeviceInitializer::CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures, EDeviceFlags devFlags) __NE___
+	bool  VDeviceInitializer::CreateLogicalDevice (const DeviceCreateInfo &ci) __NE___
 	{
 		NOTHROW_ERR(
-			return _CreateLogicalDevice( extensions, fsToDeviceFeatures, devFlags );
+			return _CreateLogicalDevice( ci );
 		)
 	}
 
-	bool  VDeviceInitializer::_CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures, EDeviceFlags devFlags) __Th___
+	bool  VDeviceInitializer::_CreateLogicalDevice (const DeviceCreateInfo &devCI) __Th___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _vkPhysicalDevice != Default );
@@ -2015,8 +2038,8 @@ namespace {
 
 
 		// setup extensions
-		Array<const char *>		device_extensions = _GetDeviceExtensions( _vkDeviceVersion );		// throw
-		device_extensions.insert( device_extensions.end(), extensions.begin(), extensions.end() );	// throw
+		Array<const char *>		device_extensions = _GetDeviceExtensions( _vkDeviceVersion );					// throw
+		device_extensions.insert( device_extensions.end(), devCI.extensions.begin(), devCI.extensions.end() );	// throw
 
 	  #ifndef AE_CFG_RELEASE
 		if ( _nvPerf.IsLoaded() )
@@ -2025,7 +2048,6 @@ namespace {
 		if ( _amdPerf.IsLoaded() )
 			_amdPerf.GetDeviceExtensions( *this, INOUT device_extensions );
 	  #endif
-		Unused( devFlags );
 
 		_ValidateDeviceExtensions( _vkPhysicalDevice, INOUT device_extensions );	// throw
 
@@ -2122,8 +2144,8 @@ namespace {
 			void*	dev_info_pnext = null;
 			_InitFeaturesAndProperties( INOUT &dev_info_pnext );
 
-			if ( fsToDeviceFeatures != null )
-				CHECK_ERR( _InitFeaturesAndPropertiesByFeatureSet( *fsToDeviceFeatures ));
+			if ( devCI.fsToDeviceFeatures != null )
+				CHECK_ERR( _InitFeaturesAndPropertiesByFeatureSet( *devCI.fsToDeviceFeatures ));
 
 			// disable some features
 			{
@@ -2146,6 +2168,9 @@ namespace {
 				// enabled only with env variable 'NV_ALLOW_RAYTRACING_VALIDATION=1'
 				_properties.rayTracingValidationFeats.rayTracingValidation = VK_FALSE;
 			}
+
+			if ( devCI.disableFeatures != null )
+				devCI.disableFeatures( devCI.userData, INOUT _properties );
 
 			device_info.pEnabledFeatures	= &_properties.features;
 			device_info.pNext				= dev_info_pnext;
@@ -2177,6 +2202,7 @@ namespace {
 			_resFlags.Print();
 			_LogLogicalDevice();	// throw
 			_devProps.Print();
+			_LogMemoryTypes();
 			_LogExternalTools();	// throw
 		}
 
@@ -2184,10 +2210,10 @@ namespace {
 		if ( not (_nvPerf.IsLoaded() and _nvPerf.Initialize( *this )) )
 			_nvPerf.Deinitialize();
 
-		if ( AllBits( devFlags, EDeviceFlags::SetStableClock ) and _nvPerf.IsInitialized() )
+		if ( AllBits( devCI.devFlags, EDeviceFlags::SetStableClock ) and _nvPerf.IsInitialized() )
 			_nvPerf.SetStableClockState( true );
 
-		if ( not (_amdPerf.IsLoaded() and _amdPerf.Initialize( *this, devFlags )) )
+		if ( not (_amdPerf.IsLoaded() and _amdPerf.Initialize( *this, devCI.devFlags )) )
 			_amdPerf.Deinitialize();
 	  #endif
 
@@ -3231,7 +3257,10 @@ namespace {
 				CHECK_ERR( ChooseHighPerformanceDevice() );
 
 			CHECK_ERR( CreateDefaultQueues( ci.device.requiredQueues, ci.device.optionalQueues ));
-			CHECK_ERR( CreateLogicalDevice( Default, null, ci.device.devFlags ));
+
+			DeviceCreateInfo	dev_ci;
+			dev_ci.devFlags	= ci.device.devFlags;
+			CHECK_ERR( CreateLogicalDevice( dev_ci ));
 		}
 
 		return true;

@@ -216,7 +216,7 @@ namespace AE::Graphics
 
 					rayTracing.maxGeometries				= 16777215;
 					rayTracing.maxInstances					= 16777215;
-					rayTracing.maxPrimitives				= 536870911;
+					rayTracing.maxPrimitives				= 16777215;
 
 					rayTracing.maxRecursion					= 1;						// nvidia/intel - 31, amd/samsung - 1, apple - ???
 					rayTracing.maxDispatchInvocations		= 67108864;					// amd/samsung/nvidia - 1073741824, amd - 67108864, intel - 4294967295, apple - ???

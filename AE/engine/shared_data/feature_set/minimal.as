@@ -81,6 +81,9 @@ void ASmain ()
 	fset.imageCubeArray (True);
 	fset.multisampleArrayImage (True);
 	fset.maxImageArrayLayers (256);
+	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
+		EPixelFormat::R32I, EPixelFormat::R32U
+	});
 	fset.AddTexelFormats( EFormatFeature::StorageImage, {
 		EPixelFormat::RGBA8_SNorm, EPixelFormat::RGBA8_UNorm, EPixelFormat::RGBA8I, EPixelFormat::RGBA16I, 
 		EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::RGBA8U, 

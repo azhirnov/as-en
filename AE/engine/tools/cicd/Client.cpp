@@ -63,7 +63,7 @@ namespace AE::CICD
 =================================================
 	_RegisterCommands
 ----
-	same as [_InitUserClient line:360](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/Server.cpp)
+	same as [_InitUserClient](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/Server.cpp#L360)
 =================================================
 */
 	bool  Client::_RegisterCommands ()

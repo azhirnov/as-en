@@ -8,6 +8,7 @@
 #	pragma warning (disable: 4668)
 # endif
 
+#	define DISABLE_GPA 0
 #	include "gpu_performance_api/gpu_perf_api.h"
 
 # ifdef AE_COMPILER_MSVC

@@ -8,7 +8,6 @@ jobs:
       matrix:
         config: [Debug, Develop, Profile, Release]
     
-    if: false
     runs-on: ubuntu-24.04
     name: Linux x64, GCC 13, ${{matrix.config}}
     
@@ -27,7 +26,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/m_u0aI_bssVzRA"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/ItFRNcXTSg8jJw"
         unzip external.zip
     
     - name: Configure CMake
@@ -41,36 +40,66 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: cmake --build "_build" --config ${{matrix.config}} -j 2
-
-    - name: Test
-      working-directory: ${{github.workspace}}/_build
-      run: |
-        ctest -R "Tests.Base" -C ${{matrix.config}}
-        ctest -R "Tests.Serializing" -C ${{matrix.config}}
-        ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}}
-        ctest -R "Tests.Scripting" -C ${{matrix.config}}
-        ctest -R "Tests.Threading" -C ${{matrix.config}}
-        ctest -R "Tests.Networking" -C ${{matrix.config}}
-        ctest -R "Tests.ECS-st" -C ${{matrix.config}}
-        ctest -R "Tests.VFS" -C ${{matrix.config}}
-        ctest -R "Tests.AtlasTools" -C ${{matrix.config}}
-        ctest -R "Tests.GeometryTools" -C ${{matrix.config}}
-        ctest -R "Tests.PipelineCompiler" -C ${{matrix.config}}
       
     - uses: actions/upload-artifact@v4
       with:
         name: AsEn-ResourceEditor-linux-x64-gcc13-${{matrix.config}}
         path: |
-            ${{github.workspace}}/_build/bin/ResourceEditor.elf
+            ${{github.workspace}}/_build/bin/ResourceEditor
             
     - uses: actions/upload-artifact@v4
       with:
         name: AsEn-Tools-linux-x64-gcc13-${{matrix.config}}
         path: |
-            ${{github.workspace}}/_build/bin/CICD.elf
+            ${{github.workspace}}/_build/bin/CICD
+            ${{github.workspace}}/_build/bin/OfflinePacker
+            ${{github.workspace}}/_build/bin/RemoteGraphicsDevice
             ${{github.workspace}}/_build/bin/GraphicsLib.so
-            ${{github.workspace}}/_build/bin/OfflinePacker.elf
-            ${{github.workspace}}/_build/bin/RemoteGraphicsDevice.elf
+
+    - name: Tests.Base
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Base" -C ${{matrix.config}} -V
+      
+    - name: Tests.Serializing
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Serializing" -C ${{matrix.config}} -V
+        
+    - name: Tests.Scripting
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Scripting" -C ${{matrix.config}} -V
+        
+    - name: Tests.Threading
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Threading" -C ${{matrix.config}} -V
+       
+    - name: Tests.Networking
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Networking" -C ${{matrix.config}} -V
+       
+    - name: Tests.ECS
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.ECS-st" -C ${{matrix.config}} -V
+       
+    - name: Tests.VFS
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.VFS" -C ${{matrix.config}} -V
+       
+    - name: Tests.AtlasTools
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.AtlasTools" -C ${{matrix.config}} -V
+       
+    - name: Tests.GeometryTools
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.GeometryTools" -C ${{matrix.config}} -V
+       
+    - name: Tests.ResourceLoaders
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}} -V
+        
+    - name: Tests.PipelineCompiler
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.PipelineCompiler" -C ${{matrix.config}} -V
+
             
       
   build-clang-16:
@@ -96,7 +125,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/yGUJ9v-Fug03aw"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/7FIqOv5RO-12oA"
         unzip external.zip
     
     - name: Configure CMake
@@ -112,36 +141,65 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}
       run: cmake --build "_build" --config ${{matrix.config}} -j 2
-
-    - name: Test
-      working-directory: ${{github.workspace}}/_build
-      run: |
-        ctest -R "Tests.Base" -C ${{matrix.config}}
-        ctest -R "Tests.Serializing" -C ${{matrix.config}}
-        ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}}
-        ctest -R "Tests.Scripting" -C ${{matrix.config}}
-        ctest -R "Tests.Threading" -C ${{matrix.config}}
-        ctest -R "Tests.Networking" -C ${{matrix.config}}
-        ctest -R "Tests.ECS-st" -C ${{matrix.config}}
-        ctest -R "Tests.VFS" -C ${{matrix.config}}
-        ctest -R "Tests.AtlasTools" -C ${{matrix.config}}
-        ctest -R "Tests.GeometryTools" -C ${{matrix.config}}
-        ctest -R "Tests.PipelineCompiler" -C ${{matrix.config}}
       
     - uses: actions/upload-artifact@v4
       with:
         name: AsEn-ResourceEditor-linux-x64-clang16-${{matrix.config}}
         path: |
-            ${{github.workspace}}/_build/bin/ResourceEditor.elf
+            ${{github.workspace}}/_build/bin/ResourceEditor
             
     - uses: actions/upload-artifact@v4
       with:
         name: AsEn-Tools-linux-x64-clang16-${{matrix.config}}
         path: |
-            ${{github.workspace}}/_build/bin/CICD.elf
+            ${{github.workspace}}/_build/bin/CICD
+            ${{github.workspace}}/_build/bin/OfflinePacker
+            ${{github.workspace}}/_build/bin/RemoteGraphicsDevice
             ${{github.workspace}}/_build/bin/GraphicsLib.so
-            ${{github.workspace}}/_build/bin/OfflinePacker.elf
-            ${{github.workspace}}/_build/bin/RemoteGraphicsDevice.elf
+
+    - name: Tests.Base
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Base" -C ${{matrix.config}} -V
+      
+    - name: Tests.Serializing
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Serializing" -C ${{matrix.config}} -V
+        
+    - name: Tests.Scripting
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Scripting" -C ${{matrix.config}} -V
+        
+    - name: Tests.Threading
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Threading" -C ${{matrix.config}} -V
+       
+    - name: Tests.Networking
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.Networking" -C ${{matrix.config}} -V
+       
+    - name: Tests.ECS
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.ECS-st" -C ${{matrix.config}} -V
+       
+    - name: Tests.VFS
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.VFS" -C ${{matrix.config}} -V
+       
+    - name: Tests.AtlasTools
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.AtlasTools" -C ${{matrix.config}} -V
+       
+    - name: Tests.GeometryTools
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.GeometryTools" -C ${{matrix.config}} -V
+       
+    - name: Tests.ResourceLoaders
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}} -V
+        
+    - name: Tests.PipelineCompiler
+      working-directory: ${{github.workspace}}/_build
+      run: ctest -R "Tests.PipelineCompiler" -C ${{matrix.config}} -V
             
             
   build-clang-16-rg:
@@ -167,7 +225,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/yGUJ9v-Fug03aw"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/7FIqOv5RO-12oA"
         unzip external.zip
     
     - name: Configure CMake
@@ -188,6 +246,6 @@ jobs:
       with:
         name: AsEn-ResourceEditor-linux-x64-clang16-${{matrix.config}}-RemoteGraphics
         path: |
-            ${{github.workspace}}/_build/bin/ResourceEditor.elf
+            ${{github.workspace}}/_build/bin/ResourceEditor
             
             

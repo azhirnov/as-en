@@ -7,13 +7,14 @@
 
 # include "graphics/Vulkan/Allocators/VLinearMemAllocator.h"
 # include "graphics/Vulkan/Resources/VPipelinePack.h"
-# include "graphics/Private/PipelinePack.cpp.h"
 
 # ifdef AE_ENABLE_GLSL_TRACE
 #	include "ShaderTrace.h"
 # else
 #	include "Packer/ShaderTraceDummy.h"
 # endif
+
+# include "graphics/Private/PipelinePack.cpp.h"
 
 namespace AE::Graphics
 {

@@ -503,6 +503,7 @@ namespace
 			outFeatureSet.shaderStorageBufferArrayNonUniformIndexingNative	= outFeatureSet.shaderStorageBufferArrayNonUniformIndexing;
 			outFeatureSet.shaderStorageImageArrayNonUniformIndexingNative	= outFeatureSet.shaderStorageImageArrayNonUniformIndexing;
 			outFeatureSet.shaderInputAttachmentArrayNonUniformIndexingNative= outFeatureSet.shaderInputAttachmentArrayNonUniformIndexing;
+			outFeatureSet.quadDivergentImplicitLod							= False;
 
 			// storage image format
 			//outFeatureSet.shaderStorageImageMultisample			// TODO
@@ -515,10 +516,10 @@ namespace
 			outFeatureSet.vulkanMemoryModelAvailabilityVisibilityChains	= False;
 
 			//
-			//outFeatureSet.shaderDemoteToHelperInvocation
-			//outFeatureSet.shaderTerminateInvocation
-			//outFeatureSet.shaderZeroInitializeWorkgroupMemory
-			//outFeatureSet.shaderIntegerDotProduct
+			outFeatureSet.shaderDemoteToHelperInvocation				= True;
+			outFeatureSet.shaderTerminateInvocation						= False;
+			outFeatureSet.shaderZeroInitializeWorkgroupMemory			= False;
+			outFeatureSet.shaderIntegerDotProduct						= True;
 
 			// fragment shader interlock
 			outFeatureSet.fragmentShaderSampleInterlock			= features.rasterOrderGroups ? True : False;
@@ -545,7 +546,7 @@ namespace
 			outFeatureSet.rayQueryStages	&= all_stages;
 
 			// ray tracing
-			outFeatureSet.rayTracingPipeline			= False;
+			outFeatureSet.rayTracingPipeline			= False;	// TODO
 			outFeatureSet.rayTraversalPrimitiveCulling	= False;
 			outFeatureSet.maxRayRecursionDepth			= 0;
 

@@ -291,25 +291,25 @@ namespace AE::PipelineCompiler
 			{
 				// not supported by glslang
 				ext	<< "#ifdef GL_EXT_subgroupuniform_qualifier\n"
-					<< "# extension GL_EXT_subgroupuniform_qualifier              : require\n"
+					<< "# extension GL_EXT_subgroupuniform_qualifier               : require\n"
 					<< "#endif\n";
 				def << "#ifdef GL_EXT_subgroupuniform_qualifier\n"
-					<< "#define AE_subgroup_uniform_qualifier  1\n"
+					<< "# define AE_subgroup_uniform_qualifier  1\n"
 					<< "#endif\n";
 
-				ext	<< "#extension GL_EXT_subgroup_uniform_control_flow           : require\n";
+				ext	<< "#extension GL_EXT_subgroup_uniform_control_flow            : require\n";
 				def << "#define AE_subgroup_uniform_control_flow  1\n";
 			}
 
 			if ( max_reconv.IsTrue() )
 			{
-				ext	<< "#extension GL_EXT_maximal_reconvergence                   : require\n";
+				ext	<< "#extension GL_EXT_maximal_reconvergence                    : require\n";
 				def << "#define AE_maximal_reconvergence  1\n";
 			}
 
 			if ( quad_ctrl.IsTrue() )
 			{
-				ext	<< "#extension GL_EXT_shader_quad_control                     : require\n";
+				ext	<< "#extension GL_EXT_shader_quad_control                      : require\n";
 				def << "#define AE_shader_quad_control  1\n";
 			}
 
@@ -739,6 +739,62 @@ namespace AE::PipelineCompiler
 			}
 			if ( draw_params.IsTrue() )
 				def << "#define AE_shader_draw_parameters 1\n";	// allow gl_BaseInstanceARB, gl_BaseVertexARB, gl_DrawIDARB
+		}
+
+		// vendor
+		{
+			EnumSet<EGPUVendor>		include_ids;
+			EnumSet<EGPUVendor>		exclude_ids;
+			for (auto& ptr : features) {
+				include_ids |= ptr->fs.vendorIds.include;
+				exclude_ids |= ptr->fs.vendorIds.exclude;
+			}
+			include_ids &= ~exclude_ids;
+
+			for (auto id : include_ids)
+			{
+				switch_enum( id )
+				{
+					case EGPUVendor::AMD :			def << "#define AE_AMD_GPU 1\n";				break;
+					case EGPUVendor::NVidia :		def << "#define AE_NVidia_GPU 1\n";				break;
+					case EGPUVendor::Intel :		def << "#define AE_Intel_GPU 1\n";				break;
+					case EGPUVendor::ARM :			def << "#define AE_ARM_Mali_GPU 1\n";			break;
+					case EGPUVendor::Qualcomm :		def << "#define AE_Qualcomm_Adreno_GPU 1\n";	break;
+					case EGPUVendor::ImgTech :		def << "#define AE_IMG_PowerVR_GPU 1\n";		break;
+					case EGPUVendor::Microsoft :	def << "#define AE_Microsoft_GPU 1\n";			break;
+					case EGPUVendor::Apple :		def << "#define AE_Apple_GPU 1\n";				break;
+					case EGPUVendor::Mesa :			def << "#define AE_Mesa_GPU_driver 1\n";		break;
+					case EGPUVendor::Broadcom :		def << "#define AE_Broadcom_GPU 1\n";			break;
+					case EGPUVendor::Samsung :		def << "#define AE_Samsung_GPU 1\n";			break;
+					case EGPUVendor::VeriSilicon :	def << "#define AE_VeriSilicon_GPU 1\n";		break;
+					case EGPUVendor::Huawei :		def << "#define AE_Huawei_GPU 1\n";				break;
+					case EGPUVendor::_Count :		break;
+				}
+				switch_end
+			}
+		}
+
+		// device family
+		{
+			EnumSet<EGraphicsDeviceID>		include_ids;
+			EnumSet<EGraphicsDeviceID>		exclude_ids;
+			for (auto& ptr : features) {
+				include_ids |= ptr->fs.devicesIds.include;
+				exclude_ids |= ptr->fs.devicesIds.exclude;
+			}
+			include_ids &= ~exclude_ids;
+
+			for (auto id : include_ids)
+			{
+				switch_enum( id )
+				{
+					#define VISITOR( _name_ )	case EGraphicsDeviceID::_name_ :  def << "#define AE_device_family_" << #_name_ << " 1\n"; break;
+					AE_GRAPHICS_DEVICE_LIST( VISITOR )
+					#undef VISITOR
+					case EGraphicsDeviceID::_Count : break;
+				}
+				switch_end
+			}
 		}
 
 		ext << '\n' << def << '\n';

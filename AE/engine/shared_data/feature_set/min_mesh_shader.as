@@ -10,6 +10,7 @@ void ASmain ()
 	//	AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
 	//	AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
+	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
 	//	NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
@@ -58,14 +59,11 @@ void ASmain ()
 		EShaderStages::Mesh
 	));
 	fset.subgroupQuadStages(EShaderStages(
-		EShaderStages::Vertex | 
 		EShaderStages::Fragment | 
-		EShaderStages::Compute | 
-		EShaderStages::MeshTask | 
-		EShaderStages::Mesh
+		EShaderStages::Compute
 	));
 	fset.minSubgroupSize (4);
-	fset.maxSubgroupSize (32);
+	fset.maxSubgroupSize (8);
 	fset.subgroup (True);
 	fset.subgroupBroadcastDynamicId (True);
 	fset.subgroupSizeControl (True);
@@ -101,6 +99,7 @@ void ASmain ()
 	fset.shaderStorageTexelBufferArrayNonUniformIndexing (True);
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
+	fset.shaderDemoteToHelperInvocation (True);
 	fset.maxSpirvVersion (140);
 	fset.maxMetalVersion (300);
 	fset.drawIndirectFirstInstance (True);
@@ -126,13 +125,13 @@ void ASmain ()
 	fset.perStage_maxStorageImages (65535);
 	fset.perStage_maxUniformBuffers (64);
 	fset.perStage_maxAccelStructures (65535);
-	fset.perStage_maxTotalResources (8008184);
+	fset.perStage_maxTotalResources (1000000);
 	fset.maxDescriptorSets (8);
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (7);
 	fset.maxFragmentOutputAttachments (8);
 	fset.maxFragmentDualSrcAttachments (1);
-	fset.maxFragmentCombinedOutputResources (131078);
+	fset.maxFragmentCombinedOutputResources (104);
 	fset.maxPushConstantsSize (128);
 	fset.maxComputeSharedMemorySize (32 << 10);
 	fset.maxComputeWorkGroupInvocations (1 << 10);
@@ -145,8 +144,8 @@ void ASmain ()
 	fset.maxMeshWorkGroupSize (32);
 	fset.maxMeshOutputVertices (128);
 	fset.maxMeshOutputPrimitives (128);
-	fset.maxMeshOutputPerVertexGranularity (32);
-	fset.maxMeshOutputPerPrimitiveGranularity (32);
+	fset.maxMeshOutputPerVertexGranularity (1);
+	fset.maxMeshOutputPerPrimitiveGranularity (1);
 	fset.maxTaskPayloadSize (16 << 10);
 	fset.maxTaskSharedMemorySize (16 << 10);
 	fset.maxTaskPayloadAndSharedMemorySize (16 << 10);
@@ -228,12 +227,10 @@ void ASmain ()
 		EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
 	});
 	fset.AddTexelFormats( EFormatFeature::AttachmentBlend, {
-		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
-		EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 
-		EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
-		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, 
-		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
-		EPixelFormat::RG32F, EPixelFormat::RGB_11_11_10F
+		EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, 
+		EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, 
+		EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R16F, EPixelFormat::RG16F, 
+		EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGB_11_11_10F
 	});
 	fset.AddTexelFormats( EFormatFeature::Attachment, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
@@ -260,8 +257,8 @@ void ASmain ()
 	fset.samplerAnisotropy (True);
 	fset.maxSamplerAnisotropy (16.00);
 	fset.maxSamplerLodBias (4.00);
-	fset.framebufferColorSampleCounts({ 1, 2, 4 });
-	fset.framebufferDepthSampleCounts({ 1, 2, 4 });
+	fset.framebufferColorSampleCounts({ 1, 4 });
+	fset.framebufferDepthSampleCounts({ 1, 4 });
 	fset.maxFramebufferLayers (1 << 10);
 	fset.supportedQueues(EQueueMask( EQueueMask::Graphics ));
 }

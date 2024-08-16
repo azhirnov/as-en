@@ -12,7 +12,7 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	RDrawBarrierManager::RDrawBarrierManager (Ptr<RDrawCommandBatch> batch, uint drawIdx) __NE___ :
+	RDrawBarrierManager::RDrawBarrierManager (Ptr<RDrawCommandBatch> batch, uint drawIdx) __Th___ :
 		_primaryState{ batch->GetPrimaryCtxState() },
 		_batch{ batch },  _drawIndex{ drawIdx },
 		_resMngr{ GraphicsScheduler().GetResourceManager() }
@@ -22,7 +22,7 @@ namespace AE::Graphics::_hidden_
 		GCTX_CHECK( _primaryState.useSecondaryCmdbuf != 0 );
 	}
 
-	RDrawBarrierManager::RDrawBarrierManager (const RPrimaryCmdBufState &primaryState) __NE___ :
+	RDrawBarrierManager::RDrawBarrierManager (const RPrimaryCmdBufState &primaryState) __Th___ :
 		_primaryState{ primaryState },
 		_resMngr{ GraphicsScheduler().GetResourceManager() }
 	{

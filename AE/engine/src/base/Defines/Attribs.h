@@ -201,10 +201,17 @@
 
 
 // field placement optimization
-#if __has_cpp_attribute( no_unique_address )
+#if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
+# if _MSC_VER >= 1929
+#	define NO_UNIQUE_ADDRESS	[[msvc::no_unique_address]]
+# endif
+#endif
+#ifndef NO_UNIQUE_ADDRESS
+# if __has_cpp_attribute( no_unique_address )
 #	define NO_UNIQUE_ADDRESS	[[no_unique_address]]
-#else
+# else
 #	define NO_UNIQUE_ADDRESS
+# endif
 #endif
 
 

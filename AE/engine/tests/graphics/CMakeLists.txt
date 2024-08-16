@@ -23,6 +23,9 @@ if (TARGET "Graphics")
 
 	target_include_directories( ${TEST_NAME} PUBLIC "." )
 	target_include_directories( ${TEST_NAME} PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
+
+	# disable if pipelines are compiled on linux
+	# enable on all platforms if pipelines are precompiled
 	target_compile_definitions( ${TEST_NAME} PRIVATE AE_TEST_SHADER_DEBUGGER )
 
 	target_compile_definitions( ${TEST_NAME} PRIVATE

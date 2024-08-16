@@ -23,10 +23,12 @@
 			camera.ClipPlanes( 0.1f, 100.f );
 			camera.FovY( 60.f );
 
-			const float	s = 1.0f;
+			const float	s = 2.0f;
 			camera.ForwardBackwardScale( s*2.0f, s );
 			camera.UpDownScale( s );
 			camera.SideMovementScale( s );
+
+			camera.RotationScale( 2.0, 1.0 );
 
 			camera.Dimension( rt.Dimension() );
 

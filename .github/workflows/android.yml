@@ -17,13 +17,13 @@ jobs:
     - id: buildConfig
       uses: actions/github-script@v6
       with:
-        script: return "${{ matrix.config == 'debug' && 'Debug' || 'RelWithDebInfo' }}"
+        script: return "${{ matrix.config == 'debug' && 'Debug' || 'Release' }}"
         result-encoding: string
       
     - id: cmakeConfig
       uses: actions/github-script@v6
       with:
-        script: return "${{ matrix.config == 'debug' && 'Debug' || 'Release' }}"
+        script: return "${{ matrix.config == 'debug' && 'Debug' || 'RelWithDebInfo' }}"
         result-encoding: string
     
     - name: Set up Java
@@ -35,7 +35,7 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/VSzlOKILCG8UfA"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/J96d_RPphPyYBg"
         unzip external.zip
         rm external.zip
         cd ../AE/android

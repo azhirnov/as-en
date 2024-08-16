@@ -35,10 +35,10 @@ namespace AE::Graphics
 		void  ClearColorImage (RmImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)		__Th___;
 		void  ClearDepthStencilImage (RmImageID image, const DepthStencil &, ArrayView<ImageSubresourceRange>)		__Th___;
 
-		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)		__Th___;
-		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)		__Th___;
-		void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)		__Th___;
-		void  ClearDepthStencilImage (ImageID image, const DepthStencil &, ArrayView<ImageSubresourceRange>)		__Th___;
+		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)		__Th_OV;
+		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)		__Th_OV;
+		void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)		__Th_OV;
+		void  ClearDepthStencilImage (ImageID image, const DepthStencil &, ArrayView<ImageSubresourceRange>)		__Th_OV;
 
 		void  UpdateBuffer (RmBufferID buffer, Bytes offset, Bytes size, const void* data)							__Th___;
 		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)							__Th_OV;
@@ -68,7 +68,7 @@ namespace AE::Graphics
 		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)		__Th_OV;
 
 		void  ResolveImage (RmImageID srcImage, RmImageID dstImage, ArrayView<ImageResolve> regions)				__Th___;
-		void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)					__Th___;
+		void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)					__Th_OV;
 
 		void  UploadBuffer (BufferID buffer, const UploadBufferDesc &desc, OUT BufferMemView &memView)				__Th_OV;
 		void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)					__Th_OV	{ _UploadImage( image, desc, OUT memView ); }

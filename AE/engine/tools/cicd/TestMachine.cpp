@@ -64,7 +64,7 @@ namespace AE::CICD
 =================================================
 	_RegisterCommands
 ----
-	same as [_InitTestClient line:337](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/Server.cpp)
+	same as [_InitTestClient](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/cicd/Server.cpp#L337)
 =================================================
 */
 	bool  TestMachine::_RegisterCommands ()

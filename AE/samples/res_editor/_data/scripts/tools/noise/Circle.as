@@ -28,7 +28,7 @@
 			RC<Postprocess>		pass = Postprocess();
 			pass.Output( "out_Color",	rt );
 
-			pass.Slider( "iNoise",			0,						21,						int(params[0]) );
+			pass.Slider( "iNoise",			0,						16,						int(params[0]) );
 			pass.Slider( "iOctaves",		1,						10,						int(params[1]) );
 
 			pass.Slider( "iPScale",			0.1f,					100.f,					params[2] );
@@ -46,18 +46,79 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "SDF.glsl"
+	#include "Noise.glsl"
 	#include "GlobalIndex.glsl"
 
-	#define NOISE_3D_FBM	iNoise_max
-	#define CIRCLE_NOISE
-	#include "Tools-Noise.glsl"
+	FBM_NOISE_Hash( GradientNoise )
+	FBM_NOISE_Hash( ValueNoise )
+	FBM_NOISE_Hash( PerlinNoise )
+	FBM_NOISE_Hash( SimplexNoise )
+	FBM_NOISE_Hash( IQNoise )
+	FBM_NOISE_Hash( WarleyNoise )
+	FBM_NOISE_Hash( VoronoiContour )
 
-	float  Noise (float a)
+	FBM_NOISE_A1_Hash( IQNoise,			float2, uv )
+	FBM_NOISE_A1_Hash( WarleyNoise,		float3, seedScaleBias_offsetScale )
+	FBM_NOISE_A1_Hash( VoronoiContour,	float3, seedScaleBias_offsetScale )
+	FBM_NOISE_A2_Hash( VoronoiContour3,	float3, seedScaleBias_offsetScale, float3, hashScaleBiasOff )
+
+
+	ND_ float  Noise (float a)
 	{
-		float2	uv		= float2( iU.x * iU.y, iVV.x * iVV.y );
-		float	lac		= iLacunarity.x * iLacunarity.y;
-		float	pers	= iPersistence.x * iPersistence.y;
-		return Noise2( float3(a, 0.f, 0.f), iPScale, iPBias, iNoise, uv, iVScaleBias, lac, pers, iOctaves );
+		float3	pos	= (float3(a, 0.f, 0.f) * iPScale) + (iPBias * iPScale * float3(0.25, 0.25, 0.1));
+
+		float	n = 0.f;
+		float	c = 0.f;
+
+		const float		lac		= iLacunarity.x * iLacunarity.y;
+		const float		pers	= iPersistence.x * iPersistence.y;
+		const float3	uv		= float3( iU.x * iU.y, iVV.x * iVV.y, 0.f );
+		const float		vcos	= 0.75;	// scale for voronoi cell offset
+		const float3	uv2		= float3( uv.xy, vcos );
+
+		#if iNoise_max != 16
+		#	error iNoise max value must be 16
+		#endif
+		#define CastUNorm	c = n * iVScaleBias.x + iVScaleBias.y;
+		#define CastSNorm	c = ToUNorm( n * iVScaleBias.x + iVScaleBias.y );
+
+		switch ( iNoise )
+		{
+			case 0 :	n = GradientNoise( pos );										CastSNorm;	break;
+			case 1 :	n = ValueNoise( pos );											CastSNorm;	break;
+			case 2 :	n = PerlinNoise( pos );											CastSNorm;	break;
+			case 3 :	n = SimplexNoise( pos * 0.5 );									CastSNorm;	break;
+			case 4 :	n = IQNoise( pos * 2.0, uv.xy );								CastSNorm;	break;
+			case 5 :	n = Voronoi( pos, uv2 ).minDist;								CastUNorm;	break;
+			case 6 :	n = VoronoiContour( pos, uv2 );									CastUNorm;	break;
+			case 7 :	n = WarleyNoise( pos, uv2 );									CastUNorm;	break;
+			case 8 :	n = VoronoiContour3( pos, float3(1.0,0.0,vcos), uv.xzy );		CastSNorm;	break;
+
+			// FBM
+			case 9 :	n = GradientNoiseFBM( pos, lac, pers, iOctaves );				CastSNorm;	break;
+			case 10 :	n = ValueNoiseFBM( pos, lac, pers, iOctaves );					CastSNorm;	break;
+			case 11 :	n = PerlinNoiseFBM( pos, lac, pers, iOctaves );					CastSNorm;	break;
+			case 12 :	n = SimplexNoiseFBM( pos * 0.5, lac, pers, iOctaves );			CastSNorm;	break;
+			case 13 :	n = WarleyNoiseFBM( pos, uv2, lac, pers, iOctaves );			CastUNorm;	break;
+			case 14 :	n = IQNoiseFBM( pos * 2.0, uv.xy, lac, pers, iOctaves );		CastUNorm;	break;
+			case 15 :	n = VoronoiContourFBM( pos, uv2, lac, pers, iOctaves );			CastUNorm;	break;
+			case 16 :	n = VoronoiContour3FBM( pos, float3(1.0,0.0,vcos), uv.xzy, lac, pers, iOctaves );	CastSNorm;	break;
+		}
+		return c;
+	}
+
+	ND_ float  CircleNoise (const float2 uv)
+	{
+		float	a	= ATan( -uv.y, -uv.x );
+
+		float	n0	= Noise( a );
+		float	n1	= (n0 + Noise( -a )) * 0.5;
+
+		const float	start_blend = 0.8f;
+		float	b	= Abs( a ) * float_InvPi;
+		b = RemapSmooth( float2(start_blend, 1.0), float2(0.0, 1.0), b );
+
+		return Lerp( n0, n1, b );
 	}
 
 	void  Main ()

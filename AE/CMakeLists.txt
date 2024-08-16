@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.18 FATAL_ERROR )
 
 # CMAKE_BUILD_TYPE is not defined if used IDE
 if (DEFINED CMAKE_BUILD_TYPE)
@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-		 VERSION 24.08.253	# year, month, version
+		 VERSION 24.8.254	# year, month, version
 		 LANGUAGES C CXX
 		 DESCRIPTION "async game engine"
 		)
