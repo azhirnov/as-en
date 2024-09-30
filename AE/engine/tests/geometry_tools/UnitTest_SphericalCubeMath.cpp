@@ -16,7 +16,7 @@ namespace
 			for (uint y = 1; y < lod+2; ++y)
 			for (uint x = 1; x < lod+2; ++x)
 			{
-				const double2  ncoord = ToSNorm( double2{x,y} / (lod+2) );
+				const double2  ncoord = ToSNorm( double2{uint2{ x,y }} / (lod+2) );
 
 				const double2	fwd_2d	= Projection::Forward( ncoord );
 				const double2	inv_2d	= Projection::Inverse( fwd_2d );

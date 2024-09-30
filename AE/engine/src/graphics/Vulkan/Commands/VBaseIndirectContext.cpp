@@ -580,6 +580,12 @@ namespace AE::Graphics::_hidden_
 			fn.vkCmdSetFragmentShadingRateKHR( cmdbuf, &frag_size, combiner_ops );
 		}
 
+		static void  Fn_SetViewportWScalingCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const SetViewportWScalingCmd &cmd) __NE___
+		{
+			auto*	scaling = Cast<VkViewportWScalingNV>( AlignUp( static_cast<const void *>(&cmd + 1), AlignOf<VkViewportWScalingNV> ));
+			fn.vkCmdSetViewportWScalingNV( cmdbuf, cmd.first, cmd.count, scaling );
+		}
+
 		static void  Fn_BindIndexBufferCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const BindIndexBufferCmd &cmd) __NE___
 		{
 			fn.vkCmdBindIndexBuffer( cmdbuf, cmd.buffer, cmd.offset, cmd.indexType );

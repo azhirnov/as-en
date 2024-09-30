@@ -277,7 +277,7 @@ namespace AE::Base
 
 		public:
 			const_iterator&		operator ++ ()							__NE___	{ ++_index;  return *this; }
-			ND_ decltype(auto)	operator * ()							C_NE___	{ return _ref[_index]; }
+			ND_ exact_t			operator * ()							C_NE___	{ return _ref[_index]; }
 			ND_ bool			operator == (const const_iterator &rhs)	C_NE___	{ return &_ref == &rhs._ref and _index == rhs._index; }
 			ND_ bool			operator != (const const_iterator &rhs)	C_NE___	{ return not (*this == rhs); }
 		};
@@ -295,7 +295,7 @@ namespace AE::Base
 
 		public:
 			large_iterator&		operator ++ ()							__NE___	{ ++_index;  return *this; }
-			ND_ decltype(auto)	operator * ()							C_NE___	{ return _ref[_index]; }
+			ND_ exact_t			operator * ()							C_NE___	{ return _ref[_index]; }
 			ND_ bool			operator != (const large_iterator &rhs)	C_NE___	{ return not (*this == rhs); }
 			ND_ bool			operator == (const large_iterator &rhs)	C_NE___	{ return (_ref._view  == rhs._ref._view) and (_index == rhs._index); }
 		};
@@ -321,10 +321,10 @@ namespace AE::Base
 
 		ND_ usize			size ()					C_NE___	{ return _view.size(); }
 		ND_ bool			empty ()				C_NE___	{ return _view.empty(); }
-		ND_ decltype(auto)	operator [] (usize i)	C_NE___	{ return Converter_t{}( _view[i] ); }
+		ND_ exact_t			operator [] (usize i)	C_NE___	{ return Converter_t{}( _view[i] ); }
 
-		ND_ decltype(auto)	front ()				C_NE___	{ return operator[] (0); }
-		ND_ decltype(auto)	back ()					C_NE___	{ return operator[] (size()-1); }
+		ND_ exact_t			front ()				C_NE___	{ return operator[] (0); }
+		ND_ exact_t			back ()					C_NE___	{ return operator[] (size()-1); }
 
 		ND_ const_iterator	begin ()				CrNE___	{ return const_iterator{ *this, 0 }; }
 		ND_ const_iterator	end ()					CrNE___	{ return const_iterator{ *this, size() }; }

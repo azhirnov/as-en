@@ -11,6 +11,8 @@
 
 #include "Math.glsl"
 
+#ifdef AE_LICENSE_MIT
+
 //
 // Gamma ramps and encoding transfer functions
 //
@@ -31,35 +33,35 @@
 
 // Approximately pow(x, 1.0 / 2.2)
 float   ApplySRGBCurve (float  x)		{ return x < 0.0031308 ? 12.92 * x : 1.055 * Pow(x, 1.0 / 2.4) - 0.055; }
-float3  ApplySRGBCurve (float3 v)		{ return float3( ApplySRGBCurve(v.r), ApplySRGBCurve(v.g), ApplySRGBCurve(v.b) ); }
-float4  ApplySRGBCurve (float4 v)		{ return float4( ApplySRGBCurve(v.r), ApplySRGBCurve(v.g), ApplySRGBCurve(v.b), v.a ); }
+float3  ApplySRGBCurve (float3 v)		{ return SelectFp( v, float3(0.0031308),  (12.92 * v), (1.055 * Pow( v, float3(1.0 / 2.4) ) - 0.055) ); }
+float4  ApplySRGBCurve (float4 v)		{ return float4( ApplySRGBCurve( v.rgb ), v.a ); }
 
 // Approximately pow(x, 2.2)
 float   RemoveSRGBCurve (float  x)		{ return x < 0.04045 ? x / 12.92 : Pow( (x + 0.055) / 1.055, 2.4 ); }
-float3  RemoveSRGBCurve (float3 v)		{ return float3( RemoveSRGBCurve(v.r), RemoveSRGBCurve(v.g), RemoveSRGBCurve(v.b) ); }
-float4  RemoveSRGBCurve (float4 v)		{ return float4( RemoveSRGBCurve(v.r), RemoveSRGBCurve(v.g), RemoveSRGBCurve(v.b), v.a ); }
+float3  RemoveSRGBCurve (float3 v)		{ return SelectFp( v, float3(0.04045),  (v / 12.92), Pow( (v + 0.055) / 1.055, float3(2.4) )); }
+float4  RemoveSRGBCurve (float4 v)		{ return float4( RemoveSRGBCurve( v.rgb ), v.a ); }
 
 
 // These functions avoid pow() to efficiently approximate sRGB with an error < 0.4%.
 float   ApplySRGBCurve_Fast (float  x)	{ return x < 0.0031308 ? 12.92 * x : 1.13005 * Sqrt(x - 0.00228) - 0.13448 * x + 0.005719; }
-float3  ApplySRGBCurve_Fast (float3 v)	{ return float3( ApplySRGBCurve_Fast(v.r), ApplySRGBCurve_Fast(v.g), ApplySRGBCurve_Fast(v.b) ); }
-float4  ApplySRGBCurve_Fast (float4 v)	{ return float4( ApplySRGBCurve_Fast(v.r), ApplySRGBCurve_Fast(v.g), ApplySRGBCurve_Fast(v.b), v.a ); }
+float3  ApplySRGBCurve_Fast (float3 v)	{ return SelectFp( v, float3(0.0031308),  (12.92 * v), (1.13005 * Sqrt(v - 0.00228) - 0.13448 * v + 0.005719) ); }
+float4  ApplySRGBCurve_Fast (float4 v)	{ return float4( ApplySRGBCurve_Fast( v.rgb ), v.a ); }
 
 float   RemoveSRGBCurve_Fast (float  x)	{ return x < 0.04045 ? x / 12.92 : -7.43605 * x - 31.24297 * Sqrt(-0.53792 * x + 1.279924) + 35.34864; }
-float3  RemoveSRGBCurve_Fast (float3 v)	{ return float3( RemoveSRGBCurve_Fast(v.r), RemoveSRGBCurve_Fast(v.g), RemoveSRGBCurve_Fast(v.b) ); }
-float4  RemoveSRGBCurve_Fast (float4 v)	{ return float4( RemoveSRGBCurve_Fast(v.r), RemoveSRGBCurve_Fast(v.g), RemoveSRGBCurve_Fast(v.b), v.a ); }
+float3  RemoveSRGBCurve_Fast (float3 v)	{ return SelectFp( v, float3(0.04045),  (v / 12.92),  (-7.43605 * v - 31.24297 * Sqrt(-0.53792 * v + 1.279924) + 35.34864) ); }
+float4  RemoveSRGBCurve_Fast (float4 v)	{ return float4( RemoveSRGBCurve_Fast( v.rgb ), v.a ); }
 
 
 // The OETF recommended for content shown on HDTVs.  This "gamma ramp" may increase contrast as
 // appropriate for viewing in a dark environment.  Always use this curve with Limited RGB as it is
 // used in conjunction with HDTVs.
 float   ApplyREC709Curve (float  x)		{ return x < 0.0181 ? 4.5 * x : 1.0993 * Pow(x, 0.45) - 0.0993; }
-float3  ApplyREC709Curve (float3 v)		{ return float3( ApplyREC709Curve(v.r), ApplyREC709Curve(v.g), ApplyREC709Curve(v.b) ); }
-float4  ApplyREC709Curve (float4 v)		{ return float4( ApplyREC709Curve(v.r), ApplyREC709Curve(v.g), ApplyREC709Curve(v.b), v.a ); }
+float3  ApplyREC709Curve (float3 v)		{ return SelectFp( v, float3(0.0181),  (4.5 * v),  (1.0993 * Pow( v, float3(0.45) ) - 0.0993) ); }
+float4  ApplyREC709Curve (float4 v)		{ return float4( ApplyREC709Curve( v.rgb ), v.a ); }
 
 float   RemoveREC709Curve (float  x)	{ return x < 0.08145 ? x / 4.5 : Pow((x + 0.0993) / 1.0993, 1.0 / 0.45); }
-float3  RemoveREC709Curve (float3 v)	{ return float3( RemoveREC709Curve(v.r), RemoveREC709Curve(v.g), RemoveREC709Curve(v.b) ); }
-float4  RemoveREC709Curve (float4 v)	{ return float4( RemoveREC709Curve(v.r), RemoveREC709Curve(v.g), RemoveREC709Curve(v.b), v.a ); }
+float3  RemoveREC709Curve (float3 v)	{ return SelectFp( v, float3(0.08145),  (v / 4.5), Pow( (v + 0.0993) / 1.0993, float3(1.0 / 0.45) )); }
+float4  RemoveREC709Curve (float4 v)	{ return float4( RemoveREC709Curve( v.rgb ), v.a ); }
 
 
 // This is the new HDR transfer function, also called "PQ" for perceptual quantizer.  Note that REC2084
@@ -176,5 +178,4 @@ float3  ApplyDisplayProfile (const float3 color, const int displayFormat)
 	};
 }
 
-
-
+#endif // AE_LICENSE_MIT

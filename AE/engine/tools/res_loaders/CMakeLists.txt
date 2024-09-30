@@ -37,3 +37,4 @@ endif()
 
 EnablePCH( "ResourceLoaders" )
 EnablePrebuild( "ResourceLoaders" )
+EnableUnitBuild( "ResourceLoaders" )

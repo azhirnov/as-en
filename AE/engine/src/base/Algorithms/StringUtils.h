@@ -189,7 +189,7 @@ namespace _hidden_
 =================================================
 */
 #if AE_SIMD_AVX >= 2
-	ND_ forceinline const char*  find_avx2_align (const char *b, const char *e, const char c) __NE___
+	ND_ forceinline const char*  find_avx2_align (const char* b, const char* e, const char c) __NE___
 	{
 		auto*	i = b;
 		__m256i	q = _mm256_set1_epi8( c );
@@ -1376,11 +1376,10 @@ namespace _hidden_
 	}
 
 	template <typename T>
-	ND_ EnableIf< IsFloatPoint<T>, String >  ToString2 (T value) __Th___
+	ND_ EnableIf< IsFloatPoint<T>, String >  ToString2 (T value, uint fractPart = 0) __Th___
 	{
 		const T	v			= Abs(value);
 		char	suffix		= 0;
-		uint	fract_part;
 
 		if_likely( v >= T(1) )
 		{
@@ -1388,7 +1387,7 @@ namespace _hidden_
 			if ( v < T(500'000) )		{ value /= T(1000);			suffix = 'K'; }	else
 			if ( v < T(500'000'000) )	{ value /= T(1000'000);		suffix = 'M'; }	else
 										{ value /= T(1000'000'000);	suffix = 'G'; }
-			fract_part = 1;
+			if ( fractPart == 0 ) fractPart = 1;
 		}
 		else
 		if ( BitEqual( v, T(0) ))
@@ -1399,9 +1398,9 @@ namespace _hidden_
 			if ( v > T(1.0e-6) )		{ value *= T(1000);			suffix = 'm'; }	else	// milli
 			if ( v > T(1.0e-9) )		{ value *= T(1000'000);		suffix = 'u'; }	else	// micro
 										{ value *= T(1000'000'000);	suffix = 'n'; }			// nano
-			fract_part = 3;
+			if ( fractPart == 0 ) fractPart = 3;
 		}
-		String	str = ToString( value, fract_part );
+		String	str = ToString( value, fractPart );
 		if ( suffix ) str << suffix;
 		return str;
 	}

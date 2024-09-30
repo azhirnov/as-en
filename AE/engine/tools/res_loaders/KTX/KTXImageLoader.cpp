@@ -165,7 +165,7 @@ namespace
 			Function< bool (int miplevel, int layer, const uint3 mipDim, ArrayView<ubyte> pixels) >		_load;
 
 			ND_ static KTX_error_code  Load (int miplevel, int layer, int width, int height, int depth, ktx_uint64_t faceLodSize, void* pixels, void* userdata) {
-				return Cast<Utils>(userdata)->_load( uint(miplevel), layer, uint3{width, height, depth}, ArrayView<ubyte>{Cast<ubyte>(pixels), usize(faceLodSize)} ) ?
+				return Cast<Utils>(userdata)->_load( uint(miplevel), layer, uint3{int3{ width, height, depth }}, ArrayView<ubyte>{Cast<ubyte>(pixels), usize(faceLodSize)} ) ?
 							KTX_SUCCESS : KTX_FILE_DATA_ERROR;
 			}
 		};

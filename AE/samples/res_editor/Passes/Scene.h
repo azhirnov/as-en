@@ -48,8 +48,11 @@ namespace AE::ResEditor
 
 	// types
 	private:
-		using Materials_t	= Array< RC<IGSMaterials> >;
-		using PplnToObjID_t	= IGeomSource::DebugPrepareData::PplnToObjID_t;
+		using Materials_t			= Array< RC<IGSMaterials> >;
+		using PplnToObjID_t			= IGeomSource::DebugPrepareData::PplnToObjID_t;
+		using ViewportWScaling_t	= FixedArray< packed_float2, GraphicsConfig::MaxViewports >;
+		using FScissors_t			= FixedArray< RectF, GraphicsConfig::MaxViewports >;
+		using Scissors_t			= FixedArray< RectI, GraphicsConfig::MaxViewports >;
 
 	public:
 		struct ShadingRate
@@ -70,8 +73,9 @@ namespace AE::ResEditor
 		Materials_t				_materials;
 
 		RenderPassDesc			_rpDesc;
-		float2					_depthRange			{0.f, 1.f};
 		ERenderLayer			_renderLayer;
+		ViewportWScaling_t		_wScaling;
+		FScissors_t				_scissors;
 
 		ResourceArray			_resources;			// per pass
 		RenderTargets_t			_renderTargets;

@@ -41,9 +41,9 @@
 			array<float4x4>	vp;		vp.resize( 6 );
 
 			vp[0] = proj * float4x4().RotateY(ToRad( -90.f ));											// +X
-			vp[1] = proj * float4x4().RotateY(ToRad( 90.f ));											// -X
+			vp[1] = proj * float4x4().RotateY(ToRad(  90.f ));											// -X
 			vp[2] = proj * float4x4().RotateX(ToRad( -90.f ));											// +Y
-			vp[3] = proj * float4x4().RotateX(ToRad( 90.f ));											// -Y
+			vp[3] = proj * float4x4().RotateX(ToRad(  90.f ));											// -Y
 			vp[4] = proj;																				// +Z
 			vp[5] = proj * float4x4().RotateX(ToRad( -180.f )) * float4x4().RotateZ(ToRad( -180.f ));	// -Z
 
@@ -92,8 +92,7 @@
 	void  Main ()
 	{
 		Ray				ray;
-		float2			uv				= GetGlobalCoordUNorm().xy;		//uv.y = 1.0 - uv.y;
-		const float		ipd				= 64.0e-3f;	// meters
+		float2			uv				= GetGlobalCoordUNorm().xy;
 		const float		z_near			= 0.1f;
 		const float2	screen_dim		= un_PerPass.resolution.xy;
 		const float		pix_to_m		= un_PerPass.pixToMm * 0.001f;

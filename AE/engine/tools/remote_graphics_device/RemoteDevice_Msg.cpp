@@ -19,6 +19,8 @@ namespace AE::RemoteGraphics
 
 	void  RmGAppListener::_Cb_Device_Init (const Msg::Device_Init &msg)
 	{
+		using EFeature = Msg::Device_Init_Response::EFeature;
+
 		const auto	Create = [this, &msg] () -> bool
 		{{
 			CHECK_ERR( _app != null );
@@ -49,7 +51,7 @@ namespace AE::RemoteGraphics
 			return true;
 		}};
 
-		using EFeature = Msg::Device_Init_Response::EFeature;
+		AE_LOGI( CpuArchInfo::Get().Print() );
 
 		Msg::Device_Init_Response	res;
 		if ( Create() )
@@ -85,33 +87,41 @@ namespace AE::RemoteGraphics
 				auto&	fs_feats	= _device.GetVProperties().fragShadingRateFeats;
 				auto&	ext			= _device.GetVExtensions();
 
-				if ( feats.depthBounds )								 res.features.insert( EFeature::DepthBounds );
+				for (uint i = 0; i < uint(EFeature::_Count); ++i)
+				{
+					const auto	t = EFeature(i);
+					switch_enum( t )
+					{
+						case EFeature::DepthBounds :				if ( feats.depthBounds )								res.features.insert( t );	break;
+						case EFeature::StencilCompareMask :																	res.features.insert( t );	break;
+						case EFeature::StencilWriteMask :																	res.features.insert( t );	break;
+						case EFeature::FragmentShadingRate :		if ( fs_feats.attachmentFragmentShadingRate )			res.features.insert( t );	break;
+						case EFeature::DrawIndirectCount :			if ( ext.drawIndirectCount )							res.features.insert( t );	break;
+						case EFeature::DrawIndexedIndirectCount :	if ( ext.drawIndirectCount )							res.features.insert( t );	break;
+						case EFeature::DrawMeshTasksIndirectCount :	if ( ext.meshShader )									res.features.insert( t );	break;
+						case EFeature::ViewportWScaling :			if ( ext.clipSpaceWScalingNV )							res.features.insert( t );	break;
 
-				res.features.insert( EFeature::StencilCompareMask );
-				res.features.insert( EFeature::StencilWriteMask );
+						case EFeature::ClearColorImage :																	res.features.insert( t );	break;
+						case EFeature::ClearDepthStencilImage :																res.features.insert( t );	break;
+						case EFeature::ResolveImage :																		res.features.insert( t );	break;
 
-				if ( fs_feats.attachmentFragmentShadingRate )			res.features.insert( EFeature::FragmentShadingRate );
-				if ( ext.drawIndirectCount )							res.features.insert( EFeature::DrawIndirectCount );
-				if ( ext.drawIndirectCount )							res.features.insert( EFeature::DrawIndexedIndirectCount );
-				if ( ext.meshShader )									res.features.insert( EFeature::DrawMeshTasksIndirectCount );
+						case EFeature::TraceRaysIndirect_DevAddr :	if ( rt_feats.rayTracingPipelineTraceRaysIndirect )		res.features.insert( t );	break;
+						case EFeature::TraceRaysIndirect2_DevAddr:	if ( rt1_feats.rayTracingPipelineTraceRaysIndirect2 )	res.features.insert( t );	break;
 
-				res.features.insert( EFeature::ClearColorImage );
-				res.features.insert( EFeature::ClearDepthStencilImage );
-				res.features.insert( EFeature::ResolveImage );
+						case EFeature::BuildIndirect :				if ( as_feats.accelerationStructureIndirectBuild )		res.features.insert( t );	break;
+						case EFeature::SerializeToMemory :			if ( as_feats.accelerationStructure )					res.features.insert( t );	break;
+						case EFeature::DeserializeFromMemory :		if ( as_feats.accelerationStructure )					res.features.insert( t );	break;
 
-				if ( rt_feats.rayTracingPipelineTraceRaysIndirect )		res.features.insert( EFeature::TraceRaysIndirect_DevAddr );
-				if ( rt1_feats.rayTracingPipelineTraceRaysIndirect2 )	res.features.insert( EFeature::TraceRaysIndirect2_DevAddr );
+						case EFeature::WriteTimestamp :																		res.features.insert( t );	break;
 
-				if ( as_feats.accelerationStructure )					res.features.insert( EFeature::SerializeToMemory );
-				if ( as_feats.accelerationStructure )					res.features.insert( EFeature::DeserializeFromMemory );
-				if ( as_feats.accelerationStructureIndirectBuild )		res.features.insert( EFeature::BuildIndirect );
+						case EFeature::TimelineSemaphore :			if ( ext.timelineSemaphore )							res.features.insert( t );	break;
+						case EFeature::HostQueryReset :				if ( ext.hostQueryReset )								res.features.insert( t );	break;
 
-				res.features.insert( EFeature::WriteTimestamp );
-
-				if ( ext.timelineSemaphore )							res.features.insert( EFeature::TimelineSemaphore );
-				if ( ext.hostQueryReset )								res.features.insert( EFeature::HostQueryReset );
-
-				StaticAssert( uint(EFeature::_Count) == 19 );
+						case EFeature::Unknown :
+						case EFeature::_Count :						break;
+					}
+					switch_end
+				}
 			}
 		  #elif defined(AE_ENABLE_METAL)
 			res.api = EGraphicsAPI::Metal;
@@ -428,7 +438,7 @@ namespace AE::RemoteGraphics
 		_Send( res );
 
 	  #ifdef AE_ENABLE_PVRCOUNTER
-		_profilers.pvr.ReadTimingData( OUT _profilers.pvrTimings );
+		_profilers.pvr.Tick();
 	  #endif
 	}
 
@@ -1392,7 +1402,8 @@ namespace AE::RemoteGraphics
 	{
 		Msg::ProfArm_Sample_Response  res;
 		#ifdef AE_ENABLE_ARM_PMU
-			_profilers.arm.Sample( OUT res.counters );
+			float	invdt;
+			_profilers.arm.Sample( OUT res.counters, INOUT invdt );
 		#endif
 		_Send( res );
 	}
@@ -1418,7 +1429,8 @@ namespace AE::RemoteGraphics
 	{
 		Msg::ProfMali_Sample_Response  res;
 		#ifdef AE_ENABLE_MALI_HWCPIPE
-			_profilers.mali.Sample( OUT res.counters );
+			float	invdt;
+			_profilers.mali.Sample( OUT res.counters, INOUT invdt );
 		#endif
 		_Send( res );
 	}
@@ -1442,7 +1454,8 @@ namespace AE::RemoteGraphics
 	{
 		Msg::ProfAdreno_Sample_Response  res;
 		#ifdef AE_ENABLE_ADRENO_PERFCOUNTER
-			_profilers.adreno.Sample( OUT res.counters );
+			float	invdt;
+			_profilers.adreno.Sample( OUT res.counters, INOUT invdt );
 		#endif
 		_Send( res );
 	}
@@ -1462,12 +1475,11 @@ namespace AE::RemoteGraphics
 		_Send( res );
 	}
 
-	void  RmGAppListener::_Cb_ProfPVR_Tick (const Msg::ProfPVR_Tick &)
+	void  RmGAppListener::_Cb_ProfPVR_GetTiming (const Msg::ProfPVR_GetTiming &)
 	{
-		Msg::ProfPVR_Tick_Response  res;
+		Msg::ProfPVR_GetTiming_Response  res;
 		#ifdef AE_ENABLE_PVRCOUNTER
-			_profilers.pvr.Tick();
-			res.timings = _profilers.pvrTimings;
+			_profilers.pvr.ReadTimingData( OUT res.timings );
 		#endif
 		_Send( res );
 	}
@@ -1476,7 +1488,8 @@ namespace AE::RemoteGraphics
 	{
 		Msg::ProfPVR_Sample_Response  res;
 		#ifdef AE_ENABLE_PVRCOUNTER
-			_profilers.pvr.Sample( OUT res.counters );
+			float	invdt;
+			_profilers.pvr.Sample( OUT res.counters, INOUT invdt );
 		#endif
 		_Send( res );
 	}
@@ -1500,8 +1513,38 @@ namespace AE::RemoteGraphics
 	{
 		Msg::ProfNVidia_Sample_Response  res;
 		#ifdef AE_ENABLE_NVML
-			_profilers.nv.Sample( OUT res.counters );
+			float	invdt;
+			_profilers.nv.Sample( OUT res.counters, INOUT invdt );
 		#endif
+		_Send( res );
+	}
+
+
+	void  RmGAppListener::_Cb_ProfGeneral_Initialize (const Msg::ProfGeneral_Initialize &msg)
+	{
+		Msg::ProfGeneral_Initialize_Response	res;
+
+		res.ok = _profilers.gen.Initialize( msg.required );
+		if ( res.ok )
+			res.cpuClusters = _profilers.gen.GetCpuClusters();
+
+		_Send( res );
+	}
+
+	void  RmGAppListener::_Cb_ProfGeneral_Sample (const Msg::ProfGeneral_Sample &)
+	{
+		Msg::ProfGeneral_Sample_Response		res;
+		Profiler::GeneralProfiler::CpuUsage_t	total, kernel;
+		const uint								count = _profilers.gen.GetCpuCoreCount();
+
+		float	invdt;
+		_profilers.gen.Sample( OUT res.counters, INOUT invdt );
+
+		if ( _profilers.gen.GetUsage( OUT total, OUT kernel ))
+		{
+			res.totalCpuUsage	= ArrayView<float>{ total.data(), count };
+			res.kernelUsage		= ArrayView<float>{ kernel.data(), count };
+		}
 		_Send( res );
 	}
 //-----------------------------------------------------------------------------
@@ -2424,6 +2467,13 @@ namespace AE::RemoteGraphics::Msg
 		auto&	ctx = *Cast<CmdCtx>(inCtx);
 		CHECK_THROW( ctx.type == EContextType::RenderPass );
 		ctx.draw.SetFragmentShadingRate( rate, primitiveOp, textureOp );
+	}
+
+	void  CmdBuf_Bake::Draw_SetViewportWScalingCmd::Execute (void* inCtx) __Th___
+	{
+		auto&	ctx = *Cast<CmdCtx>(inCtx);
+		CHECK_THROW( ctx.type == EContextType::RenderPass );
+		ctx.draw.SetViewportWScaling( scaling );
 	}
 
 	void  CmdBuf_Bake::Draw_BindIndexBufferCmd::Execute (void* inCtx) __Th___

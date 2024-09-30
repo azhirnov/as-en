@@ -7,7 +7,7 @@
 namespace AE::Networking
 {
 namespace {
-	static constexpr auto	c_ChannelType = EChannel::Reliable;
+	static constexpr auto	c_TcpChannelType = EChannel::Reliable;
 }
 
 /*
@@ -402,7 +402,7 @@ namespace {
 	_ValidateMsgStream
 =================================================
 */
-	void  TcpChannel::_ValidateMsgStream (const void *ptr, Bytes size) __NE___
+	void  TcpChannel::_ValidateMsgStream (const void* ptr, Bytes size) __NE___
 	{
 		Bytes	offset;
 
@@ -527,7 +527,7 @@ namespace {
 		_toSend.encoded		= 0_b;
 		_received.received	= 0_b;
 
-		_serverProvider->GetAddress( c_ChannelType, _serverIndex, True{"TCP"}, OUT _serverAddress );
+		_serverProvider->GetAddress( c_TcpChannelType, _serverIndex, True{"TCP"}, OUT _serverAddress );
 
 		if ( _socket.AsyncConnect( _serverAddress ))
 		{
@@ -672,7 +672,7 @@ namespace {
 			if_unlikely( idx < 0 or idx >= int(_maxClients) )
 				break;	// client pool overflow
 
-			if ( auto client_id = _listener->OnClientConnected( c_ChannelType, addr );  client_id != Default )
+			if ( auto client_id = _listener->OnClientConnected( c_TcpChannelType, addr );  client_id != Default )
 			{
 				// save client
 				_poolBits.set( idx );
@@ -821,7 +821,7 @@ namespace {
 	{
 		for (uint idx : BitIndexIterate( _poolBits ))
 		{
-			_listener->OnClientDisconnected( c_ChannelType, _clientPool[idx].id );
+			_listener->OnClientDisconnected( c_TcpChannelType, _clientPool[idx].id );
 		}
 
 		for (usize i = 0; i < _clientPool.size(); ++i)
@@ -906,7 +906,7 @@ namespace {
 		}
 
 		ASSERT( _uniqueClientId.erase( id ));
-		_listener->OnClientDisconnected( c_ChannelType, id );
+		_listener->OnClientDisconnected( c_TcpChannelType, id );
 
 		AE_LOG_DBG( "client ("s << ToString<16>(uint(id)) << ") disconnected" );
 	}

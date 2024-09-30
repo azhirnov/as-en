@@ -48,7 +48,6 @@ protected:
 
   #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 	RDeviceInitializer			_device;
-	const ushort				_serverPort		= 3000;
 
   #else
   #	error not implemented

@@ -35,7 +35,7 @@
 			rs.inputAssembly.topology		= EPrimitive::TriangleStrip;
 
 			rs.rasterization.frontFaceCCW	= true;
-			rs.rasterization.cullMode		= ECullMode::None;
+			rs.rasterization.cullMode		= ECullMode::Back;
 
 			spec.SetRenderState( rs );
 		}
@@ -103,7 +103,7 @@
 
 			case 1 :
 			  #ifdef AE_fragment_shader_barycentric
-				wireframe = FSBarycentricWireframe( 0.0, 1.0 );
+				wireframe = FSBarycentricWireframe( 0.0, 1.0 ).x;
 			  #endif
 				break;
 		}

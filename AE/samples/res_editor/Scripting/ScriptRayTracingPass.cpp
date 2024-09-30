@@ -611,7 +611,7 @@ namespace AE::ResEditor
 		ShaderStructTypePtr	st{ new ShaderStructType{"RayTracingPassUB"}};
 		st->Set( EStructLayout::Std140, R"#(
 				float		time;			// shader playback time (in seconds)
-				float		timeDelta;		// render time (in seconds)
+				float		timeDelta;		// frame render time (in seconds), max value: 1/30s
 				uint		frame;			// shader playback frame, global frame counter
 				uint		passFrameId;	// current pass frame index
 				uint		seed;			// unique value, updated on each shader reloading
@@ -672,7 +672,7 @@ namespace AE::ResEditor
 
 			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "RayTracingPassUB", EResourceState::ShaderUniform, False{} );
 		}
-		_args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
+		_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 
 
 		String	header;

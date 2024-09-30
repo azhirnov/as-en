@@ -7,7 +7,7 @@
 namespace AE::Networking
 {
 namespace {
-	static constexpr auto	c_ChannelType = EChannel::Unreliable;
+	static constexpr auto	c_UdpChannelType = EChannel::Unreliable;
 }
 
 /*
@@ -232,7 +232,7 @@ namespace {
 */
 	void  UdpUnreliableClientChannel::_Reconnect () __NE___
 	{
-		_serverProvider->GetAddress( c_ChannelType, _serverIndex, False{"UDP"}, OUT _serverAddress );
+		_serverProvider->GetAddress( c_UdpChannelType, _serverIndex, False{"UDP"}, OUT _serverAddress );
 
 		++_serverIndex;
 	}

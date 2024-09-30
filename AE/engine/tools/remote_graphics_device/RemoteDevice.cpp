@@ -28,7 +28,7 @@ namespace AE::RemoteGraphics
 		_device._nativeWnd = wnd.GetNative();
 		CHECK_FATAL( _device._nativeWnd );
 
-		_device._windowSize.store( ushort2{wnd.GetSurfaceSize()} );
+		_device._windowSize.store( ImageDim2_t{wnd.GetSurfaceSize()} );
 
 		_device._StartServer();
 	}
@@ -46,13 +46,13 @@ namespace AE::RemoteGraphics
 				_device._PrintSelfIP();
 
 			case EState::InForeground :
-				_device._windowSize.store( ushort2{wnd.GetSurfaceSize()} );
+				_device._windowSize.store( ImageDim2_t{wnd.GetSurfaceSize()} );
 				break;
 
 			case EState::InBackground :
 			case EState::Stopped :
 			case EState::Destroyed :
-				_device._windowSize.store( ushort2{0} );	break;
+				_device._windowSize.store( ImageDim2_t{0} );	break;
 
 			case EState::Unknown :
 			case EState::Created :
@@ -152,7 +152,7 @@ namespace AE::RemoteGraphics
 		}
 
 		if ( _window )
-			_windowSize.store( ushort2{_window->GetSurfaceSize()} );
+			_windowSize.store( ImageDim2_t{_window->GetSurfaceSize()} );
 
 		ThreadUtils::Sleep_15ms();
 	}
@@ -204,15 +204,38 @@ namespace AE::RemoteGraphics
 
 		_PrintSelfIP();
 
+		const auto&		cpu_info	= CpuArchInfo::Get();
+		auto			FindCoreId	= [&cpu_info, used = 0ull] () mutable -> uint
+		{{
+			if ( auto* p_core = cpu_info.GetCore( ECoreType::Performance ))
+			{
+				int		idx = BitScanForward( p_core->physicalBits.to_ullong() & ~used );
+				if ( idx >= 0 )
+				{
+					used |= 1ull << idx;
+					return uint(idx);
+				}
+			}
+			return UMax;
+		}};
+		//ThreadUtils::SetAffinity( FindCoreId() );
+
 		for (usize i = 0; i < _threadArr.size(); ++i)
 		{
+			uint	core_id = FindCoreId();
+
 			_threadArr[i].looping.store( true );
-			_threadArr[i].thread = StdThread{ [this, i] ()
+			_threadArr[i].thread = StdThread{ [this, i, core_id] ()
 			{
 				auto&	looping	= _threadArr[i].looping;
 				auto&	conn	= _threadArr[i].conn;
 
-				CHECK_ERRV( conn.InitServer( ushort(RmNetConfig::serverPort + i), &_objFactory ));
+				ThreadUtils::SetName( "RG-Server-"s + ToString(i) );
+
+				if ( core_id != UMax )
+					ThreadUtils::SetAffinity( core_id );
+
+				CHECK_FATAL( conn.InitServer( ushort(RmNetConfig::serverPort + i), &_objFactory ));
 
 				_GetThreadData() = &_threadArr[i];
 
@@ -230,7 +253,7 @@ namespace AE::RemoteGraphics
 					{
 						bool	ok = conn.Receive();
 
-						if ( auto msg = conn.Encode() )
+						for (; auto msg = conn.Encode(); )
 						{
 							_ProcessMessage( *msg );
 							ok = true;
@@ -336,6 +359,7 @@ namespace AE::RemoteGraphics
 	  #ifdef AE_ENABLE_NVML
 		_profilers.nv.Deinitialize();
 	  #endif
+		_profilers.gen.Deinitialize();
 
 		_swapchain.Destroy();
 		_swapchain.DestroySurface();
@@ -393,7 +417,7 @@ namespace AE::RemoteGraphics
 	_Send
 =================================================
 */
-	void  RmGAppListener::_Send (const void *data, Bytes dataSize) __Th___
+	void  RmGAppListener::_Send (const void* data, Bytes dataSize) __Th___
 	{
 		auto*	td = _GetThreadData();
 		CHECK_THROW( td != null );

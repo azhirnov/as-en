@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
 #else
@@ -303,7 +305,7 @@ namespace
 		outState.pNext						= null;
 		outState.flags						= 0;
 		outState.polygonMode				= VEnumCast( inState.polygonMode );
-		outState.lineWidth					= 2.f; //inState.lineWidth;
+		outState.lineWidth					= 1.f; //inState.lineWidth;		// TODO
 		outState.depthBiasConstantFactor	= inState.depthBiasConstFactor;
 		outState.depthBiasClamp				= inState.depthBiasClamp;
 		outState.depthBiasSlopeFactor		= inState.depthBiasSlopeFactor;
@@ -559,7 +561,7 @@ namespace
 		__try {
 			return device.vkCreateComputePipelines( device.GetVkDevice(), pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
 		}
-		__except ( AnyEqual( GetExceptionCode(), AE_SEH_STACK_OVERFLOW, AE_SEH_ACCESS_VIOLATION ) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+		__except( AnyEqual( GetExceptionCode(), AE_SEH_STACK_OVERFLOW, AE_SEH_ACCESS_VIOLATION ) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
 		{
 			if ( GetExceptionCode() == AE_SEH_STACK_OVERFLOW )
 				_resetstkoflw();
@@ -577,7 +579,7 @@ namespace
 		__try {
 			return device.vkCreateGraphicsPipelines( device.GetVkDevice(), pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
 		}
-		__except ( AnyEqual( GetExceptionCode(), AE_SEH_STACK_OVERFLOW, AE_SEH_ACCESS_VIOLATION ) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+		__except( AnyEqual( GetExceptionCode(), AE_SEH_STACK_OVERFLOW, AE_SEH_ACCESS_VIOLATION ) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
 		{
 			if ( GetExceptionCode() == AE_SEH_STACK_OVERFLOW )
 				_resetstkoflw();
@@ -595,7 +597,7 @@ namespace
 		__try {
 			return device.vkCreateRayTracingPipelinesKHR( device.GetVkDevice(), deferredOperation, pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
 		}
-		__except ( AnyEqual( GetExceptionCode(), AE_SEH_STACK_OVERFLOW, AE_SEH_ACCESS_VIOLATION ) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+		__except( AnyEqual( GetExceptionCode(), AE_SEH_STACK_OVERFLOW, AE_SEH_ACCESS_VIOLATION ) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
 		{
 			if ( GetExceptionCode() == AE_SEH_STACK_OVERFLOW )
 				_resetstkoflw();

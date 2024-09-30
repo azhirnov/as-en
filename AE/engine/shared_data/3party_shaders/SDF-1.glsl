@@ -6,6 +6,7 @@
 		https://iquilezles.org/articles/distfunctions2d/
 */
 
+#ifdef AE_ENABLE_UNKNOWN_LICENSE
 
 //-----------------------------------------------------------------------------
 // 2D Shapes
@@ -290,6 +291,7 @@ float  SDF_OpIntersect (const float d1, const float d2)
 }
 
 
+// TODO: https://iquilezles.org/articles/smin/
 float  SDF_OpUnite (const float d1, const float d2, const float smoothFactor)
 {
 	const float  h = Saturate( 0.5f + 0.5f * (d2-d1) / smoothFactor );
@@ -389,12 +391,12 @@ float3  SDF_Move (const float3 position, const float3 delta)
 	return position - delta;
 }
 
-float3  SDF_Rotate (const float3 position, const quat q)
+float3  SDF_Rotate (const float3 position, const Quat q)
 {
 	return QMul( QInverse( q ), position );
 }
 
-float3  SDF_Transform (const float3 position, const quat q, const float3 delta)
+float3  SDF_Transform (const float3 position, const Quat q, const float3 delta)
 {
 	return SDF_Rotate( SDF_Move( position, delta ), q );
 }
@@ -482,3 +484,5 @@ float2  SDF_Rotate2D (const float2 p, const float angle)
 		return _fnName_( pos, 0.0001f );						\
 	}
 
+
+#endif // AE_ENABLE_UNKNOWN_LICENSE

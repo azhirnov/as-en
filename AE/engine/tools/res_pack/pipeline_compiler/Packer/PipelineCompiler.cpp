@@ -8,7 +8,7 @@
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/Parser.h"
 
-#include "serializing/Serializer.h"
+#include "serializing/Public/Serializer.h"
 
 #include "scripting/Impl/EnumBinder.h"
 #include "scripting/Impl/ScriptFn.h"
@@ -52,7 +52,7 @@ namespace
 		{
 			auto&	item = info->inPipelines[i];
 
-			if ( not AnyBits( item.flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
+			if ( NoBits( item.flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
 				continue;
 
 			Path	path {item.path};

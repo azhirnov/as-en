@@ -18,15 +18,17 @@ if (TARGET "GLSLang-lib")
 		"${GRAPHICS_DIR}/Vulkan/VEnumCast.h" )
 	if (NOT (DEFINED ENGINE_LIBS_PATH))
 		set( GRAPHICS_CPP_SRC
-			"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp"
-			"${GRAPHICS_DIR}/Private/FeatureSet.cpp"
-			"${GRAPHICS_DIR}/Private/RenderState.cpp"
-			"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
-			"${GRAPHICS_DIR}/Private/ImageDesc.cpp"
-			"${GRAPHICS_DIR}/Private/BufferDesc.cpp" )
+			"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp.h"
+			"${GRAPHICS_DIR}/Private/FeatureSet.cpp.h"
+			"${GRAPHICS_DIR}/Private/RenderState.cpp.h"
+			"${GRAPHICS_DIR}/Private/EnumUtils.cpp.h"
+			"${GRAPHICS_DIR}/Private/ImageDesc.cpp.h"
+			"${GRAPHICS_DIR}/Private/BufferDesc.cpp.h"
+			"${GRAPHICS_DIR}/Private/Shared.cpp" )
 		if (${HAS_VULKAN_HEADERS})
-			set( GRAPHICS_CPP_SRC ${GRAPHICS_CPP_SRC} "${GRAPHICS_DIR}/Vulkan/VEnumCast.cpp" )
+			set( GRAPHICS_CPP_SRC ${GRAPHICS_CPP_SRC} "${GRAPHICS_DIR}/Vulkan/VEnumCast.cpp.h" )
 		endif()
+		set_property( SOURCE ${GRAPHICS_CPP_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
 	endif()
 	file( GLOB_RECURSE SOURCES "*.*" )
 
@@ -73,6 +75,7 @@ if (TARGET "GLSLang-lib")
 
 	EnablePCH( "PipelineCompiler" )
 	EnablePrebuild( "PipelineCompiler" )
+	EnableUnitBuild( "PipelineCompiler" )
 
 	add_library( "PipelineCompiler-shared" SHARED
 		"PipelineCompiler.h"

@@ -22,5 +22,6 @@ endif()
 
 EnablePCH( "Video" )
 EnablePrebuild( "Video" )
+EnableUnitBuild( "Video" )
 
 install( TARGETS "Video" ARCHIVE DESTINATION "lib" )

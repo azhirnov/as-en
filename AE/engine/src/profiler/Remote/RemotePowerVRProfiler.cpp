@@ -6,6 +6,7 @@ namespace AE::Profiler
 {
 	using namespace AE::Networking;
 
+#ifdef AE_ENABLE_PVRCOUNTER
 /*
 =================================================
 	MsgConsumer::Consume
@@ -65,7 +66,8 @@ namespace AE::Profiler
 			return;
 
 		_prof.timer.Start( inMsg.updateInterval );
-		_prof.index = 0;
+		_prof.samplesIdx = 0;
+		_prof.timingIdx  = 0;
 
 		_prof.profiler.Deinitialize();
 
@@ -106,15 +108,27 @@ namespace AE::Profiler
 
 		MemoryBarrier( EMemoryOrder::Acquire );
 
+		_prof.profiler.Tick();
+
+		_SendTimings();
+
 		const auto	dt	= _prof.timer.Tick();
-
-		if_likely( not dt )
+		if ( dt )
 		{
-			_prof.profiler.Tick();
-			return;
+			_SendSamples( dt.As<milliseconds>() );
 		}
+	}
 
-		_prof.profiler.Sample( OUT _prof.counters );
+/*
+=================================================
+	_SendSamples
+=================================================
+*/
+	void  PowerVRProfilerServer::_SendSamples (milliseconds dt) __NE___
+	{
+		float	invdt;
+		_prof.profiler.Sample( OUT _prof.counters, OUT invdt );
+		invdt = 1.f / TimeCast<secondsf>(dt).count();
 
 		if ( _prof.counters.empty() )
 			return;
@@ -125,8 +139,8 @@ namespace AE::Profiler
 			auto	msg = _msgProducer->CreateMsg< CSMsg_PVRProf_NextSample >();
 			if ( msg )
 			{
-				msg->index	= _prof.index;
-				msg->dtInMs	= ushort(dt.As<milliseconds>().count());
+				msg->index	= _prof.samplesIdx;
+				msg->invdt	= invdt;
 
 				is_sent = _msgProducer->AddMessage( msg );
 			}
@@ -141,13 +155,13 @@ namespace AE::Profiler
 
 			for (auto it = _prof.counters.begin(); it != _prof.counters.end();)
 			{
-				auto	msg = _msgProducer->CreateMsg< CSMsg_PVRProf_Sample >( SizeOf<KeyVal> * step );
+				const usize	count = Min( _prof.counters.size() - sent, step+1 );
+
+				auto	msg = _msgProducer->CreateMsg< CSMsg_PVRProf_Sample >( SizeOf<KeyVal> * (count-1) );
 				if ( not msg )
 					break;
 
-				const usize	count = Min( _prof.counters.size() - sent, step+1 );
-
-				msg->index	= _prof.index;
+				msg->index	= _prof.samplesIdx;
 				msg->count	= ubyte(count);
 
 				auto	it2 = it;
@@ -164,9 +178,53 @@ namespace AE::Profiler
 			}
 			ASSERT( sent == _prof.counters.size() );
 
-			_prof.index ++;
+			_prof.samplesIdx ++;
 		}
 	}
+
+/*
+=================================================
+	_SendTimings
+=================================================
+*/
+	void  PowerVRProfilerServer::_SendTimings () __NE___
+	{
+		_prof.profiler.ReadTimingData( OUT _prof.timing );
+
+		if ( _prof.timing.empty() )
+			return;
+
+		using TimeScope			= PowerVRProfiler::TimeScope;
+		constexpr usize	step	= usize((NetConfig::TCP_MaxMsgSize - SizeOf<CSMsg_PVRProf_Timing>) / SizeOf<TimeScope>);
+		usize			sent	= 0;
+
+		for (; sent < _prof.timing.size();)
+		{
+			const usize	count = Min( _prof.timing.size() - sent, step+1 );
+
+			auto	msg = _msgProducer->CreateMsg< CSMsg_PVRProf_Timing >( SizeOf<TimeScope> * (count-1) );
+			if ( not msg )
+				break;
+
+			msg->index	= _prof.timingIdx;
+			msg->count	= ubyte(count);
+
+			for (usize i = 0; i < count; ++i)
+			{
+				msg->arr[i] = _prof.timing[sent+i];
+			}
+
+			if ( not _msgProducer->AddMessage( msg ))
+				break;
+
+			sent += count;
+		}
+		ASSERT( sent == _prof.timing.size() );
+
+		_prof.timingIdx ++;
+	}
+
+#endif // AE_ENABLE_PVRCOUNTER
 //-----------------------------------------------------------------------------
 
 
@@ -243,9 +301,11 @@ namespace AE::Profiler
 	Sample
 =================================================
 */
-	void  PowerVRProfilerClient::Sample (OUT Counters_t &result) __NE___
+	void  PowerVRProfilerClient::Sample (OUT Counters_t &result, INOUT float &invdt) __NE___
 	{
 		result.clear();
+		invdt = 0.f;
+
 		EXLOCK( _guard );
 
 		if ( _IsNotInitialized() )
@@ -256,6 +316,7 @@ namespace AE::Profiler
 		}
 
 		auto&	curr = _counters[ _countersIdx & 1 ];
+		invdt		 = _invdt[ _countersIdx & 1 ];
 
 		std::swap( result, curr );
 		curr.clear();
@@ -312,9 +373,10 @@ namespace AE::Profiler
 
 		if ( _IsInitialized() )
 		{
+			_invdt[ _countersIdx & 1 ] = msg.invdt;
+
 			_countersIdx		= (_countersIdx+1) & 1;
 			_pendingCountersIdx	= msg.index;
-			_interval			= milliseconds{ msg.dtInMs };
 
 			_connectionLostTimer.Restart();
 		}

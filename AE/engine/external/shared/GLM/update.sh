@@ -1,6 +1,6 @@
 rm -rf "../../../../../AE-Bin/external/source/GLM"
 rm -rf "temp"
-git clone --branch "AE-version" "../../../../../3party/ae-glm" "temp"
+git clone --branch "ae-24.08" "../../../../../3party/ae-glm" "temp"
 mkdir "../../../../../AE-Bin/external/source/GLM"
 cp -TR "temp/glm/**/*.h" "../../../../../AE-Bin/external/source/GLM"
 cp -TR "temp/glm/**/*.hpp" "../../../../../AE-Bin/external/source/GLM"

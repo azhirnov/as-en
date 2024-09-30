@@ -2387,6 +2387,9 @@ namespace {
 		CHECK_THROW( _geomSrc );
 		CHECK_THROW( rtech );
 
+		CHECK_THROW_MSG( GraphicsScheduler().GetFeatureSet().drawIndirectFirstInstance == FeatureSet::EFeature::RequireTrue,
+			"ModelGeomSource requires 'drawIndirectFirstInstance' feature which is not supported" );
+
 		switch_enum( layer )
 		{
 			case ERenderLayer::Opaque :			break;

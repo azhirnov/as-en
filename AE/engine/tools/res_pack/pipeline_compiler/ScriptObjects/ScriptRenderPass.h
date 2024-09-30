@@ -32,7 +32,7 @@ namespace AE::PipelineCompiler
 			uint			index	= UMax;		// color/input attachment index
 
 			ShaderIO () {}
-			ShaderIO (ShaderIOName::Ref name, EShaderIO type, uint idx) : name{name}, type{type}, index{idx} {}
+			ShaderIO (const String &name, EShaderIO type, uint idx) __Th___;
 
 			ND_ bool  IsDefined () const	{ return name.IsDefined(); }
 		};

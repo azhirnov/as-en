@@ -72,7 +72,7 @@ ND_ int2  GenGridTriStrip (const int gridSize)
 	Returns zero on edge.
 =================================================
 */
-ND_ float2  FSBarycentricWireframe2 (float thicknessPx, float falloffPx)
+ND_ float2  FSBarycentricWireframe (float thicknessPx, float falloffPx)
 {
 	const float3	dx_barycoord	= gl.dFdxFine( gl.BaryCoord );
 	const float3	dy_barycoord	= gl.dFdyFine( gl.BaryCoord );
@@ -83,9 +83,109 @@ ND_ float2  FSBarycentricWireframe2 (float thicknessPx, float falloffPx)
 	return float2( wireframe, LengthSq(md) );
 }
 
-ND_ float  FSBarycentricWireframe (float thicknessPx, float falloffPx)
+/*
+=================================================
+	FSBarycentricQuadWireframe
+----
+	Returns zero on edge.
+=================================================
+*/
+ND_ float2  FSBarycentricQuadWireframe (float thicknessPx, float falloffPx)
 {
-	return FSBarycentricWireframe2( thicknessPx, falloffPx ).x;
+	float3	barycoord		= gl.BaryCoord;		barycoord.x += 1.0;
+	float3	dx_barycoord	= gl.dFdxFine( barycoord );
+	float3	dy_barycoord	= gl.dFdyFine( barycoord );
+	float3	d_barycoord		= Diagonal( dx_barycoord, dy_barycoord );
+	float3	remap			= SmoothStep( barycoord, d_barycoord * thicknessPx, d_barycoord * (thicknessPx + falloffPx) );
+	float	wireframe		= MinOf( remap );
+	float3	md				= Max( dx_barycoord, dy_barycoord );
+	return float2( wireframe, LengthSq(md) );
 }
 #endif
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	HelperInvocationCount*
+----
+	warning: some GPU may not execute helper invocations.
+=================================================
+*/
+#if defined(SH_FRAG) and defined(AE_shader_subgroup_quad)
+ND_ uint  HelperInvocationCountPerQuad ()
+{
+	uint	helper = 0;
+	#ifdef AE_demote_to_helper_invocation
+		helper = gl.IsHelperInvocation() ? 1 : 0;
+	#else
+		helper = gl.HelperInvocation ? 1 : 0;
+	#endif
+	return	gl.quadGroup.Broadcast( helper, 0 ) +
+			gl.quadGroup.Broadcast( helper, 1 ) +
+			gl.quadGroup.Broadcast( helper, 2 ) +
+			gl.quadGroup.Broadcast( helper, 3 );
+}
+#endif
+
+#if defined(SH_FRAG) and defined(AE_shader_subgroup_arithmetic)
+ND_ uint  HelperInvocationCountPerSubgroup ()
+{
+	uint	helper = 0;
+	#ifdef AE_demote_to_helper_invocation
+		helper = gl.IsHelperInvocation() ? 1 : 0;
+	#else
+		helper = gl.HelperInvocation ? 1 : 0;
+	#endif
+	return gl.subgroup.Add( helper );
+}
+#endif
+/*
+=================================================
+	IsFullQuad
+----
+	some GPU may not execute helper invocations,
+	use this function to detect is all threads in quad are executed.
+=================================================
+*/
+#ifdef AE_shader_subgroup_quad
+ND_ bool  IsFullQuad ()
+{
+	int	val	= 1;
+	int	sum	= gl.quadGroup.Broadcast( val, 0 ) +
+			  gl.quadGroup.Broadcast( val, 1 ) +
+			  gl.quadGroup.Broadcast( val, 2 ) +
+			  gl.quadGroup.Broadcast( val, 3 );
+	return sum == 4;
+}
+#endif
+
+/*
+=================================================
+	IsFullSubgroup
+----
+	use this function to detect is all threads in subgroup are executed.
+=================================================
+*/
+#ifdef AE_shader_subgroup_arithmetic
+ND_ bool  IsFullSubgroup ()
+{
+	int	val = 1;
+	int	sum = gl.subgroup.Add( val );
+	return sum == gl.subgroup.Size;
+}
+#endif
+
+/*
+=================================================
+	Discard
+=================================================
+*/
+#ifdef SH_FRAG
+# ifdef AE_demote_to_helper_invocation
+#	define Discard()		gl.Demote
+# else
+#	define Discard()		gl.Discard
+# endif
+#endif // SH_FRAG
 //-----------------------------------------------------------------------------

@@ -9,6 +9,7 @@ namespace AE::App
 {
 	using Graphics::EImageUsage;
 	using Graphics::EImageOpt;
+	using Graphics::ImageDim2_t;
 
 
 	//
@@ -51,7 +52,7 @@ namespace AE::App
 
 		struct VRImageDesc
 		{
-			uint2			dimension;
+			ImageDim2_t		dimension;
 			EPixelFormat	format		= Default;
 			EImageUsage		usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;
 			EImageOpt		options		= EImageOpt::BlitDst;

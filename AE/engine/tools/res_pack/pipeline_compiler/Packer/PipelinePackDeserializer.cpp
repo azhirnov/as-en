@@ -167,7 +167,7 @@ namespace AE::PipelineCompiler
 	EImageType_FromImage
 =================================================
 */
-	EImageType  EImageType_FromImage (EImage type, bool ms) __NE___
+	EImageType  EImageType_FromImage (EImage type, bool ms, bool cm) __NE___
 	{
 		switch_enum( type )
 		{
@@ -176,8 +176,8 @@ namespace AE::PipelineCompiler
 			case EImage_3D :			ASSERT( not ms );	return EImageType::Img3D;
 			case EImage_1DArray :		ASSERT( not ms );	return EImageType::Img1DArray;
 			case EImage_2DArray :							return ms ? EImageType::Img2DMSArray : EImageType::Img2DArray;
-			case EImage_Cube :			ASSERT( not ms );	return EImageType::ImgCube;
-			case EImage_CubeArray :		ASSERT( not ms );	return EImageType::ImgCubeArray;
+			case EImage_Cube :			ASSERT( not ms );	return cm ? EImageType::ImgCube : EImageType::Img2DArray;
+			case EImage_CubeArray :		ASSERT( not ms );	return cm ? EImageType::ImgCubeArray : EImageType::Img2DArray;
 			case EImage::Unknown :
 			case EImage::_Count :
 			default :					ASSERT( not ms );	break;
@@ -188,7 +188,7 @@ namespace AE::PipelineCompiler
 
 /*
 =================================================
-	EImageType_FromImage
+	EImageType_ToString
 =================================================
 */
 	String  EImageType_ToString (EImageType type) __Th___
@@ -536,7 +536,7 @@ namespace {
 		bool	result = true;
 		result &= des( OUT templUID );
 		result &= Deserialize_BasePipelineDesc( des, OUT desc );
-		result &= des( OUT desc.localSize );
+		result &= des( OUT desc.localSize, OUT desc.subgroupSize );
 		return result;
 	}
 //-----------------------------------------------------------------------------

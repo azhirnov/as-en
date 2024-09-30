@@ -1,4 +1,6 @@
 
+#ifdef AE_LICENSE_MIT
+
 // from https://github.com/Jam3/glsl-fast-gaussian-blur
 // MIT license
 
@@ -41,3 +43,5 @@ float4  Blur13 (gl::CombinedTex2D<float> image, float2 uv, float2 invResolution,
 	color += gl.texture.Sample( image, uv - (off3 * invResolution) ) * 0.010381362401148057;
 	return color;
 }
+
+#endif // AE_LICENSE_MIT

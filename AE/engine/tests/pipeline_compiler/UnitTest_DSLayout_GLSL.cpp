@@ -53,7 +53,7 @@ namespace
   // state: ShaderSample | FragmentShader
   layout(set=1, binding=2) uniform usamplerBuffer texBuffer;
   // state: ShaderStorage_Write | FragmentShader
-  layout(set=1, binding=3, rgba8) coherent uniform image2D storageImage;
+  layout(set=1, binding=3, rgba8) coherent writeonly uniform image2D storageImage;
   // state: ShaderSample | FragmentShader
   layout(set=1, binding=4) uniform sampler2D colorTex;
   // immutable sampler

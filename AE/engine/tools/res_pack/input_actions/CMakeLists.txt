@@ -31,6 +31,7 @@ target_include_directories( "InputActionsBinding" PUBLIC "." )
 
 EnablePCH( "InputActionsBinding" )
 EnablePrebuild( "InputActionsBinding" )
+EnableUnitBuild( "InputActionsBinding" )
 
 add_library( "InputActionsBinding-shared" SHARED
 	"InputActionsBinding.h"

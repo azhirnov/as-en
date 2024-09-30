@@ -4,6 +4,8 @@
 	https://docs.microsoft.com/en-us/windows/desktop/direct3ddds/dx-graphics-dds-pguide
 */
 
+#pragma once
+
 #include "res_loaders/Intermediate/IntermImage.h"
 
 namespace AE::ResLoader

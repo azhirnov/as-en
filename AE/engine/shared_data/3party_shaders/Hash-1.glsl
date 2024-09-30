@@ -5,6 +5,8 @@
 #include "Math.glsl"
 
 
+#ifdef AE_LICENSE_MIT
+
 // DHash from https://www.shadertoy.com/view/4djSRW
 // MIT License...
 // Copyright (c) 2014 David Hoskins.
@@ -103,8 +105,12 @@ ND_ float4  DHash44 (const float4 p)
 	p4 += Dot( p4, p4.wzxy + float(19.19) );
 	return Fract( (p4.xxyz + p4.yzzw) * p4.zywx );
 }
+
+#endif // AE_LICENSE_MIT
 //-----------------------------------------------------------------------------
 
+
+#ifdef AE_LICENSE_MIT
 
 // HEHash from https://www.shadertoy.com/view/llGSzw, https://www.shadertoy.com/view/XlXcW4, https://www.shadertoy.com/view/4tXyWN
 // The MIT License
@@ -161,7 +167,7 @@ ND_ float   HEHash13 (int3 uv)		{ return HEHash13( uint3(uv) ); }
 ND_ float2  HEHash24 (int4 uv)		{ return HEHash24( uint4(uv) ); }
 
 
-#if AE_ENABLE_HALF_TYPE
+# if AE_ENABLE_HALF_TYPE
 	ND_ half  HEHash11hf (uint n)
 	{
 		n = HEHash11i( n );
@@ -175,4 +181,7 @@ ND_ float2  HEHash24 (int4 uv)		{ return HEHash24( uint4(uv) ); }
 	ND_ half2  HEHash22hf (uint2 uv)		{ return half2(HEHash11hf(uv.x), HEHash11hf(uv.y)); }
 	ND_ half3  HEHash33hf (uint3 uv)		{ return half3(HEHash11hf(uv.x), HEHash11hf(uv.y), HEHash11hf(uv.z)); }
 	ND_ half4  HEHash44hf (uint4 uv)		{ return half4(HEHash11hf(uv.x), HEHash11hf(uv.y), HEHash11hf(uv.z), HEHash11hf(uv.w)); }
-#endif
+# endif
+
+#endif // AE_LICENSE_MIT
+//-----------------------------------------------------------------------------

@@ -1,12 +1,13 @@
-//ce32c8f6
+//babefd0b
 #include <vector>
 #include <string>
+
+#define funcdef // typedef for function
 
 using int8		= std::int8_t;
 using uint8		= std::uint8_t;
 using int16		= std::int16_t;
 using uint16	= std::uint16_t;
-using int		= std::int32_t;
 using uint		= std::uint32_t;
 using int32		= std::int32_t;
 using uint32	= std::uint32_t;
@@ -20,20 +21,15 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct float2;
-struct float3;
-struct PipelineCompiler;
-struct uint4;
-struct float4;
-struct uint3;
-struct uint2;
-struct EReflectionFlags;
-struct AssetPacker;
-struct short3;
-struct short2;
-struct ushort4;
-struct sbyte3;
-struct sbyte4;
+using namespace std::string_literals;
+
+template <typename T>
+string  operator + (const string &lhs, T rhs);
+
+struct ubyte2;
+struct ubyte3;
+struct InputActions;
+struct ubyte4;
 struct Archive;
 struct ushort2;
 struct sbyte2;
@@ -42,14 +38,46 @@ struct short4;
 struct bool4;
 struct int2;
 struct bool3;
-struct int3;
 struct bool2;
+struct int3;
 struct int4;
-struct ubyte4;
-struct ubyte2;
-struct ubyte3;
-struct EFileType;
-struct InputActions;
+struct AssetPacker;
+struct short3;
+struct short2;
+struct ushort4;
+struct sbyte3;
+struct sbyte4;
+struct uint4;
+struct float4;
+struct uint2;
+struct uint3;
+struct float2;
+struct float3;
+struct PipelineCompiler;
+
+enum class EFileType : uint32
+{
+	Raw,
+	Brotli,
+	InMemory,
+	BrotliInMemory,
+	ZStd,
+	ZStdInMemory,
+};
+uint32  operator | (EFileType lhs, EFileType rhs);
+uint32  operator | (uint32 lhs, EFileType rhs);
+uint32  operator | (EFileType lhs, uint32 rhs);
+
+enum class EReflectionFlags : uint32
+{
+	RenderTechniques,
+	RTechPass_Pipelines,
+	RTech_ShaderBindingTable,
+	All,
+};
+uint32  operator | (EReflectionFlags lhs, EReflectionFlags rhs);
+uint32  operator | (uint32 lhs, EReflectionFlags rhs);
+uint32  operator | (EReflectionFlags lhs, uint32 rhs);
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -1071,30 +1099,6 @@ string  GetOutputDir ();
 void  DeleteFolder (const string &);
 bool  IsGLSLCompilerSupported ();
 bool  IsMetalCompilerSupported ();
-struct EFileType
-{
-	EFileType () {}
-	EFileType (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 Raw = 1;
-	static constexpr uint32 Brotli = 2;
-	static constexpr uint32 InMemory = 4;
-	static constexpr uint32 BrotliInMemory = 6;
-	static constexpr uint32 ZStd = 16;
-	static constexpr uint32 ZStdInMemory = 20;
-};
-
-struct EReflectionFlags
-{
-	EReflectionFlags () {}
-	EReflectionFlags (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 RenderTechniques = 1;
-	static constexpr uint32 RTechPass_Pipelines = 2;
-	static constexpr uint32 RTech_ShaderBindingTable = 4;
-	static constexpr uint32 All = 7;
-};
-
 struct PipelineCompiler
 {
 	PipelineCompiler ();
@@ -1145,15 +1149,9 @@ struct Archive
 };
 
 template <>
-struct RC<PipelineCompiler> : PipelineCompiler
+struct RC<InputActions> : InputActions
 {
-	RC (const PipelineCompiler &);
-};
-
-template <>
-struct RC<AssetPacker> : AssetPacker
-{
-	RC (const AssetPacker &);
+	RC (const InputActions &);
 };
 
 template <>
@@ -1163,8 +1161,14 @@ struct RC<Archive> : Archive
 };
 
 template <>
-struct RC<InputActions> : InputActions
+struct RC<AssetPacker> : AssetPacker
 {
-	RC (const InputActions &);
+	RC (const AssetPacker &);
+};
+
+template <>
+struct RC<PipelineCompiler> : PipelineCompiler
+{
+	RC (const PipelineCompiler &);
 };
 

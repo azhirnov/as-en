@@ -1,6 +1,8 @@
 // from https://github.com/KhronosGroup/glTF-Sample-Viewer/blob/main/source/Renderer/shaders/brdf.glsl
 // Apache-2.0 license
 
+#ifdef AE_LICENSE_APACHE_2
+
 //
 // Fresnel
 //
@@ -249,3 +251,4 @@ ND_ float3  BRDF_SpecularSheen (float3 sheenColor, float sheenRoughness, float N
 	return sheenColor * sheen_distribution * sheen_visibility;
 }
 
+#endif // AE_LICENSE_APACHE_2

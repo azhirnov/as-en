@@ -10,15 +10,21 @@
 #include "Hash.glsl"
 
 
-ND_ float  TilableVoronoiNoise (const float3 pos, const float3 tileSize, const float2 seedScaleBias);		// range [0..inf]
-ND_ float  TilableVoronoiNoise (const float3 pos, const float3 tileSize);									// range [0..inf]
-ND_ float  TilableWarleyNoise (const float3 pos, const float3 tileSize, const float2 seedScaleBias);		// range [0..1]
-ND_ float  TilableWarleyNoise (const float3 pos, const float3 tileSize);									// range [0..1]
+ND_ float  TileableVoronoiNoise (const float3 pos, const float3 tileSize, const float2 seedScaleBias);		// range [0..inf]
+ND_ float  TileableVoronoiNoise (const float3 pos, const float3 tileSize);									// range [0..inf]
+ND_ float  TileableWarleyNoise (const float3 pos, const float3 tileSize, const float2 seedScaleBias);		// range [0..1]
+ND_ float  TileableWarleyNoise (const float3 pos, const float3 tileSize);									// range [0..1]
+
+ND) float  TileableGradientNoise (const float3 x, const float freq);										// range ???
+//-----------------------------------------------------------------------------
+
+
+#include "TileableNoise.glsl"
 //-----------------------------------------------------------------------------
 
 
 // range [0..inf]
-float  TilableVoronoiNoise (const float3 pos, const float3 tileSize, const float2 seedScaleBias)
+float  TileableVoronoiNoise (const float3 pos, const float3 tileSize, const float2 seedScaleBias)
 {
 	float3	ipoint	= Floor( pos * tileSize );
 	float3	fpoint	= Fract( pos * tileSize );
@@ -38,21 +44,21 @@ float  TilableVoronoiNoise (const float3 pos, const float3 tileSize, const float
 }
 
 // range [0..inf]
-float  TilableVoronoiNoise (const float3 pos, const float3 tileSize)
+float  TileableVoronoiNoise (const float3 pos, const float3 tileSize)
 {
-	return TilableVoronoiNoise( pos, tileSize, float2(1.0, 0.0) );
+	return TileableVoronoiNoise( pos, tileSize, float2(1.0, 0.0) );
 }
 
 
 // range [0..1]
-float  TilableWarleyNoise (const float3 pos, const float3 tileSize, const float2 seedScaleBias)
+float  TileableWarleyNoise (const float3 pos, const float3 tileSize, const float2 seedScaleBias)
 {
-	return Max( 1.0 - TilableVoronoiNoise( pos, tileSize, seedScaleBias ), 0.0 );
+	return Max( 1.0 - TileableVoronoiNoise( pos, tileSize, seedScaleBias ), 0.0 );
 }
 
 // range [0..1]
-float  TilableWarleyNoise (const float3 pos, const float3 tileSize)
+float  TileableWarleyNoise (const float3 pos, const float3 tileSize)
 {
-	return TilableWarleyNoise( pos, tileSize, float2(1.0, 0.0) );
+	return TileableWarleyNoise( pos, tileSize, float2(1.0, 0.0) );
 }
 //-----------------------------------------------------------------------------

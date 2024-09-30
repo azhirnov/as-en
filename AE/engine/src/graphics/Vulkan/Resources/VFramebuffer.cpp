@@ -58,7 +58,6 @@ namespace AE::Graphics
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _framebuffer );
-		CHECK_ERR( not rpDesc.attachments.empty() );
 
 		_renderPassId = resMngr.AcquireResource( rpId );
 		CHECK_ERR( _renderPassId );

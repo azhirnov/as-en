@@ -101,14 +101,17 @@ namespace AE::App
 
 	// called from java
 	private:
-		static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app, jobject assetMngr)				__NE___;
-		static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring, jstring, jstring, jstring)	__NE___;
+		static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app,
+											  jobject assetMngr,
+											  jboolean isUnderDebugger)					__NE___;
+		static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring,
+													jstring, jstring, jstring)			__NE___;
 		static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass,
-													jint minWidth, jint minHeight,
-													jint maxWidth, jint maxHeight,
-													float dpi, jint orientation,
-													float avrLum, float maxLum, float minLum,
-													jintArray cutoutRects, jint cutoutRectCount) __NE___;
+										jint minWidth, jint minHeight,
+										jint maxWidth, jint maxHeight,
+										float dpi, jint orientation,
+										float avrLum, float maxLum, float minLum,
+										jintArray cutoutRects, jint cutoutRectCount)	__NE___;
 		static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass, jstring, jstring)	__NE___;
 		static void JNICALL  native_EnableCamera (JNIEnv*, jclass)						__NE___;
 

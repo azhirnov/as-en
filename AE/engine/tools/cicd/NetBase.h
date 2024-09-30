@@ -56,7 +56,7 @@ namespace AE::CICD
 		ND_ bool  _SendLog (StringView text, uint part);
 		ND_ bool  _SendLogGroup (StringView group);
 
-		ND_ bool  _Send (const void *data, Bytes dataSize);
+		ND_ bool  _Send (const void* data, Bytes dataSize);
 
 		template <typename T, ENABLEIF( IsBaseOf< Msg::BaseMsg, T >)>
 		ND_ bool  _Send (T &);
@@ -187,7 +187,7 @@ namespace AE::CICD
 			Msg::Serializer	  enc {FastWStream{ buf, buf + Sizeof(buf) }};
 			enc.factory = &_factory;
 
-			CHECK_ERR( enc( &msg ) and enc.Flush() );
+			CHECK_ERR( enc( &msg ));
 
 			size = Sizeof(buf) - enc.stream.RemainingSize();
 		}

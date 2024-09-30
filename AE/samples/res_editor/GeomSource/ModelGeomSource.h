@@ -136,13 +136,16 @@ namespace AE::ResEditor
 
 			RTGeometryTypes_t			_rtGeometries;
 
+			const uint					_instanceCount	= 1;
+
 
 		// methods
 		public:
 			Mesh (Renderer						&r,
 				  RC<ResLoader::IntermScene>	scene,
 				  const Transformation			&initialTransform,
-				  RTGeometryTypes_t &&			rtGeoms)									__Th___;
+				  RTGeometryTypes_t &&			rtGeoms,
+				  uint							instanceCount)								__Th___;
 			~Mesh ();
 
 			ND_ bool  BindForGraphics (DescriptorUpdater &updater)							C_NE___;
@@ -152,12 +155,10 @@ namespace AE::ResEditor
 				void  StateTransition (Ctx &)												C_Th___;
 
 				void  Draw (DirectCtx::Draw					&ctx,
-							const Material::GPplnGroups_t	&drawGroups,
-							uint							instanceCount)					C_Th___;
+							const Material::GPplnGroups_t	&drawGroups)					C_Th___;
 
 				void  Draw (DirectCtx::Draw					&ctx,
-							const Material::MPplnGroups_t	&drawGroups,
-							uint							instanceCount)					C_Th___;
+							const Material::MPplnGroups_t	&drawGroups)					C_Th___;
 
 				void  BindBuffers (DirectCtx::Draw	&ctx)									C_Th___;
 

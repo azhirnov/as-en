@@ -34,9 +34,7 @@ if (NOT APPLE)
 	set_source_files_properties( ${OBJC_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 endif()
 if (WIN32)
-	set( ANDROID_SDK_ROOT "$ENV{ANDROID_SDK_ROOT}" )
-	set( ANDROID_NDK_INCLUDE "${ANDROID_SDK_ROOT}/ndk/24.0.8215888/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr" )
-	target_include_directories( "Platform" PRIVATE "${ANDROID_NDK_INCLUDE}" )
+	target_include_directories( "Platform" PRIVATE "${ANDROID_NDK_INCLUDE}/sysroot/usr" )
 	set_source_files_properties( ${ANDROID_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 endif()
 
@@ -78,5 +76,6 @@ endif()
 
 EnablePCH( "Platform" )
 EnablePrebuild( "Platform" )
+EnableUnitBuild( "Platform" )
 
 install( TARGETS "Platform" ARCHIVE DESTINATION "lib" )

@@ -91,6 +91,7 @@ namespace
 					break;
 				}
 			}
+			switch_end
 
 			ASBuildIndirectCommand	ind_cmd = {};
 			ind_cmd.primitiveCount = 1;	// instances

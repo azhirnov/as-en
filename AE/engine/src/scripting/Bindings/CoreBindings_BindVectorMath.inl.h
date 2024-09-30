@@ -111,19 +111,19 @@ namespace
 		template <typename B>
 		static void  _Ctor2 (void* mem, const PackedVec<B,2> &value)
 		{
-			PlacementNew< PackedVec<T,3> >( OUT mem, PackedVec<T,3>{value.x, value.y, B{0}} );
+			PlacementNew< PackedVec<T,3> >( OUT mem, PackedVec<T,3>{ static_cast<T>(value.x), static_cast<T>(value.y), T{0} });
 		}
 
 		template <typename B>
 		static void  _Ctor3 (void* mem, const PackedVec<B,3> &value)
 		{
-			PlacementNew< PackedVec<T,3> >( OUT mem, PackedVec<T,3>{value} );
+			PlacementNew< PackedVec<T,3> >( OUT mem, PackedVec<T,3>{ value });
 		}
 
 		template <typename B>
 		static void  _Ctor4 (void* mem, const PackedVec<B,4> &value)
 		{
-			PlacementNew< PackedVec<T,3> >( OUT mem, PackedVec<T,3>{value.x, value.y, value.z} );
+			PlacementNew< PackedVec<T,3> >( OUT mem, PackedVec<T,3>{ static_cast<T>(value.x), static_cast<T>(value.y), static_cast<T>(value.z) });
 		}
 
 		static void  _CtorArg2 (void* mem, const PackedVec<T,2> &xy, T z)
@@ -201,13 +201,13 @@ namespace
 		template <typename B>
 		static void  _Ctor2 (void* mem, const PackedVec<B,2> &value)
 		{
-			PlacementNew< PackedVec<T,4> >( OUT mem, PackedVec<T,4>{value.x, value.y, B{0}, B{0}} );
+			PlacementNew< PackedVec<T,4> >( OUT mem, PackedVec<T,4>{ static_cast<T>(value.x), static_cast<T>(value.y), T{0}, T{0}} );
 		}
 
 		template <typename B>
 		static void  _Ctor3 (void* mem, const PackedVec<B,3> &value)
 		{
-			PlacementNew< PackedVec<T,4> >( OUT mem, PackedVec<T,4>{value.x, value.y, value.z, B{0}} );
+			PlacementNew< PackedVec<T,4> >( OUT mem, PackedVec<T,4>{ static_cast<T>(value.x), static_cast<T>(value.y), static_cast<T>(value.z), T{0} });
 		}
 
 		template <typename B>

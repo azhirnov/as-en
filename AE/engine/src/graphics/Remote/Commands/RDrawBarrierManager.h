@@ -34,7 +34,7 @@ namespace AE::Graphics::_hidden_
 		explicit RDrawBarrierManager (const RPrimaryCmdBufState &primaryState)	__Th___;
 
 		template <typename ...IDs>
-		ND_ decltype(auto)			Get (IDs ...ids)							__Th___	{ return _resMngr.GetResourcesOrThrow( ids... ); }
+		ND_ exact_t					Get (IDs ...ids)							__Th___	{ return _resMngr.GetResourcesOrThrow( ids... ); }
 
 		ND_ RDevice const&			GetDevice ()								C_NE___	{ return _resMngr.GetDevice(); }
 		ND_ RResourceManager&		GetResourceManager ()						C_NE___	{ return _resMngr; }

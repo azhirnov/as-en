@@ -32,8 +32,8 @@ namespace AE::Networking::_hidden_
 	// methods
 	public:
 		MsgWithExtra ()												__NE___ {}
-		MsgWithExtra (T* msg, Bytes extraSize)						__NE___	: _msg{msg} DEBUG_ONLY(, _extraSize{extraSize}) { Unused(extraSize); }
-		MsgWithExtra (MsgWithExtra &&other)							__NE___	: _msg{other._msg} DEBUG_ONLY(, _extraSize{other.extraSize}) { other._msg = null; }
+		MsgWithExtra (T* msg, Bytes extraSize)						__NE___	: _msg{msg}  DEBUG_ONLY(, _extraSize{extraSize}) { Unused(extraSize); }
+		MsgWithExtra (MsgWithExtra &&other)							__NE___	: _msg{other._msg}  DEBUG_ONLY(, _extraSize{other.extraSize}) { other._msg = null; }
 
 		MsgWithExtra&  operator = (MsgWithExtra &&rhs)				__NE___;
 
@@ -51,20 +51,26 @@ namespace AE::Networking::_hidden_
 		void*	PutExtra (const void* data, Bytes dataSize)			__NE___;
 
 		template <typename E>
-		BasicStringView<E>	PutExtra (BasicStringView<E> str)		__NE___	{ return BasicStringView<E>{ PutExtra( str.data(), str.size() ), str.size() }; }
+		auto	PutExtra (BasicStringView<E> str)					__NE___	{ return BasicStringView<E>{ PutExtra( str.data(), str.size() ), str.size() }; }
 
 		template <typename E>
-		ArrayView<E>		PutExtra (ArrayView<E> arr)				__NE___	{ return ArrayView<E>{ PutExtra( arr.data(), arr.size() ), arr.size() }; }
+		auto	PutExtra (ArrayView<E> arr)							__NE___	{ return ArrayView<E>{ PutExtra( arr.data(), arr.size() ), arr.size() }; }
 
 
 		template <typename M>
 		void	Put (M T::*, const void* src, Bytes size)			__NE___;
 
 		template <typename M, typename E>
-		void	Put (M T::*m, BasicStringView<E> str)				__NE___;
+		void	Put (M T::*, BasicStringView<E> str)				__NE___;
 
 		template <typename M, typename E>
-		void	Put (M T::*m, ArrayView<E> arr)						__NE___;
+		void	Put (M T::*, ArrayView<E> arr)						__NE___;
+
+		template <typename M, typename C, typename E>
+		void	Put (M T::*dst, C T::*counter, BasicStringView<E>)	__NE___;
+
+		template <typename M, typename C, typename E>
+		void	Put (M T::*dst, C T::*counter, ArrayView<E>)		__NE___;
 
 		template <typename M>
 		void	Extract (M T::*, OUT void* dst, Bytes size)			C_NE___;
@@ -183,11 +189,11 @@ namespace AE::Networking::_hidden_
 */
 	template <typename T>
 	template <typename M>
-	void  MsgWithExtra<T>::Put (M T::*member, const void* srcData, const Bytes srcDataSize) __NE___
+	void  MsgWithExtra<T>::Put (M T::*dstMember, const void* srcData, const Bytes srcDataSize) __NE___
 	{
 		NonNull( _msg );
 
-		void*	dst = &(_msg->*member);
+		void*	dst = &(_msg->*dstMember);
 		ASSERT( dst + srcDataSize <= (Cast<void>(_msg) + SizeOf<T> + _extraSize) );
 
 		MemCopy_NullCheck( OUT dst, srcData, srcDataSize );
@@ -195,18 +201,48 @@ namespace AE::Networking::_hidden_
 
 	template <typename T>
 	template <typename M, typename E>
-	void  MsgWithExtra<T>::Put (M T::*m, BasicStringView<E> str) __NE___
+	void  MsgWithExtra<T>::Put (M T::*dstMember, BasicStringView<E> str) __NE___
 	{
 		StaticAssert( IsSameTypes< RemoveArray<M>, E >);
-		Put( m, str.data(), StringSizeOf(str) );
+		Put( dstMember, str.data(), StringSizeOf(str) );
 	}
 
 	template <typename T>
 	template <typename M, typename E>
-	void  MsgWithExtra<T>::Put (M T::*m, ArrayView<E> arr) __NE___
+	void  MsgWithExtra<T>::Put (M T::*dstMember, ArrayView<E> arr) __NE___
 	{
 		StaticAssert( IsSameTypes< RemoveArray<M>, E >);
-		Put( m, arr.data(), ArraySizeOf(arr) );
+		Put( dstMember, arr.data(), ArraySizeOf(arr) );
+	}
+
+/*
+=================================================
+	Put
+----
+	Same as 'Put( dstMember, arr )' but with counter field.
+	'counter' will be set to actual element count.
+=================================================
+*/
+	template <typename T>
+	template <typename M, typename C, typename E>
+	void  MsgWithExtra<T>::Put (M T::*dstMember, C T::*counter, BasicStringView<E> str) __NE___
+	{
+		StaticAssert( IsSameTypes< RemoveArray<M>, E >);
+		Put( dstMember, str.data(), StringSizeOf(str) );
+
+		auto&	cnt = (_msg->*counter);
+		cnt = CheckCast<C>( str.size() );
+	}
+
+	template <typename T>
+	template <typename M, typename C, typename E>
+	void  MsgWithExtra<T>::Put (M T::*dstMember, C T::*counter, ArrayView<E> arr) __NE___
+	{
+		StaticAssert( IsSameTypes< RemoveArray<M>, E >);
+		Put( dstMember, arr.data(), ArraySizeOf(arr) );
+
+		auto&	cnt = (_msg->*counter);
+		cnt = CheckCast<C>( arr.size() );
 	}
 
 /*

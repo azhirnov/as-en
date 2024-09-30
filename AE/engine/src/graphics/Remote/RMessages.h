@@ -16,11 +16,12 @@
 #include "graphics/Public/QueryManager.h"
 #include "graphics/Public/IDevice.h"
 
-#include "profiler/Utils/ArmProfiler.h"
-#include "profiler/Utils/MaliProfiler.h"
-#include "profiler/Utils/NVidiaProfiler.h"
-#include "profiler/Utils/AdrenoProfiler.h"
-#include "profiler/Utils/PowerVRProfiler.h"
+#include "profiler/Profilers/ArmProfiler.h"
+#include "profiler/Profilers/MaliProfiler.h"
+#include "profiler/Profilers/NVidiaProfiler.h"
+#include "profiler/Profilers/AdrenoProfiler.h"
+#include "profiler/Profilers/PowerVRProfiler.h"
+#include "profiler/Profilers/GeneralProfiler.h"
 
 #include "PipelineCompilerImpl.h"
 
@@ -127,6 +128,7 @@ namespace AE::RemoteGraphics::Msg
 			DrawIndirectCount,
 			DrawIndexedIndirectCount,
 			DrawMeshTasksIndirectCount,
+			ViewportWScaling,
 
 			// ITransferContext (Vulkan)
 			ClearColorImage,
@@ -936,9 +938,9 @@ namespace AE::RemoteGraphics::Msg
 		Profiler::PowerVRProfiler::ECounterSet	enabled;
 	)
 
-	DECL_MSG( ProfPVR_Tick )
+	DECL_MSG( ProfPVR_GetTiming )
 
-	DECL_RESP( ProfPVR_Tick_Response,
+	DECL_RESP( ProfPVR_GetTiming_Response,
 		Profiler::PowerVRProfiler::TimeScopeArr_t	timings;
 	)
 
@@ -964,6 +966,37 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_RESP( ProfNVidia_Sample_Response,
 		Profiler::NVidiaProfiler::Counters_t	counters;
+	)
+//-----------------------------------------------------------------------------
+
+
+	DECL_MSG( ProfGeneral_Initialize,
+		Profiler::GeneralProfiler::ECounterSet	required;
+	)
+
+	DECL_RESP( ProfGeneral_Initialize_Response,
+
+		struct SerCpuCluster final : Profiler::GeneralProfiler::CpuCluster, ISerializable
+		{
+			SerCpuCluster ()						__NE___	= default;
+			SerCpuCluster (const CpuCluster &other) : CpuCluster{other} {}
+			SerCpuCluster (const SerCpuCluster &)	= default;
+			SerCpuCluster (SerCpuCluster &&)		= default;
+
+			bool  Serialize (Serializer &)		C_NE_OV;
+			bool  Deserialize (Deserializer &)	__NE_OV;
+		};
+
+		bool													ok;
+		FixedArray< SerCpuCluster, CpuArchInfo::MaxCoreTypes >	cpuClusters;
+	)
+
+	DECL_MSG( ProfGeneral_Sample )
+
+	DECL_RESP( ProfGeneral_Sample_Response,
+		Profiler::GeneralProfiler::Counters_t	counters;
+		ArrayView<float>						totalCpuUsage;
+		ArrayView<float>						kernelUsage;
 	)
 //-----------------------------------------------------------------------------
 
@@ -1590,6 +1623,10 @@ namespace AE::RemoteGraphics::Msg
 			EShadingRate						rate;
 			EShadingRateCombinerOp				primitiveOp;
 			EShadingRateCombinerOp				textureOp;
+		)
+
+		DECL_CMD( Draw_SetViewportWScalingCmd,
+			ArrayView<packed_float2>			scaling;
 		)
 
 		DECL_CMD( Draw_BindIndexBufferCmd,

@@ -32,7 +32,8 @@ namespace AE::ResEditor
 	protected:
 		RTechInfo				_rtech;
 		RenderPassDesc			_rpDesc;
-		float2					_depthRange		{0.f, 1.f};
+
+		RC<DynamicDim>			_dynamicDim;
 
 		PipelineMap_t			_pipelines;
 		PerFrameDescSet_t		_descSets;
@@ -55,6 +56,9 @@ namespace AE::ResEditor
 		bool		Execute (SyncPassData &)							__Th_OV;
 		bool		Update (TransferCtx_t &, const UpdatePassData &)	__Th_OV;
 		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
+
+	private:
+		ND_ uint2  _GetDimension ()										C_NE___;
 	};
 
 

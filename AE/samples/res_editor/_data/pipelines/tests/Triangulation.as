@@ -118,7 +118,7 @@
 			const float		thickness	= 1.5;	// pixels
 			const float		falloff		= 6.0;	// pixels
 
-			out_Color *= FSBarycentricWireframe( thickness, falloff );
+			out_Color *= FSBarycentricWireframe( thickness, falloff ).x;
 		}
 
 		// normals

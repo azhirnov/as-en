@@ -74,24 +74,24 @@
 #endif
 
 #ifdef AE_COMPILER_MSVC
-# include <excpt.h>							// GetExceptionCode()
-#define AE_SEH_STACK_OVERFLOW	0xC00000FDL	// EXCEPTION_STACK_OVERFLOW
-#define AE_SEH_ACCESS_VIOLATION	0xC0000005L	// EXCEPTION_ACCESS_VIOLATION
+# include <excpt.h>								// GetExceptionCode()
+# define AE_SEH_STACK_OVERFLOW		0xC00000FDL	// EXCEPTION_STACK_OVERFLOW
+# define AE_SEH_ACCESS_VIOLATION	0xC0000005L	// EXCEPTION_ACCESS_VIOLATION
 
 # include <intrin.h>
-# include <mmintrin.h>		// MMX
-# include <xmmintrin.h>		// SSE
-# include <emmintrin.h>		// SSE2
-# include <pmmintrin.h>		// SSE3
-# include <tmmintrin.h>		// SSSE3
-# include <smmintrin.h>		// SSE4.1
-# include <nmmintrin.h>		// SSE4.2
-# include <ammintrin.h>		// SSE4A
-# include <wmmintrin.h>		// AES
-# include <immintrin.h>		// AVX, AVX2, FMA
 
-# ifndef AE_COMPILER_CLANG_CL
-#	include <zmmintrin.h>	// AVX512
+# if 0
+#	include <mmintrin.h>		// MMX
+#	include <xmmintrin.h>		// SSE
+#	include <emmintrin.h>		// SSE2
+#	include <pmmintrin.h>		// SSE3
+#	include <tmmintrin.h>		// SSSE3
+#	include <smmintrin.h>		// SSE4.1
+#	include <nmmintrin.h>		// SSE4.2
+#	include <ammintrin.h>		// SSE4A
+#	include <wmmintrin.h>		// AES
+#	include <immintrin.h>		// AVX, AVX2, FMA
+#	include <zmmintrin.h>		// AVX512
 # endif
 
 # pragma intrinsic( _BitScanForward, _BitScanReverse )
@@ -100,5 +100,6 @@
 #	pragma intrinsic( _BitScanForward64, _BitScanReverse64 )
 #	pragma intrinsic( __popcnt64 )
 # endif
-#endif
+
+#endif // AE_COMPILER_MSVC
 

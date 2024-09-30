@@ -7,8 +7,8 @@ namespace AE::ResEditor
 {
 namespace
 {
-	static ScriptImage*  ScriptImage_Ctor1 (PipelineCompiler::EImageType imageType, const String &filename) {
-		return ScriptImagePtr{ new ScriptImage{ uint(imageType), filename, Default }}.Detach();
+	static ScriptImage*  ScriptImage_Ctor1 (EImageType imageType, const String &filename) {
+		return ScriptImagePtr{ new ScriptImage{ imageType, filename, Default }}.Detach();
 	}
 
 	static ScriptImage*  ScriptImage_Ctor2 (EPixelFormat format, const packed_uint2 &dim) {
@@ -51,8 +51,8 @@ namespace
 		return ScriptImagePtr{ new ScriptImage{ format, ds, layers, mipmaps }}.Detach();
 	}
 
-	static ScriptImage*  ScriptImage_Ctor12 (PipelineCompiler::EImageType imageType, const String &filename, ScriptImage::ELoadOpFlags flags) {
-		return ScriptImagePtr{ new ScriptImage{ uint(imageType), filename, flags }}.Detach();
+	static ScriptImage*  ScriptImage_Ctor12 (EImageType imageType, const String &filename, ScriptImage::ELoadOpFlags flags) {
+		return ScriptImagePtr{ new ScriptImage{ imageType, filename, flags }}.Detach();
 	}
 
 } // namespace
@@ -63,13 +63,11 @@ namespace
 	constructor
 =================================================
 */
-	ScriptImage::ScriptImage (uint imageType, const String &filename, ELoadOpFlags flags) __Th___ :
+	ScriptImage::ScriptImage (EImageType imageType, const String &filename, ELoadOpFlags flags) __Th___ :
 		_imageType{imageType}
 	{
-		using PipelineCompiler::EImageType;
-
 		_desc.imageDim = EImageDim_2D;
-		switch ( EImageType(imageType) & EImageType::_TexMask )
+		switch ( imageType & EImageType::_TexMask )
 		{
 			case EImageType::Img1D :
 			case EImageType::Img1DArray :		_desc.imageDim = EImageDim_1D;	break;
@@ -85,7 +83,7 @@ namespace
 
 		// set similar format
 		_desc.format = EPixelFormat::RGBA8_UNorm;
-		switch ( EImageType(imageType) & EImageType::_ValMask )
+		switch ( imageType & EImageType::_ValMask )
 		{
 			case EImageType::Float :			_desc.format = EPixelFormat::RGBA32F;		break;
 			case EImageType::Half :				_desc.format = EPixelFormat::RGBA16F;		break;
@@ -111,7 +109,8 @@ namespace
 
 		_desc.format	= format;
 		_desc.imageDim	= _inDynSize->Get()->NumDimensions();
-		_imageType		= uint(GetDescriptorImageType( _desc ));
+		_desc.dimension	= ImageDim_t{uint3{ EPixelFormat_GetInfo( format ).TexBlockDim(), 1u }};
+		_imageType		= GetDescriptorImageType( _desc );
 	}
 
 	ScriptImage::ScriptImage (EPixelFormat format, const packed_uint3 &dim) __Th___ :
@@ -129,10 +128,10 @@ namespace
 		_desc.arrayLayers	= layers;
 		_desc.mipLevels		= mipmaps;
 		_desc.imageDim		= dim.z > 1 ? EImageDim_3D : EImageDim_2D;
-		_desc.dimension		= uint3(dim);
+		_desc.dimension		= CheckCast<ImageDim_t>(dim);
 		_desc.Validate();
 
-		_imageType			= uint(GetDescriptorImageType( _desc ));
+		_imageType			= GetDescriptorImageType( _desc );
 	}
 
 	ScriptImage::ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds, const ImageLayer &layers, const MipmapLevel &mipmaps) __Th___ :
@@ -144,11 +143,12 @@ namespace
 
 		_desc.format		= format;
 		_desc.imageDim		= _inDynSize->Get()->NumDimensions();
+		_desc.dimension		= ImageDim_t{uint3{ EPixelFormat_GetInfo( format ).TexBlockDim(), 1u }};
 		_desc.arrayLayers	= layers;
 		_desc.mipLevels		= mipmaps;
 		_desc.Validate();
 
-		_imageType			= uint(GetDescriptorImageType( _desc ));
+		_imageType			= GetDescriptorImageType( _desc );
 	}
 
 /*
@@ -169,9 +169,7 @@ namespace
 */
 	bool  ScriptImage::IsDepthOrStencil () C_NE___
 	{
-		using PipelineCompiler::EImageType;
-
-		switch ( EImageType(_imageType) & EImageType::_ValMask )
+		switch ( _imageType & EImageType::_ValMask )
 		{
 			case EImageType::Depth :
 			case EImageType::Stencil :
@@ -183,9 +181,7 @@ namespace
 
 	bool  ScriptImage::HasDepth () C_NE___
 	{
-		using PipelineCompiler::EImageType;
-
-		switch ( EImageType(_imageType) & EImageType::_ValMask )
+		switch ( _imageType & EImageType::_ValMask )
 		{
 			case EImageType::Depth :
 			case EImageType::DepthStencil :
@@ -196,9 +192,7 @@ namespace
 
 	bool  ScriptImage::HasStencil () C_NE___
 	{
-		using PipelineCompiler::EImageType;
-
-		switch ( EImageType(_imageType) & EImageType::_ValMask )
+		switch ( _imageType & EImageType::_ValMask )
 		{
 			case EImageType::Stencil :
 			case EImageType::DepthStencil :
@@ -251,14 +245,14 @@ namespace
 	{
 		if ( AllBits( usage, EResourceUsage::UploadedData ))
 		{
-			CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ColorAttachment ));
-			CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::DepthStencil ));
-			CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ComputeWrite ));
+			CHECK_THROW_MSG( NoBits( usage, EResourceUsage::ColorAttachment ));
+			CHECK_THROW_MSG( NoBits( usage, EResourceUsage::DepthStencil ));
+			CHECK_THROW_MSG( NoBits( usage, EResourceUsage::ComputeWrite ));
 		}
 
 		if ( AllBits( usage, EResourceUsage::WithHistory ))
 		{
-			CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::UploadedData ));
+			CHECK_THROW_MSG( NoBits( usage, EResourceUsage::UploadedData ));
 		}
 
 		CHECK_THROW_MSG( not AllBits( usage, EResourceUsage::ColorAttachment | EResourceUsage::DepthStencil ),
@@ -308,7 +302,7 @@ namespace
 			return _base->Dimension3();
 
 		CHECK_THROW_MSG( not IsMutableDimension() );
-		return _desc.dimension;
+		return packed_uint3{_desc.dimension};
 	}
 
 /*
@@ -441,7 +435,7 @@ namespace
 		result->_viewDesc	= ImageViewDesc{ viewType, format, baseMipmap, mipmapCount, baseLayer, layerCount };
 		result->_viewDesc.Validate( _desc );
 
-		result->_imageType	= uint(GetDescriptorImageType( _desc, result->_viewDesc ));
+		result->_imageType	= GetDescriptorImageType( _desc, result->_viewDesc );
 
 		return result.Detach();
 	}
@@ -485,7 +479,7 @@ namespace
 	_GetImageType
 =================================================
 */
-	using PCImageType = PipelineCompiler::EImageType;
+	using PCImageType = EImageType;
 
 	auto  ScriptImage::_GetImageType ()		C_Th___	{ return PCImageType(ImageType()); }
 
@@ -664,14 +658,23 @@ namespace
 
 				case EResourceUsage::ColorAttachment :	_desc.usage |= EImageUsage::ColorAttachment | EImageUsage::TransferSrc;	break;
 				case EResourceUsage::DepthStencil :		_desc.usage |= EImageUsage::DepthStencilAttachment;						break;
+				case EResourceUsage::InputAttachment :	_desc.usage |= EImageUsage::InputAttachment;							break;
 
 				case EResourceUsage::UploadedData :		_desc.usage |= EImageUsage::TransferDst;								break;
 				case EResourceUsage::WillReadback :		_desc.usage |= EImageUsage::TransferSrc;								break;
 
 				case EResourceUsage::Sampled :			_desc.usage |= EImageUsage::Sampled;									break;
-				case EResourceUsage::GenMipmaps :		_desc.usage |= EImageUsage::Transfer;		_desc.options |= (EImageOpt::BlitSrc | EImageOpt::BlitDst);	break;
-				case EResourceUsage::Present :			_desc.usage |= EImageUsage::TransferSrc;	_desc.options |= EImageOpt::BlitSrc;						break;
 				case EResourceUsage::Transfer :			_desc.usage |= EImageUsage::Transfer;									break;
+
+				case EResourceUsage::GenMipmaps :
+					_desc.usage		|= EImageUsage::Transfer;
+					_desc.options	|= (EImageOpt::BlitSrc | EImageOpt::BlitDst);
+					break;
+
+				case EResourceUsage::Present :
+					_desc.usage		|= EImageUsage::TransferSrc;
+					_desc.options	|= EImageOpt::BlitSrc;
+					break;
 
 				case EResourceUsage::Unknown :
 				case EResourceUsage::ShaderAddress :
@@ -692,7 +695,7 @@ namespace
 			return _resource;
 		}
 
-		if ( AllBits( _desc.usage, EImageUsage::TransferSrc ) and not AnyBits( _desc.usage, EImageUsage::DepthStencilAttachment ))
+		if ( AllBits( _desc.usage, EImageUsage::TransferSrc ) and NoBits( _desc.usage, EImageUsage::DepthStencilAttachment ))
 			_desc.options |= EImageOpt::BlitSrc;
 
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
@@ -722,9 +725,9 @@ namespace
 		else
 		{
 			if ( _inDynSize ) {
-				_desc.dimension = _inDynSize->Get()->Dimension3_NonZero();
+				_desc.dimension = ImageDim_t{_inDynSize->Get()->Dimension3_NonZero()};
 			}else{
-				CHECK_THROW_MSG( All( _desc.dimension > uint3{0} ), "failed to create image '"s << _dbgName << "'" );
+				CHECK_THROW_MSG( All( _desc.dimension > ImageDim_t{0} ), "failed to create image '"s << _dbgName << "'" );
 			}
 
 			CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),

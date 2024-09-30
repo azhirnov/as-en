@@ -35,6 +35,7 @@
 #include "base/Containers/UntypedStorage.h"
 
 // Pointers
+#include "base/Pointers/Ref.h"
 #include "base/Pointers/Ptr.h"
 #include "base/Pointers/PackedPtr.h"
 #include "base/Pointers/RefCounter.h"
@@ -111,6 +112,7 @@
 
 // Platforms
 #include "base/Platforms/CPUInfo.h"
+#include "base/Platforms/PerformanceStat.h"
 #include "base/Platforms/Platform.h"
 
 // Time

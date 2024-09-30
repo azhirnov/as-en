@@ -167,9 +167,9 @@ namespace
 		ASSERT( info.size() == 1 );
 
 		if ( info.size() > 0 and
-			 Any( info[0].dimension != GetSurfaceSize() ))
+			 Any( info[0].Dimension() != GetSurfaceSize() ))
 		{
-			SetSize( info[0].dimension );
+			SetSize( info[0].Dimension() );
 		}
 	}
 

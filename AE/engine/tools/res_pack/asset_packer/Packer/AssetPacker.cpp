@@ -36,7 +36,7 @@ namespace
 		{
 			auto&	item = info->inFiles[i];
 
-			if ( not AnyBits( item.flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
+			if ( NoBits( item.flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
 				continue;
 
 			Path	path {item.path};

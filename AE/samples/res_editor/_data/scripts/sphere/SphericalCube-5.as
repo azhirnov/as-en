@@ -65,7 +65,7 @@
 			draw.AddPipeline( "sphere/SphericalCube-5a.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/sphere/SphericalCube-5a.as)
 			draw.Output(	"out_Color",	cubemap, RGBA32f(0.2) );
 			draw.Constant(	"iProj",		proj_type );
-			draw.Slider(	"iMode",		0, 1 );
+			draw.Slider(	"iProjInFS",	0, 1 );
 
 			GenMipmaps( cubemap_view );
 		}

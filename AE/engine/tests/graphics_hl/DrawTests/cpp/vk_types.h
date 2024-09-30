@@ -3,7 +3,7 @@
 	// size: 8, align: 4
 	struct VB_Position_f2
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa843e002u}};  // 'VB_Position_f2'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa843e002u}};
 
 		packed_float2  Position;
 	};
@@ -16,7 +16,7 @@
 	// size: 4, align: 1
 	struct VB_Color8
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xccba8f8eu}};  // 'VB_Color8'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xccba8f8eu}};
 
 		packed_ubyte4  Color;
 	};
@@ -29,7 +29,7 @@
 	// size: 12, align: 4
 	struct VB_UVf2_Col8
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xf5d3da88u}};  // 'VB_UVf2_Col8'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xf5d3da88u}};
 
 		packed_float2  UV;
 		packed_ubyte4  Color;

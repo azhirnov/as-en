@@ -69,9 +69,9 @@ ND_ float2  SDF_Move (const float2 position, const float  delta);
 ND_ float2  SDF_Move (const float2 position, const float2 delta);
 ND_ float3  SDF_Move (const float3 position, const float  delta);
 ND_ float3  SDF_Move (const float3 position, const float3 delta);
-ND_ float3  SDF_Rotate (const float3 position, const quat q);
+ND_ float3  SDF_Rotate (const float3 position, const Quat q);
 ND_ float2  SDF_Rotate2D (const float2 position, const float angle);
-ND_ float3  SDF_Transform (const float3 position, const quat q, const float3 delta);
+ND_ float3  SDF_Transform (const float3 position, const Quat q, const float3 delta);
 
 #if 0 // macros
 ND_ float  SDF_Scale (const float2 position, float scale, float (*sdf)(float2));
@@ -234,7 +234,7 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 		return res;
 	}
 #endif
-#if defined(SH_COMPUTE) and defined(AE_shader_subgroup_basic)
+#if defined(SH_COMPUTE) and defined(QuadGroup_dFdxFine)
 	float2  AA_Line_dxdy (const float2 uv, float2 dist, const float2 thicknessAndFalloffPx)
 	{
 		float2	dx	= Abs( QuadGroup_dFdxFine( uv ));
@@ -263,7 +263,7 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 		return res;
 	}
 #endif
-#if defined(SH_COMPUTE) and defined(AE_shader_subgroup_basic)
+#if defined(SH_COMPUTE) and defined(QuadGroup_dFdxFine)
 	float2  AA_Line_dxdy (const float3 uvw, float3 dist, const float2 thicknessAndFalloffPx)
 	{
 		float3	dx	= Abs( QuadGroup_dFdxFine( uvw ));
@@ -278,7 +278,7 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 	}
 #endif
 
-#if defined(SH_FRAG) or (defined(SH_COMPUTE) and defined(AE_shader_subgroup_basic))
+#if defined(SH_FRAG) or (defined(SH_COMPUTE) and defined(QuadGroup_dFdxFine))
 	float2  AA_QuadGrid_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
 	{
 		return AA_Line_dxdy( uv, TriangleWave( uv ), thicknessAndFalloffPx );

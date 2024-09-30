@@ -30,7 +30,7 @@ namespace AE
 
 #ifdef AE_PLATFORM_WINDOWS
 # if UNICODE
-	using CharType			= wchar_t;	// L
+	using CharType			= wchar_t;	// L''
 #	define TXT( _text_ )	(L"" _text_)
 # else
 	using CharType			= CharAnsi;
@@ -152,17 +152,6 @@ namespace AE::Base
 */
 	template <typename... Args>
 	constexpr void  Unused (Args&& ...) __NE___ {}
-
-/*
-=================================================
-	ArgRef (same as std::ref)
-=================================================
-*/
-	template <typename T>
-	ND_ constexpr std::reference_wrapper<T>  ArgRef (T &arg) __NE___
-	{
-		return std::reference_wrapper<T>{ arg };
-	}
 
 /*
 =================================================

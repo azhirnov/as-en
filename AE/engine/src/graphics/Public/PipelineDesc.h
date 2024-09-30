@@ -230,7 +230,8 @@ namespace AE::Graphics
 	struct ComputePipelineDesc : BasePipelineDesc
 	{
 	// variables
-		packed_ushort3		localSize	{UndefinedLocalSize};
+		packed_ushort3		localSize		{UndefinedLocalSize};
+		ushort				subgroupSize	= 0;
 
 	// methods
 		ComputePipelineDesc () __NE___ {}

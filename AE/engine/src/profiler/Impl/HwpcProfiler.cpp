@@ -8,6 +8,7 @@
 #include "profiler/Remote/RemoteNVidiaProfiler.h"
 #include "profiler/Remote/RemoteAdrenoProfiler.h"
 #include "profiler/Remote/RemotePowerVRProfiler.h"
+#include "profiler/Remote/RemoteGeneralProfiler.h"
 #include "graphics/GraphicsImpl.h"
 
 namespace AE::Profiler
@@ -39,19 +40,14 @@ namespace AE::Profiler
 	{
 		CHECK_ERR( (client != null) == (msgProducer != null) );
 
+		_isRemote = bool{client};
+
 		_initialized |= _InitNvProf( client, msgProducer );
 		_initialized |= _InitArmProf( client, msgProducer );
 		_initialized |= _InitMaliProf( client, msgProducer );
 		_initialized |= _InitAdrenoProf( client, msgProducer );
 		_initialized |= _InitPowerVRProf( client, msgProducer );
-
-		// CPU usage
-		{
-			#if defined(AE_PLATFORM_WINDOWS) and not defined(AE_ENABLE_REMOTE_GRAPHICS)
-			_cpuUsage.enabled = true;
-			#endif
-			_initialized |= _cpuUsage.enabled;
-		}
+		_initialized |= _InitGeneralProf( client, msgProducer );
 
 		#ifdef AE_ENABLE_IMGUI
 		_InitImGui();
@@ -78,25 +74,27 @@ namespace AE::Profiler
 	Update
 =================================================
 */
-	void  HwpcProfiler::Update (secondsf, uint frameCount)
+	void  HwpcProfiler::Update (secondsf dt, uint frameCount)
 	{
 		if ( not _initialized )
 			return;
 
-		SampleGraphicsCounters();
-		SampleCPUCounters();
+		const float	inv_dt		= 1.f / dt.count();
+		const float	inv_frames	= 1.f / float(frameCount);
+		const bool	per_frame	= not _isRemote;
+
+		SampleGraphicsCounters( inv_dt );
+		SampleCPUCounters( inv_dt );
 
 	  #ifdef AE_ENABLE_IMGUI
-		const float	inv_fc = 1.f / float(frameCount);
-
-		_UpdateCpuUsageImGui();
-		_UpdateArmCountersImGui( double(inv_fc) );
-		_UpdateMaliCountersImGui( double(inv_fc) );
-		_UpdateAdrenoCountersImGui( inv_fc );
-		_UpdatePowerVRCountersImGui( inv_fc );
-		_UpdateNVidiaCountersImGui( inv_fc );
+		_UpdateGeneralPerfImGui( per_frame, inv_frames );
+		_UpdateArmCountersImGui( per_frame, inv_frames );
+		_UpdateMaliCountersImGui( per_frame, inv_frames );
+		_UpdateAdrenoCountersImGui( per_frame, inv_frames );
+		_UpdatePowerVRCountersImGui( per_frame, inv_frames );
+		_UpdateNVidiaCountersImGui( per_frame, inv_frames );
 	  #else
-		Unused( frameCount );
+		Unused( dt, frameCount );
 	  #endif
 	}
 
@@ -196,9 +194,15 @@ namespace AE::Profiler
 		using ECounter = MaliProfiler::ECounter;
 
 		_maliProf.requiredCounters = MaliProfiler::ECounterSet{
+				// Clock //
+					#if 1
+						ECounter::GPUActiveCy,			ECounter::PerCoreActiveCy,		ECounter::TilerActiveCy,
+						ECounter::FragThroughputCy,		ECounter::NonFragThroughputCy,
+						ECounter::ExtMemEnergy,			ECounter::CoreEnergy,			ECounter::TotalEnergy,
+					#endif
 				// External memory //
 					#if 1
-						ECounter::ExtBusRdBy,			ECounter::ExtBusWrBy,
+						ECounter::ExtBusRdBy,			ECounter::ExtBusWrBy,			ECounter::ExtBusTotalBy,
 						ECounter::ExtBusRdStallRate,	ECounter::ExtBusWrStallRate,
 						ECounter::ExtBusRdLat0,			ECounter::ExtBusRdLat128,		ECounter::ExtBusRdLat192,	ECounter::ExtBusRdLat256,	ECounter::ExtBusRdLat320,	ECounter::ExtBusRdLat384,
 						ECounter::ExtBusRdOTQ1,			ECounter::ExtBusRdOTQ2,			ECounter::ExtBusRdOTQ3,		ECounter::ExtBusRdOTQ4,
@@ -211,7 +215,7 @@ namespace AE::Profiler
 						ECounter::SCBusTileWrBy,		ECounter::SCBusLSWrBy,
 						ECounter::SCBusFFEL2RdBy,		ECounter::SCBusLSL2RdBy,		ECounter::SCBusTexL2RdBy,
 						ECounter::L2CacheFlushCy,
-						ECounter::FragTileKillRate,
+						ECounter::TilerPosCacheHitRate,	ECounter::TilerVarCacheHitRate,
 					#endif
 				// Binning phase //
 					#if 1
@@ -225,6 +229,10 @@ namespace AE::Profiler
 						ECounter::FragEZSTestQd,		ECounter::FragEZSKillQd,		ECounter::FragLZSTestQd,	ECounter::FragLZSKillQd,
 						ECounter::FragEZSKillRate,		ECounter::FragFPKKillRate,		ECounter::FragLZSKillRate,
 						ECounter::FragOpaqueQdRate,		ECounter::FragOverdraw,
+						ECounter::GeomTrianglePrim,		ECounter::GeomPointPrim,		ECounter::GeomLinePrim,
+						ECounter::FragTile,				ECounter::FragTileKill,
+						ECounter::FragTileKillRate,
+					//	ECounter::FragRastQd,			ECounter::FragOpaqueQd,			ECounter::FragTransparentQd,	ECounter::FragShadedQd,
 					#endif
 				// Functional unit utilization //
 					#if 1
@@ -245,10 +253,18 @@ namespace AE::Profiler
 						ECounter::EngNarrowInstrRate,
 						ECounter::EngFMAPipeUtil,		ECounter::EngCVTPipeUtil,		ECounter::EngSFUPipeUtil,
 						ECounter::EngDivergedInstrRate,
-						ECounter::FragWarp,				ECounter::NonFragWarp,			ECounter::CoreFullQdWarp,		ECounter::CoreAllRegsWarp,
+						ECounter::FragWarp,				ECounter::NonFragWarp,			ECounter::CoreFullWarp,		ECounter::CoreAllRegsWarp,
 						ECounter::CoreAllRegsWarpRate,
-						ECounter::CoreFullQdWarpRate,
+						ECounter::CoreFullWarpRate,
 						ECounter::FragRastPartQdRate,
+					#endif
+				// Usage //
+					#if 0
+						ECounter::ExtBusRdStallCy,		ECounter::ExtBusWrStallCy,
+						ECounter::GPUIRQActiveCy,
+						ECounter::FragQueueActiveCy,	ECounter::NonFragQueueActiveCy,
+						ECounter::FragActiveCy,			ECounter::NonFragActiveCy,		ECounter::TilerActiveCy,
+						ECounter::CoreActiveCy,			ECounter::LSIssueCy,
 					#endif
 				};
 
@@ -284,13 +300,30 @@ namespace AE::Profiler
 						ECounter::GPU_MemoryInterfaceLoad,		ECounter::GPU_ClockSpeed,					ECounter::Tiler_TriangleRatio,
 						ECounter::Texture_ReadStall,			ECounter::Shader_ShaderProcessingLoad,		ECounter::GPU_MemoryRead,
 						ECounter::GPU_MemoryWrite,				ECounter::VertexShader_RegisterOverload,	ECounter::PixelShader_RegisterOverload,
-						ECounter::Tiler_TrianglesInputPerFrame,	ECounter::Tiler_TrianglesOutputPerFrame,	ECounter::Renderer_HSR_Efficiency,
-						ECounter::Renderer_ISP_PixelLoad,		ECounter::RendererTimePerFrame,				ECounter::GeometryTimePerFrame,
-						ECounter::TDM_TimePerFrame,				ECounter::Shader_CyclesPerComputeKernel,	ECounter::Shader_CyclesPerVertex,
+						ECounter::Renderer_HSR_Efficiency,		ECounter::TDM_Active,						ECounter::SPM_Active,
+						ECounter::Renderer_ISP_PixelLoad,		ECounter::Shader_CyclesPerComputeKernel,	ECounter::Shader_CyclesPerVertex,
 						ECounter::Shader_CyclesPerPixel,		ECounter::ComputeShader_ProcessingLoad,		ECounter::VertexShader_ProcessingLoad,
 						ECounter::PixelShader_ProcessingLoad,	ECounter::RendererActive,					ECounter::GeometryActive,
-						ECounter::TDM_Active,					ECounter::SPM_Active
+						ECounter::Texture_FetchesPerPixel,		ECounter::Texture_FilterCyclesPerFetch,		ECounter::Texture_FilterInputLoad,
+						ECounter::Texture_FilterLoad,			ECounter::Texture_ReadCyclesPerFetch,		ECounter::GPU_MemoryTotal
 					};
+
+		if ( _isRemote )
+		{
+			_pvrProf.requiredCounters.insert( ECounter::RendererTime );
+			_pvrProf.requiredCounters.insert( ECounter::GeometryTime );
+			_pvrProf.requiredCounters.insert( ECounter::TDM_Time );
+			_pvrProf.requiredCounters.insert( ECounter::Tiler_TrianglesInputPerSecond );
+			_pvrProf.requiredCounters.insert( ECounter::Tiler_TrianglesOutputPerSecond );
+		}
+		else
+		{
+			_pvrProf.requiredCounters.insert( ECounter::RendererTimePerFrame );
+			_pvrProf.requiredCounters.insert( ECounter::GeometryTimePerFrame );
+			_pvrProf.requiredCounters.insert( ECounter::TDM_TimePerFrame );
+			_pvrProf.requiredCounters.insert( ECounter::Tiler_TrianglesInputPerFrame );
+			_pvrProf.requiredCounters.insert( ECounter::Tiler_TrianglesOutputPerFrame );
+		}
 
 		return _pvrProf.profiler.Initialize( _pvrProf.requiredCounters );
 	}
@@ -320,9 +353,74 @@ namespace AE::Profiler
 
 		using ECounter = AdrenoProfiler::ECounter;
 
-		_adrenoProf.requiredCounters = AdrenoProfiler::ECounterSet{}.SetAll();
+		_adrenoProf.requiredCounters = AdrenoProfiler::ECounterSet{
+				// LRZ //
+					#if 1
+						ECounter::LRZ_PrimKilledByMaskGen,		ECounter::LRZ_PrimKilledByLRZ,	ECounter::LRZ_PrimPassed,
+						ECounter::LRZ_TileKilled,				ECounter::LRZ_TotalPixel,
+						ECounter::LRZ_Read,						ECounter::LRZ_Write,
+					#endif
+				// Render backend //
+					#if 1
+						ECounter::RB_Z_Pass,					ECounter::RB_Z_Fail,			ECounter::RB_S_Fail,	ECounter::RB_TotalPass,
+						ECounter::RB_ZRead,						ECounter::RB_ZWrite,
+						ECounter::RB_CRead,						ECounter::RB_CWrite,
+					//	ECounter::RB_AliveCycles2D,
+					#endif
+				// CCU //
+					#if 1
+					//	ECounter::CCU_PartialBlockRead,			ECounter::CCU_2DPixels,
+						ECounter::CCU_DepthBlocks,				ECounter::CCU_ColorBlocks,
+						ECounter::CCU_GMemRead,					ECounter::CCU_GMemWrite,
+						ECounter::CCU_2dReadReq,				ECounter::CCU_2dWriteReq,
+					#endif
+				// Rasterizer //
+					#if 1
+						ECounter::RAS_SuperTiles,				ECounter::RAS_8x4Tiles,
+						ECounter::RAS_FullyCoveredSuperTiles,	ECounter::RAS_FullyCovered8x4Tiles,
+					#endif
+				// Shader/Streaming Processor //
+					#if 1
+						ECounter::SSP_ALUcy,					ECounter::SSP_EFUcy,
+						ECounter::SSP_VS_EFUInst,				ECounter::SSP_VS_FullALUInst,	ECounter::SSP_VS_HalfALUInst,
+						ECounter::SSP_FS_EFUInst,				ECounter::SSP_FS_FullALUInst,	ECounter::SSP_FS_HalfALUInst,
+						ECounter::SSP_L2Read,					ECounter::SSP_L2Write,
+					#endif
+				// Compression and Decompression //
+					#if 1
+						ECounter::CMP_2dReadData,				ECounter::CMP_2dWriteData,
+					#endif
+				};
 
 		return _adrenoProf.profiler.Initialize( _adrenoProf.requiredCounters );
+	}
+
+/*
+=================================================
+	_InitGeneralProf
+=================================================
+*/
+	bool  HwpcProfiler::_InitGeneralProf (ClientServer_t client, MsgProducer_t msgProducer)
+	{
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+		Unused( client, msgProducer );
+	  #else
+		// initialize remote profiling
+		if ( client )
+		{
+			CHECK( msgProducer->GetChannels() == EnumSet<EChannel>{EChannel::Reliable} );
+
+			auto	gen_prof_client = MakeRC<GeneralProfilerClient>( RVRef(msgProducer) );
+
+			CHECK( client->Add( gen_prof_client->GetMsgConsumer() ));
+
+			CHECK( _genProf.profiler.InitClient( gen_prof_client ));
+		}
+	  #endif
+
+		_genProf.requiredCounters = GeneralProfiler::ECounterSet{}.SetAll();
+
+		return _genProf.profiler.Initialize( _genProf.requiredCounters );
 	}
 
 /*
@@ -335,6 +433,7 @@ namespace AE::Profiler
 		_nvProf.profiler.Deinitialize();
 		_armProf.profiler.Deinitialize();
 		_pvrProf.profiler.Deinitialize();
+		_genProf.profiler.Deinitialize();
 		_maliProf.profiler.Deinitialize();
 		_adrenoProf.profiler.Deinitialize();
 
@@ -353,14 +452,15 @@ namespace AE::Profiler
 	SampleGraphicsCounters
 =================================================
 */
-	void  HwpcProfiler::SampleGraphicsCounters ()
+	void  HwpcProfiler::SampleGraphicsCounters (float invdt)
 	{
-		const auto	Sample = [] (auto& prof)
+		const auto	Sample = [b = not _isRemote, invdt] (auto& prof)
 		{{
-			if ( not prof.profiler.IsInitialized() )
+			if ( b and not prof.profiler.IsInitialized() )
 				return;
 
-			prof.profiler.Sample( OUT prof.counters );
+			prof.invTimeDelta = invdt;
+			prof.profiler.Sample( OUT prof.counters, INOUT prof.invTimeDelta );
 		}};
 
 		Sample( _nvProf );
@@ -374,17 +474,19 @@ namespace AE::Profiler
 	SampleCPUCounters
 =================================================
 */
-	void  HwpcProfiler::SampleCPUCounters ()
+	void  HwpcProfiler::SampleCPUCounters (float invdt)
 	{
-		const auto	Sample = [] (auto& prof)
+		const auto	Sample = [b = not _isRemote, invdt] (auto& prof)
 		{{
-			if ( not prof.profiler.IsInitialized() )
+			if ( b and not prof.profiler.IsInitialized() )
 				return;
 
-			prof.profiler.Sample( OUT prof.counters );
+			prof.invTimeDelta = invdt;
+			prof.profiler.Sample( OUT prof.counters, INOUT prof.invTimeDelta );
 		}};
 
 		Sample( _armProf );
+		Sample( _genProf );
 	}
 
 

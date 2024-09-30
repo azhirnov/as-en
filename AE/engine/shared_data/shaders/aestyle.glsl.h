@@ -26,15 +26,34 @@
 #	define AE_NV_shader_sm_builtins
 #	define AE_ARM_shader_core_builtins
 #	define AE_fragment_shading_rate
+
+#	define AE_AMD_GPU
+#	define AE_NVidia_GPU
+#	define AE_Intel_GPU
+#	define AE_ARM_Mali_GPU
+#	define AE_Qualcomm_Adreno_GPU
+#	define AE_IMG_PowerVR_GPU
+#	define AE_Microsoft_GPU
+#	define AE_Apple_GPU
+#	define AE_Mesa_GPU_driver
+#	define AE_Broadcom_GPU
+#	define AE_Samsung_GPU
+#	define AE_VeriSilicon_GPU
+#	define AE_Huawei_GPU
 #endif
 
 #define isinf	_IsInf
 #define isnan	_IsNaN
 
+#define and		&&
+#define or		||
+
 #define highp
 #define mediump
 #define lowp
 #define precise		// avoid optimizations
+#define WGShared	// workgroup shared variable qualifier
+#define invariant	// all shaders must output same result on same input
 
 #define out
 #define inout
@@ -45,6 +64,7 @@
 #define OUT
 
 // used for vec/mat type building (templates)
+// AEStyleGLSLPreprocessor will replace it by GLSL vec/mat type without dimension suffix
 #define float_vec_t		float
 #define float_mat_t		float
 #define double_vec_t	double
@@ -149,7 +169,7 @@ template <typename T, int I>	ND_ _Vec<T,I>		mod (const _Vec<T,I> x, const T y);
 template <typename T>			ND_ T				mod (const T x, const T y);
 template <typename T>			ND_ T				modf (const T x, OUT T &i);
 template <typename T, int I>	ND_ _Vec<T,I>		normalize (const _Vec<T,I>);
-							//	ND_ _Vec<bool,I>	not (const _Vec<bool,I>);
+template <int I>				ND_ _Vec<bool,I>	not (const _Vec<bool,I>);
 template <typename T, int I>	ND_ _Vec<bool,I>	notEqual (const _Vec<T,I> x, const _Vec<T,I> y);
 								ND_ double			packDouble2x32 (const uint2);
 								ND_ uint2			unpackDouble2x32 (double);
@@ -196,10 +216,10 @@ template <typename T, int C, int R>	ND_ _Matrix<T,R,C>	transpose (const _Matrix<
 #if 1
 								ND_ slong			pack64 (const int2 v);
 								ND_ ulong			pack64 (const uint2 v);
-								ND_ slong			pack64 (const short4 v);
+								ND_ slong			pack64 (const sshort4 v);
 								ND_ ulong			pack64 (const ushort4 v);
 
-								ND_ int				pack32 (const short2 v);
+								ND_ int				pack32 (const sshort2 v);
 								ND_ uint			pack32 (const ushort2 v);
 								ND_ int				pack32 (const sbyte4 v);
 								ND_ uint			pack32 (const ubyte4 v);
@@ -209,13 +229,13 @@ template <typename T, int C, int R>	ND_ _Matrix<T,R,C>	transpose (const _Matrix<
 
 								ND_ int2			unpack64 (const slong v);
 								ND_ uint2			unpack64 (const ulong v);
-								ND_ short4			unpack64 (const slong v);
-								ND_ ushort4			unpack64 (const ulong v);
+							//	ND_ sshort4			unpack64 (const slong v);
+							//	ND_ ushort4			unpack64 (const ulong v);
 
-								ND_ short2			unpack32 (const int v);
+								ND_ sshort2			unpack32 (const int v);
 								ND_ ushort2			unpack32 (const uint v);
-								ND_ sbyte4			unpack32 (const int v);
-								ND_ ubyte4			unpack32 (const uint v);
+							//	ND_ sbyte4			unpack32 (const int v);
+							//	ND_ ubyte4			unpack32 (const uint v);
 
 								ND_ sbyte2			unpack16 (const short v);
 								ND_ ubyte2			unpack16 (const ushort v);
@@ -228,13 +248,13 @@ template <typename T, int C, int R>	ND_ _Matrix<T,R,C>	transpose (const _Matrix<
 								ND_ uint			packFloat2x16 (const half2 v);
 								ND_ half2			unpackFloat2x16 (const uint v);
 
-								ND_ int				packInt2x16 (const short2 v);
-								ND_ slong			packInt4x16 (const short4 v);
+								ND_ int				packInt2x16 (const sshort2 v);
+								ND_ slong			packInt4x16 (const sshort4 v);
 								ND_ uint			packUint2x16 (const ushort2 v);
 								ND_ ulong			packUint4x16 (const ushort4 v);
 
-								ND_ short2			unpackInt2x16 (const int v);
-								ND_ short4			unpackInt4x16 (const slong v);
+								ND_ sshort2			unpackInt2x16 (const int v);
+								ND_ sshort4			unpackInt4x16 (const slong v);
 								ND_ ushort2			unpackUint2x16 (const uint v);
 								ND_ ushort4			unpackUint4x16 (const ulong v);
 
@@ -354,9 +374,9 @@ public:
   #ifdef AE_subgroup_uniform_qualifier
 	// It can be applied to:
 	//  * variable declarations qualified as 'in'
-    //  * global variable declarations with no storage qualifier
-    //  * local variable declarations with no storage qualifier
-    //  * function parameter declarations and function return types.
+	//  * global variable declarations with no storage qualifier
+	//  * local variable declarations with no storage qualifier
+	//  * function parameter declarations and function return types.
 	template <typename T>
 	ND_ T	SubgroupUniform (const T &);
   #endif
@@ -861,12 +881,20 @@ public:
 			void  Image ()		const;
 
 		  #if defined(SH_COMPUTE) or defined(SH_MESH_TASK) or defined(SH_MESH)
-			void  Shared ()		const;	// for shared variables
+			void  Shared ()		const;	// for 'WGShared' variables
 		  #endif
 		} memoryBarrier {};
 
 			void	ExecutionBarrier () const;
 		ND_ bool	Elect () const;
+
+		// in
+		const	uint	Size;
+		const	uint	Index;			// in FS QuadIndex = Index & 3
+	  # ifdef SH_COMPUTE
+		const	uint	GroupCount;		// in workgroup
+		const	uint	GroupIndex;		// in workgroup
+	  # endif
 	  #endif
 
 	  #ifdef AE_shader_subgroup_vote
@@ -888,6 +916,13 @@ public:
 		ND_ uint	BallotExclusiveBitCount (const uint4) const;
 		ND_ uint	BallotFindLSB (const uint4) const;
 		ND_ uint	BallotFindMSB (const uint4) const;
+
+		// in
+		const	uint4	EqMask;
+		const	uint4	GeMask;
+		const	uint4	GtMask;
+		const	uint4	LeMask;
+		const	uint4	LtMask;
 	  #endif
 
 	  #ifdef AE_shader_subgroup_shuffle
@@ -933,24 +968,6 @@ public:
 		template <typename T>	ND_ T		ClusteredAnd (const T value, uint clasterSize) const;
 		template <typename T>	ND_ T		ClusteredOr  (const T value, uint clasterSize) const;
 		template <typename T>	ND_ T		ClusteredXor (const T value, uint clasterSize) const;
-	  #endif
-
-
-		// in
-	  #ifdef AE_shader_subgroup_basic
-		const	uint	Size;
-		const	uint	Index;			// in FS QuadIndex = Index & 3
-	  # ifdef SH_COMPUTE
-		const	uint	GroupCount;		// in workgroup
-		const	uint	GroupIndex;		// in workgroup
-	  # endif
-	  #endif
-	  #ifdef AE_shader_subgroup_ballot
-		const	uint4	EqMask;
-		const	uint4	GeMask;
-		const	uint4	GtMask;
-		const	uint4	LeMask;
-		const	uint4	LtMask;
 	  #endif
 
 	} subgroup {};
@@ -1202,17 +1219,22 @@ public:
 	void  WorkgroupBarrier ();
 
 	#ifdef AE_memory_scope_semantics
+	// if uses non-zero 'sem', then it must not use 'storage' semantics of zero.
 	void  ExecutionBarrier (gl::Scope execution, gl::Scope memory, gl::StorageSemantics storage, gl::Semantics sem);
-	void  MemoryBarrier (gl::Scope execution, gl::Scope memory, gl::StorageSemantics storage, gl::Semantics sem);
+
+	void  MemoryBarrier (gl::Scope memory, gl::StorageSemantics storage, gl::Semantics sem);
 	#endif
 
 	const struct {
 		void  All ()		const;	// all memory accesses, scope: shader invocation
 		void  Buffer ()		const;
 		void  Image ()		const;
-		void  Shared ()		const;	// for shared variables
+		void  Shared ()		const;	// for 'WGShared' variables
 		void  Workgroup ()	const;	// all memory accesses, scope: workgroup
+
+		#ifdef AE_shader_subgroup_basic
 		void  Subgroup ()	const;	// all memory accesses, scope: subgroup
+		#endif
 	} memoryBarrier;
 
 	// in
@@ -1227,7 +1249,7 @@ public:
 
 	// sync
 	#ifdef AE_memory_scope_semantics
-	void  MemoryBarrier (gl::Scope execution, gl::Scope memory, gl::StorageSemantics storage, gl::Semantics sem);
+	void  MemoryBarrier (gl::Scope memory, gl::StorageSemantics storage, gl::Semantics sem);
 	#endif
 
 	const struct {

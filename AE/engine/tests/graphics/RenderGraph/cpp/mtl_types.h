@@ -3,7 +3,7 @@
 	// size: 12, align: 4
 	struct Vertex_draw2
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x208fe808u}};  // 'Vertex_draw2'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x208fe808u}};
 
 		packed_float2  Position;
 		packed_ubyte4  Color;
@@ -18,7 +18,7 @@
 	// size: 48, align: 16
 	struct PC_draw3
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x83006fc3u}};  // 'PC_draw3'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x83006fc3u}};
 
 		StaticArray< float4, 3 >    PositionColorArr;
 	};

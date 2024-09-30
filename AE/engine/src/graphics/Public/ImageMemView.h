@@ -31,8 +31,8 @@ namespace AE::Graphics
 		BufferMemView		_content;
 		Bytes32u			_rowPitch;
 		Bytes32u			_slicePitch;
-		ushort3				_offset;
-		ushort3				_dimension;
+		ImageDim_t			_offset;
+		ImageDim_t			_dimension;
 		ushort				_bitsPerBlock	= 0;
 		ubyte2				_texBlockDim;
 		EPixelFormat		_format			= Default;

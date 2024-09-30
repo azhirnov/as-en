@@ -27,7 +27,10 @@ namespace AE::Scripting
 		String				_name;
 
 		const bool			_genHeader	= false;
+	  #if AE_SCRIPT_CPP_REFLECTION
 		String				_header;
+		String				_header2;
+	  #endif
 
 
 	// methods
@@ -36,7 +39,7 @@ namespace AE::Scripting
 		~EnumBinder ()											__NE___;
 
 			void  Create ()										__Th___;
-		ND_ bool  IsRegistered ()								C_NE___;
+		ND_ bool  IsRegistered ()								C_NE___	{ return _engine->IsRegistered( _name ); }
 
 			void  AddValue (StringView name, T value)			__Th___;
 
@@ -70,8 +73,10 @@ namespace AE::Scripting
 	template <typename T>
 	EnumBinder<T>::~EnumBinder () __NE___
 	{
+	  #if AE_SCRIPT_CPP_REFLECTION
 		if_unlikely( _genHeader )
-			_engine->AddCppHeader( RVRef(_name), RVRef(_header), AngelScript::asOBJ_ENUM );
+			_engine->AddCppHeader( RVRef(_name), RVRef(_header << _header2), AngelScript::asOBJ_ENUM );
+	  #endif
 	}
 
 /*
@@ -89,25 +94,18 @@ namespace AE::Scripting
 
 		AS_CHECK_THROW( res );
 
+	  #if AE_SCRIPT_CPP_REFLECTION
 		if_unlikely( _genHeader )
 		{
 			const String	int_type = "uint"s << ToString(sizeof(T)*8);
-			_header << "struct " << _name << "\n{\n";
-			_header << "\t" << _name << " () {}\n";
-			_header << "\t" << _name << " (" << int_type << ") {}\n";
-			_header << "\toperator " << int_type << " () const;\n";
-		}
-	}
+			_header << "enum class " << _name << " : " << int_type << "\n{\n";
 
-/*
-=================================================
-	IsRegistered
-=================================================
-*/
-	template <typename T>
-	bool  EnumBinder<T>::IsRegistered () C_NE___
-	{
-		return _engine->IsRegistered( _name );
+			_header2 << "};\n";
+			_header2 << int_type << "  operator | (" << _name << " lhs, " << _name << " rhs);\n";
+			_header2 << int_type << "  operator | (" << int_type << " lhs, " << _name << " rhs);\n";
+			_header2 << int_type << "  operator | (" << _name << " lhs, " << int_type << " rhs);\n";
+		}
+	  #endif
 	}
 
 /*
@@ -120,14 +118,24 @@ namespace AE::Scripting
 	{
 		ASSERT( slong(value) >= MinValue<int>() and slong(value) <= MaxValue<int>() );
 
-		AS_CHECK_THROW( GetASEngine()->RegisterEnumValue( _name.c_str(), (String{Name()} + '_' + String{valueName}).c_str(), int(value) ));
+		CHECK_THROW( not valueName.empty() );
+		AS_CHECK_THROW( GetASEngine()->RegisterEnumValue( _name.c_str(), (String{Name()} << '_' << valueName).c_str(), int(value) ));
 
+	  #if AE_SCRIPT_CPP_REFLECTION
 		if_unlikely( _genHeader )
 		{
-			_header << "\tstatic constexpr ";
-			_header << "uint"s << ToString(sizeof(T)*8) << ' ';
-			_header << valueName << " = " << ToString( ulong(value) ) << ";\n";
+			if ( Parser::CPP.IsWordBegin( valueName[0] ))
+			{
+				_header << "\t" << valueName << ",\n";
+			}
+			else
+			{
+				_header2 << "static constexpr " << _name << ' ';
+				_header2 << _name << "_" << valueName << " = ";
+				_header2 << _name << "(" << ToString( ulong(value) ) << ");\n";
+			}
 		}
+	  #endif
 	}
 
 /*
@@ -138,6 +146,7 @@ namespace AE::Scripting
 	template <typename T>
 	void  EnumBinder<T>::Comment (StringView text) __Th___
 	{
+	  #if AE_SCRIPT_CPP_REFLECTION
 		if_unlikely( _genHeader and not text.empty() )
 		{
 			_header << '\n';
@@ -148,6 +157,8 @@ namespace AE::Scripting
 				_header << "\t// " << line << '\n';
 			}
 		}
+	  #endif
+		Unused( text );
 	}
 
 

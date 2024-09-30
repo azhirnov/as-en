@@ -58,7 +58,7 @@ namespace AE::Graphics
 
 		constexpr auto	view_usage	= EBufferUsage::UniformTexel | EBufferUsage::StorageTexel;
 
-		if_unlikely( not AnyBits( desc.usage, view_usage ))
+		if_unlikely( NoBits( desc.usage, view_usage ))
 			return false;
 
 		if_unlikely( view.format == Default or view.format >= EPixelFormat::_Count )
@@ -79,7 +79,8 @@ namespace AE::Graphics
 	template <typename ResMngr>
 	ND_ bool  Image_IsSupported (const ResMngr &resMngr, const ImageDesc &desc, Bool imageFormatListSupported) __NE___
 	{
-		const auto&		res_flags = resMngr.GetDevice().GetResourceFlags();
+		const auto&		res_flags		= resMngr.GetDevice().GetResourceFlags();
+		const usize		fmt_list_size	= desc.ViewFormatListSize();
 
 		if_unlikely( desc.imageDim == Default or desc.usage == Default or desc.format == Default or desc.memType == Default )
 			return false;
@@ -93,19 +94,20 @@ namespace AE::Graphics
 			{
 				switch_enum( option )
 				{
-					case EImageOpt::BlitSrc :					if_unlikely( not AllBits( desc.usage, EImageUsage::TransferSrc )) return false;			break;
-					case EImageOpt::BlitDst :					if_unlikely( not AllBits( desc.usage, EImageUsage::TransferDst )) return false;			break;
-					case EImageOpt::BlockTexelViewCompatible :	if_unlikely( not EPixelFormat_IsCompressed( desc.format )) return false;				break;
+					case EImageOpt::BlitSrc :					if_unlikely( NoBits( desc.usage, EImageUsage::TransferSrc )) return false;			break;
+					case EImageOpt::BlitDst :					if_unlikely( NoBits( desc.usage, EImageUsage::TransferDst )) return false;			break;
+					case EImageOpt::BlockTexelViewCompatible :	if_unlikely( not EPixelFormat_IsCompressed( desc.format )) return false;			break;
 
 					case EImageOpt::StorageAtomic :
 					case EImageOpt::VertexPplnStore :
-					case EImageOpt::FragmentPplnStore :			if_unlikely( not AllBits( desc.usage, EImageUsage::Storage )) return false;				break;
+					case EImageOpt::FragmentPplnStore :			if_unlikely( NoBits( desc.usage, EImageUsage::Storage )) return false;				break;
 
 					case EImageOpt::SampledLinear :
-					case EImageOpt::SampledMinMax :				if_unlikely( not AllBits( desc.usage, EImageUsage::Sampled )) return false;				break;
+					case EImageOpt::SampledMinMax :				if_unlikely( NoBits( desc.usage, EImageUsage::Sampled )) return false;				break;
 
-					case EImageOpt::ColorAttachmentBlend :		if_unlikely( not AllBits( desc.usage, EImageUsage::ColorAttachment )) return false;		break;
+					case EImageOpt::ColorAttachmentBlend :		if_unlikely( NoBits( desc.usage, EImageUsage::ColorAttachment )) return false;		break;
 
+					case EImageOpt::ExtendedUsage :
 					case EImageOpt::LossyRTCompression :
 					case EImageOpt::SparseAliased :
 					case EImageOpt::SparseResidencyAliased :
@@ -130,11 +132,11 @@ namespace AE::Graphics
 			return false;
 
 		// validate format list
-		if ( imageFormatListSupported and desc.HasViewFormatList() )
+		if ( imageFormatListSupported and fmt_list_size > 0 )
 		{
 			using EFmtType = PixelFormatInfo::EType;
 
-			if_unlikely( not AllBits( desc.options, EImageOpt::MutableFormat ) and desc.ViewFormatListSize() > 1 )
+			if_unlikely( NoBits( desc.options, EImageOpt::MutableFormat ) and fmt_list_size > 1 )
 				return false;
 
 			const auto&		origin_fmt_info = EPixelFormat_GetInfo( desc.format );
@@ -146,27 +148,24 @@ namespace AE::Graphics
 					continue;
 
 				const auto&		fmt_info	= EPixelFormat_GetInfo( fmt );
-				bool			compatible	= fmt_info.bitsPerBlock		== origin_fmt_info.bitsPerBlock		and
-											  fmt_info.bitsPerBlock2	== origin_fmt_info.bitsPerBlock2;
+				bool			compatible	= true;
 
 				if ( uncompress and not fmt_info.IsCompressed() )
 				{
-					compatible &= (fmt_info.channels == origin_fmt_info.channels);
-					compatible &= (fmt_info.valueType & (EFmtType::UNorm  | EFmtType::SNorm))  == (origin_fmt_info.valueType & (EFmtType::UNorm  | EFmtType::SNorm));
-					compatible &= (fmt_info.valueType & (EFmtType::SFloat | EFmtType::UFloat)) == (origin_fmt_info.valueType & (EFmtType::SFloat | EFmtType::UFloat));
-					compatible &= (fmt_info.valueType & (EFmtType::Int    | EFmtType::UInt))   == (origin_fmt_info.valueType & (EFmtType::Int    | EFmtType::UInt));
+					compatible &= origin_fmt_info.IsColor() and fmt_info.IsColor();
+					compatible &= fmt_info.bitsPerBlock		== origin_fmt_info.bitsPerBlock;
 				}
 				else
 				{
-					compatible &= All( fmt_info.blockDim == origin_fmt_info.blockDim );
-					compatible &= (fmt_info.IsCompressed() == origin_fmt_info.IsCompressed());
+					compatible &= EPixelFormat_IsCompatible( desc.format, fmt );
 				}
+
 				if_unlikely( not compatible )
 					return false;
 			}
 		}
 		else
-		if_unlikely( desc.HasViewFormatList() )
+		if_unlikely( fmt_list_size > 0 )
 		{
 			if ( AllBits( desc.options, EImageOpt::MutableFormat ))
 				return true;
@@ -189,13 +188,14 @@ namespace AE::Graphics
 	ND_ bool  ImageView_IsSupported (const ResMngr &resMngr, const ImageDesc &desc, const ImageViewDesc &view) __NE___
 	{
 		StaticAssert( uint(EImageUsage::All) == 0xFF );
-		StaticAssert( uint(EImageOpt::All) == 0x1FFFF );
+		StaticAssert( uint(EImageOpt::All) == 0x3FFFF );
+		ASSERT( view.format != Default );
 
 		constexpr EImageUsage	view_usage	=
 			EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::ColorAttachment | EImageUsage::DepthStencilAttachment |
 			EImageUsage::InputAttachment | EImageUsage::ShadingRate;
 
-		if_unlikely( not AnyBits( desc.usage, view_usage ))
+		if_unlikely( NoBits( desc.usage, view_usage ))
 			return false;
 
 		if ( view.viewType == EImage_CubeArray )
@@ -203,7 +203,7 @@ namespace AE::Graphics
 			if_unlikely( desc.imageDim != EImageDim_2D or (desc.imageDim == EImageDim_3D and AllBits( desc.options, EImageOpt::Array2DCompatible)) )
 				return false;
 
-			if_unlikely( not AllBits( desc.options, EImageOpt::CubeCompatible ))
+			if_unlikely( NoBits( desc.options, EImageOpt::CubeCompatible ))
 				return false;
 
 			if_unlikely( not IsMultipleOf( view.layerCount, 6 ))
@@ -212,7 +212,7 @@ namespace AE::Graphics
 
 		if ( view.viewType == EImage_Cube )
 		{
-			if_unlikely( not AllBits( desc.options, EImageOpt::CubeCompatible ))
+			if_unlikely( NoBits( desc.options, EImageOpt::CubeCompatible ))
 				return false;
 
 			if_unlikely( view.layerCount != 6 )
@@ -221,51 +221,37 @@ namespace AE::Graphics
 
 		if ( desc.imageDim == EImageDim_3D and view.viewType != EImage_3D )
 		{
-			if_unlikely( not AllBits( desc.options, EImageOpt::Array2DCompatible ))
+			if_unlikely( NoBits( desc.options, EImageOpt::Array2DCompatible ))
 				return false;
 		}
 
-		if ( desc.HasViewFormatList() )
+		// check view format
 		{
-			if_unlikely( not ArrayContains( ArrayView<EPixelFormat>{desc.viewFormats}, view.format ))
-				return false;
-		}
+			const usize	fmt_list_size = desc.ViewFormatListSize();
 
-		if ( view.format != Default and view.format != desc.format )
-		{
-			const auto&		required	= EPixelFormat_GetInfo( desc.format );
-			const auto&		origin		= EPixelFormat_GetInfo( view.format );
-			const bool		req_comp	= Any( required.TexBlockDim() > 1u );
-			const bool		orig_comp	= Any( origin.TexBlockDim() > 1u );
-
-			if_unlikely( not ArrayContains( ArrayView<EPixelFormat>{desc.viewFormats}, view.format ) and
-						 not AllBits( desc.options, EImageOpt::MutableFormat ))
-				return false;
-
-			// compressed to uncompressed
-			if ( AllBits( desc.options, EImageOpt::BlockTexelViewCompatible ) and orig_comp and not req_comp )
+			if ( fmt_list_size > 0 )
 			{
-				if_unlikely( required.bitsPerBlock != origin.bitsPerBlock )
+				if_unlikely( not ArrayContains( ArrayView<EPixelFormat>{desc.viewFormats}, view.format ))
+					return false;
+
+				if_unlikely( fmt_list_size > 1 and NoBits( desc.options, EImageOpt::MutableFormat ))
+					return false;
+			}
+
+			if ( AllBits( desc.options, EImageOpt::BlockTexelViewCompatible ) and not EPixelFormat_IsCompressed( view.format ))
+			{
+				if_unlikely( not EPixelFormat_IsCopySupportedRelaxed( desc.format, view.format ))
 					return false;
 			}
 			else
 			{
-				if_unlikely( req_comp != orig_comp )
+				if_unlikely( not EPixelFormat_IsCompatible( desc.format, view.format ))
 					return false;
 
-				if_unlikely( Any( required.blockDim != origin.blockDim ))
+				if_unlikely( NoBits( desc.options, EImageOpt::MutableFormat )	and
+							 fmt_list_size == 0									and
+							 view.format != desc.format							)
 					return false;
-
-				if ( view.aspectMask == EImageAspect::Stencil )
-				{
-					if_unlikely( required.bitsPerBlock2 != origin.bitsPerBlock2 )
-						return false;
-				}
-				else
-				{
-					if_unlikely( required.bitsPerBlock != origin.bitsPerBlock )
-						return false;
-				}
 			}
 		}
 

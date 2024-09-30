@@ -212,7 +212,7 @@ namespace AE::RemoteGraphics
 		WindowPtr							_window;
 		Ptr<IApplication>					_app;
 		NativeWindow						_nativeWnd;
-		StructAtomic<ushort2>				_windowSize;
+		StructAtomic<ImageDim2_t>			_windowSize;
 
 		Serializing::ObjectFactory			_objFactory;
 		Serializing::ObjectFactory			_cmdFactory;
@@ -256,12 +256,12 @@ namespace AE::RemoteGraphics
 			Profiler::AdrenoProfiler			adreno;
 		  #endif
 		  #ifdef AE_ENABLE_PVRCOUNTER
-			Profiler::PowerVRProfiler					pvr;
-			Profiler::PowerVRProfiler::TimeScopeArr_t	pvrTimings;
+			Profiler::PowerVRProfiler			pvr;
 		  #endif
 		  #ifdef AE_ENABLE_NVML
 			Profiler::NVidiaProfiler			nv;
 		  #endif
+			Profiler::GeneralProfiler			gen;
 		}									_profilers;
 
 
@@ -341,7 +341,7 @@ namespace AE::RemoteGraphics
 		ND_ static PerThreadData*&  _GetThreadData ();
 
 		void  _Send (const Msg::BaseResponse &)					__Th___;
-		void  _Send (const void *data, Bytes dataSize)			__Th___;
+		void  _Send (const void* data, Bytes dataSize)			__Th___;
 		void  _ReadReceived (OUT void* data, Bytes size)		__Th___;
 
 		void  _PushMemStack (RC<SharedMem>)						__Th___;
@@ -458,11 +458,14 @@ namespace AE::RemoteGraphics
 		void  _Cb_ProfAdreno_Sample (const Msg::ProfAdreno_Sample &);
 
 		void  _Cb_ProfPVR_Initialize (const Msg::ProfPVR_Initialize &);
-		void  _Cb_ProfPVR_Tick (const Msg::ProfPVR_Tick &);
+		void  _Cb_ProfPVR_GetTiming (const Msg::ProfPVR_GetTiming &);
 		void  _Cb_ProfPVR_Sample (const Msg::ProfPVR_Sample &);
 
 		void  _Cb_ProfNVidia_Initialize (const Msg::ProfNVidia_Initialize &);
 		void  _Cb_ProfNVidia_Sample (const Msg::ProfNVidia_Sample &);
+
+		void  _Cb_ProfGeneral_Initialize (const Msg::ProfGeneral_Initialize &);
+		void  _Cb_ProfGeneral_Sample (const Msg::ProfGeneral_Sample &);
 
 		void  _Cb_DescUpd_Flush (const Msg::DescUpd_Flush &);
 

@@ -5,7 +5,7 @@
 
 namespace AE::VFS
 {
-	INTERNAL_LINKAGE( Ptr<NetworkStorageServer>  s_NetVFS );
+	INTERNAL_LINKAGE( Ptr<NetworkStorageServer>  s_NetVFS_Server );
 
 //-----------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ namespace AE::VFS
 		for (uint i = 0; (i < _maxParts) and (res.dataSize > _sent); ++i)
 		{
 			const Bytes	size	= Min( res.dataSize - _sent, _partSize );
-			auto		msg		= s_NetVFS->_CreateMsgOpt< CSMsg_VFS_ReadResult >( _clientId, size-1 );
+			auto		msg		= s_NetVFS_Server->_CreateMsgOpt< CSMsg_VFS_ReadResult >( _clientId, size-1 );
 
 			if_likely( msg )
 			{
@@ -32,7 +32,7 @@ namespace AE::VFS
 				msg->index	= ushort(_partIdx);
 				MemCopy( OUT msg->data, res.data + _sent, size );
 
-				if_likely( s_NetVFS->_AddMessage( msg ))
+				if_likely( s_NetVFS_Server->_AddMessage( msg ))
 				{
 					_sent += size;
 					_partIdx ++;
@@ -48,14 +48,14 @@ namespace AE::VFS
 		ASSERT( res.dataSize == _sent );
 
 		// complete
-		auto	msg = s_NetVFS->_CreateMsgOpt< CSMsg_VFS_ReadComplete >( _clientId );
+		auto	msg = s_NetVFS_Server->_CreateMsgOpt< CSMsg_VFS_ReadComplete >( _clientId );
 		if_likely( msg )
 		{
 			msg->reqId	= _id;
 			msg->size	= res.dataSize;
 			msg->hash	= XXHash64( res.data, usize(res.dataSize) );
 
-			if_likely( s_NetVFS->_AddMessage( msg ))
+			if_likely( s_NetVFS_Server->_AddMessage( msg ))
 			{
 				_req = null;
 				return;  // complete
@@ -77,14 +77,14 @@ namespace AE::VFS
 
 		_req = null;
 
-		auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_ReadComplete >( _clientId );
+		auto	msg = s_NetVFS_Server->_CreateMsg< CSMsg_VFS_ReadComplete >( _clientId );
 		CHECK_ERRV( msg );
 
 		msg->reqId	= _id;
 		msg->size	= 0_b;  // error
 		msg->hash	= HashVal64{0};
 
-		CHECK( s_NetVFS->_AddMessage( msg ));
+		CHECK( s_NetVFS_Server->_AddMessage( msg ));
 	}
 //-----------------------------------------------------------------------------
 
@@ -150,8 +150,8 @@ namespace AE::VFS
 	NetworkStorageServer::NetworkStorageServer () __NE___ :
 		_msgConsumer{ *this }
 	{
-		CHECK_FATAL( s_NetVFS == null );
-		s_NetVFS = this;
+		CHECK_FATAL( s_NetVFS_Server == null );
+		s_NetVFS_Server = this;
 	}
 
 /*
@@ -161,7 +161,7 @@ namespace AE::VFS
 */
 	NetworkStorageServer::~NetworkStorageServer () __NE___
 	{
-		s_NetVFS = null;
+		s_NetVFS_Server = null;
 	}
 
 /*
@@ -488,14 +488,14 @@ namespace AE::VFS
 		{
 			AE_LOGI( "failed to find file" );
 
-			auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_ReadComplete >( inMsg.ClientId() );
+			auto	msg = s_NetVFS_Server->_CreateMsg< CSMsg_VFS_ReadComplete >( inMsg.ClientId() );
 			CHECK_ERRV( msg );
 
 			msg->reqId	= inMsg.reqId;
 			msg->size	= 0_b;  // error
 			msg->hash	= HashVal64{0};
 
-			CHECK( s_NetVFS->_AddMessage( msg ));
+			CHECK( s_NetVFS_Server->_AddMessage( msg ));
 			return;
 		}
 
@@ -511,13 +511,13 @@ namespace AE::VFS
 */
 	inline void  NetworkStorageServer::_WriteRequestComplete (NDSRequestID reqId, Bytes written, EClientLocalID clientId) __NE___
 	{
-		auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_WriteComplete >( clientId );
+		auto	msg = s_NetVFS_Server->_CreateMsg< CSMsg_VFS_WriteComplete >( clientId );
 		CHECK_ERRV( msg );
 
 		msg->reqId	= reqId;
 		msg->size	= written;
 
-		CHECK( s_NetVFS->_AddMessage( msg ));
+		CHECK( s_NetVFS_Server->_AddMessage( msg ));
 	}
 
 /*
@@ -602,13 +602,13 @@ namespace AE::VFS
 
 		p.Then(	[req_id = inMsg.reqId, cid = inMsg.ClientId()] (const AsyncWDataSource::Result_t &res)
 				{
-					if ( s_NetVFS )
-						s_NetVFS->_WriteRequestComplete( req_id, res.dataSize, cid );
+					if ( s_NetVFS_Server )
+						s_NetVFS_Server->_WriteRequestComplete( req_id, res.dataSize, cid );
 				});
 		p.Except( [req_id = inMsg.reqId, cid = inMsg.ClientId()] ()
 				{
-					if ( s_NetVFS )
-						s_NetVFS->_WriteRequestFailed( req_id, cid );
+					if ( s_NetVFS_Server )
+						s_NetVFS_Server->_WriteRequestFailed( req_id, cid );
 				});
 	}
 

@@ -100,7 +100,7 @@ namespace AE::Networking
 
 		ND_ bool  _IsValid ()														C_NE___;
 
-		static void  _ValidateMsgStream (const void *ptr, Bytes size)				__NE___;
+		static void  _ValidateMsgStream (const void* ptr, Bytes size)				__NE___;
 	};
 //-----------------------------------------------------------------------------
 

@@ -4,21 +4,32 @@ package AE.engine;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+
 import android.app.Activity;
+
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.IntentFilter;
+
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.BatteryManager;
+
 import android.util.Log;
+
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -59,6 +70,7 @@ public class BaseActivity
 		{
 			try {
 				native_Update( _wndID );
+				_UpdateBattery();
 				_handler.post( _nativeTick );
 			}
 			catch (Exception e) {
@@ -77,6 +89,7 @@ public class BaseActivity
 
 		_sensorMngr		= (SensorManager)getSystemService( Context.SENSOR_SERVICE );
 		_locationMngr	= (LocationManager)getSystemService( Context.LOCATION_SERVICE );
+		_batteryManager	= (BatteryManager)getSystemService( Context.BATTERY_SERVICE );
 		_supportedSensorBits = _GetSupportedSensorsBits();
 
 		_wndID = native_OnCreate( this );
@@ -93,6 +106,7 @@ public class BaseActivity
 
 		_sensorMngr		= null;
 		_locationMngr	= null;
+		_batteryManager	= null;
 	}
 
 	@Override protected void  onPause ()
@@ -125,6 +139,8 @@ public class BaseActivity
 	{
 		super.onStart();
 		native_OnStart( _wndID );
+
+		registerReceiver( this._batInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED) );
 	}
 
 	@Override protected void  onStop ()
@@ -132,6 +148,8 @@ public class BaseActivity
 		super.onStop();
 		native_OnStop( _wndID );
 		_handler.removeCallbacks( _nativeTick );
+
+		unregisterReceiver( this._batInfoReceiver );
 	}
 
 	@Override public void  onConfigurationChanged (Configuration newConfig)
@@ -170,11 +188,59 @@ public class BaseActivity
 			ctrl.setSystemBarsBehavior( WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE );
 			ctrl.hide( WindowInsetsCompat.Type.systemBars() );
 		}
+
+		// API 24
+		wnd.setSustainedPerformanceMode( true );
 	}
 
 
 //-----------------------------------------------------------------------------
- // SurfaceHolder.Callback
+// Battery
+
+	private static final int	_batUpdateFreq		= 10;	// update Battery each X frames
+	private int					_batSkipUpdates		= 0;
+
+	private void  _UpdateBattery ()
+	{
+		if ( _batteryManager == null )
+			return;
+
+		if ( _batSkipUpdates++ < _batUpdateFreq )
+			return;
+
+		_batSkipUpdates = 0;
+
+		float	current		= _batteryManager.getIntProperty( BatteryManager.BATTERY_PROPERTY_CURRENT_NOW );		// mA, uA
+		float	capacity	= _batteryManager.getIntProperty( BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER );		// mAh, uAh
+		float	energy		= _batteryManager.getLongProperty( BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER );	// nWh
+
+		native_SendBatteryStat1( current, capacity, energy );
+	}
+
+	private BroadcastReceiver	_batInfoReceiver = new BroadcastReceiver()
+	{
+		@Override public void  onReceive (Context ctx, Intent intent)
+		{
+			boolean	is_present		= intent.getBooleanExtra( BatteryManager.EXTRA_PRESENT, false );
+			if ( !is_present )
+				return;
+
+			int		ilevel			= intent.getIntExtra( "level", 0 );
+			int		ilevel_scale	= intent.getIntExtra( BatteryManager.EXTRA_SCALE, 100 );
+			float	level			= ilevel * 100.f / (float)ilevel_scale;
+			int		status			= intent.getIntExtra( BatteryManager.EXTRA_STATUS, -1 );
+			boolean is_charging		= status == BatteryManager.BATTERY_STATUS_CHARGING ||
+									  status == BatteryManager.BATTERY_STATUS_FULL;
+			float	temperature		= intent.getIntExtra( BatteryManager.EXTRA_TEMPERATURE, 0 ) * 0.1f;	// C
+			float	voltage			= intent.getIntExtra( BatteryManager.EXTRA_VOLTAGE, 0 );			// V, mV, uV
+
+			native_SendBatteryStat2( level, temperature, voltage, is_charging );
+		}
+	};
+
+
+//-----------------------------------------------------------------------------
+// SurfaceHolder.Callback
 
 	private SurfaceView		_surfaceView;
 
@@ -264,6 +330,8 @@ public class BaseActivity
 
 	private SensorManager 	_sensorMngr 			= null;
 	private LocationManager	_locationMngr			= null;
+	private BatteryManager	_batteryManager			= null;
+
 	private int				_enabledSensorBits		= 0;
 	private int				_supportedSensorBits	= 0;
 	private boolean			_sensorsEnumerated		= false;
@@ -444,4 +512,6 @@ public class BaseActivity
 	private static native void  native_UpdateSensor (int id, int sensor, float[] values);
 	private static native void  native_UpdateGNS (double lat, double lon, double alt, long time, float bearing, float speed,
 												  float horAcc, float vertAcc, float bearingAcc, float speedAcc);
+	private static native void  native_SendBatteryStat1 (float current, float capacity, float energy);
+	private static native void  native_SendBatteryStat2 (float level, float temperature, float voltage, boolean isCharging);
 }

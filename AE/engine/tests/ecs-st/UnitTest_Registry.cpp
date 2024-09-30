@@ -41,13 +41,13 @@ namespace
 		StaticAssert(( IsSameTypes< typename A::template Get<0>, usize > ));
 		using B = typename A::PopFront::type;
 
-		return CreateQuery1( reg, (B const*)null );
+		return CreateQuery1( reg, Cast< B const >(null) );
 	}
 
 	template <typename Fn>
 	static void  EnqueueWithoutQuery (Registry &reg, Fn &&fn)
 	{
-		QueryID	q = CreateQuery2( reg, (typename FunctionInfo<Fn>::args::template Get<0> *)null );
+		QueryID	q = CreateQuery2( reg, Cast< typename FunctionInfo<Fn>::args::template Get<0> >(null) );
 
 		reg.Enqueue( q, FwdArg<Fn>(fn) );
 	}

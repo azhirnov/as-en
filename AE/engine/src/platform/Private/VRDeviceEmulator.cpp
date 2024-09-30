@@ -52,19 +52,19 @@ namespace AE::App
 			.ImageBarrier( src_rt1.imageId,	src_rt1.finalState,									EResourceState::BlitSrc );
 
 		ImageBlit	region;
-		region.srcOffset0	= uint3{ src_rt0.region.left,		src_rt0.region.top,		0u };
-		region.srcOffset1	= uint3{ src_rt0.region.right,		src_rt0.region.bottom,	1u };
-		region.dstOffset0	= uint3{ dst_rt.region.left,		dst_rt.region.top,		0u };
-		region.dstOffset1	= uint3{ dst_rt.region.CenterX(),	dst_rt.region.bottom,	1u };
+		region.srcOffset0	= int3{ src_rt0.region.left,		src_rt0.region.top,		0 };
+		region.srcOffset1	= int3{ src_rt0.region.right,		src_rt0.region.bottom,	1 };
+		region.dstOffset0	= int3{ dst_rt.region.left,			dst_rt.region.top,		0 };
+		region.dstOffset1	= int3{ dst_rt.region.CenterX(),	dst_rt.region.bottom,	1 };
 		region.srcSubres	= { EImageAspect::Color, 0_mipmap, src_rt0.layer, 1u };
 		region.dstSubres	= { EImageAspect::Color, 0_mipmap, dst_rt.layer,  1u };
 
 		ctx.BlitImage( src_rt0.imageId, dst_rt.imageId, EBlitFilter::Linear, ArrayView<ImageBlit>{ &region, 1 });
 
-		region.srcOffset0	= uint3{ src_rt1.region.left,		src_rt1.region.top,		0u };
-		region.srcOffset1	= uint3{ src_rt1.region.right,		src_rt1.region.bottom,	1u };
-		region.dstOffset0	= uint3{ dst_rt.region.CenterX(),	dst_rt.region.top,		0u };
-		region.dstOffset1	= uint3{ dst_rt.region.right,		dst_rt.region.bottom,	1u };
+		region.srcOffset0	= int3{ src_rt1.region.left,		src_rt1.region.top,		0 };
+		region.srcOffset1	= int3{ src_rt1.region.right,		src_rt1.region.bottom,	1 };
+		region.dstOffset0	= int3{ dst_rt.region.CenterX(),	dst_rt.region.top,		0 };
+		region.dstOffset1	= int3{ dst_rt.region.right,		dst_rt.region.bottom,	1 };
 		region.srcSubres	= { EImageAspect::Color, 0_mipmap, src_rt1.layer, 1u };
 		region.dstSubres	= { EImageAspect::Color, 0_mipmap, dst_rt.layer,  1u };
 

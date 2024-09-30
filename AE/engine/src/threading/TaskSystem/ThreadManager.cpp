@@ -111,7 +111,7 @@ namespace
 	{
 	#ifdef AE_DBG_OR_DEV_OR_PROF
 		const uint		core_id		= ThreadUtils::GetCoreIndex();
-		const auto		freq_mhz	= CpuPerformance::GetFrequency( core_id );
+		const auto		freq_mhz	= PerformanceStat::CPU_GetFrequency( core_id );
 		const auto*		core		= CpuArchInfo::Get().GetCore( core_id );
 		ProfilingInfo	info;
 
@@ -211,7 +211,7 @@ namespace
 		info.coreId		= _coreId;
 
 	  #ifdef AE_DBG_OR_DEV_OR_PROF
-		const auto		freq_mhz	= CpuPerformance::GetFrequency( uint(_coreId) );
+		const auto		freq_mhz	= PerformanceStat::CPU_GetFrequency( uint(_coreId) );
 		const auto*		core		= CpuArchInfo::Get().GetCore( uint(_coreId) );
 
 		info.curFreq	= freq_mhz;

@@ -33,9 +33,9 @@ ND_ float3  XYYtoRGB_v2 (float3 xyY);
 ND_ float3  RGBtoOklab (float3 rgb);
 ND_ float3  OklabToRGB (float3 oklab);
 
-ND_ float  RGBtoLuminance (const float3 linear);
-ND_ float  RGBtoLogLuminance (const float3 linear, float gamma);
-ND_ float  RGBtoLogLuminance (const float3 linear);
+ND_ float   RGBtoLuminance (const float3 linear);
+ND_ float   RGBtoLogLuminance (const float3 linear, float gamma);
+ND_ float   RGBtoLogLuminance (const float3 linear);
 
 ND_ float3  FromRGBM (const float4 rgbm);
 ND_ float4  ToRGBM (const float3 rgb);

@@ -86,7 +86,7 @@
 #ifdef SH_FRAG
 	#include "Color.glsl"
 	#include "Hash.glsl"
-	#include "FragHelper.glsl"
+	#include "CodeTemplates.glsl"
 
 	void Main ()
 	{

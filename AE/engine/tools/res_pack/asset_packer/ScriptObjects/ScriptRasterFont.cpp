@@ -307,7 +307,7 @@ namespace {
 
 				ASSERT( All( img_rect.Size() == int2(src.dimension) ));
 
-				CHECK_ERR( dst_view.Blit( uint3{img_rect.left, img_rect.top, 0}, uint3{0}, src_view, uint3(img_rect.Size(),1) ));
+				CHECK_ERR( dst_view.Blit( uint3{int3{ img_rect.left, img_rect.top, 0 }}, uint3{0}, src_view, uint3{int3{ img_rect.Size(), 1 }} ));
 
 				const RectI		texc = RectI{ int2{r.w, r.h} - _paddingPix*2 } + (int2{r.x, r.y} + _paddingPix);
 				src.texcoord = FloatToUNormShort( RectF{texc} / float2(dst_view.Dimension()) );
@@ -592,7 +592,7 @@ namespace AE::AssetPacker
 
 		// GlyphData
 		result.symbol		= unicodeChar;
-		result.dimension	= uint2{ Ceil((bounds.r - bounds.l) * projScale), Ceil((bounds.t - bounds.b) * projScale) } + border_px*2;
+		result.dimension	= uint2{double2{ Ceil((bounds.r - bounds.l) * projScale), Ceil((bounds.t - bounds.b) * projScale) }} + border_px*2;
 
 		proj_translate.x = -bounds.l + border_px / projScale;
 		proj_translate.y = -bounds.b + border_px / projScale;

@@ -38,6 +38,8 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_KHR_pipeline_executable_properties
 - [x] VK_EXT_device_memory_report
 - [x] VK_NV_ray_tracing_validation
+- [x] VK_NV_clip_space_w_scaling
+- [x] VK_EXT_subgroup_size_control
 
 **In progress:**
 - [ ] VK_KHR_video_queue
@@ -60,7 +62,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [ ] VK_KHR_uniform_buffer_standard_layout
 - [ ] VK_KHR_format_feature_flags2
 - [ ] VK_EXT_inline_uniform_block
-- [ ] VK_EXT_subgroup_size_control
 - [ ] VK_EXT_depth_range_unrestricted
 - [ ] VK_EXT_sample_locations
 - [ ] VK_EXT_rasterization_order_attachment_access
@@ -125,6 +126,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [ ] VK_NV_displacement_micromap, GL_NV_displacement_micromap
 - [ ] VK_KHR_push_descriptor
 - [ ] VK_KHR_shader_integer_dot_product - ML
+- [ ] VK_KHR_pipeline_binary
 
 **Pending for debugging:**
 - [ ] VK_EXT_device_fault
@@ -150,7 +152,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_NV_raw_access_chains - for HLSL
 - VK_KHR_index_type_uint8
 - VK_NV_copy_memory_indirect
-- VK_NV_clip_space_w_scaling - for VR, replaced by VRS
 
 **Supported shader extensions:**
 - [x] VK_KHR_shader_clock, GL_EXT_shader_realtime_clock, GL_ARB_shader_clock
@@ -199,10 +200,10 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [ ] VK_KHR_workgroup_memory_explicit_layout
 - [ ] VK_EXT_shader_image_atomic_int64
 - [ ] VK_HUAWEI_cluster_culling_shader, GL_HUAWEI_cluster_culling_shader
-- [ ] GL_EXT_expect_assume
+- [ ] GL_EXT_expect_assume - depends on compiler?
 - [ ] VK_NV_shader_atomic_float16_vector
-- [ ] VK_KHR_shader_float_controls, SPV_KHR_float_controls
-- [ ] VK_KHR_shader_float_controls2, SPV_KHR_float_controls2
+- [ ] VK_KHR_shader_float_controls, SPV_KHR_float_controls - not supported by glslang
+- [ ] VK_KHR_shader_float_controls2, SPV_KHR_float_controls2 - not supported by glslang
 - [ ] GL_EXT_spirv_intrinsics
 - [ ] GL_EXT_shared_memory_block
 - [ ] GL_EXT_fragment_invocation_density

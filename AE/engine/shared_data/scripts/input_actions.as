@@ -1,4 +1,4 @@
-//6e22be57
+//f60471aa
 #include <vector>
 #include <string>
 
@@ -8,7 +8,6 @@ using int8		= std::int8_t;
 using uint8		= std::uint8_t;
 using int16		= std::int16_t;
 using uint16	= std::uint16_t;
-using int		= std::int32_t;
 using uint		= std::uint32_t;
 using int32		= std::int32_t;
 using uint32	= std::uint32_t;
@@ -22,47 +21,742 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct EGestureType;
-struct ubyte3;
-struct ubyte2;
-struct ubyte4;
-struct EGestureState;
-struct OpenVR_Input;
-struct WinAPI_ActionBindings;
-struct WinAPI_Input;
-struct EValueType;
-struct VecSwizzle;
-struct Android_ActionBindings;
-struct bool4;
-struct int3;
+using namespace std::string_literals;
+
+template <typename T>
+string  operator + (const string &lhs, T rhs);
+
+struct int4;
 struct bool2;
+struct int3;
 struct int2;
 struct bool3;
-struct GLFW_Input;
-struct int4;
+struct bool4;
 struct short4;
-struct OpenVR_BindingsMode;
-struct ushort3;
-struct sbyte4;
-struct Android_BindingsMode;
-struct sbyte3;
-struct ActionInfo;
 struct sbyte2;
-struct ushort4;
+struct ushort3;
 struct ushort2;
-struct short3;
-struct short2;
-struct GLFW_BindingsMode;
-struct uint3;
-struct uint4;
-struct uint2;
-struct Android_Input;
-struct float4;
-struct float2;
-struct float3;
+struct ActionInfo;
+struct Android_BindingsMode;
+struct OpenVR_BindingsMode;
+struct Android_ActionBindings;
+struct VecSwizzle;
+struct ubyte4;
+struct WinAPI_ActionBindings;
+struct ubyte3;
+struct ubyte2;
+struct OpenVR_ActionBindings;
 struct WinAPI_BindingsMode;
 struct GLFW_ActionBindings;
-struct OpenVR_ActionBindings;
+struct float2;
+struct float3;
+struct uint3;
+struct uint2;
+struct float4;
+struct uint4;
+struct sbyte4;
+struct sbyte3;
+struct short2;
+struct ushort4;
+struct short3;
+struct GLFW_BindingsMode;
+
+enum class EGestureState : uint8
+{
+	Begin,
+	Update,
+	End,
+	Cancel,
+	Outside,
+};
+uint8  operator | (EGestureState lhs, EGestureState rhs);
+uint8  operator | (uint8 lhs, EGestureState rhs);
+uint8  operator | (EGestureState lhs, uint8 rhs);
+
+enum class EGestureType : uint8
+{
+	Hold,
+	Move,
+	LongPress_Move,
+	ScaleRotate2D,
+	Down,
+	Click,
+	LongPress,
+	DoubleClick,
+};
+uint8  operator | (EGestureType lhs, EGestureType rhs);
+uint8  operator | (uint8 lhs, EGestureType rhs);
+uint8  operator | (EGestureType lhs, uint8 rhs);
+
+enum class EValueType : uint8
+{
+	Unknown,
+	Float,
+	Float2,
+	Float3,
+	Float4,
+	Quat,
+	Float4x4,
+	Chars,
+	GNS,
+};
+uint8  operator | (EValueType lhs, EValueType rhs);
+uint8  operator | (uint8 lhs, EValueType rhs);
+uint8  operator | (EValueType lhs, uint8 rhs);
+
+enum class GLFW_Input : uint16
+{
+	Space,
+	Apostrophe,
+	Comma,
+	Minus,
+	Period,
+	Slash,
+	Semicolon,
+	Equal,
+	A,
+	B,
+	C,
+	D,
+	E,
+	F,
+	G,
+	H,
+	I,
+	J,
+	K,
+	L,
+	M,
+	N,
+	O,
+	P,
+	Q,
+	R,
+	S,
+	T,
+	U,
+	V,
+	W,
+	X,
+	Y,
+	Z,
+	LeftBracket,
+	BackSlash,
+	RightBracket,
+	GraveAccent,
+	World1,
+	World2,
+	Escape,
+	Enter,
+	Tab,
+	Backspace,
+	Insert,
+	Delete,
+	ArrowRight,
+	ArrowLeft,
+	ArrowDown,
+	ArrowUp,
+	PageUp,
+	PageDown,
+	Home,
+	End,
+	CapsLock,
+	ScrollLock,
+	NumLock,
+	PrintScreen,
+	Pause,
+	F1,
+	F2,
+	F3,
+	F4,
+	F5,
+	F6,
+	F7,
+	F8,
+	F9,
+	F10,
+	F11,
+	F12,
+	F13,
+	F14,
+	F15,
+	F16,
+	F17,
+	F18,
+	F19,
+	F20,
+	F21,
+	F22,
+	F23,
+	F24,
+	F25,
+	LeftShift,
+	LeftControl,
+	LeftAlt,
+	LeftSuper,
+	RightShift,
+	RightControl,
+	RightAlt,
+	RightSuper,
+	Menu,
+	KP_0,
+	KP_1,
+	KP_2,
+	KP_3,
+	KP_4,
+	KP_5,
+	KP_6,
+	KP_7,
+	KP_8,
+	KP_9,
+	KP_Decimal,
+	KP_Divide,
+	KP_Multiply,
+	KP_Subtract,
+	KP_Add,
+	KP_Enter,
+	KP_Equal,
+	MouseBtn1,
+	MouseBtn2,
+	MouseBtn3,
+	MouseBtn4,
+	MouseBtn5,
+	MouseBtn6,
+	MouseBtn7,
+	MouseBtn8,
+	Accelerometer,
+	MagneticField,
+	GeoLocation,
+	Gyroscope,
+	AmbientLight,
+	AirPressure,
+	Proximity,
+	Gravity,
+	LinearAcceleration,
+	RotationVector,
+	RelativeHumidity,
+	AirTemperature,
+	GameRotationVector,
+	Pose6DOF,
+	MultiTouch,
+	MouseWheel,
+	CursorPos,
+	CursorPos_mm,
+	CursorDelta,
+	CursorDelta_norm,
+	TouchPos,
+	TouchPos_mm,
+	TouchDelta,
+	TouchDelta_norm,
+	MouseLeft,
+	MouseRight,
+	MouseMiddle,
+};
+uint16  operator | (GLFW_Input lhs, GLFW_Input rhs);
+uint16  operator | (uint16 lhs, GLFW_Input rhs);
+uint16  operator | (GLFW_Input lhs, uint16 rhs);
+static constexpr GLFW_Input GLFW_Input_0 = GLFW_Input(48);
+static constexpr GLFW_Input GLFW_Input_1 = GLFW_Input(49);
+static constexpr GLFW_Input GLFW_Input_2 = GLFW_Input(50);
+static constexpr GLFW_Input GLFW_Input_3 = GLFW_Input(51);
+static constexpr GLFW_Input GLFW_Input_4 = GLFW_Input(52);
+static constexpr GLFW_Input GLFW_Input_5 = GLFW_Input(53);
+static constexpr GLFW_Input GLFW_Input_6 = GLFW_Input(54);
+static constexpr GLFW_Input GLFW_Input_7 = GLFW_Input(55);
+static constexpr GLFW_Input GLFW_Input_8 = GLFW_Input(56);
+static constexpr GLFW_Input GLFW_Input_9 = GLFW_Input(57);
+
+enum class WinAPI_Input : uint16
+{
+	Backspace,
+	Tab,
+	Clear,
+	Enter,
+	LeftShift,
+	RightShift,
+	LeftCtrl,
+	RightCtrl,
+	LeftAlt,
+	RightAlt,
+	Pause,
+	CapsLock,
+	Escape,
+	Space,
+	PageUp,
+	PageDown,
+	End,
+	Home,
+	ArrowLeft,
+	ArrowUp,
+	ArrowRight,
+	ArrowDown,
+	Select,
+	Print,
+	Execute,
+	Snapshot,
+	Insert,
+	Delete,
+	Help,
+	A,
+	B,
+	C,
+	D,
+	E,
+	F,
+	G,
+	H,
+	I,
+	J,
+	K,
+	L,
+	M,
+	N,
+	O,
+	P,
+	Q,
+	R,
+	S,
+	T,
+	U,
+	V,
+	W,
+	X,
+	Y,
+	Z,
+	LeftWin,
+	RightWin,
+	LeftApps,
+	RightApps,
+	Sleep,
+	F1,
+	F2,
+	F3,
+	F4,
+	F5,
+	F6,
+	F7,
+	F8,
+	F9,
+	F10,
+	F11,
+	F12,
+	F13,
+	F14,
+	F15,
+	F16,
+	F17,
+	F18,
+	F19,
+	F20,
+	F21,
+	F22,
+	F23,
+	F24,
+	NumLock,
+	ScrollLock,
+	BrowserBack,
+	BrowserForward,
+	BrowserRefresh,
+	BrowserStop,
+	BrowserSearch,
+	BrowserFavorites,
+	BrowserHome,
+	VolumeMute,
+	VolumeDown,
+	VolumeUp,
+	MediaNextTrack,
+	MediaPrevTrack,
+	MediaStop,
+	MediaPlayPause,
+	LaunchMail,
+	LaunchMediaSelect,
+	LaunchApp1,
+	LaunchApp2,
+	Semicolon,
+	Equal,
+	Comma,
+	Minus,
+	Period,
+	Slash,
+	GraveAccent,
+	LeftBracket,
+	BackSlash,
+	RightBracket,
+	Apostrophe,
+	KP_Enter,
+	KP_0,
+	KP_1,
+	KP_2,
+	KP_3,
+	KP_4,
+	KP_5,
+	KP_6,
+	KP_7,
+	KP_8,
+	KP_9,
+	KP_Multiply,
+	KP_Add,
+	KP_Separator,
+	KP_Subtract,
+	KP_Decimal,
+	KP_Divide,
+	KP_Divide2,
+	KP_End,
+	KP_ArrowLeft,
+	KP_ArrowUp,
+	KP_ArrowRight,
+	KP_ArrowDown,
+	KP_Home,
+	KP_PageUp,
+	KP_PageDown,
+	KP_Insert,
+	KP_Delete,
+	MouseBtn0,
+	MouseBtn1,
+	MouseBtn2,
+	MouseBtn3,
+	MouseBtn4,
+	MultiTouch,
+	MouseWheel,
+	CursorPos,
+	CursorPos_mm,
+	CursorDelta,
+	CursorDelta_norm,
+	TouchPos,
+	TouchPos_mm,
+	TouchDelta,
+	TouchDelta_norm,
+	MouseLeft,
+	MouseRight,
+	MouseMiddle,
+};
+uint16  operator | (WinAPI_Input lhs, WinAPI_Input rhs);
+uint16  operator | (uint16 lhs, WinAPI_Input rhs);
+uint16  operator | (WinAPI_Input lhs, uint16 rhs);
+static constexpr WinAPI_Input WinAPI_Input_0 = WinAPI_Input(48);
+static constexpr WinAPI_Input WinAPI_Input_1 = WinAPI_Input(49);
+static constexpr WinAPI_Input WinAPI_Input_2 = WinAPI_Input(50);
+static constexpr WinAPI_Input WinAPI_Input_3 = WinAPI_Input(51);
+static constexpr WinAPI_Input WinAPI_Input_4 = WinAPI_Input(52);
+static constexpr WinAPI_Input WinAPI_Input_5 = WinAPI_Input(53);
+static constexpr WinAPI_Input WinAPI_Input_6 = WinAPI_Input(54);
+static constexpr WinAPI_Input WinAPI_Input_7 = WinAPI_Input(55);
+static constexpr WinAPI_Input WinAPI_Input_8 = WinAPI_Input(56);
+static constexpr WinAPI_Input WinAPI_Input_9 = WinAPI_Input(57);
+
+enum class Android_Input : uint16
+{
+	Back,
+	Star,
+	Paund,
+	VolumeUp,
+	VolumeDown,
+	VolumeMute,
+	Power,
+	Camera,
+	Clear,
+	A,
+	B,
+	C,
+	D,
+	E,
+	F,
+	G,
+	H,
+	I,
+	J,
+	K,
+	L,
+	M,
+	N,
+	O,
+	P,
+	Q,
+	R,
+	S,
+	T,
+	U,
+	V,
+	W,
+	X,
+	Y,
+	Z,
+	Comma,
+	Period,
+	LeftAlt,
+	RightAlt,
+	LeftShift,
+	RightShift,
+	Tab,
+	Space,
+	Sym,
+	Browser,
+	LaunchMail,
+	Enter,
+	Delete,
+	Grave,
+	Minus,
+	Equal,
+	LeftBracket,
+	RightBracket,
+	BackSlash,
+	Semicolon,
+	Apostrophe,
+	Slash,
+	At,
+	Num,
+	Plus,
+	Menu,
+	Notification,
+	Search,
+	MicMute,
+	PageUp,
+	PageDown,
+	PictSymbols,
+	SwitchCharset,
+	Escape,
+	ForwardDelete,
+	LeftControl,
+	RightControl,
+	CapsLock,
+	ScrollLock,
+	LeftMeta,
+	RightMeta,
+	Function,
+	SysRq,
+	PauseBreak,
+	MoveHome,
+	MoveEnd,
+	Insert,
+	Forward,
+	F1,
+	F2,
+	F3,
+	F4,
+	F5,
+	F6,
+	F7,
+	F8,
+	F9,
+	F10,
+	F11,
+	F12,
+	NumLock,
+	Info,
+	ChannelUp,
+	ChannelDown,
+	ZoomIn,
+	ZoomOut,
+	Window,
+	Guide,
+	DVR,
+	Bookmark,
+	Captions,
+	Settings,
+	AppSwitch,
+	LangSwitch,
+	MannerMode,
+	Contacts,
+	Calendar,
+	Music,
+	Calculator,
+	ZenkakuHankaku,
+	Eisu,
+	Muhenkan,
+	Henkan,
+	KatakanaHiragana,
+	Yen,
+	Ro,
+	Kana,
+	Assist,
+	BrightnessDown,
+	BrightnessUp,
+	Sleep,
+	Wakeup,
+	Pairing,
+	LastChannel,
+	VoiceAssist,
+	Help,
+	NavPrev,
+	NavNext,
+	NavIn,
+	NavOut,
+	StemPrimary,
+	Stem1,
+	Stem2,
+	Stem3,
+	SoftSleep,
+	Cut,
+	Copy,
+	Paste,
+	SysNavUp,
+	SysNavDown,
+	SysNavLeft,
+	SysNavRight,
+	AllApps,
+	Refresh,
+	ThumbsUp,
+	ThumbsDown,
+	ProfileSwitch,
+	MediaPlayPause,
+	MediaStop,
+	MediaNext,
+	MediaPrev,
+	MediaRewind,
+	MediaFastForward,
+	MediaPlay,
+	MediaPause,
+	MediaClose,
+	MediaEject,
+	MediaRecord,
+	MediaAudioTrack,
+	MediaTopMenu,
+	MediaSkipForward,
+	MediaSkipBackward,
+	MediaStepForward,
+	MediaStepBackward,
+	DPadUp,
+	DPadDown,
+	DPadLeft,
+	DPadRight,
+	DPadCenter,
+	DPadUpLeft,
+	DPadDownLeft,
+	DPadUpRight,
+	DPadDownRight,
+	GPadA,
+	GPadB,
+	GPadC,
+	GPadX,
+	GPadY,
+	GPadZ,
+	GPadL1,
+	GPadR1,
+	GPadL2,
+	GPadR2,
+	GPadThumbL,
+	GPadThumbR,
+	GPadStart,
+	GPadSelect,
+	GPadMode,
+	GPad1,
+	GPad2,
+	GPad3,
+	GPad4,
+	GPad5,
+	GPad6,
+	GPad7,
+	GPad8,
+	GPad9,
+	GPad10,
+	GPad11,
+	GPad12,
+	GPad13,
+	GPad14,
+	GPad15,
+	GPad16,
+	KP_0,
+	KP_1,
+	KP_2,
+	KP_3,
+	KP_4,
+	KP_5,
+	KP_6,
+	KP_7,
+	KP_8,
+	KP_9,
+	KP_Divide,
+	KP_Multiply,
+	KP_Subtract,
+	KP_Add,
+	KP_Dot,
+	KP_Comma,
+	KP_Enter,
+	KP_Equal,
+	KP_LeftParen,
+	KP_RightParen,
+	TV,
+	TV_Power,
+	TV_Input,
+	TV_STBPower,
+	TV_STBInput,
+	AV_Power,
+	AVR_Input,
+	TV_ProgRed,
+	TV_ProgGreen,
+	TV_ProgYellow,
+	TV_ProgBlue,
+	TV_DataService,
+	TV_RadioService,
+	TV_Teletext,
+	TV_NumberEntry,
+	TV_TerrestrialAnalog,
+	TV_TerrestrialDigital,
+	TV_Satellite,
+	TV_SatelliteBS,
+	TV_SattelliteCS,
+	TV_SatelliteService,
+	TV_Network,
+	TV_AntennaCable,
+	TV_InputHdmi1,
+	TV_InputHdmi2,
+	TV_InputHdmi3,
+	TV_InputHdmi4,
+	TV_inputComposite1,
+	TV_inputComposite2,
+	TV_InputComponent1,
+	TV_InputComponent2,
+	TV_InputVGA1,
+	TV_AudioDesc,
+	TV_AudioDescMixUp,
+	TV_AudioDescMixDown,
+	TV_ZoomMode,
+	TV_ContentsMenu,
+	TV_MediaContextMenu,
+	TV_TimerProgramming,
+	Accelerometer,
+	MagneticField,
+	GeoLocation,
+	Gyroscope,
+	AmbientLight,
+	AirPressure,
+	Proximity,
+	Gravity,
+	LinearAcceleration,
+	RotationVector,
+	RelativeHumidity,
+	AirTemperature,
+	GameRotationVector,
+	Pose6DOF,
+	MultiTouch,
+	TouchPos,
+	TouchPos_mm,
+	TouchDelta,
+	TouchDelta_norm,
+};
+uint16  operator | (Android_Input lhs, Android_Input rhs);
+uint16  operator | (uint16 lhs, Android_Input rhs);
+uint16  operator | (Android_Input lhs, uint16 rhs);
+static constexpr Android_Input Android_Input_0 = Android_Input(7);
+static constexpr Android_Input Android_Input_1 = Android_Input(8);
+static constexpr Android_Input Android_Input_2 = Android_Input(9);
+static constexpr Android_Input Android_Input_3 = Android_Input(10);
+static constexpr Android_Input Android_Input_4 = Android_Input(11);
+static constexpr Android_Input Android_Input_5 = Android_Input(12);
+static constexpr Android_Input Android_Input_6 = Android_Input(13);
+static constexpr Android_Input Android_Input_7 = Android_Input(14);
+static constexpr Android_Input Android_Input_8 = Android_Input(15);
+static constexpr Android_Input Android_Input_9 = Android_Input(16);
+static constexpr Android_Input Android_Input_3DMode = Android_Input(206);
+static constexpr Android_Input Android_Input_11 = Android_Input(227);
+static constexpr Android_Input Android_Input_12 = Android_Input(228);
+
+enum class OpenVR_Input : uint16
+{
+};
+uint16  operator | (OpenVR_Input lhs, OpenVR_Input rhs);
+uint16  operator | (uint16 lhs, OpenVR_Input rhs);
+uint16  operator | (OpenVR_Input lhs, uint16 rhs);
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -1078,49 +1772,6 @@ struct VecSwizzle
 	VecSwizzle (const string & swizzle);
 };
 
-struct EGestureState
-{
-	EGestureState () {}
-	EGestureState (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Begin = 0;
-	static constexpr uint8 Update = 1;
-	static constexpr uint8 End = 2;
-	static constexpr uint8 Cancel = 3;
-	static constexpr uint8 Outside = 4;
-};
-
-struct EGestureType
-{
-	EGestureType () {}
-	EGestureType (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Hold = 3;
-	static constexpr uint8 Move = 5;
-	static constexpr uint8 LongPress_Move = 6;
-	static constexpr uint8 ScaleRotate2D = 7;
-	static constexpr uint8 Down = 0;
-	static constexpr uint8 Click = 1;
-	static constexpr uint8 LongPress = 4;
-	static constexpr uint8 DoubleClick = 2;
-};
-
-struct EValueType
-{
-	EValueType () {}
-	EValueType (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Unknown = 255;
-	static constexpr uint8 Float = 0;
-	static constexpr uint8 Float2 = 1;
-	static constexpr uint8 Float3 = 2;
-	static constexpr uint8 Float4 = 3;
-	static constexpr uint8 Quat = 4;
-	static constexpr uint8 Float4x4 = 5;
-	static constexpr uint8 Chars = 6;
-	static constexpr uint8 GNS = 7;
-};
-
 struct ActionInfo
 {
 	ActionInfo ();
@@ -1138,168 +1789,6 @@ struct ActionInfo
 	VecSwizzle swizzle;
 };
 
-struct GLFW_Input
-{
-	GLFW_Input () {}
-	GLFW_Input (uint16) {}
-	operator uint16 () const;
-	static constexpr uint16 Space = 32;
-	static constexpr uint16 Apostrophe = 39;
-	static constexpr uint16 Comma = 44;
-	static constexpr uint16 Minus = 45;
-	static constexpr uint16 Period = 46;
-	static constexpr uint16 Slash = 47;
-	static constexpr uint16 0 = 48;
-	static constexpr uint16 1 = 49;
-	static constexpr uint16 2 = 50;
-	static constexpr uint16 3 = 51;
-	static constexpr uint16 4 = 52;
-	static constexpr uint16 5 = 53;
-	static constexpr uint16 6 = 54;
-	static constexpr uint16 7 = 55;
-	static constexpr uint16 8 = 56;
-	static constexpr uint16 9 = 57;
-	static constexpr uint16 Semicolon = 59;
-	static constexpr uint16 Equal = 61;
-	static constexpr uint16 A = 65;
-	static constexpr uint16 B = 66;
-	static constexpr uint16 C = 67;
-	static constexpr uint16 D = 68;
-	static constexpr uint16 E = 69;
-	static constexpr uint16 F = 70;
-	static constexpr uint16 G = 71;
-	static constexpr uint16 H = 72;
-	static constexpr uint16 I = 73;
-	static constexpr uint16 J = 74;
-	static constexpr uint16 K = 75;
-	static constexpr uint16 L = 76;
-	static constexpr uint16 M = 77;
-	static constexpr uint16 N = 78;
-	static constexpr uint16 O = 79;
-	static constexpr uint16 P = 80;
-	static constexpr uint16 Q = 81;
-	static constexpr uint16 R = 82;
-	static constexpr uint16 S = 83;
-	static constexpr uint16 T = 84;
-	static constexpr uint16 U = 85;
-	static constexpr uint16 V = 86;
-	static constexpr uint16 W = 87;
-	static constexpr uint16 X = 88;
-	static constexpr uint16 Y = 89;
-	static constexpr uint16 Z = 90;
-	static constexpr uint16 LeftBracket = 91;
-	static constexpr uint16 BackSlash = 92;
-	static constexpr uint16 RightBracket = 93;
-	static constexpr uint16 GraveAccent = 96;
-	static constexpr uint16 World1 = 161;
-	static constexpr uint16 World2 = 162;
-	static constexpr uint16 Escape = 256;
-	static constexpr uint16 Enter = 257;
-	static constexpr uint16 Tab = 258;
-	static constexpr uint16 Backspace = 259;
-	static constexpr uint16 Insert = 260;
-	static constexpr uint16 Delete = 261;
-	static constexpr uint16 ArrowRight = 262;
-	static constexpr uint16 ArrowLeft = 263;
-	static constexpr uint16 ArrowDown = 264;
-	static constexpr uint16 ArrowUp = 265;
-	static constexpr uint16 PageUp = 266;
-	static constexpr uint16 PageDown = 267;
-	static constexpr uint16 Home = 268;
-	static constexpr uint16 End = 269;
-	static constexpr uint16 CapsLock = 280;
-	static constexpr uint16 ScrollLock = 281;
-	static constexpr uint16 NumLock = 282;
-	static constexpr uint16 PrintScreen = 283;
-	static constexpr uint16 Pause = 284;
-	static constexpr uint16 F1 = 290;
-	static constexpr uint16 F2 = 291;
-	static constexpr uint16 F3 = 292;
-	static constexpr uint16 F4 = 293;
-	static constexpr uint16 F5 = 294;
-	static constexpr uint16 F6 = 295;
-	static constexpr uint16 F7 = 296;
-	static constexpr uint16 F8 = 297;
-	static constexpr uint16 F9 = 298;
-	static constexpr uint16 F10 = 299;
-	static constexpr uint16 F11 = 300;
-	static constexpr uint16 F12 = 301;
-	static constexpr uint16 F13 = 302;
-	static constexpr uint16 F14 = 303;
-	static constexpr uint16 F15 = 304;
-	static constexpr uint16 F16 = 305;
-	static constexpr uint16 F17 = 306;
-	static constexpr uint16 F18 = 307;
-	static constexpr uint16 F19 = 308;
-	static constexpr uint16 F20 = 309;
-	static constexpr uint16 F21 = 310;
-	static constexpr uint16 F22 = 311;
-	static constexpr uint16 F23 = 312;
-	static constexpr uint16 F24 = 313;
-	static constexpr uint16 F25 = 314;
-	static constexpr uint16 LeftShift = 340;
-	static constexpr uint16 LeftControl = 341;
-	static constexpr uint16 LeftAlt = 342;
-	static constexpr uint16 LeftSuper = 343;
-	static constexpr uint16 RightShift = 344;
-	static constexpr uint16 RightControl = 345;
-	static constexpr uint16 RightAlt = 346;
-	static constexpr uint16 RightSuper = 347;
-	static constexpr uint16 Menu = 348;
-	static constexpr uint16 KP_0 = 320;
-	static constexpr uint16 KP_1 = 321;
-	static constexpr uint16 KP_2 = 322;
-	static constexpr uint16 KP_3 = 323;
-	static constexpr uint16 KP_4 = 324;
-	static constexpr uint16 KP_5 = 325;
-	static constexpr uint16 KP_6 = 326;
-	static constexpr uint16 KP_7 = 327;
-	static constexpr uint16 KP_8 = 328;
-	static constexpr uint16 KP_9 = 329;
-	static constexpr uint16 KP_Decimal = 330;
-	static constexpr uint16 KP_Divide = 331;
-	static constexpr uint16 KP_Multiply = 332;
-	static constexpr uint16 KP_Subtract = 333;
-	static constexpr uint16 KP_Add = 334;
-	static constexpr uint16 KP_Enter = 335;
-	static constexpr uint16 KP_Equal = 336;
-	static constexpr uint16 MouseBtn1 = 0;
-	static constexpr uint16 MouseBtn2 = 1;
-	static constexpr uint16 MouseBtn3 = 2;
-	static constexpr uint16 MouseBtn4 = 3;
-	static constexpr uint16 MouseBtn5 = 4;
-	static constexpr uint16 MouseBtn6 = 5;
-	static constexpr uint16 MouseBtn7 = 6;
-	static constexpr uint16 MouseBtn8 = 7;
-	static constexpr uint16 Accelerometer = 373;
-	static constexpr uint16 MagneticField = 377;
-	static constexpr uint16 GeoLocation = 381;
-	static constexpr uint16 Gyroscope = 375;
-	static constexpr uint16 AmbientLight = 369;
-	static constexpr uint16 AirPressure = 370;
-	static constexpr uint16 Proximity = 371;
-	static constexpr uint16 Gravity = 374;
-	static constexpr uint16 LinearAcceleration = 376;
-	static constexpr uint16 RotationVector = 378;
-	static constexpr uint16 RelativeHumidity = 372;
-	static constexpr uint16 AirTemperature = 368;
-	static constexpr uint16 GameRotationVector = 379;
-	static constexpr uint16 Pose6DOF = 380;
-	static constexpr uint16 MultiTouch = 358;
-	static constexpr uint16 MouseWheel = 359;
-	static constexpr uint16 CursorPos = 360;
-	static constexpr uint16 CursorPos_mm = 361;
-	static constexpr uint16 CursorDelta = 362;
-	static constexpr uint16 CursorDelta_norm = 363;
-	static constexpr uint16 TouchPos = 364;
-	static constexpr uint16 TouchPos_mm = 365;
-	static constexpr uint16 TouchDelta = 366;
-	static constexpr uint16 TouchDelta_norm = 367;
-	static constexpr uint16 MouseLeft = 0;
-	static constexpr uint16 MouseRight = 1;
-	static constexpr uint16 MouseMiddle = 2;
-};
-
 struct GLFW_BindingsMode
 {
 	GLFW_BindingsMode ();
@@ -1312,184 +1801,6 @@ struct GLFW_ActionBindings
 {
 	GLFW_ActionBindings ();
 	RC<GLFW_BindingsMode>  CreateMode (const string &);
-};
-
-struct WinAPI_Input
-{
-	WinAPI_Input () {}
-	WinAPI_Input (uint16) {}
-	operator uint16 () const;
-	static constexpr uint16 Backspace = 8;
-	static constexpr uint16 Tab = 9;
-	static constexpr uint16 Clear = 12;
-	static constexpr uint16 Enter = 13;
-	static constexpr uint16 LeftShift = 16;
-	static constexpr uint16 RightShift = 4096;
-	static constexpr uint16 LeftCtrl = 17;
-	static constexpr uint16 RightCtrl = 4352;
-	static constexpr uint16 LeftAlt = 18;
-	static constexpr uint16 RightAlt = 4608;
-	static constexpr uint16 Pause = 19;
-	static constexpr uint16 CapsLock = 20;
-	static constexpr uint16 Escape = 27;
-	static constexpr uint16 Space = 32;
-	static constexpr uint16 PageUp = 8448;
-	static constexpr uint16 PageDown = 8704;
-	static constexpr uint16 End = 8960;
-	static constexpr uint16 Home = 9216;
-	static constexpr uint16 ArrowLeft = 9472;
-	static constexpr uint16 ArrowUp = 9728;
-	static constexpr uint16 ArrowRight = 9984;
-	static constexpr uint16 ArrowDown = 10240;
-	static constexpr uint16 Select = 41;
-	static constexpr uint16 Print = 42;
-	static constexpr uint16 Execute = 43;
-	static constexpr uint16 Snapshot = 44;
-	static constexpr uint16 Insert = 11520;
-	static constexpr uint16 Delete = 11776;
-	static constexpr uint16 Help = 47;
-	static constexpr uint16 0 = 48;
-	static constexpr uint16 1 = 49;
-	static constexpr uint16 2 = 50;
-	static constexpr uint16 3 = 51;
-	static constexpr uint16 4 = 52;
-	static constexpr uint16 5 = 53;
-	static constexpr uint16 6 = 54;
-	static constexpr uint16 7 = 55;
-	static constexpr uint16 8 = 56;
-	static constexpr uint16 9 = 57;
-	static constexpr uint16 A = 65;
-	static constexpr uint16 B = 66;
-	static constexpr uint16 C = 67;
-	static constexpr uint16 D = 68;
-	static constexpr uint16 E = 69;
-	static constexpr uint16 F = 70;
-	static constexpr uint16 G = 71;
-	static constexpr uint16 H = 72;
-	static constexpr uint16 I = 73;
-	static constexpr uint16 J = 74;
-	static constexpr uint16 K = 75;
-	static constexpr uint16 L = 76;
-	static constexpr uint16 M = 77;
-	static constexpr uint16 N = 78;
-	static constexpr uint16 O = 79;
-	static constexpr uint16 P = 80;
-	static constexpr uint16 Q = 81;
-	static constexpr uint16 R = 82;
-	static constexpr uint16 S = 83;
-	static constexpr uint16 T = 84;
-	static constexpr uint16 U = 85;
-	static constexpr uint16 V = 86;
-	static constexpr uint16 W = 87;
-	static constexpr uint16 X = 88;
-	static constexpr uint16 Y = 89;
-	static constexpr uint16 Z = 90;
-	static constexpr uint16 LeftWin = 91;
-	static constexpr uint16 RightWin = 23552;
-	static constexpr uint16 LeftApps = 93;
-	static constexpr uint16 RightApps = 23808;
-	static constexpr uint16 Sleep = 95;
-	static constexpr uint16 F1 = 112;
-	static constexpr uint16 F2 = 113;
-	static constexpr uint16 F3 = 114;
-	static constexpr uint16 F4 = 115;
-	static constexpr uint16 F5 = 116;
-	static constexpr uint16 F6 = 117;
-	static constexpr uint16 F7 = 118;
-	static constexpr uint16 F8 = 119;
-	static constexpr uint16 F9 = 120;
-	static constexpr uint16 F10 = 121;
-	static constexpr uint16 F11 = 122;
-	static constexpr uint16 F12 = 123;
-	static constexpr uint16 F13 = 124;
-	static constexpr uint16 F14 = 125;
-	static constexpr uint16 F15 = 126;
-	static constexpr uint16 F16 = 127;
-	static constexpr uint16 F17 = 128;
-	static constexpr uint16 F18 = 129;
-	static constexpr uint16 F19 = 130;
-	static constexpr uint16 F20 = 131;
-	static constexpr uint16 F21 = 132;
-	static constexpr uint16 F22 = 133;
-	static constexpr uint16 F23 = 134;
-	static constexpr uint16 F24 = 135;
-	static constexpr uint16 NumLock = 144;
-	static constexpr uint16 ScrollLock = 145;
-	static constexpr uint16 BrowserBack = 166;
-	static constexpr uint16 BrowserForward = 167;
-	static constexpr uint16 BrowserRefresh = 168;
-	static constexpr uint16 BrowserStop = 169;
-	static constexpr uint16 BrowserSearch = 170;
-	static constexpr uint16 BrowserFavorites = 171;
-	static constexpr uint16 BrowserHome = 172;
-	static constexpr uint16 VolumeMute = 173;
-	static constexpr uint16 VolumeDown = 174;
-	static constexpr uint16 VolumeUp = 175;
-	static constexpr uint16 MediaNextTrack = 176;
-	static constexpr uint16 MediaPrevTrack = 177;
-	static constexpr uint16 MediaStop = 178;
-	static constexpr uint16 MediaPlayPause = 179;
-	static constexpr uint16 LaunchMail = 180;
-	static constexpr uint16 LaunchMediaSelect = 181;
-	static constexpr uint16 LaunchApp1 = 182;
-	static constexpr uint16 LaunchApp2 = 183;
-	static constexpr uint16 Semicolon = 186;
-	static constexpr uint16 Equal = 187;
-	static constexpr uint16 Comma = 188;
-	static constexpr uint16 Minus = 189;
-	static constexpr uint16 Period = 190;
-	static constexpr uint16 Slash = 191;
-	static constexpr uint16 GraveAccent = 192;
-	static constexpr uint16 LeftBracket = 219;
-	static constexpr uint16 BackSlash = 220;
-	static constexpr uint16 RightBracket = 221;
-	static constexpr uint16 Apostrophe = 222;
-	static constexpr uint16 KP_Enter = 3328;
-	static constexpr uint16 KP_0 = 96;
-	static constexpr uint16 KP_1 = 97;
-	static constexpr uint16 KP_2 = 98;
-	static constexpr uint16 KP_3 = 99;
-	static constexpr uint16 KP_4 = 100;
-	static constexpr uint16 KP_5 = 101;
-	static constexpr uint16 KP_6 = 102;
-	static constexpr uint16 KP_7 = 103;
-	static constexpr uint16 KP_8 = 104;
-	static constexpr uint16 KP_9 = 105;
-	static constexpr uint16 KP_Multiply = 106;
-	static constexpr uint16 KP_Add = 107;
-	static constexpr uint16 KP_Separator = 108;
-	static constexpr uint16 KP_Subtract = 109;
-	static constexpr uint16 KP_Decimal = 110;
-	static constexpr uint16 KP_Divide = 111;
-	static constexpr uint16 KP_Divide2 = 28416;
-	static constexpr uint16 KP_End = 35;
-	static constexpr uint16 KP_ArrowLeft = 37;
-	static constexpr uint16 KP_ArrowUp = 38;
-	static constexpr uint16 KP_ArrowRight = 39;
-	static constexpr uint16 KP_ArrowDown = 40;
-	static constexpr uint16 KP_Home = 36;
-	static constexpr uint16 KP_PageUp = 33;
-	static constexpr uint16 KP_PageDown = 34;
-	static constexpr uint16 KP_Insert = 45;
-	static constexpr uint16 KP_Delete = 46;
-	static constexpr uint16 MouseBtn0 = 0;
-	static constexpr uint16 MouseBtn1 = 1;
-	static constexpr uint16 MouseBtn2 = 2;
-	static constexpr uint16 MouseBtn3 = 3;
-	static constexpr uint16 MouseBtn4 = 4;
-	static constexpr uint16 MultiTouch = 57098;
-	static constexpr uint16 MouseWheel = 57099;
-	static constexpr uint16 CursorPos = 57100;
-	static constexpr uint16 CursorPos_mm = 57101;
-	static constexpr uint16 CursorDelta = 57102;
-	static constexpr uint16 CursorDelta_norm = 57103;
-	static constexpr uint16 TouchPos = 57104;
-	static constexpr uint16 TouchPos_mm = 57105;
-	static constexpr uint16 TouchDelta = 57106;
-	static constexpr uint16 TouchDelta_norm = 57107;
-	static constexpr uint16 MouseLeft = 0;
-	static constexpr uint16 MouseRight = 1;
-	static constexpr uint16 MouseMiddle = 2;
 };
 
 struct WinAPI_BindingsMode
@@ -1506,313 +1817,6 @@ struct WinAPI_ActionBindings
 	RC<WinAPI_BindingsMode>  CreateMode (const string &);
 };
 
-struct Android_Input
-{
-	Android_Input () {}
-	Android_Input (uint16) {}
-	operator uint16 () const;
-	static constexpr uint16 Back = 4;
-	static constexpr uint16 0 = 7;
-	static constexpr uint16 1 = 8;
-	static constexpr uint16 2 = 9;
-	static constexpr uint16 3 = 10;
-	static constexpr uint16 4 = 11;
-	static constexpr uint16 5 = 12;
-	static constexpr uint16 6 = 13;
-	static constexpr uint16 7 = 14;
-	static constexpr uint16 8 = 15;
-	static constexpr uint16 9 = 16;
-	static constexpr uint16 Star = 17;
-	static constexpr uint16 Paund = 18;
-	static constexpr uint16 VolumeUp = 24;
-	static constexpr uint16 VolumeDown = 25;
-	static constexpr uint16 VolumeMute = 164;
-	static constexpr uint16 Power = 26;
-	static constexpr uint16 Camera = 27;
-	static constexpr uint16 Clear = 28;
-	static constexpr uint16 A = 29;
-	static constexpr uint16 B = 30;
-	static constexpr uint16 C = 31;
-	static constexpr uint16 D = 32;
-	static constexpr uint16 E = 33;
-	static constexpr uint16 F = 34;
-	static constexpr uint16 G = 35;
-	static constexpr uint16 H = 36;
-	static constexpr uint16 I = 37;
-	static constexpr uint16 J = 38;
-	static constexpr uint16 K = 39;
-	static constexpr uint16 L = 40;
-	static constexpr uint16 M = 41;
-	static constexpr uint16 N = 42;
-	static constexpr uint16 O = 43;
-	static constexpr uint16 P = 44;
-	static constexpr uint16 Q = 45;
-	static constexpr uint16 R = 46;
-	static constexpr uint16 S = 47;
-	static constexpr uint16 T = 48;
-	static constexpr uint16 U = 49;
-	static constexpr uint16 V = 50;
-	static constexpr uint16 W = 51;
-	static constexpr uint16 X = 52;
-	static constexpr uint16 Y = 53;
-	static constexpr uint16 Z = 54;
-	static constexpr uint16 Comma = 55;
-	static constexpr uint16 Period = 56;
-	static constexpr uint16 LeftAlt = 57;
-	static constexpr uint16 RightAlt = 58;
-	static constexpr uint16 LeftShift = 59;
-	static constexpr uint16 RightShift = 60;
-	static constexpr uint16 Tab = 61;
-	static constexpr uint16 Space = 62;
-	static constexpr uint16 Sym = 63;
-	static constexpr uint16 Browser = 64;
-	static constexpr uint16 LaunchMail = 65;
-	static constexpr uint16 Enter = 66;
-	static constexpr uint16 Delete = 67;
-	static constexpr uint16 Grave = 68;
-	static constexpr uint16 Minus = 69;
-	static constexpr uint16 Equal = 70;
-	static constexpr uint16 LeftBracket = 71;
-	static constexpr uint16 RightBracket = 72;
-	static constexpr uint16 BackSlash = 73;
-	static constexpr uint16 Semicolon = 74;
-	static constexpr uint16 Apostrophe = 75;
-	static constexpr uint16 Slash = 76;
-	static constexpr uint16 At = 77;
-	static constexpr uint16 Num = 78;
-	static constexpr uint16 Plus = 81;
-	static constexpr uint16 Menu = 82;
-	static constexpr uint16 Notification = 83;
-	static constexpr uint16 Search = 84;
-	static constexpr uint16 MicMute = 91;
-	static constexpr uint16 PageUp = 92;
-	static constexpr uint16 PageDown = 93;
-	static constexpr uint16 PictSymbols = 94;
-	static constexpr uint16 SwitchCharset = 95;
-	static constexpr uint16 Escape = 111;
-	static constexpr uint16 ForwardDelete = 112;
-	static constexpr uint16 LeftControl = 113;
-	static constexpr uint16 RightControl = 114;
-	static constexpr uint16 CapsLock = 115;
-	static constexpr uint16 ScrollLock = 116;
-	static constexpr uint16 LeftMeta = 117;
-	static constexpr uint16 RightMeta = 118;
-	static constexpr uint16 Function = 119;
-	static constexpr uint16 SysRq = 120;
-	static constexpr uint16 PauseBreak = 121;
-	static constexpr uint16 MoveHome = 122;
-	static constexpr uint16 MoveEnd = 123;
-	static constexpr uint16 Insert = 124;
-	static constexpr uint16 Forward = 125;
-	static constexpr uint16 F1 = 131;
-	static constexpr uint16 F2 = 132;
-	static constexpr uint16 F3 = 133;
-	static constexpr uint16 F4 = 134;
-	static constexpr uint16 F5 = 135;
-	static constexpr uint16 F6 = 136;
-	static constexpr uint16 F7 = 137;
-	static constexpr uint16 F8 = 138;
-	static constexpr uint16 F9 = 139;
-	static constexpr uint16 F10 = 140;
-	static constexpr uint16 F11 = 141;
-	static constexpr uint16 F12 = 142;
-	static constexpr uint16 NumLock = 143;
-	static constexpr uint16 Info = 165;
-	static constexpr uint16 ChannelUp = 166;
-	static constexpr uint16 ChannelDown = 167;
-	static constexpr uint16 ZoomIn = 168;
-	static constexpr uint16 ZoomOut = 169;
-	static constexpr uint16 Window = 171;
-	static constexpr uint16 Guide = 172;
-	static constexpr uint16 DVR = 173;
-	static constexpr uint16 Bookmark = 174;
-	static constexpr uint16 Captions = 175;
-	static constexpr uint16 Settings = 176;
-	static constexpr uint16 AppSwitch = 187;
-	static constexpr uint16 LangSwitch = 204;
-	static constexpr uint16 MannerMode = 205;
-	static constexpr uint16 3DMode = 206;
-	static constexpr uint16 Contacts = 207;
-	static constexpr uint16 Calendar = 208;
-	static constexpr uint16 Music = 209;
-	static constexpr uint16 Calculator = 210;
-	static constexpr uint16 ZenkakuHankaku = 211;
-	static constexpr uint16 Eisu = 212;
-	static constexpr uint16 Muhenkan = 213;
-	static constexpr uint16 Henkan = 214;
-	static constexpr uint16 KatakanaHiragana = 215;
-	static constexpr uint16 Yen = 216;
-	static constexpr uint16 Ro = 217;
-	static constexpr uint16 Kana = 218;
-	static constexpr uint16 Assist = 219;
-	static constexpr uint16 BrightnessDown = 220;
-	static constexpr uint16 BrightnessUp = 221;
-	static constexpr uint16 Sleep = 223;
-	static constexpr uint16 Wakeup = 224;
-	static constexpr uint16 Pairing = 225;
-	static constexpr uint16 11 = 227;
-	static constexpr uint16 12 = 228;
-	static constexpr uint16 LastChannel = 229;
-	static constexpr uint16 VoiceAssist = 231;
-	static constexpr uint16 Help = 259;
-	static constexpr uint16 NavPrev = 260;
-	static constexpr uint16 NavNext = 261;
-	static constexpr uint16 NavIn = 262;
-	static constexpr uint16 NavOut = 263;
-	static constexpr uint16 StemPrimary = 264;
-	static constexpr uint16 Stem1 = 265;
-	static constexpr uint16 Stem2 = 266;
-	static constexpr uint16 Stem3 = 267;
-	static constexpr uint16 SoftSleep = 276;
-	static constexpr uint16 Cut = 277;
-	static constexpr uint16 Copy = 278;
-	static constexpr uint16 Paste = 279;
-	static constexpr uint16 SysNavUp = 280;
-	static constexpr uint16 SysNavDown = 281;
-	static constexpr uint16 SysNavLeft = 282;
-	static constexpr uint16 SysNavRight = 283;
-	static constexpr uint16 AllApps = 284;
-	static constexpr uint16 Refresh = 285;
-	static constexpr uint16 ThumbsUp = 286;
-	static constexpr uint16 ThumbsDown = 287;
-	static constexpr uint16 ProfileSwitch = 288;
-	static constexpr uint16 MediaPlayPause = 85;
-	static constexpr uint16 MediaStop = 86;
-	static constexpr uint16 MediaNext = 87;
-	static constexpr uint16 MediaPrev = 88;
-	static constexpr uint16 MediaRewind = 89;
-	static constexpr uint16 MediaFastForward = 90;
-	static constexpr uint16 MediaPlay = 126;
-	static constexpr uint16 MediaPause = 127;
-	static constexpr uint16 MediaClose = 128;
-	static constexpr uint16 MediaEject = 129;
-	static constexpr uint16 MediaRecord = 130;
-	static constexpr uint16 MediaAudioTrack = 222;
-	static constexpr uint16 MediaTopMenu = 226;
-	static constexpr uint16 MediaSkipForward = 272;
-	static constexpr uint16 MediaSkipBackward = 273;
-	static constexpr uint16 MediaStepForward = 274;
-	static constexpr uint16 MediaStepBackward = 275;
-	static constexpr uint16 DPadUp = 19;
-	static constexpr uint16 DPadDown = 20;
-	static constexpr uint16 DPadLeft = 21;
-	static constexpr uint16 DPadRight = 22;
-	static constexpr uint16 DPadCenter = 23;
-	static constexpr uint16 DPadUpLeft = 268;
-	static constexpr uint16 DPadDownLeft = 269;
-	static constexpr uint16 DPadUpRight = 270;
-	static constexpr uint16 DPadDownRight = 271;
-	static constexpr uint16 GPadA = 96;
-	static constexpr uint16 GPadB = 97;
-	static constexpr uint16 GPadC = 98;
-	static constexpr uint16 GPadX = 99;
-	static constexpr uint16 GPadY = 100;
-	static constexpr uint16 GPadZ = 101;
-	static constexpr uint16 GPadL1 = 102;
-	static constexpr uint16 GPadR1 = 103;
-	static constexpr uint16 GPadL2 = 104;
-	static constexpr uint16 GPadR2 = 105;
-	static constexpr uint16 GPadThumbL = 106;
-	static constexpr uint16 GPadThumbR = 107;
-	static constexpr uint16 GPadStart = 108;
-	static constexpr uint16 GPadSelect = 109;
-	static constexpr uint16 GPadMode = 110;
-	static constexpr uint16 GPad1 = 188;
-	static constexpr uint16 GPad2 = 189;
-	static constexpr uint16 GPad3 = 190;
-	static constexpr uint16 GPad4 = 191;
-	static constexpr uint16 GPad5 = 192;
-	static constexpr uint16 GPad6 = 193;
-	static constexpr uint16 GPad7 = 194;
-	static constexpr uint16 GPad8 = 195;
-	static constexpr uint16 GPad9 = 196;
-	static constexpr uint16 GPad10 = 197;
-	static constexpr uint16 GPad11 = 198;
-	static constexpr uint16 GPad12 = 199;
-	static constexpr uint16 GPad13 = 200;
-	static constexpr uint16 GPad14 = 201;
-	static constexpr uint16 GPad15 = 202;
-	static constexpr uint16 GPad16 = 203;
-	static constexpr uint16 KP_0 = 144;
-	static constexpr uint16 KP_1 = 145;
-	static constexpr uint16 KP_2 = 146;
-	static constexpr uint16 KP_3 = 147;
-	static constexpr uint16 KP_4 = 148;
-	static constexpr uint16 KP_5 = 149;
-	static constexpr uint16 KP_6 = 150;
-	static constexpr uint16 KP_7 = 151;
-	static constexpr uint16 KP_8 = 152;
-	static constexpr uint16 KP_9 = 153;
-	static constexpr uint16 KP_Divide = 154;
-	static constexpr uint16 KP_Multiply = 155;
-	static constexpr uint16 KP_Subtract = 156;
-	static constexpr uint16 KP_Add = 157;
-	static constexpr uint16 KP_Dot = 158;
-	static constexpr uint16 KP_Comma = 159;
-	static constexpr uint16 KP_Enter = 160;
-	static constexpr uint16 KP_Equal = 161;
-	static constexpr uint16 KP_LeftParen = 162;
-	static constexpr uint16 KP_RightParen = 163;
-	static constexpr uint16 TV = 170;
-	static constexpr uint16 TV_Power = 177;
-	static constexpr uint16 TV_Input = 178;
-	static constexpr uint16 TV_STBPower = 179;
-	static constexpr uint16 TV_STBInput = 180;
-	static constexpr uint16 AV_Power = 181;
-	static constexpr uint16 AVR_Input = 182;
-	static constexpr uint16 TV_ProgRed = 183;
-	static constexpr uint16 TV_ProgGreen = 184;
-	static constexpr uint16 TV_ProgYellow = 185;
-	static constexpr uint16 TV_ProgBlue = 186;
-	static constexpr uint16 TV_DataService = 230;
-	static constexpr uint16 TV_RadioService = 232;
-	static constexpr uint16 TV_Teletext = 233;
-	static constexpr uint16 TV_NumberEntry = 234;
-	static constexpr uint16 TV_TerrestrialAnalog = 235;
-	static constexpr uint16 TV_TerrestrialDigital = 236;
-	static constexpr uint16 TV_Satellite = 237;
-	static constexpr uint16 TV_SatelliteBS = 238;
-	static constexpr uint16 TV_SattelliteCS = 239;
-	static constexpr uint16 TV_SatelliteService = 240;
-	static constexpr uint16 TV_Network = 241;
-	static constexpr uint16 TV_AntennaCable = 242;
-	static constexpr uint16 TV_InputHdmi1 = 243;
-	static constexpr uint16 TV_InputHdmi2 = 244;
-	static constexpr uint16 TV_InputHdmi3 = 245;
-	static constexpr uint16 TV_InputHdmi4 = 246;
-	static constexpr uint16 TV_inputComposite1 = 247;
-	static constexpr uint16 TV_inputComposite2 = 248;
-	static constexpr uint16 TV_InputComponent1 = 249;
-	static constexpr uint16 TV_InputComponent2 = 250;
-	static constexpr uint16 TV_InputVGA1 = 251;
-	static constexpr uint16 TV_AudioDesc = 252;
-	static constexpr uint16 TV_AudioDescMixUp = 253;
-	static constexpr uint16 TV_AudioDescMixDown = 254;
-	static constexpr uint16 TV_ZoomMode = 255;
-	static constexpr uint16 TV_ContentsMenu = 256;
-	static constexpr uint16 TV_MediaContextMenu = 257;
-	static constexpr uint16 TV_TimerProgramming = 258;
-	static constexpr uint16 Accelerometer = 532;
-	static constexpr uint16 MagneticField = 536;
-	static constexpr uint16 GeoLocation = 540;
-	static constexpr uint16 Gyroscope = 534;
-	static constexpr uint16 AmbientLight = 528;
-	static constexpr uint16 AirPressure = 529;
-	static constexpr uint16 Proximity = 530;
-	static constexpr uint16 Gravity = 533;
-	static constexpr uint16 LinearAcceleration = 535;
-	static constexpr uint16 RotationVector = 537;
-	static constexpr uint16 RelativeHumidity = 531;
-	static constexpr uint16 AirTemperature = 527;
-	static constexpr uint16 GameRotationVector = 538;
-	static constexpr uint16 Pose6DOF = 539;
-	static constexpr uint16 MultiTouch = 522;
-	static constexpr uint16 TouchPos = 523;
-	static constexpr uint16 TouchPos_mm = 524;
-	static constexpr uint16 TouchDelta = 525;
-	static constexpr uint16 TouchDelta_norm = 526;
-};
-
 struct Android_BindingsMode
 {
 	Android_BindingsMode ();
@@ -1824,13 +1828,6 @@ struct Android_ActionBindings
 {
 	Android_ActionBindings ();
 	RC<Android_BindingsMode>  CreateMode (const string &);
-};
-
-struct OpenVR_Input
-{
-	OpenVR_Input () {}
-	OpenVR_Input (uint16) {}
-	operator uint16 () const;
 };
 
 struct OpenVR_BindingsMode
@@ -1847,15 +1844,9 @@ struct OpenVR_ActionBindings
 };
 
 template <>
-struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+struct RC<Android_BindingsMode> : Android_BindingsMode
 {
-	RC (const WinAPI_ActionBindings &);
-};
-
-template <>
-struct RC<Android_ActionBindings> : Android_ActionBindings
-{
-	RC (const Android_ActionBindings &);
+	RC (const Android_BindingsMode &);
 };
 
 template <>
@@ -1865,15 +1856,21 @@ struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
 };
 
 template <>
-struct RC<Android_BindingsMode> : Android_BindingsMode
+struct RC<Android_ActionBindings> : Android_ActionBindings
 {
-	RC (const Android_BindingsMode &);
+	RC (const Android_ActionBindings &);
 };
 
 template <>
-struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
+struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
 {
-	RC (const GLFW_BindingsMode &);
+	RC (const WinAPI_ActionBindings &);
+};
+
+template <>
+struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
+{
+	RC (const OpenVR_ActionBindings &);
 };
 
 template <>
@@ -1889,8 +1886,8 @@ struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
 };
 
 template <>
-struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
+struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
 {
-	RC (const OpenVR_ActionBindings &);
+	RC (const GLFW_BindingsMode &);
 };
 

@@ -9,6 +9,8 @@
 
 #include "Math.glsl"
 
+#ifdef AE_LICENSE_MIT
+
 //
 // Reinhard
 //
@@ -106,3 +108,6 @@ float3  InvToneMap_ACES (const float3 sdr)
 	const float A = 2.51, B = 0.03, C = 2.43, D = 0.59, E = 0.14;
 	return 0.5 * (D * sdr - sqrt(((D*D - 4*C*E) * sdr + 4*A*E-2*B*D) * sdr + B*B) - B) / (A - C * sdr);
 }
+
+
+#endif // AE_LICENSE_MIT

@@ -48,7 +48,11 @@ namespace AE::Graphics
 			ci.templCI.localSizeSpec.z == UMax or ci.specCI.localSize.z == UMax ? ci.templCI.defaultLocalSize.z : ci.specCI.localSize.z };
 		CHECK_ERR( All( _localSize > Zero ));
 
-		VkComputePipelineCreateInfo		pipeline_info = {};
+		const uint	total_threads = Area( uint3{_localSize} );
+		CHECK_ERR( total_threads <= dev.GetVProperties().properties.limits.maxComputeWorkGroupInvocations );
+
+		VkComputePipelineCreateInfo							pipeline_info	= {};
+		VkPipelineShaderStageRequiredSubgroupSizeCreateInfo	subgroup_size_ci;
 
 		// TODO: VkPipelineCreateFlags2CreateInfoKHR (VK_KHR_maintenance5)
 
@@ -64,6 +68,31 @@ namespace AE::Graphics
 
 		pipeline_info.basePipelineHandle= Default;
 		pipeline_info.basePipelineIndex	= -1;
+
+		if ( ci.specCI.subgroupSize != 0 )
+		{
+			auto&	feats = dev.GetVProperties().subgroupSizeControlFeats;
+			auto&	props = dev.GetVProperties().subgroupSizeControlProps;
+
+			CHECK_ERR( dev.GetVExtensions().subgroupSizeControl );
+			CHECK_ERR( ci.specCI.subgroupSize >= props.minSubgroupSize );
+			CHECK_ERR( ci.specCI.subgroupSize <= props.maxSubgroupSize );
+			CHECK_ERR( DivCeil( total_threads, ci.specCI.subgroupSize ) <= props.maxComputeWorkgroupSubgroups );
+			CHECK_ERR( AllBits( props.requiredSubgroupSizeStages, VK_SHADER_STAGE_COMPUTE_BIT ));
+			CHECK_ERR( IsMultipleOf( _localSize.x, ci.specCI.subgroupSize ));
+
+			// Vulkan docs:
+			// "VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT and VK_SHADER_CREATE_REQUIRE_FULL_SUBGROUPS_BIT_EXT are effectively deprecated when
+			//  compiling SPIR-V 1.6 shaders, as this behavior is the default for Vulkan with SPIR-V 1.6. This is more aligned with developer expectations,
+			//  and avoids applications unexpectedly breaking in the future."
+			if ( feats.computeFullSubgroups )
+				pipeline_info.stage.flags |= VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT;
+
+			pipeline_info.stage.pNext = &subgroup_size_ci;
+			subgroup_size_ci.sType	= VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO;
+			subgroup_size_ci.pNext	= null;
+			subgroup_size_ci.requiredSubgroupSize = ci.specCI.subgroupSize;
+		}
 
 		const auto	AddCustomSpec = [&ci, this] (VkShaderStageFlagBits, VkSpecializationMapEntry* entryArr, uint* dataArr, OUT uint &count) __NE___
 		{{

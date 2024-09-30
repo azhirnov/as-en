@@ -271,6 +271,7 @@ namespace AE::RG::_hidden_
 		void  SetStencilWriteMask (uint writeMask)																			__Th_OV	{ return _ctx.SetStencilWriteMask( writeMask ); }
 		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th_OV	{ return _ctx.SetStencilWriteMask( frontWriteMask, backWriteMask ); }
 		void  SetFragmentShadingRate (EShadingRate rate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)__Th_OV { return _ctx.SetFragmentShadingRate( rate, primitiveOp, textureOp ); }
+		void  SetViewportWScaling (ArrayView<packed_float2> scaling)														__Th_OV	{ return _ctx.SetViewportWScaling( scaling ); }
 	  #endif
 
 	// draw commands //
@@ -692,10 +693,29 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges) __Th___
 	{
-		ResourceState( srcImage, EResourceState::CopySrc );
-		ResourceState( dstImage, EResourceState::CopyDst );
-		_ctx.CommitBarriers();
-		_ctx.CopyImage( srcImage, dstImage, ranges );
+		if_likely( srcImage != dstImage )
+		{
+			ResourceState( srcImage, EResourceState::CopySrc );
+			ResourceState( dstImage, EResourceState::CopyDst );
+			_ctx.CommitBarriers();
+			_ctx.CopyImage( srcImage, dstImage, ranges );
+		}
+		else
+		{
+			const EResourceState	state = EResourceState::CopySrc;
+			ResourceState( srcImage, state );
+
+			for (auto& range : ranges) {
+				_ctx.ImageBarrier( dstImage, state, EResourceState::CopyDst, ImageSubresourceRange{range.dstSubres} );
+			}
+			_ctx.CommitBarriers();
+			_ctx.CopyImage( srcImage, dstImage, ranges );
+
+			for (auto& range : ranges) {
+				_ctx.ImageBarrier( dstImage, EResourceState::CopyDst, state, ImageSubresourceRange{range.dstSubres} );
+			}
+			_ctx.CommitBarriers();
+		}
 	}
 
 	template <typename C>
@@ -887,10 +907,29 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions) __Th___
 	{
-		ResourceState( srcImage, EResourceState::BlitSrc );
-		ResourceState( dstImage, EResourceState::BlitDst );
-		_ctx.CommitBarriers();
-		_ctx.BlitImage( srcImage, dstImage, filter, regions );
+		if_likely( srcImage != dstImage )
+		{
+			ResourceState( srcImage, EResourceState::BlitSrc );
+			ResourceState( dstImage, EResourceState::BlitDst );
+			_ctx.CommitBarriers();
+			_ctx.BlitImage( srcImage, dstImage, filter, regions );
+		}
+		else
+		{
+			const EResourceState	state = EResourceState::BlitSrc;
+			ResourceState( srcImage, state );
+
+			for (auto& range : regions) {
+				_ctx.ImageBarrier( dstImage, state, EResourceState::BlitDst, ImageSubresourceRange{range.dstSubres} );
+			}
+			_ctx.CommitBarriers();
+			_ctx.BlitImage( srcImage, dstImage, filter, regions );
+
+			for (auto& range : regions) {
+				_ctx.ImageBarrier( dstImage, EResourceState::BlitDst, state, ImageSubresourceRange{range.dstSubres} );
+			}
+			_ctx.CommitBarriers();
+		}
 	}
 
 #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
@@ -929,10 +968,29 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions) __Th___
 	{
-		ResourceState( srcImage, EResourceState::BlitSrc );
-		ResourceState( dstImage, EResourceState::BlitDst );
-		_ctx.CommitBarriers();
-		_ctx.ResolveImage( srcImage, dstImage, regions );
+		if_likely( srcImage != dstImage )
+		{
+			ResourceState( srcImage, EResourceState::BlitSrc );
+			ResourceState( dstImage, EResourceState::BlitDst );
+			_ctx.CommitBarriers();
+			_ctx.ResolveImage( srcImage, dstImage, regions );
+		}
+		else
+		{
+			const EResourceState	state = EResourceState::BlitSrc;
+			ResourceState( srcImage, state );
+
+			for (auto& range : regions) {
+				_ctx.ImageBarrier( dstImage, state, EResourceState::BlitDst, ImageSubresourceRange{range.dstSubres} );
+			}
+			_ctx.CommitBarriers();
+			_ctx.ResolveImage( srcImage, dstImage, regions );
+
+			for (auto& range : regions) {
+				_ctx.ImageBarrier( dstImage, EResourceState::BlitDst, state, ImageSubresourceRange{range.dstSubres} );
+			}
+			_ctx.CommitBarriers();
+		}
 	}
 
 	template <typename C>

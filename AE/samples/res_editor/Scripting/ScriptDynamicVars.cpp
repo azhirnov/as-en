@@ -150,37 +150,48 @@ namespace
 */
 	void  ScriptDynamicDim::Bind (const ScriptEnginePtr &se) __Th___
 	{
-		ClassBinder<ScriptDynamicDim>	binder{ se };
-		binder.CreateRef( 0, False{"no ctor"} );
+		{
+			ClassBinder<ScriptDynamicDim>	binder{ se };
+			binder.CreateRef( 0, False{"no ctor"} );
 
-		binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicDim, DynamicDim, packed_uint3 >, {} );
+			binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicDim, DynamicDim, packed_uint3 >, {} );
 
-		binder.AddMethod( &ScriptDynamicDim::Mul1,		"opMul",		{} );
-		binder.AddMethod( &ScriptDynamicDim::Div1,		"opDiv",		{} );
-		binder.AddMethod( &ScriptDynamicDim::Mul1,		"Mul",			{} );
-		binder.AddMethod( &ScriptDynamicDim::Div1,		"Div",			{} );
-		binder.AddMethod( &ScriptDynamicDim::DivRound1,	"DivRound",		{} );
-		binder.AddMethod( &ScriptDynamicDim::DivCeil1,	"DivCeil",		{} );
+			binder.AddMethod( &ScriptDynamicDim::Mul1,		"opMul",		{} );
+			binder.AddMethod( &ScriptDynamicDim::Div1,		"opDiv",		{} );
+			binder.AddMethod( &ScriptDynamicDim::Mul1,		"Mul",			{} );
+			binder.AddMethod( &ScriptDynamicDim::Div1,		"Div",			{} );
+			binder.AddMethod( &ScriptDynamicDim::DivRound1,	"DivRound",		{} );
+			binder.AddMethod( &ScriptDynamicDim::DivCeil1,	"DivCeil",		{} );
 
-		binder.AddMethod( &ScriptDynamicDim::Mul2,		"opMul",		{} );
-		binder.AddMethod( &ScriptDynamicDim::Div2,		"opDiv",		{} );
-		binder.AddMethod( &ScriptDynamicDim::Mul2,		"Mul",			{} );
-		binder.AddMethod( &ScriptDynamicDim::Div2,		"Div",			{} );
-		binder.AddMethod( &ScriptDynamicDim::DivRound2,	"DivRound",		{} );
-		binder.AddMethod( &ScriptDynamicDim::DivCeil2,	"DivCeil",		{} );
+			binder.AddMethod( &ScriptDynamicDim::Mul2,		"opMul",		{} );
+			binder.AddMethod( &ScriptDynamicDim::Div2,		"opDiv",		{} );
+			binder.AddMethod( &ScriptDynamicDim::Mul2,		"Mul",			{} );
+			binder.AddMethod( &ScriptDynamicDim::Div2,		"Div",			{} );
+			binder.AddMethod( &ScriptDynamicDim::DivRound2,	"DivRound",		{} );
+			binder.AddMethod( &ScriptDynamicDim::DivCeil2,	"DivCeil",		{} );
 
-		binder.AddMethod( &ScriptDynamicDim::Mul3,		"opMul",		{} );
-		binder.AddMethod( &ScriptDynamicDim::Div3,		"opDiv",		{} );
-		binder.AddMethod( &ScriptDynamicDim::Mul3,		"Mul",			{} );
-		binder.AddMethod( &ScriptDynamicDim::Div3,		"Div",			{} );
-		binder.AddMethod( &ScriptDynamicDim::DivRound3,	"DivRound",		{} );
-		binder.AddMethod( &ScriptDynamicDim::DivCeil3,	"DivCeil",		{} );
+			binder.AddMethod( &ScriptDynamicDim::Mul3,		"opMul",		{} );
+			binder.AddMethod( &ScriptDynamicDim::Div3,		"opDiv",		{} );
+			binder.AddMethod( &ScriptDynamicDim::Mul3,		"Mul",			{} );
+			binder.AddMethod( &ScriptDynamicDim::Div3,		"Div",			{} );
+			binder.AddMethod( &ScriptDynamicDim::DivRound3,	"DivRound",		{} );
+			binder.AddMethod( &ScriptDynamicDim::DivCeil3,	"DivCeil",		{} );
 
-		binder.AddMethod( &ScriptDynamicDim::X,			"X",			{} );
-		binder.AddMethod( &ScriptDynamicDim::Y,			"Y",			{} );
-		binder.AddMethod( &ScriptDynamicDim::XY,		"XY",			{} );
-		binder.AddMethod( &ScriptDynamicDim::Area,		"Area",			{} );
-		binder.AddMethod( &ScriptDynamicDim::Volume,	"Volume",		{} );
+			binder.AddMethod( &ScriptDynamicDim::X,			"X",			{} );
+			binder.AddMethod( &ScriptDynamicDim::Y,			"Y",			{} );
+			binder.AddMethod( &ScriptDynamicDim::XY,		"XY",			{} );
+			binder.AddMethod( &ScriptDynamicDim::Area,		"Area",			{} );
+			binder.AddMethod( &ScriptDynamicDim::Volume,	"Volume",		{} );
+		}
+		{
+			ClassBinder<ScriptDynamicUInt>	binder{ se };
+			binder.AddMethod( &ScriptDynamicUInt::ToDim2,	"Dimension2",	{} );
+			binder.AddMethod( &ScriptDynamicUInt::ToDim3,	"Dimension3",	{} );
+		}
+		{
+			ClassBinder<ScriptDynamicUInt2>		binder{ se };
+			binder.AddMethod( &ScriptDynamicUInt2::ToDim,	"Dimension",	{} );
+		}
 	}
 //-----------------------------------------------------------------------------
 
@@ -286,6 +297,44 @@ namespace
 
 /*
 =================================================
+	ScriptDynamicUInt::PowOf2
+=================================================
+*/
+	ScriptDynamicUInt*  ScriptDynamicUInt::PowOf2a () __Th___
+	{
+		return PowOf2b( 1 );
+	}
+
+	ScriptDynamicUInt*  ScriptDynamicUInt::PowOf2b (uint value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::PowOf2 );
+
+		ScriptDynamicUIntPtr	result{ new ScriptDynamicUInt{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicDim::ToDim*
+=================================================
+*/
+	ScriptDynamicDim*  ScriptDynamicUInt::ToDim2 () __Th___
+	{
+		auto	ds = _value->ToDim2();
+		ScriptDynamicDimPtr	result{ new ScriptDynamicDim{ RVRef(ds) }};
+		return result.Detach();
+	}
+
+	ScriptDynamicDim*  ScriptDynamicUInt::ToDim3 () __Th___
+	{
+		auto	ds = _value->ToDim3();
+		ScriptDynamicDimPtr	result{ new ScriptDynamicDim{ RVRef(ds) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicUInt::Bind
 =================================================
 */
@@ -294,13 +343,15 @@ namespace
 		ClassBinder<ScriptDynamicUInt>		binder{ se };
 		binder.CreateRef();
 		binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicUInt, DynamicUInt, uint >, {} );
-		binder.AddMethod( &ScriptDynamicUInt::Mul,		"Mul",		{} );
-		binder.AddMethod( &ScriptDynamicUInt::Div,		"Div",		{} );
-		binder.AddMethod( &ScriptDynamicUInt::DivNear,	"DivNear",	{} );
-		binder.AddMethod( &ScriptDynamicUInt::DivCeil,	"DivCeil",	{} );
-		binder.AddMethod( &ScriptDynamicUInt::Add,		"Add",		{} );
-		binder.AddMethod( &ScriptDynamicUInt::Sub,		"Sub",		{} );
-		binder.AddMethod( &ScriptDynamicUInt::Pow,		"Pow",		{} );
+		binder.AddMethod( &ScriptDynamicUInt::Mul,		"Mul",			{} );
+		binder.AddMethod( &ScriptDynamicUInt::Div,		"Div",			{} );
+		binder.AddMethod( &ScriptDynamicUInt::DivNear,	"DivNear",		{} );
+		binder.AddMethod( &ScriptDynamicUInt::DivCeil,	"DivCeil",		{} );
+		binder.AddMethod( &ScriptDynamicUInt::Add,		"Add",			{} );
+		binder.AddMethod( &ScriptDynamicUInt::Sub,		"Sub",			{} );
+		binder.AddMethod( &ScriptDynamicUInt::Pow,		"Pow",			{} );
+		binder.AddMethod( &ScriptDynamicUInt::PowOf2a,	"PowOf2",		{} );
+		binder.AddMethod( &ScriptDynamicUInt::PowOf2b,	"PowOf2",		{} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -330,6 +381,32 @@ namespace
 
 /*
 =================================================
+	PowOf2
+=================================================
+*/
+	ScriptDynamicUInt2*  ScriptDynamicUInt2::PowOf2 () __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( uint2{1}, EDynamicVarOperator::PowOf2 );
+
+		ScriptDynamicUInt2Ptr	result{ new ScriptDynamicUInt2{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ToDim
+=================================================
+*/
+	ScriptDynamicDim*  ScriptDynamicUInt2::ToDim () __Th___
+	{
+		auto	ds = _value->ToDim();
+		ScriptDynamicDimPtr	result{ new ScriptDynamicDim{ RVRef(ds) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicUInt2::Bind
 =================================================
 */
@@ -338,8 +415,9 @@ namespace
 		ClassBinder<ScriptDynamicUInt2>		binder{ se };
 		binder.CreateRef();
 		binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicUInt2, DynamicUInt2, const packed_uint2& >, {} );
-		binder.AddMethod( &ScriptDynamicUInt2::X,	"X",	{} );
-		binder.AddMethod( &ScriptDynamicUInt2::Y,	"Y",	{} );
+		binder.AddMethod( &ScriptDynamicUInt2::X,		"X",		{} );
+		binder.AddMethod( &ScriptDynamicUInt2::Y,		"Y",		{} );
+		binder.AddMethod( &ScriptDynamicUInt2::PowOf2,	"PowOf2",	{} );
 	}
 //-----------------------------------------------------------------------------
 

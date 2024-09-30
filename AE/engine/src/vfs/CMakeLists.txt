@@ -14,5 +14,6 @@ target_link_libraries( "VFS" PUBLIC "Threading" "Networking" )
 
 EnablePCH( "VFS" )
 EnablePrebuild( "VFS" )
+EnableUnitBuild( "VFS" )
 
 install( TARGETS "VFS" ARCHIVE DESTINATION "lib" )

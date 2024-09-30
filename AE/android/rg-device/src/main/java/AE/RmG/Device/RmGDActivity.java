@@ -2,6 +2,7 @@
 
 package AE.RmG.Device;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -43,5 +44,6 @@ public final class RmGDActivity
 	@Override public void  onBackPressed () {
 		super.onBackPressed();
 		this.finish();
+		System.exit(0);
 	}
 }

@@ -39,16 +39,24 @@ namespace AE::Profiler
 		}
 
 		_hwpcProf.reset( new HwpcProfiler{ start_time });
-		if ( _hwpcProf->Initialize( client, _msgProducer ))
-		{
-			//_graphics->AddNextFrameListener( [this]() { _SampleGraphicsCounters(); });
-			//_graphics->SetPowerVRProfiler( _hwpcProf->GetPowerVRProfiler() );
-		}
-		else
+		if ( not _hwpcProf->Initialize( client, _msgProducer ))
 			_hwpcProf.reset( null );
 
+		PowerVRProfiler*	pvr = null;
+		if ( _hwpcProf )
+		{
+			#if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_ENABLE_PVRCOUNTER)
+			const bool	enable	= true;
+			#else
+			const bool	enable	= false;
+			#endif
+
+			if ( client or enable )
+				pvr = &_hwpcProf->GetPowerVRProfiler();
+		}
+
 		_task		= MakeRC<TaskProfiler>( start_time );
-		_graphics	= MakeRC<GraphicsProfiler>( start_time, (_hwpcProf ? &_hwpcProf->GetPowerVRProfiler() : null) );
+		_graphics	= MakeRC<GraphicsProfiler>( start_time, pvr );
 		_memory		= MakeRC<MemoryProfiler>( start_time );
 
 		Scheduler().SetProfiler( _task );

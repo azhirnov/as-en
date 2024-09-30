@@ -1,6 +1,6 @@
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\source\GLM"
 rmdir /Q /S "temp"
-git clone --branch "AE-version" "..\..\..\..\..\3party\ae-glm" "temp"
+git clone --branch "ae-24.08" "..\..\..\..\..\3party\ae-glm" "temp"
 mkdir "..\..\..\..\..\AE-Bin\external\source\GLM"
 robocopy "temp\glm" "..\..\..\..\..\AE-Bin\external\source\GLM" *.h /S 
 robocopy "temp\glm" "..\..\..\..\..\AE-Bin\external\source\GLM" *.hpp /S 

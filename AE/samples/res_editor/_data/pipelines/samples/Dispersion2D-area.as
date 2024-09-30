@@ -119,7 +119,7 @@
 		for (uint i = 0; i < un_Constants.wavelengthToRGB.length(); ++i)
 		{
 			if ( wl == un_Constants.wavelengthToRGB[i].x )
-				col = un_Constants.wavelengthToRGB[i].yzw;
+				col = un_Constants.wavelengthToRGB[i].yzw;	// linear space
 		}
 
 		const float3	v [] = {

@@ -256,7 +256,7 @@ namespace
 */
 	ILogger::LoggerPtr  ILogger::CreateDialogOutput (LevelBits levelBits, ScopeBits scopeBits) __NE___
 	{
-		#if defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF)
+		#if defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF) or defined(AE_CFG_RELEASE)
 			Unused( levelBits, scopeBits );
 			return {};
 
@@ -569,7 +569,9 @@ namespace
 			case EScope::Client :			col = EColor::Blue;		break;
 			case EScope::_Count :
 			default :						DBG_WARNING( "unknown log level" );
-		}*/
+		}
+		switch_end*/
+
 		switch_enum( info.level )
 		{
 			case ELevel::Debug :		add_time = true;	add_file = true;	col = EColor::Navy;			break;
@@ -769,9 +771,11 @@ namespace
 */
 	ILogger::LoggerPtr  ILogger::CreateBreakOnError () __NE___
 	{
+	#ifndef AE_CFG_RELEASE
 		if ( PlatformUtils::IsUnderDebugger() )
 			return MakeUnique<BreakOnErrorLogger>();
 		else
+	#endif
 			return {};
 	}
 //-----------------------------------------------------------------------------

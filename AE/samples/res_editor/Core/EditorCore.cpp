@@ -74,14 +74,14 @@ namespace
 		// window
 		{
 			cfg.window.title	= "ResourceEditor";
-			cfg.window.size		= {1600, 900};
+			cfg.window.size		= uint2{ s_REConfig.screenWidth, s_REConfig.screenHeight };
 			cfg.window.mode		= c_WindowMode;
 		}
 
 		// VR
 		{
 			cfg.enableVR		= false;
-			cfg.vr.dimension	= uint2{2048};
+			cfg.vr.dimension	= ImageDim2_t{2048};
 			cfg.vr.format		= EPixelFormat::BGRA8_UNorm;
 			cfg.vr.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;	// default
 			cfg.vr.options		= EImageOpt::BlitDst;
@@ -412,6 +412,8 @@ namespace
 			binder.AddMethodFromGlobal( &ResEditorAppConfig_SetRemoteInputServerPort,	"RemoteInputServerPort",{} );
 			binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,					"setStableGPUClock"		);
 			binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,					"enableRenderDoc"		);
+			binder.AddProperty( &ResEditorAppConfig::screenWidth,						"screenWidth"			);
+			binder.AddProperty( &ResEditorAppConfig::screenHeight,						"screenHeight"			);
 		}
 
 		ScriptEngine::ModuleSource	src;
@@ -458,6 +460,7 @@ void main (Config &out cfg)
 	const string	local_path			= "data/";
 	const string	shader_data_path	= "shared_data/";
 	const string	ui_path				= "ui";
+	const string	test_ref_path		= "test_ref/";
 )";
 		}
 		else
@@ -480,7 +483,8 @@ void main (Config &out cfg)
 "	const string	vfs_path 			= base_path + \"AE-Data/\";\n"
 "	const string	local_path			= base_path + \"AE/samples/res_editor/_data/\";\n"
 "	const string	shader_data_path	= base_path + \"AE/engine/shared_data/\";\n"
-"	const string	ui_path				= base_path + \"AE-Temp/samples/res_editor\";\n";
+"	const string	ui_path				= base_path + \"AE-Temp/samples/res_editor\";\n"
+"	const string	test_ref_path		= vfs_path + \"/samples/res_editor/ref\";\n";
 		}
 
 		str << R"(
@@ -525,9 +529,10 @@ void main (Config &out cfg)
 	cfg.ExportDir( local_path + "../_export" );
 
 	// graphics settings //
-	//	NV only: set stable GPU clock for profiling, otherwise driver can move GPU to low power mode.
+	cfg.screenWidth  = 1600;
+	cfg.screenHeight = 900;
+	//	AMD/NV only: set stable GPU clock for profiling, otherwise driver can move GPU to low power mode.
 	cfg.setStableGPUClock = false;
-
 	//	on start attach RenderDoc to the app, this will disable some new extensions.
 	cfg.enableRenderDoc = false;
 
@@ -539,14 +544,15 @@ void main (Config &out cfg)
 		str << R"(
 	// remote graphics device //
 	cfg.RemoteDeviceIpAddress( 192, 168, 0, 0 );
-	//cfg.GraphicsLibPath( "" );
+	cfg.GraphicsLibPath( "GraphicsLib.dll" );
 )";
 #endif
 
 		str << R"(
 	// tests //
 	/*
-	cfg.TestOutput( vfs_path + "/samples/res_editor/ref" );
+	// uncomment to run tests on start
+	cfg.TestOutput( test_ref_path );
 	cfg.TestFolder( "callable" );
 	cfg.TestFolder( "games" );
 	cfg.TestFolder( "samples-2d" );
@@ -1002,7 +1008,7 @@ void main (Config &out cfg)
 		{
 			auto	infos = output->GetTargetInfo();
 			CHECK_ERR( infos.size() == 1 );
-			cfg.dynSize->Resize( infos[0].dimension );
+			cfg.dynSize->Resize( infos[0].Dimension() );
 		}
 
 		auto	renderer = _script->Run( scriptPath, cfg );

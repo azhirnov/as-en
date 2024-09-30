@@ -244,7 +244,7 @@ namespace AE::ECS
 			void  _WithSingleComponents (Fn &&fn, ArrayView<Chunk> chunks, const Tuple<Types...> *)			__NE___;
 
 			template <typename T>
-		ND_ decltype(auto)  _GetSingleComponent ()															__NE___;
+		ND_ exact_t  _GetSingleComponent ()																	__NE___;
 
 
 			template <typename Fn>

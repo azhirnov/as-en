@@ -5,9 +5,15 @@
 #include "Math.glsl"
 
 
-// from https://www.shadertoy.com/view/ttc3zr
-// license CC BY-NC-SA 3.0
-
+#ifdef AE_LICENSE_CC_BY_NC_SA_3
+/*
+=================================================
+	MHash
+----
+	from https://www.shadertoy.com/view/ttc3zr
+	license CC BY-NC-SA 3.0
+=================================================
+*/
 ND_ uint  MHash11 (uint src)
 {
 	const uint M = 0x5bd1e995u;
@@ -263,3 +269,5 @@ ND_ float4  MHash44 (float4 src)
 	uint4 h = MHash44(floatBitsToUint(src));
 	return float4(uintBitsToFloat(h & 0x007fffffu | 0x3f800000u) - 1.0);
 }
+
+#endif // AE_LICENSE_CC_BY_NC_SA_3

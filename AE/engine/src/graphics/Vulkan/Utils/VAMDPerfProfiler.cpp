@@ -9,6 +9,7 @@
 # endif
 
 #	define DISABLE_GPA 0
+#	include "base/Platforms/WindowsHeader.cpp.h"
 #	include "gpu_performance_api/gpu_perf_api.h"
 
 # ifdef AE_COMPILER_MSVC
@@ -199,7 +200,7 @@ namespace {
 
 	bool  VAMDPerfProfiler::_Initialize (const VDevice &dev, const EDeviceFlags devFlags) __NE___
 	{
-		if ( not AnyBits( devFlags, EDeviceFlags::_AmdApiMask ))
+		if ( NoBits( devFlags, EDeviceFlags::_AmdApiMask ))
 			return false;
 
 		const auto	AMD_VENDOR_ID = 0x01002;
@@ -287,6 +288,7 @@ namespace {
 					case kGpaHwGenerationLast :
 					default :						break;
 				}
+				switch_end
 			}
 		}
 
@@ -318,7 +320,7 @@ namespace {
 		{
 			if ( _impl->ctxId != null )
 			{
-				_impl->fnTable.GpaCloseContext( _impl->ctxId );
+				//_impl->fnTable.GpaCloseContext( _impl->ctxId );
 				_impl->ctxId = null;
 			}
 

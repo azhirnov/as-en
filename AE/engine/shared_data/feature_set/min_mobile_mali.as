@@ -182,9 +182,20 @@ void ASmain ()
 		EPixelFormat::ASTC_sRGB8_A8_8x6, EPixelFormat::ASTC_sRGB8_A8_8x8, EPixelFormat::ASTC_sRGB8_A8_10x5, EPixelFormat::ASTC_sRGB8_A8_10x6, 
 		EPixelFormat::ASTC_sRGB8_A8_10x8, EPixelFormat::ASTC_sRGB8_A8_10x10, EPixelFormat::ASTC_sRGB8_A8_12x10, EPixelFormat::ASTC_sRGB8_A8_12x12
 	});
-	//fset.AddTexelFormats( EFormatFeature::HWCompressedAttachment, {
-	//	EPixelFormat::RGBA8_UNorm
-	//});
+	fset.AddTexelFormats( EFormatFeature::HWCompressedAttachment, {
+		// full support in Bifrost gen3
+		EPixelFormat::RGBA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::BGRA8_UNorm, EPixelFormat::sBGR8_A8,
+		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::RGB8_UNorm,
+		EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGBA4_UNorm,
+		EPixelFormat::Depth16, EPixelFormat::Depth24_Stencil8, EPixelFormat::Depth32F,
+
+		// all 32 bit or smaller formats in Valhall gen1+
+		EPixelFormat::R16_UNorm, EPixelFormat::RG16_UNorm, EPixelFormat::R16_SNorm, EPixelFormat::RG16_SNorm,
+		EPixelFormat::R16F, EPixelFormat::RG16F,
+
+		// in Valhall gen3
+		EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16F
+	});
 	fset.samplerMipLodBias (True);
 	fset.maxSamplerAnisotropy (1.00);
 	fset.maxSamplerLodBias (2.00);

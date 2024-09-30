@@ -36,6 +36,8 @@ namespace AE::Scripting
 							packed_float4x2, packed_float4x3, packed_float4x4
 						  >;
 
+		using QuatTypes = TypeList< PackedQuat >;
+
 
 	// functions
 	private:
@@ -46,6 +48,7 @@ namespace AE::Scripting
 		static void  BindStdTypes (const ScriptEnginePtr &se)		__Th___;
 		static void  BindScalarMath (const ScriptEnginePtr &se)		__Th___;
 		static void  BindVectorMath (const ScriptEnginePtr &se)		__Th___;
+		static void  BindQuaternion (const ScriptEnginePtr &se)		__Th___;
 		static void  BindMatrixMath (const ScriptEnginePtr &se)		__Th___;	// requires 'Vec', 'Rect'
 		static void  BindVectorSwizzle (const ScriptEnginePtr &se)	__Th___;	// requires 'String'
 		static void  BindRect (const ScriptEnginePtr &se)			__Th___;
@@ -115,6 +118,8 @@ AE_DECL_SCRIPT_OBJ( AE::Math::packed_float3x4,		"float3x4"	);
 AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4x2,		"float4x2"	);
 AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4x3,		"float4x3"	);
 AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4x4,		"float4x4"	);
+
+AE_DECL_SCRIPT_OBJ( AE::Math::PackedQuat,			"Quat"	);
 
 AE_DECL_SCRIPT_OBJ( AE::Math::VecSwizzle,			"VecSwizzle");
 

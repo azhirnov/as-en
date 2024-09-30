@@ -36,7 +36,8 @@ namespace AE::ResEditor
 	private:
 		const Path		_pplnPath;
 
-		uint3			_localSize	{0};
+		uint3			_localSize		{0};
+		uint			_subgroupSize	= 0;
 		Iterations_t	_iterations;
 
 
@@ -50,6 +51,8 @@ namespace AE::ResEditor
 		void  LocalSize3  (uint x, uint y, uint z)														__Th___	{ return LocalSize3v({ x, y, z }); }
 		void  LocalSize2v (const packed_uint2 &v)														__Th___	{ return LocalSize3v({ v, 1u }); }
 		void  LocalSize3v (const packed_uint3 &v)														__Th___;
+
+		void  SubgroupSize (uint value)																	__Th___	{ _subgroupSize = value; }
 
 		void  DispatchGroups1  (uint groupCountX)														__Th___	{ return DispatchGroups3v({ groupCountX, 1u, 1u }); }
 		void  DispatchGroups2  (uint groupCountX, uint groupCountY)										__Th___	{ return DispatchGroups3v({ groupCountX, groupCountY, 1u }); }

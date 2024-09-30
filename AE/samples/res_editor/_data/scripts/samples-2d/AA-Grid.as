@@ -107,7 +107,7 @@
 			// 2D circles
 			case 1 :
 			{
-				float2	pos		= GetGlobalCoordFloat().xy + iOffset;
+				float2	pos		= GetGlobalCoordSF().xy + iOffset;
 				float	dist	= Length( pos );
 						pos		= Normalize( pos );
 				float	md		= AA_Lines( dist, 1.0/scale2d, Thickness() );

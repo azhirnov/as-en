@@ -7,7 +7,7 @@
 #include "res_loaders/AE/AEImageLoader.h"
 #include "res_loaders/STB/STBImageSaver.h"
 
-#include "graphics/Private/EnumUtils.cpp"
+#include "graphics/Private/EnumUtils.cpp.h"
 #include "graphics/Private/ImageMemView.cpp"
 
 using namespace AE::Graphics;

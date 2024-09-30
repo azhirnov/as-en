@@ -40,7 +40,7 @@ namespace AE::App
 		ImageDesc		img_desc;
 		ImageViewDesc	view_desc;
 
-		img_desc.dimension		= uint3{ desc.dimension, 1u };
+		img_desc.dimension		= ImageDim_t{uint3{ desc.dimension, 1u }};
 		img_desc.imageDim		= EImageDim_2D;
 		img_desc.usage			= desc.usage;
 		img_desc.options		= desc.options;

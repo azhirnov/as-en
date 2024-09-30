@@ -158,7 +158,7 @@ namespace AE::PipelineCompiler
 		Unknown				= 0,
 		Coherent,
 		Volatile,
-		Restrict,
+		Restrict,			// better for performance
 		_MemoryModel,
 		DeviceCoherent,
 		QueueFamilyCoherent,

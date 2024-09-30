@@ -264,7 +264,7 @@ namespace AE::Graphics
 	{
 		switch_enum( value )
 		{
-			case EPipelineDynamicState::StencilCompareMask:		return VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK;
+			case EPipelineDynamicState::StencilCompareMask :	return VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK;
 			case EPipelineDynamicState::StencilWriteMask :		return VK_DYNAMIC_STATE_STENCIL_WRITE_MASK;
 			case EPipelineDynamicState::StencilReference :		return VK_DYNAMIC_STATE_STENCIL_REFERENCE;
 			case EPipelineDynamicState::DepthBias:				return VK_DYNAMIC_STATE_DEPTH_BIAS;
@@ -272,7 +272,8 @@ namespace AE::Graphics
 			//case EPipelineDynamicState::DepthBounds:			return VK_DYNAMIC_STATE_DEPTH_BOUNDS;
 
 			case EPipelineDynamicState::RTStackSize :			return VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR;
-			case EPipelineDynamicState::FragmentShadingRate:	return VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR;
+			case EPipelineDynamicState::FragmentShadingRate :	return VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR;
+			case EPipelineDynamicState::ViewportWScaling :		return VK_DYNAMIC_STATE_VIEWPORT_W_SCALING_NV;
 
 			// TODO:
 			//	VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT
@@ -388,6 +389,7 @@ namespace AE::Graphics
 				case EImageOpt::MutableFormat :					flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;				break;
 				case EImageOpt::Array2DCompatible :				flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;			break;
 				case EImageOpt::BlockTexelViewCompatible:		flags |= VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;	break;
+				case EImageOpt::ExtendedUsage :					flags |= VK_IMAGE_CREATE_EXTENDED_USAGE_BIT;				break;
 
 				case EImageOpt::SparseResidency :				flags |= VK_IMAGE_CREATE_SPARSE_BINDING_BIT | VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT;	break;
 				case EImageOpt::SparseAliased :					flags |= VK_IMAGE_CREATE_SPARSE_BINDING_BIT | VK_IMAGE_CREATE_SPARSE_ALIASED_BIT;	break;
@@ -898,7 +900,7 @@ namespace AE::Graphics
 	{
 		EImageOpt	result = Zero;
 
-		StaticAssert( uint(EImageOpt::All) == 0x1FFFF );
+		StaticAssert( uint(EImageOpt::All) == 0x3FFFF );
 		for (auto t : BitfieldIterate( values ))
 		{
 			switch_enum( t )
@@ -911,13 +913,13 @@ namespace AE::Graphics
 				case VK_IMAGE_CREATE_ALIAS_BIT :									result |= EImageOpt::Alias;						break;
 				case VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT :				result |= EImageOpt::BlockTexelViewCompatible;	break;
 				case VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT :	result |= EImageOpt::SampleLocationsCompatible;	break;
+				case VK_IMAGE_CREATE_EXTENDED_USAGE_BIT :							result |= EImageOpt::ExtendedUsage;				break;
 
 				case VK_IMAGE_CREATE_DISJOINT_BIT :									break;	// skip
 
 				case VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT :
 				case VK_IMAGE_CREATE_SPARSE_BINDING_BIT :
 				case VK_IMAGE_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT :
-				case VK_IMAGE_CREATE_EXTENDED_USAGE_BIT :
 				case VK_IMAGE_CREATE_PROTECTED_BIT :
 				case VK_IMAGE_CREATE_FLAG_BITS_MAX_ENUM :
 				case VK_IMAGE_CREATE_CORNER_SAMPLED_BIT_NV :

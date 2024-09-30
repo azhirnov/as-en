@@ -137,7 +137,7 @@ namespace AE::Graphics::_hidden_
 		template <usize I, usize G, uint U>  ND_ auto const&  GetResourceDescription (Strong<HandleTmpl<I,G,U>> &id)			C_NE___ { return GetResourceDescription( id.Get() ); } \
 		\
 	private: \
-		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)										__Th___ { return _mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
+		template <typename ...IDs>	ND_ exact_t  _GetResourcesOrThrow (IDs ...ids)												__Th___ { return _mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
 		\
 		using EFeature = RDevice::EFeature; \
 		ND_ bool  _HasFeature (EFeature feat)																					C_NE___	{ return GetDevice().HasFeature( feat ); }

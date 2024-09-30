@@ -117,7 +117,7 @@ namespace AE::Graphics
 	struct VideoImageDesc
 	{
 	// variables
-		uint2					dimension;					// 0 - min, UMax - max
+		VideoImageDim_t			dimension;					// 0 - min, UMax - max
 		ImageLayer				arrayLayers		= 1_layer;
 		EPixelFormat			format			= Default;
 		EImageOpt				options			= Default;
@@ -138,8 +138,9 @@ namespace AE::Graphics
 
 		ND_ bool		IsExclusiveSharing ()							C_NE___	{ return queues == Default; }
 		ND_ uint3		Dimension ()									C_NE___	{ return uint3{ dimension, 1u }; }
+		ND_ uint2		Dimension2 ()									C_NE___	{ return uint2{ dimension }; }
 
-		VideoImageDesc&  SetDimension (const uint2 &value)				__NE___	{ dimension = value;					return *this; }
+		VideoImageDesc&  SetDimension (const uint2 &value)				__NE___	{ dimension = CheckCast<VideoImageDim_t>(value); return *this; }
 		VideoImageDesc&  SetDimension (uint w, uint h)					__NE___	{ return SetDimension( uint2{w,h} ); }
 		VideoImageDesc&  SetOptions (EImageOpt value)					__NE___	{ options		= value;				return *this; }
 		VideoImageDesc&  SetUsage (EImageUsage v1, EVideoImageUsage v2)	__NE___	{ usage = v1;	videoUsage = v2;		return *this; }

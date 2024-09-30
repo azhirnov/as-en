@@ -63,7 +63,8 @@ ND_ float3  GetGlobalCoordUNorm ();					//  0..1
 ND_ float3  GetGlobalCoordSNorm ();					// -1..1
 ND_ float3  GetGlobalCoordUNorm (int3 offset);		//  0..1
 ND_ float3  GetGlobalCoordSNorm (int3 offset);		// -1..1
-ND_ float3  GetGlobalCoordFloat ();					// -size/2 .. +size/2
+ND_ float3  GetGlobalCoordSF ();					// -size/2 .. +size/2
+ND_ float3  GetGlobalCoordUF ();					// 0..size-1
 
 // global normalized coordinate in 2D with same aspect ratio
 ND_ float2  GetGlobalCoordUNormCorrected ();		//  0..1
@@ -145,8 +146,8 @@ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSize
 // global coordinate in 3D
 int3  GetGlobalCoord ()
 {
-  #ifdef AE_GEOMETRY_SHADER
-	return int3( gl.FragCoord.xy, gl.Layer );
+  #if 0 //def AE_GEOMETRY_SHADER
+	return int3( gl.FragCoord.xy, gl.Layer );	// error on Adreno
   #else
 	return int3( gl.FragCoord.xy, 0 );
   #endif
@@ -369,9 +370,14 @@ float3  GetGlobalCoordSNorm (int3 offset)
 	return ToSNorm( GetGlobalCoordUNorm( offset ));
 }
 
-float3  GetGlobalCoordFloat ()
+float3  GetGlobalCoordSF ()
 {
 	return float3(GetGlobalCoord()) - float3(GetGlobalSize()-1) * 0.5f;
+}
+
+float3  GetGlobalCoordUF ()
+{
+	return float3(GetGlobalCoord());
 }
 
 

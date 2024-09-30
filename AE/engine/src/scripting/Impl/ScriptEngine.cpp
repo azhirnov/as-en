@@ -213,27 +213,10 @@ namespace
 		}
 	}
 
-	ND_ inline bool  IsNumber (char c) __NE___
-	{
-		return	(c >= '0') and (c <= '9');
-	}
-
-	ND_ inline bool  IsWordBegin (char c) __NE___
-	{
-		return	((c >= 'A') and (c <= 'Z')) or
-				((c >= 'a') and (c <= 'z')) or
-				(c == '_');
-	}
-
-	ND_ inline bool  IsWord (char c) __NE___
-	{
-		return IsWordBegin( c ) or IsNumber( c );
-	}
-
-	ND_ inline bool  IsSpaceOrSymb (char c) __NE___
-	{
-		return not IsWord( c );
-	}
+	ND_ forceinline bool  IsNumber (char c)			__NE___ { return Parser::CPP.IsNumber( c ); }
+	ND_ forceinline bool  IsWordBegin (char c)		__NE___ { return Parser::CPP.IsWordBegin( c ); }
+	ND_ forceinline bool  IsWord (char c)			__NE___ { return Parser::CPP.IsWord( c ); }
+	ND_ forceinline bool  IsSpaceOrSymb (char c)	__NE___	{ return not IsWord( c ); }
 }
 
 	bool  ScriptEngine::_Preprocessor (StringView							str,
@@ -361,9 +344,13 @@ namespace
 					++pos;
 
 					#ifdef AE_DEBUG
-					if ( a == '\n' and multiline_strings_assert_once ) {
+					if ( a == '\n' and multiline_strings_assert_once )
+					{
+						usize		p = pos;
+						StringView	line;
+						Parser::ReadCurrLine( str, INOUT p, OUT line );
 						multiline_strings_assert_once = false;
-						CHECK_MSG( false, "multiline strings are not supported" );
+						CHECK_MSG( false, "multiline strings are not supported:\n"s << line );
 					}
 					#endif
 					Unused( multiline_strings_assert_once );
@@ -709,7 +696,6 @@ namespace
 		str << "using uint8		= std::uint8_t;\n";
 		str << "using int16		= std::int16_t;\n";
 		str << "using uint16	= std::uint16_t;\n";
-		str << "using int		= std::int32_t;\n";
 		str << "using uint		= std::uint32_t;\n";
 		str << "using int32		= std::int32_t;\n";
 		str << "using uint32	= std::uint32_t;\n";
@@ -720,21 +706,42 @@ namespace
 		str << "template <typename T>\nstruct RC;\n\n";
 		str << "template <typename T>\nusing array = std::vector<T>;\n\n";
 
+		str << "using namespace std::string_literals;\n\n";
+
+		str << "template <typename T>\n"
+			<< "string  operator + (const string &lhs, T rhs);\n\n";
+
+		// forward declaration
 		for (auto& [name, p] : _cppHeaderMap)
 		{
 			if_unlikely( name.empty() )
 				continue;
 
-			if_unlikely( p.second == int(AngelScript::asOBJ_MASK_VALID_FLAGS) )
+			if ( p.second == int(AngelScript::asOBJ_MASK_VALID_FLAGS) or
+				 p.second == int(AngelScript::asOBJ_ENUM) )
 				continue;
 
 			str << "struct " << name << ";\n";
 		}
-
 		str << "\n";
 
+		// enums
 		for (auto& hdr : _cppHeaders)
 		{
+			if ( StartsWith( hdr, "enum class " ))
+			{
+				str << hdr;
+				hash << CT_Hash( hdr.data(), hdr.length(), 0 );
+				str << '\n';
+			}
+		}
+
+		// structs & other
+		for (auto& hdr : _cppHeaders)
+		{
+			if ( StartsWith( hdr, "enum class " ))
+				continue;
+
 			str << hdr;
 			hash << CT_Hash( hdr.data(), hdr.length(), 0 );
 

@@ -12,7 +12,7 @@
 
 		{
 			RC<GraphicsPipeline>	ppln = GraphicsPipeline( prefix+"t" );
-			ppln.SetLayout( "model.pl" );	// [InitPipelineLayout()](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/Model.as)
+			ppln.SetLayout( "model.pl" );	// [InitPipelineLayout()](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/ModelTypes.as)
 			ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
 
 			{

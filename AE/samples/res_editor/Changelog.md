@@ -1,3 +1,9 @@
+## 09.2024
+- Tests: GPU performance tests.
+- Sample: procedural sphere without geometry.
+- Sample: Visibility buffer.
+
+
 ## 08.2024
 - Tests with sRGB blend/filter.
 - Sample: render scene to cubemap + fisheye projection

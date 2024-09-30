@@ -289,6 +289,7 @@
 	Compute a safe spawn point offset along the normal in world space to prevent self intersection of secondary rays.
 =================================================
 */
+#ifdef AE_LICENSE_BSD3
 	void  ComputeHitPos (const float3	pos0, const float3 pos1, const float3 pos2,
 						 const float2	barys,
 						 const float4x3	objectToWorld,
@@ -348,7 +349,7 @@
 		outWorldNorm	= wld_norm;
 		outWorldOffset	= wld_off;
 	}
-
+#endif
 /*
 =================================================
 	SafeSpawnPoint
@@ -359,11 +360,13 @@
 	Offset the world-space position along the world-space normal by the safe offset to obtain the safe spawn point.
 =================================================
 */
+#ifdef AE_LICENSE_BSD3
 	ND_ float3  SafeSpawnPoint (const float3	position,
 								const float3	normal,
 								const float		offset)
 	{
-		precise vec3 p = FusedMulAdd( float3(offset), normal, position );
+		precise float3 p = FusedMulAdd( float3(offset), normal, position );
 		return p;
 	}
+#endif
 //-----------------------------------------------------------------------------

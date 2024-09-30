@@ -111,12 +111,12 @@ namespace AE::PipelineCompiler
 =================================================
 */
 	void  ObjectStorage::TestRenderPass (const String &compatRP, const String &subpass, const SubpassShaderIO &fragIO,
-										 bool requireDepth, bool requireStencil) __Th___
+										 bool requireDepth, bool requireStencil, StringView pplnName) __Th___
 	{
 		AddName<CompatRenderPassName>( compatRP );
 		AddName<SubpassName>( subpass );
 
-		return TestRenderPass( CompatRenderPassName{compatRP}, SubpassName{subpass}, fragIO, requireDepth, requireStencil );  // throw
+		return TestRenderPass( CompatRenderPassName{compatRP}, SubpassName{subpass}, fragIO, requireDepth, requireStencil, pplnName );  // throw
 	}
 
 /*
@@ -127,7 +127,7 @@ namespace AE::PipelineCompiler
 =================================================
 */
 	void  ObjectStorage::TestRenderPass (const CompatRenderPassName::Optimized_t &compatRP, const SubpassName::Optimized_t &subpass,
-										 const SubpassShaderIO &fragIO, bool requireDepth, bool requireStencil) __Th___
+										 const SubpassShaderIO &fragIO, bool requireDepth, bool requireStencil, StringView pplnName) __Th___
 	{
 		CHECK( HasHashName( compatRP ) and HasHashName( subpass ));
 
@@ -142,7 +142,7 @@ namespace AE::PipelineCompiler
 		// Metal: no way to extract fragment output from shader, use 'SetFragmentOutputFromRenderPass()' in script to avoid it.
 		CHECK_THROW_MSG( sp_it->second.colorAttachments.size() == fragIO.colorAttachments.size(),
 			"Color attachments in render pass '"s << GetName( compatRP ) << "' subpass '" <<
-			GetName( subpass ) << "' doesn't match with color outputs in shader  (" <<
+			GetName( subpass ) << "' doesn't match with color outputs in FS in pipeline '" << pplnName << "' (" <<
 			ToString(sp_it->second.colorAttachments.size()) << " != " <<
 			ToString(fragIO.colorAttachments.size()) << ") " );
 
@@ -169,7 +169,7 @@ namespace AE::PipelineCompiler
 
 		CHECK_THROW_MSG( sp_it->second.inputAttachments.size() == fragIO.inputAttachments.size(),
 			"Input attachments in render pass '"s << GetName( compatRP ) << "' subpass '" <<
-			GetName( subpass ) << "' doesn't match with input attachments in shader  (" <<
+			GetName( subpass ) << "' doesn't match with input attachments in FS in pipeline '" << pplnName << "' (" <<
 			ToString(sp_it->second.inputAttachments.size()) << " != " <<
 			ToString(fragIO.inputAttachments.size()) << ") " );
 
@@ -576,7 +576,7 @@ namespace AE::PipelineCompiler
 
 		for (auto& [name, st] : this->structTypes)
 		{
-			if ( not AnyBits( st->Usage(), EUsage::BufferLayout | EUsage::VertexLayout ))
+			if ( NoBits( st->Usage(), EUsage::BufferLayout | EUsage::VertexLayout ))
 				continue;
 
 			CHECK_ERR( st->ToCPP( INOUT types, INOUT unique ));

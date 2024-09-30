@@ -27,19 +27,18 @@ namespace AE::Math
 			Self	size;
 			Self	align;
 
-			constexpr SizeAndAlign ()													__NE___	{}
-			constexpr SizeAndAlign (const SizeAndAlign &)								__NE___	= default;
-			constexpr SizeAndAlign (SizeAndAlign &&)									__NE___	= default;
+			__Cx__ SizeAndAlign ()													__NE___	{}
+			__Cx__ SizeAndAlign (const SizeAndAlign &)								__NE___	= default;
+			__Cx__ SizeAndAlign (SizeAndAlign &&)									__NE___	= default;
 
 			template <typename B1, typename B2>
-			constexpr explicit SizeAndAlign (B1 inSize, B2 inAlign)						__NE___	: size{inSize}, align{inAlign} {}
+			__Cx__ explicit SizeAndAlign (B1 inSize, B2 inAlign)					__NE___	: size{inSize}, align{inAlign} {}
 
 			template <typename B>
-			constexpr explicit SizeAndAlign (const B &other)							__NE___	: size{other.size}, align{other.align} {}
+			__Cx__ explicit SizeAndAlign (const B &other)							__NE___	: size{other.size}, align{other.align} {}
+			__Cx__ explicit SizeAndAlign (std::size_t size, std::align_val_t align)	__NE___ : size{size}, align{align} {}
 
-			constexpr explicit SizeAndAlign (std::size_t size, std::align_val_t align)	__NE___ : size{size}, align{align} {}
-
-			constexpr SizeAndAlign  operator * (usize count)							C_NE___	{ SizeAndAlign tmp{*this};  tmp.size *= count;  return tmp; }
+			__Cx__ SizeAndAlign  operator * (usize count)							C_NE___	{ SizeAndAlign tmp{*this};  tmp.size *= count;  return tmp; }
 		};
 
 
@@ -50,146 +49,146 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr TByte ()												__NE___ : _value{0} {}
-		constexpr TByte (UMax_t)										__NE___	: _value{UMax} {}
-		constexpr TByte (Default_t)										__NE___	: _value{0} {}
-		constexpr TByte (const Self &)									__NE___	= default;
+		__Cx__ TByte ()												__NE___ : _value{0} {}
+		__Cx__ TByte (UMax_t)										__NE___	: _value{UMax} {}
+		__Cx__ TByte (Default_t)									__NE___	: _value{0} {}
+		__Cx__ TByte (const Self &)									__NE___	= default;
 
-		explicit constexpr TByte (T value)								__NE___ : _value{value} {}
-		explicit constexpr TByte (std::align_val_t val)					__NE___ : _value{usize(val)} {}
-		explicit constexpr TByte (const void* ptr)						__NE___	: _value{BitCast<usize>(ptr)} {}
+		__Cx__ explicit TByte (T value)								__NE___ : _value{value} {}
+		__Cx__ explicit TByte (std::align_val_t val)				__NE___ : _value{usize(val)} {}
+		__Cx__ explicit TByte (const void* ptr)						__NE___	: _value{BitCast<usize>(ptr)} {}
 
 		template <typename B>
-		constexpr TByte (const TByte<B> &other)							__NE___	: _value{CheckCast<T>(other)} {}
+		__Cx__ TByte (const TByte<B> &other)						__NE___	: _value{CheckCast<T>(other)} {}
 
-		ND_ explicit constexpr operator sbyte ()						C_NE___	{ return static_cast<sbyte >(_value); }
-		ND_ explicit constexpr operator sshort ()						C_NE___	{ return static_cast<sshort>(_value); }
-		ND_ explicit constexpr operator int ()							C_NE___	{ return static_cast<int   >(_value); }
-		ND_ explicit constexpr operator slong ()						C_NE___	{ return static_cast<slong >(_value); }
+		NdCx__ explicit operator sbyte ()							C_NE___	{ return static_cast<sbyte >(_value); }
+		NdCx__ explicit operator sshort ()							C_NE___	{ return static_cast<sshort>(_value); }
+		NdCx__ explicit operator int ()								C_NE___	{ return static_cast<int   >(_value); }
+		NdCx__ explicit operator slong ()							C_NE___	{ return static_cast<slong >(_value); }
 
-		ND_ explicit constexpr operator ubyte ()						C_NE___	{ return static_cast<ubyte >(_value); }
-		ND_ explicit constexpr operator ushort ()						C_NE___	{ return static_cast<ushort>(_value); }
-		ND_ explicit constexpr operator uint ()							C_NE___	{ return static_cast<uint  >(_value); }
-		ND_ explicit constexpr operator ulong ()						C_NE___	{ return static_cast<ulong >(_value); }
+		NdCx__ explicit operator ubyte ()							C_NE___	{ return static_cast<ubyte >(_value); }
+		NdCx__ explicit operator ushort ()							C_NE___	{ return static_cast<ushort>(_value); }
+		NdCx__ explicit operator uint ()							C_NE___	{ return static_cast<uint  >(_value); }
+		NdCx__ explicit operator ulong ()							C_NE___	{ return static_cast<ulong >(_value); }
 
 	  #if defined(AE_PLATFORM_WINDOWS)		or \
 		  defined(AE_PLATFORM_APPLE)		or \
 		  defined(AE_PLATFORM_EMSCRIPTEN)	or \
 		  (defined(AE_PLATFORM_ANDROID) and AE_PLATFORM_BITS == 32)
-		ND_ explicit constexpr operator signed long ()					C_NE___ { return static_cast< signed long >(_value); }
-		ND_ explicit constexpr operator unsigned long ()				C_NE___ { return static_cast< unsigned long >(_value); }
+		NdCx__ explicit operator signed long ()						C_NE___ { return static_cast< signed long >(_value); }
+		NdCx__ explicit operator unsigned long ()					C_NE___ { return static_cast< unsigned long >(_value); }
 	  #endif
 
 		template <typename R>
-		ND_ constexpr R *		AsPtr ()								C_NE___	{ return BitCast<R *>( CheckCast<usize>( _value )); }
-		ND_ constexpr void*		AsPtr ()								C_NE___	{ return BitCast<void *>( CheckCast<usize>( _value )); }
+		NdCx__ R *			AsPtr ()								C_NE___	{ return BitCast<R *>( CheckCast<usize>( _value )); }
+		NdCx__ void*		AsPtr ()								C_NE___	{ return BitCast<void *>( CheckCast<usize>( _value )); }
 
 		template <typename R>
-		ND_ explicit constexpr operator R * ()							C_NE___	{ return BitCast<R *>( CheckCast<usize>( _value )); }
+		NdCx__ explicit operator R * ()								C_NE___	{ return BitCast<R *>( CheckCast<usize>( _value )); }
 
-		ND_ constexpr T		get ()										C_NE___	{ return _value; }
-		ND_ constexpr T		Kb ()										C_NE___	{ return _value >> 10; }
-		ND_ constexpr T		Mb ()										C_NE___	{ return _value >> 20; }
-		ND_ constexpr T		Gb ()										C_NE___	{ return _value >> 30; }
+		NdCx__ T			get ()									C_NE___	{ return _value; }
+		NdCx__ T			Kb ()									C_NE___	{ return _value >> 10; }
+		NdCx__ T			Mb ()									C_NE___	{ return _value >> 20; }
+		NdCx__ T			Gb ()									C_NE___	{ return _value >> 30; }
 
-		ND_ static constexpr Self	FromBits (T value)					__NE___	{ return Self( value >> 3 ); }
-		ND_ static constexpr Self	FromKb (T value)					__NE___	{ return Self( value << 10 ); }
-		ND_ static constexpr Self	FromMb (T value)					__NE___	{ return Self( value << 20 ); }
-		ND_ static constexpr Self	FromGb (T value)					__NE___	{ return Self( value << 30 ); }
+		NdCx__ static Self	FromBits (T value)						__NE___	{ return Self( value >> 3 ); }
+		NdCx__ static Self	FromKb (T value)						__NE___	{ return Self( value << 10 ); }
+		NdCx__ static Self	FromMb (T value)						__NE___	{ return Self( value << 20 ); }
+		NdCx__ static Self	FromGb (T value)						__NE___	{ return Self( value << 30 ); }
 
 
-		template <typename B>	ND_ static constexpr Self			SizeOf ()					__NE___	{ StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
-		template <typename B>	ND_ static constexpr Self			SizeOf (const B &)			__NE___	{ StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
+		template <typename B>	NdCv__ static Self			SizeOf ()					__NE___	{ StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
+		template <typename B>	NdCv__ static Self			SizeOf (const B &)			__NE___	{ StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
 
-		template <typename B>	ND_ static constexpr Self			AlignOf ()					__NE___	{ StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
-		template <typename B>	ND_ static constexpr Self			AlignOf (const B &)			__NE___	{ StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
+		template <typename B>	NdCv__ static Self			AlignOf ()					__NE___	{ StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
+		template <typename B>	NdCv__ static Self			AlignOf (const B &)			__NE___	{ StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
 
-		template <typename B>	ND_ static constexpr SizeAndAlign	SizeAndAlignOf ()			__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
-		template <typename B>	ND_ static constexpr SizeAndAlign	SizeAndAlignOf (const B &)	__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
+		template <typename B>	NdCv__ static SizeAndAlign	SizeAndAlignOf ()			__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
+		template <typename B>	NdCv__ static SizeAndAlign	SizeAndAlignOf (const B &)	__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
 
 
 		// move any pointer
-		template <typename B>	ND_ friend B*	operator +  (B* lhs, const Self &rhs)			__NE___	{ return BitCast<B *>( usize(lhs) + usize(rhs._value) ); }
-		template <typename B>	ND_ friend B*	operator -  (B* lhs, const Self &rhs)			__NE___	{ return BitCast<B *>( usize(lhs) - usize(rhs._value) ); }
-		template <typename B>		friend B*&	operator += (B* &lhs, const Self &rhs)			__NE___	{ return (lhs = lhs + rhs); }
-		template <typename B>		friend B*&	operator -= (B* &lhs, const Self &rhs)			__NE___	{ return (lhs = lhs + rhs); }
+		template <typename B>	ND_ friend B*	operator +  (B* lhs, const Self &rhs)	__NE___	{ return BitCast<B *>( usize(lhs) + usize(rhs._value) ); }
+		template <typename B>	ND_ friend B*	operator -  (B* lhs, const Self &rhs)	__NE___	{ return BitCast<B *>( usize(lhs) - usize(rhs._value) ); }
+		template <typename B>		friend B*&	operator += (B* &lhs, const Self &rhs)	__NE___	{ return (lhs = lhs + rhs); }
+		template <typename B>		friend B*&	operator -= (B* &lhs, const Self &rhs)	__NE___	{ return (lhs = lhs + rhs); }
 
 
-			constexpr Self&	operator = (UMax_t)							__NE___	{ _value = UMax;	return *this; }
-			constexpr Self&	operator = (Default_t)						__NE___	{ _value = 0;		return *this; }
-			constexpr Self&	operator = (const Self &rhs)				__NE___	= default;
+		__Cx__	Self&	operator = (UMax_t)							__NE___	{ _value = UMax;	return *this; }
+		__Cx__	Self&	operator = (Default_t)						__NE___	{ _value = 0;		return *this; }
+		__Cx__	Self&	operator = (const Self &rhs)				__NE___	= default;
 
-		ND_ constexpr Self	operator ~ ()								C_NE___	{ return Self( ~_value ); }
+		NdCx__	Self	operator ~ ()								C_NE___	{ return Self( ~_value ); }
 
-			Self&			operator ++ ()								__NE___	{ ++_value; return *this; }
-			Self			operator ++ (int)							__NE___	{ auto res = _value++; return Self{res}; }
+				Self&	operator ++ ()								__NE___	{ ++_value; return *this; }
+				Self	operator ++ (int)							__NE___	{ auto res = _value++; return Self{res}; }
 
-			Self&			operator += (const Self &rhs)				__NE___	{ _value += rhs._value;  return *this; }
-		ND_ constexpr Self	operator +  (const Self &rhs)				C_NE___	{ return Self( _value + rhs._value ); }
+				Self&	operator += (const Self &rhs)				__NE___	{ _value += rhs._value;  return *this; }
+		NdCx__	Self	operator +  (const Self &rhs)				C_NE___	{ return Self( _value + rhs._value ); }
 
-			Self&			operator -= (const Self &rhs)				__NE___	{ _value -= rhs._value;  return *this; }
-		ND_ constexpr Self	operator -  (const Self &rhs)				C_NE___	{ return Self( _value - rhs._value ); }
+				Self&	operator -= (const Self &rhs)				__NE___	{ _value -= rhs._value;  return *this; }
+		NdCx__	Self	operator -  (const Self &rhs)				C_NE___	{ return Self( _value - rhs._value ); }
 
-			Self&			operator *= (const Self &rhs)				__NE___	{ _value *= rhs._value;  return *this; }
-		ND_ constexpr Self	operator *  (const Self &rhs)				C_NE___	{ return Self( _value * rhs._value ); }
+				Self&	operator *= (const Self &rhs)				__NE___	{ _value *= rhs._value;  return *this; }
+		NdCx__	Self	operator *  (const Self &rhs)				C_NE___	{ return Self( _value * rhs._value ); }
 
-			Self&			operator /= (const Self &rhs)				__NE___	{ _value /= rhs._value;  return *this; }
-		ND_ constexpr Self	operator /  (const Self &rhs)				C_NE___	{ return Self( _value / rhs._value ); }
+				Self&	operator /= (const Self &rhs)				__NE___	{ _value /= rhs._value;  return *this; }
+		NdCx__	Self	operator /  (const Self &rhs)				C_NE___	{ return Self( _value / rhs._value ); }
 
-			Self&			operator %= (const Self &rhs)				__NE___	{ _value %= rhs._value;  return *this; }
-		ND_ constexpr Self	operator %  (const Self &rhs)				C_NE___	{ return Self( _value % rhs._value ); }
+				Self&	operator %= (const Self &rhs)				__NE___	{ _value %= rhs._value;  return *this; }
+		NdCx__	Self	operator %  (const Self &rhs)				C_NE___	{ return Self( _value % rhs._value ); }
 
 
-			Self&			operator += (const T rhs)					__NE___	{ _value += rhs;  return *this; }
-		ND_ constexpr Self	operator +  (const T rhs)					C_NE___	{ return Self( _value + rhs ); }
+				Self&	operator += (const T rhs)					__NE___	{ _value += rhs;  return *this; }
+		NdCx__	Self	operator +  (const T rhs)					C_NE___	{ return Self( _value + rhs ); }
 
-			Self&			operator -= (const T rhs)					__NE___	{ _value -= rhs;  return *this; }
-		ND_ constexpr Self	operator -  (const T rhs)					C_NE___	{ return Self( _value - rhs ); }
+				Self&	operator -= (const T rhs)					__NE___	{ _value -= rhs;  return *this; }
+		NdCx__	Self	operator -  (const T rhs)					C_NE___	{ return Self( _value - rhs ); }
 
-			Self&			operator *= (const T rhs)					__NE___	{ _value *= rhs;  return *this; }
-		ND_ constexpr Self	operator *  (const T rhs)					C_NE___	{ return Self( _value * rhs ); }
+				Self&	operator *= (const T rhs)					__NE___	{ _value *= rhs;  return *this; }
+		NdCx__	Self	operator *  (const T rhs)					C_NE___	{ return Self( _value * rhs ); }
 
-			Self&			operator /= (const T rhs)					__NE___	{ _value /= rhs;  return *this; }
-		ND_ constexpr Self	operator /  (const T rhs)					C_NE___	{ return Self( _value / rhs ); }
+				Self&	operator /= (const T rhs)					__NE___	{ _value /= rhs;  return *this; }
+		NdCx__	Self	operator /  (const T rhs)					C_NE___	{ return Self( _value / rhs ); }
 
-			Self&			operator %= (const T rhs)					__NE___	{ _value %= rhs;  return *this; }
-		ND_ constexpr Self	operator %  (const T rhs)					C_NE___	{ return Self( _value % rhs ); }
+				Self&	operator %= (const T rhs)					__NE___	{ _value %= rhs;  return *this; }
+		NdCx__	Self	operator %  (const T rhs)					C_NE___	{ return Self( _value % rhs ); }
 
-		ND_ Self&			operator >>= (const T rhs)					__NE___	{ _value >>= rhs;  return *this; }
-		ND_ constexpr Self	operator >>  (const T rhs)					C_NE___	{ return Self{ _value >> rhs }; }
+				Self&	operator >>= (const T rhs)					__NE___	{ _value >>= rhs;  return *this; }
+		NdCx__	Self	operator >>  (const T rhs)					C_NE___	{ return Self{ _value >> rhs }; }
 
-		ND_ Self&			operator <<= (const T rhs)					__NE___	{ _value <<= rhs;  return *this; }
-		ND_ constexpr Self	operator <<  (const T rhs)					C_NE___	{ return Self{ _value << rhs }; }
+				Self&	operator <<= (const T rhs)					__NE___	{ _value <<= rhs;  return *this; }
+		NdCx__	Self	operator <<  (const T rhs)					C_NE___	{ return Self{ _value << rhs }; }
 
-		ND_ constexpr bool	operator == (const Self &rhs)				C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool	operator != (const Self &rhs)				C_NE___	{ return _value != rhs._value; }
-		ND_ constexpr bool	operator >  (const Self &rhs)				C_NE___	{ return _value >  rhs._value; }
-		ND_ constexpr bool	operator <  (const Self &rhs)				C_NE___	{ return _value <  rhs._value; }
-		ND_ constexpr bool	operator >= (const Self &rhs)				C_NE___	{ return _value >= rhs._value; }
-		ND_ constexpr bool	operator <= (const Self &rhs)				C_NE___	{ return _value <= rhs._value; }
+		NdCx__ bool  operator == (const Self &rhs)					C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool  operator != (const Self &rhs)					C_NE___	{ return _value != rhs._value; }
+		NdCx__ bool  operator >  (const Self &rhs)					C_NE___	{ return _value >  rhs._value; }
+		NdCx__ bool  operator <  (const Self &rhs)					C_NE___	{ return _value <  rhs._value; }
+		NdCx__ bool  operator >= (const Self &rhs)					C_NE___	{ return _value >= rhs._value; }
+		NdCx__ bool  operator <= (const Self &rhs)					C_NE___	{ return _value <= rhs._value; }
 
-		ND_ constexpr bool	operator == (const T rhs)					C_NE___	{ return _value == rhs; }
-		ND_ constexpr bool	operator != (const T rhs)					C_NE___	{ return _value != rhs; }
-		ND_ constexpr bool	operator >  (const T rhs)					C_NE___	{ return _value >  rhs; }
-		ND_ constexpr bool	operator <  (const T rhs)					C_NE___	{ return _value <  rhs; }
-		ND_ constexpr bool	operator >= (const T rhs)					C_NE___	{ return _value >= rhs; }
-		ND_ constexpr bool	operator <= (const T rhs)					C_NE___	{ return _value <= rhs; }
+		NdCx__ bool  operator == (const T rhs)						C_NE___	{ return _value == rhs; }
+		NdCx__ bool  operator != (const T rhs)						C_NE___	{ return _value != rhs; }
+		NdCx__ bool  operator >  (const T rhs)						C_NE___	{ return _value >  rhs; }
+		NdCx__ bool  operator <  (const T rhs)						C_NE___	{ return _value <  rhs; }
+		NdCx__ bool  operator >= (const T rhs)						C_NE___	{ return _value >= rhs; }
+		NdCx__ bool  operator <= (const T rhs)						C_NE___	{ return _value <= rhs; }
 
-		ND_ friend constexpr Self  operator +  (T lhs, const Self &rhs)	__NE___ { return Self( lhs + rhs._value ); }
-		ND_ friend constexpr Self  operator -  (T lhs, const Self &rhs)	__NE___ { return Self( lhs - rhs._value ); }
-		ND_ friend constexpr Self  operator *  (T lhs, const Self &rhs)	__NE___ { return Self( lhs * rhs._value ); }
-		ND_ friend constexpr Self  operator /  (T lhs, const Self &rhs)	__NE___ { return Self( lhs / rhs._value ); }
-		ND_ friend constexpr Self  operator %  (T lhs, const Self &rhs)	__NE___ { return Self( lhs % rhs._value ); }
+		NdCx__ friend Self  operator +  (T lhs, const Self &rhs)	__NE___ { return Self( lhs + rhs._value ); }
+		NdCx__ friend Self  operator -  (T lhs, const Self &rhs)	__NE___ { return Self( lhs - rhs._value ); }
+		NdCx__ friend Self  operator *  (T lhs, const Self &rhs)	__NE___ { return Self( lhs * rhs._value ); }
+		NdCx__ friend Self  operator /  (T lhs, const Self &rhs)	__NE___ { return Self( lhs / rhs._value ); }
+		NdCx__ friend Self  operator %  (T lhs, const Self &rhs)	__NE___ { return Self( lhs % rhs._value ); }
 
-		ND_ friend constexpr bool  operator == (T lhs, Self rhs)		__NE___ { return lhs == rhs._value; }
-		ND_ friend constexpr bool  operator != (T lhs, Self rhs)		__NE___ { return lhs != rhs._value; }
-		ND_ friend constexpr bool  operator >  (T lhs, Self rhs)		__NE___ { return lhs >  rhs._value; }
-		ND_ friend constexpr bool  operator <  (T lhs, Self rhs)		__NE___ { return lhs <  rhs._value; }
-		ND_ friend constexpr bool  operator >= (T lhs, Self rhs)		__NE___ { return lhs >= rhs._value; }
-		ND_ friend constexpr bool  operator <= (T lhs, Self rhs)		__NE___ { return lhs <= rhs._value; }
+		NdCx__ friend bool  operator == (T lhs, Self rhs)			__NE___ { return lhs == rhs._value; }
+		NdCx__ friend bool  operator != (T lhs, Self rhs)			__NE___ { return lhs != rhs._value; }
+		NdCx__ friend bool  operator >  (T lhs, Self rhs)			__NE___ { return lhs >  rhs._value; }
+		NdCx__ friend bool  operator <  (T lhs, Self rhs)			__NE___ { return lhs <  rhs._value; }
+		NdCx__ friend bool  operator >= (T lhs, Self rhs)			__NE___ { return lhs >= rhs._value; }
+		NdCx__ friend bool  operator <= (T lhs, Self rhs)			__NE___ { return lhs <= rhs._value; }
 
-		ND_ static constexpr Self  Max ()								__NE___ { return Self{ MaxValue<T>() }; }
-		ND_ static constexpr Self  Min ()								__NE___ { return Self{ MinValue<T>() }; }
+		NdCv__ static Self  Max ()									__NE___ { return Self{ MaxValue<T>() }; }
+		NdCv__ static Self  Min ()									__NE___ { return Self{ MinValue<T>() }; }
 	};
 
 
@@ -211,25 +210,25 @@ namespace AE::Math
 	inline static constexpr Bytes  SizeOf = Bytes::SizeOf<T>();
 
 	template <typename T>
-	ND_ constexpr Bytes  Sizeof (const T &) __NE___ { return Bytes::SizeOf<T>(); }
+	NdCx__ Bytes  Sizeof (const T &) __NE___ { return Bytes::SizeOf<T>(); }		// TODO: consteval
 
 	template <typename T>
 	inline static constexpr Bytes  AlignOf = Bytes::AlignOf<T>();
 
 	template <typename T>
-	ND_ constexpr Bytes  Alignof (const T &) __NE___ { return Bytes::AlignOf<T>(); }
+	NdCx__ Bytes  Alignof (const T &) __NE___ { return Bytes::AlignOf<T>(); }
 
 	template <typename T>
 	inline static constexpr SizeAndAlign  SizeAndAlignOf = Bytes::SizeAndAlignOf<T>();
 
 	template <typename T>
-	ND_ constexpr SizeAndAlign  SizeAndAlignof (const T &) __NE___ { return Bytes::SizeAndAlignOf<T>(); }
+	NdCx__ SizeAndAlign  SizeAndAlignof (const T &) __NE___ { return Bytes::SizeAndAlignOf<T>(); }
 
 
-	ND_ constexpr Bytes  operator "" _b  (unsigned long long value)	__NE___	{ return Bytes{ CheckCast<Bytes::Value_t>(value) }; }
-	ND_ constexpr Bytes  operator "" _Kb (unsigned long long value)	__NE___	{ return Bytes::FromKb( CheckCast<Bytes::Value_t>(value) ); }
-	ND_ constexpr Bytes  operator "" _Mb (unsigned long long value)	__NE___	{ return Bytes::FromMb( CheckCast<Bytes::Value_t>(value) ); }
-	ND_ constexpr Bytes  operator "" _Gb (unsigned long long value)	__NE___	{ return Bytes::FromGb( CheckCast<Bytes::Value_t>(value) ); }
+	NdCv__ Bytes  operator "" _b  (unsigned long long value)	__NE___	{ return Bytes{ CheckCast<Bytes::Value_t>(value) }; }
+	NdCv__ Bytes  operator "" _Kb (unsigned long long value)	__NE___	{ return Bytes::FromKb( CheckCast<Bytes::Value_t>(value) ); }
+	NdCv__ Bytes  operator "" _Mb (unsigned long long value)	__NE___	{ return Bytes::FromMb( CheckCast<Bytes::Value_t>(value) ); }
+	NdCv__ Bytes  operator "" _Gb (unsigned long long value)	__NE___	{ return Bytes::FromGb( CheckCast<Bytes::Value_t>(value) ); }
 
 
 	namespace _hidden_
@@ -267,13 +266,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr TByte<T>  FloorPOT (const TByte<T> x) __NE___
+	NdCx__ TByte<T>  FloorPOT (const TByte<T> x) __NE___
 	{
 		return TByte<T>{ FloorPOT( T{x} )};
 	}
 
 	template <typename T>
-	ND_ constexpr TByte<T>  CeilPOT (const TByte<T> x) __NE___
+	NdCx__ TByte<T>  CeilPOT (const TByte<T> x) __NE___
 	{
 		return TByte<T>{ CeilPOT( T{x} )};
 	}
@@ -284,7 +283,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr bool  IsPowerOfTwo (const TByte<T> x) __NE___
+	NdCx__ bool  IsPowerOfTwo (const TByte<T> x) __NE___
 	{
 		return IsPowerOfTwo( T{x} );
 	}
@@ -320,11 +319,11 @@ private:
 public:
 	static constexpr bool is_specialized = Base::is_specialized;
 
-	ND_ static constexpr Bytes  min () __NE___ {
+	NdCx__ static Bytes  min () __NE___ {
 		return Bytes{Base::min()};
 	}
 
-	ND_ static constexpr Bytes  max () __NE___ {
+	NdCx__ static Bytes  max () __NE___ {
 		return Bytes{Base::max()};
 	}
 };

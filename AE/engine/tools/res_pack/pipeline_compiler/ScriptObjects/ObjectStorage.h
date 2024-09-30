@@ -168,6 +168,7 @@ namespace AE::PipelineCompiler
 		EStructLayout			defaultLayout		= EStructLayout::Compatible_Std140;
 		EPipelineOpt			defaultPipelineOpt	= Default;
 		String					defaultFeatureSet;
+		String					defaultShaderDefines;
 
 
 	// methods
@@ -179,9 +180,9 @@ namespace AE::PipelineCompiler
 			void  Clear ();
 
 		void  TestRenderPass (const String &compatRP, const String &subpass, const SubpassShaderIO &fragIO,
-							  bool requireDepth, bool requireStencil)																__Th___;
+							  bool requireDepth, bool requireStencil, StringView pplnName)											__Th___;
 		void  TestRenderPass (const CompatRenderPassName::Optimized_t &compatRP, const SubpassName::Optimized_t &subpass,
-							  const SubpassShaderIO &fragIO, bool requireDepth, bool requireStencil)								__Th___;
+							  const SubpassShaderIO &fragIO, bool requireDepth, bool requireStencil, StringView pplnName)			__Th___;
 
 		ND_ CompatibleRenderPassDescPtr  RenderPassExists (const String &rpName, const String &subpass)								__Th___;
 		ND_ CompatibleRenderPassDescPtr  RenderPassExists (RenderPassName::Ref rpName, SubpassName::Ref subpass)					C_Th___;

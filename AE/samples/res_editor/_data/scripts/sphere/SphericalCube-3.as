@@ -67,8 +67,7 @@
 			pass.Slider(	"iDistanceOnSphere",	0, 1 );
 
 			GenMipmaps( cubemap_view );
-		}
-		{
+		}{
 			RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "draw sphere" );
 			draw.AddPipeline( "sphere/SphericalCube-3.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/sphere/SphericalCube-3.as)
 			draw.Output( "out_Color", rt, RGBA32f(0.0) );
@@ -134,8 +133,7 @@
 		{
 			const float2	pos_on_face	= Floor( scale * ncoord ) + float2(x,y) + 0.5;
 			const float3	obj_pos		= ProjectToSphere( pos_on_face / scale );
-			const float		d			= SDF_Sphere( pos_on_sphere - obj_pos, 0.06 );
-		//	const float		d			= Distance2( pos_on_sphere, obj_pos ) - 0.06;
+			const float		d			= Distance2( pos_on_sphere, obj_pos ) - 0.06;
 
 			dist = Min( dist, d );
 		}

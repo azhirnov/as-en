@@ -464,16 +464,14 @@ namespace
 		return WithVideoProfile( dev, desc.profile,
 				[&] (const VkVideoProfileInfoKHR &profileInfo, const VkVideoCapabilitiesKHR &capabilities) -> bool
 				{
-					if ( All( desc.dimension == uint2{0} )) {
-						desc.dimension.x = capabilities.minCodedExtent.width;
-						desc.dimension.y = capabilities.minCodedExtent.height;
-					}
-					if ( All( desc.dimension == UMax )) {
-						desc.dimension.x = capabilities.maxCodedExtent.width;
-						desc.dimension.y = capabilities.maxCodedExtent.height;
-					}
-					CHECK_ERR( All( desc.dimension >= uint2{capabilities.minCodedExtent.width, capabilities.minCodedExtent.height} ));
-					CHECK_ERR( All( desc.dimension <= uint2{capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height} ));
+					if ( All( desc.dimension == ImageDim2_t{0} ))
+						desc.dimension = CheckCast<ImageDim2_t>(uint2{ capabilities.minCodedExtent.width, capabilities.minCodedExtent.height });
+
+					if ( All( desc.dimension == UMax ))
+						desc.dimension = CheckCast<ImageDim2_t>(uint2{ capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height });
+
+					CHECK_ERR( All( desc.Dimension2() >= uint2{capabilities.minCodedExtent.width, capabilities.minCodedExtent.height} ));
+					CHECK_ERR( All( desc.Dimension2() <= uint2{capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height} ));
 
 					pictureAccessGranularity = ushort2{ uint2{ capabilities.pictureAccessGranularity.width, capabilities.pictureAccessGranularity.height }};
 
@@ -535,7 +533,7 @@ namespace
 
 		result &= dev.GetVExtensions().samplerYcbcrConversion;
 
-		result &= All( IsMultipleOf( desc.dimension, dim_granularity ));
+		result &= All( IsMultipleOf( desc.Dimension2(), dim_granularity ));
 
 		return result;
 	}

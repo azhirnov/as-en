@@ -14,7 +14,7 @@
 		RC<DynamicUInt>		mode		= DynamicUInt();
 		RC<DynamicUInt>		submode		= DynamicUInt();
 		const array<string>	mode_str	= {
-			"Hermite", "Quadratic", "Cubic", "Quartic", "Quintic"
+			"Sine", "Hermite", "Quadratic", "Cubic", "Quartic", "Quintic", "Exponential", "Circular", "Elastic"
 		};
 
 		Slider( mode,		"Mode",		0, mode_str.size()-1,	0 );

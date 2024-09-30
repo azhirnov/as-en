@@ -14,6 +14,17 @@ namespace AE::ResEditor
 
 /*
 =================================================
+	constructor
+=================================================
+*/
+	Present::Present (Array<RC<Image>> src, StringView dbgName, RC<DynamicDim> dynSize) __NE___ :
+		IPass{dbgName}, _src{RVRef(src)}, _dynSize{dynSize}, _filterMode{UIInteraction::Instance().GetFilterMode()}
+	{
+		_dbgColor = RGBA8u{150};
+	}
+
+/*
+=================================================
 	PresentAsync
 =================================================
 */
@@ -22,7 +33,7 @@ namespace AE::ResEditor
 		const auto	infos = pd.surface->GetTargetInfo();
 
 		if ( _dynSize and not infos.empty() )
-			_dynSize->Resize( infos[0].dimension );
+			_dynSize->Resize( infos[0].Dimension() );
 
 		{
 			auto&		ui		= UIInteraction::Instance();
@@ -38,7 +49,14 @@ namespace AE::ResEditor
 				encoder = null;
 
 				if ( capture.video )
-					_videoEncoder.store( _CreateEncoder( capture.bitrate, capture.videoFormat, capture.videoCodec, capture.colorPreset ));
+				{
+					encoder = _CreateEncoder( capture.bitrate, capture.videoFormat, capture.videoCodec, capture.colorPreset );
+
+					if ( encoder )
+						_videoEncoder.store( RVRef(encoder) );
+					else
+						ui.capture->video = false;
+				}
 			}
 		}
 
@@ -56,25 +74,43 @@ namespace AE::ResEditor
 		IOutputSurface::RenderTargets_t		targets;
 		CHECK_CE( surface.GetTargets( OUT targets ));
 
-		auto&		src		= self->_src[0];
-		const auto	desc	= src->GetImageDesc();
-		auto&		dst		= targets[0];
-		RenderTask&	rtask	= co_await RenderTask_GetRef;
-		const auto	filter	= self->_filterMode->Get() == 0 ? EBlitFilter::Nearest : EBlitFilter::Linear;
+		auto&		src			= self->_src[0];
+		const auto	src_desc	= src->GetImageDesc();
+		const auto	src_view	= src->GetViewDesc();
+		const uint2	src_dim		= src_view.Dimension2();
 
-		DirectCtx::Transfer		ctx{ rtask, Default, DebugLabel{ self->_dbgName, HtmlColor::Blue }};
+		auto&		dst			= targets[0];
+		RenderTask&	rtask		= co_await RenderTask_GetRef;
+		const auto	filter		= self->_filterMode->Get() == 0 ? EBlitFilter::Nearest : EBlitFilter::Linear;
+		const bool	copy		= self->_filterMode->Get() == 2 and
+								  EPixelFormat_IsCopySupported( src_desc.format, dst.format ) and
+								  All( src_dim == dst.RegionSize() );
+
+		DirectCtx::Transfer		ctx{ rtask, Default, DebugLabel{ self->_dbgName, self->_dbgColor }};
 
 		ctx.AddSurfaceTargets( targets );
 
-		ImageBlit	blit;
-		blit.srcSubres	= { EImageAspect::Color, 0_mipmap, 0_layer, 1u };
-		blit.srcOffset0	= { 0u, 0u, 0u };
-		blit.srcOffset1	= { desc.dimension.x, desc.dimension.y, 1u };
-		blit.dstSubres	= { EImageAspect::Color, 0_mipmap, 0_layer, 1u };
-		blit.dstOffset0	= { dst.region.left,  dst.region.top,    0 };
-		blit.dstOffset1	= { dst.region.right, dst.region.bottom, 1 };
+		if ( copy )
+		{
+			ImageCopy	range;
+			range.extent				= uint3{src_dim, 1};
+			range.srcSubres.aspectMask	= EImageAspect::Color;
+			range.dstSubres.aspectMask	= EImageAspect::Color;
 
-		ctx.BlitImage( src->GetImageId(), dst.imageId, filter, ArrayView<ImageBlit>{ &blit, 1 });
+			ctx.CopyImage( src->GetImageId(), dst.imageId, {range} );
+		}
+		else
+		{
+			ImageBlit	blit;
+			blit.srcSubres	= { EImageAspect::Color, src_view.baseMipmap, src_view.baseLayer, 1u };
+			blit.srcOffset0	= uint3{ 0 };
+			blit.srcOffset1	= uint3{ src_dim.x, src_dim.y, 1u };
+			blit.dstSubres	= { EImageAspect::Color, 0_mipmap, 0_layer, 1u };
+			blit.dstOffset0	= int3{ dst.region.left,  dst.region.top,    0 };
+			blit.dstOffset1	= int3{ dst.region.right, dst.region.bottom, 1 };
+
+			ctx.BlitImage( src->GetImageId(), dst.imageId, filter, {blit} );
+		}
 
 		// read pixel color for debugging
 		{
@@ -83,8 +119,8 @@ namespace AE::ResEditor
 			ReadbackImageDesc		readback;
 			readback.heapType		= EStagingHeapType::Static;
 			readback.imageDim		= uint3{1};
-			readback.imageOffset	= uint3{float3{ unorm_pos * float2{desc.dimension}, 0.f }};
-			readback.imageOffset	= Min( readback.imageOffset, desc.dimension-1u );
+			readback.imageOffset	= uint3{float3{ unorm_pos * float2{src_dim}, 0.f }};
+			readback.imageOffset	= Min( readback.imageOffset, uint3{src_dim - 1u, 0u} );
 
 			ctx.ReadbackImage( src->GetImageId(), readback )
 				.Then(	[fid = ctx.GetFrameId()] (const ImageMemView &inView)
@@ -132,7 +168,7 @@ namespace AE::ResEditor
 			{
 				ReadbackImageDesc	readback;
 				readback.heapType	= EStagingHeapType::Dynamic;
-				readback.imageDim	= desc.dimension;
+				readback.imageDim	= uint3{src_dim, 1u};
 
 				ctx.ReadbackImage( src->GetImageId(), readback )
 					.Then(	[self, capture, encoder = self->_videoEncoder.load()] (const ImageMemView &inView)
@@ -243,9 +279,16 @@ namespace AE::ResEditor
 		cfg.framerate		= FractionalI{ int(_videoInfo.frameRate) };
 		cfg.bitrate			= Bitrate{ ulong(double(bitrate) * 1024.0) * 1024 };	// TODO
 		cfg.hwAccelerated	= EHwAcceleration::Optional;
-		cfg.targetGPU		= GraphicsScheduler().GetFeatureSet().devicesIds.include.First();
 		cfg.targetCPU		= CpuArchInfo::Get().cpu.vendor;
 
+	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
+	  # if RmG_UI_ON_HOST
+		if ( auto glib = GraphicsScheduler().GetDevice().GetGraphicsLib() )
+			cfg.targetGPU = glib->GetResourceManager()->GetFeatureSet().devicesIds.include.First();
+	  # endif
+	  #else
+		cfg.targetGPU		= GraphicsScheduler().GetFeatureSet().devicesIds.include.First();
+	  #endif
 
 		auto		result		 = VideoFactory::CreateFFmpegEncoder();
 		const auto&	video_folder = ResEditorAppConfig::Get().videoFolder;
@@ -382,7 +425,7 @@ namespace AE::ResEditor
 				break;
 
 			case EFlags::Histogram :
-				img_desc.dimension	= uint3{ 1024, 1024, 1 };
+				img_desc.dimension	= ImageDim_t{ 1024, 1024, 1 };
 				img_desc.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled;
 				img_desc.format		= EPixelFormat::RGBA8_UNorm;	// defined in 'histogram.as'
 				img_desc.options	= Default;
@@ -537,8 +580,8 @@ namespace AE::ResEditor
 	{
 		constexpr auto&		RTech		= RenderTechs::Histogram_RTech;
 
-		const uint2			src_dim		= uint2{srcImage.GetImageDesc().dimension};		// TODO: GetViewDimension ?
-		const uint2			dst_dim		= uint2{dstImage.GetImageDesc().dimension};
+		const uint2			src_dim		= srcImage.GetImageDesc().Dimension2();		// TODO: GetViewDimension ?
+		const uint2			dst_dim		= dstImage.GetImageDesc().Dimension2();
 
 		DirectCtx::Transfer	copy_ctx	{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"Histogram pass1", HtmlColor::Blue} };
 		DescriptorSetID		comp_ds		= _ppln1DS[ copy_ctx.GetFrameId().Index() ];
@@ -664,7 +707,7 @@ namespace AE::ResEditor
 	{
 		constexpr auto&	RTech = RenderTechs::LinearDepth_RTech;
 
-		const uint2			dst_dim		= uint2{dstImage.GetImageDesc().dimension};		// TODO: GetViewDimension ?
+		const uint2			dst_dim		= dstImage.GetImageDesc().Dimension2();		// TODO: GetViewDimension ?
 		DirectCtx::Graphics	ctx			{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ToLinearDepth", HtmlColor::Blue} };
 		DescriptorSetID		ds			= _pplnDS[ ctx.GetFrameId().Index() ];
 
@@ -746,7 +789,7 @@ namespace AE::ResEditor
 	{
 		constexpr auto&	RTech = RenderTechs::StencilView_RTech;
 
-		const uint2			dst_dim		= uint2{dstImage.GetImageDesc().dimension};		// TODO: GetViewDimension ?
+		const uint2			dst_dim		= dstImage.GetImageDesc().Dimension2();		// TODO: GetViewDimension ?
 		DirectCtx::Graphics	ctx			{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"StencilView", HtmlColor::Blue} };
 		DescriptorSetID		ds			= _pplnDS[ ctx.GetFrameId().Index() ];
 
@@ -812,13 +855,13 @@ namespace AE::ResEditor
 	CopyImagePass::CopyImagePass (RC<Image> src, RC<Image> dst, StringView dbgName) __Th___ :
 		IPass{dbgName}, _srcImage{RVRef(src)}, _dstImage{RVRef(dst)}
 	{
-		const auto&	src_desc = _srcImage->GetImageDesc();
-		const auto&	dst_desc = _dstImage->GetImageDesc();
+		const auto&	src_desc = _srcImage->GetViewDesc();
+		const auto&	dst_desc = _dstImage->GetViewDesc();
 
 		CHECK_THROW( All( src_desc.dimension == dst_desc.dimension ));
 		CHECK_THROW( All( src_desc.format == dst_desc.format ));
+		CHECK_THROW( src_desc.layerCount == dst_desc.layerCount );
 
-		_dim	= src_desc.dimension;
 		_aspect = EPixelFormat_GetInfo( src_desc.format ).aspectMask;
 	}
 
@@ -834,14 +877,123 @@ namespace AE::ResEditor
 
 		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"CopyImage", HtmlColor::Blue} };
 
+		const auto&	src_desc = _srcImage->GetViewDesc();
+		const auto&	dst_desc = _dstImage->GetViewDesc();
+		CHECK_THROW( All( src_desc.dimension == dst_desc.dimension ));
+		CHECK_THROW( src_desc.layerCount == dst_desc.layerCount );
+
 		ImageCopy	copy;
 		copy.srcOffset	= {};
-		copy.srcSubres	= { _aspect, 0_mipmap, 0_layer, UMax };
+		copy.srcSubres	= { _aspect, src_desc.baseMipmap, src_desc.baseLayer, src_desc.layerCount };
 		copy.dstOffset	= {};
-		copy.dstSubres	= { _aspect, 0_mipmap, 0_layer, UMax };
-		copy.extent		= _dim;
+		copy.dstSubres	= { _aspect, dst_desc.baseMipmap, dst_desc.baseLayer, dst_desc.layerCount };
+		copy.extent		= src_desc.Dimension();
 
 		ctx.CopyImage( _srcImage->GetImageId(), _dstImage->GetImageId(), {copy} );
+
+		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		return true;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	BlitImagePass::BlitImagePass (RC<Image> src, RC<Image> dst, StringView dbgName) __Th___ :
+		IPass{dbgName}, _srcImage{RVRef(src)}, _dstImage{RVRef(dst)}
+	{
+		const auto&	src_desc = _srcImage->GetViewDesc();
+		const auto&	dst_desc = _dstImage->GetViewDesc();
+
+		CHECK_THROW( EPixelFormat_IsBlitSupported( src_desc.format, dst_desc.format, EBlitFilter::Linear ));
+
+		_aspect = EPixelFormat_GetInfo( src_desc.format ).aspectMask;
+	}
+
+/*
+=================================================
+	Execute
+=================================================
+*/
+	bool  BlitImagePass::Execute (SyncPassData &pd) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
+
+		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"BlitImage", HtmlColor::Blue} };
+
+		const auto&	src_desc = _srcImage->GetViewDesc();
+		const auto&	dst_desc = _dstImage->GetViewDesc();
+		CHECK_THROW( src_desc.layerCount == dst_desc.layerCount );
+
+		ImageBlit	blit;
+		blit.srcSubres	= { _aspect, src_desc.baseMipmap, src_desc.baseLayer, src_desc.layerCount };
+		blit.srcOffset0	= {};
+		blit.srcOffset1	= src_desc.Dimension();
+		blit.dstSubres	= { _aspect, dst_desc.baseMipmap, dst_desc.baseLayer, dst_desc.layerCount };
+		blit.dstOffset0	= {};
+		blit.dstOffset1	= dst_desc.Dimension();
+
+		EBlitFilter	filter = EBlitFilter::Linear;
+		if ( All( src_desc.Dimension() == dst_desc.Dimension() ))
+			filter = EBlitFilter::Nearest;
+
+		ctx.BlitImage( _srcImage->GetImageId(), _dstImage->GetImageId(), filter, {blit} );
+
+		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		return true;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	ResolveImagePass::ResolveImagePass (RC<Image> src, RC<Image> dst, StringView dbgName) __Th___ :
+		IPass{dbgName}, _srcImage{RVRef(src)}, _dstImage{RVRef(dst)}
+	{
+		const auto&	src_desc = _srcImage->GetViewDesc();
+		const auto&	dst_desc = _dstImage->GetViewDesc();
+
+		CHECK_THROW( All( src_desc.dimension == dst_desc.dimension ));
+		CHECK_THROW( All( src_desc.format == dst_desc.format ));
+		CHECK_THROW( src_desc.layerCount == dst_desc.layerCount );
+
+		_aspect = EPixelFormat_GetInfo( src_desc.format ).aspectMask;
+	}
+
+/*
+=================================================
+	Execute
+=================================================
+*/
+	bool  ResolveImagePass::Execute (SyncPassData &pd) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
+
+		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"CopyImage", HtmlColor::Blue} };
+
+		const auto&	src_desc = _srcImage->GetViewDesc();
+		const auto&	dst_desc = _dstImage->GetViewDesc();
+		CHECK_THROW( All( src_desc.dimension == dst_desc.dimension ));
+		CHECK_THROW( src_desc.layerCount == dst_desc.layerCount );
+
+		ImageResolve	copy;
+		copy.srcOffset	= {};
+		copy.srcSubres	= { _aspect, src_desc.baseMipmap, src_desc.baseLayer, src_desc.layerCount };
+		copy.dstOffset	= {};
+		copy.dstSubres	= { _aspect, dst_desc.baseMipmap, dst_desc.baseLayer, dst_desc.layerCount };
+		copy.extent		= src_desc.Dimension();
+
+		ctx.ResolveImage( _srcImage->GetImageId(), _dstImage->GetImageId(), {copy} );
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;

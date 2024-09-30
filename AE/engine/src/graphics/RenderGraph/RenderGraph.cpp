@@ -1,7 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "graphics/RenderGraph/RenderGraph.h"
 #include "platform/Public/OutputSurface.h"
+#include "graphics/Private/Defines.h"
+#include "graphics/RenderGraph/RenderGraph.h"
 
 namespace AE::RG::_hidden_
 {

@@ -516,15 +516,11 @@ namespace
 	{
 	#ifdef AE_ENABLE_LOGS
 		TRY{
-			String	str;
+			//String	str;
 
-			str << "memory types:";
+			// skip 'memTypes'
 
-			for (EMemoryType mem : memTypes) {
-				str << "\n  " << ToString( mem );
-			}
-
-			AE_LOGI( str );
+			//AE_LOGI( str );
 		}
 		CATCH_ALL()
 	#endif

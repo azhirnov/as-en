@@ -9,6 +9,22 @@ namespace AE::ResEditor
 
 /*
 =================================================
+	_GetDimension
+=================================================
+*/
+	uint2  Postprocess::_GetDimension () C_NE___
+	{
+		if ( not _renderTargets.empty() )
+			return _renderTargets.front().image->GetViewDesc().Dimension2();
+
+		if ( _dynamicDim )
+			return _dynamicDim->Dimension2();
+
+		RETURN_ERR( "render pass dimension is not specified" );
+	}
+
+/*
+=================================================
 	Execute
 =================================================
 */
@@ -17,11 +33,9 @@ namespace AE::ResEditor
 		if_unlikely( not _IsEnabled() )
 			return true;
 
-		CHECK_ERR( not _renderTargets.empty() );
-
 		ShaderDebugger::Result		dbg;
 		GraphicsPipelineID			ppln;
-		const uint2					dim	{_renderTargets[0].image->GetViewDimension()};
+		const uint2					dim	= _GetDimension();
 
 		if ( pd.dbg.IsEnabled( this ))
 		{
@@ -33,7 +47,7 @@ namespace AE::ResEditor
 				ppln = it->second;
 
 				DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
-				CHECK( pd.dbg.debugger->AllocForGraphics( OUT dbg, tctx, ppln, uint2{pd.dbg.coord * float2{dim} + 0.5f} ));
+				CHECK( pd.dbg.debugger->AllocForGraphics( OUT dbg, tctx, ppln, uint2{pd.dbg.coord * float2(dim-1u)} ));
 				pd.cmdbuf = tctx.ReleaseCommandBuffer();
 			}
 		}
@@ -43,31 +57,36 @@ namespace AE::ResEditor
 
 		DirectCtx::Graphics		ctx{ pd.rtask, RVRef(pd.cmdbuf) };
 
-		_resources.SetStates( ctx, Default );
-		ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::FragmentShader );
-		ctx.CommitBarriers();
-
-		// render pass
+		for (uint i = 0, cnt = _GetRepeatCount(); i < cnt; ++i)
 		{
-			DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
-			RenderPassDesc		rp_desc	= _rpDesc;
+			_resources.SetStates( ctx, Default );
+			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::FragmentShader );
+			ctx.CommitBarriers();
 
-			for (auto& rt : _renderTargets) {
-				rp_desc.AddTarget( rt.name, rt.image->GetViewId(), rt.clear );
+			// render pass
+			{
+				DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
+				RenderPassDesc		rp_desc	= _rpDesc;
+
+				for (auto& rt : _renderTargets) {
+					rp_desc.AddTarget( rt.name, rt.image->GetViewId(), rt.clear );
+				}
+
+				rp_desc.area = RectI{ int2{dim} };
+				for (auto& vp : rp_desc.viewports) {
+					vp.rect *= float2{dim};
+				}
+
+				auto	dctx = ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
+
+				dctx.BindPipeline( ppln );
+				dctx.BindDescriptorSet( _dsIndex, ds );
+				if ( dbg ) dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
+
+				dctx.Draw( 3 );
+
+				ctx.EndRenderPass( dctx );
 			}
-
-			rp_desc.area = RectI{ int2{dim} };
-			rp_desc.DefaultViewport( _depthRange.x, _depthRange.y );
-
-			auto	dctx = ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
-
-			dctx.BindPipeline( ppln );
-			dctx.BindDescriptorSet( _dsIndex, ds );
-			if ( dbg ) dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
-
-			dctx.Draw( 3 );
-
-			ctx.EndRenderPass( dctx );
 		}
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
@@ -81,14 +100,12 @@ namespace AE::ResEditor
 */
 	bool  Postprocess::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __Th___
 	{
-		CHECK_ERR( not _renderTargets.empty() );
-
 		// validate dimensions
-		const uint2		cur_dim = uint2{ _renderTargets.front().image->GetViewDimension() };
+		const uint2		cur_dim = _GetDimension();
 		{
 			for (auto& rt : _renderTargets)
 			{
-				const uint2		dim = uint2{ rt.image->GetViewDimension() };
+				const uint2		dim = rt.image->GetViewDesc().Dimension2();
 				CHECK_ERR( All( cur_dim == dim ));
 			}
 		}
@@ -96,7 +113,7 @@ namespace AE::ResEditor
 		// update uniform buffer
 		{
 			ShaderTypes::ShadertoyUB	ub_data;
-			ub_data.resolution	= float3{cur_dim.x, cur_dim.y, 1};
+			ub_data.resolution	= float3{ cur_dim, 1.f };
 			ub_data.time		= pd.totalTime.count();
 			ub_data.timeDelta	= pd.frameTime.count();
 			ub_data.frame		= pd.frameId;

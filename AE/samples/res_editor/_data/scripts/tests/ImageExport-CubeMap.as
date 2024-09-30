@@ -15,8 +15,8 @@
 		RC<Image>			ds				= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 
 		const int2			tile_size		= int2(128);
-		const int			tile_count_pot	= 5;	// 2^X
-		const int2			cubemap_dim		= tile_size << tile_count_pot;
+		const int			tile_count_pot	= 5;							// 2^X
+		const int2			cubemap_dim		= tile_size << tile_count_pot;	// 4096
 
 		RC<Image>			cubemap			= Image( EPixelFormat::RGBA8_UNorm, uint2(cubemap_dim), ImageLayer(6), MipmapLevel(~0) );	cubemap.Name( "Cubemap tex" );
 		RC<Image>			cubemap_view	= cubemap.CreateView( EImage::Cube );

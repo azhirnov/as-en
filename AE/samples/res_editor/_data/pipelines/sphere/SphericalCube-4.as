@@ -121,7 +121,7 @@
 					const float		thickness	= 1.0;	// pixels
 					const float		falloff		= 1.0;	// pixels
 
-					out_Color.rgb = Lerp( float3(0.0, 0.5, 1.0), out_Color.rgb, FSBarycentricWireframe( thickness, falloff ));
+					out_Color.rgb = Lerp( float3(0.0, 0.5, 1.0), out_Color.rgb, FSBarycentricWireframe( thickness, falloff ).x);
 				}
 				break;
 			}

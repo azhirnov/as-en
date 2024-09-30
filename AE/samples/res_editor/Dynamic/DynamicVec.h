@@ -19,12 +19,15 @@ namespace AE::ResEditor
 		using Self			= TDynamicVec< T, I >;
 		using Vec_t			= Vec< T, I >;
 		using GetValueFn_t	= Vec_t (*) (EnableRCBase*);
+		using EOperator		= EDynamicVarOperator;
 
 
 	// variables
 	private:
 		mutable RWSpinLock	_guard;
 		Vec_t				_vec;
+		Vec_t				_opValue;
+		EOperator			_op			= Default;
 		const RC<>			_base;
 		const GetValueFn_t	_getValue	= null;
 
@@ -35,6 +38,7 @@ namespace AE::ResEditor
 		explicit TDynamicVec (const Vec_t &v)				__NE___	: _vec{v} {}
 		TDynamicVec (RC<> base, GetValueFn_t getValue)		__NE___	: _base{RVRef(base)}, _getValue{getValue} {}
 
+			void		SetOp (const Vec_t &, EOperator)	__NE___;
 			void		Set (const Vec_t &v)				__NE___;
 		ND_ Vec_t		Get ()								C_NE___;
 
@@ -47,6 +51,8 @@ namespace AE::ResEditor
 		ND_ RC<TDynamicScalar<T>>	GetDynamicZ ()			__NE___;
 		ND_ RC<TDynamicScalar<T>>	GetDynamicW ()			__NE___;
 
+		ND_ RC<DynamicDim>			ToDim ()				__NE___;
+
 	private:
 		ND_ static Vec_t	_Get (EnableRCBase*)			__NE___;
 
@@ -54,6 +60,7 @@ namespace AE::ResEditor
 		ND_ static T		_GetY (EnableRCBase*)			__NE___;
 		ND_ static T		_GetZ (EnableRCBase*)			__NE___;
 		ND_ static T		_GetW (EnableRCBase*)			__NE___;
+		ND_ static uint3	_GetDim (EnableRCBase*)			__NE___;
 	};
 
 
@@ -69,6 +76,19 @@ namespace AE::ResEditor
 	using DynamicUInt3	= TDynamicVec< uint, 3 >;
 	using DynamicUInt4	= TDynamicVec< uint, 4 >;
 
+
+/*
+=================================================
+	SetOp
+=================================================
+*/
+	template <typename T, int I>
+	void  TDynamicVec<T,I>::SetOp (const Vec_t &val, EOperator op) __NE___
+	{
+		EXLOCK( _guard );
+		_opValue	= val;
+		_op			= op;
+	}
 
 /*
 =================================================
@@ -97,6 +117,30 @@ namespace AE::ResEditor
 
 		if_unlikely( _getValue != null )
 			result = _getValue( _base.get() );
+
+		switch_enum( _op )
+		{
+			case_likely EOperator::Unknown :	break;
+			case EOperator::Mul :				result *= _opValue;								break;
+			case EOperator::Div :				result /= _opValue;								break;
+			case EOperator::DivNear :			result = (result + _opValue / T(2)) / _opValue;	break;
+			case EOperator::DivCeil :			result = (result + _opValue - T(1)) / _opValue;	break;
+			case EOperator::Add :				result += _opValue;								break;
+			case EOperator::Sub :				result -= _opValue;								break;
+
+			case EOperator::PowOf2 :
+				if constexpr( IsFloatPoint<T> )
+					result = _opValue * Pow( Vec_t{T(2)}, result );
+				else
+					result = _opValue << result;
+				break;
+
+			case EOperator::Pow :
+				if constexpr( IsFloatPoint<T> )
+					result = Pow( result, _opValue );
+				break;
+		}
+		switch_end
 
 		return result;
 	}

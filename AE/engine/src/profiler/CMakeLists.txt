@@ -31,6 +31,7 @@ if ( (TARGET "GraphicsHL") AND (${AE_ENABLE_PROFILER}) )
 
 	EnablePCH( "Profiler" )
 	EnablePrebuild( "Profiler" )
+	EnableUnitBuild( "Profiler" )
 
 	install( TARGETS "Profiler" ARCHIVE DESTINATION "lib" )
 endif()

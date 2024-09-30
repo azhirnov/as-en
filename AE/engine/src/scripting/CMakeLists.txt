@@ -25,6 +25,15 @@ if (${AE_ENABLE_SCRIPTING} AND ${AE_ENABLE_EXCEPTIONS})
 
 	EnablePCH( "Scripting" )
 	EnablePrebuild( "Scripting" )
+	EnableUnitBuild( "Scripting" )
+
+	if (${AE_USE_UNITY_BUILD})
+		set( NON_UNITY_BUILD_SRC
+			"${CMAKE_CURRENT_SOURCE_DIR}/Bindings/CoreBindings_BindVectorMath1.cpp"
+			"${CMAKE_CURRENT_SOURCE_DIR}/Bindings/CoreBindings_BindVectorMath2.cpp"
+		)
+		set_property( SOURCE ${NON_UNITY_BUILD_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
+	endif()
 
 	install( TARGETS "Scripting" ARCHIVE DESTINATION "lib" )
 endif()

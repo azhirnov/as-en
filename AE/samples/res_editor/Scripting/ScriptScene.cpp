@@ -274,7 +274,6 @@ namespace AE::ResEditor
 			dbg_modes |= mtr->GetDebugModeBits();
 		}
 
-		result->_depthRange		= this->_depthRange;
 		result->_renderLayer	= this->_renderLayer;
 		result->_shadingRate	= this->_shadingRate;
 
@@ -298,10 +297,17 @@ namespace AE::ResEditor
 		}
 		CHECK_THROW( min_layer_count > 0 );
 
+		result->_wScaling				= _wScaling;
+		result->_scissors				= _scissors;
 		result->_rpDesc.renderPassName	= RenderPassName{"rp"};
 		result->_rpDesc.subpassName		= SubpassName{"main"};
 		result->_rpDesc.packId			= result->_rtech.packId;
 		result->_rpDesc.layerCount		= ImageLayer{min_layer_count};
+		result->_rpDesc.area			= RectI{0,0,1,1};
+		result->_rpDesc.viewports		= _viewports;
+
+		if ( result->_rpDesc.viewports.empty() )
+			result->_rpDesc.AddViewport( RectF{0.f, 0.f, 1.f, 1.f}, _depthRange.x, _depthRange.y );
 
 		for (usize i = 0; i < _output.size(); ++i)
 		{
@@ -354,7 +360,7 @@ namespace AE::ResEditor
 			binder.CreateRef( 0, False{"no ctor"} );
 
 			_BindBase( binder, True{"with args"} );
-			_BindBaseRenderPass( binder, False{"without blending"} );
+			_BindBaseRenderPass( binder, False{"without blending"}, False{"without RWAttachment"} );
 
 			binder.Comment( "Add path to single pipeline or folder with pipelines.\n"
 							"Scene geometry will be linked with compatible pipeline or error will be generated." );
@@ -363,6 +369,9 @@ namespace AE::ResEditor
 
 			binder.AddMethod( &ScriptSceneGraphicsPass::SetLayer,				"Layer",				{} );
 			binder.AddMethod( &ScriptSceneGraphicsPass::SetFragmentShadingRate,	"FragmentShadingRate",	{"rate", "primitiveOp", "textureOp"} );
+
+			binder.Comment( "Can be used only if pass hasn't attachments." );
+			binder.AddMethod( &ScriptBasePass::_SetDynamicDimension,	"SetDimension",	{} );
 		}
 	}
 
@@ -386,7 +395,7 @@ namespace AE::ResEditor
 				// view //
 				float2		resolution;				// viewport resolution (in pixels)
 				float		time;					// shader playback time (in seconds)
-				float		timeDelta;				// render time (in seconds)
+				float		timeDelta;				// frame render time (in seconds), max value: 1/30s
 				uint		frame;					// shader playback frame, global frame counter
 				uint		seed;					// unique value, updated on each shader reloading
 
@@ -484,7 +493,7 @@ namespace AE::ResEditor
 			const auto				stage	= EShaderStages::AllGraphics;
 
 			ds_layout->AddUniformBuffer( EShaderStages::AllGraphics, "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform, False{} );
-			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
+			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 
 			String	str;
 			_AddSlidersAsMacros( OUT str );
@@ -740,7 +749,7 @@ namespace AE::ResEditor
 		st->Set( EStructLayout::Std140, R"#(
 				// view //
 				float		time;					// shader playback time (in seconds)
-				float		timeDelta;				// render time (in seconds)
+				float		timeDelta;				// frame render time (in seconds), max value: 1/30s
 				uint		frame;					// shader playback frame, global frame counter
 				uint		seed;					// unique value, updated on each shader reloading
 
@@ -801,7 +810,7 @@ namespace AE::ResEditor
 
 			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "SceneRayTracingPassUB", EResourceState::ShaderUniform, False{} );
 			ds_layout->AddRayTracingScene( stage, "un_RtScene", ArraySize{1} );
-			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
+			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 
 			String	str;
 			_AddSlidersAsMacros( OUT str );

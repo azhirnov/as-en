@@ -341,10 +341,10 @@ namespace {
 		ND_ bool  IsUnused (char c)										__NE___;
 		ND_ bool  OnUnknown (char)										__NE___	{ return false; } // return true to continue parsing, false - to exit
 
-		ND_ static bool  _IsWordBegin (char c)							__NE___;
-		ND_ static bool  _IsWord (char c)								__NE___;
-		ND_ static bool  _IsNumberBegin (char c)						__NE___;
-		ND_ static bool  _IsNumber (char c)								__NE___;
+		ND_ static bool  _IsWordBegin (char c)							__NE___	{ return Parser::CPP.IsWordBegin( c ); }
+		ND_ static bool  _IsWord (char c)								__NE___	{ return Parser::CPP.IsWord( c ); }
+		ND_ static bool  _IsNumberBegin (char c)						__NE___	{ return Parser::CPP.IsNumberBegin( c ); }
+		ND_ static bool  _IsNumber (char c)								__NE___	{ return Parser::CPP.IsNumber( c ); }
 		ND_ static bool  _IsOperator (char c)							__NE___;
 		ND_ static bool  _IsBinaryOperator (char p, char c)				__NE___;
 		ND_ static bool  _IsTernaryOperator (char pp, char p, char c)	__NE___;
@@ -427,52 +427,6 @@ namespace {
 		return	(c == ' ')  or (c == '\t') or (c == '@') or (c == '$') or
 				(c == '\n') or (c == '\r')
 				/*or (c == '\\')*/;
-	}
-
-/*
-=================================================
-	_IsWordBegin
-=================================================
-*/
-	inline bool  CStyleParser::_IsWordBegin (char c) __NE___
-	{
-		return	((c >= 'A') and (c <= 'Z')) or
-				((c >= 'a') and (c <= 'z')) or
-				(c == '_');
-	}
-
-/*
-=================================================
-	_IsWord
-=================================================
-*/
-	inline bool  CStyleParser::_IsWord (char c) __NE___
-	{
-		return	_IsWordBegin( c ) or _IsNumberBegin( c );
-	}
-
-/*
-=================================================
-	_IsNumberBegin
-=================================================
-*/
-	inline bool  CStyleParser::_IsNumberBegin (char c) __NE___
-	{
-		return	(c >= '0') and (c <= '9');
-	}
-
-/*
-=================================================
-	_IsNumber
-=================================================
-*/
-	inline bool  CStyleParser::_IsNumber (char c) __NE___
-	{
-		return	((c >= '0') and (c <= '9')) or
-				((c >= 'A') and (c <= 'F')) or
-				((c >= 'a') and (c <= 'f')) or
-				(c == '.')  or  (c == 'x')  or
-				(c == 'X');
 	}
 
 /*

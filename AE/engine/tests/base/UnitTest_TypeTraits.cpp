@@ -123,6 +123,13 @@ namespace
 	}
 
 
+	static void  Test_Tuple()
+	{
+		StaticAssert( IsNoExcept( Tuple{ 1u, 2.2f } ));
+		StaticAssert( not IsNoExcept( Tuple{ 0.9, -10, "aa"s } ));
+	}
+
+
 	static void  Test_TupleConcat ()
 	{
 		auto	t = TupleConcat( Tuple{ 1u, 2.2f }, Tuple{ 0.9, -10, "aa"s }, Tuple{ 9ull });
@@ -298,6 +305,23 @@ namespace
 		using B = Test_IsNothrowInvocable_B;
 		CheckNothrow( IsNothrowInvocable< decltype(&B::template operator()<int>), B& >);
 	}
+
+
+	static void  Test_Attributes ()
+	{
+		AE_INLINE_ALL	Unused( TupleConcat( Tuple{ 1u, 2.2f }, Tuple{ 0.9, -10, "aa"s }, Tuple{ 9ull }));
+		AE_INLINE_CALLS	Unused( TupleConcat( Tuple{ 1u, 2.2f }, Tuple{ 0.9, -10, "aa"s }, Tuple{ 9ull }));
+
+		AE_INLINE_ALL {
+			auto	t = TupleConcat( Tuple{ 1u, 2.2f }, Tuple{ 0.9, -10, "aa"s }, Tuple{ 9ull });
+			Unused( t.Get<0>() );
+		}
+
+		AE_INLINE_CALLS	{
+			auto	t = TupleConcat( Tuple{ 1u, 2.2f }, Tuple{ 0.9, -10, "aa"s }, Tuple{ 9ull });
+			Unused( t.Get<0>() );
+		}
+	}
 }
 
 
@@ -306,12 +330,17 @@ extern void UnitTest_TypeTraits ()
 	Test_IsSpecializationOf();
 	Test_IsTrivial();
 	Test_RemoveAllQualifiers();
+
+	Test_Tuple();
 	Test_TupleConcat();
 	Test_TupleRef();
+
 	Test_Nothrow();
 	Test_ArrayView();
 	Test_IsConst();
 	Test_IsNothrowInvocable();
+
+	Test_Attributes();
 
 	TEST_PASSED();
 }

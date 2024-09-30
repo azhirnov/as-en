@@ -110,6 +110,7 @@ namespace AE::Graphics::_hidden_
 
 		void  _SetFragmentShadingRate (const VkExtent2D &fragSize, VkFragmentShadingRateCombinerOpKHR primitiveOp,
 									   VkFragmentShadingRateCombinerOpKHR textureOp)								__Th___;
+		void  _SetViewportWScaling (ArrayView<VkViewportWScalingNV> scaling)										__Th___;
 
 		void  _BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets)	__Th___;
 
@@ -231,6 +232,7 @@ namespace AE::Graphics::_hidden_
 
 		void  _SetFragmentShadingRate (const VkExtent2D &fragSize, VkFragmentShadingRateCombinerOpKHR primitiveOp,
 									   VkFragmentShadingRateCombinerOpKHR textureOp)								__Th___;
+		void  _SetViewportWScaling (ArrayView<VkViewportWScalingNV> scaling)										__Th___;
 
 		void  _BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets)	__Th___;
 
@@ -314,6 +316,7 @@ namespace AE::Graphics::_hidden_
 		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV	{ RawCtx::_SetBlendConstants( color ); }
 		void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th_OV;
 		void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th_OV;
+		void  SetViewportWScaling (ArrayView<packed_float2> scaling)														__Th_OV;
 
 		using RawCtx::SetViewport;
 		using RawCtx::SetScissor;
@@ -632,6 +635,20 @@ namespace AE::Graphics::_hidden_
 		uint2	size = EShadingRate_Size( rate );
 
 		RawCtx::_SetFragmentShadingRate( VkExtent2D{size.x, size.y}, VEnumCast(primitiveOp), VEnumCast(textureOp) );
+	}
+
+/*
+=================================================
+	SetViewportWScaling
+=================================================
+*/
+	template <typename C>
+	void  _VDrawContextImpl<C>::SetViewportWScaling (ArrayView<packed_float2> scaling) __Th___
+	{
+		VALIDATE_GCTX( SetViewportWScaling( this->_GetDynamicStates(), scaling ));
+		StaticAssert( sizeof(VkViewportWScalingNV) == sizeof(float2) );
+
+		RawCtx::_SetViewportWScaling( scaling.Cast<VkViewportWScalingNV>() );
 	}
 
 /*
@@ -1090,13 +1107,23 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	inline void  _VDirectDrawCtx::_SetFragmentShadingRate (const VkExtent2D &fragSize, VkFragmentShadingRateCombinerOpKHR primitiveOp,
-														   VkFragmentShadingRateCombinerOpKHR textureOp)
+														   VkFragmentShadingRateCombinerOpKHR textureOp) __Th___
 	{
 		ASSERT( fragSize.width <= 4 and fragSize.height <= 4 );
 
 		VkFragmentShadingRateCombinerOpKHR	combiner_ops[2] = { primitiveOp, textureOp };
 
 		vkCmdSetFragmentShadingRateKHR( _cmdbuf.Get(), &fragSize, combiner_ops );
+	}
+
+/*
+=================================================
+	_SetViewportWScaling
+=================================================
+*/
+	inline void  _VDirectDrawCtx::_SetViewportWScaling (ArrayView<VkViewportWScalingNV> scaling) __Th___
+	{
+		vkCmdSetViewportWScalingNV( _cmdbuf.Get(), 0, uint(scaling.size()), scaling.data() );
 	}
 
 /*

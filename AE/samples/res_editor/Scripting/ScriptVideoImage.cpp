@@ -27,7 +27,7 @@ namespace
 */
 	ScriptVideoImage::ScriptVideoImage (EPixelFormat format, const String &filename) __Th___ :
 		_format{ format },
-		_imageType{uint( PipelineCompiler::EImageType::Img2D | PipelineCompiler::EImageType::Float )},
+		_imageType{uint( EImageType::Img2D | EImageType::Float )},
 		_videoFile{ filename }
 	{
 		CHECK_THROW_MSG( GetVFS().Exists( _videoFile ),
@@ -211,7 +211,7 @@ namespace
 		ImageDesc	desc;
 		desc.imageDim	= EImageDim_2D;
 		desc.format		= _format;
-		desc.dimension	= uint3{ _dim, 1 };
+		desc.dimension	= ImageDim_t{uint3{ _dim, 1u }};
 
 		CHECK_ERR( _resUsage != Default );
 		for (auto usage : BitfieldIterate( _resUsage ))
@@ -238,6 +238,7 @@ namespace
 				case EResourceUsage::IndirectBuffer :
 				case EResourceUsage::ASBuild :
 				case EResourceUsage::WithHistory :
+				case EResourceUsage::InputAttachment :
 				default :								RETURN_ERR( "unsupported usage" );
 			}
 			switch_end

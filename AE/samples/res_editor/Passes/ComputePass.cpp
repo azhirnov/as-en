@@ -96,7 +96,7 @@ namespace AE::ResEditor
 				ppln = it->second;
 
 				DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
-				CHECK( pd.dbg.debugger->AllocForCompute( OUT dbg, tctx, ppln, uint3{uint2{pd.dbg.coord * float2{dim} + 0.5f}, 0u }));
+				CHECK( pd.dbg.debugger->AllocForCompute( OUT dbg, tctx, ppln, uint3{pd.dbg.coord * float2(dim-1u), 0u }));
 				pd.cmdbuf = tctx.ReleaseCommandBuffer();
 			}
 		}
@@ -104,39 +104,42 @@ namespace AE::ResEditor
 		if ( not dbg )
 			ppln = _pipelines.find( IPass::EDebugMode::Unknown )->second;
 
-		DirectCtx::Compute	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
-		DescriptorSetID		ds	= _descSets[ ctx.GetFrameId().Index() ];
-
-		_resources.SetStates( ctx, Default );
-		ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
-		ctx.CommitBarriers();
-
-		ctx.BindPipeline( ppln );
-		ctx.BindDescriptorSet( _dsIndex, ds );
-		if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
-
-		ShaderTypes::ComputePassPC	pc;
-		pc.dispatchIndex = 0;
-
-		for (const auto& it : _iterations)
+		for (uint i = 0, cnt = _GetRepeatCount(); i < cnt; ++i)
 		{
-			ctx.PushConstant( _pcIndex, pc );
-			pc.dispatchIndex++;
+			DirectCtx::Compute	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
+			DescriptorSetID		ds	= _descSets[ ctx.GetFrameId().Index() ];
 
-			if ( it.indirect ){
-				ctx.DispatchIndirect( it.indirect->GetBufferId( ctx.GetFrameId() ), it.indirectOffset );
-			}else{
-				ctx.Dispatch( it.GroupCount( _localSize ));
-			}
+			_resources.SetStates( ctx, Default );
+			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
+			ctx.CommitBarriers();
 
-			if ( not IsLastElement( it, _iterations ))
+			ctx.BindPipeline( ppln );
+			ctx.BindDescriptorSet( _dsIndex, ds );
+			if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
+
+			ShaderTypes::ComputePassPC	pc;
+			pc.dispatchIndex = 0;
+
+			for (const auto& it : _iterations)
 			{
-				ctx.ExecutionBarrier( EPipelineScope::Compute, EPipelineScope::Compute );
-				ctx.CommitBarriers();
-			}
-		}
+				ctx.PushConstant( _pcIndex, pc );
+				pc.dispatchIndex++;
 
-		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+				if ( it.indirect ){
+					ctx.DispatchIndirect( it.indirect->GetBufferId( ctx.GetFrameId() ), it.indirectOffset );
+				}else{
+					ctx.Dispatch( it.GroupCount( _localSize ));
+				}
+
+				if ( not IsLastElement( it, _iterations ))
+				{
+					ctx.ExecutionBarrier( EPipelineScope::Compute, EPipelineScope::Compute );
+					ctx.CommitBarriers();
+				}
+			}
+
+			pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		}
 		return true;
 	}
 

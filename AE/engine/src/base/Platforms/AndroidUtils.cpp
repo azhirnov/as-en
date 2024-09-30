@@ -180,6 +180,23 @@ namespace AE::Base
 	#endif
 	}
 
+/*
+=================================================
+	IsUnderDebugger
+----
+	https://developer.android.com/reference/android/os/Debug.html#isDebuggerConnected()
+=================================================
+*/
+	bool  Android_IsUnderDebugger = false;  // extern
+
+	bool  AndroidUtils::IsUnderDebugger () __NE___
+	{
+	#ifdef AE_CFG_RELEASE
+		return false;
+	#else
+		return Android_IsUnderDebugger;
+	#endif
+	}
 
 } // AE::Base
 

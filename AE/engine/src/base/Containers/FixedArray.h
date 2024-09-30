@@ -86,12 +86,17 @@ namespace AE::Base
 		ND_ constexpr bool  operator <= (ArrayView<T> rhs)		C_NE___	{ return ArrayView<T>{*this} <= rhs; }
 
 
-		constexpr Self&  operator = (const Self &rhs)			__NE___;
-		constexpr Self&  operator = (ArrayView<T> rhs)			__NE___;
+		template <typename B, usize S, typename C>
+		constexpr Self&  operator = (const FixedArray<B,S,C> &)	__NE___;
+		constexpr Self&  operator = (const Self &rhs)			__NE___	{ return operator=( ArrayView<T>{rhs} ); }
 		constexpr Self&  operator = (Self &&rhs)				__NE___;
+		template <typename B>
+		constexpr Self&  operator = (ArrayView<B> rhs)			__NE___;
 
-		constexpr void  assign (const_iterator beginIter, const_iterator endIter)	__NE___;
-		constexpr void  append (ArrayView<T> items)									__NE___;
+		template <typename B>
+		constexpr void  assign (B* beginIter, B* endIter)		__NE___;
+		template <typename B>
+		constexpr void  append (B* beginIter, B* endIter)		__NE___;
 
 		constexpr void  push_back (const T &value)				__NE___;
 		constexpr void  push_back (T &&value)					__NE___;
@@ -120,9 +125,9 @@ namespace AE::Base
 		constexpr void  fast_erase (usize index)				__NE___;
 
 	private:
-		ND_ constexpr bool  _IsMemoryAliased (const_iterator beginIter, const_iterator endIter) C_NE___
+		ND_ constexpr bool  _IsMemoryAliased (const void* beginIter, const void* endIter) C_NE___
 		{
-			return IsIntersects( begin(), end(), beginIter, endIter );
+			return IsIntersects<const void*>( begin(), end(), beginIter, endIter );
 		}
 	};
 
@@ -176,14 +181,16 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (const Self &rhs) __NE___
+	template <typename T2, usize S2, typename CS2>
+	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (const FixedArray<T2,S2,CS2> &rhs) __NE___
 	{
 		assign( rhs.begin(), rhs.end() );
 		return *this;
 	}
 
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<T> rhs) __NE___
+	template <typename B>
+	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<B> rhs) __NE___
 	{
 		ASSERT( rhs.size() < capacity() );
 		assign( rhs.begin(), rhs.end() );
@@ -211,8 +218,11 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::assign (const_iterator beginIter, const_iterator endIter) __NE___
+	template <typename B>
+	constexpr void  FixedArray<T,S,CS>::assign (B* beginIter, B* endIter) __NE___
 	{
+		StaticAssert( IsConstructible< T, B >);
+
 		ASSERT( beginIter <= endIter );
 		ASSERT( not _IsMemoryAliased( beginIter, endIter ));
 
@@ -230,10 +240,17 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::append (ArrayView<T> items) __NE___
+	template <typename B>
+	constexpr void  FixedArray<T,S,CS>::append (B* beginIter, B* endIter) __NE___
 	{
-		for (auto& item : items) {
-			push_back( item );
+		StaticAssert( IsConstructible< T, B >);
+
+		ASSERT( beginIter <= endIter );
+		ASSERT( not _IsMemoryAliased( beginIter, endIter ));
+
+		for (auto iter = beginIter; (_count < capacity()) and (iter != endIter); ++iter, ++_count)
+		{
+			PlacementNew<T>( OUT data() + _count, *iter );
 		}
 	}
 

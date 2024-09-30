@@ -2,7 +2,7 @@
 /*
 	Always included for GraphicsPass
 */
-#include "Model.as"
+#include "ModelTypes.as"
 
 void  ASmain ()
 {

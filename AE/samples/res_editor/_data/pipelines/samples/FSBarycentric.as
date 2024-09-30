@@ -82,7 +82,7 @@
 	#else
 		const float		thickness		= 1.5;	// pixels
 		const float		falloff			= 6.0;	// pixels
-		const float		wireframe		= FSBarycentricWireframe( thickness, falloff );
+		const float		wireframe		= FSBarycentricWireframe( thickness, falloff ).x;
 
 	#endif
 		out_Color = float4( wireframe );

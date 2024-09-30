@@ -283,8 +283,8 @@
 
 			// sphere
 			case 2 :
-				cone.dir0		= GetDirection2D( snorm_pos0 * Pi2() );
-				cone.dir1		= GetDirection2D( snorm_pos1 * Pi2() );
+				cone.dir0		= GetDirection2D( snorm_pos0 * float_Pi2 );
+				cone.dir1		= GetDirection2D( snorm_pos1 * float_Pi2 );
 				cone.origin0	= iLightPos * map_scale;
 				cone.origin1	= cone.origin0;
 				break;
@@ -624,16 +624,17 @@
 //-----------------------------------------------------------------------------
 #ifdef TONEMAPPING
 	#include "ToneMapping.glsl"
+	#include "ColorSpaceUtility.glsl"
 
 	void  Main ()
 	{
-		float4	hdr = gl.texture.Fetch( un_HDR, int2(gl.FragCoord.xy), 0 ) / iScale;
+		float4	hdr = gl.texture.Fetch( un_HDR, int2(gl.FragCoord.xy), 0 ) / iScale;	// linear space
 
 		switch ( iTonemapping )
 		{
 			case 1 :	out_Color = float4(ToneMap_Unreal( hdr.rgb ), 1.0);	break;
 			case 2 :	out_Color = float4(Tonemap_Lottes( hdr.rgb ), 1.0);	break;
-			default :	out_Color = hdr;									break;
+			default :	out_Color = ApplySRGBCurve( hdr );					break;
 		}
 	}
 

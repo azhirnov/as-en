@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "Common.h"
-#include "serializing/ObjectFactory.h"
+#include "serializing/Public/ObjectFactory.h"
 
 namespace AE::PipelineCompiler
 {

@@ -33,7 +33,7 @@ namespace AE::Networking
 		ND_ bool	IsFull ()											C_NE___	{ return _ser.stream.Empty(); }
 
 		// optional
-		ND_ bool	Flush ()											__NE___	{ return _ser.Flush(); }
+		ND_ bool	Flush ()											__NE___	{ return true; }
 
 		template <typename Arg0, typename ...Args>
 		ND_ bool	operator () (const Arg0 &arg0, const Args& ...args)	__NE___	{ return _ser( arg0, args... ); }

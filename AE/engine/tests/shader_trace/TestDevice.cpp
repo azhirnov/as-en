@@ -4,7 +4,7 @@
 #include "base/Algorithms/Parser.h"
 #include "base/DataSource/MemStream.h"
 #include "base/DataSource/File.h"
-#include "serializing/ObjectFactory.h"
+#include "serializing/Public/ObjectFactory.h"
 
 #include "res_loaders/Intermediate/IntermImage.h"
 #include "res_loaders/DDS/DDSImageSaver.h"
@@ -811,6 +811,7 @@ bool  TestDevice::CreateGraphicsPipelineVar1 (VkShaderModule vertShader, VkShade
 	rasterization.polygonMode	= VK_POLYGON_MODE_FILL;
 	rasterization.cullMode		= VK_CULL_MODE_NONE;
 	rasterization.frontFace		= VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rasterization.lineWidth		= 1.f;
 
 	VkPipelineMultisampleStateCreateInfo	multisample = {};
 	multisample.sType					= VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -920,6 +921,7 @@ bool  TestDevice::CreateGraphicsPipelineVar2 (VkShaderModule vertShader, VkShade
 	rasterization.polygonMode	= VK_POLYGON_MODE_FILL;
 	rasterization.cullMode		= VK_CULL_MODE_NONE;
 	rasterization.frontFace		= VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rasterization.lineWidth		= 1.f;
 
 	VkPipelineMultisampleStateCreateInfo	multisample = {};
 	multisample.sType					= VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -1026,6 +1028,7 @@ bool  TestDevice::CreateMeshPipelineVar1 (VkShaderModule meshShader, VkShaderMod
 	rasterization.polygonMode	= VK_POLYGON_MODE_FILL;
 	rasterization.cullMode		= VK_CULL_MODE_NONE;
 	rasterization.frontFace		= VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rasterization.lineWidth		= 1.f;
 
 	VkPipelineMultisampleStateCreateInfo	multisample = {};
 	multisample.sType					= VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;

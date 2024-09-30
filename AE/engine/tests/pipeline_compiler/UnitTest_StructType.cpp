@@ -214,7 +214,7 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 	// size: 32, align: 16
 	struct StType1
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd9e31216u}};  // 'StType1'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd9e31216u}};
 
 		float4  ff;
 		uint2  uu;
@@ -231,7 +231,7 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 	// size: 96, align: 16
 	struct StType2
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x40ea43acu}};  // 'StType2'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x40ea43acu}};
 
 		StType1  st;
 		StaticArray< uint4, 4 >    ua;
@@ -253,7 +253,7 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 	// size: 32, align: 16
 	struct StType1
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd9e31216u}};  // 'StType1'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd9e31216u}};
 
 		float4  ff;
 		uint2  uu;
@@ -270,7 +270,7 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 	// size: 96, align: 16
 	struct StType2
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x40ea43acu}};  // 'StType2'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x40ea43acu}};
 
 		StType1  st;
 		StaticArray< uint4, 4 >    ua;
@@ -395,7 +395,7 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 	// size: 32, align: 4
 	struct StType3
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x37ed733au}};  // 'StType3'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x37ed733au}};
 
 		float  f;
 		packed_uint3  u;
@@ -414,7 +414,7 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 	// size: 72, align: 4
 	struct StType4
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa989e699u}};  // 'StType4'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa989e699u}};
 
 		packed_half3  h3;
 		StType3  st;
@@ -438,7 +438,7 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 	// size: 32, align: 4
 	struct StType3
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x37ed733au}};  // 'StType3'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x37ed733au}};
 
 		float  f;
 		packed_uint3  u;
@@ -457,7 +457,7 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 	// size: 72, align: 4
 	struct StType4
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa989e699u}};  // 'StType4'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa989e699u}};
 
 		packed_half3  h3;
 		StType3  st;
@@ -520,7 +520,7 @@ static_assert( sizeof(StType5) == 36, "size mismatch" );
 	// size: 36, align: 4 (16)
 	struct StType5
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xde8ed60fu}};  // 'StType5'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xde8ed60fu}};
 
 		packed_float3  Position;
 		packed_float3  Normal;
@@ -544,7 +544,7 @@ static_assert( sizeof(StType5) == 36, "size mismatch" );
 	// size: 36, align: 4 (16)
 	struct StType5
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xde8ed60fu}};  // 'StType5'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xde8ed60fu}};
 
 		packed_float3  Position;
 		packed_float3  Normal;
@@ -646,7 +646,7 @@ Buffer {
 	// size: 256, align: 16
 	struct StType6
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x478787b5u}};  // 'StType6'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x478787b5u}};
 
 		uint  Count;
 		StaticArray< packed_float2, 3 >    Positions;
@@ -678,7 +678,7 @@ Buffer {
 	// size: 256, align: 16
 	struct StType6
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x478787b5u}};  // 'StType6'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x478787b5u}};
 
 		uint  Count;
 		StaticArray< packed_float2, 3 >    Positions;
@@ -731,7 +731,8 @@ struct StType8
 	// size: 0, align: 16
 	struct StType8
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa03faab2u}};  // 'StType8'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa03faab2u}};
+		static constexpr size_t SizeOf (size_t count)  { return (16 * count); }
 
 	//	float4  pos [];
 	};
@@ -749,7 +750,7 @@ struct StType8
 	// size: 0, align: 16
 	struct StType8
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa03faab2u}};  // 'StType8'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa03faab2u}};
 
 	//	float4  pos [];
 	};
@@ -840,7 +841,7 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	// size: 32, align: 16
 	struct StType9A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xef0d42c0u}};  // 'StType9A'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xef0d42c0u}};
 
 		float4  pos;
 		float3  norm;
@@ -855,7 +856,7 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	// size: 12 (16), align: 8 (16)
 	struct alignas(8) StType9B
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x7604137au}};  // 'StType9B'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x7604137au}};
 
 		float2  a;
 		int  b;
@@ -870,7 +871,7 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	// size: 24, align: 8 (16)
 	struct StType9
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd7389a24u}};  // 'StType9'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd7389a24u}};
 
 		TDeviceAddress< StType9A >  ref;
 		TDeviceAddress< float2 *>  arr;
@@ -894,7 +895,7 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	// size: 32, align: 16
 	struct StType9A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xef0d42c0u}};  // 'StType9A'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xef0d42c0u}};
 
 		float4  pos;
 		float3  norm;
@@ -909,7 +910,7 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	// size: 12 (16), align: 8 (16)
 	struct alignas(8) StType9B
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x7604137au}};  // 'StType9B'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x7604137au}};
 
 		float2  a;
 		int  b;
@@ -924,7 +925,7 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	// size: 24, align: 8 (16)
 	struct StType9
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd7389a24u}};  // 'StType9'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd7389a24u}};
 
 		TDeviceAddress< StType9A >  ref;
 		TDeviceAddress< float2 *>  arr;
@@ -967,7 +968,7 @@ static_assert( sizeof(StType_10) == 16, "size mismatch" );
 	// size: 16, align: 16
 	struct StType_10
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xc35deb7u}};  // 'StType_10'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xc35deb7u}};
 
 		float4  pos;
 	};
@@ -987,7 +988,7 @@ static_assert( sizeof(StType_10) == 16, "size mismatch" );
 	// size: 16, align: 16
 	struct StType_10
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xc35deb7u}};  // 'StType_10'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xc35deb7u}};
 
 		float4  pos;
 	};
@@ -1035,7 +1036,7 @@ static_assert( sizeof(StType11) == 80, "size mismatch" );
 	// size: 72 (80), align: 16
 	struct alignas(16) StType11
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x77d1b9f4u}};  // 'StType11'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x77d1b9f4u}};
 
 		float4x4_storage  transform;
 		uint  meshIdx;
@@ -1059,7 +1060,7 @@ static_assert( sizeof(StType11) == 80, "size mismatch" );
 	// size: 72 (80), align: 16
 	struct alignas(16) StType11
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x77d1b9f4u}};  // 'StType11'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x77d1b9f4u}};
 
 		float4x4_storage  transform;
 		uint  meshIdx;
@@ -1108,7 +1109,8 @@ struct StType12
 	// size: 4 (16), align: 16
 	struct alignas(16) StType12
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xeed8e84eu}};  // 'StType12'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xeed8e84eu}};
+		static constexpr size_t SizeOf (size_t count)  { return 16 + (16 * count); }
 
 		uint  count;
 	//	float4  arr [];
@@ -1129,7 +1131,7 @@ struct StType12
 	// size: 4 (16), align: 16
 	struct alignas(16) StType12
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xeed8e84eu}};  // 'StType12'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xeed8e84eu}};
 
 		uint  count;
 	//	float4  arr [];
@@ -1213,7 +1215,7 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 	// size: 40 (48), align: 16
 	struct alignas(16) StType13A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x5b481bb5u}};  // 'StType13A'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x5b481bb5u}};
 
 		float4  pos;
 		float3  norm;
@@ -1230,7 +1232,7 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 	// size: 144, align: 8
 	struct StType13
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x99dfd8d8u}};  // 'StType13'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x99dfd8d8u}};
 
 		TDeviceAddress< DeviceAddress *>  untypedAddrArr;
 		StaticArray< TDeviceAddress< DeviceAddress *>, 8 >    untypedAddrArrArr;
@@ -1258,7 +1260,7 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 	// size: 40 (48), align: 16
 	struct alignas(16) StType13A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x5b481bb5u}};  // 'StType13A'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x5b481bb5u}};
 
 		float4  pos;
 		float3  norm;
@@ -1275,7 +1277,7 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 	// size: 144, align: 8
 	struct StType13
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x99dfd8d8u}};  // 'StType13'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x99dfd8d8u}};
 
 		TDeviceAddress< DeviceAddress *>  untypedAddrArr;
 		StaticArray< TDeviceAddress< DeviceAddress *>, 8 >    untypedAddrArrArr;
@@ -1337,7 +1339,7 @@ static_assert( sizeof(StType14) == 8, "size mismatch" );
 	// size: 8, align: 8
 	struct StType14
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x7bb4d7bu}};  // 'StType14'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x7bb4d7bu}};
 
 		TDeviceAddress< packed_float3 *>  normals;
 	};
@@ -1357,7 +1359,7 @@ static_assert( sizeof(StType14) == 8, "size mismatch" );
 	// size: 8, align: 8
 	struct StType14
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x7bb4d7bu}};  // 'StType14'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x7bb4d7bu}};
 
 		TDeviceAddress< packed_float3 *>  normals;
 	};
@@ -1416,7 +1418,7 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
 	// size: 20 (32), align: 16
 	struct alignas(16) StType15A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd12bc33u}};  // 'StType15A'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd12bc33u}};
 
 		uint3  a;
 		float  b;
@@ -1431,7 +1433,7 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
 	// size: 256, align: 16
 	struct StType15
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x70bc7dedu}};  // 'StType15'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x70bc7dedu}};
 
 		StaticArray< StType15A, 8 >    arr;
 	};
@@ -1451,7 +1453,7 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
 	// size: 20 (32), align: 16
 	struct alignas(16) StType15A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd12bc33u}};  // 'StType15A'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd12bc33u}};
 
 		uint3  a;
 		float  b;
@@ -1466,7 +1468,7 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
 	// size: 256, align: 16
 	struct StType15
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x70bc7dedu}};  // 'StType15'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x70bc7dedu}};
 
 		StaticArray< StType15A, 8 >    arr;
 	};
@@ -1535,7 +1537,7 @@ struct StType16
 	// size: 12, align: 4
 	struct StType16A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x263feff0u}};  // 'StType16A'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x263feff0u}};
 
 		float  a;
 		float  b;
@@ -1552,7 +1554,8 @@ struct StType16
 	// size: 20 (24), align: 8
 	struct alignas(8) StType16
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xe9b52c57u}};  // 'StType16'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xe9b52c57u}};
+		static constexpr size_t SizeOf (size_t count)  { return 20 + (12 * count); }
 
 		float2  aa;
 		float2  bb;
@@ -1576,7 +1579,7 @@ struct StType16
 	// size: 12, align: 4
 	struct StType16A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x263feff0u}};  // 'StType16A'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x263feff0u}};
 
 		float  a;
 		float  b;
@@ -1593,7 +1596,7 @@ struct StType16
 	// size: 20 (24), align: 8
 	struct alignas(8) StType16
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xe9b52c57u}};  // 'StType16'
+		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xe9b52c57u}};
 
 		float2  aa;
 		float2  bb;

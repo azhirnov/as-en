@@ -9,29 +9,32 @@ namespace AE::Graphics
 
 	enum class EBlendFactor : ubyte
 	{
-		// src - from shader
-		// dst - from render target
-		// result = srcColor * srcBlend [blendOp] dstColor * dstBlend;
-		Zero,						// 0
-		One,						// 1
-		SrcColor,					// src
-		OneMinusSrcColor,			// 1 - src
-		DstColor,					// dst
-		OneMinusDstColor,			// 1 - dst
-		SrcAlpha,					// src.a
-		OneMinusSrcAlpha,			// 1 - src.a
-		DstAlpha,					// dst.a
-		OneMinusDstAlpha,			// 1 - dst.a
-		ConstColor,					// cc
-		OneMinusConstColor,			// 1 - cc
-		ConstAlpha,					// cc.a
-		OneMinusConstAlpha,			// 1 - cc.a
-		SrcAlphaSaturate,			// rgb * min( src.a, dst.a ), a * 1
+		// S, srcColor  - from shader
+		// D, dstColor  - from render target
+		// S1 - from shader (dual src blend)
+		// cc - constant color
+		// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
 
-		Src1Color,					// src1
-		OneMinusSrc1Color,			// 1 - src1
-		Src1Alpha,					// src1.a
-		OneMinusSrc1Alpha,			// 1 - src1.a
+		Zero,					// 0
+		One,					// 1
+		SrcColor,				// S
+		OneMinusSrcColor,		// 1 - S
+		DstColor,				// D
+		OneMinusDstColor,		// 1 - D
+		SrcAlpha,				// S.a
+		OneMinusSrcAlpha,		// 1 - S.a
+		DstAlpha,				// D.a
+		OneMinusDstAlpha,		// 1 - D.a
+		ConstColor,				// cc
+		OneMinusConstColor,		// 1 - cc
+		ConstAlpha,				// cc.a
+		OneMinusConstAlpha,		// 1 - cc.a
+		SrcAlphaSaturate,		// rgb * min( S.a, D.a ), a * 1
+
+		Src1Color,				// S1
+		OneMinusSrc1Color,		// 1 - S1
+		Src1Alpha,				// S1.a
+		OneMinusSrc1Alpha,		// 1 - S1.a
 
 		_Count,
 		Unknown	= 0xFF,
@@ -40,14 +43,15 @@ namespace AE::Graphics
 
 	enum class EBlendOp : ubyte
 	{
-		// S - from shader
-		// D - from render target
-		// result = srcColor * srcBlend [blendOp] dstColor * dstBlend;
-		Add,			// S+D
-		Sub,			// S-D
-		RevSub,			// D-S
-		Min,			// min(S,D)
-		Max,			// max(S,D)
+		// S, srcColor - from shader
+		// D, dstColor - from render target
+		// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
+
+		Add,			// S + D
+		Sub,			// S - D
+		RevSub,			// D - S
+		Min,			// min( S, D )
+		Max,			// max( S, D )
 		_Count,
 		Unknown	= 0xFF,
 	};
@@ -58,6 +62,7 @@ namespace AE::Graphics
 		// S - from shader
 		// D - from render target
 		// result = S [logicOp] D
+
 		None,				// disabled
 		Clear,				// 0
 		Set,				// 1
@@ -97,14 +102,14 @@ namespace AE::Graphics
 
 	enum class EStencilOp : ubyte
 	{
-		Keep,			// s
+		Keep,			// src
 		Zero,			// 0
 		Replace,		// ref
-		Incr,			// min( ++s, 0 )
-		IncrWrap,		// ++s & maxvalue
-		Decr,			// max( --s, 0 )
-		DecrWrap,		// --s & maxvalue
-		Invert,			// ~s
+		Incr,			// min( ++src, 0 )
+		IncrWrap,		// ++src & maxValue
+		Decr,			// max( --src, 0 )
+		DecrWrap,		// --src & maxValue
+		Invert,			// ~src
 		_Count,
 		Unknown			= 0xFF,
 	};
@@ -173,10 +178,14 @@ namespace AE::Graphics
 		// shading rate
 		FragmentShadingRate		= 1 << 7,
 
+		// NV
+		ViewportWScaling		= 1 << 8,
+
 		_Last,
 		All						= ((_Last-1) << 1) - 1,
 
-		GraphicsPipelineMask	= StencilCompareMask | StencilWriteMask | StencilReference | DepthBias | BlendConstants | FragmentShadingRate,
+		GraphicsPipelineMask	= StencilCompareMask | StencilWriteMask | StencilReference | DepthBias |
+								  BlendConstants | FragmentShadingRate | ViewportWScaling,
 		MeshPipelineMask		= GraphicsPipelineMask,
 		ComputePipelineMask		= 0,
 		TilePipelineMask		= 0,

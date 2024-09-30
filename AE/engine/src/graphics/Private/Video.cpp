@@ -50,7 +50,7 @@ namespace AE::Graphics
 			queues		= desc.queues;
 		}
 
-		ASSERT( not AnyBits( videoUsage, EVideoBufferUsage::DecodeDst | EVideoBufferUsage::EncodeSrc ));
+		ASSERT( NoBits( videoUsage, EVideoBufferUsage::DecodeDst | EVideoBufferUsage::EncodeSrc ));
 	}
 //-----------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ namespace AE::Graphics
 		// validate as 'ImageDesc'
 		{
 			ImageDesc	desc;
-			desc.dimension		= uint3{ dimension, 1u };
+			desc.dimension		= ImageDim_t{uint3{ dimension, 1u }};
 			desc.arrayLayers	= arrayLayers;
 			desc.options		= options;
 			desc.usage			= usage;
@@ -75,7 +75,7 @@ namespace AE::Graphics
 
 			desc.Validate();
 
-			dimension	= uint2{desc.dimension};
+			dimension	= VideoImageDim_t{ desc.dimension };
 			arrayLayers	= desc.arrayLayers;
 			options		= desc.options;
 			usage		= desc.usage;
@@ -83,7 +83,7 @@ namespace AE::Graphics
 			queues		= desc.queues;
 		}
 
-		ASSERT( not AnyBits( videoUsage, EVideoImageUsage::DecodeSrc | EVideoImageUsage::EncodeDst ));
+		ASSERT( NoBits( videoUsage, EVideoImageUsage::DecodeSrc | EVideoImageUsage::EncodeDst ));
 	}
 
 

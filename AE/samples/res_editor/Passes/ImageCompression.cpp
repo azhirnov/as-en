@@ -111,39 +111,8 @@ namespace AE::ResEditor
 =================================================
 */
 	ImageCompressionPass::ImageCompressionPass (RC<Image> src, RC<Image> dst, EPixelFormat dstFormat, StringView dbgName) __NE___ :
-		IPass{ dbgName }, _src{RVRef(src)}, _dst{RVRef(dst)},
-		_srcId{_src->GetImageId()}, _dstId{_dst->GetImageId()}
+		IPass{ dbgName }, _src{RVRef(src)}, _dst{RVRef(dst)}, _dstFormat{dstFormat}
 	{
-		const auto		src_view	= _src->GetViewDesc();
-		const auto		dst_view	= _dst->GetViewDesc();
-
-		const auto		src_desc	= _src->GetImageDesc();
-		const auto		dst_desc	= _dst->GetImageDesc();
-
-		const auto&		src_fmt		= EPixelFormat_GetInfo( src_view.format );
-		const auto&		dst_fmt		= EPixelFormat_GetInfo( dstFormat );
-
-		_srcFormat			= src_view.format;
-		_dstFormat			= dstFormat;
-		_srcBitsPerBlock	= src_fmt.bitsPerBlock;
-		_dstBitsPerBlock	= dst_fmt.bitsPerBlock;
-		_decompress			= (src_view.format == dst_view.format);
-
-		_texelBlockDim		= dst_fmt.TexBlockDim();
-		_imageDim			= src_desc.dimension;
-		_tileDim			= AlignUp( uint2{c_TileSize}, _texelBlockDim );
-
-		_memBlockSize		= SizeOf<Block>;
-		_memBlockSize		+= AlignUp( ImageUtils::SliceSize( _tileDim, _srcBitsPerBlock, uint2{1} ), Bytes{_BlockAlign} );
-		_memBlockSize		+= AlignUp( ImageUtils::SliceSize( _tileDim, _dstBitsPerBlock, _texelBlockDim ), Bytes{_BlockAlign} );
-
-		_toUpload->reserve( _BlockCount );
-
-		_availableBlocks.Store( AvailableBlockBits_t::Bitfield_t{0} );
-
-		if ( _storage.Alloc( _memBlockSize * _BlockCount, Bytes{_BlockAlign}, null ))
-			_availableBlocks.SetRange( 0, _BlockCount );
-
 	  #ifdef AE_ENABLE_COMPRESSONATOR
 		Unused( Compressonator_GetBCLib() );
 	  #endif
@@ -161,41 +130,115 @@ namespace AE::ResEditor
 
 /*
 =================================================
+	_Initialize
+=================================================
+*/
+	bool  ImageCompressionPass::_Initialize ()
+	{
+		if_likely( _srcId and _dstId )
+			return true;
+
+		if ( _src->GetStatus() != IResource::EUploadStatus::Completed or
+			 _dst->GetStatus() != IResource::EUploadStatus::Completed or
+			 _dst->RequireResize() )
+			return false;
+
+		const auto		src_view	= _src->GetViewDesc();
+		const auto		dst_view	= _dst->GetViewDesc();
+
+		const auto		src_desc	= _src->GetImageDesc();
+		const auto		dst_desc	= _dst->GetImageDesc();
+
+		const auto&		src_fmt		= EPixelFormat_GetInfo( src_view.format );
+		const auto&		dst_fmt		= EPixelFormat_GetInfo( _dstFormat );
+
+		CHECK_THROW( not src_fmt.IsCompressed() and dst_fmt.IsCompressed() );
+		CHECK_THROW( src_fmt.IsColor() and dst_fmt.IsColor() );
+
+		CHECK_THROW( All( src_view.Dimension() == dst_view.Dimension() ));
+		CHECK_THROW( src_view.layerCount == dst_view.layerCount );
+		CHECK_THROW( src_view.mipmapCount == dst_view.mipmapCount );
+
+		CHECK_THROW( All( IsMultipleOf( uint2{dst_view.Dimension2()}, dst_fmt.TexBlockDim() )));
+		CHECK_THROW( dst_view.format == src_view.format or _dstFormat == dst_view.format );
+
+		_srcId				= _src->GetImageId();
+		_dstId				= _dst->GetImageId();
+
+		_srcFormat			= src_view.format;
+		_srcBitsPerBlock	= src_fmt.bitsPerBlock;
+		_dstBitsPerBlock	= dst_fmt.bitsPerBlock;
+		_decompress			= (src_view.format == dst_view.format);
+
+		_texelBlockDim		= dst_fmt.TexBlockDim();
+		_imageDim			= src_desc.Dimension();
+		_imageLayers		= src_desc.arrayLayers.Get();
+		_imageMipmaps		= src_desc.mipLevels.Get();
+		_tileDim			= AlignUp( uint2{c_TileSize}, _texelBlockDim );
+
+		_memBlockSize		= SizeOf<Block>;
+		_memBlockSize		+= AlignUp( ImageUtils::SliceSize( _tileDim, _srcBitsPerBlock, uint2{1} ), Bytes{_BlockAlign} );
+		_memBlockSize		+= AlignUp( ImageUtils::SliceSize( _tileDim, _dstBitsPerBlock, _texelBlockDim ), Bytes{_BlockAlign} );
+
+		_toUpload->reserve( _BlockCount );
+
+		_availableBlocks.Store( AvailableBlockBits_t::Bitfield_t{0} );
+
+		if ( _storage.Alloc( _memBlockSize * _BlockCount, Bytes{_BlockAlign}, null ))
+			_availableBlocks.SetRange( 0, _BlockCount );
+
+		return true;
+	}
+
+/*
+=================================================
 	Execute
 =================================================
 */
 	bool  ImageCompressionPass::Execute (SyncPassData &pd) __Th___
 	{
+		if_unlikely( not _Initialize() )
+			return true;  // skip
+
 		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{GetName()} };
 
 		// read new block
 		if ( auto* block = _AllocBlock() )
 		{
-			const uint3		mip_dim	= _imageDim;
+			const uint3		mip_dim	= Max( _imageDim << _mipOffset, 1u );
 
-			block->offset		= _imageOffset;
-			block->dim			= Min( _imageOffset + uint3{_tileDim, 1}, mip_dim ) - _imageOffset;
+			block->offset		= _dimOffset;
+			block->dim			= Min( _dimOffset + uint3{_tileDim, 1}, mip_dim ) - _dimOffset;
 			block->srcSize		= ImageUtils::SliceSize( uint2{block->dim}, _srcBitsPerBlock, uint2{1} );
 			block->dstSize		= ImageUtils::SliceSize( AlignUp( uint2{block->dim}, _texelBlockDim ), _dstBitsPerBlock, _texelBlockDim );
 			block->arrayLayer	= 0;
 			block->mipmap		= 0;
 
-			_imageOffset.x += block->dim.x;
-			if ( _imageOffset.x >= mip_dim.x )
+			_dimOffset.x += block->dim.x;
+			if ( _dimOffset.x >= mip_dim.x )
 			{
-				_imageOffset.x	= 0;
-				_imageOffset.y	+= block->dim.y;
+				_dimOffset.x	= 0;
+				_dimOffset.y	+= block->dim.y;
 			}
-			if ( _imageOffset.y >= mip_dim.y )
+			if ( _dimOffset.y >= mip_dim.y )
 			{
-				_imageOffset.x	= 0;
-				_imageOffset.y	= 0;
-				_imageOffset.z	+= block->dim.z;
+				_dimOffset.x	= 0;
+				_dimOffset.y	= 0;
+				_dimOffset.z	+= block->dim.z;
 			}
-			if ( _imageOffset.z >= mip_dim.z )
+			if ( _dimOffset.z >= mip_dim.z )
 			{
-				_imageOffset = uint3{0};
-				// TODO: inc arrayLayer and mipmap
+				_dimOffset = uint3{0};
+				++_layerOffset;
+			}
+			if ( _layerOffset >= _imageLayers )
+			{
+				_layerOffset = 0;
+				++_mipOffset;
+			}
+			if ( _mipOffset >= _imageMipmaps )
+			{
+				_mipOffset = 0;
 			}
 
 			ReadbackImageDesc	read;
@@ -301,5 +344,20 @@ namespace AE::ResEditor
 
 		return q->ExtractFront();
 	}
+
+/*
+=================================================
+	GetResourcesToResize
+=================================================
+*/
+	void  ImageCompressionPass::GetResourcesToResize (INOUT Array<RC<IResource>> &resources) __NE___
+	{
+		if ( _src->RequireResize() )
+			resources.push_back( _src );
+
+		if ( _dst->RequireResize() )
+			resources.push_back( _dst );
+	}
+
 
 } // AE::ResEditor

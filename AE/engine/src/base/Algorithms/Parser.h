@@ -56,6 +56,15 @@ namespace AE::Base
 		ND_ static bool  IsWhiteSpacesOnly (StringView str)												__NE___;
 
 		    static void  Align (INOUT String &str, usize pos, usize lineSize, char c = ' ')				__Th___;
+
+		static constexpr struct _CPPHelper
+		{
+			ND_ static bool  IsWordBegin (char c)	__NE___;
+			ND_ static bool  IsWord (char c)		__NE___;
+
+			ND_ static bool  IsNumberBegin (char c)	__NE___;
+			ND_ static bool  IsNumber (char c)		__NE___;
+		}	CPP;
 	};
 
 
@@ -123,5 +132,37 @@ namespace AE::Base
 		}
 		return true;
 	}
+
+/*
+=================================================
+	_CPPHelper
+=================================================
+*/
+	forceinline bool  Parser::_CPPHelper::IsWordBegin (char c) __NE___
+	{
+		return	((c >= 'A') and (c <= 'Z')) or
+				((c >= 'a') and (c <= 'z')) or
+				(c == '_');
+	}
+
+	forceinline bool  Parser::_CPPHelper::IsNumberBegin (char c) __NE___
+	{
+		return	(c >= '0') and (c <= '9');
+	}
+
+	forceinline bool  Parser::_CPPHelper::IsWord (char c) __NE___
+	{
+		return	IsWordBegin( c ) or IsNumberBegin( c );
+	}
+
+	forceinline bool  Parser::_CPPHelper::IsNumber (char c) __NE___
+	{
+		return	((c >= '0') and (c <= '9')) or
+				((c >= 'A') and (c <= 'F')) or
+				((c >= 'a') and (c <= 'f')) or
+				(c == '.')  or  (c == 'x')  or
+				(c == 'X');
+	}
+
 
 } // AE::Base

@@ -26,12 +26,6 @@ namespace AE::Base
 			Bytes	allocationGranularity;
 		};
 
-		struct MemorySize
-		{
-			Bytes	total;
-			Bytes	available;
-		};
-
 
 	// functions
 
@@ -48,8 +42,6 @@ namespace AE::Base
 
 		// Memory //
 		ND_ static MemoryPageInfo	GetMemoryPageInfo ()									__NE___;
-		ND_ static MemorySize		GetPhysicalMemorySize ()								__NE___;
-		ND_ static MemorySize		GetVirtualMemorySize ()									__NE___;
 
 
 		// Thread //

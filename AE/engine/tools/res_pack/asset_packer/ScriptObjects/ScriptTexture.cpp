@@ -301,6 +301,9 @@ namespace {
 		if ( EPixelFormat_IsASTC( _dstFormat )) {
 			CHECK_ERR( _CompressASTC( OUT dst_image ));
 		}else
+		if ( EPixelFormat_IsEAC( _dstFormat )) {
+			CHECK_ERR( _CompressEAC( OUT dst_image ));
+		}else
 			RETURN_ERR( "compression is not supported" );
 
 		_imgData.reset();
@@ -518,4 +521,64 @@ namespace AE::AssetPacker
 }
 
 #endif // AE_ENABLE_ASTC_ENCODER
+//-----------------------------------------------------------------------------
+
+
+#ifdef AE_ENABLE_ETCPACK
+
+namespace AE::AssetPacker
+{
+namespace {
+#	include "Utils/EacPack.cpp.h"
+}
+
+/*
+=================================================
+	_CompressEAC
+=================================================
+*/
+	bool  ScriptTexture::_CompressEAC (OUT IntermImage &dstImage) const
+	{
+		CHECK_ERR( not EPixelFormat_IsCompressed( _intermFormat ));
+		CHECK_ERR( EPixelFormat_IsEAC( _dstFormat ));
+
+		CHECK_ERR( dstImage.Allocate( _imgData->GetType(), _dstFormat, _imgData->Dimension(), ImageLayer{_imgData->ArrayLayers()}, MipmapLevel{_imgData->MipLevels()} ));
+
+		auto&	src_img_data	= *_imgData->GetMutableData();
+		auto&	dst_img_data	= *dstImage.GetMutableData();
+		CHECK_ERR( src_img_data.size() == dst_img_data.size() );
+
+		for (usize mip = 0; mip < src_img_data.size(); ++mip)
+		{
+			auto&	src_layers = src_img_data[mip];
+			auto&	dst_layers = dst_img_data[mip];
+			CHECK_ERR( src_layers.size() == dst_layers.size() );
+
+			for (usize layer = 0; layer < src_layers.size(); ++layer)
+			{
+				CHECK_ERR( EacEncode( _imgData->ToView( MipmapLevel{mip}, ImageLayer{layer} ),
+									   dstImage.ToView( MipmapLevel{mip}, ImageLayer{layer} ),
+									   CompressionThreadCount(),
+									   CompressionQuality()
+									));
+			}
+		}
+
+		Unused( &EacDecode );
+		return true;
+	}
+
+} // AE::AssetPacker
+
+#else
+
+namespace AE::AssetPacker
+{
+	bool  ScriptTexture::_CompressEAC (OUT IntermImage &) const
+	{
+		RETURN_ERR( "EAC compression is not supported" );
+	}
+}
+
+#endif // AE_ENABLE_ETCPACK
 //-----------------------------------------------------------------------------

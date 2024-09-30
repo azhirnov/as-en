@@ -175,6 +175,22 @@ namespace AE::PipelineCompiler
 
 /*
 =================================================
+	SetShaderDefines
+=================================================
+*/
+	void  ScriptConfig::SetShaderDefines (const String &value) __Th___
+	{
+		CHECK_THROW_MSG( not value.empty() );
+
+		auto&	storage = *ObjectStorage::Instance();
+
+		CHECK( storage.defaultShaderDefines.empty() );
+		storage.defaultShaderDefines.clear();
+		storage.defaultShaderDefines << '\n' << value;
+	}
+
+/*
+=================================================
 	Bind
 =================================================
 */
@@ -207,6 +223,10 @@ namespace AE::PipelineCompiler
 
 		binder.Comment( "Set FeatureSet which will be added to all resources." );
 		binder.AddMethod( &ScriptConfig::SetDefaultFeatureSet,	"SetDefaultFeatureSet",	{"fsName"} );
+
+		binder.Comment( "Set defines which will be used in all shaders.\n"
+						"Format: DEF=1\nDEF2" );
+		binder.AddMethod( &ScriptConfig::SetShaderDefines,		"SetShaderDefines",		{} );
 	}
 
 

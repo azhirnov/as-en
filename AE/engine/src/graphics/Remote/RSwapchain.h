@@ -49,7 +49,7 @@ namespace AE::Graphics
 		RDevice const*					_device			= null;
 		mutable SharedMutex				_guard;
 
-		StructAtomic< ushort2 >			_surfaceSize;
+		StructAtomic< ImageDim2_t >		_surfaceSize;
 		StructAtomic< MutableIdxBits >	_indices;
 
 		ImageIDs_t						_imageIDs			{};			// protected by '_guard'

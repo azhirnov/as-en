@@ -56,7 +56,7 @@ namespace AE::Profiler
 				if ( _lines[l].points.empty() )
 					desc << '-';
 				else
-					desc << ToString2( _lines[l].points.back() ) << _suffix;
+					desc << ToString2( _lines[l].points.back(), 3 ) << _suffix;
 			}
 			ImGui::SetTooltip( "%s", desc.c_str() );
 		}
@@ -93,12 +93,18 @@ namespace AE::Profiler
 
 			if ( _invLimits )
 			{
-				if ( max_y < _limits.x )	_bgIndex = 0;	else
-				if ( max_y < _limits.y )	_bgIndex = 1;	else
+				// green
+				// yllow
+				// red
+				if ( max_y > _limits.y )	_bgIndex = 0;	else
+				if ( max_y > _limits.x )	_bgIndex = 1;	else
 											_bgIndex = 2;
 			}
 			else
 			{
+				// red
+				// yellow
+				// green
 				if ( max_y > _limits.y )	_bgIndex = 2;	else
 				if ( max_y > _limits.x )	_bgIndex = 1;	else
 											_bgIndex = 0;
@@ -106,6 +112,7 @@ namespace AE::Profiler
 
 			if ( adaptive )
 			{
+				_range *= float2{IsFinite( _range )};
 				_range.x = Min( _range.y * 0.99f, min_y * 0.9f );
 				_range.y = Max( _range.y * 0.99f, max_y * 1.1f );
 				_range = Max( _range, 0.f );
@@ -121,7 +128,7 @@ namespace AE::Profiler
 
 			// min value
 			{
-				String			val_str		= ToString2( _range.x ) << _suffix;
+				String			val_str		= ToString2( _range.x, 2 ) << _suffix;
 				const float		text_width	= ImGui::GetTextLineHeight() * (4 + _suffix.size());
 				const ImVec2	text_pos	{ line_region.right - text_width - line_region.Width() * 0.01f,
 											  border_region.bottom - ImGui::GetTextLineHeightWithSpacing() * 1.1f };
@@ -131,7 +138,7 @@ namespace AE::Profiler
 
 			// max value
 			{
-				String			val_str		= ToString2( _range.y ) << _suffix;
+				String			val_str		= ToString2( _range.y, 2 ) << _suffix;
 				const float		text_width	= ImGui::GetTextLineHeight() * (4 + _suffix.size());
 				const ImVec2	text_pos	{ line_region.right - text_width - line_region.Width() * 0.01f,
 											  border_region.top + ImGui::GetTextLineHeightWithSpacing() * 0.1f };

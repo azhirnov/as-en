@@ -13,7 +13,7 @@ namespace AE::Graphics
 	{
 		CHECK_ERR( image != Default );
 		CHECK_ERR( desc.memType != Default );
-		ASSERT_MSG( not AnyBits( desc.memType, EMemoryType::Dedicated ),
+		ASSERT_MSG( NoBits( desc.memType, EMemoryType::Dedicated ),
 			"Dedicated allocation is not supported" );
 
 		auto&	dev = GraphicsScheduler().GetDevice();
@@ -56,7 +56,7 @@ namespace AE::Graphics
 
 		CHECK_ERR( buffer != Default );
 		CHECK_ERR( desc.memType != Default );
-		ASSERT_MSG( not AnyBits( desc.memType, EMemoryType::Dedicated ),
+		ASSERT_MSG( NoBits( desc.memType, EMemoryType::Dedicated ),
 			"Dedicated allocation is not supported" );
 
 		auto&	dev = GraphicsScheduler().GetDevice();

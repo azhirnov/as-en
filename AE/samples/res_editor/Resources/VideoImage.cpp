@@ -48,7 +48,7 @@ namespace AE::ResEditor
 		CHECK_THROW( inDesc.format == config.dstFormat );
 
 		ImageDesc	desc	= inDesc;
-		desc.dimension	= uint3{ props.videoStream.dimension, 1u };
+		desc.dimension	= ImageDim_t{uint3{ props.videoStream.dimension, 1u }};
 		_dimension		= props.videoStream.dimension;
 
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
@@ -73,7 +73,7 @@ namespace AE::ResEditor
 			_DtTrQueue().EnqueueImageTransition( _ids[i] );
 		}
 
-		_allocator.SetBlockSize( EPixelFormat_ImageSize( desc.format, desc.dimension ));
+		_allocator.SetBlockSize( EPixelFormat_ImageSize( desc.format, desc.Dimension() ));
 
 		for (usize i = 0; i < _imageMemView.size(); ++i) {
 			CHECK_THROW( Video::IVideoDecoder::AllocMemView( config, OUT _imageMemView[i], _allocator ));
@@ -315,7 +315,7 @@ namespace AE::ResEditor
 	void  VideoImage::_Validate (const States s) __NE___
 	{
 		Unused( s );
-		ASSERT( not AnyBits( s.emptyBits, s.decodedBits ));
+		ASSERT( NoBits( s.emptyBits, s.decodedBits ));
 		ASSERT( (s.emptyBits | s.decodedBits) == ToBitMask<uint>(_MaxCpuImages) );
 		ASSERT( s.decodedBits == 0 or HasBit( s.decodedBits, s.pos ));
 	}

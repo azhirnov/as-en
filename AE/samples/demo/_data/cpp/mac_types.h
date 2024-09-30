@@ -3,7 +3,7 @@
 	// size: 8, align: 4
 	struct VB_Position_f2
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa843e002u}};  // 'VB_Position_f2'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa843e002u}};
 
 		packed_float2  Position;
 	};
@@ -16,7 +16,7 @@
 	// size: 12, align: 2
 	struct VB_UVs2_SCs1_Col8
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x594166a8u}};  // 'VB_UVs2_SCs1_Col8'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x594166a8u}};
 
 		packed_ushort4  UV_Scale;
 		packed_ubyte4  Color;
@@ -31,7 +31,7 @@
 	// size: 12, align: 4
 	struct VB_UVf2_Col8
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xf5d3da88u}};  // 'VB_UVf2_Col8'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xf5d3da88u}};
 
 		packed_float2  UV;
 		packed_ubyte4  Color;
@@ -46,7 +46,7 @@
 	// size: 16, align: 8 (16)
 	struct imgui_ub
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xb41e4542u}};  // 'imgui_ub'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xb41e4542u}};
 
 		float2  scale;
 		float2  translate;
@@ -61,7 +61,7 @@
 	// size: 20, align: 4
 	struct imgui_vertex
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x9e6b2802u}};  // 'imgui_vertex'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x9e6b2802u}};
 
 		packed_float2  Position;
 		packed_float2  UV;
@@ -73,25 +73,12 @@
 	StaticAssert( offsetof(imgui_vertex, Color) == 16 );
 	StaticAssert( sizeof(imgui_vertex) == 20 );
 
-#ifndef camera3d_ub_DEFINED
-#	define camera3d_ub_DEFINED
-	// size: 64, align: 16
-	struct camera3d_ub
-	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd53dbd02u}};  // 'camera3d_ub'
-
-		float4x4_storage  mvp;
-	};
-#endif
-	StaticAssert( offsetof(camera3d_ub, mvp) == 0 );
-	StaticAssert( sizeof(camera3d_ub) == 64 );
-
 #ifndef CubeVertex_DEFINED
 #	define CubeVertex_DEFINED
 	// size: 40, align: 2
 	struct CubeVertex
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x38ec4b6bu}};  // 'CubeVertex'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x38ec4b6bu}};
 
 		packed_short4  Position;
 		packed_short4  Texcoord;
@@ -107,31 +94,12 @@
 	StaticAssert( offsetof(CubeVertex, BiTangent) == 32 );
 	StaticAssert( sizeof(CubeVertex) == 40 );
 
-#ifndef SphericalCubeVertex_DEFINED
-#	define SphericalCubeVertex_DEFINED
-	// size: 32, align: 2
-	struct SphericalCubeVertex
-	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x35a6eeecu}};  // 'SphericalCubeVertex'
-
-		packed_short4  Position;
-		packed_short4  Texcoord;
-		packed_short4  Tangent;
-		packed_short4  BiTangent;
-	};
-#endif
-	StaticAssert( offsetof(SphericalCubeVertex, Position) == 0 );
-	StaticAssert( offsetof(SphericalCubeVertex, Texcoord) == 8 );
-	StaticAssert( offsetof(SphericalCubeVertex, Tangent) == 16 );
-	StaticAssert( offsetof(SphericalCubeVertex, BiTangent) == 24 );
-	StaticAssert( sizeof(SphericalCubeVertex) == 32 );
-
 #ifndef sdf_font_ublock_DEFINED
 #	define sdf_font_ublock_DEFINED
 	// size: 48, align: 16
 	struct sdf_font_ublock
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x5a07d037u}};  // 'sdf_font_ublock'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x5a07d037u}};
 
 		float2  rotation0;
 		float2  rotation1;
@@ -148,4 +116,36 @@
 	StaticAssert( offsetof(sdf_font_ublock, pxRange) == 24 );
 	StaticAssert( offsetof(sdf_font_ublock, bgColor) == 32 );
 	StaticAssert( sizeof(sdf_font_ublock) == 48 );
+
+#ifndef camera3d_ub_DEFINED
+#	define camera3d_ub_DEFINED
+	// size: 64, align: 16
+	struct camera3d_ub
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd53dbd02u}};
+
+		float4x4_storage  mvp;
+	};
+#endif
+	StaticAssert( offsetof(camera3d_ub, mvp) == 0 );
+	StaticAssert( sizeof(camera3d_ub) == 64 );
+
+#ifndef SphericalCubeVertex_DEFINED
+#	define SphericalCubeVertex_DEFINED
+	// size: 32, align: 2
+	struct SphericalCubeVertex
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x35a6eeecu}};
+
+		packed_short4  Position;
+		packed_short4  Texcoord;
+		packed_short4  Tangent;
+		packed_short4  BiTangent;
+	};
+#endif
+	StaticAssert( offsetof(SphericalCubeVertex, Position) == 0 );
+	StaticAssert( offsetof(SphericalCubeVertex, Texcoord) == 8 );
+	StaticAssert( offsetof(SphericalCubeVertex, Tangent) == 16 );
+	StaticAssert( offsetof(SphericalCubeVertex, BiTangent) == 24 );
+	StaticAssert( sizeof(SphericalCubeVertex) == 32 );
 

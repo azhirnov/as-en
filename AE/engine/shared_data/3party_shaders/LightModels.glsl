@@ -50,6 +50,8 @@ LightingResult  Phong (const float3 diffuse, const float3 specular, const float 
 	https://github.com/pboechat/cook_torrance/blob/master/application/shaders/blinn_phong_colored.fs.glsl
 =================================================
 */
+#ifdef AE_LICENSE_MIT
+
 float  BlinnSpecular (const float shininess, const float3 lightDir, const float3 viewDir, const float3 surfNorm)
 {
 	float3	halfway_dir = Normalize( lightDir + viewDir );
@@ -65,6 +67,8 @@ LightingResult  Blinn (const float3 diffuse, const float3 specular, const float 
 	return res;
 }
 
+#endif // AE_LICENSE_MIT
+
 /*
 =================================================
 	OrenNayar
@@ -72,6 +76,9 @@ LightingResult  Blinn (const float3 diffuse, const float3 specular, const float 
 	original paper https://dl.acm.org/doi/pdf/10.1145/192161.192213
 =================================================
 */
+
+#ifdef AE_LICENSE_MIT
+
 float  OrenNayarDiffuse (const float3 lightDir, const float3 viewDir, const float3 surfNorm, float roughness, float albedo)
 {
 	// from https://github.com/glslify/glsl-diffuse-oren-nayar/blob/master/index.glsl (MIT license)
@@ -106,15 +113,6 @@ float  OrenNayarDiffuse2 (const float3 lightDir, const float3 viewDir, const flo
 	return nl * (a + b * ga * Sqrt( (1.0 - nv * nv) * (1.0 - nl * nl) ) / Max( nl, nv ));
 }
 
-/*float  OrenNayarDiffuse3 (const float3 lightDir, const float3 viewDir, const float3 surfNorm, float roughness)
-{
-	// from https://www.pbr-book.org/3ed-2018/Reflection_Models/Microfacet_Models
-
-    float	sigma2	= roughness * roughness;
-    float	A		= 1.f - (sigma2 / (2.f * (sigma2 + 0.33f)));
-    float	B		= 0.45f * sigma2 / (sigma2 + 0.09f);
-}*/
-
 LightingResult  OrenNayar (const float3 diffuse, const float3 lightDir, const float3 viewDir,
 							const float3 surfNorm, float roughness, float albedo)
 {
@@ -124,6 +122,17 @@ LightingResult  OrenNayar (const float3 diffuse, const float3 lightDir, const fl
 	return res;
 }
 
+#endif // AE_LICENSE_MIT
+
+/*float  OrenNayarDiffuse3 (const float3 lightDir, const float3 viewDir, const float3 surfNorm, float roughness)
+{
+	// from https://www.pbr-book.org/3ed-2018/Reflection_Models/Microfacet_Models
+
+    float	sigma2	= roughness * roughness;
+    float	A		= 1.f - (sigma2 / (2.f * (sigma2 + 0.33f)));
+    float	B		= 0.45f * sigma2 / (sigma2 + 0.09f);
+}*/
+
 /*
 =================================================
 	CookTorrance
@@ -131,6 +140,8 @@ LightingResult  OrenNayar (const float3 diffuse, const float3 lightDir, const fl
 	from https://github.com/pboechat/cook_torrance/blob/master/application/shaders/cook_torrance_colored.fs.glsl (MIT license)
 =================================================
 */
+#ifdef AE_LICENSE_MIT
+
 LightingResult  CookTorrance (const float3 diffuse, const float3 specular, const float3 lightDir, const float3 viewDir,
 							  const float3 surfNorm, const float roughness, const float F0)
 {
@@ -162,6 +173,8 @@ LightingResult  CookTorrance (const float3 diffuse, const float3 specular, const
 	return res;
 }
 
+#endif // AE_LICENSE_MIT
+
 /*
 =================================================
 	SpecularBRDF
@@ -169,6 +182,8 @@ LightingResult  CookTorrance (const float3 diffuse, const float3 specular, const
 	from https://github.com/SaschaWillems/Vulkan?tab=readme-ov-file#pbr-basics (MIT license)
 =================================================
 */
+#ifdef AE_LICENSE_MIT
+
 float3  SpecularBRDF (const float3 albedo, const float3 lightDir, const float3 viewDir,
 					  const float3 surfNorm, const float metallic, const float roughness)
 {
@@ -215,3 +230,5 @@ float3  SpecularBRDF (const float3 albedo, const float3 lightDir, const float3 v
 
 	return color;
 }
+
+#endif // AE_LICENSE_MIT

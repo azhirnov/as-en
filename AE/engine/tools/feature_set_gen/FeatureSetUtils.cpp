@@ -1039,10 +1039,10 @@ namespace
 			if ( AllBits( val, VK_QUEUE_GRAPHICS_BIT ))
 				queues.supported |= EQueueMask::Graphics;
 
-			if ( AllBits( val, VK_QUEUE_COMPUTE_BIT ) and not AnyBits( val, VK_QUEUE_GRAPHICS_BIT ))
+			if ( AllBits( val, VK_QUEUE_COMPUTE_BIT ) and NoBits( val, VK_QUEUE_GRAPHICS_BIT ))
 				queues.supported |= EQueueMask::AsyncCompute;
 
-			if ( AllBits( val, VK_QUEUE_TRANSFER_BIT ) and not AnyBits( val, VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT ))
+			if ( AllBits( val, VK_QUEUE_TRANSFER_BIT ) and NoBits( val, VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT ))
 				queues.supported |= EQueueMask::AsyncTransfer;
 		}
 		return true;

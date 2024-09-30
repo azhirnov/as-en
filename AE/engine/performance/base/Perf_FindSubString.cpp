@@ -55,14 +55,14 @@ namespace
 		return ret;
 	}
 
-	forceinline const char*  forward_search (const char *, const char *end_ptr, const char *ptr, const char n)
+	forceinline const char*  forward_search (const char *, const char* end_ptr, const char* ptr, const char n)
 	{
 		for_likely (; (ptr <= end_ptr) and (*ptr != n); ++ptr)
 		{}
 		return *ptr == n ? ptr : nullptr;
 	}
 
-	forceinline const char*  fast_memchr (const char *haystack, const char n1, size_t len)
+	forceinline const char*  fast_memchr (const char* haystack, const char n1, size_t len)
 	{
 		uint64_t		vn1			= repeat_byte( n1 );
 		size_t			loop_size	= Min( LOOP_SIZE, len );

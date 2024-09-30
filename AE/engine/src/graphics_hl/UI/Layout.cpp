@@ -493,7 +493,7 @@ namespace AE::UI
 			// if initialized
 			if ( cell->_data != null )
 			{
-				count += usize( not AllBits( cell->StyleFlags(), EStyleState::Invisible ));
+				count += usize( NoBits( cell->StyleFlags(), EStyleState::Invisible ));
 			}
 			else
 				++count;
@@ -800,7 +800,7 @@ namespace
 
 			for (auto& cs : child_state)
 			{
-				active_count += usize{ not AllBits( cs.StyleFlags(), EStyleState::Invisible )};
+				active_count += usize{ NoBits( cs.StyleFlags(), EStyleState::Invisible )};
 			}
 
 			if ( active_count == 0 )
@@ -818,7 +818,7 @@ namespace
 				cd.range.x	= step * idx;
 				cd.range.y	= step * (idx+1);
 
-				idx += usize{ not AllBits( cs.StyleFlags(), EStyleState::Invisible )};
+				idx += usize{ NoBits( cs.StyleFlags(), EStyleState::Invisible )};
 			}
 			ASSERT( active_count == idx );
 		}

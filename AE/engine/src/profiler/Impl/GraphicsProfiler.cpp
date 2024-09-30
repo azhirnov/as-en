@@ -223,11 +223,9 @@ namespace AE::Profiler
 		}{
 			auto	task = MakeRCNe< Threading::AsyncTaskFn >( [this]()
 										{
-										  #if defined(AE_ENABLE_REMOTE_GRAPHICS) or defined(AE_ENABLE_PVRCOUNTER)
 											if ( _pvrProfiler and _pvrProfiler->IsInitialized() )
 												_ReadResultsPVR();
 											else
-										  #endif
 												_ReadResults();
 										},
 										"GraphicsProfiler::ReadResults",
@@ -310,19 +308,71 @@ namespace AE::Profiler
 		auto&	f = _perFrame[_readIndex];
 		EXLOCK( f.guard );
 
+		_pvrProfiler->ReadTimingData( OUT _pvrTimings );
+
+		if ( _pvrTimings.empty() )
+			return;
+
 		_gpuTime.min	= nanosecondsd{MaxValue<double>()};
 		_gpuTime.max	= nanosecondsd{0.0};
 
-		_imHistory.Begin();
+		ArrayView<PowerVRProfiler::TimeScope>	timings_view = _pvrTimings;
 
-		_pvrProfiler->ReadTimingData( OUT _pvrTimings );
+	#if 0
+		// find min/max time
+		nanosecondsd	max_dt	{0.0};
+		nanosecondsd	avg_dt	{0.0};
 
-		for (auto& t : _pvrTimings)
+		for (auto& t : timings_view)
 		{
-			ASSERT( t.begin <= t.end );
+			auto	dt = t.end - t.begin;
+			max_dt = Max( max_dt, dt );
+			avg_dt += dt;
+		}
+
+		avg_dt /= double(timings_view.size());
+		const nanosecondsd	min_dt = Min( max_dt * 0.1, avg_dt );
+
+
+		// find significant time
+		FixedArray< PowerVRProfiler::TimeScope, 32 >	timings;
+
+		for (auto& t : timings_view)
+		{
 			_gpuTime.min = Min( _gpuTime.min, t.begin );
 			_gpuTime.max = Max( _gpuTime.max, t.end );
 
+			auto	dt = t.end - t.begin;
+			if ( dt > min_dt )
+				timings.try_push_back( t );
+		}
+		timings_view = timings;
+
+	#else
+
+		const nanosecondsd	min_dt = secondsd{2.0 / 60.0};
+
+		for (auto& t : timings_view)
+		{
+			auto	frame_time = _gpuTime.max - _gpuTime.min;
+			if_unlikely( frame_time > min_dt )
+			{
+				timings_view = ArrayView<PowerVRProfiler::TimeScope>{ timings_view.data(), &t };
+				break;
+			}
+
+			_gpuTime.min = Min( _gpuTime.min, t.begin );
+			_gpuTime.max = Max( _gpuTime.max, t.end );
+		}
+
+	#endif
+
+
+		// add to graph
+		_imHistory.Begin();
+
+		for (auto& t : timings_view)
+		{
 			StringView	name;
 			RGBA8u		color;
 
@@ -330,9 +380,9 @@ namespace AE::Profiler
 			switch_enum( t.pass )
 			{
 				case EPass::Compute :		name = "Compute";		color = HtmlColor::Yellow;	break;
-				case EPass::TileAccel :		name = "TileAccel";		color = HtmlColor::Blue;	break;
-				case EPass::TBDR :			name = "TBDR";			color = HtmlColor::Lime;	break;
-				case EPass::Blit :			name = "Blit";			color = HtmlColor::Red;		break;
+				case EPass::Tiler :			name = "Tiler";			color = HtmlColor::Blue;	break;
+				case EPass::Renderer :		name = "Renderer";		color = HtmlColor::Lime;	break;
+				case EPass::Transfer :		name = "Transfer";		color = HtmlColor::Red;		break;
 				case EPass::RayTracing :	name = "RayTracing";	color = HtmlColor::Violet;	break;
 				case EPass::RTASBuild :		name = "RTASBuild";		color = HtmlColor::Pink;	break;
 				case EPass::Unknown :		break;

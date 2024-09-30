@@ -17,6 +17,7 @@ namespace AE::ResEditor
 	// types
 	public:
 		using ERounding		= EDynamicVarRounding;
+		using GetValueFn_t	= uint3 (*) (EnableRCBase*);
 
 
 	// variables
@@ -26,64 +27,74 @@ namespace AE::ResEditor
 		int3					_scale			{1,1,1};
 		ERounding				_rounding		= ERounding::Round;
 		const EImageDim			_numDimensions;
-		const RC<DynamicDim>	_base;
+		const RC<>				_base;
+		const GetValueFn_t		_getValue		= null;
 
 
 	// methods
 	public:
-		explicit DynamicDim (const uint dim)									__NE___	: DynamicDim{ uint3{ dim, 0u, 0u }, EImageDim_1D } {}
-		explicit DynamicDim (const uint2 &dim)									__NE___	: DynamicDim{ uint3{ dim, 0u }, EImageDim_2D } {}
-		explicit DynamicDim (const uint3 &dim, EImageDim imgDim = EImageDim_2D)	__NE___;
-		explicit DynamicDim (RC<DynamicDim> base)								__NE___;
+		explicit DynamicDim (const uint		dim)					__NE___	: DynamicDim{ uint3{ dim, 0u, 0u }, EImageDim_1D } {}
+		explicit DynamicDim (const uint2	&dim)					__NE___	: DynamicDim{ uint3{ dim, 0u }, EImageDim_2D } {}
+		explicit DynamicDim (const uint3	&dim,
+							 EImageDim		imgDim = EImageDim_2D)	__NE___;
+		explicit DynamicDim (RC<DynamicDim> base)					__NE___;
+		explicit DynamicDim (RC<>			base,
+							 GetValueFn_t	getValue,
+							 EImageDim		imgDim = EImageDim_2D)	__NE___;
 
-			void		Resize (const uint &dim)				__NE___	{ return Resize( uint3{ dim, 1u, 1u }); }
-			void		Resize (const uint2 &dim)				__NE___	{ return Resize( uint3{ dim, 1u }); }
-			void		Resize (const uint3 &dim)				__NE___;
+			void		Resize (const uint &dim)					__NE___	{ return Resize( uint3{ dim, 1u, 1u }); }
+			void		Resize (const uint2 &dim)					__NE___	{ return Resize( uint3{ dim, 1u }); }
+			void		Resize (const uint3 &dim)					__NE___;
 
-			void		SetScale (int3 scale)					__NE___	{ return SetScale( scale, ERounding::Round ); }
-			void		SetScale (int3, ERounding)				__NE___;
+			void		SetScale (int3 scale)						__NE___	{ return SetScale( scale, ERounding::Round ); }
+			void		SetScale (int3, ERounding)					__NE___;
 
-		ND_ bool		IsChanged (INOUT uint3 &dim)			C_NE___;
-		ND_ bool		IsChanged_NonZero (INOUT uint3 &dim)	C_NE___;
-		ND_ bool		IsChanged (INOUT float &aspect)			C_NE___;
+		ND_ bool		IsChanged (INOUT uint3 &dim)				C_NE___;
+		ND_ bool		IsChanged_NonZero (INOUT uint3 &dim)		C_NE___;
+		ND_ bool		IsChanged_NonZero (INOUT ImageDim_t &)		C_NE___;
+		ND_ bool		IsChanged (INOUT float &aspect)				C_NE___;
 
-		ND_ float		Aspect ()								C_NE___;
-		ND_ uint		Dimension1 ()							C_NE___	{ ASSERT( _numDimensions == EImageDim_1D );  return Dimension3().x; }
-		ND_ uint		Dimension1_NonZero ()					C_NE___	{ ASSERT( _numDimensions == EImageDim_1D );  return Dimension3_NonZero().x; }
-		ND_ uint2		Dimension2 ()							C_NE___	{ ASSERT( _numDimensions == EImageDim_2D );  return uint2(Dimension3()); }
-		ND_ uint2		Dimension2_NonZero ()					C_NE___	{ ASSERT( _numDimensions == EImageDim_2D );  return uint2(Dimension3_NonZero()); }
-		ND_ uint3		Dimension3 ()							C_NE___;
-		ND_ uint3		Dimension3_NonZero ()					C_NE___	{ return Max( Dimension3(), 1u ); }
-		ND_ int3		Scale ()								C_NE___	{ SHAREDLOCK( _guard );  return _scale; }
-		ND_ EImageDim	NumDimensions ()						C_NE___	{ return _numDimensions; }
-		ND_ uint3		BaseDimension ()						C_NE___;
+		ND_ float		Aspect ()									C_NE___;
+		ND_ uint		Dimension1 ()								C_NE___	{ ASSERT( _numDimensions == EImageDim_1D );  return Dimension3().x; }
+		ND_ uint		Dimension1_NonZero ()						C_NE___	{ ASSERT( _numDimensions == EImageDim_1D );  return Dimension3_NonZero().x; }
+		ND_ uint2		Dimension2 ()								C_NE___	{ ASSERT( _numDimensions == EImageDim_2D );  return uint2(Dimension3()); }
+		ND_ uint2		Dimension2_NonZero ()						C_NE___	{ ASSERT( _numDimensions == EImageDim_2D );  return uint2(Dimension3_NonZero()); }
+		ND_ uint3		Dimension3 ()								C_NE___;
+		ND_ uint3		Dimension3_NonZero ()						C_NE___	{ return Max( Dimension3(), 1u ); }
+		ND_ int3		Scale ()									C_NE___	{ SHAREDLOCK( _guard );  return _scale; }
+		ND_ EImageDim	NumDimensions ()							C_NE___	{ return _numDimensions; }
+		ND_ uint3		BaseDimension ()							C_NE___;
 
-		ND_ uint		Area ()									C_NE___;
-		ND_ uint		Volume ()								C_NE___;
+		ND_ uint		Area ()										C_NE___;
+		ND_ uint		Volume ()									C_NE___;
 
-		ND_ uint		Remap (uint src)						C_NE___	{ return Remap(uint3{ src, 0u, 0u }).x; }
-		ND_ uint2		Remap (uint2 src)						C_NE___	{ return uint2{Remap(uint3{ src, 0u })}; }
-		ND_ uint3		Remap (uint3 src)						C_NE___;
+		ND_ uint		Remap (uint src)							C_NE___	{ return Remap(uint3{ src, 0u, 0u }).x; }
+		ND_ uint2		Remap (uint2 src)							C_NE___	{ return uint2{Remap(uint3{ src, 0u })}; }
+		ND_ uint3		Remap (uint3 src)							C_NE___;
 
-		ND_ uint		Remap (float src)						C_NE___	{ return Remap(float3{ src, 0.f, 0.f }).x; }
-		ND_ uint2		Remap (float2 src)						C_NE___	{ return uint2{Remap(float3{ src, 0.f })}; }
-		ND_ uint3		Remap (float3 src)						C_NE___;
+		ND_ uint		Remap (float src)							C_NE___	{ return Remap(float3{ src, 0.f, 0.f }).x; }
+		ND_ uint2		Remap (float2 src)							C_NE___	{ return uint2{Remap(float3{ src, 0.f })}; }
+		ND_ uint3		Remap (float3 src)							C_NE___;
 
-		ND_ RC<DynamicUInt>		GetDynamicX ()					__NE___;
-		ND_ RC<DynamicUInt>		GetDynamicY ()					__NE___;
-		ND_ RC<DynamicUInt2>	GetDynamicXY ()					__NE___;
-		ND_ RC<DynamicUInt>		GetDynamicArea ()				__NE___;
-		ND_ RC<DynamicUInt>		GetDynamicVolume ()				__NE___;
+		ND_ RC<DynamicUInt>		GetDynamicX ()						__NE___;
+		ND_ RC<DynamicUInt>		GetDynamicY ()						__NE___;
+		ND_ RC<DynamicUInt2>	GetDynamicXY ()						__NE___;
+		ND_ RC<DynamicUInt>		GetDynamicArea ()					__NE___;
+		ND_ RC<DynamicUInt>		GetDynamicVolume ()					__NE___;
 
 	private:
-		ND_ static uint  _ApplyScale (uint, int, ERounding)		__NE___;
-		ND_ static uint  _ApplyScale (float, int, ERounding)	__NE___;
+		ND_ uint3		_BaseDim ()									C_NE___;
 
-		ND_ static uint		_GetX (EnableRCBase*)				__NE___;
-		ND_ static uint		_GetY (EnableRCBase*)				__NE___;
-		ND_ static uint2	_GetXY (EnableRCBase*)				__NE___;
-		ND_ static uint		_GetArea (EnableRCBase*)			__NE___;
-		ND_ static uint		_GetVolume (EnableRCBase*)			__NE___;
+		ND_ static uint  _ApplyScale (uint, int, ERounding)			__NE___;
+		ND_ static uint  _ApplyScale (float, int, ERounding)		__NE___;
+
+		ND_ static uint		_GetX (EnableRCBase*)					__NE___;
+		ND_ static uint		_GetY (EnableRCBase*)					__NE___;
+		ND_ static uint2	_GetXY (EnableRCBase*)					__NE___;
+		ND_ static uint		_GetArea (EnableRCBase*)				__NE___;
+		ND_ static uint		_GetVolume (EnableRCBase*)				__NE___;
+
+		ND_ static uint3	_GetDim (EnableRCBase*)					__NE___;
 	};
 
 
@@ -105,9 +116,16 @@ namespace AE::ResEditor
 		}
 	}
 
+	inline DynamicDim::DynamicDim (RC<> base, GetValueFn_t getValue, EImageDim imgDim) __NE___ :
+		_numDimensions{ imgDim },
+		_base{ RVRef(base) },
+		_getValue{ getValue }
+	{}
+
 	inline DynamicDim::DynamicDim (RC<DynamicDim> base) __NE___ :
 		_numDimensions{ base ? base->NumDimensions() : EImageDim_2D },
-		_base{ RVRef(base) }
+		_base{ RVRef(base) },
+		_getValue{ _base ? &_GetDim : null }
 	{}
 
 /*
@@ -224,14 +242,25 @@ namespace AE::ResEditor
 	{
 		SHAREDLOCK( _guard );
 
-		uint3			dim		 = _base ? _base->Dimension3() : _dimension;
+		uint3			dim		 = _BaseDim();
 		const bool3		was_zero = (dim == uint3{0});
+		
+		switch ( _numDimensions )
+		{
+			case EImageDim::_1D :
+				dim.x = _ApplyScale( dim.x, _scale.x, _rounding );	break;
 
-		dim.x = _ApplyScale( dim.x, _scale.x, _rounding );
-		dim.y = _ApplyScale( dim.y, _scale.y, _rounding );
-		dim.z = _ApplyScale( dim.z, _scale.z, _rounding );
-		dim  *= uint3{not was_zero};
+			case EImageDim::_2D :
+				dim.x = _ApplyScale( dim.x, _scale.x, _rounding );
+				dim.y = _ApplyScale( dim.y, _scale.y, _rounding );	break;
 
+			case EImageDim::_3D :
+				dim.x = _ApplyScale( dim.x, _scale.x, _rounding );
+				dim.y = _ApplyScale( dim.y, _scale.y, _rounding );
+				dim.z = _ApplyScale( dim.z, _scale.z, _rounding );	break;
+		}
+
+		dim *= uint3{not was_zero};
 		return dim;
 	}
 
@@ -243,7 +272,12 @@ namespace AE::ResEditor
 	inline uint3  DynamicDim::BaseDimension () C_NE___
 	{
 		SHAREDLOCK( _guard );
-		return _base ? _base->Dimension3() : _dimension;
+		return _BaseDim();
+	}
+
+	inline uint3  DynamicDim::_BaseDim () C_NE___
+	{
+		return _getValue ? _getValue( _base.get() ) : _dimension;
 	}
 
 /*
@@ -261,6 +295,14 @@ namespace AE::ResEditor
 			return true;
 		}
 		return false;
+	}
+
+	inline bool  DynamicDim::IsChanged_NonZero (INOUT ImageDim_t &oldDim) C_NE___
+	{
+		uint3	old_dim {oldDim};
+		bool	res		= IsChanged_NonZero( INOUT old_dim );
+		oldDim = ImageDim_t{old_dim};
+		return res;
 	}
 
 /*
@@ -419,6 +461,78 @@ namespace AE::ResEditor
 	{
 		ASSERT( _numDimensions >= EImageDim_2D );
 		return MakeRC<DynamicUInt2>( RC<>{GetRC()}, &_GetXY );
+	}
+
+/*
+=================================================
+	_GetDim
+=================================================
+*/
+	inline uint3  DynamicDim::_GetDim (EnableRCBase* base) __NE___
+	{
+		NonNull( base );
+		return Cast<DynamicDim>(base)->Dimension3();
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	ToDim2
+=================================================
+*/
+	template <>
+	inline uint3  TDynamicScalar<uint>::_GetDim2 (EnableRCBase* base) __NE___
+	{
+		return uint3{ uint2{Cast<TDynamicScalar<uint>>( base )->Get()}, 1u };
+	}
+
+	template <>
+	inline RC<DynamicDim>  TDynamicScalar<uint>::ToDim2 () __NE___
+	{
+		return MakeRC<DynamicDim>( GetRC(), &_GetDim2, EImageDim_2D );
+	}
+
+/*
+=================================================
+	ToDim3
+=================================================
+*/
+	template <>
+	inline uint3  TDynamicScalar<uint>::_GetDim3 (EnableRCBase* base) __NE___
+	{
+		return uint3{ Cast<TDynamicScalar<uint>>( base )->Get() };
+	}
+
+	template <>
+	inline RC<DynamicDim>  TDynamicScalar<uint>::ToDim3 () __NE___
+	{
+		return MakeRC<DynamicDim>( GetRC(), &_GetDim3, EImageDim_3D );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	ToDim
+=================================================
+*/
+	template <typename T, int I>
+	uint3  TDynamicVec<T,I>::_GetDim (EnableRCBase* base) __NE___
+	{
+		auto	src = Cast<TDynamicVec<T,I>>( base )->Get();
+		if constexpr( I == 2 )
+			return uint3{ src, 1u };
+		if constexpr( I == 3 )
+			return src;
+	}
+
+	template <typename T, int I>
+	RC<DynamicDim>  TDynamicVec<T,I>::ToDim () __NE___
+	{
+		return MakeRC<DynamicDim>( this->GetRC(), &_GetDim, (I == 2 ? EImageDim_2D : EImageDim_3D) );
 	}
 
 

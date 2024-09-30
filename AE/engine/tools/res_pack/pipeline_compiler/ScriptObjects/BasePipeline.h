@@ -158,9 +158,9 @@ namespace AE::PipelineCompiler
 		static void  _SetLocalGroupSize (String prefix, const uint3 &spec, const uint3 &maxSize, uint totalSize,
 										 const uint3 &inSize, OUT packed_ushort3 &outSize)								__Th___;
 
-		static void  _CheckDepthStencil (const Graphics::RenderState &, const SubpassShaderIO &,
-										 const CompatRenderPassName::Optimized_t &rpName,
-										 const SubpassName::Optimized_t &subpass)										__Th___;
+		void  _CheckDepthStencil (const Graphics::RenderState &, const SubpassShaderIO &,
+								  const CompatRenderPassName::Optimized_t &rpName,
+								  const SubpassName::Optimized_t &subpass)												C_Th___;
 	};
 
 

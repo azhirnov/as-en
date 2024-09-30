@@ -553,11 +553,12 @@ namespace AE::Graphics
 		{
 			const auto&	surf_fmt = surf_formats[i];
 
-			if ( AnyEqual( surf_fmt.format,	required_format1, required_format2 )	and
+			if ( AnyEqual( surf_fmt.format,	required_format1, required_format2 ) and
 				 surf_fmt.colorSpace == required_colorspace )
 			{
 				both_match_idx = i;
-				break;
+				if ( surf_fmt.format == required_format1 )
+					break;
 			}
 			else
 			// separate check
@@ -615,7 +616,7 @@ namespace AE::Graphics
 		VK_CHECK( vkGetPhysicalDeviceImageFormatProperties( _device->GetVkPhysicalDevice(), colorFormat, VK_IMAGE_TYPE_2D,
 															VK_IMAGE_TILING_OPTIMAL, colorImageUsage, 0, OUT &image_props ));
 
-		if ( not AllBits( image_props.sampleCounts, VK_SAMPLE_COUNT_1_BIT ))
+		if ( NoBits( image_props.sampleCounts, VK_SAMPLE_COUNT_1_BIT ))
 			return false;
 
 		return true;
@@ -713,7 +714,7 @@ namespace AE::Graphics
 		}
 
 		_vkImages.fill( Default );
-		_surfaceSize.store( ushort2{uint2{ swapchain_info.imageExtent.width, swapchain_info.imageExtent.height }});
+		_surfaceSize.store( ImageDim2_t{uint2{ swapchain_info.imageExtent.width, swapchain_info.imageExtent.height }});
 
 		_device->SetObjectName( _vkSwapchain, dbgName, VK_OBJECT_TYPE_SWAPCHAIN_KHR );
 
@@ -1001,7 +1002,7 @@ namespace AE::Graphics
 			VkSurfaceCapabilities2KHR	surf_caps2;
 			VK_CHECK( vkGetPhysicalDeviceSurfaceCapabilities2KHR( _device->GetVkPhysicalDevice(), &surf_info, OUT &surf_caps2 ));
 
-			for (VkBaseInStructure const *iter = reinterpret_cast<VkBaseInStructure const *>(&surf_caps2);
+			for (VkBaseInStructure const* iter = reinterpret_cast<VkBaseInStructure const *>(&surf_caps2);
 					iter != null;
 					iter = iter->pNext)
 			{
@@ -1029,32 +1030,32 @@ namespace AE::Graphics
 		ASSERT( AllBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT ));
 
 		if ( AllBits( imageUsage, VK_IMAGE_USAGE_TRANSFER_SRC_BIT ) and
-			 (not AllBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_TRANSFER_SRC_BIT ) or
-			  not AllBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_BLIT_DST_BIT )) )
+			 (NoBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_TRANSFER_SRC_BIT ) or
+			  NoBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_BLIT_DST_BIT )) )
 		{
 			imageUsage &= ~VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		}
 
 		if ( AllBits( imageUsage, VK_IMAGE_USAGE_TRANSFER_DST_BIT ) and
-			 not AllBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_TRANSFER_DST_BIT ))
+			 NoBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_TRANSFER_DST_BIT ))
 		{
 			imageUsage &= ~VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		}
 
 		if ( AllBits( imageUsage, VK_IMAGE_USAGE_STORAGE_BIT ) and
-			 not AllBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT ))
+			 NoBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT ))
 		{
 			imageUsage &= ~VK_IMAGE_USAGE_STORAGE_BIT;
 		}
 
 		if ( AllBits( imageUsage, VK_IMAGE_USAGE_SAMPLED_BIT ) and
-			 not AllBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT ))
+			 NoBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT ))
 		{
 			imageUsage &= ~VK_IMAGE_USAGE_SAMPLED_BIT;
 		}
 
 		if ( AllBits( imageUsage, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT ) and
-			 not AllBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT ))
+			 NoBits( format_props.optimalTilingFeatures, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT ))
 		{
 			imageUsage &= ~VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		}

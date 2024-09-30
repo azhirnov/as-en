@@ -19,7 +19,7 @@ namespace AE::ResEditor
 
 		CHECK_ERR( _scene );
 
-		const uint2						dim			{_renderTargets[0].image->GetViewDimension()};
+		const uint2						dim			= _renderTargets[0].image->GetViewDesc().Dimension2();
 		const auto&						instances	= _scene->_geomInstances;
 		Array<ShaderDebugger::Result*>	dbg_result;
 		LinearAllocator<>				allocator;
@@ -27,7 +27,7 @@ namespace AE::ResEditor
 		if_unlikely( pd.dbg.IsEnabled( this ))
 		{
 			DirectCtx::Transfer		tctx	{ pd.rtask, RVRef(pd.cmdbuf) };
-			const uint2				coord	= uint2{pd.dbg.coord * float2{dim} + 0.5f};
+			const uint2				coord	= uint2{pd.dbg.coord * float2(dim-1u)};
 
 			dbg_result.resize( instances.size() );
 			for (usize i = 0; i < instances.size(); ++i)
@@ -40,60 +40,75 @@ namespace AE::ResEditor
 
 		DirectCtx::Graphics		ctx	{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
 
-		// state transition
+		for (uint it = 0, cnt = _GetRepeatCount(); it < cnt; ++it)
 		{
-			for (usize i = 0; i < instances.size(); ++i) {
-				instances[i].geometry->StateTransition( *_materials[i], ctx );
-			}
-			_resources.SetStates( ctx, Default );
-			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::AllGraphicsShaders );
-			ctx.CommitBarriers();
-		}
-
-		// render pass
-		{
-			RenderPassDesc	rp_desc = _rpDesc;
-
-			for (auto& rt : _renderTargets) {
-				rp_desc.AddTarget( rt.name, rt.image->GetViewId(), rt.clear );
-			}
-
-			rp_desc.area = RectI{ int2{dim} };
-			rp_desc.DefaultViewport( _depthRange.x, _depthRange.y );
-
-			DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
-			auto				dctx	= ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
-
-			if ( _shadingRate )
-				dctx.SetFragmentShadingRate( _shadingRate.rate, _shadingRate.primitiveOp, _shadingRate.textureOp );
-
-			decltype(&IGeomSource::Draw)	draw_fn = null;
-			switch_enum( _renderLayer )
+			// state transition
 			{
-				case ERenderLayer::Opaque :
-				case ERenderLayer::Translucent :	draw_fn = &IGeomSource::Draw;		break;
-				case ERenderLayer::PostProcess :	draw_fn = &IGeomSource::PostProcess;	break;
-				case ERenderLayer::_Count :			break;
-			}
-			switch_end
-
-			// draw
-			if ( draw_fn != null )
-			{
-				for (usize i = 0; i < instances.size(); ++i)
-				{
-					bool	has_dbg_result = (not dbg_result.empty()) and (dbg_result[i] != null);
-
-					CHECK_ERR( ((*instances[i].geometry).*draw_fn)( IGeomSource::DrawData{
-									*_materials[i], dctx, ds,
-									(has_dbg_result ? dbg_result[i]	: null),
-									(has_dbg_result ? pd.dbg.mode	: Default),
-									(has_dbg_result ? pd.dbg.stage	: Default)
-								}));
+				for (usize i = 0; i < instances.size(); ++i) {
+					instances[i].geometry->StateTransition( *_materials[i], ctx );
 				}
+				_resources.SetStates( ctx, Default );
+				ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::AllGraphicsShaders );
+				ctx.CommitBarriers();
 			}
 
-			ctx.EndRenderPass( dctx );
+			// render pass
+			{
+				Scissors_t		scissors;
+				RenderPassDesc	rp_desc = _rpDesc;
+
+				for (auto& rt : _renderTargets) {
+					rp_desc.AddTarget( rt.name, rt.image->GetViewId(), rt.clear );
+				}
+
+				rp_desc.area = RectI{ int2{dim} };
+				for (auto& vp : rp_desc.viewports) {
+					vp.rect *= float2{dim};
+				}
+
+				for (usize i = 0; i < _scissors.size(); ++i)
+					scissors.push_back( RectI{ _scissors[i] * float2{dim} });
+
+				DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
+				auto				dctx	= ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
+
+				if ( not scissors.empty() )
+					dctx.SetScissors( scissors );
+
+				if ( _shadingRate )
+					dctx.SetFragmentShadingRate( _shadingRate.rate, _shadingRate.primitiveOp, _shadingRate.textureOp );
+
+				if ( not _wScaling.empty() )
+					dctx.SetViewportWScaling( _wScaling );
+
+				decltype(&IGeomSource::Draw)	draw_fn = null;
+				switch_enum( _renderLayer )
+				{
+					case ERenderLayer::Opaque :
+					case ERenderLayer::Translucent :	draw_fn = &IGeomSource::Draw;			break;
+					case ERenderLayer::PostProcess :	draw_fn = &IGeomSource::PostProcess;	break;
+					case ERenderLayer::_Count :			break;
+				}
+				switch_end
+
+				// draw
+				if ( draw_fn != null )
+				{
+					for (usize i = 0; i < instances.size(); ++i)
+					{
+						bool	has_dbg_result = (not dbg_result.empty()) and (dbg_result[i] != null);
+
+						CHECK_ERR( ((*instances[i].geometry).*draw_fn)( IGeomSource::DrawData{
+										*_materials[i], dctx, ds,
+										(has_dbg_result ? dbg_result[i]	: null),
+										(has_dbg_result ? pd.dbg.mode	: Default),
+										(has_dbg_result ? pd.dbg.stage	: Default)
+									}));
+					}
+				}
+
+				ctx.EndRenderPass( dctx );
+			}
 		}
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
@@ -112,11 +127,11 @@ namespace AE::ResEditor
 
 		// validate dimensions
 		{
-			const uint2		cur_dim = uint2{ _renderTargets.front().image->GetViewDimension() };
+			const uint2		cur_dim = _renderTargets.front().image->GetViewDesc().Dimension2();
 
 			for (auto& rt : _renderTargets)
 			{
-				const uint2		dim = uint2{ rt.image->GetViewDimension() };
+				const uint2		dim = rt.image->GetViewDesc().Dimension2();
 				CHECK_ERR( All( cur_dim == dim ));
 			}
 		}
@@ -210,41 +225,43 @@ namespace AE::ResEditor
 
 		CHECK_ERR( _scene );
 
-		uint2					dim;
-		DirectCtx::RayTracing	ctx			{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
-		const uint				fid			= ctx.GetFrameId().Index();
-		const auto&				instances	= _scene->_geomInstances;
-
-		// state transition
+		for (uint i = 0, cnt = _GetRepeatCount(); i < cnt; ++i)
 		{
-			for (auto& inst : instances) {
-				inst.geometry->StateTransition( ctx );
-			}
-			_resources.SetStates( ctx, Default );
-			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
-			ctx.CommitBarriers();
-		}
+			DirectCtx::RayTracing	ctx			{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
+			const uint				fid			= ctx.GetFrameId().Index();
+			const auto&				instances	= _scene->_geomInstances;
 
-		ctx.BindPipeline( _pipeline );
-		ctx.BindDescriptorSet( _passDSIndex, _passDescSets[fid] );
-		ctx.BindDescriptorSet( _objDSIndex,  _objDescSets[fid] );
-
-		for (const auto& it : _iterations)
-		{
-			if ( it.indirect ){
-				ctx.TraceRaysIndirect( _sbt, it.indirect->GetBufferId( fid ), it.indirectOffset );
-			}else{
-				ctx.TraceRays( it.Dimension(), _sbt );
-			}
-
-			if ( not IsLastElement( it, _iterations ))
+			// state transition
 			{
-				ctx.ExecutionBarrier( EPipelineScope::RayTracing, EPipelineScope::RayTracing );
+				for (auto& inst : instances) {
+					inst.geometry->StateTransition( ctx );
+				}
+				_resources.SetStates( ctx, Default );
+				ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
 				ctx.CommitBarriers();
 			}
-		}
 
-		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+			ctx.BindPipeline( _pipeline );
+			ctx.BindDescriptorSet( _passDSIndex, _passDescSets[fid] );
+			ctx.BindDescriptorSet( _objDSIndex,  _objDescSets[fid] );
+
+			for (const auto& it : _iterations)
+			{
+				if ( it.indirect ){
+					ctx.TraceRaysIndirect( _sbt, it.indirect->GetBufferId( fid ), it.indirectOffset );
+				}else{
+					ctx.TraceRays( it.Dimension(), _sbt );
+				}
+
+				if ( not IsLastElement( it, _iterations ))
+				{
+					ctx.ExecutionBarrier( EPipelineScope::RayTracing, EPipelineScope::RayTracing );
+					ctx.CommitBarriers();
+				}
+			}
+
+			pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		}
 		return true;
 	}
 

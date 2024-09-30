@@ -22,14 +22,14 @@ namespace AE::Graphics
 
 
 	// variables
-		uint3				dimension;				// width, height, depth
+		ImageDim_t			dimension;					// width, height, depth
+		EImageDim			imageDim		= Default;
 		ImageLayer			arrayLayers		= 1_layer;
 		MipmapLevel			mipLevels		= 1_mipmap;
-		EImageDim			imageDim		= Default;
 		EImageOpt			options			= Default;
 		EImageUsage			usage			= Default;
 		EPixelFormat		format			= Default;
-		MultiSamples		samples;				// if > 1 then enabled multisampling
+		MultiSamples		samples;					// if > 1 then enabled multisampling
 		EMemoryType			memType			= EMemoryType::DeviceLocal;
 		EQueueMask			queues			= Default;
 		FormatList_t		viewFormats		{ Default, Default, Default, Default };		// 'imageFormatList' extension
@@ -45,7 +45,8 @@ namespace AE::Graphics
 		ND_ bool	IsExclusiveSharing ()					C_NE___	{ return queues == Default; }
 		ND_ bool	HasViewFormatList ()					C_NE___	{ return ViewFormatListSize() != 0; }
 		ND_ usize	ViewFormatListSize ()					C_NE___;
-		ND_ uint3	Dimension ()							C_NE___	{ return dimension; }
+		ND_ uint3	Dimension ()							C_NE___	{ return uint3{dimension}; }
+		ND_ uint2	Dimension2 ()							C_NE___	{ return uint2{dimension}; }
 
 		ImageDesc&  SetType (EImage value)					__NE___;
 		ImageDesc&  SetType (EImageDim value)				__NE___	{ imageDim		= value;				return *this; }
@@ -82,12 +83,14 @@ namespace AE::Graphics
 		EImage				viewType		= Default;
 		EPixelFormat		format			= Default;	// optional
 		EImageAspect		aspectMask		= Default;
+		//					1 byte padding
 		EImageUsage			extUsage		= Default;	// 'maintenance2' extension
 		MipmapLevel			baseMipmap;
-		ushort				mipmapCount		= UMax;
+		MipmapCount_t		mipmapCount		= UMax;
 		ImageLayer			baseLayer;
-		ushort				layerCount		= UMax;
+		LayerCount_t		layerCount		= UMax;
 		ImageSwizzle		swizzle;
+		ImageDim_t			dimension;			// may be different from image (if set 'BlockTexelViewCompatible', if non-zero mipmap, etc)
 
 
 	// methods
@@ -106,14 +109,17 @@ namespace AE::Graphics
 
 		void  Validate (const ImageDesc &desc)							__NE___;
 
-		ND_ bool  operator == (const ImageViewDesc &rhs)				C_NE___;
+		ND_ bool		operator == (const ImageViewDesc &rhs)			C_NE___;
+
+		ND_ uint3		Dimension ()									C_NE___	{ return uint3{dimension}; }
+		ND_ uint2		Dimension2 ()									C_NE___	{ return uint2{dimension}; }
 
 		ImageViewDesc&  SetType (EImage value)							__NE___	{ viewType	= value;				return *this; }
 		ImageViewDesc&  SetFormat (EPixelFormat value)					__NE___	{ format	= value;				return *this; }
 		ImageViewDesc&  SetBaseMipmap (uint value)						__NE___	{ baseMipmap= MipmapLevel{value};	return *this; }
-		ImageViewDesc&  SetMipLevels (uint base, uint count)			__NE___	{ baseMipmap= MipmapLevel{base};	mipmapCount = CheckCast<ushort>(count);  return *this; }
+		ImageViewDesc&  SetMipLevels (uint base, uint count)			__NE___	{ baseMipmap= MipmapLevel{base};	mipmapCount = CheckCast<MipmapCount_t>(count);  return *this; }
 		ImageViewDesc&  SetBaseLayer (uint value)						__NE___	{ baseLayer	= ImageLayer{value};	return *this; }
-		ImageViewDesc&  SetArrayLayers (uint base, uint count)			__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast<ushort>(count);  return *this; }
+		ImageViewDesc&  SetArrayLayers (uint base, uint count)			__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast<LayerCount_t>(count);  return *this; }
 		ImageViewDesc&  SetSwizzle (ImageSwizzle value)					__NE___	{ swizzle	= value;				return *this; }
 		ImageViewDesc&  SetAspect (EImageAspect value)					__NE___	{ aspectMask= value;				return *this; }
 		ImageViewDesc&  SetExtUsage (EImageUsage value)					__NE___	{ extUsage	= value;				return *this; }
@@ -130,7 +136,7 @@ namespace AE::Base
 	template <> struct TMemCopyAvailable< AE::Graphics::ImageViewDesc >		: CT_True {};
 	template <> struct TTriviallySerializable< AE::Graphics::ImageViewDesc >: CT_True {};
 
-	StaticAssert( sizeof(AE::Graphics::ImageDesc) == 48 );
-	StaticAssert( sizeof(AE::Graphics::ImageViewDesc) == 20 );
+	StaticAssert( sizeof(AE::Graphics::ImageDesc) == 28 );
+	StaticAssert( sizeof(AE::Graphics::ImageViewDesc) == 24 );
 
 } // AE::Base

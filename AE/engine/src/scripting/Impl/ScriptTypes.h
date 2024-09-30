@@ -399,7 +399,6 @@ namespace AE::Scripting
 		template <typename T>
 		static void  Constructor (AngelScript::asIScriptGeneric* gen)
 		{
-			// TODO: bug in AngelScript: address is not aligned
 			PlacementNew<T>( OUT gen->GetObject() );	// throw
 		}
 

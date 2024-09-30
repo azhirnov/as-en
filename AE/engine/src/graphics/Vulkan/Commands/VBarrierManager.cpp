@@ -124,7 +124,7 @@ namespace AE::Graphics::_hidden_
 		barrier.srcStageMask	|= (barrier.srcStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
 		barrier.dstStageMask	|= (barrier.dstStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 
-		ASSERT( not AnyBits( dstState, EResourceState::Invalidate ));
+		ASSERT( NoBits( dstState, EResourceState::Invalidate ));
 		ASSERT( barrier.newLayout != VK_IMAGE_LAYOUT_UNDEFINED );
 	}
 
@@ -567,14 +567,14 @@ namespace AE::Graphics::_hidden_
 						const uint	idx			= it->second.Index();
 						const auto	dst_state	= att_states[ idx ].initial;
 						const bool	req_barrier	= EResourceState_RequireImageBarrier( att.initial, dst_state, Bool{att.relaxedStateTransition} );
-						const bool	is_valid	= not AnyBits( dst_state, EResourceState::Invalidate );
+						const bool	is_valid	= NoBits( dst_state, EResourceState::Invalidate );
 
 						if ( req_barrier and is_valid )
 							ImageBarrier( fb_images[ idx ], att.initial, dst_state );
 
 						const auto	src_state	 = att_states[ idx ].final;
 						const bool	req_barrier2 = EResourceState_RequireImageBarrier( src_state, att.final, Bool{att.relaxedStateTransition} );
-						const bool	is_valid2	 = not AnyBits( att.final, EResourceState::Invalidate );
+						const bool	is_valid2	 = NoBits( att.final, EResourceState::Invalidate );
 
 						if ( req_barrier2 and is_valid2 )
 							finalStates[ idx ] = att.final;

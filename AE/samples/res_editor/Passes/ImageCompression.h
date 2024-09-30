@@ -52,16 +52,20 @@ namespace AE::ResEditor
 		uint2					_tileDim;
 		uint2					_texelBlockDim;
 		uint3					_imageDim;
+		uint					_imageLayers		= 0;
+		uint					_imageMipmaps		= 0;
 		uint					_srcBitsPerBlock;
 		uint					_dstBitsPerBlock;
 		bool					_decompress;
 
 		EPixelFormat			_srcFormat;
-		EPixelFormat			_dstFormat;
+		const EPixelFormat		_dstFormat;
 		Bytes					_memBlockSize;
 
 		// mutable
-		uint3					_imageOffset;
+		uint3					_dimOffset;
+		uint					_layerOffset		= 0;
+		uint					_mipOffset			= 0;
 
 		DynUntypedStorage		_storage;
 		AvailableBlockBits_t	_availableBlocks;	// 1 - available block
@@ -77,12 +81,14 @@ namespace AE::ResEditor
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
 		bool		Execute (SyncPassData &)							__Th_OV;
-		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
 
 	private:
 		ND_ Block*  _AllocBlock ();
 			void	_FreeBlock (Block*);
 		ND_ Block*	_GetBlockToUpload ();
+
+		ND_ bool	_Initialize ();
 	};
 
 

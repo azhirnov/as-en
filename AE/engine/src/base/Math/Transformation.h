@@ -135,8 +135,8 @@ namespace AE::Math
 	template <typename T>
 	bool TTransformation<T>::operator == (const Self &rhs) C_NE___
 	{
-		return	All( orientation == rhs.orientation )	&
-				All( position	 == rhs.position )		&
+		return	All( orientation == rhs.orientation )	and
+				AllEqual( position, rhs.position )		and
 				(scale			 == rhs.scale);
 	}
 
@@ -148,16 +148,16 @@ namespace AE::Math
 	template <typename T>
 	ND_ bool  Equal (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const T err = Epsilon<T>()) __NE___
 	{
-		return	All( Math::Equal( lhs.orientation, rhs.orientation, err ))	&
-				All( Math::Equal( lhs.position, rhs.position, err ))		&
+		return	All( Math::Equal( lhs.orientation, rhs.orientation, err ))	and
+				All( Math::Equal( lhs.position, rhs.position, err ))		and
 				Math::Equal( lhs.scale, rhs.scale, err );
 	}
 
 	template <typename T>
 	ND_ bool  Equal (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const Percent err) __NE___
 	{
-		return	All( Math::Equal( lhs.orientation, rhs.orientation, err ))	&
-				All( Math::Equal( lhs.position, rhs.position, err ))		&
+		return	All( Math::Equal( lhs.orientation, rhs.orientation, err ))	and
+				All( Math::Equal( lhs.position, rhs.position, err ))		and
 				Math::Equal( lhs.scale, rhs.scale, err );
 	}
 
@@ -169,16 +169,16 @@ namespace AE::Math
 	template <typename T>
 	ND_ bool  BitEqual (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const EnabledBitCount bitCount) __NE___
 	{
-		return	All( Math::BitEqual( lhs.orientation, rhs.orientation, bitCount ))	&
-				All( Math::BitEqual( lhs.position, rhs.position, bitCount ))		&
+		return	All( Math::BitEqual( lhs.orientation, rhs.orientation, bitCount ))	and
+				All( Math::BitEqual( lhs.position, rhs.position, bitCount ))		and
 				Math::BitEqual( lhs.scale, rhs.scale, bitCount );
 	}
 
 	template <typename T>
 	ND_ bool  BitEqual (const TTransformation<T> &lhs, const TTransformation<T> &rhs) __NE___
 	{
-		return	All( Math::BitEqual( lhs.orientation, rhs.orientation ))	&
-				All( Math::BitEqual( lhs.position, rhs.position ))			&
+		return	All( Math::BitEqual( lhs.orientation, rhs.orientation ))	and
+				All( Math::BitEqual( lhs.position, rhs.position ))			and
 				Math::BitEqual( lhs.scale, rhs.scale );
 	}
 

@@ -8,7 +8,7 @@ if (${AE_ENABLE_VULKAN} AND WIN32)
 
 	set_property( TARGET "FeatureSetGen" PROPERTY FOLDER "Engine/ToolApps" )
 
-	target_link_libraries( "FeatureSetGen" PRIVATE "Serializing" "Scripting" "Vulkan-lib" )
+	target_link_libraries( "FeatureSetGen" PRIVATE "Serializing" "Vulkan-lib" )
 	target_include_directories( "FeatureSetGen" PRIVATE "." )
 
 	target_compile_definitions( "FeatureSetGen" PRIVATE

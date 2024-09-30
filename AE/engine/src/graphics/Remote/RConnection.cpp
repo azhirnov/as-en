@@ -28,8 +28,8 @@ namespace AE::RemoteGraphics
 	bool  RConnection::InitServer (ushort port, Ptr<Serializing::ObjectFactory> factory)
 	{
 		TcpSocket::Config	cfg;
+		cfg.nonBlocking			= true;	// can be blocking or non-blocking
 		cfg.noDelay				= true;
-		cfg.nonBlocking			= true;
 		cfg.reuseAddress		= false;
 		cfg.receiveBufferSize	= c_BufferSize;
 		cfg.maxConnections		= 1;
@@ -55,7 +55,7 @@ namespace AE::RemoteGraphics
 			if ( _socket.Accept( _server, OUT addr ))
 			{
 				//AE_LOG_DBG( "RmG server: connected client "s << addr.ToString() );
-				_socket.KeepAlive();
+				//_socket.KeepAlive();
 				return true;
 			}
 			ThreadUtils::Sleep_15ms();
@@ -99,7 +99,7 @@ namespace AE::RemoteGraphics
 	Send
 =================================================
 */
-	bool  RConnection::Send (const void *data, const Bytes dataSize)
+	bool  RConnection::Send (const void* data, const Bytes dataSize)
 	{
 		for (Bytes offset; offset < dataSize;)
 		{
@@ -149,7 +149,7 @@ namespace AE::RemoteGraphics
 			Serializing::Serializer  enc {FastWStream{ _sentBuffer.Data(), _sentBuffer.End() }};
 			enc.factory = _factory;
 
-			CHECK_ERR( enc( &msg ) and enc.Flush() );
+			CHECK_ERR( enc( &msg ));
 
 			size = _sentBuffer.Size() - enc.stream.RemainingSize();
 		}

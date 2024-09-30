@@ -21,25 +21,36 @@ namespace
 	AccessToStr
 =================================================
 */
-	ND_ static StringView  AccessToStr (EAccessType type) __Th___
+	ND_ static String  AccessToStr (EAccessType type, EResourceState state) __Th___
 	{
-		// requires GL_KHR_memory_scope_semantics
+		String	str;
 		switch_enum( type )
 		{
-			case EAccessType::DeviceCoherent :		return "devicecoherent";
-			case EAccessType::QueueFamilyCoherent :	return "queuefamilycoherent";
-			case EAccessType::WorkgroupCoherent :	return "workgroupcoherent";
-			case EAccessType::SubgroupCoherent :	return "subgroupcoherent";
-			case EAccessType::NonPrivate :			return "nonprivate";
-			case EAccessType::Volatile :			return "volatile";
-			case EAccessType::Restrict :			return "restrict";
-			case EAccessType::Coherent :			return "coherent";
+			// requires GL_KHR_memory_scope_semantics
+			case EAccessType::DeviceCoherent :		str << "devicecoherent";		break;
+			case EAccessType::QueueFamilyCoherent :	str << "queuefamilycoherent";	break;
+			case EAccessType::WorkgroupCoherent :	str << "workgroupcoherent";		break;
+			case EAccessType::SubgroupCoherent :	str << "subgroupcoherent";		break;
+			case EAccessType::NonPrivate :			str << "nonprivate";			break;
+
+			case EAccessType::Volatile :			str << "volatile";	break;
+			case EAccessType::Restrict :			str << "restrict";	break;
+			case EAccessType::Coherent :			str << "coherent";	break;
+
 			case EAccessType::Unknown :
 			case EAccessType::_MemoryModel :
-			case EAccessType::_Count :				break;
+			case EAccessType::_Count :
+			default :
+				CHECK_THROW_MSG( false, "unknown access type" ); break;
 		}
 		switch_end
-		CHECK_THROW_MSG( false, "unknown access type" );
+
+		switch ( ToEResState( state ))
+		{
+			case _EResState::ShaderStorage_Read :	str << " readonly";		break;
+			case _EResState::ShaderStorage_Write :	str << " writeonly";	break;
+		}
+		return str;
 	}
 
 /*
@@ -315,7 +326,7 @@ namespace
 		CHECK_THROW_MSG( not _dsLayout.uniforms.empty() );
 		CHECK_THROW_MSG( IsCompatibleWithVulkan() );
 
-		if ( not AnyBits( _dsLayout.stages, stages ))
+		if ( NoBits( _dsLayout.stages, stages ))
 			return;
 
 		auto&			storage			= *ObjectStorage::Instance();
@@ -331,7 +342,7 @@ namespace
 			CHECK_THROW_MSG( not name_str.empty() );
 			CHECK_THROW_MSG( un.binding.IsVkDefined() );
 
-			if ( not AnyBits( stages, un.stages ))
+			if ( NoBits( stages, un.stages ))
 				continue;
 
 			const String	idx_str		= ToString( un.binding.vkIndex );
@@ -381,7 +392,7 @@ namespace
 						<< ", array stride: " << ToString( un.buffer.arrayStride );
 					if ( un.buffer.HasDynamicOffset() )
 						str << ", dynamic offset";
-					str << "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", std430) " << AccessToStr( aux_info->access )
+					str << "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", std430) " << AccessToStr( aux_info->access, un.buffer.state )
 						<< " buffer AE_Type_" << aux_info->type->Typename() << " {\n"
 						<< fields << "  } " << name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
@@ -398,7 +409,7 @@ namespace
 					CHECK_THROW_MSG( aux_info != null );
 					str << "  // state: " << ToString( un.texelBuffer.state )
 						<< "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ") "
-						<< AccessToStr( aux_info->access ) << " uniform " << ImageToStr( un.texelBuffer.type, "image" )
+						<< AccessToStr( aux_info->access, un.texelBuffer.state ) << " uniform " << ImageToStr( un.texelBuffer.type, "image" )
 						<< ' ' << name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
 				}
@@ -409,7 +420,7 @@ namespace
 						<< "\n  layout(set=" << ds_idx << ", binding=" << idx_str;
 					if ( un.image.format != Default )
 						str << ", " << FormatToStr( un.image.format );
-					str	<< ") " << AccessToStr( aux_info->access )
+					str	<< ") " << AccessToStr( aux_info->access, un.image.state )
 						<< " uniform " << ImageToStr( un.image.type, "image" ) << ' ' << name_str
 						<< ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
@@ -485,7 +496,7 @@ namespace
 		CHECK_THROW_MSG( IsSingleBitSet( stages ));
 		CHECK_THROW_MSG( IsCompatibleWithMetal() );
 
-		if ( not AnyBits( _dsLayout.stages, stages ))
+		if ( NoBits( _dsLayout.stages, stages ))
 			return;
 
 		const auto	ValTypeToStr = [] (EImageType type) -> StringView
@@ -556,7 +567,7 @@ namespace
 			// argument buffer must have same layout
 			if ( not is_argbuf )
 			{
-				if ( not AnyBits( stages, un.stages ))
+				if ( NoBits( stages, un.stages ))
 					continue;
 
 				index_ptr = un.binding.mtlPerStageIndex.PtrForShader( stages );
@@ -784,7 +795,7 @@ namespace
 			CHECK_ERR( un.arraySize > 0 );			// TODO
 
 			// argument buffer must have same layout
-			if ( not is_argbuf and not AnyBits( stages, un.stages ))
+			if ( not is_argbuf and NoBits( stages, un.stages ))
 				continue;
 
 			switch_enum( un.type )
@@ -1471,14 +1482,32 @@ namespace
 	_CheckAccessType
 =================================================
 */
-	void  DescriptorSetLayout::_CheckAccessType (EAccessType access) C_Th___
+	void  DescriptorSetLayout::_CheckAccessType (INOUT EAccessType &access) C_Th___
 	{
 		CHECK_THROW_MSG( access < EAccessType::_Count );
-		CHECK_THROW_MSG( access != EAccessType::Unknown and access != EAccessType::_MemoryModel );
+		CHECK_THROW_MSG( access != EAccessType::_MemoryModel );
+
+		if ( access == EAccessType::Unknown )
+			access = EAccessType::Coherent;
 
 		if ( access > EAccessType::_MemoryModel )
 		{
 			TEST_FEATURE( _features, vulkanMemoryModel );
+		}
+	}
+
+/*
+=================================================
+	_CheckStateForStorage
+=================================================
+*/
+	void  DescriptorSetLayout::_CheckStateForStorage (EResourceState state) C_Th___
+	{
+		switch ( ToEResState( state )) {
+			case _EResState::ShaderStorage_Read :
+			case _EResState::ShaderStorage_Write :
+			case _EResState::ShaderStorage_RW :		break;
+			default :								CHECK_THROW_MSG( false, "state must be ShaderStorage_***" );
 		}
 	}
 
@@ -2119,18 +2148,13 @@ namespace
 */
 	void  DescriptorSetLayout::AddStorageBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, const String &typeName, EAccessType access, EResourceState state, Bool dynamic) __Th___
 	{
-		switch ( ToEResState( state )) {
-			case _EResState::ShaderStorage_Read :
-			case _EResState::ShaderStorage_Write :
-			case _EResState::ShaderStorage_RW :		break;
-			default :									CHECK_THROW_MSG( false, "state must be ShaderStorage_***" );
-		}
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
 
+		_CheckStateForStorage( state );
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
-		_CheckAccessType( access );
+		_CheckAccessType( INOUT access );
 
 		const auto&	st_map	= ObjectStorage::Instance()->structTypes;
 		auto		st_it	= st_map.find( typeName );
@@ -2191,20 +2215,15 @@ namespace
 */
 	void  DescriptorSetLayout::AddStorageTexelBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EPixelFormat format, EAccessType access, EResourceState state) __Th___
 	{
-		switch ( ToEResState( state )) {
-			case _EResState::ShaderStorage_Read :
-			case _EResState::ShaderStorage_Write :
-			case _EResState::ShaderStorage_RW :			break;
-			default :									CHECK_THROW_MSG( false, "state must be ShaderStorage_***" );
-		}
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( (type & EImageType::_TexMask) == EImageType::Buffer );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
+		_CheckStateForStorage( state );
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
-		_CheckAccessType( access );
+		_CheckAccessType( INOUT access );
 		_CheckStorageFormat( format, ToEResState(state) == _EResState::ShaderStorage_Read );
 
 		Uniform			un;
@@ -2230,19 +2249,14 @@ namespace
 */
 	void  DescriptorSetLayout::AddStorageImage (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EPixelFormat format, EAccessType access, EResourceState state) __Th___
 	{
-		switch ( ToEResState( state )) {
-			case _EResState::ShaderStorage_Read :
-			case _EResState::ShaderStorage_Write :
-			case _EResState::ShaderStorage_RW :			break;
-			default :									CHECK_THROW_MSG( false, "state must be ShaderStorage_***" );
-		}
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( (type & EImageType::_TexMask) != Default );
 
+		_CheckStateForStorage( state );
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
-		_CheckAccessType( access );
+		_CheckAccessType( INOUT access );
 		_CheckStorageFormat( format, ToEResState(state) == _EResState::ShaderStorage_Read );
 
 		const EImageType	val_flags = EImageType_FromPixelFormat( format );

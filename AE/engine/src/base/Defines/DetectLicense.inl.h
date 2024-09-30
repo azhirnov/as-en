@@ -8,7 +8,7 @@
 	 * REQUIRE_LGPLv3		- GNU LGPL 3 license
 	 * REQUIRE_GPLv2		- GNU GPL 2 license			// https://en.wikipedia.org/wiki/GNU_General_Public_License
 	 * REQUIRE_GPLv3		- GNU GPL 3 license
-	 * REQUIRE_COMMERCIAL	- commercial license
+	 * REQUIRE_COMMERCIAL	- commercial license, closed source, compatible with copyleft license types
 
 	Output:
 		AE_LICENSE	"<name>"
@@ -29,18 +29,40 @@
 	 * AE_LICENSE_MPL_2		- Mozilla Public License	// https://en.wikipedia.org/wiki/Mozilla_Public_License
 	 * AE_LICENSE_ZLIB									// https://en.wikipedia.org/wiki/Zlib_License
 	 * AE_LICENSE_UNLICENSE
+	 * AE_LICENSE_CC_BY_NC_SA_3	- CC BY-NC-SA 3.0		// https://creativecommons.org/licenses/by-nc-sa/3.0/
+	 * AE_LICENSE_FREE_NON_COMMERCIAL
 
 	reference:
 	https://en.wikipedia.org/wiki/Comparison_of_free_and_open-source_software_licenses
 */
 
-#if defined(AE_LICENSE_FREE_NON_COMMERCIAL) and defined(REQUIRE_COMMERCIAL)
-#  error only for non-commercial use!
-#endif
+
+// commercial license
+#ifdef REQUIRE_COMMERCIAL
+//	AE_LICENSE_APACHE_2			- ok
+//	AE_LICENSE_BSD/BSD2/BSD3	- ok
+//	AE_LICENSE_LGPLv2_SHAREDLIB	- ok
+//	AE_LICENSE_LGPLv3_SHAREDLIB	- ok
+//	AE_LICENSE_MIT				- ok
+//	AE_LICENSE_MPL_2			- ok
+//	AE_LICENSE_ZLIB				- ok
+//	AE_LICENSE_UNLICENSE		- ok
+
+#	if defined(AE_LICENSE_FREE_NON_COMMERCIAL) or defined(AE_LICENSE_CC_BY_NC_SA_3)
+#	  error only for non-commercial use!
+#	endif
+#	if defined(AE_LICENSE_LGPLv2) or defined(AE_LICENSE_LGPLv3)
+#	  error LGPL with static linking requires to open sources
+#	endif
+#	if defined(AE_LICENSE_GPLv2) or defined(AE_LICENSE_GPLv3) or defined(AE_LICENSE_AGPLv3)
+#	  error GPL requires to open sources
+#	endif
+
+#	define AE_LICENSE		"Commercial"
 
 
 // MIT & BSD
-#if defined(REQUIRE_MIT) or defined(REQUIRE_BSD_3)
+#elif defined(REQUIRE_MIT) or defined(REQUIRE_BSD_3)
 //	AE_LICENSE_BSD/BSD2/BSD3	- ok
 //	AE_LICENSE_LGPLv2_SHAREDLIB	- ok
 //	AE_LICENSE_LGPLv3_SHAREDLIB	- ok

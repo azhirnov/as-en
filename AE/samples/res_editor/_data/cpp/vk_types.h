@@ -1,10 +1,10 @@
-//e0b8bb51
+//5ca9e2b9
 #ifndef CameraData_DEFINED
 #	define CameraData_DEFINED
 	// size: 384, align: 16
 	struct CameraData
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x8142e66cu}};  // 'CameraData'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x8142e66cu}};
 
 		float4x4_storage  viewProj;
 		float4x4_storage  invViewProj;
@@ -31,7 +31,7 @@
 	// size: 1200, align: 16
 	struct ShadertoyUB
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa31fc14bu}};  // 'ShadertoyUB'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa31fc14bu}};
 
 		float3  resolution;
 		float  time;
@@ -80,7 +80,7 @@
 	// size: 1088, align: 16
 	struct ComputePassUB
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xaba36a57u}};  // 'ComputePassUB'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xaba36a57u}};
 
 		float  time;
 		float  timeDelta;
@@ -117,7 +117,7 @@
 	// size: 4, align: 4 (16)
 	struct ComputePassPC
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa1d3ae84u}};  // 'ComputePassPC'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa1d3ae84u}};
 
 		uint  dispatchIndex;
 	};
@@ -130,7 +130,7 @@
 	// size: 1088, align: 16
 	struct RayTracingPassUB
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x1539319au}};  // 'RayTracingPassUB'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x1539319au}};
 
 		float  time;
 		float  timeDelta;
@@ -167,7 +167,7 @@
 	// size: 1056, align: 16
 	struct SceneGraphicsPassUB
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x1f8a4833u}};  // 'SceneGraphicsPassUB'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x1f8a4833u}};
 
 		float2  resolution;
 		float  time;
@@ -200,7 +200,7 @@
 	// size: 1040, align: 16
 	struct SceneRayTracingPassUB
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd09ba9b0u}};  // 'SceneRayTracingPassUB'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd09ba9b0u}};
 
 		float  time;
 		float  timeDelta;
@@ -231,7 +231,7 @@
 	// size: 112, align: 16
 	struct SphericalCubeMaterialUB
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xeb01110au}};  // 'SphericalCubeMaterialUB'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xeb01110au}};
 
 		float4x4_storage  transform;
 		float3x3_storage  normalMat;
@@ -246,7 +246,7 @@
 	// size: 112, align: 16
 	struct UnifiedGeometryMaterialUB
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x6940ef36u}};  // 'UnifiedGeometryMaterialUB'
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x6940ef36u}};
 
 		float4x4_storage  transform;
 		float3x3_storage  normalMat;

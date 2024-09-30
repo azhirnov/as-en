@@ -272,6 +272,9 @@ namespace
 		binder.AddMethod( &ScriptComputePass::LocalSize2v,				"LocalSize",			{} );
 		binder.AddMethod( &ScriptComputePass::LocalSize3v,				"LocalSize",			{} );
 
+		binder.Comment( "Set subgroup size." );
+		binder.AddMethod( &ScriptComputePass::SubgroupSize,				"SubgroupSize",			{} );
+
 		binder.Comment( "Execute compute shader with number of the workgroups.\n"
 						"Total number of threads is 'groupCount * localSize'." );
 		binder.AddMethod( &ScriptComputePass::DispatchGroups1,			"DispatchGroups",		{"groupCountX"} );
@@ -414,7 +417,7 @@ namespace AE::ResEditor
 		ShaderStructTypePtr	st{ new ShaderStructType{"ComputePassUB"}};
 		st->Set( EStructLayout::Std140, R"#(
 				float		time;			// shader playback time (in seconds)
-				float		timeDelta;		// render time (in seconds)
+				float		timeDelta;		// frame render time (in seconds), max value: 1/30s
 				uint		frame;			// shader playback frame, global frame counter
 				uint		passFrameId;	// current pass frame index
 				uint		seed;			// unique value, updated on each shader reloading
@@ -500,7 +503,7 @@ namespace AE::ResEditor
 
 			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform, False{} );
 		}
-		_args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
+		_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 
 
 		uint	cs_line = 0;
@@ -582,6 +585,9 @@ namespace AE::ResEditor
 			ppln_spec->Disable();
 			ppln_spec->AddToRenderTech( "rtech", "Compute" );
 			ppln_spec->SetOptions( pplnOpt );
+
+			if ( _subgroupSize != 0 )
+				ppln_spec->SetSubgroupSize( _subgroupSize );
 
 			// if successfully compiled
 			ppln_spec->Enable();

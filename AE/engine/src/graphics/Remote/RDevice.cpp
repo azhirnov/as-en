@@ -98,14 +98,16 @@ namespace {
 		auto&	conn = _connArr.Get( lock );
 		bool	ok   = conn.Send( msg );
 
-		for (;;)
+		for (bool loop = true; loop;)
 		{
 			Unused( conn.Receive() );
 
-			if ( auto msg2 = conn.Encode() )
+			loop = false;
+			for (; auto msg2 = conn.Encode(); )
+			{
 				_ProcessMessage( conn, RVRef(msg2) );
-			else
-				break;
+				loop = true;
+			}
 		}
 
 		_connArr.Unlock( lock );
@@ -126,14 +128,16 @@ namespace {
 		for (auto* msg : msgs)
 			ok = ok and conn.Send( *msg );
 
-		for (;;)
+		for (bool loop = true; loop;)
 		{
 			Unused( conn.Receive() );
 
-			if ( auto msg2 = conn.Encode() )
+			loop = false;
+			for (; auto msg2 = conn.Encode(); )
+			{
 				_ProcessMessage( conn, RVRef(msg2) );
-			else
-				break;
+				loop = true;
+			}
 		}
 
 		_connArr.Unlock( lock );

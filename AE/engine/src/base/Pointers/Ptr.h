@@ -20,32 +20,32 @@ namespace AE::Base
 
 	// methods
 	public:
-		Ptr ()										__NE___ {}
-		Ptr (std::nullptr_t)						__NE___ {}
-		Ptr (T* ptr)								__NE___ : _value{ptr} {}
+		constexpr Ptr ()									__NE___ {}
+		constexpr Ptr (std::nullptr_t)						__NE___ {}
+		constexpr Ptr (T* ptr)								__NE___ : _value{ptr} {}
 
 		template <typename B>
-		Ptr (Ptr<B> other)							__NE___ : _value{static_cast<T*>( other.get() )} {}
+		constexpr Ptr (Ptr<B> other)						__NE___ : _value{static_cast<T*>( other.get() )} {}
 
-		ND_ T *		operator -> ()					C_NE___	{ NonNull( _value );  return _value; }
-		ND_ T &		operator *  ()					C_NE___	{ NonNull( _value );  return *_value; }
-		ND_ T *		get ()							C_NE___	{ return _value; }
+		ND_ constexpr T *		operator -> ()				C_NE___	{ NonNull( _value );  return _value; }
+		ND_ constexpr T &		operator *  ()				C_NE___	{ NonNull( _value );  return *_value; }
+		ND_ constexpr T *		get ()						C_NE___	{ return _value; }
 
-		ND_ explicit operator T * ()				C_NE___	{ return _value; }
+		ND_ constexpr explicit operator T * ()				C_NE___	{ return _value; }
 
-		ND_ operator Ptr<const T> ()				C_NE___	{ return _value; }
+		ND_ constexpr operator Ptr<const T> ()				C_NE___	{ return _value; }
 
 		template <typename B>
-		ND_ explicit operator B  ()					C_NE___	{ return static_cast<B>( _value ); }
+		ND_ constexpr explicit operator B  ()				C_NE___	{ return static_cast<B>( _value ); }
 
-		ND_ explicit operator bool ()				C_NE___	{ return _value != null; }
+		ND_ constexpr explicit operator bool ()				C_NE___	{ return _value != null; }
 
-		ND_ bool  operator == (const Ptr<T> &rhs)	C_NE___	{ return _value == rhs._value; }
-		ND_ bool  operator != (const Ptr<T> &rhs)	C_NE___	{ return not (*this == rhs); }
-		ND_ bool  operator <  (const Ptr<T> &rhs)	C_NE___ { return _value <  rhs._value; }
-		ND_ bool  operator >  (const Ptr<T> &rhs)	C_NE___ { return _value >  rhs._value; }
-		ND_ bool  operator <= (const Ptr<T> &rhs)	C_NE___ { return _value <= rhs._value; }
-		ND_ bool  operator >= (const Ptr<T> &rhs)	C_NE___ { return _value >= rhs._value; }
+		ND_ constexpr bool  operator == (Ptr<T> rhs)		C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool  operator != (Ptr<T> rhs)		C_NE___	{ return not (*this == rhs); }
+		ND_ constexpr bool  operator <  (Ptr<T> rhs)		C_NE___ { return _value <  rhs._value; }
+		ND_ constexpr bool  operator >  (Ptr<T> rhs)		C_NE___ { return _value >  rhs._value; }
+		ND_ constexpr bool  operator <= (Ptr<T> rhs)		C_NE___ { return _value <= rhs._value; }
+		ND_ constexpr bool  operator >= (Ptr<T> rhs)		C_NE___ { return _value >= rhs._value; }
 	};
 
 

@@ -74,7 +74,7 @@
 		const float2	coord	= un_Geometry.positions[idx].xy;
 		const int		face	= int(un_Geometry.positions[idx].z);
 
-		if ( iMode == 0 )
+		if ( iProjInFS == 0 )
 		{
 			switch ( iProj )
 			{
@@ -133,7 +133,7 @@
 
 	void Main ()
 	{
-		if ( iMode == 0 )
+		if ( iProjInFS == 0 )
 			out_Color = float4(Normalize(In.normal), 1.0);
 		else
 			out_Color = float4(SphereNormal( In.normal.xy, ECubeFace(In.normal.z) ), 1.0);

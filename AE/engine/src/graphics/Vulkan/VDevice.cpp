@@ -43,6 +43,8 @@ namespace
 
 #	include "vulkan_loader/vkenum_to_str.h"
 
+# ifndef AE_CFG_RELEASE
+
 /*
 =================================================
 	VK_DBGUTILS_DBGREPORT_OBJECT_TYPES
@@ -234,7 +236,8 @@ namespace
 		switch_end
 		return "unknown";
 	}
-}
+# endif // AE_CFG_RELEASE
+} // namespace
 //-----------------------------------------------------------------------------
 
 
@@ -289,6 +292,7 @@ namespace
 */
 	bool  VDevice::SetObjectName (ulong id, NtStringView name, VkObjectType type) C_NE___
 	{
+	  #ifndef AE_CFG_RELEASE
 		if ( name.empty() or id == 0 )
 			return false;
 
@@ -318,6 +322,9 @@ namespace
 			return true;
 		}
 
+	  #else
+		Unused( id, name, type );
+	  #endif
 		return false;
 	}
 
@@ -334,7 +341,7 @@ namespace
 
 		for (uint i = 0; (1u << i) <= uint(mask); ++i)
 		{
-			if ( not AllBits( mask, 1u << i ))
+			if ( NoBits( mask, 1u << i ))
 				continue;
 
 			auto	q = GetQueue( EQueueType(i) );
@@ -371,10 +378,10 @@ namespace
 
 			if ( AllBits( memoryTypeBits, 1u << i ) and AllBits( flags, includeFlags ))
 			{
-				if ( not AnyBits( flags, excludeFlags ))
+				if ( NoBits( flags, excludeFlags ))
 				{
 					const bool	has_inc_opt	= AllBits( flags, optIncludeFlags );
-					const bool	not_exc_opt	= not AnyBits( flags, optExcludeFlags );
+					const bool	not_exc_opt	= NoBits( flags, optExcludeFlags );
 
 					if ( has_inc_opt and not_exc_opt )
 					{
@@ -974,9 +981,11 @@ namespace
 	VDeviceInitializer::VDeviceInitializer (Bool enableInfoLog) __NE___ :
 		_enableInfoLog{ enableInfoLog }
 	{
+	#ifndef AE_CFG_RELEASE
 		auto	dbg_report = _dbgReport.WriteLock();
 		NOTHROW( dbg_report->tempObjectDbgInfos.reserve( 16 ));
 		dbg_report->tempString.reserve( 1024 );
+	#endif
 	}
 
 /*
@@ -1569,6 +1578,9 @@ namespace {
 			outResFlags.imageOptions =	EImageOpt::ColorAttachmentBlend | EImageOpt::SampledLinear | EImageOpt::CubeCompatible |
 										EImageOpt::MutableFormat | EImageOpt::BlitSrc | EImageOpt::BlitDst;
 
+			if ( _extensions.maintenance2 )
+				outResFlags.imageOptions |= EImageOpt::BlockTexelViewCompatible | EImageOpt::ExtendedUsage;
+
 			if ( props.accelerationStructureFeats.accelerationStructure )
 				outResFlags.bufferUsage |= EBufferUsage::ASBuild_Scratch | EBufferUsage::ASBuild_ReadOnly;
 
@@ -1716,7 +1728,7 @@ namespace {
 				result[ heap_idx ]	=  memType;
 			}
 
-			//ASSERT( not AnyBits( heap_bits, new_heap_bits ));	// must not intersects
+			//ASSERT( NoBits( heap_bits, new_heap_bits ));	// must not intersects
 			heap_bits |= new_heap_bits;
 		}};
 
@@ -2147,27 +2159,7 @@ namespace {
 			if ( devCI.fsToDeviceFeatures != null )
 				CHECK_ERR( _InitFeaturesAndPropertiesByFeatureSet( *devCI.fsToDeviceFeatures ));
 
-			// disable some features
-			{
-				_properties.features.robustBufferAccess = VK_FALSE;	// this feature affects performance
-
-				_properties.bufferDeviceAddressFeats.bufferDeviceAddressCaptureReplay	= VK_FALSE;
-				_properties.bufferDeviceAddressFeats.bufferDeviceAddressMultiDevice		= VK_FALSE;
-
-				_properties.accelerationStructureFeats.accelerationStructureCaptureReplay	= VK_FALSE;
-				_properties.accelerationStructureFeats.accelerationStructureHostCommands	= VK_FALSE;
-
-				_properties.rayTracingPipelineFeats.rayTracingPipelineShaderGroupHandleCaptureReplay		= VK_FALSE;
-				_properties.rayTracingPipelineFeats.rayTracingPipelineShaderGroupHandleCaptureReplayMixed	= VK_FALSE;
-
-				_properties.cooperativeMatrixFeats.cooperativeMatrixRobustBufferAccess = VK_FALSE;
-			}
-
-			if ( not IsEnabledDebugCallback() )
-			{
-				// enabled only with env variable 'NV_ALLOW_RAYTRACING_VALIDATION=1'
-				_properties.rayTracingValidationFeats.rayTracingValidation = VK_FALSE;
-			}
+			_SetupFeatures( INOUT _properties );
 
 			if ( devCI.disableFeatures != null )
 				devCI.disableFeatures( devCI.userData, INOUT _properties );
@@ -2275,6 +2267,37 @@ namespace {
 			AE_LOGI( "Destroyed Vulkan logical device" );
 
 		return true;
+	}
+
+/*
+=================================================
+	_SetupFeatures
+=================================================
+*/
+	void  VDeviceInitializer::_SetupFeatures (INOUT VProperties &feats) C_NE___
+	{
+		// disable some features
+		{
+			feats.features.robustBufferAccess	= VK_FALSE;	// this feature affects performance
+			feats.features.wideLines			= VK_FALSE;
+
+			feats.bufferDeviceAddressFeats.bufferDeviceAddressCaptureReplay	= VK_FALSE;
+			feats.bufferDeviceAddressFeats.bufferDeviceAddressMultiDevice	= VK_FALSE;
+
+			feats.accelerationStructureFeats.accelerationStructureCaptureReplay	= VK_FALSE;
+			feats.accelerationStructureFeats.accelerationStructureHostCommands	= VK_FALSE;
+
+			feats.rayTracingPipelineFeats.rayTracingPipelineShaderGroupHandleCaptureReplay		= VK_FALSE;
+			feats.rayTracingPipelineFeats.rayTracingPipelineShaderGroupHandleCaptureReplayMixed	= VK_FALSE;
+
+			feats.cooperativeMatrixFeats.cooperativeMatrixRobustBufferAccess = VK_FALSE;
+		}
+
+		if ( not IsEnabledDebugCallback() )
+		{
+			// enabled only with env variable 'NV_ALLOW_RAYTRACING_VALIDATION=1'
+			feats.rayTracingValidationFeats.rayTracingValidation = VK_FALSE;
+		}
 	}
 
 /*
@@ -2441,9 +2464,9 @@ namespace {
 				qtypes[ uint(vq.type) ] = &vq;
 			}
 			else
-			if ( AllBits( q.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR )		and
-				 not AnyBits( q.queueFlags, VK_QUEUE_VIDEO_ENCODE_BIT_KHR )	and
-				 qtypes[ uint(EQueueType::VideoDecode) ] == null			)
+			if ( AllBits( q.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR )	and
+				 NoBits(  q.queueFlags, VK_QUEUE_VIDEO_ENCODE_BIT_KHR )	and
+				 qtypes[ uint(EQueueType::VideoDecode) ] == null		)
 			{
 				if ( vq.debugName.empty() )
 					vq.debugName = "VideoDecode";
@@ -2457,9 +2480,9 @@ namespace {
 				qtypes[ uint(vq.type) ] = &vq;
 			}
 			else
-			if ( AllBits( q.queueFlags, VK_QUEUE_VIDEO_ENCODE_BIT_KHR )		and
-				 not AnyBits( q.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR )	and
-				 qtypes[ uint(EQueueType::VideoEncode) ] == null			)
+			if ( AllBits( q.queueFlags, VK_QUEUE_VIDEO_ENCODE_BIT_KHR )	and
+				 NoBits( q.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR )	and
+				 qtypes[ uint(EQueueType::VideoEncode) ] == null		)
 			{
 				if ( vq.debugName.empty() )
 					vq.debugName = "VideoEncode";
@@ -2853,8 +2876,9 @@ namespace {
 	CreateDebugCallback
 =================================================
 */
-	bool  VDeviceInitializer::CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT severity, DebugReport_t &&callback) __NE___
+	bool  VDeviceInitializer::CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT severity, DebugReport_t callback) __NE___
 	{
+	#ifndef AE_CFG_RELEASE
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( GetVkInstance() != Default );
 
@@ -2898,6 +2922,9 @@ namespace {
 			dbg_report->callback = RVRef(callback);
 			return true;
 		}
+	#else
+		Unused( severity, callback );
+	#endif
 
 		return false;
 	}
@@ -2909,6 +2936,7 @@ namespace {
 */
 	void  VDeviceInitializer::DestroyDebugCallback () __NE___
 	{
+	#ifndef AE_CFG_RELEASE
 		DRC_EXLOCK( _drCheck );
 
 		auto	dbg_report = _dbgReport.WriteLock();
@@ -2923,6 +2951,7 @@ namespace {
 
 		dbg_report->debugUtilsMessenger	= Default;
 		dbg_report->debugReportCallback	= Default;
+	#endif
 	}
 
 /*
@@ -2932,11 +2961,17 @@ namespace {
 */
 	bool  VDeviceInitializer::IsEnabledDebugCallback () C_NE___
 	{
+	#ifndef AE_CFG_RELEASE
 		auto	dbg_report = _dbgReport.ReadLock();
 		return	dbg_report->debugUtilsMessenger != Default or
 				dbg_report->debugReportCallback != Default;
+	#else
+		return false;
+	#endif
 	}
 
+
+#ifndef AE_CFG_RELEASE
 /*
 =================================================
 	CheckFalsePositive
@@ -2992,7 +3027,13 @@ namespace {
 													  obj.objectHandle };
 			}
 
-			self->_DebugReport(	dbg_report->tempString,
+			// skip false possitive if used 'VAMDPerfProfiler'
+			if ( self->_amdPerf.IsLoaded() and
+				 (HasSubString( pCallbackData->pMessage, "VkStructureType (1000133005)" ) or
+				  HasSubString( pCallbackData->pMessage, "VkStructureType (1000133001)" )))
+				return VK_FALSE;
+
+			self->_DebugReport(	INOUT dbg_report->tempString,
 								dbg_report->breakOnValidationError,
 								dbg_report->callback,
 								{ dbg_report->tempObjectDbgInfos, pCallbackData->pMessage,
@@ -3074,6 +3115,9 @@ namespace {
 		}
 	  #endif
 	}
+
+#endif // AE_CFG_RELEASE
+
 
 /*
 =================================================

@@ -2247,8 +2247,21 @@ namespace {
 
 		src << Typename() << "\n"
 			<< "\t{\n"
-			<< "\t\tstatic constexpr auto  TypeName = ShaderStructName{HashVal32{0x"
-			<< ToString<16>( uint{ShaderStructName{Typename()}} ) << "u}};  // '" << Typename() << "'\n\n";
+			<< "\t\tstatic constexpr auto   TypeName = ShaderStructName{HashVal32{0x"
+			<< ToString<16>( uint{ShaderStructName{Typename()}} ) << "u}};\n";
+
+		if ( HasDynamicArray() )
+		{
+			auto&	field = _fields.back();
+			src << "\t\tstatic constexpr size_t SizeOf (size_t count)  { return ";
+
+			if ( _size > 0 )
+				src << ToString(usize( AlignUp( _size, field.align ))) << " + ";
+
+			src	<< "(" << ToString(usize( field.size ))
+				<< " * count); }\n";
+		}
+		src << "\n";
 
 		for (auto& field : _fields)
 		{
@@ -2290,6 +2303,7 @@ namespace {
 			if ( not field.IsDynamicArray() )
 				test << "\tStaticAssert( offsetof(" << Typename() << ", " << field.name << ") == " << ToString(usize( field.offset )) << " );\n";
 		}
+
 		src << "\t};\n"
 			<< "#endif\n"
 			<< test;

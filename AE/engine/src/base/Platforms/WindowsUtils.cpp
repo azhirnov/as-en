@@ -71,42 +71,6 @@ namespace AE::Base
 
 /*
 =================================================
-	GetPhysicalMemorySize
-=================================================
-*/
-	WindowsUtils::MemorySize  WindowsUtils::GetPhysicalMemorySize () __NE___
-	{
-		MEMORYSTATUSEX	statex = {};
-		statex.dwLength = sizeof(statex);
-
-		::GlobalMemoryStatusEx( OUT &statex );	// winxp
-
-		MemorySize	result;
-		result.total		= Bytes{ statex.ullTotalPhys };
-		result.available	= Bytes{ statex.ullAvailPhys };
-		return result;
-	}
-
-/*
-=================================================
-	GetVirtualMemorySize
-=================================================
-*/
-	WindowsUtils::MemorySize  WindowsUtils::GetVirtualMemorySize () __NE___
-	{
-		MEMORYSTATUSEX	statex = {};
-		statex.dwLength = sizeof(statex);
-
-		::GlobalMemoryStatusEx( OUT &statex );	// winxp
-
-		MemorySize	result;
-		result.total		= Bytes{ statex.ullTotalVirtual };
-		result.available	= Bytes{ statex.ullAvailVirtual };
-		return result;
-	}
-
-/*
-=================================================
 	CheckNetworkError
 =================================================
 */

@@ -3,10 +3,14 @@
 // TODO
 //	https://jcgt.org/published/0003/02/01/paper.pdf
 
+#ifdef AE_ENABLE_UNKNOWN_LICENSE
+
 
 /*
 =================================================
 	Stalker version
+----
+	Best accuracy, requires signed format for negative Z.
 =================================================
 */
 float2  Stalker_EncodeNormal (const float3 norm)
@@ -80,6 +84,7 @@ float3  SigOctahedron_DecodeNormal (float3 n)
 	Stereographic Projection
 ----
 	from https://aras-p.info/texts/CompactNormalStorage.html
+	Requires signed format for negative Z.
 =================================================
 */
 float2  Stereo_EncodeNormal (const float3 n)
@@ -101,6 +106,8 @@ float3  Stereo_DecodeNormal (const float2 enc)
 /*
 =================================================
 	CryTeck version (Spheremap Transform)
+----
+	Large error on z = 1, but less than 'Spheremap' version.
 =================================================
 */
 float2  CryTeck_EncodeNormal (const float3 norm)
@@ -121,6 +128,7 @@ float3  CryTeck_DecodeNormal (const float2 packed)
 	Spheremap Transform
 ----
 	from https://aras-p.info/texts/CompactNormalStorage.html
+	Large error on z = -1.
 =================================================
 */
 float2  Spheremap_EncodeNormal (const float3 n)
@@ -234,3 +242,6 @@ float3  Diamond_DecodeTangent (float3 normal, float diamond_tangent)
 
 	return packed_tangent.x * t1 + packed_tangent.y * t2;
 }
+
+
+#endif // AE_ENABLE_UNKNOWN_LICENSE

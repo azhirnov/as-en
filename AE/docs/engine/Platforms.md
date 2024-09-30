@@ -7,7 +7,7 @@ Supported platforms
 - [ ] OS: Win11 (not tested)
 - [ ] Architecture: x86 (not tested)
 - [x] Architecture: x64
-- [ ] Architecture: ARM64
+- [ ] Architecture: ARM64 (compiled but not tested)
 - [x] Compiler: VisualStudio 2022
 - [x] Compiler: VisualStudio 2022 with Clang
 - [x] CPU info
@@ -38,10 +38,14 @@ Supported platforms
 	- [ ] RGP (not tested)
 - [ ] Crash reporting
 
+**ARM64**:
+- [ ] Scripting
+- [ ] SIMD
+
 
 ## Linux
 
-- [x] OS: Ubuntu 22, 23
+- [x] OS: Ubuntu 23, 24
 - [x] Architecture: x64
 - [ ] Architecture: ARM64
 - [ ] Architecture: RISC-V 64
@@ -65,6 +69,9 @@ Supported platforms
 - [x] Graphics:
 	- Vulkan (by default requires timeline semaphore)
 	- Vulkan (without timeline semaphore, compile with `-DAE_VK_TIMELINE_SEMAPHORE=OFF`)
+- Window system:
+	- [x] X11
+	- [ ] Wayland
 - [ ] HDR display (not tested)
 - [ ] Profiling
 - [ ] Distribution: Flatpack

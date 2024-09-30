@@ -48,6 +48,8 @@ namespace AE::ResEditor
 		Path			exportFolder;
 
 		// graphics settings
+		uint			screenWidth			= 1600;
+		uint			screenHeight		= 900;
 		bool			setStableGPUClock	= false;
 		bool			enableRenderDoc		= false;
 

@@ -20,6 +20,12 @@
 # endif
 
 # include <Windows.h>
+
+# include <winternl.h>
+# include <bcrypt.h>
+# define _NTDEF_
+# include <NTSecAPI.h>
+
 # include <WinSock2.h>
 # include <ws2tcpip.h>
 # include <processthreadsapi.h>
@@ -36,6 +42,8 @@
 # include <LowLevelMonitorConfigurationAPI.h>
 # include <PhysicalMonitorEnumerationAPI.h>
 //# include <HighLevelMonitorConfigurationAPI.h>
+# include <powerbase.h>
+# include <psapi.h>
 
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (pop)

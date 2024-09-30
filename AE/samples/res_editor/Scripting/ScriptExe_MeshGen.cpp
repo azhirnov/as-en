@@ -729,7 +729,7 @@ namespace AE::ResEditor
 			for (uint y = 0; y < vcount; ++y)
 			for (uint x = 0; x < vcount; ++x)
 			{
-				float2		ncoord = ToSNorm( float2{x,y} / float(vcount-1) );
+				float2		ncoord = ToSNorm( float2{uint2{ x, y }} / float(vcount-1) );
 
 				positions.push_back(float3{ ncoord, float(face) });
 				++vert_i;

@@ -34,13 +34,14 @@
 #ifdef SH_FRAG
 	#include "PBR.glsl"
 	#include "Normal.glsl"
+	#include "Geometry.glsl"
 	#include "GlobalIndex.glsl"
 	#include "ColorSpaceUtility.glsl"
 
-	float3  Sphere (float2 uv, float2 duv)
+	float4  Sphere (float2 uv, float2 duv)
 	{
 		uv = ToSNorm( uv ) * (duv.yx / duv.x);
-		return float3( uv, Saturate( 1.0 - LengthSq( uv )) );
+		return UVtoSphereNormal( uv );
 	}
 
 
@@ -50,8 +51,8 @@
 		const float3	spec_col	= RemoveSRGBCurve( iSpecular.rgb );
 		const float3	light_col	= RemoveSRGBCurve( iLightCol.rgb );
 
-		const float3	pos		= Sphere( uv, duv );
-		const float3	norm	= -ComputeNormalInWS_dxdy( pos );
+		const float4	pos		= Sphere( uv, duv );
+		const float3	norm	= -ComputeNormalInWS_dxdy( pos.xyz );
 		const float3	light	= Normalize( iLightDir );
 		const float3	view	= Normalize( float3( ToSNorm(uv) * (duv.yx / duv.x), 0.7 ));
 		const float		f0		= 0.8;
@@ -76,8 +77,8 @@
 			}
 		}
 
-		lr.diffuse  *= light_col * Step( 0.0001, pos.z );
-		lr.specular *= light_col * Step( 0.0001, pos.z );
+		lr.diffuse  *= light_col * SmoothStep( pos.w, 0.0, 0.01 );
+		lr.specular *= light_col * SmoothStep( pos.w, 0.0, 0.01 );
 		return lr;
 	}
 

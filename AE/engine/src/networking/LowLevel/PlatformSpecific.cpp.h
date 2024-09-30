@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #include "networking/LowLevel/SocketError.h"
 
 #ifdef AE_PLATFORM_WINDOWS
@@ -7,8 +9,8 @@
 #	if AE_PLATFORM_TARGET_VERSION_MAJOR < 6
 #	  error Required at least Windows Vista.
 #	endif
-#	define AE_WINDOWS_SOCKET
 #	include "base/Platforms/WindowsHeader.cpp.h"
+#	define AE_WINDOWS_SOCKET
 
 #elif defined(AE_EMS_NATIVE_SOCKETS)
 	// https://emscripten.org/docs/porting/networking.html

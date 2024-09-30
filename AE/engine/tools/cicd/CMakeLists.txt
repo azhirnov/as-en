@@ -5,16 +5,18 @@ if (NOT (DEFINED ENGINE_LIBS_PATH))
 	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
 endif()
 
+set( EXT_SOURCES "${MAIN_SOURCE_DIR}/engine/src/graphics/Private/Shared.cpp" )
+
 file( GLOB_RECURSE AS_SOURCES "*.as" )
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} ${AS_SOURCES} )
 
 if (ANDROID)
-	add_library( "CICD" SHARED ${SOURCES} )
+	add_library( "CICD" SHARED ${SOURCES} ${EXT_SOURCES} )
 	target_compile_definitions( "CICD" PUBLIC CICD_TEST_MACHINE )
 	target_link_libraries( "CICD" PUBLIC "Platform" )
 
 elseif (NOT (TARGET "Scripting"))
-	add_executable( "CICD" MACOSX_BUNDLE ${SOURCES} )
+	add_executable( "CICD" MACOSX_BUNDLE ${SOURCES} ${EXT_SOURCES} )
 	target_compile_definitions( "CICD" PUBLIC CICD_TEST_MACHINE CICD_BUILD_MACHINE CICD_CLIENT )
 
 else()
@@ -25,7 +27,7 @@ else()
 	file( GLOB_RECURSE ANDROID_SOURCES "${ANDROID_SRC_PATH}/*.*" )
 	list( APPEND ANDROID_SOURCES "${ANDROID_SRC_PATH}/../../build.gradle" )
 
-	add_executable( "CICD" ${SOURCES} ${PREBUILD_CPP_FILE} ${ANDROID_SOURCES} )
+	add_executable( "CICD" ${SOURCES} ${PREBUILD_CPP_FILE} ${ANDROID_SOURCES} ${EXT_SOURCES} )
 
 	source_group( "Apk" FILES ${ANDROID_SOURCES} )
 	set_source_files_properties( ${ANDROID_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
@@ -48,10 +50,16 @@ if (${AE_ENABLE_VULKAN})
 	endif()
 endif()
 
+set_property( SOURCE ${EXT_SOURCES} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
+target_compile_definitions( "CICD" PUBLIC AE_GRAPHICS_STRONG_VALIDATION=0 )
+
+source_group( "external" FILES ${EXT_SOURCES} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
+
 target_link_libraries( "CICD" PUBLIC "Networking" )
 target_include_directories( "CICD" PUBLIC ".." "scripts" )
 set_property( TARGET "CICD" PROPERTY FOLDER "Engine/ToolApps" )
 
 EnablePCH( "CICD" )
 EnablePrebuild( "CICD" )
+EnableUnitBuild( "CICD" )

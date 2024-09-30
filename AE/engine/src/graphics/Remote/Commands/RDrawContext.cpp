@@ -280,6 +280,21 @@ namespace AE::Graphics
 
 /*
 =================================================
+	SetViewportWScaling
+=================================================
+*/
+	void  RDrawContext::SetViewportWScaling (ArrayView<packed_float2> scaling) __Th___
+	{
+		VALIDATE_GCTX( SetViewportWScaling( _GetDynamicStates(), scaling ));
+		GCTX_CHECK( _HasFeature( EFeature::ViewportWScaling ));
+
+		Msg::CmdBuf_Bake::Draw_SetViewportWScalingCmd  cmd;
+		cmd.scaling = scaling;
+		_cmdbuf->AddCommand( cmd );
+	}
+
+/*
+=================================================
 	BindIndexBuffer
 =================================================
 */

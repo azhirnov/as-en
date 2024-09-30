@@ -39,17 +39,6 @@ namespace AE::Base
 		ND_ static auto				GetOSType ()											__NE___	{ return EOperationSystem::Android; }
 	};
 
-
-
-	inline bool  AndroidUtils::IsUnderDebugger () __NE___
-	{
-	#ifdef AE_DEBUG
-		return true;
-	#else
-		return false;
-	#endif
-	}
-
 } // AE::Base
 
 #endif // AE_PLATFORM_ANDROID

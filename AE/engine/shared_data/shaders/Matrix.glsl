@@ -26,6 +26,7 @@ ND_ float2		GetTranslation2D (const float3x2 m);
 ND_ float3		GetTranslation3D (const float4x4 m);
 ND_ float3		GetTranslation3D (const float4x3 m);
 
+
 // Rotation is clockwise for -Y axis (default in Vulkan)
 ND_ float2x2	f2x2_Rotate (const float angle);
 
@@ -38,6 +39,25 @@ ND_ float4x4	f4x4_RotateX (const float angle);
 ND_ float4x4	f4x4_RotateY (const float angle);
 ND_ float4x4	f4x4_RotateZ (const float angle);
 ND_ float4x4	f4x4_Rotate  (const float angle, const float3 axis);
+
+
+// Projection
+ND_ float4x4	f4x4_Ortho (const float4 viewport, const float2 range);
+ND_ float4x4	f4x4_InfinitePerspective (const float fovY, const float aspect, const float zNear);
+ND_ float4x4	f4x4_Perspective (float fovY, const float aspect, const float2 range);
+ND_ float4x4	f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 range);
+
+
+// Scale
+ND_ float2x2	f2x2_Scale (const float  value);
+ND_ float2x2	f2x2_Scale (const float2 value);
+
+ND_ float3x3	f3x3_Scale (const float  value);
+ND_ float3x3	f3x3_Scale (const float3 value);
+
+ND_ float4x4	f4x4_Scale (const float  value);
+ND_ float4x4	f4x4_Scale (const float3 value);
+
 
 ND_ float2		GetDirection2D (const float angle);
 ND_ float2		GetDirection2D (const float3x3 m);
@@ -62,41 +82,50 @@ ND_ float3		ViewDir (const float4x4 invMat, const float2 unormPos);
 //-----------------------------------------------------------------------------
 
 
+// GLSL specs:
+//	"If there is a single scalar parameter to a matrix constructor,
+//	 it is used to initialize all the components on the matrix’s diagonal,
+//	 with the remaining components initialized to 0.0."
 
 float2x2  f2x2_Identity ()
 {
-	return float2x2( float2( 1.f, 0.f ),
-					 float2( 0.f, 1.f ));
+	return float2x2( 1.f );
+//	return float2x2( float2( 1.f, 0.f ),
+//					 float2( 0.f, 1.f ));
 }
 
 float3x3  f3x3_Identity ()
 {
-	return float3x3( float3( 1.f, 0.f, 0.f ),
-					 float3( 0.f, 1.f, 0.f ),
-					 float3( 0.f, 0.f, 1.f ));
+	return float3x3( 1.f );
+//	return float3x3( float3( 1.f, 0.f, 0.f ),
+//					 float3( 0.f, 1.f, 0.f ),
+//					 float3( 0.f, 0.f, 1.f ));
 }
 
 float3x4  f3x4_Identity ()
 {
-	return float3x4( float4( 1.f, 0.f, 0.f, 0.f ),
-					 float4( 0.f, 1.f, 0.f, 0.f ),
-					 float4( 0.f, 0.f, 1.f, 0.f ));
+	return float3x4( 1.f );
+//	return float3x4( float4( 1.f, 0.f, 0.f, 0.f ),
+//					 float4( 0.f, 1.f, 0.f, 0.f ),
+//					 float4( 0.f, 0.f, 1.f, 0.f ));
 }
 
 float4x3  f4x3_Identity ()
 {
-	return float4x3( float3( 1.f, 0.f, 0.f ),
-					 float3( 0.f, 1.f, 0.f ),
-					 float3( 0.f, 0.f, 1.f ),
-					 float3( 0.f, 0.f, 0.f ));
+	return float4x3( 1.f );
+//	return float4x3( float3( 1.f, 0.f, 0.f ),
+//					 float3( 0.f, 1.f, 0.f ),
+//					 float3( 0.f, 0.f, 1.f ),
+//					 float3( 0.f, 0.f, 0.f ));
 }
 
 float4x4  f4x4_Identity ()
 {
-	return float4x4( float4( 1.f, 0.f, 0.f, 0.f ),
-					 float4( 0.f, 1.f, 0.f, 0.f ),
-					 float4( 0.f, 0.f, 1.f, 0.f ),
-					 float4( 0.f, 0.f, 0.f, 1.f ));
+	return float4x4( 1.f );
+//	return float4x4( float4( 1.f, 0.f, 0.f, 0.f ),
+//					 float4( 0.f, 1.f, 0.f, 0.f ),
+//					 float4( 0.f, 0.f, 1.f, 0.f ),
+//					 float4( 0.f, 0.f, 0.f, 1.f ));
 }
 //-----------------------------------------------------------------------------
 
@@ -212,6 +241,27 @@ float4x4  f4x4_Rotate  (const float angle, const float3 axis)	{ float4x4 m = flo
 //-----------------------------------------------------------------------------
 
 
+float2x2  f2x2_Scale (const float2 value)
+{
+	return	float2x2( value.x, 0.f,
+					  0.f, value.y );
+}
+
+float3x3  f3x3_Scale (const float3 value)
+{
+	return	float3x3( value.x,	0.f,		0.f,
+					  0.f,		value.y,	0.f,
+					  0.f,		0.f,		value.z );
+}
+
+float2x2  f2x2_Scale (const float  value)	{ return f2x2_Scale( float2(value) ); }
+float3x3  f3x3_Scale (const float  value)	{ return f3x3_Scale( float3(value) ); }
+
+float4x4  f4x4_Scale (const float3 value)	{ float4x4 m = float4x4(f3x3_Scale( value ));  m[3][3] = 1.f;  return m; }
+float4x4  f4x4_Scale (const float  value)	{ return f4x4_Scale( float3(value) ); }
+//-----------------------------------------------------------------------------
+
+
 float3x3  LookAt (const float3 dir, const float3 up)
 {
 	float3x3 m;
@@ -281,4 +331,68 @@ float3  GetAxisY (const float4x4 m)		{ return float3( m[0][1], m[1][1], m[2][1] 
 
 float3  GetAxisZ (const float3x3 m)		{ return float3( m[0][2], m[1][2], m[2][2] ); }
 float3  GetAxisZ (const float4x4 m)		{ return float3( m[0][2], m[1][2], m[2][2] ); }
+//-----------------------------------------------------------------------------
+
+
+#ifdef AE_LICENSE_MIT
+
+// based on code from GLM (MIT license) https://github.com/g-truc/glm
+
+float4x4  f4x4_InfinitePerspective (const float fovY, const float aspect, const float zNear)
+{
+	const float		range	= Tan( fovY * 0.5 ) * zNear;
+	const float		left	= -range * aspect;
+	const float		right	= range * aspect;
+	const float		bottom	= -range;
+	const float		top		= range;
+
+	float4x4	result = float4x4( 0.f );
+	result[0][0] = (2.f * zNear) / (right - left);
+	result[1][1] = (2.f * zNear) / (top - bottom);
+	result[2][2] = 1.f;
+	result[2][3] = 1.f;
+	result[3][2] = - zNear;
+	return result;
+}
+
+float4x4  f4x4_Ortho (const float4 viewport, const float2 range)
+{
+	// viewport - {left, top, right, bottom}
+	float4x4	result = float4x4( 1.f );
+	result[0][0] = 2.f / (viewport.z - viewport.x);
+	result[1][1] = 2.f / (viewport.y - viewport.w);
+	result[2][2] = - 1.f;
+	result[3][0] = - (viewport.z + viewport.x) / (viewport.z - viewport.x);
+	result[3][1] = - (viewport.y + viewport.w) / (viewport.y - viewport.w);
+	return result;
+}
+
+float4x4  f4x4_Perspective (float fovY, const float aspect, const float2 range)
+{
+	fovY = Tan( fovY * 0.5f );
+
+	float4x4	result = float4x4( 0.f );
+	result[0][0] = 1.f / (aspect * fovY);
+	result[1][1] = 1.f / fovY;
+	result[2][2] = range.y / (range.y - range.x);
+	result[2][3] = 1.f;
+	result[3][2] = -(range.y * range.x) / (range.y - range.x);
+	return result;
+}
+
+float4x4  f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 range)
+{
+	const float	h = Cos( 0.5f * fovY ) / Sin( 0.5f * fovY );
+	const float	w = h * viewportSize.y / viewportSize.x;
+
+	float4x4	result = float4x4( 0.f );
+	result[0][0] = w;
+	result[1][1] = h;
+	result[2][2] = range.y / (range.y - range.x);
+	result[2][3] = 1.f;
+	result[3][2] = -(range.y * range.x) / (range.y - range.x);
+	return result;
+}
+
+#endif // AE_LICENSE_MIT
 //-----------------------------------------------------------------------------

@@ -144,6 +144,8 @@ namespace AE::ResEditor
 		RC<IController>			_controller;
 		Constants				_shConst;
 
+		RC<DynamicUInt>			_repeatCount;
+
 		String					_dbgName;
 		RGBA8u					_dbgColor;
 
@@ -193,6 +195,7 @@ namespace AE::ResEditor
 							  OUT StaticArray<int4,8> &)									const;
 
 		ND_ bool  _IsEnabled ()																const;
+		ND_ uint  _GetRepeatCount ()														const;
 	};
 
 	AE_BIT_OPERATORS( IPass::EPassType );

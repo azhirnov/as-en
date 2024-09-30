@@ -1,4 +1,5 @@
 
+#ifdef AE_ENABLE_UNKNOWN_LICENSE
 
 /*
 =================================================
@@ -18,3 +19,5 @@ bool  AABB_Ray_Intersect (const AABB aabb, const Ray ray, out float2 tBeginEnd)
 	tBeginEnd = float2( tmin, tmax );
 	return (tmax >= 0) and (tmin <= tmax);
 }
+
+#endif // AE_ENABLE_UNKNOWN_LICENSE

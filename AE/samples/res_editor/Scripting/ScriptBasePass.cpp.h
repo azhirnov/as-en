@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #include "res_editor/Scripting/ScriptCommon.h"
 
 namespace AE::ResEditor
@@ -135,6 +137,9 @@ namespace
 		classBinder.AddMethod( &ScriptBasePass::EnableIfGreater,	"EnableIfGreater",	{"dynamic", "refValue"} );
 		classBinder.AddMethod( &ScriptBasePass::EnableIfAnyBit,		"EnableIfAnyBit",	{"dynamic", "refValue"} );
 
+		classBinder.Comment( "Repeat pass multiple times.\nCan be used for performance tests." );
+		classBinder.AddMethod( &ScriptBasePass::SetRepeatCount,		"Repeat",			{} );
+
 		if ( withArgs )
 		{
 			classBinder.Comment( "Add resource to all shaders in the current pass.\n"
@@ -173,7 +178,7 @@ namespace
 =================================================
 */
 	template <typename B>
-	void  ScriptBaseRenderPass::_BindBaseRenderPass (B &classBinder, Bool withBlending) __Th___
+	void  ScriptBaseRenderPass::_BindBaseRenderPass (B &classBinder, Bool withBlending, Bool withRWAtt) __Th___
 	{
 		using C = typename B::Class_t;
 
@@ -291,8 +296,22 @@ namespace
 			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {"name", "image", "baseLayer", "layerCount", "mipmap", "srcRGB", "dstRGB", "opRGB", "srcA", "dstA", "opA"} );
 		}
 
+		// read/write input attachment
+		if ( withRWAtt )
+		{
+			classBinder.Comment( "Used instead of 'Output()' to define image as input attachment & color attachment (read/write input attachment)." );
+			classBinder.AddMethod( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image"} );
+		}
+
 		// depth
 		classBinder.AddMethod( &ScriptBaseRenderPass::_SetDepthRange, "DepthRange", {"min", "max"} );
+
+		// viewports
+		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport0, "AddViewport", {"rect", "minDepth", "maxDepth", "scissor", "wScale"} );
+		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport1, "AddViewport", {"rect", "minDepth", "maxDepth"} );
+		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport2, "AddViewport", {"rect"} );
+		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport3, "AddViewport", {"left", "top", "right", "bottom"} );
+		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport4, "AddViewport", {"rect", "minDepth", "maxDepth", "scissor"} );
 	}
 
 

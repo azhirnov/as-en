@@ -3,8 +3,8 @@
 #include "PipelinePack.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/DataSource/MemStream.h"
-#include "serializing/Serializer.h"
-#include "serializing/ObjectFactory.h"
+#include "serializing/Public/Serializer.h"
+#include "serializing/Public/ObjectFactory.h"
 #include "graphics/Private/EnumUtils.h"
 
 #ifdef AE_ENABLE_GLSL_TRACE
@@ -1273,7 +1273,7 @@ namespace {
 		bool	result = true;
 		result &= ser( templUID );
 		result &= Serialize_BasePipelineDesc( ser, desc );
-		result &= ser( desc.localSize );
+		result &= ser( desc.localSize, desc.subgroupSize );
 		return result;
 	}
 
@@ -1284,7 +1284,7 @@ namespace {
 */
 	HashVal  SerializableComputePipelineSpec::CalcHash () C_NE___
 	{
-		return HashOf( uint(templUID) ) + BasePipelineDesc_Hash( desc ) + HashOf( desc.localSize );
+		return HashOf( uint(templUID) ) + BasePipelineDesc_Hash( desc ) + HashOf( desc.localSize ) + HashOf( desc.subgroupSize );
 	}
 
 /*
@@ -1296,7 +1296,8 @@ namespace {
 	{
 		return	templUID			== rhs.templUID			and
 				BasePipelineDesc_Compare( desc, rhs.desc )	and
-				All( desc.localSize	== rhs.desc.localSize );
+				All( desc.localSize	== rhs.desc.localSize )	and
+				desc.subgroupSize	== rhs.desc.subgroupSize;
 	}
 //-----------------------------------------------------------------------------
 

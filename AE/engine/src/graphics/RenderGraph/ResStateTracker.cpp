@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "graphics/RenderGraph/ResStateTracker.h"
 #include "graphics/Private/EnumToString.h"
+#include "graphics/RenderGraph/ResStateTracker.h"
 
 namespace AE::RG::_hidden_
 {
@@ -246,7 +246,7 @@ namespace AE::RG::_hidden_
 	_AddResource (ImageID)
 =================================================
 */
-	bool  ResStateTracker::_AddResource (ImageID id, EResourceState currentState, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue) __NE___
+	bool  ResStateTracker::_AddResource (ImageID id, EResourceState currentState, EResourceState defaultState, const RC<CommandBatch> &batch, EQueueType queue) __NE___
 	{
 		if ( defaultState == Default )
 			defaultState = EResourceState::General;
@@ -276,7 +276,7 @@ namespace AE::RG::_hidden_
 	_AddResource (BufferID)
 =================================================
 */
-	bool  ResStateTracker::_AddResource (BufferID id, EResourceState currentState, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue) __NE___
+	bool  ResStateTracker::_AddResource (BufferID id, EResourceState currentState, EResourceState defaultState, const RC<CommandBatch> &batch, EQueueType queue) __NE___
 	{
 		if ( defaultState == Default )
 			defaultState = EResourceState::General;
@@ -306,7 +306,7 @@ namespace AE::RG::_hidden_
 	_AddResource (RTGeometryID)
 =================================================
 */
-	bool  ResStateTracker::_AddResource (RTGeometryID id, EResourceState currentState, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue) __NE___
+	bool  ResStateTracker::_AddResource (RTGeometryID id, EResourceState currentState, EResourceState defaultState, const RC<CommandBatch> &batch, EQueueType queue) __NE___
 	{
 		if ( defaultState == Default )
 			defaultState = EResourceState::General;
@@ -334,7 +334,7 @@ namespace AE::RG::_hidden_
 	_AddResource (RTSceneID)
 =================================================
 */
-	bool  ResStateTracker::_AddResource (RTSceneID id, EResourceState currentState, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue) __NE___
+	bool  ResStateTracker::_AddResource (RTSceneID id, EResourceState currentState, EResourceState defaultState, const RC<CommandBatch> &batch, EQueueType queue) __NE___
 	{
 		if ( defaultState == Default )
 			defaultState = EResourceState::General;
@@ -362,7 +362,7 @@ namespace AE::RG::_hidden_
 	_AddResource (VideoImageID)
 =================================================
 */
-	bool  ResStateTracker::_AddResource (VideoImageID id, EResourceState currentState, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue) __NE___
+	bool  ResStateTracker::_AddResource (VideoImageID id, EResourceState currentState, EResourceState defaultState, const RC<CommandBatch> &batch, EQueueType queue) __NE___
 	{
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
 		auto*	res			= res_mngr.GetResource( id );

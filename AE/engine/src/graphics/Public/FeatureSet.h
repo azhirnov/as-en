@@ -161,10 +161,11 @@ namespace AE::Graphics
 		_visitor_( ushort,				maxSubgroupSize,							)\
 		_visitor_( EFeature,			subgroup,								: 2 )\
 		_visitor_( EFeature,			subgroupBroadcastDynamicId,				: 2 )	/* GL_ARB_shader_ballot																*/\
-		_visitor_( EFeature,			subgroupSizeControl,					: 2 )\
+		_visitor_( EFeature,			subgroupSizeControl,					: 2 )	/* VK_EXT_subgroup_size_control														*/\
 		_visitor_( EFeature,			shaderSubgroupUniformControlFlow,		: 2 )	/* GL_EXT_subgroupuniform_qualifier, GL_EXT_subgroup_uniform_control_flow			*/\
 		_visitor_( EFeature,			shaderMaximalReconvergence,				: 2 )	/* GL_EXT_maximal_reconvergence														*/\
 		_visitor_( EFeature,			shaderQuadControl,						: 2 )	/* GL_EXT_shader_quad_control														*/\
+		_visitor_( EFeature,			clipSpaceWScalingNV,					: 2 )	/* VK_NV_clip_space_w_scaling														*/\
 		/* types */\
 		_visitor_( EFeature,			shaderInt8,								: 2 )	/* GL_EXT_shader_8bit_storage														*/\
 		_visitor_( EFeature,			shaderInt16,							: 2 )	/* GL_EXT_shader_16bit_storage														*/\
@@ -338,7 +339,7 @@ namespace AE::Graphics
 		/* compute shader */\
 		_visitor_( uint,				maxComputeSharedMemorySize,					)\
 		_visitor_( uint,				maxComputeWorkGroupInvocations,				)\
-		_visitor_( uint,				maxComputeWorkGroupSizeX,					)	/* maxComputeWorkGroupCount, local_size_x											*/\
+		_visitor_( uint,				maxComputeWorkGroupSizeX,					)	/* local_size_x, maxComputeWorkGroupCount											*/\
 		_visitor_( uint,				maxComputeWorkGroupSizeY,					)	/* local_size_y																		*/\
 		_visitor_( uint,				maxComputeWorkGroupSizeZ,					)	/* local_size_z																		*/\
 		/* mesh shader */\

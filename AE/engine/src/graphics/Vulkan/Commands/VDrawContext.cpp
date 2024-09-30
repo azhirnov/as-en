@@ -262,6 +262,21 @@ namespace AE::Graphics::_hidden_
 
 /*
 =================================================
+	_SetViewportWScaling
+=================================================
+*/
+	void  _VIndirectDrawCtx::_SetViewportWScaling (ArrayView<VkViewportWScalingNV> scaling) __Th___
+	{
+		auto&	cmd = _cmdbuf->CreateCmd< SetViewportWScalingCmd, VkViewportWScalingNV >( scaling.size() );	// throw
+		auto*	dst	= Cast<VkViewportWScalingNV>( AlignUp( static_cast<void*>(&cmd + 1), AlignOf<VkViewportWScalingNV> ));
+
+		cmd.first	= 0;
+		cmd.count	= ushort(scaling.size());
+		MemCopy( OUT dst, scaling.data(), ArraySizeOf(scaling) );
+	}
+
+/*
+=================================================
 	SetStencilCompareMask
 =================================================
 */

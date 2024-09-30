@@ -9,20 +9,22 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 #define GLM_FORCE_RADIANS
-#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL		// for gtx
 #ifdef AE_CXX_20
-# define GLM_FORCE_CXX2A
+# define GLM_FORCE_CXX20
 #else
 # define GLM_FORCE_CXX17
 #endif
-#define GLM_FORCE_VEC_EQUAL_OP	// special for AE
 #define GLM_FORCE_EXPLICIT_CTOR
-//#define GLM_FORCE_XYZW_ONLY	// will disable SIMD
+//#define GLM_FORCE_XYZW_ONLY		// will disable SIMD
 #define GLM_FORCE_CTOR_INIT
 #define GLM_FORCE_INLINE
 #define GLM_FORCE_ALIGNED_GENTYPES
 #define GLM_FORCE_INTRINSICS
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+//#define GLM_FORCE_FMA
+//#define GLM_FORCE_SIZE_T_LENGTH
+#define GLM_AE_VERSION
 
 
 // enable simd
@@ -42,8 +44,6 @@
 #	define GLM_FORCE_SSE3	// float
 # elif AE_SIMD_SSE >= 20
 #	define GLM_FORCE_SSE2	// float
-# elif AE_SIMD_SSE >= 10
-#	define GLM_FORCE_SSE	// float
 # else
 // disable intrinsics
 #	define GLM_FORCE_ARCH_UNKNOWN
@@ -59,18 +59,7 @@
 #endif
 
 
-#ifdef AE_COMPILER_MSVC
-#	pragma warning (push)
-#	pragma warning (disable: 4201)
-#	pragma warning (disable: 4127)
-#endif
-#ifdef AE_COMPILER_CLANG
-#	pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wconditional-uninitialized"
-#endif
-
 #include "glm.hpp"
-#include "detail/type_half.hpp"
 
 #include "gtc/bitfield.hpp"
 #include "gtc/color_space.hpp"
@@ -96,6 +85,7 @@
 #include "gtx/norm.hpp"
 #include "gtx/easing.hpp"
 #include "gtx/rotate_vector.hpp"
+#include "gtx/quaternion.hpp"
 #include "gtx/dual_quaternion.hpp"
 #include "gtx/intersect.hpp"
 #include "gtx/fast_exponential.hpp"
@@ -110,13 +100,6 @@
 #include "ext/vector_relational.hpp"
 #include "ext/matrix_relational.hpp"
 
-
-#ifdef AE_COMPILER_MSVC
-#	pragma warning (pop)
-#endif
-#ifdef AE_COMPILER_CLANG
-#	pragma clang diagnostic pop
-#endif
 
 #if GLM_CONFIG_ALIGNED_GENTYPES != GLM_ENABLE
 #	error required GLM_CONFIG_ALIGNED_GENTYPES = GLM_ENABLE

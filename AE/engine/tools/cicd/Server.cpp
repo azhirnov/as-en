@@ -622,6 +622,7 @@ namespace AE::CICD
 				}
 				case ECopyMode::Unknown :	break;
 			}
+			switch_end
 		}
 		_copyCmds.clear();
 	}

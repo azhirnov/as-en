@@ -53,7 +53,7 @@ void ASmain ()
 		planet.ArgIn( "un_NormalMap",   normal_view,	Sampler_LinearMipmapRepeat );
 		planet.ArgIn( "un_AlbedoMap",   albedo_view,	Sampler_LinearMipmapRepeat );
 		planet.ArgIn( "un_EmissionMap", emission_view,	Sampler_LinearMipmapRepeat );
-		planet.DetailLevel( 0, 9 );
+		planet.DetailLevel( 9 );
 
 		scene.Add( planet, float3(0.f, 0.f, 2.f) );
 	}

@@ -17,17 +17,19 @@ namespace AE::ResEditor
 	enum class EDynamicVarOperator : ubyte
 	{
 		Unknown,
-		Mul,
-		Div,
-		DivNear,
-		DivCeil,
-		Add,
-		Sub,
-		Pow,
+		Mul,			// x * const
+		Div,			// x / const
+		DivNear,		// (x + const/2) / const
+		DivCeil,		// (x + const - 1) / const
+		Add,			// x + const
+		Sub,			// x - const
+		Pow,			// pow( x, const )
+		PowOf2,			// const << 2
 	};
 
 	template <typename T, int I>
 	class TDynamicVec;
+	class DynamicDim;
 
 
 
@@ -73,10 +75,15 @@ namespace AE::ResEditor
 		ND_ RC<TDynamicVec<T,2>>	ToX1 ()					__NE___;
 		ND_ RC<TDynamicVec<T,3>>	ToX11 ()				__NE___;
 
+		ND_ RC<DynamicDim>			ToDim2 ()				__NE___;
+		ND_ RC<DynamicDim>			ToDim3 ()				__NE___;
+
 	private:
 		ND_ static T		_Get (EnableRCBase*)			__NE___;
 		ND_ static Vec<T,2>	_GetX1 (EnableRCBase*)			__NE___;
 		ND_ static Vec<T,3>	_GetX11 (EnableRCBase*)			__NE___;
+		ND_ static uint3	_GetDim2 (EnableRCBase*)		__NE___;
+		ND_ static uint3	_GetDim3 (EnableRCBase*)		__NE___;
 	};
 
 
@@ -136,6 +143,13 @@ namespace AE::ResEditor
 			case EOperator::DivCeil :			result = (result + _opValue-1) / _opValue;	break;
 			case EOperator::Add :				result += _opValue;							break;
 			case EOperator::Sub :				result -= _opValue;							break;
+
+			case EOperator::PowOf2 :
+				if constexpr( IsFloatPoint<T> )
+					result = _opValue * Pow( T(2), result );
+				else
+					result = _opValue << result;
+				break;
 
 			case EOperator::Pow :
 				if constexpr( IsFloatPoint<T> )

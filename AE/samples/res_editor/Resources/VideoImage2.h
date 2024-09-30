@@ -56,7 +56,7 @@ namespace AE::ResEditor
 
 		RC<DynamicDim>				_outDynSize;			// triggered when current image has been resized
 		RC<Video::IVideoDecoder>	_decoder;
-		uint2						_dimension;
+		VideoImageDim_t				_dimension;
 		StreamArr_t					_streamArr;
 
 		AsyncTask					_lastDecoding;

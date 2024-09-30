@@ -53,6 +53,8 @@ namespace AE::RemoteGraphics::Msg
 		Ser_SwapchainDesc( _desc_.swapchain )
 
 
+	DECL_SERIALIZER( ProfGeneral_Initialize_Response::SerCpuCluster,	name, logicalCores )
+
 	DECL_SERIALIZER( DefaultResponse,		ok )
 	DECL_SERIALIZER( UploadData,			size )			// skip 'data'
 	DECL_SERIALIZER( UploadDataAndCopy,		size, dst )		// skip 'data'
@@ -120,15 +122,15 @@ namespace AE::RemoteGraphics::Msg
 //-----------------------------------------------------------------------------
 
 
-	StaticAssert64( sizeof(ImageDesc) == 48 );
+	StaticAssert64( sizeof(ImageDesc) == 28 );
 	#define Ser_ImageDesc( _desc_ )\
 		_desc_.dimension, _desc_.arrayLayers, _desc_.mipLevels, _desc_.imageDim, _desc_.options, \
 		_desc_.usage, _desc_.format, _desc_.samples, _desc_.memType, _desc_.queues, _desc_.viewFormats
 
-	StaticAssert64( sizeof(ImageViewDesc) == 20 );
+	StaticAssert64( sizeof(ImageViewDesc) == 24 );
 	#define Ser_ImageViewDesc( _desc_ )\
-		_desc_.viewType, _desc_.format, _desc_.aspectMask, _desc_.extUsage, \
-		_desc_.baseMipmap, _desc_.mipmapCount, _desc_.baseLayer, _desc_.layerCount, _desc_.swizzle
+		_desc_.viewType, _desc_.format, _desc_.aspectMask, _desc_.extUsage, _desc_.baseMipmap, \
+		_desc_.mipmapCount, _desc_.baseLayer, _desc_.layerCount, _desc_.dimension, _desc_.swizzle
 
 	StaticAssert64( sizeof(BufferDesc) == 24 );
 	#define Ser_BufferDesc( _desc_ )\
@@ -360,8 +362,8 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_SERIALIZER( ProfPVR_Initialize,				required )
 	DECL_SERIALIZER( ProfPVR_Initialize_Response,		ok, enabled )
-	DECL_EMPTY_SERIALIZER( ProfPVR_Tick					)
-	DECL_SERIALIZER( ProfPVR_Tick_Response,				timings )
+	DECL_EMPTY_SERIALIZER( ProfPVR_GetTiming			)
+	DECL_SERIALIZER( ProfPVR_GetTiming_Response,		timings )
 	DECL_EMPTY_SERIALIZER( ProfPVR_Sample				)
 	DECL_SERIALIZER( ProfPVR_Sample_Response,			counters )
 
@@ -369,6 +371,11 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( ProfNVidia_Initialize_Response,	ok, enabled )
 	DECL_EMPTY_SERIALIZER( ProfNVidia_Sample			)
 	DECL_SERIALIZER( ProfNVidia_Sample_Response,		counters )
+
+	DECL_SERIALIZER( ProfGeneral_Initialize,			required )
+	DECL_SERIALIZER( ProfGeneral_Initialize_Response,	ok, cpuClusters )
+	DECL_EMPTY_SERIALIZER( ProfGeneral_Sample			)
+	DECL_SERIALIZER( ProfGeneral_Sample_Response,		counters, totalCpuUsage, kernelUsage )
 //-----------------------------------------------------------------------------
 
 
@@ -495,6 +502,7 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_SetBlendConstantsCmd,		color )
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_SetDepthBoundsCmd,			minDepthBounds, maxDepthBounds )
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_SetFragmentShadingRateCmd,	rate, primitiveOp, textureOp )
+	DECL_SERIALIZER( CmdBuf_Bake::Draw_SetViewportWScalingCmd,		scaling )
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_BindIndexBufferCmd,			buffer, offset, indexType )
 	DECL_SERIALIZER( CmdBuf_Bake::Draw_BindVertexBuffersCmd,		firstBinding, buffers, offsets )
 	DECL_SERIALIZER( CmdBuf_Bake::DrawCmd,							vertexCount, instanceCount, firstVertex, firstInstance )

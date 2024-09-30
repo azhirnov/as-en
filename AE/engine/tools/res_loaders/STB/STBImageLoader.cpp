@@ -82,7 +82,7 @@ namespace AE::ResLoader
 		image_data[0].resize( 1 );
 
 		IntermImage::Level&		image_level = image_data[0][0];
-		image_level.dimension	= uint3{ x, y, 1 };
+		image_level.dimension	= uint3{int3{ x, y, 1 }};
 		image_level.mipmap		= 0_mipmap;
 		image_level.layer		= 0_layer;
 		image_level.rowPitch	= Bytes{uint( comp * x )};

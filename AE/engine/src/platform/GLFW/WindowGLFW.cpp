@@ -548,7 +548,7 @@ namespace AE::App
 		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
 		DRC_EXLOCK( self->_drCheck );
 
-		const uint2		size {w,h};
+		const uint2		size {int2{ w, h }};
 
 		if ( All( not IsZero( size )))
 			self->_surface.ResizeSwapchain();

@@ -184,28 +184,33 @@ namespace AE::Graphics
 
 		auto	lock = _connArr.Lock();
 		auto&	conn = _connArr.Get( lock );
-		bool	ok   = conn.Send( msg );
 
-		for (;ok;)
-		{
-			bool	ok2 = conn.Receive();
-
-			if ( auto msg2 = conn.Encode() )
+		const auto	SendAndWait = [&] ()
+		{{
+			bool	ok   = conn.Send( msg );
+			for (;ok;)
 			{
-				const TypeId	type = msg2->GetTypeId();
-				if ( type == TypeIdOf<R>() )
+				bool	ok2 = conn.Receive();
+
+				for (; auto msg2 = conn.Encode(); )
 				{
-					response = Base::Cast<R>(msg2);
-					break;
+					if ( msg2->GetTypeId() == TypeIdOf<R>() )
+					{
+						response = Base::Cast<R>(msg2);
+						return true;
+					}
+
+					_ProcessMessage( conn, RVRef(msg2) );
+					ok2 = true;
 				}
-				_ProcessMessage( conn, RVRef(msg2) );
-				ok2 = true;
+
+				if ( not ok2 )
+					ThreadUtils::Sleep_1us();
 			}
+			return ok;
+		}};
 
-			if ( not ok2 )
-				ThreadUtils::Sleep_1us();
-		}
-
+		bool	ok = SendAndWait();
 		_connArr.Unlock( lock );
 		return ok;
 	}
@@ -222,31 +227,37 @@ namespace AE::Graphics
 
 		auto	lock = _connArr.Lock();
 		auto&	conn = _connArr.Get( lock );
-		bool	ok   = true;
 
-		for (auto* msg : msgs)
-			ok = ok and conn.Send( *msg );
+		const auto	SendAndWait = [&] ()
+		{{
+			bool	ok = true;
 
-		for (;ok;)
-		{
-			bool	ok2 = conn.Receive();
+			for (auto* msg : msgs)
+				ok = ok and conn.Send( *msg );
 
-			if ( auto msg2 = conn.Encode() )
+			for (;ok;)
 			{
-				const TypeId	type = msg2->GetTypeId();
-				if ( type == TypeIdOf<R>() )
+				bool	ok2 = conn.Receive();
+
+				if ( auto msg2 = conn.Encode() )
 				{
-					response = Base::Cast<R>(msg2);
-					break;
+					if ( msg2->GetTypeId() == TypeIdOf<R>() )
+					{
+						response = Base::Cast<R>(msg2);
+						return true;
+					}
+
+					_ProcessMessage( conn, RVRef(msg2) );
+					ok2 = true;
 				}
-				_ProcessMessage( conn, RVRef(msg2) );
-				ok2 = true;
+
+				if ( not ok2 )
+					ThreadUtils::Sleep_1us();
 			}
+			return ok;
+		}};
 
-			if ( not ok2 )
-				ThreadUtils::Sleep_1us();
-		}
-
+		bool	ok = SendAndWait();
 		_connArr.Unlock( lock );
 		return ok;
 	}

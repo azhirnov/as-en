@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-		 VERSION 24.8.254	# year, month, version
+		 VERSION 24.9.258	# year, month, version
 		 LANGUAGES C CXX
 		 DESCRIPTION "async game engine"
 		)
@@ -39,11 +39,14 @@ message( STATUS "target processor: ${CMAKE_SYSTEM_PROCESSOR}" )
 #----------------------------------------------------------
 
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16.0")
-	set( AE_USE_PCH ON  CACHE BOOL "use precompiled headers" )
+	set( AE_USE_PCH			ON  CACHE BOOL "use precompiled headers" )
+	set( AE_USE_UNITY_BUILD OFF CACHE BOOL "use unity build" )
 else()
-	set( AE_USE_PCH OFF CACHE INTERNAL "" FORCE )
+	set( AE_USE_PCH			OFF CACHE INTERNAL "" FORCE )
+	set( AE_USE_UNITY_BUILD OFF CACHE INTERNAL "" FORCE )
 endif()
 message( STATUS "Precompiled headers: ${AE_USE_PCH}" )
+message( STATUS "Unity build: ${AE_USE_UNITY_BUILD}" )
 
 #----------------------------------------------------------
 
@@ -53,6 +56,15 @@ set( CMAKE_DEVELOP_POSTFIX 	"" CACHE INTERNAL "" FORCE )
 set( CMAKE_RELEASE_POSTFIX 	"" CACHE INTERNAL "" FORCE )
 set( MAIN_SOURCE_DIR 		"${CMAKE_CURRENT_SOURCE_DIR}"	CACHE INTERNAL "" FORCE )
 set( MAIN_BINARY_DIR 		"${CMAKE_BINARY_DIR}/bin"		CACHE INTERNAL "" FORCE )
+
+# for IDE
+set( ANDROID_SDK_ROOT		"$ENV{ANDROID_SDK_ROOT}" )
+set( ANDROID_NDK_INCLUDE	"${ANDROID_SDK_ROOT}/ndk/26.3.11579264/toolchains/llvm/prebuilt/windows-x86_64" CACHE INTERNAL "" FORCE )
+if (WIN32)
+	if (NOT EXISTS ${ANDROID_NDK_INCLUDE})
+		message( STATUS "Android NDK is not found in '${ANDROID_NDK_INCLUDE}'" )
+	endif()
+endif()
 
 # this settings breaks native debugger on android
 if (NOT ANDROID)

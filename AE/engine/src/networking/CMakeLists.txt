@@ -14,5 +14,6 @@ target_compile_definitions( "Networking" PUBLIC "AE_ENABLE_NETWORKING" )
 
 EnablePCH( "Networking" )
 EnablePrebuild( "Networking" )
+EnableUnitBuild( "Networking" )
 
 install( TARGETS "Networking" ARCHIVE DESTINATION "lib" )

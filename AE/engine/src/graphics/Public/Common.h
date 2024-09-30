@@ -28,13 +28,20 @@ namespace AE::Graphics
 	class RenderTask;
 	class DrawTask;
 
+	using ImageDim_t		= packed_ushort3;
+	using ImageDim2_t		= packed_ushort2;
+	using VideoImageDim_t	= ImageDim2_t;
+	using MipmapCount_t		= ushort;
+	using LayerCount_t		= ushort;
+
+
 
 	//
 	// Graphics Config
 	//
 	struct GraphicsConfig final : Noninstanceable
 	{
-		// Values may be greater than current limit, used only to reserve memory.
+		// Current device limits may be greater than current limit, used only to reserve memory.
 
 		// buffer
 		static constexpr uint	MaxVertexBuffers		= 8;

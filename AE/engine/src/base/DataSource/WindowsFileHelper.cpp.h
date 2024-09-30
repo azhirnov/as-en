@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #ifdef AE_PLATFORM_WINDOWS
 
 namespace
@@ -34,7 +36,7 @@ namespace
 		// validation
 		{
 			DBG_CHECK_MSG( not AllBits( flags, FILE_FLAG_RANDOM_ACCESS | FILE_FLAG_SEQUENTIAL_SCAN ),
-						   "'RandomAccess | SequentialScan' is not supported" );
+						   "combination of 'RandomAccess' and 'SequentialScan' is not supported" );
 		}
 		return flags;
 	}

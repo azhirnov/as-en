@@ -89,8 +89,16 @@
 
 	void Main ()
 	{
+	  #if 1
+		uint		idx			= gl.InstanceIndex / un_Nodes.instanceCount;
+		int			face		= int(gl.InstanceIndex - idx);
+	  #else
+		// requires AE_shader_draw_parameters
+		uint		idx			= gl.BaseInstance;
 		int			face		= gl.InstanceIndex - gl.BaseInstance;
-		ModelNode	node		= un_Nodes.elements[ gl.BaseInstance ];
+	  #endif
+
+		ModelNode	node		= un_Nodes.elements[idx];
 		float4		world_pos	= LocalPosToWorldSpace( node.transform * float4( in_Position, 1.0f ));
 
 		gl.Position		= un_CBuf.cubemapViewProj[face] * world_pos;

@@ -1,5 +1,6 @@
 
 * [HDR Display](papers/HDR_Display.md)
+* [GPU Benchmarks](papers/GPU_Benchmarks.md)
 
 ## rus
 

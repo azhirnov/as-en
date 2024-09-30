@@ -1,4 +1,6 @@
 
+#ifdef AE_ENABLE_UNKNOWN_LICENSE
+
 /*
 =================================================
 	RGBtoHSV / HSVtoRGB
@@ -331,3 +333,6 @@ float3  RGBLerpOklab (const float3 lin1, const float3 lin2, const float factor)
 
 	return kLMStoCONE * (lms * lms * lms);
 }
+
+
+#endif // AE_ENABLE_UNKNOWN_LICENSE

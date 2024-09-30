@@ -22,6 +22,14 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 	)
 
 	EnablePCH( "ResourceEditor" )
+	EnableUnitBuild( "ResourceEditor" )
+
+	if (${AE_USE_UNITY_BUILD})
+		set( NON_UNITY_BUILD_SRC
+			"${CMAKE_CURRENT_SOURCE_DIR}/Scripting/ScriptExe.cpp"
+		)
+		set_property( SOURCE ${NON_UNITY_BUILD_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
+	endif()
 
 	target_link_libraries( "ResourceEditor" PUBLIC
 		# tools

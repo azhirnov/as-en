@@ -90,14 +90,12 @@ namespace
 */
 	static void  ShaderIO_Ctor (void* mem, const String &name, Optional<EShaderIO> type, uint index)
 	{
-		ObjectStorage::Instance()->AddName<ShaderIOName>( name );
-
 		if ( type.has_value() )
 		{
 			CHECK_THROW_MSG( *type != Default );
 			CHECK_THROW_MSG( *type < EShaderIO::_Count );
 		}
-		PlacementNew<RPAttachment::ShaderIO>( OUT mem, ShaderIOName{name}, type.value_or(EShaderIO::Unknown), index );
+		PlacementNew<RPAttachment::ShaderIO>( OUT mem, name, type.value_or(EShaderIO::Unknown), index );
 	}
 
 	static void  ShaderIO_Ctor1 (void* mem, const String &name)
@@ -129,6 +127,20 @@ namespace
 	StaticAssert( alignof(RPAttachment::ShaderIO) == 4 );
 
 } // namespace
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	ShaderIO ctor
+=================================================
+*/
+	RPAttachment::ShaderIO::ShaderIO (const String &inName, EShaderIO type, uint idx) __Th___ :
+		name{inName}, type{type}, index{idx}
+	{
+		auto&	storage = *ObjectStorage::Instance();
+		storage.AddName<ShaderIOName>( inName );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -221,7 +233,7 @@ namespace
 				}
 				else
 				{
-					CHECK_THROW_MSG( inVar.has_value() or outVar.has_value(),
+					CHECK_MSG( inVar.has_value() == outVar.has_value(),
 						"for 'ReadWrite' usage both input and output shader IO must be defined" );
 
 					// set default
@@ -265,6 +277,12 @@ namespace
 				break;
 		}
 		switch_end
+
+		if ( iter->second.input.IsDefined() )
+			CHECK( not storage.GetName( iter->second.input.name ).empty() );
+
+		if ( iter->second.output.IsDefined() )
+			CHECK( not storage.GetName( iter->second.output.name ).empty() );
 
 		CHECK_THROW_MSG( format != Default, "pixel format must be defined" );
 		if ( format < EPixelFormat::_Count ) {
@@ -604,7 +622,7 @@ namespace
 		{
 			EResourceState	new_state;
 			auto			usage		= rt->usageMap.find( sp.name );
-			const bool		has_content	= rt_states.empty() ? false : not AllBits( rt_states.back(), EResourceState::Invalidate );
+			const bool		has_content	= rt_states.empty() ? false : NoBits( rt_states.back(), EResourceState::Invalidate );
 
 			// if usage for subpass is not defined then content of the attachment may be invalidated
 			if ( rt_states.empty() )
@@ -706,7 +724,7 @@ namespace
 		{
 			if ( EResourceState_IsReadOnly( finalState ) and not rt_states.empty() )
 			{
-				CHECK_THROW_MSG( not AllBits( rt_states.back(), EResourceState::Invalidate ),
+				CHECK_THROW_MSG( NoBits( rt_states.back(), EResourceState::Invalidate ),
 					"Attachment '"s << storage.GetName( _name ) << "' final state (" << Base::ToString( rt_states.back() ) <<
 					") has read-only access, but current content of attachment is invalidated" );
 			}

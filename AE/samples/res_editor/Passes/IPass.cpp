@@ -154,5 +154,18 @@ namespace
 		return true;
 	}
 
+/*
+=================================================
+	_GetRepeatCount
+=================================================
+*/
+	uint  IPass::_GetRepeatCount () const
+	{
+		if ( not _repeatCount )
+			return 1;
+
+		return _repeatCount->Get();
+	}
+
 
 } // AE::ResEditor

@@ -104,6 +104,10 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt*	Add (uint value)						__Th___;
 		ND_ ScriptDynamicUInt*	Sub (uint value)						__Th___;
 		ND_ ScriptDynamicUInt*	Pow (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*	PowOf2a ()								__Th___;
+		ND_ ScriptDynamicUInt*	PowOf2b (uint value)					__Th___;
+		ND_ ScriptDynamicDim*	ToDim2 ()								__Th___;
+		ND_ ScriptDynamicDim*	ToDim3 ()								__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -129,6 +133,9 @@ namespace AE::ResEditor
 
 		ND_ ScriptDynamicUInt*  X ()									C_Th___;
 		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
+
+		ND_ ScriptDynamicUInt2*	PowOf2 ()								__Th___;
+		ND_ ScriptDynamicDim*	ToDim ()								__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};

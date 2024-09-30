@@ -102,11 +102,11 @@ namespace AE::Graphics
 		{
 		// variables
 			EStencilOp		failOp			= EStencilOp::Keep;		// stencil test failed
-			EStencilOp		depthFailOp		= EStencilOp::Keep;		// depth and stencil tests are passed
-			EStencilOp		passOp			= EStencilOp::Keep;		// stencil test passed and depth test failed
+			EStencilOp		depthFailOp		= EStencilOp::Keep;		// stencil test passed and depth test failed
+			EStencilOp		passOp			= EStencilOp::Keep;		// depth and stencil tests are passed
 			ECompareOp		compareOp		= ECompareOp::Always;
 			ubyte			reference		= 0;
-			ubyte			writeMask		= UMax;
+			ubyte			writeMask		= UMax;					// which bits will be updated
 			ubyte			compareMask		= UMax;
 
 		// methods

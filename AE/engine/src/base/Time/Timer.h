@@ -71,6 +71,7 @@ namespace AE::Base
 
 		ND_ auto  Now ()												C_NE___	{ return _lastTick; }
 		ND_ auto  Interval ()											C_NE___	{ return _interval; }
+		ND_ bool  IsActive ()											C_NE___	{ return _interval.count() > Zero; }
 	};
 
 
@@ -85,7 +86,7 @@ namespace AE::Base
 		_lastTick	= lastTick;
 		_interval	= TimeCast<Duration_t>( interval );
 
-		ASSERT( _interval.count() > 0 );
+		ASSERT( IsActive() );
 	}
 
 /*
@@ -99,7 +100,7 @@ namespace AE::Base
 		_interval	= TimeCast<Duration_t>( interval );
 		_lastTick	= Clock_t::now() - _interval;
 
-		ASSERT( _interval.count() > 0 );
+		ASSERT( IsActive() );
 	}
 
 /*
@@ -109,7 +110,7 @@ namespace AE::Base
 */
 	inline void  Timer::Restart (TimePoint_t now) __NE___
 	{
-		ASSERT( _interval.count() > 0 );
+		ASSERT( IsActive() );
 		_lastTick = now;
 	}
 
@@ -120,7 +121,7 @@ namespace AE::Base
 */
 	inline auto  Timer::Tick (TimePoint_t now) __NE___
 	{
-		ASSERT( _interval.count() > 0 );
+		ASSERT( IsActive() );
 
 		const Duration_t	dt	= now - _lastTick;
 		const bool			ok	= dt >= _interval;

@@ -27,6 +27,7 @@ namespace AE::PipelineCompiler
 		void  SetPipelineOptions (EPipelineOpt value)		__Th___;
 		void  SetPreprocessor (EShaderPreprocessor value)	__Th___;
 		void  SetDefaultFeatureSet (const String &value)	__Th___;
+		void  SetShaderDefines (const String &value)		__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)		__Th___;
 	};

@@ -31,7 +31,7 @@ namespace AE::Graphics
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _imageId );
-		CHECK_ERR( All( desc.dimension > uint3{0} ));
+		CHECK_ERR( All( desc.dimension > ImageDim_t{0} ));
 		CHECK_ERR( desc.imageDim != Default );
 		CHECK_ERR( desc.arrayLayers > 0_layer );
 		CHECK_ERR( desc.mipLevels > 0_mipmap );

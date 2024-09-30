@@ -88,13 +88,13 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::UMax_t) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::UMax_t) __NE___
 	{
 		return glm::equal( lhs, TVec<T,I,Q>{MaxValue<T>()} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::UMax_t) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::UMax_t) __NE___
 	{
 		return glm::notEqual( lhs, TVec<T,I,Q>{MaxValue<T>()} );
 	}
@@ -105,37 +105,37 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::equal( lhs, TVec<T,I,Q>{} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::notEqual( lhs, TVec<T,I,Q>{} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator >= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator >= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::greaterThanEqual( lhs, TVec<T,I,Q>{} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator <= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator <= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::lessThanEqual( lhs, TVec<T,I,Q>{} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator > (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator > (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::greaterThan( lhs, TVec<T,I,Q>{} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator < (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator < (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::lessThan( lhs, TVec<T,I,Q>{} );
 	}
@@ -146,61 +146,73 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator == (const TVec<T,I,Q> &lhs, const S rhs) __NE___
+	ND_ GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator == (const TVec<T,I,Q> &lhs, const S rhs) __NE___
 	{
 		return glm::equal( lhs, TVec<T,I,Q>{rhs} );
 	}
 
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator != (const TVec<T,I,Q> &lhs, const S rhs) __NE___
+	ND_ GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator != (const TVec<T,I,Q> &lhs, const S rhs) __NE___
 	{
 		return glm::notEqual( lhs, TVec<T,I,Q>{rhs} );
 	}
 
+	template <typename T, int I, glm::qualifier Q>
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> rhs) __NE___
+	{
+		return glm::equal( lhs, rhs );
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> rhs) __NE___
+	{
+		return glm::notEqual( lhs, rhs );
+	}
+
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator >= (const TVec<T,I,Q> &lhs, const S rhs) __NE___
+	ND_ GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator >= (const TVec<T,I,Q> &lhs, const S rhs) __NE___
 	{
 		return glm::greaterThanEqual( lhs, TVec<T,I,Q>{rhs} );
 	}
 
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator <= (const TVec<T,I,Q> &lhs, const S rhs) __NE___
+	ND_ GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator <= (const TVec<T,I,Q> &lhs, const S rhs) __NE___
 	{
 		return glm::lessThanEqual( lhs, TVec<T,I,Q>{rhs} );
 	}
 
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator > (const TVec<T,I,Q> &lhs, const S rhs) __NE___
+	ND_ GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator > (const TVec<T,I,Q> &lhs, const S rhs) __NE___
 	{
 		return glm::greaterThan( lhs, TVec<T,I,Q>{rhs} );
 	}
 
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator < (const TVec<T,I,Q> &lhs, const S rhs) __NE___
+	ND_ GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator < (const TVec<T,I,Q> &lhs, const S rhs) __NE___
 	{
 		return glm::lessThan( lhs, TVec<T,I,Q>{rhs} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator >= (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator >= (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::greaterThanEqual( lhs, rhs );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator <= (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator <= (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::lessThanEqual( lhs, rhs );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator > (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator > (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::greaterThan( lhs, rhs );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ TVec<bool,I,Q>  operator < (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
+	ND_ GLM_CONSTEXPR TVec<bool,I,Q>  operator < (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::lessThan( lhs, rhs );
 	}
@@ -413,6 +425,51 @@ namespace _hidden_
 
 	template <typename T>
 	static constexpr T EulerNumber = T( 2.71828182845904523536 );
+
+/*
+=================================================
+	AllEqual
+=================================================
+*/
+	template <typename T, int I, typename S, glm::qualifier Q>
+	ND_ GLM_CONSTEXPR bool  AllEqual (const TVec<T,I,Q> &v1, const TVec<T,I,Q> &v2) __NE___
+	{
+		using namespace glm;
+
+		if constexpr( I == 2 )
+		{
+			return
+				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.x, v2.x) &&
+				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.y, v2.y);
+		}
+		if constexpr( I == 3 )
+		{
+			return
+				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.x, v2.x) &&
+				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.y, v2.y) &&
+				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.z, v2.z);
+		}
+		if constexpr( I == 4 )
+		{
+			return detail::compute_vec_equal<4, T, Q, detail::is_int<T>::value, sizeof(T) * 8, detail::is_aligned<Q>::value>::call(v1, v2);
+		}
+	}
+
+/*
+=================================================
+	AnyNotEqual
+=================================================
+*/
+	template <typename T, int I, typename S, glm::qualifier Q>
+	ND_ GLM_CONSTEXPR bool  AnyNotEqual (const TVec<T,I,Q> &v1, const TVec<T,I,Q> &v2) __NE___
+	{
+		using namespace glm;
+
+		if constexpr( I == 4 )
+			return detail::compute_vec_nequal<4, T, Q, detail::is_int<T>::value, sizeof(T) * 8, detail::is_aligned<Q>::value>::call(v1, v2);
+		else
+			return not AllEqual( v1, v2 );
+	}
 
 /*
 =================================================
@@ -1847,27 +1904,27 @@ namespace _hidden_
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Ln (const TVec<T,I,Q>& v) __NE___
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Ln (const TVec<T,I,Q> &v) __NE___
 	{
 		ASSERT( All( v >= T{0} ));
 		return glm::log( v );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Log2 (const TVec<T,I,Q>& v) __NE___
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Log2 (const TVec<T,I,Q> &v) __NE___
 	{
 		ASSERT( All( v >= T{0} ));
 		return glm::log2( v );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Log (const TVec<T,I,Q>& v, const T base) __NE___
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Log (const TVec<T,I,Q> &v, const T base) __NE___
 	{
 		return Ln( v ) / Ln( base );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Log (const TVec<T,I,Q>& v, const TVec<T,I,Q>& base) __NE___
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Log (const TVec<T,I,Q> &v, const TVec<T,I,Q>& base) __NE___
 	{
 		return Ln( v ) / Ln( base );
 	}
@@ -1883,6 +1940,15 @@ namespace _hidden_
 	ND_ EnableIf<IsInteger<T>, T>  IPow (const T base, const T power) __NE___
 	{
 		T	res = T(1);
+		for (T i = 0; i < power; ++i)
+			res *= base;
+		return res;
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ EnableIf<IsInteger<T>, TVec<T,I,Q>>  IPow (const TVec<T,I,Q> &base, const T power) __NE___
+	{
+		TVec<T,I,Q>	res = TVec<T,I,Q>{T(1)};
 		for (T i = 0; i < power; ++i)
 			res *= base;
 		return res;
@@ -2517,8 +2583,12 @@ namespace _hidden_
 	template <typename T, int I, glm::qualifier Q>
 	ND_ EnableIf<IsFloatPoint<T>, TVec<bool,I,Q>>  IsFinite (const TVec<T,I,Q> &v) __NE___
 	{
-		// TODO: may not work with compiler optimizations, use std::isfinite
-		return (v == v);
+		if constexpr( I == 2 )
+			return TVec<bool,2,Q>{ IsFinite( v.x ), IsFinite( v.y )};
+		if constexpr( I == 3 )
+			return TVec<bool,3,Q>{ IsFinite( v.x ), IsFinite( v.y ), IsFinite( v.z )};
+		if constexpr( I == 4 )
+			return TVec<bool,4,Q>{ IsFinite( v.x ), IsFinite( v.y ), IsFinite( v.z ), IsFinite( v.w )};
 	}
 
 /*

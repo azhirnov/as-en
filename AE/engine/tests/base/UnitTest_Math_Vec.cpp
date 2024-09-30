@@ -70,8 +70,10 @@ namespace
 		bool2	a0 = int2(2) > 0;						TEST( All( a0 ));
 		bool2	a1 = int2(2) == 2;						TEST( All( a1 ));
 		bool3	a2 = int3(1, 2, 3) > int3(2, 1, 4);
-		bool3	a3 = a2 == bool3(false, true, false);	TEST( All( a3 ));
+		bool3	a3 = a2 == bool3{false, true, false};	TEST( All( a3 ));
 		bool3	a4 = uint3(1) < uint3(2);				TEST( All( a4 ));
+
+		int2(1) + int2(2);	// must be compiler warning
 	}
 
 

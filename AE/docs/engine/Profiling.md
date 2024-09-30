@@ -11,12 +11,19 @@ The profiler measures the start and end time of the task and builds a diagram fo
 
 The profiler measures the start and end time of a render pass or a group of commands (compute, ray tracing, transfer), then builds a graph.
 
+Time measurements are not accurate and depends on GPU frequency which is depends on power saving mode. To get more accurate measurements create device with `EDeviceFlags::SetStableClock`, it is supported for NV and AMD GPUs.
+
 ![](img/GraphicsProfiler.jpg)
 
 
 ## HW Counters
 
 Used hardware performance counters for GPUs: Mali, Adreno, PowerVR, NVidia, AMD, Intel.
+
+For Mali and PowerVR:
+1. Look at GPU frequency. Frequency near to 900MHz shows a maximum GPU workload, less than 900MHz shows that GPU doesn't fully utilized and driver decrease frequency to minimize power consumption. Low frequency may happens because of thermal throttling, stalling on synchronizations/memory access, stalling on present.
+2. Look at GPU units utilization (cache hit, texture, ALU). 100% means this unit may be a bottleneck, but only if GPU frequency is high. Low % and low GPU frequency may means that this unit is not fully utilized because of stalls.
+3. Look at external memory traffic and memory access stalls. Try to decrease it and check GPU frequency/FPS/frame time, if frequency and FPS increases then this is a bottlneck and should be optimzied.
 
 ![](img/ARM-HWCounters.png)
 
@@ -93,6 +100,8 @@ no source
 
 ## External tools
 
+Overview of profiling/debugging tools which is tested for compatibility and used to optimize the engine.
+
 #### NSigh Graphics
 
  * Mesh shader debug/profile
@@ -101,7 +110,7 @@ no source
  * Graphics debug/profile
  * Async compute debug/profile
  * Synchronizations debug/profile
- * [VNvPerfProfiler](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Vulkan/Utils/VNvPerfProfiler.h) class  for interaction
+ * [VNvPerfProfiler](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Vulkan/Utils/VNvPerfProfiler.h) class for interaction
 
 #### RenderDoc
 

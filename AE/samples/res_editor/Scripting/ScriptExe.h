@@ -81,6 +81,8 @@ namespace AE::ResEditor
 		class ScriptPassGroup;
 		class ScriptGenMipmaps;
 		class ScriptCopyImage;
+		class ScriptBlitImage;
+		class ScriptResolveImage;
 		class ScriptClearImage;
 		class ScriptClearBuffer;
 		class ScriptBuildRTGeometry;
@@ -183,6 +185,8 @@ namespace AE::ResEditor
 
 		static void  _GenMipmaps (const ScriptImagePtr &rt)														__Th___;
 		static void  _CopyImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)							__Th___;
+		static void  _BlitImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)							__Th___;
+		static void  _ResolveImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)						__Th___;
 		static void  _CompressImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)						__Th___;
 		static void  _CompressImage2 (const ScriptImagePtr &src, const ScriptImagePtr &dst,
 									  EPixelFormat dstFormat)													__Th___;
@@ -315,6 +319,7 @@ namespace AE::ResEditor
 													  INOUT ScriptArray<packed_float3>	&positions,
 													  INOUT ScriptArray<uint>			&indices)				__Th___;
 
+		static void  _SpectrumToLinear (INOUT ScriptArray<packed_float4> &)										__Th___;
 		static void  _NormalizeSpectrum (INOUT ScriptArray<packed_float4> &)									__Th___;
 		static void  _WhiteColorSpectrum3 (OUT ScriptArray<packed_float4> &)									__Th___;
 		static void  _WhiteColorSpectrum7 (OUT ScriptArray<packed_float4> &, bool)								__Th___;

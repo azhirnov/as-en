@@ -108,6 +108,24 @@ namespace AE::Math
 
 /*
 =================================================
+	NoBits
+----
+	returns 'true' if 'lhs' and 'rhs' hasn't same bits.
+	same as 'not AnyBits()'
+=================================================
+*/
+	template <typename T1, typename T2,
+			  ENABLEIF( IsScalarOrEnum< T1 > and IsScalarOrEnum< T2 >)
+			 >
+	ND_ constexpr bool  NoBits (const T1 lhs, const T2 rhs) __NE___
+	{
+		StaticAssert( not (IsEnum<T1> and IsEnum<T2>) or IsSameTypes<T1, T2> );
+		//ASSERT( rhs != T2(0) );
+		return !( ToNearUInt(lhs) & ToNearUInt(rhs) );
+	}
+
+/*
+=================================================
 	ExtractBit
 ----
 	extract lowest non-zero bit.
@@ -432,7 +450,9 @@ namespace AE::Math
 		StaticAssert( IsEnum<T> or IsInteger<T> );
 		ASSERT( x >= T(0) );
 
-		return T( ToNearUInt(x) << (shift & (CT_SizeofInBits(x) - 1)) );
+		return	shift >= CT_SizeofInBits(x) ?
+					T(0) :
+					T( ToNearUInt(x) << shift );
 	}
 
 	template <typename T>
@@ -441,7 +461,9 @@ namespace AE::Math
 		StaticAssert( IsEnum<T> or IsInteger<T> );
 		ASSERT( x >= T(0) );
 
-		return T( ToNearUInt(x) >> (shift & (CT_SizeofInBits(x) - 1)) );
+		return	shift >= CT_SizeofInBits(x) ?
+					T(0) :
+					T( ToNearUInt(x) >> shift );
 	}
 
 /*
@@ -577,6 +599,21 @@ namespace AE::Math
 	{
 		using U = ToUnsignedInteger<T>;
 		return (static_cast<U>(x) & (U{1} << index)) != 0;
+	}
+
+/*
+=================================================
+	SetBit
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr EnableIf<IsInteger<T> or IsEnum<T>, T>  SetBit (const T x, const bool bit, const usize index) __NE___
+	{
+		using U = ToUnsignedInteger<T>;
+		if ( bit )
+			return static_cast<T>( static_cast<U>(x) | (U{1} << index) );
+		else
+			return static_cast<T>( static_cast<U>(x) & ~(U{1} << index) );
 	}
 
 /*

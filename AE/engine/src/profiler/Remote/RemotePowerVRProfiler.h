@@ -44,11 +44,13 @@ namespace AE::Profiler
 	// variables
 	private:
 		struct {
-			Atomic<EStatus>				status		{EStatus::NotInitialized};
-			ubyte						index		= 0;
-			PowerVRProfiler				profiler;
-			PowerVRProfiler::Counters_t	counters;
-			Timer						timer;
+			Atomic<EStatus>					status		{EStatus::NotInitialized};
+			ubyte							samplesIdx	= 0;
+			ubyte							timingIdx	= 0;
+			PowerVRProfiler					profiler;
+			PowerVRProfiler::Counters_t		counters;
+			PowerVRProfiler::TimeScopeArr_t	timing;
+			Timer							timer;
 		}							_prof;
 
 		StaticRC<MsgConsumer>		_msgConsumer;
@@ -67,6 +69,8 @@ namespace AE::Profiler
 	private:
 		void  _InitReq (Networking::CSMsg_PVRProf_InitReq const &)		__NE___;
 		void  _UpdatePVRProfiler ()										__NE___;
+		void  _SendSamples (milliseconds dt)							__NE___;
+		void  _SendTimings ()											__NE___;
 	};
 
 
@@ -103,7 +107,7 @@ namespace AE::Profiler
 		Timer							_connectionLostTimer	{seconds{10}};
 		ECounterSet						_requiredCS;
 
-		secondsf						_interval;
+		float							_invdt [2]		= {};
 		Counters_t						_counters [2];
 		TimeScopeArr_t					_timings [2];
 		ECounterSet						_enabled;
@@ -119,7 +123,7 @@ namespace AE::Profiler
 		ND_ bool  IsInitialized ()										C_NE___	{ SHAREDLOCK( _guard );  return _IsInitialized(); }
 
 			void  Tick ()												C_NE___	{}
-			void  Sample (OUT Counters_t &result)						__NE___;
+			void  Sample (OUT Counters_t &result, INOUT float &invdt)	__NE___;
 			void  ReadTimingData (OUT TimeScopeArr_t &)					__NE___;
 
 		ND_ ECounterSet  EnabledCounterSet ()							C_NE___	{ SHAREDLOCK( _guard );  return _enabled; }

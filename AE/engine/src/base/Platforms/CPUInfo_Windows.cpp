@@ -2,8 +2,6 @@
 
 #if defined(AE_COMPILER_MSVC) and defined(AE_PLATFORM_WINDOWS)
 # include "base/Platforms/WindowsHeader.cpp.h"
-# include <intrin.h>
-# include <powerbase.h>
 
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Platforms/WindowsLibrary.h"
@@ -56,6 +54,7 @@ namespace AE::Base
 		char	cpu_name [64] = {};
 
 		// read CPU features (only x86/x64)
+	  #if defined(AE_CPU_ARCH_X64) or defined(AE_CPU_ARCH_X86)
 		if ( cpu.arch == ECPUArch::X64 )
 		{
 			StaticArray<int, 4>	cpui = {};
@@ -116,6 +115,7 @@ namespace AE::Base
 			}
 			// TODO: _may_i_use_cpu_feature
 		}
+	  #endif
 
 		cpu.vendor = _NameToVendor( StringView{cpu_name} );
 
@@ -150,7 +150,7 @@ namespace AE::Base
 			// info for each logical core
 			const uint	count = buf_size / sizeof(SYSTEM_CPU_SET_INFORMATION);
 
-			FixedMap< BYTE, Core*, MaxCores >	eff_class_map;
+			FixedMap< BYTE, Core*, MaxCoreTypes >	eff_class_map;
 
 			for (uint i = 0; i < count; ++i)
 			{
@@ -219,6 +219,7 @@ namespace AE::Base
 			}
 			else
 			{
+			#if defined(AE_CPU_ARCH_X64) or defined(AE_CPU_ARCH_X86)
 				StaticArray<int, 4>	cpui = {};
 
 				__cpuid( OUT cpui.data(), 0 );
@@ -234,6 +235,7 @@ namespace AE::Base
 						core.maxClock	= cpui[1];
 					}
 				}
+			#endif
 			}
 		}
 

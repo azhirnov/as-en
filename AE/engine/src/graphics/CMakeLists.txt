@@ -26,6 +26,9 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 		if (NOT (DEFINED ENGINE_LIBS_PATH))
 			file( GLOB_RECURSE METAL_CPP_SOURCES "Metal/*.cpp" )
 			file( GLOB_RECURSE METAL_OBJC_SOURCES "Metal/*.mm" )
+			if ( ${CMAKE_VERSION} VERSION_LESS "3.29.0" )
+				set_property( SOURCE ${METAL_OBJC_SOURCES} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
+			endif()
 		endif()
 	endif()
 
@@ -47,6 +50,7 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 			"${PIPELINE_COMPILER_DIR}/Packer/PipelinePackDeserializer.cpp"
 			"${PIPELINE_COMPILER_DIR}/Packer/RenderPassPack.cpp"
 			"${PIPELINE_COMPILER_DIR}/Packer/SamplerPack.cpp" )
+		set_property( SOURCE ${PIPELINE_COMPILER_CPP_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
 	endif()
 
 	if (${AE_ENABLE_VULKAN})
@@ -160,6 +164,9 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 
 	EnablePCH( "Graphics" )
 	EnablePrebuild( "Graphics" )
+	EnableUnitBuild( "Graphics" )
+
+	set_property( SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Private/Shared.cpp" PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
 
 	install( TARGETS "Graphics" ARCHIVE DESTINATION "lib" )
 endif()

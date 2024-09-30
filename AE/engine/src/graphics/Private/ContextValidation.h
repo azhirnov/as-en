@@ -225,6 +225,7 @@ namespace AE::Graphics::_hidden_
 		static void  SetStencilReference (EPipelineDynamicState dynState)														__Th___;
 		static void  SetBlendConstants (EPipelineDynamicState dynState)															__Th___;
 		static void  SetFragmentShadingRate (EPipelineDynamicState, EShadingRate, EShadingRateCombinerOp, EShadingRateCombinerOp) __Th___;
+		static void  SetViewportWScaling (EPipelineDynamicState, ArrayView<packed_float2> scaling)								__Th___;
 
 
 	#ifdef AE_ENABLE_VULKAN

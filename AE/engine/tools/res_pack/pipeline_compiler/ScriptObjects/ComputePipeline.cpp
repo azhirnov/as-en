@@ -197,7 +197,7 @@ namespace
 		auto	ds = EPipelineDynamicState(states);
 		CHECK_THROW_MSG( (ds & ~EPipelineDynamicState::ComputePipelineMask) == Default, "unsupported dynamic state for compute pipeline" );
 
-		//desc.dynamicState = ds;
+		desc.dynamicState = ds;
 	}
 
 /*
@@ -210,14 +210,62 @@ namespace
 		CHECK_THROW_MSG( GetBase() != null and GetBase()->shader, "shader is not compiled" );
 
 		const auto&	spec		= GetBase()->shader->reflection.compute.localGroupSpec;
-		uint		total_size	= Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupInvocations ));
-		uint3		max_threads	= uint3{ GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeX ),
-										 GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeY ),
-										 GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeZ )};
-		max_threads = Max( max_threads, uint3{1} );
+		const uint	inv_count	= x * y * z;
+		uint		total_size	= 0;
+		uint3		max_threads;
 
+		for (auto& feat : GetFeatures())
+		{
+			if ( inv_count <= feat->fs.maxComputeWorkGroupInvocations and
+				 x <= feat->fs.maxComputeWorkGroupSizeX and
+				 y <= feat->fs.maxComputeWorkGroupSizeY and
+				 z <= feat->fs.maxComputeWorkGroupSizeZ )
+			{
+				total_size  = feat->fs.maxComputeWorkGroupInvocations;
+				max_threads = uint3{feat->fs.maxComputeWorkGroupSizeX, feat->fs.maxComputeWorkGroupSizeY, feat->fs.maxComputeWorkGroupSizeZ};
+				break;
+			}
+		}
 
 		_SetLocalGroupSize( "compute localSize ", spec, max_threads, total_size, uint3{x,y,z}, OUT desc.localSize );
+	}
+
+/*
+=================================================
+	SetSubgroupSize
+=================================================
+*/
+	void  ComputePipelineSpecScriptBinding::SetSubgroupSize (uint value) __Th___
+	{
+		CHECK_THROW_MSG( GetBase() != null and GetBase()->shader, "shader is not compiled" );
+		CHECK_THROW_MSG( All( desc.localSize != Zero ), "Specify subgroup size after workgroup size (local size)" );
+
+		TEST_FEATURE( GetFeatures(), subgroupSizeControl );
+
+		const auto&		def_size	= GetBase()->shader->reflection.compute.localGroupSize;
+		const auto&		spec		= GetBase()->shader->reflection.compute.localGroupSpec;
+		const uint3		local_dim	{ spec.x == UMax or desc.localSize.x == UMax ? def_size.x : desc.localSize.x,
+									  spec.y == UMax or desc.localSize.y == UMax ? def_size.y : desc.localSize.y,
+									  spec.z == UMax or desc.localSize.z == UMax ? def_size.z : desc.localSize.z };
+		bool			supported	= false;
+
+		for (auto& feat : GetFeatures())
+		{
+			if ( value >= feat->fs.minSubgroupSize and
+				 value <= feat->fs.maxSubgroupSize and
+				 AllBits( feat->fs.requiredSubgroupSizeStages, EShaderStages::Compute ))
+			{
+				supported = true;
+				break;
+			}
+		}
+		CHECK_THROW_MSG( supported,
+			"Subgroup size ("s << ToString(value) << ") must be in range [minSubgroupSize, maxSubgroupSize] in at least one feature set" );
+
+		CHECK_THROW_MSG( IsMultipleOf( local_dim.x, value ),
+			"Local size X ("s << ToString( local_dim.x ) << ") must be multiple of subgroup size (" << ToString( value ) << ")" );
+
+		desc.subgroupSize = ushort(value);
 	}
 
 /*
@@ -259,6 +307,10 @@ namespace
 		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetSpecValueU,			"SetSpecValue",		{"name", "value"} );
 		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetSpecValueI,			"SetSpecValue",		{"name", "value"} );
 		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetSpecValueF,			"SetSpecValue",		{"name", "value"} );
+
+		binder.Comment( "Set subgroup size.\n"
+						"Requires 'subgroupSizeControl' feature, value must be in range [minSubgroupSize, maxSubgroupSize]." );
+		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetSubgroupSize,		"SubgroupSize",		{} );
 
 		binder.Comment( "Set dynamic states (EPipelineDynamicState).\n"
 						"None of the states are supported for compute pipeline." );

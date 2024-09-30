@@ -173,7 +173,7 @@ namespace
 		SubpassShaderIO		frag_io;
 		GetSubpassShaderIO( OUT frag_io );
 
-		ObjectStorage::Instance()->TestRenderPass( compatRP, subpass, frag_io, false, false );  // throw
+		ObjectStorage::Instance()->TestRenderPass( compatRP, subpass, frag_io, false, false, GetName() );  // throw
 	}
 
 /*
@@ -356,7 +356,7 @@ namespace
 	void  GraphicsPipelineScriptBinding::SetFragmentOutputFromRenderTech (const String &renTechName, const String &passName) __Th___
 	{
 		CHECK_THROW_MSG( not _fragOutput.has_value() );
-		CHECK_THROW_MSG( not AllBits( _states, EStateBits::HasShaders ));
+		CHECK_THROW_MSG( NoBits( _states, EStateBits::HasShaders ));
 
 		_fragOutput = FragOutput_t{};
 		CHECK_THROW_MSG( BasePipelineTmpl::_FragmentOutputFromRenderTech( renTechName, passName, OUT *_fragOutput ));
@@ -370,7 +370,7 @@ namespace
 	void  GraphicsPipelineScriptBinding::SetFragmentOutputFromRenderPass (const String &compatRPassName, const String &subpassName) __Th___
 	{
 		CHECK_THROW_MSG( not _fragOutput.has_value() );
-		CHECK_THROW_MSG( not AllBits( _states, EStateBits::HasShaders ));
+		CHECK_THROW_MSG( NoBits( _states, EStateBits::HasShaders ));
 
 		_fragOutput = FragOutput_t{};
 		CHECK_THROW_MSG( BasePipelineTmpl::_FragmentOutputFromCompatRenderPass( compatRPassName, subpassName, OUT *_fragOutput ));
@@ -532,7 +532,7 @@ namespace
 		SubpassShaderIO		frag_io;
 		GetBase()->GetSubpassShaderIO( OUT frag_io );
 
-		storage.TestRenderPass( iter->second, subpass, frag_io, false, false );  // throw
+		storage.TestRenderPass( iter->second, subpass, frag_io, false, false, NameStr() );  // throw
 
 		desc.renderPass	= iter->second;
 		desc.subpass	= subpass;
@@ -625,6 +625,9 @@ namespace
 	{
 		CHECK_THROW_MSG( value > 0 );
 		CHECK_THROW_MSG( value <= GraphicsConfig::MaxViewports );
+
+		if ( value > 1 )
+			TEST_FEATURE( GetBase()->GetFeatures(), multiViewport, ", it required when viewport count ("s << ToString(value) << ") is greater than 1" );
 
 		TestFeature_Min( GetBase()->GetFeatures(), &FeatureSet::maxViewports, value, "maxViewports", "viewportCount" );
 

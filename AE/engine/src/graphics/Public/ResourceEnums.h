@@ -158,7 +158,8 @@ namespace AE::Graphics
 		VertexPplnStore				= 1 << 14,		// storage image store and atomic operations in vertex, geometry, tessellation shaders
 		FragmentPplnStore			= 1 << 15,		// storage image store and atomic operations in fragment shader
 
-		LossyRTCompression			= 1 << 16,		// Metal only, allow to use hardware lossy compression for the color attachments
+		LossyRTCompression			= 1 << 16,		// allow to use hardware lossy compression for the color attachments
+		ExtendedUsage				= 1 << 17,		// image may not support all usage flags
 
 		//DepthComparison	// TODO
 

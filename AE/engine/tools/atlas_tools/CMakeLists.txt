@@ -18,3 +18,4 @@ endif()
 
 EnablePCH( "AtlasTools" )
 EnablePrebuild( "AtlasTools" )
+EnableUnitBuild( "AtlasTools" )

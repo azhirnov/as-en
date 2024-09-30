@@ -17,12 +17,13 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 		"${PIPELINE_COMPILER_DIR}/Packer/FeatureSetPack.cpp" )
 	set( GRAPHICS_SRC
 		"${GRAPHICS_DIR}/Public/RenderState.h"
-		"${GRAPHICS_DIR}/Private/RenderState.cpp"
+		"${GRAPHICS_DIR}/Private/RenderState.cpp.h"
 		"${GRAPHICS_DIR}/Private/EnumUtils.h"
-		"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
+		"${GRAPHICS_DIR}/Private/EnumUtils.cpp.h"
 		"${GRAPHICS_DIR}/Public/FeatureSet.h"
-		"${GRAPHICS_DIR}/Private/FeatureSet.cpp"
-		"${GRAPHICS_DIR}/Private/ImageDesc.cpp" )
+		"${GRAPHICS_DIR}/Private/FeatureSet.cpp.h"
+		"${GRAPHICS_DIR}/Private/ImageDesc.cpp.h"
+		"${GRAPHICS_DIR}/Private/Shared.cpp" )
 	set( PLATFORM_SRC
 		"${PLATFORM_DIR}/Private/SerializableInputActions.h"
 		"${PLATFORM_DIR}/Private/SerializableInputActions.cpp"
@@ -90,6 +91,15 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 		target_sources( "Tests.AssetPacker" PRIVATE "${PipelineCompiler.trigger}" )
 		source_group( "_gen_" FILES "${PipelineCompiler.trigger}" )
 		set_property( SOURCE "${PipelineCompiler.trigger}" PROPERTY GENERATED 1 )
+
+		# same as in PipelineCompiler
+		if ( (TARGET "Vulkan-lib") OR (EXISTS "${AE_EXTERNAL_SHARED_PATH}/Vulkan/vulkan/vulkan.h") )
+			set( HAS_VULKAN_HEADERS ON )
+		endif()
+		if (${HAS_VULKAN_HEADERS})
+			target_include_directories( "Tests.AssetPacker" PRIVATE "${AE_EXTERNAL_SHARED_PATH}/Vulkan" )
+			target_compile_definitions( "Tests.AssetPacker" PRIVATE "AE_ENABLE_VULKAN" )
+		endif()
 	endif()
 
 	if (TARGET "AssetPacker-shared")

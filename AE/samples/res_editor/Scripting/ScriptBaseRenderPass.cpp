@@ -183,5 +183,81 @@ namespace AE::ResEditor
 		_depthRange = float2{min, max};
 	}
 
+/*
+=================================================
+	_AddViewport
+=================================================
+*/
+	void  ScriptBaseRenderPass::_AddViewport0 (const RectF &rect, float minDepth, float maxDepth, const RectF &scissor, const packed_float2 &wScale) __Th___
+	{
+		CHECK_THROW_MSG( _viewports.size() == _wScaling.size() );
+		CHECK_THROW_MSG( _viewports.size() == _scissors.size() );
+		CHECK_THROW_MSG( GraphicsScheduler().GetFeatureSet().clipSpaceWScalingNV == FeatureSet::EFeature::RequireTrue,
+			"'clipSpaceWScalingNV' feature is not supported" );
+
+		auto&	vp	= _viewports.emplace_back();
+		vp.rect		= rect;
+		vp.minDepth	= minDepth;
+		vp.maxDepth	= maxDepth;
+
+		_wScaling.push_back( wScale );
+		_scissors.push_back( scissor );
+	}
+
+	void  ScriptBaseRenderPass::_AddViewport1 (const RectF &rect, float minDepth, float maxDepth) __Th___
+	{
+		auto&	vp	= _viewports.emplace_back();
+		vp.rect		= rect;
+		vp.minDepth	= minDepth;
+		vp.maxDepth	= maxDepth;
+	}
+
+	void  ScriptBaseRenderPass::_AddViewport2 (const RectF &rect) __Th___
+	{
+		_AddViewport1( rect, _depthRange.x, _depthRange.y );
+	}
+
+	void  ScriptBaseRenderPass::_AddViewport3 (float left, float top, float right, float bottom) __Th___
+	{
+		_AddViewport1( RectF{left, top, right, bottom}, _depthRange.x, _depthRange.y );
+	}
+
+	void  ScriptBaseRenderPass::_AddViewport4 (const RectF &rect, float minDepth, float maxDepth, const RectF &scissor) __Th___
+	{
+		CHECK_THROW_MSG( _viewports.size() == _scissors.size() );
+
+		auto&	vp	= _viewports.emplace_back();
+		vp.rect		= rect;
+		vp.minDepth	= minDepth;
+		vp.maxDepth	= maxDepth;
+
+		_scissors.push_back( scissor );
+	}
+
+/*
+=================================================
+	_InOut
+=================================================
+*/
+	void  ScriptBaseRenderPass::_InOut (const String &inName, const String& outName, const ScriptImagePtr &rt) __Th___
+	{
+		CHECK_THROW_MSG( rt );
+		CHECK_THROW_MSG( not inName.empty() );
+		CHECK_THROW_MSG( not outName.empty() );
+		CHECK_THROW_MSG( inName != outName );
+
+		auto&	dst	= _output.emplace_back();
+
+		dst.name	= outName;
+		dst.inName	= inName;
+		dst.rt		= rt;
+
+		rt->AddUsage( rt->IsDepthOrStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment );
+		rt->AddUsage( EResourceUsage::InputAttachment );
+
+		if ( rt->IsMutableDimension() )
+			_SetDynamicDimension( rt->DimensionRC() );
+	}
+
 
 } // AE::ResEditor

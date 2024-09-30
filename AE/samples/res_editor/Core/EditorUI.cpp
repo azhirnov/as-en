@@ -455,7 +455,7 @@ namespace
 			UploadImageDesc		upload;
 			upload.aspectMask	= EImageAspect::Color;
 			upload.heapType		= EStagingHeapType::Dynamic;
-			upload.imageDim		= uint3{width, height, 1};
+			upload.imageDim		= int3{ width, height, 1 };
 			upload.dataRowPitch	= Bytes{width * 4u};
 
 			const Bytes	data_size = width * height * 4 * SizeOf<ubyte>;
@@ -552,6 +552,11 @@ namespace
 		Graphics::DirectCtx::Transfer	tctx {*this};
 		if ( isFirst )
 		{
+		#if 1
+			// for profiling
+			tctx.ImageBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, rt.finalState );
+			tctx.CommitBarriers();
+		#else
 			tctx.ImageBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, EResourceState::ClearDst );
 			tctx.CommitBarriers();
 
@@ -559,6 +564,7 @@ namespace
 
 			tctx.ImageBarrier( rt.imageId, EResourceState::ClearDst, rt.finalState );
 			tctx.CommitBarriers();
+		#endif
 		}
 		Execute( tctx );
 
@@ -696,11 +702,19 @@ namespace
 			if ( ImGui::SliderInt( "##SurfaceScaleSlider", INOUT &scale, -4, 2, SurfaceScaleName( scale )) )
 				g_mode->dynSize->SetScale( int3{SurfaceScaleFromLog2( scale )} );
 
-			ImGui::Text( "Surface size: %s", ToString( g_mode->dynSize->Dimension2() ).c_str() );
+			uint2	dim = g_mode->dynSize->Dimension2();
+			ImGui::Text( "Surface size: %ix%i", dim.x, dim.y );
+			ImGui::Text( "Mega pix: %0.2f", double(dim.x * dim.y) * 1.0e-6 );
 
-			bool	linear = g_mode->filterMode->Get() > 0;
+			const uint	prev_fm	= g_mode->filterMode->Get();
+
+			bool	linear	= HasBit( prev_fm, 0 );
 			if ( ImGui::Checkbox( "Linear filter", INOUT &linear ))
-				g_mode->filterMode->Set( uint{linear} );
+				g_mode->filterMode->Set( SetBit( prev_fm, linear, 0 ));
+
+			bool	copy = HasBit( prev_fm, 1 );
+			if ( ImGui::Checkbox( "Copy instead of blit (if possible)", INOUT &copy ))
+				g_mode->filterMode->Set( SetBit( prev_fm, copy, 1 ));
 
 			ImGui::Separator();
 		}
@@ -793,14 +807,15 @@ namespace
 			}};
 			const auto	sp = s_UIInteraction.selectedPixel.Read();
 
-			ImGui::Text( "mouse pos:  %s", ToString( sp.pos ).c_str() );
+			ImGui::Text( "mouse pos:   %s", ToString( sp.pos ).c_str() );
+			ImGui::Text( "mouse unorm: %s", ToString( sp.pendingPos ).c_str() );
 
-			ImGui::Text( "raw color:  %s", ToString( sp.color, 3 ).c_str() );
+			ImGui::Text( "raw color:   %s", ToString( sp.color, 3 ).c_str() );
 			ImGui::SameLine();
 			ColoredButton( sp.color );
 
 			RGBA32f	srgb = RemoveSRGBCurve( Saturate( sp.color ));
-			ImGui::Text( "sRGB color: %s", ToString( srgb, 3 ).c_str() );
+			ImGui::Text( "sRGB color:  %s", ToString( srgb, 3 ).c_str() );
 			ImGui::SameLine();
 			ColoredButton( srgb );
 
@@ -1724,7 +1739,9 @@ namespace
 					_CopySliderState();												break;
 
 				case IA.UI_MouseRBDown :
-				case IA.UI_ResExport :		break;	// ignore
+				case IA.UI_ResExport :
+				case IA.CustomKey1 :
+				case IA.Freeze :			break;	// ignore
 			}
 			switch_end
 		}

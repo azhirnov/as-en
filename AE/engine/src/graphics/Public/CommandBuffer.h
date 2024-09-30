@@ -86,9 +86,10 @@ namespace AE::Graphics
 		//	requires: EPipelineDynamicState::StencilWriteMask
 		virtual	void  SetStencilWriteMask (uint writeMask)																			__Th___ = 0;
 		virtual	void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th___ = 0;
-
 		//	requires: EPipelineDynamicState::FragmentShadingRate
 		virtual	void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th___ = 0;
+		//	requires: EPipelineDynamicState::ViewportWScaling
+		virtual void  SetViewportWScaling (ArrayView<packed_float2> scaling)														__Th___ = 0;
 		)
 
 	// draw commands //

@@ -80,7 +80,7 @@
 #ifdef SH_FRAG
 	#include "Color.glsl"
 	#include "Noise.glsl"
-	#include "FragHelper.glsl"
+	#include "CodeTemplates.glsl"
 
 	FBM_NOISE_Hash( PerlinNoise )
 	TURBULENCE_FBM_Hash( PerlinNoiseFBM )

@@ -62,7 +62,7 @@ namespace AE::CICD
 	_Send
 =================================================
 */
-	bool  NetBase::_Send (const void *data, const Bytes dataSize)
+	bool  NetBase::_Send (const void* data, const Bytes dataSize)
 	{
 		if ( not _isConnected )
 		{

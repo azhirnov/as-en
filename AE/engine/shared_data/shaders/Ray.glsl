@@ -47,7 +47,7 @@ ND_ float3	Ray_CalcX (const Ray ray, const float2 pointYZ);
 ND_ float3	Ray_CalcY (const Ray ray, const float2 pointXZ);
 ND_ float3	Ray_CalcZ (const Ray ray, const float2 pointXY);
 ND_ bool	Ray_Contains (const Ray ray, const float3 point);
-	void	Ray_Rotate (inout Ray ray, const quat rotation);
+	void	Ray_Rotate (inout Ray ray, const Quat rotation);
 	void	Ray_Rotate (inout Ray ray, const float3x3 rotation);
 	void	Ray_Move (inout Ray ray, const float delta);
 	void	Ray_SetLength (inout Ray ray, const float length);
@@ -218,7 +218,7 @@ float2  Inverted_PlaneToVR180 (const float3 rayDir, const uint eye)
 	float	phi		= ATan( rayDir.z, rayDir.x );
 
 			theta	= (theta + Pi() * 0.5f) / Pi();
-			phi		= (Pi() - phi) / Pi2();
+			phi		= (Pi() - phi) / float_Pi2;
 			phi		= Fract( phi - 0.125f ) * 2.f + (eye == 0 ? 0.f : 0.5f);
 
 	return float2( phi, theta );
@@ -258,7 +258,7 @@ float2  Inverted_PlaneToVR360 (const float3 rayDir, const uint eye)
 
 			theta	= (theta + Pi() * 0.5f) * 0.5f / Pi();
 			theta	+= (eye == 0 ? 0.f : 0.5f);
-			phi		= (Pi() - phi) / Pi2();
+			phi		= (Pi() - phi) / float_Pi2;
 
 	return float2( Fract( phi - 0.75f ), theta );
 }
@@ -290,7 +290,7 @@ float2  Inverted_PlaneTo360 (const float3 rayDir)
 	float	phi		= ATan( rayDir.z, rayDir.x );
 
 			theta	= (theta + Pi() * 0.5) / Pi();
-			phi		= (Pi() - phi) / Pi2();
+			phi		= (Pi() - phi) / float_Pi2;
 
 	return float2( Fract( phi - 0.75 ), theta );
 }
@@ -438,7 +438,7 @@ bool  Ray_Contains (const Ray ray, const float3 point)
 	view matrix must be transposed
 =================================================
 */
-void  Ray_Rotate (inout Ray ray, const quat rotation)
+void  Ray_Rotate (inout Ray ray, const Quat rotation)
 {
 	// ray.origin - const
 	ray.dir = Normalize( QMul( rotation, ray.dir ));

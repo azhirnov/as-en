@@ -22,3 +22,4 @@ endif()
 
 EnablePCH( "GeometryTools" )
 EnablePrebuild( "GeometryTools" )
+EnableUnitBuild( "GeometryTools" )

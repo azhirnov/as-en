@@ -39,6 +39,8 @@ ND_ bool	IsOutsideRect (const float2 pos, const float4 rect)								{ return IsO
 
 ND_ bool	IsInsideCircle (const float2 pos, const float2 center, const float radius)		{ return DistanceSq( pos, center ) < Square( radius ); }
 ND_ bool	IsInsideCircle (const float2 pos, const float3 center_radius)					{ return IsInsideCircle( pos, center_radius.xy, center_radius.z ); }
+//-----------------------------------------------------------------------------
+
 
 ND_ float2	Rect_Center (const float4 rect)													{ return (rect.xy * 0.5f) + (rect.zw * 0.5f); }
 ND_ float2	Rect_Size (const float4 rect)													{ return rect.zw - rect.xy; }
@@ -68,11 +70,11 @@ ND_ float3	SphericalToCartesian (const float3 sphericalAndRadius);
 ND_ float3	CartesianToSpherical (const float3 cartesian);
 
 ND_ float	DistanceOnSphere (const float3 n0, const float3 n1)								{ return ACos( Dot( n0, n1 )); }
-ND_ float	DistanceSqOnSphereApprox (const float3 n0, const float3 n1)						{ return (2.0f - 2.0f * Dot( n0, n1 )); }
 //-----------------------------------------------------------------------------
 
 
-ND_ float3  UVtoSphereNormal (const float2 snormCoord);
+ND_ float4  UVtoSphereNormal (const float2 snormCoord);
+ND_ float4  UVtoSphereNormal (const float2 snormCoord, const float projFov);
 //-----------------------------------------------------------------------------
 
 
@@ -159,15 +161,37 @@ float3  CartesianToSpherical (const float3 cartesian)
 /*
 =================================================
 	UVtoSphereNormal
+----
+	returns: xyz - normal, w - distance to sphere
 =================================================
 */
-float3  UVtoSphereNormal (const float2 c)
+float4  UVtoSphereNormal (const float2 snormCoord)
 {
-	float	d	= LengthSq( c );
-	float3	n	= float3(c.x, c.y, 0.0);
+	float4	n = float4(snormCoord, 0.0, 1.0 - LengthSq( snormCoord ));
 
-	if ( d <= 1.0 )
-		n.z = 1.0 - d;
+	if ( n.w > 0.0 ) n.z = Sqrt( n.w );
+	//n.z = Max( 0.0, Sqrt( n.w ));				// doesn't handle Inf on some devices (Adreno)
+	//n.z = Sqrt( n.w ) * LessFp( 0.0, n.w );	// doesn't handle Inf on some devices (NV)
 
-	return Normalize( n );
+	return n;
 }
+
+/*
+=================================================
+	UVtoSphereNormal
+----
+	'projFov' -	FOV to calculate approximate distortion of perspective projection
+=================================================
+*/
+float4  UVtoSphereNormal (const float2 snormCoord, const float projFov)
+{
+	float4	n = UVtoSphereNormal( snormCoord );
+
+	// can be calculated on CPU side
+	n.z += ASin( projFov / float_HalfPi ) * 1.2 / float_HalfPi;
+
+	n.xyz = Normalize( n.xyz );
+
+	return n;
+}
+

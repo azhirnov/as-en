@@ -627,6 +627,7 @@ namespace AE::Vulkan
 		//	{ "viewportArrayNV",				VK_NV_VIEWPORT_ARRAY_2_EXTENSION_NAME,						NoVer,	{1,0},	{} },
 		//	{ "viewportSwizzleNV",				VK_NV_VIEWPORT_SWIZZLE_EXTENSION_NAME,						NoVer,	{1,0},	{} },
 		//	{ "linearColorAttachmentNV",		VK_NV_LINEAR_COLOR_ATTACHMENT_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "clipSpaceWScalingNV",			VK_NV_CLIP_SPACE_W_SCALING_EXTENSION_NAME,					NoVer,	{1,0},	{} },
 
 		// AMD //
 		//	{ "coherentMemoryAMD",				VK_AMD_DEVICE_COHERENT_MEMORY_EXTENSION_NAME,				NoVer,	{1,0},	{} },

@@ -1,5 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include "Model.as"
+#include "ModelTypes.as"
 
 void  ASmain ()
 {

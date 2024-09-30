@@ -646,6 +646,8 @@ namespace AE::Base
 				//case EPipelineDynamicState::DepthBounds :			str << "DepthBounds";			break;
 				case EPipelineDynamicState::RTStackSize :			str << "RTStackSize";			break;
 				case EPipelineDynamicState::FragmentShadingRate :	str << "FragmentShadingRate";	break;
+				case EPipelineDynamicState::ViewportWScaling :		str << "ViewportWScaling";		break;
+
 				case EPipelineDynamicState::GraphicsPipelineMask :
 				case EPipelineDynamicState::All :
 				case EPipelineDynamicState::_Last :

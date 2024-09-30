@@ -1,4 +1,15 @@
-## 24.08.xxx
+## 24.09.258
+
+- added PerformanceStat instead of CpuPerformance class
+- CMake: unity build
+- Profiler: add GeneralProfiler and RemoteGeneralProfiler with cpu usage, mem usage, etc
+- Serializing: Bit packing moved to separate BitSerializer
+- Vulkan: add VK_NV_clip_space_w_scaling
+- Vulkan: add VK_EXT_subgroup_size_control
+- add AE_LICENSE_* to shader code, allow to disable code with unsupported license
+
+
+## 24.08.254
 
 - Profiling: NVML runtime profiler
 - Profiling: used AMD GPUPerfAPI tp set stable clock
@@ -6,7 +17,7 @@
 - Vulkan: add VK_KHR_shader_quad_control, GL_EXT_shader_quad
 - Vulkan: add VK_KHR_shader_maximal_reconvergence, GL_EXT_maximal_reconvergence
 - Vulkan: add VK_NV_ray_tracing_validation
-- update to cmake 3.18
+- CMake: update to 3.18
 
 
 ## 24.07.249

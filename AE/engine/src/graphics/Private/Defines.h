@@ -1,7 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#pragma once
-
 #if defined(AE_CFG_RELEASE) and not defined(AE_CI_BUILD_TEST)
 #	define AE_DBG_GRAPHICS				0
 #	define GFX_DBG_ONLY( ... )

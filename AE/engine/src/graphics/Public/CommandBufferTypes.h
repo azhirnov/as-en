@@ -20,6 +20,23 @@
 namespace AE::Graphics
 {
 
+	struct ImageSubresourceLayers
+	{
+		EImageAspect	aspectMask		= Default;
+		MipmapLevel		mipLevel;
+		ImageLayer		baseLayer;
+		ushort			layerCount		= 1;
+
+		ImageSubresourceLayers ()												__NE___ = default;
+		ImageSubresourceLayers (EImageAspect aspectMask)						__NE___ : aspectMask{aspectMask} {}
+
+		ImageSubresourceLayers (EImageAspect aspectMask, MipmapLevel mipLevel,
+								ImageLayer baseLayer, uint layerCount = 1)		__NE___ :
+			aspectMask{aspectMask}, mipLevel{mipLevel},
+			baseLayer{baseLayer}, layerCount{ushort(layerCount)} {}
+	};
+
+
 	struct ImageSubresourceRange
 	{
 		EImageAspect	aspectMask		= Default;
@@ -41,23 +58,10 @@ namespace AE::Graphics
 			aspectMask{aspectMask},
 			baseMipLevel{baseMipLevel}, mipmapCount{ushort(mipmapCount)},
 			baseLayer{baseLayer}, layerCount{ushort(layerCount)} {}
-	};
 
-
-	struct ImageSubresourceLayers
-	{
-		EImageAspect	aspectMask		= Default;
-		MipmapLevel		mipLevel;
-		ImageLayer		baseLayer;
-		ushort			layerCount		= 1;
-
-		ImageSubresourceLayers ()												__NE___ = default;
-		ImageSubresourceLayers (EImageAspect aspectMask)						__NE___ : aspectMask{aspectMask} {}
-
-		ImageSubresourceLayers (EImageAspect aspectMask, MipmapLevel mipLevel,
-								ImageLayer baseLayer, uint layerCount = 1)		__NE___ :
-			aspectMask{aspectMask}, mipLevel{mipLevel},
-			baseLayer{baseLayer}, layerCount{ushort(layerCount)} {}
+		explicit ImageSubresourceRange (const ImageSubresourceLayers &other)	__NE___ :
+			aspectMask{other.aspectMask}, baseMipLevel{other.mipLevel},
+			baseLayer{other.baseLayer}, layerCount{other.layerCount} {}
 	};
 
 

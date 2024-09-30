@@ -67,7 +67,12 @@ namespace
 	ND_ static uint  GetMinClockSpeed (uint id)
 	{
 		String			line;
-		std::ifstream	stream {"/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/cpuinfo_min_freq"};	// or scaling_min_freq
+		std::ifstream	stream;
+
+		stream.open( "/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/cpuinfo_min_freq" );
+		if ( not stream ) {
+			stream.open( "/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/scaling_min_freq" );
+		}
 		if ( stream ) {
 			std::getline( stream, OUT line );
 			stream.close();
@@ -79,13 +84,52 @@ namespace
 	ND_ static uint  GetMaxClockSpeed (uint id)
 	{
 		String			line;
-		std::ifstream	stream {"/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/cpuinfo_max_freq"};	// or scaling_max_freq
+		std::ifstream	stream;
+
+		stream.open( "/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/cpuinfo_max_freq" );
+		if ( not stream ) {
+			stream.open( "/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/scaling_max_freq" );
+		}
 		if ( stream ) {
 			std::getline( stream, OUT line );
 			stream.close();
 			return StringToUInt( line ) / 1000;	// in MHz
 		}
 		return 0;
+	}
+
+	ND_ static bool  GetMinMaxClockSpeed (uint id, OUT uint &min, OUT uint &max)
+	{
+		String			line;
+		std::ifstream	stream {"/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/scaling_available_frequencies"};
+
+		if ( not stream )
+			return false;
+
+		std::getline( stream, OUT line );
+		stream.close();
+
+		// remove tailing spaces
+		for (; not line.empty() and line.back() == ' ';)
+			line.pop_back();
+
+		if ( line.empty() )
+			return false;
+
+		// read first and last values
+		usize	p0	= line.find( ' ' );
+		usize	p1	= line.rfind( ' ' );
+
+        if ( p0 == UMax or p1 == UMax )
+            return false;
+
+		max	= StringToUInt( SubString( line, 0, p0 )) / 1000;			    // in MHz
+		min	= StringToUInt( SubString( line, p1+1, line.size() )) / 1000;	// in MHz
+
+        if ( min > max )
+            std::swap( min, max );
+
+		return true;
 	}
 
 	// from
@@ -425,8 +469,12 @@ namespace
 					}
 					const int	id	= IntLog2( dst.logicalBits.to_ulong() );
 					dst.name		= GetCoreName( CPUImplToVendor( vendor ), part );
-					dst.baseClock	= GetMinClockSpeed( id );
-					dst.maxClock	= GetMaxClockSpeed( id );
+
+					if ( not GetMinMaxClockSpeed( id, OUT dst.baseClock, OUT dst.maxClock ))
+					{
+						dst.baseClock	= GetMinClockSpeed( id );
+						dst.maxClock	= GetMaxClockSpeed( id );
+					}
 				}
 
 				// sort by max clock

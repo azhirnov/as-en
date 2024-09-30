@@ -9,9 +9,11 @@ set( GRAPHICS_HPP_SRC
 if (NOT (DEFINED ENGINE_LIBS_PATH))
 	set( GRAPHICS_CPP_SRC
 		"${GRAPHICS_DIR}/Private/ImageMemView.cpp"
-		"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
-		"${GRAPHICS_DIR}/Private/RenderState.cpp"
-		"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp" )
+		"${GRAPHICS_DIR}/Private/EnumUtils.cpp.h"
+		"${GRAPHICS_DIR}/Private/RenderState.cpp.h"
+		"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp.h"
+		"${GRAPHICS_DIR}/Private/Shared.cpp" )
+    set_property( SOURCE ${GRAPHICS_CPP_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
 endif()
 
 
@@ -68,9 +70,13 @@ endif()
 if (TARGET "AstcEncoder-lib")
 	target_link_libraries( "AssetPacker" PUBLIC "AstcEncoder-lib" )
 endif()
+#if (TARGET "ETCPACK-lib")
+#	target_link_libraries( "AssetPacker" PUBLIC "ETCPACK-lib" )
+#endif()
 
 EnablePCH( "AssetPacker" )
 EnablePrebuild( "AssetPacker" )
+EnableUnitBuild( "AssetPacker" )
 
 add_library( "AssetPacker-shared" SHARED
 	"AssetPacker.h"

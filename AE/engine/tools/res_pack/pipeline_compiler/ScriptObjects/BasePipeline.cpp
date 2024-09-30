@@ -102,7 +102,7 @@ namespace
 */
 	void  BasePipelineTmpl::_Define (const String &value) __Th___
 	{
-		CHECK_THROW_MSG( not AnyBits( _states, EStateBits::HasShaders ),
+		CHECK_THROW_MSG( NoBits( _states, EStateBits::HasShaders ),
 			"can not add global definition when one of the shaders is set" );
 
 		_defines << '\n' << value;
@@ -117,7 +117,7 @@ namespace
 */
 	void  BasePipelineTmpl::_Include (const String &value) __Th___
 	{
-		CHECK_THROW_MSG( not AnyBits( _states, EStateBits::HasShaders ),
+		CHECK_THROW_MSG( NoBits( _states, EStateBits::HasShaders ),
 			"can not add global include when one of the shaders is set" );
 
 		for (auto& inc : _includes) {
@@ -143,7 +143,7 @@ namespace
 		CHECK_THROW_MSG( inShader->type != Default );
 		CHECK_THROW_MSG( not outShader,
 			String{ToString(inShader->type)} << " is already defined" );
-		CHECK_THROW_MSG( not AnyBits( _states, EStateBits::HasSpec ),
+		CHECK_THROW_MSG( NoBits( _states, EStateBits::HasSpec ),
 			"can not add new shader when one of pipeline specializations is added" );
 
 		const EShaderStages		stage	= EShaderStages::Unknown | inShader->type;
@@ -180,16 +180,16 @@ namespace
 				if ( same_stage )
 				{
 					CHECK_THROW_MSG( (dbg_mode != Default) == dbg_ds.IsDefined(),
-						"Shader must have EShaderOpt with Trace/FnProfiling/TimeHeatMap or DebugDSLayout is not defined" );
+						"Shader must have EShaderOpt with Trace/FnProfiling/TimeHeatMap or DebugDSLayout must not be defined" );
 					CHECK_THROW_MSG( dbg_mode == dbg_ds.mode,
-						"shader debug mode is not compatible with DebugDSLayout in pipeline layout" );
+						"Shader debug mode is not compatible with DebugDSLayout in pipeline layout" );
 				}
 			}
 
 			if ( fragOut.has_value() )
 				resources << _FragOutputToGLSL( *fragOut );
 
-			ObjectStorage::Instance()->CompileShaderGLSL( INOUT outShader, inShader, version, _defines, resources, _includes, _features, dbg_ds_idx, use_arg_buf );
+			ObjectStorage::Instance()->CompileShaderGLSL( INOUT outShader, inShader, version, _defines, RVRef(resources), _includes, _features, dbg_ds_idx, use_arg_buf );
 		}
 		else
 		if ( AllBits( version, EShaderVersion::_Metal_iOS, EShaderVersion::_Mask ) or
@@ -253,7 +253,7 @@ namespace
 			resources << "\n"
 				<< BuildMSLEntry( version, inShader, RVRef(entry_res), RVRef(entry_args), _features );
 
-			ObjectStorage::Instance()->CompileShaderMSL( INOUT outShader, inShader, version, _defines, resources, _includes, _features );
+			ObjectStorage::Instance()->CompileShaderMSL( INOUT outShader, inShader, version, _defines, RVRef(resources), _includes, _features );
 		}
 		else
 		{
@@ -290,7 +290,7 @@ namespace
 
 	void  BasePipelineTmpl::_SetLayout (PipelineLayoutPtr ptr) __Th___
 	{
-		CHECK_THROW_MSG( not AnyBits( _states, EStateBits::HasShaders ),
+		CHECK_THROW_MSG( NoBits( _states, EStateBits::HasShaders ),
 			"can not set pipeline layout when one of the shaders is set" );
 
 		CHECK_THROW_MSG( not _layoutUID.has_value() );
@@ -465,10 +465,10 @@ namespace
 */
 	void  BasePipelineTmpl::_AddFeatureSet (const String &name) __Th___
 	{
-		CHECK_THROW_MSG( not AnyBits( _states, EStateBits::HasShaders ),
+		CHECK_THROW_MSG( NoBits( _states, EStateBits::HasShaders ),
 			"can not add feature set when shaders is already set" );
 
-		CHECK_THROW_MSG( not AnyBits( _states, EStateBits::HasSpec ),
+		CHECK_THROW_MSG( NoBits( _states, EStateBits::HasSpec ),
 			"can not add feature set when one of pipeline specializations is added" );
 
 		_states |= EStateBits::HasFeatures;
@@ -565,7 +565,7 @@ namespace
 			if ( not usage.output.IsDefined() )
 				continue;
 
-			CHECK_ERR_MSG( AnyEqual( usage.type, EAttachment::Color ),
+			CHECK_ERR_MSG( AnyEqual( usage.type, EAttachment::Color, EAttachment::ReadWrite ),
 				"Attachment '"s << storage.GetName( name ) << "' is not a color attachment" );
 
 			fragOut.push_back( usage.output );
@@ -609,7 +609,10 @@ namespace
 			}
 			switch_end
 
-			str << "  " << storage.GetName( fo.name ) << ";\n";
+			String	name = storage.GetName( fo.name );
+			CHECK_THROW_MSG( not name.empty(), "failed to get name for fragment output" );
+
+			str << "  " << name << ";\n";
 		}
 		str << "\n";
 		return str;
@@ -914,6 +917,7 @@ namespace
 				//case EPipelineDynamicState::DepthBounds :
 				case EPipelineDynamicState::RTStackSize :
 				case EPipelineDynamicState::FragmentShadingRate :
+				case EPipelineDynamicState::ViewportWScaling :
 					break;	// skip
 
 				case EPipelineDynamicState::Unknown :
@@ -1036,13 +1040,13 @@ namespace
 =================================================
 */
 	void  BasePipelineSpec::_CheckDepthStencil (const Graphics::RenderState &rs, const SubpassShaderIO &fragIO,
-												const CompatRenderPassName::Optimized_t &rpName, const SubpassName::Optimized_t &subpass)
+												const CompatRenderPassName::Optimized_t &rpName, const SubpassName::Optimized_t &subpass) C_Th___
 	{
 		auto&		storage		= *ObjectStorage::Instance();
 		const bool	req_depth	= rs.depth.test or rs.depth.write;
 		const bool	req_stencil	= rs.stencil.enabled;
 
-		storage.TestRenderPass( rpName, subpass, fragIO, req_depth, req_stencil );  // throw
+		storage.TestRenderPass( rpName, subpass, fragIO, req_depth, req_stencil, NameStr() );  // throw
 	}
 
 /*

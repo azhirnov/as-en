@@ -868,7 +868,7 @@ DEBUG_ONLY(
 		struct GetStorageElement
 		{
 			template <typename ChunkType>
-			static decltype(auto)  Get (ChunkType &chunk, usize i) __NE___
+			static exact_t  Get (ChunkType &chunk, usize i) __NE___
 			{
 				return chunk.template Get< MapCompType<T> >()[i];
 			}
@@ -1166,7 +1166,7 @@ DEBUG_ONLY(
 =================================================
 */
 	template <typename T>
-	decltype(auto)  Registry::_GetSingleComponent () __NE___
+	exact_t  Registry::_GetSingleComponent () __NE___
 	{
 		if constexpr( IsPointer<T> )
 		{

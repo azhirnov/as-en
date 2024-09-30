@@ -65,6 +65,7 @@ namespace AE::Graphics
 		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV;
 		void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th_OV;
 		void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th_OV;
+		void  SetViewportWScaling (ArrayView<packed_float2> scaling)														__Th_OV;
 
 		// draw commands
 		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)												__Th_OV;
@@ -204,7 +205,7 @@ namespace AE::Graphics
 
 	private:
 		template <typename ...IDs>
-		ND_ decltype(auto)	_GetResourcesOrThrow (IDs ...ids)																__Th___	{ return this->_mngr.Get( ids... ); }
+		ND_ exact_t			_GetResourcesOrThrow (IDs ...ids)																__Th___	{ return this->_mngr.Get( ids... ); }
 
 		ND_ bool			_NoPendingBarriers ()																			C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto			_GetDynamicStates ()																			C_NE___	{ return _dynStates; }

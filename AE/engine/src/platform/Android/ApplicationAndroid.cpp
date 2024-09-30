@@ -16,6 +16,9 @@ namespace {
 	static const size_t	s_JNI_ptr = size_t(&JNI_OnLoad) + size_t(&JNI_OnUnload);
 }
 
+namespace AE::Base {
+	extern bool  Android_IsUnderDebugger;
+}
 
 namespace AE::App
 {
@@ -315,7 +318,7 @@ namespace {
 	native_OnCreate
 =================================================
 */
-	void JNICALL ApplicationAndroid::native_OnCreate (JNIEnv* env, jclass, jobject appCtx, jobject assetMngr) __NE___
+	void JNICALL ApplicationAndroid::native_OnCreate (JNIEnv* env, jclass, jobject appCtx, jobject assetMngr, jboolean isUnderDebugger) __NE___
 	{
 		auto&	app = GetApp();
 		DRC_EXLOCK( app._drCheck );
@@ -329,6 +332,11 @@ namespace {
 		app._java.application.Method( "ShowToast",			OUT app._methods.showToast );
 		app._java.application.Method( "IsNetworkConnected",	OUT app._methods.isNetworkConnected );
 		//app._java.application.Method( "CreateWindow",		OUT app._methods.createWindow );
+
+		Base::Android_IsUnderDebugger = isUnderDebugger;
+
+		if ( isUnderDebugger )
+			StaticLogger::AddLogger( ILogger::CreateBreakOnError() );
 	}
 
 /*
@@ -475,6 +483,8 @@ namespace {
 			wnd_class.RegisterStaticMethod( "native_OnTouch",				&WindowAndroid::native_OnTouch );
 			wnd_class.RegisterStaticMethod( "native_OnOrientationChanged",	&WindowAndroid::native_OnOrientationChanged );
 			wnd_class.RegisterStaticMethod( "native_UpdateSensor",			&WindowAndroid::native_UpdateSensor );
+			wnd_class.RegisterStaticMethod( "native_SendBatteryStat1",		&WindowAndroid::native_SendBatteryStat1 );
+			wnd_class.RegisterStaticMethod( "native_SendBatteryStat2",		&WindowAndroid::native_SendBatteryStat2 );
 		}
 
 		CHECK( ApplicationAndroid::_GetAppInstance() != null );

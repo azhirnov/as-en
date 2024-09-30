@@ -515,7 +515,7 @@ namespace
 	ImageMemView::ImageMemView (const BufferMemView& content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
 		_content{ content },
 		_rowPitch{ rowPitch },					_slicePitch{ slicePitch },
-		_offset{ CheckCast<ushort3>(off) },		_dimension{ CheckCast<ushort3>(Max( dim, 1u )) },
+		_offset{ CheckCast<ImageDim_t>(off) },	_dimension{ CheckCast<ImageDim_t>(Max( dim, 1u )) },
 		_format{ format },						_aspect{ aspect }
 	{
 		ASSERT( RowPitch() == rowPitch );

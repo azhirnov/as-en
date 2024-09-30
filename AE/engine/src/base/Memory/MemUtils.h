@@ -17,13 +17,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ constexpr decltype(auto)  AddressOf (T &value) __NE___
+	ND_ constexpr exact_t  AddressOf (T &value) __NE___
 	{
 		return std::addressof( value );
 	}
 
 	template <typename T>
-	ND_ constexpr decltype(auto)  VAddressOf (T &value) __NE___
+	ND_ constexpr exact_t  VAddressOf (T &value) __NE___
 	{
 		return Cast<void>( std::addressof( value ));
 	}
@@ -261,19 +261,19 @@ namespace _hidden_
 	inline void  MemCopy16 (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
 		Base::_hidden_::MemCopyChecks( dst, src, size, 16 );
-		std::memcpy( OUT dst, src, usize(size) );	// TODO: SSE/Neon
+		std::memcpy( OUT AssumeAligned<16>(dst), AssumeAligned<16>(src), usize(size) );	// TODO: SSE/Neon
 	}
 
 	inline void  MemCopy32 (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
 		Base::_hidden_::MemCopyChecks( dst, src, size, 32 );
-		std::memcpy( OUT dst, src, usize(size) );	// TODO: SSE/Neon
+		std::memcpy( OUT AssumeAligned<32>(dst), AssumeAligned<32>(src), usize(size) );	// TODO: SSE/Neon
 	}
 
 	inline void  MemCopy64 (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
 		Base::_hidden_::MemCopyChecks( dst, src, size, 64 );
-		std::memcpy( OUT dst, src, usize(size) );	// TODO: SSE/Neon
+		std::memcpy( OUT AssumeAligned<64>(dst), AssumeAligned<64>(src), usize(size) );	// TODO: SSE/Neon
 	}
 
 /*

@@ -97,7 +97,7 @@ namespace
 	ConvertViewports
 =================================================
 */
-	void  ConvertViewports (ArrayView<Viewport> inViewports, ArrayView<RectI> inScissors,
+	void  ConvertViewports (ArrayView<Viewport> inViewports, ArrayView<RectI> inScissors, const int2 &areaSize,
 							OUT VDrawCommandBatch::Viewports_t &outViewports, OUT VDrawCommandBatch::Scissors_t &outScissors) __NE___
 	{
 		ASSERT( not inViewports.empty() );
@@ -120,10 +120,10 @@ namespace
 			VkRect2D&	rect	= outScissors.emplace_back();
 			if ( inScissors.empty() )
 			{
-				rect.offset.x		= RoundToInt( src.rect.left );
-				rect.offset.y		= RoundToInt( src.rect.top );
-				rect.extent.width	= RoundToInt( src.rect.Width() );
-				rect.extent.height	= RoundToInt( src.rect.Height() );
+				rect.offset.x		= RoundToInt( Max( src.rect.left, 0.f ));
+				rect.offset.y		= RoundToInt( Max( src.rect.top,  0.f ));
+				rect.extent.width	= Min( RoundToInt( src.rect.Width()  ), areaSize.x );
+				rect.extent.height	= Min( RoundToInt( src.rect.Height() ), areaSize.y );
 			}
 			else
 			{
@@ -185,7 +185,7 @@ namespace
 	{
 		Viewports_t		viewports;
 		Scissors_t		scissors;
-		ConvertViewports( desc.viewports, Default, OUT viewports, OUT scissors );
+		ConvertViewports( desc.viewports, Default, desc.area.Size(), OUT viewports, OUT scissors );
 
 		vkCmdSetViewport( _cmdbuf.Get(), 0, uint(viewports.size()), viewports.data() );
 		vkCmdSetScissor( _cmdbuf.Get(), 0, uint(scissors.size()), scissors.data() );
@@ -291,7 +291,7 @@ namespace
 	{
 		Viewports_t		viewports;
 		Scissors_t		scissors;
-		ConvertViewports( desc.viewports, Default, OUT viewports, OUT scissors );
+		ConvertViewports( desc.viewports, Default, desc.area.Size(), OUT viewports, OUT scissors );
 
 		// viewports
 		{

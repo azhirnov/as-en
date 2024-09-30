@@ -438,7 +438,7 @@ namespace AE::Graphics
 		UploadImageDesc		upload;
 		upload.aspectMask	= EImageAspect::Color;
 		upload.heapType		= EStagingHeapType::Dynamic;
-		upload.imageDim		= uint3{width, height, 1};
+		upload.imageDim		= int3{ width, height, 1 };
 		upload.dataRowPitch	= Bytes{width * 4 * sizeof(ubyte)};
 
 		const Bytes	size	{width * height * 4 * sizeof(ubyte)};

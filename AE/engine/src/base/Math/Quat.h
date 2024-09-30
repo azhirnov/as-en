@@ -129,7 +129,7 @@ namespace AE::Math
 
 		ND_ static Self  LookAt (const Vec3_t &dir, const Vec3_t &up)__NE___;
 		ND_ static Self  From2Normals (const Vec3_t &n1, const Vec3_t &n2)	__NE___	{ return Self{_GLM_Quat_t{ n1, n2 }}; }
-		ND_ static Self  FromAngleAxis (Rad_t angle, const Vec3_t &axis)	__NE___	{ return glm::angleAxis( angle, axis ); }
+		ND_ static Self  FromAngleAxis (Rad_t angle, const Vec3_t &axis)	__NE___	{ return Self{_GLM_Quat_t{ glm::angleAxis( T{angle}, axis )}}; }
 
 		ND_ static T	CalcW (T x, T y, T z)						__NE___	{ return T{1} - Sqrt( x*x + y*y + z*z ); }
 

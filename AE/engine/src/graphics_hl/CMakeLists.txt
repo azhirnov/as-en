@@ -39,6 +39,7 @@ if (TARGET "Graphics")
 
 	EnablePCH( "GraphicsHL" )
 	EnablePrebuild( "GraphicsHL" )
+	EnableUnitBuild( "GraphicsHL" )
 
 	install( TARGETS "GraphicsHL" ARCHIVE DESTINATION "lib" )
 endif()

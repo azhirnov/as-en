@@ -14,7 +14,7 @@ namespace AE::ResEditor
 	void  PassGroup::AddPass (RC<IPass> pass) __Th___
 	{
 		CHECK_THROW( pass );
-		CHECK_THROW( not AnyBits( pass->GetType(), ~(EPassType::Sync | EPassType::Update) ));
+		CHECK_THROW( NoBits( pass->GetType(), ~(EPassType::Sync | EPassType::Update) ));
 
 		_passes.push_back( pass );
 	}

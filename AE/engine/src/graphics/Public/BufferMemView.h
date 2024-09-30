@@ -63,82 +63,80 @@ namespace AE::Graphics
 
 	// methods
 	private:
-		explicit BufferMemView (ArrayView<Data> parts)						__NE___ : _parts{parts} {}
+		explicit BufferMemView (ArrayView<Data> parts)							__NE___ : _parts{parts} {}
 	public:
-		BufferMemView ()													__NE___	{}
-		BufferMemView (const BufferMemView &)								__NE___	= default;
-		BufferMemView (BufferMemView &&)									__NE___	= default;
+		BufferMemView ()														__NE___	{}
+		BufferMemView (const BufferMemView &)									__NE___	= default;
+		BufferMemView (BufferMemView &&)										__NE___	= default;
 
-		BufferMemView (void* ptr, Bytes size)								__NE___	{ PushBack( ptr, size ); }
-
-		template <typename T>
-		explicit BufferMemView (Array<T> &arr)								__NE___	: BufferMemView{ arr.data(), ArraySizeOf(arr) } {}
-
-		BufferMemView&  operator = (const BufferMemView &)					__NE___	= default;
-		BufferMemView&  operator = (BufferMemView &&)						__NE___	= default;
-
-		ND_ explicit operator Array<char> ()								C_NE___	{ return _ToArray(); }
-
-		ND_ auto	Parts ()												C_NE___	{ return ArrayView<ConstData>{ Cast<ConstData>(_parts.data()), _parts.size() }; }
-		ND_ auto	Parts ()												__NE___	{ return ArrayView<Data>{ _parts }; }
-
-		ND_ auto	begin ()												__NE___	{ return Parts().begin(); }
-		ND_ auto	end ()													__NE___	{ return Parts().end(); }
-
-		ND_ auto	begin ()												C_NE___	{ return Parts().begin(); }
-		ND_ auto	end ()													C_NE___	{ return Parts().end(); }
-
-		ND_ bool	Empty ()												C_NE___	{ return _parts.empty(); }
-
-			void	Clear ()												__NE___	{ _parts.clear(); }
-
-			bool	PushBack (void* ptr, Bytes size)						__NE___;
-
-		ND_ Bytes	DataSize ()												C_NE___;
-
-		ND_ BufferMemView  Section (Bytes offset, Bytes size)				__NE___;
+		BufferMemView (void* ptr, Bytes size)									__NE___	{ PushBack( ptr, size ); }
 
 		template <typename T>
-		ND_ bool  operator == (ArrayView<T> rhs)							C_NE___;
+		explicit BufferMemView (Array<T> &arr)									__NE___	: BufferMemView{ arr.data(), ArraySizeOf(arr) } {}
 
-		ND_ bool  operator == (const BufferMemView &rhs)					C_NE___ { return Compare( rhs ) == 0_b; }
+		BufferMemView&  operator = (const BufferMemView &)						__NE___	= default;
+		BufferMemView&  operator = (BufferMemView &&)							__NE___	= default;
+
+		ND_ explicit operator Array<char> ()									C_NE___	{ return _ToArray(); }
+
+		ND_ auto	Parts ()													C_NE___	{ return ArrayView<ConstData>{ Cast<ConstData>(_parts.data()), _parts.size() }; }
+		ND_ auto	Parts ()													__NE___	{ return ArrayView<Data>{ _parts }; }
+
+		ND_ auto	begin ()													__NE___	{ return Parts().begin(); }
+		ND_ auto	end ()														__NE___	{ return Parts().end(); }
+
+		ND_ auto	begin ()													C_NE___	{ return Parts().begin(); }
+		ND_ auto	end ()														C_NE___	{ return Parts().end(); }
+
+		ND_ bool	Empty ()													C_NE___	{ return _parts.empty(); }
+
+			void	Clear ()													__NE___	{ _parts.clear(); }
+
+			bool	PushBack (void* ptr, Bytes size)							__NE___;
+
+		ND_ Bytes	DataSize ()													C_NE___;
+
+		ND_ BufferMemView  Section (Bytes offset, Bytes size)					__NE___;
+
+		template <typename T>
+		ND_ bool  operator == (ArrayView<T> rhs)								C_NE___;
+
+		ND_ bool  operator == (const BufferMemView &rhs)						C_NE___ { return Compare( rhs ) == 0_b; }
 
 
 		// returns how much bytes are different
-		ND_ Bytes  Compare (const BufferMemView &rhs)						C_NE___;
+		ND_ Bytes  Compare (const BufferMemView &rhs)							C_NE___;
 
 
 		// returns number of copied bytes
-		ND_ Bytes  CopyFrom (Bytes dstOffset, const BufferMemView &from)	__NE___	{ return _Copy( from, 0_b, *this, dstOffset ); }
-		ND_ Bytes  CopyFrom (Bytes dstOffset, const void* src, Bytes size)	__NE___	{ return _Copy( BufferMemView{ ConstCast(src), size }, 0_b, *this, dstOffset ); }
-		ND_ Bytes  CopyFrom (const BufferMemView &from)						__NE___	{ return CopyFrom( 0_b, from ); }
+		ND_ Bytes  CopyFrom (const void* src, Bytes size, Bytes dstOffset = 0_b)__NE___	{ return _Copy( BufferMemView{ ConstCast(src), size }, 0_b, *this, dstOffset ); }
+		ND_ Bytes  CopyFrom (const BufferMemView &from, Bytes dstOffset = 0_b)	__NE___	{ return _Copy( from, 0_b, *this, dstOffset ); }
 
 		template <typename T>
-		ND_ Bytes  CopyFrom (ArrayView<T> from)								__NE___	{ return CopyFrom( BufferMemView{ ConstCast(from.data()), ArraySizeOf(from) }); }
+		ND_ Bytes  CopyFrom (ArrayView<T> from, Bytes dstOffset = 0_b)			__NE___	{ return CopyFrom( from.data(), ArraySizeOf(from), dstOffset ); }
 
 		template <typename T>
-		ND_ Bytes  CopyFrom (Array<T> &from)								__NE___	{ return CopyFrom( BufferMemView{ from.data(), ArraySizeOf(from) }); }
+		ND_ Bytes  CopyFrom (Array<T> &from, Bytes dstOffset = 0_b)				__NE___	{ return CopyFrom( from.data(), ArraySizeOf(from), dstOffset ); }
 
 
 		// returns number of copied bytes
-		ND_ Bytes  CopyTo (OUT void* dst, Bytes size)						C_NE___	{ return CopyTo( 0_b, OUT dst, size ); }
-		ND_ Bytes  CopyTo (Bytes srcOffset, OUT void* dst, Bytes size)		C_NE___	{ BufferMemView tmp{ dst, size };  return _Copy( *this, srcOffset, tmp, 0_b ); }
+		ND_ Bytes  CopyTo (OUT void* dst, Bytes size, Bytes srcOffset = 0_b)	C_NE___	{ BufferMemView tmp{ dst, size };  return _Copy( *this, srcOffset, tmp, 0_b ); }
 
 		template <typename T>
-		ND_ Bytes  CopyTo (OUT T &dst)										C_NE___	{ return CopyTo( 0_b, OUT &dst, SizeOf<T> ); }
+		ND_ Bytes  CopyTo (OUT T &dst, Bytes srcOffset = 0_b)					C_NE___	{ return CopyTo( OUT &dst, SizeOf<T>, srcOffset ); }
 
 		template <typename T>
-		ND_ Bytes  CopyTo (Bytes srcOffset, OUT T &dst)						C_NE___	{ return CopyTo( srcOffset, OUT &dst, SizeOf<T> ); }
+		ND_ Bytes  CopyTo (OUT Array<T> &dst, Bytes srcOffset = 0_b)			C_NE___	{ return CopyTo( OUT dst.data(), ArraySizeOf(dst), srcOffset ); }
 
 
-		ND_ ConstData  GetRange (Bytes offset, Bytes size)					C_NE___;
+		ND_ ConstData  GetRange (Bytes offset, Bytes size)						C_NE___;
 
 
 	private:
-		ND_ Array<char>  _ToArray ()										C_NE___;
+		ND_ Array<char>  _ToArray ()											C_NE___;
 
 		ND_ static Bytes  _Copy (const BufferMemView &src, Bytes srcOffset,
-								 BufferMemView &dst, Bytes dstOffset)		__NE___;
+								 BufferMemView &dst, Bytes dstOffset)			__NE___;
 	};
 
 

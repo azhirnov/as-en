@@ -14,5 +14,6 @@ target_link_libraries( "Serializing" PUBLIC "Base" )
 
 EnablePCH( "Serializing" )
 EnablePrebuild( "Serializing" )
+EnableUnitBuild( "Serializing" )
 
 install( TARGETS "Serializing" ARCHIVE DESTINATION "lib" )

@@ -15,7 +15,7 @@ else()
 endif()
 set( SOURCES ${DATA_FILES} ${SHADERS_SHARED} ${SHADERS_3PARTY} ${CONFIGS} )
 
-add_library( "ResourceEditor.Data" STATIC EXCLUDE_FROM_ALL ${SOURCES} ${PREBUILD_CPP_FILE} )
+add_library( "ResourceEditor.Data" STATIC EXCLUDE_FROM_ALL ${SOURCES} )
 set_property( TARGET "ResourceEditor.Data" PROPERTY LINKER_LANGUAGE CXX )
 
 if (TARGET "ResourceEditor")
@@ -43,4 +43,17 @@ target_include_directories( "ResourceEditor.Data" PUBLIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/pipeline_inc"
 	"${AE_ENGINE_SHARED_DATA}/scripts"
 	"${AE_ENGINE_SHARED_DATA}/shaders"
+)
+
+# optional: allow to compile scripts & shaders
+set_source_files_properties( ${SOURCES} PROPERTIES LANGUAGE CXX )
+
+target_compile_definitions( "ResourceEditor.Data" PUBLIC
+	"AE_LICENSE_MIT"
+	"AE_LICENSE_BSD2"
+	"AE_LICENSE_BSD3"
+	"AE_LICENSE_APACHE_2"
+	"AE_LICENSE_UNLICENSE"
+	"AE_LICENSE_CC_BY_NC_SA_3"
+	"AE_ENABLE_UNKNOWN_LICENSE"
 )

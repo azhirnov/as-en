@@ -53,15 +53,16 @@ namespace AE::Math
 	// methods
 	public:
 		constexpr PhysicalQuantity ()							__NE___ : _value{0} {}
+		constexpr explicit PhysicalQuantity (Zero_t)			__NE___ : _value{0} {}
 		constexpr explicit PhysicalQuantity (Value_t value)		__NE___ : _value{value} {}
 
 		template <typename S>
-		constexpr PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> &other) __NE___ :
+		constexpr PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> other) __NE___ :
 			_value{ other.template ToScale<Scale_t>().GetNonScaled() }
 		{}
 
 		template <typename T, typename S>
-		explicit constexpr PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> &other) __NE___ :
+		explicit constexpr PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> other) __NE___ :
 			_value{Value_t( other.template ToScale<Scale_t>().GetNonScaled() )}
 		{}
 
@@ -70,27 +71,28 @@ namespace AE::Math
 
 			constexpr Self&		operator = (const Self &)			__NE___	= default;
 			constexpr Self&		operator = (Self &&)				__NE___	= default;
+            constexpr Self&		operator = (Zero_t)				    __NE___	{ _value = Value_t(0);  return *this; }
 
 		ND_ constexpr Self		operator - ()						C_NE___	{ return Self{ -_value }; }
 
-		ND_ constexpr bool		operator == (const Self &rhs)		C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool		operator != (const Self &rhs)		C_NE___	{ return _value != rhs._value; }
-		ND_ constexpr bool		operator >  (const Self &rhs)		C_NE___	{ return _value >  rhs._value; }
-		ND_ constexpr bool		operator >= (const Self &rhs)		C_NE___	{ return _value >= rhs._value; }
-		ND_ constexpr bool		operator <  (const Self &rhs)		C_NE___	{ return _value <  rhs._value; }
-		ND_ constexpr bool		operator <= (const Self &rhs)		C_NE___	{ return _value <= rhs._value; }
+		ND_ constexpr bool		operator == (const Self rhs)		C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool		operator != (const Self rhs)		C_NE___	{ return _value != rhs._value; }
+		ND_ constexpr bool		operator >  (const Self rhs)		C_NE___	{ return _value >  rhs._value; }
+		ND_ constexpr bool		operator >= (const Self rhs)		C_NE___	{ return _value >= rhs._value; }
+		ND_ constexpr bool		operator <  (const Self rhs)		C_NE___	{ return _value <  rhs._value; }
+		ND_ constexpr bool		operator <= (const Self rhs)		C_NE___	{ return _value <= rhs._value; }
 
-			constexpr Self&		operator += (const Self &rhs)		__NE___	{ _value += rhs._value;  return *this; }
-			constexpr Self&		operator -= (const Self &rhs)		__NE___	{ _value -= rhs._value;  return *this; }
+			constexpr Self&		operator += (const Self rhs)		__NE___	{ _value += rhs._value;  return *this; }
+			constexpr Self&		operator -= (const Self rhs)		__NE___	{ _value -= rhs._value;  return *this; }
 
-		ND_ constexpr Self		operator +  (const Self &rhs)		C_NE___	{ return Self( _value + rhs._value ); }
-		ND_ constexpr Self		operator -  (const Self &rhs)		C_NE___	{ return Self( _value - rhs._value ); }
+		ND_ constexpr Self		operator +  (const Self rhs)		C_NE___	{ return Self( _value + rhs._value ); }
+		ND_ constexpr Self		operator -  (const Self rhs)		C_NE___	{ return Self( _value - rhs._value ); }
 
-			constexpr Self&		operator *= (Value_t rhs)			__NE___	{ _value *= rhs;  return *this; }
-			constexpr Self&		operator /= (Value_t rhs)			__NE___	{ _value /= rhs;  return *this; }
+			constexpr Self&		operator *= (const Value_t rhs)		__NE___	{ _value *= rhs;  return *this; }
+			constexpr Self&		operator /= (const Value_t rhs)		__NE___	{ _value /= rhs;  return *this; }
 
-		ND_ constexpr Self		operator *  (Value_t rhs)			C_NE___	{ return Self( _value * rhs ); }
-		ND_ constexpr Self		operator /  (Value_t rhs)			C_NE___	{ return Self( _value / rhs ); }
+		ND_ constexpr Self		operator *  (const Value_t rhs)		C_NE___	{ return Self( _value * rhs ); }
+		ND_ constexpr Self		operator /  (const Value_t rhs)		C_NE___	{ return Self( _value / rhs ); }
 
 		ND_ constexpr Value_t	GetNonScaled ()						C_NE___	{ return _value; }
 		ND_ constexpr Value_t&	GetNonScaledRef ()					__NE___	{ return _value; }
@@ -98,35 +100,35 @@ namespace AE::Math
 
 
 		template <typename S>
-		ND_ constexpr auto  operator +  (const PhysicalQuantity<Value_t, Dimension_t, S> &rhs) C_NE___
+		ND_ constexpr auto  operator +  (const PhysicalQuantity<Value_t, Dimension_t, S> rhs) C_NE___
 		{
 			using Scale = PhysicalQuantity_Scale::template Add< Scale_t, S >;
 			return PhysicalQuantity< Value_t, Dimension_t, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
 		}
 
 		template <typename S>
-		ND_ constexpr auto  operator -  (const PhysicalQuantity<Value_t, Dimension_t, S> &rhs) C_NE___
+		ND_ constexpr auto  operator -  (const PhysicalQuantity<Value_t, Dimension_t, S> rhs) C_NE___
 		{
 			using Scale = PhysicalQuantity_Scale::template Sub< Scale_t, S >;
 			return PhysicalQuantity< Value_t, Dimension_t, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
 		}
 
 		template <typename D, typename S>
-		ND_ constexpr auto  operator *  (const PhysicalQuantity<Value_t,D,S> &rhs) C_NE___
+		ND_ constexpr auto  operator *  (const PhysicalQuantity<Value_t,D,S> rhs) C_NE___
 		{
 			using Scale = PhysicalQuantity_Scale::template Mul< Scale_t, S >;
 			return PhysicalQuantity< Value_t, typename Dimension_t::template Mul<D>, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
 		}
 
 		template <typename D, typename S>
-		ND_ constexpr auto  operator /  (const PhysicalQuantity<Value_t,D,S> &rhs) C_NE___
+		ND_ constexpr auto  operator /  (const PhysicalQuantity<Value_t,D,S> rhs) C_NE___
 		{
 			using Scale = PhysicalQuantity_Scale::template Div< Scale_t, S >;
 			return PhysicalQuantity< Value_t, typename Dimension_t::template Div<D>, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
 		}
 
 
-		ND_ friend constexpr Self  operator * (Value_t lhs, const Self &rhs) __NE___
+		ND_ friend constexpr Self  operator * (Value_t lhs, const Self rhs) __NE___
 		{
 			return Self( lhs * rhs.GetNonScaled() );
 		}
@@ -138,7 +140,7 @@ namespace AE::Math
 			return PhysicalQuantity< Value_t, Dimension_t, DstScale >{ _value * scale };
 		}
 
-		ND_ friend constexpr Inversed_t  operator / (Value_t lhs, const Self &rhs) __NE___
+		ND_ friend constexpr Inversed_t  operator / (const Value_t lhs, const Self rhs) __NE___
 		{
 			return Inversed_t{ lhs / rhs.GetNonScaled() };
 		}
@@ -216,15 +218,16 @@ namespace AE::Math
 	// methods
 	public:
 		constexpr PhysicalQuantity ()								__NE___ : _value{0} {}
+		constexpr explicit PhysicalQuantity (Zero_t)				__NE___ : _value{0} {}
 		constexpr explicit PhysicalQuantity (Value_t value)			__NE___ : _value{value} {}
 
 		template <typename S>
-		constexpr PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> &other) __NE___ :
+		constexpr PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> other) __NE___ :
 			_value{ other.template ToScale<Scale_t>().GetNonScaled() }
 		{}
 
 		template <typename T, typename S>
-		explicit constexpr PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> &other) __NE___ :
+		explicit constexpr PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> other) __NE___ :
 			_value{T( other.template ToScale<Scale_t>().GetNonScaled() )}
 		{}
 
@@ -233,21 +236,22 @@ namespace AE::Math
 
 			constexpr Self&		operator = (const Self &)			__NE___	= default;
 			constexpr Self&		operator = (Self &&)				__NE___	= default;
+            constexpr Self&		operator = (Zero_t)				    __NE___	{ _value = Value_t(0);  return *this; }
 
 		ND_ constexpr operator Value_t ()							C_NE___	{ return GetScaled(); }
 
-		ND_ constexpr bool		operator == (const Self &rhs)		C_NE___	{ return _value == rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator != (const Self &rhs)		C_NE___	{ return _value != rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator >  (const Self &rhs)		C_NE___	{ return _value >  rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator >= (const Self &rhs)		C_NE___	{ return _value >= rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator <  (const Self &rhs)		C_NE___	{ return _value <  rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator <= (const Self &rhs)		C_NE___	{ return _value <= rhs.GetNonScaled(); }
+		ND_ constexpr bool		operator == (const Self rhs)		C_NE___	{ return _value == rhs.GetNonScaled(); }
+		ND_ constexpr bool		operator != (const Self rhs)		C_NE___	{ return _value != rhs.GetNonScaled(); }
+		ND_ constexpr bool		operator >  (const Self rhs)		C_NE___	{ return _value >  rhs.GetNonScaled(); }
+		ND_ constexpr bool		operator >= (const Self rhs)		C_NE___	{ return _value >= rhs.GetNonScaled(); }
+		ND_ constexpr bool		operator <  (const Self rhs)		C_NE___	{ return _value <  rhs.GetNonScaled(); }
+		ND_ constexpr bool		operator <= (const Self rhs)		C_NE___	{ return _value <= rhs.GetNonScaled(); }
 
-			constexpr Self&		operator += (const Self &rhs)		__NE___	{ _value += rhs.GetNonScaled();  return *this; }
-			constexpr Self&		operator -= (const Self &rhs)		__NE___	{ _value -= rhs.GetNonScaled();  return *this; }
+			constexpr Self&		operator += (const Self rhs)		__NE___	{ _value += rhs.GetNonScaled();  return *this; }
+			constexpr Self&		operator -= (const Self rhs)		__NE___	{ _value -= rhs.GetNonScaled();  return *this; }
 
-		ND_ constexpr Self		operator +  (const Self &rhs)		C_NE___	{ return Self{ _value + rhs.GetNonScaled() }; }
-		ND_ constexpr Self		operator -  (const Self &rhs)		C_NE___	{ return Self{ _value - rhs.GetNonScaled() }; }
+		ND_ constexpr Self		operator +  (const Self rhs)		C_NE___	{ return Self{ _value + rhs.GetNonScaled() }; }
+		ND_ constexpr Self		operator -  (const Self rhs)		C_NE___	{ return Self{ _value - rhs.GetNonScaled() }; }
 
 			constexpr Self&		operator *= (Value_t rhs)			__NE___	{ _value *= rhs;  return *this; }
 			constexpr Self&		operator /= (Value_t rhs)			__NE___	{ _value /= rhs;  return *this; }

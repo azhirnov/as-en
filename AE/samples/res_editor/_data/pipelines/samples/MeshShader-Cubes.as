@@ -97,7 +97,7 @@
 	#include "Frustum.glsl"
 	#include "Transform.glsl"
 
-	shared uint  s_TaskCount;
+	WGShared uint  s_TaskCount;
 
 	ND_ bool  IsVisible (float3 center, float radius) {
 		return Frustum_TestSphere( un_PerPass.camera.frustum, center, radius );

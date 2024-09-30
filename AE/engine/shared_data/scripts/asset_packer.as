@@ -1,4 +1,4 @@
-//e2654f94
+//596e1c9f
 #include <vector>
 #include <string>
 
@@ -8,7 +8,6 @@ using int8		= std::int8_t;
 using uint8		= std::uint8_t;
 using int16		= std::int16_t;
 using uint16	= std::uint16_t;
-using int		= std::int32_t;
 using uint		= std::uint32_t;
 using int32		= std::int32_t;
 using uint32	= std::uint32_t;
@@ -22,112 +21,1360 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct EReductionMode;
-struct EVertexInputRate;
-struct MipmapLevel;
-struct EShadingRateCombinerOp;
-struct ESurfaceFormat;
-struct Mesh;
-struct Material;
-struct DepthStencil;
-struct EPixelFormatExternal;
-struct FixedLayout;
-struct ImageLayer;
-struct int2;
+using namespace std::string_literals;
+
+template <typename T>
+string  operator + (const string &lhs, T rhs);
+
+struct BaseUIController;
+struct UIWidget;
+struct UIStyleCollection;
+struct BaseLayout;
+struct RectI;
+struct uint3;
+struct RectangleDrawable;
+struct uint2;
+struct uint4;
+struct RectU;
+struct UIImageStyle;
+struct ImageAtlas;
+struct RGBA8u;
+struct RectF;
+struct RGBA32u;
+struct FillStackLayout;
 struct int4;
-struct UIFontStyle;
+struct ImageLayer;
 struct int3;
-struct ECubeFace;
+struct int2;
+struct UIFontStyle;
 struct short4;
-struct EPixelFormat;
-struct sbyte2;
 struct ushort3;
+struct sbyte2;
 struct ushort2;
 struct BaseUIDrawable;
 struct Model;
-struct EPolygonMode;
-struct RectI;
-struct RectangleDrawable;
-struct ERasterFontMode;
-struct EShaderStages;
-struct uint3;
-struct uint2;
-struct EGPUVendor;
-struct EShader;
-struct ECompareOp;
-struct uint4;
-struct UIImageStyle;
-struct RectU;
-struct EMipmapFilter;
-struct ImageAtlas;
-struct RectF;
-struct RGBA8u;
-struct RGBA32u;
-struct FillStackLayout;
-struct BaseUIController;
-struct EImageOpt;
-struct EFeature;
-struct EResourceState;
-struct EBufferOpt;
-struct UIStyleCollection;
-struct UIWidget;
-struct BaseLayout;
-struct EBufferUsage;
-struct EBorderColor;
-struct ESamplerYcbcrRange;
-struct ubyte4;
-struct EShadingRate;
-struct ELayoutAlign;
-struct EPrimitive;
-struct ubyte3;
-struct ubyte2;
-struct ESubgroupOperation;
-struct EGraphicsDeviceID;
-struct EImage;
+struct MipmapLevel;
+struct Mesh;
+struct Material;
+struct DepthStencil;
+struct FixedLayout;
+struct UIColorStyle;
+struct MultiSamples;
+struct float2;
+struct RasterFont;
+struct float3;
+struct ButtonController;
+struct float4;
+struct AlignedLayout;
+struct sbyte4;
+struct sbyte3;
+struct Texture;
+struct short2;
+struct ushort4;
+struct short3;
 struct bool2;
 struct bool3;
 struct RGBA32i;
-struct EVertexType;
-struct ELogicOp;
 struct bool4;
 struct PaddingLayout;
-struct EBlendOp;
-struct EQueueMask;
-struct HSVColor;
-struct ECullMode;
 struct RGBA32f;
-struct ERTInstanceOpt;
-struct EBlendFactor;
-struct EStencilOp;
-struct EStackOrigin;
-struct EAddressMode;
-struct EIndex;
-struct ButtonController;
-struct float4;
-struct ELayoutType;
-struct sbyte4;
-struct AlignedLayout;
-struct ESamplerYcbcrModelConversion;
-struct short2;
-struct sbyte3;
-struct short3;
-struct ESubgroupTypes;
-struct Texture;
-struct ushort4;
-struct ESamplerOpt;
-struct EImageUsage;
-struct ESamplerChromaLocation;
-struct EPipelineDynamicState;
-struct UIColorStyle;
-struct EFilter;
-struct MultiSamples;
-struct EShaderIO;
-struct EImageAspect;
-struct RasterFont;
-struct EPipelineOpt;
-struct float2;
-struct float3;
-struct EDescSetUsage;
+struct HSVColor;
+struct ubyte4;
+struct ubyte3;
+struct ubyte2;
+
+enum class EImage : uint8
+{
+	Cube,
+	CubeArray,
+};
+uint8  operator | (EImage lhs, EImage rhs);
+uint8  operator | (uint8 lhs, EImage rhs);
+uint8  operator | (EImage lhs, uint8 rhs);
+static constexpr EImage EImage_1D = EImage(0);
+static constexpr EImage EImage_2D = EImage(1);
+static constexpr EImage EImage_3D = EImage(2);
+static constexpr EImage EImage_1DArray = EImage(3);
+static constexpr EImage EImage_2DArray = EImage(4);
+
+enum class EIndex : uint8
+{
+	UShort,
+	UInt,
+};
+uint8  operator | (EIndex lhs, EIndex rhs);
+uint8  operator | (uint8 lhs, EIndex rhs);
+uint8  operator | (EIndex lhs, uint8 rhs);
+
+enum class EPixelFormat : uint8
+{
+	RGBA16_SNorm,
+	RGBA8_SNorm,
+	RGB16_SNorm,
+	RGB8_SNorm,
+	RG16_SNorm,
+	RG8_SNorm,
+	R16_SNorm,
+	R8_SNorm,
+	RGBA16_UNorm,
+	RGBA8_UNorm,
+	RGB16_UNorm,
+	RGB8_UNorm,
+	RG16_UNorm,
+	RG8_UNorm,
+	R16_UNorm,
+	R8_UNorm,
+	RGB10_A2_UNorm,
+	RGBA4_UNorm,
+	RGB5_A1_UNorm,
+	RGB_5_6_5_UNorm,
+	BGR8_UNorm,
+	BGRA8_UNorm,
+	sRGB8,
+	sRGB8_A8,
+	sBGR8,
+	sBGR8_A8,
+	R8I,
+	RG8I,
+	RGB8I,
+	RGBA8I,
+	R16I,
+	RG16I,
+	RGB16I,
+	RGBA16I,
+	R32I,
+	RG32I,
+	RGB32I,
+	RGBA32I,
+	R64I,
+	R8U,
+	RG8U,
+	RGB8U,
+	RGBA8U,
+	R16U,
+	RG16U,
+	RGB16U,
+	RGBA16U,
+	R32U,
+	RG32U,
+	RGB32U,
+	RGBA32U,
+	RGB10_A2U,
+	R64U,
+	R16F,
+	RG16F,
+	RGB16F,
+	RGBA16F,
+	R32F,
+	RG32F,
+	RGB32F,
+	RGBA32F,
+	RGB_11_11_10F,
+	RGB9F_E5,
+	Depth16,
+	Depth24,
+	Depth32F,
+	Depth16_Stencil8,
+	Depth24_Stencil8,
+	Depth32F_Stencil8,
+	BC1_RGB8_UNorm,
+	BC1_sRGB8,
+	BC1_RGB8_A1_UNorm,
+	BC1_sRGB8_A1,
+	BC2_RGBA8_UNorm,
+	BC2_sRGB8,
+	BC3_RGBA8_UNorm,
+	BC3_sRGB8,
+	BC4_R8_SNorm,
+	BC4_R8_UNorm,
+	BC5_RG8_SNorm,
+	BC5_RG8_UNorm,
+	BC6H_RGB16F,
+	BC6H_RGB16UF,
+	BC7_RGBA8_UNorm,
+	BC7_sRGB8_A8,
+	ETC2_RGB8_UNorm,
+	ETC2_sRGB8,
+	ETC2_RGB8_A1_UNorm,
+	ETC2_sRGB8_A1,
+	ETC2_RGBA8_UNorm,
+	ETC2_sRGB8_A8,
+	EAC_R11_SNorm,
+	EAC_R11_UNorm,
+	EAC_RG11_SNorm,
+	EAC_RG11_UNorm,
+	ASTC_RGBA8_4x4,
+	ASTC_RGBA8_5x4,
+	ASTC_RGBA8_5x5,
+	ASTC_RGBA8_6x5,
+	ASTC_RGBA8_6x6,
+	ASTC_RGBA8_8x5,
+	ASTC_RGBA8_8x6,
+	ASTC_RGBA8_8x8,
+	ASTC_RGBA8_10x5,
+	ASTC_RGBA8_10x6,
+	ASTC_RGBA8_10x8,
+	ASTC_RGBA8_10x10,
+	ASTC_RGBA8_12x10,
+	ASTC_RGBA8_12x12,
+	ASTC_sRGB8_A8_4x4,
+	ASTC_sRGB8_A8_5x4,
+	ASTC_sRGB8_A8_5x5,
+	ASTC_sRGB8_A8_6x5,
+	ASTC_sRGB8_A8_6x6,
+	ASTC_sRGB8_A8_8x5,
+	ASTC_sRGB8_A8_8x6,
+	ASTC_sRGB8_A8_8x8,
+	ASTC_sRGB8_A8_10x5,
+	ASTC_sRGB8_A8_10x6,
+	ASTC_sRGB8_A8_10x8,
+	ASTC_sRGB8_A8_10x10,
+	ASTC_sRGB8_A8_12x10,
+	ASTC_sRGB8_A8_12x12,
+	ASTC_RGBA16F_4x4,
+	ASTC_RGBA16F_5x4,
+	ASTC_RGBA16F_5x5,
+	ASTC_RGBA16F_6x5,
+	ASTC_RGBA16F_6x6,
+	ASTC_RGBA16F_8x5,
+	ASTC_RGBA16F_8x6,
+	ASTC_RGBA16F_8x8,
+	ASTC_RGBA16F_10x5,
+	ASTC_RGBA16F_10x6,
+	ASTC_RGBA16F_10x8,
+	ASTC_RGBA16F_10x10,
+	ASTC_RGBA16F_12x10,
+	ASTC_RGBA16F_12x12,
+	G8B8G8R8_422_UNorm,
+	B8G8R8G8_422_UNorm,
+	G8_B8R8_420_UNorm,
+	G8_B8R8_422_UNorm,
+	G8_B8R8_444_UNorm,
+	G8_B8_R8_420_UNorm,
+	G8_B8_R8_422_UNorm,
+	G8_B8_R8_444_UNorm,
+	B10x6G10x6R10x6G10x6_422_UNorm,
+	G10x6B10x6G10x6R10x6_422_UNorm,
+	G10x6_B10x6R10x6_420_UNorm,
+	G10x6_B10x6R10x6_422_UNorm,
+	G10x6_B10x6R10x6_444_UNorm,
+	G10x6_B10x6_R10x6_420_UNorm,
+	G10x6_B10x6_R10x6_422_UNorm,
+	G10x6_B10x6_R10x6_444_UNorm,
+	R10x6G10x6B10x6A10x6_UNorm,
+	R10x6G10x6_UNorm,
+	R10x6_UNorm,
+	B12x4G12x4R12x4G12x4_422_UNorm,
+	G12x4B12x4G12x4R12x4_422_UNorm,
+	G12x4_B12x4R12x4_420_UNorm,
+	G12x4_B12x4R12x4_422_UNorm,
+	G12x4_B12x4R12x4_444_UNorm,
+	G12x4_B12x4_R12x4_420_UNorm,
+	G12x4_B12x4_R12x4_422_UNorm,
+	G12x4_B12x4_R12x4_444_UNorm,
+	R12x4G12x4B12x4A12x4_UNorm,
+	R12x4G12x4_UNorm,
+	R12x4_UNorm,
+	B16G16R16G16_422_UNorm,
+	G16B16G16R16_422_UNorm,
+	G16_B16R16_420_UNorm,
+	G16_B16R16_422_UNorm,
+	G16_B16R16_444_UNorm,
+	G16_B16_R16_420_UNorm,
+	G16_B16_R16_422_UNorm,
+	G16_B16_R16_444_UNorm,
+	SwapchainColor,
+};
+uint8  operator | (EPixelFormat lhs, EPixelFormat rhs);
+uint8  operator | (uint8 lhs, EPixelFormat rhs);
+uint8  operator | (EPixelFormat lhs, uint8 rhs);
+
+enum class EPixelFormatExternal : uint8
+{
+	Android_Depth16,
+	Android_DepthJPEG,
+	Android_DepthPointCloud,
+	Android_JPEG,
+	Android_Raw16,
+	Android_Raw12,
+	Android_Raw10,
+	Android_NV16,
+	Android_NV21,
+	Android_YCBCR_P010,
+	Android_YUV_420,
+	Android_YUV_422,
+	Android_YUV_444,
+	Android_YUY2,
+	Android_YV12,
+	Android_Y8,
+	Android_HEIC,
+};
+uint8  operator | (EPixelFormatExternal lhs, EPixelFormatExternal rhs);
+uint8  operator | (uint8 lhs, EPixelFormatExternal rhs);
+uint8  operator | (EPixelFormatExternal lhs, uint8 rhs);
+
+enum class ECompareOp : uint8
+{
+	Never,
+	Less,
+	Equal,
+	LEqual,
+	Greater,
+	NotEqual,
+	GEqual,
+	Always,
+	LessOrEqual,
+	GreaterOrEqual,
+};
+uint8  operator | (ECompareOp lhs, ECompareOp rhs);
+uint8  operator | (uint8 lhs, ECompareOp rhs);
+uint8  operator | (ECompareOp lhs, uint8 rhs);
+
+enum class EBlendFactor : uint8
+{
+
+	// S, srcColor - from shader
+	// D, dstColor - from render target
+	// S1 - from shader (dual src blend)
+	// cc - constant color
+	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
+	//
+
+	// 0
+	Zero,
+
+	// 1
+	One,
+
+	// S
+	SrcColor,
+
+	// 1 - S
+	OneMinusSrcColor,
+
+	// D
+	DstColor,
+
+	// 1 - D
+	OneMinusDstColor,
+
+	// S.a
+	SrcAlpha,
+
+	// 1 - S.a
+	OneMinusSrcAlpha,
+
+	// D.a
+	DstAlpha,
+
+	// 1 - D.a
+	OneMinusDstAlpha,
+
+	// cc
+	ConstColor,
+
+	// 1 - cc
+	OneMinusConstColor,
+
+	// cc.a
+	ConstAlpha,
+
+	// 1 - cc.a
+	OneMinusConstAlpha,
+
+	// rgb * min( S.a, D.a ), a * 1
+	SrcAlphaSaturate,
+
+	// S1
+	Src1Color,
+
+	// 1 - S1
+	OneMinusSrc1Color,
+
+	// S1.a
+	Src1Alpha,
+
+	// 1 - S1.a
+	OneMinusSrc1Alpha,
+};
+uint8  operator | (EBlendFactor lhs, EBlendFactor rhs);
+uint8  operator | (uint8 lhs, EBlendFactor rhs);
+uint8  operator | (EBlendFactor lhs, uint8 rhs);
+
+enum class EBlendOp : uint8
+{
+
+	// S, srcColor - from shader
+	// D, dstColor - from render target
+	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
+	//
+
+	// S + D
+	Add,
+
+	// S - D
+	Sub,
+
+	// D - S
+	RevSub,
+
+	// min( S, D )
+	Min,
+
+	// max( S, D )
+	Max,
+};
+uint8  operator | (EBlendOp lhs, EBlendOp rhs);
+uint8  operator | (uint8 lhs, EBlendOp rhs);
+uint8  operator | (EBlendOp lhs, uint8 rhs);
+
+enum class ELogicOp : uint8
+{
+
+	// S - from shader
+	// D - from render target
+	// result = S [logicOp] D
+	//
+
+	// disabled
+	None,
+
+	// 0
+	Clear,
+
+	// 1
+	Set,
+
+	// S
+	Copy,
+
+	// ~S
+	CopyInverted,
+
+	// D
+	NoOp,
+
+	// ~D
+	Invert,
+
+	// S & D
+	And,
+
+	// ~ ( S & D )
+	NotAnd,
+
+	// S | D
+	Or,
+
+	// ~ ( S | D )
+	NotOr,
+
+	// S ^ D
+	Xor,
+
+	// ~ ( S ^ D )
+	Equiv,
+
+	// S & ~D
+	AndReverse,
+
+	// ~S & D
+	AndInverted,
+
+	// S | ~D
+	OrReverse,
+
+	// ~S | D
+	OrInverted,
+};
+uint8  operator | (ELogicOp lhs, ELogicOp rhs);
+uint8  operator | (uint8 lhs, ELogicOp rhs);
+uint8  operator | (ELogicOp lhs, uint8 rhs);
+
+enum class EStencilOp : uint8
+{
+
+	// src
+	Keep,
+
+	// 0
+	Zero,
+
+	// ref
+	Replace,
+
+	// min( ++src, 0 )
+	Incr,
+
+	// ++src & maxValue
+	IncrWrap,
+
+	// max( --src, 0 )
+	Decr,
+
+	// --src & maxValue
+	DecrWrap,
+
+	// ~src
+	Invert,
+};
+uint8  operator | (EStencilOp lhs, EStencilOp rhs);
+uint8  operator | (uint8 lhs, EStencilOp rhs);
+uint8  operator | (EStencilOp lhs, uint8 rhs);
+
+enum class EPolygonMode : uint8
+{
+	Point,
+	Line,
+	Fill,
+};
+uint8  operator | (EPolygonMode lhs, EPolygonMode rhs);
+uint8  operator | (uint8 lhs, EPolygonMode rhs);
+uint8  operator | (EPolygonMode lhs, uint8 rhs);
+
+enum class EPrimitive : uint8
+{
+	Point,
+	LineList,
+	LineStrip,
+	LineListAdjacency,
+	LineStripAdjacency,
+	TriangleList,
+	TriangleStrip,
+	TriangleFan,
+	TriangleListAdjacency,
+	TriangleStripAdjacency,
+	Patch,
+};
+uint8  operator | (EPrimitive lhs, EPrimitive rhs);
+uint8  operator | (uint8 lhs, EPrimitive rhs);
+uint8  operator | (EPrimitive lhs, uint8 rhs);
+
+enum class ECullMode : uint8
+{
+	None,
+	Front,
+	Back,
+	FontAndBack,
+};
+uint8  operator | (ECullMode lhs, ECullMode rhs);
+uint8  operator | (uint8 lhs, ECullMode rhs);
+uint8  operator | (ECullMode lhs, uint8 rhs);
+
+enum class EPipelineDynamicState : uint16
+{
+	None,
+	StencilCompareMask,
+	StencilWriteMask,
+	StencilReference,
+	DepthBias,
+	BlendConstants,
+	RTStackSize,
+	FragmentShadingRate,
+	ViewportWScaling,
+};
+uint16  operator | (EPipelineDynamicState lhs, EPipelineDynamicState rhs);
+uint16  operator | (uint16 lhs, EPipelineDynamicState rhs);
+uint16  operator | (EPipelineDynamicState lhs, uint16 rhs);
+
+enum class EResourceState : uint32
+{
+	Unknown,
+	Preserve,
+	ShaderStorage_Read,
+	ShaderStorage_Write,
+	ShaderStorage_RW,
+	ShaderUniform,
+	ShaderSample,
+	CopySrc,
+	CopyDst,
+	ClearDst,
+	BlitSrc,
+	BlitDst,
+	InputColorAttachment,
+	InputColorAttachment_RW,
+	ColorAttachment,
+	ColorAttachment_Blend,
+	DepthStencilAttachment_Read,
+	DepthStencilAttachment_Write,
+	DepthStencilAttachment_RW,
+	DepthTest_StencilRW,
+	DepthRW_StencilTest,
+	DepthStencilTest_ShaderSample,
+	DepthTest_DepthSample_StencilRW,
+	InputDepthStencilAttachment,
+	InputDepthStencilAttachment_RW,
+	Host_Read,
+	PresentImage,
+	IndirectBuffer,
+	IndexBuffer,
+	VertexBuffer,
+	ShadingRateImage,
+	CopyRTAS_Read,
+	CopyRTAS_Write,
+	BuildRTAS_Read,
+	BuildRTAS_Write,
+	BuildRTAS_RW,
+	BuildRTAS_IndirectBuffer,
+	ShaderRTAS,
+	RTShaderBindingTable,
+	DSTestBeforeFS,
+	DSTestAfterFS,
+	Invalidate,
+	General,
+	MeshTaskShader,
+	VertexProcessingShaders,
+	TileShader,
+	FragmentShader,
+	PreRasterizationShaders,
+	PostRasterizationShaders,
+	ComputeShader,
+	RayTracingShaders,
+	AllGraphicsShaders,
+	AllShaders,
+	BuildRTAS_ScratchBuffer,
+	InputDepthAttachment,
+	DepthStencilAttachment,
+};
+uint32  operator | (EResourceState lhs, EResourceState rhs);
+uint32  operator | (uint32 lhs, EResourceState rhs);
+uint32  operator | (EResourceState lhs, uint32 rhs);
+
+enum class EImageAspect : uint8
+{
+	Color,
+	Depth,
+	Stencil,
+	DepthStencil,
+	Plane_0,
+	Plane_1,
+	Plane_2,
+};
+uint8  operator | (EImageAspect lhs, EImageAspect rhs);
+uint8  operator | (uint8 lhs, EImageAspect rhs);
+uint8  operator | (EImageAspect lhs, uint8 rhs);
+
+enum class EShaderIO : uint8
+{
+	Int,
+	UInt,
+	Float,
+	UFloat,
+	Half,
+	UNorm,
+	SNorm,
+	sRGB,
+	AnyColor,
+	Depth,
+	Stencil,
+	DepthStencil,
+};
+uint8  operator | (EShaderIO lhs, EShaderIO rhs);
+uint8  operator | (uint8 lhs, EShaderIO rhs);
+uint8  operator | (EShaderIO lhs, uint8 rhs);
+
+enum class ESubgroupTypes : uint8
+{
+	Float16,
+	Float32,
+	Int8,
+	Int16,
+	Int32,
+	Int64,
+};
+uint8  operator | (ESubgroupTypes lhs, ESubgroupTypes rhs);
+uint8  operator | (uint8 lhs, ESubgroupTypes rhs);
+uint8  operator | (ESubgroupTypes lhs, uint8 rhs);
+
+enum class ESubgroupOperation : uint32
+{
+	IndexAndSize,
+	Elect,
+	Barrier,
+	Any,
+	All,
+	AllEqual,
+	Add,
+	Mul,
+	Min,
+	Max,
+	And,
+	Or,
+	Xor,
+	InclusiveMul,
+	InclusiveAdd,
+	InclusiveMin,
+	InclusiveMax,
+	InclusiveAnd,
+	InclusiveOr,
+	InclusiveXor,
+	ExclusiveAdd,
+	ExclusiveMul,
+	ExclusiveMin,
+	ExclusiveMax,
+	ExclusiveAnd,
+	ExclusiveOr,
+	ExclusiveXor,
+	Ballot,
+	Broadcast,
+	BroadcastFirst,
+	InverseBallot,
+	BallotBitExtract,
+	BallotBitCount,
+	BallotInclusiveBitCount,
+	BallotExclusiveBitCount,
+	BallotFindLSB,
+	BallotFindMSB,
+	Shuffle,
+	ShuffleXor,
+	ShuffleUp,
+	ShuffleDown,
+	ClusteredAdd,
+	ClusteredMul,
+	ClusteredMin,
+	ClusteredMax,
+	ClusteredAnd,
+	ClusteredOr,
+	ClusteredXor,
+	QuadBroadcast,
+	QuadSwapHorizontal,
+	QuadSwapVertical,
+	QuadSwapDiagonal,
+	_Basic_Begin,
+	_Basic_End,
+	_Vote_Begin,
+	_Vote_End,
+	_Arithmetic_Begin,
+	_Arithmetic_End,
+	_Ballot_Begin,
+	_Ballot_End,
+	_Shuffle_Begin,
+	_Shuffle_End,
+	_ShuffleRelative_Begin,
+	_ShuffleRelative_End,
+	_Clustered_Begin,
+	_Clustered_End,
+	_Quad_Begin,
+	_Quad_End,
+};
+uint32  operator | (ESubgroupOperation lhs, ESubgroupOperation rhs);
+uint32  operator | (uint32 lhs, ESubgroupOperation rhs);
+uint32  operator | (ESubgroupOperation lhs, uint32 rhs);
+
+enum class EFeature : uint8
+{
+	Ignore,
+	RequireTrue,
+	RequireFalse,
+};
+uint8  operator | (EFeature lhs, EFeature rhs);
+uint8  operator | (uint8 lhs, EFeature rhs);
+uint8  operator | (EFeature lhs, uint8 rhs);
+
+enum class EShader : uint8
+{
+	Vertex,
+	TessControl,
+	TessEvaluation,
+	Geometry,
+	Fragment,
+	Compute,
+	Tile,
+	MeshTask,
+	Mesh,
+	RayGen,
+	RayAnyHit,
+	RayClosestHit,
+	RayMiss,
+	RayIntersection,
+	RayCallable,
+};
+uint8  operator | (EShader lhs, EShader rhs);
+uint8  operator | (uint8 lhs, EShader rhs);
+uint8  operator | (EShader lhs, uint8 rhs);
+
+enum class EShaderStages : uint16
+{
+	Vertex,
+	TessControl,
+	TessEvaluation,
+	Geometry,
+	Fragment,
+	Compute,
+	Tile,
+	MeshTask,
+	Mesh,
+	RayGen,
+	RayAnyHit,
+	RayClosestHit,
+	RayMiss,
+	RayIntersection,
+	RayCallable,
+	All,
+	AllGraphics,
+	GraphicsPipeStages,
+	MeshPipeStages,
+	VertexProcessingStages,
+	PreRasterizationStages,
+	PostRasterizationStages,
+	AllRayTracing,
+};
+uint16  operator | (EShaderStages lhs, EShaderStages rhs);
+uint16  operator | (uint16 lhs, EShaderStages rhs);
+uint16  operator | (EShaderStages lhs, uint16 rhs);
+
+enum class EGPUVendor : uint32
+{
+	AMD,
+	NVidia,
+	Intel,
+	ARM,
+	Qualcomm,
+	ImgTech,
+	Microsoft,
+	Apple,
+	Mesa,
+	Broadcom,
+	Samsung,
+	VeriSilicon,
+	Huawei,
+};
+uint32  operator | (EGPUVendor lhs, EGPUVendor rhs);
+uint32  operator | (uint32 lhs, EGPUVendor rhs);
+uint32  operator | (EGPUVendor lhs, uint32 rhs);
+
+enum class EVertexType : uint16
+{
+	Byte,
+	Byte2,
+	Byte3,
+	Byte4,
+	Byte_Norm,
+	Byte2_Norm,
+	Byte3_Norm,
+	Byte4_Norm,
+	Byte_Scaled,
+	Byte2_Scaled,
+	Byte3_Scaled,
+	Byte4_Scaled,
+	UByte,
+	UByte2,
+	UByte3,
+	UByte4,
+	UByte_Norm,
+	UByte2_Norm,
+	UByte3_Norm,
+	UByte4_Norm,
+	UByte_Scaled,
+	UByte2_Scaled,
+	UByte3_Scaled,
+	UByte4_Scaled,
+	Short,
+	Short2,
+	Short3,
+	Short4,
+	Short_Norm,
+	Short2_Norm,
+	Short3_Norm,
+	Short4_Norm,
+	Short_Scaled,
+	Short2_Scaled,
+	Short3_Scaled,
+	Short4_Scaled,
+	UShort,
+	UShort2,
+	UShort3,
+	UShort4,
+	UShort_Norm,
+	UShort2_Norm,
+	UShort3_Norm,
+	UShort4_Norm,
+	UShort_Scaled,
+	UShort2_Scaled,
+	UShort3_Scaled,
+	UShort4_Scaled,
+	Int,
+	Int2,
+	Int3,
+	Int4,
+	UInt,
+	UInt2,
+	UInt3,
+	UInt4,
+	Long,
+	Long2,
+	Long3,
+	Long4,
+	ULong,
+	ULong2,
+	ULong3,
+	ULong4,
+	Half,
+	Half2,
+	Half3,
+	Half4,
+	Float,
+	Float2,
+	Float3,
+	Float4,
+	Double,
+	Double2,
+	Double3,
+	Double4,
+	UInt_2_10_10_10,
+	UInt_2_10_10_10_Norm,
+	UInt_2_10_10_10_Scaled,
+};
+uint16  operator | (EVertexType lhs, EVertexType rhs);
+uint16  operator | (uint16 lhs, EVertexType rhs);
+uint16  operator | (EVertexType lhs, uint16 rhs);
+
+enum class EGraphicsDeviceID : uint32
+{
+	Adreno_500,
+	Adreno_600,
+	Adreno_700,
+	AMD_GCN1,
+	AMD_GCN2,
+	AMD_GCN3,
+	AMD_GCN4,
+	AMD_GCN5,
+	AMD_GCN5_APU,
+	AMD_RDNA1,
+	AMD_RDNA2,
+	AMD_RDNA2_APU,
+	AMD_RDNA3,
+	AMD_RDNA3_APU,
+	AMD_RDNA4,
+	Apple_A8,
+	Apple_A9_A10,
+	Apple_A11,
+	Apple_A12,
+	Apple_A13,
+	Apple_A14_M1,
+	Apple_A15_M2,
+	Apple_A16,
+	Apple_A17_M3,
+	Mali_Midgard_Gen2,
+	Mali_Midgard_Gen3,
+	Mali_Midgard_Gen4,
+	Mali_Bifrost_Gen1,
+	Mali_Bifrost_Gen2,
+	Mali_Bifrost_Gen3,
+	Mali_Valhall_Gen1,
+	Mali_Valhall_Gen2,
+	Mali_Valhall_Gen3,
+	Mali_Valhall_Gen4,
+	Mali_5thGen_Gen1,
+	Mali_5thGen_Gen2,
+	NV_Maxwell,
+	NV_Maxwell_Tegra,
+	NV_Pascal,
+	NV_Pascal_MX,
+	NV_Pascal_Tegra,
+	NV_Volta,
+	NV_Turing_16,
+	NV_Turing,
+	NV_Turing_MX,
+	NV_Ampere,
+	NV_Ampere_Orin,
+	NV_Ada,
+	NV_Blackwell,
+	Intel_Gen7,
+	Intel_Gen8,
+	Intel_Gen9,
+	Intel_Gen11,
+	Intel_Gen12,
+	Intel_Gen12_7,
+	PowerVR_Series8,
+	PowerVR_Series9,
+	PowerVR_SeriesA,
+	PowerVR_SeriesB,
+	VeriSilicon,
+	SwiftShader,
+};
+uint32  operator | (EGraphicsDeviceID lhs, EGraphicsDeviceID rhs);
+uint32  operator | (uint32 lhs, EGraphicsDeviceID rhs);
+uint32  operator | (EGraphicsDeviceID lhs, uint32 rhs);
+
+enum class EFilter : uint8
+{
+	Nearest,
+	Linear,
+};
+uint8  operator | (EFilter lhs, EFilter rhs);
+uint8  operator | (uint8 lhs, EFilter rhs);
+uint8  operator | (EFilter lhs, uint8 rhs);
+
+enum class EMipmapFilter : uint8
+{
+	None,
+	Nearest,
+	Linear,
+};
+uint8  operator | (EMipmapFilter lhs, EMipmapFilter rhs);
+uint8  operator | (uint8 lhs, EMipmapFilter rhs);
+uint8  operator | (EMipmapFilter lhs, uint8 rhs);
+
+enum class EAddressMode : uint8
+{
+	Repeat,
+	MirrorRepeat,
+	ClampToEdge,
+	ClampToBorder,
+	MirrorClampToEdge,
+	Clamp,
+	MirrorClamp,
+};
+uint8  operator | (EAddressMode lhs, EAddressMode rhs);
+uint8  operator | (uint8 lhs, EAddressMode rhs);
+uint8  operator | (EAddressMode lhs, uint8 rhs);
+
+enum class EBorderColor : uint8
+{
+	FloatTransparentBlack,
+	FloatOpaqueBlack,
+	FloatOpaqueWhite,
+	IntTransparentBlack,
+	IntOpaqueBlack,
+	IntOpaqueWhite,
+};
+uint8  operator | (EBorderColor lhs, EBorderColor rhs);
+uint8  operator | (uint8 lhs, EBorderColor rhs);
+uint8  operator | (EBorderColor lhs, uint8 rhs);
+
+enum class EReductionMode : uint8
+{
+	Average,
+	Min,
+	Max,
+};
+uint8  operator | (EReductionMode lhs, EReductionMode rhs);
+uint8  operator | (uint8 lhs, EReductionMode rhs);
+uint8  operator | (EReductionMode lhs, uint8 rhs);
+
+enum class ESamplerOpt : uint8
+{
+	ArgumentBuffer,
+	UnnormalizedCoordinates,
+	NonSeamlessCubeMap,
+};
+uint8  operator | (ESamplerOpt lhs, ESamplerOpt rhs);
+uint8  operator | (uint8 lhs, ESamplerOpt rhs);
+uint8  operator | (ESamplerOpt lhs, uint8 rhs);
+
+enum class EVertexInputRate : uint8
+{
+	Vertex,
+	Instance,
+};
+uint8  operator | (EVertexInputRate lhs, EVertexInputRate rhs);
+uint8  operator | (uint8 lhs, EVertexInputRate rhs);
+uint8  operator | (EVertexInputRate lhs, uint8 rhs);
+
+enum class EDescSetUsage : uint8
+{
+	AllowPartialyUpdate,
+	UpdateTemplate,
+	ArgumentBuffer,
+	MutableArgBuffer,
+	MaybeUnsupported,
+};
+uint8  operator | (EDescSetUsage lhs, EDescSetUsage rhs);
+uint8  operator | (uint8 lhs, EDescSetUsage rhs);
+uint8  operator | (EDescSetUsage lhs, uint8 rhs);
+
+enum class EPipelineOpt : uint16
+{
+
+	// Optimize pipeline during creation, may be slow.
+	Optimize,
+	CS_DispatchBase,
+	RT_NoNullAnyHitShaders,
+	RT_NoNullClosestHitShaders,
+	RT_NoNullMissShaders,
+	RT_NoNullIntersectionShaders,
+	RT_SkipTriangles,
+	RT_SkipAABBs,
+
+	// Pipeline creation will fail if it is not exists in cache.
+	DontCompile,
+
+	// When a pipeline is created, its state and shaders are compiled into zero or more device-specific executables,
+	// which are used when executing commands against that pipeline.
+	CaptureStatistics,
+
+	// May include the final shader assembly, a binary form of the compiled shader,
+	// or the shader compiler’s internal representation at any number of intermediate compile steps.
+	CaptureInternalRepresentation,
+
+	// Disable pipeline optimization to speedup creation.
+	DontOptimize,
+	None,
+};
+uint16  operator | (EPipelineOpt lhs, EPipelineOpt rhs);
+uint16  operator | (uint16 lhs, EPipelineOpt rhs);
+uint16  operator | (EPipelineOpt lhs, uint16 rhs);
+
+enum class EQueueMask : uint8
+{
+	Graphics,
+	AsyncCompute,
+	AsyncTransfer,
+	VideoEncode,
+	VideoDecode,
+	All,
+};
+uint8  operator | (EQueueMask lhs, EQueueMask rhs);
+uint8  operator | (uint8 lhs, EQueueMask rhs);
+uint8  operator | (EQueueMask lhs, uint8 rhs);
+
+enum class ESamplerChromaLocation : uint8
+{
+	CositedEven,
+	Midpoint,
+};
+uint8  operator | (ESamplerChromaLocation lhs, ESamplerChromaLocation rhs);
+uint8  operator | (uint8 lhs, ESamplerChromaLocation rhs);
+uint8  operator | (ESamplerChromaLocation lhs, uint8 rhs);
+
+enum class ESamplerYcbcrModelConversion : uint8
+{
+	RGB_Identity,
+	Ycbcr_Identity,
+	Ycbcr_709,
+	Ycbcr_601,
+	Ycbcr_2020,
+};
+uint8  operator | (ESamplerYcbcrModelConversion lhs, ESamplerYcbcrModelConversion rhs);
+uint8  operator | (uint8 lhs, ESamplerYcbcrModelConversion rhs);
+uint8  operator | (ESamplerYcbcrModelConversion lhs, uint8 rhs);
+
+enum class ESamplerYcbcrRange : uint8
+{
+	ITU_Full,
+	ITU_Narrow,
+};
+uint8  operator | (ESamplerYcbcrRange lhs, ESamplerYcbcrRange rhs);
+uint8  operator | (uint8 lhs, ESamplerYcbcrRange rhs);
+uint8  operator | (ESamplerYcbcrRange lhs, uint8 rhs);
+
+enum class ESurfaceFormat : uint8
+{
+	BGRA8_sRGB_nonlinear,
+	RGBA8_sRGB_nonlinear,
+	BGRA8_BT709_nonlinear,
+	RGBA16F_Extended_sRGB_linear,
+	RGBA16F_sRGB_nonlinear,
+	RGBA16F_BT709_nonlinear,
+	RGBA16F_HDR10_ST2084,
+	RGBA16F_BT2020_linear,
+	RGB10A2_sRGB_nonlinear,
+	RGB10A2_HDR10_ST2084,
+};
+uint8  operator | (ESurfaceFormat lhs, ESurfaceFormat rhs);
+uint8  operator | (uint8 lhs, ESurfaceFormat rhs);
+uint8  operator | (ESurfaceFormat lhs, uint8 rhs);
+
+enum class ERTInstanceOpt : uint8
+{
+	TriangleCullDisable,
+	TriangleFrontCCW,
+	ForceOpaque,
+	ForceNonOpaque,
+	TriangleCullBack,
+	TriangleFrontCW,
+};
+uint8  operator | (ERTInstanceOpt lhs, ERTInstanceOpt rhs);
+uint8  operator | (uint8 lhs, ERTInstanceOpt rhs);
+uint8  operator | (ERTInstanceOpt lhs, uint8 rhs);
+
+enum class EImageUsage : uint32
+{
+	TransferSrc,
+	TransferDst,
+	Sampled,
+	Storage,
+	ColorAttachment,
+	DepthStencilAttachment,
+	InputAttachment,
+	ShadingRate,
+	All,
+	Transfer,
+	RWAttachment,
+};
+uint32  operator | (EImageUsage lhs, EImageUsage rhs);
+uint32  operator | (uint32 lhs, EImageUsage rhs);
+uint32  operator | (EImageUsage lhs, uint32 rhs);
+
+enum class EImageOpt : uint32
+{
+	BlitSrc,
+	BlitDst,
+	CubeCompatible,
+	MutableFormat,
+	Array2DCompatible,
+	BlockTexelViewCompatible,
+	SparseResidency,
+	SparseAliased,
+	Alias,
+	SampleLocationsCompatible,
+	StorageAtomic,
+	ColorAttachmentBlend,
+	SampledLinear,
+	SampledMinMax,
+	VertexPplnStore,
+	FragmentPplnStore,
+	LossyRTCompression,
+	ExtendedUsage,
+	All,
+	SparseResidencyAliased,
+};
+uint32  operator | (EImageOpt lhs, EImageOpt rhs);
+uint32  operator | (uint32 lhs, EImageOpt rhs);
+uint32  operator | (EImageOpt lhs, uint32 rhs);
+
+enum class EBufferUsage : uint32
+{
+	TransferSrc,
+	TransferDst,
+	UniformTexel,
+	StorageTexel,
+	Uniform,
+	Storage,
+	Index,
+	Vertex,
+	Indirect,
+	ShaderAddress,
+	ShaderBindingTable,
+	ASBuild_ReadOnly,
+	ASBuild_Scratch,
+	All,
+	Transfer,
+};
+uint32  operator | (EBufferUsage lhs, EBufferUsage rhs);
+uint32  operator | (uint32 lhs, EBufferUsage rhs);
+uint32  operator | (EBufferUsage lhs, uint32 rhs);
+
+enum class EBufferOpt : uint32
+{
+	SparseResidency,
+	SparseAliased,
+	VertexPplnStore,
+	FragmentPplnStore,
+	StorageTexelAtomic,
+	All,
+	SparseResidencyAliased,
+};
+uint32  operator | (EBufferOpt lhs, EBufferOpt rhs);
+uint32  operator | (uint32 lhs, EBufferOpt rhs);
+uint32  operator | (EBufferOpt lhs, uint32 rhs);
+
+enum class EShadingRate : uint8
+{
+	Size1x1,
+	Size1x2,
+	Size1x4,
+	Size2x1,
+	Size2x2,
+	Size2x4,
+	Size4x1,
+	Size4x2,
+	Size4x4,
+};
+uint8  operator | (EShadingRate lhs, EShadingRate rhs);
+uint8  operator | (uint8 lhs, EShadingRate rhs);
+uint8  operator | (EShadingRate lhs, uint8 rhs);
+
+enum class EShadingRateCombinerOp : uint8
+{
+	Keep,
+	Replace,
+	Min,
+	Max,
+	Sum,
+	Mul,
+};
+uint8  operator | (EShadingRateCombinerOp lhs, EShadingRateCombinerOp rhs);
+uint8  operator | (uint8 lhs, EShadingRateCombinerOp rhs);
+uint8  operator | (EShadingRateCombinerOp lhs, uint8 rhs);
+
+enum class ECubeFace : uint32
+{
+	XPos,
+	XNeg,
+	YPos,
+	YNeg,
+	ZPos,
+	ZNeg,
+};
+uint32  operator | (ECubeFace lhs, ECubeFace rhs);
+uint32  operator | (uint32 lhs, ECubeFace rhs);
+uint32  operator | (ECubeFace lhs, uint32 rhs);
+
+enum class ERasterFontMode : uint32
+{
+
+	// Raster font, glyph dimension on screen should be multiple of glyph bitmap size.
+	Raster,
+
+	// SDF font, can be scaled, but have smooth angles.
+	SDF,
+
+	// Multichannel SDF font, can be scaled, have sharp angles, but a bit less performance.
+	MC_SDF,
+};
+uint32  operator | (ERasterFontMode lhs, ERasterFontMode rhs);
+uint32  operator | (uint32 lhs, ERasterFontMode rhs);
+uint32  operator | (ERasterFontMode lhs, uint32 rhs);
+
+enum class ELayoutType : uint8
+{
+	FixedLayoutPx,
+	FixedLayoutMm,
+	PaddingLayoutPx,
+	PaddingLayoutMm,
+	PaddingLayoutRel,
+	AlignedLayoutPx,
+	AlignedLayoutMm,
+	AlignedLayoutRel,
+	StackLayoutL,
+	StackLayoutR,
+	StackLayoutB,
+	StackLayoutT,
+	FillStackLayout,
+};
+uint8  operator | (ELayoutType lhs, ELayoutType rhs);
+uint8  operator | (uint8 lhs, ELayoutType rhs);
+uint8  operator | (ELayoutType lhs, uint8 rhs);
+
+enum class ELayoutAlign : uint8
+{
+	Left,
+	Right,
+	Bottom,
+	Top,
+	CenterX,
+	CenterY,
+	FillX,
+	FillY,
+	Center,
+	Fill,
+};
+uint8  operator | (ELayoutAlign lhs, ELayoutAlign rhs);
+uint8  operator | (uint8 lhs, ELayoutAlign rhs);
+uint8  operator | (ELayoutAlign lhs, uint8 rhs);
+
+enum class EStackOrigin : uint8
+{
+	Left,
+	Right,
+	Bottom,
+	Top,
+};
+uint8  operator | (EStackOrigin lhs, EStackOrigin rhs);
+uint8  operator | (uint8 lhs, EStackOrigin rhs);
+uint8  operator | (EStackOrigin lhs, uint8 rhs);
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -1329,1105 +2576,6 @@ void  LogDebug (const string & msg);
 void  LogFatal (const string & msg);
 void  Assert (bool expr);
 void  Assert (bool expr, const string & msg);
-struct EImage
-{
-	EImage () {}
-	EImage (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 1D = 0;
-	static constexpr uint8 2D = 1;
-	static constexpr uint8 3D = 2;
-	static constexpr uint8 1DArray = 3;
-	static constexpr uint8 2DArray = 4;
-	static constexpr uint8 Cube = 5;
-	static constexpr uint8 CubeArray = 6;
-};
-
-struct EIndex
-{
-	EIndex () {}
-	EIndex (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 UShort = 0;
-	static constexpr uint8 UInt = 1;
-};
-
-struct EPixelFormat
-{
-	EPixelFormat () {}
-	EPixelFormat (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 RGBA16_SNorm = 0;
-	static constexpr uint8 RGBA8_SNorm = 1;
-	static constexpr uint8 RGB16_SNorm = 2;
-	static constexpr uint8 RGB8_SNorm = 3;
-	static constexpr uint8 RG16_SNorm = 4;
-	static constexpr uint8 RG8_SNorm = 5;
-	static constexpr uint8 R16_SNorm = 6;
-	static constexpr uint8 R8_SNorm = 7;
-	static constexpr uint8 RGBA16_UNorm = 8;
-	static constexpr uint8 RGBA8_UNorm = 9;
-	static constexpr uint8 RGB16_UNorm = 10;
-	static constexpr uint8 RGB8_UNorm = 11;
-	static constexpr uint8 RG16_UNorm = 12;
-	static constexpr uint8 RG8_UNorm = 13;
-	static constexpr uint8 R16_UNorm = 14;
-	static constexpr uint8 R8_UNorm = 15;
-	static constexpr uint8 RGB10_A2_UNorm = 16;
-	static constexpr uint8 RGBA4_UNorm = 17;
-	static constexpr uint8 RGB5_A1_UNorm = 18;
-	static constexpr uint8 RGB_5_6_5_UNorm = 19;
-	static constexpr uint8 BGR8_UNorm = 20;
-	static constexpr uint8 BGRA8_UNorm = 21;
-	static constexpr uint8 sRGB8 = 22;
-	static constexpr uint8 sRGB8_A8 = 23;
-	static constexpr uint8 sBGR8 = 24;
-	static constexpr uint8 sBGR8_A8 = 25;
-	static constexpr uint8 R8I = 26;
-	static constexpr uint8 RG8I = 27;
-	static constexpr uint8 RGB8I = 28;
-	static constexpr uint8 RGBA8I = 29;
-	static constexpr uint8 R16I = 30;
-	static constexpr uint8 RG16I = 31;
-	static constexpr uint8 RGB16I = 32;
-	static constexpr uint8 RGBA16I = 33;
-	static constexpr uint8 R32I = 34;
-	static constexpr uint8 RG32I = 35;
-	static constexpr uint8 RGB32I = 36;
-	static constexpr uint8 RGBA32I = 37;
-	static constexpr uint8 R64I = 38;
-	static constexpr uint8 R8U = 39;
-	static constexpr uint8 RG8U = 40;
-	static constexpr uint8 RGB8U = 41;
-	static constexpr uint8 RGBA8U = 42;
-	static constexpr uint8 R16U = 43;
-	static constexpr uint8 RG16U = 44;
-	static constexpr uint8 RGB16U = 45;
-	static constexpr uint8 RGBA16U = 46;
-	static constexpr uint8 R32U = 47;
-	static constexpr uint8 RG32U = 48;
-	static constexpr uint8 RGB32U = 49;
-	static constexpr uint8 RGBA32U = 50;
-	static constexpr uint8 RGB10_A2U = 51;
-	static constexpr uint8 R64U = 52;
-	static constexpr uint8 R16F = 53;
-	static constexpr uint8 RG16F = 54;
-	static constexpr uint8 RGB16F = 55;
-	static constexpr uint8 RGBA16F = 56;
-	static constexpr uint8 R32F = 57;
-	static constexpr uint8 RG32F = 58;
-	static constexpr uint8 RGB32F = 59;
-	static constexpr uint8 RGBA32F = 60;
-	static constexpr uint8 RGB_11_11_10F = 61;
-	static constexpr uint8 RGB9F_E5 = 62;
-	static constexpr uint8 Depth16 = 63;
-	static constexpr uint8 Depth24 = 64;
-	static constexpr uint8 Depth32F = 65;
-	static constexpr uint8 Depth16_Stencil8 = 66;
-	static constexpr uint8 Depth24_Stencil8 = 67;
-	static constexpr uint8 Depth32F_Stencil8 = 68;
-	static constexpr uint8 BC1_RGB8_UNorm = 69;
-	static constexpr uint8 BC1_sRGB8 = 70;
-	static constexpr uint8 BC1_RGB8_A1_UNorm = 71;
-	static constexpr uint8 BC1_sRGB8_A1 = 72;
-	static constexpr uint8 BC2_RGBA8_UNorm = 73;
-	static constexpr uint8 BC2_sRGB8 = 74;
-	static constexpr uint8 BC3_RGBA8_UNorm = 75;
-	static constexpr uint8 BC3_sRGB8 = 76;
-	static constexpr uint8 BC4_R8_SNorm = 77;
-	static constexpr uint8 BC4_R8_UNorm = 78;
-	static constexpr uint8 BC5_RG8_SNorm = 79;
-	static constexpr uint8 BC5_RG8_UNorm = 80;
-	static constexpr uint8 BC6H_RGB16F = 81;
-	static constexpr uint8 BC6H_RGB16UF = 82;
-	static constexpr uint8 BC7_RGBA8_UNorm = 83;
-	static constexpr uint8 BC7_sRGB8_A8 = 84;
-	static constexpr uint8 ETC2_RGB8_UNorm = 85;
-	static constexpr uint8 ETC2_sRGB8 = 86;
-	static constexpr uint8 ETC2_RGB8_A1_UNorm = 87;
-	static constexpr uint8 ETC2_sRGB8_A1 = 88;
-	static constexpr uint8 ETC2_RGBA8_UNorm = 89;
-	static constexpr uint8 ETC2_sRGB8_A8 = 90;
-	static constexpr uint8 EAC_R11_SNorm = 91;
-	static constexpr uint8 EAC_R11_UNorm = 92;
-	static constexpr uint8 EAC_RG11_SNorm = 93;
-	static constexpr uint8 EAC_RG11_UNorm = 94;
-	static constexpr uint8 ASTC_RGBA8_4x4 = 95;
-	static constexpr uint8 ASTC_RGBA8_5x4 = 96;
-	static constexpr uint8 ASTC_RGBA8_5x5 = 97;
-	static constexpr uint8 ASTC_RGBA8_6x5 = 98;
-	static constexpr uint8 ASTC_RGBA8_6x6 = 99;
-	static constexpr uint8 ASTC_RGBA8_8x5 = 100;
-	static constexpr uint8 ASTC_RGBA8_8x6 = 101;
-	static constexpr uint8 ASTC_RGBA8_8x8 = 102;
-	static constexpr uint8 ASTC_RGBA8_10x5 = 103;
-	static constexpr uint8 ASTC_RGBA8_10x6 = 104;
-	static constexpr uint8 ASTC_RGBA8_10x8 = 105;
-	static constexpr uint8 ASTC_RGBA8_10x10 = 106;
-	static constexpr uint8 ASTC_RGBA8_12x10 = 107;
-	static constexpr uint8 ASTC_RGBA8_12x12 = 108;
-	static constexpr uint8 ASTC_sRGB8_A8_4x4 = 109;
-	static constexpr uint8 ASTC_sRGB8_A8_5x4 = 110;
-	static constexpr uint8 ASTC_sRGB8_A8_5x5 = 111;
-	static constexpr uint8 ASTC_sRGB8_A8_6x5 = 112;
-	static constexpr uint8 ASTC_sRGB8_A8_6x6 = 113;
-	static constexpr uint8 ASTC_sRGB8_A8_8x5 = 114;
-	static constexpr uint8 ASTC_sRGB8_A8_8x6 = 115;
-	static constexpr uint8 ASTC_sRGB8_A8_8x8 = 116;
-	static constexpr uint8 ASTC_sRGB8_A8_10x5 = 117;
-	static constexpr uint8 ASTC_sRGB8_A8_10x6 = 118;
-	static constexpr uint8 ASTC_sRGB8_A8_10x8 = 119;
-	static constexpr uint8 ASTC_sRGB8_A8_10x10 = 120;
-	static constexpr uint8 ASTC_sRGB8_A8_12x10 = 121;
-	static constexpr uint8 ASTC_sRGB8_A8_12x12 = 122;
-	static constexpr uint8 ASTC_RGBA16F_4x4 = 123;
-	static constexpr uint8 ASTC_RGBA16F_5x4 = 124;
-	static constexpr uint8 ASTC_RGBA16F_5x5 = 125;
-	static constexpr uint8 ASTC_RGBA16F_6x5 = 126;
-	static constexpr uint8 ASTC_RGBA16F_6x6 = 127;
-	static constexpr uint8 ASTC_RGBA16F_8x5 = 128;
-	static constexpr uint8 ASTC_RGBA16F_8x6 = 129;
-	static constexpr uint8 ASTC_RGBA16F_8x8 = 130;
-	static constexpr uint8 ASTC_RGBA16F_10x5 = 131;
-	static constexpr uint8 ASTC_RGBA16F_10x6 = 132;
-	static constexpr uint8 ASTC_RGBA16F_10x8 = 133;
-	static constexpr uint8 ASTC_RGBA16F_10x10 = 134;
-	static constexpr uint8 ASTC_RGBA16F_12x10 = 135;
-	static constexpr uint8 ASTC_RGBA16F_12x12 = 136;
-	static constexpr uint8 G8B8G8R8_422_UNorm = 137;
-	static constexpr uint8 B8G8R8G8_422_UNorm = 138;
-	static constexpr uint8 G8_B8R8_420_UNorm = 139;
-	static constexpr uint8 G8_B8R8_422_UNorm = 140;
-	static constexpr uint8 G8_B8R8_444_UNorm = 141;
-	static constexpr uint8 G8_B8_R8_420_UNorm = 142;
-	static constexpr uint8 G8_B8_R8_422_UNorm = 143;
-	static constexpr uint8 G8_B8_R8_444_UNorm = 144;
-	static constexpr uint8 B10x6G10x6R10x6G10x6_422_UNorm = 145;
-	static constexpr uint8 G10x6B10x6G10x6R10x6_422_UNorm = 146;
-	static constexpr uint8 G10x6_B10x6R10x6_420_UNorm = 147;
-	static constexpr uint8 G10x6_B10x6R10x6_422_UNorm = 148;
-	static constexpr uint8 G10x6_B10x6R10x6_444_UNorm = 149;
-	static constexpr uint8 G10x6_B10x6_R10x6_420_UNorm = 150;
-	static constexpr uint8 G10x6_B10x6_R10x6_422_UNorm = 151;
-	static constexpr uint8 G10x6_B10x6_R10x6_444_UNorm = 152;
-	static constexpr uint8 R10x6G10x6B10x6A10x6_UNorm = 153;
-	static constexpr uint8 R10x6G10x6_UNorm = 154;
-	static constexpr uint8 R10x6_UNorm = 155;
-	static constexpr uint8 B12x4G12x4R12x4G12x4_422_UNorm = 156;
-	static constexpr uint8 G12x4B12x4G12x4R12x4_422_UNorm = 157;
-	static constexpr uint8 G12x4_B12x4R12x4_420_UNorm = 158;
-	static constexpr uint8 G12x4_B12x4R12x4_422_UNorm = 159;
-	static constexpr uint8 G12x4_B12x4R12x4_444_UNorm = 160;
-	static constexpr uint8 G12x4_B12x4_R12x4_420_UNorm = 161;
-	static constexpr uint8 G12x4_B12x4_R12x4_422_UNorm = 162;
-	static constexpr uint8 G12x4_B12x4_R12x4_444_UNorm = 163;
-	static constexpr uint8 R12x4G12x4B12x4A12x4_UNorm = 164;
-	static constexpr uint8 R12x4G12x4_UNorm = 165;
-	static constexpr uint8 R12x4_UNorm = 166;
-	static constexpr uint8 B16G16R16G16_422_UNorm = 167;
-	static constexpr uint8 G16B16G16R16_422_UNorm = 168;
-	static constexpr uint8 G16_B16R16_420_UNorm = 169;
-	static constexpr uint8 G16_B16R16_422_UNorm = 170;
-	static constexpr uint8 G16_B16R16_444_UNorm = 171;
-	static constexpr uint8 G16_B16_R16_420_UNorm = 172;
-	static constexpr uint8 G16_B16_R16_422_UNorm = 173;
-	static constexpr uint8 G16_B16_R16_444_UNorm = 174;
-	static constexpr uint8 SwapchainColor = 254;
-};
-
-struct EPixelFormatExternal
-{
-	EPixelFormatExternal () {}
-	EPixelFormatExternal (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Android_Depth16 = 0;
-	static constexpr uint8 Android_DepthJPEG = 1;
-	static constexpr uint8 Android_DepthPointCloud = 2;
-	static constexpr uint8 Android_JPEG = 3;
-	static constexpr uint8 Android_Raw16 = 5;
-	static constexpr uint8 Android_Raw12 = 6;
-	static constexpr uint8 Android_Raw10 = 7;
-	static constexpr uint8 Android_NV16 = 9;
-	static constexpr uint8 Android_NV21 = 10;
-	static constexpr uint8 Android_YCBCR_P010 = 11;
-	static constexpr uint8 Android_YUV_420 = 12;
-	static constexpr uint8 Android_YUV_422 = 13;
-	static constexpr uint8 Android_YUV_444 = 14;
-	static constexpr uint8 Android_YUY2 = 15;
-	static constexpr uint8 Android_YV12 = 16;
-	static constexpr uint8 Android_Y8 = 17;
-	static constexpr uint8 Android_HEIC = 18;
-};
-
-struct ECompareOp
-{
-	ECompareOp () {}
-	ECompareOp (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Never = 0;
-	static constexpr uint8 Less = 1;
-	static constexpr uint8 Equal = 2;
-	static constexpr uint8 LEqual = 3;
-	static constexpr uint8 Greater = 4;
-	static constexpr uint8 NotEqual = 5;
-	static constexpr uint8 GEqual = 6;
-	static constexpr uint8 Always = 7;
-	static constexpr uint8 LessOrEqual = 3;
-	static constexpr uint8 GreaterOrEqual = 6;
-};
-
-struct EBlendFactor
-{
-	EBlendFactor () {}
-	EBlendFactor (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Zero = 0;
-	static constexpr uint8 One = 1;
-	static constexpr uint8 SrcColor = 2;
-	static constexpr uint8 OneMinusSrcColor = 3;
-	static constexpr uint8 DstColor = 4;
-	static constexpr uint8 OneMinusDstColor = 5;
-	static constexpr uint8 SrcAlpha = 6;
-	static constexpr uint8 OneMinusSrcAlpha = 7;
-	static constexpr uint8 DstAlpha = 8;
-	static constexpr uint8 OneMinusDstAlpha = 9;
-	static constexpr uint8 ConstColor = 10;
-	static constexpr uint8 OneMinusConstColor = 11;
-	static constexpr uint8 ConstAlpha = 12;
-	static constexpr uint8 OneMinusConstAlpha = 13;
-	static constexpr uint8 SrcAlphaSaturate = 14;
-	static constexpr uint8 Src1Color = 15;
-	static constexpr uint8 OneMinusSrc1Color = 16;
-	static constexpr uint8 Src1Alpha = 17;
-	static constexpr uint8 OneMinusSrc1Alpha = 18;
-};
-
-struct EBlendOp
-{
-	EBlendOp () {}
-	EBlendOp (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Add = 0;
-	static constexpr uint8 Sub = 1;
-	static constexpr uint8 RevSub = 2;
-	static constexpr uint8 Min = 3;
-	static constexpr uint8 Max = 4;
-};
-
-struct ELogicOp
-{
-	ELogicOp () {}
-	ELogicOp (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 None = 0;
-	static constexpr uint8 Clear = 1;
-	static constexpr uint8 Set = 2;
-	static constexpr uint8 Copy = 3;
-	static constexpr uint8 CopyInverted = 4;
-	static constexpr uint8 NoOp = 5;
-	static constexpr uint8 Invert = 6;
-	static constexpr uint8 And = 7;
-	static constexpr uint8 NotAnd = 8;
-	static constexpr uint8 Or = 9;
-	static constexpr uint8 NotOr = 10;
-	static constexpr uint8 Xor = 11;
-	static constexpr uint8 Equiv = 12;
-	static constexpr uint8 AndReverse = 13;
-	static constexpr uint8 AndInverted = 14;
-	static constexpr uint8 OrReverse = 15;
-	static constexpr uint8 OrInverted = 16;
-};
-
-struct EStencilOp
-{
-	EStencilOp () {}
-	EStencilOp (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Keep = 0;
-	static constexpr uint8 Zero = 1;
-	static constexpr uint8 Replace = 2;
-	static constexpr uint8 Incr = 3;
-	static constexpr uint8 IncrWrap = 4;
-	static constexpr uint8 Decr = 5;
-	static constexpr uint8 DecrWrap = 6;
-	static constexpr uint8 Invert = 7;
-};
-
-struct EPolygonMode
-{
-	EPolygonMode () {}
-	EPolygonMode (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Point = 0;
-	static constexpr uint8 Line = 1;
-	static constexpr uint8 Fill = 2;
-};
-
-struct EPrimitive
-{
-	EPrimitive () {}
-	EPrimitive (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Point = 0;
-	static constexpr uint8 LineList = 1;
-	static constexpr uint8 LineStrip = 2;
-	static constexpr uint8 LineListAdjacency = 3;
-	static constexpr uint8 LineStripAdjacency = 4;
-	static constexpr uint8 TriangleList = 5;
-	static constexpr uint8 TriangleStrip = 6;
-	static constexpr uint8 TriangleFan = 7;
-	static constexpr uint8 TriangleListAdjacency = 8;
-	static constexpr uint8 TriangleStripAdjacency = 9;
-	static constexpr uint8 Patch = 10;
-};
-
-struct ECullMode
-{
-	ECullMode () {}
-	ECullMode (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 None = 0;
-	static constexpr uint8 Front = 1;
-	static constexpr uint8 Back = 2;
-	static constexpr uint8 FontAndBack = 3;
-};
-
-struct EPipelineDynamicState
-{
-	EPipelineDynamicState () {}
-	EPipelineDynamicState (uint16) {}
-	operator uint16 () const;
-	static constexpr uint16 None = 0;
-	static constexpr uint16 StencilCompareMask = 1;
-	static constexpr uint16 StencilWriteMask = 2;
-	static constexpr uint16 StencilReference = 4;
-	static constexpr uint16 DepthBias = 8;
-	static constexpr uint16 BlendConstants = 16;
-	static constexpr uint16 RTStackSize = 64;
-	static constexpr uint16 FragmentShadingRate = 128;
-};
-
-struct EResourceState
-{
-	EResourceState () {}
-	EResourceState (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 Unknown = 0;
-	static constexpr uint32 Preserve = 1;
-	static constexpr uint32 ShaderStorage_Read = 271;
-	static constexpr uint32 ShaderStorage_Write = 528;
-	static constexpr uint32 ShaderStorage_RW = 785;
-	static constexpr uint32 ShaderUniform = 274;
-	static constexpr uint32 ShaderSample = 275;
-	static constexpr uint32 CopySrc = 258;
-	static constexpr uint32 CopyDst = 515;
-	static constexpr uint32 ClearDst = 516;
-	static constexpr uint32 BlitSrc = 261;
-	static constexpr uint32 BlitDst = 518;
-	static constexpr uint32 InputColorAttachment = 276;
-	static constexpr uint32 InputColorAttachment_RW = 533;
-	static constexpr uint32 ColorAttachment = 519;
-	static constexpr uint32 ColorAttachment_Blend = 775;
-	static constexpr uint32 DepthStencilAttachment_Read = 1288;
-	static constexpr uint32 DepthStencilAttachment_Write = 2569;
-	static constexpr uint32 DepthStencilAttachment_RW = 3849;
-	static constexpr uint32 DepthTest_StencilRW = 3338;
-	static constexpr uint32 DepthRW_StencilTest = 1803;
-	static constexpr uint32 DepthStencilTest_ShaderSample = 1304;
-	static constexpr uint32 DepthTest_DepthSample_StencilRW = 3353;
-	static constexpr uint32 InputDepthStencilAttachment = 1302;
-	static constexpr uint32 InputDepthStencilAttachment_RW = 3863;
-	static constexpr uint32 Host_Read = 282;
-	static constexpr uint32 PresentImage = 268;
-	static constexpr uint32 IndirectBuffer = 284;
-	static constexpr uint32 IndexBuffer = 285;
-	static constexpr uint32 VertexBuffer = 286;
-	static constexpr uint32 ShadingRateImage = 269;
-	static constexpr uint32 CopyRTAS_Read = 287;
-	static constexpr uint32 CopyRTAS_Write = 544;
-	static constexpr uint32 BuildRTAS_Read = 289;
-	static constexpr uint32 BuildRTAS_Write = 546;
-	static constexpr uint32 BuildRTAS_RW = 802;
-	static constexpr uint32 BuildRTAS_IndirectBuffer = 291;
-	static constexpr uint32 ShaderRTAS = 283;
-	static constexpr uint32 RTShaderBindingTable = 292;
-	static constexpr uint32 DSTestBeforeFS = 4096;
-	static constexpr uint32 DSTestAfterFS = 8192;
-	static constexpr uint32 Invalidate = 16384;
-	static constexpr uint32 General = 782;
-	static constexpr uint32 MeshTaskShader = 32768;
-	static constexpr uint32 VertexProcessingShaders = 65536;
-	static constexpr uint32 TileShader = 131072;
-	static constexpr uint32 FragmentShader = 262144;
-	static constexpr uint32 PreRasterizationShaders = 98304;
-	static constexpr uint32 PostRasterizationShaders = 393216;
-	static constexpr uint32 ComputeShader = 524288;
-	static constexpr uint32 RayTracingShaders = 1048576;
-	static constexpr uint32 AllGraphicsShaders = 491520;
-	static constexpr uint32 AllShaders = 2064384;
-	static constexpr uint32 BuildRTAS_ScratchBuffer = 802;
-	static constexpr uint32 InputDepthAttachment = 1302;
-	static constexpr uint32 DepthStencilAttachment = 16137;
-};
-
-struct EImageAspect
-{
-	EImageAspect () {}
-	EImageAspect (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Color = 1;
-	static constexpr uint8 Depth = 2;
-	static constexpr uint8 Stencil = 4;
-	static constexpr uint8 DepthStencil = 6;
-	static constexpr uint8 Plane_0 = 16;
-	static constexpr uint8 Plane_1 = 32;
-	static constexpr uint8 Plane_2 = 64;
-};
-
-struct EShaderIO
-{
-	EShaderIO () {}
-	EShaderIO (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Int = 1;
-	static constexpr uint8 UInt = 2;
-	static constexpr uint8 Float = 3;
-	static constexpr uint8 UFloat = 4;
-	static constexpr uint8 Half = 5;
-	static constexpr uint8 UNorm = 6;
-	static constexpr uint8 SNorm = 7;
-	static constexpr uint8 sRGB = 8;
-	static constexpr uint8 AnyColor = 9;
-	static constexpr uint8 Depth = 10;
-	static constexpr uint8 Stencil = 11;
-	static constexpr uint8 DepthStencil = 12;
-};
-
-struct ESubgroupTypes
-{
-	ESubgroupTypes () {}
-	ESubgroupTypes (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Float16 = 32;
-	static constexpr uint8 Float32 = 1;
-	static constexpr uint8 Int8 = 4;
-	static constexpr uint8 Int16 = 8;
-	static constexpr uint8 Int32 = 2;
-	static constexpr uint8 Int64 = 16;
-};
-
-struct ESubgroupOperation
-{
-	ESubgroupOperation () {}
-	ESubgroupOperation (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 IndexAndSize = 0;
-	static constexpr uint32 Elect = 1;
-	static constexpr uint32 Barrier = 2;
-	static constexpr uint32 Any = 3;
-	static constexpr uint32 All = 4;
-	static constexpr uint32 AllEqual = 5;
-	static constexpr uint32 Add = 6;
-	static constexpr uint32 Mul = 7;
-	static constexpr uint32 Min = 8;
-	static constexpr uint32 Max = 9;
-	static constexpr uint32 And = 10;
-	static constexpr uint32 Or = 11;
-	static constexpr uint32 Xor = 12;
-	static constexpr uint32 InclusiveMul = 13;
-	static constexpr uint32 InclusiveAdd = 14;
-	static constexpr uint32 InclusiveMin = 15;
-	static constexpr uint32 InclusiveMax = 16;
-	static constexpr uint32 InclusiveAnd = 17;
-	static constexpr uint32 InclusiveOr = 18;
-	static constexpr uint32 InclusiveXor = 19;
-	static constexpr uint32 ExclusiveAdd = 20;
-	static constexpr uint32 ExclusiveMul = 21;
-	static constexpr uint32 ExclusiveMin = 22;
-	static constexpr uint32 ExclusiveMax = 23;
-	static constexpr uint32 ExclusiveAnd = 24;
-	static constexpr uint32 ExclusiveOr = 25;
-	static constexpr uint32 ExclusiveXor = 26;
-	static constexpr uint32 Ballot = 27;
-	static constexpr uint32 Broadcast = 28;
-	static constexpr uint32 BroadcastFirst = 29;
-	static constexpr uint32 InverseBallot = 30;
-	static constexpr uint32 BallotBitExtract = 31;
-	static constexpr uint32 BallotBitCount = 32;
-	static constexpr uint32 BallotInclusiveBitCount = 33;
-	static constexpr uint32 BallotExclusiveBitCount = 34;
-	static constexpr uint32 BallotFindLSB = 35;
-	static constexpr uint32 BallotFindMSB = 36;
-	static constexpr uint32 Shuffle = 37;
-	static constexpr uint32 ShuffleXor = 38;
-	static constexpr uint32 ShuffleUp = 39;
-	static constexpr uint32 ShuffleDown = 40;
-	static constexpr uint32 ClusteredAdd = 41;
-	static constexpr uint32 ClusteredMul = 42;
-	static constexpr uint32 ClusteredMin = 43;
-	static constexpr uint32 ClusteredMax = 44;
-	static constexpr uint32 ClusteredAnd = 45;
-	static constexpr uint32 ClusteredOr = 46;
-	static constexpr uint32 ClusteredXor = 47;
-	static constexpr uint32 QuadBroadcast = 48;
-	static constexpr uint32 QuadSwapHorizontal = 49;
-	static constexpr uint32 QuadSwapVertical = 50;
-	static constexpr uint32 QuadSwapDiagonal = 51;
-	static constexpr uint32 _Basic_Begin = 0;
-	static constexpr uint32 _Basic_End = 2;
-	static constexpr uint32 _Vote_Begin = 3;
-	static constexpr uint32 _Vote_End = 5;
-	static constexpr uint32 _Arithmetic_Begin = 6;
-	static constexpr uint32 _Arithmetic_End = 26;
-	static constexpr uint32 _Ballot_Begin = 27;
-	static constexpr uint32 _Ballot_End = 36;
-	static constexpr uint32 _Shuffle_Begin = 37;
-	static constexpr uint32 _Shuffle_End = 38;
-	static constexpr uint32 _ShuffleRelative_Begin = 39;
-	static constexpr uint32 _ShuffleRelative_End = 40;
-	static constexpr uint32 _Clustered_Begin = 41;
-	static constexpr uint32 _Clustered_End = 47;
-	static constexpr uint32 _Quad_Begin = 48;
-	static constexpr uint32 _Quad_End = 51;
-};
-
-struct EFeature
-{
-	EFeature () {}
-	EFeature (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Ignore = 0;
-	static constexpr uint8 RequireTrue = 2;
-	static constexpr uint8 RequireFalse = 1;
-};
-
-struct EShader
-{
-	EShader () {}
-	EShader (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Vertex = 0;
-	static constexpr uint8 TessControl = 1;
-	static constexpr uint8 TessEvaluation = 2;
-	static constexpr uint8 Geometry = 3;
-	static constexpr uint8 Fragment = 4;
-	static constexpr uint8 Compute = 5;
-	static constexpr uint8 Tile = 6;
-	static constexpr uint8 MeshTask = 7;
-	static constexpr uint8 Mesh = 8;
-	static constexpr uint8 RayGen = 9;
-	static constexpr uint8 RayAnyHit = 10;
-	static constexpr uint8 RayClosestHit = 11;
-	static constexpr uint8 RayMiss = 12;
-	static constexpr uint8 RayIntersection = 13;
-	static constexpr uint8 RayCallable = 14;
-};
-
-struct EShaderStages
-{
-	EShaderStages () {}
-	EShaderStages (uint16) {}
-	operator uint16 () const;
-	static constexpr uint16 Vertex = 1;
-	static constexpr uint16 TessControl = 2;
-	static constexpr uint16 TessEvaluation = 4;
-	static constexpr uint16 Geometry = 8;
-	static constexpr uint16 Fragment = 16;
-	static constexpr uint16 Compute = 32;
-	static constexpr uint16 Tile = 64;
-	static constexpr uint16 MeshTask = 128;
-	static constexpr uint16 Mesh = 256;
-	static constexpr uint16 RayGen = 512;
-	static constexpr uint16 RayAnyHit = 1024;
-	static constexpr uint16 RayClosestHit = 2048;
-	static constexpr uint16 RayMiss = 4096;
-	static constexpr uint16 RayIntersection = 8192;
-	static constexpr uint16 RayCallable = 16384;
-	static constexpr uint16 All = 32767;
-	static constexpr uint16 AllGraphics = 415;
-	static constexpr uint16 GraphicsPipeStages = 31;
-	static constexpr uint16 MeshPipeStages = 400;
-	static constexpr uint16 VertexProcessingStages = 271;
-	static constexpr uint16 PreRasterizationStages = 399;
-	static constexpr uint16 PostRasterizationStages = 80;
-	static constexpr uint16 AllRayTracing = 32256;
-};
-
-struct EGPUVendor
-{
-	EGPUVendor () {}
-	EGPUVendor (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 AMD = 0;
-	static constexpr uint32 NVidia = 1;
-	static constexpr uint32 Intel = 2;
-	static constexpr uint32 ARM = 3;
-	static constexpr uint32 Qualcomm = 4;
-	static constexpr uint32 ImgTech = 5;
-	static constexpr uint32 Microsoft = 6;
-	static constexpr uint32 Apple = 7;
-	static constexpr uint32 Mesa = 8;
-	static constexpr uint32 Broadcom = 9;
-	static constexpr uint32 Samsung = 10;
-	static constexpr uint32 VeriSilicon = 11;
-	static constexpr uint32 Huawei = 12;
-};
-
-struct EVertexType
-{
-	EVertexType () {}
-	EVertexType (uint16) {}
-	operator uint16 () const;
-	static constexpr uint16 Byte = 4;
-	static constexpr uint16 Byte2 = 5;
-	static constexpr uint16 Byte3 = 6;
-	static constexpr uint16 Byte4 = 7;
-	static constexpr uint16 Byte_Norm = 68;
-	static constexpr uint16 Byte2_Norm = 69;
-	static constexpr uint16 Byte3_Norm = 70;
-	static constexpr uint16 Byte4_Norm = 71;
-	static constexpr uint16 Byte_Scaled = 132;
-	static constexpr uint16 Byte2_Scaled = 133;
-	static constexpr uint16 Byte3_Scaled = 134;
-	static constexpr uint16 Byte4_Scaled = 135;
-	static constexpr uint16 UByte = 8;
-	static constexpr uint16 UByte2 = 9;
-	static constexpr uint16 UByte3 = 10;
-	static constexpr uint16 UByte4 = 11;
-	static constexpr uint16 UByte_Norm = 72;
-	static constexpr uint16 UByte2_Norm = 73;
-	static constexpr uint16 UByte3_Norm = 74;
-	static constexpr uint16 UByte4_Norm = 75;
-	static constexpr uint16 UByte_Scaled = 136;
-	static constexpr uint16 UByte2_Scaled = 137;
-	static constexpr uint16 UByte3_Scaled = 138;
-	static constexpr uint16 UByte4_Scaled = 139;
-	static constexpr uint16 Short = 12;
-	static constexpr uint16 Short2 = 13;
-	static constexpr uint16 Short3 = 14;
-	static constexpr uint16 Short4 = 15;
-	static constexpr uint16 Short_Norm = 76;
-	static constexpr uint16 Short2_Norm = 77;
-	static constexpr uint16 Short3_Norm = 78;
-	static constexpr uint16 Short4_Norm = 79;
-	static constexpr uint16 Short_Scaled = 140;
-	static constexpr uint16 Short2_Scaled = 141;
-	static constexpr uint16 Short3_Scaled = 142;
-	static constexpr uint16 Short4_Scaled = 143;
-	static constexpr uint16 UShort = 16;
-	static constexpr uint16 UShort2 = 17;
-	static constexpr uint16 UShort3 = 18;
-	static constexpr uint16 UShort4 = 19;
-	static constexpr uint16 UShort_Norm = 80;
-	static constexpr uint16 UShort2_Norm = 81;
-	static constexpr uint16 UShort3_Norm = 82;
-	static constexpr uint16 UShort4_Norm = 83;
-	static constexpr uint16 UShort_Scaled = 144;
-	static constexpr uint16 UShort2_Scaled = 145;
-	static constexpr uint16 UShort3_Scaled = 146;
-	static constexpr uint16 UShort4_Scaled = 147;
-	static constexpr uint16 Int = 20;
-	static constexpr uint16 Int2 = 21;
-	static constexpr uint16 Int3 = 22;
-	static constexpr uint16 Int4 = 23;
-	static constexpr uint16 UInt = 24;
-	static constexpr uint16 UInt2 = 25;
-	static constexpr uint16 UInt3 = 26;
-	static constexpr uint16 UInt4 = 27;
-	static constexpr uint16 Long = 28;
-	static constexpr uint16 Long2 = 29;
-	static constexpr uint16 Long3 = 30;
-	static constexpr uint16 Long4 = 31;
-	static constexpr uint16 ULong = 32;
-	static constexpr uint16 ULong2 = 33;
-	static constexpr uint16 ULong3 = 34;
-	static constexpr uint16 ULong4 = 35;
-	static constexpr uint16 Half = 36;
-	static constexpr uint16 Half2 = 37;
-	static constexpr uint16 Half3 = 38;
-	static constexpr uint16 Half4 = 39;
-	static constexpr uint16 Float = 40;
-	static constexpr uint16 Float2 = 41;
-	static constexpr uint16 Float3 = 42;
-	static constexpr uint16 Float4 = 43;
-	static constexpr uint16 Double = 44;
-	static constexpr uint16 Double2 = 45;
-	static constexpr uint16 Double3 = 46;
-	static constexpr uint16 Double4 = 47;
-	static constexpr uint16 UInt_2_10_10_10 = 51;
-	static constexpr uint16 UInt_2_10_10_10_Norm = 115;
-	static constexpr uint16 UInt_2_10_10_10_Scaled = 179;
-};
-
-struct EGraphicsDeviceID
-{
-	EGraphicsDeviceID () {}
-	EGraphicsDeviceID (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 Adreno_500 = 0;
-	static constexpr uint32 Adreno_600 = 1;
-	static constexpr uint32 Adreno_700 = 2;
-	static constexpr uint32 AMD_GCN1 = 3;
-	static constexpr uint32 AMD_GCN2 = 4;
-	static constexpr uint32 AMD_GCN3 = 5;
-	static constexpr uint32 AMD_GCN4 = 6;
-	static constexpr uint32 AMD_GCN5 = 7;
-	static constexpr uint32 AMD_GCN5_APU = 8;
-	static constexpr uint32 AMD_RDNA1 = 9;
-	static constexpr uint32 AMD_RDNA2 = 10;
-	static constexpr uint32 AMD_RDNA2_APU = 11;
-	static constexpr uint32 AMD_RDNA3 = 12;
-	static constexpr uint32 AMD_RDNA3_APU = 13;
-	static constexpr uint32 AMD_RDNA4 = 14;
-	static constexpr uint32 Apple_A8 = 15;
-	static constexpr uint32 Apple_A9_A10 = 16;
-	static constexpr uint32 Apple_A11 = 17;
-	static constexpr uint32 Apple_A12 = 18;
-	static constexpr uint32 Apple_A13 = 19;
-	static constexpr uint32 Apple_A14_M1 = 20;
-	static constexpr uint32 Apple_A15_M2 = 21;
-	static constexpr uint32 Apple_A16 = 22;
-	static constexpr uint32 Apple_A17_M3 = 23;
-	static constexpr uint32 Mali_Midgard_Gen2 = 24;
-	static constexpr uint32 Mali_Midgard_Gen3 = 25;
-	static constexpr uint32 Mali_Midgard_Gen4 = 26;
-	static constexpr uint32 Mali_Bifrost_Gen1 = 27;
-	static constexpr uint32 Mali_Bifrost_Gen2 = 28;
-	static constexpr uint32 Mali_Bifrost_Gen3 = 29;
-	static constexpr uint32 Mali_Valhall_Gen1 = 30;
-	static constexpr uint32 Mali_Valhall_Gen2 = 31;
-	static constexpr uint32 Mali_Valhall_Gen3 = 32;
-	static constexpr uint32 Mali_Valhall_Gen4 = 33;
-	static constexpr uint32 Mali_5thGen_Gen1 = 34;
-	static constexpr uint32 Mali_5thGen_Gen2 = 35;
-	static constexpr uint32 NV_Maxwell = 36;
-	static constexpr uint32 NV_Maxwell_Tegra = 37;
-	static constexpr uint32 NV_Pascal = 38;
-	static constexpr uint32 NV_Pascal_MX = 39;
-	static constexpr uint32 NV_Pascal_Tegra = 40;
-	static constexpr uint32 NV_Volta = 41;
-	static constexpr uint32 NV_Turing_16 = 42;
-	static constexpr uint32 NV_Turing = 43;
-	static constexpr uint32 NV_Turing_MX = 44;
-	static constexpr uint32 NV_Ampere = 45;
-	static constexpr uint32 NV_Ampere_Orin = 46;
-	static constexpr uint32 NV_Ada = 47;
-	static constexpr uint32 NV_Blackwell = 48;
-	static constexpr uint32 Intel_Gen7 = 49;
-	static constexpr uint32 Intel_Gen8 = 50;
-	static constexpr uint32 Intel_Gen9 = 51;
-	static constexpr uint32 Intel_Gen11 = 52;
-	static constexpr uint32 Intel_Gen12 = 53;
-	static constexpr uint32 Intel_Gen12_7 = 54;
-	static constexpr uint32 PowerVR_Series8 = 55;
-	static constexpr uint32 PowerVR_Series9 = 56;
-	static constexpr uint32 PowerVR_SeriesA = 57;
-	static constexpr uint32 PowerVR_SeriesB = 58;
-	static constexpr uint32 VeriSilicon = 59;
-	static constexpr uint32 SwiftShader = 60;
-};
-
-struct EFilter
-{
-	EFilter () {}
-	EFilter (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Nearest = 0;
-	static constexpr uint8 Linear = 1;
-};
-
-struct EMipmapFilter
-{
-	EMipmapFilter () {}
-	EMipmapFilter (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 None = 0;
-	static constexpr uint8 Nearest = 1;
-	static constexpr uint8 Linear = 2;
-};
-
-struct EAddressMode
-{
-	EAddressMode () {}
-	EAddressMode (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Repeat = 0;
-	static constexpr uint8 MirrorRepeat = 1;
-	static constexpr uint8 ClampToEdge = 2;
-	static constexpr uint8 ClampToBorder = 3;
-	static constexpr uint8 MirrorClampToEdge = 4;
-	static constexpr uint8 Clamp = 2;
-	static constexpr uint8 MirrorClamp = 4;
-};
-
-struct EBorderColor
-{
-	EBorderColor () {}
-	EBorderColor (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 FloatTransparentBlack = 0;
-	static constexpr uint8 FloatOpaqueBlack = 1;
-	static constexpr uint8 FloatOpaqueWhite = 2;
-	static constexpr uint8 IntTransparentBlack = 3;
-	static constexpr uint8 IntOpaqueBlack = 4;
-	static constexpr uint8 IntOpaqueWhite = 5;
-};
-
-struct EReductionMode
-{
-	EReductionMode () {}
-	EReductionMode (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Average = 0;
-	static constexpr uint8 Min = 1;
-	static constexpr uint8 Max = 2;
-};
-
-struct ESamplerOpt
-{
-	ESamplerOpt () {}
-	ESamplerOpt (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 ArgumentBuffer = 1;
-	static constexpr uint8 UnnormalizedCoordinates = 4;
-	static constexpr uint8 NonSeamlessCubeMap = 2;
-};
-
-struct EVertexInputRate
-{
-	EVertexInputRate () {}
-	EVertexInputRate (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Vertex = 0;
-	static constexpr uint8 Instance = 1;
-};
-
-struct EDescSetUsage
-{
-	EDescSetUsage () {}
-	EDescSetUsage (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 AllowPartialyUpdate = 1;
-	static constexpr uint8 UpdateTemplate = 2;
-	static constexpr uint8 ArgumentBuffer = 4;
-	static constexpr uint8 MutableArgBuffer = 8;
-	static constexpr uint8 MaybeUnsupported = 16;
-};
-
-struct EPipelineOpt
-{
-	EPipelineOpt () {}
-	EPipelineOpt (uint16) {}
-	operator uint16 () const;
-
-	// Optimize pipeline during creation, may be slow.
-	static constexpr uint16 Optimize = 1;
-	static constexpr uint16 CS_DispatchBase = 2;
-	static constexpr uint16 RT_NoNullAnyHitShaders = 4;
-	static constexpr uint16 RT_NoNullClosestHitShaders = 8;
-	static constexpr uint16 RT_NoNullMissShaders = 16;
-	static constexpr uint16 RT_NoNullIntersectionShaders = 32;
-	static constexpr uint16 RT_SkipTriangles = 64;
-	static constexpr uint16 RT_SkipAABBs = 128;
-
-	// Pipeline creation will fail if it is not exists in cache.
-	static constexpr uint16 DontCompile = 256;
-
-	// When a pipeline is created, its state and shaders are compiled into zero or more device-specific executables,
-	// which are used when executing commands against that pipeline.
-	static constexpr uint16 CaptureStatistics = 512;
-
-	// May include the final shader assembly, a binary form of the compiled shader,
-	// or the shader compiler’s internal representation at any number of intermediate compile steps.
-	static constexpr uint16 CaptureInternalRepresentation = 1024;
-
-	// Disable pipeline optimization to speedup creation.
-	static constexpr uint16 DontOptimize = 0;
-	static constexpr uint16 None = 0;
-};
-
-struct EQueueMask
-{
-	EQueueMask () {}
-	EQueueMask (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Graphics = 1;
-	static constexpr uint8 AsyncCompute = 2;
-	static constexpr uint8 AsyncTransfer = 4;
-	static constexpr uint8 VideoEncode = 8;
-	static constexpr uint8 VideoDecode = 16;
-	static constexpr uint8 All = 31;
-};
-
-struct ESamplerChromaLocation
-{
-	ESamplerChromaLocation () {}
-	ESamplerChromaLocation (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 CositedEven = 0;
-	static constexpr uint8 Midpoint = 1;
-};
-
-struct ESamplerYcbcrModelConversion
-{
-	ESamplerYcbcrModelConversion () {}
-	ESamplerYcbcrModelConversion (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 RGB_Identity = 0;
-	static constexpr uint8 Ycbcr_Identity = 1;
-	static constexpr uint8 Ycbcr_709 = 2;
-	static constexpr uint8 Ycbcr_601 = 3;
-	static constexpr uint8 Ycbcr_2020 = 4;
-};
-
-struct ESamplerYcbcrRange
-{
-	ESamplerYcbcrRange () {}
-	ESamplerYcbcrRange (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 ITU_Full = 0;
-	static constexpr uint8 ITU_Narrow = 1;
-};
-
-struct ESurfaceFormat
-{
-	ESurfaceFormat () {}
-	ESurfaceFormat (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 BGRA8_sRGB_nonlinear = 0;
-	static constexpr uint8 RGBA8_sRGB_nonlinear = 1;
-	static constexpr uint8 BGRA8_BT709_nonlinear = 2;
-	static constexpr uint8 RGBA16F_Extended_sRGB_linear = 3;
-	static constexpr uint8 RGBA16F_sRGB_nonlinear = 4;
-	static constexpr uint8 RGBA16F_BT709_nonlinear = 5;
-	static constexpr uint8 RGBA16F_HDR10_ST2084 = 6;
-	static constexpr uint8 RGBA16F_BT2020_linear = 7;
-	static constexpr uint8 RGB10A2_sRGB_nonlinear = 8;
-	static constexpr uint8 RGB10A2_HDR10_ST2084 = 9;
-};
-
-struct ERTInstanceOpt
-{
-	ERTInstanceOpt () {}
-	ERTInstanceOpt (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 TriangleCullDisable = 1;
-	static constexpr uint8 TriangleFrontCCW = 2;
-	static constexpr uint8 ForceOpaque = 4;
-	static constexpr uint8 ForceNonOpaque = 8;
-	static constexpr uint8 TriangleCullBack = 0;
-	static constexpr uint8 TriangleFrontCW = 0;
-};
-
-struct EImageUsage
-{
-	EImageUsage () {}
-	EImageUsage (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 TransferSrc = 1;
-	static constexpr uint32 TransferDst = 2;
-	static constexpr uint32 Sampled = 4;
-	static constexpr uint32 Storage = 8;
-	static constexpr uint32 ColorAttachment = 16;
-	static constexpr uint32 DepthStencilAttachment = 32;
-	static constexpr uint32 InputAttachment = 64;
-	static constexpr uint32 ShadingRate = 128;
-	static constexpr uint32 All = 255;
-	static constexpr uint32 Transfer = 3;
-	static constexpr uint32 RWAttachment = 80;
-};
-
-struct EImageOpt
-{
-	EImageOpt () {}
-	EImageOpt (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 BlitSrc = 1;
-	static constexpr uint32 BlitDst = 2;
-	static constexpr uint32 CubeCompatible = 4;
-	static constexpr uint32 MutableFormat = 8;
-	static constexpr uint32 Array2DCompatible = 16;
-	static constexpr uint32 BlockTexelViewCompatible = 32;
-	static constexpr uint32 SparseResidency = 64;
-	static constexpr uint32 SparseAliased = 128;
-	static constexpr uint32 Alias = 256;
-	static constexpr uint32 SampleLocationsCompatible = 512;
-	static constexpr uint32 StorageAtomic = 1024;
-	static constexpr uint32 ColorAttachmentBlend = 2048;
-	static constexpr uint32 SampledLinear = 4096;
-	static constexpr uint32 SampledMinMax = 8192;
-	static constexpr uint32 VertexPplnStore = 16384;
-	static constexpr uint32 FragmentPplnStore = 32768;
-	static constexpr uint32 LossyRTCompression = 65536;
-	static constexpr uint32 All = 131071;
-	static constexpr uint32 SparseResidencyAliased = 192;
-};
-
-struct EBufferUsage
-{
-	EBufferUsage () {}
-	EBufferUsage (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 TransferSrc = 1;
-	static constexpr uint32 TransferDst = 2;
-	static constexpr uint32 UniformTexel = 4;
-	static constexpr uint32 StorageTexel = 8;
-	static constexpr uint32 Uniform = 16;
-	static constexpr uint32 Storage = 32;
-	static constexpr uint32 Index = 64;
-	static constexpr uint32 Vertex = 128;
-	static constexpr uint32 Indirect = 256;
-	static constexpr uint32 ShaderAddress = 512;
-	static constexpr uint32 ShaderBindingTable = 1024;
-	static constexpr uint32 ASBuild_ReadOnly = 2048;
-	static constexpr uint32 ASBuild_Scratch = 4096;
-	static constexpr uint32 All = 8191;
-	static constexpr uint32 Transfer = 3;
-};
-
-struct EBufferOpt
-{
-	EBufferOpt () {}
-	EBufferOpt (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 SparseResidency = 1;
-	static constexpr uint32 SparseAliased = 2;
-	static constexpr uint32 VertexPplnStore = 4;
-	static constexpr uint32 FragmentPplnStore = 8;
-	static constexpr uint32 StorageTexelAtomic = 16;
-	static constexpr uint32 All = 31;
-	static constexpr uint32 SparseResidencyAliased = 3;
-};
-
-struct EShadingRate
-{
-	EShadingRate () {}
-	EShadingRate (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Size1x1 = 16;
-	static constexpr uint8 Size1x2 = 32;
-	static constexpr uint8 Size1x4 = 48;
-	static constexpr uint8 Size2x1 = 64;
-	static constexpr uint8 Size2x2 = 80;
-	static constexpr uint8 Size2x4 = 96;
-	static constexpr uint8 Size4x1 = 112;
-	static constexpr uint8 Size4x2 = 128;
-	static constexpr uint8 Size4x4 = 144;
-};
-
-struct EShadingRateCombinerOp
-{
-	EShadingRateCombinerOp () {}
-	EShadingRateCombinerOp (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Keep = 0;
-	static constexpr uint8 Replace = 1;
-	static constexpr uint8 Min = 2;
-	static constexpr uint8 Max = 3;
-	static constexpr uint8 Sum = 4;
-	static constexpr uint8 Mul = 5;
-};
-
 struct MultiSamples
 {
 	MultiSamples ();
@@ -2450,19 +2598,6 @@ struct MipmapLevel
 	MipmapLevel (const MipmapLevel&);
 	MipmapLevel&  operator = (const MipmapLevel&);
 	MipmapLevel (uint);
-};
-
-struct ECubeFace
-{
-	ECubeFace () {}
-	ECubeFace (uint32) {}
-	operator uint32 () const;
-	static constexpr uint32 XPos = 0;
-	static constexpr uint32 XNeg = 1;
-	static constexpr uint32 YPos = 2;
-	static constexpr uint32 YNeg = 3;
-	static constexpr uint32 ZPos = 4;
-	static constexpr uint32 ZNeg = 5;
 };
 
 struct Texture
@@ -2495,22 +2630,6 @@ struct ImageAtlas
 	void  Store (const string & nameInArchive);
 	void  Padding (uint paddingInPixels);
 	void  Format (EPixelFormat newFormat);
-};
-
-struct ERasterFontMode
-{
-	ERasterFontMode () {}
-	ERasterFontMode (uint32) {}
-	operator uint32 () const;
-
-	// Raster font, glyph dimension on screen should be multiple of glyph bitmap size.
-	static constexpr uint32 Raster = 0;
-
-	// SDF font, can be scaled, but have smooth angles.
-	static constexpr uint32 SDF = 1;
-
-	// Multichannel SDF font, can be scaled, have sharp angles, but a bit less performance.
-	static constexpr uint32 MC_SDF = 2;
 };
 
 struct RasterFont
@@ -2589,54 +2708,6 @@ struct UIStyleCollection
 	void  Store (const string & nameInArchive);
 };
 
-struct ELayoutType
-{
-	ELayoutType () {}
-	ELayoutType (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 FixedLayoutPx = 1;
-	static constexpr uint8 FixedLayoutMm = 2;
-	static constexpr uint8 PaddingLayoutPx = 3;
-	static constexpr uint8 PaddingLayoutMm = 4;
-	static constexpr uint8 PaddingLayoutRel = 5;
-	static constexpr uint8 AlignedLayoutPx = 6;
-	static constexpr uint8 AlignedLayoutMm = 7;
-	static constexpr uint8 AlignedLayoutRel = 8;
-	static constexpr uint8 StackLayoutL = 9;
-	static constexpr uint8 StackLayoutR = 10;
-	static constexpr uint8 StackLayoutB = 11;
-	static constexpr uint8 StackLayoutT = 12;
-	static constexpr uint8 FillStackLayout = 13;
-};
-
-struct ELayoutAlign
-{
-	ELayoutAlign () {}
-	ELayoutAlign (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Left = 1;
-	static constexpr uint8 Right = 2;
-	static constexpr uint8 Bottom = 4;
-	static constexpr uint8 Top = 8;
-	static constexpr uint8 CenterX = 16;
-	static constexpr uint8 CenterY = 32;
-	static constexpr uint8 FillX = 3;
-	static constexpr uint8 FillY = 12;
-	static constexpr uint8 Center = 48;
-	static constexpr uint8 Fill = 15;
-};
-
-struct EStackOrigin
-{
-	EStackOrigin () {}
-	EStackOrigin (uint8) {}
-	operator uint8 () const;
-	static constexpr uint8 Left = 0;
-	static constexpr uint8 Right = 1;
-	static constexpr uint8 Bottom = 2;
-	static constexpr uint8 Top = 3;
-};
-
 struct BaseUIDrawable
 {
 };
@@ -2712,39 +2783,27 @@ struct UIWidget
 };
 
 template <>
-struct RC<Mesh> : Mesh
+struct RC<BaseUIController> : BaseUIController
 {
-	RC (const Mesh &);
+	RC (const BaseUIController &);
 };
 
 template <>
-struct RC<Material> : Material
+struct RC<UIWidget> : UIWidget
 {
-	RC (const Material &);
+	RC (const UIWidget &);
 };
 
 template <>
-struct RC<FixedLayout> : FixedLayout
+struct RC<UIStyleCollection> : UIStyleCollection
 {
-	RC (const FixedLayout &);
+	RC (const UIStyleCollection &);
 };
 
 template <>
-struct RC<UIFontStyle> : UIFontStyle
+struct RC<BaseLayout> : BaseLayout
 {
-	RC (const UIFontStyle &);
-};
-
-template <>
-struct RC<BaseUIDrawable> : BaseUIDrawable
-{
-	RC (const BaseUIDrawable &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-	RC (const Model &);
+	RC (const BaseLayout &);
 };
 
 template <>
@@ -2772,33 +2831,51 @@ struct RC<FillStackLayout> : FillStackLayout
 };
 
 template <>
-struct RC<BaseUIController> : BaseUIController
+struct RC<UIFontStyle> : UIFontStyle
 {
-	RC (const BaseUIController &);
+	RC (const UIFontStyle &);
 };
 
 template <>
-struct RC<UIStyleCollection> : UIStyleCollection
+struct RC<BaseUIDrawable> : BaseUIDrawable
 {
-	RC (const UIStyleCollection &);
+	RC (const BaseUIDrawable &);
 };
 
 template <>
-struct RC<UIWidget> : UIWidget
+struct RC<Model> : Model
 {
-	RC (const UIWidget &);
+	RC (const Model &);
 };
 
 template <>
-struct RC<BaseLayout> : BaseLayout
+struct RC<Mesh> : Mesh
 {
-	RC (const BaseLayout &);
+	RC (const Mesh &);
 };
 
 template <>
-struct RC<PaddingLayout> : PaddingLayout
+struct RC<Material> : Material
 {
-	RC (const PaddingLayout &);
+	RC (const Material &);
+};
+
+template <>
+struct RC<FixedLayout> : FixedLayout
+{
+	RC (const FixedLayout &);
+};
+
+template <>
+struct RC<UIColorStyle> : UIColorStyle
+{
+	RC (const UIColorStyle &);
+};
+
+template <>
+struct RC<RasterFont> : RasterFont
+{
+	RC (const RasterFont &);
 };
 
 template <>
@@ -2820,14 +2897,8 @@ struct RC<Texture> : Texture
 };
 
 template <>
-struct RC<UIColorStyle> : UIColorStyle
+struct RC<PaddingLayout> : PaddingLayout
 {
-	RC (const UIColorStyle &);
-};
-
-template <>
-struct RC<RasterFont> : RasterFont
-{
-	RC (const RasterFont &);
+	RC (const PaddingLayout &);
 };
 

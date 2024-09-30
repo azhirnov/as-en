@@ -46,6 +46,16 @@ You can replace path to your local git server to get stable and safe connection.
 
 Currently script is written only for Windows platform, on other platforms you can get access through your local git-server.
 
+**Alternative**<br/>
+Download prebuild binaries which is used in CI and extract it to the `AE-Bin/external` folder:<br/>
+[Android](https://disk.yandex.ru/d/O1s2phbgeQ0qYQ)<br/>
+[Linux x64 GCC-13](https://disk.yandex.ru/d/kOFxBTUcF_tPSA)<br/>
+[Linux x64 Clang-16](https://disk.yandex.ru/d/EFVy6uci9CWp8Q)<br/>
+[MacOS arm64](https://disk.yandex.ru/d/D8CH8QhYzxYB6w)<br/>
+[Windows x64 MSVC](https://disk.yandex.ru/d/rp0poS4J38WM3A)<br/>
+[Windows x64 Clang](https://disk.yandex.ru/d/y8QLb9g37nBpJA)<br/>
+Then [Build engine and samples](#Build-engine-and-samples)
+
 
 ## Build third party dependencies
 
@@ -134,7 +144,7 @@ Compiled resources will be stored in `AE/../AE-Temp` folder. They can be used on
 ## Update file paths (optional)
 
 Visual Studio and some other IDEs and programs (Notepad++) allows to open file in URL format like a `file://absolute/path/to/a/file.txt`, but it requires absolute paths. Source code may contain links to other source files or docs which is written as URLs.<br/>
-Use IDE or another tool to replace path `[](file://C:/Projects/AllinOne/AE/)` to an absolute path like a `file://C:/Projects/AE/`.
+Use IDE or another tool to replace path `[](https://github.com/azhirnov/as-en/blob/dev/AE/)` to an absolute path like a `file://C:/Projects/AE/`.
 
 
 ## Setup IDE and environment (optional)

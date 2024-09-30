@@ -281,6 +281,9 @@ namespace
 	{
 		CHECK_ERR( compat._attachments.size() <= GraphicsConfig::MaxAttachments );
 
+		if ( compat._attachments.empty() )
+			return true;
+
 		const uint	count			= uint(compat._attachments.size());
 		auto*		dst_attachments	= _allocator.Allocate<VkAttachmentDescription2>( count );
 		CHECK_ERR( dst_attachments != null );
@@ -1632,7 +1635,7 @@ namespace
 		{
 			const auto&	att = _mtlAtt[i];
 
-			if ( not att.IsDefined() or not AllBits( att.flags, MtlAttachmentFlags::Color ))
+			if ( not att.IsDefined() or NoBits( att.flags, MtlAttachmentFlags::Color ))
 			{
 				col_count = i;
 				break;

@@ -39,9 +39,9 @@ namespace AE::AssetPacker
 
 		struct Header
 		{
-			packed_ushort3	dimension;
-			ushort			arrayLayers	= 0;
-			ushort			mipmaps		= 0;
+			ImageDim_t		dimension;
+			LayerCount_t	arrayLayers	= 0;
+			MipmapCount_t	mipmaps		= 0;
 			EImage			viewType	= Default;
 			EPixelFormat	format		= Default;
 			ushort			flags		= 0;		// 0

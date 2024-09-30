@@ -5,11 +5,17 @@
 #include "Math.glsl"
 
 
+#ifdef AE_LICENSE_UNLICENSE
+/*
+=================================================
+	WeylHash
+----
+	from https://www.shadertoy.com/view/MsV3z3
+	LICENSE: http://unlicense.org/
+=================================================
+*/
 ND_ float  WeylHash12 (const int2 c)
 {
-	// from https://www.shadertoy.com/view/MsV3z3
-	// LICENSE: http://unlicense.org/
-
 	const int x = 0x3504f333 * c.x * c.x + c.y;
 	const int y = 0xf1bbcdcb * c.y * c.y + c.x;
 
@@ -18,29 +24,46 @@ ND_ float  WeylHash12 (const int2 c)
 
 ND_ float  WeylHash12 (const float2 c)
 {
-	// from https://www.shadertoy.com/view/Xdy3Rc
-	// LICENSE: http://unlicense.org/
-
 	// a pair of Weyl values with low star discrepancy
 	const float2 W = float2( 0.5545497, 0.308517 );
 
 	const float2 v = c * Fract( c * W );
 	return Fract( v.x * v.y );
 }
+#endif
+//-----------------------------------------------------------------------------
 
+
+#ifdef AE_LICENSE_CC_BY_NC_SA_3
+/*
+=================================================
+	ModHash
+----
+	from https://www.shadertoy.com/view/Xts3R7
+	license CC BY-NC-SA 3.0
+=================================================
+*/
 ND_ float  ModHash12 (float2 uv)
 {
-	// from https://www.shadertoy.com/view/Xts3R7
-	// license CC BY-NC-SA 3.0
 
 	uv = Abs( Mod( float(10.0) * Fract( (uv + float(1.1312)) * float(31.0) ), uv + float(2.0) ));
 	uv = Abs( Mod( uv.x * Fract( (uv + float(1.721711)) * float(17.0) ), uv ));
 	return Fract( float(10.0) * (float(7.0) * uv.y + float(31.0) * uv.x) );
 }
+#endif
 //-----------------------------------------------------------------------------
 
 
 
+#ifdef AE_LICENSE_UNLICENSE
+/*
+=================================================
+	FastSqrt
+----
+	from https://www.shadertoy.com/view/4dlcR4
+	LICENSE: http://unlicense.org/
+=================================================
+*/
 uint3 _IWeylConst ()
 {
 	return uint3(
@@ -52,9 +75,6 @@ uint3 _IWeylConst ()
 
 ND_ uint  IWeylHash (const uint2 p)
 {
-	// from https://www.shadertoy.com/view/4dlcR4
-	// LICENSE: http://unlicense.org/
-
 	uint	x = p.x;
 	uint	y = p.y;
 
@@ -67,9 +87,6 @@ ND_ uint  IWeylHash (const uint2 p)
 
 ND_ uint  IWeylHash2 (const uint2 p)
 {
-	// from https://www.shadertoy.com/view/4dlcR4
-	// LICENSE: http://unlicense.org/
-
 	uint	x = p.x;
 	uint	y = p.y;
 
@@ -81,17 +98,27 @@ ND_ uint  IWeylHash2 (const uint2 p)
 	x *= _IWeylConst().z;	// MLCG constant
 	return x;
 }
+
+#endif // AE_LICENSE_UNLICENSE
 //-----------------------------------------------------------------------------
 
 
 
-// from https://www.shadertoy.com/view/4ssXRX
-// license CC BY-NC-SA 3.0
+#ifdef AE_LICENSE_CC_BY_NC_SA_3
+/*
+=================================================
+	FastSqrt
+----
+	result in range [0, 1]
+	'seed' in range [0, 1]
+----
+	from https://www.shadertoy.com/view/4ssXRX
+	license CC BY-NC-SA 3.0
+=================================================
+*/
 
 //note: uniformly distributed, normalized rand, [0;1]
-#define nrand( n ) Fract( Sin( Dot( (n).xy, float2(12.9898, 78.233) )) * float(43758.5453) )
-
-// range [0, 1]
+# define nrand( n ) Fract( Sin( Dot( (n).xy, float2(12.9898, 78.233) )) * float(43758.5453) )
 
 ND_ float  Hash_Uniform (const float2 n, const float seed)
 {
@@ -134,4 +161,6 @@ ND_ float  Hash_MoarGaussianish (const float2 n, const float seed)
 	return (nrnd0 + nrnd1 + nrnd2 + nrnd3 + nrnd4 + nrnd5 + nrnd6 + nrnd7) / float(8.0);
 }
 
-#undef nrand
+# undef nrand
+#endif // AE_LICENSE_CC_BY_NC_SA_3
+//-----------------------------------------------------------------------------

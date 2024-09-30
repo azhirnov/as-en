@@ -23,6 +23,8 @@
 	Copyright (c) 2017 Inigo Quilez
 =================================================
 */
+#ifdef AE_LICENSE_MIT
+
 #define _GRADIENT_NOISE( hash )																		\
 {																									\
 	/* grid */																						\
@@ -65,7 +67,9 @@
 
 float  GradientNoise (gl::CombinedTex2D<float> rgbaNoise, const float3 pos)	{ _GRADIENT_NOISE( _RGBTexSHash33 )}
 float  GradientNoise (const float3 pos)										{ _GRADIENT_NOISE( _SHash33 )}
+
 #undef _GRADIENT_NOISE
+#endif // AE_LICENSE_MIT
 
 /*
 =================================================
@@ -78,6 +82,8 @@ float  GradientNoise (const float3 pos)										{ _GRADIENT_NOISE( _SHash33 )}
 	Copyright (c) 2014 Inigo Quilez
 =================================================
 */
+#ifdef AE_LICENSE_MIT
+
 #define _IQNOISE( hash )													\
 {																			\
 	uv = Clamp( uv, float2(-0.5,0.4), float2(0.5,1.0) );					\
@@ -107,7 +113,9 @@ float  IQNoise (gl::CombinedTex2D<float> rgbaNoise, const float3 pos, float2 uv)
 float  IQNoise (const float3 pos, float2 uv)										{ _IQNOISE( _SHash33 )}
 float  IQNoise (gl::CombinedTex2D<float> rgbaNoise, const float3 pos)				{ return IQNoise( rgbaNoise, pos, float2(0.5, 0.9) ); }
 float  IQNoise (const float3 pos)													{ return IQNoise( pos, float2(0.5, 0.9) ); }
+
 #undef _IQNOISE
+#endif // AE_LICENSE_MIT
 
 /*
 =================================================
@@ -119,6 +127,8 @@ float  IQNoise (const float3 pos)													{ return IQNoise( pos, float2(0.5,
 	license CC BY-NC-SA 3.0 (shadertoy default)
 =================================================
 */
+#ifdef AE_LICENSE_CC_BY_NC_SA_3
+
 #define _VALUENOISE																		\
 {																						\
 	float3 pi = Floor(pos);																\
@@ -153,6 +163,7 @@ float  ValueNoise (const float3 pos)
 }
 
 #undef _VALUENOISE
+#endif // AE_LICENSE_CC_BY_NC_SA_3
 
 /*
 =================================================
@@ -164,6 +175,8 @@ float  ValueNoise (const float3 pos)
 	license CC BY-NC-SA 3.0 (shadertoy default)
 =================================================
 */
+#ifdef AE_LICENSE_CC_BY_NC_SA_3
+
 #define _PERLINNOISE( hash )													\
 {																				\
 	float3 pi = Floor(pos);														\
@@ -193,7 +206,9 @@ float  ValueNoise (const float3 pos)
 
 float  PerlinNoise (gl::CombinedTex2D<float> rgbaNoise, const float3 pos)	{ _PERLINNOISE( _RGBTexSHash33 )}
 float  PerlinNoise (const float3 pos)										{ _PERLINNOISE( _SHash33 )}
+
 #undef _PERLINNOISE
+#endif // AE_LICENSE_CC_BY_NC_SA_3
 
 /*
 =================================================
@@ -205,6 +220,8 @@ float  PerlinNoise (const float3 pos)										{ _PERLINNOISE( _SHash33 )}
 	license CC BY-NC-SA 3.0 (shadertoy default)
 =================================================
 */
+#ifdef AE_LICENSE_CC_BY_NC_SA_3
+
 #define _SIMPLEXNOISE( hash )																									\
 {																																\
 	const float K1 = 0.333333333;																								\
@@ -229,7 +246,9 @@ float  PerlinNoise (const float3 pos)										{ _PERLINNOISE( _SHash33 )}
 
 float  SimplexNoise (gl::CombinedTex2D<float> rgbaNoise, const float3 pos)	{ _SIMPLEXNOISE( _RGBTexSHash33 )}
 float  SimplexNoise (const float3 pos)										{ _SIMPLEXNOISE( _SHash33 )}
+
 #undef _SIMPLEXNOISE
+#endif // AE_LICENSE_CC_BY_NC_SA_3
 
 /*
 =================================================
@@ -242,6 +261,8 @@ float  SimplexNoise (const float3 pos)										{ _SIMPLEXNOISE( _SHash33 )}
 	Copyright (c) 2013 Inigo Quilez
 =================================================
 */
+#ifdef AE_LICENSE_MIT
+
 VoronoiResult2  VoronoiContour2 (const float2 coord, const float3 seedScaleBias_offsetScale)
 {
 	float2	ipoint	= Floor( coord );
@@ -332,6 +353,8 @@ VoronoiResult3  VoronoiContour2 (const float3 coord, const float3 seedScaleBias_
 	return result;
 }
 
+#endif // AE_LICENSE_MIT
+
 /*
 =================================================
 	VoronoiCircles
@@ -341,6 +364,8 @@ VoronoiResult3  VoronoiContour2 (const float3 coord, const float3 seedScaleBias_
 	based on VoronoiContour
 =================================================
 */
+#ifdef AE_LICENSE_MIT
+
 float  VoronoiCircles (const float2 coord, const float radiusScale, const float3 seedScaleBias_offsetScale)
 {
 	float2	ipoint	= Floor( coord );
@@ -394,6 +419,8 @@ float  VoronoiCircles (const float2 coord, const float radiusScale)
 	return VoronoiCircles( coord, radiusScale, float3(1.0, 0.0, 0.75) );
 }
 
+#endif // AE_LICENSE_MIT
+
 /*
 =================================================
 	WaveletNoise
@@ -403,6 +430,8 @@ float  VoronoiCircles (const float2 coord, const float radiusScale)
 	Copyright (c) 2020 Martijn Steinrucken
 =================================================
 */
+#ifdef AE_LICENSE_MIT
+
 float  WaveletNoise (float2 coord, const float2 zk)
 {
 	float d = 0.0f;
@@ -430,6 +459,8 @@ float  WaveletNoise (float2 coord)
 {
 	return WaveletNoise( coord, float2(0.2, 0.0) );
 }
+
+#endif // AE_LICENSE_MIT
 //-----------------------------------------------------------------------------
 
 

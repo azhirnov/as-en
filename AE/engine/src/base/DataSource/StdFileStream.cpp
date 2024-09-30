@@ -257,7 +257,7 @@ DEBUG_ONLY(
 	{
 		ASSERT( IsOpen() );
 
-		Bytes	readn{ fread( buffer, 1, usize(size), _file )};
+		Bytes	readn{ fread( OUT buffer, 1, usize(size), _file )};
 
 		_position += readn;
 

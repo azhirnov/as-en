@@ -17,6 +17,7 @@ android {
 				arguments '-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
 						  '-DANDROID_ARM_NEON=ON',
 						  '-DAE_ENABLE_VULKAN=ON'
+				targets 'TestLauncher'
 			}
 		}
 	}

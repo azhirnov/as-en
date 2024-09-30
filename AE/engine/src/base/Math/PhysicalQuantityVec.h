@@ -74,13 +74,13 @@ namespace AE::Math
 		template <typename S>
 		PhysicalQuantityVec (const TPhysicalQuantityVec<2, Value_t, Dimension_t, S, Q> &other) __NE___ : QVec_t{other.x, other.y} {}
 
-		PhysicalQuantityVec (Value_t X, Value_t Y)			__NE___ : QVec_t{X,Y} {}
+		PhysicalQuantityVec (Value_t X, Value_t Y)			__NE___ : QVec_t{Quantity{X}, Quantity{Y}} {}
 		PhysicalQuantityVec (Quantity X, Quantity Y)		__NE___ : QVec_t{X,Y} {}
 
-		explicit PhysicalQuantityVec (Value_t V)			__NE___ : QVec_t{V,V} {}
-		explicit PhysicalQuantityVec (Quantity V)			__NE___ : QVec_t{V,V} {}
+		explicit PhysicalQuantityVec (Value_t s)			__NE___ : QVec_t{Quantity{s}} {}
+		explicit PhysicalQuantityVec (Quantity s)			__NE___ : QVec_t{s} {}
 
-		explicit PhysicalQuantityVec (const ValVec_t &V)	__NE___ : QVec_t{V.x,V.y} {}
+		explicit PhysicalQuantityVec (const ValVec_t &v)	__NE___ : QVec_t{v} {}
 
 		ND_ ValVec_t const&		GetNonScaled ()				C_NE___	{ return *reinterpret_cast<ValVec_t const *>(this); }
 		ND_ ValVec_t &			GetNonScaledRef ()			__NE___	{ return *reinterpret_cast<ValVec_t *>(this); }
@@ -111,13 +111,13 @@ namespace AE::Math
 		template <typename S>
 		PhysicalQuantityVec (const TPhysicalQuantityVec<3, Value_t, Dimension_t, S, Q> &other) __NE___ : QVec_t{other.x, other.y, other.z} {}
 
-		PhysicalQuantityVec (Value_t X, Value_t Y, Value_t Z)		__NE___	: QVec_t{X,Y,Z} {}
+		PhysicalQuantityVec (Value_t X, Value_t Y, Value_t Z)		__NE___	: QVec_t{Quantity{X}, Quantity{Y}, Quantity{Z}} {}
 		PhysicalQuantityVec (Quantity X, Quantity Y, Quantity Z)	__NE___	: QVec_t{X,Y,Z} {}
 
-		explicit PhysicalQuantityVec (Value_t V)					__NE___	: QVec_t{V,V,V} {}
-		explicit PhysicalQuantityVec (Quantity V)					__NE___	: QVec_t{V,V,V} {}
+		explicit PhysicalQuantityVec (Value_t s)					__NE___	: QVec_t{Quantity{s}} {}
+		explicit PhysicalQuantityVec (Quantity s)					__NE___	: QVec_t{s} {}
 
-		explicit PhysicalQuantityVec (const ValVec_t &V)			__NE___	: QVec_t{V.x,V.y,V.z} {}
+		explicit PhysicalQuantityVec (const ValVec_t &v)			__NE___	: QVec_t{v} {}
 
 		ND_ ValVec_t const&		GetNonScaled ()						C_NE___	{ return *reinterpret_cast<ValVec_t const *>(this); }
 		ND_ ValVec_t &			GetNonScaledRef ()					__NE___	{ return *reinterpret_cast<ValVec_t *>(this); }
@@ -148,13 +148,13 @@ namespace AE::Math
 		template <typename S>
 		PhysicalQuantityVec (const TPhysicalQuantityVec<4, Value_t, Dimension_t, S, Q> &other) __NE___ : QVec_t{other.x, other.y, other.z, other.w} {}
 
-		PhysicalQuantityVec (Value_t X, Value_t Y, Value_t Z, Value_t W)		__NE___	: QVec_t{X,Y,Z,W} {}
+		PhysicalQuantityVec (Value_t X, Value_t Y, Value_t Z, Value_t W)		__NE___	: QVec_t{Quantity{X}, Quantity{Y}, Quantity{Z}, Quantity{W}} {}
 		PhysicalQuantityVec (Quantity X, Quantity Y, Quantity Z, Quantity W)	__NE___ : QVec_t{X,Y,Z,W} {}
 
-		explicit PhysicalQuantityVec (Value_t V)								__NE___	: QVec_t{V,V,V,V} {}
-		explicit PhysicalQuantityVec (Quantity V)								__NE___	: QVec_t{V,V,V,V} {}
+		explicit PhysicalQuantityVec (Value_t s)								__NE___	: QVec_t{Quantity{s}} {}
+		explicit PhysicalQuantityVec (Quantity s)								__NE___	: QVec_t{s} {}
 
-		explicit PhysicalQuantityVec (const ValVec_t &V)						__NE___	: QVec_t{V.x,V.y,V.z,V.w} {}
+		explicit PhysicalQuantityVec (const ValVec_t &v)						__NE___	: QVec_t{v.x, v.y, v.z, v.w} {}
 
 		ND_ ValVec_t const&		GetNonScaled ()									C_NE___	{ return *reinterpret_cast<ValVec_t const *>(this); }
 		ND_ ValVec_t &			GetNonScaledRef ()								__NE___	{ return *reinterpret_cast<ValVec_t *>(this); }

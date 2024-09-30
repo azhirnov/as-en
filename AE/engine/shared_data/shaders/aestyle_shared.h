@@ -156,6 +156,7 @@ public:
 template <typename T>
 struct _Matrix <T,2,2> : _MatrixBase<T,2,2>
 {
+	_Matrix ();
 	_Matrix (T c00, T c01,
 			 T c10, T c11);
 	_Matrix (const _Vec<T,2> c0,
@@ -166,6 +167,7 @@ struct _Matrix <T,2,2> : _MatrixBase<T,2,2>
 template <typename T>
 struct _Matrix <T,2,3> : _MatrixBase<T,2,3>
 {
+	_Matrix ();
 	_Matrix (T c00, T c01, T c02,
 			 T c10, T c11, T c12);
 	_Matrix (const _Vec<T,3> c0,
@@ -176,6 +178,7 @@ struct _Matrix <T,2,3> : _MatrixBase<T,2,3>
 template <typename T>
 struct _Matrix <T,2,4> : _MatrixBase<T,2,4>
 {
+	_Matrix ();
 	_Matrix (T c00, T c01, T c02, T c03,
 			 T c10, T c11, T c12, T c13);
 	_Matrix (const _Vec<T,4> c0,
@@ -186,6 +189,7 @@ struct _Matrix <T,2,4> : _MatrixBase<T,2,4>
 template <typename T>
 struct _Matrix <T,3,2> : _MatrixBase<T,3,2>
 {
+	_Matrix ();
 	_Matrix (T c00, T c01,
 			 T c10, T c11,
 			 T c20, T c21);
@@ -198,6 +202,7 @@ struct _Matrix <T,3,2> : _MatrixBase<T,3,2>
 template <typename T>
 struct _Matrix <T,3,3> : _MatrixBase<T,3,3>
 {
+	_Matrix ();
 	_Matrix (T c00, T c01, T c02,
 			 T c10, T c11, T c12,
 			 T c20, T c21, T c22);
@@ -210,6 +215,7 @@ struct _Matrix <T,3,3> : _MatrixBase<T,3,3>
 template <typename T>
 struct _Matrix <T,3,4> : _MatrixBase<T,3,4>
 {
+	_Matrix ();
 	_Matrix (T c00, T c01, T c02, T c03,
 			 T c10, T c11, T c12, T c13,
 			 T c20, T c21, T c22, T c23);
@@ -222,6 +228,7 @@ struct _Matrix <T,3,4> : _MatrixBase<T,3,4>
 template <typename T>
 struct _Matrix <T,4,2> : _MatrixBase<T,4,2>
 {
+	_Matrix ();
 	_Matrix (T c00, T c01,
 			 T c10, T c11,
 			 T c20, T c21,
@@ -236,6 +243,7 @@ struct _Matrix <T,4,2> : _MatrixBase<T,4,2>
 template <typename T>
 struct _Matrix <T,4,3> : _MatrixBase<T,4,3>
 {
+	_Matrix ();
 	_Matrix (T c00, T c01, T c02,
 			 T c10, T c11, T c12,
 			 T c20, T c21, T c22,
@@ -250,6 +258,7 @@ struct _Matrix <T,4,3> : _MatrixBase<T,4,3>
 template <typename T>
 struct _Matrix <T,4,4> : _MatrixBase<T,4,4>
 {
+	_Matrix ();
 	_Matrix (T c00, T c01, T c02, T c03,
 			 T c10, T c11, T c12, T c13,
 			 T c20, T c21, T c22, T c23,
@@ -355,95 +364,113 @@ template <typename T, int I>	ND_ _Vec<T,I>	operator -  (const _Vec<T,I> x);
 template <typename T, int I>	ND_ _PVec<T,I>	operator -  (const _PVec<T,I> x);
 
 
-template <typename T, int I>	_Vec<T,I> &		operator += (_Vec<T,I> &x, const _Vec<T,I> y);
-template <typename T, int I>	_Vec<T,I> &		operator += (_Vec<T,I> &x, const T y);
+template <typename T, int I>	_Vec<T,I> &		operator += (_Vec<T,I>  &x, const _Vec<T,I> y);
+template <typename T, int I>	_Vec<T,I> &		operator += (_Vec<T,I>  &x, const T y);
 template <typename T, int I>	_PVec<T,I> &	operator += (_PVec<T,I> &x, const _PVec<T,I> y);
 template <typename T, int I>	_PVec<T,I> &	operator += (_PVec<T,I> &x, const T y);
 
-template <typename T, int I>	_Vec<T,I> &		operator -= (_Vec<T,I> &x, const _Vec<T,I> y);
-template <typename T, int I>	_Vec<T,I> &		operator -= (_Vec<T,I> &x, const T y);
+template <typename T, int I>	_Vec<T,I> &		operator -= (_Vec<T,I>  &x, const _Vec<T,I> y);
+template <typename T, int I>	_Vec<T,I> &		operator -= (_Vec<T,I>  &x, const T y);
 template <typename T, int I>	_PVec<T,I> &	operator -= (_PVec<T,I> &x, const _PVec<T,I> y);
 template <typename T, int I>	_PVec<T,I> &	operator -= (_PVec<T,I> &x, const T y);
 
-template <typename T, int I>	_Vec<T,I> &		operator *= (_Vec<T,I> &x, const _Vec<T,I> y);
-template <typename T, int I>	_Vec<T,I> &		operator *= (_Vec<T,I> &x, const T y);
+template <typename T, int I>	_Vec<T,I> &		operator *= (_Vec<T,I>  &x, const _Vec<T,I> y);
+template <typename T, int I>	_Vec<T,I> &		operator *= (_Vec<T,I>  &x, const T y);
 template <typename T, int I>	_PVec<T,I> &	operator *= (_PVec<T,I> &x, const _PVec<T,I> y);
 template <typename T, int I>	_PVec<T,I> &	operator *= (_PVec<T,I> &x, const T y);
 
-template <typename T, int I>	_Vec<T,I> &		operator /= (_Vec<T,I> &x, const _Vec<T,I> y);
-template <typename T, int I>	_Vec<T,I> &		operator /= (_Vec<T,I> &x, const T y);
+template <typename T, int I>	_Vec<T,I> &		operator /= (_Vec<T,I>  &x, const _Vec<T,I> y);
+template <typename T, int I>	_Vec<T,I> &		operator /= (_Vec<T,I>  &x, const T y);
 template <typename T, int I>	_PVec<T,I> &	operator /= (_PVec<T,I> &x, const _PVec<T,I> y);
 template <typename T, int I>	_PVec<T,I> &	operator /= (_PVec<T,I> &x, const T y);
 
-template <typename T, int I>	_Vec<T,I> &		operator &= (_Vec<T,I> &x, const _Vec<T,I> y);
-template <typename T, int I>	_Vec<T,I> &		operator &= (_Vec<T,I> &x, const T y);
+template <typename T, int I>	_Vec<T,I> &		operator &= (_Vec<T,I>  &x, const _Vec<T,I> y);
+template <typename T, int I>	_Vec<T,I> &		operator &= (_Vec<T,I>  &x, const T y);
 template <typename T, int I>	_PVec<T,I> &	operator &= (_PVec<T,I> &x, const _PVec<T,I> y);
 template <typename T, int I>	_PVec<T,I> &	operator &= (_PVec<T,I> &x, const T y);
 
-template <typename T, int I>	_Vec<T,I> &		operator |= (_Vec<T,I> &x, const _Vec<T,I> y);
-template <typename T, int I>	_Vec<T,I> &		operator |= (_Vec<T,I> &x, const T y);
+template <typename T, int I>	_Vec<T,I> &		operator |= (_Vec<T,I>  &x, const _Vec<T,I> y);
+template <typename T, int I>	_Vec<T,I> &		operator |= (_Vec<T,I>  &x, const T y);
 template <typename T, int I>	_PVec<T,I> &	operator |= (_PVec<T,I> &x, const _PVec<T,I> y);
 template <typename T, int I>	_PVec<T,I> &	operator |= (_PVec<T,I> &x, const T y);
 
-template <typename T, int I>	_Vec<T,I> &		operator ^= (_Vec<T,I> &x, const _Vec<T,I> y);
-template <typename T, int I>	_Vec<T,I> &		operator ^= (_Vec<T,I> &x, const T y);
+template <typename T, int I>	_Vec<T,I> &		operator ^= (_Vec<T,I>  &x, const _Vec<T,I> y);
+template <typename T, int I>	_Vec<T,I> &		operator ^= (_Vec<T,I>  &x, const T y);
 template <typename T, int I>	_PVec<T,I> &	operator ^= (_PVec<T,I> &x, const _PVec<T,I> y);
 template <typename T, int I>	_PVec<T,I> &	operator ^= (_PVec<T,I> &x, const T y);
 
-template <typename T, int I>	_Vec<T,I> &		operator >>= (_Vec<T,I> &x, const _Vec<T,I> y);
-template <typename T, int I>	_Vec<T,I> &		operator >>= (_Vec<T,I> &x, const T y);
+template <typename T, int I>	_Vec<T,I> &		operator >>= (_Vec<T,I>  &x, const _Vec<T,I> y);
+template <typename T, int I>	_Vec<T,I> &		operator >>= (_Vec<T,I>  &x, const T y);
 template <typename T, int I>	_PVec<T,I> &	operator >>= (_PVec<T,I> &x, const _PVec<T,I> y);
 template <typename T, int I>	_PVec<T,I> &	operator >>= (_PVec<T,I> &x, const T y);
 
-template <typename T, int I>	_Vec<T,I> &		operator <<= (_Vec<T,I> &x, const _Vec<T,I> y);
-template <typename T, int I>	_Vec<T,I> &		operator <<= (_Vec<T,I> &x, const T y);
+template <typename T, int I>	_Vec<T,I> &		operator <<= (_Vec<T,I>  &x, const _Vec<T,I> y);
+template <typename T, int I>	_Vec<T,I> &		operator <<= (_Vec<T,I>  &x, const T y);
 template <typename T, int I>	_PVec<T,I> &	operator <<= (_PVec<T,I> &x, const _PVec<T,I> y);
 template <typename T, int I>	_PVec<T,I> &	operator <<= (_PVec<T,I> &x, const T y);
 
 
-template <typename T, int I>	ND_ _Vec<T,I>	operator +  (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T, int I>	ND_ _Vec<T,I>	operator +  (const _Vec<T,I> x, const T y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator +  (const _Vec<T,I>  x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator +  (const T          x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator +  (const _Vec<T,I>  x, const T y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator +  (const _PVec<T,I> x, const _PVec<T,I> y);
+template <typename T, int I>	ND_ _PVec<T,I>	operator +  (const T          x, const _PVec<T,I> y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator +  (const _PVec<T,I> x, const T y);
 
-template <typename T, int I>	ND_ _Vec<T,I>	operator -  (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T, int I>	ND_ _Vec<T,I>	operator -  (const _Vec<T,I> x, const T y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator -  (const _Vec<T,I>  x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator -  (const T          x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator -  (const _Vec<T,I>  x, const T y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator -  (const _PVec<T,I> x, const _PVec<T,I> y);
+template <typename T, int I>	ND_ _PVec<T,I>	operator -  (const T          x, const _PVec<T,I> y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator -  (const _PVec<T,I> x, const T y);
 
-template <typename T, int I>	ND_ _Vec<T,I>	operator *  (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T, int I>	ND_ _Vec<T,I>	operator *  (const _Vec<T,I> x, const T y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator *  (const _Vec<T,I>  x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator *  (const T          x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator *  (const _Vec<T,I>  x, const T y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator *  (const _PVec<T,I> x, const _PVec<T,I> y);
+template <typename T, int I>	ND_ _PVec<T,I>	operator *  (const T          x, const _PVec<T,I> y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator *  (const _PVec<T,I> x, const T y);
 
-template <typename T, int I>	ND_ _Vec<T,I>	operator /  (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T, int I>	ND_ _Vec<T,I>	operator /  (const _Vec<T,I> x, const T y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator /  (const _Vec<T,I>  x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator /  (const T          x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator /  (const _Vec<T,I>  x, const T y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator /  (const _PVec<T,I> x, const _PVec<T,I> y);
+template <typename T, int I>	ND_ _PVec<T,I>	operator /  (const T          x, const _PVec<T,I> y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator /  (const _PVec<T,I> x, const T y);
 
-template <typename T, int I>	ND_ _Vec<T,I>	operator &  (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T, int I>	ND_ _Vec<T,I>	operator &  (const _Vec<T,I> x, const T y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator &  (const _Vec<T,I>  x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator &  (const T          x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator &  (const _Vec<T,I>  x, const T y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator &  (const _PVec<T,I> x, const _PVec<T,I> y);
+template <typename T, int I>	ND_ _PVec<T,I>	operator &  (const T          x, const _PVec<T,I> y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator &  (const _PVec<T,I> x, const T y);
 
-template <typename T, int I>	ND_ _Vec<T,I>	operator |  (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T, int I>	ND_ _Vec<T,I>	operator |  (const _Vec<T,I> x, const T y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator |  (const _Vec<T,I>  x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator |  (const T          x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator |  (const _Vec<T,I>  x, const T y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator |  (const _PVec<T,I> x, const _PVec<T,I> y);
+template <typename T, int I>	ND_ _PVec<T,I>	operator |  (const T          x, const _PVec<T,I> y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator |  (const _PVec<T,I> x, const T y);
 
-template <typename T, int I>	ND_ _Vec<T,I>	operator ^  (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T, int I>	ND_ _Vec<T,I>	operator ^  (const _Vec<T,I> x, const T y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator ^  (const _Vec<T,I>  x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator ^  (const T          x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator ^  (const _Vec<T,I>  x, const T y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator ^  (const _PVec<T,I> x, const _PVec<T,I> y);
+template <typename T, int I>	ND_ _PVec<T,I>	operator ^  (const T          x, const _PVec<T,I> y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator ^  (const _PVec<T,I> x, const T y);
 
-template <typename T, int I>	ND_ _Vec<T,I>	operator >> (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T, int I>	ND_ _Vec<T,I>	operator >> (const _Vec<T,I> x, const T y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator >> (const _Vec<T,I>  x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator >> (const T          x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator >> (const _Vec<T,I>  x, const T y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator >> (const _PVec<T,I> x, const _PVec<T,I> y);
+template <typename T, int I>	ND_ _PVec<T,I>	operator >> (const T          x, const _PVec<T,I> y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator >> (const _PVec<T,I> x, const T y);
 
-template <typename T, int I>	ND_ _Vec<T,I>	operator << (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T, int I>	ND_ _Vec<T,I>	operator << (const _Vec<T,I> x, const T y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator << (const _Vec<T,I>  x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator << (const T          x, const _Vec<T,I> y);
+template <typename T, int I>	ND_ _Vec<T,I>	operator << (const _Vec<T,I>  x, const T y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator << (const _PVec<T,I> x, const _PVec<T,I> y);
+template <typename T, int I>	ND_ _PVec<T,I>	operator << (const T          x, const _PVec<T,I> y);
 template <typename T, int I>	ND_ _PVec<T,I>	operator << (const _PVec<T,I> x, const T y);
 
 

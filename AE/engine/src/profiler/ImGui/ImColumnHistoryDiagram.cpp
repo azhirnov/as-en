@@ -61,10 +61,10 @@ namespace AE::Profiler
 
 					if ( Abs( item_y1 - item_y0 ) > height_threshold )
 					{
-						draw_list->AddRectFilled( ImVec2{column_x, item_y0}, ImVec2{column_x + column_width, item_y1}, BitCast<uint>(item.color) );
+						item_y0 = Max( item_y0, diag_region_pad.top );
+						item_y1 = Max( item_y1, diag_region_pad.top );
 
-						ASSERT( item_y0 >= diag_region_pad.top );
-						ASSERT( item_y1 >= diag_region_pad.top );
+						draw_list->AddRectFilled( ImVec2{column_x, item_y0}, ImVec2{column_x + column_width, item_y1}, BitCast<uint>(item.color) );
 					}
 				}
 			}
@@ -211,8 +211,8 @@ namespace AE::Profiler
 				item.begin	-= min;
 				item.end	-= min;
 
-				ASSERT( item.begin >= nanosecondsd{0.0} );
-				ASSERT( item.begin <= item.end );
+			//	ASSERT( item.begin >= nanosecondsd{0.0} );
+			//	ASSERT( item.begin <= item.end );
 			}
 
 			std::sort( f.items.begin(), f.items.end(), [](auto& lhs, auto& rhs) { return lhs.begin < rhs.begin; });

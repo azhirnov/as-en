@@ -49,10 +49,10 @@ namespace
 
 						switch_enum( desc.imageDim )
 						{
-							case EImageDim_1D :			desc.dimension = uint3{128,   0,   0};	break;
-							case EImageDim_2D :			desc.dimension = uint3{128, 128,   0};	break;
-							case EImageDim_3D :			desc.dimension = uint3{128, 128, 128};	break;
-							case EImageDim::Unknown :	DBG_WARNING( "not supported" );			break;
+							case EImageDim_1D :			desc.dimension = ImageDim_t{128,   0,   0};	break;
+							case EImageDim_2D :			desc.dimension = ImageDim_t{128, 128,   0};	break;
+							case EImageDim_3D :			desc.dimension = ImageDim_t{128, 128, 128};	break;
+							case EImageDim::Unknown :	DBG_WARNING( "not supported" );				break;
 						}
 						switch_end
 

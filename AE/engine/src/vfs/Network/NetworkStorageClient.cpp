@@ -7,7 +7,7 @@ namespace AE::VFS
 {
 	using RWReqPromise_t = AsyncDSRequest::Value_t::Promise_t;
 
-	INTERNAL_LINKAGE( Ptr<NetworkStorageClient>  s_NetVFS );
+	INTERNAL_LINKAGE( Ptr<NetworkStorageClient>  s_NetVFS_Client );
 //-----------------------------------------------------------------------------
 
 
@@ -167,7 +167,7 @@ namespace AE::VFS
 		_memRC = null;
 		_Cleanup();
 
-		s_NetVFS->_readResultPool.Unassign( this );
+		s_NetVFS_Client->_readResultPool.Unassign( this );
 	}
 //-----------------------------------------------------------------------------
 
@@ -182,7 +182,7 @@ namespace AE::VFS
 	{
 		// is alive
 		{
-			auto	req = s_NetVFS->_GetWriteReq( _id );
+			auto	req = s_NetVFS_Client->_GetWriteReq( _id );
 			if_unlikely( not req )
 				return OnFailure();
 		}
@@ -190,7 +190,7 @@ namespace AE::VFS
 		for (uint i = 0; (i < _maxParts) and (_dataSize > _sent); ++i)
 		{
 			const Bytes	size	= Min( _dataSize - _sent, _partSize );
-			auto		msg		= s_NetVFS->_CreateMsgOpt< CSMsg_VFS_WritePart >( size-1 );
+			auto		msg		= s_NetVFS_Client->_CreateMsgOpt< CSMsg_VFS_WritePart >( size-1 );
 
 			if_likely( msg )
 			{
@@ -199,7 +199,7 @@ namespace AE::VFS
 				msg->index	= ushort(_partIdx);
 				msg.Put( &CSMsg_VFS_WritePart::data, _data + _sent, size );
 
-				if_likely( s_NetVFS->_AddMessage( msg ))
+				if_likely( s_NetVFS_Client->_AddMessage( msg ))
 				{
 					_sent += size;
 					_partIdx ++;
@@ -216,14 +216,14 @@ namespace AE::VFS
 		_memRC = null;
 
 		// send completion message
-		auto	msg = s_NetVFS->_CreateMsgOpt< CSMsg_VFS_WriteEnd >();
+		auto	msg = s_NetVFS_Client->_CreateMsgOpt< CSMsg_VFS_WriteEnd >();
 		if_likely( msg )
 		{
 			msg->reqId	= _id;
 			msg->hash	= XXHash64( _data, usize(_dataSize) );
 			msg->pos	= _pos;
 
-			if_likely( s_NetVFS->_AddMessage( msg ))
+			if_likely( s_NetVFS_Client->_AddMessage( msg ))
 			{
 				return;  // complete
 			}
@@ -244,19 +244,19 @@ namespace AE::VFS
 		_memRC = null;
 
 		{
-			Exclusive<NetWriteRequest>	req {s_NetVFS->_GetWriteReq( _id )};
+			Exclusive<NetWriteRequest>	req {s_NetVFS_Client->_GetWriteReq( _id )};
 			if_likely( req )
 				req->Failed();
 		}
 
-		auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_WriteEnd >();
+		auto	msg = s_NetVFS_Client->_CreateMsg< CSMsg_VFS_WriteEnd >();
 		CHECK_ERRV( msg );
 
 		msg->reqId	= _id;
 		msg->hash	= HashVal64{0};  // error
 		msg->pos	= _pos;
 
-		CHECK( s_NetVFS->_AddMessage( msg ));
+		CHECK( s_NetVFS_Client->_AddMessage( msg ));
 	}
 //-----------------------------------------------------------------------------
 
@@ -393,7 +393,7 @@ namespace AE::VFS
 		++_generation;
 		_Cleanup();
 
-		s_NetVFS->_writeResultPool.Unassign( this );
+		s_NetVFS_Client->_writeResultPool.Unassign( this );
 	}
 //-----------------------------------------------------------------------------
 
@@ -419,19 +419,19 @@ namespace AE::VFS
 	{
 		CHECK_ERR( IsOpen() );
 
-		auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_ReadRequest >();
+		auto	msg = s_NetVFS_Client->_CreateMsg< CSMsg_VFS_ReadRequest >();
 		CHECK_ERR( msg );
 
 		Index_t		idx;
-		CHECK_ERR( s_NetVFS->_readResultPool.Assign( OUT idx ));
+		CHECK_ERR( s_NetVFS_Client->_readResultPool.Assign( OUT idx ));
 
-		RC<NetReadRequest>  req{ &s_NetVFS->_readResultPool[ idx ]};
+		RC<NetReadRequest>  req{ &s_NetVFS_Client->_readResultPool[ idx ]};
 		EXLOCK( req->Guard() );
 
 		if_unlikely( not req->Init( pos, dataSize, data, RVRef(mem) ))
 		{
 			UNTESTED;
-			s_NetVFS->_readResultPool.Unassign( idx );
+			s_NetVFS_Client->_readResultPool.Unassign( idx );
 			RETURN_ERR( "failed to init read request" );
 		}
 
@@ -440,10 +440,10 @@ namespace AE::VFS
 		msg->pos	= pos;
 		msg->size	= dataSize;
 
-		if_unlikely( not s_NetVFS->_AddMessage( msg ))
+		if_unlikely( not s_NetVFS_Client->_AddMessage( msg ))
 		{
 			UNTESTED;
-			s_NetVFS->_readResultPool.Unassign( idx );
+			s_NetVFS_Client->_readResultPool.Unassign( idx );
 			RETURN_ERR( "failed to add message" );
 		}
 
@@ -478,12 +478,12 @@ namespace AE::VFS
 */
 	bool  NetworkStorageClient::NetRDataSource::CancelAllRequests () __NE___
 	{
-		auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_CancelAllReadRequests >();
+		auto	msg = s_NetVFS_Client->_CreateMsg< CSMsg_VFS_CancelAllReadRequests >();
 		CHECK_ERR( msg );
 
 		msg->fileId = NetDataSourceID{ _index.load(), Generation() };
 
-		CHECK_ERR( s_NetVFS->_AddMessage( msg ));
+		CHECK_ERR( s_NetVFS_Client->_AddMessage( msg ));
 		return true;
 	}
 
@@ -496,10 +496,10 @@ namespace AE::VFS
 	{
 		// close
 		{
-			auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_CloseReadFile >();
+			auto	msg = s_NetVFS_Client->_CreateMsg< CSMsg_VFS_CloseReadFile >();
 			if ( msg ) {
 				msg->fileId = ID();
-				Unused( s_NetVFS->_AddMessage( msg ));
+				Unused( s_NetVFS_Client->_AddMessage( msg ));
 			}
 		}
 
@@ -507,7 +507,7 @@ namespace AE::VFS
 		_open.store( EStatus::Initial );
 		_fileSize.store( 0_b );
 
-		s_NetVFS->_readDSPool.Unassign( _index.load() );
+		s_NetVFS_Client->_readDSPool.Unassign( _index.load() );
 	}
 //-----------------------------------------------------------------------------
 
@@ -543,13 +543,13 @@ namespace AE::VFS
 	{
 		CHECK_ERR( IsOpen() );
 
-		auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_WriteBegin >();
+		auto	msg = s_NetVFS_Client->_CreateMsg< CSMsg_VFS_WriteBegin >();
 		CHECK_ERR( msg );
 
 		Index_t	idx;
-		CHECK_ERR( s_NetVFS->_writeResultPool.Assign( OUT idx ));
+		CHECK_ERR( s_NetVFS_Client->_writeResultPool.Assign( OUT idx ));
 
-		RC<NetWriteRequest>  req{ &s_NetVFS->_writeResultPool[ idx ]};
+		RC<NetWriteRequest>  req{ &s_NetVFS_Client->_writeResultPool[ idx ]};
 		EXLOCK( req->Guard() );
 
 		auto	task = Scheduler().Run<AsyncWriteBlockTask>(
@@ -563,7 +563,7 @@ namespace AE::VFS
 		if_unlikely( not req->Init( RVRef(task), pos ))
 		{
 			UNTESTED;
-			s_NetVFS->_writeResultPool.Unassign( idx );
+			s_NetVFS_Client->_writeResultPool.Unassign( idx );
 			RETURN_ERR( "failed to init write request" );
 		}
 
@@ -571,10 +571,10 @@ namespace AE::VFS
 		msg->reqId	= NDSRequestID{ idx, req->Generation() };
 		msg->size	= dataSize;
 
-		if_unlikely( not s_NetVFS->_AddMessage( msg ))
+		if_unlikely( not s_NetVFS_Client->_AddMessage( msg ))
 		{
 			UNTESTED;
-			s_NetVFS->_writeResultPool.Unassign( idx );
+			s_NetVFS_Client->_writeResultPool.Unassign( idx );
 			RETURN_ERR( "failed to add message" );
 		}
 
@@ -598,12 +598,12 @@ namespace AE::VFS
 */
 	bool  NetworkStorageClient::NetWDataSource::CancelAllRequests () __NE___
 	{
-		auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_CancelAllWriteRequests >();
+		auto	msg = s_NetVFS_Client->_CreateMsg< CSMsg_VFS_CancelAllWriteRequests >();
 		CHECK_ERR( msg );
 
 		msg->fileId = NetDataSourceID{ _index.load(), Generation() };
 
-		CHECK( s_NetVFS->_AddMessage( msg ));
+		CHECK( s_NetVFS_Client->_AddMessage( msg ));
 		return true;
 	}
 
@@ -616,17 +616,17 @@ namespace AE::VFS
 	{
 		// close
 		{
-			auto	msg = s_NetVFS->_CreateMsg< CSMsg_VFS_CloseWriteFile >();
+			auto	msg = s_NetVFS_Client->_CreateMsg< CSMsg_VFS_CloseWriteFile >();
 			if ( msg ) {
 				msg->fileId = ID();
-				Unused( s_NetVFS->_AddMessage( msg ));
+				Unused( s_NetVFS_Client->_AddMessage( msg ));
 			}
 		}
 
 		_generation.fetch_add( 1 );
 		_open.store( EStatus::Initial );
 
-		s_NetVFS->_writeDSPool.Unassign( _index.load() );
+		s_NetVFS_Client->_writeDSPool.Unassign( _index.load() );
 	}
 //-----------------------------------------------------------------------------
 
@@ -644,8 +644,8 @@ namespace AE::VFS
 	NetworkStorageClient::NetworkStorageClient () __NE___ :
 		_msgConsumer{ *this }
 	{
-		CHECK_FATAL( s_NetVFS == null );
-		s_NetVFS = this;
+		CHECK_FATAL( s_NetVFS_Client == null );
+		s_NetVFS_Client = this;
 	}
 
 /*
@@ -655,7 +655,7 @@ namespace AE::VFS
 */
 	NetworkStorageClient::~NetworkStorageClient () __NE___
 	{
-		s_NetVFS = null;
+		s_NetVFS_Client = null;
 	}
 
 /*

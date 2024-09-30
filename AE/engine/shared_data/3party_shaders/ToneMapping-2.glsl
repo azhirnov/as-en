@@ -1,9 +1,13 @@
 
+#ifdef AE_LICENSE_CC_BY_NC_SA_3
+
 //
 // ACES
 //
 
 // from https://www.shadertoy.com/view/XsGfWV
+// license CC BY-NC-SA 3.0 (shadertoy default)
+
 float3  ToneMap_ACES_v2 (const float3 color)
 {
 	const float3x3  m1 = float3x3(
@@ -43,6 +47,7 @@ float3  ToneMap_ACES_v3 (const float3 color)
 
 //-----------------------------------------------------------------------------
 // from https://www.shadertoy.com/view/WdjSW3
+// license CC BY-NC-SA 3.0 (shadertoy default)
 
 
 //
@@ -150,6 +155,8 @@ float3  Tonemap_Lottes (const float3 hdr) {
 
 
 // from https://www.shadertoy.com/view/tl3GR8
+// license CC BY-NC-SA 3.0 (shadertoy default)
+
 float3  ToneMap_whitePreservingLumaBasedReinhardToneMapping (float3 color)
 {
 	float white = 2.;
@@ -159,3 +166,6 @@ float3  ToneMap_whitePreservingLumaBasedReinhardToneMapping (float3 color)
 	return color;
 }
 //-----------------------------------------------------------------------------
+
+
+#endif // AE_LICENSE_CC_BY_NC_SA_3

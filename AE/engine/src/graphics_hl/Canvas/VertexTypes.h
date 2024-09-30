@@ -90,8 +90,8 @@ struct VB_UVs2_SCs1_Col8
 	ubyte4			Color;
 
 	VB_UVs2_SCs1_Col8 () {}
-	VB_UVs2_SCs1_Col8 (const packed_ushort2 &uv, ushort scale, const ubyte4 &col) : UV_Scale{uv, scale, 0}, Color{col} {}
-	VB_UVs2_SCs1_Col8 (const packed_ushort2 &uv, ushort scale, const RGBA8u &col) : UV_Scale{uv, scale, 0}, Color{col} {}
+	VB_UVs2_SCs1_Col8 (const packed_ushort2 &uv, ushort scale, const ubyte4 &col) : UV_Scale{uv, scale, ushort(0)}, Color{col} {}
+	VB_UVs2_SCs1_Col8 (const packed_ushort2 &uv, ushort scale, const RGBA8u &col) : UV_Scale{uv, scale, ushort(0)}, Color{col} {}
 };
 StaticAssert( sizeof(VB_UVs2_SCs1_Col8) == 12 );
 

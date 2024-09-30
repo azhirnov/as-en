@@ -184,7 +184,7 @@ namespace AE::Math
 		using KilogramMeterPerSecond	= MeterPerSecond::Mul< Kilogram >;						// kg * m / s
 		using KilogramPerCubicMeter		= Kilogram::Div< CubicMeter >;							// kg / m^3
 		using Newton					= Kilogram::Mul< MeterPerSquareSecond >;				// N = kg * m / s^2					- SI
-		using Joule						= Newton::Mul< Meter >;									// J = kg * (m / s)^2				- SI
+		using Joule						= Newton::Mul< Meter >;									// J = kg * (m / s)^2	or C*V		- SI
 		using Pascal					= Kilogram::Div< Meter::Mul< Second::Pow<2> >>;			// Pa = kg / (m * s^2)				- SI
 		using Hertz						= NonDimensional::Div< Second >;						// Hz = 1 / s						- SI
 		using Watt						= Joule::Div< Second >;									// W = J / s						- SI

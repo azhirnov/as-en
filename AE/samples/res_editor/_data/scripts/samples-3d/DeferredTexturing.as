@@ -1,4 +1,18 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	First pass:
+		* draw scene to the G-Buffer (RGBA32U + depth)
+		* R channel - material ID and normal.z
+		* G channel - normal.xy
+		* B channel - texture UV
+		* A channel - UV derivatives
+
+	Second pass:
+		* draw fullscreen triangle
+		* unpack G-Buffer
+		* apply material, used material ID, texture UV and UV derivatives
+		* apply lighting, used normal
+*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #endif

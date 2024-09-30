@@ -6,6 +6,7 @@ namespace AE::Profiler
 {
 	using namespace AE::Networking;
 
+#ifdef AE_ENABLE_NVML
 /*
 =================================================
 	MsgConsumer::Consume
@@ -112,7 +113,9 @@ namespace AE::Profiler
 		if_likely( not dt )
 			return;
 
-		_prof.profiler.Sample( OUT _prof.counters );
+		float	invdt;
+		_prof.profiler.Sample( OUT _prof.counters, OUT invdt );
+		invdt = 1.f / dt.As<secondsf>().count();
 
 		if ( _prof.counters.empty() )
 			return;
@@ -124,7 +127,7 @@ namespace AE::Profiler
 			if ( msg )
 			{
 				msg->index	= _prof.index;
-				msg->dtInMs	= ushort(dt.As<milliseconds>().count());
+				msg->invdt	= invdt;
 
 				is_sent = _msgProducer->AddMessage( msg );
 			}
@@ -139,11 +142,11 @@ namespace AE::Profiler
 
 			for (auto it = _prof.counters.begin(); it != _prof.counters.end();)
 			{
-				auto	msg = _msgProducer->CreateMsg< CSMsg_NVidiaProf_Sample >( SizeOf<KeyVal> * step );
+				const usize	count = Min( _prof.counters.size() - sent, step+1 );
+
+				auto	msg = _msgProducer->CreateMsg< CSMsg_NVidiaProf_Sample >( SizeOf<KeyVal> * (count-1) );
 				if ( not msg )
 					break;
-
-				const usize	count = Min( _prof.counters.size() - sent, step+1 );
 
 				msg->index	= _prof.index;
 				msg->count	= ubyte(count);
@@ -165,6 +168,8 @@ namespace AE::Profiler
 			_prof.index ++;
 		}
 	}
+
+#endif // AE_ENABLE_NVML
 //-----------------------------------------------------------------------------
 
 
@@ -240,9 +245,11 @@ namespace AE::Profiler
 	Sample
 =================================================
 */
-	void  NVidiaProfilerClient::Sample (OUT Counters_t &result) __NE___
+	void  NVidiaProfilerClient::Sample (OUT Counters_t &result, INOUT float &invdt) __NE___
 	{
 		result.clear();
+		invdt = 0.f;
+
 		EXLOCK( _guard );
 
 		if ( _IsNotInitialized() )
@@ -253,6 +260,7 @@ namespace AE::Profiler
 		}
 
 		auto&	curr = _counters[ _countersIdx & 1 ];
+		invdt		 = _invdt[ _countersIdx & 1 ];
 
 		std::swap( result, curr );
 		curr.clear();
@@ -285,9 +293,10 @@ namespace AE::Profiler
 
 		if ( _IsInitialized() )
 		{
+			_invdt[ _countersIdx & 1 ] = msg.invdt;
+
 			_countersIdx	= (_countersIdx+1) & 1;
 			_pendingIdx		= msg.index;
-			_interval		= milliseconds{ msg.dtInMs };
 
 			_connectionLostTimer.Restart();
 		}
@@ -304,7 +313,7 @@ namespace AE::Profiler
 
 		if ( _IsInitialized() and _pendingIdx == msg.index )
 		{
-			auto&	curr = _counters[ _countersIdx & 1 ];
+			auto&	curr = _counters[ (_countersIdx+1) & 1 ];
 
 			for (uint i = 0, cnt = msg.count; i < cnt; ++i)
 				curr.insert_or_assign( msg.arr[i].first, msg.arr[i].second );

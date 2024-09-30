@@ -17,22 +17,22 @@ namespace AE::Graphics
 	//
 	struct VulkanImageDesc
 	{
-		VkImage						image			= Default;
-		VkImageType					imageType		= VK_IMAGE_TYPE_MAX_ENUM;
-		VkImageCreateFlagBits		flags			= Zero;
-		EImageOpt					options			= Default;					// some options are not defined in 'flags'
-		VkImageUsageFlagBits		usage			= Zero;
-		VkFormat					format			= VK_FORMAT_UNDEFINED;
-		VkSampleCountFlagBits		samples			= VK_SAMPLE_COUNT_1_BIT;
-		VkImageTiling				tiling			= VK_IMAGE_TILING_MAX_ENUM;
+		VkImage						image				= Default;
+		VkImageType					imageType			= VK_IMAGE_TYPE_MAX_ENUM;
+		VkImageCreateFlagBits		flags				= Zero;
+		EImageOpt					options				= Default;					// some options are not defined in 'flags'
+		VkImageUsageFlagBits		usage				= Zero;
+		VkFormat					format				= VK_FORMAT_UNDEFINED;
+		VkSampleCountFlagBits		samples				= VK_SAMPLE_COUNT_1_BIT;
+		VkImageTiling				tiling				= VK_IMAGE_TILING_MAX_ENUM;
 		uint3						dimension;
-		uint						arrayLayers		= 0;
-		uint						mipLevels		= 0;
-		EQueueMask					queues			= Default;
-		VkMemoryPropertyFlagBits	memFlags		= Zero;
-		VkImageAspectFlagBits		aspectMask		= Zero;
-		bool						canBeDestroyed	= false;
-		bool						allocMemory		= false;
+		uint						arrayLayers			= 0;
+		uint						mipLevels			= 0;
+		EQueueMask					queues				= Default;
+		VkMemoryPropertyFlagBits	memFlags			= Zero;
+		VkImageAspectFlagBits		aspectMask			= Zero;
+		bool						canBeDestroyed		= false;
+		bool						allocMemory			= false;
 	};
 
 
@@ -41,13 +41,14 @@ namespace AE::Graphics
 	//
 	struct VulkanImageViewDesc
 	{
-		VkImageView					view			 = Default;
-		VkImageViewCreateFlagBits	flags			 = Zero;
-		VkImageViewType				viewType		 = VK_IMAGE_VIEW_TYPE_MAX_ENUM;
-		VkFormat					format			 = VK_FORMAT_UNDEFINED;
-		VkComponentMapping			components		 {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
-		VkImageSubresourceRange		subresourceRange { 0, 0, 0, 0, 0 };
-		bool						canBeDestroyed	 = false;
+		VkImageView					view				= Default;
+		VkImageViewCreateFlagBits	flags				= Zero;
+		VkImageViewType				viewType			= VK_IMAGE_VIEW_TYPE_MAX_ENUM;
+		VkFormat					format				= VK_FORMAT_UNDEFINED;
+		VkComponentMapping			components			{VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
+		VkImageSubresourceRange		subresourceRange	{ 0, 0, 0, 0, 0 };
+		uint3						dimension;			// if doesn't match with image mip
+		bool						canBeDestroyed		= false;
 	};
 
 
@@ -56,13 +57,13 @@ namespace AE::Graphics
 	//
 	struct VulkanBufferDesc
 	{
-		VkBuffer					buffer			= Default;
-		VkBufferUsageFlagBits		usage			= VkBufferUsageFlagBits(0);
+		VkBuffer					buffer				= Default;
+		VkBufferUsageFlagBits		usage				= VkBufferUsageFlagBits(0);
 		Bytes						size;
-		EQueueMask					queues			= Default;
-		VkMemoryPropertyFlagBits	memFlags		= Zero;
-		bool						canBeDestroyed	= false;
-		bool						allocMemory		= false;
+		EQueueMask					queues				= Default;
+		VkMemoryPropertyFlagBits	memFlags			= Zero;
+		bool						canBeDestroyed		= false;
+		bool						allocMemory			= false;
 	};
 
 
@@ -71,11 +72,11 @@ namespace AE::Graphics
 	//
 	struct VulkanBufferViewDesc
 	{
-		VkBufferView				view			= Default;
-		VkFormat					format			= VK_FORMAT_UNDEFINED;
+		VkBufferView				view				= Default;
+		VkFormat					format				= VK_FORMAT_UNDEFINED;
 		Bytes						offset;
 		Bytes						range;
-		bool						canBeDestroyed	= false;
+		bool						canBeDestroyed		= false;
 	};
 
 
@@ -84,11 +85,11 @@ namespace AE::Graphics
 	//
 	struct VulkanMemoryObjInfo
 	{
-		VkDeviceMemory				memory			= Default;
-		VkMemoryPropertyFlagBits	flags			= Zero;
+		VkDeviceMemory				memory				= Default;
+		VkMemoryPropertyFlagBits	flags				= Zero;
 		Bytes						offset;
 		Bytes						size;
-		void *						mappedPtr		= null;		// include 'offset'
+		void *						mappedPtr			= null;		// include 'offset'
 	};
 
 
@@ -97,9 +98,9 @@ namespace AE::Graphics
 	//
 	struct VulkanCmdBatchDependency
 	{
-		VkSemaphore					semaphore		= Default;
-		ulong						value			= 0;		// for timeline semaphore
-	//	VkPipelineStageFlags2KHR	stages			= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;
+		VkSemaphore					semaphore			= Default;
+		ulong						value				= 0;		// for timeline semaphore
+	//	VkPipelineStageFlags2KHR	stages				= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;
 
 		ND_ explicit operator bool ()	C_NE___	{ return semaphore != Default; }
 	};

@@ -125,9 +125,11 @@ namespace AE::Base
 			CacheGeom	L3;
 		};
 
+		static constexpr uint	MaxLogicalCores	= 64;
+		static constexpr uint	MaxCoreTypes	= 4;
+
 		using MHz_t				= uint;
-		using CoreBits_t		= BitSet< 256 >;
-		static constexpr uint	MaxCores	= 4;
+		using CoreBits_t		= BitSet< MaxLogicalCores >;
 
 
 		struct Core
@@ -151,7 +153,7 @@ namespace AE::Base
 			ND_ uint  FirstLogicalCore ()	C_NE___	{ return BitScanForward( logicalBits.to_ullong() ); }
 			ND_ uint  LastLogicalCore ()	C_NE___	{ return BitScanReverse( logicalBits.to_ullong() ); }
 		};
-		using Cores_t	= FixedArray< Core, MaxCores >;
+		using Cores_t	= FixedArray< Core, MaxCoreTypes >;
 
 
 		struct Processor
@@ -193,38 +195,6 @@ namespace AE::Base
 	};
 
 
-
-	//
-	// CPU Performance Info
-	//
-
-	struct CpuPerformance
-	{
-	// types
-		using MHz_t	= uint;
-
-		struct PerProcessCounters
-		{
-			milliseconds	userTime;
-			milliseconds	kernelTime;
-			uint			pageFaults					= 0;	// number of page faults serviced that required I/O activity
-			uint			fsInput						= 0;	// number of times the filesystem had to perform input
-			uint			fsOutput					= 0;	// number of times the filesystem had to perform output
-			uint			voluntaryContextSwitches	= 0;	// context switch when awaiting availability of a resource (IO)
-			uint			involuntaryContextSwitches	= 0;	// higher priority process replace current process
-		};
-		using PerThreadCounters = PerProcessCounters;
-
-
-	// methods
-		ND_ static MHz_t	GetFrequency (uint core)										__NE___;
-			static uint		GetFrequency (OUT MHz_t* result, uint maxCount)					__NE___;
-
-			static uint		GetUsage (OUT float* user, OUT float* kernel, uint maxCount)	__NE___;
-
-		ND_ static bool		GetPerfCounters (OUT PerProcessCounters &,
-											 OUT PerThreadCounters &)						__NE___;
-	};
 //-----------------------------------------------------------------------------
 
 

@@ -247,6 +247,21 @@ namespace
 	{
 		StaticAssert( not IsScalar<Bytes> );
 		StaticAssert( IsBytes<Bytes> );
+
+		struct A {
+			alignas(8) char  c [10];
+		} a;
+		alignas(16) char  b [10];
+
+		StaticAssert( sizeof(a) == 16 );
+		StaticAssert( alignof(A) == 8 );
+		StaticAssert( sizeof(b) == 10 );
+		StaticAssert( alignof(decltype(b)) == 1 );
+
+		StaticAssert( Sizeof(a) == 16 );
+		StaticAssert( Alignof(a) == 8 );
+		StaticAssert( Sizeof(b) == 10 );
+		StaticAssert( Alignof(b) == 1 );
 	}
 
 

@@ -343,7 +343,7 @@ Supported queue types: Graphics / Compute
 		switch_enum( type )
 		{
 			case_likely EQueryType::Timestamp :
-				if_unlikely( not AllBits( _timestampAllowed, EQueueMask(0) | queueType ))
+				if_unlikely( NoBits( _timestampAllowed, EQueueMask(0) | queueType ))
 					return Default;
 				break;
 
@@ -360,7 +360,7 @@ Supported queue types: Graphics / Compute
 			case EQueryType::AccelStructCompactedSize :
 			case EQueryType::AccelStructSize :
 			case EQueryType::AccelStructSerializationSize :
-				if_unlikely( not AllBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, EQueueMask(0) | queueType ))
+				if_unlikely( NoBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, EQueueMask(0) | queueType ))
 					return Default;
 				break;
 

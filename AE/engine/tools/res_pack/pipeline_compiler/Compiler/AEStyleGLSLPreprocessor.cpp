@@ -4,15 +4,6 @@
 
 namespace AE::PipelineCompiler
 {
-namespace {
-	ND_ bool  IsPartOfWord (const char c)
-	{
-		return	(c == '_') or
-				((c >= 'a') and (c <= 'z')) or
-				((c >= 'A') and (c <= 'Z')) or
-				((c >= '0') and (c <= '9'));
-	}
-}
 
 /*
 =================================================
@@ -170,6 +161,8 @@ namespace {
 		_typeMap.emplace( "ulong3",			"u64vec3" );
 		_typeMap.emplace( "ulong4",			"u64vec4" );
 		_typeMap.emplace( "ulong_vec_t",	"u64vec" );
+
+		_typeMap.emplace( "WGShared",		"shared" );
 
 
 		_typeMap.emplace( "gl::SubpassInput<float>",	"subpassInput" );
@@ -612,6 +605,7 @@ namespace {
 		_typeMap.emplace( "gl::Nonuniform",				"nonuniformEXT" );
 
 		// https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_memory_scope_semantics.txt
+		// https://registry.khronos.org/SPIR-V/specs/1.0/SPIR-V-execution-and-memory-model.pdf
 		/*/ layout
 		_typeMap.emplace( "gl::Coherent",				"coherent" );
 		_typeMap.emplace( "gl::Devicecoherent",			"devicecoherent" );
@@ -724,6 +718,8 @@ namespace {
 */
 	bool  AEStyleGLSLPreprocessor::Process (EShader, const PathAndLine &fileLoc, usize headerLines, StringView inStr, OUT String &outStr)
 	{
+		const auto	IsPartOfWord = [](char c) { return Parser::CPP.IsWord( c ); };
+
 		usize	hdr_size = 0;
 		Parser::MoveToLine( inStr, INOUT hdr_size, headerLines );
 
@@ -735,7 +731,7 @@ namespace {
 		outStr = source;
 
 		#ifdef AE_CFG_DEBUG
-			const auto	FindAndPrint = [source, &fileLoc] (StringView src, StringView dst)
+			const auto	FindAndPrint = [source, &fileLoc, &IsPartOfWord] (StringView src, StringView dst)
 			{{
 				if ( dst.size() <= 1 )	return;
 				if ( dst == "uint" )	return;

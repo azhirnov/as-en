@@ -16,6 +16,8 @@
 	adapted from https://en.wikipedia.org/wiki/Hilbert_curve
 =================================================
 */
+#ifdef AE_LICENSE_CC_BY_NC_SA_3
+
 int  HilbertCurve (int2 p, int level)
 {
 	int	d = 0;
@@ -55,3 +57,4 @@ int2  InvHilbertCurve (int i, int level)
 	return p;
 }
 
+#endif // AE_LICENSE_CC_BY_NC_SA_3

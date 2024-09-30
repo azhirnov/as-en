@@ -39,7 +39,7 @@ namespace AE::Scripting
 
 	// arguments //
 		template <typename T>
-		ND_ decltype(auto)  Arg (uint argIndex)				C_NE___;
+		ND_ exact_t			Arg (uint argIndex)				C_NE___;
 
 		template <typename T>
 		ND_ bool			IsArg (uint argIndex)			C_NE___;

@@ -154,48 +154,6 @@ namespace AE::Base
 
 		_Validate();
 	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	GetFrequency
-=================================================
-*/
-	CpuPerformance::MHz_t  CpuPerformance::GetFrequency (uint core) __NE___
-	{
-		Unused( core );
-		return 0;
-	}
-
-	uint  CpuPerformance::GetFrequency (OUT MHz_t* result, const uint maxCount) __NE___
-	{
-		Unused( result, maxCount );
-		return 0;
-	}
-
-/*
-=================================================
-	GetUsage
-=================================================
-*/
-	uint  CpuPerformance::GetUsage (OUT float* user, OUT float* kernel, const uint maxCount) __NE___
-	{
-		Unused( user, kernel, maxCount );
-		return 0;
-	}
-
-/*
-=================================================
-	GetPerfCounters
-=================================================
-*/
-	bool  CpuPerformance::GetPerfCounters (OUT PerProcessCounters &, OUT PerThreadCounters &) __NE___
-	{
-		return false;
-	}
-
 
 } // AE::Base
 

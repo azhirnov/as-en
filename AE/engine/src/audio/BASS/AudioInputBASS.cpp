@@ -8,7 +8,7 @@ namespace AE::Audio
 {
 namespace
 {
-	static BOOL CALLBACK  RecordingCallback (HRECORD, const void *buffer, DWORD length, void *user) __NE___
+	static BOOL CALLBACK  RecordingCallback (HRECORD, const void* buffer, DWORD length, void* user) __NE___
 	{
 		auto&	stream = *Cast<WStream>( user );
 		return stream.Write( buffer, Bytes{length} );

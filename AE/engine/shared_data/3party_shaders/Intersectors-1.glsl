@@ -2,6 +2,8 @@
 	from https://iquilezles.org/articles/intersectors/
 */
 
+#ifdef AE_ENABLE_UNKNOWN_LICENSE
+
 /*
 =================================================
 	Sphere_Ray_Intersect
@@ -76,3 +78,4 @@ bool  Rect_Ray_Intersect (const float2 rectSize, const float2 rayDir, const floa
 	return !(tN > tF or tF < 0.0);
 }
 
+#endif // AE_ENABLE_UNKNOWN_LICENSE

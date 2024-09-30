@@ -25,7 +25,7 @@ namespace AE::ResEditor
 	private:
 		EResourceUsage				_resUsage		= Default;
 		EPixelFormat				_format			= Default;
-		uint						_imageType		= 0;		// PipelineCompiler::EImageType
+		uint						_imageType		= 0;		// EImageType
 		uint2						_dim;
 		VFS::FileName				_videoFile;
 		String						_dbgName;

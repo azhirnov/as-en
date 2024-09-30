@@ -518,6 +518,8 @@ namespace AE::ResEditor
 					break;
 				}
 			}
+			switch_end
+
 			CHECK_ERR( mem_view.CopyFrom( instances ) == size );
 		}
 

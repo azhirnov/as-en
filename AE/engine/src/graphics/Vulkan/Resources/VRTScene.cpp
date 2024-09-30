@@ -244,10 +244,10 @@ namespace AE::Graphics
 			auto*	buf		= resMngr.GetResource( build.instanceData.id, False{"don't inc ref"}, True{"quiet"} );
 			Bytes	size	= build.instanceData.offset + build.instanceData.stride * build.maxInstanceCount;
 
-			if_unlikely( buf == null																or
-						 build.instanceData.offset >= buf->Size()									or
-						 size > buf->Size()															or
-						 not AllBits( buf->Description().usage, EBufferUsage::ASBuild_ReadOnly )	or
+			if_unlikely( buf == null															or
+						 build.instanceData.offset >= buf->Size()								or
+						 size > buf->Size()														or
+						 NoBits( buf->Description().usage, EBufferUsage::ASBuild_ReadOnly )		or
 						 not IsMultipleOf( ulong(buf->GetDeviceAddress() + build.instanceData.offset), props.instanceDataAlign ))
 				return false;
 		}
@@ -255,9 +255,9 @@ namespace AE::Graphics
 		if ( build.scratch.id != Default )
 		{
 			auto*	buf = resMngr.GetResource( build.scratch.id, False{"don't inc ref"}, True{"quiet"} );
-			if_unlikely( buf == null															or
-						 build.scratch.offset >= buf->Size()									or
-						 not AllBits( buf->Description().usage, EBufferUsage::ASBuild_Scratch )	or
+			if_unlikely( buf == null														or
+						 build.scratch.offset >= buf->Size()								or
+						 NoBits( buf->Description().usage, EBufferUsage::ASBuild_Scratch )	or
 						 not IsMultipleOf( ulong(buf->GetDeviceAddress() + build.scratch.offset), props.scratchBufferAlign ))
 				return false;
 		}

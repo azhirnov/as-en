@@ -202,15 +202,15 @@ namespace
 */
 	void  ScriptBuffer::_ValidateResourceUsage (const EResourceUsage usage) __Th___
 	{
-		CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ColorAttachment ));
-		CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::DepthStencil ));
-		CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::Sampled ));
-		CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::GenMipmaps ));
+		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::ColorAttachment ));
+		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::DepthStencil ));
+		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::Sampled ));
+		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::GenMipmaps ));
 
 		if ( AllBits( usage, EResourceUsage::UploadedData ))
 		{
-			CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ComputeWrite ));
-			CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ShaderAddress ));
+			CHECK_THROW_MSG( NoBits( usage, EResourceUsage::ComputeWrite ));
+			CHECK_THROW_MSG( NoBits( usage, EResourceUsage::ShaderAddress ));
 		}
 
 		auto&	fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
@@ -969,6 +969,9 @@ namespace
 		binder.Comment( "Dynamic array size, can be used for draw call." );
 		binder.AddMethod( &ScriptBuffer::ArraySize,				"ArraySize",		{} );
 
+		binder.Comment( "Constant array size, can be used for draw call." );
+		binder.AddMethod( &ScriptBuffer::ConstArraySize,		"ConstArraySize",	{} );
+
 		binder.Comment( "Build buffer data layout with initial content.\n"
 						"Returns offset in bytes where data is begin." );
 
@@ -1103,6 +1106,7 @@ namespace
 				case EResourceUsage::DepthStencil :
 				case EResourceUsage::ComputeRW :
 				case EResourceUsage::Present :
+				case EResourceUsage::InputAttachment :
 				default :								RETURN_ERR( "unsupported usage" );
 			}
 			switch_end
@@ -1365,6 +1369,8 @@ namespace
 		ScriptDynamicUIntPtr	result;
 		if ( _inDynCount )		result = _inDynCount;
 		if ( _outDynCount )		result = _outDynCount;
+
+		ASSERT_MSG( _staticCount == 0, "use ConstArraySize() instead" );
 		return result;
 	}
 

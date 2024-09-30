@@ -27,26 +27,33 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr TPercent ()												__NE___ = default;
-		explicit constexpr TPercent (T val)									__NE___ : _value{val} {}
+		constexpr TPercent ()										__NE___ = default;
+		explicit constexpr TPercent (T val)							__NE___ : _value{val} {}
 
+		NdCx__ bool  operator == (const Self rhs)					C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool  operator != (const Self rhs)					C_NE___	{ return _value != rhs._value; }
+		NdCx__ bool  operator <  (const Self rhs)					C_NE___	{ return _value <  rhs._value; }
+		NdCx__ bool  operator >  (const Self rhs)					C_NE___	{ return _value >  rhs._value; }
+		NdCx__ bool  operator <= (const Self rhs)					C_NE___	{ return _value <= rhs._value; }
+		NdCx__ bool  operator >= (const Self rhs)					C_NE___	{ return _value >= rhs._value; }
 
-		ND_ constexpr T	GetPercent ()										C_NE___	{ return _value * T{100}; }				// 0..100%
-		ND_ constexpr T	GetFraction ()										C_NE___	{ return _value; }						// 0..1
+		NdCx__ T	GetPercent ()									C_NE___	{ return _value * T{100}; }				// 0..100%
+		NdCx__ T	GetFraction ()									C_NE___	{ return _value; }						// 0..1
 
 		template <typename B>
-		ND_ constexpr EnableIf<IsFloatPoint<B>, B>	Of (const B &value)		C_NE___	{ return value * B{GetFraction()}; }
+		NdCx__ EnableIf<IsFloatPoint<B>, B>  Of (const B &value)	C_NE___	{ return value * B{GetFraction()}; }
 
-		ND_ static constexpr Self	FromPercent (T value)					__NE___	{ return Self{ value * T{0.01} }; }
-		ND_ static constexpr Self	FromFraction (T value)					__NE___	{ return Self{ value }; }
+		template <typename B>
+		NdCx__ static Self	FromPercent (B value)					__NE___	{ return Self{ T(value) * T{0.01} }; }
+		NdCx__ static Self	FromFraction (T value)					__NE___	{ return Self{ value }; }
 	};
 
 
 	using Percent	= TPercent< float >;
 	using PercentD	= TPercent< double >;
 
-	ND_ constexpr Percent operator "" _pct (long double value)			{ return Percent{ Percent::FromPercent( Percent::Value_t( value ))}; }
-	ND_ constexpr Percent operator "" _pct (unsigned long long value)	{ return Percent{ Percent::FromPercent( Percent::Value_t( value ))}; }
+	NdCx__ Percent operator "" _pct (long double value)				__NE___ { return Percent{ Percent::FromPercent( Percent::Value_t( value ))}; }
+	NdCx__ Percent operator "" _pct (unsigned long long value)		__NE___ { return Percent{ Percent::FromPercent( Percent::Value_t( value ))}; }
 
 
 } // AE::Math

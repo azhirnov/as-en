@@ -100,7 +100,7 @@ namespace
 			binder.CreateRef( 0, False{"no ctor"} );
 
 			_BindBase( binder, True{"withArgs"} );
-			_BindBaseRenderPass( binder, True{"withBlending"} );
+			_BindBaseRenderPass( binder, True{"withBlending"}, True{"withRWAttachment"} );
 
 			binder.Comment( "Set path to fragment shader, empty - load current file." );
 			binder.AddFactoryCtor( &ScriptPostprocess_Ctor0,	{} );
@@ -109,6 +109,9 @@ namespace
 			binder.AddFactoryCtor( &ScriptPostprocess_Ctor3,	{"postprocessFlags"} );
 			binder.AddFactoryCtor( &ScriptPostprocess_Ctor4,	{"postprocessFlags", "defines"} );
 			binder.AddFactoryCtor( &ScriptPostprocess_Ctor5,	{"shaderPath", "defines"} );
+
+			binder.Comment( "Can be used only if pass hasn't attachments." );
+			binder.AddMethod( &ScriptBasePass::_SetDynamicDimension,	"SetDimension",	{} );
 		}
 	}
 
@@ -138,7 +141,6 @@ namespace
 		Bytes		ub_size;
 
 		result->_rtech = _CompilePipeline( OUT ub_size ); // throw
-		result->_depthRange = this->_depthRange;
 
 		EnumSet<IPass::EDebugMode>	dbg_modes;
 
@@ -175,6 +177,16 @@ namespace
 			CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
 														ppln, DescriptorSetName{"ds0"}, null, _dbgName ));
 			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
+
+			for (auto [out, i] : WithIndex(_output))
+			{
+				if ( out.inName.empty() )
+					continue;
+
+				result->_resources.Add( UniformName{out.inName}, out.rt->ToResource(),
+										(out.rt->IsDepthOrStencil() ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW)
+										| EResourceState::FragmentShader );
+			}
 		}
 
 		uint	min_layer_count = UMax;
@@ -188,24 +200,35 @@ namespace
 
 			AssignMin( INOUT min_layer_count, count );
 		}
+		if ( _output.empty() )
+			min_layer_count = 1;
+
 		CHECK_THROW( min_layer_count > 0 );
 
 		result->_rpDesc.renderPassName	= RenderPassName{"rp"};
 		result->_rpDesc.subpassName		= SubpassName{"main"};
 		result->_rpDesc.packId			= result->_rtech.packId;
 		result->_rpDesc.layerCount		= ImageLayer{min_layer_count};
+		result->_rpDesc.area			= RectI{0,0,1,1};
+		result->_rpDesc.viewports		= this->_viewports;
+		result->_dynamicDim				= this->_dynamicDim ? this->_dynamicDim->Get() : null;
 
-		for (usize i = 0; i < _output.size(); ++i)
+		if ( result->_rpDesc.viewports.empty() )
+			result->_rpDesc.AddViewport( RectF{0.f, 0.f, 1.f, 1.f}, _depthRange.x, _depthRange.y );
+
+		for (auto [src, i] : WithIndex(_output))
 		{
-			auto&	src	= _output[i];
 			auto	rt	= src.rt->ToResource();
 			CHECK_THROW( rt );
 
 			// validate
-			for (auto& [name, res, state] : result->_resources.Get())
+			if ( src.inName.empty() )
 			{
-				if ( auto* tex = UnionGet< RC<Image> >( res ))
-					CHECK_THROW_MSG( tex->get() != rt.get(), "Image '"s << rt->GetName() << "' used as input and output" );
+				for (auto& [name, res, state] : result->_resources.Get())
+				{
+					if ( auto* tex = UnionGet< RC<Image> >( res ))
+						CHECK_THROW_MSG( tex->get() != rt.get(), "Image '"s << rt->GetName() << "' used as input and output, use 'InOut()' instead." );
+				}
 			}
 
 			ImageViewDesc	view;
@@ -223,7 +246,6 @@ namespace
 			dst.image	= rt;
 			dst.clear	= src.clear;
 		}
-		CHECK_THROW( not result->_renderTargets.empty() );
 
 		_Init( *result, null );
 		UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::Fragment );
@@ -259,7 +281,7 @@ namespace AE::ResEditor
 		st->Set( EStructLayout::Std140, R"#(
 				float3		resolution;				// viewport resolution (in pixels)
 				float		time;					// shader playback time (in seconds)
-				float		timeDelta;				// render time (in seconds)
+				float		timeDelta;				// frame render time (in seconds), max value: 1/30s
 				uint		frame;					// shader playback frame, global frame counter
 				uint		passFrameId;			// current pass frame index
 				uint		seed;					// unique value, updated on each shader reloading
@@ -313,7 +335,9 @@ namespace AE::ResEditor
 
 		_args.ValidateArgs();
 
-		CHECK_THROW( not _output.empty() );
+		if ( _output.empty() )
+			CHECK_THROW_MSG( _HasCustomDynamicDimension(), "If pass hasn't attachments (Output()) use SetDimension() to set framebuffer dimension." );
+
 		for (auto& out : _output)
 		{
 			CHECK_THROW_MSG( out.rt );
@@ -324,34 +348,47 @@ namespace AE::ResEditor
 		CompatibleRenderPassDescPtr	compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
 		compat_rp->AddSubpass( subpass );
 		{
-			for (usize i = 0; i < _output.size(); ++i)
+			for (auto [out, i] : WithIndex(_output))
 			{
-				RPAttachmentPtr		att		= compat_rp->AddAttachment2( _output[i].name );
-				auto				rt		= _output[i].rt;
-				const auto			desc	= rt->ToResource()->GetImageDesc();
+				RPAttachmentPtr		att		= compat_rp->AddAttachment2( out.name );
+				const auto			desc	= out.rt->ToResource()->GetImageDesc();
+				EAttachment			type	= (out.rt->IsDepthOrStencil() ? EAttachment::DepthStencil : EAttachment::Color);
 
 				att->format		= desc.format;
 				att->samples	= desc.samples;
 
-				att->AddUsage( subpass, (rt->IsDepthOrStencil() ? EAttachment::DepthStencil : EAttachment::Color) );
+				if ( not out.inName.empty() )
+				{
+					att->AddUsage3( subpass, EAttachment::ReadWrite,
+									RPAttachment::ShaderIO{ out.inName, Default, uint(i) },
+									RPAttachment::ShaderIO{ out.name,   Default, uint(i) });
+				}else
+					att->AddUsage( subpass, type );
 			}
 		}{
 			RenderPassSpecPtr	rp_spec		= compat_rp->AddSpecialization2( "rp" );
 			const auto			ds_state	= EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestAfterFS;
 
-			for (usize i = 0; i < _output.size(); ++i)
+			for (auto [out, i] : WithIndex(_output))
 			{
-				RPAttachmentSpecPtr	att = rp_spec->AddAttachment2( _output[i].name );
+				RPAttachmentSpecPtr	att = rp_spec->AddAttachment2( out.name );
 				att->loadOp		= EAttachmentLoadOp::Load;
 				att->storeOp	= EAttachmentStoreOp::Store;
 
-				if ( _output[i].HasClearValue() )
+				if ( out.HasClearValue() )
 				{
 					att->loadOp = EAttachmentLoadOp::Clear;
 					att->AddLayout( "ExternalIn", EResourceState::Invalidate );
 				}
 
-				att->AddLayout( subpass, (_output[i].rt->IsDepthOrStencil() ? ds_state : EResourceState::ColorAttachment) );
+				EResourceState	state = (out.rt->IsDepthOrStencil() ? ds_state : EResourceState::ColorAttachment);
+				if ( not out.inName.empty() )
+				{
+					CHECK( not out.HasClearValue() );
+					state = (out.rt->IsDepthOrStencil() ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW)
+							| EResourceState::FragmentShader;
+				}
+				att->AddLayout( subpass, state );
 			}
 		}
 
@@ -370,8 +407,16 @@ namespace AE::ResEditor
 			ubSize = st->StaticSize();
 
 			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ShadertoyUB", EResourceState::ShaderUniform, False{} );
+
+			for (auto [out, i] : WithIndex(_output))
+			{
+				if ( out.inName.empty() ) continue;
+				ds_layout->AddSubpassInput( stage, out.inName, uint(i), out.rt->ImageType(),
+											(out.rt->IsDepthOrStencil() ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW)
+											| EResourceState::FragmentShader );
+			}
 		}
-		_args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
+		_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 
 
 		uint			fs_line = 0;

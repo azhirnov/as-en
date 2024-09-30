@@ -249,7 +249,7 @@ namespace _hidden_
 		template <typename A>
 		_InternalImpl (A &&value, bool except, StringView, ETaskQueue, Promise<T>::CompleteValueArg)	__NE___;
 
-		ND_ decltype(auto)  Result ()																	C_NE___
+		ND_ exact_t  Result ()																			C_NE___
 		{
 			ASSERT( Status() == EStatus::Completed );
 			MemoryBarrier( EMemoryOrder::Acquire );

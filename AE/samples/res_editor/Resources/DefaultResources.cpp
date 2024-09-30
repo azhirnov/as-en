@@ -26,7 +26,8 @@ namespace AE::ResEditor
 
 		_CreateDummyImage2D( OUT _dummyRes.image2D, _gfxLinearAlloc );
 		_CreateDummyImage3D( OUT _dummyRes.image3D, _gfxLinearAlloc );
-		_CreateDummyImageCube( OUT _dummyRes.imageCube, _gfxLinearAlloc );
+		_CreateDummyImage2DArray( OUT _dummyRes.imageCube, _gfxLinearAlloc, True{"CubeMap"} );
+		_CreateDummyImage2DArray( OUT _dummyRes.image2DArr, _gfxLinearAlloc, False{} );
 
 		if ( rts.GetFeatureSet().accelerationStructure() == FeatureSet::EFeature::RequireTrue )
 		{
@@ -47,6 +48,7 @@ namespace AE::ResEditor
 		res_mngr.ReleaseResources( _dummyRes.image2D.image,		_dummyRes.image2D.view );
 		res_mngr.ReleaseResources( _dummyRes.image3D.image,		_dummyRes.image3D.view );
 		res_mngr.ReleaseResources( _dummyRes.imageCube.image,	_dummyRes.imageCube.view );
+		res_mngr.ReleaseResources( _dummyRes.image2DArr.image,	_dummyRes.image2DArr.view );
 		res_mngr.ReleaseResources( _dummyRes.rtGeometry,		_dummyRes.rtScene );
 	}
 
@@ -67,18 +69,21 @@ namespace AE::ResEditor
 
 		StrongImageAndViewID	result;
 
-		if ( is_cube or is_2darr )
+		if ( is_cube )
 		{
 			result.image = res_mngr.AcquireResource( _dummyRes.imageCube.image.Get() );
 			result.view  = res_mngr.AcquireResource( _dummyRes.imageCube.view.Get() );
-		}
-		else
+		}else
+		if ( is_2darr )
+		{
+			result.image = res_mngr.AcquireResource( _dummyRes.image2DArr.image.Get() );
+			result.view  = res_mngr.AcquireResource( _dummyRes.image2DArr.view.Get() );
+		}else
 		if ( is_2d )
 		{
 			result.image = res_mngr.AcquireResource( _dummyRes.image2D.image.Get() );
 			result.view  = res_mngr.AcquireResource( _dummyRes.image2D.view.Get() );
-		}
-		else
+		}else
 		if ( is_3d )
 		{
 			result.image = res_mngr.AcquireResource( _dummyRes.image3D.image.Get() );
@@ -168,10 +173,10 @@ namespace AE::ResEditor
 
 /*
 =================================================
-	_CreateDummyImageCube
+	_CreateDummyImage2DArray
 =================================================
 */
-	void  DefaultResources::_CreateDummyImageCube (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc) const
+	void  DefaultResources::_CreateDummyImage2DArray (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc, Bool cubemap) const
 	{
 		auto&		res_mngr = GraphicsScheduler().GetResourceManager();
 		ImageDesc	desc;
@@ -180,15 +185,17 @@ namespace AE::ResEditor
 		desc.SetDimension( uint2{2} );
 		desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
 		desc.SetArrayLayers( 6 );
-		desc.SetOptions( EImageOpt::CubeCompatible );
 
-		dst.image = res_mngr.CreateImage( desc, "dummy image cube", gfxAlloc );
+		if ( cubemap )
+			desc.SetOptions( EImageOpt::CubeCompatible );
+
+		dst.image = res_mngr.CreateImage( desc, (cubemap ? "dummy image cube" : "dummy image 2d array"), gfxAlloc );
 		CHECK_ERRV( dst.image );
 
 		ImageViewDesc	view {desc};
 		view.swizzle = "RRR1"_swizzle;
 
-		dst.view = res_mngr.CreateImageView( view, dst.image, "dummy image cube view" );
+		dst.view = res_mngr.CreateImageView( view, dst.image, (cubemap ? "dummy image cube view" : "dummy image 2d array view") );
 		CHECK_ERRV( dst.view );
 
 		RenderGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaders );
@@ -246,7 +253,7 @@ namespace AE::ResEditor
 	{
 		auto&	fmt_info = EPixelFormat_GetInfo( desc.format );
 		return ChooseAllocator( isDynamic,
-					ImageUtils::ImageSize( desc.dimension, desc.arrayLayers, desc.mipLevels, desc.samples, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ));
+					ImageUtils::ImageSize( desc.Dimension(), desc.arrayLayers, desc.mipLevels, desc.samples, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ));
 	}
 
 	GfxMemAllocatorPtr  DefaultResources::ChooseAllocator (Bool isDynamic, const VideoImageDesc &desc) C_NE___
@@ -266,10 +273,10 @@ namespace AE::ResEditor
 				if ( aspect != EImageAspect::Color )
 				{
 					CHECK_ERRV( EPixelFormat_GetPlaneInfo( desc.format, aspect, OUT plane_fmt, OUT plane_scale ));
-					CHECK_ERRV( All( IsMultipleOf( desc.dimension, plane_scale )));
+					CHECK_ERRV( All( IsMultipleOf( desc.Dimension2(), plane_scale )));
 				}
 
-				const uint2		dim			= desc.dimension / plane_scale;
+				const uint2		dim			= desc.Dimension2() / plane_scale;
 				auto&			plane_info	= EPixelFormat_GetInfo( plane_fmt );
 
 				size += ImageUtils::ImageSize( uint3{dim,1}, plane_info.bitsPerBlock, plane_info.TexBlockDim() );

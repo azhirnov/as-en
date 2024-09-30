@@ -28,14 +28,14 @@ namespace AE::Base
 =================================================
 */
 	template <typename ...Types, typename ...Funcs>
-	ND_ constexpr decltype(auto)  Visit (Union<Types...> &un, Funcs&&... fn) //noexcept(AllNothrowInvocable< Funcs... >)  // TODO
+	ND_ constexpr exact_t  Visit (Union<Types...> &un, Funcs&&... fn) //noexcept(AllNothrowInvocable< Funcs... >)  // TODO
 	{
 		using namespace Base::_hidden_;
 		return std::visit( overloaded{ FwdArg<Funcs>(fn)... }, un );
 	}
 
 	template <typename ...Types, typename ...Funcs>
-	ND_ constexpr decltype(auto)  Visit (const Union<Types...> &un, Funcs&&... fn) //noexcept(AllNothrowInvocable< Funcs... >)  // TODO
+	ND_ constexpr exact_t  Visit (const Union<Types...> &un, Funcs&&... fn) //noexcept(AllNothrowInvocable< Funcs... >)  // TODO
 	{
 		using namespace Base::_hidden_;
 		return std::visit( overloaded{ FwdArg<Funcs>(fn)... }, un );

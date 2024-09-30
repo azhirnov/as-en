@@ -127,35 +127,37 @@ namespace
 		const uint		u_val	= 0x12345678;
 		const float		f_val	= 2.1345678f;
 		const double	d_val	= 987.1234567;
-		const String	s_val	= "kjadsnfaoskldm;asdcnksdjnfkdsl";
 
-		PackedBits<0, 8, uint>	u0	{u_val};
-		PackedBits<2, 9, uint>	u1	{u_val};
-		PackedFloatBits<0>		f0	{f_val};
-		PackedFloatBits<13>		f1	{f_val};
-		PackedFloatBits<20>		f2	{f_val};
-		PackedDoubleBits<0>		d0	{d_val};
-		PackedDoubleBits<20>	d1	{d_val};
-		PackedDoubleBits<40>	d2	{d_val};
-		Optional<String>		os	{s_val};
+		PackedBits<0, 8, uint>		u0	{u_val};
+		PackedBits<2, 9, uint>		u1	{u_val};
+		PackedFloatBits<0>			f0	{f_val};
+		PackedFloatBits<13>			f1	{f_val};
+		PackedFloatBits<20>			f2	{f_val};
+		PackedDoubleBits<0>			d0	{d_val};
+		PackedDoubleBits<20>		d1	{d_val};
+		PackedDoubleBits<40>		d2	{d_val};
+
+		PackedBits<0, 64, ulong>	u2	{0x080};
+		PackedBits<0, 64, ulong>	u3	{0x00F};
+		PackedBits<0, 64, ulong>	u4	{0xC00};
 
 		{
-			Serializer	ser{ stream };
+			BitSerializer	ser{ stream };
 			TEST( ser( u0, u1 ));
 			TEST( ser( f0, f1, f2 ));
 			TEST( ser( d0, d1, d2 ));
-			TEST( ser( os ));
+			TEST( ser( u2, u3, u4 ));
 
 			DEBUG_ONLY( AE_LOGI( "UnusedBits: "s << ToString( ser.dbgUnusedBits ));)
 		}
 		{
 			auto			rstream = MakeRC<MemRefRStream>( stream->GetData() );
-			Deserializer	des{ rstream };
+			BitDeserializer	des{ rstream };
 
 			TEST( des( u0, u1 ));
 			TEST( des( f0, f1, f2 ));
 			TEST( des( d0, d1, d2 ));
-			TEST( des( os ));
+			TEST( des( u2, u3, u4 ));
 
 			TEST( des.IsEnd() );
 		}
@@ -171,8 +173,9 @@ namespace
 		TEST( BitEqual( double{d1}, d_val, EnabledBitCount(64-20) ));
 		TEST( BitEqual( double{d2}, d_val, EnabledBitCount(64-40) ));
 
-		TEST( os.has_value() );
-		TEST( os.value() == s_val );
+		TEST( u2.ToBits() == 0x080 );
+		TEST( u3.ToBits() == 0x00F );
+		TEST( u4.ToBits() == 0xC00 );
 	}
 
 
@@ -226,6 +229,63 @@ namespace
 	}
 
 
+	static void  Serialization_Test4 ()
+	{
+		struct CpuCluster final : ISerializable
+		{
+			String					name;
+			CpuArchInfo::CoreBits_t	logicalCores;
+
+			ND_ bool  operator == (const CpuCluster &rhs) const {
+				return	name == rhs.name and
+						logicalCores == rhs.logicalCores;
+			}
+
+			bool  Serialize (Serializer &ser) C_NE_OV {
+				return ser( name, logicalCores );
+			}
+
+			bool  Deserialize (Deserializer &des) __NE_OV {
+				return des( OUT name, OUT logicalCores );
+			}
+		};
+		using CpuClusters_t	= FixedArray< CpuCluster, CpuArchInfo::MaxCoreTypes >;
+
+		CpuClusters_t	clusters;
+		{
+			auto&	dst = clusters.emplace_back();
+			dst.name	= "Cortex X1";
+			dst.logicalCores.set( 7 );
+		}{
+			auto&	dst = clusters.emplace_back();
+			dst.name	= "Cortex A78";
+			dst.logicalCores.set( 5 ).set( 6 );
+		}{
+			auto&	dst = clusters.emplace_back();
+			dst.name	= "Cortex A55";
+			dst.logicalCores.set( 0 ).set( 1 ).set( 2 ).set( 3 );
+		}
+
+		auto	stream = MakeRC<ArrayWStream>();
+		{
+			Serializer	ser{ stream };
+			TEST( ser( clusters ));
+		}
+
+		{
+			auto				rstream = MakeRC<MemRefRStream>( stream->GetData() );
+			Deserializer		des{ rstream };
+			LinearAllocator<>	alloc;
+			des.allocator = &alloc;
+
+			CpuClusters_t	clusters2;
+			TEST( des( OUT clusters2 ));
+
+			TEST( clusters2 == clusters );
+		}
+	}
+
+
 	static void  SerializationTraits ()
 	{
 		StaticAssert( IsTriviallySerializable< int >);
@@ -244,6 +304,7 @@ extern void UnitTest_Serialization ()
 	Serialization_Test1();
 	Serialization_Test2();
 	Serialization_Test3();
+	Serialization_Test4();
 
 	TEST_PASSED();
 }

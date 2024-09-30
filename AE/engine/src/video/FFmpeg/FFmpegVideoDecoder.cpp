@@ -57,7 +57,7 @@ namespace AE::Video
 		ASSERT( outCodec == null );
 		ASSERT( outCodecCtx == null );
 
-		const auto	CreateCodecCtx = [&] (const AVCodec *codec) -> bool
+		const auto	CreateCodecCtx = [&] (const AVCodec* codec) -> bool
 		{{
 			if ( codec == null )
 				return false;
@@ -326,7 +326,7 @@ namespace AE::Video
 			CHECK_ERR( _avPacket != null );
 		}
 
-		const uint2		src_dim { _video.codecCtx->width, _video.codecCtx->height };
+		const uint2		src_dim {int2{ _video.codecCtx->width, _video.codecCtx->height }};
 
 		if ( All( IsZero( _config.dstDim )) )
 			_config.dstDim = src_dim;
@@ -905,7 +905,7 @@ namespace AE::Video
 				else
 				{
 					// create codec context to get actual pixel format
-					const auto	UseCodec = [this, &dst, params] (const AVCodec *codec) -> bool
+					const auto	UseCodec = [this, &dst, params] (const AVCodec* codec) -> bool
 					{{
 						if ( codec == null )
 							return false;

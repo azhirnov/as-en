@@ -27,7 +27,7 @@
 			RC<Postprocess>		pass = Postprocess();
 			pass.Output( "out_Color",	rt );
 
-			pass.Slider( "iHash",			0,						8,						int(params[0]) );
+			pass.Slider( "iHash",			0,						9,						int(params[0]) );
 			pass.Slider( "iInSize",			1,						4,						int(params[1]) );
 			pass.Slider( "iOutSize",		1,						4,						int(params[2]) );
 			pass.Slider( "iComp",			-1,						3,						int(params[3]) );
@@ -98,11 +98,8 @@
 	}
 
 
-	ND_ float4  HEHash (const float4 inFloat)
+	ND_ float4  HEHash2 (const uint4 uval)
 	{
-	//	const uint4		uval = uint4(inFloat);
-		const uint4		uval = floatBitsToUint(inFloat);
-
 		switch ( iInSize )
 		{
 			case 1 :	return float4(HEHash11( uval.x ));
@@ -135,6 +132,14 @@
 			}
 		}
 		return float4(0.0);
+	}
+
+	ND_ float4  HEHashI (const float4 inFloat) {
+		return HEHash2( floatBitsToUint(inFloat) );
+	}
+
+	ND_ float4  HEHashF (const float4 inFloat) {
+		return HEHash2( uint4(Abs(inFloat)) );
 	}
 
 
@@ -206,20 +211,21 @@
 
 	ND_ float4  Hash (const float4 inFloat)
 	{
-		#if iHash_max != 8
-		#	error Hash type count must be 8
+		#if iHash_max != 9
+		#	error Hash type count must be 9
 		#endif
 		switch ( iHash )															//     License     |  scale  |   valid range   |  errors
 		{																			//-----------------|---------|-----------------|-----------------
 			case 0 :	return DHash( inFloat );									//       MIT       |   >30   |   0  .. 10^8    | when changed sign
 			case 1 :	return float4(WeylHash12( inFloat.xy ));					//    unlicense    |   >35   | 100  .. 4500    | near at 0
 			case 2 :	return float4(ModHash12( inFloat.xy ));						// CC BY-NC-SA 3.0 |   any   |   0  .. 2500    | if scale is multiple of 2
-			case 3 :	return HEHash( inFloat );									//       MIT       |   any   |   0  .. 3*10^38 | -
-			case 4 :	return HashV3( inFloat );									// CC BY-NC-SA 3.0 |   >1    |   1  .. 100     | bad quality for >100, invalid for >40'000
-			case 5 :	return MHash( inFloat );									// CC BY-NC-SA 3.0 |   any   |   0  .. 3*10^38 |
-			case 6 :	return float4(UEFastHash12( inFloat.xy ));					//       ???       |  >100   | 100  .. 10^4    | bad quality for >10^4, invalid for >10^7
-			case 7 :	return float4(InterleavedGradientNoise12( inFloat.xy ));	//       ???       |  >100   | 100  .. 10^7    | visible pattern, bad quality for >10^7, invalid for >10^9
-			case 8 :	return float4(PseudoHash12( inFloat.xy ));					//       ???       |   any   | 10^4 .. 10^6    | when changed sign, visible pattern for <10^4, bad quality for >10^7, invalid for >10^10
+			case 3 :	return HEHashI( inFloat );									//       MIT       |   any   |   0  .. 3*10^38 | -
+			case 4 :	return HEHashF( inFloat );									//       MIT       |   any   | 10^3 .. 10^9    | -
+			case 5 :	return HashV3( inFloat );									// CC BY-NC-SA 3.0 |   >1    |   1  .. 100     | bad quality for >100, invalid for >40'000
+			case 6 :	return MHash( inFloat );									// CC BY-NC-SA 3.0 |   any   |   0  .. 3*10^38 |
+			case 7 :	return float4(UEFastHash12( inFloat.xy ));					//       ???       |  >100   | 100  .. 10^4    | bad quality for >10^4, invalid for >10^7
+			case 8 :	return float4(InterleavedGradientNoise12( inFloat.xy ));	//       ???       |  >100   | 100  .. 10^7    | visible pattern, bad quality for >10^7, invalid for >10^9
+			case 9 :	return float4(PseudoHash12( inFloat.xy ));					//       ???       |   any   | 10^4 .. 10^6    | when changed sign, visible pattern for <10^4, bad quality for >10^7, invalid for >10^10
 		}
 	}
 

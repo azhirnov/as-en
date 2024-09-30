@@ -101,7 +101,7 @@ namespace AE::Profiler
 		Timer							_connectionLostTimer	{seconds{10}};
 		ECounterSet						_requiredCS;
 
-		secondsf						_interval;
+		float							_invdt [2]		= {};
 		Counters_t						_counters [2];
 		ECounterSet						_enabled;
 		HWInfo							_hwInfo;
@@ -116,7 +116,7 @@ namespace AE::Profiler
 			void  Deinitialize ()											__NE___;
 		ND_ bool  IsInitialized ()											C_NE___	{ SHAREDLOCK( _guard );  return _IsInitialized(); }
 
-			void  Sample (OUT Counters_t &result)							__NE___;
+			void  Sample (OUT Counters_t &result, INOUT float &invdt)		__NE___;
 
 		ND_ ECounterSet			EnabledCounterSet ()						C_NE___	{ SHAREDLOCK( _guard );  return _enabled; }
 		ND_ HWInfo				GetHWInfo ()								C_NE___	{ SHAREDLOCK( _guard );  return _hwInfo; }

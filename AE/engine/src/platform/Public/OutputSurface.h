@@ -26,6 +26,7 @@ namespace AE::App
 	using Graphics::EColorSpace;
 	using Graphics::CommandBatchPtr;
 	using Graphics::SurfaceFormat;
+	using Graphics::ImageDim2_t;
 
 
 
@@ -85,11 +86,14 @@ namespace AE::App
 
 		struct RenderTargetInfo
 		{
-			uint2					dimension;
-			float					pixToMm;		// pixels to millimeters, used for touch screen, should not be used for VR
+			ImageDim2_t			dimension;
+			float				pixToMm;		// pixels to millimeters, used for touch screen, should not be used for VR
 
-			RenderTargetInfo ()							__NE___	{}
-			RenderTargetInfo (uint2 dim, float pixToMm)	__NE___ : dimension{dim}, pixToMm{pixToMm} {}
+			RenderTargetInfo ()									__NE___	{}
+			RenderTargetInfo (ImageDim2_t dim, float pixToMm)	__NE___ : dimension{dim}, pixToMm{pixToMm} {}
+			RenderTargetInfo (uint2 dim, float pixToMm)			__NE___ : dimension{dim}, pixToMm{pixToMm} {}
+
+			ND_ uint2	Dimension ()							C_NE___	{ return uint2{dimension}; }
 		};
 
 		using RenderTarget		= IOutputSurface_RenderTarget;

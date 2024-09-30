@@ -6,7 +6,7 @@ namespace
 {
 	static void  BufferView_Test (ResourceManager &resMngr, const BufferDesc &bufDesc)
 	{
-		if ( not AnyBits( bufDesc.usage, EBufferUsage::UniformTexel | EBufferUsage::StorageTexel ))
+		if ( NoBits( bufDesc.usage, EBufferUsage::UniformTexel | EBufferUsage::StorageTexel ))
 			return;
 
 		auto	buffer = resMngr.CreateBuffer( bufDesc );

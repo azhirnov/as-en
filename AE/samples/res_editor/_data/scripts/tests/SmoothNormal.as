@@ -29,12 +29,13 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "Normal.glsl"
+	#include "Geometry.glsl"
 	#include "GlobalIndex.glsl"
 
 	float3  Sphere (float2 uv, float2 duv)
 	{
 		uv = ToSNorm( uv ) * (duv.yx / duv.x);
-		return float3( uv, Saturate( 1.0 - LengthSq( uv )) );
+		return UVtoSphereNormal( uv ).xyz;
 	}
 
 	#define GetPosition( _pos_, _offset_ )\

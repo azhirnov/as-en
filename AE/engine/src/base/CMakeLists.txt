@@ -50,6 +50,11 @@ if (WIN32)
 	target_link_libraries( "Base" PUBLIC "ws2_32" )
 endif()
 
+# for IDE
+if (FALSE) #WIN32)
+	target_include_directories( "Base" PRIVATE "${ANDROID_NDK_INCLUDE}/sysroot/usr/include" "${ANDROID_NDK_INCLUDE}/lib/clang/17.0.2/include" )
+endif()
+
 if (MSVC)
 	set_source_files_properties( ${OBJC_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 endif()
@@ -72,5 +77,6 @@ target_compile_definitions( "Base" PUBLIC FP_FAST_FMA FP_FAST_FMAF FP_FAST_FMAL 
 
 EnablePCH( "Base" )
 EnablePrebuild( "Base" )
+EnableUnitBuild( "Base" )
 
 install( TARGETS "Base" ARCHIVE DESTINATION "lib" )

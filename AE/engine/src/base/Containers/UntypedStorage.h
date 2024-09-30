@@ -41,8 +41,8 @@ namespace AE::Base
 		template <typename T>
 		explicit UntypedStorage (TypeList<T>)					__NE___;
 
-		UntypedStorage ()										__NE___	{ DEBUG_ONLY( DbgInitMem( _buffer, Sizeof(_buffer) )); }
-		~UntypedStorage ()										__NE___	{ DEBUG_ONLY( DbgFreeMem( _buffer, Sizeof(_buffer) )); }
+		UntypedStorage ()										__NE___	{ DEBUG_ONLY( DbgInitMem( _buffer, Size() )); }
+		~UntypedStorage ()										__NE___	{ DEBUG_ONLY( DbgFreeMem( _buffer, Size() )); }
 
 		template <typename T>
 		ND_ T*			Ptr (Bytes offset = 0_b)				__NE___;
@@ -56,8 +56,8 @@ namespace AE::Base
 		template <typename T>
 		ND_ T const&	Ref (Bytes offset = 0_b)				C_NE___	{ return *Ptr<T>( offset ); }
 
-		ND_ static constexpr Bytes		Size ()					__NE___	{ return Bytes{Size_v}; }
-		ND_ static constexpr Bytes		Align ()				__NE___	{ return Bytes{Align_v}; }
+		NdCv__ static Bytes		Size ()							__NE___	{ return Bytes{Size_v}; }
+		NdCv__ static Bytes		Align ()						__NE___	{ return Bytes{Align_v}; }
 	};
 
 
@@ -89,8 +89,8 @@ namespace AE::Base
 		TrivialStorage (const Self &other)						__NE___;
 		Self&  operator = (const Self &rhs)						__NE___;
 
-		TrivialStorage ()										__NE___	{ DEBUG_ONLY( DbgInitMem( _buffer, Sizeof(_buffer) )); }
-		~TrivialStorage ()										__NE___	{ DEBUG_ONLY( DbgFreeMem( _buffer, Sizeof(_buffer) )); }
+		TrivialStorage ()										__NE___	{ DEBUG_ONLY( DbgInitMem( _buffer, Size() )); }
+		~TrivialStorage ()										__NE___	{ DEBUG_ONLY( DbgFreeMem( _buffer, Size() )); }
 
 		template <typename T>
 		ND_ T*			Ptr (Bytes offset = 0_b)				__NE___;
@@ -107,8 +107,8 @@ namespace AE::Base
 		ND_ void*		Data ()									__NE___	{ return _buffer; }
 		ND_ void const*	Data ()									C_NE___	{ return _buffer; }
 
-		ND_ static constexpr Bytes		Size ()					__NE___	{ return Bytes{Size_v}; }
-		ND_ static constexpr Bytes		Align ()				__NE___	{ return Bytes{Align_v}; }
+		NdCv__ static Bytes		Size ()							__NE___	{ return Bytes{Size_v}; }
+		NdCv__ static Bytes		Align ()						__NE___	{ return Bytes{Align_v}; }
 	};
 
 

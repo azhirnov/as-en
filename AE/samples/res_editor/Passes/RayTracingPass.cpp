@@ -80,7 +80,7 @@ namespace AE::ResEditor
 				sbt  = it->second.Get<1>();
 
 				DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
-				CHECK( pd.dbg.debugger->AllocForRayTracing( OUT dbg, tctx, ppln, uint3{uint2{pd.dbg.coord * float2{dim} + 0.5f}, 0u }));
+				CHECK( pd.dbg.debugger->AllocForRayTracing( OUT dbg, tctx, ppln, uint3{pd.dbg.coord * float2(dim-1u), 0u }));
 				pd.cmdbuf = tctx.ReleaseCommandBuffer();
 			}
 		}
@@ -92,48 +92,51 @@ namespace AE::ResEditor
 			sbt  = it->second.Get<1>();
 		}
 
-		DirectCtx::RayTracing	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
-		DescriptorSetID			ds	= _descSets[ ctx.GetFrameId().Index() ];
-
-		_resources.SetStates( ctx, Default );
-		ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
-		ctx.CommitBarriers();
-
-		ctx.BindPipeline( ppln );
-		ctx.BindDescriptorSet( _dsIndex, ds );
-		if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
-
-		// from Vulkan specs:
-		// https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#ray-tracing-pipeline-stack
+		for (uint i = 0, cnt = _GetRepeatCount(); i < cnt; ++i)
 		{
-			const int	max_ray_recursion	= _maxRayRecursion ? _maxRayRecursion->Get() : 31;
-			const uint	max_call_recursion	= _maxCallRecursion ? _maxCallRecursion->Get() : 2;
+			DirectCtx::RayTracing	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
+			DescriptorSetID			ds	= _descSets[ ctx.GetFrameId().Index() ];
 
-			const Bytes	stack_size =
-					uint(Min( 1, max_ray_recursion )) * Bytes{Max( _closestHitStackMax, _missStackMax, _intersectionStackMax, _anyHitStackMax )} +
-					uint(Max( 0, max_ray_recursion-1 )) * Bytes{Max( _closestHitStackMax, _missStackMax )} +
-					Max( 2u, max_call_recursion ) * Bytes{_callableStackMax} +
-					_rayGenStackMax;
+			_resources.SetStates( ctx, Default );
+			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
+			ctx.CommitBarriers();
 
-			ctx.SetStackSize( stack_size );
-		}
+			ctx.BindPipeline( ppln );
+			ctx.BindDescriptorSet( _dsIndex, ds );
+			if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
 
-		for (const auto& it : _iterations)
-		{
-			if ( it.indirect ){
-				ctx.TraceRaysIndirect( sbt, it.indirect->GetBufferId( ctx.GetFrameId() ), it.indirectOffset );
-			}else{
-				ctx.TraceRays( it.Dimension(), sbt );
-			}
-
-			if ( not IsLastElement( it, _iterations ))
+			// from Vulkan specs:
+			// https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#ray-tracing-pipeline-stack
 			{
-				ctx.ExecutionBarrier( EPipelineScope::RayTracing, EPipelineScope::RayTracing );
-				ctx.CommitBarriers();
-			}
-		}
+				const int	max_ray_recursion	= _maxRayRecursion ? _maxRayRecursion->Get() : 31;
+				const uint	max_call_recursion	= _maxCallRecursion ? _maxCallRecursion->Get() : 2;
 
-		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+				const Bytes	stack_size =
+						uint(Min( 1, max_ray_recursion )) * Bytes{Max( _closestHitStackMax, _missStackMax, _intersectionStackMax, _anyHitStackMax )} +
+						uint(Max( 0, max_ray_recursion-1 )) * Bytes{Max( _closestHitStackMax, _missStackMax )} +
+						Max( 2u, max_call_recursion ) * Bytes{_callableStackMax} +
+						_rayGenStackMax;
+
+				ctx.SetStackSize( stack_size );
+			}
+
+			for (const auto& it : _iterations)
+			{
+				if ( it.indirect ){
+					ctx.TraceRaysIndirect( sbt, it.indirect->GetBufferId( ctx.GetFrameId() ), it.indirectOffset );
+				}else{
+					ctx.TraceRays( it.Dimension(), sbt );
+				}
+
+				if ( not IsLastElement( it, _iterations ))
+				{
+					ctx.ExecutionBarrier( EPipelineScope::RayTracing, EPipelineScope::RayTracing );
+					ctx.CommitBarriers();
+				}
+			}
+
+			pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		}
 		return true;
 	}
 

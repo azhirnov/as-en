@@ -294,6 +294,13 @@ namespace _hidden_
 			return _values;
 		}
 
+		template <typename Fn>
+		exact_t  ReadAll (Fn &&fn)	CNoExcept(IsNothrowInvocable< Fn, T0&, T1&, Types&... >)
+		{
+			SHAREDLOCK( _sync );
+			return _values.Apply( FwdArg<Fn>( fn ));
+		}
+
 
 		template <typename T,
 				  typename RawT				= RemoveCVRef<T>
@@ -308,12 +315,19 @@ namespace _hidden_
 		}
 
 		template <typename ...Args>
-		void  WriteAll (Args&& ...args)		NoExcept(AllNothrowCopyCtor<T0,T1,Types...>)
+		____IA void  WriteAll (Args&& ...args)  NoExcept(AllNothrowCopyCtor<T0,T1,Types...>)
 		{
 			EXLOCK( _sync );
 			_values.Set( FwdArg<Args>(args)... );
 		}
 
+		// read / write access
+		template <typename Fn>
+		____IA exact_t  Modify (Fn &&fn)	NoExcept(IsNothrowInvocable< Fn, T0&, T1&, Types&... >)
+		{
+			EXLOCK( _sync );
+			return _values.Apply( FwdArg<Fn>( fn ));
+		}
 
 		template <typename	T,
 				  usize		Index			= _IndexOf<T>(),
@@ -520,6 +534,13 @@ namespace _hidden_
 			return _value;
 		}
 
+		template <typename Fn>
+		exact_t  Read (Fn &&fn)					CNoExcept(IsNothrowInvocable< Fn, T >)
+		{
+			SHAREDLOCK( _sync );
+			return fn( _value );
+		}
+
 
 		void  Write (const T &value)			__NE___
 		{
@@ -533,6 +554,14 @@ namespace _hidden_
 			EXLOCK( _sync );
 			this->_value.~T();
 			PlacementNew<T>( OUT std::addressof(this->_value), RVRef(value) );
+		}
+
+		// read / write access
+		template <typename Fn>
+		____IA exact_t  Modify (Fn &&fn)		NoExcept(IsNothrowInvocable< Fn, T >)
+		{
+			EXLOCK( _sync );
+			return fn( _value );
 		}
 
 

@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 # include "graphics/Remote/RResourceManager.h"
 # include "graphics/Remote/REnumCast.h"
 

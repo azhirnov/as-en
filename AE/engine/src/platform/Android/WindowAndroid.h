@@ -86,6 +86,9 @@ namespace AE::App
 											  jint touchCount, jfloatArray touchData)								__NE___;
 		static void  JNICALL  native_OnOrientationChanged (JNIEnv*, jclass, WinID wndId, jint newOrientation)		__NE___;
 		static void  JNICALL  native_UpdateSensor (JNIEnv*, jclass, WinID wndId, int sensor, jfloatArray values)	__NE___;
+		static void  JNICALL  native_SendBatteryStat1 (JNIEnv*, jclass, float current, float capacity, float)		__NE___;
+		static void  JNICALL  native_SendBatteryStat2 (JNIEnv*, jclass, float level, float temperature,
+														float voltage, jboolean isCharging)							__NE___;
 	};
 
 

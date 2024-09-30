@@ -114,7 +114,7 @@ namespace AE::Graphics
 		String	result;
 		for (VkImageUsageFlags i = 1; i <= value; i <<= 1)
 		{
-			if ( not AllBits( value, i ))
+			if ( NoBits( value, i ))
 				continue;
 
 			if ( result.size() )

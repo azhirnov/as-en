@@ -142,7 +142,7 @@ namespace AE::Graphics::_hidden_
 	};
 
 
-	void  ConvertViewports (ArrayView<Viewport> inViewports, ArrayView<RectI> inScissors,
+	void  ConvertViewports (ArrayView<Viewport> inViewports, ArrayView<RectI> inScissors, const int2 &areaSize,
 							OUT VDrawCommandBatch::Viewports_t &outViewports, OUT VDrawCommandBatch::Scissors_t &outScissors) __NE___;
 
 } // AE::Graphics::_hidden_

@@ -20,6 +20,8 @@ namespace AE::ResEditor
 
 	using AE::Scripting::ScriptEnginePtr;
 
+	using AE::PipelineCompiler::EImageType;
+
 	using EnableScriptRC	= AE::Scripting::AngelScriptHelper::SimpleRefCounter;
 
 	template <typename T>
@@ -93,6 +95,8 @@ namespace AE::ResEditor
 
 		WithHistory		= 1 << 13,
 		Transfer		= 1 << 14,
+
+		InputAttachment	= 1 << 15,
 	};
 	AE_BIT_OPERATORS( EResourceUsage );
 

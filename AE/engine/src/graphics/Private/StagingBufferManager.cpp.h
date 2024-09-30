@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #if defined(AE_ENABLE_VULKAN)
 #	define STBUFMNGR		VStagingBufferManager
 
@@ -739,7 +741,7 @@
 
 		const auto&		fmt_info			= EPixelFormat_GetInfo( imgDesc.format );
 		const uint2		texblock_dim		= fmt_info.TexBlockDim();	// TODO: use imageGranularity
-		const uint3		mip_dim				= ImageUtils::MipmapDimension( imgDesc.dimension, uploadDesc.mipLevel.Get(), texblock_dim );
+		const uint3		mip_dim				= ImageUtils::MipmapDimension( imgDesc.Dimension(), uploadDesc.mipLevel.Get(), texblock_dim );
 		const uint3		region_dim			= Min( mip_dim - uploadDesc.imageOffset, Max( uploadDesc.imageDim, 1u ));
 		const uint		texblock_bits		= uploadDesc.aspectMask != EImageAspect::Stencil ? fmt_info.bitsPerBlock : fmt_info.bitsPerBlock2;
 		const Bytes		row_pitch			= Max( uploadDesc.dataRowPitch, Bytes{region_dim.x * texblock_bits + texblock_dim.x-1} / (texblock_dim.x * 8) );
@@ -811,7 +813,7 @@
 		CHECK_ERRV( EPixelFormat_GetPlaneInfo( imgDesc.format, uploadDesc.aspectMask, OUT plane_fmt, OUT plane_scale ));
 
 		const auto&		fmt_info			= EPixelFormat_GetInfo( plane_fmt );
-		const uint2		plane_dim			= imgDesc.dimension / plane_scale;
+		const uint2		plane_dim			= imgDesc.Dimension2() / plane_scale;
 		const uint2		region_dim			= Min( plane_dim, Max( uint2{uploadDesc.imageDim}, 1u ));
 		const Bytes		texblock_bytes		= fmt_info.BytesPerBlock();
 		const Bytes		row_pitch			= Max( uploadDesc.dataRowPitch, Bytes{region_dim.x * texblock_bytes} );

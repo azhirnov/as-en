@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #if defined(AE_ENABLE_VULKAN)
 #	define DRAWCMDBATCH		VDrawCommandBatch
 

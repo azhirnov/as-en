@@ -14,8 +14,9 @@
 		RC<DynamicUInt>		mode		= DynamicUInt();
 		RC<DynamicUInt>		flip		= DynamicUInt();
 		const array<string>	mode_str	= {
-			"CBRT", "SQRT", "LN", "LOG2", "SMOOTHSTEP", "ONE_DIV_X", "SIN", "EXP", "QUADRATIC",
-			"CUBIC", "ONE_DIV_SQUARE_X", "QUARTIC"
+			"LOG2", "LN", "SMOOTHSTEP", "ONE_DIV_X", "SIN", "EXP",
+			"SRGB", "QUADRATIC", "CUBIC", "ONE_DIV_SQUARE_X",
+			"SQRT", "CBRT", "QUARTIC", "EXP2", "INVSQRT", "ASIN"
 		};
 
 		Slider( mode,	"Mode",		0,	mode_str.size()-1, 0 );
@@ -39,6 +40,7 @@
 	#include "Easing.glsl"
 	#include "Geometry.glsl"
 	#include "GlobalIndex.glsl"
+	#include "ColorSpaceUtility.glsl"
 
 	#define SMOOTHSTEP			0
 	#define ONE_DIV_X			1
@@ -52,6 +54,10 @@
 	#define LOG2				9
 	#define EXP					10
 	#define SIN					11
+	#define EXP2				12
+	#define SRGB				13
+	#define INVSQRT				14
+	#define ASIN				15
 
 
 	float  Graph2 (float x)
@@ -66,10 +72,10 @@
 			return ReciprocalSquaredEaseIn( x );
 
 		#elif MODE == SQRT
-			return Sqrt( x );
+			return SquareRootEaseIn( x );
 
 		#elif MODE == CBRT
-			return Cbrt( x );
+			return CubicRootEaseIn( x );
 
 		#elif MODE == QUADRATIC
 			return QuadraticEaseIn( x );
@@ -87,10 +93,22 @@
 			return Logarithmic2EaseIn( x );
 
 		#elif MODE == EXP
+			return ExponentialE_EaseIn( x );
+
+		#elif MODE == EXP2
 			return ExponentialEaseIn( x );
 
 		#elif MODE == SIN
 			return SineEaseIn( x );
+
+		#elif MODE == SRGB
+			return RemoveSRGBCurve( x );
+
+		#elif MODE == INVSQRT
+			return (InvSqrt( 1.008 - x ) - 1.0) * 0.1;
+
+		#elif MODE == ASIN
+			return ASin( x ) / (float_Pi * 0.5);
 
 		#else
 		#	error unsupported MODE
@@ -126,9 +144,12 @@
 		float2	uv	= GetUV( 0 );
 		float2	uv2	= GetUV( 1 );
 
-		float2	p0	= float2( uv.x,  Graph( uv.x  ));
-		float2	p1	= float2( uv2.x, Graph( uv2.x ));
-		float	d	= SDF2_Line( uv, p0, p1 );
+		float	d0;
+		{
+			float2	p0	= float2( uv.x,  Graph( uv.x  ));
+			float2	p1	= float2( uv2.x, Graph( uv2.x ));
+			d0 = SDF2_Line( uv, p0, p1 );
+		}
 
 		out_Color = float4(0.25);
 
@@ -140,9 +161,18 @@
 				out_Color.rgb *= 0.8;
 
 			float	w = 8.f / MaxOf(GetGlobalSize().xy);
-			if ( d < w )	out_Color = Lerp( out_Color, float4( 1.0, 0.0, 0.0, 1.0 ), SmoothStep( 1.0 - d/w, 0.5, 1.0 ));
 
-			out_Color.rgb *= AA_QuadGrid( uv * 100.0, float2(0.04), 0.25 );
+			// diagonal
+			float	d2 = Abs( uv.x - uv.y ) * 2.0;
+			if ( d2 < w )
+				out_Color.rgb *= SmoothStep( d2 / w, 0.0, 1.0 );
+
+			out_Color.rgb *= AA_QuadGrid( uv * 100.0, float2(0.04), 0.4 );
+			out_Color.rgb *= AA_QuadGrid( uv * 400.0, float2(0.04), 0.5 );
+
+			// graph
+			if ( d0 < w )
+				out_Color = Lerp( out_Color, float4( 1.0, 0.0, 0.0, 1.0 ), SmoothStep( 1.0 - d0/w, 0.5, 1.0 ));
 		}
 	}
 

@@ -21,15 +21,6 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "UI.ResExport", EGestureType::Down ));
 		bind.Add( WinAPI_Input::F11,
 				  ActionInfo( "FullscreenOnOff", EGestureType::Down ));
-	}
-
-	// switch input mode
-	{
-		RC<WinAPI_BindingsMode>	bind = bindings.CreateMode( "SwitchInputMode" );
-		bind.Inherit( "Shared" );
-
-		bind.Add( WinAPI_Input::Escape,
-				  ActionInfo( "SwitchInputMode", EGestureType::Down ));
 
 		bind.Add( WinAPI_Input::P,
 				  ActionInfo( "Freeze", EGestureType::Down ));
@@ -54,6 +45,15 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "CustomKey1", EValueType::Float, EGestureType::Down, float4(9.f) ));
 		bind.Add( WinAPI_Input::0,
 				  ActionInfo( "CustomKey1", EValueType::Float, EGestureType::Down, float4(10.f) ));
+	}
+
+	// switch input mode
+	{
+		RC<WinAPI_BindingsMode>	bind = bindings.CreateMode( "SwitchInputMode" );
+		bind.Inherit( "Shared" );
+
+		bind.Add( WinAPI_Input::Escape,
+				  ActionInfo( "SwitchInputMode", EGestureType::Down ));
 	}
 
 	// UI bindings

@@ -35,10 +35,11 @@ namespace AE::ResEditor
 	ModelGeomSource::Mesh::Mesh (Renderer					&r,
 								 RC<ResLoader::IntermScene>	scene,
 								 const Transformation		&initialTransform,
-								 RTGeometryTypes_t &&		rtGeoms) __Th___ :
+								 RTGeometryTypes_t &&		rtGeoms,
+								 uint						instanceCount) __Th___ :
 		IResource{ r }, _temp{new TmpDataForUploading{}},
 		_intermScene{ RVRef(scene) }, _initialTransform{ initialTransform },
-		_rtGeometries{ RVRef(rtGeoms) }
+		_rtGeometries{ RVRef(rtGeoms) }, _instanceCount{ instanceCount }
 	{
 		_uploadStatus.store( EUploadStatus::InProgress );
 
@@ -72,7 +73,7 @@ namespace AE::ResEditor
 											"Vertices & Indices", r.ChooseAllocator( False{"static"}, mesh_data_size ));
 		CHECK_THROW( _meshData );
 
-		_temp->nodeDataSize	= SizeOf<ShaderTypes::ModelNode> * _temp->nodeCount;
+		_temp->nodeDataSize	= Bytes{ShaderTypes::ModelNode_Array::SizeOf( _temp->nodeCount )};
 		_nodeBuffer			= res_mngr.CreateBuffer( BufferDesc{ _temp->nodeDataSize, usage },
 													 "ModelNodes", r.ChooseAllocator( False{"static"}, _temp->nodeDataSize ));
 		CHECK_THROW( _nodeBuffer );
@@ -95,6 +96,8 @@ namespace AE::ResEditor
 					size += SizeOf<uint> * _temp->nodeCount;						// materialsPerInstance
 					size =  AlignUp( size, alignof(float3x3) );
 					size += SizeOf<float3x3> * _temp->nodeCount;					// normalMatPerInstance
+					size =  AlignUp( size, alignof(float4x4) );
+					size += SizeOf<float4x4> * _temp->nodeCount;					// modelMatPerInstance
 
 			_temp->rtInstancesDataSize	= size;
 			_rtInstances				= res_mngr.CreateBuffer( BufferDesc{ size, usage }, "ModelRTInstances",
@@ -225,8 +228,11 @@ namespace AE::ResEditor
 		if ( mem_view.DataSize() < _temp->nodeDataSize )
 			return false;	// out of memory
 
+		ShaderTypes::ModelNode_Array	node_arr;
 		Array<ShaderTypes::ModelNode>	nodes;
 		nodes.reserve( usize(_temp->nodeDataSize / SizeOf<ShaderTypes::ModelNode>) );
+
+		node_arr.instanceCount = _instanceCount;
 
 		_intermScene->ForEachNode(
 			[this, &nodes] (StringView, const ResLoader::IntermScene::NodeData_t &data, const Transformation &tr)
@@ -259,8 +265,8 @@ namespace AE::ResEditor
 				return true;
 			});
 
-		CHECK_THROW( _temp->nodeDataSize == ArraySizeOf(nodes) );
-		CHECK_THROW( mem_view.CopyFrom( nodes ) == _temp->nodeDataSize );
+		CHECK_THROW( mem_view.CopyFrom( &node_arr, Sizeof(node_arr) ) == Sizeof(node_arr) );
+		CHECK_THROW( mem_view.CopyFrom( nodes, Sizeof(node_arr) ) + Sizeof(node_arr) == _temp->nodeDataSize );
 
 		return true;
 	}
@@ -391,7 +397,7 @@ namespace AE::ResEditor
 			switch_end
 		}
 
-		CHECK_THROW( mem_view.CopyFrom( 0_b, &lights_data, Sizeof(lights_data) ) == SizeOf<ShaderTypes::SceneLights> );
+		CHECK_THROW( mem_view.CopyFrom( &lights_data, Sizeof(lights_data) ) == SizeOf<ShaderTypes::SceneLights> );
 		return true;
 	}
 
@@ -535,10 +541,12 @@ namespace AE::ResEditor
 		StaticArray< Array<ShaderTypes::ModelRTMesh>, uint(ERTGeometryType::_Count) >	rt_meshes;
 		StaticArray< Array<uint>, uint(ERTGeometryType::_Count) >						rt_materials;
 		StaticArray< Array<float3x3>, uint(ERTGeometryType::_Count) >					rt_norm_mats;
+		StaticArray< Array<float4x4>, uint(ERTGeometryType::_Count) >					rt_model_mats;
 
 		StaticAssert( inst_to_mesh.meshesPerInstance.size() == rt_meshes.size() );
 		StaticAssert( inst_to_mesh.materialsPerInstance.size() == rt_materials.size() );
 		StaticAssert( inst_to_mesh.normalMatPerInstance.size() == rt_norm_mats.size() );
+		StaticAssert( inst_to_mesh.modelMatPerInstance.size() == rt_model_mats.size() );
 
 		const DeviceAddress		mesh_addr = GraphicsScheduler().GetResourceManager().GetDeviceAddress( _meshData );
 		const DeviceAddress		inst_addr = GraphicsScheduler().GetResourceManager().GetDeviceAddress( _rtInstances );
@@ -558,27 +566,24 @@ namespace AE::ResEditor
 						const bool	dual_sided		= mtr->GetSettings().cullMode == ECullMode::None;
 						const auto	mtr_id			= _intermScene->IndexOfMaterial( mtr );
 						const auto&	mesh_info		= _temp->meshInfoArr[ _intermScene->IndexOfMesh( mesh ) ];
+						const auto	model_mat		= (_initialTransform + tr).ToMatrix();
 						const auto	norm_mat		= float3x3{(_initialTransform + tr).orientation.Inversed()}.Transpose();
+						const uint	idx				= translucent	? uint(ERTGeometryType::Translucent) :
+													  dual_sided	? uint(ERTGeometryType::OpaqueDualSided) :
+																	  uint(ERTGeometryType::Opaque);
 
 						ShaderTypes::ModelRTMesh	rt_mesh;
+						rt_mesh.positions	= mesh_addr + mesh_info.positions;
 						rt_mesh.normals		= mesh_addr + mesh_info.normals;
 						rt_mesh.texcoords	= mesh_addr + mesh_info.texcoords;
 						rt_mesh.indices		= mesh_addr + mesh_info.indices;
 
-						if ( translucent ){
-							rt_meshes[    uint(ERTGeometryType::Translucent) ].push_back( rt_mesh );
-							rt_materials[ uint(ERTGeometryType::Translucent) ].push_back( mtr_id );
-							rt_norm_mats[ uint(ERTGeometryType::Translucent) ].push_back( norm_mat );
-						}else
-						if ( dual_sided ){
-							rt_meshes[    uint(ERTGeometryType::OpaqueDualSided) ].push_back( rt_mesh );
-							rt_materials[ uint(ERTGeometryType::OpaqueDualSided) ].push_back( mtr_id );
-							rt_norm_mats[ uint(ERTGeometryType::OpaqueDualSided) ].push_back( norm_mat );
-						}else{
-							rt_meshes[    uint(ERTGeometryType::Opaque) ].push_back( rt_mesh );
-							rt_materials[ uint(ERTGeometryType::Opaque) ].push_back( mtr_id );
-							rt_norm_mats[ uint(ERTGeometryType::Opaque) ].push_back( norm_mat );
-						}
+						rt_meshes[     idx ].push_back( rt_mesh );
+						rt_materials[  idx ].push_back( mtr_id );
+						rt_norm_mats[  idx ].push_back( norm_mat );
+						rt_model_mats[ idx ].push_back( model_mat );
+
+						// TODO: Volumetric
 					},
 					[] (const NullUnion &) {}
 				);
@@ -595,7 +600,7 @@ namespace AE::ResEditor
 			if ( rt_meshes[i].empty() )
 				continue;
 
-			CHECK_THROW( mem_view.CopyFrom( offset, rt_meshes[i].data(), ArraySizeOf(rt_meshes[i]) ) == ArraySizeOf(rt_meshes[i]) );
+			CHECK_THROW( mem_view.CopyFrom( rt_meshes[i].data(), ArraySizeOf(rt_meshes[i]), offset ) == ArraySizeOf(rt_meshes[i]) );
 
 			inst_to_mesh.meshesPerInstance[i] = inst_addr + offset;
 			offset	+= ArraySizeOf( rt_meshes[i] );
@@ -610,7 +615,7 @@ namespace AE::ResEditor
 			if ( rt_materials[i].empty() )
 				continue;
 
-			CHECK_THROW( mem_view.CopyFrom( offset, rt_materials[i].data(), ArraySizeOf(rt_materials[i]) ) == ArraySizeOf(rt_materials[i]) );
+			CHECK_THROW( mem_view.CopyFrom( rt_materials[i].data(), ArraySizeOf(rt_materials[i]), offset ) == ArraySizeOf(rt_materials[i]) );
 
 			inst_to_mesh.materialsPerInstance[i] = inst_addr + offset;
 			offset	+= ArraySizeOf( rt_materials[i] );
@@ -623,14 +628,27 @@ namespace AE::ResEditor
 			if ( rt_norm_mats[i].empty() )
 				continue;
 
-			CHECK_THROW( mem_view.CopyFrom( offset, rt_norm_mats[i].data(), ArraySizeOf(rt_norm_mats[i]) ) == ArraySizeOf(rt_norm_mats[i]) );
+			CHECK_THROW( mem_view.CopyFrom( rt_norm_mats[i].data(), ArraySizeOf(rt_norm_mats[i]), offset ) == ArraySizeOf(rt_norm_mats[i]) );
 
 			inst_to_mesh.normalMatPerInstance[i] = inst_addr + offset;
 			offset	+= ArraySizeOf( rt_norm_mats[i] );
 		}
 
+		offset = AlignUp( offset, alignof(float4x4) );
+
+		for (auto i : IndicesOnly( rt_model_mats ))
+		{
+			if ( rt_model_mats[i].empty() )
+				continue;
+
+			CHECK_THROW( mem_view.CopyFrom( rt_model_mats[i].data(), ArraySizeOf(rt_model_mats[i]), offset ) == ArraySizeOf(rt_model_mats[i]) );
+
+			inst_to_mesh.modelMatPerInstance[i] = inst_addr + offset;
+			offset	+= ArraySizeOf( rt_model_mats[i] );
+		}
+
 		CHECK( offset == _temp->rtInstancesDataSize );
-		CHECK_THROW( mem_view.CopyFrom( 0_b, &inst_to_mesh, Sizeof(inst_to_mesh) ) == Sizeof(inst_to_mesh) );
+		CHECK_THROW( mem_view.CopyFrom( &inst_to_mesh, Sizeof(inst_to_mesh) ) == Sizeof(inst_to_mesh) );
 
 		return true;
 	}
@@ -684,7 +702,7 @@ namespace AE::ResEditor
 	Draw
 =================================================
 */
-	void  ModelGeomSource::Mesh::Draw (DirectCtx::Draw &ctx, const Material::GPplnGroups_t &drawGroups, uint instanceCount) C_Th___
+	void  ModelGeomSource::Mesh::Draw (DirectCtx::Draw &ctx, const Material::GPplnGroups_t &drawGroups) C_Th___
 	{
 		if_unlikely( _drawCalls.empty() )
 			return;  // not uploaded yet
@@ -701,10 +719,10 @@ namespace AE::ResEditor
 				DrawIndexedCmd	cmd;
 
 				cmd.indexCount		= dc.indexCount;
-				cmd.instanceCount	= instanceCount;
+				cmd.instanceCount	= _instanceCount;
 				cmd.firstIndex		= dc.firstIndex;
 				cmd.vertexOffset	= dc.vertexOffset;
-				cmd.firstInstance	= dc.nodeIdx;
+				cmd.firstInstance	= dc.nodeIdx * _instanceCount;
 
 				ctx.DrawIndexed( cmd );
 			}
@@ -834,9 +852,8 @@ namespace AE::ResEditor
 									  RTGeometryTypes_t &&			rtGeoms,
 									  uint							instanceCount) __Th___ :
 		IGeomSource{ r },
-		_meshData{ new Mesh{ r, scene, initialTransform, RVRef(rtGeoms) }},
-		_textures{ new Textures{ r, scene, texSearchDirs, maxTextures }},
-		_instanceCount{ instanceCount }
+		_meshData{ new Mesh{ r, scene, initialTransform, RVRef(rtGeoms), instanceCount }},
+		_textures{ new Textures{ r, scene, texSearchDirs, maxTextures }}
 	{
 		r.GetDataTransferQueue().EnqueueForUpload( _meshData );
 		r.GetDataTransferQueue().EnqueueForUpload( _textures );
@@ -884,7 +901,7 @@ namespace AE::ResEditor
 				ctx.BindDescriptorSet( mtr.passDSIndex, in.passDS );
 				ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
 
-				_meshData->Draw( ctx, drawGroups, _instanceCount );
+				_meshData->Draw( ctx, drawGroups );
 			},
 			[] (Material::MPplnGroups_t const &) {
 				CHECK_MSG( false, "mesh pipeline is not supported" );

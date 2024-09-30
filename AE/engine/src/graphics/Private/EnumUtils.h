@@ -42,7 +42,7 @@ namespace AE::Graphics
 	ND_ inline EShaderStages  EShaderStages_FromShader (EShader value) __NE___
 	{
 		auto	result = EShaderStages( 1 << uint(value) );
-		ASSERT( not AnyBits( result, ~EShaderStages::All ));
+		ASSERT( NoBits( result, ~EShaderStages::All ));
 		return result;
 	}
 //-----------------------------------------------------------------------------
@@ -98,8 +98,8 @@ namespace AE::Graphics
 
 	ND_ constexpr bool  EResourceState_IsReadOnly (EResourceState value) __NE___
 	{
-		return	not EResourceState_HasWriteAccess( value )			and
-				not AllBits( value, EResourceState::Invalidate )	and
+		return	not EResourceState_HasWriteAccess( value )	and
+				NoBits( value, EResourceState::Invalidate )	and
 				value != EResourceState::_InvalidState;
 	}
 
@@ -127,7 +127,7 @@ namespace AE::Graphics
 	ND_ constexpr bool  EResourceState_IsReadOnly (EResourceState value, EImageAspect mask) __NE___
 	{
 		return	not EResourceState_HasWriteAccess( value, mask )	and
-				not AllBits( value, EResourceState::Invalidate )	and
+				NoBits( value, EResourceState::Invalidate )			and
 				value != EResourceState::_InvalidState;
 	}
 
@@ -207,7 +207,7 @@ namespace AE::Graphics
 		};
 
 		EType				valueType		= Default;
-		ushort				bitsPerBlock	= 0;		// for color and depth (max: 64bit * 4)
+		ushort				bitsPerBlock	= 0;		// for color and depth (max: 64bit * 4)		// TODO: use bytes
 		ubyte				bitsPerBlock2	= 0;		// for stencil
 		EPixelFormat		format			= Default;
 		EImageAspect		aspectMask		= Default;
@@ -237,7 +237,7 @@ namespace AE::Graphics
 		ND_ uint2	TexBlockDim ()					C_NE___	{ return uint2{blockDim}; }
 		ND_ bool	IsCompressed ()					C_NE___	{ return not All( blockDim == ubyte2{1,1} ); }
 
-		ND_ bool	IsColor ()						C_NE___	{ return not AnyBits( valueType, EType::DepthStencil ); }
+		ND_ bool	IsColor ()						C_NE___	{ return NoBits( valueType, EType::DepthStencil ); }
 		ND_ bool	IsDepth ()						C_NE___	{ return valueType == EType::Depth; }
 		ND_ bool	IsStencil ()					C_NE___	{ return valueType == EType::Stencil; }
 		ND_ bool	IsDepthStencil ()				C_NE___	{ return valueType == EType::DepthStencil; }
@@ -413,6 +413,21 @@ namespace AE::Graphics
 */
 	ND_ Bytes  EPixelFormat_ImageSize (EPixelFormat fmt, const uint2 &dim, Bytes planeAlign = 1_b)	__NE___;
 	ND_ Bytes  EPixelFormat_ImageSize (EPixelFormat fmt, const uint3 &dim, Bytes planeAlign = 1_b)	__NE___;
+
+/*
+=================================================
+	format compatibility
+=================================================
+*/
+	ND_ bool  EPixelFormat_IsCompatible (EPixelFormat, EPixelFormat)						__NE___;
+	ND_ bool  EPixelFormat_IsCopySupported (EPixelFormat src, EPixelFormat dst)				__NE___;
+	ND_ bool  EPixelFormat_IsCopySupportedRelaxed (EPixelFormat src, EPixelFormat dst)		__NE___;
+	ND_ bool  EPixelFormat_IsBlitSupported (EPixelFormat, EPixelFormat, EBlitFilter)		__NE___;
+
+	ND_ bool  EPixelFormat_IsCopySupported (EPixelFormat src, const uint2 &srcDim,
+											EPixelFormat dst, const uint2 &dstDim)			__NE___;
+	ND_ bool  EPixelFormat_GetCopyGranularity (EPixelFormat src, OUT uint2 &srcBlockDim,
+											   EPixelFormat dst, OUT uint2 &dstBlockDim)	__NE___;
 //-----------------------------------------------------------------------------
 
 
@@ -480,7 +495,7 @@ namespace AE::Graphics
 	ND_ inline constexpr bool  EMemoryType_IsNonCoherent (EMemoryType memType) __NE___
 	{
 		return	AllBits( memType, EMemoryType::HostCached )		and
-				not AnyBits( memType, EMemoryType::HostCoherent );
+				NoBits( memType, EMemoryType::HostCoherent );
 	}
 
 	ND_ inline constexpr bool  EMemoryType_IsHostVisible (EMemoryType memType) __NE___

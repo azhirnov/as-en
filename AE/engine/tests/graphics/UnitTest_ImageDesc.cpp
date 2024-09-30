@@ -12,12 +12,12 @@ namespace
 			desc.SetDimension( 2 );
 
 			TEST( desc.imageDim == EImageDim_1D );
-			TEST( All( desc.dimension == uint3{2, 1, 1} ));
+			TEST( All( desc.dimension == ImageDim_t{2, 1, 1} ));
 
 			desc.Validate();
 
 			TEST( desc.imageDim == EImageDim_1D );
-			TEST( All( desc.dimension == uint3{2, 1, 1} ));
+			TEST( All( desc.dimension == ImageDim_t{2, 1, 1} ));
 		}
 		{
 			ImageDesc	desc;
@@ -25,12 +25,12 @@ namespace
 			desc.SetDimension({ 2, 3 });
 
 			TEST( desc.imageDim == EImageDim_2D );
-			TEST( All( desc.dimension == uint3{2, 3, 1} ));
+			TEST( All( desc.dimension == ImageDim_t{2, 3, 1} ));
 
 			desc.Validate();
 
 			TEST( desc.imageDim == EImageDim_2D );
-			TEST( All( desc.dimension == uint3{2, 3, 1} ));
+			TEST( All( desc.dimension == ImageDim_t{2, 3, 1} ));
 		}
 		{
 			ImageDesc	desc;
@@ -38,12 +38,12 @@ namespace
 			desc.SetDimension({ 2, 3, 4 });
 
 			TEST( desc.imageDim == EImageDim_3D );
-			TEST( All( desc.dimension == uint3{2, 3, 4} ));
+			TEST( All( desc.dimension == ImageDim_t{2, 3, 4} ));
 
 			desc.Validate();
 
 			TEST( desc.imageDim == EImageDim_3D );
-			TEST( All( desc.dimension == uint3{2, 3, 4} ));
+			TEST( All( desc.dimension == ImageDim_t{2, 3, 4} ));
 		}
 	}
 
@@ -160,7 +160,7 @@ namespace
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.mipLevels == 5_mipmap );
-			TEST( All( desc.dimension == uint3{16,16,1} ));
+			TEST( All( desc.dimension == ImageDim_t{16,16,1} ));
 
 		}{
 			ImageDesc	desc;
@@ -171,7 +171,7 @@ namespace
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.mipLevels == 4_mipmap );
-			TEST( All( desc.dimension == uint3{15,15,1} ));
+			TEST( All( desc.dimension == ImageDim_t{15,15,1} ));
 		}{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
@@ -181,7 +181,7 @@ namespace
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.mipLevels == 5_mipmap );
-			TEST( All( desc.dimension == uint3{17,15,1} ));
+			TEST( All( desc.dimension == ImageDim_t{17,15,1} ));
 		}
 	}
 

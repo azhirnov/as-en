@@ -19,6 +19,8 @@
 			pass.ArgOut( "un_OutImage", rt );
 			pass.LocalSize( 8, 8 );
 			pass.DispatchThreads( rt.Dimension() );
+
+			pass.Slider( "iScale",	0,	8,	3 );
 		}
 		Present( rt );
 	}
@@ -32,6 +34,9 @@
 
 	float3  CubeFaceToNormal (ECubeFace face)
 	{
+		// same
+		//return CM_RotateVec( float3(0.0, 0.0, 1.0), face );
+
 		switch ( face )
 		{
 			case ECubeFace_XPos :	return float3(+1.0,  0.0,  0.0 );
@@ -49,7 +54,7 @@
 		float4		col		= float4(0.0);
 		const float	y_max	= 7.0;
 		const float	y		= Floor( GetGroupCoordUNorm().y * y_max );
-		const float	scale	= 1000.0;
+		const float	scale	= Exp10( float(iScale) );
 
 		float2		uv		= GetGlobalCoordUNorm().xy;		uv.y = (uv.y - y/y_max) * y_max;
 		float3		dir		= Ray_PlaneTo360( float3(0.0), 0.1, uv ).dir;

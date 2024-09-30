@@ -106,7 +106,7 @@
 			const float		thickness	= 1.0;	// pixels
 			const float		falloff		= 1.0;	// pixels
 
-			out_Color.rgb *= FSBarycentricWireframe( thickness, falloff );
+			out_Color.rgb *= FSBarycentricWireframe( thickness, falloff ).x;
 		}
 		out_Color.a = 1.0;
 	}

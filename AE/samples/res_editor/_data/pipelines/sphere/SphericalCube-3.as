@@ -112,7 +112,7 @@
 			const float		thickness	= 1.0;	// pixels
 			const float		falloff		= 1.0;	// pixels
 
-			out_Color.rgb *= FSBarycentricWireframe( thickness, falloff );
+			out_Color.rgb *= FSBarycentricWireframe( thickness, falloff ).x;
 		}*/
 
 		// screen space circle

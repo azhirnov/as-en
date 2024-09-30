@@ -32,6 +32,14 @@ int main (const int argc, char* argv[])
 	//PerfTest_Raw_Atomic();
 
 	AE_LOGI( "PerformanceTests.Threading finished" );
+
+  #else
+  # ifdef AE_PLATFORM_ANDROID
+	Unused( path );
+  # else
+	Unused( argc, argv );
+  # endif
   #endif
+
 	return 0;
 }

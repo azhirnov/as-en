@@ -377,7 +377,7 @@ namespace
 		{
 			const int	type = info.flags & BASS_DEVICE_TYPE_MASK;
 
-			if ( not AllBits( info.flags, BASS_DEVICE_ENABLED ) or type == 0 )
+			if ( NoBits( info.flags, BASS_DEVICE_ENABLED ) or type == 0 )
 				continue;
 
 			if ( AnyEqual( type, BASS_DEVICE_TYPE_MICROPHONE ))
@@ -407,7 +407,7 @@ namespace
 		{
 			const int	type = info.flags & BASS_DEVICE_TYPE_MASK;
 
-			if ( not AllBits( info.flags, BASS_DEVICE_ENABLED ) or type == 0 )
+			if ( NoBits( info.flags, BASS_DEVICE_ENABLED ) or type == 0 )
 				continue;
 
 			if ( not AnyEqual( type, BASS_DEVICE_TYPE_HEADSET, BASS_DEVICE_TYPE_MICROPHONE ))

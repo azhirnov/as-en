@@ -1,6 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	API for NSight Perf SDK
+
+	[Performance counters description](https://github.com/azhirnov/cpu-gpu-arch/blob/main/gpu/NVidia_PC.md)
 */
 
 #pragma once

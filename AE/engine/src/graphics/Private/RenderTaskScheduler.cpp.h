@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #if defined(AE_ENABLE_VULKAN)
 #	define CMDPOOLMNGR		VCommandPoolManager
 
@@ -49,7 +51,7 @@
 			q.pending[ submit_idx ] = batch.GetRC();
 
 			const auto	old = BitCast<QueueData::Bitfield>( q.bits.fetch_or( bf.value, EMemoryOrder::Release ));
-			CHECK( not AnyBits( old.packed.pending, bf.packed.pending )); // already exists
+			CHECK( NoBits( old.packed.pending, bf.packed.pending )); // already exists
 		}
 
 		switch_enum( mode )
@@ -669,7 +671,7 @@
 				mask.packed.submitted &= ~ToBitMask<ulong>( range.first );
 
 				const auto	old_bits = BitCast<QueueData::Bitfield>( q.bits.fetch_or( mask.value ));	// add bits to submitted
-				CHECK( not AnyBits( old_bits.packed.submitted, mask.packed.submitted ));				// already submitted
+				CHECK( NoBits( old_bits.packed.submitted, mask.packed.submitted ));						// already submitted
 
 				if ( forceFlush )
 				{
@@ -775,9 +777,9 @@
 
 			const auto	old_bits = BitCast<QueueData::Bitfield>( _queueMap[ uint(desc.queue) ].bits.fetch_or( bf.value ));
 
-			CHECK_ERR_MSG( not AnyBits( old_bits.packed.required,  bf.packed.required ), "batch with 'submitIdx' is already created" );
-			CHECK_ERR_MSG( not AnyBits( old_bits.packed.pending,   bf.packed.required ) or
-						   not AnyBits( old_bits.packed.submitted, bf.packed.required ), "batch with 'submitIdx' is marked as unused" );
+			CHECK_ERR_MSG( NoBits( old_bits.packed.required,  bf.packed.required ), "batch with 'submitIdx' is already created" );
+			CHECK_ERR_MSG( NoBits( old_bits.packed.pending,   bf.packed.required ) or
+						   NoBits( old_bits.packed.submitted, bf.packed.required ), "batch with 'submitIdx' is marked as unused" );
 		}
 
 		uint	index;

@@ -166,7 +166,7 @@ namespace AE::ResEditor
 
 			if ( auto  surf = rg.GetSurface() ) {
 				if ( auto  infos = surf->GetTargetInfo();  not infos.empty() ) {
-					surf_size	= infos[0].dimension;
+					surf_size	= float2{infos[0].dimension};
 					pix_to_mm	= infos[0].pixToMm;
 				}
 			}

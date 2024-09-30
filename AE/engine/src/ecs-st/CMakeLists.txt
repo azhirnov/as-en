@@ -13,5 +13,6 @@ target_link_libraries( "ECS-st" PUBLIC "Serializing" "Threading" )
 
 EnablePCH( "ECS-st" )
 EnablePrebuild( "ECS-st" )
+EnableUnitBuild( "ECS-st" )
 
 install( TARGETS "ECS-st" ARCHIVE DESTINATION "lib" )

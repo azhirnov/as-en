@@ -65,7 +65,6 @@ Optional: download `RemoteGraphicsDevice` from CI to run on any platform:
 * [MacOS](https://github.com/azhirnov/as-en/actions/workflows/macos.yml)
 * [Android](https://github.com/azhirnov/as-en/actions/workflows/android.yml) - `rg-device.apk`
 
-Optional but highly recommended: download [`_data` folder](https://github.com/azhirnov/as-en/tree/dev/AE/samples/res_editor/_data) from git.
+Optional: download samples from [`_data` folder](https://github.com/azhirnov/as-en/tree/dev/AE/samples/res_editor/_data) from git.
 
-Download resources:
-TODO
+Optional: download [resources](https://disk.yandex.ru/d/nbdf1UYipPV0CA) for samples.

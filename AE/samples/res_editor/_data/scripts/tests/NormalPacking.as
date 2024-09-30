@@ -24,9 +24,11 @@
 		RC<DynamicUInt>		p_shape		= DynamicUInt();
 		RC<DynamicUInt>		p_cmp		= DynamicUInt();
 		RC<DynamicUInt>		p_diff		= DynamicUInt();
+		RC<DynamicUInt>		p_mode		= DynamicUInt();
 
-		Slider( p_shape,	"Shape",	0,	1 );
-		Slider( p_cmp,		"Cmp",		0,	7 );
+		Slider( p_shape,	"Shape",	0,	4 );
+		Slider( p_mode,		"Format",	0,	3 );
+		Slider( p_cmp,		"Cmp",		0,	2 );
 		Slider( p_diff,		"Diff",		0,	8,	2 );
 
 		// render loop
@@ -46,6 +48,7 @@
 			pass.ArgIn( "un_NormalUn8",	norm_un8,	Sampler_NearestClamp );
 			pass.Constant( "iShape",		p_shape );
 			pass.Constant( "iCmp",			p_cmp );
+			pass.Constant( "iFormat",		p_mode );
 			pass.Constant( "iDiff",			p_diff );
 		}
 		Present( rt );
@@ -56,12 +59,13 @@
 #ifdef SH_FRAG
 	#include "Normal.glsl"
 	#include "GBuffer.glsl"
+	#include "Geometry.glsl"
 	#include "GlobalIndex.glsl"
 
 	float3  Sphere (float2 uv, float2 duv)
 	{
 		uv = ToSNorm( uv ) * (duv.yx / duv.x);
-		return float3( uv, Saturate( 1.0 - LengthSq( uv )) );
+		return UVtoSphereNormal( uv ).xyz;
 	}
 
 	float4  CalcNormalAndIndex ()
@@ -77,6 +81,9 @@
 		{
 			case 0 :	return float4( -ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )), float(idx) );
 			case 1 :	return float4( ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )), float(idx) );
+			case 2 :	return float4( ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )) * float3(-1.0,  1.0, -1.0), float(idx) );
+			case 3 :	return float4( ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )) * float3(-1.0, -1.0,  1.0), float(idx) );
+			case 4 :	return float4( -ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )).zxy, float(idx) );
 		}
 	}
 
@@ -88,6 +95,7 @@
 			case 1 :	return float4( ToUNorm( CryTeck_EncodeNormal( norm )), 0.f, 0.f );
 			case 2 :	return float4( Stalker_EncodeNormal( norm ), 0.f, 0.f );
 			case 3 :	return float4( ToUNorm( Octahedron_EncodeNormal( norm )), 0.f, 0.f );
+
 			case 4 :	return float4( SigOctahedron_EncodeNormal( norm ), 0.f );
 			case 5 :	return float4( ToUNorm( Stereo_EncodeNormal( norm )), 0.f, 0.f );
 			case 6 :	return float4( Spheremap_EncodeNormal( norm ), 0.f, 0.f );
@@ -103,6 +111,7 @@
 			case 1 :	return CryTeck_DecodeNormal( ToSNorm( packed.xy ));
 			case 2 :	return Stalker_DecodeNormal( packed.xy );
 			case 3 :	return Octahedron_DecodeNormal( ToSNorm( packed.xy ));
+
 			case 4 :	return SigOctahedron_DecodeNormal( packed.xyz );
 			case 5 :	return Stereo_DecodeNormal( ToSNorm( packed.xy ));
 			case 6 :	return Spheremap_DecodeNormal( packed.xy );
@@ -131,31 +140,34 @@
 
 	void  Main ()
 	{
-		float4	n_idx	= CalcNormalAndIndex();
-		float4	packed1	= gl.texture.Fetch( un_NormalFp32, int2(gl.FragCoord.xy), 0 );
-		float4	packed2	= gl.texture.Fetch( un_NormalFp16, int2(gl.FragCoord.xy), 0 );
-		float4	packed3	= gl.texture.Fetch( un_NormalUn16, int2(gl.FragCoord.xy), 0 );
-		float4	packed4	= gl.texture.Fetch( un_NormalUn8, int2(gl.FragCoord.xy), 0 );
+		float4	n_idx		= CalcNormalAndIndex();
+		float4	packed_fp32	= gl.texture.Fetch( un_NormalFp32, int2(gl.FragCoord.xy), 0 );
+		float4	packed_fp16	= gl.texture.Fetch( un_NormalFp16, int2(gl.FragCoord.xy), 0 );
+		float4	packed_un16	= gl.texture.Fetch( un_NormalUn16, int2(gl.FragCoord.xy), 0 );
+		float4	packed_un8	= gl.texture.Fetch( un_NormalUn8, int2(gl.FragCoord.xy), 0 );
 
-		float3	norm1	= DecodeNormal( uint(n_idx.w), packed1 );
-		float3	norm2	= DecodeNormal( uint(n_idx.w), packed2 );
-		float3	norm3	= DecodeNormal( uint(n_idx.w), packed3 );
-		float3	norm4	= DecodeNormal( uint(n_idx.w), packed4 );
-		float	diff	= Pow( 10.f, float(iDiff) );
+		float3	norm_fp32	= DecodeNormal( uint(n_idx.w), packed_fp32 );
+		float3	norm_fp16	= DecodeNormal( uint(n_idx.w), packed_fp16 );
+		float3	norm_un16	= DecodeNormal( uint(n_idx.w), packed_un16 );
+		float3	norm_un8	= DecodeNormal( uint(n_idx.w), packed_un8 );
+		float	diff		= Pow( 10.f, float(iDiff) );
+		float3	norm;
+
+		switch ( iFormat )
+		{
+			case 0 :	norm = norm_fp32;	break;
+			case 1 :	norm = norm_fp16;	break;
+			case 2 :	norm = norm_un16;	break;
+			case 3 :	norm = norm_un8;	break;
+		}
 
 		out_Color = float4(1.0);
 
 		switch ( iCmp )
 		{
-			case 0 :	out_Color.rgb = norm1;		break;
-			case 1 :	out_Color.rgb = norm2;		break;
-			case 2 :	out_Color.rgb = norm3;		break;
-			case 3 :	out_Color.rgb = norm4;		break;
-
-			case 4 :	out_Color.rgb = Abs( norm1 - n_idx.xyz ) * diff;	break;
-			case 5 :	out_Color.rgb = Abs( norm2 - n_idx.xyz ) * diff;	break;
-			case 6 :	out_Color.rgb = Abs( norm3 - n_idx.xyz ) * diff;	break;
-			case 7 :	out_Color.rgb = Abs( norm4 - n_idx.xyz ) * diff;	break;
+			case 0 :	out_Color.rgb = norm;										break;
+			case 1 :	out_Color.rgb = Abs( norm - n_idx.xyz ) * diff;				break;
+			case 2 :	out_Color.rgb = float3(Length( norm - n_idx.xyz )) * diff;	break;
 		}
 	}
 

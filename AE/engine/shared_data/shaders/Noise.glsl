@@ -165,6 +165,11 @@ ND_ float3  _FBMTransform (const float3 pos)
 									   -0.3461,  0.7324,  0.5862,
 										0.2588, -0.5260,  0.8100 );
 		return rot * pos;
+	#elif 0
+		const float3x3	rot = float3x3(  0.00,  1.60,  1.20,
+										-1.60,  0.72, -0.96,
+										-1.20, -0.96,  1.28 );
+		return rot * pos;
 	#else
 		const float4x3	rot = float4x3( 0.9017,  0.4321, -0.00746,
 									   -0.3461,  0.7324,  0.5862,

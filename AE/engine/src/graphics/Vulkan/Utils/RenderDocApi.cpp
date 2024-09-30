@@ -17,10 +17,7 @@ namespace AE::Graphics
 {
 namespace
 {
-	using RDocApi_t		= RENDERDOC_API_1_6_0;
-
-	static constexpr Version3			min_ver		{ 1, 4, 0 };
-	static constexpr RENDERDOC_Version	min_ver2	= RENDERDOC_Version( (min_ver.major * 10000) + (min_ver.minor * 100) + (min_ver.patch) );
+	using RDocApi_t	= RENDERDOC_API_1_6_0;
 }
 
 /*
@@ -30,6 +27,9 @@ namespace
 */
 	bool  RenderDocApi::Initialize (VkInstance instance, const NativeWindow &wndHandle) __NE___
 	{
+		constexpr Version3			min_ver		{ 1, 4, 0 };
+		constexpr RENDERDOC_Version	min_ver2	= RENDERDOC_Version( (min_ver.major * 10000) + (min_ver.minor * 100) + (min_ver.patch) );
+
 		if ( _api != null )
 			return true;
 

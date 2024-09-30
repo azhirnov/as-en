@@ -15,7 +15,7 @@
 
 namespace
 {
-	ND_ inline int  io_setup (unsigned nr, OUT aio_context_t *ctxp) {
+	ND_ inline int  io_setup (unsigned nr, OUT aio_context_t* ctxp) {
 		return syscall( __NR_io_setup, nr, ctxp );
 	}
 
@@ -23,7 +23,7 @@ namespace
 		return syscall( __NR_io_destroy, ctx );
 	}
 
-	ND_ inline int  io_cancel (aio_context_t ctx, struct iocb *iocb, OUT struct io_event *result) {
+	ND_ inline int  io_cancel (aio_context_t ctx, struct iocb* iocb, OUT struct io_event* result) {
 		return syscall( __NR_io_cancel, ctx, iocb, OUT result );
 	}
 
@@ -31,7 +31,7 @@ namespace
 		return syscall( __NR_io_submit, ctx, nr, iocbpp);
 	}
 
-	ND_ inline int  io_getevents (aio_context_t ctx, long min_nr, long max_nr, struct io_event *events, struct timespec *timeout) {
+	ND_ inline int  io_getevents (aio_context_t ctx, long min_nr, long max_nr, struct io_event* events, struct timespec* timeout) {
 		return syscall( __NR_io_getevents, ctx, min_nr, max_nr, events, timeout );
 	}
 
@@ -56,7 +56,7 @@ namespace
 	io_getevents_nonblock
 =================================================
 */
-	ND_ inline int  io_getevents_nonblock (aio_context_t ctx, const long max_nr, OUT struct io_event *events)
+	ND_ inline int  io_getevents_nonblock (aio_context_t ctx, const long max_nr, OUT struct io_event* events)
 	{
 		using namespace AE::Base;
 

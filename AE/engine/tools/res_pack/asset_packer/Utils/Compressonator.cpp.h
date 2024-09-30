@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #include "MtCompression.h"
 
 /*
@@ -114,8 +116,8 @@
 		};
 
 		CHECK_ERR_MSG( srcView.Format() == EPixelFormat::RGBA16F,
-			"Input image in "s << ToString(srcView.Format()) <<
-			" format, but BC6 format requires input in RGBA16F format" );
+			"Input image in '"s << ToString(srcView.Format()) <<
+			"' format, but BC6 format requires input in 'RGBA16F' format" );
 
 		BC6Enc	bc6_enc { dstView.Format() == EPixelFormat::BC6H_RGB16F, quality };
 		CHECK_ERR( bc6_enc.enc != null );
@@ -166,8 +168,8 @@
 	ND_ static bool  Compressonator_DecodeBC6 (ImageMemView srcView, ImageMemView dstView, const uint threadCount)
 	{
 		CHECK_ERR_MSG( dstView.Format() == EPixelFormat::RGBA16F,
-			"Output image in "s << ToString(srcView.Format()) <<
-			" format, but BC6 format requires output in RGBA16F format" );
+			"Output image in '"s << ToString(srcView.Format()) <<
+			"' format, but BC6 format requires output in 'RGBA16F' format" );
 
 		CMP_BYTE*	src_ptr		= Cast<CMP_BYTE>( srcView.Parts().front().ptr );
 		half*		dst_ptr		= Cast<half>( dstView.Parts().front().ptr );
@@ -233,8 +235,8 @@
 		};
 
 		CHECK_ERR_MSG( srcView.Format() == EPixelFormat::RGBA8_UNorm,
-			"Input image in "s << ToString(srcView.Format()) <<
-			" format, but BC7 format requires input in RGBA8_UNorm format" );
+			"Input image in '"s << ToString(srcView.Format()) <<
+			"' format, but BC7 format requires input in 'RGBA8_UNorm' format" );
 
 		BC7Enc	bc7_enc { quality };
 		CHECK_ERR( bc7_enc.enc != null );
@@ -285,8 +287,8 @@
 	ND_ static bool  Compressonator_DecodeBC7 (ImageMemView srcView, ImageMemView dstView, const uint threadCount)
 	{
 		CHECK_ERR_MSG( dstView.Format() == EPixelFormat::RGBA8_UNorm,
-			"Output image in "s << ToString(srcView.Format()) <<
-			" format, but BC7 format requires output in RGBA8_UNorm format" );
+			"Output image in '"s << ToString(srcView.Format()) <<
+			"' format, but BC7 format requires output in 'RGBA8_UNorm' format" );
 
 		CMP_BYTE*	src_ptr		= Cast<CMP_BYTE>( srcView.Parts().front().ptr );
 		ubyte*		dst_ptr		= Cast<ubyte>( dstView.Parts().front().ptr );

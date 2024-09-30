@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 namespace AE::AssetPacker
 {
 	using EDrawableType = UI::IDrawable::EType;

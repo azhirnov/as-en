@@ -197,8 +197,10 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0xcedcb9fbu}}; }  // 'Main.UI'
 
-		static constexpr uint  actionCount = 16;
+		static constexpr uint  actionCount = 18;
 		enum Bindings : uint {
+			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
 			ShowHelp  = 0x3d738410u,  // InputActionName{"ShowHelp"}
@@ -222,8 +224,10 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x1420f18du}}; }  // 'Shared'
 
-		static constexpr uint  actionCount = 7;
+		static constexpr uint  actionCount = 9;
 		enum Bindings : uint {
+			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
 			ShowHelp  = 0x3d738410u,  // InputActionName{"ShowHelp"}

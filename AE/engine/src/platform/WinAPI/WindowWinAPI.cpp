@@ -382,6 +382,8 @@ namespace AE::App
 						::SetWindowPos( BitCast<HWND>(_wnd), HWND_TOP,			// win2000
 										_windowPos.x, _windowPos.y, 0, 0,
 										SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOZORDER | SWP_NOCOPYBITS );
+
+						// TODO: try InvalidateRect()
 					}
 					_UpdateDescription();
 					break;

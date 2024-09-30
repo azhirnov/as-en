@@ -38,8 +38,7 @@ namespace AE::ResEditor
 
 	// methods
 	public:
-		explicit Present (Array<RC<Image>> src, StringView dbgName, RC<DynamicDim> dynSize, RC<DynamicUInt> filterMode) __NE___ :
-			IPass{dbgName}, _src{RVRef(src)}, _dynSize{dynSize}, _filterMode{filterMode} {}
+		explicit Present (Array<RC<Image>> src, StringView dbgName, RC<DynamicDim> dynSize) __NE___;
 
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Present; }
@@ -223,13 +222,62 @@ namespace AE::ResEditor
 	private:
 		RC<Image>		_srcImage;
 		RC<Image>		_dstImage;
-		uint3			_dim;
 		EImageAspect	_aspect;
 
 
 	// methods
 	public:
 		explicit CopyImagePass (RC<Image> src, RC<Image> dst, StringView dbgName) __Th___;
+
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
+		bool		Execute (SyncPassData &)							__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+	};
+
+
+
+	//
+	// Blit Image pass
+	//
+
+	class BlitImagePass final : public IPass
+	{
+	// variables
+	private:
+		RC<Image>		_srcImage;
+		RC<Image>		_dstImage;
+		EImageAspect	_aspect;
+
+
+	// methods
+	public:
+		explicit BlitImagePass (RC<Image> src, RC<Image> dst, StringView dbgName) __Th___;
+
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
+		bool		Execute (SyncPassData &)							__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+	};
+
+
+
+	//
+	// Resolve Image pass
+	//
+
+	class ResolveImagePass final : public IPass
+	{
+	// variables
+	private:
+		RC<Image>		_srcImage;
+		RC<Image>		_dstImage;
+		EImageAspect	_aspect;
+
+
+	// methods
+	public:
+		explicit ResolveImagePass (RC<Image> src, RC<Image> dst, StringView dbgName) __Th___;
 
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }

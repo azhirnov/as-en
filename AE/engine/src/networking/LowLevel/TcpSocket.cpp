@@ -28,7 +28,7 @@ namespace AE::Networking
 			return false;	// no clients	// TODO: check errors
 
 	  #ifdef AE_UNIX_SOCKET
-		// On Linux, the new socket returned by accept() does not inherit file status flags such as O_NONBLOCK and O_ASYNC from the listening socket.
+		// On Linux, the new socket returned by 'accept()' does not inherit file status flags such as O_NONBLOCK and O_ASYNC from the listening socket.
 		// This behavior differs from the canonical BSD sockets implementation.
 		if ( other.IsNonBlocking() )
 			CHECK_ERR( _SetNonBlocking() );

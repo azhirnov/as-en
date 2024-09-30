@@ -16,14 +16,6 @@ namespace AE::ResEditor
 	{
 	// types
 	public:
-		enum class EImageType : uint
-		{
-			Unknown,
-			ConstDataFromFile,
-			Storage,
-			RenderTarget,
-		};
-
 		using ELoadOpFlags = Image::ELoadOpFlags;
 
 	private:
@@ -37,7 +29,7 @@ namespace AE::ResEditor
 		const bool				_descDefined	= false;
 
 		EResourceUsage			_resUsage		= Default;
-		uint					_imageType		= 0;		// PipelineCompiler::EImageType
+		EImageType				_imageType		= Default;
 		LoadOps_t				_loadOps;
 		String					_dbgName;
 
@@ -51,7 +43,7 @@ namespace AE::ResEditor
 	// methods
 	public:
 		ScriptImage ()																= delete;
-		ScriptImage (uint imageType, const String &filename, ELoadOpFlags flags)	__Th___;
+		ScriptImage (EImageType imageType, const String &filename, ELoadOpFlags flags)	__Th___;
 		ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds)			__Th___;
 		ScriptImage (EPixelFormat format, const packed_uint3 &dim)					__Th___;
 		ScriptImage (EPixelFormat format, const packed_uint3 &dim,
@@ -84,7 +76,7 @@ namespace AE::ResEditor
 
 		ND_ ImageDesc			Description ()										C_NE___;
 		ND_ ImageViewDesc		ViewDescription ()									C_NE___	{ return _viewDesc; }
-		ND_ uint				ImageType ()										C_NE___	{ return _imageType; }
+		ND_ EImageType			ImageType ()										C_NE___	{ return _imageType; }
 		ND_ EPixelFormat		PixelFormat ()										C_NE___	{ return _viewDesc.format == Default ? _desc.format : _viewDesc.format; }
 
 		ND_ bool				IsColor ()											C_NE___	{ return not IsDepthOrStencil(); }

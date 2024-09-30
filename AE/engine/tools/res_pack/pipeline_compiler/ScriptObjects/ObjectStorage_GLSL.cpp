@@ -161,7 +161,7 @@ namespace AE::PipelineCompiler
 			"#version 460 core\n"
 			"#extension GL_ARB_separate_shader_objects                  : require\n"
 			"#extension GL_ARB_shading_language_420pack                 : require\n"
-			"#extension GL_GOOGLE_include_directive                     : require\n"
+			"#extension GL_GOOGLE_include_directive                     : require\n"	// or GL_ARB_shading_language_include
 			"#extension GL_GOOGLE_cpp_style_line_directive              : require\n"
 			"#extension GL_EXT_control_flow_attributes                  : require\n"
 			"#extension GL_EXT_control_flow_attributes2                 : require\n"
@@ -842,7 +842,7 @@ namespace AE::PipelineCompiler
 		key.version		= version;
 		key.options		= inShader->options;
 		key.include		= Array<String>{ include };
-		_SetAndSortDefines( OUT key.defines, String{defines} << inShader->GetDefines() );
+		_SetAndSortDefines( OUT key.defines, String{defines} << inShader->GetDefines() << this->defaultShaderDefines );
 
 		// find in existing shader source
 		{

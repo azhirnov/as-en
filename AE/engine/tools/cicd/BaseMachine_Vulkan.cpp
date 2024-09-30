@@ -121,6 +121,4 @@ namespace AE::CICD
 
 } // AE::CICD
 
-#include "graphics/Private/EnumUtils.cpp"
-
 #endif // AE_ENABLE_VULKAN

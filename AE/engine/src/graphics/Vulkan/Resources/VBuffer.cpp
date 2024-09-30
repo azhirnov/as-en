@@ -165,7 +165,7 @@ namespace AE::Graphics
 	{
 		DRC_EXLOCK( _drCheck );
 
-		const bool	is_internal = not AllBits( _desc.memType, EMemoryType::_External );
+		const bool	is_internal = NoBits( _desc.memType, EMemoryType::_External );
 		auto&		dev			= resMngr.GetDevice();
 
 		if ( is_internal and _buffer != Default )
@@ -194,7 +194,7 @@ namespace AE::Graphics
 		desc.size			= _desc.size;
 		desc.queues			= _desc.queues;
 		desc.memFlags		= VEnumCast( _desc.memType );
-		desc.canBeDestroyed	= not AllBits( _desc.memType, EMemoryType::_External );
+		desc.canBeDestroyed	= NoBits( _desc.memType, EMemoryType::_External );
 		return desc;
 	}
 

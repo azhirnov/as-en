@@ -13,10 +13,10 @@
 #include "FeatureSetUtils.h"
 #include "base/Algorithms/StringUtils.h"
 
-#include "graphics/Private/ImageDesc.cpp"
-#include "graphics/Private/FeatureSet.cpp"
-#include "graphics/Private/RenderState.cpp"
-#include "graphics/Private/EnumUtils.cpp"
+#include "graphics/Private/ImageDesc.cpp.h"
+#include "graphics/Private/FeatureSet.cpp.h"
+#include "graphics/Private/RenderState.cpp.h"
+#include "graphics/Private/EnumUtils.cpp.h"
 #include "graphics/Metal/MFeatureSet.cpp"
 
 using namespace AE;

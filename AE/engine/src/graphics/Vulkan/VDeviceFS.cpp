@@ -131,6 +131,9 @@ namespace
 			outFeatureSet.shaderQuadControl = True;
 		}
 
+		if ( _extensions.clipSpaceWScalingNV )
+			outFeatureSet.clipSpaceWScalingNV = True;
+
 		if ( _extensions.shaderFloat16Int8 )
 		{
 			SET_FEAT2( shaderInt8,		_properties.shaderFloat16Int8Feats );
@@ -616,23 +619,23 @@ namespace
 				for (auto& props : queue_family_props)
 				{
 					if ( AllBits( props.queueFlags, VK_QUEUE_GRAPHICS_BIT ) and
-						 not AnyBits( props.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_VIDEO_ENCODE_BIT_KHR ))
+						 NoBits( props.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_VIDEO_ENCODE_BIT_KHR ))
 						outFeatureSet.queues.supported |= EQueueMask::Graphics;
 
 					if ( AllBits( props.queueFlags, VK_QUEUE_COMPUTE_BIT ) and
-						 not AnyBits( props.queueFlags, VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_VIDEO_ENCODE_BIT_KHR ))
+						 NoBits( props.queueFlags, VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_VIDEO_ENCODE_BIT_KHR ))
 						outFeatureSet.queues.supported |= EQueueMask::AsyncCompute;
 
 					if ( AllBits( props.queueFlags, VK_QUEUE_TRANSFER_BIT ) and
-						 not AnyBits( props.queueFlags, VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_VIDEO_ENCODE_BIT_KHR ))
+						 NoBits( props.queueFlags, VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_VIDEO_DECODE_BIT_KHR | VK_QUEUE_VIDEO_ENCODE_BIT_KHR ))
 						outFeatureSet.queues.supported |= EQueueMask::AsyncTransfer;
 
 					if ( AllBits( props.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR ) and
-						 not AnyBits( props.queueFlags, VK_QUEUE_VIDEO_ENCODE_BIT_KHR ))
+						 NoBits( props.queueFlags, VK_QUEUE_VIDEO_ENCODE_BIT_KHR ))
 						outFeatureSet.queues.supported |= EQueueMask::VideoDecode;
 
 					if ( AllBits( props.queueFlags, VK_QUEUE_VIDEO_ENCODE_BIT_KHR ) and
-						 not AnyBits( props.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR ))
+						 NoBits( props.queueFlags, VK_QUEUE_VIDEO_DECODE_BIT_KHR ))
 						outFeatureSet.queues.supported |= EQueueMask::VideoEncode;
 				}
 			}
@@ -715,6 +718,9 @@ namespace
 			_properties.shaderQuadControlFeats.shaderQuadControl = VK_TRUE;
 			_extensions.shaderQuadControl = true;
 		}
+
+		if ( inFS.clipSpaceWScalingNV == True )
+			_extensions.clipSpaceWScalingNV = true;
 
 		if ( inFS.subgroupBroadcastDynamicId == True )
 		{

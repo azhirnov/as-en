@@ -90,6 +90,7 @@ namespace
 					break;
 				}
 			}
+			switch_end
 
 			typename CtxTypes::ASBuild	as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 

@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #ifdef AE_PLATFORM_UNIX_BASED
 
 namespace

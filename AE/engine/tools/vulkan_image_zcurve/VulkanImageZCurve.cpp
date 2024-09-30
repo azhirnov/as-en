@@ -216,13 +216,13 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
 
 		for (uint i = 0; i < pixel_count; ++i)
 		{
-			uint2	coord = (uint2(mapped[i], mapped[i] >> 8) & 0xFFu);
+			uint2	coord = (uint2{ uint(mapped[i]), uint(mapped[i]) >> 8 } & 0xFFu);
 
 			bits.insert( E( coord.x + coord.y * img_dim.x ));
 
 			if constexpr( sizeof(T) >= 4 )
 			{
-				uint2	coord2 = (~uint2(mapped[i] >> 24, mapped[i] >> 16)) & 0xFFu;
+				uint2	coord2 = (~uint2{ uint(mapped[i]) >> 24, uint(mapped[i]) >> 16 }) & 0xFFu;
 				CHECK( All( coord == coord2 ));
 			}
 
@@ -256,7 +256,7 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
 
 		for (uint i = 0; i < block_size and i < pixel_count; ++i)
 		{
-			uint2	coord = (uint2(mapped[i], mapped[i] >> 8) & 0xFFu);
+			uint2	coord = (uint2{ uint(mapped[i]), uint(mapped[i]) >> 8 } & 0xFFu);
 
 			str << '[' << FormatAlignedI<10>( coord.x, align.x, ' ' ) << ','
 				<< FormatAlignedI<10>( coord.y, align.y, ' ' ) << ']'

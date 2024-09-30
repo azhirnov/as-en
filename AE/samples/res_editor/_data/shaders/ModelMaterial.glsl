@@ -18,15 +18,15 @@ ND_ float4  UnpackRGBM (uint rgbm)				{ float4 c = unpackUnorm4x8( rgbm );  retu
 
 // helpers
 #define SampleAlbedo( _mtr_, _uv_ )\
-	gl.texture.Sample( gl::CombinedTex2D<float>( un_AlbedoMaps[ UnpackMapAndSampler( _mtr_.albedoMap ).x ], un_AlbedoMapSampler ), _uv_ )\
+	gl.texture.Sample( gl::CombinedTex2D<float>( un_AlbedoMaps[ gl::Nonuniform( UnpackMapAndSampler( _mtr_.albedoMap ).x )], un_AlbedoMapSampler ), _uv_ )\
 	* UnpackRGBM( _mtr_.albedoRGBM )
 
 #define SampleLodAlbedo( _mtr_, _uv_, _lod_ )\
-	gl.texture.SampleLod( gl::CombinedTex2D<float>( un_AlbedoMaps[ UnpackMapAndSampler( _mtr_.albedoMap ).x ], un_AlbedoMapSampler ), _uv_, _lod_ )\
+	gl.texture.SampleLod( gl::CombinedTex2D<float>( un_AlbedoMaps[ gl::Nonuniform( UnpackMapAndSampler( _mtr_.albedoMap ).x )], un_AlbedoMapSampler ), _uv_, _lod_ )\
 	* UnpackRGBM( _mtr_.albedoRGBM )
 
 #define SampleGradAlbedo( _mtr_, _uv_, _uvdx_, _uvdy_ )\
-	gl.texture.SampleGrad( gl::CombinedTex2D<float>( un_AlbedoMaps[ UnpackMapAndSampler( _mtr_.albedoMap ).x ], un_AlbedoMapSampler ), _uv_, _uvdx_, _uvdy_ )\
+	gl.texture.SampleGrad( gl::CombinedTex2D<float>( un_AlbedoMaps[ gl::Nonuniform( UnpackMapAndSampler( _mtr_.albedoMap ).x )], un_AlbedoMapSampler ), _uv_, _uvdx_, _uvdy_ )\
 	* UnpackRGBM( _mtr_.albedoRGBM )
 
 
@@ -77,15 +77,16 @@ ND_ float4  CalcLighting (const float3 worldPos, const float3 worldNormal)
 	UnpackWorldPos
 =================================================
 */
+ND_ float3  UnpackWorldPos (float2 fragCoordSNorm, float depth)
+{
+	float4	pos = un_PerPass.camera.invViewProj * float4( fragCoordSNorm, depth, 1.0 );
+	return pos.xyz / pos.w;
+}
+
 #ifdef SH_FRAG
 ND_ float3  UnpackWorldPos (gl::CombinedTex2D<float> depthMap)
 {
-	float4	pos;
-	pos.xy = ToSNorm( gl.FragCoord.xy / un_PerPass.resolution.xy );
-	pos.z  = gl.texture.Fetch( depthMap, int2(gl.FragCoord.xy), 0 ).r;
-	pos.w	= 1.0;
-
-	pos = un_PerPass.camera.invViewProj * pos;
-	return pos.xyz / pos.w;
+	return UnpackWorldPos(	ToSNorm( gl.FragCoord.xy / un_PerPass.resolution.xy ),
+							gl.texture.Fetch( depthMap, int2(gl.FragCoord.xy), 0 ).r );
 }
 #endif

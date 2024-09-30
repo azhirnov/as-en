@@ -735,10 +735,10 @@ namespace AE::PipelineCompiler
 		SpvOptions				spv_options;
 		spv::SpvBuildLogger		logger;
 
-		spv_options.generateDebugInfo				=     AllBits( options, EShaderOpt::DebugInfo );
+		spv_options.generateDebugInfo				= AllBits( options, EShaderOpt::DebugInfo );
 		spv_options.stripDebugInfo					= false;
-		spv_options.disableOptimizer				= not AllBits( options, EShaderOpt::Optimize );
-		spv_options.optimizeSize					=     AllBits( options, EShaderOpt::OptimizeSize );
+		spv_options.disableOptimizer				= NoBits( options, EShaderOpt::Optimize );
+		spv_options.optimizeSize					= AllBits( options, EShaderOpt::OptimizeSize );
 		spv_options.disassemble						= false;
 		spv_options.validate						= false;
 		spv_options.emitNonSemanticShaderDebugInfo	= spv_options.generateDebugInfo;

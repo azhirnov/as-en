@@ -232,14 +232,14 @@ namespace AE::Graphics
 
 		if ( res->minimized )
 		{
-			_surfaceSize.store( ushort2{res->viewSize} );
+			_surfaceSize.store( ImageDim2_t{res->viewSize} );
 			return true;
 		}
 
 		CHECK_ERR( res->created );
 
 		_desc = res->desc;
-		_surfaceSize.store( ushort2{res->viewSize} );
+		_surfaceSize.store( ImageDim2_t{res->viewSize} );
 
 		_imageAvailableSem	= res->imageAvailable;
 		_renderFinishedSem	= res->renderFinished;
@@ -251,7 +251,7 @@ namespace AE::Graphics
 		RemoteImageDesc		img_desc;
 		RemoteImageViewDesc	view_desc;
 
-		img_desc.desc.dimension		= uint3{res->viewSize, 1u};
+		img_desc.desc.dimension		= ImageDim_t{uint3{ res->viewSize, 1u }};
 		img_desc.desc.imageDim		= EImageDim_2D;
 		img_desc.desc.options		= _desc.options;
 		img_desc.desc.usage			= _desc.usage;

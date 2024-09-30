@@ -143,6 +143,8 @@ namespace AE::Math
 
 	#if Columns == 2 and Rows == 2
 		ND_ static Self  Rotate (Rad_t angle)											__NE___;
+		ND_ static Self  Scaled (const Vec2_t &scale)									__NE___;
+		ND_ static Self  Scaled (const T scale)											__NE___	{ return Scaled( Vec2_t{ scale }); }
 	#endif
 
 	#if Columns == 3 and Rows == 3
@@ -231,32 +233,22 @@ namespace AE::Math
 		const T	c = Cos( angle );
 		return Self{ Col_t{ c, s }, Col_t{ -s, c }};
 	}
+
+/*
+=================================================
+	Scaled
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Scaled (const Vec2_t &scale) __NE___
+	{
+		return	Self{	Col_t{ scale.x, T(0),   },
+						Col_t{ T(0),    scale.y }};
+	}
 #endif
 
 
 #if Columns == 3 and Rows == 3
-/*
-=================================================
-	ToCubeFace
-=================================================
-*
-	template <typename T, glm::qualifier Q>
-	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::ToCubeFace (ubyte face) __NE___
-	{
-		ASSERT( face < 6 );
-
-		const int	idx		 = face < 6 ? face : 5;		// pos: 0, 2, 4; neg: 1, 3, 5
-		const int	norm	 = idx >> 1;				// norm: 0, 1, 2
-		const bool	negative = idx & 1;
-		Self		m		 = Zero();
-
-		m( norm==0 ) = T{1};
-		m( 6-norm  ) = T{1};
-		m( norm+6  ) = negative ? T{-1} : T{1};
-
-		return m.Transpose();
-	}
-
 /*
 =================================================
 	FromDirection
@@ -269,6 +261,7 @@ namespace AE::Math
 		Vec3_t	ver = Normalize( Cross( dir, hor ));
 		return Self{ hor, ver, dir };
 	}
+
 /*
 =================================================
 	Scaled
@@ -519,19 +512,19 @@ namespace AE::Math
 	bool  TMatrix<T, Columns, Rows, Q>::operator == (const Self &rhs) C_NE___
 	{
 	#if Columns == 2
-		return	All( get<0>() == rhs.get<0>() ) &
-				All( get<1>() == rhs.get<1>() );
+		return	AllEqual( get<0>(), rhs.get<0>() ) and
+				AllEqual( get<1>(), rhs.get<1>() );
 
 	#elif Columns == 3
-		return	All( get<0>() == rhs.get<0>() ) &
-				All( get<1>() == rhs.get<1>() ) &
-				All( get<2>() == rhs.get<2>() );
+		return	AllEqual( get<0>(), rhs.get<0>() ) and
+				AllEqual( get<1>(), rhs.get<1>() ) and
+				AllEqual( get<2>(), rhs.get<2>() );
 
 	#elif Columns == 4
-		return	All( get<0>() == rhs.get<0>() ) &
-				All( get<1>() == rhs.get<1>() ) &
-				All( get<2>() == rhs.get<2>() ) &
-				All( get<3>() == rhs.get<3>() );
+		return	AllEqual( get<0>(), rhs.get<0>() ) and
+				AllEqual( get<1>(), rhs.get<1>() ) and
+				AllEqual( get<2>(), rhs.get<2>() ) and
+				AllEqual( get<3>(), rhs.get<3>() );
 	#endif
 	}
 

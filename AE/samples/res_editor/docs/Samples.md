@@ -24,8 +24,6 @@ Content:
 ![](img/GravityLens.jpg)
 
 **Extensions:**
-* [Subgroups](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/Subgroups.as)<br/>
-![](img/Subgroup.png)
 * [Draw to HDR display](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/HDR.as)
 * [Binary tree with buffer reference](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/BufferReference.as)<br/>
 ![](img/BufferReferenceBinaryTree.png)
@@ -47,7 +45,7 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 ![](img/SimpleSphereTracing.jpg)
 * [SDF used for collisions with camera](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/CameraCollision.as)<br/>
 ![](img/CameraCollision.jpg)
-* [Simple volumetric](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Volumetric-1.as)
+* [Simple volumetric](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Volumetric.as)
 
 **Shadows:**
 * [Shadow mapping](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/ShadowMap.as)
@@ -65,7 +63,7 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 
 **Other:**
 * [Reverse depth buffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/ReverseZ.as)
-* [glTF scene rendering](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Model-1.as)
+* [glTF scene rendering](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Model.as)
 * [glTF scene rendering with deferred texturing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/DeferredTexturing.as)
 * [SDF and MSDF font on 3D plane](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/SdfFont.as)
 * [Frustum culling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/FrustumCulling.as)
@@ -82,14 +80,14 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 **Samples:**
 * [Simple geometry with dynamic shadows](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-rt/RT-Shadow.as)<br/>
 ![](img/RT-Shadow.jpg)
-* [Cube with reflections and refractions](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-rt/RT-MultiBounce-1.as)<br/>
+* [Cube with reflections and refractions](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-rt/RT-MultiBounce.as)<br/>
 ![](img/RT-MultiBounce-1.jpg)
 
 * [Dispersion in prism](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-rt/Dispersion2D.as)
 * [Dispersion in multiple prisms](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-rt/Dispersion2DLayered.as)<br/>
 ![](img/Dispersion2DLayered.jpg)
 
-* [glTF scene tracing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-rt/RT-Model-1.as)
+* [glTF scene tracing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-rt/RT-Model.as)
 
 
 ## Order-Independent Transparency
@@ -153,7 +151,7 @@ ResEditor allows to create game prototypes.
 * [Cooperative matrix](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/CoopMatrix.as)
 * [Multiple passes](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/MultiPassTest.as)
 * [NaN in shader](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/NaN.as)
-* [Projections](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/ScreenProjection-1.as)
+* [Projections](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/ScreenProjection.as)
 * [Shadertoy default shader](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/ShadertoyDefault.as)
 * [White color spectrum](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/Spectrum.as)
 * [Derivatives in FS and CS](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/Derivatives.as)
@@ -167,6 +165,7 @@ ResEditor allows to create game prototypes.
 * [Spherical Cube: texture projection](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-2.as)
 * [Spherical Cube: circle distortion](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-3.as)
 * [Spherical Cube: 3D to texture](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/SphericalCube-4.as)
+* [Procedural sphere](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-1.as)
 * [Triangulation-1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/Triangulation-1.as)
 * [Triangulation-2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/Triangulation-2.as)
 * [Procedural grid](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/ProceduralGrid.as)
@@ -190,3 +189,9 @@ ResEditor allows to create game prototypes.
 * [gamma-correct upscale](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/sRGB-Upscale.as)<br/>
 ![](img/sRGB-Upscale.png)
 
+**Performance**
+* [Render target compression](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/RTCompression.as)
+* [FP16 mul/add performance](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/Inst-fp16.as)
+* [FP32 mul/add performance](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/Inst-fp32.as)
+* [Subgroups in fullscreen](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/Subgroups-1.as), [Subgroups with multiple triangles](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/Subgroups-2.as)<br/>
+![](img/Subgroup.png)

@@ -2,6 +2,6 @@
 
 #pragma once
 
-#include "serializing/Common.h"
-#include "serializing/ISerializable.h"
-#include "serializing/ObjectFactory.h"
+#include "serializing/Public/Common.h"
+#include "serializing/Public/ISerializable.h"
+#include "serializing/Public/ObjectFactory.h"

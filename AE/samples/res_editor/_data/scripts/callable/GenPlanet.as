@@ -127,7 +127,7 @@
 
 
 	// positions with 1 pixel border for normals calculation
-	shared float3  s_Positions[ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
+	WGShared float3  s_Positions[ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
 
 
 	float3  ReadPosition (int2 local)
@@ -177,8 +177,8 @@
 	FBM_NOISE_Hash( PerlinNoise )
 	TURBULENCE_FBM_Hash( PerlinNoiseFBM )
 
-	shared float3  s_Positions[ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
-	shared float3  s_Normals  [ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
+	WGShared float3  s_Positions[ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
+	WGShared float3  s_Normals  [ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
 
 
 	void Main ()

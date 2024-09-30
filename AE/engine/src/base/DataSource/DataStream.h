@@ -187,18 +187,18 @@ namespace AE::Base
 	Read
 =================================================
 */
-	inline bool  RStream::Read (OUT void* buffer, Bytes size) __NE___
+	inline bool  RStream::Read (OUT void* buffer, const Bytes size) __NE___
 	{
 		return ReadSeq( buffer, size ) == size;
 	}
 
 	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
-	bool  RStream::Read (usize length, OUT BasicString<T,A> &str) __NE___
+	bool  RStream::Read (const usize length, OUT BasicString<T,A> &str) __NE___
 	{
 		NOTHROW_ERR( str.resize( length ));
 
-		Bytes	expected_size	{ sizeof(str[0]) * str.length() };
-		Bytes	current_size	= ReadSeq( str.data(), expected_size );
+		const Bytes		expected_size	{ sizeof(str[0]) * str.length() };
+		const Bytes		current_size	= ReadSeq( str.data(), expected_size );
 
 		str.resize( usize(current_size / sizeof(str[0])) );		// nothrow
 
@@ -206,19 +206,19 @@ namespace AE::Base
 	}
 
 	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
-	bool  RStream::Read (Bytes size, OUT BasicString<T,A> &str) __NE___
+	bool  RStream::Read (const Bytes size, OUT BasicString<T,A> &str) __NE___
 	{
 		ASSERT( IsMultipleOf( size, sizeof(T) ));
 		return Read( usize(size) / sizeof(T), OUT str );
 	}
 
 	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
-	bool  RStream::Read (usize count, OUT Array<T,A> &arr) __NE___
+	bool  RStream::Read (const usize count, OUT Array<T,A> &arr) __NE___
 	{
 		NOTHROW_ERR( arr.resize( count ));
 
-		Bytes	expected_size	{ sizeof(arr[0]) * arr.size() };
-		Bytes	current_size	= ReadSeq( arr.data(), expected_size );
+		const Bytes		expected_size	{ sizeof(arr[0]) * arr.size() };
+		const Bytes		current_size	= ReadSeq( arr.data(), expected_size );
 
 		arr.resize( usize(current_size / sizeof(arr[0])) );		// nothrow
 
@@ -226,7 +226,7 @@ namespace AE::Base
 	}
 
 	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
-	bool  RStream::Read (Bytes size, OUT Array<T,A> &arr) __NE___
+	bool  RStream::Read (const Bytes size, OUT Array<T,A> &arr) __NE___
 	{
 		ASSERT( IsMultipleOf( size, sizeof(T) ));
 		return Read( usize(size) / sizeof(T), OUT arr );
@@ -235,7 +235,8 @@ namespace AE::Base
 	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  RStream::Read (OUT T &data) __NE___
 	{
-		return ReadSeq( AddressOf(data), Sizeof(data) ) == Sizeof(data);
+		constexpr Bytes  size {sizeof(data)};
+		return ReadSeq( AddressOf(data), size ) == size;
 	}
 
 	inline bool  RStream::Read (Bytes dataSize, OUT MemChunkList &mem) __NE___
@@ -291,7 +292,7 @@ namespace AE::Base
 	Write
 =================================================
 */
-	inline bool  WStream::Write (const void* buffer, Bytes size) __NE___
+	inline bool  WStream::Write (const void* buffer, const Bytes size) __NE___
 	{
 		return WriteSeq( buffer, size ) == size;
 	}
@@ -299,8 +300,7 @@ namespace AE::Base
 	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  WStream::Write (ArrayView<T> buf) __NE___
 	{
-		Bytes	size { sizeof(buf[0]) * buf.size() };
-
+		const Bytes		size { sizeof(buf[0]) * buf.size() };
 		return WriteSeq( buf.data(), size ) == size;
 	}
 
@@ -316,15 +316,15 @@ namespace AE::Base
 		if ( str.empty() )
 			return true;
 
-		Bytes	size { sizeof(str[0]) * str.length() };
-
+		const Bytes		size { sizeof(str[0]) * str.length() };
 		return WriteSeq( str.data(), size ) == size;
 	}
 
 	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
 	bool  WStream::Write (const T &data) __NE___
 	{
-		return WriteSeq( AddressOf(data), Sizeof(data) ) == Sizeof(data);
+		constexpr Bytes  size {sizeof(data)};
+		return WriteSeq( AddressOf(data), size ) == size;
 	}
 
 	inline bool  WStream::Write (const MemChunkList &mem) __NE___

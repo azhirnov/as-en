@@ -46,5 +46,6 @@ endif()
 
 EnablePCH( "Threading" )
 EnablePrebuild( "Threading" )
+EnableUnitBuild( "Threading" )
 
 install( TARGETS "Threading" ARCHIVE DESTINATION "lib" )

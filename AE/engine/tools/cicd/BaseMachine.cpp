@@ -405,6 +405,8 @@ namespace AE::CICD
 			case EType::Unknown :
 				return false;
 		}
+		switch_end
+
 		return true;
 	}
 

@@ -12,6 +12,7 @@ import android.net.NetworkInfo;
 import android.os.Environment;
 import android.os.LocaleList;
 import android.os.Build;
+import android.os.Debug;
 import android.util.Log;
 import android.view.Display;
 import android.util.DisplayMetrics;
@@ -35,7 +36,7 @@ public class BaseApplication
 	public void  onCreate ()
 	{
 		super.onCreate();
-		native_OnCreate( this, getResources().getAssets() );
+		native_OnCreate( this, getResources().getAssets(), Debug.isDebuggerConnected() );
 
 		_SendDirectories();
 		_SendSystemInfo();
@@ -187,7 +188,7 @@ public class BaseApplication
 //-----------------------------------------------------------------------------
 // native
 
-	private static native void  native_OnCreate (Object app, Object assetMngr);
+	private static native void  native_OnCreate (Object app, Object assetMngr, boolean isUnderDebugger);
 	private static native void  native_SetDirectories (String internal, String internalCache, String external, String externalCache);
 	private static native void  native_SetSystemInfo (String iso3Lang0, String iso3Lang1);
 	private static native void  native_SetDisplayInfo (int minWidth, int minHeight, int maxWidth, int maxHeight,

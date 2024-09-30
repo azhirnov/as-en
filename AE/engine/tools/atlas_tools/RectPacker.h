@@ -52,6 +52,9 @@ namespace AE::AtlasTools
 		ND_ float  PackingRate ()	const;
 
 		ND_ ArrayView<Region>  GetResult () const { return _rects; }
+
+	private:
+		ND_ static uint2  _BestDimensionForArea (ulong area, const uint2 minSize);
 	};
 
 

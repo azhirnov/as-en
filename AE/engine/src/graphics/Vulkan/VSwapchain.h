@@ -69,7 +69,7 @@ namespace AE::Graphics
 		VkSwapchainKHR					_vkSwapchain		= Default;	// protected by '_guard'
 		VkSurfaceKHR					_vkSurface			= Default;	// protected by '_guard'
 
-		StructAtomic< ushort2 >			_surfaceSize;
+		StructAtomic< ImageDim2_t >		_surfaceSize;
 		StructAtomic< MutableIdxBits >	_indices;
 
 		Images_t						_vkImages			{};			// protected by '_guard'

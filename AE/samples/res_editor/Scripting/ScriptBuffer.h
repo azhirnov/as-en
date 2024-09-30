@@ -55,7 +55,7 @@ namespace AE::ResEditor
 		BufferViewDesc			_viewDesc;
 		EBufferType				_type			= Default;
 		EResourceUsage			_resUsage		= Default;
-		uint					_texbufType		= 0;		// PipelineCompiler::EImageType
+		uint					_texbufType		= 0;		// EImageType
 		String					_dbgName;
 
 		ScriptDynamicUIntPtr	_inDynCount;	// array size depends on this dynamic variable
@@ -97,12 +97,13 @@ namespace AE::ResEditor
 		ND_ String			GetTypeName ()														C_NE___;
 		ND_ uint			TexelBufferType ()													C_NE___	{ ASSERT( not HasLayout() );  return _texbufType; }
 		ND_ bool			IsDynamicSize ()													C_NE___	{ return _inDynCount != null; }
-		ND_ ulong			GetDeviceAddress ()													__Th___;	// TODO: return object with address and ref to buffer
-		ND_ EPixelFormat	GetViewFormat ()													C_Th___;	// TODO
+		ND_ ulong			GetDeviceAddress ()													__Th___;
+	//	ND_ EPixelFormat	GetViewFormat ()													C_Th___;	// TODO
 		ND_ bool			WithHistory ()														C_NE___	{ return AllBits( _resUsage, EResourceUsage::WithHistory ); }
 
 		ND_ ScriptDynamicUInt*		ArraySize ()												C_Th___;
 		ND_ ScriptDynamicUIntPtr	ArraySizeRC ()												C_Th___;
+		ND_ uint					ConstArraySize ()											C_Th___	{ return _staticCount; }
 
 		ND_ Bytes			GetFieldOffset (const String &name)									__Th___;
 		ND_ uint			GetFieldType (const String &name)									__Th___;	// PipelineCompiler::EValueType

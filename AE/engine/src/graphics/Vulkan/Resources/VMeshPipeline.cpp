@@ -72,16 +72,17 @@ namespace AE::Graphics
 				CHECK_ERR( All( _taskLocalSize > Zero ));
 		}
 
-		VkGraphicsPipelineCreateInfo			pipeline_info		= {};
-		VkPipelineInputAssemblyStateCreateInfo	input_assembly_info	= {};
-		VkPipelineColorBlendStateCreateInfo		blend_info			= {};
-		VkPipelineDepthStencilStateCreateInfo	depth_stencil_info	= {};
-		VkPipelineMultisampleStateCreateInfo	multisample_info	= {};
-		VkPipelineRasterizationStateCreateInfo	rasterization_info	= {};
-		VkPipelineDynamicStateCreateInfo		dynamic_state_info	= {};
-		VkPipelineVertexInputStateCreateInfo	vertex_input_info	= {};
-		VkPipelineViewportStateCreateInfo		viewport_info		= {};
-		VTempLinearAllocator					allocator;
+		VkGraphicsPipelineCreateInfo				pipeline_info		= {};
+		VkPipelineInputAssemblyStateCreateInfo		input_assembly_info	= {};
+		VkPipelineColorBlendStateCreateInfo			blend_info			= {};
+		VkPipelineDepthStencilStateCreateInfo		depth_stencil_info	= {};
+		VkPipelineMultisampleStateCreateInfo		multisample_info	= {};
+		VkPipelineRasterizationStateCreateInfo		rasterization_info	= {};
+		VkPipelineDynamicStateCreateInfo			dynamic_state_info	= {};
+		VkPipelineVertexInputStateCreateInfo		vertex_input_info	= {};
+		VkPipelineViewportStateCreateInfo			viewport_info		= {};
+		VkPipelineViewportWScalingStateCreateInfoNV	w_scaling			= {};
+		VTempLinearAllocator						allocator;
 
 		// TODO: VkPipelineCreateFlags2CreateInfoKHR (VK_KHR_maintenance5)
 
@@ -198,6 +199,14 @@ namespace AE::Graphics
 			pipeline_info.pMultisampleState		= null;
 			pipeline_info.pDepthStencilState	= null;
 			pipeline_info.pColorBlendState		= null;
+		}
+
+		if ( AllBits( ci.specCI.dynamicState, EPipelineDynamicState::ViewportWScaling ))
+		{
+			w_scaling.sType						= VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_W_SCALING_STATE_CREATE_INFO_NV;
+			w_scaling.viewportWScalingEnable	= VK_TRUE;
+			w_scaling.viewportCount				= ci.specCI.viewportCount;
+			viewport_info.pNext					= &w_scaling;
 		}
 
 		auto&	dev	= resMngr.GetDevice();

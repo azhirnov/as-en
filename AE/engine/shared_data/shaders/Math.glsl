@@ -30,6 +30,9 @@
 #ifndef AE_ENABLE_DOUBLE_TYPE
 # define AE_ENABLE_DOUBLE_TYPE	0	// suffix 'LF'
 #endif
+
+// helper
+#define UNITE( x, y )	x##y
 //-----------------------------------------------------------------------------
 
 
@@ -38,7 +41,7 @@
 
 #define Any						any				// (bool)
 #define All						all				// (bool)
-#define Abs						abs				// (any int, any fp)
+#define Abs						abs				// (any signed)
 #define ACos					acos			// (half, float)	result in range [0 .. Pi]
 #define ASin					asin			// (half, float)	result in range [-Pi/2 ... Pi/2]
 #define ASinH					asinh			// (half, float)
@@ -53,7 +56,7 @@
 #define CosH					cosh			// (half, float)
 #define Cross					cross			// (any fp)
 #define Distance				distance		// (any fp)
-#define Dot						dot				// (any fp)
+#define Dot						dot				// (any fp)			x[0]*y[0] + ...
 #define Exp						exp				// (half, float)	Pow( float_Euler, x )
 #define Exp2					exp2			// (half, float)	Pow( 2, x )
 #define Exp10( _a_ )			pow(10.0,(_a_))	// (half, float)
@@ -234,9 +237,9 @@ ND_ bool4  BoolOr (const bool4 lhs, const bool4 rhs)	{ return bool4( lhs.x or rh
 
 #define Gen_DIAGONAL( _stype_, _vtype_ )\
 	Gen_DIAGONAL1( _stype_ )			\
-	Gen_DIAGONAL1( _vtype_##2 )			\
-	Gen_DIAGONAL1( _vtype_##3 )			\
-	Gen_DIAGONAL1( _vtype_##4 )
+	Gen_DIAGONAL1( UNITE( _vtype_, 2 ))	\
+	Gen_DIAGONAL1( UNITE( _vtype_, 3 ))	\
+	Gen_DIAGONAL1( UNITE( _vtype_, 4 ))
 
 Gen_DIAGONAL( float, float_vec_t )
 
@@ -263,10 +266,10 @@ Gen_DIAGONAL( float, float_vec_t )
 	}
 
 #define Gen_SATURATE( _stype_, _vtype_ )\
-	Gen_SATURATE1( _stype_, _stype_ )	\
-	Gen_SATURATE1( _stype_, _vtype_##2 )\
-	Gen_SATURATE1( _stype_, _vtype_##3 )\
-	Gen_SATURATE1( _stype_, _vtype_##4 )
+	Gen_SATURATE1( _stype_, _stype_	)	\
+	Gen_SATURATE1( _stype_, UNITE( _vtype_, 2 ))\
+	Gen_SATURATE1( _stype_, UNITE( _vtype_, 3 ))\
+	Gen_SATURATE1( _stype_, UNITE( _vtype_, 4 ))
 
 Gen_SATURATE( float, float_vec_t )
 
@@ -294,9 +297,9 @@ Gen_SATURATE( float, float_vec_t )
 
 #define Gen_CBRT( _stype_, _vtype_ )\
 	Gen_CBRT1( _stype_, _stype_ )	\
-	Gen_CBRT1( _stype_, _vtype_##2 )\
-	Gen_CBRT1( _stype_, _vtype_##3 )\
-	Gen_CBRT1( _stype_, _vtype_##4 )
+	Gen_CBRT1( _stype_, UNITE( _vtype_, 2 ))\
+	Gen_CBRT1( _stype_, UNITE( _vtype_, 3 ))\
+	Gen_CBRT1( _stype_, UNITE( _vtype_, 4 ))
 
 Gen_CBRT( float, float_vec_t )
 
@@ -311,23 +314,31 @@ Gen_CBRT( float, float_vec_t )
 =================================================
 	ToUNorm / ToSNorm
 ----
-	T  ToUNorm (T x)	[-1, +1] to [ 0,  1]
-	T  ToSNorm (T x)	[ 0,  1] to [-1, +1]
+	T  ToUNorm (T x)				[-1, +1] to [ 0,  1]
+	T  ToSNorm (T x)				[ 0,  1] to [-1, +1]
+	T  ToUNorm (T x, T min, T max)	remap from [min, max] to [ 0,  1]
+	T  ToSNorm (T x, T min, T max)	remap from [min, max] to [-1, +1]
 =================================================
 */
-#define Gen_TOUSNORM1( _type_ )								\
-	ND_ _type_  ToUNorm (const _type_ x) {					\
-		return FusedMulAdd( x, _type_(0.5), _type_(0.5) );	\
-	}														\
-	ND_ _type_  ToSNorm (const _type_ x) {					\
-		return FusedMulAdd( x, _type_(2.0), _type_(-1.0) );	\
-	}
+#define Gen_TOUSNORM1( _type_ )														\
+	ND_ _type_  ToUNorm (const _type_ x) {											\
+		return FusedMulAdd( x, _type_(0.5), _type_(0.5) );							\
+	}																				\
+	ND_ _type_  ToSNorm (const _type_ x) {											\
+		return FusedMulAdd( x, _type_(2.0), _type_(-1.0) );							\
+	}																				\
+	ND_ _type_  ToUNorm (const _type_ x, const _type_ minVal, const _type_ maxVal) {\
+		return (x - minVal) / (maxVal - minVal);									\
+	}																				\
+	ND_ _type_  ToSNorm (const _type_ x, const _type_ minVal, const _type_ maxVal) {\
+		return ToSNorm( ToUNorm( x, minVal, maxVal ));								\
+	}																				\
 
 #define Gen_TOUSNORM( _stype_, _vtype_ )\
-	Gen_TOUSNORM1( _stype_ )			\
-	Gen_TOUSNORM1( _vtype_##2 )			\
-	Gen_TOUSNORM1( _vtype_##3 )			\
-	Gen_TOUSNORM1( _vtype_##4 )
+	Gen_TOUSNORM1( _stype_ )\
+	Gen_TOUSNORM1( UNITE( _vtype_, 2 ))\
+	Gen_TOUSNORM1( UNITE( _vtype_, 3 ))\
+	Gen_TOUSNORM1( UNITE( _vtype_, 4 ))
 
 Gen_TOUSNORM( float, float_vec_t )
 
@@ -368,53 +379,49 @@ Gen_TOUSNORM( float, float_vec_t )
 #if AE_ENABLE_HALF_TYPE
 #	define half_min			(0.00006103515625hf)		// smallest positive normal number
 #	define half_max			(65504.0hf)
-#	define half_inf			uint16BitsToHalf( 0x7c00us )
-#	define half_inf_neg		uint16BitsToHalf( 0xfc00us )
-#	define half_Pi			3.14159265358979323846hf
-#	define half_Pi2			6.28318530717958647692hf
-#	define half_HalfPi		1.57079632679489661923hf
-#	define half_InvPi		0.31830988618379067153hf
-#	define half_SqrtOf2		1.41421356237309504880hf
-#	define half_Euler		2.71828182845904523536hf
+#	define half_inf			(uint16BitsToHalf( 0x7c00us ))
+#	define half_inf_neg		(uint16BitsToHalf( 0xfc00us ))
+#	define half_Pi			(3.14159265358979323846hf)
+#	define half_Pi2			(6.28318530717958647692hf)
+#	define half_HalfPi		(1.57079632679489661923hf)
+#	define half_InvPi		(0.31830988618379067153hf)
+#	define half_SqrtOf2		(1.41421356237309504880hf)
+#	define half_Euler		(2.71828182845904523536hf)
 #endif
 #if 1
 #	define float_min		(1.1754943508e-38f)			// smallest positive normal number
 #	define float_max		(3.4028234664e+38f)
-#	define float_inf		uintBitsToFloat( 0x7F800000u )
-#	define float_inf_neg	uintBitsToFloat( 0xFF800000u )
-#	define float_qnan		uintBitsToFloat( 0xFFC00001u )
-#	define float_snan		uintBitsToFloat( 0xFF800001u )
-#	define float_Pi			3.14159265358979323846f
-#	define float_Pi2		6.28318530717958647692f
-#	define float_HalfPi		1.57079632679489661923f
-#	define float_InvPi		0.31830988618379067153f
-#	define float_SqrtOf2	1.41421356237309504880f
-#	define float_Euler		2.71828182845904523536f
+#	define float_inf		(uintBitsToFloat( 0x7F800000u ))
+#	define float_inf_neg	(uintBitsToFloat( 0xFF800000u ))
+#	define float_qnan		(uintBitsToFloat( 0xFFC00001u ))
+#	define float_snan		(uintBitsToFloat( 0xFF800001u ))
+#	define float_Pi			(3.14159265358979323846f)
+#	define float_Pi2		(6.28318530717958647692f)
+#	define float_HalfPi		(1.57079632679489661923f)
+#	define float_InvPi		(0.31830988618379067153f)
+#	define float_SqrtOf2	(1.41421356237309504880f)
+#	define float_Euler		(2.71828182845904523536f)
+#	define float_epsilon	(2.0e-5f)
 #endif
 #if AE_ENABLE_DOUBLE_TYPE
 #	define double_min		(2.2250738585072014e-308lf)	 // smallest positive normal number
 #	define double_max		(1.7976931348623157e+308lf)
-#	define double_inf		uint64BitsToDouble( 0x7FF0000000000000ul )
-#	define double_inf_neg	uint64BitsToDouble( 0xFFF0000000000000ul )
-#	define double_qnan		uint64BitsToDouble( 0x7FF8000000000001ul )
-#	define double_snan		uint64BitsToDouble( 0x7FF0000000000001ul )
-#	define double_nan		uint64BitsToDouble( 0x7FFFFFFFFFFFFFFFul )
-#	define double_Pi		3.14159265358979323846lf
-#	define double_Pi2		6.28318530717958647692lf
-#	define double_HalfPi	1.57079632679489661923lf
-#	define double_InvPi		0.31830988618379067153lf
-#	define double_SqrtOf2	1.41421356237309504880lf
-#	define double_Euler		2.71828182845904523536lf
+#	define double_inf		(uint64BitsToDouble( 0x7FF0000000000000ul ))
+#	define double_inf_neg	(uint64BitsToDouble( 0xFFF0000000000000ul ))
+#	define double_qnan		(uint64BitsToDouble( 0x7FF8000000000001ul ))
+#	define double_snan		(uint64BitsToDouble( 0x7FF0000000000001ul ))
+#	define double_nan		(uint64BitsToDouble( 0x7FFFFFFFFFFFFFFFul ))
+#	define double_Pi		(3.14159265358979323846lf)
+#	define double_Pi2		(6.28318530717958647692lf)
+#	define double_HalfPi	(1.57079632679489661923lf)
+#	define double_InvPi		(0.31830988618379067153lf)
+#	define double_SqrtOf2	(1.41421356237309504880lf)
+#	define double_Euler		(2.71828182845904523536lf)
 #endif
 
 
-ND_ float  Epsilon ()				{ return 2.e-5f; }
 ND_ float  Pi ()					{ return float_Pi; }
-ND_ float  Pi2 ()					{ return float_Pi2; }
-ND_ float  HalfPi ()				{ return float_HalfPi; }
 
-ND_ float  ReciprocalPi ()			{ return float_InvPi; }
-ND_ float  SqrtOf2 ()				{ return float_SqrtOf2; }
 //-----------------------------------------------------------------------------
 
 
@@ -426,10 +433,10 @@ ND_ float  SqrtOf2 ()				{ return float_SqrtOf2; }
 =================================================
 */
 #define Gen_SQUARE( _stype_, _vtype_ )\
-	ND_ _stype_		Square (const _stype_    x)		{ return x * x; }\
-	ND_ _vtype_##2	Square (const _vtype_##2 x)		{ return x * x; }\
-	ND_ _vtype_##3	Square (const _vtype_##3 x)		{ return x * x; }\
-	ND_ _vtype_##4	Square (const _vtype_##4 x)		{ return x * x; }
+	ND_ _stype_				Square (const _stype_			x)	{ return x * x; }\
+	ND_ UNITE(_vtype_, 2 )	Square (const UNITE(_vtype_, 2) x)	{ return x * x; }\
+	ND_ UNITE(_vtype_, 3 )	Square (const UNITE(_vtype_, 3) x)	{ return x * x; }\
+	ND_ UNITE(_vtype_, 4 )	Square (const UNITE(_vtype_, 4) x)	{ return x * x; }
 
 Gen_SQUARE( float,	float_vec_t )
 Gen_SQUARE( int,	int_vec_t )
@@ -469,10 +476,10 @@ Gen_SQUARE( uint,	uint_vec_t )
 	ND_ _vtype_  Select (const _btype_ condition, const _vtype_ ifTrue, const _vtype_ ifFalse)	{ return (ifFalse * _vtype_(Not(condition))) + (ifTrue * _vtype_(condition)); }
 
 #define Gen_SELECT( _stype_, _vtype_ )\
-	Gen_SELECT1( _stype_,		bool  )\
-	Gen_SELECT1( _vtype_##2,	bool2 )\
-	Gen_SELECT1( _vtype_##3,	bool3 )\
-	Gen_SELECT1( _vtype_##4,	bool4 )
+	Gen_SELECT1( _stype_,				bool  )\
+	Gen_SELECT1( UNITE( _vtype_, 2 ),	bool2 )\
+	Gen_SELECT1( UNITE( _vtype_, 3 ),	bool3 )\
+	Gen_SELECT1( UNITE( _vtype_, 4 ),	bool4 )
 
 Gen_SELECT( float,	float_vec_t )
 Gen_SELECT( int,	int_vec_t )
@@ -508,27 +515,8 @@ Gen_SELECT( uint,	uint_vec_t )
 ----
 	same as per component 'x < y ? ifLess : ifNot'
 =================================================
-*
-#define Gen_SELECT1( _vtype_ )\
-	ND_ _vtype_  SelectFp (_vtype_ x, const _vtype_ y, const _vtype_ ifLess, const _vtype_ ifNot)	{ x = LessFp( y, x );  return (ifLess * x) + ifNot * (x - _vtype_(1.0)); }
-
-#define Gen_SELECT( _stype_, _vtype_ )\
-	Gen_SELECT1( _stype_	)\
-	Gen_SELECT1( _vtype_##2 )\
-	Gen_SELECT1( _vtype_##3 )\
-	Gen_SELECT1( _vtype_##4 )
-
-Gen_SELECT( float,	float_vec_t )
-
-#if AE_ENABLE_HALF_TYPE
-	Gen_SELECT( half,	half_vec_t )
-#endif
-#if AE_ENABLE_DOUBLE_TYPE
-	Gen_SELECT( double,	double_vec_t )
-#endif
-
-#undef Gen_SELECT1
-#undef Gen_SELECT
+*/
+#define SelectFp( _x_, _y_, _ifLess_, _ifNot_ )		Lerp( (_ifNot_), (_ifLess_), LessFp( _x_, _y_ ))
 
 /*
 =================================================
@@ -544,9 +532,9 @@ Gen_SELECT( float,	float_vec_t )
 
 #define Gen_BRANCHLESS( _stype_, _vtype_ )\
 	Gen_BRANCHLESS1( _stype_    )\
-	Gen_BRANCHLESS1( _vtype_##2 )\
-	Gen_BRANCHLESS1( _vtype_##3 )\
-	Gen_BRANCHLESS1( _vtype_##4 )
+	Gen_BRANCHLESS1( UNITE( _vtype_, 2 ))\
+	Gen_BRANCHLESS1( UNITE( _vtype_, 3 ))\
+	Gen_BRANCHLESS1( UNITE( _vtype_, 4 ))
 
 Gen_BRANCHLESS( float,	float_vec_t )
 Gen_BRANCHLESS( int,	int_vec_t )
@@ -587,13 +575,13 @@ Gen_BRANCHLESS( uint,	uint_vec_t )
 #define MinAbs( _a_, _b_ )		Select( Less(Abs(_a_), Abs(_b_)), (_a_), (_b_) )
 #define MaxAbs( _a_, _b_ )		Select( Greater(Abs(_a_), Abs(_b_)), (_a_), (_b_) )
 
-#define Gen_MINMAX( _stype_, _vtype_ )											\
-	ND_ _stype_  MinOf (_vtype_##2 a)	{ return Min( a.x, a.y ); }				\
-	ND_ _stype_  MinOf (_vtype_##3 a)	{ return Min3( a.x, a.y, a.z ); }		\
-	ND_ _stype_  MinOf (_vtype_##4 a)	{ return Min4( a.x, a.y, a.z, a.w ); }	\
-	ND_ _stype_  MaxOf (_vtype_##2 a)	{ return Max( a.x, a.y ); }				\
-	ND_ _stype_  MaxOf (_vtype_##3 a)	{ return Max3( a.x, a.y, a.z ); }		\
-	ND_ _stype_  MaxOf (_vtype_##4 a)	{ return Max4( a.x, a.y, a.z, a.w ); }
+#define Gen_MINMAX( _stype_, _vtype_ )													\
+	ND_ _stype_  MinOf (UNITE( _vtype_, 2)  a)	{ return Min( a.x, a.y ); }				\
+	ND_ _stype_  MinOf (UNITE( _vtype_, 3)  a)	{ return Min3( a.x, a.y, a.z ); }		\
+	ND_ _stype_  MinOf (UNITE( _vtype_, 4)  a)	{ return Min4( a.x, a.y, a.z, a.w ); }	\
+	ND_ _stype_  MaxOf (UNITE( _vtype_, 2)  a)	{ return Max( a.x, a.y ); }				\
+	ND_ _stype_  MaxOf (UNITE( _vtype_, 3)  a)	{ return Max3( a.x, a.y, a.z ); }		\
+	ND_ _stype_  MaxOf (UNITE( _vtype_, 4)  a)	{ return Max4( a.x, a.y, a.z, a.w ); }
 
 Gen_MINMAX( float,	float_vec_t )
 Gen_MINMAX( int,	int_vec_t )
@@ -638,8 +626,8 @@ Gen_MINMAX( uint,	uint_vec_t )
 	ND_ _stype_  InvDistance (const _vtype_ x, const _vtype_ y) { _vtype_ r = x - y;  return InvSqrt( Dot( r, r )); }
 
 #define Gen_LENGTHSQ_DISTANCESQ( _stype_, _vtype_ )\
-	Gen_LENGTHSQ_DISTANCESQ1( _stype_, _vtype_##2 )\
-	Gen_LENGTHSQ_DISTANCESQ1( _stype_, _vtype_##3 )
+	Gen_LENGTHSQ_DISTANCESQ1( _stype_, UNITE( _vtype_, 2 ))\
+	Gen_LENGTHSQ_DISTANCESQ1( _stype_, UNITE( _vtype_, 3 ))
 
 Gen_LENGTHSQ_DISTANCESQ( float, float_vec_t )
 
@@ -668,9 +656,9 @@ Gen_LENGTHSQ_DISTANCESQ( float, float_vec_t )
 
 #define Gen_SIGN( _stype_, _vtype_ )\
 	Gen_SIGN1( _stype_ )\
-	Gen_SIGN1( _vtype_##2 )\
-	Gen_SIGN1( _vtype_##3 )\
-	Gen_SIGN1( _vtype_##4 )
+	Gen_SIGN1( UNITE( _vtype_, 2 ))\
+	Gen_SIGN1( UNITE( _vtype_, 3 ))\
+	Gen_SIGN1( UNITE( _vtype_, 4 ))
 
 Gen_SIGN( float,	float_vec_t )
 
@@ -688,9 +676,9 @@ Gen_SIGN( float,	float_vec_t )
 
 #define Gen_SIGN( _stype_, _vtype_ )\
 	ND_ _stype_  Sign (const _stype_ x)  { return x < _stype_(0) ? _stype_(-1) : _stype_(1); }\
-	Gen_SIGN1( _vtype_##2 )\
-	Gen_SIGN1( _vtype_##3 )\
-	Gen_SIGN1( _vtype_##4 )
+	Gen_SIGN1( UNITE( _vtype_, 2 ))\
+	Gen_SIGN1( UNITE( _vtype_, 3 ))\
+	Gen_SIGN1( UNITE( _vtype_, 4 ))
 
 Gen_SIGN( int,		int_vec_t )
 
@@ -728,9 +716,9 @@ Gen_SIGN( int,		int_vec_t )
 	ND_ _stype_  LinearStep (const _stype_ x, const _stype_ edge0, const _stype_ edge1) {	\
 		return Saturate( (x - edge0) / (edge1 - edge0) );									\
 	}																						\
-	Gen_LINEARSTEP1( _vtype_##2, _stype_ )													\
-	Gen_LINEARSTEP1( _vtype_##3, _stype_ )													\
-	Gen_LINEARSTEP1( _vtype_##4, _stype_ )
+	Gen_LINEARSTEP1( UNITE( _vtype_, 2 ), _stype_ )											\
+	Gen_LINEARSTEP1( UNITE( _vtype_, 3 ), _stype_ )											\
+	Gen_LINEARSTEP1( UNITE( _vtype_, 4 ), _stype_ )
 
 Gen_LINEARSTEP( float, float_vec_t )
 
@@ -766,9 +754,9 @@ Gen_LINEARSTEP( float, float_vec_t )
 	ND_ _stype_  BumpStep (const _stype_ x, const _stype_ edge0, const _stype_ edge1) {						\
 		return _stype_(1) - Abs( Saturate( (x - edge0) / (edge1 - edge0) ) - _stype_(0.5) ) * _stype_(2.0);	\
 	}																										\
-	Gen_BUMPSTEP1( _vtype_##2, _stype_ )																	\
-	Gen_BUMPSTEP1( _vtype_##3, _stype_ )																	\
-	Gen_BUMPSTEP1( _vtype_##4, _stype_ )
+	Gen_BUMPSTEP1( UNITE( _vtype_, 2 ), _stype_ )															\
+	Gen_BUMPSTEP1( UNITE( _vtype_, 3 ), _stype_ )															\
+	Gen_BUMPSTEP1( UNITE( _vtype_, 4 ), _stype_ )
 
 Gen_BUMPSTEP( float, float_vec_t )
 
@@ -807,9 +795,9 @@ Gen_BUMPSTEP( float, float_vec_t )
 		x = BumpStep( x, edge0, edge1 );												\
 		return x * x * (_stype_(3.0) - _stype_(2.0) * x);								\
 	}																					\
-	Gen_SMOOTHBUMPSTEP1( _vtype_##2, _stype_ )											\
-	Gen_SMOOTHBUMPSTEP1( _vtype_##3, _stype_ )											\
-	Gen_SMOOTHBUMPSTEP1( _vtype_##4, _stype_ )
+	Gen_SMOOTHBUMPSTEP1( UNITE( _vtype_, 2 ), _stype_ )									\
+	Gen_SMOOTHBUMPSTEP1( UNITE( _vtype_, 3 ), _stype_ )									\
+	Gen_SMOOTHBUMPSTEP1( UNITE( _vtype_, 4 ), _stype_ )
 
 Gen_SMOOTHBUMPSTEP( float, float_vec_t )
 
@@ -838,10 +826,10 @@ Gen_SMOOTHBUMPSTEP( float, float_vec_t )
 	}
 
 #define Gen_TRIANGLEWAVE( _stype_, _vtype_ )\
-	Gen_TRIANGLEWAVE1( _stype_,    _stype_ )\
-	Gen_TRIANGLEWAVE1( _vtype_##2, _stype_ )\
-	Gen_TRIANGLEWAVE1( _vtype_##3, _stype_ )\
-	Gen_TRIANGLEWAVE1( _vtype_##4, _stype_ )
+	Gen_TRIANGLEWAVE1( _stype_,				_stype_ )\
+	Gen_TRIANGLEWAVE1( UNITE( _vtype_, 2 ), _stype_ )\
+	Gen_TRIANGLEWAVE1( UNITE( _vtype_, 3 ), _stype_ )\
+	Gen_TRIANGLEWAVE1( UNITE( _vtype_, 4 ), _stype_ )
 
 Gen_TRIANGLEWAVE( float, float_vec_t )
 
@@ -854,131 +842,284 @@ Gen_TRIANGLEWAVE( float, float_vec_t )
 
 #undef Gen_TRIANGLEWAVE1
 #undef Gen_TRIANGLEWAVE
-
-//-----------------------------------------------------------------------------
-// clamp / wrap
-
-ND_ float  ClampOut (const float x, const float minVal, const float maxVal)
+	
+/*
+=================================================
+	Steps
+----
+	T  Steps (T x, T stepCount)
+----
+	returns X in range [0, 1], with steps pattern _-
+	returns Y in range [0, 1], with linear interpolation per step /
+=================================================
+*/
+float2  Steps (float x, const float stepCount)
 {
-	float mid = (minVal + maxVal) * 0.5f;
-	return x < mid ? (x < minVal ? x : minVal) : (x > maxVal ? x : maxVal);	// TODO: branchless
+	x = x * stepCount;
+	float i = Floor( x );
+	return float2( i / stepCount, x - i );
 }
 
-ND_ int  ClampOut (const int x, const int minVal, const int maxVal)
-{
-	int mid = (minVal+1)/2 + (maxVal+1)/2;
-	return x < mid ? (x < minVal ? x : minVal) : (x > maxVal ? x : maxVal);	// TODO: branchless
-}
+/*
+=================================================
+	ClampOut (float)
+=================================================
+*/
+#define Gen_CLAMPOUT1( _stype_, _vtype_ )												\
+	ND_ _vtype_  ClampOut (const _vtype_ x, const _vtype_ minVal, const _vtype_ maxVal)	\
+	{																					\
+		_vtype_	mid = (minVal * _stype_(0.5)) + (maxVal * _stype_(0.5));				\
+		return Lerp( Max( x, maxVal ), Min( x, minVal ), LessFp( x, mid ));				\
+	}
+#define Gen_CLAMPOUT2( _stype_, _vtype_ )												\
+	Gen_CLAMPOUT1( _stype_, _vtype_ )													\
+	ND_ _vtype_  ClampOut (const _vtype_ x, const _stype_ minVal, const _stype_ maxVal)	\
+	{																					\
+		_stype_	mid = (minVal * _stype_(0.5)) + (maxVal * _stype_(0.5));				\
+		return Lerp( Max( x, maxVal ), Min( x, minVal ), LessFp( x, _vtype_(mid) ));	\
+	}
 
-ND_ float2  ClampOut (const float2 v, const float minVal, const float maxVal) {
-	return float2( ClampOut( v.x, minVal, maxVal ),
-				   ClampOut( v.y, minVal, maxVal ));
-}
+#define Gen_CLAMPOUT( _stype_, _vtype_ )\
+	Gen_CLAMPOUT1( _stype_, _stype_ )\
+	Gen_CLAMPOUT2( _stype_, UNITE( _vtype_, 2 ))\
+	Gen_CLAMPOUT2( _stype_, UNITE( _vtype_, 3 ))\
+	Gen_CLAMPOUT2( _stype_, UNITE( _vtype_, 4 ))
+	
+Gen_CLAMPOUT( float, float_vec_t )
 
-ND_ float3  ClampOut (const float3 v, const float minVal, const float maxVal) {
-	return float3( ClampOut( v.x, minVal, maxVal ),
-				   ClampOut( v.y, minVal, maxVal ),
-				   ClampOut( v.z, minVal, maxVal ));
-}
+#if AE_ENABLE_HALF_TYPE
+	Gen_CLAMPOUT( half, half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	Gen_CLAMPOUT( double, double_vec_t )
+#endif
 
-ND_ float4  ClampOut (const float4 v, const float minVal, const float maxVal) {
-	return float4( ClampOut( v.x, minVal, maxVal ),
-				   ClampOut( v.y, minVal, maxVal ),
-				   ClampOut( v.z, minVal, maxVal ),
-				   ClampOut( v.w, minVal, maxVal ));
-}
+#undef Gen_CLAMPOUT1
+#undef Gen_CLAMPOUT
 
-ND_ int2  ClampOut (const int2 v, const int minVal, const int maxVal) {
-	return int2( ClampOut( v.x, minVal, maxVal ),
-				 ClampOut( v.y, minVal, maxVal ));
-}
+/*
+=================================================
+	ClampOut (int)
+=================================================
+*/
+#define Gen_CLAMPOUT1( _type_ )																	\
+	ND_ _type_  ClampOut (const _type_ x, const _type_ minVal, const _type_ maxVal)				\
+	{																							\
+		_type_	mid = (minVal + _type_(1)) / _type_(2) + (maxVal + _type_(1)) / _type_(2);		\
+		return x < mid ? Min( x, minVal ) : Max( x, maxVal );									\
+	}
+#define Gen_CLAMPOUT( _stype_, _vtype_ )														\
+	Gen_CLAMPOUT1( _stype_ )																	\
+	ND_ _vtype_##2  ClampOut (const _vtype_##2 v, const _stype_ minVal, const _stype_ maxVal) {	\
+		return _vtype_##2(	ClampOut( v.x, minVal, maxVal ),									\
+							ClampOut( v.y, minVal, maxVal ));									\
+	}																							\
+	ND_ _vtype_##3  ClampOut (const _vtype_##3 v, const _stype_ minVal, const _stype_ maxVal) {	\
+		return _vtype_##3(	ClampOut( v.x, minVal, maxVal ),									\
+							ClampOut( v.y, minVal, maxVal ),									\
+							ClampOut( v.z, minVal, maxVal ));									\
+	}																							\
+	ND_ _vtype_##4  ClampOut (const _vtype_##4 v, const _stype_ minVal, const _stype_ maxVal) {	\
+		return _vtype_##4(	ClampOut( v.x, minVal, maxVal ),									\
+							ClampOut( v.y, minVal, maxVal ),									\
+							ClampOut( v.z, minVal, maxVal ),									\
+							ClampOut( v.w, minVal, maxVal ));									\
+	}
+	
+Gen_CLAMPOUT( int,	int_vec_t )
+Gen_CLAMPOUT( uint,	uint_vec_t )
 
-ND_ int3  ClampOut (const int3 v, const int minVal, const int maxVal) {
-	return int3( ClampOut( v.x, minVal, maxVal ),
-				 ClampOut( v.y, minVal, maxVal ),
-				 ClampOut( v.z, minVal, maxVal ));
-}
+#if AE_ENABLE_BYTE_TYPE
+	Gen_CLAMPOUT( sbyte,	sbyte_vec_t )
+	Gen_CLAMPOUT( ubyte,	ubyte_vec_t )
+#endif
+#if AE_ENABLE_SHORT_TYPE
+	Gen_CLAMPOUT( sshort,	sshort_vec_t )
+	Gen_CLAMPOUT( ushort,	ushort_vec_t )
+#endif
+#if AE_ENABLE_LONG_TYPE
+	Gen_CLAMPOUT( slong,	slong_vec_t )
+	Gen_CLAMPOUT( ulong,	ulong_vec_t )
+#endif
+	
+#undef Gen_CLAMPOUT1
+#undef Gen_CLAMPOUT
 
-ND_ int4  ClampOut (const int4 v, const int minVal, const int maxVal) {
-	return int4( ClampOut( v.x, minVal, maxVal ),
-				 ClampOut( v.y, minVal, maxVal ),
-				 ClampOut( v.z, minVal, maxVal ),
-				 ClampOut( v.w, minVal, maxVal ));
-}
+/*
+=================================================
+	Wrap (float)
+=================================================
+*/
+#define Gen_WRAP1( _stype_, _vtype_ )												\
+	ND_ _vtype_  Wrap (const _vtype_ x, const _vtype_ minVal, const _vtype_ maxVal)	\
+	{																				\
+		_vtype_  size = maxVal - minVal;											\
+		_vtype_  res  = minVal + Mod( x - minVal, size );							\
+		return res + size * LessFp( res, minVal );									\
+	}
+#define Gen_WRAP2( _stype_, _vtype_ )												\
+	Gen_WRAP1( _stype_, _vtype_ )													\
+	ND_ _vtype_  Wrap (const _vtype_ x, const _stype_ minVal, const _stype_ maxVal){\
+		return Wrap( x, _vtype_(minVal), _vtype_(maxVal) );							\
+	}
 
+#define Gen_WRAP( _stype_, _vtype_ )\
+	Gen_WRAP1( _stype_, _stype_ )\
+	Gen_WRAP2( _stype_, UNITE( _vtype_, 2 ))\
+	Gen_WRAP2( _stype_, UNITE( _vtype_, 3 ))\
+	Gen_WRAP2( _stype_, UNITE( _vtype_, 4 ))
 
-ND_ float  Wrap (const float x, const float minVal, const float maxVal)
-{
-	if ( maxVal < minVal ) return minVal;	// TODO: branchless
-	float size = maxVal - minVal;
-	float res = minVal + Mod( x - minVal, size );
-	if ( res < minVal ) return res + size;
-	return res;
-}
+Gen_WRAP( float, float_vec_t )
 
-ND_ int  Wrap (const int x, const int minVal, const int maxVal)
-{
-	if ( maxVal < minVal ) return minVal;	// TODO: branchless
-	int size = maxVal+1 - minVal;
-	int res = minVal + ((x - minVal) % size);
-	if ( res < minVal ) return res + size;
-	return res;
-}
+#if AE_ENABLE_HALF_TYPE
+	Gen_WRAP( half, half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	Gen_WRAP( double, double_vec_t )
+#endif
+	
+#undef Gen_WRAP1
+#undef Gen_WRAP
 
-ND_ float2  Wrap (const float2 v, const float minVal, const float maxVal) {
-	return float2( Wrap( v.x, minVal, maxVal ),
-				   Wrap( v.y, minVal, maxVal ));
-}
+/*
+=================================================
+	Wrap (int)
+=================================================
+*/
+#define Gen_WRAP1( _type_ )														\
+	ND_ _type_  Wrap (const _type_ x, const _type_ minVal, const _type_ maxVal)	\
+	{																			\
+		_type_  size = maxVal + _type_(1) - minVal;								\
+		_type_  res  = minVal + ((x - minVal) % size);							\
+		if ( res < minVal ) res += size;										\
+		return res;																\
+	}
+#define Gen_WRAP( _stype_, _vtype_ )																\
+	Gen_WRAP1( _stype_ )																			\
+	ND_ _vtype_##2  Wrap (const _vtype_##2 v, const _stype_ minVal, const _stype_ maxVal) {			\
+		return _vtype_##2(	Wrap( v.x, minVal, maxVal ),											\
+							Wrap( v.y, minVal, maxVal ));											\
+	}																								\
+	ND_ _vtype_##3  Wrap (const _vtype_##3 v, const _stype_ minVal, const _stype_ maxVal) {			\
+		return _vtype_##3(	Wrap( v.x, minVal, maxVal ),											\
+							Wrap( v.y, minVal, maxVal ),											\
+							Wrap( v.z, minVal, maxVal ));											\
+	}																								\
+	ND_ _vtype_##4  Wrap (const _vtype_##4 v, const _stype_ minVal, const _stype_ maxVal) {			\
+		return _vtype_##4(	Wrap( v.x, minVal, maxVal ),											\
+							Wrap( v.y, minVal, maxVal ),											\
+							Wrap( v.z, minVal, maxVal ),											\
+							Wrap( v.w, minVal, maxVal ));											\
+	}																								\
+	ND_ _vtype_##2  Wrap (const _vtype_##2 v, const _vtype_##2 minVal, const _vtype_##2 maxVal) {	\
+		return _vtype_##2(	Wrap( v.x, minVal.x, maxVal.x ),										\
+							Wrap( v.y, minVal.y, maxVal.y ));										\
+	}																								\
+	ND_ _vtype_##3  Wrap (const _vtype_##3 v, const _vtype_##3 minVal, const _vtype_##3 maxVal) {	\
+		return _vtype_##3(	Wrap( v.x, minVal.x, maxVal.x ),										\
+							Wrap( v.y, minVal.y, maxVal.y ),										\
+							Wrap( v.z, minVal.z, maxVal.z ));										\
+	}																								\
+	ND_ _vtype_##4  Wrap (const _vtype_##4 v, const _vtype_##4 minVal, const _vtype_##4 maxVal) {	\
+		return _vtype_##4(	Wrap( v.x, minVal.x, maxVal.x ),										\
+							Wrap( v.y, minVal.y, maxVal.y ),										\
+							Wrap( v.z, minVal.z, maxVal.z ),										\
+							Wrap( v.w, minVal.w, maxVal.w ));										\
+	}
+	
+Gen_WRAP( int,	int_vec_t )
+Gen_WRAP( uint,	uint_vec_t )
 
-ND_ float3  Wrap (const float3 v, const float minVal, const float maxVal) {
-	return float3( Wrap( v.x, minVal, maxVal ),
-				   Wrap( v.y, minVal, maxVal ),
-				   Wrap( v.z, minVal, maxVal ));
-}
+#if AE_ENABLE_BYTE_TYPE
+	Gen_WRAP( sbyte,	sbyte_vec_t )
+	Gen_WRAP( ubyte,	ubyte_vec_t )
+#endif
+#if AE_ENABLE_SHORT_TYPE
+	Gen_WRAP( sshort,	sshort_vec_t )
+	Gen_WRAP( ushort,	ushort_vec_t )
+#endif
+#if AE_ENABLE_LONG_TYPE
+	Gen_WRAP( slong,	slong_vec_t )
+	Gen_WRAP( ulong,	ulong_vec_t )
+#endif
+	
+#undef Gen_WRAP1
+#undef Gen_WRAP
 
-ND_ float4  Wrap (const float4 v, const float minVal, const float maxVal) {
-	return float4( Wrap( v.x, minVal, maxVal ),
-				   Wrap( v.y, minVal, maxVal ),
-				   Wrap( v.z, minVal, maxVal ),
-				   Wrap( v.w, minVal, maxVal ));
-}
+/*
+=================================================
+	MirroredWrap (float)
+=================================================
+*/
+#define Gen_MIRWRAP1( _stype_, _vtype_ )													\
+	ND_ _vtype_  MirroredWrap (const _vtype_ x, const _vtype_ minVal, const _vtype_ maxVal)	\
+	{																						\
+		_vtype_  size = (maxVal - minVal) * _stype_(2.0);									\
+		_vtype_  res  = Fract( (x - minVal) / size );										\
+		return Min( res, _stype_(1.0) - res ) * size + minVal;								\
+	}
+#define Gen_MIRWRAP2( _stype_, _vtype_ )													\
+	Gen_MIRWRAP1( _stype_, _vtype_ )														\
+	ND_ _vtype_  MirroredWrap (const _vtype_ x, const _stype_ minVal, const _stype_ maxVal){\
+		return MirroredWrap( x, _vtype_(minVal), _vtype_(maxVal) );							\
+	}
 
-ND_ float2 Wrap (const float2 v, const float2 minVal, const float2 maxVal) {
-	return float2( Wrap( v.x, minVal.x, maxVal.y ),
-				   Wrap( v.y, minVal.x, maxVal.y ));
-}
+#define Gen_MIRWRAP( _stype_, _vtype_ )\
+	Gen_MIRWRAP1( _stype_, _stype_ )\
+	Gen_MIRWRAP2( _stype_, UNITE( _vtype_, 2 ))\
+	Gen_MIRWRAP2( _stype_, UNITE( _vtype_, 3 ))\
+	Gen_MIRWRAP2( _stype_, UNITE( _vtype_, 4 ))
 
-ND_ float3 Wrap (const float3 v, const float3 minVal, const float3 maxVal) {
-	return float3( Wrap( v.x, minVal.x, maxVal.x ),
-				   Wrap( v.y, minVal.y, maxVal.y ),
-				   Wrap( v.z, minVal.z, maxVal.z ));
-}
+Gen_MIRWRAP( float, float_vec_t )
 
-ND_ float4 Wrap (const float4 v, const float4 minVal, const float4 maxVal) {
-	return float4( Wrap( v.x, minVal.x, maxVal.x ),
-				   Wrap( v.y, minVal.y, maxVal.y ),
-				   Wrap( v.z, minVal.z, maxVal.z ),
-				   Wrap( v.w, minVal.w, maxVal.w ));
-}
+#if AE_ENABLE_HALF_TYPE
+	Gen_MIRWRAP( half, half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	Gen_MIRWRAP( double, double_vec_t )
+#endif
+	
+#undef Gen_MIRWRAP1
+#undef Gen_MIRWRAP
 
-ND_ int2 Wrap (const int2 v, const float minVal, const float maxVal) {
-	return int2( Wrap( v.x, minVal, maxVal ),
-				 Wrap( v.y, minVal, maxVal ));
-}
+/*
+=================================================
+	MirroredWrap (int)
+=================================================
+*/
+#define Gen_MIRWRAP1( _stype_, _vtype_ )													\
+	ND_ _vtype_  MirroredWrap (const _vtype_ x, const _vtype_ minVal, const _vtype_ maxVal)	\
+	{																						\
+		_vtype_  size = (maxVal - minVal) * _stype_(2);										\
+		_vtype_  res  = Abs( x - minVal ) % size;											\
+		return Min( res, size - res ) + minVal;												\
+	}
+#define Gen_MIRWRAP2( _stype_, _vtype_ )													\
+	Gen_MIRWRAP1( _stype_, _vtype_ )														\
+	ND_ _vtype_  MirroredWrap (const _vtype_ x, const _stype_ minVal, const _stype_ maxVal){\
+		return MirroredWrap( x, _vtype_(minVal), _vtype_(maxVal) );							\
+	}
 
-ND_ int3  Wrap (const int3 v, const int minVal, const int maxVal) {
-	return int3( Wrap( v.x, minVal, maxVal ),
-				 Wrap( v.y, minVal, maxVal ),
-				 Wrap( v.z, minVal, maxVal ));
-}
+#define Gen_MIRWRAP( _stype_, _vtype_ )\
+	Gen_MIRWRAP1( _stype_, _stype_ )\
+	Gen_MIRWRAP2( _stype_, UNITE( _vtype_, 2 ))\
+	Gen_MIRWRAP2( _stype_, UNITE( _vtype_, 3 ))\
+	Gen_MIRWRAP2( _stype_, UNITE( _vtype_, 4 ))
 
-ND_ int4  Wrap (const int4 v, const int minVal, const int maxVal) {
-	return int4( Wrap( v.x, minVal, maxVal ),
-				 Wrap( v.y, minVal, maxVal ),
-				 Wrap( v.z, minVal, maxVal ),
-				 Wrap( v.w, minVal, maxVal ));
-}
+Gen_MIRWRAP( int,	int_vec_t )
 
+#if AE_ENABLE_BYTE_TYPE
+	Gen_MIRWRAP( sbyte,	sbyte_vec_t )
+#endif
+#if AE_ENABLE_SHORT_TYPE
+	Gen_MIRWRAP( sshort, sshort_vec_t )
+#endif
+#if AE_ENABLE_LONG_TYPE
+	Gen_MIRWRAP( slong,	slong_vec_t )
+#endif
+	
+#undef Gen_MIRWRAP1
+#undef Gen_MIRWRAP
 
 //-----------------------------------------------------------------------------
 // bit operations
@@ -1029,10 +1170,6 @@ ND_ uint  ExtractBitIndex (inout uint bits)
 	return uint(IntLog2( ExtractBit( INOUT bits )));
 }
 
-
-//-----------------------------------------------------------------------------
-// interpolation
-
 /*
 =================================================
 	BaryLerp
@@ -1041,15 +1178,16 @@ ND_ uint  ExtractBitIndex (inout uint bits)
 	T  BaryLerp (T v0, T v1, T v2, Vec2 barycentrics)  -- barycentric interpolation with much better precision
 =================================================
 */
+// TODO: use Dot ?
 #define Gen_BARYLERP1( _type_, _bary3_, _bary2_ )\
 	ND_ _type_  BaryLerp (const _type_ v0, const _type_ v1, const _type_ v2, const _bary3_ barycentrics)  { return v0 * barycentrics.x + v1 * barycentrics.y + v2 * barycentrics.z; }\
 	ND_ _type_  BaryLerp (const _type_ v0, const _type_ v1, const _type_ v2, const _bary2_ barycentrics)  { return v0 + FusedMulAdd( _type_(barycentrics.x), (v1 - v0), barycentrics.y * (v2 - v0) ); }
 
 #define Gen_BARYLERP( _stype_, _vtype_ )\
-	Gen_BARYLERP1( _stype_,    _vtype_##3, _vtype_##2 )\
-	Gen_BARYLERP1( _vtype_##2, _vtype_##3, _vtype_##2 )\
-	Gen_BARYLERP1( _vtype_##3, _vtype_##3, _vtype_##2 )\
-	Gen_BARYLERP1( _vtype_##4, _vtype_##3, _vtype_##2 )
+	Gen_BARYLERP1( _stype_,				UNITE( _vtype_, 3 ), UNITE( _vtype_, 2 ))\
+	Gen_BARYLERP1( UNITE( _vtype_, 2 ), UNITE( _vtype_, 3 ), UNITE( _vtype_, 2 ))\
+	Gen_BARYLERP1( UNITE( _vtype_, 3 ), UNITE( _vtype_, 3 ), UNITE( _vtype_, 2 ))\
+	Gen_BARYLERP1( UNITE( _vtype_, 4 ), UNITE( _vtype_, 3 ), UNITE( _vtype_, 2 ))
 
 Gen_BARYLERP( float, float_vec_t )
 
@@ -1076,10 +1214,10 @@ Gen_BARYLERP( float, float_vec_t )
 	ND_ _type_  BiLerp (const _type_ x1y1, const _type_ x2y1, const _type_ x1y2, const _type_ x2y2, const _factor_ factor)  { return Lerp( Lerp( x1y1, x2y1, factor.x ), Lerp( x1y2, x2y2, factor.x ), factor.y ); }
 
 #define Gen_BILERP( _stype_, _vtype_ )\
-	Gen_BILERP1( _stype_,    _vtype_##2 )\
-	Gen_BILERP1( _vtype_##2, _vtype_##2 )\
-	Gen_BILERP1( _vtype_##3, _vtype_##2 )\
-	Gen_BILERP1( _vtype_##4, _vtype_##2 )
+	Gen_BILERP1( _stype_,				UNITE( _vtype_, 2 ))\
+	Gen_BILERP1( UNITE( _vtype_, 2 ),	UNITE( _vtype_, 2 ))\
+	Gen_BILERP1( UNITE( _vtype_, 3 ),	UNITE( _vtype_, 2 ))\
+	Gen_BILERP1( UNITE( _vtype_, 4 ),	UNITE( _vtype_, 2 ))
 
 Gen_BILERP( float, float_vec_t )
 
@@ -1095,53 +1233,51 @@ Gen_BILERP( float, float_vec_t )
 
 /*
 =================================================
-	Remap / RemapClamp / RemapWrap
+	Remap
 ----
 	T  Remap (Vec2 src, Vec2 dst, T v)
-	T  RemapClamp (Vec2 src, Vec2 dst, T v)
-	T  RemapWrap (Vec2 src, Vec2 dst, T v)
+	T  Remap (Vec2 dst, T v)
 ----
 	Map 'v' in 'src' interval to 'dst' interval.
-	Map 'v' in 'src' interval to 'dst' interval and clamp.
+	Map 'v' in [0,1] interval to 'dst' interval.
 	Interval is a scalar range which specified for all components.
 =================================================
 */
-ND_ float   Remap (const float2 src, const float2 dst, const float  v)  { return (v - src.x) / (src.y - src.x) * (dst.y - dst.x) + dst.x; }
-ND_ float2  Remap (const float2 src, const float2 dst, const float2 v)  { return (v - src.x) / (src.y - src.x) * (dst.y - dst.x) + dst.x; }
-ND_ float3  Remap (const float2 src, const float2 dst, const float3 v)  { return (v - src.x) / (src.y - src.x) * (dst.y - dst.x) + dst.x; }
-ND_ float4  Remap (const float2 src, const float2 dst, const float4 v)  { return (v - src.x) / (src.y - src.x) * (dst.y - dst.x) + dst.x; }
+#define Gen_REMAP1( _type_, _range_ )\
+	ND_ _type_  Remap (const _range_ dst, const _type_ v)						{ return v * (dst.y - dst.x) + dst.x; }\
+	ND_ _type_  Remap (const _range_ src, const _range_ dst, const _type_ v)	{ return Remap( dst, (v - src.x) / (src.y - src.x) ); }
 
-ND_ float   RemapClamp (const float2 src, const float2 dst, const float  v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float2  RemapClamp (const float2 src, const float2 dst, const float2 v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float3  RemapClamp (const float2 src, const float2 dst, const float3 v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float4  RemapClamp (const float2 src, const float2 dst, const float4 v)  { return Clamp( Remap( src, dst, v ), dst.x, dst.y ); }
+#define Gen_REMAP2( _type_ )\
+	ND_ _type_  Remap (const _type_ src0, const _type_ src1, const _type_ dst0, const _type_ dst1, const _type_ v)  { return (v - src0) / (src1 - src0) * (dst1 - dst0) + dst0; }
 
-ND_ float   RemapSmooth (const float2 src, const float2 dst, const float  v)  { return SmoothStep( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float2  RemapSmooth (const float2 src, const float2 dst, const float2 v)  { return SmoothStep( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float3  RemapSmooth (const float2 src, const float2 dst, const float3 v)  { return SmoothStep( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float4  RemapSmooth (const float2 src, const float2 dst, const float4 v)  { return SmoothStep( Remap( src, dst, v ), dst.x, dst.y ); }
+#define Gen_REMAP( _stype_, _vtype_ )\
+	Gen_REMAP1( _stype_,				UNITE( _vtype_, 2 ))\
+	Gen_REMAP1( UNITE( _vtype_, 2 ),	UNITE( _vtype_, 2 ))\
+	Gen_REMAP1( UNITE( _vtype_, 3 ),	UNITE( _vtype_, 2 ))\
+	Gen_REMAP1( UNITE( _vtype_, 4 ),	UNITE( _vtype_, 2 ))\
+	Gen_REMAP2( UNITE( _vtype_, 2 ))\
+	Gen_REMAP2( UNITE( _vtype_, 3 ))\
+	Gen_REMAP2( UNITE( _vtype_, 4 ))
 
-ND_ float   RemapWrap (const float2 src, const float2 dst, const float  v)  { return Wrap( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float2  RemapWrap (const float2 src, const float2 dst, const float2 v)  { return Wrap( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float3  RemapWrap (const float2 src, const float2 dst, const float3 v)  { return Wrap( Remap( src, dst, v ), dst.x, dst.y ); }
-ND_ float4  RemapWrap (const float2 src, const float2 dst, const float4 v)  { return Wrap( Remap( src, dst, v ), dst.x, dst.y ); }
+Gen_REMAP( float, float_vec_t )
 
-/*
-=================================================
-	Remap / RemapClamp
-----
-	Map 'v' in 'src' interval to 'dst' interval.
-	Map 'v' in 'src' interval to 'dst' interval and clamp.
-	Interval is specified per-component.
-=================================================
-*/
-ND_ float2  Remap (const float2 src0, const float2 src1, const float2 dst0, const float2 dst1, const float2 v)  { return (v - src0) / (src1 - src0) * (dst1 - dst0) + dst0; }
-ND_ float3  Remap (const float3 src0, const float3 src1, const float3 dst0, const float3 dst1, const float3 v)  { return (v - src0) / (src1 - src0) * (dst1 - dst0) + dst0; }
-ND_ float4  Remap (const float4 src0, const float4 src1, const float4 dst0, const float4 dst1, const float4 v)  { return (v - src0) / (src1 - src0) * (dst1 - dst0) + dst0; }
+#if AE_ENABLE_HALF_TYPE
+	Gen_REMAP( half, half_vec_t )
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	Gen_REMAP( double, double_vec_t )
+#endif
+	
+#undef Gen_REMAP2
+#undef Gen_REMAP1
+#undef Gen_REMAP
 
-ND_ float2  RemapClamp (const float2 src0, const float2 src1, const float2 dst0, const float2 dst1, const float2 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
-ND_ float3  RemapClamp (const float3 src0, const float3 src1, const float3 dst0, const float3 dst1, const float3 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
-ND_ float4  RemapClamp (const float4 src0, const float4 src1, const float4 dst0, const float4 dst1, const float4 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
+#define RemapA( _fn_, _src_, _dst_, _val_ )							(_fn_( Remap( (_src_), (_dst_), (_val_) ), (_dst_).x, (_dst_).y ))
+#define RemapB( _fn_, _src0_, _src1_, _dst0_, _dst1_, _val_ )		(_fn_( Remap( (_src0_), (_src1_), (_dst0_), (_dst1_), (_val_) ), (_dst0_), (_dst1_) ))
+
+#define RemapWrap( _src_, _dst_, _val_ )		RemapA( Wrap, (_src_), (_dst_), (_val_) )
+#define RemapClamp( _src_, _dst_, _val_ )		RemapA( Clamp, (_src_), (_dst_), (_val_) )
+#define RemapSmooth( _src_, _dst_, _val_ )		RemapA( SmoothStep, (_src_), (_dst_), (_val_) )
 
 /*
 =================================================
@@ -1156,10 +1292,10 @@ ND_ float2  UIndexToUNormFloor (const int2 index, const int2 count)			{ return f
 ND_ float3  UIndexToUNormFloor (const int3 index, const int3 count)			{ return float3(index) / float3(count - 1); }
 ND_ float4  UIndexToUNormFloor (const int4 index, const int4 count)			{ return float4(index) / float4(count - 1); }
 
-ND_ float   UIndexToUNormFloor (const uint  index, const uint  count)		{ return float( index) / float( count - 1); }
-ND_ float2  UIndexToUNormFloor (const uint2 index, const uint2 count)		{ return float2(index) / float2(count - 1); }
-ND_ float3  UIndexToUNormFloor (const uint3 index, const uint3 count)		{ return float3(index) / float3(count - 1); }
-ND_ float4  UIndexToUNormFloor (const uint4 index, const uint4 count)		{ return float4(index) / float4(count - 1); }
+ND_ float   UIndexToUNormFloor (const uint  index, const uint  count)		{ return float( index) / float( count - 1u); }
+ND_ float2  UIndexToUNormFloor (const uint2 index, const uint2 count)		{ return float2(index) / float2(count - 1u); }
+ND_ float3  UIndexToUNormFloor (const uint3 index, const uint3 count)		{ return float3(index) / float3(count - 1u); }
+ND_ float4  UIndexToUNormFloor (const uint4 index, const uint4 count)		{ return float4(index) / float4(count - 1u); }
 
 ND_ float   UIndexToUNormFloor (const float  index, const float  count)		{ return index / (count - 1.f); }
 ND_ float2  UIndexToUNormFloor (const float2 index, const float2 count)		{ return index / (count - 1.f); }
@@ -1212,8 +1348,9 @@ ND_ uint3  IndexToVec3 (const uint index, const uint  tile)				{ return IndexToV
 =================================================
 	SLerp / BiSLerp
 ----
-	float3  SLerp (float3 x, float3 y, float factor)
-	float3  BiSLerp (float3 x1y1, float3 x2y1, float3 x1y2, float3 x2y2, float2 factor)
+	T  SLerp (T x, T y, float factor)
+	T  BiSLerp (T x1y1, T x2y1, T x1y2, T x2y2, float2 factor)
+		where 'T' is float2 or float3
 =================================================
 */
 #define Gen_SLERP1( _stype_, _vtype_, _vtype2_ )\
@@ -1237,8 +1374,8 @@ ND_ uint3  IndexToVec3 (const uint index, const uint  tile)				{ return IndexToV
 	}
 
 #define Gen_SLERP( _stype_, _vtype_ )\
-	Gen_SLERP1( _stype_, _vtype_##2, _vtype_##2 )\
-	Gen_SLERP1( _stype_, _vtype_##3, _vtype_##2 )
+	Gen_SLERP1( _stype_, UNITE( _vtype_, 2 ), UNITE( _vtype_, 2 ))\
+	Gen_SLERP1( _stype_, UNITE( _vtype_, 3 ), UNITE( _vtype_, 2 ))
 
 Gen_SLERP( float, float_vec_t )
 
@@ -1295,15 +1432,15 @@ Gen_SLERP( float, float_vec_t )
 	IsZero / IsNotZero / IsNormalized
 =================================================
 */
-ND_ bool   IsZero (const float  x)		{ return Abs(x) <= Epsilon(); }
-ND_ bool2  IsZero (const float2 v)		{ return LessEqual( Abs(v), float2(Epsilon()) ); }
-ND_ bool3  IsZero (const float3 v)		{ return LessEqual( Abs(v), float3(Epsilon()) ); }
-ND_ bool4  IsZero (const float4 v)		{ return LessEqual( Abs(v), float4(Epsilon()) ); }
+ND_ bool   IsZero (const float  x)		{ return Abs(x) <= float_epsilon; }
+ND_ bool2  IsZero (const float2 v)		{ return LessEqual( Abs(v), float2(float_epsilon) ); }
+ND_ bool3  IsZero (const float3 v)		{ return LessEqual( Abs(v), float3(float_epsilon) ); }
+ND_ bool4  IsZero (const float4 v)		{ return LessEqual( Abs(v), float4(float_epsilon) ); }
 
-ND_ bool   IsNotZero (const float  x)	{ return Abs(x) > Epsilon(); }
-ND_ bool2  IsNotZero (const float2 v)	{ return Greater( Abs(v), float2(Epsilon()) ); }
-ND_ bool3  IsNotZero (const float3 v)	{ return Greater( Abs(v), float3(Epsilon()) ); }
-ND_ bool4  IsNotZero (const float4 v)	{ return Greater( Abs(v), float4(Epsilon()) ); }
+ND_ bool   IsNotZero (const float  x)	{ return Abs(x) > float_epsilon; }
+ND_ bool2  IsNotZero (const float2 v)	{ return Greater( Abs(v), float2(float_epsilon) ); }
+ND_ bool3  IsNotZero (const float3 v)	{ return Greater( Abs(v), float3(float_epsilon) ); }
+ND_ bool4  IsNotZero (const float4 v)	{ return Greater( Abs(v), float4(float_epsilon) ); }
 
 #define AllZeros( v )					All( IsZero( v ))
 #define AnyNotZero( v )					Any( IsNotZero( v ))
@@ -1313,24 +1450,24 @@ ND_ bool4  IsNotZero (const float4 v)	{ return Greater( Abs(v), float4(Epsilon()
 
 ND_ bool  IsNormalized (const float2 v, const float err)	{ float d = Dot( v, v ) - 1.f;  return Abs(d) < err; }
 ND_ bool  IsNormalized (const float3 v, const float err)	{ float d = Dot( v, v ) - 1.f;  return Abs(d) < err; }
-ND_ bool  IsNormalized (const float2 v)						{ return IsNormalized( v, Epsilon() ); }
-ND_ bool  IsNormalized (const float3 v)						{ return IsNormalized( v, Epsilon() ); }
+ND_ bool  IsNormalized (const float2 v)						{ return IsNormalized( v, float_epsilon ); }
+ND_ bool  IsNormalized (const float3 v)						{ return IsNormalized( v, float_epsilon ); }
 
 /*
 =================================================
 	IsUNorm / IsSNorm
 =================================================
 */
-#define Gen_IS_UNORM_SNORM( _stype_, _vtype_ )																									\
-	ND_ bool  IsUNorm (const _stype_ x)			{ return All2( x >= _stype_(0.0), x <= _stype_(1.0) ); }										\
-	ND_ bool  IsUNorm (const _vtype_##2 x)		{ return All2( AllGreaterEqual( x, _vtype_##2(0.0) ), AllLessEqual( x, _vtype_##2(1.0) )); }	\
-	ND_ bool  IsUNorm (const _vtype_##3 x)		{ return All2( AllGreaterEqual( x, _vtype_##3(0.0) ), AllLessEqual( x, _vtype_##3(1.0) )); }	\
-	ND_ bool  IsUNorm (const _vtype_##4 x)		{ return All2( AllGreaterEqual( x, _vtype_##4(0.0) ), AllLessEqual( x, _vtype_##4(1.0) )); }	\
-																																				\
-	ND_ bool  IsSNorm (const _stype_ x)			{ return Abs(x) <= 1.0; }																		\
-	ND_ bool  IsSNorm (const _vtype_##2 x)		{ return AllLessEqual( Abs(x), _vtype_##2(1.0) ); }												\
-	ND_ bool  IsSNorm (const _vtype_##3 x)		{ return AllLessEqual( Abs(x), _vtype_##3(1.0) ); }												\
-	ND_ bool  IsSNorm (const _vtype_##4 x)		{ return AllLessEqual( Abs(x), _vtype_##4(1.0) ); }
+#define Gen_IS_UNORM_SNORM( _stype_, _vtype_ )																													\
+	ND_ bool  IsUNorm (const _stype_			x)		{ return All2( x >= _stype_(0.0), x <= _stype_(1.0) ); }												\
+	ND_ bool  IsUNorm (const UNITE(_vtype_,2)	x)		{ return All2( AllGreaterEqual( x, UNITE(_vtype_,2)(0.0) ), AllLessEqual( x, UNITE(_vtype_,2)(1.0) )); }\
+	ND_ bool  IsUNorm (const UNITE(_vtype_,3)	x)		{ return All2( AllGreaterEqual( x, UNITE(_vtype_,3)(0.0) ), AllLessEqual( x, UNITE(_vtype_,3)(1.0) )); }\
+	ND_ bool  IsUNorm (const UNITE(_vtype_,4)	x)		{ return All2( AllGreaterEqual( x, UNITE(_vtype_,4)(0.0) ), AllLessEqual( x, UNITE(_vtype_,4)(1.0) )); }\
+																																								\
+	ND_ bool  IsSNorm (const _stype_			x)		{ return Abs(x) <= 1.0; }																				\
+	ND_ bool  IsSNorm (const UNITE(_vtype_,2)	x)		{ return AllLessEqual( Abs(x), UNITE(_vtype_,2)(1.0) ); }												\
+	ND_ bool  IsSNorm (const UNITE(_vtype_,3)	x)		{ return AllLessEqual( Abs(x), UNITE(_vtype_,3)(1.0) ); }												\
+	ND_ bool  IsSNorm (const UNITE(_vtype_,4)	x)		{ return AllLessEqual( Abs(x), UNITE(_vtype_,4)(1.0) ); }
 
 Gen_IS_UNORM_SNORM( float,	float_vec_t )
 
@@ -1353,11 +1490,11 @@ Gen_IS_UNORM_SNORM( float,	float_vec_t )
 	per component comparator
 =================================================
 */
-#define Gen_FPEQUAL( _stype_, _vtype_ )																											\
-	ND_ bool   FpEqual (const _stype_    lhs, const _stype_    rhs, const _stype_ err)	{ return Abs( lhs - rhs ) < err; }						\
-	ND_ bool2  FpEqual (const _vtype_##2 lhs, const _vtype_##2 rhs, const _stype_ err)	{ return Less( Abs( lhs - rhs ), _vtype_##2(err) ); }	\
-	ND_ bool3  FpEqual (const _vtype_##3 lhs, const _vtype_##3 rhs, const _stype_ err)	{ return Less( Abs( lhs - rhs ), _vtype_##3(err) ); }	\
-	ND_ bool4  FpEqual (const _vtype_##4 lhs, const _vtype_##4 rhs, const _stype_ err)	{ return Less( Abs( lhs - rhs ), _vtype_##4(err) ); }
+#define Gen_FPEQUAL( _stype_, _vtype_ )																															\
+	ND_ bool   FpEqual (const _stype_          lhs, const _stype_          rhs, const _stype_ err)	{ return Abs( lhs - rhs ) < err; }							\
+	ND_ bool2  FpEqual (const UNITE(_vtype_,2) lhs, const UNITE(_vtype_,2) rhs, const _stype_ err)	{ return Less( Abs( lhs - rhs ), UNITE(_vtype_,2)(err) ); }	\
+	ND_ bool3  FpEqual (const UNITE(_vtype_,3) lhs, const UNITE(_vtype_,3) rhs, const _stype_ err)	{ return Less( Abs( lhs - rhs ), UNITE(_vtype_,3)(err) ); }	\
+	ND_ bool4  FpEqual (const UNITE(_vtype_,4) lhs, const UNITE(_vtype_,4) rhs, const _stype_ err)	{ return Less( Abs( lhs - rhs ), UNITE(_vtype_,4)(err) ); }
 
 Gen_FPEQUAL( float,	float_vec_t )
 
@@ -1403,11 +1540,12 @@ Gen_SWAP( float )
 		to get the same order as in FS.
 =================================================
 */
-#if defined(AE_shader_subgroup_quad) and defined(AE_shader_subgroup_basic)
+#if defined(AE_shader_subgroup_quad) and defined(AE_shader_subgroup_basic) and defined(AE_subgroupBroadcastDynamicId)
 #	define QuadGroup_dFdxFine( _a_ )		(gl.quadGroup.Broadcast( (_a_), (gl.subgroup.Index&2)|1 ) - gl.quadGroup.Broadcast( (_a_), gl.subgroup.Index&2 ))
 #	define QuadGroup_dFdyFine( _a_ )		(gl.quadGroup.Broadcast( (_a_), (gl.subgroup.Index&1)|2 ) - gl.quadGroup.Broadcast( (_a_), gl.subgroup.Index&1 ))
 #	define QuadGroup_fwidthFine( _a_ )		Abs(QuadGroup_dFdxFine(_a_)) + Abs(QuadGroup_dFdyFine(_a_))
-
+#endif
+#if defined(AE_shader_subgroup_quad) and defined(AE_shader_subgroup_basic)
 #	define QuadGroup_dFdxCoarse( _a_ )		(gl.quadGroup.Broadcast( (_a_), 1 ) - gl.quadGroup.Broadcast( (_a_), 0 ))
 #	define QuadGroup_dFdyCoarse( _a_ )		(gl.quadGroup.Broadcast( (_a_), 2 ) - gl.quadGroup.Broadcast( (_a_), 0 ))
 #	define QuadGroup_fwidthCoarse( _a_ )	Abs(QuadGroup_dFdxCoarse(_a_)) + Abs(QuadGroup_dFdyCoarse(_a_))
@@ -1422,6 +1560,3 @@ void dbg_EnableTraceRecording (bool b) {}
 void dbg_PauseTraceRecording (bool b) {}
 void dbg_EnableProfiling (bool b) {}
 
-
-// TODO:
-// Exponentiation  https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#exponentiation-with-small-fractional-arguments

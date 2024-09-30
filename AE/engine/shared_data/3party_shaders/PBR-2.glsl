@@ -12,6 +12,8 @@
 	based on code from PBRTv3 (BSD2 license) https://pbr-book.org/
 =================================================
 */
+#ifdef AE_LICENSE_BSD2
+
 float  FresnelDielectric (const float cosThetaI, const float eta)
 {
 	float	sin_theta_t_sq	= (eta * eta) * (1.0f - cosThetaI * cosThetaI);	// Snell law
@@ -28,6 +30,8 @@ float  FresnelDielectric (const float cosThetaI, const float eta)
 				0.5f * (Rp * Rp + Rs * Rs);
 }
 
+#endif
+
 /*
 =================================================
 	FresnelDielectric
@@ -41,6 +45,8 @@ float  FresnelDielectric (const float cosThetaI, const float eta)
 	from PBRTv3 (BSD2 license) https://pbr-book.org/
 =================================================
 */
+#ifdef AE_LICENSE_BSD2
+
 float  FresnelDielectric (float cosThetaI, float etaI, float etaT)
 {
 	if ( cosThetaI <= 0.0f )
@@ -50,6 +56,8 @@ float  FresnelDielectric (float cosThetaI, float etaI, float etaT)
 	}
 	return FresnelDielectric( Saturate( cosThetaI ), etaI / etaT );
 }
+
+#endif
 
 /*
 =================================================
@@ -64,6 +72,8 @@ float  FresnelDielectric (float cosThetaI, float etaI, float etaT)
 	from https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
 =================================================
 */
+#ifdef AE_LICENSE_BSD2
+
 float  FresnelDielectricConductor (float cosThetaI, const float etaI, const float etaT, const float k)
 {
 			cosThetaI		= Clamp( cosThetaI, -1.f, 1.f );
@@ -89,6 +99,8 @@ float  FresnelDielectricConductor (float cosThetaI, const float etaI, const floa
 	return 0.5f * (Rp + Rs);
 }
 
+#endif
+
 /*
 =================================================
 	FresnelAirConductorApprox
@@ -101,6 +113,8 @@ float  FresnelDielectricConductor (float cosThetaI, const float etaI, const floa
 	from https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
 =================================================
 */
+#ifdef AE_ENABLE_UNKNOWN_LICENSE
+
 float  FresnelDielectricConductorApprox (float cosThetaI, const float etaI, const float etaT, const float k)
 {
 			cosThetaI		= Clamp( cosThetaI, -1.f, 1.f );
@@ -117,3 +131,5 @@ float  FresnelDielectricConductorApprox (float cosThetaI, const float etaI, cons
 
 	return 0.5f * (Rp + Rs);
 }
+
+#endif

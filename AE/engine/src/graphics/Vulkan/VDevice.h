@@ -199,7 +199,7 @@ namespace AE::Graphics
 			InstanceCreateInfo () __NE___ {}
 		};
 
-		using DisableFeaturesFn_t	= void (*) (void* userData, VProperties &);
+		using DisableFeaturesFn_t	= void (*) (void* userData, INOUT VProperties &);
 
 		struct DeviceCreateInfo
 		{
@@ -265,8 +265,10 @@ namespace AE::Graphics
 
 	// variable
 	private:
+	  #ifndef AE_CFG_RELEASE
 		Synchronized< SharedMutex,
 			DbgReportData >			_dbgReport;
+	  #endif
 
 		bool						_enableInfoLog			= false;
 		bool						_isCopy					= false;
@@ -292,7 +294,7 @@ namespace AE::Graphics
 			bool  DestroyInstance ()																__NE___;
 
 			bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT	severity,
-									   DebugReport_t &&						callback = Default)		__NE___;
+									   DebugReport_t						callback = Default)		__NE___;
 			void  DestroyDebugCallback ()															__NE___;
 		ND_ bool  IsEnabledDebugCallback ()															C_NE___;
 
@@ -351,6 +353,8 @@ namespace AE::Graphics
 
 		void  _InitQueues (ArrayView<VkQueueFamilyProperties> props, INOUT Queues_t &queues, INOUT QueueTypes_t &qtypes)C_NE___;
 		void  _ValidateQueueStages (INOUT Queues_t &queues)																C_NE___;
+
+		void  _SetupFeatures (INOUT VProperties &)																		C_NE___;
 
 		ND_ bool  _InitFeaturesAndPropertiesByFeatureSet (const FeatureSet &fs)											__NE___;
 

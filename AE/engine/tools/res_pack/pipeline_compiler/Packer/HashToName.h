@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "serializing/ObjectFactory.h"
+#include "serializing/Public/ObjectFactory.h"
 #include "base/Algorithms/StringUtils.h"
 
 namespace AE::Base

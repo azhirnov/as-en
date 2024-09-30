@@ -3,7 +3,7 @@
 #pragma once
 
 #include "profiler/Impl/ProfilerUtils.h"
-#include "profiler/Utils/PowerVRProfiler.h"
+#include "profiler/Profilers/PowerVRProfiler.h"
 
 namespace AE::Profiler
 {

@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include "profiler/Utils/ArmProfiler.h"
-#include "profiler/Utils/MaliProfiler.h"
-#include "profiler/Utils/NVidiaProfiler.h"
-#include "profiler/Utils/AdrenoProfiler.h"
-#include "profiler/Utils/PowerVRProfiler.h"
+#include "profiler/Profilers/ArmProfiler.h"
+#include "profiler/Profilers/MaliProfiler.h"
+#include "profiler/Profilers/NVidiaProfiler.h"
+#include "profiler/Profilers/AdrenoProfiler.h"
+#include "profiler/Profilers/PowerVRProfiler.h"
+#include "profiler/Profilers/GeneralProfiler.h"
 #include "pch/Networking.h"
 
 namespace AE::Networking
@@ -23,7 +24,7 @@ namespace AE::Networking
 
 	DECL_CSMSG( ArmProf_NextSample,  Debug,
 		ubyte		index;
-		ushort		dtInMs;
+		float		invdt;	// seconds
 	);
 
 	DECL_CSMSG( ArmProf_Sample,  Debug,
@@ -37,7 +38,7 @@ namespace AE::Networking
 
 	CSMSG_ENC_DEC( ArmProf_InitReq,			enable, updateInterval );
 	CSMSG_ENC_DEC( ArmProf_InitRes,			ok, enabled );
-	CSMSG_ENC_DEC( ArmProf_NextSample,		index, dtInMs );
+	CSMSG_ENC_DEC( ArmProf_NextSample,		index, invdt );
 	CSMSG_ENC_DEC_EXARRAY( ArmProf_Sample,	count, arr,  AE_ARGS( index, count ));
 	//--------------------------------------------------------
 
@@ -68,7 +69,7 @@ namespace AE::Networking
 
 	DECL_CSMSG( MaliProf_NextSample,  Debug,
 		ubyte		index;
-		ushort		dtInMs;
+		float		invdt;	// seconds
 	);
 
 	DECL_CSMSG( MaliProf_Sample,  Debug,
@@ -82,7 +83,7 @@ namespace AE::Networking
 
 	CSMSG_ENC_DEC( MaliProf_InitReq,		enable, updateInterval );
 	CSMSG_ENC_DEC( MaliProf_InitRes,		ok, enabled, info );
-	CSMSG_ENC_DEC( MaliProf_NextSample,		index, dtInMs );
+	CSMSG_ENC_DEC( MaliProf_NextSample,		index, invdt );
 	CSMSG_ENC_DEC_EXARRAY( MaliProf_Sample,	count, arr,  AE_ARGS( index, count ));
 	//--------------------------------------------------------
 
@@ -112,7 +113,7 @@ namespace AE::Networking
 
 	DECL_CSMSG( PVRProf_NextSample,  Debug,
 		ubyte		index;
-		ushort		dtInMs;
+		float		invdt;	// seconds
 	);
 
 	DECL_CSMSG( PVRProf_Sample,  Debug,
@@ -133,7 +134,7 @@ namespace AE::Networking
 
 	CSMSG_ENC_DEC( PVRProf_InitReq,			enable, updateInterval );
 	CSMSG_ENC_DEC( PVRProf_InitRes,			ok, enabled );
-	CSMSG_ENC_DEC( PVRProf_NextSample,		index, dtInMs );
+	CSMSG_ENC_DEC( PVRProf_NextSample,		index, invdt );
 	CSMSG_ENC_DEC_EXARRAY( PVRProf_Sample,	count, arr,  AE_ARGS( index, count ));
 	CSMSG_ENC_DEC_EXARRAY( PVRProf_Timing,	count, arr,  AE_ARGS( index, count ));
 	//--------------------------------------------------------
@@ -166,7 +167,7 @@ namespace AE::Networking
 
 	DECL_CSMSG( AdrenoProf_NextSample,  Debug,
 		ubyte		index;
-		ushort		dtInMs;
+		float		invdt;	// seconds
 	);
 
 	DECL_CSMSG( AdrenoProf_Sample,  Debug,
@@ -180,7 +181,7 @@ namespace AE::Networking
 
 	CSMSG_ENC_DEC( AdrenoProf_InitReq,			enable, updateInterval );
 	CSMSG_ENC_DEC( AdrenoProf_InitRes,			ok, enabled, info );
-	CSMSG_ENC_DEC( AdrenoProf_NextSample,		index, dtInMs );
+	CSMSG_ENC_DEC( AdrenoProf_NextSample,		index, invdt );
 	CSMSG_ENC_DEC_EXARRAY( AdrenoProf_Sample,	count, arr,  AE_ARGS( index, count ));
 	//--------------------------------------------------------
 
@@ -211,7 +212,7 @@ namespace AE::Networking
 
 	DECL_CSMSG( NVidiaProf_NextSample,  Debug,
 		ubyte		index;
-		ushort		dtInMs;
+		float		invdt;	// seconds
 	);
 
 	DECL_CSMSG( NVidiaProf_Sample,  Debug,
@@ -225,7 +226,7 @@ namespace AE::Networking
 
 	CSMSG_ENC_DEC( NVidiaProf_InitReq,			enable, updateInterval );
 	CSMSG_ENC_DEC( NVidiaProf_InitRes,			ok, enabled );
-	CSMSG_ENC_DEC( NVidiaProf_NextSample,		index, dtInMs );
+	CSMSG_ENC_DEC( NVidiaProf_NextSample,		index, invdt );
 	CSMSG_ENC_DEC_EXARRAY( NVidiaProf_Sample,	count, arr,  AE_ARGS( index, count ));
 	//--------------------------------------------------------
 
@@ -242,13 +243,76 @@ namespace AE::Networking
 //=============================================================================
 
 
+
+	DECL_CSMSG( GenProf_InitReq,  Debug,
+		Profiler::GeneralProfiler::ECounterSet	enable;
+		secondsf								updateInterval;
+	);
+
+	DECL_CSMSG( GenProf_InitRes,  Debug,
+		bool									ok;
+		Profiler::GeneralProfiler::ECounterSet	enabled;
+	);
+
+	DECL_CSMSG( GenProf_CpuCluster,  Debug,
+		ubyte		idx;
+		ubyte		length;
+		uint		logicalCores;
+		char		name [1];
+	);
+
+	DECL_CSMSG( GenProf_NextSample,  Debug,
+		ubyte		index;
+		float		invdt;	// seconds
+	);
+
+	DECL_CSMSG( GenProf_Sample,  Debug,
+		using KeyVal = Pair< Profiler::GeneralProfiler::ECounter, float >;
+		ubyte		index;
+		ubyte		count;
+		KeyVal		arr [1];
+	);
+
+	DECL_CSMSG( GenProf_CpuUsage,  Debug,
+		ubyte		index;
+		ubyte		count;
+		ubyte		type;		// user or kernel
+		float		arr [1];
+	);
+	//--------------------------------------------------------
+
+
+	CSMSG_ENC_DEC( GenProf_InitReq,				enable, updateInterval );
+	CSMSG_ENC_DEC( GenProf_InitRes,				ok, enabled );
+	CSMSG_ENC_DEC( GenProf_NextSample,			index, invdt );
+	CSMSG_ENC_DEC_EXARRAY( GenProf_Sample,		count, arr,  AE_ARGS( index, count ));
+	CSMSG_ENC_DEC_EXARRAY( GenProf_CpuCluster,	length, name,  AE_ARGS( idx, length, logicalCores ));
+	CSMSG_ENC_DEC_EXARRAY( GenProf_CpuUsage,	count, arr,  AE_ARGS( index, count, type ));
+	//--------------------------------------------------------
+
+
+	ND_ inline bool  Register_GeneralProfiler (MessageFactory &mf) __NE___
+	{
+		return	mf.Register<
+					CSMsg_GenProf_InitReq,
+					CSMsg_GenProf_InitRes,
+					CSMsg_GenProf_NextSample,
+					CSMsg_GenProf_Sample,
+					CSMsg_GenProf_CpuCluster,
+					CSMsg_GenProf_CpuUsage
+				>( False{} );
+	}
+//=============================================================================
+
+
 	ND_ inline bool  Register_RemoteProfilers (MessageFactory &mf) __NE___
 	{
 		return	Register_ArmProfiler( mf )		and
 				Register_AdrenoProfiler( mf )	and
 				Register_MaliProfiler( mf )		and
 				Register_PVRProfiler( mf )		and
-				Register_NVidiaProfiler( mf );
+				Register_NVidiaProfiler( mf )	and
+				Register_GeneralProfiler( mf );
 	}
 
 

@@ -38,7 +38,7 @@ namespace AE::Graphics
 
 		VDrawCommandBatch::Viewports_t	viewports;
 		VDrawCommandBatch::Scissors_t	scissors;
-		Graphics::_hidden_::ConvertViewports( desc.viewports, Default, OUT viewports, OUT scissors );
+		Graphics::_hidden_::ConvertViewports( desc.viewports, Default, desc.area.Size(), OUT viewports, OUT scissors );
 
 		return rts._CreateDrawBatch( primaryState, viewports, scissors, dbg );
 	}

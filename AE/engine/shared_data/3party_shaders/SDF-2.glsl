@@ -3,6 +3,8 @@
 	MIT license
 */
 
+#ifdef AE_LICENSE_MIT
+
 ND_ float  SDF_MinCubic (const float a, float b, float k)
 {
 	// polynomial smooth min (k = 0.1);
@@ -17,6 +19,8 @@ float2  SDF_OpBlend (const float2 d1, const float2 d2)
 	float	m = Lerp( d1.y, d2.y, Clamp( d1.x - d, 0.f, 1.f ));
 	return float2( d, m );
 }
+
+#endif // AE_LICENSE_MIT
 //-----------------------------------------------------------------------------
 
 

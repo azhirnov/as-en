@@ -1,6 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	API for AMD GPU Perf SDK.
+
+	[Performance counters description](https://github.com/azhirnov/cpu-gpu-arch/blob/main/gpu/AMD_PC.md)
 */
 
 #pragma once

@@ -78,7 +78,7 @@ namespace
 			if ( req_sh ){
 				TEST( AnyBits( stage, ShaderStages ));
 			}else{
-				TEST( not AnyBits( stage, ShaderStages ) or (i == _EResState::RTShaderBindingTable) );
+				TEST( NoBits( stage, ShaderStages ) or (i == _EResState::RTShaderBindingTable) );
 			}
 		}
 	}

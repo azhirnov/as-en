@@ -34,6 +34,7 @@ if (${AE_ENABLE_AUDIO})
 
 	EnablePCH( "Audio" )
 	EnablePrebuild( "Audio" )
+	EnableUnitBuild( "Audio" )
 
 	install( TARGETS "Audio" ARCHIVE DESTINATION "lib" )
 endif()

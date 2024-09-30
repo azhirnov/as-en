@@ -5,7 +5,7 @@
 
 #include "graphics/Private/EnumUtils.h"
 
-#include "serializing/ObjectFactory.h"
+#include "serializing/Public/ObjectFactory.h"
 
 #include "scripting/Impl/ClassBinder.h"
 
@@ -210,7 +210,7 @@ namespace {
 
 				ASSERT( All( texc.Size() == int2(src.region.Size()) ));
 
-				CHECK_ERR( dst_view.Blit( uint3{texc.left, texc.top, 0}, uint3{src.region.left, src.region.top, 0}, src_img, uint3(texc.Size(),1) ));
+				CHECK_ERR( dst_view.Blit( uint3{int3{ texc.left, texc.top, 0 }}, uint3{src.region.left, src.region.top, 0u}, src_img, uint3{int3{ texc.Size(), 1 }} ));
 
 				// TODO: fill border?
 			}

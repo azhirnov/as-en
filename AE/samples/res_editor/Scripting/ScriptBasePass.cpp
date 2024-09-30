@@ -40,7 +40,6 @@ namespace AE::ResEditor
 =================================================
 */
 	ScriptBasePass::ScriptBasePass () __Th___ :
-		_dynamicDim{ new ScriptDynamicDim{ MakeRC<DynamicDim>( uint2{1} )}},
 		_args{ [this](ScriptPassArgs::Argument &arg) { _OnAddArg( arg ); }}
 	{}
 
@@ -393,6 +392,17 @@ namespace AE::ResEditor
 
 /*
 =================================================
+	_Dimension
+=================================================
+*/
+	ScriptDynamicDim*  ScriptBasePass::_Dimension () __Th___
+	{
+		CHECK_THROW_MSG( _HasCustomDynamicDimension() );
+		return ScriptDynamicDimPtr{_dynamicDim}.Detach();
+	}
+
+/*
+=================================================
 	_SetDynamicDimension
 =================================================
 */
@@ -400,13 +410,26 @@ namespace AE::ResEditor
 	{
 		CHECK_THROW_MSG( dynDim and dynDim->Get() );
 
-		if ( _dynamicDim == dynDim or _dynamicDim->Get() == dynDim->Get() )
-			return;
+		if ( _HasCustomDynamicDimension() )
+		{
+			if ( _dynamicDim == dynDim or _dynamicDim->Get() == dynDim->Get() )
+				return;
+		}
 
-		CHECK_THROW_MSG( _dynamicDim.UseCount() == 1 and _dynamicDim->Get().use_count() == 2,
+		CHECK_THROW_MSG( not _HasCustomDynamicDimension(),
 			"Previous dynamic dimension is already used" );
 
 		_dynamicDim = dynDim;
+	}
+
+/*
+=================================================
+	_HasCustomDynamicDimension
+=================================================
+*/
+	bool  ScriptBasePass::_HasCustomDynamicDimension () C_Th___
+	{
+		return bool{_dynamicDim};
 	}
 
 /*
@@ -600,6 +623,19 @@ namespace AE::ResEditor
 
 /*
 =================================================
+	SetRepeatCount
+=================================================
+*/
+	void  ScriptBasePass::SetRepeatCount (const ScriptDynamicUIntPtr &value) __Th___
+	{
+		CHECK_THROW_MSG( value );
+		CHECK_THROW_MSG( not _repeatCount, "Repeat count is already set" );
+
+		_repeatCount = value;
+	}
+
+/*
+=================================================
 	EnableIf*
 =================================================
 */
@@ -671,6 +707,9 @@ namespace AE::ResEditor
 			dst._enablePass.ref		= this->_enablePass.ref;
 			dst._enablePass.op		= this->_enablePass.op;
 		}
+
+		if ( this->_repeatCount )
+			dst._repeatCount = this->_repeatCount->Get();
 
 		AE_LOGI( "Compiled: "s << this->_dbgName );
 	}

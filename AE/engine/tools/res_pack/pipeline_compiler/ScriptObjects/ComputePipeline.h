@@ -32,6 +32,8 @@ namespace AE::PipelineCompiler
 		void  SetLocalGroupSize2 (uint x, uint y)						__Th___	{ SetLocalGroupSize3( x, y, UMax ); }
 		void  SetLocalGroupSize3 (uint x, uint y, uint z)				__Th___;
 
+		void  SetSubgroupSize (uint value)								__Th___;
+
 		void  SetDynamicState (/*EPipelineDynamicState*/uint states)	__Th___;
 
 		void  AddToRenderTech (const String &rtech, const String &pass) __Th___	{ return BasePipelineSpec::_AddToRenderTech( rtech, pass ); }

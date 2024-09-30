@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 #include "graphics/Remote/RMessages.h"
 
 
@@ -75,6 +77,7 @@
 			_reg_( CmdBuf_Bake::Draw_SetBlendConstantsCmd			)	and\
 			_reg_( CmdBuf_Bake::Draw_SetDepthBoundsCmd				)	and\
 			_reg_( CmdBuf_Bake::Draw_SetFragmentShadingRateCmd		)	and\
+			_reg_( CmdBuf_Bake::Draw_SetViewportWScalingCmd			)	and\
 			_reg_( CmdBuf_Bake::Draw_BindIndexBufferCmd				)	and\
 			_reg_( CmdBuf_Bake::Draw_BindVertexBuffersCmd			)	and\
 			_reg_( CmdBuf_Bake::DrawCmd								)	and\
@@ -265,10 +268,12 @@
 			_regMsg_(  ProfAdreno_Initialize					)	and\
 			_regMsg_(  ProfAdreno_Sample						)	and\
 			_regMsg_(  ProfPVR_Initialize						)	and\
-			_regMsg_(  ProfPVR_Tick								)	and\
+			_regMsg_(  ProfPVR_GetTiming						)	and\
 			_regMsg_(  ProfPVR_Sample							)	and\
 			_regMsg_(  ProfNVidia_Initialize					)	and\
 			_regMsg_(  ProfNVidia_Sample						)	and\
+			_regMsg_(  ProfGeneral_Initialize					)	and\
+			_regMsg_(  ProfGeneral_Sample						)	and\
 			_regResp_( ProfArm_Initialize_Response				)	and\
 			_regResp_( ProfArm_Sample_Response					)	and\
 			_regResp_( ProfMali_Initialize_Response				)	and\
@@ -276,10 +281,12 @@
 			_regResp_( ProfAdreno_Initialize_Response			)	and\
 			_regResp_( ProfAdreno_Sample_Response				)	and\
 			_regResp_( ProfPVR_Initialize_Response				)	and\
-			_regResp_( ProfPVR_Tick_Response					)	and\
+			_regResp_( ProfPVR_GetTiming_Response				)	and\
 			_regResp_( ProfPVR_Sample_Response					)	and\
 			_regResp_( ProfNVidia_Initialize_Response			)	and\
-			_regResp_( ProfNVidia_Sample_Response				));\
+			_regResp_( ProfNVidia_Sample_Response				)	and\
+			_regResp_( ProfGeneral_Initialize_Response			)	and\
+			_regResp_( ProfGeneral_Sample_Response				));\
 		\
 		CHECK_ERR(\
 			_regMsg_(  DescUpd_Flush					)	and\

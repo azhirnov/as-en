@@ -134,9 +134,10 @@ namespace AE::PipelineCompiler
 		void  _CheckUniformName (const String &name)										__Th___;
 		void  _CheckArraySize (uint size)													C_Th___;
 		void  _CheckSamplerName (const String &name)										__Th___;
-		void  _CheckAccessType (EAccessType access)											C_Th___;
+		void  _CheckAccessType (INOUT EAccessType &access)									C_Th___;
 		void  _CheckStorageFormat (EPixelFormat fmt, bool isReadOnly)						C_Th___;
 		void  _CheckFields (const String &fields)											C_Th___;
+		void  _CheckStateForStorage (EResourceState state)									C_Th___;
 	};
 	using DescriptorSetLayoutPtr = ScriptRC< DescriptorSetLayout >;
 

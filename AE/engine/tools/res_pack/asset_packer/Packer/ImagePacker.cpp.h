@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#pragma once
+
 using ImgPackHeader_t		= AssetPacker::ImagePacker::Header;
 using ImgPackFileHeader_t	= AssetPacker::ImagePacker::FileHeader;
 using ImageUtils_t			= Graphics::ImageUtils;

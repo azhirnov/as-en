@@ -35,14 +35,14 @@
 		array<RC<Image>>	images;
 		for (uint i = 0; i < 4; ++i)
 		{
-			images.push_back( Image(  EImageType::FImage2D, "shadertoy/Abstract_1.jpg" ));
-			images.push_back( Image(  EImageType::FImage2D, "shadertoy/Abstract_3.jpg" ));
-			images.push_back( Image(  EImageType::FImage2D, "shadertoy/BlueNoise.png" ));
-			images.push_back( Image(  EImageType::FImage2D, "shadertoy/Lichen.jpg" ));
-			images.push_back( Image(  EImageType::FImage2D, "shadertoy/Organic_1.jpg" ));
-			images.push_back( Image(  EImageType::FImage2D, "shadertoy/Organic_2.jpg" ));
-			images.push_back( Image(  EImageType::FImage2D, "shadertoy/Organic_3.jpg" ));
-			images.push_back( Image(  EImageType::FImage2D, "shadertoy/Organic_4.jpg" ));
+			images.push_back( Image( EImageType::FImage2D, "shadertoy/Abstract_1.jpg" ));
+			images.push_back( Image( EImageType::FImage2D, "shadertoy/Abstract_3.jpg" ));
+			images.push_back( Image( EImageType::FImage2D, "shadertoy/BlueNoise.png" ));
+			images.push_back( Image( EImageType::FImage2D, "shadertoy/Lichen.jpg" ));
+			images.push_back( Image( EImageType::FImage2D, "shadertoy/Organic_1.jpg" ));
+			images.push_back( Image( EImageType::FImage2D, "shadertoy/Organic_2.jpg" ));
+			images.push_back( Image( EImageType::FImage2D, "shadertoy/Organic_3.jpg" ));
+			images.push_back( Image( EImageType::FImage2D, "shadertoy/Organic_4.jpg" ));
 		}
 
 		cbuffer.FloatArray(	"ids",	mtr_ids );

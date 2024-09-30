@@ -37,7 +37,7 @@ namespace AE::Base
 	template <typename R, typename T>
 	cxx20_constexpr void  CheckPointerCast (T const* ptr) __NE___
 	{
-	#ifdef AE_CFG_DEBUG
+	#ifdef AE_DEBUG
 		if constexpr( not IsVoid<R> and not IsConstEvaluated() )
 		{
 			if ( not CheckPointerAlignment<R>( ptr ))
@@ -50,6 +50,22 @@ namespace AE::Base
 	#else
 		Unused( ptr );
 	#endif
+	}
+
+/*
+=================================================
+	AssumeAligned
+=================================================
+*/
+	template <usize Align, typename T>
+	ND_ constexpr T*  AssumeAligned (T* ptr) __NE___
+	{
+		ASSERT( CheckPointerAlignment( ptr, Align ));
+		#ifdef __cpp_lib_assume_aligned
+			return std::assume_aligned<Align>( ptr );
+		#else
+			return ptr;
+		#endif
 	}
 
 /*

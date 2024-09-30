@@ -167,7 +167,7 @@ namespace AE::Graphics
 
 		VFramebuffer::Key	key{ StructView<ImageViewID>{ desc.attachments.GetValueArray(), &RenderPassDesc::Attachment::imageView },
 								 rp_id,
-								 uint3{ desc.area.Width(), desc.area.Height(), desc.layerCount.Get() }};
+								 uint3{ uint(desc.area.Width()), uint(desc.area.Height()), desc.layerCount.Get() }};
 
 		// find in cache
 		{

@@ -655,9 +655,9 @@ RenderTechniques {
 SpirvShaders {
   [0]  offset = 0 b
   [1]  offset = 8 Kb
-  [2]  offset = 10 Kb
+  [2]  offset = 9 Kb
   [3]  offset = 11 Kb
-  [4]  offset = 13 Kb
+  [4]  offset = 12 Kb
   [5]  offset = 14 Kb
   [6]  offset = 16 Kb
   [7]  offset = 17 Kb
@@ -677,8 +677,8 @@ SpirvShaderData {
     codeSize = 5 Kb
     withTrace
   [1]
-    codeSize = 1948 b
-    codeHash = dcaeae1cca0a4f63
+    codeSize = 1876 b
+    codeHash = 8d355aae1434549e
   [2]
     codeSize = 1820 b
     codeHash = 549e64ca77d15f57
@@ -695,33 +695,33 @@ SpirvShaderData {
     codeSize = 1724 b
     codeHash = 4ec176b7e5df2f6e
   [7]
-    codeSize = 1680 b
-    codeHash = 89aa2f36bc81b37a
+    codeSize = 1776 b
+    codeHash = abfa56e707eba40f
   [8]
     codeSize = 3888 b
     codeHash = 47bb31a4c181b02e
   [9]
-    codeSize = 2284 b
-    codeHash = f39a6a9ed6b4dcbf
+    codeSize = 2324 b
+    codeHash = dc47fb7bbcae1270
   [10]
     codeSize = 3824 b
     codeHash = 8466dabba1f78b8
   [11]
     codeSize = 4 Kb
-    codeHash = 8951c441457e013a
+    codeHash = cbc3b204b9da8fa9
   [12]
-    codeSize = 3032 b
-    codeHash = 5767bd21d2fb8e23
+    codeSize = 2972 b
+    codeHash = fb68a21ab420a227
   [13]
-    codeSize = 1736 b
-    codeHash = 1040aba06cf14fa2
+    codeSize = 1664 b
+    codeHash = fc69a217fd1b589f
   [14]
-    codeSize = 2224 b
-    codeHash = f11af4197e504508
+    codeSize = 2152 b
+    codeHash = d1c1d91a11241645
   [15]
-    codeSize = 2504 b
-    codeHash = fb391321a38d40c2
+    codeSize = 2432 b
+    codeHash = 84ae09077a958ceb
   [16]
-    codeSize = 2928 b
-    codeHash = 3b9bba3e2cbb1d8
+    codeSize = 2856 b
+    codeHash = a1b0a442c9ff56d5
 }

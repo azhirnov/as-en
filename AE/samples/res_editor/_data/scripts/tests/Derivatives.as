@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-
+	Compare dFdxFine and dFdxCoarse.
+	Emulate dFd* in compute shader.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

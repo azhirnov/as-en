@@ -3,15 +3,15 @@
 	GLSL Trace project.
 
 	[old standalone project](https://github.com/azhirnov/glsl_trace)
+	[new standalone project](https://github.com/azhirnov/glsl_trace/tree/v2023)
 	[new project as part of AsEn](https://github.com/azhirnov/as-en/tree/preview/engine/tools/res_pack/shader_trace)
 	[new project as part of AsEn - mirror](https://gitflic.ru/project/azhirnov/as-en/file?file=engine%2Ftools%2Fres_pack%2Fshader_trace)
-	[new standalone project](https://github.com/azhirnov/glsl_trace/tree/v2023)
 */
 
 #pragma once
 
 #include "base/FileSystem/Path.h"
-#include "serializing/ISerializable.h"
+#include "serializing/Public/ISerializable.h"
 
 namespace glslang {
 	class TIntermediate;

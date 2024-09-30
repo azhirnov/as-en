@@ -9,7 +9,7 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T>
-	decltype(auto)  ScriptArgList::Arg (uint idx) C_NE___
+	exact_t  ScriptArgList::Arg (uint idx) C_NE___
 	{
 		using namespace AngelScript;
 

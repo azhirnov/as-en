@@ -94,6 +94,7 @@ namespace AE::ResEditor
 		RGBA8u					_dbgColor	= HtmlColor::Red;
 
 		ScriptDynamicDimPtr		_dynamicDim;
+		ScriptDynamicUIntPtr	_repeatCount;
 
 		ScriptBaseControllerPtr	_controller;
 		ScriptPassArgs			_args;
@@ -188,6 +189,8 @@ namespace AE::ResEditor
 		void  ConstantDD (const String &name, const ScriptDynamicDimPtr &value)							__Th___;
 
 
+		void  SetRepeatCount (const ScriptDynamicUIntPtr &)												__Th___;
+
 		void  EnableIfEqual (const ScriptDynamicUIntPtr &dyn, uint ref)									__Th___;
 		void  EnableIfLess (const ScriptDynamicUIntPtr &dyn, uint ref)									__Th___;
 		void  EnableIfGreater (const ScriptDynamicUIntPtr &dyn, uint ref)								__Th___;
@@ -237,9 +240,11 @@ namespace AE::ResEditor
 
 		void  _Init (IPass &dst, const ScriptBaseControllerPtr &defaultController)						C_Th___;
 
-		ND_ ScriptDynamicDim*	_Dimension ()															__Th___	{ return ScriptDynamicDimPtr{_dynamicDim}.Detach(); }
+		ND_ ScriptDynamicDim*	_Dimension ()															__Th___;
 		void  _SetDynamicDimension (const ScriptDynamicDimPtr &)										__Th___;
 		void  _SetConstDimension (const uint3 &dim)														__Th___;
+
+		ND_ bool  _HasCustomDynamicDimension ()															C_Th___;
 
 		template <typename B>
 		static void  _BindBase (B &binder, Bool withArgs)												__Th___;

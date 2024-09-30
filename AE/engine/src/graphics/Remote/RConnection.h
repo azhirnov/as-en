@@ -8,7 +8,7 @@ namespace AE::RemoteGraphics
 {
 	struct RmNetConfig
 	{
-		static constexpr ushort		serverPort	= 7435;
+		static constexpr ushort		serverPort	= 3000;		// set your TCP port number
 		static constexpr uint		socketCount	= 3;
 	};
 
@@ -44,7 +44,7 @@ namespace AE::RemoteGraphics
 		ND_ bool  WaitForClient ();
 
 		ND_ bool  Send (const Msg::BaseMsg &);
-		ND_	bool  Send (const void *data, Bytes dataSize);
+		ND_	bool  Send (const void* data, Bytes dataSize);
 
 		ND_ bool  Receive ()													__Th___;
 		ND_ auto  Encode () -> RC<Msg::BaseMsg>;

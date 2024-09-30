@@ -38,6 +38,9 @@ namespace {
 */
 	ND_ static bool  CheckFormatFeatures (const VResourceManager &resMngr, VkFormat format, EImageUsage usage, EImageOpt options, bool optTiling) __NE___
 	{
+		if ( AllBits( options, EImageOpt::ExtendedUsage ))
+			return true;
+
 		const auto&		dev	= resMngr.GetDevice();
 		const auto&		fs	= resMngr.GetFeatureSet();
 
@@ -143,7 +146,7 @@ namespace {
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _image == Default );
 		CHECK_ERR( _memoryId == Default );
-		CHECK_ERR( All( desc.dimension > uint3{0} ));
+		CHECK_ERR( All( desc.dimension > ImageDim_t{0} ));
 		CHECK_ERR( desc.imageDim != Default );
 		CHECK_ERR( desc.arrayLayers > 0_layer );
 		CHECK_ERR( desc.mipLevels > 0_mipmap );
@@ -250,7 +253,7 @@ namespace {
 		_image				= desc.image;
 		_desc.imageDim		= AEEnumCast( desc.imageType );
 		_desc.options		= AEEnumCast( desc.flags ) | desc.options;
-		_desc.dimension		= desc.dimension;
+		_desc.dimension		= CheckCast<ImageDim_t>( desc.dimension );
 		_desc.format		= AEEnumCast( desc.format );
 		_desc.arrayLayers	= ImageLayer{ desc.arrayLayers };
 		_desc.mipLevels		= MipmapLevel{ desc.mipLevels };
@@ -295,7 +298,7 @@ namespace {
 	{
 		DRC_EXLOCK( _drCheck );
 
-		const bool	is_internal = not AllBits( _desc.memType, EMemoryType::_External );
+		const bool	is_internal = NoBits( _desc.memType, EMemoryType::_External );
 		auto&		dev			= resMngr.GetDevice();
 
 		if ( is_internal and _image != Default )
@@ -326,13 +329,13 @@ namespace {
 		desc.usage			= VEnumCast( _desc.usage, _desc.memType );
 		desc.format			= VEnumCast( _desc.format );
 		desc.samples		= VEnumCast( _desc.samples );
-		desc.dimension		= _desc.dimension;
+		desc.dimension		= _desc.Dimension();
 		desc.arrayLayers	= _desc.arrayLayers.Get();
 		desc.mipLevels		= _desc.mipLevels.Get();
 		desc.tiling			= AllBits( _desc.memType, EMemoryType::DeviceLocal ) ? VK_IMAGE_TILING_OPTIMAL : VK_IMAGE_TILING_LINEAR;
 		desc.queues			= _desc.queues;
 		desc.memFlags		= VEnumCast( _desc.memType );
-		desc.canBeDestroyed	= not AllBits( _desc.memType, EMemoryType::_External );
+		desc.canBeDestroyed	= NoBits( _desc.memType, EMemoryType::_External );
 		return desc;
 	}
 
@@ -343,8 +346,6 @@ namespace {
 */
 	bool  VImage::IsSupported (const VResourceManager &resMngr, const ImageDesc &desc) __NE___
 	{
-		StaticAssert( uint(EImageOpt::All) == 0x1FFFF );
-
 		const auto&		dev			= resMngr.GetDevice();
 		const auto&		dev_props	= dev.GetVProperties();
 		const bool		opt_tiling	= AllBits( desc.memType, EMemoryType::DeviceLocal );
@@ -401,6 +402,7 @@ namespace {
 				case EImageOpt::BlitSrc :
 				case EImageOpt::BlitDst :
 				case EImageOpt::BlockTexelViewCompatible :
+				case EImageOpt::ExtendedUsage :
 				case EImageOpt::StorageAtomic :
 				case EImageOpt::VertexPplnStore :
 				case EImageOpt::FragmentPplnStore :
@@ -439,7 +441,7 @@ namespace {
 			if_unlikely( desc.arrayLayers.Get() > props.maxArrayLayers )
 				return false;
 
-			if_unlikely( not AllBits( props.sampleCounts, desc.samples.Get() ))
+			if_unlikely( NoBits( props.sampleCounts, desc.samples.Get() ))
 				return false;
 		}
 

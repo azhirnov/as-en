@@ -4,15 +4,6 @@
 
 namespace AE::PipelineCompiler
 {
-namespace {
-	ND_ bool  IsPartOfWord (const char c)
-	{
-		return	(c == '_') or
-				((c >= 'a') and (c <= 'z')) or
-				((c >= 'A') and (c <= 'Z')) or
-				((c >= '0') and (c <= '9'));
-	}
-}
 
 /*
 =================================================
@@ -31,6 +22,8 @@ namespace {
 */
 	bool  AEStyleMSLPreprocessor::Process (EShader, const PathAndLine &, usize headerLines, StringView inStr, OUT String &outStr)
 	{
+		const auto	IsPartOfWord = [](char c) { return Parser::CPP.IsWord( c ); };
+
 		usize	hdr_size = 0;
 		Parser::MoveToLine( inStr, INOUT hdr_size, headerLines );
 

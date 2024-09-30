@@ -309,4 +309,5 @@ namespace AE::Graphics
 
 } // AE::Graphics
 
+#undef VGFXALLOC
 #endif // AE_ENABLE_VULKAN

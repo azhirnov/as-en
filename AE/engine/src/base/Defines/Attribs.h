@@ -50,17 +50,31 @@
 
 
 // function prefix attribs
-/*
-#define __Cx__				constexpr
-#define	__Cx__				constexpr
-#define St____		static
-#define StCx__		static	constexpr
-#define Fr____		friend
-#define FrCx__		friend	constexpr
-#define	St__In		static					inline
-#define	St__FI		static					forceinline
-#define __Cv__				consteval
-*/
+#define __Cx__			constexpr
+#define	__CxIn			constexpr		inline
+#define	__CxIF			constexpr		forceinline
+#define	__CxIA			constexpr		AE_FLATTEN_FN forceinline
+#define	____In							inline
+#define	____IF							forceinline
+#define	____IA							AE_FLATTEN_FN forceinline
+#define NdCx__		ND_	constexpr
+#define	NdCxIn		ND_	constexpr		inline
+#define	NdCxIF		ND_	constexpr		forceinline
+#define	NdCxIA		ND_	constexpr		AE_FLATTEN_FN forceinline
+#define	Nd__In		ND_					inline
+#define	Nd__IF		ND_					forceinline
+#define	Nd__IA		ND_					AE_FLATTEN_FN forceinline
+#define __Cv__			cxx20_consteval
+#define NdCv__		ND_	cxx20_consteval
+
+
+// has attribute (C++20)
+#ifdef __has_cpp_attribute
+#	define AE_HAS_ATTRIB		__has_cpp_attribute
+#else
+#	define AE_HAS_ATTRIB(...)	(0)
+#endif
+
 
 // no discard
 #ifndef ND_
@@ -106,7 +120,11 @@
 #	define forceinline			__forceinline
 
 # elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
+#  if AE_HAS_ATTRIB( gnu::always_inline )
+#	define forceinline			[[gnu::always_inline]]
+#  else
 #	define forceinline			__inline__ __attribute__((__always_inline__))
+#  endif
 
 # else
 #	pragma warning ("'forceinline' is not supported")
@@ -122,6 +140,24 @@
 #else
 #	define IsConstEvaluated()	false
 #	define cxx20_constexpr
+#endif
+
+
+// C++20 consteval specifier
+// forces all calls to happen at compile time
+#ifdef __cpp_consteval
+#	define cxx20_consteval		consteval
+#else
+#	define cxx20_consteval		constexpr
+#endif
+
+
+// C++20 constinit specifier
+// not constant, can be used with 'static' and 'thread_local'
+#ifdef __cpp_consteval
+#	define cxx20_constinit		constinit
+#else
+#	define cxx20_constinit
 #endif
 
 
@@ -242,28 +278,31 @@
 
 // code vectorization
 #ifdef AE_COMPILER_MSVC
-#	define DONT_VECTORIZE		__pragma( loop( no_vector ))	// disable vectorization
-#	define FORCE_VECTORIZE		__pragma( loop( ivdep ))		// ignore dependencies to enable vectorization
-#	define UNROLL
+#	define AE_DONT_VECTORIZE		__pragma( loop( no_vector ))	// disable vectorization
+#	define AE_FORCE_VECTORIZE		__pragma( loop( ivdep ))		// ignore dependencies to enable vectorization
+#	define AE_UNROLL
 
 #elif defined(AE_COMPILER_CLANG)
-#	define DONT_VECTORIZE		_Pragma( "clang loop vectorize(disable) interleave(disable)" )
-#	define FORCE_VECTORIZE		_Pragma( "clang loop vectorize(enable) interleave(enable)" )
-#	define UNROLL				_Pragma( "clang loop unroll(full)" )
+#	define AE_DONT_VECTORIZE		_Pragma( "clang loop vectorize(disable) interleave(disable)" )
+#	define AE_FORCE_VECTORIZE		_Pragma( "clang loop vectorize(enable) interleave(enable)" )
+#	define AE_UNROLL				_Pragma( "clang loop unroll(full)" )
 
 #else
-#	define DONT_VECTORIZE
-#	define FORCE_VECTORIZE
-#	define UNROLL
+#	define AE_DONT_VECTORIZE
+#	define AE_FORCE_VECTORIZE
+#	define AE_UNROLL
 #endif
 
 
 // vtable
 #ifdef AE_COMPILER_MSVC
-#	define NO_VTABLE			__declspec( novtable )
+#	define NO_VTABLE		__declspec( novtable )
 #else
 #	define NO_VTABLE
 #endif
+
+
+// TODO: [[clang::internal_linkage]]
 
 
 // intrinsic attribute
@@ -277,21 +316,68 @@
 #endif
 
 
-// force recursively inline all function call inside the block
-#ifdef AE_COMPILER_MSVC
+// force inline all function calls
+// AE_INLINE_ALL and AE_INLINE_CALLS applied for call or scope.
+// AE_FLATTEN_FN applied for function.
+//
+#if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
 # if _MSC_VER > 1930		// since VS 2022
-#	define AE_INLINE_ALL	[[msvc::flatten]]
+#	define AE_INLINE_ALL	[[msvc::flatten]]			// recursively use 'forceinline_calls'
+#	define AE_FLATTEN_FN	[[msvc::flatten]]
+#	define AE_INLINE_CALLS	[[msvc::forceinline_calls]]
+# endif
+#endif
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+# if AE_HAS_ATTRIB( clang::flatten ) and AE_HAS_ATTRIB( clang::always_inline )
+#	define AE_INLINE_ALL	[[clang::flatten]]			// recursively use 'always_inline'
+#	define AE_INLINE_CALLS	[[clang::always_inline]]
+#	define AE_FLATTEN_FN	[[clang::flatten]]
+# endif
+#endif
+#if defined(AE_COMPILER_GCC)
+# if AE_HAS_ATTRIB( gnu::flatten ) and AE_HAS_ATTRIB( gnu::always_inline )
+#	define AE_INLINE_ALL	[[gnu::flatten]]
+#	define AE_INLINE_CALLS	[[gnu::always_inline]]
+#	define AE_FLATTEN_FN	__attribute__((flatten))
 # endif
 #endif
 #ifndef AE_INLINE_ALL
 #	define AE_INLINE_ALL
+#endif
+#ifndef AE_INLINE_CALLS
+#	define AE_INLINE_CALLS
+#endif
+#ifndef AE_FLATTEN_FN
+#	define AE_FLATTEN_FN
+#endif
+
+
+// marks a function as hot (hot code path), as a manual alternative to PGO hotness data
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL) or defined(AE_COMPILER_GCC)
+# if AE_HAS_ATTRIB( gnu::hot ) and AE_HAS_ATTRIB( gnu::cold )
+#	define AE_HOT_FN		[[gnu::hot]]
+#	define AE_COLD_FN		[[gnu::cold]]
+# else
+#	define AE_HOT_FN		__attribute__((hot))
+#	define AE_COLD_FN		__attribute__((cold))
+# endif
+#endif
+#ifndef AE_HOT_FN
+#	define AE_HOT_FN
+#endif
+#ifndef AE_COLD_FN
+#	define AE_COLD_FN
 #endif
 
 
 // mark function that has no side effects.
 // function can operate only on arguments and can not read global memory.
 #if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+# if AE_HAS_ATTRIB( gnu::const )
+#	define AE_NOSIDEEFFECTS		[[gnu::const]]
+# else
 #	define AE_NOSIDEEFFECTS		__attribute__ ((const))
+# endif
 #else
 #	define AE_NOSIDEEFFECTS
 #endif
@@ -344,7 +430,12 @@
 	// TODO: arm64_neon.h
 #endif
 
-#if defined(AE_CPU_ARCH_ARM32) or defined(AE_CPU_ARCH_ARM64)
+#if defined(AE_COMPILER_MSVC) and defined(AE_CPU_ARCH_ARM64)
+#	undef AE_SIMD_NEON
+#	define AE_SIMD_NEON	0
+#endif
+
+#if defined(AE_CPU_ARCH_ARM32)
 # ifndef __ARM_FP
 #	error soft-FP is not supported
 # endif
@@ -410,11 +501,12 @@
 // Keep exactly the same type.
 // 'auto' will deduce the value type instead of reference type.
 // 'exact_t' will use reference type where it is possible.
-//#define exact_t		decltype(auto)
+#define exact_t		decltype(auto)
 /*
 example of variable initialization:
 	int i;
 	int&& f();
+
 	auto x3a = i;					// decltype(x3a) is int
 	decltype(auto) x3d = i;			// decltype(x3d) is int
 	auto x4a = (i);					// decltype(x4a) is int
@@ -424,5 +516,5 @@ example of variable initialization:
 	auto x6a = { 1, 2 };			// decltype(x6a) is std::initializer_list<int>
 	decltype(auto) x6d = { 1, 2 };	// error, { 1, 2 } is not an expression
 	auto *x7a = &i;					// decltype(x7a) is int*
-	decltype(auto)*x7d = &i;		// error, declared type is not plain decltype(auto)
+	decltype(auto)* x7d = &i;		// error, declared type is not plain decltype(auto)
 */

@@ -24,6 +24,7 @@ namespace AE::ResEditor
 		struct {
 			StrongImageAndViewID	image2D;
 			StrongImageAndViewID	imageCube;
+			StrongImageAndViewID	image2DArr;
 			StrongImageAndViewID	image3D;
 
 			Strong<RTGeometryID>	rtGeometry;
@@ -59,11 +60,11 @@ namespace AE::ResEditor
 		DefaultResources ();
 
 	private:
-		void  _CreateDummyImage2D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)		const;
-		void  _CreateDummyImage3D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)		const;
-		void  _CreateDummyImageCube (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)	const;
-		void  _CreateDummyRTGeometry (OUT Strong<RTGeometryID> &, GfxMemAllocatorPtr)	const;
-		void  _CreateDummyRTScene (OUT Strong<RTSceneID> &, GfxMemAllocatorPtr)			const;
+		void  _CreateDummyImage2D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)				const;
+		void  _CreateDummyImage3D (OUT StrongImageAndViewID &, GfxMemAllocatorPtr)				const;
+		void  _CreateDummyImage2DArray (OUT StrongImageAndViewID &, GfxMemAllocatorPtr, Bool)	const;
+		void  _CreateDummyRTGeometry (OUT Strong<RTGeometryID> &, GfxMemAllocatorPtr)			const;
+		void  _CreateDummyRTScene (OUT Strong<RTSceneID> &, GfxMemAllocatorPtr)					const;
 	};
 
 

@@ -4,14 +4,13 @@
 
 namespace AE::AtlasTools
 {
-namespace
-{
+
 /*
 =================================================
-	BestDimensionForArea
+	_BestDimensionForArea
 =================================================
 */
-	ND_ static uint2  BestDimensionForArea (ulong area, const uint2 minSize)
+	uint2  RectPacker::_BestDimensionForArea (ulong area, const uint2 minSize)
 	{
 		const uint	side	= Max( 1, IntLog2( area ) / 2 );
 		uint2		result	{1u << side};
@@ -28,7 +27,6 @@ namespace
 		}
 		return result;
 	}
-}
 
 /*
 =================================================
@@ -37,7 +35,7 @@ namespace
 */
 	bool  RectPacker::Pack ()
 	{
-		uint2	size = BestDimensionForArea( _maxArea, _maxSize );
+		uint2	size = _BestDimensionForArea( _maxArea, _maxSize );
 
 		std::sort( _rects.begin(), _rects.end(),
 					[] (auto& lhs, auto& rhs)

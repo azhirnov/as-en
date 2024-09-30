@@ -171,7 +171,7 @@ namespace
 				for (uint y = 0; y < vcount; ++y)
 				for (uint x = 0; x < vcount; ++x)
 				{
-					double2		ncoord		= ToSNorm( double2{x,y} / double(vcount-1) );
+					double2		ncoord		= ToSNorm( double2{uint2{ x, y }} / double(vcount-1) );
 					auto&		vert		= dst_vertices[vert_i++];
 					double3		pos			= ForwardProjection( ncoord, ECubeFace(face) );
 					double2		proj		= VertexProjection_t::Forward( ncoord );

@@ -296,7 +296,7 @@ namespace {
 		if ( _outDynSize )
 		{
 			ASSERT( imageDesc.imageDim == _outDynSize->NumDimensions() );
-			_outDynSize->Resize( imageDesc.dimension );
+			_outDynSize->Resize( imageDesc.Dimension() );
 		}
 
 		auto	derived = _derived.ReadLock();
@@ -498,9 +498,9 @@ namespace {
 			CHECK_ERR( mem );
 
 			auto&	hdr		= PlacementNew<Header>( mem->Data() )->hdr;
-			hdr.dimension	= packed_ushort3{ImageUtils::MipmapDimension( img_desc.dimension, view_desc.baseMipmap.Get(), EPixelFormat_GetInfo(view_desc.format).TexBlockDim() )};
-			hdr.arrayLayers	= ushort(view_desc.layerCount);
-			hdr.mipmaps		= ushort(view_desc.mipmapCount);
+			hdr.dimension	= view_desc.dimension;
+			hdr.arrayLayers	= view_desc.layerCount;
+			hdr.mipmaps		= view_desc.mipmapCount;
 			hdr.viewType	= view_desc.viewType;
 			hdr.format		= view_desc.format;
 
@@ -541,7 +541,7 @@ namespace {
 				const auto	layer					= view_desc.baseLayer + op.curLayer;
 
 				ReadbackImageDesc	read;
-				read.imageDim	= ImageUtils::MipmapDimension( img_desc.dimension, mipmap.Get(), fmt_info.TexBlockDim() );
+				read.imageDim	= ImageUtils::MipmapDimension( img_desc.Dimension(), mipmap.Get(), fmt_info.TexBlockDim() );
 				read.arrayLayer	= layer;
 				read.mipLevel	= mipmap;
 				read.heapType	= EStagingHeapType::Dynamic;
@@ -556,12 +556,12 @@ namespace {
 							const auto		mipmap					= view_desc.baseMipmap + cur_mipmap;
 							const auto		layer					= view_desc.baseLayer + cur_layer;
 							const auto&		fmt_info				= EPixelFormat_GetInfo( view_desc.format );
-							const uint3		mip_dim					= ImageUtils::MipmapDimension( img_desc.dimension, mipmap.Get(), fmt_info.TexBlockDim() );
+							const uint3		mip_dim					= ImageUtils::MipmapDimension( img_desc.Dimension(), mipmap.Get(), fmt_info.TexBlockDim() );
 
 							AssetPacker::ImagePacker::Header	header;
-							header.dimension	= packed_ushort3{ImageUtils::MipmapDimension( img_desc.dimension, view_desc.baseMipmap.Get(), fmt_info.TexBlockDim() )};
-							header.arrayLayers	= ushort(view_desc.layerCount);
-							header.mipmaps		= ushort(view_desc.mipmapCount);
+							header.dimension	= view_desc.dimension;
+							header.arrayLayers	= view_desc.layerCount;
+							header.mipmaps		= view_desc.mipmapCount;
 							header.viewType		= view_desc.viewType;
 							header.format		= view_desc.format;
 
@@ -584,7 +584,7 @@ namespace {
 							Unused( file->WriteBlock( off + SizeOf<AssetPacker::ImagePacker::FileHeader>, memView.ContentSize(), RVRef(mem) ));
 						},
 						"Image::Readback",
-						ETaskQueue::Background
+						ETaskQueue::PerFrame
 					);
 
 			if ( op.stream.IsCompleted() )
@@ -724,7 +724,7 @@ namespace {
 			ImageViewDesc	view_desc	= GetViewDesc();
 			CHECK_ERR( CompareImageTypes( desc, intermImg ));
 
-			desc.dimension		= intermImg.Dimension() << baseMipmap.Get();
+			desc.dimension		= CheckCast<ImageDim_t>( intermImg.Dimension() << baseMipmap.Get() );
 			desc.arrayLayers	= ImageLayer{ intermImg.ArrayLayers() + baseLayer.Get() };
 			desc.mipLevels		= MipmapLevel{ intermImg.MipLevels() + baseMipmap.Get() };
 			desc.imageDim		= intermImg.GetImageDim();
@@ -826,17 +826,6 @@ namespace {
 			return result;
 
 		return null;
-	}
-
-/*
-=================================================
-	GetViewDimension
-=================================================
-*/
-	uint3  Image::GetViewDimension () C_NE___
-	{
-		auto [desc, view] = _imageDesc.ReadAll();
-		return Max( 1u, desc.dimension >> view.baseMipmap.Get() );
 	}
 
 

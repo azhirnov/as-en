@@ -356,7 +356,7 @@ namespace AE::Graphics::_hidden_
 
 		ArrayView<ubyte>	mem_view = ArrayView<ubyte>{ Cast<ubyte>(mem_info.mappedPtr + offset), usize(size) };
 
-		if_unlikely( not AllBits( mem_info.flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ))
+		if_unlikely( NoBits( mem_info.flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ))
 		{
 			GCTX_CHECK( offset + size <= mem_info.size );
 			this->_mngr.GetStagingManager().AcquireMappedMemory( GetFrameId(), mem_info.memory, mem_info.offset + offset, size );
@@ -414,7 +414,7 @@ namespace AE::Graphics::_hidden_
 
 		MemCopy( OUT mem_info.mappedPtr + offset, data, size );
 
-		if_unlikely( not AllBits( mem_info.flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ))
+		if_unlikely( NoBits( mem_info.flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ))
 		{
 			VkMappedMemoryRange	range;
 			range.sType		= VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
@@ -730,7 +730,7 @@ namespace AE::Graphics::_hidden_
 		range.mipmapCount	= ushort(desc.mipLevels.Get());
 
 		VALIDATE_GCTX( GenerateMipmaps( img.Description(), {range} ));
-		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, {range}, srcState );
+		RawCtx::GenerateMipmaps( img.Handle(), desc.Dimension(), {range}, srcState );
 	}
 
 	template <typename C>
@@ -740,7 +740,7 @@ namespace AE::Graphics::_hidden_
 		ImageDesc const&	desc = img.Description();
 
 		VALIDATE_GCTX( GenerateMipmaps( img.Description(), ranges ));
-		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, ranges, srcState );
+		RawCtx::GenerateMipmaps( img.Handle(), desc.Dimension(), ranges, srcState );
 	}
 
 /*

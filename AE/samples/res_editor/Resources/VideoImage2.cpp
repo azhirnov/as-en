@@ -51,7 +51,7 @@ namespace AE::ResEditor
 		CHECK_THROW( inDesc.format == config.dstFormat );	// ycbcr sampler created for format 'inDesc.format'
 
 		VideoImageDesc	desc;
-		desc.dimension		= uint2{inDesc.dimension};
+		desc.dimension		= ImageDim2_t{inDesc.dimension};
 		desc.arrayLayers	= 1_layer;
 		desc.format			= config.dstFormat;
 		desc.options		= inDesc.options;
@@ -339,7 +339,7 @@ namespace AE::ResEditor
 	void  VideoImage2::_Validate (const States s) __NE___
 	{
 		Unused( s );
-		ASSERT( not AnyBits( s.emptyBits, s.decodedBits ));
+		ASSERT( NoBits( s.emptyBits, s.decodedBits ));
 		ASSERT( (s.emptyBits | s.decodedBits) == ToBitMask<uint>(_MaxCpuImages) );
 		ASSERT( s.decodedBits == 0 or HasBit( s.decodedBits, s.pos ));
 	}

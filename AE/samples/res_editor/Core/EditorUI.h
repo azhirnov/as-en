@@ -75,8 +75,8 @@ namespace AE::ResEditor
 		struct SelectedPixel
 		{
 			FrameUID			frame;
-			uint2				pos;
-			float2				pendingPos;
+			uint2				pos;		// pixels
+			float2				pendingPos;	// unorm
 			RGBA32f				color;		// TODO: colors [8]  ???
 		};
 

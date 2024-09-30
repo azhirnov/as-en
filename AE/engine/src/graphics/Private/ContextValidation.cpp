@@ -106,9 +106,14 @@ namespace
 		return info.HasDepthOrStencil();
 	}
 
+	ND_ static uint3  MipmapDimension (const ImageDesc &desc, MipmapLevel mip)
+	{
+		return ImageUtils::MipmapDimension( desc.Dimension(), mip.Get(), EPixelFormat_GetInfo( desc.format ).TexBlockDim() );
+	}
+
 	static void  ValidateImageSubresourceLayers (const ImageDesc &desc, const ImageSubresourceLayers &subres, const uint3 &offset, const uint3 &extent) __Th___
 	{
-		const uint3	dim = Max( 1u, desc.dimension >> subres.mipLevel.Get() );
+		const uint3	dim = MipmapDimension( desc, subres.mipLevel );
 
 		GCTX_CHECK( All( offset < dim ));
 		GCTX_CHECK( All( (offset + extent) <= dim ));
@@ -136,6 +141,8 @@ namespace
 				fs.primitiveFragmentShadingRate		== True	or
 				fs.attachmentFragmentShadingRate	== True;
 	}
+
+	ND_ static bool  ViewportWScalingSupported ()			__NE___	{ return _GetFeatureSet().clipSpaceWScalingNV == True; }
 
 #ifdef AE_ENABLE_VULKAN
 	ND_ static auto const&  _GetDeviceExtensions () __NE___ {
@@ -218,7 +225,7 @@ namespace
 		GCTX_CHECK( image != Default );
 
 		for (auto& range : ranges) {
-			GCTX_CHECK( not AnyBits( range.aspectMask, ~(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) ));
+			GCTX_CHECK( NoBits( range.aspectMask, ~(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) ));
 		}
 	}
 # endif
@@ -411,12 +418,21 @@ namespace
 		GCTX_CHECK( AllBits( srcImageDesc.usage, EImageUsage::TransferSrc ));
 		GCTX_CHECK( AllBits( dstImageDesc.usage, EImageUsage::TransferDst ));
 
+		// TODO: queue transfer granularity
+
 		for (auto& range : ranges)
 		{
 			ValidateImageSubresourceLayers( srcImageDesc, range.srcSubres, range.srcOffset, range.extent );
 			ValidateImageSubresourceLayers( dstImageDesc, range.dstSubres, range.dstOffset, range.extent );
 
 			GCTX_CHECK( range.srcSubres.aspectMask == range.dstSubres.aspectMask );	// TODO: multi-planar format
+
+			uint2	src_gran {1};
+			uint2	dst_gran {1};
+
+			GCTX_CHECK( EPixelFormat_GetCopyGranularity( srcImageDesc.format, OUT src_gran, dstImageDesc.format, OUT dst_gran ));
+
+			// TODO
 		}
 	}
 
@@ -531,37 +547,21 @@ namespace
 		GCTX_CHECK( IsDeviceMemory( srcImageDesc ));
 		GCTX_CHECK( IsDeviceMemory( dstImageDesc ));
 
-		const auto &	src_fmt	= EPixelFormat_GetInfo( srcImageDesc.format );
-		const auto &	dst_fmt	= EPixelFormat_GetInfo( dstImageDesc.format );
-
 		GCTX_CHECK( AllBits( srcImageDesc.usage, EImageUsage::TransferSrc ));
 		GCTX_CHECK( AllBits( dstImageDesc.usage, EImageUsage::TransferDst ));
 		GCTX_CHECK( AllBits( srcImageDesc.options, EImageOpt::BlitSrc ));
 		GCTX_CHECK( AllBits( dstImageDesc.options, EImageOpt::BlitDst ));
 		GCTX_CHECK( not srcImageDesc.samples.IsEnabled() );
 		GCTX_CHECK( not dstImageDesc.samples.IsEnabled() );
-
-		using EType = PixelFormatInfo::EType;
-		const auto	float_flags	= EType::SFloat | EType::UFloat | EType::UNorm | EType::SNorm;
-
-		GCTX_CHECK( AnyBits( src_fmt.valueType, float_flags )			== AnyBits( dst_fmt.valueType, float_flags ));
-		GCTX_CHECK( AllBits( src_fmt.valueType, EType::Int  )			== AllBits( dst_fmt.valueType, EType::Int  ));
-		GCTX_CHECK( AllBits( src_fmt.valueType, EType::UInt )			== AllBits( dst_fmt.valueType, EType::UInt ));
-		GCTX_CHECK( AnyBits( src_fmt.valueType, EType::DepthStencil )	== AnyBits( dst_fmt.valueType, EType::DepthStencil ));
-
-		if ( AnyBits( src_fmt.valueType, EType::DepthStencil ))
-		{
-			GCTX_CHECK( srcImageDesc.format == dstImageDesc.format );
-			GCTX_CHECK( blitFilter == EBlitFilter::Nearest );
-		}
+		GCTX_CHECK( EPixelFormat_IsBlitSupported( srcImageDesc.format, dstImageDesc.format, blitFilter ));
 
 		//if ( blitFilter == EBlitFilter::Linear )
 		//	GCTX_CHECK( AllBits( srcImageDesc.options, EImageOpt::SampledLinear ));
 
 		for (auto& range : ranges)
 		{
-			const uint3		src_dim	= Max( 1u, srcImageDesc.dimension >> range.srcSubres.mipLevel.Get() );
-			const uint3		dst_dim	= Max( 1u, dstImageDesc.dimension >> range.dstSubres.mipLevel.Get() );
+			const uint3	src_dim = MipmapDimension( srcImageDesc, range.srcSubres.mipLevel );
+			const uint3	dst_dim = MipmapDimension( dstImageDesc, range.dstSubres.mipLevel );
 
 			GCTX_CHECK( All( range.srcOffset0 <= src_dim ));
 			GCTX_CHECK( All( range.srcOffset1 <= src_dim ));
@@ -601,8 +601,8 @@ namespace
 
 		for (auto& range : ranges)
 		{
-			const uint3		src_dim	= Max( 1u, srcImageDesc.dimension >> range.srcSubres.mipLevel.Get() );
-			const uint3		dst_dim	= Max( 1u, dstImageDesc.dimension >> range.dstSubres.mipLevel.Get() );
+			const uint3		src_dim	= MipmapDimension( srcImageDesc, range.srcSubres.mipLevel );
+			const uint3		dst_dim	= MipmapDimension( dstImageDesc, range.dstSubres.mipLevel );
 
 			GCTX_CHECK( All( range.srcOffset < src_dim ));
 			GCTX_CHECK( All( range.srcOffset + range.extent <= src_dim ));
@@ -686,7 +686,7 @@ namespace
 		GCTX_CHECK( stages != Default );
 		GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
 		GCTX_CHECK( AnyBits( stages, EShaderStages::Compute ));
-		GCTX_CHECK( not AnyBits( stages, ~EShaderStages::Compute ));
+		GCTX_CHECK( NoBits( stages, ~EShaderStages::Compute ));
 	}
 # endif
 
@@ -784,7 +784,7 @@ namespace
 		GCTX_CHECK( stages != Default );
 		GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
 		GCTX_CHECK( AnyBits( stages, EShaderStages::AllGraphics ));
-		GCTX_CHECK( not AnyBits( stages, ~EShaderStages::AllGraphics ));
+		GCTX_CHECK( NoBits( stages, ~EShaderStages::AllGraphics ));
 	}
 # endif
 
@@ -1288,7 +1288,20 @@ namespace
 		GCTX_CHECK( FragmentShadingRateSupported() );
 
 	//	GCTX_CHECK( AllBits( dynState, EPipelineDynamicState::FragmentShadingRate ));
-		GCTX_CHECK( not AnyBits( rate, ~uint(EShadingRate::_SizeMask) ));	// only size
+		GCTX_CHECK( NoBits( rate, ~uint(EShadingRate::_SizeMask) ));	// only size
+	}
+
+/*
+=================================================
+	SetViewportWScaling
+=================================================
+*/
+	void  DrawContextValidation::SetViewportWScaling (EPipelineDynamicState dynState, ArrayView<packed_float2> scaling) __Th___
+	{
+		GCTX_CHECK( ViewportWScalingSupported() );
+		//GCTX_CHECK( AllBits( dynState, EPipelineDynamicState::ViewportWScaling ));
+
+		Unused( scaling );	// TODO
 	}
 
 #endif
@@ -1624,7 +1637,7 @@ namespace
 		GCTX_CHECK( stages != Default );
 		GCTX_CHECK_MSG( layout != Default, "pipeline is not bound" );
 		GCTX_CHECK( AnyBits( stages, EShaderStages::AllRayTracing ));
-		GCTX_CHECK( not AnyBits( stages, ~EShaderStages::AllRayTracing ));
+		GCTX_CHECK( NoBits( stages, ~EShaderStages::AllRayTracing ));
 	}
 # endif
 

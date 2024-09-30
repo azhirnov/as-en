@@ -60,9 +60,7 @@ namespace {
 
 		src.push_back( img );
 
-		auto	fmode = UIInteraction::Instance().GetFilterMode();
-
-		return MakeRCTh<ResEditor::Present>( RVRef(src), "Present", dynSize, fmode );
+		return MakeRCTh<ResEditor::Present>( RVRef(src), "Present", dynSize );
 	}
 //-----------------------------------------------------------------------------
 
@@ -161,6 +159,54 @@ namespace {
 		RC<IPass>	ToPass () C_Th_OV
 		{
 			return MakeRCTh<ResEditor::CopyImagePass>( src->ToResource(), dst->ToResource(), "CopyImage" );
+		}
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	//
+	// Blit Image Pass
+	//
+	class ScriptExe::ScriptBlitImage final : public ScriptBasePass
+	{
+	private:
+		ScriptImagePtr		src;
+		ScriptImagePtr		dst;
+
+	public:
+		ScriptBlitImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
+			src{src}, dst{dst} {}
+
+		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
+
+		RC<IPass>	ToPass () C_Th_OV
+		{
+			return MakeRCTh<ResEditor::BlitImagePass>( src->ToResource(), dst->ToResource(), "BlitImage" );
+		}
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	//
+	// Resolve Image Pass
+	//
+	class ScriptExe::ScriptResolveImage final : public ScriptBasePass
+	{
+	private:
+		ScriptImagePtr		src;
+		ScriptImagePtr		dst;
+
+	public:
+		ScriptResolveImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
+			src{src}, dst{dst} {}
+
+		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
+
+		RC<IPass>	ToPass () C_Th_OV
+		{
+			return MakeRCTh<ResEditor::ResolveImagePass>( src->ToResource(), dst->ToResource(), "ResolveImage" );
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -1158,20 +1204,28 @@ namespace {
 		CHECK_THROW_MSG( src );
 		CHECK_THROW_MSG( dst );
 
-		CHECK_THROW_MSG( not src->IsMutableDimension() );
-		CHECK_THROW_MSG( not dst->IsMutableDimension() );
-
-		CHECK_THROW_MSG( All( src->Dimension3() == dst->Dimension3() ));
-		CHECK_THROW_MSG( src->ArrayLayers() == dst->ArrayLayers() );
-		CHECK_THROW_MSG( src->MipmapCount() == dst->MipmapCount() );
-
 		auto&	src_fmt	= EPixelFormat_GetInfo( src->PixelFormat() );
 		auto&	dst_fmt	= EPixelFormat_GetInfo( dstFormat );
 
 		CHECK_THROW_MSG( not src_fmt.IsCompressed() and dst_fmt.IsCompressed() );
-		CHECK_THROW_MSG( dst->PixelFormat() == src->PixelFormat() or dstFormat == dst->PixelFormat() );
 		CHECK_THROW_MSG( src_fmt.IsColor() and dst_fmt.IsColor() );
-		CHECK_THROW_MSG( All( IsMultipleOf( uint2{dst->Dimension2()}, dst_fmt.TexBlockDim() )));
+
+		CHECK_THROW_MSG( src->ArrayLayers() == dst->ArrayLayers() );
+		CHECK_THROW_MSG( src->MipmapCount() == dst->MipmapCount() );
+
+		if ( src->IsMutableDimension() and dst->IsMutableDimension() )
+		{
+			CHECK_THROW_MSG( src->DimensionRC() == dst->DimensionRC() );
+		}
+		else
+		{
+			CHECK_THROW_MSG( not src->IsMutableDimension() );
+			CHECK_THROW_MSG( not dst->IsMutableDimension() );
+			CHECK_THROW_MSG( All( src->Dimension3() == dst->Dimension3() ));
+
+			CHECK_THROW_MSG( All( IsMultipleOf( uint2{dst->Dimension2()}, dst_fmt.TexBlockDim() )));
+			CHECK_THROW_MSG( dst->PixelFormat() == src->PixelFormat() or dstFormat == dst->PixelFormat() );
+		}
 
 		src->AddUsage( EResourceUsage::WillReadback );
 		dst->AddUsage( EResourceUsage::UploadedData );
@@ -1197,6 +1251,40 @@ namespace {
 		CHECK_THROW_MSG( data.passGroup );
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptCopyImage{ src, dst }});
+	}
+
+/*
+=================================================
+	_BlitImage
+=================================================
+*/
+	void  ScriptExe::_BlitImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) __Th___
+	{
+		CHECK_THROW_MSG( src and dst );
+		src->AddUsage( EResourceUsage::Transfer );
+		dst->AddUsage( EResourceUsage::GenMipmaps );
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptBlitImage{ src, dst }});
+	}
+
+/*
+=================================================
+	_ResolveImage
+=================================================
+*/
+	void  ScriptExe::_ResolveImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) __Th___
+	{
+		CHECK_THROW_MSG( src and dst );
+		src->AddUsage( EResourceUsage::Transfer );
+		dst->AddUsage( EResourceUsage::Transfer );
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptResolveImage{ src, dst }});
 	}
 
 /*
@@ -1647,6 +1735,21 @@ namespace {
 
 /*
 =================================================
+	_NormalizeSpectrum
+=================================================
+*/
+	void  ScriptExe::_SpectrumToLinear (INOUT ScriptArray<packed_float4> &wlToRGB) __Th___
+	{
+		for (uint i = 0; i < wlToRGB.size(); ++i)
+		{
+			wlToRGB[i].y = RemoveSRGBCurve( wlToRGB[i].y );
+			wlToRGB[i].z = RemoveSRGBCurve( wlToRGB[i].z );
+			wlToRGB[i].w = RemoveSRGBCurve( wlToRGB[i].w );
+		}
+	}
+
+/*
+=================================================
 	_WhiteColorSpectrum3
 =================================================
 */
@@ -1669,6 +1772,7 @@ namespace {
 		wlToRGB.push_back( float4( 635.f,  1.0f, 0.0f, 0.0f ));
 		wlToRGB.push_back( float4( 720.f,  0.5f, 0.0f, 0.0f ));
 
+		_SpectrumToLinear( INOUT wlToRGB );
 		if ( normalized )
 			_NormalizeSpectrum( INOUT wlToRGB );
 	}
@@ -1689,6 +1793,7 @@ namespace {
 		wlToRGB.push_back( float4( 650.f,  0.9f, 0.0f, 0.00f ));
 		wlToRGB.push_back( float4( 700.f,  0.3f, 0.0f, 0.00f ));
 
+		_SpectrumToLinear( INOUT wlToRGB );
 		if ( normalized )
 			_NormalizeSpectrum( INOUT wlToRGB );
 	}
@@ -1712,6 +1817,7 @@ namespace {
 		wlToRGB.push_back( float4( 650.f,  0.83f, 0.00f, 0.00f ));
 	  #endif
 
+		_SpectrumToLinear( INOUT wlToRGB );
 		if ( normalized )
 			_NormalizeSpectrum( INOUT wlToRGB );
 	}
@@ -1800,6 +1906,7 @@ namespace {
 		CoreBindings::BindStdTypes( se );
 		CoreBindings::BindScalarMath( se );
 		CoreBindings::BindVectorMath( se );
+		CoreBindings::BindQuaternion( se );
 		CoreBindings::BindRect( se );
 		CoreBindings::BindMatrixMath( se );
 		CoreBindings::BindColor( se );
@@ -1898,6 +2005,8 @@ namespace {
 
 		se->AddFunction( &ScriptExe::_GenMipmaps,				"GenMipmaps",				{},		"Pass which generates mipmaps for image." );
 		se->AddFunction( &ScriptExe::_CopyImage,				"CopyImage",				{},		"Pass which copy image content to another image." );
+		se->AddFunction( &ScriptExe::_BlitImage,				"BlitImage",				{},		"Pass which blits image to another image." );
+		se->AddFunction( &ScriptExe::_ResolveImage,				"ResolveImage",				{},		"Pass which resolve multisample image to another single-sampled image." );
 		se->AddFunction( &ScriptExe::_CompressImage,			"CompressImage",			{"src", "dst"},	"Pass which compress image on CPU or GPU." );
 		se->AddFunction( &ScriptExe::_CompressImage2,			"CompressImage",			{"src", "dst", "dstFormat"}, "Pass which compress image on CPU or GPU.\n'dstFormat' may not be supported by current GPU, but may be used for software decoding.\n'dst' image must be compatible with 'dstFormat'." );
 
@@ -1930,7 +2039,7 @@ namespace {
 		se->AddFunction( &ScriptExe::_GetCylinder1,				"GetCylinder",				{"segmentCount", "isInner", "positions", "texcoords", "indices"},			"Returns cylinder" );
 		se->AddFunction( &ScriptExe::_GetCylinder2,				"GetCylinder",				{"segmentCount", "isInner", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cylinder" );
 
-		se->AddFunction( &ScriptExe::_GetSphericalCube1,		"GetSphericalCube",			{"lod", "positions", "indices"},						"Returns spherical cube without projection and rotation" );
+		se->AddFunction( &ScriptExe::_GetSphericalCube1,		"GetSphericalCube",			{"lod", "positions", "indices"},						"Returns spherical cube without projection and face rotation.\nIn 'positions': xy - pos on face, z - face index." );
 
 		se->AddFunction( &ScriptExe::_IndicesToPrimitives,		"IndicesToPrimitives",		{"indices", "primitives"},		"Helper function to convert array of indices to array of uint3 indices per triangle" );
 		se->AddFunction( &ScriptExe::_GetFrustumPlanes,			"GetFrustumPlanes",			{"viewProj", "outPlanes"},		"Helper function to convert matrix to 6 planes of the frustum." );
@@ -1980,10 +2089,10 @@ namespace {
 		se->AddFunction( &ScriptExe::_SliderF3a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
 		se->AddFunction( &ScriptExe::_SliderF4a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
 
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrum3,			"WhiteColorSpectrum3",			{"wavelengthToRGB"},				"Returns array with 3 elements, where x - wavelength in nm, yzw - RGB color." );
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrum7,			"WhiteColorSpectrum7",			{"wavelengthToRGB", "normalized"},	"Returns array with 7 elements, where x - wavelength in nm, yzw - RGB color.\nnormalized - sum of colors will be 1." );
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep100nm,	"WhiteColorSpectrumStep100nm",	{"wavelengthToRGB", "normalized"},	"Returns array 4 elements with visible light spectrum with step 100nm, where x - wavelength in nm, yzw - RGB color.\nnormalized - sum of colors will be 1." );
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep50nm,	"WhiteColorSpectrumStep50nm",	{"wavelengthToRGB", "normalized"},	"Returns array 7 elements with visible light spectrum with step 50nm, where x - wavelength in nm, yzw - RGB color.\nnormalized - sum of colors will be 1." );
+		se->AddFunction( &ScriptExe::_WhiteColorSpectrum3,			"WhiteColorSpectrum3",			{"wavelengthToRGB"},				"Returns array with 3 elements, where x - wavelength in nm, yzw - RGB color in linear space." );
+		se->AddFunction( &ScriptExe::_WhiteColorSpectrum7,			"WhiteColorSpectrum7",			{"wavelengthToRGB", "normalized"},	"Returns array with 7 elements, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
+		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep100nm,	"WhiteColorSpectrumStep100nm",	{"wavelengthToRGB", "normalized"},	"Returns array 4 elements with visible light spectrum with step 100nm, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
+		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep50nm,	"WhiteColorSpectrumStep50nm",	{"wavelengthToRGB", "normalized"},	"Returns array 7 elements with visible light spectrum with step 50nm, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
 
 		se->AddFunction( &ScriptExe::_CM_CubeSC_Forward,		"CM_CubeSC_Forward",		{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on cube." );
 		se->AddFunction( &ScriptExe::_CM_IdentitySC_Forward,	"CM_IdentitySC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using identity projection (normalization)." );
@@ -2432,6 +2541,14 @@ namespace {
 				obj_storage.pplnStorage			= &ppln_storage;
 				obj_storage.shaderFolders		= _GetTempData().cfg.shaderDirs;
 				obj_storage.defaultFeatureSet	= "DefaultFS";
+				obj_storage.defaultShaderDefines = "\n"
+					"AE_LICENSE_MIT\n"
+					"AE_LICENSE_BSD2\n"
+					"AE_LICENSE_BSD3\n"
+					"AE_LICENSE_APACHE_2\n"
+					"AE_LICENSE_UNLICENSE\n"
+					"AE_LICENSE_CC_BY_NC_SA_3\n"
+					"AE_ENABLE_UNKNOWN_LICENSE\n";
 
 				obj_storage.spirvCompiler		= MakeUnique<SpirvCompiler>( _GetTempData().cfg.includeDirs );
 				obj_storage.spirvCompiler->SetDefaultResourceLimits();
@@ -2781,8 +2898,10 @@ namespace {
 	bool  CompareImageTypes (const Graphics::ImageDesc &lhs, const ResLoader::IntermImage &rhs)
 	{
 		const auto	[lhs_t0, lhs_t1]	= GetDescriptorImageTypeRelaxed( lhs );
-		const auto	rhs_t				= GetDescriptorImageTypeRelaxed( rhs.PixelFormat(), rhs.GetType(), false );
-		return lhs_t0 == rhs_t or lhs_t1 == rhs_t;
+		const auto	rhs_t0				= GetDescriptorImageTypeRelaxed( rhs.PixelFormat(), rhs.GetType(), False{"non-MS"}, False{"non-CubeMap"} );
+		const auto	rhs_t1				= GetDescriptorImageTypeRelaxed( rhs.PixelFormat(), rhs.GetType(), False{"non-MS"}, True{"CubeMap"} );
+		return	lhs_t0 == rhs_t0 or lhs_t1 == rhs_t0 or
+				lhs_t0 == rhs_t1 or lhs_t1 == rhs_t1;
 	}
 
 } // AE::ResEditor

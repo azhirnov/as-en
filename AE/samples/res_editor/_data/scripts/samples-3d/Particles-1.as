@@ -135,31 +135,47 @@
 			if ( (i % Mode_Count == Mode_GS) and not Supports_GeometryShader() )
 				continue;
 
-			RC<SceneGraphicsPass>	draw_pass = scenes[i].AddGraphicsPass( "draw" );
-			draw_pass.SetDebugLabel( "draw", RGBA8u(200, 200, 0, 255) );
-			draw_pass.EnableIfEqual( draw_mode, i );
-			draw_pass.Constant( "iSize", particle_size );
+			RC<SceneGraphicsPass>	pass = scenes[i].AddGraphicsPass( "draw" );
+			pass.EnableIfEqual( draw_mode, i );
+			pass.Constant( "iSize", particle_size );
 			switch ( i )
 			{
 				case Mode_GS :
-					draw_pass.AddPipeline( "particles/Rays-gs.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-gs.as)
+					pass.SetDebugLabel( "Rays, GS", RGBA8u(200, 200, 0, 255) );
+					pass.AddPipeline( "particles/Rays-gs.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-gs.as)
+					break;
+
 				case Mode_GS + Mode_Count :
-					draw_pass.AddPipeline( "particles/Dots-gs.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-gs.as)
+					pass.SetDebugLabel( "Dots, GS", RGBA8u(200, 200, 0, 255) );
+					pass.AddPipeline( "particles/Dots-gs.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-gs.as)
+					break;
+
 				case Mode_Instancing :
-					draw_pass.AddPipeline( "particles/Rays-i.as" );		break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-i.as)
+					pass.SetDebugLabel( "Rays, instancing", RGBA8u(200, 200, 0, 255) );
+					pass.AddPipeline( "particles/Rays-i.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-i.as)
+					break;
+
 				case Mode_Instancing + Mode_Count :
-					draw_pass.AddPipeline( "particles/Dots-i.as" );		break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-i.as)
+					pass.SetDebugLabel( "Dots, instancing", RGBA8u(200, 200, 0, 255) );
+					pass.AddPipeline( "particles/Dots-i.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-i.as)
+					break;
+
 				case Mode_TriList :
-					draw_pass.AddPipeline( "particles/Rays-tl.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-tl.as)
+					pass.SetDebugLabel( "Rays, trilist", RGBA8u(200, 200, 0, 255) );
+					pass.AddPipeline( "particles/Rays-tl.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-tl.as)
+					break;
+
 				case Mode_TriList + Mode_Count :
-					draw_pass.AddPipeline( "particles/Dots-tl.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-tl.as)
+					pass.SetDebugLabel( "Dots, trilist", RGBA8u(200, 200, 0, 255) );
+					pass.AddPipeline( "particles/Dots-tl.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-tl.as)
+					break;
 
 			//	case Mode_MS :
-			//		draw_pass.AddPipeline( "particles/Rays-ms.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-ms.as)
+			//		pass.AddPipeline( "particles/Rays-ms.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-ms.as)
 			//	case Mode_MS + Mode_Count :
-			//		draw_pass.AddPipeline( "particles/Dots-ms.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-ms.as)
+			//		pass.AddPipeline( "particles/Dots-ms.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-ms.as)
 			}
-			draw_pass.Output( "out_Color", rt, RGBA32f(0.0) );
+			pass.Output( "out_Color", rt, RGBA32f(0.0) );
 		}
 		Present( rt );
 	}

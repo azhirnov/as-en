@@ -521,6 +521,23 @@ namespace {
 		}
 	}
 
+/*
+=================================================
+	native_SendBatteryStat
+=================================================
+*/
+	void JNICALL  WindowAndroid::native_SendBatteryStat1 (JNIEnv*, jclass,
+														  float current, float capacity, float energy) __NE___
+	{
+		PerformanceStat::_SetBatteryStat1( current, capacity, energy );
+	}
+
+	void JNICALL  WindowAndroid::native_SendBatteryStat2 (JNIEnv*, jclass,
+														  float level, float temperature, float voltage, jboolean isCharging) __NE___
+	{
+		PerformanceStat::_SetBatteryStat2( level, temperature, voltage, isCharging );
+	}
+
 
 } // AE::App
 

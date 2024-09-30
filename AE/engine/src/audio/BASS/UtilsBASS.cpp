@@ -152,6 +152,144 @@ namespace
 		bassEncLib.Unload();
 		bassLib.Unload();
 	}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	Decode
+=================================================
+*
+	bool  AudioDevice::Decode (RStream &stream, OUT RawSoundData &result) __NE___
+	{
+		ubyte	buffer [_BufferSize];
+		return Decode( TempBuffer_t{ buffer, Bytes{_BufferSize} }, stream, OUT result );
+	}
+
+	bool  AudioDevice::Decode (const TempBuffer_t &buffer, RStream &stream, OUT RawSoundData &result) __NE___
+	{
+		CHECK_ERR( _initialized );
+		CHECK_ERR( stream.IsOpen() );
+		CHECK_ERR( buffer.ptr != null and buffer.size <= _LengthMask );
+
+		BASS_FILEPROCS	file_procs	= { &StreamWrap::Close, &StreamWrap::Length, &StreamWrap::Read, &StreamWrap::Seek };
+		HSTREAM			bass_stream	= bass.StreamCreateFileUser( STREAMFILE_NOBUFFER, BASS_STREAM_DECODE, &file_procs, &stream );
+		CHECK_ERR( bass_stream != 0 );
+
+		ON_DESTROY( [&bass_stream] { bass.StreamFree( bass_stream ); });
+
+		BASS_CHANNELINFO	info = {};
+		CHECK_ERR( bass.ChannelGetInfo( bass_stream, OUT &info ) == TRUE );
+
+		float		bitrate = 0.0f;
+		CHECK_ERR( bass.ChannelGetAttribute( bass_stream, BASS_ATTRIB_BITRATE, OUT &bitrate ) == TRUE );
+
+		QWORD		length = bass.ChannelGetLength( bass_stream, BASS_POS_BYTE );
+		CHECK_ERR( length != UMax );
+
+		result.channels	= info.chans;
+		result.freq		= Frequency_t(info.freq);
+		result.duration	= secondsf{ bass.ChannelBytes2Seconds( bass_stream, length )};
+		result.bitrate	= Bitrate_t{bitrate};
+		result.format	= ESampleFormat::UInt16;
+		result.buffer.resize( length );
+
+		usize	offset = 0;
+		for (; bass.ChannelIsActive( bass_stream );)
+		{
+			QWORD	pos  = bass.ChannelGetPosition( bass_stream, BASS_POS_BYTE );
+			DWORD	size = bass.ChannelGetData( bass_stream, OUT buffer.ptr, (DWORD(buffer.size) & _LengthMask) | BASS_DATA_AVAILABLE );
+
+			if ( size == UMax )
+				BASS_CheckError();
+
+			CHECK_ERR( offset == pos );
+			CHECK_ERR( pos + size <= result.buffer.size() );
+
+			MemCopy( OUT result.buffer.data() + Bytes{pos}, buffer.ptr, Bytes{size} );
+			offset = pos + size;
+		}
+
+		CHECK_ERR( offset == result.buffer.size() );
+		return true;
+	}
+
+/*
+=================================================
+	Encode
+=================================================
+*
+	bool  AudioDevice::Encode (RStream &inStream, WStream &outStream, EAudioFormat outputFormat, EAudioQuality quality) __NE___
+	{
+		ubyte	buffer [_BufferSize];
+		return Encode( TempBuffer_t{ buffer, Bytes{_BufferSize} }, inStream, outStream, outputFormat, quality );
+	}
+
+	bool  AudioDevice::Encode (const TempBuffer_t &buffer, RStream &inStream, WStream &outStream, EAudioFormat outputFormat, EAudioQuality quality) __NE___
+	{
+		CHECK_ERR( inStream.IsOpen() );
+		CHECK_ERR( outStream.IsOpen() );
+		CHECK_ERR( buffer.ptr != null and buffer.size <= _LengthMask );
+
+		BASS_FILEPROCS	file_procs	= { &StreamWrap::Close, &StreamWrap::Length, &StreamWrap::Read, &StreamWrap::Seek };
+		HSTREAM			bass_stream	= bass.StreamCreateFileUser( STREAMFILE_NOBUFFER, BASS_STREAM_DECODE, &file_procs, &inStream );
+		HENCODE			bass_enc	= 0;
+		CHECK_ERR( bass_stream != 0 );
+
+		ON_DESTROY( [&bass_stream] { bass.StreamFree( bass_stream ); });
+
+		float	bitrate = 0.0f;
+		CHECK_ERR( bass.ChannelGetAttribute( bass_stream, BASS_ATTRIB_BITRATE, OUT &bitrate ) == TRUE );
+
+		//float	freq = 0.0f;
+		//bass.ChannelGetAttribute( bass_stream, BASS_ATTRIB_FREQ, OUT &freq );
+
+		switch_enum( outputFormat )
+		{
+			case EAudioFormat::OGG :
+			{
+				int		qual = 3;
+				switch ( quality )
+				{
+					case EAudioQuality::Highest :	qual = 10;	break;
+					case EAudioQuality::High :		qual = 7;	break;
+					case EAudioQuality::Medium :	qual = 5;	break;
+					case EAudioQuality::Low :		qual = 3;	break;
+					case EAudioQuality::Lowest :	qual = -1;	break;
+				}
+
+				String	options;
+				options << " --bitrate "s << ToString(uint(bitrate));					// in Kb/s
+				options << " --max-bitrate "s << ToString(Max( 320u, uint(bitrate) ));	// in Kb/s
+				options << " --quality " << ToString(qual);								// in range -1..10
+				//options << " --resample " << ToString(uint(freq));					// in Hz
+				AE_LOG_DBG( "BASS OGG encoder options: "s << options );
+
+				bass_enc = bass.Encode_OGG_Start( bass_stream, options.c_str(), 0, StreamWrap::Encode, &outStream );
+				CHECK_ERR( bass_enc != 0 );
+				break;
+			}
+			case EAudioFormat::RAW :
+			default :
+				RETURN_ERR( "unknown output format" );
+		}
+		switch_end
+
+		for (; bass.ChannelIsActive( bass_stream );)
+		{
+			DWORD	err = bass.ChannelGetData( bass_stream, OUT buffer.ptr, (DWORD(buffer.size) & _LengthMask) | BASS_DATA_AVAILABLE );
+
+			if ( err == UMax )
+				BASS_CheckError();
+
+			CHECK_ERR( bass.Encode_IsActive( bass_stream ));
+		}
+
+		CHECK_ERR( bass.Encode_Stop( bass_stream ));
+
+		return true;
+	}
+*/
 
 } // AE::Audio
 
