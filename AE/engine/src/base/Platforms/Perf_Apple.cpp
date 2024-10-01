@@ -40,7 +40,7 @@ namespace AE::Base
 	GetPerfCounters
 =================================================
 */
-	bool  PerformanceStat::GetPerfCounters (OUT PerProcessCounters &, OUT PerThreadCounters &) __NE___
+	bool  PerformanceStat::GetPerfCounters (OUT PerProcessCounters*, OUT PerThreadCounters*, OUT MemoryCounters *) __NE___
 	{
 		return false;
 	}

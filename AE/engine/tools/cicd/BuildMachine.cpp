@@ -550,7 +550,7 @@ namespace AE::CICD
 
 		String	cmd = "unzip \"";
 		cmd << ToString(zip);
-		cmd < "\" -d \"";
+		cmd << "\" -d \"";
 		cmd << ToString(dir);
 		cmd << "\"";
 

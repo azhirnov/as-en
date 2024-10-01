@@ -371,7 +371,7 @@ namespace AE::ResEditor
 			binder.AddMethod( &ScriptSceneGraphicsPass::SetFragmentShadingRate,	"FragmentShadingRate",	{"rate", "primitiveOp", "textureOp"} );
 
 			binder.Comment( "Can be used only if pass hasn't attachments." );
-			binder.AddMethod( &ScriptBasePass::_SetDynamicDimension,	"SetDimension",	{} );
+			binder.AddMethod( &ScriptSceneGraphicsPass::_SetDynamicDimension2,	"SetDimension",			{} );
 		}
 	}
 

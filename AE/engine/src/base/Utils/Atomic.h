@@ -148,7 +148,7 @@ namespace AE::Base
 
 	private:
 		template <typename From>
-		ND_ static forceinline InternalType&  _Ref (From &src) __NE___
+		Nd__IF static InternalType&  _Ref (From &src)			__NE___
 		{
 			if constexpr( IsSameTypes< InternalType, From >)
 				return src;
@@ -232,11 +232,11 @@ namespace AE::Base
 		}
 
 	private:
-		ND_ static forceinline IT	_Cast (const T &value)				__NE___ { return BitCast<IT>( value ); }
-		ND_ static forceinline T	_Cast (const IT &value)				__NE___ { return BitCast<T>( value ); }
+		Nd__IF static IT	_Cast (const T &value)						__NE___ { return BitCast<IT>( value ); }
+		Nd__IF static T		_Cast (const IT &value)						__NE___ { return BitCast<T>( value ); }
 
-		ND_ static forceinline T&	_Ref (IT &value)					__NE___ { return reinterpret_cast< T &>( value ); }
-		ND_ static forceinline IT&	_Ref (T &value)						__NE___ { return reinterpret_cast< IT &>( value ); }
+		Nd__IF static T&	_Ref (IT &value)							__NE___ { return reinterpret_cast< T &>( value ); }
+		Nd__IF static IT&	_Ref (T &value)								__NE___ { return reinterpret_cast< IT &>( value ); }
 	};
 //-----------------------------------------------------------------------------
 
@@ -368,7 +368,7 @@ namespace AE::Base
 		ND_ T		GetFirstZeroBit ()										C_NE___	{ return Load().GetFirstZeroBit(); }
 
 	private:
-		ND_ static forceinline T  _Range (usize first, usize count)			__NE___	{ ASSERT( first < _BitCount );  ASSERT( first+count <= _BitCount );  return ToBitMask<T>( count ) << first; }
+		Nd__IF static T  _Range (usize first, usize count)					__NE___	{ ASSERT( first < _BitCount );  ASSERT( first+count <= _BitCount );  return ToBitMask<T>( count ) << first; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -472,9 +472,9 @@ namespace AE::Base
 		}
 
 	private:
-		ND_ static forceinline IT	_Cast (const T &value)	__NE___ { return BitCast<IT>( value ); }
-		ND_ static forceinline T	_Cast (const IT &value)	__NE___ { return BitCast<T>( value ); }
-		ND_ static forceinline IT&	_Ref (T &value)			__NE___ { return reinterpret_cast<IT &>( value ); }
+		Nd__IF static IT	_Cast (const T &value)			__NE___ { return BitCast<IT>( value ); }
+		Nd__IF static T		_Cast (const IT &value)			__NE___ { return BitCast<T>( value ); }
+		Nd__IF static IT&	_Ref (T &value)					__NE___ { return reinterpret_cast<IT &>( value ); }
 	};
 //-----------------------------------------------------------------------------
 

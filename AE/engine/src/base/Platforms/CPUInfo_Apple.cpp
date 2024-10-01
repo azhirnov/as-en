@@ -152,6 +152,16 @@ namespace AE::Base
 			feats.SSE2	= true;		// always supported
 		}
 
+		// get cache hierarhy
+		{
+			uint	cache_line		= ReadUInt("hw.cachelinesize");
+			CHECK( cache_line == AE_CACHE_LINE );
+
+			cache.L1_Inst.size		= Bytes32u{ReadUInt("hw.l1icachesize")};
+			cache.L1_Data.size		= Bytes32u{ReadUInt("hw.l1dcachesize")};
+			cache.L2.size			= Bytes32u{ReadUInt("hw.l2cachesize")};
+		}
+
 		_Validate();
 	}
 

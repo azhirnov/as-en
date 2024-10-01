@@ -748,19 +748,19 @@ namespace AE::ResEditor
 	packed_float3  ScriptExe::_CM_CubeSC_Forward (const packed_float3 &c)
 	{
 		using namespace AE::GeometryTools;
-		return packed_float3{ SCProj2_Cube< SCProj1_Identity >::Forward( double2{c.x, c.y}, ECubeFace(c.z) )};
+		return packed_float3{ SCProj2_Cube< SCProj1_Identity >::Forward( double2{float2{c.x, c.y}}, ECubeFace(c.z) )};
 	}
 
 	packed_float3  ScriptExe::_CM_IdentitySC_Forward (const packed_float3 &c)
 	{
 		using namespace AE::GeometryTools;
-		return packed_float3{ SCProj2_Spherical< SCProj1_Identity >::Forward( double2{c.x, c.y}, ECubeFace(c.z) )};
+		return packed_float3{ SCProj2_Spherical< SCProj1_Identity >::Forward( double2{float2{c.x, c.y}}, ECubeFace(c.z) )};
 	}
 
 	packed_float3  ScriptExe::_CM_TangentialSC_Forward (const packed_float3 &c)
 	{
 		using namespace AE::GeometryTools;
-		return packed_float3{ SCProj2_Spherical< SCProj1_Tangential >::Forward( double2{c.x, c.y}, ECubeFace(c.z) )};
+		return packed_float3{ SCProj2_Spherical< SCProj1_Tangential >::Forward( double2{float2{c.x, c.y}}, ECubeFace(c.z) )};
 	}
 
 

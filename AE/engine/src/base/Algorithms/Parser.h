@@ -64,7 +64,8 @@ namespace AE::Base
 
 			ND_ static bool  IsNumberBegin (char c)	__NE___;
 			ND_ static bool  IsNumber (char c)		__NE___;
-		}	CPP;
+
+		}	CPP = {};
 	};
 
 

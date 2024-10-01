@@ -495,7 +495,7 @@ namespace
 	  #if defined(AE_ENABLE_VULKAN)
 		Graphics::VDeviceInitializer		_device;
 		Graphics::VSwapchainInitializer		_swapchain;
-		Graphics::VulkanSyncLog				_syncLog;
+		//Graphics::VulkanSyncLog			_syncLog;
 
 	  #elif defined(AE_ENABLE_METAL)
 		Graphics::MDeviceInitializer		_device;

@@ -56,6 +56,8 @@ namespace AE::ResEditor
 									 EPipelineOpt pplnOpt)												C_Th___;
 
 		ND_ static auto  _CreateUBType ()																__Th___;
+		
+		void  _SetDynamicDimension2 (const ScriptDynamicDimPtr &value)									__Th___	{ ScriptBasePass::_SetDynamicDimension( value ); }
 
 	// ScriptBasePass //
 		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)											C_Th_OV;

@@ -111,7 +111,7 @@ namespace
 			binder.AddFactoryCtor( &ScriptPostprocess_Ctor5,	{"shaderPath", "defines"} );
 
 			binder.Comment( "Can be used only if pass hasn't attachments." );
-			binder.AddMethod( &ScriptBasePass::_SetDynamicDimension,	"SetDimension",	{} );
+			binder.AddMethod( &ScriptPostprocess::_SetDynamicDimension2,	"SetDimension",	{} );
 		}
 	}
 

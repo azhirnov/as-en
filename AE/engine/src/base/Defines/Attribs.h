@@ -50,22 +50,22 @@
 
 
 // function prefix attribs
-#define __Cx__			constexpr
-#define	__CxIn			constexpr		inline
-#define	__CxIF			constexpr		forceinline
-#define	__CxIA			constexpr		AE_FLATTEN_FN forceinline
+#define __Cx__											constexpr
+#define	__CxIn							inline			constexpr
+#define	__CxIF							forceinline		constexpr
+#define	__CxIA			AE_FLATTEN_FN	forceinline		constexpr
 #define	____In							inline
 #define	____IF							forceinline
-#define	____IA							AE_FLATTEN_FN forceinline
-#define NdCx__		ND_	constexpr
-#define	NdCxIn		ND_	constexpr		inline
-#define	NdCxIF		ND_	constexpr		forceinline
-#define	NdCxIA		ND_	constexpr		AE_FLATTEN_FN forceinline
+#define	____IA			AE_FLATTEN_FN	forceinline
+#define NdCx__		ND_									constexpr
+#define	NdCxIn		ND_					inline			constexpr
+#define	NdCxIF		ND_					forceinline		constexpr
+#define	NdCxIA		ND_	AE_FLATTEN_FN	forceinline		constexpr
 #define	Nd__In		ND_					inline
 #define	Nd__IF		ND_					forceinline
-#define	Nd__IA		ND_					AE_FLATTEN_FN forceinline
-#define __Cv__			cxx20_consteval
-#define NdCv__		ND_	cxx20_consteval
+#define	Nd__IA		ND_	AE_FLATTEN_FN	forceinline
+#define __Cv__											cxx20_consteval
+#define NdCv__		ND_									cxx20_consteval
 
 
 // has attribute (C++20)
@@ -116,12 +116,12 @@
 # if defined(AE_CFG_DEBUG)
 #	define forceinline			inline
 
-# elif defined(AE_COMPILER_MSVC)
+# elif defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
 #	define forceinline			__forceinline
 
-# elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
+# elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG_CL)
 #  if AE_HAS_ATTRIB( gnu::always_inline )
-#	define forceinline			[[gnu::always_inline]]
+#	define forceinline			[[gnu::always_inline]] inline
 #  else
 #	define forceinline			__inline__ __attribute__((__always_inline__))
 #  endif
@@ -335,11 +335,9 @@
 # endif
 #endif
 #if defined(AE_COMPILER_GCC)
-# if AE_HAS_ATTRIB( gnu::flatten ) and AE_HAS_ATTRIB( gnu::always_inline )
-#	define AE_INLINE_ALL	[[gnu::flatten]]
-#	define AE_INLINE_CALLS	[[gnu::always_inline]]
+#	define AE_INLINE_ALL	//[[gnu::flatten]]
+#	define AE_INLINE_CALLS	//[[gnu::always_inline]]
 #	define AE_FLATTEN_FN	__attribute__((flatten))
-# endif
 #endif
 #ifndef AE_INLINE_ALL
 #	define AE_INLINE_ALL

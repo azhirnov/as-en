@@ -14,37 +14,39 @@ namespace
 	QuatCtor
 =================================================
 */
-	template <typename Q>
+	template <typename T>
 	struct QuatCtor
 	{
 	private:
-		using T			= typename Q::Value_t;
+		using Quat_t	= TQuat< T, GLMPackedQualifier >;
 		using Vec4_t	= PackedVec< T, 4 >;
 
 
 		static void  _Ctor3 (void* mem, T w, T x, T y, T z)
 		{
-			PlacementNew< Q >( OUT mem, w, x, y, z );
+			PlacementNew< Quat_t >( OUT mem, w, x, y, z );
 		}
 
 
-		static void  _V4Ctor (void* mem, const Q &q)
+		static void  _V4Ctor (void* mem, const Quat_t &q)
 		{
 			PlacementNew< Vec4_t >( OUT mem, q.x, q.y, q.z, q.w );
 		}
 
 
 	public:
-		static void  Bind (ClassBinder<Q> &binder, ClassBinder<Vec4_t> &binder2)
+		static void  Bind (ClassBinder<Quat_t> &binder, ClassBinder<Vec4_t> &binder2)
 		{
+			using Field_t = T (Quat_t::*);
+
 			binder.CreateClassValue();
 
 			binder.AddConstructor( &_Ctor3,	{"w", "x", "y", "z"} );
 
-			binder.AddProperty( &Q::x, "x" );
-			binder.AddProperty( &Q::y, "y" );
-			binder.AddProperty( &Q::z, "z" );
-			binder.AddProperty( &Q::w, "w" );
+			binder.AddProperty( BitCast<Field_t>( &Quat_t::x ), "x" );
+			binder.AddProperty( BitCast<Field_t>( &Quat_t::y ), "y" );
+			binder.AddProperty( BitCast<Field_t>( &Quat_t::z ), "z" );
+			binder.AddProperty( BitCast<Field_t>( &Quat_t::w ), "w" );
 
 			binder2.AddConstructor( &_V4Ctor, {"quat"} );
 		}
@@ -144,12 +146,14 @@ namespace
 		template <typename T, usize Index>
 		void  operator () ()
 		{
-			using Vec4_t = PackedVec< typename T::Value_t, 4 >;
+			using Value_t	= typename T::Value_t;
+			using Quat_t	= T;
+			using Vec4_t	= PackedVec< Value_t, 4 >;
 
-			ClassBinder<T>		binder	{ _se };
-			ClassBinder<Vec4_t>	binder2	{ _se };
+			ClassBinder<Quat_t>		binder	{ _se };
+			ClassBinder<Vec4_t>		binder2	{ _se };
 
-			QuatCtor<T>::Bind( binder, binder2 );
+			QuatCtor<Value_t>::Bind( binder, binder2 );
 
 			BindFloatQuat( binder, _se );
 		}

@@ -102,7 +102,7 @@ namespace AE::Profiler
 			if ( auto msg = _msgProducer->CreateMsg< CSMsg_GenProf_CpuCluster >( StringSizeOf(src.name) ))
 			{
 				msg->idx			= ubyte(idx);
-				msg->logicalCores	= src.logicalCores.to_ulong();
+				msg->logicalCores	= uint(src.logicalCores.to_ulong());
 
 				msg.Put( &CSMsg_GenProf_CpuCluster::name, &CSMsg_GenProf_CpuCluster::length, StringView{src.name} );
 

@@ -360,7 +360,7 @@ namespace
 					CHECK( not is_sp_input or is_sp_input == AllBits( desc.usage, EImageUsage::InputAttachment ));
 
 					Unused( img_type );
-					CHECK_ERR_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),
+					ASSERT_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),
 						"image view '"s << view->GetDebugName() << "' with type (" << ToString( img_type ) <<
 						") is not compatible with sampler '" << name.GetName() << "' type (" << ToString( un->image.type ) << ")" );
 				)
@@ -480,7 +480,7 @@ namespace
 					CHECK( AllBits( desc.usage, EImageUsage::Sampled ));
 
 					Unused( img_type );
-					CHECK_ERR_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),
+					ASSERT_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),
 						"image view '"s << view->GetDebugName() << "' with type " << ToString( img_type ) <<
 						" is not compatible with sampler '" << name.GetName() << "' type " << ToString( un->image.type ));
 				)
@@ -897,7 +897,7 @@ namespace
 					CHECK( not is_storage or is_storage == AllBits( desc.usage, EBufferUsage::StorageTexel ));
 
 					Unused( img_type );
-					CHECK_ERR_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->texelBuffer.type ),
+					ASSERT_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->texelBuffer.type ),
 						"buffer view '"s << view->GetDebugName() << "' with type " << ToString( img_type ) <<
 						" is not compatible with sampler '" << name.GetName() << "' type " << ToString( un->texelBuffer.type ));
 				)
