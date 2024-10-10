@@ -18,6 +18,7 @@
 		RC<DynamicUInt2>	tex_pot	= DynamicUInt2();
 		RC<DynamicDim>		tex_dim	= tex_pot.PowOf2().Dimension();
 		RC<DynamicUInt>		gen_tex	= DynamicUInt();
+		RC<DynamicUInt>		linear	= DynamicUInt();
 
 		RC<Image>			rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
 		RC<Image>			tex		= Image( EPixelFormat::RGBA8_UNorm, tex_dim );			tex.Name( "Texture" );
@@ -28,6 +29,7 @@
 		Slider( step,		"UVStep",	0,			3,			0 );
 		Slider( scale,		"Scale",	0.f,		4.f,		1.f );
 		Slider( hash,		"Hash",		0.1f,		2.f,		1.f );
+		Slider( linear,		"Linear",	0,			1,			1 );
 
 		// render loop
 		{
@@ -39,6 +41,17 @@
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "TEST_TEX_CACHE" );
 			pass.ArgOut( "un_OutImage",	rt );
+			pass.ArgIn( "un_Texture",	tex,	Sampler_NearestRepeat );
+			pass.Constant( "iScale",	scale );
+			pass.Constant( "iHash",		hash );
+			pass.Constant( "iStep",		step );
+			pass.LocalSize( 8, 8 );
+			pass.DispatchThreads( rt.Dimension() );
+			pass.Repeat( count );
+			pass.EnableIfEqual( linear, 0 );
+		}{
+			RC<ComputePass>		pass = ComputePass( "", "TEST_TEX_CACHE" );
+			pass.ArgOut( "un_OutImage",	rt );
 			pass.ArgIn( "un_Texture",	tex,	Sampler_LinearRepeat );
 			pass.Constant( "iScale",	scale );
 			pass.Constant( "iHash",		hash );
@@ -46,6 +59,7 @@
 			pass.LocalSize( 8, 8 );
 			pass.DispatchThreads( rt.Dimension() );
 			pass.Repeat( count );
+			pass.EnableIfEqual( linear, 1 );
 		}
 
 	//	Present( rt );

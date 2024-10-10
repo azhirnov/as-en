@@ -957,10 +957,10 @@ namespace
 				graph.SetName( "warps" );
 				graph.SetLabel( "non-frag",	 0 );
 				graph.SetLabel( "frag",		 1 );
-				graph.SetLabel( "full quad", 2 );
+				graph.SetLabel( "full",		 2 );
 				graph.SetLabel( "all reg",	 3 );
 				graph.SetColor( style4 );
-				graph.SetDescription( "Number of non-fragment warps, fragment warps, full quad warps, warps using more than 32 registers." );
+				graph.SetDescription( "Number of non-fragment warps, fragment warps, full warps, warps using more than 32 registers." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_AllRegWarpRate );
 				graph.SetCapacity( capacity );

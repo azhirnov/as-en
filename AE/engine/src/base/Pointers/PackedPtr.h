@@ -63,7 +63,7 @@ namespace AE::Base
 			void		Ptr (T* value)					__NE___;
 
 		ND_ usize		Extra ()						C_NE___	{ return _value >> _PtrBits; }
-			void		Extra (usize value)				__NE___;
+			void		SetExtra (usize value)			__NE___;
 
 		ND_ static constexpr usize		ExtraBits ()	__NE___	{ return _ExtraBits; }
 		ND_ static constexpr usize		ExtraMax ()		__NE___	{ return _ExtraMax; }
@@ -91,13 +91,14 @@ namespace AE::Base
 
 /*
 =================================================
-	Extra
+	SetExtra
 =================================================
 */
 	template <typename T, usize A>
-	void  PackedPtr<T,A>::Extra (usize value) __NE___
+	void  PackedPtr<T,A>::SetExtra (usize value) __NE___
 	{
 		ASSERT( value <= _ExtraMax );
+		StaticAssert( _ExtraMax > 0 );
 
 		_value &= ~_PtrMask;	// remove extra
 		_value |= value << _PtrBits;

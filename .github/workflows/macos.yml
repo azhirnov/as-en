@@ -19,7 +19,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/D8CH8QhYzxYB6w"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/eP2spVG3SkgDcQ"
         unzip external.zip
       
     - name: Configure CMake

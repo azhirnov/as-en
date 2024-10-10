@@ -163,8 +163,8 @@ namespace AE::Threading
 
 		// try to start task
 		EStatus		status = task->Status();
-		if_likely( ((status == EStatus::Pending) &
-					(canceled == 0))			and
+		if_likely( status == EStatus::Pending	and
+				   canceled == 0				and
 				   task->_status.CAS_Loop( INOUT status, EStatus::InProgress ))
 		{
 			return false;	// stop search

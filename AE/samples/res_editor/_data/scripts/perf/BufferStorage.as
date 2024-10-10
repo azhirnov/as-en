@@ -17,6 +17,7 @@
 		RC<DynamicUInt>		tex_dim		= DynamicUInt();
 		RC<DynamicDim>		dim			= tex_dim.Mul( 1024 ).Dimension2();
 		const uint2			local		= uint2(8);
+		const uint2			local2		= uint2(16);
 
 		RC<Buffer>			buf16		= Buffer();
 		RC<Buffer>			buf32		= Buffer();
@@ -53,7 +54,7 @@
 			buf128_size );
 		
 		Slider( tex_dim,	"TexDim",		1,	8,	2 );
-		Slider( mode,		"Mode",			0,	3	);
+		Slider( mode,		"Mode",			0,	11	);
 		Slider( count,		"Repeat",		1,	32	);
 		Slider( gen_tex,	"GenTex",		0,	1,  1 );
 
@@ -73,29 +74,89 @@
 			RC<ComputePass>		pass = ComputePass( "", "MODE=0" );
 			pass.ArgInOut( "un_Buffer",	buf16 );
 			pass.LocalSize( local.x*local.y );
-			pass.DispatchThreads( buf16_size );
+			pass.DispatchThreads( dim );
 			pass.EnableIfEqual( mode, 0 );
 			pass.Repeat( count );
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "MODE=1" );
 			pass.ArgInOut( "un_Buffer",	buf32 );
 			pass.LocalSize( local.x*local.y );
-			pass.DispatchThreads( buf32_size );
+			pass.DispatchThreads( dim.Div(int2(1,2)) );
 			pass.EnableIfEqual( mode, 1 );
 			pass.Repeat( count );
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "MODE=2" );
 			pass.ArgInOut( "un_Buffer",	buf64 );
 			pass.LocalSize( local.x*local.y );
-			pass.DispatchThreads( buf64_size );
+			pass.DispatchThreads( dim.Div(int2(1,4)) );
 			pass.EnableIfEqual( mode, 2 );
 			pass.Repeat( count );
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "MODE=3" );
 			pass.ArgInOut( "un_Buffer",	buf128 );
 			pass.LocalSize( local.x*local.y );
-			pass.DispatchThreads( buf128_size );
+			pass.DispatchThreads( dim.Div(int2(1,8)) );
 			pass.EnableIfEqual( mode, 3 );
+			pass.Repeat( count );
+		}
+		//--------------------
+		{
+			RC<ComputePass>		pass = ComputePass( "", "MODE=0" );
+			pass.ArgInOut( "un_Buffer",	buf16 );
+			pass.LocalSize( local );
+			pass.DispatchThreads( dim );
+			pass.EnableIfEqual( mode, 4 );
+			pass.Repeat( count );
+		}{
+			RC<ComputePass>		pass = ComputePass( "", "MODE=1" );
+			pass.ArgInOut( "un_Buffer",	buf32 );
+			pass.LocalSize( local );
+			pass.DispatchThreads( dim.Div(int2(1,2)) );
+			pass.EnableIfEqual( mode, 5 );
+			pass.Repeat( count );
+		}{
+			RC<ComputePass>		pass = ComputePass( "", "MODE=2" );
+			pass.ArgInOut( "un_Buffer",	buf64 );
+			pass.LocalSize( local );
+			pass.DispatchThreads( dim.Div(int2(1,4)) );
+			pass.EnableIfEqual( mode, 6 );
+			pass.Repeat( count );
+		}{
+			RC<ComputePass>		pass = ComputePass( "", "MODE=3" );
+			pass.ArgInOut( "un_Buffer",	buf128 );
+			pass.LocalSize( local );
+			pass.DispatchThreads( dim.Div(int2(1,8)) );
+			pass.EnableIfEqual( mode, 7 );
+			pass.Repeat( count );
+		}
+		//--------------------
+		{
+			RC<ComputePass>		pass = ComputePass( "", "MODE=0" );
+			pass.ArgInOut( "un_Buffer",	buf16 );
+			pass.LocalSize( local2 );
+			pass.DispatchThreads( dim );
+			pass.EnableIfEqual( mode, 8 );
+			pass.Repeat( count );
+		}{
+			RC<ComputePass>		pass = ComputePass( "", "MODE=1" );
+			pass.ArgInOut( "un_Buffer",	buf32 );
+			pass.LocalSize( local2 );
+			pass.DispatchThreads( dim.Div(int2(1,2)) );
+			pass.EnableIfEqual( mode, 9 );
+			pass.Repeat( count );
+		}{
+			RC<ComputePass>		pass = ComputePass( "", "MODE=2" );
+			pass.ArgInOut( "un_Buffer",	buf64 );
+			pass.LocalSize( local2 );
+			pass.DispatchThreads( dim.Div(int2(1,4)) );
+			pass.EnableIfEqual( mode, 10 );
+			pass.Repeat( count );
+		}{
+			RC<ComputePass>		pass = ComputePass( "", "MODE=3" );
+			pass.ArgInOut( "un_Buffer",	buf128 );
+			pass.LocalSize( local2 );
+			pass.DispatchThreads( dim.Div(int2(1,8)) );
+			pass.EnableIfEqual( mode, 11 );
 			pass.Repeat( count );
 		}
 	}

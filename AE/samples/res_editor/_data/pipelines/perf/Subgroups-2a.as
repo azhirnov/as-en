@@ -103,7 +103,7 @@
 	float4  HelperInvocationCount ()
 	{
 		uint i = HelperInvocationCountPerQuad();
-		return Rainbow( float(i) / 3.0 );
+		return Rainbow( float(i) / 4.0 );
 	}
 
 	float4  FullQuad ()
@@ -125,14 +125,30 @@
 
 	void  Main ()
 	{
+		#define MODE	0
+
+		#if MODE == 0
+			out_Color = float4(0.0);
+
+		#elif MODE == 1
+			float	dx = gl.dFdxFine( (gl_FragCoord.x + 2.2) * gl_FragCoord.y );
+			out_Color = float4(dx * 0.0001);
+
+		#elif MODE == 2
+			float	dx = gl.dFdxCoarse( (gl_FragCoord.x + 2.2) * gl_FragCoord.y );
+			out_Color = float4(dx * 0.0001);
+		#else
+		#	error !!!
+		#endif
+
 		switch ( iMode )
 		{
-			case 0 :	out_Color = QuadGroupId();					break;
-			case 1 :	out_Color = SubgroupId();					break;
-			case 2 :	out_Color = UniqueSubgroup();				break;
-			case 3 :	out_Color = FullSubgroup();					break;
-			case 4 :	out_Color = HelperInvocationCount();		break;
-			case 5 :	out_Color = FullQuad();						break;
+			case 0 :	out_Color += QuadGroupId();				break;
+			case 1 :	out_Color += SubgroupId();				break;
+			case 2 :	out_Color += UniqueSubgroup();			break;
+			case 3 :	out_Color += FullSubgroup();			break;
+			case 4 :	out_Color += HelperInvocationCount();	break;
+			case 5 :	out_Color += FullQuad();				break;
 		}
 	}
 

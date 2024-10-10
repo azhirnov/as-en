@@ -426,9 +426,14 @@ namespace {
 		// check image properties
 		{
 			VkImageFormatProperties	props = {};
-			VK_CHECK_ERR( vkGetPhysicalDeviceImageFormatProperties( dev.GetVkPhysicalDevice(), format, VEnumCast( desc.imageDim ),
+			auto	err = vkGetPhysicalDeviceImageFormatProperties( dev.GetVkPhysicalDevice(), format, VEnumCast( desc.imageDim ),
 																	opt_tiling ? VK_IMAGE_TILING_OPTIMAL : VK_IMAGE_TILING_LINEAR,
-																	VEnumCast( desc.usage, desc.memType ), VEnumCast( desc.options ), OUT &props ));
+																	VEnumCast( desc.usage, desc.memType ), VEnumCast( desc.options ), OUT &props );
+
+			if_unlikely( err == VK_ERROR_FORMAT_NOT_SUPPORTED )
+				return false;
+
+			VK_CHECK_ERR( err );
 
 			if_unlikely( desc.dimension.x > props.maxExtent.width  or
 			 			 desc.dimension.y > props.maxExtent.height or

@@ -1381,12 +1381,13 @@ namespace _hidden_
 		const T	v			= Abs(value);
 		char	suffix		= 0;
 
-		if_likely( v >= T(1) )
+		if ( v >= T(1) )
 		{
-			if ( v < T(1000) )			{}											else
-			if ( v < T(500'000) )		{ value /= T(1000);			suffix = 'K'; }	else
-			if ( v < T(500'000'000) )	{ value /= T(1000'000);		suffix = 'M'; }	else
-										{ value /= T(1000'000'000);	suffix = 'G'; }
+			if ( v < T(1000) )		{}										else
+			if ( v < T(500.0e+3) )	{ value *= T(1.0e-3);	suffix = 'K'; }	else	// kilo
+			if ( v < T(500.0e+6) )	{ value *= T(1.0e-6);	suffix = 'M'; }	else	// mega
+			if ( v < T(500.0e+9) )	{ value *= T(1.0e-9);	suffix = 'G'; }	else	// giga
+									{ value *= T(1.0e-12);	suffix = 'T'; }			// terra
 			if ( fractPart == 0 ) fractPart = 1;
 		}
 		else
@@ -1394,10 +1395,11 @@ namespace _hidden_
 			return "0.0";
 		else
 		{
-			if ( v > T(1.0e-3) )		{}											else
-			if ( v > T(1.0e-6) )		{ value *= T(1000);			suffix = 'm'; }	else	// milli
-			if ( v > T(1.0e-9) )		{ value *= T(1000'000);		suffix = 'u'; }	else	// micro
-										{ value *= T(1000'000'000);	suffix = 'n'; }			// nano
+			if ( v > T(1.0e-3) )	{}										else
+			if ( v > T(1.0e-6) )	{ value *= T(1.0e+3);	suffix = 'm'; }	else	// milli
+			if ( v > T(1.0e-9) )	{ value *= T(1.0e+6);	suffix = 'u'; }	else	// micro
+			if ( v > T(1.0e-12) )	{ value *= T(1.0e+9);	suffix = 'n'; }	else	// nano
+									{ value *= T(1.0e+12);	suffix = 'p'; }			// pico
 			if ( fractPart == 0 ) fractPart = 3;
 		}
 		String	str = ToString( value, fractPart );

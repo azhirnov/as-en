@@ -461,6 +461,9 @@ namespace {
 */
 	bool  RDeviceInitializer::_InitGraphicsLib (StringView path) __NE___
 	{
+		if ( path.empty() or not FileSystem::IsFile( path ))
+			return false;
+
 		if ( _graphicsLib.Load( path ))
 		{
 			decltype(&GraphicsLib::CreateGraphicsLib)	fn;

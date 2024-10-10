@@ -106,7 +106,7 @@
 	float4  HelperInvocationCount ()
 	{
 		uint i = HelperInvocationCountPerQuad();
-		return Rainbow( float(i) / 3.0 );
+		return Rainbow( float(i) / 4.0 );
 	}
 
 	float4  FullQuad ()
@@ -129,7 +129,19 @@
 
 	void  Main ()
 	{
-		out_Color = gl.texture.Sample( un_Texture, In.uv ) * 0.001;
+		#define MODE	0
+
+		#if MODE == 0
+			out_Color = gl.texture.Sample( un_Texture, In.uv ) * 0.001;
+		#elif MODE == 1
+			out_Color = gl.texture.SampleGrad( un_Texture, In.uv, float2(0.1), float2(0.2) ) * 0.001;
+		#elif MODE == 2
+			out_Color = gl.texture.Fetch( un_Texture, int2(gl.FragCoord.xy), 0 ) * 0.001;
+		#elif MODE == 3
+			out_Color = gl.texture.SampleLod( un_Texture, In.uv, 0.0 ) * 0.001;
+		#else
+		#	error !!!
+		#endif
 
 		switch ( iMode )
 		{

@@ -16,7 +16,7 @@
 		// initialize
 		RC<DynamicUInt>		tex_dim		= DynamicUInt();
 		RC<DynamicDim>		dim			= tex_dim.Mul( 1024 ).Dimension2();
-		const uint2			local		= uint2(16);
+		const uint2			local		= uint2(8);
 
 		RC<Image>			image		= Image( EPixelFormat::RGBA32F, dim );
 		RC<DynamicUInt>		mode		= DynamicUInt();
@@ -51,7 +51,7 @@
 			pass.Repeat( count );
 		}
 
-		Present( image );
+		//Present( image );
 	}
 
 #endif

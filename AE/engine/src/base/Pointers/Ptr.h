@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Common.h"
+#include "base/Pointers/Ref.h"
 
 namespace AE::Base
 {
@@ -23,6 +23,8 @@ namespace AE::Base
 		constexpr Ptr ()									__NE___ {}
 		constexpr Ptr (std::nullptr_t)						__NE___ {}
 		constexpr Ptr (T* ptr)								__NE___ : _value{ptr} {}
+
+		constexpr Ptr (Ref<T> ref)							__NE___ : _value{&ref} {}
 
 		template <typename B>
 		constexpr Ptr (Ptr<B> other)						__NE___ : _value{static_cast<T*>( other.get() )} {}

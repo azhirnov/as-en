@@ -120,7 +120,7 @@
 #	define forceinline			__forceinline
 
 # elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG_CL)
-#  if AE_HAS_ATTRIB( gnu::always_inline )
+#  if 0 //AE_HAS_ATTRIB( gnu::always_inline )
 #	define forceinline			[[gnu::always_inline]] inline
 #  else
 #	define forceinline			__inline__ __attribute__((__always_inline__))

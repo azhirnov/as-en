@@ -1,8 +1,4 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-/*
-	Mali dim:		1<<7
-	PowerVR dim:	1<<10
-*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	include <aestyle.glsl.h>
@@ -66,7 +62,7 @@
 	#define type		float
 	#define type4		float4
 
-	#if defined(AE_Qualcomm_Adreno_GPU) || defined(AE_Intel_GPU) || defined(AE_NVidia_GPU)
+	#if defined(AE_Qualcomm_Adreno_GPU) || defined(AE_Intel_GPU) || defined(AE_NVidia_GPU) || defined(AE_AMD_GPU)
 	#	define FOR()	[[unroll]] for (int i = 0, cnt = COUNT1*COUNT2; i < cnt; ++i)	// NV: must be <= 1024, unroll is too slow
 	#elif defined(AE_ARM_Mali_GPU) || defined(AE_IMG_PowerVR_GPU)
 	#	define FOR()	for (int i = 0, cnt = COUNT1*COUNT2; i < cnt; ++i)
@@ -94,7 +90,7 @@
 	# endif
 	#endif
 
-	#ifdef AE_NVidia_GPU
+	#if defined(AE_NVidia_GPU) || defined(AE_AMD_GPU)
 	#	define DIM			(4<<10)
 	#	define COUNT1		(1<<3)
 	#	define COUNT2		(1<<3)

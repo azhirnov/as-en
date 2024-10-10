@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Class that wraps non-null pointer.
+*/
 
 #pragma once
 

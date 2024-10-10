@@ -311,16 +311,24 @@ namespace {
 
 			auto&			swapchain	= _surface._swapchain;
 			SwapchainDesc	new_desc	= data->desc;
+			uint2			new_size	= data->window->GetSurfaceSize();
 
 			if_unlikely( not _surface._recreate.exchange( false ))
+				return;  // already recreated
+			
+			if_unlikely( Any( IsZero( new_size )))
+			{
+				// recreate later
 				return;
+			}
 
-			if_likely( swapchain.Create( data->window->GetSurfaceSize(), new_desc ))
+			if_likely( swapchain.Create( new_size, new_desc ))
 			{
 				_surface._UpdateDesc( data );
 			}
 			else
 			{
+				DBG_WARNING( "failed to create swapchain" );
 				_surface._initialized.store( false );
 				return OnFailure();
 			}

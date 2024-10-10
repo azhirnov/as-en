@@ -96,7 +96,7 @@
 	float4  HelperInvocationCount ()
 	{
 		uint i = HelperInvocationCountPerQuad();
-		return Rainbow( float(i) / 3.0 );
+		return Rainbow( float(i) / 4.0 );
 	}
 
 	float4  FullQuad ()

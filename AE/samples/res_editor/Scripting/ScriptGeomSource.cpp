@@ -2320,7 +2320,7 @@ namespace {
 		usize								obj_id			= 0;
 
 		_intermScene->ForEachModel(
-			[&ppln_per_obj, this, &shared_mtr_dsl, layer, &obj_id] (const ResLoader::IntermScene::ModelData &model)
+			[&ppln_per_obj, &shared_mtr_dsl, layer, &obj_id] (const ResLoader::IntermScene::ModelData &model)
 			{
 				++obj_id;
 

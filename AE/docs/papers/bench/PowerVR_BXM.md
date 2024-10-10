@@ -67,6 +67,38 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	- **110** GOp/s at 950 MHz on F16Add.
 	-  **90** GOp/s at 950 MHz on F16Mul, F16MulAdd.
 	-  **58** GOp/s at 950 MHz on F16FMA *(actually it is FP32FMA)*.
+	
+### NaN / Inf
+
+* FP32, Mediump
+
+	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
+	|---|---|---|---|---|---|---|---|---|
+	| x | nan | nan | nan | nan | inf | -inf | max | -max |
+	| Min(x,0) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Min(0,x) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Max(x,0) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Max(0,x) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Clamp(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Clamp(x,-1,1) | -1 | -1 | -1 | -1 | 1 | -1 | 1 | -1 |
+	| IsNaN | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+	| IsInfinity | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
+	| bool(x) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
+	| x != x | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+	| Step(0,x) | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 |
+	| Step(x,0) | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 1 |
+	| Step(0,-x) | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 1 |
+	| Step(-x,0) | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 |
+	| SignOrZero(x) | nan | nan | nan | nan | 1 | -1 | 1 | -1 |
+	| SignOrZero(-x) | nan | nan | nan | nan | -1 | 1 | -1 | 1 |
+	| SmoothStep(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Normalize(x) | nan | nan | nan | nan | nan | nan | 18446742974197923840 | -18446742974197923840 |
+
+* FP16 diff:
+
+	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
+	|---|---|---|---|---|---|---|---|---|
+	| Normalize(x) | nan | nan | nan | nan | nan | nan | 0 | -0 |
 
 ## Resource access
 

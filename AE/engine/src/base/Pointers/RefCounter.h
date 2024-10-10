@@ -106,6 +106,7 @@ namespace AE::Base
 
 		RC (T* ptr)											__NE___ : _ptr{ptr}				{ _IncSelf(); }
 		RC (Ptr<T> ptr)										__NE___ : _ptr{ptr}				{ _IncSelf(); }
+		RC (Ref<T> ref)										__NE___ : _ptr{&ref}			{ _IncSelf(); }
 		RC (Self &&other)									__NE___ : _ptr{other.release()}	{}
 		RC (const Self &other)								__NE___ : _ptr{other._ptr}		{ _IncSelf(); }
 
@@ -133,6 +134,7 @@ namespace AE::Base
 		Self&  operator = (Default_t)						__NE___ {						_Dec();  _ptr = null;			return *this; }
 		Self&  operator = (T* rhs)							__NE___ { _Inc( rhs );			_Dec();  _ptr = rhs;			return *this; }
 		Self&  operator = (Ptr<T> rhs)						__NE___ { _Inc( rhs.get() );	_Dec();  _ptr = rhs.get();		return *this; }
+		Self&  operator = (Ref<T> rhs)						__NE___ { _Inc( &rhs );			_Dec();  _ptr = &rhs;			return *this; }
 		Self&  operator = (const Self &rhs)					__NE___ { _Inc( rhs._ptr );		_Dec();  _ptr = rhs._ptr;		return *this; }
 
 		Self&  operator = (Self &&rhs)						__NE___ { ASSERT( this != &rhs );	_Dec();  _ptr = rhs.release();	return *this; }
@@ -147,6 +149,7 @@ namespace AE::Base
 
 		ND_ bool  operator == (const T* rhs)				C_NE___ { return _ptr == rhs; }
 		ND_ bool  operator == (Ptr<T> rhs)					C_NE___ { return _ptr == rhs.get(); }
+		ND_ bool  operator == (Ref<T> rhs)					C_NE___ { return _ptr == &rhs; }
 		ND_ bool  operator == (const Self &rhs)				C_NE___ { return _ptr == rhs._ptr; }
 		ND_ bool  operator == (std::nullptr_t)				C_NE___ { return _ptr == null; }
 		ND_ bool  operator == (Default_t)					C_NE___ { return _ptr == null; }

@@ -86,7 +86,7 @@
 #define Sqrt					sqrt			// (any fp)
 #define Sin						sin				// (half, float)
 #define SinH					sinh			// (half, float)
-#define SignOrZero				sign			// (int, any fp)	-1, 0, +1, nan = 0
+#define SignOrZero				sign			// (int, any fp)	-1, 0, +1,	x=nan: 0 (NV)
 #define Tan						tan				// (half, float)
 #define TanH					tanh			// (half, float)
 #define Trunc					trunc			// (any fp)
@@ -379,8 +379,17 @@ Gen_TOUSNORM( float, float_vec_t )
 #if AE_ENABLE_HALF_TYPE
 #	define half_min			(0.00006103515625hf)		// smallest positive normal number
 #	define half_max			(65504.0hf)
+#  if AE_ENABLE_SHORT_TYPE
 #	define half_inf			(uint16BitsToHalf( 0x7c00us ))
 #	define half_inf_neg		(uint16BitsToHalf( 0xfc00us ))
+#	define half_nan			(uint16BitsToHalf( 0x7fffus ))	// or 0xffff
+#	define half_nan2		(uint16BitsToHalf( 0x7f80us ))	// or 0xff80
+#  else
+#	define half_inf			(1.hf / 0.hf)
+#	define half_inf_neg		(-1.hf / 0.hf)
+#	define half_nan			(0.hf / 0.hf)
+#	define half_nan2		(-0.hf / 0.hf)
+#  endif
 #	define half_Pi			(3.14159265358979323846hf)
 #	define half_Pi2			(6.28318530717958647692hf)
 #	define half_HalfPi		(1.57079632679489661923hf)
@@ -393,8 +402,9 @@ Gen_TOUSNORM( float, float_vec_t )
 #	define float_max		(3.4028234664e+38f)
 #	define float_inf		(uintBitsToFloat( 0x7F800000u ))
 #	define float_inf_neg	(uintBitsToFloat( 0xFF800000u ))
-#	define float_qnan		(uintBitsToFloat( 0xFFC00001u ))
-#	define float_snan		(uintBitsToFloat( 0xFF800001u ))
+#	define float_qnan		(uintBitsToFloat( 0xFFC00001u ))	// quiet nan
+#	define float_snan		(uintBitsToFloat( 0xFF800001u ))	// signaling nan
+#	define float_nan		(uintBitsToFloat( 0xFFFFFFFFu ))
 #	define float_Pi			(3.14159265358979323846f)
 #	define float_Pi2		(6.28318530717958647692f)
 #	define float_HalfPi		(1.57079632679489661923f)
@@ -406,11 +416,19 @@ Gen_TOUSNORM( float, float_vec_t )
 #if AE_ENABLE_DOUBLE_TYPE
 #	define double_min		(2.2250738585072014e-308lf)	 // smallest positive normal number
 #	define double_max		(1.7976931348623157e+308lf)
+#  if AE_ENABLE_LONG_TYPE
 #	define double_inf		(uint64BitsToDouble( 0x7FF0000000000000ul ))
 #	define double_inf_neg	(uint64BitsToDouble( 0xFFF0000000000000ul ))
-#	define double_qnan		(uint64BitsToDouble( 0x7FF8000000000001ul ))
-#	define double_snan		(uint64BitsToDouble( 0x7FF0000000000001ul ))
+#	define double_qnan		(uint64BitsToDouble( 0x7FF8000000000001ul ))	// quiet nan
+#	define double_snan		(uint64BitsToDouble( 0x7FF0000000000001ul ))	// signaling nan
 #	define double_nan		(uint64BitsToDouble( 0x7FFFFFFFFFFFFFFFul ))
+#  else
+#	define double_inf		(1.lf / 0.lf)
+#	define double_inf_neg	(-1.lf / 0.lf)
+#	define double_qnan		(0.lf / 0.lf)
+#	define double_snan		(-0.lf / 0.lf)
+#	define double_nan		(0.lf / -0.lf)
+#  endif
 #	define double_Pi		(3.14159265358979323846lf)
 #	define double_Pi2		(6.28318530717958647692lf)
 #	define double_HalfPi	(1.57079632679489661923lf)
@@ -647,8 +665,9 @@ Gen_LENGTHSQ_DISTANCESQ( float, float_vec_t )
 ----
 	T  Sign (T x)
 ----
-	returns -1 or +1, +1 on nan
+	returns -1 or +1
 	x4 faster than 'SignOrZero()' on NV
+	x=NaN: +1 (NV)
 =================================================
 */
 #define Gen_SIGN1( _vtype_ )\

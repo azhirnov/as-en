@@ -21,12 +21,19 @@
 
 	4. Helper invocations per quad.
 		Red color indicates that all threads in quad are not a helper invocations.
-		Violet color indicates that 3 threads in quad are helper invocations.
-		The absence of violet colors indicates that driver optimizes quads.
+		Blue color indicates that 3 threads in quad are helper invocations.
+		The absence of blue colors indicates that driver optimizes quads.
 
 	5. Full quad.
 		Red color indicates that all threads in quad are executed.
 		Green/blue/violet colors indicates that some threads in quad are not executed.
+----
+
+	Draw mode:
+
+	0. Without texturing, with instancing
+	1. With texturing, with instancing
+	2. Without texturing, without instancing
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

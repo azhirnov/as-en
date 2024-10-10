@@ -3,11 +3,12 @@
 
 ## Specs
 
-* FP16: **5.095** TFLOPS
+* FP16: **5.095** TFLOPS (no supported in HW)
 * FP32: **5.095** TFLOPS
 * FP64: **318.5** GFLOPS
-* Memory: 4GB, GDDR5, 256 bit, **224.0** GB/s (86 GB/s from tests)
-* Driver: ???
+* Clock base: 1168 MHz, boost: 1244 MHz.
+* Memory: 4GB, GDDR5, 256 bit, 1750 MHz, **224.0** GB/s (86 GB/s from tests)
+* Driver: 2.0.106
 
 
 ## Shader
@@ -34,6 +35,66 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 
 ![](img/compute-subgroups/amd-gcn4.png)
 
+
+### Instruction cost
+
+* [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]:
+	* fp32 FMA is preferred than single FMul or separate FMulAdd
+	* fp32 has fastest Length,  Normalize (x1.0),  Distance (x1.5)
+	* fp32 has fastest Clamp,  ClampSNorm (x1.0),  ClampUNorm (x1.0)
+	* i32 FindMSB is x4.2 SLOWER than FindLSB
+	* fp32 has fastest square root: InvSqrt,  Sqrt (x1.0),  Software2 (x3.1)
+	* fp32 has fastest cube root: Pow,  ExpLog (x1.1),  Software2 (x2.5)
+	* fp32 has fastest quad root: InvSqrt,  Sqrt (x1.0), Pow (x1.1)
+	* fp32 has fastest sRGB curve: v1,  v3 (x1.7),  v2 (x2.0)
+	* fp32 FastATan is x2.7 faster than native ATan
+	* fp32 FastACos is x1.1 faster than native ACos
+	* fp32 FastASin is x1.4 faster than native ASin
+	* fp32 Pow17 equal to Pow8 - native function used instead of MUL loop
+
+* [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]:
+	- Benchmarking in compute shader is a bit faster.
+	
+	| TOp/s | ops | max TFLOPS | comments |
+	|---|---|---|
+	| **2.2** | Add, Mul | **2.2** |
+	| **2.2** | FMA      | **4.4** |
+	| **1.6** | MulAdd   | **3.2** |
+
+
+### NaN / Inf
+
+* FP32, Mediump
+
+	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
+	|---|---|---|---|---|---|---|---|---|
+	| x | nan | nan | nan | nan | inf | -inf | max | -max |
+	| Min(x,0) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Min(0,x) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Max(x,0) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Max(0,x) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Clamp(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Clamp(x,-1,1) | -1 | -1 | -1 | -1 | 1 | -1 | 1 | -1 |
+	| IsNaN | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+	| IsInfinity | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
+	| bool(x) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
+	| x != x | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+	| Step(0,x) | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 |
+	| Step(x,0) | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 1 |
+	| Step(0,-x) | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 1 |
+	| Step(-x,0) | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 |
+	| SignOrZero(x) | 1 | 1 | 1 | 1 | 1 | -1 | 1 | -1 |
+	| SignOrZero(-x) | 1 | 1 | 1 | 1 | -1 | 1 | -1 | 1 |
+	| SmoothStep(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Normalize(x) | nan | nan | nan | nan | 0 | 0 | 0 | 0 |
+
+* FP64 diff:
+
+	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
+	|---|---|---|---|---|---|---|---|---|
+	| SignOrZero(x) | 0 | 0 | 0 | 0 | 1 | -1 | 1 | -1 |
+	| SignOrZero(-x) | 0 | 0 | 0 | 0 | -1 | 1 | -1 | 1 |
+	| Normalize(x) | nan | nan | nan | nan | nan | nan | 0 | -0 |
 ## Render target compression
 
 * RGBA8 268.4MPix downsample 1/2, compressed/uncompressed access rate: [[3](../GPU_Benchmarks.md#3-Render-target-compression)]

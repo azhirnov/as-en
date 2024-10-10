@@ -6,6 +6,7 @@
 #pragma once
 
 #include "base/Math/Byte.h"
+#include "base/Pointers/Ptr.h"
 
 namespace AE::Base
 {
@@ -40,16 +41,20 @@ namespace AE::Base
 	// methods
 	public:
 		constexpr RstPtr ()								__NE___	{}
-		constexpr explicit RstPtr (T* ptr)				__NE___ : _ptr{ptr} {}
 		constexpr RstPtr (std::nullptr_t)				__NE___ {}
+		constexpr explicit RstPtr (T* ptr)				__NE___ : _ptr{ptr} {}
+		
+		template <typename B, ENABLEIF( not IsVoid<B> )>
+		constexpr explicit RstPtr (Ptr<B> ptr)			__NE___ : _ptr{ptr.get()} {}
+
+		template <typename B, ENABLEIF( not IsVoid<B> )>
+		constexpr explicit RstPtr (Ref<B> ref)			__NE___ : _ptr{&ref} {}
 
 		constexpr RstPtr (Self &&)						__NE___	= default;
 		constexpr Self&  operator = (Self &&)			__NE___	= default;
 
 		constexpr RstPtr (const Self &)					__NE___ = default;
 		constexpr Self&  operator = (const Self &)		__NE___ = default;
-
-		constexpr Self&  operator = (T* ptr)			__NE___	{ _ptr = ptr;  return *this; }
 
 		ND_ constexpr explicit operator bool ()			__NE___	{ return _ptr != null; }
 		ND_ constexpr explicit operator bool ()			C_NE___	{ return _ptr != null; }

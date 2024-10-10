@@ -83,8 +83,13 @@ namespace AE::Math
 		ND_ explicit operator float16_t ()						C_NE___	{ return BitCast<float16_t>( _valueU ); }
 	  #endif
 
+		ND_ constexpr bool  IsNaN ()							C_NE___;
+		ND_ constexpr bool  IsInfinity ()						C_NE___;
+		ND_ constexpr bool  IsNegative ()						C_NE___	{ return _bits.s == 1; }
+
 		ND_ static constexpr Self  Min ()						__NE___	{ return Self{EValue(0x0001)}; }	// 5.9e-8
 		ND_ static constexpr Self  Max ()						__NE___	{ return Self{EValue(0x7BFF)}; }	// 65504
+		ND_ static constexpr Self  MaxNeg ()					__NE___	{ return Self{EValue(0xFBFF)}; }	// -65504
 		ND_ static constexpr Self  Inf ()						__NE___	{ return Self{EValue(0x7C00)}; }
 		ND_ static constexpr Self  NegInf ()					__NE___	{ return Self{EValue(0xFC00)}; }
 		ND_ static constexpr float Epsilon ()					__NE___	{ return 2.0e-10f; }
@@ -119,6 +124,28 @@ namespace AE::Math
 		_bits.e = f.bits.e == 0 ? 0 : f.bits.e - (127 - 15);
 		_bits.s = f.bits.s;
 		return *this;
+	}
+	
+/*
+=================================================
+	IsNaN
+=================================================
+*/
+	forceinline constexpr bool  SFloat16::IsNaN () C_NE___
+	{
+		// 0x7F80, 0xFF80, 0x7FFF, 0xFFFF
+		return _bits.e == 31 and _bits.m != 0;
+	}
+	
+/*
+=================================================
+	IsInfinity
+=================================================
+*/
+	forceinline constexpr bool  SFloat16::IsInfinity () C_NE___
+	{
+		// 0x7C00, 0xFC00
+		return _bits.e == 31 and _bits.m == 0;
 	}
 //-----------------------------------------------------------------------------
 

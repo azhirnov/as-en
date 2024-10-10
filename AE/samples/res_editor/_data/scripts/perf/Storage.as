@@ -82,7 +82,7 @@
 			RC<ComputePass>		pass = ComputePass( "", "BUF_LOAD_STORE_CS;MODE=4" );
 			pass.ArgInOut( "un_Buffer",	buf );
 			pass.LocalSize( local.x*local.y );
-			pass.DispatchThreads( buf_size );
+			pass.DispatchThreads( dim );
 			pass.EnableIfEqual( mode, 4 );
 			pass.Repeat( count );
 		}{

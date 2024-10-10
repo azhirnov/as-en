@@ -24,6 +24,9 @@
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 //#define GLM_FORCE_FMA
 //#define GLM_FORCE_SIZE_T_LENGTH
+//#define GLM_FORCE_MESSAGES		// for debugging
+#define GLM_FORCE_UNRESTRICTED_GENTYPE
+
 #define GLM_AE_VERSION
 
 
@@ -44,9 +47,6 @@
 #	define GLM_FORCE_SSE3	// float
 # elif AE_SIMD_SSE >= 20
 #	define GLM_FORCE_SSE2	// float
-# else
-// disable intrinsics
-#	define GLM_FORCE_ARCH_UNKNOWN
 # endif
 
 //	Android ARM, iOS or Mac M1, M2 ...

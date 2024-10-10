@@ -19,7 +19,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/rp0poS4J38WM3A', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/5v8k9z5tAumZ0Q', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake
@@ -111,7 +111,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/rp0poS4J38WM3A', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/5v8k9z5tAumZ0Q', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake
@@ -145,7 +145,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/y8QLb9g37nBpJA', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/-Mb1rwUWr-mlrQ', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake

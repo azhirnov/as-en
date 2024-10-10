@@ -25,30 +25,43 @@
 * Quads on edge between 2 triangles are not merged, so 2 near pixels may execute up to 6 helper invocations.
 
 * Test `subgroupQuadBroadcast( gl_HelperInvocation )` without texturing - helper invocations are **not** executed. [[6](../GPU_Benchmarks.md#6-Subgroups)]
-* Test `subgroupQuadBroadcast( gl_HelperInvocation )` with texturing - helper invocations are executed, even if `Nearest` immutable sampler is used. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
-Red - no helper invocations, violet - 3 helper invocations per quad.<br/>
-![](img/full-quad/valhall-1-tex-ht.png)
 
 * Test `subgroupQuadBroadcast( constant )` without texturing - helper invocations are **not** executed. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
 Red - full quad, blue - only 1 thread per quad.<br/>
 ![](img/full-quad/valhall-1-qd.png)
 
-* Test `subgroupQuadBroadcast( constant )` with texturing - helper invocations are executed, even if `Nearest` immutable sampler is used. [[6](../GPU_Benchmarks.md#6-Subgroups)]
+* Tests `subgroupQuadBroadcast( gl_HelperInvocation )` and `subgroupQuadBroadcast( constant )` with texturing: [[6](../GPU_Benchmarks.md#6-Subgroups)]
+	- `textureGrad()`, `texelFetch()` - helper invocations are **not** executed.
+	- `textureLod()` - helper invocations are **not** executed.
+	- `texture()` - helper invocations are executed, even if `Nearest` immutable sampler is used.
+	- helper invocations are executed if used any derivative.<br/>
+	Red - no helper invocations, blue - 3 helper invocations per quad.<br/>
+	![](img/full-quad/valhall-1-tex-ht.png)
 
 
 ### Subgroups
 
-* Subgroups in fragment shader can fill multiple triangles, but only with the same `gl_InstanceIndex`. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 * Subgroups in fragment shader reserve threads for helper invocations, even if they are not executed. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
-* Subgroup occupancy with texturing. Helper invocations are executed and included as active thread. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+* Subgroup occupancy for single triangle with texturing. Helper invocations are executed and included as active thread. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
 ![](img/full-subgroup/valhall-1-tex.png)
 
-* Subgroup occupancy without texturing. Helper invocations are not executed but threads are reserved, so occupancy is low. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+* Subgroup occupancy for single triangle without texturing. Helper invocations are not executed but threads are reserved, so occupancy is low. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
 ![](img/full-subgroup/valhall-1.png)
 
 * Subgroup occupancy for too small triangles. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
 ![](img/full-subgroup/valhall-1-large.png)
+
+* Result of `Rainbow( Hash( subgroupAdd( gl_FragCoord.xy )))` for 4 quads without instancing. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+![](img/unique-subgroups/valhall-1-tris.png)<br/>
+Subgroup occupancy, red - full subgroup (16 threads), green: ~8 threads per subgroup.<br/>
+![](img/unique-subgroups/valhall-1-tris-occup.png)
+	
+* Result of `Rainbow( Hash( subgroupAdd( gl_FragCoord.xy )))` for 4 quads with instancing, first instance - first triangle in quad, second instance - second triangle. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+Triangles with different `gl_InstanceIndex` can be merged into a single subgroup but this is a rare case.<br/>
+![](img/unique-subgroups/valhall-1-inst.png)
+
+* Helper invocation can be early terminated, but threads are allocated and number of warps with helper invocations and without are same (from performance counters).
 
 
 ### Subgroup threads order
@@ -59,7 +72,7 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in fragment sha
 
 Unique subgroups, image size: 32x32, gl_SubgroupSize: 16. Each subgroup in tile scheduled by quads (2x2 pixels), each quad may have any position inside 32x32 pixel tile, but often they are placed inside 8x8 region. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
-![](img/valhall-1-unique-subgroups.png)
+![](img/unique-subgroups/valhall-1-2tiles.png)
 
 Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shader, gl_SubgroupSize: 16, workgroup size: 8x8. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
@@ -71,7 +84,6 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 * [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]:
 	- Only fp32 FMA - *(fp16 and mediump use same fp32 FMA)*.
 	- Fp32 FMA is preferred than FMul or FMulAdd.
-	- Fp32 and i32 datapaths can execute in parallel in 2:1 rate.
 	- Fp16 and mediump is 2x faster than fp32 in FMull, FAdd.
 	- Length is a bit faster than Distance and Normalize.
 	- ClampUNorm and ClampSNorm are fast.
@@ -92,6 +104,38 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	- Equal to **240** GFLOPS on MulAdd.
 
 
+### NaN / Inf
+
+* FP32
+
+	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
+	|---|---|---|---|---|---|---|---|---|
+	| x | nan | nan | nan | nan | inf | -inf | max | -max |
+	| Min(x,0) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Min(0,x) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Max(x,0) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Max(0,x) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Clamp(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Clamp(x,-1,1) | -1 | -1 | -1 | -1 | 1 | -1 | 1 | -1 |
+	| IsNaN | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+	| IsInfinity | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
+	| bool(x) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
+	| x != x | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+	| Step(0,x) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Step(x,0) | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
+	| Step(0,-x) | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
+	| Step(-x,0) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| SignOrZero(x) | 0 | 0 | 0 | 0 | 1 | -1 | 1 | -1 |
+	| SignOrZero(-x) | 0 | 0 | 0 | 0 | -1 | 1 | -1 | 1 |
+	| SmoothStep(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Normalize(x) | nan | nan | nan | nan | 0 | -0 | 0 | -0 |
+
+
+* FP32 Mediump diff:
+
+	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
+	|---|---|---|---|---|---|---|---|---|
+	| Normalize(x) | -1 | -1 | -1 | -1 | 1 | -1 | 1 | -1 |
 ### Noise performance
 
 | name | thread count | exec time (ms) | ALU (%) | per thread (ns) |

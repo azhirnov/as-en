@@ -37,7 +37,26 @@
 
 ### Subgroups
 
-* Subgroups in fragment shader can fill multiple triangles, but only with the same `gl_InstanceIndex`. [[6](../GPU_Benchmarks.md#6-Subgroups)]
+* Result of `Rainbow( Hash( subgroupAdd( gl_FragCoord.xy )))` for 4 quads without instancing. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+SM can fill multiple triangles with single subgroup inside tile (16x16 pix)<br/>
+![](img/unique-subgroups/nv-turing-tris.png)<br/>
+Subgroup occupancy, red - full subgroup.<br/>
+![](img/unique-subgroups/nv-turing-tris-occup.png)
+
+* Result of `Rainbow( Hash( subgroupAdd( gl_FragCoord.xy )))` for 4 quads with instancing. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+SM can fill multiple triangles with the same `gl_InstanceIndex` with single subgroup inside tile (16x16 pix)<br/>
+![](img/unique-subgroups/nv-turing-inst.png)<br/>
+Subgroup occupancy, red - full subgroup, blue - very low number of threads per subgroup<br/>
+![](img/unique-subgroups/nv-turing-inst-occup.png)
+
+* Subgroup occupancy for single triangle with texturing. Helper invocations are executed and included as active thread. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+![](img/full-subgroup/nv-turing.png)
+
+* Subgroup occupancy for too small triangles. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+![](img/full-subgroup/nv-turing-large-tris.png)
+
+* Subgroup occupancy for too small triangles with instancing. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+![](img/full-subgroup/nv-turing-large-inst.png)
 
 
 ### Subgroup threads order
@@ -54,12 +73,12 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 ### SM order
 
 Result of `Rainbow( gl_SMIDNV / gl_SMCountNV )` in fragment shader.<br/>
-Tile size is 16x16, image size: 102x53, gl_SMCountNV: 46, gl_SMIDNV: 0 and 1 are bound to the first tile and changed every frame, same for other tiles. [[6](../GPU_Benchmarks.md#6-Subgroups)]
+Tile size: 16x16, image size: 102x53, gl_SMCountNV: 46, gl_SMIDNV: 0 and 1 are bound to the first tile and changed every frame, same for other tiles. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
 ![](img/nv-turing-smid-graphics.png)
 
 Result of `Rainbow( gl_SMIDNV / gl_SMCountNV )` in compute shader.<br/>
-Workgroup size is 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red to violet) has gl_SMIDNV = 0,2,4..., next set has gl_SMIDNV = 1,3,5... and next - again 0,2,4... [[6](../GPU_Benchmarks.md#6-Subgroups)]
+Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red to violet) has gl_SMIDNV = 0,2,4..., next set has gl_SMIDNV = 1,3,5... and next - again 0,2,4... [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
 ![](img/nv-turing-smid-compute.png)
 
@@ -81,17 +100,45 @@ Workgroup size is 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red
 
 	| TOp/s | exec time (ms) | ops | max TFLOPS | comments |
 	|---|---|---|
-	| **8.8** | | F32Add                    | **8.8** |
-	| **4.4** | | F32Mul, F32MulAdd, F32FMA | **8.8** |
+	| **8.8** | | Add         | **8.8** |
+	| **4.4** | | MulAdd, FMA | **8.8** |
+	| **4.4** | | Mul         | 4.4     |
 
 * [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]:
 	- Measured with fixed clock at 1515 MHz.
 
 	| TOp/s | exec time (ms) | ops | max TFLOPS | comments |
 	|---|---|---|
-	| **17.8** | | F16Add                                      | **17.8** | |
-	| **8.9**  | | F16Mul, F16MulAdd, F16FMA, F16Add with deps | **17.8** | |
-	| **4.4**  | | F16MulAdd with deps                         | 8.8      | 2x slow than F16x2FMA (TODO: check) |
+	| **17.8** | | Add                | **17.8** | |
+	| **8.9**  | | Mul, Add with deps | 8.9      | |
+	| **8.9**  | | MulAdd, FMA        | **17.8** | |
+	| **4.4**  | | MulAdd with deps   | 8.8      | 2x slow than F16x2FMA (TODO: check) |
+
+### NaN / Inf
+
+* FP32, Mediump, FP16, FP64
+
+	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
+	|---|---|---|---|---|---|---|---|---|
+	| x | nan | nan | nan | nan | inf | -inf | max | -max |
+	| Min(x,0) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Min(0,x) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Max(x,0) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Max(0,x) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Clamp(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Clamp(x,-1,1) | -1 | -1 | -1 | -1 | 1 | -1 | 1 | -1 |
+	| IsNaN | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+	| IsInfinity | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
+	| bool(x) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
+	| x != x | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+	| Step(0,x) | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 |
+	| Step(x,0) | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 1 |
+	| Step(0,-x) | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 1 |
+	| Step(-x,0) | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 |
+	| SignOrZero(x) | 0 | 0 | 0 | 0 | 1 | -1 | 1 | -1 |
+	| SignOrZero(-x) | 0 | 0 | 0 | 0 | -1 | 1 | -1 | 1 |
+	| SmoothStep(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Normalize(x) | nan | nan | nan | nan | nan | nan | 0 | -0 |
 
 ## Resource access
 
@@ -119,22 +166,23 @@ Workgroup size is 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red
 
 	| diff (%) | exec time (ms) | approx traffic (GB/s) | name | comments |
 	|---|---|---|------|----|
-	| 26  | 6.7  | 320 | Buffer load/store in FS, 16 bytes                         | cache misses because of non-sequential read/write (?) |
-	| 7.5 | 5.7  | 376 | Image load/store, workgroup size 8x8, row major           | |
-	| 7   | 5.66 | 379 | Image load/store, workgroup size 8x8, column major        | |
-	| 3   | 5.45 | 394 | Buffer load/store, 16 bytes                               | |
-	| 3   | 5.45 | 394 | Image load/store, workgroup size 16x16, column major      | |
-	| 2   | 5.4  | 397 | Image load/store, workgroup size 16x16, row major         | |
-	| 2   | 5.4  | 397 | Image read/write input attachment RGBA32F, 1x1 noise      | RT compression is not enabled because of > 1GB size |
-	| 2   | 2.7  | 397 | Image read/write input attachment 2xRGBA8, 1x1 noise      | has RT compression, but performance is low because of 8bpp |
-	| 1   | 5.35 | 401 | Image load/store, group reorder, row major                | |
-	| 1   | 5.35 | 401 | Buffer load/store, 32 bytes                               | |
-	| 0   | 5.3  | 405 | Buffer load/store, 64 bytes                               | 64 byte L2 cache line |
-	| -10 | 4.8  | 447 | Image read/write input attachment 2xRG32F,  1x1 noise     | |
-	| -23 | 4.3  | 499 | Image read/write input attachment 4xRGBA8,  1x1 noise     | better compression for RGBA8 ? |
-	| -72 | 2.35 | 699 | Image read/write input attachment RGBA32F,  2x2 noise, 7K | speedup on RT compression |
-	| -77 | 3.0  | 715 | Image read/write input attachment 2xRG32F,  2x2 noise     | speedup on RT compression |
-	| -77 | 3.0  | 715 | Image read/write input attachment 4xRGBA8,  2x2 noise     | speedup on RT compression |
+	| 26  | 6.7  | 320 | Buffer load/store in FS, 16 bytes                           | cache misses because of non-sequential read/write (?) |
+	| 19  | 6.3  | 340 | Buffer load/store, 128 bytes                                | |
+	| 7.5 | 5.7  | 376 | Image load/store, workgroup 8x8, row major                  | |
+	| 7   | 5.66 | 379 | Image load/store, workgroup 8x8, column major               | |
+	| 3   | 5.45 | 394 | Buffer load/store, 16 bytes                                 | |
+	| 3   | 5.45 | 394 | Image load/store, workgroup 16x16, column major             | |
+	| 2   | 5.4  | 397 | Image load/store, workgroup 16x16, row major                | |
+	| 2   | 5.4  | 397 | Image read/write input attachment RGBA32F, 1x1 noise        | RT compression is not enabled because of > 1GB size |
+	| 2   | 2.7  | 397 | Image read/write input attachment 2xRGBA8, 1x1 noise        | has RT compression, but performance is low because of 8bpp |
+	| 1   | 5.35 | 401 | Image load/store, workgroup 16x16, group reorder, row major | |
+	| 1   | 5.35 | 401 | Buffer load/store, 32 bytes                                 | |
+	|**0**| 5.3  | 405 | Buffer load/store, 64 bytes                                 | 64 byte L2 cache line, stable for any workgroup size and group order |
+	| -10 | 4.8  | 447 | Image read/write input attachment 2xRG32F, 1x1 noise        | |
+	| -23 | 4.3  | 499 | Image read/write input attachment 4xRGBA8, 1x1 noise        | better compression for RGBA8 ? |
+	| -72 | 2.35 | 699 | Image read/write input attachment RGBA32F, 2x2 noise, 7K    | speedup on RT compression |
+	| -77 | 3.0  | 715 | Image read/write input attachment 2xRG32F, 2x2 noise        | speedup on RT compression |
+	| -77 | 3.0  | 715 | Image read/write input attachment 4xRGBA8, 2x2 noise        | speedup on RT compression |
 
 
 ## Render target compression
@@ -206,14 +254,22 @@ Workgroup size is 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red
 
 * RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
 	- Measured cache size: 32 KB, 1 MB, 4MB.
-	- 8 texels per pixel, dim ???
+	- 8 texels per pixel, 5.76MPix, 737MB.
 	- from specs: only 32KB of L1 cache is reserved for texture cache.
 
 	| size (B) | dimension (px) | exec time (ms) | diff | approx bandwidth (GB/s) |
 	|---|---|---|---|
-	| 32K | 128x64    | 0.6 |  -  | TODO |
-	| 64K | 128x128   | 1.5 | 2.5 | |
-	| 1M  | 512x512   | 1.9 |  -  | |
-	| 4M  | 1024x1024 | 4   | 2.1 | |
-	| 8M  | 2048x1024 | 10  | 2.5 | |
+	| **128** | 4x8       | 0.18 | -    | 4096 | L1 cache line? |
+	| 256     | 8x8       | 0.28 | **1.6** | 2630 |
+	| 512     | 8x16      | 0.33 | 1.18 | 2233 |
+	| 1K      | 16x16     | 0.42 | 1.27 | 1755 |
+	| 2K      | 16x32     | 0.48 | 1.14 | 1535 |
+	| 4K      | 32x32     | 0.50 | 1.04 | 1474 |
+	| 8K      | 32x64     | 0.52 | 1.04 | 1417 |
+	| 16K     | 64x64     | 0.53 | 1.02 | 1390 |
+	| **32K** | 128x64    | 0.60 | 1.13 | 1228 | L1 cache |
+	| 64K     | 128x128   | 1.5  | **2.5** | 491 |
+	| **1M**  | 512x512   | 1.9  |  -   | 387 | near to VRAM bandwidth, should be L2 cache |
+	| **4M**  | 1024x1024 | 4.07 | **2.1** | 181 |
+	| 8M      | 2048x1024 | 10   | **2.5** |  74 |
 

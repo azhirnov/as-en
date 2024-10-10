@@ -34,11 +34,7 @@
 		RC<DynamicUInt>		gen_color	= DynamicUInt();
 		RC<DynamicUInt>		mode		= DynamicUInt();
 		RC<DynamicUInt>		count		= DynamicUInt();
-		
-		Slider( tex_dim,	"TexDim",	1,	8,	2 );	// NV: max 3 for RGBA32, max 5 for RGBA16, max 7 for RGBA8
-		Slider( gen_color,	"Pattern",	0,	7,	1 );
-		Slider( mode,		"Mode",		0,	3,	3 );
-		Slider( count,		"Repeat",	1,	16 );
+		uint				max_mode	= 0;
 
 		// with DCC
 		if ( @rt2 != null )
@@ -60,10 +56,12 @@
 			}
 			for (uint i = 0; i < 3; ++i)
 			{
-				RC<Postprocess>		pass = Postprocess( "", "READ;MODE=" + i );
+				RC<ComputePass>		pass = ComputePass( "", "READ;MODE=" + i );
 				pass.ArgIn(  "un_RT",		rt2,	(i == 2 ? Sampler_LinearClamp : Sampler_NearestClamp) );
-				pass.Output( "out_Color",	rt,		RGBA32f(0.0) );
-				pass.EnableIfEqual( mode, 1+i );
+				pass.ArgOut( "un_OutImage",	rt	);
+				pass.LocalSize( local_size );
+				pass.DispatchThreads( rt.Dimension() );
+				pass.EnableIfEqual( mode, ++max_mode );
 				pass.Repeat( count );
 			}
 		}
@@ -101,7 +99,7 @@
 				pass.ArgOut( "un_OutImage",	rt );
 				pass.LocalSize( local_size );
 				pass.DispatchThreads( rt.Dimension() );
-				pass.EnableIfEqual( mode, 1+i );
+				pass.EnableIfEqual( mode, ++max_mode );
 				pass.Repeat( count );
 			}
 		}
@@ -134,10 +132,15 @@
 				pass.ArgOut( "un_OutImage",	rt );
 				pass.LocalSize( local_size );
 				pass.DispatchThreads( rt.Dimension() );
-				pass.EnableIfEqual( mode, 1+i );
+				pass.EnableIfEqual( mode, ++max_mode );
 				pass.Repeat( count );
 			}
 		}
+		
+		Slider( tex_dim,	"TexDim",	1,	8,	2 );	// NV: max 3 for RGBA32, max 5 for RGBA16, max 7 for RGBA8
+		Slider( gen_color,	"Pattern",	0,	7,	1 );
+		Slider( mode,		"Mode",		0,	3,	max_mode );
+		Slider( count,		"Repeat",	1,	16 );
 
 		//Present( rt );
 	}
@@ -203,21 +206,20 @@
 
 	void Main ()
 	{
-		const int	dim	= 2;
+		const int	dim		= 2;
+		float4		col		= float4(0.0);
 
 	#if MODE == 0
-		float4		col		= float4(0.0);
 		const int2	coord	= GetGlobalCoord().xy * dim;
 
 		[[unroll]]  for (int y = 0; y < dim; ++y)
 		[[unroll]]  for (int x = 0; x < dim; ++x)
 			col += gl.texture.Fetch( un_RT, coord + int2(x,y), 0 );
 
-		out_Color = col / float(dim * dim);
+		col /= float(dim * dim);
 
 	#elif MODE == 1
 
-		float4			col		= float4(0.0);
 		const float2	step	= 1.0 / float2(GetGlobalSize().xy * dim);
 		const float2	coord	= GetGlobalCoord().xy * dim;
 
@@ -225,11 +227,14 @@
 		[[unroll]]  for (int x = 0; x < dim; ++x)
 			col += gl.texture.Sample( un_RT, (coord + float2(x,y)) * step );
 
-		out_Color = col / float(dim * dim);
+		col /= float(dim * dim);
 	#else
 
-		out_Color = gl.texture.Sample( un_RT, GetGlobalCoordUNorm().xy );
+		col = gl.texture.Sample( un_RT, GetGlobalCoordUNorm().xy );
 	#endif
+
+		if ( AllLess( col, float4(-1.e+20) ))
+			gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
 	}
 
 #endif
@@ -261,8 +266,9 @@
 
 		col /= float(dim * dim);
 	#endif
-
-		gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
+		
+		if ( AllLess( col, float4(-1.e+20) ))
+			gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
 	}
 
 #endif

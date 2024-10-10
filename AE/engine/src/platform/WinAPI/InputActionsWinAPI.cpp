@@ -311,6 +311,7 @@ namespace
 			}
 		  #endif
 
+			// only if RIDEV_NOLEGACY is not set
 			case WM_MOUSEMOVE :
 			{
 				_SetCursorPos( float2(int2( LOWORD(lParam), HIWORD(lParam) )));

@@ -31,10 +31,10 @@ Red - no helper invocations, violet - 3 helper invocations per quad.<br/>
 * Subgroups in fragment shader can fill multiple triangles, even if they have different `gl_InstanceIndex`. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 * Subgroups in fragment shader reserve threads for helper invocations, even if they are not executed. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
-* Subgroup occupancy with texturing. Helper invocations are executed and included as active thread. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+* Subgroup occupancy for single triangle with texturing. Helper invocations are executed and included as active thread. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
 ![](img/full-subgroup/adreno-660-tex.png)
 
-* Subgroup occupancy without texturing. Helper invocations are not executed but threads are reserved, so occupancy is low. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
+* Subgroup occupancy for single triangle without texturing. Helper invocations are not executed but threads are reserved, so occupancy is low. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
 ![](img/full-subgroup/adreno-660.png)
 
 * Subgroup occupancy for too small triangles. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
@@ -74,6 +74,42 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| **707** | 6.06 | F16MulAdd      | **1414** |
 	| **117** | 36.5 | F16FMA         | 234 |
 
+
+### NaN / Inf
+
+* FP32, FP16
+
+	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
+	|---|---|---|---|---|---|---|---|---|
+	| x | nan | nan | nan | nan | inf | -inf | max | -max |
+	| Min(x,0) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Min(0,x) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -max |
+	| Max(x,0) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Max(0,x) | 0 | 0 | 0 | 0 | inf | 0 | max | 0 |
+	| Clamp(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Clamp(x,-1,1) | -1 | -1 | -1 | -1 | 1 | -1 | 1 | -1 |
+	| IsNaN | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+	| IsInfinity | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
+	| bool(x) | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
+	| x != x | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+	| Step(0,x) | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 |
+	| Step(x,0) | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 1 |
+	| Step(0,-x) | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 1 |
+	| Step(-x,0) | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 |
+	| SignOrZero(x) | 0 | 0 | 0 | 0 | 1 | -1 | 1 | -1 |
+	| SignOrZero(-x) | 0 | 0 | 0 | 0 | -1 | 1 | -1 | 1 |
+	| SmoothStep(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+	| Normalize(x) | nan | nan | nan | nan | nan | nan | 0 | -0 |
+	
+* FP32 Mediump diff:
+
+	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
+	|---|---|---|---|---|---|---|---|---|
+	| x | nan | nan | nan | nan | inf | -inf | 65504 | -65504 |
+	| Min(x,0) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -65504 |
+	| Min(0,x) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -65504 |
+	| Max(x,0) | 0 | 0 | 0 | 0 | inf | 0 | 65504 | 0 |
+	| Max(0,x) | 0 | 0 | 0 | 0 | inf | 0 | 65504 | 0 |
 ## Resource access
 
 * Texture access 67.1MPix: [[5](../GPU_Benchmarks.md#5-Texture-lookup-performance)]
@@ -146,8 +182,8 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 
 	| size (KB) | dimension (px) | exec time (ms) | diff | approx bandwidth (GB/s) |
 	|---|---|---|---|
-	|   1 |  16x16  |  -    |     | |
-	|   2 |  32x16  |  2.3  |     | |
+	|   1 |  16x16  |  TODO |     |  |
+	|   2 |  32x16  |  2.3  |     | TODO |
 	|   4 |  32x32  |  7    | 3   | |
 	|  16 |  64x64  |  12.4 | 1.8 | |
 	| 128 | 256x128 |  14   |     | |
