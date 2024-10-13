@@ -544,6 +544,55 @@ namespace
 	}
 
 
+	template <typename RStream, typename WStream>
+	static void  Stream_Test2 ()
+	{
+		const uint	buf_size	= 4u << 10;		// Kb
+
+		const Path	fname {"file2_data.bin"};
+		{
+			WStream		wfile { fname, WStream::EMode::OpenRewrite };
+			TEST( wfile.IsOpen() );
+
+			ulong	buf [buf_size / sizeof(ulong)];
+			for (usize i = 0; i < CountOf(buf); ++i) {
+				buf[i] = i;
+			}
+			TEST( wfile.Write( buf, Sizeof(buf) ));
+		}
+
+		// append
+		{
+			WStream		wfile { fname, WStream::EMode::OpenAppend };
+			TEST( wfile.IsOpen() );
+			
+			ulong	buf [buf_size / sizeof(ulong)];
+			for (usize i = 0; i < CountOf(buf); ++i) {
+				buf[i] = i + CountOf(buf);
+			}
+			TEST( wfile.Write( buf, Sizeof(buf) ));
+		}
+
+		// read
+		{
+			RStream		rfile {fname};
+			TEST( rfile.IsOpen() );
+			TEST_Eq( rfile.Size(), Bytes{buf_size*2} );
+			
+			ulong	buf [buf_size / sizeof(ulong)];
+
+			for (usize j = 0; j < CountOf(buf)*2;)
+			{
+				TEST( rfile.Read( OUT buf, Sizeof(buf) ));
+
+				for (usize i = 0; i < CountOf(buf); ++i, ++j) {
+					TEST_Eq( buf[i], j );
+				}
+			}
+		}
+	}
+
+
 	template <typename RFile, typename WFile>
 	static void  File_Test1 (bool reserve)
 	{
@@ -635,23 +684,36 @@ extern void UnitTest_DataSource (const Path &curr)
 	TEST( FileSystem::SetCurrentPath( folder ));
 
 	Stream_Test1< StdFileRStream,		StdFileWStream		>();
+	Stream_Test2< StdFileRStream,		StdFileWStream		>();
 	File_Test1<   StdFileRDataSource,	StdFileWDataSource	>( false );
 
 	#ifdef AE_PLATFORM_WINDOWS
 		Stream_Test1< WinFileRStream,		WinFileWStream		>();
 		Stream_Test1< StdFileRStream,		WinFileWStream		>();
 		Stream_Test1< WinFileRStream,		StdFileWStream		>();
+		
+		Stream_Test2< WinFileRStream,		WinFileWStream		>();
+		Stream_Test2< StdFileRStream,		WinFileWStream		>();
+		Stream_Test2< WinFileRStream,		StdFileWStream		>();
+
 		File_Test1<   WinFileRDataSource,	WinFileWDataSource	>( false );
 		File_Test1<   WinFileRDataSource,	StdFileWDataSource	>( false );
 		File_Test1<   StdFileRDataSource,	WinFileWDataSource	>( false );
 		File_Test1<   WinFileRDataSource,	WinFileWDataSource	>( true );
 	#else
+
 		Stream_Test1< UnixFileRStream,		UnixFileWStream		>();
 		Stream_Test1< StdFileRStream,		UnixFileWStream		>();
 		Stream_Test1< UnixFileRStream,		StdFileWStream		>();
+		
+		Stream_Test2< UnixFileRStream,		UnixFileWStream		>();
+		Stream_Test2< StdFileRStream,		UnixFileWStream		>();
+		Stream_Test2< UnixFileRStream,		StdFileWStream		>();
+
 		File_Test1<   UnixFileRDataSource,	UnixFileWDataSource	>( false );
 		File_Test1<   UnixFileRDataSource,	StdFileWDataSource	>( false );
 		File_Test1<   StdFileRDataSource,	UnixFileWDataSource	>( false );
+
 	# ifndef AE_PLATFORM_ANDROID
 		File_Test1<   UnixFileRDataSource,	UnixFileWDataSource	>( true );
 	# endif

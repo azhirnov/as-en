@@ -596,8 +596,8 @@ namespace AE::ResEditor
 			str << _controller->GetHelpText();
 
 		str << R"(
-  '0..9' - set value to customKey[0] which can be used in shader
-  'P'    - stop animation)";
+  '0..9' - - set value to customKey[0] which can be used in shader
+  'P'      - stop animation)";
 
 		return str;
 	}

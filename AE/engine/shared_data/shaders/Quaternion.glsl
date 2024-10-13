@@ -34,11 +34,21 @@ ND_ float3	QDirection (const Quat q);
 ND_ Quat	QLookAt (const float3 from, const float3 to);
 ND_ Quat	QLookAt (const float3 dir);
 
-ND_ Quat	QRotationX (const float angleRad);
-ND_ Quat	QRotationY (const float angleRad);
-ND_ Quat	QRotationZ (const float angleRad);
-ND_ Quat	QRotation (const float3 anglesRad);
+ND_ Quat	QRotationX (float angleRad);
+ND_ Quat	QRotationY (float angleRad);
+ND_ Quat	QRotationZ (float angleRad);
 
+ND_ Quat	QRotation (const float3 anglesRad);
+ND_ Quat	QRotation (float angleRad, const float3 axis);
+ND_ Quat	QRotation_ChordOver2R (const float x, const float3 axis);
+
+ND_ Quat	QRotationX (const float sin, const float cos);
+ND_ Quat	QRotationY (const float sin, const float cos);
+ND_ Quat	QRotationZ (const float sin, const float cos);
+
+ND_ Quat	QRotationX_ChordOver2R (const float x);
+ND_ Quat	QRotationY_ChordOver2R (const float x);
+ND_ Quat	QRotationZ_ChordOver2R (const float x);
 //-----------------------------------------------------------------------------
 
 
@@ -90,10 +100,10 @@ Quat  QNormalize (const Quat q)
 	Quat	ret = q;
 	float	n	= Dot( q.data, q.data );
 
-	if ( n == 1.0 )
+	if ( n > 0.999 and n < 1.001 )
 		return ret;
 
-	ret.data /= Sqrt( n );
+	ret.data *= InvSqrt( n );
 	return ret;
 }
 
@@ -201,13 +211,22 @@ float3  QDirection (const Quat q)
 	QRotationX
 =================================================
 */
-Quat  QRotationX (const float angleRad)
+Quat  QRotationX (float a)
+{
+	a *= 0.5;
+	return QRotationX( Sin(a), Cos(a) );
+}
+
+Quat  QRotationX (const float sin, const float cos)
 {
 	Quat	q;
-	float	a = angleRad * 0.5;
-
-	q.data = float4( Sin(a), 0.0, 0.0, Cos(a) );
+	q.data = float4( sin, 0.0, 0.0, cos );
 	return q;
+}
+
+Quat  QRotationX_ChordOver2R (const float x)
+{
+	return QRotationX( x, Sqrt(1.0 - x*x) );
 }
 
 /*
@@ -215,13 +234,22 @@ Quat  QRotationX (const float angleRad)
 	QRotationY
 =================================================
 */
-Quat  QRotationY (const float angleRad)
+Quat  QRotationY (float a)
+{
+	a *= 0.5;
+	return QRotationY( Sin(a), Cos(a) );
+}
+
+Quat  QRotationY (const float sin, const float cos)
 {
 	Quat	q;
-	float	a = angleRad * 0.5;
-
-	q.data = float4( 0.0, Sin(a), 0.0, Cos(a) );
+	q.data = float4( 0.0, sin, 0.0, cos );
 	return q;
+}
+
+Quat  QRotationY_ChordOver2R (const float x)
+{
+	return QRotationY( x, Sqrt(1.0 - x*x) );
 }
 
 /*
@@ -229,13 +257,22 @@ Quat  QRotationY (const float angleRad)
 	QRotationZ
 =================================================
 */
-Quat  QRotationZ (const float angleRad)
+Quat  QRotationZ (float a)
+{
+	a *= 0.5;
+	return QRotationZ( Sin(a), Cos(a) );
+}
+
+Quat  QRotationZ (const float sin, const float cos)
 {
 	Quat	q;
-	float	a = angleRad * 0.5;
-
-	q.data = float4( 0.0, 0.0, Sin(a), Cos(a) );
+	q.data = float4( 0.0, 0.0, sin, cos );
 	return q;
+}
+
+Quat  QRotationZ_ChordOver2R (const float x)
+{
+	return QRotationZ( x, Sqrt(1.0 - x*x) );
 }
 
 /*
@@ -246,6 +283,17 @@ Quat  QRotationZ (const float angleRad)
 Quat  QRotation (const float3 anglesRad)
 {
 	return QMul( QMul( QRotationX( anglesRad.x ), QRotationY( anglesRad.y )), QRotationZ( anglesRad.z ));
+}
+
+Quat  QRotation (float a, const float3 axis)
+{
+	a *= 0.5;
+	return QCreate( axis * Sin(a), Cos(a) );
+}
+
+Quat  QRotation_ChordOver2R (const float x, const float3 axis)
+{
+	return QCreate( axis * x, Sqrt(1.0 - x*x) );
 }
 
 /*

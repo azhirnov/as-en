@@ -7,8 +7,8 @@
 * Clock: 300 / 1000 MHz
 * Pixel Rate: 3.000 GPixel/s
 * Texture Rate: 24.00 GTexel/s
-* FP16 GFLOPS: **768.0** (825 GFLOPS from tests)
-* FP32 GFLOPS: **384.0** (416 GFLOPS from tests)
+* FP16 GFLOPS: **768.0** (825 on Add from tests)
+* FP32 GFLOPS: **384.0** (416 on FMA from tests)
 * FP64 GFLOPS: **96.00**
 * Execution Units: 24
 * warp size: 16
@@ -26,7 +26,7 @@
 
 ### Subgroups
 
-* Subgroups in fragment shader can not fill multiple triangles. This leads to unused threads in subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]
+* Subgroups in fragment shader can **not** fill multiple triangles. This leads to unused threads in subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
 
 ### Subgroup threads order
@@ -42,26 +42,46 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 
 ### Instruction cost
 
-* [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]:
+* Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
+	- fp32 & i32 datapaths can execute in parallel in 2:1 rate
+	- fp32 FMA is preferred than single FMul or separate FMulAdd
+	- fp16 FMA is x2.8 faster than fp32 FMA - has HFMA2
+	- fp32 has fastest Normalize,  Length (x1.2),  Distance (x1.7)
+	- fp32 has fastest ClampUNorm,  ClampSNorm (x2.5),  Clamp (x2.9)
+	- i32 FindMSB is x2.2 SLOWER than FindLSB
+	- fp32 has fastest square root: Sqrt,  InvSqrt (x1.4),  Software2 (x2.1)
+	- fp32 has fastest quad root: InvSqrt,  Pow (x1.1), Sqrt (x1.0)
+	- fp32 has fastest sRGB curve: v1,  v2 (x1.5),  v3 (x1.5)
+	- fp16 has fastest sRGB curve: v1,  v3 (x1.2),  v2 (x1.3)
+	- fp32 FastATan is x1.6 faster than native ATan
+	- fp32 FastASin is x4.1 faster than native ASin
+	- fp16 FastATan is x2.4 faster than native ATan
+	- fp16 FastACos is x1.2 faster than native ACos
+	- fp16 FastASin is x6.7 faster than native ASin
+	- fp32 Pow uses MUL loop - performance depends on power
+	
+* FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 	- Better loop unrolling if count <= 128.
 	- Compute is 1.07x faster than graphics.
 	- Compute dispatch on 512x512 grid is faster.
 	
-	| GOp/s | exec time (ms) | ops | max GFLOPS | comments |
+	| GOp/s | ops | max GFLOPS |
 	|---|---|---|
-	| **397** | | Add              | 397 |
-	| **208** | | Mul, MulAdd, FMA | **416** |
-
-* [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]:
+	| 397 | Add         | 397 |
+	| 208 | Mul         | 208 |
+	| 208 | MulAdd, FMA | **416** |
 	
-	| GOp/s | exec time (ms) | ops | max GFLOPS | comments |
+* FP16 instruction performance: [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]
+	
+	| GOp/s | ops | max GFLOPS |
 	|---|---|---|
-	| **835** | | Add              | **825** |
-	| **397** | | Mul, MulAdd, FMA | 794 |
+	| 835 | Add         | **825** |
+	| 397 | Mul         | 397 |
+	| 397 | MulAdd, FMA | 794 |
 
 ### NaN / Inf
 
-* Float32, Float16.
+* FP32, FP16. [[11](../GPU_Benchmarks.md#11-NaN)]
 
 	| op | qnan | snan | inf | max*2 | max |
 	|---|---|---|---|---|---|
@@ -78,7 +98,7 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| isnan             | 1  | 1  | 0       | 0       | 0   |
 	| isinf             | 0  | 0  | 1       | 1       | 0   |
 
-* Mediump - same as Float32, except:
+* FP Mediump - same as Float32, except:
 
 	| op | qnan | snan | inf | max*2 | max |
 	|---|---|---|---|---|---|
@@ -86,7 +106,7 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| isnan             | 0  | 0  | 0       | 0       | 0       |
 	| isinf             | 0  | 0  | 1       | 1       | **1**   |
 	
-* Double - same as Float32, except:
+* FP64 - same as FP32, except:
 
 	| op | qnan | snan | inf | max*2 | max |
 	|---|---|---|---|---|---|
@@ -97,7 +117,7 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 ### Noise performance
 
 | name | thread count | exec time (ms) | per thread (ns) |
-|---|---|---|---|---|
+|---|---|---|---|
 | ValueNoise                    | 4.19M | 3.32 |  0.79 |
 | PerlinNoise                   | 4.19M | 4.72 |  1.13 |
 | SimplexNoise                  | 4.19M | 4.97 |  1.19 |
@@ -199,14 +219,14 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 
 	| size (B) | dimension (px) | exec time (ms) | diff | approx bandwidth (GB/s) | comments |
 	|---|---|---|---|---|---|
-	| 64       | 8x8       | 1.64 |  -   | 112 |
-	| 128      | 8x16      | 2.1  | 1.3  |  88 |
-	| 256      | 16x16     | 2.31 |  -   |  80 |
-	| **8K**   | 64x128    | 2.8  |  -   |  66 |
+	| 64       | 8x8       | 1.64 |  -       | 112 | L1 cache line? |
+	| 128      | 8x16      | 2.1  | 1.3      |  88 |
+	| 256      | 16x16     | 2.31 |  -       |  80 |
+	| **8K**   | 64x128    | 2.8  |  -       |  66 | L1 cache size |
 	| 16K      | 128x128   | 3.8  | **1.35** |  48 |
-	| 32K      | 128x256   | 4.8  | 1.26 |  38 |
-	| 64K      | 256x256   | 5.3  | 1.1  |  35 |
-	| **128K** | 256x512   | 6.7  | 1.26 |  28 |
+	| 32K      | 128x256   | 4.8  | 1.26     |  38 |
+	| 64K      | 256x256   | 5.3  | 1.1      |  35 |
+	| **128K** | 256x512   | 6.7  | 1.26     |  28 | L2 cache size |
 	| 256K     | 512x512   | 12.1 | **1.8**  |  16 | less than RAM bandwidth |
-	| **512K** | 512x1024  | 14.5 | 1.2  |  13 |
+	| **512K** | 512x1024  | 14.5 | 1.2      |  13 | ? |
 	| 1M       | 1024x1024 | 27.7 | **1.9**  |   7 |

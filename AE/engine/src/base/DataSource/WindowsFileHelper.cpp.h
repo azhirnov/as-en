@@ -75,26 +75,32 @@ namespace
 	OpenFileForRead
 =================================================
 */
-	ND_ static HANDLE  OpenFileForRead (const char* filename, RFileFlags flags, DWORD addFlags = 0) __NE___
+	template <typename T>
+	ND_ HANDLE  OpenFileForRead (const T* filename, RFileFlags flags, DWORD addFlags = 0) __NE___
 	{
-		return ::CreateFileA( filename,			// winxp
-							  GENERIC_READ,
-							  FILE_SHARE_READ | FILE_SHARE_WRITE,	// file may be opened for read and write by another process
-							  null,		// default security
-							  OPEN_EXISTING,
-							  FileFlagCast( flags ) | addFlags,
-							  null );
-	}
-
-	ND_ static HANDLE  OpenFileForRead (const wchar_t* filename, RFileFlags flags, DWORD addFlags = 0) __NE___
-	{
-		return ::CreateFileW( filename,			// winxp
-							  GENERIC_READ,
-							  FILE_SHARE_READ | FILE_SHARE_WRITE,	// file may be opened for read and write by another process
-							  null,		// default security
-							  OPEN_EXISTING,
-							  FileFlagCast( flags ) | addFlags,
-							  null );
+		DWORD	dwDesiredAccess			= GENERIC_READ;
+		DWORD	dwShareMode				= FILE_SHARE_READ | FILE_SHARE_WRITE;	// file may be opened for read and write by another process
+		DWORD	dwCreationDisposition	= OPEN_EXISTING;
+		DWORD	dwFlagsAndAttributes	= FileFlagCast( flags ) | addFlags;
+		
+		if constexpr( IsSameTypes< T, char >)
+		{
+			return ::CreateFileA( filename,			// winxp
+								  dwDesiredAccess, dwShareMode,
+								  null,		// default security
+								  dwCreationDisposition,
+								  dwFlagsAndAttributes,
+								  null );
+		}
+		if constexpr( IsSameTypes< T, wchar_t >)
+		{
+			return ::CreateFileW( filename,			// winxp
+								  dwDesiredAccess, dwShareMode,
+								  null,		// default security
+								  dwCreationDisposition,
+								  dwFlagsAndAttributes,
+								  null );
+		}
 	}
 
 /*
@@ -102,27 +108,32 @@ namespace
 	OpenFileForWrite
 =================================================
 */
-	ND_ static HANDLE  OpenFileForWrite2 (const char* filename, WFileFlags flags, DWORD addFlags) __NE___
+	template <typename T>
+	ND_ HANDLE  OpenFileForWrite2 (const T* filename, WFileFlags flags, DWORD addFlags) __NE___
 	{
-		return ::CreateFileA( filename,			// winxp
-							  AllBits( flags, WFileFlags::OpenAppend ) ? FILE_APPEND_DATA : GENERIC_WRITE,
-							  AllBits( flags, WFileFlags::SharedRead ) ? FILE_SHARE_READ : 0,	// file may be opened for read by another process
-							  null,		// default security
-							  AllBits( flags, WFileFlags::OpenUpdate ) ? OPEN_EXISTING : CREATE_ALWAYS,
-							  FileFlagCast( flags ) | addFlags,
-							  null );
-	}
+		DWORD	dwDesiredAccess			= AllBits( flags, WFileFlags::OpenAppend ) ? FILE_APPEND_DATA : GENERIC_WRITE;
+		DWORD	dwShareMode				= AllBits( flags, WFileFlags::SharedRead ) ? FILE_SHARE_READ : 0;	// file may be opened for read by another process
+		DWORD	dwCreationDisposition	= AnyBits( flags, WFileFlags::OpenUpdate | WFileFlags::OpenAppend ) ? OPEN_EXISTING : CREATE_ALWAYS;
+		DWORD	dwFlagsAndAttributes	= FileFlagCast( flags ) | addFlags;
 
-	ND_ static HANDLE  OpenFileForWrite2 (const wchar_t* filename, WFileFlags flags, DWORD addFlags) __NE___
-	{
-		return ::CreateFileW( filename,			// winxp
-							  AllBits( flags, WFileFlags::OpenAppend ) ? FILE_APPEND_DATA : GENERIC_WRITE,
-							  AllBits( flags, WFileFlags::SharedRead ) ? FILE_SHARE_READ : 0,	// file may be opened for read by another process
-							  null,		// default security
-							  AllBits( flags, WFileFlags::OpenUpdate ) ? OPEN_EXISTING :
-								(AllBits( flags, WFileFlags::OpenAppend ) ? CREATE_NEW : CREATE_ALWAYS),
-							  FileFlagCast( flags ) | addFlags,
-							  null );
+		if constexpr( IsSameTypes< T, char >)
+		{
+			return ::CreateFileA( filename,			// winxp
+								  dwDesiredAccess, dwShareMode,
+								  null,				// default security
+								  dwCreationDisposition,
+								  dwFlagsAndAttributes,
+								  null );
+		}
+		if constexpr( IsSameTypes< T, wchar_t >)
+		{
+			return ::CreateFileW( filename,			// winxp
+								  dwDesiredAccess, dwShareMode,
+								  null,				// default security
+								  dwCreationDisposition,
+								  dwFlagsAndAttributes,
+								  null );
+		}
 	}
 
 	template <typename T>

@@ -126,11 +126,11 @@ namespace AE::ResEditor
 		return R"(
 OrbitalCamera controls:
   'W' 'S'          - move forward/backward
-  'A' 'D'          - move left/right
-  'Left mouse btn' - press to rotate camera
+  'A' 'D'  - - - - - move left/right
   'Arrows'         - rotation
+  'Left mouse btn' - press to rotate camera
   'Mouse wheel'    - zoom
-  'R'              - reset position, rotation, zoom
+  'R'  - - - - - - - reset position, rotation, zoom
 )";
 	}
 

@@ -1042,7 +1042,8 @@ namespace
 		DescriptorCount		total		= {};
 		PerStageDescCount_t	per_stage	= {};
 		CountDescriptors( INOUT total, INOUT per_stage );
-		CHECK_ERR( CheckDescriptorLimits( total, per_stage, _features, ("In DescriptorSetLayout '"s << _name << "'") ));
+		CHECK_ERR_MSG( CheckDescriptorLimits( total, per_stage, _features, ("In DescriptorSetLayout '"s << _name << "'") ),
+			"DescriptorSetLayout '"s << _name << "' failed in CheckDescriptorLimits()" );
 
 		_uid = storage.pplnStorage->AddDescriptorSetLayout( _dsLayout );
 		return true;
@@ -2640,14 +2641,14 @@ namespace
 
 		for (auto [stage, count] : perStage)
 		{
-			#define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )																					\
-			{																															\
-				const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perStage, &FeatureSet::PerShaderStage::_rhs_ );	\
-				if_unlikely( (_lhs_) > rhs_val ) {																						\
-					result = false;																										\
-					AE_LOGE( "Number of "s << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<				\
-							AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );												\
-				}																														\
+			#define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )																						\
+			{																																\
+				const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perStage, &FeatureSet::PerShaderStage::_rhs_ );		\
+				if_unlikely( (_lhs_) > rhs_val ) {																							\
+					result = false;																											\
+					AE_LOGE( String{name} << ": number of "s << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<	\
+							AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );													\
+				}																															\
 			}
 			CHECK_LIMIT( count.uniformBuffers,		maxUniformBuffers,		"uniform buffers per stage" );
 			CHECK_LIMIT( count.storageBuffers,		maxStorageBuffers,		"storage buffers per stage" );

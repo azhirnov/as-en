@@ -11,7 +11,7 @@
 
 ### Memory
 
-* Memory: 8GB, GDDR6, 256 bit, 1750 MHz, 448.0 GB/s (403 GB/s from tests (at 1515 MHz ?))
+* Memory: 8GB, GDDR6, 256 bit, 1750 MHz, **448.0** GB/s (403 GB/s from tests (at 1515 MHz ?))
 * Memory max power consumption: 25W (7.5 pJ/bit, 0.06 J/GB)  [calc]
 * L2 cache: 4MB
 * L1 Cache: 64 KB (per SM)
@@ -85,12 +85,80 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 
 ### Instruction cost
 
-* [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]:
+* Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
 	- Fp16 is 2x faster in FAdd, FMul, FMA, but only for `half2`, `half4` types. Performance of this 3 operations are equal.
 	- Fp32 FMul is slower than FAdd. FMA has the same perf as FMul.
-	- fp32 & i32 datapaths can execute in parallel in 2:1 rate.
+	- fp32 & i32 datapaths can execute in parallel in 1:1 rate.
+	
+* Shader instruction benchmark results: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
+	- base rate: 8.9 TOp/s at 1515 MHz
 
-* [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]:
+	- **float point**
+	
+	| op \ type | fp16 | fp32 | fp64 |
+	|---|---|---|---|
+	| Add           | 0.5 | 1   | 40  |
+	| Mul           | 1   | 2   | 80  |
+	| FMA           | 1   | 2   | 80  |
+	| MulAdd        | 2   | 2   | 80  |
+	| Abs           | 0.5 | 1   | 40  |
+	| Lerp          | 1   | 2   | 80  |
+	| Min/Max       | 1.5 | 1   | 120 |
+	| Length        | 2   | 3   | 480 |
+	| Normalize     | 2   | 3   | 280 |
+	| Distance      | 3   | 5   | 480 |
+	| Dot           | 3   | 4   | 160 |
+	| Cross         | 4   | 4   | 160 |
+	| Clamp(x,0,1)  | 0.5 | 1   | 200 |
+	| Clamp(x,-1,1) | 3   | 3   | 200 |
+	| Clamp         | 3   | 3   | 200 |
+	| Step          | 2.4 | 1.1 | 120 |
+	| Smoothstep    | 3   | 5   | 440 |
+	| Sign          | 4   | 1.2 | 280 |
+	| SignOrZero    | 8   | 8   | 280 |
+	| BitCast       | 4   | 1   | 40  |
+	| FloatToInt    | 6   | 6   | 80  |
+	| IntToFloat    | 6   | 6   | 80  |
+	| Ceil, Floor, Trunc, Round, RoundEven | 6   | 6 | 120 |
+	| Fract         | 6   | 6   | 200 |
+	| Div           | 8   | 8   | 800 |
+	| Mod           | 16  | 16  | 1000 |
+	| Exp, Exp2     | 8   | 8   | -   |
+	| InvSqrt       | 8   | 8   | 800 |
+	| Sqrt          | 8   | 8   | 1680 |
+	| Log, Log2     | 8   | 8   |  -  |
+	| Sin, Cos      | 8   | 8   | -   |
+	| Pow           | 16  | 16  | -   |
+	| Tan           | 24  | 24  | -   |
+	| ASin, ACos    | 28  | 28  | -   |
+	| ATan          | 72  | 60  | -   |
+
+	- **integer**
+	
+	| op \ type | i32 | u32 | i64 | u64 | i16 | u16 | i8 | u8 |
+	|---|---|---|---|---|---|---|---|---|
+	| Add         | 1   | 0.9 | 2.5 | 2   | 1  | 0.9 | 0.1 ? | 0.1 ? |
+	| Mul         | 2   | 2   | 8   | 8   | 2  | 3   | 2     | 3     |
+	| MulAdd      | 2   | 2   | 8   | 8   | 2  | 3   | 0.2 ? | 0.2 ? |
+	| Div         | 54  | 48  | 180 | 140 | 52 | 52  | 0.1 ? | 0.1 ? |
+	| Mod         | 48  | 54  | 180 | 140 | 52 | 52  | 0.1 ? | 0.1 ? |
+	| Clamp const | 3   | 1   | 16  | 8   | 8  | 4   | 8     | 4     |
+	| Clamp       | 1   | 1   | 8   | 8   | 3  | 4   | 4     | 4     |
+	| Abs         | 1.5 | -   | 8   | -   | 5  | -   | 0.1 ? | -     |
+	| Min/Max     | 1   | 1   | 8   | 8   | 3  | 4   | 4     | 4     |
+	| Shift const | 1   | 1   | 2   | 2   | 1  | 1   | 0.1 ? | 0.1 ? |
+	| Shift       | 2   | 2   | 4   | 4   | 4  | 4   | 0.1 ? | 0.1 ? |
+	| And         | 1   | 1   | 4   | 4   | 1  | 1   | 0.1 ? | 0.1 ? |
+	| Or          | 1   | 1   | 4   | 4   | 1  | 1   | 0.1 ? | 0.1 ? |
+	| Xor         | 1   | 1   | 4   | 4   | 1  | 1   | 0.1 ? | 0.1 ? |
+	| BitCount    | 8   | 8   | -   | -   | -  | -   | -     | -     |
+	| FindLSB     | 16  | 16  | 16  | 16  | 16 | 16  | 16    | 16    |
+	| FindMSB     | 8   | 8   | -   | -   | -  | -   | -     | -     |
+	| AddCarry, SubBorrow | -   | 6   | - | - | - | - | - | - |
+	| MulExtended | -   | 7   | - | - | - | - | - | - |
+
+
+* FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 	- Loop unrolling can double performance.
 	- Loop unrolling works for less than 1536 count, on 2048 it lose 2.5x of performance.
 	- Loop unrolling is too slow at pipeline creation stage.
@@ -98,25 +166,25 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 	- Minimal dispatch size: 256x276 (1.5 of total thread count), lower size will lost performance.
 	- Measured with fixed clock at 1515 MHz.
 
-	| TOp/s | exec time (ms) | ops | max TFLOPS | comments |
+	| TOp/s | ops | max TFLOPS |
 	|---|---|---|
-	| **8.8** | | Add         | **8.8** |
-	| **4.4** | | MulAdd, FMA | **8.8** |
-	| **4.4** | | Mul         | 4.4     |
+	| 8.8 | Add         | **8.8** |
+	| 4.4 | MulAdd, FMA | **8.8** |
+	| 4.4 | Mul         | 4.4     |
 
-* [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]:
+* FP16 instruction performance: [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]
 	- Measured with fixed clock at 1515 MHz.
 
-	| TOp/s | exec time (ms) | ops | max TFLOPS | comments |
+	| TOp/s | ops | max TFLOPS |
 	|---|---|---|
-	| **17.8** | | Add                | **17.8** | |
-	| **8.9**  | | Mul, Add with deps | 8.9      | |
-	| **8.9**  | | MulAdd, FMA        | **17.8** | |
-	| **4.4**  | | MulAdd with deps   | 8.8      | 2x slow than F16x2FMA (TODO: check) |
+	| 17.8 | Add                | **17.8** | |
+	| 8.9  | Mul, Add with deps | 8.9      | |
+	| 8.9  | MulAdd, FMA        | **17.8** | |
+	| 4.4  | MulAdd with deps   | 8.8      | 2x slow than F16x2FMA (TODO: check) |
 
 ### NaN / Inf
 
-* FP32, Mediump, FP16, FP64
+* FP32, Mediump, FP16, FP64. [[11](../GPU_Benchmarks.md#11-NaN)]
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|
@@ -258,7 +326,7 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 	- from specs: only 32KB of L1 cache is reserved for texture cache.
 
 	| size (B) | dimension (px) | exec time (ms) | diff | approx bandwidth (GB/s) |
-	|---|---|---|---|
+	|---|---|---|---|---|
 	| **128** | 4x8       | 0.18 | -    | 4096 | L1 cache line? |
 	| 256     | 8x8       | 0.28 | **1.6** | 2630 |
 	| 512     | 8x16      | 0.33 | 1.18 | 2233 |
@@ -267,8 +335,8 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 	| 4K      | 32x32     | 0.50 | 1.04 | 1474 |
 	| 8K      | 32x64     | 0.52 | 1.04 | 1417 |
 	| 16K     | 64x64     | 0.53 | 1.02 | 1390 |
-	| **32K** | 128x64    | 0.60 | 1.13 | 1228 | L1 cache |
-	| 64K     | 128x128   | 1.5  | **2.5** | 491 |
+	| **32K** | 128x64    | 0.60 | 1.13 | 1228 | L1 cache size |
+	| 64K     | 128x128   | 1.5  | **2.5** | 491 | L1 cache size from specs, not enough space to store unique 64 KB or not whole cache line are used |
 	| **1M**  | 512x512   | 1.9  |  -   | 387 | near to VRAM bandwidth, should be L2 cache |
 	| **4M**  | 1024x1024 | 4.07 | **2.1** | 181 |
 	| 8M      | 2048x1024 | 10   | **2.5** |  74 |

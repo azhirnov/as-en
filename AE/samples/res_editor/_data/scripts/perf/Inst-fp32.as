@@ -56,24 +56,13 @@
 	#define MUL_ADD		7
 	#define MUL_ADD1	8
 
-	#define UNROLL1		//[[unroll]]	// too slow during pipeline creation
-	#define UNROLL2		[[unroll]]
-
 	#define type		float
 	#define type4		float4
 
-	#if defined(AE_Qualcomm_Adreno_GPU) || defined(AE_Intel_GPU) || defined(AE_NVidia_GPU) || defined(AE_AMD_GPU)
+	#if defined(AE_Qualcomm_Adreno_GPU) || defined(AE_Intel_GPU) || defined(AE_NVidia_GPU) || defined(AE_AMD_GPU) || defined(AE_Apple_GPU)
 	#	define FOR()	[[unroll]] for (int i = 0, cnt = COUNT1*COUNT2; i < cnt; ++i)	// NV: must be <= 1024, unroll is too slow
 	#elif defined(AE_ARM_Mali_GPU) || defined(AE_IMG_PowerVR_GPU)
 	#	define FOR()	for (int i = 0, cnt = COUNT1*COUNT2; i < cnt; ++i)
-
-	#elif 0
-	#	define FOR()	UNROLL1 for (type i = type(0.0), cnt = type(COUNT1); i < cnt; ++i)		UNROLL2 for (type j = type(0.0); j < type(COUNT2); ++j)
-	#elif 0
-	#	define FOR()	UNROLL1 for (int i = 0; i < COUNT1; ++i)								UNROLL2 for (int j = 0; j < COUNT2; ++j)
-	#elif 0
-	#	define FOR()	UNROLL2 for (int i = 0; i < COUNT1*COUNT2; ++i)
-	//#	define FOR()	UNROLL2 for (type i = type(0.0), cnt = type(COUNT1*COUNT2); i < cnt; ++i)
 	#endif
 
 	#ifdef SH_COMPUTE
@@ -96,6 +85,8 @@
 	#	define COUNT2		(1<<3)
 	#elif defined(AE_Qualcomm_Adreno_GPU)
 	#	define DIM			(1<<8)
+	#elif defined(AE_Apple_GPU)
+	#	define DIM			(1<<10)
 	#	define COUNT1		(1<<5)
 	#	define COUNT2		(1<<5)
 	#elif defined(AE_ARM_Mali_GPU) || defined(AE_IMG_PowerVR_GPU)

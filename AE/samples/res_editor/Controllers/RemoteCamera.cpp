@@ -120,9 +120,9 @@ namespace AE::ResEditor
 		return R"(
 RemoteCamera controls:
   'W' 'S'       - move forward/backward
-  'A' 'D'       - move left/right
+  'A' 'D'   - - - move left/right
   'LeftShift'   - move down
-  'Space'       - move up
+  'Space'   - - - move up
   'R'           - reset position
   Use Android device to control rotation
 )";

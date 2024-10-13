@@ -305,19 +305,19 @@ float2  Inverted_PlaneTo360 (const float3 rayDir)
 float2  Inverted_PlaneToCubemap360 (const float3 c)
 {
 	// front (xy space)
-	if ( All(bool3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z )))
+	if ( All3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z ))
 		return Lerp( float2(1.0/3.0, 0.0), float2(2.0/3.0, 0.5), ToUNorm(c.xy / c.z) );
 
 	// right (zy space)
-	if ( All(bool3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x )))
+	if ( All3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x ))
 		return Lerp( float2(2.0/3.0, 0.0), float2(1.0, 0.5), ToUNorm(float2( -c.z, c.y ) / c.x) );
 
 	// back (xy space)
-	if ( All(bool3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z )))
+	if ( All3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z ))
 		return Lerp( float2(2.0/3.0, 1.0), float2(1.0/3.0, 0.5), ToUNorm(c.yx / -c.z) );
 
 	// left (zy space)
-	if ( All(bool3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x )))
+	if ( All3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x ))
 		return Lerp( float2(0.0, 0.0), float2(1.0/3.0, 0.5), ToUNorm(c.zy / -c.x) );
 
 	// down (xz space)
@@ -340,19 +340,19 @@ float2  Inverted_PlaneToCubemapVR360 (const float3 c, const uint eye)
 	float2	uv;
 
 	// front (xy space)
-	if ( All(bool3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z )))
+	if ( All3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z ))
 		uv = Lerp( float2(1.0/3.0, 0.0), float2(2.0/3.0, 0.5), ToUNorm(c.xy / c.z) );
 	else
 	// right (zy space)
-	if ( All(bool3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x )))
+	if ( All3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x ))
 		uv = Lerp( float2(2.0/3.0, 0.0), float2(1.0, 0.5), ToUNorm(float2( -c.z, c.y ) / c.x) );
 	else
 	// back (xy space)
-	if ( All(bool3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z )))
+	if ( All3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z ))
 		uv = Lerp( float2(2.0/3.0, 1.0), float2(1.0/3.0, 0.5), ToUNorm(c.yx / c.z) );
 	else
 	// left (zy space)
-	if ( All(bool3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x )))
+	if ( All3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x ))
 		uv = Lerp( float2(0.0, 0.0), float2(1.0/3.0, 0.5), ToUNorm(c.zy / -c.x) );
 	else
 	// down (xz space)

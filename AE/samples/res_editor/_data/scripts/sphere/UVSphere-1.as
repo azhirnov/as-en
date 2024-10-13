@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Procedural sphere with approximation for perspective distortion.
+*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	include <aestyle.glsl.h>
@@ -128,7 +131,7 @@
 		color.b = AA_QuadGrid( size * ncoord, lod/size, 12.5 ) * 0.6;
 
 		const float2	scale	= float2(lod);
-		float			dist	= 1.0e+10;
+		float			dist	= float_max;
 
 		for (int y = -1; y <= 1; ++y)
 		for (int x = -1; x <= 1; ++x)

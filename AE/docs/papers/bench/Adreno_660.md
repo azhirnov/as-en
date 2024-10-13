@@ -4,8 +4,8 @@
 ## Specs
 
 * Clock: 840 MHz (790?)
-* F16 GFLOPS: **3244** (680 GOp/s on MulAdd from tests)
-* F32 GFLOPS: **1622** (364 GOp/s on FMA from tests)
+* F16 GFLOPS: **3244** (1414 on MulAdd from tests)
+* F32 GFLOPS: **1622** (728 on FMA from tests)
 * F64 GFLOPS: **405**
 * GMem size: 1.5 Mb (bandwidth?)
 * L2: ? (bandwidth?)
@@ -53,7 +53,12 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 
 ### Instruction cost
 
-* FP32 instruction benchmark [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]:
+* Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
+	- fp32 FMA is preferred than single FMul or separate FMulAdd
+	- fp32 SignOrZero is x3.9 faster than Sign
+	- fp32 & i32 datapaths can execute in parallel in 2:1 rate.
+	
+* FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 	- Loop unrolling is fast during pipeline creation if loop < 256.
 	- Loop unrolling is 1x - 1.4x faster, 2x slower on 1024, 1.1x slower on 256.
 	- Loop index with `int` and `float` has same performance.
@@ -62,22 +67,22 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	- 128 subgroup size (wave128) has no effect on performance.
 
 	| GOp/s | exec time (ms) | ops | max GFLOPS |
-	|---|---|---|
-	| **420** | 10.2 | F32Add, F32Mul    | 420 |
-	| **364** | 11.8 | F32FMA, F32MulAdd | **728** |
-
-* FP16 instruction benchmark [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]:
+	|---|---|---|---|
+	| 420 | 10.2 | Add, Mul    | 420 |
+	| 364 | 11.8 | FMA, MulAdd | **728** |
+	
+* FP16 instruction performance: [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]
 
 	| GOp/s | exec time (ms) | ops | max GFLOPS |
-	|---|---|---|
-	| **830** | 5.16 | F16Add, F16Mul | 830 |
-	| **707** | 6.06 | F16MulAdd      | **1414** |
-	| **117** | 36.5 | F16FMA         | 234 |
+	|---|---|---|---|
+	| 830 | 5.16 | Add, Mul | 830 |
+	| 707 | 6.06 | MulAdd   | **1414** |
+	| 117 | 36.5 | FMA      | 234 |
 
 
 ### NaN / Inf
 
-* FP32, FP16
+* FP32, FP16. [[11](../GPU_Benchmarks.md#11-NaN)]
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|
@@ -101,7 +106,7 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| SmoothStep(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
 	| Normalize(x) | nan | nan | nan | nan | nan | nan | 0 | -0 |
 	
-* FP32 Mediump diff:
+* FP Mediump diff:
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|
@@ -177,14 +182,14 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 ## Texture cache
 
 * RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
-	- Measured cache size: 2 KB, 128 KB.
+	- Measured cache size: 2 KB, 4 KB (?), 128 KB.
 	- 8 texels per pixel, dim ???
 
-	| size (KB) | dimension (px) | exec time (ms) | diff | approx bandwidth (GB/s) |
-	|---|---|---|---|
-	|   1 |  16x16  |  TODO |     |  |
-	|   2 |  32x16  |  2.3  |     | TODO |
-	|   4 |  32x32  |  7    | 3   | |
-	|  16 |  64x64  |  12.4 | 1.8 | |
-	| 128 | 256x128 |  14   |     | |
-	| 256 | 256x256 |  44   | 3   | |
+	| size (KB) | dimension (px) | exec time (ms) | diff | approx bandwidth (GB/s) | comments |
+	|---|---|---|---|---|---|
+	|   1     |  16x16  |  TODO |         |  |
+	| **2**   |  32x16  |  2.3  |         | TODO | L1 cache |
+	| **4**   |  32x32  |  7    | **3**   | |
+	|  16     |  64x64  |  12.4 | **1.8** | |
+	| **128** | 256x128 |  14   |         | | L2 cache |
+	| 256     | 256x256 |  44   | **3**   | |

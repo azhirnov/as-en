@@ -3,9 +3,13 @@
 
 ## Specs
 
+* ALUs: 144
+* Execution units: 8
 * Clock: 950 MHz
-* F16 GFLOPS: **460** (90 GOp/s on MulAdd from tests)
-* F32 GFLOPS: **230** (95 GOp/s on FMA from tests)
+* F16 GFLOPS: **460** (180 on MulAdd from tests)
+* F32 GFLOPS: **230** (190 on FMA from tests)
+* FP16 FLOPs/Clock: 512
+* FP32 FLOPs/Clock: 256
 * Memory: 8 GB, LPDDR5, QC 16bit, 3200 MHz, **51.2** GB/s (14.2 GB/s from tests)
 * Device: Motorola G54 5G (Android 13, Driver 6133109)
 
@@ -27,7 +31,7 @@
 
 ### Subgroup threads order
 
-Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in fragment shader, gl_SubgroupSize: 128, tile size: 32x32. [[6](../GPU_Benchmarks.md#6-Subgroups)]
+Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in fragment shader, gl_SubgroupSize: 128, image size: 32x32. [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
 ![](img/graphics-subgroups/powervr-bxm.png)
 
@@ -42,7 +46,7 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 
 ### Instruction cost
 
-* [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]:
+* Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
 	- Loop unrolling is too slow at pipeline creation stage.
 	- InvSqrt is much (2x) faster than Sqrt.
 	- ClampUNorm is much faster than ClampSNorm.
@@ -50,27 +54,45 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	- Fp32 FMA is preferred than FMul or FMulAdd.
 	- Length is a bit faster than Distance and Normalize.
 	- Int32 FindMSB is much slower than FindLSB.
-
-* [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]:
+	- fp32 & i32 datapaths can execute in parallel in 1:1 rate
+	- fp32 FastATan is x3.1 faster than native ATan
+	- fp32 FastACos is x3.5 faster than native ACos
+	- fp32 FastASin is x2.3 faster than native ASin
+	- fp16 FastATan is x2.3 faster than native ATan
+	- fp16 FastACos is x3.8 faster than native ACos
+	- fp16 FastASin is x2.8 faster than native ASin
+	- fp32 Pow uses MUL loop - performance depends on power
+	
+* FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 	- Loop unrolling doesn't increase performance.
 	- Loop unrolling is too slow at pipeline creation stage.
 	- Manual unrolling is slow too and performance is less than with unrolling attribute.
 	- Compute and graphics has same performance.
 	- Dispatch on 1024x1024 grid is much faster (1.3x).
 	- Loop index with `int` is faster than `float`.
-	- **105** GOp/s at 950 MHz on F32Add, 87% shader load.
-	-  **95** GOp/s at 950 MHz on F32Mul, F32MulAdd, F32FMA.
 	- mediump has no effect.
-
-* [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]:
+	- Measured at 950 MHz with 87% shader load.
+	
+	| GOp/s | ops | max GFLOPS |
+	|---|---|---|
+	| 105 | Add         | 105 |
+	| 95  | Mul         | 95  |
+	| 95  | MulAdd, FMA | **190** |
+	
+* FP16 instruction performance: [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]
 	- Loop index with `int`, `short`, `half` has same performance.
-	- **110** GOp/s at 950 MHz on F16Add.
-	-  **90** GOp/s at 950 MHz on F16Mul, F16MulAdd.
-	-  **58** GOp/s at 950 MHz on F16FMA *(actually it is FP32FMA)*.
+	- Measured at 950 MHz
+	
+	| GOp/s | ops | max GFLOPS | comments |
+	|---|---|---|---|
+	| 110 | Add    | 110  |
+	|  90 | Mul    | 90   |
+	|  90 | MulAdd | **180** |
+	|  58 | FMA    | 116  | less than F32FMA |
 	
 ### NaN / Inf
 
-* FP32, Mediump
+* FP32, Mediump. [[11](../GPU_Benchmarks.md#11-NaN)]
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|

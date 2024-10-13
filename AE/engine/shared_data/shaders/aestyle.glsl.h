@@ -26,6 +26,8 @@
 #	define AE_NV_shader_sm_builtins
 #	define AE_ARM_shader_core_builtins
 #	define AE_fragment_shading_rate
+#	define AE_fragment_shader_barycentric
+#	define AE_demote_to_helper_invocation
 
 #	define AE_AMD_GPU
 #	define AE_NVidia_GPU
@@ -1070,7 +1072,6 @@ public:
 			float  	CullDistance [_MaxCullDistance];
 			int		Layer;
 			float	PointSize;
-			int		PrimitiveID;
   #endif
 
 
@@ -1200,6 +1201,7 @@ public:
 	const	int		SampleMaskIn [_MaxSampleMask]	= {};
 	const	float2	SamplePosition					= {};
 	const	int		ViewportIndex					= {};
+	const	int		PrimitiveID						= {};
 
 	// out
 			float	FragDepth;

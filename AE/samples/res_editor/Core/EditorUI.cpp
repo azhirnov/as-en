@@ -1846,15 +1846,15 @@ R"(UI controls:
   'Esc'       - switch to camera controls
   'Backspace' - pause rendering, keep only UI
   'F1'        - show/hide help
-  'Tab'       - show/hide UI
+  'Tab' - - - - show/hide UI
   'U'         - start/stop video recording (if supported)
-  'I'         - make screenshot
+  'I'   - - - - make screenshot
   'G'         - run shader debugger for pixel under cursor
-  'F2'        - RenderDoc frame capture (if enabled)
+  'F2'  - - - - RenderDoc frame capture (if enabled)
   'F3'        - export resources from current script (if defined)
-  'F4'        - copy slider state to clipboard
+  'F4'  - - - - copy slider state to clipboard
   'F5'        - reload script
-  'F11'       - fullscreen / windowed
+  'F11' - - - - fullscreen / windowed
   'Right mouse btn' - pass mouse position to shader
 )" >> txt;
 

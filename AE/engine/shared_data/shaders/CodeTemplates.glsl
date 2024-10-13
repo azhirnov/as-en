@@ -72,15 +72,20 @@ ND_ int2  GenGridTriStrip (const int gridSize)
 	Returns zero on edge.
 =================================================
 */
-ND_ float2  FSBarycentricWireframe (float thicknessPx, float falloffPx)
+ND_ float2  FSBarycentricWireframe (const float3 baryCoord, const float thicknessPx, const float falloffPx)
 {
-	const float3	dx_barycoord	= gl.dFdxFine( gl.BaryCoord );
-	const float3	dy_barycoord	= gl.dFdyFine( gl.BaryCoord );
+	const float3	dx_barycoord	= gl.dFdxFine( baryCoord );
+	const float3	dy_barycoord	= gl.dFdyFine( baryCoord );
 	const float3	d_barycoord		= Diagonal( dx_barycoord, dy_barycoord );
-	const float3	remap			= SmoothStep( gl.BaryCoord, d_barycoord * thicknessPx, d_barycoord * (thicknessPx + falloffPx) );
+	const float3	remap			= SmoothStep( baryCoord, d_barycoord * thicknessPx, d_barycoord * (thicknessPx + falloffPx) );
 	const float		wireframe		= MinOf( remap );
 	const float3	md				= Max( dx_barycoord, dy_barycoord );
 	return float2( wireframe, LengthSq(md) );
+}
+
+ND_ float2  FSBarycentricWireframe (const float thicknessPx, const float falloffPx)
+{
+	return FSBarycentricWireframe( gl.BaryCoord, thicknessPx, falloffPx );
 }
 
 /*
@@ -88,18 +93,17 @@ ND_ float2  FSBarycentricWireframe (float thicknessPx, float falloffPx)
 	FSBarycentricQuadWireframe
 ----
 	Returns zero on edge.
+	Use 'baryMask' and 'gl.PrimitiveID' to select invisible edge when used triangle strip.
 =================================================
 */
+ND_ float2  FSBarycentricQuadWireframe (const float3 baryMask, const float thicknessPx, const float falloffPx)
+{
+	return FSBarycentricWireframe( gl.BaryCoord + baryMask, thicknessPx, falloffPx );
+}
+
 ND_ float2  FSBarycentricQuadWireframe (float thicknessPx, float falloffPx)
 {
-	float3	barycoord		= gl.BaryCoord;		barycoord.x += 1.0;
-	float3	dx_barycoord	= gl.dFdxFine( barycoord );
-	float3	dy_barycoord	= gl.dFdyFine( barycoord );
-	float3	d_barycoord		= Diagonal( dx_barycoord, dy_barycoord );
-	float3	remap			= SmoothStep( barycoord, d_barycoord * thicknessPx, d_barycoord * (thicknessPx + falloffPx) );
-	float	wireframe		= MinOf( remap );
-	float3	md				= Max( dx_barycoord, dy_barycoord );
-	return float2( wireframe, LengthSq(md) );
+	return FSBarycentricWireframe( gl.BaryCoord + float3(1.0, 0.0, 0.0), thicknessPx, falloffPx );
 }
 #endif
 //-----------------------------------------------------------------------------

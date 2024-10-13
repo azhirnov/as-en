@@ -2,6 +2,10 @@
 /*
 	docs:
 		[Vulkan spec](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html)
+		[GLSL ref](https://registry.khronos.org/OpenGL-Refpages/gl4/)
+		[GLSL ext](https://github.com/KhronosGroup/GLSL/extensions)
+		[GLSL spec](https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.pdf)
+		[SPIRV spec](https://registry.khronos.org/SPIR-V/specs/unified1/SPIRV.html)
 
 	[supported features](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/VulkanFeatures.md)
 */

@@ -137,13 +137,13 @@ namespace AE::ResEditor
 		return R"(
 FlightCamera controls:
   'W' 'S'       - pitch
-  'A' 'D'       - roll
+  'A' 'D' - - - - roll
   'Q' 'E'       - yaw
-  'Z' 'C'       - decrease/increase engine thrust
+  'Z' 'C' - - - - decrease/increase engine thrust
   'Mouse'       - vertical: pitch, horizontal: roll
   'Mouse wheel' - zoom
   'T'           - reset roll
-  'R'           - reset position, rotation, zoom
+  'R'   - - - - - reset position, rotation, zoom
 )";
 	}
 

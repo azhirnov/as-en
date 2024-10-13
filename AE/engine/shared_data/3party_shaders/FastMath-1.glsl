@@ -174,7 +174,7 @@ Gen_FAST_ATAN( float, float_vec_t )
 		return y;
 	}
 
-	ND_ float  FastSqrt_v2 (float x)
+	ND_ float  FastSqrt_v2 (const float x)
 	{
 		float	y	= uintBitsToFloat( 532545536u + (floatBitsToUint(x) >> 1) );
 		float	y2	= y*y;

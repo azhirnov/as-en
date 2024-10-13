@@ -116,7 +116,7 @@ namespace AE::ResEditor
 		return R"(
 TopDownCamera controls:
   'W' 'S'           - move forward/backward
-  'A' 'D'           - move left/right
+  'A' 'D' - - - - - - move left/right
   'Q' 'E'           - rotation
   'Right mouse btn' - pass mouse position to shader
   'R'               - reset position, rotation, zoom

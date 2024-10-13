@@ -41,7 +41,7 @@ Red - full quad, blue - only 1 thread per quad.<br/>
 
 ### Subgroups
 
-* Subgroups in fragment shader reserve threads for helper invocations, even if they are not executed. [[6](../GPU_Benchmarks.md#6-Subgroups)]
+* Helper invocation can be early terminated, but threads are allocated and number of warps with helper invocations and without are same (from performance counters). [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
 * Subgroup occupancy for single triangle with texturing. Helper invocations are executed and included as active thread. Red color - full subgroup. [[6](../GPU_Benchmarks.md#6-Subgroups)]<br/>
 ![](img/full-subgroup/valhall-1-tex.png)
@@ -61,8 +61,6 @@ Subgroup occupancy, red - full subgroup (16 threads), green: ~8 threads per subg
 Triangles with different `gl_InstanceIndex` can be merged into a single subgroup but this is a rare case.<br/>
 ![](img/unique-subgroups/valhall-1-inst.png)
 
-* Helper invocation can be early terminated, but threads are allocated and number of warps with helper invocations and without are same (from performance counters).
-
 
 ### Subgroup threads order
 
@@ -81,32 +79,48 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 
 ### Instruction cost
 
-* [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]:
+* Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
 	- Only fp32 FMA - *(fp16 and mediump use same fp32 FMA)*.
 	- Fp32 FMA is preferred than FMul or FMulAdd.
+	- Fp32 and i32 datapaths can execute in parallel in 2:1 rate
 	- Fp16 and mediump is 2x faster than fp32 in FMull, FAdd.
 	- Length is a bit faster than Distance and Normalize.
 	- ClampUNorm and ClampSNorm are fast.
-
-* Fp32 performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]:
+	- fp16x2 FMA is used, scalar FMA doesn't have x2 performance
+	- fp32 FastACos is x2.3 faster than native ACos
+	- fp32 FastASin is x2.6 faster than native ASin
+	- fp16 FastATan is x1.8 faster than native ATan
+	- fp16 FastACos is x3.7 faster than native ACos
+	- fp16 FastASin is x4.2 faster than native ASin
+	- fp32 Pow uses MUL loop - performance depends on power
+	- fp32 SignOrZero is x2.3 faster than Sign
+	
+* FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 	- Loop unrolling doesn't change performance.
 	- Manual loop unrolling doesn't change performance too.
 	- Loop index with `int` is faster than `float`.
 	- Graphics and compute has same performance.
 	- Compute dispatch on 128 - 2K grid is faster.
 	- Compiler can optimize only addition, so test combine Add and Sub.
-	- **60.7** GOp/s at 950 MHz on Add, Mul, MulAdd, FMA.
-	- Equal to **120** GFLOPS on MulAdd and FMA.
+	
+	| Gop/s | op | GFLOPS |
+	|---|---|---|
+	| 60.7 | Add, Mul    | 60.7 |
+	| 60.7 | MulAdd, FMA | **121** |
+	
+* FP16 instruction performance: [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]
+	- Measured at 950 MHz
 
-* Fp16 (half float) performance: [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]:
-	-  **60** GOp/s at 950 MHz on FMA - equal to F32FMA.
-	- **121** GOp/s at 950 MHz on Add, Mul, MulAdd.
-	- Equal to **240** GFLOPS on MulAdd.
+	| Gop/s | op | GFLOPS | comments |
+	|---|---|---|---|
+	| 60  | FMA      | 120 | equal to F32FMA |
+	| 121 | Add, Mul | 121 |
+	| 121 | MulAdd   | **240** |
 
 
 ### NaN / Inf
 
-* FP32
+* FP32. [[11](../GPU_Benchmarks.md#11-NaN)]
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|
@@ -164,6 +178,16 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 | VoronoiContour3FBM, octaves=4 | 16K   | 21.5 | **34** | 1344 |
 
 
+
+## Blending
+
+* Blend vs Discard in FS: TODO: use new test
+	- 1x   opaque: 2.3ms
+	- 3.2x discard: 7.3ms
+	- 3.7x blend `src + dst * (1 - src.a)`: 8.5ms
+	- 6.5x blend `src * (1 - dst.a) + dst * (1 - src.a)`: 15ms - accessing `dst` is slow!
+
+
 ## Resource access
 
 
@@ -210,14 +234,14 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 ## Texture cache
 
 * RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
-	- Measured cache size: 16 KB, 256 KB, 1 MB.
+	- Measured cache size: 32 KB, 512 KB.
 
 	| size (KB) | dimension (px) | L2 bandwidth (GB/s) | external bandwidth (GB/s) | comment |
-	|---|---|---|---|
-	| 16   |  64x64  | 0.009 | 0.004 | **used only texture cache** |
-	| 32   | 128x64  | 0.38  | 0.004 | |
-	| 64   | 128x128 | 45    | 0.004 | **used L2 cache** |
-	| 128  | 256x128 | 45    | 0.004 | |
-	| 256  | 256x256 | 49    | 4     | |
-	| 512  | 512x256 | 49    | 7.6   | **L2 cache with 15% miss** |
-	| 1024 | 512x512 | 24    | 12.5  | **30% L2 miss, bottleneck on external memory** |
+	|---|---|---|---|---|
+	| 16      |  64x64  | 0.009 | 0.004 | **used only texture cache** |
+	| **32**  | 128x64  | 0.38  | 0.004 | |
+	| 64      | 128x128 | 45    | 0.004 | **used L2 cache** |
+	| 128     | 256x128 | 45    | 0.004 | |
+	| 256     | 256x256 | 49    | 4     | |
+	| **512** | 512x256 | 49    | 7.6   | **L2 cache with 15% miss** |
+	| 1024    | 512x512 | 24    | 12.5  | **30% L2 miss, bottleneck on external memory** |

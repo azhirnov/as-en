@@ -129,13 +129,13 @@ namespace AE::ResEditor
 		return R"(
 FPSCamera controls:
   'W' 'S'       - move forward/backward
-  'A' 'D'       - move left/right
+  'A' 'D' - - - - move left/right
   'LeftShift'   - move down
-  'Space'       - move up
+  'Space' - - - - move up
   'Mouse'       - rotation
-  'Arrows'      - rotation
-  'Mouse wheel' - zoom
+  'Arrows'  - - - rotation
   'R'           - reset position, rotation, zoom
+  'Mouse wheel' - zoom
 )";
 	}
 

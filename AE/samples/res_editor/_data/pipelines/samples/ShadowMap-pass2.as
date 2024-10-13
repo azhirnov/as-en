@@ -89,10 +89,10 @@
 	float  SampleShadow (in float4 shadowCoord, in float2 off)
 	{
 		float shadow = 1.0;
-		if ( All(bool2( shadowCoord.z > -1.0, shadowCoord.z < 1.0 )))
+		if ( All2( shadowCoord.z > -1.0, shadowCoord.z < 1.0 ))
 		{
 			float dist = gl.texture.Sample( un_ShadowMap, shadowCoord.xy + off ).r;
-			if ( All(bool2( shadowCoord.w > 0.0, dist < shadowCoord.z )))
+			if ( All2( shadowCoord.w > 0.0, dist < shadowCoord.z ))
 			{
 				shadow = c_Ambient;
 			}

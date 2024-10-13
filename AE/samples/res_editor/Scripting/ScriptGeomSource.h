@@ -395,7 +395,7 @@ namespace AE::ResEditor
 		RC< ResLoader::IntermScene >	_intermScene;
 		Transformation					_initialTransform;
 
-		const uint						_maxTextures	= 128;
+		const uint						_maxTextures	= 64;
 		uint							_instanceCount	= 1;
 
 		RC<IGeomSource>					_geomSrc;

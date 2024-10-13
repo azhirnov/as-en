@@ -4,11 +4,11 @@
 ## Specs
 
 * FP16: **5.095** TFLOPS (no supported in HW)
-* FP32: **5.095** TFLOPS
+* FP32: **5.095** TFLOPS (4.4 on FMA from tests)
 * FP64: **318.5** GFLOPS
 * Clock base: 1168 MHz, boost: 1244 MHz.
 * Memory: 4GB, GDDR5, 256 bit, 1750 MHz, **224.0** GB/s (86 GB/s from tests)
-* Driver: 2.0.106
+* Driver: 2.0.279
 
 
 ## Shader
@@ -38,33 +38,33 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 
 ### Instruction cost
 
-* [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]:
-	* fp32 FMA is preferred than single FMul or separate FMulAdd
-	* fp32 has fastest Length,  Normalize (x1.0),  Distance (x1.5)
-	* fp32 has fastest Clamp,  ClampSNorm (x1.0),  ClampUNorm (x1.0)
-	* i32 FindMSB is x4.2 SLOWER than FindLSB
-	* fp32 has fastest square root: InvSqrt,  Sqrt (x1.0),  Software2 (x3.1)
-	* fp32 has fastest cube root: Pow,  ExpLog (x1.1),  Software2 (x2.5)
-	* fp32 has fastest quad root: InvSqrt,  Sqrt (x1.0), Pow (x1.1)
-	* fp32 has fastest sRGB curve: v1,  v3 (x1.7),  v2 (x2.0)
-	* fp32 FastATan is x2.7 faster than native ATan
-	* fp32 FastACos is x1.1 faster than native ACos
-	* fp32 FastASin is x1.4 faster than native ASin
-	* fp32 Pow17 equal to Pow8 - native function used instead of MUL loop
-
-* [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]:
+* Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
+	- fp32 FMA is preferred than single FMul or separate FMulAdd
+	- fp32 has fastest Length,  Normalize (x1.0),  Distance (x1.5)
+	- fp32 has fastest Clamp,  ClampSNorm (x1.0),  ClampUNorm (x1.0)
+	- i32 FindMSB is x4.2 SLOWER than FindLSB
+	- fp32 has fastest square root: InvSqrt,  Sqrt (x1.0),  Software2 (x3.1)
+	- fp32 has fastest cube root: Pow,  ExpLog (x1.1),  Software2 (x2.5)
+	- fp32 has fastest quad root: InvSqrt,  Sqrt (x1.0), Pow (x1.1)
+	- fp32 has fastest sRGB curve: v1,  v3 (x1.7),  v2 (x2.0)
+	- fp32 FastATan is x2.7 faster than native ATan
+	- fp32 FastACos is x1.1 faster than native ACos
+	- fp32 FastASin is x1.4 faster than native ASin
+	- fp32 Pow17 equal to Pow8 - native function used instead of MUL loop
+	
+* FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 	- Benchmarking in compute shader is a bit faster.
 	
-	| TOp/s | ops | max TFLOPS | comments |
+	| TOp/s | ops | max TFLOPS |
 	|---|---|---|
-	| **2.2** | Add, Mul | **2.2** |
-	| **2.2** | FMA      | **4.4** |
-	| **1.6** | MulAdd   | **3.2** |
+	| 2.2 | Add, Mul | 2.2     |
+	| 2.2 | FMA      | **4.4** |
+	| 1.6 | MulAdd   | 3.2     |
 
 
 ### NaN / Inf
 
-* FP32, Mediump
+* FP32, Mediump. [[11](../GPU_Benchmarks.md#11-NaN)]
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|

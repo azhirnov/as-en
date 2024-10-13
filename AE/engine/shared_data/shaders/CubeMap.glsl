@@ -15,6 +15,7 @@
 #endif
 
 #include "Math.glsl"
+#include "FastMath.glsl"
 
 #define ECubeFace		int
 #define ECubeFace_XPos	0	// right
@@ -25,6 +26,8 @@
 #define ECubeFace_ZNeg	5	// back  - inside, front - outside
 
 
+ND_ ECubeFace  CM_ToOppositeFace (ECubeFace face);
+
 ND_ float3  CM_RotateVec (const float3 snormCoord, const ECubeFace face);
 ND_ float4  CM_InverseRotation (float3 dir);						// returns {transformed 'dir', face}
 ND_ float3  CM_InverseRotation (const ECubeFace face, float3 dir);	// returns transformed 'dir' for specified 'face'
@@ -32,35 +35,48 @@ ND_ float3  CM_InverseRotation (const ECubeFace face, float3 dir);	// returns tr
 ND_ float3  CM_CubeSC_Forward (const float2 snormCoord, const ECubeFace face);
 
 ND_ float3  CM_IdentitySC_Forward (const float2 snormCoord, const ECubeFace face);
-ND_ float3  CM_IdentitySC_Inverse (const float3 coord);
+ND_ float3  CM_IdentitySC_Inverse (const float3 dir);
 
 ND_ float2  CM_TangentialSC_Forward (const float2 snormCoord);
 ND_ float3  CM_TangentialSC_Forward (const float2 snormCoord, const ECubeFace face);
 ND_ float2  CM_TangentialSC_Inverse (const float2 snormCoord);
-ND_ float3  CM_TangentialSC_Inverse (const float3 coord);
+ND_ float3  CM_TangentialSC_Inverse (const float3 dir);
+ND_ float2  CM_TangentialSC_FastInverse (const float2 snormCoord);
 
 ND_ float2  CM_EverittSC_Forward (const float2 snormCoord);
 ND_ float3  CM_EverittSC_Forward (const float2 snormCoord, const ECubeFace face);
 ND_ float2  CM_EverittSC_Inverse (const float2 snormCoord);
-ND_ float3  CM_EverittSC_Inverse (const float3 coord);
+ND_ float3  CM_EverittSC_Inverse (const float3 dir);
 
 ND_ float2  CM_5thPolySC_Forward (const float2 snormCoord);
 ND_ float3  CM_5thPolySC_Forward (const float2 snormCoord, const ECubeFace face);
 ND_ float2  CM_5thPolySC_Inverse (const float2 snormCoord);
-ND_ float3  CM_5thPolySC_Inverse (const float3 coord);
+ND_ float3  CM_5thPolySC_Inverse (const float3 dir);
 
 ND_ float2  CM_COBE_SC_Forward (const float2 snormCoord);
 ND_ float3  CM_COBE_SC_Forward (const float2 snormCoord, const ECubeFace face);
 ND_ float2  CM_COBE_SC_Inverse (const float2 snormCoord);
-ND_ float3  CM_COBE_SC_Inverse (const float3 coord);
+ND_ float3  CM_COBE_SC_Inverse (const float3 dir);
 
 ND_ float2  CM_ArvoSC_Forward (const float2 snormCoord);
 ND_ float3  CM_ArvoSC_Forward (const float2 snormCoord, const ECubeFace face);
 ND_ float2  CM_ArvoSC_Inverse (const float2 snormCoord);
-ND_ float3  CM_ArvoSC_Inverse (const float3 coord);
+ND_ float3  CM_ArvoSC_Inverse (const float3 dir);
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	CM_ToOppositeFace
+----
+	XPos to XNeg, etc
+=================================================
+*/
+ECubeFace  CM_ToOppositeFace (ECubeFace face)
+{
+	return (face & ~1) + ((face + 1) & 1);
+}
 
 /*
 =================================================
@@ -82,19 +98,19 @@ float4  CM_InverseRotation (float3 c)
 	c.y = -c.y;
 
 	// front (xy space)
-	if ( All(bool3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z )))
+	if ( All3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z ))
 		return float4( c.x, c.y, c.z, ECubeFace_ZPos );
 
 	// right (zy space)
-	if ( All(bool3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x )))
+	if ( All3( Abs(c.z) <= c.x,  c.x > 0.f,  Abs(c.y) <= c.x ))
 		return float4( -c.z, c.y, c.x, ECubeFace_XPos );
 
 	// back (xy space)
-	if ( All(bool3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z )))
+	if ( All3( Abs(c.x) <= -c.z,  c.z < 0.f,  Abs(c.y) <= -c.z ))
 		return float4( -c.x, c.y, -c.z, ECubeFace_ZNeg );
 
 	// left (zy space)
-	if ( All(bool3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x )))
+	if ( All3( Abs(c.z) <= -c.x,  c.x < 0.f,  Abs(c.y) <= -c.x ))
 		return float4( c.z, c.y, -c.x, ECubeFace_XNeg );
 
 	// up (xz space)
@@ -138,9 +154,9 @@ float3  CM_IdentitySC_Forward (const float2 snormCoord, const ECubeFace face)
 	return Normalize( CM_CubeSC_Forward( snormCoord, face ));
 }
 
-float3  CM_IdentitySC_Inverse (const float3 coord)
+float3  CM_IdentitySC_Inverse (const float3 dir)
 {
-	float4	coord_face = CM_InverseRotation( coord );
+	float4	coord_face = CM_InverseRotation( dir );
 	coord_face.xy /= coord_face.z;
 	return coord_face.xyw;
 }
@@ -172,9 +188,16 @@ float2  CM_TangentialSC_Inverse (const float2 snormCoord)
 	return ATan( snormCoord * tan_warp_theta ) / warp_theta;
 }
 
-float3  CM_TangentialSC_Inverse (const float3 coord)
+float2  CM_TangentialSC_FastInverse (const float2 snormCoord)
 {
-	float4	coord_face = CM_InverseRotation( coord );
+	const float	warp_theta		= 0.868734829276f;
+	const float	tan_warp_theta	= 1.182286685546f; //tan( warp_theta );
+	return FastATan( snormCoord * tan_warp_theta ) / warp_theta;
+}
+
+float3  CM_TangentialSC_Inverse (const float3 dir)
+{
+	float4	coord_face = CM_InverseRotation( dir );
 	return float3( CM_TangentialSC_Inverse( coord_face.xy / coord_face.z ), coord_face.w );
 }
 
@@ -201,9 +224,9 @@ float2  CM_EverittSC_Inverse (const float2 snormCoord)
 	return snormCoord * (e + (1.0 - e) * Abs(snormCoord));
 }
 
-float3  CM_EverittSC_Inverse (const float3 coord)
+float3  CM_EverittSC_Inverse (const float3 dir)
 {
-	float4	coord_face = CM_InverseRotation( coord );
+	float4	coord_face = CM_InverseRotation( dir );
 	return float3( CM_EverittSC_Inverse( coord_face.xy / coord_face.z ), coord_face.w );
 }
 
@@ -230,9 +253,9 @@ float2  CM_5thPolySC_Inverse (const float2 snormCoord)
 	return (1.34318229552 + (-0.486514066449 + 0.143331770927 * sq) * sq) * snormCoord;
 }
 
-float3  CM_5thPolySC_Inverse (const float3 coord)
+float3  CM_5thPolySC_Inverse (const float3 dir)
 {
-	float4	coord_face = CM_InverseRotation( coord );
+	float4	coord_face = CM_InverseRotation( dir );
 	return float3( CM_5thPolySC_Inverse( coord_face.xy / coord_face.z ), coord_face.w );
 }
 
@@ -263,9 +286,9 @@ float2  CM_COBE_SC_Inverse (const float2 snormCoord)
 	return (1.37738198385 - 0.377381983848 * sq1 + (1.0 - sq1) * sum) * snormCoord;
 }
 
-float3  CM_COBE_SC_Inverse (const float3 coord)
+float3  CM_COBE_SC_Inverse (const float3 dir)
 {
-	float4	coord_face = CM_InverseRotation( coord );
+	float4	coord_face = CM_InverseRotation( dir );
 	return float3( CM_COBE_SC_Inverse( coord_face.xy / coord_face.z ), coord_face.w );
 }
 
@@ -295,9 +318,9 @@ float2  CM_ArvoSC_Inverse (const float2 snormCoord)
 				   snormCoord.y * ss2 / Sqrt( Dot( snormCoord, snormCoord ) + 1.0 ));
 }
 
-float3  CM_ArvoSC_Inverse (const float3 coord)
+float3  CM_ArvoSC_Inverse (const float3 dir)
 {
-	float4	coord_face = CM_InverseRotation( coord );
+	float4	coord_face = CM_InverseRotation( dir );
 	return float3( CM_ArvoSC_Inverse( coord_face.xy / coord_face.z ), coord_face.w );
 }
 

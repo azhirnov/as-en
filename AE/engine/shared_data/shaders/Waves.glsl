@@ -46,7 +46,7 @@ float  LinearGain (float samp, float value, float startTime, float endTime, floa
 {
 	float start = startTime * sampleRate;
 	float end   = endTime * sampleRate;
-	return All(bool2( samp > start, samp < end )) ?
+	return All2( samp > start, samp < end ) ?
 			value * (1.0 - (samp - start) / (end - start)) :
 			0.0;
 }
@@ -56,7 +56,7 @@ float  ExpGain (float samp, float value, float startTime, float endTime, float s
 	float start = startTime * sampleRate;
 	float end   = endTime * sampleRate;
 	float power = 4.0;
-	return All(bool2( samp > start, samp < end )) ?
+	return All2( samp > start, samp < end ) ?
 			value * (1.0 - Pow( power, (samp - start) / (end - start) ) / power) :
 			0.0;
 }

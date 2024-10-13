@@ -428,7 +428,7 @@
 		bool			r0_hit	= RayClosestHit( cone.origin0, cone.dir0, OUT r0_params );
 		bool			r1_hit	= RayClosestHit( cone.origin1, cone.dir1, OUT r1_params );
 
-		if ( All(bool2( r0_hit, r1_hit ))					and
+		if ( All2( r0_hit, r1_hit )							and
 			 (r0_params.frontFace == r1_params.frontFace)	and
 			 (r0_params.mtrId == r1_params.mtrId)			)
 		{
@@ -531,7 +531,7 @@
 		}
 
 		// no intersections, continue cone to the end of viewport
-		if ( All(bool2( !r0_hit, !r1_hit )) )
+		if ( All2( !r0_hit, !r1_hit ))
 		{
 			float2		t0_min_max, t1_min_max;
 

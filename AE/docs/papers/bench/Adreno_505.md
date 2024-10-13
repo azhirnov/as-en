@@ -21,40 +21,40 @@
 
 ### Instruction cost
 
-* All instructions benchmark [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]:
-	* fp32 FMA is preferred than single FMul or separate FMulAdd
-	* fp32 SignOrZero is x2.8 faster than Sign
-	* fp32 has fastest Normalize,  Length (x1.1),  Distance (x1.4)
-	* fp32 has fastest Clamp,  ClampSNorm (x1.0),  ClampUNorm (x1.0)
-	* i32 FindMSB is x2.9 SLOWER than FindLSB
-	* fp32 has fastest square root: InvSqrt,  Sqrt (x1.0),  Software2 (x2.3)
-	* fp32 has fastest cube root: ExpLog,  Pow (x1.0),  Software2 (x2.5),  Software3 (x2.9)
-	* fp32 has fastest quad root: InvSqrt,  Pow (x1.0), Sqrt (x1.0)
-	* fp32 has fastest sRGB curve: v3,  v1 (x1.4),  v2 (x1.5)
-	* fp32 FastATan is x2.1 faster than native ATan
-	* fp32 Pow uses MUL loop - performance depends on power
-
-* FP32 instruction benchmark [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]:
-
-	| GOp/s | ops | max GFLOPS |
-	|---|---|---|
-	| **16.3** | Add    | 16.3   |
-	| **14.3** | Mul    | 14.3   |
-	| **11.5** | MulAdd | **23** |
-	| **10.8** | FMA    | 21.6   |
-
-* Mediump instruction benchmark [[1](../GPU_Benchmarks.md#1-fp16-instruction-performance)]:
+* Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
+	- fp32 FMA is preferred than single FMul or separate FMulAdd
+	- fp32 SignOrZero is x2.8 faster than Sign
+	- fp32 has fastest Normalize,  Length (x1.1),  Distance (x1.4)
+	- fp32 has fastest Clamp,  ClampSNorm (x1.0),  ClampUNorm (x1.0)
+	- i32 FindMSB is x2.9 SLOWER than FindLSB
+	- fp32 has fastest square root: InvSqrt,  Sqrt (x1.0),  Software2 (x2.3)
+	- fp32 has fastest cube root: ExpLog,  Pow (x1.0),  Software2 (x2.5),  Software3 (x2.9)
+	- fp32 has fastest quad root: InvSqrt,  Pow (x1.0), Sqrt (x1.0)
+	- fp32 has fastest sRGB curve: v3,  v1 (x1.4),  v2 (x1.5)
+	- fp32 FastATan is x2.1 faster than native ATan
+	- fp32 Pow uses MUL loop - performance depends on power
+	
+* FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 
 	| GOp/s | ops | max GFLOPS |
 	|---|---|---|
-	| **24.3** | Add    | 24.3     |
-	| **25.4** | Mul    | 25.4     |
-	| **18.3** | MulAdd | **36.6** |
-	| **5.2**  | FMA    | 10.4     |
+	| 16.3 | Add    | 16.3   |
+	| 14.3 | Mul    | 14.3   |
+	| 11.5 | MulAdd | **23** |
+	| 10.8 | FMA    | 21.6   |
+	
+* FP Mediump instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
+
+	| GOp/s | ops | max GFLOPS |
+	|---|---|---|
+	| 24.3 | Add    | 24.3     |
+	| 25.4 | Mul    | 25.4     |
+	| 18.3 | MulAdd | **36.6** |
+	| 5.2  | FMA    | 10.4     |
 
 ### NaN / Inf
 
-* FP32
+* FP32. [[11](../GPU_Benchmarks.md#11-NaN)]
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|
@@ -78,7 +78,7 @@
 	| SmoothStep(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
 	| Normalize(x) | nan | nan | nan | nan | nan | nan | 0 | -0 |
 
-* FP32 Mediump diff:
+* FP Mediump diff:
 
 	| op \ type | nan1 | nan2 | nan3 | nan4 | inf | -inf | max | -max |
 	|---|---|---|---|---|---|---|---|---|

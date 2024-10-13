@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler.as>
 
-const ArraySize	albedoMapsCount	= ArraySize(128);
+const ArraySize	albedoMapsCount	= ArraySize(64);	// same as 'ScriptModelGeometrySrc::_maxTextures'
 const uint		maxDirLights	= 8;
 const uint		maxConeLights	= 16;
 const uint		maxOmniLights	= 8;
