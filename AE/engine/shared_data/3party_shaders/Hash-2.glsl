@@ -58,7 +58,7 @@ ND_ float  ModHash12 (float2 uv)
 #ifdef AE_LICENSE_UNLICENSE
 /*
 =================================================
-	FastSqrt
+	IWeylHash
 ----
 	from https://www.shadertoy.com/view/4dlcR4
 	LICENSE: http://unlicense.org/
@@ -73,7 +73,7 @@ uint3 _IWeylConst ()
 	);
 }
 
-ND_ uint  IWeylHash (const uint2 p)
+ND_ uint  IWeylHash12 (const uint2 p)
 {
 	uint	x = p.x;
 	uint	y = p.y;
@@ -85,7 +85,7 @@ ND_ uint  IWeylHash (const uint2 p)
 	return x;
 }
 
-ND_ uint  IWeylHash2 (const uint2 p)
+ND_ uint  IWeylHash12v2 (const uint2 p)
 {
 	uint	x = p.x;
 	uint	y = p.y;
@@ -107,7 +107,10 @@ ND_ uint  IWeylHash2 (const uint2 p)
 #ifdef AE_LICENSE_CC_BY_NC_SA_3
 /*
 =================================================
-	FastSqrt
+	Hash_Uniform
+	Hash_Triangular
+	Hash_Gaussianish
+	Hash_MoarGaussianish
 ----
 	result in range [0, 1]
 	'seed' in range [0, 1]

@@ -94,8 +94,10 @@
 #define ToDeg					degrees			// (half, float)
 #define ToRad					radians			// (half, float)
 
+#define MulAdd(_a_,_b_,_c_)		((_a_)*(_b_)+(_c_))
+
 #define FusedMulAdd				fma				// (any fp)				(a * b) + c
-//#define FusedMulAdd(a,b,c)	((a)*(b)+(c))	// different precision
+//#define FusedMulAdd			MulAdd			// different precision
 
 #define MatInverse				inverse
 #define MatTranspose			transpose
@@ -582,7 +584,9 @@ Gen_BRANCHLESS( uint,	uint_vec_t )
 
 /*
 =================================================
-	Min* / Max*
+	Min / Max
+	MinAbs / MaxAbs
+	MinOf / MaxOf
 =================================================
 */
 #define Min3( a, b, c )			Min( Min( (a), (b) ), (c) )
@@ -661,13 +665,13 @@ Gen_LENGTHSQ_DISTANCESQ( float, float_vec_t )
 
 /*
 =================================================
-	Sign
+	fast Sign
 ----
 	T  Sign (T x)
 ----
 	returns -1 or +1
-	x4 faster than 'SignOrZero()' on NV
-	x=NaN: +1 (NV)
+	see [GPU Benchmarks: Shader instructions performance groups](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md) for fast Sign performance.
+	see [GPU Benchmarks: NaN](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/GPU_Benchmarks.md) for 'Step()' results.
 =================================================
 */
 #define Gen_SIGN1( _vtype_ )\

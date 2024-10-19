@@ -28,6 +28,8 @@ Other:
 	- [9](#9-Texture-cache)
 	- [10](#10-Shared-memory)
 	- [11](#11-NaN)
+	- [12](#12-Branching)
+	- [13](#13-Circle-geometry)
 
 
 # Comparison of Results
@@ -44,7 +46,7 @@ Other:
 | Adreno 5xx            | ?      | as large as possible | -       | | -       | -       |
 | Adreno 6xx            | 64/128 | as large as possible | **yes** | | **yes** | no      |
 | AMD GCN4              | 64     | -     | no      | **yes** | no             | ?       |
-| Apple M1              | 32     | 16x16 | ?       | ?       | ?              | ?       |
+| Apple M1              | 32     | 16x16 | no      | **yes** | no             | no      |
 | ARM Mali Midgard gen4 | (4)    | 16x16 | -       | -       | -              | -       |
 | ARM Mali Valhall gen1 | 16     | 16x16 | **yes** | **yes** | **yes** (rare) | no      |
 | Intel UHD 6xx 9.5gen  | 16     | -     | no      | no      | no             | ?       |
@@ -54,10 +56,10 @@ Other:
 
 ## Shader instructions
 
-* FMA and MAD has 2 instructions (Mul, Add) but can execute at 1 cycle.
-* Some GPUs supports HFMA2 - FMA for half2 with 2x performance.
+* FMA and MAD has 2 operations (Mul, Add) but can execute at 1 cycle.
+* Some GPUs supports 1 cycle HFMA2 - FMA for half2 with 2x performance (2 instructions for 2 half types - 4 ops/cycle).
 * Some GPUs supports FAdd with 2x performance.
-* FMA can be implemented only for fp32 and fp16 will lost performance to use this FMA, so MAD should be used instead.
+* FMA can be implemented only for fp32 type, fp16 will lost performance when used this F32FMA, so MAD should be used instead.
 * GPU has parallel datapath for fp32 and i32, scheduler can execute i32 instruction in parallel with fp32 without performance lost.
 	- NV Turing has 1:1 fp32:i32 config.
 	- NV Ampere has 1 full fp32 and 1 fp32:i32, so it can **not** execute i32 in parallel without fp32 performance lost.
@@ -68,11 +70,33 @@ Other:
 | Adreno 6xx            | fma | mad | -   | 1 | 2:1 |
 | AMD GCN4              | fma | -   | -   | 1 | no  |
 | Apple M1              | fma | no  | fma | 1 | 2:1 |
-| ARM Mali Midgard gen4 | mad | no  | mad | 1 | no  |
+| ARM Mali Midgard gen4 | **mad** | no  | mad | 1 | no  |
 | ARM Mali Valhall gen1 | fma | mad | -   | 1 | 2:1 |
 | Intel UHD 6xx 9.5gen  | fma | **fma** | -   | **2** | 2:1 | 
 | NV RTX 20xx (Turing)  | fma | **fma** | -   | **2** | 1:1 **(specs)** |
 | PowerVR B‑Series      | fma | no  | mad | 1 | 1:1 |
+
+
+## Branching
+
+How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Branching)]
+* Uniform branching is faster on most GPUs.
+* GPU with vector architecture has faster Matrix version.
+* If `Branch non-uniform < 2` it indicates that GPU can not optimize short branches.
+* If `Branch non-uniform` is much greater than `Mul non-uniform` it indicates that branches has additional cost.
+
+| GPU | Mul uniform | Matrix uniform |   Mul non-uniform | Branch non-uniform | Matrix non-uniform |   Mul avg | Branch avg | Matrix avg |
+|----------|---|---|---|---|---|---|---|---|
+| Adreno 5xx            | 1.6 | 0.88 |   1.9 | 2.1 | 2.7 |   1.72 | **1.54** | 1.78 |
+| Adreno 6xx            | 1.6 | 1.0  |   2.3 | 1.8 | 3.0 |   1.95 | **1.4**  | 2.0  |
+| AMD GCN4              | 1.7 | 0.94 |   2.3 | 1.6 | 2.6 |   2.0  | **1.3**  | 1.8  |
+| Apple M1              | 1.1 | 0.8  |   1.4 | 1.1 | 1.8 |   1.24 | **1.03** | 1.26 |
+| ARM Mali Midgard gen4 | 1.5 | 0.7  |   1.8 | 1.3 | 2.4 |   1.64 | **1.1**  | 1.57 |
+| ARM Mali Valhall gen1 | 2.1 | 1.4  |   2.3 | 2.1 | 3.5 |   2.18 | **1.56** | 2.45 |
+| Intel UHD 6xx 9.5gen  | 1.3 | 0.87 |   1.9 | 1.2 | 2.6 |   1.59 | **1.07** | 1.71 |
+| NV RTX 20xx (Turing)  | 2.1 | 1.5  |   2.4 | 3.1 | 3.0 |   2.1  | 2.1      | 2.1  |
+| PowerVR B‑Series      | 2.3 | 1.5  |   2.6 | 3.5 | 3.1 |   2.46 | **2.25** | 2.33 |
+
 
 ## Subgroup threads order
 
@@ -481,17 +505,37 @@ Other:
 
 ## Memory
 
-| GPU | VRAM bandwidth from specs (GB/s) | VRAM bandwidth measured (GB/s) | RAM to VRAM bandwidth (GB/s) | GMem - part of L2 (KB) | L2 cache per SM (KB) | L2 bandwidth (GB/s) | L1 cache per SM (KB) | Texture cache - part of L1 (KB) | L1 bandwidth (GB/s) |
-|---|---|---|---|---|---|---|---|---|---|
-| Adreno 505                   | 6.4   | 5    | | 128  |
-| Adreno 660                   | 51.2  | 34   | | 1536 | 128  | ? | 4? | 2? | ? |
-| AMD RX570 (GCN4)             | 224.0 | 86   | | -    |
-| Apple M1                     | 68.25 |      | | ?    |
-| ARM Mali T830 (Midgard gen4) | 14.9  | 4    | | -    |
-| ARM Mali G57 (Valhall gen1)  | 17.07 | 14.2 | | -    | 512  | 49  | 32?  | 32  | ?    |
-| Intel UHD 620 (9.5gen)       | 29.8  | 23   | | -    | 128  | 48? | 8?   | 8?  | 112? |
-| NV RTX 2080 (Turing)         | 448.0 | 403  | | -    | 4096 | ?   | 64   | 32  | ?    |
-| PowerVR BXM‑8‑256            | 51.2  | 14.2 | | ?    | 1024 | ?   | 256? | 256 | ?    |
+### RAM, VRAM
+
+| GPU | VRAM bandwidth from specs (GB/s) | VRAM bandwidth measured (GB/s) | RAM to VRAM bandwidth from specs (GB/s) | RAM to VRAM bandwidth measured (GB/s) | VRAM to RAM bandwidth measured (GB/s) | RAM to RAM bandwidth measured (GB/s) |
+|---|---|---|---|---|---|---|
+| Adreno 505                   | 6.4   | 5    | | | | |
+| Adreno 660                   | 51.2  | 34   | | | | |
+| AMD RX570 (GCN4)             | 224.0 | 86   | | | | |
+| Apple M1                     | 68.25 |      | | | | |
+| ARM Mali T830 (Midgard gen4) | 14.9  | 4    | | | | |
+| ARM Mali G57 (Valhall gen1)  | 17.07 | 14.2 | | | | |
+| Intel UHD 620 (9.5gen)       | 29.8  | 23   | | | | |
+| NV RTX 2080 (Turing)         | 448.0 | 403  | | | | |
+| PowerVR BXM‑8‑256            | 51.2  | 14.2 | | | | |
+
+### Cache
+
+* GMem - part of L2 cache which is used to store attachments for TBDR.
+	- Adreno has dedicated memory.
+	- Mali use L2 and some times attachment can be evicted from L2 to RAM.
+
+| GPU | GMem (KB) | L2 cache per SM (KB) | L2 bandwidth (GB/s) | L2 cache line (bytes) | L1 cache per SM (KB) | Texture cache - part of L1 (KB) | L1 bandwidth (GB/s) |
+|---|---|---|---|---|---|---|---|
+| Adreno 505                   | 128  |      |     |    |      |     |      |
+| Adreno 660                   | 1536 | 128  | ?   |    | 4?   | 2?  | ?    |
+| AMD RX570 (GCN4)             | -    |      |     |    |      |     |      |
+| Apple M1                     | ?    |      |     |    |      |     |      |
+| ARM Mali T830 (Midgard gen4) | 4    |      |     | 64 |      |     |      |
+| ARM Mali G57 (Valhall gen1)  | 8    | 512  | 49  | 64 | 32?  | 32  | ?    |
+| Intel UHD 620 (9.5gen)       | -    | 128  | 48? |    | 8?   | 8?  | 112? |
+| NV RTX 2080 (Turing)         | -    | 4096 | ?   |    | 64   | 32  | ?    |
+| PowerVR BXM‑8‑256            | ?    | 1024 | ?   | ?  | 256? | 256 | ?    |
 
 ## Render target compression
 
@@ -503,11 +547,12 @@ Other:
 | Adreno 5xx            | 4x4   | 2.5 | 2.7 | ?   | ?    | exec time       |
 | Adreno 6xx            | 16x16 | 1.9 | 6.9 | ?   | 3.3  | exec time       |
 | AMD GCN4              | 4x4   | 2.3 | 3   | 2.3 | 3    | exec time       |
-| Apple M1              |
+| Apple M1              | 8x8   | 3.4 | 3.4 | 6.8 | 6.8  | exec time       |
 | Intel UHD 6xx 9.5gen  | 8x8   | 1.6 | 1.8 | 1.8 | 1.85 | exec time       |
 | NV RTX 20xx           | 4x4   | 3   | 3.2 | 4.1 | 4.1  | exec time       |
-| ARM Mali Valhall gen1 | 4x4   | 6.9 | 60  | -   | -    | **mem traffic** | only 32bit formats |
-| PowerVR B‑Series      | 8x8   | 23  | 134 | 24  | 134  | **mem traffic** |
+| ARM Mali Valhall gen1 | 4x4   | 1.9 | 3.9 | 1.9 | 3.7  | exec time       | only 32bit formats, **V2** |
+| ARM Mali Valhall gen1 | 4x4   | 5.9 | 19  | 5.7 | 20   | **mem traffic** | used performance counters |
+| PowerVR B‑Series      | 8x8   | 23  | 134 | 24  | 134  | **mem traffic** | used performance counters |
 
 
 # Test Sources
@@ -568,3 +613,15 @@ Expected hierarchy:
 ### 11. NaN
 
 [code](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/NaN.as)
+
+### 12. Branching
+
+Transform 2D vector into 3D cube face. Uniform version has same cube face per warp. Non-uniform version has unique cube face per thread.
+
+[code](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/Branching-1.as)
+
+### 13. Circle geometry
+
+[Small circles](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/CircleQuadOverdraw-1.as)<br/>
+[Large circles blending](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/CircleQuadOverdraw-2.as)
+

@@ -14,7 +14,8 @@
 		RC<DynamicUInt>		tex_dim		= DynamicUInt();
 		RC<DynamicDim>		dim			= tex_dim.Mul( 1024 ).Dimension2();
 
-		RC<Image>			rt0			= Image( EPixelFormat::R32F, dim );
+		RC<Image>			rt0			= Image( EPixelFormat::RGBA16U, dim );
+		RC<Image>			rt1			= Image( EPixelFormat::RGBA16U, dim );
 
 		RC<DynamicUInt>		count		= DynamicUInt();
 		RC<DynamicUInt>		gen_tex		= DynamicUInt();
@@ -29,14 +30,33 @@
 		{
 			RC<Postprocess>		pass = Postprocess( "", "GEN_NOISE" );
 			pass.Output( "out_Color0",		rt0 );
+			pass.Output( "out_Color1",		rt1 );
 			pass.Constant( "iNoiseStep",	noise_step );
 			pass.EnableIfEqual( gen_tex, 1 );
 		}
 		{
 			RC<Postprocess>		pass = Postprocess( "", "PROCESS" );
 			pass.InOut( "in_Color0",	"out_Color0",	rt0 );
+			pass.InOut( "in_Color1",	"out_Color1",	rt1 );
 			pass.Repeat( count );
 		}
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_FRAG
+
+	float2  Encode (uint4 color)
+	{
+		return float2(	uintBitsToFloat( color.x | (color.y << 16) ),
+						uintBitsToFloat( color.z | (color.w << 16) ));
+	}
+
+	uint4  Decode (float2 value)
+	{
+		uint2	u = floatBitsToUint( value );
+		return uint4(	u.x & 0xFFFF, u.x >> 16,
+						u.y & 0xFFFF, u.y >> 16 );
 	}
 
 #endif
@@ -45,19 +65,21 @@
 	#include "GlobalIndex.glsl"
 	#include "CodeTemplates.glsl"
 
-	float  Update (float val)
+	float4  Update (float4 val)
 	{
 		return val * val + 0.001;
 	}
 
 	void  Main ()
 	{
-		float	data;
-		data = gl.subpass.Load( in_Color0 ).r;
+		float4	data;
+		data.rg = Encode( gl.subpass.Load( in_Color0 ));
+		data.ba = Encode( gl.subpass.Load( in_Color1 ));
 
 		data = Update( data );
 
-		out_Color0.r = data;
+		out_Color0 = Decode( data.rg );
+		out_Color1 = Decode( data.ba );
 	}
 
 #endif
@@ -70,8 +92,10 @@
 	void  Main ()
 	{
 		float2	uv  = float2(GetGlobalCoord().xy >> iNoiseStep);
-		
-		out_Color0.r = Hash_Uniform( uv, 0.5 );
+		float4	col = Rainbow( Hash_Uniform( uv, 0.111 ));
+
+		out_Color0 = Decode( col.rg );
+		out_Color1 = Decode( col.ba );
 	}
 
 #endif

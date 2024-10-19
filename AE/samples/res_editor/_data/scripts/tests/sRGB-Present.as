@@ -16,6 +16,9 @@
 	brighter	- sRGB conversion applied multiple times.
 	darker		- sRGB to linear conversion applied multiple times.
 	swapchain	- 'Surface format' in 'Graphics' tab.
+	rt			- intermediate render target which will blit/copy to the swapchain image.
+	screenshot	- in current implementation screenshot is memcopied from 'rt',
+				  in other cases screenshot copied from swapchain image, so result may be different.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

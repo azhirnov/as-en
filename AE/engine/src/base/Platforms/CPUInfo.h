@@ -5,6 +5,7 @@
 #include "base/Common.h"
 #include "base/Containers/FixedString.h"
 #include "base/Containers/FixedArray.h"
+#include "base/Containers/FixedMap.h"
 
 namespace AE::Base
 {
@@ -117,12 +118,13 @@ namespace AE::Base
 			CacheGeom () : lineSize{0}, associativity{0} {}
 		};
 
-		struct CacheInfo
+		enum ECacheType : ubyte
 		{
-			CacheGeom	L1_Inst;
-			CacheGeom	L1_Data;
-			CacheGeom	L2;
-			CacheGeom	L3;
+			L1_Instuction,
+			L1_Data,
+			L2,
+			L3,
+			_Count
 		};
 
 		static constexpr uint	MaxLogicalCores	= 64;
@@ -130,7 +132,8 @@ namespace AE::Base
 
 		using MHz_t				= uint;
 		using CoreBits_t		= BitSet< MaxLogicalCores >;
-
+		using CacheKey_t		= Pair< ECacheType, ECoreType >;
+		using CacheInfoMap_t	= FixedMap< CacheKey_t, CacheGeom, 8 >;
 
 		struct Core
 		{
@@ -168,35 +171,58 @@ namespace AE::Base
 
 	// variables
 	public:
-		Features	feats	= {};
-		Processor	cpu		= {};
-		CacheInfo	cache	= {};
+		Features		feats	= {};
+		Processor		cpu		= {};
+		CacheInfoMap_t	cache;
 
 
 	// methods
 	private:
-		CpuArchInfo ()										__NE___;
+		CpuArchInfo ()												__NE___;
 
-		void  _Validate ()									__NE___;
+		void  _Validate ()											__NE___;
 
-		ND_ static ECPUVendor  _NameToVendor (StringView)	__NE___;
+		ND_ static ECPUVendor  _NameToVendor (StringView)			__NE___;
 
 	public:
-		ND_ String		Print ()							C_NE___;
-		ND_ bool		IsGLMSupported ()					C_NE___;
+		ND_ String		Print ()									C_NE___;
+		ND_ bool		IsGLMSupported ()							C_NE___;
 
-		ND_ Core const*	GetCore (uint threadIdx)			C_NE___;
-		ND_ Core const*	GetCore (ECoreType type)			C_NE___;
+		ND_ Core const*	GetCore (uint threadIdx)					C_NE___;
+		ND_ Core const*	GetCore (ECoreType type)					C_NE___;
 
-		ND_ CoreBits_t	LogicalCoreMask ()					C_NE___;
-		ND_ CoreBits_t	PhysicalCoreMask ()					C_NE___;
+		ND_ CacheGeom const*  GetCache (ECacheType, ECoreType)		C_NE___;
 
-		ND_ static CpuArchInfo const&  Get ()				__NE___;
+		ND_ CoreBits_t	LogicalCoreMask ()							C_NE___;
+		ND_ CoreBits_t	PhysicalCoreMask ()							C_NE___;
+
+		ND_ static CpuArchInfo const&  Get ()						__NE___;
 	};
-
-
 //-----------------------------------------------------------------------------
 
+
+	
+/*
+=================================================
+	operator == (CacheKey_t)
+=================================================
+*/
+	inline bool  operator == (const CpuArchInfo::CacheKey_t &lhs, const CpuArchInfo::CacheKey_t &rhs) __NE___
+	{
+		return	lhs.first	== rhs.first	and
+				lhs.second	== rhs.second;
+	}
+
+/*
+=================================================
+	operator < (CacheKey_t)
+=================================================
+*/
+	inline bool  operator < (const CpuArchInfo::CacheKey_t &lhs, const CpuArchInfo::CacheKey_t &rhs) __NE___
+	{
+		return	lhs.first != rhs.first ?	lhs.first	< rhs.first :
+											lhs.second	< rhs.second;
+	}
 
 
 #ifdef AE_ENABLE_LOGS

@@ -142,6 +142,49 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 | VoronoiContour3FBM, octaves=4 | 262K  | 41.5 | 158   |
 
 
+### Circle performance
+
+* small circles. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 8K objects
+	- 5.76 MPix
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **1.8** | - |
+	| fan      | 1.7 | 6  |
+	| strip    | 1.5 | 20 |
+	| max area | 1.4 | 28 |
+
+* 4x4 circles with blending. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 64 layers
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **12.8** | - |
+	| fan      | 10.6 | 21 |
+	| strip    | 10.6 | 21 |
+	| max area | 10.6 | 21 |
+
+
+### Branching
+
+* Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
+	- 1.04 MPix, 128 iter, 6 mul/branch ops.
+	
+	| op | exec time (ms) | diff |
+	|---|---|---|
+	| Mul uniform        | 17.3 | 1.27 |
+	| Branch uniform     | **13.6** | - |
+	| Matrix uniform     | 11.8 | 0.87 |
+	| - |
+	| Mul non-uniform    | 25.9 | 1.9  |
+	| Branch non-uniform | 15.6 | 1.15 |
+	| Matrix non-uniform | 34.7 | 2.55 |
+	| - |
+	| Mul avg            | 21.6 | 1.59 |
+	| Branch avg         | 14.6 | 1.07 |
+	| Matrix avg         | 23.3 | 1.71 |
+
 ## Resource access
 
 * Buffer/Image storage 16bpp 9.4MPix 2x151MB [[7](../GPU_Benchmarks.md#7-BufferImage-storage-access)]
@@ -208,6 +251,7 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	|---|---|---|------|----|
 	| 1    | 8   | 21   | image storage  |
 	| 1.07 | 7.5 | 22.4 | 1x1 noise      |
+	| 1.9  | 4.1 | 41   | 8x8 noise      | **same as block size** |
 	| 2    | 4   | 42   | 16x16 noise    |
 
 

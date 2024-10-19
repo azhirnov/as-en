@@ -458,23 +458,20 @@ namespace AE::ResEditor
 			}
 		}{
 			RenderPassSpecPtr	rp_spec = compat_rp->AddSpecialization2( "rp" );
-
-			for (usize i = 0; i < _output.size(); ++i)
+			
+			for (auto [out, i] : WithIndex(_output))
 			{
-				RPAttachmentSpecPtr	att		= rp_spec->AddAttachment2( _output[i].name );
-				const bool			is_ds	= _output[i].rt->IsDepthOrStencil();
+				RPAttachmentSpecPtr	att		= rp_spec->AddAttachment2( out.name );
+				const bool			is_ds	= out.rt->IsDepthOrStencil();
 				const auto			state	= is_ds ?
 												EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS :
 												EResourceState::ColorAttachment;
-
-				att->loadOp		= EAttachmentLoadOp::Load;
-				att->storeOp	= EAttachmentStoreOp::Store;
-
-				if ( _output[i].HasClearValue() )
-				{
-					att->loadOp = EAttachmentLoadOp::Clear;
+				att->loadOp		= out.loadOp;
+				att->storeOp	= out.storeOp;
+				
+				if ( out.loadOp == EAttachmentLoadOp::Clear )
 					att->AddLayout( "ExternalIn", EResourceState::Invalidate | state );
-				}
+				
 				att->AddLayout( subpass, state );
 			}
 		}

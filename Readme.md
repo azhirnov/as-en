@@ -36,6 +36,7 @@ Engine documentation:
 
 Papers:
  * [HDR Display](AE/docs/papers/HDR_Display.md)
+ * [GPU Benchmarks](AE/docs/papers/GPU_Benchmarks.md)
 
 Samples:
  * [Shader Playground](AE/samples/res_editor/Readme.md) with high level scripting, see [Samples overview](AE/samples/res_editor/docs/Samples.md).

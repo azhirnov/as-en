@@ -71,28 +71,28 @@
 		}
 		//--------------------
 		{
-			RC<ComputePass>		pass = ComputePass( "", "MODE=0" );
+			RC<ComputePass>		pass = ComputePass( "", "MODE=0" );		// 16 byte
 			pass.ArgInOut( "un_Buffer",	buf16 );
 			pass.LocalSize( local.x*local.y );
 			pass.DispatchThreads( dim );
 			pass.EnableIfEqual( mode, 0 );
 			pass.Repeat( count );
 		}{
-			RC<ComputePass>		pass = ComputePass( "", "MODE=1" );
+			RC<ComputePass>		pass = ComputePass( "", "MODE=1" );		// 32 byte
 			pass.ArgInOut( "un_Buffer",	buf32 );
 			pass.LocalSize( local.x*local.y );
 			pass.DispatchThreads( dim.Div(int2(1,2)) );
 			pass.EnableIfEqual( mode, 1 );
 			pass.Repeat( count );
 		}{
-			RC<ComputePass>		pass = ComputePass( "", "MODE=2" );
+			RC<ComputePass>		pass = ComputePass( "", "MODE=2" );		// 64 byte
 			pass.ArgInOut( "un_Buffer",	buf64 );
 			pass.LocalSize( local.x*local.y );
 			pass.DispatchThreads( dim.Div(int2(1,4)) );
 			pass.EnableIfEqual( mode, 2 );
 			pass.Repeat( count );
 		}{
-			RC<ComputePass>		pass = ComputePass( "", "MODE=3" );
+			RC<ComputePass>		pass = ComputePass( "", "MODE=3" );		// 128 byte
 			pass.ArgInOut( "un_Buffer",	buf128 );
 			pass.LocalSize( local.x*local.y );
 			pass.DispatchThreads( dim.Div(int2(1,8)) );

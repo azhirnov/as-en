@@ -1,10 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "pch/Scripting.h"
-
-#ifdef AE_ENABLE_GLFW
-# include "GLFW/glfw3.h"
-#endif
+#include "GLFWCommon.cpp.h"
 
 #include "platform/GLFW/SerializableInputActionsGLFW.h"
 

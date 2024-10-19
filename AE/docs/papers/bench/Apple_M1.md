@@ -11,7 +11,7 @@
 * Clock: 450 - 1278 MHz
 * F16 GFLOPS: 2617 (2380 on FMA from tests)
 * F32 GFLOPS: 2617 (2360 on FMA from tests)
-* Memory: 16 GB, LPDDR4X-4266 DC 16bit, 2133 MHz, 128bit Bus, 68.25 GB/s
+* Memory: 16 GB, LPDDR4X-4266 DC 16bit, 2133 MHz, 128bit Bus, 68.25 GB/s (64.3 GB/s from tests)
 
 ## Shader
 
@@ -58,19 +58,19 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	- fp32 FastACos is x2.1 faster than native ACos
 	- fp32 FastASin is x2.0 faster than native ASin
 	- fp32 Pow uses MUL loop - performance depends on power
-
+	- fp mediump has same performance as highp.
 	
 * Shader instruction benchmark results: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
 	- base is 1.3 TOp/s
 
 	- **float point**
 	
-	| op \ type | fp32 |
-	|---|---|
-	| Add           | 1   |
-	| Mul           | 1   |
-	| MulAdd        | 1   |
-	| FMA           | 1   |
+	| op \ type | fp32 | fp16 |
+	|---|---|---|
+	| Add           | 1   | 1 |
+	| Mul           | 1   | 1 |
+	| MulAdd        | 1   | 1 |
+	| FMA           | 1   | 1 |
 	| Div           | 4   |
 	| Mod           | 8   |
 	| Length        | 2   |
@@ -123,7 +123,7 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| FindLSB     | 3   | 3   | 3   | 3   |
 	| FindMSB     | 4   | 3   | -   | -   |
 	| MulExtended | 6   | 6   | -   | -   |
-	| AddCarry, SubBorrow | -   | 3   | - | - |
+	| AddCarry, SubBorrow | - | 3 | - | - |
 
 	
 * FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
@@ -170,3 +170,119 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| SignOrZero(-x) | 0 | 0 | 0 | 0 | -1 | 1 | -1 | 1 |
 	| SmoothStep(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
 	| Normalize(x) | nan | nan | nan | nan | nan | nan | 0 | -0 |
+
+### Circle performance
+
+* small circles. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 64K objects
+	- 22.9MPix
+
+	| shape | exec time (ms) | diff |
+	|---|---|---|
+	| quad     | **0.62** | -   |
+	| fan      | 1.61 | 2.6 |
+	| strip    | 1.69 | 2.7 |
+	| max area | 1.71 | 2.7 |
+
+* 4x4 circles with blending. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 6128 layers
+	- 5.73MPix
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **10.1** | -  |
+	| fan      | 8.2  | 23 |
+	| strip    | 8.2  | 23 |
+	| max area | 8.2  | 23 |
+
+
+### Branching
+
+* Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
+	- 16.7 MPix, 128 iter, 6 mul/branch ops.
+	
+	| op | exec time (ms) | diff |
+	|---|---|---|
+	| Mul uniform        | 57.0 | 1.1 |
+	| Branch uniform     | **51.8** | - |
+	| Matrix uniform     | 40.6 | 0.8 |
+	| - |
+	| Mul non-uniform    | 71.4 | 1.38 |
+	| Branch non-uniform | 55.2 | 1.07 |
+	| Matrix non-uniform | 90.4 | 1.75 |
+	| - |
+	| Mul avg            | 64.2 | 1.24 |
+	| Branch avg         | 53.2 | 1.03 |
+	| Matrix avg         | 65.5 | 1.26 |
+
+
+## Render target compression
+
+* RGBA8 268 MPix downsample 1/2, compressed/uncompressed access rate: [[3](../GPU_Benchmarks.md#3-Render-target-compression)]
+	- read: 1074 MB
+
+	| diff | exec time (ms) | approx traffic (GB/s) | name | comments |
+	|---|---|---|------|----|
+	| 1    | 16.7 | 64.3 | image storage |
+	| 1.27 | 13.1 | 82   | 1x1 noise     |
+	| 1.56 | 10.7 | 100  | 2x2 noise     |
+	| 2.61 | 6.4  | 168  | 4x4 noise     |
+	| 4.4  | 3.8  | 283  | 8x8 noise     | **same as block size** |
+	| 4.4  | 3.8  | 283  | 16x16 noise   |
+	| 4.4  | 3.8  | 283  | gradient      |
+	| 4.4  | 3.8  | 283  | solid color   |
+	
+* RGBA16_UNorm 151 MPix downsample 1/2, compressed/uncompressed access rate: [[3](../GPU_Benchmarks.md#3-Render-target-compression)]
+	- read: 1 207 MB
+
+	| diff | exec time (ms) | approx traffic (GB/s) | name | comments |
+	|---|---|---|------|----|
+	| 1   | 23.9 | 50,5 | image storage |
+	| 1.6 | 14.9 | 81   | 1x1 noise     |
+	| 1.9 | 12.8 | 94.3 | 2x2 noise     |
+	| 3.1 | 7.7  | 157  | 4x4 noise     |
+	| 5.0 | 4.8  | 251  | gradient      |
+	| 11  | 2.2  | 549  | 8x8 noise     | **same as block size** |
+	| 11  | 2.2  | 549  | 16x16 noise   |
+	| 11  | 2.2  | 549  | solid color   |
+	
+* RGBA32F 67.1 MPix downsample 1/2, compressed/uncompressed access rate: [[3](../GPU_Benchmarks.md#3-Render-target-compression)]
+	- read: 1074 MB
+
+	| diff | exec time (ms) | approx traffic (GB/s) | name | comments |
+	|---|---|---|------|----|
+	| 1   | 21.3 | 50.4 | image storage 1x1 noise |
+	| 1.6 | 13.2 | 81   | 1x1 noise   |
+	| 1.8 | 12.0 | 90   | 2x2 noise   |
+	| 2.9 | 7.4  | 145  | 4x4 noise   |
+	| 3.1 | 6.8  | 158  | gradient    |
+	| 11  | 2.0  | 537  | 8x8 noise   | **same as block size** |
+	| 11  | 2.0  | 537  | 16x16 noise |
+	| 11  | 2.0  | 537  | solid color |
+
+## Texture cache
+
+* RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
+	- Measured cache size: 32K, 1MB.
+	- dim: 6400x3584
+	- 8 texels per pixel, 22.9MPix, 2 930 MB.
+
+	| size (B) | dimension (px) | exec time (ms) | diff | approx bandwidth (GB/s) | comments |
+	|---|---|---|---|---|---|
+	| 64   | 4x4       | 2.74 | -    | 1070 |
+	| 128  | 4x8       | 2.80 | 1.02 | 1046 |
+	| 256  | 8x8       | 3.40 | 1.21 |  862 |
+	| 512  | 8x16      | 3.68 | 1.08 |  796 |
+	| 1K   | 16x16     | 3.82 | 1.04 |  767 |
+	| 2K   | 16x32     | 5.09 | **1.33** |  576 |
+	| 4K   | 32x32     | 6.21 | 1.22 |  472 |
+	| 8K   | 32x64     | 6.76 | 1.09 |  433 |
+	| 16K  | 64x64     | 7.03 | 1.04 |  417 |  
+	| **32K** | 128x64 | 9.80 | 1.39 |  300 | L1 cache |
+	| 64K  | 128x128   | 24.4 | **2.5** | 120 |
+	| 128K | 256x128   | 31.9 | 1.31 | 92 |
+	| 256K | 256x256   | 35.5 | 1.11 | 82 |
+	| 512K | 512x256   | 37.4 | 1.05 | 78 |
+	| **1M** | 512x512  | 49.3 | 1.32 | 59 | near to RAM bandwidth, should be L2 cache |
+	| 2M   | 512x1024  | 95.4 | **1.93** | 31 |
+	| 4M   | 1024x1024 | 120  | 1.26 | 24 |

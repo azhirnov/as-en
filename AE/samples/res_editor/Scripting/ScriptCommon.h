@@ -21,6 +21,8 @@ namespace AE::ResEditor
 	using AE::Scripting::ScriptEnginePtr;
 
 	using AE::PipelineCompiler::EImageType;
+	using AE::PipelineCompiler::EAttachmentLoadOp;
+	using AE::PipelineCompiler::EAttachmentStoreOp;
 
 	using EnableScriptRC	= AE::Scripting::AngelScriptHelper::SimpleRefCounter;
 

@@ -4,11 +4,7 @@
 
 #if defined(AE_ENABLE_GLFW) and defined(AE_PLATFORM_MACOS)
 # include "graphics/Public/MetalTypes.h"
-# undef null
-# include <GLFW/glfw3.h>
-# include <Cocoa/Cocoa.h>
-# include <GLFW/glfw3native.h>
-# define null nullptr
+# include "GLFWCommon.cpp.h"
 
 using AE::Graphics::MetalNSViewRC;
 using AE::Graphics::MetalCALayerRC;

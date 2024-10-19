@@ -828,6 +828,7 @@ namespace {
 
 			CoreBindings::BindString( _engine );
 			_Bind_Constants( _engine );
+			_Bind_Enums( _engine );
 			_Bind( _engine, _config );
 		}
 		catch(...)
@@ -2183,6 +2184,31 @@ namespace {
 		se->AddConstProperty( _sampConsts->Anisotropy16Clamp,			"Sampler_" + _sampConsts->Anisotropy16Clamp );
 
 		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 16 );
+	}
+	
+/*
+=================================================
+	_Bind_Enums
+=================================================
+*/
+	void  ScriptExe::_Bind_Enums (const ScriptEnginePtr &se) __Th___
+	{
+		{
+			EnumBinder<EAttachmentLoadOp>	binder{ se };
+			binder.Create();
+			binder.AddValue( "Invalidate",	EAttachmentLoadOp::Invalidate );
+			binder.AddValue( "Load",		EAttachmentLoadOp::Load );
+			binder.AddValue( "Clear",		EAttachmentLoadOp::Clear );
+			binder.AddValue( "None",		EAttachmentLoadOp::None );
+			StaticAssert( uint(EAttachmentLoadOp::_Count) == 4 );
+		}{
+			EnumBinder<EAttachmentStoreOp>	binder{ se };
+			binder.Create();
+			binder.AddValue( "Invalidate",	EAttachmentStoreOp::Invalidate );
+			binder.AddValue( "Store",		EAttachmentStoreOp::Store );
+			binder.AddValue( "None",		EAttachmentStoreOp::None );
+			StaticAssert( uint(EAttachmentStoreOp::_Count) == 4 );
+		}
 	}
 
 /*

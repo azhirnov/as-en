@@ -214,22 +214,36 @@ namespace
 
 
 		// CPU cache info
+		const auto	AddCacheInfo = [this] (ECacheType type, CacheGeom c)
+		{{
+			if ( c.associativity > 0 or c.lineSize > 0 or c.size > 0 )
+				cache.emplace( CacheKey_t{ type, ECoreType::Unknown }, c );
+		}};
+
 		{
-			cache.L1_Inst.lineSize		= ::getauxval( AT_L1I_CACHEGEOMETRY ) & 0xFFFF;
-			cache.L1_Inst.associativity	= ::getauxval( AT_L1I_CACHEGEOMETRY ) >> 16;
-			cache.L1_Inst.size			= Bytes32u{uint(::getauxval( AT_L1I_CACHESIZE ))};
-
-			cache.L1_Data.lineSize		= ::getauxval( AT_L1D_CACHEGEOMETRY ) & 0xFFFF;
-			cache.L1_Data.associativity	= ::getauxval( AT_L1D_CACHEGEOMETRY ) >> 16;
-			cache.L1_Data.size			= Bytes32u{uint(::getauxval( AT_L1D_CACHESIZE ))};
-
-			cache.L2.lineSize			= ::getauxval( AT_L2_CACHEGEOMETRY ) & 0xFFFF;
-			cache.L2.associativity		= ::getauxval( AT_L2_CACHEGEOMETRY ) >> 16;
-			cache.L2.size				= Bytes32u{uint(::getauxval( AT_L2_CACHESIZE ))};
-
-			cache.L3.lineSize			= ::getauxval( AT_L3_CACHEGEOMETRY ) & 0xFFFF;
-			cache.L3.associativity		= ::getauxval( AT_L3_CACHEGEOMETRY ) >> 16;
-			cache.L3.size				= Bytes32u{uint(::getauxval( AT_L3_CACHESIZE ))};
+			CacheGeom	c;
+			c.lineSize		= ::getauxval( AT_L1I_CACHEGEOMETRY ) & 0xFFFF;
+			c.associativity	= ::getauxval( AT_L1I_CACHEGEOMETRY ) >> 16;
+			c.size			= Bytes32u{uint(::getauxval( AT_L1I_CACHESIZE ))};
+			AddCacheInfo( ECacheType::L1_Instuction, c );
+		}{
+			CacheGeom	c;
+			c.lineSize		= ::getauxval( AT_L1D_CACHEGEOMETRY ) & 0xFFFF;
+			c.associativity	= ::getauxval( AT_L1D_CACHEGEOMETRY ) >> 16;
+			c.size			= Bytes32u{uint(::getauxval( AT_L1D_CACHESIZE ))};
+			AddCacheInfo( ECacheType::L1_Data, c );
+		}{
+			CacheGeom	c;
+			c.lineSize		= ::getauxval( AT_L2_CACHEGEOMETRY ) & 0xFFFF;
+			c.associativity	= ::getauxval( AT_L2_CACHEGEOMETRY ) >> 16;
+			c.size			= Bytes32u{uint(::getauxval( AT_L2_CACHESIZE ))};
+			AddCacheInfo( ECacheType::L2, c );
+		}{
+			CacheGeom	c;
+			c.lineSize		= ::getauxval( AT_L3_CACHEGEOMETRY ) & 0xFFFF;
+			c.associativity	= ::getauxval( AT_L3_CACHEGEOMETRY ) >> 16;
+			c.size			= Bytes32u{uint(::getauxval( AT_L3_CACHESIZE ))};
+			AddCacheInfo( ECacheType::L3, c );
 		}
 
 		_Validate();

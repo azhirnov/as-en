@@ -127,7 +127,7 @@ namespace
 			usize	p2 = range.rfind( ' ', p1-1 );	++p2;
 
 			range = SubString( range, p2, p1-p2 );
-			res = Bytes{StringToUInt( range )} << 10;
+			res = Bytes{StringToUInt64( range )} << 10;
 		}};
 
 		Parse( "MemTotal:",		OUT total );

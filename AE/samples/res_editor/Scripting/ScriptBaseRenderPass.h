@@ -22,22 +22,22 @@ namespace AE::ResEditor
 
 		struct Output
 		{
-			String			name;			// only for color attachment
-			String			inName;			// only for input attachment
-			ScriptImagePtr	rt;
-			ImageLayer		layer;
-			uint			layerCount		= UMax;
-			MipmapLevel		mipmap;
-			EBlendFactor	srcFactorRGB	= Default;
-			EBlendFactor	srcFactorA		= Default;
-			EBlendFactor	dstFactorRGB	= Default;
-			EBlendFactor	dstFactorA		= Default;
-			EBlendOp		blendOpRGB		= Default;
-			EBlendOp		blendOpA		= Default;
-			bool			enableBlend		= false;
-			ClearValue_t	clear;
-
-			ND_ bool  HasClearValue ()	C_NE___	{ return not IsNullUnion( clear ); }
+			String				name;			// only for color attachment
+			String				inName;			// only for input attachment
+			ScriptImagePtr		rt;
+			ImageLayer			layer;
+			uint				layerCount		= UMax;
+			MipmapLevel			mipmap;
+			EBlendFactor		srcFactorRGB	= Default;
+			EBlendFactor		srcFactorA		= Default;
+			EBlendFactor		dstFactorRGB	= Default;
+			EBlendFactor		dstFactorA		= Default;
+			EBlendOp			blendOpRGB		= Default;
+			EBlendOp			blendOpA		= Default;
+			bool				enableBlend		= false;
+			ClearValue_t		clear;
+			EAttachmentLoadOp	loadOp			= EAttachmentLoadOp::Load;
+			EAttachmentStoreOp	storeOp			= EAttachmentStoreOp::Store;
 		};
 
 

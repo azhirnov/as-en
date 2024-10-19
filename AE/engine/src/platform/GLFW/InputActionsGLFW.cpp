@@ -2,8 +2,7 @@
 
 #ifdef AE_ENABLE_GLFW
 # include "platform/GLFW/InputActionsGLFW.h"
-
-# include "GLFW/glfw3.h"
+# include "GLFWCommon.cpp.h"
 
 namespace AE::App
 {

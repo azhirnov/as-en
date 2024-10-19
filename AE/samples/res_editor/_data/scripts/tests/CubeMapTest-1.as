@@ -32,27 +32,24 @@
 	#include "CubeMap.glsl"
 	#include "Ray.glsl"
 
-	float3  CubeFaceToNormal (ECubeFace face)
-	{
-		// same
-		//return CM_RotateVec( float3(0.0, 0.0, 1.0), face );
 
-		switch ( face )
-		{
-			case ECubeFace_XPos :	return float3(+1.0,  0.0,  0.0 );
-			case ECubeFace_XNeg :	return float3(-1.0,  0.0,  0.0 );
-			case ECubeFace_YPos :	return float3( 0.0, +1.0,  0.0 );
-			case ECubeFace_YNeg :	return float3( 0.0, -1.0,  0.0 );
-			case ECubeFace_ZPos :	return float3( 0.0,  0.0, +1.0 );
-			case ECubeFace_ZNeg :	return float3( 0.0,  0.0, -1.0 );
-		}
-		return float3(0.0);
+	float3  GetMajorAxis (float3 v)
+	{
+		float3	a = Abs(v);
+		if ( a.x >= a.y and a.x >= a.z )
+			return float3( Sign(v.x), 0.0, 0.0 );
+
+		if ( a.y >= a.z )
+			return float3( 0.0, Sign(v.y), 0.0 );
+
+		return float3( 0.0, 0.0, Sign(v.z) );
 	}
+
 
 	void  Main ()
 	{
 		float4		col		= float4(0.0);
-		const float	y_max	= 7.0;
+		const float	y_max	= 11.0;
 		const float	y		= Floor( GetGroupCoordUNorm().y * y_max );
 		const float	scale	= Exp10( float(iScale) );
 
@@ -63,43 +60,73 @@
 		{
 			case 0 : {
 				float3	uv_f	= CM_IdentitySC_Inverse( dir );
-				float3	dir2	= CM_IdentitySC_Forward( uv_f.xy, int(uv_f.z) );
+				float3	dir2	= CM_IdentitySC_Forward( uv_f.xy, ECubeFace(uv_f.z) );
 				col.rgb = Abs( dir - dir2 ) * scale;
 				break;
 			}
-			case 1 : {
+			case 1 : {																// high accuracy
 				float3	uv_f	= CM_TangentialSC_Inverse( dir );
-				float3	dir2	= CM_TangentialSC_Forward( uv_f.xy, int(uv_f.z) );
+				float3	dir2	= CM_TangentialSC_Forward( uv_f.xy, ECubeFace(uv_f.z) );
 				col.rgb = Abs( dir - dir2 ) * scale;
 				break;
 			}
-			case 2 : {
+			case 2 : {																// high accuracy
 				float3	uv_f	= CM_EverittSC_Inverse( dir );
-				float3	dir2	= CM_EverittSC_Forward( uv_f.xy, int(uv_f.z) );
+				float3	dir2	= CM_EverittSC_Forward( uv_f.xy, ECubeFace(uv_f.z) );
 				col.rgb = Abs( dir - dir2 ) * scale;
 				break;
 			}
 			case 3 : {
 				float3	uv_f	= CM_5thPolySC_Inverse( dir );
-				float3	dir2	= CM_5thPolySC_Forward( uv_f.xy, int(uv_f.z) );
+				float3	dir2	= CM_5thPolySC_Forward( uv_f.xy, ECubeFace(uv_f.z) );
 				col.rgb = Abs( dir - dir2 ) * scale;
 				break;
 			}
 			case 4 : {
 				float3	uv_f	= CM_COBE_SC_Inverse( dir );
-				float3	dir2	= CM_COBE_SC_Forward( uv_f.xy, int(uv_f.z) );
+				float3	dir2	= CM_COBE_SC_Forward( uv_f.xy, ECubeFace(uv_f.z) );
 				col.rgb = Abs( dir - dir2 ) * scale;
 				break;
 			}
-			case 5 : {
+			case 5 : {																// high accuracy
 				float3	uv_f	= CM_ArvoSC_Inverse( dir );
-				float3	dir2	= CM_ArvoSC_Forward( uv_f.xy, int(uv_f.z) );
+				float3	dir2	= CM_ArvoSC_Forward( uv_f.xy, ECubeFace(uv_f.z) );
 				col.rgb = Abs( dir - dir2 ) * scale;
 				break;
 			}
 			case 6 : {
-				float3	uv_f	= CM_IdentitySC_Inverse( dir );
-				col.rgb = Abs( CubeFaceToNormal( ECubeFace(uv_f.z) ) - dir );
+				ECubeFace	face = CM_DirToFace( dir );
+				float3		n	 = GetMajorAxis( dir );
+				col.rgb = Abs( CM_GetNormal( face ) - n );
+				break;
+			}
+			case 7 : {
+				ECubeFace	face	= CM_DirToFace( dir );
+				float3		n2		= CM_InverseRotation( face, dir );
+				float3		n3		= CM_InverseRotation( dir ).xyz;
+				col.rgb = Abs( n2 - n3 ) * scale;
+				break;
+			}
+			case 8 : {
+				ECubeFace	face	= CM_DirToFace( dir );
+				float3		t1		= CM_GetTangent( face );
+				float3		t2		= GetMajorAxis( CM_Tangent( dir, face ));
+				col.rgb = Abs( t1 - t2 ) * scale;
+				break;
+			}
+			case 9 : {
+				ECubeFace	face	= CM_DirToFace( dir );
+				float3		b1		= CM_GetBitangent( face );
+				float3		b2		= GetMajorAxis( CM_Bitangent( dir, face ));
+				col.rgb = Abs( b1 - b2 ) * scale;
+				break;
+			}
+			case 10 : {
+				ECubeFace	face	= CM_DirToFace( dir );
+				float3		t		= CM_Tangent( dir, face );
+				float3		b		= CM_Bitangent( dir, face );
+				float3		n		= Normalize( Cross( b, t ));
+				col.rgb = Abs( dir - n ) * scale;
 				break;
 			}
 		}

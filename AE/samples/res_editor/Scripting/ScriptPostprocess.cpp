@@ -372,19 +372,17 @@ namespace AE::ResEditor
 			for (auto [out, i] : WithIndex(_output))
 			{
 				RPAttachmentSpecPtr	att = rp_spec->AddAttachment2( out.name );
-				att->loadOp		= EAttachmentLoadOp::Load;
-				att->storeOp	= EAttachmentStoreOp::Store;
+				att->loadOp		= out.loadOp;
+				att->storeOp	= out.storeOp;
 
-				if ( out.HasClearValue() )
-				{
-					att->loadOp = EAttachmentLoadOp::Clear;
+				if ( out.loadOp == EAttachmentLoadOp::Clear )
 					att->AddLayout( "ExternalIn", EResourceState::Invalidate );
-				}
 
+				// input attachment
 				EResourceState	state = (out.rt->IsDepthOrStencil() ? ds_state : EResourceState::ColorAttachment);
 				if ( not out.inName.empty() )
 				{
-					CHECK( not out.HasClearValue() );
+					CHECK( out.loadOp == EAttachmentLoadOp::Load  );
 					state = (out.rt->IsDepthOrStencil() ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW)
 							| EResourceState::FragmentShader;
 				}

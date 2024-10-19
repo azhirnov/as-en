@@ -10,7 +10,7 @@
 * GMem size: 1.5 Mb (bandwidth?)
 * L2: ? (bandwidth?)
 * ALUs: 1024
-* Memory: 8 GB, LPDDR5-6400, QC 16bit, 3200MHz, **51.2** GB/s (34 GB/s from tests)
+* Memory: 8 GB, LPDDR5-6400, QC 16bit, 3200MHz, **51.2** GB/s (35 GB/s from tests)
 * Device: Asus ROG Phone 5 (Android 13, Driver 512.530.0)
 
 
@@ -55,9 +55,81 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 
 * Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
 	- fp32 FMA is preferred than single FMul or separate FMulAdd
-	- fp32 SignOrZero is x3.9 faster than Sign
 	- fp32 & i32 datapaths can execute in parallel in 2:1 rate.
+	- i8 has same performance as i16, except i8 Mod which is 2x slower.
+	- u8 has same performance as u16.
+	- int/uint mediump/lowp has same performance as i16/u16.
+	- mediump BitCount is 5x faster than i32.
 	
+* Shader instruction benchmark results: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
+	- base rate: 420 GOp/s
+
+	- **float point**
+	
+	| op \ type | fp16 | fp32 |
+	|---|---|---|
+	| Add           | 0.5 | 1     |
+	| Mul           | 0.5 | 1     |
+	| FMA           | 3   | 1-1.5 |
+	| MulAdd        | 0.5 | 1-1.5 |
+	| Lerp          | 1.5 | 3     |
+	| Length        | 1.5 | 1     |
+	| Normalize     | 1   | 1.5   |
+	| Distance      | 1.5 | 2     |
+	| Dot           | 1   | 2     |
+	| Cross         | 1.5 | 2     |
+	| Min/Max       | 0.5 | 1     |
+	| Clamp(x,0,1)  | 1   | 2     |
+	| Clamp(x,-1,1) | 1   | 2     |
+	| Clamp         | 1   | 2     |
+	| Step          | 1.5 | 2     |
+	| SmoothStep    | 1   | 3     |
+	| Abs           | 0.5 |       |
+	| FastSign      | 3   | 4     |
+	| SignOrZero    | 0.5 | 1     |
+	| BitCast       | 0.5 | 1     |
+	| FloatToInt    | 1   | 1     |
+	| IntToFloat    | 0.5 | 1     |
+	| Ceil, Floor, Trunc, Round, RoundEven | 1 | 1 |
+	| Fract         | 1   | 1.5   |
+	| Exp, Exp2     | 3   | 6     |
+	| Log, Log2     | 3   | 6     |
+	| InvSqrt       | 3   | 6     |
+	| Sqrt          | 6   | 6     |
+	| Sin, Cos      | 6   | 6     |
+	| Div           | 6   | 6     |
+	| Mod           | 6   | 6     |
+	| Pow           | 1-6 | 1.5-14 |
+	| Tan           | 15  | 24    |
+	| ASin, ACos    | 150 | 160   |
+	| ATan          | 100 | 120   |
+	
+	- **integer**
+	
+	| op \ type | i32 | u32 | i16 | u16 |
+	|---|---|---|---|---|
+	| Add         | 1  | 1  | 0.5 | 0.5 | 
+	| Mul         | 4  | 4  | 0.5 | 0.5 | 
+	| MulAdd      | 5  | 5  | 1.5 | 1   | 
+	| Div         | 42 | 24 | 14  | 7   | 
+	| Mod         | 64 | 28 | 16  | 9   | 
+	| Min/Max     | 1  | 1  | 0.5 | 0.5 |
+	| Clamp const | 2  | 1  | 1   | 0.5 |
+	| Clamp       | 1  | 1  | 0.5 | 0.5 |
+	| Abs         | 1  | -  | 0.5 | -   |
+	| SignOrZero  |
+	| Shift const | 1  | 1  | 0.5 | 0.5 |
+	| Shift       | 1  | 1  | 1   | 1   |
+	| And         | 1  | 1  | 0.5 | 0.5 |
+	| Or          | 1  | 1  | 0.5 | 0.5 |
+	| Xor         | 1  | 1  | 0.5 | 0.5 |
+	| BitCount    | 6  | 6  | -   | -   |
+	| FindLSB     | 2  | 2  | 1.5 | 1.5 |
+	| FindMSB     | 4  | 3  | -   | -   |
+	| AddCarry    | -  | 4  | -   | -   |
+	| SubBorrow   | -  | 4  | -   | -   |
+	| MulExtended | 20 | 20 | -   | -   |
+
 * FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 	- Loop unrolling is fast during pipeline creation if loop < 256.
 	- Loop unrolling is 1x - 1.4x faster, 2x slower on 1024, 1.1x slower on 256.
@@ -115,6 +187,51 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| Min(0,x) | 0 | 0 | 0 | 0 | 0 | -inf | 0 | -65504 |
 	| Max(x,0) | 0 | 0 | 0 | 0 | inf | 0 | 65504 | 0 |
 	| Max(0,x) | 0 | 0 | 0 | 0 | inf | 0 | 65504 | 0 |
+
+### Circle performance
+
+* small circles. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 8K objects
+	- 10.5MPix
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **2.7** | - | 
+	| fan      | 3.4 | 26 |
+	| strip    | 3.3 | 22 |
+	| max area | 3.3 | 22 |
+
+* 4x4 circles with blending. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 10.5MPix
+	- 64 layers
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | 69.5 | -  |
+	| fan      | 40.6 | 71 |
+	| strip    | 40.4 | 72 |
+	| max area | 40.5 | 71 |
+
+
+### Branching
+
+* Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
+	- 4.2 MPix, 128 iter, 6 mul/branch ops.
+	
+	| op | exec time (ms) | diff |
+	|---|---|---|
+	| Mul uniform        | 49.0 | 1.6 |
+	| Branch uniform     | **30.7** | - |
+	| Matrix uniform     | 30.8 | 1.0 |
+	| - |
+	| Mul non-uniform    | 70.8 | 2.3 |
+	| Branch non-uniform | 56.6 | 1.8 |
+	| Matrix non-uniform | 92.1 | 3.0 |
+	| - |
+	| Mul avg            | 60.0 | 1.95 |
+	| Branch avg         | 43.7 | 1.4  |
+	| Matrix avg         | 61.4 | 2.0  |
+
 ## Resource access
 
 * Texture access 67.1MPix: [[5](../GPU_Benchmarks.md#5-Texture-lookup-performance)]
@@ -135,17 +252,34 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| 15.8 | 152  | 1.76 | random access, noise 2x2, off 1 | |
 	| 60   | 580  | 0.46 | random access, noise 1x1        | |
 	| 60   | 578  | 0.46 | random access, noise 1x1, off 1 | |
+	
+* Buffer/Image storage 16bpp 16.7MPix 2x267MB [[7](../GPU_Benchmarks.md#7-BufferImage-storage-access)]
 
-* Buffer/Image storage 16bpp 9.4MPix 2x151MB [[7](../GPU_Benchmarks.md#7-BufferImage-storage-access)]
-
-	| diff | exec time (ms) | approx traffic (GB/s) | name | comments |
+	| diff (%) | exec time (ms) | approx traffic (GB/s) | name | comments |
 	|---|---|---|------|----|
-	| 1    | 8.7  | 34 | Image load/store                          | near to external memory bandwidth |
-	| 1    | 8.7  | 34 | Buffer load/store                         | near to external memory bandwidth |
-	| 1.06 | 9.2  | 33 | Image load/store with different order     | access pattern cause some cache misses |
-	| 1.3  | 11.3 | 27 | Buffer load/store in FS                   | access pattern cause some cache misses - subgroup order in FS is differ than in CS |
-	| 1.6  | 13.2 | 23 | Image read/write input attachment RGBA32F | RT compression is not supported, attachments stored into GMem which may be slower than L2 (?) |
-	| 1.7  | 15.3 | 20 | Image read/write input attachment 4xRGBA8 | best 10.3ms, depends on RT compression |
+	| 0   | **15.2** | 35 | Buffer load/store, 16 byte, wg:64  |
+	| 27  | 19.3 | 28 | Buffer load/store, 32 byte, wg:64       |
+	| 15  | 17.5 | 31 | Buffer load/store, 64 byte, wg:64       |
+	| 18  | 18.0 | 30 | Buffer load/store, 128 byte, wg:64      |
+	| 20  | 18.3 | 29 | Buffer load/store, 16 byte, wg:8x8      |
+	| 91  | 29.0 | 18 | Buffer load/store, 32 byte, wg:8x8      |
+	| 55  | 23.5 | 23 | Buffer load/store, 64 byte, wg:8x8      |
+	| 33  | 20.2 | 26 | Buffer load/store, 128 byte, wg:8x8     |
+	| 53  | 23.3 | 23 | Buffer load/store, 16 byte, wg:16x16    |
+	| 61  | 24.4 | 22 | Buffer load/store, 32 byte, wg:16x16    |
+	| 26  | 19.2 | 28 | Buffer load/store, 64 byte, wg:16x16    |
+	| 25  | 19.0 | 28 | Buffer load/store, 128 byte, wg:16x16   |
+	| 53  | 23.3 | 23 | Buffer load/store in FS                                 |
+	| 2   | **15.5** | 34 | Image load/store, wg 16x16, row major               | |
+	| 15  | 17.5 | 31 | Image load/store, wg 8x8, row major                     | |
+	| 15  | 17.5 | 31 | Image load/store, wg 8x8, group reorder, row major      | group reorder has no effect |
+	| 55  | 23.5 | 23 | Image read/write input attachment RGBA32F               | RT compression is not supported, same performance as buffer in FS |
+	| 49  | 22.6 | 24 | Image fetch/sample in FS with double buffering          | a bit faster because of texture cache |
+	| 5   | 16.0 | 33 | Image read/write input attachment 2xRGBA16, noise 2x2   | 
+	| -22 | 12.5 | 43 | Image read/write input attachment 2xRGBA16, noise 4x4   |
+	| -28 | 11.9 | 45 | Image read/write input attachment 2xRGBA16, noise 8x8   |
+	| -33 | 11.4 | 47 | Image read/write input attachment 2xRGBA16, noise 16x16 | noise size equal to RT compressed block |
+	| 74  | 26.4 | 20 | Image load/store, wg 8x8, column major                  | |
 
 
 ## Render target compression

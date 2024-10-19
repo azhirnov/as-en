@@ -152,14 +152,57 @@ namespace AE::Base
 			feats.SSE2	= true;		// always supported
 		}
 
-		// get cache hierarhy
+		// get cache hierarhy per cluster
+		if ( ReadUInt("hw.nperflevels") >= 2 )
 		{
 			uint	cache_line		= ReadUInt("hw.cachelinesize");
 			CHECK( cache_line == AE_CACHE_LINE );
 
-			cache.L1_Inst.size		= Bytes32u{ReadUInt("hw.l1icachesize")};
-			cache.L1_Data.size		= Bytes32u{ReadUInt("hw.l1dcachesize")};
-			cache.L2.size			= Bytes32u{ReadUInt("hw.l2cachesize")};
+			// P
+			{
+				auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::P });
+				c.size	= Bytes32u{ReadUInt("hw.perflevel0.l1icachesize")};
+			}{
+				auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::P });
+				c.lineSize	= cache_line;
+				c.size		= Bytes32u{ReadUInt("hw.perflevel0.l1dcachesize")};
+			}{
+				auto&	c = cache( CacheKey_t{ ECacheType::L2, ECoreType::P });
+				c.lineSize	= cache_line;
+				c.size		= Bytes32u{ReadUInt("hw.perflevel0.l2cachesize")};
+			}
+
+			// EE
+			{
+				auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::EE });
+				c.size	= Bytes32u{ReadUInt("hw.perflevel1.l1icachesize")};
+			}{
+				auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::EE });
+				c.lineSize	= cache_line;
+				c.size		= Bytes32u{ReadUInt("hw.perflevel1.l1dcachesize")};
+			}{
+				auto&	c = cache( CacheKey_t{ ECacheType::L2, ECoreType::EE });
+				c.lineSize	= cache_line;
+				c.size		= Bytes32u{ReadUInt("hw.perflevel1.l2cachesize")};
+			}
+		}
+		// get cache hierarhy (global)
+		else
+		{
+			uint	cache_line		= ReadUInt("hw.cachelinesize");
+			CHECK( cache_line == AE_CACHE_LINE );
+			{
+				auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::Unknown });
+				c.size	= Bytes32u{ReadUInt("hw.l1icachesize")};
+			}{
+				auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::Unknown });
+				c.lineSize	= cache_line;
+				c.size		= Bytes32u{ReadUInt("hw.l1dcachesize")};
+			}{
+				auto&	c = cache( CacheKey_t{ ECacheType::L2, ECoreType::Unknown });
+				c.lineSize	= cache_line;
+				c.size		= Bytes32u{ReadUInt("hw.l2cachesize")};
+			}
 		}
 
 		_Validate();

@@ -80,11 +80,7 @@
 	#	define OUTPUT(x)	if ( AllLess( x, half4(-1800.0hf) )) gl.image.Store( un_Image, GetGlobalCoord().xy, float4(x) )
 	# endif
 	#else
-	# if defined(AE_ARM_Mali_GPU)
-	#	define OUTPUT(x)	out_Color = float4(x);
-	# else
-	#	define OUTPUT(x)	out_Color = float4(x);  if ( AllGreater( x, half4(-1800.0hf) )) Discard();
-	# endif
+	#	define OUTPUT(x)	out_Color = Saturate(float4(x)) * 0.001;	// for high compression
 	#endif
 
 	#ifdef AE_NVidia_GPU

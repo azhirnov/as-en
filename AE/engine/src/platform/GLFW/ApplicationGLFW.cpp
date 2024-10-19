@@ -6,9 +6,7 @@
 # include "platform/WinAPI/UtilsWinAPI.h"
 
 # include "graphics/Vulkan/VSwapchain.h"
-
-# include "GLFW/glfw3.h"
-# include "GLFW/glfw3native.h"
+# include "GLFWCommon.cpp.h"
 
 namespace AE::App
 {

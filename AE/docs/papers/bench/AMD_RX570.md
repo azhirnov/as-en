@@ -95,6 +95,50 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	| SignOrZero(x) | 0 | 0 | 0 | 0 | 1 | -1 | 1 | -1 |
 	| SignOrZero(-x) | 0 | 0 | 0 | 0 | -1 | 1 | -1 | 1 |
 	| Normalize(x) | nan | nan | nan | nan | nan | nan | 0 | -0 |
+
+### Circle performance
+
+* small circles. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 131K objects
+	- 22.9 MPix
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **1.71** | - |
+	| fan      | 2.0  | 17 |
+	| strip    | 2.0  | 17 |
+	| max area | 1.84 |  8 |
+
+* 4x4 circles with blending. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 5.7 MPix
+	- 128 layers
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **98.1** | - |
+	| fan      | 75.9 | 29 |
+	| strip    | 77.1 | 27 |
+	| max area | 78.6 | 25 |
+
+
+### Branching
+
+* Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
+	- 4.2 MPix, 128 iter, 6 mul/branch ops.
+	
+	| op | exec time (ms) | diff |
+	|---|---|---|
+	| Mul uniform        | 15.0 | 1.7 |
+	| Branch uniform     | **8.9** | - |
+	| Matrix uniform     | 8.4  | 0.94 |
+	| - |
+	| Mul non-uniform    | 20.7 | 2.3 |
+	| Branch non-uniform | 14.4 | 1.6 |
+	| Matrix non-uniform | 23.4 | 2.6 |
+	| - |
+	| Mul avg            | 17.9 | 2.0 |
+	| Branch avg         | 11.7 | 1.3 |
+	| Matrix avg         | 15.9 | 1.8 |
 ## Render target compression
 
 * RGBA8 268.4MPix downsample 1/2, compressed/uncompressed access rate: [[3](../GPU_Benchmarks.md#3-Render-target-compression)]

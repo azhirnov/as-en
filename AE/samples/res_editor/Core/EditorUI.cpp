@@ -1253,6 +1253,9 @@ namespace
 */
 	void  EditorUI::DrawTask::_LoadScript (const Path &rootPath)
 	{
+		if ( rootPath.empty() )
+			return;
+
 		t._compiling.store( true );
 
 		imgui->activeTab	= 1;

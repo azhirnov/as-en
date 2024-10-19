@@ -60,7 +60,10 @@
 			RC<ShaderStructType>	st = ShaderStructType( "gs-fs.io" );
 			st.Set( EStructLayout::InternalIO,
 					"float4		color;" +
-					"float2		uv;" );
+					"float2		uv;" +
+					"float3		tangent;" +
+					"float3		bitangent;" +
+					"float3		center;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject",	"UnifiedGeometryMaterialUB" );
@@ -101,13 +104,12 @@
 	{
 		switch ( iProj )
 		{
-			case 0 :	return CM_CubeSC_Forward(		snormCoord, face );
-			case 1 :	return CM_IdentitySC_Forward(	snormCoord, face );
-			case 2 :	return CM_TangentialSC_Forward(	snormCoord, face );
-			case 3 :	return CM_EverittSC_Forward(	snormCoord, face );
-			case 4 :	return CM_5thPolySC_Forward(	snormCoord, face );
-			case 5 :	return CM_COBE_SC_Forward(		snormCoord, face );
-			case 6 :	return CM_ArvoSC_Forward(		snormCoord, face );
+			case 0 :	return CM_IdentitySC_Forward(	snormCoord, face );
+			case 1 :	return CM_TangentialSC_Forward(	snormCoord, face );
+			case 2 :	return CM_EverittSC_Forward(	snormCoord, face );
+			case 3 :	return CM_5thPolySC_Forward(	snormCoord, face );
+			case 4 :	return CM_COBE_SC_Forward(		snormCoord, face );
+			case 5 :	return CM_ArvoSC_Forward(		snormCoord, face );
 		}
 		return float3(0.0);
 	}
@@ -125,16 +127,8 @@
 		}
 	}
 
-	float3  ProjectToCubemap (float3 dir, float2 offset, const ECubeFace targetFace)
+	float3  ProjectToCubemap (float3 dir, float3 tangent, float3 bitangent, float2 offset, const ECubeFace targetFace)
 	{
-	#if 1
-		float3	tangent, bitangent;
-		Ray_GetPerpendicular( dir, OUT tangent, OUT bitangent );
-	#else
-		float3	tangent		= CM_RotateVec( float3(0.0, 1.0, 0.0), targetFace );
-		float3	bitangent	= CM_RotateVec( float3(0.0, 0.0, 1.0), targetFace );
-	#endif
-
 	#if 1
 		dir	= Normalize( dir + tangent * offset.x + bitangent * offset.y );
 		dir = CM_InverseRotation( targetFace, dir );
@@ -155,6 +149,14 @@
 		const float3	dir		= gl_in[0].gl_Position.xyz;
 		const float		radius	= iRadius;	//0.04; //gl_in[0].gl_Position.w;
 		const ECubeFace	face	= gl.InvocationID;
+		
+	#if 1
+		float3	tangent, bitangent;
+		Ray_GetPerpendicular( dir, OUT tangent, OUT bitangent );
+	#else
+		float3	tangent		= CM_RotateVec( float3(0.0, 1.0, 0.0), targetFace );
+		float3	bitangent	= CM_RotateVec( float3(0.0, 0.0, 1.0), targetFace );
+	#endif
 
 		const float4	color	= Rainbow( DHash12( float2( In[0].color.r, float(face) )));
 		float3			proj_2d	[4];
@@ -162,7 +164,7 @@
 		for (uint i = 0; i < 4; ++i)
 		{
 			float2	offset	= ToSNorm( ProceduralQuadUV( i )) * radius;
-			proj_2d[i]		= ProjectToCubemap( dir, offset, face );
+			proj_2d[i]		= ProjectToCubemap( dir, tangent, bitangent, offset, face );
 		}
 
 		const float	min_z	= iMinZ;
@@ -171,10 +173,13 @@
 		
 		for (uint i = 0; i < 4; ++i)
 		{
-			gl.Layer	= face;
-			gl.Position	= un_CBuf.proj * float4( Distortion2D( proj_2d[i].xy / proj_2d[i].z ), 1.0, 1.0 );
-			Out.color	= color;
-			Out.uv		= ProceduralQuadUV( i );
+			gl.Layer		= face;
+			gl.Position		= un_CBuf.proj * float4( Distortion2D( proj_2d[i].xy / proj_2d[i].z ), 1.0, 1.0 );
+			Out.color		= color;
+			Out.uv			= ProceduralQuadUV( i );
+			Out.tangent		= tangent;
+			Out.bitangent	= bitangent;
+			Out.center		= dir;
 
 			gl.EmitVertex();
 		}
@@ -184,18 +189,36 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
-	#include "Math.glsl"
+	#include "CubeMap.glsl"
 	#include "CodeTemplates.glsl"
+	
+	float3  ProjectToSphere (const float2 snormCoord, ECubeFace face)
+	{
+		switch ( iProj )
+		{
+			case 0 :	return CM_IdentitySC_Forward(	snormCoord, face );
+			case 1 :	return CM_TangentialSC_Forward(	snormCoord, face );
+			case 2 :	return CM_EverittSC_Forward(	snormCoord, face );
+			case 3 :	return CM_5thPolySC_Forward(	snormCoord, face );
+			case 4 :	return CM_COBE_SC_Forward(		snormCoord, face );
+			case 5 :	return CM_ArvoSC_Forward(		snormCoord, face );
+		}
+		return float3(0.0);
+	}
 
 	void Main ()
 	{
+		float2	uv	= gl.FragCoord.xy / un_PerPass.resolution.xy;
+		float3	pos	= ProjectToSphere( ToSNorm(uv), ECubeFace(gl.Layer) );
+
 		switch ( iView )
 		{
 			case 0 :
 				out_Color = In.color;	break;
 				
 			case 1 :
-				out_Color = In.color * Saturate( Length( ToSNorm( In.uv )));	break;
+			//	out_Color = In.color * Saturate( Length( ToSNorm( In.uv )));	break;
+				out_Color = In.color * Saturate( Distance( In.center, pos ));	break;
 				
 			case 2 :
 				out_Color = float4(In.uv, 0.0, 1.0);	break;

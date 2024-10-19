@@ -169,6 +169,7 @@ namespace AE::ResEditor
 		static void  _Bind_DbgViewFlags (const ScriptEnginePtr &se)												__Th___;
 		static void  _Bind_PassGroupFlags (const ScriptEnginePtr &se)											__Th___;
 			   void  _Bind_Constants (const ScriptEnginePtr &se)												__Th___;
+		static void  _Bind_Enums (const ScriptEnginePtr &se)													__Th___;
 
 		static void  _RegisterSharedShaderTypes ()																__Th___;
 		static void  _GetSharedShaderTypes (ScriptBasePass::CppStructsFromShaders &)							__Th___;
@@ -488,3 +489,6 @@ AE_DECL_SCRIPT_TYPE(	AE::ResEditor::PassGroup::EFlags,				"ScriptFlags"		);
 AE_DECL_SCRIPT_TYPE(	AE::ResEditor::ScriptImage::ELoadOpFlags,		"ImageLoadOpFlags"	);
 AE_DECL_SCRIPT_TYPE(	AE::Graphics::EColorSpace,						"EColorSpace"		);
 AE_DECL_SCRIPT_TYPE(	AE::ResEditor::ERenderLayer,					"ERenderLayer"		);
+
+AE_DECL_SCRIPT_TYPE(	AE::ResEditor::EAttachmentLoadOp,				"EAttachmentLoadOp"	);
+AE_DECL_SCRIPT_TYPE(	AE::ResEditor::EAttachmentStoreOp,				"EAttachmentStoreOp");

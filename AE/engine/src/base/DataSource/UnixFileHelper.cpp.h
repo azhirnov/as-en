@@ -63,11 +63,15 @@ namespace
 #ifdef AE_PLATFORM_APPLE
 	ND_ static int  OpenFileForWrite2 (const char* filename, WFileFlags inFlags, int addFlags) __NE___
 	{
-		int	flags	= (AllBits( inFlags, WFileFlags::OpenUpdate ) ? 0 : O_CREAT | O_TRUNC) |
-					  (AllBits( inFlags, WFileFlags::OpenAppend ) ? O_APPEND : 0) |
-					  O_WRONLY | addFlags;
-
 		int mode	= S_IRUSR | S_IWUSR;
+		int	flags	= O_WRONLY | addFlags;
+
+		if ( not AnyBits( inFlags, WFileFlags::OpenUpdate | WFileFlags::OpenAppend ))
+			flags |= O_CREAT | O_TRUNC;
+
+		if ( AllBits( inFlags, WFileFlags::OpenAppend ))
+			flags |= O_APPEND;
+
 		int	file	= ::open( filename, flags, mode );
 
 		if ( file >= 0 and AllBits( inFlags, WFileFlags::Direct ))
@@ -89,7 +93,7 @@ namespace
 				case WFileFlags::Direct :			flags |= O_DIRECT ;				break;
 				case WFileFlags::Unix_LargeFile :	flags |= O_LARGEFILE;			break;
 				case WFileFlags::OpenUpdate :		flags &= ~(O_TRUNC | O_CREAT);	break;
-				case WFileFlags::OpenAppend :		flags |= O_APPEND;				break;
+				case WFileFlags::OpenAppend :		flags &= ~(O_TRUNC | O_CREAT);	flags |= O_APPEND;	break;
 				case WFileFlags::SharedRead :		break;
 				case WFileFlags::Unknown :
 				default :							RETURN_ERR( "unknown wfile open flag!", -1 );

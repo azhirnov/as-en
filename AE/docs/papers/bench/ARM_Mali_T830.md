@@ -6,7 +6,10 @@
 * Cores: 1
 * ALU: 2
 * L2: 64 Kb
+* LS cache (L1?): 16 Kb
+* Texture cache: 128 B
 * Clock: 1000 MHz
+* Tile bits/pixel: 128
 * Bus width: 128 bits
 * Memory: 2GB, LPDDR3, DC 32bit, 933MHz, **14.9**GB/s (4GB/s from tests)
 * FP16 GFLOPS: **56** (10.4 on MulAdd from tests)
@@ -21,7 +24,7 @@ Doesn't support quad and subgroups.
 
 * Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
 	- fp32 FMA is x0.3 SLOWER than single FMul or separate FMulAdd
-	- fp32 SignOrZero is x2.9 faster than Sign
+	- fp32 SignOrZero is x2.9 faster than FastSign
 	- fp32 has fastest Length,  Distance (x1.6),  Normalize (x1.6)
 	- fp32 has fastest ClampSNorm,  ClampUNorm (x1.0),  Clamp (x1.3)
 	- i32 FindMSB is x1.3 faster than FindLSB
@@ -105,6 +108,50 @@ Doesn't support quad and subgroups.
 | VoronoiContour3FBM, octaves=4 | 4K   | 23.5 | 5 875  |
 | VoronoiContourFBM, octaves=4  | 4K   | 23.9 | 5 975  |
 
+
+### Circle performance
+
+* small circles. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 512 objects
+	- 0.9 MPix
+
+	| shape | exec time (ms) | diff |
+	|---|---|---|
+	| quad     | **55.7** | - |
+	| fan      | 440  | 7.9 |
+	| strip    | 370  | 6.6 |
+	| max area | 410  | 7.4 |
+
+* 4x4 circles with blending. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 64 layers
+	- 0.2 MPix
+
+	| shape | exec time (ms) | diff (%) | comments |
+	|---|---|---|---|
+	| quad     | **41.3** | - |
+	| fan      | 230  | 5.6 |
+	| strip    | 200  | 4.8 |
+	| max area | 210  | 5.1 |
+
+
+### Branching
+
+* Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
+	- 65 KPix, 128 iter, 6 mul/branch ops.
+	
+	| op | exec time (ms) | diff | comments |
+	|---|---|---|---|
+	| Mul uniform        | 40.8 | 1.5 |
+	| Branch uniform     | **27.8** | - |
+	| Matrix uniform     | 20.9 | 0.7 | faster because of vector architecture |
+	| - |
+	| Mul non-uniform    | 50.2 | 1.8 |
+	| Branch non-uniform | 35.7 | 1.3 |
+	| Matrix non-uniform | 66.4 | 2.4 |
+	| - |
+	| Mul avg            | 45.5 | 1.64 |
+	| Branch avg         | 31.7 | 1.1  |
+	| Matrix avg         | 43.7 | 1.57 |
 
 ## Render target compression
 

@@ -57,25 +57,44 @@ namespace AE::ResEditor
 		if ( args.IsArg< RGBA32f const& >(idx) )
 		{
 			CHECK_THROW_MSG( dst.rt->IsColor() );
-			dst.clear = args.Arg< RGBA32f const& >(idx++);
+			dst.clear	= args.Arg< RGBA32f const& >(idx++);
+			dst.loadOp	= EAttachmentLoadOp::Clear;
 		}
 		else
 		if ( args.IsArg< RGBA32u const& >(idx) )
 		{
 			CHECK_THROW_MSG( dst.rt->IsColor() );
-			dst.clear = args.Arg< RGBA32u const& >(idx++);
+			dst.clear	= args.Arg< RGBA32u const& >(idx++);
+			dst.loadOp	= EAttachmentLoadOp::Clear;
 		}
 		else
 		if ( args.IsArg< RGBA32i const& >(idx) )
 		{
 			CHECK_THROW_MSG( dst.rt->IsColor() );
-			dst.clear = args.Arg< RGBA32i const& >(idx++);
+			dst.clear	= args.Arg< RGBA32i const& >(idx++);
+			dst.loadOp	= EAttachmentLoadOp::Clear;
 		}
 		else
 		if ( args.IsArg< DepthStencil const& >(idx) )
 		{
 			CHECK_THROW_MSG( dst.rt->IsDepthOrStencil() );
-			dst.clear = args.Arg< DepthStencil const& >(idx++);
+			dst.clear	= args.Arg< DepthStencil const& >(idx++);
+			dst.loadOp	= EAttachmentLoadOp::Clear;
+		}
+
+		if ( args.IsArg< EAttachmentLoadOp >(idx) )
+		{
+			CHECK_THROW_MSG( IsNullUnion(dst.clear),
+				"clear value is defined, loadOp is set to 'clear'" );
+
+			dst.loadOp = args.Arg<EAttachmentLoadOp>(idx++);
+
+			CHECK_THROW_MSG( dst.loadOp != EAttachmentLoadOp::Clear,
+				"can not define 'clear' loadOp, use clear value instead" );
+		}
+		if ( args.IsArg< EAttachmentStoreOp >(idx) )
+		{
+			dst.storeOp = args.Arg<EAttachmentStoreOp>(idx++);
 		}
 
 		CHECK_THROW_MSG( idx == args.ArgCount() );

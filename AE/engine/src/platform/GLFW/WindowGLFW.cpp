@@ -1,16 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_GLFW
+# include "GLFWCommon.cpp.h"
 
-# ifdef AE_PLATFORM_WINDOWS
-#	define GLFW_EXPOSE_NATIVE_WIN32 1
-#	include "base/Platforms/WindowsHeader.cpp.h"
-# endif
-
-# include "GLFW/glfw3.h"
-# include "GLFW/glfw3native.h"
-
-# include "base/Defines/Undef.h"
 # include "platform/GLFW/WindowGLFW.h"
 # include "platform/GLFW/ApplicationGLFW.h"
 

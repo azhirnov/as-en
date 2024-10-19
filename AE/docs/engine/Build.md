@@ -11,7 +11,7 @@ Install [Android Studio](https://developer.android.com/studio) with NDK.
 In terminal run:
 ```
 sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-    libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+    libxinerama-dev libasound2-dev libpulse-dev libudev-dev \
     libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
     libxkbcommon-dev
 ```

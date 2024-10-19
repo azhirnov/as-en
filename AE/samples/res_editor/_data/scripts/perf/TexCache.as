@@ -38,7 +38,10 @@
 			pass.LocalSize( 8, 8 );
 			pass.DispatchThreads( tex.Dimension() );
 			pass.EnableIfEqual( gen_tex, 1 );
-		}{
+		}
+
+		#if 0
+		{
 			RC<ComputePass>		pass = ComputePass( "", "TEST_TEX_CACHE" );
 			pass.ArgOut( "un_OutImage",	rt );
 			pass.ArgIn( "un_Texture",	tex,	Sampler_NearestRepeat );
@@ -61,6 +64,27 @@
 			pass.Repeat( count );
 			pass.EnableIfEqual( linear, 1 );
 		}
+		#else
+		{
+			RC<Postprocess>		pass = Postprocess( "", "TEST_TEX_CACHE" );
+			pass.Output( "out_Color",	rt,		EAttachmentLoadOp::Invalidate, EAttachmentStoreOp::Invalidate );
+			pass.ArgIn( "un_Texture",	tex,	Sampler_NearestRepeat );
+			pass.Constant( "iScale",	scale );
+			pass.Constant( "iHash",		hash );
+			pass.Constant( "iStep",		step );
+			pass.Repeat( count );
+			pass.EnableIfEqual( linear, 0 );
+		}{
+			RC<Postprocess>		pass = Postprocess( "", "TEST_TEX_CACHE" );
+			pass.Output( "out_Color",	rt,		EAttachmentLoadOp::Invalidate, EAttachmentStoreOp::Invalidate );
+			pass.ArgIn( "un_Texture",	tex,	Sampler_LinearRepeat );
+			pass.Constant( "iScale",	scale );
+			pass.Constant( "iHash",		hash );
+			pass.Constant( "iStep",		step );
+			pass.Repeat( count );
+			pass.EnableIfEqual( linear, 1 );
+		}
+		#endif
 
 	//	Present( rt );
 	}
@@ -109,8 +133,12 @@
 			gl.texture.Sample( un_Texture, uv7 );
 		col /= 8.0;
 
-		if ( AllLess( col, float4(-1.e+20) ))
-			gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
+		#ifdef SH_COMPUTE
+			if ( AllLess( col, float4(-1.e+20) ))
+				gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
+		#else
+			out_Color = Saturate(col) * 0.001;
+		#endif
 	}
 
 #endif

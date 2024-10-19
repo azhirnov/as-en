@@ -18,7 +18,7 @@
 			pass.Output( "out_Color",	rt );
 			pass.Slider( "iLightDir",	float3(-1.f),	float3(1.f),	float3(0.f, 0.f, 1.f) );
 			pass.Slider( "iShininess",	1.f,			100.f,			20.f );
-			pass.Slider( "iRoughness",	0.f,			1.f,			0.25f );
+			pass.Slider( "iRoughness",	0.001f,			1.f,			0.25f );
 			pass.Slider( "iMetallic",	0.f,			1.f,			0.25f );
 			pass.Slider( "iView",		0,				2,				0 );
 

@@ -23,17 +23,83 @@
 
 * Shader instruction benchmark notes: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
 	- fp32 FMA is preferred than single FMul or separate FMulAdd
-	- fp32 SignOrZero is x2.8 faster than Sign
-	- fp32 has fastest Normalize,  Length (x1.1),  Distance (x1.4)
-	- fp32 has fastest Clamp,  ClampSNorm (x1.0),  ClampUNorm (x1.0)
-	- i32 FindMSB is x2.9 SLOWER than FindLSB
 	- fp32 has fastest square root: InvSqrt,  Sqrt (x1.0),  Software2 (x2.3)
 	- fp32 has fastest cube root: ExpLog,  Pow (x1.0),  Software2 (x2.5),  Software3 (x2.9)
 	- fp32 has fastest quad root: InvSqrt,  Pow (x1.0), Sqrt (x1.0)
 	- fp32 has fastest sRGB curve: v3,  v1 (x1.4),  v2 (x1.5)
 	- fp32 FastATan is x2.1 faster than native ATan
 	- fp32 Pow uses MUL loop - performance depends on power
+	- `int mediump` has same performance as `int lowp`.
 	
+* Shader instruction benchmark results: [[4](../GPU_Benchmarks.md#4-Shader-instruction-benchmark)]
+	- base rate: 16 GOp/s
+
+	- **float point**
+	
+	| op \ type | fp32 | mediump |
+	|---|---|---|
+	| Add           | 1   | 0.5 |
+	| Mul           | 1   | 0.5 |
+	| FMA           | 1.5 | 3   |
+	| MulAdd        | 1.5 | 1   |
+	| Lerp          | 3.5 | 2   |
+	| Length        | 2   | 1   |
+	| Normalize     | 2   | 1   |
+	| Distance      | 3   | 1.5 |
+	| Dot           | 2.5 | 1   |
+	| Cross         | 3   | 1.5 |
+	| Min/Max       | 1   | 0.5 |
+	| Clamp(x,0,1)  | 2   | 1   |
+	| Clamp(x,-1,1) | 2   | 1   |
+	| Clamp         | 2   | 1   |
+	| Step          | 2   | 1.5 |
+	| SmoothStep    | 3   | 1.5 |
+	| Abs           | 1   | 0.5 |
+	| FastSign      | 3   | 2   |
+	| SignOrZero    | 1   | 1   |
+	| BitCast       | 1   | -   |
+	| FloatToInt    | 1   | -   |
+	| IntToFloat    | 1   | -   |
+	| Ceil, Floor, Trunc, Round, RoundEven | 1 | 1 |
+	| Fract         | 2   | 1.5 |
+	| Exp, Exp2     | 5   | -   |
+	| Log, Log2     | 5   | -   |
+	| InvSqrt       | 5   | 3   |
+	| Sqrt          | 5   | 6   |
+	| Sin, Cos      | 6   | -   |
+	| Div           | 6   | 6   |
+	| Mod           | 6   | 6   |
+	| Pow           | 3-12 | -  |
+	| Tan           | 18  | -   |
+	| ASin, ACos    | 8   | -   |
+	| ATan          | 48  | -   |
+	
+	- **integer**
+	
+	| op \ type | i32 | u32 | int mediump | uint mediump | i16 | u16 |
+	|---|---|---|---|---|---|---|
+	| Add         | 1  | 1  |
+	| Mul         | 4  | 4  |
+	| MulAdd      | 5  | 5  |
+	| Div         | 28 | 22 |
+	| Mod         | 32 | 30 |
+	| Min/Max     | 1  | 1  |
+	| Clamp const | 1  | 1  |
+	| Clamp       | 1  | 1  |
+	| Abs         | 1  | -  |
+	| SignOrZero  |
+	| Shift const | 1  | 1  |
+	| Shift       | 1  | 1  |
+	| And         | 1  | 1  |
+	| Or          | 1  | 1  |
+	| Xor         | 1  | 1  |
+	| BitCount    | 5  | 5  |
+	| FindLSB     | 1  | 1  |
+	| FindMSB     | 3  | 2  |
+	| AddCarry    | -  | 4  |
+	| SubBorrow   | -  | 3  |
+	| MulExtended | 30 | 22 |
+
 * FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
 
 	| GOp/s | ops | max GFLOPS |
@@ -89,6 +155,50 @@
 	| Max(0,x) | 0 | 0 | 0 | 0 | inf | 0 | 65504 | 0 |
 	| Normalize(x) | nan | nan | nan | nan | nan | nan | 255 | -255 |
 
+
+### Circle performance
+
+* small circles. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 8K objects
+	- 4.15 MPix
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **4.95** | - |
+	| fan      | 5.74 | 16 |
+	| strip    | 5.70 | 15 |
+	| max area | 5.60 | 13 |
+
+* 4x4 circles with blending. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 1.04 MPix
+	- 64 layers
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **31.5** | - |
+	| fan      | 25.3 | 24.5 |
+	| strip    | 25.1 | 25.5 |
+	| max area | 25.2 | 25   |
+
+
+### Branching
+
+* Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
+	- 262 KPix, 128 iter, 6 mul/branch ops.
+	
+	| op | exec time (ms) | diff |
+	|---|---|---|
+	| Mul uniform        | 70.8 | 1.6 |
+	| Branch uniform     | **44.6** | - |
+	| Matrix uniform     | 39.1 | 0.88 | faster because of vector architecture (?) |
+	| - |
+	| Mul non-uniform    | 82.8 | 1.9 |
+	| Branch non-uniform | 92.7 | 2.1 |
+	| Matrix non-uniform | 120  | 2.7 |
+	| - |
+	| Mul avg            | 76.8 | 1.72 |
+	| Branch avg         | 68.6 | 1.54 |
+	| Matrix avg         | 79.6 | 1.78 |
 
 ## Render target compression
 

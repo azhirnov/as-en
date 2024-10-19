@@ -259,6 +259,8 @@ namespace
 			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const DepthStencil &)		  >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "mipmap", "clearDepthStencil"} );
 			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const DepthStencil &)					  >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "clearDepthStencil"} );
 			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "mipmap", "clearDepthStencil"} );
+
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, EAttachmentLoadOp, EAttachmentStoreOp)		>( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "loadOp", "storeOp"} );
 		}
 
 		// with blend

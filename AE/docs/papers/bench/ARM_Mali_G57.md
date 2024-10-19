@@ -6,8 +6,9 @@
 * Cores: 2
 * ALU: 2
 * L2 cache: 512 Kb
-* Tile bits/pixel: 256 *(32 bytes/pixel, 2xRGBA32)*
+* LS cache: 16 Kb
 * Texture cache: 32 Kb
+* Tile bits/pixel: 256 *(32 bytes/pixel, 2xRGBA32)*
 * Warp width: 16
 * FP16 GFLOPS: **242** (121 GOp/s on MulAdd from tests)
 * FP32 GFLOPS: **121** (60.7 GOp/s on FMA from tests)
@@ -178,6 +179,50 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 | VoronoiContour3FBM, octaves=4 | 16K   | 21.5 | **34** | 1344 |
 
 
+### Circle performance
+
+* small circles. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 8K objects
+	- 10.4 MPix
+
+	| shape | exec time (ms) | diff (%) | part quad (%) | mem traffic (MB) |
+	|---|---|---|---|---|
+	| quad     | **4.49** | -   | **20** | **297** |
+	| fan      | 4.73 | 5.3 | 50 | 430 |
+	| strip    | 4.65 | 3.5 | 50 | 412 |
+	| max area | 4.62 | 2.9 | 46 | 412 |
+
+* 4x4 circles with blending. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 64 layers
+	- ? MPix
+
+	| shape | exec time (ms) | diff (%) | comments |
+	|---|---|---|---|
+	| quad     | 49.7 | -  | large area, high overdraw |
+	| fan      | 40.9 | 21 |
+	| strip    | **40.0** | **24** |
+	| max area | 40.7 | 22 |
+
+
+### Branching
+
+* Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
+	- 262 KPix, 128 iter, 6 mul/branch ops.
+	
+	| op | exec time (ms) | diff |
+	|---|---|---|
+	| Mul uniform        | 15.1 | 2.1 |
+	| Branch uniform     | **7.3** | - |
+	| Matrix uniform     | 10.3 | 1.4 |
+	| - |
+	| Mul non-uniform    | 16.7 | 2.3 |
+	| Branch non-uniform | 15.5 | 2.1 |
+	| Matrix non-uniform | 25.5 | 3.5 |
+	| - |
+	| Mul avg            | 15.9 | 2.18 |
+	| Branch avg         | 11.4 | 1.56 |
+	| Matrix avg         | 17.9 | 2.45 |
+
 
 ## Blending
 
@@ -212,29 +257,40 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	- related specs: AFBC v1.3 with 4x4 block size; 16x16 tile size.
 	- linear: 18.3ms, fetch: 33ms, nearest: 33ms. Linear filter minimize L2 cache misses on high compression rate.
 	- graphics to compute r/w: 268MB / 66MB. Compression disabled when used storage usage flag.
+	
+	| diff (read) | diff (time) | read (MB) | exec time (ms) | name | comments |
+	|---|---|---|---|---|---|
+	| -   | -   | 268 | -  | expected      | |
+	| 1   | -   | 268 |   | image storage | |
+	| 0.9 | 1   | 284 | 19.8 | 1x1 noise     | 16MB of metadata included, 64B per tile (?) |
+	| 0.9 | 1   | 284 | 19.8 | 2x2 noise     | |
+	| 5.6 | 1.9 | 48  | 10.2 | 4x4 noise     | **same as block size** |
+	| 7.4 | 2.0 | 36  | 9.8  | gradient      | |
+	| 8.4 | 1.9 | 32  | 10.2 | 8x8 noise     | |
+	| 19  | 3.9 | 14  | 5.10 | 16x16 noise   | same as tile size |
+	| 19  | 3.9 | 14  | 5.10 | solid color   | |
 
-	| diff (read) | read (MB) | write (MB) | name | comments |
-	|---|---|---|------|----|
-	| -    | 268 | 67  | expected      | |
-	| 1    | 270 | 70  | image storage | |
-	| 1.04 | 258 | 59  | 1x1 noise     | |
-	| 1.2  | 220 | 65  | 2x2 noise     | |
-	| 6.9  |  39 | 55  | 4x4 noise     | **same as block size** |
-	| 10   |  26 | 9.5 | gradient      | |
-	| 12.2 |  22 | 10  | 8x8 noise     | |
-	| 56   | 4.8 | 6   | 16x16 noise   | |
-	| 60   | 4.5 | 1.2 | solid color   | |
 
+* RG16F 67.1MPix downsample 1/2, compressed/uncompressed access rate: [[3](../GPU_Benchmarks.md#3-Render-target-compression)]
+	
+	| diff (read) | diff (time) | read (MB) | exec time (ms) | name | comments |
+	|---|---|---|---|---|---|
+	| -    | -   | 268 | -    | expected      | |
+	| 1    | 1   | 268 | 73.5 | image storage | |
+	| 1    | 1   | 268 | 19.1 | 1x1 noise     | |
+	| 1.25 | 1.2 | 215 | 16.0 | 2x2 noise     | |
+	| 3.4  | 1.8 | 78  | 10.6 | gradient      | |
+	| 5.7  | 1.9 | 47  | 10.2 | 4x4 noise     | **same as block size** |
+	| 8.4  | 1.9 | 32  | 10.2 | 8x8 noise     | |
+	| 20   | 3.7 | 14  | 5.10 | 16x16 noise   | same as tile size |
+	| 20   | 3.7 | 14  | 5.10 | solid color   | traffic equal to 16x16 noise |
 
-* RGBA16F 16.8MPix downsample 1/2, compressed/uncompressed access rate: [[3](../GPU_Benchmarks.md#3-Render-target-compression)]
-	- expected read: 134.2MB, write: 33.5MB, total: 167.7MB per frame.
-	- solid color (r/w: 135MB / 35MB)
-	- **no compression**
 
 ## Texture cache
 
 * RGBA8_UNorm texture with random access [[9](../GPU_Benchmarks.md#9-Texture-cache)]
 	- Measured cache size: 32 KB, 512 KB.
+	- From specs: 32 KB, 512 KB.
 
 	| size (KB) | dimension (px) | L2 bandwidth (GB/s) | external bandwidth (GB/s) | comment |
 	|---|---|---|---|---|

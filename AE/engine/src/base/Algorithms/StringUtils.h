@@ -239,7 +239,7 @@ namespace _hidden_
 */
 	ND_ forceinline usize  FindChar (const char* ptr, const usize first, const usize size, const char ch) __NE___
 	{
-	#if AE_SIMD_AVX >= 2
+	#if 0 //AE_SIMD_AVX >= 2
 		auto* p = Base::_hidden_::find_avx2_align( ptr + first, ptr + size, ch );
 		return usize(p - ptr);
 	#elif 0
@@ -955,21 +955,46 @@ namespace _hidden_
 	template <typename T>
 	ND_ String  ToString (const TByte<T> &value) __Th___
 	{
-		const T	kb	= SafeLeftBitShift( T{1}, 12 );
-		const T mb	= SafeLeftBitShift( T{1}, 22 );
-		const T	gb	= SafeLeftBitShift( T{1}, 32 );
-		const T	tb	= SafeLeftBitShift( T{1}, 42 );
-		const T	val	= T(value);
+		if constexpr( sizeof(T) == 8 )
+		{
+			const T	kb	= SafeLeftBitShift( T{1}, 12 );
+			const T mb	= SafeLeftBitShift( T{1}, 22 );
+			const T	gb	= SafeLeftBitShift( T{1}, 32 );
+			const T	tb	= SafeLeftBitShift( T{1}, 42 );
+			const T	val	= T(value);
+			String	str;
 
-		String	str;
+			if ( val < kb )	str << ToString( val ) << " b";								else
+			if ( val < mb )	str << ToString( SafeRightBitShift( val, 10 )) << " Kb";	else
+			if ( val < gb )	str << ToString( SafeRightBitShift( val, 20 )) << " Mb";	else
+			if ( val < tb )	str << ToString( SafeRightBitShift( val, 30 )) << " Gb";	else
+							str << ToString( SafeRightBitShift( val, 40 )) << " Tb";
+			return str;
+		}
 
-		if ( val < kb )	str << ToString( val ) << " b";								else
-		if ( val < mb )	str << ToString( SafeRightBitShift( val, 10 )) << " Kb";	else
-		if ( val < gb )	str << ToString( SafeRightBitShift( val, 20 )) << " Mb";	else
-		if ( val < tb )	str << ToString( SafeRightBitShift( val, 30 )) << " Gb";	else
-						str << ToString( SafeRightBitShift( val, 40 )) << " Tb";
+		if constexpr( sizeof(T) == 4 )
+		{
+			const T	kb	= SafeLeftBitShift( T{1}, 12 );
+			const T mb	= SafeLeftBitShift( T{1}, 22 );
+			const T	val	= T(value);
+			String	str;
 
-		return str;
+			if ( val < kb )	str << ToString( val ) << " b";								else
+			if ( val < mb )	str << ToString( SafeRightBitShift( val, 10 )) << " Kb";	else
+							str << ToString( SafeRightBitShift( val, 20 )) << " Mb";
+			return str;
+		}
+
+		if constexpr( sizeof(T) == 2 )
+		{
+			const T	kb	= SafeLeftBitShift( T{1}, 12 );
+			const T	val	= T(value);
+			String	str;
+
+			if ( val < kb )	str << ToString( val ) << " b";								else
+							str << ToString( SafeRightBitShift( val, 10 )) << " Kb";
+			return str;
+		}
 	}
 
 /*

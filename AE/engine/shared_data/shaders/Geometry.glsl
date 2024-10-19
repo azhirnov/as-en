@@ -70,6 +70,8 @@ ND_ float3	SphericalToCartesian (const float3 sphericalAndRadius);
 ND_ float3	CartesianToSpherical (const float3 cartesian);
 
 ND_ float	DistanceOnSphere (const float3 n0, const float3 n1)								{ return ACos( Dot( n0, n1 )); }
+ND_ float	DistanceOnSphereSqApprox (const float3 n0, const float3 n1)						{ return 2.f - 2.f * Dot( n0, n1 ); }
+ND_ float	DistanceOnSphereApprox (const float3 n0, const float3 n1)						{ return Sqrt( DistanceOnSphereSqApprox( n0, n1 )); }
 //-----------------------------------------------------------------------------
 
 
@@ -79,13 +81,17 @@ ND_ float4  UVtoSphereNormal (const float2 snormCoord, const float projFov);
 
 
 
-void  Ray_GetPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp)
+float3  GetMinorAxis (float3 dir)
 {
 	const float3	a	 = Abs( dir );
 	const float2	c	 = float2( 1.0f, 0.0f );
-	const float3	axis = a.x < a.y ? (a.x < a.z ? c.xyy : c.yyx) :
-									   (a.y < a.z ? c.xyx : c.yyx);
+	return a.x < a.y ? (a.x < a.z ? c.xyy : c.yyx) :
+					   (a.y < a.z ? c.xyx : c.yyx);
+}
 
+void  Ray_GetPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp)
+{
+	float3	axis = GetMinorAxis( dir );
 	outLeft = Normalize( Cross( dir, axis ));
 	outUp   = Normalize( Cross( dir, outLeft ));
 }

@@ -259,25 +259,33 @@ namespace AE::Base
 
 					const auto&		info = infos[i].Cache;
 
-					if ( info.Level == 1 and info.Type == CacheInstruction ) {
-						cache.L1_Inst.lineSize		= info.LineSize;
-						cache.L1_Inst.associativity	= info.Associativity;
-						cache.L1_Inst.size			= Bytes32u{info.CacheSize};
+					if ( info.Level == 1 and info.Type == CacheInstruction )
+					{
+						auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::Unknown });
+						c.lineSize		= info.LineSize;
+						c.associativity	= info.Associativity;
+						c.size			= Bytes32u{info.CacheSize};
 					}else
-					if ( info.Level == 1 and info.Type == CacheData ) {
-						cache.L1_Data.lineSize		= info.LineSize;
-						cache.L1_Data.associativity	= info.Associativity;
-						cache.L1_Data.size			= Bytes32u{info.CacheSize};
+					if ( info.Level == 1 and info.Type == CacheData )
+					{
+						auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::Unknown });
+						c.lineSize		= info.LineSize;
+						c.associativity	= info.Associativity;
+						c.size			= Bytes32u{info.CacheSize};
 					}else
-					if ( info.Level == 2 and info.Type == CacheData ) {
-						cache.L2.lineSize			= info.LineSize;
-						cache.L2.associativity		= info.Associativity;
-						cache.L2.size				= Bytes32u{info.CacheSize};
+					if ( info.Level == 2 and info.Type == CacheData )
+					{
+						auto&	c = cache( CacheKey_t{ ECacheType::L2, ECoreType::Unknown });
+						c.lineSize		= info.LineSize;
+						c.associativity	= info.Associativity;
+						c.size			= Bytes32u{info.CacheSize};
 					}else
-					if ( info.Level == 3 and info.Type == CacheData ) {
-						cache.L3.lineSize			= info.LineSize;
-						cache.L3.associativity		= info.Associativity;
-						cache.L3.size				= Bytes32u{info.CacheSize};
+					if ( info.Level == 3 and info.Type == CacheData )
+					{
+						auto&	c = cache( CacheKey_t{ ECacheType::L3, ECoreType::Unknown });
+						c.lineSize		= info.LineSize;
+						c.associativity	= info.Associativity;
+						c.size			= Bytes32u{info.CacheSize};
 					}
 				}
 			}

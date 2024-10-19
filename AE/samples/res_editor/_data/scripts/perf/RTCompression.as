@@ -191,7 +191,7 @@
 	{
 		float2	uv = float2(GetGlobalCoord().xy >> SIZE);
 
-		float4	col = Rainbow( Hash_Uniform( uv, 0.111 ));
+		float4	col = DHash42( uv );
 
 		#ifdef SH_COMPUTE
 			gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );

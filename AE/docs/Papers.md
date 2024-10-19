@@ -1,6 +1,7 @@
 
 * [HDR Display](papers/HDR_Display.md)
 * [GPU Benchmarks](papers/GPU_Benchmarks.md)
+* [Collection of CPU and GPU architecture details](https://github.com/azhirnov/cpu-gpu-arch)
 
 ## rus
 

@@ -83,31 +83,54 @@ namespace AE::Base
 				<< "\n  vendor:       " << ToString( cpu.vendor )
 				<< "\n  architecture: " << ToString( cpu.arch )
 				<< "\n  total cores:  " << ToString( cpu.physicalCoreCount ) << " / " << ToString( cpu.logicalCoreCount );
+			
+			const auto	PrintCache = [&str] (ECacheType cacheType, const CacheGeom &g)
+			{{
+				StringView	name;
+				switch_enum( cacheType )
+				{
+					case ECacheType::L1_Instuction :	name = "L1I";	break;
+					case ECacheType::L1_Data :			name = "L1D";	break;
+					case ECacheType::L2 :				name = "L2 ";	break;
+					case ECacheType::L3 :				name = "L3 ";	break;
+					case ECacheType::_Count :			break;
+				}
+				switch_end
+
+				if ( g.lineSize > 0 )		str	<< "\n    " << name << ".lineSize:      " << ToString( g.lineSize );
+				if ( g.associativity > 0 )	str << "\n    " << name << ".associativity: " << ToString( g.associativity );
+				if ( g.size > 0 )			str << "\n    " << name << ".size:  . . . . " << ToString( g.size );
+			}};
 
 			for (auto& core : cpu.coreTypes)
 			{
-				str << "\n  core: " << StringView{core.name}
+				str << "\n  cluster:      " << StringView{core.name}
 					<< "\n    type:       " << ToString( core.type )
 					<< "\n    base clock: " << ToString( core.baseClock ) << " MHz"
-					<< "\n    max clock:  " << ToString( core.maxClock ) << " MHz"
+					<< "\n    max clock:  " << ToString( core.maxClock )  << " MHz"
 					<< "\n    threads:    " << ToString( core.PhysicalCount() ) << " / " << ToString( core.LogicalCount() )
-					<< "\n    IDs:        [" << ToString( core.FirstLogicalCore() ) << ", " << ToString( core.LastLogicalCore()+1 ) << ')'
-					<< "\n    ----------";
-			}
+					<< "\n    IDs:        [" << ToString( core.FirstLogicalCore() ) << ", " << ToString( core.LastLogicalCore()+1 ) << ')';
 
+				for (uint i = 0; i < uint(ECacheType::_Count); ++i)
+				{
+					if (auto* c = GetCache( ECacheType(i), core.type ))
+					{
+						str	<< "\n    -----";
+						PrintCache( ECacheType(i), *c );
+					}
+				}
+				str	<< "\n    ----------";
+			}
+			
 			str << "\nCache info:";
-			const auto	PrintCache = [&str] (StringView name, const CacheGeom &g)
-			{{
-				if ( g.size == 0 ) return;
-				str << "\n    " << name << ".lineSize:      " << ToString( g.lineSize )
-					<< "\n    " << name << ".associativity: " << ToString( g.associativity )
-					<< "\n    " << name << ".size:          " << ToString( g.size )
-					<< "\n    ----------";
-			}};
-			PrintCache( "L1_Inst", cache.L1_Inst );
-			PrintCache( "L1_Data", cache.L1_Data );
-			PrintCache( "L2", cache.L2 );
-			PrintCache( "L3", cache.L3 );
+			for (uint i = 0; i < uint(ECacheType::_Count); ++i)
+			{
+				if (auto* c = GetCache( ECacheType(i), ECoreType::Unknown ))
+				{
+					PrintCache( ECacheType(i), *c );
+					str	<< "\n    ----------";
+				}
+			}
 
 			return str;
 		}
@@ -178,6 +201,20 @@ namespace AE::Base
 			if ( core.type == type )
 				return &core;
 		}
+		return null;
+	}
+	
+/*
+=================================================
+	GetCache
+=================================================
+*/
+	CpuArchInfo::CacheGeom const*  CpuArchInfo::GetCache (ECacheType cacheType, ECoreType coreType) C_NE___
+	{
+		auto	it = cache.find( MakePair( cacheType, coreType ));
+		if ( it != cache.end() )
+			return &it->second;
+
 		return null;
 	}
 

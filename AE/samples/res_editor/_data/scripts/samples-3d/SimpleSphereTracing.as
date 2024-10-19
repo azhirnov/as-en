@@ -57,7 +57,7 @@
 
 	ND_ DistAndMtr  SDFScene (const float3 pos)
 	{
-		DistAndMtr	dm = DM_Create( 1.0e+10, MTR_Sky );
+		DistAndMtr	dm = DM_Create( float_max, MTR_Sky );
 		dm = DM_Unite( dm, SDF_Plane(		pos,									float3(0.0, -1.0, 0.0), 0.5	), MTR_Ground );
 		dm = DM_Unite( dm, SDF_Cylinder(	SDF_Move(pos, float3(-1.5, 0.0, 2.0)),	float2(0.4, 1.5)			), MTR_Object1 );
 		dm = DM_Unite( dm, SDF_Box(			SDF_Move(pos, float3( 1.5, 0.0, 2.0)),	float3(0.3)					), MTR_Object2 );

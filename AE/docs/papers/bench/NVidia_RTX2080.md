@@ -101,37 +101,54 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 	| Mul           | 1   | 2   | 80  |
 	| FMA           | 1   | 2   | 80  |
 	| MulAdd        | 2   | 2   | 80  |
-	| Abs           | 0.5 | 1   | 40  |
 	| Lerp          | 1   | 2   | 80  |
-	| Min/Max       | 1.5 | 1   | 120 |
 	| Length        | 2   | 3   | 480 |
 	| Normalize     | 2   | 3   | 280 |
 	| Distance      | 3   | 5   | 480 |
 	| Dot           | 3   | 4   | 160 |
 	| Cross         | 4   | 4   | 160 |
+	| Min/Max       | 1.5 | 1   | 120 |
 	| Clamp(x,0,1)  | 0.5 | 1   | 200 |
 	| Clamp(x,-1,1) | 3   | 3   | 200 |
 	| Clamp         | 3   | 3   | 200 |
 	| Step          | 2.4 | 1.1 | 120 |
-	| Smoothstep    | 3   | 5   | 440 |
-	| Sign          | 4   | 1.2 | 280 |
+	| SmoothStep    | 3   | 5   | 440 |
+	| Abs           | 0.5 | 1   | 40  |
 	| SignOrZero    | 8   | 8   | 280 |
 	| BitCast       | 4   | 1   | 40  |
 	| FloatToInt    | 6   | 6   | 80  |
 	| IntToFloat    | 6   | 6   | 80  |
-	| Ceil, Floor, Trunc, Round, RoundEven | 6   | 6 | 120 |
-	| Fract         | 6   | 6   | 200 |
-	| Div           | 8   | 8   | 800 |
-	| Mod           | 16  | 16  | 1000 |
-	| Exp, Exp2     | 8   | 8   | -   |
-	| InvSqrt       | 8   | 8   | 800 |
-	| Sqrt          | 8   | 8   | 1680 |
-	| Log, Log2     | 8   | 8   |  -  |
-	| Sin, Cos      | 8   | 8   | -   |
+	| Ceil, Floor, Trunc, Round, RoundEven | 7   | 7 | 120 |
+	| Fract         | 7   | 7   | 200 |
+	| Div           | 7   | 7   | 800 |
+	| Mod           | 15  | 15  | 1000 |
+	| Exp, Exp2     | 7   | 7   | -   |
+	| InvSqrt       | 7   | 7   | 800 |
+	| Sqrt          | 7   | 7   | 1680 |
+	| Log, Log2     | 7   | 7   |  -  |
+	| Sin, Cos      | 7   | 7   | -   |
 	| Pow           | 16  | 16  | -   |
-	| Tan           | 24  | 24  | -   |
-	| ASin, ACos    | 28  | 28  | -   |
-	| ATan          | 72  | 60  | -   |
+	| Tan           | 22  | 22  | -   |
+	| ASin, ACos    | 24  | 24  | -   |
+	| ATan          | 56  | 56  | -   |
+
+	- **float point fast math**
+	
+	| op \ type | fp16 | fp32 | fp64 |
+	|---|---|---|---|
+	| fast Sign     | 4   | 1.2 | 280 |
+	| Cbrt          | 16  | 16  |
+	| sRGB          | 16  | 17  |
+	| fast sRGB     | 9   | 19  |
+	| fast Cos      | 10  | 18  |
+	| fast Sin      | 12  | 20  |
+	| fast Tan      | 10  | 18  |
+	| fast ASin     | 9   | 16  |
+	| fast ACos     | 10  | 17  |
+	| fast ASin v2  | 10  | 24  |
+	| fast ACos v2  | 16  | 26  |
+	| fast ATan v2  | 18  | 36  |
+	| fast ATan     | 34  | 44  |
 
 	- **integer**
 	
@@ -142,10 +159,11 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 	| MulAdd      | 2   | 2   | 8   | 8   | 2  | 3   | 0.2 ? | 0.2 ? |
 	| Div         | 54  | 48  | 180 | 140 | 52 | 52  | 0.1 ? | 0.1 ? |
 	| Mod         | 48  | 54  | 180 | 140 | 52 | 52  | 0.1 ? | 0.1 ? |
+	| Min/Max     | 1   | 1   | 8   | 8   | 3  | 4   | 4     | 4     |
 	| Clamp const | 3   | 1   | 16  | 8   | 8  | 4   | 8     | 4     |
 	| Clamp       | 1   | 1   | 8   | 8   | 3  | 4   | 4     | 4     |
 	| Abs         | 1.5 | -   | 8   | -   | 5  | -   | 0.1 ? | -     |
-	| Min/Max     | 1   | 1   | 8   | 8   | 3  | 4   | 4     | 4     |
+	| SignOrZero  |
 	| Shift const | 1   | 1   | 2   | 2   | 1  | 1   | 0.1 ? | 0.1 ? |
 	| Shift       | 2   | 2   | 4   | 4   | 4  | 4   | 0.1 ? | 0.1 ? |
 	| And         | 1   | 1   | 4   | 4   | 1  | 1   | 0.1 ? | 0.1 ? |
@@ -208,6 +226,49 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 	| SmoothStep(x,0,1) | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
 	| Normalize(x) | nan | nan | nan | nan | nan | nan | 0 | -0 |
 
+
+### Circle performance
+
+* small circles. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 65K objects
+	- 23 MPix
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **0.52** | - | 
+	| fan      | 0.67 | 29 |
+	| strip    | 0.68 | 31 |
+	| max area | 0.59 | 13 |
+
+* 4x4 circles with blending. [[13](../GPU_Benchmarks.md#13-Circle-geometry)]
+	- 3200x1800
+	- 128 layers
+
+	| shape | exec time (ms) | diff (%) |
+	|---|---|---|
+	| quad     | **5.03** | - |
+	| fan      | 5.27 | 4.8 |
+	| strip    | 5.20 | 3.4 |
+	| max area | 5.25 | 4.4 |
+
+### Branching
+
+* Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
+	- 16.7MPix, 128 iter, 6 mul/branch ops.
+
+	| op | exec time (ms) | diff |
+	|---|---|---|
+	| Mul uniform        | 3.06 | 2.1 |
+	| Branch uniform     | **1.48** | - |
+	| Matrix uniform     | 2.19 | 1.5 |
+	| - |
+	| Mul non-uniform    | 3.57 | 2.4 |
+	| Branch non-uniform | 4.58 | 3.1 |
+	| Matrix non-uniform | 4.37 | 3.0 |
+	| - |
+	| Mul avg            | 3.3  | 2.1 |
+	| Branch avg         | 3.3  | 2.1 |
+	| Matrix avg         | 3.3  | 2.1 |
 ## Resource access
 
 * Texture access 105MPix: [[5](../GPU_Benchmarks.md#5-Texture-lookup-performance)]

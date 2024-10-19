@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-		 VERSION 24.10.259	# year, month, version
+		 VERSION 24.10.260	# year, month, version
 		 LANGUAGES C CXX
 		 DESCRIPTION "async game engine"
 		)
