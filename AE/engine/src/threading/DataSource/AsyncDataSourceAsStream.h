@@ -14,7 +14,7 @@ namespace AE::Threading
 	{
 	// variables
 	private:
-		AtomicByte< Bytes >		_pos;
+		AtomicBytes< Bytes >	_pos;
 		RC<AsyncRDataSource>	_ds;
 
 
@@ -26,7 +26,7 @@ namespace AE::Threading
 
 		PosAndSize		PositionAndSize ()											C_NE_OV	{ return PosAndSize{ _pos.load(), _ds->Size() }; }
 
-		ReadRequestPtr	ReadSeq (void* data, Bytes dataSize, RC<> mem)				__NE_OV;
+		ReadRequestPtr	ReadSeq (OUT void* data, Bytes dataSize, RC<> mem)			__NE_OV;
 		ReadRequestPtr	ReadSeq (Bytes size)										__NE_OV;
 		bool			CancelAllRequests ()										__NE_OV	{ return _ds->CancelAllRequests(); }
 	};
@@ -41,7 +41,7 @@ namespace AE::Threading
 	{
 	// variables
 	private:
-		AtomicByte< Bytes >		_pos;
+		AtomicBytes< Bytes >	_pos;
 		RC<AsyncWDataSource>	_ds;
 
 
@@ -66,10 +66,10 @@ namespace AE::Threading
 	ReadSeq
 =================================================
 */
-	inline AsyncRStream::ReadRequestPtr  AsyncRDataSourceAsStream::ReadSeq (void* data, Bytes dataSize, RC<> mem) __NE___
+	inline AsyncRStream::ReadRequestPtr  AsyncRDataSourceAsStream::ReadSeq (OUT void* data, Bytes dataSize, RC<> mem) __NE___
 	{
 		Bytes	pos = _pos.fetch_add( dataSize );
-		return _ds->ReadBlock( pos, data, dataSize, RVRef(mem) );
+		return _ds->ReadBlock( pos, OUT data, dataSize, RVRef(mem) );
 	}
 
 	inline AsyncRStream::ReadRequestPtr  AsyncRDataSourceAsStream::ReadSeq (Bytes size) __NE___

@@ -7,7 +7,7 @@
 # 	include <res_editor.as>
 #	define AE_ray_query
 #	define AE_RTAS_BUILD
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define UPD_INSTANCES
 #	define TRACE_RAYS
 #endif
@@ -66,7 +66,7 @@
 	void  Main ()
 	{
 		const int	idx			= GetGlobalIndex();
-		float4x3	transform	= float4x3(f3x3_Rotate( Pi() * un_PerPass.time * 0.2f, float3(0.f, 0.f, 1.f) ));
+		float4x3	transform	= float4x3(f3x3_Rotate( float_Pi * un_PerPass.time * 0.2f, float3(0.f, 0.f, 1.f) ));
 
 		SetTranslation( INOUT transform, float3( (idx == 0 ? 0.5f : -0.5f), 0.f, 0.f ));
 

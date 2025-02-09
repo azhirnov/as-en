@@ -6,7 +6,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GAME_LOGIC
 #	define GEN_MAP
 #	define DRAW_GAME
@@ -29,6 +29,7 @@
 			float	s = 4.0f;
 			camera.ForwardBackwardScale( s );
 			camera.SideMovementScale( s );
+			camera.Dimension( rt.Dimension() );
 		}
 
 		{

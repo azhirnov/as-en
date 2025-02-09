@@ -6,7 +6,7 @@
 #include "base/Math/Quat.h"
 #include "base/Math/Matrix.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -68,8 +68,8 @@ namespace AE::Math
 
 		ND_ Mat4_t	ToMatrix ()															C_NE___;															// position transform
 		ND_ Mat4_t	ToRotationMatrix ()													C_NE___	{ return Mat4_t{ orientation }; }							// normals transform
-		ND_ Mat4_t	ToRotationScaleMatrix ()											C_NE___	{ return Mat4_t{ orientation } * Mat4_t::Scaled( scale ); }	// view matrix
-		ND_ Mat4_t	ToModelMatrix ()													C_NE___	{ return Mat4_t::Translated( position ); }
+		ND_ Mat4_t	ToRotationScaleMatrix ()											C_NE___	{ return Mat4_t{ orientation } * Mat4_t::Scale( scale ); }	// view matrix
+		ND_ Mat4_t	ToModelMatrix ()													C_NE___	{ return Mat4_t::Translate( position ); }
 
 		ND_ bool	IsIdentity ()														C_NE___	{ return Equal( *this, Self{} ); }
 
@@ -148,17 +148,17 @@ namespace AE::Math
 	template <typename T>
 	ND_ bool  Equal (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const T err = Epsilon<T>()) __NE___
 	{
-		return	All( Math::Equal( lhs.orientation, rhs.orientation, err ))	and
-				All( Math::Equal( lhs.position, rhs.position, err ))		and
-				Math::Equal( lhs.scale, rhs.scale, err );
+		return	All( Base::Equal( lhs.orientation, rhs.orientation, err ))	and
+				All( Base::Equal( lhs.position, rhs.position, err ))		and
+				Base::Equal( lhs.scale, rhs.scale, err );
 	}
 
 	template <typename T>
 	ND_ bool  Equal (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const Percent err) __NE___
 	{
-		return	All( Math::Equal( lhs.orientation, rhs.orientation, err ))	and
-				All( Math::Equal( lhs.position, rhs.position, err ))		and
-				Math::Equal( lhs.scale, rhs.scale, err );
+		return	All( Base::Equal( lhs.orientation, rhs.orientation, err ))	and
+				All( Base::Equal( lhs.position, rhs.position, err ))		and
+				Base::Equal( lhs.scale, rhs.scale, err );
 	}
 
 /*
@@ -169,17 +169,17 @@ namespace AE::Math
 	template <typename T>
 	ND_ bool  BitEqual (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const EnabledBitCount bitCount) __NE___
 	{
-		return	All( Math::BitEqual( lhs.orientation, rhs.orientation, bitCount ))	and
-				All( Math::BitEqual( lhs.position, rhs.position, bitCount ))		and
-				Math::BitEqual( lhs.scale, rhs.scale, bitCount );
+		return	All( Base::BitEqual( lhs.orientation, rhs.orientation, bitCount ))	and
+				All( Base::BitEqual( lhs.position, rhs.position, bitCount ))		and
+				Base::BitEqual( lhs.scale, rhs.scale, bitCount );
 	}
 
 	template <typename T>
 	ND_ bool  BitEqual (const TTransformation<T> &lhs, const TTransformation<T> &rhs) __NE___
 	{
-		return	All( Math::BitEqual( lhs.orientation, rhs.orientation ))	and
-				All( Math::BitEqual( lhs.position, rhs.position ))			and
-				Math::BitEqual( lhs.scale, rhs.scale );
+		return	All( Base::BitEqual( lhs.orientation, rhs.orientation ))	and
+				All( Base::BitEqual( lhs.position, rhs.position ))			and
+				Base::BitEqual( lhs.scale, rhs.scale );
 	}
 
 /*
@@ -190,7 +190,7 @@ namespace AE::Math
 	template <typename T>
 	TTransformation<T>&  TTransformation<T>::Inverse () __NE___
 	{
-		ASSERT( Math::IsNotZero( scale ));
+		ASSERT( Base::IsNotZero( scale ));
 
 		orientation.Inverse();
 		scale		= T{1} / scale;
@@ -210,15 +210,11 @@ namespace AE::Math
 
 		result[3] = Vec<T,4>{ position, T{1} };
 
-		return result * Mat4_t::Scaled( scale );
+		return result * Mat4_t::Scale( scale );
 	}
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
-
-
-namespace AE::Base
-{
 	template <typename T>	struct TMemCopyAvailable< TTransformation<T> >	: CT_Bool< IsMemCopyAvailable<T> >{};
 	template <typename T>	struct TZeroMemAvailable< TTransformation<T> >	: CT_Bool< IsZeroMemAvailable<T> >{};
 

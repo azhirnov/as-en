@@ -55,7 +55,7 @@ namespace AE::Base
 
 		ND_ static bool  IsWhiteSpacesOnly (StringView str)												__NE___;
 
-		    static void  Align (INOUT String &str, usize pos, usize lineSize, char c = ' ')				__Th___;
+			static void  Align (INOUT String &str, usize pos, usize lineSize, char c = ' ')				__Th___;
 
 		static constexpr struct _CPPHelper
 		{

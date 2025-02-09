@@ -1,10 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "PipelinePack.h"
-#include "graphics/Private/EnumUtils.h"
+#include "graphics_rhi/Private/EnumUtils.h"
 
 #ifdef AE_TEST_PIPELINE_COMPILER
-# include "graphics/Private/EnumToString.h"
+# include "graphics_rhi/Private/EnumToString.h"
 #endif
 
 #ifdef AE_ENABLE_GLSL_TRACE
@@ -65,7 +65,7 @@ namespace AE::PipelineCompiler
 */
 	bool  EImageType_IsCompatible (EImageType lhs, EImageType rhs) __NE___
 	{
-		if_unlikely( (lhs & EImageType::_TexMask) != (rhs & EImageType::_TexMask) )
+		if_unlikely( (lhs & EImageType::_DimMask) != (rhs & EImageType::_DimMask) )
 			return false;
 
 		EImageType	lhs_val	= (lhs & EImageType::_ValMask);
@@ -74,14 +74,12 @@ namespace AE::PipelineCompiler
 		switch ( lhs_val ) {
 			case EImageType::Half :
 			case EImageType::SNorm :
-			case EImageType::UNorm :
-			case EImageType::sRGB :		lhs_val = EImageType::Float;
+			case EImageType::UNorm :	lhs_val = EImageType::Float;
 		}
 		switch ( rhs_val ) {
 			case EImageType::Half :
 			case EImageType::SNorm :
-			case EImageType::UNorm :
-			case EImageType::sRGB :		rhs_val = EImageType::Float;
+			case EImageType::UNorm :	rhs_val = EImageType::Float;
 		}
 
 		if_unlikely( lhs_val != rhs_val )
@@ -114,13 +112,7 @@ namespace AE::PipelineCompiler
 				else
 					return EImageType::Float;
 			}
-			case EType::UNorm :
-			{
-				if ( AllBits( info.valueType, EType::sRGB ))
-					return EImageType::sRGB;
-				else
-					return EImageType::UNorm;
-			}
+			case EType::UNorm :	return EImageType::UNorm;
 			case EType::SNorm :	return EImageType::SNorm;
 			case EType::Int :	return EImageType::Int;
 			case EType::UInt :	return EImageType::UInt;
@@ -171,13 +163,13 @@ namespace AE::PipelineCompiler
 	{
 		switch_enum( type )
 		{
-			case EImage_1D :			ASSERT( not ms );	return EImageType::Img1D;
-			case EImage_2D :								return ms ? EImageType::Img2DMS : EImageType::Img2D;
-			case EImage_3D :			ASSERT( not ms );	return EImageType::Img3D;
-			case EImage_1DArray :		ASSERT( not ms );	return EImageType::Img1DArray;
-			case EImage_2DArray :							return ms ? EImageType::Img2DMSArray : EImageType::Img2DArray;
-			case EImage_Cube :			ASSERT( not ms );	return cm ? EImageType::ImgCube : EImageType::Img2DArray;
-			case EImage_CubeArray :		ASSERT( not ms );	return cm ? EImageType::ImgCubeArray : EImageType::Img2DArray;
+			case EImage_1D :			ASSERT( not ms );	return EImageType::Dim1D;
+			case EImage_2D :								return ms ? EImageType::Dim2DMS : EImageType::Dim2D;
+			case EImage_3D :			ASSERT( not ms );	return EImageType::Dim3D;
+			case EImage_1DArray :		ASSERT( not ms );	return EImageType::Dim1DArray;
+			case EImage_2DArray :							return ms ? EImageType::Dim2DMSArray : EImageType::Dim2DArray;
+			case EImage_Cube :			ASSERT( not ms );	return cm ? EImageType::DimCube : EImageType::Dim2DArray;
+			case EImage_CubeArray :		ASSERT( not ms );	return cm ? EImageType::DimCubeArray : EImageType::Dim2DArray;
 			case EImage::Unknown :
 			case EImage::_Count :
 			default :					ASSERT( not ms );	break;
@@ -196,39 +188,39 @@ namespace AE::PipelineCompiler
 		String	str;
 		switch ( type & EImageType::_ValMask )
 		{
-			case EImageType::sRGB :			str << "F";		break;
-			case EImageType::Float :		str << "F";		break;
-			case EImageType::SNorm :		str << "SN";	break;
-			case EImageType::UNorm :		str << "UN";	break;
-			case EImageType::Half :			str << "H";		break;
-			case EImageType::Int :			str << "I";		break;
-			case EImageType::UInt :			str << "U";		break;
+			case EImageType::UFloat :		str << "UFloat_";	break;
+			case EImageType::Float :		str << "Float_";	break;
+			case EImageType::SNorm :		str << "SNorm_";	break;
+			case EImageType::UNorm :		str << "UNorm_";	break;
+			case EImageType::Half :			str << "Half_";		break;
+			case EImageType::Int :			str << "Int_";		break;
+			case EImageType::UInt :			str << "UInt_";		break;
+			case EImageType::SLong :		str << "Long_";		break;
+			case EImageType::ULong :		str << "ULong_";	break;
 			case EImageType::Depth :		break;
 			case EImageType::Stencil :		break;
 			case EImageType::DepthStencil :	break;
-			default :						RETURN_ERR( "unknown image type" );
+			default :						RETURN_ERR( "unknown value type" );
 		}
-		switch ( type & EImageType::_TexMask )
+		switch ( type & EImageType::_DimMask )
 		{
-			case EImageType::Img1D :		str << "Image1D";			break;
-			case EImageType::Img1DArray :	str << "Image1DArray";		break;
-			case EImageType::Img2D :		str << "Image2D";			break;
-			case EImageType::Img2DArray :	str << "Image2DArray";		break;
-			case EImageType::Img2DMS :		str << "Image2DMS";			break;
-			case EImageType::Img2DMSArray :	str << "Image2DMSArray";	break;
-			case EImageType::ImgCube :		str << "ImageCube";			break;
-			case EImageType::ImgCubeArray :	str << "ImageCubeArray";	break;
-			case EImageType::Img3D :		str << "Image3D";			break;
+			case EImageType::Dim1D :		str << "1D";			break;
+			case EImageType::Dim1DArray :	str << "1DArray";		break;
+			case EImageType::Dim2D :		str << "2D";			break;
+			case EImageType::Dim2DArray :	str << "2DArray";		break;
+			case EImageType::Dim2DMS :		str << "2DMS";			break;
+			case EImageType::Dim2DMSArray :	str << "2DMSArray";		break;
+			case EImageType::DimCube :		str << "Cube";			break;
+			case EImageType::DimCubeArray :	str << "CubeArray";		break;
+			case EImageType::Dim3D :		str << "3D";			break;
 			default :						RETURN_ERR( "unknown image type" );
-		}
-		switch ( type & EImageType::_ValMask )
-		{
-			case EImageType::sRGB :			str << "_sRGB";		break;
 		}
 		switch ( type & EImageType::_QualMask )
 		{
-			case EImageType::Shadow :		str << "Shadow";	break;
-			default :						break;
+			case EImageType(0) :			break;
+			case EImageType::Shadow :		str << "_Shadow";	break;
+			case EImageType::sRGB :			str << "_sRGB";		break;
+			default :						RETURN_ERR( "unknown qualifier" );
 		}
 		return str;
 	}
@@ -242,7 +234,6 @@ namespace AE::PipelineCompiler
 	{
 		switch ( type & EImageType::_ValMask )
 		{
-			case EImageType::sRGB :			return EShaderIO::sRGB;
 			case EImageType::Float :		return EShaderIO::Float;
 			case EImageType::SNorm :		return EShaderIO::SNorm;
 			case EImageType::UNorm :		return EShaderIO::UNorm;
@@ -316,6 +307,7 @@ namespace AE::PipelineCompiler
 				break;
 
 			case EDescriptorType::RayTracingScene :
+			case EDescriptorType::RayTracingPartitionedScene :
 				break;
 
 			case EDescriptorType::Unknown :
@@ -891,6 +883,7 @@ namespace {
 			case EDescriptorType::Sampler :							return "Sampler";
 			case EDescriptorType::ImmutableSampler :				return "ImmutableSampler";
 			case EDescriptorType::RayTracingScene :					return "RayTracingScene";
+			case EDescriptorType::RayTracingPartitionedScene :		return "RayTracingPartitionedScene";
 			case EDescriptorType::Unknown :
 			case EDescriptorType::_Count :
 			default :												break;
@@ -1008,6 +1001,7 @@ namespace {
 					break;
 
 				case EDescriptorType::RayTracingScene :
+				case EDescriptorType::RayTracingPartitionedScene :
 					break;
 
 				case EDescriptorType::Unknown :

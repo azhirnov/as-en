@@ -21,8 +21,11 @@ if (TARGET "GraphicsHL")
 	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/Tests" )
 	target_link_libraries( ${TEST_NAME} PUBLIC "GraphicsHL" "GraphicsTestUtils" )
 
-	target_include_directories( ${TEST_NAME} PUBLIC "." )
-	target_include_directories( ${TEST_NAME} PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" )
+	target_include_directories( ${TEST_NAME} PUBLIC
+		"."
+		"${AE_ENGINE_SHARED_DATA}/scripts"
+		"${AE_ENGINE_SHARED_DATA}/shaders"
+	)
 
 	target_compile_definitions( ${TEST_NAME} PRIVATE
 		AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"
@@ -53,7 +56,7 @@ if (TARGET "GraphicsHL")
 			AE_RES_PACK_FOLDER="${AE_TEMP_FOLDER}/engine/graphics_hl/" )
 	endif()
 
-	EnablePCH2( ${TEST_NAME} "TestsGraphicsHL" )
+	#EnablePCH2( ${TEST_NAME} "TestsGraphicsHL" )
 
 	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
 endif()

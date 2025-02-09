@@ -28,7 +28,7 @@ ND_ float   ExpGain (float samp, float value, float startTime, float endTime, fl
 
 float  SineWave (const float samp, const float freq, const float sampleRate)		// --U`U--
 {
-	return Sin( Pi() * samp * freq / sampleRate );
+	return Sin( float_Pi * samp * freq / sampleRate );
 }
 
 

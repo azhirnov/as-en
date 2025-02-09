@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -75,7 +75,7 @@
 			pass.Set( camera );
 			pass.Output( "out_Color",	rt );
 			pass.ArgIn(  "un_Cubemap",	cubemap_view,	Sampler_LinearRepeat );
-			pass.Slider( "iProj",		0,				7,				7 );
+			pass.Slider( "iProj",		0,				7,				4 );
 			pass.Slider( "iFOV",		float2(1.0),	float2(270.0),	float2(215.0, 55.0) );
 			pass.Slider( "iDistToEye",	0.01,			1.0,			0.25 );
 		}

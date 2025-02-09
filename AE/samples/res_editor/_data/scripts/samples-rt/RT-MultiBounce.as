@@ -5,7 +5,7 @@
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	define SH_RAY_CHIT
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define PRIMARY_MISS
 #	define SHADOW_MISS
 #	define PRIMARY_HIT
@@ -152,7 +152,7 @@ layout(std430, buffer_reference) buffer readonly NormalsRef		{ float3	normals	[]
 layout(std430, buffer_reference) buffer readonly IndicesRef		{ uint		indices	[]; };
 
 //-----------------------------------------------------------------------------
-#if defined(SH_RAY_GEN) || defined(SH_RAY_CHIT)
+#if defined(SH_RAY_GEN) or defined(SH_RAY_CHIT)
 	#include "Math.glsl"
 	#include "HWRayTracing.glsl"
 

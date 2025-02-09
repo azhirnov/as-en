@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-set( GRAPHICS_DIR "${MAIN_SOURCE_DIR}/engine/src/graphics" )
+set( GRAPHICS_DIR "${MAIN_SOURCE_DIR}/engine/src/graphics_rhi" )
 set( GRAPHICS_HPP_SRC
 	"${GRAPHICS_DIR}/Public/ImageMemView.h"
 	"${GRAPHICS_DIR}/Public/RenderState.h"
@@ -13,7 +13,7 @@ if (NOT (DEFINED ENGINE_LIBS_PATH))
 		"${GRAPHICS_DIR}/Private/RenderState.cpp.h"
 		"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp.h"
 		"${GRAPHICS_DIR}/Private/Shared.cpp" )
-    set_property( SOURCE ${GRAPHICS_CPP_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
+	set_property( SOURCE ${GRAPHICS_CPP_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
 endif()
 
 

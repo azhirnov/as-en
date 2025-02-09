@@ -11,7 +11,7 @@ void ASmain ()
 	RC<Image>		rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
 	RC<Image>		ds				= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 
-	RC<Image>		cubemap			= Image( EImageType::FImageCube, "export/exported-image-cm-0.aeimg" );
+	RC<Image>		cubemap			= Image( EImageType::Float_Cube, "res/tex/perlin-fbm7-cm.aeimg" );
 	RC<Image>		cubemap_view	= cubemap.CreateView( EImage::Cube );
 
 	RC<Scene>		scene			= Scene();

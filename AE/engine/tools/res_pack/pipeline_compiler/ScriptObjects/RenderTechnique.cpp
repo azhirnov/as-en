@@ -31,21 +31,27 @@ namespace
 
 /*
 =================================================
-	SetRenderState1
+	_SetDSLayout
 =================================================
 */
-	void  RTBasePass::_SetDSLayout (const String &typeName) __Th___
+	void  RTBasePass::_SetDSLayout1 (const String &typeName) __Th___
 	{
-		CHECK_THROW_MSG( not _rtech->HasUID() );
-		CHECK_THROW_MSG( _pipelineRefs.empty() );
-		CHECK_THROW_MSG( not _dsLayout );
-
 		auto&	storage = *ObjectStorage::Instance();
 		auto	iter	= storage.dsLayouts.find( typeName );
 		CHECK_THROW_MSG( iter != storage.dsLayouts.end(),
 			"DescriptorSetLayout '"s << typeName << "' is not exists" );
 
-		_dsLayout = iter->second;
+		_SetDSLayout2( iter->second );
+	}
+
+	void  RTBasePass::_SetDSLayout2 (const DescriptorSetLayoutPtr &dsl) __Th___
+	{
+		CHECK_THROW_MSG( not _rtech->HasUID() );
+		CHECK_THROW_MSG( _pipelineRefs.empty() );
+		CHECK_THROW_MSG( not _dsLayout );
+		CHECK_THROW_MSG( dsl );
+
+		_dsLayout = dsl;
 	}
 
 /*
@@ -57,8 +63,12 @@ namespace
 	{
 		if ( _dsLayout )
 		{
+			auto&	storage = *ObjectStorage::Instance();
+
 			auto	layout = ptr->GetBase()->GetLayout();
-			CHECK_THROW_MSG( layout );
+			CHECK_THROW_MSG( layout,
+				"Pipeline '"s << storage.GetName( ptr->Name() ) << "' must have non-empty PipelineLayout, because "
+				"RTech pass '" << _name << "' has per-pass DescriptorSetLayout." );
 
 			auto&	desc_set = layout->GetDesc().descrSets;
 			bool	found	 = false;
@@ -68,8 +78,8 @@ namespace
 				if ( ds.second.vkIndex == 0 )
 				{
 					CHECK_THROW_MSG( ds.second.uid == _dsLayout->UID(),
-						"Incompatible Global DS layout in RTech pass '"s << _name << "' in pipeline '" <<
-						ObjectStorage::Instance()->GetName( ptr->Name() ) << "'" );
+						"Incompatible per-pass DescriptorSetLayout in RTech pass '"s << _name << "' in pipeline '" <<
+						storage.GetName( ptr->Name() ) << "'" );
 					found = true;
 				}
 			}
@@ -283,8 +293,9 @@ namespace
 		binder.AddMethod( &RTGraphicsPass::SetMutableStates,	"SetMutableStates",	{"states"} );
 
 		binder.Comment( "Set per-pass descriptor set layout.\n"
-						"All pipelines must contains this DSLayout." );
-		binder.AddMethod( &RTGraphicsPass::SetDSLayout,			"SetDSLayout",		{"dsl"} );
+						"All pipelines must contains this DSLayout in 0 binding." );
+		binder.AddMethod( &RTGraphicsPass::SetDSLayout1,		"SetDSLayout",		{"typeName"} );
+		binder.AddMethod( &RTGraphicsPass::SetDSLayout2,		"SetDSLayout",		{"dsl"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -320,8 +331,9 @@ namespace
 		binder.CreateRef();
 
 		binder.Comment( "Set per-pass descriptor set layout.\n"
-						"All pipelines must contains this DSLayout." );
-		binder.AddMethod( &RTComputePass::SetDSLayout,	"SetDSLayout",	{"dsl"} );
+						"All pipelines must contains this DSLayout in 0 binding." );
+		binder.AddMethod( &RTComputePass::SetDSLayout1,	"SetDSLayout",	{"typeName"} );
+		binder.AddMethod( &RTComputePass::SetDSLayout2,	"SetDSLayout",	{"dsl"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -436,7 +448,6 @@ namespace
 		dst_pass->_mutableStates	= src_gpass->_mutableStates;
 		dst_pass->SetRenderPass( storage.GetName( src_gpass->_renderPass ),
 								 storage.GetName( src_gpass->_subpass ));
-
 		return dst_pass;
 	}
 

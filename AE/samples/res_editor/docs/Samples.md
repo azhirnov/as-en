@@ -18,7 +18,6 @@ Content:
 * [Video texture with multiplanar format](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/Video-2.as)
 * [VR Video player](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/VRVideo-1.as)
 * [VR Video player, texture with multiplanar format](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/VRVideo-2.as)
-* [Material Depth Buffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/MaterialDepthBuffer.as)
 * [Anti aliased grid](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/AA-Grid.as)
 * [Gravity lens simulation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/GravityLens.as)<br/>
 ![](img/GravityLens.jpg)
@@ -137,7 +136,8 @@ ResEditor allows to create game prototypes.
 * [Float16 Hash](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/noise/HashFp16.as)
 
 **Noise functions**
-* [Circle](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/noise/Circle.as)
+* [Circle](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/noise/Circle-1.as), [v2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/noise/Circle-2.as)
+* [Circle Distortion](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/noise/CircleDistortion.as)
 * [Terrain](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/noise/Terrain.as)<br/>
 ![](img/TerrainNoise.jpg)
 * [Sphere/Cubemap](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tools/noise/Sphere.as)
@@ -190,6 +190,7 @@ ResEditor allows to create game prototypes.
 ![](img/sRGB-Upscale.png)
 
 **Performance**
+* [Material Depth Buffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/MaterialDepthBuffer.as)
 * [Render target compression](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/RTCompression.as)
 * [FP16 mul/add performance](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/Inst-fp16.as)
 * [FP32 mul/add performance](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/Inst-fp32.as)

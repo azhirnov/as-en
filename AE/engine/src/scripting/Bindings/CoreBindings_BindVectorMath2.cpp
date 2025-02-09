@@ -15,7 +15,7 @@ namespace AE::Scripting
 	void  CoreBindings::_BindVectorMath2 (const ScriptEnginePtr &se) __Th___
 	{
 		// bind
-		BindVector_Func	func{ se };
+		BindFloatVector_Func	func{ se };
 
 		VecTypes::VisitTh( func );
 	}

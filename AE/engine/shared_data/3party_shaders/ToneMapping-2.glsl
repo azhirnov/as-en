@@ -1,51 +1,6 @@
 
 #ifdef AE_LICENSE_CC_BY_NC_SA_3
 
-//
-// ACES
-//
-
-// from https://www.shadertoy.com/view/XsGfWV
-// license CC BY-NC-SA 3.0 (shadertoy default)
-
-float3  ToneMap_ACES_v2 (const float3 color)
-{
-	const float3x3  m1 = float3x3(
-		0.59719, 0.07600, 0.02840,
-		0.35458, 0.90834, 0.13383,
-		0.04823, 0.01566, 0.83777
-	);
-	const float3x3  m2 = float3x3(
-		 1.60475, -0.10208, -0.00327,
-		-0.53108,  1.10813, -0.07276,
-		-0.07367, -0.00605,  1.07602
-	);
-	float3 v = m1 * color;
-	float3 a = v * (v + 0.0245786) - 0.000090537;
-	float3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
-	return clamp( m2 * (a / b), 0.0, 1.0 );
-}
-
-float3  ToneMap_ACES_v3 (const float3 color)
-{
-	const float3x3  m1 = float3x3(
-		0.59719, 0.35458, 0.04823,
-		0.07600, 0.90834, 0.01566,
-		0.02840, 0.13383, 0.83777
-	);
-	const float3x3  m2 = float3x3(
-		 1.60475, -0.53108, -0.07367,
-		-0.10208,  1.10813, -0.00605,
-		-0.00327, -0.07276,  1.07602
-	);
-	float3 v = m1 * color;
-	float3 a = v * (v + 0.0245786) - 0.000090537;
-	float3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
-	return clamp( m2 * (a / b), 0.0, 1.0 );
-}
-
-
-//-----------------------------------------------------------------------------
 // from https://www.shadertoy.com/view/WdjSW3
 // license CC BY-NC-SA 3.0 (shadertoy default)
 
@@ -157,7 +112,7 @@ float3  Tonemap_Lottes (const float3 hdr) {
 // from https://www.shadertoy.com/view/tl3GR8
 // license CC BY-NC-SA 3.0 (shadertoy default)
 
-float3  ToneMap_whitePreservingLumaBasedReinhardToneMapping (float3 color)
+float3  ToneMap_whitePreservingLumaBasedReinhard (float3 color)
 {
 	float white = 2.;
 	float luma = dot(color, float3(0.2126, 0.7152, 0.0722));
@@ -165,7 +120,38 @@ float3  ToneMap_whitePreservingLumaBasedReinhardToneMapping (float3 color)
 	color *= toneMappedLuma / luma;
 	return color;
 }
+
+#endif // AE_LICENSE_CC_BY_NC_SA_3
 //-----------------------------------------------------------------------------
 
 
-#endif // AE_LICENSE_CC_BY_NC_SA_3
+#ifdef AE_LICENSE_MIT
+
+// ACES
+// from https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl (MIT license)
+
+float3  ToneMap_ACESFitted (const float3 color)
+{
+	// sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
+	const float3x3  ACESInputMat = MatTranspose(float3x3(
+		0.59719, 0.35458, 0.04823,
+		0.07600, 0.90834, 0.01566,
+		0.02840, 0.13383, 0.83777
+	));
+
+	// ODT_SAT => XYZ => D60_2_D65 => sRGB
+	const float3x3  ACESOutputMat = MatTranspose(float3x3(
+		 1.60475, -0.53108, -0.07367,
+		-0.10208,  1.10813, -0.00605,
+		-0.00327, -0.07276,  1.07602
+	));
+
+	float3	v = ACESInputMat * color;
+	float3	a = v * (v + 0.0245786f) - 0.000090537f;
+	float3	b = v * (0.983729f * v + 0.4329510f) + 0.238081f;
+
+	return Saturate( ACESOutputMat * (a / b) );
+}
+
+#endif // AE_LICENSE_MIT
+//-----------------------------------------------------------------------------

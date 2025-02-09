@@ -8,7 +8,7 @@
 # 	include <res_editor.as>
 #	define AE_ray_query
 #	define AE_RTAS_BUILD
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define UPD_INSTANCES
 #	define TRACE_RAYS
 #endif
@@ -69,7 +69,7 @@
 	{
 		const int	idx			= GetGlobalIndex();
 		const int	inst_count	= un_Instances.elements.length();
-		float		time		= Pi() * un_PerPass.time * 0.2f + float(idx);
+		float		time		= float_Pi * un_PerPass.time * 0.2f + float(idx);
 		float4x3	transform	= float4x3(f3x3_Rotate( time, float3(0.f, 0.f, 1.f) ));
 		float3		pos			= float3( ToSNorm( float(idx % 4) * 0.3 ),
 										  ToSNorm( float(idx / 4) * 0.3 ) + 0.5,

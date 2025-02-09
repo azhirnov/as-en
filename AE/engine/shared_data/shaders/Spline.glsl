@@ -9,6 +9,16 @@
 
 #include "Math.glsl"
 
+#if 0
+	T  CatmullRom (T p0, T p1, T p2, T p3, Scalar t)
+	T  QLerp (T p0, T p1, Scalar t)
+	T  Bezier3 (T p0, T p1, T p2, Scalar t)
+	T  Bezier4 (T p0, T p1, T p2, T p3, Scalar t)
+	T  BSpline (T p0, T p1, T p2, T p3, Scalar t)
+#endif
+//-----------------------------------------------------------------------------
+
+
 /*
 =================================================
 	CatmullRom
@@ -16,7 +26,7 @@
 	T  CatmullRom (T p0, T p1, T p2, T p3, Scalar t)
 ----
 	Result will be in range [p1, p2],
-	points p0 and p3 used as control points.
+	points p0, p3 is a control points.
 ----
 	Multiple calls:
 		CatmullRom( p4, p5, p6, p7, a );	result in range: [p5, p6]
@@ -34,11 +44,11 @@
 		return Lerp( b0, b1, t );													\
 	}
 
-#define Gen_CATMULLROM( _stype_, _vtype_ )	\
-	Gen_CATMULLROM1( _stype_, _stype_ )		\
-	Gen_CATMULLROM1( _stype_, _vtype_##2 )	\
-	Gen_CATMULLROM1( _stype_, _vtype_##3 )	\
-	Gen_CATMULLROM1( _stype_, _vtype_##4 )
+#define Gen_CATMULLROM( _stype_, _vtype_ )			\
+	Gen_CATMULLROM1( _stype_, _stype_ )				\
+	Gen_CATMULLROM1( _stype_, UNITE( _vtype_, 2 ))	\
+	Gen_CATMULLROM1( _stype_, UNITE( _vtype_, 3 ))	\
+	Gen_CATMULLROM1( _stype_, UNITE( _vtype_, 4 ))
 
 Gen_CATMULLROM( float, float_vec_t )
 
@@ -66,11 +76,11 @@ Gen_CATMULLROM( float, float_vec_t )
 		return Lerp( p0, p1, SmoothStep( t, _stype_(0.0), _stype_(1.0) ));	\
 	}
 
-#define Gen_QLERP( _stype_, _vtype_ )	\
-	Gen_QLERP1( _stype_, _stype_ )		\
-	Gen_QLERP1( _stype_, _vtype_##2 )	\
-	Gen_QLERP1( _stype_, _vtype_##3 )	\
-	Gen_QLERP1( _stype_, _vtype_##4 )
+#define Gen_QLERP( _stype_, _vtype_ )			\
+	Gen_QLERP1( _stype_, _stype_ )				\
+	Gen_QLERP1( _stype_, UNITE( _vtype_, 2 ))	\
+	Gen_QLERP1( _stype_, UNITE( _vtype_, 3 ))	\
+	Gen_QLERP1( _stype_, UNITE( _vtype_, 4 ))
 
 Gen_QLERP( float, float_vec_t )
 
@@ -92,7 +102,7 @@ Gen_QLERP( float, float_vec_t )
 ----
 	Result is interpolation between all 3 points (p0, p1, p2), but:
 	* may not intersects with specified points.
-	* may walk outside of points bounding box.
+	* may lay outside of points bounding box.
 ----
 	Multiple calls:
 		Bezier3( p0, p1, p2, a );
@@ -107,11 +117,11 @@ Gen_QLERP( float, float_vec_t )
 		return Lerp( a, b, t );											\
 	}
 
-#define Gen_BEZIER3( _stype_, _vtype_ )	\
-	Gen_BEZIER3A( _stype_, _stype_ )	\
-	Gen_BEZIER3A( _stype_, _vtype_##2 )	\
-	Gen_BEZIER3A( _stype_, _vtype_##3 )	\
-	Gen_BEZIER3A( _stype_, _vtype_##4 )
+#define Gen_BEZIER3( _stype_, _vtype_ )			\
+	Gen_BEZIER3A( _stype_, _stype_ )			\
+	Gen_BEZIER3A( _stype_, UNITE( _vtype_, 2 ))	\
+	Gen_BEZIER3A( _stype_, UNITE( _vtype_, 3 ))	\
+	Gen_BEZIER3A( _stype_, UNITE( _vtype_, 4 ))
 
 Gen_BEZIER3( float, float_vec_t )
 
@@ -129,11 +139,11 @@ Gen_BEZIER3( float, float_vec_t )
 =================================================
 	Bezier4
 ----
-	T  Bezier4 (T p0, T p1, T p2, T p4, Scalar t)
+	T  Bezier4 (T p0, T p1, T p2, T p3, Scalar t)
 ----
-	Result is interpolation between all 4 points (p0, p1, p2, p4), but:
+	Result is interpolation between all 4 points (p0, p1, p2, p3), but:
 	* may not intersects with specified points.
-	* may walk outside of points bounding box.
+	* may lay outside of points bounding box.
 ----
 	Multiple calls:
 		Bezier4( p0, p1, p2, p3, a );
@@ -151,11 +161,11 @@ Gen_BEZIER3( float, float_vec_t )
 		return Lerp( m, n, t );													\
 	}
 
-#define Gen_BEZIER4( _stype_, _vtype_ )	\
-	Gen_BEZIER4A( _stype_, _stype_ )	\
-	Gen_BEZIER4A( _stype_, _vtype_##2 )	\
-	Gen_BEZIER4A( _stype_, _vtype_##3 )	\
-	Gen_BEZIER4A( _stype_, _vtype_##4 )
+#define Gen_BEZIER4( _stype_, _vtype_ )			\
+	Gen_BEZIER4A( _stype_, _stype_ )			\
+	Gen_BEZIER4A( _stype_, UNITE( _vtype_, 2 ))	\
+	Gen_BEZIER4A( _stype_, UNITE( _vtype_, 3 ))	\
+	Gen_BEZIER4A( _stype_, UNITE( _vtype_, 4 ))
 
 Gen_BEZIER4( float, float_vec_t )
 
@@ -173,10 +183,10 @@ Gen_BEZIER4( float, float_vec_t )
 =================================================
 	BSpline
 ----
-	T  BSpline (T p0, T p1, T p2, T p4, Scalar t)
+	T  BSpline (T p0, T p1, T p2, T p3, Scalar t)
 ----
 	Result will be in range [p1, p2],
-	points p0 and p3 used as control points.
+	points p0, p3 is a control points.
 ----
 	Multiple calls:
 		BSpline( p4, p5, p6, p7, a );	result in range: [p5, p6]
@@ -193,11 +203,11 @@ Gen_BEZIER4( float, float_vec_t )
 		return c0 + (c1 * t) + (c2 * t*t) + (c3 * t*t*t);						\
 	}
 
-#define Gen_BSPLINE( _stype_, _vtype_ )	\
-	Gen_BSPLINE1( _stype_, _stype_ )	\
-	Gen_BSPLINE1( _stype_, _vtype_##2 )	\
-	Gen_BSPLINE1( _stype_, _vtype_##3 )	\
-	Gen_BSPLINE1( _stype_, _vtype_##4 )
+#define Gen_BSPLINE( _stype_, _vtype_ )			\
+	Gen_BSPLINE1( _stype_, _stype_ )			\
+	Gen_BSPLINE1( _stype_, UNITE( _vtype_, 2 ))	\
+	Gen_BSPLINE1( _stype_, UNITE( _vtype_, 3 ))	\
+	Gen_BSPLINE1( _stype_, UNITE( _vtype_, 4 ))
 
 Gen_BSPLINE( float, float_vec_t )
 

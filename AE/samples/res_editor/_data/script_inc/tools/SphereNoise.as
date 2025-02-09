@@ -41,7 +41,7 @@ void  AddNoise (const array<float> &params)
 	RC<ComputePass>		pass = ComputePass( "tools/SphereNoise.glsl", "P="+pass_id+";GEN_NOISE;sTILE="+tile_size );
 	pass.ArgInOut( "un_Noise",		noise_tex );
 
-	pass.Slider( "iNoise",			0,						16,					int(params[0]) );
+	pass.Slider( "iNoise",			0,						17,					int(params[0]) );
 	pass.Slider( "iOctaves",		1,						10,					int(params[1]) );
 	pass.Slider( "iOp",				int2(0),				int2(7,5),			int2( int(params[2]), int(params[3]) ));
 	pass.Slider( "iPScale",			0.1f,					100.f,				params[4] );
@@ -140,7 +140,7 @@ void  SetupSphereNoise (SetupPasses_t @setupPasses)
 	@height_map_view	= noise_tex.CreateView( EImage::Cube );
 	@normal_map			= Image( EPixelFormat::RGBA16F, uint2(noise_dim), ImageLayer(6) );	normal_map.Name( "Normal map" );
 	@normal_map_view	= normal_map.CreateView( EImage::Cube );
-	@palette_tex		= Image( EImageType::FImage2D, "res/tex/default-gradient.aeimg" );
+	@palette_tex		= Image( EImageType::Float_2D, "res/tex/default-gradient.aeimg" );
 
 	// setup camera
 	{

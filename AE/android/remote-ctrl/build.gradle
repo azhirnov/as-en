@@ -1,0 +1,64 @@
+apply plugin: 'com.android.application'
+
+android {
+	compileSdk 33
+
+	defaultConfig {
+		applicationId 		'AE.RemoteControl'
+		minSdkVersion 		28
+		targetSdkVersion 	33
+
+		ndk {
+			abiFilters "arm64-v8a", "armeabi-v7a"
+		}
+		externalNativeBuild {
+			cmake {
+				arguments '-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
+						  '-DANDROID_ARM_NEON=ON',
+						  '-DAE_ENABLE_VULKAN=ON'
+				targets 'AndroidRemoteControl'
+			}
+		}
+	}
+
+	buildTypes {
+		release {
+			debuggable true // to enable logcat in release
+			minifyEnabled = false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.debug
+		}
+	}
+
+	ndkVersion "26.3.11579264"
+	externalNativeBuild {
+		cmake {
+			version '3.22.1+'
+			path	'../../CMakeLists.txt'
+		}
+	}
+	packagingOptions {
+		jniLibs {
+			excludes   += ['lib/**/*.so']
+			pickFirsts += ['lib/**/libAndroidRemoteControl.so']
+		}
+		resources  {
+			excludes += '**/*.kotlin_*'
+		}
+	}
+	namespace 'AE.RemoteControl'
+	dependenciesInfo {
+		includeInApk false
+		includeInBundle false
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_18
+		targetCompatibility JavaVersion.VERSION_18
+	}
+}
+
+dependencies {
+	implementation 'androidx.appcompat:appcompat:1.6.1'
+	implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+}

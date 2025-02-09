@@ -37,7 +37,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -46,7 +46,7 @@
 	{
 		// initialize
 		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize()/4 );		rt.Name( "RT" );
-		RC<Image>			tex			= Image( EImageType::FImage2D, "shadertoy/BlueNoise.png" );
+		RC<Image>			tex			= Image( EImageType::Float_2D, "shadertoy/BlueNoise.png" );
 		RC<Scene>			scene		= Scene();
 		RC<Scene>			scene2		= Scene();
 		RC<DynamicUInt>		draw_mode	= DynamicUInt();
@@ -123,7 +123,7 @@
 		}
 
 		Slider( draw_mode,		"DrawMode",		0,		2 );
-		Slider( mode,			"Mode",			0,		5,		2 );
+		Slider( mode,			"Mode",			0,		8,		2 );
 		Slider( with_offset,	"WithOffset",	0,		1,		0 );
 		Slider( scale,			"Scale",		0,		2,		2 );
 		Slider( hash,			"Hash",			1.f,	16.f );

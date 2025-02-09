@@ -6,7 +6,7 @@
 #include "base/Math/PhysicalDimension.h"
 #include "base/Math/PhysicalQuantity_Scale.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	template <typename ValueType,
@@ -40,6 +40,9 @@ namespace AE::Math
 												DefaultPhysicalDimensions::NonDimensional::template Div< Dimension_t >,
 												typename PhysicalQuantity_Scale::template Inverse< Scale_t > >;
 
+		template <typename T>
+		using CastT			= PhysicalQuantity< T, Dimension, PhysicalQuantity_Scale::template Cast< Scale_t, T >>;
+
 	private:
 		static constexpr bool	_IsTimeUnit = Dimension_t::template Equal< DefaultPhysicalDimensions::Second >;
 		static constexpr bool	_IsInfoUnit	= Dimension_t::template Equal< DefaultPhysicalDimensions::Bit >;
@@ -52,105 +55,105 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr PhysicalQuantity ()							__NE___ : _value{0} {}
-		constexpr explicit PhysicalQuantity (Zero_t)			__NE___ : _value{0} {}
-		constexpr explicit PhysicalQuantity (Value_t value)		__NE___ : _value{value} {}
+		__Cx__ PhysicalQuantity ()							__NE___ : _value{0} {}
+		__Cx__ explicit PhysicalQuantity (Zero_t)			__NE___ : _value{0} {}
+		__Cx__ explicit PhysicalQuantity (Value_t value)	__NE___ : _value{value} {}
 
 		template <typename S>
-		constexpr PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> other) __NE___ :
+		__Cx__ PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> other) __NE___ :
 			_value{ other.template ToScale<Scale_t>().GetNonScaled() }
 		{}
 
 		template <typename T, typename S>
-		explicit constexpr PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> other) __NE___ :
+		__Cx__ explicit PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> other) __NE___ :
 			_value{Value_t( other.template ToScale<Scale_t>().GetNonScaled() )}
 		{}
 
-		constexpr PhysicalQuantity (const Self &)					__NE___	= default;
-		constexpr PhysicalQuantity (Self &&)						__NE___	= default;
+		__Cx__ PhysicalQuantity (const Self &)				__NE___	= default;
+		__Cx__ PhysicalQuantity (Self &&)					__NE___	= default;
 
-			constexpr Self&		operator = (const Self &)			__NE___	= default;
-			constexpr Self&		operator = (Self &&)				__NE___	= default;
-            constexpr Self&		operator = (Zero_t)				    __NE___	{ _value = Value_t(0);  return *this; }
+		__Cx__ Self&	operator = (const Self &)			__NE___	= default;
+		__Cx__ Self&	operator = (Self &&)				__NE___	= default;
+		__Cx__ Self&	operator = (Zero_t)				    __NE___	{ _value = Value_t(0);  return *this; }
 
-		ND_ constexpr Self		operator - ()						C_NE___	{ return Self{ -_value }; }
+		NdCx__ Self		operator - ()						C_NE___	{ return Self{ -_value }; }
 
-		ND_ constexpr bool		operator == (const Self rhs)		C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool		operator != (const Self rhs)		C_NE___	{ return _value != rhs._value; }
-		ND_ constexpr bool		operator >  (const Self rhs)		C_NE___	{ return _value >  rhs._value; }
-		ND_ constexpr bool		operator >= (const Self rhs)		C_NE___	{ return _value >= rhs._value; }
-		ND_ constexpr bool		operator <  (const Self rhs)		C_NE___	{ return _value <  rhs._value; }
-		ND_ constexpr bool		operator <= (const Self rhs)		C_NE___	{ return _value <= rhs._value; }
+		NdCx__ bool		operator == (const Self rhs)		C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool		operator != (const Self rhs)		C_NE___	{ return _value != rhs._value; }
+		NdCx__ bool		operator >  (const Self rhs)		C_NE___	{ return _value >  rhs._value; }
+		NdCx__ bool		operator >= (const Self rhs)		C_NE___	{ return _value >= rhs._value; }
+		NdCx__ bool		operator <  (const Self rhs)		C_NE___	{ return _value <  rhs._value; }
+		NdCx__ bool		operator <= (const Self rhs)		C_NE___	{ return _value <= rhs._value; }
 
-			constexpr Self&		operator += (const Self rhs)		__NE___	{ _value += rhs._value;  return *this; }
-			constexpr Self&		operator -= (const Self rhs)		__NE___	{ _value -= rhs._value;  return *this; }
+		__Cx__ Self&	operator += (const Self rhs)		__NE___	{ _value += rhs._value;  return *this; }
+		__Cx__ Self&	operator -= (const Self rhs)		__NE___	{ _value -= rhs._value;  return *this; }
 
-		ND_ constexpr Self		operator +  (const Self rhs)		C_NE___	{ return Self( _value + rhs._value ); }
-		ND_ constexpr Self		operator -  (const Self rhs)		C_NE___	{ return Self( _value - rhs._value ); }
+		NdCx__ Self		operator +  (const Self rhs)		C_NE___	{ return Self( _value + rhs._value ); }
+		NdCx__ Self		operator -  (const Self rhs)		C_NE___	{ return Self( _value - rhs._value ); }
 
-			constexpr Self&		operator *= (const Value_t rhs)		__NE___	{ _value *= rhs;  return *this; }
-			constexpr Self&		operator /= (const Value_t rhs)		__NE___	{ _value /= rhs;  return *this; }
+		__Cx__ Self&	operator *= (const Value_t rhs)		__NE___	{ _value *= rhs;  return *this; }
+		__Cx__ Self&	operator /= (const Value_t rhs)		__NE___	{ _value /= rhs;  return *this; }
 
-		ND_ constexpr Self		operator *  (const Value_t rhs)		C_NE___	{ return Self( _value * rhs ); }
-		ND_ constexpr Self		operator /  (const Value_t rhs)		C_NE___	{ return Self( _value / rhs ); }
+		NdCx__ Self		operator *  (const Value_t rhs)		C_NE___	{ return Self( _value * rhs ); }
+		NdCx__ Self		operator /  (const Value_t rhs)		C_NE___	{ return Self( _value / rhs ); }
 
-		ND_ constexpr Value_t	GetNonScaled ()						C_NE___	{ return _value; }
-		ND_ constexpr Value_t&	GetNonScaledRef ()					__NE___	{ return _value; }
-		ND_ constexpr Value_t	GetScaled ()						C_NE___	{ return _value * Scale_t::Value; }
+		NdCx__ Value_t	GetNonScaled ()						C_NE___	{ return _value; }
+		NdCx__ Value_t&	GetNonScaledRef ()					__NE___	{ return _value; }
+		NdCx__ Value_t	GetScaled ()						C_NE___	{ return _value * Scale_t::Value; }
 
 
 		template <typename S>
-		ND_ constexpr auto  operator +  (const PhysicalQuantity<Value_t, Dimension_t, S> rhs) C_NE___
+		NdCx__ auto  operator +  (const PhysicalQuantity<Value_t, Dimension_t, S> rhs) C_NE___
 		{
 			using Scale = PhysicalQuantity_Scale::template Add< Scale_t, S >;
 			return PhysicalQuantity< Value_t, Dimension_t, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
 		}
 
 		template <typename S>
-		ND_ constexpr auto  operator -  (const PhysicalQuantity<Value_t, Dimension_t, S> rhs) C_NE___
+		NdCx__ auto  operator -  (const PhysicalQuantity<Value_t, Dimension_t, S> rhs) C_NE___
 		{
 			using Scale = PhysicalQuantity_Scale::template Sub< Scale_t, S >;
 			return PhysicalQuantity< Value_t, Dimension_t, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
 		}
 
 		template <typename D, typename S>
-		ND_ constexpr auto  operator *  (const PhysicalQuantity<Value_t,D,S> rhs) C_NE___
+		NdCx__ auto  operator *  (const PhysicalQuantity<Value_t,D,S> rhs) C_NE___
 		{
 			using Scale = PhysicalQuantity_Scale::template Mul< Scale_t, S >;
 			return PhysicalQuantity< Value_t, typename Dimension_t::template Mul<D>, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
 		}
 
 		template <typename D, typename S>
-		ND_ constexpr auto  operator /  (const PhysicalQuantity<Value_t,D,S> rhs) C_NE___
+		NdCx__ auto  operator /  (const PhysicalQuantity<Value_t,D,S> rhs) C_NE___
 		{
 			using Scale = PhysicalQuantity_Scale::template Div< Scale_t, S >;
 			return PhysicalQuantity< Value_t, typename Dimension_t::template Div<D>, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
 		}
 
 
-		ND_ friend constexpr Self  operator * (Value_t lhs, const Self rhs) __NE___
+		NdCx__ friend Self  operator * (Value_t lhs, const Self rhs) __NE___
 		{
 			return Self( lhs * rhs.GetNonScaled() );
 		}
 
 		template <typename DstScale>
-		ND_ constexpr auto  ToScale () C_NE___
+		NdCx__ auto  ToScale () C_NE___
 		{
 			const auto	scale = Scale_t::Value / Value_t(DstScale::Value);
 			return PhysicalQuantity< Value_t, Dimension_t, DstScale >{ _value * scale };
 		}
 
-		ND_ friend constexpr Inversed_t  operator / (const Value_t lhs, const Self rhs) __NE___
+		NdCx__ friend Inversed_t  operator / (const Value_t lhs, const Self rhs) __NE___
 		{
 			return Inversed_t{ lhs / rhs.GetNonScaled() };
 		}
 
 		template <int IntPower>
-		ND_ constexpr auto  Pow () C_NE___
+		NdCx__ auto  Pow () C_NE___
 		{
 			using Dim	= typename Dimension_t::template Pow< IntPower >;
 			using Scale	= PhysicalQuantity_Scale::template Pow< Scale_t, IntPower >;
-			return PhysicalQuantity< Value_t, Dim, Scale >{ Math::Pow( _value, Value_t{IntPower} )};
+			return PhysicalQuantity< Value_t, Dim, Scale >{ Base::Pow( _value, Value_t{IntPower} )};
 		}
 
 
@@ -158,14 +161,14 @@ namespace AE::Math
 		template <typename Rep, typename Period,
 				  ENABLEIF( IsScalar<Rep> and _IsTimeUnit )
 				 >
-		explicit constexpr PhysicalQuantity (const std::chrono::duration< Rep, Period > &other) __NE___ :
+		__Cx__ explicit PhysicalQuantity (const std::chrono::duration< Rep, Period > &other) __NE___ :
 			_value{ TimeCast< std::chrono::duration< Value_t >>( other ).count() / Scale_t::Value }
 		{}
 
 		template <typename Rep, typename Period,
 				  ENABLEIF( IsScalar<Rep> and _IsTimeUnit )
 				 >
-		ND_ explicit constexpr operator std::chrono::duration< Rep, Period > () __NE___ {
+		NdCx__ explicit operator std::chrono::duration< Rep, Period > () __NE___ {
 			return TimeCast< std::chrono::duration< Rep, Period >>( std::chrono::duration< Value_t >{ GetScaled() });
 		}
 
@@ -174,15 +177,15 @@ namespace AE::Math
 		template <typename T,
 				  ENABLEIF( IsScalar<T> and _IsInfoUnit )
 				 >
-		explicit constexpr PhysicalQuantity (const TByte<T> &other) __NE___ :
-			_value{ T{other} / Scale_t::Value }
+		__Cx__ explicit PhysicalQuantity (const TByte<T> &other) __NE___ :
+			_value{ T{other} * (Value_t{8} / Scale_t::Value) }
 		{}
 
 		template <typename T,
 				  ENABLEIF( IsScalar<T> and _IsInfoUnit )
 				 >
-		ND_ explicit constexpr operator TByte<T> () __NE___ {
-			return TByte<T>{ T(GetScaled() / 8) };
+		NdCx__ explicit operator TByte<T> () __NE___ {
+			return TByte<T>{ T( GetScaled() / Value_t{8} )};
 		}
 	};
 
@@ -217,81 +220,83 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr PhysicalQuantity ()								__NE___ : _value{0} {}
-		constexpr explicit PhysicalQuantity (Zero_t)				__NE___ : _value{0} {}
-		constexpr explicit PhysicalQuantity (Value_t value)			__NE___ : _value{value} {}
+		__Cx__ PhysicalQuantity ()							__NE___ : _value{0} {}
+		__Cx__ explicit PhysicalQuantity (Zero_t)			__NE___ : _value{0} {}
+		__Cx__ explicit PhysicalQuantity (Value_t value)	__NE___ : _value{value} {}
 
 		template <typename S>
-		constexpr PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> other) __NE___ :
+		__Cx__ PhysicalQuantity (const PhysicalQuantity<Value_t, Dimension_t, S> other) __NE___ :
 			_value{ other.template ToScale<Scale_t>().GetNonScaled() }
 		{}
 
 		template <typename T, typename S>
-		explicit constexpr PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> other) __NE___ :
+		__Cx__ explicit PhysicalQuantity (const PhysicalQuantity<T, Dimension_t, S> other) __NE___ :
 			_value{T( other.template ToScale<Scale_t>().GetNonScaled() )}
 		{}
 
-		constexpr PhysicalQuantity (const Self &)					__NE___	= default;
-		constexpr PhysicalQuantity (Self &&)						__NE___	= default;
+		__Cx__ PhysicalQuantity (const Self &)				__NE___	= default;
+		__Cx__ PhysicalQuantity (Self &&)					__NE___	= default;
 
-			constexpr Self&		operator = (const Self &)			__NE___	= default;
-			constexpr Self&		operator = (Self &&)				__NE___	= default;
-            constexpr Self&		operator = (Zero_t)				    __NE___	{ _value = Value_t(0);  return *this; }
+		__Cx__ Self&	operator = (const Self &)			__NE___	= default;
+		__Cx__ Self&	operator = (Self &&)				__NE___	= default;
+		__Cx__ Self&	operator = (Zero_t)				    __NE___	{ _value = Value_t(0);  return *this; }
 
-		ND_ constexpr operator Value_t ()							C_NE___	{ return GetScaled(); }
+		NdCx__ operator Value_t ()							C_NE___	{ return GetScaled(); }
 
-		ND_ constexpr bool		operator == (const Self rhs)		C_NE___	{ return _value == rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator != (const Self rhs)		C_NE___	{ return _value != rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator >  (const Self rhs)		C_NE___	{ return _value >  rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator >= (const Self rhs)		C_NE___	{ return _value >= rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator <  (const Self rhs)		C_NE___	{ return _value <  rhs.GetNonScaled(); }
-		ND_ constexpr bool		operator <= (const Self rhs)		C_NE___	{ return _value <= rhs.GetNonScaled(); }
+		NdCx__ bool		operator == (const Self rhs)		C_NE___	{ return _value == rhs.GetNonScaled(); }
+		NdCx__ bool		operator != (const Self rhs)		C_NE___	{ return _value != rhs.GetNonScaled(); }
+		NdCx__ bool		operator >  (const Self rhs)		C_NE___	{ return _value >  rhs.GetNonScaled(); }
+		NdCx__ bool		operator >= (const Self rhs)		C_NE___	{ return _value >= rhs.GetNonScaled(); }
+		NdCx__ bool		operator <  (const Self rhs)		C_NE___	{ return _value <  rhs.GetNonScaled(); }
+		NdCx__ bool		operator <= (const Self rhs)		C_NE___	{ return _value <= rhs.GetNonScaled(); }
 
-			constexpr Self&		operator += (const Self rhs)		__NE___	{ _value += rhs.GetNonScaled();  return *this; }
-			constexpr Self&		operator -= (const Self rhs)		__NE___	{ _value -= rhs.GetNonScaled();  return *this; }
+		__Cx__ Self&	operator += (const Self rhs)		__NE___	{ _value += rhs.GetNonScaled();  return *this; }
+		__Cx__ Self&	operator -= (const Self rhs)		__NE___	{ _value -= rhs.GetNonScaled();  return *this; }
 
-		ND_ constexpr Self		operator +  (const Self rhs)		C_NE___	{ return Self{ _value + rhs.GetNonScaled() }; }
-		ND_ constexpr Self		operator -  (const Self rhs)		C_NE___	{ return Self{ _value - rhs.GetNonScaled() }; }
+		NdCx__ Self		operator +  (const Self rhs)		C_NE___	{ return Self{ _value + rhs.GetNonScaled() }; }
+		NdCx__ Self		operator -  (const Self rhs)		C_NE___	{ return Self{ _value - rhs.GetNonScaled() }; }
 
-			constexpr Self&		operator *= (Value_t rhs)			__NE___	{ _value *= rhs;  return *this; }
-			constexpr Self&		operator /= (Value_t rhs)			__NE___	{ _value /= rhs;  return *this; }
+		__Cx__ Self&	operator *= (Value_t rhs)			__NE___	{ _value *= rhs;  return *this; }
+		__Cx__ Self&	operator /= (Value_t rhs)			__NE___	{ _value /= rhs;  return *this; }
 
-		ND_ constexpr Self		operator *  (Value_t rhs)			C_NE___	{ return Self{ _value * rhs }; }
-		ND_ constexpr Self		operator /  (Value_t rhs)			C_NE___	{ return Self{ _value / rhs }; }
+		NdCx__ Self		operator *  (Value_t rhs)			C_NE___	{ return Self{ _value * rhs }; }
+		NdCx__ Self		operator /  (Value_t rhs)			C_NE___	{ return Self{ _value / rhs }; }
 
-		ND_ constexpr Value_t	GetNonScaled ()						C_NE___	{ return _value; }
-		ND_ constexpr Value_t	GetScaled ()						C_NE___	{ return _value * Scale_t::Value; }
+		NdCx__ Value_t	GetNonScaled ()						C_NE___	{ return _value; }
+		NdCx__ Value_t	GetScaled ()						C_NE___	{ return _value * Scale_t::Value; }
 
 
-		ND_ friend constexpr Self	operator * (Value_t left, const Self &right) __NE___
+		NdCx__ friend Self	operator * (Value_t left, const Self &right) __NE___
 		{
 			return Self{ left * right.GetNonScaled() };
 		}
 
-		ND_ friend constexpr Inversed_t  operator / (Value_t left, const Self &right) __NE___
+		NdCx__ friend Inversed_t  operator / (Value_t left, const Self &right) __NE___
 		{
 			return Inversed_t{ left / right.GetNonScaled() };
 		}
 
 		template <typename DstScale>
-		ND_ constexpr auto  ToScale () C_NE___
+		NdCx__ auto  ToScale () C_NE___
 		{
 			const auto	scale = Scale_t::Value / Value_t(DstScale::Value);
 			return PhysicalQuantity< Value_t, Dimension_t, DstScale >{ _value * scale };
 		}
 
 		template <int IntPower>
-		ND_ constexpr auto  Pow () C_NE___
+		NdCx__ auto  Pow () C_NE___
 		{
 			using Scale	= PhysicalQuantity_Scale::template Pow< Scale_t, IntPower >;
-			return PhysicalQuantity< Value_t, Dimension_t, Scale >{ Math::Pow( _value, Value_t{IntPower} )};
+			return PhysicalQuantity< Value_t, Dimension_t, Scale >{ Base::Pow( _value, Value_t{IntPower} )};
 		}
 
 
 	// radians //
-		constexpr explicit PhysicalQuantity (TRadian<Value_t> rad)	__NE___ : _value{Value_t{rad}} {}
+		template <typename T>
+		__Cx__ explicit PhysicalQuantity (TRadian<T> rad)		__NE___ : _value{ Value_t(rad.Ref()) / Scale_t::Value } {}
 
-		ND_ constexpr explicit operator TRadian<Value_t> ()			C_NE___	{ return TRadian<Value_t>{GetScaled()}; }
+		template <typename T>
+		NdCx__ explicit operator TRadian<T> ()					C_NE___	{ return TRadian<T>{T( GetScaled() )}; }
 	};
 
 
@@ -309,7 +314,7 @@ namespace AE::Math
 		struct _IsPhysicalQuantity< PhysicalQuantity< ValueType, Dimension, ValueScale >> : CT_True {};
 	}
 	template <typename T>
-	static constexpr bool	IsPhysicalQuantity = Math::_hidden_::_IsPhysicalQuantity<T>::value;
+	static constexpr bool	IsPhysicalQuantity = Base::_hidden_::_IsPhysicalQuantity<T>::value;
 
 /*
 =================================================
@@ -317,8 +322,8 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename Dimension, typename LhsScale, typename RhsScale>
-	ND_ constexpr auto  Lerp (const PhysicalQuantity<T, Dimension, LhsScale> &a,
-							  const PhysicalQuantity<T, Dimension, RhsScale> &b, const T factor) __NE___
+	NdCx__ auto  Lerp (const PhysicalQuantity<T, Dimension, LhsScale> &a,
+					   const PhysicalQuantity<T, Dimension, RhsScale> &b, const T factor) __NE___
 	{
 		return a * (T{1} - factor) + b * factor;
 	}
@@ -329,27 +334,27 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename Dimension, typename Scale>
-	ND_ constexpr bool  Equal (const PhysicalQuantity<T, Dimension, Scale> &a,
-								const PhysicalQuantity<T, Dimension, Scale> &b,
-								const T err = Epsilon<T>()) __NE___
+	NdCx__ bool  Equal (const PhysicalQuantity<T, Dimension, Scale> &a,
+						const PhysicalQuantity<T, Dimension, Scale> &b,
+						const T err = Epsilon<T>()) __NE___
 	{
-		return Math::Equal( a.GetNonScaled(), b.GetNonScaled(), err );
+		return Base::Equal( a.GetNonScaled(), b.GetNonScaled(), err );
 	}
 
 	template <typename T, typename Dimension, typename LhsScale, typename RhsScale, typename ErrScale>
-	ND_ constexpr bool  Equal (const PhysicalQuantity<T, Dimension, LhsScale> &a,
-								const PhysicalQuantity<T, Dimension, RhsScale> &b,
-								const PhysicalQuantity<T, Dimension, ErrScale> &err) __NE___
+	NdCx__ bool  Equal (const PhysicalQuantity<T, Dimension, LhsScale> &a,
+						const PhysicalQuantity<T, Dimension, RhsScale> &b,
+						const PhysicalQuantity<T, Dimension, ErrScale> &err) __NE___
 	{
-		return Math::Equal( a.GetScaled(), b.GetScaled(), err.GetScaled() );	// TODO: average scale
+		return Base::Equal( a.GetScaled(), b.GetScaled(), err.GetScaled() );	// TODO: average scale
 	}
 
 	template <typename T, typename Dimension, typename LhsScale, typename RhsScale>
-	ND_ constexpr bool  Equal (const PhysicalQuantity<T, Dimension, LhsScale> &a,
-								const PhysicalQuantity<T, Dimension, RhsScale> &b,
-								const Percent err) __NE___
+	NdCx__ bool  Equal (const PhysicalQuantity<T, Dimension, LhsScale> &a,
+						const PhysicalQuantity<T, Dimension, RhsScale> &b,
+						const Percent err) __NE___
 	{
-		return Math::Equal( a.GetScaled(), b.GetScaled(), err );
+		return Base::Equal( a.GetScaled(), b.GetScaled(), err );
 	}
 
 /*
@@ -358,18 +363,18 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename Dimension, typename Scale>
-	ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
-															 const PhysicalQuantity<T, Dimension, Scale> &b,
-															 const EnabledBitCount bitCount) __NE___
+	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
+													  const PhysicalQuantity<T, Dimension, Scale> &b,
+													  const EnabledBitCount bitCount) __NE___
 	{
-		return Math::BitEqual( a.GetNonScaled(), b.GetNonScaled(), bitCount );
+		return Base::BitEqual( a.GetNonScaled(), b.GetNonScaled(), bitCount );
 	}
 
 	template <typename T, typename Dimension, typename Scale>
-	ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
-															 const PhysicalQuantity<T, Dimension, Scale> &b) __NE___
+	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
+													  const PhysicalQuantity<T, Dimension, Scale> &b) __NE___
 	{
-		return Math::BitEqual( a.GetNonScaled(), b.GetNonScaled() );
+		return Base::BitEqual( a.GetNonScaled(), b.GetNonScaled() );
 	}
 
 /*
@@ -378,9 +383,38 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename Dimension, typename Scale>
-	ND_ constexpr bool  IsZero (PhysicalQuantity<T, Dimension, Scale> x) __NE___
+	NdCx__ bool  IsZero (PhysicalQuantity<T, Dimension, Scale> x) __NE___
 	{
-		return Math::IsZero( x.GetNonScaled() );
+		return Base::IsZero( x.GetNonScaled() );
+	}
+
+/*
+=================================================
+	Floor / Ceil / Trunc / Fract
+=================================================
+*/
+	template <typename T, typename Dimension, typename Scale>
+	ND_ auto  Floor (const PhysicalQuantity<T, Dimension, Scale> x) __NE___
+	{
+		return PhysicalQuantity<T, Dimension, Scale>{ Base::Floor( x.GetNonScaled() )};
+	}
+
+	template <typename T, typename Dimension, typename Scale>
+	ND_ auto  Ceil (const PhysicalQuantity<T, Dimension, Scale> x) __NE___
+	{
+		return PhysicalQuantity<T, Dimension, Scale>{ Base::Ceil( x.GetNonScaled() )};
+	}
+
+	template <typename T, typename Dimension, typename Scale>
+	ND_ auto  Trunc (const PhysicalQuantity<T, Dimension, Scale> x) __NE___
+	{
+		return PhysicalQuantity<T, Dimension, Scale>{ Base::Trunc( x.GetNonScaled() )};
+	}
+
+	template <typename T, typename Dimension, typename Scale>
+	ND_ auto  Fract (const PhysicalQuantity<T, Dimension, Scale> x) __NE___
+	{
+		return PhysicalQuantity<T, Dimension, Scale>{ Base::Fract( x.GetNonScaled() )};
 	}
 //-----------------------------------------------------------------------------
 
@@ -464,7 +498,7 @@ namespace AE::Math
 			using  LightYear				= PhysicalQuantity_Scale::template Mul< SpeedOfLight, Year >;
 
 			struct GravitationalConstant	{ static constexpr T  Value = T(6.6740831e-11); };			// m^3 / (s^2 * kg)
-			struct GravitationalAcceleration{ static constexpr T  Value = T(9.80665); };				// m / s^2
+			struct EarthGravitationalAccel	{ static constexpr T  Value = T(9.80665); };				// m / s^2
 
 			struct AvogadroConstant			{ static constexpr T  Value = T(6.02214076e+23); };			// 1 / mol					- SI
 			struct Pi						{ static constexpr T  Value = T(3.14159265358979323846); };	// Pi
@@ -513,9 +547,11 @@ namespace AE::Math
 		using CubicMeter				= PhysicalQuantity< T, Dim::CubicMeter >;				// m^3
 		using MeterPerSecond			= PhysicalQuantity< T, Dim::MeterPerSecond >;			// m / s
 		using MeterPerSquareSecond		= PhysicalQuantity< T, Dim::MeterPerSquareSecond >;		// m / s^2
+		using MeterPerCubeSecond		= PhysicalQuantity< T, Dim::MeterPerCubeSecond >;		// m / s^3
 		using KilogramPerSecond			= PhysicalQuantity< T, Dim::KilogramPerSecond >;		// kg / s
 		using KilogramMeterPerSecond	= PhysicalQuantity< T, Dim::KilogramMeterPerSecond >;	// kg * m / s
 		using KilogramPerCubicMeter		= PhysicalQuantity< T, Dim::KilogramPerCubicMeter >;	// p = kg / m^3
+		using GramPerCubicCentimeter	= PhysicalQuantity< T, Dim::KilogramPerCubicMeter >;	// p = g / cm^3
 		using Newton					= PhysicalQuantity< T, Dim::Newton >;					// N
 		using NewtonMeter				= PhysicalQuantity< T, Dim::Joule >;					// N * m
 		using Joule						= PhysicalQuantity< T, Dim::Joule >;					// J
@@ -605,7 +641,7 @@ namespace AE::Math
 		using Bar						= PhysicalQuantity< T, Dim::Pascal, typename Scale::Bar >;				// bar
 		using Atmosphere				= PhysicalQuantity< T, Dim::Pascal, typename Scale::Atmosphere >;		// atm
 
-		using GAcceleration				= PhysicalQuantity< T, Dim::MeterPerSquareSecond, typename Scale::GravitationalAcceleration >;	// g
+		using GAcceleration				= PhysicalQuantity< T, Dim::MeterPerSquareSecond, typename Scale::EarthGravitationalAccel >;	// g
 		using GConstant					= PhysicalQuantity< T, Dim::GConstant, typename Scale::GravitationalConstant >;	// G
 		using SolarLuminosity			= PhysicalQuantity< T, Dim::Watt, typename Scale::SolarLuminosity >;			// SL
 
@@ -642,13 +678,9 @@ namespace AE::Math
 		using Illuminance				= PhysicalQuantity< T, Dim::Illuminance >;								// lx
 		using Luminance					= PhysicalQuantity< T, Dim::Luminance >;								// cd / m^2 = nit
 	};
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
-
-
-namespace AE::Base
-{
 	template <typename V, typename D, typename S>
 	struct TMemCopyAvailable< PhysicalQuantity< V, D, S >>		: CT_Bool< IsMemCopyAvailable<V> >{};
 
@@ -657,5 +689,23 @@ namespace AE::Base
 
 	template <typename V, typename D, typename S>
 	struct TTriviallySerializable< PhysicalQuantity< V, D, S >>	: CT_Bool< IsTriviallySerializable<V> >{};
+
+	template <typename V, typename D, typename S>
+	struct TIsFloatPoint< PhysicalQuantity< V, D, S >>			: TIsFloatPoint<V> {};
+
+	template <typename V, typename D, typename S>
+	struct TIsScalar< PhysicalQuantity< V, D, S >>				: CT_True {};
+
+	template <typename V, typename D, typename S>
+	struct TIsSigned< PhysicalQuantity< V, D, S >>				: TIsSigned<V> {};
+
+	template <typename V, typename D, typename S>
+	struct TIsUnsigned< PhysicalQuantity< V, D, S >>			: TIsUnsigned<V> {};
+
+	template <typename V, typename D, typename S>
+	struct TIsInteger< PhysicalQuantity< V, D, S >>				: TIsInteger<V> {};
+
+	template <typename V, typename D, typename S>
+	struct TUnwrap< PhysicalQuantity< V, D, S >>				: TUnwrap<V> {};
 
 } // AE::Base

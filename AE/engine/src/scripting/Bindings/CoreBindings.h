@@ -43,6 +43,7 @@ namespace AE::Scripting
 	private:
 		static void  _BindVectorMath1 (const ScriptEnginePtr &se)	__Th___;
 		static void  _BindVectorMath2 (const ScriptEnginePtr &se)	__Th___;
+		static void  _BindVectorMath3 (const ScriptEnginePtr &se)	__Th___;
 
 	public:
 		static void  BindStdTypes (const ScriptEnginePtr &se)		__Th___;
@@ -76,63 +77,63 @@ namespace AE::Scripting
 // Math
 //
 
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_bool2,			"bool2"		);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_sbyte2,		"sbyte2"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_ubyte2,		"ubyte2"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_short2,		"short2"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_ushort2,		"ushort2"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_int2,			"int2"		);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_uint2,			"uint2"		);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_slong2,		"slong2"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_ulong2,		"ulong2"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float2,		"float2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_bool2,			"bool2"		);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_sbyte2,		"sbyte2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_ubyte2,		"ubyte2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_short2,		"short2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_ushort2,		"ushort2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_int2,			"int2"		);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_uint2,			"uint2"		);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_slong2,		"slong2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_ulong2,		"ulong2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float2,		"float2"	);
 
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_bool3,			"bool3"		);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_sbyte3,		"sbyte3"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_ubyte3,		"ubyte3"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_short3,		"short3"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_ushort3,		"ushort3"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_int3,			"int3"		);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_uint3,			"uint3"		);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_slong3,		"slong3"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_ulong3,		"ulong3"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float3,		"float3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_bool3,			"bool3"		);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_sbyte3,		"sbyte3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_ubyte3,		"ubyte3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_short3,		"short3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_ushort3,		"ushort3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_int3,			"int3"		);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_uint3,			"uint3"		);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_slong3,		"slong3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_ulong3,		"ulong3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float3,		"float3"	);
 
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_bool4,			"bool4"		);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_sbyte4,		"sbyte4"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_ubyte4,		"ubyte4"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_short4,		"short4"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_ushort4,		"ushort4"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_int4,			"int4"		);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_uint4,			"uint4"		);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_slong4,		"slong4"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_ulong4,		"ulong4"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4,		"float4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_bool4,			"bool4"		);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_sbyte4,		"sbyte4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_ubyte4,		"ubyte4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_short4,		"short4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_ushort4,		"ushort4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_int4,			"int4"		);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_uint4,			"uint4"		);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_slong4,		"slong4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_ulong4,		"ulong4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float4,		"float4"	);
 
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float2x2,		"float2x2"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float2x3,		"float2x3"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float2x4,		"float2x4"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float3x2,		"float3x2"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float3x3,		"float3x3"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float3x4,		"float3x4"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4x2,		"float4x2"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4x3,		"float4x3"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4x4,		"float4x4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float2x2,		"float2x2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float2x3,		"float2x3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float2x4,		"float2x4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float3x2,		"float3x2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float3x3,		"float3x3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float3x4,		"float3x4"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float4x2,		"float4x2"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float4x3,		"float4x3"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::packed_float4x4,		"float4x4"	);
 
-AE_DECL_SCRIPT_OBJ( AE::Math::PackedQuat,			"Quat"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::PackedQuat,			"Quat"	);
 
-AE_DECL_SCRIPT_OBJ( AE::Math::VecSwizzle,			"VecSwizzle");
+AE_DECL_SCRIPT_OBJ( AE::Base::VecSwizzle,			"VecSwizzle");
 
-AE_DECL_SCRIPT_OBJ( AE::Math::RGBA32f,				"RGBA32f"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::RGBA32u,				"RGBA32u"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::RGBA32i,				"RGBA32i"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::RGBA8u,				"RGBA8u"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::DepthStencil,			"DepthStencil" );
-AE_DECL_SCRIPT_OBJ( AE::Math::HSVColor,				"HSVColor"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::RGBA32f,				"RGBA32f"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::RGBA32u,				"RGBA32u"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::RGBA32i,				"RGBA32i"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::RGBA8u,				"RGBA8u"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::DepthStencil,			"DepthStencil" );
+AE_DECL_SCRIPT_OBJ( AE::Base::HSVColor,				"HSVColor"	);
 
-AE_DECL_SCRIPT_OBJ( AE::Math::RectI,				"RectI"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::RectU,				"RectU"	);
-AE_DECL_SCRIPT_OBJ( AE::Math::RectF,				"RectF"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::RectI,				"RectI"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::RectU,				"RectU"	);
+AE_DECL_SCRIPT_OBJ( AE::Base::RectF,				"RectF"	);
 
 
 
@@ -186,9 +187,9 @@ AE_DECL_SCRIPT_OBJ( AE::Math::RectF,				"RectF"	);
 	_visitor_( Atmosphere				)\
 
 #define AE_PHYSICAL_TYPES_VIS( _name_ )\
-	AE_DECL_SCRIPT_TYPE( AE::Math::DefaultPhysicalQuantity<float>::_name_, AE_TOSTRING(_name_) );											\
-	AE_DECL_SCRIPT_OBJ( AE::Math::PhysicalQuantityPackedVec2< AE::Math::DefaultPhysicalQuantity<float>::_name_>, AE_TOSTRING(_name_ ## 2) );\
-	AE_DECL_SCRIPT_OBJ( AE::Math::PhysicalQuantityPackedVec3< AE::Math::DefaultPhysicalQuantity<float>::_name_>, AE_TOSTRING(_name_ ## 3) );
+	AE_DECL_SCRIPT_TYPE( AE::Base::DefaultPhysicalQuantity<float>::_name_, AE_TOSTRING(_name_) );											\
+	AE_DECL_SCRIPT_OBJ( AE::Base::PhysicalQuantityPackedVec2< AE::Base::DefaultPhysicalQuantity<float>::_name_>, AE_TOSTRING(_name_ ## 2) );\
+	AE_DECL_SCRIPT_OBJ( AE::Base::PhysicalQuantityPackedVec3< AE::Base::DefaultPhysicalQuantity<float>::_name_>, AE_TOSTRING(_name_ ## 3) );
 
 AE_PHYSICAL_TYPES( AE_PHYSICAL_TYPES_VIS );
 #undef AE_PHYSICAL_TYPES_VIS

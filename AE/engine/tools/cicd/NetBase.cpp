@@ -11,13 +11,13 @@ namespace AE::CICD
 =================================================
 */
 	NetBase::NetBase () :
-		_storage{ 1_Mb }
+		_storage{ 1_MiB }
 	{
 		CHECK_THROW( not _storage.Empty() );
 	}
 
 	NetBase::NetBase (TcpSocket sock) :
-		_storage{ 1_Mb },
+		_storage{ 1_MiB },
 		_isConnected{ true },
 		_socket{ RVRef(sock) }
 	{
@@ -389,7 +389,7 @@ namespace AE::CICD
 
 		for (;;)
 		{
-			Bytes	readn = file.ReadSeq( buf, Sizeof(buf) );
+			Bytes	readn = file.ReadSeq( OUT buf, Sizeof(buf) );
 
 			if_unlikely( readn == 0 )
 				break;

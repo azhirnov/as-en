@@ -209,15 +209,15 @@ namespace
 
 		// TODO: tile local size instead of compute ?
 		const auto&	spec		= GetBase()->shader->reflection.compute.localGroupSpec;
-		uint		total_size	= Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupInvocations ));
-		uint3		max_threads	= uint3{ GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeX ),
-										 GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeY ),
-										 GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeZ )};
+		uint		total_size	= Max( 1u, uint{GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupInvocations )});
+		uint3		max_threads	= uint3{ uint{GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeX )},
+										 uint{GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeY )},
+										 uint{GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxComputeWorkGroupSizeZ )}};
 		max_threads = Max( max_threads, uint3{1} );
 
-		packed_ushort3	local_size;
+		WGLocalSize_t	local_size;
 		_SetLocalGroupSize( "tile localSize ", spec, max_threads, total_size, uint3{x,y,1}, OUT local_size );
-		desc.localSize = ushort2{local_size};
+		desc.localSize = WGLocalSize2_t{local_size};
 	}
 
 /*
@@ -269,7 +269,7 @@ namespace
 		binder.AddMethod( &TilePipelineSpecScriptBinding::SetLocalGroupSize2,	"SetLocalSize",		{"x", "y"} );
 
 		binder.Comment( "Attach pipeline to the render technique.\n"
-						"When rtech is created it will create all attached pipelines." );
+						"Render technique will create all attached pipelines during its creation." );
 		binder.AddMethod( &TilePipelineSpecScriptBinding::AddToRenderTech,		"AddToRenderTech",	{"rtech", "gpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"

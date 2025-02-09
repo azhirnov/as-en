@@ -237,7 +237,7 @@ namespace AE::Profiler
 
 		const auto	tid = ThreadID(thread->DbgID());
 
-		if_unlikely( not _threadInfos.contains( tid ))
+		if_unlikely( HashTable_NotContains( _threadInfos, tid ))
 		{
 			ThreadInfo	info;
 			info.caption	= thread->GetProfilingInfo().threadName;

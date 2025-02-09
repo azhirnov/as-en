@@ -91,6 +91,10 @@ namespace AE::Base
 
 		//	static void		_SetMemoryStat (Bytes total, Bytes available)						__NE___;
 		#endif
+
+		#ifdef AE_PLATFORM_APPLE
+			static bool		_StartPerfMonitor ()												__NE___;
+		#endif
 	};
 
 } // AE::Base

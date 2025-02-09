@@ -4,7 +4,7 @@
 #ifdef __INTELLISENSE__
 #	define SH_COMPUTE
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_IMAGE
 #	define COMPARE
 #endif

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define MODE		0
 #endif
 //-----------------------------------------------------------------------------
@@ -55,13 +55,13 @@
 
 	float  SignedTriangleWave (float x)
 	{
-		return TriangleWave( x ) * ToSNorm( LessFp( x, 1.0 ));
+		return TriangleWave( x ) * ToSNorm( LessF( x, 1.0 ));
 	}
 
 	float  SignedSmoothStepWave (float x)
 	{
 		float	y = TriangleWave( x );
-		return SmoothStep( y, 0.0, 1.0 ) * ToSNorm( LessFp( x, 1.0 ));
+		return SmoothStep( y, 0.0, 1.0 ) * ToSNorm( LessF( x, 1.0 ));
 	}
 
 

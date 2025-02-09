@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <uses-feature android:name="android.hardware.camera" android:required="true" />
+
+  <uses-permission android:name="android.permission.INTERNET" android:required="true" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" android:required="true" />
+  <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" android:required="true" />
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" android:required="true" />
+  <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" android:required="true" />
+  <uses-permission android:name="android.permission.BLUETOOTH" android:required="true" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:required="true" />
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:required="true" />
+  <uses-permission android:name="android.permission.CAMERA" android:required="true" />
+  <!--<uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" android:required="true" />-->
+  <uses-permission android:name="android.permission.BODY_SENSORS" android:required="true" />
+  <uses-permission android:name="android.permission.BODY_SENSORS_BACKGROUND" android:required="true" />
+  <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" android:required="true" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:required="true" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:required="true" />
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" android:required="true" />
+  <uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" android:required="true" />
+  <uses-permission android:name="android.permission.READ_BASIC_PHONE_STATE" android:required="true" />
+  <uses-permission android:name="android.permission.RECORD_AUDIO" android:required="true" />
+  <uses-permission android:name="android.permission.VIBRATE" android:required="true" />
+	
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" android:required="true" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" android:required="true" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" android:required="true" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" android:required="true" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" android:required="true" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" android:required="true" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" android:required="true" />
+
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" android:required="true" />
+
+  <application
+	android:name=".RemoteControlApplication"
+	android:label="AE RemoteControl"
+	android:hardwareAccelerated="true"
+	android:isGame="true">
+
+	<activity
+	  android:name=".RemoteControlActivity"
+	  android:theme="@style/Theme.AppCompat.Light"
+	  android:launchMode="singleTask"
+	  android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+	  android:resizeableActivity="true"
+	  android:windowSoftInputMode="adjustPan"
+	  android:exported="true">
+	  <intent-filter>
+		<action android:name="android.intent.action.MAIN" />
+		<category android:name="android.intent.category.LAUNCHER" />
+	  </intent-filter>
+	</activity>
+
+	<!--
+		 https://developer.android.com/about/versions/14/changes/fgs-types-required
+		 https://developer.android.com/guide/components/foreground-services
+	 -->
+	<service
+	  android:name=".RemoteControlService"
+	  android:foregroundServiceType="camera|dataSync|location|microphone|mediaPlayback"
+	  android:exported="false">
+	  <intent-filter>
+		<!-- for profiling -->
+		<action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+		<action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLE_REQUESTED" />
+		<action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLED" />
+	  </intent-filter>
+	</service>
+
+  </application>
+</manifest>

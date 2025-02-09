@@ -12,7 +12,6 @@
 #endif
 
 RC<Image>			rt;
-RC<Image>			ds;
 RC<Image>			noise_tex;
 RC<FPVCamera>		camera;
 
@@ -33,7 +32,7 @@ void  AddNoise (const array<float> &params)
 	RC<ComputePass>		pass = ComputePass( "tools/VolumeNoise.glsl", "P="+pass_id+";GEN_NOISE;vTILE="+tile_size );
 	pass.ArgInOut( "un_Noise",		noise_tex );
 
-	pass.Slider( "iNoise",			0,						16,					int(params[0]) );
+	pass.Slider( "iNoise",			0,						17,					int(params[0]) );
 	pass.Slider( "iOctaves",		1,						10,					int(params[1]) );
 	pass.Slider( "iOp",				int2(0),				int2(4),			int2( int(params[2]), int(params[3]) ));
 	pass.Slider( "iPScale",			0.1f,					10.f,				params[4] );
@@ -58,7 +57,7 @@ void  AddTurbulence (const array<float> &params)
 	RC<ComputePass>		pass = ComputePass( "tools/VolumeNoise.glsl", "P="+pass_id+";GEN_TURB;vTILE="+tile_size );
 	pass.ArgInOut( "un_Noise",		noise_tex );
 
-	pass.Slider( "iNoise",			0,				14,				int(params[0]) );
+	pass.Slider( "iNoise",			0,				16,				int(params[0]) );
 	pass.Slider( "iOctaves",		1,				10,				int(params[1]) );
 	pass.Slider( "iOp",				0,				1,				int(params[2]) );
 	pass.Slider( "iPScale",			0.1f,			10.f,			params[3] );
@@ -121,7 +120,6 @@ void  SetupVolumeNoise (SetupPasses_t @setupPasses)
 {
 	// initialize
 	@rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-	@ds				= Image( Supported_DepthFormat(), SurfaceSize() );
 	@view_layer		= DynamicFloat();
 	@view_mode		= DynamicUInt();
 	@dyn_pass_id	= DynamicUInt();

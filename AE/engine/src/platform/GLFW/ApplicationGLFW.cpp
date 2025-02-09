@@ -5,7 +5,7 @@
 # include "platform/GLFW/ApplicationGLFW.h"
 # include "platform/WinAPI/UtilsWinAPI.h"
 
-# include "graphics/Vulkan/VSwapchain.h"
+# include "graphics_rhi/Vulkan/VSwapchain.h"
 # include "GLFWCommon.cpp.h"
 
 namespace AE::App
@@ -129,6 +129,8 @@ namespace {
 
 	  #ifdef AE_PLATFORM_WINDOWS
 		UtilsWinAPI::SetMonitorNames( INOUT outMonitors );
+
+		Unused( GetNvAPI().FillHDRConfig( outMonitors ));
 	  #endif
 	}
 

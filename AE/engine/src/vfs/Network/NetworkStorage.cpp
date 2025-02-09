@@ -31,6 +31,18 @@ namespace AE::VFS
 		return false;
 	}
 
+	bool  NetworkStorage::Open (OUT RC<AsyncRStream> &stream, FileName::Ref name) C_NE___
+	{
+		RC<AsyncRDataSource>	ds = _client.OpenForRead( name );
+		if ( ds != null )
+		{
+			stream = MakeRC< Threading::AsyncRDataSourceAsStream >( RVRef(ds) );
+			ASSERT( stream->IsOpen() );
+			return true;
+		}
+		return false;
+	}
+
 	bool  NetworkStorage::Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name) C_NE___
 	{
 		ds = _client.OpenForRead( name );
@@ -52,6 +64,18 @@ namespace AE::VFS
 		auto	async = _client.OpenForWrite( name );
 		if_likely( async ) {
 			ds = MakeRC<SyncWDataSource>( RVRef(async) );
+			return true;
+		}
+		return false;
+	}
+
+	bool  NetworkStorage::Open (OUT RC<AsyncWStream> &stream, FileName::Ref name) C_NE___
+	{
+		RC<AsyncWDataSource>	ds = _client.OpenForWrite( name );
+		if ( ds != null )
+		{
+			stream = MakeRC< Threading::AsyncWDataSourceAsStream >( RVRef(ds) );
+			ASSERT( stream->IsOpen() );
 			return true;
 		}
 		return false;

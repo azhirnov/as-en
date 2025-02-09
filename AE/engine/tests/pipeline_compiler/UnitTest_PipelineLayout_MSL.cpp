@@ -21,14 +21,14 @@ namespace
 		dsl0->AddUniformBuffer( EShaderStages::Vertex, "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, False{} );
 		dsl0->AddStorageBuffer( EShaderStages::Vertex | EShaderStages::Fragment, "storageBuf", ArraySize{2}, "ubuf", EAccessType::Coherent, EResourceState::ShaderStorage_RW, False{} );
 		dsl0->AddUniformTexelBuffer( EShaderStages::Fragment, "texBuffer", ArraySize{1}, EImageType::UInt | EImageType::Buffer, EResourceState::ShaderSample );
-		dsl0->AddStorageImage( EShaderStages::Fragment, "storageImage", ArraySize{1}, EImageType::Float | EImageType::Img2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
-		dsl0->AddSampledImage( EShaderStages::Fragment, "colorTex", ArraySize{1}, EImageType::Float | EImageType::Img2D, EResourceState::ShaderSample );
+		dsl0->AddStorageImage( EShaderStages::Fragment, "storageImage", ArraySize{1}, EImageType::Float | EImageType::Dim2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+		dsl0->AddSampledImage( EShaderStages::Fragment, "colorTex", ArraySize{1}, EImageType::Float | EImageType::Dim2D, EResourceState::ShaderSample );
 		dsl0->AddImmutableSampler( EShaderStages::Fragment, "imtblSampler", "DefSampler" );
 		//TEST( dsl0->_Build() );
 
 		DescriptorSetLayoutPtr	dsl1{ new DescriptorSetLayout{ "Material" }};
-		dsl1->AddSampledImage( EShaderStages::Fragment, "diffuseTex", ArraySize{1}, EImageType::Float | EImageType::Img2DArray, EResourceState::ShaderSample );
-		dsl1->AddSampledImage( EShaderStages::Fragment, "noiseTex", ArraySize{1}, EImageType::Float | EImageType::Img3D, EResourceState::ShaderSample );
+		dsl1->AddSampledImage( EShaderStages::Fragment, "diffuseTex", ArraySize{1}, EImageType::Float | EImageType::Dim2DArray, EResourceState::ShaderSample );
+		dsl1->AddSampledImage( EShaderStages::Fragment, "noiseTex", ArraySize{1}, EImageType::Float | EImageType::Dim3D, EResourceState::ShaderSample );
 		//TEST( dsl0->_Build() );
 
 		PipelineLayoutPtr	ppln_layout{ new PipelineLayout{ "Layout1" }};
@@ -62,7 +62,7 @@ constexpr sampler imtblSampler (
   max_anisotropy(8)
 );
   /* state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader */
-  /* static size: 32 b, array stride: 0 b */
+  /* static size: 32 B, array stride: 0 B */
   device ubuf storageBuf [[buffer(3)]] [2],
   /* state: ShaderSample | FragmentShader */
   texture_buffer< uint, access::read > texBuffer [[texture(0)]],
@@ -94,14 +94,14 @@ extern void  UnitTest_PipelineLayout_MSL ()
 	ObjectStorage::SetInstance( &obj );
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
+	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
-	fs->fs.perDescrSet.maxUniformBuffers = 8;
-	fs->fs.perDescrSet.maxStorageBuffers = 8;
-	fs->fs.perDescrSet.maxStorageImages = 8;
-	fs->fs.perDescrSet.maxSampledImages = 8;
-	fs->fs.perDescrSet.maxSamplers = 8;
-	fs->fs.perDescrSet.maxTotalResources = 1024;
+	fs->fs.perPipeline.maxUniformBuffers = 8;
+	fs->fs.perPipeline.maxStorageBuffers = 8;
+	fs->fs.perPipeline.maxStorageImages = 8;
+	fs->fs.perPipeline.maxSampledImages = 8;
+	fs->fs.perPipeline.maxSamplers = 8;
+	fs->fs.perPipeline.maxTotalResources = 1024;
 	fs->fs.perStage.maxUniformBuffers = 8;
 	fs->fs.perStage.maxStorageBuffers = 8;
 	fs->fs.perStage.maxStorageImages = 8;

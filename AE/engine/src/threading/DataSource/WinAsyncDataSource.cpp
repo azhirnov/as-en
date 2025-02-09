@@ -35,7 +35,15 @@ namespace
 		auto	io_service = Scheduler().GetFileIOService();
 		if_unlikely( not io_service )
 		{
-			AE_LOGI( "FileIOService is not initialized" );
+			// Check:
+			//	* If used 'AppV1::AppConfig':
+			//		- 'threading.mask' must contains 'EThread::FileIO'.
+			//		- 'threading.maxIOAccessThreads' must be >= 1.
+			//	* If used 'ThreadMngr::SetupThreads()':
+			//		- 'TaskScheduler::Config.maxIOAccessThreads' must be >= 1.
+			//		- 'mask' must contains 'EThread::FileIO'.
+
+			AE_LOGW( "FileIOService is not initialized" );
 			return false;	// error
 		}
 
@@ -511,7 +519,7 @@ namespace
 	ReadBlock
 =================================================
 */
-	AsyncDSRequest  WinAsyncRDataSource::ReadBlock (Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___
+	AsyncDSRequest  WinAsyncRDataSource::ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem) __NE___
 	{
 		AsyncDSRequest	req;
 		if_likely( WindowsIOService::AsyncRDataSourceApi::CreateResult( OUT req, GetRC<WinAsyncRDataSource>(), pos, data, dataSize, RVRef(mem) ));
@@ -524,7 +532,7 @@ namespace
 	{
 		RC<SharedMem>	mem		= SharedMem::Create( AE::GetDefaultAllocator(), size );	// TODO: optimize
 		void*			data	= mem ? mem->Data() : null;
-		return ReadBlock( pos, data, size, RVRef(mem) );
+		return ReadBlock( pos, OUT data, size, RVRef(mem) );
 	}
 
 /*

@@ -17,13 +17,13 @@ void  SetupPasses ()
 		//AddTurbulence( params );
 	}{
 		const array<float>	params = {
-			14, 										// iNoise
-			6, 											// iOctaves
-			0, 0, 										// iOp
-			4.0000f, 									// iPScale
-			0.0000f, 0.0000f, 0.0000f, 					// iPBias
-			1.0000f, -0.2730f, 1.1210f, 0.9060f, 		// iParams
-			0.9820f, 0.4020f, 							// iVScaleBias
+			10, 									// iNoise
+			5, 										// iOctaves
+			0, 0, 									// iOp
+			4.0000f, 								// iPScale
+			0.0000f, 0.0000f, 0.0000f, 				// iPBias
+			0.8080f, 0.5700f, 1.6170f, 0.5580f, 	// iParams
+			1.6f, 0.0f,								// iVScaleBias
 		};
 		AddNoise( params );
 	}{

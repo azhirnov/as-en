@@ -636,7 +636,7 @@ namespace {
 				if ( _reliable )
 				{
 					AE_LOG_DBG( "Reliability is broken: some messages are no sent and will be discarded, client ("s <<
-							    ToString<16>(uint(client.id)) << ") will be disconnected" );
+								ToString<16>(uint(client.id)) << ") will be disconnected" );
 
 					_Disconnect( idx );
 				}

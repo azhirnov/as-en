@@ -59,25 +59,31 @@ namespace AE::Base
 
 			static bool		GetTimerResolution (OUT nanoseconds &period)					__NE___;
 
-		ND_ static constexpr auto  NanoSleepTimeStep ()										__NE___	{ return nanoseconds{30}; }
-		ND_ static constexpr auto  MicroSleepTimeStep ()									__NE___	{ return nanoseconds{500'000}; }	// step from docs: 100ns, real step: 500us
-		ND_ static constexpr auto  MilliSleepTimeStep ()									__NE___	{ return nanoseconds{1'000'000'000 / 64}; }	// by default it is 64 context switch per second
+		NdCx__ static auto  NanoSleepTimeStep ()											__NE___	{ return nanoseconds{30}; }
+		NdCx__ static auto  MicroSleepTimeStep ()											__NE___	{ return nanoseconds{500'000}; }	// step from docs: 100ns, real step: 500us
+		NdCx__ static auto  MilliSleepTimeStep ()											__NE___	{ return nanoseconds{1'000'000'000 / 64}; }	// by default it is 64 context switch per second
 
 		ND_ static ThreadHandle  GetCurrentThreadHandle ()									__NE___;
 
+	  #ifndef AE_CFG_RELEASE
 			static void		SetCurrentThreadName (NtStringView name)						__NE___;
 		ND_ static String	GetCurrentThreadName ()											__Th___;
+	  #endif
 
-			static bool		SetThreadAffinity (const ThreadHandle &handle, uint coreIdx)	__NE___;
-			static bool		SetThreadPriority (const ThreadHandle &handle, float priority)	__NE___;
+			static bool		SetThreadAffinity (const ThreadHandle &, uint logicalCoreIdx)	__NE___;
+			static bool		SetThreadPriority (const ThreadHandle &, EThreadPriority)		__NE___;
 
-			static bool		SetCurrentThreadAffinity (uint coreIdx)							__NE___;
-			static bool		SetCurrentThreadPriority (float priority)						__NE___;
+			static bool		SetCurrentThreadAffinity (uint logicalCoreIdx)					__NE___;
+			static bool		SetCurrentThreadPriority (EThreadPriority priority)				__NE___;
 
-		ND_	static uint		GetProcessorCoreIndex ()										__NE___;	// current logical CPU core
+		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
 
 		ND_ static Bytes	GetDefaultStackSize ()											__NE___;
 		ND_ static Bytes	GetCurrentThreadStackSize ()									__NE___;
+
+
+		// Process //
+		ND_ static ulong	GetProcessID ()													__NE___;
 
 
 		// OS //
@@ -90,6 +96,9 @@ namespace AE::Base
 		#else
 		ND_ static String		GetOSName ()												__NE___;
 		#endif
+
+		ND_ static bool		GetEnvironmentVariable (NtStringView name, OUT String &value)	__NE___;
+		ND_ static bool		HasEnvironmentVariable (NtStringView name)						__NE___;
 
 
 		// Locale //

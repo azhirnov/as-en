@@ -33,7 +33,7 @@ namespace AE::Networking::_hidden_
 	public:
 		MsgWithExtra ()												__NE___ {}
 		MsgWithExtra (T* msg, Bytes extraSize)						__NE___	: _msg{msg}  DEBUG_ONLY(, _extraSize{extraSize}) { Unused(extraSize); }
-		MsgWithExtra (MsgWithExtra &&other)							__NE___	: _msg{other._msg}  DEBUG_ONLY(, _extraSize{other.extraSize}) { other._msg = null; }
+		MsgWithExtra (MsgWithExtra &&other)							__NE___	: _msg{other._msg}  DEBUG_ONLY(, _extraSize{other._extraSize}) { other._msg = null; }
 
 		MsgWithExtra&  operator = (MsgWithExtra &&rhs)				__NE___;
 
@@ -203,7 +203,7 @@ namespace AE::Networking::_hidden_
 	template <typename M, typename E>
 	void  MsgWithExtra<T>::Put (M T::*dstMember, BasicStringView<E> str) __NE___
 	{
-		StaticAssert( IsSameTypes< RemoveArray<M>, E >);
+		StaticAssert( IsSame< RemoveArray<M>, E >);
 		Put( dstMember, str.data(), StringSizeOf(str) );
 	}
 
@@ -211,7 +211,7 @@ namespace AE::Networking::_hidden_
 	template <typename M, typename E>
 	void  MsgWithExtra<T>::Put (M T::*dstMember, ArrayView<E> arr) __NE___
 	{
-		StaticAssert( IsSameTypes< RemoveArray<M>, E >);
+		StaticAssert( IsSame< RemoveArray<M>, E >);
 		Put( dstMember, arr.data(), ArraySizeOf(arr) );
 	}
 
@@ -227,7 +227,7 @@ namespace AE::Networking::_hidden_
 	template <typename M, typename C, typename E>
 	void  MsgWithExtra<T>::Put (M T::*dstMember, C T::*counter, BasicStringView<E> str) __NE___
 	{
-		StaticAssert( IsSameTypes< RemoveArray<M>, E >);
+		StaticAssert( IsSame< RemoveArray<M>, E >);
 		Put( dstMember, str.data(), StringSizeOf(str) );
 
 		auto&	cnt = (_msg->*counter);
@@ -238,7 +238,7 @@ namespace AE::Networking::_hidden_
 	template <typename M, typename C, typename E>
 	void  MsgWithExtra<T>::Put (M T::*dstMember, C T::*counter, ArrayView<E> arr) __NE___
 	{
-		StaticAssert( IsSameTypes< RemoveArray<M>, E >);
+		StaticAssert( IsSame< RemoveArray<M>, E >);
 		Put( dstMember, arr.data(), ArraySizeOf(arr) );
 
 		auto&	cnt = (_msg->*counter);
@@ -268,7 +268,7 @@ namespace AE::Networking::_hidden_
 	template <typename E, typename M>
 	ArrayView<E>  MsgWithExtra<T>::ExtractArray (M T::*member, const usize count) C_NE___
 	{
-		StaticAssert( IsSameTypes< RemoveArray<M>, E >);
+		StaticAssert( IsSame< RemoveArray<M>, E >);
 
 		E const*	src = &(_msg->*member);
 		ASSERT( src + SizeOf<E>*count <= (Cast<void>(_msg) + SizeOf<T> + _extraSize) );

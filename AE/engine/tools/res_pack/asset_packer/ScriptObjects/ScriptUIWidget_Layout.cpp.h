@@ -118,8 +118,10 @@ namespace AE::AssetPacker
 		ScriptAlignedLayout ()									__Th___ : ScriptBaseLayout{ ELayoutType::AlignedLayoutPx } {}
 		explicit ScriptAlignedLayout (ELayoutType type)			__Th___;
 
-		void  SetSize (const packed_float2 &value)				__Th___;
-		void  SetAlign (ELayoutAlign value)						__Th___;
+		void  SetSize1 (float w, float h)						__Th___;
+		void  SetSize2 (const packed_float2 &value)				__Th___;
+		void  SetAlign1 (ELayoutAlign value)					__Th___;
+		void  SetAlign2 (int value)								__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)			__Th___;
 
@@ -484,17 +486,44 @@ namespace AE::AssetPacker
 
 /*
 =================================================
-	SetSize / SetAlign
+	SetSize
 =================================================
 */
-	void  ScriptAlignedLayout::SetSize (const packed_float2 &value) __Th___
+	void  ScriptAlignedLayout::SetSize1 (float w, float h) __Th___
 	{
+		SetSize2({ w, h });
+	}
+
+	void  ScriptAlignedLayout::SetSize2 (const packed_float2 &value) __Th___
+	{
+		CHECK_THROW_MSG( All( value.x > Zero ));
+
+		if ( _type == ELayoutType::AlignedLayoutRel )
+			CHECK_THROW_MSG( All( value <= packed_float2{1.f} ));
+
 		_size = value;
 	}
 
-	void  ScriptAlignedLayout::SetAlign (ELayoutAlign value) __Th___
+/*
+=================================================
+	SetAlign
+=================================================
+*/
+	void  ScriptAlignedLayout::SetAlign1 (ELayoutAlign value) __Th___
 	{
+		StaticAssert( uint(ELayoutAlign::_All) == 63 );
+		constexpr ELayoutAlign	x_mask	= ELayoutAlign::Left | ELayoutAlign::Right | ELayoutAlign::CenterX;
+		constexpr ELayoutAlign	y_mask	= ELayoutAlign::Bottom | ELayoutAlign::Top | ELayoutAlign::CenterY;
+
+		CHECK_THROW_MSG( AnyBits( value, x_mask ), "horizontal alignment must be defined" );
+		CHECK_THROW_MSG( AnyBits( value, y_mask ), "vertical alignment must be defined" );
+
 		_align = value;
+	}
+
+	void  ScriptAlignedLayout::SetAlign2 (int value) __Th___
+	{
+		SetAlign1( ELayoutAlign(value) );
 	}
 
 /*
@@ -555,8 +584,10 @@ namespace AE::AssetPacker
 		Scripting::ClassBinder<ScriptAlignedLayout>	binder{ se };
 		binder.CreateRef();
 		binder.AddFactoryCtor< ELayoutType >();
-		binder.AddMethod( &ScriptAlignedLayout::SetSize,	"Size" );
-		binder.AddMethod( &ScriptAlignedLayout::SetAlign,	"Align" );
+		binder.AddMethod( &ScriptAlignedLayout::SetSize1,	"Size",	{"width", "height"} );
+		binder.AddMethod( &ScriptAlignedLayout::SetSize2,	"Size" );
+		binder.AddMethod( &ScriptAlignedLayout::SetAlign1,	"Align" );
+		binder.AddMethod( &ScriptAlignedLayout::SetAlign2,	"Align" );
 		_BindBase( binder );
 	}
 //-----------------------------------------------------------------------------

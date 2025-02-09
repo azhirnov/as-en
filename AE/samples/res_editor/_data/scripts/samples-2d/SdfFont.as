@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -10,9 +10,9 @@
 	{
 		// initialize
 		RC<Image>	rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
-		RC<Image>	sdf_font_32		= Image( EImageType::FImage2D, "res/font/sdf-32.dds" );
-		RC<Image>	mc_sdf_font_32	= Image( EImageType::FImage2D, "res/font/mc-sdf-32.dds" );
-		RC<Image>	mc_sdf_font_64	= Image( EImageType::FImage2D, "res/font/mc-sdf-64.dds" );
+		RC<Image>	sdf_font_32		= Image( EImageType::Float_2D, "res/font/sdf-32.dds" );
+		RC<Image>	mc_sdf_font_32	= Image( EImageType::Float_2D, "res/font/mc-sdf-32.dds" );
+		RC<Image>	mc_sdf_font_64	= Image( EImageType::Float_2D, "res/font/mc-sdf-64.dds" );
 
 		// render loop
 		{
@@ -23,16 +23,15 @@
 			pass.ArgIn( "un_McSdfFont_64",		mc_sdf_font_64,		Sampler_LinearRepeat );
 			pass.Output( "out_Color",			rt );
 
+			pass.Slider( "iAnimate",	0,		1,		1 );
 			pass.Slider( "iSdfTex",		0,		2 );
-			pass.Slider( "iMode",		0,		3 );
+			pass.Slider( "iMode",		0,		4 );
 			pass.Slider( "iScale",		0.1,	8.0,	4.0 );
 			pass.Slider( "iOffset",		0.0,	1.0 );
 			pass.Slider( "iRotate",		0.0,	90.0 );
 
 			pass.Slider( "iConstThick",	float2(-5.0,0.0),	float2(0.0,8.0),	float2(0.0,0.0) );	// constant thickness
 			pass.Slider( "iAAFactor",	0.0,				5.0,				1.5 );				// anti-aliasing factor
-
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}
 		Present( rt );
 	}
@@ -59,12 +58,13 @@
 			case 2 :	thick = float3(-3.0, 8.0, iAAFactor);	break;
 
 			// custom
-			case 3 :	break;
+			//case 3 :
+			//case 4 :
 		}
 
-		sd = 1.0 - SDF_Font( uv, sd, thick, size ).x;
+		sd = 1.0 - AA_Font( uv, sd, thick, size ).x;
 
-		if ( iMode == 2 )
+		if ( iMode == 2 or iMode == 4 )
 			sd = sd > 0.5 ? TriangleWave( (sd-0.5) * 2.0 ) : 0.0;
 
 		return sd;
@@ -106,7 +106,9 @@
 		uv.x += iOffset;
 		uv = SDF_Rotate2D( uv, ToRad(iRotate) );
 		uv = ToUNorm( uv * iScale );
-	//	uv.x += TriangleWave( un_PerPass.time * 0.01 );
+
+		if ( iAnimate == 1 )
+			uv.x += TriangleWave( un_PerPass.time * 0.01 ) * 4.0;
 
 		switch ( iSdfTex )
 		{

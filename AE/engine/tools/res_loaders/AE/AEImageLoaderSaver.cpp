@@ -45,9 +45,12 @@ namespace {
 				image_level.mipmap	= MipmapLevel{ uint(mip) };
 				image_level.layer	= ImageLayer{ uint(layer) };
 
-				Bytes	off;
-				ImagePacker_GetOffset( header, image_level.layer, image_level.mipmap, uint3{0},
-									   OUT image_level.dimension, OUT off, OUT image_level.rowPitch, OUT image_level.slicePitch );
+				ImageDim_t	dim;
+				Bytes		off;
+				ImagePacker_GetOffset( header, image_level.layer, image_level.mipmap, ImageDim_t{0},
+									   OUT dim, OUT off, OUT image_level.rowPitch, OUT image_level.slicePitch );
+
+				image_level.dimension = uint3{dim};
 
 				const Bytes	size = image_level.slicePitch * image_level.dimension.z;
 
@@ -81,6 +84,8 @@ namespace {
 */
 	bool  AEImageSaver::SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY) __NE___
 	{
+		using namespace AE::Graphics;
+
 		CHECK( not flipY );
 
 		if ( not (fileFormat == Default or fileFormat == EImageFormat::AEImg) )
@@ -90,9 +95,9 @@ namespace {
 		CHECK_ERR( not image.GetData()[0].empty() );
 
 		AssetPacker::ImagePacker::Header	header;
-		header.dimension	= packed_ushort3{image.GetData()[0][0].dimension};
-		header.arrayLayers	= ushort(image.GetData()[0].size());
-		header.mipmaps		= ushort(image.GetData().size());
+		header.dimension	= ImageDim_t{image.GetData()[0][0].dimension};
+		header.arrayLayers	= LayerCount_t(image.GetData()[0].size());
+		header.mipmaps		= MipmapCount_t(image.GetData().size());
 		header.viewType		= image.GetType();
 		header.format		= image.GetData()[0][0].format;
 

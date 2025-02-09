@@ -13,11 +13,11 @@
 #include "FeatureSetUtils.h"
 #include "base/Algorithms/StringUtils.h"
 
-#include "graphics/Private/ImageDesc.cpp.h"
-#include "graphics/Private/FeatureSet.cpp.h"
-#include "graphics/Private/RenderState.cpp.h"
-#include "graphics/Private/EnumUtils.cpp.h"
-#include "graphics/Metal/MFeatureSet.cpp"
+#include "graphics_rhi/Private/ImageDesc.cpp.h"
+#include "graphics_rhi/Private/FeatureSet.cpp.h"
+#include "graphics_rhi/Private/RenderState.cpp.h"
+#include "graphics_rhi/Private/EnumUtils.cpp.h"
+#include "graphics_rhi/Metal/MFeatureSet.cpp"
 
 using namespace AE;
 using namespace AE::Base;
@@ -77,7 +77,7 @@ static bool  SaveToFile (ArrayView<FeatureSetInfo> fsInfo)
 template <typename T>
 ND_ static T  FS_Validate (T feat)
 {
-	if constexpr( IsSameTypes< T, EFeature >)
+	if constexpr( IsSame< T, EFeature >)
 		return feat == EFeature::RequireFalse ? EFeature::Ignore : feat;
 	else
 		return {};
@@ -98,9 +98,10 @@ static void  ValidateFS (INOUT FeatureSet &fs)
 	using Queues				= Graphics::FeatureSet::Queues;
 	using ShadingRateSet_t		= Graphics::FeatureSet::ShadingRateSet_t;
 	using VRSTexelSize			= Graphics::FeatureSet::VRSTexelSize;
+	using KiBytes				= Graphics::FeatureSet::KiBytes;
 
-	#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )		if constexpr( IsSameTypes< _type_, EFeature >)  fs._name_ = FS_Validate<_type_>( fs._name_ );
-	AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
+	#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )		if constexpr( IsSame< _type_, EFeature >)  fs._name_ = FS_Validate<_type_>( fs._name_ );
+	AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
 	#undef AE_FEATURE_SET_VISIT
 }
 
@@ -152,6 +153,10 @@ static void  IsValidFS (const FeatureSet &fs)
 	CHECK( fs.linearSampledFormats.Any() );
 
 	CHECK( fs.surfaceFormats.None() );
+
+	CHECK( fs.perPipeline_maxUniformBuffersDynamic > 0 );
+	CHECK( fs.perPipeline_maxStorageBuffersDynamic > 0 );
+	CHECK( fs.perPipeline_maxTotalBuffersDynamic > 0 );
 }
 
 /*
@@ -164,10 +169,10 @@ static bool  GenMinimalFS (ArrayView<FeatureSetInfo> fsInfo)
 	FeatureSet	min_fs = fsInfo.front().fs;
 
 	// Mali T8xx supports 128 with half register count and 64 with full size registers
-	AssignMin( min_fs.maxComputeWorkGroupInvocations,	64u );
-	AssignMin( min_fs.maxComputeWorkGroupSizeX,			64u );
-	AssignMin( min_fs.maxComputeWorkGroupSizeY,			64u );
-	AssignMin( min_fs.maxComputeWorkGroupSizeZ,			64u );
+	AssignMin( min_fs.maxComputeWorkGroupInvocations,	POTValue_From< 64 >);
+	AssignMin( min_fs.maxComputeWorkGroupSizeX,			POTValue_From< 64 >);
+	AssignMin( min_fs.maxComputeWorkGroupSizeY,			POTValue_From< 64 >);
+	AssignMin( min_fs.maxComputeWorkGroupSizeZ,			POTValue_From< 64 >);
 
 	for (auto& info : fsInfo)
 	{
@@ -212,7 +217,7 @@ static bool  GenMinDescriptorIndexing (ArrayView<FeatureSetInfo> fsInfo)
 	#define FS_LIST2( _visitor_ ) \
 		_visitor_( quadDivergentImplicitLod				)\
 		_visitor_( runtimeDescriptorArray				)\
-		_visitor_( perDescrSet							)\
+		_visitor_( perPipeline							)\
 		_visitor_( perStage								)\
 		_visitor_( maxUniformBufferSize					)\
 		_visitor_( maxStorageBufferSize					)\
@@ -224,6 +229,8 @@ static bool  GenMinDescriptorIndexing (ArrayView<FeatureSetInfo> fsInfo)
 	FeatureSet	min_fs;
 	String		comment;
 	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
 
 	comment << "\t// include:\n";
 
@@ -299,7 +306,7 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 		_visitor_( shaderInputAttachmentArrayDynamicIndexing			)\
 		_visitor_( shaderUniformTexelBufferArrayDynamicIndexing			)\
 		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing			)\
-		_visitor_( perDescrSet											)\
+		_visitor_( perPipeline											)\
 		_visitor_( perStage												)\
 		_visitor_( maxUniformBufferSize									)\
 		_visitor_( maxStorageBufferSize									)\
@@ -311,6 +318,8 @@ static bool  GenMinNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInfo)
 	FeatureSet	min_fs;
 	String		comment;
 	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
 
 	comment << "\t// include:\n";
 
@@ -389,7 +398,7 @@ static bool  GenMinNativeNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInf
 		_visitor_( shaderInputAttachmentArrayDynamicIndexing			)\
 		_visitor_( shaderUniformTexelBufferArrayDynamicIndexing			)\
 		_visitor_( shaderStorageTexelBufferArrayDynamicIndexing			)\
-		_visitor_( perDescrSet											)\
+		_visitor_( perPipeline											)\
 		_visitor_( perStage												)\
 		_visitor_( maxUniformBufferSize									)\
 		_visitor_( maxStorageBufferSize									)\
@@ -402,6 +411,8 @@ static bool  GenMinNativeNonUniformDescIndexing (ArrayView<FeatureSetInfo> fsInf
 	String		comment;
 	bool		init	= false;
 	const auto	True	= FeatureSet::EFeature::RequireTrue;
+
+	min_fs.Init( EFeature::Ignore );
 
 	comment << "\t// include:\n";
 
@@ -460,6 +471,8 @@ static bool  GenMinRecursiveRayTracing (ArrayView<FeatureSetInfo> fsInfo)
 	String		comment;
 	bool		init	= false;
 
+	min_fs.Init( EFeature::Ignore );
+
 	comment << "\t// include:\n";
 
 	for (auto& info : fsInfo)
@@ -510,6 +523,8 @@ static bool  GenMinInlineRayTracing (ArrayView<FeatureSetInfo> fsInfo)
 	String		comment;
 	bool		init	= false;
 
+	min_fs.Init( EFeature::Ignore );
+
 	comment << "\t// include:\n";
 
 	for (auto& info : fsInfo)
@@ -559,6 +574,8 @@ static bool  GenMinMeshShader (ArrayView<FeatureSetInfo> fsInfo)
 	FeatureSet	min_fs;
 	String		comment;
 	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
 
 	comment << "\t// include:\n";
 
@@ -613,6 +630,8 @@ static bool  GenMinMobile (ArrayView<FeatureSetInfo> fsInfo)
 	String		comment;
 	bool		init	= false;
 
+	min_fs.Init( EFeature::Ignore );
+
 	comment << "\t// include:\n";
 
 	for (auto& info : fsInfo)
@@ -638,10 +657,10 @@ static bool  GenMinMobile (ArrayView<FeatureSetInfo> fsInfo)
 	CHECK_ERR( init );
 
 	// Mali T8xx supports 128 with half register count and 64 with full size registers
-	AssignMin( min_fs.maxComputeWorkGroupInvocations,	64u );
-	AssignMin( min_fs.maxComputeWorkGroupSizeX,			64u );
-	AssignMin( min_fs.maxComputeWorkGroupSizeY,			64u );
-	AssignMin( min_fs.maxComputeWorkGroupSizeZ,			64u );
+	AssignMin( min_fs.maxComputeWorkGroupInvocations,	POTValue_From< 64 >);
+	AssignMin( min_fs.maxComputeWorkGroupSizeX,			POTValue_From< 64 >);
+	AssignMin( min_fs.maxComputeWorkGroupSizeY,			POTValue_From< 64 >);
+	AssignMin( min_fs.maxComputeWorkGroupSizeZ,			POTValue_From< 64 >);
 
 	min_fs.maxShaderVersion.metal = ushort(Max( min_fs.maxShaderVersion.metal, 220u ));	// iOS 13
 
@@ -673,6 +692,8 @@ static bool  GenMinMobileMali (ArrayView<FeatureSetInfo> fsInfo)
 	String		comment;
 	bool		init	= false;
 
+	min_fs.Init( EFeature::Ignore );
+
 	comment << "\t// include:\n";
 
 	for (auto& info : fsInfo)
@@ -698,10 +719,10 @@ static bool  GenMinMobileMali (ArrayView<FeatureSetInfo> fsInfo)
 	CHECK_ERR( init );
 
 	// Mali T8xx supports 128 with half register count and 64 with full size registers
-	AssignMin( min_fs.maxComputeWorkGroupInvocations,	64u );
-	AssignMin( min_fs.maxComputeWorkGroupSizeX,			64u );
-	AssignMin( min_fs.maxComputeWorkGroupSizeY,			64u );
-	AssignMin( min_fs.maxComputeWorkGroupSizeZ,			64u );
+	AssignMin( min_fs.maxComputeWorkGroupInvocations,	POTValue_From< 64 >);
+	AssignMin( min_fs.maxComputeWorkGroupSizeX,			POTValue_From< 64 >);
+	AssignMin( min_fs.maxComputeWorkGroupSizeY,			POTValue_From< 64 >);
+	AssignMin( min_fs.maxComputeWorkGroupSizeZ,			POTValue_From< 64 >);
 
 	min_fs.maxShaderVersion.metal = 0;
 	//min_fs.hwCompressedAttachmentFormats.insert( EPixelFormat::RGBA8_UNorm );
@@ -730,6 +751,8 @@ static bool  GenMinMobileAdreno (ArrayView<FeatureSetInfo> fsInfo)
 	String		comment;
 	bool		init	= false;
 
+	min_fs.Init( EFeature::Ignore );
+
 	comment << "\t// include:\n";
 
 	for (auto& info : fsInfo)
@@ -755,7 +778,7 @@ static bool  GenMinMobileAdreno (ArrayView<FeatureSetInfo> fsInfo)
 	CHECK_ERR( init );
 
 	min_fs.maxShaderVersion.metal = 0;
-	min_fs.maxComputeWorkGroupSizeZ = 64; // fix
+	min_fs.maxComputeWorkGroupSizeZ = POTValue_From<64>; // fix
 
 	ValidateFS( INOUT min_fs );
 	min_fs.Validate();
@@ -780,6 +803,8 @@ static bool  GenMinMobilePowerVR (ArrayView<FeatureSetInfo> fsInfo)
 	FeatureSet	min_fs;
 	String		comment;
 	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
 
 	comment << "\t// include:\n";
 
@@ -830,6 +855,8 @@ static bool  GenMinDesktop (ArrayView<FeatureSetInfo> fsInfo)
 	FeatureSet	min_fs;
 	String		comment;
 	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
 
 	comment << "\t// include:\n";
 
@@ -885,6 +912,8 @@ static bool  GenMinDesktopAMD (ArrayView<FeatureSetInfo> fsInfo)
 	String		comment;
 	bool		init	= false;
 
+	min_fs.Init( EFeature::Ignore );
+
 	comment << "\t// include:\n";
 
 	for (auto& info : fsInfo)
@@ -935,6 +964,8 @@ static bool  GenMinDesktopNV (ArrayView<FeatureSetInfo> fsInfo)
 	String		comment;
 	bool		init	= false;
 
+	min_fs.Init( EFeature::Ignore );
+
 	comment << "\t// include:\n";
 
 	for (auto& info : fsInfo)
@@ -984,6 +1015,8 @@ static bool  GenMinDesktopIntel (ArrayView<FeatureSetInfo> fsInfo)
 	FeatureSet	min_fs;
 	String		comment;
 	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
 
 	comment << "\t// include:\n";
 
@@ -1036,6 +1069,8 @@ static bool  GenMinApple (ArrayView<FeatureSetInfo> fsInfo)
 	FeatureSet	min_fs;
 	String		comment;
 	bool		init	= false;
+
+	min_fs.Init( EFeature::Ignore );
 
 	comment << "\t// include:\n";
 

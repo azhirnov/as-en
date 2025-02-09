@@ -16,7 +16,7 @@ namespace AE::Networking
 	// types
 	private:
 		class MsgProducer final :
-			public AsyncCSMessageProducer< Threading::LfLinearAllocator< usize{4_Mb}, 8u, 4 >>
+			public AsyncCSMessageProducer< Threading::LfLinearAllocator< usize{4_MiB}, 8u, 4 >>
 		{
 		public:
 			EnumSet<EChannel>  GetChannels ()	C_NE_OV	{ return {EChannel::Reliable}; }

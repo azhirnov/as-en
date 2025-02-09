@@ -25,7 +25,7 @@ namespace AE::Audio
 		struct Config
 		{
 			uint		updateThreads		= 1;
-			Bytes		asyncFileBuffer		= 1_Mb;
+			Bytes		asyncFileBuffer		= 1_MiB;
 
 			Config () __NE___ {}
 		};

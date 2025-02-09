@@ -15,7 +15,7 @@
 #endif
 
 #include "base/Log/Logger.h"
-#include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/ToString.h"
 #include "base/Algorithms/Parser.h"
 #include "base/DataSource/File.h"
 #include "base/Platforms/ThreadUtils.h"
@@ -476,7 +476,7 @@ namespace
 			AE_LOG_DBG( "Created text logger to file '"s << ToString( FileSystem::ToAbsolute( path )) << "'" );
 			return MakeUnique<HtmlLogOutput>( RVRef(file), true );
 		}
-		return Default;
+		return LoggerPtr{};
 	}
 //-----------------------------------------------------------------------------
 
@@ -689,7 +689,7 @@ namespace
 			AE_LOG_DBG( "Created html logger to file '"s << ToString( FileSystem::ToAbsolute( path )) << "'" );
 			return MakeUnique<HtmlLogOutput>( RVRef(file), true );
 		}
-		return Default;
+		return LoggerPtr{};
 	}
 //-----------------------------------------------------------------------------
 

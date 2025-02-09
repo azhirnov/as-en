@@ -12,7 +12,7 @@ namespace
 		Array<ubyte>	temp;
 		temp.resize( usize(size) );
 
-		Math::Random	rnd;
+		Base::Random	rnd;
 		for (usize i = 0; i < temp.size(); ++i)
 		{
 			temp[i] = rnd.Uniform<ubyte>() & 0xF;
@@ -24,7 +24,7 @@ namespace
 #ifdef AE_ENABLE_BROTLI
 	static void  BrotliStream_Test1 ()
 	{
-		const auto		uncompressed = GenRandomArray( 1_Mb );
+		const auto		uncompressed = GenRandomArray( 1_MiB );
 		Array<ubyte>	file_data;
 
 		// compress
@@ -66,8 +66,8 @@ namespace
 
 	static void  BrotliStream_Test2 ()
 	{
-		const auto		uncompressed = GenRandomArray( 2_Mb );
-		const Bytes		block_size	 = 1_Kb;
+		const auto		uncompressed = GenRandomArray( 2_MiB );
+		const Bytes		block_size	 = 1_KiB;
 		Array<ubyte>	file_data;
 
 		// compress
@@ -116,7 +116,7 @@ namespace
 
 	static void  BrotliStream_Test3 ()
 	{
-		const auto		uncompressed = GenRandomArray( 2_Mb );
+		const auto		uncompressed = GenRandomArray( 2_MiB );
 		Array<ubyte>	file_data;
 
 		// compress
@@ -156,7 +156,7 @@ namespace
 #ifdef AE_ENABLE_ZSTD
 	static void  ZStdStream_Test1 ()
 	{
-		const auto		uncompressed = GenRandomArray( 1_Mb );
+		const auto		uncompressed = GenRandomArray( 1_MiB );
 		Array<ubyte>	file_data;
 
 		// compress
@@ -195,8 +195,8 @@ namespace
 
 	static void  ZStdStream_Test2 ()
 	{
-		const auto		uncompressed = GenRandomArray( 2_Mb );
-		const Bytes		block_size	 = 1_Kb;
+		const auto		uncompressed = GenRandomArray( 2_MiB );
+		const Bytes		block_size	 = 1_KiB;
 		Array<ubyte>	file_data;
 
 		// compress
@@ -242,7 +242,7 @@ namespace
 
 	static void  ZStdStream_Test3 ()
 	{
-		const auto		uncompressed = GenRandomArray( 2_Mb );
+		const auto		uncompressed = GenRandomArray( 2_MiB );
 		Array<ubyte>	file_data;
 
 		// compress
@@ -276,7 +276,7 @@ namespace
 
 	static void  ZStdStream_Test4 ()
 	{
-		const auto		uncompressed = GenRandomArray( 2_Mb );
+		const auto		uncompressed = GenRandomArray( 2_MiB );
 		Array<ubyte>	file_data;
 
 		// compress
@@ -494,8 +494,8 @@ namespace
 	template <typename RStream, typename WStream>
 	static void  Stream_Test1 ()
 	{
-		const ulong	file_size	= 128ull << 20;	// Mb
-		const uint	buf_size	= 4u << 10;		// Kb
+		const ulong	file_size	= 128ull << 20;	// MiB
+		const uint	buf_size	= 4u << 10;		// KiB
 		StaticAssert( IsMultipleOf( file_size, buf_size ));
 
 		const Path		fname {"stream1_data.bin"};
@@ -565,7 +565,7 @@ namespace
 		{
 			WStream		wfile { fname, WStream::EMode::OpenAppend };
 			TEST( wfile.IsOpen() );
-			
+
 			ulong	buf [buf_size / sizeof(ulong)];
 			for (usize i = 0; i < CountOf(buf); ++i) {
 				buf[i] = i + CountOf(buf);
@@ -578,7 +578,7 @@ namespace
 			RStream		rfile {fname};
 			TEST( rfile.IsOpen() );
 			TEST_Eq( rfile.Size(), Bytes{buf_size*2} );
-			
+
 			ulong	buf [buf_size / sizeof(ulong)];
 
 			for (usize j = 0; j < CountOf(buf)*2;)
@@ -691,7 +691,7 @@ extern void UnitTest_DataSource (const Path &curr)
 		Stream_Test1< WinFileRStream,		WinFileWStream		>();
 		Stream_Test1< StdFileRStream,		WinFileWStream		>();
 		Stream_Test1< WinFileRStream,		StdFileWStream		>();
-		
+
 		Stream_Test2< WinFileRStream,		WinFileWStream		>();
 		Stream_Test2< StdFileRStream,		WinFileWStream		>();
 		Stream_Test2< WinFileRStream,		StdFileWStream		>();
@@ -705,7 +705,7 @@ extern void UnitTest_DataSource (const Path &curr)
 		Stream_Test1< UnixFileRStream,		UnixFileWStream		>();
 		Stream_Test1< StdFileRStream,		UnixFileWStream		>();
 		Stream_Test1< UnixFileRStream,		StdFileWStream		>();
-		
+
 		Stream_Test2< UnixFileRStream,		UnixFileWStream		>();
 		Stream_Test2< StdFileRStream,		UnixFileWStream		>();
 		Stream_Test2< UnixFileRStream,		StdFileWStream		>();

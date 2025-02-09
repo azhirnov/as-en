@@ -9,17 +9,23 @@
 # pragma once
 #endif
 
-ND_ float4  Blur5 (gl::CombinedTex2D<float> image, float2 uv, float2 invResolution, float2 direction);
-ND_ float4  Blur9 (gl::CombinedTex2D<float> image, float2 uv, float2 invResolution, float2 direction);
-ND_ float4  Blur13 (gl::CombinedTex2D<float> image, float2 uv, float2 invResolution, float2 direction);
+// two-pass version
+ND_ float4  Blur5 (gl::CombinedTex2D<float> image, float2 uv, float2 invImageDim, float2 direction);		// 3 samples
+ND_ float4  Blur9 (gl::CombinedTex2D<float> image, float2 uv, float2 invImageDim, float2 direction);		// 5 samples
+ND_ float4  Blur13 (gl::CombinedTex2D<float> image, float2 uv, float2 invImageDim, float2 direction);		// 7 samples
+
+ND_ float4  Blur5v2 (gl::CombinedTex2D<float> image, float2 uv, float2 invImageDim, float2 direction);		// 9 samples
+
+// single-pass version
+ND_ float4  Blur5Ref (gl::CombinedTex2D<float> image, const int2 center);									// 100 samples
 //-----------------------------------------------------------------------------
 
 
-// On TBDR it faster than 2 pass blur
-float4  Blur5v2 (gl::CombinedTex2D<float> image, float2 uv, float2 invResolution, float2 direction)
+// without linear filtering
+float4  Blur5v2 (gl::CombinedTex2D<float> image, float2 uv, float2 invImageDim, float2 direction)
 {
 	const float		weights [5] = { 0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216 };
-	const float2	tex_offset	= direction / invResolution;
+	const float2	tex_offset	= direction / invImageDim;
 	float4			color		= gl.texture.Sample( image, uv ) * weights[0];
 
 	for (int i = 1; i < 5; ++i) {
@@ -28,6 +34,40 @@ float4  Blur5v2 (gl::CombinedTex2D<float> image, float2 uv, float2 invResolution
 	}
 	return color;
 }
+
+
+float4  Blur5Ref (gl::CombinedTex2D<float> image, const int2 center)
+{
+	const float GaussianBlurKernel[5][5] =
+	{
+		{0.00390625, 0.01562500, 0.02343750, 0.01562500, 0.00390625},
+		{0.01562500, 0.06250000, 0.09375000, 0.06250000, 0.01562500},
+		{0.02343750, 0.09375000, 0.14062500, 0.09375000, 0.02343750},
+		{0.01562500, 0.06250000, 0.09375000, 0.06250000, 0.01562500},
+		{0.00390625, 0.01562500, 0.02343750, 0.01562500, 0.00390625}
+	};
+
+	float4	blur = float4(0.0);
+
+	for (int y = 0; y < 5; ++y)
+	{
+		for (int x = 0; x < 5; ++x)
+		{
+			int2	pos  = center + int2(x-2, y-2) * 2;
+			float4	col0 = gl.texture.Fetch( image, pos + int2(0,0), 0 );
+			float4	col1 = gl.texture.Fetch( image, pos + int2(1,0), 0 );
+			float4	col2 = gl.texture.Fetch( image, pos + int2(0,1), 0 );
+			float4	col3 = gl.texture.Fetch( image, pos + int2(1,1), 0 );
+
+		//	float4	col  = Max( Max( col0, col1 ), Max( col2, col3 ));
+			float4	col  = (col0 + col1 + col2 + col3) * 0.25;
+
+			blur += col * GaussianBlurKernel[x][y];
+		}
+	}
+	return blur;
+}
+
 
 // TODO:
 //	Kawase blur, dual filtering (https://web.archive.org/web/20230527032549/https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-20-66/siggraph2015_2D00_mmg_2D00_marius_2D00_slides.pdf)

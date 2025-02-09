@@ -4,11 +4,6 @@ android {
 	namespace  'AE.RmG.Device'
 	compileSdk 34
 
-	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_8
-		targetCompatibility JavaVersion.VERSION_1_8
-	}
-
 	defaultConfig {
 		applicationId 		'AE.RmG.Device'
 		minSdkVersion 		24 // 24+ for vulkan
@@ -36,7 +31,7 @@ android {
 		}
 	}
 
-    ndkVersion "26.3.11579264"
+	ndkVersion "26.3.11579264"
 
 	externalNativeBuild {
 		cmake {
@@ -53,6 +48,11 @@ android {
 		resources  {
 			excludes += '**/*.kotlin_*'
 		}
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_18
+		targetCompatibility JavaVersion.VERSION_18
 	}
 }
 

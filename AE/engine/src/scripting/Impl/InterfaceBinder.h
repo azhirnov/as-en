@@ -96,6 +96,7 @@ namespace AE::Scripting
 		String	signature;
 		MemberFunction<Func>::GetDescriptor( INOUT signature, name );
 
+		Unused( methodPtr );
 		AS_CHECK_THROW( GetASEngine()->RegisterInterfaceMethod( _name.c_str(), signature.c_str() ));
 	}
 

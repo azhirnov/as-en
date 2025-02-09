@@ -5,7 +5,7 @@
 #include "base/Math/Vec.h"
 #include "base/Math/PhysicalQuantity.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -74,6 +74,10 @@ namespace AE::Math
 		template <typename S>
 		PhysicalQuantityVec (const TPhysicalQuantityVec<2, Value_t, Dimension_t, S, Q> &other) __NE___ : QVec_t{other.x, other.y} {}
 
+		template <typename T, typename S, glm::qualifier Q2>
+		explicit PhysicalQuantityVec (const TPhysicalQuantityVec<2, T, Dimension_t, S, Q2> &other) __NE___ :
+			QVec_t{ Quantity{other.x}, Quantity{other.y} } {}
+
 		PhysicalQuantityVec (Value_t X, Value_t Y)			__NE___ : QVec_t{Quantity{X}, Quantity{Y}} {}
 		PhysicalQuantityVec (Quantity X, Quantity Y)		__NE___ : QVec_t{X,Y} {}
 
@@ -111,6 +115,10 @@ namespace AE::Math
 		template <typename S>
 		PhysicalQuantityVec (const TPhysicalQuantityVec<3, Value_t, Dimension_t, S, Q> &other) __NE___ : QVec_t{other.x, other.y, other.z} {}
 
+		template <typename T, typename S, glm::qualifier Q2>
+		explicit PhysicalQuantityVec (const TPhysicalQuantityVec<3, T, Dimension_t, S, Q2> &other) __NE___ :
+			QVec_t{ Quantity{other.x}, Quantity{other.y}, Quantity{other.z} } {}
+
 		PhysicalQuantityVec (Value_t X, Value_t Y, Value_t Z)		__NE___	: QVec_t{Quantity{X}, Quantity{Y}, Quantity{Z}} {}
 		PhysicalQuantityVec (Quantity X, Quantity Y, Quantity Z)	__NE___	: QVec_t{X,Y,Z} {}
 
@@ -147,6 +155,10 @@ namespace AE::Math
 
 		template <typename S>
 		PhysicalQuantityVec (const TPhysicalQuantityVec<4, Value_t, Dimension_t, S, Q> &other) __NE___ : QVec_t{other.x, other.y, other.z, other.w} {}
+
+		template <typename T, typename S, glm::qualifier Q2>
+		explicit PhysicalQuantityVec (const TPhysicalQuantityVec<4, T, Dimension_t, S, Q2> &other) __NE___ :
+			QVec_t{ Quantity{other.x}, Quantity{other.y}, Quantity{other.z}, Quantity{other.w} } {}
 
 		PhysicalQuantityVec (Value_t X, Value_t Y, Value_t Z, Value_t W)		__NE___	: QVec_t{Quantity{X}, Quantity{Y}, Quantity{Z}, Quantity{W}} {}
 		PhysicalQuantityVec (Quantity X, Quantity Y, Quantity Z, Quantity W)	__NE___ : QVec_t{X,Y,Z,W} {}
@@ -193,7 +205,7 @@ namespace AE::Math
 			  typename		 ValueScale	= PhysicalQuantity_Scale::Integer< typename VecType::value_type, 1 >,
 			  glm::qualifier Q			= GLMSimdQualifier
 			 >
-	using PhysicalQuantity_FromVec = typename Math::_hidden_::_PhysicalQuantity_FromVec< VecType, Dimension, ValueScale, Q >::type;
+	using PhysicalQuantity_FromVec = typename Base::_hidden_::_PhysicalQuantity_FromVec< VecType, Dimension, ValueScale, Q >::type;
 
 /*
 =================================================
@@ -353,8 +365,8 @@ namespace _hidden_
 	template <int VecLength, typename ValueType,
 			  typename LhsDim, typename LhsScale, typename RhsDim, typename RhsScale, glm::qualifier Q
 			 >
-	ND_ auto  operator * (const TPhysicalQuantityVec< VecLength, ValueType, LhsDim, LhsScale, Q >&  lhs,
-						  const PhysicalQuantity< ValueType, RhsDim, RhsScale >                     rhs) __NE___
+	ND_ auto  operator * (const TPhysicalQuantityVec< VecLength, ValueType, LhsDim, LhsScale, Q >&	lhs,
+						  const PhysicalQuantity< ValueType, RhsDim, RhsScale >						rhs) __NE___
 	{
 		using Scale = PhysicalQuantity_Scale::template Mul< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Mul<RhsDim>, Scale >;
@@ -560,8 +572,8 @@ namespace _hidden_
 		using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
-		return Type{ Distance(	Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
-								Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
+		return Type{ Distance(	Base::_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
+								Base::_hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
 	}
 
 /*
@@ -577,8 +589,8 @@ namespace _hidden_
 		using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
 		using Type	= PhysicalQuantity< ValueType, Dimension, PhysicalQuantity_Scale::template Pow< Scale, 2 > >;
 
-		return Type{ DistanceSq( Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
-								  Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
+		return Type{ DistanceSq( Base::_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
+								  Base::_hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
 	}
 
 /*
@@ -654,12 +666,9 @@ namespace _hidden_
 		}
 		return ret;
 	}
+//-----------------------------------------------------------------------------
 
-} // AE::Math
 
-
-namespace AE::Base
-{
 	template <typename Qt, int I, glm::qualifier Ql>
 	struct TMemCopyAvailable< PhysicalQuantityVec<Qt,I,Ql> >	: CT_Bool< IsMemCopyAvailable<Qt> >{};
 

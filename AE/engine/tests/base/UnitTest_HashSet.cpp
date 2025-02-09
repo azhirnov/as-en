@@ -139,8 +139,8 @@ namespace
 
 		T::ClearStatistic();
 		{
-			Set<T>			set;
-			constexpr uint	count = 10;
+			Set<T>		            set;
+			static constexpr uint	count = 10;
 
 			for (uint i = 0; i < count; ++i) {
 				set.insert( T(i) );

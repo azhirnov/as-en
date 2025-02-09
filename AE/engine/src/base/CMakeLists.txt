@@ -1,18 +1,30 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-file( GLOB_RECURSE HPP_SOURCES "*.h" )
+set( EXP_DIR "${MAIN_SOURCE_DIR}/engine/_experimental/base" )
+
+file( GLOB_RECURSE HPP_SOURCES	"*.h" )
+file( GLOB_RECURSE HPP_EXP		"${EXP_DIR}/*.h" )
+
 if (NOT (DEFINED ENGINE_LIBS_PATH))
-	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
+	file( GLOB_RECURSE CPP_SOURCES	"*.cpp" )
+	file( GLOB_RECURSE CPP_EXP		"${EXP_DIR}/*.cpp" )
 endif()
 if (MSVC OR APPLE)
 	file( GLOB_RECURSE OBJC_SOURCES "*.mm" )
+	file( GLOB_RECURSE OBJC_EXP		"${EXP_DIR}/*.mm" )
 endif()
-set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} ${OBJC_SOURCES} )
 
-add_library( "Base" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} )
+set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} ${OBJC_SOURCES} )
+set( EXP_SOURCES ${HPP_EXP} ${CPP_EXP} ${OBJC_EXP} )
+
+add_library( "Base" STATIC ${SOURCES} ${EXP_SOURCES} ${PREBUILD_CPP_FILE} )
+
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
+source_group( TREE ${EXP_DIR} FILES ${EXP_SOURCES} )
+
+target_include_directories( "Base" PUBLIC ".." "${EXP_DIR}/.." )
+
 set_property( TARGET "Base" PROPERTY FOLDER "Engine" )
-target_include_directories( "Base" PUBLIC ".." )
 target_link_libraries( "Base" PUBLIC "ProjectTemplate" )
 
 if (TARGET "GLM-lib")
@@ -73,7 +85,7 @@ if (APPLE)
 	target_link_libraries( "Base" PRIVATE ${COCOA_LIBRARY} )
 endif()
 
-target_compile_definitions( "Base" PUBLIC FP_FAST_FMA FP_FAST_FMAF FP_FAST_FMAL )
+target_compile_definitions( "Base" PUBLIC FP_FAST_FMA FP_FAST_FMAF FP_FAST_FMAL )	# TODO: remove
 
 EnablePCH( "Base" )
 EnablePrebuild( "Base" )

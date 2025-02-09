@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "SamplerPack.h"
-#include "graphics/Private/EnumToString.h"
+#include "graphics_rhi/Private/EnumToString.h"
 
 #ifdef AE_BUILD_PIPELINE_COMPILER
 # include "ScriptObjects/ObjectStorage.h"

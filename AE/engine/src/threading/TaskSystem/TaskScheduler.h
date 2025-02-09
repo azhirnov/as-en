@@ -63,17 +63,17 @@ namespace AE
 {
 	Threading::TaskScheduler&  Scheduler () __NE___;
 
-#ifdef AE_DEBUG
-	static constexpr AE::Base::minutes		DefaultTimeout	{60};	// 60 min - for debugging
+#ifndef AE_CFG_RELEASE
+	static constexpr Base::minutes		DefaultTimeout	{60};	// 60 min - for debugging
 #else
-	static constexpr AE::Base::milliseconds	DefaultTimeout	{500};	// 0.5 sec
+	static constexpr Base::milliseconds	DefaultTimeout	{500};	// 0.5 sec
 #endif
 }
 
 namespace AE::Threading
 {
 	enum class EThreadSeed : usize {};
-	enum class ECpuCoreId  : ubyte  { Unknown = 0xFF };
+	enum class ECpuCoreId  : ubyte  { Unknown = 0xFF };		// logical core for SMT/hyperthreding
 
 
 	//
@@ -126,9 +126,6 @@ namespace AE::Threading
 		// only for debugging
 		DEBUG_ONLY(
 			virtual void  DbgDetectDeadlock (const CheckDepFn_t &)							__NE___ {};)
-
-		// helper functions
-		static void  _SetDependencyCompletionStatus (IAsyncTask &task, uint depIndex, Bool isCanceled = False{}) __NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -324,6 +321,16 @@ namespace AE::Threading
 			AsyncTask     Run (CoroTask					coro,
 							   const Tuple<Deps...> &	deps	= Default)			__NE___;
 
+		template <typename ...Deps>
+			AsyncTask     Run (ETaskQueue				queueType,
+							   CancelledCoro			coro,
+							   const Tuple<Deps...> &	deps	= Default,
+							   StringView				dbgName	= Default)			__NE___;
+
+		template <typename ...Deps>
+			AsyncTask     Run (CancelledCoro			coro,
+							   const Tuple<Deps...> &	deps	= Default)			__NE___;
+
 		template <typename T,
 				  typename ...Deps
 				 >
@@ -397,7 +404,7 @@ namespace AE::Threading
 		ND_ static bool	 _IsAllComplete (ArrayView<AsyncTask> tasks)				__NE___;
 
 		template <usize I, typename ...Args>
-		ND_ constexpr bool  _AddDependencies (const AsyncTask &task, const Tuple<Args...> &args, INOUT uint &bitIndex)		__NE___;
+		NdCx__ bool  _AddDependencies (const AsyncTask &task, const Tuple<Args...> &args, INOUT uint &bitIndex)		__NE___;
 
 		template <typename T>
 		ND_ bool  _AddCustomDependency (const AsyncTask &task, const T &dep, INOUT uint &bitIndex)							__NE___;
@@ -513,6 +520,26 @@ namespace AE::Threading
 		return Run( ETaskQueue::PerFrame, RVRef(coro), deps );
 	}
 
+
+	template <typename ...Deps>
+	AsyncTask  TaskScheduler::Run (ETaskQueue queueType, CancelledCoro coro, const Tuple<Deps...> &deps, StringView dbgName) __NE___
+	{
+		CHECK_ERR( coro );
+		coro._InitCoro( queueType, dbgName );
+
+		AsyncTask	task = AsyncTask{coro};
+
+		CHECK_ERR( Run( task, deps ), GetCanceledTask() );
+		return task;
+	}
+
+	template <typename ...Deps>
+	AsyncTask  TaskScheduler::Run (CancelledCoro coro, const Tuple<Deps...> &deps) __NE___
+	{
+		return Run( ETaskQueue::PerFrame, RVRef(coro), deps );
+	}
+
+
 	template <typename T, typename ...Deps>
 	Coroutine<T>  TaskScheduler::Run (ETaskQueue queueType, Coroutine<T> coro, const Tuple<Deps...> &deps, StringView dbgName) __NE___
 	{
@@ -558,19 +585,19 @@ namespace AE::Threading
 			using T = typename TypeList< Args... >::template Get<I>;
 
 			// current task will start anyway, regardless of whether dependent tasks are canceled
-			if constexpr( IsSameTypes< T, WeakDep >) {
+			if constexpr( IsSame< T, WeakDep >) {
 				if_unlikely( not _AddTaskDependencies( task, args.template Get<I>()._task, False{"weak"}, INOUT bitIndex )) return false;
 			}else
-			if constexpr( IsSameTypes< T, WeakDepArray >)
+			if constexpr( IsSame< T, WeakDepArray >)
 				for (auto& dep : args.template Get<I>()) {
 					if_unlikely( not _AddTaskDependencies( task, dep, False{"weak"}, INOUT bitIndex )) return false;
 				}
 			else
 			// current task will be canceled if one of dependent task are canceled
-			if constexpr( IsSameTypes< T, StrongDep >) {
+			if constexpr( IsSame< T, StrongDep >) {
 				if_unlikely( not _AddTaskDependencies( task, args.template Get<I>()._task, True{"strong"}, INOUT bitIndex )) return false;
 			}else
-			if constexpr( IsSameTypes< T, StrongDepArray > or IsSameTypes< T, ArrayView<AsyncTask> >)
+			if constexpr( IsSame< T, StrongDepArray > or IsSame< T, ArrayView<AsyncTask> >)
 				for (auto& dep : args.template Get<I>()) {
 					if_unlikely( not _AddTaskDependencies( task, dep, True{"strong"}, INOUT bitIndex )) return false;
 				}
@@ -686,7 +713,7 @@ namespace AE::Threading
 						 StringView				dbgName,
 						 ETaskQueue				queueType) __NE___
 	{
-		auto	task = MakeRC<AsyncTaskFn>( FwdArg<Fn>(fn), dbgName, queueType );
+		auto	task = MakeRC< AsyncTaskFn >( FwdArg<Fn>(fn), dbgName, queueType );
 		Scheduler().Run( AsyncTask{task}, dependsOn );
 		return RVRef(task);
 	}

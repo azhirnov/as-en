@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -17,9 +17,9 @@
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject", "UnifiedGeometryMaterialUB" );
-			ds.CombinedImage( EShaderStages::Vertex,	"un_HeightMap", EImageType::FImage2D, Sampler_LinearClamp );	// external
-			ds.CombinedImage( EShaderStages::Fragment,	"un_NormalMap", EImageType::FImage2D, Sampler_LinearClamp );	// external
-			ds.CombinedImage( EShaderStages::Fragment,	"un_Palette",	EImageType::FImage2D, Sampler_LinearClamp );	// external
+			ds.CombinedImage( EShaderStages::Vertex,	"un_HeightMap", EImageType::Float_2D, Sampler_LinearClamp );	// external
+			ds.CombinedImage( EShaderStages::Fragment,	"un_NormalMap", EImageType::Float_2D, Sampler_LinearClamp );	// external
+			ds.CombinedImage( EShaderStages::Fragment,	"un_Palette",	EImageType::Float_2D, Sampler_LinearClamp );	// external
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl" );
 			pl.DSLayout( "pass",	 0, "pass.ds" );
@@ -90,7 +90,7 @@
 #ifdef SH_FRAG
 	#include "Color.glsl"
 	#include "Normal.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	void Main ()
 	{

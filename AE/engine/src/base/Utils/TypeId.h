@@ -16,17 +16,17 @@ namespace AE::Base::_hidden_
 		usize	_value;
 
 	public:
-		constexpr StaticTypeID ()									__NE___ : _value{~usize{0}} {}
+		__Cx__ StaticTypeID ()								__NE___ : _value{~usize{0}} {}
 
-		ND_ constexpr bool  operator == (StaticTypeID<UID> rhs)		C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool  operator != (StaticTypeID<UID> rhs)		C_NE___	{ return _value != rhs._value; }
-		ND_ constexpr bool  operator >  (StaticTypeID<UID> rhs)		C_NE___	{ return _value >  rhs._value; }
-		ND_ constexpr bool  operator <  (StaticTypeID<UID> rhs)		C_NE___	{ return _value <  rhs._value; }
-		ND_ constexpr bool  operator >= (StaticTypeID<UID> rhs)		C_NE___	{ return _value >= rhs._value; }
-		ND_ constexpr bool  operator <= (StaticTypeID<UID> rhs)		C_NE___	{ return _value <= rhs._value; }
+		NdCx__ bool  operator == (StaticTypeID<UID> rhs)	C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool  operator != (StaticTypeID<UID> rhs)	C_NE___	{ return _value != rhs._value; }
+		NdCx__ bool  operator >  (StaticTypeID<UID> rhs)	C_NE___	{ return _value >  rhs._value; }
+		NdCx__ bool  operator <  (StaticTypeID<UID> rhs)	C_NE___	{ return _value <  rhs._value; }
+		NdCx__ bool  operator >= (StaticTypeID<UID> rhs)	C_NE___	{ return _value >= rhs._value; }
+		NdCx__ bool  operator <= (StaticTypeID<UID> rhs)	C_NE___	{ return _value <= rhs._value; }
 
-		ND_ constexpr usize			Get ()							C_NE___	{ return _value; }
-		ND_ constexpr StringView	Name ()							C_NE___	{ return ""; }
+		NdCx__ usize		Get ()							C_NE___	{ return _value; }
+		NdCx__ StringView	Name ()							C_NE___	{ return ""; }
 	};
 
 	template <uint UID>
@@ -161,4 +161,4 @@ namespace AE::Base
 
 } // AE::Base
 
-#endif
+#endif // AE_ENABLE_RTTI

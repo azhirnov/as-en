@@ -9,7 +9,7 @@
 #include "base/Math/Byte.h"
 #include "base/Utils/Helpers.h"
 #include "base/Memory/MemUtils.h"
-#include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/ToString.h"
 #include "base/Containers/ArrayView.h"
 #include "base/Math/Random.h"
 #include "base/Platforms/ThreadUtils.h"
@@ -44,8 +44,8 @@ namespace LFAS
 	using AE::Base::OffsetOf;
 	using AE::Base::RVRef;
 
-	using AE::Math::Random;
-	using AE::Math::Max;
+	using AE::Base::Random;
+	using AE::Base::Max;
 	using AE::Base::FwdArg;
 
 } // LFAS

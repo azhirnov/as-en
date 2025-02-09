@@ -13,6 +13,9 @@
 #ifdef AE_RTAS_BUILD
 # ifndef AccelStructInstance_defined
 #	define AccelStructInstance_defined
+
+	// VkAccelerationStructureInstanceKHR
+	// AE::Graphics::RTSceneBuild::InstanceVk
 	struct AccelStructInstance
 	{
 		float3x4			transform;							// 3x4 row-major affine transformation matrix
@@ -74,6 +77,9 @@
 #ifdef AE_RTAS_BUILD
 # ifndef ASBuildIndirectCommand_defined
 #	define ASBuildIndirectCommand_defined
+
+	// VkAccelerationStructureBuildRangeInfoKHR
+	// AE::Graphics::ASBuildIndirectCommand
 	struct ASBuildIndirectCommand
 	{
 		// Triangles count, AABBs count, Instances count
@@ -120,7 +126,130 @@
 
 
 
-#if defined(SH_RAY_GEN) || defined(SH_RAY_CHIT) || defined(SH_RAY_MISS) || defined(AE_ray_query)
+#ifdef AE_RTAS_BUILD
+# ifndef PTLAS_WriteInstance_defined
+#	define PTLAS_WriteInstance_defined
+
+	// VkPartitionedAccelerationStructureWriteInstanceDataNV
+	// AE::Graphics::RTPartitionedSceneBuild::WriteInstanceVk
+	struct PTLAS_WriteInstance
+	{
+		float3x4			transform;				// 3x4 row-major affine transformation matrix
+		float				explicitAABB_minX;
+		float				explicitAABB_minY;
+		float				explicitAABB_minZ;
+		float				explicitAABB_maxX;
+		float				explicitAABB_maxY;
+		float				explicitAABB_maxZ;
+		uint				instanceCustomIndex;
+		uint				instanceMask;
+		uint				instanceSBTOffset;
+		uint				instanceFlags;			// ERTInstanceOpt | VkPartitionedAccelerationStructureInstanceFlagsNV
+		uint				instanceIndex;
+		uint				partitionIndex;
+		gl::DeviceAddress	rtas;
+	};
+# endif
+
+# ifndef PTLAS_UpdateInstance_defined
+#	define PTLAS_UpdateInstance_defined
+
+	// VkPartitionedAccelerationStructureUpdateInstanceDataNV
+	// AE::Graphics::RTPartitionedSceneBuild::UpdateInstanceVk
+	struct PTLAS_UpdateInstance
+	{
+		uint				instanceIndex;
+		uint				instanceSBTOffset;
+		gl::DeviceAddress	rtas;
+	};
+# endif
+
+# ifndef PTLAS_WritePartitionTranslation_defined
+#	define PTLAS_WritePartitionTranslation_defined
+
+	// VkPartitionedAccelerationStructureWritePartitionTranslationDataNV
+	// AE::Graphics::RTPartitionedSceneBuild::UpdateInstanceVk
+	struct PTLAS_WritePartitionTranslation
+	{
+		uint		partitionIndex;
+		float		partitionTranslationX;
+		float		partitionTranslationY;
+		float		partitionTranslationZ;
+	};
+# endif
+
+/*
+=================================================
+	PTLASWriteInstance_Create
+=================================================
+*/
+	ND_ PTLAS_WriteInstance  PTLASWriteInstance_Create (float3x4			transform,
+														float3				explicitAABB_min,
+														float3				explicitAABB_max,
+														uint				instanceCustomIndex,
+														uint				instanceMask,
+														uint				instanceSBTOffset,
+														uint				instanceFlags,
+														uint				instanceIndex,
+														uint				partitionIndex,
+														gl::DeviceAddress	rtas)
+	{
+		PTLAS_WriteInstance		result;
+		result.transform			= transform;
+		result.explicitAABB_minX	= explicitAABB_min.x;
+		result.explicitAABB_minY	= explicitAABB_min.y;
+		result.explicitAABB_minZ	= explicitAABB_min.z;
+		result.explicitAABB_maxX	= explicitAABB_max.x;
+		result.explicitAABB_maxY	= explicitAABB_max.y;
+		result.explicitAABB_maxZ	= explicitAABB_max.z;
+		result.instanceCustomIndex	= instanceCustomIndex;
+		result.instanceMask			= instanceMask;
+		result.instanceSBTOffset	= instanceSBTOffset;
+		result.instanceFlags		= instanceFlags;
+		result.instanceIndex		= instanceIndex;
+		result.partitionIndex		= partitionIndex;
+		result.rtas					= rtas;
+		return result;
+	}
+
+/*
+=================================================
+	PTLASUpdateInstance_Create
+=================================================
+*/
+	ND_ PTLAS_UpdateInstance  PTLASUpdateInstance_Create (uint				instanceIndex,
+														  uint				instanceSBTOffset,
+														  gl::DeviceAddress	rtas)
+	{
+		PTLAS_UpdateInstance	result;
+		result.instanceIndex		= instanceIndex;
+		result.instanceSBTOffset	= instanceSBTOffset;
+		result.rtas					= rtas;
+		return result;
+	}
+
+/*
+=================================================
+	PTLASWritePartitionTranslation_Create
+=================================================
+*/
+	ND_ PTLAS_WritePartitionTranslation  PTLASWritePartitionTranslation_Create (uint	partitionIndex,
+																				float3	partitionTranslation)
+	{
+		PTLAS_WritePartitionTranslation		result;
+		result.partitionIndex			= partitionIndex;
+		result.partitionTranslationX	= partitionTranslation.x;
+		result.partitionTranslationY	= partitionTranslation.y;
+		result.partitionTranslationZ	= partitionTranslation.z;
+		return result;
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+
+
+
+#if defined(SH_RAY_GEN) or defined(SH_RAY_CHIT) or defined(SH_RAY_MISS) or defined(AE_ray_query)
 
 	#include "Ray.glsl"
 
@@ -181,7 +310,7 @@
 
 
 
-#if defined(SH_RAY_GEN) || defined(SH_RAY_CHIT) || defined(SH_RAY_MISS)
+#if defined(SH_RAY_GEN) or defined(SH_RAY_CHIT) or defined(SH_RAY_MISS)
 /*
 =================================================
 	TraceRay

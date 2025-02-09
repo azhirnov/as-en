@@ -26,7 +26,7 @@ namespace
 		info.inPipelines		= rpass_dir;
 		info.inPipelineCount	= CountOf( rpass_dir );
 		info.outputPackName		= Cast<CharType>(output.c_str());
-		info.addNameMapping		= true;
+		info.flags				= EPipelineCompilerFlags::AddNameMapping;
 
 		TEST( compile_pipelines( &info ));
 

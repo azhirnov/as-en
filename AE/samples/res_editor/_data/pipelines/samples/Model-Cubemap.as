@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define FS_TEXTURING
 #	define FS_FLAT_SHADING
 //#	define GEN_NORMALS
@@ -89,14 +89,9 @@
 
 	void Main ()
 	{
-	  #if 1
-		uint		idx			= gl.InstanceIndex / un_Nodes.instanceCount;
-		int			face		= int(gl.InstanceIndex - idx);
-	  #else
-		// requires AE_shader_draw_parameters
-		uint		idx			= gl.BaseInstance;
-		int			face		= gl.InstanceIndex - gl.BaseInstance;
-	  #endif
+		// TODO: use power of 2
+		const uint	idx			= gl.InstanceIndex / un_Nodes.instanceCount;
+		const int	face		= int(gl.InstanceIndex - idx * un_Nodes.instanceCount);
 
 		ModelNode	node		= un_Nodes.elements[idx];
 		float4		world_pos	= LocalPosToWorldSpace( node.transform * float4( in_Position, 1.0f ));

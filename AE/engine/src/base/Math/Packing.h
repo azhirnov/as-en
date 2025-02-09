@@ -2,11 +2,10 @@
 
 #pragma once
 
-#include "base/Math/Float16.h"
 #include "base/Math/Vec.h"
 #include "base/Math/Rectangle.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 /*
@@ -14,7 +13,7 @@ namespace AE::Math
 	unorm16 -> float
 =================================================
 */
-	ND_ inline constexpr float  UNormShortToFloat (ushort value) __NE___
+	NdCxIn float  UNormShortToFloat (ushort value) __NE___
 	{
 		return float(value) * 1.5259021896696421759365224689097e-5f;
 	}
@@ -29,7 +28,7 @@ namespace AE::Math
 		return res;
 	}
 
-	ND_ inline constexpr Rectangle<float>  UNormShortToFloat (const Rectangle<ushort> &value) __NE___
+	NdCxIn Rectangle<float>  UNormShortToFloat (const Rectangle<ushort> &value) __NE___
 	{
 		return Rectangle<float>{ UNormShortToFloat( value.left ),	UNormShortToFloat( value.top ),
 								 UNormShortToFloat( value.right ),	UNormShortToFloat( value.bottom )};
@@ -40,7 +39,7 @@ namespace AE::Math
 	float -> unorm16
 =================================================
 */
-	ND_ inline constexpr ushort  FloatToUNormShort (float value) __NE___
+	NdCxIn ushort  FloatToUNormShort (float value) __NE___
 	{
 		return ushort(value * 65535.0f);
 	}
@@ -55,7 +54,7 @@ namespace AE::Math
 		return res;
 	}
 
-	ND_ inline constexpr Rectangle<ushort>  FloatToUNormShort (const Rectangle<float> &value) __NE___
+	NdCxIn Rectangle<ushort>  FloatToUNormShort (const Rectangle<float> &value) __NE___
 	{
 		return Rectangle<ushort>{ FloatToUNormShort( value.left ),	FloatToUNormShort( value.top ),
 								  FloatToUNormShort( value.right ),	FloatToUNormShort( value.bottom )};
@@ -66,7 +65,7 @@ namespace AE::Math
 	snorm16 -> float
 =================================================
 */
-	ND_ inline constexpr float  SNormShortToFloat (sshort value) __NE___
+	NdCxIn float  SNormShortToFloat (sshort value) __NE___
 	{
 		return float(value) * 3.0518509475997192297128208258309e-5f;
 	}
@@ -81,7 +80,7 @@ namespace AE::Math
 		return res;
 	}
 
-	ND_ inline constexpr Rectangle<float>  SNormShortToFloat (const Rectangle<sshort> &value) __NE___
+	NdCxIn Rectangle<float>  SNormShortToFloat (const Rectangle<sshort> &value) __NE___
 	{
 		return Rectangle<float>{ SNormShortToFloat( value.left ),	SNormShortToFloat( value.top ),
 								 SNormShortToFloat( value.right ),	SNormShortToFloat( value.bottom )};
@@ -92,7 +91,7 @@ namespace AE::Math
 	float -> snorm16
 =================================================
 */
-	ND_ inline constexpr sshort  FloatToSNormShort (float value) __NE___
+	NdCxIn sshort  FloatToSNormShort (float value) __NE___
 	{
 		return sshort(value * 32767.0f);
 	}
@@ -107,7 +106,7 @@ namespace AE::Math
 		return res;
 	}
 
-	ND_ inline constexpr Rectangle<sshort>  FloatToSNormShort (const Rectangle<float> &value) __NE___
+	NdCxIn Rectangle<sshort>  FloatToSNormShort (const Rectangle<float> &value) __NE___
 	{
 		return Rectangle<sshort>{ FloatToSNormShort( value.left ),	FloatToSNormShort( value.top ),
 								  FloatToSNormShort( value.right ),	FloatToSNormShort( value.bottom )};
@@ -118,7 +117,7 @@ namespace AE::Math
 	unorm8 -> float
 =================================================
 */
-	ND_ inline constexpr float  UNormByteToFloat (ubyte value) __NE___
+	NdCxIn float  UNormByteToFloat (ubyte value) __NE___
 	{
 		return float(value) * 0.0039215686274509803921568627451f;
 	}
@@ -133,7 +132,7 @@ namespace AE::Math
 		return res;
 	}
 
-	ND_ inline constexpr Rectangle<float>  UNormByteToFloat (const Rectangle<ubyte> &value) __NE___
+	NdCxIn Rectangle<float>  UNormByteToFloat (const Rectangle<ubyte> &value) __NE___
 	{
 		return Rectangle<float>{ UNormByteToFloat( value.left ),	UNormByteToFloat( value.top ),
 								 UNormByteToFloat( value.right ),	UNormByteToFloat( value.bottom )};
@@ -144,7 +143,7 @@ namespace AE::Math
 	float -> unorm8
 =================================================
 */
-	ND_ inline constexpr ubyte  FloatToUNormByte (float value) __NE___
+	NdCxIn ubyte  FloatToUNormByte (float value) __NE___
 	{
 		return ubyte(value * 255.0f);
 	}
@@ -159,7 +158,7 @@ namespace AE::Math
 		return res;
 	}
 
-	ND_ inline constexpr Rectangle<ubyte>  FloatToUNormByte (const Rectangle<float> &value) __NE___
+	NdCxIn Rectangle<ubyte>  FloatToUNormByte (const Rectangle<float> &value) __NE___
 	{
 		return Rectangle<ubyte>{ FloatToUNormByte( value.left ),	FloatToUNormByte( value.top ),
 								 FloatToUNormByte( value.right ),	FloatToUNormByte( value.bottom )};
@@ -170,7 +169,7 @@ namespace AE::Math
 	snorm8 -> float
 =================================================
 */
-	ND_ inline constexpr float  SNormByteToFloat (sbyte value) __NE___
+	NdCxIn float  SNormByteToFloat (sbyte value) __NE___
 	{
 		return float(value) * 0.0078740157480315f;
 	}
@@ -185,7 +184,7 @@ namespace AE::Math
 		return res;
 	}
 
-	ND_ inline constexpr Rectangle<float>  SNormByteToFloat (const Rectangle<sbyte> &value) __NE___
+	NdCxIn Rectangle<float>  SNormByteToFloat (const Rectangle<sbyte> &value) __NE___
 	{
 		return Rectangle<float>{ SNormByteToFloat( value.left ),	SNormByteToFloat( value.top ),
 								 SNormByteToFloat( value.right ),	SNormByteToFloat( value.bottom )};
@@ -196,7 +195,7 @@ namespace AE::Math
 	float -> snorm8
 =================================================
 */
-	ND_ inline constexpr sbyte  FloatToSNormByte (float value) __NE___
+	NdCxIn sbyte  FloatToSNormByte (float value) __NE___
 	{
 		return sbyte(value * 127.0f);
 	}
@@ -211,7 +210,7 @@ namespace AE::Math
 		return res;
 	}
 
-	ND_ inline constexpr Rectangle<sbyte>  FloatToSNormByte (const Rectangle<float> &value) __NE___
+	NdCxIn Rectangle<sbyte>  FloatToSNormByte (const Rectangle<float> &value) __NE___
 	{
 		return Rectangle<sbyte>{ FloatToSNormByte( value.left ),	FloatToSNormByte( value.top ),
 								 FloatToSNormByte( value.right ),	FloatToSNormByte( value.bottom )};
@@ -291,4 +290,4 @@ namespace AE::Math
 	}
 
 
-} // AE::Math
+} // AE::Base

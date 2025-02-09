@@ -4,7 +4,7 @@
 
 #include "base/Math/Byte.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -29,7 +29,7 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr Range ()											__NE___ : begin{}, end{}
+		__Cx__ Range ()											__NE___ : begin{}, end{}
 		{
 		  #ifdef AE_COMPILETIME_OFFSETOF
 			// check if supported cast Rectangle to array
@@ -38,24 +38,24 @@ namespace AE::Math
 		}
 
 		template <typename BT, typename ET>
-		constexpr Range (BT begin, ET end)							__NE___ :
+		__Cx__ Range (BT begin, ET end)							__NE___ :
 			begin{begin}, end{end}
 		{}
 
-		ND_ constexpr T		Offset ()								C_NE___	{ return begin; }
-		ND_ constexpr T		Size ()									C_NE___	{ return end - begin; }
-		ND_ constexpr T		Middle ()								C_NE___	{ return Average( begin, end ); }
+		NdCx__ T		Offset ()								C_NE___	{ return begin; }
+		NdCx__ T		Size ()									C_NE___	{ return end - begin; }
+		NdCx__ T		Middle ()								C_NE___	{ return Average( begin, end ); }
 
-		ND_ constexpr bool	IsEmpty ()								C_NE___	{ return begin == end; }
-		ND_ constexpr bool	IsInvalid ()							C_NE___	{ return end < begin; }
-		ND_ constexpr bool	IsValid ()								C_NE___	{ return not IsInvalid(); }
+		NdCx__ bool		IsEmpty ()								C_NE___	{ return begin == end; }
+		NdCx__ bool		IsInvalid ()							C_NE___	{ return end < begin; }
+		NdCx__ bool		IsValid ()								C_NE___	{ return not IsInvalid(); }
 
-		ND_ constexpr bool	Contains (T value)						C_NE___	{ return (value >= begin) and (value < end); }
+		NdCx__ bool		Contains (T value)						C_NE___	{ return (value >= begin) and (value < end); }
 
-		ND_ constexpr static Self  Max ()							__NE___	{ return Self{ MinValue<T>(), MaxValue<T>() }; }
+		NdCx__ static Self  Max ()								__NE___	{ return Self{ MinValue<T>(), MaxValue<T>() }; }
 
-		ND_ constexpr static Self  From (const Vec<T,2> &v)			__NE___	{ return Self{ v.x, v.y }; }
-		ND_ constexpr static Self  FromOffsetSize (T offset, T size)__NE___	{ return Self{ offset, offset + size }; }
+		NdCx__ static Self  From (const Vec<T,2> &v)			__NE___	{ return Self{ v.x, v.y }; }
+		NdCx__ static Self  FromOffsetSize (T offset, T size)	__NE___	{ return Self{ offset, offset + size }; }
 	};
 
 
@@ -63,14 +63,12 @@ namespace AE::Math
 	using RangeU	= Range<uint>;
 	using RangeF	= Range<float>;
 	using RangeD	= Range<double>;
+//-----------------------------------------------------------------------------
 
-} // AE::Math
 
-
-namespace AE::Base
-{
 	template <typename T>	struct TMemCopyAvailable< Range<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
 	template <typename T>	struct TZeroMemAvailable< Range<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
 	template <typename T>	struct TTriviallySerializable< Range<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
+	template <typename T>	struct TUnwrap< Range<T> >					: TUnwrap<T> {};
 
 } // AE::Base

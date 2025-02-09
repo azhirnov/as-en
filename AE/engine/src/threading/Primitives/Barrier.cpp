@@ -22,7 +22,7 @@ namespace AE::Threading
 */
 	Barrier::Barrier (usize numThreads) __NE___
 	{
-		CHECK( ::InitializeSynchronizationBarrier( OUT _data.Ptr<SYNCHRONIZATION_BARRIER>(), CheckCast<LONG>(numThreads), -1 ));  // win8
+		CHECK( ::InitializeSynchronizationBarrier( OUT _data.Ptr<SYNCHRONIZATION_BARRIER>(), CheckCast<LONG>(numThreads), -1 ) != FALSE );  // win8
 	}
 
 /*
@@ -32,7 +32,7 @@ namespace AE::Threading
 */
 	Barrier::~Barrier () __NE___
 	{
-		CHECK( ::DeleteSynchronizationBarrier( _data.Ptr<SYNCHRONIZATION_BARRIER>() ));  // win8
+		CHECK( ::DeleteSynchronizationBarrier( _data.Ptr<SYNCHRONIZATION_BARRIER>() ) != FALSE );  // win8
 	}
 
 /*
@@ -42,7 +42,7 @@ namespace AE::Threading
 */
 	void  Barrier::Wait () __NE___
 	{
-		::EnterSynchronizationBarrier( _data.Ptr<SYNCHRONIZATION_BARRIER>(), SYNCHRONIZATION_BARRIER_FLAGS_NO_DELETE );  // win8
+		CHECK( ::EnterSynchronizationBarrier( _data.Ptr<SYNCHRONIZATION_BARRIER>(), SYNCHRONIZATION_BARRIER_FLAGS_NO_DELETE ) != FALSE );  // win8
 	}
 
 } // AE::Threading

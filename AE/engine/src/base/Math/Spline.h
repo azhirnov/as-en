@@ -4,7 +4,7 @@
 
 #include "base/Math/Vec.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -41,9 +41,12 @@ namespace AE::Math
 			_c3 = (p3 - p0) / T(6.0) + (p1 - p2) / T(2.0);
 		}
 
-		ND_ Vec_t  operator () (const T a)												C_NE___
+		ND_ Vec_t  operator () (const T a)  C_NE___
 		{
-			return _c0 + (_c1 * a) + (_c2 * a * a) + (_c3 * a * a * a);
+			T		a2  = a * a;
+			Vec_t	c01 = (_c0) + (_c1 * a);
+			Vec_t	c23 = (_c2 * a2) + (_c3 * a2 * a);
+			return T(0.5) * (c01 + c23);
 		}
 	};
 
@@ -83,11 +86,14 @@ namespace AE::Math
 			_c3 = ( -p0 + T(3.0) * p1 - T(3.0) * p2 + p3 );
 		}
 
-		ND_ Vec_t  operator () (const T a)														C_NE___
+		ND_ Vec_t  operator () (const T a)  C_NE___
 		{
-			return T(0.5) * ((_c0) + (_c1 * a) + (_c2 * a * a) + (_c3 * a * a * a));
+			T		a2  = a * a;
+			Vec_t	c01 = (_c0) + (_c1 * a);
+			Vec_t	c23 = (_c2 * a2) + (_c3 * a2 * a);
+			return T(0.5) * (c01 + c23);
 		}
 	};
 
 
-} // AE::Math
+} // AE::Base

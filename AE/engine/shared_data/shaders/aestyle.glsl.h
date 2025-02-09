@@ -11,44 +11,8 @@
 
 #include <type_traits>
 
-#ifdef __INTELLISENSE__
-#	define AE_memory_scope_semantics
-#	define AE_HAS_ATOMICS
-#	define AE_shader_subgroup_basic
-#	define AE_shader_subgroup_vote
-#	define AE_shader_subgroup_ballot
-#	define AE_shader_subgroup_arithmetic
-#	define AE_shader_subgroup_shuffle
-#	define AE_shader_subgroup_shuffle_relative
-#	define AE_shader_subgroup_clustered
-#	define AE_shader_subgroup_quad
-#	define AE_nonuniform_qualifier
-#	define AE_NV_shader_sm_builtins
-#	define AE_ARM_shader_core_builtins
-#	define AE_fragment_shading_rate
-#	define AE_fragment_shader_barycentric
-#	define AE_demote_to_helper_invocation
-
-#	define AE_AMD_GPU
-#	define AE_NVidia_GPU
-#	define AE_Intel_GPU
-#	define AE_ARM_Mali_GPU
-#	define AE_Qualcomm_Adreno_GPU
-#	define AE_IMG_PowerVR_GPU
-#	define AE_Microsoft_GPU
-#	define AE_Apple_GPU
-#	define AE_Mesa_GPU_driver
-#	define AE_Broadcom_GPU
-#	define AE_Samsung_GPU
-#	define AE_VeriSilicon_GPU
-#	define AE_Huawei_GPU
-#endif
-
 #define isinf	_IsInf
 #define isnan	_IsNaN
-
-#define and		&&
-#define or		||
 
 #define highp
 #define mediump
@@ -88,6 +52,11 @@
 #if 1
 #include "aestyle_shared.h"
 
+# ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wundefined-internal"
+# endif
+
 template <typename T>			ND_ T				abs (const T);
 template <typename T>			ND_ T				acos (const T x);						// result in range [0, Pi], undefined if Abs(x) > 1
 template <typename T>			ND_ T				acosh (const T x);						// result is non-negative inverse of cosh, undefined if x < 1
@@ -117,8 +86,8 @@ template <typename T, int I>	ND_ _Vec<T,I>		clamp (const _Vec<T,I> x, const T mi
 template <typename T, int I>	ND_ _Vec<T,I>		clamp (const _Vec<T,I> x, const _Vec<T,I> minVal, const _Vec<T,I> maxVal);
 template <typename T>			ND_ T				cos (const T);
 template <typename T>			ND_ T				cosh (const T);
-								ND_ float3			cross (const float3 x, const float3 y);
-								ND_ double3			cross (const double3 x, const double3 y);
+template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+								ND_ _Vec<T,3>		cross (const _Vec<T,3> x, const _Vec<T,3> y);
 template <typename T>			ND_ T				degrees (const T);
 template <typename T, int I>	ND_ T				distance (const _Vec<T,I>, const _Vec<T,I>);
 template <typename T, int I>	ND_ T				dot (const _Vec<T,I>, const _Vec<T,I>);
@@ -138,8 +107,8 @@ template <typename T>			ND_ T				fract (const T);
 template <typename T>			ND_ T				frexp (const T x, OUT T &exp);
 template <typename T, int I>	ND_ _Vec<bool,I>	greaterThan (const _Vec<T,I> x, const _Vec<T,I> y);
 template <typename T, int I>	ND_ _Vec<bool,I>	greaterThanEqual (const _Vec<T,I> x, const _Vec<T,I> y);
-template <typename T>			ND_ void			umulExtended (const T x, const T y, OUT T &msb, OUT T &lsb);
-template <typename T>			ND_ void			imulExtended (const T x, const T y, OUT T &msb, OUT T &lsb);
+template <typename T>			    void			umulExtended (const T x, const T y, OUT T &msb, OUT T &lsb);
+template <typename T>			    void			imulExtended (const T x, const T y, OUT T &msb, OUT T &lsb);
 								ND_ float			intBitsToFloat (const int);				// inverse floatBitsToInt
 template <int I>				ND_ _Vec<float,I>	intBitsToFloat (const _Vec<int,I>);		// inverse floatBitsToInt
 								ND_ float			uintBitsToFloat (const uint);			// inverse floatBitsToUint
@@ -163,7 +132,11 @@ template <typename T, int I>	ND_ _Vec<T,I>		max (const _Vec<T,I> x, const T y);
 template <typename T>			ND_ T				max (const T x, const T y);
 template <typename T, int I>	ND_ _Vec<T,I>		min (const _Vec<T,I> x, const _Vec<T,I> y);
 template <typename T, int I>	ND_ _Vec<T,I>		min (const _Vec<T,I> x, const T y);
-template <typename T>			ND_ T				min (const T x, const T y);
+
+template <typename A, typename B,
+		  std::enable_if_t< (std::is_scalar_v<A> and std::is_scalar_v<B>), bool > = true>
+								ND_ auto			min (const A x, const B y) -> decltype(A(1) + B(1));
+
 template <typename T, int I>	ND_ _Vec<T,I>		mix (const _Vec<T,I> x, const _Vec<T,I> y, const T a);
 template <typename T>			ND_ T				mix (const T x, const T y, const T a);
 template <typename T, int I>	ND_ _Vec<T,I>		mod (const _Vec<T,I> x, const _Vec<T,I> y);
@@ -171,7 +144,9 @@ template <typename T, int I>	ND_ _Vec<T,I>		mod (const _Vec<T,I> x, const T y);
 template <typename T>			ND_ T				mod (const T x, const T y);
 template <typename T>			ND_ T				modf (const T x, OUT T &i);
 template <typename T, int I>	ND_ _Vec<T,I>		normalize (const _Vec<T,I>);
-template <int I>				ND_ _Vec<bool,I>	not (const _Vec<bool,I>);
+#ifdef __INTELLISENSE__
+	template <int I>			ND_ _Vec<bool,I>	not (const _Vec<bool,I>);
+#endif
 template <typename T, int I>	ND_ _Vec<bool,I>	notEqual (const _Vec<T,I> x, const _Vec<T,I> y);
 								ND_ double			packDouble2x32 (const uint2);
 								ND_ uint2			unpackDouble2x32 (double);
@@ -247,9 +222,6 @@ template <typename T, int C, int R>	ND_ _Matrix<T,R,C>	transpose (const _Matrix<
 								ND_ int2			unpackInt2x32 (const slong v);
 								ND_ uint2			unpackUint2x32 (const ulong v);
 
-								ND_ uint			packFloat2x16 (const half2 v);
-								ND_ half2			unpackFloat2x16 (const uint v);
-
 								ND_ int				packInt2x16 (const sshort2 v);
 								ND_ slong			packInt4x16 (const sshort4 v);
 								ND_ uint			packUint2x16 (const ushort2 v);
@@ -260,35 +232,44 @@ template <typename T, int C, int R>	ND_ _Matrix<T,R,C>	transpose (const _Matrix<
 								ND_ ushort2			unpackUint2x16 (const uint v);
 								ND_ ushort4			unpackUint4x16 (const ulong v);
 
+#if AE_ENABLE_HALF_TYPE
+								ND_ uint			packFloat2x16 (const half2 v);
+								ND_ half2			unpackFloat2x16 (const uint v);
+
 								ND_ short			halfBitsToInt16 (const half);				// inverse int16BitsToHalf
-template <int I>				ND_ _Vec<short,I>	halfBitsToInt16 (const _Vec<half,I>);		// inverse int16BitsToHalf
+	template <int I>			ND_ _Vec<short,I>	halfBitsToInt16 (const _Vec<half,I>);		// inverse int16BitsToHalf
 								ND_ ushort			halfBitsToUint16 (const half);				// inverse uint16BitsToHalf
-template <int I>				ND_ _Vec<ushort,I>	halfBitsToUint16 (const _Vec<half,I>);		// inverse uint16BitsToHalf
+	template <int I>			ND_ _Vec<ushort,I>	halfBitsToUint16 (const _Vec<half,I>);		// inverse uint16BitsToHalf
 
 								ND_ short			float16BitsToInt16 (const half);			// inverse int16BitsToFloat16
-template <int I>				ND_ _Vec<short,I>	float16BitsToInt16 (const _Vec<half,I>);	// inverse int16BitsToFloat16
+	template <int I>			ND_ _Vec<short,I>	float16BitsToInt16 (const _Vec<half,I>);	// inverse int16BitsToFloat16
 								ND_ ushort			float16BitsToUint16 (const half);			// inverse uint16BitsToFloat16
-template <int I>				ND_ _Vec<ushort,I>	float16BitsToUint16 (const _Vec<half,I>);	// inverse uint16BitsToFloat16
+	template <int I>			ND_ _Vec<ushort,I>	float16BitsToUint16 (const _Vec<half,I>);	// inverse uint16BitsToFloat16
+
+								ND_ half			int16BitsToHalf (const short);				// inverse halfBitsToInt16
+	template <int I>			ND_ _Vec<half,I>	int16BitsToHalf (const _Vec<short,I>);		// inverse halfBitsToInt16
+								ND_ half			uint16BitsToHalf (const ushort);			// inverse halfBitsToUint16
+	template <int I>			ND_ _Vec<half,I>	uint16BitsToHalf (const _Vec<ushort,I>);	// inverse halfBitsToUint16
+
+								ND_ half			int16BitsToFloat16 (const short);			// inverse float16BitsToInt16
+	template <int I>			ND_ _Vec<half,I>	int16BitsToFloat16 (const _Vec<short,I>);	// inverse float16BitsToInt16
+								ND_ half			uint16BitsToFloat16 (const ushort);			// inverse float16BitsToUint16
+	template <int I>			ND_ _Vec<half,I>	uint16BitsToFloat16 (const _Vec<ushort,I>);	// inverse float16BitsToUint16
+#endif
 
 								ND_ slong			doubleBitsToInt64 (const double);			// inverse int64BitsToDouble
 template <int I>				ND_ _Vec<slong,I>	doubleBitsToInt64 (const _Vec<double,I>);	// inverse int64BitsToDouble
 								ND_ ulong			doubleBitsToUint64 (const double);			// inverse uint64BitsToDouble
 template <int I>				ND_ _Vec<ulong,I>	doubleBitsToUint64 (const _Vec<double,I>);	// inverse uint64BitsToDouble
 
-								ND_ half			int16BitsToHalf (const short);				// inverse halfBitsToInt16
-template <int I>				ND_ _Vec<half,I>	int16BitsToHalf (const _Vec<short,I>);		// inverse halfBitsToInt16
-								ND_ half			uint16BitsToHalf (const ushort);			// inverse halfBitsToUint16
-template <int I>				ND_ _Vec<half,I>	uint16BitsToHalf (const _Vec<ushort,I>);	// inverse halfBitsToUint16
-
-								ND_ half			int16BitsToFloat16 (const short);			// inverse float16BitsToInt16
-template <int I>				ND_ _Vec<half,I>	int16BitsToFloat16 (const _Vec<short,I>);	// inverse float16BitsToInt16
-								ND_ half			uint16BitsToFloat16 (const ushort);			// inverse float16BitsToUint16
-template <int I>				ND_ _Vec<half,I>	uint16BitsToFloat16 (const _Vec<ushort,I>);	// inverse float16BitsToUint16
-
 								ND_ double			int64BitsToDouble (const slong);			// inverse doubleBitsToInt64
 template <int I>				ND_ _Vec<double,I>	int64BitsToDouble (const _Vec<slong,I>);	// inverse doubleBitsToInt64
 								ND_ double			uint64BitsToDouble (const ulong);			// inverse doubleBitsToUint64
 template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);	// inverse doubleBitsToUint64
+
+# ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic pop
+# endif
 #endif
 
 
@@ -997,8 +978,8 @@ public:
 
   #ifdef SH_VERT
 	// in
-	const	int		InstanceIndex		= {};
-	const	int		VertexIndex			= {};
+	const	int		InstanceIndex		= {};	// BaseInstance + InstanceID
+	const	int		VertexIndex			= {};	// BaseVertex + VertexID
 	const	int		PrimitiveID			= {};
 
 	#ifdef AE_shader_draw_parameters
@@ -1087,14 +1068,14 @@ public:
 		X2,
 		X4,
 	};
-  #endif
-  #ifdef SH_FRAG
+  # ifdef SH_FRAG
 	// in
 	const	ShadingRateFlag		ShadingRate		= ShadingRateFlag(0);
-  #endif
-  #if defined(SH_VERT) or defined(SH_GEOM)
+  # endif
+  # if defined(SH_VERT) or defined(SH_GEOM)
 	// out
 			ShadingRateFlag		PrimitiveShadingRate;
+  # endif
   #endif
 
 	// GL_ARB_shader_draw_parameters
@@ -1595,7 +1576,7 @@ public:
 		#endif
 	} NV;
 
-	// ARM extenions
+	// ARM extensions
 	struct {
 
 		// GL_ARM_shader_core_builtins
@@ -1608,6 +1589,13 @@ public:
 		const	uint	WarpMaxID;
 		#endif
 	} ARM;
+
+  #ifdef AE_expect_assume
+	void  Assume (bool condition);
+
+	template <typename T>
+	ND_ T  Expect (T value, T expected);
+  #endif
 
 } gl;
 
@@ -1631,6 +1619,22 @@ public:
 	ND_ gl::Semantics			operator | (gl::Semantics lhs, gl::Semantics rhs);
 	ND_ gl::StorageSemantics	operator | (gl::StorageSemantics lhs, gl::StorageSemantics rhs);
 #endif
+
+
+// GL_EXT_control_flow_attributes
+//	[[unroll]]
+//	[[dont_unroll]] or [[loop]]
+//	[[dependency_infinite]]
+//	[[dependency_length(4)]]
+//	[[flatten]]
+//	[[dont_flatten]] or [[branch]]
+
+// GL_EXT_control_flow_attributes2
+//	[[unroll, min_iterations(2)]]
+//	[[unroll, max_iterations(4)]]
+//	[[unroll, iteration_multiple(4)]]
+//	[[unroll, peel_count(3)]]
+//	[[unroll, partial_count(2)]]
 
 
 #ifdef __INTELLISENSE__

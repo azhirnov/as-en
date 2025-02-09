@@ -196,9 +196,9 @@ namespace AE::App
 
 	protected:
 		template <typename T>
-		ND_ static constexpr InputKey	_Pack (T key, EGestureType gesture, EGestureState state = EGestureState::Update) __NE___;
+		NdCz__ static InputKey	_Pack (T key, EGestureType gesture, EGestureState state = EGestureState::Update) __NE___;
 
-		ND_ static constexpr auto		_Unpack (InputKey key)	__NE___ -> Tuple< InputType_t, EGestureType, EGestureState >;
+		NdCx__ static auto		_Unpack (InputKey key)			__NE___ -> Tuple< InputType_t, EGestureType, EGestureState >;
 
 		ND_ static auto  _ToArray (const ActionMap_t &actions)	__Th___ -> Array<Pair<InputKey,		 const ActionInfo *>>;
 		ND_ static auto  _ToArray (const ModeMap_t &modes)		__Th___ -> Array<Pair<InputModeName, const InputMode *>>;
@@ -210,7 +210,7 @@ namespace AE::App
 =================================================
 */
 	template <typename T>
-	constexpr SerializableInputActions::InputKey
+	__Cz__ SerializableInputActions::InputKey
 		SerializableInputActions::_Pack (T key, EGestureType gesture, EGestureState state) __NE___
 	{
 		StaticAssert( sizeof(key) == sizeof(InputType_t) );
@@ -225,7 +225,7 @@ namespace AE::App
 	_Unpack
 =================================================
 */
-	inline constexpr auto  SerializableInputActions::_Unpack (InputKey key) __NE___ -> Tuple< InputType_t, EGestureType, EGestureState >
+	__CxIn auto  SerializableInputActions::_Unpack (InputKey key) __NE___ -> Tuple< InputType_t, EGestureType, EGestureState >
 	{
 		return Tuple{	InputType_t(uint(key) & 0xFFFF),
 						EGestureType( (uint(key) >> 24) & 0xF ),
@@ -309,7 +309,7 @@ namespace AE::App
 	ESensorBits operators
 =================================================
 */
-	inline constexpr SerializableInputActions::ESensorBits&  operator |= (SerializableInputActions::ESensorBits &lhs, const SerializableInputActions::ESensorBits rhs) __NE___
+	__CxIn SerializableInputActions::ESensorBits&  operator |= (SerializableInputActions::ESensorBits &lhs, const SerializableInputActions::ESensorBits rhs) __NE___
 	{
 		lhs = BitCast<SerializableInputActions::ESensorBits>( ToNearUInt( lhs ) | ToNearUInt( rhs ));
 		return lhs;

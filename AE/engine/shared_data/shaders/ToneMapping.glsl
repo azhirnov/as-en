@@ -20,8 +20,7 @@ ND_ float3  InvToneMap_Stanard (const float3 sdr);
 ND_ float3  ToneMap_ACES (const float3 hdr);
 ND_ float3  InvToneMap_ACES (const float3 sdr);
 
-ND_ float3  ToneMap_ACES_v2 (const float3 color);
-ND_ float3  ToneMap_ACES_v3 (const float3 color);
+ND_ float3  ToneMap_ACESFitted (const float3 color);
 
 ND_ float3  ToneMap_Unreal (const float3 hdr);
 
@@ -29,7 +28,7 @@ ND_ float3  ToneMap_Uchimura (const float3 hdr);
 
 ND_ float3  Tonemap_Lottes (const float3 hdr);
 
-ND_ float3  ToneMap_whitePreservingLumaBasedReinhardToneMapping (float3 color);
+ND_ float3  ToneMap_whitePreservingLumaBasedReinhard (float3 color);
 
 //-----------------------------------------------------------------------------
 

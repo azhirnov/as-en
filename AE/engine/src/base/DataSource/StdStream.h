@@ -63,10 +63,10 @@ namespace AE::Base
 		}
 
 		// reads multiple characters from the input sequence
-		std::streamsize  xsgetn (char_type* s, std::streamsize count) __Th_OV
+		std::streamsize  xsgetn (OUT char_type* s, std::streamsize count) __Th_OV
 		{
 			if_likely( _src and _src->IsOpen() )
-				return std::streamsize(_src->ReadSeq( s, charSoze * ulong(count) ) / charSoze);
+				return std::streamsize(_src->ReadSeq( OUT s, charSoze * ulong(count) ) / charSoze);
 			else
 				return 0;
 		}

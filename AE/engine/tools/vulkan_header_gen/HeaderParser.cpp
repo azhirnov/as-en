@@ -266,6 +266,12 @@ namespace AE::Vulkan
 						mode		= EMode::None;
 					}
 					else
+					if ( tokens.size() > 1 and
+						 tokens[0] == "//" )
+					{
+						// skip comment
+					}
+					else
 					{
 						FuncArg		val;
 						ParseStructField( tokens, 0, OUT val );
@@ -292,6 +298,12 @@ namespace AE::Vulkan
 						 (tokens[0] == "#" and (tokens[1] == "ifdef" or tokens[1] == "endif")) )
 					{
 						// skip #ifdef beta_extension #endif
+					}
+					else
+					if ( tokens.size() > 1 and
+						 tokens[0] == "//" )
+					{
+						// skip comment
 					}
 					else
 					{
@@ -529,11 +541,11 @@ namespace AE::Vulkan
 
 
 			// alias
-			if ( tokens.size() == 4						and
-				 tokens[0] == "typedef"					and
-				 tokens[3] == ";"						and
-				 not _basicTypes.contains( tokens[1] )	and
-				 not _resourceTypes.contains( tokens[1] ))
+			if ( tokens.size() == 4									and
+				 tokens[0] == "typedef"								and
+				 tokens[3] == ";"									and
+				 HashTable_NotContains( _basicTypes, tokens[1] )	and
+				 HashTable_NotContains( _resourceTypes, tokens[1] ))
 			{
 				if ( StartsWith( tokens[2], tokens[1] ))
 				{
@@ -593,7 +605,7 @@ namespace AE::Vulkan
 
 				const char*	end = ci.value.data();
 				for (; *end != ';' and *end != '\0'; ++end) {}
-				ci.value = StringView{ ci.value.data(), end };
+				ci.value = SubString( ci.value.data(), end );
 
 				auto	it = _constants.emplace( ci.type, ConstSet_t{} ).first;
 
@@ -963,7 +975,7 @@ namespace AE::Vulkan
 			if ( ext.empty() )
 				continue;
 
-			if ( skip_ext.contains( ext ))
+			if ( HashTable_Contains( skip_ext, ext ))
 				continue;
 
 			if ( not StartsWith( it->data.name, "VkPhysicalDevice" ))
@@ -1003,7 +1015,7 @@ namespace AE::Vulkan
 			if ( ext.empty() )
 				continue;
 
-			if ( skip_ext.contains( ext ))
+			if ( HashTable_Contains( skip_ext, ext ))
 				continue;
 
 			if ( not StartsWith( it->second.dstType, "VkPhysicalDevice" ))

@@ -6,7 +6,7 @@
 # include "base/Algorithms/StringUtils.h"
 # include "base/Platforms/CPUInfo.h"
 # include "profiler/Impl/HwpcProfiler.h"
-# include "graphics/GraphicsImpl.h"
+# include "graphics_rhi/GraphicsImpl.h"
 # include "graphics_hl/ImGui/ImGuiRenderer.h"
 
 namespace AE::Profiler
@@ -112,6 +112,7 @@ namespace
 	static constexpr GraphName	Mali_TexCacheUtil			{"TextureCache Util"};
 	static constexpr GraphName	Mali_FragNonFragUtil		{"Frag & NonFrag Util"};
 	static constexpr GraphName	Mali_WrapCount				{"WrapCount"};
+	static constexpr GraphName	Mali_ThreadCount			{"ThreadCount"};
 	static constexpr GraphName	Mali_LSUtil					{"LoadStore Util"};
 	static constexpr GraphName	Mali_RTUtil					{"RayTracing Util"};
 	static constexpr GraphName	Mali_TilerUtil				{"Tiler Util"};
@@ -521,7 +522,7 @@ namespace
 		AddPoint2( ECounter::FragTile,					ECounter::FragTileKill,				Mali_TileCount				);
 		AddPoint2( ECounter::TilerPosCacheHitRate,		ECounter::TilerVarCacheHitRate,		Mali_TilerCacheHit			);
 		AddPoint2( ECounter::GPUActiveCy,				ECounter::PerCoreActiveCy,			Mali_GPUActiveCy,			inv_dt );
-		AddPoint2( ECounter::FragThroughputCy,			ECounter::NonFragThroughputCy,		Mali_ThroughputCy,			inv_dt );
+		AddPoint2( ECounter::NonFragThroughputCy,		ECounter::FragThroughputCy,			Mali_ThroughputCy,			inv_dt );
 
 		if ( perFrame )
 			AddPoint3( ECounter::ExtBusRdBy,	ECounter::ExtBusWrBy,		ECounter::ExtBusTotalBy,	Mali_ExtMemTraffic		);
@@ -535,8 +536,9 @@ namespace
 		AddPoint3( ECounter::FragEZSKillRate,	ECounter::FragFPKKillRate,	ECounter::FragLZSKillRate,	Mali_ZSTest2,			1.0 );
 		AddPoint3( ECounter::SCBusFFEExtRdBy,	ECounter::SCBusLSExtRdBy,	ECounter::SCBusTexExtRdBy,	Mali_ExtReads			);
 		AddPoint3( ECounter::SCBusFFEL2RdBy,	ECounter::SCBusLSL2RdBy,	ECounter::SCBusTexL2RdBy,	Mali_CacheReads			);
-		AddPoint3( ECounter::GPUIRQUtil,		ECounter::NonFragQueueUtil,	ECounter::FragQueueUtil,	Mali_QueueUtil,			1.0 );
+		AddPoint3( ECounter::NonFragQueueUtil,	ECounter::FragQueueUtil,	ECounter::GPUIRQUtil,		Mali_QueueUtil,			1.0 );
 		AddPoint3( ECounter::ExtMemEnergy,		ECounter::CoreEnergy,		ECounter::TotalEnergy,		Mali_Power,				inv_dt );	// J to W
+		AddPoint3( ECounter::NonFragThread,		ECounter::FragThread,		ECounter::FragHelpThread,	Mali_ThreadCount		);
 
 		AddPoint4( ECounter::ExtBusRdOTQ1,		ECounter::ExtBusRdOTQ2,		ECounter::ExtBusRdOTQ3,		ECounter::ExtBusRdOTQ4,		Mali_ExtOutstandingReads	);
 		AddPoint4( ECounter::ExtBusWrOTQ1,		ECounter::ExtBusWrOTQ2,		ECounter::ExtBusWrOTQ3,		ECounter::ExtBusWrOTQ4,		Mali_ExtOutstandingWrites	);
@@ -564,7 +566,7 @@ namespace
 				graph.SetLabel( "core",	1 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "Hz" );
-				graph.SetLimits( 500.0e+6f, 800.0e+6f );
+				graph.SetAlertLimits( 500.0e+6f, 800.0e+6f );
 				graph.SetDescription( "GPU clock speed.\nLow clock indicates low workload." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_TilerActiveCy );
@@ -576,8 +578,8 @@ namespace
 				auto&	graph = prof.graphTable.Add( sec, Mali_ThroughputCy );
 				graph.SetCapacity( capacity, 2 );
 				graph.SetName( "throughput" );
-				graph.SetLabel( "frag",		0 );
-				graph.SetLabel( "non-frag",	1 );
+				graph.SetLabel( "non-frag",	0 );
+				graph.SetLabel( "frag",		1 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "cy" );
 				graph.SetDescription( "Cycles per thread" );
@@ -692,7 +694,7 @@ namespace
 				graph.SetLabel( "write", 1 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 70.f, 90.f );
+				graph.SetAlertLimits( 70.f, 90.f );
 				graph.SetDescription( "L2 cache miss / hit" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_LSTileWrite );
@@ -763,7 +765,7 @@ namespace
 				graph.SetLabel( "pos", 0 );
 				graph.SetLabel( "var", 1 );
 				graph.SetColor( style4 );
-				graph.SetLimits( 1.6f, 2.7f );
+				graph.SetAlertLimits( 1.6f, 2.7f );
 				graph.SetDescription( "Efficient meshes with a good vertex reuse have average less than 1.5 vertices shaded per triangle,\nas vertex computation is shared by multiple primitives." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_PrimitiveType );
@@ -796,7 +798,7 @@ namespace
 				graph.SetLabel( "late",	 2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
-				graph.SetInvLimits( 70.f, 90.f );
+				graph.SetAlertInvLimits( 70.f, 90.f );
 				graph.SetDescription( "It is important that as many fragments as possible are early ZS (depth and stencil) tested before shading." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FragOpaqueRate );
@@ -804,7 +806,7 @@ namespace
 				graph.SetName( "opq/trp" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 10.f, 50.f );
+				graph.SetAlertLimits( 10.f, 50.f );
 				graph.SetDescription( "Occluding quad percentage" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FragOverdraw );
@@ -836,7 +838,7 @@ namespace
 				graph.SetName( "core" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 70.f, 90.f );
+				graph.SetAlertLimits( 70.f, 90.f );
 				graph.SetDescription( "Utilization of the programmable execution core,\nmonitoring any cycle where the shader core contains at least one warp." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_VarUtil );
@@ -844,7 +846,7 @@ namespace
 				graph.SetName( "var" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 25.f, 75.f );
+				graph.SetAlertLimits( 25.f, 75.f );
 				graph.SetDescription( "Utilization of the varying unit.\nThe most effective technique for reducing varying load is reducing the number of interpolated\nvalues read by the fragment shading. Increasing shader usage of 16-bit (mediump) input variables\nalso helps, as they can be interpolated as twice the speed of 32-bit variables." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_TexUtil );
@@ -852,7 +854,7 @@ namespace
 				graph.SetName( "tex" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 70.f, 90.f );
+				graph.SetAlertLimits( 70.f, 90.f );
 				graph.SetDescription( "Utilization of the texturing unit.\nThe most effective technique for reducing texturing unit load is reducing the number of texture\nsamples read by the fragment shader. Using simpler texture filters can reduce filtering cost. Using\n32bpp color formats, and the ASTC decode mode extensions can reduce data access cost." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_TexCacheUtil );
@@ -860,14 +862,14 @@ namespace
 				graph.SetName( "tex cache" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 70.f, 90.f );
+				graph.SetAlertLimits( 70.f, 90.f );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_LSUtil );
 				graph.SetCapacity( capacity );
 				graph.SetName( "LS" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 70.f, 90.f );
+				graph.SetAlertLimits( 70.f, 90.f );
 				graph.SetDescription( "Utilization of the load/store unit.\nThe load/store unit is used for general-purpose memory accesses, and includes vertex attribute access, buffer access, work\ngroup shared memory access, and stack access. This unit also implements imageLoad/Store and\natomic access functionality." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_RTUtil );
@@ -875,7 +877,7 @@ namespace
 				graph.SetName( "ray tracing" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 70.f, 90.f );
+				graph.SetAlertLimits( 70.f, 90.f );
 				graph.SetDescription( "The most effective technique for reducing ray tracing load is reducing the amount of geometry in\nthe acceleration structure, and ensuring that rays issued in each warp are coherent." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FragNonFragUtil );
@@ -892,7 +894,7 @@ namespace
 				graph.SetName( "tiler" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 70.f, 90.f );
+				graph.SetAlertLimits( 70.f, 90.f );
 				graph.SetDescription( "Defines the tiler utilization compared to the total GPU active cycles.\nNote that this metric measures the overall processing time for the tiler geometry pipeline. The\nmetric includes aspects of vertex shading, in addition to the fixed-function tiling process." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FPKUtil );
@@ -900,18 +902,18 @@ namespace
 				graph.SetName( "fpk" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetInvLimits( 70.f, 90.f );
+				graph.SetAlertInvLimits( 70.f, 90.f );
 				graph.SetDescription( "Defines the percentage of cycles where the Forward Pixel Kill (FPK) quad buffer\ncontains at least one fragment quad. This buffer is located after early ZS but before the execution core.\n\nDuring fragment shading this counter must be close to 100%. This indicates that the fragment\nfront-end is able to keep up with the shader core shading rate. This counter commonly drops below\n100% for three reasons:\n* The running workload has many empty tiles with no geometry to render. Empty tiles are\ncommon in shadow maps, for any screen region with no shadow casters.\n* The application consists of simple shaders but a high percentage of microtriangles. This\ncombination causes the shader core to complete fragments faster than they are rasterized, so\nthe quad buffer starts to drain.\n* The application consists of layers which stall at early ZS because of a dependency on an earlier\nfragment layer which is still in flight. Stalled layers prevent new fragments entering the quad\nbuffer, so the quad buffer starts to drain." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_QueueUtil );
 				graph.SetCapacity( capacity, 3 );
 				graph.SetName( "queue" );
-				graph.SetLabel( "irq",		0 );
-				graph.SetLabel( "non-frag",	1 );
-				graph.SetLabel( "frag",		2 );
+				graph.SetLabel( "non-frag",	0 );
+				graph.SetLabel( "frag",		1 );
+				graph.SetLabel( "irq",		2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
-				graph.SetInvLimits( 50.f, 70.f );
+				graph.SetAlertInvLimits( 50.f, 70.f );
 				graph.SetDescription( "IRQ pending utilization compared against the GPU active cycles.\nIn a well-functioning system, this expression is ideally less than 3% of the total cycles.\nIf the value is much higher than 3%, a system issue might be preventing the CPU from efficiently handling interrupts.\n\nNon-fragment queue utilization compared against the GPU active cycles.\nFor GPU bound content, it is expected that the GPU queues process work in parallel.\nThe dominant queue must be close to 100% utilized. If no queue is dominant, but the GPU is close to\n100% utilized, then there might be a serialization or dependency problem preventing better overlap\nacross the queues.\n\nFragment queue utilization compared against the GPU active cycles.\nFor GPU bound content, the GPU queues are expected to process work in parallel.\nAim to keep the dominant queue close to 100% utilized. If no queue is dominant, but the GPU is close to\n100% utilized, then there might be a serialization or dependency problem preventing better queue overlap." );
 			}
 			prof.graphTable.SetCaption( sec, "Functional unit utilization" );
@@ -923,7 +925,7 @@ namespace
 				graph.SetName( "ALU" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 70.f, 90.f );
+				graph.SetAlertLimits( 70.f, 90.f );
 				graph.SetDescription( "Utilization of the arithmetic unit in the execution engine.\nThe most effective technique for reducing arithmetic load is reducing the complexity of your shader programs.\nIncreasing shader usage of 16-bit (mediump) variables can also help." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_NarrowArithUtil );
@@ -941,7 +943,7 @@ namespace
 				graph.SetLabel( "SFU", 2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 70.f, 90.f );
+				graph.SetAlertLimits( 70.f, 90.f );
 				graph.SetDescription( "Utilization of the ALU pipes.\nFMA pipe - multiply/add instructions\nCVT pipe - convert data types\nSFU pipe - special functions unit (sqrt/sin/cos)" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_WarpDivRate );
@@ -949,7 +951,7 @@ namespace
 				graph.SetName( "warp divg" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 5.f, 25.f );
+				graph.SetAlertLimits( 5.f, 25.f );
 				graph.SetDescription( "This expression defines the percentage of instructions that have\ncontrol flow divergence (false branches) across the warp." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_WrapCount );
@@ -962,12 +964,20 @@ namespace
 				graph.SetColor( style4 );
 				graph.SetDescription( "Number of non-fragment warps, fragment warps, full warps, warps using more than 32 registers." );
 			}{
+				auto&	graph = prof.graphTable.Add( sec, Mali_ThreadCount );
+				graph.SetCapacity( capacity, 3 );
+				graph.SetName( "threads" );
+				graph.SetLabel( "non-frag",	 0 );
+				graph.SetLabel( "frag",		 1 );
+				graph.SetLabel( "frag-help", 2 );
+				graph.SetColor( style4 );
+			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_AllRegWarpRate );
 				graph.SetCapacity( capacity );
 				graph.SetName( "all reg" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetInvLimits( 5.f, 25.f );
+				graph.SetAlertLimits( 5.f, 25.f );
 				graph.SetDescription( "Warps that use more than 32 registers, requiring the full register allocation of 64 registers.\nWarps that require more than 32 registers halve the peak thread occupancy of the shader core,\nand can make shader performance more sensitive to cache misses and memory stalls." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FullQuadWarpRate );
@@ -975,7 +985,7 @@ namespace
 				graph.SetName( "full quad" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetInvLimits( 25.f, 50.f );
+				graph.SetAlertInvLimits( 25.f, 50.f );
 				graph.SetDescription( "Warps that have a full thread slot allocation.\nNote that allocated thread slots may not contain a running thread\nif the workload cannot fill the whole allocation.\nFully allocated warps are more likely if:\n* Draw calls avoid late ZS dependency hazards.\n* Draw calls use meshes with a low percentage of tiny primitives.\n* Compute dispatches use work groups that are a multiple of warp size." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FragRastPartRate );
@@ -983,7 +993,7 @@ namespace
 				graph.SetName( "part quad" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 25.f, 35.f );
+				graph.SetAlertLimits( 25.f, 35.f );
 				graph.SetDescription( "Fragment quads that contain samples with no coverage.\nA high percentage can indicate that the content has a high density of small triangles, which are\nexpensive to process. To avoid this, use mesh level-of-detail algorithms to select simpler meshes as\nobjects move further from the camera." );
 			}
 			prof.graphTable.SetCaption( sec, "Shader core" );
@@ -1144,7 +1154,7 @@ namespace
 				graph.SetName( "clock" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "Hz" );
-				graph.SetLimits( 500.0e+6f, 800.0e+6f );
+				graph.SetAlertLimits( 500.0e+6f, 800.0e+6f );
 				graph.SetDescription( "GPU clock speed.\nLow clock indicates low workload." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, PVR_GpuCycles );
@@ -1211,7 +1221,7 @@ namespace
 				graph.SetLabel( "vert", 0 );
 				graph.SetLabel( "frag", 1 );
 				graph.SetColor( style4 );
-				graph.SetLimits( 10.f, 25.f );
+				graph.SetAlertLimits( 10.f, 25.f );
 				graph.SetSuffix( "%" );
 				graph.SetDescription( "Shader register overload: vertex, pixel.\nThis counter indicates when the hardware is under register pressure.\nThe value should be near 0% or very low in most situations." );
 			}
@@ -1551,7 +1561,7 @@ namespace
 				graph.SetLabel( "kernel", 1 );
 				graph.SetSuffix( "%" );
 				graph.SetRange( 0.f, 100.f );
-				graph.SetLimits( 50.f, 90.f );
+				graph.SetAlertLimits( 50.f, 90.f );
 			}
 
 			_genProf.corePerLine = Max( _genProf.corePerLine, uint(cluster.logicalCores.count()) );
@@ -1632,7 +1642,7 @@ namespace
 				graph.SetColor( style );
 				graph.SetSuffix( "%" );
 				graph.SetRange( 0.f, 100.f );
-				graph.SetLimits( 20.f, 60.f );
+				graph.SetAlertLimits( 20.f, 60.f );
 				graph.SetDescription( "Percentage of kernel time.\nCan be large when app has low workload (low CPU usage).\nOn high CPU usage should be low." );
 			}
 			_genProf.graphTable.SetCaption( sec, "Process" );
@@ -1646,7 +1656,7 @@ namespace
 				graph.SetLabel( "avg",	1 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "W" );
-				graph.SetLimits( 3.f, 6.f );	// for mobile
+				graph.SetAlertLimits( 3.f, 6.f );	// for mobile
 				graph.SetDescription( "Device power consumption based on battery indicators.\nNow - measure power as current * voltage.\nAvg - measure changes in battery capacity." );
 			}{
 				auto&	graph = _genProf.graphTable.Add( sec, GenPerf_BatteryDischargeTotal );
@@ -1908,7 +1918,7 @@ namespace
 				graph.SetName( "gpu util" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 75.f, 90.f );
+				graph.SetAlertLimits( 75.f, 90.f );
 				graph.SetDescription( "GPU utilization" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, NV_MemoryUtil );
@@ -1916,7 +1926,7 @@ namespace
 				graph.SetName( "mem util" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 75.f, 90.f );
+				graph.SetAlertLimits( 75.f, 90.f );
 				graph.SetDescription( "Memory utilization" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, NV_GraphicsClock );
@@ -1927,7 +1937,7 @@ namespace
 				graph.SetLabel( "video", 2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "Hz" );
-				graph.SetLimits( 1.6e+9f, 1.9e+9f );
+				graph.SetAlertLimits( 1.6e+9f, 1.9e+9f );
 				graph.SetDescription( "Graphics clock.\nSM clock.\nVideo encoder/decoder clock" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, NV_MemoryClock );
@@ -1950,7 +1960,7 @@ namespace
 				graph.SetColor( style );
 				graph.SetSuffix( "%" );
 				graph.SetRange( 0.f, 100.f );
-				graph.SetLimits( 75.f, 90.f );
+				graph.SetAlertLimits( 75.f, 90.f );
 				graph.SetDescription( "Used memory in %:\nDevice - VRAM\nUnified - CPU visible VRAM" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, NV_DevMemUsedMb );
@@ -1976,7 +1986,7 @@ namespace
 				graph.SetName( "temp" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "C" );
-				graph.SetLimits( 75.f, 90.f );
+				graph.SetAlertLimits( 75.f, 90.f );
 				graph.SetDescription( "GPU temperature" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, NV_PowerUsage );
@@ -1991,7 +2001,7 @@ namespace
 				graph.SetName( "fan" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetLimits( 75.f, 90.f );
+				graph.SetAlertLimits( 75.f, 90.f );
 				graph.SetDescription( "Intended fan speed in %, may be > 100%" );
 			}
 			prof.graphTable.SetCaption( sec, "Power" );

@@ -126,6 +126,8 @@ namespace AE::Profiler
 		using MemoryUsage_t		= Optional< Graphics::DeviceMemoryUsage >;
 		using TimeScopeArr_t	= PowerVRProfiler::TimeScopeArr_t;
 
+		class ReadResultsTask;
+
 
 	// variables
 	private:
@@ -143,10 +145,12 @@ namespace AE::Profiler
 		}						_gpuTime;
 
 		struct {
-			AtomicByte<Bytes>		accumWrite;
-			AtomicByte<Bytes>		accumRead;
-			Bytes					avgWrite;
-			Bytes					avgRead;
+			AtomicBytes<Bytes>		accumWrite;
+			AtomicBytes<Bytes>		accumRead;
+			Bytes					avgWrite;		// per frame
+			Bytes					avgRead;		// per frame
+			Bytes					writeBw;		// per second
+			Bytes					readBw;			// per second
 		}						_memTraffic;
 
 		MemoryUsage_t			_memUsage;

@@ -112,37 +112,43 @@ namespace AE::ResEditor
 
 		_resources.SetStates( ctx, EResourceState::AllGraphicsShaders );
 
+		const uint	fid = ctx.GetFrameId().Index();
+
+		for (auto& vb : _vertexBuffers) {
+			ctx.ResourceState( vb.buffer->GetBufferId( fid ), EResourceState::VertexBuffer );
+		}
+
 		for (usize i = 0; i < _drawCommands.size(); ++i)
 		{
 			Visit( _drawCommands[i],
 
 				[] (const DrawCmd2 &) {},
-				[&ctx] (const DrawIndexedCmd2 &src) {
-					ctx.ResourceState( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndexBuffer );
+				[&ctx, fid] (const DrawIndexedCmd2 &src) {
+					ctx.ResourceState( src.indexBufferPtr->GetBufferId( fid ), EResourceState::IndexBuffer );
 				},
 				[] (const DrawMeshTasksCmd2 &) {},
-				[&ctx] (const DrawIndirectCmd2 &src) {
-					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+				[&ctx, fid] (const DrawIndirectCmd2 &src) {
+					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( fid ), EResourceState::IndirectBuffer );
 				},
-				[&ctx] (const DrawIndexedIndirectCmd2 &src) {
-					ctx.ResourceState( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndexBuffer );
-					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+				[&ctx, fid] (const DrawIndexedIndirectCmd2 &src) {
+					ctx.ResourceState( src.indexBufferPtr->GetBufferId( fid ), EResourceState::IndexBuffer );
+					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( fid ), EResourceState::IndirectBuffer );
 				},
-				[&ctx] (const DrawMeshTasksIndirectCmd2 &src) {
-					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+				[&ctx, fid] (const DrawMeshTasksIndirectCmd2 &src) {
+					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( fid ), EResourceState::IndirectBuffer );
 				},
-				[&ctx] (const DrawIndirectCountCmd2 &src) {
-					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
-					ctx.ResourceState( src.countBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+				[&ctx, fid] (const DrawIndirectCountCmd2 &src) {
+					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( fid ), EResourceState::IndirectBuffer );
+					ctx.ResourceState( src.countBufferPtr->GetBufferId( fid ), EResourceState::IndirectBuffer );
 				},
-				[&ctx] (const DrawIndexedIndirectCountCmd2 &src) {
-					ctx.ResourceState( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndexBuffer );
-					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
-					ctx.ResourceState( src.countBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+				[&ctx, fid] (const DrawIndexedIndirectCountCmd2 &src) {
+					ctx.ResourceState( src.indexBufferPtr->GetBufferId( fid ), EResourceState::IndexBuffer );
+					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( fid ), EResourceState::IndirectBuffer );
+					ctx.ResourceState( src.countBufferPtr->GetBufferId( fid ), EResourceState::IndirectBuffer );
 				},
-				[&ctx] (const DrawMeshTasksIndirectCountCmd2 &src) {
-					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
-					ctx.ResourceState( src.countBufferPtr->GetBufferId( ctx.GetFrameId() ), EResourceState::IndirectBuffer );
+				[&ctx, fid] (const DrawMeshTasksIndirectCountCmd2 &src) {
+					ctx.ResourceState( src.indirectBufferPtr->GetBufferId( fid ), EResourceState::IndirectBuffer );
+					ctx.ResourceState( src.countBufferPtr->GetBufferId( fid ), EResourceState::IndirectBuffer );
 				});
 		}
 	}
@@ -156,7 +162,8 @@ namespace AE::ResEditor
 	{
 		auto&				ctx			= in.ctx;
 		auto&				mtr			= RefCast<Material>(in.mtr);
-		DescriptorSetID		mtr_ds		= mtr.descSets[ ctx.GetFrameId().Index() ];
+		const uint			fid			= ctx.GetFrameId().Index();
+		DescriptorSetID		mtr_ds		= mtr.descSets[ fid ];
 		PplnID_t			prev_ppln;
 
 		CHECK( _drawCommands.size() <= mtr.pipelineMap.size() );
@@ -184,6 +191,11 @@ namespace AE::ResEditor
 				ctx.BindDescriptorSet( in.dbgStorage[i].DSIndex(), in.dbgStorage[i].DescSet() );
 		}};
 
+
+		for (auto [vb, i] : WithIndex(_vertexBuffers)) {
+			ctx.BindVertexBuffer( uint(i), vb.buffer->GetBufferId( fid ), vb.bufferOffset );
+		}
+
 		for (usize i = 0; i < _drawCommands.size(); ++i)
 		{
 			auto	ppln_it = mtr.pipelineMap.find( Tuple{ i, in.GetDebugMode(i), in.GetDebugStages(i) });
@@ -202,9 +214,9 @@ namespace AE::ResEditor
 					ctx.Draw( cmd );
 				},
 
-				[&ctx] (const DrawIndexedCmd2 &src)
+				[&ctx, fid] (const DrawIndexedCmd2 &src)
 				{
-					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), src.indexBufferOffset, src.indexType );
+					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( fid ), src.indexBufferOffset, src.indexType );
 
 					Graphics::DrawIndexedCmd	cmd = src;
 					cmd.indexCount		= src.dynIndexCount ? src.dynIndexCount->Get() : src.indexCount;
@@ -218,57 +230,57 @@ namespace AE::ResEditor
 					ctx.DrawMeshTasks( task_count );
 				},
 
-				[&ctx] (const DrawIndirectCmd2 &src)
+				[&ctx, fid] (const DrawIndirectCmd2 &src)
 				{
 					Graphics::DrawIndirectCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
+					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( fid );
 					cmd.drawCount		= src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
 					ctx.DrawIndirect( cmd );
 				},
 
-				[&ctx] (const DrawIndexedIndirectCmd2 &src)
+				[&ctx, fid] (const DrawIndexedIndirectCmd2 &src)
 				{
-					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), src.indexBufferOffset, src.indexType );
+					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( fid ), src.indexBufferOffset, src.indexType );
 
 					Graphics::DrawIndexedIndirectCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
+					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( fid );
 					cmd.drawCount		= src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
 					ctx.DrawIndexedIndirect( cmd );
 				},
 
-				[&ctx] (const DrawMeshTasksIndirectCmd2 &src)
+				[&ctx, fid] (const DrawMeshTasksIndirectCmd2 &src)
 				{
 					Graphics::DrawMeshTasksIndirectCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
+					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( fid );
 					cmd.drawCount		= src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
 					ctx.DrawMeshTasksIndirect( cmd );
 				},
 
-				[&ctx] (const DrawIndirectCountCmd2 &src)
+				[&ctx, fid] (const DrawIndirectCountCmd2 &src)
 				{
 					Graphics::DrawIndirectCountCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
-					cmd.countBuffer		= src.countBufferPtr->GetBufferId( ctx.GetFrameId() );
+					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( fid );
+					cmd.countBuffer		= src.countBufferPtr->GetBufferId( fid );
 					cmd.maxDrawCount	= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
 					ctx.DrawIndirectCount( cmd );
 				},
 
-				[&ctx] (const DrawIndexedIndirectCountCmd2 &src)
+				[&ctx, fid] (const DrawIndexedIndirectCountCmd2 &src)
 				{
-					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), src.indexBufferOffset, src.indexType );
+					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( fid ), src.indexBufferOffset, src.indexType );
 
 					Graphics::DrawIndexedIndirectCountCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
-					cmd.countBuffer		= src.countBufferPtr->GetBufferId( ctx.GetFrameId() );
+					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( fid );
+					cmd.countBuffer		= src.countBufferPtr->GetBufferId( fid );
 					cmd.maxDrawCount	= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
 					ctx.DrawIndexedIndirectCount( cmd );
 				},
 
-				[&ctx] (const DrawMeshTasksIndirectCountCmd2 &src)
+				[&ctx, fid] (const DrawMeshTasksIndirectCountCmd2 &src)
 				{
 					Graphics::DrawMeshTasksIndirectCountCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
-					cmd.countBuffer		= src.countBufferPtr->GetBufferId( ctx.GetFrameId() );
+					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId( fid );
+					cmd.countBuffer		= src.countBufferPtr->GetBufferId( fid );
 					cmd.maxDrawCount	= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
 					ctx.DrawMeshTasksIndirectCount( cmd );
 				});

@@ -1,9 +1,9 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if ( (${AE_ENABLE_METAL} OR ${AE_ENABLE_VULKAN}) AND (TARGET "Graphics") )
+if ( (${AE_ENABLE_METAL} OR ${AE_ENABLE_VULKAN}) AND (TARGET "GraphicsRHI") )
 	file( GLOB_RECURSE SOURCES "*.*" )
 
-	set( RG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics/Remote" )
+	set( RG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics_rhi/Remote" )
 	set( RG_FILES "${RG_PATH}/RConnection.h" "${RG_PATH}/RConnection.cpp" "${RG_PATH}/RMessages.h" "${RG_PATH}/RMessages.cpp" "${RG_PATH}/RMessages.cpp.h" )
 
 	if (ANDROID)

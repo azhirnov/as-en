@@ -49,14 +49,16 @@ namespace AE::UI
 	_SetCursorState
 =================================================
 */
-	void  IController::InputState::_SetCursorState (const float2 &pos, const float2 &wheel, float longPressTime,
+	void  IController::InputState::_SetCursorState (const float2 &pos, bool hasPos, const float2 &wheel, float longPressTime,
 													const float4 &scaleRotate, EGestureBits bits) __NE___
 	{
-		_cursor._position		= Any( pos < -1.f ) ? _cursor._position : pos;
+		_cursor._position		= hasPos ? pos : _cursor._position;
 		_cursor._wheel			= wheel;
 		_cursor._scaleRotate	= scaleRotate;
 		_cursor._longPressTime	= longPressTime;
 		_cursor._bits			= bits;
+		_cursor._focused		= _cursor._resetFocus ? null : _cursor._focused;
+		_cursor._resetFocus		= false;
 	}
 //-----------------------------------------------------------------------------
 

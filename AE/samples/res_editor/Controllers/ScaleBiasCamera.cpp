@@ -28,7 +28,7 @@ namespace AE::ResEditor
 		constexpr auto&	IA		= InputActions::Controller_ScaleBias;
 		constexpr auto&	BaseIA	= InputActions::SwitchInputMode;
 
-		const uint2	dim		= _dynDim ? _dynDim->Dimension2() : uint2{1};
+		const auto	dim		= _dynDim ? float2{_dynDim->Dimension2()} : float2{1.f};
 		float2		bias	{0.f};
 		float		scale	= 0.f;
 		bool		reset	= false;
@@ -60,7 +60,7 @@ namespace AE::ResEditor
 		_scale	+= scale;
 
 		// validate
-		_bias	= Clamp( _bias, -float2{dim}, float2{dim} );
+		_bias	= Clamp( _bias, -dim, dim );
 		_scale	= Clamp( _scale, 0.1f, 10.f );
 
 		_UpdateMatrix();
@@ -119,7 +119,7 @@ namespace AE::ResEditor
 */
 	void  ScaleBiasCamera::_UpdateMatrix ()
 	{
-		_matrix = float4x4::Translated( float3{ _bias, 0.f }) * float4x4::Scaled( _scale );
+		_matrix = float4x4::Translate( float3{ _bias, 0.f }) * float4x4::Scale( _scale );
 	}
 
 /*

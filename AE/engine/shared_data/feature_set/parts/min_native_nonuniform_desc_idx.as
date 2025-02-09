@@ -11,12 +11,16 @@ void ASmain ()
 	//	NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
 	//	NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10
 	//	NVIDIA GeForce MX110 driver 510.54.0.0 on Arch unknown
-	//	NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
+	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
 	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
 	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
+	//	Qualcomm(R) Adreno(TM) X1-85 GPU driver 512.791.0 on Windows 11
 	//	Microsoft Direct3D12 (Qualcomm(R) Adreno(TM) 8cx Gen 3) driver 24.1.99 on Windows 11
 	//	Microsoft Direct3D12 (Snapdragon(R) X Elite - X1E78100 - Qualcom driver 24.1.99 on Windows 11
+	//	Adreno driver 512.797.0 on Windows 11
 	//	Apple A12 GPU driver 0.2.2018 on Ios 17.5
 	//	Apple A15 GPU driver 0.2.2018 on Ios 17.5
 	//	Apple A17 Pro GPU driver 0.2.2018 on Ios 17.5
@@ -71,14 +75,14 @@ void ASmain ()
 	fset.maxUniformBufferSize (64 << 10);
 	fset.maxStorageBufferSize (64 << 10);
 
-	fset.perDescrSet_maxInputAttachments (8);
-	fset.perDescrSet_maxSampledImages (480);
-	fset.perDescrSet_maxSamplers (80);
-	fset.perDescrSet_maxStorageBuffers (155);
-	fset.perDescrSet_maxStorageImages (40);
-	fset.perDescrSet_maxUniformBuffers (90);
-	fset.perDescrSet_maxTotalResources (512);
-
+	fset.perPipeline_maxInputAttachments (8);
+	fset.perPipeline_maxSampledImages (480);
+	fset.perPipeline_maxSamplers (80);
+	fset.perPipeline_maxStorageBuffers (155);
+	fset.perPipeline_maxStorageImages (40);
+	fset.perPipeline_maxUniformBuffers (90);
+	fset.perPipeline_maxTotalResources (512);
+	
 	fset.perStage_maxInputAttachments (8);
 	fset.perStage_maxSampledImages (96);
 	fset.perStage_maxSamplers (16);

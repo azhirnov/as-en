@@ -123,7 +123,7 @@ namespace
 
 				for (auto& un_name : ptr->_uniqueNames)
 				{
-					CHECK_THROW_MSG( not dsPtr->_uniqueNames.contains( un_name ),
+					CHECK_THROW_MSG( HashTable_NotContains( dsPtr->_uniqueNames, un_name ),
 						"uniform with name '"s << un_name << "' is already exists in DS '" << ptr->_name << "'" );
 				}
 			}
@@ -529,7 +529,8 @@ namespace
 		}
 
 		ScriptFeatureSet::Minimize( INOUT _features );
-		CHECK_ERR( DescriptorSetLayout::CheckDescriptorLimits( total, per_stage, _features, ("In PipelineLayout '"s << _name << "'") ));
+		CHECK_ERR( DescriptorSetLayout::CheckDescriptorLimits_PerStage(	per_stage, _features, ("In PipelineLayout '"s << _name << "'") ));
+		CHECK_ERR( DescriptorSetLayout::CheckDescriptorLimits_PerPipeline( total, _features, ("In PipelineLayout '"s << _name << "'") ));
 
 		// TODO: check metal limits
 
@@ -557,8 +558,8 @@ namespace
 
 		ASSERT( _pushConstants.size() == _desc.pushConstants.items.size() );
 
-		TestFeature_Min( _features, &FeatureSet::maxDescriptorSets,		ushort(idx),	"maxDescriptorSets",	"DescriptorLayouts" );
-		TestFeature_Min( _features, &FeatureSet::maxPushConstantsSize,	uint(pc_offset),"maxPushConstantsSize",	"PushConstantsSize" );
+		TestFeature_Min( _features, &FeatureSet::maxDescriptorSets,		CheckCast<ubyte>(idx),	"maxDescriptorSets",	"DescriptorLayouts" );
+		TestFeature_Min( _features, &FeatureSet::maxPushConstantsSize,	pc_offset,				"maxPushConstantsSize",	"PushConstantsSize" );
 
 		if ( is_metal )
 		{

@@ -3,9 +3,9 @@
 #pragma once
 
 #include "platform/Public/InputSurface.h"
-#include "graphics/Public/VideoEnums.h"
-#include "graphics/Public/ResourceEnums.h"
-#include "graphics/Public/IDs.h"
+#include "graphics_rhi/Public/VideoEnums.h"
+#include "graphics_rhi/Public/ResourceEnums.h"
+#include "graphics_rhi/Public/IDs.h"
 
 namespace AE::App
 {

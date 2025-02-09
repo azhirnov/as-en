@@ -13,9 +13,10 @@
 
 #pragma once
 
-#include "graphics/Public/ResourceEnums.h"
-#include "graphics/Public/ImageDesc.h"
-#include "graphics/Public/ImageMemView.h"
+#include "graphics_rhi/Public/ResourceEnums.h"
+#include "graphics_rhi/Public/ImageDesc.h"
+#include "graphics_rhi/Public/ImageMemView.h"
+#include "vfs/Common.h"
 
 namespace AE::ResLoader {
 	class IntermImage;
@@ -34,8 +35,9 @@ namespace AE::AssetPacker
 	{
 	// types
 	public:
-		static constexpr ushort		Version			= 1;
-		static constexpr uint		Magic			= "gr.Image"_Hash;
+		static constexpr ushort		Version		= 1;
+		static constexpr uint		Magic		= "gr.Image"_Hash;
+		static constexpr auto		SerID		= Serializing::SerializedID::Optimized_t{"Image"};
 
 		struct Header
 		{
@@ -45,14 +47,16 @@ namespace AE::AssetPacker
 			EImage			viewType	= Default;
 			EPixelFormat	format		= Default;
 			ushort			flags		= 0;		// 0
-			ubyte			rowAlignPOT	= 0;		// POTValue
+			ubyte			rowAlignPOT	= 0;		// POTBytes
 
 			// TODO: viewFormats, usage, options
 
-			Header ()							__NE___ = default;
+			Header ()									__NE___ = default;
+			explicit Header (const ImageDesc &desc,
+							 EImage viewType = Default)	__NE___;
 
-			ND_ ImageDesc		ToDesc ()		C_NE___;
-			ND_ ImageViewDesc	ToViewDesc ()	C_NE___;
+			ND_ ImageDesc		ToDesc ()				C_NE___;
+			ND_ ImageViewDesc	ToViewDesc ()			C_NE___;
 		};
 		StaticAssert( sizeof(Header) == 16 );
 		StaticAssert( alignof(Header) == 2 );
@@ -60,14 +64,15 @@ namespace AE::AssetPacker
 
 		struct FileHeader
 		{
-			uint			magic		= Magic;
-			ushort			version		= Version;
-			Header			hdr;
+			uint							magic			= Magic;
+			ushort							version			= Version;
+			Header							imageHeader;
+			VFS::FileName::Optimized_t		fileName;
 
 			FileHeader ()							__NE___ = default;
-			explicit FileHeader (const Header &h)	__NE___ : hdr{h} {};
+			explicit FileHeader (const Header &h)	__NE___ : imageHeader{h} {};
 		};
-		StaticAssert( sizeof(FileHeader) == 24 );
+		StaticAssert( sizeof(FileHeader) == 28 );
 
 
 	// variables
@@ -112,6 +117,19 @@ namespace AE::AssetPacker
 	{
 		return ImageViewDesc{ viewType };
 	}
+
+/*
+=================================================
+	Header ctor
+=================================================
+*/
+	inline ImagePacker::Header::Header (const ImageDesc &desc, EImage viewType) __NE___ :
+		dimension{ desc.dimension },
+		arrayLayers{ LayerCount_t{desc.arrayLayers} },
+		mipmaps{ MipmapCount_t{desc.mipLevels} },
+		viewType{ viewType },
+		format{ desc.format }
+	{}
 
 
 } // AE::AssetPacker

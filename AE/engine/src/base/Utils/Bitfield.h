@@ -36,99 +36,99 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr Bitfield ()										__NE___ : _bits{0} {}
+		__Cx__ Bitfield ()									__NE___ : _bits{0} {}
 
-		constexpr Bitfield (const Self &)							__NE___ = default;
-		constexpr Bitfield (Self &&)								__NE___ = default;
+		__Cx__ Bitfield (const Self &)						__NE___ = default;
+		__Cx__ Bitfield (Self &&)							__NE___ = default;
 
-		constexpr explicit Bitfield (T bits)						__NE___ : _bits{bits} {}
+		__Cx__ explicit Bitfield (T bits)					__NE___ : _bits{bits} {}
 
-			constexpr Self&  operator = (const Self &)				__NE___ = default;
-			constexpr Self&  operator = (Self &&)					__NE___ = default;
+		__Cx__ Self&  operator = (const Self &)				__NE___ = default;
+		__Cx__ Self&  operator = (Self &&)					__NE___ = default;
 
 
 		// single bit //
-			template <usize Bit>
-			constexpr Self&		Set ()								__NE___	{ StaticAssert( Bit < _BitCount );  _bits |= T{1} << Bit;  return *this; }
+		template <usize Bit>
+		__Cx__ Self&	Set ()								__NE___	{ StaticAssert( Bit < _BitCount );  _bits |= T{1} << Bit;  return *this; }
 
-			template <usize Bit>
-			constexpr Self&		Erase ()							__NE___	{ StaticAssert( Bit < _BitCount );  _bits &= ~(T{1} << Bit);  return *this; }
+		template <usize Bit>
+		__Cx__ Self&	Erase ()							__NE___	{ StaticAssert( Bit < _BitCount );  _bits &= ~(T{1} << Bit);  return *this; }
 
-			template <usize Bit>
-		ND_ constexpr bool		Has ()								C_NE___	{ StaticAssert( Bit < _BitCount );  return !!(_bits & (T{1} << Bit)); }
+		template <usize Bit>
+		NdCx__ bool		Has ()								C_NE___	{ StaticAssert( Bit < _BitCount );  return !!(_bits & (T{1} << Bit)); }
 
-			template <typename IT>
-			constexpr Self&		Set (IT bit)						__NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  _bits |= T{1} << bit;  return *this; }
+		template <typename IT, ENABLEIF( IsInteger<IT> )>
+		__Cz__ Self&	Set (IT bit)						__NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  _bits |= T{1} << bit;  return *this; }
 
-			template <typename IT>
-			constexpr Self&		Erase (IT bit)						__NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  _bits &= ~(T{1} << bit);  return *this; }
+		template <typename IT, ENABLEIF( IsInteger<IT> )>
+		__Cz__ Self&	Erase (IT bit)						__NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  _bits &= ~(T{1} << bit);  return *this; }
 
-			template <typename IT>
-		ND_ constexpr bool		Has (IT bit)						C_NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  return !!(_bits & (T{1} << bit)); }
+		template <typename IT, ENABLEIF( IsInteger<IT> )>
+		NdCz__ bool		Has (IT bit)						C_NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  return !!(_bits & (T{1} << bit)); }
 
 
 		// bit range //
-			template <usize Bit, usize Count>
-			constexpr Self&		SetRange ()							__NE___;
+		template <usize Bit, usize Count>
+		__Cx__ Self&	SetRange ()							__NE___;
 
-			template <usize Bit, usize Count>
-			constexpr Self&		EraseRange ()						__NE___;
+		template <usize Bit, usize Count>
+		__Cx__ Self&	EraseRange ()						__NE___;
 
-			template <usize Bit, usize Count>
-		ND_	constexpr bool		HasRange ()							C_NE___;
+		template <usize Bit, usize Count>
+		NdCx__ bool		HasRange ()							C_NE___;
 
-			template <typename IT>
-			constexpr Self&		SetRange (IT first, IT count)		__NE___;
+		template <typename IT, ENABLEIF( IsInteger<IT> )>
+		__Cz__ Self&	SetRange (IT first, IT count)		__NE___;
 
-			template <typename IT>
-			constexpr Self&		EraseRange (IT first, IT count)		__NE___;
+		template <typename IT, ENABLEIF( IsInteger<IT> )>
+		__Cz__ Self&	EraseRange (IT first, IT count)		__NE___;
 
-			template <typename IT>
-		ND_	constexpr bool		HasRange (IT first, IT count)		C_NE___;
+		template <typename IT, ENABLEIF( IsInteger<IT> )>
+		NdCz__ bool		HasRange (IT first, IT count)		C_NE___;
 
 
-		ND_ constexpr explicit	operator T ()						C_NE___	{ return _bits; }
+		NdCx__ explicit	operator T ()						C_NE___	{ return _bits; }
 
-		ND_ constexpr Self		operator ~  ()						C_NE___	{ return Self{ ~_bits }; }
+		NdCx__ Self		operator ~  ()						C_NE___	{ return Self{ ~_bits }; }
 
-			constexpr Self&		operator |= (Self rhs)				__NE___	{ _bits |= rhs._bits;  return *this; }
-			constexpr Self&		operator &= (Self rhs)				__NE___	{ _bits &= rhs._bits;  return *this; }
-			constexpr Self&		operator ^= (Self rhs)				__NE___	{ _bits ^= rhs._bits;  return *this; }
+		__Cx__ Self&	operator |= (Self rhs)				__NE___	{ _bits |= rhs._bits;  return *this; }
+		__Cx__ Self&	operator &= (Self rhs)				__NE___	{ _bits &= rhs._bits;  return *this; }
+		__Cx__ Self&	operator ^= (Self rhs)				__NE___	{ _bits ^= rhs._bits;  return *this; }
 
-		ND_ constexpr Self		operator |  (Self rhs)				C_NE___	{ return Self{ _bits | rhs._bits }; }
-		ND_ constexpr Self		operator &  (Self rhs)				C_NE___	{ return Self{ _bits & rhs._bits }; }
-		ND_ constexpr Self		operator ^  (Self rhs)				C_NE___	{ return Self{ _bits ^ rhs._bits }; }
+		NdCx__ Self		operator |  (Self rhs)				C_NE___	{ return Self{ _bits | rhs._bits }; }
+		NdCx__ Self		operator &  (Self rhs)				C_NE___	{ return Self{ _bits & rhs._bits }; }
+		NdCx__ Self		operator ^  (Self rhs)				C_NE___	{ return Self{ _bits ^ rhs._bits }; }
 
-		ND_ constexpr bool		operator == (Self rhs)				C_NE___	{ return _bits == rhs._bits; }
-		ND_ constexpr bool		operator != (Self rhs)				C_NE___	{ return _bits != rhs._bits; }
+		NdCx__ bool		operator == (Self rhs)				C_NE___	{ return _bits == rhs._bits; }
+		NdCx__ bool		operator != (Self rhs)				C_NE___	{ return _bits != rhs._bits; }
 
-		ND_ constexpr bool		None ()								C_NE___	{ return ! _bits; }
-		ND_ constexpr bool		Any ()								C_NE___	{ return !! _bits; }
-		ND_ constexpr bool		All ()								C_NE___	{ return _bits == UMax; }
+		NdCx__ bool		None ()								C_NE___	{ return ! _bits; }
+		NdCx__ bool		Any ()								C_NE___	{ return !! _bits; }
+		NdCx__ bool		All ()								C_NE___	{ return _bits == UMax; }
 
-		ND_ constexpr T			Get ()								C_NE___	{ return _bits; }
-		ND_ constexpr T &		Ref ()								__NE___	{ return _bits; }
+		NdCx__ T		Get ()								C_NE___	{ return _bits; }
+		NdCx__ T &		Ref ()								__NE___	{ return _bits; }
 
 		// change first 1 bit to 0
-		ND_ constexpr T			ExtractBit ()						__NE___;
-		ND_ constexpr int		ExtractBitIndex ()					__NE___	{ return IntLog2( ExtractBit() ); }
+		NdCx__ T		ExtractBit ()						__NE___;
+		NdCx__ int		ExtractBitIndex ()					__NE___	{ return IntLog2( ExtractBit() ); }
 
 		// returns first 1 bit
-		ND_ constexpr T			GetFirstBit ()						C_NE___;
-		ND_ constexpr int		GetFirstBitIndex ()					C_NE___	{ return IntLog2( GetFirstBit() ); }
+		NdCx__ T		GetFirstBit ()						C_NE___;
+		NdCx__ int		GetFirstBitIndex ()					C_NE___	{ return IntLog2( GetFirstBit() ); }
 
 		// change first 0 bit to 1
-		ND_ constexpr T			SetFirstZeroBit ()					__NE___;
-		ND_ constexpr int		SetFirstZeroBitIndex ()				__NE___	{ return IntLog2( SetFirstZeroBit() ); }
+		NdCx__ T		SetFirstZeroBit ()					__NE___;
+		NdCx__ int		SetFirstZeroBitIndex ()				__NE___	{ return IntLog2( SetFirstZeroBit() ); }
 
 		// returns first 0 bit
-		ND_ constexpr T			GetFirstZeroBit ()					C_NE___;
-		ND_ constexpr int		GetFirstZeroBitIndex ()				C_NE___	{ return IntLog2( GetFirstZeroBit() ); }
+		NdCx__ T		GetFirstZeroBit ()					C_NE___;
+		NdCx__ int		GetFirstZeroBitIndex ()				C_NE___	{ return IntLog2( GetFirstZeroBit() ); }
 
-		ND_ usize				BitCount ()							C_NE___	{ return Math::BitCount( _bits ); }
-		ND_ usize				ZeroBitCount ()						C_NE___	{ return Math::BitCount( ~_bits ); }
+		ND_ usize		BitCount ()							C_NE___	{ return Base::BitCount( _bits ); }
+		ND_ usize		ZeroBitCount ()						C_NE___	{ return Base::BitCount( ~_bits ); }
 
-		ND_ HashVal				CalcHash ()							C_NE___;
+		ND_ HashVal		CalcHash ()							C_NE___;
 	};
 
 
@@ -142,7 +142,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	constexpr T  Bitfield<T>::ExtractBit () __NE___
+	__Cx__ T  Bitfield<T>::ExtractBit () __NE___
 	{
 		T	result = _bits & ~(_bits - T{1});
 		_bits &= ~result;
@@ -157,7 +157,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	constexpr T  Bitfield<T>::SetFirstZeroBit () __NE___
+	__Cx__ T  Bitfield<T>::SetFirstZeroBit () __NE___
 	{
 		T	inv		= ~_bits;
 		T	result	= inv & ~(inv - T{1});
@@ -166,7 +166,7 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	constexpr T  Bitfield<T>::GetFirstZeroBit () C_NE___
+	__Cx__ T  Bitfield<T>::GetFirstZeroBit () C_NE___
 	{
 		T	inv		= ~_bits;
 		T	result	= inv & ~(inv - T{1});
@@ -180,7 +180,7 @@ namespace AE::Base
 */
 	template <typename T>
 	template <usize Bit, usize Count>
-	constexpr Bitfield<T>&  Bitfield<T>::SetRange () __NE___
+	__Cx__ Bitfield<T>&  Bitfield<T>::SetRange () __NE___
 	{
 		StaticAssert( Bit < _BitCount );
 		StaticAssert( Bit+Count <= _BitCount );
@@ -191,7 +191,7 @@ namespace AE::Base
 
 	template <typename T>
 	template <usize Bit, usize Count>
-	constexpr Bitfield<T>&  Bitfield<T>::EraseRange () __NE___
+	__Cx__ Bitfield<T>&  Bitfield<T>::EraseRange () __NE___
 	{
 		StaticAssert( Bit < _BitCount );
 		StaticAssert( Bit+Count <= _BitCount );
@@ -202,7 +202,7 @@ namespace AE::Base
 
 	template <typename T>
 	template <usize Bit, usize Count>
-	constexpr bool  Bitfield<T>::HasRange () C_NE___
+	__Cx__ bool  Bitfield<T>::HasRange () C_NE___
 	{
 		StaticAssert( Bit < _BitCount );
 		StaticAssert( Bit+Count <= _BitCount );
@@ -212,8 +212,8 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	template <typename IT>
-	constexpr Bitfield<T>&  Bitfield<T>::SetRange (IT first, IT count) __NE___
+	template <typename IT, ENABLEIF_IMPL( IsInteger<IT> )>
+	__Cz__ Bitfield<T>&  Bitfield<T>::SetRange (IT first, IT count) __NE___
 	{
 		ASSERT( first < _BitCount );
 		ASSERT( first+count <= _BitCount );
@@ -223,8 +223,8 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	template <typename IT>
-	constexpr Bitfield<T>&  Bitfield<T>::EraseRange (IT first, IT count) __NE___
+	template <typename IT, ENABLEIF_IMPL( IsInteger<IT> )>
+	__Cz__ Bitfield<T>&  Bitfield<T>::EraseRange (IT first, IT count) __NE___
 	{
 		ASSERT( first < _BitCount );
 		ASSERT( first+count <= _BitCount );
@@ -234,8 +234,8 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	template <typename IT>
-	constexpr bool  Bitfield<T>::HasRange (IT first, IT count) C_NE___
+	template <typename IT, ENABLEIF_IMPL( IsInteger<IT> )>
+	__Cz__ bool  Bitfield<T>::HasRange (IT first, IT count) C_NE___
 	{
 		ASSERT( first < _BitCount );
 		ASSERT( first+count <= _BitCount );

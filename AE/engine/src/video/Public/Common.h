@@ -39,8 +39,8 @@ namespace AE::Video
 	using Seconds		= DefaultPhysicalQuantity<double>::Second;
 	using FrameRate		= FractionalI;
 
-	using BitrateKb		= DefaultPhysicalQuantity<ulong>::KibiBitPerSecond;
-	using BitrateMb		= DefaultPhysicalQuantity<ulong>::MebiBitPerSecond;
+	using BitrateKib	= DefaultPhysicalQuantity<ulong>::KibiBitPerSecond;
+	using BitrateMib	= DefaultPhysicalQuantity<ulong>::MebiBitPerSecond;
 
 
 	enum class EFilter : ubyte

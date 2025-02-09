@@ -708,7 +708,7 @@ namespace AE::Video
 		for (usize i = 0; i < memViewArr.size(); ++i)
 		{
 			EPixelFormat	plane_fmt;
-			uint2			dim_scale;
+			POTVec2			dim_scale;
 			CHECK( EPixelFormat_GetPlaneInfo( _config.srcFormat, EImageAspect_Plane(i), OUT plane_fmt, OUT dim_scale ));
 
 			auto&	view = memViewArr[i];
@@ -748,7 +748,6 @@ namespace AE::Video
 		}
 		else
 		// copy without scaling
-		// memory must be aligned to 16 bytes
 		{
 			for (usize i = 0; i < memViewArr.size(); ++i)
 			{
@@ -766,7 +765,7 @@ namespace AE::Video
 					Bytes	src_off;
 					for_likely (; src_off < part.size; )
 					{
-						MemCopy16( OUT _videoFrame->data[i] + dst_off, part.ptr + src_off, pitch );
+						MemCopy( OUT _videoFrame->data[i] + dst_off, part.ptr + src_off, pitch );
 						src_off += src_pitch;
 						dst_off += dst_pitch;
 					}

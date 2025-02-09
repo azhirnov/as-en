@@ -28,26 +28,27 @@ protected:
 
 // variables
 protected:
-	Unique<Canvas>				_canvas;
-	RenderTechPipelinesPtr		_canvasPpln;
-	RenderTechPipelinesPtr		_canvasPplnDesk;		// for MinDesktop FS
+	RC<ResourceUploadManager>		_uploadMngr;
 
-	TestQueue_t					_tests;
-	uint						_testsPassed		= 0;
-	uint						_testsFailed		= 0;
+	RenderTechPipelinesPtr			_canvasPpln;
+	RenderTechPipelinesPtr			_canvasPplnDesk;		// for MinDesktop FS
 
-	FStorage_t					_refImageStorage;
-	Path						_refImagePath;
+	TestQueue_t						_tests;
+	uint							_testsPassed		= 0;
+	uint							_testsFailed		= 0;
+
+	FStorage_t						_refImageStorage;
+	Path							_refImagePath;
 
   #if defined(AE_ENABLE_VULKAN)
-	VDeviceInitializer			_device;
-	VulkanSyncLog				_syncLog;
+	VDeviceInitializer				_device;
+	VulkanSyncLog					_syncLog;
 
   #elif defined(AE_ENABLE_METAL)
-	MDeviceInitializer			_device;
+	MDeviceInitializer				_device;
 
   #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-	RDeviceInitializer			_device;
+	RDeviceInitializer				_device;
 
   #else
   #	error not implemented

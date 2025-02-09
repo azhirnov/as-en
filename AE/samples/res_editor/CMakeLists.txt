@@ -7,22 +7,23 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 
 	set( SOURCES ${LIB_SOURCES} ${DATA_FILES} )
 
+	set( APP_NAME "ResourceEditor" )
 	if (APPLE)
-		add_executable( "ResourceEditor" MACOSX_BUNDLE ${SOURCES} )
+		add_executable( ${APP_NAME} MACOSX_BUNDLE ${SOURCES} )
 	else()
-		add_executable( "ResourceEditor" ${SOURCES} )
+		add_executable( ${APP_NAME} ${SOURCES} )
 	endif()
 
 	source_group( TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SOURCES} )
-	set_property( TARGET "ResourceEditor" PROPERTY FOLDER "Samples" )
+	set_property( TARGET ${APP_NAME} PROPERTY FOLDER "Samples" )
 
-	target_include_directories( "ResourceEditor" PUBLIC
+	target_include_directories( ${APP_NAME} PUBLIC
 		".."
 		"${MAIN_SOURCE_DIR}/engine/tools/res_pack/asset_packer/Utils"
 	)
 
-	EnablePCH( "ResourceEditor" )
-	EnableUnitBuild( "ResourceEditor" )
+	EnablePCH( ${APP_NAME} )
+	EnableUnitBuild( ${APP_NAME} )
 
 	if (${AE_USE_UNITY_BUILD})
 		set( NON_UNITY_BUILD_SRC
@@ -31,47 +32,47 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 		set_property( SOURCE ${NON_UNITY_BUILD_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
 	endif()
 
-	target_link_libraries( "ResourceEditor" PUBLIC
+	target_link_libraries( ${APP_NAME} PUBLIC
 		# tools
-		"PipelineCompiler" "ResourceLoaders" "GeometryTools"
+		"PipelineCompiler" "ResourceLoaders" "GeometryTools" "GraphicsTestUtils"
 		# engine
 		"GraphicsHL" "Video"
 	)
 	if (TARGET "Profiler")
-		target_link_libraries( "ResourceEditor" PUBLIC "Profiler" )
+		target_link_libraries( ${APP_NAME} PUBLIC "Profiler" )
 	endif()
 	if (TARGET "Compressonator-lib")
-		target_link_libraries( "ResourceEditor" PUBLIC "Compressonator-lib" )
+		target_link_libraries( ${APP_NAME} PUBLIC "Compressonator-lib" )
 	endif()
 	if (TARGET "AstcEncoder-lib")
-		target_link_libraries( "ResourceEditor" PUBLIC "AstcEncoder-lib" )
+		target_link_libraries( ${APP_NAME} PUBLIC "AstcEncoder-lib" )
 	endif()
 
-	target_compile_definitions( "ResourceEditor" PUBLIC
+	target_compile_definitions( ${APP_NAME} PUBLIC
 		AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
 		AE_LOCAL_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/_data"
 	)
 
 	if (${AE_RES_EDITOR_RELEASE})
-		target_compile_definitions( "ResourceEditor" PUBLIC "AE_PUBLIC_VERSION=true" )
+		target_compile_definitions( ${APP_NAME} PUBLIC "AE_PUBLIC_VERSION=true" )
 	else()
-		target_compile_definitions( "ResourceEditor" PUBLIC "AE_PUBLIC_VERSION=false" )
+		target_compile_definitions( ${APP_NAME} PUBLIC "AE_PUBLIC_VERSION=false" )
 	endif()
 	#----------------------------------------------------------
 
 	set( AE_TEMP_FOLDER_RESEDITOR "${AE_TEMP_FOLDER}/samples/res_editor" )
 
 	if (TARGET "OfflinePacker")
-		add_custom_target( "ResourceEditor.PackRes"
+		add_custom_target( "${APP_NAME}.PackRes"
 			DEPENDS  "OfflinePacker"
 			COMMAND  $<TARGET_FILE:OfflinePacker>
 						-i "${CMAKE_CURRENT_SOURCE_DIR}/_ui_data/main.as"
 						-o "${AE_TEMP_FOLDER_RESEDITOR}"
-			COMMENT  "pack resources for 'ResourceEditor' ..."
+			COMMENT  "pack resources for '${APP_NAME}' ..."
 			VERBATIM
 		)
-		set_property( TARGET "ResourceEditor.PackRes" PROPERTY FOLDER "Samples" )
-		add_dependencies( "PACK_RES" "ResourceEditor.PackRes" )
+		set_property( TARGET "${APP_NAME}.PackRes" PROPERTY FOLDER "Samples" )
+		add_dependencies( "PACK_RES" "${APP_NAME}.PackRes" )
 	endif()
 
 	add_subdirectory( "_data" )

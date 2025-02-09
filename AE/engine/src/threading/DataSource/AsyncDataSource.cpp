@@ -46,7 +46,7 @@ namespace AE::Threading
 			//	weak		& cancelled	-> complete
 			const bool	is_canceled = dep.Get<1>().isStrong and (not complete);
 
-			ITaskDependencyManager::_SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, Bool{is_canceled} );
+			IAsyncTask::Helper::SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, Bool{is_canceled} );
 		}
 		_deps.clear();
 	}
@@ -58,7 +58,8 @@ namespace AE::Threading
 */
 	bool  AsyncDSRequestDependencyManager::Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE___
 	{
-		using EStatus = AsyncDSRequest::Value_t::EStatus;
+		// only 'Background' task should depends on AsyncDSRequest
+		ASSERT( task->QueueType() == ETaskQueue::Background );
 
 		if_likely( auto* request_pp = dep.GetIf< AsyncDSRequest >() )
 		{

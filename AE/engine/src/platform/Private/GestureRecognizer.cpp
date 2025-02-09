@@ -119,7 +119,7 @@ namespace
 			return;
 		}
 
-		const float		MaxDistanceSqr	= 15.0f;	// mm^2
+		const float		MaxDistanceSqr	= Square( 4.0f );	// mm^2
 		const ubyte		touch_idx		= GetFirstTouch( _activeTouches );
 		const Touch&	touch			= _touchData[touch_idx];
 		const auto		state			= _touchStates[touch_idx];

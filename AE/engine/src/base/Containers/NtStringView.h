@@ -207,7 +207,7 @@ namespace AE::Base
 			return 0;
 
 		// TODO
-		if constexpr( IsSameTypes< T, wchar_t >)
+		if constexpr( IsSame< T, wchar_t >)
 			return std::wcslen( str );
 		else
 			return std::strlen( str );

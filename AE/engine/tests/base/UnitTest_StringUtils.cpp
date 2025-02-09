@@ -6,9 +6,21 @@ namespace
 {
 	static void  StringUtils_FindChar ()
 	{
-		String	s  = "dfkfmdasikf1nqaodms;alc,m";
-		usize	a0 = FindChar( s.data(), 0, s.size(), '1' );	TEST_Eq( a0, 11 );
-		usize	a1 = FindChar( s.data(), 5, s.size(), '1' );	TEST_Eq( a1, 11 );
+		String	s;
+		s.resize( 1024 + 3, '1' );
+
+		for (usize offset = 0; offset < 128; ++offset)
+		{
+			for (usize i = 256; i < s.size(); ++i)
+			{
+				s[i] = 'A';
+
+				const char*	p = FindChar( s.data()+offset, s.data()+s.size(), 'A' );
+				TEST_Eq( usize(p - s.data()), i );
+
+				s[i] = '1';
+			}
+		}
 	}
 
 
@@ -39,8 +51,8 @@ namespace
 		const char	a1 [] = "123-567";
 		const char	a2 [] = "9123-";
 
-		usize	b0 = FindString( a0, a1, 0 );		TEST_Eq( b0, 16 );
-		usize	b1 = FindString( a0, a2, 0 );		TEST_Eq( b1, 46 );
+		auto*	b0 = FindString( a0, a1, 0 );		TEST_Eq( b0-a0, 16 );
+		auto*	b1 = FindString( a0, a2, 0 );		TEST_Eq( b1-a0, 46 );
 
 		TEST( HasSubString( a0, a1 ));
 		TEST( not HasSubString( a0, a2 ));
@@ -54,9 +66,9 @@ namespace
 		const char	a2 [] = "-YbbFS";
 		const char	a3 [] = "YbFSPD";
 
-		usize	b0 = FindStringIC( a0, a1, 0 );		TEST_Eq( b0, 17 );
-		usize	b1 = FindStringIC( a0, a2, 0 );		TEST_Eq( b1, 47 );
-		usize	b2 = FindStringIC( a0, a3, 0 );		TEST_Eq( b2, 17 );
+		auto*	b0 = FindStringIC( a0, a1, 0 );		TEST_Eq( b0-a0, 17 );
+		auto*	b1 = FindStringIC( a0, a2, 0 );		TEST_Eq( b1-a0, 47 );
+		auto*	b2 = FindStringIC( a0, a3, 0 );		TEST_Eq( b2-a0, 17 );
 
 		TEST( HasSubStringIC( a0, a1 ));
 		TEST( not HasSubStringIC( a0, a2 ));

@@ -53,6 +53,10 @@ namespace AE::App
 		void  SetFocus ()											C_NE_OV;
 		bool  SetMode (EWindowMode mode, Monitor::ID monitor)		__NE_OV;
 
+		bool  SetBrightness (Percent)								__NE_OV	{ return false; }
+
+		bool  SetColorSpace (EColorSpace value)						C_NE_OV;
+
 
 	private:
 		WindowGLFW (ApplicationGLFW &, Unique<IWndListener>, IInputActions*) __NE___;
@@ -67,6 +71,7 @@ namespace AE::App
 		static void  _GLFW_KeyCallback (GLFWwindow* wnd, int key, int, int, int)					__NE___;
 		static void  _GLFW_MouseButtonCallback (GLFWwindow* wnd, int button, int action, int mods)	__NE___;
 		static void  _GLFW_CursorPosCallback (GLFWwindow* wnd, double xpos, double ypos)			__NE___;
+		static void  _GLFW_CursorEnterCallback (GLFWwindow* wnd, int entered)						__NE___;
 		static void  _GLFW_MouseWheelCallback (GLFWwindow* wnd, double dx, double dy)				__NE___;
 		static void  _GLFW_IconifyCallback (GLFWwindow* wnd, int iconified)							__NE___;
 		static void  _GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float, float)				__NE___;

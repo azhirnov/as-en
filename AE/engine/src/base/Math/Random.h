@@ -5,7 +5,7 @@
 #include "base/Math/Vec.h"
 #include "base/Math/Color.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 namespace _hidden_
 {
@@ -82,7 +82,7 @@ namespace _hidden_
 		template <typename T>
 		ND_ EnableIf<IsInteger<T>, T>  Uniform ()							__NE___
 		{
-			using IT = typename Math::_hidden_::Random_Uniform_IntType<T>::type;
+			using IT = typename Base::_hidden_::Random_Uniform_IntType<T>::type;
 			return T( Uniform<IT>( Base::MinValue<T>(), Base::MaxValue<T>() ));
 		}
 
@@ -362,4 +362,4 @@ namespace _hidden_
 	};
 
 
-} // AE::Math
+} // AE::Base

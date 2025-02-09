@@ -50,20 +50,12 @@ namespace AE::Base
 			WriteAccess			= 1 << 6,
 			Async				= 1 << 7,		// must be 'ThreadSafe' too
 			DeferredOpen		= 1 << 8,		// async file can be opened even if it not exists, but read/write request will fail
-			Prefetch			= 1 << 9,		// allow to use 'Prefetch()' for read stream
 		};
 
 
 	// methods
 	protected:
 		IDataSource ()									__NE___ {}
-
-	public:
-		IDataSource (const IDataSource &)				= delete;
-		IDataSource (IDataSource &&)					= delete;
-
-		IDataSource&  operator = (const IDataSource &)	= delete;
-		IDataSource&  operator = (IDataSource &&)		= delete;
 
 
 	// interface
@@ -90,7 +82,7 @@ namespace AE::Base
 
 
 		// Returns file size.
-		// If 'GetSourceType()' doesn't returns 'FixedSize'
+		// If 'GetSourceType()' doesn't returns 'FixedSize',
 		// size may be unknown and 'UMax' will be returned.
 		//
 		ND_ virtual Bytes	Size ()													C_NE___ = 0;
@@ -192,10 +184,10 @@ namespace AE::Base
 										// 'CompareStrict()': exact position to the first non equal byte.
 			slong	diff		= 0;	// 0 if equal
 
-			constexpr CmpResult ()								__NE___	{}
-			constexpr CmpResult (Bytes processed, slong diff)	__NE___	: processed{processed}, diff{diff} {}
+			__Cx__ CmpResult ()								__NE___	{}
+			__Cx__ CmpResult (Bytes processed, slong diff)	__NE___	: processed{processed}, diff{diff} {}
 
-			ND_ explicit constexpr operator bool ()				C_NE___ { return diff == 0; }
+			NdCx__ explicit operator bool ()				C_NE___ { return diff == 0; }
 		};
 
 		struct TempBuffer
@@ -258,7 +250,7 @@ namespace AE::Base
 */
 	inline bool  RDataSource::Read (Bytes pos, OUT void* buffer, Bytes size) __NE___
 	{
-		return ReadBlock( pos, buffer, size ) == size;
+		return ReadBlock( pos, OUT buffer, size ) == size;
 	}
 
 	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>

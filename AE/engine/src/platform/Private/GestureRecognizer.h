@@ -99,9 +99,9 @@ namespace AE::App
 		void  _Recognize2Touch (uint activeCount, Duration_t timestamp, InputActionsBase &ia)		__NE___;
 
 		template <typename T>
-		ND_ static constexpr InputKey	_Pack (T key,
-											   EGestureType gesture,
-											   EGestureState state = EGestureState::Update)			__NE___ { return InputActionsBase::_Pack( key, gesture, state ); }
+		NdCx__ static InputKey	_Pack (T key,
+									   EGestureType gesture,
+									   EGestureState state = EGestureState::Update)					__NE___ { return InputActionsBase::_Pack( key, gesture, state ); }
 	};
 
 

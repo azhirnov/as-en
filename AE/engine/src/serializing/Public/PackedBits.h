@@ -33,18 +33,18 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr PackedBits ()								__NE___	{}
-		explicit constexpr PackedBits (T val)				__NE___	: _value{val} {}
+		__Cx__ PackedBits ()						__NE___	{}
+		__Cx__ explicit PackedBits (T val)			__NE___	: _value{val} {}
 
 		// for union/bitset/bitfields
-		ND_ T*			operator -> ()						__NE___	{ return &_value; }
-		ND_ T const*	operator -> ()						C_NE___	{ return &_value; }
+		ND_ T*			operator -> ()				__NE___	{ return &_value; }
+		ND_ T const*	operator -> ()				C_NE___	{ return &_value; }
 
-		ND_ explicit constexpr operator T ()				C_NE___	{ return _value; }
+		NdCx__ explicit operator T ()				C_NE___	{ return _value; }
 
-		ND_ static constexpr uint	MaxBitCount ()			__NE___	{ return BitCount_v; }
-		ND_ constexpr BitType		ToBits ()				C_NE___;
-			constexpr void			FromBits (BitType bits)	__NE___;
+		NdCx__ static uint	MaxBitCount ()			__NE___	{ return BitCount_v; }
+		NdCx__ BitType		ToBits ()				C_NE___;
+		__Cx__ void			FromBits (BitType bits)	__NE___;
 	};
 
 	using BoolBit	= PackedBits< 0, 1, bool >;
@@ -56,6 +56,11 @@ namespace AE::Base
 	using PackedDoubleBits = PackedBits< IgnoreMantissaBits, CT_SizeOfInBits<double> - IgnoreMantissaBits, double >;
 
 
+/*
+=================================================
+	IsPackedBits
+=================================================
+*/
 namespace _hidden_
 {
 	template <typename T>
@@ -64,7 +69,6 @@ namespace _hidden_
 	template <uint F, uint B, typename T>
 	struct _IsPackedBits< PackedBits<F,B,T> > : CT_True {};
 }
-
 	template <typename T>
 	static constexpr bool	IsPackedBits = Base::_hidden_::_IsPackedBits<T>::value;
 
@@ -74,7 +78,7 @@ namespace _hidden_
 =================================================
 */
 	template <uint F, uint B, typename T>
-	constexpr typename PackedBits<F,B,T>::BitType  PackedBits<F,B,T>::ToBits () C_NE___
+	__Cx__ typename PackedBits<F,B,T>::BitType  PackedBits<F,B,T>::ToBits () C_NE___
 	{
 		constexpr BitType	mask = ToBitMask<BitType>( B );
 
@@ -84,13 +88,13 @@ namespace _hidden_
 			return (BitType{_value} >> F) & mask;
 		}
 		else
-		if constexpr( IsSameTypes< T, bool >)
+		if constexpr( IsSame< T, bool >)
 		{
 			StaticAssert( F == 0 and B == 1 );
 			return BitType{_value};
 		}
 		else
-		if constexpr( IsSameTypes< T, Bool32 >)
+		if constexpr( IsSame< T, Bool32 >)
 		{
 			StaticAssert( F == 0 and B == 1 );
 			return BitType{_value.ToBit()};
@@ -113,7 +117,7 @@ namespace _hidden_
 =================================================
 */
 	template <uint F, uint B, typename T>
-	constexpr void  PackedBits<F,B,T>::FromBits (BitType bits) __NE___
+	__Cx__ void  PackedBits<F,B,T>::FromBits (BitType bits) __NE___
 	{
 		bits = (bits & ToBitMask<BitType>( B )) << F;
 
@@ -122,7 +126,7 @@ namespace _hidden_
 			_value = T{bits};
 		}
 		else
-		if constexpr( IsSameTypes< T, bool > or IsSameTypes< T, Bool32 >)
+		if constexpr( IsSame< T, bool > or IsSame< T, Bool32 >)
 		{
 			StaticAssert( F == 0 and B == 1 );
 			_value = T{ bits != 0 };

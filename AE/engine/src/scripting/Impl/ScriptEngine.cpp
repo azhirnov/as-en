@@ -224,7 +224,7 @@ namespace
 									   OUT Array<Pair< StringView, usize >>	&includeFileAndPos,
 									   ArrayView<StringView>				defines) __Th___
 	{
-		usize		begin_block		= 0;
+		usize		begin_block		= 0;	// UMax if not scope is not included, also check 'include_scope'
 		Array<bool>	include_scope;	include_scope.push_back(true);
 
 		const auto	CheckMacro = [str, defines, &begin_block, &include_scope] (INOUT usize &pos)
@@ -240,7 +240,7 @@ namespace
 				// move to end of word
 				for (; IsWord( str[pos] ); ++pos) {}
 
-				StringView	macro_name	= str.substr( begin, pos - begin );
+				StringView	macro_name	= SubString2( str, begin, pos );
 
 				for (auto def : defines) {
 					if ( def == macro_name ) {
@@ -257,7 +257,7 @@ namespace
 				// move to end of number
 				for (; IsNumber( str[pos] ); ++pos) {}
 
-				StringView	number_str	= str.substr( begin, pos - begin );
+				StringView	number_str	= SubString2( str, begin, pos );
 				int			number		= StringToInt( number_str, 10 );
 
 				include = (number != 0);
@@ -355,14 +355,26 @@ namespace
 					#endif
 					Unused( multiline_strings_assert_once );
 
-					if_unlikely( a == '"' )
-						break;
-
-					if_unlikely( (a != '\\') and (b == '"') )
+					if_unlikely( (a == '\\') and (b == '"') )
 					{
 						++pos;
-						break;
+						continue;
 					}
+
+					if_unlikely( a == '"' )
+						break;
+				}
+
+				ASSERT( str[pos-2] == '"' );
+
+				const usize	p	= pos-1;
+				const char	a	= str[pos-1];
+				pos += usize(a == 's');	// skip C++ string suffix
+
+				if ( begin_block != UMax )
+				{
+					dst << SubString2( str, begin_block, p );
+					begin_block = pos-1;
 				}
 				continue;
 			}
@@ -379,7 +391,7 @@ namespace
 					usize tmp = pos;
 					Parser::ToBeginOfLine( str, INOUT tmp );
 
-					dst << str.substr( begin_block, tmp - begin_block );
+					dst << SubString2( str, begin_block, tmp );
 					begin_block = UMax;
 				}
 
@@ -455,14 +467,17 @@ namespace
 						pos = begin_block;
 					}
 				}
-				#ifdef AE_DEBUG
-					else if ( str.substr( pos, 5 ) == "undef" )		{}
-					else if ( str.substr( pos, 6 ) == "define" )	{}
-					else if ( str.substr( pos, 6 ) == "pragma" )	{}
-					else if ( str.substr( pos, 9 ) == "extension" )	{}	// GLSL
+				else
+				{
+				  #ifdef AE_DEBUG
+					if ( str.substr( pos, 5 ) == "undef" )		{} else
+					if ( str.substr( pos, 6 ) == "define" )		{} else
+					if ( str.substr( pos, 6 ) == "pragma" )		{} else
+					if ( str.substr( pos, 9 ) == "extension" )	{}	// GLSL
 					//else DBG_WARNING( "unknown macros" );
-				#endif
-
+				  #endif
+					Parser::ToNextLine( str, INOUT pos );
+				}
 				continue;
 			}
 
@@ -483,13 +498,13 @@ namespace
 
 					if ( is_ns )
 					{
-						dst << str.substr( begin_block, pos-1 - begin_block ) << '_';
+						dst << SubString2( str, begin_block, pos-1 ) << '_';
 						begin_block = pos+1;
 					}
 
 					if ( is_rc )
 					{
-						dst << str.substr( begin_block, pos-1 - begin_block );
+						dst << SubString2( str, begin_block, pos-1 );
 
 						SkipSpaces( str, INOUT pos += 2 );
 						CHECK_ERR( IsWordBegin( str[pos] ));
@@ -501,7 +516,7 @@ namespace
 						SkipSpaces( str, INOUT pos );
 						CHECK_ERR( str[pos] == '>' );
 
-						dst << str.substr( begin, end - begin ) << '@';
+						dst << SubString2( str, begin, end ) << '@';
 						begin_block = ++pos;
 					}
 				}
@@ -555,7 +570,7 @@ namespace
 			Array<Pair< StringView, usize >>	file_and_pos;
 
 			dst.clear();
-			CHECK_ERR( _Preprocessor( str, OUT dst, file_and_pos, defines ));
+			CHECK_ERR( _Preprocessor( str, OUT dst, OUT file_and_pos, defines ));
 			CHECK_ERR( file_and_pos.empty() or not includeDirs.empty() );
 
 			usize	offset = 0;
@@ -687,6 +702,7 @@ namespace
 	#if AE_SCRIPT_CPP_REFLECTION
 		EXLOCK( _cppHeaderGuard );
 
+		str << "#pragma once\n";
 		str << "#include <vector>\n";
 		str << "#include <string>\n\n";
 
@@ -708,8 +724,8 @@ namespace
 
 		str << "using namespace std::string_literals;\n\n";
 
-		str << "template <typename T>\n"
-			<< "string  operator + (const string &lhs, T rhs);\n\n";
+		//str << "template <typename T>\n"
+		//	<< "string  operator + (const string &lhs, T rhs);\n\n";
 
 		// forward declaration
 		for (auto& [name, p] : _cppHeaderMap)

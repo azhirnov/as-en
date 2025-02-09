@@ -7,13 +7,81 @@ namespace AE::ResLoader
 {
 namespace
 {
+/*
+=================================================
+	LoadDDS
+=================================================
+*/
+	static bool  LoadDDS (const DDS_HEADER &header, const EImage imgType, const EPixelFormat format,
+						  const uint3 dim, const uint arrayLayers, const uint mipmapCount,
+						  RStream &stream, RC<IAllocator> allocator, INOUT IntermImage &image)
+	{
+		CHECK_ERR( imgType != Default );
+
+		const auto&		info	= EPixelFormat_GetInfo( format );
+		usize			pitch	= 0;
+
+		if ( All( info.TexBlockDim() == uint2{1} ))
+		{
+			// uncompressed texture
+			if ( AllBits( header.dwFlags, DDSD_PITCH ))
+				pitch = header.dwPitchOrLinearSize;
+			else
+				pitch = (dim.x * info.bitsPerBlock + 7) / 8;
+		}
+		else
+		{
+			// compressed texture
+			if ( AllBits( header.dwFlags, DDSD_LINEARSIZE ))
+				pitch = header.dwPitchOrLinearSize;
+			else
+				pitch = Max( 1u, (dim.x + 3) / 4 ) * (info.bitsPerBlock / 8);
+		}
+
+
+		IntermImage::Mipmaps_t	image_data;
+		const uint3				block_dim{ (dim.x + info.TexBlockDim().x-1) / info.TexBlockDim().x, (dim.y + info.TexBlockDim().y-1) / info.TexBlockDim().y, dim.z };
+
+		for (uint layer = 0; layer < arrayLayers; ++layer)
+		{
+			for (uint mm = 0; mm < mipmapCount; ++mm)
+			{
+				IntermImage::Level	image_level;
+				image_level.format		= format;
+				image_level.dimension	= Max( dim >> mm, uint3{1} );
+				image_level.mipmap		= MipmapLevel{ uint(mm) };
+				image_level.layer		= ImageLayer{ uint(layer) };
+				image_level.rowPitch	= Bytes{pitch};
+				image_level.slicePitch	= image_level.rowPitch * dim.y;
+
+				CHECK_ERR( image_level.SetPixelData( SharedMem::Create( allocator, image_level.slicePitch * image_level.dimension.z )));
+
+				CHECK_ERR( stream.Read( OUT image_level.PixelData(), image_level.DataSize() ));
+
+				if ( usize(mm) >= image_data.size() )
+					image_data.resize( mm + 1 );
+
+				if ( usize(layer) >= image_data[mm].size() )
+					image_data[mm].resize( layer + 1 );
+
+				auto&	curr_mm = image_data[mm][layer];
+
+				CHECK_MSG( curr_mm.Empty(), "warning: previous data will be discarded" );
+
+				curr_mm = RVRef(image_level);
+			}
+		}
+
+		CHECK_ERR( image.SetData( RVRef(image_data), imgType ));
+		return true;
+	}
 
 /*
 =================================================
 	LoadDX10Image
 =================================================
 */
-	static bool  LoadDX10Image (INOUT IntermImage &image, const DDS_HEADER &header, const DDS_HEADER_DXT10 &headerDX10, RStream &stream, RC<IAllocator> allocator)
+	ND_ static bool  LoadDX10Image (INOUT IntermImage &image, const DDS_HEADER &header, const DDS_HEADER_DXT10 &headerDX10, RStream &stream, RC<IAllocator> allocator)
 	{
 		CHECK_ERR( AllBits( header.dwFlags, DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT ));
 
@@ -23,7 +91,7 @@ namespace
 		const bool		is_cube			= AllBits( headerDX10.miscFlag, D3D11_RESOURCE_MISC_TEXTURECUBE );
 		const uint		mipmap_count	= AllBits( header.dwFlags, DDSD_MIPMAPCOUNT ) ? header.dwMipMapCount : 1;
 		const uint		array_layers	= (is_cube ? 6 : 1) * headerDX10.arraySize;
-		uint3			dim				= { header.dwWidth, header.dwHeight, 1 };
+		uint3			dim				= { header.dwWidth, header.dwHeight, 1u };
 		EImage			img_type		= Default;
 
 		switch_enum( headerDX10.resourceDimension )
@@ -59,65 +127,7 @@ namespace
 		}
 		switch_end
 
-		CHECK_ERR( img_type != Default );
-
-
-		const auto&		info	= EPixelFormat_GetInfo( format );
-		usize			pitch	= 0;
-
-		if ( All( info.TexBlockDim() == uint2{1} ))
-		{
-			// uncompressed texture
-			if ( AllBits( header.dwFlags, DDSD_PITCH ))
-				pitch = header.dwPitchOrLinearSize;
-			else
-				pitch = (dim.x * info.bitsPerBlock + 7) / 8;
-		}
-		else
-		{
-			// compressed texture
-			if ( AllBits( header.dwFlags, DDSD_LINEARSIZE ))
-				pitch = header.dwPitchOrLinearSize;
-			else
-				pitch = Max( 1u, (dim.x + 3) / 4 ) * (info.bitsPerBlock / 8);
-		}
-
-
-		IntermImage::Mipmaps_t	image_data;
-		const uint3				block_dim{ (dim.x + info.TexBlockDim().x-1) / info.TexBlockDim().x, (dim.y + info.TexBlockDim().y-1) / info.TexBlockDim().y, dim.z };
-
-		for (uint layer = 0; layer < array_layers; ++layer)
-		{
-			for (uint mm = 0; mm < mipmap_count; ++mm)
-			{
-				IntermImage::Level	image_level;
-				image_level.format		= format;
-				image_level.dimension	= Max( dim >> mm, uint3{1} );
-				image_level.mipmap		= MipmapLevel{ uint(mm) };
-				image_level.layer		= ImageLayer{ uint(layer) };
-				image_level.rowPitch	= Bytes{pitch};
-				image_level.slicePitch	= image_level.rowPitch * dim.y;
-
-				CHECK_ERR( image_level.SetPixelData( SharedMem::Create( allocator, image_level.slicePitch * image_level.dimension.z )));
-
-				CHECK_ERR( stream.Read( OUT image_level.PixelData(), image_level.DataSize() ));
-
-				if ( usize(mm) >= image_data.size() )
-					image_data.resize( mm + 1 );
-
-				if ( usize(layer) >= image_data[mm].size() )
-					image_data[mm].resize( layer + 1 );
-
-				auto&	curr_mm = image_data[mm][layer];
-
-				CHECK_MSG( curr_mm.Empty(), "warning: previous data will be discarded" );
-
-				curr_mm = RVRef(image_level);
-			}
-		}
-
-		CHECK_ERR( image.SetData( RVRef(image_data), img_type ));
-		return true;
+		return LoadDDS( header, img_type, format, dim, array_layers, mipmap_count, stream, RVRef(allocator), INOUT image );
 	}
 
 /*
@@ -125,11 +135,35 @@ namespace
 	LoadDDSImage
 =================================================
 */
-	static bool  LoadDDSImage (INOUT IntermImage &image, const DDS_HEADER &header, RStream &stream, RC<IAllocator> allocator)
+	ND_ static bool  LoadDDSImage (INOUT IntermImage &image, const DDS_HEADER &header, RStream &stream, RC<IAllocator> allocator)
 	{
-		Unused( image, header, stream, allocator );
-		// TODO
-		return false;
+		CHECK_ERR( AllBits( header.dwFlags, DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT ));
+
+		uint3			dim				= { header.dwWidth, header.dwHeight, 1u };
+		EPixelFormat	format			= DDSFormatToPixelFormat( header.ddspf );
+		EImage			img_type		= Default;
+		const uint		mipmap_count	= AllBits( header.dwFlags, DDSD_MIPMAPCOUNT ) ? header.dwMipMapCount : 1;
+		uint			array_layers	= 1;
+
+		CHECK_ERR( format != Default );
+
+		if ( AllBits( header.dwFlags, DDSD_HEADER_FLAGS_VOLUME ))
+		{
+			img_type = EImage_3D;
+			dim.z = header.dwDepth;
+		}
+		else
+		if ( AllBits( header.dwCaps2, DDSCAPS2_CUBEMAP ))
+		{
+			CHECK_ERR( AllBits( header.dwCaps2, DDSCAPS2_CUBEMAP_ALLFACES ));
+			array_layers = 6;
+			img_type = EImage::Cube;
+		}
+		else
+		{
+			img_type = EImage_2D;
+		}
+		return LoadDDS( header, img_type, format, dim, array_layers, mipmap_count, stream, RVRef(allocator), INOUT image );
 	}
 
 } // namespace

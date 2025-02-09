@@ -116,6 +116,56 @@ float  SDF2_Triangle (const float2 position, const float2 p0, const float2 p1, c
 }
 
 
+float  SDF2_Trapezeoid (float2 p, const float r1, const float r2, const float height)
+{
+	float2	k1	= float2( r2, height );
+	float2	k2	= float2( r2 - r1, 2.0*height );
+			p.x	= Abs( p.x );
+	float2	ca	= float2( p.x - Min( p.x, (p.y < 0.0) ? r1 : r2 ), Abs(p.y) - height );
+	float2	cb	= p - k1 + k2 * Saturate( Dot( k1-p, k2 ) / LengthSq(k2) );
+	float	s	= (cb.x < 0.0 and ca.y < 0.0) ? -1.0 : 1.0;
+	return s * Sqrt( Min( LengthSq(ca), LengthSq(cb) ));
+}
+
+
+float  SDF2_UnevenCapsule (float2 p, const float r1, const float r2, const float h)
+{
+			p.x	= Abs(p.x);
+			p.y += h * 0.5;
+	float	b	= (r1 - r2) / h;
+	float	a	= Sqrt( 1.0 - b*b );
+	float	k	= Dot( p, float2(-b,a) );
+	if ( k < 0.0 ) return Length( p ) - r1;
+	if ( k > a*h ) return Length( p - float2(0.0,h) ) - r2;
+	return Dot( p, float2(a,b) ) - r1;
+}
+
+
+float  SDF2_Hexagram (float2 p, const float r)
+{
+	const float4 k = float4(-0.5,0.8660254038,0.5773502692,1.7320508076);
+	p = Abs(p);
+	p -= 2.0 * Min( Dot( k.xy, p ), 0.0 ) * k.xy;
+	p -= 2.0 * Min( Dot( k.yx, p ), 0.0 ) * k.yx;
+	p -= float2(Clamp( p.x, r * k.z, r * k.w ), r );
+	return Length(p) * Sign(p.y);
+}
+
+
+float  SDF2_Star5 (float2 p, const float r, const float rf)
+{
+	const float2 k1 = float2(0.809016994375, -0.587785252292);
+	const float2 k2 = float2(-k1.x,k1.y);
+	p.x	= Abs(p.x);
+	p	-= 2.0 * Max( Dot( k1, p ), 0.0 ) * k1;
+	p	-= 2.0 * Max( Dot( k2, p ), 0.0 ) * k2;
+	p.x	= Abs(p.x);
+	p.y	-= r;
+	float2	ba = rf * float2(-k1.y, k1.x) - float2(0.0, 1.0);
+	float	h  = Clamp( Dot(p,ba) / LengthSq(ba), 0.0, r );
+	return Length( p - ba * h ) * Sign( p.y * ba.x - p.x * ba.y );
+}
+
 
 //-----------------------------------------------------------------------------
 // 3D Shapes
@@ -213,7 +263,7 @@ float  SDF_TriangularPrism (const float3 position, const float2 h)
 float  SDF_Capsule (const float3 position, const float3 a, const float3 b, const float r)
 {
 	const float3  pa = position - a;
-	const float3  ba = position - a;
+	const float3  ba = b - a;
 	const float   h  = Saturate( Dot( pa, ba ) / Dot( ba, ba ));
 	return Length( pa - ba * h ) - r;
 }
@@ -325,9 +375,12 @@ float  SDF_OpAnnularShape (const float dist, const float radius)
 }
 
 
-float  SDF_OpExtrusion (const float posZ, const float dist, const float height)
+float  SDF_OpExtrusion (const float posZ, const float distXY, const float height)
 {
-	const float2  w = float2( dist, Abs(posZ) - height );
+	// distXY - distance in 2D space
+	// posZ - Z coordinate
+
+	const float2  w = float2( distXY, Abs(posZ) - height );
 	return Min( Max( w.x, w.y ), 0.0f ) + Length( Max( w, 0.0f ));
 }
 
@@ -339,7 +392,7 @@ float  SDF_OpExtrusion (const float posZ, const float dist, const float height)
 float  SDF_Length2 (float3 p)
 {
 	p = p*p;
-	return Sqrt( p.x + p.y + p.z);
+	return Sqrt( p.x + p.y + p.z );
 }
 
 float  SDF_Length6 (float3 p)

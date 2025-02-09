@@ -218,6 +218,40 @@ namespace {
 
 /*
 =================================================
+	SetBrightness
+=================================================
+*/
+	bool  WindowAndroid::SetBrightness (Percent level) __NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+		DRC_EXLOCK( _app.GetSingleThreadCheck() );
+
+		return bool{_methods.setWndBrightness( level.GetFraction() )};
+	}
+
+/*
+=================================================
+	SetColorSpace
+----
+	set max brightness for HDR color space
+=================================================
+*/
+	bool  WindowAndroid::SetColorSpace (EColorSpace colorSpace) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+		DRC_EXLOCK( _app.GetSingleThreadCheck() );
+
+		const bool	is_scRGB	= AnyEqual( colorSpace, EColorSpace::Extended_sRGB_linear, EColorSpace::Extended_sRGB_nonlinear );
+		const bool	is_HDR10	= AnyEqual( colorSpace, EColorSpace::HDR10_ST2084, EColorSpace::HDR10_HLG, EColorSpace::DolbyVision );
+
+		float		brightness	= is_scRGB or is_HDR10 ? 1.f : -1.0f;
+
+		return	bool{_methods.setHDR( is_scRGB, is_HDR10 )} and
+				bool{_methods.setWndBrightness( brightness )};
+	}
+
+/*
+=================================================
 	native_OnCreate
 =================================================
 */
@@ -233,8 +267,10 @@ namespace {
 
 		InputActionsAndroid::EnableSensorsFn_t	enable_sensors;
 
-		CHECK( window->_java.window.Method( "Close",			OUT window->_methods.close ));
-		CHECK( window->_java.window.Method( "EnableSensors",	OUT enable_sensors ));
+		CHECK( window->_java.window.Method( "Close",				OUT window->_methods.close ));
+		CHECK( window->_java.window.Method( "EnableSensors",		OUT enable_sensors ));
+		CHECK( window->_java.window.Method( "SetWindowBrightness",	OUT window->_methods.setWndBrightness ));
+		CHECK( window->_java.window.Method( "SetHDRMode",			OUT window->_methods.setHDR ));
 
 		window->_SetState( EState::Created );
 		window->_input.Initialize( RVRef(enable_sensors) );

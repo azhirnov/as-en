@@ -109,9 +109,10 @@ namespace
 		using Nanoseconds	= PQ::Nanosecond;
 		using Hours			= PQ::Hour;
 		using FBytes		= PQ::Byte;
+		using FBits			= PQ::Bit;
 
 		Seconds			a0 {secondsd{1.0}};			TEST( BitEqual( a0.GetNonScaled(), 1.0 ));
-		Nanoseconds		a1 {secondsd{1.0}};			TEST( BitEqual( a1.GetNonScaled(), 1.0e+9 ));
+		Nanoseconds		a1 {seconds{1}};			TEST( BitEqual( a1.GetNonScaled(), 1.0e+9 ));
 		Hours			a2 {secondsd{1.0e+10}};		TEST( BitEqual( a2.GetNonScaled(), 1.0e+10 / (60.0 * 60.0) ));
 		Seconds			a3 {seconds{22}};			TEST( BitEqual( a3.GetScaled(), 22.0 ));
 		Seconds			a4 {milliseconds{3}};		TEST( BitEqual( a4.GetScaled(), 3.0e-3 ));
@@ -119,7 +120,9 @@ namespace
 
 		nanoseconds		b0 {Seconds{1.0}};			TEST( Equal( slong(b0.count()), slong{1'000'000'000} ));
 
-		FBytes			c0 {Bytes{1u << 20}};		TEST( BitEqual( c0.GetScaled(), double(1u<<20) ));
+		FBits			c0 {Bytes{1u << 20}};		TEST( BitEqual( c0.GetScaled(), double(8u<<20) ));
+		FBytes			c1 {Bytes{1u << 20}};		TEST( BitEqual( c1.GetScaled(), double(8u<<20) ));
+		Bytes			c2 {c0};					TEST_Eq( c2, 1u<<20 );
 
 		Bytes			d0 {FBytes{1.0e+9}};		TEST( Equal( ulong{d0}, ulong{1'000'000'000} ));
 	}
@@ -167,7 +170,9 @@ namespace
 		using MetersPerSecond3x3	= PhysicalQuantitySIMDMatrix< MetersPerSecond, 3, 3 >;
 
 		Meters3x3	m = Meters3x3::FromScalar( Meters{1.0f} );
-		Unused( m );
+		Meters3		v = m * Meters3{1.f};
+
+		Unused( v );
 	}
 }
 

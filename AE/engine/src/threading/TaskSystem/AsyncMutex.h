@@ -59,13 +59,13 @@ namespace AE::Threading
 		ND_ AsyncTask  TryLock (IAsyncTask* task)	__NE___
 		{
 			AsyncTask	exp;
-			Unused( _currentTask.CAS_Loop( INOUT exp, task ));
+			Unused( _currentTask.CAS_Loop( INOUT exp, AsyncTask{task} ));
 			return exp;
 		}
 
 		bool  Unlock (IAsyncTask* task)				__NE___
 		{
-			AsyncTask	exp = task;
+			AsyncTask	exp {task};
 			return _currentTask.CAS_Loop( INOUT exp, null );
 		}
 
@@ -85,7 +85,7 @@ namespace AE::Threading
 		ASSERT( AE::Base::StringView{"Run"} == AE_FUNCTION_NAME );												\
 																												\
 		if ( AE::Threading::AsyncTask  task = AE_PRIVATE_UNITE_RAW( __asyncExLock, _index_ ).Lock() ) {			\
-			return this->Continue( Tuple{WeakDep{task}} );														\
+			return this->Continue( AE::Base::Tuple{AE::Threading::WeakDep{ task }} );							\
 		}
 
 #	define ASYNC_EXLOCK( _amutex_ ) \

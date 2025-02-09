@@ -9,8 +9,11 @@
 # include <pthread.h>
 # include <sched.h>
 
+# include <mach/thread_policy.h>
+# include <mach/thread_act.h>
+
 # include "base/Platforms/AppleUtils.h"
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {
@@ -24,6 +27,7 @@ namespace AE::Base
 		return Base::_hidden_::SecureZeroMemFallback( OUT ptr, size );
 	}
 
+#ifndef AE_CFG_RELEASE
 /*
 =================================================
 	SetCurrentThreadName
@@ -33,9 +37,18 @@ namespace AE::Base
 	{
 		StaticLogger::SetCurrentThreadName( StringView{name} );
 
-		//ASSERT( name.length() <= 16 );
-		//int	res = prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
-		//ASSERT( res == 0 );
+		ASSERT( name.length() <= 16 );
+
+	  #if 0
+		int	res = ::prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
+	  #elif 1
+		int	res = ::pthread_setname_np( name.c_str() );
+	  #else
+		::thread_set_thread_name( ::current_thread(), name.c_str() );
+		int res = 0;
+	  #endif
+
+		ASSERT( res == 0 );  Unused( res );
 	}
 
 /*
@@ -46,10 +59,15 @@ namespace AE::Base
 	String  AppleUtils::GetCurrentThreadName ()
 	{
 		char	buf [16] = {};
-		//int		res = prctl( PR_GET_NAME, buf, 0, 0, 0 );
-		//ASSERT( res == 0 );
+	  #if 0
+		int res = ::prctl( PR_GET_NAME, OUT buf, 0, 0, 0 );
+	  #else
+		int res = ::pthread_getname_np( ::pthread_self(), OUT buf, 16 );
+	  #endif
+		ASSERT( res == 0 );  Unused( res );
 		return String{buf};
 	}
+#endif // AE_CFG_RELEASE
 
 /*
 =================================================
@@ -64,53 +82,75 @@ namespace AE::Base
 /*
 =================================================
 	SetThreadAffinity
+----
+	https://developer.apple.com/library/archive/releasenotes/Performance/RN-AffinityAPI/index.html#//apple_ref/doc/uid/TP40006635
 =================================================
 */
-	bool  AppleUtils::SetThreadAffinity (const ThreadHandle &handle, uint coreIdx) __NE___
+	bool  AppleUtils::SetThreadAffinity (const ThreadHandle &handle, const uint logicalCoreIdx) __NE___
 	{
-		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
+		ASSERT_Lt( logicalCoreIdx, std::thread::hardware_concurrency() );
 
-		//cpu_set_t cpuset;
-		//CPU_ZERO( &cpuset );
-		//CPU_SET( coreIdx, &cpuset );
-		//return ::pthread_setaffinity_np( handle, sizeof(cpu_set_t), &cpuset ) == 0;
+		thread_affinity_policy	ap = {};
+		ap.affinity_tag = 1 << logicalCoreIdx;
 
-		Unused( handle, coreIdx );
+		auto td = ::pthread_mach_thread_np( handle );
+		int res = ::thread_policy_set( td, THREAD_AFFINITY_POLICY, BitCast<thread_policy_t>(&ap), THREAD_AFFINITY_POLICY_COUNT );
+		ASSERT( res == 0 );  Unused( res );
+
 		return true;
 	}
 
-	bool  AppleUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
+	bool  AppleUtils::SetCurrentThreadAffinity (const uint logicalCoreIdx) __NE___
 	{
-		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
-
-		return true;
+		return SetThreadAffinity( GetCurrentThreadHandle(), logicalCoreIdx );
 	}
 
 /*
 =================================================
 	SetThreadPriority
+----
+	https://developer.apple.com/documentation/apple-silicon/tuning-your-code-s-performance-for-apple-silicon
+	https://developer.apple.com/videos/play/tech-talks/110147/	time: 25:11
 =================================================
 */
-	bool  AppleUtils::SetThreadPriority (const ThreadHandle &handle, float priority) __NE___
+	bool  AppleUtils::SetThreadPriority (const ThreadHandle &, EThreadPriority) __NE___
 	{
-		// TODO
-		Unused( handle, priority );
-		return false;
+		RETURN_ERR( "use SetCurrentThreadPriority instead" );
 	}
 
-	bool  AppleUtils::SetCurrentThreadPriority (float priority) __NE___
+	bool  AppleUtils::SetCurrentThreadPriority (EThreadPriority priority) __NE___
 	{
-		// TODO
-		Unused( priority );
-		return false;
+		qos_class_t	qos;
+		switch_enum( priority )
+		{
+			case EThreadPriority::PerFrame :		qos = QOS_CLASS_USER_INTERACTIVE;	break;	// per-frame work
+			case EThreadPriority::PerFrameLow :		qos = QOS_CLASS_USER_INITIATED;		break;	// cross-frame work
+			case EThreadPriority::Default :			qos = QOS_CLASS_DEFAULT;			break;	// streaming / multiple frames deadline
+			case EThreadPriority::Background :		qos = QOS_CLASS_UTILITY;			break;	// background asset download
+			case EThreadPriority::BackgroundLow :	qos = QOS_CLASS_BACKGROUND;			break;	// may not run for a very long time, only E-core
+
+			case EThreadPriority::Highest :
+			{
+				auto	td = ::pthread_self();
+				struct sched_param	params;
+				params.sched_priority = ::sched_get_priority_max( SCHED_RR );
+				return ::pthread_setschedparam( td, SCHED_RR, &params ) == 0;
+			}
+
+			case EThreadPriority::_Count :
+			default :								RETURN_ERR( "unknown thread priority" );
+		}
+
+		::pthread_set_qos_class_self_np( qos, 0 );
+		return true;
 	}
 
 /*
 =================================================
-	GetProcessorCoreIndex
+	GetLogicalCoreIndex
 =================================================
 */
-	uint  AppleUtils::GetProcessorCoreIndex () __NE___
+	uint  AppleUtils::GetLogicalCoreIndex () __NE___
 	{
 		return 0;
 		//return ::sched_getcpu();

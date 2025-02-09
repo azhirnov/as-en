@@ -282,11 +282,16 @@ namespace AE::CICD
 			msg.info.cpuVendor	= cpu_info.cpu.vendor;
 			msg.info.cpuArch	= cpu_info.cpu.arch;
 
-			msg.info.cpuFS.set( ECPUFeatureSet::AVX256,	cpu_info.feats.AVX256 );
-			msg.info.cpuFS.set( ECPUFeatureSet::AVX512,	cpu_info.feats.AVX512 );
-			msg.info.cpuFS.set( ECPUFeatureSet::Neon,	cpu_info.feats.NEON );
-			msg.info.cpuFS.set( ECPUFeatureSet::SVE,	cpu_info.feats.SVE );
-			msg.info.cpuFS.set( ECPUFeatureSet::SVE2,	cpu_info.feats.SVE2 );
+		  #ifdef AE_CPU_ARCH_X86_64
+			msg.info.cpuFS.set( ECPUFeatureSet::AVX,		cpu_info.feats.AVX );
+			msg.info.cpuFS.set( ECPUFeatureSet::AVX2,		cpu_info.feats.AVX2 );
+			msg.info.cpuFS.set( ECPUFeatureSet::AVX512F,	cpu_info.feats.AVX512F );
+		  #endif
+		  #ifdef AE_CPU_ARCH_ARM_BASED
+			msg.info.cpuFS.set( ECPUFeatureSet::Neon,		cpu_info.feats.NEON );
+			msg.info.cpuFS.set( ECPUFeatureSet::SVE,		cpu_info.feats.SVE );
+			msg.info.cpuFS.set( ECPUFeatureSet::SVE2,		cpu_info.feats.SVE2 );
+		  #endif
 		}
 
 		// GPU

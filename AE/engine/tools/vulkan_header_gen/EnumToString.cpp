@@ -59,7 +59,7 @@ namespace
 
 			for (auto it = fields.begin(); it != fields.end();)
 			{
-				if ( names.contains( it->value ))
+				if ( HashTable_Contains( names, it->value ))
 				{
 					AE_LOGI( "Removed duplicated enum: "s << it->name << " = " << it->value );
 					it = fields.erase( it );
@@ -93,7 +93,7 @@ namespace
 
 			for (auto it = const_set.second.begin(); it != const_set.second.end();)
 			{
-				if ( names.contains( it->value ))
+				if ( HashTable_Contains( names, it->value ))
 				{
 					AE_LOGI( "Removed duplicated const: "s << it->name << " = " << it->value );
 					it = const_set.second.erase( it );
@@ -128,7 +128,7 @@ namespace
 			"VkFormat", "VkPipelineStageFlagBits", "VkAccessFlagBits", "VkImageLayout",
 			"VkDependencyFlagBits", "VkSampleCountFlagBits", "VkAttachmentLoadOp", "VkAttachmentStoreOp",
 			"VkImageAspectFlagBits", "VkStructureType", "VkRenderPassCreateFlagBits", "VkAttachmentDescriptionFlagBits",
-			"VkSubpassDescriptionFlagBits", "VkPipelineBindPoint", "VkQueueFlagBits"
+			"VkSubpassDescriptionFlagBits", "VkPipelineBindPoint", "VkQueueFlagBits", "VkDeviceMemoryReportEventTypeEXT"
 		};
 		const Pair<const char*, const char*>	req_bitfields[] = {
 			{ "VkPipelineStageFlags",			"VkPipelineStageFlagBits" },

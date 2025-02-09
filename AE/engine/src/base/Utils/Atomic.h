@@ -150,7 +150,7 @@ namespace AE::Base
 		template <typename From>
 		Nd__IF static InternalType&  _Ref (From &src)			__NE___
 		{
-			if constexpr( IsSameTypes< InternalType, From >)
+			if constexpr( IsSame< InternalType, From >)
 				return src;
 			else
 				return reinterpret_cast< InternalType &>( src );
@@ -540,8 +540,8 @@ namespace AE::Base
 
 		T*	fetch_add (ssize arg, MO_t memOrder)				__NE___ { return _value.fetch_add( arg, memOrder ); }
 		T*	fetch_sub (ssize arg, MO_t memOrder)				__NE___ { return _value.fetch_sub( arg, memOrder ); }
-		T*	Add (ssize arg, MO_t memOrder)						__NE___ { return _value.fetch_add( arg, memOrder ) + Math::BytesSSize{arg}; }
-		T*	Sub (ssize arg, MO_t memOrder)						__NE___ { return _value.fetch_sub( arg, memOrder ) - Math::BytesSSize{arg}; }
+		T*	Add (ssize arg, MO_t memOrder)						__NE___ { return _value.fetch_add( arg, memOrder ) + Base::BytesSSize{arg}; }
+		T*	Sub (ssize arg, MO_t memOrder)						__NE___ { return _value.fetch_sub( arg, memOrder ) - Base::BytesSSize{arg}; }
 
 		T*	fetch_max (T* arg)									__NE___
 		{
@@ -620,17 +620,17 @@ namespace AE::Base
 	{
 		template <typename T>
 		struct TAtomicByte {
-			using type = TAtomic< Math::TByte<T>, T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
+			using type = TAtomic< Base::TByte<T>, T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
 		};
 
 		template <typename T>
-		struct TAtomicByte< Math::TByte<T> > {
-			using type = TAtomic< Math::TByte<T>, T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
+		struct TAtomicByte< Base::TByte<T> > {
+			using type = TAtomic< Base::TByte<T>, T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
 		};
 	}
 
 	template <typename T>
-	using AtomicByte = typename Base::_hidden_::TAtomicByte<T>::type;
+	using AtomicBytes = typename Base::_hidden_::TAtomicByte<T>::type;
 //-----------------------------------------------------------------------------
 
 

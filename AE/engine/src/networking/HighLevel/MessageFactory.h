@@ -60,26 +60,26 @@ namespace AE::Networking
 		StaticAssert( CT_SizeOfInBits<CSMessageUID> >= NetConfig::CSMessageUID_Bits );
 
 		static constexpr uint	_MaxGroupID			= (1u << 6) - 1;
-		static constexpr uint	_GroupMaskOffset	= NetConfig::CSMessageUID_Bits - IntLog2( _MaxGroupID+1 );
+		static constexpr uint	_GroupMaskOffset	= NetConfig::CSMessageUID_Bits - CT_IntLog2< _MaxGroupID+1 >;
 		static constexpr uint	_GroupMask			= _MaxGroupID << _GroupMaskOffset;
 		static constexpr uint	_MaxMessageID		= (1u << _GroupMaskOffset) - 1;
 
 		template <uint GroupID, uint MsgID>
-		ND_ static constexpr CSMessageUID  _PackUID ()							__NE___
+		NdCx__ static CSMessageUID  _PackUID ()							__NE___
 		{
 			StaticAssert( GroupID <= _MaxGroupID );
 			StaticAssert( MsgID   <= _MaxMessageID );
 			return _PackUID( GroupID, MsgID );
 		}
 
-		ND_ static constexpr CSMessageUID  _PackUID (uint group, uint id)		__NE___
+		NdCx__ static CSMessageUID  _PackUID (uint group, uint id)		__NE___
 		{
-			ASSERT( group <= _MaxGroupID );
-			ASSERT( id <= _MaxMessageID );
+			ASSERT_Cx( group <= _MaxGroupID );
+			ASSERT_Cx( id <= _MaxMessageID );
 			return CSMessageUID((group << _GroupMaskOffset) | id);
 		}
 
-		ND_ static constexpr Tuple<uint, uint>  _UnpackUID (CSMessageUID uid)	__NE___
+		NdCx__ static Tuple<uint, uint>  _UnpackUID (CSMessageUID uid)	__NE___
 		{
 			return Tuple{ (uint(uid) >> _GroupMaskOffset) & _MaxGroupID, uint(uid) & ~_GroupMask };
 		}
@@ -99,8 +99,8 @@ namespace AE::Networking
 		ND_ EncodeError			Serialize (DataEncoder &enc)		C_NE___;
 
 		// utils //
-		ND_ static constexpr uint  GroupCount ()					__NE___	{ return _MaxGroupID+1; }
-		ND_ static constexpr auto  UnpackGroupID (CSMessageUID uid)	__NE___	{ return CSMessageGroupID( (uint(uid) >> _GroupMaskOffset) & _MaxGroupID ); }
+		NdCx__ static uint		GroupCount ()						__NE___	{ return _MaxGroupID+1; }
+		NdCx__ static auto		UnpackGroupID (CSMessageUID uid)	__NE___	{ return CSMessageGroupID( (uint(uid) >> _GroupMaskOffset) & _MaxGroupID ); }
 
 
 		template <typename T>
@@ -167,7 +167,7 @@ namespace AE::Networking
 
 	private:
 		using MsgTypeMap_t			= FlatHashMap< uint, CreateAndDecode_t >;
-		using Allocator_t			= Threading::LfLinearAllocator< usize{4_Mb}, usize{16_b}, 16 >;
+		using Allocator_t			= Threading::LfLinearAllocator< usize{4_MiB}, usize{16_b}, 16 >;
 
 		using DoubleBufAlloc_t		= StaticArray< RC<Allocator_t>, 2 >;
 		using DoubleBufFrameId_t	= StaticArray< AtomicFrameUID, 2 >;

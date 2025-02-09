@@ -350,7 +350,7 @@ namespace {
 						if_unlikely( not op.stream.IsInitialized() )
 						{
 							UploadImageDesc		upload;
-							upload.imageDim		= ImageUtils::MipmapDimension( imageData->Dimension(), op.curMipmap.Get(), fmt_info.TexBlockDim() );
+							upload.imageDim		= ImageDim_t{ImageUtils::MipmapDimension( imageData->Dimension(), op.curMipmap.Get(), fmt_info.TexBlockDim() )};
 							upload.arrayLayer	= op.layer + op.curLayer;
 							upload.mipLevel		= op.mipmap + op.curMipmap;
 							upload.heapType		= EStagingHeapType::Dynamic;
@@ -428,6 +428,12 @@ namespace {
 		if ( not gen_mipmaps )
 			return;
 
+		if ( desc.mipLevels.Get() <= 1 )
+		{
+			AE_LOGW( "Image '"s << _dbgName << "' has no mipmap levels to generate them" );
+			return;
+		}
+
 		if ( num_layers == desc.arrayLayers.Get() and
 			 num_layers == _loadOps.size() )
 		{
@@ -497,7 +503,7 @@ namespace {
 			auto	mem = op.file->Alloc( SizeAndAlignOf<Header> );
 			CHECK_ERR( mem );
 
-			auto&	hdr		= PlacementNew<Header>( mem->Data() )->hdr;
+			auto&	hdr		= PlacementNew<Header>( mem->Data() )->imageHeader;
 			hdr.dimension	= view_desc.dimension;
 			hdr.arrayLayers	= view_desc.layerCount;
 			hdr.mipmaps		= view_desc.mipmapCount;
@@ -541,7 +547,7 @@ namespace {
 				const auto	layer					= view_desc.baseLayer + op.curLayer;
 
 				ReadbackImageDesc	read;
-				read.imageDim	= ImageUtils::MipmapDimension( img_desc.Dimension(), mipmap.Get(), fmt_info.TexBlockDim() );
+				read.imageDim	= ImageDim_t{ImageUtils::MipmapDimension( img_desc.Dimension(), mipmap.Get(), fmt_info.TexBlockDim() )};
 				read.arrayLayer	= layer;
 				read.mipLevel	= mipmap;
 				read.heapType	= EStagingHeapType::Dynamic;
@@ -556,7 +562,7 @@ namespace {
 							const auto		mipmap					= view_desc.baseMipmap + cur_mipmap;
 							const auto		layer					= view_desc.baseLayer + cur_layer;
 							const auto&		fmt_info				= EPixelFormat_GetInfo( view_desc.format );
-							const uint3		mip_dim					= ImageUtils::MipmapDimension( img_desc.Dimension(), mipmap.Get(), fmt_info.TexBlockDim() );
+							const auto		mip_dim					= ImageDim_t{ImageUtils::MipmapDimension( img_desc.Dimension(), mipmap.Get(), fmt_info.TexBlockDim() )};
 
 							AssetPacker::ImagePacker::Header	header;
 							header.dimension	= view_desc.dimension;
@@ -565,9 +571,10 @@ namespace {
 							header.viewType		= view_desc.viewType;
 							header.format		= view_desc.format;
 
-							uint3	dim;
-							Bytes	off, row_size, slice_size;
-							ImagePacker_GetOffset( header, layer, mipmap, memView.Offset(),
+							ImageDim_t	dim;
+							Bytes		off, slice_size;
+							Bytes32u	row_size;
+							ImagePacker_GetOffset( header, layer, mipmap, memView.OffsetRef(),
 												   OUT dim, OUT off, OUT row_size, OUT slice_size );
 
 							CHECK( All( dim == mip_dim ));

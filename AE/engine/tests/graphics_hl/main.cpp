@@ -8,6 +8,8 @@ using namespace AE::Threading;
 
 extern void UnitTest_FormattedText ();
 extern void UnitTest_UI_Layouts ();
+extern void UnitTest_SurfaceDimensions ();
+
 extern void Test_DrawTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVirtualFileStorage> refStorage);
 
 
@@ -24,6 +26,7 @@ static void  GraphicsTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::I
 
 
 	UnitTest_FormattedText();
+	UnitTest_SurfaceDimensions();
 	UnitTest_UI_Layouts();
 
 	Test_DrawTests( assetStorage, refStorage );
@@ -44,7 +47,7 @@ static void  GraphicsTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::I
 	{
 		AE::Base::StaticLogger::LoggerDbgScope log{};
 
-		GraphicsTests( assetStorage, refStorage );
+		GraphicsTests( RC{assetStorage}, RC{refStorage} );
 		return 0;
 	}
 

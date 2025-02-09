@@ -242,8 +242,8 @@ namespace AE::ResEditor
 			}
 
 			ReadbackImageDesc	read;
-			read.imageOffset	= block->offset;
-			read.imageDim		= block->dim;
+			read.imageOffset	= ImageDim_t{ block->offset };
+			read.imageDim		= ImageDim_t{ block->dim };
 			read.arrayLayer		= ImageLayer{ block->arrayLayer };
 			read.mipLevel		= MipmapLevel{ block->mipmap };
 			read.heapType		= c_HeapType;
@@ -273,8 +273,8 @@ namespace AE::ResEditor
 		if ( auto* block = _GetBlockToUpload() )
 		{
 			UploadImageDesc		upload;
-			upload.imageOffset	= block->offset;
-			upload.imageDim		= _decompress ? block->dim : AlignUp( block->dim, uint3{_texelBlockDim,1} );
+			upload.imageOffset	= ImageDim_t{ block->offset };
+			upload.imageDim		= ImageDim_t{ _decompress ? block->dim : AlignUp( block->dim, uint3{_texelBlockDim,1} )};
 			upload.arrayLayer	= ImageLayer{ block->arrayLayer };
 			upload.mipLevel		= MipmapLevel{ block->mipmap };
 			upload.heapType		= c_HeapType;
@@ -282,7 +282,7 @@ namespace AE::ResEditor
 			ImageMemView	mem;
 			ctx.UploadImage( _dstId, upload, OUT mem );
 
-			if ( All( mem.Dimension() == upload.imageDim ))
+			if ( All( mem.DimensionRef() == upload.imageDim ))
 			{
 				CHECK( mem.CopyFrom( _decompress ? block->SrcImage(_srcFormat) : block->DstImage(_dstFormat) ));
 				_FreeBlock( block );

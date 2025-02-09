@@ -7,7 +7,7 @@
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	define AE_ray_query
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -84,7 +84,7 @@
 	#include "Blend.glsl"
 	#include "GlobalIndex.glsl"
 	#include "HWRayTracing.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	const float	c_SmallOffset			= 0.0001;
 	const uint	c_MaxIntersections		= 64;

@@ -196,7 +196,7 @@ namespace
 			subpass_idx = iter->second;
 			for (usize i = subpass_idx + 1; i < _compat->_subpasses.size(); ++i)
 			{
-				CHECK_THROW_MSG( not usageMap.contains( _compat->_subpasses[i].name ),
+				CHECK_THROW_MSG( HashTable_NotContains( usageMap, _compat->_subpasses[i].name ),
 					"subpass '"s << subpassName << "' must be placed before subpass '" << storage.GetName( _compat->_subpasses[i].name ) << "'" );
 			}
 		}
@@ -450,11 +450,11 @@ namespace
 
 			for (usize i = iter->second + 1; i < _compat->_subpasses.size(); ++i)
 			{
-				CHECK_THROW_MSG( not layouts.contains( _compat->_subpasses[i].name ),
+				CHECK_THROW_MSG( HashTable_NotContains( layouts, _compat->_subpasses[i].name ),
 					"subpass '"s << subpassName << "' must be placed before subpass '" << storage.GetName( _compat->_subpasses[i].name ) << "'" );
 			}
 
-			CHECK_THROW_MSG( not layouts.contains( Subpass_ExternalOut ),
+			CHECK_THROW_MSG( HashTable_NotContains( layouts, Subpass_ExternalOut ),
 				"subpass '"s << subpassName << "' must be placed before final subpass" );
 
 			// validate resource state
@@ -854,7 +854,8 @@ namespace
 
 			if ( storeOp == EAttachmentStoreOp::None and EResourceState_HasWriteAccess( state ))
 			{
-				AE_LOGE( String{msg} << "in subpass '" << storage.GetName( spName ) << "' have write access which is not allowed when 'storeOp = None'" );
+				AE_LOGE( String{msg} << "in subpass '" << storage.GetName( spName ) << "' have write access with state '" <<
+						 Base::ToString(state) << "' which is not allowed when 'storeOp = None'" );
 				is_valid = false;
 			}
 
@@ -1040,7 +1041,7 @@ namespace
 		ASSERT( _compat != null );
 		if ( _compat != null )
 		{
-			CHECK_THROW_MSG( _compat->_attachments.contains( att_name ),
+			CHECK_THROW_MSG( HashTable_Contains( _compat->_attachments, att_name ),
 				"Attachment '"s << attachmentName << "' is not exists in render pass '" << storage.GetName( _compat->_name ) << "'" );
 		}
 

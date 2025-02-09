@@ -1,7 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Heatmap of triangle area.
+*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT

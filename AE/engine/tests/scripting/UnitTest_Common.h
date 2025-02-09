@@ -8,7 +8,7 @@
 using namespace AE::Scripting;
 
 template <typename Fn, typename R, typename ...Args>
-ND_ inline EnableIf< not IsSameTypes<typename FunctionInfo<Fn>::result, void>, bool >
+ND_ inline EnableIf< not IsSame<typename FunctionInfo<Fn>::result, void>, bool >
 Run (const ScriptEnginePtr &se, StringView script, const String &entry, const SourceLoc &dbgLocation, OUT R &result, Args&& ...args)
 {
 	auto mod = se->CreateModule({ScriptEngine::ModuleSource{ "def", script, dbgLocation }});
@@ -26,14 +26,14 @@ Run (const ScriptEnginePtr &se, StringView script, const String &entry, const So
 }
 
 template <typename Fn, typename R, typename ...Args>
-ND_ inline EnableIf< not IsSameTypes<typename FunctionInfo<Fn>::result, void>, bool >
+ND_ inline EnableIf< not IsSame<typename FunctionInfo<Fn>::result, void>, bool >
 Run (const ScriptEnginePtr &se, StringView script, const String &entry, OUT R &result, Args&& ...args)
 {
 	return Run< Fn, R >( se, script, entry, SourceLoc{}, OUT result, FwdArg<Args>(args)... );
 }
 
 template <typename Fn, typename ...Args>
-ND_ inline EnableIf< IsSameTypes<typename FunctionInfo<Fn>::result, void>, bool >
+ND_ inline EnableIf< IsSame<typename FunctionInfo<Fn>::result, void>, bool >
 Run (const ScriptEnginePtr &se, StringView script, const String &entry, Args&& ...args)
 {
 	auto mod = se->CreateModule({ ScriptEngine::ModuleSource{"def", script} });

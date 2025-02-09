@@ -1,10 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "graphics/Private/EnumUtils.h"
-#include "graphics/Private/EnumToString.h"
+#include "graphics_rhi/Private/EnumUtils.h"
+#include "graphics_rhi/Private/EnumToString.h"
 
-#include "graphics/Vulkan/VDevice.h"
-#include "graphics/Vulkan/VEnumCast.h"
+#include "graphics_rhi/Vulkan/VDevice.h"
+#include "graphics_rhi/Vulkan/VEnumCast.h"
 
 using namespace AE;
 using namespace AE::Graphics;

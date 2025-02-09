@@ -33,8 +33,8 @@ namespace AE::Base
 			}			_packed;
 		};
 
-		static constexpr Value_t	_IndexMask	= Math::ToBitMask<Value_t>( IndexSize );
-		static constexpr Value_t	_GenMask	= Math::ToBitMask<Value_t>( GenerationSize );
+		static constexpr Value_t	_IndexMask	= Base::ToBitMask<Value_t>( IndexSize );
+		static constexpr Value_t	_GenMask	= Base::ToBitMask<Value_t>( GenerationSize );
 		static constexpr Value_t	_GenOffset	= IndexSize;
 
 
@@ -43,33 +43,33 @@ namespace AE::Base
 		explicit constexpr HandleTmpl (Value_t val) : _value{val} {}
 
 	public:
-		constexpr HandleTmpl ()												__NE___ = default;
-		constexpr HandleTmpl (const Self &other)							__NE___ : _value{other._value} {}
+		__Cx__ HandleTmpl ()										__NE___ = default;
+		__Cx__ HandleTmpl (const Self &other)						__NE___ : _value{other._value} {}
 
-		constexpr HandleTmpl (Value_t index, Value_t gen)					__NE___ :
+		__Cz__ HandleTmpl (Value_t index, Value_t gen)				__NE___ :
 			_value{Value_t(index) | (Value_t(gen) << _GenOffset)}
 		{
 			ASSERT( _packed.index == index );
 			ASSERT( _packed.gen == gen );
 		}
 
-		constexpr Self&  operator = (const Self &rhs)						__NE___ { _value = rhs._value;  return *this; }
+		__Cx__ Self&  operator = (const Self &rhs)					__NE___ { _value = rhs._value;  return *this; }
 
-		ND_ constexpr bool					IsValid ()						C_NE___	{ return _value != UMax; }
-		ND_ constexpr Index_t				Index ()						C_NE___	{ return _value & _IndexMask; }
-		ND_ constexpr Generation_t			Generation ()					C_NE___	{ return _value >> _GenOffset; }
-		ND_ HashVal							GetHash ()						C_NE___;
-		ND_ constexpr Value_t				Data ()							C_NE___	{ return _value; }
+		NdCx__ bool					IsValid ()						C_NE___	{ return _value != UMax; }
+		NdCx__ Index_t				Index ()						C_NE___	{ return _value & _IndexMask; }
+		NdCx__ Generation_t			Generation ()					C_NE___	{ return _value >> _GenOffset; }
+		Nd____ HashVal				GetHash ()						C_NE___;
+		NdCx__ Value_t				Data ()							C_NE___	{ return _value; }
 
-		ND_ constexpr bool					operator == (const Self &rhs)	C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool					operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
-		ND_ constexpr bool					operator <  (const Self &rhs)	C_NE___	{ return _value < rhs._value; }
+		NdCx__ bool					operator == (const Self &rhs)	C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool					operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
+		NdCx__ bool					operator <  (const Self &rhs)	C_NE___	{ return _value < rhs._value; }
 
-		ND_ explicit constexpr				operator bool ()				C_NE___	{ return IsValid(); }
+		NdCx__ explicit				operator bool ()				C_NE___	{ return IsValid(); }
 
-		ND_ static constexpr Index_t		MaxIndex ()						__NE___	{ return _IndexMask; }
-		ND_ static constexpr Generation_t	MaxGeneration ()				__NE___	{ return _GenMask; }
-		ND_ static constexpr Self			FromData (Value_t value)		__NE___	{ return Self{ value }; }
+		NdCx__ static Index_t		MaxIndex ()						__NE___	{ return _IndexMask; }
+		NdCx__ static Generation_t	MaxGeneration ()				__NE___	{ return _GenMask; }
+		NdCx__ static Self			FromData (Value_t value)		__NE___	{ return Self{ value }; }
 	};
 
 
@@ -90,10 +90,9 @@ namespace AE::Base
 		using Value_t		= typename Base_t::Value_t;
 
 	public:
-		constexpr HandleTmplDbg ()								__NE___ = default;
-		constexpr HandleTmplDbg (const Self &other)				__NE___ : Base_t{ other } {}
-
-		constexpr HandleTmplDbg (Value_t index, Value_t gen)	__NE___ : Base_t{ index, gen } {}
+		__Cx__ HandleTmplDbg ()								__NE___ = default;
+		__Cx__ HandleTmplDbg (const Self &other)			__NE___ : Base_t{ other } {}
+		__Cx__ HandleTmplDbg (Value_t index, Value_t gen)	__NE___ : Base_t{ index, gen } {}
 
 	// debugging
 	public:
@@ -132,31 +131,31 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr Strong ()											__NE___	= default;
-		constexpr Strong (Self &&other)								__NE___ : _id{other._id}	{ other._id = Default; }
-		constexpr explicit Strong (const ID_t &id)					__NE___ : _id{id}			{}
-		constexpr Strong (Value_t index, Value_t gen)				__NE___ : _id{index, gen}	{}
-		constexpr ~Strong ()										__NE___	{ ASSERT_MSG( not IsValid(), "handle must be released" ); }
+		__Cx__ Strong ()									__NE___	= default;
+		__Cx__ Strong (Self &&other)						__NE___ : _id{other._id}	{ other._id = Default; }
+		__Cx__ explicit Strong (const ID_t &id)				__NE___ : _id{id}			{}
+		__Cx__ Strong (Value_t index, Value_t gen)			__NE___ : _id{index, gen}	{}
+		__Cz__ ~Strong ()									__NE___	{ ASSERT_MSG( not IsValid(), "handle must be released" ); }
 
-		constexpr Self				Attach (ID_t id)				__NE___	{ ID_t  temp{_id};  _id = id;  return Self{temp}; }
+		__Cx__ Self			Attach (ID_t id)				__NE___	{ ID_t  temp{_id};  _id = id;  return Self{temp}; }
 
-		constexpr Self&				operator = (Self &&rhs)			__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
-		constexpr Self&				operator = (const Self &rhs)	__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
+		__Cz__ Self&		operator = (Self &&rhs)			__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
+		__Cz__ Self&		operator = (const Self &rhs)	__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
 
-		ND_ constexpr ID_t			Get ()							C_NE___	{ return _id; }
-		ND_ constexpr ID_t			Release ()						__NE___	{ ID_t temp{_id};  _id = Default;  return temp; }
-		ND_ constexpr bool			IsValid ()						C_NE___	{ return bool(_id); }
+		NdCx__ ID_t			Get ()							C_NE___	{ return _id; }
+		NdCx__ ID_t			Release ()						__NE___	{ ID_t temp{_id};  _id = Default;  return temp; }
+		NdCx__ bool			IsValid ()						C_NE___	{ return bool(_id); }
 
-		ND_ constexpr ID_t const&	operator * ()					C_NE___	{ return _id; }
-		ND_ constexpr ID_t const*	operator -> ()					C_NE___	{ return &_id; }
+		NdCx__ ID_t const&	operator * ()					C_NE___	{ return _id; }
+		NdCx__ ID_t const*	operator -> ()					C_NE___	{ return &_id; }
 
-		ND_ constexpr bool			operator == (const Self &rhs)	C_NE___	{ return _id == rhs._id; }
-		ND_ constexpr bool			operator != (const Self &rhs)	C_NE___	{ return _id != rhs._id; }
-		ND_ constexpr bool			operator <  (const Self &rhs)	C_NE___	{ return _id <  rhs._id; }
+		NdCx__ bool			operator == (const Self &rhs)	C_NE___	{ return _id == rhs._id; }
+		NdCx__ bool			operator != (const Self &rhs)	C_NE___	{ return _id != rhs._id; }
+		NdCx__ bool			operator <  (const Self &rhs)	C_NE___	{ return _id <  rhs._id; }
 
-		ND_ constexpr explicit		operator bool ()				C_NE___	{ return IsValid(); }
+		NdCx__ explicit		operator bool ()				C_NE___	{ return IsValid(); }
 
-		ND_ constexpr				operator ID_t ()				C_NE___	{ return _id; }
+		NdCx__				operator ID_t ()				C_NE___	{ return _id; }
 	};
 
 

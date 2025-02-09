@@ -28,8 +28,9 @@ namespace AE::CICD
 		Unknown		= 0,
 
 		// x64
-		AVX256,
-		AVX512,
+		AVX,
+		AVX2,
+		AVX512F,
 
 		// ARM
 		Neon,
@@ -437,8 +438,9 @@ namespace AE::Base
 	{
 		switch_enum( value )
 		{
-			case ECPUFeatureSet::AVX256 :	return "AVX256";
-			case ECPUFeatureSet::AVX512 :	return "AVX512";
+			case ECPUFeatureSet::AVX :		return "AVX";
+			case ECPUFeatureSet::AVX2 :		return "AVX2";
+			case ECPUFeatureSet::AVX512F :	return "AVX512F";
 			case ECPUFeatureSet::Neon :		return "Neon";
 			case ECPUFeatureSet::SVE :		return "SVE";
 			case ECPUFeatureSet::SVE2 :		return "SVE2";

@@ -9,9 +9,11 @@ void ASmain ()
 	//	NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
 	//	NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10
 	//	NVIDIA GeForce MX110 driver 510.54.0.0 on Arch unknown
-	//	NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
+	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
 	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
 	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
 
 	const EFeature  True = EFeature::RequireTrue;
@@ -125,6 +127,7 @@ void ASmain ()
 	fset.maxSpirvVersion (150);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
+	fset.maxDrawIndirectCount (4294967295);
 	fset.multiview (True);
 	fset.multiviewGeometryShader (True);
 	fset.multiviewTessellationShader (True);
@@ -135,16 +138,17 @@ void ASmain ()
 	fset.tessellationPointMode (True);
 	fset.maxTexelBufferElements (128 << 20);
 	fset.maxUniformBufferSize (64 << 10);
-	fset.maxStorageBufferSize (4294967295);
-	fset.perDescrSet_maxUniformBuffersDynamic (15);
-	fset.perDescrSet_maxStorageBuffersDynamic (16);
-	fset.perDescrSet_maxInputAttachments (1048576);
-	fset.perDescrSet_maxSampledImages (1048576);
-	fset.perDescrSet_maxSamplers (1048576);
-	fset.perDescrSet_maxStorageBuffers (1048576);
-	fset.perDescrSet_maxStorageImages (1048576);
-	fset.perDescrSet_maxUniformBuffers (90);
-	fset.perDescrSet_maxTotalResources (4294967295);
+	fset.maxStorageBufferSize (uint(2) << 30);
+	fset.perPipeline_maxUniformBuffersDynamic (15);
+	fset.perPipeline_maxStorageBuffersDynamic (16);
+	fset.perPipeline_maxTotalBuffersDynamic (31);
+	fset.perPipeline_maxInputAttachments (1048576);
+	fset.perPipeline_maxSampledImages (1048576);
+	fset.perPipeline_maxSamplers (1048576);
+	fset.perPipeline_maxStorageBuffers (1048576);
+	fset.perPipeline_maxStorageImages (1048576);
+	fset.perPipeline_maxUniformBuffers (90);
+	fset.perPipeline_maxTotalResources (4294967295);
 	fset.perStage_maxInputAttachments (1048576);
 	fset.perStage_maxSampledImages (1048576);
 	fset.perStage_maxSamplers (1048576);
@@ -228,6 +232,10 @@ void ASmain ()
 	fset.multisampleArrayImage (True);
 	fset.imageViewFormatList (True);
 	fset.imageViewExtendedUsage (True);
+	fset.maxImageDimension1D (16 << 10);
+	fset.maxImageDimension2D (16 << 10);
+	fset.maxImageDimension3D (2 << 10);
+	fset.maxImageDimensionCube (16 << 10);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R64I, EPixelFormat::R32U, EPixelFormat::R64U, 
@@ -281,14 +289,12 @@ void ASmain ()
 		EPixelFormat::BC2_RGBA8_UNorm, EPixelFormat::BC2_sRGB8, EPixelFormat::BC3_RGBA8_UNorm, EPixelFormat::BC3_sRGB8, 
 		EPixelFormat::BC4_R8_SNorm, EPixelFormat::BC4_R8_UNorm, EPixelFormat::BC5_RG8_SNorm, EPixelFormat::BC5_RG8_UNorm, 
 		EPixelFormat::BC6H_RGB16F, EPixelFormat::BC6H_RGB16UF, EPixelFormat::BC7_RGBA8_UNorm, EPixelFormat::BC7_sRGB8_A8, 
-		EPixelFormat::G8B8G8R8_422_UNorm, EPixelFormat::B8G8R8G8_422_UNorm, EPixelFormat::G8_B8R8_420_UNorm, EPixelFormat::G8_B8R8_422_UNorm, 
-		EPixelFormat::G8_B8_R8_420_UNorm, EPixelFormat::G8_B8_R8_422_UNorm, EPixelFormat::G8_B8_R8_444_UNorm, EPixelFormat::B10x6G10x6R10x6G10x6_422_UNorm, 
-		EPixelFormat::G10x6B10x6G10x6R10x6_422_UNorm, EPixelFormat::G10x6_B10x6R10x6_420_UNorm, EPixelFormat::G10x6_B10x6R10x6_422_UNorm, EPixelFormat::G10x6_B10x6_R10x6_420_UNorm, 
+		EPixelFormat::G8_B8R8_420_UNorm, EPixelFormat::G8_B8R8_422_UNorm, EPixelFormat::G8_B8_R8_420_UNorm, EPixelFormat::G8_B8_R8_422_UNorm, 
+		EPixelFormat::G8_B8_R8_444_UNorm, EPixelFormat::G10x6_B10x6R10x6_420_UNorm, EPixelFormat::G10x6_B10x6R10x6_422_UNorm, EPixelFormat::G10x6_B10x6_R10x6_420_UNorm, 
 		EPixelFormat::G10x6_B10x6_R10x6_422_UNorm, EPixelFormat::G10x6_B10x6_R10x6_444_UNorm, EPixelFormat::R10x6G10x6B10x6A10x6_UNorm, EPixelFormat::R10x6G10x6_UNorm, 
-		EPixelFormat::R10x6_UNorm, EPixelFormat::B12x4G12x4R12x4G12x4_422_UNorm, EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm, EPixelFormat::G12x4_B12x4R12x4_420_UNorm, 
-		EPixelFormat::G12x4_B12x4R12x4_422_UNorm, EPixelFormat::G12x4_B12x4_R12x4_420_UNorm, EPixelFormat::G12x4_B12x4_R12x4_422_UNorm, EPixelFormat::G12x4_B12x4_R12x4_444_UNorm, 
-		EPixelFormat::R12x4G12x4B12x4A12x4_UNorm, EPixelFormat::R12x4G12x4_UNorm, EPixelFormat::R12x4_UNorm, EPixelFormat::B16G16R16G16_422_UNorm, 
-		EPixelFormat::G16B16G16R16_422_UNorm, EPixelFormat::G16_B16R16_420_UNorm, EPixelFormat::G16_B16R16_422_UNorm, EPixelFormat::G16_B16_R16_420_UNorm, 
+		EPixelFormat::R10x6_UNorm, EPixelFormat::G12x4_B12x4R12x4_420_UNorm, EPixelFormat::G12x4_B12x4R12x4_422_UNorm, EPixelFormat::G12x4_B12x4_R12x4_420_UNorm, 
+		EPixelFormat::G12x4_B12x4_R12x4_422_UNorm, EPixelFormat::G12x4_B12x4_R12x4_444_UNorm, EPixelFormat::R12x4G12x4B12x4A12x4_UNorm, EPixelFormat::R12x4G12x4_UNorm, 
+		EPixelFormat::R12x4_UNorm, EPixelFormat::G16_B16R16_420_UNorm, EPixelFormat::G16_B16R16_422_UNorm, EPixelFormat::G16_B16_R16_420_UNorm, 
 		EPixelFormat::G16_B16_R16_422_UNorm
 	});
 	fset.samplerAnisotropy (True);

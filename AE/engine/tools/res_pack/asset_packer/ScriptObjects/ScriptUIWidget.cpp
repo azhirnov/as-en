@@ -13,6 +13,7 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIWidget,			"UIWidget"			);
 
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIDrawable,			"BaseUIDrawable"	);
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptRectangleDrawable,	"RectangleDrawable"	);
+AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptImageDrawable,		"ImageDrawable"		);
 
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIController,		"BaseUIController"	);
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptButtonController,	"ButtonController"	);
@@ -135,6 +136,8 @@ namespace AE::AssetPacker
 			binder.Create();
 			switch_enum( ELayoutAlign::Unknown )
 			{
+				case ELayoutAlign::_Last :
+				case ELayoutAlign::_All :
 				case ELayoutAlign::Unknown :
 				#define CASE( _name_ )		case ELayoutAlign::_name_ :  binder.AddValue( #_name_, ELayoutAlign::_name_ );
 				CASE( Left )
@@ -170,6 +173,7 @@ namespace AE::AssetPacker
 
 		ScriptUIDrawable::Bind( se );
 		ScriptRectangleDrawable::Bind( se );
+		ScriptImageDrawable::Bind( se );
 
 		ScriptUIController::Bind( se );
 		ScriptButtonController::Bind( se );

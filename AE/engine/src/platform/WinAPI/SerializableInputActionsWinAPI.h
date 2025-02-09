@@ -199,11 +199,11 @@ namespace AE::App
 			CursorPos,								// float2 (absolute in pixels)
 			CursorPos_mm,							// float2 (absolute in mm)
 			CursorDelta,							// float2 (delta in pixels)
-			CursorDelta_norm,						// snorm2
+			CursorDelta_norm,						// snorm2 (with correct proportions)
 			TouchPos,								// float2 (absolute in pixels)
 			TouchPos_mm,							// float2 (absolute in mm)
 			TouchDelta,								// float2 (delta in pixels)
-			TouchDelta_norm,						// snorm2
+			TouchDelta_norm,						// snorm2 (with correct proportions)
 			Cursor2DEnd			= TouchDelta_norm,
 
 			_Count,
@@ -244,10 +244,10 @@ namespace AE::App
 	  #endif
 
 	private:
-		ND_ static constexpr bool  _IsKey (EInputType type)				__NE___;
-		ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)		__NE___;
-		ND_ static constexpr bool  _IsVec1D (EInputType type)			__NE___;
-		ND_ static constexpr bool  _IsVec2D (EInputType type)			__NE___;
+		NdCx__ static bool  _IsKey (EInputType type)					__NE___;
+		NdCx__ static bool  _IsKeyOrTouch (EInputType type)				__NE___;
+		NdCx__ static bool  _IsVec1D (EInputType type)					__NE___;
+		NdCx__ static bool  _IsVec2D (EInputType type)					__NE___;
 	};
 
 
@@ -256,20 +256,20 @@ namespace AE::App
 	_Is***
 =================================================
 */
-	inline constexpr bool  SerializableInputActionsWinAPI::_IsKey (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsWinAPI::_IsKey (EInputType type) __NE___ {
 		return	((type >= EInputType::MouseBegin) and (type <= EInputType::MouseEnd)) or
 				((type >= EInputType::KeyBegin)   and (type <= EInputType::KeyEnd));
 	}
 
-	inline constexpr bool  SerializableInputActionsWinAPI::_IsKeyOrTouch (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsWinAPI::_IsKeyOrTouch (EInputType type) __NE___ {
 		return _IsKey( type ) or (type == EInputType::TouchPos) or (type == EInputType::TouchPos_mm);
 	}
 
-	inline constexpr bool  SerializableInputActionsWinAPI::_IsVec1D (EInputType) __NE___ {
+	__CxIn bool  SerializableInputActionsWinAPI::_IsVec1D (EInputType) __NE___ {
 		return false;
 	}
 
-	inline constexpr bool  SerializableInputActionsWinAPI::_IsVec2D (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsWinAPI::_IsVec2D (EInputType type) __NE___ {
 		return	((type >= EInputType::Cursor2DBegin) and (type <= EInputType::Cursor2DEnd))	or
 				(type == EInputType::MultiTouch);
 	}

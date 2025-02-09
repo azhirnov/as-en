@@ -28,11 +28,11 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x38ec4b6bu}};
 
-		packed_short4  Position;
-		packed_short4  Texcoord;
-		packed_short4  Normal;
-		packed_short4  Tangent;
-		packed_short4  BiTangent;
+		packed_short4  Position;// normalized
+		packed_short4  Texcoord;// normalized
+		packed_short4  Normal;// normalized
+		packed_short4  Tangent;// normalized
+		packed_short4  BiTangent;// normalized
 	};
 #endif
 	StaticAssert( offsetof(CubeVertex, Position) == 0 );
@@ -49,10 +49,10 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x35a6eeecu}};
 
-		packed_short4  Position;
-		packed_short4  Texcoord;
-		packed_short4  Tangent;
-		packed_short4  BiTangent;
+		packed_short4  Position;// normalized
+		packed_short4  Texcoord;// normalized
+		packed_short4  Tangent;// normalized
+		packed_short4  BiTangent;// normalized
 	};
 #endif
 	StaticAssert( offsetof(SphericalCubeVertex, Position) == 0 );
@@ -265,7 +265,7 @@
 
 		packed_float2  Position;
 		packed_float2  UV;
-		packed_ubyte4  Color;
+		packed_ubyte4  Color;// normalized
 	};
 #endif
 	StaticAssert( offsetof(imgui_vertex, Position) == 0 );

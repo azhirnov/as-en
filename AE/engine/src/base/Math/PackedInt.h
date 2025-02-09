@@ -4,7 +4,7 @@
 
 #include "base/CompileTime/Math.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -57,15 +57,12 @@ namespace AE::Math
 	};
 
 	using packed_ulong	= PackedInt<ulong>;
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
-
-
-namespace AE::Base
-{
 	template <typename T>	struct TMemCopyAvailable< PackedInt<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
 	template <typename T>	struct TZeroMemAvailable< PackedInt<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
 	template <typename T>	struct TTriviallySerializable< PackedInt<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
+	template <typename T>	struct TUnwrap< PackedInt<T> >					: TUnwrap<T> {};
 
 } // AE::Base

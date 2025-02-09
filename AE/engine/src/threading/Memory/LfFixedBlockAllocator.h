@@ -142,8 +142,8 @@ namespace AE::Threading
 	private:
 		ND_ Ptr_t  _Alloc (uint chunkIndex, const SourceLoc &loc, INOUT ulong& dbgCounter, INOUT ulong& lockCounter) __NE___;
 
-		ND_ static constexpr Bytes	_DbgInfoSize ()	__NE___	{ return SizeOf<SourceLoc> * ChunkSize; }
-		ND_ static constexpr Bytes	_DbgInfoAlign ()__NE___	{ return AlignOf<SourceLoc>; }
+		NdCx__ static Bytes	_DbgInfoSize ()					__NE___	{ return SizeOf<SourceLoc> * ChunkSize; }
+		NdCx__ static Bytes	_DbgInfoAlign ()				__NE___	{ return AlignOf<SourceLoc>; }
 	};
 
 

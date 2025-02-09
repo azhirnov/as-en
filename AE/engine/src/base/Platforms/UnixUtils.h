@@ -53,9 +53,9 @@ namespace AE::Base
 
 
 		// Thread //
-		ND_ static constexpr auto  NanoSleepTimeStep ()										__NE___;
-		ND_ static constexpr auto  MicroSleepTimeStep ()									__NE___	{ return nanoseconds{10'000}; }
-		ND_ static constexpr auto  MilliSleepTimeStep ()									__NE___	{ return nanoseconds{100'000'000}; }
+		NdCx__ static auto  NanoSleepTimeStep ()											__NE___;
+		NdCx__ static auto  MicroSleepTimeStep ()											__NE___	{ return nanoseconds{10'000}; }
+		NdCx__ static auto  MilliSleepTimeStep ()											__NE___	{ return nanoseconds{100'000'000}; }
 
 			static void		ThreadNanoSleep (nanoseconds relativeTime)						__NE___;
 			static bool		ThreadMicroSleep (nanoseconds relativeTime)						__NE___;
@@ -83,21 +83,21 @@ namespace AE::Base
 	NanoSleepTimeStep
 =================================================
 */
-#if defined(AE_CPU_ARCH_X86) or defined(AE_CPU_ARCH_X64)
-	inline constexpr auto  UnixUtils::NanoSleepTimeStep () __NE___
+#ifdef AE_CPU_ARCH_X86_64
+	__CxIn auto  UnixUtils::NanoSleepTimeStep () __NE___
 	{
 		return nanoseconds{30};
 	}
 
-#elif defined(AE_CPU_ARCH_ARM32) or defined(AE_CPU_ARCH_ARM64)
-	inline constexpr auto  UnixUtils::NanoSleepTimeStep () __NE___
+#elif defined(AE_CPU_ARCH_ARM_BASED)
+	__CxIn auto  UnixUtils::NanoSleepTimeStep () __NE___
 	{
 		return nanoseconds{1'000};
 	}
 #endif
 
 
-#if defined(AE_CPU_ARCH_X86) or defined(AE_CPU_ARCH_X64)
+#ifdef AE_CPU_ARCH_X86_64
 /*
 =================================================
 	ThreadPause
@@ -112,7 +112,7 @@ namespace AE::Base
 	  #endif
 	}
 
-#elif defined(AE_CPU_ARCH_ARM32) or defined(AE_CPU_ARCH_ARM64)
+#elif defined(AE_CPU_ARCH_ARM_BASED)
 /*
 =================================================
 	ThreadPause
@@ -151,12 +151,13 @@ namespace AE::Base
 */
 	forceinline void  UnixUtils::ThreadSleep_1us () __NE___
 	{
-	#ifdef AE_CPU_ARCH_ARM64
+	  #ifdef AE_CPU_ARCH_ARM64
 		__builtin_arm_wfe();
-	#else
+	  #else
 		__builtin_arm_yield();
-	#endif
+	  #endif
 	}
+
 #endif
 //-----------------------------------------------------------------------------
 

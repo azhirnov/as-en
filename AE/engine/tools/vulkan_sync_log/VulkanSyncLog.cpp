@@ -2,7 +2,7 @@
 
 #include "VulkanSyncLog.h"
 #include "base/Algorithms/StringUtils.h"
-#include "graphics/Public/ImageUtils.h"
+#include "graphics_rhi/Public/ImageUtils.h"
 
 using namespace AE;
 using namespace AE::Graphics;
@@ -1111,6 +1111,7 @@ namespace
 				case VK_DESCRIPTOR_TYPE_MUTABLE_VALVE :
 				case VK_DESCRIPTOR_TYPE_SAMPLE_WEIGHT_IMAGE_QCOM :
 				case VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM :
+				case VK_DESCRIPTOR_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_NV :
 				default :
 					DBG_WARNING( "unsupported descriptor type" );
 					break;
@@ -1469,7 +1470,7 @@ namespace
 	Wrap_vkQueueSubmit2KHR
 =================================================
 */
-	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkQueueSubmit2KHR (VkQueue queue, uint submitCount, const VkSubmitInfo2KHR* pSubmits, VkFence fence)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkQueueSubmit2KHR (VkQueue queue, uint submitCount, const VkSubmitInfo2* pSubmits, VkFence fence)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -4338,6 +4339,8 @@ namespace
 					log << "      data: " << logger.GetBufferAsString( geom.geometry.instances.data ) << '\n';
 					break;
 				case VK_GEOMETRY_TYPE_MAX_ENUM_KHR :
+				case VK_GEOMETRY_TYPE_SPHERES_NV :
+				case VK_GEOMETRY_TYPE_LINEAR_SWEPT_SPHERES_NV :
 				default :
 					DBG_WARNING("unknown geometry type");
 					break;
@@ -5004,6 +5007,7 @@ namespace
 					case VK_DESCRIPTOR_TYPE_MUTABLE_VALVE :
 					case VK_DESCRIPTOR_TYPE_SAMPLE_WEIGHT_IMAGE_QCOM :
 					case VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM :
+					case VK_DESCRIPTOR_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_NV :
 					default :
 						DBG_WARNING( "unsupported descriptor type" );
 						break;

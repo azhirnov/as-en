@@ -115,8 +115,8 @@ namespace
 
 		CHECK_THROW_MSG( shader );
 
-		desc.defaultLocalSize	= ushort3{shader->reflection.compute.localGroupSize};
-		desc.localSizeSpec		= ushort3{shader->reflection.compute.localGroupSpec};
+		desc.defaultLocalSize	= WGLocalSize_t{shader->reflection.compute.localGroupSize};
+		desc.localSizeSpec		= WGLocalSizeSpec_t{shader->reflection.compute.localGroupSpec};
 		desc.shader				= shader->uid;
 		desc.features			= storage.CopyFeatures( _features );
 
@@ -221,13 +221,32 @@ namespace
 				 y <= feat->fs.maxComputeWorkGroupSizeY and
 				 z <= feat->fs.maxComputeWorkGroupSizeZ )
 			{
-				total_size  = feat->fs.maxComputeWorkGroupInvocations;
-				max_threads = uint3{feat->fs.maxComputeWorkGroupSizeX, feat->fs.maxComputeWorkGroupSizeY, feat->fs.maxComputeWorkGroupSizeZ};
+				total_size  = uint{feat->fs.maxComputeWorkGroupInvocations};
+				max_threads = uint3{uint{feat->fs.maxComputeWorkGroupSizeX},
+									uint{feat->fs.maxComputeWorkGroupSizeY},
+									uint{feat->fs.maxComputeWorkGroupSizeZ}};
 				break;
 			}
 		}
 
 		_SetLocalGroupSize( "compute localSize ", spec, max_threads, total_size, uint3{x,y,z}, OUT desc.localSize );
+	}
+
+/*
+=================================================
+	SetLocalGroupSizeAtLoadTime
+=================================================
+*/
+	void  ComputePipelineSpecScriptBinding::SetLocalGroupSizeAtLoadTime () __Th___
+	{
+		CHECK_THROW_MSG( GetBase() != null and GetBase()->shader, "shader is not compiled" );
+		CHECK_THROW_MSG( All( desc.localSize == BasePipelineDesc::UndefinedLocalSize ), "Workgroup size is already set" );
+
+		const auto&	spec = GetBase()->shader->reflection.compute.localGroupSpec;
+		CHECK_THROW_MSG( All( spec != uint3{~0u} ),
+			"All specialization constants must be enabled to use load time local size" );
+
+		desc.localSize = WGLocalSize_t{BasePipelineDesc::LoadTimeLocalSize};
 	}
 
 /*
@@ -238,16 +257,23 @@ namespace
 	void  ComputePipelineSpecScriptBinding::SetSubgroupSize (uint value) __Th___
 	{
 		CHECK_THROW_MSG( GetBase() != null and GetBase()->shader, "shader is not compiled" );
-		CHECK_THROW_MSG( All( desc.localSize != Zero ), "Specify subgroup size after workgroup size (local size)" );
+
+		CHECK_THROW_MSG( All( desc.localSize != BasePipelineDesc::UndefinedLocalSize ),
+			"Specify subgroup size after workgroup size (local size)" );
+
+		CHECK_THROW_MSG( All( desc.localSize != WGLocalSize_t{BasePipelineDesc::LoadTimeLocalSize} ),
+			"Workgroup size (local size) which will be set at load time is not compatible with explicit subgroup size" );
 
 		TEST_FEATURE( GetFeatures(), subgroupSizeControl );
 
 		const auto&		def_size	= GetBase()->shader->reflection.compute.localGroupSize;
 		const auto&		spec		= GetBase()->shader->reflection.compute.localGroupSpec;
-		const uint3		local_dim	{ spec.x == UMax or desc.localSize.x == UMax ? def_size.x : desc.localSize.x,
-									  spec.y == UMax or desc.localSize.y == UMax ? def_size.y : desc.localSize.y,
-									  spec.z == UMax or desc.localSize.z == UMax ? def_size.z : desc.localSize.z };
+		const uint3		local_dim	{ (spec.x == UMax or desc.localSize.x == UMax) ? def_size.x : desc.localSize.x,
+									  (spec.y == UMax or desc.localSize.y == UMax) ? def_size.y : desc.localSize.y,
+									  (spec.z == UMax or desc.localSize.z == UMax) ? def_size.z : desc.localSize.z };
 		bool			supported	= false;
+
+		CHECK_THROW_MSG( All( local_dim > 0u ));
 
 		for (auto& feat : GetFeatures())
 		{
@@ -322,8 +348,11 @@ namespace
 		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetLocalGroupSize2,	"SetLocalSize",		{"x", "y"} );
 		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetLocalGroupSize3,	"SetLocalSize",		{"x", "y", "z"});
 
+		binder.Comment( "Compute shader workgroup size will be set at load time in 'RenderTechDesc::computeLocalSize'." );
+		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetLocalGroupSizeAtLoadTime,	"LoadTimeLocalSize",	{} );
+
 		binder.Comment( "Attach pipeline to the render technique.\n"
-						"When rtech is created it will create all attached pipelines." );
+						"Render technique will create all attached pipelines during its creation." );
 		binder.AddMethod( &ComputePipelineSpecScriptBinding::AddToRenderTech,		"AddToRenderTech",	{"rtech", "gpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"

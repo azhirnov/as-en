@@ -8,7 +8,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -22,11 +22,12 @@
 		{
 			RC<Postprocess>		pass = Postprocess( EPostprocess::Shadertoy );
 			pass.Output( rt );
-			pass.Slider( "iHDR",	1.0, 1000.0,	50.0 );
-			pass.Slider( "iRadius", 4.0, 100.0,		100.0 );	// pixels
+			pass.Slider( "iFillAll",	0,		1 );
+			pass.Slider( "iHDR",		1.0,	1000.0,		50.0 );
+			pass.Slider( "iRadius",		4.0,	1000.0,		100.0 );	// pixels
 			pass.ColorSelector( "iColor",	RGBA32f(0.f, 1.f, 0.f, 1.f) );
 		}
-		Present( rt, EColorSpace::Extended_sRGB_linear );
+		Present( rt ); //, EColorSpace::Extended_sRGB_linear );
 	}
 
 #endif
@@ -37,7 +38,7 @@
 	void mainImage (out float4 fragColor, in float2 fragCoord)
 	{
 		float2	mpos	= iMouse.z > 0.f ? iMouse.xy : iResolution.xy * 0.5;
-		float	factor	= Max( 0.0, 1.0 - Distance( gl.FragCoord.xy, mpos ) / iRadius );
+		float	factor	= iFillAll == 1 ? 1.0 : Max( 0.0, 1.0 - Distance( fragCoord, mpos ) / iRadius );
 
 		float3	col = iColor.rgb * factor * iHDR;
 

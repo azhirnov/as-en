@@ -121,8 +121,6 @@ namespace
 		return result;
 	}
 
-	// TODO: https://developer.apple.com/library/archive/releasenotes/Performance/RN-AffinityAPI/index.html#//apple_ref/doc/uid/TP40006635
-
 /*
 =================================================
 	ClipboardExtract

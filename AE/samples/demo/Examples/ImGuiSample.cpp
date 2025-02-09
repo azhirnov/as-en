@@ -163,7 +163,7 @@ namespace AE::Samples::Demo
 
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
 		auto	gfx_alloc	= res_mngr.CreateLinearGfxMemAllocator();
-		auto	rtech		= res_mngr.LoadRenderTech( pack, RTech, Default );
+		auto	rtech		= res_mngr.LoadRenderTech( pack, RTech );
 
 		CHECK_ERR( imgui.Initialize( gfx_alloc, rtech,
 									 ImGuiRenderer::PipelineInfo_t{

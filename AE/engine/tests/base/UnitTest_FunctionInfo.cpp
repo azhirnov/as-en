@@ -22,29 +22,29 @@ extern void UnitTest_FunctionInfo ()
 		StaticAssert( fi::is_const );
 		StaticAssert( not fi::is_volatile );
 		StaticAssert( not fi::is_noexcept );
-		StaticAssert( IsSameTypes< Cl, fi::clazz > );
-		StaticAssert( IsSameTypes< fi::type, void (Cl::*)(int) const > );
+		StaticAssert( IsSame< Cl, fi::clazz > );
+		StaticAssert( IsSame< fi::type, void (Cl::*)(int) const > );
 	}{
 		using fi = FunctionInfo< decltype(&Cl::F2) >;
 		StaticAssert( not fi::is_const );
 		StaticAssert( fi::is_volatile );
 		StaticAssert( not fi::is_noexcept );
-		StaticAssert( IsSameTypes< Cl, fi::clazz > );
-		StaticAssert( IsSameTypes< fi::type, bool (Cl::*)(float, int) volatile > );
+		StaticAssert( IsSame< Cl, fi::clazz > );
+		StaticAssert( IsSame< fi::type, bool (Cl::*)(float, int) volatile > );
 	}{
 		using fi = FunctionInfo< decltype(&Cl::F3) >;
 		StaticAssert( fi::is_const );
 		StaticAssert( fi::is_volatile );
 		StaticAssert( not fi::is_noexcept );
-		StaticAssert( IsSameTypes< Cl, fi::clazz > );
-		StaticAssert( IsSameTypes< fi::type, int (Cl::*)() const volatile > );
+		StaticAssert( IsSame< Cl, fi::clazz > );
+		StaticAssert( IsSame< fi::type, int (Cl::*)() const volatile > );
 	}{
 		using fi = FunctionInfo< decltype(&Cl::F4) >;
 		StaticAssert( not fi::is_const );
 		StaticAssert( not fi::is_volatile );
 		StaticAssert( not fi::is_noexcept );
-		StaticAssert( IsSameTypes< void, fi::clazz > );
-		StaticAssert( IsSameTypes< fi::type, void (*)(double, int) > );
+		StaticAssert( IsSame< void, fi::clazz > );
+		StaticAssert( IsSame< fi::type, void (*)(double, int) > );
 	}{
 		using fi = FunctionInfo< decltype(&Cl::F5) >;
 		StaticAssert( not fi::is_const );

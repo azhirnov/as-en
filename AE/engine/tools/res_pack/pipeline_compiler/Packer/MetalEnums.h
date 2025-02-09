@@ -263,7 +263,7 @@ namespace AE::PipelineCompiler
 
 
 
-#include "graphics/Private/PixelFormatDefines.h"
+#include "graphics_rhi/Private/PixelFormatDefines.h"
 
 namespace AE::PipelineCompiler
 {

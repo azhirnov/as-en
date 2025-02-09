@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "platform/BaseAppV2/DefaultAppV2.h"
+#include "platform/Private/ApplicationBase.h"
 
 #include "platform/Android/AndroidCommon.h"
 #include "platform/GLFW/GLFWCommon.h"
@@ -22,6 +23,16 @@ namespace AE::AppV2
 {
 	using namespace AE::Threading;
 	using namespace AE::Graphics;
+
+/*
+=================================================
+	AppMainV2_Access::OnStart
+=================================================
+*/
+	void  AppCore::AppMainV2_Access::OnStart (AppCore &core, IApplication &app) __NE___
+	{
+		core._curState->app = &app;
+	}
 
 /*
 =================================================
@@ -60,25 +71,24 @@ namespace AE::AppV2
 	Thread-safe:  main thread only
 =================================================
 */
-	void  AppCore::OpenView (ViewModeName::Ref name) __NE___
+	void  AppCore::OpenView (ViewModeName::Ref name, AnyTypeCRef params) __NE___
 	{
+		DRC_EXLOCK( Cast< App::ApplicationBase >( GetApplication() )->GetSingleThreadCheck() );
+
 		RC<IViewMode>	new_view = _CreateViewMode( name );
 
 		if ( not new_view )
 			return;
 
-		CurrentState	data;
-		{
-			auto	state = _curState.WriteLock();
-			data = *state;
-			state->view = new_view;
-		}
+		const CurrentState	data = _curState.Read();
+
+		CHECK( data.input->SetMode( new_view->GetInputMode() ));
+		CHECK_ERRV( new_view->Open( data.output, params ));
 
 		if ( data.view )
 			data.view->Close();
 
-		CHECK( data.input->SetMode( new_view->GetInputMode() ));
-		CHECK( new_view->Open( data.output ));
+		_curState->view = RVRef(new_view);
 
 		// TODO: UI animation
 	}
@@ -179,6 +189,8 @@ namespace AE::AppV2
 
 	inline void  AppCore::_StartRendering (IInputActions &input, IOutputSurface &output, const IWindow::EState wndState, WindowOrVR_t wndOrVR) __NE___
 	{
+		DRC_EXLOCK( Cast< App::ApplicationBase >( GetApplication() )->GetSingleThreadCheck() );
+
 		const bool	focused			= (wndState == IWindow::EState::Focused);
 		const bool	in_foreground	= (wndState >= IWindow::EState::InForeground) and (wndState <= IWindow::EState::Focused);
 		bool		ia_changed;
@@ -214,6 +226,8 @@ namespace AE::AppV2
 */
 	void  AppCore::StopRendering (Ptr<IOutputSurface> output) __NE___
 	{
+		DRC_EXLOCK( Cast< App::ApplicationBase >( GetApplication() )->GetSingleThreadCheck() );
+
 		auto	state = _curState.WriteLock();
 
 		if ( output == null or state->output == output )
@@ -230,6 +244,8 @@ namespace AE::AppV2
 */
 	void  AppCore::WaitFrame () __NE___
 	{
+		DRC_EXLOCK( Cast< App::ApplicationBase >( GetApplication() )->GetSingleThreadCheck() );
+
 		CHECK( GraphicsScheduler().WaitNextFrame( _allowProcessInMain, AE::DefaultTimeout ));
 	}
 
@@ -243,6 +259,8 @@ namespace AE::AppV2
 */
 	void  AppCore::RenderFrame () __NE___
 	{
+		DRC_EXLOCK( Cast< App::ApplicationBase >( GetApplication() )->GetSingleThreadCheck() );
+
 		Ptr<IInputActions>		input;
 		Ptr<IOutputSurface>		output;
 		RC<IViewMode>			view;
@@ -424,6 +442,10 @@ namespace AE::AppV2
 */
 	void  AppMainV2::OnStart (IApplication &app) __NE___
 	{
+		DRC_EXLOCK( Cast< App::ApplicationBase >( &app )->GetSingleThreadCheck() );
+
+		AppCore::AppMainV2_Access::OnStart( *_core, app );
+
 		CHECK_FATAL( _InitGraphics( app ));
 		CHECK_FATAL( _CreateWindow( app ));
 	}

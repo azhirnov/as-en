@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.BroadcastReceiver;
@@ -161,6 +162,8 @@ public class BaseActivity
 
 	private void  _SetFullscreen ()
 	{
+		// TODO: no UI mode
+
 		Window wnd = getWindow();
 		wnd.addFlags( WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
 
@@ -189,8 +192,12 @@ public class BaseActivity
 			ctrl.hide( WindowInsetsCompat.Type.systemBars() );
 		}
 
+		if ( Build.VERSION.SDK_INT >= 30 ) {
+			wnd.setPreferMinimalPostProcessing( true );
+		}
+
 		// API 24
-		wnd.setSustainedPerformanceMode( true );
+		//wnd.setSustainedPerformanceMode( true );
 	}
 
 
@@ -253,9 +260,10 @@ public class BaseActivity
 		SurfaceHolder holder = _surfaceView.getHolder();
 		holder.addCallback( this );
 
-		_surfaceView.setFocusable( true );
-		_surfaceView.setFocusableInTouchMode( true );
-		_surfaceView.requestFocus();
+		_surfaceView.setFocusable( false );
+		_surfaceView.setFocusableInTouchMode( false );
+		//_surfaceView.setZOrderMediaOverlay( false );
+		//_surfaceView.requestFocus();
 		_surfaceView.setOnKeyListener( this );
 		_surfaceView.setOnTouchListener( this );
 	}
@@ -490,6 +498,41 @@ public class BaseActivity
 			enable &= ~(1 << idx);
 			if ( _SetSensorState( true, idx, SensorManager.SENSOR_DELAY_GAME ))
 				_enabledSensorBits |= (1 << idx);
+		}
+	}
+
+	@SuppressWarnings("unused")
+	public boolean  SetWindowBrightness (float level)
+	{
+		try {
+			WindowManager.LayoutParams	params = getWindow().getAttributes();
+			params.screenBrightness = level;
+			getWindow().setAttributes( params );
+			return true;
+		}
+		catch (Exception e) {
+			Log.i( TAG, "SetWindowBrightness: " + e.toString() );
+			return false;
+		}
+	}
+
+
+	@SuppressWarnings("unused")
+	public boolean  SetHDRMode (boolean scRGB, boolean HDR10)
+	{
+		try {
+			WindowManager.LayoutParams	params = getWindow().getAttributes();
+			if ( Build.VERSION.SDK_INT >= 26 ) {
+				params.setColorMode( scRGB ? ActivityInfo.COLOR_MODE_HDR :
+									 HDR10 ? ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT :
+											 ActivityInfo.COLOR_MODE_DEFAULT );
+			}
+			getWindow().setAttributes( params );
+			return true;
+		}
+		catch (Exception e) {
+			Log.i( TAG, "SetHDRMode: " + e.toString() );
+			return false;
 		}
 	}
 

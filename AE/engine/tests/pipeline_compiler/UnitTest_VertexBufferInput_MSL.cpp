@@ -40,7 +40,7 @@ extern void  UnitTest_VertexBufferInput_MSL ()
 	ObjectStorage::SetInstance( &obj );
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
+	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 
 	try {
 		VertexBufferInput_Test1();

@@ -1,12 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
+	Quad decals on sphere.
+
 	- Generate random dots on sphere.
 	- Render to cubemap, in GS dot projected to the face and constructed quad.
-	- Bug: geometry doesn't match between faces, it causes a incorrect UV interpolation and other. 
+	- Bug: geometry doesn't match between faces, it causes a incorrect UV interpolation and other.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_DOTS
 #endif
 //-----------------------------------------------------------------------------
@@ -73,13 +75,12 @@
 			GenMipmaps( cubemap_view );
 		}{
 			RC<Postprocess>		pass = Postprocess();
+			pass.Set( OrbitalCamera() );
 			pass.Output( "out_Color",	rt,				RGBA32f(0.0) );
-			pass.ArgIn(  "un_CubeMap",	cubemap_view,	Sampler_LinearRepeat );
-			pass.Slider( "iRotation",	float2(-180.f, -90.f),	float2(180.f, 90.f),	float2(0.f) );
-			pass.Slider( "iRotation2",	float2(-2.f),			float2(2.f),			float2(0.f) );
-			pass.Slider( "iScale",		0.25f,					1.1f,					1.1f );
-			pass.Slider( "iFov",		0.f,					90.f,					0.f );
-			pass.Slider( "iRadius",		0.0f,					0.9f,					0.5f );	// used to check circle distortion
+			pass.ArgIn(  "un_CubeMap",	cubemap_view,	Sampler_LinearMipmapRepeat );
+			pass.Slider( "iScale",		0.25f,			1.1f,		1.1f );
+			pass.Slider( "iFov",		0.f,			90.f,		0.f );
+			pass.Slider( "iRadius",		0.0f,			0.9f,		0.5f );	// used to check circle distortion
 			pass.Constant( "iProj",		proj_type );
 		}
 		Present( rt );
@@ -92,7 +93,6 @@
 	#include "Color.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "Quaternion.glsl"
 	#include "GlobalIndex.glsl"
 
 	float3  Project (float3 n)
@@ -115,8 +115,7 @@
 		float4	norm	= UVtoSphereNormal( uv, ToRad(iFov) );
 		float3	uvw		= norm.xyz;
 
-		uvw = QMul( QRotationY(ToRad( iRotation.x + iRotation2.x )), uvw );
-		uvw = QMul( QRotationX(ToRad( iRotation.y + iRotation2.y )), uvw );
+		uvw = float3x3(un_PerPass.camera.view) * uvw;
 		uvw = Project( uvw );
 
 		out_Color = gl.texture.Sample( un_CubeMap, uvw );

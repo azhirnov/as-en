@@ -15,7 +15,7 @@ namespace
 
 		const String	src = vb->ToGLSL();
 		const String	ref = R"#(  // All
-layout(location=0) in lowp vec4  in_a;
+layout(location=0) in mediump vec4  in_a;
 
 )#";
 		TEST( src == ref );
@@ -39,7 +39,7 @@ extern void  UnitTest_VertexBufferInput_GLSL ()
 	#endif
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
+	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 
 	try {
 		VertexBufferInput_Test1();

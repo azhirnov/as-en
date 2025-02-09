@@ -14,7 +14,7 @@ namespace AE::Base
 {
 
 	//
-	// Fixed Size Tuple Array
+	// Fixed Capacity Tuple Array
 	//
 
 	template <usize ArraySize,
@@ -36,10 +36,10 @@ namespace AE::Base
 				ubyte	_data [sizeof(T) * ArraySize];	// unused
 			};
 
-			constexpr ElemArray ()					__NE___	{ DEBUG_ONLY( DbgInitMem( arr )); }
-			constexpr ElemArray (ElemArray &&)		= delete;
-			constexpr ElemArray (const ElemArray &)	= delete;
-			constexpr ~ElemArray ()					__NE___	{ DEBUG_ONLY( DbgFreeMem( arr )); }
+			__Cx__ ElemArray ()						__NE___	{ DEBUG_ONLY( DbgInitMem( arr )); }
+			__Cx__ ElemArray (ElemArray &&)			= delete;
+			__Cx__ ElemArray (const ElemArray &)	= delete;
+			__Cz__ ~ElemArray ()					__NE___	{ DEBUG_ONLY( DbgFreeMem( arr )); }
 		};
 
 		using Array_t	= Tuple< ElemArray<Types>... >;
@@ -66,23 +66,23 @@ namespace AE::Base
 
 		// methods
 		public:
-			constexpr TIterator ()								__NE___ {}
-			constexpr TIterator (const Iter &)					__NE___ = default;
-			constexpr TIterator (Iter &&)						__NE___ = default;
-			constexpr TIterator (ArrPtr ptr, usize idx)			__NE___ : _ptr{ptr}, _index{idx} { NonNull( _ptr ); }
+			__Cx__ TIterator ()								__NE___ {}
+			__Cx__ TIterator (const Iter &)					__NE___ = default;
+			__Cx__ TIterator (Iter &&)						__NE___ = default;
+			__Cz__ TIterator (ArrPtr ptr, usize idx)		__NE___ : _ptr{ptr}, _index{idx} { NonNull( _ptr ); }
 
-				constexpr Iter&	operator = (const Iter &)		__NE___ = default;
-				constexpr Iter&	operator = (Iter &&)			__NE___ = default;
+			__Cx__ Iter&	operator = (const Iter &)		__NE___ = default;
+			__Cx__ Iter&	operator = (Iter &&)			__NE___ = default;
 
-			ND_ constexpr bool	operator != (const Iter &rhs)	C_NE___	{ return not (*this == rhs); }
-			ND_ constexpr bool	operator == (const Iter &rhs)	C_NE___	{ return _ptr == rhs._ptr and _index == rhs._index; }
+			NdCx__ bool		operator != (const Iter &rhs)	C_NE___	{ return not (*this == rhs); }
+			NdCx__ bool		operator == (const Iter &rhs)	C_NE___	{ return _ptr == rhs._ptr and _index == rhs._index; }
 
-				constexpr Iter&	operator ++ ()					__NE___	{ NonNull( _ptr );		_index = Min( _index + 1, _ptr->size() );	return *this; }
-				constexpr Iter	operator ++ (int)				__NE___	{ Iter res{ *this };	this->operator++();							return res; }
-				constexpr Iter&	operator += (usize x)			__NE___	{ NonNull( _ptr );		_index = Min( _index + x, _ptr->size() );	return *this; }
+			__Cz__ Iter&	operator ++ ()					__NE___	{ NonNull( _ptr );		_index = Min( _index + 1, _ptr->size() );	return *this; }
+			__Cz__ Iter		operator ++ (int)				__NE___	{ Iter res{ *this };	this->operator++();							return res; }
+			__Cz__ Iter&	operator += (usize x)			__NE___	{ NonNull( _ptr );		_index = Min( _index + x, _ptr->size() );	return *this; }
 
-			ND_ constexpr Iter	operator + (usize x)			C_NE___	{ return (Iter{*this} += x); }
-			ND_ constexpr Res_t	operator * ()					C_NE___	{ NonNull( _ptr );  return (*_ptr)[_index]; }
+			NdCz__ Iter		operator + (usize x)			C_NE___	{ return (Iter{*this} += x); }
+			NdCz__ Res_t	operator * ()					C_NE___	{ NonNull( _ptr );  return (*_ptr)[_index]; }
 		};
 
 	public:
@@ -98,130 +98,130 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr FixedTupleArray ()								__NE___	{}
+		__Cx__ FixedTupleArray ()							__NE___	{}
 
-		constexpr FixedTupleArray (Self &&)							__NE___;
-		constexpr FixedTupleArray (const Self &)					__NE___;
+		__Cx__ FixedTupleArray (Self &&)					__NE___;
+		__Cx__ FixedTupleArray (const Self &)				__NE___;
 
-		constexpr ~FixedTupleArray ()								__NE___	{ clear(); }
+		__Cz__ ~FixedTupleArray ()							__NE___	{ clear(); }
 
-		constexpr Self&  operator = (Self &&)						__NE___;
-		constexpr Self&  operator = (const Self &)					__NE___;
-
-		template <usize I,
-				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr ArrayView<T>	get ()							C_NE___	{ return ArrayView<T>{ data<I>(), _count }; }
-
-		template <typename T>
-		ND_ constexpr ArrayView<T>	get ()							C_NE___	{ return get< Types_t::template Index<T>, T >(); }
+		__Cx__ Self&  operator = (Self &&)					__NE___;
+		__Cx__ Self&  operator = (const Self &)				__NE___;
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr T*			data ()							__NE___	{ return _Data<I>(); }
+		NdCx__ ArrayView<T>	get ()							C_NE___	{ return ArrayView<T>{ data<I>(), _count }; }
 
 		template <typename T>
-		ND_ constexpr T*			data ()							__NE___	{ return data< Types_t::template Index<T>, T >(); }
+		NdCx__ ArrayView<T>	get ()							C_NE___	{ return get< Types_t::template Index<T>, T >(); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr const T*		data ()							C_NE___	{ return _Data<I>(); }
+		NdCx__ T*			data ()							__NE___	{ return _Data<I>(); }
 
 		template <typename T>
-		ND_ constexpr const T*		data ()							C_NE___	{ return data< Types_t::template Index<T>, T >(); }
+		NdCx__ T*			data ()							__NE___	{ return data< Types_t::template Index<T>, T >(); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr T&			at (usize i)					__NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
+		NdCx__ const T*		data ()							C_NE___	{ return _Data<I>(); }
+
+		template <typename T>
+		NdCx__ const T*		data ()							C_NE___	{ return data< Types_t::template Index<T>, T >(); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr T const&		at (usize i)					C_NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
+		NdCz__ T&			at (usize i)					__NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
+
+		template <usize I,
+				  typename T = typename Types_t::template Get<I> >
+		NdCz__ T const&		at (usize i)					C_NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
 
 		template <typename T>
-		ND_ constexpr T&			at (usize i)					__NE___	{ return at< Types_t::template Index<T>, T >( i ); }
+		NdCx__ T&			at (usize i)					__NE___	{ return at< Types_t::template Index<T>, T >( i ); }
 
 		template <typename T>
-		ND_ constexpr T const&		at (usize i)					C_NE___	{ return at< Types_t::template Index<T>, T >( i ); }
+		NdCx__ T const&		at (usize i)					C_NE___	{ return at< Types_t::template Index<T>, T >( i ); }
 
-		ND_ constexpr usize			size ()							C_NE___	{ return _count; }
-		ND_ constexpr bool			empty ()						C_NE___	{ return _count == 0; }
-		ND_ constexpr bool			IsFull ()						C_NE___	{ return size() >= capacity(); }
+		NdCx__ usize			size ()						C_NE___	{ return _count; }
+		NdCx__ bool				empty ()					C_NE___	{ return _count == 0; }
+		NdCx__ bool				IsFull ()					C_NE___	{ return size() >= capacity(); }
 
-		ND_ constexpr iterator		 begin ()						__NE___	{ return iterator{ this, 0 }; }
-		ND_ constexpr const_iterator begin ()						C_NE___	{ return const_iterator{ this, 0 }; }
-		ND_ constexpr iterator		 end ()							__NE___	{ return begin() + size(); }
-		ND_ constexpr const_iterator end ()							C_NE___	{ return begin() + size(); }
+		NdCx__ iterator			begin ()					__NE___	{ return iterator{ this, 0 }; }
+		NdCx__ const_iterator	begin ()					C_NE___	{ return const_iterator{ this, 0 }; }
+		NdCx__ iterator			end ()						__NE___	{ return begin() + size(); }
+		NdCx__ const_iterator	end ()						C_NE___	{ return begin() + size(); }
 
-		ND_ static constexpr usize	capacity ()						__NE___	{ return ArraySize; }
+		NdCx__ static usize		capacity ()					__NE___	{ return ArraySize; }
 
-		ND_ constexpr Result_t		operator [] (usize index)		__NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
-		ND_ constexpr CResult_t		operator [] (usize index)		C_NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
+		NdCz__ Result_t			operator [] (usize index)	__NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
+		NdCz__ CResult_t		operator [] (usize index)	C_NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
 
-			constexpr Result_t		emplace_back ()					__NE___;
+		__Cz__ Result_t		emplace_back ()					__NE___;
 
 		template <typename ...Args>
-			constexpr bool  set (usize index, Args&&... values)		__NE___;
+		__Cx__ bool  set (usize index, Args&&... values)	__NE___;
 
 		template <typename ...Args>
-			constexpr void  push_back (Args&&... values)			__NE___;
+		__Cz__ void  push_back (Args&&... values)			__NE___;
 
 		template <typename ...Args>
-			constexpr bool  try_push_back (Args&&... values)		__NE___;
+		__Cx__ bool  try_push_back (Args&&... values)		__NE___;
 
-			constexpr void  pop_back ()								__NE___;
+		__Cz__ void  pop_back ()							__NE___;
 
 		template <typename ...Args>
-			constexpr void  insert (usize pos, Args&&... values)	__NE___;
+		__Cz__ void  insert (usize pos, Args&&... values)	__NE___;
 
-			constexpr void  resize (usize newSize)					__NE___;
+		__Cx__ void  resize (usize newSize)					__NE___;
 
-			constexpr void  erase (usize pos)						__NE___;
-			constexpr void  fast_erase (usize pos)					__NE___;
+		__Cz__ void  erase (usize pos)						__NE___;
+		__Cz__ void  fast_erase (usize pos)					__NE___;
 
-			constexpr void  clear ()								__NE___;
+		__Cx__ void  clear ()								__NE___;
 
-		ND_ constexpr bool  operator == (const Self &rhs)			C_NE___;
-		ND_ constexpr bool  operator != (const Self &rhs)			C_NE___	{ return not (*this == rhs); }
+		NdCx__ bool  operator == (const Self &rhs)			C_NE___;
+		NdCx__ bool  operator != (const Self &rhs)			C_NE___	{ return not (*this == rhs); }
 
-		ND_ HashVal  CalcHash ()									C_NE___;
+		ND_ HashVal  CalcHash ()							C_NE___;
 
 
 	private:
-		template <usize I>	ND_ constexpr auto*	 _Data ()			C_NE___	{ return _arrays.template Get<I>().arr; }
-		template <usize I>	ND_ constexpr auto*	 _Data ()			__NE___	{ return _arrays.template Get<I>().arr; }
+		template <usize I>	NdCx__ auto*	 _Data ()		C_NE___	{ return _arrays.template Get<I>().arr; }
+		template <usize I>	NdCx__ auto*	 _Data ()		__NE___	{ return _arrays.template Get<I>().arr; }
 
 		template <usize... Idx>
-		constexpr Result_t	_Elem (usize index, IndexSequence<Idx...>)		__NE___;
+		__Cx__ Result_t	_Elem (usize index, IndexSequence<Idx...>)		__NE___;
 
 		template <usize... Idx>
-		constexpr CResult_t	_Elem (usize index, IndexSequence<Idx...>)		C_NE___;
+		__Cx__ CResult_t	_Elem (usize index, IndexSequence<Idx...>)	C_NE___;
 
 		template <usize I, typename Arg0, typename ...Args>
-		constexpr void  _PushBack (Arg0 &&arg0, Args&&... args)				__NE___;
+		__Cx__ void  _PushBack (Arg0 &&arg0, Args&&... args)			__NE___;
 
 		template <usize I, typename Arg0, typename ...Args>
-		constexpr void  _Insert (usize pos, Arg0 &&arg0, Args&&... args)	__NE___;
+		__Cx__ void  _Insert (usize pos, Arg0 &&arg0, Args&&... args)	__NE___;
 
 		template <usize I>
-		constexpr void  _Destroy (usize index, usize count)					__NE___;
+		__Cx__ void  _Destroy (usize index, usize count)				__NE___;
 
 		template <usize I>
-		constexpr void  _Replace (usize srcIdx, usize dstIdx, usize count) __NE___;
+		__Cx__ void  _Replace (usize srcIdx, usize dstIdx, usize count) __NE___;
 
 		template <usize I>
-		constexpr void  _Create (usize index, usize count)					__NE___;
+		__Cx__ void  _Create (usize index, usize count)					__NE___;
 
 		template <usize I>
-		static constexpr void  _Move (Self &dst, Self &src, usize count)	__NE___;
+		static __Cx__ void  _Move (Self &dst, Self &src, usize count)	__NE___;
 
 		template <usize I>
-		static constexpr void  _Copy (Self &dst, const Self &src, usize count) __NE___;
+		static __Cx__ void  _Copy (Self &dst, const Self &src, usize count) __NE___;
 
 		template <usize I>
-		ND_ HashVal  _CalcHash ()											C_NE___;
+		ND_ HashVal  _CalcHash ()										C_NE___;
 
 		template <usize I>
-		ND_ constexpr bool  _Equal (const Self &rhs)						C_NE___;
+		NdCx__ bool  _Equal (const Self &rhs)							C_NE___;
 	};
 
 
@@ -231,7 +231,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	constexpr FixedTupleArray<S, Types...>::FixedTupleArray (Self &&other) __NE___ :
+	__Cx__ FixedTupleArray<S, Types...>::FixedTupleArray (Self &&other) __NE___ :
 		_count{ other._count }
 	{
 		other._count = 0;
@@ -240,7 +240,7 @@ namespace AE::Base
 	}
 
 	template <usize S, typename ...Types>
-	constexpr FixedTupleArray<S, Types...>::FixedTupleArray (const Self &other) __NE___ :
+	__Cx__ FixedTupleArray<S, Types...>::FixedTupleArray (const Self &other) __NE___ :
 		_count{ other._count }
 	{
 		if ( _count > 0 )
@@ -253,7 +253,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	constexpr FixedTupleArray<S, Types...>&  FixedTupleArray<S, Types...>::operator = (Self &&rhs) __NE___
+	__Cx__ FixedTupleArray<S, Types...>&  FixedTupleArray<S, Types...>::operator = (Self &&rhs) __NE___
 	{
 		clear();
 
@@ -267,7 +267,7 @@ namespace AE::Base
 	}
 
 	template <usize S, typename ...Types>
-	constexpr FixedTupleArray<S, Types...>&  FixedTupleArray<S, Types...>::operator = (const Self &rhs) __NE___
+	__Cx__ FixedTupleArray<S, Types...>&  FixedTupleArray<S, Types...>::operator = (const Self &rhs) __NE___
 	{
 		clear();
 
@@ -286,7 +286,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	constexpr bool  FixedTupleArray<S, Types...>::set (usize index, Args&&... values) __NE___
+	__Cx__ bool  FixedTupleArray<S, Types...>::set (usize index, Args&&... values) __NE___
 	{
 		StaticAssert( sizeof...(Args) == Types_t::Count );
 		if_likely( index < _count )
@@ -305,7 +305,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	constexpr void  FixedTupleArray<S, Types...>::push_back (Args&&... values) __NE___
+	__Cz__ void  FixedTupleArray<S, Types...>::push_back (Args&&... values) __NE___
 	{
 		StaticAssert( sizeof...(Args) == Types_t::Count );
 		ASSERT( _count < capacity() );
@@ -320,7 +320,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	constexpr bool  FixedTupleArray<S, Types...>::try_push_back (Args&&... values) __NE___
+	__Cx__ bool  FixedTupleArray<S, Types...>::try_push_back (Args&&... values) __NE___
 	{
 		StaticAssert( sizeof...(Args) == Types_t::Count );
 		if_likely( _count < capacity() )
@@ -338,7 +338,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	constexpr typename FixedTupleArray<S, Types...>::Result_t
+	__Cz__ typename FixedTupleArray<S, Types...>::Result_t
 		FixedTupleArray<S, Types...>::emplace_back () __NE___
 	{
 		ASSERT( _count < capacity() );
@@ -355,7 +355,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize... Idx>
-	constexpr typename FixedTupleArray<S, Types...>::Result_t
+	__Cx__ typename FixedTupleArray<S, Types...>::Result_t
 		FixedTupleArray<S, Types...>::_Elem (usize index, IndexSequence<Idx...>) __NE___
 	{
 		return Result_t{ _Data<Idx>()+index ... };
@@ -363,7 +363,7 @@ namespace AE::Base
 
 	template <usize S, typename ...Types>
 	template <usize... Idx>
-	constexpr typename FixedTupleArray<S, Types...>::CResult_t
+	__Cx__ typename FixedTupleArray<S, Types...>::CResult_t
 		FixedTupleArray<S, Types...>::_Elem (usize index, IndexSequence<Idx...>) C_NE___
 	{
 		return CResult_t{ _Data<Idx>()+index ... };
@@ -375,7 +375,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	constexpr void  FixedTupleArray<S, Types...>::pop_back () __NE___
+	__Cz__ void  FixedTupleArray<S, Types...>::pop_back () __NE___
 	{
 		ASSERT( _count > 0 );
 		--_count;
@@ -389,7 +389,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	constexpr void  FixedTupleArray<S, Types...>::insert (usize pos, Args&&... values) __NE___
+	__Cz__ void  FixedTupleArray<S, Types...>::insert (usize pos, Args&&... values) __NE___
 	{
 		StaticAssert( sizeof...(Args) == Types_t::Count );
 		ASSERT( _count < capacity() );
@@ -408,7 +408,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	constexpr void  FixedTupleArray<S, Types...>::resize (usize newSize) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::resize (usize newSize) __NE___
 	{
 		newSize = Min( newSize, capacity() );
 
@@ -431,7 +431,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	constexpr void  FixedTupleArray<S, Types...>::erase (usize pos) __NE___
+	__Cz__ void  FixedTupleArray<S, Types...>::erase (usize pos) __NE___
 	{
 		ASSERT( _count > 0 );
 		--_count;
@@ -447,7 +447,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	constexpr void  FixedTupleArray<S, Types...>::fast_erase (usize pos) __NE___
+	__Cz__ void  FixedTupleArray<S, Types...>::fast_erase (usize pos) __NE___
 	{
 		ASSERT( _count > 0 );
 		--_count;
@@ -463,7 +463,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	constexpr void  FixedTupleArray<S, Types...>::clear () __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::clear () __NE___
 	{
 		_Destroy<0>( 0, _count );
 		_count = 0;
@@ -475,7 +475,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	constexpr bool  FixedTupleArray<S, Types...>::operator == (const Self &rhs) C_NE___
+	__Cx__ bool  FixedTupleArray<S, Types...>::operator == (const Self &rhs) C_NE___
 	{
 		if ( this == std::addressof(rhs) )
 			return true;
@@ -488,7 +488,7 @@ namespace AE::Base
 
 	template <usize S, typename ...Types>
 	template <usize I>
-	constexpr bool  FixedTupleArray<S, Types...>::_Equal (const Self &rhs) C_NE___
+	__Cx__ bool  FixedTupleArray<S, Types...>::_Equal (const Self &rhs) C_NE___
 	{
 		if_unlikely( get<I>() != rhs.get<I>() )
 			return false;
@@ -506,7 +506,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I, typename Arg0, typename ...Args>
-	constexpr void  FixedTupleArray<S, Types...>::_PushBack (Arg0 &&arg0, Args&&... args) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::_PushBack (Arg0 &&arg0, Args&&... args) __NE___
 	{
 		using T = typename Types_t::template Get<I>;
 
@@ -523,7 +523,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I, typename Arg0, typename ...Args>
-	constexpr void  FixedTupleArray<S, Types...>::_Insert (usize pos, Arg0 &&arg0, Args&&... args) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::_Insert (usize pos, Arg0 &&arg0, Args&&... args) __NE___
 	{
 		using T = typename Types_t::template Get<I>;
 
@@ -540,7 +540,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I>
-	constexpr void  FixedTupleArray<S, Types...>::_Destroy (usize index, usize count) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::_Destroy (usize index, usize count) __NE___
 	{
 		using T			 = typename TypeList< Types... >::template Get<I>;
 		using CPolicy_t = CopyPolicy::template AutoDetect<T>;
@@ -558,7 +558,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I>
-	constexpr void  FixedTupleArray<S, Types...>::_Replace (usize srcIdx, usize dstIdx, usize count) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::_Replace (usize srcIdx, usize dstIdx, usize count) __NE___
 	{
 		using T			 = typename Types_t::template Get<I>;
 		using CPolicy_t = CopyPolicy::template AutoDetect<T>;
@@ -577,7 +577,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I>
-	constexpr void  FixedTupleArray<S, Types...>::_Create (usize index, usize count) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::_Create (usize index, usize count) __NE___
 	{
 		using T			= typename Types_t::template Get<I>;
 		using CPolicy_t = CopyPolicy::template AutoDetect<T>;
@@ -618,7 +618,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I>
-	constexpr void  FixedTupleArray<S, Types...>::_Move (Self &dst, Self &src, usize count) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::_Move (Self &dst, Self &src, usize count) __NE___
 	{
 		using T			= typename Types_t::template Get<I>;
 		using CPolicy_t	= CopyPolicy::template AutoDetect<T>;
@@ -636,7 +636,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I>
-	constexpr void  FixedTupleArray<S, Types...>::_Copy (Self &dst, const Self &src, usize count) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::_Copy (Self &dst, const Self &src, usize count) __NE___
 	{
 		using T			= typename Types_t::template Get<I>;
 		using CPolicy_t	= CopyPolicy::template AutoDetect<T>;

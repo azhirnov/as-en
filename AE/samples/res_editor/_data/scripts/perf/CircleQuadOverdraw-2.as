@@ -1,14 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
 
 	const uint	vcount = 12;
 
-	
+
 	void  Topology0 (array<float2> &vertices, array<uint> &indices)
 	{
 		vertices.resize( 4 );
@@ -61,7 +61,7 @@
 			float	c	= Cos( a * i );
 			vertices[i] = float2( c, s );
 		}
-		
+
 		indices.resize( (vcount-2)*3 );
 
 		indices[0] = 0;		indices[1] = 1;		indices[2] = vcount-1;
@@ -99,7 +99,7 @@
 			float	c	= Cos( a * i );
 			vertices[i] = float2( c, s );
 		}
-		
+
 		indices.resize( 3 + vcount/2*3 + vcount/4*3 );
 		{
 			uint	v = vcount/3;
@@ -172,7 +172,7 @@
 		Slider( po2_count,	"Count",	4,	18 );
 		Slider( draw_count,	"Repeat",	1,	10 );
 
-		// render 
+		// render
 		for (uint i = 0; i < scenes.size(); ++i)
 		{
 			RC<SceneGraphicsPass>	pass = scenes[i].AddGraphicsPass( "v"+i );

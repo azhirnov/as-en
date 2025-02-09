@@ -6,7 +6,7 @@
 #include "base/Time/Date.h"
 #include "base/Utils/Threading.h"
 #include "base/Algorithms/Parser.h"
-#include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/ToString.h"
 
 #include "base/Platforms/WindowsHeader.cpp.h"
 
@@ -39,16 +39,6 @@ namespace AE::Base
 
 /*
 =================================================
-	constructor
-=================================================
-*/
-	Date::Date () __NE___
-	{
-		UnsafeZeroMem( *this );
-	}
-
-/*
-=================================================
 	MonthName
 =================================================
 */
@@ -72,61 +62,6 @@ namespace AE::Base
 			"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
 		};
 		return names[ _dayOfWeek ];
-	}
-
-/*
-=================================================
-	_ToMilliseconds
-=================================================
-*/
-	ulong  Date::_ToMilliseconds (uint startYear) const
-	{
-		ulong	ms = _millis;
-
-		ms += _second * MillisInSecond();
-		ms += _minute * MillisInMinute();
-		ms += _hour * MillisInHour();
-		ms += _dayOfYear * MillisInDay();
-
-		for (uint y = startYear; y < _year; ++y) {
-			ms += _MaxDaysOfYear( y ) * MillisInDay();
-		}
-		return ms;
-	}
-
-/*
-=================================================
-	_SetMilliseconds
-=================================================
-*/
-	Date&  Date::_SetMilliseconds (const uint startYear, const ulong ms)
-	{
-		_millis		= uint(ms % MillisInSecond());
-		_second		= (ms / MillisInSecond()) % 60;
-		_minute		= (ms / MillisInMinute()) % 60;
-		_hour		= (ms / MillisInHour())   % 24;
-
-		ulong days	= ms / MillisInDay();
-		uint  year	= startYear;
-		uint  max_d	= _MaxDaysOfYear( year );
-
-		for (; days >= max_d;)
-		{
-			days -= max_d;
-			max_d = _MaxDaysOfYear( ++year );
-		}
-
-		_dayOfYear	= uint(days);
-		_year		= year;
-
-		uint	m, dm;
-		_CalcMonthAndDayOfMonth( _year, _dayOfYear, OUT m, OUT dm );
-
-		_month		= m;
-		_dayOfMonth	= dm;
-		_dayOfWeek	= _CalcDayOfWeek( _year, _month, _dayOfMonth );
-
-		return *this;
 	}
 
 /*
@@ -222,127 +157,6 @@ namespace AE::Base
 
 /*
 =================================================
-	operator ==
-=================================================
-*/
-	bool  Date::operator == (const Date &other) C_NE___
-	{
-		return	(Year()			== other.Year())		and
-				(DayOfYear()	== other.DayOfYear())	and
-				(Hour()			== other.Hour())		and
-				(Minute()		== other.Minute())		and
-				(Second()		== other.Second())		and
-				(Milliseconds()	== other.Milliseconds());
-	}
-
-/*
-=================================================
-	operator >
-=================================================
-*/
-	bool  Date::operator > (const Date &other) C_NE___
-	{
-		return	Year()			!= other.Year()			?	Year()		> other.Year()		:
-				DayOfYear()		!= other.DayOfYear()	?	DayOfYear()	> other.DayOfYear()	:
-				Hour()			!= other.Hour()			?	Hour()		> other.Hour()		:
-				Minute()		!= other.Minute()		?	Minute()	> other.Minute()	:
-				Second()		!= other.Second()		?	Second()	> other.Second()	:
-				Milliseconds()	<  other.Milliseconds();
-	}
-
-/*
-=================================================
-	operator <
-=================================================
-*/
-	bool  Date::operator < (const Date &other) C_NE___
-	{
-		return	Year()			!= other.Year()			?	Year()		< other.Year()		:
-				DayOfYear()		!= other.DayOfYear()	?	DayOfYear()	< other.DayOfYear()	:
-				Hour()			!= other.Hour()			?	Hour()		< other.Hour()		:
-				Minute()		!= other.Minute()		?	Minute()	< other.Minute()	:
-				Second()		!= other.Second()		?	Second()	< other.Second()	:
-				Milliseconds()	<  other.Milliseconds();
-	}
-
-/*
-=================================================
-	_IsLeapYear
-=================================================
-*/
-	bool  Date::_IsLeapYear (uint year)
-	{
-		return ((year % 4 == 0) and (year % 100 != 0)) or (year % 400 == 0);
-	}
-
-/*
-=================================================
-	_MaxDaysOfYear
-=================================================
-*/
-	uint  Date::_MaxDaysOfYear (uint year)
-	{
-		return 365 + uint(_IsLeapYear( year ));
-	}
-
-/*
-=================================================
-	_DaysInMonth
-=================================================
-*/
-	uint  Date::_DaysInMonth (uint year, uint month)
-	{
-		const ubyte days[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-		return days[ month ] + uint( (EMonth(month) == EMonth::Feb) and _IsLeapYear( year ));
-	}
-
-/*
-=================================================
-	_CalcDayOfYear
-=================================================
-*/
-	uint  Date::_CalcDayOfYear (uint year, uint month, uint dayOfMonth)
-	{
-		uint day = 0;
-
-		for (uint i = 0; i < month; ++i) {
-			day += _DaysInMonth( year, i );
-		}
-		return day + dayOfMonth;
-	}
-
-/*
-=================================================
-	_CalcDayOfWeek
-=================================================
-*/
-	uint  Date::_CalcDayOfWeek (uint year, uint month, uint dayOfMonth)
-	{
-		const ubyte	t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
-		year -= month < 2;
-		return (year + year/4 - year/100 + year/400 + t[month] + dayOfMonth) % 7;
-	}
-
-/*
-=================================================
-	_CalcMonthAndDayOfMonth
-=================================================
-*/
-	void  Date::_CalcMonthAndDayOfMonth (uint year, uint dayOfYear, OUT uint &month, OUT uint &dayOfMonth)
-	{
-		uint days_in_month = _DaysInMonth( year, 0 );
-
-		for (month = 0; dayOfYear >= days_in_month;)
-		{
-			dayOfYear		-= days_in_month;
-			days_in_month	 = _DaysInMonth( year, ++month );
-		}
-
-		dayOfMonth = dayOfYear;
-	}
-
-/*
-=================================================
 	Now
 =================================================
 */
@@ -428,53 +242,6 @@ namespace AE::Base
 	}
 
 #undef DATE_NOW_MODE
-//-----------------------------------------------------------------------------
 
-
-
-/*
-=================================================
-	Calc*
-=================================================
-*/
-	Date::Builder&  Date::Builder::CalcDayOfYear () __NE___
-	{
-		return DayOfYear( Date::_CalcDayOfYear( _date._year, _date._month, _date._dayOfMonth ));
-	}
-
-	Date::Builder&  Date::Builder::CalcDayOfWeek () __NE___
-	{
-		return DayOfWeek( Date::_CalcDayOfWeek( _date._year, _date._month, _date._dayOfMonth ));
-	}
-
-	Date::Builder&  Date::Builder::CalcMonthAndDayOfMonth () __NE___
-	{
-		uint	m, dm;
-		Date::_CalcMonthAndDayOfMonth( _date._year, _date._dayOfYear, OUT m, OUT dm );
-
-		_date._month		= m;
-		_date._dayOfMonth	= dm;
-		return *this;
-	}
-
-/*
-=================================================
-	AddDayOfYear
-=================================================
-*
-	Date::Builder&  Date::Builder::AddDayOfYear (uint value) __NE___
-	{
-		return *this;
-	}
-
-/*
-=================================================
-	SubDayOfYear
-=================================================
-*
-	Date::Builder&  Date::Builder::SubDayOfYear (uint value) __NE___
-	{
-	}
-*/
 
 } // AE::Base

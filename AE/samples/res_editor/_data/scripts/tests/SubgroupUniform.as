@@ -4,7 +4,7 @@
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	define SH_COMPUTE
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 
 #	define UNIFORM_CONTROL_FLOW
 #	define MAXIMAL_RECONVERGENCE

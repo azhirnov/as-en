@@ -10,118 +10,292 @@
 #include "Hash.glsl"
 
 
-ND_ float  GradientNoise (gl::CombinedTex2D<float> rgbaNoise,
-						  const float3 pos);							// range [-1..1],	MIT
-ND_ float  GradientNoise (const float3 pos);							// range [-1..1],	MIT
+struct NoiseParams
+{
+	float4	custom;			// custom params specific for each noise type
+	float3	seedScale;		// scale position before applying hash
+	float3	seedBias;		// offset position before applying hash
+};
+ND_ NoiseParams  CreateNoiseParams ();
 
-ND_ float  IQNoise (gl::CombinedTex2D<float> rgbaNoise,
-					const float3 pos,
-					float2		 uv);									// range [-1..1],	MIT
-ND_ float  IQNoise (const float3 pos,
-					float2		 uv);									// range [-1..1],	MIT
 
-ND_ float  IQNoise (gl::CombinedTex2D<float> rgbaNoise,
-					const float3 pos);									// range [-1..1],	MIT
-ND_ float  IQNoise (const float3 pos);									// range [-1..1],	MIT
+struct TileableNoiseParams
+{
+	float4	custom;			// custom params specific for each noise type
+	float3	seedScale;		// scale position before applying hash
+	float3	seedBias;		// offset position before applying hash
+	float3	tileSize;
+};
+ND_ TileableNoiseParams  CreateTileableNoiseParams (float2 tileSize);
+ND_ TileableNoiseParams  CreateTileableNoiseParams (float3 tileSize);
 
-ND_ float  ValueNoise (gl::CombinedTex2D<float> greyNoise,
-					   const float3 pos);								// range [-1..1],	CC BY-NC-SA 3.0
-ND_ float  ValueNoise (const float3 pos);								// range [-1..1],	CC BY-NC-SA 3.0
 
-ND_ float  PerlinNoise (gl::CombinedTex2D<float> rgbaNoise,
-						const float3 pos);								// range [-1..1],	CC BY-NC-SA 3.0
-ND_ float  PerlinNoise (const float3 pos);								// range [-1..1],	CC BY-NC-SA 3.0
-
-ND_ float  SimplexNoise (gl::CombinedTex2D<float> rgbaNoise,
-						 const float3 pos);								// range [-1..1],	CC BY-NC-SA 3.0
-ND_ float  SimplexNoise (const float3 pos);								// range [-1..1],	CC BY-NC-SA 3.0
-
-ND_ float  WaveletNoise (float2 coord, const float2 zk);				// range [0..1],	MIT
-ND_ float  WaveletNoise (float2 coord);									// range [0..1],	MIT
+struct FBMParams
+{
+	float	lacunarity;
+	float	persistence;
+	int		octaveCount;
+};
+ND_ FBMParams  CreateFBMParams (float lacunarity, float persistence, int octaveCount);
 //-----------------------------------------------------------------------------
 
 
-// 2D
+// range [-1..1],	MIT
+ND_ float  GradientNoise (gl::CombinedTex2D<float> rgbaNoise,	const float3 pos,	const NoiseParams params);
+ND_ float  GradientNoise (gl::CombinedTex2D<float> rgbaNoise,	const float3 pos);
+ND_ float  GradientNoise (const float3 pos,		const NoiseParams params);
+ND_ float  GradientNoise (const float3 pos);
+
+// range [0..1],	MIT
+// custom:
+//		float	u;	// in range [-0.5, 0.5]
+//		float	v;	// in range [0.4, 1.0]
+ND_ float  IQNoise (gl::CombinedTex2D<float> rgbaNoise,		const float3 pos,	const NoiseParams params);
+ND_ float  IQNoise (gl::CombinedTex2D<float> rgbaNoise,		const float3 pos);
+ND_ float  IQNoise (const float3 pos,	const NoiseParams params);
+ND_ float  IQNoise (const float3 pos);
+
+// range [-1..1],	CC BY-NC-SA 3.0
+ND_ float  ValueNoise (gl::CombinedTex2D<float> greyNoise,	const float3 pos,	const NoiseParams params);
+ND_ float  ValueNoise (gl::CombinedTex2D<float> greyNoise,	const float3 pos);
+ND_ float  ValueNoise (const float3 pos,	const NoiseParams params);
+ND_ float  ValueNoise (const float3 pos);
+
+// range [-1..1],	CC BY-NC-SA 3.0
+ND_ float  PerlinNoise (gl::CombinedTex2D<float> rgbaNoise,		const float3 pos,	const NoiseParams params);
+ND_ float  PerlinNoise (gl::CombinedTex2D<float> rgbaNoise,		const float3 pos);
+ND_ float  PerlinNoise (const float3 pos,	const NoiseParams params);
+ND_ float  PerlinNoise (const float3 pos);
+
+// range [-1..1],	MIT
+ND_ float  SimplexNoise (gl::CombinedTex2D<float> rgbaNoise,	const float3 pos,	const NoiseParams params);
+ND_ float  SimplexNoise (gl::CombinedTex2D<float> rgbaNoise,	const float3 pos);
+ND_ float  SimplexNoise (const float3 pos,	const NoiseParams params);
+ND_ float  SimplexNoise (const float3 pos);
+
+// range [0..1],	MIT
+// custom:
+//		float	z;	// ???
+//		float	k;	// ???
+ND_ float  WaveletNoise (float2 pos,	const NoiseParams params);
+ND_ float  WaveletNoise (float2 pos);
+//-----------------------------------------------------------------------------
+
+
+// Voronoi 2D //
+
 struct VoronoiResult2
 {
-	float2	icenter;	// range: floor(coord) +-1
+	float2	icenter;	// range: floor(pos) +-1
 	float2	offset;		// ceil center = icenter + offset
 	float	minDist;	// squared (?) distance in range [0..inf]
 };
 
-ND_ VoronoiResult2  Voronoi (const float2 coord,
-							 const float3 seedScaleBias_offsetScale);
-ND_ VoronoiResult2  Voronoi (const float2 coord);
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ VoronoiResult2  VoronoiR (const float2 pos,	const NoiseParams params);
+ND_ VoronoiResult2  VoronoiR (const float2 pos);
 
-ND_ VoronoiResult2  VoronoiContour2 (const float2 coord,
-									 const float3 seedScaleBias_offsetScale);	// MIT
-ND_ VoronoiResult2  VoronoiContour2 (const float2 coord);						// MIT
+// range [0..inf],	MIT
+ND_ float  Voronoi (const float2 pos,	const NoiseParams params);
+ND_ float  Voronoi (const float2 pos);
 
-ND_ float  VoronoiContour3 (const float2 coord,
-							const float3 seedScaleBias_offsetScale,
-							const float3 hashScaleBiasOff);						// MIT
-ND_ float  VoronoiContour3 (const float2 coord);								// MIT
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ VoronoiResult2  VoronoiContourR (const float2 pos,	const NoiseParams params);
+ND_ VoronoiResult2  VoronoiContourR (const float2 pos);
 
-ND_ float  VoronoiContour (const float2 coord,
-						   const float3 seedScaleBias_offsetScale);				// range [0..inf],	MIT
-ND_ float  VoronoiContour (const float2 coord);									// range [0..inf],	MIT
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+//		float3	hashScaleBiasOff
+ND_ float  VoronoiContourSparse (const float2 pos,	const NoiseParams params);
+ND_ float  VoronoiContourSparse (const float2 pos);
 
-ND_ float  VoronoiCircles (const float2 coord,
-						   const float  radiusScale,
-						   const float3 seedScaleBias_offsetScale);				// range [0..inf],	MIT
-ND_ float  VoronoiCircles (const float2 coord,
-						   const float  radiusScale);							// range [0..inf],	MIT
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  VoronoiContour (const float2 pos,	const NoiseParams params);
+ND_ float  VoronoiContour (const float2 pos);
 
-ND_ float  WarleyNoise (const float2 pos,
-						const float3 seedScaleBias_offsetScale);				// range [-inf..1]
-ND_ float  WarleyNoise (const float2 pos);										// range [-inf..1]
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+//		float	radiusScale;
+ND_ float  VoronoiCircles (const float2 pos,	const NoiseParams params);
+ND_ float  VoronoiCircles (const float2 pos,	const float radiusScale);
+
+// range [-inf..1],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  WarleyNoise (const float2 pos,	const NoiseParams params);
+ND_ float  WarleyNoise (const float2 pos);
 //-----------------------------------------------------------------------------
 
 
-// 3D
+// Voronoi 3D //
+
 struct VoronoiResult3
 {
-	float3	icenter;	// range: floor(coord) +-1
+	float3	icenter;	// range: floor(pos) +-1
 	float3	offset;		// ceil center = icenter + offset
 	float	minDist;	// squared (?) distance in range [0..inf]
 };
 
-ND_ VoronoiResult3  Voronoi (const float3 coord,
-							 const float3 seedScaleBias_offsetScale);
-ND_ VoronoiResult3  Voronoi (const float3 coord);
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ VoronoiResult3  VoronoiR (const float3 pos,	const NoiseParams params);
+ND_ VoronoiResult3  VoronoiR (const float3 pos);
 
-ND_ VoronoiResult3  VoronoiContour2 (const float3 coord,
-									 const float3 seedScaleBias_offsetScale);	// MIT
-ND_ VoronoiResult3  VoronoiContour2 (const float3 coord);						// MIT
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  Voronoi (const float3 pos,	const NoiseParams params);
+ND_ float  Voronoi (const float3 pos);
 
-ND_ float  VoronoiContour3 (const float3 coord,
-							const float3 seedScaleBias_offsetScale,
-							const float3 hashScaleBiasOff);						// MIT
-ND_ float  VoronoiContour3 (const float3 coord);								// MIT
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ VoronoiResult3  VoronoiContourR (const float3 pos,	const NoiseParams params);
+ND_ VoronoiResult3  VoronoiContourR (const float3 pos);
 
-ND_ float  VoronoiContour (const float3 coord,
-						   const float3 seedScaleBias_offsetScale);				// range [0..inf],	MIT
-ND_ float  VoronoiContour (const float3 coord);									// range [0..inf],	MIT
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+//		float3	hashScaleBiasOff;
+ND_ float  VoronoiContourSparse (const float3 pos,	const NoiseParams params);
+ND_ float  VoronoiContourSparse (const float3 pos);
 
-ND_ float  WarleyNoise (const float3 pos,
-						const float3 seedScaleBias_offsetScale);				// range [-inf..1]
-ND_ float  WarleyNoise (const float3 pos);										// range [-inf..1]
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  VoronoiContour (const float3 pos,	const NoiseParams params);
+ND_ float  VoronoiContour (const float3 pos);
+
+// range [-inf..1],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  WarleyNoise (const float3 pos,	const NoiseParams params);
+ND_ float  WarleyNoise (const float3 pos);
+//-----------------------------------------------------------------------------
+
+
+// Tileable Voronoi 2D //
+
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ VoronoiResult2  TileableVoronoiNoiseR (const float2 pos,	const TileableNoiseParams params);
+ND_ VoronoiResult2  TileableVoronoiNoiseR (const float2 pos,	const float2 tileSize);
+
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  TileableVoronoiNoise (const float2 pos,	const TileableNoiseParams params);
+ND_ float  TileableVoronoiNoise (const float2 pos,	const float2 tileSize);
+
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ VoronoiResult2  TileableVoronoiContourR (const float2 pos,	const TileableNoiseParams params);
+ND_ VoronoiResult2  TileableVoronoiContourR (const float2 pos,	const float2 tileSize);
+
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  TileableVoronoiContour (const float2 pos,	const TileableNoiseParams params);
+ND_ float  TileableVoronoiContour (const float2 pos,	const float2 tileSize);
+
+// range [-inf..1],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  TileableWarleyNoise (const float2 pos,	const TileableNoiseParams params);
+ND_ float  TileableWarleyNoise (const float2 pos,	const float2 tileSize);
+//---------------------------
+
+
+// Tileable Voronoi 3D //
+
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ VoronoiResult3  TileableVoronoiNoiseR (const float3 pos,	const TileableNoiseParams params);
+ND_ VoronoiResult3  TileableVoronoiNoiseR (const float3 pos,	const float3 tileSize);
+
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  TileableVoronoiNoise (const float3 pos,	const TileableNoiseParams params);
+ND_ float  TileableVoronoiNoise (const float3 pos,	const float3 tileSize);
+
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ VoronoiResult3  TileableVoronoiContourR (const float3 pos,	const TileableNoiseParams params);
+ND_ VoronoiResult3  TileableVoronoiContourR (const float3 pos,	const float3 tileSize);
+
+// range [0..inf],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  TileableVoronoiContour (const float3 pos,	const TileableNoiseParams params);
+ND_ float  TileableVoronoiContour (const float3 pos,	const float3 tileSize);
+
+// range [-inf..1],	MIT
+// custom:
+//		float	maxCeilOffset;
+ND_ float  TileableWarleyNoise (const float3 pos,	const TileableNoiseParams params);
+ND_ float  TileableWarleyNoise (const float3 pos,	const float3 tileSize);
+//---------------------------
+
+
+// range [-1..1],	MIT
+ND_ float  TileableGradientNoise (const float3 pos,		const TileableNoiseParams params);
+ND_ float  TileableGradientNoise (const float3 pos,		const float3 tileSize);
+
+// range [0..1],	MIT
+ND_ float  TileableIQNoise (const float3 pos,	const TileableNoiseParams params);
+ND_ float  TileableIQNoise (const float3 pos,	const float3 tileSize);
+
+// range [-1..1],	CC BY-NC-SA 3.0
+ND_ float  TileableValueNoise (const float3 pos,	const TileableNoiseParams params);
+ND_ float  TileableValueNoise (const float3 pos,	const float3 tileSize);
+
+// range [-1..1],	CC BY-NC-SA 3.0
+ND_ float  TileablePerlinNoise (const float3 pos,	const TileableNoiseParams params);
+ND_ float  TileablePerlinNoise (const float3 pos,	const float3 tileSize);
 //-----------------------------------------------------------------------------
 
 
 
 // FBM
 #if 0
-ND_ float  ***FBM (in float3 pos, const float lacunarity, const float persistence, const int octaveCount);
-ND_ float  ***FBM (gl::CombinedTex2D<float> noiseTex, in float3 pos, const float lacunarity, const float persistence, const int octaveCount);
+ND_ float  ***FBM (in float3 pos, const FBMParams fbm);
+ND_ float  ***FBM (gl::CombinedTex2D<float> noiseTex, in float3 pos, const FBMParams fbm);
+
+ND_ float  ***FBM (in float3 pos, const NoiseParams params, const FBMParams fbm);
+ND_ float  ***FBM (gl::CombinedTex2D<float> noiseTex, in float3 pos, const NoiseParams params, const FBMParams fbm);
 
 // templates:
 //	FBM_NOISE
-//	FBM_NOISE_A1
-//	FBM_NOISE_A2
+//	FBM_NOISE_Hash
+//	FBM_NOISE_Tex
 
 // example:
 //	FBM_NOISE( Perlin ) --> PerlinFBM
+#endif
+//-----------------------------------------------------------------------------
+
+
+// Tileable FBM
+#if 0
+ND_ float  Tileable***FBM (in float3 pos, const TileableNoiseParams params, const FBMParams fbm);
+
+// templates:
+//	FBM_TILE_NOISE
+//	FBM_TILE_NOISE_Hash
 #endif
 //-----------------------------------------------------------------------------
 
@@ -131,19 +305,25 @@ ND_ float  ***FBM (gl::CombinedTex2D<float> noiseTex, in float3 pos, const float
 ND_ float3 Turbulence_*** (const float3 pos);
 ND_ float3 Turbulence_*** (gl::CombinedTex2D<float> noiseTex, const float3 pos);
 
-ND_ float3 Turbulence_***FBM (const float3 pos, const float lacunarity, const float persistence, const int octaveCount);
-ND_ float3 Turbulence_***FBM (gl::CombinedTex2D<float> noiseTex, const float3 pos, const float lacunarity, const float persistence, const int octaveCount);
+ND_ float3 Turbulence_***FBM (const float3 pos, const FBMParams fbm);
+ND_ float3 Turbulence_***FBM (gl::CombinedTex2D<float> noiseTex, const float3 pos, const FBMParams fbm);
 
 // templates:
 //	TURBULENCE
-//	TURBULENCE_A1
+//	TURBULENCE_Hash
+//	TURBULENCE_Tex
 //	TURBULENCE_FBM
+//	TURBULENCE_FBM_Hash
+//	TURBULENCE_FBM_Tex
+//	TURBULENCE2D_Hash
+//	TURBULENCE2D_FBM_Hash
 
 // example:
 //	Turbulence_GradientNoise
 //	Turbulence_PerlinFBM
 #endif
 //-----------------------------------------------------------------------------
+
 
 
 #include "../3party_shaders/Noise-1.glsl"
@@ -156,6 +336,12 @@ void  _TurbulenceTransform (const float3 pos, out float3 p0, out float3 p1, out 
 	p0 = pos + float3( 0.189422, 0.993713, 0.478164 );
 	p1 = pos + float3( 0.404647, 0.276611, 0.923049 );
 	p2 = pos + float3( 0.821228, 0.171096, 0.684280 );
+}
+
+void  _TurbulenceTransform2D (const float2 pos, out float2 p0, out float2 p1)
+{
+	p0 = pos + float2( 0.189422, 0.993713 );
+	p1 = pos + float2( 0.404647, 0.276611 );
 }
 
 ND_ float3  _FBMTransform (const float3 pos)
@@ -182,13 +368,13 @@ ND_ float3  _FBMTransform (const float3 pos)
 ND_ float2  _FBMTransform (const float2 pos)
 {
 	#if 0
-		const float2x2	rot = float2x2( 0.838,  0.544,	// 33 deg
+		const float2x2	rot = float2x2( 0.838,  0.544,		// 33 deg
 									   -0.544,  0.838 );
 		return rot * pos;
 	#else
-		const float3x2	rot = float3x2( 0.838,  0.544,	// 33 deg
+		const float3x2	rot = float3x2( 0.838,  0.544,		// 33 deg
 									   -0.544,  0.838,
-										0.276, -0.404 );
+										0.276, -0.404 );	// offset
 		return rot * float3(pos, 0.0);
 	#endif
 }
@@ -199,66 +385,44 @@ ND_ float2  _FBMTransform (const float2 pos)
 	{															\
 		float	value	= 0.0;									\
 		float	pers	= 1.0;									\
-		float	scale	= 1.0;									\
+		float	scale	= fbm.octaveCount < 1 ? 1.0 : 0.0;		\
 																\
-		for (int octave = 0; octave < octaveCount; ++octave)	\
+		for (int octave = 0; octave < fbm.octaveCount; ++octave)\
 		{														\
 			value += (_noise_) * pers;							\
 			scale += pers;										\
-			pos    = _FBMTransform( pos * lacunarity );			\
-			pers  *= persistence;								\
+			pos    = _FBMTransform( pos * fbm.lacunarity );		\
+			pers  *= fbm.persistence;							\
 		}														\
 		return value / scale;									\
 	}
-//-----------------------------------------------------------------------------
 
-
-#define FBM_NOISE_A1_Hash( _noise_, _argType_, _argName_ )													\
-	ND_ float  _noise_##FBM (in float3 pos, const _argType_ _argName_,										\
-							 const float lacunarity, const float persistence, const int octaveCount) {		\
-		_FBM_NOISE2( _noise_( pos, _argName_ ))																\
+#define FBM_NOISE_Hash( _noise_ )																\
+	ND_ float  _noise_##FBM (in float3 pos, const NoiseParams params, const FBMParams fbm) {	\
+		_FBM_NOISE2( _noise_( pos, params ))													\
+	}																							\
+																								\
+	ND_ float  _noise_##FBM (in float3 pos, const FBMParams fbm) {								\
+		_FBM_NOISE2( _noise_( pos ))															\
 	}
 
-#define FBM_NOISE_A1_Tex( _noise_, _argType_, _argName_ )													\
-	ND_ float  _noise_##FBM (gl::CombinedTex2D<float> noiseTex, in float3 pos, const _argType_ _argName_,	\
-							  const float lacunarity, const float persistence, const int octaveCount) {		\
-		_FBM_NOISE2( _noise_( noiseTex, pos, _argName_ ))													\
+#define FBM_NOISE2D_Hash( _noise_ )																\
+	ND_ float  _noise_##FBM (in float2 pos, const NoiseParams params, const FBMParams fbm) {	\
+		_FBM_NOISE2( _noise_( pos, params ))													\
+	}																							\
+																								\
+	ND_ float  _noise_##FBM (in float2 pos, const FBMParams fbm) {								\
+		_FBM_NOISE2( _noise_( pos ))															\
 	}
 
-#define FBM_NOISE_A1( _noise_, _argType_, _argName_ )\
-	FBM_NOISE_A1_Hash( _noise_, _argType_, _argName_ )\
-	FBM_NOISE_A1_Tex( _noise_, _argType_, _argName_ )
-//-----------------------------------------------------------------------------
-
-
-#define FBM_NOISE_A2_Hash( _noise_, _arg1Type_, _arg1Name_, _arg2Type_, _arg2Name_ )						\
-	ND_ float  _noise_##FBM (in float3 pos, const _arg1Type_ _arg1Name_, const _arg2Type_ _arg2Name_,		\
-							 const float lacunarity, const float persistence, const int octaveCount) {		\
-		_FBM_NOISE2( _noise_( pos, _arg1Name_, _arg2Name_ ))												\
-	}
-
-#define FBM_NOISE_A2_Tex( _noise_, _arg1Type_, _arg1Name_, _arg2Type_, _arg2Name_ )							\
-	ND_ float  _noise_##FBM (gl::CombinedTex2D<float> noiseTex, in float3 pos,								\
-							 const _arg1Type_ _arg1Name_, const _arg2Type_ _arg2Name_,						\
-							 const float lacunarity, const float persistence, const int octaveCount) {		\
-		_FBM_NOISE2( _noise_( noiseTex, pos, _arg1Name_, _arg2Name_ ))										\
-	}
-
-#define FBM_NOISE_A2( _noise_, _arg1Type_, _arg1Name_, _arg2Type_, _arg2Name_ )\
-	FBM_NOISE_A2_Hash( _noise_, _arg1Type_, _arg1Name_, _arg2Type_, _arg2Name_ )\
-	FBM_NOISE_A2_Tex( _noise_, _arg1Type_, _arg1Name_, _arg2Type_, _arg2Name_ )
-//-----------------------------------------------------------------------------
-
-
-#define FBM_NOISE_Hash( _noise_ )																						\
-	ND_ float  _noise_##FBM (in float3 pos, const float lacunarity, const float persistence, const int octaveCount)	{	\
-		_FBM_NOISE2( _noise_( pos ))																					\
-	}
-
-#define FBM_NOISE_Tex( _noise_ )																						\
-	ND_ float  _noise_##FBM (gl::CombinedTex2D<float> noiseTex, in float3 pos,											\
-							 const float lacunarity, const float persistence, const int octaveCount) {					\
-		_FBM_NOISE2( _noise_( pos ))																					\
+#define FBM_NOISE_Tex( _noise_ )																	\
+	ND_ float  _noise_##FBM (gl::CombinedTex2D<float> noiseTex, in float3 pos,						\
+							 const NoiseParams params, const FBMParams fbm) {						\
+		_FBM_NOISE2( _noise_( noiseTex, pos, params ))												\
+	}																								\
+																									\
+	ND_ float  _noise_##FBM (gl::CombinedTex2D<float> noiseTex, in float3 pos, const FBMParams fbm){\
+		_FBM_NOISE2( _noise_( noiseTex, pos ))														\
 	}
 
 #define FBM_NOISE( _noise_ )\
@@ -267,27 +431,92 @@ ND_ float2  _FBMTransform (const float2 pos)
 //-----------------------------------------------------------------------------
 
 
-// returns position distortion
-#define TURBULENCE_Hash( _noise_ )																										\
-	ND_ float3  Turbulence_##_noise_ (const float3 pos)																					\
-	{																																	\
-		float3 p0, p1, p2;																												\
-		_TurbulenceTransform( pos, p0, p1, p2 );																						\
-		const float3 distort = float3(_noise_( p0 ),																					\
-									  _noise_( p1 ),																					\
-									  _noise_( p2 ));																					\
-		return distort;																													\
-	}																																	\
+#define _FBM_TILE_NOISE2( _noise_ )													\
+	{																				\
+		float	value	= 0.0;														\
+		float	pers	= 1.0;														\
+		float	scale	= fbm.octaveCount < 1 ? 1.0 : 0.0;							\
+																					\
+		fbm.lacunarity = Max( 1.0, Round( fbm.lacunarity ));						\
+																					\
+		for (int octave = 0; octave < fbm.octaveCount; ++octave)					\
+		{																			\
+			value			 += (_noise_) * pers;									\
+			scale			 += pers;												\
+			params.tileSize	 *= fbm.lacunarity;										\
+			pos				  = pos * fbm.lacunarity +								\
+								params.tileSize * float3(-0.1710, 0.4781, 0.8212);	\
+			params.seedScale += float3( 0.3461, 0.7324, 0.5862 );					\
+			params.seedBias	  = _FBMTransform( params.seedBias * fbm.lacunarity );	\
+			pers			 *= fbm.persistence;									\
+		}																			\
+		return value / scale;														\
+	}
 
-#define TURBULENCE_Tex( _noise_ )																										\
-	ND_ float3  Turbulence_##_noise_ (gl::CombinedTex2D<float> rgbaNoise, const float3 pos)												\
-	{																																	\
-		float3 p0, p1, p2;																												\
-		_TurbulenceTransform( pos, p0, p1, p2 );																						\
-		const float3 distort = float3(_noise_( rgbaNoise, p0 ),																			\
-									  _noise_( rgbaNoise, p1 ),																			\
-									  _noise_( rgbaNoise, p2 ));																		\
-		return distort;																													\
+
+#define FBM_TILE_NOISE_Hash( _noise_ )														\
+	ND_ float  _noise_##FBM (in float3 pos, in TileableNoiseParams params, FBMParams fbm) {	\
+		_FBM_TILE_NOISE2( _noise_( pos, params ))											\
+	}
+
+#define FBM_TILE_NOISE( _noise_ )\
+	FBM_TILE_NOISE_Hash( _noise_ )
+	// TODO: FBM_TILE_NOISE_Tex
+//-----------------------------------------------------------------------------
+
+
+// returns position distortion
+#define TURBULENCE_Hash( _noise_ )																						\
+	ND_ float3  Turbulence_##_noise_ (const float3 pos, const NoiseParams params)										\
+	{																													\
+		float3 p0, p1, p2;																								\
+		_TurbulenceTransform( pos, OUT p0, OUT p1, OUT p2 );															\
+		return float3(_noise_( p0, params ), _noise_( p1, params ), _noise_( p2, params ));								\
+	}																													\
+																														\
+	ND_ float3  Turbulence_##_noise_ (const float3 pos)																	\
+	{																													\
+		float3 p0, p1, p2;																								\
+		_TurbulenceTransform( pos, OUT p0, OUT p1, OUT p2 );															\
+		return float3(_noise_( p0 ), _noise_( p1 ), _noise_( p2 ));														\
+	}																													\
+
+#define TURBULENCE2D_Hash( _noise_ )																					\
+	ND_ float2  Turbulence_##_noise_ (const float2 pos, const NoiseParams params)										\
+	{																													\
+		float2 p0, p1;																									\
+		_TurbulenceTransform2D( pos, OUT p0, OUT p1 );																	\
+		const float2 distort = float2( _noise_( p0, params ), _noise_( p1, params ));									\
+		return distort;																									\
+	}																													\
+																														\
+	ND_ float2  Turbulence_##_noise_ (const float2 pos)																	\
+	{																													\
+		float2 p0, p1;																									\
+		_TurbulenceTransform2D( pos, OUT p0, OUT p1 );																	\
+		const float2 distort = float2(_noise_( p0 ), _noise_( p1 ));													\
+		return distort;																									\
+	}																													\
+
+#define TURBULENCE_Tex( _noise_ )																						\
+	ND_ float3  Turbulence_##_noise_ (gl::CombinedTex2D<float> rgbaNoise, const float3 pos, const NoiseParams params)	\
+	{																													\
+		float3 p0, p1, p2;																								\
+		_TurbulenceTransform( pos, OUT p0, OUT p1, OUT p2 );															\
+		const float3 distort = float3(_noise_( rgbaNoise, p0, params ),													\
+									  _noise_( rgbaNoise, p1, params ),													\
+									  _noise_( rgbaNoise, p2, params ));												\
+		return distort;																									\
+	}																													\
+																														\
+	ND_ float3  Turbulence_##_noise_ (gl::CombinedTex2D<float> rgbaNoise, const float3 pos)								\
+	{																													\
+		float3 p0, p1, p2;																								\
+		_TurbulenceTransform( pos, OUT p0, OUT p1, OUT p2 );															\
+		const float3 distort = float3(_noise_( rgbaNoise, p0 ),															\
+									  _noise_( rgbaNoise, p1 ),															\
+									  _noise_( rgbaNoise, p2 ));														\
+		return distort;																									\
 	}
 
 #define TURBULENCE( _noise_ )\
@@ -295,54 +524,62 @@ ND_ float2  _FBMTransform (const float2 pos)
 	TURBULENCE_Tex( _noise_ )
 
 
-#define TURBULENCE_A1_Hash( _noise_, _argType_, _argName_ )																				\
-	ND_ float3  Turbulence_##_noise_ (const float3 pos, const _argType_ _argName_)														\
-	{																																	\
-		float3 p0, p1, p2;																												\
-		_TurbulenceTransform( pos, p0, p1, p2 );																						\
-		const float3 distort = float3(_noise_( p0, _argName_ ),																			\
-									  _noise_( p1, _argName_ ),																			\
-									  _noise_( p2, _argName_ ));																		\
-		return distort;																													\
-	}																																	\
+#define TURBULENCE_FBM_Hash( _noise_ )																			\
+	ND_ float3  Turbulence_##_noise_ (const float3 pos, const NoiseParams params, const FBMParams fbm)			\
+	{																											\
+		float3 p0, p1, p2;																						\
+		_TurbulenceTransform( pos, OUT p0, OUT p1, OUT p2 );													\
+		const float3 distort = float3(_noise_( p0, params, fbm ),												\
+									  _noise_( p1, params, fbm ),												\
+									  _noise_( p2, params, fbm ));												\
+		return distort;																							\
+	}																											\
+																												\
+	ND_ float3  Turbulence_##_noise_ (const float3 pos, const FBMParams fbm)									\
+	{																											\
+		float3 p0, p1, p2;																						\
+		_TurbulenceTransform( pos, OUT p0, OUT p1, OUT p2 );													\
+		const float3 distort = float3(_noise_( p0, fbm ),														\
+									  _noise_( p1, fbm ),														\
+									  _noise_( p2, fbm ));														\
+		return distort;																							\
+	}																											\
 
-#define TURBULENCE_A1_Tex( _noise_, _argType_, _argName_ )																				\
-	ND_ float3  Turbulence_##_noise_ (gl::CombinedTex2D<float> rgbaNoise, const float3 pos, const _argType_ _argName_)					\
-	{																																	\
-		float3 p0, p1, p2;																												\
-		_TurbulenceTransform( pos, p0, p1, p2 );																						\
-		const float3 distort = float3(_noise_( rgbaNoise, p0, _argName_ ),																\
-									  _noise_( rgbaNoise, p1, _argName_ ),																\
-									  _noise_( rgbaNoise, p2, _argName_ ));																\
-		return distort;																													\
-	}
+#define TURBULENCE2D_FBM_Hash( _noise_ )																		\
+	ND_ float2  Turbulence_##_noise_ (const float2 pos, const NoiseParams params, const FBMParams fbm)			\
+	{																											\
+		float2 p0, p1;																							\
+		_TurbulenceTransform2D( pos, OUT p0, OUT p1 );															\
+		return float2(_noise_( p0, params, fbm ), _noise_( p1, params, fbm ));									\
+	}																											\
+																												\
+	ND_ float2  Turbulence_##_noise_ (const float2 pos, const FBMParams fbm)									\
+	{																											\
+		float2 p0, p1;																							\
+		_TurbulenceTransform2D( pos, OUT p0, OUT p1 );															\
+		return float2(_noise_( p0, fbm ), _noise_( p1, fbm ));													\
+	}																											\
 
-#define TURBULENCE_A1( _noise_, _argType_, _argName_ )\
-	TURBULENCE_A1_Hash( _noise_, _argType_, _argName_ )\
-	TURBULENCE_A1_Tex( _noise_, _argType_, _argName_ )
-
-
-#define TURBULENCE_FBM_Hash( _noise_ )																									\
-	ND_ float3  Turbulence_##_noise_ (const float3 pos, const float lacunarity, const float persistence, const int octaveCount)			\
-	{																																	\
-		float3 p0, p1, p2;																												\
-		_TurbulenceTransform( pos, p0, p1, p2 );																						\
-		const float3 distort = float3(_noise_( p0, lacunarity, persistence, octaveCount ),												\
-									  _noise_( p1, lacunarity, persistence, octaveCount ),												\
-									  _noise_( p2, lacunarity, persistence, octaveCount ));												\
-		return distort;																													\
-	}																																	\
-
-#define TURBULENCE_FBM_Tex( _noise_ )																									\
-	ND_ float3  Turbulence_##_noise_ (gl::CombinedTex2D<float> rgbaNoise, const float3 pos, const float lacunarity,						\
-										const float persistence, const int octaveCount)													\
-	{																																	\
-		float3 p0, p1, p2;																												\
-		_TurbulenceTransform( pos, p0, p1, p2 );																						\
-		const float3 distort = float3(_noise_( rgbaNoise, p0, lacunarity, persistence, octaveCount ),									\
-									  _noise_( rgbaNoise, p1, lacunarity, persistence, octaveCount ),									\
-									  _noise_( rgbaNoise, p2, lacunarity, persistence, octaveCount ));									\
-		return distort;																													\
+#define TURBULENCE_FBM_Tex( _noise_ )																			\
+	ND_ float3  Turbulence_##_noise_ (gl::CombinedTex2D<float> rgbaNoise, const float3 pos,						\
+									  const NoiseParams params,	const FBMParams fbm)							\
+	{																											\
+		float3 p0, p1, p2;																						\
+		_TurbulenceTransform( pos, OUT p0, OUT p1, OUT p2 );													\
+		const float3 distort = float3(_noise_( rgbaNoise, p0, params, fbm ),									\
+									  _noise_( rgbaNoise, p1, params, fbm ),									\
+									  _noise_( rgbaNoise, p2, params, fbm ));									\
+		return distort;																							\
+	}																											\
+																												\
+	ND_ float3  Turbulence_##_noise_ (gl::CombinedTex2D<float> rgbaNoise, const float3 pos, const FBMParams fbm)\
+	{																											\
+		float3 p0, p1, p2;																						\
+		_TurbulenceTransform( pos, OUT p0, OUT p1, OUT p2 );													\
+		const float3 distort = float3(_noise_( rgbaNoise, p0, fbm ),											\
+									  _noise_( rgbaNoise, p1, fbm ),											\
+									  _noise_( rgbaNoise, p2, fbm ));											\
+		return distort;																							\
 	}
 
 #define TURBULENCE_FBM( _noise_ )\
@@ -353,70 +590,58 @@ ND_ float2  _FBMTransform (const float2 pos)
 
 /*
 =================================================
-	Voronoi
+	CreateNoiseParams
 =================================================
 */
-VoronoiResult2  Voronoi (const float2 coord, const float3 seedScaleBias_offsetScale)
+NoiseParams  CreateNoiseParams ()
 {
-	float2	ipoint	= Floor( coord );
-	float2	fpoint	= Fract( coord );
-
-	VoronoiResult2	result;
-	result.minDist = float_max;
-
-	for (int y = -1; y <= 1; ++y)
-	for (int x = -1; x <= 1; ++x)
-	{
-		float2	ioffset	= float2( x, y );
-		float2	offset	= DHash22( (ipoint + ioffset) * seedScaleBias_offsetScale.x + seedScaleBias_offsetScale.y ) * seedScaleBias_offsetScale.z;
-		float2	vec		= offset + ioffset - fpoint;
-		float	d		= LengthSq( vec );
-
-		if ( d < result.minDist )
-		{
-			result.minDist	= d;
-			result.icenter		= ipoint + ioffset;
-			result.offset		= offset;
-		}
-	}
-	return result;
+	NoiseParams	p;
+	p.custom	= float4(-float_max);	// user must override it
+	p.seedScale	= float3(1.0);
+	p.seedBias	= float3(0.0);
+	return p;
 }
 
-VoronoiResult2  Voronoi (const float2 coord)
+/*
+=================================================
+	CreateFBMParams
+=================================================
+*/
+FBMParams  CreateFBMParams (float lacunarity, float persistence, int octaveCount)
 {
-	return Voronoi( coord, float3(1.0, 0.0, 1.0) );
+	FBMParams	p;
+	p.lacunarity	= lacunarity;
+	p.persistence	= persistence;
+	p.octaveCount	= octaveCount;
+	return p;
 }
 
-VoronoiResult3  Voronoi (const float3 coord, const float3 seedScaleBias_offsetScale)
+#ifdef AE_LICENSE_MIT
+/*
+=================================================
+	Voronoi
+----
+	range [0..inf]
+=================================================
+*/
+float  Voronoi (const float2 pos, const NoiseParams params)
 {
-	float3	ipoint	= Floor( coord );
-	float3	fpoint	= Fract( coord );
-
-	VoronoiResult3	result;
-	result.minDist = float_max;
-
-	for (int z = -1; z <= 1; ++z)
-	for (int y = -1; y <= 1; ++y)
-	for (int x = -1; x <= 1; ++x)
-	{
-		float3	ioffset	= float3( x, y, z );
-		float3	offset	= DHash33( (ipoint + ioffset) * seedScaleBias_offsetScale.x + seedScaleBias_offsetScale.y ) * seedScaleBias_offsetScale.z;
-		float3	vec		= offset + ioffset - fpoint;
-		float	d		= LengthSq( vec );
-
-		if ( d < result.minDist )
-		{
-			result.minDist	= d;
-			result.icenter		= ipoint + ioffset;
-			result.offset		= offset;
-		}
-	}
-	return result;
+	return VoronoiR( pos, params ).minDist;
 }
 
-VoronoiResult3  Voronoi (const float3 coord)
+float  Voronoi (const float2 pos)
 {
-	return Voronoi( coord, float3(1.0, 0.0, 1.0) );
+	return VoronoiR( pos ).minDist;
+}
+
+float  Voronoi (const float3 pos, const NoiseParams params)
+{
+	return VoronoiR( pos, params ).minDist;
+}
+
+float  Voronoi (const float3 pos)
+{
+	return VoronoiR( pos ).minDist;
 }
 
 /*
@@ -426,91 +651,201 @@ VoronoiResult3  Voronoi (const float3 coord)
 	range [-inf..1]
 =================================================
 */
-float  WarleyNoise (const float3 pos, const float3 seedScaleBias_offsetScale)
+float  WarleyNoise (const float3 pos, const NoiseParams params)
 {
-	return 1.0 - Voronoi( pos, seedScaleBias_offsetScale ).minDist;
+	return 1.0 - Voronoi( pos, params );
 }
 
 float  WarleyNoise (const float3 pos)
 {
-	return 1.0 - Voronoi( pos ).minDist;
+	return 1.0 - Voronoi( pos );
 }
 
-float  WarleyNoise (const float2 pos, const float3 seedScaleBias_offsetScale)
+float  WarleyNoise (const float2 pos, const NoiseParams params)
 {
-	return 1.0 - Voronoi( pos, seedScaleBias_offsetScale ).minDist;
+	return 1.0 - Voronoi( pos, params );
 }
 
 float  WarleyNoise (const float2 pos)
 {
-	return 1.0 - Voronoi( pos ).minDist;
+	return 1.0 - Voronoi( pos );
 }
 
 /*
 =================================================
-	VoronoiContour2
+	VoronoiContour
 =================================================
 */
-VoronoiResult2  VoronoiContour2 (const float2 coord)
+float  VoronoiContour (const float2 pos, const NoiseParams params)
 {
-	return VoronoiContour2( coord, float3(1.0, 0.0, 1.0) );
+	return VoronoiContourR( pos, params ).minDist;
 }
 
-float  VoronoiContour (const float2 coord, const float3 seedScaleBias_offsetScale)
+float  VoronoiContour (const float2 pos)
 {
-	return VoronoiContour2( coord, seedScaleBias_offsetScale ).minDist;
+	return VoronoiContourR( pos ).minDist;
 }
 
-float  VoronoiContour (const float2 coord)
+float  VoronoiContour (const float3 pos, const NoiseParams params)
 {
-	return VoronoiContour2( coord, float3(1.0, 0.0, 1.0) ).minDist;
+	return VoronoiContourR( pos, params ).minDist;
 }
 
-VoronoiResult3  VoronoiContour2 (const float3 coord)
+float  VoronoiContour (const float3 pos)
 {
-	return VoronoiContour2( coord, float3(1.0, 0.0, 1.0) );
-}
-
-float  VoronoiContour (const float3 coord, const float3 seedScaleBias_offsetScale)
-{
-	return VoronoiContour2( coord, seedScaleBias_offsetScale ).minDist;
-}
-
-float  VoronoiContour (const float3 coord)
-{
-	return VoronoiContour2( coord, float3(1.0, 0.0, 1.0) ).minDist;
+	return VoronoiContourR( pos ).minDist;
 }
 
 /*
 =================================================
-	VoronoiContour3
+	VoronoiContourSparse
 =================================================
 */
-float  VoronoiContour3 (const float2 coord, const float3 seedScaleBias_offsetScale, const float3 hashScaleBiasOff)
+float  VoronoiContourSparse (const float2 pos, const NoiseParams params)
 {
-	VoronoiResult2	r = VoronoiContour2( coord, seedScaleBias_offsetScale );
+	float3			hashScaleBiasOff = params.custom.yzw;
+	VoronoiResult2	r = VoronoiContourR( pos, params );
 	float			d = r.minDist;
 
 	d *= Sign( DHash12( (r.icenter + r.offset) * hashScaleBiasOff.x + hashScaleBiasOff.y ) - hashScaleBiasOff.z );
 	return d;
 }
 
-float  VoronoiContour3 (const float2 coord)
+float  VoronoiContourSparse (const float2 pos)
 {
-	return VoronoiContour3( coord, float3(1.0, 0.0, 1.0), float3(1.0, 0.0, 0.5) );
+	NoiseParams	p = CreateNoiseParams();
+	p.custom.x		= 1.0;	// maxCeilOffset
+	p.custom.yzw	= float3(1.0, 0.0, 0.5);
+	return VoronoiContourSparse( pos, p );
 }
 
-float  VoronoiContour3 (const float3 coord, const float3 seedScaleBias_offsetScale, const float3 hashScaleBiasOff)
+float  VoronoiContourSparse (const float3 pos, const NoiseParams params)
 {
-	VoronoiResult3	r = VoronoiContour2( coord, seedScaleBias_offsetScale );
+	float3			hashScaleBiasOff = params.custom.yzw;
+	VoronoiResult3	r = VoronoiContourR( pos, params );
 	float			d = r.minDist;
 
 	d *= Sign( DHash13( (r.icenter + r.offset) * hashScaleBiasOff.x + hashScaleBiasOff.y ) - hashScaleBiasOff.z );
 	return d;
 }
 
-float  VoronoiContour3 (const float3 coord)
+float  VoronoiContourSparse (const float3 pos)
 {
-	return VoronoiContour3( coord, float3(1.0, 0.0, 1.0), float3(1.0, 0.0, 0.5) );
+	NoiseParams	p = CreateNoiseParams();
+	p.custom.x		= 1.0;	// maxCeilOffset
+	p.custom.yzw	= float3(1.0, 0.0, 0.5);
+	return VoronoiContourSparse( pos, p );
 }
 
+#endif // AE_LICENSE_MIT
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	CreateTileableNoiseParams
+=================================================
+*/
+TileableNoiseParams  CreateTileableNoiseParams (float2 tileSize)
+{
+	return CreateTileableNoiseParams( float3(tileSize, 0.f) );
+}
+
+TileableNoiseParams  CreateTileableNoiseParams (float3 tileSize)
+{
+	TileableNoiseParams	p;
+	p.custom	= float4(-float_max);	// user must override it
+	p.seedScale	= float3(1.0);
+	p.seedBias	= float3(0.0);
+	p.tileSize	= tileSize;
+	return p;
+}
+
+
+#ifdef AE_LICENSE_MIT
+/*
+=================================================
+	TileableVoronoiNoise
+----
+	range [0..inf]
+=================================================
+*/
+float  TileableVoronoiNoise (const float2 pos, const TileableNoiseParams params)
+{
+	return TileableVoronoiNoiseR( pos, params ).minDist;
+}
+
+float  TileableVoronoiNoise (const float2 pos, const float2 tileSize)
+{
+	return TileableVoronoiNoiseR( pos, tileSize ).minDist;
+}
+
+float  TileableVoronoiNoise (const float3 pos, const TileableNoiseParams params)
+{
+	return TileableVoronoiNoiseR( pos, params ).minDist;
+}
+
+float  TileableVoronoiNoise (const float3 pos, const float3 tileSize)
+{
+	return TileableVoronoiNoiseR( pos, tileSize ).minDist;
+}
+
+/*
+=================================================
+	TileableWarleyNoise
+----
+	range [-inf..1]
+=================================================
+*/
+float  TileableWarleyNoise (const float3 pos, const TileableNoiseParams params)
+{
+	return 1.0 - TileableVoronoiNoise( pos, params );
+}
+
+float  TileableWarleyNoise (const float3 pos, const float3 tileSize)
+{
+	return 1.0 - TileableVoronoiNoise( pos, tileSize );
+}
+
+float  TileableWarleyNoise (const float2 pos, const TileableNoiseParams params)
+{
+	return 1.0 - TileableVoronoiNoise( pos, params );
+}
+
+float  TileableWarleyNoise (const float2 pos, const float2 tileSize)
+{
+	return 1.0 - TileableVoronoiNoise( pos, tileSize );
+}
+
+/*
+=================================================
+	TileableVoronoiContour
+=================================================
+*/
+float  TileableVoronoiContour (const float2 pos, const TileableNoiseParams params)
+{
+	return TileableVoronoiContourR( pos, params ).minDist;
+}
+
+float  TileableVoronoiContour (const float2 pos, const float2 tileSize)
+{
+	TileableNoiseParams	p = CreateTileableNoiseParams( tileSize );
+	p.custom.x	= 1.0;	// maxCeilOffset
+	return TileableVoronoiContourR( pos, p ).minDist;
+}
+
+float  TileableVoronoiContour (const float3 pos, const TileableNoiseParams params)
+{
+	return TileableVoronoiContourR( pos, params ).minDist;
+}
+
+float  TileableVoronoiContour (const float3 pos, const float3 tileSize)
+{
+	TileableNoiseParams	p = CreateTileableNoiseParams( tileSize );
+	p.custom.x	= 1.0;	// maxCeilOffset
+	return TileableVoronoiContourR( pos, p ).minDist;
+}
+
+#endif // AE_LICENSE_MIT
+//-----------------------------------------------------------------------------

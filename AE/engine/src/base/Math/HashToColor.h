@@ -5,7 +5,7 @@
 #include "base/Math/Vec.h"
 #include "base/Math/Color.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 namespace _hidden_
 {
@@ -50,7 +50,7 @@ namespace _hidden_
 	{
 		// from https://www.shadertoy.com/view/4dlcR4
 		// LICENSE: http://unlicense.org/
-		using namespace AE::Math::_hidden_;
+		using namespace AE::Base::_hidden_;
 
 		uint	x = p.x;
 		uint	y = p.y;
@@ -66,7 +66,7 @@ namespace _hidden_
 	{
 		// from https://www.shadertoy.com/view/4dlcR4
 		// LICENSE: http://unlicense.org/
-		using namespace AE::Math::_hidden_;
+		using namespace AE::Base::_hidden_;
 
 		uint	x = p.x;
 		uint	y = p.y;
@@ -125,4 +125,4 @@ namespace _hidden_
 	}
 
 
-} // AE::Math
+} // AE::Base

@@ -50,7 +50,7 @@ namespace
 			cfg.filter		= Video::EFilter::Bilinear;
 			cfg.quality		= 0.5f;
 			cfg.framerate	= FrameRate{ fps };
-			cfg.bitrate		= BitrateKb{ fps/2 };
+			cfg.bitrate		= BitrateKib{ fps/2 };
 			EnableHWAcceleration( cfg );
 
 			TEST( enc->Begin( cfg, path ));
@@ -89,7 +89,7 @@ namespace
 			TEST( info.duration > Seconds{9.9} and info.duration < Seconds{10.1} );
 			TEST( info.avgFrameRate.Get_RTN() == fps );
 			TEST( info.minFrameRate == FrameRate{fps} );
-			TEST( info.bitrate > BitrateKb{10} and info.bitrate < BitrateKb{30} );
+			TEST( info.bitrate > BitrateKib{10} and info.bitrate < BitrateKib{30} );
 			TEST( All( info.dimension == uint2{320, 320} ));
 		}
 
@@ -150,7 +150,7 @@ namespace
 			cfg.filter		= Video::EFilter::Bilinear;
 			cfg.quality		= 0.5f;
 			cfg.framerate	= FrameRate{ fps };
-			cfg.bitrate		= BitrateKb{ fps/2 };
+			cfg.bitrate		= BitrateKib{ fps/2 };
 			EnableHWAcceleration( cfg );
 
 			TEST( enc->Begin( cfg, path ));
@@ -189,7 +189,7 @@ namespace
 			TEST( info.duration > Seconds{9.9} and info.duration < Seconds{10.1} );
 			TEST( info.avgFrameRate.Get_RTN() == fps );
 			TEST( info.minFrameRate == FrameRate{fps} );
-			TEST( info.bitrate > BitrateKb{10} and info.bitrate < BitrateKb{30} );
+			TEST( info.bitrate > BitrateKib{10} and info.bitrate < BitrateKib{30} );
 			TEST( All( info.dimension == uint2{320, 320} ));
 		}
 
@@ -253,7 +253,7 @@ namespace
 			cfg.filter		= Video::EFilter::Bilinear;
 			cfg.quality		= 0.5f;
 			cfg.framerate	= FrameRate{ fps };
-			cfg.bitrate		= BitrateKb{ fps/2 };
+			cfg.bitrate		= BitrateKib{ fps/2 };
 			EnableHWAcceleration( cfg );
 
 			TEST( enc->Begin( cfg, path ));
@@ -292,7 +292,7 @@ namespace
 			TEST( info.duration > Seconds{9.9} and info.duration < Seconds{10.1} );
 			TEST( info.avgFrameRate.Get_RTN() == fps );
 			TEST( info.minFrameRate == FrameRate{fps} );
-			TEST( info.bitrate > BitrateKb{10} and info.bitrate < BitrateKb{30} );
+			TEST( info.bitrate > BitrateKib{10} and info.bitrate < BitrateKib{30} );
 			TEST( All( info.dimension == uint2{320, 320} ));
 		}
 

@@ -241,6 +241,36 @@ namespace
 
 /*
 =================================================
+	GetAllSliders
+=================================================
+*/
+	void  UIInteraction::AddLabels (const void* uid, Labels_t labels)
+	{
+		auto	map = _labelMap.WriteLock();
+		auto&	dst	= (*map)[uid];
+
+		dst.Write( RVRef(labels) );
+	}
+
+/*
+=================================================
+	GetAllLabels
+=================================================
+*/
+	auto  UIInteraction::GetAllLabels () -> AllLabels_t
+	{
+		AllLabels_t		result;
+		auto			label_map = _labelMap.WriteLock();
+
+		for (auto& [key, pass_labels] : *label_map)
+		{
+			result.push_back( &pass_labels );
+		}
+		return result;
+	}
+
+/*
+=================================================
 	RemovePass
 =================================================
 */
@@ -248,6 +278,7 @@ namespace
 	{
 		_sliderMap->erase( uid );
 		_passDbgMap->erase( uid );
+		_labelMap->erase( uid );
 	}
 
 /*
@@ -374,27 +405,20 @@ namespace
 		uint2							rtSize;
 		ImGuiDataSync::WriteNoLock_t	imgui;
 		const bool						isFirst;
+		const bool						hasSurface;
 
 		inline static const float		wnd_step		= 20.f;
-
-		// button (start)
-		inline static const RGBA8u		start_btn_idle	{ 80, 20, 170, 255};
-		inline static const RGBA8u		start_btn_hover	{ 95, 20, 210, 255};
-		inline static const RGBA8u		start_btn_press	{110, 20, 250, 255};
-
-		// button (stop)
-		inline static const RGBA8u		stop_btn_idle	{140, 20, 150, 255};
-		inline static const RGBA8u		stop_btn_hover	{160, 20, 180, 255};
-		inline static const RGBA8u		stop_btn_press	{200, 20, 220, 255};
+		inline static const float		wnd_width		= 370.f;
+		inline static const float		wnd_height		= 650.f;
 
 
 	// methods
 	public:
-		DrawTask (EditorUI* t, IOutputSurface &surf, bool isFirst, CommandBatchPtr batch, DebugLabel) __NE___ :
+		DrawTask (EditorUI* t, IOutputSurface &surf, bool isFirst, bool hasSurface, CommandBatchPtr batch, DebugLabel) __NE___ :
 			RenderTask{ RVRef(batch), {"UI::Draw", HtmlColor::Aqua} },
 			t{ *t }, surface{ surf },
 			imgui{ this->t._imgui.WriteNoLock() },
-			isFirst{ isFirst }
+			isFirst{ isFirst }, hasSurface{ hasSurface }
 		{}
 
 		void  Run () __Th_OV;
@@ -407,6 +431,7 @@ namespace
 			void  _UpdateEditor_Debugger ();
 			void  _UpdateEditor_Capture ();
 			void  _UpdateEditor_Sliders ();
+			void  _UpdateEditor_Labels ();
 			void  _UpdateDbgView (INOUT float2 &wnd_pos);
 			void  _UpdatePopups ();
 			void  _ShowHelp ();
@@ -437,7 +462,10 @@ namespace
 
 		auto			copy_ctx_rc = glib->BeginTransferContext();
 		TransferCtx&	copy_ctx	= *copy_ctx_rc;
+
 	  #else
+		CHECK_TE( hasSurface );
+
 		CommandBuffer	cmdbuf;
 	  #endif
 
@@ -455,7 +483,7 @@ namespace
 			UploadImageDesc		upload;
 			upload.aspectMask	= EImageAspect::Color;
 			upload.heapType		= EStagingHeapType::Dynamic;
-			upload.imageDim		= int3{ width, height, 1 };
+			upload.imageDim		= ImageDim_t{int3{ width, height, 1 }};
 			upload.dataRowPitch	= Bytes{width * 4u};
 
 			const Bytes	data_size = width * height * 4 * SizeOf<ubyte>;
@@ -491,6 +519,8 @@ namespace
 
 		CHECK_TE( surface.GetTargets( OUT targets ));
 	  #endif
+
+		CHECK_TE( targets.size() >= 1 );
 
 		const auto&		rt = targets[0];
 		rtSize = rt.RegionSize();
@@ -546,25 +576,29 @@ namespace
 	  #if RmG_UI_ON_HOST
 		CHECK_TE( glib->EndFrame( gfx_ctx_rc ));
 
-		CHECK_TE( surface.GetTargets( OUT targets ));
-
-		// clear screen on host
 		Graphics::DirectCtx::Transfer	tctx {*this};
-		if ( isFirst )
+		if ( hasSurface )
 		{
-		#if 1
-			// for profiling
-			tctx.ImageBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, rt.finalState );
-			tctx.CommitBarriers();
-		#else
-			tctx.ImageBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, EResourceState::ClearDst );
-			tctx.CommitBarriers();
+			CHECK_TE( surface.GetTargets( OUT targets ));
 
-			tctx.ClearColorImage( rt.imageId, RGBA8u{20, 0, 60, 255}, {ImageSubresourceRange{ EImageAspect::Color }} );
+			// clear screen on device
+			if ( isFirst )
+			{
+			#if RE_PROFILING
+				// only transit to final state
+				tctx.ImageBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, rt.finalState );
+				tctx.CommitBarriers();
+			#else
+				// clear screen
+				tctx.ImageBarrier( rt.imageId, rt.initialState | EResourceState::Invalidate, EResourceState::ClearDst );
+				tctx.CommitBarriers();
 
-			tctx.ImageBarrier( rt.imageId, EResourceState::ClearDst, rt.finalState );
-			tctx.CommitBarriers();
-		#endif
+				tctx.ClearColorImage( rt.imageId, RGBA8u{20, 0, 60, 255}, {ImageSubresourceRange{ EImageAspect::Color }} );
+
+				tctx.ImageBarrier( rt.imageId, EResourceState::ClearDst, rt.finalState );
+				tctx.CommitBarriers();
+			#endif
+			}
 		}
 		Execute( tctx );
 
@@ -636,7 +670,7 @@ namespace
 	void  EditorUI::DrawTask::_UpdateMain (OUT float2 &wnd_pos)
 	{
 		ImGui::SetNextWindowPos( ImVec2{10.f, 10.f}, ImGuiCond_Once );
-		ImGui::SetNextWindowSizeConstraints( ImVec2{370.f, 450.f}, ImGui::GetIO().DisplaySize );
+		ImGui::SetNextWindowSizeConstraints( ImVec2{wnd_width, wnd_height}, ImGui::GetIO().DisplaySize );
 
 		const auto	wnd_flags	= ImGuiWindowFlags_NoSavedSettings;
 
@@ -697,6 +731,8 @@ namespace
 		}
 
 		{
+			using EGraphicsFlags = UIInteraction::EGraphicsFlags;
+
 			int		scale = SurfaceScaleToLog2( g_mode->dynSize->Scale().x );
 			ImGui::Text( "Surface scale" );
 			if ( ImGui::SliderInt( "##SurfaceScaleSlider", INOUT &scale, -4, 2, SurfaceScaleName( scale )) )
@@ -708,13 +744,17 @@ namespace
 
 			const uint	prev_fm	= g_mode->filterMode->Get();
 
-			bool	linear	= HasBit( prev_fm, 0 );
+			bool	linear	= HasBit< uint(EGraphicsFlags::LinearFilter) >( prev_fm );
 			if ( ImGui::Checkbox( "Linear filter", INOUT &linear ))
-				g_mode->filterMode->Set( SetBit( prev_fm, linear, 0 ));
+				g_mode->filterMode->Set( SetBit( prev_fm, linear, uint(EGraphicsFlags::LinearFilter) ));
 
-			bool	copy = HasBit( prev_fm, 1 );
+			bool	copy = HasBit< uint(EGraphicsFlags::Copy) >( prev_fm );
 			if ( ImGui::Checkbox( "Copy instead of blit (if possible)", INOUT &copy ))
-				g_mode->filterMode->Set( SetBit( prev_fm, copy, 1 ));
+				g_mode->filterMode->Set( SetBit( prev_fm, copy, uint(EGraphicsFlags::Copy) ));
+
+			bool	dont_present = HasBit< uint(EGraphicsFlags::DontPresent) >( prev_fm );
+			if ( ImGui::Checkbox( "Don't present", INOUT &dont_present ))
+				g_mode->filterMode->Set( SetBit( prev_fm, dont_present, uint(EGraphicsFlags::DontPresent) ));
 
 			ImGui::Separator();
 		}
@@ -793,6 +833,11 @@ namespace
 			_UpdateEditor_Sliders();
 		}
 
+		if ( ImGui::TreeNodeEx( "Labels", ImGuiTreeNodeFlags_DefaultOpen ))
+		{
+			_UpdateEditor_Labels();
+		}
+
 		if ( ImGui::TreeNodeEx( "Statistic", ImGuiTreeNodeFlags_DefaultOpen ))
 		{
 			const auto	ColoredButton = [] (RGBA32f col)
@@ -808,16 +853,22 @@ namespace
 			const auto	sp = s_UIInteraction.selectedPixel.Read();
 
 			ImGui::Text( "mouse pos:   %s", ToString( sp.pos ).c_str() );
-			ImGui::Text( "mouse unorm: %s", ToString( sp.pendingPos ).c_str() );
+			ImGui::Text( "mouse unorm: %s", ToString( Saturate( sp.pendingPos ), 2u, False{} ).c_str() );
 
 			ImGui::Text( "raw color:   %s", ToString( sp.color, 3 ).c_str() );
 			ImGui::SameLine();
 			ColoredButton( sp.color );
+			ImGui::Separator();
 
-			RGBA32f	srgb = RemoveSRGBCurve( Saturate( sp.color ));
-			ImGui::Text( "sRGB color:  %s", ToString( srgb, 3 ).c_str() );
+			RGBA32f	col1 = ApplySRGBCurve( Saturate( sp.color ));
+			ImGui::Text( "apply sRGB:  %s", ToString( col1, 3 ).c_str() );
 			ImGui::SameLine();
-			ColoredButton( srgb );
+			ColoredButton( col1 );
+
+			RGBA32f	col2 = RemoveSRGBCurve( Saturate( sp.color ));
+			ImGui::Text( "remove sRGB: %s", ToString( col2, 3 ).c_str() );
+			ImGui::SameLine();
+			ColoredButton( col2 );
 
 			ImGui::TreePop();
 			ImGui::Separator();
@@ -947,21 +998,17 @@ namespace
 		// video capture
 		if ( not capture->video )
 		{
-			ImGui::PushStyleColor( ImGuiCol_Button,			start_btn_idle );
-			ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	start_btn_hover );
-			ImGui::PushStyleColor( ImGuiCol_ButtonActive,	start_btn_press );
+			ImGuiRenderer::AEStyleScope_StartBtn	style {imgui->ctx};
+
 			if ( ImGui::Button( "Start recording (U)" ))
 				capture->video = true;
-			ImGui::PopStyleColor(3);
 		}
 		else
 		{
-			ImGui::PushStyleColor( ImGuiCol_Button,			stop_btn_idle );
-			ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	stop_btn_hover );
-			ImGui::PushStyleColor( ImGuiCol_ButtonActive,	stop_btn_press );
+			ImGuiRenderer::AEStyleScope_StopBtn		style {imgui->ctx};
+
 			if ( ImGui::Button( "Stop recording (U)" ))
 				capture->video = false;
-			ImGui::PopStyleColor(3);
 		}
 
 		ImGui::InputFloat( "Bitrate (Mbit/s)", INOUT &capture->bitrate, 1.f, 102.4f );
@@ -1026,7 +1073,9 @@ namespace
 					if ( name.empty() ) continue;
 					for (uint j = 0; j < vsize; ++j)
 					{
-						const auto	sname = String{name} << '.' << xyzw[j] << "##CustomSliderI" << char('0'+i) << char('0'+j);
+						String	sname {name};
+						if ( vsize > 1 )	sname << '.' << xyzw[j];
+						sname << "##CustomSliderI" << char('0'+i) << char('0'+j);
 						ImGui::SliderInt( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
 					}
 				}
@@ -1041,7 +1090,9 @@ namespace
 					if ( name.empty() ) continue;
 					for (uint j = 0; j < vsize; ++j)
 					{
-						const auto	sname = String{name} << '.' << xyzw[j] << "##CustomSliderF" << char('0'+i) << char('0'+j);
+						String	sname {name};
+						if ( vsize > 1 )	sname << '.' << xyzw[j];
+						sname << "##CustomSliderF" << char('0'+i) << char('0'+j);
 						ImGui::SliderFloat( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
 					}
 				}
@@ -1055,6 +1106,60 @@ namespace
 					ImGui::ColorEdit4( (name + "##CustomColor" + char('0'+i)).c_str(), INOUT slider.data(), ImGuiColorEditFlags_None );
 				}
 				ImGui::TreePop();
+			}
+		}
+		ImGui::TreePop();
+		ImGui::Separator();
+	}
+
+/*
+=================================================
+	DrawTask::_UpdateEditor_Labels
+=================================================
+*/
+	void  EditorUI::DrawTask::_UpdateEditor_Labels ()
+	{
+		const auto	all_labels = s_UIInteraction.GetAllLabels();
+		String		value;
+
+		for (auto& pass : all_labels)
+		{
+			auto	labels	= pass->ReadLock();
+			usize	max_len	= 0;
+
+			for (auto& info : *labels) {
+				max_len = Max( max_len, info.label.length() );
+			}
+			++max_len;
+
+			for (auto& info : *labels)
+			{
+				if ( info.ifDyn )
+				{
+					uint	lhs		= info.ifDyn->Get();
+					uint	rhs		= info.ref;
+					bool	enable	= false;
+					switch_enum( info.op )
+					{
+						case IPass::ECompare::Less :	enable = lhs <  rhs;			break;
+						case IPass::ECompare::Equal :	enable = lhs == rhs;			break;
+						case IPass::ECompare::Greater :	enable = lhs >  rhs;			break;
+						case IPass::ECompare::AnyBit :	enable = AnyBits( lhs, rhs );	break;
+						case IPass::ECompare::Unknown :	break;
+					}
+					switch_end
+
+					if ( not enable )
+						continue;
+				}
+
+				value.assign( info.label );
+				AppendToString( INOUT value, max_len - info.label.length(), ' ' );
+
+				value << ": " << std::visit( [](auto& src) { return ToString( src->Get() ); }, info.dyn );
+
+				ImGui::TextUnformatted( value.c_str() );
+				value.clear();
 			}
 		}
 		ImGui::TreePop();
@@ -1490,7 +1595,7 @@ namespace
 		{
 			_initialized.store( true );
 
-			if ( EWindowMode_IsFullscreen( wndMode )) {
+			if ( EWindowMode_IsFullScreen( wndMode )) {
 				_windowMode.current.store( 1 | 2 );
 				_windowMode.fullscreenMode = wndMode;
 			}else{
@@ -1551,6 +1656,7 @@ namespace
 			case EGraphicsAPI::Vulkan :		fname = "vk/ui_pipelines.bin";	break;
 			case EGraphicsAPI::Metal :		fname = "mac/ui_pipelines.bin";	break;
 		}
+		switch_end
 
 		auto	file = MakeRC<FileRStream>( NtStringView{fname} );
 		CHECK_ERR( file->IsOpen() );
@@ -1576,6 +1682,7 @@ namespace
 		auto	imgui = _imgui.WriteLock();
 
 		CHECK( _profiler.Initialize( null ));
+		CHECK( _profiler.InitLogWindow() );
 
 		// init ImGUI context
 		if ( imgui->ctx == null )
@@ -1608,7 +1715,7 @@ namespace
 			CHECK_ERR( _res.fontView );
 		}
 
-		_res.rtech = res_mngr.LoadRenderTech( pack, RenderTechName{"UI.RTech"}, Default );
+		_res.rtech = res_mngr.LoadRenderTech( pack, RenderTechName{"UI.RTech"} );
 		CHECK_ERR( _res.rtech );
 
 		const Pair< EPixelFormat, const char* >	formats [] = {
@@ -1663,13 +1770,15 @@ namespace
 		auto	batch	= rg.UI();
 		CHECK_ERR( batch );
 
-		auto	surf_acquire = rg.BeginOnSurface( batch );
+		auto	surf_acquire = rg.BeginOnSurface( batch, not RmG_UI_ON_HOST );
+	  #if not RmG_UI_ON_HOST
 		CHECK_ERR( surf_acquire );
+	  #endif
 
 		AsyncTask	upload;
 		const bool	is_first	= batch.CmdPool_IsEmpty();
 
-		return batch.Task< DrawTask >( Tuple{ this, rg.GetSurfaceArg(), is_first }, {"MainUI pass"} )
+		return batch.Task< DrawTask >( Tuple{ this, rg.GetSurfaceArg(), is_first, bool{surf_acquire} }, {"MainUI pass"} )
 						.Run( Tuple{surf_acquire, deps} );
 	}
 
@@ -1948,10 +2057,10 @@ R"(UI controls:
 	{
 		ubyte	cur = _windowMode.current.fetch_or( 1 << 1 );
 
-		if ( HasBit( cur, 1 ))
+		if ( HasBit<1>( cur ))
 			return NullOptional;	// already used
 
-		return HasBit( cur, 0 ) ? _windowMode.fullscreenMode : _windowMode.windowedMode;
+		return HasBit<0>( cur ) ? _windowMode.fullscreenMode : _windowMode.windowedMode;
 	}
 
 

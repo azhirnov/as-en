@@ -5,7 +5,7 @@
 #ifdef __INTELLISENSE__
 #	define SH_COMPUTE
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -67,7 +67,7 @@
 			case 2 :	nan = float_inf;		break;
 			case 3 :	nan = float_max * 2.f;	break;
 			case 4 :	nan = float_max;		break;
-				
+
 		#elif MODE == 1
 			case 0 :	nan = half_nan;			break;
 			case 1 :	nan = half_nan;			break;

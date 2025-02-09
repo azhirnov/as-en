@@ -4,7 +4,8 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 
 	set( PIPELINE_COMPILER_DIR	"${MAIN_SOURCE_DIR}/engine/tools/res_pack/pipeline_compiler" )
 	set( SHADER_TRACE_DIR		"${MAIN_SOURCE_DIR}/engine/tools/res_pack/shader_trace" )
-	set( GRAPHICS_DIR			"${MAIN_SOURCE_DIR}/engine/src/graphics" )
+	set( ASSET_PACKER_DIR		"${MAIN_SOURCE_DIR}/engine/tools/res_pack/asset_packer" )
+	set( GRAPHICS_DIR			"${MAIN_SOURCE_DIR}/engine/src/graphics_rhi" )
 	set( PLATFORM_DIR			"${MAIN_SOURCE_DIR}/engine/src/platform" )
 
 	file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.txt" "*.glsl" "*.msl" )
@@ -56,7 +57,7 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 	source_group( "external/shader_trace" FILES ${SHADER_TRACE_SRC} )
 
 	set_property( TARGET "Tests.AssetPacker" PROPERTY FOLDER "Engine/Tests" )
-	target_link_libraries( "Tests.AssetPacker" PUBLIC "Base" "Threading" )
+	target_link_libraries( "Tests.AssetPacker" PUBLIC "Base" "Threading" "VFS" )
 
 	if (TARGET "Vulkan-lib")
 		target_link_libraries( "Tests.AssetPacker" PUBLIC "Vulkan-lib" )
@@ -73,7 +74,8 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 
 	target_include_directories( "Tests.AssetPacker" PRIVATE
 		"../../tools/res_pack"
-		"${PIPELINE_COMPILER_DIR}" )
+		"${PIPELINE_COMPILER_DIR}"
+		"${ASSET_PACKER_DIR}" )
 
 	target_compile_definitions( "Tests.AssetPacker" PUBLIC
 		AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"

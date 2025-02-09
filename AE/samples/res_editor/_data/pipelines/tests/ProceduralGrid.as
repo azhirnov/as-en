@@ -1,12 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
 
-	void  CreatePipeline (string name, string vsDefine)
+	void  CreatePipeline (string name, string define)
 	{
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "tmpl"+name );
 		ppln.SetLayout( "pl" );
@@ -16,12 +16,12 @@
 		{
 			RC<Shader>	vs = Shader();
 			vs.LoadSelf();
-			vs.Define( vsDefine );
+			vs.Define( define );
 			ppln.SetVertexShader( vs );
 		}{
 			RC<Shader>	fs = Shader();
 			fs.LoadSelf();
-			fs.Define( vsDefine );
+			fs.Define( define );
 			ppln.SetFragmentShader( fs );
 		}
 

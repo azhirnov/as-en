@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define CALC_COLLISION
 #	define TRACE_RAYS
 #endif
@@ -52,7 +52,7 @@
 
 #endif
 //-----------------------------------------------------------------------------
-#if defined(SH_COMPUTE) || defined(SH_FRAG)
+#if defined(SH_COMPUTE) or defined(SH_FRAG)
 	#include "SDF.glsl"
 	#include "DistAndMtr.glsl"
 

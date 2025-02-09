@@ -16,18 +16,20 @@ namespace AE::Base
 	struct EmscriptenUtils final : UnixUtils
 	{
 		// Thread //
+	  #ifndef AE_CFG_RELEASE
 			static void		SetCurrentThreadName (NtStringView name)						__NE___;
 		ND_ static String	GetCurrentThreadName ()											__Th___;
+	  #endif
 
 		ND_ static ThreadHandle  GetCurrentThreadHandle ()									__NE___;
 
-			static bool		SetThreadAffinity (const ThreadHandle &handle, uint coreIdx)	__NE___;
-			static bool		SetThreadPriority (const ThreadHandle &handle, float priority)	__NE___;
+			static bool		SetThreadAffinity (const ThreadHandle &, uint logicalCoreIdx)	__NE___;
+			static bool		SetThreadPriority (const ThreadHandle &, EThreadPriority)		__NE___;
 
-			static bool		SetCurrentThreadAffinity (uint coreIdx)							__NE___;
-			static bool		SetCurrentThreadPriority (float priority)						__NE___;
+			static bool		SetCurrentThreadAffinity (uint logicalCoreIdx)					__NE___;
+			static bool		SetCurrentThreadPriority (EThreadPriority priority)				__NE___;
 
-		ND_	static uint		GetProcessorCoreIndex ()										__NE___;	// current logical CPU core
+		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
 
 			static void		ThreadPause ()													__NE___;
 

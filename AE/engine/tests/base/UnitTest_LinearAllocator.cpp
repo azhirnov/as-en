@@ -11,7 +11,7 @@ namespace
 		using StdLA	= StdAllocatorRef< T, LA* >;
 
 		LA	allocator;
-		allocator.SetBlockSize( 4_Mb );
+		allocator.SetBlockSize( 4_MiB );
 
 		T::ClearStatistic();
 		{
@@ -31,7 +31,7 @@ namespace
 		using StdLA	= StdAllocatorRef< T, LA* >;
 
 		LA	allocator;
-		allocator.SetBlockSize( 4_Mb );
+		allocator.SetBlockSize( 4_MiB );
 
 		T::ClearStatistic();
 		{

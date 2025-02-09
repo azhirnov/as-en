@@ -5,7 +5,7 @@
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Platforms/WindowsLibrary.h"
 # include "base/Algorithms/ArrayUtils.h"
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {
@@ -17,6 +17,7 @@ namespace AE::Base
 */
 	void  SecureZeroMem (OUT void* ptr, Bytes size) __NE___
 	{
+		NonNull( ptr );
 		::SecureZeroMemory( ptr, usize(size) );	// winxp
 	}
 
@@ -146,12 +147,13 @@ namespace
 		WindowsLibrary	_libShcore;
 
 	public:
-		decltype(&::GetThreadDescription)		getThreadDescription			= null;
-		decltype(&::SetThreadDescription)		setThreadDescription			= null;
-		decltype(&::GetSystemCpuSetInformation)	fnGetSystemCpuSetInformation	= null;
+		decltype(&::GetThreadDescription)			getThreadDescription			= null;		// win10
+		decltype(&::SetThreadDescription)			setThreadDescription			= null;		// win10
+		decltype(&::GetSystemCpuSetInformation)		getSystemCpuSetInformation		= null;		// win10
 
-		decltype(&::GetDpiForMonitor)			fnGetDpiForMonitor				= null;
-		decltype(&::SetProcessDpiAwareness)		fnSetProcessDpiAwareness		= null;
+		decltype(&::GetDpiForMonitor)				getDpiForMonitor				= null;		// win8.1
+		decltype(&::SetProcessDpiAwareness)			setProcessDpiAwareness			= null;		// win8.1
+		decltype(&::GetCurrentThreadStackLimits)	getCurrentThreadStackLimits		= null;		// win8
 
 
 	// methods
@@ -160,14 +162,15 @@ namespace
 		{
 			if ( _libKernel32.Load( "kernel32.dll" ))
 			{
-				Unused( _libKernel32.GetProcAddr( "GetThreadDescription",		OUT getThreadDescription ));
-				Unused( _libKernel32.GetProcAddr( "SetThreadDescription",		OUT setThreadDescription ));
-				Unused( _libKernel32.GetProcAddr( "GetSystemCpuSetInformation",	OUT fnGetSystemCpuSetInformation ));
+				Unused( _libKernel32.GetProcAddr( "GetThreadDescription",			OUT getThreadDescription ));
+				Unused( _libKernel32.GetProcAddr( "SetThreadDescription",			OUT setThreadDescription ));
+				Unused( _libKernel32.GetProcAddr( "GetSystemCpuSetInformation",		OUT getSystemCpuSetInformation ));
+				Unused( _libKernel32.GetProcAddr( "GetCurrentThreadStackLimits",	OUT getCurrentThreadStackLimits ));
 			}
 			if ( _libShcore.Load( "Shcore.dll" ))
 			{
-				Unused( _libShcore.GetProcAddr( "GetDpiForMonitor",			OUT fnGetDpiForMonitor ));
-				Unused( _libShcore.GetProcAddr( "SetProcessDpiAwareness",	OUT fnSetProcessDpiAwareness ));
+				Unused( _libShcore.GetProcAddr( "GetDpiForMonitor",			OUT getDpiForMonitor ));
+				Unused( _libShcore.GetProcAddr( "SetProcessDpiAwareness",	OUT setProcessDpiAwareness ));
 			}
 		}
 	};
@@ -178,23 +181,25 @@ namespace
 		return lib;
 	}
 
+
+#ifndef AE_CFG_RELEASE
 /*
 =================================================
 	SetCurrentThreadNameXP
 =================================================
 */
-	#pragma pack(push,8)
-	typedef struct tagTHREADNAME_INFO
-	{
-		DWORD	dwType;			// Must be 0x1000.
-		LPCSTR	szName;			// Pointer to name (in user addr space).
-		DWORD	dwThreadID;		// Thread ID (-1=caller thread).
-		DWORD	dwFlags;		// Reserved for future use, must be zero.
-	 } THREADNAME_INFO;
-	#pragma pack(pop)
-
 	static void  SetCurrentThreadNameXP (const char* name) __NE___
 	{
+		#pragma pack(push,8)
+		typedef struct tagTHREADNAME_INFO
+		{
+			DWORD	dwType;			// Must be 0x1000.
+			LPCSTR	szName;			// Pointer to name (in user addr space).
+			DWORD	dwThreadID;		// Thread ID (-1=caller thread).
+			DWORD	dwFlags;		// Reserved for future use, must be zero.
+		 } THREADNAME_INFO;
+		#pragma pack(pop)
+
 		constexpr DWORD MS_VC_EXCEPTION = 0x406D1388;
 
 		THREADNAME_INFO info;
@@ -242,7 +247,7 @@ namespace
 	GetCurrentThreadName10
 =================================================
 */
-	bool  GetCurrentThreadName10 (OUT String &name)
+	static bool  GetCurrentThreadName10 (OUT String &name)
 	{
 		auto&	kernel = WinDynamicLibs();
 
@@ -266,11 +271,14 @@ namespace
 		return true;
 	}
 
+#endif // AE_CFG_RELEASE
+
 } // namespace
 //-----------------------------------------------------------------------------
 
 
 
+#ifndef AE_CFG_RELEASE
 /*
 =================================================
 	SetCurrentThreadName
@@ -298,6 +306,8 @@ namespace
 		return name;
 	}
 
+#endif // AE_CFG_RELEASE
+
 /*
 =================================================
 	GetCurrentThreadHandle
@@ -313,21 +323,21 @@ namespace
 	SetThreadAffinity
 =================================================
 */
-	bool  WindowsUtils::SetThreadAffinity (const ThreadHandle &handle, uint coreIdx) __NE___
+	bool  WindowsUtils::SetThreadAffinity (const ThreadHandle &handle, const uint logicalCoreIdx) __NE___
 	{
-		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
+		ASSERT_Lt( logicalCoreIdx, std::thread::hardware_concurrency() );
 
 		DWORD_PTR	mask;
 
 		#if AE_PLATFORM_BITS == 64
 		{
-			ASSERT( coreIdx < 64 );
-			mask = 1ull << (coreIdx & 63);
+			ASSERT( logicalCoreIdx < 64 );
+			mask = 1ull << (logicalCoreIdx & 63);
 		}
 		#elif AE_PLATFORM_BITS == 32
 		{
-			ASSERT( coreIdx < 32 );
-			mask = 1u << (coreIdx & 31);
+			ASSERT( logicalCoreIdx < 32 );
+			mask = 1u << (logicalCoreIdx & 31);
 		}
 		#endif
 
@@ -340,16 +350,16 @@ namespace
 		// TODO
 		/*
 		GROUP_AFFINITY	affinity = {};
-		affinity.Mask	= 1ull << (coreIdx & 63);
-		affinity.Group	= coreIdx >> 64;
+		affinity.Mask	= 1ull << (logicalCoreIdx & 63);
+		affinity.Group	= logicalCoreIdx >> 64;
 
 		return ::SetThreadGroupAffinity( handle, &affinity, null ) != FALSE;
 		*/
 	}
 
-	bool  WindowsUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
+	bool  WindowsUtils::SetCurrentThreadAffinity (uint logicalCoreIdx) __NE___
 	{
-		return SetThreadAffinity( GetCurrentThreadHandle(), coreIdx );
+		return SetThreadAffinity( GetCurrentThreadHandle(), logicalCoreIdx );
 	}
 
 /*
@@ -357,40 +367,35 @@ namespace
 	SetThreadPriority
 =================================================
 */
-	bool  WindowsUtils::SetThreadPriority (const ThreadHandle &handle, float priorityFactor) __NE___
+	bool  WindowsUtils::SetThreadPriority (const ThreadHandle &handle, EThreadPriority priority) __NE___
 	{
-		static constexpr Pair<float, int>	priorities[] = {
-			{-0.9f, THREAD_PRIORITY_IDLE},
-			{-0.4f, THREAD_PRIORITY_LOWEST},
-			{-0.1f, THREAD_PRIORITY_BELOW_NORMAL},
-			{ 0.0f, THREAD_PRIORITY_NORMAL},
-			{ 0.1f, THREAD_PRIORITY_ABOVE_NORMAL},
-			{ 0.5f, THREAD_PRIORITY_HIGHEST},
-			{ 1.1f, THREAD_PRIORITY_TIME_CRITICAL}
-		};
-
-		priorityFactor = Min( 1.0f, priorityFactor );
-
-		for (auto& [factor, priority] : priorities)
+		int		i_priority;
+		switch_enum( priority )
 		{
-			if ( priorityFactor < factor )
-				return ::SetThreadPriority( handle, priority ) != FALSE;	// winxp
-			// TODO: SetThreadPriorityBoost ?
+			case EThreadPriority::PerFrame :		i_priority = THREAD_PRIORITY_HIGHEST;		break;
+			case EThreadPriority::PerFrameLow :		i_priority = THREAD_PRIORITY_ABOVE_NORMAL;	break;
+			case EThreadPriority::Default :			i_priority = THREAD_PRIORITY_NORMAL;		break;
+			case EThreadPriority::Background :		i_priority = THREAD_PRIORITY_BELOW_NORMAL;	break;
+			case EThreadPriority::BackgroundLow :	i_priority = THREAD_PRIORITY_LOWEST;		break;
+			case EThreadPriority::Highest :			i_priority = THREAD_PRIORITY_TIME_CRITICAL;	break;
+			case EThreadPriority::_Count :
+			default :								RETURN_ERR( "unknown thread priority" );
 		}
-		return false;
+		switch_end
+		return ::SetThreadPriority( handle, i_priority ) != FALSE;	// winxp
 	}
 
-	bool  WindowsUtils::SetCurrentThreadPriority (float priority) __NE___
+	bool  WindowsUtils::SetCurrentThreadPriority (EThreadPriority priority) __NE___
 	{
 		return SetThreadPriority( GetCurrentThreadHandle(), priority );
 	}
 
 /*
 =================================================
-	GetProcessorCoreIndex
+	GetLogicalCoreIndex
 =================================================
 */
-	uint  WindowsUtils::GetProcessorCoreIndex () __NE___
+	uint  WindowsUtils::GetLogicalCoreIndex () __NE___
 	{
 		return ::GetCurrentProcessorNumber();	// winvista
 		// TODO: GetCurrentProcessorNumberEx
@@ -403,6 +408,10 @@ namespace
 */
 	bool  WindowsUtils::ThreadWaitIO (milliseconds relativeTime) __NE___
 	{
+		// If the bAlertable is TRUE and the thread that called this function is the same thread that called
+		// the extended I/O function (ReadFileEx or WriteFileEx), the function returns when either the time-out
+		// period has elapsed or when an I/O completion callback function occurs. If an I/O completion callback occurs,
+		// the I/O completion function is called.
 		return ::SleepEx( CheckCast<uint>( relativeTime.count() ), TRUE ) == WAIT_IO_COMPLETION;	// winxp
 	}
 
@@ -763,7 +772,7 @@ namespace
 */
 	void*  WindowsUtils::_GetSystemCpuSetInformationFn () __NE___
 	{
-		return BitCast<void*>( WinDynamicLibs().fnGetSystemCpuSetInformation );
+		return BitCast<void*>( WinDynamicLibs().getSystemCpuSetInformation );
 	}
 
 /*
@@ -773,7 +782,7 @@ namespace
 */
 	void*  WindowsUtils::_GetDpiForMonitorFn () __NE___
 	{
-		return BitCast<void*>( WinDynamicLibs().fnGetDpiForMonitor );
+		return BitCast<void*>( WinDynamicLibs().getDpiForMonitor );
 	}
 
 /*
@@ -783,7 +792,7 @@ namespace
 */
 	void*  WindowsUtils::_SetProcessDpiAwarenessFn () __NE___
 	{
-		return BitCast<void*>( WinDynamicLibs().fnSetProcessDpiAwareness );
+		return BitCast<void*>( WinDynamicLibs().setProcessDpiAwareness );
 	}
 
 /*
@@ -794,18 +803,64 @@ namespace
 	Bytes  WindowsUtils::GetDefaultStackSize () __NE___
 	{
 		// from https://learn.microsoft.com/en-us/windows/win32/procthread/thread-stack-size
-		return 1_Mb;
+		return 1_MiB;
 	}
 
 	Bytes  WindowsUtils::GetCurrentThreadStackSize () __NE___
 	{
-	  #if AE_PLATFORM_TARGET_VERSION_MAJOR >= 8
-		ULONG_PTR	low, high;
-		::GetCurrentThreadStackLimits( OUT &low, OUT &high );	// win8
-		return Bytes{low};
-	  #else
+		auto*	fn = WinDynamicLibs().getCurrentThreadStackLimits;
+		if ( fn != null )
+		{
+			ULONG_PTR	low, high;
+			fn( OUT &low, OUT &high );
+			return Bytes{low};
+		}
 		return GetDefaultStackSize();
-	  #endif
+	}
+
+/*
+=================================================
+	GetProcessID
+=================================================
+*/
+	ulong  WindowsUtils::GetProcessID () __NE___
+	{
+		return ::GetCurrentProcessId();
+	}
+
+/*
+=================================================
+	GetEnvironmentVariable
+=================================================
+*/
+	bool  WindowsUtils::GetEnvironmentVariable (NtStringView name, OUT String &value) __NE___
+	{
+		const DWORD	len = ::GetEnvironmentVariableA( name.c_str(), null, 0 );
+
+		if_unlikely( len == 0 )
+		{
+			WIN_CHECK_DEV( "GetEnvironmentVariable" );
+			return false;
+		}
+
+		NOTHROW_ERR( value.resize( len+2 ));
+
+		const DWORD	err = ::GetEnvironmentVariableA( name.c_str(), OUT value.data(), DWORD(value.size()) );
+
+		value.resize( Min( err, value.size() ));  // no throw
+
+		return err > 0 and err < len;
+	}
+
+/*
+=================================================
+	HasEnvironmentVariable
+=================================================
+*/
+	bool  WindowsUtils::HasEnvironmentVariable (NtStringView name) __NE___
+	{
+		DWORD	err = ::GetEnvironmentVariableA( name.c_str(), null, 0 );
+		return err != 0;
 	}
 
 

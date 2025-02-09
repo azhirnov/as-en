@@ -13,17 +13,13 @@ namespace AE::Samples::Demo
 	{
 	// types
 	public:
-		class UploadTextureTask;
-		class UploadAtlasTask;
-		class UploadRasterFontTask;
-
 		class DrawTask;
 		class ProcessInputTask;
 
 
 	// variables
 	public:
-		Unique<Canvas>				canvasPtr;
+		RC<ResourceUploadManager>	uploadMngr;
 		RenderTechPipelinesPtr		rtech;
 		GfxMemAllocatorPtr			gfxAlloc;
 
@@ -40,8 +36,7 @@ namespace AE::Samples::Demo
 
 		const DescSetBinding		dsIndex		{0};
 
-		Atomic<bool>				uploaded	{false};
-		StrongImageAndViewID		tex;
+		RC<LoadableImage>			tex;
 		RC<StaticImageAtlas>		atlas;
 		RC<RasterFont>				font;
 		RC<RasterFont>				sdfFont;

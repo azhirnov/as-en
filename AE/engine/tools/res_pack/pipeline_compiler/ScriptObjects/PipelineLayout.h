@@ -77,7 +77,7 @@ namespace AE::PipelineCompiler
 		ND_ DebugInfo const&					GetDebugDS ()									const	{ return _dbgInfo; }
 		ND_ bool								HasDebugDS ()									const	{ return _dbgInfo.IsDefined(); }
 
-		ND_ Optional<PipelineLayoutUID>			GetLayout ()									const	{ return _uid; }
+		ND_ Optional<PipelineLayoutUID>			GetLayoutID ()									const	{ return _uid; }
 		ND_ PipelineLayoutDesc const&			GetDesc ()										const	{ return _desc; }
 		ND_ DSLayoutArr_t const&				Layouts ()										const	{ return _dsLayouts; }
 		ND_ PCArray_t const&					PushConstants ()								const	{ return _pushConstants; }

@@ -13,10 +13,12 @@
 // DataSource
 #include "threading/DataSource/AsyncDataSource.h"
 #include "threading/DataSource/TsDataSource.h"
-//#include "threading/DataSource/WinAsyncDataSource.h"
-//#include "threading/DataSource/UnixAsyncDataSource.h"
 #include "threading/DataSource/AsyncDataSourceAsStream.h"
 #include "threading/DataSource/SyncDataSource.h"
+#include "threading/DataSource/AsyncDataSourceSubRange.h"
+//#include "threading/DataSource/WinAsyncDataSource.h"
+//#include "threading/DataSource/UnixAsyncDataSource.h"
+//#include "threading/DataSource/FileAsyncDataSource.h"
 
 // Memory
 #include "threading/Memory/FrameAllocator.h"
@@ -48,3 +50,4 @@
 #include "threading/TaskSystem/Promise.h"
 #include "threading/TaskSystem/Coroutine.h"
 #include "threading/TaskSystem/AsyncMutex.h"
+#include "threading/TaskSystem/SyncPoint.h"

@@ -5,6 +5,39 @@
 
 #pragma once
 
+#ifdef __INTELLISENSE__
+#	define AE_memory_scope_semantics
+#	define AE_HAS_ATOMICS
+#	define AE_shader_subgroup_basic
+#	define AE_shader_subgroup_vote
+#	define AE_shader_subgroup_ballot
+#	define AE_shader_subgroup_arithmetic
+#	define AE_shader_subgroup_shuffle
+#	define AE_shader_subgroup_shuffle_relative
+#	define AE_shader_subgroup_clustered
+#	define AE_shader_subgroup_quad
+#	define AE_nonuniform_qualifier
+#	define AE_NV_shader_sm_builtins
+#	define AE_ARM_shader_core_builtins
+#	define AE_fragment_shading_rate
+#	define AE_fragment_shader_barycentric
+#	define AE_demote_to_helper_invocation
+
+#	define AE_AMD_GPU
+#	define AE_NVidia_GPU
+#	define AE_Intel_GPU
+#	define AE_ARM_Mali_GPU
+#	define AE_Qualcomm_Adreno_GPU
+#	define AE_IMG_PowerVR_GPU
+#	define AE_Microsoft_GPU
+#	define AE_Apple_GPU
+#	define AE_Mesa_GPU_driver
+#	define AE_Broadcom_GPU
+#	define AE_Samsung_GPU
+#	define AE_VeriSilicon_GPU
+#	define AE_Huawei_GPU
+#endif
+
 #include <aestyle.glsl.h>
 #include <array>
 

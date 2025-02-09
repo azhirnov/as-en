@@ -62,7 +62,7 @@ namespace AE::Threading
 
 	MemoryManagerImpl&  MemoryManagerImpl::_Instance () __NE___
 	{
-		return s_MemoryManager.AsRef();
+		return s_MemoryManager.Ref();
 	}
 
 /*

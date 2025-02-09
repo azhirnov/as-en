@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.22 FATAL_ERROR )
 project( "AndroidTest" LANGUAGES C CXX )
 
 if (NOT EXISTS "${ANDROID_NDK}")

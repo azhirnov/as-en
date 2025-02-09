@@ -5,7 +5,7 @@
 #include "base/Math/Vec.h"
 #include "base/Math/Range.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	template <typename T>
@@ -28,7 +28,7 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr Rectangle ()										__NE___ :
+		__Cx__ Rectangle ()										__NE___ :
 			left{T{0}}, top{T{0}}, right{T{0}}, bottom{T{0}}
 		{
 		  #ifdef AE_COMPILETIME_OFFSETOF
@@ -40,81 +40,83 @@ namespace AE::Math
 		  #endif
 		}
 
-		constexpr Rectangle (T left, T top, T right, T bottom)		__NE___ :
+		__Cx__ Rectangle (T left, T top, T right, T bottom)		__NE___ :
 			left{left}, top{top}, right{right}, bottom{bottom} {}
 
 		Rectangle (const Vec2_t &leftTop, const Vec2_t &rightBottom) :
 			left{leftTop.x}, top{leftTop.y}, right{rightBottom.x}, bottom{rightBottom.y} {}
 
-		explicit Rectangle (const Vec2_t &size)						__NE___ :
+		explicit Rectangle (const Vec2_t &size)					__NE___ :
 			Rectangle{ Vec2_t{}, size } {}
 
-		constexpr Rectangle (const Self &other)						__NE___ :
+		__Cx__ Rectangle (const Self &other)					__NE___ :
 			left{other.left}, top{other.top}, right{other.right}, bottom{other.bottom} {}
 
 		template <typename B>
-		constexpr explicit Rectangle (const Rectangle<B> &other)	__NE___ :
+		__Cx__ explicit Rectangle (const Rectangle<B> &other)	__NE___ :
 			left{T(other.left)}, top{T(other.top)}, right{T(other.right)}, bottom{T(other.bottom)} {}
 
-		constexpr Rectangle (const Range<T> &x, const Range<T> &y)	__NE___ :
+		__Cx__ Rectangle (const Range<T> &x, const Range<T> &y)	__NE___ :
 			left{x.begin}, top{y.begin}, right{x.end}, bottom{y.end} {}
 
-		ND_ const Vec2_t		LeftTop ()							C_NE___	{ return { left, top }; }
-		ND_ const Vec2_t		RightBottom ()						C_NE___	{ return { right, bottom }; }
-		ND_ const Vec2_t		LeftBottom ()						C_NE___	{ return { left, bottom }; }
-		ND_ const Vec2_t		RightTop ()							C_NE___	{ return { right, top }; }
+		Nd____ const Vec2_t	LeftTop ()							C_NE___	{ return { left, top }; }
+		Nd____ const Vec2_t	RightBottom ()						C_NE___	{ return { right, bottom }; }
+		Nd____ const Vec2_t	LeftBottom ()						C_NE___	{ return { left, bottom }; }
+		Nd____ const Vec2_t	RightTop ()							C_NE___	{ return { right, top }; }
 
-		ND_ const Vec2_t		Min ()								C_NE___	{ return LeftTop(); }
-		ND_ const Vec2_t		Max ()								C_NE___	{ return RightBottom(); }
+		Nd____ const Vec2_t	Min ()								C_NE___	{ return LeftTop(); }
+		Nd____ const Vec2_t	Max ()								C_NE___	{ return RightBottom(); }
 
-		ND_ const Vec2_t		Size ()								C_NE___	{ return { Width(), Height() }; }
-		ND_ const Vec2_t		Center ()							C_NE___	{ return { CenterX(), CenterY() }; }
-		ND_ const Vec2_t		Offset ()							C_NE___	{ return LeftTop(); }
+		Nd____ const Vec2_t	Size ()								C_NE___	{ return { Width(), Height() }; }
+		Nd____ const Vec2_t	Center ()							C_NE___	{ return { CenterX(), CenterY() }; }
+		Nd____ const Vec2_t	Offset ()							C_NE___	{ return LeftTop(); }
 
-		ND_ constexpr Range<T>	XRange ()							C_NE___	{ return Range<T>{ left, right }; }
-		ND_ constexpr Range<T>	YRange ()							C_NE___	{ return Range<T>{ top, bottom }; }
+		NdCx__ Range<T>		XRange ()							C_NE___	{ return Range<T>{ left, right }; }
+		NdCx__ Range<T>		YRange ()							C_NE___	{ return Range<T>{ top, bottom }; }
 
-		ND_ static constexpr Self	MaxSize ()						__NE___	{ return Self{ MinValue<T>(), MinValue<T>(), MaxValue<T>(), MaxValue<T>() }; }
+		NdCx__ static Self	MaxSize ()							__NE___	{ return Self{ MinValue<T>(), MinValue<T>(), MaxValue<T>(), MaxValue<T>() }; }
 
-		ND_ explicit operator Vec4_t ()								C_NE___	{ return Vec4_t{left, top, right, bottom}; }
+		Nd____ explicit operator Vec4_t ()						C_NE___	{ return Vec4_t{left, top, right, bottom}; }
 
-		ND_ constexpr const T	Width ()							C_NE___	{ return right - left; }
-		ND_ constexpr const T	Height ()							C_NE___	{ return bottom - top; }
-		ND_ constexpr const T	CenterX ()							C_NE___	{ return Average( right, left ); }
-		ND_ constexpr const T	CenterY ()							C_NE___	{ return Average( top, bottom ); }
+		NdCx__ const T		Width ()							C_NE___	{ return right - left; }
+		NdCx__ const T		Height ()							C_NE___	{ return bottom - top; }
+		NdCx__ const T		CenterX ()							C_NE___	{ return Average( right, left ); }
+		NdCx__ const T		CenterY ()							C_NE___	{ return Average( top, bottom ); }
 
-		ND_ T const*			data ()								C_NE___	{ return std::addressof( left ); }
-		ND_ T *					data ()								__NE___	{ return std::addressof( left ); }
+		Nd____ T const*		data ()								C_NE___	{ return std::addressof( left ); }
+		Nd____ T *			data ()								__NE___	{ return std::addressof( left ); }
 
-		ND_ constexpr bool		IsEmpty ()							C_NE___	{ return Equal( left, right ) or Equal( top, bottom ); }
-		ND_ constexpr bool		IsInvalid ()						C_NE___	{ return (right < left) or (bottom < top); }
-		ND_ constexpr bool		IsValid ()							C_NE___	{ return (not IsEmpty()) and (not IsInvalid()); }
+		NdCx__ bool			IsEmpty ()							C_NE___	{ return Equal( left, right ) or Equal( top, bottom ); }
+		NdCx__ bool			IsInvalid ()						C_NE___	{ return (right < left) or (bottom < top); }
+		NdCx__ bool			IsValid ()							C_NE___	{ return (not IsEmpty()) and (not IsInvalid()); }
 
-		ND_ constexpr bool		IsNormalized ()						C_NE___;
-			constexpr Self&		Normalize ()						__NE___;
+		NdCx__ bool			IsNormalized ()						C_NE___;
+		__Cx__ Self&		Normalize ()						__NE___;
 
-		ND_ bool				Intersects (const Vec2_t &point)	C_NE___;
-		ND_ constexpr bool		Intersects (const Self &point)		C_NE___;
+		Nd____ bool			Intersects (const Vec2_t &point)	C_NE___;
+		NdCx__ bool			Intersects (const Self &other)		C_NE___;
 
-		ND_ constexpr Self		Intersection (const Self &other)	C_NE___;
+		NdCx__ Self			Intersection (const Self &other)	C_NE___;
 
-		ND_ bool4				operator == (const Self &rhs)		C_NE___;
-		ND_ bool4				operator != (const Self &rhs)		C_NE___;
+		Nd____ bool4		operator == (const Self &rhs)		C_NE___;
+		Nd____ bool4		operator != (const Self &rhs)		C_NE___;
 
-			constexpr Self&		operator = (const Self &rhs)		__NE___ = default;
+		__Cx__ Self&		operator = (const Self &rhs)		__NE___ = default;
 
-			constexpr Self&		LeftTop (const Vec2_t& v)			__NE___;
-			constexpr Self&		RightBottom (const Vec2_t& v)		__NE___;
+		__Cx__ Self&		LeftTop (const Vec2_t& v)			__NE___;
+		__Cx__ Self&		RightBottom (const Vec2_t& v)		__NE___;
 
-			constexpr Self&		Join (const Self &other)			__NE___;
-			constexpr Self&		Join (const Vec2_t &point)			__NE___;
+		__Cx__ Self&		Join (const Self &other)			__NE___;
+		__Cx__ Self&		Join (const Vec2_t &point)			__NE___;
 
-			constexpr Self&		Stretch (const Self &size)			__NE___;
-			constexpr Self&		Stretch (const Vec2_t &size)		__NE___;
-			constexpr Self&		Stretch (T size)					__NE___	{ return Stretch( Vec2_t{ size }); }
+		__Cx__ Self&		Stretch (const Self &size)			__NE___;
+		__Cz__ Self&		Stretch (const Vec2_t &size)		__NE___;
+		__Cz__ Self&		Stretch (T size)					__NE___	{ return Stretch( Vec2_t{ size }); }
 
-			constexpr Self&		Stretch2 (const Vec2_t &size)		__NE___;
-			constexpr Self&		Stretch2 (T size)					__NE___	{ return Stretch2( Vec2_t{ size }); }
+		__Cx__ Self&		Stretch2 (const Vec2_t &size)		__NE___;
+		__Cx__ Self&		Stretch2 (T size)					__NE___	{ return Stretch2( Vec2_t{ size }); }
+
+		NdCx__ Self			Scale (T scale)						C_NE___;
 	};
 
 
@@ -129,7 +131,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	constexpr Rectangle<T>&  Rectangle<T>::LeftTop (const Vec2_t& v) __NE___
+	__Cx__ Rectangle<T>&  Rectangle<T>::LeftTop (const Vec2_t& v) __NE___
 	{
 		left = v.x;
 		top  = v.y;
@@ -137,7 +139,7 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	constexpr Rectangle<T>&  Rectangle<T>::RightBottom (const Vec2_t& v) __NE___
+	__Cx__ Rectangle<T>&  Rectangle<T>::RightBottom (const Vec2_t& v) __NE___
 	{
 		right  = v.x;
 		bottom = v.y;
@@ -278,7 +280,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	constexpr bool  Rectangle<T>::IsNormalized () C_NE___
+	__Cx__ bool  Rectangle<T>::IsNormalized () C_NE___
 	{
 		return (left <= right) and (top <= bottom);
 	}
@@ -289,7 +291,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	constexpr Rectangle<T>&  Rectangle<T>::Normalize () __NE___
+	__Cx__ Rectangle<T>&  Rectangle<T>::Normalize () __NE___
 	{
 		if ( left > right )	std::swap( left, right );
 		if ( top > bottom )	std::swap( top, bottom );
@@ -308,7 +310,7 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	constexpr bool  Rectangle<T>::Intersects (const Self &other) C_NE___
+	__Cx__ bool  Rectangle<T>::Intersects (const Self &other) C_NE___
 	{
 		return	((left < other.right) and (right > other.left) and (bottom > other.top) and (top < other.bottom)) or
 				((other.right < left) and (other.left > right) and (other.top > bottom) and (other.bottom < top));
@@ -337,13 +339,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	constexpr Rectangle<T>  Rectangle<T>::Intersection (const Self &other) C_NE___
+	__Cx__ Rectangle<T>  Rectangle<T>::Intersection (const Self &other) C_NE___
 	{
 		Rectangle<T>	res;
-		res.left	= Math::Max( left,   other.left   );
-		res.top		= Math::Max( top,    other.top    );
-		res.right	= Math::Min( right,  other.right  );
-		res.bottom	= Math::Min( bottom, other.bottom );
+		res.left	= Base::Max( left,   other.left   );
+		res.top		= Base::Max( top,    other.top    );
+		res.right	= Base::Min( right,  other.right  );
+		res.bottom	= Base::Min( bottom, other.bottom );
 		return res;
 	}
 
@@ -353,22 +355,22 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	constexpr Rectangle<T>&  Rectangle<T>::Join (const Self &other) __NE___
+	__Cx__ Rectangle<T>&  Rectangle<T>::Join (const Self &other) __NE___
 	{
-		left	= Math::Min( left,   other.left   );
-		top		= Math::Min( top,    other.top    );
-		right	= Math::Max( right,  other.right  );
-		bottom	= Math::Max( bottom, other.bottom );
+		left	= Base::Min( left,   other.left   );
+		top		= Base::Min( top,    other.top    );
+		right	= Base::Max( right,  other.right  );
+		bottom	= Base::Max( bottom, other.bottom );
 		return *this;
 	}
 
 	template <typename T>
-	constexpr Rectangle<T>&  Rectangle<T>::Join (const Vec2_t &point) __NE___
+	__Cx__ Rectangle<T>&  Rectangle<T>::Join (const Vec2_t &point) __NE___
 	{
-		left	= Math::Min( left,   point.x );
-		top		= Math::Min( top,    point.y );
-		right	= Math::Max( right,  point.x );
-		bottom	= Math::Max( bottom, point.y );
+		left	= Base::Min( left,   point.x );
+		top		= Base::Min( top,    point.y );
+		right	= Base::Max( right,  point.x );
+		bottom	= Base::Max( bottom, point.y );
 		return *this;
 	}
 
@@ -378,7 +380,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	constexpr Rectangle<T>&  Rectangle<T>::Stretch (const Self &size) __NE___
+	__Cx__ Rectangle<T>&  Rectangle<T>::Stretch (const Self &size) __NE___
 	{
 		left	-= size.left;
 		top		-= size.top;
@@ -388,7 +390,7 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	constexpr Rectangle<T>&  Rectangle<T>::Stretch (const Vec2_t &size) __NE___
+	__Cz__ Rectangle<T>&  Rectangle<T>::Stretch (const Vec2_t &size) __NE___
 	{
 		if constexpr( IsInteger<T> )
 			ASSERT( Any(Abs(size) > Vec2_t{T{1}}) );
@@ -404,7 +406,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	constexpr Rectangle<T>&  Rectangle<T>::Stretch2 (const Vec2_t &size) __NE___
+	__Cx__ Rectangle<T>&  Rectangle<T>::Stretch2 (const Vec2_t &size) __NE___
 	{
 		left	-= size.x;
 		top		-= size.y;
@@ -415,25 +417,37 @@ namespace AE::Math
 
 /*
 =================================================
+	Scale
+=================================================
+*/
+	template <typename T>
+	__Cx__ Rectangle<T>  Rectangle<T>::Scale (const T scale) C_NE___
+	{
+		Vec2_t	size = Size() * (scale - 1.f);
+		return Self{ left - size.x, top - size.y, right + size.x, bottom + size.y };
+	}
+
+/*
+=================================================
 	Equal
 =================================================
 */
 	template <typename T>
 	ND_ bool4  Equal (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const T err = Epsilon<T>()) __NE___
 	{
-		return bool4{ Math::Equal( lhs.left,   rhs.left,   err ),
-					  Math::Equal( lhs.top,    rhs.top,    err ),
-					  Math::Equal( lhs.right,  rhs.right,  err ),
-					  Math::Equal( lhs.bottom, rhs.bottom, err )};
+		return bool4{ Base::Equal( lhs.left,   rhs.left,   err ),
+					  Base::Equal( lhs.top,    rhs.top,    err ),
+					  Base::Equal( lhs.right,  rhs.right,  err ),
+					  Base::Equal( lhs.bottom, rhs.bottom, err )};
 	}
 
 	template <typename T>
 	ND_ bool4  Equal (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const Percent err) __NE___
 	{
-		return bool4{ Math::Equal( lhs.left,   rhs.left,   err ),
-					  Math::Equal( lhs.top,    rhs.top,    err ),
-					  Math::Equal( lhs.right,  rhs.right,  err ),
-					  Math::Equal( lhs.bottom, rhs.bottom, err )};
+		return bool4{ Base::Equal( lhs.left,   rhs.left,   err ),
+					  Base::Equal( lhs.top,    rhs.top,    err ),
+					  Base::Equal( lhs.right,  rhs.right,  err ),
+					  Base::Equal( lhs.bottom, rhs.bottom, err )};
 	}
 
 /*
@@ -442,40 +456,37 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const EnabledBitCount bitCount) __NE___
+	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const EnabledBitCount bitCount) __NE___
 	{
-		return bool4{ Math::BitEqual( lhs.left,   rhs.left,   bitCount ),
-					  Math::BitEqual( lhs.top,    rhs.top,    bitCount ),
-					  Math::BitEqual( lhs.right,  rhs.right,  bitCount ),
-					  Math::BitEqual( lhs.bottom, rhs.bottom, bitCount )};
+		return bool4{ Base::BitEqual( lhs.left,   rhs.left,   bitCount ),
+					  Base::BitEqual( lhs.top,    rhs.top,    bitCount ),
+					  Base::BitEqual( lhs.right,  rhs.right,  bitCount ),
+					  Base::BitEqual( lhs.bottom, rhs.bottom, bitCount )};
 	}
 
 	template <typename T>
-	ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs) __NE___
+	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs) __NE___
 	{
-		return bool4{ Math::BitEqual( lhs.left,   rhs.left   ),
-					  Math::BitEqual( lhs.top,    rhs.top    ),
-					  Math::BitEqual( lhs.right,  rhs.right  ),
-					  Math::BitEqual( lhs.bottom, rhs.bottom )};
+		return bool4{ Base::BitEqual( lhs.left,   rhs.left   ),
+					  Base::BitEqual( lhs.top,    rhs.top    ),
+					  Base::BitEqual( lhs.right,  rhs.right  ),
+					  Base::BitEqual( lhs.bottom, rhs.bottom )};
 	}
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
-
-
-namespace AE::Base
-{
 	template <typename T>	struct TMemCopyAvailable< Rectangle<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
 	template <typename T>	struct TZeroMemAvailable< Rectangle<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
 	template <typename T>	struct TTriviallySerializable< Rectangle<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
+	template <typename T>	struct TUnwrap< Rectangle<T> >					: TUnwrap<T> {};
 
 } // AE::Base
 
 
 template <typename T>
-struct std::hash< AE::Math::Rectangle<T> >
+struct std::hash< AE::Base::Rectangle<T> >
 {
-	ND_ size_t  operator () (const AE::Math::Rectangle<T> &value) C_NE___
+	ND_ size_t  operator () (const AE::Base::Rectangle<T> &value) C_NE___
 	{
 	#if AE_FAST_HASH
 		return	size_t( AE::Base::HashOf( this, sizeof(*this) ));

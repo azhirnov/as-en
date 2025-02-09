@@ -7,7 +7,8 @@
 
 	void Main ()
 	{
-		gl.Position	= float4( in_Position * ub.scale + ub.translate, 0.0, 1.0 );
+		float3x2 m	= float3x2( imguiUB.transform_c0, imguiUB.transform_c1, imguiUB.transform_c2 );
+		gl.Position	= float4(m * float3(in_Position, 1.0), 0.0, 1.0 );
 		Out.uv		= in_UV;
 		Out.color	= in_Color;
 	}

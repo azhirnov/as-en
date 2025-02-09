@@ -55,7 +55,7 @@ namespace AE::PipelineCompiler
 } // AE::PipelineCompiler
 
 
-namespace AE::Math
+namespace AE::Base
 {
 /*
 =================================================
@@ -71,7 +71,7 @@ namespace AE::Math
 		return result;
 	}
 
-} // AE::Math
+} // AE::Base
 
 
 namespace AE::PipelineCompiler
@@ -108,18 +108,18 @@ namespace AE::PipelineCompiler
 	TestFeature_Min
 =================================================
 */
-	template <typename A>
-	void  TestFeature_Min (ArrayView<ScriptFeatureSetPtr> features, A FeatureSet::*member, A value, StringView memberName, StringView valueName) __Th___
+	template <typename A, typename B>
+	void  TestFeature_Min (ArrayView<ScriptFeatureSetPtr> features, A FeatureSet::*member, B value, StringView memberName, StringView valueName) __Th___
 	{
 		CHECK_THROW_MSG( not features.empty(), "empty FeatureSet array" );
 
-		A	max_value = 0;
+		A	max_value = Zero;
 		for (auto& feat : features) {
 			max_value = Max( max_value, feat->fs.*member );
 		}
 
 		// 0 - limits is not specified
-		if ( max_value > 0 )
+		if ( max_value > Zero )
 		{
 			CHECK_THROW_MSG( value <= max_value,
 				"Specified '"s << valueName << "' (" << ToString(value) << ") must be <= than '" << memberName << "' in feature sets, " <<

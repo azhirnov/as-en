@@ -92,6 +92,7 @@ namespace AE::PipelineCompiler
 
 			void  Get (OUT ArrayView<VertexAttrib> &attribs)												C_Th___;
 		ND_ bool  Get (OUT ArrayView<VertexInput> &vertexInput, OUT ArrayView<VertexBuffer> &vertexBuffers) const;
+		ND_ bool  Get (OUT Array<VertexInput> &vertexInput, OUT Array<VertexBuffer> &vertexBuffers)			const;
 
 		ND_ uint			GlslLocations ()																const	{ return _glslLoc; }
 		ND_ String			ToGLSL ()																		const;

@@ -316,7 +316,7 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 		const String	cpp  = ToCPP( st2 );
 
 		const String	ref_glsl = R"#(
-// size: 6 b, align: 2 b
+// size: 6 B, align: 2 B
 struct packed_half3
 {
 	float16_t  x;
@@ -326,7 +326,7 @@ struct packed_half3
 f16vec3  Cast (const packed_half3 src) { return f16vec3( src.x, src.y, src.z ); }
 packed_half3  Cast (const f16vec3 src) { return packed_half3( src.x, src.y, src.z ); }
 
-// size: 12 b, align: 4 b
+// size: 12 B, align: 4 B
 struct packed_uint3
 {
 	uint  x;
@@ -336,7 +336,7 @@ struct packed_uint3
 uvec3  Cast (const packed_uint3 src) { return uvec3( src.x, src.y, src.z ); }
 packed_uint3  Cast (const uvec3 src) { return packed_uint3( src.x, src.y, src.z ); }
 
-// size: 12 b, align: 4 b
+// size: 12 B, align: 4 B
 struct packed_int3
 {
 	int  x;
@@ -346,7 +346,7 @@ struct packed_int3
 ivec3  Cast (const packed_int3 src) { return ivec3( src.x, src.y, src.z ); }
 packed_int3  Cast (const ivec3 src) { return packed_int3( src.x, src.y, src.z ); }
 
-// size: 4 b, align: 2 b
+// size: 4 B, align: 2 B
 struct packed_short2
 {
 	int16_t  x;
@@ -490,7 +490,7 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 		const String	cpp  = ToCPP( st );
 
 		const String	ref_glsl = R"#(
-// size: 12 b, align: 4 b
+// size: 12 B, align: 4 B
 #define inplace_float3( _name_ ) \
 	float  _name_ ## _x; \
 	float  _name_ ## _y; \
@@ -578,7 +578,7 @@ static_assert( sizeof(StType5) == 36, "size mismatch" );
 		const String	cpp  = ToCPP( st );
 
 		const String	ref_msl = R"#(
-// size: 72 b, align: 4 b
+// size: 72 B, align: 4 B
 struct packed_float3x3
 {
 	packed_float3  c0;
@@ -601,7 +601,7 @@ static_assert( sizeof(StType6) == 256, "size mismatch" );
 
 )#";
 		const String	ref_glsl = R"#(
-// size: 24 b, align: 4 b
+// size: 24 B, align: 4 B
 struct packed_float2
 {
 	float  x;
@@ -610,7 +610,7 @@ struct packed_float2
 vec2  Cast (const packed_float2 src) { return vec2( src.x, src.y ); }
 packed_float2  Cast (const vec2 src) { return packed_float2( src.x, src.y ); }
 
-// size: 24 b, align: 4 b
+// size: 24 B, align: 4 B
 struct packed_float3
 {
 	float  x;
@@ -620,7 +620,7 @@ struct packed_float3
 vec3  Cast (const packed_float3 src) { return vec3( src.x, src.y, src.z ); }
 packed_float3  Cast (const vec3 src) { return packed_float3( src.x, src.y, src.z ); }
 
-// size: 72 b, align: 4 b
+// size: 72 B, align: 4 B
 struct packed_float3x3
 {
 	packed_float3  c0;
@@ -1306,7 +1306,7 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 		const String	cpp  = ToCPP( st );
 
 		const String	ref_glsl = R"#(
-// size: 8 b, align: 8 b
+// size: 8 B, align: 8 B
 struct packed_float3
 {
 	float  x;
@@ -1609,6 +1609,59 @@ struct StType16
 	StaticAssert( offsetof(StType16, cc) == 16 );
 	StaticAssert( sizeof(StType16) == 24 );
 //-----------------------------------------------------------------------------
+
+
+	static void  StructType_Test17 ()
+	{
+		ShaderStructTypePtr	st{ new ShaderStructType{ "StType17" }};
+		st->Set( EStructLayout::InternalIO,
+				 "float2		a;"
+				 "half2			b;"
+				 "flat float	c;"
+				 "mediump float	d;"
+				 "ubyte_norm4	e;"
+				 "ushort3		f;" );
+
+		String	glsl, msl;
+		try {
+			ShaderStructType::UniqueTypes_t		unique;
+			glsl = st->ToShaderIO_GLSL( EShader::Fragment, true, unique );		// throw
+
+			unique.clear();
+			msl = st->ToShaderIO_MSL( EShader::Fragment, true, unique );		// throw
+		}
+		catch (...) {
+			TEST(false);
+		}
+
+		const String	ref_glsl = R"#(// stage input
+in FragmentInput {
+  layout(location=0) vec2  a;
+  layout(location=1) f16vec2  b;
+  layout(location=2) flat float  c;
+  layout(location=3) mediump float  d;
+  layout(location=4) mediump vec4  e;
+  layout(location=5) flat u16vec3  f;
+} In;
+
+)#";
+		const String	ref_msl	= R"#(struct StType17
+{
+  float4  position [[position]];
+  float2  a;
+  half2  b;
+  float  c  [[flat]];
+  float  d;
+  rgba8unorm<half4>  e;
+  ushort3  f  [[flat]];
+};
+
+)#";
+
+		TEST( glsl == ref_glsl );
+		TEST( msl == ref_msl );
+	}
+//-----------------------------------------------------------------------------
 }
 
 
@@ -1627,7 +1680,7 @@ extern void  UnitTest_StructType ()
 	#endif
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
+	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 
 	try {
 		StructType_Test1();
@@ -1646,6 +1699,7 @@ extern void  UnitTest_StructType ()
 		StructType_Test14();
 		StructType_Test15();
 		StructType_Test16();
+		StructType_Test17();
 	} catch(...) {
 		TEST( false );
 	}

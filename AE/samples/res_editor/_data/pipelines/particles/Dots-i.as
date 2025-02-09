@@ -5,7 +5,7 @@
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT

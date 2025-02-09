@@ -9,6 +9,9 @@
 #include "res_editor/Core/EditorUI.h"
 #include "res_editor/Scripting/PipelineCompiler.inl.h"
 
+AE_DECL_SCRIPT_OBJ( AE::ResEditor::ScriptExe::EnableLabel,  "EnableLabel" );
+
+
 namespace AE::ResEditor
 {
 namespace {
@@ -17,6 +20,34 @@ namespace {
 
 	using namespace AE::Scripting;
 	using namespace AE::PipelineCompiler;
+
+
+	//
+	// Temporary Data
+	//
+	struct ScriptExe::TempData
+	{
+	// types
+		using Labels_t	= UIInteraction::Labels_t;
+
+	// variables
+		ScriptConfig		cfg;
+		RC<Renderer>		renderer;
+		ScriptPassGroupPtr	passGroup;
+		Array< Path >		currPath;
+		Array< Path >		dependencies;
+		uint				dbgViewCounter		= 0;
+		int					passGroupDepth		= 0;
+
+		bool				hasPresent			= false;
+
+		Sliders_t			sliders;
+		UniqueSliderNames_t	uniqueSliderNames;
+		SliderCounter_t		sliderCounter		{};
+
+		Labels_t			labels;
+	};
+//-----------------------------------------------------------------------------
 
 
 	//
@@ -110,6 +141,70 @@ namespace {
 		RC<IPass>	ToPass () C_Th_OV
 		{
 			return MakeRCTh<ResEditor::GenerateMipmapsPass>( rt->ToResource(), "GenMipmaps" );
+		}
+	};
+//-----------------------------------------------------------------------------
+
+
+	ND_ inline String  EValueType_ToStr (PipelineCompiler::EValueType type, uint rows)
+	{
+		rows = Min( rows, 3 );
+		const char  rows_str[] = { '\0', '2', '3', '4' };
+		switch ( type ) {
+			case PipelineCompiler::EValueType::Int32 :		return "int"s + rows_str[rows];
+			case PipelineCompiler::EValueType::UInt32 :		return "uint"s + rows_str[rows];
+			case PipelineCompiler::EValueType::Float32 :	return "float"s + rows_str[rows];
+		}
+		return "<unknown>";
+	}
+
+
+	//
+	// Read Buffer Value
+	//
+	class ScriptExe::ScriptReadBufferValue final : public ScriptBasePass
+	{
+	private:
+		ScriptBufferPtr						buffer;
+		const String						fieldName;
+		AnyDynVecOrScalar_t					dst;
+		const PipelineCompiler::EValueType	type;
+		const ubyte							rows;
+
+	public:
+		ScriptReadBufferValue (ScriptBufferPtr buf, const String &field, AnyDynVecOrScalar_t dst, PipelineCompiler::EValueType type, uint count) :
+			buffer{buf}, fieldName{field}, dst{RVRef(dst)}, type{type}, rows{ubyte(count)} {}
+
+		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
+
+		RC<IPass>	ToPass () C_Th_OV
+		{
+			RC<Buffer>	buf;
+			Bytes		offset;
+			Bytes		size;
+
+			s_scriptExe->_RunWithPipelineCompiler(
+				[&] () {
+					buf = buffer->ToResource();
+					CHECK_THROW( buf );
+
+					buffer->AddLayoutReflection();
+
+					auto*	field = buffer->GetField( fieldName ).GetIf< PipelineCompiler::ShaderStructType::Field >();
+					CHECK_THROW_MSG( field != null,
+						"Field '"s << fieldName << "' is not exist in buffer '" << buffer->GetName() << "'." );
+
+					CHECK_THROW_MSG( field->type == type and field->rows == rows,
+						"Field '"s << fieldName << "' in buffer '" << buffer->GetName() << "' has '" << EValueType_ToStr( field->type, field->rows ) <<
+						"' but destination type is '" << EValueType_ToStr( type, rows ) << "'" );
+
+					CHECK_THROW_MSG( field->cols == 1 );  // matrix type is not supported
+
+					offset	= field->offset;
+					size	= field->size;
+				});
+
+			return MakeRCTh<ResEditor::ReadBufferValuePass>( buf, offset, size, dst );
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -548,10 +643,10 @@ namespace {
 
 			for (uint r = 0, rows = field.rows; r < rows; ++r)
 			{
-				if constexpr( IsSameTypes< T, DeviceAddress >)
+				if constexpr( IsSame< T, DeviceAddress >)
 					str << "0x" << ToString<16>( Cast<T>(data.ptr)[r] );
 				else
-				if constexpr( IsSameTypes< T, half >)
+				if constexpr( IsSame< T, half >)
 					str << ToString( float{Cast<T>(data.ptr)[r]}, 5, True{"exp"} );
 				else
 				if constexpr( IsFloatPoint<T> )
@@ -907,6 +1002,12 @@ namespace {
 */
 	void  ScriptExe::_AddSlidersToUIInteraction (TempData &data, Renderer* renderer) __NE___
 	{
+		if ( not data.labels.empty() )
+		{
+			UIInteraction::Instance().AddLabels( renderer, RVRef(data.labels) );
+			data.labels.clear();
+		}
+
 		if ( data.sliders.empty() )
 			return;
 
@@ -1095,7 +1196,7 @@ namespace {
 		GAutorelease	pack_id	= res_mngr.LoadPipelinePack( desc );
 		CHECK_THROW( pack_id );
 
-		auto			rtech	= res_mngr.LoadRenderTech( pack_id, RenderTechName{"rtech"}, Default );
+		auto			rtech	= res_mngr.LoadRenderTech( pack_id, RenderTechName{"rtech"} );
 		CHECK_THROW( rtech );
 
 		return RTechInfo{ pack_id.Release(), rtech };
@@ -1181,6 +1282,8 @@ namespace {
 	void  ScriptExe::_GenMipmaps (const ScriptImagePtr &rt) __Th___
 	{
 		CHECK_THROW_MSG( rt );
+		CHECK_THROW_MSG( rt->MipmapCount() > 1 );
+
 		rt->AddUsage( EResourceUsage::GenMipmaps );
 
 		auto&	data = _GetTempData();
@@ -1716,6 +1819,104 @@ namespace {
 
 /*
 =================================================
+	_Label*
+=================================================
+*/
+	void  ScriptExe::_LabelI1 (const ScriptDynamicIntPtr  &dyn, const String &name) __Th___		{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelI2 (const ScriptDynamicInt2Ptr &dyn, const String &name) __Th___		{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelI3 (const ScriptDynamicInt3Ptr &dyn, const String &name) __Th___		{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelI4 (const ScriptDynamicInt4Ptr &dyn, const String &name) __Th___		{ _Label( dyn, name ); }
+
+	void  ScriptExe::_LabelU1 (const ScriptDynamicUIntPtr  &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelU2 (const ScriptDynamicUInt2Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelU3 (const ScriptDynamicUInt3Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelU4 (const ScriptDynamicUInt4Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+
+	void  ScriptExe::_LabelF1 (const ScriptDynamicFloatPtr  &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelF2 (const ScriptDynamicFloat2Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelF3 (const ScriptDynamicFloat3Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelF4 (const ScriptDynamicFloat4Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+
+	void  ScriptExe::_LabelI1a (const ScriptDynamicIntPtr  &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+	void  ScriptExe::_LabelI2a (const ScriptDynamicInt2Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+	void  ScriptExe::_LabelI3a (const ScriptDynamicInt3Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+	void  ScriptExe::_LabelI4a (const ScriptDynamicInt4Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+
+	void  ScriptExe::_LabelU1a (const ScriptDynamicUIntPtr  &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+	void  ScriptExe::_LabelU2a (const ScriptDynamicUInt2Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+	void  ScriptExe::_LabelU3a (const ScriptDynamicUInt3Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+	void  ScriptExe::_LabelU4a (const ScriptDynamicUInt4Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+
+	void  ScriptExe::_LabelF1a (const ScriptDynamicFloatPtr  &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+	void  ScriptExe::_LabelF2a (const ScriptDynamicFloat2Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+	void  ScriptExe::_LabelF3a (const ScriptDynamicFloat3Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+	void  ScriptExe::_LabelF4a (const ScriptDynamicFloat4Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
+
+	template <typename D>
+	void  ScriptExe::_Label (const D &dyn, const String &name, const EnableLabel &enableIf) __Th___
+	{
+		CHECK_THROW_MSG( dyn and dyn->Get() );
+
+		auto&	data	= _GetTempData();
+		auto&	dst		= data.labels.emplace_back();
+
+		dst.dyn		= dyn->Get();
+		dst.label	= name;
+
+		if ( enableIf.dyn and enableIf.op != Default )
+		{
+			dst.ifDyn	= enableIf.dyn->Get();
+			dst.op		= enableIf.op;
+			dst.ref		= enableIf.ref;
+		}
+	}
+
+/*
+=================================================
+	_EnableIf*
+=================================================
+*/
+	ScriptExe::EnableLabel  ScriptExe::_EnableIfEqual   (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___	{ return EnableLabel{ dyn, ref, IPass::ECompare::Equal	 }; }
+	ScriptExe::EnableLabel  ScriptExe::_EnableIfGreater (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___	{ return EnableLabel{ dyn, ref, IPass::ECompare::Greater }; }
+	ScriptExe::EnableLabel  ScriptExe::_EnableIfLess    (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___	{ return EnableLabel{ dyn, ref, IPass::ECompare::Less	 }; }
+	ScriptExe::EnableLabel  ScriptExe::_EnableIfAnyBit  (const ScriptDynamicUIntPtr &dyn, uint ref) __Th___	{ return EnableLabel{ dyn, ref, IPass::ECompare::AnyBit	 }; }
+
+/*
+=================================================
+	_ReadBuffer
+=================================================
+*/
+	void  ScriptExe::_ReadBufferI1 (const ScriptDynamicIntPtr  &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::Int32, 1 ); }
+	void  ScriptExe::_ReadBufferI2 (const ScriptDynamicInt2Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::Int32, 2 ); }
+	void  ScriptExe::_ReadBufferI3 (const ScriptDynamicInt3Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::Int32, 3 ); }
+	void  ScriptExe::_ReadBufferI4 (const ScriptDynamicInt4Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::Int32, 4 ); }
+
+	void  ScriptExe::_ReadBufferU1 (const ScriptDynamicUIntPtr  &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 1 ); }
+	void  ScriptExe::_ReadBufferU2 (const ScriptDynamicUInt2Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 2 ); }
+	void  ScriptExe::_ReadBufferU3 (const ScriptDynamicUInt3Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 3 ); }
+	void  ScriptExe::_ReadBufferU4 (const ScriptDynamicUInt4Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 4 ); }
+
+	void  ScriptExe::_ReadBufferF1 (const ScriptDynamicFloatPtr  &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 1 ); }
+	void  ScriptExe::_ReadBufferF2 (const ScriptDynamicFloat2Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 2 ); }
+	void  ScriptExe::_ReadBufferF3 (const ScriptDynamicFloat3Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 3 ); }
+	void  ScriptExe::_ReadBufferF4 (const ScriptDynamicFloat4Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 4 ); }
+
+	template <typename D, typename T>
+	void  ScriptExe::_ReadBuffer (const D &dyn, const ScriptBufferPtr &buf, const String &fieldName, T type, uint count) __Th___
+	{
+		CHECK_THROW_MSG( buf );
+		CHECK_THROW_MSG( dyn and dyn->Get() );
+
+		buf->AddUsage( EResourceUsage::Transfer );
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptReadBufferValue{ buf, fieldName, dyn->Get(), type, count }});
+	}
+
+/*
+=================================================
 	_NormalizeSpectrum
 =================================================
 */
@@ -1959,6 +2160,7 @@ namespace {
 		ScriptDynamicFloat4::Bind( se );
 		ScriptDynamicULong::Bind( se );
 		ScriptDynamicDim::Bind( se );
+
 		ScriptImage::Bind( se );
 		ScriptVideoImage::Bind( se );
 		ScriptBuffer::Bind( se );
@@ -1990,6 +2192,11 @@ namespace {
 		ScriptSceneRayTracingPass::Bind( se );
 		ScriptScene::Bind( se );
 
+		{
+			Scripting::ClassBinder<EnableLabel>	binder{ se };
+			binder.CreateClassValue();
+		}
+
 		se->AddFunction( &ScriptExe::_SurfaceSize,				"SurfaceSize",				{},		"Returns dynamic dimensions of the screen surface."	);
 
 		se->AddFunction( &ScriptExe::_Present1,					"Present",					{},		"Present image to the screen." );
@@ -2004,10 +2211,10 @@ namespace {
 		se->AddFunction( &ScriptExe::_DbgView3,					"DbgView",					{} );
 		se->AddFunction( &ScriptExe::_DbgView4,					"DbgView",					{} );
 
-		se->AddFunction( &ScriptExe::_GenMipmaps,				"GenMipmaps",				{},		"Pass which generates mipmaps for image." );
-		se->AddFunction( &ScriptExe::_CopyImage,				"CopyImage",				{},		"Pass which copy image content to another image." );
-		se->AddFunction( &ScriptExe::_BlitImage,				"BlitImage",				{},		"Pass which blits image to another image." );
-		se->AddFunction( &ScriptExe::_ResolveImage,				"ResolveImage",				{},		"Pass which resolve multisample image to another single-sampled image." );
+		se->AddFunction( &ScriptExe::_GenMipmaps,				"GenMipmaps",				{},				"Pass which generates mipmaps for image." );
+		se->AddFunction( &ScriptExe::_CopyImage,				"CopyImage",				{"src", "dst"},	"Pass which copy image content to another image." );
+		se->AddFunction( &ScriptExe::_BlitImage,				"BlitImage",				{"src", "dst"},	"Pass which blits image to another image." );
+		se->AddFunction( &ScriptExe::_ResolveImage,				"ResolveImage",				{"src", "dst"},	"Pass which resolve multisample image to another single-sampled image." );
 		se->AddFunction( &ScriptExe::_CompressImage,			"CompressImage",			{"src", "dst"},	"Pass which compress image on CPU or GPU." );
 		se->AddFunction( &ScriptExe::_CompressImage2,			"CompressImage",			{"src", "dst", "dstFormat"}, "Pass which compress image on CPU or GPU.\n'dstFormat' may not be supported by current GPU, but may be used for software decoding.\n'dst' image must be compatible with 'dstFormat'." );
 
@@ -2089,6 +2296,56 @@ namespace {
 		se->AddFunction( &ScriptExe::_SliderF2a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
 		se->AddFunction( &ScriptExe::_SliderF3a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
 		se->AddFunction( &ScriptExe::_SliderF4a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+
+		se->AddFunction( &ScriptExe::_LabelI1,					"Label",					{"dyn", "name"} );
+		se->AddFunction( &ScriptExe::_LabelI2,					"Label",					{"dyn", "name"} );
+		se->AddFunction( &ScriptExe::_LabelI3,					"Label",					{"dyn", "name"} );
+		se->AddFunction( &ScriptExe::_LabelI4,					"Label",					{"dyn", "name"} );
+
+		se->AddFunction( &ScriptExe::_LabelU1,					"Label",					{"dyn", "name"} );
+		se->AddFunction( &ScriptExe::_LabelU2,					"Label",					{"dyn", "name"} );
+		se->AddFunction( &ScriptExe::_LabelU3,					"Label",					{"dyn", "name"} );
+		se->AddFunction( &ScriptExe::_LabelU4,					"Label",					{"dyn", "name"} );
+
+		se->AddFunction( &ScriptExe::_LabelF1,					"Label",					{"dyn", "name"} );
+		se->AddFunction( &ScriptExe::_LabelF2,					"Label",					{"dyn", "name"} );
+		se->AddFunction( &ScriptExe::_LabelF3,					"Label",					{"dyn", "name"} );
+		se->AddFunction( &ScriptExe::_LabelF4,					"Label",					{"dyn", "name"} );
+
+		se->AddFunction( &ScriptExe::_LabelI1a,					"Label",					{"dyn", "name", "enableIf"} );
+		se->AddFunction( &ScriptExe::_LabelI2a,					"Label",					{"dyn", "name", "enableIf"} );
+		se->AddFunction( &ScriptExe::_LabelI3a,					"Label",					{"dyn", "name", "enableIf"} );
+		se->AddFunction( &ScriptExe::_LabelI4a,					"Label",					{"dyn", "name", "enableIf"} );
+
+		se->AddFunction( &ScriptExe::_LabelU1a,					"Label",					{"dyn", "name", "enableIf"} );
+		se->AddFunction( &ScriptExe::_LabelU2a,					"Label",					{"dyn", "name", "enableIf"} );
+		se->AddFunction( &ScriptExe::_LabelU3a,					"Label",					{"dyn", "name", "enableIf"} );
+		se->AddFunction( &ScriptExe::_LabelU4a,					"Label",					{"dyn", "name", "enableIf"} );
+
+		se->AddFunction( &ScriptExe::_LabelF1a,					"Label",					{"dyn", "name", "enableIf"} );
+		se->AddFunction( &ScriptExe::_LabelF2a,					"Label",					{"dyn", "name", "enableIf"} );
+		se->AddFunction( &ScriptExe::_LabelF3a,					"Label",					{"dyn", "name", "enableIf"} );
+		se->AddFunction( &ScriptExe::_LabelF4a,					"Label",					{"dyn", "name", "enableIf"} );
+
+		se->AddFunction( &ScriptExe::_EnableIfEqual,			"EnableIfEqual",			{"dyn", "ref"} );
+		se->AddFunction( &ScriptExe::_EnableIfGreater,			"EnableIfGreater",			{"dyn", "ref"} );
+		se->AddFunction( &ScriptExe::_EnableIfLess,				"EnableIfLess",				{"dyn", "ref"} );
+		se->AddFunction( &ScriptExe::_EnableIfAnyBit,			"EnableIfAnyBit",			{"dyn", "ref"} );
+
+		se->AddFunction( &ScriptExe::_ReadBufferI1,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		se->AddFunction( &ScriptExe::_ReadBufferI2,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		se->AddFunction( &ScriptExe::_ReadBufferI3,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		se->AddFunction( &ScriptExe::_ReadBufferI4,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+
+		se->AddFunction( &ScriptExe::_ReadBufferU1,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		se->AddFunction( &ScriptExe::_ReadBufferU2,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		se->AddFunction( &ScriptExe::_ReadBufferU3,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		se->AddFunction( &ScriptExe::_ReadBufferU4,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+
+		se->AddFunction( &ScriptExe::_ReadBufferF1,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		se->AddFunction( &ScriptExe::_ReadBufferF2,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		se->AddFunction( &ScriptExe::_ReadBufferF3,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		se->AddFunction( &ScriptExe::_ReadBufferF4,				"ReadBuffer",				{"dyn", "buffer", "field"} );
 
 		se->AddFunction( &ScriptExe::_WhiteColorSpectrum3,			"WhiteColorSpectrum3",			{"wavelengthToRGB"},				"Returns array with 3 elements, where x - wavelength in nm, yzw - RGB color in linear space." );
 		se->AddFunction( &ScriptExe::_WhiteColorSpectrum7,			"WhiteColorSpectrum7",			{"wavelengthToRGB", "normalized"},	"Returns array with 7 elements, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
@@ -2185,7 +2442,7 @@ namespace {
 
 		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 16 );
 	}
-	
+
 /*
 =================================================
 	_Bind_Enums
@@ -2573,6 +2830,7 @@ namespace {
 					"AE_LICENSE_BSD3\n"
 					"AE_LICENSE_APACHE_2\n"
 					"AE_LICENSE_UNLICENSE\n"
+					"AE_LICENSE_CC0\n"
 					"AE_LICENSE_CC_BY_NC_SA_3\n"
 					"AE_ENABLE_UNKNOWN_LICENSE\n";
 

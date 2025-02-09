@@ -2,15 +2,12 @@
 
 #pragma once
 
-#include "ScriptObjects/ObjectStorage.h"
-#include "graphics/Public/IDs.h"
-#include "graphics/Public/ResourceEnums.h"
-#include "res_loaders/Intermediate/IntermImage.h"
+#include "ScriptObjects/ScriptSharedImage.h"
+#include "Packer/ImagePacker.h"
 
 namespace AE::AssetPacker
 {
 	using AE::Graphics::ImageInAtlasName;
-	using AE::Graphics::EPixelFormat;
 
 
 	//
@@ -19,6 +16,8 @@ namespace AE::AssetPacker
 
 	class ScriptImageAtlas final : public EnableScriptRC
 	{
+		friend class ScriptSharedImage;
+
 	// types
 	private:
 		struct ImageRegion
@@ -53,21 +52,35 @@ namespace AE::AssetPacker
 		using ImageRegionArr_t	= Array< ImageRegion >;
 		using ImageAtlasInfo	= ObjectStorage::ImageAtlasInfo;
 
+		enum class EState : uint
+		{
+			Recording,
+			Immutable,
+			Arranged,
+			StoreData,
+			Stored,
+		};
+
 
 	// variables
 	private:
-		ImageMap_t			_map;
-		UniqueImages_t		_uniqueImages;
-		ImageFiles_t		_imageFiles;
-		ImageRegionMap_t	_imageRegMap;
-		ImageRegionArr_t	_imageRegions;
+		ImageMap_t				_map;
+		UniqueImages_t			_uniqueImages;
+		ImageFiles_t			_imageFiles;
+		ImageRegionMap_t		_imageRegMap;
+		ImageRegionArr_t		_imageRegions;
 
-		int					_paddingPix		= 1;
-		EPixelFormat		_dstFormat		= EPixelFormat::RGBA8_UNorm;
-		EPixelFormat		_intermFormat	= EPixelFormat::RGBA8_UNorm;
-		//bool				_premultipliedAlpha;	// TODO
+		int						_paddingPix		= 1;
+		EPixelFormat			_dstFormat		= EPixelFormat::RGBA8_UNorm;
+		EPixelFormat			_intermFormat	= EPixelFormat::RGBA8_UNorm;
+		//bool					_premultipliedAlpha;	// TODO
 
-		RC<ImageAtlasInfo>	_info;
+		RC<ImageAtlasInfo>		_info;
+		String					_sharedImageMeta;
+		String					_imageFileName;
+		ImagePacker::Header		_imageHeader;
+
+		mutable EState			_state			= EState::Recording;
 
 
 	// methods
@@ -79,18 +92,25 @@ namespace AE::AssetPacker
 		void  Add2 (const String &imageName, const String &filename, const RectU &region)	__Th___;
 
 		void  Store (const String &nameInArchive)											__Th___;
+		void  StoreData (const String &nameInArchive)										__Th___;
+
+		void  PutMeta (const ScriptResourceMetaPtr &, const String &name)					__Th___;
+		void  PutData (const ScriptSharedImagePtr &image)									__Th___;
 
 		void  SetPadding (uint pix)															__Th___;
 		void  SetFormat (EPixelFormat fmt)													__Th___;
 
+		// used by 'ScriptResourceMeta'
+		ND_ bool  _StoreMeta (RC<WStream>, const String &metaArchive = Default)				C_NE___;
+
 		static void  Bind (const ScriptEnginePtr &se)										__Th___;
 
 	private:
-		ND_ bool  _Pack (const String &nameInArchive, RC<WStream> stream);
+		ND_ bool  _ToTexture (OUT ScriptTexture &, const String &name)						__NE___;
 			void  _LoadImages ()															__Th___;
-	};
 
-	using ScriptImageAtlasPtr = ScriptRC< ScriptImageAtlas >;
+		ND_ bool  _CopyPixels (INOUT ResLoader::IntermImage &, ArrayView<ScriptSharedImage::Result>) __NE___;
+	};
 
 
 } // AE::AssetPacker

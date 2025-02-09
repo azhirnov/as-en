@@ -8,7 +8,7 @@
 #pragma once
 
 #include "platform/Public/Common.h"
-#include "pch/Graphics.h"
+#include "pch/GraphicsRHI.h"
 
 namespace AE::App
 {

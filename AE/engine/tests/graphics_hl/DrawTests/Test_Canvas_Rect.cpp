@@ -6,7 +6,6 @@ namespace
 {
 	struct CR1_TestData
 	{
-		Canvas&						canvas;
 		RenderTechPipelinesPtr		rtech;
 
 		Mutex						guard;
@@ -27,8 +26,6 @@ namespace
 
 		ImageComparator *			imgCmp	= null;
 		GfxMemAllocatorPtr			gfxAlloc;
-
-		CR1_TestData (Canvas &c) : canvas{c} {}
 	};
 
 	static constexpr auto&	RTech		= RenderTechs::CanvasDrawTest;
@@ -53,7 +50,8 @@ namespace
 
 			typename CtxType::Graphics	ctx{ *this };
 
-			t.canvas.NextFrame( GetFrameId() );
+			Canvas	canvas;
+			canvas.NextFrame( GetFrameId() );
 
 			// draw
 			{
@@ -65,35 +63,35 @@ namespace
 										.AddViewport( t.viewSize )
 										.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black}, EResourceState::Invalidate, EResourceState::CopySrc ));
 				{
-					t.canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.9f, -0.5f, -0.5f}, HtmlColor::BlueViolet });
-					t.canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.4f, -0.5f,  0.0f}, HtmlColor::Green });
-					t.canvas.Draw( Rectangle2DStrip{ RectF{-0.9f,  0.1f, -0.5f,  0.5f}, HtmlColor::Red });
+					canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.9f, -0.5f, -0.5f}, HtmlColor::BlueViolet });
+					canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.4f, -0.5f,  0.0f}, HtmlColor::Green });
+					canvas.Draw( Rectangle2DStrip{ RectF{-0.9f,  0.1f, -0.5f,  0.5f}, HtmlColor::Red });
 
 					dctx.BindPipeline( t.ppln_tristrip );
-					t.canvas.Flush( dctx, EPrimitive::TriangleStrip );
+					canvas.Flush( dctx, EPrimitive::TriangleStrip );
 				}
 				{
-					t.canvas.Draw( Rectangle2D{ RectF{0.5f, -0.9f, 0.9f, -0.5f}, HtmlColor::Blue });
-					t.canvas.Draw( FilledCircle2D{ 16, RectF{0.5f, -0.4f, 0.9f, 0.0f}, RectF{0.f, 0.f, 1.f, 1.f}, HtmlColor::Red });
+					canvas.Draw( Rectangle2D{ RectF{0.5f, -0.9f, 0.9f, -0.5f}, HtmlColor::Blue });
+					canvas.Draw( FilledCircle2D{ 16, RectF{0.5f, -0.4f, 0.9f, 0.0f}, RectF{0.f, 0.f, 1.f, 1.f}, HtmlColor::Red });
 
-					t.canvas.Draw( NinePatch2D{ RectF{-0.4f, -0.9f, 0.4f, -0.1f},	RectF{0.2f, 0.2f, 0.2f, 0.2f},
-												RectF{0.f, 0.f, 1.f, 1.f},			RectF{0.25f, 0.25f, 0.25f, 0.25f},
-												HtmlColor::Orange });
+					canvas.Draw( NinePatch2D{ RectF{-0.4f, -0.9f, 0.4f, -0.1f},	RectF{0.2f, 0.2f, 0.2f, 0.2f},
+											  RectF{0.f, 0.f, 1.f, 1.f},		RectF{0.25f, 0.25f, 0.25f, 0.25f},
+											  HtmlColor::Orange });
 
 					dctx.BindPipeline( t.ppln_trilist );
-					t.canvas.Flush( dctx, EPrimitive::TriangleList );
+					canvas.Flush( dctx, EPrimitive::TriangleList );
 				}
 
 				// desktop only
 				if ( t.ppln_trilist_lines )
 				{
-					t.canvas.Draw( FilledCircle2D{ 16, RectF{0.5f, 0.5f, 0.9f, 0.9f}, RectF{0.f, 0.f, 1.f, 1.f}, HtmlColor::Red });
-					t.canvas.Draw( NinePatch2D{ RectF{-0.4f, 0.1f, 0.4f, 0.9f},		RectF{0.2f, 0.2f, 0.2f, 0.2f},
-												RectF{0.f, 0.f, 1.f, 1.f},			RectF{0.25f, 0.25f, 0.25f, 0.25f},
-												HtmlColor::Orange });
+					canvas.Draw( FilledCircle2D{ 16, RectF{0.5f, 0.5f, 0.9f, 0.9f}, RectF{0.f, 0.f, 1.f, 1.f}, HtmlColor::Red });
+					canvas.Draw( NinePatch2D{ RectF{-0.4f, 0.1f, 0.4f, 0.9f},	RectF{0.2f, 0.2f, 0.2f, 0.2f},
+											  RectF{0.f, 0.f, 1.f, 1.f},		RectF{0.25f, 0.25f, 0.25f, 0.25f},
+											  HtmlColor::Orange });
 
 					dctx.BindPipeline( t.ppln_trilist_lines );
-					t.canvas.Flush( dctx, EPrimitive::TriangleList );
+					canvas.Flush( dctx, EPrimitive::TriangleList );
 				}
 
 				ctx.EndRenderPass( dctx );
@@ -135,12 +133,12 @@ namespace
 
 
 	template <typename CtxType, typename CopyCtx>
-	static bool  CanvasRect (Canvas* canvas, RenderTechPipelinesPtr renderTech, RenderTechPipelinesPtr desktopRenderTech, ImageComparator* imageCmp)
+	static bool  CanvasRect (RenderTechPipelinesPtr renderTech, RenderTechPipelinesPtr desktopRenderTech, ImageComparator* imageCmp)
 	{
 		auto&			rts			= GraphicsScheduler();
 		auto&			res_mngr	= rts.GetResourceManager();
 		const auto		format		= EPixelFormat::RGBA8_UNorm;
-		CR1_TestData	t			{*canvas};
+		CR1_TestData	t;
 
 		t.gfxAlloc	= res_mngr.CreateLinearGfxMemAllocator();
 		t.imgCmp	= imageCmp;
@@ -198,11 +196,11 @@ bool DrawTestCore::Test_Canvas_Rect ()
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;
 
-	RG_CHECK( CanvasRect< DirectCtx,   DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
-	RG_CHECK( CanvasRect< DirectCtx,   IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
+	RG_CHECK( CanvasRect< DirectCtx,   DirectCtx::Transfer   >( _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
+	RG_CHECK( CanvasRect< DirectCtx,   IndirectCtx::Transfer >( _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
 
-	RG_CHECK( CanvasRect< IndirectCtx, DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
-	RG_CHECK( CanvasRect< IndirectCtx, IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
+	RG_CHECK( CanvasRect< IndirectCtx, DirectCtx::Transfer   >( _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
+	RG_CHECK( CanvasRect< IndirectCtx, IndirectCtx::Transfer >( _canvasPpln, _canvasPplnDesk, img_cmp.get() ));
 
 	RG_CHECK( _CompareDumps( TEST_NAME ));
 

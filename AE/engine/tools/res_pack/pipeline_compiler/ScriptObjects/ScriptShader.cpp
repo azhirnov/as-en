@@ -362,15 +362,31 @@ namespace
 		if ( not _absolutePath.path.empty() )
 			return;
 
+		auto&	storage = *ObjectStorage::Instance();
+		bool	found	= false;
 		Path	fpath;
-		for (auto& folder : ObjectStorage::Instance()->shaderFolders)
+
+		if ( storage.searchShadersInPipelineDir )
 		{
-			Path	sh_path = (Path{ folder }.append( _filename ));
+			Path	sh_path = storage.pipelineFilename.parent_path().append( _filename );
 
 			if ( FileSystem::IsFile( sh_path ))
 			{
 				fpath = FileSystem::ToAbsolute( sh_path );
-				break;
+				found = true;
+			}
+		}
+		if ( not found )
+		{
+			for (auto& folder : storage.shaderFolders)
+			{
+				Path	sh_path = (Path{ folder }.append( _filename ));
+
+				if ( FileSystem::IsFile( sh_path ))
+				{
+					fpath = FileSystem::ToAbsolute( sh_path );
+					break;
+				}
 			}
 		}
 		CHECK_THROW_MSG( not fpath.empty(), "Can't find shader: '"s << _filename << "'" );
@@ -453,7 +469,8 @@ namespace
 			const bool3		has_spec	= (_localSizeSpec != ~0u);
 
 			CHECK_THROW_MSG( All(has_def | has_spec),
-				"local_size or local_size_id must be defined" );
+				"local_size or local_size_id must be defined.\n"
+				"Use 'ComputeSpec*()' or 'ComputeLocalSize()' in shader." );
 		}
 
 		if ( type == EShader::Mesh )
@@ -776,7 +793,7 @@ namespace
 
 		if ( AnyEqual( type, EShader::Compute, EShader::Tile, EShader::MeshTask, EShader::Mesh ))
 		{
-			uint	count = GetMaxValueFromFeatures( features, &FeatureSet::maxComputeWorkGroupInvocations );
+			uint	count = uint{GetMaxValueFromFeatures( features, &FeatureSet::maxComputeWorkGroupInvocations )};
 
 			if ( All( _defaultLocalSize != ~0u ))
 				count = _defaultLocalSize.x * _defaultLocalSize.y * _defaultLocalSize.z;

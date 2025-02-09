@@ -73,8 +73,8 @@ namespace AE::App
 			case EWindowMode::Resizable :			resizable = true;							break;
 			case EWindowMode::NonResizable :													break;
 			case EWindowMode::Borderless :			borderless = true;							break;
-			case EWindowMode::FullscreenWindow :	borderless = true;	always_on_top = true;	break;
-			case EWindowMode::Fullscreen :			fullscreen = true;							break;
+			case EWindowMode::FullScreenWindow :	borderless = true;	always_on_top = true;	break;
+			case EWindowMode::FullScreen :			fullscreen = true;							break;
 			case EWindowMode::_Count :
 			default :																			break;
 		}
@@ -121,8 +121,8 @@ namespace AE::App
 		if ( _wndMode == mode )
 			return true;
 
-	//	const bool	fullscreen		= EWindowMode_IsFullscreen( mode );
-		const bool	was_fullscreen	= EWindowMode_IsFullscreen( _wndMode );
+	//	const bool	fullscreen		= EWindowMode_IsFullScreen( mode );
+		const bool	was_fullscreen	= EWindowMode_IsFullScreen( _wndMode );
 		HWND		hwnd			= BitCast<HWND>(_wnd);
 
 		RECT		old_rect;
@@ -425,7 +425,7 @@ namespace AE::App
 				case WM_NCACTIVATE:
 				case WM_NCPAINT:
 				{
-					if ( AnyEqual( _wndMode, EWindowMode::Borderless, EWindowMode::FullscreenWindow ))
+					if ( AnyEqual( _wndMode, EWindowMode::Borderless, EWindowMode::FullScreenWindow ))
 						return 1;
 
 					break;
@@ -553,7 +553,7 @@ namespace AE::App
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
 		ASSERT( All( IsNotZero( size )) );
-		ASSERT( not EWindowMode_IsFullscreen( _wndMode ));
+		ASSERT( not EWindowMode_IsFullScreen( _wndMode ));
 
 		if_unlikely( _wnd == null )
 			return;
@@ -583,7 +583,7 @@ namespace AE::App
 		DRC_EXLOCK( _drCheck );
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
-		ASSERT( not EWindowMode_IsFullscreen( _wndMode ));
+		ASSERT( not EWindowMode_IsFullScreen( _wndMode ));
 
 		if_unlikely( _wnd == null )
 			return;
@@ -643,6 +643,26 @@ namespace AE::App
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
 		_ShowWindow( EVisibility::VisibleFocused );
+	}
+
+/*
+=================================================
+	SetColorSpace
+=================================================
+*/
+	bool  WindowWinAPI::SetColorSpace (EColorSpace value) C_NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		DRC_EXLOCK( _app.GetSingleThreadCheck() );
+
+	  #ifdef AE_PLATFORM_WINDOWS
+
+		RectI	region;	// TODO
+		return _app.GetNvAPI().SetHDRMode( region, value );
+
+	  #else
+		return false;
+	  #endif
 	}
 
 

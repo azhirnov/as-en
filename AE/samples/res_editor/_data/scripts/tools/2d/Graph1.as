@@ -1,11 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
+	Another easing functions.
+
 	top:    1
 	bottom: 0
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define BACKGROUND
 #	define MODE		0
 #endif
@@ -47,7 +49,7 @@
 			pass.Constant( "iColor",	color1 );
 			pass.EnableIfEqual( mode1, i );
 		}
-		
+
 		// green graph
 		for (uint i = 0; i < mode_str.size(); ++i)
 		{
@@ -111,7 +113,7 @@
 #ifdef MODE
 	#include "Easing.glsl"
 	#include "Geometry.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	#define SMOOTHSTEP			0
 	#define ONE_DIV_X			1

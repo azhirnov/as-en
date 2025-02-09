@@ -32,8 +32,8 @@ namespace AE::AssetPacker
 		struct Glyph
 		{
 		// variables
-			Rectangle<ushort>	texcoord;			// unorm
-			RectF				offset;				// pixels
+			Rectangle<ushort>	texcoord;			// pixels
+			RectF				offset;				// pixels	// TODO: use ushort
 			float				advance		= 0.0f;	// glyph with including empty space
 
 		// methods
@@ -45,10 +45,8 @@ namespace AE::AssetPacker
 
 		struct SDFConfig
 		{
-			float			scale		= 0.f;	// value in texture (snorm/unorm) to distance in pixels
-			float			bias		= 0.f;	// convert unorm value in texture to snorm
-			float			pixRange2D	= 0.f;	// == SDFPixelRange(), screenPxRange = heightInPx * pixRange2D
-			packed_float2	pixRange3D;			// TODO
+			float		scale	= 0.f;	// \__ convert unorm value in texture to distance in pixels
+			float		bias	= 0.f;	// /
 		};
 
 
@@ -57,15 +55,15 @@ namespace AE::AssetPacker
 		// variables
 		private:
 			struct Packed {
-				ulong		symbol;
-				ulong		height;
+				uint		symbol : 21;
+				uint		height : 11;
 			}			_packed;
-			ulong		_value;
+			uint		_value;
 
 		// methods
 		public:
 			GlyphKey ()											__NE___	: _value{0} {}
-			GlyphKey (CharUtf32 symbol, uint height)			__NE___	: _packed{symbol, height} {}
+			GlyphKey (CharUtf32 symbol, uint heightPx)			__NE___	: _packed{symbol, heightPx} { ASSERT_Eq( _packed.symbol, symbol );  ASSERT_Eq( _packed.height, heightPx ) }
 
 			ND_ CharUtf32	Symbol ()							C_NE___	{ return CharUtf32(_packed.symbol); }
 			ND_ uint		HeightInPix ()						C_NE___	{ return uint(_packed.height); }
@@ -76,47 +74,57 @@ namespace AE::AssetPacker
 
 
 		using GlyphMap_t	= FlatHashMap< GlyphKey, Glyph, DefaultHasher_CalcHash<GlyphKey> >;
-		using SizeArr_t		= FixedArray< ubyte, 16 >;		// size in pixels which is supported
+		using SizeArr_t		= FixedArray< ubyte, 16 >;		// sizes in pixels which is existed in raster font
 
-		static constexpr ushort		Version		= 2;
+		static constexpr ushort		Version		= 3;
 		static constexpr uint		Magic		= "gr.RFnt"_Hash;
+		static constexpr auto		SerID		= Serializing::SerializedID::Optimized_t{"RasterFont"};
 
-		struct Header2
+		enum class EFileFlags : ushort
 		{
-			uint				magic		= Magic;
-			ushort				version		= Version;
-			ImagePacker::Header	hdr;
-
-			Header2 ()										__NE___ = default;
-			explicit Header2 (const ImagePacker::Header &h) __NE___	: hdr{h} {}
+			Unknown			= 0,
+			HasImage		= 1 << 0,	// image data in current file
+			SeparateData	= 1 << 1,	// load image data from another file
+			HasResName		= 1 << 2,	// get image from cache
 		};
-		StaticAssert( sizeof(Header2) == 24 );
+
+		struct FileHeader
+		{
+			uint			magic		= Magic;
+			ushort			version		= Version;
+			EFileFlags		flags		= Default;
+		};
+		StaticAssert( sizeof(FileHeader) == 8 );
 
 
 	// variables
 	public:
-		Header2				_header;
+		FileHeader						_header;
+		ImagePacker::Header				_imageHeader;		// HasImage or SeparateData
+		CachedResourceName::Optimized_t	_imageResName;		// HasResName
+		VFS::FileName::Optimized_t		_imageFileName;		// SeparateData
 
-		SDFConfig			sdfConfig;
+		SDFConfig						sdfConfig;
 
-		GlyphMap_t			glyphMap;
-		SizeArr_t			fontHeight;
+		GlyphMap_t						glyphMap;
+		SizeArr_t						fontHeight;
 
 
 	// methods
 	public:
-		RasterFontPacker ()											__NE___ {}
-		explicit RasterFontPacker (const ImagePacker::Header &h)	__NE___ : _header{h} {}
-
-		ND_ ImagePacker::Header const&	Header ()					C_NE___	{ return _header.hdr; }
+		ND_ auto*	ImageHeader ()			C_NE___	{ return AllBits( _header.flags, EFileFlags::HasImage ) ? &_imageHeader : null; }
+		ND_ auto	ImageResourceName ()	C_NE___	{ return _imageResName; }
+		ND_ auto	ImageFileName ()		C_NE___	{ return _imageFileName; }
 	};
+
+	AE_BIT_OPERATORS( RasterFontPacker::EFileFlags );
 
 
 } // AE::AssetPacker
 
 namespace AE::Base
 {
-	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::Header2 >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::FileHeader >	: CT_True {};
 	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::SDFConfig >	: CT_True {};
 	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::GlyphKey >	: CT_True {};
 	template <> struct TTriviallySerializable< AE::AssetPacker::RasterFontPacker::Glyph >		: CT_True {};

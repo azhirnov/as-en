@@ -1,4 +1,5 @@
-//5117c2b5
+//02a21a92
+#pragma once
 #include <vector>
 #include <string>
 
@@ -23,88 +24,85 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-template <typename T>
-string  operator + (const string &lhs, T rhs);
-
-struct float4;
-struct ComputePipeline;
-struct short3;
-struct ushort4;
-struct Align;
-struct GraphicsPass;
-struct short2;
-struct sbyte3;
-struct sbyte4;
-struct RenderTechnique;
-struct RayTracingShaderBinding;
-struct RayTracingPipeline;
-struct MultiSamples;
-struct RenderState_StencilBufferState;
-struct DescriptorSetLayout;
-struct float3;
-struct float2;
-struct InstanceIndex;
-struct GlobalConfig;
-struct CompatibleRenderPass;
-struct ubyte4;
-struct RenderState_RasterizationState;
-struct ubyte2;
-struct RenderState_InputAssemblyState;
-struct ubyte3;
-struct ComputePipelineSpec;
+struct RenderState_StencilFaceState;
+struct RayIndex;
+struct ShaderStructType;
+struct Shader;
+struct RenderState_MultisampleState;
+struct FS_DirectoryIterator;
+struct RGBA32i;
+struct bool4;
+struct bool3;
 struct HSVColor;
 struct RGBA32f;
-struct RenderState_ColorBuffer_ColorMask;
-struct bool4;
-struct RGBA32i;
-struct bool3;
 struct bool2;
-struct FS_DirectoryIterator;
-struct RenderState_MultisampleState;
-struct RayIndex;
-struct Shader;
-struct ShaderStructType;
-struct uint4;
-struct RenderState_StencilFaceState;
-struct RenderState_DepthBufferState;
-struct uint2;
-struct ShaderIO;
-struct uint3;
-struct Attachment;
-struct RGBA32u;
-struct VertexBufferInput;
-struct RGBA8u;
-struct CallableIndex;
-struct GraphicsPipeline;
-struct MeshPipelineSpec;
-struct Sampler;
-struct VertexDivisor;
-struct FeatureSet;
+struct RenderState_ColorBuffer_ColorMask;
+struct ComputePipelineSpec;
+struct RenderState_RasterizationState;
+struct RenderState_InputAssemblyState;
+struct ubyte3;
+struct CompatibleRenderPass;
+struct ubyte2;
+struct ubyte4;
+struct GlobalConfig;
+struct InstanceIndex;
+struct float3;
+struct float2;
+struct MultiSamples;
+struct RayTracingShaderBinding;
+struct DescriptorSetLayout;
+struct RenderTechnique;
+struct RayTracingPipeline;
+struct RenderState_StencilBufferState;
+struct sbyte3;
+struct short3;
+struct GraphicsPass;
+struct ushort4;
+struct short2;
+struct sbyte4;
+struct Align;
+struct ComputePipeline;
+struct float4;
+struct TilePipeline;
+struct TilePipelineSpec;
+struct GraphicsPipelineSpec;
+struct FS_RecursiveDirectoryIter;
+struct PipelineLayout;
+struct int4;
+struct int2;
+struct ImageLayer;
+struct RenderState_ColorBuffer;
+struct ArraySize;
+struct int3;
+struct short4;
+struct RenderPass;
+struct sbyte2;
+struct ushort2;
+struct ushort3;
+struct RenderState;
+struct AttachmentSpec;
+struct DepthStencil;
+struct RenderState_ColorBuffersState;
+struct RayTracingPipelineSpec;
+struct MipmapLevel;
 struct NamedRenderState;
 struct ComputePass;
 struct MeshPipeline;
-struct MipmapLevel;
-struct RayTracingPipelineSpec;
-struct RenderState_ColorBuffersState;
-struct DepthStencil;
-struct RenderState;
-struct AttachmentSpec;
-struct RenderPass;
-struct RenderState_ColorBuffer;
-struct ushort2;
-struct sbyte2;
-struct ushort3;
-struct short4;
-struct GraphicsPipelineSpec;
-struct FS_RecursiveDirectoryIter;
-struct int2;
-struct PipelineLayout;
-struct int3;
-struct ArraySize;
-struct int4;
-struct ImageLayer;
-struct TilePipelineSpec;
-struct TilePipeline;
+struct FeatureSet;
+struct VertexDivisor;
+struct Sampler;
+struct CallableIndex;
+struct GraphicsPipeline;
+struct MeshPipelineSpec;
+struct VertexBufferInput;
+struct RGBA8u;
+struct RGBA32u;
+struct Attachment;
+struct RenderState_DepthBufferState;
+struct uint2;
+struct uint3;
+struct ShaderIO;
+struct uint4;
 
 enum class EImage : uint8
 {
@@ -361,7 +359,7 @@ enum class EBlendFactor : uint8
 	// S1 - from shader (dual src blend)
 	// cc - constant color
 	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
-	//
+	// 
 
 	// 0
 	Zero,
@@ -430,7 +428,7 @@ enum class EBlendOp : uint8
 	// S, srcColor - from shader
 	// D, dstColor - from render target
 	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
-	//
+	// 
 
 	// S + D
 	Add,
@@ -457,7 +455,7 @@ enum class ELogicOp : uint8
 	// S - from shader
 	// D - from render target
 	// result = S [logicOp] D
-	//
+	// 
 
 	// disabled
 	None,
@@ -1119,6 +1117,7 @@ enum class EPipelineOpt : uint16
 	RT_NoNullIntersectionShaders,
 	RT_SkipTriangles,
 	RT_SkipAABBs,
+	RT_AllowClusterAccelStruct,
 
 	// Pipeline creation will fail if it is not exists in cache.
 	DontCompile,
@@ -1188,7 +1187,7 @@ enum class ESurfaceFormat : uint8
 	RGBA8_sRGB_nonlinear,
 	BGRA8_BT709_nonlinear,
 	RGBA16F_Extended_sRGB_linear,
-	RGBA16F_sRGB_nonlinear,
+	RGBA16F_Extended_sRGB_nonlinear,
 	RGBA16F_BT709_nonlinear,
 	RGBA16F_HDR10_ST2084,
 	RGBA16F_BT2020_linear,
@@ -1252,6 +1251,7 @@ enum class EImageOpt : uint32
 	ExtendedUsage,
 	All,
 	SparseResidencyAliased,
+	Blit,
 };
 uint32  operator | (EImageOpt lhs, EImageOpt rhs);
 uint32  operator | (uint32 lhs, EImageOpt rhs);
@@ -1272,6 +1272,7 @@ enum class EBufferUsage : uint32
 	ShaderBindingTable,
 	ASBuild_ReadOnly,
 	ASBuild_Scratch,
+	RTAS_Storage,
 	All,
 	Transfer,
 };
@@ -1435,78 +1436,86 @@ enum class EImageType : uint16
 	UNorm,
 	Int,
 	UInt,
-	sRGB,
 	Depth,
 	Stencil,
 	DepthStencil,
+	UFloat,
+	Long,
+	ULong,
 	Shadow,
-	FImage1D,
-	FImage2D,
-	FImage2D_sRGB,
-	FImage3D,
-	FImage1DArray,
-	FImage2DArray,
-	FImageCube,
-	FImageCubeArray,
-	FImage2DMS,
-	FImage2DMSArray,
-	FImageBuffer,
-	HImage1D,
-	HImage2D,
-	HImage3D,
-	HImage1DArray,
-	HImage2DArray,
-	HImageCube,
-	HImageCubeArray,
-	HImage2DMS,
-	HImage2DMSArray,
-	HImageBuffer,
-	Image1DShadow,
-	Image2DShadow,
-	Image1DArrayShadow,
-	Image2DArrayShadow,
-	ImageCubeShadow,
-	ImageCubeArrayShadow,
-	IImage1D,
-	IImage2D,
-	IImage3D,
-	IImage1DArray,
-	IImage2DArray,
-	IImageCube,
-	IImageCubeArray,
-	IImage2DMS,
-	IImage2DMSArray,
-	IImageBuffer,
-	UImage1D,
-	UImage2D,
-	UImage3D,
-	UImage1DArray,
-	UImage2DArray,
-	UImageCube,
-	UImageCubeArray,
-	UImage2DMS,
-	UImage2DMSArray,
-	UImageBuffer,
-	SLongImage1D,
-	SLongImage2D,
-	SLongImage3D,
-	SLongImage1DArray,
-	SLongImage2DArray,
-	SLongImageCube,
-	SLongImageCubeArray,
-	SLongImage2DMS,
-	SLongImage2DMSArray,
-	SLongImageBuffer,
-	ULongImage1D,
-	ULongImage2D,
-	ULongImage3D,
-	ULongImage1DArray,
-	ULongImage2DArray,
-	ULongImageCube,
-	ULongImageCubeArray,
-	ULongImage2DMS,
-	ULongImage2DMSArray,
-	ULongImageBuffer,
+	sRGB,
+	Float_1D,
+	Float_2D,
+	Float_3D,
+	Float_1DArray,
+	Float_2DArray,
+	Float_Cube,
+	Float_CubeArray,
+	Float_2DMS,
+	Float_2DMSArray,
+	Float_Buffer,
+	Float_1D_sRGB,
+	Float_2D_sRGB,
+	Float_3D_sRGB,
+	Float_1DArray_sRGB,
+	Float_2DArray_sRGB,
+	Float_Cube_sRGB,
+	Float_CubeArray_sRGB,
+	Float_2DMS_sRGB,
+	Float_2DMSArray_sRGB,
+	Float_Buffer_sRGB,
+	Half_1D,
+	Half_2D,
+	Half_3D,
+	Half_1DArray,
+	Half_2DArray,
+	Half_Cube,
+	Half_CubeArray,
+	Half_2DMS,
+	Half_2DMSArray,
+	Half_Buffer,
+	Cube_Shadow,
+	CubeArray_Shadow,
+	Int_1D,
+	Int_2D,
+	Int_3D,
+	Int_1DArray,
+	Int_2DArray,
+	Int_Cube,
+	Int_CubeArray,
+	Int_2DMS,
+	Int_2DMSArray,
+	Int_Buffer,
+	UInt_1D,
+	UInt_2D,
+	UInt_3D,
+	UInt_1DArray,
+	UInt_2DArray,
+	UInt_Cube,
+	UInt_CubeArray,
+	UInt_2DMS,
+	UInt_2DMSArray,
+	UInt_Buffer,
+	SLong_Image1D,
+	SLong_Image2D,
+	SLong_Image3D,
+	SLong_Image1DArray,
+	SLong_Image2DArray,
+	SLong_ImageCube,
+	SLong_ImageCubeArray,
+	SLong_Image2DMS,
+	SLong_Image2DMSArray,
+	SLong_ImageBuffer,
+	ULong_Image1D,
+	ULong_Image2D,
+	ULong_Image3D,
+	ULong_Image1DArray,
+	ULong_Image2DArray,
+	ULong_ImageCube,
+	ULong_ImageCubeArray,
+	ULong_Image2DMS,
+	ULong_Image2DMSArray,
+	ULong_ImageBuffer,
 };
 uint16  operator | (EImageType lhs, EImageType rhs);
 uint16  operator | (uint16 lhs, EImageType rhs);
@@ -1518,6 +1527,10 @@ static constexpr EImageType EImageType_2DArray = EImageType(4);
 static constexpr EImageType EImageType_2DMS = EImageType(5);
 static constexpr EImageType EImageType_2DMSArray = EImageType(6);
 static constexpr EImageType EImageType_3D = EImageType(9);
+static constexpr EImageType EImageType_1D_Shadow = EImageType(369);
+static constexpr EImageType EImageType_2D_Shadow = EImageType(371);
+static constexpr EImageType EImageType_1DArray_Shadow = EImageType(370);
+static constexpr EImageType EImageType_2DArray_Shadow = EImageType(372);
 
 enum class ECompilationTarget : uint32
 {
@@ -2531,105 +2544,6 @@ bool  All (const bool3 & x);
 bool  Any (const bool3 & x);
 bool  All (const bool4 & x);
 bool  Any (const bool4 & x);
-sbyte2  DivCeil (const sbyte2 & x, const sbyte2 & y);
-sbyte2  DivCeil (const sbyte2 & x, int8 y);
-sbyte3  DivCeil (const sbyte3 & x, const sbyte3 & y);
-sbyte3  DivCeil (const sbyte3 & x, int8 y);
-sbyte4  DivCeil (const sbyte4 & x, const sbyte4 & y);
-sbyte4  DivCeil (const sbyte4 & x, int8 y);
-ubyte2  DivCeil (const ubyte2 & x, const ubyte2 & y);
-ubyte2  DivCeil (const ubyte2 & x, uint8 y);
-ubyte3  DivCeil (const ubyte3 & x, const ubyte3 & y);
-ubyte3  DivCeil (const ubyte3 & x, uint8 y);
-ubyte4  DivCeil (const ubyte4 & x, const ubyte4 & y);
-ubyte4  DivCeil (const ubyte4 & x, uint8 y);
-short2  DivCeil (const short2 & x, const short2 & y);
-short2  DivCeil (const short2 & x, int16 y);
-short3  DivCeil (const short3 & x, const short3 & y);
-short3  DivCeil (const short3 & x, int16 y);
-short4  DivCeil (const short4 & x, const short4 & y);
-short4  DivCeil (const short4 & x, int16 y);
-ushort2  DivCeil (const ushort2 & x, const ushort2 & y);
-ushort2  DivCeil (const ushort2 & x, uint16 y);
-ushort3  DivCeil (const ushort3 & x, const ushort3 & y);
-ushort3  DivCeil (const ushort3 & x, uint16 y);
-ushort4  DivCeil (const ushort4 & x, const ushort4 & y);
-ushort4  DivCeil (const ushort4 & x, uint16 y);
-int2  Abs (const int2 & x);
-int2  MirroredWrap (const int2 & x, const int2 & min, const int2 & max);
-int2  MirroredWrap (const int2 & x, int min, int max);
-int  Sum (const int2 & x);
-int  Area (const int2 & x);
-int2  Min (const int2 & x, const int2 & y);
-int2  Max (const int2 & x, const int2 & y);
-int2  Clamp (const int2 & val, const int2 & min, const int2 & max);
-int2  Clamp (const int2 & val, int min, int max);
-int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
-int2  Wrap (const int2 & val, int min, int max);
-int  VecToLinear (const int2 & pos, const int2 & dim);
-int2  DivCeil (const int2 & x, const int2 & y);
-int2  DivCeil (const int2 & x, int y);
-int3  Abs (const int3 & x);
-int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
-int3  MirroredWrap (const int3 & x, int min, int max);
-int  Sum (const int3 & x);
-int  Area (const int3 & x);
-int3  Min (const int3 & x, const int3 & y);
-int3  Max (const int3 & x, const int3 & y);
-int3  Clamp (const int3 & val, const int3 & min, const int3 & max);
-int3  Clamp (const int3 & val, int min, int max);
-int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
-int3  Wrap (const int3 & val, int min, int max);
-int  VecToLinear (const int3 & pos, const int3 & dim);
-int3  DivCeil (const int3 & x, const int3 & y);
-int3  DivCeil (const int3 & x, int y);
-int4  Abs (const int4 & x);
-int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
-int4  MirroredWrap (const int4 & x, int min, int max);
-int  Sum (const int4 & x);
-int  Area (const int4 & x);
-int4  Min (const int4 & x, const int4 & y);
-int4  Max (const int4 & x, const int4 & y);
-int4  Clamp (const int4 & val, const int4 & min, const int4 & max);
-int4  Clamp (const int4 & val, int min, int max);
-int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
-int4  Wrap (const int4 & val, int min, int max);
-int  VecToLinear (const int4 & pos, const int4 & dim);
-int4  DivCeil (const int4 & x, const int4 & y);
-int4  DivCeil (const int4 & x, int y);
-uint  Sum (const uint2 & x);
-uint  Area (const uint2 & x);
-uint2  Min (const uint2 & x, const uint2 & y);
-uint2  Max (const uint2 & x, const uint2 & y);
-uint2  Clamp (const uint2 & val, const uint2 & min, const uint2 & max);
-uint2  Clamp (const uint2 & val, uint min, uint max);
-uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
-uint2  Wrap (const uint2 & val, uint min, uint max);
-uint  VecToLinear (const uint2 & pos, const uint2 & dim);
-uint2  DivCeil (const uint2 & x, const uint2 & y);
-uint2  DivCeil (const uint2 & x, uint y);
-uint  Sum (const uint3 & x);
-uint  Area (const uint3 & x);
-uint3  Min (const uint3 & x, const uint3 & y);
-uint3  Max (const uint3 & x, const uint3 & y);
-uint3  Clamp (const uint3 & val, const uint3 & min, const uint3 & max);
-uint3  Clamp (const uint3 & val, uint min, uint max);
-uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
-uint3  Wrap (const uint3 & val, uint min, uint max);
-uint  VecToLinear (const uint3 & pos, const uint3 & dim);
-uint3  DivCeil (const uint3 & x, const uint3 & y);
-uint3  DivCeil (const uint3 & x, uint y);
-uint  Sum (const uint4 & x);
-uint  Area (const uint4 & x);
-uint4  Min (const uint4 & x, const uint4 & y);
-uint4  Max (const uint4 & x, const uint4 & y);
-uint4  Clamp (const uint4 & val, const uint4 & min, const uint4 & max);
-uint4  Clamp (const uint4 & val, uint min, uint max);
-uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
-uint4  Wrap (const uint4 & val, uint min, uint max);
-uint  VecToLinear (const uint4 & pos, const uint4 & dim);
-uint4  DivCeil (const uint4 & x, const uint4 & y);
-uint4  DivCeil (const uint4 & x, uint y);
 float2  Abs (const float2 & x);
 float2  MirroredWrap (const float2 & x, const float2 & min, const float2 & max);
 float2  MirroredWrap (const float2 & x, float min, float max);
@@ -2736,6 +2650,105 @@ float  Length (const float4 & x);
 float  LengthSq (const float4 & x);
 float  Distance (const float4 & x, const float4 & y);
 float  DistanceSq (const float4 & x, const float4 & y);
+sbyte2  DivCeil (const sbyte2 & x, const sbyte2 & y);
+sbyte2  DivCeil (const sbyte2 & x, int8 y);
+sbyte3  DivCeil (const sbyte3 & x, const sbyte3 & y);
+sbyte3  DivCeil (const sbyte3 & x, int8 y);
+sbyte4  DivCeil (const sbyte4 & x, const sbyte4 & y);
+sbyte4  DivCeil (const sbyte4 & x, int8 y);
+ubyte2  DivCeil (const ubyte2 & x, const ubyte2 & y);
+ubyte2  DivCeil (const ubyte2 & x, uint8 y);
+ubyte3  DivCeil (const ubyte3 & x, const ubyte3 & y);
+ubyte3  DivCeil (const ubyte3 & x, uint8 y);
+ubyte4  DivCeil (const ubyte4 & x, const ubyte4 & y);
+ubyte4  DivCeil (const ubyte4 & x, uint8 y);
+short2  DivCeil (const short2 & x, const short2 & y);
+short2  DivCeil (const short2 & x, int16 y);
+short3  DivCeil (const short3 & x, const short3 & y);
+short3  DivCeil (const short3 & x, int16 y);
+short4  DivCeil (const short4 & x, const short4 & y);
+short4  DivCeil (const short4 & x, int16 y);
+ushort2  DivCeil (const ushort2 & x, const ushort2 & y);
+ushort2  DivCeil (const ushort2 & x, uint16 y);
+ushort3  DivCeil (const ushort3 & x, const ushort3 & y);
+ushort3  DivCeil (const ushort3 & x, uint16 y);
+ushort4  DivCeil (const ushort4 & x, const ushort4 & y);
+ushort4  DivCeil (const ushort4 & x, uint16 y);
+int2  Abs (const int2 & x);
+int2  MirroredWrap (const int2 & x, const int2 & min, const int2 & max);
+int2  MirroredWrap (const int2 & x, int min, int max);
+int  Sum (const int2 & x);
+int  Area (const int2 & x);
+int2  Min (const int2 & x, const int2 & y);
+int2  Max (const int2 & x, const int2 & y);
+int2  Clamp (const int2 & val, const int2 & min, const int2 & max);
+int2  Clamp (const int2 & val, int min, int max);
+int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
+int2  Wrap (const int2 & val, int min, int max);
+int  VecToLinear (const int2 & pos, const int2 & dim);
+int2  DivCeil (const int2 & x, const int2 & y);
+int2  DivCeil (const int2 & x, int y);
+int3  Abs (const int3 & x);
+int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
+int3  MirroredWrap (const int3 & x, int min, int max);
+int  Sum (const int3 & x);
+int  Area (const int3 & x);
+int3  Min (const int3 & x, const int3 & y);
+int3  Max (const int3 & x, const int3 & y);
+int3  Clamp (const int3 & val, const int3 & min, const int3 & max);
+int3  Clamp (const int3 & val, int min, int max);
+int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
+int3  Wrap (const int3 & val, int min, int max);
+int  VecToLinear (const int3 & pos, const int3 & dim);
+int3  DivCeil (const int3 & x, const int3 & y);
+int3  DivCeil (const int3 & x, int y);
+int4  Abs (const int4 & x);
+int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
+int4  MirroredWrap (const int4 & x, int min, int max);
+int  Sum (const int4 & x);
+int  Area (const int4 & x);
+int4  Min (const int4 & x, const int4 & y);
+int4  Max (const int4 & x, const int4 & y);
+int4  Clamp (const int4 & val, const int4 & min, const int4 & max);
+int4  Clamp (const int4 & val, int min, int max);
+int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
+int4  Wrap (const int4 & val, int min, int max);
+int  VecToLinear (const int4 & pos, const int4 & dim);
+int4  DivCeil (const int4 & x, const int4 & y);
+int4  DivCeil (const int4 & x, int y);
+uint  Sum (const uint2 & x);
+uint  Area (const uint2 & x);
+uint2  Min (const uint2 & x, const uint2 & y);
+uint2  Max (const uint2 & x, const uint2 & y);
+uint2  Clamp (const uint2 & val, const uint2 & min, const uint2 & max);
+uint2  Clamp (const uint2 & val, uint min, uint max);
+uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
+uint2  Wrap (const uint2 & val, uint min, uint max);
+uint  VecToLinear (const uint2 & pos, const uint2 & dim);
+uint2  DivCeil (const uint2 & x, const uint2 & y);
+uint2  DivCeil (const uint2 & x, uint y);
+uint  Sum (const uint3 & x);
+uint  Area (const uint3 & x);
+uint3  Min (const uint3 & x, const uint3 & y);
+uint3  Max (const uint3 & x, const uint3 & y);
+uint3  Clamp (const uint3 & val, const uint3 & min, const uint3 & max);
+uint3  Clamp (const uint3 & val, uint min, uint max);
+uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
+uint3  Wrap (const uint3 & val, uint min, uint max);
+uint  VecToLinear (const uint3 & pos, const uint3 & dim);
+uint3  DivCeil (const uint3 & x, const uint3 & y);
+uint3  DivCeil (const uint3 & x, uint y);
+uint  Sum (const uint4 & x);
+uint  Area (const uint4 & x);
+uint4  Min (const uint4 & x, const uint4 & y);
+uint4  Max (const uint4 & x, const uint4 & y);
+uint4  Clamp (const uint4 & val, const uint4 & min, const uint4 & max);
+uint4  Clamp (const uint4 & val, uint min, uint max);
+uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
+uint4  Wrap (const uint4 & val, uint min, uint max);
+uint  VecToLinear (const uint4 & pos, const uint4 & dim);
+uint4  DivCeil (const uint4 & x, const uint4 & y);
+uint4  DivCeil (const uint4 & x, uint y);
 RGBA32f  Lerp (const RGBA32f & x, const RGBA32f & y, float factor);
 RGBA32f  AdjustContrast (const RGBA32f & col, float factor);
 RGBA32f  Rainbow (float factor);
@@ -3126,8 +3139,7 @@ struct GlobalConfig
 	void  SetDefaultFeatureSet (const string & fsName);
 
 	// Set defines which will be used in all shaders.
-	// Format: DEF=1
-	// DEF2
+	// Format: MACROS = value \n DEF \n ...
 	void  SetShaderDefines (const string &);
 };
 
@@ -3216,8 +3228,6 @@ struct FeatureSet
 	bool  hasShaderMaximalReconvergence ();
 	void  shaderQuadControl (EFeature);
 	bool  hasShaderQuadControl ();
-	void  clipSpaceWScalingNV (EFeature);
-	bool  hasClipSpaceWScalingNV ();
 	void  shaderInt8 (EFeature);
 	bool  hasShaderInt8 ();
 	void  shaderInt16 (EFeature);
@@ -3331,6 +3341,10 @@ struct FeatureSet
 	bool  hasShaderSampleRateInterpolationFunctions ();
 	void  shaderStencilExport (EFeature);
 	bool  hasShaderStencilExport ();
+	void  shaderExpectAssume (EFeature);
+	bool  hasShaderExpectAssume ();
+	void  clipSpaceWScalingNV (EFeature);
+	bool  hasClipSpaceWScalingNV ();
 	void  shaderSampledImageArrayDynamicIndexing (EFeature);
 	bool  hasShaderSampledImageArrayDynamicIndexing ();
 	void  shaderStorageBufferArrayDynamicIndexing (EFeature);
@@ -3421,6 +3435,10 @@ struct FeatureSet
 	bool  hasFragmentShadingRateWithCustomSampleLocations ();
 	void  accelerationStructureIndirectBuild (EFeature);
 	bool  hasAccelerationStructureIndirectBuild ();
+	void  clusterAccelerationStructure (EFeature);
+	bool  hasClusterAccelerationStructure ();
+	void  partitionedAccelerationStructure (EFeature);
+	bool  hasPartitionedAccelerationStructure ();
 	void  rayQuery (EFeature);
 	bool  hasRayQuery ();
 	void  rayQueryStages (uint);
@@ -3433,6 +3451,7 @@ struct FeatureSet
 	bool  hasDrawIndirectFirstInstance ();
 	void  drawIndirectCount (EFeature);
 	bool  hasDrawIndirectCount ();
+	void  maxDrawIndirectCount (uint);
 	void  multiview (EFeature);
 	bool  hasMultiview ();
 	void  multiviewGeometryShader (EFeature);
@@ -3454,8 +3473,9 @@ struct FeatureSet
 	void  maxTexelBufferElements (uint);
 	void  maxUniformBufferSize (uint);
 	void  maxStorageBufferSize (uint);
-	void  perDescrSet_maxUniformBuffersDynamic (uint);
-	void  perDescrSet_maxStorageBuffersDynamic (uint);
+	void  perPipeline_maxUniformBuffersDynamic (uint);
+	void  perPipeline_maxStorageBuffersDynamic (uint);
+	void  perPipeline_maxTotalBuffersDynamic (uint);
 	void  maxDescriptorSets (uint);
 	void  maxTexelOffset (uint);
 	void  maxTexelGatherOffset (uint);
@@ -3463,9 +3483,9 @@ struct FeatureSet
 	void  maxFragmentDualSrcAttachments (uint);
 	void  maxFragmentCombinedOutputResources (uint);
 	void  maxPushConstantsSize (uint);
+	void  maxVertAmplification (uint);
 	void  maxTotalThreadgroupSize (uint);
 	void  maxTotalTileMemory (uint);
-	void  maxVertAmplification (uint);
 	void  maxComputeSharedMemorySize (uint);
 	void  maxComputeWorkGroupInvocations (uint);
 	void  maxComputeWorkGroupSizeX (uint);
@@ -3483,10 +3503,10 @@ struct FeatureSet
 	void  maxMeshOutputPerPrimitiveGranularity (uint);
 	void  maxTaskPayloadSize (uint);
 	void  maxTaskSharedMemorySize (uint);
-	void  maxTaskPayloadAndSharedMemorySize (uint);
 	void  maxMeshSharedMemorySize (uint);
-	void  maxMeshPayloadAndSharedMemorySize (uint);
 	void  maxMeshOutputMemorySize (uint);
+	void  maxTaskPayloadAndSharedMemorySize (uint);
+	void  maxMeshPayloadAndSharedMemorySize (uint);
 	void  maxMeshPayloadAndOutputMemorySize (uint);
 	void  maxMeshMultiviewViewCount (uint);
 	void  maxPreferredTaskWorkGroupInvocations (uint);
@@ -3523,6 +3543,10 @@ struct FeatureSet
 	bool  hasImageViewFormatList ();
 	void  imageViewExtendedUsage (EFeature);
 	bool  hasImageViewExtendedUsage ();
+	void  maxImageDimension1D (uint);
+	void  maxImageDimension2D (uint);
+	void  maxImageDimension3D (uint);
+	void  maxImageDimensionCube (uint);
 	void  maxImageArrayLayers (uint);
 	void  samplerAnisotropy (EFeature);
 	bool  hasSamplerAnisotropy ();
@@ -3548,14 +3572,14 @@ struct FeatureSet
 	void  externalFormatAndroid (EFeature);
 	bool  hasExternalFormatAndroid ();
 	void  metalArgBufferTier (uint);
-	void  perDescrSet_maxInputAttachments (uint);
-	void  perDescrSet_maxSampledImages (uint);
-	void  perDescrSet_maxSamplers (uint);
-	void  perDescrSet_maxStorageBuffers (uint);
-	void  perDescrSet_maxStorageImages (uint);
-	void  perDescrSet_maxUniformBuffers (uint);
-	void  perDescrSet_maxAccelStructures (uint);
-	void  perDescrSet_maxTotalResources (uint);
+	void  perPipeline_maxInputAttachments (uint);
+	void  perPipeline_maxSampledImages (uint);
+	void  perPipeline_maxSamplers (uint);
+	void  perPipeline_maxStorageBuffers (uint);
+	void  perPipeline_maxStorageImages (uint);
+	void  perPipeline_maxUniformBuffers (uint);
+	void  perPipeline_maxAccelStructures (uint);
+	void  perPipeline_maxTotalResources (uint);
 	void  perStage_maxInputAttachments (uint);
 	void  perStage_maxSampledImages (uint);
 	void  perStage_maxSamplers (uint);
@@ -3836,18 +3860,18 @@ struct DescriptorSetLayout
 	// Add storage texel buffer.
 	// 'imageType' must be 'Buffer | Int/Uint/Float'.
 	// Requires 'shaderStorageImageReadWithoutFormat' or 'shaderStorageImageWriteWithoutFormat' feature.
-	void  StorageTexelBuffer (EShaderStages shaderStages, const string & uniform, EImageType imageType);
-	void  StorageTexelBuffer (uint shaderStages, const string & uniform, EImageType imageType);
-	void  StorageTexelBuffer (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType);
-	void  StorageTexelBuffer (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType);
-	void  StorageTexelBuffer (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EResourceState state);
-	void  StorageTexelBuffer (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EResourceState state);
-	void  StorageTexelBuffer (EShaderStages shaderStages, const string & uniform, EImageType imageType, EAccessType access);
-	void  StorageTexelBuffer (uint shaderStages, const string & uniform, EImageType imageType, EAccessType access);
-	void  StorageTexelBuffer (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access);
-	void  StorageTexelBuffer (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access);
-	void  StorageTexelBuffer (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access, EResourceState state);
-	void  StorageTexelBuffer (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access, EResourceState state);
+	void  StorageTexelBuffer2 (EShaderStages shaderStages, const string & uniform, EImageType imageType);
+	void  StorageTexelBuffer2 (uint shaderStages, const string & uniform, EImageType imageType);
+	void  StorageTexelBuffer2 (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType);
+	void  StorageTexelBuffer2 (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType);
+	void  StorageTexelBuffer2 (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EResourceState state);
+	void  StorageTexelBuffer2 (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EResourceState state);
+	void  StorageTexelBuffer2 (EShaderStages shaderStages, const string & uniform, EImageType imageType, EAccessType access);
+	void  StorageTexelBuffer2 (uint shaderStages, const string & uniform, EImageType imageType, EAccessType access);
+	void  StorageTexelBuffer2 (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access);
+	void  StorageTexelBuffer2 (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access);
+	void  StorageTexelBuffer2 (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access, EResourceState state);
+	void  StorageTexelBuffer2 (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access, EResourceState state);
 
 	// Add storage image.
 	// 'format' must be included in 'storageImageFormats' in at least one of feature set.
@@ -3870,22 +3894,22 @@ struct DescriptorSetLayout
 
 	// Add storage image.
 	// Requires 'shaderStorageImageReadWithoutFormat' or 'shaderStorageImageWriteWithoutFormat' feature.
-	void  StorageImage (EShaderStages shaderStages, const string & uniform, EImageType imageType);
-	void  StorageImage (uint shaderStages, const string & uniform, EImageType imageType);
-	void  StorageImage (EShaderStages shaderStages, const string & uniform, EImageType imageType, EAccessType access);
-	void  StorageImage (uint shaderStages, const string & uniform, EImageType imageType, EAccessType access);
-	void  StorageImage (EShaderStages shaderStages, const string & uniform, EImageType imageType, EResourceState state);
-	void  StorageImage (uint shaderStages, const string & uniform, EImageType imageType, EResourceState state);
-	void  StorageImage (EShaderStages shaderStages, const string & uniform, EImageType imageType, EAccessType access, EResourceState state);
-	void  StorageImage (uint shaderStages, const string & uniform, EImageType imageType, EAccessType access, EResourceState state);
-	void  StorageImage (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType);
-	void  StorageImage (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType);
-	void  StorageImage (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access);
-	void  StorageImage (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access);
-	void  StorageImage (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EResourceState state);
-	void  StorageImage (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EResourceState state);
-	void  StorageImage (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access, EResourceState state);
-	void  StorageImage (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access, EResourceState state);
+	void  StorageImage2 (EShaderStages shaderStages, const string & uniform, EImageType imageType);
+	void  StorageImage2 (uint shaderStages, const string & uniform, EImageType imageType);
+	void  StorageImage2 (EShaderStages shaderStages, const string & uniform, EImageType imageType, EAccessType access);
+	void  StorageImage2 (uint shaderStages, const string & uniform, EImageType imageType, EAccessType access);
+	void  StorageImage2 (EShaderStages shaderStages, const string & uniform, EImageType imageType, EResourceState state);
+	void  StorageImage2 (uint shaderStages, const string & uniform, EImageType imageType, EResourceState state);
+	void  StorageImage2 (EShaderStages shaderStages, const string & uniform, EImageType imageType, EAccessType access, EResourceState state);
+	void  StorageImage2 (uint shaderStages, const string & uniform, EImageType imageType, EAccessType access, EResourceState state);
+	void  StorageImage2 (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType);
+	void  StorageImage2 (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType);
+	void  StorageImage2 (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access);
+	void  StorageImage2 (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access);
+	void  StorageImage2 (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EResourceState state);
+	void  StorageImage2 (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EResourceState state);
+	void  StorageImage2 (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access, EResourceState state);
+	void  StorageImage2 (uint shaderStages, const string & uniform, const ArraySize & arraySize, EImageType imageType, EAccessType access, EResourceState state);
 
 	// Add sampled image (without sampler).
 	void  SampledImage (EShaderStages shaderStages, const string & uniform, EImageType imageType);
@@ -3955,11 +3979,17 @@ struct DescriptorSetLayout
 	void  ImtblSampler (EShaderStages shaderStages, const string & uniform, const array<string> & samplerNames);
 	void  ImtblSampler (uint shaderStages, const string & uniform, const array<string> & samplerNames);
 
-	// Add ray tracing scene (top level acceleration structure).
+	// Add ray tracing scene (top level acceleration structure, TLAS).
 	void  RayTracingScene (EShaderStages shaderStages, const string & uniform);
 	void  RayTracingScene (uint shaderStages, const string & uniform);
 	void  RayTracingScene (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize);
 	void  RayTracingScene (uint shaderStages, const string & uniform, const ArraySize & arraySize);
+
+	// Add ray tracing partitioned scene (partitioned top level acceleration structure, PTLAS).
+	void  RayTracingPartitionedScene (EShaderStages shaderStages, const string & uniform);
+	void  RayTracingPartitionedScene (uint shaderStages, const string & uniform);
+	void  RayTracingPartitionedScene (EShaderStages shaderStages, const string & uniform, const ArraySize & arraySize);
+	void  RayTracingPartitionedScene (uint shaderStages, const string & uniform, const ArraySize & arraySize);
 
 	// Check is image description is supported by feature set.
 	bool  IsSupported (EPixelFormat format, EImageUsage usage, EImageOpt options, const ImageLayer & arrayLayers, const MultiSamples & samples);
@@ -4043,8 +4073,9 @@ struct GraphicsPass
 	void  SetMutableStates (EMutableRenderState states);
 
 	// Set per-pass descriptor set layout.
-	// All pipelines must contains this DSLayout.
-	void  SetDSLayout (const string & dsl);
+	// All pipelines must contains this DSLayout in 0 binding.
+	void  SetDSLayout (const string & typeName);
+	void  SetDSLayout (const RC<DescriptorSetLayout> & dsl);
 };
 
 struct ComputePass
@@ -4052,8 +4083,9 @@ struct ComputePass
 	ComputePass ();
 
 	// Set per-pass descriptor set layout.
-	// All pipelines must contains this DSLayout.
-	void  SetDSLayout (const string & dsl);
+	// All pipelines must contains this DSLayout in 0 binding.
+	void  SetDSLayout (const string & typeName);
+	void  SetDSLayout (const RC<DescriptorSetLayout> & dsl);
 };
 
 struct RenderTechnique
@@ -4104,7 +4136,7 @@ struct GraphicsPipelineSpec
 	void  SetViewportCount (uint count);
 
 	// Attach pipeline to the render technique.
-	// When rtech is created it will create all attached pipelines.
+	// Render technique will create all attached pipelines during its creation.
 	void  AddToRenderTech (const string & rtech, const string & gpass);
 
 	// Set pipeline options (EPipelineOpt).
@@ -4209,14 +4241,20 @@ struct MeshPipelineSpec
 	void  SetTaskLocalSize (uint x, uint y);
 	void  SetTaskLocalSize (uint x, uint y, uint z);
 
+	// Task shader workgroup size will be set at load time in 'RenderTechDesc::taskLocalSize'.
+	void  LoadTimeTaskLocalSize ();
+
 	// Set mesh shader workgroup size. All threads in workgroup can use same (shared) memory.
 	// Shader must use 'SetMeshSpec1/2/3()' to define specialization constant.
 	void  SetMeshLocalSize (uint x);
 	void  SetMeshLocalSize (uint x, uint y);
 	void  SetMeshLocalSize (uint x, uint y, uint z);
 
+	// Mesh shader workgroup size will be set at load time in 'RenderTechDesc::meshLocalSize'.
+	void  LoadTimeMeshLocalSize ();
+
 	// Attach pipeline to the render technique.
-	// When rtech is created it will create all attached pipelines.
+	// Render technique will create all attached pipelines during its creation.
 	void  AddToRenderTech (const string & rtech, const string & gpass);
 
 	// Set pipeline options (EPipelineOpt).
@@ -4301,8 +4339,11 @@ struct ComputePipelineSpec
 	void  SetLocalSize (uint x, uint y);
 	void  SetLocalSize (uint x, uint y, uint z);
 
+	// Compute shader workgroup size will be set at load time in 'RenderTechDesc::computeLocalSize'.
+	void  LoadTimeLocalSize ();
+
 	// Attach pipeline to the render technique.
-	// When rtech is created it will create all attached pipelines.
+	// Render technique will create all attached pipelines during its creation.
 	void  AddToRenderTech (const string & rtech, const string & gpass);
 
 	// Set pipeline options (EPipelineOpt).
@@ -4360,7 +4401,7 @@ struct TilePipelineSpec
 	void  SetLocalSize (uint x, uint y);
 
 	// Attach pipeline to the render technique.
-	// When rtech is created it will create all attached pipelines.
+	// Render technique will create all attached pipelines during its creation.
 	void  AddToRenderTech (const string & rtech, const string & gpass);
 
 	// Set pipeline options (EPipelineOpt).
@@ -4414,7 +4455,7 @@ struct RayTracingPipelineSpec
 	void  SetDynamicState (uint states);
 
 	// Attach pipeline to the render technique.
-	// When rtech is created it will create all attached pipelines.
+	// Render technique will create all attached pipelines during its creation.
 	void  AddToRenderTech (const string & rtech, const string & cpass);
 
 	// Set pipeline options (EPipelineOpt).
@@ -4726,51 +4767,9 @@ const string Sampler_Anisotropy16Repeat;
 const string Sampler_Anisotropy16MirrorRepeat;
 const string Sampler_Anisotropy16Clamp;
 template <>
-struct RC<ComputePipeline> : ComputePipeline
+struct RC<ShaderStructType> : ShaderStructType
 {
-	RC (const ComputePipeline &);
-};
-
-template <>
-struct RC<GraphicsPass> : GraphicsPass
-{
-	RC (const GraphicsPass &);
-};
-
-template <>
-struct RC<RenderTechnique> : RenderTechnique
-{
-	RC (const RenderTechnique &);
-};
-
-template <>
-struct RC<RayTracingShaderBinding> : RayTracingShaderBinding
-{
-	RC (const RayTracingShaderBinding &);
-};
-
-template <>
-struct RC<RayTracingPipeline> : RayTracingPipeline
-{
-	RC (const RayTracingPipeline &);
-};
-
-template <>
-struct RC<DescriptorSetLayout> : DescriptorSetLayout
-{
-	RC (const DescriptorSetLayout &);
-};
-
-template <>
-struct RC<CompatibleRenderPass> : CompatibleRenderPass
-{
-	RC (const CompatibleRenderPass &);
-};
-
-template <>
-struct RC<ComputePipelineSpec> : ComputePipelineSpec
-{
-	RC (const ComputePipelineSpec &);
+	RC (const ShaderStructType &);
 };
 
 template <>
@@ -4780,45 +4779,93 @@ struct RC<Shader> : Shader
 };
 
 template <>
-struct RC<ShaderStructType> : ShaderStructType
+struct RC<ComputePipelineSpec> : ComputePipelineSpec
 {
-	RC (const ShaderStructType &);
+	RC (const ComputePipelineSpec &);
 };
 
 template <>
-struct RC<Attachment> : Attachment
+struct RC<CompatibleRenderPass> : CompatibleRenderPass
 {
-	RC (const Attachment &);
+	RC (const CompatibleRenderPass &);
 };
 
 template <>
-struct RC<VertexBufferInput> : VertexBufferInput
+struct RC<RayTracingShaderBinding> : RayTracingShaderBinding
 {
-	RC (const VertexBufferInput &);
+	RC (const RayTracingShaderBinding &);
 };
 
 template <>
-struct RC<GraphicsPipeline> : GraphicsPipeline
+struct RC<DescriptorSetLayout> : DescriptorSetLayout
 {
-	RC (const GraphicsPipeline &);
+	RC (const DescriptorSetLayout &);
 };
 
 template <>
-struct RC<MeshPipelineSpec> : MeshPipelineSpec
+struct RC<RenderTechnique> : RenderTechnique
 {
-	RC (const MeshPipelineSpec &);
+	RC (const RenderTechnique &);
 };
 
 template <>
-struct RC<Sampler> : Sampler
+struct RC<RayTracingPipeline> : RayTracingPipeline
 {
-	RC (const Sampler &);
+	RC (const RayTracingPipeline &);
 };
 
 template <>
-struct RC<FeatureSet> : FeatureSet
+struct RC<GraphicsPass> : GraphicsPass
 {
-	RC (const FeatureSet &);
+	RC (const GraphicsPass &);
+};
+
+template <>
+struct RC<ComputePipeline> : ComputePipeline
+{
+	RC (const ComputePipeline &);
+};
+
+template <>
+struct RC<TilePipeline> : TilePipeline
+{
+	RC (const TilePipeline &);
+};
+
+template <>
+struct RC<TilePipelineSpec> : TilePipelineSpec
+{
+	RC (const TilePipelineSpec &);
+};
+
+template <>
+struct RC<GraphicsPipelineSpec> : GraphicsPipelineSpec
+{
+	RC (const GraphicsPipelineSpec &);
+};
+
+template <>
+struct RC<PipelineLayout> : PipelineLayout
+{
+	RC (const PipelineLayout &);
+};
+
+template <>
+struct RC<RenderPass> : RenderPass
+{
+	RC (const RenderPass &);
+};
+
+template <>
+struct RC<AttachmentSpec> : AttachmentSpec
+{
+	RC (const AttachmentSpec &);
+};
+
+template <>
+struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
+{
+	RC (const RayTracingPipelineSpec &);
 };
 
 template <>
@@ -4840,44 +4887,38 @@ struct RC<MeshPipeline> : MeshPipeline
 };
 
 template <>
-struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
+struct RC<FeatureSet> : FeatureSet
 {
-	RC (const RayTracingPipelineSpec &);
+	RC (const FeatureSet &);
 };
 
 template <>
-struct RC<AttachmentSpec> : AttachmentSpec
+struct RC<Sampler> : Sampler
 {
-	RC (const AttachmentSpec &);
+	RC (const Sampler &);
 };
 
 template <>
-struct RC<RenderPass> : RenderPass
+struct RC<GraphicsPipeline> : GraphicsPipeline
 {
-	RC (const RenderPass &);
+	RC (const GraphicsPipeline &);
 };
 
 template <>
-struct RC<GraphicsPipelineSpec> : GraphicsPipelineSpec
+struct RC<MeshPipelineSpec> : MeshPipelineSpec
 {
-	RC (const GraphicsPipelineSpec &);
+	RC (const MeshPipelineSpec &);
 };
 
 template <>
-struct RC<PipelineLayout> : PipelineLayout
+struct RC<VertexBufferInput> : VertexBufferInput
 {
-	RC (const PipelineLayout &);
+	RC (const VertexBufferInput &);
 };
 
 template <>
-struct RC<TilePipelineSpec> : TilePipelineSpec
+struct RC<Attachment> : Attachment
 {
-	RC (const TilePipelineSpec &);
-};
-
-template <>
-struct RC<TilePipeline> : TilePipeline
-{
-	RC (const TilePipeline &);
+	RC (const Attachment &);
 };
 

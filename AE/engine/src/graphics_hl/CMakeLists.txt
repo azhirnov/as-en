@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if (TARGET "Graphics")
+if (TARGET "GraphicsRHI")
 
 	file( GLOB_RECURSE HPP_SOURCES "*.h" "*.as" )
 	if (NOT (DEFINED ENGINE_LIBS_PATH))
@@ -30,7 +30,7 @@ if (TARGET "Graphics")
 	source_group( "asset_packer" FILES ${ASSET_PACKER_HPP_SRC} ${ASSET_PACKER_CPP_SRC} )
 
 	set_property( TARGET "GraphicsHL" PROPERTY FOLDER "Engine" )
-	target_link_libraries( "GraphicsHL" PUBLIC "Graphics" "VFS" "Platform" )
+	target_link_libraries( "GraphicsHL" PUBLIC "GraphicsRHI" "VFS" "Platform" )
 	target_include_directories( "GraphicsHL" PUBLIC "${ASSET_PACKER_DIR}" )
 
 	if (TARGET "ImGUI-lib")

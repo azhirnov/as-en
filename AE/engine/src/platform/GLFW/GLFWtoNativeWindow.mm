@@ -3,7 +3,7 @@
 #include "base/Defines/StdInclude.h"
 
 #if defined(AE_ENABLE_GLFW) and defined(AE_PLATFORM_MACOS)
-# include "graphics/Public/MetalTypes.h"
+# include "graphics_rhi/Public/MetalTypes.h"
 # include "GLFWCommon.cpp.h"
 
 using AE::Graphics::MetalNSViewRC;

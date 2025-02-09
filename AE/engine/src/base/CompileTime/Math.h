@@ -79,7 +79,7 @@ namespace _hidden_
 =================================================
 */
 	template <auto Power, typename T>
-	inline constexpr T  CT_Pow (const T &base)
+	__CxIn T  CT_Pow (const T &base)
 	{
 		StaticAssert( IsInteger<T> and IsInteger<decltype(Power)> and Power >= 0 );
 
@@ -105,7 +105,7 @@ namespace _hidden_
 namespace _hidden_
 {
 	template <typename T>
-	ND_ constexpr uint  NumberOfSetBits (T i) __NE___
+	NdCx__ uint  NumberOfSetBits (T i) __NE___
 	{
 		if constexpr (sizeof(T) <= 4)
 		{
@@ -151,6 +151,5 @@ namespace _hidden_
 
 	template <typename T, auto Count>
 	static constexpr T	CT_ToBitMask = _hidden_::_ToBitMask< T, Count >::mask;
-
 
 } // AE::Base

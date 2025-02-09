@@ -18,12 +18,17 @@ namespace AE::Graphics
 */
 	bool  Canvas::_Alloc () __NE___
 	{
+		return _Alloc( _PositionVBufSize, _AttribsVBufSize, _IndexBufSize );
+	}
+
+	bool  Canvas::_Alloc (Bytes positionsSize, Bytes attribsSize, Bytes indicesSize) __NE___
+	{
 		CHECK_ERR( not _buffers.IsFull() );
 
 		BufferRange	range;
-		range.posCapacity		= _PositionVBufSize;
-		range.attribsCapacity	= _AttribsVBufSize;
-		range.indexCapacity		= _IndexBufSize;
+		range.posCapacity		= positionsSize;
+		range.attribsCapacity	= attribsSize;
+		range.indexCapacity		= indicesSize;
 
 		auto&			res_mngr = GraphicsScheduler().GetResourceManager();
 		VertexStream	vstream;
@@ -106,6 +111,30 @@ namespace AE::Graphics
 		_drawCalls.clear();
 	}
 
+/*
+=================================================
+	Discard
+=================================================
+*/
+	void  Canvas::Discard () __NE___
+	{
+		_buffers.clear();
+		_drawCalls.clear();
+	}
+
+/*
+=================================================
+	Reserve
+=================================================
+*/
+	bool  Canvas::Reserve (Bytes positionsSize, Bytes attribsSize, Bytes indicesSize) __NE___
+	{
+		if ( _buffers.empty() or not _buffers.back().HasSpace( positionsSize, attribsSize, indicesSize ))
+		{
+			return _Alloc( positionsSize, attribsSize, indicesSize );
+		}
+		return true;
+	}
 
 /*
 =================================================
@@ -217,8 +246,8 @@ namespace AE::Graphics
 		dc.indexCount	+= idx_count;
 		dc.vertexOffset	+= vert_count;
 
-		buf.posSize		+= SizeOf<FontPosition_t>   * vert_count;
-		buf.attribsSize	+= SizeOf<FontAttribs_t>    * vert_count;
+		buf.posSize		+= SizeOf<FontPosition_t>	* vert_count;
+		buf.attribsSize	+= SizeOf<FontAttribs_t>	* vert_count;
 		buf.indexSize	+= SizeOf<BatchIndex_t>		* idx_count;
 	}
 

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -221,7 +221,7 @@
 			case 2 :	return float4(ModHash12( inFloat.xy ));						// CC BY-NC-SA 3.0 |   any   |   0  .. 2500    | if scale is multiple of 2
 			case 3 :	return HEHashI( inFloat );									//       MIT       |   any   |   0  .. 3*10^38 | -
 			case 4 :	return HEHashF( inFloat );									//       MIT       |   any   | 10^3 .. 10^9    | -
-			case 5 :	return HashV3( inFloat );									// CC BY-NC-SA 3.0 |   >1    |   1  .. 100     | bad quality for >100, invalid for >40'000
+			case 5 :	return HashV3( inFloat );									// CC BY-NC-SA 3.0 |   >1    |   1  .. 10^6    |
 			case 6 :	return MHash( inFloat );									// CC BY-NC-SA 3.0 |   any   |   0  .. 3*10^38 |
 			case 7 :	return float4(UEFastHash12( inFloat.xy ));					//       ???       |  >100   | 100  .. 10^4    | bad quality for >10^4, invalid for >10^7
 			case 8 :	return float4(InterleavedGradientNoise12( inFloat.xy ));	//       ???       |  >100   | 100  .. 10^7    | visible pattern, bad quality for >10^7, invalid for >10^9

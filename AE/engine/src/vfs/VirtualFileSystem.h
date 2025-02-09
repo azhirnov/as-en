@@ -52,10 +52,12 @@ namespace AE::VFS
 	public:
 		ND_ virtual bool  Open (OUT RC<RStream> &stream, FileName::Ref name)								C_NE___ = 0;
 		ND_ virtual bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)								C_NE___ = 0;
+		ND_ virtual bool  Open (OUT RC<AsyncRStream> &stream, FileName::Ref name)							C_NE___ = 0;
 		ND_ virtual bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)							C_NE___ = 0;
 
 		ND_ virtual bool  Open (OUT RC<WStream> &stream, FileName::Ref name)								C_NE___ { Unused( stream, name );	return false; }
 		ND_ virtual bool  Open (OUT RC<WDataSource> &ds, FileName::Ref name)								C_NE___ { Unused( ds, name );		return false; }
+		ND_ virtual bool  Open (OUT RC<AsyncWStream> &stream, FileName::Ref name)							C_NE___ { Unused( stream, name );	return false; }
 		ND_ virtual bool  Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name)							C_NE___ { Unused( ds, name );		return false; }
 
 		ND_ virtual bool  CreateFile (OUT FileName &name, const Path &path)									C_NE___ { Unused( name, path );		return false; }
@@ -70,10 +72,12 @@ namespace AE::VFS
 
 		ND_ virtual bool  _OpenByIter (OUT RC<RStream> &stream, FileName::Ref name, const void* ref)		C_NE___ = 0;
 		ND_ virtual bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref name, const void* ref)		C_NE___ = 0;
+		ND_ virtual bool  _OpenByIter (OUT RC<AsyncRStream> &stream, FileName::Ref name, const void* ref)	C_NE___ = 0;
 		ND_ virtual bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref name, const void* ref)	C_NE___ = 0;
 
 		ND_ virtual bool  _OpenByIter (OUT RC<WStream> &stream, FileName::Ref name, const void* ref)		C_NE___ { Unused( stream, name, ref );	return false; }
 		ND_ virtual bool  _OpenByIter (OUT RC<WDataSource> &ds, FileName::Ref name, const void* ref)		C_NE___ { Unused( ds, name, ref );		return false; }
+		ND_ virtual bool  _OpenByIter (OUT RC<AsyncWStream> &stream, FileName::Ref name, const void* ref)	C_NE___ { Unused( stream, name, ref );	return false; }
 		ND_ virtual bool  _OpenByIter (OUT RC<AsyncWDataSource> &ds, FileName::Ref name, const void* ref)	C_NE___ { Unused( ds, name, ref );		return false; }
 	};
 
@@ -131,13 +135,13 @@ namespace AE::VFS
 
 		ND_ bool  Open (OUT RC<RStream> &stream, FileName::Ref name)							C_NE___;
 		ND_ bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)							C_NE___;
-		ND_ bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)						C_NE___;
 		ND_ bool  Open (OUT RC<AsyncRStream> &stream, FileName::Ref name)						C_NE___;
+		ND_ bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)						C_NE___;
 
 		ND_ bool  Open (OUT RC<WStream> &stream, FileName::Ref name)							C_NE___;
 		ND_ bool  Open (OUT RC<WDataSource> &ds, FileName::Ref name)							C_NE___;
-		ND_ bool  Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name)						C_NE___;
 		ND_ bool  Open (OUT RC<AsyncWStream> &stream, FileName::Ref name)						C_NE___;
+		ND_ bool  Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name)						C_NE___;
 
 		template <typename T>
 		ND_ RC<T>  Open (FileName::Ref name)													C_NE___;
@@ -189,6 +193,7 @@ namespace AE::VFS
 	{
 	public:
 		ND_ static RC<IVirtualFileStorage>  CreateStaticArchive (RC<RDataSource> archive)							__NE___;
+		ND_ static RC<IVirtualFileStorage>  CreateStaticArchive (RC<AsyncRDataSource>, RC<RDataSource>)				__NE___;
 		ND_ static RC<IVirtualFileStorage>  CreateStaticArchive (const Path &filename)								__NE___;
 
 		ND_ static RC<IVirtualFileStorage>  CreateStaticFolder (const Path &folder, StringView prefix = Default)	__NE___;

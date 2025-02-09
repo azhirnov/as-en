@@ -344,35 +344,39 @@ float3  CM_TangentialSC_Inverse (const float3 dir)
 	CM_TangentialSC_FastForward / CM_TangentialSC_FastInverse
 =================================================
 */
-float2  CM_TangentialSC_FastForward (const float2 snormCoord)
-{
-	const float	warp_theta		= 0.868734829276f;
-	const float	tan_warp_theta	= 1.182286685546f; //tan( warp_theta );
-	return FastTan( warp_theta * snormCoord ) / tan_warp_theta;
-}
+#if defined(AE_LICENSE_MIT) and defined(AE_ENABLE_UNKNOWN_LICENSE)
+	float2  CM_TangentialSC_FastForward (const float2 snormCoord)
+	{
+		const float	warp_theta		= 0.868734829276f;
+		const float	tan_warp_theta	= 1.182286685546f; //tan( warp_theta );
+		return FastTan( warp_theta * snormCoord ) / tan_warp_theta;
+	}
 
-float3  CM_TangentialSC_FastForward (const float2 snormCoord, const ECubeFace face)
-{
-	float2	coord = CM_TangentialSC_FastForward( snormCoord );
-	return Normalize( CM_RotateVec( float3(coord.x, coord.y, 1.f), face ));
-}
+	float3  CM_TangentialSC_FastForward (const float2 snormCoord, const ECubeFace face)
+	{
+		float2	coord = CM_TangentialSC_FastForward( snormCoord );
+		return Normalize( CM_RotateVec( float3(coord.x, coord.y, 1.f), face ));
+	}
 
-float2  CM_TangentialSC_FastInverse (const float2 snormCoord)
-{
-	const float	warp_theta		= 0.868734829276f;
-	const float	tan_warp_theta	= 1.182286685546f; //tan( warp_theta );
-	return FastATan( snormCoord * tan_warp_theta ) / warp_theta;
-}
+	float2  CM_TangentialSC_FastInverse (const float2 snormCoord)
+	{
+		const float	warp_theta		= 0.868734829276f;
+		const float	tan_warp_theta	= 1.182286685546f; //tan( warp_theta );
+		return FastATan( snormCoord * tan_warp_theta ) / warp_theta;
+	}
 
-float3  CM_TangentialSC_FastInverse (const float3 dir)
-{
-	float4	coord_face = CM_InverseRotation( dir );
-	return float3( CM_TangentialSC_FastInverse( coord_face.xy / coord_face.z ), coord_face.w );
-}
+	float3  CM_TangentialSC_FastInverse (const float3 dir)
+	{
+		float4	coord_face = CM_InverseRotation( dir );
+		return float3( CM_TangentialSC_FastInverse( coord_face.xy / coord_face.z ), coord_face.w );
+	}
+#endif
 
 /*
 =================================================
 	CM_EverittSC_Forward / CM_EverittSC_Inverse
+----
+	returns NaN if Abs(snormCoord) > 1.2
 =================================================
 */
 float2  CM_EverittSC_Forward (const float2 snormCoord)
@@ -519,6 +523,8 @@ float3  CM_COBE_SC_Inverse (const float3 dir)
 /*
 =================================================
 	CM_ArvoSC_Forward / CM_ArvoSC_Inverse
+----
+	returns NaN if Abs(snormCoord) > 1.5
 =================================================
 */
 float2  CM_ArvoSC_Forward (const float2 snormCoord)

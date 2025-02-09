@@ -21,6 +21,11 @@ ND_ float  SDF2_Triangle (const float2 position, const float2 p0, const float2 p
 ND_ float  SDF2_Pentagon (const float2 position, const float radius);
 ND_ float  SDF2_Hexagon (const float2 position, const float radius);
 ND_ float  SDF2_Octagon (const float2 position, const float radius);
+ND_	float  SDF2_QuadraticBezier (const float2 p, const float2 a, float2 b, const float2 c);
+ND_ float  SDF2_Trapezeoid (float2 position, const float r1, const float r2, const float height);
+ND_ float  SDF2_UnevenCapsule (float2 position, const float r1, const float r2, const float height);
+ND_ float  SDF2_Hexagram (float2 position, const float radius);
+ND_ float  SDF2_Star5 (float2 position, const float radius, const float rf);
 
 
 // 3D Shapes
@@ -52,11 +57,12 @@ ND_ float  SDF_OpIntersect (const float d1, const float d2);
 ND_ float  SDF_OpIntersect (const float d1, const float d2, float smoothFactor);
 ND_ float  SDF_OpRoundedShape (const float dist, const float radius);
 ND_ float  SDF_OpAnnularShape (const float dist, const float radius);
-ND_ float  SDF_OpExtrusion (const float posZ, const float dist, const float height);
+ND_ float  SDF_OpExtrusion (const float posZ, const float distXY, const float height);
 #if 0 // macros
 ND_ float  SDF_OpRevolution (const float3 position, float (*sdf)(float2), float offset);
 #endif
-ND_ float2  SDF_OpBlend (const float2 d1, const float2 d2);
+ND_ float  SDF_MinCubic (const float a, float b, float k);
+ND_ float2 SDF_OpBlend (const float2 dm1, const float2 dm2);
 
 
 ND_ float  SDF_Length2 (float3 position);
@@ -110,27 +116,28 @@ ND_ float  AA_Lines (float x, const float invStep, const float2 thicknessAndFall
 ND_ float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float falloffPx);
 ND_ float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float2 thicknessAndFalloffPx);
 
-#ifdef SH_FRAG
-	ND_ float2  AA_Line_dxdy (const float2 uv, float2 dist, const float2 thicknessAndFalloffPx);
-	ND_ float2  AA_Line_dxdy (const float3 uvw, float3 dist, const float2 thicknessAndFalloffPx);
-#endif
-#if defined(SH_COMPUTE) and defined(AE_shader_subgroup_basic)
-	ND_ float2  AA_Line_dxdy (const float2 uv, float2 dist, const float2 thicknessAndFalloffPx);
-	ND_ float2  AA_Line_dxdy (const float3 uvw, float3 dist, const float2 thicknessAndFalloffPx);
-#endif
-
 #if defined(SH_FRAG) or (defined(SH_COMPUTE) and defined(AE_shader_subgroup_basic))
+	ND_ float2  AA_Line_dxdy (const float2 uv, float2 dist, const float2 thicknessAndFalloffPx);
+	ND_ float2  AA_Line_dxdy (const float3 uv, float3 dist, const float2 thicknessAndFalloffPx);
+
 	ND_ float2  AA_Circles_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
+	ND_ float2  AA_CirclesSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
+
 	ND_ float2  AA_QuadGrid_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
+	ND_ float2  AA_QuadGrid_dxdy (const float3 uv, const float2 thicknessAndFalloffPx);
+	ND_ float2  AA_QuadGridSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
+
 	ND_ float2  AA_LinesX_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
 	ND_ float2  AA_LinesY_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
+
 	ND_ float2  AA_RadialLines_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx);
+	ND_ float2  AA_RadialLinesSubDiv_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx);
 #endif
 
 
 // Anti-aliased font
 #ifdef SH_FRAG
-	ND_ float2  SDF_Font (const float2 uv, const float dist, float3 thickness, const float2 uvToPx);
+	ND_ float2  AA_Font (const float2 uv, const float dist, float3 thickness, const float2 uvToPx);
 #endif
 //-----------------------------------------------------------------------------
 
@@ -162,7 +169,7 @@ float  MCSDF_Median (const float3 msd)
 float3  SDF_Isolines (const float dist)
 {
 	return	TriangleWave( dist ) *
-			(dist > 0.0 ? float3(1.0, 0.0, 0.0) : float3(0.2, 0.5, 1.0));
+			(dist > 0.0 ? float3(0.8, 0.4, 0.0) : float3(0.2, 0.5, 1.0));
 }
 
 /*
@@ -211,6 +218,64 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 
 /*
 =================================================
+	AA_Helper_dxdy_max_abs
+	AA_Helper_fwidth
+=================================================
+*/
+#ifdef SH_FRAG
+#	define Gen_DXDY_MAXABS1( _type_ )				\
+		_type_  AA_Helper_dxdy_max_abs (_type_ val)	\
+		{											\
+			_type_	dx	= Abs( gl.dFdxFine( val ));	\
+			_type_	dy	= Abs( gl.dFdyFine( val ));	\
+			return Max( dx, dy );					\
+		}											\
+		_type_  AA_Helper_fwidth (_type_ val)		\
+		{											\
+			return gl.fwidthFine( val );			\
+		}
+#endif
+#if defined(SH_COMPUTE) and defined(QuadGroup_dFdxFine)
+#	define Gen_DXDY_MAXABS1( _type_ )						\
+		_type_  AA_Helper_dxdy_max_abs (_type_ val)			\
+		{													\
+			_type_	dx	= Abs( QuadGroup_dFdxFine( val ));	\
+			_type_	dy	= Abs( QuadGroup_dFdyFine( val ));	\
+			return Max( dx, dy );							\
+		}													\
+		_type_  AA_Helper_fwidth (_type_ val)				\
+		{													\
+			return QuadGroup_fwidthFine( val );				\
+		}
+#endif
+
+#ifdef Gen_DXDY_MAXABS1
+	#define Gen_DXDY_MAXABS( _stype_, _vtype_ )	\
+		Gen_DXDY_MAXABS1( _stype_ )				\
+		Gen_DXDY_MAXABS1( UNITE( _vtype_, 2 ))	\
+		Gen_DXDY_MAXABS1( UNITE( _vtype_, 3 ))	\
+		Gen_DXDY_MAXABS1( UNITE( _vtype_, 4 ))
+
+	Gen_DXDY_MAXABS( float, float_vec_t )
+
+	#if AE_ENABLE_HALF_TYPE
+		Gen_DXDY_MAXABS( half, half_vec_t )
+	#endif
+	#if AE_ENABLE_DOUBLE_TYPE
+		Gen_DXDY_MAXABS( double, double_vec_t )
+	#endif
+
+	#undef Gen_DXDY_MAXABS1
+	#undef Gen_DXDY_MAXABS
+
+	#define AA_Helper_minDist	AA_Helper_dxdy_max_abs
+//	#define AA_Helper_minDist	AA_Helper_fwidth
+#endif
+
+#if defined(SH_FRAG) or (defined(SH_COMPUTE) and defined(QuadGroup_dFdxFine))
+
+/*
+=================================================
 	AA_Line_dxdy
 ----
 	'uv'	- must be in linear continuous space.
@@ -220,73 +285,25 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 		y - square length of gradient between pixels, can be used for fog to hide grid aliasing.
 =================================================
 */
-#ifdef SH_FRAG
+	float2  AA_Line_dxdy (const float uv, float dist, const float2 thicknessAndFalloffPx)
+	{
+		float	md	= AA_Helper_minDist( uv );		// minimal distance for 1px
+				dist = LinearStep( dist, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y );
+		return float2( dist, md );
+	}
+
 	float2  AA_Line_dxdy (const float2 uv, float2 dist, const float2 thicknessAndFalloffPx)
 	{
-		float2	dx	= Abs( gl.dFdxFine( uv ));
-		float2	dy	= Abs( gl.dFdyFine( uv ));
-		float2	md	= Max( dx, dy );		// minimal distance for 1px
+		float2	md	= AA_Helper_minDist( uv );		// minimal distance for 1px
 				dist = LinearStep( dist, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y );
-
-		float2	res;
-		res.x = MinOf( dist );
-		res.y = LengthSq( md );
-		return res;
+		return float2( MinOf( dist ), LengthSq( md ));
 	}
-#endif
-#if defined(SH_COMPUTE) and defined(QuadGroup_dFdxFine)
-	float2  AA_Line_dxdy (const float2 uv, float2 dist, const float2 thicknessAndFalloffPx)
+
+	float2  AA_Line_dxdy (const float3 uv, float3 dist, const float2 thicknessAndFalloffPx)
 	{
-		float2	dx	= Abs( QuadGroup_dFdxFine( uv ));
-		float2	dy	= Abs( QuadGroup_dFdyFine( uv ));
-		float2	md	= Max( dx, dy );		// minimal distance for 1px
+		float3	md	= AA_Helper_minDist( uv );		// minimal distance for 1px
 				dist = LinearStep( dist, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y );
-
-		float2	res;
-		res.x = MinOf( dist );
-		res.y = LengthSq( md );
-		return res;
-	}
-#endif
-
-#ifdef SH_FRAG
-	float2  AA_Line_dxdy (const float3 uvw, float3 dist, const float2 thicknessAndFalloffPx)
-	{
-		float3	dx	= Abs( gl.dFdxFine( uvw ));
-		float3	dy	= Abs( gl.dFdyFine( uvw ));
-		float3	md	= Max( dx, dy );		// minimal distance for 1px
-				dist = LinearStep( dist, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y );
-
-		float2	res;
-		res.x = MinOf( dist );
-		res.y = LengthSq( md );
-		return res;
-	}
-#endif
-#if defined(SH_COMPUTE) and defined(QuadGroup_dFdxFine)
-	float2  AA_Line_dxdy (const float3 uvw, float3 dist, const float2 thicknessAndFalloffPx)
-	{
-		float3	dx	= Abs( QuadGroup_dFdxFine( uvw ));
-		float3	dy	= Abs( QuadGroup_dFdyFine( uvw ));
-		float3	md	= Max( dx, dy );		// minimal distance for 1px
-				dist = LinearStep( dist, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y );
-
-		float2	res;
-		res.x = MinOf( dist );
-		res.y = LengthSq( md );
-		return res;
-	}
-#endif
-
-#if defined(SH_FRAG) or (defined(SH_COMPUTE) and defined(QuadGroup_dFdxFine))
-	float2  AA_QuadGrid_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
-	{
-		return AA_Line_dxdy( uv, TriangleWave( uv ), thicknessAndFalloffPx );
-	}
-
-	float2  AA_Circles_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
-	{
-		return AA_Line_dxdy( uv, float2(TriangleWave( Length( uv ))), thicknessAndFalloffPx );
+		return float2( MinOf( dist ), LengthSq( md ));
 	}
 
 	float2  AA_LinesX_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
@@ -299,16 +316,97 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 		return AA_Line_dxdy( uv, float2(TriangleWave( uv.y )), thicknessAndFalloffPx );
 	}
 
+/*
+=================================================
+	AA_QuadGrid_dxdy
+----
+	see 'AA_Line_dxdy' description
+=================================================
+*/
+	float2  AA_QuadGrid_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
+	{
+		return AA_Line_dxdy( uv, TriangleWave( uv ), thicknessAndFalloffPx );
+	}
+
+	float2  AA_QuadGrid_dxdy (const float3 uv, const float2 thicknessAndFalloffPx)
+	{
+		return AA_Line_dxdy( uv, TriangleWave( uv ), thicknessAndFalloffPx );
+	}
+
+/*
+=================================================
+	AA_QuadGridSubDiv_dxdy
+----
+	see 'AA_Line_dxdy' description
+=================================================
+*/
+	float2  AA_QuadGridSubDiv_dxdy (const float2 uv, const float3 scaleBias, const float2 thicknessAndFalloffPx)
+	{
+		float2	md	= AA_Helper_minDist( uv );				// minimal distance for 1px
+		float	s	= Max( 0.0, Log2( Length( md ) * scaleBias.x ) * scaleBias.y + scaleBias.z );
+		float	s3	= Max( 0.5, Exp2( Floor( s ) - 1.0 ));	// values: 0.5, 1, 2, 4 ...
+		float	s2	= s3 * 2.0;								// values: 1, 2, 4, 8 ...
+		float	s4	= Exp2( s - 1.0 );
+		float	f	= Saturate( (s4 - s3) / (s2 - s3) );
+
+		float	d0	= MinOf( LinearStep( TriangleWave( uv / s2 ) * s2, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y * 1.2 ));
+		float	d1	= MinOf( LinearStep( TriangleWave( uv / s3 ) * s3, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y ));
+
+		d0 = Saturate( Min( d0, d1 + f ));
+		return float2( d0, s );
+	}
+
+	float2  AA_QuadGridSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
+	{
+		return AA_QuadGridSubDiv_dxdy( uv, float3(60.0, 0.6, 0.1), thicknessAndFalloffPx );
+	}
+
+/*
+=================================================
+	AA_Circles_dxdy
+----
+	see 'AA_Line_dxdy' description
+=================================================
+*/
+	float2  AA_Circles_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
+	{
+		return AA_Line_dxdy( uv, float2(TriangleWave( Length( uv ))), thicknessAndFalloffPx );
+	}
+
+/*	float2  AA_CirclesSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
+	{
+	}
+
+/*
+=================================================
+	AA_RadialLines_dxdy
+----
+	see 'AA_Line_dxdy' description
+=================================================
+*/
 	float2  AA_RadialLines_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx)
 	{
 		float	angle	= ATan( uv.y, uv.x );	// -Pi..+Pi
 				angle	= (angle * float_InvPi * 0.5) * lineCount;
-		return AA_Line_dxdy( float2(angle), float2(TriangleWave( angle )), thicknessAndFalloffPx );
+		return AA_Line_dxdy( angle, TriangleWave( angle ), thicknessAndFalloffPx );
 	}
-#endif
+
 /*
 =================================================
-	SDF_Font
+	AA_RadialLinesSubDiv_dxdy
+----
+	see 'AA_Line_dxdy' description
+=================================================
+*
+	float2  AA_RadialLinesSubDiv_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx);
+	{
+	}
+*/
+#endif // SH_FRAG or QuadGroup_dFdxFine
+
+/*
+=================================================
+	AA_Font
 ----
 	'uv'		- must be in linear continuous space.
 	'thickness'	- x - glyph thickness (inner),
@@ -317,15 +415,13 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 	'uvToPx'	- size of font texture.
 	Returns:
 		x - unorm gradient, where zero is glyph center.
-		y - square length of gradient between pixels, can be used for fog to hide grid aliasing.
+		y - square length of gradient between pixels, can be used for fog to hide font aliasing.
 =================================================
 */
 #ifdef SH_FRAG
-	float2  SDF_Font (const float2 uv, const float dist, float3 thickness, const float2 uvToPx)
+	float2  AA_Font (const float2 uv, const float dist, float3 thickness, const float2 uvToPx)
 	{
-		float2	dx	= Abs( gl.dFdxFine( uv ));
-		float2	dy	= Abs( gl.dFdyFine( uv ));
-		float2	md	= Max( dx, dy );		// minimal distance for 1px
+		float2	md	= AA_Helper_minDist( uv );		// minimal distance for 1px
 
 		thickness.xy += float2(-0.5, 0.5) * thickness.z * MinOf( md * uvToPx );
 

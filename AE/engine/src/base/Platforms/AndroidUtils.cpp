@@ -13,7 +13,7 @@
 
 # include "base/Platforms/AndroidUtils.h"
 # include "base/Algorithms/ArrayUtils.h"
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {
@@ -27,6 +27,7 @@ namespace AE::Base
 		return Base::_hidden_::SecureZeroMemFallback( OUT ptr, size );
 	}
 
+#ifndef AE_CFG_RELEASE
 /*
 =================================================
 	SetCurrentThreadName
@@ -37,10 +38,14 @@ namespace AE::Base
 		StaticLogger::SetCurrentThreadName( StringView{name} );
 
 		ASSERT( name.length() <= 16 );
-		int	res = prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
-		ASSERT( res == 0 );  Unused( res );
 
-		// TODO: pthread_setname_np ?
+	  #if 1
+		int	res = ::prctl( PR_SET_NAME, (unsigned long) name.c_str(), 0, 0, 0 );
+	  #else
+		int	res = ::pthread_setname_np( ::pthread_self(), name.c_str() );
+	  #endif
+
+		ASSERT( res == 0 );  Unused( res );
 	}
 
 /*
@@ -51,10 +56,16 @@ namespace AE::Base
 	String  AndroidUtils::GetCurrentThreadName ()
 	{
 		char	buf [16];
-		int		res = prctl( PR_GET_NAME, buf, 0, 0, 0 );
+	  #if 1
+		int res = ::prctl( PR_GET_NAME, OUT buf, 0, 0, 0 );
+	  #else
+		int res = ::pthread_getname_np( ::pthread_self(), OUT buf, 16 );
+	  #endif
 		ASSERT( res == 0 );  Unused( res );
 		return String{buf};
 	}
+#endif // AE_CFG_RELEASE
+
 /*
 =================================================
 	GetCurrentThreadHandle
@@ -70,19 +81,19 @@ namespace AE::Base
 	SetThreadAffinity
 =================================================
 */
-	bool  AndroidUtils::SetThreadAffinity (const ThreadHandle &handle, uint coreIdx) __NE___
+	bool  AndroidUtils::SetThreadAffinity (const ThreadHandle &handle, uint logicalCoreIdx) __NE___
 	{
-		ASSERT( handle == GetCurrentThreadHandle() );
-		return SetCurrentThreadAffinity( coreIdx );
+		CHECK_ERR( handle == GetCurrentThreadHandle() );
+		return SetCurrentThreadAffinity( logicalCoreIdx );
 	}
 
-	bool  AndroidUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
+	bool  AndroidUtils::SetCurrentThreadAffinity (const uint logicalCoreIdx) __NE___
 	{
-		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
+		ASSERT_Lt( logicalCoreIdx, std::thread::hardware_concurrency() );
 
 		::cpu_set_t  mask;
 		CPU_ZERO( OUT &mask );
-		CPU_SET( coreIdx, INOUT &mask );
+		CPU_SET( logicalCoreIdx, INOUT &mask );
 
 		return ::sched_setaffinity( 0, sizeof(mask), &mask ) == 0;
 	}
@@ -92,14 +103,14 @@ namespace AE::Base
 	SetThreadPriority
 =================================================
 */
-	bool  AndroidUtils::SetThreadPriority (const ThreadHandle &handle, float priority) __NE___
+	bool  AndroidUtils::SetThreadPriority (const ThreadHandle &handle, EThreadPriority priority) __NE___
 	{
 		// TODO
 		Unused( handle, priority );
 		return false;
 	}
 
-	bool  AndroidUtils::SetCurrentThreadPriority (float priority) __NE___
+	bool  AndroidUtils::SetCurrentThreadPriority (EThreadPriority priority) __NE___
 	{
 		// TODO
 		Unused( priority );
@@ -108,10 +119,10 @@ namespace AE::Base
 
 /*
 =================================================
-	GetProcessorCoreIndex
+	GetLogicalCoreIndex
 =================================================
 */
-	uint  AndroidUtils::GetProcessorCoreIndex () __NE___
+	uint  AndroidUtils::GetLogicalCoreIndex () __NE___
 	{
 		return ::sched_getcpu();
 	}
@@ -164,6 +175,7 @@ namespace AE::Base
 	#else
 		switch ( android_get_device_api_level() )
 		{
+			case 35 :	return Version3{ 15, 0, 0 };
 			case 34 :	return Version3{ 14, 0, 0 };
 			case 33 :	return Version3{ 13, 0, 0 };
 			case 32 :

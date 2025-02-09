@@ -31,8 +31,8 @@ namespace AE::Serializing
 	template <uint F, uint B, typename T>
 	bool  BitDeserializer::_Deserialize (INOUT PackedBits<F,B,T> &value) __NE___
 	{
-		const uint	bit_cnt = value.MaxBitCount();
-		BitType		bits	= _packedBits;
+		constexpr uint	bit_cnt = PackedBits<F,B,T>::MaxBitCount();
+		BitType			bits	= _packedBits;
 
 		if_likely( _bitCount >= bit_cnt )
 		{

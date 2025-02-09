@@ -48,7 +48,8 @@ namespace AE::ResEditor
 	private:
 		ND_ static RenderTaskCoro  _Blit (RC<Present> self, IOutputSurface &);
 
-		static CoroTask  _SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt, bool);
+		static CoroTask  _SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt);
+		static CoroTask  _ScreenshotTest (RC<ResLoader::IntermImage> image, EImageFormat fmt);
 
 		RC<IVideoEncoder>  _CreateEncoder (float bitrate, EVideoFormat, EVideoCodec, EVideoColorPreset) const;
 	};
@@ -207,7 +208,7 @@ namespace AE::ResEditor
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
 		bool		Execute (SyncPassData &)							__Th_OV;
-		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV {}
 	};
 
 
@@ -232,7 +233,7 @@ namespace AE::ResEditor
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
 		bool		Execute (SyncPassData &)							__Th_OV;
-		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
 	};
 
 
@@ -257,7 +258,7 @@ namespace AE::ResEditor
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
 		bool		Execute (SyncPassData &)							__Th_OV;
-		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
 	};
 
 
@@ -282,7 +283,7 @@ namespace AE::ResEditor
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
 		bool		Execute (SyncPassData &)							__Th_OV;
-		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
 	};
 
 
@@ -335,6 +336,32 @@ namespace AE::ResEditor
 	public:
 		explicit ClearBufferPass (RC<Buffer> buffer, Bytes offset, Bytes size, uint value, StringView dbgName) __NE___ :
 			IPass{dbgName}, _buffer{RVRef(buffer)}, _offset{offset}, _size{size}, _value{value} {}
+
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
+		bool		Execute (SyncPassData &)							__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+	};
+
+
+
+	//
+	// Read Buffer Value pass
+	//
+
+	class ReadBufferValuePass final : public IPass
+	{
+	// variables
+	private:
+		RC<Buffer>				_srcBuffer;
+		Bytes					_offset;
+		Bytes					_size;
+		AnyDynVecOrScalar_t		_dstValue;
+
+	// methods
+	public:
+		ReadBufferValuePass (RC<Buffer> buf, Bytes offset, Bytes size, AnyDynVecOrScalar_t dst) __NE___ :
+			_srcBuffer{RVRef(buf)}, _offset{offset}, _size{size}, _dstValue{RVRef(dst)} {}
 
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }

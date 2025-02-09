@@ -22,7 +22,7 @@ namespace AE::Scripting
 
 	// types
 	private:
-		using Result_t	= Conditional< IsSameTypes<R, void>, bool, Optional<R> >;
+		using Result_t	= Conditional< IsSame<R, void>, bool, Optional<R> >;
 		using Self		= ScriptFn< R (Types...) >;
 
 
@@ -73,7 +73,7 @@ namespace AE::Scripting
 
 		if_unlikely( not (_module and _ctx != null) )
 		{
-			if constexpr( IsSameTypes<R, void> ) {
+			if constexpr( IsSame<R, void> ) {
 				RETURN_ERR( "not initialized", false );
 			}else{
 				RETURN_ERR( "not initialized", Optional<R>{} );
@@ -85,7 +85,7 @@ namespace AE::Scripting
 		const int	exec_res = _ctx->Execute();
 		// result same as _ctx->GetState();
 
-		if constexpr( IsSameTypes<R, void> )
+		if constexpr( IsSame<R, void> )
 		{
 			if_likely( exec_res == asEXECUTION_FINISHED )
 				return true;

@@ -20,8 +20,25 @@ namespace {
 */
 	RasterFont::~RasterFont () __NE___
 	{
-		if ( _imageId )
-			GraphicsScheduler().GetResourceManager().DelayedReleaseResources( _imageId, _viewId );
+		if ( _viewId )
+			GraphicsScheduler().GetResourceManager().DelayedReleaseResources( _viewId );
+	}
+
+/*
+=================================================
+	GetImageDesc / GetViewDesc
+=================================================
+*/
+	ImageDesc  RasterFont::GetImageDesc () C_NE___
+	{
+		ASSERT( _imageId );
+		return GraphicsScheduler().GetResourceManager().GetDescription( _imageId );
+	}
+
+	ImageViewDesc  RasterFont::GetViewDesc () C_NE___
+	{
+		ASSERT( _viewId );
+		return GraphicsScheduler().GetResourceManager().GetDescription( _viewId );
 	}
 
 /*
@@ -29,15 +46,15 @@ namespace {
 	ValidateHeight
 =================================================
 */
-	uint  RasterFont::ValidateHeight (float heightInPx) C_NE___
+	uint  RasterFont::ValidateHeight (float heightPx) C_NE___
 	{
 		if_unlikely( _fontHeight.empty() )
 			return 0;
 
 		// SDF must have x2 lower resolution
-		heightInPx *= IsSDF() ? 0.5f : 1.0f;
+		heightPx *= IsSDF() ? 0.5f : 1.0f;
 
-		if_unlikely( heightInPx <= float(_fontHeight.front()) )
+		if_unlikely( heightPx <= float(_fontHeight.front()) )
 			return _fontHeight.front();
 
 		for (usize i = 1; i < _fontHeight.size(); ++i)
@@ -45,10 +62,10 @@ namespace {
 			float	h1 = float(_fontHeight[i-1]);
 			float	h2 = float(_fontHeight[i]);
 
-			if_unlikely( heightInPx <= h2 )
+			if_unlikely( heightPx <= h2 )
 			{
-				return heightInPx < Lerp( h1, h2, 0.5f ) ?
-						_fontHeight[i-1] : _fontHeight[i];
+				return	heightPx < Lerp( h1, h2, 0.5f ) ?
+							_fontHeight[i-1] : _fontHeight[i];
 			}
 		}
 
@@ -57,24 +74,12 @@ namespace {
 
 /*
 =================================================
-	ScreenPixRange
-=================================================
-*/
-	float  RasterFont::ScreenPixRange (float heightInPx) C_NE___
-	{
-		ASSERT( IsSDF() );
-		// = font_height / bitmap_size * pixel_range
-		return heightInPx / float(ValidateHeight( heightInPx )) * _sdfConfig.pixRange2D;
-	}
-
-/*
-=================================================
 	GetGlyph
 =================================================
 */
-	RasterFont::Glyph const*  RasterFont::GetGlyph (CharUtf32 symbol, uint height) C_NE___
+	RasterFont::Glyph const*  RasterFont::GetGlyph (CharUtf32 symbol, uint heightPx) C_NE___
 	{
-		GlyphKey	key { symbol, height };
+		GlyphKey	key { symbol, heightPx };
 		auto		it	= _glyphMap.find( key );
 
 		return it != _glyphMap.end() ? &it->second : null;
@@ -85,7 +90,7 @@ namespace {
 	CalculateDimensions
 =================================================
 */
-	void  RasterFont::CalculateDimensions (const float2 &areaSizeInPix, INOUT PrecalculatedFormattedText &result) C_NE___
+	void  RasterFont::CalculateDimensions (const float2 &areaSizePx, INOUT PrecalculatedFormattedText &result) C_NE___
 	{
 		using Chunk = FormattedText::Chunk;
 
@@ -129,7 +134,7 @@ namespace {
 
 				const float	width_px = glyph->advance * font_scale_px;
 
-				if_unlikely( result.IsWordWrap() and (line_px.x + width_px > areaSizeInPix.x) )
+				if_unlikely( result.IsWordWrap() and (line_px.x + width_px > areaSizePx.x) )
 					ToNextLine( chunk );
 				else
 					line_px.x += width_px;
@@ -144,18 +149,105 @@ namespace {
 
 /*
 =================================================
-	operator =
+	_ConvertPixelsToUNorm
 =================================================
 */
-	RasterFont&  RasterFont::operator = (RasterFont &&rhs) __NE___
+	void  RasterFont::_ConvertPixelsToUNorm (const float2 invImageDim) __NE___
 	{
-		_imageId	= RVRef(rhs._imageId);
-		_viewId		= RVRef(rhs._viewId);
-		_glyphMap	= RVRef(rhs._glyphMap);
-		_fontHeight	= rhs._fontHeight;
-		_sdfConfig	= rhs._sdfConfig;
+		for (auto& glyph : _glyphMap)
+		{
+			glyph.second.texcoord = FloatToUNormShort( RectF{glyph.second.texcoord} * invImageDim );
+		}
+	}
 
-		return *this;
+/*
+=================================================
+	Loader::OnUploadCompleteTask
+=================================================
+*/
+	class RasterFont::Loader::OnUploadCompleteTask final : public Threading::IAsyncTask
+	{
+	private:
+		RC<RasterFont>							_font;
+		ResourceUploadManager::UploadResult		_upload;
+
+	public:
+		OnUploadCompleteTask (RC<RasterFont> font, ResourceUploadManager::UploadResult upload) __NE___ :
+			IAsyncTask{ ETaskQueue::Background }, _font{RVRef(font)}, _upload{RVRef(upload)} {}
+
+		void  Run () __Th_OV
+		{
+			bool	ok = _upload ? _upload->IsCompleted() : true;
+			_font->_SetLoadingStatus( ok ? ELoadingStatus::Complete : ELoadingStatus::Failed );
+
+			_font   = null;
+			_upload = null;
+		}
+
+		DEBUG_ONLY( void  OnCancel ()	__NE_OV { DBG_WARNING("should never happens"); })
+
+		StringView  DbgName ()			C_NE_OV { return "on image loading complete"; }
+	};
+
+/*
+=================================================
+	Loader::_Load
+=================================================
+*/
+	bool  RasterFont::Loader::_Load (Serializing::Deserializer &des, ResourceCache &resCache, CachedResourceName::Ref selfName,
+									 OUT RC<RasterFont> &font, OUT ResourceUploadManager::UploadResult* outUploadTask) __NE___
+	{
+		RasterFontPacker	unpacker;
+		CHECK_ERR( RasterFontPacker_Deserialize( OUT unpacker, des ));
+
+		CHECK_ERR( unpacker.ImageHeader() == null );
+		CHECK_ERR( unpacker.ImageResourceName().IsDefined() );
+
+		font = MakeRC<RasterFont>();
+		font->_glyphMap		= RVRef(unpacker.glyphMap);
+		font->_fontHeight	= unpacker.fontHeight;
+		font->_sdfConfig	= unpacker.sdfConfig;
+
+		auto	img_res = resCache.GetResource<LoadableImage>( CachedResourceName{unpacker.ImageResourceName()} );
+		CHECK_ERR_MSG( img_res, "RasterFont image must be in resource cache!" );
+
+		auto	upload = img_res->OnUploadComplete();
+		if ( outUploadTask != null )
+			*outUploadTask = upload;
+
+		auto	status = img_res->LoadingStatus();
+		CHECK_ERR( status >= ELoadingStatus::Created );
+
+		font->_viewId = img_res->CloneImageView();
+		CHECK_ERR( font->_viewId );
+
+		font->_imageId = img_res->ImageId();
+		font->_SetLoadingStatus( status );
+
+		font->_ConvertPixelsToUNorm( 1.0f / float2{img_res->GetImageDesc().Dimension2()} );
+
+		if ( selfName.IsDefined() )
+		{
+			if ( auto cached = resCache.InsertResource( selfName, font ))
+			{
+				ASSERT( cached->ImageId() == font->ImageId() );
+				font = RVRef(cached);
+				return true;
+			}
+		}
+
+		// update status after uploading
+		if ( upload )
+		{
+			Scheduler().Run<OnUploadCompleteTask>( Tuple{font, upload}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+		}
+		else
+		{
+			status = img_res->LoadingStatus();
+			CHECK_ERR( status == ELoadingStatus::Complete );
+			font->_SetLoadingStatus( status );
+		}
+		return true;
 	}
 
 /*
@@ -163,33 +255,89 @@ namespace {
 	Loader::Load
 =================================================
 */
-	RC<RasterFont>  RasterFont::Loader::Load (RC<RStream> stream, ITransferContext &ctx, const GfxMemAllocatorPtr &alloc) __NE___
+	RC<RasterFont>  RasterFont::Loader::Load (Serializing::Deserializer &des, ResourceCache &resCache, CachedResourceName::Ref selfName) __NE___
 	{
-		CHECK_ERR( stream and stream->IsOpen() );
+		RC<RasterFont>	font;
+		Unused( _Load( des, resCache, selfName, OUT font, null ));
+		return font;
+	}
+
+/*
+=================================================
+	Loader::LoadAsync
+=================================================
+*/
+	Promise<RC<RasterFont>>  RasterFont::Loader::LoadAsync (Serializing::Deserializer &des, ResourceCache &resCache, CachedResourceName::Ref selfName) __NE___
+	{
+		RC<RasterFont>						font;
+		ResourceUploadManager::UploadResult	upload;
+
+		if ( _Load( des, resCache, selfName, OUT font, OUT &upload ))
+		{
+			return MakePromiseFromValue( RVRef(font),
+										 Tuple{RVRef(upload)},
+										 "RasterFont.LoadAsync",
+										 ETaskQueue::Background );
+		}else
+			return Default;
+	}
+
+/*
+=================================================
+	Loader::Load
+=================================================
+*/
+	RC<RasterFont>  RasterFont::Loader::Load (RC<Threading::AsyncRDataSource> file, GfxMemAllocatorPtr alloc, ResourceUploadManager &uploadMngr) __NE___
+	{
+		CHECK_ERR( file );
 
 		RasterFontPacker	unpacker;
-		auto&				header	= unpacker.Header();
+		Bytes				file_offset;
 		{
-			Serializing::Deserializer	des{ MakeRC<BufferedRStream>( stream )};
-			CHECK_ERR( RasterFontPacker_Deserialize( unpacker, des ));
+			auto	stream = MakeRC<BufferedRStream>( MakeRC<Threading::SyncRStreamOnAsyncDS>( file ));
+			{
+				Serializing::Deserializer	des {stream};
+				CHECK_ERR( RasterFontPacker_Deserialize( OUT unpacker, des ));
+				CHECK_ERR( AllBits( unpacker._header.flags, RasterFontPacker::EFileFlags::HasImage ));
+			}
+			file_offset = stream->Position();
 		}
 
+		auto&	img_header	= *unpacker.ImageHeader();
 		auto	font		= MakeRC<RasterFont>();
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
 
-		font->_imageId = res_mngr.CreateImage( header.ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, alloc );
-		CHECK_ERR( font->_imageId );
+		GAutorelease<ImageID>	image_id = res_mngr.CreateImage( img_header.ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, RVRef(alloc) );
+		CHECK_ERR( image_id );
 
-		font->_viewId = res_mngr.CreateImageView( header.ToViewDesc(), font->_imageId, Default );
+		font->_viewId = res_mngr.CreateImageView( ImageViewDesc{img_header.viewType}, image_id );
 		CHECK_ERR( font->_viewId );
 
-		CHECK_ERR( LoadableImage::Loader::_Load( *stream, font->_imageId, &header, ctx ));
+		auto	upload = uploadMngr.CreateTask();
+		CHECK_ERR( upload );
+
+		font->_SetLoadingStatus( ELoadingStatus::Created );
+
+		CHECK_ERR( uploadMngr.EnqueueImage( upload, image_id, RVRef(file), file_offset,
+											EUploadFlags::UsedWhileUploading, Default, EResourceState::FragmentShader | EResourceState::ShaderSample ));
+
+		font->_SetLoadingStatus( ELoadingStatus::Uploading );
 
 		font->_glyphMap		= RVRef(unpacker.glyphMap);
 		font->_fontHeight	= unpacker.fontHeight;
 		font->_sdfConfig	= unpacker.sdfConfig;
 
+		font->_ConvertPixelsToUNorm( 1.0f / float2{img_header.dimension} );
+
+		Scheduler().Run<OnUploadCompleteTask>( Tuple{font, upload}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
 		return font;
+	}
+
+	RC<RasterFont>  RasterFont::Loader::Load (VFS::FileName::Ref name, GfxMemAllocatorPtr alloc, ResourceUploadManager &uploadMngr) __NE___
+	{
+		RC<Threading::AsyncRDataSource>		file;
+		CHECK_ERR( GetVFS().Open( OUT file, name ));
+		return Loader::Load( RVRef(file), RVRef(alloc), uploadMngr );
 	}
 
 } // AE::Graphics

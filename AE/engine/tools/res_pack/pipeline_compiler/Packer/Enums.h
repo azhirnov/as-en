@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/ResourceEnums.h"
+#include "graphics_rhi/Public/ResourceEnums.h"
 
 namespace AE::PipelineCompiler
 {

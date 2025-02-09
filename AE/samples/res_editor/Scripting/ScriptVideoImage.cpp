@@ -27,7 +27,7 @@ namespace
 */
 	ScriptVideoImage::ScriptVideoImage (EPixelFormat format, const String &filename) __Th___ :
 		_format{ format },
-		_imageType{uint( EImageType::Img2D | EImageType::Float )},
+		_imageType{uint( EImageType::Dim2D | EImageType::Float )},
 		_videoFile{ filename }
 	{
 		CHECK_THROW_MSG( GetVFS().Exists( _videoFile ),
@@ -38,7 +38,7 @@ namespace
 
 		_resUsage |= EResourceUsage::UploadedData;
 
-		_outDynSize = ScriptDynamicDimPtr{ new ScriptDynamicDim{ new DynamicDim{ uint3{}, EImageDim_2D } }};
+		_outDynSize = ScriptDynamicDimPtr{ new ScriptDynamicDim{ MakeRC<DynamicDim>( uint3{}, EImageDim_2D )}};
 
 		_videoInfo = MakePromise(
 			[fname = _videoFile] () -> PromiseResult< VideoStreamInfo >

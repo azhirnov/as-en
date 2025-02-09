@@ -553,7 +553,7 @@ namespace
 		binder.AddMethod( &RayTracingPipelineSpecScriptBinding::SetDynamicState,	"SetDynamicState",	{"states"} );
 
 		binder.Comment( "Attach pipeline to the render technique.\n"
-						"When rtech is created it will create all attached pipelines." );
+						"Render technique will create all attached pipelines during its creation." );
 		binder.AddMethod( &RayTracingPipelineSpecScriptBinding::AddToRenderTech,	"AddToRenderTech",	{"rtech", "cpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"

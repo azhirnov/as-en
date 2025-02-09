@@ -21,8 +21,8 @@ namespace
 		dsl->AddUniformBuffer( EShaderStages::Vertex, "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, False{} );
 		dsl->AddStorageBuffer( EShaderStages::Vertex | EShaderStages::Fragment, "storageBuf", ArraySize{2}, "ubuf", EAccessType::Coherent, EResourceState::ShaderStorage_RW, False{} );
 		dsl->AddUniformTexelBuffer( EShaderStages::Fragment, "texBuffer", ArraySize{1}, EImageType::UInt | EImageType::Buffer, EResourceState::ShaderSample );
-		dsl->AddStorageImage( EShaderStages::Fragment, "storageImage", ArraySize{1}, EImageType::Img2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
-		dsl->AddCombinedImage( EShaderStages::Fragment, "colorTex", ArraySize{1}, EImageType::Float | EImageType::Img2D, EResourceState::ShaderSample );
+		dsl->AddStorageImage( EShaderStages::Fragment, "storageImage", ArraySize{1}, EImageType::Dim2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+		dsl->AddCombinedImage( EShaderStages::Fragment, "colorTex", ArraySize{1}, EImageType::Float | EImageType::Dim2D, EResourceState::ShaderSample );
 		dsl->AddImmutableSampler( EShaderStages::Fragment, "imtblSampler", "DefSampler" );
 		TEST( dsl->Build() );
 
@@ -35,7 +35,7 @@ namespace
 		const String	ref = R"(
 #if SH_VERT
   // state: ShaderUniform | VertexProcessingShaders
-  // size: 32 b
+  // size: 32 B
   layout(set=1, binding=0, std140) uniform AE_Type_ubuf {
 	layout(offset=0, align=16) uvec4  u;
 	layout(offset=16, align=16) ivec4  i;
@@ -43,7 +43,7 @@ namespace
 #endif
 #if SH_VERT | SH_FRAG
   // state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader
-  // static size: 32 b, array stride: 0 b
+  // static size: 32 B, array stride: 0 B
   layout(set=1, binding=1, std430) coherent buffer AE_Type_ubuf {
 	layout(offset=0, align=16) uvec4  u;
 	layout(offset=16, align=16) ivec4  i;
@@ -81,14 +81,14 @@ extern void  UnitTest_DSLayout_GLSL ()
 	#endif
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
+	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
-	fs->fs.perDescrSet.maxUniformBuffers = 8;
-	fs->fs.perDescrSet.maxStorageBuffers = 8;
-	fs->fs.perDescrSet.maxStorageImages = 8;
-	fs->fs.perDescrSet.maxSampledImages = 8;
-	fs->fs.perDescrSet.maxSamplers = 8;
-	fs->fs.perDescrSet.maxTotalResources = 1024;
+	fs->fs.perPipeline.maxUniformBuffers = 8;
+	fs->fs.perPipeline.maxStorageBuffers = 8;
+	fs->fs.perPipeline.maxStorageImages = 8;
+	fs->fs.perPipeline.maxSampledImages = 8;
+	fs->fs.perPipeline.maxSamplers = 8;
+	fs->fs.perPipeline.maxTotalResources = 1024;
 	fs->fs.perStage.maxUniformBuffers = 8;
 	fs->fs.perStage.maxStorageBuffers = 8;
 	fs->fs.perStage.maxStorageImages = 8;

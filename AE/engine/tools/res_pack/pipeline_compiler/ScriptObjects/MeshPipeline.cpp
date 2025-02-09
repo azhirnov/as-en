@@ -216,8 +216,8 @@ namespace
 
 		if ( task )
 		{
-			desc.taskDefaultLocalSize	= ushort3{ task->reflection.mesh.taskGroupSize };
-			desc.taskLocalSizeSpec		= ushort3{ task->reflection.mesh.taskGroupSpec };
+			desc.taskDefaultLocalSize	= WGLocalSize_t{ task->reflection.mesh.taskGroupSize };
+			desc.taskLocalSizeSpec		= WGLocalSizeSpec_t{ task->reflection.mesh.taskGroupSpec };
 			CHECK( desc.shaders.insert_or_assign( EShader::MeshTask, task->uid ).second );
 		}
 
@@ -226,8 +226,8 @@ namespace
 			desc.outputTopology			= mesh->reflection.mesh.topology;
 			desc.maxVertices			= mesh->reflection.mesh.maxVertices;
 			desc.maxIndices				= mesh->reflection.mesh.maxIndices;
-			desc.meshDefaultLocalSize	= ushort3{ mesh->reflection.mesh.meshGroupSize };
-			desc.meshLocalSizeSpec		= ushort3{ mesh->reflection.mesh.meshGroupSpec };
+			desc.meshDefaultLocalSize	= WGLocalSize_t{ mesh->reflection.mesh.meshGroupSize };
+			desc.meshLocalSizeSpec		= WGLocalSizeSpec_t{ mesh->reflection.mesh.meshGroupSpec };
 			CHECK( desc.shaders.insert_or_assign( EShader::Mesh, mesh->uid ).second );
 		}
 
@@ -471,7 +471,7 @@ namespace
 		CHECK_THROW_MSG( GetBase() != null and GetBase()->task, "task shader is not compiled" );
 
 		const uint3	spec		= uint3{ GetBase()->task->reflection.mesh.taskGroupSpec };
-		uint		total_size	= Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxTaskWorkGroupSize ));
+		uint		total_size	= Max( 1u, uint{GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxTaskWorkGroupSize )});
 
 		_SetLocalGroupSize( "task localSize ", spec, uint3{total_size}, total_size, uint3{x,y,z}, OUT desc.taskLocalSize );
 	}
@@ -486,9 +486,43 @@ namespace
 		CHECK_THROW_MSG( GetBase() != null and GetBase()->mesh, "mesh shader is not compiled" );
 
 		const uint3	spec		= uint3{ GetBase()->mesh->reflection.mesh.meshGroupSpec };
-		uint		total_size	= Max( 1u, GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxMeshWorkGroupSize ));
+		uint		total_size	= Max( 1u, uint{GetMaxValueFromFeatures( GetBase()->GetFeatures(), &FeatureSet::maxMeshWorkGroupSize )});
 
 		_SetLocalGroupSize( "mesh localSize ", spec, uint3{total_size}, total_size, uint3{x,y,z}, OUT desc.meshLocalSize );
+	}
+
+/*
+=================================================
+	SetTaskGroupSizeAtLoadTime
+=================================================
+*/
+	void  MeshPipelineSpecScriptBinding::SetTaskGroupSizeAtLoadTime () __Th___
+	{
+		CHECK_THROW_MSG( GetBase() != null and GetBase()->task, "task shader is not compiled" );
+		CHECK_THROW_MSG( All( desc.taskLocalSize == Zero ), "Task local size is already set" );
+
+		const auto&	spec = GetBase()->task->reflection.mesh.taskGroupSpec;
+		CHECK_THROW_MSG( All( spec != uint3{~0u} ),
+			"All specialization constants must be enabled to use load time local size" );
+
+		desc.taskLocalSize = WGLocalSize_t{BasePipelineDesc::LoadTimeLocalSize};
+	}
+
+/*
+=================================================
+	SetMeshGroupSizeAtLoadTime
+=================================================
+*/
+	void  MeshPipelineSpecScriptBinding::SetMeshGroupSizeAtLoadTime () __Th___
+	{
+		CHECK_THROW_MSG( GetBase() != null and GetBase()->mesh, "mesh shader is not compiled" );
+		CHECK_THROW_MSG( All( desc.meshLocalSize == Zero ), "Mesh local size is already set" );
+
+		const auto&	spec = GetBase()->mesh->reflection.mesh.meshGroupSpec;
+		CHECK_THROW_MSG( All( spec != uint3{~0u} ),
+			"All specialization constants must be enabled to use load time local size" );
+
+		desc.meshLocalSize = WGLocalSize_t{BasePipelineDesc::LoadTimeLocalSize};
 	}
 
 /*
@@ -577,14 +611,20 @@ namespace
 		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetTaskGroupSize2,	"SetTaskLocalSize",	{"x", "y"} );
 		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetTaskGroupSize3,	"SetTaskLocalSize",	{"x", "y", "z"} );
 
+		binder.Comment( "Task shader workgroup size will be set at load time in 'RenderTechDesc::taskLocalSize'." );
+		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetTaskGroupSizeAtLoadTime,	"LoadTimeTaskLocalSize",	{} );
+
 		binder.Comment( "Set mesh shader workgroup size. All threads in workgroup can use same (shared) memory.\n"
 						"Shader must use 'SetMeshSpec1/2/3()' to define specialization constant." );
 		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetMeshGroupSize1,	"SetMeshLocalSize",	{"x"} );
 		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetMeshGroupSize2,	"SetMeshLocalSize",	{"x", "y"} );
 		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetMeshGroupSize3,	"SetMeshLocalSize",	{"x", "y", "z"});
 
+		binder.Comment( "Mesh shader workgroup size will be set at load time in 'RenderTechDesc::meshLocalSize'." );
+		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetMeshGroupSizeAtLoadTime,	"LoadTimeMeshLocalSize",	{} );
+
 		binder.Comment( "Attach pipeline to the render technique.\n"
-						"When rtech is created it will create all attached pipelines." );
+						"Render technique will create all attached pipelines during its creation." );
 		binder.AddMethod( &MeshPipelineSpecScriptBinding::AddToRenderTech,		"AddToRenderTech",	{"rtech", "gpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"

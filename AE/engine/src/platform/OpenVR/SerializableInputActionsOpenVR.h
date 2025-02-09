@@ -65,10 +65,10 @@ namespace AE::App
 	  #endif
 
 	private:
-		ND_ static constexpr bool  _IsKey (EInputType type)				__NE___;
-		ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)		__NE___;
-		ND_ static constexpr bool  _IsVec1D (EInputType type)			__NE___;
-		ND_ static constexpr bool  _IsVec2D (EInputType type)			__NE___;
+		NdCx__ static bool  _IsKey (EInputType type)					__NE___;
+		NdCx__ static bool  _IsKeyOrTouch (EInputType type)				__NE___;
+		NdCx__ static bool  _IsVec1D (EInputType type)					__NE___;
+		NdCx__ static bool  _IsVec2D (EInputType type)					__NE___;
 	};
 
 
@@ -77,20 +77,20 @@ namespace AE::App
 	_Is***
 =================================================
 */
-	inline constexpr bool  SerializableInputActionsOpenVR::_IsKey (EInputType) __NE___ {
+	__CxIn bool  SerializableInputActionsOpenVR::_IsKey (EInputType) __NE___ {
 		return false;	//((type >= EInputType::MouseBegin) and (type <= EInputType::MouseEnd)) or
 				//((type >= EInputType::KeyBegin)   and (type <= EInputType::KeyEnd));
 	}
 
-	inline constexpr bool  SerializableInputActionsOpenVR::_IsKeyOrTouch (EInputType) __NE___ {
+	__CxIn bool  SerializableInputActionsOpenVR::_IsKeyOrTouch (EInputType) __NE___ {
 		return false;
 	}
 
-	inline constexpr bool  SerializableInputActionsOpenVR::_IsVec1D (EInputType) __NE___ {
+	__CxIn bool  SerializableInputActionsOpenVR::_IsVec1D (EInputType) __NE___ {
 		return false; //(type >= EInputType::Cursor1DBegin) and (type <= EInputType::Cursor1DEnd);
 	}
 
-	inline constexpr bool  SerializableInputActionsOpenVR::_IsVec2D (EInputType) __NE___ {
+	__CxIn bool  SerializableInputActionsOpenVR::_IsVec2D (EInputType) __NE___ {
 		return false; //(type >= EInputType::Cursor2DBegin) and (type <= EInputType::Cursor2DEnd);
 	}
 

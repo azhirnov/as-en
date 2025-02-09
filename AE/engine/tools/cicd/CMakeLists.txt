@@ -5,7 +5,7 @@ if (NOT (DEFINED ENGINE_LIBS_PATH))
 	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
 endif()
 
-set( EXT_SOURCES "${MAIN_SOURCE_DIR}/engine/src/graphics/Private/Shared.cpp" )
+set( EXT_SOURCES "${MAIN_SOURCE_DIR}/engine/src/graphics_rhi/Private/Shared.cpp" )
 
 file( GLOB_RECURSE AS_SOURCES "*.as" )
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} ${AS_SOURCES} )

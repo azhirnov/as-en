@@ -4,7 +4,7 @@
 
 #include "base/Pointers/Ptr.h"
 #include "base/Algorithms/Cast.h"
-#include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/ToString.h"
 #include "base/Memory/MemUtils.h"
 #include "base/Utils/Helpers.h"
 #include "base/Utils/Atomic.h"
@@ -21,35 +21,56 @@ namespace AE::Base
 	//
 	// Enable Reference Counting
 	//
-	class EnableRCBase : public Noncopyable, public NothrowAllocatable
+	class EnableRCBase
 	{
 		friend struct RefCounterUtils;
 
 	// variables
 	private:
 		Atomic<int>		_counter {0};
+	protected:
+		// in 64bit system inherited object will be aligned to 8 bytes and 4 bytes will be unused,
+		// so this field can be used for any purpose.
+		uint			_unused;
 
 
 	// methods
 	public:
-		EnableRCBase ()					__NE___	{}
-		virtual ~EnableRCBase ()		__NE___ { ASSERT_Eq( _counter.load(), 0 ); }
+		EnableRCBase ()														__NE___	{}
+		virtual ~EnableRCBase ()											__NE___ { ASSERT_Eq( _counter.load(), 0 ); }
+
+		// Noncopyable
+		EnableRCBase (const EnableRCBase &)									= delete;
+		EnableRCBase (EnableRCBase &&)										= delete;
+
+		EnableRCBase& operator = (const EnableRCBase &)						= delete;
+		EnableRCBase& operator = (EnableRCBase &&)							= delete;
+
+		// NothrowAllocatable
+		ND_ static void*  operator new (usize size)							__NE___	{ return ::operator new( size, std::nothrow ); }
+		ND_ static void*  operator new (usize size, std::align_val_t align)	__NE___	{ return ::operator new( size, align, std::nothrow ); }
+
+		// placement new
+		ND_ static void*  operator new (usize, void* where)					__NE___	{ return where; }
 
 	protected:
 
 		// This methods allows to catch object destruction and change behavior,
-		// for example - add back to object pool.
+		// for example - put back to object pool.
 		//
 		virtual void  _ReleaseObject () __NE___
 		{
-			// update cache before calling destructor
-			MemoryBarrier( EMemoryOrder::Acquire );
 			delete this;
 
 			// TODO: flush cache depends on allocator - default allocator flush cache because of internal sync, lock-free allocator may not flush cache
 			//MemoryBarrier( EMemoryOrder::Release );
 		}
 	};
+
+  #ifndef AE_LFAS_ENABLED
+	StaticAssert32( sizeof(EnableRCBase) == 12 );
+	StaticAssert64( sizeof(EnableRCBase) == 16 );
+  #endif
 
 
 
@@ -104,9 +125,10 @@ namespace AE::Base
 		enum class DontIncRef {};
 		explicit RC (T* ptr, DontIncRef)					__NE___ : _ptr{ptr}				{}
 
-		RC (T* ptr)											__NE___ : _ptr{ptr}				{ _IncSelf(); }
-		RC (Ptr<T> ptr)										__NE___ : _ptr{ptr}				{ _IncSelf(); }
-		RC (Ref<T> ref)										__NE___ : _ptr{&ref}			{ _IncSelf(); }
+		explicit RC (T* ptr)								__NE___ : _ptr{ptr}				{ _IncSelf(); }
+		explicit RC (Ptr<T> ptr)							__NE___ : _ptr{ptr}				{ _IncSelf(); }
+		explicit RC (Ref<T> ref)							__NE___ : _ptr{&ref}			{ _IncSelf(); }
+
 		RC (Self &&other)									__NE___ : _ptr{other.release()}	{}
 		RC (const Self &other)								__NE___ : _ptr{other._ptr}		{ _IncSelf(); }
 
@@ -356,7 +378,7 @@ namespace AE::Base
 	} // _hidden_
 
 	template <typename T>
-	using RemoveRC	= typename Base::_hidden_::_RemoveRC<T>::type;
+	using RemoveRC	= typename Base::_hidden_::_RemoveRC< RemoveAllQualifiers< T >>::type;
 
 	template <typename T>
 	static constexpr bool	IsRC = IsSpecializationOf< T, RC >;
@@ -375,6 +397,7 @@ namespace AE::Base
 	{
 		StaticAssert( not IsBaseOf< NonAllocatable, T >);
 		StaticAssert( IsBaseOf< EnableRCBase, T >);
+		StaticAssert( not std::is_abstract_v< T >);
 		StaticAssert( IsConstructible< T, Args... >);
 
 		CheckNothrow( IsNothrowCtor< T, Args... >);
@@ -388,6 +411,7 @@ namespace AE::Base
 	{
 		StaticAssert( not IsBaseOf< NonAllocatable, T >);
 		StaticAssert( IsBaseOf< EnableRCBase, T >);
+		StaticAssert( not std::is_abstract_v< T >);
 		StaticAssert( IsConstructible< T, Args... >);
 
 		return RC<T>{ new T{ FwdArg<Args>(args)... }};
@@ -398,6 +422,7 @@ namespace AE::Base
 	{
 		StaticAssert( not IsBaseOf< NonAllocatable, T >);
 		StaticAssert( IsBaseOf< EnableRCBase, T >);
+		StaticAssert( not std::is_abstract_v< T >);
 		StaticAssert( IsConstructible< T, Args... >);
 
 		if constexpr( IsNoExcept( new T{ FwdArg<Args>(args)... }))
@@ -423,12 +448,17 @@ namespace AE::Base
 
 		if_likely( ptr != null )
 		{
-			const auto	res = DecRef( *ptr );
+			auto&		ref = *const_cast< RemoveConst<T> *>( ptr );
+
+			const auto	res = DecRef( ref );
 			ASSERT_Gt( res, 0 );
 
 			if_unlikely( res == 1 )
 			{
-				static_cast< EnableRCBase *>( ptr )->_ReleaseObject();
+				// update cache before calling destructor
+				MemoryBarrier( EMemoryOrder::Acquire );
+
+				static_cast< EnableRCBase &>( ref )._ReleaseObject();
 				ptr = null;
 			}
 			return res;
@@ -456,7 +486,10 @@ namespace AE::Base
 		StaticAssert( IsBaseOf< EnableRCBase, T >);
 
 		if_likely( _ptr != null )
-			RefCounterUtils::IncRef( *_ptr );
+		{
+			auto&	ref = *const_cast< RemoveConst<T> *>( _ptr );
+			RefCounterUtils::IncRef( ref );
+		}
 	}
 
 	template <typename T>
@@ -688,7 +721,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	ND_ constexpr RC<R>  Cast (const RC<T> &value) __NE___
+	NdCx__ RC<R>  Cast (const RC<T> &value) __NE___
 	{
 		StaticAssert( sizeof(R) > 0 );
 		return RC<R>{ static_cast<R*>( value.get() )};
@@ -701,7 +734,7 @@ namespace AE::Base
 */
 #ifdef AE_ENABLE_RTTI
 	template <typename R, typename T>
-	ND_ constexpr RC<R>  DynCast (const RC<T> &value) __NE___
+	NdCx__ RC<R>  DynCast (const RC<T> &value) __NE___
 	{
 		return RC<R>{ dynamic_cast<R*>( value.get() )};
 	}

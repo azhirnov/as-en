@@ -5,15 +5,19 @@ void ASmain ()
 {
 	// include:
 	//	NVIDIA GeForce RTX 2080.json
+	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
 	//	AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
 	//	AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
 	//	AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
 	//	AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
+	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
 	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
-	//	NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
+	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
 	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
 	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
 	//	Apple9
 	//	Apple8
@@ -78,7 +82,6 @@ void ASmain ()
 	fset.uniformBufferStandardLayout (True);
 	fset.scalarBlockLayout (True);
 	fset.bufferDeviceAddress (True);
-	fset.storagePushConstant8 (True);
 	fset.fragmentStoresAndAtomics (True);
 	fset.vertexPipelineStoresAndAtomics (True);
 	fset.shaderOutputViewportIndex (True);
@@ -103,21 +106,23 @@ void ASmain ()
 	fset.maxSpirvVersion (140);
 	fset.maxMetalVersion (300);
 	fset.drawIndirectFirstInstance (True);
+	fset.maxDrawIndirectCount (1 << 30);
 	fset.multiViewport (True);
 	fset.maxViewports (16);
 	fset.maxTexelBufferElements (64 << 20);
 	fset.maxUniformBufferSize (64 << 10);
 	fset.maxStorageBufferSize (64 << 10);
-	fset.perDescrSet_maxUniformBuffersDynamic (8);
-	fset.perDescrSet_maxStorageBuffersDynamic (4);
-	fset.perDescrSet_maxInputAttachments (256);
-	fset.perDescrSet_maxSampledImages (393210);
-	fset.perDescrSet_maxSamplers (1024);
-	fset.perDescrSet_maxStorageBuffers (393210);
-	fset.perDescrSet_maxStorageImages (393210);
-	fset.perDescrSet_maxUniformBuffers (384);
-	fset.perDescrSet_maxAccelStructures (65535);
-	fset.perDescrSet_maxTotalResources (1024);
+	fset.perPipeline_maxUniformBuffersDynamic (8);
+	fset.perPipeline_maxStorageBuffersDynamic (4);
+	fset.perPipeline_maxTotalBuffersDynamic (8);
+	fset.perPipeline_maxInputAttachments (256);
+	fset.perPipeline_maxSampledImages (393210);
+	fset.perPipeline_maxSamplers (1024);
+	fset.perPipeline_maxStorageBuffers (393210);
+	fset.perPipeline_maxStorageImages (393210);
+	fset.perPipeline_maxUniformBuffers (384);
+	fset.perPipeline_maxAccelStructures (65535);
+	fset.perPipeline_maxTotalResources (1024);
 	fset.perStage_maxInputAttachments (64);
 	fset.perStage_maxSampledImages (65535);
 	fset.perStage_maxSamplers (8192);
@@ -148,10 +153,10 @@ void ASmain ()
 	fset.maxMeshOutputPerPrimitiveGranularity (1);
 	fset.maxTaskPayloadSize (16 << 10);
 	fset.maxTaskSharedMemorySize (16 << 10);
-	fset.maxTaskPayloadAndSharedMemorySize (16 << 10);
 	fset.maxMeshSharedMemorySize (16 << 10);
-	fset.maxMeshPayloadAndSharedMemorySize (16 << 10);
 	fset.maxMeshOutputMemorySize (16 << 10);
+	fset.maxTaskPayloadAndSharedMemorySize (16 << 10);
+	fset.maxMeshPayloadAndSharedMemorySize (16 << 10);
 	fset.maxMeshPayloadAndOutputMemorySize (16 << 10);
 	fset.maxPreferredTaskWorkGroupInvocations (32);
 	fset.maxPreferredMeshWorkGroupInvocations (32);
@@ -210,6 +215,10 @@ void ASmain ()
 	fset.multisampleArrayImage (True);
 	fset.imageViewFormatList (True);
 	fset.imageViewExtendedUsage (True);
+	fset.maxImageDimension1D (16 << 10);
+	fset.maxImageDimension2D (16 << 10);
+	fset.maxImageDimension3D (2 << 10);
+	fset.maxImageDimensionCube (16 << 10);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U

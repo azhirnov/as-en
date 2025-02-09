@@ -369,7 +369,7 @@ namespace AE::App
 			TouchPos			= Cursor2DBegin,	// float2 (absolute in pixels)
 			TouchPos_mm,							// float2 (absolute in mm)
 			TouchDelta,								// float2 (delta in pixels)
-			TouchDelta_norm,						// snorm2
+			TouchDelta_norm,						// snorm2 (with correct proportions)
 			Cursor2DEnd			= TouchDelta_norm,
 
 			// https://developer.android.com/guide/topics/sensors/sensors_overview
@@ -443,15 +443,15 @@ namespace AE::App
 		ND_ static EValueType	SensorTypeToValueType (ESensorType)		__NE___;
 
 	private:
-		ND_ static constexpr bool  _IsKey (EInputType type)				__NE___;
-		ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)		__NE___;
-		ND_ static constexpr bool  _IsVec1D (EInputType type)			__NE___;
-		ND_ static constexpr bool  _IsVec2D (EInputType type)			__NE___;
-		ND_ static constexpr bool  _IsVec3D (EInputType type)			__NE___;
-		ND_ static constexpr bool  _IsSensor1f (EInputType type)		__NE___;
-		ND_ static constexpr bool  _IsSensor3f (EInputType type)		__NE___;
-		ND_ static constexpr bool  _IsSensor4f (EInputType type)		__NE___;
-		ND_ static constexpr bool  _IsSensor4x4f (EInputType type)		__NE___;
+		NdCx__ static bool  _IsKey (EInputType type)					__NE___;
+		NdCx__ static bool  _IsKeyOrTouch (EInputType type)				__NE___;
+		NdCx__ static bool  _IsVec1D (EInputType type)					__NE___;
+		NdCx__ static bool  _IsVec2D (EInputType type)					__NE___;
+		NdCx__ static bool  _IsVec3D (EInputType type)					__NE___;
+		NdCx__ static bool  _IsSensor1f (EInputType type)				__NE___;
+		NdCx__ static bool  _IsSensor3f (EInputType type)				__NE___;
+		NdCx__ static bool  _IsSensor4f (EInputType type)				__NE___;
+		NdCx__ static bool  _IsSensor4x4f (EInputType type)				__NE___;
 	};
 
 
@@ -460,40 +460,40 @@ namespace AE::App
 	_Is***
 =================================================
 */
-	inline constexpr bool  SerializableInputActionsAndroid::_IsKey (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsAndroid::_IsKey (EInputType type) __NE___ {
 		return (type >= EInputType::KeyBegin) and (type <= EInputType::KeyEnd);
 	}
 
-	inline constexpr bool  SerializableInputActionsAndroid::_IsKeyOrTouch (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsAndroid::_IsKeyOrTouch (EInputType type) __NE___ {
 		return _IsKey( type ) or (type == EInputType::TouchPos) or (type == EInputType::TouchPos_mm);
 	}
 
-	inline constexpr bool  SerializableInputActionsAndroid::_IsVec1D (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsAndroid::_IsVec1D (EInputType type) __NE___ {
 		return _IsSensor1f( type );
 	}
 
-	inline constexpr bool  SerializableInputActionsAndroid::_IsVec2D (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsAndroid::_IsVec2D (EInputType type) __NE___ {
 		return	((type >= EInputType::Cursor2DBegin) and (type <= EInputType::Cursor2DEnd))	or
 				(type == EInputType::MultiTouch);
 	}
 
-	inline constexpr bool  SerializableInputActionsAndroid::_IsVec3D (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsAndroid::_IsVec3D (EInputType type) __NE___ {
 		return	_IsSensor3f( type );
 	}
 
-	inline constexpr bool  SerializableInputActionsAndroid::_IsSensor1f (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsAndroid::_IsSensor1f (EInputType type) __NE___ {
 		return (type >= EInputType::Sensors1fBegin) and (type <= EInputType::Sensors1fEnd);
 	}
 
-	inline constexpr bool  SerializableInputActionsAndroid::_IsSensor3f (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsAndroid::_IsSensor3f (EInputType type) __NE___ {
 		return (type >= EInputType::Sensors3fBegin) and (type <= EInputType::Sensors3fEnd);
 	}
 
-	inline constexpr bool  SerializableInputActionsAndroid::_IsSensor4f (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsAndroid::_IsSensor4f (EInputType type) __NE___ {
 		return (type >= EInputType::Sensors4fBegin) and (type <= EInputType::Sensors4fEnd);
 	}
 
-	inline constexpr bool  SerializableInputActionsAndroid::_IsSensor4x4f (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsAndroid::_IsSensor4x4f (EInputType type) __NE___ {
 		return (type >= EInputType::Sensors4x4fBegin) and (type <= EInputType::Sensors4x4fEnd);
 	}
 

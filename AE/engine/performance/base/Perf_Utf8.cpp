@@ -1,4 +1,4 @@
-﻿// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/Math/Random.h"
 #include "Perf_Common.h"
@@ -19,11 +19,11 @@ namespace
 
 	static void  Utf8Decode_Test ()
 	{
-		constexpr usize		N = 10'000'000;
+		constexpr usize		N		= 10'000'000;
 		IntervalProfiler	profiler{ "utf8 decode" };
-		const CharUtf8		temp1 [] = u8"😭~👉я💮";
-		U8String			temp2 {temp1};
-		U8StringView		str {temp2};
+		const auto			temp1	= u8"😭~👉я💮";
+		U8String			temp2	{ Cast<CharUtf8>(temp1) };
+		U8StringView		str		{temp2};
 
 		usize				sum1 = 0;
 		usize				sum2 = 0;

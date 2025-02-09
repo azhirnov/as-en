@@ -1,31 +1,55 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "vfs/Archive/ArchiveStaticStorage.h"
+#include "threading/DataSource/FileAsyncDataSource.h"
 
 namespace AE::VFS
 {
 	using ArchiveDataSource_t	= RDataSourceRange< RC<RDataSource> >;
 	using ArchiveStream_t		= RDataSourceAsStream< RC<RDataSource> >;
-	using TSFileRDataSource_t	= Threading::TsRDataSource< AsPointer< FileRDataSource >>;
-	using TSRDataSource_t		= Threading::TsRDataSource< RC<RDataSource> >;
 
 /*
 =================================================
 	_Create
 =================================================
 */
-	bool  ArchiveStaticStorage::_Create (RC<RDataSource> archive) __NE___
+	bool  ArchiveStaticStorage::_Create (RC<AsyncRDataSource> asyncFile, RC<RDataSource> syncFile) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( archive and archive->IsOpen() );
-		CHECK_ERR( not _archive );
 
-		if ( not archive->IsThreadSafe() )
-			archive = MakeRC<TSRDataSource_t>( RVRef(archive) );
+		if ( asyncFile and not asyncFile->IsOpen() ){
+			asyncFile = null;
+			AE_LOG_DBG( "AsyncFile is not open" );
+		}
 
-		CHECK_ERR( _ReadHeader( *archive ));
+		if ( syncFile  and not syncFile->IsOpen() ){
+			syncFile = null;
+			AE_LOG_DBG( "File is not open" );
+		}
 
-		_archive = RVRef(archive);
+		CHECK_ERR( asyncFile or syncFile );
+		CHECK_ERR( (not _asyncFile) and (not _syncFile) );
+
+		if ( syncFile and not syncFile->IsThreadSafe() )
+		{
+			using TSRDataSource_t = Threading::TsRDataSource< RC<RDataSource> >;
+
+			syncFile = MakeRC<TSRDataSource_t>( RVRef(syncFile) );
+			AE_LOG_DBG( "Performance warning: used thread-safe wrapper" );
+		}
+
+		if ( not syncFile )
+		{
+			syncFile = MakeRC< Threading::SyncRDataSource >( asyncFile );
+			AE_LOG_DBG( "Performance warning: used 'SyncRDataSource' on top of 'AsyncRDataSource'" );
+		}
+
+		CHECK_ERR( syncFile and syncFile->IsOpen() );
+
+		CHECK_ERR( _ReadHeader( *syncFile ));
+
+		_asyncFile = RVRef(asyncFile);
+		_syncFile  = RVRef(syncFile);
 		return true;
 	}
 
@@ -36,9 +60,16 @@ namespace AE::VFS
 */
 	bool  ArchiveStaticStorage::_Create (const Path &filename) __NE___
 	{
-		auto	file = MakeRC<TSFileRDataSource_t>( filename );
-		CHECK_ERR( file );
-		return _Create( file );
+		using EMode = Threading::FileAsyncRDataSource::EMode;
+		const auto	mode = EMode::RandomAccess;		// TODO: Direct
+
+		auto	async_file	= MakeRC< Threading::FileAsyncRDataSource >( filename, mode );
+		auto	sync_file	= MakeRC< Base::FileRDataSource >( filename, mode );
+
+		CHECK_ERR( async_file );
+		CHECK_ERR( sync_file );
+
+		return _Create( RVRef(async_file), RVRef(sync_file) );
 	}
 
 /*
@@ -100,7 +131,7 @@ namespace AE::VFS
 
 	bool  ArchiveStaticStorage::_Open2 (OUT RC<RStream> &outStream, const FileInfo &info) C_NE___
 	{
-		auto	substream = MakeRC<ArchiveStream_t>( _archive, info.Offset(), info.Size() );
+		auto	substream = MakeRC<ArchiveStream_t>( _syncFile, info.Offset(), info.Size() );
 
 		switch_enum( info.type )
 		{
@@ -195,7 +226,7 @@ namespace AE::VFS
 
 	bool  ArchiveStaticStorage::_Open2 (OUT RC<RDataSource> &outDS, const FileInfo &info) C_NE___
 	{
-		auto	ds = MakeRC<ArchiveDataSource_t>( _archive, info.Offset(), info.Size() );
+		auto	ds = MakeRC<ArchiveDataSource_t>( _syncFile, info.Offset(), info.Size() );
 
 		switch_enum( info.type )
 		{
@@ -221,7 +252,7 @@ namespace AE::VFS
 
 			case EFileType::BrotliInMemory :
 			{
-				auto			stream	= MakeRC<ArchiveStream_t>( _archive, info.Offset(), info.Size() );
+				auto			stream	= MakeRC<ArchiveStream_t>( _syncFile, info.Offset(), info.Size() );
 				BrotliRStream	brotli	{ stream };
 				auto			result	= MakeRC<ArrayRDataSource>();
 
@@ -243,7 +274,7 @@ namespace AE::VFS
 
 			case EFileType::ZStdInMemory :
 			{
-				auto			stream	= MakeRC<ArchiveStream_t>( _archive, info.Offset(), info.Size() );
+				auto			stream	= MakeRC<ArchiveStream_t>( _syncFile, info.Offset(), info.Size() );
 				ZStdRStream		zstd	{ stream };
 				auto			result	= MakeRC<ArrayRDataSource>();
 
@@ -273,9 +304,62 @@ namespace AE::VFS
 	Open (AsyncRDataSource)
 =================================================
 */
-	bool  ArchiveStaticStorage::Open (OUT RC<AsyncRDataSource> &, FileName::Ref) C_NE___
+	bool  ArchiveStaticStorage::Open (OUT RC<AsyncRDataSource> &outDS, FileName::Ref name) C_NE___
 	{
-		// TODO: replace '_archive' by asyncDS
+		DRC_SHAREDLOCK( _drCheck );
+		CHECK_ERR( _asyncFile );
+
+		auto	iter = _map.find( FileName::Optimized_t{name} );
+		if_likely( iter != _map.end() )
+			return _Open2( OUT outDS, iter->second );
+
+		return false;
+	}
+
+	bool  ArchiveStaticStorage::_Open2 (OUT RC<AsyncRDataSource> &outDS, const FileInfo &info) C_NE___
+	{
+		auto	ds = MakeRC< Threading::AsyncRDataSourceSubRange >( _asyncFile, info.Offset(), info.End() );
+
+		switch ( info.type )
+		{
+			case EFileType::Raw :
+			{
+				outDS = RVRef(ds);
+				return true;
+			}
+		}
+		return false;
+	}
+
+/*
+=================================================
+	Open (AsyncRStream)
+=================================================
+*/
+	bool  ArchiveStaticStorage::Open (OUT RC<AsyncRStream> &outStream, FileName::Ref name) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+		CHECK_ERR( _asyncFile );
+
+		auto	iter = _map.find( FileName::Optimized_t{name} );
+		if_likely( iter != _map.end() )
+			return _Open2( OUT outStream, iter->second );
+
+		return false;
+	}
+
+	bool  ArchiveStaticStorage::_Open2 (OUT RC<AsyncRStream> &outStream, const FileInfo &info) C_NE___
+	{
+		auto	stream = MakeRC< Threading::AsyncRStreamSubRange >( _asyncFile, info.Offset(), info.End() );
+
+		switch ( info.type )
+		{
+			case EFileType::Raw :
+			{
+				outStream = RVRef(stream);
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -358,13 +442,40 @@ namespace AE::VFS
 
 /*
 =================================================
+	_OpenByIter (AsyncRStream)
+=================================================
+*/
+	bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRStream> &outStream, FileName::Ref name, const void* ref) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+
+		DEBUG_ONLY(
+			auto	iter = _map.find( FileName::Optimized_t{name} );
+			CHECK_ERR( iter != _map.end() );
+			CHECK_ERR( &iter->second == ref );
+		)
+		Unused( name );
+
+		return _Open2( OUT outStream, *Cast<FileInfo>( ref ));
+	}
+
+/*
+=================================================
 	_OpenByIter (AsyncRDataSource)
 =================================================
 */
-	bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &, FileName::Ref, const void*) C_NE___
+	bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &outDS, FileName::Ref name, const void* ref) C_NE___
 	{
-		// TODO: replace '_archive' by asyncDS
-		return false;
+		DRC_SHAREDLOCK( _drCheck );
+
+		DEBUG_ONLY(
+			auto	iter = _map.find( FileName::Optimized_t{name} );
+			CHECK_ERR( iter != _map.end() );
+			CHECK_ERR( &iter->second == ref );
+		)
+		Unused( name );
+
+		return _Open2( OUT outDS, *Cast<FileInfo>( ref ));
 	}
 //-----------------------------------------------------------------------------
 
@@ -377,7 +488,14 @@ namespace AE::VFS
 	RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateStaticArchive (RC<RDataSource> archive) __NE___
 	{
 		auto	result = RC<ArchiveStaticStorage>{ new ArchiveStaticStorage{}};
-		CHECK_ERR( result->_Create( RVRef(archive) ));
+		CHECK_ERR( result->_Create( null, RVRef(archive) ));
+		return result;
+	}
+
+	RC<IVirtualFileStorage>  VirtualFileStorageFactory::CreateStaticArchive (RC<AsyncRDataSource> asyncFile, RC<RDataSource> syncFile) __NE___
+	{
+		auto	result = RC<ArchiveStaticStorage>{ new ArchiveStaticStorage{}};
+		CHECK_ERR( result->_Create( RVRef(asyncFile), RVRef(syncFile) ));
 		return result;
 	}
 

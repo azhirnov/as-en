@@ -25,6 +25,7 @@ void ASmain ()
 		ppln.AddPipelineFolder( "pipeline" );
 		ppln.AddShaderFolder( "shaders" );
 		ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
-		ppln.CompileWithNameMapping( output + "Tests.GraphicsHL." + suffix[i] + "Pipelines.bin" );
+		ppln.AddNameMapping();
+		ppln.Compile( output + "Tests.GraphicsHL." + suffix[i] + "Pipelines.bin" );
 	}
 }

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/GraphicsCreateInfo.h"
+#include "graphics_rhi/Public/GraphicsCreateInfo.h"
 #include "platform/Public/IWindow.h"
 #include "platform/Public/VRDevice.h"
 

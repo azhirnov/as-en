@@ -87,10 +87,10 @@ namespace AE::ResLoader
 	template <typename V, typename I>
 	IntermMesh::IntermMesh (ArrayView<V> vertices, RC<IntermVertexAttribs> attribs,
 							EPrimitive topology, ArrayView<I> indices) __NE___ :
-		_vertexStride{ SizeOf<V> }, _attribs{ RVRef(attribs) },
+		_attribs{ RVRef(attribs) }, _vertexStride{ SizeOf<V> },
 		_topology{ topology }, _indexType{ sizeof(I) == sizeof(uint) ? EIndex::UInt : EIndex::UShort }
 	{
-		StaticAssert(( IsSameTypes< I, uint > or IsSameTypes< I, ushort >));
+		StaticAssert(( IsSame< I, uint > or IsSame< I, ushort >));
 
 		auto*	verts	= vertices.data();
 		auto*	indcs	= indices.data();
@@ -128,13 +128,13 @@ namespace AE::ResLoader
 	template <typename T>
 	StructView<T>  IntermMesh::GetIndexData () C_NE___
 	{
-		if constexpr( IsSameTypes< T, uint >)
+		if constexpr( IsSame< T, uint >)
 		{
 			CHECK_ERR( _indexType == EIndex::UInt );
 			return StructView<T>{ _indices.data(), _indices.size()/4, 4_b };
 		}
 		else
-		if constexpr( IsSameTypes< T, ushort >)
+		if constexpr( IsSame< T, ushort >)
 		{
 			CHECK_ERR( _indexType == EIndex::UShort );
 			return StructView<T>{ _indices.data(), _indices.size()/2, 2_b };

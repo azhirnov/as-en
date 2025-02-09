@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define MAIN_PASS
 #	define PALETTE_PASS
 #endif
@@ -38,6 +38,7 @@
 			pass.Slider( "iMode",		0,	3,	int(params[0]) );
 			pass.Slider( "iEase",		0,	5,	int(params[1]) );
 			pass.Slider( "iPreview",	0,	1 );
+			pass.Slider( "iColorMask",	0,	4 );
 
 			uint	i = 2;
 			pass.ColorSelector( "iColor0",	RGBA32f( params[i+0], params[i+1], params[i+2], params[i+3] ));	i += 4;
@@ -48,8 +49,6 @@
 			pass.ColorSelector( "iColor5",	RGBA32f( params[i+0], params[i+1], params[i+2], params[i+3] ));	i += 4;
 			pass.ColorSelector( "iColor6",	RGBA32f( params[i+0], params[i+1], params[i+2], params[i+3] ));	i += 4;
 			pass.ColorSelector( "iColor7",	RGBA32f( params[i+0], params[i+1], params[i+2], params[i+3] ));	i += 4;
-
-			//pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}{
 			RC<Postprocess>		pass = Postprocess( "", "PALETTE_PASS" );
 			pass.Output( "out_Color",	pal );
@@ -63,11 +62,12 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef MAIN_PASS
+	#include "SDF.glsl"
 	#include "Color.glsl"
 	#include "Easing.glsl"
 	#include "Geometry.glsl"
 	#include "GlobalIndex.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	struct Result
 	{
@@ -109,7 +109,7 @@
 		return RGBLerpOklab( a, b, ApplyEasing( factor ));
 	}
 
-	float4  MysRGBLerp (float4 a, float4 b, float factor)
+	float4  MySRGBLerp (float4 a, float4 b, float factor)
 	{
 		a = RemoveSRGBCurve( a );
 		b = RemoveSRGBCurve( b );
@@ -136,10 +136,20 @@
 			case 0 :	LinearSampleArray2( OUT res.col, arr, res.x, MyLerp );			break;
 			case 1 :	LinearSampleArray2( OUT res.col, arr, res.x, MyRGBLerpHSV );	break;
 			case 2 :	LinearSampleArray2( OUT res.col, arr, res.x, MyRGBLerpOklab );	break;
-			case 3 :	LinearSampleArray2( OUT res.col, arr, res.x, MysRGBLerp );		break;
+			case 3 :	LinearSampleArray2( OUT res.col, arr, res.x, MySRGBLerp );		break;
 		}
 		res.col = Saturate( res.col );
 		return res;
+	}
+
+	bool  EnableColor (Result p0, Result p1, float2 uv, uint id)
+	{
+		if ( iColorMask == 0 or iColorMask == id+1 )
+		{
+			float	d = Line_MinDistance( float2(p0.x, p0.col[id]), float2(p1.x, p1.col[id]), uv );
+			return d < 0.0015f;
+		}
+		return false;
 	}
 
 	void Main ()
@@ -154,17 +164,12 @@
 		{
 			Result	p1 = GetColor( 1 );
 
-			float4	d;
-			d.r = Line_MinDistance( float2(p0.x, p0.col.r), float2(p1.x, p1.col.r), uv );
-			d.g = Line_MinDistance( float2(p0.x, p0.col.g), float2(p1.x, p1.col.g), uv );
-			d.b = Line_MinDistance( float2(p0.x, p0.col.b), float2(p1.x, p1.col.b), uv );
-			d.a = Line_MinDistance( float2(p0.x, p0.col.a), float2(p1.x, p1.col.a), uv );
+			if ( EnableColor( p0, p1, uv, 0 ))	col.rgb = float3( 1.0, 0.0, 0.0 ) * Wave( uv.x );
+			if ( EnableColor( p0, p1, uv, 1 ))	col.rgb = float3( 0.0, 1.0, 0.0 ) * Wave( uv.x + 1.0 );
+			if ( EnableColor( p0, p1, uv, 2 ))	col.rgb = float3( 0.4, 0.5, 1.0 ) * Wave( uv.x + 2.0 );
+			if ( EnableColor( p0, p1, uv, 3 ))	col.rgb = float3( 1.0, 1.0, 1.0 ) * Wave( uv.x + 3.0 );
 
-			const float	iWidth = 0.0015f;
-			if ( d.r < iWidth )	col.rgb = float3( 1.0, 0.0, 0.0 ) * Wave( uv.x );
-			if ( d.g < iWidth )	col.rgb = float3( 0.0, 1.0, 0.0 ) * Wave( uv.x + 1.0 );
-			if ( d.b < iWidth )	col.rgb = float3( 0.4, 0.5, 1.0 ) * Wave( uv.x + 2.0 );
-			if ( d.a < iWidth )	col.rgb = float3( 1.0, 1.0, 1.0 ) * Wave( uv.x + 3.0 );
+			col.rgb *= AA_QuadGrid_dxdy( uv*8.0, float2(0.0, 2.0) ).x;
 		}
 		else
 		{

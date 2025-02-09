@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define MODE		0
 #	define GEN_NOISE
 #endif
@@ -24,12 +24,14 @@
 		RC<DynamicUInt>		gen_tex		= DynamicUInt();
 		RC<DynamicUInt>		tile_size	= DynamicUInt();
 		const uint			max_mode	= 4;
-		
+
 		Slider( tex_dim,	"TexDim",		1,	8,	2 );
 		Slider( mode,		"Mode",			0,	max_mode );
 		Slider( count,		"Repeat",		1,	32	);
 		Slider( gen_tex,	"GenTex",		0,	1,  1 );
 		Slider( tile_size,	"TileSize",		3,	6,  4 );
+
+		Label( dim.XY(),	"Dimension" );
 
 		// render loop
 		{
@@ -78,15 +80,15 @@
 			upos.x += gl.LocalInvocationID.x;
 			upos.y += gl.LocalInvocationID.y;
 			const int2	pos = int2(upos);
-			
+
 		#elif MODE == 2
 			// column major
 			uint2	upos = gl.WorkGroupID.xy * uint2(DIMX, DIMY);
 			upos.y += gl.LocalInvocationID.x;
 			upos.x += gl.LocalInvocationID.y;
 			const int2	pos = int2(upos);
-			
-		#elif MODE == 3 || MODE == 4
+
+		#elif MODE == 3 or MODE == 4
 			const uint	tile_pot	= iTileSizePOT;
 			const uint	tile_mask	= (1u << tile_pot) - 1;
 			const uint	gi			= gl.WorkGroupID.x + gl.WorkGroupID.y * gl.NumWorkGroups.x;

@@ -262,12 +262,6 @@ namespace
 		return _Open<AndroidRDataSource>( OUT outDS, name );
 	}
 
-	bool  FileSystemAndroid::Open (OUT RC<AsyncRDataSource> &outDS, FileName::Ref name) C_NE___
-	{
-		Unused( outDS, name );
-		return false;
-	}
-
 /*
 =================================================
 	_Open
@@ -337,12 +331,6 @@ namespace
 	bool  FileSystemAndroid::_OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref name, const void* ref) C_NE___
 	{
 		return _OpenByIter2<AndroidRDataSource>( OUT ds, name, ref, AASSET_MODE_RANDOM );
-	}
-
-	bool  FileSystemAndroid::_OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref name, const void* ref) C_NE___
-	{
-		Unused( ds, name, ref );
-		return false;
 	}
 
 /*

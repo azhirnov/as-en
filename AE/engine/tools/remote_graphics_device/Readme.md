@@ -4,7 +4,7 @@ Remote Graphics Device
 
 Implements graphics device for remote graphics backend in `Graphics` module.
 
-[Features](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/RemoteGraphicsFeatures.md)
+[Features](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/RemoteRHI.md)
 
 
 ## How to use

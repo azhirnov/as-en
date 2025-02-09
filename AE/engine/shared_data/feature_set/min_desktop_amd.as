@@ -4,6 +4,7 @@
 void ASmain ()
 {
 	// include:
+	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
 	//	AMD Radeon HD 7970M (RADV PITCAIRN) driver 23.3.3 on Manjaro unknown
 	//	AMD Radeon HD 8790M (RADV OLAND) driver 23.0.4 on Ubuntu 22.04
 	//	AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
@@ -119,6 +120,7 @@ void ASmain ()
 	fset.maxSpirvVersion (150);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
+	fset.maxDrawIndirectCount (4294967295);
 	fset.multiview (True);
 	fset.multiviewTessellationShader (True);
 	fset.maxMultiviewViewCount (6);
@@ -126,18 +128,19 @@ void ASmain ()
 	fset.maxViewports (16);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
-	fset.maxTexelBufferElements (4294967295);
-	fset.maxUniformBufferSize (4294967295);
-	fset.maxStorageBufferSize (4294967295);
-	fset.perDescrSet_maxUniformBuffersDynamic (8);
-	fset.perDescrSet_maxStorageBuffersDynamic (8);
-	fset.perDescrSet_maxInputAttachments (8388606);
-	fset.perDescrSet_maxSampledImages (8388606);
-	fset.perDescrSet_maxSamplers (8388606);
-	fset.perDescrSet_maxStorageBuffers (8388606);
-	fset.perDescrSet_maxStorageImages (8388606);
-	fset.perDescrSet_maxUniformBuffers (8388606);
-	fset.perDescrSet_maxTotalResources (22369621);
+	fset.maxTexelBufferElements (uint(2) << 30);
+	fset.maxUniformBufferSize (uint(2) << 30);
+	fset.maxStorageBufferSize (uint(2) << 30);
+	fset.perPipeline_maxUniformBuffersDynamic (8);
+	fset.perPipeline_maxStorageBuffersDynamic (8);
+	fset.perPipeline_maxTotalBuffersDynamic (16);
+	fset.perPipeline_maxInputAttachments (8388606);
+	fset.perPipeline_maxSampledImages (8388606);
+	fset.perPipeline_maxSamplers (8388606);
+	fset.perPipeline_maxStorageBuffers (8388606);
+	fset.perPipeline_maxStorageImages (8388606);
+	fset.perPipeline_maxUniformBuffers (8388606);
+	fset.perPipeline_maxTotalResources (22369621);
 	fset.perStage_maxInputAttachments (8388606);
 	fset.perStage_maxSampledImages (8388606);
 	fset.perStage_maxSamplers (8388606);
@@ -216,6 +219,10 @@ void ASmain ()
 	fset.multisampleArrayImage (True);
 	fset.imageViewFormatList (True);
 	fset.imageViewExtendedUsage (True);
+	fset.maxImageDimension1D (16 << 10);
+	fset.maxImageDimension2D (16 << 10);
+	fset.maxImageDimension3D (2 << 10);
+	fset.maxImageDimensionCube (16 << 10);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R64I, EPixelFormat::R32U, EPixelFormat::R64U, 

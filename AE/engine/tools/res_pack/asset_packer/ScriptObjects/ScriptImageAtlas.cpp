@@ -1,18 +1,18 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/File.h"
-#include "base/DataSource/MemStream.h"
-
-#include "graphics/Private/EnumUtils.h"
+#include "graphics_rhi/Private/EnumUtils.h"
 
 #include "serializing/Public/ObjectFactory.h"
 
 #include "scripting/Impl/ClassBinder.h"
 
 #include "ScriptObjects/ScriptImageAtlas.h"
-#include "Packer/ImageAtlasPacker.h"
+#include "ScriptObjects/ScriptResourceMeta.h"
+#include "ScriptObjects/ScriptSharedImage.h"
 
 #include "atlas_tools/RectPackerSTB.h"
+
+#include "Packer/ImageAtlasPacker.h"
 
 #include "res_loaders/AllImages/AllImageLoaders.h"
 
@@ -25,7 +25,6 @@ namespace {
 #	include "Packer/ImagePacker.cpp.h"
 #	include "Packer/ImageAtlasPacker.cpp.h"
 }
-
 	using namespace AE::Graphics;
 	using namespace AE::ResLoader;
 
@@ -46,7 +45,7 @@ namespace {
 */
 	ScriptImageAtlas::~ScriptImageAtlas ()
 	{
-		CHECK( _map.empty() );
+		CHECK( _state == EState::Stored );
 	}
 
 /*
@@ -61,6 +60,8 @@ namespace {
 
 	void  ScriptImageAtlas::Add2 (const String &imageName, const String &filename, const RectU &region) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
+
 		Path	path = ObjectStorage::Instance()->GetScriptFolder();
 		path.append( filename );
 
@@ -81,7 +82,6 @@ namespace {
 		img_region.imageIdx	= img_it->second;
 
 		auto [rect_it, rect_inserted] = _imageRegMap.emplace( img_region, uint(_imageRegions.size()) );
-
 		if ( rect_inserted )
 			_imageRegions.push_back( img_region );
 
@@ -91,79 +91,148 @@ namespace {
 
 /*
 =================================================
+	_LoadImages
+=================================================
+*/
+	void  ScriptImageAtlas::_LoadImages () __Th___
+	{
+		CHECK_THROW( _state == EState::Recording );
+
+		for (auto& img : _imageFiles)
+		{
+			img.data.reset( new IntermImage{ img.path });
+
+			AllImageLoaders	loader;
+			CHECK_THROW_MSG( loader.LoadImage( *img.data, Default, False{"don't flipY"} ),
+				"failed to load image '"s << ToString(img.path) << "'" );
+		}
+	}
+
+/*
+=================================================
+	PutMeta
+=================================================
+*/
+	void  ScriptImageAtlas::PutMeta (const ScriptResourceMetaPtr &meta, const String &nameInMeta) __Th___
+	{
+		CHECK_THROW( _state >= EState::Recording );
+		CHECK_THROW( meta );
+
+		meta->Add( *this, nameInMeta );  // throw
+
+		_info->SetMetaResource( nameInMeta );
+	}
+
+/*
+=================================================
+	PutData
+=================================================
+*/
+	void  ScriptImageAtlas::PutData (const ScriptSharedImagePtr &image) __Th___
+	{
+		CHECK_THROW( _state == EState::Recording );
+		CHECK_THROW( image );
+		CHECK_THROW_MSG( not image->MetaName().empty(), "call 'SharedImage::PutMeta()' before this" );
+
+		_LoadImages();  // throw
+
+		Array<ScriptSharedImage::Result>	regions;
+		regions.resize( _imageRegions.size() );
+
+		// update regions
+		for (usize i = 0; i < _imageRegions.size(); ++i)
+		{
+			auto&			src	= _imageRegions[i];
+			const auto&		img = _imageFiles[ src.imageIdx ];
+			const uint3		dim = img.data->Dimension();
+
+			CHECK_THROW( dim.x > 0 and dim.y > 0 and dim.z == 1 );
+
+			CHECK_THROW( src.region.left < dim.x );
+			CHECK_THROW( src.region.top < dim.y );
+
+			src.region.right	= Min( src.region.right,	dim.x );
+			src.region.bottom	= Min( src.region.bottom,	dim.y );
+
+			auto&	dst = regions[i];
+			dst.region	= RectU{ src.region.Size() + uint(_paddingPix*2) };
+			dst.id		= uint(i);
+		}
+
+		image->AddSubImages( *this, regions );  // throw
+
+		_sharedImageMeta = image->MetaName();
+		_state = EState::Immutable;
+	}
+
+/*
+=================================================
 	Store
+----
+	store meta data and image data into a single file
 =================================================
 */
 	void  ScriptImageAtlas::Store (const String &nameInArchive) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
+		CHECK_THROW( _info->MetaResName().empty() );
+
 		auto&	storage = *ObjectStorage::Instance();
 
-		_LoadImages(); // throw
+		_LoadImages();  // throw
 
-		{
-			auto	wmem = MakeRC<ArrayWStream>();
-			CHECK_THROW_MSG( _Pack( nameInArchive, wmem ));
+		ScriptTexture	tex;
+		CHECK_THROW( _ToTexture( OUT tex, nameInArchive ));
 
-			MemRefRStream	rmem {wmem->GetData()};
-			storage.AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw );  // throw
-		}
+		_state = EState::Arranged;
 
-		_info->SetName( nameInArchive );			// throw
-		storage.AddAtlas( nameInArchive, _info );	// throw
+		auto	wmem = MakeRC<ArrayWStream>();
+		CHECK_THROW( _StoreMeta( wmem ));
+		CHECK_THROW( tex._StoreData( wmem ));
 
-		_map.clear();
-		_uniqueImages.clear();
-		_imageFiles.clear();
-		_imageRegMap.clear();
-		_imageRegions.clear();
-		_paddingPix	= 1;
-		_dstFormat	= _intermFormat = EPixelFormat::RGBA8_UNorm;
-		_info		= null;
+		MemRefRStream	rmem {wmem->GetData()};
+		storage.AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw ); // throw
+
+		_info->SetFileName( nameInArchive );
+		storage.AddAtlas( _info );	// throw
+
+		_info  = null;
+		_state = EState::Stored;
 	}
 
 /*
 =================================================
-	SetPadding
+	StoreData
+----
+	store only image data, meta data stored to meta data file, see 'PutMeta()'
 =================================================
 */
-	void  ScriptImageAtlas::SetPadding (uint pix) __Th___
+	void  ScriptImageAtlas::StoreData (const String &nameInArchive) __Th___
 	{
-		_paddingPix = pix;
+		CHECK_THROW( _state == EState::Recording );
+		CHECK_THROW( _sharedImageMeta.empty() );	// use 'PutData()' instead
+
+		_LoadImages();  // throw
+
+		ScriptTexture	tex;
+		CHECK_THROW( _ToTexture( OUT tex, nameInArchive ));
+
+		auto	wmem = MakeRC<ArrayWStream>();
+		CHECK_THROW( tex._StoreData( wmem ));
+
+		MemRefRStream	rmem {wmem->GetData()};
+		ObjectStorage::Instance()->AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw ); // throw
+
+		_imageFileName	= nameInArchive;
+		_state			= EState::StoreData;
 	}
 
 /*
 =================================================
-	SetFormat
+	_ToTexture
 =================================================
 */
-	void  ScriptImageAtlas::SetFormat (EPixelFormat fmt) __Th___
-	{
-		_dstFormat		= fmt;
-		_intermFormat	= EPixelFormat_ToNoncompressed( _dstFormat, false );
-	}
-
-/*
-=================================================
-	Bind
-=================================================
-*/
-	void  ScriptImageAtlas::Bind (const ScriptEnginePtr &se) __Th___
-	{
-		Scripting::ClassBinder<ScriptImageAtlas>	binder{ se };
-		binder.CreateRef();
-		binder.AddMethod( &ScriptImageAtlas::Add,			"Add",		{"imageNameInAtlas", "filename"} );
-		binder.AddMethod( &ScriptImageAtlas::Add2,			"Add",		{"imageNameInAtlas", "filename", "region"} );
-		binder.AddMethod( &ScriptImageAtlas::Store,			"Store",	{"nameInArchive"} );
-		binder.AddMethod( &ScriptImageAtlas::SetPadding,	"Padding",	{"paddingInPixels"} );
-		binder.AddMethod( &ScriptImageAtlas::SetFormat,		"Format",	{"newFormat"} );
-	}
-
-/*
-=================================================
-	_Pack
-=================================================
-*/
-	bool  ScriptImageAtlas::_Pack (const String &nameInArchive, RC<WStream> stream)
+	bool  ScriptImageAtlas::_ToTexture (OUT ScriptTexture &tex, const String &name) __NE___
 	{
 		// update regions
 		for (usize i = 0; i < _imageRegions.size(); ++i)
@@ -191,20 +260,25 @@ namespace {
 			}
 
 			CHECK_ERR( rect_packer.Pack() );
-			AE_LOGI( "Atlas '"s << nameInArchive << "' size: "s << ToString(rect_packer.TargetSize())
+			AE_LOGI( "Atlas '"s << name << "' size: "s << ToString(rect_packer.TargetSize())
 						<< ", packing rate: " << ToString( rect_packer.PackingRate(), 2 ));
 		}
 
 		// convert images
-		IntermImage		dst_image;
 		{
+			tex._imgData.reset( new IntermImage{} );
+			tex._dstFormat		= _dstFormat;
+			tex._intermFormat	= _intermFormat;
+
+			IntermImage&	dst_image = *tex._imgData;
+
 			CHECK_ERR( dst_image.Allocate( EImage::_2D, _intermFormat, uint3{rect_packer.TargetSize(),1} ));
 
 			auto	dst_view = RWImageMemView{ dst_image.ToView() };
 
 			for (auto& r : rect_packer.GetResult())
 			{
-				const auto&	src		= _imageRegions[ r.id ];
+				auto&		src		= _imageRegions[ r.id ];
 				const RectI	texc	= RectI{ int2{r.w, r.h} - _paddingPix*2 } + (int2{r.x, r.y} + _paddingPix);
 				auto		src_img	= RWImageMemView{ _imageFiles[ src.imageIdx ].data->ToView() };
 
@@ -212,73 +286,167 @@ namespace {
 
 				CHECK_ERR( dst_view.Blit( uint3{int3{ texc.left, texc.top, 0 }}, uint3{src.region.left, src.region.top, 0u}, src_img, uint3{int3{ texc.Size(), 1 }} ));
 
-				// TODO: fill border?
+				src.region = RectU{texc};
 			}
 
-			if ( _dstFormat != _intermFormat )
-			{
-				RETURN_ERR( "compression is not supported yet" );
-			}
+			// compress if needed
+			CHECK_ERR( tex._ConvertImage() );
 		}
 
-		// serialize
+		// to image header
 		{
-			ImagePacker::Header	img_hdr;
-			img_hdr.dimension	= ushort3{uint3{ rect_packer.TargetSize(), 1 }};
-			img_hdr.arrayLayers	= 1;
-			img_hdr.mipmaps		= 1;
-			img_hdr.format		= _dstFormat;
-			img_hdr.viewType	= EImage_2D;
+			IntermImage&	dst_image = *tex._imgData;
 
-			ImageAtlasPacker	atlas_packer {img_hdr};
-			atlas_packer.map.reserve( _map.size() );
-			atlas_packer.rects.resize( _imageRegions.size() );
+			CHECK_ERR( dst_image.ArrayLayers() == 1 );
+			CHECK_ERR( dst_image.MipLevels() == 1 );
+			CHECK_ERR( dst_image.GetType() == EImage_2D );
 
-			for (const auto& [name, idx] : _map)
-			{
-				CHECK_ERR( idx < atlas_packer.rects.size() );
-				CHECK_ERR( atlas_packer.map.emplace( ImageInAtlasName::Optimized_t{name}, idx ).second );
-			}
+			_imageHeader.dimension		= ImageDim_t(dst_image.Dimension());
+			_imageHeader.arrayLayers	= 1;
+			_imageHeader.mipmaps		= 1;
+			_imageHeader.viewType		= EImage_2D;
+			_imageHeader.format			= dst_image.PixelFormat();
+			_imageHeader.flags			= 0;
+			_imageHeader.rowAlignPOT	= 0;
 
-			for (auto& r : rect_packer.GetResult())
-			{
-				CHECK_ERR( r.id < int(atlas_packer.rects.size()) );
-
-				const RectI	texc = RectI{ int2{r.w, r.h} - _paddingPix*2 } + (int2{r.x, r.y} + _paddingPix);
-				CHECK_ERR( texc.IsValid() );
-				CHECK_ERR( texc.left >= 0 and texc.top >= 0 );
-				CHECK_ERR( texc.right < int(rect_packer.TargetSize().x) );
-				CHECK_ERR( texc.bottom < int(rect_packer.TargetSize().y) );
-
-				auto&	dst = atlas_packer.rects[ r.id ];
-				dst = Rectangle<ushort>{ texc };
-			}
-
-			{
-				Serializing::Serializer	ser {stream};
-				CHECK_ERR( ImageAtlasPacker_Serialize( atlas_packer, ser ));
-			}
-			CHECK_ERR( ImageAtlasPacker_SaveImage( atlas_packer, *stream, dst_image ));
+			StaticAssert( sizeof(_imageHeader) == 16 );
 		}
-
 		return true;
 	}
 
 /*
 =================================================
-	_LoadImages
+	SetPadding
 =================================================
 */
-	void  ScriptImageAtlas::_LoadImages () __Th___
+	void  ScriptImageAtlas::SetPadding (uint pix) __Th___
 	{
-		for (auto& img : _imageFiles)
-		{
-			img.data.reset( new IntermImage{ img.path });
+		CHECK_THROW( _state == EState::Recording );
+		_paddingPix = pix;
+	}
 
-			AllImageLoaders	loader;
-			CHECK_THROW_MSG( loader.LoadImage( *img.data, Default, False{"don't flipY"} ),
-				"failed to load image '"s << ToString(img.path) << "'" );
+/*
+=================================================
+	SetFormat
+=================================================
+*/
+	void  ScriptImageAtlas::SetFormat (EPixelFormat fmt) __Th___
+	{
+		CHECK_THROW( _state == EState::Recording );
+		_dstFormat		= fmt;
+		_intermFormat	= EPixelFormat_ToNoncompressed( _dstFormat, false );
+	}
+
+/*
+=================================================
+	_CopyPixels
+=================================================
+*/
+	bool  ScriptImageAtlas::_CopyPixels (INOUT ResLoader::IntermImage &dstImage, ArrayView<ScriptSharedImage::Result> regions) __NE___
+	{
+		CHECK_ERR( _state == EState::Immutable );
+		CHECK_ERR( _intermFormat == dstImage.PixelFormat() );
+		CHECK_ERR( regions.size() == _imageRegions.size() );
+
+		auto	dst_view = RWImageMemView{ dstImage.ToView() };
+
+		for (auto& r : regions)
+		{
+			CHECK_ERR( r.id < _imageRegions.size() );
+
+			auto&		src		= _imageRegions[ r.id ];
+			const RectI	texc	= RectI{ int2{r.region.LeftTop()} + _paddingPix, int2{r.region.RightBottom()} - _paddingPix };
+			auto		src_img	= RWImageMemView{ _imageFiles[ src.imageIdx ].data->ToView() };
+
+			CHECK_ERR( All( texc.Size() == int2(src.region.Size()) ));
+			CHECK_ERR( texc.IsValid() );
+			CHECK_ERR( texc.left >= 0 and texc.top >= 0 );
+			CHECK_ERR( texc.right <= int(dst_view.Dimension().x) );
+			CHECK_ERR( texc.bottom <= int(dst_view.Dimension().y) );
+
+			// 'src.region' - region inside 'src_img'
+			CHECK_ERR( dst_view.Blit( uint3{int3{ texc.left, texc.top, 0 }}, uint3{src.region.left, src.region.top, 0u}, src_img, uint3{int3{ texc.Size(), 1 }} ));
+
+			src.region = RectU{texc};
 		}
+
+		_state = EState::Arranged;
+		return true;
+	}
+
+/*
+=================================================
+	Bind
+=================================================
+*/
+	void  ScriptImageAtlas::Bind (const ScriptEnginePtr &se) __Th___
+	{
+		Scripting::ClassBinder<ScriptImageAtlas>	binder{ se };
+		binder.CreateRef();
+		binder.AddMethod( &ScriptImageAtlas::Add,			"Add",			{"imageNameInAtlas", "filename"} );
+		binder.AddMethod( &ScriptImageAtlas::Add2,			"Add",			{"imageNameInAtlas", "filename", "regionInSrcImage"} );
+		binder.AddMethod( &ScriptImageAtlas::Store,			"Store",		{"nameInArchive"} );
+		binder.AddMethod( &ScriptImageAtlas::StoreData,		"StoreData",	{"nameInArchive"} );
+		binder.AddMethod( &ScriptImageAtlas::PutMeta,		"PutMeta",		{"metaFile", "nameInMeta"} );
+		binder.AddMethod( &ScriptImageAtlas::PutData,		"PutData",		{"image"} );
+		binder.AddMethod( &ScriptImageAtlas::SetPadding,	"Padding",		{"paddingInPixels"} );
+		binder.AddMethod( &ScriptImageAtlas::SetFormat,		"Format",		{"newFormat"} );
+	}
+
+/*
+=================================================
+	_StoreMeta
+=================================================
+*/
+	bool  ScriptImageAtlas::_StoreMeta (RC<WStream> stream, const String &metaArchive) C_NE___
+	{
+		ImageAtlasPacker	atlas_packer;
+		atlas_packer.map.reserve( _map.size() );
+		atlas_packer.rects.resize( _imageRegions.size() );
+
+		if ( not _sharedImageMeta.empty() )
+		{
+			CHECK_ERR( _state == EState::Arranged );
+			atlas_packer._header.flags	= ImageAtlasPacker::EFileFlags::HasResName;
+			atlas_packer._imageResName	= CachedResourceName{_sharedImageMeta};
+		}else
+		if ( not _imageFileName.empty() )
+		{
+			CHECK_ERR( _state == EState::StoreData );
+			atlas_packer._header.flags	= ImageAtlasPacker::EFileFlags::SeparateData;
+			atlas_packer._imageHeader	= _imageHeader;
+			atlas_packer._imageFileName	= VFS::FileName{_imageFileName};
+		}
+		else{
+			CHECK_ERR( _state == EState::Arranged );
+			atlas_packer._header.flags	= ImageAtlasPacker::EFileFlags::HasImage;
+			atlas_packer._imageHeader	= _imageHeader;
+		}
+
+		for (const auto& [name, idx] : _map)
+		{
+			CHECK_ERR( idx < atlas_packer.rects.size() );
+			CHECK_ERR( atlas_packer.map.emplace( ImageInAtlasName::Optimized_t{name}, idx ).second );
+		}
+
+		for (usize i = 0; i < _imageRegions.size(); ++i)
+		{
+			atlas_packer.rects[i] = Rectangle<ushort>{ _imageRegions[i].region };
+		}
+
+		{
+			Serializing::Serializer	ser {stream};
+			CHECK_ERR( ImageAtlasPacker_Serialize( atlas_packer, ser ));
+		}
+
+		if ( not _info->MetaResName().empty() )
+		{
+			CHECK_ERR( not metaArchive.empty() );
+			NOTHROW_ERR( ObjectStorage::Instance()->AddAtlas( metaArchive, _info ));
+		}
+
+		_state = EState::Stored;
+		return true;
 	}
 
 

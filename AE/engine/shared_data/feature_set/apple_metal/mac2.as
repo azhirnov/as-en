@@ -93,21 +93,23 @@ void ASmain ()
 	fset.maxSpirvVersion (140);
 	fset.maxMetalVersion (240);
 	fset.drawIndirectFirstInstance (True);
+	fset.maxDrawIndirectCount (1 << 30);
 	fset.multiViewport (True);
 	fset.maxViewports (16);
 	fset.maxTexelBufferElements (64 << 20);
 	fset.maxUniformBufferSize (64 << 10);
 	fset.maxStorageBufferSize (64 << 10);
-	fset.perDescrSet_maxUniformBuffersDynamic (8);
-	fset.perDescrSet_maxStorageBuffersDynamic (4);
-	fset.perDescrSet_maxInputAttachments (1000000);
-	fset.perDescrSet_maxSampledImages (1000000);
-	fset.perDescrSet_maxSamplers (1024);
-	fset.perDescrSet_maxStorageBuffers (4294967295);
-	fset.perDescrSet_maxStorageImages (1000000);
-	fset.perDescrSet_maxUniformBuffers (4294967295);
-	fset.perDescrSet_maxAccelStructures (4294967295);
-	fset.perDescrSet_maxTotalResources (1001023);
+	fset.perPipeline_maxUniformBuffersDynamic (8);
+	fset.perPipeline_maxStorageBuffersDynamic (4);
+	fset.perPipeline_maxTotalBuffersDynamic (8);
+	fset.perPipeline_maxInputAttachments (1000000);
+	fset.perPipeline_maxSampledImages (1000000);
+	fset.perPipeline_maxSamplers (1024);
+	fset.perPipeline_maxStorageBuffers (4294967295);
+	fset.perPipeline_maxStorageImages (1000000);
+	fset.perPipeline_maxUniformBuffers (4294967295);
+	fset.perPipeline_maxAccelStructures (4294967295);
+	fset.perPipeline_maxTotalResources (1001023);
 	fset.perStage_maxInputAttachments (8000000);
 	fset.perStage_maxSampledImages (8000000);
 	fset.perStage_maxSamplers (8192);
@@ -191,6 +193,10 @@ void ASmain ()
 	fset.multisampleArrayImage (True);
 	fset.imageViewFormatList (True);
 	fset.imageViewExtendedUsage (True);
+	fset.maxImageDimension1D (16 << 10);
+	fset.maxImageDimension2D (16 << 10);
+	fset.maxImageDimension3D (2 << 10);
+	fset.maxImageDimensionCube (16 << 10);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U

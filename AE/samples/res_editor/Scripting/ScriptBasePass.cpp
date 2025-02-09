@@ -61,6 +61,7 @@ namespace AE::ResEditor
 	template <typename T>
 	void  ScriptBasePass::_Slider (const String &name, const T &min, const T &max, T val, ESlider type) __Th___
 	{
+		CHECK_THROW_MSG( not name.empty() );
 		CHECK_THROW_MSG( _uniqueSliderNames.insert( name ).second,
 			"Slider/Constant '"s << name << "' is already exists" );
 
@@ -314,6 +315,12 @@ namespace AE::ResEditor
 	{
 		_dbgName	= name;
 		_dbgColor	= color;
+	}
+
+	void  ScriptBasePass::SetDebugLabel3 (const String &name, const RGBA32f &color) __Th___
+	{
+		_dbgName	= name;
+		_dbgColor	= RGBA8u{color};
 	}
 
 /*

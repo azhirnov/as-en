@@ -1,7 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Visualize texture distortion.
+	All quad in texture has the same size, but size on sphere depends on projection type.
+*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT

@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -112,9 +112,13 @@
 		float3		pos		= PosOnSphere();
 
 		pos *= 8.0;
-		pos += Turbulence_PerlinNoiseFBM( pos, 2.0, 0.6, 7 );
+		pos += Turbulence_PerlinNoiseFBM( pos, CreateFBMParams( 2.0, 0.6, 7 ));
 
-		float		hash	= DHash13( Voronoi( pos, float3(3.9672, 0.0, 1.0) ).icenter );
+		NoiseParams	np	= CreateNoiseParams();
+		np.seedScale	= float3(3.9672);
+		np.custom.x		= 1.0;
+
+		float	hash	= DHash13( VoronoiR( pos, np ).icenter );
 
 		gl.image.Store( un_OutImage, coord, Rainbow(hash) );
 	}

@@ -135,11 +135,9 @@ namespace AE::App
 */
 	void  InputActionsAndroid::SetMonitor (const uint2 &surfaceSize, const Monitor &monitor) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
+		_Setup( float2(surfaceSize), monitor.MillimetersPerPixel() );
 
-		_toSNorm		= 1.0f / float2(surfaceSize);
-		_pixToMm		= monitor.MillimetersPerPixel();
-		_screenOrient	= monitor.RotationQuat();
+		_screenOrient = Graphics::SurfaceTransformUtils::ToInvQuat( monitor.SurfaceTransform() );
 	}
 
 /*

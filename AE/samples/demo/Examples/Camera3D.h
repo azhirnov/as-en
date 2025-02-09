@@ -15,7 +15,6 @@ namespace AE::Samples::Demo
 	private:
 		class DrawTask;
 		class ProcessInputTask;
-		class UploadTextureTask;
 
 		using Camera				= TFPVCamera<float>;
 		using CubeRenderer			= GeometryTools::CubeRenderer;
@@ -24,6 +23,7 @@ namespace AE::Samples::Demo
 
 	// variables
 	public:
+		RC<ResourceUploadManager>	uploadMngr;
 		RenderTechPipelinesPtr		rtech;
 		GfxMemAllocatorPtr			gfxAlloc;
 
@@ -35,8 +35,7 @@ namespace AE::Samples::Demo
 		SphericalCubeRenderer		cube2;
 		Strong<BufferID>			uniformBuf;
 
-		Atomic<bool>				uploaded	{false};
-		StrongImageAndViewID		cubeMap;
+		RC<LoadableImage>			cubeMap;
 
 		StrongImageAndViewID		depthBuf;
 

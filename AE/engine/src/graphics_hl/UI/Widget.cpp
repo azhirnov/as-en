@@ -47,7 +47,7 @@ namespace AE::UI
 	{
 		CHECK_ERR( not _root );
 		CHECK_ERR( root );
-		CHECK_ERR( root->GetType() < ILayout::EType::_Begin_AutoSize );
+		CHECK_ERR( root->Type() < ILayout::EType::_Begin_AutoSize );
 
 		_root = RVRef(root);
 
@@ -134,7 +134,7 @@ namespace AE::UI
 				view_info = ViewInfo{ view_idx, parent_info.depth+1 };
 
 				rect_ptr[view_idx]		= RectF{};
-				type_ptr[view_idx]		= layout->GetType();
+				type_ptr[view_idx]		= layout->Type();
 				parent_ptr[view_idx]	= LayoutData_t::Index_t( parent_info.index );
 
 				++view_idx;
@@ -297,7 +297,7 @@ namespace AE::UI
 		{
 			for (auto& cont : _controllers)
 			{
-				IController::UpdateParams	params{ input, *_actionMap, ldata.State( cont.layoutIdx ) };
+				IController::UpdateParams	params{ input, *_actionMap, ldata.State( cont.layoutIdx )};
 
 				cont.ptr->Update( params );
 			}
@@ -378,7 +378,7 @@ namespace AE::UI
 			params.mtr->stencilRef	= drawable.stencilRef + inParams.baseStencilRef;
 			params.clipRect			= ldata.ClipRect( drawable.layoutIdx );
 			params.globalRect		= ldata.State( drawable.layoutIdx ).GlobalRect();
-			params.style			= ldata.State( drawable.layoutIdx ).StyleFlags();
+			params.style			= StyleStateToIndex( ldata.State( drawable.layoutIdx ).StyleFlags() );
 
 			ASSERT( params.mtr->stencilRef <= _MaxStencilRef );
 

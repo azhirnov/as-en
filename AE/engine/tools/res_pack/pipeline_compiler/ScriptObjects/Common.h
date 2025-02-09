@@ -208,13 +208,13 @@ namespace AE::PipelineCompiler
 		UInt32,
 		UInt64,
 
-		//FloatLowp,// sign: yes, exponent: 0,  mantissa: 8
-		//UFloat10,	// sign: no,  exponent: 5,  mantissa: 5
-		//UFloat11,	// sign: no,  exponent: 5,  mantissa: 6
-		//BFloat16,	// sign: yes, exponent: 8,  mantissa: 7
-		Float16,	// sign: yes, exponent: 5,  mantissa: 10
-		Float32,	// sign: yes, exponent: 8,  mantissa: 23
-		Float64,	// sign: yes, exponent: 11, mantissa: 52
+		//FloatLowp,	// sign: yes, exponent: 0,  mantissa: 8
+		//UFloat10,		// sign: no,  exponent: 5,  mantissa: 5
+		//UFloat11,		// sign: no,  exponent: 5,  mantissa: 6
+		//BFloat16,		// sign: yes, exponent: 8,  mantissa: 7
+		Float16,		// sign: yes, exponent: 5,  mantissa: 10
+		Float32,		// sign: yes, exponent: 8,  mantissa: 23
+		Float64,		// sign: yes, exponent: 11, mantissa: 52
 
 		Int8_Norm,
 		Int16_Norm,
@@ -238,6 +238,7 @@ namespace AE::PipelineCompiler
 		Vulkan,
 		Metal_iOS,
 		Metal_Mac,
+		// TODO: Metal for both iOS and Mac
 		_Count
 	};
 

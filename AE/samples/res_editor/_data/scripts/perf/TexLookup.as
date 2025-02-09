@@ -14,7 +14,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_NOISE
 #endif
 //-----------------------------------------------------------------------------
@@ -56,11 +56,14 @@
 
 			scene.Add( geometry );
 		}
-		
+
 		Slider( tex_dim,	"TexDim",	1,	8,	4 );
 		Slider( gen_tex,	"GenTex",	0,	1,  1 );
 		Slider( mode,		"UV Noise",	0,	1 );
 		Slider( count,		"Repeat",	1,	32 );
+
+		Label( dim2.XY(),	"Tex Dimension" );
+		Label( dim.XY(),	"RT Dimension" );
 
 		// render loop
 		if ( false ){

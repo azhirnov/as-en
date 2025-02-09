@@ -2,7 +2,7 @@
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
 #	define SH_RAY_GEN
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 
 #	define PRIMARY_MISS
 #	define SHADOW_MISS

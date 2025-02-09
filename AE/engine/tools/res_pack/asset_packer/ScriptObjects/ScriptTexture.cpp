@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/DataSource/MemStream.h"
-#include "graphics/Private/EnumUtils.h"
-#include "graphics/Private/EnumToString.h"
+#include "graphics_rhi/Private/EnumUtils.h"
+#include "graphics_rhi/Private/EnumToString.h"
 
 #include "ScriptObjects/ScriptTexture.h"
 #include "Packer/ImagePacker.h"
@@ -36,19 +36,16 @@ namespace {
 
 /*
 =================================================
-	constructor
+	constructor / destructor
 =================================================
 */
 	ScriptTexture::ScriptTexture ()
 	{}
 
-/*
-=================================================
-	destructor
-=================================================
-*/
 	ScriptTexture::~ScriptTexture ()
-	{}
+	{
+		CHECK( _state == EState::Stored );
+	}
 
 /*
 =================================================
@@ -72,6 +69,7 @@ namespace {
 
 	void  ScriptTexture::Alloc4 (const packed_uint2 &dim, EPixelFormat fmt, const ImageLayer &layers, const MipmapLevel &mipmaps) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( not _imgData );
 
 		_imgData.reset( new IntermImage{} );
@@ -87,6 +85,7 @@ namespace {
 
 	void  ScriptTexture::Alloc6 (const packed_uint3 &dim, EPixelFormat fmt, const MipmapLevel &mipmaps) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( not _imgData );
 
 		_imgData.reset( new IntermImage{} );
@@ -102,6 +101,7 @@ namespace {
 
 	void  ScriptTexture::AllocCube2 (const packed_uint2 &dim, EPixelFormat fmt, const MipmapLevel &mipmaps) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( not _imgData );
 
 		_imgData.reset( new IntermImage{} );
@@ -165,6 +165,7 @@ namespace {
 
 	void  ScriptTexture::Load2 (const String &imageFile, bool flipY) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( not _imgData );
 
 		_imgData = _Load( imageFile, flipY ); // throw
@@ -174,6 +175,7 @@ namespace {
 
 	void  ScriptTexture::Load3 (const String &imageFile, const RectU &region) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( not _imgData );
 
 		_imgData = _Load( imageFile, region ); // throw
@@ -188,6 +190,8 @@ namespace {
 */
 	void  ScriptTexture::LoadChannel1 (const String &imageFile, const String &srcSwizzle, const String &dstSwizzle) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
+
 		Unique<IntermImage>	tmp = _Load( imageFile, false );
 
 		if ( not _imgData )
@@ -212,6 +216,7 @@ namespace {
 */
 	void  ScriptTexture::AddLayer1 (const String &imageFile, uint layer) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( _imgData, "image must be preallocated by 'Alloc()'" );
 
 		auto	img = _Load( imageFile, false ); // throw
@@ -221,6 +226,7 @@ namespace {
 
 	void  ScriptTexture::AddLayer2 (const String &imageFile, uint layer, bool flipY) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( _imgData, "image must be preallocated by 'Alloc()'" );
 
 		auto	img = _Load( imageFile, flipY ); // throw
@@ -230,6 +236,7 @@ namespace {
 
 	void  ScriptTexture::AddLayer3 (const String &imageFile, const RectU &region, uint layer) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( _imgData, "image must be preallocated by 'Alloc()'" );
 
 		auto	img = _Load( imageFile, region ); // throw
@@ -260,15 +267,99 @@ namespace {
 */
 	void  ScriptTexture::Store (const String &nameInArchive) __Th___
 	{
-		CHECK_THROW_MSG( _imgData );
+		CHECK_THROW( _ConvertImage() );
 
 		auto	wmem = MakeRC<ArrayWStream>();
-		CHECK_THROW_MSG( _Pack( nameInArchive, wmem ));
+
+		CHECK_THROW( _StoreMeta( wmem ));
+		CHECK_THROW( _StoreData( wmem ));
 
 		MemRefRStream	rmem {wmem->GetData()};
 		ObjectStorage::Instance()->AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw ); // throw
+	}
 
-		ASSERT( not _imgData );
+/*
+=================================================
+	_StoreMeta
+=================================================
+*/
+	bool  ScriptTexture::_StoreMeta (RC<WStream> stream, const String &) C_NE___
+	{
+		CHECK_ERR( _state >= EState::Converted );
+		CHECK_ERR( stream );
+		CHECK_ERR( _imgData );
+
+		ImagePacker::FileHeader	file_hdr;
+		auto&					img_hdr = file_hdr.imageHeader;
+
+		if ( not _fileName.empty() )
+			file_hdr.fileName = VFS::FileName{ _fileName };
+
+		img_hdr.dimension	= ImageDim_t{_imgData->Dimension()};
+		img_hdr.arrayLayers	= CheckCast<LayerCount_t>(_imgData->ArrayLayers());
+		img_hdr.mipmaps		= CheckCast<MipmapCount_t>(_imgData->MipLevels());
+		img_hdr.format		= _dstFormat;
+		img_hdr.viewType	= _imgData->GetType();
+
+		CHECK_ERR( ImagePacker_SaveHeader( *stream, file_hdr ));
+		return true;
+	}
+
+/*
+=================================================
+	_StoreData
+=================================================
+*/
+	bool  ScriptTexture::_StoreData (RC<WStream> stream) __NE___
+	{
+		CHECK_ERR( _state == EState::Converted );
+		CHECK_ERR( stream );
+		CHECK_ERR( _imgData );
+		CHECK_ERR( _dstFormat == _intermFormat );
+
+		ImagePacker::Header	img_hdr;
+		img_hdr.dimension	= ImageDim_t{_imgData->Dimension()};
+		img_hdr.arrayLayers	= CheckCast<LayerCount_t>(_imgData->ArrayLayers());
+		img_hdr.mipmaps		= CheckCast<MipmapCount_t>(_imgData->MipLevels());
+		img_hdr.format		= _dstFormat;
+		img_hdr.viewType	= _imgData->GetType();
+
+		CHECK_ERR( ImagePacker_SaveImage( *stream, img_hdr, *_imgData ));
+
+		_state = EState::Stored;
+		return true;
+	}
+
+/*
+=================================================
+	_ConvertImage
+=================================================
+*/
+	bool  ScriptTexture::_ConvertImage () __NE___
+	{
+		CHECK_ERR( _state == EState::Recording );
+
+		Unique<IntermImage>		dst_image {new IntermImage{}};
+
+		if ( _dstFormat == _intermFormat ) {
+			CHECK_ERR( _Convert( OUT *dst_image ));
+		}else
+		if ( EPixelFormat_IsETC( _dstFormat ) or EPixelFormat_IsBC( _dstFormat )) {
+			CHECK_ERR( _CompressBC_ETC2( OUT *dst_image ));
+		}else
+		if ( EPixelFormat_IsASTC( _dstFormat )) {
+			CHECK_ERR( _CompressASTC( OUT *dst_image ));
+		}else
+		if ( EPixelFormat_IsEAC( _dstFormat )) {
+			CHECK_ERR( _CompressEAC( OUT *dst_image ));
+		}else
+			RETURN_ERR( "compression is not supported" );
+
+		_imgData		= RVRef(dst_image);
+		_intermFormat	= _dstFormat;
+		_state			= EState::Converted;
+
+		return true;
 	}
 
 /*
@@ -278,49 +369,10 @@ namespace {
 */
 	void  ScriptTexture::SetFormat (EPixelFormat fmt) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
+
 		_dstFormat		= fmt;
 		_intermFormat	= EPixelFormat_ToNoncompressed( _dstFormat, false );
-	}
-
-/*
-=================================================
-	_Pack
-=================================================
-*/
-	bool  ScriptTexture::_Pack (const String &, RC<WStream> stream)
-	{
-		// convert images
-		IntermImage		dst_image;
-
-		if ( _dstFormat == _intermFormat ) {
-			CHECK_ERR( _Convert( OUT dst_image ));
-		}else
-		if ( EPixelFormat_IsETC( _dstFormat ) or EPixelFormat_IsBC( _dstFormat )) {
-			CHECK_ERR( _CompressBC_ETC2( OUT dst_image ));
-		}else
-		if ( EPixelFormat_IsASTC( _dstFormat )) {
-			CHECK_ERR( _CompressASTC( OUT dst_image ));
-		}else
-		if ( EPixelFormat_IsEAC( _dstFormat )) {
-			CHECK_ERR( _CompressEAC( OUT dst_image ));
-		}else
-			RETURN_ERR( "compression is not supported" );
-
-		_imgData.reset();
-
-		// serialize
-		{
-			ImagePacker::FileHeader	img_hdr;
-			img_hdr.hdr.dimension	= ushort3{dst_image.Dimension()};
-			img_hdr.hdr.arrayLayers	= CheckCast<ushort>(dst_image.ArrayLayers());
-			img_hdr.hdr.mipmaps		= CheckCast<ushort>(dst_image.MipLevels());
-			img_hdr.hdr.format		= _dstFormat;
-			img_hdr.hdr.viewType	= dst_image.GetType();
-
-			CHECK_ERR( ImagePacker_SaveHeader( *stream, img_hdr ));
-			CHECK_ERR( ImagePacker_SaveImage( *stream, img_hdr.hdr, dst_image ));
-		}
-		return true;
 	}
 
 /*

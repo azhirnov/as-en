@@ -134,7 +134,7 @@ namespace AE::App
 
 		BindAction					_bindAction;
 
-		float2						_toSNorm;				// 1/px
+		float						_toSNorm		= 1.f;	// 1/px
 		float						_pixToMm		= 0.f;	// mm/px
 
 		bool						_vrEmulation	= false;
@@ -181,14 +181,15 @@ namespace AE::App
 
 
 	protected:
+		void  _Setup (float2 surfDim, float pixToMm)												__NE___;
 		void  _Reset ()																				__NE___;
 
 		template <typename T>
-		ND_ static constexpr InputKey	_Pack (T key,
-											   EGestureType gesture,
-											   EGestureState state = EGestureState::Update)			__NE___	{ return SerializableInputActions::_Pack( key, gesture, state ); }
+		NdCx__ static InputKey	_Pack (T key,
+									   EGestureType gesture,
+									   EGestureState state = EGestureState::Update)					__NE___	{ return SerializableInputActions::_Pack( key, gesture, state ); }
 
-		ND_ static constexpr auto		_Unpack (InputKey key)										__NE___ -> Tuple< uint, EGestureType, EGestureState > { return SerializableInputActions::_Unpack( key ); }
+		NdCx__ static auto		_Unpack (InputKey key)												__NE___ -> Tuple< uint, EGestureType, EGestureState > { return SerializableInputActions::_Unpack( key ); }
 
 
 		template <typename T> void  _Update1F (T type, EGestureType gesture, ControllerID id,
@@ -231,7 +232,7 @@ namespace AE::App
 	ValueType_ElementCount
 =================================================
 */
-	ND_ constexpr uint  ValueType_ElementCount (IInputActions::EValueType type) __NE___
+	NdCzIn uint  ValueType_ElementCount (IInputActions::EValueType type) __NE___
 	{
 		using EValueType = IInputActions::EValueType;
 		switch_enum( type )

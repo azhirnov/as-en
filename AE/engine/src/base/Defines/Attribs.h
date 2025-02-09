@@ -50,6 +50,7 @@
 
 
 // function prefix attribs
+#define Nd____		ND_
 #define __Cx__											constexpr
 #define	__CxIn							inline			constexpr
 #define	__CxIF							forceinline		constexpr
@@ -61,47 +62,43 @@
 #define	NdCxIn		ND_					inline			constexpr
 #define	NdCxIF		ND_					forceinline		constexpr
 #define	NdCxIA		ND_	AE_FLATTEN_FN	forceinline		constexpr
+#define __Cz__											cxx20_constexpr
+#define	__CzIn							inline			cxx20_constexpr
+#define	__CzIF							forceinline		cxx20_constexpr
+#define	__CzIA			AE_FLATTEN_FN	forceinline		cxx20_constexpr
+#define NdCz__		ND_									cxx20_constexpr
+#define	NdCzIn		ND_					inline			cxx20_constexpr
+#define	NdCzIF		ND_					forceinline		cxx20_constexpr
+#define	NdCzIA		ND_	AE_FLATTEN_FN	forceinline		cxx20_constexpr
 #define	Nd__In		ND_					inline
 #define	Nd__IF		ND_					forceinline
 #define	Nd__IA		ND_	AE_FLATTEN_FN	forceinline
-#define __Cv__											cxx20_consteval
-#define NdCv__		ND_									cxx20_consteval
+#define __Ce__											cxx20_consteval
+#define NdCe__		ND_									cxx20_consteval
 
 
 // has attribute (C++20)
-#ifdef __has_cpp_attribute
+#if defined(__has_cpp_attribute) and AE_CXX_VER >= 20
 #	define AE_HAS_ATTRIB		__has_cpp_attribute
 #else
 #	define AE_HAS_ATTRIB(...)	(0)
 #endif
 
+// has include (C++20)
+#if defined(__has_include) and AE_CXX_VER >= 17
+#	define AE_HAS_INCLUDE		__has_include
+#else
+#	define AE_HAS_INCLUDE(...)	(0)
+#endif
+
 
 // no discard
 #ifndef ND_
-# ifdef AE_COMPILER_MSVC
-#  if _MSC_VER >= 1917
+#  if AE_CXX_VER >= 17
 #	define ND_					[[nodiscard]]
 #  else
 #	define ND_
 #  endif
-# endif // AE_COMPILER_MSVC
-
-# ifdef AE_COMPILER_CLANG
-#  if __has_feature( cxx_attributes )
-#	define ND_					[[nodiscard]]
-#  else
-#	define ND_
-#  endif
-# endif // AE_COMPILER_CLANG
-
-# ifdef AE_COMPILER_GCC
-#  if __has_cpp_attribute( nodiscard )
-#	define ND_					[[nodiscard]]
-#  else
-#	define ND_
-#  endif
-# endif // AE_COMPILER_GCC
-
 #endif // ND_
 
 
@@ -167,6 +164,17 @@
 #endif
 
 
+// returns true for constant (constexpr) variable or function argument
+#if defined(AE_COMPILER_MSVC)
+#	define IsConstArg( _p_ )	false	// TODO: https://stackoverflow.com/questions/20919041/is-there-a-builtin-constant-p-for-visual-c
+
+#elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
+#	define IsConstArg( _p_ )	(__builtin_constant_p(_p_))
+#else
+#	define IsConstArg( _p_ )	false
+#endif
+
+
 // no inline (for debugging)
 #ifndef AE_NOINLINE
 # if defined(AE_COMPILER_MSVC)
@@ -193,7 +201,7 @@
 
 
 // branch prediction optimization
-#if __has_cpp_attribute( likely )
+#if AE_HAS_ATTRIB( likely )
 #	define AE_PRIVATE_HAS_CPP20_LIKELY
 #endif
 
@@ -206,12 +214,11 @@
 #	define if_unlikely( ... )	if ( __builtin_expect( !!(__VA_ARGS__), 0 ))
 #else
 	// not supported
-#	define if_likely( ... )		if ( __VA_ARGS__ )
+#	define if_likely( ... )		if ( __VA_ARGS__ )	// by default it is hot path
 #	define if_unlikely( ... )	if ( __VA_ARGS__ )
 #endif
 
 #ifdef AE_PRIVATE_HAS_CPP20_LIKELY
-#	define else_unlikely		else [[unlikely]]
 #	define case_likely			[[likely]]		case
 #	define case_unlikely		[[unlikely]]	case
 #	define default_unlikely		[[unlikely]]	default
@@ -219,7 +226,6 @@
 #	define for_unlikely( ... )	for ( __VA_ARGS__ ) [[unlikely]]
 #else
 	// not supported
-#	define else_unlikely		else
 #	define case_likely			case
 #	define case_unlikely		case
 #	define default_unlikely		default
@@ -227,9 +233,15 @@
 #	define for_unlikely( ... )	for ( __VA_ARGS__ )
 #endif
 
+// May be faster than 'if (...) [[unlikely]]'.
+// Compiler may put very small code to the hot path even if it marked as unlikely.
+// Cold branch placed at the end of function to minimize instruction cache miss.
+#define cold_if( ... )			if_likely( not (__VA_ARGS__) ){}else
+#define cold_if_not( ... )		if_likely( bool{__VA_ARGS__} ){}else
+
 
 // TODO
-#if __has_cpp_attribute( fallthrough )
+#if AE_HAS_ATTRIB( fallthrough )
 #	define FALLTHROUGH()		[[fallthrough]]
 #else
 #	define FALLTHROUGH()		{}
@@ -238,12 +250,12 @@
 
 // field placement optimization
 #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
-# if _MSC_VER >= 1929
+# if AE_CXX_VER >= 20 and _MSC_VER >= 1929
 #	define NO_UNIQUE_ADDRESS	[[msvc::no_unique_address]]
 # endif
 #endif
 #ifndef NO_UNIQUE_ADDRESS
-# if __has_cpp_attribute( no_unique_address )
+# if AE_HAS_ATTRIB( no_unique_address )
 #	define NO_UNIQUE_ADDRESS	[[no_unique_address]]
 # else
 #	define NO_UNIQUE_ADDRESS
@@ -252,7 +264,7 @@
 
 
 // variable may be unused (C++17)
-#if __has_cpp_attribute( maybe_unused  )
+#if AE_HAS_ATTRIB( maybe_unused  )
 #	define MaybeUnused			[[maybe_unused]]
 #else
 #	define MaybeUnused
@@ -269,6 +281,18 @@
 #	define AE_THISCALL			//__attribute__((thiscall))
 #endif
 
+#ifdef AE_CPU_ARCH_X86_64
+# ifdef AE_COMPILER_MSVC
+#	define AE_VCALL				__vectorcall
+# elif defined(AE_COMPILER_CLANG)
+#	define AE_VCALL				[[clang::vectorcall]]
+# else
+#	define AE_VCALL
+# endif
+#else
+#	define AE_VCALL
+#endif
+
 
 // native source location (C++20) instead of __FILE__, __LINE__
 #ifdef __cpp_lib_source_location
@@ -277,20 +301,28 @@
 
 
 // code vectorization
-#ifdef AE_COMPILER_MSVC
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	define AE_DONT_VECTORIZE		_Pragma( "clang loop vectorize_width(1) interleave_count(1)" )		// TODO: ignored
+#	define AE_FORCE_VECTORIZE		_Pragma( "clang loop vectorize(enable) interleave(enable)" )
+#	define AE_VECTORIZE( n )		_Pragma( "clang loop vectorize_width(" #n ") interleave_count(" #n ")" )
+#	define AE_DONT_UNROLL			_Pragma( "clang loop unroll(disable)" )
+#	define AE_UNROLL				_Pragma( "clang loop unroll(full)" )
+#	define AE_UNROLL_COUNT( n )		_Pragma( "clang loop unroll_count(" #n ")" )
+
+#elif defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
 #	define AE_DONT_VECTORIZE		__pragma( loop( no_vector ))	// disable vectorization
 #	define AE_FORCE_VECTORIZE		__pragma( loop( ivdep ))		// ignore dependencies to enable vectorization
+#	define AE_VECTORIZE( n )
+#	define AE_DONT_UNROLL
 #	define AE_UNROLL
-
-#elif defined(AE_COMPILER_CLANG)
-#	define AE_DONT_VECTORIZE		_Pragma( "clang loop vectorize(disable) interleave(disable)" )
-#	define AE_FORCE_VECTORIZE		_Pragma( "clang loop vectorize(enable) interleave(enable)" )
-#	define AE_UNROLL				_Pragma( "clang loop unroll(full)" )
+#	define AE_UNROLL_COUNT( n )
 
 #else
 #	define AE_DONT_VECTORIZE
 #	define AE_FORCE_VECTORIZE
+#	define AE_DONT_UNROLL
 #	define AE_UNROLL
+#	define AE_UNROLL_COUNT( n )
 #endif
 
 
@@ -307,7 +339,7 @@
 
 // intrinsic attribute
 #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
-# if _MSC_VER >= 1935		// since VS 2022 17.5
+# if AE_CXX_VER >= 20 and _MSC_VER >= 1935		// since VS 2022 17.5
 #	define AE_INTRINSIC		[[msvc::intrinsic]]
 # endif
 #endif
@@ -318,10 +350,10 @@
 
 // force inline all function calls
 // AE_INLINE_ALL and AE_INLINE_CALLS applied for call or scope.
-// AE_FLATTEN_FN applied for function.
+// AE_FLATTEN_FN applied for function, inline all inside function, use 'forceinline' to inline the function.
 //
 #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
-# if _MSC_VER > 1930		// since VS 2022
+# if AE_CXX_VER >= 20 and _MSC_VER > 1930	// since VS 2022
 #	define AE_INLINE_ALL	[[msvc::flatten]]			// recursively use 'forceinline_calls'
 #	define AE_FLATTEN_FN	[[msvc::flatten]]
 #	define AE_INLINE_CALLS	[[msvc::forceinline_calls]]
@@ -412,36 +444,88 @@
 #endif
 
 
+//
+#if defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG)
+#	define AE_HAS_BUILTIN		__has_builtin
+#else
+#	define AE_HAS_BUILTIN(...)	(0)
+#endif
+
 // function argument name
 #define NAMED_ARG( _name_, /*arg*/... )		(__VA_ARGS__)
 //#define NAMED_ARG( _name_, /*arg*/... )	._name_ = (__VA_ARGS__)		// not supported yet
 
 
-#if (defined(AE_CPU_ARCH_ARM32) and defined(__ARM_NEON__)) or defined(AE_CPU_ARCH_ARM64)
-#	define AE_SIMD_NEON			1	// TODO: Neon32, Neon64, SVE, SVE2
-//# define AE_SIMD_NEON_HALF
-
-#	include <arm_neon.h>
-#	ifdef __ARM_FEATURE_SVE
-#	  include <arm_sve.h>
-#	endif
-	// TODO: arm64_neon.h
-#endif
-
-#if defined(AE_COMPILER_MSVC) and defined(AE_CPU_ARCH_ARM64)
-#	undef AE_SIMD_NEON
-#	define AE_SIMD_NEON	0
-#endif
-
-#if defined(AE_CPU_ARCH_ARM32)
+#ifdef AE_CPU_ARCH_ARM_BASED
 # ifndef __ARM_FP
-#	error soft-FP is not supported
+#	error ARM hardware float point is not supported
+# endif
+# if !(__ARM_FP & 0x4)
+#	error ARM hardware float32 is not supported
 # endif
 #endif
 
-#if defined(AE_CPU_ARCH_X64) or defined(AE_CPU_ARCH_X86)
+#ifdef AE_CPU_ARCH_ARM_BASED
+# ifdef AE_PLATFORM_WINDOWS
+	// not supported
+
+# elif defined(__ARM_NEON_FP)
+#	if !(__ARM_NEON_FP & 0x4)
+#	  error ARM hardware float32 is not supported
+#	endif
+#	define AE_SIMD_NEON			1	// int, float
+#	include <arm_neon.h>
+
+#	ifdef __ARM_FEATURE_FMA
+#	  define AE_SIMD_FMA		1
+#	else
+#	  define AE_SIMD_FMA		0
+#	endif
+
+#	ifdef __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#	  include <arm_fp16.h>
+#	  undef  AE_SIMD_NEON_HALF
+#	  define AE_SIMD_NEON_HALF	1	// half (ARMv8.2-A)
+#	elif defined(AE_SIMD_NEON_HALF)
+#	 if AE_SIMD_NEON_HALF
+#	  undef  AE_SIMD_NEON_HALF
+#	  define AE_SIMD_NEON_HALF	0
+#	  pragma message "AE_SIMD_NEON_HALF requires ARMv8.2-A"
+#	 endif
+#	endif
+
+#	ifdef __ARM_FEATURE_BF16_VECTOR_ARITHMETIC
+#	  include <arm_bf16.h>
+#	  define AE_SIMD_NEON_BF16	1	// bfloat16
+#	endif
+
+#	ifdef __ARM_FEATURE_SVE
+#	  include <arm_sve.h>
+#	  define AE_SIMD_SVE		1
+#	endif
+#	ifdef __ARM_FEATURE_SVE2
+		// TODO
+#	endif
+# endif
+
+# ifdef __ARM_ACLE
+#  include <arm_acle.h>
+# endif
+#endif
+
+
+#ifdef AE_CPU_ARCH_X86_64
+	// FMA
+#  ifndef AE_SIMD_FMA
+#	if AE_SIMD_AVX > 0
+#	  define AE_SIMD_FMA	1
+#	else
+#	  define AE_SIMD_FMA	0
+#	endif
+#  endif
+
 	// AVX
-#  if AE_SIMD_AVX > 0
+#  if AE_SIMD_AVX > 0 or AE_SIMD_FMA > 0
 #	include <immintrin.h>
 #  endif
 
@@ -477,11 +561,23 @@
 #ifndef AE_SIMD_AES
 #	define AE_SIMD_AES			0
 #endif
+#ifndef AE_SIMD_SHA
+#	define AE_SIMD_SHA			0
+#endif
 #ifndef AE_SIMD_NEON
 #	define AE_SIMD_NEON			0
 #endif
 #ifndef AE_SIMD_NEON_HALF
 #	define AE_SIMD_NEON_HALF	0
+#endif
+#ifndef AE_SIMD_SVE
+#	define AE_SIMD_SVE			0
+#endif
+#ifndef AE_SIMD_FMA
+#	define AE_SIMD_FMA			0
+#endif
+#ifndef AE_SIMD_F16C
+#	define AE_SIMD_F16C			0
 #endif
 
 #define AE_HAS_SIMD				(AE_SIMD_AVX | AE_SIMD_SSE | AE_SIMD_NEON)

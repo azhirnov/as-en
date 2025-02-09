@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define FS_TEXTURING
 #	define FS_FLAT_SHADING
 //#	define GEN_NORMALS

@@ -159,7 +159,7 @@ namespace AE::Base
 
 		static bool  MakeUniqueName (INOUT Path &p)						__Th___;
 
-		ND_ static StringView  ToShortPath (StringView file)			__NE___;
+		ND_ static StringView  ToShortPath (StringView file, uint maxParts = 3)	__NE___;
 
 		// Will rewrite existing file, but if file in use will try name with '-number' suffix.
 		template <typename FileType, typename ModeType>
@@ -209,6 +209,7 @@ namespace AE::Base
 			DirectoryIter &			operator ++ ()			__Th___;
 
 		ND_ bool  operator == (const DirectoryIter &rhs)	C_NE___	{ return _it == rhs._it; }
+		ND_ bool  operator != (const DirectoryIter &rhs)	C_NE___	{ return _it != rhs._it; }
 	};
 	StaticAssert( sizeof(FileSystem::DirectoryIter) == sizeof(_ae_fs_::directory_iterator) );
 
@@ -239,6 +240,7 @@ namespace AE::Base
 			RecursiveDirectoryIter&	operator ++ ()							__Th___;
 
 		ND_ bool  operator == (const RecursiveDirectoryIter &rhs)			C_NE___	{ return _it == rhs._it; }
+		ND_ bool  operator != (const RecursiveDirectoryIter &rhs)			C_NE___	{ return _it != rhs._it; }
 	};
 	StaticAssert( sizeof(FileSystem::RecursiveDirectoryIter) == sizeof(_ae_fs_::recursive_directory_iterator) );
 
@@ -453,7 +455,7 @@ namespace AE::Base
 			return CurrentPath();
 
 		std::error_code	ec;
-		return _ae_fs_::absolute( p, OUT ec );
+		return _ae_fs_::absolute( p, OUT ec ).lexically_normal();
 	}
 
 	inline Path  FileSystem::ToRelative (const Path &p, const Path &base) __Th___

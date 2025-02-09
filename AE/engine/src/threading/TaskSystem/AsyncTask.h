@@ -86,10 +86,8 @@ namespace AE::Threading
 	//
 	class alignas(AE_CACHE_LINE) IAsyncTask : public EnableRC< IAsyncTask >
 	{
-		friend class ITaskDependencyManager;	// can change '_waitBits' and '_canceledDepsCount'
 		friend class LfTaskQueue;				// can change '_status'
 		friend class TaskScheduler;				// can change '_status'
-		friend class IThread;					// can change '_status'
 
 	// types
 	public:
@@ -125,8 +123,8 @@ namespace AE::Threading
 		{
 		// variables
 			OutputChunk *								next		= null;
-			uint										count		= 0;
-			StaticArray< AsyncTask, ElemInChunk >		tasks		{};
+			uint										count		= 0;	// TODO: align OutputChunk by 64/128 and use 4 bits for 'count'
+			StaticArray< AsyncTask, ElemInChunk >		tasks		{};		// TODO: align IAsyncTask by 128 and use 7 bits for TaskDependency
 			StaticArray< TaskDependency, ElemInChunk >	deps		{};
 
 		// methods
@@ -139,21 +137,27 @@ namespace AE::Threading
 
 		using WaitBits_t = ulong;
 
+	public:
+		struct Helper
+		{
+			static void  SetDependencyCompletionStatus (IAsyncTask &task, uint depIndex, Bool isCanceled = False{}) __NE___;
+		};
+
 
 	// variables
 	private:
-		ETaskQueue					_queueType			= ETaskQueue::PerFrame;	// packed with atomic counter in 'EnableRC<>'
-		Atomic< EStatus >			_status				{EStatus::Initial};
-		Atomic< uint >				_canceledDepsCount	{0};					// > 0 if canceled		// TODO: pack with '_status'
-		Atomic< WaitBits_t >		_waitBits			{~WaitBits_t{0}};		// 0 - all complete, otherwise - has uncomplete dependencies
+		ETaskQueue						_queueType			= ETaskQueue::PerFrame;	// packed with atomic counter in 'EnableRC<>'
+		Atomic< EStatus >				_status				{EStatus::Initial};
+		Atomic< uint >					_canceledDepsCount	{0};					// > 0 if canceled		// TODO: pack with '_status'
+		Atomic< WaitBits_t >			_waitBits			{~WaitBits_t{0}};		// 0 - all complete, otherwise - has uncomplete dependencies
 
 		PtrWithSpinLock< OutputChunk >	_output				{null};
 
 		PROFILE_ONLY(
-			RC<ITaskProfiler>		_profiler;
+			RC<ITaskProfiler>			_profiler;
 		)
 		DEBUG_ONLY(
-			Atomic<bool>			_isRunning			{false};
+			Atomic<bool>				_isRunning			{false};
 		)
 
 
@@ -224,15 +228,18 @@ namespace AE::Threading
 			void  _SetQueueType (ETaskQueue type)		__NE___;
 
 		// Only in constructor!
-			void  _MakeCompleted ()						__NE___;
+			void  _MakeCompletedUnsafe ()				__NE___;
+
+		// Allowed anywere, before enqueue.
+			void  _MakeCompletedSafe ()					__NE___;
 
 			bool  _SetCancellationState ()				__NE___;
 
 	private:
 		// Call this methods only after 'Run()' method.
-		void  _OnFinish (OUT bool& rerun)				__NE___;
-		void  _Cancel ()								__NE___;
-		void  _FreeOutputChunks (Bool isCanceled)		__NE___;
+			void  _OnFinish (OUT bool& rerun)			__NE___;
+			void  _Cancel ()							__NE___;
+			void  _FreeOutputChunks (Bool isCanceled)	__NE___;
 
 		DEBUG_ONLY( ND_ static slong  _AsyncTaskTotalCount () __NE___;)
 	};
@@ -246,17 +253,12 @@ namespace AE::Threading
 
 	class AsyncTaskFn final : public IAsyncTask
 	{
-	// types
-	public:
-		using Func_t	= Function< void () >;
-
-
 	// variables
 	private:
-		Func_t		_fn;
+		Function< void () >		_fn;
 
 	  #ifdef AE_DEBUG
-		String		_dbgName;
+		String					_dbgName;
 	  #endif
 
 
@@ -281,11 +283,11 @@ namespace AE::Threading
 			return _fn();
 		}
 
-	#ifdef AE_DEBUG
+	  #ifdef AE_DEBUG
 		StringView  DbgName ()	C_NE_OV	{ return _dbgName; }
-	#else
+	  #else
 		StringView  DbgName ()	C_NE_OV	{ return "AsyncTaskFn"; }
-	#endif
+	  #endif
 	};
 
 
@@ -335,12 +337,12 @@ namespace AE::Threading
 			ND_ AsyncTaskCoro		get_return_object ()						__NE___	{ return AsyncTaskCoro{ *this }; }
 			ND_ static auto			get_return_object_on_allocation_failure ()	__NE___ { return AsyncTaskCoro{}; }
 
-			ND_ std::suspend_always	initial_suspend ()							C_NE___	{ return {}; }			// delayed start
-			ND_ std::suspend_always	final_suspend ()							C_NE___	{ return {}; }			// must not be 'suspend_never'	// TODO: imediately destroy coroutine
+			ND_ std::suspend_always	initial_suspend ()							C_NE___	{ return {}; }		// delayed start
+			ND_ std::suspend_always	final_suspend ()							C_NE___	{ return {}; }		// must not be 'suspend_never'	// TODO: imediately destroy coroutine
 
 				void				return_void ()								C_NE___	{}
 
-				void				unhandled_exception ()						C_Th___	{ throw; }				// rethrow exceptions
+				void				unhandled_exception ()						C_Th___	{ throw; }			// rethrow exceptions
 
 			#ifdef AE_DEBUG
 				StringView			DbgName ()									C_NE_OV	{ return _dbgName; }
@@ -348,15 +350,15 @@ namespace AE::Threading
 				StringView			DbgName ()									C_NE_OV	{ return "AsyncTaskCoro"; }
 			#endif
 
-			ND_ static void*		operator new   (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }
+			ND_ static void*		operator new (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }
 
 		public:
-				void  Cancel ()													__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }
-				void  Fail ()													__NE___	{ IAsyncTask::OnFailure(); }
+				void  Cancel ()													__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }	// see 'AsyncTaskCoro_AwaiterImpl'
+				void  Fail ()													__NE___	{ IAsyncTask::OnFailure(); }						// see 'AsyncTaskCoro_Error'
 			ND_ bool  IsCanceled ()												__NE___	{ return IAsyncTask::IsCanceled(); }
 
-			template <typename ...Deps>
-			void  Continue (const Tuple<Deps...> &deps)							__NE___	{ return IAsyncTask::Continue( deps ); }
+				template <typename ...Deps>
+				void  Continue (const Tuple<Deps...> &deps)						__NE___	{ return IAsyncTask::Continue( deps ); }
 
 
 		private:
@@ -414,6 +416,121 @@ namespace AE::Threading
 		  #endif
 		}
 	};
+
+
+
+	//
+	// Cancelled Async Task Coroutine
+	//
+	class CancelledCoro final
+	{
+	public:
+		class promise_type;
+		using Handle_t	= std::coroutine_handle< promise_type >;
+
+		//
+		// promise_type
+		//
+		class promise_type final : public IAsyncTask
+		{
+			friend class CancelledCoro;
+
+		// variables
+		private:
+		  #ifdef AE_DEBUG
+			String		_dbgName;
+		  #endif
+
+
+		// methods
+		public:
+			promise_type ()														__NE___	: IAsyncTask{ ETaskQueue::PerFrame } {}
+
+			ND_ auto				get_return_object ()						__NE___	{ return CancelledCoro{ *this }; }
+			ND_ static auto			get_return_object_on_allocation_failure ()	__NE___ { return CancelledCoro{}; }
+
+			ND_ std::suspend_always	initial_suspend ()							C_NE___	{ return {}; }		// delayed start
+			ND_ std::suspend_always	final_suspend ()							C_NE___	{ return {}; }		// must not be 'suspend_never'	// TODO: imediately destroy coroutine
+
+				void				return_void ()								C_NE___	{}
+
+				void				unhandled_exception ()						C_Th___	{ throw; }			// rethrow exceptions
+
+			#ifdef AE_DEBUG
+				StringView			DbgName ()									C_NE_OV	{ return _dbgName; }
+			#else
+				StringView			DbgName ()									C_NE_OV	{ return "CancelledCoro"; }
+			#endif
+
+			ND_ static void*		operator new (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }
+
+		public:
+				void  Cancel ()													__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }	// see 'AsyncTaskCoro_AwaiterImpl'
+				void  Fail ()													__NE___	{ IAsyncTask::OnFailure(); }						// see 'AsyncTaskCoro_Error'
+			ND_ bool  IsCanceled ()												__NE___	{ return Status() == EStatus::Cancellation;; }		// avoid assert() in 'IAsyncTask::IsCanceled()'
+
+				template <typename ...Deps>
+				void  Continue (const Tuple<Deps...> &deps)						__NE___	{ return IAsyncTask::Continue( deps ); }
+
+
+		private:
+			void  Run ()														__Th_OV	{}	// ignore
+
+			void  OnCancel ()													__NE_OV
+			{
+				auto	coro_handle = Handle_t::from_promise( *this );
+				coro_handle.resume();	// throw
+
+				if_unlikely( bool{coro_handle} and not coro_handle.done() )
+					ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
+			}
+
+			void  _ReleaseObject ()												__NE_OV
+			{
+				MemoryBarrier( EMemoryOrder::Acquire );
+				ASSERT( IsFinished() );
+
+				auto	coro_handle = Handle_t::from_promise( *this );
+
+				// internally calls 'promise_type' dtor
+				coro_handle.destroy();
+			}
+		};
+
+
+	// variables
+	private:
+		RC<promise_type>	_coro;
+
+
+	// methods
+	public:
+		CancelledCoro ()									__NE___ {}
+		explicit CancelledCoro (promise_type &p)			__NE___ : _coro{ p.GetRC<promise_type>() } {}
+		explicit CancelledCoro (Handle_t handle)			__NE___ : _coro{ handle.promise().GetRC<promise_type>() } {}
+		~CancelledCoro ()									__NE___ {}
+
+		CancelledCoro (CancelledCoro &&)					__NE___ = default;
+		CancelledCoro (const CancelledCoro &)				__NE___ = default;
+
+		CancelledCoro&  operator = (CancelledCoro &&)		__NE___ = default;
+		CancelledCoro&  operator = (const CancelledCoro &)	__NE___ = default;
+
+		ND_ operator AsyncTask ()							C_NE___	{ return _coro; }
+		ND_ explicit operator bool ()						C_NE___	{ return bool{_coro}; }
+
+	private:
+		friend class Threading::TaskScheduler;
+		void  _InitCoro (ETaskQueue type, StringView name)	__NE___
+		{
+			_coro->_SetQueueType( type );
+			Unused( name );
+		  #ifdef AE_DEBUG
+			_coro->_dbgName = String{name};
+		  #endif
+		}
+	};
+
 
 
 	//
@@ -679,7 +796,8 @@ namespace AE::Threading
 	static constexpr Threading::_hidden_::Coroutine_Status		Coro_Status		{};
 	static constexpr Threading::_hidden_::Coroutine_Queue		Coro_TaskQueue	{};
 
-	using CoroTask = Threading::_hidden_::AsyncTaskCoro;
+	using CoroTask		= Threading::_hidden_::AsyncTaskCoro;
+	using CancelledCoro = Threading::_hidden_::CancelledCoro;
 
 /*
 =================================================

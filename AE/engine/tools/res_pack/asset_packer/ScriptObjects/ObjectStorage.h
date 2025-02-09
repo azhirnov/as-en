@@ -25,16 +25,22 @@ namespace AE::AssetPacker
 		{
 		private:
 			HashSet< String >	_set;
-			String				_name;
+			String				_fileName;
+			String				_metaRes;
 
 		public:
-			ImageAtlasInfo ()						__NE___ {}
+			ImageAtlasInfo ()							__NE___ {}
 
-			void  SetName (const String &name)		__Th___;
-			void  Add (const String &name)			__Th___;
-			void  Contains (const String &name)		C_Th___;
+			void  SetFileName (const String &name)		__Th___;
+			void  SetMetaResource (const String &name)	__Th___;
 
-			ND_ StringView  Name ()					C_NE___	{ return _name; }
+			void  Add (const String &name)				__Th___;
+			void  Contains (const String &name)			C_Th___;
+
+			ND_ String const&	FileName ()				C_NE___	{ return _fileName; }
+			ND_ String const&	MetaResName ()			C_NE___	{ return _metaRes; }
+			ND_ bool			HasFileName ()			C_NE___	{ return not _fileName.empty(); }
+			ND_ bool			HasMetaResName ()		C_NE___	{ return not _metaRes.empty(); }
 		};
 
 	private:
@@ -42,10 +48,13 @@ namespace AE::AssetPacker
 		using AtlasMap_t		= HashMap< String, RC<ImageAtlasInfo> >;
 		using FontMap_t			= HashSet< String >;
 
+		using TempFiles_t		= HashMap< String, Pair< Array<ubyte>, EArchivePackerFileType >>;
+
 
 	// variables
 	private:
 		VFS::ArchivePacker			_archive;
+		TempFiles_t					_tempFiles;
 
 		AtlasMap_t					_atlasMap;
 		FontMap_t					_fontMap;
@@ -64,18 +73,35 @@ namespace AE::AssetPacker
 		ND_ Path const&			GetScriptFolder ()														const	{ return _currentPath; }
 			void				SetScriptFolder (const Path &path)												{ _currentPath = path; }
 
-			void				AddAtlas (const String &nameInArchive, RC<ImageAtlasInfo> info)			__Th___;
+
+		// for UI validation //
+			void				AddAtlas (RC<ImageAtlasInfo> info)										__Th___;
+			void				AddAtlas (const String &metaArchive, RC<ImageAtlasInfo> info)			__Th___;
+
 		ND_ RC<ImageAtlasInfo>  GetAtlas (const String &nameInArchive)									__Th___;
+		ND_ RC<ImageAtlasInfo>  GetAtlas (const String &metaArchive, const String &nameInMeta)			__Th___;
 
 			void  AddFont (const String &nameInArchive)													__Th___;
-			void  RequireFont (const String &nameInArchive)												__Th___;
+			void  AddFont (const String &metaArchive, const String &nameInMeta)							__Th___;
 
+			void  RequireFont (const String &nameInArchive)												__Th___;
+			void  RequireFont (const String &metaArchive, const String &nameInMeta)						__Th___;
+
+
+		// Archive //
 			void  AddToArchive (const String &name, RStream &stream)									__Th___;
 			void  AddToArchive (const String &name, RStream &stream, EArchivePackerFileType fileType)	__Th___;
+
+			void  AddTemp (const String &name, Array<ubyte> data)										__Th___;
+			void  AddTemp (const String &name, Array<ubyte> data, EArchivePackerFileType fileType)		__Th___;
+
+		ND_ RC<RStream>  ExtractFromArchive (const String &name)										__Th___;
 
 		ND_ bool  Initialize (const Path &tempFile);
 		ND_ bool  SaveArchive (const Path &filename);
 
+
+		// Utils //
 		template <typename NameType>
 			void  AddName (const String &name)															__Th___;
 

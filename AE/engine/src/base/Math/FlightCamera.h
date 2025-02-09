@@ -5,7 +5,7 @@
 #include "base/Math/Camera.h"
 #include "base/Math/Frustum.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -157,6 +157,12 @@ namespace AE::Math
 		pos += axis_z * -delta.x;
 		return pos;
 	}
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
+	template <typename T>	struct TMemCopyAvailable< TFlightCamera<T> >		: CT_Bool< IsMemCopyAvailable<typename TFlightCamera<T>::Camera_t> or IsMemCopyAvailable<typename TFlightCamera<T>::Frustum_t> >{};
+	template <typename T>	struct TZeroMemAvailable< TFlightCamera<T> >		: CT_False {};
+	template <typename T>	struct TTriviallySerializable< TFlightCamera<T> >	: CT_False {};
+	template <typename T>	struct TUnwrap< TFlightCamera<T> >					: TUnwrap<T> {};
+
+} // AE::Base

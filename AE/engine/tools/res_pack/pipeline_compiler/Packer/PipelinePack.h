@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include "graphics/Public/IDs.h"
-#include "graphics/Public/EResourceState.h"
-#include "graphics/Public/ShaderEnums.h"
-#include "graphics/Public/RenderStateEnums.h"
-#include "graphics/Public/ResourceEnums.h"
-#include "graphics/Public/VertexEnums.h"
-#include "graphics/Public/DescriptorSet.h"
-#include "graphics/Public/PipelineDesc.h"
+#include "graphics_rhi/Public/IDs.h"
+#include "graphics_rhi/Public/EResourceState.h"
+#include "graphics_rhi/Public/ShaderEnums.h"
+#include "graphics_rhi/Public/RenderStateEnums.h"
+#include "graphics_rhi/Public/ResourceEnums.h"
+#include "graphics_rhi/Public/VertexEnums.h"
+#include "graphics_rhi/Public/DescriptorSet.h"
+#include "graphics_rhi/Public/PipelineDesc.h"
 #include "Packer/PackCommon.h"
 
 namespace AE::PipelineCompiler
@@ -97,41 +97,42 @@ namespace AE::PipelineCompiler
 	{
 		Unknown				= 0,
 
-		_TexMask			= 0xF,
-		Img1D				= 1,
-		Img1DArray			= 2,
-		Img2D				= 3,
-		Img2DArray			= 4,
-		Img2DMS				= 5,
-		Img2DMSArray		= 6,
-		ImgCube				= 7,
-		ImgCubeArray		= 8,
-		Img3D				= 9,
+		_DimMask			= 0xF,
+		Dim1D				= 1,
+		Dim1DArray			= 2,
+		Dim2D				= 3,
+		Dim2DArray			= 4,
+		Dim2DMS				= 5,
+		Dim2DMSArray		= 6,
+		DimCube				= 7,
+		DimCubeArray		= 8,
+		Dim3D				= 9,
 		Buffer				= 10,	// for texel buffer
-		_TexCount,
+		_DimCount,
 
 		_ValMask			= 0xF << 4,
 		Float				= 0x1 << 4,
-		Half				= 0x2 << 4,
-		SNorm				= 0x3 << 4,
-		UNorm				= 0x4 << 4,
+		Half				= 0x2 << 4,		// mediump or half
+		SNorm				= 0x3 << 4,		// mediump or half for 8bit, highp for 16bit
+		UNorm				= 0x4 << 4,		// mediump or half for 8bit, highp for 16bit
 		Int					= 0x5 << 4,
 		UInt				= 0x6 << 4,
-		sRGB				= 0x7 << 4,	// unorm
-		Depth				= 0x8 << 4,
-		Stencil				= 0x9 << 4,
-		DepthStencil		= 0xA << 4,
-		SLong				= 0xB << 4,
-		ULong				= 0xC << 4,
+		Depth				= 0x7 << 4,
+		Stencil				= 0x8 << 4,
+		DepthStencil		= 0x9 << 4,
+		SLong				= 0xA << 4,
+		ULong				= 0xB << 4,
+		UFloat				= 0xC << 4,		// mediump or half (10bit, 11bit)
 		_LastVal,
 
-		_QualMask			= 0xF << 8,
+		_QualMask			= 0xFF << 8,
 		Shadow				= 1 << 8,
+		sRGB				= 1 << 9,		// indicates that image has color in sRGB space and conversion to linear space required
 		_LastQual,
 	};
 	AE_BIT_OPERATORS( EImageType );
 
-	StaticAssert( EImageType::_TexCount < EImageType::_TexMask );
+	StaticAssert( EImageType::_DimCount < EImageType::_DimMask );
 	StaticAssert( EImageType::_LastVal  < EImageType::_ValMask );
 	StaticAssert( EImageType::_LastQual < EImageType::_QualMask );
 
@@ -243,8 +244,9 @@ namespace AE::PipelineCompiler
 		using Uniforms_t	= Array<Pair< UniformName, Uniform >>;
 		using Samplers_t	= Array< SamplerName >;
 
-		// uniforms are sorted by types, this array map desc type to uniform offset to speedup search
-		using UniformOffsets_t = StaticArray< ushort, 6 >;
+		// uniforms are sorted by types, this array map desc type to uniform offset to speedup search,
+		// see 'EDescriptorType_ToIndex()'.
+		using UniformOffsets_t = StaticArray< ushort, 7 >;
 
 	public:
 		static constexpr usize	MaxUniforms	= 1 << 10;
@@ -519,13 +521,18 @@ namespace AE::PipelineCompiler
 	//
 	class SerializableComputePipeline final : public Serializing::ISerializable
 	{
+	// types
+	public:
+		static constexpr WGLocalSizeSpec_t::value_type	UndefinedSpecConst = UMax;
+
+
 	// variables
 	public:
 		FSNameArr_t				features;
 		PipelineLayoutUID		layout				= Default;
 		ShaderUID				shader				= Default;
-		packed_ushort3			defaultLocalSize	{0};
-		packed_ushort3			localSizeSpec		{ComputePipelineDesc::UndefinedLocalSize};
+		WGLocalSize_t			defaultLocalSize	{0};
+		WGLocalSizeSpec_t		localSizeSpec		{UndefinedSpecConst};
 
 
 	// methods
@@ -584,6 +591,8 @@ namespace AE::PipelineCompiler
 	public:
 		using Shaders_t	= FixedMap< EShader, ShaderUID, 4 >;
 
+		static constexpr WGLocalSizeSpec_t::value_type	UndefinedSpecConst = SerializableComputePipeline::UndefinedSpecConst;
+
 
 	// variables
 	public:
@@ -593,10 +602,10 @@ namespace AE::PipelineCompiler
 		EPrimitive				outputTopology			= Default;
 		uint					maxVertices				= 0;
 		uint					maxIndices				= 0;
-		packed_ushort3			taskDefaultLocalSize	{0};
-		packed_ushort3			taskLocalSizeSpec		{MeshPipelineDesc::UndefinedLocalSize};
-		packed_ushort3			meshDefaultLocalSize	{0};
-		packed_ushort3			meshLocalSizeSpec		{MeshPipelineDesc::UndefinedLocalSize};
+		WGLocalSize_t			taskDefaultLocalSize	{0};
+		WGLocalSizeSpec_t		taskLocalSizeSpec		{UndefinedSpecConst};
+		WGLocalSize_t			meshDefaultLocalSize	{0};
+		WGLocalSizeSpec_t		meshLocalSizeSpec		{UndefinedSpecConst};
 		bool					earlyFragmentTests		= true;
 
 
@@ -764,8 +773,8 @@ namespace AE::PipelineCompiler
 		FSNameArr_t				features;
 		PipelineLayoutUID		layout				= Default;
 		ShaderUID				shader				= Default;
-		ushort2					defaultLocalSize	{0};
-		ushort2					localSizeSpec		{TilePipelineDesc::UndefinedLocalSize};
+		WGLocalSize2_t			defaultLocalSize	{0};
+		WGLocalSizeSpec2_t		localSizeSpec		{TilePipelineDesc::UndefinedLocalSize};
 
 
 	// methods
@@ -932,7 +941,7 @@ namespace AE::PipelineCompiler
 		using SpecConstants_t	= FixedMap< SpecializationName, /*location*/uint, GraphicsConfig::MaxSpecConstants >;
 		using Bytecode_t		= Union< NullUnion, SpirvBytecode_t, MetalBytecode_t, SpirvWithTrace >;
 
-		static constexpr uint	MaxBytecodeSize = 4u << 20;	// 4 Mb
+		static constexpr uint	MaxBytecodeSize = 4u << 20;	// 4 MiB
 
 
 	// variables

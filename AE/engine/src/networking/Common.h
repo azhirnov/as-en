@@ -16,14 +16,14 @@ namespace AE::Networking
 	struct NetConfig : Noninstanceable
 	{
 	// low level //
-		static constexpr Bytes		UDP_SendBufferSize		{1_Mb};
-		static constexpr Bytes		UDP_ReceiveBufferSize	{1_Mb};
+		static constexpr Bytes		UDP_SendBufferSize		{1_MiB};
+		static constexpr Bytes		UDP_ReceiveBufferSize	{1_MiB};
 
-		static constexpr Bytes		TCP_SendBufferSize		{1_Mb};
-		static constexpr Bytes		TCP_ReceiveBufferSize	{1_Mb};
+		static constexpr Bytes		TCP_SendBufferSize		{1_MiB};
+		static constexpr Bytes		TCP_ReceiveBufferSize	{1_MiB};
 
 	// high level //
-		static constexpr Bytes		ChannelStorageSize		{1_Mb};
+		static constexpr Bytes		ChannelStorageSize		{1_MiB};
 
 		static constexpr Bytes		TCP_MaxMsgSize			{1400};
 		static constexpr Bytes		UDP_MaxMsgSize			{444};	// 512 - 68 bytes

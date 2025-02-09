@@ -292,7 +292,8 @@ namespace AE::UI
 
 		DRC_EXLOCK( _drCheck );
 
-		float2			pos				{-1000.f};
+		const float		invalid_pos		= -1.0e+31f;
+		float2			pos				{invalid_pos};
 		float2			wheel;
 		float4			scale_rotate;
 		float			long_press		= 0.f;
@@ -339,7 +340,7 @@ namespace AE::UI
 			}
 		}
 
-		_inputState._SetCursorState( pos, wheel, long_press, scale_rotate, bits );
+		_inputState._SetCursorState( pos, (pos.x != invalid_pos), wheel, long_press, scale_rotate, bits );
 	}
 
 

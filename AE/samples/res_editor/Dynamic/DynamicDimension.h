@@ -82,6 +82,9 @@ namespace AE::ResEditor
 		ND_ RC<DynamicUInt>		GetDynamicArea ()					__NE___;
 		ND_ RC<DynamicUInt>		GetDynamicVolume ()					__NE___;
 
+		ND_ RC<DynamicFloat2>	ToFloat2 ()							__NE___;
+		ND_ RC<DynamicFloat2>	Inverse ()							__NE___;
+
 	private:
 		ND_ uint3		_BaseDim ()									C_NE___;
 
@@ -95,6 +98,9 @@ namespace AE::ResEditor
 		ND_ static uint		_GetVolume (EnableRCBase*)				__NE___;
 
 		ND_ static uint3	_GetDim (EnableRCBase*)					__NE___;
+
+		ND_ static float2	_GetFloat2 (EnableRCBase*)				__NE___;
+		ND_ static float2	_GetInversed (EnableRCBase*)			__NE___;
 	};
 
 
@@ -244,7 +250,7 @@ namespace AE::ResEditor
 
 		uint3			dim		 = _BaseDim();
 		const bool3		was_zero = (dim == uint3{0});
-		
+
 		switch ( _numDimensions )
 		{
 			case EImageDim::_1D :
@@ -413,6 +419,38 @@ namespace AE::ResEditor
 	{
 		ASSERT( _numDimensions == EImageDim_3D );
 		return MakeRC<DynamicUInt>( RC<>{GetRC()}, &_GetVolume );
+	}
+
+/*
+=================================================
+	ToFloat2
+=================================================
+*/
+	inline float2  DynamicDim::_GetFloat2 (EnableRCBase* base) __NE___
+	{
+		return float2{Cast<DynamicDim>(base)->Dimension2()};
+	}
+
+	inline RC<DynamicFloat2>  DynamicDim::ToFloat2 () __NE___
+	{
+		ASSERT( _numDimensions >= EImageDim_2D );
+		return MakeRC<DynamicFloat2>( RC<>{GetRC()}, &_GetFloat2 );
+	}
+
+/*
+=================================================
+	Inverse
+=================================================
+*/
+	inline float2  DynamicDim::_GetInversed (EnableRCBase* base) __NE___
+	{
+		return 1.f / float2{Cast<DynamicDim>(base)->Dimension2()};
+	}
+
+	inline RC<DynamicFloat2>  DynamicDim::Inverse () __NE___
+	{
+		ASSERT( _numDimensions >= EImageDim_2D );
+		return MakeRC<DynamicFloat2>( RC<>{GetRC()}, &_GetInversed );
 	}
 
 /*

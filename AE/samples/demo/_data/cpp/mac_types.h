@@ -18,8 +18,8 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x594166a8u}};
 
-		packed_ushort4  UV_Scale;
-		packed_ubyte4  Color;
+		packed_ushort4  UV_Scale;// normalized
+		packed_ubyte4  Color;// normalized
 	};
 #endif
 	StaticAssert( offsetof(VB_UVs2_SCs1_Col8, UV_Scale) == 0 );
@@ -34,7 +34,7 @@
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xf5d3da88u}};
 
 		packed_float2  UV;
-		packed_ubyte4  Color;
+		packed_ubyte4  Color;// normalized
 	};
 #endif
 	StaticAssert( offsetof(VB_UVf2_Col8, UV) == 0 );
@@ -43,18 +43,20 @@
 
 #ifndef imgui_ub_DEFINED
 #	define imgui_ub_DEFINED
-	// size: 16, align: 8 (16)
+	// size: 24, align: 8 (16)
 	struct imgui_ub
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xb41e4542u}};
 
-		float2  scale;
-		float2  translate;
+		float2  transform_c0;
+		float2  transform_c1;
+		float2  transform_c2;
 	};
 #endif
-	StaticAssert( offsetof(imgui_ub, scale) == 0 );
-	StaticAssert( offsetof(imgui_ub, translate) == 8 );
-	StaticAssert( sizeof(imgui_ub) == 16 );
+	StaticAssert( offsetof(imgui_ub, transform_c0) == 0 );
+	StaticAssert( offsetof(imgui_ub, transform_c1) == 8 );
+	StaticAssert( offsetof(imgui_ub, transform_c2) == 16 );
+	StaticAssert( sizeof(imgui_ub) == 24 );
 
 #ifndef imgui_vertex_DEFINED
 #	define imgui_vertex_DEFINED
@@ -65,7 +67,7 @@
 
 		packed_float2  Position;
 		packed_float2  UV;
-		packed_ubyte4  Color;
+		packed_ubyte4  Color;// normalized
 	};
 #endif
 	StaticAssert( offsetof(imgui_vertex, Position) == 0 );
@@ -80,11 +82,11 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x38ec4b6bu}};
 
-		packed_short4  Position;
-		packed_short4  Texcoord;
-		packed_short4  Normal;
-		packed_short4  Tangent;
-		packed_short4  BiTangent;
+		packed_short4  Position;// normalized
+		packed_short4  Texcoord;// normalized
+		packed_short4  Normal;// normalized
+		packed_short4  Tangent;// normalized
+		packed_short4  BiTangent;// normalized
 	};
 #endif
 	StaticAssert( offsetof(CubeVertex, Position) == 0 );
@@ -137,10 +139,10 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x35a6eeecu}};
 
-		packed_short4  Position;
-		packed_short4  Texcoord;
-		packed_short4  Tangent;
-		packed_short4  BiTangent;
+		packed_short4  Position;// normalized
+		packed_short4  Texcoord;// normalized
+		packed_short4  Tangent;// normalized
+		packed_short4  BiTangent;// normalized
 	};
 #endif
 	StaticAssert( offsetof(SphericalCubeVertex, Position) == 0 );

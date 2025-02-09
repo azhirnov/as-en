@@ -451,7 +451,7 @@ namespace AE::VFS
 		return true;
 	}
 
-	AsyncDSRequest  NetworkStorageClient::NetRDataSource::ReadBlock (Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___
+	AsyncDSRequest  NetworkStorageClient::NetRDataSource::ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem) __NE___
 	{
 		AsyncDSRequest	req;
 		if_likely( _ReadBlockImpl( OUT req, pos, data, dataSize, RVRef(mem) ));
@@ -468,7 +468,7 @@ namespace AE::VFS
 		void*	data	= mem ? mem->Data() : null;
 				size	= mem ? size : 0_b;
 
-		return ReadBlock( pos, data, size, RVRef(mem) );
+		return ReadBlock( pos, OUT data, size, RVRef(mem) );
 	}
 
 /*

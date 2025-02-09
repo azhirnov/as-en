@@ -53,6 +53,27 @@ namespace AE::AssetPacker
 		RC<UI::IDrawable>  Convert (UI::Widget &)			__Th_OV;
 	};
 	using ScriptRectangleDrawablePtr = ScriptRC< ScriptRectangleDrawable >;
+
+
+
+	//
+	// Image Drawable
+	//
+	class ScriptImageDrawable final : public ScriptUIDrawable
+	{
+	// variables
+	private:
+
+
+	// methods
+	public:
+		ScriptImageDrawable (const String &styleName)		__Th___ : ScriptUIDrawable{ EDrawableType::Rectangle, styleName } {}
+
+		static void  Bind (const ScriptEnginePtr &se)		__Th___;
+
+		RC<UI::IDrawable>  Convert (UI::Widget &)			__Th_OV;
+	};
+	using ScriptImageDrawablePtr = ScriptRC< ScriptImageDrawable >;
 //-----------------------------------------------------------------------------
 
 
@@ -101,7 +122,7 @@ namespace AE::AssetPacker
 	{
 		Scripting::ClassBinder<ScriptRectangleDrawable>	binder{ se };
 		binder.CreateRef( 0, False{"no ctor"} );
-		binder.AddFactoryCtor< String >();
+		binder.AddFactoryCtor< String >( {"styleName"} );
 		_BindBase( binder );
 	}
 
@@ -113,6 +134,36 @@ namespace AE::AssetPacker
 	RC<UI::IDrawable>  ScriptRectangleDrawable::Convert (UI::Widget &widget) __Th___
 	{
 		auto	result = widget.Create< UI::RectangleDrawable >();
+		CHECK_THROW( result );
+
+		Unused( result->SetStyle( UI::StyleName{_styleName} ));
+		return result;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Bind
+=================================================
+*/
+	void  ScriptImageDrawable::Bind (const ScriptEnginePtr &se) __Th___
+	{
+		Scripting::ClassBinder<ScriptImageDrawable>	binder{ se };
+		binder.CreateRef( 0, False{"no ctor"} );
+		binder.AddFactoryCtor< String >( {"styleName"} );
+		_BindBase( binder );
+	}
+
+/*
+=================================================
+	Bind
+=================================================
+*/
+	RC<UI::IDrawable>  ScriptImageDrawable::Convert (UI::Widget &widget) __Th___
+	{
+		auto	result = widget.Create< UI::ImageDrawable >();
 		CHECK_THROW( result );
 
 		Unused( result->SetStyle( UI::StyleName{_styleName} ));

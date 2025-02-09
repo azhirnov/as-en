@@ -10,8 +10,6 @@
 
 namespace AE::ResEditor
 {
-	class ScriptDynamicUInt;
-
 
 	//
 	// Script Dynamic Dimension
@@ -50,6 +48,9 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt2* XY ()									C_Th___;
 		ND_ ScriptDynamicUInt*  Area ()									C_Th___;
 		ND_ ScriptDynamicUInt*  Volume ()								C_Th___;
+
+		ND_ ScriptDynamicFloat2*  ToFloat2 ()							C_Th___;
+		ND_ ScriptDynamicFloat2*  Inverse ()							C_Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};
@@ -104,10 +105,22 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt*	Add (uint value)						__Th___;
 		ND_ ScriptDynamicUInt*	Sub (uint value)						__Th___;
 		ND_ ScriptDynamicUInt*	Pow (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*	Min (uint value)						__Th___;
+		ND_ ScriptDynamicUInt*	Max (uint value)						__Th___;
 		ND_ ScriptDynamicUInt*	PowOf2a ()								__Th___;
 		ND_ ScriptDynamicUInt*	PowOf2b (uint value)					__Th___;
 		ND_ ScriptDynamicDim*	ToDim2 ()								__Th___;
 		ND_ ScriptDynamicDim*	ToDim3 ()								__Th___;
+
+		ND_ ScriptDynamicUInt*	Add1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*	Sub1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*	Mul1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*	Div1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*	Min1 (const ScriptDynamicUIntPtr &)		__Th___;
+		ND_ ScriptDynamicUInt*	Max1 (const ScriptDynamicUIntPtr &)		__Th___;
+
+		ND_ ScriptDynamicFloat*	ToFloat ()								__Th___;
+		ND_ ScriptDynamicFloat*	Percent (const ScriptDynamicUIntPtr &)	__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
 	};

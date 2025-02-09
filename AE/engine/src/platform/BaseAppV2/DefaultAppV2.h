@@ -11,13 +11,13 @@
 #include "platform/BaseAppV2/IViewMode.h"
 
 #if defined(AE_ENABLE_VULKAN)
-#	include "graphics/Vulkan/VDevice.h"
+#	include "graphics_rhi/Vulkan/VDevice.h"
 
 #elif defined(AE_ENABLE_METAL)
-#	include "graphics/Metal/MDevice.h"
+#	include "graphics_rhi/Metal/MDevice.h"
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#	include "graphics/Remote/RDevice.h"
+#	include "graphics_rhi/Remote/RDevice.h"
 
 #else
 #	error not implemented
@@ -50,6 +50,13 @@ namespace AE::AppV2
 
 	protected:
 		using ViewModeName		= App::ViewModeName;
+	public:
+		class AppMainV2_Access
+		{
+			friend class AppMainV2;
+
+			static void  OnStart (AppCore &, IApplication &) __NE___;
+		};
 
 
 	// variables
@@ -73,7 +80,7 @@ namespace AE::AppV2
 		// Open view by name.
 		//	Thread-safe:  main thread only
 		//
-			void  OpenView (ViewModeName::Ref)										__NE___;
+			void  OpenView (ViewModeName::Ref, AnyTypeCRef params = Default)		__NE___;
 
 
 		// Open view by name in separate task.

@@ -2,7 +2,7 @@
 #ifdef __INTELLISENSE__
 #	define SH_COMPUTE
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define COMPARE
 #endif
 //-----------------------------------------------------------------------------
@@ -20,7 +20,7 @@
 		const EPixelFormat	comp2_fmt	= Supports_Format( comp2_req ) ? comp2_req : src_fmt;
 
 		RC<Image>	rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Image>	non_comp	= Image( EImageType::FImage2D, "res/tex/exported-image-2d-1k.aeimg" );
+		RC<Image>	non_comp	= Image( EImageType::Float_2D, "shadertoy/Abstract_1.jpg" );
 		RC<Image>	comp1		= Image( comp1_fmt, non_comp.Dimension() );
 		RC<Image>	comp2		= Image( comp2_fmt, non_comp.Dimension() );
 

@@ -17,7 +17,7 @@ namespace AE::Base
 
 	template <uint  MaxBlocks			= 8,
 			  usize DynamicBlockSize_v	= usize{SmallAllocationSize},
-			  usize StaticSize_v		= usize{1_Kb},
+			  usize StaticSize_v		= usize{1_KiB},
 			 typename AllocatorType		= UntypedAllocator
 			 >
 	class SmallLinearAllocator final : public IAllocator
@@ -61,8 +61,8 @@ namespace AE::Base
 		ND_ Bytes				TotalSize ()						C_NE___;
 		ND_ ArrayView<Block>	GetBlocks ()						C_NE___	{ return _blocks; }
 
-		ND_ static constexpr Bytes	StaticSize ()					__NE___	{ return Bytes{StaticSize_v}; }
-		ND_ static constexpr Bytes	DynamicBlockSize ()				__NE___	{ return Bytes{DynamicBlockSize_v}; }
+		NdCx__ static Bytes		StaticSize ()						__NE___	{ return Bytes{StaticSize_v}; }
+		NdCx__ static Bytes		DynamicBlockSize ()					__NE___	{ return Bytes{DynamicBlockSize_v}; }
 
 
 		// IAllocator //

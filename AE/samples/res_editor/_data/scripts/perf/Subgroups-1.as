@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -38,7 +38,7 @@
 
 #endif
 //-----------------------------------------------------------------------------
-#if defined(SH_FRAG) || defined(SH_COMPUTE)
+#if defined(SH_FRAG) or defined(SH_COMPUTE)
 	#include "Hash.glsl"
 	#include "Color.glsl"
 	#include "GlobalIndex.glsl"

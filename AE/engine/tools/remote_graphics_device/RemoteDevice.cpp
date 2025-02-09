@@ -798,7 +798,7 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 
 void  AE_OnAppDestroyed ()
 {
-	StaticLogger::Deinitialize( true );
+	StaticLogger::Deinitialize( True{"checkMemLeaks"} );
 }
 //-----------------------------------------------------------------------------
 

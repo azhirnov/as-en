@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "graphics/Vulkan/VulkanLoader.h"
+#include "graphics_rhi/Vulkan/VulkanLoader.h"
 
 namespace AE::Graphics
 {

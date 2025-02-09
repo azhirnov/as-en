@@ -96,15 +96,15 @@ namespace
 	  #ifdef AE_PLATFORM_WINDOWS
 		const StringView	bass_name			= "bass.dll";
 		const StringView	bass_enc_name		= "bassenc.dll";
-		const StringView	bass_enc_ogg_name	= "bassenc_ogg.dll";
-		const StringView	bass_flac_name		= "bassflac.dll";
-		const StringView	bass_webm_name		= "basswebm.dll";
+	//	const StringView	bass_enc_ogg_name	= "bassenc_ogg.dll";
+	//	const StringView	bass_flac_name		= "bassflac.dll";
+	//	const StringView	bass_webm_name		= "basswebm.dll";
 	  #else
 		const StringView	bass_name			= "bass.so";
 		const StringView	bass_enc_name		= "bassenc.so";
-		const StringView	bass_enc_ogg_name	= "bassenc_ogg.so";
-		const StringView	bass_flac_name		= "bassflac.so";
-		const StringView	bass_webm_name		= "basswebm.so";
+	//	const StringView	bass_enc_ogg_name	= "bassenc_ogg.so";
+	//	const StringView	bass_flac_name		= "bassflac.so";
+	//	const StringView	bass_webm_name		= "basswebm.so";
 	  #endif
 
 		bool	result = true;

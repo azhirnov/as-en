@@ -16,8 +16,8 @@ namespace AE::Base
 	// types
 	public:
 		using Clock_t		= std::chrono::high_resolution_clock;
-		using TimePoint_t	= Clock_t::time_point;
-		using Duration_t	= Clock_t::duration;
+		using TimePoint_t	= typename Clock_t::time_point;
+		using Duration_t	= typename Clock_t::duration;
 
 	private:
 		struct Result
@@ -117,6 +117,8 @@ namespace AE::Base
 /*
 =================================================
 	Tick
+----
+	returns 'true' when time is out and start new timer from 'now'
 =================================================
 */
 	inline auto  Timer::Tick (TimePoint_t now) __NE___

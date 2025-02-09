@@ -36,7 +36,9 @@ namespace AE::App
 			ANativeWindow*			nativeWindow	= null;
 		}						_java;
 		struct {
-			JavaMethod< void () >	close;
+			JavaMethod< void () >						close;
+			JavaMethod< jboolean (jfloat) >				setWndBrightness;
+			JavaMethod< jboolean (jboolean, jboolean) >	setHDR;
 		}						_methods;
 
 
@@ -61,6 +63,12 @@ namespace AE::App
 		void  SetTitle (NtStringView)					__NE_OV {}
 		void  SetFocus ()								C_NE_OV {}
 		bool  SetMode (EWindowMode, Monitor::ID)		__NE_OV	{ return false; }
+
+		// mobile only
+		bool  SetBrightness (Percent)					__NE_OV;
+
+		// private api
+		bool  SetColorSpace (EColorSpace)				C_NE_OV;
 
 
 	private:

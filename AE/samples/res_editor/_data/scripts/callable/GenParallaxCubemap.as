@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 #	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -62,8 +62,13 @@
 	{
 		float2	ncoord		= float2(coord + offset) / float2(GetGlobalSize().xy);
 		float3	sphere_pos	= CM_TangentialSC_Forward( ToSNorm(ncoord), FaceIdx() );
-		float	dist		= Voronoi( sphere_pos * 8.0, float3(3.9672, 0.0, 1.0) ).minDist;
-				dist		= Saturate( 0.5 - dist );
+
+		NoiseParams	np	= CreateNoiseParams();
+		np.seedScale	= float3(3.9672);
+		np.custom.x		= 1.0;
+
+		float	dist	= Voronoi( sphere_pos * 8.0, np );
+				dist	= Saturate( 0.5 - dist );
 		return float4( sphere_pos * (1.0 + dist * iHeightScale), dist );
 	}
 

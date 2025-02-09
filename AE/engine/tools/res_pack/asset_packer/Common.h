@@ -16,6 +16,27 @@ namespace AE::AssetPacker
 	using ScriptRC			= Scripting::AngelScriptHelper::SharedPtr<T>;
 	using EnableScriptRC	= Scripting::AngelScriptHelper::SimpleRefCounter;
 
+
+	class ScriptTexture;
+	class ScriptSharedImage;
+	class ScriptImageAtlas;
+	class ScriptRasterFont;
+	class ScriptMesh;
+	class ScriptModel;
+	class ScriptMaterial;
+	class ScriptResourceMeta;
+
+
+	using ScriptTexturePtr		= ScriptRC< ScriptTexture >;
+	using ScriptSharedImagePtr	= ScriptRC< ScriptSharedImage >;
+	using ScriptImageAtlasPtr	= ScriptRC< ScriptImageAtlas >;
+	using ScriptRasterFontPtr	= ScriptRC< ScriptRasterFont >;
+	using ScriptMeshPtr			= ScriptRC< ScriptMesh >;
+	using ScriptModelPtr		= ScriptRC< ScriptModel >;
+	using ScriptMaterialPtr		= ScriptRC< ScriptMaterial >;
+	using ScriptResourceMetaPtr	= ScriptRC< ScriptResourceMeta >;
+
+
 } // AE::AssetPacker
 
 

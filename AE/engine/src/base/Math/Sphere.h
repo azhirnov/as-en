@@ -4,7 +4,7 @@
 
 #include "base/Math/Transformation.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 	template <typename T> struct AxisAlignedBoundingBox;
 
@@ -63,4 +63,4 @@ namespace AE::Math
 
 	using Sphere = BoundingSphere<float>;
 
-} // AE::Math
+} // AE::Base

@@ -4,7 +4,7 @@
 
 #include "base/Math/Vec.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -29,66 +29,72 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr TRadian ()									__NE___	: _value{} {}
-		constexpr explicit TRadian (T val)						__NE___	: _value{val} {}
+		__Cx__ TRadian ()									__NE___	: _value{} {}
+		__Cx__ explicit TRadian (T val)						__NE___	: _value{val} {}
 
-		constexpr TRadian (const Self &)						__NE___	= default;
-		constexpr TRadian (Self &&)								__NE___	= default;
+		template <typename B>
+		__Cx__ explicit TRadian (TRadian<B> other)			__NE___	: _value{T(other.Ref())} {}
 
-		ND_ constexpr explicit operator T ()					C_NE___	{ return _value; }
+		__Cx__ TRadian (const Self &)						__NE___	= default;
+		__Cx__ TRadian (Self &&)							__NE___	= default;
 
-			Self&  operator = (const Self &)					__NE___	= default;
-			Self&  operator = (Self &&)							__NE___	= default;
+		template <typename B=T, ENABLEIF( IsSame< B, float >)>
+		NdCx__ explicit operator double ()					C_NE___	{ return double(_value); }
+		NdCx__ explicit operator T ()						C_NE___	{ return _value; }
 
-		ND_ constexpr Self   operator - ()						C_NE___	{ return Self{ -_value }; }
+		__Cx__ Self&	operator = (const Self &)			__NE___	= default;
+		__Cx__ Self&	operator = (Self &&)				__NE___	= default;
 
-		ND_ constexpr Self	 WrapToPi ()						C_NE___	{ return Self{Wrap( _value, -Pi()._value, Pi()._value  )}; }
-		ND_ constexpr Self	 WrapTo0_2Pi ()						C_NE___	{ return Self{Wrap( _value, T{0}, Pi2()._value  )}; }
+		NdCx__ Self		operator - ()						C_NE___	{ return Self{ -_value }; }
 
-		ND_ constexpr T		 ToDeg ()							C_NE___	{ return _value * RadToDeg(); }
+		NdCx__ Self		WrapToPi ()							C_NE___	{ return Self{Wrap( _value, -Pi()._value, Pi()._value  )}; }
+		NdCx__ Self		WrapTo0_2Pi ()						C_NE___	{ return Self{Wrap( _value, T{0}, Pi2()._value  )}; }
 
-			constexpr Self&  operator += (const Self rhs)		__NE___	{ _value += rhs._value;  return *this; }
-			constexpr Self&  operator -= (const Self rhs)		__NE___	{ _value -= rhs._value;  return *this; }
-			constexpr Self&  operator *= (const Self rhs)		__NE___	{ _value *= rhs._value;  return *this; }
-			constexpr Self&  operator /= (const Self rhs)		__NE___	{ _value /= rhs._value;  return *this; }
+		NdCx__ T		ToDeg ()							C_NE___	{ return _value * RadToDeg(); }
+		NdCx__ T&		Ref ()								__NE___	{ return _value; }
 
-			constexpr Self&  operator += (const T rhs)			__NE___	{ _value += rhs;  return *this; }
-			constexpr Self&  operator -= (const T rhs)			__NE___	{ _value -= rhs;  return *this; }
-			constexpr Self&  operator *= (const T rhs)			__NE___	{ _value *= rhs;  return *this; }
-			constexpr Self&  operator /= (const T rhs)			__NE___	{ _value /= rhs;  return *this; }
+		__Cx__ Self&	operator += (const Self rhs)		__NE___	{ _value += rhs._value;  return *this; }
+		__Cx__ Self&	operator -= (const Self rhs)		__NE___	{ _value -= rhs._value;  return *this; }
+		__Cx__ Self&	operator *= (const Self rhs)		__NE___	{ _value *= rhs._value;  return *this; }
+		__Cx__ Self&	operator /= (const Self rhs)		__NE___	{ _value /= rhs._value;  return *this; }
 
-		ND_ constexpr Self   operator + (const Self rhs)		C_NE___	{ return Self{ _value + rhs._value }; }
-		ND_ constexpr Self   operator - (const Self rhs)		C_NE___	{ return Self{ _value - rhs._value }; }
-		ND_ constexpr Self   operator * (const Self rhs)		C_NE___	{ return Self{ _value * rhs._value }; }
-		ND_ constexpr Self   operator / (const Self rhs)		C_NE___	{ return Self{ _value / rhs._value }; }
+		__Cx__ Self&	operator += (const T rhs)			__NE___	{ _value += rhs;  return *this; }
+		__Cx__ Self&	operator -= (const T rhs)			__NE___	{ _value -= rhs;  return *this; }
+		__Cx__ Self&	operator *= (const T rhs)			__NE___	{ _value *= rhs;  return *this; }
+		__Cx__ Self&	operator /= (const T rhs)			__NE___	{ _value /= rhs;  return *this; }
 
-		ND_ constexpr Self   operator + (const T rhs)			C_NE___	{ return Self{ _value + rhs }; }
-		ND_ constexpr Self   operator - (const T rhs)			C_NE___	{ return Self{ _value - rhs }; }
-		ND_ constexpr Self   operator * (const T rhs)			C_NE___	{ return Self{ _value * rhs }; }
-		ND_ constexpr Self   operator / (const T rhs)			C_NE___	{ return Self{ _value / rhs }; }
+		NdCx__ Self		operator + (const Self rhs)			C_NE___	{ return Self{ _value + rhs._value }; }
+		NdCx__ Self		operator - (const Self rhs)			C_NE___	{ return Self{ _value - rhs._value }; }
+		NdCx__ Self		operator * (const Self rhs)			C_NE___	{ return Self{ _value * rhs._value }; }
+		NdCx__ Self		operator / (const Self rhs)			C_NE___	{ return Self{ _value / rhs._value }; }
 
-		ND_ constexpr bool	operator == (const Self rhs)		C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool	operator != (const Self rhs)		C_NE___	{ return _value != rhs._value; }
-		ND_ constexpr bool	operator >  (const Self rhs)		C_NE___	{ return _value >  rhs._value; }
-		ND_ constexpr bool	operator <  (const Self rhs)		C_NE___	{ return _value <  rhs._value; }
-		ND_ constexpr bool	operator >= (const Self rhs)		C_NE___	{ return _value >= rhs._value; }
-		ND_ constexpr bool	operator <= (const Self rhs)		C_NE___	{ return _value <= rhs._value; }
+		NdCx__ Self		operator + (const T rhs)			C_NE___	{ return Self{ _value + rhs }; }
+		NdCx__ Self		operator - (const T rhs)			C_NE___	{ return Self{ _value - rhs }; }
+		NdCx__ Self		operator * (const T rhs)			C_NE___	{ return Self{ _value * rhs }; }
+		NdCx__ Self		operator / (const T rhs)			C_NE___	{ return Self{ _value / rhs }; }
 
-		ND_ friend constexpr Self  operator + (T lhs, Self rhs)	__NE___	{ return Self{ lhs + rhs._value }; }
-		ND_ friend constexpr Self  operator - (T lhs, Self rhs)	__NE___	{ return Self{ lhs - rhs._value }; }
-		ND_ friend constexpr Self  operator * (T lhs, Self rhs)	__NE___	{ return Self{ lhs * rhs._value }; }
-		ND_ friend constexpr Self  operator / (T lhs, Self rhs)	__NE___	{ return Self{ lhs / rhs._value }; }
+		NdCx__ bool		operator == (const Self rhs)		C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool		operator != (const Self rhs)		C_NE___	{ return _value != rhs._value; }
+		NdCx__ bool		operator >  (const Self rhs)		C_NE___	{ return _value >  rhs._value; }
+		NdCx__ bool		operator <  (const Self rhs)		C_NE___	{ return _value <  rhs._value; }
+		NdCx__ bool		operator >= (const Self rhs)		C_NE___	{ return _value >= rhs._value; }
+		NdCx__ bool		operator <= (const Self rhs)		C_NE___	{ return _value <= rhs._value; }
+
+		NdCx__ friend Self  operator + (T lhs, Self rhs)	__NE___	{ return Self{ lhs + rhs._value }; }
+		NdCx__ friend Self  operator - (T lhs, Self rhs)	__NE___	{ return Self{ lhs - rhs._value }; }
+		NdCx__ friend Self  operator * (T lhs, Self rhs)	__NE___	{ return Self{ lhs * rhs._value }; }
+		NdCx__ friend Self  operator / (T lhs, Self rhs)	__NE___	{ return Self{ lhs / rhs._value }; }
 
 
-		ND_ static constexpr Self	Pi ()						__NE___	{ return Self{T( 3.1415926535897932384626433832795 )}; }
-		ND_ static constexpr Self	Pi2 ()						__NE___	{ return Self{T( 6.283185307179586476925286766559  )}; }
-		ND_ static constexpr Self	HalfPi ()					__NE___	{ return Self{T( 1.5707963267948966192313216916398 )}; }
-		ND_ static constexpr T		ReciprocalPi ()				__NE___	{ return T( 0.31830988618379067153776752674503 ); }
+		NdCx__ static Self	Pi ()							__NE___	{ return Self{T( 3.1415926535897932384626433832795 )}; }
+		NdCx__ static Self	Pi2 ()							__NE___	{ return Self{T( 6.283185307179586476925286766559  )}; }
+		NdCx__ static Self	HalfPi ()						__NE___	{ return Self{T( 1.5707963267948966192313216916398 )}; }
+		NdCx__ static T		ReciprocalPi ()					__NE___	{ return T( 0.31830988618379067153776752674503 ); }
 
-		ND_ static constexpr T		DegToRad ()					__NE___	{ return T( 0.01745329251994329576923690768489 ); }
-		ND_ static constexpr T		RadToDeg ()					__NE___	{ return T( 57.295779513082320876798154814105 ); }
+		NdCx__ static T		DegToRad ()						__NE___	{ return T( 0.01745329251994329576923690768489 ); }
+		NdCx__ static T		RadToDeg ()						__NE___	{ return T( 57.295779513082320876798154814105 ); }
 
-		ND_ static constexpr Self	FromDeg (T value)			__NE___	{ return Self{ DegToRad() * value }; }
+		NdCx__ static Self	FromDeg (T value)				__NE___	{ return Self{ DegToRad() * value }; }
 	};
 
 
@@ -101,11 +107,11 @@ namespace AE::Math
 
 	inline static constexpr Rad  Pi = Rad::Pi();
 
-	ND_ constexpr Rad  operator "" _rad (long double value)			__NE___	{ return Rad{ Rad::Value_t(value) }; }
-	ND_ constexpr Rad  operator "" _rad (unsigned long long value)	__NE___	{ return Rad{ Rad::Value_t(value) }; }
+	NdCx__ Rad  operator "" _rad (long double value)			__NE___	{ return Rad{ Rad::Value_t(value) }; }
+	NdCx__ Rad  operator "" _rad (unsigned long long value)	__NE___	{ return Rad{ Rad::Value_t(value) }; }
 
-	ND_ constexpr Rad  operator "" _deg (long double value)			__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
-	ND_ constexpr Rad  operator "" _deg (unsigned long long value)	__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
+	NdCx__ Rad  operator "" _deg (long double value)			__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
+	NdCx__ Rad  operator "" _deg (unsigned long long value)	__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
 
 
 /*
@@ -332,13 +338,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr bool  Equal (const TRadian<T> &lhs, const TRadian<T> &rhs, const T err = Epsilon<T>()) __NE___
+	NdCx__ bool  Equal (const TRadian<T> &lhs, const TRadian<T> &rhs, const T err = Epsilon<T>()) __NE___
 	{
 		return Equal( T{lhs}, T{rhs}, err );
 	}
 
 	template <typename T>
-	ND_ constexpr bool  Equal (const TRadian<T> &lhs, const TRadian<T> &rhs, const Percent err) __NE___
+	NdCx__ bool  Equal (const TRadian<T> &lhs, const TRadian<T> &rhs, const Percent err) __NE___
 	{
 		return Equal( T{lhs}, T{rhs}, err );
 	}
@@ -349,13 +355,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TRadian<T> &lhs, const TRadian<T> &rhs, const EnabledBitCount bitCount) __NE___
+	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TRadian<T> &lhs, const TRadian<T> &rhs, const EnabledBitCount bitCount) __NE___
 	{
 		return BitEqual( T{lhs}, T{rhs}, bitCount );
 	}
 
 	template <typename T>
-	ND_ constexpr EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TRadian<T> &lhs, const TRadian<T> &rhs) __NE___
+	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TRadian<T> &lhs, const TRadian<T> &rhs) __NE___
 	{
 		return BitEqual( T{lhs}, T{rhs} );
 	}
@@ -366,13 +372,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr EnableIf<IsScalar<T>, bool>  IsZero (const TRadian<T> &x) __NE___
+	NdCx__ EnableIf<IsScalar<T>, bool>  IsZero (const TRadian<T> &x) __NE___
 	{
 		return IsZero( T{x} );
 	}
 
 	template <typename T>
-	ND_ constexpr EnableIf<IsScalar<T>, bool>  IsNotZero (const TRadian<T> &x) __NE___
+	NdCx__ EnableIf<IsScalar<T>, bool>  IsNotZero (const TRadian<T> &x) __NE___
 	{
 		return IsNotZero( T{x} );
 	}
@@ -383,19 +389,21 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename B>
-	ND_ constexpr TRadian<T>  Lerp (const TRadian<T> &x, const TRadian<T> &y, const B& factor) __NE___
+	NdCx__ TRadian<T>  Lerp (const TRadian<T> &x, const TRadian<T> &y, const B& factor) __NE___
 	{
-		return TRadian<T>{ Math::Lerp( T{x}, T{y}, factor )};
+		return TRadian<T>{ Base::Lerp( T{x}, T{y}, factor )};
 	}
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
-
-
-namespace AE::Base
-{
 	template <typename T>	struct TMemCopyAvailable< TRadian<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
 	template <typename T>	struct TZeroMemAvailable< TRadian<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
 	template <typename T>	struct TTriviallySerializable< TRadian<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
+
+	template <typename T>	struct TIsScalar< TRadian<T> >		: CT_True {};
+	template <typename T>	struct TIsSigned< TRadian<T> >		: TIsSigned<T> {};
+	template <typename T>	struct TIsUnsigned< TRadian<T> >	: TIsUnsigned<T> {};
+	template <typename T>	struct TIsFloatPoint< TRadian<T> >	: TIsFloatPoint<T> {};
+	template <typename T>	struct TUnwrap< TRadian<T> >		: TUnwrap<T> {};
 
 } // AE::Base

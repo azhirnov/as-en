@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/Public/IDs.h"
+#include "graphics_rhi/Public/IDs.h"
 
 namespace AE::ShaderTypes
 {

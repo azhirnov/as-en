@@ -1,12 +1,15 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include <span>
+#if AE_CXX_VER >= 20
+# include <span>
+#endif
 #include "UnitTest_Common.h"
 
 namespace
 {
 	StaticAssert( sizeof(bool)	 == 1 );
 	StaticAssert( sizeof(Bool32) == 4 );
+	StaticAssert( CHAR_BIT == 8 );
 
 	StaticAssert( sizeof(CharAnsi)	 == 1 );
 	StaticAssert( sizeof(CharUtf8)	 == 1 );
@@ -36,19 +39,19 @@ namespace
 	StaticAssert( sizeof(SFloat16) == 2 );		StaticAssert( IsAnyFloatPoint< SFloat16 >);
 	StaticAssert( sizeof(UFloat16) == 2 );		StaticAssert( IsAnyFloatPoint< UFloat16 >);
 
-	StaticAssert( not IsSameTypes< CharAnsi,  CharUtf8  >);
-	StaticAssert( not IsSameTypes< CharAnsi,  CharUtf16 >);
-	StaticAssert( not IsSameTypes< CharAnsi,  CharUtf32 >);
-	StaticAssert( not IsSameTypes< CharAnsi,  wchar_t   >);
+	StaticAssert( not IsSame< CharAnsi,  CharUtf8  >);
+	StaticAssert( not IsSame< CharAnsi,  CharUtf16 >);
+	StaticAssert( not IsSame< CharAnsi,  CharUtf32 >);
+	StaticAssert( not IsSame< CharAnsi,  wchar_t   >);
 
-	StaticAssert( not IsSameTypes< CharUtf8,  CharUtf16 >);
-	StaticAssert( not IsSameTypes< CharUtf8,  CharUtf32 >);
-	StaticAssert( not IsSameTypes< CharUtf8,  wchar_t   >);
+	StaticAssert( not IsSame< CharUtf8,  CharUtf16 >);
+	StaticAssert( not IsSame< CharUtf8,  CharUtf32 >);
+	StaticAssert( not IsSame< CharUtf8,  wchar_t   >);
 
-	StaticAssert( not IsSameTypes< CharUtf16, CharUtf32 >);
-	StaticAssert( not IsSameTypes< CharUtf16, wchar_t   >);
+	StaticAssert( not IsSame< CharUtf16, CharUtf32 >);
+	StaticAssert( not IsSame< CharUtf16, wchar_t   >);
 
-	StaticAssert( not IsSameTypes< CharUtf32, wchar_t   >);
+	StaticAssert( not IsSame< CharUtf32, wchar_t   >);
 
 	#if AE_PLATFORM_BITS == 32
 	StaticAssert( sizeof(ssize) == 4 );			StaticAssert( IsSignedInteger<   ssize >);
@@ -119,7 +122,7 @@ namespace
 	static void  Test_RemoveAllQualifiers ()
 	{
 		using T1 = RemoveAllQualifiers< const int* const* const& >;
-		StaticAssert(( IsSameTypes< int, T1 >));
+		StaticAssert(( IsSame< int, T1 >));
 	}
 
 
@@ -219,22 +222,22 @@ namespace
 		{
 			std::vector<int>	a1 {0,1,2};
 			auto				a2 = ArrayView{a1};
-			StaticAssert( IsSameTypes< decltype(a2), ArrayView<int> >);
+			StaticAssert( IsSame< decltype(a2), ArrayView<int> >);
 		}{
 			std::vector<int>	b1 {0,1,2};
 			auto				b2 = ArrayView{b1.data(), b1.size()};
-			StaticAssert( IsSameTypes< decltype(b2), ArrayView<int> >);
+			StaticAssert( IsSame< decltype(b2), ArrayView<int> >);
 		}{
 			int		c1[]	= {0,1,2};
 			auto	c2		= ArrayView{c1};
-			StaticAssert( IsSameTypes< decltype(c2), ArrayView<int> >);
+			StaticAssert( IsSame< decltype(c2), ArrayView<int> >);
 		}{
 			auto	d2		= ArrayView{List{ 0, 1, 2 }};
-			StaticAssert( IsSameTypes< decltype(d2), ArrayView<int> >);
+			StaticAssert( IsSame< decltype(d2), ArrayView<int> >);
 		}{
 			StaticArray< int, 5 >	e1 {0,1,2,3};
 			auto					e2 = ArrayView{e1};
-			StaticAssert( IsSameTypes< decltype(e2), ArrayView<int> >);
+			StaticAssert( IsSame< decltype(e2), ArrayView<int> >);
 		}
 	}
 

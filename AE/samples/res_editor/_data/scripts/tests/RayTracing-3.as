@@ -7,7 +7,7 @@
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	define AE_ray_query
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_MESH
 #	define RAYTRACE
 #endif

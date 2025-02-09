@@ -18,7 +18,7 @@ namespace AE::Base
 {
 
 	//
-	// Fixed Size Set
+	// Fixed Capacity Set
 	//
 
 	template <typename Value,
@@ -53,65 +53,65 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr FixedSet ()													__NE___;
-		constexpr FixedSet (Self &&)											__NE___;
-		constexpr FixedSet (const Self &)										__NE___;
+		__Cz__ FixedSet ()												__NE___;
+		__Cz__ FixedSet (Self &&)										__NE___;
+		__Cz__ FixedSet (const Self &)									__NE___;
 
-		constexpr ~FixedSet ()													__NE___	{ clear(); }	// TODO: remove for trivial destructor
+		__Cz__ ~FixedSet ()												__NE___	{ clear(); }	// TODO: remove for trivial destructor
 
-		ND_ constexpr usize		size ()											C_NE___	{ return _count; }
-		ND_ constexpr bool		empty ()										C_NE___	{ return _count == 0; }
-		ND_ constexpr bool		IsFull ()										C_NE___	{ return size() >= capacity(); }
+		NdCx__ usize	size ()											C_NE___	{ return _count; }
+		NdCx__ bool		empty ()										C_NE___	{ return _count == 0; }
+		NdCx__ bool		IsFull ()										C_NE___	{ return size() >= capacity(); }
 
-		ND_ constexpr iterator	begin ()										C_NE___	{ return std::addressof(_array[0]); }
-		ND_ constexpr iterator	end ()											C_NE___	{ return begin() + _count; }
+		NdCx__ iterator	begin ()										C_NE___	{ return std::addressof(_array[0]); }
+		NdCx__ iterator	end ()											C_NE___	{ return begin() + _count; }
 
-		ND_ static constexpr usize	capacity ()									__NE___	{ return ArraySize; }
+		NdCx__ static usize	capacity ()									__NE___	{ return ArraySize; }
 
-			constexpr Self&	operator = (Self &&)								__NE___;
-			constexpr Self&	operator = (const Self &)							__NE___;
+		__Cz__ Self&	operator = (Self &&)							__NE___;
+		__Cz__ Self&	operator = (const Self &)						__NE___;
 
-		ND_ constexpr bool	operator == (const Self &rhs)						C_NE___;
-		ND_ constexpr bool	operator != (const Self &rhs)						C_NE___	{ return not (*this == rhs); }
+		NdCx__ bool	operator == (const Self &rhs)						C_NE___;
+		NdCx__ bool	operator != (const Self &rhs)						C_NE___	{ return not (*this == rhs); }
 
-			template <typename ValueType>
-			constexpr Pair<iterator,bool>  emplace (ValueType&& value)			__NE___;
+		template <typename ValueType>
+		__Cz__ Pair<iterator,bool>  emplace (ValueType&& value)			__NE___;
 
-			constexpr Pair<iterator,bool>  insert (const Value &value)			__NE___	{ return emplace( value ); }
-			constexpr Pair<iterator,bool>  insert (Value&& value)				__NE___	{ return emplace( RVRef(value) ); }
+		__Cz__ Pair<iterator,bool>  insert (const Value &value)			__NE___	{ return emplace( value ); }
+		__Cz__ Pair<iterator,bool>  insert (Value&& value)				__NE___	{ return emplace( RVRef(value) ); }
 
-			template <typename ValueType>
-			constexpr Pair<iterator,bool>  insert_or_assign (ValueType&& value) __NE___;
+		template <typename ValueType>
+		__Cz__ Pair<iterator,bool>  insert_or_assign (ValueType&& value) __NE___;
 
-			template <typename KeyType>
-			constexpr bool		erase (const KeyType &key)						__NE___;
+		template <typename KeyType>
+		__Cz__ bool		erase (const KeyType &key)						__NE___;
 
-			template <typename KeyType>
-		ND_ constexpr iterator	find (const KeyType &key)						C_NE___;
+		template <typename KeyType>
+		NdCz__ iterator	find (const KeyType &key)						C_NE___;
 
-			template <typename KeyType>
-		ND_ constexpr usize		count (const KeyType &key)						C_NE___	{ return contains( key ) ? 1 : 0; }
+		template <typename KeyType>
+		NdCz__ usize	count (const KeyType &key)						C_NE___	{ return contains( key ) ? 1 : 0; }
 
-			template <typename KeyType>
-		ND_ constexpr bool		contains (const KeyType &key)					C_NE___;
+		template <typename KeyType>
+		NdCz__ bool		contains (const KeyType &key)					C_NE___;
 
-		ND_ HashVal				CalcHash ()										C_NE___;
+		Nd____ HashVal	CalcHash ()										C_NE___;
 
-			constexpr void		clear ()										__NE___;
-			constexpr void		reserve (usize)									__NE___	{}
+		__Cz__ void		clear ()										__NE___;
+		__Cx__ void		reserve (usize)									__NE___	{}
 
-		ND_ constexpr usize		IndexOf (iterator it)							C_NE___;
+		NdCz__ usize	IndexOf (iterator it)							C_NE___;
 
 		// cache friendly access to unsorted data
 
-		ND_ constexpr ArrayView<Value>	GetValueArray ()						C_NE___	{ return { std::addressof(_array[0]), size() }; }
-		ND_ constexpr explicit operator ArrayView<Value> ()						C_NE___	{ return GetValueArray(); }
+		NdCx__ ArrayView<Value>	GetValueArray ()						C_NE___	{ return { std::addressof(_array[0]), size() }; }
+		NdCx__ explicit operator ArrayView<Value> ()					C_NE___	{ return GetValueArray(); }
 
-		ND_ constexpr Value const&	operator [] (usize i)						C_NE___;
+		NdCz__ Value const&	operator [] (usize i)						C_NE___;
 
 
 	private:
-		ND_ constexpr bool _IsMemoryAliased (const Self* other)					C_NE___
+		NdCx__ bool _IsMemoryAliased (const Self* other)				C_NE___
 		{
 			return IsIntersects( this, this+1, other, other+1 );
 		}
@@ -125,7 +125,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	constexpr FixedSet<V,S,CS>::FixedSet () __NE___
+	__Cz__ FixedSet<V,S,CS>::FixedSet () __NE___
 	{
 		DEBUG_ONLY( DbgInitMem( _indices ));
 		DEBUG_ONLY( DbgInitMem( _array   ));
@@ -137,7 +137,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	constexpr FixedSet<V,S,CS>::FixedSet (const Self &other) __NE___ :
+	__Cz__ FixedSet<V,S,CS>::FixedSet (const Self &other) __NE___ :
 		_count{ other._count }
 	{
 		ASSERT( not _IsMemoryAliased( &other ));
@@ -153,7 +153,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	constexpr FixedSet<V,S,CS>::FixedSet (Self &&other) __NE___ :
+	__Cz__ FixedSet<V,S,CS>::FixedSet (Self &&other) __NE___ :
 		_count{ other._count }
 	{
 		ASSERT( not _IsMemoryAliased( &other ));
@@ -172,7 +172,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	constexpr FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (Self &&rhs) __NE___
+	__Cz__ FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (Self &&rhs) __NE___
 	{
 		ASSERT( not _IsMemoryAliased( &rhs ));
 		CheckNothrow( IsNothrowMoveCtor< V >);
@@ -196,7 +196,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	constexpr FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (const Self &rhs) __NE___
+	__Cz__ FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (const Self &rhs) __NE___
 	{
 		ASSERT( not _IsMemoryAliased( &rhs ));
 		CheckNothrow( IsNothrowCopyCtor< V >);
@@ -217,7 +217,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	constexpr bool  FixedSet<V,S,CS>::operator == (const Self &rhs) C_NE___
+	__Cx__ bool  FixedSet<V,S,CS>::operator == (const Self &rhs) C_NE___
 	{
 		if ( this == &rhs )
 			return true;
@@ -239,7 +239,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	constexpr V const&  FixedSet<V,S,CS>::operator [] (usize i) C_NE___
+	__Cz__ V const&  FixedSet<V,S,CS>::operator [] (usize i) C_NE___
 	{
 		ASSERT( i < _count );
 		return _array[i]; // don't use '_indices'
@@ -252,7 +252,7 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	template <typename ValueType>
-	constexpr Pair< typename FixedSet<V,S,CS>::iterator, bool >
+	__Cz__ Pair< typename FixedSet<V,S,CS>::iterator, bool >
 		FixedSet<V,S,CS>::emplace (ValueType&& value) __NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< ValueType, value_type, Index_t >;
@@ -292,7 +292,7 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	template <typename ValueType>
-	constexpr Pair< typename FixedSet<V,S,CS>::iterator, bool >
+	__Cz__ Pair< typename FixedSet<V,S,CS>::iterator, bool >
 		FixedSet<V,S,CS>::insert_or_assign (ValueType&& value) __NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< ValueType, value_type, Index_t >;
@@ -335,7 +335,7 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	template <typename KeyType>
-	constexpr typename FixedSet<V,S,CS>::iterator
+	__Cz__ typename FixedSet<V,S,CS>::iterator
 		FixedSet<V,S,CS>::find (const KeyType &key) C_NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, value_type, Index_t >;
@@ -355,7 +355,7 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	template <typename KeyType>
-	constexpr bool  FixedSet<V,S,CS>::contains (const KeyType &key) C_NE___
+	__Cz__ bool  FixedSet<V,S,CS>::contains (const KeyType &key) C_NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, value_type, Index_t >;
 
@@ -371,7 +371,7 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	template <typename KeyType>
-	constexpr bool  FixedSet<V,S,CS>::erase (const KeyType &key) __NE___
+	__Cz__ bool  FixedSet<V,S,CS>::erase (const KeyType &key) __NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, value_type, Index_t >;
 
@@ -411,7 +411,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	constexpr void  FixedSet<V,S,CS>::clear () __NE___
+	__Cz__ void  FixedSet<V,S,CS>::clear () __NE___
 	{
 		CPolicy_t::Destroy( INOUT _array, _count );
 		DEBUG_ONLY( DbgInitMem( _indices ));
@@ -442,7 +442,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	constexpr usize  FixedSet<V,S,CS>::IndexOf (iterator it) C_NE___
+	__Cz__ usize  FixedSet<V,S,CS>::IndexOf (iterator it) C_NE___
 	{
 		ASSERT( it >= begin() and it < end() );
 		return usize(it) - usize(begin());

@@ -101,7 +101,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	bool  SocketService::_GetSelfIPAddress (const AddressType &hostAddr, OUT AddressType &selfAddr) C_NE___
 	{
-		constexpr bool	is_ipv6 = IsSameTypes< AddressType, IpAddress6 >;
+		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
 		NativeSocket_t	socket = ::socket( (is_ipv6 ? AF_INET6 : AF_INET), SOCK_DGRAM, 0 );
 

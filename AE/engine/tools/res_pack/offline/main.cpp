@@ -28,7 +28,8 @@ using namespace AE::Scripting;
 
 namespace
 {
-	using EReflectionFlags = PipelineCompiler::EReflectionFlags;
+	using EReflectionFlags			= PipelineCompiler::EReflectionFlags;
+	using EPipelineCompilerFlags	= PipelineCompiler::EPipelineCompilerFlags;
 
 	static Array<Path>	s_SearchDirs;
 
@@ -153,6 +154,8 @@ namespace
 		Array< BasicString<CharType> >		_pplnIncludeDirs;
 		EReflectionFlags					_reflFlags		= Default;
 
+		EPipelineCompilerFlags				_flags			= Default;
+
 		Path								_outputCppStructsFile;
 		Path								_outputCppNamesFile;
 
@@ -191,6 +194,28 @@ namespace
 			_pplnIncludeDirs.push_back( FindPathAndConvertString( path, "Pipeline include directory" ));
 		}
 
+		void  IncludePipelinesFromCurrentDir (bool enable) __Th___
+		{
+			if ( enable )	_flags |= EPipelineCompilerFlags::IncludePipelinesFromCurrentDir;
+			else			_flags &= ~EPipelineCompilerFlags::IncludePipelinesFromCurrentDir;
+		}
+
+		void  SearchShadersInCurrentDir (bool enable) __Th___
+		{
+			if ( enable )	_flags |= EPipelineCompilerFlags::SearchShadersInCurrentDir;
+			else			_flags &= ~EPipelineCompilerFlags::SearchShadersInCurrentDir;
+		}
+
+		void  AddNameMapping (bool enable) __Th___
+		{
+			if ( enable )	_flags |= EPipelineCompilerFlags::AddNameMapping;
+			else			_flags &= ~EPipelineCompilerFlags::AddNameMapping;
+		}
+
+		void  IncludePipelinesFromCurrentDir2 ()	__Th___ { IncludePipelinesFromCurrentDir( true ); }
+		void  SearchShadersInCurrentDir2 ()			__Th___ { SearchShadersInCurrentDir( true ); }
+		void  AddNameMapping2 ()					__Th___ { AddNameMapping( true ); }
+
 		void  SetOutputCPPFile1 (const String &structs, const String &names, uint flags) __Th___
 		{
 			SetOutputCPPFile2( structs, names, EReflectionFlags(flags) );
@@ -206,26 +231,7 @@ namespace
 			_reflFlags				= flags;
 		}
 
-		void  Compile1 (const String &outputPackName) __Th___
-		{
-			return _Compile( outputPackName, false );
-		}
-
-		void  Compile4 (const String &outputPackName) __Th___
-		{
-			return _Compile( outputPackName, true );
-		}
-
-	private:
-		void  _AddPipeline (const String &path, uint priority, PipelineCompiler::EPathParamsFlags flags) __Th___
-		{
-			PathParams2&	params = _pipelines.emplace_back();
-			params.path		= FindPathAndConvertString( path, "Pipeline file/folder" );
-			params.priority	= priority;
-			params.flags	= usize(flags);
-		}
-
-		void  _Compile (const String &outputPackName, const bool addNameMapping) __Th___
+		void  Compile (const String &outputPackName) __Th___
 		{
 			using namespace AE::PipelineCompiler;
 
@@ -250,6 +256,8 @@ namespace
 
 			PipelinesInfo	info = {};
 
+			info.flags					= _flags;
+
 			// input pipelines
 			info.inPipelines			= pipelines.data();
 			info.inPipelineCount		= pipelines.size();
@@ -271,7 +279,6 @@ namespace
 			info.outputCppStructsFile	= output_cpp_types_file.empty() ? null : output_cpp_types_file.c_str();
 			info.outputCppNamesFile		= output_cpp_names_file.empty() ? null : output_cpp_names_file.c_str();
 			info.cppReflectionFlags		= _reflFlags;
-			info.addNameMapping			= addNameMapping;
 
 			CHECK_THROW_MSG( _fnCompilePipelines( &info ));
 
@@ -280,6 +287,15 @@ namespace
 			_shaderFolders.clear();
 			_shaderIncludeDirs.clear();
 			_pplnIncludeDirs.clear();
+		}
+
+	private:
+		void  _AddPipeline (const String &path, uint priority, PipelineCompiler::EPathParamsFlags flags) __Th___
+		{
+			PathParams2&	params = _pipelines.emplace_back();
+			params.path		= FindPathAndConvertString( path, "Pipeline file/folder" );
+			params.priority	= priority;
+			params.flags	= usize(flags);
 		}
 	};
 
@@ -649,17 +665,22 @@ namespace
 		{
 			ClassBinder<ScriptPipelineCompiler>		binder{ se };
 			binder.CreateRef();
-			binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder,			"AddPipelineFolder"			);
-			binder.AddMethod( &ScriptPipelineCompiler::AddPipelineRecursiveFolder,	"AddPipelineFolderRecursive");
-			binder.AddMethod( &ScriptPipelineCompiler::AddPipeline,					"AddPipeline"				);
-			binder.AddMethod( &ScriptPipelineCompiler::AddShaderFolder,				"AddShaderFolder"			);
-			binder.AddMethod( &ScriptPipelineCompiler::AddShaderIncludeDir,			"ShaderIncludeDir"			);
-			binder.AddMethod( &ScriptPipelineCompiler::AddPipelineIncludeDir,		"PipelineIncludeDir"		);
+			binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder,				"AddPipelineFolder"				);
+			binder.AddMethod( &ScriptPipelineCompiler::AddPipelineRecursiveFolder,		"AddPipelineFolderRecursive"	);
+			binder.AddMethod( &ScriptPipelineCompiler::AddPipeline,						"AddPipeline"					);
+			binder.AddMethod( &ScriptPipelineCompiler::AddShaderFolder,					"AddShaderFolder"				);
+			binder.AddMethod( &ScriptPipelineCompiler::AddShaderIncludeDir,				"ShaderIncludeDir"				);
+			binder.AddMethod( &ScriptPipelineCompiler::AddPipelineIncludeDir,			"PipelineIncludeDir"			);
+			binder.AddMethod( &ScriptPipelineCompiler::IncludePipelinesFromCurrentDir,	"IncludePipelinesFromCurrentDir");
+			binder.AddMethod( &ScriptPipelineCompiler::IncludePipelinesFromCurrentDir2,	"IncludePipelinesFromCurrentDir");
+			binder.AddMethod( &ScriptPipelineCompiler::SearchShadersInCurrentDir,		"SearchShadersInCurrentDir"		);
+			binder.AddMethod( &ScriptPipelineCompiler::SearchShadersInCurrentDir2,		"SearchShadersInCurrentDir"		);
+			binder.AddMethod( &ScriptPipelineCompiler::AddNameMapping,					"AddNameMapping"				);
+			binder.AddMethod( &ScriptPipelineCompiler::AddNameMapping2,					"AddNameMapping"				);
 
-			binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile1,			"SetOutputCPPFile"			);
-			binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile2,			"SetOutputCPPFile"			);
-			binder.AddMethod( &ScriptPipelineCompiler::Compile1,					"Compile"					);
-			binder.AddMethod( &ScriptPipelineCompiler::Compile4,					"CompileWithNameMapping"	);
+			binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile1,				"SetOutputCPPFile"				);
+			binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile2,				"SetOutputCPPFile"				);
+			binder.AddMethod( &ScriptPipelineCompiler::Compile,							"Compile"						);
 		}
 
 		// input actions

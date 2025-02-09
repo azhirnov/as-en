@@ -79,6 +79,7 @@ namespace AE::PipelineCompiler
 		void  AddImmutableSampler (EShaderStages, const String &name, const String &samplerName)															__Th___;
 		void  AddImmutableSampler (EShaderStages, const String &name, ArrayView<String> samplerNames)														__Th___;
 		void  AddRayTracingScene (EShaderStages, const String &name, const ArraySize &)																		__Th___;
+		void  AddRayTracingPartitionedScene (EShaderStages, const String &name, const ArraySize &)															__Th___;
 		void  AddDebugStorageBuffer (const String &name, EShaderStages, Bytes staticSize, Bytes arraySize)													__Th___;
 
 		void  SetUsage (EDescSetUsage value)																												__Th___;
@@ -107,8 +108,8 @@ namespace AE::PipelineCompiler
 
 		ND_ bool  Build ()										__NE___;
 
-		ND_ static bool  CheckDescriptorLimits (const DescriptorCount &total, const PerStageDescCount_t &perStage,
-												ArrayView<ScriptFeatureSetPtr> features, StringView name);
+		ND_ static bool  CheckDescriptorLimits_PerStage (const PerStageDescCount_t &, ArrayView<ScriptFeatureSetPtr> features, StringView name);
+		ND_ static bool  CheckDescriptorLimits_PerPipeline (const DescriptorCount &, ArrayView<ScriptFeatureSetPtr> features, StringView name);
 
 	private:
 		static void  _AddUniformBuffer (Scripting::ScriptArgList args)						__Th___;
@@ -125,6 +126,7 @@ namespace AE::PipelineCompiler
 		static void  _AddSampler (Scripting::ScriptArgList args)							__Th___;
 		static void  _AddImmutableSampler (Scripting::ScriptArgList args)					__Th___;
 		static void  _AddRayTracingScene (Scripting::ScriptArgList args)					__Th___;
+		static void  _AddRayTracingPartitionedScene (Scripting::ScriptArgList args)			__Th___;
 
 		static void  _IsImageSupported (Scripting::ScriptArgList args)						__Th___;
 		static void  _IsImageViewSupported (Scripting::ScriptArgList args)					__Th___;
@@ -138,6 +140,8 @@ namespace AE::PipelineCompiler
 		void  _CheckStorageFormat (EPixelFormat fmt, bool isReadOnly)						C_Th___;
 		void  _CheckFields (const String &fields)											C_Th___;
 		void  _CheckStateForStorage (EResourceState state)									C_Th___;
+
+		void  _AddSRGB (const String &name, EImageType type)								__Th___;
 	};
 	using DescriptorSetLayoutPtr = ScriptRC< DescriptorSetLayout >;
 

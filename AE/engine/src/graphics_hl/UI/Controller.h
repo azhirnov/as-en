@@ -130,7 +130,7 @@ namespace AE::UI
 			bool				ReleaseCursor (IController *)											C_NE___;
 
 	private:
-		void  _SetCursorState (const float2 &pos, const float2 &wheel, float longPressTime,
+		void  _SetCursorState (const float2 &pos, bool hasPos, const float2 &wheel, float longPressTime,
 							   const float4 &scaleRotate, EGestureBits bits)							__NE___;
 	};
 

@@ -7,7 +7,7 @@
 
 	2. With allocation:
 		- Create 'MemWriter' with preallocated memory.
-		- use Reserve/Emplace/Clear methods.
+		- use Reserve/Emplace/ZeroMem methods.
 */
 
 #pragma once
@@ -40,6 +40,8 @@ namespace AE::Base
 
 			void	AlignTo (Bytes align)							__NE___	{ Unused( Reserve( 0_b, align )); }
 
+
+		// returns uninitialized memory
 		ND_ void*	Reserve (Bytes size, Bytes align)				__NE___;
 		ND_ void*	Reserve (const SizeAndAlign sa)					__NE___	{ return Reserve( sa.size, sa.align ); }
 
@@ -50,22 +52,24 @@ namespace AE::Base
 		ND_ T*		ReserveArray (usize count)						__NE___;
 
 
+		// returns pointer/reference to initialized memory.
 		template <typename T, typename ...Args>
-		ND_ T&		Emplace (Args&& ...args)						__NE___;
-
-		template <typename T, typename ...Args>
-		ND_ T&		EmplaceSized (Bytes size, Args&& ...args)		__NE___;
+			T&		Emplace (Args&& ...args)						__NE___;
 
 		template <typename T, typename ...Args>
-		ND_ T*		EmplaceArray (usize count, Args&& ...args)		__NE___;
+			T&		EmplaceSized (Bytes size, Args&& ...args)		__NE___;
+
+		template <typename T, typename ...Args>
+			T*		EmplaceArray (usize count, Args&& ...args)		__NE___;
 
 
-			void	Clear ()										__NE___;
+			void	ZeroMem ()										__NE___;
 
 		ND_ Bytes	OffsetOf (void* ptr, Bytes defaultValue = UMax)	C_NE___;
 
 		ND_ bool	IsAllocated ()									C_NE___	{ return Bytes{_ptr} > _MaxAlign; }
 		ND_ Bytes	AllocatedSize ()								C_NE___	{ return Bytes{_offset}; }
+		ND_ Bytes	Position ()										C_NE___	{ return Bytes{_offset}; }
 		ND_ Bytes	MaxSize ()										C_NE___	{ return Bytes{_size}; }
 		ND_ void*	Data ()											C_NE___	{ return _ptr; }
 	};
@@ -167,13 +171,13 @@ namespace AE::Base
 
 /*
 =================================================
-	Clear
+	ZeroMem
 =================================================
 */
-	inline void  MemWriter::Clear () __NE___
+	inline void  MemWriter::ZeroMem () __NE___
 	{
 		ASSERT( IsAllocated() );
-		ZeroMem( OUT _ptr, Bytes{_size} );
+		Base::ZeroMem( OUT _ptr, Bytes{_size} );
 	}
 
 /*

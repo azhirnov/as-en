@@ -722,7 +722,7 @@ namespace
 		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetViewportCount,	"SetViewportCount",	{"count"} );
 
 		binder.Comment( "Attach pipeline to the render technique.\n"
-						"When rtech is created it will create all attached pipelines." );
+						"Render technique will create all attached pipelines during its creation." );
 		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::AddToRenderTech,	"AddToRenderTech",	{"rtech", "gpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"

@@ -17,12 +17,12 @@ namespace AE::ECS
 		{
 			ushort	value;
 
-			constexpr _ComponentID ()									__NE___	: value{UMax} {}
-			constexpr explicit _ComponentID (ushort id)					__NE___	: value{id} {}
+			__Cx__ _ComponentID ()								__NE___	: value{UMax} {}
+			__Cx__ explicit _ComponentID (ushort id)			__NE___	: value{id} {}
 
-			ND_ constexpr bool  operator <  (const _ComponentID &rhs)	C_NE___	{ return value <  rhs.value; }
-			ND_ constexpr bool  operator >  (const _ComponentID &rhs)	C_NE___	{ return value >  rhs.value; }
-			ND_ constexpr bool  operator == (const _ComponentID &rhs)	C_NE___	{ return value == rhs.value; }
+			NdCx__ bool  operator <  (const _ComponentID &rhs)	C_NE___	{ return value <  rhs.value; }
+			NdCx__ bool  operator >  (const _ComponentID &rhs)	C_NE___	{ return value >  rhs.value; }
+			NdCx__ bool  operator == (const _ComponentID &rhs)	C_NE___	{ return value == rhs.value; }
 		};
 
 	} // _hidden_
@@ -86,6 +86,6 @@ struct std::hash< AE::ECS::_hidden_::_ComponentID<UID> >
 {
 	ND_ size_t  operator () (const AE::ECS::_hidden_::_ComponentID<UID> &id) C_NE___
 	{
-		return AE::Math::BitRotateLeft( size_t(id.value), UID*8 );
+		return AE::Base::BitRotateLeft( size_t(id.value), UID*8 );
 	}
 };

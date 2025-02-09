@@ -46,16 +46,25 @@
 #ifdef AE_CFG_DEBUG
 #	define DBG_CHECK								CHECK
 #	define DBG_CHECK_MSG							CHECK_MSG
+#	define DBG_CHECK_MSG_Cx							ASSERT_MSG_Cx
 #	define DBG_WARNING( _msg_ )						CHECK_MSG( false, _msg_ )
 #else
 #	define DBG_CHECK( /* expr */... )				{}
 #	define DBG_CHECK_MSG( /* expr, message */... )	{}
+#	define DBG_CHECK_MSG_Cx( /* expr, message */... ){}
 #	define DBG_WARNING( /* message */... )			{}
 #endif
 
 
 // debug/dev only check
 #ifdef AE_DEBUG
+# ifdef __cpp_lib_is_constant_evaluated
+#	define ASSERT_Cx( /* expr */... )				if constexpr( not IsConstEvaluated() ) { CHECK( __VA_ARGS__ ); }
+#	define ASSERT_MSG_Cx( _expr_, _text_ )			if constexpr( not IsConstEvaluated() ) { CHECK_MSG( (_expr_), (_text_) ); }
+# else
+#	define ASSERT_Cx( /* expr */... )				{}
+#	define ASSERT_MSG_Cx( /* expr, msg */... )		{}
+# endif
 #	define ASSERT									CHECK		// TODO: DBG_CHECK
 #	define ASSERT_Eq								CHECK_Eq	// ==
 #	define ASSERT_NE								CHECK_NE	// !=
@@ -65,6 +74,8 @@
 #	define ASSERT_LE								CHECK_LE	// <=
 #	define ASSERT_MSG								CHECK_MSG
 # else
+#	define ASSERT_Cx( /* expr */... )				{}
+#	define ASSERT_MSG_Cx( /* expr, msg */... )		{}
 #	define ASSERT( /* expr */... )					{}
 #	define ASSERT_Eq( /* lhs, rhs */... )			{}			// ==
 #	define ASSERT_NE( /* lhs, rhs */... )			{}			// !=
@@ -101,6 +112,14 @@
 # endif
 #endif
 
+#ifndef AE_LOGW_DBG
+# ifdef AE_DEBUG
+#	define AE_LOGW_DBG								AE_LOGW
+# else
+#	define AE_LOGW_DBG( /* msg, file, line */... )	{}
+# endif
+#endif
+
 // log info
 #ifndef AE_LOGI
 #	define AE_LOGI( /* msg, file, line */... )										\
@@ -130,7 +149,7 @@
 #if 1
 #	define CHECK_MSG( _expr_, _text_ )												\
 		{if_likely( bool{_expr_} ) {}												\
-		 else_unlikely {															\
+		 else{																		\
 			AE_LOGE( _text_ );														\
 		}}
 
@@ -143,7 +162,7 @@
 #if 1
 #	define AE_PRIVATE_CHECK_ERR2( _expr_, _ret_, _text_ )							\
 		{if_likely( bool{_expr_} ) {}												\
-		 else_unlikely {															\
+		 else{																		\
 			AE_LOGE( _text_ );														\
 			return (_ret_);															\
 		}}
@@ -169,7 +188,7 @@
 #if 1
 #	define CHECK_FATAL_MSG( _expr_, _text_ )										\
 		{if_likely( bool{_expr_} ) {}												\
-		 else_unlikely {															\
+		 else{																		\
 			AE_LOGE( _text_ );														\
 			AE_PRIVATE_EXIT();														\
 		}}
@@ -198,7 +217,7 @@
 #if 1
 #	define AE_PRIVATE_CHECK_TASK( _expr_, _text_ )															\
 		{if_likely( bool{_expr_} ) {}																		\
-		 else_unlikely {																					\
+		 else{																								\
 			AE_LOGE( AE_TOSTRING( _text_ ));																\
 			StaticAssert( AE::Base::IsBaseOfNoQual< AE::Threading::IAsyncTask, decltype(*this) >);			\
 			ASSERT( AE::Base::StringView{"Run"} == AE_FUNCTION_NAME );										\
@@ -228,7 +247,7 @@
 #if 1
 #	define AE_PRIVATE_CHECK_CORO( _expr_, _text_ )															\
 		{if_likely( bool{_expr_} ) {}																		\
-		 else_unlikely {																					\
+		 else{																								\
 			AE_LOGE( AE_TOSTRING( _text_ ));																\
 			co_await AE::Threading::_hidden_::AsyncTaskCoro_Error{};	/* call 'IAsyncTask::OnFailure()' */\
 			co_return;	/* exit from coroutine */															\
@@ -282,7 +301,7 @@
 	{																									\
 		const auto	_tmp_lhs_ = (_lhs_);																\
 		const auto	_tmp_rhs_ = (_rhs_);																\
-		CHECK_MSG( AE::Math::All( _tmp_lhs_ _op_ _tmp_rhs_ ),											\
+		CHECK_MSG( AE::Base::All( _tmp_lhs_ _op_ _tmp_rhs_ ),											\
 			AE::Base::String{AE_TOSTRING(_lhs_)} << " (" << AE::Base::ToString(_tmp_lhs_) << ") " <<	\
 			AE_TOSTRING(_op_) << " (" << AE::Base::ToString(_tmp_rhs_) << ") " << AE_TOSTRING(_rhs_))	\
 	}
@@ -297,7 +316,7 @@
 	{																									\
 		const auto	_tmp_lhs_ = (_lhs_);																\
 		const auto	_tmp_rhs_ = (_rhs_);																\
-		CHECK_ERR_MSG( AE::Math::All( _tmp_lhs_ _op_ _tmp_rhs_ ),										\
+		CHECK_ERR_MSG( AE::Base::All( _tmp_lhs_ _op_ _tmp_rhs_ ),										\
 			AE::Base::String{AE_TOSTRING(_lhs_)} << " (" << AE::Base::ToString(_tmp_lhs_) << ") " <<	\
 			AE_TOSTRING(_op_) << " (" << AE::Base::ToString(_tmp_rhs_) << ") " << AE_TOSTRING(_rhs_))	\
 	}
@@ -314,7 +333,7 @@
 #ifdef AE_ENABLE_EXCEPTIONS
 #	define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ )													\
 		{if_likely( bool{_expr_} ) {}																	\
-		 else_unlikely {																				\
+		 else{																							\
 			AE_LOGW( _text_ );																			\
 			throw AE::Exception{ _text_ };																\
 		}}
@@ -326,7 +345,7 @@
 
 #	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ )												\
 		{if_likely( bool{_expr_} ) {}																	\
-		 else_unlikely {																				\
+		 else{																							\
 			AE_LOGW( AE_TOSTRING( _expr_ ));															\
 			throw (_exception_);																		\
 		}}
@@ -340,7 +359,7 @@
 	{																									\
 		const auto	_tmp_lhs_ = (_lhs_);																\
 		const auto	_tmp_rhs_ = (_rhs_);																\
-		AE_PRIVATE_CHECK_THROW_MSG( AE::Math::All( _tmp_lhs_ _op_ _tmp_rhs_ ),							\
+		AE_PRIVATE_CHECK_THROW_MSG( AE::Base::All( _tmp_lhs_ _op_ _tmp_rhs_ ),							\
 			AE::Base::String{AE_TOSTRING(_lhs_)} << " (" << AE::Base::ToString(_tmp_lhs_) << ") " <<	\
 			AE_TOSTRING(_op_) << " (" << AE::Base::ToString(_tmp_rhs_) << ") " << AE_TOSTRING(_rhs_))	\
 	}
@@ -391,7 +410,7 @@
 
 // assumption
 #if 1
-# if __has_cpp_attribute(assume)
+# if AE_HAS_ATTRIB(assume)
 #	define AE_PRIVATE_ASSUME( _expr_ )		{ [[assume( bool{_expr_} )]]; }
 
 # elif defined(AE_COMPILER_MSVC)

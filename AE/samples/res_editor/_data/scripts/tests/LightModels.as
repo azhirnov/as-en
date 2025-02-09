@@ -2,7 +2,7 @@
 #ifdef __INTELLISENSE__
 #	define SH_COMPUTE
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -36,7 +36,7 @@
 	#include "Normal.glsl"
 	#include "Geometry.glsl"
 	#include "GlobalIndex.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	float4  Sphere (float2 uv, float2 duv)
 	{

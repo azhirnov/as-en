@@ -1,9 +1,5 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
-
-#----------------------------------------------------------
-
 # External dependencies
 set( AE_ENABLE_ABSEIL 				ON  CACHE BOOL "use Absel" )
 set( AE_ENABLE_ANGELSCRIPT 			ON  CACHE BOOL "use AngelScript" )

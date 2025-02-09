@@ -57,68 +57,71 @@ namespace AE::Base
 				_hour		: 5,	// 24	(0..32)
 				_minute		: 6,	// 60	(0..64)
 				_second		: 6,	// 60	(0..64)
-				_millis		: 10;	// 1000	(0..1024)	// TODO: change to micro or nano?
+				_millis		: 10;	// 1000	(0..1024)
 
 
 	// methods
 	public:
-		Date ()											__NE___;
+		__Cx__ Date ()											__NE___;
 
-		ND_ static Date		Now ()						__NE___;
+		__Cx__ Date (const Date &)								__NE___ = default;
+		__Cx__ Date&		operator = (const Date &)			__NE___	= default;
 
-		ND_ uint			Year ()						C_NE___	{ return _year; }
-		ND_ EMonth			Month ()					C_NE___	{ return EMonth( _month ); }
-		ND_ uint			MonthIndex ()				C_NE___	{ return _month+1; }
-		ND_ uint			WeekOfYear ()				C_NE___	{ return (_dayOfYear / 7) + 1; }
-		ND_ uint			DayOfYear ()				C_NE___	{ return _dayOfYear + 1; }
-		ND_ uint			DayOfMonth ()				C_NE___	{ return _dayOfMonth + 1; }
-		ND_ EWeekDay		DayOfWeek ()				C_NE___	{ return EWeekDay( _dayOfWeek ); }
-		ND_ uint			Hour ()						C_NE___	{ return _hour; }
-		ND_ uint			Minute ()					C_NE___	{ return _minute; }
-		ND_ uint			Second ()					C_NE___	{ return _second; }
-		ND_ uint			Milliseconds ()				C_NE___	{ return _millis; }
+		ND_ static Date		Now ()								__NE___;
 
-		ND_ StringView		MonthName ()				C_NE___;
-		ND_ StringView		DayOfWeekName ()			C_NE___;
+		NdCx__ uint			Year ()								C_NE___	{ return _year; }
+		NdCx__ EMonth		Month ()							C_NE___	{ return EMonth( _month ); }
+		NdCx__ uint			MonthIndex ()						C_NE___	{ return _month+1; }
+		NdCx__ uint			WeekOfYear ()						C_NE___	{ return (_dayOfYear / 7) + 1; }
+		NdCx__ uint			DayOfYear ()						C_NE___	{ return _dayOfYear + 1; }
+		NdCx__ uint			DayOfMonth ()						C_NE___	{ return _dayOfMonth + 1; }
+		NdCx__ EWeekDay		DayOfWeek ()						C_NE___	{ return EWeekDay( _dayOfWeek ); }
+		NdCx__ uint			Hour ()								C_NE___	{ return _hour; }
+		NdCx__ uint			Minute ()							C_NE___	{ return _minute; }
+		NdCx__ uint			Second ()							C_NE___	{ return _second; }
+		NdCx__ uint			Milliseconds ()						C_NE___	{ return _millis; }
 
-		ND_ static ulong	MillisInDay ()				__NE___	{ return 24 * MillisInHour(); }
-		ND_ static ulong	MillisInHour ()				__NE___	{ return 60 * MillisInMinute(); }
-		ND_ static ulong	MillisInMinute ()			__NE___	{ return 60 * MillisInSecond(); }
-		ND_ static ulong	MillisInSecond ()			__NE___	{ return 1000; }
+		Nd____ StringView	MonthName ()						C_NE___;
+		Nd____ StringView	DayOfWeekName ()					C_NE___;
 
-
-		ND_ bool			IsLeapYear ()				C_NE___	{ return _IsLeapYear( _year ); }
-		ND_ uint			DaysInYear ()				C_NE___	{ return _MaxDaysOfYear( _year ); }
-		ND_ uint			DaysInMonth ()				C_NE___	{ return _DaysInMonth( _year, _month ); }
+		NdCe__ static ulong	MillisInDay ()						__NE___	{ return 24 * MillisInHour(); }
+		NdCe__ static ulong	MillisInHour ()						__NE___	{ return 60 * MillisInMinute(); }
+		NdCe__ static ulong	MillisInMinute ()					__NE___	{ return 60 * MillisInSecond(); }
+		NdCe__ static ulong	MillisInSecond ()					__NE___	{ return 1000; }
 
 
-		ND_ ulong	ToMillisecondsSince1970 ()			C_NE___	{ return _ToMilliseconds( 1970 ); }
-			Date&	SetMillisecondsSince1970 (ulong ms)	__NE___	{ return _SetMilliseconds( 1970, ms ); }
-
-		ND_ ulong	ToMillisecondsSinceEpoch ()			C_NE___	{ return _ToMilliseconds( 0 ); }
-			Date&	SetMillisecondsSinceEpoch (ulong ms)__NE___	{ return _SetMilliseconds( 0, ms ); }
+		NdCx__ bool			IsLeapYear ()						C_NE___	{ return _IsLeapYear( _year ); }
+		NdCx__ uint			DaysInYear ()						C_NE___	{ return _MaxDaysOfYear( _year ); }
+		NdCx__ uint			DaysInMonth ()						C_NE___	{ return _DaysInMonth( _year, _month ); }
 
 
-		ND_ String  ToString (StringView fmt)			C_NE___;
+		NdCx__ ulong	ToMillisecondsSince1970 ()				C_NE___	{ return _ToMilliseconds( 1970 ); }
+		__Cx__ Date&	SetMillisecondsSince1970 (ulong ms)		__NE___	{ return _SetMilliseconds( 1970, ms ); }
 
-		ND_ bool  operator == (const Date &other)		C_NE___;
-		ND_ bool  operator >  (const Date &other)		C_NE___;
-		ND_ bool  operator <  (const Date &other)		C_NE___;
-		ND_ bool  operator != (const Date &other)		C_NE___	{ return not (*this == other); }
-		ND_ bool  operator >= (const Date &other)		C_NE___	{ return not (*this < other); }
-		ND_ bool  operator <= (const Date &other)		C_NE___	{ return not (*this > other); }
+		NdCx__ ulong	ToMillisecondsSinceEpoch ()				C_NE___	{ return _ToMilliseconds( 0 ); }
+		__Cx__ Date&	SetMillisecondsSinceEpoch (ulong ms)	__NE___	{ return _SetMilliseconds( 0, ms ); }
+
+
+		ND_ String  ToString (StringView fmt)					C_NE___;
+
+		NdCx__ bool  operator == (const Date &other)			C_NE___;
+		NdCx__ bool  operator <  (const Date &other)			C_NE___;
+		NdCx__ bool  operator >  (const Date &other)			C_NE___	{ return other < *this; }
+		NdCx__ bool  operator != (const Date &other)			C_NE___	{ return not (*this == other); }
+		NdCx__ bool  operator >= (const Date &other)			C_NE___	{ return not (*this < other); }
+		NdCx__ bool  operator <= (const Date &other)			C_NE___	{ return not (*this > other); }
 
 
 	private:
-		ND_ static bool  _IsLeapYear (uint year);
-		ND_ static uint  _MaxDaysOfYear (uint year);
-		ND_ static uint  _DaysInMonth (uint year, uint month);
-		ND_ static uint  _CalcDayOfYear (uint year, uint month, uint dayOfMonth);
-		ND_ static uint  _CalcDayOfWeek (uint year, uint month, uint dayOfMonth);
-			static void  _CalcMonthAndDayOfMonth (uint year, uint dayOfYear, OUT uint &month, OUT uint &dayOfMonth);
+		NdCx__ static bool  _IsLeapYear (uint year);
+		NdCx__ static uint  _MaxDaysOfYear (uint year);
+		NdCx__ static uint  _DaysInMonth (uint year, uint month);
+		NdCx__ static uint  _CalcDayOfYear (uint year, uint month, uint dayOfMonth);
+		NdCx__ static uint  _CalcDayOfWeek (uint year, uint month, uint dayOfMonth);
+		__Cx__ static void  _CalcMonthAndDayOfMonth (uint year, uint dayOfYear, OUT uint &month, OUT uint &dayOfMonth);
 
-		ND_ ulong  _ToMilliseconds (uint startYear) const;
-			Date&  _SetMilliseconds (uint startYear, ulong ms);
+		NdCx__ ulong  _ToMilliseconds (uint startYear) const;
+		__Cx__ Date&  _SetMilliseconds (uint startYear, ulong ms);
 	};
 
 
@@ -136,34 +139,235 @@ namespace AE::Base
 
 	// methods
 	public:
-		Builder ()								__NE___	{}
-		explicit Builder (const Date &value)	__NE___ : _date{value} {}
+		__Cx__ Builder ()								__NE___	{}
+		__Cx__ explicit Builder (const Date &value)		__NE___ : _date{value} {}
 
-		Builder&  Year (uint value)				__NE___	{ ASSERT( value < 65536 );					_date._year			= value;		return *this; }
-		Builder&  Month (uint value)			__NE___	{ ASSERT( value < 12 );						_date._month		= value;		return *this; }
-		Builder&  Month (EMonth value)			__NE___	{											_date._month		= uint(value);	return *this; }
-		Builder&  DayOfMonth (uint value)		__NE___	{ ASSERT( value < _date.DaysInMonth() );	_date._dayOfMonth	= value;		return *this; }
-		Builder&  DayOfYear (uint value)		__NE___	{ ASSERT( value < _date.DaysInYear() );		_date._dayOfYear	= value;		return *this; }
-		Builder&  DayOfWeek (uint value)		__NE___	{ ASSERT( value < 7 );						_date._dayOfWeek	= value;		return *this; }
-		Builder&  DayOfWeek (EWeekDay value)	__NE___	{											_date._dayOfWeek	= uint(value);	return *this; }
-		Builder&  Hour (uint value)				__NE___	{ ASSERT( value < 24 );						_date._hour			= value;		return *this; }
-		Builder&  Minute (uint value)			__NE___	{ ASSERT( value < 60 );						_date._minute		= value;		return *this; }
-		Builder&  Second (uint value)			__NE___	{ ASSERT( value < 60 );						_date._second		= value;		return *this; }
-		Builder&  Milliseconds (uint value)		__NE___	{ ASSERT( value < 1000 );					_date._millis		= value;		return *this; }
+		__Cz__ Builder&  Year (uint value)				__NE___	{ ASSERT( value < 65536 );					_date._year			= value;		return *this; }
+		__Cz__ Builder&  Month (uint value)				__NE___	{ ASSERT( value < 12 );						_date._month		= value;		return *this; }
+		__Cx__ Builder&  Month (EMonth value)			__NE___	{											_date._month		= uint(value);	return *this; }
+		__Cz__ Builder&  DayOfMonth (uint value)		__NE___	{ ASSERT( value < _date.DaysInMonth() );	_date._dayOfMonth	= value;		return *this; }
+		__Cz__ Builder&  DayOfYear (uint value)			__NE___	{ ASSERT( value < _date.DaysInYear() );		_date._dayOfYear	= value;		return *this; }
+		__Cz__ Builder&  DayOfWeek (uint value)			__NE___	{ ASSERT( value < 7 );						_date._dayOfWeek	= value;		return *this; }
+		__Cx__ Builder&  DayOfWeek (EWeekDay value)		__NE___	{											_date._dayOfWeek	= uint(value);	return *this; }
+		__Cz__ Builder&  Hour (uint value)				__NE___	{ ASSERT( value < 24 );						_date._hour			= value;		return *this; }
+		__Cz__ Builder&  Minute (uint value)			__NE___	{ ASSERT( value < 60 );						_date._minute		= value;		return *this; }
+		__Cz__ Builder&  Second (uint value)			__NE___	{ ASSERT( value < 60 );						_date._second		= value;		return *this; }
+		__Cz__ Builder&  Milliseconds (uint value)		__NE___	{ ASSERT( value < 1000 );					_date._millis		= value;		return *this; }
 
-		Builder&  AddDayOfYear (uint value)		__NE___;
-		Builder&  SubDayOfYear (uint value)		__NE___;
+		__Cx__ Builder&  AddDayOfYear (uint value)		__NE___;
+		__Cx__ Builder&  SubDayOfYear (uint value)		__NE___;
 
-		Builder&  CalcDayOfYear ()				__NE___;	// requires: year, month, dayOfMonth
-		Builder&  CalcDayOfWeek ()				__NE___;	// requires: year, month, dayOfMonth
-		Builder&  CalcMonthAndDayOfMonth ()		__NE___;	// requires: year, dayOfYear
+		__Cx__ Builder&  CalcDayOfYear ()				__NE___;	// requires: year, month, dayOfMonth
+		__Cx__ Builder&  CalcDayOfWeek ()				__NE___;	// requires: year, month, dayOfMonth
+		__Cx__ Builder&  CalcMonthAndDayOfMonth ()		__NE___;	// requires: year, dayOfYear
 
-		ND_ Date		Get ()					C_NE___	{ return _date; }
-		ND_ Date const*	operator -> ()			C_NE___	{ return &_date; }
+		NdCx__ Date			Get ()						C_NE___	{ return _date; }
+		NdCx__ Date const*	operator -> ()				C_NE___	{ return &_date; }
 
 	private:
-		void  _ValidateYear ()					__NE___;
+		__Cx__ void  _ValidateYear ()					__NE___;
 	};
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	__CxIn Date::Date () __NE___ :
+		_year{0}, _month{0}, _dayOfWeek{0}, _dayOfYear{0}, _dayOfMonth{0}, _hour{0}, _minute{0}, _second{0}, _millis{0}
+	{}
+
+/*
+=================================================
+	operator ==
+=================================================
+*/
+	__CxIn bool  Date::operator == (const Date &other) C_NE___
+	{
+		return	(Year()			== other.Year())		and
+				(DayOfYear()	== other.DayOfYear())	and
+				(Hour()			== other.Hour())		and
+				(Minute()		== other.Minute())		and
+				(Second()		== other.Second())		and
+				(Milliseconds()	== other.Milliseconds());
+	}
+
+/*
+=================================================
+	operator <
+=================================================
+*/
+	__CxIn bool  Date::operator < (const Date &other) C_NE___
+	{
+		return	Year()			!= other.Year()			?	Year()		< other.Year()		:
+				DayOfYear()		!= other.DayOfYear()	?	DayOfYear()	< other.DayOfYear()	:
+				Hour()			!= other.Hour()			?	Hour()		< other.Hour()		:
+				Minute()		!= other.Minute()		?	Minute()	< other.Minute()	:
+				Second()		!= other.Second()		?	Second()	< other.Second()	:
+				Milliseconds()	<  other.Milliseconds();
+	}
+
+/*
+=================================================
+	_IsLeapYear
+=================================================
+*/
+	__CxIn bool  Date::_IsLeapYear (uint year)
+	{
+		return ((year % 4 == 0) and (year % 100 != 0)) or (year % 400 == 0);
+	}
+
+/*
+=================================================
+	_MaxDaysOfYear
+=================================================
+*/
+	__CxIn uint  Date::_MaxDaysOfYear (uint year)
+	{
+		return 365 + uint(_IsLeapYear( year ));
+	}
+
+/*
+=================================================
+	_DaysInMonth
+=================================================
+*/
+	__CxIn uint  Date::_DaysInMonth (uint year, uint month)
+	{
+		const ubyte days[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+		return days[ month ] + uint( (EMonth(month) == EMonth::Feb) and _IsLeapYear( year ));
+	}
+
+/*
+=================================================
+	_CalcDayOfYear
+=================================================
+*/
+	__CxIn uint  Date::_CalcDayOfYear (uint year, uint month, uint dayOfMonth)
+	{
+		uint day = 0;
+
+		for (uint i = 0; i < month; ++i) {
+			day += _DaysInMonth( year, i );
+		}
+		return day + dayOfMonth;
+	}
+
+/*
+=================================================
+	_CalcDayOfWeek
+=================================================
+*/
+	__CxIn uint  Date::_CalcDayOfWeek (uint year, uint month, uint dayOfMonth)
+	{
+		const ubyte	t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
+		year -= month < 2;
+		return (year + year/4 - year/100 + year/400 + t[month] + dayOfMonth) % 7;
+	}
+
+/*
+=================================================
+	_CalcMonthAndDayOfMonth
+=================================================
+*/
+	__CxIn void  Date::_CalcMonthAndDayOfMonth (uint year, uint dayOfYear, OUT uint &month, OUT uint &dayOfMonth)
+	{
+		uint days_in_month = _DaysInMonth( year, 0 );
+
+		for (month = 0; dayOfYear >= days_in_month;)
+		{
+			dayOfYear		-= days_in_month;
+			days_in_month	 = _DaysInMonth( year, ++month );
+		}
+
+		dayOfMonth = dayOfYear;
+	}
+
+/*
+=================================================
+	_ToMilliseconds
+=================================================
+*/
+	__CxIn ulong  Date::_ToMilliseconds (uint startYear) const
+	{
+		ulong	ms = _millis;
+
+		ms += _second * MillisInSecond();
+		ms += _minute * MillisInMinute();
+		ms += _hour * MillisInHour();
+		ms += _dayOfYear * MillisInDay();
+
+		for (uint y = startYear; y < _year; ++y) {
+			ms += _MaxDaysOfYear( y ) * MillisInDay();
+		}
+		return ms;
+	}
+
+/*
+=================================================
+	_SetMilliseconds
+=================================================
+*/
+	__CxIn Date&  Date::_SetMilliseconds (const uint startYear, const ulong ms)
+	{
+		_millis		= uint(ms % MillisInSecond());
+		_second		= (ms / MillisInSecond()) % 60;
+		_minute		= (ms / MillisInMinute()) % 60;
+		_hour		= (ms / MillisInHour())   % 24;
+
+		ulong days	= ms / MillisInDay();
+		uint  year	= startYear;
+		uint  max_d	= _MaxDaysOfYear( year );
+
+		for (; days >= max_d;)
+		{
+			days -= max_d;
+			max_d = _MaxDaysOfYear( ++year );
+		}
+
+		_dayOfYear	= uint(days);
+		_year		= year;
+
+		uint	m, dm;
+		_CalcMonthAndDayOfMonth( _year, _dayOfYear, OUT m, OUT dm );
+
+		_month		= m;
+		_dayOfMonth	= dm;
+		_dayOfWeek	= _CalcDayOfWeek( _year, _month, _dayOfMonth );
+
+		return *this;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Calc*
+=================================================
+*/
+	__CxIn Date::Builder&  Date::Builder::CalcDayOfYear () __NE___
+	{
+		return DayOfYear( Date::_CalcDayOfYear( _date._year, _date._month, _date._dayOfMonth ));
+	}
+
+	__CxIn Date::Builder&  Date::Builder::CalcDayOfWeek () __NE___
+	{
+		return DayOfWeek( Date::_CalcDayOfWeek( _date._year, _date._month, _date._dayOfMonth ));
+	}
+
+	__CxIn Date::Builder&  Date::Builder::CalcMonthAndDayOfMonth () __NE___
+	{
+		uint	m, dm;
+		Date::_CalcMonthAndDayOfMonth( _date._year, _date._dayOfYear, OUT m, OUT dm );
+
+		_date._month		= m;
+		_date._dayOfMonth	= dm;
+		return *this;
+	}
 
 
 } // AE::Base

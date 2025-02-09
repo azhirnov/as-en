@@ -10,17 +10,26 @@
 namespace AE::Threading
 {
 
+	//
+	// Lock-Free Chunk List
+	//
+
 	template <typename T,
-			  usize ChunkCapacity_v
+			  usize ChunkCapacity_v,
+			  typename AllocatorType = UntypedAllocator
 			 >
 	class LfChunkList final : public Noncopyable
 	{
 		StaticAssert( ChunkCapacity_v > 0 );
 
+		// allocator can be externally synchronized
+		//StaticAssert( IsThreadSafeAllocator< AllocatorType >);
+
 	// types
 	public:
-		using Self			= LfChunkList< T, ChunkCapacity_v >;
+		using Self			= LfChunkList< T, ChunkCapacity_v, AllocatorType >;
 		using Value_t		= T;
+		using Allocator_t	= AllocatorType;
 
 	private:
 		using Count_t		= ByteSizeToUInt< sizeof(void*)/2 >;
@@ -70,27 +79,25 @@ namespace AE::Threading
 		Atomic< Chunk *>	_last	{null};
 		Chunk *				_first	{null};
 
+		NO_UNIQUE_ADDRESS
+		 Allocator_t		_allocator;
+
 		DRC_ONLY( RWDataRaceCheck	_drCheck;)
 
 
 	// methods
 	public:
-		LfChunkList ()											__NE___	{}
+		explicit LfChunkList (const Allocator_t &alloc = Allocator_t{})	__NE___;
 		~LfChunkList ()											__NE___;
 
 		ND_ BaseList_t	Release ()								__NE___;
 
-		template <typename Allocator>
-		ND_ bool  Init (Allocator &alloc)						__NE___;
+		template <typename ...Args>
+		ND_ bool  Emplace (Args&& ...args)						__NE___;
 
-		template <typename Allocator,
-				  typename ...Args>
-		ND_ bool  Emplace (Allocator &alloc, Args&& ...args)	__NE___;
+			void  Destroy ()									__NE___;
 
-		template <typename Allocator>
-			void  Destroy (Allocator &alloc)					__NE___;
-
-		ND_ static constexpr Bytes  ChunkSize ()				__NE___	{ return Bytes{_ChunkSize}; }
+		NdCx__ static Bytes  ChunkSize ()						__NE___	{ return Bytes{_ChunkSize}; }
 
 	private:
 			void  _UpdateLast ()								__NE___;
@@ -100,13 +107,37 @@ namespace AE::Threading
 
 /*
 =================================================
+	constructor
+=================================================
+*/
+	template <typename T, usize S, typename A>
+	LfChunkList<T,S,A>::LfChunkList (const Allocator_t &alloc) __NE___ :
+		_allocator{alloc}
+	{
+		DRC_EXLOCK( _drCheck );
+
+		ASSERT( _last.load() == null );
+		ASSERT( _first == null );
+
+		Chunk*	new_chunk = Cast<Chunk>( _allocator.Allocate( SizeAndAlign{ ChunkSize(), AlignOf<Chunk> }));
+		if_likely( new_chunk != null )
+		{
+			PlacementNew<Chunk>( OUT new_chunk );
+
+			_first	= new_chunk;
+			_last.store( new_chunk );
+		}
+	}
+
+/*
+=================================================
 	Release
 ----
 	Must be externally synchronized.
 =================================================
 */
-	template <typename T, usize S>
-	typename LfChunkList<T,S>::BaseList_t  LfChunkList<T,S>::Release () __NE___
+	template <typename T, usize S, typename A>
+	typename LfChunkList<T,S,A>::BaseList_t  LfChunkList<T,S,A>::Release () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -120,48 +151,16 @@ namespace AE::Threading
 
 /*
 =================================================
-	Init
-----
-	Must be externally synchronized.
-=================================================
-*/
-	template <typename T, usize S>
-	template <typename Allocator>
-	bool  LfChunkList<T,S>::Init (Allocator &alloc) __NE___
-	{
-		DRC_EXLOCK( _drCheck );
-
-		ASSERT( _last.load() == null );
-		ASSERT( _first == null );
-
-		Chunk*	new_chunk = Cast<Chunk>( alloc.Allocate( SizeAndAlign{ ChunkSize(), AlignOf<Chunk> }));
-		if_likely( new_chunk != null )
-		{
-			PlacementNew<Chunk>( OUT new_chunk );
-
-			_first	= new_chunk;
-			_last.store( new_chunk );
-
-			return true;
-		}
-		return false;
-	}
-
-/*
-=================================================
 	Emplace
 ----
 	Returns 'true' if new element is successfully added to chunk.
 	Returns 'false' if not enough space in last chunk and failed to allocate a new chunk.
 =================================================
 */
-	template <typename T, usize S>
-	template <typename Allocator, typename ...Args>
-	bool  LfChunkList<T,S>::Emplace (Allocator &alloc, Args&& ...args) __NE___
+	template <typename T, usize S, typename A>
+	template <typename ...Args>
+	bool  LfChunkList<T,S,A>::Emplace (Args&& ...args) __NE___
 	{
-		// allocator can be externally synchronized
-		//StaticAssert( IsThreadSafeAllocator< Allocator >);
-
 		DRC_SHAREDLOCK( _drCheck );
 
 		Chunk*	chunk = _last.load();
@@ -200,7 +199,7 @@ namespace AE::Threading
 			}
 
 			// allocate memory for chunk
-			Chunk*	new_chunk = Cast<Chunk>( alloc.Allocate( SizeAndAlign{ ChunkSize(), AlignOf<Chunk> }));
+			Chunk*	new_chunk = Cast<Chunk>( _allocator.Allocate( SizeAndAlign{ ChunkSize(), AlignOf<Chunk> }));
 			if_unlikely( new_chunk == null )
 				continue;	// try again
 
@@ -242,8 +241,8 @@ namespace AE::Threading
 	_UpdateLast
 =================================================
 */
-	template <typename T, usize S>
-	forceinline void  LfChunkList<T,S>::_UpdateLast () __NE___
+	template <typename T, usize S, typename A>
+	forceinline void  LfChunkList<T,S,A>::_UpdateLast () __NE___
 	{
 		Chunk*	curr = _last.load();
 		NonNull( curr );
@@ -268,9 +267,8 @@ namespace AE::Threading
 	Must be externally synchronized.
 =================================================
 */
-	template <typename T, usize S>
-	template <typename Allocator>
-	void  LfChunkList<T,S>::Destroy (Allocator &alloc) __NE___
+	template <typename T, usize S, typename A>
+	void  LfChunkList<T,S,A>::Destroy () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -280,7 +278,7 @@ namespace AE::Threading
 					chunk	= chunk->next.load();
 
 			ptr->~Chunk();
-			alloc.Deallocate( ptr, SizeAndAlign{ ChunkSize(), AlignOf<Chunk> });
+			_allocator.Deallocate( ptr, SizeAndAlign{ ChunkSize(), AlignOf<Chunk> });
 		}
 
 		_first	= null;
@@ -292,8 +290,8 @@ namespace AE::Threading
 	destructor
 =================================================
 */
-	template <typename T, usize S>
-	LfChunkList<T,S>::~LfChunkList () __NE___
+	template <typename T, usize S, typename A>
+	LfChunkList<T,S,A>::~LfChunkList () __NE___
 	{
 		// use 'Release()' or 'Destroy()' to avoid mem leak
 

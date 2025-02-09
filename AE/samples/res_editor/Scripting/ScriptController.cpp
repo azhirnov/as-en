@@ -89,7 +89,8 @@ namespace
 	{
 		if ( not _dynamicDim )
 		{
-			CHECK_THROW_MSG( dynDim and dynDim->Get() );
+			if ( dynDim )
+				CHECK_THROW_MSG( dynDim->Get() );
 
 			_dynamicDim = dynDim;
 		}

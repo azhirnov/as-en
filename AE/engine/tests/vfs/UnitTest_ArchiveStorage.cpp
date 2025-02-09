@@ -14,7 +14,7 @@ namespace
 		Array<ubyte>	temp;
 		temp.resize( usize(size) );
 
-		Math::Random	rnd;
+		Base::Random	rnd;
 		for (usize i = 0; i < temp.size(); ++i)
 		{
 			temp[i] = rnd.Uniform<ubyte>() & 0x3F;
@@ -53,16 +53,18 @@ namespace
 
 	static void  Archive_Test1 ()
 	{
+		LocalVFS	vfs;
+
 		const Path	file1 {"temp/file1.bin"};
 		const Path	file2 {"temp/file2.bin"};
 		const Path	file3 {"temp/file3.bin"};
 		const Path	file4 {"temp/file4.bin"};
 		const Path	arch  {"archive.bin"};
 
-		const Bytes	file1_size	= 1_Mb;
-		const Bytes	file2_size	= 512_Kb;
-		const Bytes	file3_size	= 782_Kb;
-		const Bytes	file4_size	= 55_Kb;
+		const Bytes	file1_size	= 1_MiB;
+		const Bytes	file2_size	= 512_KiB;
+		const Bytes	file3_size	= 782_KiB;
+		const Bytes	file4_size	= 55_KiB;
 
 		const FileName::WithString_t	name1 {"file1"};
 		const FileName::WithString_t	name2 {"file2"};

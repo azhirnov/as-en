@@ -55,6 +55,11 @@ float4  Rainbow (const float factor)
 	return float4( HSVtoRGB( float3( Saturate(factor) * 0.8f, 1.f, 1.f )), 1.f );
 }
 
+float4  Rainbow2 (const float factor)
+{
+	return float4( HSVtoRGB( float3( Saturate(factor) * 0.72f, 1.f, 1.f )), 1.f );
+}
+
 float4  RainbowWrap (const float factor)
 {
 	return float4( HSVtoRGB( float3( Wrap( factor * 0.8f, 0.0f, 1.0f ), 1.f, 1.f )), 1.f );

@@ -113,7 +113,7 @@ namespace AE::Base
 
 		ND_ static uint  DistanceBetweenIndices (uint, uint, uint)		__NE___;
 
-		ND_ static constexpr uint  MaxFramesLimit ()					__NE___	{ return _MaxFrames; }
+		NdCx__ static uint  MaxFramesLimit ()							__NE___	{ return _MaxFrames; }
 	};
 
 

@@ -156,7 +156,7 @@ namespace
 		binder.Operators()
 			.Equal( &T::operator== );
 
-		if constexpr( IsSameTypes< T, RGBA32f >)
+		if constexpr( IsSame< T, RGBA32f >)
 		{
 			binder.AddMethodFromGlobal( &RGBA32f_Luminance,		"Luminance",		{} );
 			binder.AddMethodFromGlobal( &RGBA32f_OpaqueBlack,	"OpaqueBlack",		{} );
@@ -175,7 +175,7 @@ namespace
 			}
 		}
 
-		if constexpr( IsSameTypes< T, RGBA8u >)
+		if constexpr( IsSame< T, RGBA8u >)
 		{
 			se->AddFunction( &RGBA8u_AdjustContrast,			"AdjustContrast",	{"col", "factor"} );
 			se->AddFunction( &RGBA8u_AdjustSaturation,			"AdjustSaturation",	{"col", "factor"} );
@@ -198,23 +198,23 @@ namespace
 	{
 		ClassBinder<T>	binder{ se };
 
-		if constexpr( IsSameTypes< T, RGBA32f > )
+		if constexpr( IsSame< T, RGBA32f > )
 		{
 			binder.AddConstructor( &RGBA32f_Ctor_HSV_Alpha,		{"hsv", "alpha"} );
 			binder.AddConstructor( &RGBA32f_Ctor_RGBA<ubyte>,	{"c"} );
 			binder.AddConstructor( &RGBA32f_Ctor_RGBA<uint>,	{"c"} );
 		}
-		if constexpr( IsSameTypes< T, RGBA32i > )
+		if constexpr( IsSame< T, RGBA32i > )
 		{
 			binder.AddConstructor( &RGBA32i_Ctor_RGBA<ubyte>,	{"c"} );
 			binder.AddConstructor( &RGBA32i_Ctor_RGBA<uint>,	{"c"} );
 		}
-		if constexpr( IsSameTypes< T, RGBA32u > )
+		if constexpr( IsSame< T, RGBA32u > )
 		{
 			binder.AddConstructor( &RGBA32u_Ctor_RGBA<ubyte>,	{"c"} );
 			binder.AddConstructor( &RGBA32u_Ctor_RGBA<int>,		{"c"} );
 		}
-		if constexpr( IsSameTypes< T, RGBA8u > )
+		if constexpr( IsSame< T, RGBA8u > )
 		{
 			binder.AddConstructor( &RGBA8u_Ctor_RGBA<int>,		{"c"} );
 			binder.AddConstructor( &RGBA8u_Ctor_RGBA<uint>,		{"c"} );

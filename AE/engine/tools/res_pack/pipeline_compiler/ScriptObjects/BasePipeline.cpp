@@ -298,7 +298,7 @@ namespace
 		CHECK_THROW_MSG( ptr );
 
 		CHECK_THROW_MSG( ptr->Build() );
-		CHECK_THROW_MSG( ptr->GetLayout().has_value() );
+		CHECK_THROW_MSG( ptr->GetLayoutID().has_value() );
 
 		_Define( ptr->GetDefines() );
 
@@ -306,7 +306,7 @@ namespace
 		ScriptFeatureSet::Minimize( INOUT _features );
 
 		_layoutPtr = ptr;
-		_layoutUID = *_layoutPtr->GetLayout();
+		_layoutUID = *_layoutPtr->GetLayoutID();
 	}
 
 /*
@@ -317,7 +317,6 @@ namespace
 	PipelineLayoutPtr  BasePipelineTmpl::GetLayout () C_Th___
 	{
 		CHECK_THROW_MSG( _layoutUID.has_value() );
-		CHECK_THROW_MSG( _layoutPtr );
 		return _layoutPtr;
 	}
 
@@ -870,6 +869,7 @@ namespace
 				case EPipelineOpt::RT_NoNullIntersectionShaders :
 				case EPipelineOpt::RT_SkipTriangles :
 				case EPipelineOpt::RT_SkipAABBs :
+				case EPipelineOpt::RT_AllowClusterAccelStruct :
 					CHECK_THROW_MSG( AnyBits( GetBase()->GetStages(), EShaderStages::AllRayTracing ),
 						ToString(opt) << " requires any RayTracing stage" );
 					break;
@@ -984,7 +984,7 @@ namespace
 =================================================
 */
 	void  BasePipelineSpec::_SetLocalGroupSize (String prefix, const uint3 &spec, const uint3 &maxSize, uint maxTotalSize,
-												const uint3 &inSize, OUT packed_ushort3 &outSize) __Th___
+												const uint3 &inSize, OUT WGLocalSize_t &outSize) __Th___
 	{
 		uint	total_size = 1;
 

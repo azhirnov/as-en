@@ -8,8 +8,7 @@
 #pragma once
 
 #include "graphics_hl/Resources/FormattedText.h"
-#include "graphics_hl/Resources/StaticImageAtlas.h"
-#include "graphics_hl/Resources/RasterFont.h"
+#include "graphics_rhi/Public/IDs.h"
 
 namespace AE::UI::_hidden_
 {
@@ -21,6 +20,13 @@ namespace AE::UI::_hidden_
 namespace AE::Graphics
 {
 	class IRenderTechPipelines;
+
+	class LoadableImage;
+	class StaticImageAtlas;
+	class RasterFont;
+
+	class ResourceCache;
+	class ResourceUploadManager;
 
 	using RenderTechPipelinesPtr = RC< IRenderTechPipelines >;
 
@@ -40,6 +46,7 @@ namespace AE::UI
 	using AE::Graphics::BufferID;
 	using AE::Graphics::ImageInAtlasName;
 	using AE::Graphics::RasterFont;
+	using AE::Graphics::LoadableImage;
 	using AE::Graphics::StaticImageAtlas;
 	using AE::Graphics::EPrimitive;
 	using AE::Graphics::IRenderTechPipelines;

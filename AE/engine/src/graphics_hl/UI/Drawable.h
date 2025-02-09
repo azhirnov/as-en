@@ -54,9 +54,7 @@ namespace AE::UI
 		};
 
 	protected:
-		using ColorStyle	= StyleCollection::ColorStyle;
-		using ImageStyle	= StyleCollection::ImageStyle;
-		using FontStyle		= StyleCollection::FontStyle;
+		using IStylePtr		= Ptr< const StyleCollection::IStyle >;
 
 
 	// interface
@@ -66,7 +64,7 @@ namespace AE::UI
 		virtual void  PreDraw (const PreDrawParams &params, TransferContext_t &ctx)			__Th___	{ Unused( params, ctx ); }
 		virtual void  Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th___	= 0;
 
-		ND_ virtual EType  GetType ()														C_NE___ = 0;
+		ND_ virtual EType  Type ()															C_NE___ = 0;
 
 		// serializing
 		ND_ virtual bool  Serialize (Serializing::Serializer &)								C_NE___ = 0;
@@ -139,8 +137,8 @@ namespace AE::UI
 	{
 		RectF			globalRect;
 		RectF			clipRect;
-		EStyleState		style		= Default;
-		float			dt;
+		EStyleIndex		style		= EStyleIndex::Enabled;
+		secondsf		dt;
 		GlobalMaterial	mtr;		// inout
 	};
 
@@ -150,7 +148,7 @@ namespace AE::UI
 	//
 	struct IDrawable::PreDrawParams
 	{
-		float			dt;
+		secondsf		dt;
 	};
 
 
@@ -164,12 +162,16 @@ namespace AE::UI
 	public:
 		struct Data
 		{
-			Material				mtr;
-			RGBA8u					prevColor;
-			RGBA8u					currColor;
-			EStyleState				currStyle		= Default;
-			float					factor			= 2.0f;
-			Ptr<const ColorStyle>	stylePtr;
+			Material		mtr;
+			EStyleIndex		styleIdx		= EStyleIndex::Enabled;
+			RGBA8u			currColor;
+			float			currScale		= 1.f;
+			float			factor			= 2.0f;
+
+			// accessed in cold branch
+			RGBA8u			prevColor;
+			float			prevScale		= 1.f;
+			IStylePtr		stylePtr;
 		};
 
 	// variables
@@ -185,7 +187,7 @@ namespace AE::UI
 
 		// IDrawable //
 		void	Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th_OV;
-		EType	GetType ()															C_NE_OV	{ return EType::Rectangle; }
+		EType	Type ()																C_NE_OV	{ return EType::Rectangle; }
 
 		// serializing
 		bool	Serialize (Serializing::Serializer &)								C_NE_OV;
@@ -204,6 +206,16 @@ namespace AE::UI
 		struct Data
 		{
 			Material		mtr;
+			EStyleIndex		styleIdx		= EStyleIndex::Enabled;
+			RGBA8u			currColor;
+			float			currScale		= 1.f;
+			float			factor			= 2.0f;
+			RectF			uv;
+
+			// accessed in cold branch
+			RGBA8u			prevColor;
+			float			prevScale		= 1.f;
+			IStylePtr		stylePtr;
 		};
 
 	// variables
@@ -219,7 +231,7 @@ namespace AE::UI
 
 		// IDrawable //
 		void	Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th_OV;
-		EType	GetType ()															C_NE_OV	{ return EType::Image; }
+		EType	Type ()																C_NE_OV	{ return EType::Image; }
 
 		// serializing
 		bool	Serialize (Serializing::Serializer &)								C_NE_OV;
@@ -229,7 +241,7 @@ namespace AE::UI
 
 
 	//
-	// Nine Patch Drawable
+	// Nine Patch Image Drawable
 	//
 	class NinePatchDrawable final : public IDrawable
 	{
@@ -253,7 +265,7 @@ namespace AE::UI
 
 		// IDrawable //
 		void	Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th_OV;
-		EType	GetType ()															C_NE_OV	{ return EType::NinePatch; }
+		EType	Type ()																C_NE_OV	{ return EType::NinePatch; }
 
 		// serializing
 		bool	Serialize (Serializing::Serializer &)								C_NE_OV;
@@ -287,7 +299,7 @@ namespace AE::UI
 
 		// IDrawable //
 		void	Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx)	__Th_OV;
-		EType	GetType ()															C_NE_OV	{ return EType::Text; }
+		EType	Type ()																C_NE_OV	{ return EType::Text; }
 
 		// serializing
 		bool	Serialize (Serializing::Serializer &)								C_NE_OV;

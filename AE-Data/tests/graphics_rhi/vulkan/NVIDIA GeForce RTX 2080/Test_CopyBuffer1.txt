@@ -1,0 +1,74 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'CopyBuffer1 |0| Copy buffer task'
+{
+  CopyBuffer
+    src: 'buf_1'
+    dst: 'buf_2'
+      copy [0, 128) ---> [0, 128)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> COPY
+      access: TRANSFER_WRITE ---> TRANSFER_READ
+  ----------
+
+  CopyBuffer
+    src: 'buf_2'
+    dst: 'SSRB {f:1}'
+      copy [0, 128) ---> [0, 128)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST | COPY
+      access: TRANSFER_WRITE ---> TRANSFER_WRITE | HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+  CopyBuffer
+    src: 'buf_1'
+    dst: 'buf_2'
+      copy [0, 128) ---> [0, 128)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> COPY
+      access: TRANSFER_WRITE ---> TRANSFER_READ
+  ----------
+
+  CopyBuffer
+    src: 'buf_2'
+    dst: 'SSRB {f:2}'
+      copy [0, 128) ---> [0, 128)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST | COPY
+      access: TRANSFER_WRITE ---> TRANSFER_WRITE | HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+==================================================

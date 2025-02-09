@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -25,18 +25,18 @@
 			pass.LocalSize( 8, 8 );
 			pass.DispatchThreads( cubemap_view.Dimension2_Layers() );
 			pass.Constant( "iProj",		proj_type );
-			pass.Slider(   "iRadius",	0.f,	0.1f,	0.06f );
+			pass.Slider( "iRadius",		0.f,	0.1f,	0.06f );
+			pass.Slider( "iMode",		0,		1 );
 
 			GenMipmaps( cubemap_view );
 		}{
 			RC<Postprocess>		pass = Postprocess();
+			pass.Set( OrbitalCamera() );
 			pass.Output( "out_Color",	rt,				RGBA32f(0.0) );
-			pass.ArgIn(  "un_CubeMap",	cubemap_view,	Sampler_LinearRepeat );
-			pass.Slider( "iRotation",	float2(-180.f, -90.f),	float2(180.f, 90.f),	float2(0.f) );
-			pass.Slider( "iRotation2",	float2(-2.f),			float2(2.f),			float2(0.f) );
-			pass.Slider( "iScale",		0.25f,					1.1f,					1.1f );
-			pass.Slider( "iFov",		0.f,					90.f,					60.f );
-			pass.Slider( "iRadius",		0.0f,					0.9f,					0.5f );	// used to check circle distortion
+			pass.ArgIn(  "un_CubeMap",	cubemap_view,	Sampler_LinearMipmapRepeat );
+			pass.Slider( "iScale",		0.25f,			1.1f,		1.1f );
+			pass.Slider( "iFov",		0.f,			90.f,		60.f );
+			pass.Slider( "iRadius",		0.0f,			0.9f,		0.5f );	// used to check circle distortion
 			pass.Constant( "iProj",		proj_type );
 		}
 		Present( rt );
@@ -48,7 +48,6 @@
 	#include "SDF.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "Quaternion.glsl"
 	#include "GlobalIndex.glsl"
 
 	float3  Project (float3 n)
@@ -71,8 +70,7 @@
 		float4	norm	= UVtoSphereNormal( uv, ToRad(iFov) );
 		float3	uvw		= norm.xyz;
 
-		uvw = QMul( QRotationY(ToRad( iRotation.x + iRotation2.x )), uvw );
-		uvw = QMul( QRotationX(ToRad( iRotation.y + iRotation2.y )), uvw );
+		uvw = float3x3(un_PerPass.camera.view) * uvw;
 		uvw = Project( uvw );
 
 		out_Color.rgb = gl.texture.Sample( un_CubeMap, uvw ).rgb * SmoothStep( norm.w, 0.0, 0.01 );
@@ -143,8 +141,16 @@
 			dist = Min( dist, d );
 		}
 
-		color.g = Saturate( 1.0 - SmoothStep( dist, -0.005, 0.005 ));
-		color.b *= (1.0 - color.g);
+		if ( iMode == 0 )
+		{
+			color.g = Saturate( 1.0 - SmoothStep( dist, -0.005, 0.005 ));
+			color.b *= (1.0 - color.g);
+		}
+
+		if ( iMode == 1 )
+		{
+			color.rgb = SDF_Isolines( -dist * 100.0 );
+		}
 
 		gl.image.Store( un_OutImage, GetGlobalCoord(), color );
 	}

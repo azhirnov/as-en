@@ -27,6 +27,14 @@ namespace
 		return ScriptRC<ScriptModelGeometrySrc>{ new ScriptModelGeometrySrc{ filename }}.Detach();
 	}
 
+	static void  VertexStride_Ctor (OUT void* mem, uint value) {
+		PlacementNew< ScriptUniGeometry::VertexStride >( OUT mem, value );
+	}
+
+	static void  VertexAttribDivisor_Ctor (OUT void* mem, uint value) {
+		PlacementNew< ScriptUniGeometry::VertexAttribDivisor >( OUT mem, value );
+	}
+
 	static const StringView		c_MtrDS		= "material";
 	static const StringView		c_PassDS	= "pass";
 
@@ -101,7 +109,7 @@ namespace
 =================================================
 	_FindPipelinesWithoutVB
 =================================================
-*/
+*
 	static void  _FindPipelinesWithoutVB (OUT Array<GraphicsPipelineSpecPtr> &pipelines) __Th___
 	{
 		auto&	storage = *ObjectStorage::Instance();
@@ -117,6 +125,70 @@ namespace
 		}
 		CHECK_THROW_MSG( not pipelines.empty(),
 			"Can't find graphics pipelines without vertex buffer" );
+	}
+
+/*
+=================================================
+	_FindPipelinesWithVB
+=================================================
+*/
+	static void  _FindPipelinesWithVB (OUT Array<GraphicsPipelineSpecPtr> &pipelines, const ScriptUniGeometry::VertexBuffers_t &vbuffers) __Th___
+	{
+		auto&	storage = *ObjectStorage::Instance();
+		pipelines.clear();
+
+		for (auto& [tname, ppln] : storage.gpipelines)
+		{
+			for (auto& spec : ppln->GetSpecializations())
+			{
+				const auto*		src_vb = spec->GetVertexBuffers();
+
+				if ( src_vb == null )
+				{
+					if ( vbuffers.empty() )
+						pipelines.push_back( spec );
+					continue;
+				}
+
+				Array<GraphicsPipelineDesc::VertexInput>	vertex_input;
+				Array<GraphicsPipelineDesc::VertexBuffer>	vertex_buffers;
+				CHECK_THROW( src_vb->Get( OUT vertex_input, OUT vertex_buffers ));
+
+				if ( vertex_input.size() != vbuffers.size() or
+					 vertex_buffers.size() != vbuffers.size() )
+					continue;
+
+				bool	equal = true;
+				for (usize i = 0; i < vbuffers.size(); ++i)
+				{
+					const auto&		input	= vertex_input[i];
+					const auto&		vbuf	= vertex_buffers[i];
+					const auto&		req		= vbuffers[i];
+
+					CHECK( input.index == i );
+					CHECK( input.bufferBinding == i );
+					CHECK( req.index == i );
+					CHECK( vbuf.index == i );
+
+					if ( input.type		!= req.type		or
+						 input.index	!= req.index	or
+						 input.offset	!= 0_b			or
+						 vbuf.rate		!= req.rate		or
+						 vbuf.index		!= req.index	or
+						 vbuf.stride	!= req.stride	or
+						 vbuf.divisor	!= req.divisor	)
+					{
+						equal = false;
+						break;
+					}
+				}
+
+				if ( equal )
+					pipelines.push_back( spec );
+			}
+		}
+		CHECK_THROW_MSG( not pipelines.empty(),
+			"Can't find graphics pipelines with required vertex buffers" );
 	}
 
 /*
@@ -845,6 +917,18 @@ namespace
 
 namespace
 {
+	struct BufferFieldCache
+	{
+	// types
+		using BufferField				= Pair< ScriptBufferPtr, StringView >;
+		using BufferFieldOffsetCache_t	= FlatHashMap< BufferField, Bytes >;
+		using IdxBufferTypeCache_t		= FlatHashMap< BufferField, EIndex >;
+
+	// variables
+		BufferFieldOffsetCache_t	bufferFieldOffsetCache;
+		IdxBufferTypeCache_t		idxBufferTypeCache;
+	};
+
 /*
 =================================================
 	DrawCmd_SetIndexBuffer*
@@ -894,15 +978,23 @@ namespace
 =================================================
 */
 	template <typename DrawCmd>
-	ND_ Bytes  DrawCmd_GetIndexBufferOffset (DrawCmd &cmd) __Th___
+	ND_ Bytes  DrawCmd_GetIndexBufferOffset (DrawCmd &cmd, INOUT BufferFieldCache &cache) __Th___
 	{
 		CHECK_THROW_MSG( cmd._indexBuffer );
 
 		if ( not cmd._indexBufferField.empty() )
 		{
+			auto	key = MakePair( cmd._indexBuffer, StringView{cmd._indexBufferField} );
+			auto	it	= cache.bufferFieldOffsetCache.find( key );
+			if ( it != cache.bufferFieldOffsetCache.end() )
+				return it->second;
+
 			CHECK_THROW_MSG( cmd._indexBufferOffset == 0 );
 			cmd._indexBuffer->AddLayoutReflection();
-			return cmd._indexBuffer->GetFieldOffset( cmd._indexBufferField );
+
+			Bytes	offset = cmd._indexBuffer->GetFieldOffset( cmd._indexBufferField );  // throw
+			cache.bufferFieldOffsetCache.emplace( key, offset );
+			return offset;
 		}
 		else
 			return Bytes{cmd._indexBufferOffset};
@@ -914,13 +1006,18 @@ namespace
 =================================================
 */
 	template <typename DrawCmd>
-	ND_ EIndex  DrawCmd_GetIndexBufferType  (DrawCmd &cmd) __Th___
+	ND_ EIndex  DrawCmd_GetIndexBufferType  (DrawCmd &cmd, INOUT BufferFieldCache &cache) __Th___
 	{
 		using namespace AE::PipelineCompiler;
 		CHECK_THROW_MSG( cmd._indexBuffer );
 
 		if ( not cmd._indexBufferField.empty() )
 		{
+			auto	key = MakePair( cmd._indexBuffer, StringView{cmd._indexBufferField} );
+			auto	it	= cache.idxBufferTypeCache.find( key );
+			if ( it != cache.idxBufferTypeCache.end() )
+				return it->second;
+
 			CHECK_THROW_MSG( cmd._indexType == Default );
 			cmd._indexBuffer->AddLayoutReflection();
 
@@ -930,14 +1027,18 @@ namespace
 			CHECK_THROW_MSG( field->IsScalar() or field->IsVec() );
 			CHECK_THROW_MSG( AnyEqual( field->rows, 1, 2, 4 ));
 
+			EIndex	idx_type = Default;
 			switch ( field->type ) {
-				case EValueType::UInt16 :	return EIndex::UShort;
-				case EValueType::UInt32 :	return EIndex::UInt;
+				case EValueType::UInt16 :	idx_type = EIndex::UShort;	break;
+				case EValueType::UInt32 :	idx_type = EIndex::UInt;	break;
 			}
 
-			CHECK_THROW_MSG( false,
+			CHECK_THROW_MSG( idx_type != Default,
 				"IndexBuffer '"s << cmd._indexBuffer->GetName() << "' field '" << cmd._indexBufferField <<
 				"' must be array of scalar/vec1/vec2/vec4 with uint16/uint32 type" );
+
+			cache.idxBufferTypeCache.emplace( key, idx_type );
+			return idx_type;
 		}
 		else
 			return cmd._indexType;
@@ -986,13 +1087,18 @@ namespace
 =================================================
 */
 	template <typename DrawCmd>
-	ND_ Bytes  DrawCmd_GetIndirectBufferOffset (DrawCmd &cmd, StringView cmdName) __Th___
+	ND_ Bytes  DrawCmd_GetIndirectBufferOffset (DrawCmd &cmd, StringView cmdName, INOUT BufferFieldCache &cache) __Th___
 	{
 		CHECK_THROW_MSG( cmd._indirectBuffer );
 
 		Bytes	result;
 		if ( not cmd._indirectBufferField.empty() )
 		{
+			auto	key = MakePair( cmd._indirectBuffer, StringView{cmd._indirectBufferField} );
+			auto	it	= cache.bufferFieldOffsetCache.find( key );
+			if ( it != cache.bufferFieldOffsetCache.end() )
+				return it->second;
+
 			CHECK_THROW_MSG( cmd._indirectBufferOffset == 0 );
 			cmd._indirectBuffer->AddLayoutReflection();
 
@@ -1001,6 +1107,7 @@ namespace
 				"' must have '" << cmdName << "' type to use it as IndirectBuffer" );
 
 			result = cmd._indirectBuffer->GetFieldOffset( cmd._indirectBufferField );
+			cache.bufferFieldOffsetCache.emplace( key, result );
 		}
 		else
 			result = Bytes{cmd._indirectBufferOffset};
@@ -1052,13 +1159,18 @@ namespace
 =================================================
 */
 	template <typename DrawCmd>
-	ND_ Bytes  DrawCmd_GetCountBufferOffset (DrawCmd &cmd) __Th___
+	ND_ Bytes  DrawCmd_GetCountBufferOffset (DrawCmd &cmd, INOUT BufferFieldCache &cache) __Th___
 	{
 		CHECK_THROW_MSG( cmd._countBuffer );
 
 		Bytes	result;
 		if ( not cmd._countBufferField.empty() )
 		{
+			auto	key = MakePair( cmd._countBuffer, StringView{cmd._countBufferField} );
+			auto	it	= cache.bufferFieldOffsetCache.find( key );
+			if ( it != cache.bufferFieldOffsetCache.end() )
+				return it->second;
+
 			CHECK_THROW_MSG( cmd._countBufferOffset == 0 );
 			cmd._countBuffer->AddLayoutReflection();
 
@@ -1067,6 +1179,7 @@ namespace
 				"' must have 'Uint32' type to use it as CountBuffer" );
 
 			result = cmd._countBuffer->GetFieldOffset( cmd._countBufferField );
+			cache.bufferFieldOffsetCache.emplace( key, result );
 		}
 		else
 			result = Bytes{cmd._countBufferOffset};
@@ -1273,10 +1386,13 @@ namespace
 
 	void  ScriptUniGeometry::Draw3 (const DrawIndirectCmd3 &cmd)
 	{
+		auto&	fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
+
 		CHECK_THROW_MSG( not _geomSrc );
 
 		CHECK_THROW_MSG( cmd._indirectBuffer );
 		CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
+		CHECK_THROW_MSG( cmd.drawCount <= fs.maxDrawIndirectCount );
 		CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndirectCommand)) );
 		CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
@@ -1285,11 +1401,14 @@ namespace
 
 	void  ScriptUniGeometry::Draw4 (const DrawIndexedIndirectCmd3 &cmd)
 	{
+		auto&	fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
+
 		CHECK_THROW_MSG( not _geomSrc );
 
 		CHECK_THROW_MSG( cmd._indexBuffer );
 		CHECK_THROW_MSG( cmd._indirectBuffer );
 		CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
+		CHECK_THROW_MSG( cmd.drawCount <= fs.maxDrawIndirectCount );
 		CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndexedIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndexedIndirectCommand)) );
 		CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
@@ -1317,6 +1436,7 @@ namespace
 
 		CHECK_THROW_MSG( cmd._indirectBuffer );
 		CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
+		CHECK_THROW_MSG( cmd.drawCount <= fs.maxDrawIndirectCount );
 		CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawMeshTasksIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawMeshTasksIndirectCommand)) );
 		CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
@@ -1333,6 +1453,7 @@ namespace
 		CHECK_THROW_MSG( cmd._indirectBuffer );
 		CHECK_THROW_MSG( cmd._countBuffer );
 		CHECK_THROW_MSG( cmd.maxDrawCount > 0 or cmd.dynMaxDrawCount );
+		CHECK_THROW_MSG( cmd.maxDrawCount <= fs.maxDrawIndirectCount );
 		CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndirectCommand)) );
 		CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
@@ -1350,6 +1471,7 @@ namespace
 		CHECK_THROW_MSG( cmd._indirectBuffer );
 		CHECK_THROW_MSG( cmd._countBuffer );
 		CHECK_THROW_MSG( cmd.maxDrawCount > 0 or cmd.dynMaxDrawCount );
+		CHECK_THROW_MSG( cmd.maxDrawCount <= fs.maxDrawIndirectCount );
 		CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndexedIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndexedIndirectCommand)) );
 		CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
@@ -1367,6 +1489,7 @@ namespace
 		CHECK_THROW_MSG( cmd._indirectBuffer );
 		CHECK_THROW_MSG( cmd._countBuffer );
 		CHECK_THROW_MSG( cmd.maxDrawCount > 0 or cmd.dynMaxDrawCount );
+		CHECK_THROW_MSG( cmd.maxDrawCount <= fs.maxDrawIndirectCount );
 		CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawMeshTasksIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawMeshTasksIndirectCommand)) );
 		CHECK_THROW_MSG( IsMultipleOf( cmd.stride, 4 ), "Stride must be multiple of 4" );
 
@@ -1414,13 +1537,27 @@ namespace
 	Bind*
 =================================================
 */
+	void  ScriptUniGeometry::VertexStride::Bind (const ScriptEnginePtr &se) __Th___
+	{
+		Scripting::ClassBinder<VertexStride>	binder{ se };
+		binder.CreateClassValue();
+		binder.AddConstructor( &VertexStride_Ctor, {} );
+	}
+
+	void  ScriptUniGeometry::VertexAttribDivisor::Bind (const ScriptEnginePtr &se) __Th___
+	{
+		Scripting::ClassBinder<VertexAttribDivisor>	binder{ se };
+		binder.CreateClassValue();
+		binder.AddConstructor( &VertexAttribDivisor_Ctor, {} );
+	}
+
 	void  ScriptUniGeometry::DrawCmd3::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		Scripting::ClassBinder<DrawCmd3>	binder{ se };
 		binder.CreateClassValue();
 		binder.AddMethod( &DrawCmd3::SetDynVertexCount,								"VertexCount",		{} );
 		binder.AddMethod( &DrawCmd3::SetDynInstanceCount,							"InstanceCount",	{} );
-		binder.Comment( "Pattern to choose pipeline if found multiple pipelines." );
+		binder.Comment( "Pattern to choose pipeline if found multiple variants." );
 		binder.AddMethodFromGlobal( &DrawCmd_SetPipelineHint<DrawCmd3>,				"PipelineHint",		{} );
 		binder.AddProperty( &DrawCmd3::vertexCount,									"vertexCount"		);
 		binder.AddProperty( &DrawCmd3::instanceCount,								"instanceCount"		);
@@ -1438,7 +1575,7 @@ namespace
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedCmd3>,		"IndexBuffer",		{"type", "buffer"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedCmd3>,		"IndexBuffer",		{"type", "buffer", "offset"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedCmd3>,		"IndexBuffer",		{"buffer", "field"} );
-		binder.Comment( "Pattern to choose pipeline if found multiple pipelines." );
+		binder.Comment( "Pattern to choose pipeline if found multiple variants." );
 		binder.AddMethodFromGlobal( &DrawCmd_SetPipelineHint<DrawIndexedCmd3>,		"PipelineHint",		{} );
 		binder.AddProperty( &DrawIndexedCmd3::indexCount,							"indexCount"		);
 		binder.AddProperty( &DrawIndexedCmd3::instanceCount,						"instanceCount"		);
@@ -1456,7 +1593,7 @@ namespace
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndirectCmd3>,	"IndirectBuffer",	{"buffer"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndirectCmd3>,	"IndirectBuffer",	{"buffer", "offset"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndirectCmd3>,	"IndirectBuffer",	{"buffer", "field"} );
-		binder.Comment( "Pattern to choose pipeline if found multiple pipelines." );
+		binder.Comment( "Pattern to choose pipeline if found multiple variants." );
 		binder.AddMethodFromGlobal( &DrawCmd_SetPipelineHint<DrawIndirectCmd3>,		"PipelineHint",		{} );
 		binder.Comment( "Stride must be at least 16 bytes and multiple of 4." );
 		binder.AddProperty( &DrawIndirectCmd3::stride,								"stride"			);
@@ -1476,7 +1613,7 @@ namespace
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndexedIndirectCmd3>,	"IndirectBuffer",	{"buffer"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndexedIndirectCmd3>,	"IndirectBuffer",	{"buffer", "offset"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndexedIndirectCmd3>,	"IndirectBuffer",	{"buffer", "field"} );
-		binder.Comment( "Pattern to choose pipeline if found multiple pipelines." );
+		binder.Comment( "Pattern to choose pipeline if found multiple variants." );
 		binder.AddMethodFromGlobal( &DrawCmd_SetPipelineHint<DrawIndexedIndirectCmd3>,		"PipelineHint",		{} );
 		binder.Comment( "Stride must be at least 20 bytes and multiple of 4." );
 		binder.AddProperty( &DrawIndexedIndirectCmd3::stride,								"stride"			);
@@ -1501,7 +1638,7 @@ namespace
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawMeshTasksIndirectCmd3>,	"IndirectBuffer",	{"buffer"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawMeshTasksIndirectCmd3>,	"IndirectBuffer",	{"buffer", "offset"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawMeshTasksIndirectCmd3>,	"IndirectBuffer",	{"buffer", "field"} );
-		binder.Comment( "Pattern to choose pipeline if found multiple pipelines." );
+		binder.Comment( "Pattern to choose pipeline if found multiple variants." );
 		binder.AddMethodFromGlobal( &DrawCmd_SetPipelineHint<DrawMeshTasksIndirectCmd3>,	"PipelineHint",		{} );
 		binder.Comment( "Stride must be at least 12 bytes and multiple of 4." );
 		binder.AddProperty( &DrawMeshTasksIndirectCmd3::stride,								"stride"			);
@@ -1521,7 +1658,7 @@ namespace
 		binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawIndirectCountCmd3>,		"CountBuffer",		{"buffer"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawIndirectCountCmd3>,		"CountBuffer",		{"buffer", "offset"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawIndirectCountCmd3>,		"CountBuffer",		{"buffer", "field"} );
-		binder.Comment( "Pattern to choose pipeline if found multiple pipelines." );
+		binder.Comment( "Pattern to choose pipeline if found multiple variants." );
 		binder.AddMethodFromGlobal( &DrawCmd_SetPipelineHint<DrawIndirectCountCmd3>,		"PipelineHint",		{} );
 		binder.Comment( "Stride must be at least 16 bytes and multiple of 4." );
 		binder.AddProperty( &DrawIndirectCountCmd3::stride,									"stride"			);
@@ -1545,7 +1682,7 @@ namespace
 		binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawIndexedIndirectCountCmd3>,		"CountBuffer",		{"buffer"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawIndexedIndirectCountCmd3>,		"CountBuffer",		{"buffer", "offset"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawIndexedIndirectCountCmd3>,		"CountBuffer",		{"buffer", "field"} );
-		binder.Comment( "Pattern to choose pipeline if found multiple pipelines." );
+		binder.Comment( "Pattern to choose pipeline if found multiple variants." );
 		binder.AddMethodFromGlobal( &DrawCmd_SetPipelineHint<DrawIndexedIndirectCountCmd3>,		"PipelineHint",		{} );
 		binder.Comment( "Stride must be at least 20 bytes and multiple of 4." );
 		binder.AddProperty( &DrawIndexedIndirectCountCmd3::stride,								"stride"			);
@@ -1565,7 +1702,7 @@ namespace
 		binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawMeshTasksIndirectCountCmd3>,		"CountBuffer",		{"buffer"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawMeshTasksIndirectCountCmd3>,		"CountBuffer",		{"buffer", "offset"} );
 		binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawMeshTasksIndirectCountCmd3>,		"CountBuffer",		{"buffer", "field"} );
-		binder.Comment( "Pattern to choose pipeline if found multiple pipelines." );
+		binder.Comment( "Pattern to choose pipeline if found multiple variants." );
 		binder.AddMethodFromGlobal( &DrawCmd_SetPipelineHint<DrawMeshTasksIndirectCountCmd3>,		"PipelineHint",		{} );
 		binder.Comment( "Stride must be at least 12 bytes and multiple of 4." );
 		binder.AddProperty( &DrawMeshTasksIndirectCountCmd3::stride,								"stride"			);
@@ -1579,6 +1716,9 @@ namespace
 */
 	void  ScriptUniGeometry::Bind (const ScriptEnginePtr &se) __Th___
 	{
+		VertexStride::Bind( se );
+		VertexAttribDivisor::Bind( se );
+
 		DrawCmd3::Bind( se );
 		DrawIndexedCmd3::Bind( se );
 		DrawIndirectCmd3::Bind( se );
@@ -1604,6 +1744,101 @@ namespace
 		binder.AddMethod( &ScriptUniGeometry::Draw9,	"Draw",	{} );
 
 		binder.AddMethod( &ScriptUniGeometry::Clone,	"Clone", {} );
+
+		binder.AddGenericMethod< void (const String&, EVertexType, const ScriptBufferPtr &)																>( &ScriptUniGeometry::_AddVertexBuffer,	"VertexBuffer",		{"attrib", "type", "buffer"} );
+		binder.AddGenericMethod< void (const String&, EVertexType, const ScriptBufferPtr &, uint)														>( &ScriptUniGeometry::_AddVertexBuffer,	"VertexBuffer",		{"attrib", "type", "buffer", "bufferOffset"} );
+		binder.AddGenericMethod< void (const String&, EVertexType, const VertexStride &, const ScriptBufferPtr &)										>( &ScriptUniGeometry::_AddVertexBuffer,	"VertexBuffer",		{"attrib", "type", "stride", "buffer"} );
+		binder.AddGenericMethod< void (const String&, EVertexType, const VertexStride &, const ScriptBufferPtr &, uint)									>( &ScriptUniGeometry::_AddVertexBuffer,	"VertexBuffer",		{"attrib", "type", "stride", "buffer", "bufferOffset"} );
+		binder.AddGenericMethod< void (const String&, EVertexType, const ScriptBufferPtr &, const VertexAttribDivisor &)								>( &ScriptUniGeometry::_AddVertexBuffer,	"VertexBuffer",		{"attrib", "type", "buffer", "divisor"} );
+		binder.AddGenericMethod< void (const String&, EVertexType, const ScriptBufferPtr &, uint, const VertexAttribDivisor &)							>( &ScriptUniGeometry::_AddVertexBuffer,	"VertexBuffer",		{"attrib", "type", "buffer", "bufferOffset", "divisor"} );
+		binder.AddGenericMethod< void (const String&, EVertexType, const VertexStride &, const ScriptBufferPtr &, const VertexAttribDivisor &)			>( &ScriptUniGeometry::_AddVertexBuffer,	"VertexBuffer",		{"attrib", "type", "stride", "buffer", "divisor"} );
+		binder.AddGenericMethod< void (const String&, EVertexType, const VertexStride &, const ScriptBufferPtr &, uint, const VertexAttribDivisor &)	>( &ScriptUniGeometry::_AddVertexBuffer,	"VertexBuffer",		{"attrib", "type", "stride", "buffer", "bufferOffset", "divisor"} );
+	}
+
+/*
+=================================================
+	_AddVertexBuffer
+=================================================
+*/
+	void  ScriptUniGeometry::_AddVertexBuffer (Scripting::ScriptArgList args) __Th___
+	{
+		String				attrib;
+		EVertexType			type	= Default;
+		EVertexInputRate	rate	= EVertexInputRate::Vertex;
+		ScriptBufferPtr		buffer;
+		Bytes				buf_offset;
+		VertexStride		stride;
+		VertexAttribDivisor	divisor;
+		uint				idx		= 0;
+
+		if ( args.IsArg< String const& >(idx) )
+			attrib = args.Arg< String const& >(idx++);
+		else
+			CHECK_THROW_MSG( false, "Required attribute name as 'String'" );
+
+		if ( args.IsArg< EVertexType >(idx) )
+			type = args.Arg< EVertexType >(idx++);
+
+		if ( args.IsArg< EVertexInputRate >(idx) )
+			rate = args.Arg< EVertexInputRate >(idx++);
+
+		if ( args.IsArg< VertexStride const& >(idx) )
+			stride = args.Arg< VertexStride const& >(idx++);
+
+		if ( args.IsArg< ScriptBufferPtr const& >(idx) )
+		{
+			buffer = args.Arg< ScriptBufferPtr const& >(idx++);
+
+			if ( args.IsArg< uint >(idx) )
+				buf_offset = Bytes{args.Arg< uint >(idx++)};
+		}
+
+		if ( args.IsArg< VertexAttribDivisor const& >(idx) )
+			divisor = args.Arg< VertexAttribDivisor const& >(idx++);
+
+		CHECK_THROW_MSG( idx == args.ArgCount() );
+		args.GetObject< ScriptUniGeometry >()->AddVertexBuffer( attrib, type, rate, buffer, buf_offset, stride, divisor );  // throw
+	}
+
+/*
+=================================================
+	AddVertexBuffer
+=================================================
+*/
+	void  ScriptUniGeometry::AddVertexBuffer (const String &attrib, EVertexType type, EVertexInputRate rate, const ScriptBufferPtr &buffer, Bytes bufferOffset,
+											  const VertexStride &stride, const VertexAttribDivisor &divisor) __Th___
+	{
+		CHECK_THROW_MSG( not attrib.empty() );
+		CHECK_THROW_MSG( type != Default );
+		CHECK_THROW_MSG( rate != Default );
+		CHECK_THROW_MSG( buffer );
+
+		buffer->AddUsage( EResourceUsage::VertexInput );
+
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+
+		CHECK_THROW_MSG( fs.vertexFormats.contains( type ),
+			"Unsupported vertex type '"s << ToString( type ) << "'" );
+
+		if ( divisor.value != 0 ) {
+			CHECK_THROW_MSG( fs.vertexDivisor != FeatureSet::EFeature::RequireTrue,
+				"Vertex attribute divisor is not supported." );
+		}
+
+		VertexBuffer&	vb = _vertexBuffers.emplace_back();
+		vb.type			= type;
+		vb.index		= ubyte(_vertexBuffers.size()-1);
+		vb.rate			= rate;
+		vb.stride		= Bytes16u{ushort(stride.value)};
+		vb.divisor		= divisor.value;
+		vb.buffer		= buffer;
+		vb.bufferOffset	= bufferOffset;
+
+		if ( vb.stride == 0 )
+			vb.stride = EVertexType_SizeOf( type );
+
+		CHECK_THROW_MSG( _uniqueAttribs.insert( attrib ).second,
+			"Vertex attribute '"s << attrib << "' is already defined." );
 	}
 
 /*
@@ -1655,6 +1890,15 @@ namespace
 		Renderer&	renderer	= ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 		auto		result		= MakeRC<UnifiedGeometry>( renderer );
 
+		for (auto& src : _vertexBuffers)
+		{
+			auto&	dst = result->_vertexBuffers.emplace_back();
+			dst.buffer			= src.buffer->ToResource();
+			dst.bufferOffset	= src.bufferOffset;
+		}
+
+		BufferFieldCache	cache;
+
 		for (auto& src_cmd : _drawCommands)
 		{
 			auto&	dst = result->_drawCommands.emplace_back();
@@ -1672,9 +1916,9 @@ namespace
 
 				[&] (const DrawIndexedCmd3 &src) {
 					UnifiedGeometry::DrawIndexedCmd2	cmd;
-					cmd.indexType			= DrawCmd_GetIndexBufferType( src );
-					cmd.indexBufferPtr		= src._indexBuffer->ToResource();		CHECK_THROW( cmd.indexBufferPtr );
-					cmd.indexBufferOffset	= DrawCmd_GetIndexBufferOffset( src );
+					cmd.indexType			= DrawCmd_GetIndexBufferType( src, INOUT cache );
+					cmd.indexBufferPtr		= src._indexBuffer->ToResource();					CHECK_THROW( cmd.indexBufferPtr );
+					cmd.indexBufferOffset	= DrawCmd_GetIndexBufferOffset( src, INOUT cache );
 					cmd.dynIndexCount		= src.dynIndexCount ? src.dynIndexCount->Get() : null;
 					cmd.dynInstanceCount	= src.dynInstanceCount ? src.dynInstanceCount->Get() : null;
 					cmd.indexCount			= src.indexCount;
@@ -1694,8 +1938,8 @@ namespace
 
 				[&] (const DrawIndirectCmd3 &src) {
 					UnifiedGeometry::DrawIndirectCmd2	cmd;
-					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();	CHECK_THROW( cmd.indirectBufferPtr );
-					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawIndirectCommand" );
+					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();				CHECK_THROW( cmd.indirectBufferPtr );
+					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawIndirectCommand", INOUT cache );
 					cmd.drawCount			= src.drawCount;
 					cmd.dynDrawCount		= src.dynDrawCount ? src.dynDrawCount->Get() : null;
 					cmd.stride				= Bytes{src.stride};
@@ -1704,11 +1948,11 @@ namespace
 
 				[&] (const DrawIndexedIndirectCmd3 &src) {
 					UnifiedGeometry::DrawIndexedIndirectCmd2	cmd;
-					cmd.indexType			= DrawCmd_GetIndexBufferType( src );
-					cmd.indexBufferPtr		= src._indexBuffer->ToResource();		CHECK_THROW( cmd.indexBufferPtr );
-					cmd.indexBufferOffset	= DrawCmd_GetIndexBufferOffset( src );
-					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();	CHECK_THROW( cmd.indirectBufferPtr );
-					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawIndexedIndirectCommand" );
+					cmd.indexType			= DrawCmd_GetIndexBufferType( src, INOUT cache );
+					cmd.indexBufferPtr		= src._indexBuffer->ToResource();					CHECK_THROW( cmd.indexBufferPtr );
+					cmd.indexBufferOffset	= DrawCmd_GetIndexBufferOffset( src, INOUT cache );
+					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();				CHECK_THROW( cmd.indirectBufferPtr );
+					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawIndexedIndirectCommand", INOUT cache );
 					cmd.drawCount			= src.drawCount;
 					cmd.dynDrawCount		= src.dynDrawCount ? src.dynDrawCount->Get() : null;
 					cmd.stride				= Bytes{src.stride};
@@ -1717,8 +1961,8 @@ namespace
 
 				[&] (const DrawMeshTasksIndirectCmd3 &src) {
 					UnifiedGeometry::DrawMeshTasksIndirectCmd2	cmd;
-					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();	CHECK_THROW( cmd.indirectBufferPtr );
-					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawMeshTasksIndirectCommand" );
+					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();				CHECK_THROW( cmd.indirectBufferPtr );
+					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawMeshTasksIndirectCommand", INOUT cache );
 					cmd.drawCount			= src.drawCount;
 					cmd.dynDrawCount		= src.dynDrawCount ? src.dynDrawCount->Get() : null;
 					cmd.stride				= Bytes{src.stride};
@@ -1727,10 +1971,10 @@ namespace
 
 				[&] (const DrawIndirectCountCmd3 &src) {
 					UnifiedGeometry::DrawIndirectCountCmd2	cmd;
-					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();	CHECK_THROW( cmd.indirectBufferPtr );
-					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawIndirectCommand" );
-					cmd.countBufferPtr		= src._countBuffer->ToResource();		CHECK_THROW( cmd.countBufferPtr );
-					cmd.countBufferOffset	= DrawCmd_GetCountBufferOffset( src );
+					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();				CHECK_THROW( cmd.indirectBufferPtr );
+					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawIndirectCommand", INOUT cache );
+					cmd.countBufferPtr		= src._countBuffer->ToResource();					CHECK_THROW( cmd.countBufferPtr );
+					cmd.countBufferOffset	= DrawCmd_GetCountBufferOffset( src, INOUT cache );
 					cmd.maxDrawCount		= src.maxDrawCount;
 					cmd.dynMaxDrawCount		= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : null;
 					cmd.stride				= Bytes{src.stride};
@@ -1739,13 +1983,13 @@ namespace
 
 				[&] (const DrawIndexedIndirectCountCmd3 &src) {
 					UnifiedGeometry::DrawIndexedIndirectCountCmd2	cmd;
-					cmd.indexType			= DrawCmd_GetIndexBufferType( src );
-					cmd.indexBufferPtr		= src._indexBuffer->ToResource();		CHECK_THROW( cmd.indexBufferPtr );
-					cmd.indexBufferOffset	= DrawCmd_GetIndexBufferOffset( src );
-					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();	CHECK_THROW( cmd.indirectBufferPtr );
-					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawIndexedIndirectCommand" );
-					cmd.countBufferPtr		= src._countBuffer->ToResource();		CHECK_THROW( cmd.countBufferPtr );
-					cmd.countBufferOffset	= DrawCmd_GetCountBufferOffset( src );
+					cmd.indexType			= DrawCmd_GetIndexBufferType( src, INOUT cache );
+					cmd.indexBufferPtr		= src._indexBuffer->ToResource();					CHECK_THROW( cmd.indexBufferPtr );
+					cmd.indexBufferOffset	= DrawCmd_GetIndexBufferOffset( src, INOUT cache );
+					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();				CHECK_THROW( cmd.indirectBufferPtr );
+					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawIndexedIndirectCommand", INOUT cache );
+					cmd.countBufferPtr		= src._countBuffer->ToResource();					CHECK_THROW( cmd.countBufferPtr );
+					cmd.countBufferOffset	= DrawCmd_GetCountBufferOffset( src, INOUT cache );
 					cmd.maxDrawCount		= src.maxDrawCount;
 					cmd.dynMaxDrawCount		= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : null;
 					cmd.stride				= Bytes{src.stride};
@@ -1754,10 +1998,10 @@ namespace
 
 				[&] (const DrawMeshTasksIndirectCountCmd3 &src) {
 					UnifiedGeometry::DrawMeshTasksIndirectCountCmd2	cmd;
-					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();	CHECK_THROW( cmd.indirectBufferPtr );
-					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawMeshTasksIndirectCommand" );
-					cmd.countBufferPtr		= src._countBuffer->ToResource();		CHECK_THROW( cmd.countBufferPtr );
-					cmd.countBufferOffset	= DrawCmd_GetCountBufferOffset( src );
+					cmd.indirectBufferPtr	= src._indirectBuffer->ToResource();				CHECK_THROW( cmd.indirectBufferPtr );
+					cmd.indirectBufferOffset= DrawCmd_GetIndirectBufferOffset( src, "DrawMeshTasksIndirectCommand", INOUT cache );
+					cmd.countBufferPtr		= src._countBuffer->ToResource();					CHECK_THROW( cmd.countBufferPtr );
+					cmd.countBufferOffset	= DrawCmd_GetCountBufferOffset( src, INOUT cache );
 					cmd.maxDrawCount		= src.maxDrawCount;
 					cmd.dynMaxDrawCount		= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : null;
 					cmd.stride				= Bytes{src.stride};
@@ -1794,7 +2038,7 @@ namespace
 		const auto	GetGraphicsPipeline = [this] (PipelineNames_t &result, usize idx, const String &hint) __Th___
 		{{
 			Array<GraphicsPipelineSpecPtr>	pipelines;
-			_FindPipelinesWithoutVB( OUT pipelines );
+			_FindPipelinesWithVB( OUT pipelines, _vertexBuffers );
 			_FindPipelinesByUB( c_MtrDS, "UnifiedGeometryMaterialUB", INOUT pipelines );	// throw
 			_FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );			// throw
 			auto	tmp = _GetAllSuitablePipelines( pipelines, EShaderStages::GraphicsPipeStages, hint, idx );

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/ShaderDebugger.h"
+#include "graphics_rhi/Public/ShaderDebugger.h"
 #include "res_editor/Core/RenderGraph.h"
 #include "res_editor/Controllers/IController.h"
 #include "res_editor/Dynamic/DynamicVec.h"
@@ -104,6 +104,8 @@ namespace AE::ResEditor
 			float			pixToMm			= 1.f;		// for current screen
 			bool			pressed			= false;	// mouse down or touch pressed
 			CustomKeys_t	customKeys		= {};
+
+			EColorSpace		swapchainColorSpace	= Default;
 		};
 
 

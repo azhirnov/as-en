@@ -32,7 +32,7 @@ namespace AE::Threading
 	// methods
 	public:
 		TSpinLock ()							__NE___ {}
-		~TSpinLock ()							__NE___	{ ASSERT(is_unlocked()); }
+		~TSpinLock ()							__NE___;
 
 		ND_ bool  is_unlocked ()				C_NE___	{ return _flag.load() == 0; }
 		ND_ bool  is_locked ()					C_NE___	{ return _flag.load() != 0;	}
@@ -70,7 +70,7 @@ namespace AE::Threading
 	// methods
 	public:
 		TRWSpinLock ()														__NE___ {}
-		~TRWSpinLock ()														__NE___	{ ASSERT(is_unlocked()); }
+		~TRWSpinLock ()														__NE___;
 
 		ND_ bool  is_unlocked ()											C_NE___	{ return _flag.load() == 0; }
 		ND_ bool  is_locked ()												C_NE___	{ return _flag.load() < 0; }
@@ -141,7 +141,7 @@ namespace AE::Threading
 	public:
 		TValueWithSpinLockBit ()								__NE___ {}
 		explicit TValueWithSpinLockBit (Value_t v)				__NE___ : _value{v} { ASSERT( not _HasLockBit( _value.load() )); }
-		~TValueWithSpinLockBit ()								__NE___	{ ASSERT(is_unlocked()); }
+		~TValueWithSpinLockBit ()								__NE___;
 
 		ND_ bool		try_lock ()								__NE___;
 		ND_ bool		try_lock (uint numAttempts)				__NE___;
@@ -176,6 +176,18 @@ namespace AE::Threading
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	destructor
+=================================================
+*/
+	template <bool B>
+	TSpinLock<B>::~TSpinLock () __NE___
+	{
+		ASSERT( is_unlocked() );
+		DEBUG_ONLY( _flag.store( UMax );)
+	}
 
 /*
 =================================================
@@ -241,6 +253,18 @@ namespace AE::Threading
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	destructor
+=================================================
+*/
+	template <bool A, bool B>
+	TRWSpinLock<A,B>::~TRWSpinLock () __NE___
+	{
+		ASSERT( is_unlocked() );
+		DEBUG_ONLY( _flag.store( MinValue<int>() );)
+	}
 
 /*
 =================================================
@@ -470,6 +494,18 @@ namespace AE::Threading
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	destructor
+=================================================
+*/
+	template <typename V, uint L, bool B>
+	TValueWithSpinLockBit<V,L,B>::~TValueWithSpinLockBit () __NE___
+	{
+		ASSERT( is_unlocked() );
+		DEBUG_ONLY( _value.store( BitCast<Value_t>( ToUnsignedInteger<Value_t>(UMax) ));)
+	}
 
 /*
 =================================================

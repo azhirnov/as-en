@@ -8,7 +8,8 @@
 #define AE_PRIVATE_GETARG_1( _0_, _1_, ... )		_1_
 #define AE_PRIVATE_GETARG_2( _0_, _1_, _2_, ... )	_2_
 #define AE_PRIVATE_GETRAW( _value_ )				_value_
-#define AE_TOSTRING( ... )							#__VA_ARGS__
+#define AE_PRIVATE_TOSTRING( ... )					#__VA_ARGS__
+#define AE_TOSTRING( ... )							AE_PRIVATE_TOSTRING( __VA_ARGS__ )		// second macros used to unwrap macros in args
 #define AE_PRIVATE_UNITE_RAW( _arg0_, _arg1_ )		AE_PRIVATE_UNITE( _arg0_, _arg1_ )
 #define AE_PRIVATE_UNITE( _arg0_, _arg1_ )			_arg0_ ## _arg1_
 #define AE_ARGS( ... )								__VA_ARGS__
@@ -36,15 +37,15 @@
 
 // bit operators
 // requires '#include "base/Math/BitMath.h"'
-#define AE_BIT_OPERATORS( _type_ )																																\
-	ND_ constexpr _type_	operator |  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); }			\
-	ND_ constexpr _type_	operator &  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); }			\
-																																								\
-		constexpr _type_&	operator |= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); }	\
-		constexpr _type_&	operator &= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); }	\
-																																								\
-	ND_ constexpr _type_	operator ~ (_type_ lhs)					__NE___	{ return _type_(~AE::Base::ToNearUInt(lhs)); }										\
-	ND_ constexpr bool		operator ! (_type_ lhs)					__NE___	{ return not AE::Base::ToNearUInt(lhs); }											\
+#define AE_BIT_OPERATORS( _type_ )																														\
+	NdCx__ _type_	operator |  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); }			\
+	NdCx__ _type_	operator &  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); }			\
+																																						\
+	__Cx__ _type_&	operator |= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); }	\
+	__Cx__ _type_&	operator &= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); }	\
+																																						\
+	NdCx__ _type_	operator ~ (_type_ lhs)					__NE___	{ return _type_(~AE::Base::ToNearUInt(lhs)); }										\
+	NdCx__ bool		operator ! (_type_ lhs)					__NE___	{ return not AE::Base::ToNearUInt(lhs); }											\
 
 
 // enable/disable checks for enums
@@ -79,8 +80,8 @@
 #	define AE_END_ENUM_CHECKS()
 #endif
 
-#define switch_enum( ... )	AE_BEGIN_ENUM_CHECKS();  switch ( __VA_ARGS__ )
-#define switch_end			AE_END_ENUM_CHECKS();
+#define switch_enum( ... )	AE_BEGIN_ENUM_CHECKS();  switch ( __VA_ARGS__ ) {
+#define switch_end			} AE_END_ENUM_CHECKS();
 
 
 // compile time messages

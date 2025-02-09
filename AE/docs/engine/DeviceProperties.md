@@ -1,4 +1,4 @@
-Source: [DeviceProperties.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/DeviceProperties.h)
+Source: [DeviceProperties.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics_rhi/Public/DeviceProperties.h)
 
 Use **DeviceProperties** from `DeviceProperties const&  GraphicsScheduler().GetDeviceProperties();` to get runtime limits for the current GPU.
 
@@ -86,11 +86,11 @@ __Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlacce
 
 * `indexDataAlign`<br/>
 __Vulkan__: from specs: "*indexData.deviceAddress must be aligned to the size in bytes of the type in indexType*", max 4 bytes.<br/>
-__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructuretrianglegeometrydescriptor/3553871-indexbufferoffset?language=objc): "*multiple of the index data type size and a multiple of the platform’s buffer offset alignment*".
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructuretrianglegeometrydescriptor/3553871-indexbufferoffset?language=objc): "*multiple of the index data type size and a multiple of the platformâ€™s buffer offset alignment*".
 
 * `aabbDataAlign`<br/>
 __Vulkan__: from specs: "*must be aligned to 8 bytes*".<br/>
-__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureboundingboxgeometrydescriptor/3553861-boundingboxbufferoffset?language=objc): "*The offset must be a multiple of boundingBoxStride, and must be aligned to the platform’s buffer offset alignment*", min stride: 8 bytes.
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureboundingboxgeometrydescriptor/3553861-boundingboxbufferoffset?language=objc): "*The offset must be a multiple of boundingBoxStride, and must be aligned to the platformâ€™s buffer offset alignment*", min stride: 8 bytes.
 
 * `aabbStrideAlign`<br/>
 __Vulkan__: from specs: "*must be a multiple of 8*".<br/>
@@ -102,7 +102,7 @@ __Metal__:  in [specs](https://developer.apple.com/documentation/metal/mtlaccele
 
 * `instanceDataAlign`<br/>
 __Vulkan__: from specs: if arrayOfPointers: "*must be aligned to 8 bytes*", otherwise: "*must be aligned to 16 bytes*". For array elements: "*each element of ... in device memory must be aligned to 16 bytes*"<br/>
-__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlinstanceaccelerationstructuredescriptor/3553887-instancedescriptorbufferoffset?language=objc): "*Specify an offset that is a multiple of 4 bytes and a multiple of the platform’s buffer offset alignment*".
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlinstanceaccelerationstructuredescriptor/3553887-instancedescriptorbufferoffset?language=objc): "*Specify an offset that is a multiple of 4 bytes and a multiple of the platformâ€™s buffer offset alignment*".
 
 * `instanceStrideAlign`<br/>
 __Vulkan__: custom stride is not supported, stride must be 64.<br/>
@@ -139,8 +139,11 @@ __Metal__:  *not defined*.<br/>
 StreamingMultiprocessor/Core count per GPU.
 
 * `warpsPerCore`<br/>
-Maximum number of simultaneously executing warps on an StreamingMultiprocessor/Core.
+Number of physical ALU per core. Zero if not known.
 
 * `threadsPerWarp`<br/>
 Number of thread in warp, same as maximum size of subgroup.
+
+* `maxConcurrentWarpsPerCore`<br/>
+Maximum number of simultaneously executing warps on an core.
 

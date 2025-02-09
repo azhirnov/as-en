@@ -18,7 +18,7 @@
 					"float3		texcoord;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
-			ds.CombinedImage( EShaderStages::Fragment,	"un_CubeMap",	EImageType::FImageCube,	 Sampler_LinearMipmapRepeat );
+			ds.CombinedImage( EShaderStages::Fragment,	"un_CubeMap",	EImageType::Float_Cube,	 Sampler_LinearMipmapRepeat );
 			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject",	"SphericalCubeMaterialUB" );
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl" );

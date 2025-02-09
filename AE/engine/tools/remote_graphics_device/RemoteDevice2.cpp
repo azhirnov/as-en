@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "remote_graphics_device/RemoteDevice.h"
-#include "graphics/Remote/RMessages.cpp.h"
+#include "graphics_rhi/Remote/RMessages.cpp.h"
 
 namespace AE::RemoteGraphics
 {

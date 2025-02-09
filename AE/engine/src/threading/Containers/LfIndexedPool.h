@@ -137,8 +137,8 @@ namespace AE::Threading
 		ND_ Value_t const*	At (Index_t index)					C_NE___	{ return const_cast<Self *>(this)->At( index ); }
 
 
-		ND_ static constexpr Bytes  MaxDynamicSize ()			__NE___	{ return SizeOf<HighLvlArray_t> * SizeOf<LowLvlChunkArray_t> * MaxChunks; }
-		ND_ static constexpr usize  capacity ()					__NE___	{ return ChunkSize * MaxChunks; }
+		NdCx__ static Bytes  MaxDynamicSize ()					__NE___	{ return SizeOf<HighLvlArray_t> * SizeOf<LowLvlChunkArray_t> * MaxChunks; }
+		NdCx__ static usize  capacity ()						__NE___	{ return ChunkSize * MaxChunks; }
 
 		ND_ Bytes			DynamicSize ()						C_NE___;
 

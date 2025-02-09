@@ -15,7 +15,7 @@ namespace _hidden_ {
 	template <typename Fn>
 	constexpr bool  IsGlobal ()
 	{
-		return IsSameTypes< typename FunctionInfo<Fn>::clazz, void >;
+		return IsSame< typename FunctionInfo<Fn>::clazz, void >;
 	}
 } // _hidden_
 
@@ -78,11 +78,11 @@ namespace _hidden_ {
 */
 	template <typename T> template <typename T1>
 	struct ClassBinder<T>::_IsSame : CT_Bool<
-										IsSameTypes< T *, T1 >			or
-										IsSameTypes< T &, T1 >			or
-										IsSameTypes< T const *, T1 >	or
-										IsSameTypes< T const &, T1 >	or
-										IsSameTypes< const AngelScriptHelper::SharedPtr<T> &, T1 >> {};
+										IsSame< T *, T1 >			or
+										IsSame< T &, T1 >			or
+										IsSame< T const *, T1 >	or
+										IsSame< T const &, T1 >	or
+										IsSame< const AngelScriptHelper::SharedPtr<T> &, T1 >> {};
 
 /*
 =================================================
@@ -312,7 +312,7 @@ namespace _hidden_ {
 		using namespace AngelScript;
 
 		StaticAssert(( not IsBaseOf< AngelScriptHelper::SimpleRefCounter, T > ));
-		StaticAssert(( IsSameTypes< void *, typename GlobalFunction<Fn>::TypeList_t::Front::type > ));
+		StaticAssert(( IsSame< void *, typename GlobalFunction<Fn>::TypeList_t::Front::type > ));
 
 		String	signature("void f ");
 		GlobalFunction<Fn>::GetArgs( INOUT signature, 1 );	// skip	(void *)
@@ -345,7 +345,7 @@ namespace _hidden_ {
 		using namespace AngelScript;
 
 		StaticAssert(( IsBaseOf< AngelScriptHelper::SimpleRefCounter, T > ));
-		StaticAssert(( IsSameTypes< T*, typename GlobalFunction<Fn>::Result_t > ));
+		StaticAssert(( IsSame< T*, typename GlobalFunction<Fn>::Result_t > ));
 
 		String	signature(_name + "@ new_" + _name);
 		GlobalFunction<Fn>::GetArgs( INOUT signature );
@@ -1003,15 +1003,15 @@ namespace _hidden_ {
 	{
 		using FuncInfo = FunctionInfo<Fn>;
 
-		StaticAssert( IsSameTypes< typename FuncInfo::result, bool > );
+		StaticAssert( IsSame< typename FuncInfo::result, bool > );
 
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
 		if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
 		{
 			StaticAssert( FuncInfo::args::Count == 2 );
-			StaticAssert(( IsSameTypes< typename FuncInfo::args::template Get<0>, T > or IsSameTypes< typename FuncInfo::args::template Get<0>, const T& > ));
-			StaticAssert(( IsSameTypes< typename FuncInfo::args::template Get<1>, T > or IsSameTypes< typename FuncInfo::args::template Get<1>, const T& > ));
+			StaticAssert(( IsSame< typename FuncInfo::args::template Get<0>, T > or IsSame< typename FuncInfo::args::template Get<0>, const T& > ));
+			StaticAssert(( IsSame< typename FuncInfo::args::template Get<1>, T > or IsSame< typename FuncInfo::args::template Get<1>, const T& > ));
 
 			_binder->AddMethodFromGlobalObjFirst( func, "opEquals", {} );
 		}
@@ -1033,10 +1033,10 @@ namespace _hidden_ {
 	{
 		using FuncInfo = FunctionInfo<Fn>;
 
-		StaticAssert( IsSameTypes< typename FuncInfo::result, int > );
+		StaticAssert( IsSame< typename FuncInfo::result, int > );
 		StaticAssert( FuncInfo::args::Count == 2 );
-		StaticAssert(( IsSameTypes< typename FuncInfo::args::template Get<0>, T > or IsSameTypes< typename FuncInfo::args::template Get<0>, const T& > ));
-		StaticAssert(( IsSameTypes< typename FuncInfo::args::template Get<1>, T > or IsSameTypes< typename FuncInfo::args::template Get<1>, const T& > ));
+		StaticAssert(( IsSame< typename FuncInfo::args::template Get<0>, T > or IsSame< typename FuncInfo::args::template Get<0>, const T& > ));
+		StaticAssert(( IsSame< typename FuncInfo::args::template Get<1>, T > or IsSame< typename FuncInfo::args::template Get<1>, const T& > ));
 
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 

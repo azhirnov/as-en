@@ -5,7 +5,7 @@ if (TARGET "GLSLang-lib")
 		set( HAS_VULKAN_HEADERS ON )
 	endif()
 
-	set( GRAPHICS_DIR "${MAIN_SOURCE_DIR}/engine/src/graphics" )
+	set( GRAPHICS_DIR "${MAIN_SOURCE_DIR}/engine/src/graphics_rhi" )
 	set( GRAPHICS_HPP_SRC
 		"${GRAPHICS_DIR}/Scripting/GraphicsBindings.h"
 		"${GRAPHICS_DIR}/Public/FeatureSet.h"

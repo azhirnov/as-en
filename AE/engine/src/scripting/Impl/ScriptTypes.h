@@ -291,43 +291,47 @@ namespace AE::Scripting
 
 		// methods
 		private:
-			void  _IncRef ()									C_NE___	{ if_likely( _ptr ) { _ptr->__AddRef(); }}
-			void  _DecRef ()									__NE___	{ if_likely( _ptr )	{ _ptr->__Release();  _ptr = null; }}
+			void  _IncRef ()											C_NE___	{ if_likely( _ptr ) { _ptr->__AddRef(); }}
+			void  _DecRef ()											__NE___	{ if_likely( _ptr )	{ _ptr->__Release();  _ptr = null; }}
 
 		public:
-			SharedPtr ()										__NE___	{}
-			SharedPtr (std::nullptr_t)							__NE___ {}
-			explicit SharedPtr (T* ptr)							__NE___	: _ptr{ptr}			{ _IncRef(); }
-			SharedPtr (const SharedPtr<T> &other)				__NE___	: _ptr{other._ptr}	{ _IncRef(); }
-			SharedPtr (SharedPtr<T> &&other)					__NE___	: _ptr{other._ptr}	{ other._ptr = null; }
-			~SharedPtr ()										__NE___	{ _DecRef(); }
+			SharedPtr ()												__NE___	{}
+			SharedPtr (std::nullptr_t)									__NE___ {}
+			explicit SharedPtr (T* ptr)									__NE___	: _ptr{ptr}			{ _IncRef(); }
+			SharedPtr (const SharedPtr<T> &other)						__NE___	: _ptr{other._ptr}	{ _IncRef(); }
+			SharedPtr (SharedPtr<T> &&other)							__NE___	: _ptr{other._ptr}	{ other._ptr = null; }
+			~SharedPtr ()												__NE___	{ _DecRef(); }
 
 			template <typename B>
-			SharedPtr (SharedPtr<B> &&other)					__NE___	: _ptr{static_cast<T*>(other.Detach())}	{}
+			SharedPtr (SharedPtr<B> &&other)							__NE___	: _ptr{static_cast<T*>(other.Detach())}	{}
 
 			template <typename B>
-			SharedPtr (const SharedPtr<B> &other)				__NE___	: _ptr{static_cast<T*>(other.Get())}	{ _IncRef(); }
+			SharedPtr (const SharedPtr<B> &other)						__NE___	: _ptr{static_cast<T*>(other.Get())}	{ _IncRef(); }
 
-			SharedPtr<T>&  operator = (const SharedPtr<T> &rhs)	__NE___	{ _DecRef();  _ptr = rhs._ptr;  _IncRef();			return *this; }
-			SharedPtr<T>&  operator = (SharedPtr<T> &&rhs)		__NE___	{ _DecRef();  _ptr = rhs._ptr;  rhs._ptr = null;	return *this; }
+				SharedPtr<T>&	operator = (const SharedPtr<T> &rhs)	__NE___	{ _DecRef();  _ptr = rhs._ptr;  _IncRef();			return *this; }
+				SharedPtr<T>&	operator = (SharedPtr<T> &&rhs)			__NE___	{ _DecRef();  _ptr = rhs._ptr;  rhs._ptr = null;	return *this; }
 
-			ND_ bool  operator == (std::nullptr_t)				C_NE___	{ return _ptr == null; }
-			ND_ bool  operator == (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr == rhs._ptr; }
-			ND_ bool  operator >  (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr >  rhs._ptr; }
-			ND_ bool  operator <  (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr <  rhs._ptr; }
+			ND_ bool	operator == (std::nullptr_t)					C_NE___	{ return _ptr == null; }
+			ND_ bool	operator == (const SharedPtr<T> &rhs)			C_NE___	{ return _ptr == rhs._ptr; }
 
-			ND_ T*  operator -> ()								C_NE___	{ NonNull( _ptr );  return _ptr; }
-			ND_ T&  operator *  ()								C_NE___	{ NonNull( _ptr );  return *_ptr; }
-			ND_ T*  Get ()										C_NE___	{ return _ptr; }
+			ND_ bool	operator != (std::nullptr_t)					C_NE___	{ return _ptr != null; }
+			ND_ bool	operator != (const SharedPtr<T> &rhs)			C_NE___	{ return _ptr != rhs._ptr; }
 
-			ND_ explicit operator bool ()						C_NE___	{ return _ptr != null; }
+			ND_ bool	operator >  (const SharedPtr<T> &rhs)			C_NE___	{ return _ptr >  rhs._ptr; }
+			ND_ bool	operator <  (const SharedPtr<T> &rhs)			C_NE___	{ return _ptr <  rhs._ptr; }
 
-			ND_ int		UseCount ()								C_NE___	{ return _ptr ? _ptr->__Counter() : 0; }
-			ND_ T*		Detach ()								__NE___	{ T* tmp = _ptr;  _ptr = null;  return tmp; }
-			ND_ T*		Retain ()								C_NE___	{ _IncRef();  return _ptr; }
+			ND_ T*		operator -> ()									C_NE___	{ NonNull( _ptr );  return _ptr; }
+			ND_ T&		operator *  ()									C_NE___	{ NonNull( _ptr );  return *_ptr; }
+			ND_ T*		Get ()											C_NE___	{ return _ptr; }
 
-				void	Set (T* ptr)							__NE___	{ _DecRef();  _ptr = ptr;  _IncRef(); }
-				void	Attach (T* ptr)							__NE___	{ _DecRef();  _ptr = ptr; }
+			ND_ explicit operator bool ()								C_NE___	{ return _ptr != null; }
+
+			ND_ int		UseCount ()										C_NE___	{ return _ptr ? _ptr->__Counter() : 0; }
+			ND_ T*		Detach ()										__NE___	{ T* tmp = _ptr;  _ptr = null;  return tmp; }
+			ND_ T*		Retain ()										C_NE___	{ _IncRef();  return _ptr; }
+
+				void	Set (T* ptr)									__NE___	{ _DecRef();  _ptr = ptr;  _IncRef(); }
+				void	Attach (T* ptr)									__NE___	{ _DecRef();  _ptr = ptr; }
 		};
 
 
@@ -911,13 +915,13 @@ namespace AE::Scripting
 		// Check Input Arg Types
 		//
 		template <typename L, typename R>
-		struct _IsSame											: CT_Bool< IsSameTypes< L, R >>{};
+		struct _IsSame											: CT_Bool< IsSame< L, R >>{};
 
 		template <typename L, typename R>
-		struct _IsSame< AngelScriptHelper::SharedPtr<L>, R* >	: CT_Bool< IsSameTypes< L, R >>{};
+		struct _IsSame< AngelScriptHelper::SharedPtr<L>, R* >	: CT_Bool< IsSame< L, R >>{};
 
 		template <typename L, typename R>
-		struct _IsSame< L*, AngelScriptHelper::SharedPtr<R> >	: CT_Bool< IsSameTypes< L, R >>{};
+		struct _IsSame< L*, AngelScriptHelper::SharedPtr<R> >	: CT_Bool< IsSame< L, R >>{};
 
 
 		template <typename TL1, typename TL2, usize Idx>
@@ -982,17 +986,17 @@ namespace AE::Scripting
 					return false;
 			}
 
-			if constexpr( IsSameTypes< T, bool >)	return typeId == asTYPEID_BOOL;		else
-			if constexpr( IsSameTypes< T, sbyte >)	return typeId == asTYPEID_INT8;		else
-			if constexpr( IsSameTypes< T, ubyte >)	return typeId == asTYPEID_UINT8;	else
-			if constexpr( IsSameTypes< T, sshort >)	return typeId == asTYPEID_INT16;	else
-			if constexpr( IsSameTypes< T, ushort >)	return typeId == asTYPEID_UINT16;	else
-			if constexpr( IsSameTypes< T, sint >)	return typeId == asTYPEID_INT32;	else
-			if constexpr( IsSameTypes< T, uint >)	return typeId == asTYPEID_UINT32;	else
-			if constexpr( IsSameTypes< T, slong >)	return typeId == asTYPEID_INT64;	else
-			if constexpr( IsSameTypes< T, ulong >)	return typeId == asTYPEID_UINT64;	else
-			if constexpr( IsSameTypes< T, float >)	return typeId == asTYPEID_FLOAT;	else
-			if constexpr( IsSameTypes< T, double >)	return typeId == asTYPEID_DOUBLE;	else
+			if constexpr( IsSame< T, bool >)	return typeId == asTYPEID_BOOL;		else
+			if constexpr( IsSame< T, sbyte >)	return typeId == asTYPEID_INT8;		else
+			if constexpr( IsSame< T, ubyte >)	return typeId == asTYPEID_UINT8;	else
+			if constexpr( IsSame< T, sshort >)	return typeId == asTYPEID_INT16;	else
+			if constexpr( IsSame< T, ushort >)	return typeId == asTYPEID_UINT16;	else
+			if constexpr( IsSame< T, sint >)	return typeId == asTYPEID_INT32;	else
+			if constexpr( IsSame< T, uint >)	return typeId == asTYPEID_UINT32;	else
+			if constexpr( IsSame< T, slong >)	return typeId == asTYPEID_INT64;	else
+			if constexpr( IsSame< T, ulong >)	return typeId == asTYPEID_UINT64;	else
+			if constexpr( IsSame< T, float >)	return typeId == asTYPEID_FLOAT;	else
+			if constexpr( IsSame< T, double >)	return typeId == asTYPEID_DOUBLE;	else
 			if constexpr( IsEnum< T >)
 			{
 				asITypeInfo*	info = se->GetTypeInfoById( typeId );

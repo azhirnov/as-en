@@ -66,7 +66,7 @@ namespace AE::Threading
 		}
 
 		// checks if the handle represents a coroutine
-		ND_ constexpr bool  IsValid ()			C_NE___
+		NdCx__ bool  IsValid ()					C_NE___
 		{
 			return bool{_handle};
 		}
@@ -93,19 +93,19 @@ namespace AE::Threading
 		}
 
 		// creates a coroutine_handle from the promise object of a coroutine
-		ND_ static constexpr Self  FromPromise (Promise_t& promise) __NE___
+		NdCx__ static Self  FromPromise (Promise_t& promise) __NE___
 		{
 			return Self{ Handle_t::from_promise( promise )};
 		}
 
 		// exports the underlying address, i.e. the pointer backing the coroutine
-		ND_ constexpr void*  Address ()			C_NE___
+		NdCx__ void*  Address ()				C_NE___
 		{
 			ASSERT( _handle );
 			return _handle.address();
 		}
 
-		ND_ constexpr void*  Release ()			__NE___
+		NdCx__ void*  Release ()				__NE___
 		{
 			ASSERT( _handle );
 			void*	addr = _handle.address();
@@ -114,7 +114,7 @@ namespace AE::Threading
 		}
 
 		// imports a coroutine from a pointer
-		ND_ static constexpr Self  FromAddress (void* const addr) __NE___
+		NdCx__ static Self  FromAddress (void* const addr) __NE___
 		{
 			return Self{ Handle_t::from_address( addr )};
 		}

@@ -11,14 +11,15 @@ void ASmain ()
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "imgui.ub" );
 		st.Set( EStructLayout::Compatible_Std140,
-				"float2		scale;" +
-				"float2		translate;" );
+				"float2		transform_c0;" +
+				"float2		transform_c1;" +
+				"float2		transform_c2;" );
 
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "imgui.ds" );
-		ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D, "LinearRepeat" );
+		ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::Float_2D, "LinearRepeat" );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "imgui.pl" );
-		pl.PushConst( "ub", "imgui.ub", EShader::Vertex );
+		pl.PushConst( "imguiUB", "imgui.ub", EShader::Vertex );
 		pl.DSLayout( 0, "imgui.ds" );
 	}
 	{

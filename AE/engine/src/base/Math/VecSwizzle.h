@@ -5,7 +5,7 @@
 #include "base/Math/GLM.h"
 #include "base/Math/Color.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -23,32 +23,32 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr VecSwizzle ()																	__NE___	{}
-		explicit VecSwizzle (const PackedVec<uint,4> &comp)										__NE___;
+		__Cx__ VecSwizzle ()																__NE___	{}
+		explicit VecSwizzle (const PackedVec<uint,4> &comp)									__NE___;
 
 		template <typename T, int I, glm::qualifier Q>
-		ND_ TVec<T,4,Q>			Transform (const TVec<T,I,Q> &src)								C_NE___;
+		ND_ TVec<T,4,Q>			Transform (const TVec<T,I,Q> &src)							C_NE___;
 
 		template <typename T>
-		ND_ RGBAColor<T>		Transform (const RGBAColor<T> &src)								C_NE___;
+		ND_ RGBAColor<T>		Transform (const RGBAColor<T> &src)							C_NE___;
 
-		ND_ PackedVec<uint,4>	ToVec ()														C_NE___;
+		ND_ PackedVec<uint,4>	ToVec ()													C_NE___;
 
-		ND_ constexpr uint		Get ()															C_NE___	{ return _value; }
-		ND_ constexpr bool		IsUndefined ()													C_NE___	{ return _value == 0; }
+		NdCx__ uint		Get ()																C_NE___	{ return _value; }
+		NdCx__ bool		IsUndefined ()														C_NE___	{ return _value == 0; }
 
-		ND_ constexpr bool		operator == (VecSwizzle rhs)									C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool		operator >  (VecSwizzle rhs)									C_NE___	{ return _value >  rhs._value; }
+		NdCx__ bool		operator == (VecSwizzle rhs)										C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool		operator >  (VecSwizzle rhs)										C_NE___	{ return _value >  rhs._value; }
 
-		ND_ static constexpr VecSwizzle  VecDefault (usize size)								__NE___;
+		NdCx__ static VecSwizzle  VecDefault (usize size)									__NE___;
 
-		friend constexpr VecSwizzle  operator "" _vecSwizzle (const char* str, const usize len) __NE___;
+		friend __Cx__ VecSwizzle  operator "" _vecSwizzle (const char* str, const usize len)__NE___;
 
 
 	private:
-		explicit constexpr VecSwizzle (ushort val)												__NE___	: _value{val} {}
+		__Cx__ explicit VecSwizzle (ushort val)												__NE___	: _value{val} {}
 
-		ND_ static constexpr uint  _CharToValue (char c)										__NE___;
+		NdCx__ static uint  _CharToValue (char c)											__NE___;
 	};
 
 
@@ -74,9 +74,9 @@ namespace AE::Math
 	operator ""
 =================================================
 */
-	ND_ constexpr VecSwizzle  operator "" _vecSwizzle (const char* str, const usize len) __NE___
+	NdCx__ VecSwizzle  operator "" _vecSwizzle (const char* str, const usize len) __NE___
 	{
-		ASSERT( len > 0 and len <= 4 );
+		ASSERT_Cx( len > 0 and len <= 4 );
 
 		VecSwizzle	res;
 		uint		sw = 0;
@@ -86,7 +86,7 @@ namespace AE::Math
 			const char	c = str[i];
 			const uint	v = VecSwizzle::_CharToValue( c );
 
-			ASSERT( v != 0 );	// 'c' must be X, Y, Z, W, 0, 1, +, -
+			ASSERT_Cx( v != 0 );	// 'c' must be X, Y, Z, W, 0, 1, +, -
 			sw |= (v << (3 - i) * 4);
 		}
 		res._value = CheckCast<ushort>(sw);
@@ -178,7 +178,7 @@ namespace AE::Math
 	VecDefault
 =================================================
 */
-	inline constexpr VecSwizzle  VecSwizzle::VecDefault (usize size) __NE___
+	__CxIn VecSwizzle  VecSwizzle::VecDefault (usize size) __NE___
 	{
 		switch ( size )
 		{
@@ -189,23 +189,19 @@ namespace AE::Math
 		}
 		return VecSwizzle{};
 	}
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
-
-
-namespace AE::Base
-{
-	template <> struct TMemCopyAvailable< AE::Math::VecSwizzle >		: CT_True {};
-	template <> struct TTriviallySerializable< AE::Math::VecSwizzle >	: CT_True {};
+	template <> struct TMemCopyAvailable< AE::Base::VecSwizzle >		: CT_True {};
+	template <> struct TTriviallySerializable< AE::Base::VecSwizzle >	: CT_True {};
 
 } // AE::Base
 
 
 template <>
-struct std::hash< AE::Math::VecSwizzle >
+struct std::hash< AE::Base::VecSwizzle >
 {
-	ND_ size_t  operator () (const AE::Math::VecSwizzle &value) C_NE___
+	ND_ size_t  operator () (const AE::Base::VecSwizzle &value) C_NE___
 	{
 		return size_t( value.Get() );
 	}

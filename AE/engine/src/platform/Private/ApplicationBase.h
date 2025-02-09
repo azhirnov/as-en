@@ -4,6 +4,7 @@
 
 #include "platform/Public/IApplication.h"
 #include "platform/Private/VRDeviceBase.h"
+#include "platform/Private/NvAPILib.h"
 
 namespace AE::App
 {
@@ -32,6 +33,10 @@ namespace AE::App
 		RecursiveMutex			_vrDeviceGuard;
 		WeakVRDevice			_vrDevice;
 
+	  #ifdef AE_PLATFORM_WINDOWS
+		NvAPILib				_nvapi;
+	  #endif
+
 		DRC_ONLY(
 			SingleThreadCheck	_stCheck;
 		)
@@ -53,6 +58,11 @@ namespace AE::App
 		void  Terminate ()																		__NE_OV;
 
 		DRC_ONLY( ND_ SingleThreadCheck&	GetSingleThreadCheck ()								__NE___	{ return _stCheck; })
+
+	  #ifdef AE_PLATFORM_WINDOWS
+		ND_ NvAPILib&		GetNvAPI ()															__NE___	{ return _nvapi; }
+		ND_ NvAPILib const&	GetNvAPI ()															C_NE___	{ return _nvapi; }
+	  #endif
 	};
 
 

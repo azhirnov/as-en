@@ -44,7 +44,7 @@ namespace AE::Scripting
 		};
 
 		template <typename Fn>
-		ND_ constexpr bool IsGlobal ();
+		NdCx__ bool IsGlobal ();
 
 	} // _hidden_
 

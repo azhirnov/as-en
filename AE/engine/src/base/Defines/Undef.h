@@ -34,3 +34,4 @@
 #undef far
 #undef CreateFile
 #undef CopyFile
+#undef GetEnvironmentVariable

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_NOISE
 #	define GEN_TURB
 #	define APPLY_SPLINE
@@ -55,12 +55,12 @@
 
 #endif
 //-----------------------------------------------------------------------------
-#if defined(TRACE_OPAQUE) || defined(TRACE_CLOUD)
+#if defined(TRACE_OPAQUE) or defined(TRACE_CLOUD)
 	#include "Fog.glsl"
 	#include "Color.glsl"
 	#include "Intersectors.glsl"
 	#include "GlobalIndex.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 
 	const float3	c_VolumePos		= float3(0.0, 0.0, 3.0);

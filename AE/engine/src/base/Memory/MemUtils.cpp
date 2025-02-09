@@ -18,6 +18,7 @@ namespace _hidden_
 
 	void  SecureZeroMemFallback (OUT void* ptr, Bytes size) __NE___
 	{
+		NonNull( ptr );
 		memset_fn( OUT ptr, 0, usize(size) );
 	}
 

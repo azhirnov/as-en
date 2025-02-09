@@ -64,6 +64,20 @@ namespace AE::ResEditor
 		using PassDbgMap_t		= HashMap< const void*, PassDebugInfo >;
 		using AllPassDbgInfo_t	= Array< PassDebugInfo const *>;
 
+		struct Label
+		{
+			String					label;
+			AnyDynVecOrScalar_t		dyn;
+			RC<DynamicUInt>			ifDyn;
+			uint					ref		= 0;
+			IPass::ECompare			op		= Default;
+		};
+
+		using Labels_t			= Array< Label >;
+		using SyncLabels_t		= Synchronized< RWSpinLock, Labels_t >;
+		using LabelMap_t		= HashMap< const void*, SyncLabels_t >;
+		using AllLabels_t		= Array< SyncLabels_t const* >;
+
 		struct Debugger
 		{
 			void const*			target	= null;
@@ -80,13 +94,21 @@ namespace AE::ResEditor
 			RGBA32f				color;		// TODO: colors [8]  ???
 		};
 
+		enum class EGraphicsFlags
+		{
+			LinearFilter	= 0,	// nearest filter otherwise
+			Copy			= 1,	// blit otherwise
+			DontPresent		= 2,
+			_Count
+		};
+
 		struct Graphics
 		{
 			EPixelFormat		colorFormat		= Default;
 			EColorSpace			colorSpace		= Default;
 			EPresentMode		presentMode		= Default;
 			RC<DynamicDim>		dynSize;
-			RC<DynamicUInt>		filterMode;
+			RC<DynamicUInt>		filterMode;					// EGraphicsFlags
 			uint				colorModeIdx	= UMax;
 			uint				presentModeIdx	= UMax;
 		};
@@ -108,6 +130,7 @@ namespace AE::ResEditor
 	private:
 		DbgImageView_t								_dbgView;
 		Synchronized< SharedMutex, SliderMap_t >	_sliderMap;
+		Synchronized< SharedMutex, LabelMap_t >		_labelMap;
 		Synchronized< SharedMutex, PassDbgMap_t >	_passDbgMap;
 
 	public:
@@ -130,12 +153,15 @@ namespace AE::ResEditor
 		ND_ auto  GetSliders (const void* uid) const -> Ptr<const PerPassMutableSliders>;
 		ND_ auto  GetAllSliders () -> AllSliders_t;
 
+			void  AddLabels (const void* uid, Labels_t labels);
+		ND_ auto  GetAllLabels () -> AllLabels_t;
+
 			void		SetDbgView (usize idx, RC<Image> img);
 			void		ResetDbgView (usize idx);
 		ND_ RC<Image>	GetDbgView (usize idx);
 
-		ND_ RC<DynamicDim>	GetDynamicSize ()		{ return graphics->dynSize; }
-		ND_ RC<DynamicUInt>	GetFilterMode ()		{ return graphics->filterMode; }
+		ND_ RC<DynamicDim>	GetDynamicSize ()		const	{ return graphics->dynSize; }
+		ND_ RC<DynamicUInt>	GetFilterMode ()		const	{ return graphics->filterMode; }
 
 		ND_ static UIInteraction&  Instance ();
 	};
@@ -226,7 +252,7 @@ namespace AE::ResEditor
 		struct {
 			Atomic<ubyte>				current			{0};
 			EWindowMode					windowedMode	= EWindowMode::Resizable;
-			EWindowMode					fullscreenMode	= EWindowMode::FullscreenWindow;
+			EWindowMode					fullscreenMode	= EWindowMode::FullScreenWindow;
 		}							_windowMode;
 
 		struct {

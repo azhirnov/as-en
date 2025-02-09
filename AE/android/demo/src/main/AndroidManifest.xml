@@ -12,26 +12,87 @@
 	<uses-feature android:name="android.hardware.camera" android:required="false" />
 	<uses-permission android:name="android.permission.CAMERA" android:required="false" />
 
+	<!--
+			extractNativeLibs
+		If set to "false", your native libraries are stored uncompressed in the APK. Although your APK might be larger,
+		your application loads faster because the libraries load directly from the APK at runtime.
+
+			appCategory
+		'game' - Android UI may add overlay.
+
+		docs: https://developer.android.com/guide/topics/manifest/application-element
+	-->
 
 	<application
 	  android:name=".DemoApplication"
 	  android:label="AE Demo"
-	  android:hardwareAccelerated="true"
-	  android:isGame="true">
+	  android:appCategory="game"
+	  >
 
+	<!--
+			screenOrientation
+		locked:  'landscape', 'portrait', 'reverseLandscape', 'reversePortrait'
+		sensor:  'sensor', 'sensorLandscape', 'sensorPortrait'
+		'locked' - locks the orientation to its current rotation, whatever that is. 
+		'user'   - user's current preferred orientation, same as 'sensor' if auto-rotation enabled, 'locked' otherwise,
+					but user can manually rotate by clicking on apearing icon.
+
+			launchMode
+		'singleTop'		- If an instance of the activity already exists at the top of the target task, the system routes the intent
+							to that instance through a call to its onNewIntent() method, rather than creating a new instance of the activity.
+		'singleTask'	- The system creates the activity at the root of a new task or locates the activity on an existing task with the same affinity.
+							If an instance of the activity already exists and is at the root of the task, the system routes the intent to existing instance
+							through a call to its onNewIntent() method, rather than creating a new one.
+		'singleInstance' - Same as "singleTask", except that the system doesn't launch any other activities into the task holding the instance.
+							The activity is always the single and only member of its task.
+		taskAffinity=""  - allow multiple activities for 'singleTask' and 'singleInstance'.
+
+			resizeableActivity
+		If you set this attribute to "true", the user can launch the activity in split-screen and free-form modes.
+
+			clearTaskOnLaunch
+		When the value is "true", every time users start the task, they are brought to its root activity regardless of what they were last doing in the task
+		and regardless of whether they used the Back or Home button to leave it. When the value is "false", the task can be cleared of activities
+		in some situations, but not always.
+
+			excludeFromRecents
+		When this activity is the root activity of a new task, this attribute determines whether the task appears in the list of recent apps.
+		It's "true" if the task is excluded from the list.
+
+			immersive
+		Applications that hide the system notification bar with WindowManager.LayoutParams.FLAG_FULLSCREEN may still be interrupted by high-priority notifications;
+		for example, an incoming phone call may use fullScreenIntent to present a full-screen in-call activity to the user, pausing the current activity as a side-effect.
+		An activity with 'immersive' set, however, will not be interrupted; the notification may be shown in some other way (such as a small floating "toast" window).
+
+			noHistory
+		A value of "true" means that the activity doesn't leave a historical trace. It doesn't remain in the activity stack for the task,
+		so the user isn't able to return to it. 
+
+			configChanges
+		https://developer.android.com/guide/topics/manifest/activity-element#config
+
+		docs: https://developer.android.com/guide/topics/manifest/activity-element
+	-->
+	
 	<activity
 		android:name=".DemoActivity"
 		android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-		android:launchMode="singleTask"
-		android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+		android:launchMode="singleInstance"
+		android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|colorMode"
 		android:resizeableActivity="true"
-		android:screenOrientation="landscape"
+		android:screenOrientation="user"
 		android:windowSoftInputMode="adjustPan"
-		android:exported="true">
+		android:exported="true"
+		android:allowEmbedded="false"
+		android:autoRemoveFromRecents="true"
+		android:excludeFromRecents="true"
+		android:immersive="true"
+		android:supportsPictureInPicture="false"
+		>
 	  <intent-filter>
 		<action android:name="android.intent.action.MAIN" />
 		<category android:name="android.intent.category.LAUNCHER" />
-		
+		  
 		<!-- for profiling -->
 		<action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
 		<action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLE_REQUESTED" />

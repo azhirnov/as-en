@@ -1,7 +1,5 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
-
 # External dependencies
 set( AE_ENABLE_BREAKPAD			ON  CACHE BOOL "use breakpad" )
 set( AE_ENABLE_COMPRESSONATOR	ON  CACHE BOOL "use Compressonator" )
@@ -39,5 +37,6 @@ if (${AE_ENABLE_DEVIL})
 endif ()
 
 if (${AE_ENABLE_NVIDIA_API})
-	add_subdirectory( "NVidia" )
+	add_subdirectory( "NvAPI" )
+	add_subdirectory( "NvPerf" )
 endif ()

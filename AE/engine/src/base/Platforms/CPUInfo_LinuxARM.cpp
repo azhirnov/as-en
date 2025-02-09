@@ -10,7 +10,7 @@
 # include "base/Platforms/CPUInfo.h"
 # include "base/Math/BitMath.h"
 # include "base/Memory/MemUtils.h"
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 # include "base/Containers/FixedSet.h"
 
 namespace AE::Base
@@ -120,18 +120,19 @@ namespace
 		usize	p0	= line.find( ' ' );
 		usize	p1	= line.rfind( ' ' );
 
-        if ( p0 == UMax or p1 == UMax )
-            return false;
+		if ( p0 == UMax or p1 == UMax )
+			return false;
 
 		max	= StringToUInt( SubString( line, 0, p0 )) / 1000;			    // in MHz
 		min	= StringToUInt( SubString( line, p1+1, line.size() )) / 1000;	// in MHz
 
-        if ( min > max )
-            std::swap( min, max );
+		if ( min > max )
+			std::swap( min, max );
 
 		return true;
 	}
 
+#ifdef AE_ENABLE_LOGS
 	// from
 	// https://elixir.bootlin.com/linux/latest/source/arch/arm/include/asm/cputype.h
 	// https://elixir.bootlin.com/linux/latest/source/arch/arm64/include/asm/cputype.h
@@ -216,6 +217,7 @@ namespace
 
 	ND_ static StringView  GetCoreName_Apple (uint part)
 	{
+		// https://github.com/AsahiLinux/m1n1/blob/main/src/chickens.c
 		switch ( part ) {
 			case 0x001 : return "A7 Cyclone";
 			case 0x002 : return "A8 Typhoon";
@@ -235,15 +237,27 @@ namespace
 			case 0x013 : return "A13 Thunder";
 			case 0x020 : return "A14 Icestorm";
 			case 0x021 : return "A14 Firestorm";
+
 			case 0x022 : return "M1 Icestorm";
 			case 0x023 : return "M1 Firestorm";
-			case 0x024 : return "M1 Icestorm Pro";
-			case 0x025 : return "M1 Firestorm Pro";
-			case 0x028 : return "M1 Icestorm Max";
-			case 0x029 : return "M1 Firestorm Max";
+			case 0x024 : return "M1 Pro Icestorm";
+			case 0x025 : return "M1 Pro Firestorm";
+			case 0x028 : return "M1 Max Icestorm";
+			case 0x029 : return "M1 Max Firestorm";
+
 			case 0x032 : return "M2 Blizzard";
 			case 0x033 : return "M2 Avalanche";
+			case 0x034 : return "M2 Pro Blizzard";
+			case 0x035 : return "M2 Pro Avalanche";
+			case 0x038 : return "M2 Max Blizzard";
+			case 0x039 : return "M2 Max Avalanche";
+
+			case 0x048 : return "M3 Max Sawtooth";
+			case 0x049 : return "M3 Max Everest";
 		}
+		if ( part >= 0x30 and part < 0x40 )	return "M2";
+		if ( part >= 0x40 and part < 0x50 )	return "M3";
+
 		return Default;
 	}
 
@@ -295,15 +309,42 @@ namespace
 		return Default;
 	}
 
+#else
+
+	ND_ static StringView  GetCoreName (ECPUVendor vendor, uint part)
+	{
+		return Default;
+	}
+
+#endif // AE_ENABLE_LOGS
+
 /*
 	Helper:
-	from https://marcin.juszkiewicz.com.pl/2022/11/08/from-a-diary-of-aarch64-porter-arm-cpu-features-table/
+
+		idiva		- DIV instructions available in ARM mode.
+		idivt		- DIV instructions available in Thumb mode.
+		vfpd32		- VFP (of any version) with 32 double-precision registers d0-d31.
+		lpae		- Large Physical Address Extension (physical address up to 40 bits).
+		evtstrm		- generation of Event Stream by timer.
+		pmull		- Polinomial Multiplication instructions.
+
+	arm v7
+		thumb-2
+		neon		- NEON instructions (aka Advanced SIMD)
+		VFPv3
+		vfpv4		- fused multiply-add instructions.
+		crc32		- CRC32 instructions.
+
 
 	Arm v8.0
 		fp			- floating point present
 		asimd		- advanced SIMD present
 		evtstrm		- timer event stream generation
 		cpuid		- CPU features can be read
+
+		sha1		- SHA1 instructions
+		sha2		- SHA2 instructions
+		aes			- AES instructions
 
 	Arm v8.1
 		asimdrdm	- Advanced SIMD rounding double multiply accumulate instructions
@@ -398,19 +439,18 @@ namespace
 
 		  #ifdef AE_CPU_ARCH_ARM64
 			feats.NEON		= true;
-			feats.NEON_fp16	= true;
-			feats.NEON_hpfp	= true;
+			feats.NEON_fp16	= true;     // TODO
+			feats.FP16C		= true;     // TODO
 
 			feats.SVE		= AllBits( caps2, HWCAP_SVE );
-			feats.SVE2		= AllBits( caps2, HWCAP2_SVE2 );
-			feats.SVEAES	= AllBits( caps2, HWCAP2_SVEAES );
+			feats.SVE2		= AllBits( caps2, HWCAP2_SVE2 );	// Arm v9.0
+			feats.SVE_AES	= AllBits( caps2, HWCAP2_SVEAES );	// Arm v9.0
 
-			feats.AES		= AllBits( caps, HWCAP_AES );
-			feats.CRC32		= AllBits( caps, HWCAP_CRC32 );
-			feats.SHA128	= AllBits( caps, HWCAP_SHA1 );
-			feats.SHA256	= AllBits( caps, HWCAP_SHA2 );
-			feats.SHA512	= AllBits( caps, HWCAP_SHA512 );
-			feats.SHA3		= AllBits( caps, HWCAP_SHA3 );
+			feats.CRC32		= AllBits( caps, HWCAP_CRC32 );		// Arm v7
+			feats.AES		= AllBits( caps, HWCAP_AES );		// Arm v8.0
+			feats.SHA2_256	= AllBits( caps, HWCAP_SHA2 );		// Arm v8.0
+			feats.SHA2_512	= AllBits( caps, HWCAP_SHA512 );	// Arm v8.2
+			feats.SHA3		= AllBits( caps, HWCAP_SHA3 );		// Arm v8.2
 		  #endif
 
 			cpu.vendor = GetCpuVendor();
@@ -420,24 +460,35 @@ namespace
 		{
 			struct TmpCore
 			{
-				uint	id		= UMax;
-				uint	part	= 0;
-				uint	vendor	= 0;
+				uint	id			= UMax;
+				uint	part		= 0;
+				uint	vendor		= 0;
+				uint	minClock	= 0;
+				uint	maxClock	= 0;
 			};
+			constexpr uint	max_cores = 64;
 
 			std::ifstream	stream {"/proc/cpuinfo"};
 			if ( stream )
 			{
-				FixedArray< TmpCore, 64 >	cores;
-				String						line;
+				FixedArray< TmpCore, max_cores >	cores;
+				String								line;
 
 				while ( std::getline( stream, OUT line ))
 				{
 					if ( StartsWith( line, "processor" ))
 					{
-						if ( cores.size()+1 == cores.capacity() )
-							break;
-						cores.emplace_back().id = ReadUint10( line );
+						if_unlikely( cores.IsFull() )
+							break;  // overflow
+
+						auto&	dst = cores.emplace_back();
+						dst.id = ReadUint10( line );
+
+						if ( not GetMinMaxClockSpeed( dst.id, OUT dst.minClock, OUT dst.maxClock )) {
+							dst.minClock = GetMinClockSpeed( dst.id );
+							dst.maxClock = GetMaxClockSpeed( dst.id );
+						}
+
 					}else
 					if ( not cores.empty() )
 					{
@@ -450,31 +501,29 @@ namespace
 					}
 				}
 
-				FixedSet< uint, 64 >	unique_cores;
+				FixedSet< ulong, max_cores >	unique_cores;
 				for (auto& core : cores) {
-					unique_cores.insert( (core.vendor << 24) | (core.part & 0xFFFFFF) );
+					unique_cores.insert( ulong(core.vendor & 0xFFFF) |
+										 (ulong(core.part & 0xFFFF) << 16) |
+										 (ulong(core.maxClock) << 32) );
 				}
 
 				for (auto& unique : unique_cores)
 				{
-					const uint	vendor	= (unique >> 24);
-					const uint	part	= (unique & 0xFFFFFF);
+					const uint	vendor	= uint(unique & 0xFFFF);
+					const uint	part	= uint((unique >> 16) & 0xFFFF);
+					const uint	max_cl	= uint(unique >> 32);
 					auto&		dst		= cpu.coreTypes.emplace_back();
 
 					for (auto& core : cores) {
-						if ( core.vendor == vendor and core.part == part ) {
-							dst.logicalBits.set( core.id );
+						if ( core.vendor == vendor and core.part == part and core.maxClock == max_cl ) {
+							dst.logicalBits .set( core.id );
 							dst.physicalBits.set( core.id );
+							dst.baseClock	= core.minClock;
+							dst.maxClock	= core.maxClock;
 						}
 					}
-					const int	id	= IntLog2( dst.logicalBits.to_ulong() );
-					dst.name		= GetCoreName( CPUImplToVendor( vendor ), part );
-
-					if ( not GetMinMaxClockSpeed( id, OUT dst.baseClock, OUT dst.maxClock ))
-					{
-						dst.baseClock	= GetMinClockSpeed( id );
-						dst.maxClock	= GetMaxClockSpeed( id );
-					}
+					dst.name = GetCoreName( CPUImplToVendor( vendor ), part );
 				}
 
 				// sort by max clock
@@ -505,23 +554,8 @@ namespace
 		}
 
 		// CPU cache info
-		/*{
-			cache.L1_Inst.lineSize		= ::getauxval( AT_L1I_CACHEGEOMETRY ) & 0xFFFF;
-			cache.L1_Inst.associativity	= ::getauxval( AT_L1I_CACHEGEOMETRY ) >> 16;
-			cache.L1_Inst.size			= Bytes32u{::getauxval( AT_L1I_CACHESIZE )};
 
-			cache.L1_Data.lineSize		= ::getauxval( AT_L1D_CACHEGEOMETRY ) & 0xFFFF;
-			cache.L1_Data.associativity	= ::getauxval( AT_L1D_CACHEGEOMETRY ) >> 16;
-			cache.L1_Data.size			= Bytes32u{::getauxval( AT_L1D_CACHESIZE )};
-
-			cache.L2.lineSize			= ::getauxval( AT_L2_CACHEGEOMETRY ) & 0xFFFF;
-			cache.L2.associativity		= ::getauxval( AT_L2_CACHEGEOMETRY ) >> 16;
-			cache.L2.size				= Bytes32u{::getauxval( AT_L2_CACHESIZE )};
-
-			cache.L3.lineSize			= ::getauxval( AT_L3_CACHEGEOMETRY ) & 0xFFFF;
-			cache.L3.associativity		= ::getauxval( AT_L3_CACHEGEOMETRY ) >> 16;
-			cache.L3.size				= Bytes32u{::getauxval( AT_L3_CACHESIZE )};
-		}*/
+		// TODO: check cpuinfo
 
 		// TODO: sysconf() with _SC_NPROCESSORS_CONF, _SC_NPROCESSORS_ONLN
 

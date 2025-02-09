@@ -29,7 +29,5 @@ namespace AE::AssetPacker
 		static void  Bind (const ScriptEnginePtr &se) __Th___;
 	};
 
-	using ScriptModelPtr = ScriptRC< ScriptModel >;
-
 
 } // AE::AssetPacker

@@ -18,6 +18,7 @@ namespace AE::ResEditor
 		{
 			Unknown			= 0,	// entry: Main
 			Shadertoy,				// entry: mainImage
+			ShadertoyCubemap,		// entry: mainCubemap
 
 			ShadertoyVR,			// entry: mainVR
 			ShadertoyVR_180,
@@ -56,7 +57,7 @@ namespace AE::ResEditor
 									 EPipelineOpt pplnOpt)												C_Th___;
 
 		ND_ static auto  _CreateUBType ()																__Th___;
-		
+
 		void  _SetDynamicDimension2 (const ScriptDynamicDimPtr &value)									__Th___	{ ScriptBasePass::_SetDynamicDimension( value ); }
 
 	// ScriptBasePass //

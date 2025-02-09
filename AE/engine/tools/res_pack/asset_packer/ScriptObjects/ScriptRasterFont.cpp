@@ -1,14 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/MemStream.h"
-#include "base/DataSource/File.h"
-#include "base/Utils/Helpers.h"
-#include "base/Math/Packing.h"
-#include "base/Algorithms/StringUtils.h"
-
-#include "graphics/Private/EnumUtils.h"
-
+#include "ScriptObjects/ScriptTexture.h"
 #include "ScriptObjects/ScriptRasterFont.h"
+#include "ScriptObjects/ScriptResourceMeta.h"
 
 #include "scripting/Impl/ClassBinder.h"
 #include "scripting/Impl/EnumBinder.h"
@@ -24,6 +18,14 @@ namespace AE::AssetPacker
 namespace {
 #	include "Packer/ImagePacker.cpp.h"
 #	include "Packer/RasterFontPacker.cpp.h"
+
+
+	ND_ inline bool  IsWhiteSpace (CharUtf32 c)
+	{
+		return c == ' ' or c == '\t';
+	}
+
+	static const double		c_SdfPixRange	= 1.0;
 }
 
 	using namespace AE::Graphics;
@@ -43,15 +45,19 @@ namespace {
 =================================================
 */
 	ScriptRasterFont::~ScriptRasterFont ()
-	{}
+	{
+		CHECK( _state == EState::Stored );
+	}
 
 /*
 =================================================
 	AddCharset
 =================================================
 */
-	void  ScriptRasterFont::AddCharset (uint unicodeFirst, uint unicodeLast) __Th___
+	void  ScriptRasterFont::AddCharset (const uint unicodeFirst, const uint unicodeLast) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
+
 		for (auto [first, last] : _charset)
 		{
 			CHECK_THROW_MSG( not IsIntersects( uint{first}, uint{last}+1, unicodeFirst, unicodeLast+1 ),
@@ -119,6 +125,7 @@ namespace {
 */
 	void  ScriptRasterFont::SetGlyphSize (uint value) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( value <= _MaxFontHeight );
 
 		_bitmapHeight = value;
@@ -131,6 +138,8 @@ namespace {
 */
 	void  ScriptRasterFont::SetGlyphPadding (uint pix) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
+
 		_paddingPix = pix;
 	}
 
@@ -141,6 +150,7 @@ namespace {
 */
 	void  ScriptRasterFont::Load (const String &fontFile) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( _fontFile.empty(), "already loaded" );
 
 		Path	path = ObjectStorage::Instance()->GetScriptFolder();
@@ -152,37 +162,13 @@ namespace {
 
 /*
 =================================================
-	Store
-=================================================
-*/
-	void  ScriptRasterFont::Store (const String &nameInArchive) __Th___
-	{
-		CHECK_THROW_MSG( not _fontFile.empty() );
-		CHECK_THROW_MSG( not _charset.empty() );
-
-		auto&	storage = *ObjectStorage::Instance();
-
-		auto	wmem = MakeRC<ArrayWStream>();
-		CHECK_THROW_MSG( _Pack( nameInArchive, wmem ));
-
-		MemRefRStream	rmem {wmem->GetData()};
-		storage.AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw );  // throw
-
-		storage.AddFont( nameInArchive );  // throw
-
-		_fontFile.clear();
-		// keep '_charset'
-		_paddingPix	= 1;
-		_dstFormat	= _intermFormat = EPixelFormat::R8_UNorm;
-	}
-
-/*
-=================================================
 	SetFormat
 =================================================
 */
 	void  ScriptRasterFont::SetFormat (EPixelFormat fmt) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
+
 		_dstFormat		= fmt;
 		_intermFormat	= EPixelFormat_ToNoncompressed( _dstFormat, false );
 	}
@@ -194,6 +180,7 @@ namespace {
 */
 	void  ScriptRasterFont::SetRasterMode (ERasterFontMode value) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( value < ERasterFontMode::_Count );
 
 		_fontMode = value;
@@ -206,6 +193,7 @@ namespace {
 */
 	void  ScriptRasterFont::SetSDFGlyphBorder (uint pix) __Th___
 	{
+		CHECK_THROW( _state == EState::Recording );
 		CHECK_THROW_MSG( _sdfBorderSize <= _bitmapHeight/4 );
 
 		_sdfBorderSize = pix;
@@ -213,36 +201,28 @@ namespace {
 
 /*
 =================================================
-	SetSDFPixelRange
+	_Rasterize
 =================================================
 */
-	void  ScriptRasterFont::SetSDFPixelRange (float range) __Th___
+	bool  ScriptRasterFont::_Rasterize () __NE___
 	{
-		CHECK_THROW_MSG( range > 0.f );
+		CHECK_ERR( _state == EState::Recording );
+		CHECK_ERR( not _fontFile.empty() );
+		CHECK_ERR( not _charset.empty() );
 
-		_sdfPixRange = double(range);
-	}
+		_allocator.SetBlockSize( 4_MiB );
+		_glyphs.clear();
 
-/*
-=================================================
-	_Pack
-=================================================
-*/
-	bool  ScriptRasterFont::_Pack (const String &nameInArchive, RC<WStream> stream)
-	{
 		// load glyphs
-		Allocator_t			allocator;		allocator.SetBlockSize( 4_Mb );
-		Array<GlyphData>	glyphs;
-		float				sdf_scale		= 0.f;
-		float				sdf_bias		= 0.f;
-		uint				fnt_height		= 0;
-		int					padding_in_atlas = _paddingPix;
+		float	sdf_scale		= 0.f;
+		float	sdf_bias		= 0.f;
+		uint	fnt_height		= 0;
 
 		switch_enum( _fontMode )
 		{
 			case ERasterFontMode::Raster :
 				#ifdef AE_ENABLE_FREETYPE
-					CHECK_ERR( _FTLoadGlyphs( allocator, OUT fnt_height, OUT glyphs ));
+					CHECK_ERR( _FTLoadGlyphs( _allocator, OUT fnt_height, OUT _glyphs ));
 				#else
 					RETURN_ERR( "FreeType is not supported" );
 				#endif
@@ -251,8 +231,8 @@ namespace {
 			case ERasterFontMode::SDF :
 			case ERasterFontMode::MC_SDF :
 				#ifdef AE_ENABLE_MSDFGEN
-					padding_in_atlas = 0;	// added to border
-					CHECK_ERR( _SDFLoadGlyphs( allocator, OUT sdf_scale, OUT sdf_bias, OUT fnt_height, OUT glyphs ));
+					_paddingPix = 0;	// added to border
+					CHECK_ERR( _SDFLoadGlyphs( _allocator, OUT sdf_scale, OUT sdf_bias, OUT fnt_height, OUT _glyphs ));
 				#else
 					RETURN_ERR( "MSDFGen is not supported" );
 				#endif
@@ -264,91 +244,11 @@ namespace {
 		}
 		switch_end
 
-		// place rects in atlas
-		AtlasTools::RectPackerSTB	rect_packer;
-		{
-			for (usize i = 0; i < glyphs.size(); ++i)
-			{
-				const auto&	src = glyphs[i];
-				rect_packer.Add( src.dimension + uint(padding_in_atlas)*2, uint(i) );
-			}
+		_sdfConfig.scale	= sdf_scale;
+		_sdfConfig.bias		= sdf_bias;
+		_fontHeight			= fnt_height;
 
-			CHECK_ERR( rect_packer.Pack() );
-			AE_LOGI( "RasterFont '"s << nameInArchive << "' atlas size: "s << ToString(rect_packer.TargetSize()) <<
-					 ", packing rate: " << ToString( rect_packer.PackingRate(), 2 ));
-		}
-
-		// store glyphs to image
-		IntermImage		dst_image;
-		{
-			CHECK_ERR( dst_image.Allocate( EImage_2D, _intermFormat, uint3{rect_packer.TargetSize(),1} ));
-
-			auto		dst_view = RWImageMemView{ dst_image.ToView() };
-			const auto&	fmt_info = EPixelFormat_GetInfo( dst_view.Format() );
-
-			if ( AnyBits( fmt_info.valueType, PixelFormatInfo::EType::SNorm | PixelFormatInfo::EType::SFloat )) {
-				CHECK_ERR( dst_view.Fill( RGBA32f{-1.0f} ));
-			}else
-			if ( AnyBits( fmt_info.valueType, PixelFormatInfo::EType::UNorm )) {
-				CHECK_ERR( dst_view.Fill( RGBA32f{0} ));
-			}else
-			if ( AnyBits( fmt_info.valueType, PixelFormatInfo::EType::Int | PixelFormatInfo::EType::UInt )) {
-				CHECK_ERR( dst_view.Fill( RGBA32u{0} ));
-			}
-
-			for (auto& r : rect_packer.GetResult())
-			{
-				auto&	src = glyphs[ r.id ];
-				if_unlikely( src.symbol == ' ' or src.symbol == '\t' )
-					continue;
-
-				const RectI		img_rect = RectI{ int2{r.w, r.h} - padding_in_atlas*2 } + (int2{r.x, r.y} + padding_in_atlas);
-				RWImageMemView	src_view { BufferMemView{ src.data, Bytes{src.dataSize} }, uint3{}, uint3{src.dimension,1}, 0_b, 0_b, _intermFormat, EImageAspect::Color };
-
-				ASSERT( All( img_rect.Size() == int2(src.dimension) ));
-
-				CHECK_ERR( dst_view.Blit( uint3{int3{ img_rect.left, img_rect.top, 0 }}, uint3{0}, src_view, uint3{int3{ img_rect.Size(), 1 }} ));
-
-				const RectI		texc = RectI{ int2{r.w, r.h} - _paddingPix*2 } + (int2{r.x, r.y} + _paddingPix);
-				src.texcoord = FloatToUNormShort( RectF{texc} / float2(dst_view.Dimension()) );
-			}
-
-			if ( _dstFormat != _intermFormat )
-			{
-				RETURN_ERR( "compression is not supported yet" );
-			}
-		}
-
-		// serialize
-		{
-			ImagePacker::Header	img_hdr;
-			img_hdr.dimension	= ushort3{uint3{ rect_packer.TargetSize(), 1 }};
-			img_hdr.arrayLayers	= 1;
-			img_hdr.mipmaps		= 1;
-			img_hdr.format		= _dstFormat;
-			img_hdr.viewType	= EImage_2D;
-
-			RasterFontPacker	fnt_packer {img_hdr};
-			fnt_packer.sdfConfig.scale		= sdf_scale;
-			fnt_packer.sdfConfig.bias		= sdf_bias;
-			fnt_packer.sdfConfig.pixRange2D	= float(_sdfPixRange);
-			fnt_packer.sdfConfig.pixRange3D	= float(_sdfPixRange) / float2(img_hdr.dimension);
-
-			fnt_packer.fontHeight.push_back( CheckCast<ubyte>( fnt_height ));
-			fnt_packer.glyphMap.reserve( glyphs.size() );
-
-			for (auto& glyph : glyphs)
-			{
-				CHECK_ERR( fnt_packer.glyphMap.emplace( GlyphKey{ glyph.symbol, fnt_height }, Glyph{glyph} ).second );
-			}
-
-			{
-				Serializing::Serializer		ser {stream};
-				CHECK_ERR( RasterFontPacker_Serialize( fnt_packer, ser ));
-			}
-			CHECK_ERR( RasterFontPacker_SaveImage( fnt_packer, *stream, dst_image ));
-		}
-
+		_state = EState::Immutable;
 		return true;
 	}
 
@@ -381,17 +281,305 @@ namespace {
 			binder.AddMethod( &ScriptRasterFont::AddCharset,		"AddCharset",		{"firstCharIndexInUnicode", "lastCharIndexInUnicode"} );
 			binder.AddMethod( &ScriptRasterFont::AddCharset_Ascii,	"AddCharset_Ascii",	{} );
 			binder.AddMethod( &ScriptRasterFont::AddCharset_Rus,	"AddCharset_Rus",	{} );
-			binder.AddMethod( &ScriptRasterFont::ClearCharset,		"ClearCharset",		{} );
 			binder.AddMethod( &ScriptRasterFont::SetGlyphSize,		"GlyphSize",		{"heightInPixels"} );
 			binder.AddMethod( &ScriptRasterFont::SetGlyphPadding,	"GlyphPadding",		{"paddingInPixels"} );
 			binder.AddMethod( &ScriptRasterFont::Store,				"Store",			{"nameInArchive"} );
+			binder.AddMethod( &ScriptRasterFont::PutMeta,			"PutMeta",			{"metaFile", "nameInMeta"} );
+			binder.AddMethod( &ScriptRasterFont::PutData,			"PutData",			{"image"} );
 			binder.AddMethod( &ScriptRasterFont::SetFormat,			"Format",			{"newFormat"} );
 			binder.AddMethod( &ScriptRasterFont::SetRasterMode,		"RasterMode",		{} );
 			binder.AddMethod( &ScriptRasterFont::SetSDFGlyphBorder,	"SDFGlyphBorder",	{"borderSizeInPixels"} );
-
-			binder.Comment( "Increase value for better anti-aliasing." );
-			binder.AddMethod( &ScriptRasterFont::SetSDFPixelRange,	"SDFPixelRange",	{"range"} );
 		}
+	}
+
+/*
+=================================================
+	Store
+----
+	store meta data and image data into a single file
+=================================================
+*/
+	void  ScriptRasterFont::Store (const String &nameInArchive) __Th___
+	{
+		CHECK_THROW( _state == EState::Recording );
+		CHECK_THROW( _nameInMeta.empty() );
+
+		auto&	storage = *ObjectStorage::Instance();
+
+		// rasterize glyphs to temporary memory
+		CHECK_THROW( _Rasterize() );
+
+		ScriptTexture	tex;
+		CHECK_THROW( _ToTexture( OUT tex, nameInArchive ));
+
+		_state = EState::Arranged;
+
+		auto	wmem = MakeRC<ArrayWStream>();
+		CHECK_THROW( _StoreMeta( wmem ));
+		CHECK_THROW( tex._StoreData( wmem ));
+
+		MemRefRStream	rmem {wmem->GetData()};
+		storage.AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw ); // throw
+
+		storage.AddFont( nameInArchive );
+
+		_state = EState::Stored;
+	}
+
+/*
+=================================================
+	StoreData
+----
+	store only image data, meta data stored to meta data file, see 'PutMeta()'
+=================================================
+*/
+	void  ScriptRasterFont::StoreData (const String &nameInArchive) __Th___
+	{
+		CHECK_THROW( _state == EState::Recording );
+		CHECK_THROW( _sharedImageMeta.empty() );	// use 'PutData()' instead
+
+		// rasterize glyphs to temporary memory
+		CHECK_THROW( _Rasterize() );
+
+		ScriptTexture	tex;
+		CHECK_THROW( _ToTexture( OUT tex, nameInArchive ));
+
+		auto	wmem = MakeRC<ArrayWStream>();
+		CHECK_THROW( tex._StoreData( wmem ));
+
+		MemRefRStream	rmem {wmem->GetData()};
+		ObjectStorage::Instance()->AddToArchive( nameInArchive, rmem, EArchivePackerFileType::Raw ); // throw
+
+		_imageFileName	= nameInArchive;
+		_state			= EState::StoreData;
+	}
+
+/*
+=================================================
+	_ToTexture
+=================================================
+*/
+	bool  ScriptRasterFont::_ToTexture (OUT ScriptTexture &tex, const String &name) __NE___
+	{
+		// place rects in atlas
+		AtlasTools::RectPackerSTB	rect_packer;
+		{
+			for (usize i = 0; i < _glyphs.size(); ++i)
+			{
+				const auto&	src = _glyphs[i];
+				rect_packer.Add( src.dimension + uint(_paddingPix)*2, uint(i) );
+			}
+
+			CHECK_ERR( rect_packer.Pack() );
+			AE_LOGI( "RasterFont '"s << name << "' atlas size: "s << ToString(rect_packer.TargetSize()) <<
+					 ", packing rate: " << ToString( rect_packer.PackingRate(), 2 ));
+		}
+
+		// store glyphs to image
+		{
+			tex._imgData.reset( new IntermImage{} );
+			tex._dstFormat		= _dstFormat;
+			tex._intermFormat	= _intermFormat;
+
+			IntermImage&	dst_image = *tex._imgData;
+
+			CHECK_ERR( dst_image.Allocate( EImage_2D, _intermFormat, uint3{rect_packer.TargetSize(),1} ));
+
+			auto		dst_view = RWImageMemView{ dst_image.ToView() };
+			const auto&	fmt_info = EPixelFormat_GetInfo( dst_view.Format() );
+
+			if ( AnyBits( fmt_info.valueType, PixelFormatInfo::EType::SNorm | PixelFormatInfo::EType::SFloat )) {
+				CHECK_ERR( dst_view.Fill( RGBA32f{-1.0f} ));
+			}else
+			if ( AnyBits( fmt_info.valueType, PixelFormatInfo::EType::UNorm )) {
+				CHECK_ERR( dst_view.Fill( RGBA32f{0} ));
+			}else
+			if ( AnyBits( fmt_info.valueType, PixelFormatInfo::EType::Int | PixelFormatInfo::EType::UInt )) {
+				CHECK_ERR( dst_view.Fill( RGBA32u{0} ));
+			}
+
+			for (auto& r : rect_packer.GetResult())
+			{
+				auto&	src = _glyphs[ r.id ];
+				if_unlikely( IsWhiteSpace( src.symbol ))
+					continue;
+
+				const RectI		img_rect = RectI{ int2{r.w, r.h} - _paddingPix*2 } + (int2{r.x, r.y} + _paddingPix);
+				RWImageMemView	src_view { src.data, Bytes{src.dataSize}, uint3{}, uint3{src.dimension,1}, 0_b, 0_b, _intermFormat, EImageAspect::Color };
+
+				ASSERT( All( img_rect.Size() == int2(src.dimension) ));
+
+				CHECK_ERR( dst_view.Blit( uint3{int3{ img_rect.left, img_rect.top, 0 }}, uint3{0}, src_view, uint3{int3{ img_rect.Size(), 1 }} ));
+
+				src.texcoord = Rectangle<ushort>{img_rect};
+			}
+
+			// compress if needed
+			CHECK_ERR( tex._ConvertImage() );
+		}
+
+		// to image header
+		{
+			IntermImage&	dst_image = *tex._imgData;
+
+			CHECK_ERR( dst_image.ArrayLayers() == 1 );
+			CHECK_ERR( dst_image.MipLevels() == 1 );
+			CHECK_ERR( dst_image.GetType() == EImage_2D );
+
+			_imageHeader.dimension		= ImageDim_t(dst_image.Dimension());
+			_imageHeader.arrayLayers	= 1;
+			_imageHeader.mipmaps		= 1;
+			_imageHeader.viewType		= EImage_2D;
+			_imageHeader.format			= dst_image.PixelFormat();
+			_imageHeader.flags			= 0;
+			_imageHeader.rowAlignPOT	= 0;
+
+			StaticAssert( sizeof(_imageHeader) == 16 );
+		}
+		return true;
+	}
+
+/*
+=================================================
+	PutMeta
+=================================================
+*/
+	void  ScriptRasterFont::PutMeta (const ScriptResourceMetaPtr &meta, const String &nameInMeta) __Th___
+	{
+		CHECK_THROW( _state >= EState::Recording );
+		CHECK_THROW( meta );
+		CHECK_THROW_MSG( _nameInMeta.empty(), "already added to meta data" );
+
+		meta->Add( *this, nameInMeta );  // throw
+
+		_nameInMeta = nameInMeta;
+	}
+
+/*
+=================================================
+	PutData
+=================================================
+*/
+	void  ScriptRasterFont::PutData (const ScriptSharedImagePtr &image) __Th___
+	{
+		CHECK_THROW( _state == EState::Recording );
+		CHECK_THROW( image );
+		CHECK_THROW_MSG( not image->MetaName().empty(), "call 'SharedImage::PutMeta()' before this" );
+
+		CHECK_THROW( _Rasterize() );
+
+		Array<ScriptSharedImage::Result>	regions;
+		regions.reserve( _glyphs.size() );  // throw
+
+		// update regions
+		for (usize i = 0; i < _glyphs.size(); ++i)
+		{
+			const auto&	src	= _glyphs[i];
+			if_unlikely( IsWhiteSpace( src.symbol ))
+				continue;
+
+			auto&	dst = regions.emplace_back();
+			dst.id		= uint(i);
+			dst.region	= RectU{ src.dimension + uint(_paddingPix*2) };
+		}
+
+		image->AddSubImages( *this, regions );  // throw
+
+		_sharedImageMeta = image->MetaName();
+		_state = EState::Immutable;
+	}
+
+/*
+=================================================
+	_CopyPixels
+=================================================
+*/
+	bool  ScriptRasterFont::_CopyPixels (INOUT ResLoader::IntermImage &dstImage, ArrayView<ScriptSharedImage::Result> regions) __NE___
+	{
+		CHECK_ERR( _state == EState::Immutable );
+		CHECK_ERR( _intermFormat == dstImage.PixelFormat() );
+		CHECK_ERR( regions.size() <= _glyphs.size() );	// white spaces is not included
+
+		auto	dst_view = RWImageMemView{ dstImage.ToView() };
+
+		for (auto& r : regions)
+		{
+			CHECK_ERR( r.id < _glyphs.size() );
+
+			auto&	src = _glyphs[ r.id ];
+			if_unlikely( IsWhiteSpace( src.symbol ))
+				continue;
+
+			CHECK_ERR( src.data != null );
+
+			const RectI	texc	= RectI{ int2{r.region.LeftTop()} + _paddingPix, int2{r.region.RightBottom()} - _paddingPix };
+			auto		src_img	= RWImageMemView{ src.data, Bytes{src.dataSize}, uint3{}, uint3{src.dimension, 1u}, 0_b, 0_b, src.format, EImageAspect::Color };
+
+			CHECK_ERR( All( texc.Size() == int2(src.dimension) ));
+			CHECK_ERR( texc.IsValid() );
+			CHECK_ERR( texc.left >= 0 and texc.top >= 0 );
+			CHECK_ERR( texc.right <= int(dst_view.Dimension().x) );
+			CHECK_ERR( texc.bottom <= int(dst_view.Dimension().y) );
+
+			CHECK_ERR( dst_view.Blit( uint3{int3{ texc.left, texc.top, 0 }}, uint3{}, src_img, uint3{int3{ texc.Size(), 1 }} ));
+
+			src.texcoord = Rectangle<ushort>{texc};
+		}
+
+		_state = EState::Arranged;
+		return true;
+	}
+
+/*
+=================================================
+	_StoreMeta
+=================================================
+*/
+	bool  ScriptRasterFont::_StoreMeta (RC<WStream> stream, const String &metaArchive) C_NE___
+	{
+		RasterFontPacker	fnt_packer;
+		fnt_packer.sdfConfig = _sdfConfig;
+
+		if ( not _sharedImageMeta.empty() )
+		{
+			CHECK_ERR( _state == EState::Arranged );
+			fnt_packer._header.flags	= RasterFontPacker::EFileFlags::HasResName;
+			fnt_packer._imageResName	= CachedResourceName{_sharedImageMeta};
+		}else
+		if ( not _imageFileName.empty() )
+		{
+			CHECK_ERR( _state == EState::StoreData );
+			fnt_packer._header.flags	= RasterFontPacker::EFileFlags::SeparateData;
+			fnt_packer._imageHeader		= _imageHeader;
+			fnt_packer._imageFileName	= VFS::FileName{_imageFileName};
+		}
+		else{
+			CHECK_ERR( _state == EState::Arranged );
+			fnt_packer._header.flags	= RasterFontPacker::EFileFlags::HasImage;
+			fnt_packer._imageHeader		= _imageHeader;
+		}
+
+		fnt_packer.fontHeight.push_back( CheckCast<ubyte>( _fontHeight ));
+		fnt_packer.glyphMap.reserve( _glyphs.size() );
+
+		for (auto& glyph : _glyphs)
+		{
+			CHECK_ERR( fnt_packer.glyphMap.emplace( GlyphKey{ glyph.symbol, _fontHeight }, Glyph{glyph} ).second );
+		}
+
+		{
+			Serializing::Serializer		ser {stream};
+			CHECK_ERR( RasterFontPacker_Serialize( fnt_packer, ser ));
+		}
+
+		if ( not _nameInMeta.empty() )
+		{
+			CHECK_ERR( not metaArchive.empty() );
+			ObjectStorage::Instance()->AddFont( metaArchive, _nameInMeta );
+		}
+
+		_state = EState::Stored;
+		return true;
 	}
 
 } // AE::AssetPacker
@@ -472,6 +660,7 @@ namespace AE::AssetPacker
 		result.symbol		= unicodeChar;
 		result.data			= data_ptr;
 		result.dataSize		= img_size;
+		result.format		= _intermFormat;
 
 		return true;
 	}
@@ -514,7 +703,7 @@ namespace AE::AssetPacker
 		{
 			for (uint c = cset.first; c <= cset.second; ++c)
 			{
-				if_unlikely( c == ' ' or c == '\t' )
+				if_unlikely( IsWhiteSpace( c ))
 				{
 					FT_UInt		char_index = FT_Get_Char_Index( ft_face, ' ' );
 					CHECK_ERR( char_index != 0 );
@@ -607,7 +796,7 @@ namespace AE::AssetPacker
 			case ERasterFontMode::SDF :
 			{
 				Bitmap<float, 1>	sdf{ int(bm_size), int(bm_size) };
-				generateSDF( OUT sdf, shape, Projection{proj_scale, proj_translate}, _sdfPixRange, config );
+				generateSDF( OUT sdf, shape, Projection{proj_scale, proj_translate}, c_SdfPixRange, config );
 
 				const Bytes		bpp				{sizeof(float)};
 				const Bytes		src_row_size	= bm_size * bpp;
@@ -637,7 +826,7 @@ namespace AE::AssetPacker
 				edgeColoringSimple( shape, 3.0 );
 
 				Bitmap<float, 3>	msdf{ int(bm_size), int(bm_size) };
-				generateMSDF( OUT msdf, shape, Projection{proj_scale, proj_translate}, _sdfPixRange, config );
+				generateMSDF( OUT msdf, shape, Projection{proj_scale, proj_translate}, c_SdfPixRange, config );
 
 				const Bytes		bpp				{sizeof(float) * 3};
 				const Bytes		src_row_size	= bm_size * bpp;
@@ -699,7 +888,7 @@ namespace AE::AssetPacker
 		}
 		switch_end
 
-		Allocator_t		tmp_alloc;		tmp_alloc.SetBlockSize( 16_Mb );
+		Allocator_t		tmp_alloc;		tmp_alloc.SetBlockSize( 16_MiB );
 		ArrayRStream	mem_stream;
 		{
 			FileRStream		file {_fontFile};
@@ -726,7 +915,7 @@ namespace AE::AssetPacker
 		{
 			for (uint c = cset.first; c <= cset.second; ++c)
 			{
-				if_unlikely( c == ' ' or c == '\t' )
+				if_unlikely( IsWhiteSpace( c ))
 					continue;
 
 				Shape	shape;
@@ -753,7 +942,7 @@ namespace AE::AssetPacker
 		{
 			for (uint c = cset.first; c <= cset.second; ++c)
 			{
-				if_unlikely( c == ' ' or c == '\t' )
+				if_unlikely( IsWhiteSpace( c ))
 				{
 					Shape	shape;
 					double	advance	= 0.0;
@@ -851,7 +1040,7 @@ namespace AE::AssetPacker
 
 		  #ifdef AE_DEBUG
 			if ( fmt_info.channels == 1 )
-				CHECK( Equal( max_range, 1.f/float(_sdfPixRange), 0.05f ));
+				CHECK( Equal( max_range, 1.f/float(c_SdfPixRange), 0.05f ));
 
 			if ( AllBits( fmt_info.valueType, PixelFormatInfo::EType::UNorm )) {
 				CHECK( tx_min >= 0.f );
@@ -870,7 +1059,7 @@ namespace AE::AssetPacker
 				continue;
 
 			const uint3		dim		{ glyph.dimension, 1 };
-			RWImageMemView	src_view{ BufferMemView{ glyph.data, Bytes{glyph.dataSize} }, uint3{}, dim, 0_b, 0_b, glyph.format, EImageAspect::Color };
+			RWImageMemView	src_view{ glyph.data, Bytes{glyph.dataSize}, uint3{}, dim, 0_b, 0_b, glyph.format, EImageAspect::Color };
 
 			glyph.dataSize	= glyph.dimension.x * glyph.dimension.y * (fmt_info.BitsPerPixel() / 8);
 			glyph.data		= allocator.Allocate( Bytes{glyph.dataSize} );
@@ -878,7 +1067,7 @@ namespace AE::AssetPacker
 
 			CHECK_ERR( glyph.data != null );
 
-			RWImageMemView	dst_view{ BufferMemView{ glyph.data, Bytes{glyph.dataSize} }, uint3{}, dim, 0_b, 0_b, glyph.format, EImageAspect::Color };
+			RWImageMemView	dst_view{ glyph.data, Bytes{glyph.dataSize}, uint3{}, dim, 0_b, 0_b, glyph.format, EImageAspect::Color };
 			CHECK_ERR( dst_view.Blit( src_view ));
 		}
 

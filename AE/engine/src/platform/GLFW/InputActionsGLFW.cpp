@@ -112,10 +112,7 @@ namespace AE::App
 */
 	void  InputActionsGLFW::SetMonitor (const uint2 &surfaceSize, const Monitor &monitor) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
-
-		_toSNorm	= 1.0f / float2{surfaceSize};
-		_pixToMm	= monitor.MillimetersPerPixel();
+		_Setup( float2(surfaceSize), monitor.MillimetersPerPixel() );
 	}
 
 /*

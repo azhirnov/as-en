@@ -7,7 +7,7 @@
 #	define AE_ray_query
 #	define SH_RAY_GEN
 #	define AE_HAS_ATOMICS
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define TRACE_GEOMETRY
 #	define TONEMAPPING
 #endif
@@ -186,7 +186,7 @@
 	};
 #endif
 //-----------------------------------------------------------------------------
-#if defined(SH_RAY_GEN) || defined(SH_RAY_CALL)
+#if defined(SH_RAY_GEN) or defined(SH_RAY_CALL)
 	#include "Math.glsl"
 
 	struct Payload
@@ -529,7 +529,7 @@
 //-----------------------------------------------------------------------------
 #ifdef TONEMAPPING
 	#include "ToneMapping.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	void  Main ()
 	{

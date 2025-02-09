@@ -8,19 +8,19 @@
 
 void ASmain ()
 {
-	RC<Image>			rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
-	RC<Image>			ds				= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
+	RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
+	RC<Image>		ds			= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 
-	const string		cm_addr			= "res/humus/LancellottiChapel/";	const string  cm_ext = ".jpg";	const uint2	cm_dim (2048);
+	const string	cm_addr		= "res/humus/LancellottiChapel/";	const string  cm_ext = ".jpg";	const uint2	cm_dim (2048);
 
-	RC<Image>			cubemap			= Image( EPixelFormat::RGBA8_UNorm, cm_dim, ImageLayer(6), MipmapLevel(~0) );	cubemap.Name( "Cubemap tex" );
-	RC<Image>			cubemap_view	= cubemap.CreateView( EImage::Cube );
+	RC<Image>		cubemap		= Image( EPixelFormat::RGBA8_UNorm, cm_dim, ImageLayer(6), MipmapLevel(~0) );	cubemap.Name( "Cubemap tex" );
+	RC<Image>		cubemap_view= cubemap.CreateView( EImage::Cube );
 
-	RC<Scene>			scene			= Scene();
+	RC<Scene>		scene		= Scene();
 
 	// setup camera
 	{
-		RC<RemoteCamera>	camera = RemoteCamera();
+		RC<FPVCamera>	camera = FPVCamera();
 
 		camera.ClipPlanes( 0.1f, 10.f );
 		camera.FovY( 70.f );

@@ -28,7 +28,7 @@ namespace
 	static void  MemChunkList_Test2 ()
 	{
 		LinearAllocator<>	alloc;
-		alloc.SetBlockSize( 4_Kb );
+		alloc.SetBlockSize( 4_KiB );
 
 		MemChunkList	view {256_b};
 

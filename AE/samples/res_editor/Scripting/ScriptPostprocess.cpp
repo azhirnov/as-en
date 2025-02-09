@@ -83,17 +83,20 @@ namespace
 			binder.Create();
 
 			binder.Comment( "Entry point: 'Main'");
-			binder.AddValue( "None",			EPostprocess::Unknown );
+			binder.AddValue( "None",				EPostprocess::Unknown );
 
 			binder.Comment( "Entry point: 'void mainImage (out float4 fragColor, in float2 fragCoord)'" );
-			binder.AddValue( "Shadertoy",		EPostprocess::Shadertoy );
+			binder.AddValue( "Shadertoy",			EPostprocess::Shadertoy );
+
+			binder.Comment( "Entry point: 'void mainCubemap (out float4 fragColor, in float2 fragCoord, in float3 rayOri, in float3 rayDir)'" );
+			binder.AddValue( "ShadertoyCubemap",	EPostprocess::ShadertoyCubemap );
 
 			binder.Comment( "Entry point: 'void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir)'" );
-			binder.AddValue( "ShadertoyVR",		EPostprocess::ShadertoyVR );
-			binder.AddValue( "ShadertoyVR_180",	EPostprocess::ShadertoyVR_180 );
-			binder.AddValue( "ShadertoyVR_360",	EPostprocess::ShadertoyVR_360 );
-			binder.AddValue( "Shadertoy_360",	EPostprocess::Shadertoy_360 );
-			StaticAssert( uint(EPostprocess::_Count) == 6 );
+			binder.AddValue( "ShadertoyVR",			EPostprocess::ShadertoyVR );
+			binder.AddValue( "ShadertoyVR_180",		EPostprocess::ShadertoyVR_180 );
+			binder.AddValue( "ShadertoyVR_360",		EPostprocess::ShadertoyVR_360 );
+			binder.AddValue( "Shadertoy_360",		EPostprocess::Shadertoy_360 );
+			StaticAssert( uint(EPostprocess::_Count) == 7 );
 		}
 		{
 			ClassBinder<ScriptPostprocess>	binder{ se };
@@ -170,7 +173,7 @@ namespace
 		}
 		#endif
 
-		result->_ubuffer = _CreateUBuffer( ub_size, "ShadertoyUB", EResourceState::UniformRead | EResourceState::FragmentShader );  // throw
+		result->_ubuffer = _CreateUBuffer( ub_size, "PostprocessPassUB", EResourceState::UniformRead | EResourceState::FragmentShader );  // throw
 
 		// create descriptor set
 		{
@@ -272,19 +275,21 @@ namespace AE::ResEditor
 	auto  ScriptPostprocess::_CreateUBType () __Th___
 	{
 		auto&	obj_storage = *ObjectStorage::Instance();
-		auto	it			= obj_storage.structTypes.find( "ShadertoyUB" );
+		auto	it			= obj_storage.structTypes.find( "PostprocessPassUB" );
 
 		if ( it != obj_storage.structTypes.end() )
 			return it->second;
 
-		ShaderStructTypePtr	st{ new ShaderStructType{"ShadertoyUB"}};
+		ShaderStructTypePtr	st{ new ShaderStructType{"PostprocessPassUB"}};
 		st->Set( EStructLayout::Std140, R"#(
 				float3		resolution;				// viewport resolution (in pixels)
 				float		time;					// shader playback time (in seconds)
+				float2		invResolution;			// 1.0/resolution, used for optimization
 				float		timeDelta;				// frame render time (in seconds), max value: 1/30s
 				uint		frame;					// shader playback frame, global frame counter
 				uint		passFrameId;			// current pass frame index
 				uint		seed;					// unique value, updated on each shader reloading
+				uint		colorSpace;				// swapchain color space (EColorSpace)
 				float4		channelTime;			// channel playback time (in seconds)
 				float4		channelResolution [4];	// channel resolution (in pixels)
 				float4		mouse;					// mouse unorm coords. xy: current (if MRB down), zw: click
@@ -404,7 +409,7 @@ namespace AE::ResEditor
 			ShaderStructTypePtr	st = _CreateUBType();	// throw
 			ubSize = st->StaticSize();
 
-			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ShadertoyUB", EResourceState::ShaderUniform, False{} );
+			ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "PostprocessPassUB", EResourceState::ShaderUniform, False{} );
 
 			for (auto [out, i] : WithIndex(_output))
 			{
@@ -417,14 +422,28 @@ namespace AE::ResEditor
 		_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 
 
-		uint			fs_line = 0;
-		String			fs;
-		const String	vs = R"#(
+		uint	fs_line = 0;
+		String	vs, fs;
+
+		// vertex shader
+		{
+			vs << R"#(
 	void Main () {
 		float2	uv = float2( gl.VertexIndex>>1, gl.VertexIndex&1 ) * 2.0;
-		gl.Position	= float4( uv * 2.0 - 1.0, 0.0, 1.0 );
-	}
-)#";
+		gl.Position	= float4( uv * 2.0 - 1.0, 0.0, 1.0 );)#";
+
+			if ( _ppFlags == EPostprocess::ShadertoyCubemap )
+			{
+				CHECK_THROW_MSG( GraphicsScheduler().GetFeatureSet().shaderOutputLayer == FeatureSet::EFeature::RequireTrue,
+					"Render to cubemap without GS is not supported" );
+
+				vs << "\ngl.Layer = gl.InstanceIndex;\n}";
+			}
+			else
+				vs << "\n}";
+		}
+
+		// fragment shader
 		{
 			String	header;
 			_AddDefines( _defines, INOUT header );
@@ -467,11 +486,29 @@ void Main ()
 )#";
 						break;
 
+					case EPostprocess::ShadertoyCubemap :
+						header << R"#(
+#include "CubeMap.glsl"
+void mainCubemap (out float4 fragColor, in float2 fragCoord, in float3 rayOri, in float3 rayDir);
+
+void Main ()
+{
+	float2	coord = gl.FragCoord.xy;		// + gl.SamplePosition;
+	coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
+
+	mainCubemap( )#" << _output.front().name << R"#(, coord, float3(0.0), CM_IdentitySC_Forward( ToSNorm(gl.FragCoord.xy / iResolution.xy), gl.Layer ));
+}
+)#";
+						break;
+
 					case EPostprocess::ShadertoyVR :
 					case EPostprocess::ShadertoyVR_180 :
 					case EPostprocess::ShadertoyVR_360 :
 					case EPostprocess::Shadertoy_360 :
 					{
+						CHECK_THROW_MSG( _controller,
+							"3D controller must be defined to enable VR mode" );
+
 						header << R"#(
 #include "Ray.glsl"
 void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir);

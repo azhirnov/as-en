@@ -32,13 +32,13 @@ namespace AE::Base
 	{
 		// some data may not be readn, so rollback to last consumed data
 
-		const bool	not_completelly_consumed	= _stream and (ArraySizeOf(_data) != _pos);
+		const bool	not_completely_consumed	= _stream and (ArraySizeOf(_data) != _pos);
 		const bool	allow_seek_set				= AllBits( _stream->GetSourceType(), ESourceType::RandomAccess );
 
-		if ( not_completelly_consumed and allow_seek_set )
+		if ( not_completely_consumed and allow_seek_set )
 			CHECK( _stream->SeekSet( Position() ))
 		else
-			CHECK( not not_completelly_consumed );
+			CHECK( not not_completely_consumed );
 	}
 
 /*
@@ -67,7 +67,7 @@ namespace AE::Base
 
 		_data.resize( _data.capacity() );	// should not throw
 
-		Bytes	readn = _stream->ReadSeq( _data.data(), ArraySizeOf(_data) );
+		Bytes	readn = _stream->ReadSeq( OUT _data.data(), ArraySizeOf(_data) );
 
 		ASSERT( usize(readn) <= _data.capacity() );
 		_data.resize( usize(readn) );		// should not throw

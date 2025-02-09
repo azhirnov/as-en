@@ -28,24 +28,37 @@ namespace AE::Base
 			PosAndSize ()						__NE___	{}
 			PosAndSize (Bytes pos, Bytes size)	__NE___	: pos{pos}, size{size} {}
 
-			ND_ Bytes  Remaining ()				C_NE___	{ return size - pos; }
+			ND_ Bytes	Remaining ()			C_NE___	{ ASSERT( IsFixedSize() );  return size - pos; }
+			ND_ bool	IsFixedSize ()			C_NE___	{ return size != UMax; }
 		};
 
 
 	// interface
 	public:
+
+		// Returns current position and file size.
+		//
 		ND_ virtual PosAndSize	PositionAndSize ()										C_NE___ = 0;
 
-		// requires 'SequentialAccess' in 'GetSourceType()'
+
+		// Move file position to current + 'offset'.
+		// Returns 'true' on success.
+		// Requires 'SequentialAccess' in 'GetSourceType()'.
+		//
 			virtual bool		SeekFwd (Bytes offset)									__NE___ = 0;
 
-		// returns size of readn data
+
+		// Returns size of readn data or zero on error or on end of file.
+		//
 		ND_ virtual Bytes		ReadSeq (OUT void* buffer, Bytes size)					__NE___ = 0;
 
-			virtual bool		Prefetch (Bytes offset, Bytes size)						__NE___ { Unused( offset, size );  return false; }
 
-		// requires 'RandomAccess' in 'GetSourceType()'
+		// Move file position to 'newPos'.
+		// Returns 'true' on success.
+		// Requires 'RandomAccess' in 'GetSourceType()'.
+		//
 			virtual bool		SeekSet (Bytes newPos)									__NE___;
+
 
 		// api for FastStream
 			virtual void		UpdateFastStream (OUT const void* &begin,
@@ -97,17 +110,33 @@ namespace AE::Base
 	{
 	// interface
 	public:
-		// returns remaining size
+
+		// Returns remaining size.
+		//
 		ND_ virtual Bytes	Reserve (Bytes additionalSize)								__NE___	{ DBG_WARNING( "Reserve() is not supported" );  Unused( additionalSize );  return 0_b; }
 
-		ND_ virtual Bytes	Position ()													C_NE___ = 0;	// same as 'Size()'
 
+		// Returns current position, it is equal to size of write-only file.
+		//
+		ND_ virtual Bytes	Position ()													C_NE___ = 0;
+
+
+		// Move file position to current + 'offset'.
+		// Returns 'true' on success.
+		//
 			virtual bool	SeekFwd (Bytes offset)										__NE___ = 0;
 
-		// returns size of written data
+
+		// Returns size of written data or zero on error.
+		//
 		ND_ virtual Bytes	WriteSeq (const void* buffer, Bytes size)					__NE___ = 0;
 
+
+		// Implementation may keep data in cache.
+		// This method will write all data from cache to the destination (file system, network address, etc).
+		//
 			virtual void	Flush ()													__NE___ = 0;
+
 
 		// api for FastStream
 			virtual void	UpdateFastStream (OUT void* &begin, OUT const void* &end,
@@ -189,7 +218,7 @@ namespace AE::Base
 */
 	inline bool  RStream::Read (OUT void* buffer, const Bytes size) __NE___
 	{
-		return ReadSeq( buffer, size ) == size;
+		return ReadSeq( OUT buffer, size ) == size;
 	}
 
 	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
@@ -198,7 +227,7 @@ namespace AE::Base
 		NOTHROW_ERR( str.resize( length ));
 
 		const Bytes		expected_size	{ sizeof(str[0]) * str.length() };
-		const Bytes		current_size	= ReadSeq( str.data(), expected_size );
+		const Bytes		current_size	= ReadSeq( OUT str.data(), expected_size );
 
 		str.resize( usize(current_size / sizeof(str[0])) );		// nothrow
 
@@ -218,7 +247,7 @@ namespace AE::Base
 		NOTHROW_ERR( arr.resize( count ));
 
 		const Bytes		expected_size	{ sizeof(arr[0]) * arr.size() };
-		const Bytes		current_size	= ReadSeq( arr.data(), expected_size );
+		const Bytes		current_size	= ReadSeq( OUT arr.data(), expected_size );
 
 		arr.resize( usize(current_size / sizeof(arr[0])) );		// nothrow
 
@@ -236,7 +265,7 @@ namespace AE::Base
 	bool  RStream::Read (OUT T &data) __NE___
 	{
 		constexpr Bytes  size {sizeof(data)};
-		return ReadSeq( AddressOf(data), size ) == size;
+		return ReadSeq( OUT AddressOf(data), size ) == size;
 	}
 
 	inline bool  RStream::Read (Bytes dataSize, OUT MemChunkList &mem) __NE___

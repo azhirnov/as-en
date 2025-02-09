@@ -67,7 +67,7 @@ namespace
 			binder.Operators().Binary( EBinaryOperator::Div, &PhysicalQuantity_Mul2<T1,T2,T3> );
 		}
 
-		if constexpr( not IsSameTypes< T1, T2 >)
+		if constexpr( not IsSame< T1, T2 >)
 		{
 			ClassBinder<T2>		binder{ se };
 			binder.Operators().Binary( EBinaryOperator::Div, &PhysicalQuantity_Mul2<T2,T1,T3> );
@@ -85,7 +85,7 @@ namespace
 
 	static void  BindPhysicalQuantity (const ScriptEnginePtr &se) __Th___
 	{
-		using PQ = Math::DefaultPhysicalQuantity<float>;
+		using PQ = Base::DefaultPhysicalQuantity<float>;
 
 		#define AE_PHYSICAL_TYPES_VIS( _name_ )														\
 		{																							\
@@ -141,17 +141,17 @@ namespace
 
 	static void  BindPhysicalQuantityVec (const ScriptEnginePtr &se) __Th___
 	{
-		using PQ = Math::DefaultPhysicalQuantity<float>;
+		using PQ = Base::DefaultPhysicalQuantity<float>;
 
 		#define AE_PHYSICAL_TYPES_VIS( _name_ )										\
 		{																			\
-			using T = Math::PhysicalQuantityPackedVec2< PQ::_name_ >;				\
+			using T = Base::PhysicalQuantityPackedVec2< PQ::_name_ >;				\
 			ClassBinder<T>		binder{ se };										\
 			binder.CreateClassValue();												\
 			binder.AddConstructor( &PhysicalQuantityVec_Ctor1<T>, {"value"} );		\
 			binder.AddConstructor( &PhysicalQuantityVec_Ctor2<T>, {"x", "y"} );		\
 		}{																			\
-			using T = Math::PhysicalQuantityPackedVec3< PQ::_name_ >;				\
+			using T = Base::PhysicalQuantityPackedVec3< PQ::_name_ >;				\
 			ClassBinder<T>		binder{ se };										\
 			binder.CreateClassValue();												\
 			binder.AddConstructor( &PhysicalQuantityVec_Ctor1<T>, {"value"} );		\

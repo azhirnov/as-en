@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/RenderPassDesc.h"
+#include "graphics_rhi/Public/RenderPassDesc.h"
 #include "Packer/PackCommon.h"
 
 #ifdef AE_BUILD_PIPELINE_COMPILER

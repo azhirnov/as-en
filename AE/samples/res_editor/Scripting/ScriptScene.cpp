@@ -38,8 +38,8 @@ namespace AE::ResEditor
 		dst.transform	=	float4x4::RotateX( Rad{rotation.x} )	*
 							float4x4::RotateY( Rad{rotation.y} )	*
 							float4x4::RotateZ( Rad{rotation.z} )	*
-							float4x4::Translated( pos )				*
-							float4x4::Scaled( scale );
+							float4x4::Translate( pos )				*
+							float4x4::Scale( scale );
 	}
 
 	void  ScriptScene::InputGeometry2 (const ScriptGeomSourcePtr &geom, const packed_float3 &pos) __Th___
@@ -48,7 +48,7 @@ namespace AE::ResEditor
 
 		auto&	dst		= _geomInstances.emplace_back();
 		dst.geom		= geom;
-		dst.transform	= float4x4::Translated( pos );
+		dst.transform	= float4x4::Translate( pos );
 	}
 
 	void  ScriptScene::InputGeometry3 (const ScriptGeomSourcePtr &geom) __Th___
@@ -394,10 +394,12 @@ namespace AE::ResEditor
 		st->Set( EStructLayout::Std140, R"#(
 				// view //
 				float2		resolution;				// viewport resolution (in pixels)
+				float2		invResolution;			// 1.0/resolution, used for optimization
 				float		time;					// shader playback time (in seconds)
 				float		timeDelta;				// frame render time (in seconds), max value: 1/30s
 				uint		frame;					// shader playback frame, global frame counter
 				uint		seed;					// unique value, updated on each shader reloading
+				float4		mouse;					// mouse unorm coords. xy: current (if MRB down), zw: click
 
 				// controller //
 				CameraData	camera;
@@ -458,20 +460,28 @@ namespace AE::ResEditor
 			}
 		}{
 			RenderPassSpecPtr	rp_spec = compat_rp->AddSpecialization2( "rp" );
-			
+
 			for (auto [out, i] : WithIndex(_output))
 			{
 				RPAttachmentSpecPtr	att		= rp_spec->AddAttachment2( out.name );
-				const bool			is_ds	= out.rt->IsDepthOrStencil();
-				const auto			state	= is_ds ?
-												EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS :
-												EResourceState::ColorAttachment;
+				EResourceState		state	= EResourceState::ColorAttachment;
+
+				if ( out.rt->IsDepthOrStencil() )
+				{
+					if ( out.loadOp == EAttachmentLoadOp::Load and out.storeOp == EAttachmentStoreOp::None )
+						state = EResourceState::DepthStencilTest;
+					else
+						state = EResourceState::DepthStencilAttachment_RW;
+
+					state |= EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS;
+				}
+
 				att->loadOp		= out.loadOp;
 				att->storeOp	= out.storeOp;
-				
+
 				if ( out.loadOp == EAttachmentLoadOp::Clear )
 					att->AddLayout( "ExternalIn", EResourceState::Invalidate | state );
-				
+
 				att->AddLayout( subpass, state );
 			}
 		}

@@ -6,9 +6,9 @@
 #include "pch/Scripting.h"
 #include "pch/VFS.h"
 
-#include "graphics/Public/IDs.h"
-#include "graphics/Private/EnumUtils.h"
-#include "graphics/Scripting/GraphicsBindings.h"
+#include "graphics_rhi/Public/IDs.h"
+#include "graphics_rhi/Private/EnumUtils.h"
+#include "graphics_rhi/Scripting/GraphicsBindings.h"
 
 #include "geometry_tools/SphericalCube/SphericalCubeMath.h"
 

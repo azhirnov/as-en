@@ -362,7 +362,7 @@ namespace AE::PipelineCompiler
 		// GL_ARB_shader_draw_parameters
 		_typeMap.emplace( "gl.BaseInstance",		"gl_BaseInstance" );			// or gl_BaseInstanceARB
 		_typeMap.emplace( "gl.BaseVertex",			"gl_BaseVertex" );				// or gl_BaseVertexARB
-		_typeMap.emplace( "gl.DrawID",				"gl_DrawID" );					// or gl_DrawIDARB
+		_typeMap.emplace( "gl.DrawIndex",			"gl_DrawID" );					// or gl_DrawIDARB
 
 		// image
 		_typeMap.emplace( "gl.image.AtomicAdd",			"imageAtomicAdd" );
@@ -709,6 +709,11 @@ namespace AE::PipelineCompiler
 		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_shader_quad.txt
 		_typeMap.emplace( "gl.quadGroup.All",		"subgroupQuadAll" );
 		_typeMap.emplace( "gl.quadGroup.Any",		"subgroupQuadAny" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GL_EXT_expect_assume.txt
+		_typeMap.emplace( "gl.Assume",				"assumeEXT" );
+		_typeMap.emplace( "gl.Expect",				"expectEXT" );
+
 	}
 
 /*

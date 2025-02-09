@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define CLEAR_ACCUM
 #	define FRONT_VIEW
 #	define MIPMAP_1
@@ -154,7 +154,7 @@
 	float  DistToLens (float3 rayPos, const float3 lensPos, float angle)
 	{
 		rayPos = SDF_Move( rayPos, lensPos );
-		rayPos.xy = SDF_Rotate2D( rayPos.xy, angle * Pi() );
+		rayPos.xy = SDF_Rotate2D( rayPos.xy, angle * float_Pi );
 
 		return Min( SDF_Sphere( rayPos, 0.05f ),
 					SDF_Ellipsoid( rayPos, float3( 0.1f, 0.01f, 0.1f ) ));

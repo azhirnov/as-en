@@ -350,6 +350,24 @@ namespace AE::ResLoader
 
 /*
 =================================================
+	ZeroMem
+=================================================
+*/
+	void  IntermImage::ZeroMem () __NE___
+	{
+		for (ArrayLayers_t& arr_layers : _data)
+		{
+			for (Level& img : arr_layers)
+			{
+				void*	ptr = img.PixelData();
+				if ( ptr != null )
+					Base::ZeroMem( OUT ptr, img.DataSize() );
+			}
+		}
+	}
+
+/*
+=================================================
 	GetLevel
 =================================================
 */

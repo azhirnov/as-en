@@ -36,6 +36,19 @@ namespace
 	}
 
 
+	static void  CountRZero_Test1 ()
+	{
+		uint	val;
+		val = CountRZero( 0u );				TEST( val == 32u );
+		val = CountRZero( ubyte{0} );		TEST( val == 8u );
+		val = CountRZero( ushort{0} );		TEST( val == 16u );
+		val = CountRZero( ulong{0} );		TEST( val == 64u );
+		val = CountRZero( 0x100u );			TEST( val == 8 );
+		val = CountRZero( 0x101u );			TEST( val == 0 );
+		val = CountRZero( 0x8000'0000u );	TEST( val == 31u );
+	}
+
+
 	static void  SafeBitShift_Test1 ()
 	{
 		uint	c0 = SafeLeftBitShift( 1u,  1 );			TEST( c0 == 0x00000002 );
@@ -133,6 +146,15 @@ namespace
 			int	a4 = ShuffleBitScan( bits, 20 );	TEST_Eq( a4, 12 );	TEST( HasBit( bits, a4 ));
 		}
 	}
+
+
+	static void  BitDiff_Test1 ()
+	{
+		int	a0 = BitDiff( 1.f, 1.00001f );
+		TEST_Eq( a0, 7 );
+		TEST( BitEqual( 1.f, 1.00001f, EnabledBitCount(32-a0) ));
+		TEST( not BitEqual( 1.f, 1.00001f, EnabledBitCount(32-a0+1) ));
+	}
 }
 
 
@@ -140,6 +162,7 @@ extern void UnitTest_Math_BitMath ()
 {
 	IntLog2_Test1();
 	BitScanForward_Test1();
+	CountRZero_Test1();
 	SafeBitShift_Test1();
 	BitRotate_Test1();
 	ToBitMask_Test1();
@@ -147,6 +170,7 @@ extern void UnitTest_Math_BitMath ()
 	AnyBits_Test1();
 	IntLog10_Test1();
 	ShuffleBitScan_Test1();
+	BitDiff_Test1();
 
 	TEST_PASSED();
 }

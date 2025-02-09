@@ -18,7 +18,7 @@ namespace _hidden_
 	template <typename RefType, usize I, typename Head, typename... Tail>
 	struct Tuple_GetFirstIndex< RefType, I, std::tuple<Head, Tail...> >
 	{
-		inline static constexpr usize	value = Conditional< IsSameTypes<RefType, Head>,
+		inline static constexpr usize	value = Conditional< IsSame<RefType, Head>,
 													std::integral_constant<usize, I>,
 													Tuple_GetFirstIndex< RefType, I+1, std::tuple<Tail...> > >::value;
 	};
@@ -200,25 +200,25 @@ namespace _hidden_
 
 
 		template <usize I>
-		NdCxIA exact_t			Get ()				r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCzIA exact_t			Get ()				r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 		template <usize I>
-		NdCxIA exact_t			Get ()				CrNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCzIA exact_t			Get ()				CrNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 		template <usize I>
-		NdCxIA exact_t			Get ()				rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCzIA exact_t			Get ()				rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 
 		// for structured bindings
 	  #if 1
 		template <usize I>
-		NdCxIA exact_t			get ()				r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCzIA exact_t			get ()				r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 		template <usize I>
-		NdCxIA exact_t			get ()				CrNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCzIA exact_t			get ()				CrNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 		template <usize I>
-		NdCxIA exact_t			get ()				rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCzIA exact_t			get ()				rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 	  #endif
 
 
@@ -249,7 +249,7 @@ namespace _hidden_
 
 	private:
 		template <usize I>
-		ND_ constexpr bool  _RecursiveNonNull ()	C_NE___
+		NdCx__ bool  _RecursiveNonNull ()			C_NE___
 		{
 			if constexpr( I+1 < sizeof...(Types) )
 				return IsNotNull<I>() and _RecursiveNonNull<I+1>();
@@ -258,7 +258,7 @@ namespace _hidden_
 		}
 
 		template <usize I>
-		ND_ constexpr bool  _RecursiveNull ()		C_NE___
+		NdCx__ bool  _RecursiveNull ()				C_NE___
 		{
 			if constexpr( I+1 < sizeof...(Types) )
 				return IsNull<I>() and _RecursiveNull<I+1>();

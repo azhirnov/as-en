@@ -26,8 +26,8 @@ namespace
 		dsl->AddUniformBuffer( EShaderStages::Vertex, "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, False{} );
 		dsl->AddStorageBuffer( EShaderStages::Vertex | EShaderStages::Fragment, "storageBuf", ArraySize{2}, "ubuf", EAccessType::Coherent, EResourceState::ShaderStorage_RW, False{} );
 		dsl->AddUniformTexelBuffer( EShaderStages::Fragment, "texBuffer", ArraySize{1}, EImageType::UInt | EImageType::Buffer, EResourceState::ShaderSample );
-		dsl->AddStorageImage( EShaderStages::Fragment, "storageImage", ArraySize{1}, EImageType::Float | EImageType::Img2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
-		dsl->AddSampledImage( EShaderStages::Fragment, "colorTex", ArraySize{1}, EImageType::Float | EImageType::Img2D, EResourceState::ShaderSample );
+		dsl->AddStorageImage( EShaderStages::Fragment, "storageImage", ArraySize{1}, EImageType::Float | EImageType::Dim2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+		dsl->AddSampledImage( EShaderStages::Fragment, "colorTex", ArraySize{1}, EImageType::Float | EImageType::Dim2D, EResourceState::ShaderSample );
 		dsl->AddImmutableSampler( EShaderStages::Fragment, "imtblSampler", "DefSampler" );
 		TEST( dsl->Build() );
 
@@ -68,7 +68,7 @@ constexpr sampler imtblSampler (
 )#";
 		const String	ref_decl  = R"#(
   /* state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader */
-  /* static size: 32 b, array stride: 0 b */
+  /* static size: 32 B, array stride: 0 B */
   device ubuf storageBuf [[buffer(3)]] [2],
   /* state: ShaderSample | FragmentShader */
   texture_buffer< uint, access::read > texBuffer [[texture(0)]],
@@ -110,10 +110,10 @@ constexpr sampler imtblSampler (
 struct ArgBufMaterialType
 {
   /* state: ShaderUniform | VertexProcessingShaders */
-  /* size: 32 b */
+  /* size: 32 B */
   ubuf constBuf [[id(0)]] ;
   /* state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader */
-  /* static size: 32 b, array stride: 0 b */
+  /* static size: 32 B, array stride: 0 B */
   device ubuf storageBuf [[id(2)]] [2];
   /* state: ShaderSample | FragmentShader */
   texture_buffer< uint, access::read > texBuffer [[id(4)]];
@@ -147,14 +147,14 @@ extern void  UnitTest_DSLayout_MSL ()
 	ObjectStorage::SetInstance( &obj );
 
 	ScriptFeatureSetPtr	fs {new ScriptFeatureSet{ "DefaultFS" }};
-	fs->fs.SetAll( FeatureSet::EFeature::RequireTrue );
+	fs->fs.Init( FeatureSet::EFeature::RequireTrue );
 	fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
-	fs->fs.perDescrSet.maxUniformBuffers = 8;
-	fs->fs.perDescrSet.maxStorageBuffers = 8;
-	fs->fs.perDescrSet.maxStorageImages = 8;
-	fs->fs.perDescrSet.maxSampledImages = 8;
-	fs->fs.perDescrSet.maxSamplers = 8;
-	fs->fs.perDescrSet.maxTotalResources = 1024;
+	fs->fs.perPipeline.maxUniformBuffers = 8;
+	fs->fs.perPipeline.maxStorageBuffers = 8;
+	fs->fs.perPipeline.maxStorageImages = 8;
+	fs->fs.perPipeline.maxSampledImages = 8;
+	fs->fs.perPipeline.maxSamplers = 8;
+	fs->fs.perPipeline.maxTotalResources = 1024;
 	fs->fs.perStage.maxUniformBuffers = 8;
 	fs->fs.perStage.maxStorageBuffers = 8;
 	fs->fs.perStage.maxStorageImages = 8;

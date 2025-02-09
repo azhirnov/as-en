@@ -33,7 +33,8 @@ void ASmain ()
 			ppln.ShaderIncludeDir( GetSharedShadersPath() );
 
 			ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
-			ppln.CompileWithNameMapping( output + suffix[i] + "/ui_pipelines.bin" );
+			ppln.AddNameMapping();
+			ppln.Compile( output + suffix[i] + "/ui_pipelines.bin" );
 		}
 	}
 

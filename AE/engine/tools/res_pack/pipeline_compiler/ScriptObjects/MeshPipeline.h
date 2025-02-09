@@ -39,6 +39,9 @@ namespace AE::PipelineCompiler
 		void  SetMeshGroupSize2 (uint x, uint y)						__Th___	{ SetMeshGroupSize3( x, y, UMax ); }
 		void  SetMeshGroupSize3 (uint x, uint y, uint z)				__Th___;
 
+		void  SetTaskGroupSizeAtLoadTime ()								__Th___;
+		void  SetMeshGroupSizeAtLoadTime ()								__Th___;
+
 		void  SetDynamicState (/*EPipelineDynamicState*/uint states)	__Th___;
 		void  SetRenderState (const RenderState &state)					__Th___;
 		void  SetRenderState2 (const String &name)						__Th___;

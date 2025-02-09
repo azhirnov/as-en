@@ -22,7 +22,7 @@ namespace _hidden_
 	Utf8Decode (v1)
 =================================================
 */
-	ND_ forceinline CharUtf32  Utf8Decode_v1 (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
+	Nd__IF CharUtf32  Utf8Decode_v1 (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
 	{
 		StaticAssert( sizeof(utf8proc_uint8_t) == sizeof(*str) );
 
@@ -40,10 +40,10 @@ namespace _hidden_
 	1.5-2x faster than 'Utf8Decode_v1()'
 =================================================
 */
-	ND_ forceinline constexpr CharUtf32  Utf8Decode_v2 (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
+	NdCxIF CharUtf32  Utf8Decode_v2 (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
 	{
 		str += pos;
-		const uint	u = uint{*str};
+		const uint	u = uint(*str);
 
 		if ( (u < 0b1000'0000) and (length >= 1) )
 		{
@@ -54,25 +54,25 @@ namespace _hidden_
 		if ( (u >= 0b1100'0000) and (u <= 0b1101'1111) and (length >= 2) )
 		{
 			pos += 2;
-			return	(CharUtf32( str[0] & 0b0001'1111 ) << 6) |
-					 CharUtf32( str[1] & 0b0011'1111 );
+			return	(CharUtf32( uint(str[0]) & 0b0001'1111 ) << 6) |
+					 CharUtf32( uint(str[1]) & 0b0011'1111 );
 		}
 
 		if ( (u >= 0b1100'0000) and (u <= 0b1110'1111) and (length >= 3) )
 		{
 			pos += 3;
-			return	(CharUtf32( str[0] & 0b0000'1111 ) << 12) |
-					(CharUtf32( str[1] & 0b0011'1111 ) <<  6) |
-					 CharUtf32( str[2] & 0b0011'1111 );
+			return	(CharUtf32( uint(str[0]) & 0b0000'1111 ) << 12) |
+					(CharUtf32( uint(str[1]) & 0b0011'1111 ) <<  6) |
+					 CharUtf32( uint(str[2]) & 0b0011'1111 );
 		}
 
 		if ( (u >= 0b1110'0000) and (u <= 0b1111'0111) and (length >= 4) )
 		{
 			pos += 4;
-			return	(CharUtf32( str[0] & 0b0000'0111 ) << 18) |
-					(CharUtf32( str[1] & 0b0011'1111 ) << 12) |
-					(CharUtf32( str[2] & 0b0011'1111 ) <<  6) |
-					 CharUtf32( str[3] & 0b0011'1111 );
+			return	(CharUtf32( uint(str[0]) & 0b0000'0111 ) << 18) |
+					(CharUtf32( uint(str[1]) & 0b0011'1111 ) << 12) |
+					(CharUtf32( uint(str[2]) & 0b0011'1111 ) <<  6) |
+					 CharUtf32( uint(str[3]) & 0b0011'1111 );
 		}
 
 		return UMax;
@@ -83,9 +83,9 @@ namespace _hidden_
 	Utf8CharWidth
 =================================================
 */
-	ND_ forceinline constexpr uint  Utf8CharWidth (const CharUtf8 *str, const usize length, const uint defaultWidth = 0) __NE___
+	NdCxIF uint  Utf8CharWidth (const CharUtf8 *str, const usize length, const uint defaultWidth = 0) __NE___
 	{
-		const uint	u = uint{*str};
+		const uint	u = uint(*str);
 
 		if ( (u < 0b1000'0000) and (length >= 1) )
 			return 1;
@@ -176,7 +176,7 @@ namespace _hidden_
 	Utf8Decode
 =================================================
 */
-	ND_ forceinline CharUtf32  Utf8Decode (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
+	Nd__IF CharUtf32  Utf8Decode (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
 	{
 		ASSERT( pos < length );
 		CharUtf32	c = Base::_hidden_::Utf8Decode_v1( str, length, INOUT pos );
@@ -184,7 +184,7 @@ namespace _hidden_
 		return c;
 	}
 
-	ND_ forceinline CharUtf32  Utf8Decode (BasicStringView<CharUtf8> str, INOUT usize &pos) __NE___
+	Nd__IF CharUtf32  Utf8Decode (BasicStringView<CharUtf8> str, INOUT usize &pos) __NE___
 	{
 		return Utf8Decode( str.data(), str.length(), INOUT pos );
 	}
@@ -194,7 +194,7 @@ namespace _hidden_
 	Utf8CharCount
 =================================================
 */
-	ND_ forceinline usize  Utf8CharCount (const CharUtf8 *str, const usize length) __NE___
+	Nd__IF usize  Utf8CharCount (const CharUtf8 *str, const usize length) __NE___
 	{
 		usize	count = 0;
 		for (usize pos = 0; pos < length; ++count)
@@ -205,7 +205,7 @@ namespace _hidden_
 		return count;
 	}
 
-	ND_ forceinline usize  Utf8CharCount (BasicStringView<CharUtf8> str) __NE___
+	Nd__IF usize  Utf8CharCount (BasicStringView<CharUtf8> str) __NE___
 	{
 		return Utf8CharCount( str.data(), str.length() );
 	}
@@ -225,7 +225,7 @@ namespace _hidden_
 	Utf32IsValid
 =================================================
 */
-	ND_ forceinline bool  Utf32IsValid (CharUtf32 c) __NE___
+	Nd__IF bool  Utf32IsValid (CharUtf32 c) __NE___
 	{
 		return utf8proc_codepoint_valid( c );
 	}
@@ -235,12 +235,12 @@ namespace _hidden_
 	Utf32ToUpper
 =================================================
 */
-	ND_ forceinline CharUtf32  Utf32ToUpper (CharUtf32 c) __NE___
+	Nd__IF CharUtf32  Utf32ToUpper (CharUtf32 c) __NE___
 	{
 		return utf8proc_toupper( c );
 	}
 
-	ND_ forceinline bool  Utf32IsUpper (CharUtf32 c) __NE___
+	Nd__IF bool  Utf32IsUpper (CharUtf32 c) __NE___
 	{
 		return utf8proc_isupper( c ) == 1;
 	}
@@ -250,7 +250,7 @@ namespace _hidden_
 	Utf32ToLower
 =================================================
 */
-	ND_ forceinline CharUtf32  Utf32ToLower (CharUtf32 c) __NE___
+	Nd__IF CharUtf32  Utf32ToLower (CharUtf32 c) __NE___
 	{
 		return utf8proc_tolower( c );
 	}
@@ -264,7 +264,7 @@ namespace _hidden_
 	that are not the first or last word of the title.
 =================================================
 */
-	ND_ forceinline CharUtf32  Utf32ToTitle (CharUtf32 c) __NE___
+	Nd__IF CharUtf32  Utf32ToTitle (CharUtf32 c) __NE___
 	{
 		return utf8proc_totitle( c );
 	}

@@ -9,17 +9,16 @@
 # feature support:
 #	https://en.cppreference.com/w/cpp/compiler_support
 
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
-
 # options:
 #	AE_ENABLE_COMPILER_WARNINGS		BOOL :		TRUE - for engine,	FALSE - for external projects
 #	AE_USE_SANITIZER				BOOL
 #	AE_DISABLE_THREADS				BOOL :		for emscripten
 #	AE_ENABLE_EXCEPTIONS			BOOL :		TRUE - enable,		FALSE - disable exception and RTTI
 #	AE_ENABLE_LOGS					BOOL
-#	AE_SIMD_AVX						STRING :	0, 1, 2, 3(AVX512)
+#	AE_SIMD_AVX						STRING :	0, 1, 2, 3(AVX512F + extensions)
 #	AE_SIMD_SSE						STRING :	0, 20, 30, 31, 41, 42
-#	AE_SIMD_AES						STRING :	0, 1
+#	AE_SIMD_AES						STRING :	0, 1, 2, 3
+#	AE_SIMD_SHA						STRING :	0, 20, 21, 30
 
 
 # detect target platform
@@ -66,7 +65,7 @@ if (MSVC)
 	if (NOT DEFINED CMAKE_GENERATOR_PLATFORM)
 		set( CMAKE_GENERATOR_PLATFORM "X64" )
 	endif()
-	string( TOUPPER ${CMAKE_GENERATOR_PLATFORM} PLATFORM_NAME )
+	string( TOUPPER "${CMAKE_GENERATOR_PLATFORM}" PLATFORM_NAME )
 	if ( (DEFINED PLATFORM_NAME) AND (NOT (PLATFORM_NAME STREQUAL "")) )
 		if (${PLATFORM_NAME} STREQUAL "ARM64")
 			set( TARGET_CPU_ARCH "ARM64" )
@@ -131,28 +130,42 @@ set( PROJECTS_SHARED_DEFINES_DEBUG   "AE_CFG_DEBUG"		"AE_DEBUG"	)
 # setup SIMD
 #==================================================================================================
 if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") )
-	set( AE_SIMD_AVX "0" CACHE STRING "AVX version: 0, 1, 2, 3(AVX512)" )
-	set( AE_SIMD_SSE "0" CACHE STRING "SSE version: 0, 20, 30, 31, 41, 42" )
-	set( AE_SIMD_AES "0" CACHE STRING "AES version: 0, 1" )
+	set( AE_SIMD_AVX  "0" CACHE STRING "AVX version: 0, 1, 2, 3(AVX512)" )
+	set( AE_SIMD_SSE  "0" CACHE STRING "SSE version: 0, 20, 30, 31(SSS3), 41, 42, 50(SSE4A)" )
+	set( AE_SIMD_AES  "0" CACHE STRING "enable AES: 0, 1(AES), 2(VAES), 3(AESKL)" )
+	set( AE_SIMD_SHA  "0" CACHE STRING "enable SHA: 0, 20(SHA256), 21(SHA2_512)" )
+	set( AE_SIMD_FMA  "0" CACHE STRING "enable FMA: 0 or 1" )
+	set( AE_SIMD_F16C "0" CACHE STRING "enable F16C: 0 or 1" )
 
-	if (${AE_SIMD_AVX} GREATER 0)
+	if ( ${AE_SIMD_AVX} GREATER 0 )
 		set( AE_SIMD_SSE "42" CACHE INTERNAL "" FORCE )
+		set( AE_SIMD_SHA "20" CACHE INTERNAL "" FORCE )
 		set( AE_SIMD_AES "1"  CACHE INTERNAL "" FORCE )
 	endif()
-	message( STATUS "AE_SIMD_AVX: ${AE_SIMD_AVX}" )
-	message( STATUS "AE_SIMD_SSE: ${AE_SIMD_SSE}" )
-	message( STATUS "AE_SIMD_AES: ${AE_SIMD_AES}" )
+	if ( ${AE_SIMD_AVX} GREATER_EQUAL 2 )
+		set( AE_SIMD_FMA  "1" CACHE INTERNAL "" FORCE )
+		set( AE_SIMD_F16C "1" CACHE INTERNAL "" FORCE )
+	endif()
+	message( STATUS "AE_SIMD_AVX:  ${AE_SIMD_AVX}" )
+	message( STATUS "AE_SIMD_SSE:  ${AE_SIMD_SSE}" )
+	message( STATUS "AE_SIMD_SHA:  ${AE_SIMD_SHA}" )
+	message( STATUS "AE_SIMD_AES:  ${AE_SIMD_AES}" )
+	message( STATUS "AE_SIMD_FMA:  ${AE_SIMD_FMA}" )
+	message( STATUS "AE_SIMD_F16C: ${AE_SIMD_F16C}" )
 
-	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_SIMD_AVX=${AE_SIMD_AVX}" "AE_SIMD_SSE=${AE_SIMD_SSE}" "AE_SIMD_AES=${AE_SIMD_AES}" )
+	string( FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" outPos )
+	set( COMPILER_MSVC_CLANG OFF )
+	if ( (outPos GREATER -1) )
+		set( COMPILER_MSVC_CLANG ON )
+	endif()
 
-	if ( MSVC )
-		if (${AE_SIMD_AVX} EQUAL 3)
+	if ( MSVC AND (NOT ${COMPILER_MSVC_CLANG}) )
+		if (${AE_SIMD_AVX} GREATER_EQUAL 3)
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} /arch:AVX512 )
 		elseif (${AE_SIMD_AVX} EQUAL 2)
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} /arch:AVX2 )
 		elseif (${AE_SIMD_AVX} EQUAL 1)
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} /arch:AVX )
-			set( AE_SIMD_SSE "42" )
 		elseif (${AE_SIMD_AVX} EQUAL 0)
 			if (${CMAKE_SIZEOF_VOID_P} EQUAL 8)
 				# SSE2 enabled by default for x64
@@ -166,11 +179,16 @@ if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") 
 			message( FATAL_ERROR "unsupported AE_SIMD_AVX flags: ${AE_SIMD_AVX}" )
 		endif()
 	else()
-		if (${AE_SIMD_AVX} EQUAL 2)
+		if (${AE_SIMD_AVX} GREATER_EQUAL 3)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx512f )
+		elseif (${AE_SIMD_AVX} EQUAL 2)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-avx512f )
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx2 )
 		elseif (${AE_SIMD_AVX} EQUAL 1)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-avx512f )
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx -mno-avx2 )
 		elseif (${AE_SIMD_AVX} EQUAL 0)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-avx512f )
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-avx )
 			# SSE
 			if (${AE_SIMD_SSE} EQUAL 42)
@@ -191,10 +209,64 @@ if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") 
 		else()
 			message( FATAL_ERROR "unsupported AE_SIMD_AVX flags: ${AE_SIMD_AVX}" )
 		endif()
+
+		if (${AE_SIMD_FMA} EQUAL 1)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mfma )
+		elseif (${AE_SIMD_FMA} EQUAL 0)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-fma )
+		else()
+			message( FATAL_ERROR "unsupported AE_SIMD_FMA flags: ${AE_SIMD_FMA}" )
+		endif()
+
+		if (${AE_SIMD_F16C} EQUAL 1)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mf16c )
+		elseif (${AE_SIMD_F16C} EQUAL 0)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-f16c )
+		else()
+			message( FATAL_ERROR "unsupported AE_SIMD_F16C flags: ${AE_SIMD_F16C}" )
+		endif()
+
+		if (${AE_SIMD_SHA} EQUAL 21)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -msha512 )
+		elseif (${AE_SIMD_SHA} EQUAL 20)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -msha )
+		elseif (${AE_SIMD_SHA} EQUAL 0)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-sha )
+		else()
+			message( FATAL_ERROR "unsupported AE_SIMD_SHA flags: ${AE_SIMD_SHA}" )
+		endif()
+
+		if (${AE_SIMD_AES} EQUAL 3)
+		elseif (${AE_SIMD_AES} EQUAL 2)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -maes -mavx512-vaes )
+		elseif (${AE_SIMD_AES} EQUAL 1)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -maes )
+		elseif (${AE_SIMD_AES} EQUAL 0)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-aes )
+		else()
+			message( FATAL_ERROR "unsupported AE_SIMD_AES flags: ${AE_SIMD_AES}" )
+		endif()
 	endif()
+
+	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES}
+		 "AE_SIMD_AVX=${AE_SIMD_AVX}" "AE_SIMD_SSE=${AE_SIMD_SSE}" "AE_SIMD_AES=${AE_SIMD_AES}"
+		 "AE_SIMD_SHA=${AE_SIMD_SHA}" "AE_SIMD_FMA=${AE_SIMD_FMA}" "AE_SIMD_F16C=${AE_SIMD_F16C}" )
 
 elseif ( (${TARGET_CPU_ARCH} STREQUAL "ARM64") OR (${TARGET_CPU_ARCH} STREQUAL "ARM32") )
 	# AE_SIMD_NEON defined in source
+	set( AE_SIMD_NEON_HALF	"0" CACHE STRING "enable NEON FP16: 0 or 1" )
+
+	if ( NOT (${TARGET_CPU_ARCH} STREQUAL "ARM64") )
+		set( AE_SIMD_NEON_HALF "0" CACHE INTERNAL "" FORCE )
+	endif()
+	message( STATUS "AE_SIMD_NEON_HALF: ${AE_SIMD_NEON_HALF}" )
+
+	if (${AE_SIMD_NEON_HALF} EQUAL 1)
+		set( COMPILER_FLAGS ${COMPILER_FLAGS} -march=armv8-a+fp16 )
+	endif()
+	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES}
+		 "AE_SIMD_NEON_HALF=${AE_SIMD_NEON_HALF}" )
+
 elseif (${TARGET_CPU_ARCH} STREQUAL "i686")
 	# no SIMD
 else()
@@ -206,7 +278,6 @@ endif()
 # Visual Studio Compilation settings
 #==================================================================================================
 set( COMPILER_MSVC OFF )
-set( COMPILER_MSVC_CLANG OFF )
 if ( MSVC )
 	if (DEFINED DETECTED_COMPILER)
 		message( FATAL_ERROR "multiple compiler types detected, previous: '${DETECTED_COMPILER}'" )
@@ -218,6 +289,7 @@ if ( MSVC )
 		set( DETECTED_COMPILER "COMPILER_MSVC" )
 	endif()
 	string( FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" outPos )
+	set( COMPILER_MSVC_CLANG OFF )
 	if ( (outPos GREATER -1) )
 		set( COMPILER_MSVC_CLANG ON )
 		set( DETECTED_COMPILER "COMPILER_MSVC_CLANG" )
@@ -284,7 +356,7 @@ if ( MSVC )
 		# errors
 		/we4002 /we4099 /we4129 /we4130 /we4172 /we4201 /we4238 /we4239 /we4240 /we4251 /we4263 /we4264 /we4266 /we4273 /we4293
 		/we4305 /we4390 /we4455 /we4456 /we4457 /we4458 /we4459 /we4473 /we4474 /we4522 /we4552 /we4553 /we4554 /we4700 /we4706 /we4715 /we4716 /we4717
-		/we4927 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584 /we4566
+		/we4927 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584 /we4566 /we4033
 		# disable warnings
 		/wd4061 /wd4062 /wd4063 /wd4310 /wd4324 /wd4365 /wd4503 /wd4514 /wd4530 /wd4623 /wd4625 /wd4626 /wd4710 /wd4714 /wd5026 /wd5027 /wd5063
 	)
@@ -318,15 +390,15 @@ if ( MSVC )
 			-Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Werror=invalid-pch -Werror=defaulted-function-deleted
 			-Werror=ignored-qualifiers -Werror=microsoft-template -Werror=nonportable-include-path -Werror=inconsistent-missing-override
 			-Werror=microsoft-cast -Werror=invalid-token-paste -Werror=sign-compare -Werror=bitwise-instead-of-logical -Werror=bitwise-conditional-parentheses
-			-Werror=backslash-newline-escape -Werror=array-bounds
+			-Werror=backslash-newline-escape -Werror=array-bounds -Werror=c++14-extensions -Werror=c++17-extensions -Werror=c++20-extensions
 			# warnings
-			-Wunused-parameter -Wnarrowing -Wlogical-op-parentheses  -Wunused  -Wloop-analysis -Wincrement-bool -Wc++14-extensions -Wc++17-extensions
-			-Wunused-private-field -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Wincrement-bool
+			-Wunused-parameter -Wnarrowing -Wlogical-op-parentheses  -Wunused  -Wloop-analysis -Wincrement-bool
+			-Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Wincrement-bool
 			-Wunused-lambda-capture -Wundef -Wformat-security
 			-Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow
 			-Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsizeof-pointer-memaccess
 			# disable warnings
-			-Wno-comment -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-undefined-inline
+			-Wno-comment -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-undefined-inline -Wno-unused-private-field
 			-Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-switch -Wno-missing-braces -Wno-constant-evaluated
 		)
 	else()
@@ -338,7 +410,7 @@ if ( MSVC )
 		set( CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS} -Wno-comment -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-undefined-inline -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-switch -Wno-deprecated-copy-with-user-provided-copy -Wno-unknown-argument -Wno-deprecated-declarations -Wno-deprecated-non-prototype -Wno-deprecated-copy" )
 	endif()
 
-	set( MSVC_SHARED_OPTS /std:c++latest /MP /Gm- /Zc:inline /Gy- /JMC /volatile:iso
+	set( MSVC_SHARED_OPTS /MP /Gm- /Zc:inline /Gy- /JMC /volatile:iso
 		 ${COMPILER_FLAGS} ${MSVC_WARNING_LIST} )
 
 	if (${AE_USE_SANITIZER})
@@ -357,7 +429,7 @@ if ( MSVC )
 	set( CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CURRENT_STATIC_LINKER_FLAGS} /LTCG " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CURRENT_SHARED_LINKER_FLAGS} /LTCG /RELEASE " CACHE STRING "" FORCE )
 	set( PROJECTS_SHARED_CXX_FLAGS_RELEASE ${MSVC_SHARED_OPTS} /MT /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Ox /analyze- CACHE INTERNAL "" FORCE )
-	set( PROJECTS_SHARED_LINKER_FLAGS_RELEASE " /OPT:REF /OPT:ICF /LTCG /RELEASE /DYNAMICBASE" CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_RELEASE " /OPT:REF /OPT:ICF /LTCG /RELEASE /DYNAMICBASE /SAFESEH /NXCOMPAT" CACHE INTERNAL "" FORCE )
 	# Profile
 	set( CMAKE_C_FLAGS_PROFILE "${CURRENT_C_FLAGS} /D_NDEBUG /DNDEBUG /MT /Ox /MP " CACHE STRING "" FORCE )
 	set( CMAKE_CXX_FLAGS_PROFILE "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /MT /Ox /Zi /MP " CACHE STRING "" FORCE )
@@ -365,7 +437,7 @@ if ( MSVC )
 	set( CMAKE_STATIC_LINKER_FLAGS_PROFILE "${CURRENT_STATIC_LINKER_FLAGS} /LTCG " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CURRENT_SHARED_LINKER_FLAGS} /LTCG /DEBUG /PROFILE " CACHE STRING "" FORCE )
 	set( PROJECTS_SHARED_CXX_FLAGS_PROFILE ${MSVC_SHARED_OPTS_DBG} /MT /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Ox /analyze- /Zi CACHE INTERNAL "" FORCE )
-	set( PROJECTS_SHARED_LINKER_FLAGS_PROFILE " /OPT:REF /OPT:ICF /LTCG /DEBUG /PROFILE" CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_PROFILE " /OPT:REF /OPT:ICF /LTCG /DEBUG /PROFILE /DYNAMICBASE /SAFESEH /NXCOMPAT" CACHE INTERNAL "" FORCE )
 	# Develop
 	set( CMAKE_C_FLAGS_DEVELOP "${CURRENT_C_FLAGS} /D_NDEBUG /DNDEBUG /D_ITERATOR_DEBUG_LEVEL=0 /MT /Od /MP " CACHE STRING "" FORCE )
 	set( CMAKE_CXX_FLAGS_DEVELOP "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /D_ITERATOR_DEBUG_LEVEL=0 /MT /Od /Zi /MP " CACHE STRING "" FORCE )
@@ -373,7 +445,7 @@ if ( MSVC )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} /LTCG " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} /LTCG /DEBUG " CACHE STRING "" FORCE )
 	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${MSVC_SHARED_OPTS_DBG} /MT /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /Od /analyze- /Zi CACHE INTERNAL "" FORCE )
-	set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " /OPT:REF /OPT:ICF /LTCG /DEBUG" CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " /OPT:REF /OPT:ICF /LTCG /DEBUG /DYNAMICBASE /SAFESEH /NXCOMPAT" CACHE INTERNAL "" FORCE )
 	# Debug
 	set( CMAKE_C_FLAGS_DEBUG "${CURRENT_C_FLAGS} /D_DEBUG /D_ITERATOR_DEBUG_LEVEL=${AE_ITERATOR_DEBUG_LEVEL} /MTd /Od /MP " CACHE STRING "" FORCE )
 	set( CMAKE_CXX_FLAGS_DEBUG "${CURRENT_CXX_FLAGS} /D_DEBUG /D_ITERATOR_DEBUG_LEVEL=${AE_ITERATOR_DEBUG_LEVEL} /MTd /Od /Zi /MP " CACHE STRING "" FORCE )
@@ -381,7 +453,7 @@ if ( MSVC )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} /DEBUG:FULL " CACHE STRING "" FORCE )
 	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${MSVC_SHARED_OPTS_DBG} /MTd /sdl /Od /Ob0 /Oy- /GF- /GS /analyze- /Zi /RTC1 CACHE INTERNAL "" FORCE )
-	set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG:FULL" CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG:FULL /DYNAMICBASE /SAFESEH /NXCOMPAT" CACHE INTERNAL "" FORCE )
 endif()
 
 
@@ -390,7 +462,7 @@ endif()
 #	global - only for external projects
 #	local  - only for AE projects
 #==================================================================================================
-set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX "-Wno-unused -Wno-switch -Wno-undef -Wno-comment -fPIC -Wno-missing-braces" )
+set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX "-Wno-unused -Wno-switch -Wno-undef -Wno-comment -fPIC -Wno-missing-braces -fno-math-errno" )
 set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wno-missing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Warray-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC )
 
 if (${AE_ENABLE_EXCEPTIONS})
@@ -475,10 +547,10 @@ endif()
 # https://clang.llvm.org/docs/DiagnosticsReference.html
 #==================================================================================================
 set( CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX} -Wnarrowing -stdlib=libc++" ) # -Wno-deprecated-builtins
-set( CLANG_SHARED_LOCAL_WARNING_LIST_CXX  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -Wnarrowing -Wlogical-op-parentheses  -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch -Werror=range-loop-bind-reference -Wno-assume -Wno-constant-evaluated )
+set( CLANG_SHARED_LOCAL_WARNING_LIST_CXX  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -Wnarrowing -Wlogical-op-parentheses  -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch -Werror=range-loop-bind-reference -Wno-assume -Wno-constant-evaluated -Werror=c++20-extensions )
 
 #==================================================================================================
-# Clang Compilation settings
+# Linux Clang Compilation settings
 #==================================================================================================
 set( COMPILER_CLANG OFF )
 string( FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" outPos )
@@ -722,6 +794,16 @@ if ( COMPILER_CLANG_ANDROID )
 	#--------------------------------------------
 	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
+
+	if (NOT DEFINED ANDROID_ABI)
+		if (${TARGET_CPU_ARCH} STREQUAL "ARM64")
+			set( ANDROID_ABI "arm64-v8a" CACHE STRING "" FORCE )
+		elseif (${TARGET_CPU_ARCH} STREQUAL "ARM32")
+			set( ANDROID_ABI "armeabi-v7a" CACHE STRING "" FORCE )
+		else()
+			message( STATUS "ANDROID_ABI is not defined. Configure cmake with '-DANDROID_ABI=arm64-v8a' or 'armeabi-v7a', 'x86', 'x86_64'" )
+		endif()
+	endif()
 
 	set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -fstack-protector-strong -fPIC )
 	# -mfloat-abi=hard

@@ -5,7 +5,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define PASS1
 #	define PASS2
 #endif
@@ -17,7 +17,7 @@
 		// initialize
 		RC<Image>			rt1		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt1.Name( "RT-1" );
 		RC<Image>			rt2		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt2.Name( "RT-2" );
-		RC<Image>			tex1	= Image( EImageType::FImage2D, "shadertoy/Abstract_1.jpg" );
+		RC<Image>			tex1	= Image( EImageType::Float_2D, "shadertoy/Abstract_1.jpg" );
 		RC<ScaleBiasCamera>	camera	= ScaleBiasCamera();
 
 		// render loop

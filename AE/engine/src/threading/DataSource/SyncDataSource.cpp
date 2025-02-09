@@ -4,14 +4,13 @@
 
 namespace AE::Threading
 {
-namespace
-{
 
 /*
 =================================================
 	WaitForRequest
 =================================================
 */
+namespace{
 	template <typename ReqType>
 	inline bool  WaitForRequest (ReqType &req) __NE___
 	{
@@ -95,14 +94,14 @@ namespace
 */
 	Bytes  SyncRStream::ReadSeq (OUT void* buffer, Bytes size) __NE___
 	{
-		auto	req = _stream->ReadSeq( buffer, size, null );
+		auto	req = _stream->ReadSeq( OUT buffer, size, null );
 
 		if_likely( WaitForRequest( *req ) and req->IsCompleted() )
 		{
 			auto	res	 = req->GetResult();
-					size = Min( size, res.dataSize );
-			MemCopy( OUT buffer, res.data, size );
-			return size;
+			ASSERT( res.data == buffer );
+			ASSERT( res.dataSize <= size );
+			return Min( size, res.dataSize );
 		}
 
 		return 0_b;
@@ -139,14 +138,14 @@ namespace
 */
 	Bytes  SyncRStreamOnAsyncDS::ReadSeq (OUT void* buffer, Bytes size) __NE___
 	{
-		auto	req	= _ds->ReadBlock( _pos.fetch_add( size ), buffer, size, null );
+		auto	req	= _ds->ReadBlock( _pos.fetch_add( size ), OUT buffer, size, null );
 
 		if_likely( WaitForRequest( *req ) and req->IsCompleted() )
 		{
 			auto	res	 = req->GetResult();
-					size = Min( size, res.dataSize );
-			MemCopy( OUT buffer, res.data, size );
-			return size;
+			ASSERT( res.data == buffer );
+			ASSERT( res.dataSize <= size );
+			return Min( size, res.dataSize );
 		}
 
 		return 0_b;

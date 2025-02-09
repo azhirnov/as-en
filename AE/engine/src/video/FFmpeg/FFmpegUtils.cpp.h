@@ -3,7 +3,7 @@
 #pragma once
 
 #ifdef AE_ENABLE_FFMPEG
-# include "graphics/Private/EnumUtils.h"
+# include "graphics_rhi/Private/EnumUtils.h"
 # include "video/Public/Common.h"
 # include "video/FFmpeg/FFmpegLoader.h"
 # include "video/Private/EnumToString.cpp.h"

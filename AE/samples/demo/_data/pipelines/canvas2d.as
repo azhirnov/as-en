@@ -10,7 +10,7 @@ void ASmain ()
 				"float2		uv;" );
 	}{
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "canvas2d.ds0" );
-		ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D, "LinearRepeat" );
+		ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::Float_2D, "LinearRepeat" );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "canvas2d.pl" );
 		pl.DSLayout( 0, "canvas2d.ds0" );

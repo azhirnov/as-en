@@ -22,6 +22,90 @@ namespace AE::Base
 		Unknown	= 0xFF,
 	};
 
+	enum class ECPUMicroArch : ushort
+	{
+		_AMD_Begin				= 0x1000,
+		AMD_Athlon2,
+		AMD_Phenom2,
+		AMD_Turion2,
+		AMD_Llano,
+		AMD_Bobcat,
+		AMD_Bulldozer,
+		AMD_Piledriver,
+		AMD_Steamroller,
+		AMD_Excavator,
+		AMD_Jaguar,
+		AMD_Puma,
+		AMD_Zen1,
+		AMD_Zen1Plus,	// Zen+
+		AMD_Zen2,
+		AMD_Zen3,
+		AMD_Zen4,
+		AMD_Zen5,
+		_AMD_End,
+
+		_Intel_Begin			= 0x2000,
+		_Intel_Client_Begin		= _Intel_Begin,
+		Intel_Nehelem,
+		Intel_Westmere,
+		Intel_SandyBridge,
+		Intel_IvyBridge,
+		Intel_Haswell,
+		Intel_Broadwell,
+		Intel_Skylake,
+		Intel_KabyLake,
+		Intel_CoffeeLake,
+		Intel_CannonLake,
+		Intel_CometLake,
+		Intel_IceLake,
+		Intel_TigerLake,
+		Intel_RocketLake,
+		Intel_AlderLake,
+		Intel_ReptorLake,
+		_Intel_Client_End,
+
+		_Intel_Server_Begin		= 0x2100,
+		Intel_SandyBridge_Server,
+		Intel_IvyBridge_Server,
+		Intel_Haswell_Server,
+		Intel_Broadwell_Server,
+		Intel_Skylake_Server,
+		Intel_IceLake_Server,
+		Intel_SapphireRapids,
+		Intel_EmeraldRapids,
+		_Intel_Server_End,
+
+		_Intel_LowPower_Begin	= 0x2200,
+		Intel_Bonnell,
+		Intel_Saltwell,
+		Intel_Silvermont,
+		Intel_Airmont,
+		Intel_Goldmont,
+		Intel_GoldmontPlus,
+		Intel_Tremont,
+		_Intel_LowPower_End,
+
+		_ARM_ISA_Begin			= 0x3000,
+		ARM_ISA_7_0,
+		ARM_ISA_8_0,
+		ARM_ISA_8_1,
+		ARM_ISA_8_2,
+		ARM_ISA_8_3,
+		ARM_ISA_8_4,
+		ARM_ISA_8_5,
+		ARM_ISA_8_6,
+		ARM_ISA_8_7,
+		ARM_ISA_8_8,
+		ARM_ISA_8_9,
+		ARM_ISA_9_0,
+		ARM_ISA_9_1,
+		ARM_ISA_9_2,
+		ARM_ISA_9_3,
+		_ARM_ISA_End,
+
+		Unknown	= 0xFFFF,
+	};
+
 	enum class ECPUVendor : ubyte
 	{
 		Unknown,
@@ -40,7 +124,8 @@ namespace AE::Base
 		Marvell,
 		HuaxintongSemiconductor,
 		Ampere,
-		Loongson
+		Loongson,
+		Virtual,		// virtualization, origin vendor is hidden
 	};
 
 	enum class ECoreType : ubyte
@@ -77,54 +162,92 @@ namespace AE::Base
 		struct Features
 		{
 		// x86-x64 features
-			bool	AVX			: 1;	// AE_SIMD_AVX	1
-			bool	AVX256		: 1;	// AE_SIMD_AVX	2
-			bool	AVX512		: 1;	// AE_SIMD_AVX	3
+		#ifdef AE_CPU_ARCH_X86_64
+			bool	SSE2			: 1;	// AE_SIMD_SSE	20
+			bool	SSE3			: 1;	// AE_SIMD_SSE	30
+			bool	SSSE3			: 1;	// AE_SIMD_SSE	31
+			bool	SSE41			: 1;	// AE_SIMD_SSE	41
+			bool	SSE42			: 1;	// AE_SIMD_SSE	42
+		//	bool	SSE4A			: 1;	// AE_SIMD_SSE	50			- not available in Intel
 
-			bool	SSE2		: 1;	// AE_SIMD_SSE	20
-			bool	SSE3		: 1;	// AE_SIMD_SSE	30
-			bool	SSSE3		: 1;	// AE_SIMD_SSE	31
-			bool	SSE41		: 1;	// AE_SIMD_SSE	41
-			bool	SSE42		: 1;	// AE_SIMD_SSE	42
+			bool	AVX				: 1;	// AE_SIMD_AVX	1
+			bool	AVX2			: 1;	// AE_SIMD_AVX	2
+			bool	AVX512F			: 1;	// AE_SIMD_AVX	3			- Foundation
+			bool	AVX512_FP16		: 1;	// AE_SIMD_AVX	3|(1<<4)	- half-precision floating-point arithmetic instructions
+		//	bool	AVX512_DQ		: 1;	// AE_SIMD_AVX	3|(1<<5)	- Doubleword and Quadword Instructions
+		//	bool	AVX512_IFMA		: 1;	// AE_SIMD_AVX	3|(1<<6)	- Integer Fused Multiply-Add Instructions
+		//	bool	AVX512_ER		: 1;	// AE_SIMD_AVX	3|(1<<7)	- Exponential and Reciprocal Instructions
+		//	bool	AVX512_BW		: 1;	// AE_SIMD_AVX	3|(1<<8)	- Byte and Word Instructions
+		//	bool	AVX512_VL		: 1;	// AE_SIMD_AVX	3|(1<<9)	- Vector Length Extensions
+		//	bool	AVX512_VBMI		: 1;	// AE_SIMD_AVX	3|(1<<10)	- Vector Bit Manipulation Instructions
+		//	bool	AVX512_VBMI2	: 1;	// AE_SIMD_AVX	3|(1<<11)	- Vector Bit Manipulation Instructions 2
+		//	bool	AVX512_BITALG	: 1;	// AE_SIMD_AVX	3|(1<<12)	- BITALG instructions
+		//	bool	AVX512_VPOPCNTDQ: 1;	// AE_SIMD_AVX	3|(1<<13)	- Vector Population Count Double and Quad-word
+		//	bool	AVX512_4FMAPS	: 1;	// AE_SIMD_AVX	3|(1<<14)	- 4-register Multiply Accumulation Single precision
 
-			bool	POPCNT		: 1;
+		//	bool	AMX_BF16		: 1;	// matrices with bfloat16 type
+		//	bool	AMX_Tile		: 1;	// tile load/store
+		//	bool	AMX_I8			: 1;	// matrices with 8bit int type
+		//	bool	AMX_FP16		: 1;	// matrices with float16 type
 
-			bool	AES			: 1;	// AE_SIMD_AES	1
+			bool	FP16C			: 1;	// AE_SIMD_F16C	1			- half-precision conversion
+			bool	FMA				: 1;	// AE_SIMD_FMA	1
+			bool	POPCNT			: 1;
 
-			bool	CRC32		: 1;
-			bool	SHA128		: 1;
-			bool	SHA256		: 1;
-			bool	SHA512		: 1;
-			bool	SHA3		: 1;
+			bool	AES				: 1;	// AE_SIMD_AES	1
+			bool	VAES			: 1;	// AE_SIMD_AES	2			- AVX512-VAES
+			bool	AESKL			: 1;	// AE_SIMD_AES	3			- AES Key Locker
+
+			bool	SHA2_256		: 1;	// AE_SIMD_SHA	20			- SHA2-256 and SHA-1
+			bool	SHA512			: 1;	// AE_SIMD_SHA	21			- SHA2-512 ?
+		#endif
 
 		// ARM features
-			bool	NEON		: 1;	// AE_SIMD_NEON
-			bool	NEON_fp16	: 1;
-			bool	NEON_hpfp	: 1;	// half precision
-			bool	SVE			: 1;
-			bool	SVE2		: 1;
-			bool	SVEAES		: 1;
+		#ifdef AE_CPU_ARCH_ARM_BASED
+			bool	NEON			: 1;	// AE_SIMD_NEON
+			bool	NEON_fp16		: 1;	// AE_SIMD_NEON_HALF	- half-precision arithmetic
+			bool	FP16C			: 1;	// AE_SIMD_F16C	1		- half-precision conversion
+			bool	SVE				: 1;	// AE_SIMD_SVE	1
+			bool	SVE2			: 1;	// AE_SIMD_SVE	2
+			bool	BF16			: 1;
+
+			bool	AES				: 1;	// AE_SIMD_AES	1
+			bool	SVE_AES			: 1;	// AE_SIMD_AES	1 & AE_SIMD_SVE 1
+			bool	SVE_SHA3		: 1;	// AE_SIMD_SHA	30 & AE_SIMD_SVE 1
+
+			bool	CRC32			: 1;
+			bool	SHA2_256		: 1;	// AE_SIMD_SHA	20		- SHA1 & SHA2-256 from Armv8-A
+			bool	SHA2_512		: 1;	// AE_SIMD_SHA	21		- SHA2-512 from Armv8.2-A
+			bool	SHA3			: 1;	// AE_SIMD_SHA	30		- Armv8.2
+
+			bool	Atomics			: 1;	// Armv8.1
+		#endif
+
+		// RISC-V features
+			// TODO
 
 		// shared features
-			bool	CmpXchg16	: 1;	// 128 bit atomic compare exchange
+			bool	CmpXchg16		: 1;	// 128 bit atomic compare exchange
 		};
 
 		struct CacheGeom
 		{
-			uint		lineSize		: 16;	// bytes
-			uint		associativity	: 16;
+			uint		lineSize			: 16;	// bytes
+			uint		associativity		: 8;
+			uint		logicalCoreCount	: 8;
 			Bytes32u	size;
 
-			CacheGeom () : lineSize{0}, associativity{0} {}
+			CacheGeom () : lineSize{0}, associativity{0}, logicalCoreCount{0} {}
 		};
 
 		enum ECacheType : ubyte
 		{
-			L1_Instuction,
-			L1_Data,
-			L2,
+			L1_Instuction,		// per core
+			L1_Data,			// per core
+			L2,					// per core
 			L3,
-			_Count
+			_Count,
+			Unknown = _Count,
 		};
 
 		static constexpr uint	MaxLogicalCores	= 64;
@@ -134,11 +257,12 @@ namespace AE::Base
 		using CoreBits_t		= BitSet< MaxLogicalCores >;
 		using CacheKey_t		= Pair< ECacheType, ECoreType >;
 		using CacheInfoMap_t	= FixedMap< CacheKey_t, CacheGeom, 8 >;
+		using CPUName_t			= FixedString<64>;
 
 		struct Core
 		{
 		// variables
-			FixedString<64>		name;
+			CPUName_t			name;
 			ECoreType			type			= Default;
 			MHz_t				baseClock		= 0;
 			MHz_t				maxClock		= 0;
@@ -163,6 +287,8 @@ namespace AE::Base
 		{
 			ECPUVendor		vendor				= Default;
 			ECPUArch		arch				= Default;
+			ECPUMicroArch	microArch			= Default;
+			uint			modelId				= 0;
 			uint			physicalCoreCount	= 0;
 			uint			logicalCoreCount	= 0;
 			Cores_t			coreTypes;
@@ -182,11 +308,9 @@ namespace AE::Base
 
 		void  _Validate ()											__NE___;
 
-		ND_ static ECPUVendor  _NameToVendor (StringView)			__NE___;
-
 	public:
 		ND_ String		Print ()									C_NE___;
-		ND_ bool		IsGLMSupported ()							C_NE___;
+		ND_ bool		CheckCompilationOptions ()					C_NE___;
 
 		ND_ Core const*	GetCore (uint threadIdx)					C_NE___;
 		ND_ Core const*	GetCore (ECoreType type)					C_NE___;
@@ -201,7 +325,7 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-	
+
 /*
 =================================================
 	operator == (CacheKey_t)
@@ -292,6 +416,7 @@ namespace AE::Base
 			case ECPUVendor::HuaxintongSemiconductor :	return "HuaxintongSemiconductor";
 			case ECPUVendor::Ampere :		return "Ampere";
 			case ECPUVendor::Loongson :		return "Loongson";
+			case ECPUVendor::Virtual :		return "Virtual";
 			case ECPUVendor::Unknown:		break;
 		}
 		switch_end

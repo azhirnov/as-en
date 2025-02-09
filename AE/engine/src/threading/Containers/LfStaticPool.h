@@ -3,6 +3,9 @@
 	This class uses lock-free algorithm to put and extract values without any order (but not really in random order).
 	You can use 'Put', 'Extract' methods without any syncs.
 	'Release' method must be synchronized with 'Put' and 'Extract' methods.
+
+	It is faster than FIFO queue because access from different thread at first try to put/extract
+	from chunk by thread id and then try other chunks.
 */
 
 #pragma once
@@ -82,8 +85,8 @@ namespace AE::Threading
 		explicit LfStaticPool (const Allocator_t &alloc = Allocator_t{}) __NE___;
 		~LfStaticPool ()							__NE___	{ Release(); }
 
-		ND_ static constexpr usize  Capacity ()		__NE___	{ return Count; }
-		ND_ static constexpr Bytes  DynamicSize ()	__NE___	{ return SizeOf<ChunkArray_t>; }
+		NdCx__ static usize  Capacity ()			__NE___	{ return Count; }
+		NdCx__ static Bytes  DynamicSize ()			__NE___	{ return SizeOf<ChunkArray_t>; }
 
 			void  Release ()						__NE___	{ return Release( [](Value_t &value) __NE___ { value.~Value_t(); }); }
 

@@ -27,7 +27,7 @@ namespace
 			{
 				const auto	GetValue = [dyn_val] ()
 				{{
-					if constexpr( IsSameTypes< T, DynamicDim >)
+					if constexpr( IsSame< T, DynamicDim >)
 						return dyn_val->Dimension3_NonZero();
 					else
 						return dyn_val->Get();

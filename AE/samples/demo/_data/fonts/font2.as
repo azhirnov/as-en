@@ -15,12 +15,10 @@ void ASmain ()
 	font.GlyphSize( 32 );		// pix
 	font.SDFGlyphBorder( 1 );	// pix,	increase for bold style
 	font.GlyphPadding( 4 );		// pix
-	font.SDFPixelRange( 4.0 );	// for AA
 
 //	font.GlyphSize( 64 );		// pix
 //	font.SDFGlyphBorder( 8 );	// pix,	increase for bold style
 //	font.GlyphPadding( 2 );		// pix
-//	font.SDFPixelRange( 1.0 );	// for AA
 
 	font.Store( "canvas2d.sdf_font" );
 }

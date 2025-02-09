@@ -42,30 +42,34 @@ namespace _hidden_
 
 		struct Result
 		{
-			Bytes			pos;					// 'pos' argument from 'ReadBlock()' or 'WriteBlock()'
-			Bytes			dataSize;				// actually readn / written
-			void const*		data		= null;		// non-null pointer if read request is successfully completed
+			Bytes			pos;					// 'pos' argument from 'ReadBlock()' or 'WriteBlock()'.
+			Bytes			dataSize;				// actually readn / written.
+			void const*		data		= null;		// non-null pointer if read request is successfully completed,
+													// always null for write request.
 
 			template <typename T>
 			ND_ ArrayView<T>	AsArray ()	C_NE___	{ return ArrayView<T>{ Cast<T>(data), usize(dataSize)/sizeof(T) }; }
+			ND_ FastRStream		AsStream ()	C_NE___	{ NonNull( data );  return FastRStream{ data, data + dataSize }; }
 		};
 
 		struct ResultWithRC : Result
 		{
-			RC<>			rc;						// to keep alive mem object for read request
+			RC<>			rc;						// to keep alive mem object for read request,
+													// same as 'RC<> mem' which passed to 'ReadBlock()' or 'ReadSeq()',
+													// always null for write request.
 		};
 
 		using Promise_t	= Promise< ResultWithRC >;
 
 	protected:
 		using TaskDependency	= IAsyncTask::TaskDependency;
-		using Dependencies_t	= FixedTupleArray< 4, AsyncTask, TaskDependency >;
+		using Dependencies_t	= FixedTupleArray< 4, AsyncTask, TaskDependency >;	// TODO: use 'IAsyncTask::OutputChunk'
 
 
 	// variables
 	protected:
 		Atomic<EStatus>			_status			{EStatus::Destroyed};
-		AtomicByte<Bytes32u>	_actualSize;	// readn / written
+		AtomicBytes<Bytes32u>	_actualSize;	// readn / written
 
 		SpinLock				_depsGuard;
 		Dependencies_t			_deps;
@@ -98,7 +102,7 @@ namespace _hidden_
 
 	using AsyncDSRequestResult		= Threading::_hidden_::IAsyncDataSourceRequest::ResultWithRC;
 	using AsyncDSRequest			= RC< Threading::_hidden_::IAsyncDataSourceRequest >;
-	using WeakAsyncDSRequest		= Threading::_hidden_::_TaskDependency< AsyncDSRequest, false >;
+	using WeakAsyncDSRequest		= Threading::_hidden_::_TaskDependency< AsyncDSRequest, False{"weak"} >;
 
 
 
@@ -116,14 +120,14 @@ namespace _hidden_
 
 	// interface
 	public:
-		ND_	ESourceType  GetSourceType ()		C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async | ESourceType::ThreadSafe; }
+		ND_	ESourceType  GetSourceType ()	C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async | ESourceType::ThreadSafe; }
 
 
 		// Returns file size.
 		// If 'GetSourceType()' doesn't returns 'FixedSize'
 		// size may be unknown and 'UMax' will be returned.
 		//
-		ND_ virtual Bytes	Size ()															C_NE___ = 0;
+		ND_ virtual Bytes	Size ()																	C_NE___ = 0;
 
 
 		// Read file from 'pos' to 'pos + dataSize'.
@@ -132,8 +136,9 @@ namespace _hidden_
 		//	'dataSize'	- size of the 'data'.
 		//	'mem'		- holds 'data' memory until it in use.
 		// Returns non-null pointer, request in pending state on success, request in canceled state on error.
+		// Actually readn data size may be less than 'size'.
 		//
-		ND_ virtual ReadRequestPtr  ReadBlock (Bytes pos, void* data, Bytes dataSize, RC<> mem)	__NE___ = 0;
+		ND_ virtual ReadRequestPtr  ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem)	__NE___ = 0;
 
 
 		// Read file from 'pos' to 'pos + size'.
@@ -141,12 +146,13 @@ namespace _hidden_
 		//	'size'	- size of the data.
 		//	'mem'	- container for memory.
 		// Returns non-null pointer, request in pending state on success, request in canceled state on error.
+		// Actually readn data size may be less than 'size'.
 		//
-		ND_ ReadRequestPtr  ReadBlock (Bytes pos, Bytes size, RC<SharedMem> mem)			__NE___
+		ND_ ReadRequestPtr  ReadBlock (Bytes pos, Bytes size, RC<SharedMem> mem)					__NE___
 		{
 			ASSERT( mem and size <= mem->Size() );
 			void*	data = mem ? mem->Data() : null;
-			return ReadBlock( pos, data, size, RVRef(mem) );
+			return ReadBlock( pos, OUT data, size, RVRef(mem) );
 		}
 
 
@@ -155,15 +161,16 @@ namespace _hidden_
 		//	'pos'	- position in the file where data will be readn.
 		//	'size'	- size of the data.
 		// Returns non-null pointer, request in pending state on success, request in canceled state on error.
+		// Actually readn data size may be less than 'size'.
 		//
-		ND_ virtual ReadRequestPtr  ReadBlock (Bytes pos, Bytes size)						__NE___ = 0;
+		ND_ virtual ReadRequestPtr  ReadBlock (Bytes pos, Bytes size)								__NE___ = 0;
 
 
 		// Read file from 'pos' to end of file.
 		// Memory will be allocated by internal allocator.
 		// Returns non-null pointer, request in pending state on success, request in canceled state on error.
 		//
-		ND_ ReadRequestPtr	ReadRemaining (Bytes pos)										__NE___	{ return ReadBlock( pos, Size() - pos ); }
+		ND_ ReadRequestPtr	ReadRemaining (Bytes pos)												__NE___	{ return ReadBlock( pos, Size() - pos ); }
 
 
 		// Cancel all pending IO requests.
@@ -171,7 +178,7 @@ namespace _hidden_
 		//	'true'  if cancelled
 		//	'false' if all requests already completed/cancelled or on other error.
 		//
-			virtual bool	CancelAllRequests ()											__NE___ = 0;
+			virtual bool	CancelAllRequests ()													__NE___ = 0;
 	};
 
 
@@ -258,7 +265,7 @@ namespace _hidden_
 
 		// Returns non-null pointer, request in pending state on success, request in canceled state on error.
 		//
-		ND_ virtual ReadRequestPtr	ReadSeq (void* data, Bytes dataSize, RC<> mem)			__NE___ = 0;
+		ND_ virtual ReadRequestPtr	ReadSeq (OUT void* data, Bytes dataSize, RC<> mem)		__NE___ = 0;
 
 
 		// Memory will be allocated by internal allocator.

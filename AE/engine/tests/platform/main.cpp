@@ -14,7 +14,6 @@ extern "C" AE_DLL_EXPORT int Tests_Platform (IApplication &app, IWindow &wnd)
 }
 #else
 
-	extern void UnitTest_Monitor ();
 	extern void Test_Application ();
 	extern void Test_Input ();
 
@@ -22,7 +21,6 @@ extern "C" AE_DLL_EXPORT int Tests_Platform (IApplication &app, IWindow &wnd)
 	{
 		AE::Base::StaticLogger::LoggerDbgScope log{};
 
-		UnitTest_Monitor();
 		Test_Application();
 		Test_Input();
 

@@ -19,7 +19,7 @@ void ASmain ()
 				"float4		bgColor;"		);
 	}{
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "sdf_font.ds0" );
-		ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D, "LinearRepeat" );
+		ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::Float_2D, "LinearRepeat" );
 		ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "drawUB", "sdf_font_ublock" );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "sdf_font.pl" );

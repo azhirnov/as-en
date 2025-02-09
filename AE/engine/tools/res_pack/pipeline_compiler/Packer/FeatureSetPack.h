@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/FeatureSet.h"
+#include "graphics_rhi/Public/FeatureSet.h"
 #include "Packer/PackCommon.h"
 
 #ifdef AE_BUILD_PIPELINE_COMPILER

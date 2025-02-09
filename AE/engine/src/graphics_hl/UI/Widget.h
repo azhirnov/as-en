@@ -39,7 +39,7 @@ namespace AE::UI
 		{
 			IDrawable::GlobalMaterial	mtr;
 			ushort						baseStencilRef;
-			float						dt;
+			secondsf					dt;
 		};
 
 

@@ -1,4 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+		Warning
+	Inside 'struct TypeList' don't use 'using' without template,
+	use 'struct <type> { using type = ...; };' instead, otherwise
+	it will cause compilation performance degradation.
+*/
 
 #pragma once
 
@@ -15,7 +21,7 @@ namespace AE::Base
 	struct TypeList
 	{
 	public:
-		struct AsTuple { using			type				= Tuple< Types... >; };
+		struct							AsTuple				{ using type = Tuple< Types... >; };
 
 		template <typename T>
 		inline static constexpr usize	FirstIndex			= Base::_hidden_::TL_GetFirstIndex< T, 0, Types... >::value;
@@ -43,16 +49,24 @@ namespace AE::Base
 		template <usize I>		using	GetT				= Base::_hidden_::TL_GetTypeByIndex< I, Types... >;					// usage: GetT<0>::type
 		template <usize I>		using	Get					= typename Base::_hidden_::TL_GetTypeByIndex< I, Types... >::type;	// usage: Get<0>
 
-		struct Front { using			type				= Get<0>; };
-		struct Back  { using			type				= Get<Count-1>; };
+		struct							Front				{ using	type = Get<0>; };
+		struct							Back				{ using	type = Get<Count-1>; };
 
-		struct Self	 { using			type				= TypeList< Types... >; };
+		struct							Self				{ using	type = TypeList< Types... >; };
 
-		struct PopFront	{ using			type				= typename Base::_hidden_::TL_PopFront< TypeList<>, Types... >::type; };
-		struct PopBack	{ using			type				= typename Base::_hidden_::TL_PopBack< TypeList<>, Types... >::type; };
+		struct							Reverse				{ using type = typename Base::_hidden_::TL_Reverse< TypeList<>, Types... >::type; };
 
-		template <typename T>	using	PushBack			= TypeList< Types..., T >;
-		template <typename T>	using	PushFront			= TypeList< T, Types... >;
+		struct							PopFront			{ using type = typename Base::_hidden_::TL_PopFront< TypeList, Types... >::type; };
+		struct							PopBack				{ using type = typename Reverse::type::PopFront::type::Reverse::type; };
+
+		template <usize Count>	using	EraseFront			= typename Base::_hidden_::TL_EraseFront< Count, TypeList<Types...> >::type;
+		template <usize Count>	using	EraseBack			= typename Base::_hidden_::TL_EraseBack< Count, TypeList<Types...> >::type;
+
+		template <usize Index>	using	Erase				= typename Base::_hidden_::TL_Erase< TypeList<>, Index, Types... >::type;
+		template <typename T>	using	EraseType			= typename Base::_hidden_::TL_EraseType< TypeList<>, T, Types... >::type;
+
+		template <typename ...T> using	PushBack			= TypeList< Types..., T... >;
+		template <typename ...T> using	PushFront			= TypeList< T..., Types... >;
 
 		template <template <typename> class Tmpl>
 		using							Apply				= TypeList< Tmpl< Types >... >;
@@ -73,10 +87,10 @@ namespace AE::Base
 		static constexpr auto			ForEach_Add	()		__NE___	{ return (... + Tmpl<Types>::value); }
 
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Max	()		__NE___	{ return Math::Max( Tmpl<Types>::value... ); }
+		static constexpr auto			ForEach_Max	()		__NE___	{ return Base::Max( Tmpl<Types>::value... ); }
 
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Min	()		__NE___	{ return Math::Min( Tmpl<Types>::value... ); }
+		static constexpr auto			ForEach_Min	()		__NE___	{ return Base::Min( Tmpl<Types>::value... ); }
 
 
 		template <typename FN>
@@ -136,19 +150,20 @@ namespace _hidden_
 
 
 	template <typename Left, typename Right>
-	struct _Merge;
+	struct TL_Merge;
 
 	template <typename ...LeftTypes, typename ...RightTypes>
-	struct _Merge< TypeList<LeftTypes...>, TypeList<RightTypes...> >
+	struct TL_Merge< TypeList<LeftTypes...>, TypeList<RightTypes...> >
 	{
 		using type = TypeList< LeftTypes..., RightTypes... >;
 	};
+
 
 	template <typename A>
 	struct AreSameTypes
 	{
 		template <typename B>
-		struct Impl : CT_Bool< IsSameTypes< A, B > >{};
+		struct Impl : CT_Bool< IsSame< A, B > >{};
 	};
 
 } // _hidden_
@@ -197,6 +212,21 @@ namespace AE::Base::TypeListUtils
 
 
 	template <typename Left, typename Right>
-	using Merge = typename Base::_hidden_::_Merge< Left, Right >::type;
+	using Merge			= typename Base::_hidden_::TL_Merge< Left, Right >::type;
+
+	template <typename TL>
+	using Front			= typename TL::Front::type;
+
+	template <typename TL>
+	using Back			= typename TL::Back::type;
+
+	template <typename TL>
+	using Reverse		= typename TL::Reverse::type;
+
+	template <typename TL>
+	using PopFront		= typename TL::PopFront::type;
+
+	template <typename TL>
+	using PopBack		= typename TL::PopBack::type;
 
 } // AE::Base::TypeListUtils

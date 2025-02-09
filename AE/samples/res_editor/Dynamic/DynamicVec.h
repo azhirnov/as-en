@@ -17,16 +17,16 @@ namespace AE::ResEditor
 	// types
 	public:
 		using Self			= TDynamicVec< T, I >;
-		using Vec_t			= Vec< T, I >;
-		using GetValueFn_t	= Vec_t (*) (EnableRCBase*);
+		using Value_t		= Vec< T, I >;
+		using GetValueFn_t	= Value_t (*) (EnableRCBase*);
 		using EOperator		= EDynamicVarOperator;
 
 
 	// variables
 	private:
 		mutable RWSpinLock	_guard;
-		Vec_t				_vec;
-		Vec_t				_opValue;
+		Value_t				_vec;
+		Value_t				_opValue;
 		EOperator			_op			= Default;
 		const RC<>			_base;
 		const GetValueFn_t	_getValue	= null;
@@ -35,14 +35,14 @@ namespace AE::ResEditor
 	// methods
 	public:
 		TDynamicVec ()										__NE___	{}
-		explicit TDynamicVec (const Vec_t &v)				__NE___	: _vec{v} {}
+		explicit TDynamicVec (const Value_t &v)				__NE___	: _vec{v} {}
 		TDynamicVec (RC<> base, GetValueFn_t getValue)		__NE___	: _base{RVRef(base)}, _getValue{getValue} {}
 
-			void		SetOp (const Vec_t &, EOperator)	__NE___;
-			void		Set (const Vec_t &v)				__NE___;
-		ND_ Vec_t		Get ()								C_NE___;
+			void		SetOp (const Value_t &, EOperator)	__NE___;
+			void		Set (const Value_t &v)				__NE___;
+		ND_ Value_t		Get ()								C_NE___;
 
-		ND_ bool		IsChanged (INOUT Vec_t &oldVal)		C_NE___;
+		ND_ bool		IsChanged (INOUT Value_t &oldVal)	C_NE___;
 
 		ND_ RC<Self>	Clone ()							__NE___;
 
@@ -54,7 +54,7 @@ namespace AE::ResEditor
 		ND_ RC<DynamicDim>			ToDim ()				__NE___;
 
 	private:
-		ND_ static Vec_t	_Get (EnableRCBase*)			__NE___;
+		ND_ static Value_t	_Get (EnableRCBase*)			__NE___;
 
 		ND_ static T		_GetX (EnableRCBase*)			__NE___;
 		ND_ static T		_GetY (EnableRCBase*)			__NE___;
@@ -77,13 +77,18 @@ namespace AE::ResEditor
 	using DynamicUInt4	= TDynamicVec< uint, 4 >;
 
 
+	using AnyDynVecOrScalar_t	= Union< RC<DynamicInt>, RC<DynamicInt2>, RC<DynamicInt3>, RC<DynamicInt4>,
+										 RC<DynamicUInt>, RC<DynamicUInt2>, RC<DynamicUInt3>, RC<DynamicUInt4>,
+										 RC<DynamicFloat>, RC<DynamicFloat2>, RC<DynamicFloat3>, RC<DynamicFloat4> >;
+
+
 /*
 =================================================
 	SetOp
 =================================================
 */
 	template <typename T, int I>
-	void  TDynamicVec<T,I>::SetOp (const Vec_t &val, EOperator op) __NE___
+	void  TDynamicVec<T,I>::SetOp (const Value_t &val, EOperator op) __NE___
 	{
 		EXLOCK( _guard );
 		_opValue	= val;
@@ -96,7 +101,7 @@ namespace AE::ResEditor
 =================================================
 */
 	template <typename T, int I>
-	void  TDynamicVec<T,I>::Set (const Vec_t &v) __NE___
+	void  TDynamicVec<T,I>::Set (const Value_t &v) __NE___
 	{
 		EXLOCK( _guard );
 		CHECK_ERRV( _getValue == null );
@@ -109,11 +114,11 @@ namespace AE::ResEditor
 =================================================
 */
 	template <typename T, int I>
-	typename TDynamicVec<T,I>::Vec_t  TDynamicVec<T,I>::Get () C_NE___
+	typename TDynamicVec<T,I>::Value_t  TDynamicVec<T,I>::Get () C_NE___
 	{
 		SHAREDLOCK( _guard );
 
-		Vec_t	result = _vec;
+		Value_t	result = _vec;
 
 		if_unlikely( _getValue != null )
 			result = _getValue( _base.get() );
@@ -130,7 +135,7 @@ namespace AE::ResEditor
 
 			case EOperator::PowOf2 :
 				if constexpr( IsFloatPoint<T> )
-					result = _opValue * Pow( Vec_t{T(2)}, result );
+					result = _opValue * Pow( Value_t{T(2)}, result );
 				else
 					result = _opValue << result;
 				break;
@@ -151,9 +156,9 @@ namespace AE::ResEditor
 =================================================
 */
 	template <typename T, int I>
-	bool  TDynamicVec<T,I>::IsChanged (INOUT Vec_t &oldVal) C_NE___
+	bool  TDynamicVec<T,I>::IsChanged (INOUT Value_t &oldVal) C_NE___
 	{
-		const Vec_t	new_val = Get();
+		const Value_t	new_val = Get();
 
 		if ( Any( new_val != oldVal ))
 		{
@@ -169,7 +174,7 @@ namespace AE::ResEditor
 =================================================
 */
 	template <typename T, int I>
-	typename TDynamicVec<T,I>::Vec_t  TDynamicVec<T,I>::_Get (EnableRCBase* base) __NE___
+	typename TDynamicVec<T,I>::Value_t  TDynamicVec<T,I>::_Get (EnableRCBase* base) __NE___
 	{
 		return Cast<TDynamicVec<T,I>>(base)->Get();
 	}
@@ -263,7 +268,7 @@ namespace AE::ResEditor
 	Vec<T,2>  TDynamicScalar<T>::_GetX1 (EnableRCBase* base) __NE___
 	{
 		T	x = Cast<TDynamicScalar<T>>(base)->Get();
-		return typename TDynamicVec<T,2>::Vec_t{ x, T{1} };
+		return typename TDynamicVec<T,2>::Value_t{ x, T{1} };
 	}
 
 	template <typename T>
@@ -281,7 +286,7 @@ namespace AE::ResEditor
 	Vec<T,3>  TDynamicScalar<T>::_GetX11 (EnableRCBase* base) __NE___
 	{
 		T	x = Cast<TDynamicScalar<T>>(base)->Get();
-		return typename TDynamicVec<T,3>::Vec_t{ x, T{1}, T{1} };
+		return typename TDynamicVec<T,3>::Value_t{ x, T{1}, T{1} };
 	}
 
 	template <typename T>

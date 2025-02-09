@@ -28,17 +28,17 @@ namespace AE::Graphics
 		RGBA8u		color;
 
 	// methods
-		constexpr RectangleBatch () __NE___ {}
-		constexpr RectangleBatch (const RectF &pos, RGBA8u color) __NE___ : RectangleBatch{pos, RectF{0.f, 0.f, 1.f, 1.f}, color} {}
-		constexpr RectangleBatch (const RectF &pos, const RectF &texc, RGBA8u color = HtmlColor::White) __NE___ : position{pos}, texcoord{texc}, color{color} {}
+		__Cx__ RectangleBatch () __NE___ {}
+		__Cx__ RectangleBatch (const RectF &pos, RGBA8u color) __NE___ : RectangleBatch{pos, RectF{0.f, 0.f, 1.f, 1.f}, color} {}
+		__Cx__ RectangleBatch (const RectF &pos, const RectF &uv, RGBA8u color = HtmlColor::White) __NE___ : position{pos}, texcoord{uv}, color{color} {}
 
-		ND_ static constexpr EPrimitive	Topology ()							__NE___	{ return Strip ? EPrimitive::TriangleStrip : EPrimitive::TriangleList; }
-		ND_ constexpr uint				IndexCount ()						C_NE___	{ return Strip ? 4 : 6; }
-		ND_ constexpr uint				VertexCount ()						C_NE___	{ return 4; }
+		NdCx__ static EPrimitive	Topology ()			__NE___	{ return Strip ? EPrimitive::TriangleStrip : EPrimitive::TriangleList; }
+		NdCx__ uint					IndexCount ()		C_NE___	{ return Strip ? 4 : 6; }
+		NdCx__ uint					VertexCount ()		C_NE___	{ return 4; }
+		__Cx__ static uint			BatchVersion		= 1;
 
-		constexpr void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
-							 OUT void* positionPtr, OUT void* attributePtr,
-							 const SurfaceDimensions &)						C_NE___
+		__Cx__ void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
+						  OUT void* positionPtr, OUT void* attributePtr)	C_NE___
 		{
 			// front face CCW
 			if constexpr( Strip ){
@@ -72,6 +72,66 @@ namespace AE::Graphics
 
 
 	//
+	// Rotated Rectangle Batch
+	//
+	template <typename PosType, typename AttribType, bool Strip>
+	struct RotatedRectBatch
+	{
+	// types
+		using Position_t	= PosType;
+		using Attribs_t		= AttribType;
+
+	// variables
+		float2x2	rotation;
+		RectF		position;
+		RectF		texcoord;
+		RGBA8u		color;
+
+	// methods
+		__Cx__ RotatedRectBatch () __NE___ {}
+		__Cx__ RotatedRectBatch (const float2x2 &rot, const RectF &pos, RGBA8u color) __NE___ : RotatedRectBatch{rot, pos, RectF{0.f, 0.f, 1.f, 1.f}, color} {}
+		__Cx__ RotatedRectBatch (const float2x2 &rot, const RectF &pos, const RectF &uv, RGBA8u color = HtmlColor::White) __NE___ : rotation{rot}, position{pos}, texcoord{uv}, color{color} {}
+
+		NdCx__ static EPrimitive	Topology ()			__NE___	{ return Strip ? EPrimitive::TriangleStrip : EPrimitive::TriangleList; }
+		NdCx__ uint					IndexCount ()		C_NE___	{ return Strip ? 4 : 6; }
+		NdCx__ uint					VertexCount ()		C_NE___	{ return 4; }
+		__Cx__ static uint			BatchVersion		= 1;
+
+		__Cx__ void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
+						  OUT void* positionPtr, OUT void* attributePtr)	C_NE___
+		{
+			// front face CCW
+			if constexpr( Strip ){
+				idx[0] = 0 + firstIdx;
+				idx[1] = 1 + firstIdx;
+				idx[2] = 2 + firstIdx;
+				idx[3] = 3 + firstIdx;
+			}else{
+				idx[0] = 0 + firstIdx;
+				idx[1] = 1 + firstIdx;
+				idx[2] = 2 + firstIdx;
+				idx[3] = 2 + firstIdx;
+				idx[4] = 1 + firstIdx;
+				idx[5] = 3 + firstIdx;
+			}
+
+			auto*	pos = Cast<PosType>( positionPtr );
+			pos[0] = PosType{ rotation * float2{ position.left,  position.top	}};
+			pos[1] = PosType{ rotation * float2{ position.left,  position.bottom}};
+			pos[2] = PosType{ rotation * float2{ position.right, position.top	}};
+			pos[3] = PosType{ rotation * float2{ position.right, position.bottom}};
+
+			auto*	attr = Cast<AttribType>( attributePtr );
+			attr[0] = AttribType{ float2{texcoord.left,  texcoord.top   },	color };
+			attr[1] = AttribType{ float2{texcoord.left,  texcoord.bottom},	color };
+			attr[2] = AttribType{ float2{texcoord.right, texcoord.top   },	color };
+			attr[3] = AttribType{ float2{texcoord.right, texcoord.bottom},	color };
+		}
+	};
+
+
+
+	//
 	// Nine Patch Batch
 	//
 	template <typename PosType, typename AttribType>
@@ -89,9 +149,9 @@ namespace AE::Graphics
 		RGBA8u		color;
 
 	// methods
-		constexpr NinePatchBatch () __NE___ {}
-		constexpr NinePatchBatch (const RectF &pos, const RectF &posOffset, const RectF &texc, const RectF &texcOffset, RGBA8u color = HtmlColor::White) __NE___ :
-			position{pos}, posOffsets{posOffset}, texcoord{texc}, texcOffsets{texcOffset}, color{color}
+		__Cx__ NinePatchBatch () __NE___ {}
+		__Cz__ NinePatchBatch (const RectF &pos, const RectF &posOffset, const RectF &uv, const RectF &texcOffset, RGBA8u color = HtmlColor::White) __NE___ :
+			position{pos}, posOffsets{posOffset}, texcoord{uv}, texcOffsets{texcOffset}, color{color}
 		{
 			ASSERT( posOffsets.left		>= 0.0f and
 					posOffsets.right	>= 0.0f	and
@@ -103,13 +163,13 @@ namespace AE::Graphics
 					texcOffsets.bottom	>= 0.0f );
 		}
 
-		ND_ static constexpr EPrimitive	Topology ()							__NE___	{ return EPrimitive::TriangleList; }
-		ND_ constexpr uint				IndexCount ()						C_NE___	{ return 54; }
-		ND_ constexpr uint				VertexCount ()						C_NE___	{ return 16; }
+		NdCx__ static EPrimitive	Topology ()			__NE___	{ return EPrimitive::TriangleList; }
+		NdCx__ uint					IndexCount ()		C_NE___	{ return 54; }
+		NdCx__ uint					VertexCount ()		C_NE___	{ return 16; }
+		__Cx__ static uint			BatchVersion		= 1;
 
-		constexpr void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
-							 OUT void* positionPtr, OUT void* attributePtr,
-							 const SurfaceDimensions &)						C_NE___
+		__Cx__ void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
+						  OUT void* positionPtr, OUT void* attributePtr)	C_NE___
 		{
 			// indices (front face CCW)
 			{
@@ -235,16 +295,16 @@ namespace AE::Graphics
 		uint		segments	= 0;
 
 	// methods
-		constexpr CircleBatch () __NE___ {}
-		constexpr CircleBatch (uint segments, const RectF &pos, RGBA8u color)	__NE___ : position{pos}, color{color}, segments{segments} {}
+		__Cx__ CircleBatch () __NE___ {}
+		__Cx__ CircleBatch (uint segments, const RectF &pos, RGBA8u color)	__NE___ : position{pos}, color{color}, segments{segments} {}
 
-		ND_ static constexpr EPrimitive	Topology ()								__NE___	{ return EPrimitive::LineList; }
-		ND_ constexpr uint				IndexCount ()							C_NE___	{ return segments * 2; }
-		ND_ constexpr uint				VertexCount ()							C_NE___	{ return segments; }
+		NdCx__ static EPrimitive	Topology ()			__NE___	{ return EPrimitive::LineList; }
+		NdCx__ uint					IndexCount ()		C_NE___	{ return segments * 2; }
+		NdCx__ uint					VertexCount ()		C_NE___	{ return segments; }
+		__Cx__ static uint			BatchVersion		= 1;
 
 		void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
-				   OUT void* positionPtr, OUT void* attributePtr,
-				   const SurfaceDimensions &)									C_NE___
+				   OUT void* positionPtr, OUT void* attributePtr)	C_NE___
 		{
 			// indices (front face CCW)
 			{
@@ -297,22 +357,22 @@ namespace AE::Graphics
 		uint		segments	= 0;
 
 	// methods
-		constexpr CircleBatch () __NE___ {}
-		constexpr CircleBatch (uint segments, const RectF &pos, RGBA8u color) __NE___ : CircleBatch{segments, pos, RectF{}, color} {}
+		__Cx__ CircleBatch () __NE___ {}
+		__Cx__ CircleBatch (uint segments, const RectF &pos, RGBA8u color) __NE___ : CircleBatch{segments, pos, RectF{}, color} {}
 
-		constexpr CircleBatch (uint segments, const RectF &pos, const RectF &texc, RGBA8u color) __NE___ :
-			position{pos}, texcoord{texc}, color{color}, segments{segments}
+		__Cz__ CircleBatch (uint segments, const RectF &pos, const RectF &uv, RGBA8u color) __NE___ :
+			position{pos}, texcoord{uv}, color{color}, segments{segments}
 		{
 			ASSERT( segments >= 4 );
 		}
 
-		ND_ static constexpr EPrimitive	Topology ()							__NE___	{ return EPrimitive::TriangleList; }
-		ND_ constexpr uint				IndexCount ()						C_NE___	{ return segments * 3; }
-		ND_ constexpr uint				VertexCount ()						C_NE___	{ return segments + 1; }
+		NdCx__ static EPrimitive	Topology ()			__NE___	{ return EPrimitive::TriangleList; }
+		NdCx__ uint					IndexCount ()		C_NE___	{ return segments * 3; }
+		NdCx__ uint					VertexCount ()		C_NE___	{ return segments + 1; }
+		__Cx__ static uint			BatchVersion		= 1;
 
 		void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
-				   OUT void* positionPtr, OUT void* attributePtr,
-				   const SurfaceDimensions &)								C_NE___
+				   OUT void* positionPtr, OUT void* attributePtr)	C_NE___
 		{
 			// indices (front face CCW)
 			{
@@ -347,11 +407,11 @@ namespace AE::Graphics
 				float2	sc		= SinCos( angle_scale * float(i) );
 				float2	factor	= float2{sc[1], sc[0]};
 				float2	p		= center + scale * factor;
-				float2	texc	= tc_bias + tc_scale * factor;
+				float2	uv		= tc_bias + tc_scale * factor;
 
 				++i;
 				pos[i]  = PosType{ p };
-				attr[i] = AttribType{ texc, color };
+				attr[i] = AttribType{ uv, color };
 			}
 		}
 	};
@@ -373,13 +433,13 @@ namespace AE::Graphics
 		RGBA8u					color;
 
 	// methods
-		ND_ static constexpr EPrimitive	Topology ()							__NE___	{ return Strip ? EPrimitive::LineStrip : EPrimitive::LineList; }
-		ND_ constexpr uint				IndexCount ()						C_NE___	{ return uint(Strip ? points.size() : points.size()*2); }
-		ND_ constexpr uint				VertexCount ()						C_NE___	{ return uint(points.size()); }
+		NdCx__ static EPrimitive	Topology ()			__NE___	{ return Strip ? EPrimitive::LineStrip : EPrimitive::LineList; }
+		NdCx__ uint					IndexCount ()		C_NE___	{ return uint(Strip ? points.size() : points.size()*2); }
+		NdCx__ uint					VertexCount ()		C_NE___	{ return uint(points.size()); }
+		__Cx__ static uint			BatchVersion		= 1;
 
-		constexpr void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
-			 				 OUT void* positionPtr, OUT void* attributePtr,
-							 const SurfaceDimensions &)						C_NE___
+		__Cx__ void  Get (OUT BatchIndex_t* idx, BatchIndex_t firstIdx,
+			 			  OUT void* positionPtr, OUT void* attributePtr)	C_NE___
 		{
 			if constexpr( Strip ){
 				for (uint i = 0, cnt = IndexCount(); i < cnt; ++i) {
@@ -409,6 +469,7 @@ namespace AE::Graphics
 	using NinePatch2D		= NinePatchBatch< VB_Position_f2, VB_UVf2_Col8 >;
 	using Circle2D			= CircleBatch< VB_Position_f2, VB_UVf2_Col8, /*Fill*/false >;
 	using FilledCircle2D	= CircleBatch< VB_Position_f2, VB_UVf2_Col8, /*Fill*/true >;
+	using RotatedRect2D		= RotatedRectBatch< VB_Position_f2, VB_UVf2_Col8, /*Strip*/false >;
 
 
 } // AE::Graphics

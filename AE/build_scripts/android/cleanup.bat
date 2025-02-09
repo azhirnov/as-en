@@ -12,6 +12,9 @@ rmdir /Q /S "engine\build"
 rmdir /Q /S "test\.cxx"
 rmdir /Q /S "test\build"
 
+rmdir /Q /S "remote-ctrl\.cxx"
+rmdir /Q /S "remote-ctrl\build"
+
 rmdir /Q /S "cicd\.cxx"
 rmdir /Q /S "cicd\build"
 

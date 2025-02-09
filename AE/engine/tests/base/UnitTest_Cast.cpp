@@ -8,7 +8,7 @@ namespace
 	{
 		TEST_Eq( LimitCast<ushort>( uint(~0u) ),	0xFFFF );
 		TEST_Eq( LimitCast<ushort>( int(-1) ),		0 );
-		TEST_Eq( LimitCast<uint>( 1_Gb ),			(1u << 30) );
+		TEST_Eq( LimitCast<uint>( 1_GiB ),			(1u << 30) );
 	}
 }
 

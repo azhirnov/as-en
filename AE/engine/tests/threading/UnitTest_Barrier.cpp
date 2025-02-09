@@ -6,7 +6,7 @@ namespace
 {
 	static void Barrier_Test1 ()
 	{
-		const uint			max_threads		= 3;
+		static const uint	max_threads		= 3;
 		Barrier				sync			{max_threads};
 		Atomic<int>			active_threads	[2];
 		Array<StdThread>	threads;

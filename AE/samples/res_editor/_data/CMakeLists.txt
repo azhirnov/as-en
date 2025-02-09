@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-cmake_minimum_required( VERSION 3.18 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.22 FATAL_ERROR )
 project( "ResourceEditor" )
 
 file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" )
@@ -20,6 +20,12 @@ set_property( TARGET "ResourceEditor.Data" PROPERTY LINKER_LANGUAGE CXX )
 
 if (TARGET "ResourceEditor")
 	set_property( TARGET "ResourceEditor.Data" PROPERTY FOLDER "Samples" )
+
+	# much faster startup
+	add_custom_target( "ResourceEditor.App"
+		COMMAND  "${MAIN_BINARY_DIR}/$<CONFIG>/ResourceEditor${AE_EXECUTABLE_SUFFIX}"
+	)
+	set_property( TARGET "ResourceEditor.App" PROPERTY FOLDER "Samples" )
 else()
 	if (WIN32)
 		add_custom_target( "ResourceEditor"
@@ -46,14 +52,19 @@ target_include_directories( "ResourceEditor.Data" PUBLIC
 )
 
 # optional: allow to compile scripts & shaders
-set_source_files_properties( ${SOURCES} PROPERTIES LANGUAGE CXX )
+if (TRUE)
+	set_source_files_properties( ${SOURCES} PROPERTIES LANGUAGE CXX )
+	set_target_properties( "ResourceEditor.Data" PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED YES )
+	target_compile_features( "ResourceEditor.Data" PUBLIC cxx_std_20 )
 
-target_compile_definitions( "ResourceEditor.Data" PUBLIC
-	"AE_LICENSE_MIT"
-	"AE_LICENSE_BSD2"
-	"AE_LICENSE_BSD3"
-	"AE_LICENSE_APACHE_2"
-	"AE_LICENSE_UNLICENSE"
-	"AE_LICENSE_CC_BY_NC_SA_3"
-	"AE_ENABLE_UNKNOWN_LICENSE"
-)
+	target_compile_definitions( "ResourceEditor.Data" PUBLIC
+		"AE_LICENSE_MIT"
+		"AE_LICENSE_BSD2"
+		"AE_LICENSE_BSD3"
+		"AE_LICENSE_APACHE_2"
+		"AE_LICENSE_UNLICENSE"
+		"AE_LICENSE_CC0"
+		"AE_LICENSE_CC_BY_NC_SA_3"
+		"AE_ENABLE_UNKNOWN_LICENSE"
+	)
+endif()

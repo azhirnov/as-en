@@ -6,6 +6,7 @@ void ASmain ()
 	// include:
 	//	Intel(R) UHD Graphics 620.json
 	//	NVIDIA GeForce RTX 2080.json
+	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
 	//	AMD Radeon HD 7970M (RADV PITCAIRN) driver 23.3.3 on Manjaro unknown
 	//	AMD Radeon HD 8790M (RADV OLAND) driver 23.0.4 on Ubuntu 22.04
 	//	AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
@@ -18,7 +19,9 @@ void ASmain ()
 	//	AMD Radeon RX Vega driver 2.0.213 on Ubuntu 22.01
 	//	Apple M1 driver 0.2.2017 on Osx 14.1
 	//	Intel(R) Arc(tm) A380 Graphics (DG2) driver 22.2.99 on Rocky 9.0
+	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
+	//	Intel(R) HD Graphics 520 (SKL GT2) driver 24.2.4 on Arch unknown
 	//	Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
 	//	Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2
 	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
@@ -26,10 +29,13 @@ void ASmain ()
 	//	NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
 	//	NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10
 	//	NVIDIA GeForce MX110 driver 510.54.0.0 on Arch unknown
-	//	NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
+	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
 	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
 	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
+	//	Qualcomm(R) Adreno(TM) X1-85 GPU driver 512.791.0 on Windows 11
 	//	Radeon RX 580 Series driver 2.0.207 on Ubuntu 20.04
 	//	Apple8_Mac
 	//	Apple7_Mac_Metal3
@@ -75,9 +81,7 @@ void ASmain ()
 	fset.subgroupBroadcastDynamicId (True);
 	fset.shaderInt8 (True);
 	fset.storageBuffer16BitAccess (True);
-	fset.uniformAndStorageBuffer16BitAccess (True);
 	fset.storageBuffer8BitAccess (True);
-	fset.uniformAndStorageBuffer8BitAccess (True);
 	fset.uniformBufferStandardLayout (True);
 	fset.bufferDeviceAddress (True);
 	fset.fragmentStoresAndAtomics (True);
@@ -98,20 +102,22 @@ void ASmain ()
 	fset.maxSpirvVersion (140);
 	fset.maxMetalVersion (230);
 	fset.drawIndirectFirstInstance (True);
+	fset.maxDrawIndirectCount (1 << 30);
 	fset.multiViewport (True);
 	fset.maxViewports (16);
 	fset.maxTexelBufferElements (64 << 20);
 	fset.maxUniformBufferSize (64 << 10);
 	fset.maxStorageBufferSize (64 << 10);
-	fset.perDescrSet_maxUniformBuffersDynamic (8);
-	fset.perDescrSet_maxStorageBuffersDynamic (4);
-	fset.perDescrSet_maxInputAttachments (8);
-	fset.perDescrSet_maxSampledImages (640);
-	fset.perDescrSet_maxSamplers (80);
-	fset.perDescrSet_maxStorageBuffers (155);
-	fset.perDescrSet_maxStorageImages (40);
-	fset.perDescrSet_maxUniformBuffers (90);
-	fset.perDescrSet_maxTotalResources (1024);
+	fset.perPipeline_maxUniformBuffersDynamic (8);
+	fset.perPipeline_maxStorageBuffersDynamic (4);
+	fset.perPipeline_maxTotalBuffersDynamic (8);
+	fset.perPipeline_maxInputAttachments (8);
+	fset.perPipeline_maxSampledImages (640);
+	fset.perPipeline_maxSamplers (80);
+	fset.perPipeline_maxStorageBuffers (155);
+	fset.perPipeline_maxStorageImages (40);
+	fset.perPipeline_maxUniformBuffers (90);
+	fset.perPipeline_maxTotalResources (1024);
 	fset.perStage_maxInputAttachments (8);
 	fset.perStage_maxSampledImages (128);
 	fset.perStage_maxSamplers (16);
@@ -119,7 +125,7 @@ void ASmain ()
 	fset.perStage_maxStorageImages (8);
 	fset.perStage_maxUniformBuffers (15);
 	fset.perStage_maxTotalResources (159);
-	fset.maxDescriptorSets (8);
+	fset.maxDescriptorSets (7);
 	fset.maxTexelOffset (7);
 	fset.maxTexelGatherOffset (7);
 	fset.maxFragmentOutputAttachments (8);
@@ -181,6 +187,10 @@ void ASmain ()
 	fset.multisampleArrayImage (True);
 	fset.imageViewFormatList (True);
 	fset.imageViewExtendedUsage (True);
+	fset.maxImageDimension1D (16 << 10);
+	fset.maxImageDimension2D (16 << 10);
+	fset.maxImageDimension3D (2 << 10);
+	fset.maxImageDimensionCube (16 << 10);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U
@@ -225,11 +235,11 @@ void ASmain ()
 		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, 
 		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
 		EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F, EPixelFormat::RGB9F_E5, 
-		EPixelFormat::Depth16, EPixelFormat::Depth32F, EPixelFormat::Depth32F_Stencil8, EPixelFormat::BC1_RGB8_UNorm, 
-		EPixelFormat::BC1_sRGB8, EPixelFormat::BC1_RGB8_A1_UNorm, EPixelFormat::BC1_sRGB8_A1, EPixelFormat::BC2_RGBA8_UNorm, 
-		EPixelFormat::BC2_sRGB8, EPixelFormat::BC3_RGBA8_UNorm, EPixelFormat::BC3_sRGB8, EPixelFormat::BC4_R8_SNorm, 
-		EPixelFormat::BC4_R8_UNorm, EPixelFormat::BC5_RG8_SNorm, EPixelFormat::BC5_RG8_UNorm, EPixelFormat::BC6H_RGB16F, 
-		EPixelFormat::BC6H_RGB16UF, EPixelFormat::BC7_RGBA8_UNorm, EPixelFormat::BC7_sRGB8_A8
+		EPixelFormat::Depth16, EPixelFormat::Depth32F, EPixelFormat::BC1_RGB8_UNorm, EPixelFormat::BC1_sRGB8, 
+		EPixelFormat::BC1_RGB8_A1_UNorm, EPixelFormat::BC1_sRGB8_A1, EPixelFormat::BC2_RGBA8_UNorm, EPixelFormat::BC2_sRGB8, 
+		EPixelFormat::BC3_RGBA8_UNorm, EPixelFormat::BC3_sRGB8, EPixelFormat::BC4_R8_SNorm, EPixelFormat::BC4_R8_UNorm, 
+		EPixelFormat::BC5_RG8_SNorm, EPixelFormat::BC5_RG8_UNorm, EPixelFormat::BC6H_RGB16F, EPixelFormat::BC6H_RGB16UF, 
+		EPixelFormat::BC7_RGBA8_UNorm, EPixelFormat::BC7_sRGB8_A8
 	});
 	fset.samplerAnisotropy (True);
 	fset.samplerMirrorClampToEdge (True);

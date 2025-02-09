@@ -120,13 +120,13 @@ namespace
 			AE_MALI_COUNTERS( ENUM )
 			#undef ENUM
 
-            case MaliProfiler::ECounter::ExtBusTotalBy :      return "ExtBusTotalBy";
-            case MaliProfiler::ECounter::ExtMemEnergy :       return "ExtMemEnergy";
-            case MaliProfiler::ECounter::CoreEnergy :         return "CoreEnergy";
-            case MaliProfiler::ECounter::TotalEnergy :        return "TotalEnergy";
-            case MaliProfiler::ECounter::PerCoreActiveCy :    return "PerCoreActiveCy";
+			case MaliProfiler::ECounter::ExtBusTotalBy :      return "ExtBusTotalBy";
+			case MaliProfiler::ECounter::ExtMemEnergy :       return "ExtMemEnergy";
+			case MaliProfiler::ECounter::CoreEnergy :         return "CoreEnergy";
+			case MaliProfiler::ECounter::TotalEnergy :        return "TotalEnergy";
+			case MaliProfiler::ECounter::PerCoreActiveCy :    return "PerCoreActiveCy";
 
-            case MaliProfiler::ECounter::_Count :             break;
+			case MaliProfiler::ECounter::_Count :             break;
 		}
 		switch_end
 		return "";
@@ -288,27 +288,6 @@ namespace
 
 		if ( not impl->gpu.valid() )
 			return false;
-
-		if ( impl->gpu.get_gpu_family() == hwcpipe::device::gpu_family::midgard )
-		{
-			counterSet.erase( ECounter::GPUIRQUtil );
-			counterSet.erase( ECounter::FragQueueUtil );
-			counterSet.erase( ECounter::NonFragQueueUtil );
-			counterSet.erase( ECounter::ExtBusRdStallRate );
-			counterSet.erase( ECounter::ExtBusWrStallRate );
-			counterSet.erase( ECounter::TilerUtil );
-			counterSet.erase( ECounter::GeomTotalPrim );
-			counterSet.erase( ECounter::GeomTotalCullPrim );
-			counterSet.erase( ECounter::NonFragUtil );
-			counterSet.erase( ECounter::FragUtil );
-			counterSet.erase( ECounter::FragEZSKillRate );
-			counterSet.erase( ECounter::FragLZSKillRate );
-			counterSet.erase( ECounter::FragOverdraw );
-			counterSet.erase( ECounter::ALUUtil );
-			counterSet.erase( ECounter::TexUtil );
-			counterSet.erase( ECounter::LSUtil );
-			counterSet.erase( ECounter::FragFPKBUtil );
-		}
 
 		// remove custom
 		counterSet &= ~c_CustomCounters;

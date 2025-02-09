@@ -5,16 +5,20 @@ void ASmain ()
 {
 	// include:
 	//	NVIDIA GeForce RTX 2080.json
+	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
 	//	AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
 	//	AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
 	//	AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
 	//	AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
+	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
 	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
 	//	NVIDIA GeForce GTX 1070 driver 511.65.0.0 on Windows 10
-	//	NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
+	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
 	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
 	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
 
 	const EFeature  True = EFeature::RequireTrue;
@@ -72,8 +76,6 @@ void ASmain ()
 	fset.uniformBufferStandardLayout (True);
 	fset.scalarBlockLayout (True);
 	fset.bufferDeviceAddress (True);
-	fset.storagePushConstant8 (True);
-	fset.storagePushConstant16 (True);
 	fset.fragmentStoresAndAtomics (True);
 	fset.vertexPipelineStoresAndAtomics (True);
 	fset.shaderBufferInt64Atomics (True);
@@ -111,6 +113,7 @@ void ASmain ()
 	fset.maxMetalVersion (240);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
+	fset.maxDrawIndirectCount (4294967295);
 	fset.multiview (True);
 	fset.multiviewGeometryShader (True);
 	fset.multiviewTessellationShader (True);
@@ -122,16 +125,17 @@ void ASmain ()
 	fset.maxTexelBufferElements (128 << 20);
 	fset.maxUniformBufferSize (64 << 10);
 	fset.maxStorageBufferSize (128 << 20);
-	fset.perDescrSet_maxUniformBuffersDynamic (8);
-	fset.perDescrSet_maxStorageBuffersDynamic (8);
-	fset.perDescrSet_maxInputAttachments (256);
-	fset.perDescrSet_maxSampledImages (393210);
-	fset.perDescrSet_maxSamplers (393210);
-	fset.perDescrSet_maxStorageBuffers (393210);
-	fset.perDescrSet_maxStorageImages (393210);
-	fset.perDescrSet_maxUniformBuffers (180);
-	fset.perDescrSet_maxAccelStructures (65535);
-	fset.perDescrSet_maxTotalResources (1024);
+	fset.perPipeline_maxUniformBuffersDynamic (8);
+	fset.perPipeline_maxStorageBuffersDynamic (8);
+	fset.perPipeline_maxTotalBuffersDynamic (16);
+	fset.perPipeline_maxInputAttachments (256);
+	fset.perPipeline_maxSampledImages (393210);
+	fset.perPipeline_maxSamplers (393210);
+	fset.perPipeline_maxStorageBuffers (393210);
+	fset.perPipeline_maxStorageImages (393210);
+	fset.perPipeline_maxUniformBuffers (180);
+	fset.perPipeline_maxAccelStructures (65535);
+	fset.perPipeline_maxTotalResources (1024);
 	fset.perStage_maxInputAttachments (64);
 	fset.perStage_maxSampledImages (65535);
 	fset.perStage_maxSamplers (65535);
@@ -166,19 +170,19 @@ void ASmain ()
 		EVertexType::UShort, EVertexType::UShort2, EVertexType::UShort3, EVertexType::UShort4, 
 		EVertexType::Int, EVertexType::Int2, EVertexType::Int3, EVertexType::Int4, 
 		EVertexType::UInt, EVertexType::UInt2, EVertexType::UInt3, EVertexType::UInt4, 
-		EVertexType::Long, EVertexType::Long2, EVertexType::Long3, EVertexType::Long4, 
-		EVertexType::ULong, EVertexType::ULong2, EVertexType::ULong3, EVertexType::ULong4, 
-		EVertexType::Half, EVertexType::Half2, EVertexType::Half3, EVertexType::Half4, 
-		EVertexType::Float, EVertexType::Float2, EVertexType::Float3, EVertexType::Float4, 
-		EVertexType::UInt_2_10_10_10, EVertexType::Byte_Norm, EVertexType::Byte2_Norm, EVertexType::Byte3_Norm, 
-		EVertexType::Byte4_Norm, EVertexType::UByte_Norm, EVertexType::UByte2_Norm, EVertexType::UByte3_Norm, 
-		EVertexType::UByte4_Norm, EVertexType::Short_Norm, EVertexType::Short2_Norm, EVertexType::Short3_Norm, 
-		EVertexType::Short4_Norm, EVertexType::UShort_Norm, EVertexType::UShort2_Norm, EVertexType::UShort3_Norm, 
-		EVertexType::UShort4_Norm, EVertexType::UInt_2_10_10_10_Norm, EVertexType::Byte_Scaled, EVertexType::Byte2_Scaled, 
-		EVertexType::Byte3_Scaled, EVertexType::Byte4_Scaled, EVertexType::UByte_Scaled, EVertexType::UByte2_Scaled, 
-		EVertexType::UByte3_Scaled, EVertexType::UByte4_Scaled, EVertexType::Short_Scaled, EVertexType::Short2_Scaled, 
-		EVertexType::Short3_Scaled, EVertexType::Short4_Scaled, EVertexType::UShort_Scaled, EVertexType::UShort2_Scaled, 
-		EVertexType::UShort3_Scaled, EVertexType::UShort4_Scaled, EVertexType::UInt_2_10_10_10_Scaled
+		EVertexType::Long2, EVertexType::Long3, EVertexType::Long4, EVertexType::ULong2, 
+		EVertexType::ULong3, EVertexType::ULong4, EVertexType::Half, EVertexType::Half2, 
+		EVertexType::Half3, EVertexType::Half4, EVertexType::Float, EVertexType::Float2, 
+		EVertexType::Float3, EVertexType::Float4, EVertexType::UInt_2_10_10_10, EVertexType::Byte_Norm, 
+		EVertexType::Byte2_Norm, EVertexType::Byte3_Norm, EVertexType::Byte4_Norm, EVertexType::UByte_Norm, 
+		EVertexType::UByte2_Norm, EVertexType::UByte3_Norm, EVertexType::UByte4_Norm, EVertexType::Short_Norm, 
+		EVertexType::Short2_Norm, EVertexType::Short3_Norm, EVertexType::Short4_Norm, EVertexType::UShort_Norm, 
+		EVertexType::UShort2_Norm, EVertexType::UShort3_Norm, EVertexType::UShort4_Norm, EVertexType::UInt_2_10_10_10_Norm, 
+		EVertexType::Byte_Scaled, EVertexType::Byte2_Scaled, EVertexType::Byte3_Scaled, EVertexType::Byte4_Scaled, 
+		EVertexType::UByte_Scaled, EVertexType::UByte2_Scaled, EVertexType::UByte3_Scaled, EVertexType::UByte4_Scaled, 
+		EVertexType::Short_Scaled, EVertexType::Short2_Scaled, EVertexType::Short3_Scaled, EVertexType::Short4_Scaled, 
+		EVertexType::UShort_Scaled, EVertexType::UShort2_Scaled, EVertexType::UShort3_Scaled, EVertexType::UShort4_Scaled, 
+		EVertexType::UInt_2_10_10_10_Scaled
 	});
 	fset.AddTexelFormats( EFormatFeature::UniformTexelBuffer, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
@@ -216,6 +220,10 @@ void ASmain ()
 	fset.multisampleArrayImage (True);
 	fset.imageViewFormatList (True);
 	fset.imageViewExtendedUsage (True);
+	fset.maxImageDimension1D (16 << 10);
+	fset.maxImageDimension2D (16 << 10);
+	fset.maxImageDimension3D (2 << 10);
+	fset.maxImageDimensionCube (16 << 10);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U, EPixelFormat::R32F

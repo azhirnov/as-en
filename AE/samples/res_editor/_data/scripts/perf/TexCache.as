@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_TEX
 #	define TEST_TEX_CACHE
 #endif
@@ -18,18 +18,20 @@
 		RC<DynamicUInt2>	tex_pot	= DynamicUInt2();
 		RC<DynamicDim>		tex_dim	= tex_pot.PowOf2().Dimension();
 		RC<DynamicUInt>		gen_tex	= DynamicUInt();
-		RC<DynamicUInt>		linear	= DynamicUInt();
+		RC<DynamicUInt>		mode	= DynamicUInt();
 
 		RC<Image>			rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
 		RC<Image>			tex		= Image( EPixelFormat::RGBA8_UNorm, tex_dim );			tex.Name( "Texture" );
 
-		Slider( gen_tex,	"GenTex",	0,			1,			1 );
-		Slider( tex_pot,	"TexDim",	uint2(1),	uint2(14),	uint2(4) );
-		Slider( count,		"Repeat",	1,			32,			1 );
-		Slider( step,		"UVStep",	0,			3,			0 );
-		Slider( scale,		"Scale",	0.f,		4.f,		1.f );
-		Slider( hash,		"Hash",		0.1f,		2.f,		1.f );
-		Slider( linear,		"Linear",	0,			1,			1 );
+		Slider( gen_tex,	"GenTex",		0,			1,			1 );
+		Slider( tex_pot,	"TexDim",		uint2(1),	uint2(14),	uint2(4) );
+		Slider( count,		"Repeat",		1,			32,			1 );
+		Slider( step,		"UVStep",		0,			3,			0 );
+		Slider( scale,		"Scale",		0.f,		4.f,		1.f );
+		Slider( hash,		"Hash",			0.1f,		2.f,		1.f );
+		Slider( mode,		"SampleMode",	0,			2,			1 );
+
+		Label( tex_dim.XY(), "Dimension" );
 
 		// render loop
 		{
@@ -51,7 +53,7 @@
 			pass.LocalSize( 8, 8 );
 			pass.DispatchThreads( rt.Dimension() );
 			pass.Repeat( count );
-			pass.EnableIfEqual( linear, 0 );
+			pass.EnableIfEqual( mode, 0 );
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "TEST_TEX_CACHE" );
 			pass.ArgOut( "un_OutImage",	rt );
@@ -62,27 +64,36 @@
 			pass.LocalSize( 8, 8 );
 			pass.DispatchThreads( rt.Dimension() );
 			pass.Repeat( count );
-			pass.EnableIfEqual( linear, 1 );
+			pass.EnableIfEqual( mode, 1 );
 		}
 		#else
 		{
 			RC<Postprocess>		pass = Postprocess( "", "TEST_TEX_CACHE" );
-			pass.Output( "out_Color",	rt,		EAttachmentLoadOp::Invalidate, EAttachmentStoreOp::Invalidate );
+			pass.OutputLS( "out_Color",	rt,		EAttachmentLoadOp::Invalidate, EAttachmentStoreOp::Invalidate );
 			pass.ArgIn( "un_Texture",	tex,	Sampler_NearestRepeat );
 			pass.Constant( "iScale",	scale );
 			pass.Constant( "iHash",		hash );
 			pass.Constant( "iStep",		step );
 			pass.Repeat( count );
-			pass.EnableIfEqual( linear, 0 );
+			pass.EnableIfEqual( mode, 0 );
 		}{
 			RC<Postprocess>		pass = Postprocess( "", "TEST_TEX_CACHE" );
-			pass.Output( "out_Color",	rt,		EAttachmentLoadOp::Invalidate, EAttachmentStoreOp::Invalidate );
+			pass.OutputLS( "out_Color",	rt,		EAttachmentLoadOp::Invalidate, EAttachmentStoreOp::Invalidate );
 			pass.ArgIn( "un_Texture",	tex,	Sampler_LinearRepeat );
 			pass.Constant( "iScale",	scale );
 			pass.Constant( "iHash",		hash );
 			pass.Constant( "iStep",		step );
 			pass.Repeat( count );
-			pass.EnableIfEqual( linear, 1 );
+			pass.EnableIfEqual( mode, 1 );
+		}{
+			RC<Postprocess>		pass = Postprocess( "", "TEST_TEX_CACHE;GATHER" );
+			pass.OutputLS( "out_Color",	rt,		EAttachmentLoadOp::Invalidate, EAttachmentStoreOp::Invalidate );
+			pass.ArgIn( "un_Texture",	tex,	Sampler_LinearRepeat );
+			pass.Constant( "iScale",	scale );
+			pass.Constant( "iHash",		hash );
+			pass.Constant( "iStep",		step );
+			pass.Repeat( count );
+			pass.EnableIfEqual( mode, 2 );
 		}
 		#endif
 
@@ -109,6 +120,15 @@
 	#include "GlobalIndex.glsl"
 	#include "Hash.glsl"
 
+	float4  Sample (float2 uv)
+	{
+		#ifdef GATHER
+			return gl.texture.Gather( un_Texture, uv, 0 );
+		#else
+			return gl.texture.Sample( un_Texture, uv );
+		#endif
+	}
+
 	void Main ()
 	{
 	//	float2	uv0 = HEHash22( GetGlobalCoord().xy );
@@ -123,14 +143,14 @@
 		float2	uv7 = uv0 + float2(0.7, 0.2) * iScale;
 
 		float4	col =
-			gl.texture.Sample( un_Texture, uv0 ) +
-			gl.texture.Sample( un_Texture, uv1 ) +
-			gl.texture.Sample( un_Texture, uv2 ) +
-			gl.texture.Sample( un_Texture, uv3 ) +
-			gl.texture.Sample( un_Texture, uv4 ) +
-			gl.texture.Sample( un_Texture, uv5 ) +
-			gl.texture.Sample( un_Texture, uv6 ) +
-			gl.texture.Sample( un_Texture, uv7 );
+			Sample( uv0 ) +
+			Sample( uv1 ) +
+			Sample( uv2 ) +
+			Sample( uv3 ) +
+			Sample( uv4 ) +
+			Sample( uv5 ) +
+			Sample( uv6 ) +
+			Sample( uv7 );
 		col /= 8.0;
 
 		#ifdef SH_COMPUTE

@@ -57,7 +57,7 @@ namespace AE::Threading
 
 		void  Wait ()							__NE___;
 
-		ND_ static constexpr usize  max ()		__NE___	{ return uint{UMax}; }
+		NdCx__ static usize  max ()				__NE___	{ return uint{UMax}; }
 	};
 
 } // AE::Threading
@@ -105,7 +105,7 @@ namespace AE::Threading
 
 		void  Wait ()							__NE___;
 
-		ND_ static constexpr usize  Max ()		__NE___	{ return uint{UMax}; }
+		NdCx__ static usize  Max ()				__NE___	{ return uint{UMax}; }
 	};
 
 } // AE::Threading
@@ -162,7 +162,7 @@ namespace AE::Threading
 			_cv.wait( lock, [this, cycle = _cycle] () { return cycle != _cycle; });
 		}
 
-		ND_ static constexpr usize  Max ()		__NE___	{ return UMax; }
+		NdCx__ static usize  Max ()				__NE___	{ return UMax; }
 	};
 
 } // AE::Threading
@@ -202,7 +202,7 @@ namespace AE::Threading
 			_barrier.arrive_and_wait();
 		}
 
-		ND_ static constexpr ssize  Max ()		__NE___	{ return std::barrier<>::max(); }
+		NdCx__ static ssize  Max ()				__NE___	{ return std::barrier<>::max(); }
 	};
 
 } // AE::Threading

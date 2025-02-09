@@ -5,7 +5,7 @@
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define USE_QUADS	0
 #endif
 //-----------------------------------------------------------------------------
@@ -31,10 +31,10 @@
 
 		{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
-			ds.CombinedImage( EShaderStages::TessEvaluation, "un_HeightMap",	EImageType::FImageCube,	 Sampler_LinearMipmapRepeat );
-			ds.CombinedImage( EShaderStages::Fragment,		 "un_NormalMap",	EImageType::FImageCube,	 Sampler_LinearMipmapRepeat );
-			ds.CombinedImage( EShaderStages::Fragment,		 "un_AlbedoMap",	EImageType::FImageCube,	 Sampler_LinearMipmapRepeat );
-			ds.CombinedImage( EShaderStages::Fragment,		 "un_EmissionMap",	EImageType::FImageCube,	 Sampler_LinearMipmapRepeat );
+			ds.CombinedImage( EShaderStages::TessEvaluation, "un_HeightMap",	EImageType::Float_Cube,	 Sampler_LinearMipmapRepeat );
+			ds.CombinedImage( EShaderStages::Fragment,		 "un_NormalMap",	EImageType::Float_Cube,	 Sampler_LinearMipmapRepeat );
+			ds.CombinedImage( EShaderStages::Fragment,		 "un_AlbedoMap",	EImageType::Float_Cube,	 Sampler_LinearMipmapRepeat );
+			ds.CombinedImage( EShaderStages::Fragment,		 "un_EmissionMap",	EImageType::Float_Cube,	 Sampler_LinearMipmapRepeat );
 			ds.UniformBuffer( EShaderStages::AllGraphics,	 "un_PerObject",	"SphericalCubeMaterialUB" );
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl" );

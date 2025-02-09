@@ -7,7 +7,7 @@
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	define SH_RAY_GEN
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define PRIMARY_MISS
 #	define SHADOW_MISS
 #	define PRIMARY_HIT

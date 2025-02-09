@@ -5,7 +5,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -115,7 +115,7 @@
 #ifdef SH_FRAG
 	#include "Sort.glsl"
 	#include "Blend.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	ND_ uint  UnpackInstanceID (uint data)		{ return data & 0xFFFF; }
 	ND_ bool  IsFrontFace (uint data)			{ return (data >> 31) == 1; }

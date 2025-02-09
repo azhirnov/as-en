@@ -941,7 +941,7 @@ namespace
 			mat = mat * float3x3::RotateY( Rad{tr.angles.y} );
 			mat = mat * float3x3::RotateZ( Rad{tr.angles.z} );
 
-			mat *= float3x3::Scaled( tr.scale );
+			mat *= float3x3::Scale( tr.scale );
 
 			dst.transform = float4x3{mat}.SetTranslation( tr.pos );
 		}

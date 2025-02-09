@@ -27,8 +27,8 @@ namespace AE::Profiler
 			DevMemUsed,			// %
 			UnifiedMemUsed,		// %
 
-			DevMemUsedMb,		// Mb
-			UnifiedMemUsedMb,	// Mb
+			DevMemUsedMb,		// MiB
+			UnifiedMemUsedMb,	// MiB
 
 			GraphicsClock,		// MHz
 			SMClock,			// MHz

@@ -3,7 +3,7 @@
 #include "base/Platforms/WindowsHeader.cpp.h"
 #include "base/FileSystem/FileSystem.h"
 #include "base/Algorithms/ArrayUtils.h"
-#include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {
@@ -270,14 +270,12 @@ namespace {
 	ToShortPath
 =================================================
 */
-	StringView  FileSystem::ToShortPath (StringView file) __NE___
+	StringView  FileSystem::ToShortPath (StringView file, const uint maxParts) __NE___
 	{
-		const uint	max_parts = 3;
-
 		usize	i = Max( file.length(), 1u ) - 1;
 		uint	j = 0;
 
-		for (; i < file.length() and j < max_parts; --i)
+		for (; i < file.length() and j < maxParts; --i)
 		{
 			const char	c = file[i];
 
@@ -286,7 +284,7 @@ namespace {
 		}
 
 		if ( i < file.length() )
-			return file.substr( i + (j == max_parts ? 2 : 0) );
+			return file.substr( i + (j == maxParts ? 2 : 0) );
 		else
 			return file;
 	}

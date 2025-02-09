@@ -58,21 +58,23 @@ void ASmain ()
 	fset.vulkanMemoryModelAvailabilityVisibilityChains (True);
 	fset.maxSpirvVersion (130);
 	fset.drawIndirectFirstInstance (True);
+	fset.maxDrawIndirectCount (uint(2) << 30);
 	fset.maxViewports (1);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
 	fset.maxTexelBufferElements (64 << 10);
 	fset.maxUniformBufferSize (128 << 20);
 	fset.maxStorageBufferSize (128 << 20);
-	fset.perDescrSet_maxUniformBuffersDynamic (8);
-	fset.perDescrSet_maxStorageBuffersDynamic (8);
-	fset.perDescrSet_maxInputAttachments (256);
-	fset.perDescrSet_maxSampledImages (256);
-	fset.perDescrSet_maxSamplers (256);
-	fset.perDescrSet_maxStorageBuffers (256);
-	fset.perDescrSet_maxStorageImages (256);
-	fset.perDescrSet_maxUniformBuffers (256);
-	fset.perDescrSet_maxTotalResources (512);
+	fset.perPipeline_maxUniformBuffersDynamic (8);
+	fset.perPipeline_maxStorageBuffersDynamic (8);
+	fset.perPipeline_maxTotalBuffersDynamic (16);
+	fset.perPipeline_maxInputAttachments (256);
+	fset.perPipeline_maxSampledImages (256);
+	fset.perPipeline_maxSamplers (256);
+	fset.perPipeline_maxStorageBuffers (256);
+	fset.perPipeline_maxStorageImages (256);
+	fset.perPipeline_maxUniformBuffers (256);
+	fset.perPipeline_maxTotalResources (512);
 	fset.perStage_maxInputAttachments (8);
 	fset.perStage_maxSampledImages (48);
 	fset.perStage_maxSamplers (32);
@@ -140,6 +142,10 @@ void ASmain ()
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
 	fset.imageViewExtendedUsage (True);
+	fset.maxImageDimension1D (4 << 10);
+	fset.maxImageDimension2D (4 << 10);
+	fset.maxImageDimension3D (2 << 10);
+	fset.maxImageDimensionCube (4 << 10);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U

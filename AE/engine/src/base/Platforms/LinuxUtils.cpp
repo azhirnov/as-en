@@ -13,7 +13,7 @@
 
 # include "base/Platforms/LinuxUtils.h"
 # include "base/Algorithms/ArrayUtils.h"
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {
@@ -25,9 +25,11 @@ namespace AE::Base
 */
 	void  SecureZeroMem (OUT void* ptr, Bytes size) __NE___
 	{
+		NonNull( ptr );
 		::explicit_bzero( ptr, usize(size) );
 	}
 
+#ifndef AE_CFG_RELEASE
 /*
 =================================================
 	SetCurrentThreadName
@@ -56,6 +58,7 @@ namespace AE::Base
 		ASSERT( res == 0 );
 		return String{buf};
 	}
+#endif // AE_CFG_RELEASE
 
 /*
 =================================================
@@ -72,23 +75,23 @@ namespace AE::Base
 	SetThreadAffinity
 =================================================
 */
-	bool  LinuxUtils::SetThreadAffinity (const ThreadHandle &handle, uint coreIdx) __NE___
+	bool  LinuxUtils::SetThreadAffinity (const ThreadHandle &handle, const uint logicalCoreIdx) __NE___
 	{
-		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
+		ASSERT_Lt( logicalCoreIdx, std::thread::hardware_concurrency() );
 
 		cpu_set_t cpuset;
 		CPU_ZERO( &cpuset );
-		CPU_SET( coreIdx, &cpuset );
+		CPU_SET( logicalCoreIdx, &cpuset );
 		return ::pthread_setaffinity_np( handle, sizeof(cpu_set_t), &cpuset ) == 0;
 	}
 
-	bool  LinuxUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
+	bool  LinuxUtils::SetCurrentThreadAffinity (const uint logicalCoreIdx) __NE___
 	{
-		ASSERT_Lt( coreIdx, std::thread::hardware_concurrency() );
+		ASSERT_Lt( logicalCoreIdx, std::thread::hardware_concurrency() );
 
 		::cpu_set_t  mask;
 		CPU_ZERO( OUT &mask );
-		CPU_SET( coreIdx, INOUT &mask );
+		CPU_SET( logicalCoreIdx, INOUT &mask );
 
 		return ::sched_setaffinity( 0, sizeof(mask), &mask ) == 0;
 	}
@@ -98,7 +101,7 @@ namespace AE::Base
 	SetThreadPriority
 =================================================
 */
-	bool  LinuxUtils::SetThreadPriority (const ThreadHandle &handle, float priority) __NE___
+	bool  LinuxUtils::SetThreadPriority (const ThreadHandle &handle, EThreadPriority priority) __NE___
 	{
 		// TODO:
 		//	pthread_setschedprio
@@ -107,7 +110,7 @@ namespace AE::Base
 		return false;
 	}
 
-	bool  LinuxUtils::SetCurrentThreadPriority (float priority) __NE___
+	bool  LinuxUtils::SetCurrentThreadPriority (EThreadPriority priority) __NE___
 	{
 		// TODO
 		Unused( priority );
@@ -116,10 +119,10 @@ namespace AE::Base
 
 /*
 =================================================
-	GetProcessorCoreIndex
+	GetLogicalCoreIndex
 =================================================
 */
-	uint  LinuxUtils::GetProcessorCoreIndex () __NE___
+	uint  LinuxUtils::GetLogicalCoreIndex () __NE___
 	{
 		return ::sched_getcpu();
 	}

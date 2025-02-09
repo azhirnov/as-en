@@ -89,7 +89,7 @@ namespace AE::App
 	ConvertSensorBits (ESensorBits)
 =================================================
 */
-	inline constexpr RemoteInputActions::ERemoteSensorBits&  operator |= (RemoteInputActions::ERemoteSensorBits &lhs, const RemoteInputActions::ERemoteSensorBits rhs) __NE___
+	__CxIn RemoteInputActions::ERemoteSensorBits&  operator |= (RemoteInputActions::ERemoteSensorBits &lhs, const RemoteInputActions::ERemoteSensorBits rhs) __NE___
 	{
 		lhs = BitCast<RemoteInputActions::ERemoteSensorBits>( ToNearUInt( lhs ) | ToNearUInt( rhs ));
 		return lhs;

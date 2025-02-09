@@ -56,8 +56,8 @@ namespace AE::Base
 		template <typename T>
 		ND_ T const&	Ref (Bytes offset = 0_b)				C_NE___	{ return *Ptr<T>( offset ); }
 
-		NdCv__ static Bytes		Size ()							__NE___	{ return Bytes{Size_v}; }
-		NdCv__ static Bytes		Align ()						__NE___	{ return Bytes{Align_v}; }
+		NdCe__ static Bytes		Size ()							__NE___	{ return Bytes{Size_v}; }
+		NdCe__ static Bytes		Align ()						__NE___	{ return Bytes{Align_v}; }
 	};
 
 
@@ -107,8 +107,8 @@ namespace AE::Base
 		ND_ void*		Data ()									__NE___	{ return _buffer; }
 		ND_ void const*	Data ()									C_NE___	{ return _buffer; }
 
-		NdCv__ static Bytes		Size ()							__NE___	{ return Bytes{Size_v}; }
-		NdCv__ static Bytes		Align ()						__NE___	{ return Bytes{Align_v}; }
+		NdCe__ static Bytes		Size ()							__NE___	{ return Bytes{Size_v}; }
+		NdCe__ static Bytes		Align ()						__NE___	{ return Bytes{Align_v}; }
 	};
 
 
@@ -121,15 +121,21 @@ namespace AE::Base
 	// variables
 	private:
 		RstPtr<void>	_ptr;
-		usize			_size	: 28;
-		usize			_align	: 4;
+
+	#if AE_PLATFORM_BITS == 32
+		uint			_size		: 28;
+		uint			_alignPOT	: 4;
+	#elif AE_PLATFORM_BITS == 64
+		usize			_size		: 56;
+		usize			_alignPOT	: 8;
+	#endif
 
 		DEBUG_ONLY( RC<IAllocator>	_dbgAllocator;)
 
 
 	// methods
 	public:
-		DynUntypedStorage ()											__NE___ : _size{0}, _align{0} {}
+		DynUntypedStorage ()											__NE___ : _size{0}, _alignPOT{0} {}
 		~DynUntypedStorage ()											__NE___ { Dealloc( null ); }
 
 		DynUntypedStorage (DynUntypedStorage &&)						__NE___;
@@ -138,13 +144,13 @@ namespace AE::Base
 		explicit DynUntypedStorage (Bytes size, Bytes align = DefaultAllocatorAlign, IAllocator* alloc = null)	__NE___;
 		explicit DynUntypedStorage (SizeAndAlign sizeAndAlign, IAllocator* alloc = null)						__NE___;
 
-		ND_ Bytes				Size ()									C_NE___	{ return Bytes{_size}; }
-		ND_ POTBytes			AlignPOT ()								C_NE___	{ return POTBytes{PowerOfTwo( _align )}; }
+		ND_ Bytes				Size ()									C_NE___	{ return Bytes{usize{_size} << _alignPOT}; }
+		ND_ POTBytes			AlignPOT ()								C_NE___	{ return POTBytes{PowerOfTwo( _alignPOT )}; }
 		ND_ Bytes				Align ()								C_NE___	{ return Bytes{ AlignPOT() }; }
 		ND_ bool				Empty ()								C_NE___	{ return _ptr == null; }
 
 		ND_ RstPtr<void>		Data ()									__NE___	{ return _ptr; }
-		ND_ RstPtr<const void>	Data ()									C_NE___	{ return RstPtr<const void>{ _ptr.get() }; }
+		ND_ RstPtr<const void>	Data ()									C_NE___	{ return _ptr; }
 
 		ND_ const void*			End ()									C_NE___	{ return _ptr.get() + Size(); }
 
@@ -169,6 +175,9 @@ namespace AE::Base
 		template <typename T>
 		ND_ T const&	Ref (Bytes offset = 0_b)						C_NE___	{ return *Ptr<T>( offset ); }
 	};
+
+	StaticAssertDbg( sizeof(DynUntypedStorage) == sizeof(void*)*2 + sizeof(RC<IAllocator>) );
+	StaticAssertRel( sizeof(DynUntypedStorage) == sizeof(void*)*2 );
 
 
 	template <typename T, usize Capacity>
@@ -297,19 +306,19 @@ namespace AE::Base
 =================================================
 */
 	inline DynUntypedStorage::DynUntypedStorage (Bytes size, Bytes align, IAllocator* allocator) __NE___ :
-		_size{0}, _align{0}
+		_size{0}, _alignPOT{0}
 	{
 		Alloc( SizeAndAlign{ size, align }, allocator );
 	}
 
 	inline DynUntypedStorage::DynUntypedStorage (SizeAndAlign sizeAndAlign, IAllocator* allocator) __NE___ :
-		_size{0}, _align{0}
+		_size{0}, _alignPOT{0}
 	{
 		Alloc( sizeAndAlign, allocator );
 	}
 
 	inline DynUntypedStorage::DynUntypedStorage (DynUntypedStorage &&other) __NE___ :
-		_ptr{ other._ptr }, _size{ other._size }, _align{ other._align }
+		_ptr{ other._ptr }, _size{ other._size }, _alignPOT{ other._alignPOT }
 		DEBUG_ONLY(, _dbgAllocator{ RVRef(other._dbgAllocator) })
 	{
 		other._ptr = null;
@@ -317,9 +326,9 @@ namespace AE::Base
 
 	inline DynUntypedStorage&  DynUntypedStorage::operator = (DynUntypedStorage &&rhs) __NE___
 	{
-		_ptr	= rhs._ptr;
-		_size	= rhs._size;
-		_align	= rhs._align;
+		_ptr		= rhs._ptr;
+		_size		= rhs._size;
+		_alignPOT	= rhs._alignPOT;
 		DEBUG_ONLY( _dbgAllocator = RVRef(rhs._dbgAllocator); )
 		rhs._ptr = null;
 		return *this;
@@ -338,13 +347,13 @@ namespace AE::Base
 		if_unlikely( allocator == null )
 			allocator = AE::GetDefaultAllocatorPtr().get();
 
-		_size	= usize(sizeAndAlign.size);
-		_align	= POTBytes( sizeAndAlign.align ).GetPOT();
+		_alignPOT	= POTBytes{ sizeAndAlign.align }.GetPOT();
+		_size		= (usize(sizeAndAlign.size) + ((1u<<_alignPOT)-1)) >> _alignPOT;
 
-		ASSERT( Size() == sizeAndAlign.size );
-		ASSERT( Align() == sizeAndAlign.align );
+		CHECK_ERR( Size() >= sizeAndAlign.size );
+		CHECK_ERR( Align() == sizeAndAlign.align );
 
-		_ptr = RstPtr<void>{ allocator->Allocate( sizeAndAlign )};
+		_ptr = RstPtr<void>{ allocator->Allocate( SizeAndAlign{ Size(), Align() })};
 
 		DEBUG_ONLY( _dbgAllocator = allocator->GetRC(); )
 		return _ptr != null;
@@ -366,9 +375,9 @@ namespace AE::Base
 			allocator->Deallocate( _ptr.get(), SizeAndAlign{ Size(), Align() });
 		}
 
-		_ptr	= null;
-		_size	= 0;
-		_align	= 0;
+		_ptr		= null;
+		_size		= 0;
+		_alignPOT	= 0;
 	}
 
 } // AE::Base

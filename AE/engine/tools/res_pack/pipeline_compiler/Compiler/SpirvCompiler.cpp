@@ -8,6 +8,7 @@
 #	pragma warning (push, 0)
 #	pragma warning (disable: 4005)
 #	pragma warning (disable: 4668)
+#	pragma warning (disable: 4458)
 #endif
 #if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic push
@@ -613,7 +614,7 @@ namespace AE::PipelineCompiler
 		spv_diagnostic	diagnostic	= null;
 		bool			result		= false;
 
-		if ( ::spvBinaryToText( ctx, spirv.data(), spirv.size(), 0, &text, &diagnostic ) == SPV_SUCCESS )
+		if ( ::spvBinaryToText( ctx, spirv.data(), spirv.size(), 0, OUT &text, OUT &diagnostic ) == SPV_SUCCESS )
 		{
 			outDisasm	= String{ text->str, text->length };
 			result		= true;
@@ -1122,7 +1123,7 @@ namespace AE::PipelineCompiler
 		{
 			case TBasicType::EbtFloat :
 			case TBasicType::EbtDouble :
-				result |= EImageType::Float;	// TODO: UNorm, SNorm, UFloat, sRGB
+				result |= EImageType::Float;	// TODO: UNorm, SNorm, UFloat
 				break;
 
 			case TBasicType::EbtFloat16 :
@@ -1176,16 +1177,16 @@ namespace AE::PipelineCompiler
 		{
 			case TSamplerDim::Esd1D :
 			{
-				if ( samp.isArrayed() )		result |= EImageType::Img1DArray;
-				else						result |= EImageType::Img1D;
+				if ( samp.isArrayed() )		result |= EImageType::Dim1DArray;
+				else						result |= EImageType::Dim1D;
 				break;
 			}
 			case TSamplerDim::Esd2D :
 			{
-				if ( samp.isMultiSample() and samp.isArrayed() )	result |= EImageType::Img2DMSArray;		else
-				if ( samp.isArrayed() )								result |= EImageType::Img2DArray;		else
-				if ( samp.isMultiSample() )							result |= EImageType::Img2DMS;			else
-																	result |= EImageType::Img2D;
+				if ( samp.isMultiSample() and samp.isArrayed() )	result |= EImageType::Dim2DMSArray;		else
+				if ( samp.isArrayed() )								result |= EImageType::Dim2DArray;		else
+				if ( samp.isMultiSample() )							result |= EImageType::Dim2DMS;			else
+																	result |= EImageType::Dim2D;
 				break;
 			}
 			case TSamplerDim::Esd3D :
@@ -1193,13 +1194,13 @@ namespace AE::PipelineCompiler
 				CHECK( not samp.isArrayed() );
 				CHECK( not samp.isMultiSample() );
 				CHECK( not samp.isShadow() );
-				result |= EImageType::Img3D;
+				result |= EImageType::Dim3D;
 				break;
 			}
 			case TSamplerDim::EsdCube :
 			{
-				if ( samp.isArrayed() )	result |= EImageType::ImgCubeArray;
-				else					result |= EImageType::ImgCube;
+				if ( samp.isArrayed() )	result |= EImageType::DimCubeArray;
+				else					result |= EImageType::DimCube;
 				break;
 			}
 
@@ -1207,8 +1208,8 @@ namespace AE::PipelineCompiler
 			{
 				COMP_CHECK_ERR( type.isSubpass() );
 				COMP_CHECK_ERR( not samp.isArrayed() );
-				if ( samp.isMultiSample() )	result |= EImageType::Img2DMS;	else
-											result |= EImageType::Img2D;
+				if ( samp.isMultiSample() )	result |= EImageType::Dim2DMS;	else
+											result |= EImageType::Dim2D;
 				break;
 			}
 

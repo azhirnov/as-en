@@ -64,6 +64,10 @@ namespace AE::App
 		void  SetFocus ()													C_NE_OV;
 		bool  SetMode (EWindowMode mode, Monitor::ID monitor)				__NE_OV;
 
+		bool  SetBrightness (Percent)										__NE_OV	{ return false; }
+
+		bool  SetColorSpace (EColorSpace value)								C_NE_OV;
+
 
 	private:
 		explicit WindowWinAPI (ApplicationWinAPI &, Unique<IWndListener>, IInputActions*) __NE___;

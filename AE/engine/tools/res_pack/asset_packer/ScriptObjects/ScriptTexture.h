@@ -3,7 +3,7 @@
 #pragma once
 
 #include "ScriptObjects/ObjectStorage.h"
-#include "graphics/Public/ResourceEnums.h"
+#include "graphics_rhi/Public/ResourceEnums.h"
 #include "res_loaders/Intermediate/IntermImage.h"
 
 namespace AE::AssetPacker
@@ -17,14 +17,32 @@ namespace AE::AssetPacker
 	// Script Texture
 	//
 
-	class ScriptTexture final : public EnableScriptRC
+	class ScriptTexture : public EnableScriptRC
 	{
+		friend class ScriptSharedImage;
+		friend class ScriptRasterFont;
+		friend class ScriptImageAtlas;
+
+	// types
+	private:
+		enum class EState : uint
+		{
+			Recording,
+			Converted,
+			Stored,
+		};
+
+
 	// variables
 	private:
 		Unique<ResLoader::IntermImage>		_imgData;
 
+		String					_fileName;
+
 		EPixelFormat			_dstFormat		= EPixelFormat::RGBA8_UNorm;
 		EPixelFormat			_intermFormat	= EPixelFormat::RGBA8_UNorm;
+
+		EState					_state			= EState::Recording;
 
 
 	// methods
@@ -53,24 +71,30 @@ namespace AE::AssetPacker
 		void  AddLayer3 (const String &imageFile, const RectU &region, uint layer)										__Th___;
 
 		void  Store (const String &nameInArchive)																		__Th___;
+
 		void  SetFormat (EPixelFormat fmt)																				__Th___;
+
+		ND_ EPixelFormat	DstFormat ()																				C_NE___	{ return _dstFormat; }
+		ND_ EPixelFormat	IntermFormat ()																				C_NE___	{ return _intermFormat; }
+
+		// used by 'ScriptResourceMeta'
+		ND_ bool  _StoreMeta (RC<WStream>, const String &metaArchive = Default)											C_NE___;
 
 		static void  Bind (const ScriptEnginePtr &se)																	__Th___;
 
 	private:
-		ND_ bool  _Pack (const String &nameInArchive, RC<WStream> stream);
-		ND_ bool  _Convert (OUT ResLoader::IntermImage &dstImage)														const;
-		ND_ bool  _CompressBC_ETC2 (OUT ResLoader::IntermImage &dstImage)												const;
-		ND_ bool  _CompressASTC (OUT ResLoader::IntermImage &dstImage)													const;
-		ND_ bool  _CompressEAC (OUT ResLoader::IntermImage &dstImage)													const;
+		ND_ bool  _ConvertImage ()																						__NE___;
+		ND_ bool  _StoreData (RC<WStream>)																				__NE___;
+
+		ND_ bool  _Convert (OUT ResLoader::IntermImage &dstImage)														C_Th___;
+		ND_ bool  _CompressBC_ETC2 (OUT ResLoader::IntermImage &dstImage)												C_Th___;
+		ND_ bool  _CompressASTC (OUT ResLoader::IntermImage &dstImage)													C_Th___;
+		ND_ bool  _CompressEAC (OUT ResLoader::IntermImage &dstImage)													C_Th___;
 
 			void  _AddLayer (ResLoader::IntermImage &img, uint layer)													__Th___;
 
 		ND_ static Unique<ResLoader::IntermImage>  _Load (const String &imageFile, bool flipY)							__Th___;
 		ND_ static Unique<ResLoader::IntermImage>  _Load (const String &imageFile, const RectU &region)					__Th___;
 	};
-
-	using ScriptTexturePtr = ScriptRC< ScriptTexture >;
-
 
 } // AE::AssetPacker

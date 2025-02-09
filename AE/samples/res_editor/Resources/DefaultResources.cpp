@@ -268,7 +268,7 @@ namespace AE::ResEditor
 			{
 				const auto		aspect		= multiplanar ? EImageAspect_Plane( plane ) : EImageAspect::Color;
 				EPixelFormat	plane_fmt	= desc.format;
-				uint2			plane_scale	{1,1};
+				POTVec2			plane_scale;
 
 				if ( aspect != EImageAspect::Color )
 				{

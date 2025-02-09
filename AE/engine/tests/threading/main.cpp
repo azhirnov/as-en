@@ -3,6 +3,7 @@
 #include "UnitTest_Common.h"
 
 extern void UnitTest_AsyncMutex ();
+extern void UnitTest_SyncPoint ();
 extern void UnitTest_Barrier ();
 extern void UnitTest_Coroutine ();
 extern void UnitTest_Promise ();
@@ -56,7 +57,8 @@ int main (const int argc, char* argv[])
 
 	UnitTest_TaskDeps();
 	UnitTest_TaskUsage();
-	UnitTest_AsyncMutex ();
+	UnitTest_AsyncMutex();
+	UnitTest_SyncPoint();
 	UnitTest_Promise();
 	UnitTest_Coroutine();
 

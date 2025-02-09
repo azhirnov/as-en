@@ -31,6 +31,7 @@ namespace AE::PipelineCompiler
 		void  SetLocalGroupSize1 (uint x)								__Th___	{ SetLocalGroupSize3( x, UMax, UMax ); }
 		void  SetLocalGroupSize2 (uint x, uint y)						__Th___	{ SetLocalGroupSize3( x, y, UMax ); }
 		void  SetLocalGroupSize3 (uint x, uint y, uint z)				__Th___;
+		void  SetLocalGroupSizeAtLoadTime ()							__Th___;
 
 		void  SetSubgroupSize (uint value)								__Th___;
 

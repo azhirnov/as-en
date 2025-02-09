@@ -5,7 +5,7 @@
 #include "base/Math/Camera.h"
 #include "base/Math/Frustum.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -229,6 +229,12 @@ namespace AE::Math
 		_vertAngle						= Rad_t{};
 		return *this;
 	}
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
+	template <typename T>	struct TMemCopyAvailable< TFPVCamera<T> >		: CT_Bool< IsMemCopyAvailable<typename TFPVCamera<T>::Camera_t> or IsMemCopyAvailable<typename TFPVCamera<T>::Frustum_t> >{};
+	template <typename T>	struct TZeroMemAvailable< TFPVCamera<T> >		: CT_False {};
+	template <typename T>	struct TTriviallySerializable< TFPVCamera<T> >	: CT_False {};
+	template <typename T>	struct TUnwrap< TFPVCamera<T> >					: TUnwrap<T> {};
+
+} // AE::Base

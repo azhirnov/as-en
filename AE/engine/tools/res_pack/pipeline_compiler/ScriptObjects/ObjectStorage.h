@@ -152,6 +152,7 @@ namespace AE::PipelineCompiler
 
 		// other
 		Array< Path >				shaderFolders;
+		bool						searchShadersInPipelineDir = false;
 		Ptr<PipelineStorage>		pplnStorage;
 		Unique< SpirvCompiler >		spirvCompiler;
 		Unique< MetalCompiler >		metalCompiler;
@@ -226,9 +227,10 @@ namespace AE::PipelineCompiler
 
 		ND_ static ShaderDebuggerFeatures  GetShaderDebuggerFeatures (ArrayView<ScriptFeatureSetPtr> features);
 
-		ND_ bool  CompilePipeline (const ScriptEnginePtr &se, const Path &pplnPath, ArrayView<Path> includeDirs);
-		ND_ bool  CompilePipelineFromSource (const ScriptEnginePtr &se, const Path &pplnPath,
-											 StringView source, ArrayView<Path> includeDirs);
+		ND_ bool  CompilePipeline (const ScriptEnginePtr &se, const Path &pplnPath,
+									ArrayView<Path> includeDirs, bool includeCurrentDir = false);
+		ND_ bool  CompilePipelineFromSource (const ScriptEnginePtr &se, const Path &pplnPath, StringView source,
+											 ArrayView<Path> includeDirs, bool includeCurrentDir = false);
 		ND_ bool  BuildRenderTechniques ();
 		ND_ bool  SavePack (const Path &filename, bool addNameMapping)																const;
 		ND_ bool  SavePack (WStream &stream, bool addNameMapping, OUT PipelinePackOffsets &offsets)									const;

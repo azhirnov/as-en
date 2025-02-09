@@ -10,7 +10,7 @@ namespace
 	{
 		Quat		q = Quat::RotateX( 45.0_deg );
 		float3		p = float3{10.0f, -3.0f, 2.5f};
-		float4x4	m = float4x4::Translated( p ) * float4x4{q};
+		float4x4	m = float4x4::Translate( p ) * float4x4{q};
 
 		Transform_t	t{ m };
 

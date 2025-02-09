@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -90,7 +90,20 @@
 	float4  UniqueSubgroup ()
 	{
 		float2	sum = gl.subgroup.Add( gl.FragCoord.xy );
-		return Rainbow( DHash12( sum * iHash ));
+		float4	col = Rainbow( DHash12( sum * iHash ));
+
+		// uniform
+		if ( un_PerPass.mouse.z > 0.0 )
+		{
+			float2	pos1 = Floor( un_PerPass.mouse.xy * un_PerPass.resolution.xy );
+			float2	pos2 = Floor( gl.FragCoord.xy );
+			float	d	 = Distance( pos1, pos2 );
+			float	min  = gl.subgroup.Min( d );
+
+			if ( min < 0.01 )
+				col = float4(1.0);
+		}
+		return col;
 	}
 
 	float4  HelperInvocationCount ()
@@ -116,16 +129,56 @@
 		return Rainbow( 1.0 - sum / gl.subgroup.Size );
 	}
 
+  #ifdef AE_NV_shader_sm_builtins
+	float4  SMID ()
+	{
+		return Rainbow( float(gl.NV.SMID) / gl.NV.SMCount );
+	}
+
+	float4  WarpID ()
+	{
+		return Rainbow( float(gl.NV.WarpID) / gl.NV.WarpsPerSM );
+	}
+
+  #elif defined(AE_ARM_shader_core_builtins)
+	float4  SMID ()
+	{
+		return Rainbow( float(gl.ARM.CoreID) / gl.ARM.CoreMaxID );
+	}
+
+	float4  WarpID ()
+	{
+		return Rainbow( float(gl.ARM.WarpID) / gl.ARM.WarpMaxID );
+	}
+
+  #else
+	float4  SMID ()		{ return float4(0.0); }
+	float4  WarpID ()	{ return float4(0.0); }
+  #endif
+
+	float4  Wireframe ()
+	{
+	#ifdef AE_fragment_shader_barycentric
+		return float4( Lerp( float3(1.0, 0.0, 0.0), float3(0.0, 0.0, 1.0), FSBarycentricWireframe( 0.5, 1.0 ).x ), 1.0 );
+	#else
+		return float4(0.0);
+	#endif
+	}
+
+
 	void  Main ()
 	{
 		switch ( iMode )
 		{
-			case 0 :	out_Color = QuadGroupId();					break;
-			case 1 :	out_Color = SubgroupId();					break;
-			case 2 :	out_Color = UniqueSubgroup();				break;
-			case 3 :	out_Color = FullSubgroup();					break;
-			case 4 :	out_Color = HelperInvocationCount();		break;
-			case 5 :	out_Color = FullQuad();						break;
+			case 0 :	out_Color = QuadGroupId();				break;
+			case 1 :	out_Color = SubgroupId();				break;
+			case 2 :	out_Color = UniqueSubgroup();			break;
+			case 3 :	out_Color = FullSubgroup();				break;
+			case 4 :	out_Color = HelperInvocationCount();	break;
+			case 5 :	out_Color = FullQuad();					break;
+			case 6 :	out_Color = SMID();						break;
+			case 7 :	out_Color = WarpID();					break;
+			case 8 :	out_Color = Wireframe();				break;
 		}
 	}
 

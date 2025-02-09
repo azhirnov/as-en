@@ -101,6 +101,8 @@ namespace AE::Base
 /*
 =================================================
 	ClearFileCache
+----
+	can be used for performance tests
 =================================================
 */
 	void  UnixUtils::ClearFileCache () __NE___
@@ -235,13 +237,13 @@ namespace AE::Base
 */
 	void  UnixUtils::ThreadNanoSleep (nanoseconds relativeTime) __NE___
 	{
-	#ifdef AE_PLATFORM_APPLE
+	  #ifdef AE_PLATFORM_APPLE
 		ASSERT( relativeTime <= nanoseconds{64*1024} );
 		const usize		cnt = Min( 64u, usize(relativeTime.count()+512) / 1024 );
-	#else
+	  #else
 		ASSERT( relativeTime <= nanoseconds{64*1024} );
 		const usize		cnt = Min( 4u, usize(relativeTime.count() + (8u<<10)) / (16u<<10) );
-	#endif
+	  #endif
 
 		// loop of '__builtin_arm_yield' has no effect, so use only '__wfe'
 
@@ -270,7 +272,7 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-#if defined(AE_CPU_ARCH_X86) or defined(AE_CPU_ARCH_X64)
+#ifdef AE_CPU_ARCH_X86_64
 /*
 =================================================
 	ThreadSleep_1us
@@ -321,7 +323,7 @@ namespace AE::Base
 		}
 	}
 
-#endif // X86 / X64
+#endif // AE_CPU_ARCH_X86_64
 
 
 	// TODO:

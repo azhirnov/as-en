@@ -38,7 +38,7 @@ namespace
 	static QueryID  CreateQuery2 (Registry &reg, ArrayView<Tuple<Args...>> const*)
 	{
 		using A = TypeList< Args... >;
-		StaticAssert(( IsSameTypes< typename A::template Get<0>, usize > ));
+		StaticAssert(( IsSame< typename A::template Get<0>, usize > ));
 		using B = typename A::PopFront::type;
 
 		return CreateQuery1( reg, Cast< B const >(null) );

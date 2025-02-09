@@ -15,94 +15,94 @@ namespace
 */
 	struct ScalarFunc
 	{
-		template <typename T>	static T  Abs (T value)						{ return Math::Abs( value ); }
-		template <typename T>	static T  Floor (T value)					{ return Math::Floor( value ); }
-		template <typename T>	static T  Ceil (T value)					{ return Math::Ceil( value ); }
-		template <typename T>	static T  Trunc (T value)					{ return Math::Trunc( value ); }
-		template <typename T>	static T  Fract (T value)					{ return Math::Fract( value ); }
+		template <typename T>	static T  Abs (T value)						{ return Base::Abs( value ); }
+		template <typename T>	static T  Floor (T value)					{ return Base::Floor( value ); }
+		template <typename T>	static T  Ceil (T value)					{ return Base::Ceil( value ); }
+		template <typename T>	static T  Trunc (T value)					{ return Base::Trunc( value ); }
+		template <typename T>	static T  Fract (T value)					{ return Base::Fract( value ); }
 
-		template <typename T>	static T  Round (T value)					{ return Math::Round( value ); }
-		template <typename T>	static auto  RoundToInt (T value)			{ return Math::RoundToInt( value ); }
-		template <typename T>	static auto  RoundToUint (T value)			{ return Math::RoundToUint( value ); }
+		template <typename T>	static T  Round (T value)					{ return Base::Round( value ); }
+		template <typename T>	static auto  RoundToInt (T value)			{ return Base::RoundToInt( value ); }
+		template <typename T>	static auto  RoundToUint (T value)			{ return Base::RoundToUint( value ); }
 
-		template <typename T>	static T  AlignDown (T value, T align)		{ return Math::AlignDown( value, align ); }
-		template <typename T>	static T  AlignUp (T value, T align)		{ return Math::AlignUp( value, align ); }
-		template <typename T>	static bool  IsMultipleOf (T value, T align){ return Math::IsMultipleOf( value, align ); }
+		template <typename T>	static T  AlignDown (T value, T align)		{ return Base::AlignDown( value, align ); }
+		template <typename T>	static T  AlignUp (T value, T align)		{ return Base::AlignUp( value, align ); }
+		template <typename T>	static bool  IsMultipleOf (T value, T align){ return Base::IsMultipleOf( value, align ); }
 
-		template <typename T>	static T  SafeDiv (T lhs, T rhs, T def)		{ return Math::SafeDiv( lhs, rhs, def ); }
-		template <typename T>	static T  DivCeil (T lhs, T rhs)			{ return Math::DivCeil( lhs, rhs ); }
+		template <typename T>	static T  SafeDiv (T lhs, T rhs, T def)		{ return Base::SafeDiv( lhs, rhs, def ); }
+		template <typename T>	static T  DivCeil (T lhs, T rhs)			{ return Base::DivCeil( lhs, rhs ); }
 
-		template <typename T>	static bool  All (T value)					{ return Math::All( value ); }
-		template <typename T>	static bool  Any (T value)					{ return Math::Any( value ); }
+		template <typename T>	static bool  All (T value)					{ return Base::All( value ); }
+		template <typename T>	static bool  Any (T value)					{ return Base::Any( value ); }
 
-		template <typename T>	static T  Pow (T x, T y)					{ return Math::Pow( x, y ); }
-		template <typename T>	static T  Ln (T x)							{ return Math::Ln( x ); }
-		template <typename T>	static T  Log (T x, T base)					{ return Math::Log( x, base ); }
-		template <typename T>	static T  Log2 (T x)						{ return Math::Log2( x ); }
-		template <typename T>	static T  Log10 (T x)						{ return Math::Log10( x ); }
-		template <typename T>	static T  Exp (T x)							{ return Math::Exp( x ); }
-		template <typename T>	static T  Exp2 (T x)						{ return Math::Exp2( x ); }
-		template <typename T>	static T  Exp10 (T x)						{ return Math::Exp10( x ); }
-		template <typename T>	static T  ExpMinus1 (T x)					{ return Math::ExpMinus1( x ); }
+		template <typename T>	static T  Pow (T x, T y)					{ return Base::Pow( x, y ); }
+		template <typename T>	static T  Ln (T x)							{ return Base::Ln( x ); }
+		template <typename T>	static T  Log (T x, T base)					{ return Base::Log( x, base ); }
+		template <typename T>	static T  Log2 (T x)						{ return Base::Log2( x ); }
+		template <typename T>	static T  Log10 (T x)						{ return Base::Log10( x ); }
+		template <typename T>	static T  Exp (T x)							{ return Base::Exp( x ); }
+		template <typename T>	static T  Exp2 (T x)						{ return Base::Exp2( x ); }
+		template <typename T>	static T  Exp10 (T x)						{ return Base::Exp10( x ); }
+		template <typename T>	static T  ExpMinus1 (T x)					{ return Base::ExpMinus1( x ); }
 
-		template <typename T>	static int  IntLog2 (T x)					{ return Math::IntLog2( x ); }
-		template <typename T>	static int  CeilIntLog2 (T x)				{ return Math::CeilIntLog2( x ); }
-		template <typename T>	static int  BitScanReverse (T x)			{ return Math::BitScanReverse( x ); }
-		template <typename T>	static int  BitScanForward (T x)			{ return Math::BitScanForward( x ); }
-		template <typename T>	static uint  BitCount (T x)					{ using U = ToUnsignedInteger<T>; return uint(Math::BitCount( U(x) )); }
-		template <typename T>	static bool  IsPowerOfTwo (T x)				{ return Math::IsPowerOfTwo( x ); }
-		template <typename T>	static bool  IsSingleBitSet (T x)			{ return Math::IsSingleBitSet( x ); }
+		template <typename T>	static int  IntLog2 (T x)					{ return Base::IntLog2( x ); }
+		template <typename T>	static int  CeilIntLog2 (T x)				{ return Base::CeilIntLog2( x ); }
+		template <typename T>	static int  BitScanReverse (T x)			{ return Base::BitScanReverse( x ); }
+		template <typename T>	static int  BitScanForward (T x)			{ return Base::BitScanForward( x ); }
+		template <typename T>	static uint  BitCount (T x)					{ using U = ToUnsignedInteger<T>; return uint(Base::BitCount( U(x) )); }
+		template <typename T>	static bool  IsPowerOfTwo (T x)				{ return Base::IsPowerOfTwo( x ); }
+		template <typename T>	static bool  IsSingleBitSet (T x)			{ return Base::IsSingleBitSet( x ); }
 
-		template <typename T>	static bool  AllBits (T x, T y)				{ return Math::AllBits( x, y ); }
-		template <typename T>	static bool  AnyBits (T x, T y)				{ return Math::AnyBits( x, y ); }
+		template <typename T>	static bool  AllBits (T x, T y)				{ return Base::AllBits( x, y ); }
+		template <typename T>	static bool  AnyBits (T x, T y)				{ return Base::AnyBits( x, y ); }
 
-		template <typename T>	static T  ExtractBit (T& x)					{ return Math::ExtractBit( x ); }
-		template <typename T>	static T  ExtractBitIndex (T& x)				{ return Math::ExtractBitIndex( x ); }
+		template <typename T>	static T  ExtractBit (T& x)					{ return Base::ExtractBit( x ); }
+		template <typename T>	static T  ExtractBitIndex (T& x)				{ return Base::ExtractBitIndex( x ); }
 
-		template <typename T>	static T  BitRotateLeft (T x, uint shift)	{ return Math::BitRotateLeft( x, shift ); }
-		template <typename T>	static T  BitRotateRight (T x, uint shift)	{ return Math::BitRotateRight( x, shift ); }
+		template <typename T>	static T  BitRotateLeft (T x, uint shift)	{ return Base::BitRotateLeft( x, shift ); }
+		template <typename T>	static T  BitRotateRight (T x, uint shift)	{ return Base::BitRotateRight( x, shift ); }
 
-		template <typename T>	static T  Sin (T value)						{ return Math::Sin( TRadian<T>{value} ); }
-		template <typename T>	static T  SinH (T value)					{ return Math::SinH( TRadian<T>{value} ); }
-		template <typename T>	static T  ASin (T value)					{ return T(Math::ASin( value )); }
-		template <typename T>	static T  Cos (T value)						{ return Math::Cos( TRadian<T>{value} ); }
-		template <typename T>	static T  CosH (T value)					{ return Math::CosH( TRadian<T>{value} ); }
-		template <typename T>	static T  ACos (T value)					{ return T(Math::ACos( value )); }
-		template <typename T>	static T  Tan (T value)						{ return Math::Tan( TRadian<T>{value} ); }
-		template <typename T>	static T  TanH (T value)					{ return Math::TanH( TRadian<T>{value} ); }
-		template <typename T>	static T  ATan (T y, T x)					{ return T(Math::ATan( y, x )); }
+		template <typename T>	static T  Sin (T value)						{ return Base::Sin( TRadian<T>{value} ); }
+		template <typename T>	static T  SinH (T value)					{ return Base::SinH( TRadian<T>{value} ); }
+		template <typename T>	static T  ASin (T value)					{ return T(Base::ASin( value )); }
+		template <typename T>	static T  Cos (T value)						{ return Base::Cos( TRadian<T>{value} ); }
+		template <typename T>	static T  CosH (T value)					{ return Base::CosH( TRadian<T>{value} ); }
+		template <typename T>	static T  ACos (T value)					{ return T(Base::ACos( value )); }
+		template <typename T>	static T  Tan (T value)						{ return Base::Tan( TRadian<T>{value} ); }
+		template <typename T>	static T  TanH (T value)					{ return Base::TanH( TRadian<T>{value} ); }
+		template <typename T>	static T  ATan (T y, T x)					{ return T(Base::ATan( y, x )); }
 
-		template <typename T>	static T  Square (T value)					{ return Math::Square( value ); }
-		template <typename T>	static T  Sqrt (T value)					{ return Math::Sqrt( value ); }
+		template <typename T>	static T  Square (T value)					{ return Base::Square( value ); }
+		template <typename T>	static T  Sqrt (T value)					{ return Base::Sqrt( value ); }
 		template <typename T>	static T  Mod (T x, T y)					{ return std::fmod( x, y ); }
 
-		template <typename T>	static T  FloorPOT (T x)					{ return Math::FloorPOT( x ); }
-		template <typename T>	static T  CeilPOT (T x)						{ return Math::CeilPOT( x ); }
+		template <typename T>	static T  FloorPOT (T x)					{ return Base::FloorPOT( x ); }
+		template <typename T>	static T  CeilPOT (T x)						{ return Base::CeilPOT( x ); }
 
-		template <typename T>	static T  IsInfinity (T x)					{ return Math::IsInfinity( x ); }
-		template <typename T>	static T  IsNaN (T x)						{ return Math::IsNaN( x ); }
-		template <typename T>	static T  IsFinite (T x)					{ return Math::IsFinite( x ); }
+		template <typename T>	static T  IsInfinity (T x)					{ return Base::IsInfinity( x ); }
+		template <typename T>	static T  IsNaN (T x)						{ return Base::IsNaN( x ); }
+		template <typename T>	static T  IsFinite (T x)					{ return Base::IsFinite( x ); }
 
-		template <typename T>	static T  Lerp (T x, T y, T factor)			{ return Math::Lerp( x, y, factor ); }
+		template <typename T>	static T  Lerp (T x, T y, T factor)			{ return Base::Lerp( x, y, factor ); }
 
-		template <typename T>	static T  Min (T x, T y)					{ return Math::Min( x, y ); }
-		template <typename T>	static T  Max (T x, T y)					{ return Math::Max( x, y ); }
-		template <typename T>	static T  Clamp (T x, T min, T max)			{ return Math::Clamp( x, min, max ); }
-		template <typename T>	static T  Wrap (T x, T min, T max)			{ return Math::Wrap( x, min, max ); }
-		template <typename T>	static T  MirroredWrap (T x, T min, T max)	{ return Math::MirroredWrap( x, min, max ); }
+		template <typename T>	static T  Min (T x, T y)					{ return Base::Min( x, y ); }
+		template <typename T>	static T  Max (T x, T y)					{ return Base::Max( x, y ); }
+		template <typename T>	static T  Clamp (T x, T min, T max)			{ return Base::Clamp( x, min, max ); }
+		template <typename T>	static T  Wrap (T x, T min, T max)			{ return Base::Wrap( x, min, max ); }
+		template <typename T>	static T  MirroredWrap (T x, T min, T max)	{ return Base::MirroredWrap( x, min, max ); }
 
 		template <typename T>	static T  ToRad (T x)						{ return TRadian<T>::DegToRad() * x; }
 		template <typename T>	static T  ToDeg (T x)						{ return TRadian<T>::RadToDeg() * x; }
 
-		template <typename T>	static T  ToSNorm (T x)						{ return Math::ToSNorm( x ); }
-		template <typename T>	static T  ToUNorm (T x)						{ return Math::ToUNorm( x ); }
+		template <typename T>	static T  ToSNorm (T x)						{ return Base::ToSNorm( x ); }
+		template <typename T>	static T  ToUNorm (T x)						{ return Base::ToUNorm( x ); }
 
-		template <typename T>	static T  Average (T x, T y)				{ return Math::Average( x, y ); }
+		template <typename T>	static T  Average (T x, T y)				{ return Base::Average( x, y ); }
 
-		template <typename T>	static T  Remap (T srcMin, T srcMax, T dstMin, T dstMax, T x)		{ return Math::Remap( Range<T>{srcMin, srcMax}, Range<T>{dstMin, dstMax}, x ); }
-		template <typename T>	static T  RemapClamp (T srcMin, T srcMax, T dstMin, T dstMax, T x)	{ return Math::RemapClamp( Range<T>{srcMin, srcMax}, Range<T>{dstMin, dstMax}, x ); }
+		template <typename T>	static T  Remap (T srcMin, T srcMax, T dstMin, T dstMax, T x)		{ return Base::Remap( Range<T>{srcMin, srcMax}, Range<T>{dstMin, dstMax}, x ); }
+		template <typename T>	static T  RemapClamp (T srcMin, T srcMax, T dstMin, T dstMax, T x)	{ return Base::RemapClamp( Range<T>{srcMin, srcMax}, Range<T>{dstMin, dstMax}, x ); }
 
-		template <typename T>	static T  Pi ()								{ return T{Math::TRadian<T>::Pi()}; }
+		template <typename T>	static T  Pi ()								{ return T{Base::TRadian<T>::Pi()}; }
 	};
 
 /*
@@ -155,7 +155,7 @@ namespace
 	template <typename T>
 	static void  BindFloatScalar (const ScriptEnginePtr &se)
 	{
-		const String	suffix = IsSameTypes<T,float> ? "" : "D";
+		const String	suffix = IsSame<T,float> ? "" : "D";
 
 		//
 		se->AddFunction( &ScalarFunc::Floor<T>,			"Floor",		{"x"} );
@@ -206,10 +206,10 @@ namespace
 		se->AddFunction( &ScalarFunc::IsNaN<T>,			"IsNaN",		{"x"} );
 		se->AddFunction( &ScalarFunc::IsFinite<T>,		"IsFinite",		{"x"} );
 
-		if constexpr( IsSameTypes< T, float >)
+		if constexpr( IsSame< T, float >)
 			se->AddFunction( &ScalarFunc::Pi<T>,		"Pi",			{} );
 
-		if constexpr( IsSameTypes< T, double >)
+		if constexpr( IsSame< T, double >)
 			se->AddFunction( &ScalarFunc::Pi<T>,		"dPi",			{} );
 	}
 

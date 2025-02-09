@@ -74,6 +74,13 @@ namespace AE::ResEditor
 			bool			enableRandomizer	= true;
 		};
 
+		struct EnableLabel
+		{
+			ScriptDynamicUIntPtr	dyn;
+			uint					ref		= 0;
+			IPass::ECompare			op		= Default;
+		};
+
 
 	private:
 		class ScriptPresent;
@@ -90,6 +97,7 @@ namespace AE::ResEditor
 		class ScriptExportImage;
 		class ScriptExportBuffer;
 		class ScriptCompressImage;
+		class ScriptReadBufferValue;
 
 		using ScriptPassGroupPtr	= ScriptRC<ScriptPassGroup>;
 		using DynSlider_t			= Renderer::DynSlider_t;
@@ -104,23 +112,7 @@ namespace AE::ResEditor
 		using UniqueSliderNames_t	= FlatHashSet< String >;
 		using SliderCounter_t		= StaticArray< uint, uint(ESlider::_Count) >;
 
-		struct TempData
-		{
-			ScriptConfig		cfg;
-			RC<Renderer>		renderer;
-			ScriptPassGroupPtr	passGroup;
-			Array< Path >		currPath;
-			Array< Path >		dependencies;
-			uint				dbgViewCounter		= 0;
-			int					passGroupDepth		= 0;
-
-			bool				hasPresent			= false;
-
-			Sliders_t			sliders;
-			UniqueSliderNames_t	uniqueSliderNames;
-			SliderCounter_t		sliderCounter		{};
-		};
-
+		struct TempData;
 		struct SamplerConsts;
 
 
@@ -203,6 +195,24 @@ namespace AE::ResEditor
 		static void  _ExportBuffer (const ScriptBufferPtr &buffer, const String &prefix)						__Th___;
 		static void  _DbgExportBuffer (const ScriptBufferPtr &buffer, const String &prefix)						__Th___;
 		static void  _ExportGeometry (const ScriptGeomSourcePtr &geom, const String &prefix)					__Th___;
+
+		static void  _ReadBufferI1 (const ScriptDynamicIntPtr &, const ScriptBufferPtr &, const String &)		__Th___;
+		static void  _ReadBufferI2 (const ScriptDynamicInt2Ptr &, const ScriptBufferPtr &, const String &)		__Th___;
+		static void  _ReadBufferI3 (const ScriptDynamicInt3Ptr &, const ScriptBufferPtr &, const String &)		__Th___;
+		static void  _ReadBufferI4 (const ScriptDynamicInt4Ptr &, const ScriptBufferPtr &, const String &)		__Th___;
+
+		static void  _ReadBufferU1 (const ScriptDynamicUIntPtr &, const ScriptBufferPtr &, const String &)		__Th___;
+		static void  _ReadBufferU2 (const ScriptDynamicUInt2Ptr &, const ScriptBufferPtr &, const String &)		__Th___;
+		static void  _ReadBufferU3 (const ScriptDynamicUInt3Ptr &, const ScriptBufferPtr &, const String &)		__Th___;
+		static void  _ReadBufferU4 (const ScriptDynamicUInt4Ptr &, const ScriptBufferPtr &, const String &)		__Th___;
+
+		static void  _ReadBufferF1 (const ScriptDynamicFloatPtr &, const ScriptBufferPtr &, const String &)		__Th___;
+		static void  _ReadBufferF2 (const ScriptDynamicFloat2Ptr &, const ScriptBufferPtr &, const String &)	__Th___;
+		static void  _ReadBufferF3 (const ScriptDynamicFloat3Ptr &, const ScriptBufferPtr &, const String &)	__Th___;
+		static void  _ReadBufferF4 (const ScriptDynamicFloat4Ptr &, const ScriptBufferPtr &, const String &)	__Th___;
+
+		template <typename D, typename T>
+		static void  _ReadBuffer (const D &, const ScriptBufferPtr &, const String &, T, uint)					__Th___;
 
 		static void  _BuildRTGeometry (const ScriptRTGeometryPtr &)												__Th___;
 		static void  _BuildRTGeometryIndirect (const ScriptRTGeometryPtr &)										__Th___;
@@ -327,6 +337,44 @@ namespace AE::ResEditor
 		static void  _WhiteColorSpectrumStep50nm (OUT ScriptArray<packed_float4> &, bool)						__Th___;
 		static void  _WhiteColorSpectrumStep100nm (OUT ScriptArray<packed_float4> &, bool)						__Th___;
 
+		static void  _LabelI1 (const ScriptDynamicIntPtr &, const String&)										__Th___;
+		static void  _LabelI2 (const ScriptDynamicInt2Ptr&, const String&)										__Th___;
+		static void  _LabelI3 (const ScriptDynamicInt3Ptr&, const String&)										__Th___;
+		static void  _LabelI4 (const ScriptDynamicInt4Ptr&, const String&)										__Th___;
+
+		static void  _LabelU1 (const ScriptDynamicUIntPtr &, const String&)										__Th___;
+		static void  _LabelU2 (const ScriptDynamicUInt2Ptr&, const String&)										__Th___;
+		static void  _LabelU3 (const ScriptDynamicUInt3Ptr&, const String&)										__Th___;
+		static void  _LabelU4 (const ScriptDynamicUInt4Ptr&, const String&)										__Th___;
+
+		static void  _LabelF1 (const ScriptDynamicFloatPtr &, const String&)									__Th___;
+		static void  _LabelF2 (const ScriptDynamicFloat2Ptr&, const String&)									__Th___;
+		static void  _LabelF3 (const ScriptDynamicFloat3Ptr&, const String&)									__Th___;
+		static void  _LabelF4 (const ScriptDynamicFloat4Ptr&, const String&)									__Th___;
+
+		static void  _LabelI1a (const ScriptDynamicIntPtr &, const String&, const EnableLabel &)				__Th___;
+		static void  _LabelI2a (const ScriptDynamicInt2Ptr&, const String&, const EnableLabel &)				__Th___;
+		static void  _LabelI3a (const ScriptDynamicInt3Ptr&, const String&, const EnableLabel &)				__Th___;
+		static void  _LabelI4a (const ScriptDynamicInt4Ptr&, const String&, const EnableLabel &)				__Th___;
+
+		static void  _LabelU1a (const ScriptDynamicUIntPtr &, const String&, const EnableLabel &)				__Th___;
+		static void  _LabelU2a (const ScriptDynamicUInt2Ptr&, const String&, const EnableLabel &)				__Th___;
+		static void  _LabelU3a (const ScriptDynamicUInt3Ptr&, const String&, const EnableLabel &)				__Th___;
+		static void  _LabelU4a (const ScriptDynamicUInt4Ptr&, const String&, const EnableLabel &)				__Th___;
+
+		static void  _LabelF1a (const ScriptDynamicFloatPtr &, const String&, const EnableLabel &)				__Th___;
+		static void  _LabelF2a (const ScriptDynamicFloat2Ptr&, const String&, const EnableLabel &)				__Th___;
+		static void  _LabelF3a (const ScriptDynamicFloat3Ptr&, const String&, const EnableLabel &)				__Th___;
+		static void  _LabelF4a (const ScriptDynamicFloat4Ptr&, const String&, const EnableLabel &)				__Th___;
+
+		static EnableLabel  _EnableIfEqual   (const ScriptDynamicUIntPtr &, uint ref)							__Th___;
+		static EnableLabel  _EnableIfGreater (const ScriptDynamicUIntPtr &, uint ref)							__Th___;
+		static EnableLabel  _EnableIfLess    (const ScriptDynamicUIntPtr &, uint ref)							__Th___;
+		static EnableLabel  _EnableIfAnyBit  (const ScriptDynamicUIntPtr &, uint ref)							__Th___;
+
+		template <typename D>
+		static void  _Label (const D &dyn, const String &name, const EnableLabel & = Default)					__Th___;
+
 		static packed_float3  _CM_CubeSC_Forward (const packed_float3 &);
 		static packed_float3  _CM_IdentitySC_Forward (const packed_float3 &);
 		static packed_float3  _CM_TangentialSC_Forward (const packed_float3 &);
@@ -440,7 +488,7 @@ namespace AE::ResEditor
 } // AE::ResEditor
 
 
-#include "graphics/Scripting/GraphicsBindings.h"
+#include "graphics_rhi/Scripting/GraphicsBindings.h"
 
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::RTInstanceCustomIndex,			"RTInstanceCustomIndex" );
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::RTInstanceMask,					"RTInstanceMask"	);
@@ -481,6 +529,8 @@ AE_DECL_SCRIPT_OBJ(		AE::ResEditor::ScriptUniGeometry::DrawMeshTasksIndirectCmd3
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::ScriptUniGeometry::DrawIndirectCountCmd3,			"UnifiedGeometry_DrawIndirectCount" );
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::ScriptUniGeometry::DrawIndexedIndirectCountCmd3,		"UnifiedGeometry_DrawIndexedIndirectCount" );
 AE_DECL_SCRIPT_OBJ(		AE::ResEditor::ScriptUniGeometry::DrawMeshTasksIndirectCountCmd3,	"UnifiedGeometry_DrawMeshTasksIndirectCount" );
+AE_DECL_SCRIPT_OBJ(		AE::ResEditor::ScriptUniGeometry::VertexStride,						"VertexStride" );
+AE_DECL_SCRIPT_OBJ(		AE::ResEditor::ScriptUniGeometry::VertexAttribDivisor,				"VertexAttribDivisor" );
 
 AE_DECL_SCRIPT_TYPE(	AE::ResEditor::ScriptBasePass::EFlags,			"EPassFlags"		);
 AE_DECL_SCRIPT_TYPE(	AE::ResEditor::ScriptPostprocess::EPostprocess,	"EPostprocess"		);

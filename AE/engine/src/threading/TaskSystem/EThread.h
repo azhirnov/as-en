@@ -66,26 +66,26 @@ namespace AE::Threading
 
 	// methods
 	public:
-		constexpr EThreadArray ()									__NE___	{}
-		constexpr EThreadArray (EThreadArray &&)					__NE___	= default;
-		constexpr EThreadArray (const EThreadArray &)				__NE___	= default;
+		__Cz__ EThreadArray ()								__NE___	{}
+		__Cz__ EThreadArray (EThreadArray &&)				__NE___	= default;
+		__Cz__ EThreadArray (const EThreadArray &)			__NE___	= default;
 
-		EThreadArray&  operator = (EThreadArray &&)					__NE___	= default;
-		EThreadArray&  operator = (const EThreadArray &)			__NE___	= default;
-
-		template <typename ...Args>
-		constexpr explicit EThreadArray (Args ...args)				__NE___	{ _Insert( args... ); }
+		EThreadArray&  operator = (EThreadArray &&)			__NE___	= default;
+		EThreadArray&  operator = (const EThreadArray &)	__NE___	= default;
 
 		template <typename ...Args>
-		constexpr EThreadArray&	insert (Args ...args)				__NE___	{ _Insert( args... );  return *this; }
+		__Cx__ explicit EThreadArray (Args ...args)			__NE___	{ _Insert( args... ); }
 
-		ND_ constexpr bool		empty ()							C_NE___	{ return _arr.empty(); }
+		template <typename ...Args>
+		__Cx__ EThreadArray&	insert (Args ...args)		__NE___	{ _Insert( args... );  return *this; }
 
-		ND_ constexpr auto		begin ()							C_NE___	{ return _arr.begin(); }
-		ND_ constexpr auto		end ()								C_NE___	{ return _arr.end(); }
+		NdCx__ bool				empty ()					C_NE___	{ return _arr.empty(); }
+
+		NdCx__ auto				begin ()					C_NE___	{ return _arr.begin(); }
+		NdCx__ auto				end ()						C_NE___	{ return _arr.end(); }
 
 
-		ND_ constexpr ETaskQueueBits  ToQueueMask ()				C_NE___
+		NdCx__ ETaskQueueBits	ToQueueMask ()				C_NE___
 		{
 			ETaskQueueBits	result;
 			for (auto tt : *this)
@@ -97,7 +97,7 @@ namespace AE::Threading
 		}
 
 
-		ND_ constexpr EThreadBits  ToThreadMask ()					C_NE___
+		NdCx__ EThreadBits		ToThreadMask ()				C_NE___
 		{
 			EThreadBits		result;
 			for (auto tt : *this) {
@@ -109,9 +109,9 @@ namespace AE::Threading
 
 	private:
 		template <typename Arg0, typename ...Args>
-		constexpr void  _Insert (Arg0 arg0, Args ...args)			__NE___
+		__Cx__ void  _Insert (Arg0 arg0, Args ...args)		__NE___
 		{
-			StaticAssert(( IsSameTypes< Arg0, ETaskQueue > or IsSameTypes< Arg0, EThread > ));
+			StaticAssert(( IsSame< Arg0, ETaskQueue > or IsSame< Arg0, EThread > ));
 
 			_arr.try_push_back( EThread(arg0) );
 

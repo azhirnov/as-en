@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/ToString.h"
 #include "base/Utils/NamedID_HashCollisionCheck.h"
 
 namespace AE::Base

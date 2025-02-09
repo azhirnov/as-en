@@ -62,6 +62,37 @@ namespace AE::PipelineCompiler
 			All				= ((_Last - 1) << 1) - 1
 		};
 
+		enum class EFlags : ushort
+		{
+			Unknown						= 0,
+
+			// precision
+			HighPrecision				= 0,
+			MediumPrecision				= 1 << 1,
+			LowPrecision				= 1 << 2,	// not supported on most GPUs
+
+			// interpolation
+			FlatInterpolation			= 1 << 3,	// disable attribute interpolation, used last vertex of a triangle, only for 'InternalIO' layout
+			SmoothInterpolation			= 0,		// perspective correct interpolation
+			NoPerspectiveInterpolation	= 1 << 4,	// linear interpolation in screen space
+
+			// multisampling
+			CentroidInterpolation		= 1 << 5,	// single value may be assigned to that variable for all samples in the pixel,
+													// derivatives of centroid-sampled inputs may be less accurate.
+			PerSampleInterpolation		= 1 << 6,	// separate value must be assigned to that variable for each covered sample in the pixel,
+													// and that value must be sampled at the location of the individual sample.
+
+			Invariant					= 1 << 7,	// all shaders must output same result on same input
+
+			Packed						= 1 << 8,	// align of vec/mat is same as for scalar
+			Padding						= 1 << 9,	// field used for padding
+
+			Address						= 1 << 10,	// typed device address
+			Pointer						= 1 << 11,
+
+			//Atomic					= 1 << 12,
+		};
+
 		struct Field
 		{
 			String				name;
@@ -70,24 +101,26 @@ namespace AE::PipelineCompiler
 			uint				arraySize	= 0;		// 0 - non-array, UMax - dynamic
 			ubyte				rows		= 0;
 			ubyte				cols		= 0;
-			bool				packed		: 1;
-			bool				pointer		: 1;
-			bool				address		: 1;		// typed device address
-			bool				padding		: 1;
+			EFlags				flags		= Default;
 			Bytes				size;
 			Bytes				align;
 			Bytes				offset;
 
-			Field () : packed{false}, pointer{false}, address{false}, padding{false} {}
+			Field () {}
 
 			ND_ bool	IsScalar ()						const	{ return (rows == 1)  and (cols == 1) and (not IsStruct()); }
 			ND_ bool	IsVec ()						const	{ return (rows >  1)  and (cols == 1) and (not IsStruct()); }
 			ND_ bool	IsMat ()						const	{ return (cols >  1)  and (not IsStruct()); }
 			ND_ bool	IsStruct ()						const	{ return bool(stType) and (not IsDeviceAddress()); }
-			ND_ bool	IsBufferRef ()					const	{ return bool(stType) and address; }
-			ND_ bool	IsPointer ()					const	{ return pointer; }
-			ND_ bool	IsDeviceAddress ()				const	{ return address or (type == EValueType::DeviceAddress); }		// typed or untyped
-			ND_ bool	IsUntypedDeviceAddress ()		const	{ return (not address) and (type == EValueType::DeviceAddress); }
+			ND_ bool	IsBufferRef ()					const	{ return bool(stType) and IsAddress(); }
+
+			ND_ bool	IsPointer ()					const	{ return AllBits( flags, EFlags::Pointer ); }
+			ND_ bool	IsAddress ()					const	{ return AllBits( flags, EFlags::Address ); }
+			ND_ bool	IsPadding ()					const	{ return AllBits( flags, EFlags::Padding ); }
+			ND_ bool	IsPacked ()						const	{ return AllBits( flags, EFlags::Packed ); }
+
+			ND_ bool	IsDeviceAddress ()				const	{ return IsAddress() or (type == EValueType::DeviceAddress); }		// typed or untyped
+			ND_ bool	IsUntypedDeviceAddress ()		const	{ return (not IsAddress()) and (type == EValueType::DeviceAddress); }
 			ND_ bool	IsDynamicArray ()				const	{ return arraySize == UMax; }
 			ND_ bool	IsArray ()						const	{ return arraySize != 0; }
 			ND_ bool	IsStaticArray ()				const	{ return (arraySize != 0) and (not IsDynamicArray()); }
@@ -213,8 +246,8 @@ namespace AE::PipelineCompiler
 		ND_ String  _VertexInputToGLSL (const String &prefix, INOUT uint &loc)							C_Th___;
 		ND_ String  _VertexInputToMSL (const String &prefix, INOUT uint &index)							C_Th___;
 
-		ND_ String  _ToShaderIO_GLSL (const String &prefix, INOUT uint &loc, bool useLocations)			C_Th___;
-		ND_ String  _ToShaderIO_MSL (const String &prefix)												C_Th___;
+		ND_ String  _ToShaderIO_GLSL (EShader, const String &prefix, INOUT uint &loc, bool useLocations)C_Th___;
+		ND_ String  _ToShaderIO_MSL (EShader, const String &prefix)										C_Th___;
 
 		ND_ static SizeAndAlign  _GetCPPSizeAndAlign2 (const Field &field);
 		ND_ static SizeAndAlign  _GetCPPSizeAndAlign (const Field &field, EStructLayout layout);
@@ -231,6 +264,7 @@ namespace AE::PipelineCompiler
 	};
 
 	AE_BIT_OPERATORS( ShaderStructType::EUsage );
+	AE_BIT_OPERATORS( ShaderStructType::EFlags );
 
 
 	inline void  ShaderStructType::AddUsage (EUsage usage)	{ _usage |= usage; }

@@ -7,7 +7,7 @@
 #	define SH_COMPUTE
 #	define AE_cooperative_matrix
 #	define AE_memory_scope_semantics
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -21,7 +21,7 @@
 		{
 			RC<ComputePass>		pass = ComputePass();
 			pass.ArgOut( "un_OutImage", rt );
-			pass.LocalSize( 8, 8 );
+			pass.LocalSize( 32, 1 );	// TODO: get subgroup size
 			pass.DispatchThreads( rt.Dimension() );
 		}
 		Present( rt );

@@ -12,6 +12,7 @@
 #include "graphics_hl/Resources/RasterFont.h"
 #include "graphics_hl/Resources/StaticImageAtlas.h"
 #include "graphics_hl/Resources/LoadableImage.h"
+#include "graphics_hl/Resources/ResourceUploadManager.h"
 
 // UI
 #include "graphics_hl/UI/Screen.h"

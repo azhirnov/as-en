@@ -125,6 +125,7 @@ namespace AE::ResEditor
 	public:
 		void  SetDebugLabel1 (const String &name)																			__Th___;
 		void  SetDebugLabel2 (const String &name, const RGBA8u &color)														__Th___;
+		void  SetDebugLabel3 (const String &name, const RGBA32f &color)														__Th___;
 
 		void  AddFlag (EFlags value)																						__Th___;
 

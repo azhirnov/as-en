@@ -4,7 +4,7 @@
 
 #include "base/Common.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -14,6 +14,8 @@ namespace AE::Math
 	template <typename T>
 	struct Fractional
 	{
+		StaticAssert( IsInteger<T> );
+
 	// types
 	public:
 		using Self	= Fractional<T>;
@@ -27,11 +29,11 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr Fractional ()									__NE___ {}
+		__Cx__ Fractional ()							__NE___ {}
 
-		constexpr explicit Fractional (T inNum, T inDenom = T{1})	__NE___
+		__Cx__ explicit Fractional (T inNum, T inDenom = T{1})	__NE___
 		{
-			ASSERT( inDenom > 0 );
+			ASSERT_Cx( inDenom > 0 );
 			const T	gcd = _GreatestCommonDivisor( inNum, inDenom );
 			if ( gcd != 0 ) {
 				num	= inNum / gcd;
@@ -39,37 +41,37 @@ namespace AE::Math
 			}
 		}
 
-		constexpr Fractional (const Self &)						__NE___ = default;
+		__Cx__ Fractional (const Self &)				__NE___ = default;
 
-		constexpr Self&  operator = (const Self &)				__NE___ = default;
+		__Cx__ Self&  operator = (const Self &)			__NE___ = default;
 
 
-		ND_ constexpr Self  operator - ()						C_NE___
+		NdCx__ Self  operator - ()						C_NE___
 		{
 			return Self{ -num, den };
 		}
 
-		ND_ constexpr Self  operator + (const Self &rhs)		C_NE___
+		NdCx__ Self  operator + (const Self &rhs)		C_NE___
 		{
 			return Self{ this->num * rhs.den + rhs.num * den, this->den * rhs.den };
 		}
 
-		ND_ constexpr Self  operator - (const Self &rhs)		C_NE___
+		NdCx__ Self  operator - (const Self &rhs)		C_NE___
 		{
 			return Self{ this->num * rhs.den - rhs.num * den, this->den * rhs.den };
 		}
 
-		ND_ constexpr Self  operator * (const Self &rhs)		C_NE___
+		NdCx__ Self  operator * (const Self &rhs)		C_NE___
 		{
 			return Self{ this->num * rhs.num, this->den * rhs.den };
 		}
 
-		ND_ constexpr Self  operator / (const Self &rhs)		C_NE___
+		NdCx__ Self  operator / (const Self &rhs)		C_NE___
 		{
 			return Self{ this->num * rhs.den, this->den * rhs.num };
 		}
 
-		ND_ constexpr Self  Pow (uint value)					C_NE___
+		NdCx__ Self  Pow (uint value)					C_NE___
 		{
 			Self	result;
 			result.num	= this->num;
@@ -82,26 +84,26 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ constexpr bool  operator == (const Self &rhs)		C_NE___
+		NdCx__ bool  operator == (const Self &rhs)		C_NE___
 		{
 			return	((this->num == T{0})    and (rhs.num == T{0}))	or
 					((this->num == rhs.num) and (this->den == rhs.den));
 		}
 
-		ND_ constexpr bool  IsZero ()							C_NE___	{ return num == T{0}; }
+		NdCx__ bool  IsZero ()							C_NE___	{ return num == T{0}; }
 
-		ND_ constexpr bool  IsInteger ()						C_NE___	{ return den == T{1}; }
+		NdCx__ bool  IsInteger ()						C_NE___	{ return den == T{1}; }
 
-		ND_ constexpr bool	IsPositive ()						C_NE___	{ return num >  T{0}; }
-		ND_ constexpr bool	IsPositiveOrZero ()					C_NE___	{ return num >= T{0}; }
-		ND_ constexpr bool	IsNegative ()						C_NE___	{ return num <  T{0}; }
-		ND_ constexpr bool	IsNegativeOrZero ()					C_NE___	{ return num <= T{0}; }
+		NdCx__ bool	IsPositive ()						C_NE___	{ return num >  T{0}; }
+		NdCx__ bool	IsPositiveOrZero ()					C_NE___	{ return num >= T{0}; }
+		NdCx__ bool	IsNegative ()						C_NE___	{ return num <  T{0}; }
+		NdCx__ bool	IsNegativeOrZero ()					C_NE___	{ return num <= T{0}; }
 
-		ND_ constexpr T		Numerator ()						C_NE___	{ return num; }
-		ND_ constexpr T		Denominator ()						C_NE___	{ return den; }
+		NdCx__ T	Numerator ()						C_NE___	{ return num; }
+		NdCx__ T	Denominator ()						C_NE___	{ return den; }
 
 		template <typename R>
-		ND_ constexpr EnableIf<IsFloatPoint<R>, R>	ToFloat ()	C_NE___	{ return R(num) / R(den); }
+		NdCx__ EnableIf<IsFloatPoint<R>, R>	ToFloat ()	C_NE___	{ return R(num) / R(den); }
 
 
 		// Rounding:
@@ -110,40 +112,40 @@ namespace AE::Math
 		// RTL - round to larger,  similar to ceil(val * float(fract))
 
 		template <typename R>
-		ND_ constexpr R  Get_RTS ()								C_NE___	{ return R(num) / den; }
-		ND_ constexpr T  Get_RTS ()								C_NE___	{ return Get_RTS<T>(); }
+		NdCx__ R  Get_RTS ()								C_NE___	{ return R(num) / den; }
+		NdCx__ T  Get_RTS ()								C_NE___	{ return Get_RTS<T>(); }
 
 		template <typename R>
-		ND_ constexpr R  Get_RTN ()								C_NE___	{ return (num + R(den/2)) / den; }
-		ND_ constexpr T  Get_RTN ()								C_NE___	{ return Get_RTN<T>(); }
+		NdCx__ R  Get_RTN ()								C_NE___	{ return (num + R(den/2)) / den; }
+		NdCx__ T  Get_RTN ()								C_NE___	{ return Get_RTN<T>(); }
 
 		template <typename R>
-		ND_ constexpr R  Get_RTL ()								C_NE___	{ return (num + R(den-1)) / den; }
-		ND_ constexpr T  Get_RTL ()								C_NE___	{ return Get_RTL<T>(); }
-
-
-		template <typename R>
-		ND_ constexpr R  Mul_RTS (const R &val)					C_NE___	{ return (val * num) / den; }
-
-		template <typename R>
-		ND_ constexpr R  Mul_RTN (const R &val)					C_NE___	{ return ((val * num) + R(den/2)) / den; }
-
-		template <typename R>
-		ND_ constexpr R  Mul_RTL (const R &val)					C_NE___	{ return ((val * num) + R(den-1)) / den; }
+		NdCx__ R  Get_RTL ()								C_NE___	{ return (num + R(den-1)) / den; }
+		NdCx__ T  Get_RTL ()								C_NE___	{ return Get_RTL<T>(); }
 
 
 		template <typename R>
-		ND_ constexpr R  Div_RTS (const R &val)					C_NE___	{ ASSERT( num != 0 );  return (val * den) / num; }
+		NdCx__ R  Mul_RTS (const R &val)					C_NE___	{ return (val * num) / den; }
 
 		template <typename R>
-		ND_ constexpr R  Div_RTN (const R &val)					C_NE___	{ ASSERT( num != 0 );  return ((val * den) + R(num/2)) / num; }
+		NdCx__ R  Mul_RTN (const R &val)					C_NE___	{ return ((val * num) + R(den/2)) / den; }
 
 		template <typename R>
-		ND_ constexpr R  Div_RTL (const R &val)					C_NE___	{ ASSERT( num != 0 );  return ((val * den) + R(num-1)) / num; }
+		NdCx__ R  Mul_RTL (const R &val)					C_NE___	{ return ((val * num) + R(den-1)) / den; }
+
+
+		template <typename R>
+		NdCz__ R  Div_RTS (const R &val)					C_NE___	{ ASSERT( num != 0 );  return (val * den) / num; }
+
+		template <typename R>
+		NdCz__ R  Div_RTN (const R &val)					C_NE___	{ ASSERT( num != 0 );  return ((val * den) + R(num/2)) / num; }
+
+		template <typename R>
+		NdCz__ R  Div_RTL (const R &val)					C_NE___	{ ASSERT( num != 0 );  return ((val * den) + R(num-1)) / num; }
 
 
 	private:
-		ND_ static constexpr T  _GreatestCommonDivisor (T value1, T value2) __NE___
+		NdCx__ static T  _GreatestCommonDivisor (T value1, T value2) __NE___
 		{
 			return value2 != 0 ? _GreatestCommonDivisor( value2, value1 % value2 ) : value1;
 		}
@@ -155,6 +157,16 @@ namespace AE::Math
 
 	using FractionalI16	= Fractional< sshort >;
 	using FractionalU16	= Fractional< ushort >;
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
+	template <typename T>	struct TMemCopyAvailable< Fractional<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
+	template <typename T>	struct TZeroMemAvailable< Fractional<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
+	template <typename T>	struct TTriviallySerializable< Fractional<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
+	template <typename T>	struct TIsScalar< Fractional<T> >				: CT_True {};
+	template <typename T>	struct TIsSigned< Fractional<T> >				: TIsSigned<T> {};
+	template <typename T>	struct TIsUnsigned< Fractional<T> >				: TIsUnsigned<T> {};
+	template <typename T>	struct TUnwrap< Fractional<T> >					: TUnwrap<T> {};
+
+} // AE::Base
+

@@ -2,7 +2,7 @@
 
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -21,7 +21,7 @@
 			ds.StorageBuffer( EShaderStages::Vertex,	"un_DrawTasks",	"DrawTask",			EResourceState::ShaderStorage_Read );	// external
 			ds.StorageBuffer( EShaderStages::Fragment,	"un_Storage",	"IntrsPoint_Array",	EResourceState::ShaderStorage_RW );		// external
 			ds.StorageBuffer( EShaderStages::Fragment,	"un_Count",		"CountSBlock",		EResourceState::ShaderStorage_RW );		// external
-			ds.StorageImage(  EShaderStages::Fragment,	"un_ABuffer",	EImageType::UImage2D, EPixelFormat::R32U, EAccessType::Restrict, EResourceState::ShaderStorage_RW );	// external
+			ds.StorageImage(  EShaderStages::Fragment,	"un_ABuffer",	EImageType::UInt_2D, EPixelFormat::R32U, EAccessType::Restrict, EResourceState::ShaderStorage_RW );	// external
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl" );
 			pl.DSLayout( "pass",	 0, "pass.ds" );

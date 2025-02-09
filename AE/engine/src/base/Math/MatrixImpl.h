@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -19,7 +19,7 @@ namespace AE::Math
 		using _GLM_Mat_t	= glm::mat< glm::length_t(Columns), glm::length_t(Rows), T, Q >;
 		using Col_t			= typename _GLM_Mat_t::col_type;	// [Rows]
 		using Row_t			= typename _GLM_Mat_t::row_type;	// [Columns]
-		using Dim_t			= Math::_hidden_::_MatrixDim;
+		using Dim_t			= Base::_hidden_::_MatrixDim;
 		using Rect_t		= Rectangle<T>;
 		using Vec2_t		= TVec< T, 2, Q >;
 		using Vec3_t		= TVec< T, 3, Q >;
@@ -135,28 +135,33 @@ namespace AE::Math
 		ND_ static Self					Zero ()											__NE___	{ return Self{ _GLM_Mat_t{ T{0} }}; }
 		ND_ TMatrix<T,Rows,Columns,Q>	Transpose ()									C_NE___	{ return TMatrix<T,Rows,Columns,Q>{ glm::transpose( _value )}; }
 
-		ND_ static constexpr usize		size ()											__NE___	{ return Columns; }
-		ND_ static constexpr usize		ElementCount ()									__NE___	{ return Columns*Rows; }
-		ND_ static constexpr Dim_t		Dimension ()									__NE___	{ return Dim_t{ Columns, Rows }; }
-		ND_ static constexpr bool		IsColumnMajor ()								__NE___	{ return true; }
+		NdCe__ static usize			size ()												__NE___	{ return Columns; }
+		NdCe__ static usize			ElementCount ()										__NE___	{ return Columns*Rows; }
+		NdCe__ static Dim_t			Dimension ()										__NE___	{ return Dim_t{ Columns, Rows }; }
+		NdCe__ static bool			IsColumnMajor ()									__NE___	{ return true; }
 
 
 	#if Columns == 2 and Rows == 2
 		ND_ static Self  Rotate (Rad_t angle)											__NE___;
-		ND_ static Self  Scaled (const Vec2_t &scale)									__NE___;
-		ND_ static Self  Scaled (const T scale)											__NE___	{ return Scaled( Vec2_t{ scale }); }
+		ND_ static Self  Scale (const Vec2_t &scale)									__NE___;
+		ND_ static Self  Scale (const T scale)											__NE___	{ return Scale( Vec2_t{ scale }); }
+	#endif
+
+	#if Columns == 3 and Rows == 2
+		ND_ static Self	 Translate (const Vec2_t &translation)							__NE___	{ return Identity().SetTranslation( translation ); }
+			Self&		 SetTranslation (const Vec2_t &translation)						__NE___;
+			Self&		 AddTranslation (const Vec2_t &translation)						__NE___;
 	#endif
 
 	#if Columns == 3 and Rows == 3
 		ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up)			__NE___;
-		ND_ static Self  Scaled (const Vec3_t &scale)									__NE___;
-		ND_ static Self  Scaled (const T scale)											__NE___	{ return Scaled( Vec3_t{ scale }); }
+		ND_ static Self  Scale (const Vec3_t &scale)									__NE___;
+		ND_ static Self  Scale (const T scale)											__NE___	{ return Scale( Vec3_t{ scale }); }
 		ND_ static Self  LookAt (const Vec3_t &dir, const Vec3_t &up)					__NE___;
 	#endif
 
 	#if Columns == 4 and (Rows == 3 or Rows == 4)
-		ND_ static Self	 Translated (const Vec3_t &translation)							__NE___	{ return Identity().SetTranslation( translation ); }
-		ND_ Self		 Translate (const Vec3_t &translation)							C_NE___	{ return Self{*this}.AddTranslation( translation ); }
+		ND_ static Self	 Translate (const Vec3_t &translation)							__NE___	{ return Identity().SetTranslation( translation ); }
 			Self&		 SetTranslation (const Vec3_t &translation)						__NE___;
 			Self&		 AddTranslation (const Vec3_t &translation)						__NE___;
 	#endif
@@ -171,8 +176,8 @@ namespace AE::Math
 
 		ND_ static Self  LookAt (const Vec3_t &eye, const Vec3_t &center, const Vec3_t &up)	__NE___	{ return Self{ glm::lookAt( eye, center, up )}; }
 
-		ND_ static Self  Scaled (const Vec3_t &scale)									__NE___;
-		ND_ static Self  Scaled (const T scale)											__NE___	{ return Scaled( Vec3_t{ scale }); }
+		ND_ static Self  Scale (const Vec3_t &scale)									__NE___;
+		ND_ static Self  Scale (const T scale)											__NE___	{ return Scale( Vec3_t{ scale }); }
 
 		ND_ Vec3_t		 Project (const Vec3_t &pos, const Rect_t &viewport)			C_NE___;
 		ND_ Vec3_t		 UnProject (const Vec3_t &pos, const Rect_t &viewport)			C_NE___;
@@ -236,17 +241,60 @@ namespace AE::Math
 
 /*
 =================================================
-	Scaled
+	Scale
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Scaled (const Vec2_t &scale) __NE___
+	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Scale (const Vec2_t &scale) __NE___
 	{
 		return	Self{	Col_t{ scale.x, T(0),   },
 						Col_t{ T(0),    scale.y }};
 	}
+
+/*
+=================================================
+	operator *
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	Rectangle<T>  operator * (const TMatrix<T, Columns, Rows, Q> &lhs, const Rectangle<T> &rhs) __NE___
+	{
+		TVec<T,2,Q>	lt = lhs * rhs.LeftTop();
+		TVec<T,2,Q>	rt = lhs * rhs.RightTop();
+		TVec<T,2,Q>	lb = lhs * rhs.LeftBottom();
+		TVec<T,2,Q>	rb = lhs * rhs.RightBottom();
+
+		Rectangle<T> res;
+		res.left	= Min( lt.x, rt.x, lb.x, rb.x );
+		res.right	= Max( lt.x, rt.x, lb.x, rb.x );
+		res.top		= Min( lt.y, rt.y, lb.y, rb.y );
+		res.bottom	= Max( lt.y, rt.y, lb.y, rb.y );
+		return res;
+	}
 #endif
 
+/*
+=================================================
+	SetTranslation / AddTranslation
+=================================================
+*/
+#if Columns == 3 and Rows == 2
+	template <typename T, glm::qualifier Q>
+	TMatrix<T, Columns, Rows, Q>&  TMatrix<T, Columns, Rows, Q>::SetTranslation (const Vec2_t &translation) __NE___
+	{
+		get<2>() = translation;
+		return *this;
+	}
+
+	template <typename T, glm::qualifier Q>
+	TMatrix<T, Columns, Rows, Q>&  TMatrix<T, Columns, Rows, Q>::AddTranslation (const Vec2_t &translation) __NE___
+	{
+		get<2>() =	get<0>() * translation.x +
+					get<1>() * translation.y +
+					get<2>();
+		return *this;
+	}
+#endif
 
 #if Columns == 3 and Rows == 3
 /*
@@ -264,11 +312,11 @@ namespace AE::Math
 
 /*
 =================================================
-	Scaled
+	Scale
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Scaled (const Vec3_t &scale) __NE___
+	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Scale (const Vec3_t &scale) __NE___
 	{
 		return	Self{	Col_t{ scale.x, T(0),     T(0) },
 						Col_t{ T(0),    scale.y,  T(0) },
@@ -489,11 +537,11 @@ namespace AE::Math
 
 /*
 =================================================
-	Scaled
+	Scale
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Scaled (const Vec3_t &scale) __NE___
+	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Scale (const Vec3_t &scale) __NE___
 	{
 		return	Self{	Col_t{ scale.x, T(0),     T(0),    T(0) },
 						Col_t{ T(0),    scale.y,  T(0),    T(0) },
@@ -540,7 +588,8 @@ namespace AE::Math
 	{
 		get<3>() =	get<0>() * translation[0] +
 					get<1>() * translation[1] +
-					get<2>() * translation[2];
+					get<2>() * translation[2] +
+					get<3>();
 		return *this;
 	}
 
@@ -571,4 +620,4 @@ namespace AE::Math
 	}
 #endif
 
-} // AE::Math
+} // AE::Base

@@ -21,6 +21,9 @@ namespace AE::UI
 
 	// types
 	public:
+		using StyleCollectionCI			= StyleCollection::CreateInfo;
+		using StyleCollectionAsyncCI	= StyleCollection::CreateInfoAsync;
+
 		class ScreenApi
 		{
 			friend class Screen;
@@ -29,8 +32,9 @@ namespace AE::UI
 
 		class InstanceCtor {
 		public:
-			ND_ static bool  Create (RenderTechPipelinesPtr, Bytes ubSize, RC<RStream>) __NE___;
-				static void  Destroy () __NE___;
+			ND_ static bool			Create (const StyleCollectionCI &)	__NE___;
+			ND_ static AsyncTask	Create (StyleCollectionAsyncCI &)	__NE___;
+				static void			Destroy ()							__NE___;
 		};
 
 	private:
@@ -50,20 +54,21 @@ namespace AE::UI
 
 	// methods
 	public:
-		ND_ RC<Screen>  CreateScreen ()												__NE___;
+		ND_ RC<Screen>  CreateScreen ()								__NE___;
 
-		ND_ StyleCollection const&			GetStyleCollection ()					C_NE___	{ return _styleCollection; }
-		ND_ IRenderTechPipelines&			GetRenderTech ()						C_NE___	{ return *_styleCollection._rtech; }
+		ND_ StyleCollection const&			GetStyleCollection ()	C_NE___	{ return _styleCollection; }
+		ND_ IRenderTechPipelines&			GetRenderTech ()		C_NE___	{ return *_styleCollection._rtech; }
 
 
 	private:
-		SystemImpl ()																__NE___;
-		~SystemImpl ()																__NE___;
+		SystemImpl ()												__NE___;
+		~SystemImpl ()												__NE___;
 
-		bool  _Initialize (RenderTechPipelinesPtr, Bytes ubSize, RC<RStream>)		__NE___;
+		ND_ bool		_Initialize (const StyleCollectionCI &ci)	__NE___;
+		ND_ AsyncTask	_Initialize (StyleCollectionAsyncCI &ci)	__NE___;
 
-		friend SystemImpl&		AE::UISystem ()										__NE___;
-		ND_ static SystemImpl&  _Instance ()										__NE___;
+		friend SystemImpl&		AE::UISystem ()						__NE___;
+		ND_ static SystemImpl&  _Instance ()						__NE___;
 	};
 
 /*
@@ -71,7 +76,7 @@ namespace AE::UI
 	UIStyleCollection
 =================================================
 */
-	inline StyleCollection const&  UIStyleCollection () __NE___
+	Nd__In StyleCollection const&  UIStyleCollection () __NE___
 	{
 		return UISystem().GetStyleCollection();
 	}
@@ -88,20 +93,26 @@ namespace AE::UI
 		bool	_isCreated = false;
 
 	public:
-		~SystemScope ()													__NE___
+		~SystemScope ()									__NE___
 		{
 			Destroy();
 		}
 
-		ND_ bool  Create (RenderTechPipelinesPtr rtech, Bytes ubSize,
-						  RC<RStream> stream)							__NE___
+		ND_ bool  Create (const StyleCollection::CreateInfo &ci) __NE___
 		{
 			CHECK_ERR( not _isCreated );
 			_isCreated = true;
-			return SystemImpl::InstanceCtor::Create( rtech, ubSize, RVRef(stream) );
+			return SystemImpl::InstanceCtor::Create( ci );
 		}
 
-		void  Destroy ()												__NE___
+		ND_ AsyncTask  Create (StyleCollection::CreateInfoAsync &ci) __NE___
+		{
+			CHECK_ERR( not _isCreated );
+			_isCreated = true;
+			return SystemImpl::InstanceCtor::Create( ci );
+		}
+
+		void  Destroy ()								__NE___
 		{
 			if ( _isCreated )
 			{
@@ -110,7 +121,9 @@ namespace AE::UI
 			}
 		}
 
-		ND_ SystemImpl*  operator -> ()									__NE___	{ ASSERT( _isCreated );  return &UISystem(); }
+		ND_ SystemImpl*			operator -> ()			__NE___	{ ASSERT( _isCreated );  return &UISystem(); }
+		ND_ SystemImpl const*	operator -> ()			C_NE___	{ ASSERT( _isCreated );  return &UISystem(); }
+		ND_ bool				IsCreated ()			C_NE___	{ return _isCreated; }
 	};
 
 

@@ -1,4 +1,4 @@
-//babefd0b
+//0afb5604
 #include <vector>
 #include <string>
 
@@ -26,34 +26,34 @@ using namespace std::string_literals;
 template <typename T>
 string  operator + (const string &lhs, T rhs);
 
+struct PipelineCompiler;
+struct ubyte4;
+struct InputActions;
 struct ubyte2;
 struct ubyte3;
-struct InputActions;
-struct ubyte4;
-struct Archive;
-struct ushort2;
-struct sbyte2;
-struct ushort3;
-struct short4;
 struct bool4;
 struct int2;
-struct bool3;
-struct bool2;
 struct int3;
+struct bool2;
+struct bool3;
 struct int4;
-struct AssetPacker;
-struct short3;
-struct short2;
-struct ushort4;
-struct sbyte3;
-struct sbyte4;
-struct uint4;
-struct float4;
+struct sbyte2;
+struct Archive;
+struct ushort2;
+struct short4;
+struct ushort3;
 struct uint2;
 struct uint3;
-struct float2;
+struct uint4;
+struct float4;
+struct ushort4;
+struct short2;
+struct sbyte3;
+struct sbyte4;
+struct short3;
+struct AssetPacker;
 struct float3;
-struct PipelineCompiler;
+struct float2;
 
 enum class EFileType : uint32
 {
@@ -1108,10 +1108,15 @@ struct PipelineCompiler
 	void  AddShaderFolder (const string &);
 	void  ShaderIncludeDir (const string &);
 	void  PipelineIncludeDir (const string &);
+	void  IncludePipelinesFromCurrentDir (bool);
+	void  IncludePipelinesFromCurrentDir ();
+	void  SearchShadersInCurrentDir (bool);
+	void  SearchShadersInCurrentDir ();
+	void  AddNameMapping (bool);
+	void  AddNameMapping ();
 	void  SetOutputCPPFile (const string &, const string &, uint);
 	void  SetOutputCPPFile (const string &, const string &, EReflectionFlags);
 	void  Compile (const string &);
-	void  CompileWithNameMapping (const string &);
 };
 
 struct InputActions
@@ -1149,6 +1154,12 @@ struct Archive
 };
 
 template <>
+struct RC<PipelineCompiler> : PipelineCompiler
+{
+	RC (const PipelineCompiler &);
+};
+
+template <>
 struct RC<InputActions> : InputActions
 {
 	RC (const InputActions &);
@@ -1164,11 +1175,5 @@ template <>
 struct RC<AssetPacker> : AssetPacker
 {
 	RC (const AssetPacker &);
-};
-
-template <>
-struct RC<PipelineCompiler> : PipelineCompiler
-{
-	RC (const PipelineCompiler &);
 };
 

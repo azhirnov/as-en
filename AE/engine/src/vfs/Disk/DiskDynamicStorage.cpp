@@ -154,6 +154,18 @@ namespace AE::VFS
 		return _Open<FileRDataSource>( OUT ds, name );
 	}
 
+	bool  DiskDynamicStorage::Open (OUT RC<AsyncRStream> &stream, FileName::Ref name) C_NE___
+	{
+		RC<AsyncRDataSource>	ds;
+		if ( _Open< Threading::FileAsyncRDataSource >( OUT ds, name ))
+		{
+			stream = MakeRC< Threading::AsyncRDataSourceAsStream >( RVRef(ds) );
+			ASSERT( stream->IsOpen() );
+			return true;
+		}
+		return false;
+	}
+
 	bool  DiskDynamicStorage::Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name) C_NE___
 	{
 		return _Open< Threading::FileAsyncRDataSource >( OUT ds, name );
@@ -172,6 +184,18 @@ namespace AE::VFS
 	bool  DiskDynamicStorage::Open (OUT RC<WDataSource> &ds, FileName::Ref name) C_NE___
 	{
 		return _Open<FileWDataSource>( OUT ds, name );
+	}
+
+	bool  DiskDynamicStorage::Open (OUT RC<AsyncWStream> &stream, FileName::Ref name) C_NE___
+	{
+		RC<AsyncWDataSource>	ds;
+		if ( _Open< Threading::FileAsyncWDataSource >( OUT ds, name ))
+		{
+			stream = MakeRC< Threading::AsyncWDataSourceAsStream >( RVRef(ds) );
+			ASSERT( stream->IsOpen() );
+			return true;
+		}
+		return false;
 	}
 
 	bool  DiskDynamicStorage::Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name) C_NE___

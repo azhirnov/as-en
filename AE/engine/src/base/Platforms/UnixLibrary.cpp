@@ -5,7 +5,7 @@
 #ifdef AE_PLATFORM_UNIX_BASED
 # include <dlfcn.h>
 # include "base/Platforms/UnixLibrary.h"
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {

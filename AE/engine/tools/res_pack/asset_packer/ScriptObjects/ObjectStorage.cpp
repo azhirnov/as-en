@@ -2,11 +2,13 @@
 
 #include "ScriptObjects/ObjectStorage.h"
 #include "ScriptObjects/ScriptTexture.h"
+#include "ScriptObjects/ScriptSharedImage.h"
 #include "ScriptObjects/ScriptImageAtlas.h"
 #include "ScriptObjects/ScriptRasterFont.h"
 #include "ScriptObjects/ScriptMesh.h"
 #include "ScriptObjects/ScriptModel.h"
 #include "ScriptObjects/ScriptMaterial.h"
+#include "ScriptObjects/ScriptResourceMeta.h"
 #include "ScriptObjects/ScriptUIStyleCollection.h"
 #include "ScriptObjects/ScriptUIWidget.h"
 
@@ -21,10 +23,20 @@ namespace AE::AssetPacker
 	ImageAtlasInfo
 =================================================
 */
-	void  ObjectStorage::ImageAtlasInfo::SetName (const String &name) __Th___
+	void  ObjectStorage::ImageAtlasInfo::SetFileName (const String &name) __Th___
 	{
-		CHECK_THROW( _name.empty() );
-		_name = name;
+		CHECK_THROW( _fileName.empty() );
+		CHECK_THROW( _metaRes.empty() );
+
+		_fileName = name;
+	}
+
+	void  ObjectStorage::ImageAtlasInfo::SetMetaResource (const String &name) __Th___
+	{
+		CHECK_THROW( _fileName.empty() );
+		CHECK_THROW( _metaRes.empty() );
+
+		_metaRes = name;
 	}
 
 	void  ObjectStorage::ImageAtlasInfo::Add (const String &name) __Th___
@@ -34,8 +46,8 @@ namespace AE::AssetPacker
 
 	void  ObjectStorage::ImageAtlasInfo::Contains (const String &imgName) C_Th___
 	{
-		CHECK_THROW_MSG( _set.contains( imgName ),
-			"ImageAtlas '"s << _name << "' does not contains image '" << imgName << "'" );
+		CHECK_THROW_MSG( HashTable_Contains( _set, imgName ),
+			"ImageAtlas (file '"s << _fileName << "' / meta '" << _metaRes << "') does not contains image '" << imgName << "'" );
 	}
 //-----------------------------------------------------------------------------
 
@@ -84,8 +96,56 @@ namespace AE::AssetPacker
 	{
 		AddName<FileName>( name ); // throw
 
+		CHECK_THROW_MSG( not _tempFiles.contains( name ),
+			"File '"s << name << "' already exists in archive" );
+
 		CHECK_THROW_MSG( _archive.Add( FileName::WithString_t{name}, stream, fileType ),
 			"Failed to add file '"s << name << "' to archive" );
+	}
+
+/*
+=================================================
+	AddTemp
+----
+	Only temporary files can be extracted from archive.
+	In 'SaveArchive()' all temporary files will be stored to archive.
+=================================================
+*/
+	void  ObjectStorage::AddTemp (const String &name, Array<ubyte> data) __Th___
+	{
+		AddTemp( name, RVRef(data), EArchivePackerFileType::Raw );
+	}
+
+	void  ObjectStorage::AddTemp (const String &name, Array<ubyte> data, EArchivePackerFileType fileType) __Th___
+	{
+		CHECK_THROW_MSG( not data.empty() );
+
+		AddName<FileName>( name ); // throw
+
+		CHECK_THROW_MSG( not _archive.Exists( FileName{name} ),
+			"File '"s << name << "' already exists in archive" );
+
+		CHECK_THROW_MSG( _tempFiles.emplace( name, MakePair( RVRef(data), fileType )).second,
+			"File '"s << name << "' already exists in archive" );
+	}
+
+/*
+=================================================
+	ExtractFromArchive
+=================================================
+*/
+	RC<RStream>  ObjectStorage::ExtractFromArchive (const String &name) __Th___
+	{
+		CHECK_THROW_MSG( not name.empty() );
+
+		auto	it = _tempFiles.find( name );
+		CHECK_THROW_MSG( it != _tempFiles.end(),
+			"File '"s << name << "' can not be extracted from archive" );
+
+		auto	result = MakeRC<ArrayRStream>( RVRef(it->second.first) );
+
+		_tempFiles.erase( it );
+		return result;
 	}
 
 /*
@@ -107,6 +167,18 @@ namespace AE::AssetPacker
 	{
 		AE_LOGI( "Store archive: '"s << ToString(filename) << "'" );
 
+		// add temp files
+		{
+			for (auto& [name, data_and_type] : _tempFiles)
+			{
+				MemRefRStream	stream {ArrayView<ubyte>{data_and_type.first}};
+
+				CHECK_THROW_MSG( _archive.Add( FileName::WithString_t{name}, stream, data_and_type.second ),
+					"Failed to add file '"s << name << "' to archive" );
+			}
+			_tempFiles.clear();
+		}
+
 		bool	result = _archive.Store( filename );
 
 		_atlasMap.clear();
@@ -120,12 +192,23 @@ namespace AE::AssetPacker
 	AddAtlas
 =================================================
 */
-	void  ObjectStorage::AddAtlas (const String &nameInArchive, RC<ImageAtlasInfo> info) __Th___
+	void  ObjectStorage::AddAtlas (RC<ImageAtlasInfo> info) __Th___
 	{
 		CHECK_THROW_MSG( info );
+		CHECK_THROW_MSG( info->HasFileName() );
 
-		CHECK_THROW_MSG( _atlasMap.emplace( nameInArchive, info ).second,
-			"ImageAtlas '"s << nameInArchive << "' is already exists" );
+		CHECK_THROW_MSG( _atlasMap.emplace( String{info->FileName()}, info ).second,
+			"ImageAtlas '"s << info->FileName() << "' is already exists" );
+	}
+
+	void  ObjectStorage::AddAtlas (const String &metaArchive, RC<ImageAtlasInfo> info) __Th___
+	{
+		CHECK_THROW_MSG( info );
+		CHECK_THROW_MSG( info->HasMetaResName() );
+		CHECK_THROW_MSG( not metaArchive.empty() );
+
+		CHECK_THROW_MSG( _atlasMap.emplace( String{metaArchive} << '%' << info->MetaResName(), info ).second,
+			"ImageAtlas meta '"s << info->MetaResName() << "' with meta file '" << metaArchive << "' is already exists" );
 	}
 
 /*
@@ -135,10 +218,25 @@ namespace AE::AssetPacker
 */
 	RC<ObjectStorage::ImageAtlasInfo>  ObjectStorage::GetAtlas (const String &nameInArchive) __Th___
 	{
+		CHECK_THROW_MSG( not nameInArchive.empty() );
+
 		auto	it = _atlasMap.find( nameInArchive );
 
 		CHECK_THROW_MSG( it != _atlasMap.end(),
 			"ImageAtlas '"s << nameInArchive << "' is not exists" );
+
+		return it->second;
+	}
+
+	RC<ObjectStorage::ImageAtlasInfo>  ObjectStorage::GetAtlas (const String &metaArchive, const String &nameInMeta) __Th___
+	{
+		CHECK_THROW_MSG( not metaArchive.empty() );
+		CHECK_THROW_MSG( not nameInMeta.empty() );
+
+		auto	it = _atlasMap.find( String{metaArchive} << '%' << nameInMeta );
+
+		CHECK_THROW_MSG( it != _atlasMap.end(),
+			"ImageAtlas meta '"s << nameInMeta << "' with meta file '" << metaArchive << "' is not exists" );
 
 		return it->second;
 	}
@@ -150,8 +248,19 @@ namespace AE::AssetPacker
 */
 	void  ObjectStorage::AddFont (const String &nameInArchive) __Th___
 	{
+		CHECK_THROW_MSG( not nameInArchive.empty() );
+
 		CHECK_THROW_MSG( _fontMap.insert( nameInArchive ).second,
 			"Font '"s << nameInArchive << "' is already exists" );
+	}
+
+	void  ObjectStorage::AddFont (const String &metaArchive, const String &nameInMeta) __Th___
+	{
+		CHECK_THROW_MSG( not metaArchive.empty() );
+		CHECK_THROW_MSG( not nameInMeta.empty() );
+
+		CHECK_THROW_MSG( _fontMap.insert( String{metaArchive} << '%' << nameInMeta ).second,
+			"Font meta '"s << nameInMeta << "' with meta file '" << metaArchive << "' is already exists" );
 	}
 
 /*
@@ -161,8 +270,19 @@ namespace AE::AssetPacker
 */
 	void  ObjectStorage::RequireFont (const String &nameInArchive) __Th___
 	{
-		CHECK_THROW_MSG( _fontMap.contains( nameInArchive ),
+		CHECK_THROW_MSG( not nameInArchive.empty() );
+
+		CHECK_THROW_MSG( HashTable_Contains( _fontMap, nameInArchive ),
 			"Font '"s << nameInArchive << "' is not exists" );
+	}
+
+	void  ObjectStorage::RequireFont (const String &metaArchive, const String &nameInMeta) __Th___
+	{
+		CHECK_THROW_MSG( not metaArchive.empty() );
+		CHECK_THROW_MSG( not nameInMeta.empty() );
+
+		CHECK_THROW_MSG( HashTable_Contains( _fontMap, String{metaArchive} << '%' << nameInMeta ),
+			"Font meta '"s << nameInMeta << "' with meta file '" << metaArchive << "' is not exists" );
 	}
 
 /*
@@ -205,6 +325,8 @@ namespace AE::AssetPacker
 			switch_end
 		}
 
+		ScriptResourceMeta::Bind( se );
+		ScriptSharedImage::Bind( se );
 		ScriptTexture::Bind( se );
 		ScriptImageAtlas::Bind( se );
 		ScriptRasterFont::Bind( se );

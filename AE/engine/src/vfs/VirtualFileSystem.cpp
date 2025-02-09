@@ -15,7 +15,7 @@ namespace AE::VFS
 
 	VirtualFileSystem&  VirtualFileSystem::_Instance () __NE___
 	{
-		return s_VirtualFileSystem.AsRef();
+		return s_VirtualFileSystem.Ref();
 	}
 
 /*
@@ -105,14 +105,7 @@ namespace AE::VFS
 
 	bool  VirtualFileSystem::Open (OUT RC<AsyncRStream> &stream, FileName::Ref name) C_NE___
 	{
-		RC<AsyncRDataSource>	ds;
-		if ( Open( OUT ds, name ))
-		{
-			stream = MakeRC<AsyncRDataSourceAsStream>( RVRef(ds) );
-			ASSERT( stream->IsOpen() );
-			return true;
-		}
-		return false;
+		return _OpenForRead( OUT stream, name );
 	}
 
 	bool  VirtualFileSystem::Open (OUT RC<WStream> &stream, FileName::Ref name) C_NE___
@@ -132,14 +125,7 @@ namespace AE::VFS
 
 	bool  VirtualFileSystem::Open (OUT RC<AsyncWStream> &stream, FileName::Ref name) C_NE___
 	{
-		RC<AsyncWDataSource>	ds;
-		if ( Open( OUT ds, name ))
-		{
-			stream = MakeRC<AsyncWDataSourceAsStream>( RVRef(ds) );
-			ASSERT( stream->IsOpen() );
-			return true;
-		}
-		return false;
+		return _OpenForWrite( OUT stream, name );
 	}
 
 /*

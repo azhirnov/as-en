@@ -9,7 +9,7 @@
 # include "base/Platforms/CPUInfo.h"
 # include "base/Math/BitMath.h"
 # include "base/Memory/MemUtils.h"
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {
@@ -17,6 +17,8 @@ namespace AE::Base
 /*
 =================================================
 	constructor
+----
+	https://developer.apple.com/documentation/kernel/1387446-sysctlbyname/determining_instruction_set_characteristics
 =================================================
 */
 	CpuArchInfo::CpuArchInfo () __NE___
@@ -69,27 +71,37 @@ namespace AE::Base
 
 		CHECK( ReadUInt("hw.cachelinesize") == AE_CACHE_LINE );
 
-		feats.NEON		= ReadUInt("hw.optional.neon") > 0;
-		feats.NEON_fp16	= ReadUInt("hw.optional.neon_fp16") > 0;
-		feats.NEON_hpfp	= ReadUInt("hw.optional.neon_hpfp") > 0;
+	  #ifdef AE_CPU_ARCH_ARM_BASED
+		feats.NEON		= ReadUInt("hw.optional.neon") > 0 or
+						  ReadUInt("hw.optional.AdvSIMD") > 0;
+		feats.NEON_fp16	= ReadUInt("hw.optional.neon_fp16") > 0 or		// fp16 arithmetic
+						  ReadUInt("hw.optional.arm.FEAT_FP16") > 0;
+		feats.FP16C		= ReadUInt("hw.optional.neon_hpfp") > 0 or		// Advanced SIMD half-precision conversion instructions.
+						  ReadUInt("hw.optional.AdvSIMD_HPFPCvt") > 0;
+		feats.BF16		= ReadUInt("hw.optional.arm.FEAT_BF16") > 0;
 
-		feats.SSE2		= ReadUInt("hw.optional.sse2") > 0;
+		//feats.CRC32	= ReadUInt("hw.optional.armv8_crc32") > 0;
+		feats.AES		= (ReadUInt("hw.optional.arm.FEAT_AES") > 0) or (ReadUInt("hw.optional.aes") > 0);
+		feats.SHA2_256	= ReadUInt("hw.optional.arm.FEAT_SHA256") > 0;
+		feats.SHA2_512	= (ReadUInt("hw.optional.arm.FEAT_SHA512") > 0) or (ReadUInt("hw.optional.armv8_2_sha512") > 0);
+		feats.SHA3		= (ReadUInt("hw.optional.arm.FEAT_SHA3") > 0) or (ReadUInt("hw.optional.armv8_2_sha3") > 0);
+
+		feats.Atomics	= ReadUInt("hw.optional.arm.FEAT_LSE") > 0;
+	  #endif
+
+		// TODO:
+		//	hw.optional.arm.FEAT_FHM, hw.optional.armv8_2_fhm - Floating-point half-precision multiplication instructions.
+
+	  #ifdef AE_CPU_ARCH_X86_64
+		feats.SSE2		= ReadUInt("hw.optional.sse2") > 0 or cpu.arch == ECPUArch::X64;
 		feats.SSE3		= ReadUInt("hw.optional.sse3") > 0;
 		feats.SSSE3		= ReadUInt("hw.optional.ssse3") > 0;
 		feats.SSE41		= ReadUInt("hw.optional.sse4_1") > 0;
 		feats.SSE42		= ReadUInt("hw.optional.sse4_2") > 0;
 		feats.AVX		= ReadUInt("hw.optional.avx1_0") > 0;
-		feats.AVX256	= ReadUInt("hw.optional.avx2_0") > 0;
-		feats.AVX512	= ReadUInt("hw.optional.avx512f") > 0;
-
-		feats.CRC32		= ReadUInt("hw.optional.armv8_crc32") > 0;
-		feats.SHA128	= true;
-		feats.AES		= (ReadUInt("hw.optional.arm.FEAT_AES") > 0) or (ReadUInt("hw.optional.aes") > 0);
-		feats.SHA256	= ReadUInt("hw.optional.arm.FEAT_SHA256") > 0;
-		feats.SHA512	= (ReadUInt("hw.optional.arm.FEAT_SHA512") > 0) or (ReadUInt("hw.optional.armv8_2_sha512") > 0);
-
-		// TODO:
-		//	hw.optional.arm.FEAT_FP16
+		feats.AVX2		= ReadUInt("hw.optional.avx2_0") > 0;
+		feats.AVX512F	= ReadUInt("hw.optional.avx512f") > 0;
+	  #endif
 
 		// get CPU topology
 		{
@@ -147,11 +159,6 @@ namespace AE::Base
 			}
 		}
 
-		if ( cpu.arch == ECPUArch::X64 )
-		{
-			feats.SSE2	= true;		// always supported
-		}
-
 		// get cache hierarhy per cluster
 		if ( ReadUInt("hw.nperflevels") >= 2 )
 		{
@@ -161,29 +168,41 @@ namespace AE::Base
 			// P
 			{
 				auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::P });
-				c.size	= Bytes32u{ReadUInt("hw.perflevel0.l1icachesize")};
+				c.size				= Bytes32u{ReadUInt("hw.perflevel0.l1icachesize")};
+				c.associativity		= 4;
+				c.logicalCoreCount	= 1;
 			}{
 				auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::P });
-				c.lineSize	= cache_line;
-				c.size		= Bytes32u{ReadUInt("hw.perflevel0.l1dcachesize")};
+				c.lineSize			= cache_line;
+				c.size				= Bytes32u{ReadUInt("hw.perflevel0.l1dcachesize")};
+				c.associativity		= 4;
+				c.logicalCoreCount	= 1;
 			}{
 				auto&	c = cache( CacheKey_t{ ECacheType::L2, ECoreType::P });
-				c.lineSize	= cache_line;
-				c.size		= Bytes32u{ReadUInt("hw.perflevel0.l2cachesize")};
+				c.lineSize			= cache_line;
+				c.size				= Bytes32u{ReadUInt("hw.perflevel0.l2cachesize")};
+				c.associativity		= 8;
+				c.logicalCoreCount	= 0;	// shared
 			}
 
 			// EE
 			{
 				auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::EE });
-				c.size	= Bytes32u{ReadUInt("hw.perflevel1.l1icachesize")};
+				c.size				= Bytes32u{ReadUInt("hw.perflevel1.l1icachesize")};
+				c.associativity		= 4;
+				c.logicalCoreCount	= 1;
 			}{
 				auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::EE });
-				c.lineSize	= cache_line;
-				c.size		= Bytes32u{ReadUInt("hw.perflevel1.l1dcachesize")};
+				c.lineSize			= cache_line;
+				c.size				= Bytes32u{ReadUInt("hw.perflevel1.l1dcachesize")};
+				c.associativity		= 4;
+				c.logicalCoreCount	= 1;
 			}{
 				auto&	c = cache( CacheKey_t{ ECacheType::L2, ECoreType::EE });
-				c.lineSize	= cache_line;
-				c.size		= Bytes32u{ReadUInt("hw.perflevel1.l2cachesize")};
+				c.lineSize			= cache_line;
+				c.size				= Bytes32u{ReadUInt("hw.perflevel1.l2cachesize")};
+				c.associativity		= 8;
+				c.logicalCoreCount	= 0;	// shared
 			}
 		}
 		// get cache hierarhy (global)
@@ -193,15 +212,21 @@ namespace AE::Base
 			CHECK( cache_line == AE_CACHE_LINE );
 			{
 				auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::Unknown });
-				c.size	= Bytes32u{ReadUInt("hw.l1icachesize")};
+				c.size				= Bytes32u{ReadUInt("hw.l1icachesize")};
+				c.associativity		= 4;
+				c.logicalCoreCount	= 1;
 			}{
 				auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::Unknown });
-				c.lineSize	= cache_line;
-				c.size		= Bytes32u{ReadUInt("hw.l1dcachesize")};
+				c.lineSize			= cache_line;
+				c.size				= Bytes32u{ReadUInt("hw.l1dcachesize")};
+				c.associativity		= 4;
+				c.logicalCoreCount	= 1;
 			}{
 				auto&	c = cache( CacheKey_t{ ECacheType::L2, ECoreType::Unknown });
-				c.lineSize	= cache_line;
-				c.size		= Bytes32u{ReadUInt("hw.l2cachesize")};
+				c.lineSize			= cache_line;
+				c.size				= Bytes32u{ReadUInt("hw.l2cachesize")};
+				c.associativity		= 8;
+				c.logicalCoreCount	= 0;	// shared
 			}
 		}
 

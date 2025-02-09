@@ -66,6 +66,7 @@ namespace
 		classBinder.Comment( "Set debug label and color. It is used in graphics profiler." );
 		classBinder.AddMethod( &ScriptBasePass::SetDebugLabel1,		"SetDebugLabel",	{"label"} );
 		classBinder.AddMethod( &ScriptBasePass::SetDebugLabel2,		"SetDebugLabel",	{"label", "color"} );
+		classBinder.AddMethod( &ScriptBasePass::SetDebugLabel3,		"SetDebugLabel",	{"label", "color"} );
 
 		classBinder.AddMethod( &ScriptBasePass::AddFlag,			"AddFlag",			{} );
 
@@ -259,8 +260,12 @@ namespace
 			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, const DepthStencil &)		  >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "mipmap", "clearDepthStencil"} );
 			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const DepthStencil &)					  >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "clearDepthStencil"} );
 			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, uint, const MipmapLevel &, const DepthStencil &) >( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "baseLayer", "layerCount", "mipmap", "clearDepthStencil"} );
+		}
 
-			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, EAttachmentLoadOp, EAttachmentStoreOp)		>( &ScriptBaseRenderPass::_Output, "Output", {"name", "image", "loadOp", "storeOp"} );
+		// with load/store
+		{
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &, EAttachmentLoadOp, EAttachmentStoreOp)					>( &ScriptBaseRenderPass::_Output, "OutputLS", {"image", "loadOp", "storeOp"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, EAttachmentLoadOp, EAttachmentStoreOp) >( &ScriptBaseRenderPass::_Output, "OutputLS", {"name", "image", "loadOp", "storeOp"} );
 		}
 
 		// with blend

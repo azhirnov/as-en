@@ -412,6 +412,8 @@
 #	  pragma detect_mismatch( "AE_SIMD_AVX", "1" )
 #	elif AE_SIMD_AVX == 2
 #	  pragma detect_mismatch( "AE_SIMD_AVX", "2" )
+#	elif AE_SIMD_AVX >= 3
+#	  pragma detect_mismatch( "AE_SIMD_AVX", "3" )
 #	else
 #	  error unsupported value in 'AE_SIMD_AVX'
 #	endif
@@ -422,6 +424,8 @@
 #  ifdef AE_SIMD_SSE
 #	if AE_SIMD_SSE == 0
 #	  pragma detect_mismatch( "AE_SIMD_SSE", "0" )
+#	elif AE_SIMD_SSE == 50
+#	  pragma detect_mismatch( "AE_SIMD_SSE", "50" )
 #	elif AE_SIMD_SSE == 42
 #	  pragma detect_mismatch( "AE_SIMD_SSE", "42" )
 #	elif AE_SIMD_SSE == 41
@@ -441,16 +445,54 @@
 #	pragma detect_mismatch( "AE_SIMD_SSE", "0" )
 #  endif
 
-#  if AE_SIMD_AES
-#	pragma detect_mismatch( "AE_SIMD_AES", "1" )
+#  ifdef AE_SIMD_AES
+#	if AE_SIMD_AES == 0
+#	  pragma detect_mismatch( "AE_SIMD_AES", "0" )
+#	elif AE_SIMD_AES == 1
+#	  pragma detect_mismatch( "AE_SIMD_AES", "1" )
+#	elif AE_SIMD_AES == 2
+#	  pragma detect_mismatch( "AE_SIMD_AES", "2" )
+#	elif AE_SIMD_AES == 3
+#	  pragma detect_mismatch( "AE_SIMD_AES", "3" )
+#	else
+#	  error unsupported value in 'AE_SIMD_AES'
+#	endif
 #  else
 #	pragma detect_mismatch( "AE_SIMD_AES", "0" )
+#  endif
+
+#  ifdef AE_SIMD_SHA
+#	if AE_SIMD_SHA == 0
+#	  pragma detect_mismatch( "AE_SIMD_SHA", "0" )
+#	elif AE_SIMD_SHA == 20
+#	  pragma detect_mismatch( "AE_SIMD_SHA", "20" )
+#	elif AE_SIMD_SHA == 21
+#	  pragma detect_mismatch( "AE_SIMD_SHA", "21" )
+#	elif AE_SIMD_SHA == 30
+#	  pragma detect_mismatch( "AE_SIMD_SHA", "30" )
+#	else
+#	  error unsupported value in 'AE_SIMD_SHA'
+#	endif
+#  else
+#	pragma detect_mismatch( "AE_SIMD_SHA", "0" )
 #  endif
 
 #  if AE_HAS_SIMD
 #	pragma detect_mismatch( "AE_HAS_SIMD", "1" )
 #  else
 #	pragma detect_mismatch( "AE_HAS_SIMD", "0" )
+#  endif
+
+#  if AE_SIMD_F16C
+#	pragma detect_mismatch( "AE_SIMD_F16C", "1" )
+#  else
+#	pragma detect_mismatch( "AE_SIMD_F16C", "0" )
+#  endif
+
+#  if AE_SIMD_FMA
+#	pragma detect_mismatch( "AE_SIMD_FMA", "1" )
+#  else
+#	pragma detect_mismatch( "AE_SIMD_FMA", "0" )
 #  endif
 
 #  if AE_OPTIMIZE_IDS

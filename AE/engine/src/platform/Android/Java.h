@@ -928,6 +928,11 @@ namespace AE::Java
 		// Java Method Caller
 		//
 
+		#ifdef AE_COMPILER_CLANG
+		#	pragma clang diagnostic push
+		#	pragma clang diagnostic ignored "-Wdouble-promotion"
+		#endif
+
 		template <typename Ret>
 		struct JavaMethodCaller;
 
@@ -1077,6 +1082,10 @@ namespace AE::Java
 			return arr.Get();
 		}
 
+		#ifdef AE_COMPILER_CLANG
+		#	pragma clang diagnostic pop
+		#endif
+
 	} // _hidden_
 
 
@@ -1093,7 +1102,7 @@ namespace AE::Java
 	template <typename ...ArgTypes>
 	Java::_hidden_::JavaMethodResult<Ret>  JavaStaticMethod< Ret (Args...) >::operator () (const ArgTypes&... args) C_NE___
 	{
-        NonNull( _method );
+		NonNull( _method );
 		return Java::_hidden_::JavaMethodCaller<Ret>::CallStatic( _class, _method, Java::_hidden_::TypeToJava(args)... );
 	}
 
@@ -1101,7 +1110,7 @@ namespace AE::Java
 	template <typename ...ArgTypes>
 	Java::_hidden_::JavaMethodResult<Ret>  JavaMethod< Ret (Args...) >::operator () (const ArgTypes&... args) C_NE___
 	{
-        NonNull( _method );
+		NonNull( _method );
 		return Java::_hidden_::JavaMethodCaller<Ret>::Call( _obj, _method, Java::_hidden_::TypeToJava(args)... );
 	}
 

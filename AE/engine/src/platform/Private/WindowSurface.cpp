@@ -9,10 +9,13 @@ namespace AE::App
 
 namespace {
 
-// From Vulkan docs:
-//   In a multithreaded environment, calling SendMessage from a thread that is not the thread associated with pCreateInfo::hwnd
-//   will block until the application has processed the window message.
+// Windows, Vulkan docs:
+//   "In a multithreaded environment, calling SendMessage from a thread that is not the thread associated with pCreateInfo::hwnd
+//   will block until the application has processed the window message."
 //   https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html#platformCreateSurface_win32
+//
+// Android:
+//   Using Acquire/Present in different threads may cause a long synchronization, so use single thread.
 
 # if 1 //def AE_PLATFORM_ANDROID
 	static constexpr auto	AcquireAndPresentQueue	= ETaskQueue::Main;
@@ -47,7 +50,9 @@ namespace {
 */
 	void  WindowSurface::ResizeSwapchain () __NE___
 	{
+	#ifndef AE_ENABLE_REMOTE_GRAPHICS
 		_recreate.store( true );
+	#endif
 	}
 
 /*
@@ -160,7 +165,7 @@ namespace {
 		CHECK_ERR( _initialized.load() );
 
 		if ( info.colorFormat != Default )	data->desc.colorFormat	= info.colorFormat;
-		if ( info.colorSpace != Default )	data->desc.colorSpace	= info.colorSpace;
+		if ( info.colorSpace  != Default )	data->desc.colorSpace	= info.colorSpace;
 		if ( info.presentMode != Default )	data->desc.presentMode	= info.presentMode;
 
 		_recreate.store( true );
@@ -207,11 +212,10 @@ namespace {
 		dst.pixToMm			= _pixToMm.load();
 		dst.format			= sw_desc.colorFormat;
 		dst.colorSpace		= sw_desc.colorSpace;
+		dst.transform		= _swapchain.GetSurfaceTransform();
 
 		dst.initialState	= EResourceState::PresentImage;
 		dst.finalState		= EResourceState::PresentImage;
-
-		// TODO: get preTransform from swapchain and apply to projection
 
 		return true;
 	}
@@ -281,12 +285,19 @@ namespace {
 */
 	void  WindowSurface::_UpdateDesc (SurfaceDataSync_t::WriteNoLock_t &data) __NE___
 	{
-					data->desc	= _swapchain.GetDescription();
-
+		const auto	new_desc	= _swapchain.GetDescription();
 		const auto	m			= data->window->GetMonitor();	// must be in main thread
-		float		px_to_mm	= m.MillimetersPerPixel();
+		float		px_to_mm	= m.PixelsPerMillimeter();		// pix / mm
 
 		_pixToMm.store( px_to_mm );
+
+		if_unlikely( new_desc.colorSpace != data->prevColorSpace )
+		{
+			Unused( data->window->SetColorSpace( new_desc.colorSpace ));
+		}
+
+		data->desc				= new_desc;
+		data->prevColorSpace	= new_desc.colorSpace;
 	}
 
 /*
@@ -315,7 +326,7 @@ namespace {
 
 			if_unlikely( not _surface._recreate.exchange( false ))
 				return;  // already recreated
-			
+
 			if_unlikely( Any( IsZero( new_size )))
 			{
 				// recreate later
@@ -415,12 +426,13 @@ namespace {
 	{
 	private:
 		WindowSurface &		_surface;
+		const FrameUID		_frameId;
 		const EQueueType	_presentQueue;
 
 	public:
-		PresentImageTask (WindowSurface* surf, EQueueType presentQueue) __NE___ :
+		PresentImageTask (WindowSurface* surf, FrameUID fid, EQueueType presentQueue) __NE___ :
 			IAsyncTask{ AcquireAndPresentQueue },
-			_surface{ *surf },
+			_surface{ *surf }, _frameId{ fid },
 			_presentQueue{ presentQueue }
 		{}
 
@@ -428,7 +440,7 @@ namespace {
 		{
 			auto&		rts	= GraphicsScheduler();
 			auto		q	= rts.GetDevice().GetQueue( _presentQueue );
-			VkResult	err	= _surface._swapchain.Present( q );
+			VkResult	err	= _surface._swapchain.Present( q, Default, _frameId );
 
 			switch ( err )
 			{
@@ -443,9 +455,7 @@ namespace {
 				// Android: always returned if used custom rotation
 				// Other: returned when swapchain size != surface size
 				case VK_SUBOPTIMAL_KHR :
-					#ifndef AE_PLATFORM_ANDROID
 					_surface._recreate.store( true );	// recreate later
-					#endif
 					break;
 
 				default :
@@ -507,12 +517,13 @@ namespace {
 	{
 	private:
 		WindowSurface &		_surface;
+		const FrameUID		_frameId;
 		const EQueueType	_presentQueue;
 
 	public:
-		PresentImageTask (WindowSurface* surf, EQueueType presentQueue) :
+		PresentImageTask (WindowSurface* surf, FrameUID fid, EQueueType presentQueue) :
 			IAsyncTask{ AcquireAndPresentQueue },
-			_surface{ *surf },
+			_surface{ *surf }, _frameId{ fid },
 			_presentQueue{ presentQueue }
 		{}
 
@@ -521,7 +532,7 @@ namespace {
 			auto&	rts	= GraphicsScheduler();
 			auto	q	= rts.GetDevice().GetQueue( _presentQueue );
 
-			CHECK_TE( _surface._swapchain.Present( q ));
+			CHECK_TE( _surface._swapchain.Present( q, Default, _frameId ));
 		}
 
 		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::PresentImage"; }
@@ -602,12 +613,13 @@ namespace {
 	{
 	private:
 		WindowSurface &		_surface;
+		const FrameUID		_frameId;
 		const EQueueType	_presentQueue;
 
 	public:
-		PresentImageTask (WindowSurface* surf, EQueueType presentQueue) __NE___ :
+		PresentImageTask (WindowSurface* surf, FrameUID fid, EQueueType presentQueue) __NE___ :
 			IAsyncTask{ AcquireAndPresentQueue },
-			_surface{ *surf },
+			_surface{ *surf }, _frameId{ fid },
 			_presentQueue{ presentQueue }
 		{}
 
@@ -615,7 +627,7 @@ namespace {
 		{
 			auto&	rts	= GraphicsScheduler();
 			auto	q	= rts.GetDevice().GetQueue( _presentQueue );
-			auto	err	= _surface._swapchain.Present( q );
+			auto	err	= _surface._swapchain.Present( q, _frameId );
 
 			switch_enum( err )
 			{
@@ -693,8 +705,9 @@ namespace {
 		ASSERT( acquire == null or CastAllowed<AcquireNextImageTask>( acquire.get() ));
 
 		auto		queue	= data->endCmdBatch->GetQueueType();
+		auto		fid		= data->endCmdBatch->GetFrameId();
 		AsyncTask	task	= Scheduler().Run<PresentImageTask>(
-									Tuple{ this, queue },
+									Tuple{ this, fid, queue },
 									Tuple{ RVRef(acquire), CmdBatchOnSubmit{RVRef(data->endCmdBatch)}, deps });
 
 		data->prevTask		= task;

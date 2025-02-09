@@ -144,6 +144,26 @@ namespace AE::ResEditor
 	{
 	// types
 	public:
+		struct VertexStride
+		{
+			uint		value	= 0;
+
+			VertexStride ()									__NE___	{}
+			explicit VertexStride (uint v)					__NE___	: value{v} {}
+
+			static void  Bind (const ScriptEnginePtr &se)	__Th___;
+		};
+
+		struct VertexAttribDivisor
+		{
+			uint		value	= 0;
+
+			VertexAttribDivisor ()							__NE___	{}
+			explicit VertexAttribDivisor (uint v)			__NE___	: value{v} {}
+
+			static void  Bind (const ScriptEnginePtr &se)	__Th___;
+		};
+
 		struct DrawCmd3
 		{
 			String					_pplnHint;
@@ -300,17 +320,31 @@ namespace AE::ResEditor
 			static void  Bind (const ScriptEnginePtr &se) __Th___;
 		};
 
+		struct VertexBuffer
+		{
+			EVertexType				type		= Default;
+			ubyte					index		= UMax;		// same as 'VertexInput::index' and 'VertexInput::bufferBinding'
+			EVertexInputRate		rate		= Default;
+			Bytes16u				stride;
+			uint					divisor		= 0;
+			ScriptBufferPtr			buffer;
+			Bytes					bufferOffset;
+		};
+		using VertexBuffers_t = Array< VertexBuffer >;
 
 	private:
 		using DrawCommand_t		= Union< DrawCmd3, DrawIndexedCmd3, DrawIndirectCmd3, DrawIndexedIndirectCmd3,
 										 DrawMeshTasksCmd3, DrawMeshTasksIndirectCmd3, DrawIndirectCountCmd3,
 										 DrawIndexedIndirectCountCmd3, DrawMeshTasksIndirectCountCmd3 >;
 		using DrawCommands_t	= Array< DrawCommand_t >;
+		using UniqueNames_t		= FlatHashSet< String >;
 
 
 	// variables
 	private:
 		DrawCommands_t		_drawCommands;
+		VertexBuffers_t		_vertexBuffers;
+		UniqueNames_t		_uniqueAttribs;
 
 		RC<IGeomSource>		_geomSrc;
 
@@ -319,6 +353,11 @@ namespace AE::ResEditor
 	public:
 		ScriptUniGeometry () {}
 		~ScriptUniGeometry ();
+
+		// vertex buffer
+		void  AddVertexBuffer (const String &attrib, EVertexType type, EVertexInputRate rate,
+							   const ScriptBufferPtr &buffer, Bytes bufferOffset,
+							   const VertexStride &stride, const VertexAttribDivisor &divisor)				__Th___;
 
 		// draw commands
 		void  Draw1 (const DrawCmd3 &)																		__Th___;
@@ -343,6 +382,8 @@ namespace AE::ResEditor
 
 	private:
 		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)												C_Th_OV;
+
+		static void  _AddVertexBuffer (Scripting::ScriptArgList args)										__Th___;
 
 		ND_ static auto  _CreateUBType ()																	__Th___;
 	};

@@ -5,7 +5,7 @@
 #include "base/Math/Vec.h"
 #include "base/Math/Radian.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -178,10 +178,10 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	static constexpr bool	IsQuat = Math::_hidden_::_QuatInfo<T>::is_quat;
+	static constexpr bool	IsQuat = Base::_hidden_::_QuatInfo<T>::is_quat;
 
 	template <typename T>
-	static constexpr bool	IsSimdQuat = Math::_hidden_::_QuatInfo<T>::is_simd;
+	static constexpr bool	IsSimdQuat = Base::_hidden_::_QuatInfo<T>::is_simd;
 
 /*
 =================================================
@@ -189,7 +189,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	using QuatToScalarType = typename Math::_hidden_::_QuatInfo<T>::type;
+	using QuatToScalarType = typename Base::_hidden_::_QuatInfo<T>::type;
 
 /*
 =================================================
@@ -236,20 +236,20 @@ namespace _hidden_
 	ND_ bool4  Equal (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs, const T err = Epsilon<T>()) __NE___
 	{
 		return bool4{
-				Math::Equal( lhs.x, rhs.x, err ),
-				Math::Equal( lhs.y, rhs.y, err ),
-				Math::Equal( lhs.z, rhs.z, err ),
-				Math::Equal( lhs.w, rhs.w, err )};
+				Base::Equal( lhs.x, rhs.x, err ),
+				Base::Equal( lhs.y, rhs.y, err ),
+				Base::Equal( lhs.z, rhs.z, err ),
+				Base::Equal( lhs.w, rhs.w, err )};
 	}
 
 	template <typename T, glm::qualifier Q>
 	ND_ bool4  Equal (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs, const Percent err) __NE___
 	{
 		return bool4{
-				Math::Equal( lhs.x, rhs.x, err ),
-				Math::Equal( lhs.y, rhs.y, err ),
-				Math::Equal( lhs.z, rhs.z, err ),
-				Math::Equal( lhs.w, rhs.w, err )};
+				Base::Equal( lhs.x, rhs.x, err ),
+				Base::Equal( lhs.y, rhs.y, err ),
+				Base::Equal( lhs.z, rhs.z, err ),
+				Base::Equal( lhs.w, rhs.w, err )};
 	}
 
 /*
@@ -261,20 +261,20 @@ namespace _hidden_
 	ND_ bool4  BitEqual (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs, const EnabledBitCount bitCount) __NE___
 	{
 		return bool4{
-				Math::BitEqual( lhs.x, rhs.x, bitCount ),
-				Math::BitEqual( lhs.y, rhs.y, bitCount ),
-				Math::BitEqual( lhs.z, rhs.z, bitCount ),
-				Math::BitEqual( lhs.w, rhs.w, bitCount )};
+				Base::BitEqual( lhs.x, rhs.x, bitCount ),
+				Base::BitEqual( lhs.y, rhs.y, bitCount ),
+				Base::BitEqual( lhs.z, rhs.z, bitCount ),
+				Base::BitEqual( lhs.w, rhs.w, bitCount )};
 	}
 
 	template <typename T, glm::qualifier Q>
 	ND_ bool4  BitEqual (const TQuat<T,Q> &lhs, const TQuat<T,Q> &rhs) __NE___
 	{
 		return bool4{
-				Math::BitEqual( lhs.x, rhs.x ),
-				Math::BitEqual( lhs.y, rhs.y ),
-				Math::BitEqual( lhs.z, rhs.z ),
-				Math::BitEqual( lhs.w, rhs.w )};
+				Base::BitEqual( lhs.x, rhs.x ),
+				Base::BitEqual( lhs.y, rhs.y ),
+				Base::BitEqual( lhs.z, rhs.z ),
+				Base::BitEqual( lhs.w, rhs.w )};
 	}
 
 /*
@@ -385,4 +385,4 @@ namespace _hidden_
 	}
 
 
-} // AE::Math
+} // AE::Base

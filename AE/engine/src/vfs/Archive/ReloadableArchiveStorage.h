@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Should not be used in Release.
+*/
 
 #pragma once
 
@@ -24,13 +27,17 @@ namespace AE::VFS
 		ReloadableArchiveStorage ()													__NE___	{}
 		~ReloadableArchiveStorage ()												__NE_OV {}
 
-		ND_ bool  Reload (RC<RDataSource> archive)									__NE___;
+		ND_ bool  Reload (RC<RDataSource>)											__NE___;
+		ND_ bool  Reload (RC<AsyncRDataSource>, RC<RDataSource>)					__NE___;
+		ND_ bool  Reload (const Path &filename)										__NE___;
+
 			void  Reset ()															__NE___;
 
 
 	  // IVirtualFileStorage //
 		bool  Open (OUT RC<RStream> &stream, FileName::Ref name)					C_NE_OV;
 		bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)					C_NE_OV;
+		bool  Open (OUT RC<AsyncRStream> &stream, FileName::Ref name)				C_NE_OV;
 		bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)				C_NE_OV;
 
 		using IVirtualFileStorage::Open;
@@ -44,6 +51,7 @@ namespace AE::VFS
 
 		bool  _OpenByIter (OUT RC<RStream>&, FileName::Ref, const void*)			C_NE_OV	{ DBG_WARNING("not supported");  return false; }
 		bool  _OpenByIter (OUT RC<RDataSource>&, FileName::Ref, const void*)		C_NE_OV	{ DBG_WARNING("not supported");  return false; }
+		bool  _OpenByIter (OUT RC<AsyncRStream>&, FileName::Ref, const void*)		C_NE_OV	{ DBG_WARNING("not supported");  return false; }
 		bool  _OpenByIter (OUT RC<AsyncRDataSource>&, FileName::Ref, const void*)	C_NE_OV	{ DBG_WARNING("not supported");  return false; }
 
 		using IVirtualFileStorage::_OpenByIter;

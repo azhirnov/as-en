@@ -110,8 +110,8 @@ namespace AE::Threading
 		ND_ usize			size ()							C_NE___;
 		ND_ bool			empty ()						C_NE___	{ return size() == 0; }
 
-		ND_ static constexpr usize  capacity ()				__NE___	{ return Count; }
-		ND_ static constexpr Bytes  DynamicSize ()			__NE___	{ return SizeOf<ChunkArray_t>; }
+		NdCx__ static usize  capacity ()					__NE___	{ return Count; }
+		NdCx__ static Bytes  DynamicSize ()					__NE___	{ return SizeOf<ChunkArray_t>; }
 	};
 
 } // AE::Threading

@@ -15,18 +15,20 @@ namespace AE::Base
 	struct AndroidUtils final : UnixUtils
 	{
 		// Thread //
+	  #ifndef AE_CFG_RELEASE
 			static void		SetCurrentThreadName (NtStringView name)						__NE___;
 		ND_ static String	GetCurrentThreadName ()											__Th___;
+	  #endif
 
 		ND_ static ThreadHandle  GetCurrentThreadHandle ()									__NE___;
 
-			static bool		SetThreadAffinity (const ThreadHandle &handle, uint coreIdx)	__NE___;
-			static bool		SetThreadPriority (const ThreadHandle &handle, float priority)	__NE___;
+			static bool		SetThreadAffinity (const ThreadHandle &, uint logicalCoreIdx)	__NE___;
+			static bool		SetThreadPriority (const ThreadHandle &, EThreadPriority)		__NE___;
 
-			static bool		SetCurrentThreadAffinity (uint coreIdx)							__NE___;
-			static bool		SetCurrentThreadPriority (float priority)						__NE___;
+			static bool		SetCurrentThreadAffinity (uint logicalCoreIdx)					__NE___;
+			static bool		SetCurrentThreadPriority (EThreadPriority priority)				__NE___;
 
-		ND_	static uint		GetProcessorCoreIndex ()										__NE___;	// current logical CPU core
+		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
 
 
 		// OS //
@@ -34,7 +36,7 @@ namespace AE::Base
 		ND_ static Version3			GetOSVersion ()											__NE___;
 		ND_ static uint				GetSDKVersion ()										__NE___;
 		ND_ static uint				GetTargetSDKVersion ()									__NE___;
-		ND_ static constexpr uint	GetMinSDKVersion ()										__NE___	{ return __ANDROID_API__; }
+		NdCx__ static uint			GetMinSDKVersion ()										__NE___	{ return __ANDROID_API__; }
 		ND_ static StringView		GetOSName ()											__NE___ { return "Android"; }
 		ND_ static auto				GetOSType ()											__NE___	{ return EOperationSystem::Android; }
 	};

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_HEIGHT
 #	define GEN_COLOR
 #endif
@@ -126,7 +126,7 @@
 	}
 
 
-	// positions with 1 pixel border for normals calculation
+	// positions with 1 pixel border to calculate normal
 	WGShared float3  s_Positions[ gl.WorkGroupSize.x * gl.WorkGroupSize.y ];
 
 
@@ -208,10 +208,14 @@
 		float	emission	= 0.0;
 		float	temperature	= 0.0;
 
-				sphere_pos	*= 8.0;
-				sphere_pos	+= Turbulence_PerlinNoiseFBM( sphere_pos, 2.0, 0.6, 7 ) * 2.0;
+		sphere_pos	*= 8.0;
+		sphere_pos	+= Turbulence_PerlinNoiseFBM( sphere_pos, CreateFBMParams( 2.0, 0.6, 7 )) * 2.0;
 
-		float	biom		= DHash13( Voronoi( sphere_pos, float3(3.9672, 0.0, 1.0) ).icenter );
+		NoiseParams	np	= CreateNoiseParams();
+		np.seedScale	= float3(3.9672);
+		np.custom.x		= 1.0;
+
+		float	biom		= DHash13( VoronoiR( sphere_pos, np ).icenter );
 		int		mtr_id		= int(biom * 255.0f) & 0xF;
 
 		albedo = HSVtoRGB( float3( biom, 1.0, 1.0 ));

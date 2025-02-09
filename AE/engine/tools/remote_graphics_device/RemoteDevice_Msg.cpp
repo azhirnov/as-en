@@ -878,7 +878,7 @@ namespace AE::RemoteGraphics
 		res.options				= ppln.Options();
 		res.pipelineLayoutId	= RmCast( ppln.LayoutId() );
 
-		if constexpr( IsSameTypes< PplnID, ComputePipelineID > or IsSameTypes< PplnID, TilePipelineID >)
+		if constexpr( IsSame< PplnID, ComputePipelineID > or IsSame< PplnID, TilePipelineID >)
 		{
 			res.shaderTrace.reset( ppln.GetShaderTrace().get() );
 		}else{
@@ -886,28 +886,28 @@ namespace AE::RemoteGraphics
 				res.shaderTrace.emplace_back( ptr.get() );
 		}
 
-		if constexpr( IsSameTypes< PplnID, GraphicsPipelineID >)
+		if constexpr( IsSame< PplnID, GraphicsPipelineID >)
 		{
 			res.topology		= ppln.Topology();
 			res.subpassIndex	= ubyte(ppln.RenderPassSubpassIndex());
 			res.vertexBuffers	= ppln.GetVertexBufferMap();
 		}
-		if constexpr( IsSameTypes< PplnID, MeshPipelineID >)
+		if constexpr( IsSame< PplnID, MeshPipelineID >)
 		{
-			res.meshLocalSize	= ushort3{ppln.MeshLocalSize()};
-			res.taskLocalSize	= ushort3{ppln.TaskLocalSize()};
+			res.meshLocalSize	= WGLocalSize_t{ppln.MeshLocalSize()};
+			res.taskLocalSize	= WGLocalSize_t{ppln.TaskLocalSize()};
 			res.subpassIndex	= ubyte(ppln.RenderPassSubpassIndex());
 		}
-		if constexpr( IsSameTypes< PplnID, ComputePipelineID >)
+		if constexpr( IsSame< PplnID, ComputePipelineID >)
 		{
-			res.localSize		= ppln.LocalSize();
+			res.localSize		= WGLocalSize_t{ppln.LocalSize()};
 		}
-		if constexpr( IsSameTypes< PplnID, TilePipelineID >)
+		if constexpr( IsSame< PplnID, TilePipelineID >)
 		{
-			res.localSize		= ushort2{ppln.LocalSize()};
+			res.localSize		= WGLocalSize2_t{ppln.LocalSize()};
 			res.subpassIndex	= ubyte(ppln.RenderPassSubpassIndex());
 		}
-		if constexpr( IsSameTypes< PplnID, RayTracingPipelineID >)
+		if constexpr( IsSame< PplnID, RayTracingPipelineID >)
 		{
 			res.shaderGroupHandleSize = Bytes{_resMngr->GetDevice().GetVProperties().rayTracingPipelineProps.shaderGroupHandleSize};
 			res.groupHandles.assign( ppln._GroupHandlesData().begin(), ppln._GroupHandlesData().end() );
@@ -923,8 +923,8 @@ namespace AE::RemoteGraphics
 	{
 		// Unique<> required for deserializer, but here Unique<> doesn't own a pointer and destructor must never be used
 
-		if constexpr( IsSameTypes< RespType, Msg::ResMngr_CreateComputePipeline_Response > or
-					  IsSameTypes< RespType, Msg::ResMngr_CreateTilePipeline_Response >)
+		if constexpr( IsSame< RespType, Msg::ResMngr_CreateComputePipeline_Response > or
+					  IsSame< RespType, Msg::ResMngr_CreateTilePipeline_Response >)
 		{
 			Unused( res.shaderTrace.release() );
 		}
@@ -1063,14 +1063,15 @@ namespace AE::RemoteGraphics
 		Msg::ResMngr_LoadPipelinePack_Response	res;
 		if ( auto id = _resMngr->LoadPipelinePack( desc ))
 		{
-			auto&	pack	= _resMngr->GetResourcesOrThrow( id.Get() );
-			auto	dsl		= pack._GetDescriptorSetLayouts();
-			auto&	samp	= pack._GetSamplerRefs();
-			auto&	rp		= pack._GetRenderPassRefs().specMap;
-			auto	pl		= pack._GetPipelineLayoutIDs();
+			VPipelinePack::_ForInternalUsage	pack {_resMngr->GetResourcesOrThrow( id.Get() )};
+
+			auto	dsl		= pack.GetDescriptorSetLayouts();
+			auto&	samp	= pack.GetSamplerRefs();
+			auto&	rp		= pack.GetRenderPassRefs().specMap;
+			auto	pl		= pack.GetPipelineLayoutIDs();
 
 			res.packId = RmCast( id.Release() );
-			HashTable_Copy( OUT res.unsupportedFS, pack._GetUnsupportedFS() );
+			HashTable_Copy( OUT res.unsupportedFS, pack.GetUnsupportedFS() );
 
 			res.dsLayouts.resize( dsl.size() );
 			for (usize i = 0; i < dsl.size(); ++i)
@@ -1199,7 +1200,7 @@ namespace AE::RemoteGraphics
 			}
 		}};
 
-		if ( auto ptr = _resMngr->LoadRenderTech( RmCast(msg.packId), RenderTechName{msg.name}, RmCast(msg.cacheId) ))
+		if ( auto ptr = _resMngr->LoadRenderTech( RmCast(msg.packId), RenderTechName{msg.name}, msg.desc, RmCast(msg.cacheId) ))
 		{
 			res.id		= _Set( ptr );
 			res.name	= ptr->Name();
@@ -1306,7 +1307,7 @@ namespace AE::RemoteGraphics
 	{
 		RespType		res;
 		T*				ptr;
-		const Bytes		size = Min( 1_Kb, msg.size );
+		const Bytes		size = Min( 1_KiB, msg.size );
 
 		AllocateOnStack2( OUT ptr, size );
 
@@ -1371,7 +1372,7 @@ namespace AE::RemoteGraphics
 		Msg::Query_GetPipelineStatistic_Response  res;
 
 		PipelineStatistic*	ptr;
-		const Bytes			size = Min( 1_Kb, msg.size );
+		const Bytes			size = Min( 1_KiB, msg.size );
 
 		AllocateOnStack2( OUT ptr, size );
 
@@ -1584,7 +1585,7 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_SBM_GetImageRanges (const Msg::SBM_GetImageRanges &msg)
 	{
 		StagingBufferMngr::StagingImageResultRanges	result;
-		_resMngr->GetStagingManager().GetImageRanges( OUT result, msg.uploadDesc, msg.imageDesc, msg.imageGranularity, msg.frameId, Bool{msg.upload} );
+		_resMngr->GetStagingManager().GetImageRanges( OUT result, msg.uploadDesc, msg.imageDesc, msg.maxSize, msg.imageGranularity, msg.frameId, Bool{msg.upload} );
 
 		Msg::SBM_GetImageRanges_Response	res;
 		for (usize i = 0; i < result.buffers.size(); ++i)
@@ -1616,7 +1617,7 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_SBM_GetImageRanges2 (const Msg::SBM_GetImageRanges2 &msg)
 	{
 		StagingBufferMngr::StagingImageResultRanges	result;
-		_resMngr->GetStagingManager().GetImageRanges( OUT result, msg.uploadDesc, msg.videoDesc, msg.imageGranularity, msg.frameId, Bool{msg.upload} );
+		_resMngr->GetStagingManager().GetImageRanges( OUT result, msg.uploadDesc, msg.videoDesc, msg.maxSize, msg.imageGranularity, msg.frameId, Bool{msg.upload} );
 
 		Msg::SBM_GetImageRanges_Response	res;
 		for (usize i = 0; i < result.buffers.size(); ++i)
@@ -1826,7 +1827,7 @@ namespace AE::RemoteGraphics
 					MemCopy( OUT dst, src, size );
 				}
 
-				if constexpr( IsSameTypes< MsgType, Msg::CmdBuf_Bake >)
+				if constexpr( IsSame< MsgType, Msg::CmdBuf_Bake >)
 				{
 					auto	dst = dev_to_host.WriteLock();
 					for (auto& src : msg.devToHost) {

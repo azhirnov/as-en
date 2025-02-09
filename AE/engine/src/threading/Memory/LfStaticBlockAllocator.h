@@ -1,4 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+Features:
+	* Used pre-allocated 'storage', so its never allocates memory.
+	* Storage divided to fixed-sizes blocks, which size must be power of 2.
+	* Storage size can be less than maximum size, in this case some chunks will be disabled. (TODO)
+	* Used lock-free bit-tree with 3 levels.
+	* Access to bottom level chunks distributed by threadID to minimize modifications of the same cache line.
+*/
 
 #pragma once
 
@@ -18,7 +26,7 @@ namespace AE::Threading
 	template <usize ChunkSize_v = 64*64,
 			  usize MaxChunks_v = 1024
 			 >
-	class LfStaticBlockAllocator final : public IAllocatorTS
+	class LfStaticBlockAllocator : public IAllocatorTS
 	{
 		StaticAssert( ChunkSize_v > 0 );
 		StaticAssert( IsMultipleOf( ChunkSize_v, 32 ) or IsMultipleOf( ChunkSize_v, 64 ));
@@ -46,7 +54,7 @@ namespace AE::Threading
 		struct alignas(AE_CACHE_LINE) BottomChunk
 		{
 			SpinLockRelaxed				hiLevelGuard;	// only for 'hiLevel' modification
-			Atomic< HiLevelBits_t >		hiLevel;		// 0 - is unassigned bit, 1 - assigned bit
+			Atomic< HiLevelBits_t >		hiLevel;		// 0 - low level has unassigned bits, 1 - low level is full
 			LowLevels_t					lowLevel;		// 0 - is unassigned bit, 1 - assigned bit
 		};
 
@@ -71,10 +79,13 @@ namespace AE::Threading
 	// variables
 	private:
 		Ptr_t				_storage;
-		const POTBytes		_blockSize;
+		const POTBytes		_blockSize;		// POT used to speedup deallocation
 		const POTBytes		_blockAlign;
 
-		TopChunks_t			_topChunks;
+		//DEBUG_ONLY( const Bytes	_storageSize;)
+
+		alignas(AE_CACHE_LINE)
+		  TopChunks_t		_topChunks;
 		BottomChunks_t		_bottomChunks;
 
 
@@ -84,12 +95,13 @@ namespace AE::Threading
 								Bytes	storageSize,
 								Bytes	blockSize,
 								Bytes	blockAlign)				__NE___;
-		~LfStaticBlockAllocator ()								__NE___	{ Release( True{"checkMemLeak"} ); }
+		~LfStaticBlockAllocator ()								__NE_OV	{ Unused( Release( True{"checkMemLeak"} )); }
 
-			void	Release (Bool checkMemLeak)					__NE___;
+		// returns 'storage' to deallocate memory
+		ND_	void*	Release (Bool checkMemLeak)					__NE___;
 
 		ND_ Ptr_t	AllocBlock ()								__NE___;
-			bool	DeallocBlock (void *)						__NE___;
+			bool	DeallocBlock (void*)						__NE___;
 
 		ND_ Bytes	BlockSize ()								C_NE___	{ return Bytes{ _blockSize }; }
 		ND_ Bytes	BlockAlign ()								C_NE___	{ return Bytes{ _blockAlign }; }
@@ -98,11 +110,12 @@ namespace AE::Threading
 
 		ND_ Bytes	LargeBlockSize ()							C_NE___	{ return BlockSize() * ChunkSize; }
 		ND_ Bytes	MaxMemorySize ()							C_NE___	{ return LargeBlockSize() * MaxChunks; }
-		ND_ usize	MaxBlockCount ()							C_NE___	{ return MaxChunks * ChunkSize; }
-		ND_ Bytes	AllocatedSize ()							C_NE___;
+		ND_ Bytes	UsedMemorySize ()							C_NE___;
+
+		NdCx__ static usize  MaxBlockCount ()					__NE___	{ return MaxChunks * ChunkSize; }
 
 		// utils //
-		ND_ static Bytes  CalcStorageSize (Bytes blockSize)		__NE___	{ return blockSize * MaxChunks * ChunkSize; }
+		NdCx__ static Bytes  CalcStorageSize (Bytes blockSize, Bytes blockAlign = 1_b) __NE___ { return (AlignUp( blockSize, blockAlign ) * ChunkSize) * MaxChunks; }
 
 
 		// IAllocator //

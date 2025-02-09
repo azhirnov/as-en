@@ -2,7 +2,7 @@
 #ifdef __INTELLISENSE__
 #	define SH_COMPUTE
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -10,7 +10,7 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>	rt = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );		rt.Name( "RT" );
+		RC<Image>	rt = Image( EPixelFormat::RGBA16F, SurfaceSize() );		rt.Name( "RT" );
 
 		// render loop
 		{
@@ -29,21 +29,9 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
 	#include "GlobalIndex.glsl"
+	#include "Geometry.glsl"
 	#include "CubeMap.glsl"
 	#include "Ray.glsl"
-
-
-	float3  GetMajorAxis (float3 v)
-	{
-		float3	a = Abs(v);
-		if ( a.x >= a.y and a.x >= a.z )
-			return float3( Sign(v.x), 0.0, 0.0 );
-
-		if ( a.y >= a.z )
-			return float3( 0.0, Sign(v.y), 0.0 );
-
-		return float3( 0.0, 0.0, Sign(v.z) );
-	}
 
 
 	void  Main ()

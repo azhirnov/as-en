@@ -10,7 +10,7 @@ namespace AE::VFS
 	constructor
 =================================================
 */
-	ArchivePacker::ArchivePacker ()
+	ArchivePacker::ArchivePacker () __NE___
 	{}
 
 /*
@@ -18,7 +18,7 @@ namespace AE::VFS
 	destructor
 =================================================
 */
-	ArchivePacker::~ArchivePacker ()
+	ArchivePacker::~ArchivePacker () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK( not _map.empty() );
@@ -30,7 +30,7 @@ namespace AE::VFS
 	Create
 =================================================
 */
-	bool  ArchivePacker::Create (const Path &tempFile)
+	bool  ArchivePacker::Create (const Path &tempFile) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _archive == null );
@@ -49,7 +49,7 @@ namespace AE::VFS
 	IsCreated
 =================================================
 */
-	bool  ArchivePacker::IsCreated () const
+	bool  ArchivePacker::IsCreated () C_NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		return _archive != null;
@@ -60,7 +60,7 @@ namespace AE::VFS
 	TempFilePath
 =================================================
 */
-	Path  ArchivePacker::TempFilePath () const
+	Path  ArchivePacker::TempFilePath () C_NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		return _tempFile;
@@ -71,7 +71,7 @@ namespace AE::VFS
 	Store
 =================================================
 */
-	bool  ArchivePacker::Store (WStream &dstStream)
+	bool  ArchivePacker::Store (WStream &dstStream) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _archive );
@@ -94,7 +94,7 @@ namespace AE::VFS
 		return true;
 	}
 
-	bool  ArchivePacker::Store (const Path &filename)
+	bool  ArchivePacker::Store (const Path &filename) __NE___
 	{
 		Path	folder = filename.parent_path();
 		if ( not folder.empty() )
@@ -104,7 +104,7 @@ namespace AE::VFS
 		return Store( file );
 	}
 
-	bool  ArchivePacker::_Store (WStream &dstStream, Bytes archiveSize)
+	bool  ArchivePacker::_Store (WStream &dstStream, Bytes archiveSize) __NE___
 	{
 		FileRStream		src_file {_tempFile};
 		CHECK_ERR( src_file.IsOpen() );
@@ -147,7 +147,7 @@ namespace AE::VFS
 	Add
 =================================================
 */
-	bool  ArchivePacker::Add (const FileName::WithString_t &name, RStream &stream, const Bytes size, const EFileType type)
+	bool  ArchivePacker::Add (const FileName::WithString_t &name, RStream &stream, const Bytes size, const EFileType type) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _archive );
@@ -180,7 +180,7 @@ namespace AE::VFS
 		{
 			case EFileType::InMemory :
 			case EFileType::BrotliInMemory :
-				CHECK( size <= _MaxInMemoryFileSize );
+				CHECK_LE( size, _MaxInMemoryFileSize );
 				break;
 		}
 
@@ -230,12 +230,12 @@ namespace AE::VFS
 		RETURN_ERR( "unknown file type" );
 	}
 
-	bool  ArchivePacker::Add (const FileName::WithString_t &name, RStream &stream, EFileType type)
+	bool  ArchivePacker::Add (const FileName::WithString_t &name, RStream &stream, EFileType type) __NE___
 	{
 		return Add( name, stream, stream.RemainingSize(), type );
 	}
 
-	bool  ArchivePacker::Add (const FileName::WithString_t &name, const Path &filename, EFileType type)
+	bool  ArchivePacker::Add (const FileName::WithString_t &name, const Path &filename, EFileType type) __NE___
 	{
 		FileRStream	file {filename};
 		return Add( name, file, file.RemainingSize(), type );
@@ -246,7 +246,7 @@ namespace AE::VFS
 	_BrotliCompression
 =================================================
 */
-	uint  ArchivePacker::_BrotliCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, Bytes startPos, Bytes size)
+	uint  ArchivePacker::_BrotliCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, Bytes startPos, Bytes size) __NE___
 	{
 	#ifdef AE_ENABLE_BROTLI
 		BrotliWStream::Config	cfg;
@@ -268,7 +268,7 @@ namespace AE::VFS
 	_ZStdCompression
 =================================================
 */
-	uint  ArchivePacker::_ZStdCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, Bytes startPos, Bytes size)
+	uint  ArchivePacker::_ZStdCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, Bytes startPos, Bytes size) __NE___
 	{
 	#ifdef AE_ENABLE_ZSTD
 		ZStdWStream::Config	cfg;
@@ -290,7 +290,7 @@ namespace AE::VFS
 */
 	template <typename StreamType, typename CfgType>
 	uint  ArchivePacker::_Compression (RStream &stream, const FileName::WithString_t &name, FileInfo &info,
-										Bytes startPos, Bytes size, const CfgType &cfg)
+										Bytes startPos, Bytes size, const CfgType &cfg) __NE___
 	{
 		auto	mem = MakeRC<ArrayWStream>();
 		Bytes	uncompressed_size;
@@ -330,7 +330,7 @@ namespace AE::VFS
 	_AddFile
 =================================================
 */
-	bool  ArchivePacker::_AddFile (FileName::Optimized_t name, const FileInfo &info)
+	bool  ArchivePacker::_AddFile (FileName::Optimized_t name, const FileInfo &info) __NE___
 	{
 		CHECK_ERR( info.Offset() + info.size <= _archive->Position() );
 		CHECK_ERR( info.size > 0 );
@@ -344,32 +344,36 @@ namespace AE::VFS
 	AddArchive
 =================================================
 */
-	bool  ArchivePacker::AddArchive (const Path &filename)
+	bool  ArchivePacker::AddArchive (const Path &filename) __NE___
 	{
 		ArchiveStaticStorage	tmp_archive;
-		CHECK_ERR( tmp_archive._Create( filename ));
+		{
+			auto	ds = MakeRC<FileRDataSource>( filename );
+			CHECK_ERR( tmp_archive._Create( null, RVRef(ds) ));
+		}
 		return _AddArchive( tmp_archive );
 	}
 
-	bool  ArchivePacker::AddArchive (RC<RDataSource> archiveDS)
+	bool  ArchivePacker::AddArchive (RC<RDataSource> archiveDS) __NE___
 	{
 		ArchiveStaticStorage	tmp_archive;
-		CHECK_ERR( tmp_archive._Create( archiveDS ));
+		CHECK_ERR( tmp_archive._Create( null, RVRef(archiveDS) ));
 		return _AddArchive( tmp_archive );
 	}
 
-	bool  ArchivePacker::_AddArchive (ArchiveStaticStorage &storage)
+	bool  ArchivePacker::_AddArchive (ArchiveStaticStorage &storage) __NE___
 	{
 		using ArchiveStream_t = RDataSourceAsStream< RC<RDataSource> >;
 
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _archive );
+		CHECK_ERR( storage._syncFile );
 
 		for (auto& [name, src_info] : storage._map)
 		{
 			CHECK_ERR( not _map.contains( name ));
 
-			auto		stream		= MakeRC<ArchiveStream_t>( storage._archive, src_info.Offset(), src_info.Size() );
+			auto		stream		= MakeRC<ArchiveStream_t>( storage._syncFile, src_info.Offset(), src_info.Size() );
 			const Bytes	start_pos	= stream->Position();
 			const Bytes	offset		= _archive->Position();
 
@@ -395,7 +399,7 @@ namespace AE::VFS
 	Exists
 =================================================
 */
-	bool  ArchivePacker::Exists (FileName::Ref name) const
+	bool  ArchivePacker::Exists (FileName::Ref name) C_NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		return _map.contains( name );

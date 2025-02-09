@@ -269,7 +269,7 @@ namespace AE::Threading
 	ReadBlock
 =================================================
 */
-	AsyncDSRequest  UnixAsyncRDataSource::ReadBlock (Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___
+	AsyncDSRequest  UnixAsyncRDataSource::ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem) __NE___
 	{
 		AsyncDSRequest	req;
 		if_likely( UnixIOService::AsyncRDataSourceApi::CreateResult( OUT req, GetRC<UnixAsyncRDataSource>(), pos, data, dataSize, RVRef(mem) ));
@@ -282,7 +282,7 @@ namespace AE::Threading
 	{
 		RC<SharedMem>	mem		= SharedMem::Create( AE::GetDefaultAllocator(), size );	// TODO: optimize
 		void*			data	= mem ? mem->Data() : null;
-		return ReadBlock( pos, data, size, RVRef(mem) );
+		return ReadBlock( pos, OUT data, size, RVRef(mem) );
 	}
 //-----------------------------------------------------------------------------
 

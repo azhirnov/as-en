@@ -20,6 +20,9 @@ ND_ Quat	QIdentity ();
 ND_ Quat	QCreate (const float4 v);
 ND_ Quat	QCreate (const float3 axis, const float angle);
 ND_ Quat	QCreate (float x, float y, float z, float w);
+ND_ Quat	QCreateWXYZ (float w, float x, float y, float z);
+
+ND_ Quat	QFrom2Normals (const float3 n1, const float3 n2);
 
 ND_ Quat	QNormalize (const Quat q);
 ND_ Quat	QInverse (const Quat q);
@@ -90,6 +93,13 @@ Quat  QCreate (float x, float y, float z, float w)
 	return ret;
 }
 
+Quat  QCreateWXYZ (float w, float x, float y, float z)
+{
+	Quat	ret;
+	ret.data = float4( x, y, z, w );
+	return ret;
+}
+
 /*
 =================================================
 	QNormalize
@@ -100,7 +110,14 @@ Quat  QNormalize (const Quat q)
 	Quat	ret = q;
 	float	n	= Dot( q.data, q.data );
 
-	if ( n > 0.999 and n < 1.001 )
+	if ( n < 1.0e-6 )
+	{
+		// repair
+		ret.data.w = 1.0;
+		n = Dot( q.data, q.data );
+	}
+
+	if ( Abs( n - 1.0 ) < 1.0e-5 )
 		return ret;
 
 	ret.data *= InvSqrt( n );
@@ -150,7 +167,7 @@ float3  QMul (const Quat left, const float3 right)
 	float3	uv	= Cross( q, right );
 	float3	uuv	= Cross( q, uv );
 
-	return right + ((uv * left.data.w) + uuv) * 2.0;
+	return right + ((uv * left.data.w) + uuv) * 2.0f;
 }
 
 /*
@@ -174,13 +191,13 @@ Quat  QSlerp (const Quat qx, const Quat qy, const float factor)
 	float4	qz			= qy.data;
 	float	cos_theta	= Dot( qx.data, qy.data );
 
-	if ( cos_theta < 0.0 )
+	if ( cos_theta < 0.0f )
 	{
 		qz			= -qy.data;
 		cos_theta	= -cos_theta;
 	}
 
-	if ( cos_theta > 1.0 - float_epsilon )
+	if ( cos_theta > 1.0f - float_epsilon )
 	{
 		ret.data = Lerp( qx.data, qy.data, factor );
 	}
@@ -188,7 +205,7 @@ Quat  QSlerp (const Quat qx, const Quat qy, const float factor)
 	{
 		float	angle = ACos( cos_theta );
 
-		ret.data =	( Sin( (1.0 - factor) * angle ) * qx.data +
+		ret.data =	( Sin( (1.0f - factor) * angle ) * qx.data +
 					  Sin( factor * angle ) * qz ) / Sin( angle );
 	}
 	return ret;
@@ -201,9 +218,9 @@ Quat  QSlerp (const Quat qx, const Quat qy, const float factor)
 */
 float3  QDirection (const Quat q)
 {
-	return float3( 2.0 * q.data.x * q.data.z + 2.0 * q.data.y * q.data.w,
-				   2.0 * q.data.z * q.data.y - 2.0 * q.data.x * q.data.w,
-				   1.0 - 2.0 - q.data.x * q.data.x - 2.0 * q.data.y * q.data.y );
+	return float3( 2.0f * q.data.x * q.data.z + 2.0f * q.data.y * q.data.w,
+				   2.0f * q.data.z * q.data.y - 2.0f * q.data.x * q.data.w,
+				   1.0f - 2.0f - q.data.x * q.data.x - 2.0f * q.data.y * q.data.y );
 }
 
 /*
@@ -220,13 +237,13 @@ Quat  QRotationX (float a)
 Quat  QRotationX (const float sin, const float cos)
 {
 	Quat	q;
-	q.data = float4( sin, 0.0, 0.0, cos );
+	q.data = float4( sin, 0.0f, 0.0f, cos );
 	return q;
 }
 
 Quat  QRotationX_ChordOver2R (const float x)
 {
-	return QRotationX( x, Sqrt(1.0 - x*x) );
+	return QRotationX( x, Sqrt(1.0f - x*x) );
 }
 
 /*
@@ -243,13 +260,13 @@ Quat  QRotationY (float a)
 Quat  QRotationY (const float sin, const float cos)
 {
 	Quat	q;
-	q.data = float4( 0.0, sin, 0.0, cos );
+	q.data = float4( 0.0, sin, 0.0f, cos );
 	return q;
 }
 
 Quat  QRotationY_ChordOver2R (const float x)
 {
-	return QRotationY( x, Sqrt(1.0 - x*x) );
+	return QRotationY( x, Sqrt(1.0f - x*x) );
 }
 
 /*
@@ -259,20 +276,20 @@ Quat  QRotationY_ChordOver2R (const float x)
 */
 Quat  QRotationZ (float a)
 {
-	a *= 0.5;
+	a *= 0.5f;
 	return QRotationZ( Sin(a), Cos(a) );
 }
 
 Quat  QRotationZ (const float sin, const float cos)
 {
 	Quat	q;
-	q.data = float4( 0.0, 0.0, sin, cos );
+	q.data = float4( 0.0f, 0.0f, sin, cos );
 	return q;
 }
 
 Quat  QRotationZ_ChordOver2R (const float x)
 {
-	return QRotationZ( x, Sqrt(1.0 - x*x) );
+	return QRotationZ( x, Sqrt(1.0f - x*x) );
 }
 
 /*
@@ -293,7 +310,7 @@ Quat  QRotation (float a, const float3 axis)
 
 Quat  QRotation_ChordOver2R (const float x, const float3 axis)
 {
-	return QCreate( axis * x, Sqrt(1.0 - x*x) );
+	return QCreate( axis * x, Sqrt(1.0f - x*x) );
 }
 
 /*
@@ -312,5 +329,25 @@ Quat  QLookAt (const float3 dir)
 	float3	axis	= Cross( fwd, dir );
 	float	angle	= Dot( fwd, dir );
 
-	return QNormalize( QCreate( axis, angle + 1.0 ));
+	return QNormalize( QCreate( axis, angle + 1.0f ));
+}
+
+/*
+=================================================
+	QFrom2Normals
+----
+	from GLM (MIT license) https://github.com/g-truc/glm
+=================================================
+*/
+Quat  QFrom2Normals (const float3 u, const float3 v)
+{
+	float	norm_u_norm_v	= Sqrt( Dot( u, u ) * Dot( v, v ));
+	float	real_part		= norm_u_norm_v + Dot( u, v );
+
+	//if ( real_part < 1.0e-6 * norm_u_norm_v )
+		// TODO: opposite normals
+
+	float3	t = Cross( u, v );
+
+	return QNormalize( QCreate( t.x, t.y, t.z, real_part ));
 }

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/GraphicsImpl.h"
+#include "graphics_rhi/GraphicsImpl.h"
 
 namespace AE::Samples::Demo
 {

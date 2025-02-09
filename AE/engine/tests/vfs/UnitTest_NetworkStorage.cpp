@@ -81,7 +81,7 @@ namespace
 		Array<ubyte>	temp;
 		temp.resize( usize(size) );
 
-		Math::Random	rnd;
+		Base::Random	rnd;
 		for (usize i = 0; i < temp.size(); ++i)
 		{
 			temp[i] = rnd.Uniform<ubyte>() & 0xF;
@@ -99,10 +99,10 @@ namespace
 		NetworkStorageClient	vfs_client;
 
 		const String			a1_name		= "a1.bin";
-		const Array<ubyte>		a1_data		= GenRandomArray( 4_Mb );
+		const Array<ubyte>		a1_data		= GenRandomArray( 4_MiB );
 
 		const String			a2_name		= "a2.bin";
-		const Array<ubyte>		a2_data		= GenRandomArray( 4_Mb );
+		const Array<ubyte>		a2_data		= GenRandomArray( 4_MiB );
 
 		Threading::Barrier		sync {3};
 

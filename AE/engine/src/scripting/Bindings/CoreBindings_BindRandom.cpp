@@ -11,7 +11,7 @@ namespace
 	template <int I>
 	struct ScriptRandom_Binomial
 	{
-		Math::Random::_Binomial<Vec<int,I>>		_bin;
+		Base::Random::_Binomial<Vec<int,I>>		_bin;
 
 		PackedVec<int,I>	Gen ()	{ return _bin(); }
 	};
@@ -19,7 +19,7 @@ namespace
 	template <>
 	struct ScriptRandom_Binomial<1>
 	{
-		Math::Random::_Binomial<int>			_bin;
+		Base::Random::_Binomial<int>			_bin;
 
 		int					Gen ()	{ return _bin(); }
 	};
@@ -28,7 +28,7 @@ namespace
 	template <int I>
 	struct ScriptRandom_Normal
 	{
-		Math::Random::_Normal<Vec<float,I>>		_bin;
+		Base::Random::_Normal<Vec<float,I>>		_bin;
 
 		PackedVec<float,I>	Gen ()	{ return _bin(); }
 	};
@@ -36,7 +36,7 @@ namespace
 	template <>
 	struct ScriptRandom_Normal<1>
 	{
-		Math::Random::_Normal<float>			_bin;
+		Base::Random::_Normal<float>			_bin;
 
 		float				Gen ()	{ return _bin(); }
 	};
@@ -44,7 +44,7 @@ namespace
 
 	struct ScriptRandom
 	{
-		Math::Random	_rnd;
+		Base::Random	_rnd;
 
 		float			Uniform1f (float min, float max)								{ return _rnd.Uniform( min, max ); }
 		packed_float2	Uniform2f (const packed_float2 &min, const packed_float2 &max)	{ return _rnd.Uniform( float2{min}, float2{max} ); }

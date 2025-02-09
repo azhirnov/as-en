@@ -9,6 +9,7 @@
 #include "asset_packer/AssetPackerImpl.h"
 
 #include "../shared/UnitTest_Shared.h"
+#include "../threading/UnitTest_Common.h"
 
 using namespace AE::Base;
 

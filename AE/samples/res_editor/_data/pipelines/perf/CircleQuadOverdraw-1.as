@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -69,7 +69,7 @@
 		float2	pos	= float2( gl.InstanceIndex & ((1u << pow2) - 1), gl.InstanceIndex >> pow2 ).yx;
 
 		pos	+= ToUNorm(uv);
-		
+
 		pos /= float2( uint2(1) << uint2( pow2, (iMaxInstancePow2+1)>>1 )).yx;
 
 		pos = ToSNorm( pos ) * 0.95;

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "platform/Public/HwCamera.h"
-#include "graphics/Private/EnumToString.h"
+#include "graphics_rhi/Private/EnumToString.h"
 
 #ifdef AE_ENABLE_LOGS
 namespace AE::Base

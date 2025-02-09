@@ -1,5 +1,6 @@
 include ':test',
 		':demo',
 		':rg-device',
+		':remote-ctrl',
 		':cicd',
 		':engine'

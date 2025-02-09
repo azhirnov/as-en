@@ -5,7 +5,7 @@
 #include "base/DataSource/MemStream.h"
 #include "serializing/Public/Serializer.h"
 #include "serializing/Public/ObjectFactory.h"
-#include "graphics/Private/EnumUtils.h"
+#include "graphics_rhi/Private/EnumUtils.h"
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
@@ -198,6 +198,7 @@ namespace AE::PipelineCompiler
 					break;
 
 				case EDescriptorType::RayTracingScene :
+				case EDescriptorType::RayTracingPartitionedScene :
 					break;
 
 				case EDescriptorType::Unknown :
@@ -316,8 +317,6 @@ namespace AE::PipelineCompiler
 						dst_un.image.state |= (src_un.image.state & EResourceState::AllShaders);
 						break;
 					}
-					case EDescriptorType::Sampler :
-						break;
 					case EDescriptorType::ImmutableSampler :
 					{
 						for (usize i = 0; i < dst_un.arraySize; ++i)
@@ -328,7 +327,9 @@ namespace AE::PipelineCompiler
 						}
 						break;
 					}
+					case EDescriptorType::Sampler :
 					case EDescriptorType::RayTracingScene :
+					case EDescriptorType::RayTracingPartitionedScene :
 						break;
 
 					case EDescriptorType::Unknown :
@@ -485,6 +486,11 @@ namespace AE::PipelineCompiler
 					break;
 
 				case EDescriptorType::RayTracingScene :
+					CHECK_ERR( l_un.type == r_un.type or
+							   r_un.type == EDescriptorType::RayTracingPartitionedScene );
+					break;
+
+				case EDescriptorType::RayTracingPartitionedScene :
 					CHECK_ERR( l_un.type == r_un.type );
 					break;
 
@@ -595,9 +601,6 @@ namespace AE::PipelineCompiler
 					break;
 				}
 
-				case EDescriptorType::Sampler :
-					break;
-
 				case EDescriptorType::ImmutableSampler :
 				{
 					CHECK_ERR( l_un.immutableSampler.offsetInStorage + l_un.arraySize <= samplerStorage.size() );
@@ -610,7 +613,9 @@ namespace AE::PipelineCompiler
 					break;
 				}
 
+				case EDescriptorType::Sampler :
 				case EDescriptorType::RayTracingScene :
+				case EDescriptorType::RayTracingPartitionedScene :
 					break;
 
 				case EDescriptorType::Unknown :
@@ -674,9 +679,6 @@ namespace AE::PipelineCompiler
 					}
 					break;
 
-				case EDescriptorType::Sampler :
-					break;
-
 				case EDescriptorType::ImmutableSampler :
 					CHECK_ERR( un.immutableSampler.offsetInStorage + un.arraySize <= samplerStorage.size() );
 
@@ -685,7 +687,9 @@ namespace AE::PipelineCompiler
 					}
 					break;
 
+				case EDescriptorType::Sampler :
 				case EDescriptorType::RayTracingScene :
+				case EDescriptorType::RayTracingPartitionedScene :
 					break;
 
 				case EDescriptorType::Unknown :

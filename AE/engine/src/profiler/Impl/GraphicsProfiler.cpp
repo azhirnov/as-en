@@ -97,7 +97,8 @@ namespace AE::Profiler
 			// memory traffic
 			{
 				str.clear();
-				str << "to_dev: " << ToString( _memTraffic.avgWrite ) << "  to_host: " << ToString( _memTraffic.avgRead );
+				str <<	"to_dev:  " << ToString( _memTraffic.avgWrite ) << "/f,  " << ToString( _memTraffic.writeBw ) << "/s\n"
+						"to_host: " << ToString( _memTraffic.avgRead ) << "/f,  " << ToString( _memTraffic.readBw ) << "/s";
 				ImGui::TextUnformatted( str.c_str() );
 			}
 
@@ -150,8 +151,10 @@ namespace AE::Profiler
 			Bytes	write	= _memTraffic.accumWrite.exchange( 0_b );
 			Bytes	read	= _memTraffic.accumRead.exchange( 0_b );
 
-			_memTraffic.avgWrite	= Bytes{ulong(double(ulong{write}) / double(frame_count))};
-			_memTraffic.avgRead		= Bytes{ulong(double(ulong{read}) / double(frame_count))};
+			_memTraffic.avgWrite	= Bytes{ulong( double(ulong{write}) / double(frame_count) )};
+			_memTraffic.avgRead		= Bytes{ulong( double(ulong{read}) / double(frame_count) )};
+			_memTraffic.writeBw		= Bytes{ulong( double(ulong{write}) / double(dt.count()) )};
+			_memTraffic.readBw		= Bytes{ulong( double(ulong{read}) / double(dt.count()) )};
 		}
 	}
 
@@ -207,6 +210,32 @@ namespace AE::Profiler
 
 /*
 =================================================
+	ReadResultsTask
+=================================================
+*/
+	class GraphicsProfiler::ReadResultsTask final : public Threading::IAsyncTask
+	{
+	private:
+		RC<GraphicsProfiler>	_self;
+
+	public:
+		ReadResultsTask (GraphicsProfiler &self) __NE___ : IAsyncTask{ETaskQueue::PerFrame}, _self{&self} {}
+
+		void  Run () __Th_OV
+		{
+			if ( _self->_pvrProfiler and _self->_pvrProfiler->IsInitialized() )
+				_self->_ReadResultsPVR();
+			else
+				_self->_ReadResults();
+
+			_self = null;
+		}
+
+		StringView	DbgName () C_NE_OV { return "GraphicsProfiler::ReadResults"; }
+	};
+
+/*
+=================================================
 	NextFrame
 =================================================
 */
@@ -221,15 +250,7 @@ namespace AE::Profiler
 			_writeIndex	= idx[1];
 			_readIndex	= idx[0];
 		}{
-			auto	task = MakeRCNe< Threading::AsyncTaskFn >( [this]()
-										{
-											if ( _pvrProfiler and _pvrProfiler->IsInitialized() )
-												_ReadResultsPVR();
-											else
-												_ReadResults();
-										},
-										"GraphicsProfiler::ReadResults",
-										ETaskQueue::PerFrame );
+			auto	task = MakeRC<ReadResultsTask>( *this );
 			if ( Scheduler().Run( task ))
 				rts.AddNextFrameDeps( task );
 		}{

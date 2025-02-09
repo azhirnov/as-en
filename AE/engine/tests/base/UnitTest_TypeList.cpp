@@ -37,10 +37,10 @@ extern void UnitTest_TypeList ()
 	}
 	{
 		using TL = TypeList< int, float, bool, double >;
-		StaticAssert( IsSameTypes< TL::Get<0>, int > );
-		StaticAssert( IsSameTypes< TL::Get<1>, float > );
-		StaticAssert( IsSameTypes< TL::Get<2>, bool > );
-		StaticAssert( IsSameTypes< TL::Get<3>, double > );
+		StaticAssert( IsSame< TL::Get<0>, int > );
+		StaticAssert( IsSame< TL::Get<1>, float > );
+		StaticAssert( IsSame< TL::Get<2>, bool > );
+		StaticAssert( IsSame< TL::Get<3>, double > );
 		StaticAssert( TL::Index<int> == 0 );
 		StaticAssert( TL::Index<float> == 1 );
 		StaticAssert( TL::Index<bool> == 2 );
@@ -65,37 +65,50 @@ extern void UnitTest_TypeList ()
 		TEST( v.sizeof_sum == (sizeof(int) + sizeof(float) + sizeof(bool) + sizeof(double)) );
 	}
 	{
+		using TL = TypeList< int, float, bool, double >;
+		using TL2 = TL::Reverse::type;
+		StaticAssert( TL2::Count == 4 );
+		StaticAssert( IsSame< TL2::Get<0>, double >);
+		StaticAssert( IsSame< TL2::Get<1>, bool >);
+		StaticAssert( IsSame< TL2::Get<2>, float >);
+		StaticAssert( IsSame< TL2::Get<3>, int >);
+		StaticAssert(( IsSame< TL2, TypeList< double, bool, float, int > >));
+	}
+	{
 		using TL = TypeList<>;
 		StaticAssert( TL::Count == 0 );
 
 		using TL2 = TL::PushBack<int>;
 		StaticAssert( TL2::Count == 1 );
-		StaticAssert( IsSameTypes< TL2::Get<0>, int >);
-		StaticAssert( IsSameTypes< TL2, TypeList<int> >);
+		StaticAssert( IsSame< TL2::Get<0>, int >);
+		StaticAssert( IsSame< TL2, TypeList<int> >);
 
 		using TL3 = TL2::PushBack<float>;
 		StaticAssert( TL3::Count == 2 );
-		StaticAssert( IsSameTypes< TL3::Get<0>, int >);
-		StaticAssert( IsSameTypes< TL3::Get<1>, float >);
-		StaticAssert(( IsSameTypes< TL3, TypeList<int, float> >));
+		StaticAssert( IsSame< TL3::Get<0>, int >);
+		StaticAssert( IsSame< TL3::Get<1>, float >);
+		StaticAssert(( IsSame< TL3, TypeList<int, float> >));
 
 		using TL4 = TL3::PushFront<bool>;
 		StaticAssert( TL4::Count == 3 );
-		StaticAssert( IsSameTypes< TL4::Get<0>, bool >);
-		StaticAssert( IsSameTypes< TL4::Get<1>, int >);
-		StaticAssert( IsSameTypes< TL4::Get<2>, float >);
-		StaticAssert(( IsSameTypes< TL4, TypeList<bool, int, float> >));
+		StaticAssert( IsSame< TL4::Get<0>, bool >);
+		StaticAssert( IsSame< TL4::Get<1>, int >);
+		StaticAssert( IsSame< TL4::Get<2>, float >);
+		StaticAssert(( IsSame< TL4, TypeList<bool, int, float> >));
 
 		using TL5 = TL4::PopBack::type;
 		StaticAssert( TL5::Count == 2 );
-		StaticAssert( IsSameTypes< TL5::Get<0>, bool >);
-		StaticAssert( IsSameTypes< TL5::Get<1>, int >);
-		StaticAssert(( IsSameTypes< TL5, TypeList<bool, int> >));
+		StaticAssert( IsSame< TL5::Get<0>, bool >);
+		StaticAssert( IsSame< TL5::Get<1>, int >);
+		StaticAssert(( IsSame< TL5, TypeList<bool, int> >));
 
 		using TL6 = TL5::PopFront::type;
 		StaticAssert( TL6::Count == 1 );
-		StaticAssert( IsSameTypes< TL6::Get<0>, int >);
-		StaticAssert(( IsSameTypes< TL6, TypeList<int> >));
+		StaticAssert( IsSame< TL6::Get<0>, int >);
+		StaticAssert(( IsSame< TL6, TypeList<int> >));
+
+		using TL7 = TL6::PopFront::type;
+		StaticAssert( TL7::Count == 0 );
 	}
 	{
 		using TL = TypeList< int, float, bool, double >;
@@ -106,13 +119,13 @@ extern void UnitTest_TypeList ()
 		constexpr bool		val2	= TL::ForEach_And< GreaterThen4 >();
 		StaticAssert( not val2 );
 
-		constexpr usize	val3	= TL::ForEach_Add< TypeSize >();
+		constexpr usize		val3	= TL::ForEach_Add< TypeSize >();
 		StaticAssert( val3 == 4+4+1+8 );
 
-		constexpr usize	val4	= TL::ForEach_Max< TypeSize >();
+		constexpr usize		val4	= TL::ForEach_Max< TypeSize >();
 		StaticAssert( val4 == 8 );
 
-		constexpr usize	val5	= TL::ForEach_Min< TypeSize >();
+		constexpr usize		val5	= TL::ForEach_Min< TypeSize >();
 		StaticAssert( val5 == 1 );
 	}
 	{
@@ -120,6 +133,121 @@ extern void UnitTest_TypeList ()
 
 		StaticAssert( TL::FirstSpecializationOf< std::pair > == 2 );
 		StaticAssert( TL::FirstSpecializationOf< Tuple > == 3 );
+	}
+
+	// EraseBack
+	{
+		using TL = TypeList< int, float, ulong, char >;
+		using TL2 = TL::EraseBack< 0 >;
+		StaticAssert( TL2::Count == 4 );
+	}{
+		using TL = TypeList< int, float, ulong, char >;
+		using TL2 = TL::EraseBack< 1 >;
+		StaticAssert( TL2::Count == 3 );
+		StaticAssert( IsSame< TL2::Get<0>, int >);
+		StaticAssert( IsSame< TL2::Get<1>, float >);
+		StaticAssert( IsSame< TL2::Get<2>, ulong >);
+	}{
+		using TL = TypeList< int, float, ulong, char >;
+		using TL2 = TL::EraseBack< 2 >;
+		StaticAssert( TL2::Count == 2 );
+		StaticAssert( IsSame< TL2::Get<0>, int >);
+		StaticAssert( IsSame< TL2::Get<1>, float >);
+	}{
+		using TL = TypeList< int, float, ulong, char >;
+		using TL2 = TL::EraseBack< 3 >;
+		StaticAssert( TL2::Count == 1 );
+		StaticAssert( IsSame< TL2::Get<0>, int >);
+	}
+	#if 0
+	{
+		using TL = TypeList< int, float, ulong, char >;
+		using TL2 = TL::EraseBack< 4 >;		// error
+		StaticAssert( TL2::Count == 0 );
+	}
+	#endif
+
+	// EraseFront
+	{
+		using TL = TypeList< ulong, char, int, float >;
+		using TL2 = TL::EraseFront< 0 >;
+		StaticAssert( TL2::Count == 4 );
+		StaticAssert( IsSame< TL2::Get<0>, ulong >);
+		StaticAssert( IsSame< TL2::Get<1>, char >);
+		StaticAssert( IsSame< TL2::Get<2>, int >);
+		StaticAssert( IsSame< TL2::Get<3>, float >);
+	}{
+		using TL = TypeList< ulong, char, int, float >;
+		using TL2 = TL::EraseFront< 1 >;
+		StaticAssert( TL2::Count == 3 );
+		StaticAssert( IsSame< TL2::Get<0>, char >);
+		StaticAssert( IsSame< TL2::Get<1>, int >);
+		StaticAssert( IsSame< TL2::Get<2>, float >);
+	}{
+		using TL = TypeList< ulong, char, int, float >;
+		using TL2 = TL::EraseFront< 2 >;
+		StaticAssert( TL2::Count == 2 );
+		StaticAssert( IsSame< TL2::Get<0>, int >);
+		StaticAssert( IsSame< TL2::Get<1>, float >);
+	}{
+		using TL = TypeList< ulong, char, int, float >;
+		using TL2 = TL::EraseFront< 3 >;
+		StaticAssert( TL2::Count == 1 );
+		StaticAssert( IsSame< TL2::Get<0>, float >);
+	}
+	#if 0
+	{
+		using TL = TypeList< ulong, char, int, float >;
+		using TL2 = TL::EraseFront< 4 >;	// error
+		StaticAssert( TL2::Count == 0 );
+	}
+	#endif
+
+	// Erase
+	{
+		using TL = TypeList< ulong, char, bool, int, float >;
+		using TL2 = TL::Erase< 0 >;
+		StaticAssert( TL2::Count == 4 );
+		StaticAssert(( IsSame< TL2, TypeList< char, bool, int, float > >));
+	}{
+		using TL = TypeList< ulong, char, bool, int, float >;
+		using TL2 = TL::Erase< 1 >;
+		StaticAssert( TL2::Count == 4 );
+		StaticAssert(( IsSame< TL2, TypeList< ulong, bool, int, float > >));
+	}{
+		using TL = TypeList< ulong, char, bool, int, float >;
+		using TL2 = TL::Erase< 2 >;
+		StaticAssert( TL2::Count == 4 );
+		StaticAssert(( IsSame< TL2, TypeList< ulong, char, int, float > >));
+	}{
+		using TL = TypeList< ulong, char, bool, int, float >;
+		using TL2 = TL::Erase< 3 >;
+		StaticAssert( TL2::Count == 4 );
+		StaticAssert(( IsSame< TL2, TypeList< ulong, char, bool, float > >));
+	}{
+		using TL = TypeList< ulong, char, bool, int, float >;
+		using TL2 = TL::Erase< 4 >;
+		StaticAssert( TL2::Count == 4 );
+		StaticAssert(( IsSame< TL2, TypeList< ulong, char, bool, int > >));
+	}
+	#if 0
+	{
+		using TL = TypeList< ulong, char, bool, int, float >;
+		using TL2 = TL::Erase< 5 >;		// error
+	}
+	#endif
+
+	// EraseType
+	{
+		using TL = TypeList< ulong, char, bool, int, float >;
+		using TL2 = TL::EraseType< bool >;
+		StaticAssert( TL2::Count == 4 );
+		StaticAssert(( IsSame< TL2, TypeList< ulong, char, int, float > >));
+	}{
+		using TL = TypeList< bool, ulong, char, bool, int, float, bool >;
+		using TL2 = TL::EraseType< bool >;
+		StaticAssert( TL2::Count == 4 );
+		StaticAssert(( IsSame< TL2, TypeList< ulong, char, int, float > >));
 	}
 
 	TEST_PASSED();

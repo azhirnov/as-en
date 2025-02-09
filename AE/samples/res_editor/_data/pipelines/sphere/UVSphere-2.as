@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -49,7 +49,7 @@
 			spec.SetRenderState( rs );
 		}
 	}
-	
+
 	void ASmain ()
 	{
 		{
@@ -97,7 +97,7 @@
 	layout (points, invocations = 6) in;
 	layout (triangle_strip, max_vertices = 4) out;
 
-	
+
 	float2  ProceduralQuadUV (uint idx)		{ return float2( (idx>>1)&1, idx&1 ); }
 
 	float3  ProjectToSphere (const float2 snormCoord, ECubeFace face)
@@ -149,7 +149,7 @@
 		const float3	dir		= gl_in[0].gl_Position.xyz;
 		const float		radius	= iRadius;	//0.04; //gl_in[0].gl_Position.w;
 		const ECubeFace	face	= gl.InvocationID;
-		
+
 	#if 1
 		float3	tangent, bitangent;
 		Ray_GetPerpendicular( dir, OUT tangent, OUT bitangent );
@@ -170,7 +170,7 @@
 		const float	min_z	= iMinZ;
 		if ( All4( proj_2d[0].z < min_z, proj_2d[1].z < min_z, proj_2d[2].z < min_z, proj_2d[3].z < min_z ))
 			return;
-		
+
 		for (uint i = 0; i < 4; ++i)
 		{
 			gl.Layer		= face;
@@ -191,7 +191,7 @@
 #ifdef SH_FRAG
 	#include "CubeMap.glsl"
 	#include "CodeTemplates.glsl"
-	
+
 	float3  ProjectToSphere (const float2 snormCoord, ECubeFace face)
 	{
 		switch ( iProj )
@@ -215,14 +215,14 @@
 		{
 			case 0 :
 				out_Color = In.color;	break;
-				
+
 			case 1 :
 			//	out_Color = In.color * Saturate( Length( ToSNorm( In.uv )));	break;
 				out_Color = In.color * Saturate( Distance( In.center, pos ));	break;
-				
+
 			case 2 :
 				out_Color = float4(In.uv, 0.0, 1.0);	break;
-				
+
 			case 3 :
 				out_Color = float4(FSBarycentricWireframe( 1.0, 1.0 ).x);	break;
 		}

@@ -11,4 +11,4 @@
 
 ### How to use
 
-See [VulkanLoader](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Vulkan/VulkanLoader.h).
+See [VulkanLoader](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics_rhi/Vulkan/VulkanLoader.h).

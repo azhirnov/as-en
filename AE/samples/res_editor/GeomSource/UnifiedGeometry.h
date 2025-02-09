@@ -48,6 +48,14 @@ namespace AE::ResEditor
 		};
 
 
+		struct VertexBuffer
+		{
+			RC<Buffer>		buffer;
+			Bytes			bufferOffset;
+		};
+		using VertexBuffers_t = FixedArray< VertexBuffer, 8 >;
+
+
 		//-------------------------------------------------------
 		struct DrawCmd2 : Graphics::DrawCmd
 		{
@@ -125,6 +133,7 @@ namespace AE::ResEditor
 	// variables
 	private:
 		DrawCommands_t		_drawCommands;
+		VertexBuffers_t		_vertexBuffers;
 		ResourceArray		_resources;
 
 

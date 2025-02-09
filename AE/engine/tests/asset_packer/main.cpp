@@ -12,7 +12,10 @@ extern void Test_PipelinePack ();
 extern void Test_InputActions ();
 
 extern void Test_ImageAtlasPack ();
+extern void Test_RasterFontPack ();
 extern void Test_ImageCompression ();
+
+extern void Test_UI ();
 
 
 int main (const int argc, char* argv[])
@@ -35,6 +38,12 @@ int main (const int argc, char* argv[])
 	FileSystem::SetCurrentPath( curr );
 
 	Test_ImageAtlasPack();
+	FileSystem::SetCurrentPath( curr );
+
+	Test_RasterFontPack();
+	FileSystem::SetCurrentPath( curr );
+
+	Test_UI();
 	FileSystem::SetCurrentPath( curr );
 
 	Test_ImageCompression();

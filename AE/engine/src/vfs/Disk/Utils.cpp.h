@@ -19,7 +19,7 @@ namespace
 	template <typename T, typename Alloc>
 	ND_ bool  Convert (OUT StringView &result, BasicStringView<T> path, Alloc &allocator)
 	{
-		if constexpr( IsSameTypes< T, CharAnsi > or IsSameTypes< T, CharUtf8 >)
+		if constexpr( IsSame< T, CharAnsi > or IsSame< T, CharUtf8 >)
 		{
 			const usize	count = Utf8CharCount( BasicStringView<CharUtf8>{ Cast<CharUtf8>(path.data()), path.size() });
 			CHECK_ERR( count <= FileName::MaxStringLength() );
@@ -37,7 +37,7 @@ namespace
 			return res;
 		}
 		else
-		if constexpr( IsSameTypes< T, wchar_t > or IsSameTypes< T, CharUtf32 >)
+		if constexpr( IsSame< T, wchar_t > or IsSame< T, CharUtf32 >)
 		{
 			CHECK_ERR( path.length() <= FileName::MaxStringLength() );
 
@@ -69,7 +69,7 @@ namespace
 	{
 		result.clear();
 
-		if constexpr( IsSameTypes< T, CharAnsi > or IsSameTypes< T, CharUtf8 >)
+		if constexpr( IsSame< T, CharAnsi > or IsSame< T, CharUtf8 >)
 		{
 			const usize	count = Utf8CharCount( BasicStringView<CharUtf8>{ Cast<CharUtf8>(path.data()), path.size() });
 			CHECK_ERR( count <= FileName::MaxStringLength() );
@@ -84,7 +84,7 @@ namespace
 			return res;
 		}
 		else
-		if constexpr( IsSameTypes< T, wchar_t > or IsSameTypes< T, CharUtf32 >)
+		if constexpr( IsSame< T, wchar_t > or IsSame< T, CharUtf32 >)
 		{
 			CHECK_ERR( path.length() <= FileName::MaxStringLength() );
 

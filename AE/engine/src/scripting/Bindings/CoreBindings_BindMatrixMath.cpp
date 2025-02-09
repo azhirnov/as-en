@@ -190,8 +190,8 @@ namespace
 		static Mat_t	Frustum (const Mat_t&, const Rect_t &viewport, const Vec2_t &range)						{ return Mat_t::Frustum( viewport, range ); }
 		static Mat_t	InfiniteFrustum (const Mat_t&, const Rect_t &viewport, Scalar_t zNear)					{ return Mat_t::InfiniteFrustum( viewport, zNear ); }
 		static Mat_t	Translate (const Mat_t& m, const Vec3_t &translation)									{ return m.Translate( translation ); }
-		static Mat_t	Scale1 (const Mat_t&, const Vec3_t &scale)												{ return Mat_t::Scaled( scale ); }
-		static Mat_t	Scale2 (const Mat_t&, const Scalar_t scale)												{ return Mat_t::Scaled( scale ); }
+		static Mat_t	Scale1 (const Mat_t&, const Vec3_t &scale)												{ return Mat_t::Scale( scale ); }
+		static Mat_t	Scale2 (const Mat_t&, const Scalar_t scale)												{ return Mat_t::Scale( scale ); }
 
 		static Mat_t	LookAt (const Mat_t &, const Vec3_t &eye, const Vec3_t &center, const Vec3_t &up)		{ return Mat_t::LookAt( eye, center, up ); }
 
@@ -235,17 +235,17 @@ namespace
 
 			.Binary(		EBinaryOperator::Div, &F::Div_m_s );
 
-		if constexpr( IsSameTypes< T, packed_float3x3 > or
-					  IsSameTypes< T, packed_float3x4 > or
-					  IsSameTypes< T, packed_float4x3 > or
-					  IsSameTypes< T, packed_float4x4 >)
+		if constexpr( IsSame< T, packed_float3x3 > or
+					  IsSame< T, packed_float3x4 > or
+					  IsSame< T, packed_float4x3 > or
+					  IsSame< T, packed_float4x4 >)
 		{
 			binder.AddMethodFromGlobal( &F::RotateX,				"RotateX",			{"angle"} );
 			binder.AddMethodFromGlobal( &F::RotateY,				"RotateY",			{"angle"} );
 			binder.AddMethodFromGlobal( &F::RotateZ,				"RotateZ",			{"angle"} );
 		}
 
-		if constexpr( IsSameTypes< T, packed_float4x4 >)
+		if constexpr( IsSame< T, packed_float4x4 >)
 		{
 			binder.AddMethodFromGlobal( &F::Rotate,					"Rotate",			{"angle", "axis"} );
 			binder.AddMethodFromGlobal( &F::Ortho,					"Ortho",			{"viewport", "range"} );
@@ -255,8 +255,8 @@ namespace
 			binder.AddMethodFromGlobal( &F::Frustum,				"Frustum",			{"viewport", "range"} );
 			binder.AddMethodFromGlobal( &F::InfiniteFrustum,		"InfiniteFrustum",	{"viewport", "zNear"} );
 			binder.AddMethodFromGlobal( &F::Translate,				"Translate",		{"translation"} );
-			binder.AddMethodFromGlobal( &F::Scale1,					"Scaled",			{"scale"} );
-			binder.AddMethodFromGlobal( &F::Scale2,					"Scaled",			{"scale"} );
+			binder.AddMethodFromGlobal( &F::Scale1,					"Scale",			{"scale"} );
+			binder.AddMethodFromGlobal( &F::Scale2,					"Scale",			{"scale"} );
 			binder.AddMethodFromGlobal( &F::Project,				"Project",			{"pos", "viewport"} );
 			binder.AddMethodFromGlobal( &F::UnProject,				"UnProject",		{"pos", "viewport"} );
 			binder.AddMethodFromGlobal( &F::LookAt,					"LookAt",			{"eye", "center", "up"} );

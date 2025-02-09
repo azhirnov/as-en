@@ -44,12 +44,22 @@ namespace AE::UI
 	_Initialize
 =================================================
 */
-	bool  SystemImpl::_Initialize (RenderTechPipelinesPtr rtech, Bytes ubSize, RC<RStream> stream) __NE___
+	bool  SystemImpl::_Initialize (const StyleCollectionCI &ci) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
-		CHECK_ERR( _styleCollection.Initialize( RVRef(rtech), ubSize, RVRef(stream) ));
+		CHECK_ERR( _styleCollection.Initialize( ci ));
 
 		return true;
+	}
+
+	AsyncTask  SystemImpl::_Initialize (StyleCollectionAsyncCI &ci) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+
+		AsyncTask	task = _styleCollection.InitializeAsync( ci );
+		CHECK_ERR( task );
+
+		return task;
 	}
 
 /*
@@ -78,7 +88,7 @@ namespace AE::UI
 
 	SystemImpl&  SystemImpl::_Instance () __NE___
 	{
-		return s_SystemImpl.AsRef();
+		return s_SystemImpl.Ref();
 	}
 
 /*
@@ -86,13 +96,22 @@ namespace AE::UI
 	InstanceCtor
 =================================================
 */
-	bool  SystemImpl::InstanceCtor::Create (RenderTechPipelinesPtr rtech, Bytes ubSize, RC<RStream> stream) __NE___
+	bool  SystemImpl::InstanceCtor::Create (const StyleCollectionCI &ci) __NE___
 	{
 		s_SystemImpl.Create();
 
 		MemoryBarrier( EMemoryOrder::Release );
 
-		return s_SystemImpl->_Initialize( RVRef(rtech), ubSize, RVRef(stream) );
+		return s_SystemImpl->_Initialize( ci );
+	}
+
+	AsyncTask  SystemImpl::InstanceCtor::Create (StyleCollectionAsyncCI &ci) __NE___
+	{
+		s_SystemImpl.Create();
+
+		MemoryBarrier( EMemoryOrder::Release );
+
+		return s_SystemImpl->_Initialize( ci );
 	}
 
 	void  SystemImpl::InstanceCtor::Destroy () __NE___

@@ -31,7 +31,7 @@ namespace AE::Video
 			FrameRate			framerate		{30, 1};
 			uint2				srcDim			= {1920, 1080};
 			uint2				dstDim			= {0, 0};					// can be used for scaling
-			Bitrate				bitrate			= BitrateMb{50};
+			Bitrate				bitrate			= BitrateMib{50};
 			EHwAcceleration		hwAccelerated	= Default;					// use hardware acceleration on GPU or CPU
 			EGraphicsDeviceID	targetGPU		= Default;					// hint for hardware acceleration on GPU
 			ECPUVendor			targetCPU		= Default;					// hint for hardware acceleration on CPU (intrinsics)

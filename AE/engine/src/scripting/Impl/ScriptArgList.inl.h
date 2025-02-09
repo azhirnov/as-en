@@ -15,22 +15,22 @@ namespace AE::Scripting
 
 		ASSERT( IsArg<T>( idx ));
 
-		if constexpr( IsSameTypes< T, ubyte > or IsSameTypes< T, sbyte >)
+		if constexpr( IsSame< T, ubyte > or IsSame< T, sbyte >)
 			return T(_gen->GetArgByte( idx ));
 		else
-		if constexpr( IsSameTypes< T, ushort > or IsSameTypes< T, sshort >)
+		if constexpr( IsSame< T, ushort > or IsSame< T, sshort >)
 			return T(_gen->GetArgWord( idx ));
 		else
-		if constexpr( IsSameTypes< T, uint > or IsSameTypes< T, sint > or IsEnum<T> )
+		if constexpr( IsSame< T, uint > or IsSame< T, sint > or IsEnum<T> )
 			return T(_gen->GetArgDWord( idx ));
 		else
-		if constexpr( IsSameTypes< T, ulong > or IsSameTypes< T, slong >)
+		if constexpr( IsSame< T, ulong > or IsSame< T, slong >)
 			return T(_gen->GetArgQWord( idx ));
 		else
-		if constexpr( IsSameTypes< T, float >)
+		if constexpr( IsSame< T, float >)
 			return T(_gen->GetArgFloat( idx ));
 		else
-		if constexpr( IsSameTypes< T, double >)
+		if constexpr( IsSame< T, double >)
 			return T(_gen->GetArgDouble( idx ));
 		else
 		{
@@ -43,7 +43,7 @@ namespace AE::Scripting
 
 			using CT2 = Conditional< IsAnyConst<T>, const T2, T2 >;
 
-			if constexpr( IsSameTypes< T2, String >)
+			if constexpr( IsSame< T2, String >)
 				return *Cast<CT2>(_gen->GetArgAddress( idx ));
 			else
 			if constexpr( is_obj and not is_rc )
@@ -121,22 +121,22 @@ namespace AE::Scripting
 
 		ASSERT( IsReturn<T>() );
 
-		if constexpr( IsSameTypes< T, bool > or IsSameTypes< T, ubyte > or IsSameTypes< T, sbyte > or IsSameTypes< T, char >)
+		if constexpr( IsSame< T, bool > or IsSame< T, ubyte > or IsSame< T, sbyte > or IsSame< T, char >)
 			return _gen->SetReturnByte( asBYTE(value) );
 		else
-		if constexpr( IsSameTypes< T, ushort > or IsSameTypes< T, sshort >)
+		if constexpr( IsSame< T, ushort > or IsSame< T, sshort >)
 			return _gen->SetReturnWord( asWORD(value) );
 		else
-		if constexpr( IsSameTypes< T, uint > or IsSameTypes< T, sint > or IsEnum<T> )
+		if constexpr( IsSame< T, uint > or IsSame< T, sint > or IsEnum<T> )
 			return _gen->SetReturnDWord( asDWORD(value) );
 		else
-		if constexpr( IsSameTypes< T, ulong > or IsSameTypes< T, slong >)
+		if constexpr( IsSame< T, ulong > or IsSame< T, slong >)
 			return _gen->SetReturnQWord( asQWORD(value) );
 		else
-		if constexpr( IsSameTypes< T, float >)
+		if constexpr( IsSame< T, float >)
 			return _gen->SetReturnFloat( value );
 		else
-		if constexpr( IsSameTypes< T, double >)
+		if constexpr( IsSame< T, double >)
 			return _gen->SetReturnDouble( value );
 		else
 		if constexpr( IsPointer<T> )

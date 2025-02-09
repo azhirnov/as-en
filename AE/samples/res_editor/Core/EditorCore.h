@@ -48,8 +48,8 @@ namespace AE::ResEditor
 		Path			exportFolder;
 
 		// graphics settings
-		uint			screenWidth			= 1600;
-		uint			screenHeight		= 900;
+		uint			screenWidth			= 0;
+		uint			screenHeight		= 0;
 		bool			setStableGPUClock	= false;
 		bool			enableRenderDoc		= false;
 
@@ -158,7 +158,7 @@ namespace AE::ResEditor
 		{
 		// types
 		private:
-			class _MsgProducer final : public Networking::SyncCSMessageProducer< InPlaceLinearAllocator< usize{4_Kb} >>
+			class _MsgProducer final : public Networking::SyncCSMessageProducer< InPlaceLinearAllocator< usize{4_KiB} >>
 			{
 			public:
 				EnumSet<EChannel>  GetChannels ()	C_NE_OV	{ return {EChannel::Reliable}; }

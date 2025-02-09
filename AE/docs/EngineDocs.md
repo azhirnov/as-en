@@ -4,7 +4,7 @@
 * [Engine Concept](engine/Concept.md)
 * Graphics: [DeviceProperties](engine/DeviceProperties.md)
 * Graphics: [FeatureSet](engine/FeatureSet.md)
-* Low-level Graphics features: [Vulkan](engine/VulkanFeatures.md), [Metal](engine/MetalFeatures.md), [RemoteGraphics](engine/RemoteGraphicsFeatures.md)
+* Low-level Graphics features: [Vulkan](engine/VulkanRHI.md), [Metal](engine/MetalRHI.md), [RemoteGraphics](engine/RemoteRHI.md)
 * [Graphics Resources](engine/GraphicsResources.md)
 * [Supported platforms](engine/Platforms.md)
 * [Profiling](engine/Profiling.md)

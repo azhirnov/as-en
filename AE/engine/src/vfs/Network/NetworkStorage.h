@@ -25,10 +25,12 @@ namespace AE::VFS
 	  // IVirtualFileStorage //
 		bool  Open (OUT RC<RStream> &stream, FileName::Ref name)					C_NE_OV;
 		bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)					C_NE_OV;
+		bool  Open (OUT RC<AsyncRStream> &stream, FileName::Ref name)				C_NE_OV;
 		bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)				C_NE_OV;
 
 		bool  Open (OUT RC<WStream> &stream, FileName::Ref name)					C_NE_OV;
 		bool  Open (OUT RC<WDataSource> &ds, FileName::Ref name)					C_NE_OV;
+		bool  Open (OUT RC<AsyncWStream> &stream, FileName::Ref name)				C_NE_OV;
 		bool  Open (OUT RC<AsyncWDataSource> &ds, FileName::Ref name)				C_NE_OV;
 
 		bool  CreateFile (OUT FileName &name, const Path &path)						C_NE_OV;
@@ -43,6 +45,7 @@ namespace AE::VFS
 
 		bool  _OpenByIter (OUT RC<RStream>&, FileName::Ref, const void*)			C_NE_OV	{ DBG_WARNING("not supported");  return false; }
 		bool  _OpenByIter (OUT RC<RDataSource>&, FileName::Ref, const void*)		C_NE_OV	{ DBG_WARNING("not supported");  return false; }
+		bool  _OpenByIter (OUT RC<AsyncRStream>&, FileName::Ref, const void*)		C_NE_OV	{ DBG_WARNING("not supported");  return false; }
 		bool  _OpenByIter (OUT RC<AsyncRDataSource>&, FileName::Ref, const void*)	C_NE_OV	{ DBG_WARNING("not supported");  return false; }
 
 		using IVirtualFileStorage::_OpenByIter;

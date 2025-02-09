@@ -134,7 +134,6 @@ namespace AE::ResEditor
 
 		CHECK_ERR( batch and ui_batch );
 
-		AsyncTask				surf_acquire = rg.BeginOnSurface( ui_batch );
 		Array<AsyncTask>		out_deps;
 		PassArr_t				update_passes;
 		PassArr_t				sync_passes;
@@ -164,11 +163,13 @@ namespace AE::ResEditor
 			float2	surf_size	{1.f};
 			float	pix_to_mm	= 1.f;
 
-			if ( auto  surf = rg.GetSurface() ) {
+			if ( auto  surf = rg.GetSurface() )
+			{
 				if ( auto  infos = surf->GetTargetInfo();  not infos.empty() ) {
 					surf_size	= float2{infos[0].dimension};
 					pix_to_mm	= infos[0].pixToMm;
 				}
+				update_pd.swapchainColorSpace = surf->GetSurfaceInfo().colorSpace;
 			}
 
 			auto	input = _input.ReadLock();
@@ -237,7 +238,11 @@ namespace AE::ResEditor
 			if ( AnyBits( pass->GetType(), EPass::Present ))
 				present.push_back( pass );
 		}
-		if ( not present.empty() and surf_acquire )
+
+		rg.EnablePresent( not present.empty() );
+
+		if ( AsyncTask surf_acquire = rg.BeginOnSurface( ui_batch );
+			not present.empty() and surf_acquire )
 		{
 			Array<AsyncTask>	surf_deps {deps_ref};
 			surf_deps.push_back( surf_acquire );

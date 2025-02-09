@@ -20,7 +20,7 @@ namespace AE::App
 	using namespace AE::Base;
 
 	using Threading::Atomic;
-	using Threading::AtomicByte;
+	using Threading::AtomicBytes;
 	using Threading::AsyncTask;
 	using Threading::Promise;
 

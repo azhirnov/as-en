@@ -13,7 +13,7 @@ void ASmain ()
 		st.Set( "float4x4  mvp;" );
 
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "camera3d.ds0" );
-		ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", EImageType::FImageCube );
+		ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", EImageType::Float_Cube );
 		ds.ImtblSampler( EShaderStages::Fragment, "un_ColorTexture_sampler", "LinearRepeat"  );
 		ds.UniformBufferDynamic( EShaderStages::Vertex, "drawUB", "camera3d.ub" );
 	}{

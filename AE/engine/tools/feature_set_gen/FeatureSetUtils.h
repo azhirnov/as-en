@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "graphics/Public/FeatureSet.h"
-#include "graphics/Public/DeviceProperties.h"
+#include "graphics_rhi/Public/FeatureSet.h"
+#include "graphics_rhi/Public/DeviceProperties.h"
 
 namespace AE::Graphics
 {
@@ -11,7 +11,7 @@ namespace AE::Graphics
 	{
 		struct ExtFields
 		{
-		#define AE_FEATURE_SET_FIELDS2( _visitor_ ) \
+		#define AE_FEATURE_SET_FIELDS_EXT( _visitor_ ) \
 			/* ResourceAlignment */\
 			_visitor_( Bytes,	minUniformBufferOffsetAlignment				)\
 			_visitor_( Bytes,	minStorageBufferOffsetAlignment				)\
@@ -30,7 +30,7 @@ namespace AE::Graphics
 			_visitor_( uint,	maxRayRecursionDepth						)\
 
 			#define AE_FEATURE_SET_VISIT( _type_, _name_ )		_type_	_name_;
-			AE_FEATURE_SET_FIELDS2( AE_FEATURE_SET_VISIT )
+			AE_FEATURE_SET_FIELDS_EXT( AE_FEATURE_SET_VISIT )
 			#undef AE_FEATURE_SET_VISIT
 		};
 

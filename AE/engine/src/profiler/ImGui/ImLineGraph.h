@@ -85,8 +85,9 @@ namespace AE::Profiler
 		void  SetCapacity (uint value, uint dim = 1);
 
 		void  SetRange (float min, float max);
-		void  SetLimits (float val1, float val2);
-		void  SetInvLimits (float val1, float val2);
+
+		void  SetAlertLimits (float val1, float val2);
+		void  SetAlertInvLimits (float val1, float val2);
 
 		void  Add (ArrayView<float> values);
 		void  AddOpt (ArrayView<float> values);

@@ -121,13 +121,13 @@ namespace
 
 	static void  ScriptString_Test8 (const ScriptEnginePtr &se)
 	{
-		const CharUtf8	script[] = u8R"#(
+		const auto	script = u8R"#(
 			string ASmain () {
 				string str = "юникод";
 				return str;
 			}
 		)#";
-		const CharUtf8	ref [] = u8"юникод";
+		const U8String	ref {Cast<CharUtf8>( u8"юникод" )};
 
 		U8String	res;
 		TEST( Run< U8String() >( se, Cast<char>(script), "ASmain", OUT res ));

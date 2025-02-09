@@ -50,12 +50,16 @@ namespace
 	using ShadingRateSet_t		= Graphics::FeatureSet::ShadingRateSet_t;
 	using VRSTexelSize			= Graphics::FeatureSet::VRSTexelSize;
 	using EFeature				= Graphics::FeatureSet::EFeature;
+	using KiBytes				= Graphics::FeatureSet::KiBytes;
 
 	template <typename T>	struct FS_ReplaceInType						{ using dst = T;	using src = T;				};
 	template <>				struct FS_ReplaceInType< ubyte >			{ using dst = uint;	using src = ubyte;			};
 	template <>				struct FS_ReplaceInType< ushort >			{ using dst = uint;	using src = ushort;			};
 	template <>				struct FS_ReplaceInType< EShaderStages >	{ using dst = uint;	using src = EShaderStages;	};
 	template <>				struct FS_ReplaceInType< ESubgroupTypes >	{ using dst = uint;	using src = ESubgroupTypes;	};
+	template <>				struct FS_ReplaceInType< POTValue >			{ using dst = uint;	using src = POTValue;		};
+	template <>				struct FS_ReplaceInType< POTBytes >			{ using dst = uint;	using src = POTBytes;		};
+	template <>				struct FS_ReplaceInType< KiBytes >			{ using dst = uint;	using src = KiBytes;		};
 
 	template <typename T>	struct FS_ReplaceOutType					{ using dst = T;	static T	Cast (T src)		{ return src; }};
 	template <>				struct FS_ReplaceOutType< EFeature >		{ using dst = bool;	static dst	Cast (EFeature src)	{ return src == EFeature::RequireTrue; }};
@@ -66,9 +70,9 @@ namespace
 			ptr->fs._name_ = typename FS_ReplaceInType<_type_>::src( val );											\
 		}																											\
 		static typename FS_ReplaceOutType<_type_>::dst  Get_FS_ ## _name_ (ScriptFeatureSet* ptr) {					\
-			 return FS_ReplaceOutType<_type_>::Cast( ptr->fs._name_ );											\
+			 return FS_ReplaceOutType<_type_>::Cast( ptr->fs._name_ );												\
 		}
-	AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
+	AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
 	#undef AE_FEATURE_SET_VISIT
 
 	#define AE_FEATURE_SET_PER_DS( _visitor_ ) \
@@ -81,7 +85,7 @@ namespace
 		_visitor_( uint,	maxAccelStructures	);\
 		_visitor_( uint,	maxTotalResources	);\
 
-	#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )	static void  Set_FS_perDescrSet_ ## _name_ (ScriptFeatureSet* ptr, const _type_ val) { ptr->fs.perDescrSet._name_ = val; }
+	#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )	static void  Set_FS_perPipeline_ ## _name_ (ScriptFeatureSet* ptr, const _type_ val) { ptr->fs.perPipeline._name_ = val; }
 	AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
 	#undef AE_FEATURE_SET_PER_DS_VISIT
 
@@ -292,6 +296,8 @@ namespace
 	ScriptFeatureSet::ScriptFeatureSet (const String &name) __Th___ :
 		_name{name}, _hash{name}
 	{
+		fs.Init( EFeature::Ignore );
+
 		ObjectStorage::Instance()->AddName<FeatureSetName>( name );
 		CHECK_THROW_MSG( ObjectStorage::Instance()->featureSets.emplace( _name, ScriptFeatureSetPtr{this} ).second,
 			"FeatureSet with name '"s << name << "' is already defined" );
@@ -424,29 +430,29 @@ namespace
 			binder.AddMethodFromGlobalObjFirst( &FS_AddShadingRate,					"AddShadingRate",				{} );
 			binder.AddMethodFromGlobalObjFirst( &FS_fragmentShadingRateTexelSize,	"fragmentShadingRateTexelSize",	{} );
 
-			#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )						\
-				if constexpr( (not IsSameTypes< _type_, PerDescriptorSet		>)	and \
-							  (not IsSameTypes< _type_, ShaderVersion			>)	and \
-							  (not IsSameTypes< _type_, SubgroupOperationBits	>)	and \
-							  (not IsSameTypes< _type_, SampleCountBits			>)	and \
-							  (not IsSameTypes< _type_, VendorIDs_t				>)	and \
-							  (not IsSameTypes< _type_, GraphicsDevices_t		>)	and \
-							  (not IsSameTypes< _type_, PixelFormatSet_t		>)	and	\
-							  (not IsSameTypes< _type_, VertexFormatSet_t		>)	and	\
-							  (not IsSameTypes< _type_, SurfaceFormatSet_t		>)	and	\
-							  (not IsSameTypes< _type_, Queues					>)	and	\
-							  (not IsSameTypes< _type_, ShadingRateSet_t		>)	and	\
-							  (not IsSameTypes< _type_, VRSTexelSize			>))		\
+			#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )					\
+				if constexpr( (not IsSame< _type_, PerDescriptorSet			>)	and \
+							  (not IsSame< _type_, ShaderVersion			>)	and \
+							  (not IsSame< _type_, SubgroupOperationBits	>)	and \
+							  (not IsSame< _type_, SampleCountBits			>)	and \
+							  (not IsSame< _type_, VendorIDs_t				>)	and \
+							  (not IsSame< _type_, GraphicsDevices_t		>)	and \
+							  (not IsSame< _type_, PixelFormatSet_t			>)	and	\
+							  (not IsSame< _type_, VertexFormatSet_t		>)	and	\
+							  (not IsSame< _type_, SurfaceFormatSet_t		>)	and	\
+							  (not IsSame< _type_, Queues					>)	and	\
+							  (not IsSame< _type_, ShadingRateSet_t			>)	and	\
+							  (not IsSame< _type_, VRSTexelSize				>))		\
 					binder.AddMethodFromGlobalObjFirst( &Set_FS_ ## _name_, ToMethodName( "", AE_TOSTRING( _name_ )), {} );\
 				\
-				if constexpr( IsSameTypes< _type_, EFeature >)\
+				if constexpr( IsSame< _type_, EFeature >)\
 					binder.AddMethodFromGlobalObjFirst( &Get_FS_ ## _name_, ToMethodName2( "has", AE_TOSTRING( _name_ )), {} );
 
-			AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
+			AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
 			#undef AE_FEATURE_SET_VISIT
 
 			#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ ) \
-				binder.AddMethodFromGlobalObjFirst( &Set_FS_perDescrSet_ ## _name_, ToMethodName( "perDescrSet_", AE_TOSTRING( _name_ )), {} );
+				binder.AddMethodFromGlobalObjFirst( &Set_FS_perPipeline_ ## _name_, ToMethodName( "perPipeline_", AE_TOSTRING( _name_ )), {} );
 			AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
 			#undef AE_FEATURE_SET_PER_DS_VISIT
 
@@ -457,7 +463,7 @@ namespace
 		}
 		se->AddFunction( &ScriptFeatureSet::Find, "FindFeatureSet", {"name"} );
 
-		Unused( &Set_FS_subgroupOperations, &Set_FS_perDescrSet, &Set_FS_perStage,
+		Unused( &Set_FS_subgroupOperations, &Set_FS_perPipeline, &Set_FS_perStage,
 				&Set_FS_storageImageFormats, &Set_FS_storageImageAtomicFormats,
 				&Set_FS_attachmentBlendFormats, &Set_FS_attachmentFormats,
 				&Set_FS_vertexFormats, &Set_FS_uniformTexBufferFormats, &Set_FS_storageTexBufferFormats,

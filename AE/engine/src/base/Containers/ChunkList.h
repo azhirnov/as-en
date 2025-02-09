@@ -43,25 +43,25 @@ namespace _hidden_
 			};
 
 		// methods
-			BaseChunk ()												__NE___ {}
-			~BaseChunk ()												__NE___	{ CopyPolicy_t::Destroy( Data(), count ); }
+			BaseChunk ()										__NE___ {}
+			~BaseChunk ()										__NE___	{ CopyPolicy_t::Destroy( Data(), count ); }
 
-			ND_ T &			operator [] (usize i)						__NE___	{ ASSERT( i < count );  return _data[i]; }
-			ND_ T const&	operator [] (usize i)						C_NE___	{ ASSERT( i < count );  return _data[i]; }
+			ND_ T &			operator [] (usize i)				__NE___	{ ASSERT( i < count );  return _data[i]; }
+			ND_ T const&	operator [] (usize i)				C_NE___	{ ASSERT( i < count );  return _data[i]; }
 
-			ND_ T *			Data ()										__NE___	{ ASSERT( capacity > 0 );  return _data; }
-			ND_ T const*	Data ()										C_NE___	{ ASSERT( capacity > 0 );  return _data; }
+			ND_ T *			Data ()								__NE___	{ ASSERT( capacity > 0 );  return _data; }
+			ND_ T const*	Data ()								C_NE___	{ ASSERT( capacity > 0 );  return _data; }
 
-			ND_ Bytes		ChunkSize ()								C_NE___	{ return CalcChunkSize( capacity ); }
+			ND_ Bytes		ChunkSize ()						C_NE___	{ return CalcChunkSize( capacity ); }
 
-			ND_ bool		IsEmpty ()									C_NE___	{ return count == 0; }
-			ND_ bool		IsFull ()									C_NE___	{ return count >= capacity; }
+			ND_ bool		IsEmpty ()							C_NE___	{ return count == 0; }
+			ND_ bool		IsFull ()							C_NE___	{ return count >= capacity; }
 
-			ND_ explicit operator ArrayView<T> ()						C_NE___	{ return ArrayView<T>{ std::addressof(_data), count }; }
+			ND_ explicit operator ArrayView<T> ()				C_NE___	{ return ArrayView<T>{ std::addressof(_data), count }; }
 
-			ND_ constexpr static usize  CalcCapacity (Bytes size)		__NE___	{ return usize{(size - _HeaderSize) / sizeof(T)}; }
+			NdCx__ static usize  CalcCapacity (Bytes size)		__NE___	{ return usize{(size - _HeaderSize) / sizeof(T)}; }
 
-			ND_ constexpr static Bytes  CalcChunkSize (usize capacity)	__NE___
+			NdCx__ static Bytes  CalcChunkSize (usize capacity)	__NE___
 			{
 				Bytes	size { _HeaderSize + sizeof(T) * capacity };
 				//ASSERT( (size % alignof(BaseChunk)) < sizeof(T) );

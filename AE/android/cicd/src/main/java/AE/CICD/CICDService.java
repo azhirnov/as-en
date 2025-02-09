@@ -151,9 +151,6 @@ public final class CICDService
 	{
 		NotificationManager notification_mngr = (NotificationManager) this.getSystemService( Context.NOTIFICATION_SERVICE );
 
-		if (! notification_mngr.areNotificationsEnabled() )
-			Log.e( TAG, "notifications are disabled" );
-
 		String	channel_id	= "CICD.channel";
 		int		importance	= NotificationManager.IMPORTANCE_DEFAULT;	// IMPORTANCE_LOW
 
@@ -169,9 +166,12 @@ public final class CICDService
 
 		channel.setDescription( "CICD desc" );
 
-		if ( notification_mngr != null )
-			notification_mngr.createNotificationChannel( channel );
-		else
+		if ( notification_mngr != null ) {
+			if (!notification_mngr.areNotificationsEnabled())
+				Log.e(TAG, "notifications are disabled");
+
+			notification_mngr.createNotificationChannel(channel);
+		}else
 			stopSelf();
 
 		return channel_id;

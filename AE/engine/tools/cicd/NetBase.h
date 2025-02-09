@@ -175,7 +175,7 @@ namespace AE::CICD
 	template <typename T, ENABLEIF_IMPL( IsBaseOf< Msg::BaseMsg, T >)>
 	bool  NetBase::_Send (T &msg)
 	{
-		if constexpr( IsBaseOf< Msg::SessionMsg, T > and not IsSameTypes< Msg::Log, T >)
+		if constexpr( IsBaseOf< Msg::SessionMsg, T > and not IsSame< Msg::Log, T >)
 			ASSERT( _sessionId != 0 );
 
 		if constexpr( IsBaseOf< Msg::SessionMsg, T >)

@@ -66,7 +66,7 @@ namespace _hidden_
 	public:
 		explicit Semaphore (uint desired)		__NE___	: WinSemaphore{ desired, LeastMaxValue } {}
 
-		ND_ static constexpr uint  Max ()		__NE___	{ return LeastMaxValue; }
+		NdCx__ static uint  Max ()				__NE___	{ return LeastMaxValue; }
 	};
 
 } // AE::Threading
@@ -107,7 +107,7 @@ namespace _hidden_
 	public:
 		explicit Semaphore (uint desired)		__NE___	: PThreadSemaphore{ desired, LeastMaxValue } {}
 
-		ND_ static constexpr uint  Max ()		__NE___	{ return LeastMaxValue; }
+		NdCx__ static uint  Max ()				__NE___	{ return LeastMaxValue; }
 	};
 
 } // AE::Threading
@@ -135,7 +135,7 @@ namespace AE::Threading
 
 		ND_ bool  TryAcquire ()					__NE___	{ return _sem.try_acquire(); }
 
-		ND_ static constexpr uint  Max ()		__NE___	{ return LeastMaxValue; }
+		NdCx__ static uint  Max ()				__NE___	{ return LeastMaxValue; }
 	};
 
 } // AE::Threading
@@ -176,7 +176,7 @@ namespace _hidden_
 	public:
 		explicit Semaphore (uint desired)		__NE___	: AppleSemaphore{ desired, LeastMaxValue } {}
 
-		ND_ static constexpr uint  Max ()		__NE___	{ return LeastMaxValue; }
+		NdCx__ static uint  Max ()				__NE___	{ return LeastMaxValue; }
 	};
 
 } // AE::Threading
@@ -206,7 +206,7 @@ namespace AE::Threading
 			void  Release (uint update = 1)		__NE___;
 		ND_ bool  TryAcquire ()					__NE___;
 
-		ND_ static constexpr uint  Max ()		__NE___	{ return LeastMaxValue; }
+		NdCx__ static uint  Max ()				__NE___	{ return LeastMaxValue; }
 	};
 
 	template <uint V>

@@ -56,7 +56,8 @@ namespace AE::PipelineCompiler
 		virtual void  AddPipeline (const BasePipelineSpecPtr &ptr)				__Th___;
 
 	protected:
-		void  _SetDSLayout (const String &typeName)								__Th___;
+		void  _SetDSLayout1 (const String &typeName)							__Th___;
+		void  _SetDSLayout2 (const DescriptorSetLayoutPtr &dsl)					__Th___;
 	};
 	using RTBasePassPtr = ScriptRC< RTBasePass >;
 
@@ -87,7 +88,9 @@ namespace AE::PipelineCompiler
 		void  SetRenderState1 (const RenderState &value)				__Th___;
 		void  SetRenderState2 (const String &name)						__Th___;
 		void  SetMutableStates (EMutableRenderState values)				__Th___;
-		void  SetDSLayout (const String &typeName)						__Th___	{ return _SetDSLayout( typeName ); }
+
+		void  SetDSLayout1 (const String &typeName)						__Th___	{ return _SetDSLayout1( typeName ); }
+		void  SetDSLayout2 (const DescriptorSetLayoutPtr &dsl)			__Th___	{ return _SetDSLayout2( dsl ); }
 
 		void  AddPipeline (const BasePipelineSpecPtr &ptr)				__Th_OV;
 
@@ -120,7 +123,8 @@ namespace AE::PipelineCompiler
 		RTComputePass () {}
 		RTComputePass (RenderTechnique* rtech, const String &name, usize passIdx) __Th___ : RTBasePass{ rtech, name, passIdx } {}
 
-		void  SetDSLayout (const String &typeName)				__Th___	{ return _SetDSLayout( typeName ); }
+		void  SetDSLayout1 (const String &typeName)				__Th___	{ return _SetDSLayout1( typeName ); }
+		void  SetDSLayout2 (const DescriptorSetLayoutPtr &dsl)	__Th___	{ return _SetDSLayout2( dsl ); }
 
 		void  AddPipeline (const BasePipelineSpecPtr &ptr)		__Th_OV;
 

@@ -2,9 +2,23 @@ Build instructions.
 
 ## Install dependencies
 
-### Android
+### Android (PC)
 
+When building from PC.<br/>
 Install [Android Studio](https://developer.android.com/studio) with NDK.
+
+### Android (device)
+
+When building from Android device:
+* Install Linux terminal: **termux** ([github](https://github.com/termux/termux-app), [f-droid](https://f-droid.org/en/packages/com.termux/), [play store](https://play.google.com/store/apps/details?id=com.termux))
+* In terminal install: git, clang, cmake.<br/>
+  ```
+  pkg install git
+  pkg install clang
+  pkg install cmake
+  ```
+* Optional: github and f-droid version of **termux** can access to external storage, allow this and clone repository to public path like `/sdcard/Code`.
+* Optional: install code editor.
 
 ### Linux
 
@@ -48,12 +62,12 @@ Currently script is written only for Windows platform, on other platforms you ca
 
 **Alternative**<br/>
 Download prebuild binaries which is used in CI and extract it to the `AE-Bin/external` folder:<br/>
-[Android](https://disk.yandex.ru/d/-rIx5geDmKASew)<br/>
-[Linux x64 GCC-13](https://disk.yandex.ru/d/FnsWQQQ_qcPEnw)<br/>
-[Linux x64 Clang-16](https://disk.yandex.ru/d/KOvWrDUCOBPPhA)<br/>
-[MacOS arm64](https://disk.yandex.ru/d/eP2spVG3SkgDcQ)<br/>
-[Windows x64 MSVC](https://disk.yandex.ru/d/5v8k9z5tAumZ0Q)<br/>
-[Windows x64 Clang](https://disk.yandex.ru/d/-Mb1rwUWr-mlrQ)<br/>
+[Android](https://disk.yandex.ru/d/-vpfH20f-NTFTQ)<br/>
+[Linux x64 GCC-13](https://disk.yandex.ru/d/o4D4sBIFIHK-ig)<br/>
+[Linux x64 Clang-16](https://disk.yandex.ru/d/oFbO_QC9tOOALA)<br/>
+[MacOS arm64](https://disk.yandex.ru/d/xzL6JjXsFp8JMA)<br/>
+[Windows x64 MSVC](https://disk.yandex.ru/d/WIKSWPibLm7jDw)<br/>
+[Windows x64 Clang](https://disk.yandex.ru/d/7RaP3Fp9pAkY-w)<br/>
 Then [Build engine and samples](#Build-engine-and-samples)
 
 
@@ -63,10 +77,14 @@ Open folder `AE/engine/external` and run scripts for required platforms and comp
 
 Libraries and headers will be installed to the `AE/../AE-Bin/external` folder.
 
-### Android
+### Android (PC)
 
 `update-all-win.bat` - to load header-only sources.<br/>
 `update-all-android-clang.bat` - to compile static (.a) libs.
+
+### Android (device)
+
+You should build dependencies on PC or download them.
 
 ### Linux
 
@@ -124,11 +142,30 @@ Open folder `AE/build_scripts`, select target platform and compiler, then call `
 
 Run `VulkanHeaderGen` (*VS: in 'Engine/ToolApps'*) to generate Vulkan loader from current header files.
 
-### Android
+### Android (PC)
 
 Script `AE/build_scripts/build-*.bat` will build project from console.<br/>
 To use Android IDE open project in folder `AE/android` from IDE.
 
+### Android (device)
+
+For example you have folder structure:
+```
+/sdcard/Code
+  AE      -- from git
+  AE-Bin  -- from git or downloaded, see 'Download third party dependencies'
+  AE-Temp -- from git or downloaded, see 'Compile resources'
+  build   -- empty
+```
+
+Then, in **termux**:
+```
+cd /sdcard/Code/build
+cmake -DAE_ENABLE_VULKAN=ON "../AE"
+cmake --build . --config Debug
+```
+
+**Note**: app launcher is in progress.
 
 ## Compile resources
 
@@ -143,7 +180,7 @@ Compiled resources will be stored in `AE/../AE-Temp` folder. They can be used on
 
 ## Update file paths (optional)
 
-Visual Studio and some other IDEs and programs (Notepad++) allows to open file in URL format like a `file://absolute/path/to/a/file.txt`, but it requires absolute paths. Source code may contain links to other source files or docs which is written as URLs.<br/>
+Visual Studio, VSCode, Notepad++ and some other IDEs allows to open file in URL format like a `file://absolute/path/to/a/file.txt`, but it requires absolute paths. Source code may contain links to other source files or docs which is written as URLs.<br/>
 Use IDE or another tool to replace path `[](https://github.com/azhirnov/as-en/blob/dev/AE/)` to an absolute path like a `file://C:/Projects/AE/`.
 
 

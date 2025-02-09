@@ -29,7 +29,7 @@ namespace AE::ResLoader
 			EPixelFormat		format		= Default;
 			ImageLayer			layer		{0u};
 			MipmapLevel			mipmap		{0u};
-			Bytes				rowPitch;
+			Bytes32u			rowPitch;
 			Bytes				slicePitch;			// for 3D
 		private:
 			void*				_pixels		= null;
@@ -108,6 +108,10 @@ namespace AE::ResLoader
 		//
 		ND_ bool  AllocLevel (MipmapLevel mipmap, ImageLayer layer,
 							  RC<IAllocator> allocator = null)									__NE___;
+
+		// Fill pixel with zeros
+		//
+			void  ZeroMem ()																	__NE___;
 
 
 		ND_ ImageMemView		ToView (MipmapLevel mipmap, ImageLayer layer)					__NE___;

@@ -139,7 +139,7 @@ using namespace AE::CICD;
 
 		JavaEnv::SetVM( null );
 
-		StaticLogger::Deinitialize( true );
+		StaticLogger::Deinitialize( True{"checkMemLeaks"} );
 	}
 
 #else

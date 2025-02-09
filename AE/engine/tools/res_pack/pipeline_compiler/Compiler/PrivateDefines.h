@@ -4,9 +4,9 @@
 
 
 #define PRIVATE_COMP_RETURN_ERR( _text_, _ret_ )				\
-		{if_likely( not _quietWarnings ) {						\
+		{if( not _quietWarnings ) {								\
 			AE_LOGE( _text_ );									\
-		}else_unlikely{											\
+		}else{													\
 			AE_LOGI( _text_ );									\
 		}return (_ret_);										\
 		}
@@ -17,13 +17,13 @@
 
 #define PRIVATE_COMP_CHECK_ERR( _expr_, _text_, _ret_ )			\
 		{if_likely(( _expr_ )) {}								\
-		 else_unlikely											\
+		 else													\
 			PRIVATE_COMP_RETURN_ERR( _text_, (_ret_) )			\
 		}
 
 #define PRIVATE_COMP_CHECK_LOG( _expr_, _log_, _text_, _ret_ )	\
 		{if_likely(( _expr_ )) {}								\
-		 else_unlikely{											\
+		 else{													\
 			(_log_) << _text_;									\
 			return (_ret_);										\
 		}}

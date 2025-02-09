@@ -55,63 +55,64 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr ArrayView ()									__NE___ : _array{null} {}
-		constexpr ArrayView (T const* ptr, usize count)			__NE___ : _array{ptr}, _count{count}  {	ASSERT( (_count == 0) or (_array != null) ); }
-		constexpr ArrayView (T const* begin, T const* end)		__NE___ : _array{begin}, _count{usize(std::distance( begin, end ))}  { ASSERT( begin <= end ); }
-		constexpr ArrayView (value_type &elem)					__NE___ : _array{&elem}, _count{1} {}
-		constexpr ArrayView (value_type &&elem)					__NE___ : _array{&elem}, _count{1} {}
-
+		__Cx__ ArrayView ()									__NE___ : _array{null} {}
+		__Cx__ ArrayView (T const* ptr, usize count)		__NE___ : _array{ptr}, _count{count}  {	ASSERT_Cx( (_count == 0) or (_array != null) ); }
+		__Cx__ ArrayView (T const* begin, T const* end)		__NE___ : _array{begin}, _count{usize(std::distance( begin, end ))}  { ASSERT_Cx( begin <= end ); }
+		__Cx__ ArrayView (value_type &elem)					__NE___ : _array{&elem}, _count{1} {}
+		__Cx__ ArrayView (value_type &&elem)				__NE___ : _array{&elem}, _count{1} {}
 
 		template <typename AllocT>
-		constexpr ArrayView (const Array<T,AllocT> &vec)		__NE___ : _array{vec.data()}, _count{vec.size()}  { ASSERT( (_count == 0) or (_array != null) ); }
+		__Cz__ ArrayView (const Array<T,AllocT> &vec)		__NE___ : _array{vec.data()}, _count{vec.size()}  { ASSERT( (_count == 0) or (_array != null) ); }
 
 		template <usize S>
-		constexpr ArrayView (const StaticArray<T,S> &arr)		__NE___ : _array{arr.data()}, _count{arr.size()} {}
+		__Cx__ ArrayView (const StaticArray<T,S> &arr)		__NE___ : _array{arr.data()}, _count{arr.size()} {}
 
 		template <usize S>
-		constexpr ArrayView (const T (&arr)[S])					__NE___ : _array{arr}, _count{S} {}
+		__Cx__ ArrayView (const T (&arr)[S])				__NE___ : _array{arr}, _count{S} {}
 
-		ND_ explicit constexpr operator Array<T> ()				C_NE___	{ return Array<T>{ begin(), end() }; }
+		NdCx__ explicit operator Array<T> ()				C_NE___	{ return Array<T>{ begin(), end() }; }
 
-		ND_ constexpr usize				size ()					C_NE___	{ return _count; }
-		ND_ constexpr bool				empty ()				C_NE___	{ return _count == 0; }
-		ND_ constexpr T const *			data ()					C_NE___	{ return _array; }
+		NdCx__ usize			size ()						C_NE___	{ return _count; }
+		NdCx__ bool				empty ()					C_NE___	{ return _count == 0; }
+		NdCx__ T const *		data ()						C_NE___	{ return _array; }
 
-		ND_ constexpr T const &			operator [] (usize i)	C_NE___	{ ASSERT( i < _count );  return _array[i]; }
+		NdCx__ Bytes			DataSize ()					C_NE___	{ return Bytes{ sizeof(T) * _count }; }
 
-		ND_ constexpr const_iterator	begin ()				C_NE___	{ return _array; }
-		ND_ constexpr const_iterator	end ()					C_NE___	{ return _array + _count; }
+		NdCz__ T const &		operator [] (usize i)		C_NE___	{ ASSERT( i < _count );  return _array[i]; }
 
-		ND_ constexpr auto				rbegin ()				C_NE___	{ return reverse_iterator{_array + _count-1}; }
-		ND_ constexpr auto				rend ()					C_NE___	{ return reverse_iterator{_array - 1}; }
+		NdCx__ const_iterator	begin ()					C_NE___	{ return _array; }
+		NdCx__ const_iterator	end ()						C_NE___	{ return _array + _count; }
 
-		ND_ constexpr T const&			front ()				C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
-		ND_ constexpr T const&			back ()					C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
+		NdCx__ auto				rbegin ()					C_NE___	{ return reverse_iterator{_array + _count-1}; }
+		NdCx__ auto				rend ()						C_NE___	{ return reverse_iterator{_array - 1}; }
 
-		ND_ constexpr bool  operator == (ArrayView<T> rhs)		C_NE___;
-		ND_ constexpr bool  operator >  (ArrayView<T> rhs)		C_NE___;
-		ND_ constexpr bool  operator != (ArrayView<T> rhs)		C_NE___	{ return not (*this == rhs); }
-		ND_ constexpr bool  operator <  (ArrayView<T> rhs)		C_NE___	{ return (rhs > *this); }
-		ND_ constexpr bool  operator >= (ArrayView<T> rhs)		C_NE___	{ return not (*this < rhs); }
-		ND_ constexpr bool  operator <= (ArrayView<T> rhs)		C_NE___	{ return not (*this > rhs); }
+		NdCz__ T const&			front ()					C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
+		NdCz__ T const&			back ()						C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
 
-		ND_ constexpr bool  AllEqual (const T &rhs)				C_NE___	{ return _All( rhs, std::equal_to<T>{} ); }
-		ND_ constexpr bool  AllGreater (const T &rhs)			C_NE___	{ return _All( rhs, std::greater<T>{} ); }
-		ND_ constexpr bool  AllGreaterEqual (const T &rhs)		C_NE___	{ return _All( rhs, std::greater_equal<T>{} ); }
-		ND_ constexpr bool  AllLess (const T &rhs)				C_NE___	{ return _All( rhs, std::less<T>{} ); }
-		ND_ constexpr bool  AllLessEqual (const T &rhs)			C_NE___	{ return _All( rhs, std::less_equal<T>{} ); }
+		NdCx__ bool  operator == (ArrayView<T> rhs)			C_NE___;
+		NdCx__ bool  operator >  (ArrayView<T> rhs)			C_NE___;
+		NdCx__ bool  operator != (ArrayView<T> rhs)			C_NE___	{ return not (*this == rhs); }
+		NdCx__ bool  operator <  (ArrayView<T> rhs)			C_NE___	{ return (rhs > *this); }
+		NdCx__ bool  operator >= (ArrayView<T> rhs)			C_NE___	{ return not (*this < rhs); }
+		NdCx__ bool  operator <= (ArrayView<T> rhs)			C_NE___	{ return not (*this > rhs); }
 
-		ND_ constexpr usize  IndexOf (const_iterator it)		C_NE___;
+		NdCx__ bool  AllEqual (const T &rhs)				C_NE___	{ return _All( rhs, std::equal_to<T>{} ); }
+		NdCx__ bool  AllGreater (const T &rhs)				C_NE___	{ return _All( rhs, std::greater<T>{} ); }
+		NdCx__ bool  AllGreaterEqual (const T &rhs)			C_NE___	{ return _All( rhs, std::greater_equal<T>{} ); }
+		NdCx__ bool  AllLess (const T &rhs)					C_NE___	{ return _All( rhs, std::less<T>{} ); }
+		NdCx__ bool  AllLessEqual (const T &rhs)			C_NE___	{ return _All( rhs, std::less_equal<T>{} ); }
 
-		ND_ constexpr ArrayView<T> section (usize first, usize count) C_NE___;
+		NdCz__ usize  IndexOf (const_iterator it)			C_NE___;
+
+		NdCx__ ArrayView<T> section (usize first, usize count) C_NE___;
 
 		template <typename R>
-		ND_ constexpr EnableIf<IsTrivial<R>, ArrayView<R>>  Cast () C_NE___;
+		NdCx__ EnableIf<IsTrivial<R>, ArrayView<R>>  Cast () C_NE___;
 
 
 	private:
 		template <typename Op>
-		ND_ constexpr bool  _All (const T &rhs, const Op &op)	C_NE___;
+		NdCx__ bool  _All (const T &rhs, const Op &op)	C_NE___;
 	};
 
 
@@ -129,23 +130,23 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr List ()										__NE___	{}
-		constexpr List (std::initializer_list<T> list)			__NE___	: _view{ list.begin(), list.end() } {}
+		__Cx__ List ()									__NE___	{}
+		__Cx__ List (std::initializer_list<T> list)		__NE___	: _view{ list.begin(), list.end() } {}
 
-		ND_ constexpr operator ArrayView<T> ()					C_NE___	{ return _view; }
+		NdCx__ operator ArrayView<T> ()					C_NE___	{ return _view; }
 
-		ND_ constexpr const T*	begin ()						C_NE___	{ return _view.begin(); }
-		ND_ constexpr const T*	end ()							C_NE___	{ return _view.end(); }
-		ND_ constexpr usize		size ()							C_NE___	{ return _view.size(); }
+		NdCx__ const T*		begin ()					C_NE___	{ return _view.begin(); }
+		NdCx__ const T*		end ()						C_NE___	{ return _view.end(); }
+		NdCx__ usize		size ()						C_NE___	{ return _view.size(); }
 
-		ND_ constexpr T const&	operator [] (usize idx)			C_NE___	{ return _view[idx]; }
+		NdCx__ T const&		operator [] (usize idx)		C_NE___	{ return _view[idx]; }
 
-		ND_ constexpr bool  operator == (ArrayView<T> rhs)		C_NE___	{ return _view == rhs; }
-		ND_ constexpr bool  operator != (ArrayView<T> rhs)		C_NE___	{ return _view != rhs; }
-		ND_ constexpr bool  operator >  (ArrayView<T> rhs)		C_NE___	{ return _view >  rhs; }
-		ND_ constexpr bool  operator <  (ArrayView<T> rhs)		C_NE___	{ return _view <  rhs; }
-		ND_ constexpr bool  operator >= (ArrayView<T> rhs)		C_NE___	{ return _view >= rhs; }
-		ND_ constexpr bool  operator <= (ArrayView<T> rhs)		C_NE___	{ return _view <= rhs; }
+		NdCx__ bool  operator == (ArrayView<T> rhs)		C_NE___	{ return _view == rhs; }
+		NdCx__ bool  operator != (ArrayView<T> rhs)		C_NE___	{ return _view != rhs; }
+		NdCx__ bool  operator >  (ArrayView<T> rhs)		C_NE___	{ return _view >  rhs; }
+		NdCx__ bool  operator <  (ArrayView<T> rhs)		C_NE___	{ return _view <  rhs; }
+		NdCx__ bool  operator >= (ArrayView<T> rhs)		C_NE___	{ return _view >= rhs; }
+		NdCx__ bool  operator <= (ArrayView<T> rhs)		C_NE___	{ return _view <= rhs; }
 	};
 
 
@@ -173,7 +174,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	constexpr bool  ArrayView<T>::operator == (ArrayView<T> rhs) C_NE___
+	__Cx__ bool  ArrayView<T>::operator == (ArrayView<T> rhs) C_NE___
 	{
 		if ( (_array == rhs._array) and (_count == rhs._count) )
 			return true;
@@ -183,7 +184,7 @@ namespace AE::Base
 
 		for (usize i = 0; i < size(); ++i)
 		{
-			if_unlikely( not Math::All( _array[i] == rhs[i] ))
+			if_unlikely( not Base::All( _array[i] == rhs[i] ))
 				return false;
 		}
 		return true;
@@ -195,14 +196,14 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	constexpr bool  ArrayView<T>::operator >  (ArrayView<T> rhs) C_NE___
+	__Cx__ bool  ArrayView<T>::operator >  (ArrayView<T> rhs) C_NE___
 	{
 		if ( size() != rhs.size() )
 			return size() > rhs.size();
 
 		for (usize i = 0; i < size(); ++i)
 		{
-			if_unlikely( not Math::All( _array[i] == rhs[i] ))
+			if_unlikely( not Base::All( _array[i] == rhs[i] ))
 				return _array[i] > rhs[i];
 		}
 		return true;
@@ -215,7 +216,7 @@ namespace AE::Base
 */
 	template <typename T>
 	template <typename Op>
-	constexpr bool  ArrayView<T>::_All (const T &rhs, const Op &op) C_NE___
+	__Cx__ bool  ArrayView<T>::_All (const T &rhs, const Op &op) C_NE___
 	{
 		for (usize i = 0; i < size(); ++i) {
 			if_unlikely( not op( _array[i], rhs ))
@@ -230,10 +231,10 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	constexpr ArrayView<T>  ArrayView<T>::section (usize first, usize count) C_NE___
+	__Cx__ ArrayView<T>  ArrayView<T>::section (usize first, usize count) C_NE___
 	{
 		return first < size() ?
-				ArrayView<T>{ data() + first, Math::Min( size() - first, count )} :
+				ArrayView<T>{ data() + first, Base::Min( size() - first, count )} :
 				ArrayView<T>{};
 	}
 
@@ -244,7 +245,7 @@ namespace AE::Base
 */
 	template <typename T>
 	template <typename R>
-	constexpr EnableIf<IsTrivial<R>, ArrayView<R>>  ArrayView<T>::Cast () C_NE___
+	__Cx__ EnableIf<IsTrivial<R>, ArrayView<R>>  ArrayView<T>::Cast () C_NE___
 	{
 		StaticAssert( IsTrivial<T> );
 		StaticAssert( alignof(R) >= alignof(T) );
@@ -259,7 +260,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	constexpr usize  ArrayView<T>::IndexOf (const_iterator it) C_NE___
+	__Cz__ usize  ArrayView<T>::IndexOf (const_iterator it) C_NE___
 	{
 		ASSERT( it >= begin() and it < end() );
 		return it - begin();

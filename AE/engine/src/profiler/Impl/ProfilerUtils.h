@@ -44,9 +44,9 @@ namespace AE::Profiler
 		class MsgProducer final : public Networking::IAsyncCSMessageProducer
 		{
 		public:
-			MsgProducer () __NE___ : Networking::IAsyncCSMessageProducer{ Tag<Threading::LfLinearAllocator< usize{1_Mb}, usize{8_b}, 4 >>{} } {}
+			MsgProducer () __NE___ : Networking::IAsyncCSMessageProducer{ Tag<Threading::LfLinearAllocator< usize{1_MiB}, usize{8_b}, 4 >>{} } {}
 
-			EnumSet<EChannel>  GetChannels ()					C_NE_OV	{ return {EChannel::Reliable}; }
+			EnumSet<EChannel>  GetChannels ()						C_NE_OV	{ return {EChannel::Reliable}; }
 		};
 
 
@@ -65,12 +65,10 @@ namespace AE::Profiler
 
 	// methods
 	public:
-		explicit ProfilerUtils (TimePoint_t startTime) :
-			_timer{ startTime }
-		{}
+		explicit ProfilerUtils (TimePoint_t startTime) : _timer{ startTime } {}
 
 		ND_ usize			CurrentThreadID ()	const	{ return ThreadUtils::GetIntID(); }
-		ND_ uint			CoreIndex ()		const	{ return ThreadUtils::GetCoreIndex(); }
+		ND_ uint			CoreIndex ()		const	{ return ThreadUtils::LogicalCoreIndex(); }
 
 		ND_ secondsf		CurrentTime ()		const	{ return _timer.TimeSince<secondsf>(); }
 		ND_ nanosecondsd	CurrentTimeNano ()	const	{ return _timer.TimeSince<nanosecondsd>(); }

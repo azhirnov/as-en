@@ -2,8 +2,7 @@
 
 #include "base/Platforms/CPUInfo.h"
 #include "base/Math/BitMath.h"
-#include "base/Memory/MemUtils.h"
-#include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/ToString.h"
 #include "base/Containers/FixedMap.h"
 #include "base/Containers/FixedSet.h"
 
@@ -51,39 +50,50 @@ namespace AE::Base
 
 			str << "CPU features:";
 
-			#if defined(AE_CPU_ARCH_X86) or defined(AE_CPU_ARCH_X64)
-			str << "\n  SSE 2:     " << ToString( feats.SSE2 )
-				<< "\n  SSE 3: . . " << ToString( feats.SSE3 )
-				<< "\n  SSSE 3:    " << ToString( feats.SSSE3 )
-				<< "\n  SSE 4.1: . " << ToString( feats.SSE41 )
-				<< "\n  SSE 4.2:   " << ToString( feats.SSE42 )
-				<< "\n  AVX: . . . " << ToString( feats.AVX )
-				<< "\n  AVX 256:   " << ToString( feats.AVX256 )
-				<< "\n  AVX 512: . " << ToString( feats.AVX512 )
-				<< "\n  POPCNT:    " << ToString( feats.POPCNT )
-				<< "\n  CmpXchg16: " << ToString( feats.CmpXchg16 );
+			#ifdef AE_CPU_ARCH_X86_64
+			str << "\n  SSE 2:       " << ToString( feats.SSE2 )
+				<< "\n  SSE 3: . . . " << ToString( feats.SSE3 )
+				<< "\n  SSSE 3:      " << ToString( feats.SSSE3 )
+				<< "\n  SSE 4.1: . . " << ToString( feats.SSE41 )
+				<< "\n  SSE 4.2:     " << ToString( feats.SSE42 )
+				<< "\n  AVX: . . . . " << ToString( feats.AVX )
+				<< "\n  AVX 2:       " << ToString( feats.AVX2 )
+				<< "\n  AVX512F: . . " << ToString( feats.AVX512F )
+				<< "\n  AVX512 fp16: " << ToString( feats.AVX512_FP16 )
+				<< "\n  FMA: . . . . " << ToString( feats.FMA )
+				<< "\n  POPCNT:      " << ToString( feats.POPCNT )
+				<< "\n  AES: . . . . " << ToString( feats.AES )
+				<< "\n  VAES:        " << ToString( feats.VAES )
+				<< "\n  AESKL: . . . " << ToString( feats.AESKL )
+				<< "\n  SHA2_256:    " << ToString( feats.SHA2_256 )
+				<< "\n  SHA512:  . . " << ToString( feats.SHA512 )
+				<< "\n  FP16C:       " << ToString( feats.FP16C );
 			#endif
 			#ifdef AE_CPU_ARCH_ARM_BASED
-			str << "\n  NEON:  . . " << ToString( feats.NEON )
-				<< "\n  NEON_fp16: " << ToString( feats.NEON_fp16 )
-				<< "\n  NEON_hpfp: " << ToString( feats.NEON_hpfp )
-				<< "\n  SVE:       " << ToString( feats.SVE )
-				<< "\n  SVE2:  . . " << ToString( feats.SVE2 )
-				<< "\n  SVEAES:    " << ToString( feats.SVEAES );
+			str << "\n  NEON:  . . . " << ToString( feats.NEON )
+				<< "\n  NEON_fp16:   " << ToString( feats.NEON_fp16 )
+				<< "\n  FP16C: . . . " << ToString( feats.FP16C )
+				<< "\n  SVE:         " << ToString( feats.SVE )
+				<< "\n  SVE2:  . . . " << ToString( feats.SVE2 )
+				<< "\n  BF16:        " << ToString( feats.BF16 )
+				<< "\n  AES: . . . . " << ToString( feats.AES )
+				<< "\n  SVE_AES:     " << ToString( feats.SVE_AES )
+				<< "\n  CRC32: . . . " << ToString( feats.CRC32 )
+				<< "\n  SHA2_256:    " << ToString( feats.SHA2_256 )
+				<< "\n  SHA2_512:  . " << ToString( feats.SHA2_512 )
+				<< "\n  SHA3:        " << ToString( feats.SHA3 )
+				<< "\n  Atomics: . . " << ToString( feats.Atomics );
 			#endif
 
-			str << "\n  AES: . . . " << ToString( feats.AES )
-				<< "\n  CRC32:     " << ToString( feats.CRC32 )
-				<< "\n  SHA 128: . " << ToString( feats.SHA128 )
-				<< "\n  SHA 256:   " << ToString( feats.SHA256 )
-				<< "\n  SHA 512: . " << ToString( feats.SHA512 );
+			// shared features
+			str	<< "\n  CmpXchg16:   " << ToString( feats.CmpXchg16 );
 
 			str << "\n--------------------"
 				<< "\nCPU info:"
 				<< "\n  vendor:       " << ToString( cpu.vendor )
 				<< "\n  architecture: " << ToString( cpu.arch )
 				<< "\n  total cores:  " << ToString( cpu.physicalCoreCount ) << " / " << ToString( cpu.logicalCoreCount );
-			
+
 			const auto	PrintCache = [&str] (ECacheType cacheType, const CacheGeom &g)
 			{{
 				StringView	name;
@@ -97,9 +107,10 @@ namespace AE::Base
 				}
 				switch_end
 
-				if ( g.lineSize > 0 )		str	<< "\n    " << name << ".lineSize:      " << ToString( g.lineSize );
-				if ( g.associativity > 0 )	str << "\n    " << name << ".associativity: " << ToString( g.associativity );
-				if ( g.size > 0 )			str << "\n    " << name << ".size:  . . . . " << ToString( g.size );
+				if ( g.lineSize > 0 )			str	<< "\n    " << name << ".lineSize:      " << ToString( g.lineSize ) << " B";
+				if ( g.associativity > 0 )		str << "\n    " << name << ".associativity: " << ToString( g.associativity );
+				if ( g.logicalCoreCount > 0 )	str << "\n    " << name << ".cores   . . .  " << ToString( g.logicalCoreCount );
+				if ( g.size > 0 )				str << "\n    " << name << ".size:  . . . . " << ToString( g.size );
 			}};
 
 			for (auto& core : cpu.coreTypes)
@@ -121,7 +132,7 @@ namespace AE::Base
 				}
 				str	<< "\n    ----------";
 			}
-			
+
 			str << "\nCache info:";
 			for (uint i = 0; i < uint(ECacheType::_Count); ++i)
 			{
@@ -144,38 +155,96 @@ namespace AE::Base
 
 /*
 =================================================
-	IsGLMSupported
+	CheckCompilationOptions
 ----
-	returns true if GLM configuration
-	is supported with current CPU features
+	returns true if:
+		- GLM configuration is compatible with current CPU features
+		- engine compilation flags are compatible with current CPU features
 =================================================
 */
-	bool  CpuArchInfo::IsGLMSupported () C_NE___
+	bool  CpuArchInfo::CheckCompilationOptions () C_NE___
 	{
-		#if (GLM_ARCH & GLM_ARCH_SSE2_BIT)
-			CHECK_ERR( feats.SSE2 );
+		#if (AE_SIMD_SSE >= 20) or (GLM_ARCH & GLM_ARCH_SSE2_BIT)
+			CHECK_ERR_MSG( feats.SSE2,		"AE_SIMD_SSE=20 requires SSE2 feature" );
 		#endif
-		#if (GLM_ARCH & GLM_ARCH_SSE3_BIT)
-			CHECK_ERR( feats.SSE3 );
+		#if (AE_SIMD_SSE >= 30) or (GLM_ARCH & GLM_ARCH_SSE3_BIT)
+			CHECK_ERR_MSG( feats.SSE3,		"AE_SIMD_SSE=30 requires SSE3 feature" );
 		#endif
-		#if (GLM_ARCH & GLM_ARCH_SSE41_BIT)
-			CHECK_ERR( feats.SSE41 );
+		#if (AE_SIMD_SSE >= 31)
+			CHECK_ERR_MSG( feats.SSSE3,		"AE_SIMD_SSE=31 requires SSSE3 feature" );
 		#endif
-		#if (GLM_ARCH & GLM_ARCH_SSE42_BIT)
-			CHECK_ERR( feats.SSE42 );
+		#if (AE_SIMD_SSE >= 41) or (GLM_ARCH & GLM_ARCH_SSE41_BIT)
+			CHECK_ERR_MSG( feats.SSE41,		"AE_SIMD_SSE=41 requires SSE41 feature" );
 		#endif
-		#if (GLM_ARCH & GLM_ARCH_AVX_BIT)
-			CHECK_ERR( feats.AVX );
+		#if (AE_SIMD_SSE >= 42) or (GLM_ARCH & GLM_ARCH_SSE42_BIT)
+			CHECK_ERR_MSG( feats.SSE42,		"AE_SIMD_SSE=42 requires SSE42 feature" );
 		#endif
-		#if (GLM_ARCH & GLM_ARCH_AVX2_BIT)
-			CHECK_ERR( feats.AVX256 );
+		#if (AE_SIMD_SSE >= 50)
+			CHECK_ERR_MSG( feats.SSE4A,		"AE_SIMD_SSE=50 requires SSE4A feature" );
 		#endif
-		#if (GLM_ARCH & GLM_ARCH_NEON_BIT)
-			CHECK_ERR( feats.NEON );
+		#if (AE_SIMD_AVX >= 1) or (GLM_ARCH & GLM_ARCH_AVX_BIT)
+			CHECK_ERR_MSG( feats.AVX,		"AE_SIMD_AVX=1 requires AVX feature" );
+		#endif
+		#if (AE_SIMD_AVX >= 2) or (GLM_ARCH & GLM_ARCH_AVX2_BIT)
+			CHECK_ERR_MSG( feats.AVX2,		"AE_SIMD_AVX=2 requires AVX2 feature" );
+		#endif
+		#if (AE_SIMD_AVX >= 3)
+			CHECK_ERR_MSG( feats.AVX512F,	"AE_SIMD_AVX=3 requires AVX512F feature" );
+
+			#if (AE_SIMD_AVX & 0x10)
+				CHECK_ERR_MSG( feats.AVX512_FP16,	"AE_SIMD_AVX=0x10 requires AVX512_FP16 feature" );
+			#endif
+		#endif // AVX512
+
+		#if AE_SIMD_NEON or (GLM_ARCH & GLM_ARCH_NEON_BIT)
+			CHECK_ERR_MSG( feats.NEON,		"AE_SIMD_NEON requires NEON feature" );
+		#endif
+		#if AE_SIMD_NEON_HALF
+			CHECK_ERR_MSG( feats.NEON_fp16,	"AE_SIMD_NEON_HALF requires NEON_fp16 feature" );
+		#endif
+		#if AE_SIMD_SVE >= 1
+			CHECK_ERR_MSG( feats.SVE,		"AE_SIMD_SVE=1 requires SVE feature" );
+		#endif
+		#if AE_SIMD_SVE >= 2
+			CHECK_ERR_MSG( feats.SVE2,		"AE_SIMD_SVE=2 requires SVE2 feature" );
+		#endif
+
+		#ifdef AE_CPU_ARCH_X86_64
+		# if AE_SIMD_FMA or defined(GLM_FORCE_FMA)
+			CHECK_ERR_MSG( feats.FMA,		"AE_SIMD_FMA requires FMA feature" );
+		# endif
 		#endif
 
 		#if defined(AE_PLATFORM_WINDOWS)
 			CHECK_ERR( feats.POPCNT );
+		#endif
+		#if AE_SIMD_F16C
+			CHECK_ERR( feats.FP16C,			"AE_SIMD_F16C requires FP16C feature" );
+		#endif
+		#ifdef AE_CPU_ARCH_ARM_BASED
+			CHECK_ERR( feats.CRC32 );
+		#endif
+
+		#if AE_SIMD_SHA
+		# if AE_SIMD_SHA >= 20
+			CHECK_ERR_MSG( feats.SHA2_256,	"AE_SIMD_SHA=20 requires SHA2_256 feature" );
+		# endif
+		# if AE_SIMD_SHA >= 21
+			CHECK_ERR_MSG( feats.SHA2_512,	"AE_SIMD_SHA=21 requires SHA2_512 feature" );
+		# endif
+		# if AE_SIMD_SHA >= 30
+			CHECK_ERR_MSG( feats.SHA3,		"AE_SIMD_SHA=30 requires SHA3 feature" );
+		# endif
+		#endif
+
+		#if AE_SIMD_AES
+			CHECK_ERR_MSG( feats.AES,		"AE_SIMD_AES=1 requires AES feature" );
+		# if AE_SIMD_AES >= 2
+			CHECK_ERR_MSG( feats.VAES,		"AE_SIMD_AES=2 requires VAES feature" );
+		# endif
+		# if AE_SIMD_AES >= 3
+			CHECK_ERR_MSG( feats.AESKL,		"AE_SIMD_AES=3 requires AESKL feature" );
+		# endif
 		#endif
 
 		return true;
@@ -203,7 +272,7 @@ namespace AE::Base
 		}
 		return null;
 	}
-	
+
 /*
 =================================================
 	GetCache
@@ -267,21 +336,6 @@ namespace AE::Base
 		ASSERT( num_threads == logical_cores );
 
 	#endif
-	}
-
-/*
-=================================================
-	_NameToVendor
-=================================================
-*/
-	ECPUVendor  CpuArchInfo::_NameToVendor (StringView name) __NE___
-	{
-		if ( HasSubString( name, "AMD" ))		return ECPUVendor::AMD;
-		if ( HasSubString( name, "ARM" ))		return ECPUVendor::ARM;
-		if ( HasSubString( name, "Apple" ))		return ECPUVendor::Apple;
-		if ( HasSubString( name, "Intel" ))		return ECPUVendor::Intel;
-
-		return Default;
 	}
 
 

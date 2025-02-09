@@ -3,7 +3,7 @@
 #include "platform/Android/ApplicationAndroid.h"
 
 #ifdef AE_PLATFORM_ANDROID
-# include "graphics/Vulkan/VSwapchain.h"
+# include "graphics_rhi/Vulkan/VSwapchain.h"
 # include "platform/Android/FileSystemAndroid.h"
 
 
@@ -293,10 +293,10 @@ namespace {
 		};
 		switch ( orientation )
 		{
-			case ROTATION_0   :		_displayInfo.orient = Monitor::EOrientation::Orient_0_deg;		break;
-			case ROTATION_90  :		_displayInfo.orient = Monitor::EOrientation::Orient_90_deg;		break;
-			case ROTATION_180 :		_displayInfo.orient = Monitor::EOrientation::Orient_180_deg;	break;
-			case ROTATION_270 :		_displayInfo.orient = Monitor::EOrientation::Orient_270_deg;	break;
+			case ROTATION_0   :		_displayInfo.orient = Monitor::EOrientation::Deg_0;		break;
+			case ROTATION_90  :		_displayInfo.orient = Monitor::EOrientation::Deg_90;	break;
+			case ROTATION_180 :		_displayInfo.orient = Monitor::EOrientation::Deg_180;	break;
+			case ROTATION_270 :		_displayInfo.orient = Monitor::EOrientation::Deg_270;	break;
 		}
 	}
 
@@ -365,7 +365,7 @@ namespace {
 	void JNICALL  ApplicationAndroid::native_SetDisplayInfo (JNIEnv* env, jclass,
 															 jint minWidth, jint minHeight,
 															 jint maxWidth, jint maxHeight,
-															 float dpi, jint orientation,
+															 float dpi, jint refreshRate, jint orientation,
 															 float avrLum, float maxLum, float minLum,
 															 jintArray cutoutRects, const jint cutoutRectCount) __NE___
 	{
@@ -378,11 +378,12 @@ namespace {
 		disp.region.pixels		= RectI{ 0, 0, maxWidth, maxHeight };
 		disp.ppi				= dpi;
 		disp.physicalSize		= disp._CalculatePhysicalSize();
+		disp.freq				= refreshRate;
 		app.SetRotation( orientation );
 
-		disp.luminance.avr		= Monitor::Luminance_t{ avrLum };
-		disp.luminance.max		= Monitor::Luminance_t{ maxLum };
-		disp.luminance.min		= Monitor::Luminance_t{ minLum };
+		disp.hdr.luminance.avr	= HDRConfig::Luminance_t{ avrLum };
+		disp.hdr.luminance.max	= HDRConfig::Luminance_t{ maxLum };
+		disp.hdr.luminance.min	= HDRConfig::Luminance_t{ minLum };
 
 		if ( cutoutRectCount > 0 )
 		{
@@ -390,7 +391,7 @@ namespace {
 
 			JavaArray<jint>	cutout_rects { cutoutRects, True{"readOnly"}, JavaEnv{env} };
 
-			for (jint i = 0; i < cutoutRectCount; i += 4)
+			for (jint i = 0; i+3 < cutoutRectCount; i += 4)
 			{
 				auto&	dst			= disp.cutout.emplace_back();
 				dst.pixels.left		= cutout_rects[i+0];
@@ -502,6 +503,7 @@ namespace {
 		using namespace AE::Java;
 
 		auto&	app = ApplicationAndroid::_GetAppInstance();
+
 		delete app;
 		app = null;
 

@@ -38,7 +38,7 @@ namespace AE::Base
 		AnyTypeRef&  operator = (const AnyTypeRef &rhs)		__NE___	= default;
 
 		template <typename T,
-				  DISABLEIF( IsConst<T> or IsSameTypes< T, AnyTypeRef > or IsSameTypes< T, AnyTypeCRef >)
+				  DISABLEIF( IsConst<T> or IsSame< T, AnyTypeRef > or IsSame< T, AnyTypeCRef >)
 				 >
 		AnyTypeRef (T &value)								__NE___ : _typeId{ TypeIdOf<T>() }, _ref{ std::addressof(value) } {}
 
@@ -52,6 +52,8 @@ namespace AE::Base
 
 		ND_ TypeId			GetType ()						C_NE___					{ return _typeId; }
 		ND_ StringView		GetTypeName ()					C_NE___					{ return _typeId.Name(); }
+
+		ND_ bool			IsDefined ()					C_NE___					{ return _typeId != TypeId{}; }
 	};
 
 
@@ -83,12 +85,12 @@ namespace AE::Base
 		AnyTypeCRef&  operator = (const AnyTypeCRef &rhs)		__NE___	= default;
 
 		template <typename T,
-				  DISABLEIF( IsConst<T> or IsSameTypes< T, AnyTypeRef > or IsSameTypes< T, AnyTypeCRef >)
+				  DISABLEIF( IsConst<T> or IsSame< T, AnyTypeRef > or IsSame< T, AnyTypeCRef >)
 				 >
 		AnyTypeCRef (T &value)									__NE___ : _typeId{ TypeIdOf<T>() }, _ref{ std::addressof(value) } {}
 
 		template <typename T,
-				  DISABLEIF( IsSameTypes< T, AnyTypeRef > or IsSameTypes< T, AnyTypeCRef >)
+				  DISABLEIF( IsSame< T, AnyTypeRef > or IsSame< T, AnyTypeCRef >)
 				 >
 		explicit AnyTypeCRef (const T &value)					__NE___ : _typeId{ TypeIdOf<T>() }, _ref{ std::addressof(value) } {}
 
@@ -102,6 +104,8 @@ namespace AE::Base
 
 		ND_ TypeId			GetType ()							C_NE___					{ return _typeId; }
 		ND_ StringView		GetTypeName ()						C_NE___					{ return _typeId.Name(); }
+
+		ND_ bool			IsDefined ()						C_NE___					{ return _typeId != TypeId{}; }
 	};
 
 

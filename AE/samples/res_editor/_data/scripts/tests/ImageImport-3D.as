@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -13,7 +13,7 @@
 	{
 		// initialize
 		RC<Image>		rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );		rt.Name( "RT" );
-		RC<Image>		volume	= Image( EImageType::FImage3D, "export/exported-image-3d-0.aeimg" );
+		RC<Image>		volume	= Image( EImageType::Float_3D, "res/tex/Cloud_PerlinWorley.dds" );
 		RC<FPVCamera>	camera	= FPVCamera();
 
 		// setup camera

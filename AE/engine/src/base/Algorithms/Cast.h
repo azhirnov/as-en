@@ -19,14 +19,18 @@ namespace AE::Base
 		return (usize(ptr) & (align-1)) == 0;
 	}
 
-	template <typename R, typename T>
-	ND_ constexpr bool  CheckPointerAlignment (T const* ptr) __NE___
+	template <usize Align, typename T>
+	NdCx__ bool  CheckPointerAlignment (T const* ptr) __NE___
 	{
-		constexpr usize	align = alignof(R);
+		StaticAssert( ((Align & (Align - 1)) == 0), "Align must be power of 2" );
 
-		StaticAssert( ((align & (align - 1)) == 0), "Align must be power of 2" );
+		return (usize(ptr) & (Align-1)) == 0;
+	}
 
-		return (usize(ptr) & (align-1)) == 0;
+	template <typename R, typename T>
+	NdCx__ bool  CheckPointerAlignment (T const* ptr) __NE___
+	{
+		return CheckPointerAlignment< alignof(R) >( ptr );
 	}
 
 /*
@@ -35,7 +39,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	cxx20_constexpr void  CheckPointerCast (T const* ptr) __NE___
+	__Cz__ void  CheckPointerCast (T const* ptr) __NE___
 	{
 	#ifdef AE_DEBUG
 		if constexpr( not IsVoid<R> and not IsConstEvaluated() )
@@ -58,9 +62,12 @@ namespace AE::Base
 =================================================
 */
 	template <usize Align, typename T>
-	ND_ constexpr T*  AssumeAligned (T* ptr) __NE___
+	NdCz__ T*  AssumeAligned (T* ptr) __NE___
 	{
-		ASSERT( CheckPointerAlignment( ptr, Align ));
+		ASSERT( CheckPointerAlignment< Align >( ptr ));
+		if constexpr( not IsVoid<T> )
+			StaticAssert( alignof(T) <= Align );
+
 		#ifdef __cpp_lib_assume_aligned
 			return std::assume_aligned<Align>( ptr );
 		#else
@@ -74,7 +81,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	ND_ constexpr R const*  Cast (T const* value) __NE___
+	NdCx__ R const*  Cast (T const* value) __NE___
 	{
 		StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
 		CheckPointerCast<R>( value );
@@ -86,7 +93,7 @@ namespace AE::Base
 	}
 
 	template <typename R, typename T>
-	ND_ constexpr R*  Cast (T* value) __NE___
+	NdCx__ R*  Cast (T* value) __NE___
 	{
 		StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
 		CheckPointerCast<R>( value );
@@ -98,25 +105,25 @@ namespace AE::Base
 	}
 
 	template <typename R, typename T>
-	ND_ constexpr Ptr<R const>  Cast (Ptr<T const> value) __NE___
+	NdCx__ Ptr<R const>  Cast (Ptr<T const> value) __NE___
 	{
 		return Cast<R>( value.get() );
 	}
 
 	template <typename R, typename T>
-	ND_ constexpr Ptr<R>  Cast (Ptr<T> value) __NE___
+	NdCx__ Ptr<R>  Cast (Ptr<T> value) __NE___
 	{
 		return Cast<R>( value.get() );
 	}
 
 	template <typename R, typename T>
-	ND_ constexpr R*  Cast (const Unique<T> &value) __NE___
+	NdCx__ R*  Cast (const Unique<T> &value) __NE___
 	{
 		return Cast<R>( value.get() );
 	}
 
 	template <typename R, typename T>
-	ND_ constexpr Unique<R>  Cast (Unique<T> &&value) __NE___
+	NdCx__ Unique<R>  Cast (Unique<T> &&value) __NE___
 	{
 		return Unique<R>{ Cast<R>( value.release() )};
 	}
@@ -145,13 +152,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	ND_ constexpr R const&  RefCast (T const &value) __NE___
+	NdCx__ R const&  RefCast (T const &value) __NE___
 	{
 		return *Cast<R>( &value );
 	}
 
 	template <typename R, typename T>
-	ND_ constexpr R&  RefCast (T &value) __NE___
+	NdCx__ R&  RefCast (T &value) __NE___
 	{
 		return *Cast<R>( &value );
 	}
@@ -162,13 +169,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename Rep, typename Period, ENABLEIF( IsDuration<To> )>
-	ND_ constexpr To  TimeCast (const std::chrono::duration<Rep, Period> value) __NE___
+	NdCx__ To  TimeCast (const std::chrono::duration<Rep, Period> value) __NE___
 	{
 		return std::chrono::duration_cast<To>( value );
 	}
 
 	template <typename ToDuration, typename Clock, typename Duration, ENABLEIF( IsDuration<ToDuration> )>
-	ND_ constexpr std::chrono::time_point<Clock, ToDuration>  TimeCast (const std::chrono::time_point<Clock, Duration> value) __NE___
+	NdCx__ std::chrono::time_point<Clock, ToDuration>  TimeCast (const std::chrono::time_point<Clock, Duration> value) __NE___
 	{
 		return std::chrono::time_point_cast<ToDuration>( value );
 	}
@@ -180,25 +187,25 @@ namespace AE::Base
 */
 #ifdef AE_ENABLE_RTTI
 	template <typename R, typename T>
-	ND_ constexpr R const*  DynCast (T const* value) __NE___
+	NdCx__ R const*  DynCast (T const* value) __NE___
 	{
 		return dynamic_cast< R const *>( value );
 	}
 
 	template <typename R, typename T>
-	ND_ constexpr R*  DynCast (T* value) __NE___
+	NdCx__ R*  DynCast (T* value) __NE___
 	{
 		return dynamic_cast< R *>( value );
 	}
 
 	template <typename R, typename T>
-	ND_ constexpr Ptr<R const>  DynCast (Ptr<T const> value) __NE___
+	NdCx__ Ptr<R const>  DynCast (Ptr<T const> value) __NE___
 	{
 		return DynCast<R>( value.operator->() );
 	}
 
 	template <typename R, typename T>
-	ND_ constexpr Ptr<R>  DynCast (Ptr<T> value) __NE___
+	NdCx__ Ptr<R>  DynCast (Ptr<T> value) __NE___
 	{
 		return DynCast<R>( value.operator->() );
 	}
@@ -237,11 +244,11 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ constexpr To  BitCast (const From& src) __NE___
+	NdCx__ To  BitCast (const From& src) __NE___
 	{
 		StaticAssert( sizeof(To) == sizeof(From), "must be same size!" );
 		StaticAssert( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
-		//StaticAssert( not IsSameTypes< To, From >);	// to find unnecessary cast
+		//StaticAssert( not IsSame< To, From >);	// to find unnecessary cast
 
 	  #ifdef __cpp_lib_bit_cast
 		if constexpr( std::is_trivially_copyable_v<From> and std::is_trivially_copyable_v<To> )
@@ -264,11 +271,11 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ constexpr To  BitCastRlx (const From& src) __NE___
+	NdCx__ To  BitCastRlx (const From& src) __NE___
 	{
 		//StaticAssert( sizeof(From) <= sizeof(To), "cast will loose data!" );
 		StaticAssert( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
-		//StaticAssert( not IsSameTypes< To, From >);	// to find unnecessary cast
+		//StaticAssert( not IsSame< To, From >);	// to find unnecessary cast
 
 	  #ifdef __cpp_lib_bit_cast
 		if constexpr( sizeof(To) == sizeof(From) and std::is_trivially_copyable_v<From> and std::is_trivially_copyable_v<To> )
@@ -280,6 +287,21 @@ namespace AE::Base
 			std::memcpy( OUT &dst, &src, std::min( sizeof(From), sizeof(To) ));
 			return dst;
 		}
+	}
+
+/*
+=================================================
+	BitCastPtr
+=================================================
+*/
+	template <typename To, typename From>
+	NdCx__ To  BitCastPtr (const From* src) __NE___
+	{
+		StaticAssert( (IsVoid<From> or IsMemCopyAvailable<From>) and IsMemCopyAvailable<To>, "must be trivial types!" );
+
+		To	dst;
+		std::memcpy( OUT &dst, src, sizeof(To) );
+		return dst;
 	}
 
 /*
@@ -299,17 +321,20 @@ namespace AE::Base
 #endif
 
 	template <typename To, typename From>
-	ND_ constexpr To  CheckCast (const From &src) __NE___
+	NdCx__ To  CheckCast (const From &src) __NE___
 	{
-		if constexpr( IsSigned<From> and IsUnsigned<To> )
-			ASSERT( src >= From(0) );
+		StaticAssert( IsAnyInteger<To> );
+		StaticAssert( IsAnyInteger<From> );
 
-		ASSERT( static_cast<From>(static_cast<To>(src)) == src );
+		if constexpr( IsSigned<From> and IsUnsigned<To> )
+			ASSERT_Cx( src >= From(0) );
+
+		ASSERT_Cx( static_cast<From>(static_cast<To>(src)) == src );
 		return static_cast<To>(src);
 	}
 
 	template <typename To, typename From>
-	ND_ constexpr bool  CheckCast (OUT To &dst, const From &src) __NE___
+	NdCx__ bool  CheckCast (OUT To &dst, const From &src) __NE___
 	{
 		dst = static_cast<To>(src);
 		return static_cast<From>(static_cast<To>(src)) == src;
@@ -328,8 +353,9 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ constexpr To  LimitCast (const From& src) __NE___
+	NdCx__ To  LimitCast (const From& src) __NE___
 	{
+		StaticAssert( IsAnyInteger<To> and IsAnyInteger<From> );
 		StaticAssert( MaxValue<From>() >= MaxValue<To>() );
 
 		if constexpr( IsSigned<From> and IsUnsigned<To> )
@@ -354,13 +380,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ constexpr T*  ConstCast (const T* ptr) __NE___
+	NdCx__ T*  ConstCast (const T* ptr) __NE___
 	{
 		return const_cast<T*>( ptr );
 	}
 
 	template <typename T>
-	ND_ constexpr T&  ConstCast (const T& ref) __NE___
+	NdCx__ T&  ConstCast (const T& ref) __NE___
 	{
 		return const_cast<T &>( ref );
 	}

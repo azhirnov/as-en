@@ -5,7 +5,7 @@
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	define SH_RAY_GEN
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define HIT_GROUP_0
 #	define HIT_GROUP_1
 #endif

@@ -38,8 +38,8 @@ namespace _hidden_
 		Synchronized_ConstPtr (SyncObj &sync, T &ref)	__NE___ : _sync{sync}, _ref{ref} { _sync.lock_shared(); }
 		~Synchronized_ConstPtr ()						__NE___	{ _sync.unlock_shared(); }
 
-		T const*  operator -> ()						C_NE___	{ return &_ref; }
-		T const&  operator *  ()						C_NE___	{ return _ref; }
+		T const*  operator -> ()						__NE___	{ return &_ref; }
+		T const&  operator *  ()						r_NE___	{ return _ref; }
 	};
 
 
@@ -68,7 +68,7 @@ namespace _hidden_
 		~Synchronized_MutablePtr ()						__NE___	{ _sync.unlock(); }
 
 		T *  operator -> ()								__NE___	{ return &_ref; }
-		T &  operator *  ()								__NE___	{ return _ref; }
+		T &  operator *  ()								r_NE___	{ return _ref; }
 	};
 
 } // _hidden_
@@ -102,7 +102,7 @@ namespace _hidden_
 		using Tuple_t		= typename ValueTypes_t::AsTuple::type;
 
 		template <typename T>
-		ND_ static constexpr usize  _IndexOf () __NE___
+		NdCx__ static usize  _IndexOf () __NE___
 		{
 			if constexpr( ValueTypes_t::template HasType<T> )
 			{
@@ -247,8 +247,7 @@ namespace _hidden_
 		~Synchronized ()					__NE___
 		{
 		  DEBUG_ONLY(
-			CHECK( _sync.try_lock() );	// must be unlocked
-			_sync.unlock();
+			CHECK( DeferExLock{_sync}.try_lock() );	// must be unlocked
 		)}
 
 
@@ -506,8 +505,7 @@ namespace _hidden_
 		~Synchronized ()						__NE___
 		{
 		  DEBUG_ONLY(
-			CHECK( _sync.try_lock() );	// must be unlocked
-			_sync.unlock();
+			CHECK( DeferExLock{_sync}.try_lock() );	// must be unlocked
 		)}
 
 

@@ -101,6 +101,14 @@ namespace
 				CmpEvents({ Event::LockShared, Event::ObjCopyCtor, Event::UnlockShared, Event::ObjGet });
 			}
 
+		  #if 0
+			{
+				auto&	p = *obj.Ptr();		// error
+				TEST( p.Get() == 1 );
+			}
+			CmpEvents({ Event::Lock, Event::ObjGet, Event::Unlock });
+		  #endif
+
 			obj->Set( 2 );
 			CmpEvents({ Event::Lock, Event::ObjSet, Event::Unlock });
 
@@ -137,8 +145,10 @@ namespace
 			}
 			CmpEvents({ Event::LockShared, Event::ObjGet, Event::ObjGet, Event::UnlockShared });
 
-			// error
-			//for (auto& item : *arr.ReadLock()) {}
+		  #if 0
+			for (auto& item : *arr.ReadLock()) // error
+			{}
+		  #endif
 
 			arr->clear();
 		}

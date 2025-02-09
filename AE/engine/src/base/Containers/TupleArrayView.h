@@ -78,15 +78,15 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr TupleArrayView ()												__NE___ {}
-		explicit constexpr TupleArrayView (usize count)							__NE___ : _count{ count } {}
+		__Cx__ TupleArrayView ()									__NE___ {}
+		__Cx__ explicit TupleArrayView (usize count)				__NE___ : _count{ count } {}
 
-		explicit constexpr TupleArrayView (usize count, const Types* ...args)	__NE___ :
+		__Cx__ explicit TupleArrayView (usize count, const Types* ...args)	__NE___ :
 			_count{ count },
 			_arrays{ ArrayPtr<Types>{args} ... }
 		{}
 
-		explicit constexpr TupleArrayView (ArrayView<Types> ...args)			__NE___
+		__Cz__ explicit TupleArrayView (ArrayView<Types> ...args)	__NE___
 		{
 			_InitCount( args... );
 			if_unlikely( not _InitPtr<0>( args... ))
@@ -94,75 +94,75 @@ namespace AE::Base
 		}
 
 		template <usize S>
-		explicit constexpr TupleArrayView (const FixedTupleArray<S,Types...> &arr) __NE___ : _count{arr.size()} { _InitArr<0>( arr ); }
+		__Cx__ explicit TupleArrayView (const FixedTupleArray<S,Types...> &arr) __NE___ : _count{arr.size()} { _InitArr<0>( arr ); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr ArrayView<T>		get ()							C_NE___	{ auto* ptr = data<I>();  return ArrayView<T>{ ptr, ptr ? _count : 0 }; }
+		NdCx__ ArrayView<T>		get ()							C_NE___	{ auto* ptr = data<I>();  return ArrayView<T>{ ptr, ptr ? _count : 0 }; }
 
 		template <typename T>
-		ND_ constexpr ArrayView<T>		get ()							C_NE___	{ return get< Types_t::template Index<T>, T >(); }
+		NdCx__ ArrayView<T>		get ()							C_NE___	{ return get< Types_t::template Index<T>, T >(); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ constexpr const T*			data ()							C_NE___	{ return _Data<I>(); }
+		NdCx__ const T*			data ()							C_NE___	{ return _Data<I>(); }
 
 		template <typename T>
-		ND_ constexpr const T*			data ()							C_NE___	{ return data< Types_t::template Index<T>, T >(); }
+		NdCx__ const T*			data ()							C_NE___	{ return data< Types_t::template Index<T>, T >(); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		ND_ T const&					at (usize i)					C_NE___	{ ASSERT( i < _count );  return _Data<I>()[i]; }
+		NdCz__ T const&			at (usize i)					C_NE___	{ ASSERT( i < _count );  return _Data<I>()[i]; }
 
 		template <typename T>
-		ND_ T const&					at (usize i)					C_NE___	{ return at< Types_t::template Index<T>, T >( i ); }
+		NdCz__ T const&			at (usize i)					C_NE___	{ return at< Types_t::template Index<T>, T >( i ); }
 
 		template <typename T>
-			constexpr void				set (const T* ptr)				__NE___	{ set< Types_t::template Index<T>, T >( ptr ); }
+		__Cx__ void				set (const T* ptr)				__NE___	{ set< Types_t::template Index<T>, T >( ptr ); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-			constexpr void				set (const T* ptr)				__NE___	{ _arrays.template Get<I>().ptr = ptr; }
+		__Cx__ void				set (const T* ptr)				__NE___	{ _arrays.template Get<I>().ptr = ptr; }
 
 		template <typename T>
-			constexpr void				set (ArrayView<T> arr)			__NE___	{ set< Types_t::template Index<T>, T >( arr ); }
+		__Cx__ void				set (ArrayView<T> arr)			__NE___	{ set< Types_t::template Index<T>, T >( arr ); }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-			constexpr void				set (ArrayView<T> arr)			__NE___	{ ASSERT( arr.empty() or arr.size() == size() );  _arrays.template Get<I>().ptr = arr.data(); }
+		__Cz__ void				set (ArrayView<T> arr)			__NE___	{ ASSERT( arr.empty() or arr.size() == size() );  _arrays.template Get<I>().ptr = arr.data(); }
 
 		template <usize I>
-		ND_ constexpr usize				size ()							C_NE___	{ return _Data<I>() != null ? _count : 0; }
+		NdCx__ usize			size ()							C_NE___	{ return _Data<I>() != null ? _count : 0; }
 
 		template <typename T>
-		ND_ constexpr usize				size ()							C_NE___	{ return size< Types_t::template Index<T> >(); }
+		NdCx__ usize			size ()							C_NE___	{ return size< Types_t::template Index<T> >(); }
 
 		template <usize I>
-		ND_ constexpr bool				empty ()						C_NE___	{ return size<I>() == 0; }
+		NdCx__ bool				empty ()						C_NE___	{ return size<I>() == 0; }
 
 		template <typename T>
-		ND_ constexpr bool				empty ()						C_NE___	{ return size<T>() == 0; }
+		NdCx__ bool				empty ()						C_NE___	{ return size<T>() == 0; }
 
-		ND_ constexpr bool				AllNonNull ()					C_NE___	{ return _AllNonNull<0>(); }
+		NdCx__ bool				AllNonNull ()					C_NE___	{ return _AllNonNull<0>(); }
 
-		ND_ constexpr usize				size ()							C_NE___	{ return _count; }
-		ND_ constexpr bool				empty ()						C_NE___	{ return _count == 0; }
+		NdCx__ usize			size ()							C_NE___	{ return _count; }
+		NdCx__ bool				empty ()						C_NE___	{ return _count == 0; }
 
-		ND_ constexpr const_iterator	begin ()						C_NE___	{ return const_iterator{ this, 0 }; }
-		ND_ constexpr const_iterator	end ()							C_NE___	{ return begin() + _count; }
+		NdCx__ const_iterator	begin ()						C_NE___	{ return const_iterator{ this, 0 }; }
+		NdCx__ const_iterator	end ()							C_NE___	{ return begin() + _count; }
 
-		ND_ constexpr CResult_t			operator [] (usize index)		C_NE___;
+		NdCx__ CResult_t		operator [] (usize index)		C_NE___;
 
-		ND_ constexpr bool				operator == (const Self &rhs)	C_NE___;
-		ND_ constexpr bool				operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
+		NdCx__ bool				operator == (const Self &rhs)	C_NE___;
+		NdCx__ bool				operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
 
 
 	private:
-		template <usize I>	ND_ constexpr auto*	 _Data ()				C_NE___	{ return _arrays.template Get<I>().ptr; }
-		template <usize I>	ND_ constexpr auto*	 _Data ()				__NE___	{ return _arrays.template Get<I>().ptr; }
+		template <usize I>	NdCx__ auto*	 _Data ()			C_NE___	{ return _arrays.template Get<I>().ptr; }
+		template <usize I>	NdCx__ auto*	 _Data ()			__NE___	{ return _arrays.template Get<I>().ptr; }
 
 		template <typename Arg0, typename ...Args>
-		constexpr void  _InitCount (Arg0 arg0, Args ...args)			__NE___
+		__Cx__ void  _InitCount (Arg0 arg0, Args ...args)		__NE___
 		{
 			_count = Max( _count, arg0.size() );
 
@@ -171,7 +171,7 @@ namespace AE::Base
 		}
 
 		template <usize I, typename Arg0, typename ...Args>
-		ND_ constexpr bool  _InitPtr (Arg0 arg0, Args ...args)			__NE___
+		NdCz__ bool  _InitPtr (Arg0 arg0, Args ...args)			__NE___
 		{
 			if_unlikely( not (arg0.empty() or arg0.size() == _count) )
 			{
@@ -187,7 +187,7 @@ namespace AE::Base
 		}
 
 		template <usize I, usize S>
-		constexpr void  _InitArr (const FixedTupleArray<S,Types...> &arr) __NE___
+		__Cx__ void  _InitArr (const FixedTupleArray<S,Types...> &arr) __NE___
 		{
 			_arrays.template Get<I>() = arr.template data<I>();
 
@@ -196,7 +196,7 @@ namespace AE::Base
 		}
 
 		template <usize I>
-		ND_ constexpr bool  _AllNonNull ()								C_NE___
+		NdCx__ bool  _AllNonNull ()								C_NE___
 		{
 			bool	non_null = data<I>() != null;
 
@@ -207,7 +207,7 @@ namespace AE::Base
 		}
 
 		template <usize I>
-		ND_ constexpr bool  _Equal (const Self &rhs)					C_NE___;
+		NdCx__ bool  _Equal (const Self &rhs)					C_NE___;
 	};
 
 
@@ -217,7 +217,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename ...Types>
-	constexpr bool  TupleArrayView<Types...>::operator == (const Self &rhs) C_NE___
+	__Cx__ bool  TupleArrayView<Types...>::operator == (const Self &rhs) C_NE___
 	{
 		if ( _count != rhs._count )
 			return false;
@@ -227,7 +227,7 @@ namespace AE::Base
 
 	template <typename ...Types>
 	template <usize I>
-	constexpr bool  TupleArrayView<Types...>::_Equal (const Self &rhs) C_NE___
+	__Cx__ bool  TupleArrayView<Types...>::_Equal (const Self &rhs) C_NE___
 	{
 		if_unlikely( get<I>() != rhs.get<I>() )
 			return false;

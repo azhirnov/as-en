@@ -11,7 +11,7 @@ namespace
 //-----------------------------------------------------------------------------
 
 
-	struct Test1_SharedData
+	struct AMTest1_SharedData
 	{
 		AsyncMutex		mutex;
 		Mutex			mutexCheck;
@@ -22,30 +22,30 @@ namespace
 	};
 
 
-	class Test1_Task : public IAsyncTask
+	class AMTest1_Task : public IAsyncTask
 	{
 	public:
-		Test1_SharedData&	data;
-		uint				counter	= 0;
+		AMTest1_SharedData&		data;
+		uint					counter	= 0;
 
-		Test1_Task (Test1_SharedData &d) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, data{d} {}
+		AMTest1_Task (AMTest1_SharedData &d) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, data{d} {}
 
 		void  Run () __Th_OV
 		{
 			{
 				ASYNC_EXLOCK( data.mutex );
-				CHECK_TE( data.mutexCheck.try_lock() );
+				TEST( data.mutexCheck.try_lock() );
 
 				++data.counter;
 
 				data.mutexCheck.unlock();
 			}
 
-			if ( ++counter < Test1_SharedData::repeat_count )
+			if ( ++counter < AMTest1_SharedData::repeat_count )
 				return Continue();
 		}
 
-		StringView  DbgName () C_NE_OV { return "Test1_Task"; }
+		StringView  DbgName () C_NE_OV { return "AMTest1_Task"; }
 	};
 
 
@@ -56,18 +56,18 @@ namespace
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-		Test1_SharedData	data;
+		AMTest1_SharedData	data;
 		Array<AsyncTask>	tasks;
 
-		for (uint i = 0; i < Test1_SharedData::task_count; ++i)
+		for (uint i = 0; i < AMTest1_SharedData::task_count; ++i)
 		{
-			tasks.push_back( scheduler->Run<Test1_Task>( Tuple{ArgRef(data)} ));
+			tasks.push_back( scheduler->Run<AMTest1_Task>( Tuple{ArgRef(data)} ));
 		}
 
 		TEST( scheduler->Wait( tasks, c_MaxTimeout ));
 
 		TEST( not data.mutex.IsLocked() );
-		TEST( data.counter == (data.repeat_count * data.task_count) );
+		TEST_Eq( data.counter, data.repeat_count * data.task_count );
 
 		for (auto& task : tasks) {
 			TEST( task->Status() == EStatus::Completed );

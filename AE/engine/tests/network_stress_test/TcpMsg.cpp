@@ -57,7 +57,7 @@ namespace
 
 
 	class MsgProducer final :
-		public AsyncCSMessageProducer< LfLinearAllocator< usize{32_Mb}, usize{8_b}, 4 >>
+		public AsyncCSMessageProducer< LfLinearAllocator< usize{32_MiB}, usize{8_b}, 4 >>
 	{
 	public:
 		EnumSet<EChannel>  GetChannels ()	C_NE_OV	{ return {EChannel::Reliable}; }

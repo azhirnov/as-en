@@ -11,6 +11,7 @@
 #include "profiler/Impl/MemoryProfiler.h"
 #include "profiler/Impl/TaskProfiler.h"
 #include "profiler/Impl/HwpcProfiler.h"
+#include "profiler/Impl/LogWindow.h"
 
 namespace AE::Profiler
 {
@@ -39,6 +40,8 @@ namespace AE::Profiler
 		RC<MemoryProfiler>		_memory;
 		Unique<HwpcProfiler>	_hwpcProf;
 
+		LogWindow::WeakPtr		_logWindow;
+
 		RC<MsgProducer>			_msgProducer;
 		RC<MsgConsumer>			_msgConsumer;
 	  #endif
@@ -50,6 +53,7 @@ namespace AE::Profiler
 		~ProfilerUI ();
 
 		ND_ bool  Initialize (Ptr<Networking::ClientServerBase>);
+		ND_ bool  InitLogWindow ();
 			void  Deinitialize ();
 
 		ND_ bool  IsInitialized () const;

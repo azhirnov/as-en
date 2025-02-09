@@ -24,6 +24,17 @@ namespace AE::UI
 	AE_BIT_OPERATORS( EStyleState );
 
 
+	enum class EStyleIndex : ubyte
+	{
+		Disabled,
+		Enabled,
+		MouseOver,
+		TouchDown,
+		Selected,
+		_Count
+	};
+
+
 	enum class EStackOrigin : ubyte
 	{
 		Left,		// horizontal stack, from left to right
@@ -48,10 +59,12 @@ namespace AE::UI
 		Unknown		= 0,
 		Left		= 1 << 0,
 		Right		= 1 << 1,
-		Bottom		= 1 << 2,
-		Top			= 1 << 3,
-		CenterX		= 1 << 4,
+		CenterX		= 1 << 2,
+		Bottom		= 1 << 3,
+		Top			= 1 << 4,
 		CenterY		= 1 << 5,
+		_Last,
+		_All		= ((_Last - 1) << 1) - 1,
 
 		FillX		= Left | Right,
 		FillY		= Bottom | Top,
@@ -69,6 +82,28 @@ namespace AE::UI
 		Top,
 		_Count
 	};
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	StyleStateToIndex
+=================================================
+*/
+	NdCx__ EStyleIndex  StyleStateToIndex (const EStyleState state) __NE___
+	{
+		switch ( state )
+		{
+			case EStyleState::Selected :							return EStyleIndex::Selected;
+			case EStyleState::Selected | EStyleState::MouseOver :	return EStyleIndex::Selected;
+			case EStyleState::Selected | EStyleState::TouchDown :	return EStyleIndex::Selected;
+			case EStyleState::MouseOver :							return EStyleIndex::MouseOver;
+			case EStyleState::TouchDown :							return EStyleIndex::TouchDown;
+			case EStyleState::Disabled :							return EStyleIndex::Disabled;
+		}
+		return EStyleIndex::Enabled;
+	}
 
 
 } // AE::UI

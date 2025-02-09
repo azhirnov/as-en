@@ -14,7 +14,7 @@
 #include "scripting/Impl/ScriptFn.h"
 #include "scripting/Bindings/CoreBindings.h"
 
-#include "graphics/Scripting/GraphicsBindings.h"
+#include "graphics_rhi/Scripting/GraphicsBindings.h"
 
 #include "ScriptObjects/ObjectStorage.h"
 
@@ -168,11 +168,12 @@ namespace
 	LoadPipelines
 =================================================
 */
-	ND_ static bool  LoadPipelines (ObjectStorage &storage, const ScriptEnginePtr &scriptEngine, const Array<Path> &pipelines, ArrayView<Path> includeDirs)
+	ND_ static bool  LoadPipelines (ObjectStorage &storage, const ScriptEnginePtr &scriptEngine, const Array<Path> &pipelines,
+									ArrayView<Path> includeDirs, bool includeCurrentDir)
 	{
 		for (auto& path : pipelines)
 		{
-			CHECK_ERR( storage.CompilePipeline( scriptEngine, path, includeDirs ));
+			CHECK_ERR( storage.CompilePipeline( scriptEngine, path, includeDirs, includeCurrentDir ));
 		}
 
 		CHECK_ERR( storage.BuildRenderTechniques() );
@@ -187,10 +188,10 @@ namespace
 	ND_ bool  CompilePipelinesImpl (const PipelinesInfo* info)
 	{
 		CHECK_ERR( info != null );
-		CHECK_ERR( (info->shaderIncludeDirCount > 0) == (info->shaderIncludeDirs != null) );
-		CHECK_ERR( (info->pipelineIncludeDirCount > 0) == (info->pipelineIncludeDirs != null) );
-		CHECK_ERR( (info->inPipelineCount > 0) == (info->inPipelines != null) );
-		CHECK_ERR( (info->shaderFolderCount > 0) == (info->shaderFolders != null) );
+		CHECK_ERR( (info->shaderIncludeDirCount > 0)	== (info->shaderIncludeDirs != null) );
+		CHECK_ERR( (info->pipelineIncludeDirCount > 0)	== (info->pipelineIncludeDirs != null) );
+		CHECK_ERR( (info->inPipelineCount > 0)			== (info->inPipelines != null) );
+		CHECK_ERR( (info->shaderFolderCount > 0)		== (info->shaderFolders != null) );
 		CHECK_ERR( info->outputPackName != null );
 
 		ScriptEnginePtr		script_engine = MakeRC<ScriptEngine>();
@@ -208,6 +209,7 @@ namespace
 
 			obj_storage.pplnStorage		= &ppln_storage;
 			obj_storage.shaderFolders	= RVRef(shader_dirs);
+			obj_storage.searchShadersInPipelineDir = AllBits( info->flags, EPipelineCompilerFlags::SearchShadersInCurrentDir );
 
 		  #ifdef AE_METAL_TOOLS
 			obj_storage.metalCompiler	= MakeUnique<MetalCompiler>( shader_include_dirs );
@@ -225,11 +227,12 @@ namespace
 
 		NOTHROW_ERR( ObjectStorage::Bind( script_engine ));
 
-		CHECK_ERR( LoadPipelines( obj_storage, script_engine, pipelines, ppln_include_dirs ));
+		CHECK_ERR( LoadPipelines( obj_storage, script_engine, pipelines, ppln_include_dirs,
+								  AllBits( info->flags, EPipelineCompilerFlags::IncludePipelinesFromCurrentDir ) ));
 
 		CHECK_ERR_MSG( not obj_storage.HasHashCollisions(), "Hash collision detected!" );
 
-		CHECK_ERR( obj_storage.SavePack( pack_fname, info->addNameMapping ));
+		CHECK_ERR( obj_storage.SavePack( pack_fname, AllBits( info->flags, EPipelineCompilerFlags::AddNameMapping )));
 
 		if ( not cpp_structs_fname.empty() )
 			CHECK_ERR( obj_storage.SaveCppStructs( cpp_structs_fname ));

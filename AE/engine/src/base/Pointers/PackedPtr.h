@@ -65,9 +65,9 @@ namespace AE::Base
 		ND_ usize		Extra ()						C_NE___	{ return _value >> _PtrBits; }
 			void		SetExtra (usize value)			__NE___;
 
-		ND_ static constexpr usize		ExtraBits ()	__NE___	{ return _ExtraBits; }
-		ND_ static constexpr usize		ExtraMax ()		__NE___	{ return _ExtraMax; }
-		ND_ static constexpr POTBytes	Align ()		__NE___	{ return POTBytes{ PowerOfTwo{ _AlignPOT }}; }
+		NdCx__ static usize		ExtraBits ()			__NE___	{ return _ExtraBits; }
+		NdCx__ static usize		ExtraMax ()				__NE___	{ return _ExtraMax; }
+		NdCx__ static POTBytes	Align ()				__NE___	{ return POTBytes{ PowerOfTwo{ _AlignPOT }}; }
 	};
 
 

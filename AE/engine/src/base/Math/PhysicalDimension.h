@@ -4,7 +4,7 @@
 
 #include "base/Math/Fractional.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -152,7 +152,7 @@ namespace AE::Math
 			CT_True {};
 	}
 	template <typename T>
-	static constexpr bool	IsPhysicalDimension = Math::_hidden_::_IsPhysicalDimension<T>::value;
+	static constexpr bool	IsPhysicalDimension = Base::_hidden_::_IsPhysicalDimension<T>::value;
 
 
 
@@ -180,6 +180,7 @@ namespace AE::Math
 		using CubicMeter				= Meter::Pow< 3 >;										// m^3
 		using MeterPerSecond			= Meter::Div< Second >;									// m / s
 		using MeterPerSquareSecond		= MeterPerSecond::Div< Second >;						// m / s^2
+		using MeterPerCubeSecond		= MeterPerSquareSecond::Div< Second >;					// m / s^3
 		using KilogramPerSecond			= Kilogram::Div< Second >;								// kg / s
 		using KilogramMeterPerSecond	= MeterPerSecond::Mul< Kilogram >;						// kg * m / s
 		using KilogramPerCubicMeter		= Kilogram::Div< CubicMeter >;							// kg / m^3
@@ -279,4 +280,4 @@ namespace AE::Math
 	static constexpr bool	IsSameDimensions		= T1::Dimension_t::template Equal< typename T2::Dimension_t >;
 
 
-} // AE::Math
+} // AE::Base

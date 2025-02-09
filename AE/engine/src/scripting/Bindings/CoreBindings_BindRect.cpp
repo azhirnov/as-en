@@ -57,7 +57,6 @@ namespace
 			binder.AddProperty( &Rect_t::right,		"right"		);
 			binder.AddProperty( &Rect_t::bottom,	"bottom"	);
 
-			binder.AddConstructor( &Rect_Ctor1,	{"value"} );
 			binder.AddConstructor( &Rect_Ctor2,	{"value"} );
 			binder.AddConstructor( &Rect_Ctor3,	{"leftTop", "rightBottom"} );
 			binder.AddConstructor( &Rect_Ctor4,	{"sizeX", "sizeY"} );

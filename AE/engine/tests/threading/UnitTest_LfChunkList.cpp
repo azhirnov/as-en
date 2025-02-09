@@ -10,20 +10,17 @@ namespace
 
 		T::ClearStatistic();
 		{
-			UntypedAllocator	alloc;
-			LfChunkList<T,31>	list;
-			uint				i	= 0;
-
-			TEST( list.Init( alloc ));
+			LfChunkList<T,31,UntypedAllocator>	list;
+			uint	i	= 0;
 
 			for (uint j = 0; j < 10; ++j)
 			{
 				for (uint a = 0; a < 31; ++a) {
-					TEST( list.Emplace( alloc, T{++i} ));
+					TEST( list.Emplace( T{++i} ));
 				}
 			}
 
-			list.Destroy( alloc );
+			list.Destroy();
 		}
 		TEST( T::CheckStatistic() );
 	}

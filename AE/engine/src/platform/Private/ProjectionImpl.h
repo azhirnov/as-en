@@ -38,8 +38,8 @@ namespace AE::App
 		{
 			for (uint x = 0; x < grid.Dimension().x; ++x)
 			{
-				float4	ray{	(float(x) / (grid.Dimension().x - 1)) * 2.0f - 1.0f,
-								(float(y) / (grid.Dimension().y - 1)) * 2.0f - 1.0f,
+				float4	ray{	ToSNorm( float(x) / (grid.Dimension().x - 1) ),
+								ToSNorm( float(y) / (grid.Dimension().y - 1) ),
 								-1.0f,
 								0.0f };
 

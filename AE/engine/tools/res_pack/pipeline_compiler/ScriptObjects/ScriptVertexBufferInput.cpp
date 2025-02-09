@@ -328,26 +328,25 @@ namespace
 	Get
 =================================================
 */
-	bool  ScriptVertexBufferInput::Get (OUT ArrayView<VertexInput> &vertexInput, OUT ArrayView<VertexBuffer> &vertexBuffers) const
+	bool  ScriptVertexBufferInput::Get (OUT Array<VertexInput> &vertexInput, OUT Array<VertexBuffer> &vertexBuffers) const
 	{
-		Array<VertexInput>	temp_vi;
-		Array<VertexBuffer>	temp_vb;
-
-		temp_vb.resize( _buffers.size() );
+		vertexInput.clear();
+		vertexBuffers.clear();
+		vertexBuffers.resize( _buffers.size() );
 
 		for (auto& [name, vb] : _buffers)
 		{
 			uint	loc = vb.glslLoc;
-			vb.ptr->GetVertexInput( loc, INOUT temp_vi );
+			vb.ptr->GetVertexInput( loc, INOUT vertexInput );
 			vb.ptr->AddUsage( ShaderStructType::EUsage::VertexLayout );
 
-			for (auto& vi : temp_vi)
+			for (auto& vi : vertexInput)
 			{
 				if ( vi.bufferBinding == UMax )
 					vi.bufferBinding = vb.index;
 			}
 
-			auto&	dst		= temp_vb[ vb.index ];
+			auto&	dst		= vertexBuffers[ vb.index ];
 			dst.index		= vb.index;
 			dst.name		= VertexBufferName::Optimized_t{ name };
 			dst.typeName	= ShaderStructName{ vb.ptr->Typename() };
@@ -356,8 +355,22 @@ namespace
 			dst.divisor		= vb.divisor;
 		}
 
-		CHECK_ERR( not temp_vi.empty() );
-		CHECK_ERR( not temp_vb.empty() );
+		CHECK_ERR( not vertexInput.empty() );
+		CHECK_ERR( not vertexBuffers.empty() );
+		return true;
+	}
+
+/*
+=================================================
+	Get
+=================================================
+*/
+	bool  ScriptVertexBufferInput::Get (OUT ArrayView<VertexInput> &vertexInput, OUT ArrayView<VertexBuffer> &vertexBuffers) const
+	{
+		Array<VertexInput>	temp_vi;
+		Array<VertexBuffer>	temp_vb;
+
+		CHECK_ERR( Get( OUT temp_vi, OUT temp_vb ));
 
 		auto&	storage = *ObjectStorage::Instance();
 

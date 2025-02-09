@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -20,9 +20,9 @@
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 			ds.UniformBuffer( EShaderStages::AllGraphics,	"un_PerObject",	"SphericalCubeMaterialUB" );
-			ds.CombinedImage( EShaderStages::Fragment,		"un_HeightMap",	EImageType::FImageCube, Sampler_LinearRepeat );
-			ds.CombinedImage( EShaderStages::Fragment,		"un_NormalMap",	EImageType::FImageCube, Sampler_LinearRepeat );
-			ds.CombinedImage( EShaderStages::Fragment,		"un_Palette",	EImageType::FImage2D,	Sampler_LinearClamp );
+			ds.CombinedImage( EShaderStages::Fragment,		"un_HeightMap",	EImageType::Float_Cube, Sampler_LinearRepeat );
+			ds.CombinedImage( EShaderStages::Fragment,		"un_NormalMap",	EImageType::Float_Cube, Sampler_LinearRepeat );
+			ds.CombinedImage( EShaderStages::Fragment,		"un_Palette",	EImageType::Float_2D,	Sampler_LinearClamp );
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl" );
 			pl.DSLayout( "pass",	 0, "pass.ds" );
@@ -90,7 +90,7 @@
 	#include "Normal.glsl"
 	#include "Matrix.glsl"
 	#include "ReliefMapping.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 
 	ND_ float3  ReliefMapping (const float3 uv, const float3 viewDir, const float3 worldPos, const float3 lightDir)

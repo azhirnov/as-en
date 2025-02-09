@@ -115,7 +115,7 @@ namespace AE::UI
 	public:
 			virtual bool	PreInit (const PreInitParams &)							C_NE___ = 0;
 			virtual bool	Init (const InitParams &)								__NE___	= 0;
-		ND_ virtual EType	GetType ()												C_NE___ = 0;
+		ND_ virtual EType	Type ()													C_NE___ = 0;
 
 		ND_ usize			MaxChilds ()											C_NE___	{ return _maxChilds == UMax ? usize{UMax} : usize{_maxChilds}; }
 
@@ -299,14 +299,14 @@ namespace AE::UI
 	public:
 		explicit FixedLayoutTmpl (Ptr<IAllocator> alloc)			__NE___ : ILayout{alloc} {}
 
-		ND_ RectF const&	GetRegion ()							C_NE___	{ return _data->region; }
+		ND_ RectF const&	Region ()								C_NE___	{ return _data->region; }
 			void			SetRegion (const RectF &value)			__NE___	{ _data->region = value; }
 			void			Move (const float2 &delta)				__NE___	{ _data->region += delta; }
 
 		// ILayout //
 		bool	PreInit (const PreInitParams &)						C_NE_OV;
 		bool	Init (const InitParams &)							__NE_OV;
-		EType	GetType ()											C_NE_OV	{ return FLType; }
+		EType	Type ()												C_NE_OV	{ return FLType; }
 
 		bool	Serialize2 (Serializing::Serializer &)				C_NE_OV;
 		bool	Deserialize2 (Serializing::Deserializer &)			__NE_OV;
@@ -346,13 +346,13 @@ namespace AE::UI
 			void			SetPadding (float value)				__NE___	{ SetPaddingX( value, value );  SetPaddingY( value, value ); }
 			void			SetPaddingX (float left, float right)	__NE___	{ _data->x = float2{left, right}; }
 			void			SetPaddingY (float bottom, float top)	__NE___	{ _data->y = float2{bottom, top}; }
-		ND_ float2 const&	GetPaddingX ()							C_NE___	{ return _data->x; }
-		ND_ float2 const&	GetPaddingY ()							C_NE___	{ return _data->y; }
+		ND_ float2 const&	PaddingX ()								C_NE___	{ return _data->x; }
+		ND_ float2 const&	PaddingY ()								C_NE___	{ return _data->y; }
 
 		// ILayout //
 		bool	PreInit (const PreInitParams &)						C_NE_OV;
 		bool	Init (const InitParams &)							__NE_OV;
-		EType	GetType ()											C_NE_OV	{ return PLType; }
+		EType	Type ()												C_NE_OV	{ return PLType; }
 
 		bool	Serialize2 (Serializing::Serializer &)				C_NE_OV;
 		bool	Deserialize2 (Serializing::Deserializer &)			__NE_OV;
@@ -388,17 +388,17 @@ namespace AE::UI
 
 	// methods
 	public:
-		explicit AlignedLayoutTmpl (Ptr<IAllocator> alloc)			__NE___ : ILayout{alloc} {}
+		explicit AlignedLayoutTmpl (Ptr<IAllocator> alloc)			__NE___ : ILayout{ alloc, UMax } {}
 
 			void			SetSize (const float2 &value)			__NE___	{ _data->size  = value; }
 			void			SetAlign (ELayoutAlign value)			__NE___	{ _data->align = value; }
-		ND_ float2 const&	GetSize ()								C_NE___	{ return _data->size; }
-		ND_ ELayoutAlign	GetAlign ()								C_NE___	{ return _data->align; }
+		ND_ float2 const&	Size ()									C_NE___	{ return _data->size; }
+		ND_ ELayoutAlign	Align ()								C_NE___	{ return _data->align; }
 
 		// ILayout //
 		bool	PreInit (const PreInitParams &)						C_NE_OV;
 		bool	Init (const InitParams &)							__NE_OV;
-		EType	GetType () 											C_NE_OV	{ return ALType; }
+		EType	Type () 											C_NE_OV	{ return ALType; }
 
 		bool	Serialize2 (Serializing::Serializer &)				C_NE_OV;
 		bool	Deserialize2 (Serializing::Deserializer &)			__NE_OV;
@@ -457,12 +457,12 @@ namespace AE::UI
 		explicit FillStackLayout (Ptr<IAllocator> alloc)			__NE___	: ILayout{ alloc, UMax } {}
 
 			void			SetOrigin (EStackOrigin value)			__NE___	{ _data->origin = value; }
-		ND_ EStackOrigin	GetOrigin ()							C_NE___	{ return _data->origin; }
+		ND_ EStackOrigin	Origin ()								C_NE___	{ return _data->origin; }
 
 		// ILayout //
 		bool	PreInit (const PreInitParams &)						C_NE_OV;
 		bool	Init (const InitParams &)							__NE_OV;
-		EType	GetType ()											C_NE_OV	{ return EType::FillStackLayout; }
+		EType	Type ()												C_NE_OV	{ return EType::FillStackLayout; }
 		void	AddChild (ChildPtr ptr)								__NE_OV;
 
 		bool	Serialize2 (Serializing::Serializer &)				C_NE_OV;

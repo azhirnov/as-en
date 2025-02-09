@@ -71,11 +71,11 @@ float3  LerpHSV (float3 a, float3 b, float factor)
 */
 float3  HSVtoRGB_v2 (float3 hsv)
 {
-	hsv.x = Mod( 100.0 + hsv.x, 1.0 );											// Ensure [0,1[
+	hsv.x = Mod( 100.0 + hsv.x, 1.0 );											// Ensure [0,1]
 
-	float   HueSlice = 6.0 * hsv.x;												// In [0,6[
+	float   HueSlice = 6.0 * hsv.x;												// In [0,6]
 	float   HueSliceInteger = floor( HueSlice );
-	float   HueSliceInterpolant = HueSlice - HueSliceInteger;					// In [0,1[ for each hue slice
+	float   HueSliceInterpolant = HueSlice - HueSliceInteger;					// In [0,1] for each hue slice
 
 	float3  TempRGB = float3(   hsv.z * (1.0 - hsv.y),
 								hsv.z * (1.0 - hsv.y * HueSliceInterpolant),
@@ -305,6 +305,8 @@ float3  OklabToRGB (float3 oklab)
 	return m2 * (lms * lms * lms);
 }
 
+#endif // AE_ENABLE_UNKNOWN_LICENSE
+
 /*
 =================================================
 	RGBLerpOklab
@@ -313,6 +315,8 @@ float3  OklabToRGB (float3 oklab)
 	https://www.shadertoy.com/view/ttcyRS
 =================================================
 */
+#ifdef AE_LICENSE_MIT
+
 float3  RGBLerpOklab (const float3 lin1, const float3 lin2, const float factor)
 {
 	const float3x3	kCONEtoLMS = float3x3(
@@ -334,5 +338,4 @@ float3  RGBLerpOklab (const float3 lin1, const float3 lin2, const float factor)
 	return kLMStoCONE * (lms * lms * lms);
 }
 
-
-#endif // AE_ENABLE_UNKNOWN_LICENSE
+#endif // AE_LICENSE_MIT

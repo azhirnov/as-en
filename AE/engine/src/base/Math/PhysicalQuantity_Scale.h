@@ -4,7 +4,7 @@
 
 #include "base/Math/Vec.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -15,7 +15,7 @@ namespace AE::Math
 	{
 	private:
 		template <typename T>
-		ND_ static constexpr T  _Abs (T val) __NE___
+		NdCx__ static T  _Abs (T val) __NE___
 		{
 			return val < 0 ? -val : val;
 		}
@@ -26,6 +26,9 @@ namespace AE::Math
 		{
 			static constexpr T	Value = T(IntVal);
 		};
+
+		template <typename Src, typename T>
+		struct Cast;
 
 		template <typename Lhs, typename Rhs>
 		struct Add;
@@ -49,6 +52,16 @@ namespace AE::Math
 
 
 	//
+	// Cast
+	//
+	template <typename Src, typename T>
+	struct PhysicalQuantity_Scale::Cast
+	{
+		static constexpr auto	Value	= T(Src::Value);
+	};
+
+
+	//
 	// Add
 	//
 	template <typename Lhs, typename Rhs>
@@ -56,13 +69,13 @@ namespace AE::Math
 	{
 		static constexpr auto	Value	= Min( Lhs::Value, Rhs::Value );
 
-		template <typename T>
-		static constexpr T  Get (T lhs, T rhs) __NE___
+		template <typename LT, typename RT>
+		static constexpr auto  Get (LT lhs, RT rhs) __NE___
 		{
 			if constexpr( _Abs(Lhs::Value) < _Abs(Rhs::Value) )
-				return lhs + rhs * T(Rhs::Value / Lhs::Value);
+				return lhs + rhs * RT(Rhs::Value / Lhs::Value);
 			else
-				return lhs * T(Lhs::Value / Rhs::Value) + rhs;
+				return lhs * LT(Lhs::Value / Rhs::Value) + rhs;
 		}
 	};
 
@@ -75,13 +88,13 @@ namespace AE::Math
 	{
 		static constexpr auto	Value	= Min( Lhs::Value, Rhs::Value );
 
-		template <typename T>
-		static constexpr T  Get (T lhs, T rhs) __NE___
+		template <typename LT, typename RT>
+		static constexpr auto  Get (LT lhs, RT rhs) __NE___
 		{
 			if constexpr( _Abs(Lhs::Value) < _Abs(Rhs::Value) )
-				return lhs - rhs * T(Rhs::Value / Lhs::Value);
+				return lhs - rhs * RT(Rhs::Value / Lhs::Value);
 			else
-				return lhs * T(Lhs::Value / Rhs::Value) - rhs;
+				return lhs * LT(Lhs::Value / Rhs::Value) - rhs;
 		}
 	};
 
@@ -94,8 +107,8 @@ namespace AE::Math
 	{
 		static constexpr auto	Value	= Lhs::Value * Rhs::Value;
 
-		template <typename T>
-		static constexpr T  Get (T lhs, T rhs) __NE___
+		template <typename LT, typename RT>
+		static constexpr auto  Get (LT lhs, RT rhs) __NE___
 		{
 			return lhs * rhs;
 		}
@@ -110,8 +123,8 @@ namespace AE::Math
 	{
 		static constexpr auto	Value	= Lhs::Value / Rhs::Value;
 
-		template <typename T>
-		static constexpr T  Get (T lhs, T rhs) __NE___
+		template <typename LT, typename RT>
+		static constexpr auto  Get (LT lhs, RT rhs) __NE___
 		{
 			return lhs / rhs;
 		}
@@ -166,4 +179,4 @@ namespace AE::Math
 	{};
 
 
-} // AE::Math
+} // AE::Base

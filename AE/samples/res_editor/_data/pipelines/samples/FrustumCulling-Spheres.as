@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -69,16 +69,16 @@
 	void Main ()
 	{
 		const float3	sphere_pos	= un_DrawTasks.tasks[ gl.InstanceIndex ].xyz;
-		const float		scale		= un_DrawTasks.tasks[ gl.InstanceIndex ].w;
+		const float		radius		= un_DrawTasks.tasks[ gl.InstanceIndex ].w;
 
 		const uint		idx			= gl.VertexIndex;
-		const float3	vert_pos	= sphere_pos + (un_Geometry.positions[idx] * scale);
+		const float3	vert_pos	= sphere_pos + (un_Geometry.positions[idx] * radius);
 		const float4	world_pos	= LocalPosToWorldSpace( vert_pos );
 		float4			color		= float4(1.0, 0.2, 0.3, 1.0);
 
 		if ( Frustum_TestSphere( un_PerPass.camera.frustum,
 								 sphere_pos - un_PerPass.camera.pos,
-								 scale * iError ))
+								 radius * iError ))
 		{
 			if ( iInvCulling == 0 )
 				color = float4(0.0, 1.0, 0.0, 1.0);	// green - visible

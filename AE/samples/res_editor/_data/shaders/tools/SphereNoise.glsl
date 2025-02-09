@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_NOISE
 #	define GEN_TURB
 #	define APPLY_SPLINE
@@ -37,24 +37,21 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GEN_NOISE
-	#include "Noise.glsl"
 	#include "CubeMap.glsl"
 
 	#undef GEN_NOISE
+	#define NOISE_UTILS
 	#include "tools/TerrainNoise.glsl"	// add CombineNoise()
-
-	#define CastUNorm	c = ToSNorm( n )
-	#define CastSNorm	c = n
 
 	FBM_NOISE_Hash( GradientNoise )
 	FBM_NOISE_Hash( ValueNoise )
 	FBM_NOISE_Hash( PerlinNoise )
 	FBM_NOISE_Hash( SimplexNoise )
-
-	FBM_NOISE_A1_Hash( IQNoise,			float2, uv )
-	FBM_NOISE_A1_Hash( WarleyNoise,		float3, seedScaleBias_offsetScale )
-	FBM_NOISE_A1_Hash( VoronoiContour,	float3, seedScaleBias_offsetScale )
-	FBM_NOISE_A2_Hash( VoronoiContour3,	float3, seedScaleBias_offsetScale, float3, hashScaleBiasOff )
+	FBM_NOISE_Hash( IQNoise )
+	FBM_NOISE_Hash( Voronoi )
+	FBM_NOISE_Hash( WarleyNoise )
+	FBM_NOISE_Hash( VoronoiContour )
+	FBM_NOISE_Hash( VoronoiContourSparse )
 
 
 	void  Main ()
@@ -63,9 +60,6 @@
 		float4			noise	= gl.image.Load( un_Noise, tid );
 		const float		lac		= Clamp( iParams.z, 0.1, 10.0 );
 		const float		pers	= Clamp( iParams.w, 0.1, 2.0 );
-		const float3	uv		= float3( iParams.xy, 0.f );
-		const float		vcos	= 0.75;	// scale for voronoi cell offset
-		const float3	uv2		= float3( uv.xy, vcos );
 	  #ifdef vTILE
 		float3			pos		= GlobalThreadSNorm();
 	  #else
@@ -73,7 +67,13 @@
 	  #endif
 						pos		= (pos * iPScale) + (iPBias * iPScale * 0.25);
 		float			n		= 0.f;
-		float			c		= 0.f;
+
+		NoiseParams		params;
+		params.seedScale	= float3(iParams.x);
+		params.seedBias		= float3(iParams.y);
+		params.custom		= float4(-float_max);
+
+		FBMParams		fbm = CreateFBMParams( lac, pers, iOctaves );
 
 		if ( iIsDistortion == 1 )
 		{
@@ -81,47 +81,55 @@
 			noise = noise.wwww;
 		}
 
-		#if iNoise_max != 16
-		#	error iNoise max value must be 16
+		#if iNoise_max != 17
+		#	error iNoise max value must be 17
 		#endif
 		switch ( iNoise )
 		{
-			case 0 :	n = GradientNoise( pos );										CastSNorm;	break;
-			case 1 :	n = ValueNoise( pos );											CastSNorm;	break;
-			case 2 :	n = PerlinNoise( pos );											CastSNorm;	break;
-			case 3 :	n = SimplexNoise( pos * 0.5 );									CastSNorm;	break;
-			case 4 :	n = IQNoise( pos * 2.0, uv.xy );								CastSNorm;	break;
-			case 5 :	n = Voronoi( pos, uv2 ).minDist;								CastUNorm;	break;
-			case 6 :	n = VoronoiContour( pos, uv2 );									CastUNorm;	break;
-			case 7 :	n = WarleyNoise( pos, uv2 );									CastUNorm;	break;
-			case 8 :	n = VoronoiContour3( pos, float3(1.0,0.0,vcos), uv.xzy );		CastSNorm;	break;
+			case 0 :								n = GradientNoise( pos, params );			CastSNorm;	break;
+			case 1 :								n = ValueNoise( pos, params );				CastSNorm;	break;
+			case 2 :								n = PerlinNoise( pos, params );				CastSNorm;	break;
+			case 3 :								n = SimplexNoise( pos * 0.5, params );		CastSNorm;	break;
+			case 4 :	SetupIQWavelet( params );	n = IQNoise( pos * 2.0, params );			CastUNorm;	break;
+
+			case 5 :	SetupVoronoi( params );		n = Voronoi( pos, params );					CastUNorm;	break;
+			case 6 :	SetupVoronoi( params );		n = VoronoiContour( pos, params );			CastUNorm;	break;
+			case 7 :	SetupIQWavelet( params );	n = WarleyNoise( pos, params );				CastUNorm;	break;
+			case 8 :	SetupVCSparse( params );	n = VoronoiContourSparse( pos, params );	CastSNorm;	break;
 
 			// FBM
-			case 9 :	n = GradientNoiseFBM( pos, lac, pers, iOctaves );				CastSNorm;	break;
-			case 10 :	n = ValueNoiseFBM( pos, lac, pers, iOctaves );					CastSNorm;	break;
-			case 11 :	n = PerlinNoiseFBM( pos, lac, pers, iOctaves );					CastSNorm;	break;
-			case 12 :	n = SimplexNoiseFBM( pos * 0.5, lac, pers, iOctaves );			CastSNorm;	break;
-			case 13 :	n = WarleyNoiseFBM( pos, uv2, lac, pers, iOctaves );			CastUNorm;	break;
-			case 14 :	n = IQNoiseFBM( pos * 2.0, uv.xy, lac, pers, iOctaves );		CastUNorm;	break;
-			case 15 :	n = VoronoiContourFBM( pos, uv2, lac, pers, iOctaves );			CastUNorm;	break;
-			case 16 :	n = VoronoiContour3FBM( pos, float3(1.0,0.0,vcos), uv.xzy, lac, pers, iOctaves );	CastSNorm;	break;
+			case 9 :								n = GradientNoiseFBM( pos, params, fbm );		CastSNorm;	break;
+			case 10 :								n = ValueNoiseFBM( pos, params, fbm );			CastSNorm;	break;
+			case 11 :								n = PerlinNoiseFBM( pos, params, fbm );			CastSNorm;	break;
+			case 12 :								n = SimplexNoiseFBM( pos * 0.5, params, fbm );	CastSNorm;	break;
+			case 13 :	SetupIQWavelet( params );	n = IQNoiseFBM( pos * 2.0, params, fbm );		CastUNorm;	break;
+
+			case 14 :	SetupVoronoi( params );		n = VoronoiFBM( pos, params, fbm );				CastUNorm;	break;
+			case 15 :	SetupIQWavelet( params );	n = WarleyNoiseFBM( pos, params, fbm );			CastUNorm;	break;
+			case 16 :	SetupVoronoi( params );		n = VoronoiContourFBM( pos, params, fbm );		CastUNorm;	break;
+			case 17 :	SetupVCSparse( params );	n = VoronoiContourSparseFBM( pos, params, fbm );CastSNorm;	break;
 		}
-		c = c * iVScaleBias.x + iVScaleBias.y;
-		noise = CombineNoise( iOp, noise, float4(c) );
-		gl.image.Store( un_Noise, tid, noise );
+
+		n = n * iVScaleBias.x + iVScaleBias.y;
+		noise = CombineNoise( iOp, noise, float4(n) );
+		gl.image.Store( un_Noise, tid, noise );		// store SNorm
 	}
 
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GEN_TURB
-	#include "Noise.glsl"
 	#include "CubeMap.glsl"
+
+	#undef GEN_NOISE
+	#define NOISE_UTILS
+	#include "tools/TerrainNoise.glsl"	// add Setup*()
 
 	FBM_NOISE_Hash( GradientNoise )
 	FBM_NOISE_Hash( ValueNoise )
 	FBM_NOISE_Hash( PerlinNoise )
 	FBM_NOISE_Hash( SimplexNoise )
 	FBM_NOISE_Hash( IQNoise )
+	FBM_NOISE_Hash( Voronoi )
 	FBM_NOISE_Hash( WarleyNoise )
 	FBM_NOISE_Hash( VoronoiContour )
 
@@ -130,6 +138,7 @@
 	TURBULENCE_Hash( PerlinNoise )
 	TURBULENCE_Hash( SimplexNoise )
 	TURBULENCE_Hash( IQNoise )
+	TURBULENCE_Hash( Voronoi )
 	TURBULENCE_Hash( WarleyNoise )
 	TURBULENCE_Hash( VoronoiContour )
 
@@ -138,6 +147,7 @@
 	TURBULENCE_FBM_Hash( PerlinNoiseFBM )
 	TURBULENCE_FBM_Hash( SimplexNoiseFBM )
 	TURBULENCE_FBM_Hash( IQNoiseFBM )
+	TURBULENCE_FBM_Hash( VoronoiFBM )
 	TURBULENCE_FBM_Hash( WarleyNoiseFBM )
 	TURBULENCE_FBM_Hash( VoronoiContourFBM )
 
@@ -157,26 +167,41 @@
 	  #endif
 						pos		= (pos * iPScale) + (iPBias * iPScale * 0.25);
 
-		#if iNoise_max != 14
-		#	error iNoise max value must be 14
+		NoiseParams		params;
+		params.seedScale	= float3(iParams.x);
+		params.seedBias		= float3(iParams.y);
+		params.custom		= float4(-float_max);
+
+		FBMParams		fbm = CreateFBMParams( lac, pers, iOctaves );
+
+		#if iNoise_max != 16
+		#	error iNoise max value must be 16
 		#endif
 		switch ( iNoise )
 		{
 			case 0 :	break;
-			case 1 :	dpos = Turbulence_GradientNoise( pos );									break;
-			case 2 :	dpos = Turbulence_ValueNoise( pos );									break;
-			case 3 :	dpos = Turbulence_PerlinNoise( pos );									break;
-			case 4 :	dpos = Turbulence_SimplexNoise( pos * 0.5 );							break;
-			case 5 :	dpos = Turbulence_IQNoise( pos * 2.0 );									break;
-			case 6 :	dpos = Turbulence_WarleyNoise( pos );									break;
-			case 7 :	dpos = Turbulence_VoronoiContour( pos );								break;
-			case 8 :	dpos = Turbulence_GradientNoiseFBM( pos, lac, pers, iOctaves );			break;
-			case 9 :	dpos = Turbulence_ValueNoiseFBM( pos, lac, pers, iOctaves );			break;
-			case 10 :	dpos = Turbulence_PerlinNoiseFBM( pos, lac, pers, iOctaves );			break;
-			case 11 :	dpos = Turbulence_SimplexNoiseFBM( pos * 0.5, lac, pers, iOctaves );	break;
-			case 12 :	dpos = Turbulence_IQNoiseFBM( pos * 2.0, lac, pers, iOctaves );			break;
-			case 13 :	dpos = Turbulence_WarleyNoiseFBM( pos, lac, pers, iOctaves );			break;
-			case 14 :	dpos = Turbulence_VoronoiContourFBM( pos, lac, pers, iOctaves );		break;
+			case 1 :								dpos = Turbulence_GradientNoise( pos, params );					break;
+			case 2 :								dpos = Turbulence_ValueNoise( pos, params );					break;
+			case 3 :								dpos = Turbulence_PerlinNoise( pos, params );					break;
+			case 4 :								dpos = Turbulence_SimplexNoise( pos * 0.5, params );			break;
+			case 5 :	SetupIQWavelet( params );	dpos = Turbulence_IQNoise( pos * 2.0, params );					break;
+
+			// Voronoi
+			case 6 :	SetupVoronoi( params );		dpos = Turbulence_WarleyNoise( pos, params );					break;
+			case 7 :	SetupVoronoi( params );		dpos = Turbulence_Voronoi( pos, params );						break;
+			case 8 :	SetupVoronoi( params );		dpos = Turbulence_VoronoiContour( pos, params );				break;
+
+			// FBM
+			case 9 :								dpos = Turbulence_GradientNoiseFBM( pos, params, fbm );			break;
+			case 10 :								dpos = Turbulence_ValueNoiseFBM( pos, params, fbm );			break;
+			case 11 :								dpos = Turbulence_PerlinNoiseFBM( pos, params, fbm );			break;
+			case 12 :								dpos = Turbulence_SimplexNoiseFBM( pos * 0.5, params, fbm );	break;
+			case 13 :	SetupIQWavelet( params );	dpos = Turbulence_IQNoiseFBM( pos * 2.0, params, fbm );			break;
+
+			// Voronoi FBM
+			case 14 :	SetupVoronoi( params );		dpos = Turbulence_WarleyNoiseFBM( pos, params, fbm );			break;
+			case 15 :	SetupVoronoi( params );		dpos = Turbulence_VoronoiFBM( pos, params, fbm );				break;
+			case 16 :	SetupVoronoi( params );		dpos = Turbulence_VoronoiContourFBM( pos, params, fbm );		break;
 		}
 
 		float4	noise;

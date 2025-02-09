@@ -56,8 +56,8 @@ Always tested on multiple devices:
 ## Graphics
 
 Low-level Graphics features:
-- [Vulkan](VulkanFeatures.md)
-- [Metal](MetalFeatures.md)
+- [Vulkan](VulkanRHI.md)
+- [Metal](MetalRHI.md)
 
 All graphics API wrappers supports:
 * Multithreaded command buffer recording

@@ -190,6 +190,19 @@ namespace AE::App
 
 /*
 =================================================
+	_Setup
+=================================================
+*/
+	void  InputActionsBase::_Setup (float2 surfDim, float pixToMm) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+
+		_toSNorm		= 1.0f / surfDim.x;
+		_pixToMm		= pixToMm;
+	}
+
+/*
+=================================================
 	Update
 =================================================
 */

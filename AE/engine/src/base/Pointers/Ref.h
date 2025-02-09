@@ -23,23 +23,23 @@ namespace AE::Base
 
 	// methods
 	public:
-		Ref ()												= delete;
-		Ref (const Ref<T> &)								= delete;
+		Ref ()											= delete;
+		Ref (const Ref<T> &)							= delete;
 
-		constexpr Ref (Ref<T> &&)							__NE___ = default;
-		constexpr explicit Ref (T& ref)						__NE___ : _value{&ref} {}
+		__Cx__ Ref (Ref<T> &&)							__NE___ = default;
+		__Cx__ explicit Ref (T& ref)					__NE___ : _value{&ref} {}
 
-			constexpr Ref<T>&	operator = (const Ref<T> &)	= delete;
-			constexpr Ref<T>&	operator = (Ref<T> &&)		__NE___	= default;
+		__Cx__ Ref<T>&	operator = (const Ref<T> &)		= delete;
+		__Cx__ Ref<T>&	operator = (Ref<T> &&)			__NE___	= default;
 
-			constexpr T&		operator = (const T& rhs)	C_NE___	{ return *_value = rhs; }
+	//	__Cx__ T&		operator = (const T& rhs)		C_NE___	{ return *_value = rhs; }
 
-		ND_ constexpr T*		operator -> ()				C_NE___	{ return _value; }
-		ND_ constexpr T*		operator & ()				C_NE___	{ return _value; }
+		NdCx__ T*		operator -> ()					C_NE___	{ return _value; }
+		NdCx__ T*		operator & ()					C_NE___	{ return _value; }
 
-		ND_ constexpr operator T& ()						C_NE___	{ return *_value; }
+		NdCx__ operator T& ()							C_NE___	{ return *_value; }
 
-		ND_ constexpr T&	get ()							C_NE___	{ return *_value; }
+		NdCx__ T&		get ()							C_NE___	{ return *_value; }
 	};
 
 
@@ -53,7 +53,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ constexpr Ref<T>  ArgRef (T &arg) __NE___
+	NdCx__ Ref<T>  ArgRef (T &arg) __NE___
 	{
 		return Ref<T>{ arg };
 	}

@@ -25,6 +25,8 @@ namespace AE::ResEditor
 		Sub,			// x - const
 		Pow,			// pow( x, const )
 		PowOf2,			// const << 2
+		Min,			// min( x, const )
+		Max,			// max( x, const )
 	};
 
 	template <typename T, int I>
@@ -43,17 +45,18 @@ namespace AE::ResEditor
 	// types
 	public:
 		using Self			= TDynamicScalar< T >;
-		using Scalar_t		= T;
-		using GetValueFn_t	= Scalar_t (*) (EnableRCBase*);
+		using Value_t		= T;
+		using GetValueFn_t	= Value_t (*) (EnableRCBase*);
 		using EOperator		= EDynamicVarOperator;
 
 
 	// variables
-	private:
+	protected:
 		mutable RWSpinLock	_guard;
-		Scalar_t			_value;
-		Scalar_t			_opValue;
+		Value_t				_value;
+		Value_t				_opValue;
 		EOperator			_op			= Default;
+		RC<Self>			_opDynamic;
 		const RC<>			_base;
 		const GetValueFn_t	_getValue	= null;
 
@@ -61,14 +64,16 @@ namespace AE::ResEditor
 	// methods
 	public:
 		TDynamicScalar ()									__NE___	: _value{T(0)} {}
-		explicit TDynamicScalar (Scalar_t val)				__NE___	: _value{val} {}
+		explicit TDynamicScalar (Value_t val)				__NE___	: _value{val} {}
+		explicit TDynamicScalar (RC<Self> base)				__NE___	: _base{RVRef(base)}, _getValue{&TDynamicScalar<T>::_Get} {}
 		TDynamicScalar (RC<> base, GetValueFn_t getValue)	__NE___	: _base{RVRef(base)}, _getValue{getValue} {}
 
-			void		SetOp (Scalar_t, EOperator)			__NE___;
-			void		Set (Scalar_t val)					__NE___;
-		ND_ Scalar_t	Get ()								C_NE___;
+			void		SetOp (RC<Self>, EOperator)			__NE___;
+			void		SetOp (Value_t, EOperator)			__NE___;
+			void		Set (Value_t val)					__NE___;
+		ND_ Value_t		Get ()								C_NE___;
 
-		ND_ bool		IsChanged (INOUT Scalar_t &oldVal)	C_NE___;
+		ND_ bool		IsChanged (INOUT Value_t &oldVal)	C_NE___;
 
 		ND_ RC<Self>	Clone ()							__NE___;
 
@@ -78,7 +83,7 @@ namespace AE::ResEditor
 		ND_ RC<DynamicDim>			ToDim2 ()				__NE___;
 		ND_ RC<DynamicDim>			ToDim3 ()				__NE___;
 
-	private:
+	protected:
 		ND_ static T		_Get (EnableRCBase*)			__NE___;
 		ND_ static Vec<T,2>	_GetX1 (EnableRCBase*)			__NE___;
 		ND_ static Vec<T,3>	_GetX11 (EnableRCBase*)			__NE___;
@@ -91,6 +96,8 @@ namespace AE::ResEditor
 	using DynamicInt	= TDynamicScalar< int >;
 	using DynamicUInt	= TDynamicScalar< uint >;
 	using DynamicULong	= TDynamicScalar< ulong >;
+//-----------------------------------------------------------------------------
+
 
 
 /*
@@ -99,7 +106,15 @@ namespace AE::ResEditor
 =================================================
 */
 	template <typename T>
-	void  TDynamicScalar<T>::SetOp (Scalar_t val, EOperator op) __NE___
+	void  TDynamicScalar<T>::SetOp (RC<Self> dyn, EOperator op) __NE___
+	{
+		EXLOCK( _guard );
+		_opDynamic	= RVRef(dyn);
+		_op			= op;
+	}
+
+	template <typename T>
+	void  TDynamicScalar<T>::SetOp (Value_t val, EOperator op) __NE___
 	{
 		EXLOCK( _guard );
 		_opValue	= val;
@@ -112,7 +127,7 @@ namespace AE::ResEditor
 =================================================
 */
 	template <typename T>
-	void  TDynamicScalar<T>::Set (Scalar_t val) __NE___
+	void  TDynamicScalar<T>::Set (Value_t val) __NE___
 	{
 		EXLOCK( _guard );
 		CHECK_ERRV( _getValue == null );
@@ -129,33 +144,39 @@ namespace AE::ResEditor
 	{
 		SHAREDLOCK( _guard );
 
-		T	result = _value;
+		T	result	= _value;
+		T	r_value	= _opValue;
 
 		if_unlikely( _getValue != null )
 			result = _getValue( _base.get() );
 
+		if ( _opDynamic )
+			r_value = _opDynamic->Get();
+
 		switch_enum( _op )
 		{
 			case_likely EOperator::Unknown :	break;
-			case EOperator::Mul :				result *= _opValue;							break;
-			case EOperator::Div :				result /= _opValue;							break;
-			case EOperator::DivNear :			result = (result + _opValue/2) / _opValue;	break;
-			case EOperator::DivCeil :			result = (result + _opValue-1) / _opValue;	break;
-			case EOperator::Add :				result += _opValue;							break;
-			case EOperator::Sub :				result -= _opValue;							break;
+			case EOperator::Mul :				result *= r_value;							break;
+			case EOperator::Div :				result /= r_value;							break;
+			case EOperator::DivNear :			result = (result + r_value/2) / r_value;	break;
+			case EOperator::DivCeil :			result = (result + r_value-1) / r_value;	break;
+			case EOperator::Add :				result += r_value;							break;
+			case EOperator::Sub :				result -= r_value;							break;
+			case EOperator::Min :				result = Min( result, r_value );			break;
+			case EOperator::Max :				result = Max( result, r_value );			break;
 
 			case EOperator::PowOf2 :
 				if constexpr( IsFloatPoint<T> )
-					result = _opValue * Pow( T(2), result );
+					result = r_value * Pow( T(2), result );
 				else
-					result = _opValue << result;
+					result = r_value << result;
 				break;
 
 			case EOperator::Pow :
 				if constexpr( IsFloatPoint<T> )
-					result = Pow( result, _opValue );
+					result = Pow( result, r_value );
 				else
-					result = IPow( result, _opValue );
+					result = IPow( result, r_value );
 				break;
 		}
 		switch_end
@@ -169,9 +190,9 @@ namespace AE::ResEditor
 =================================================
 */
 	template <typename T>
-	bool  TDynamicScalar<T>::IsChanged (INOUT Scalar_t &oldVal) C_NE___
+	bool  TDynamicScalar<T>::IsChanged (INOUT Value_t &oldVal) C_NE___
 	{
-		const Scalar_t	new_val = Get();
+		const Value_t	new_val = Get();
 
 		if ( new_val != oldVal )
 		{

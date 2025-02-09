@@ -17,9 +17,6 @@ namespace
 		const uint	core_count	= CpuArchInfo::Get().cpu.logicalCoreCount;
 
 	  #ifndef AE_PLATFORM_WINDOWS
-		const auto	core0_freq	= PerformanceStat::CPU_GetFrequency( 0 );
-		//TEST( core0_freq > 0 );
-
 		Array<PerformanceStat::MHz_t>	all_core_freq;
 		all_core_freq.resize( core_count );
 		TEST_Eq( PerformanceStat::CPU_GetFrequency( OUT all_core_freq.data(), core_count ), core_count );

@@ -198,8 +198,8 @@ Ray  Ray_PlaneToVR180 (const float ipd, const float3 origin, const float nearPla
 	// from https://developers.google.com/vr/jump/rendering-ods-content.pdf
 	float	scale	= ipd * 0.5 * (uv.x < 0.5 ? -1.0 : 1.0);
 			uv		= float2( (uv.x < 0.5 ? uv.x : uv.x - 0.5) * 0.5 + 0.375, uv.y );	// map [0, 1] to [0.375, 0.875]
-	float	theta	= (-uv.x) * 2.0 * Pi();
-	float	phi		= uv.y * Pi() - Pi() * 0.5;
+	float	theta	= (-uv.x) * 2.0 * float_Pi;
+	float	phi		= (uv.y - 0.5) * float_Pi;
 	float	sin_t	= Sin( theta );
 	float	cos_t	= Cos( theta );
 	float	cos_p	= Cos( phi );
@@ -217,8 +217,8 @@ float2  Inverted_PlaneToVR180 (const float3 rayDir, const uint eye)
 	float	theta	= ASin( rayDir.y );
 	float	phi		= ATan( rayDir.z, rayDir.x );
 
-			theta	= (theta + Pi() * 0.5f) / Pi();
-			phi		= (Pi() - phi) / float_Pi2;
+			theta	= (theta + float_HalfPi) * float_InvPi;
+			phi		= (float_Pi - phi) * 0.5 * float_InvPi;
 			phi		= Fract( phi - 0.125f ) * 2.f + (eye == 0 ? 0.f : 0.5f);
 
 	return float2( phi, theta );
@@ -237,8 +237,8 @@ Ray  Ray_PlaneToVR360 (const float ipd, const float3 origin, const float nearPla
 	// from https://developers.google.com/vr/jump/rendering-ods-content.pdf
 	float	scale	= ipd * 0.5 * (uv.y < 0.5 ? -1.0 : 1.0);
 			uv		= float2( uv.x, (uv.y < 0.5 ? uv.y : uv.y - 0.5) * 2.0 );
-	float	theta	= (-uv.x) * 2.0 * Pi();
-	float	phi		= uv.y * Pi() - Pi() * 0.5;
+	float	theta	= (-uv.x) * 2.0 * float_Pi;
+	float	phi		= (uv.y - 0.5) * float_Pi;
 	float	sin_t	= Sin( theta );
 	float	cos_t	= Cos( theta );
 	float	cos_p	= Cos( phi );
@@ -256,9 +256,9 @@ float2  Inverted_PlaneToVR360 (const float3 rayDir, const uint eye)
 	float	theta	= ASin( rayDir.y );
 	float	phi		= ATan( rayDir.z, rayDir.x );
 
-			theta	= (theta + Pi() * 0.5f) * 0.5f / Pi();
+			theta	= (theta + float_HalfPi) * 0.5f * float_InvPi;
 			theta	+= (eye == 0 ? 0.f : 0.5f);
-			phi		= (Pi() - phi) / float_Pi2;
+			phi		= (float_Pi - phi) * 0.5 * float_InvPi;
 
 	return float2( Fract( phi - 0.75f ), theta );
 }
@@ -272,8 +272,8 @@ float2  Inverted_PlaneToVR360 (const float3 rayDir, const uint eye)
 */
 Ray  Ray_PlaneTo360 (const float3 origin, const float nearPlane, const float2 uv)
 {
-	float	theta	= (-uv.x) * 2.0 * Pi();
-	float	phi		= uv.y * Pi() - Pi() * 0.5;
+	float	theta	= (-uv.x) * float_Pi2;
+	float	phi		= (uv.y - 0.5) * float_Pi;
 	float	cos_p	= Cos( phi );
 
 	Ray		ray;
@@ -289,8 +289,8 @@ float2  Inverted_PlaneTo360 (const float3 rayDir)
 	float	theta	= ASin( rayDir.y );
 	float	phi		= ATan( rayDir.z, rayDir.x );
 
-			theta	= (theta + Pi() * 0.5) / Pi();
-			phi		= (Pi() - phi) / float_Pi2;
+			theta	= (theta + float_HalfPi) * float_InvPi;
+			phi		= (float_Pi - phi) / float_Pi2;
 
 	return float2( Fract( phi - 0.75 ), theta );
 }
@@ -377,7 +377,7 @@ float2  Inverted_PlaneToCubemapVR360 (const float3 c, const uint eye)
 Ray  Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, const float2 uv)
 {
 			fov		*= 0.5;
-	float	theta	= fov.x * -uv.x + Pi();
+	float	theta	= fov.x * -uv.x + float_Pi;
 	float	phi		= fov.y * uv.y;
 	float	cos_p	= Cos( phi );
 

@@ -33,7 +33,7 @@ namespace _hidden_
 	template <typename T>
 	struct PromiseResult
 	{
-		StaticAssert( not IsSameTypes< Threading::_hidden_::PromiseNullResult, T >);
+		StaticAssert( not IsSame< Threading::_hidden_::PromiseNullResult, T >);
 
 	// types
 	private:
@@ -107,12 +107,13 @@ namespace _hidden_
 	template <typename T>
 	class Promise final
 	{
-		StaticAssert( not IsSameTypes< Threading::_hidden_::PromiseNullResult, T >);
+		StaticAssert( not IsSame< Threading::_hidden_::PromiseNullResult, T >);
 
 	// types
 	public:
 		using Value_t	= T;
 		using Self		= Promise< T >;
+		using EStatus	= IAsyncTask::EStatus;
 
 		enum class FunctionArg {};
 		enum class ValueArg {};
@@ -129,55 +130,61 @@ namespace _hidden_
 
 	// methods
 	public:
-		Promise ()																	__NE___ {}
+		Promise ()																__NE___ {}
 
-		Promise (Self &&)															__NE___ = default;
-		Promise (const Self &)														__NE___ = default;
+		Promise (Self &&)														__NE___ = default;
+		Promise (const Self &)													__NE___ = default;
 
-		Self& operator = (Self &&)													__NE___ = default;
-		Self& operator = (const Self &)												__NE___ = default;
+		Self& operator = (Self &&)												__NE___ = default;
+		Self& operator = (const Self &)											__NE___ = default;
 
 		// used to create task sequence
 		template <typename Fn>
 		auto  Then (Fn &&fn,
 					StringView dbgName		= Default,
-					ETaskQueue queueType	= Default)								__NE___;
+					ETaskQueue queueType	= Default)							__NE___;
 
 		// used to process errors
 		template <typename Fn>
 		auto  Except (Fn &&fn,
 					  StringView dbgName	= Default,
-					  ETaskQueue queueType	= Default)								__NE___;
+					  ETaskQueue queueType	= Default)							__NE___;
 
-		bool  Cancel ()																__NE___;
+		bool  Cancel ()															__NE___;
 
 		// Execute 'fn' only if result is ready.
 		// Returns 'true' if completed and 'fn' is executed.
 		template <typename Fn>
-		bool  WithResult (Fn &&fn)													NoExcept(IsNothrowInvocable< Fn, T >);
+		bool  WithResult (Fn &&fn)												NoExcept(IsNothrowInvocable< Fn, T >);
 
-		ND_ explicit operator AsyncTask ()											C_NE___	{ return _impl; }
-		ND_ explicit operator bool ()												C_NE___	{ return bool{_impl}; }
+		ND_ explicit operator AsyncTask ()										C_NE___	{ return _impl; }
+		ND_ explicit operator bool ()											C_NE___	{ return bool{_impl}; }
 
-		ND_ IAsyncTask::EStatus  Status ()											C_NE___;
+		ND_ EStatus		Status ()												C_NE___;
+
+		// same as in 'IAsyncTask'
+		ND_ bool		IsInQueue ()											C_NE___	{ return Status() <  EStatus::_Finished; }
+		ND_ bool		IsFinished ()											C_NE___	{ return Status() >  EStatus::_Finished; }		// status: Completed / Failed / Canceled
+		ND_ bool		IsInterrupted ()										C_NE___	{ return Status() >  EStatus::_Interrupted; }	// status: Failed / Canceled
+		ND_ bool		IsCompleted ()											C_NE___	{ return Status() == EStatus::Completed; }		// status: Completed
 
 	private:
 		template <typename Fn>
-		auto  _Then (Fn &&fn, StringView, ETaskQueue queueType)						__NE___;
+		auto  _Then (Fn &&fn, StringView, ETaskQueue queueType)					__NE___;
 
 		template <typename Fn>
-		auto  _Except (Fn &&fn, StringView, ETaskQueue queueType)					__NE___;
+		auto  _Except (Fn &&fn, StringView, ETaskQueue queueType)				__NE___;
 
 		template <typename A>
-		Promise (A &&val, bool except, StringView, ETaskQueue, ValueArg)			__NE___;
+		Promise (A &&val, Bool except, StringView, ETaskQueue, ValueArg)		__NE___;
 
 		template <typename A>
-		Promise (A &&val, bool except, StringView, ETaskQueue, CompleteValueArg)	__NE___;
+		Promise (A &&val, Bool except, StringView, ETaskQueue, CompleteValueArg)__NE___;
 
 		template <typename Fn>
-		Promise (Fn &&fn, bool except, StringView, ETaskQueue, FunctionArg)			__NE___;
+		Promise (Fn &&fn, Bool except, StringView, ETaskQueue, FunctionArg)		__NE___;
 
-		ND_ T  _Result ()															C_NE___;
+		ND_ T  _Result ()														C_NE___;
 
 
 	// friend functions
@@ -206,10 +213,10 @@ namespace _hidden_
 		template <typename B>
 		friend class Promise;
 
-		#ifdef AE_HAS_COROUTINE
+	  #ifdef AE_HAS_COROUTINE
 		template <typename B>
 		friend class Threading::_hidden_::PromiseAwaiter;
-		#endif
+	  #endif
 	};
 
 
@@ -241,13 +248,13 @@ namespace _hidden_
 	// methods
 	public:
 		template <typename Fn>
-		_InternalImpl (Fn &&fn, bool except, StringView, ETaskQueue, Promise<T>::FunctionArg)			__NE___;
+		_InternalImpl (Fn &&fn, Bool except, StringView, ETaskQueue, Promise<T>::FunctionArg)			__NE___;
 
 		template <typename A>
-		_InternalImpl (A &&value, bool except, StringView, ETaskQueue, Promise<T>::ValueArg)			__NE___;
+		_InternalImpl (A &&value, Bool except, StringView, ETaskQueue, Promise<T>::ValueArg)			__NE___;
 
 		template <typename A>
-		_InternalImpl (A &&value, bool except, StringView, ETaskQueue, Promise<T>::CompleteValueArg)	__NE___;
+		_InternalImpl (A &&value, Bool except, StringView, ETaskQueue, Promise<T>::CompleteValueArg)	__NE___;
 
 		ND_ exact_t  Result ()																			C_NE___
 		{
@@ -481,19 +488,19 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	Promise<T>::Promise (Fn &&fn, bool except, StringView dbgName, ETaskQueue queueType, FunctionArg flag) __NE___ :
+	Promise<T>::Promise (Fn &&fn, Bool except, StringView dbgName, ETaskQueue queueType, FunctionArg flag) __NE___ :
 		_impl{ MakeRC<_InternalImpl>( FwdArg<Fn>(fn), except, dbgName, queueType, flag )}
 	{}
 
 	template <typename T>
 	template <typename A>
-	Promise<T>::Promise (A &&value, bool except, StringView dbgName, ETaskQueue queueType, ValueArg flag) __NE___ :
+	Promise<T>::Promise (A &&value, Bool except, StringView dbgName, ETaskQueue queueType, ValueArg flag) __NE___ :
 		_impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, dbgName, queueType, flag )}
 	{}
 
 	template <typename T>
 	template <typename A>
-	Promise<T>::Promise (A &&value, bool except, StringView dbgName, ETaskQueue queueType, CompleteValueArg flag) __NE___ :
+	Promise<T>::Promise (A &&value, Bool except, StringView dbgName, ETaskQueue queueType, CompleteValueArg flag) __NE___ :
 		_impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, dbgName, queueType, flag )}
 	{}
 
@@ -517,7 +524,7 @@ namespace _hidden_
 								fn();
 								return PromiseResult<void>{};
 							},
-							false,
+							False{"then"},
 							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
@@ -528,7 +535,7 @@ namespace _hidden_
 			StaticAssert( FI::args::Count == 0 );
 
 			return Result{	FwdArg<Fn>(fn),
-							false,
+							False{"then"},
 							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
@@ -537,14 +544,14 @@ namespace _hidden_
 		if constexpr( IsVoid< typename FI::result > )
 		{
 			StaticAssert( FI::args::Count == 1 );
-			StaticAssert( IsSameTypes< typename FI::args::template Get<0>, const T& >,
+			StaticAssert( IsSame< typename FI::args::template Get<0>, const T& >,
 						   "argument type must be 'const T&'" );
 
 			return Result{	[fn = FwdArg<Fn>(fn), in = _impl] () __Th___ {
 								fn( in->Result() );
 								return PromiseResult<void>{};
 							},
-							false,
+							False{"then"},
 							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
@@ -552,12 +559,12 @@ namespace _hidden_
 		else
 		{
 			StaticAssert( FI::args::Count == 1 );
-			StaticAssert( IsSameTypes< typename FI::args::template Get<0>, const T& >);
+			StaticAssert( IsSame< typename FI::args::template Get<0>, const T& >);
 
 			return Result{	[fn = FwdArg<Fn>(fn), in = _impl] () __Th___ {
 								return fn( in->Result() );
 							},
-							false,
+							False{"then"},
 							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
@@ -626,7 +633,7 @@ namespace _hidden_
 								fn();
 								return PromiseResult<void>{};
 							},
-							true,
+							True{"except"},
 							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
@@ -634,7 +641,7 @@ namespace _hidden_
 		else
 		{
 			return Result{	FwdArg<Fn>(fn),
-							true,
+							True{"except"},
 							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
@@ -734,7 +741,7 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	Promise<T>::_InternalImpl::_InternalImpl (Fn &&fn, bool except, StringView dbgName, ETaskQueue queueType, Promise<T>::FunctionArg) __NE___ :
+	Promise<T>::_InternalImpl::_InternalImpl (Fn &&fn, Bool except, StringView dbgName, ETaskQueue queueType, Promise<T>::FunctionArg) __NE___ :
 		IAsyncTask{ queueType },
 		_result{ CancelPromise },
 		_func{ FwdArg<Fn>(fn) },
@@ -749,7 +756,7 @@ namespace _hidden_
 
 	template <typename T>
 	template <typename A>
-	Promise<T>::_InternalImpl::_InternalImpl (A &&value, bool except, StringView dbgName, ETaskQueue queueType, Promise<T>::ValueArg) __NE___ :
+	Promise<T>::_InternalImpl::_InternalImpl (A &&value, Bool except, StringView dbgName, ETaskQueue queueType, Promise<T>::ValueArg) __NE___ :
 		IAsyncTask{ queueType },
 		_result{ FwdArg<A>(value) },
 		_isExept{ except }
@@ -762,7 +769,7 @@ namespace _hidden_
 
 	template <typename T>
 	template <typename A>
-	Promise<T>::_InternalImpl::_InternalImpl (A &&value, bool except, StringView dbgName, ETaskQueue queueType, Promise<T>::CompleteValueArg) __NE___ :
+	Promise<T>::_InternalImpl::_InternalImpl (A &&value, Bool except, StringView dbgName, ETaskQueue queueType, Promise<T>::CompleteValueArg) __NE___ :
 		IAsyncTask{ queueType },
 		_result{ FwdArg<A>(value) },
 		_isExept{ except }
@@ -770,7 +777,7 @@ namespace _hidden_
 		, _dbgName{ dbgName.empty() ? "Promise" : dbgName }
 		#endif
 	{
-		_MakeCompleted();
+		_MakeCompletedUnsafe();
 		Unused( dbgName );
 	}
 
@@ -782,7 +789,7 @@ namespace _hidden_
 	template <typename T>
 	void  Promise<T>::_InternalImpl::Run () __Th___
 	{
-		if_likely( (not _isExept) & bool(_func) )
+		if_likely( (not _isExept) and bool(_func) )
 		{
 			_result	= _func();	// TODO: may throw?
 			_func	= null;
@@ -803,7 +810,7 @@ namespace _hidden_
 	template <typename T>
 	void  Promise<T>::_InternalImpl::OnCancel () __NE___
 	{
-		if_likely( _isExept & bool(_func) )
+		if_likely( _isExept and bool(_func) )
 		{
 			NOTHROW(
 				_result	= _func();	// may throw
@@ -835,7 +842,7 @@ namespace _hidden_
 		StaticAssert( not IsVoid< Value_t >);
 
 		return Result{	FwdArg<T>(value),
-						false,
+						False{},
 						dbgName,
 						queueType,
 						typename Result::ValueArg{} };
@@ -867,7 +874,7 @@ namespace _hidden_
 
 			// return completed promise if there are no dependencies
 			return Result{	FwdArg<T>(value),
-							false,
+							False{},
 							dbgName,
 							queueType,
 							typename Result::CompleteValueArg{} };
@@ -906,14 +913,18 @@ namespace _hidden_
 								fn();
 								return PromiseResult<void>{};
 							},
-							false,
+							False{},
 							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
 		}
 		else
 		{
-			return Result{ FwdArg<Fn>(fn), false, dbgName, queueType, typename Result::FunctionArg{} };
+			return Result{	FwdArg<Fn>(fn),
+							False{},
+							dbgName,
+							queueType,
+							typename Result::FunctionArg{} };
 		}
 	}
 

@@ -29,7 +29,8 @@ void ASmain ()
 			ppln.AddPipelineFolder( "samplers" );
 
 			const string  fname = output_temp + suffix[i] + "/render_passes.bin";
-			ppln.CompileWithNameMapping( fname );
+			ppln.AddNameMapping();
+			ppln.Compile( fname );
 			archive.Add( suffix[i] + "/render_passes", fname );
 		}
 
@@ -49,7 +50,8 @@ void ASmain ()
 			ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
 
 			const string  fname = output_temp + suffix[i] + "/pipelines.bin";
-			ppln.CompileWithNameMapping( fname );
+			ppln.AddNameMapping();
+			ppln.Compile( fname );
 			archive.Add( suffix[i] + "/pipelines", fname );
 		}
 	}

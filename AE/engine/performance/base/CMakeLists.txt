@@ -15,7 +15,7 @@ if (TARGET "Base")
 	endif()
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/PerfTests" )
-	target_link_libraries( ${TEST_NAME} PUBLIC "Base" )
+	target_link_libraries( ${TEST_NAME} PUBLIC "Base" "Threading" )
 
 	#add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
 endif()

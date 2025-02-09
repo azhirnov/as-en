@@ -6,6 +6,7 @@ void ASmain ()
 	// include:
 	//	Intel(R) UHD Graphics 620.json
 	//	NVIDIA GeForce RTX 2080.json
+	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
 	//	AMD Radeon HD 7970M (RADV PITCAIRN) driver 23.3.3 on Manjaro unknown
 	//	AMD Radeon HD 8790M (RADV OLAND) driver 23.0.4 on Ubuntu 22.04
 	//	AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
@@ -18,7 +19,9 @@ void ASmain ()
 	//	AMD Radeon RX Vega driver 2.0.213 on Ubuntu 22.01
 	//	Apple M1 driver 0.2.2017 on Osx 14.1
 	//	Intel(R) Arc(tm) A380 Graphics (DG2) driver 22.2.99 on Rocky 9.0
+	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
+	//	Intel(R) HD Graphics 520 (SKL GT2) driver 24.2.4 on Arch unknown
 	//	Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
 	//	Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2
 	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
@@ -26,13 +29,17 @@ void ASmain ()
 	//	NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
 	//	NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10
 	//	NVIDIA GeForce MX110 driver 510.54.0.0 on Arch unknown
-	//	NVIDIA GeForce RTX 2080 driver 473.11.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
+	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
 	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
+	//	NVIDIA GeForce RTX 4090 driver 553.51.0.0 on Windows 11
 	//	NVIDIA Tegra Orin (nvgpu) driver 540.2.0.0 on Ubuntu 22.04
+	//	Qualcomm(R) Adreno(TM) X1-85 GPU driver 512.791.0 on Windows 11
 	//	Radeon RX 580 Series driver 2.0.207 on Ubuntu 20.04
 	//	Microsoft Direct3D12 (Qualcomm(R) Adreno(TM) 8cx Gen 3) driver 24.1.99 on Windows 11
 	//	Microsoft Direct3D12 (Snapdragon(R) X Elite - X1E78100 - Qualcom driver 24.1.99 on Windows 11
+	//	Adreno driver 512.797.0 on Windows 11
 	//	Apple A12 GPU driver 0.2.2018 on Ios 17.5
 	//	Apple A15 GPU driver 0.2.2018 on Ios 17.5
 	//	Apple A17 Pro GPU driver 0.2.2018 on Ios 17.5
@@ -100,14 +107,14 @@ void ASmain ()
 	fset.maxUniformBufferSize (16 << 10);
 	fset.maxStorageBufferSize (64 << 10);
 
-	fset.perDescrSet_maxInputAttachments (4);
-	fset.perDescrSet_maxSampledImages (96);
-	fset.perDescrSet_maxSamplers (80);
-	fset.perDescrSet_maxStorageBuffers (24);
-	fset.perDescrSet_maxStorageImages (24);
-	fset.perDescrSet_maxUniformBuffers (72);
-	fset.perDescrSet_maxTotalResources (512);
-
+	fset.perPipeline_maxInputAttachments (4);
+	fset.perPipeline_maxSampledImages (96);
+	fset.perPipeline_maxSamplers (80);
+	fset.perPipeline_maxStorageBuffers (24);
+	fset.perPipeline_maxStorageImages (24);
+	fset.perPipeline_maxUniformBuffers (72);
+	fset.perPipeline_maxTotalResources (512);
+	
 	fset.perStage_maxInputAttachments (4);
 	fset.perStage_maxSampledImages (16);
 	fset.perStage_maxSamplers (16);

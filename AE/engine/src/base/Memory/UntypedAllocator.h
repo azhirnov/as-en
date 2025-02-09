@@ -144,7 +144,7 @@ namespace AE::Base
 			StaticAssert( IsBytes< RemoveCV< decltype(_sizeInBytes_) >>);							\
 			_outPtr_ = null;																		\
 			__try {																					\
-				ASSERT( _sizeInBytes_ <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */				\
+				ASSERT( _sizeInBytes_ <= 1_KiB );			/* _ALLOCA_S_THRESHOLD */				\
 				_outPtr_ = Cast< RemovePointer<decltype(_outPtr_)> >(_alloca( usize(_sizeInBytes_) ));\
 				AllocatorHelper< EAllocatorType::OnStack >::OnAllocate( _outPtr_, _sizeInBytes_ );	\
 			}																						\
@@ -159,7 +159,7 @@ namespace AE::Base
 #	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\
 		{																							\
 			StaticAssert( IsBytes< RemoveCV< decltype(_sizeInBytes_) >>);							\
-			ASSERT( (_sizeInBytes_) <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */					\
+			ASSERT( (_sizeInBytes_) <= 1_KiB );			/* _ALLOCA_S_THRESHOLD */					\
 			_outPtr_ = Cast< RemovePointer<decltype(_outPtr_)> >(_alloca( usize(_sizeInBytes_) ));	\
 			AllocatorHelper< EAllocatorType::OnStack >::OnAllocate( _outPtr_, _sizeInBytes_ );		\
 		}
@@ -169,7 +169,7 @@ namespace AE::Base
 #	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\
 		{																							\
 			StaticAssert( IsBytes< RemoveCV< decltype(_sizeInBytes_) >>);							\
-			ASSERT( (_sizeInBytes_) <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */					\
+			ASSERT( (_sizeInBytes_) <= 1_KiB );			/* _ALLOCA_S_THRESHOLD */					\
 			_outPtr_ = Cast< RemovePointer<decltype(_outPtr_)> >(alloca( usize(_sizeInBytes_) ));	\
 			AllocatorHelper< EAllocatorType::OnStack >::OnAllocate( _outPtr_, _sizeInBytes_ );		\
 		}

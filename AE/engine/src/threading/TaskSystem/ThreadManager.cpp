@@ -59,7 +59,7 @@ namespace
 */
 	bool  WorkerThread::Attach (const uint uid, const ECpuCoreId coreId) __NE___
 	{
-	#ifndef AE_DISABLE_THREADS
+	  #ifndef AE_DISABLE_THREADS
 		_looping.store( 1 );
 
 		_thread = StdThread{ [this, uid, coreId] ()
@@ -76,7 +76,7 @@ namespace
 			{
 				EXLOCK( _profInfoGuard );
 				_profInfo.threadId		= ThreadUtils::GetIntID();
-				_profInfo.coreId		= ECpuCoreId(ThreadUtils::GetCoreIndex());
+				_profInfo.coreId		= ECpuCoreId(ThreadUtils::LogicalCoreIndex());
 				_profInfo.threadName	= _cfg.name;
 			}
 
@@ -97,9 +97,9 @@ namespace
 		}};
 		return true;
 
-	#else
+	  #else
 		return false;
-	#endif
+	  #endif
 	}
 
 /*
@@ -110,7 +110,7 @@ namespace
 	void  WorkerThread::_UpdateProfilingInfo ()
 	{
 	#ifdef AE_DBG_OR_DEV_OR_PROF
-		const uint		core_id		= ThreadUtils::GetCoreIndex();
+		const uint		core_id		= ThreadUtils::LogicalCoreIndex();
 		const auto		freq_mhz	= PerformanceStat::CPU_GetFrequency( core_id );
 		const auto*		core		= CpuArchInfo::Get().GetCore( core_id );
 		ProfilingInfo	info;
@@ -193,7 +193,7 @@ namespace
 			CHECK( ThreadUtils::SetAffinity( uint(coreId) % ThreadUtils::MaxThreadCount() ));
 
 		_handle		= ThreadUtils::GetHandle();
-		_coreId		= ECpuCoreId(ThreadUtils::GetCoreIndex());
+		_coreId		= ECpuCoreId(ThreadUtils::LogicalCoreIndex());
 		_threadId	= ThreadUtils::GetIntID();
 
 		return true;

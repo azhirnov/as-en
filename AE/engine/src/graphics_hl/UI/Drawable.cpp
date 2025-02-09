@@ -17,10 +17,17 @@ namespace AE::UI
 =================================================
 */
 #ifndef AE_UI_NO_GRAPHICS
-	float  IDrawable::_GetColorAnimSpeed () C_NE___
+# ifdef AE_CFG_RELEASE
+	inline float  IDrawable::_GetColorAnimSpeed () C_NE___
+	{
+		return 10.f;
+	}
+# else
+	inline float  IDrawable::_GetColorAnimSpeed () C_NE___
 	{
 		return UIStyleCollection().GetSettings().colorAnimSpeed;
 	}
+# endif
 #endif
 
 /*
@@ -47,14 +54,21 @@ namespace AE::UI
 #ifndef AE_UI_NO_GRAPHICS
 	bool  RectangleDrawable::SetStyle (StyleName::Ref name) __NE___
 	{
-		_data.stylePtr	= UIStyleCollection().GetColorStyle( name );
+		_data.stylePtr	= UIStyleCollection().GetStyle( name );
 		CHECK_ERR( _data.stylePtr );
 
 		_style			= name;
 		_data.mtr.ppln	= _data.stylePtr->pipeline;
 
-		_data.currColor	= _data.stylePtr->GetColor( _data.currStyle );
+		auto	style	= _data.stylePtr->Get( _data.styleIdx );
+		ASSERT_MSG( style.uv.IsEmpty(), "UV defined for color-only drawable, use ImageDrawable instead" );
+
+		_data.currColor	= style.color;
+		_data.currScale	= style.scale;
+
 		_data.prevColor	= _data.currColor;
+		_data.prevScale	= _data.currScale;
+		_data.factor	= 1.f;
 
 		return true;
 	}
@@ -85,24 +99,30 @@ namespace AE::UI
 		params.mtr = _data.mtr;
 
 		// change state
-		if_unlikely( _data.currStyle != params.style )
+		if_unlikely( _data.styleIdx != params.style )
 		{
-			_data.currStyle	= params.style;
+			_data.styleIdx	= params.style;
 			_data.prevColor	= (_data.factor < 1.0f ? Lerp( _data.prevColor, _data.currColor, _data.factor ) : _data.currColor);
-			_data.currColor	= _data.stylePtr->GetColor( _data.currStyle );
+			_data.prevScale	= (_data.factor < 1.0f ? Lerp( _data.prevScale, _data.currScale, _data.factor ) : _data.currScale);
+
+			auto	style = _data.stylePtr->Get( _data.styleIdx );
+			_data.currColor	= style.color;
+			_data.currScale	= style.scale;
 			_data.factor	= 0.0f;
 		}
 
-		RGBA8u	color = _data.currColor;
+		RGBA8u	color	= _data.currColor;
+		float	scale	= _data.currScale;
 
 		// color animation
 		if_unlikely( _data.factor < 1.0f )
 		{
-			_data.factor	= Min( 1.0f, _data.factor + params.dt * _GetColorAnimSpeed() );
+			_data.factor	= Min( 1.0f, _data.factor + params.dt.count() * _GetColorAnimSpeed() );
 			color			= Lerp( _data.prevColor, _data.currColor, _data.factor );
+			scale			= Lerp( _data.prevScale, _data.currScale, _data.factor );
 		}
 
-		canvas.Draw( Rectangle2D{ params.clipRect, RectF{}, color });
+		canvas.Draw( Rectangle2D{ params.clipRect.Scale( scale ), RectF{}, color });
 	}
 #else
 	void  RectangleDrawable::Draw (const DrawParams &, Canvas &, DrawContext_t &) __Th___
@@ -116,10 +136,115 @@ namespace AE::UI
 */
 	bool  RectangleDrawable::Serialize (Serializer &ser) C_NE___
 	{
-		return ser( _GetDrawableID(GetType()), _style );
+		return ser( _GetDrawableID(Type()), _style );
 	}
 
 	bool  RectangleDrawable::Deserialize (Deserializer &des) __NE___
+	{
+		if_unlikely( not des( OUT _style ))
+			return false;
+
+		return SetStyle( StyleName{_style} );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	SetStyle
+=================================================
+*/
+#ifndef AE_UI_NO_GRAPHICS
+	bool  ImageDrawable::SetStyle (StyleName::Ref name) __NE___
+	{
+		_data.stylePtr	= UIStyleCollection().GetStyle( name );
+		CHECK_ERR( _data.stylePtr );
+
+		_style			= name;
+		_data.mtr.ppln	= _data.stylePtr->pipeline;
+
+		auto	style	= _data.stylePtr->Get( _data.styleIdx );
+		ASSERT_MSG( not style.uv.IsEmpty(), "UV must be defined for image drawable" );
+
+		_data.currColor	= style.color;
+		_data.currScale	= style.scale;
+		_data.uv		= style.UV();
+
+		_data.prevColor	= _data.currColor;
+		_data.prevScale	= _data.currScale;
+		_data.factor	= 1.f;
+
+		return true;
+	}
+#else
+	bool  ImageDrawable::SetStyle (StyleName::Ref name) __NE___
+	{
+		_style = name;
+		return true;
+	}
+#endif
+
+/*
+=================================================
+	Draw
+=================================================
+*/
+#ifndef AE_UI_NO_GRAPHICS
+	void  ImageDrawable::Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx) __Th___
+	{
+		// flush canvas if different materials
+		if_unlikely( params.mtr != _data.mtr and not canvas.IsEmpty() )
+		{
+			ctx.BindPipeline( params.mtr->ppln );
+			ctx.BindDescriptorSet( params.mtr.dsIndex, params.mtr.ds, {&params.mtr.globalDynOffset, 1} );	// TODO
+		//	ctx.SetStencilReference( params.mtr->stencilRef );
+			canvas.Flush( ctx, params.mtr.topology );
+		}
+		params.mtr = _data.mtr;
+
+		// change state
+		if_unlikely( _data.styleIdx != params.style )
+		{
+			_data.styleIdx	= params.style;
+			_data.prevColor	= (_data.factor < 1.0f ? Lerp( _data.prevColor, _data.currColor, _data.factor ) : _data.currColor);
+			_data.prevScale	= (_data.factor < 1.0f ? Lerp( _data.prevScale, _data.currScale, _data.factor ) : _data.currScale);
+
+			auto	style = _data.stylePtr->Get( _data.styleIdx );
+			_data.currColor	= style.color;
+			_data.currScale	= style.scale;
+			_data.factor	= 0.0f;
+		}
+
+		RGBA8u	color	= _data.currColor;
+		float	scale	= _data.currScale;
+
+		// color animation
+		if_unlikely( _data.factor < 1.0f )
+		{
+			_data.factor	= Min( 1.0f, _data.factor + params.dt.count() * _GetColorAnimSpeed() );
+			color			= Lerp( _data.prevColor, _data.currColor, _data.factor );
+			scale			= Lerp( _data.prevScale, _data.currScale, _data.factor );
+		}
+
+		canvas.Draw( Rectangle2D{ params.clipRect.Scale( scale ), _data.uv, color });
+	}
+#else
+	void  ImageDrawable::Draw (const DrawParams &, Canvas &, DrawContext_t &) __Th___
+	{}
+#endif
+
+/*
+=================================================
+	Serialize / Deserialize
+=================================================
+*/
+	bool  ImageDrawable::Serialize (Serializer &ser) C_NE___
+	{
+		return ser( _GetDrawableID(Type()), _style );
+	}
+
+	bool  ImageDrawable::Deserialize (Deserializer &des) __NE___
 	{
 		if_unlikely( not des( OUT _style ))
 			return false;
@@ -163,7 +288,6 @@ namespace
 		switch_enum( EType::Unknown )
 		{
 			case EType::Unknown :
-			case EType::Image :
 			case EType::NinePatch :
 			case EType::Text :
 			case EType::_Count :
@@ -174,7 +298,7 @@ namespace
 									&DrawableSerializer< _name_##Drawable >::Serialize,		\
 									&DrawableSerializer< _name_##Drawable >::Deserialize ));
 			REG( Rectangle )
-		//	REG( Image )
+			REG( Image )
 		//	REG( NinePatch )
 		//	REG( Text )
 			#undef REG

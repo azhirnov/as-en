@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Thread-safe:  yes (only const methods)
+*/
 
 #pragma once
 
@@ -23,74 +26,86 @@ namespace AE::UI
 			ColorStyle,
 			ImageStyle,
 			FontStyle,
+			ImageAnimationStyle,
 			_Count
 		};
 
 
-		class _BaseStyle
+		class IStyle
 		{
+		// types
+		public:
+			using UV_t = Rectangle<ushort>;
+
+			struct UVScaleColor
+			{
+				UV_t		uv;
+				float		scale	= 1.f;
+				RGBA8u		color;
+
+				UVScaleColor ()											__NE___ {}
+				UVScaleColor (RGBA8u col)								__NE___ : color{col} {}
+				UVScaleColor (RGBA8u col, float scale)					__NE___ : scale{scale}, color{col} {}
+				UVScaleColor (UV_t uv, Pair<float,RGBA8u> scale_color)	__NE___ : uv{uv}, scale{scale_color.first}, color{scale_color.second} {}
+
+				ND_ RectF  UV ()										C_NE___	{ return UNormShortToFloat( uv ); }
+			};
+
 		// variables
 		public:
-			Graphics::PipelineName		_pplnName;
-			GraphicsPipelineID			pipeline;
+			GraphicsPipelineID		pipeline;
 
 		// methods
 		public:
-			bool  Serialize (Serializing::Serializer &)		C_NE___;
-			bool  Deserialize (Serializing::Deserializer &) __NE___;
-
-		protected:
-			bool  _UpdatePipeline ()						__NE___;
+				virtual ~IStyle ()										__NE___ {}
+			ND_ virtual UVScaleColor  Get (EStyleIndex idx)				C_NE___ = 0;
+			ND_ virtual bool  Deserialize (const StyleCollection &,
+										   const Graphics::ResourceCache &,
+										   Serializing::Deserializer &)	__NE___ = 0;
 		};
 
 
-		class ColorStyle : public _BaseStyle
+		class ColorStyle final : public IStyle
 		{
 		// variables
 		public:
-			struct {
-				RGBA8u			disabled;
-				RGBA8u			enabled;
-				RGBA8u			mouseOver;
-				RGBA8u			touchDown;
-				RGBA8u			selected;
-			}	color;
+			StaticArray< RGBA8u, uint(EStyleIndex::_Count) >	colors;
 
 		// methods
 		public:
-			ColorStyle ()									__NE___	{}
-
-			ND_ RGBA8u  GetColor (EStyleState state)		C_NE___;
-
-			bool  Serialize (Serializing::Serializer &)		C_NE___;
-			bool  Deserialize (Serializing::Deserializer &) __NE___;
+			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV	{ return UVScaleColor{ colors[ uint(idx) ] }; }
+			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
 		};
 
 
-		class ImageStyle final : public ColorStyle
+		class ImageStyle final : public IStyle
 		{
 		// variables
 		public:
-			struct {
-				ImageInAtlasName::Optimized_t	disabled;
-				ImageInAtlasName::Optimized_t	enabled;
-				ImageInAtlasName::Optimized_t	mouseOver;
-				ImageInAtlasName::Optimized_t	touchDown;
-				ImageInAtlasName::Optimized_t	selected;
-			}	image;
+			UV_t															uv;
+			StaticArray< Pair<float, RGBA8u>, uint(EStyleIndex::_Count) >	scale_color;
 
 		// methods
 		public:
-			ImageStyle ()									__NE___	{}
-
-			ND_ auto  GetImage (EStyleState state)			C_NE___ -> Pair< ImageInAtlasName::Optimized_t, RGBA8u >;
-
-			bool  Serialize (Serializing::Serializer &)		C_NE___;
-			bool  Deserialize (Serializing::Deserializer &) __NE___;
+			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV	{ return UVScaleColor{ uv, scale_color[ uint(idx) ]}; }
+			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
 		};
 
 
-		class FontStyle final : public ColorStyle
+		class ImageAnimationStyle final : public IStyle
+		{
+		// variables
+		public:
+			StaticArray< UVScaleColor, uint(EStyleIndex::_Count) >		uv_scale_color;
+
+		// methods
+		public:
+			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV	{ return uv_scale_color[ uint(idx) ]; }
+			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
+		};
+
+
+		/*class FontStyle final : public IStyle
 		{
 		// variables
 		public:
@@ -98,24 +113,49 @@ namespace AE::UI
 
 		// methods
 		public:
-			FontStyle ()									__NE___ {}
-
-			bool  Serialize (Serializing::Serializer &)		C_NE___;
-			bool  Deserialize (Serializing::Deserializer &) __NE___;
-		};
+			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV;
+			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
+		};*/
 
 
 		struct AnimationSettings
 		{
-			float				colorAnimSpeed	= 10.0f;		// 1 / seconds
+			float			colorAnimSpeed;		// 1 / seconds
+
+			AnimationSettings () __NE___;
 		};
 
 		static constexpr uint	MaxScreens	= 32;	// TODO: minimize
+		static constexpr auto	SerID		= Serializing::SerializedID::Optimized_t{"UIStyle"};
 
+		struct CreateInfoAsync
+		{
+			Threading::Promise<RenderTechPipelinesPtr>	rtech;
+			RC<RStream>									stream;
+			Ref<Graphics::ResourceCache>				resCache;
+			Ref<Graphics::ResourceUploadManager>		uploadMngr;
+			Bytes32u									ubSize;
+			Graphics::ImageViewID						dummyImage;
+		};
+
+		struct CreateInfo
+		{
+			RenderTechPipelinesPtr						rtech;
+			RC<RStream>									stream;
+			Ref<Graphics::ResourceCache>				resCache;
+			Ref<Graphics::ResourceUploadManager>		uploadMngr;
+			Bytes32u									ubSize;
+			Graphics::ImageViewID						dummyImage;
+		};
+
+		struct UnsafeSetter
+		{
+			static void  SetAnimSpeed (StyleCollection &, float value);		// in 1/s
+		};
 
 	private:
-		using Style_t		= Union< NullUnion, ColorStyle, ImageStyle, FontStyle >;
-		using StyleMap_t	= FlatHashMap< StyleName::Optimized_t, Style_t >;
+		using StyleMap_t	= FlatHashMap< StyleName::Optimized_t, Unique<IStyle> >;
+		using FontCache_t	= FixedMap< VFS::FileName::Optimized_t, RC<RasterFont>, 8 >;
 
 
 	// variables
@@ -131,34 +171,45 @@ namespace AE::UI
 
 		GraphicsPipelineID			_dbgPpln;
 
-		VFS::FileName::Optimized_t	_imageAtlasRGBAName;
-		VFS::FileName::Optimized_t	_imageAtlasAlphaName;
+		RC<LoadableImage>			_imageRGBA;
+		RC<LoadableImage>			_imageAlpha;
 
-		RC<StaticImageAtlas>		_imageAtlasRGBA;
-		RC<StaticImageAtlas>		_imageAtlasAlpha;
+		DRC_ONLY(
+			Threading::RWDataRaceCheck	_drCheckGraphics;
+			Threading::RWDataRaceCheck	_drCheckResources;
+			Threading::RWDataRaceCheck	_drCheckStyles;
+		)
 
 
 	// methods
 	public:
-		StyleCollection ()																				__NE___;
-		~StyleCollection ()																				__NE___;
+		StyleCollection ()													__NE___;
+		~StyleCollection ()													__NE___;
 
-		ND_ bool  Initialize (RenderTechPipelinesPtr rtech, Bytes ubSize, RC<RStream> stream)			__NE___;
-			void  Deinitialize ()																		__NE___;
+		ND_ AsyncTask	InitializeAsync (CreateInfoAsync &ci)				__NE___;
+		ND_ bool		Initialize (const CreateInfo &ci)					__NE___;
+			void		Deinitialize ()										__NE___;
 
-		ND_ Ptr<const ColorStyle>	GetColorStyle (StyleName::Ref id)									C_NE___;
-		ND_ Ptr<const ImageStyle>	GetImageStyle (StyleName::Ref id)									C_NE___;
-		ND_ Ptr<const FontStyle>	GetFontStyle (StyleName::Ref id)									C_NE___;
-		ND_ GraphicsPipelineID		GetDebugDrawPipeline ()												C_NE___	{ return _dbgPpln; }
+		ND_ auto		GetStyle (StyleName::Ref id)						C_NE___ -> Ptr<const IStyle>;
 
-		ND_ AnimationSettings const&	GetSettings ()													C_NE___	{ return _settings; }
+	//	ND_ Ptr<const FontStyle>	GetFontStyle (StyleName::Ref id)		C_NE___;
+		ND_ GraphicsPipelineID		GetDebugDrawPipeline ()					C_NE___	{ return _dbgPpln; }
+
+		ND_ auto const&				GetSettings ()							C_NE___	{ return _settings; }
+		ND_ auto const&				GetRTech ()								C_NE___	{ return *_rtech; }
 
 
 	private:
-		template <typename StyleType>
-		ND_ StyleType const*  _GetStyle (StyleName::Ref id)												C_NE___;
+		ND_ bool  _DeserializeStyles (Serializing::Deserializer &,
+									  Graphics::ResourceCache &)			__Th___;
 
-		ND_ bool  _Deserialize (Serializing::Deserializer &)											__Th___;
+		ND_ bool  _DeserializeResources (Serializing::Deserializer &,
+										 Graphics::ResourceCache &,
+										 Graphics::ResourceUploadManager &)	__Th___;
+
+		ND_ bool  _InitGraphics (RenderTechPipelinesPtr	rtech,
+								 Graphics::ImageViewID	dummyImage,
+								 Bytes					ubSize)				__NE___;
 	};
 
 

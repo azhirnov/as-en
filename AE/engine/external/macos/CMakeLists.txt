@@ -1,7 +1,5 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
-
 set( AE_ENABLE_ASSIMP	 		OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_ASTC_ENCODER	 	OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_AMD_GPU_PERF 	OFF CACHE INTERNAL "" FORCE )

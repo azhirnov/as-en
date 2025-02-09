@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Thread-safe:  no
+*/
 
 #pragma once
 
@@ -16,6 +19,7 @@ private:
 	using Clock_t		= std::chrono::high_resolution_clock;
 	using TimePoint_t	= Clock_t::time_point;
 	using Duration_t	= Clock_t::duration;
+	using AddInfoFn_t	= Function< String (Duration_t) >;
 
 	struct TestInfo
 	{
@@ -24,6 +28,7 @@ private:
 		Array< Duration_t >	iterations;
 		Duration_t			medium			= Default;
 		bool				isEnded			= false;
+		AddInfoFn_t			addInfoFn;
 	};
 
 
@@ -35,14 +40,17 @@ private:
 
 // methods
 public:
-	explicit IntervalProfiler (StringView name) : _testName{name} {}
-	~IntervalProfiler ();
+	explicit IntervalProfiler (StringView name) : _testName{name}	{}
+	~IntervalProfiler ()											{ PrintAndReset(); }
 
 	void  BeginTest (StringView name);
+	void  BeginTest (StringView name, AddInfoFn_t fn);
 	void  EndTest ();
 
 	void  BeginIteration ();
 	void  EndIteration ();
+
+	void  PrintAndReset ();
 };
 
 using TsIntervalProfiler = AE::Threading::Synchronized< Mutex, IntervalProfiler >;
@@ -50,11 +58,14 @@ using TsIntervalProfiler = AE::Threading::Synchronized< Mutex, IntervalProfiler 
 
 /*
 =================================================
-	destructor
+	PrintAndReset
 =================================================
 */
-inline IntervalProfiler::~IntervalProfiler ()
+inline void  IntervalProfiler::PrintAndReset ()
 {
+	if ( _tests.empty() )
+		return;
+
 	std::sort( _tests.begin(), _tests.end(), [](const auto& lhs, const auto& rhs) { return lhs.medium < rhs.medium; });
 
 	String	str;
@@ -63,6 +74,7 @@ inline IntervalProfiler::~IntervalProfiler ()
 	const auto	ToDouble = [] (Duration_t dt) {{ return TimeCast<secondsd>( dt ).count(); }};
 
 	const Duration_t	first	= _tests.begin()->medium;
+	const usize			max_pad	= 12;
 	usize				max_len	= 0;
 
 	for (auto& t : _tests) {
@@ -71,16 +83,26 @@ inline IntervalProfiler::~IntervalProfiler ()
 
 	for (auto& t : _tests)
 	{
-		double	frac = first.count() == 0 ? 0.0 : (ToDouble( t.medium - first ) / ToDouble( first )) * 100.0;
+		double	fract = first.count() == 0 ? 0.0 : (ToDouble( t.medium - first ) / ToDouble( first )) * 100.0;
 
 		str << "\n  " << t.name;
 		AppendToString( INOUT str, max_len - t.name.length() );
 		str << ": " << ToString(t.medium);
 
-		if ( frac != 0.0 )
-			str << "  +" << ToString( frac, 1 ) << '%';
+		const usize	pos = str.length();
+
+		if ( fract > 1.0e-10 )
+			str << "  +" << ToString( fract, 1 ) << '%';
+
+		if ( t.addInfoFn )
+		{
+			AppendToString( INOUT str, max_pad - Min( max_pad, str.length() - pos ));
+			str << t.addInfoFn( t.medium );
+		}
 	}
 	AE_LOGI( str );
+
+	_tests.clear();
 }
 
 /*
@@ -90,7 +112,17 @@ inline IntervalProfiler::~IntervalProfiler ()
 */
 forceinline void  IntervalProfiler::BeginTest (StringView name)
 {
-	_tests.emplace_back().name = name;
+	auto&	dst = _tests.emplace_back();
+	dst.name	= name;
+	dst.iterations.reserve( 128 );
+}
+
+forceinline void  IntervalProfiler::BeginTest (StringView name, AddInfoFn_t fn)
+{
+	auto&	dst = _tests.emplace_back();
+	dst.name		= name;
+	dst.addInfoFn	= RVRef(fn);
+	dst.iterations.reserve( 128 );
 }
 
 /*

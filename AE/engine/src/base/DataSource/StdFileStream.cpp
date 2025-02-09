@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/DataSource/StdFileStream.h"
-#include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/ToString.h"
 #include "base/FileSystem/FileSystem.h"
 
 #ifdef AE_PLATFORM_WINDOWS
@@ -134,15 +134,14 @@ DEBUG_ONLY(
 		_file{ file },
 		_fileSize{ GetSize( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-	{}
+	{
+		if ( _file == null )
+			AE_LOG_DBG( "Can't open file: \""s << ToString(_filename) << '"' );
+	}
 
 	StdFileRStream::StdFileRStream (NtStringView  filename)	__NE___ : StdFileRStream{ filename.c_str() } {}
 	StdFileRStream::StdFileRStream (const String &filename)	__NE___ : StdFileRStream{ filename.c_str() } {}
-	StdFileRStream::StdFileRStream (const char*   filename)	__NE___ : StdFileRStream{ OpenFile( filename, "rb" ) DEBUG_ONLY(, Path{filename} )}
-	{
-		if ( _file == null )
-			AE_LOG_DBG( "Can't open file: \""s << filename << '"' );
-	}
+	StdFileRStream::StdFileRStream (const char*   filename)	__NE___ : StdFileRStream{ OpenFile( filename, "rb" ) DEBUG_ONLY(, Path{filename} )} {}
 
 /*
 =================================================
@@ -152,13 +151,8 @@ DEBUG_ONLY(
 #ifdef AE_PLATFORM_WINDOWS
 	StdFileRStream::StdFileRStream (NtWStringView  filename)	__NE___ : StdFileRStream{ filename.c_str() } {}
 	StdFileRStream::StdFileRStream (const WString &filename)	__NE___ : StdFileRStream{ filename.c_str() } {}
-	StdFileRStream::StdFileRStream (const wchar_t* filename)	__NE___ : StdFileRStream{ OpenFile( filename, L"rb" ) DEBUG_ONLY(, Path{filename} )}
-	{
-		if ( _file == null )
-			AE_LOG_DBG( "Can't open file: \""s << ToString(filename) << '"' );
-	}
+	StdFileRStream::StdFileRStream (const wchar_t* filename)	__NE___ : StdFileRStream{ OpenFile( filename, L"rb" ) DEBUG_ONLY(, Path{filename} )} {}
 #endif
-
 	StdFileRStream::StdFileRStream (const Path &path)			__NE___ : StdFileRStream{ path.c_str() } {}
 
 /*
@@ -275,19 +269,15 @@ DEBUG_ONLY(
 	StdFileWStream::StdFileWStream (FILE* file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-	{}
+	{
+		if ( _file == null )
+			AE_LOG_DBG( "Can't open file: \""s << ToString(_filename) << '"' );
+	}
 
 	StdFileWStream::StdFileWStream (NtStringView  filename, EMode mode)	__NE___ : StdFileWStream{ filename.c_str(), mode } {}
 	StdFileWStream::StdFileWStream (const String &filename, EMode mode)	__NE___ : StdFileWStream{ filename.c_str(), mode } {}
-	StdFileWStream::StdFileWStream (const char*   filename, EMode mode)	__NE___ : StdFileWStream{ OpenFile( filename, ModeToStr(mode) ) DEBUG_ONLY(, Path{filename} )}
-	{
-		if ( _file == null )
-			AE_LOG_DBG( "Can't open file: \""s << filename << '"' );
-	}
-
-	StdFileWStream::StdFileWStream () __NE___ :
-		StdFileWStream{ OpenTempFile() DEBUG_ONLY(, Path{} )}
-	{}
+	StdFileWStream::StdFileWStream (const char*   filename, EMode mode)	__NE___ : StdFileWStream{ OpenFile( filename, ModeToStr(mode) ) DEBUG_ONLY(, Path{filename} )} {}
+	StdFileWStream::StdFileWStream ()									__NE___ : StdFileWStream{ OpenTempFile() DEBUG_ONLY(, Path{} )} {}
 
 /*
 =================================================
@@ -297,13 +287,8 @@ DEBUG_ONLY(
 #ifdef AE_PLATFORM_WINDOWS
 	StdFileWStream::StdFileWStream (NtWStringView  filename, EMode mode)	__NE___ : StdFileWStream{ filename.c_str(), mode } {}
 	StdFileWStream::StdFileWStream (const WString &filename, EMode mode)	__NE___ : StdFileWStream{ filename.c_str(), mode } {}
-	StdFileWStream::StdFileWStream (const wchar_t* filename, EMode mode)	__NE___ : StdFileWStream{ OpenFile( filename, ModeToWStr(mode) ) DEBUG_ONLY(, Path{filename} )}
-	{
-		if ( _file == null )
-			AE_LOG_DBG( "Can't open file: \""s << ToString(filename) << '"' );
-	}
+	StdFileWStream::StdFileWStream (const wchar_t* filename, EMode mode)	__NE___ : StdFileWStream{ OpenFile( filename, ModeToWStr(mode) ) DEBUG_ONLY(, Path{filename} )} {}
 #endif
-
 	StdFileWStream::StdFileWStream (const Path &path, EMode mode)			__NE___ : StdFileWStream{ path.c_str(), mode } {}
 
 /*
@@ -402,15 +387,14 @@ DEBUG_ONLY(
 		_file{ file },
 		_fileSize{ GetSize( _file )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-	{}
+	{
+		if ( _file == null )
+			AE_LOG_DBG( "Can't open file: \""s << ToString(_filename) << '"' );
+	}
 
 	StdFileRDataSource::StdFileRDataSource (NtStringView  filename)	__NE___ : StdFileRDataSource{ filename.c_str() } {}
 	StdFileRDataSource::StdFileRDataSource (const String &filename)	__NE___ : StdFileRDataSource{ filename.c_str() } {}
-	StdFileRDataSource::StdFileRDataSource (const char*   filename)	__NE___ : StdFileRDataSource{ OpenFile( filename, "rb" ) DEBUG_ONLY(, Path{filename} )}
-	{
-		if ( _file == null )
-			AE_LOG_DBG( "Can't open file: \""s << filename << '"' );
-	}
+	StdFileRDataSource::StdFileRDataSource (const char*   filename)	__NE___ : StdFileRDataSource{ OpenFile( filename, "rb" ) DEBUG_ONLY(, Path{filename} )} {}
 
 /*
 =================================================
@@ -420,13 +404,8 @@ DEBUG_ONLY(
 #ifdef AE_PLATFORM_WINDOWS
 	StdFileRDataSource::StdFileRDataSource (NtWStringView  filename)	__NE___ : StdFileRDataSource{ filename.c_str() } {}
 	StdFileRDataSource::StdFileRDataSource (const WString &filename)	__NE___ : StdFileRDataSource{ filename.c_str() } {}
-	StdFileRDataSource::StdFileRDataSource (const wchar_t* filename)	__NE___ : StdFileRDataSource{ OpenFile( filename, L"rb" ) DEBUG_ONLY(, Path{filename} )}
-	{
-		if ( _file == null )
-			AE_LOG_DBG( "Can't open file: \""s << ToString(filename) << '"' );
-	}
+	StdFileRDataSource::StdFileRDataSource (const wchar_t* filename)	__NE___ : StdFileRDataSource{ OpenFile( filename, L"rb" ) DEBUG_ONLY(, Path{filename} )} {}
 #endif
-
 	StdFileRDataSource::StdFileRDataSource (const Path &path)			__NE___ : StdFileRDataSource{ path.c_str() } {}
 
 /*
@@ -485,15 +464,16 @@ DEBUG_ONLY(
 	StdFileWDataSource::StdFileWDataSource (FILE* file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-	{}
+	{
+		if ( _file == null )
+			AE_LOG_DBG( "Can't open file: \""s << ToString(_filename) << '"' );
+	}
 
 	StdFileWDataSource::StdFileWDataSource (NtStringView  filename, EMode mode)	__NE___ : StdFileWDataSource{ filename.c_str(), mode } {}
 	StdFileWDataSource::StdFileWDataSource (const String &filename, EMode mode)	__NE___ : StdFileWDataSource{ filename.c_str(), mode } {}
 	StdFileWDataSource::StdFileWDataSource (const char*   filename, EMode mode)	__NE___ : StdFileWDataSource{ OpenFile( filename, ModeToStr(mode) ) DEBUG_ONLY(, Path{filename} )}
 	{
 		ASSERT( mode != EMode::OpenAppend );
-		if ( _file == null )
-			AE_LOG_DBG( "Can't open file: \""s << filename << '"' );
 	}
 
 	StdFileWDataSource::StdFileWDataSource () __NE___ :
@@ -511,11 +491,8 @@ DEBUG_ONLY(
 	StdFileWDataSource::StdFileWDataSource (const wchar_t* filename, EMode mode)	__NE___ : StdFileWDataSource{ OpenFile( filename, ModeToWStr(mode) ) DEBUG_ONLY(, Path{filename} )}
 	{
 		ASSERT( mode != EMode::OpenAppend );
-		if ( _file == null )
-			AE_LOG_DBG( "Can't open file: \""s << ToString(filename) << '"' );
 	}
 #endif
-
 	StdFileWDataSource::StdFileWDataSource (const Path &path, EMode mode)			__NE___ : StdFileWDataSource{ path.c_str(), mode } {}
 
 /*

@@ -5,8 +5,8 @@
 #include "base/Algorithms/Parser.h"
 #include "base/Utils/Version.h"
 
-#include "graphics/Vulkan/VEnumCast.h"
-#include "graphics/Private/EnumToString.h"
+#include "graphics_rhi/Vulkan/VEnumCast.h"
+#include "graphics_rhi/Private/EnumToString.h"
 
 #include "FeatureSetUtils.h"
 
@@ -17,6 +17,41 @@ namespace AE::Graphics
 namespace
 {
 	using EFeature = FeatureSet::EFeature;
+
+/*
+=================================================
+	CastPOT
+=================================================
+*/
+	ND_ static POTValue  CastPOT (const uint src)
+	{
+		if ( src == 0 )
+			return POTValue::Invalid();
+
+		int	pot = IntLog2( src );
+
+		CHECK( pot >= 0 );
+
+		if ( (1u<<pot) != src )
+			AE_LOGW( "Not a POT value: ("s << ToString(1u<<pot) << ") != (" << ToString(src) << ")" );
+
+		return POTValue{PowerOfTwo(pot)};
+	}
+
+	ND_ static POTBytes  CastPOTBytes (const uint src)
+	{
+		if ( src == 0 )
+			return POTBytes::Invalid();
+
+		int	pot = IntLog2( src );
+
+		CHECK( pot >= 0 );
+
+		if ( (1u<<pot) != src )
+			AE_LOGW( "Not a POT value: ("s << ToString(1u<<pot) << ") != (" << ToString(src) << ")" );
+
+		return POTBytes{PowerOfTwo(pot)};
+	}
 
 /*
 =================================================
@@ -251,6 +286,54 @@ namespace
 		return CheckCast<ushort>( FS_ParseJSON( uint(prev), json, name ));
 	}
 
+/*
+=================================================
+	FS_ParseJSON (POTValue)
+=================================================
+*/
+	ND_ static POTValue  FS_ParseJSON (POTValue prev, StringView json, StringView name)
+	{
+		StringView	value_str = FS_ParseJSON_1( json, name );
+		if ( value_str.empty() )
+			return prev;
+
+		uint	val;
+		Unused( FromChars( OUT val, value_str ));
+		return CastPOT( val );
+	}
+
+	ND_ static POTBytes  FS_ParseJSON (POTBytes prev, StringView json, StringView name)
+	{
+		StringView	value_str = FS_ParseJSON_1( json, name );
+		if ( value_str.empty() )
+			return prev;
+
+		uint	val;
+		Unused( FromChars( OUT val, value_str ));
+		return CastPOTBytes( val );
+	}
+
+/*
+=================================================
+	FS_ParseJSON (KiBytes)
+=================================================
+*/
+	ND_ static FeatureSet::KiBytes  FS_ParseJSON (FeatureSet::KiBytes prev, StringView json, StringView name)
+	{
+		StringView	value_str = FS_ParseJSON_1( json, name );
+		if ( value_str.empty() )
+			return prev;
+
+		uint	val;
+		Unused( FromChars( OUT val, value_str ));
+
+		uint	val2 = ((val >> 10) & 0xFFFF) << 10;
+
+		if ( val != val2 )
+			AE_LOGW( "Not a multiple of 1024: ("s << ToString(val) << ") != (" << ToString(val2) << ")" );
+
+		return FeatureSet::KiBytes{ val2 };
+	}
 
 /*
 =================================================
@@ -394,7 +477,7 @@ namespace
 */
 	ND_ static FeatureSet::PerDescriptorSet  FS_ParseJSON (FeatureSet::PerDescriptorSet prev, StringView json, StringView name)
 	{
-		if ( name == "\"perDescrSet\"" )
+		if ( name == "\"perPipeline\"" )
 		{
 			prev.maxInputAttachments= FS_ParseJSON( 0u,		json, "maxDescriptorSetInputAttachments" );
 			prev.maxSampledImages	= FS_ParseJSON( 0u,		json, "maxDescriptorSetSampledImages" );
@@ -1066,6 +1149,7 @@ namespace
 		}
 
 		const HashMap<StringView, StringView>	replace_names = {
+			// FeatureSet								Vulkan
 			{ "maxUniformBufferSize",					"maxUniformBufferRange"					},
 			{ "maxStorageBufferSize",					"maxStorageBufferRange"					},
 			{ "maxDescriptorSets",						"maxBoundDescriptorSets"				},
@@ -1079,9 +1163,10 @@ namespace
 			{ "maxVertexBuffers",						"maxVertexInputBindings"				},
 			{ "maxMeshOutputPerVertexGranularity",		"meshOutputPerVertexGranularity"		},
 			{ "maxMeshOutputPerPrimitiveGranularity",	"meshOutputPerPrimitiveGranularity"		},
-			{ "perDescrSet_maxUniformBuffersDynamic",	"maxDescriptorSetUniformBuffersDynamic"	},
-			{ "perDescrSet_maxStorageBuffersDynamic",	"maxDescriptorSetStorageBuffersDynamic"	},
-			{ "ycbcr2Plane444",							"ycbcr2plane444Formats" }
+			{ "perPipeline_maxUniformBuffersDynamic",	"maxDescriptorSetUniformBuffersDynamic"	},
+			{ "perPipeline_maxStorageBuffersDynamic",	"maxDescriptorSetStorageBuffersDynamic"	},
+			{ "ycbcr2Plane444",							"ycbcr2plane444Formats"					},
+			{ "vertexDivisor",							"vertexAttributeInstanceRateDivisor"	}
 		};
 
 		const auto	ReplaceName = [&replace_names] (StringView key)
@@ -1094,7 +1179,7 @@ namespace
 		}};
 
 		outFeatureSet = FeatureSetExt{};
-		outFeatureSet.SetAll( EFeature::Ignore );
+		outFeatureSet.Init( EFeature::Ignore );
 
 		outFeatureSet.computeShader	= EFeature::RequireTrue;
 		outFeatureSet.tileShader	= EFeature::RequireFalse;
@@ -1109,11 +1194,13 @@ namespace
 				outFeatureSet.subgroupTypes		= ESubgroupTypes::Float32 | ESubgroupTypes::Int32;
 
 				const uint		subgroup_size	= FS_ParseJSON( 0u, json, "\"subgroupSize\"" );
-				outFeatureSet.minSubgroupSize	= CheckCast<ushort>(subgroup_size);
-				outFeatureSet.maxSubgroupSize	= CheckCast<ushort>(subgroup_size);
+				outFeatureSet.minSubgroupSize	= CastPOT( subgroup_size );
+				outFeatureSet.maxSubgroupSize	= CastPOT( subgroup_size );
 			}
 
-			outFeatureSet.maxShaderVersion.spirv	= ver >= Version2{1,2}						? 150 :
+			// from https://github.com/KhronosGroup/Vulkan-Guide/blob/main/chapters/versions.adoc#spir-v
+			outFeatureSet.maxShaderVersion.spirv	= ver >= Version2{1,3}						? 160 :
+													  ver >= Version2{1,2}						? 150 :
 													  HasSubString( json, "VK_KHR_spirv_1_4" )	? 140 :
 													  ver >= Version2{1,1}						? 130 : 100;
 
@@ -1137,9 +1224,6 @@ namespace
 		if ( HasSubString( json, "VK_EXT_sample_locations" ))
 			outFeatureSet.sampleLocations = EFeature::RequireTrue;
 
-		if ( HasSubString( json, "VK_EXT_vertex_attribute_divisor" ))
-			outFeatureSet.vertexDivisor = EFeature::RequireTrue;
-
 		if ( HasSubString( json, "VK_KHR_image_format_list" ))
 			outFeatureSet.imageViewFormatList = EFeature::RequireTrue;
 
@@ -1149,19 +1233,42 @@ namespace
 		if ( HasSubString( json, "VK_EXT_shader_stencil_export" ))
 			outFeatureSet.shaderStencilExport = EFeature::RequireTrue;
 
+		if ( HasSubString( json, "VK_KHR_shader_expect_assume" ))
+			outFeatureSet.shaderExpectAssume = EFeature::RequireTrue;
+
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	outFeatureSet._name_ = FS_ParseJSON( outFeatureSet._name_, json, ReplaceName(AE_TOSTRING(_name_)) );
-		AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 
 		#define AE_FEATURE_SET_VISIT( _type_, _name_ )	outFeatureSet.ext._name_ = FS_ParseJSON( outFeatureSet.ext._name_, json, "\"" AE_TOSTRING(_name_) "\"" );
-		AE_FEATURE_SET_FIELDS2( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_EXT( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
+
+		if ( HasSubString( json, "VK_KHR_maintenance7" ))
+		{
+			uint	ub = 0, sb = 0, total = 0;
+			ub		= FS_ParseJSON( ub,    json, "maxDescriptorSetTotalUniformBuffersDynamic" );
+			sb		= FS_ParseJSON( sb,    json, "maxDescriptorSetTotalStorageBuffersDynamic" );
+			total   = FS_ParseJSON( total, json, "maxDescriptorSetTotalBuffersDynamic" );
+
+			CHECK( ub <= outFeatureSet.perPipeline_maxUniformBuffersDynamic );
+			CHECK( sb <= outFeatureSet.perPipeline_maxStorageBuffersDynamic );
+			CHECK( Max( ub, sb ) <= outFeatureSet.perPipeline_maxTotalBuffersDynamic );
+
+			outFeatureSet.perPipeline_maxUniformBuffersDynamic = CheckCast<ubyte>( ub );
+			outFeatureSet.perPipeline_maxStorageBuffersDynamic = CheckCast<ubyte>( sb );
+			outFeatureSet.perPipeline_maxTotalBuffersDynamic   = CheckCast<ubyte>( total );
+		}
+		else
+		{
+			outFeatureSet.perPipeline_maxTotalBuffersDynamic = outFeatureSet.perPipeline_maxUniformBuffersDynamic + outFeatureSet.perPipeline_maxStorageBuffersDynamic;
+		}
 
 		// minTexelOffset
 		{
 			int	min_off = 0;
 			min_off = FS_ParseJSON( min_off, json, "\"minTexelOffset\"" );
-			outFeatureSet.maxTexelOffset = CheckCast<ushort>(Min( outFeatureSet.maxTexelOffset, Abs(min_off)-1 ));
+			outFeatureSet.maxTexelOffset = CheckCast<ubyte>( Min( outFeatureSet.maxTexelOffset, Abs(min_off)-1 ));
 		}
 
 		// minTexelGatherOffset
@@ -1170,7 +1277,7 @@ namespace
 			min_off = FS_ParseJSON( min_off, json, "\"minTexelGatherOffset\"" );
 			min_off = Abs(min_off);
 			min_off += min_off != 0 ? -1 : 0;
-			outFeatureSet.maxTexelGatherOffset = CheckCast<ushort>(Min( outFeatureSet.maxTexelGatherOffset, min_off ));
+			outFeatureSet.maxTexelGatherOffset = CheckCast<ubyte>( Min( outFeatureSet.maxTexelGatherOffset, min_off ));
 		}
 
 		// compute shader
@@ -1178,9 +1285,9 @@ namespace
 			Array<StringView>	tokens = FS_ParseJSON_N( json, "\"maxComputeWorkGroupSize\"" );
 			if ( tokens.size() == 7 and tokens.front() == "[" )
 			{
-				outFeatureSet.maxComputeWorkGroupSizeX = StringToUInt( tokens[1] );
-				outFeatureSet.maxComputeWorkGroupSizeY = StringToUInt( tokens[3] );
-				outFeatureSet.maxComputeWorkGroupSizeZ = StringToUInt( tokens[5] );
+				outFeatureSet.maxComputeWorkGroupSizeX = CastPOT( StringToUInt( tokens[1] ));
+				outFeatureSet.maxComputeWorkGroupSizeY = CastPOT( StringToUInt( tokens[3] ));
+				outFeatureSet.maxComputeWorkGroupSizeZ = CastPOT( StringToUInt( tokens[5] ));
 			}
 			else
 			{
@@ -1219,11 +1326,11 @@ namespace
 			CHECK( min.width > 0 and min.height > 0 );
 			CHECK( min.width <= max.width and min.height <= max.height );
 
-			outFeatureSet.fragmentShadingRateTexelSize.minX		= POTValue{ min.width }.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.minY		= POTValue{ min.height }.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.maxX		= POTValue{ max.width }.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.maxY		= POTValue{ max.height }.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.aspect	= POTValue{ aspect }.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.minX		= POTValue{ min.width	}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.minY		= POTValue{ min.height	}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.maxX		= POTValue{ max.width	}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.maxY		= POTValue{ max.height	}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.aspect	= POTValue{ aspect		}.GetPOT();
 		}
 
 		// deviceID, vendorID
@@ -1239,7 +1346,6 @@ namespace
 		FS_ParseJSON_Formats( json, INOUT outFeatureSet );
 
 		CHECK_MSG( outFeatureSet.vendorIds.include.Any(), "unknown vendor" );
-		CHECK( outFeatureSet.perDescrSet_maxUniformBuffersDynamic > 0 );
 
 		return true;
 	}
@@ -1318,6 +1424,47 @@ namespace
 		FS_ToString( INOUT str, uint(value), name );
 	}
 
+	static void  FS_ToString (INOUT String &str, FeatureSet::KiBytes value, StringView name)
+	{
+		FS_ToString( INOUT str, uint(value), name );
+	}
+
+/*
+=================================================
+	FS_ToString (POTValue)
+=================================================
+*/
+	static void  FS_ToString (INOUT String &str, POTValue value, StringView name)
+	{
+		if ( value.IsInvalid() )
+			return;
+
+		const uint	pot		= value.GetPOT();
+		const uint	pot10	= AlignDown( pot, 10 );
+		const uint	u32val	= uint{value};
+
+		str << "\tfset." << name << " (";
+
+		if ( pot10 > 0 )
+		{
+			if ( u32val > uint(MaxValue<int>()) )
+				str << "uint(" << ToString( 1u << (pot - pot10) ) << ")";
+			else
+				str << ToString( 1u << (pot - pot10) );
+
+			str << " << " << ToString( pot10 );
+		}
+		else
+			str << ToString<10>( u32val );
+
+		str << ");\n";
+	}
+
+	static void  FS_ToString (INOUT String &str, POTBytes value, StringView name)
+	{
+		FS_ToString( INOUT str, POTValue{value}, name );
+	}
+
 /*
 =================================================
 	FS_ToString (float)
@@ -1354,7 +1501,7 @@ namespace
 		ValToStr( "maxAccelStructures",		val.maxAccelStructures );
 		ValToStr( "maxTotalResources",		val.maxTotalResources );
 
-		CHECK( name == "perDescrSet" or name == "perStage" );
+		CHECK( name == "perPipeline" or name == "perStage" );
 	}
 
 /*
@@ -1763,7 +1910,7 @@ namespace
 			<< "\tRC<FeatureSet>  fset = FeatureSet( \"" << fsName << "\" );\n\n";
 
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	FS_ToString( INOUT str, fs. _name_, AE_TOSTRING(_name_) );
-		AE_FEATURE_SET_FIELDS( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 
 		str << "}\n";

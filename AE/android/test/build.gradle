@@ -16,7 +16,8 @@ android {
 			cmake {
 				arguments '-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
 						  '-DANDROID_ARM_NEON=ON',
-						  '-DAE_ENABLE_VULKAN=ON'
+						  '-DAE_ENABLE_VULKAN=ON',
+						  '-DAE_SIMD_NEON_HALF=1'
 				targets 'TestLauncher'
 			}
 		}
@@ -41,7 +42,7 @@ android {
 	}
 	sourceSets {
 		main {
-			assets.srcDirs = [	'../../../AE-Temp/engine/graphics',			// TODO: include only vulkan pipelines
+			assets.srcDirs = [	'../../../AE-Temp/engine/graphics_rhi',			// TODO: include only vulkan pipelines
 								'../../../AE-Temp/engine/graphics_hl',
 								'../../../AE-Temp/engine/perf_graphics' ]
 		}

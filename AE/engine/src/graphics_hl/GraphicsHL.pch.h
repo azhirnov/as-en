@@ -2,6 +2,6 @@
 
 #pragma once
 
-#include "pch/Graphics.h"
+#include "pch/GraphicsRHI.h"
 #include "pch/VFS.h"
 #include "pch/Platform.h"

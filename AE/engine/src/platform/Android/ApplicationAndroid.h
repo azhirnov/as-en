@@ -109,7 +109,7 @@ namespace AE::App
 		static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass,
 										jint minWidth, jint minHeight,
 										jint maxWidth, jint maxHeight,
-										float dpi, jint orientation,
+										float dpi, jint refreshRate, jint orientation,
 										float avrLum, float maxLum, float minLum,
 										jintArray cutoutRects, jint cutoutRectCount)	__NE___;
 		static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass, jstring, jstring)	__NE___;

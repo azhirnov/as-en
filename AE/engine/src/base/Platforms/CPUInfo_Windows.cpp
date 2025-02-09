@@ -13,17 +13,21 @@
 # include "base/Algorithms/StringUtils.h"
 # include "base/Containers/FixedMap.h"
 
+# ifdef AE_CPU_ARCH_X86_64
+#	include "base/Platforms/CPUInfo_X64.cpp.h"
+# endif
+
 namespace AE::Base
 {
 
 	struct PROCESSOR_POWER_INFORMATION
 	{
-		ULONG Number;
-		ULONG MaxMhz;
-		ULONG CurrentMhz;
-		ULONG MhzLimit;
-		ULONG MaxIdleState;
-		ULONG CurrentIdleState;
+		ULONG	Number;
+		ULONG	MaxMhz;
+		ULONG	CurrentMhz;
+		ULONG	MhzLimit;
+		ULONG	MaxIdleState;
+		ULONG	CurrentIdleState;
 	};
 
 /*
@@ -51,74 +55,27 @@ namespace AE::Base
 			}
 		}
 
-		char	cpu_name [64] = {};
+		CPUName_t	cpu_name;
 
 		// read CPU features (only x86/x64)
-	  #if defined(AE_CPU_ARCH_X64) or defined(AE_CPU_ARCH_X86)
+	  #ifdef AE_CPU_ARCH_X86_64
 		if ( cpu.arch == ECPUArch::X64 )
 		{
-			StaticArray<int, 4>	cpui = {};
+			ReadX64CPUFeatures( OUT feats, OUT cpu.microArch, OUT cpu.vendor, OUT cpu_name, OUT cache );
 
-			__cpuid( OUT cpui.data(), 0 );
-			const int count = cpui[0];
+			feats.SSE2		= feats.SSE2	or ::IsProcessorFeaturePresent( PF_XMMI64_INSTRUCTIONS_AVAILABLE ) != 0;
+			feats.SSE3		= feats.SSE3	or ::IsProcessorFeaturePresent( PF_SSE3_INSTRUCTIONS_AVAILABLE ) != 0;
+			feats.SSSE3		= feats.SSSE3	or ::IsProcessorFeaturePresent( PF_SSSE3_INSTRUCTIONS_AVAILABLE ) != 0;
+			feats.SSE41		= feats.SSE41	or ::IsProcessorFeaturePresent( PF_SSE4_1_INSTRUCTIONS_AVAILABLE ) != 0;
+			feats.SSE42		= feats.SSE42	or ::IsProcessorFeaturePresent( PF_SSE4_2_INSTRUCTIONS_AVAILABLE ) != 0;
+			feats.AVX		= feats.AVX		or ::IsProcessorFeaturePresent( PF_AVX_INSTRUCTIONS_AVAILABLE ) != 0;
 
-			if ( count >= 0x1 )
-			{
-				__cpuid( OUT cpui.data(), 0x1 );
-
-				feats.SSE2		= HasBit( cpui[3], 26 ) or ::IsProcessorFeaturePresent( PF_XMMI64_INSTRUCTIONS_AVAILABLE ) != 0;
-				feats.SSE3		= HasBit( cpui[2],  0 ) or ::IsProcessorFeaturePresent( PF_SSE3_INSTRUCTIONS_AVAILABLE ) != 0;
-				feats.SSSE3		= HasBit( cpui[2],  9 ) or ::IsProcessorFeaturePresent( PF_SSSE3_INSTRUCTIONS_AVAILABLE ) != 0;
-				feats.POPCNT	= HasBit( cpui[2], 23 );
-				feats.AES		= HasBit( cpui[2], 25 );
-				feats.SSE41		= HasBit( cpui[2], 19 ) or ::IsProcessorFeaturePresent( PF_SSE4_1_INSTRUCTIONS_AVAILABLE ) != 0;
-				feats.SSE42		= HasBit( cpui[2], 20 ) or ::IsProcessorFeaturePresent( PF_SSE4_2_INSTRUCTIONS_AVAILABLE ) != 0;
-				feats.AVX		= HasBit( cpui[2], 28 ) or ::IsProcessorFeaturePresent( PF_AVX_INSTRUCTIONS_AVAILABLE ) != 0;
-
-				feats.CmpXchg16 = HasBit( cpui[2], 13 );
-			}
-
-			if ( count >= 0x7 )
-			{
-				__cpuid( OUT cpui.data(), 0x7 );
-
-				feats.AVX256	= HasBit( cpui[1],  5 ) or ::IsProcessorFeaturePresent( PF_AVX2_INSTRUCTIONS_AVAILABLE ) != 0;
-				feats.AVX512	= HasBit( cpui[1], 16 ) or ::IsProcessorFeaturePresent( PF_AVX512F_INSTRUCTIONS_AVAILABLE ) != 0;
-
-				feats.SHA256	= HasBit( cpui[1], 29 );
-				feats.SHA128	= feats.SHA256;
-			}
-
-			// get CPU brand name
-			__cpuid( OUT cpui.data(), 0x8000'0000 );
-			const uint ex_count = cpui[0];
-
-			if ( ex_count >= 0x8000'0002 )
-			{
-				__cpuid( OUT cpui.data(), 0x8000'0002 );
-				std::memcpy( OUT cpu_name, cpui.data(), sizeof(cpui) );
-
-				__cpuid( OUT cpui.data(), 0x8000'0003 );
-				std::memcpy( OUT cpu_name + 16, cpui.data(), sizeof(cpui) );
-
-				__cpuid( OUT cpui.data(), 0x8000'0004 );
-				std::memcpy( OUT cpu_name + 32, cpui.data(), sizeof(cpui) );
-
-				for (usize i = CountOf(cpu_name)-1; i > 0; --i)
-				{
-					const char	c = cpu_name[i];
-					if ( (c == '\0') or (c == ' ') )
-						cpu_name[i] = '\0';
-					else
-						break;
-				}
-			}
-			// TODO: _may_i_use_cpu_feature
+			feats.AVX2		= feats.AVX2	or ::IsProcessorFeaturePresent( PF_AVX2_INSTRUCTIONS_AVAILABLE ) != 0;
+			feats.AVX512F	= feats.AVX512F	or ::IsProcessorFeaturePresent( PF_AVX512F_INSTRUCTIONS_AVAILABLE ) != 0;
 		}
 	  #endif
 
-		cpu.vendor = _NameToVendor( StringView{cpu_name} );
-
+	  #ifdef AE_CPU_ARCH_ARM_BASED
 		if ( cpu.arch == ECPUArch::ARM_32 )
 		{
 			feats.NEON = ::IsProcessorFeaturePresent( PF_ARM_NEON_INSTRUCTIONS_AVAILABLE ) != 0;
@@ -128,12 +85,10 @@ namespace AE::Base
 			feats.NEON		= ::IsProcessorFeaturePresent( PF_ARM_V8_INSTRUCTIONS_AVAILABLE ) != 0;
 			feats.CRC32		= ::IsProcessorFeaturePresent( PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE ) != 0;
 			feats.AES		= ::IsProcessorFeaturePresent( PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE ) != 0;
-			feats.SHA128	= feats.AES;
-			feats.SHA256	= feats.AES;
 		}
+	  #endif
 
 		// read core info
-	  #if AE_PLATFORM_TARGET_VERSION_MAJOR >= 10
 		if ( auto fnGetSystemCpuSetInformation = BitCast< decltype(&::GetSystemCpuSetInformation) >(WindowsUtils::_GetSystemCpuSetInformationFn());
 			 fnGetSystemCpuSetInformation != null )
 		{
@@ -173,7 +128,6 @@ namespace AE::Base
 			::CloseHandle( process );
 		}
 		else
-	  #endif
 		{
 			auto&	info		= cpu.coreTypes.emplace_back();
 			info.type			= ECoreType::Performance;
@@ -189,7 +143,7 @@ namespace AE::Base
 
 		// read core frequency
 		{
-			WindowsLibrary	lib;
+			/*WindowsLibrary	lib;
 			if ( lib.Load( "PowrProf.dll" ))
 			{
 				StaticArray< PROCESSOR_POWER_INFORMATION, 512 >		cores = {};
@@ -217,24 +171,10 @@ namespace AE::Base
 					}
 				}
 			}
-			else
+			else*/
 			{
-			#if defined(AE_CPU_ARCH_X64) or defined(AE_CPU_ARCH_X86)
-				StaticArray<int, 4>	cpui = {};
-
-				__cpuid( OUT cpui.data(), 0 );
-				const int count = cpui[0];
-
-				if ( count >= 0x16 )
-				{
-					__cpuid( OUT cpui.data(), 0x16 );
-
-					for (auto& core : cpu.coreTypes)
-					{
-						core.baseClock	= cpui[0];
-						core.maxClock	= cpui[1];
-					}
-				}
+			#ifdef AE_CPU_ARCH_X86_64
+				ReadX64CPUClock( INOUT cpu.coreTypes );
 			#endif
 			}
 		}
@@ -247,46 +187,33 @@ namespace AE::Base
 			::GetLogicalProcessorInformationEx( RelationCache, null, OUT &buf_size );	// win7
 
 			DynUntypedStorage	info_data	{ Bytes{buf_size}, AlignOf<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX> };
-			auto*				infos		= info_data.Ptr<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>();
+			auto*				info_ptr	= info_data.Ptr<SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>();
+			const void*			end			= info_ptr + Bytes{buf_size};
 
-			if ( ::GetLogicalProcessorInformationEx( RelationCache, OUT infos, INOUT &buf_size ) == TRUE )
+			const auto	AddCacheInfo = [this] (ECacheType type, const CacheGeom &c)
+			{{
+				if ( c.associativity > 0 or c.lineSize > 0 or c.size > 0 )
+					cache.emplace( CacheKey_t{ type, ECoreType::Unknown }, c );
+			}};
+
+			if ( ::GetLogicalProcessorInformationEx( RelationCache, OUT info_ptr, INOUT &buf_size ) == TRUE )
 			{
-				const uint	count = buf_size / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX);
-				for (uint i = 0; i < count; ++i)
+				for (; (info_ptr + Bytes{info_ptr->Size} <= end) and (info_ptr->Size > 0);)
 				{
-					if ( infos[i].Relationship != RelationCache )
-						continue;
+					if ( info_ptr->Relationship == RelationCache )
+					{
+						const auto&		info = info_ptr->Cache;
+						CacheGeom		c;
+						c.lineSize		= info.LineSize;
+						c.associativity	= info.Associativity;	// if 0xFF, the cache is fully associative
+						c.size			= Bytes32u{info.CacheSize};
 
-					const auto&		info = infos[i].Cache;
-
-					if ( info.Level == 1 and info.Type == CacheInstruction )
-					{
-						auto&	c = cache( CacheKey_t{ ECacheType::L1_Instuction, ECoreType::Unknown });
-						c.lineSize		= info.LineSize;
-						c.associativity	= info.Associativity;
-						c.size			= Bytes32u{info.CacheSize};
-					}else
-					if ( info.Level == 1 and info.Type == CacheData )
-					{
-						auto&	c = cache( CacheKey_t{ ECacheType::L1_Data, ECoreType::Unknown });
-						c.lineSize		= info.LineSize;
-						c.associativity	= info.Associativity;
-						c.size			= Bytes32u{info.CacheSize};
-					}else
-					if ( info.Level == 2 and info.Type == CacheData )
-					{
-						auto&	c = cache( CacheKey_t{ ECacheType::L2, ECoreType::Unknown });
-						c.lineSize		= info.LineSize;
-						c.associativity	= info.Associativity;
-						c.size			= Bytes32u{info.CacheSize};
-					}else
-					if ( info.Level == 3 and info.Type == CacheData )
-					{
-						auto&	c = cache( CacheKey_t{ ECacheType::L3, ECoreType::Unknown });
-						c.lineSize		= info.LineSize;
-						c.associativity	= info.Associativity;
-						c.size			= Bytes32u{info.CacheSize};
+						if ( info.Level == 1 and info.Type == CacheInstruction )	AddCacheInfo( ECacheType::L1_Instuction, c );	else
+						if ( info.Level == 1 and info.Type == CacheData )			AddCacheInfo( ECacheType::L1_Data, c );			else
+						if ( info.Level == 2 and info.Type == CacheData )			AddCacheInfo( ECacheType::L2, c );				else
+						if ( info.Level == 3 and info.Type == CacheData )			AddCacheInfo( ECacheType::L3, c );
 					}
+					info_ptr = info_ptr + Bytes{info_ptr->Size};
 				}
 			}
 		}

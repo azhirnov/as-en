@@ -5,7 +5,7 @@
 #include "base/Math/Transformation.h"
 #include "base/Math/Rectangle.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -40,7 +40,7 @@ namespace AE::Math
 		ND_ Mat4_t  ToModelViewProjMatrix ()												C_NE___	{ return projection * ToModelViewMatrix(); }
 		ND_ Mat4_t	ToViewProjMatrix ()														C_NE___	{ return projection * ToViewMatrix(); }
 		ND_ Mat4_t	ToViewMatrix ()															C_NE___	{ return transform.ToRotationMatrix(); }
-		ND_ Mat4_t  ToModelMatrix ()														C_NE___	{ return Mat4_t::Translated( transform.position ); }
+		ND_ Mat4_t  ToModelMatrix ()														C_NE___	{ return Mat4_t::Translate( transform.position ); }
 		ND_ Mat4_t  ToModelViewMatrix ()													C_NE___;
 
 
@@ -81,7 +81,7 @@ namespace AE::Math
 	{
 		ASSERT( BitEqual( transform.scale, T(1) ));
 		Mat4_t	orient_mat		{ transform.orientation };
-		Mat4_t	translate_mat	= Mat4_t::Translated( transform.position );
+		Mat4_t	translate_mat	= Mat4_t::Translate( transform.position );
 		return orient_mat * translate_mat;
 	}
 
@@ -151,6 +151,12 @@ namespace AE::Math
 			projection = Mat4_t::ReverseZTransform() * projection;
 		return *this;
 	}
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
+	template <typename T>	struct TMemCopyAvailable< TCamera<T> >		: CT_Bool< IsMemCopyAvailable<typename TCamera<T>::Transform_t> or IsMemCopyAvailable<typename TCamera<T>::Mat4_t> >{};
+	template <typename T>	struct TZeroMemAvailable< TCamera<T> >		: CT_False {};
+	template <typename T>	struct TTriviallySerializable< TCamera<T> >	: CT_False {};
+	template <typename T>	struct TUnwrap< TCamera<T> >				: TUnwrap<T> {};
+
+} // AE::Base

@@ -351,8 +351,9 @@ namespace
 
 	static void  Matrix_Test4 ()
 	{
-		Unused( float4x4::Translated( float3{} ));
-		Unused( float4x3::Translated( float3{} ));
+		Unused( float3x2::Translate( float2{} ));
+		Unused( float4x4::Translate( float3{} ));
+		Unused( float4x3::Translate( float3{} ));
 	}
 
 

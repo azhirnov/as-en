@@ -86,7 +86,7 @@ namespace
 
 			TEST( b0.CAS_Loop( INOUT b1, a1 ));
 			TEST( b1 == a0 );
-			TEST( b0.unsafe_get() == a1 );
+			TEST( b0.unsafe_get() == a1.get() );
 
 			TEST( a0.use_count() == 2 );	// b1
 			TEST( a1.use_count() == 2 );	// b0

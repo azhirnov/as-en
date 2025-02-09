@@ -75,6 +75,9 @@
 /windows/DevIL/build
 /windows/DevIL/temp
 
+/windows/NvAPI/build
+/windows/NvAPI/temp
+
 /windows/OpenVR/build
 /windows/OpenVR/temp
 

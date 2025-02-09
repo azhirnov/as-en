@@ -8,7 +8,7 @@
 
 namespace AE::Threading
 {
-	using namespace AE::Math;
+	using namespace AE::Base;
 
 	//
 	// Lock-Free Linear Allocator
@@ -66,9 +66,9 @@ namespace AE::Threading
 
 		ND_ Bytes	CurrentSize ()											C_NE___;
 
-		ND_ static constexpr Bytes  BlockSize ()							__NE___	{ return _Capacity; }
-		ND_ static constexpr Bytes  MaxSize ()								__NE___	{ return MaxBlocks_v * _Capacity; }
-		ND_ static constexpr usize	MaxBlocks ()							__NE___	{ return MaxBlocks_v; }
+		NdCx__ static Bytes  BlockSize ()									__NE___	{ return _Capacity; }
+		NdCx__ static Bytes  MaxSize ()										__NE___	{ return MaxBlocks_v * _Capacity; }
+		NdCx__ static usize	 MaxBlocks ()									__NE___	{ return MaxBlocks_v; }
 
 
 		// IAllocator //

@@ -83,7 +83,7 @@ namespace AE::ResEditor
 				dctx.BindDescriptorSet( _dsIndex, ds );
 				if ( dbg ) dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
 
-				dctx.Draw( 3 );
+				dctx.Draw( 3, rp_desc.layerCount.Get() );
 
 				ctx.EndRenderPass( dctx );
 			}
@@ -112,16 +112,18 @@ namespace AE::ResEditor
 
 		// update uniform buffer
 		{
-			ShaderTypes::ShadertoyUB	ub_data;
-			ub_data.resolution	= float3{ cur_dim, 1.f };
-			ub_data.time		= pd.totalTime.count();
-			ub_data.timeDelta	= pd.frameTime.count();
-			ub_data.frame		= pd.frameId;
-			ub_data.passFrameId	= _dynData.frame;
-			ub_data.seed		= pd.seed;
-			ub_data.mouse		= pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-MaxValue<float>()};
-			ub_data.customKeys	= pd.customKeys[0];
-			ub_data.pixToMm		= pd.pixToMm;
+			ShaderTypes::PostprocessPassUB	ub_data;
+			ub_data.resolution		= float3{ cur_dim, 1.f };
+			ub_data.invResolution	= 1.f / float2{cur_dim};
+			ub_data.time			= pd.totalTime.count();
+			ub_data.timeDelta		= pd.frameTime.count();
+			ub_data.frame			= pd.frameId;
+			ub_data.passFrameId		= _dynData.frame;
+			ub_data.seed			= pd.seed;
+			ub_data.mouse			= pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-MaxValue<float>()};
+			ub_data.customKeys		= pd.customKeys[0];
+			ub_data.pixToMm			= pd.pixToMm;
+			ub_data.colorSpace		= uint(pd.swapchainColorSpace);
 
 			if ( _controller )
 				_controller->CopyTo( OUT ub_data.camera );
@@ -143,7 +145,7 @@ namespace AE::ResEditor
 			DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
 
 			CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
-			CHECK_ERR( updater.BindBuffer< ShaderTypes::ShadertoyUB >( UniformName{"un_PerPass"}, _ubuffer ));
+			CHECK_ERR( updater.BindBuffer< ShaderTypes::PostprocessPassUB >( UniformName{"un_PerPass"}, _ubuffer ));
 			CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
 			CHECK_ERR( updater.Flush() );
 		}

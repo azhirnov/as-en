@@ -2,23 +2,10 @@
 
 #pragma once
 
-#include "base/Math/Vec.h"
-#include "base/Math/Quat.h"
-#include "base/Math/Rectangle.h"
-#include "base/Math/VecSwizzle.h"
-#include "base/Math/Byte.h"
-#include "base/Math/Color.h"
-#include "base/Math/BitMath.h"
-#include "base/Math/POTValue.h"
-#include "base/Math/Range.h"
-#include "base/Utils/Version.h"
-#include "base/Utils/EnumSet.h"
-
 #include "base/Algorithms/ArrayUtils.h"
 #include "base/Memory/MemUtils.h"
+#include "base/SIMD/MemUtils.h"
 #include "base/Containers/NtStringView.h"
-#include "base/Math/PhysicalQuantity.h"
-#include "base/FileSystem/Path.h"
 #include "base/Algorithms/Utf8.h"
 
 namespace AE::Base
@@ -151,7 +138,7 @@ namespace AE::Base
 	template <typename T, typename A>
 	BasicString<T,A>&&  operator >> (T const * const lhs, BasicString<T,A> &&rhs) __Th___
 	{
-		rhs.insert( rhs.begin(), lhs );
+		rhs.insert( 0u, lhs );
 		return RVRef(rhs);
 	}
 
@@ -165,7 +152,7 @@ namespace AE::Base
 	template <typename T, typename A>
 	BasicString<T,A>&&  operator >> (const T lhs, BasicString<T,A> &&rhs) __Th___
 	{
-		rhs.insert( 0u, lhs );
+		rhs.insert( rhs.begin(), lhs );
 		return RVRef(rhs);
 	}
 
@@ -175,56 +162,64 @@ namespace AE::Base
 		rhs.insert( rhs.begin(), lhs );
 		return rhs;
 	}
-//-----------------------------------------------------------------------------
 
-
-
-namespace _hidden_
-{
 /*
 =================================================
-	find_avx2_align
-----
-	from https://gms.tf/stdfind-and-memchr-optimizations.html#alignment
+	operator << (String &,		CStyleString)
+	operator << (String &,		char)
+	operator >> (CStyleString,	String &)
+	operator >> (char,			String &)
 =================================================
 */
-#if AE_SIMD_AVX >= 2
-	ND_ forceinline const char*  find_avx2_align (const char* b, const char* e, const char c) __NE___
+#if not defined(__cpp_char8_t)
+	inline U8String&&  operator << (U8String &&lhs, char const * const rhs) __Th___
 	{
-		auto*	i = b;
-		__m256i	q = _mm256_set1_epi8( c );
-		{
-			// unaligned case is allowed for AVX
-			__m256i	x = _mm256_lddqu_si256( static_cast<__m256i const *>( static_cast<void const *>( i )));
-			__m256i	r = _mm256_cmpeq_epi8( x, q );
-			int		z = _mm256_movemask_epi8( r );
+		return	rhs != null ?
+					RVRef( RVRef(lhs).append( Cast<CharUtf8>(rhs) )) :
+					RVRef(lhs);
+	}
 
-			if_unlikely( z ) {
-				auto* r2 = i + BitScanForward( z );
-				return Min( r2, e );
-			}
-		}
+	inline U8String&  operator << (U8String &lhs, char const * const rhs) __Th___
+	{
+		return	rhs != null ?
+					lhs.append( Cast<CharUtf8>(rhs) ) :
+					lhs;
+	}
 
-		usize	ai	= BitCast<usize>( b + 32 );
-		ai	&= ~usize{0b11111u};
-		i	= BitCast<const char *>( ai );
+	inline U8String&&  operator << (U8String &&lhs, const char rhs) __Th___
+	{
+		return RVRef( RVRef(lhs) += CharUtf8(rhs) );
+	}
 
-		for_likely (; i < e; i += 32)
-		{
-			__m256i	x = _mm256_lddqu_si256( Cast<__m256i>( i ));
-			__m256i	r = _mm256_cmpeq_epi8( x, q );
-			int		z = _mm256_movemask_epi8( r );
+	inline U8String&  operator << (U8String &lhs, const char rhs) __Th___
+	{
+		return (lhs += CharUtf8(rhs));
+	}
 
-			if_unlikely( z ) {
-				auto* r2 = i + BitScanForward( z );
-				return Min( r2, e );
-			}
-		}
-		return e;
+	inline U8String&&  operator >> (char const * const lhs, U8String &&rhs) __Th___
+	{
+		rhs.insert( 0u, Cast<CharUtf8>(lhs) );
+		return RVRef(rhs);
+	}
+
+	inline U8String&  operator >> (char const * const lhs, U8String &rhs) __Th___
+	{
+		rhs.insert( 0u, Cast<CharUtf8>(lhs) );
+		return rhs;
+	}
+
+	inline U8String&&  operator >> (const char lhs, U8String &&rhs) __Th___
+	{
+		rhs.insert( rhs.begin(), CharUtf8(lhs) );
+		return RVRef(rhs);
+	}
+
+	inline U8String&  operator >> (const char lhs, U8String &rhs) __Th___
+	{
+		rhs.insert( rhs.begin(), CharUtf8(lhs) );
+		return rhs;
 	}
 #endif
-
-} // _hidden_
 //-----------------------------------------------------------------------------
 
 
@@ -234,29 +229,49 @@ namespace _hidden_
 	FindChar
 ----
 	faster than StringView{}.find( ... )
-	returns 'size' if not found
+	returns >= 'size' if not found
 =================================================
-*/
-	ND_ forceinline usize  FindChar (const char* ptr, const usize first, const usize size, const char ch) __NE___
+*
+	Nd__IF usize  FindChar (const char* ptr, const usize first, const usize size, const char ch) __NE___
 	{
-	#if 0 //AE_SIMD_AVX >= 2
-		auto* p = Base::_hidden_::find_avx2_align( ptr + first, ptr + size, ch );
-		return usize(p - ptr);
-	#elif 0
-		// TODO: neon
+	#if 1
+		return FindChar_SIMD( ptr + first, ptr + size - first, ch );
 	#else
 		auto* p = std::memchr( ptr + first, ch, size - first );
 		return (p != null ? usize(Cast<char>(p) - ptr) : size);
 	#endif
 	}
 
-	ND_ forceinline usize  FindChar (StringView str, const char ch, const usize first = 0) __NE___
+	Nd__IF usize  FindChar (StringView str, const char ch, const usize first = 0) __NE___
 	{
 	#if 1
 		return FindChar( str.data(), first, str.size(), ch );
 	#else
 		return Min( str.find( ch, first ), str.size() );
 	#endif
+	}
+
+/*
+=================================================
+	FindChar
+----
+	faster than StringView{}.find( ... )
+	returns >= 'end' if not found
+=================================================
+*/
+	Nd__IF const char*  FindChar (char const* begin, char const* end, const char ch) __NE___
+	{
+		return FindChar_SIMD( begin, end, ch );
+	}
+
+	Nd__IF char*  FindChar (char* begin, char const* end, const char ch) __NE___
+	{
+		return const_cast<char*>( FindChar_SIMD( begin, end, ch ));
+	}
+
+	Nd__IF const char*  FindChar (StringView str, const char ch, const usize first = 0) __NE___
+	{
+		return FindChar( str.data()+first, str.data()+str.size(), ch );
 	}
 
 /*
@@ -275,7 +290,7 @@ namespace _hidden_
 	IsUpperCase
 =================================================
 */
-	ND_ forceinline bool  IsUpperCase (const char c) __NE___
+	Nd__IF bool  IsUpperCase (const char c) __NE___
 	{
 		return (c >= 'A') and (c <= 'Z');
 	}
@@ -285,7 +300,7 @@ namespace _hidden_
 	IsLowerCase
 =================================================
 */
-	ND_ forceinline bool  IsLowerCase (const char c) __NE___
+	Nd__IF bool  IsLowerCase (const char c) __NE___
 	{
 		return (c >= 'a') and (c <= 'z');
 	}
@@ -295,7 +310,7 @@ namespace _hidden_
 	ToLowerCase
 =================================================
 */
-	ND_ forceinline char  ToLowerCase (const char c) __NE___
+	Nd__IF char  ToLowerCase (const char c) __NE___
 	{
 		return IsUpperCase( c ) ? (c - 'A' + 'a') : c;
 	}
@@ -305,7 +320,7 @@ namespace _hidden_
 	ToUpperCase
 =================================================
 */
-	ND_ forceinline char  ToUpperCase (const char c) __NE___
+	Nd__IF char  ToUpperCase (const char c) __NE___
 	{
 		return IsLowerCase( c ) ? (c - 'a' + 'A') : c;
 	}
@@ -318,7 +333,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	ND_ forceinline BasicStringView<T>  SubString (BasicStringView<T> src, usize pos, usize count = UMax) __NE___
+	Nd__IF BasicStringView<T>  SubString (BasicStringView<T> src, usize pos, usize count = UMax) __NE___
 	{
 		pos		= Min( pos, src.size() );
 		count	= Min( count, src.size()-pos );
@@ -326,20 +341,26 @@ namespace _hidden_
 	}
 
 	template <typename T>
-	ND_ forceinline BasicStringView<T>  SubString (const BasicString<T> &src, usize pos, usize count = UMax) __NE___
+	Nd__IF BasicStringView<T>  SubString (const BasicString<T> &src, usize pos, usize count = UMax) __NE___
 	{
 		return SubString( BasicStringView<T>{src}, pos, count );
 	}
 
 	template <typename T>
-	ND_ forceinline BasicStringView<T>  SubString2 (const BasicString<T> &src, usize begin, usize end) __NE___
+	Nd__IF BasicStringView<T>  SubString2 (BasicStringView<T> src, usize begin, usize end) __NE___
 	{
 		ASSERT( begin <= end );
 		ASSERT( end <= src.size() );
 
-		begin	= Min( begin, end );
 		end		= Min( end, src.size() );
-		return BasicStringView<T>{ src.data() + begin, src.data() + end };
+		begin	= Min( begin, end );
+		return BasicStringView<T>{ src.data() + begin, end - begin };
+	}
+
+	template <typename T>
+	Nd__IF BasicStringView<T>  SubString2 (const BasicString<T> &src, usize begin, usize end) __NE___
+	{
+		return SubString2( BasicStringView<T>{src}, begin, end );
 	}
 
 /*
@@ -350,15 +371,15 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	ND_ forceinline BasicStringView<T>  SubString (const T* first, const T* last) __NE___
+	Nd__IF BasicStringView<T>  SubString (const T* first, const T* last) __NE___
 	{
 		ASSERT( first <= last );
 		first = Min( first, last );
-		return BasicStringView<T>{ first, usize(Max( 0, ssize(last - first) ))};
+		return BasicStringView<T>{ first, usize(last - first) };
 	}
 
 	template <typename T>
-	ND_ forceinline BasicStringView<T>  SubString (const BasicString<T> &src, const T* first, const T* last) __NE___
+	Nd__IF BasicStringView<T>  SubString (BasicStringView<T> src, const T* first, const T* last) __NE___
 	{
 		ASSERT( first <= last );
 		ASSERT( first >= src.data() );
@@ -367,7 +388,13 @@ namespace _hidden_
 		first = Max( first, src.data() );
 		last  = Min( last,  src.data()+src.size() );
 		first = Min( first, last );
-		return BasicStringView<T>{ first, usize(Max( 0, ssize(last - first) ))};
+		return BasicStringView<T>{ first, usize(last - first) };
+	}
+
+	template <typename T>
+	Nd__IF BasicStringView<T>  SubString (const BasicString<T> &src, const T* first, const T* last) __NE___
+	{
+		return SubString( BasicStringView<T>{src}, first, last );
 	}
 
 /*
@@ -378,7 +405,7 @@ namespace _hidden_
 	comparison is case insensitive.
 =================================================
 */
-	ND_ inline bool  EqualIC (StringView lhs, StringView rhs) __NE___
+	Nd__In bool  EqualIC (StringView lhs, StringView rhs) __NE___
 	{
 		if ( lhs.size() != rhs.size() )
 			return false;
@@ -396,30 +423,31 @@ namespace _hidden_
 	FindString
 ----
 	faster than StringView{}.find( ... )
-	returns 'str.size()' if not found
+	returns 'str.end()' if not found
 =================================================
 */
-	ND_ inline usize  FindString (StringView str, StringView substr, usize first = 0) __NE___
+	Nd__In const char*  FindString (StringView str, StringView substr, usize first = 0) __NE___
 	{
 		if ( str.size() < substr.size() )
-			return str.size();
+			return str.data() + str.size();
 
-		const usize	cnt = str.size() - substr.size() + 1;
+		const char*		end = str.data() + str.size() - substr.size() + 1;
+		const char*		ptr = str.data() + first;
 
-		for_likely (; first < cnt;)
+		for_likely(; ptr < end;)
 		{
-			first = FindChar( str.data(), first, cnt, substr[0] );
-			if_likely( first < cnt )
+			ptr = FindChar( ptr, end, substr[0] );
+			if_likely( ptr < end )
 			{
 				usize j = 1;
-				for (;(j < substr.size()) and (substr[j] == str[first+j]); ++j)
+				for (;(j < substr.size()) and (substr[j] == ptr[j]); ++j)	// TODO: optimzie
 				{}
 				if_unlikely( j >= substr.size() )
-					return first;
-				++first;
+					return ptr;
+				++ptr;
 			}
 		}
-		return str.size();
+		return str.data() + str.size();
 	}
 
 /*
@@ -431,46 +459,46 @@ namespace _hidden_
 	comparison is case insensitive.
 =================================================
 */
-	ND_ inline usize  FindStringIC (StringView str, StringView substr, const usize first = 0) __NE___
+	Nd__In const char*  FindStringIC (StringView str, StringView substr, const usize first = 0) __NE___
 	{
 		if ( str.size() < substr.size() )
-			return str.size();
+			return str.data() + str.size();
 
-		const usize	cnt = str.size() - substr.size() + 1;
-		const char	up	= ToUpperCase( substr[0] );
-		const char	low	= ToLowerCase( substr[0] );
+		const char*		end = str.data() + str.size() - substr.size() + 1;
+		const char		up	= ToUpperCase( substr[0] );
+		const char		low	= ToLowerCase( substr[0] );
 
-		for_likely (usize i = first; i < cnt;)
+		for_likely( const char* ptr = str.data() + first; ptr < end; )
 		{
-			i = FindChar( str.data(), i, cnt, up );
-			if_likely( i < cnt )
+			ptr = FindChar( ptr, end, up );
+			if_likely( ptr < end )
 			{
 				usize j = 1;
-				for (;(j < substr.size()) and (ToUpperCase( substr[j] ) == ToUpperCase( str[i+j] )); ++j)
+				for (;(j < substr.size()) and (ToUpperCase( substr[j] ) == ToUpperCase( ptr[j] )); ++j)
 				{}
 				if_unlikely( j >= substr.size() )
-					return i;
-				++i;
+					return ptr;
+				++ptr;
 			}
 		}
 
 		if_likely( up == low )
-			return str.size();
+			return str.data() + str.size();
 
-		for_likely (usize i = first; i < cnt;)
+		for_likely( const char* ptr = str.data() + first; ptr < end; )
 		{
-			i = FindChar( str.data(), i, cnt, low );
-			if_likely( i < cnt )
+			ptr = FindChar( ptr, end, low );
+			if_likely( ptr < end )
 			{
 				usize j = 1;
-				for (;(j < substr.size()) and (ToLowerCase( substr[j] ) == ToLowerCase( str[i+j] )); ++j)
+				for (;(j < substr.size()) and (ToLowerCase( substr[j] ) == ToLowerCase( ptr[j] )); ++j)
 				{}
 				if_unlikely( j >= substr.size() )
-					return i;
-				++i;
+					return ptr;
+				++ptr;
 			}
 		}
-		return str.size();
+		return str.data() + str.size();
 	}
 
 /*
@@ -481,9 +509,10 @@ namespace _hidden_
 	comparison is case sensitive.
 =================================================
 */
-	ND_ inline bool  HasSubString (StringView str, StringView substr) __NE___
+	Nd__In bool  HasSubString (StringView str, StringView substr) __NE___
 	{
-		return FindString( str, substr ) < str.size();
+		auto*	end = str.data() + str.size();
+		return FindString( str, substr ) < end;
 	}
 
 /*
@@ -494,9 +523,10 @@ namespace _hidden_
 	comparison is case insensitive.
 =================================================
 */
-	ND_ inline bool  HasSubStringIC (StringView str, StringView substr) __NE___
+	Nd__In bool  HasSubStringIC (StringView str, StringView substr) __NE___
 	{
-		return FindStringIC( str, substr ) < str.size();
+		auto*	end = str.data() + str.size();
+		return FindStringIC( str, substr ) < end;
 	}
 
 /*
@@ -507,7 +537,7 @@ namespace _hidden_
 	comparison is case sensitive.
 =================================================
 */
-	ND_ inline bool  StartsWith (StringView str, StringView substr) __NE___
+	Nd__In bool  StartsWith (StringView str, StringView substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
@@ -523,7 +553,7 @@ namespace _hidden_
 	comparison is case insensitive.
 =================================================
 */
-	ND_ inline bool  StartsWithIC (StringView str, StringView substr) __NE___
+	Nd__In bool  StartsWithIC (StringView str, StringView substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
@@ -544,7 +574,7 @@ namespace _hidden_
 	comparison is case sensitive.
 =================================================
 */
-	ND_ inline bool  EndsWith (StringView str, StringView substr) __NE___
+	Nd__In bool  EndsWith (StringView str, StringView substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
@@ -560,12 +590,12 @@ namespace _hidden_
 	comparison is case insensitive.
 =================================================
 */
-	ND_ inline bool  EndsWithIC (StringView str, StringView substr) __NE___
+	Nd__In bool  EndsWithIC (StringView str, StringView substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
 
-		for_likely (usize i = 1; i <= substr.length(); ++i)
+		for_likely(usize i = 1; i <= substr.length(); ++i)
 		{
 			if_unlikely( ToLowerCase(str[str.length() - i]) != ToLowerCase(substr[substr.length() - i]) )
 				return false;
@@ -580,30 +610,29 @@ namespace _hidden_
 	returns number of replaced symbols/substrings
 =================================================
 */
-	inline uint  FindAndReplace (INOUT String& str, const char oldSymb, const char newSymb) __NE___
+	inline uint  FindAndReplace (INOUT MutableArrayView<char> str, const char oldSymb, const char newSymb) __NE___
 	{
-		uint	count = 0;
-		for (usize pos = 0;
-			 (pos = FindChar( str.data(), pos, str.size(), oldSymb )) < str.size();)
+		uint		count	= 0;
+		auto*		ptr		= str.data();
+		const auto*	end		= str.data() + str.size();
+
+		for_likely(;;)
 		{
-			str[pos] = newSymb;
-			++pos;
-			++count;
+			ptr = FindChar( ptr, end, oldSymb );
+			if_likely( ptr < end )
+			{
+				*ptr = newSymb;
+				++ptr;
+				++count;
+			}else
+				break;
 		}
 		return count;
 	}
 
-	inline uint  FindAndReplace (INOUT MutableArrayView<char> str, const char oldSymb, const char newSymb) __NE___
+	inline uint  FindAndReplace (INOUT String &str, const char oldSymb, const char newSymb) __NE___
 	{
-		uint	count = 0;
-		for (usize pos = 0;
-			 (pos = FindChar( str.data(), pos, str.size(), oldSymb )) < str.size();)
-		{
-			str[pos] = newSymb;
-			++pos;
-			++count;
-		}
-		return count;
+		return FindAndReplace( MutableArrayView<char>{ str.data(), str.size() }, oldSymb, newSymb );
 	}
 
 	inline uint  FindAndReplace (INOUT String& str, StringView oldStr, StringView newStr) __Th___
@@ -629,7 +658,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	constexpr bool  WCharToAnsi (OUT CharAnsi* dst, const T* src, usize len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
+	__Cz__ bool  WCharToAnsi (OUT CharAnsi* dst, const T* src, usize len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
 	{
 		NonNull( dst );
 		NonNull( src );
@@ -652,7 +681,7 @@ namespace _hidden_
 =================================================
 */
 #ifdef AE_ENABLE_UTF8PROC
-	inline constexpr bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
+	__CzIn bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
 	{
 		NonNull( dst );
 		NonNull( src );
@@ -681,10 +710,10 @@ namespace _hidden_
 	template <typename R, typename T>
 	ND_ BasicString<R>  ToAnsiString (BasicStringView<T> str, const R defaultChar = R('?')) __Th___
 	{
-		if constexpr( IsSameTypes< T, CharAnsi >)
+		if constexpr( IsSame< T, CharAnsi >)
 			return BasicString<R>{str};
 		else
-		if constexpr( IsSameTypes< T, wchar_t > or IsSameTypes< T, CharUtf32 >)
+		if constexpr( IsSame< T, wchar_t > or IsSame< T, CharUtf32 >)
 		{
 			BasicString<R>	result;
 			result.resize( str.size() );	// throw
@@ -693,7 +722,7 @@ namespace _hidden_
 		}
 	  #ifdef AE_ENABLE_UTF8PROC
 		else
-		if constexpr( IsSameTypes< T, CharUtf8 >)
+		if constexpr( IsSame< T, CharUtf8 >)
 		{
 			usize			len		= str.length();
 			BasicString<R>	result;
@@ -725,7 +754,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	ND_ constexpr bool  IsAnsiString (const T* ptr, usize length) __NE___
+	NdCx__ bool  IsAnsiString (const T* ptr, usize length) __NE___
 	{
 		for (usize i = 0; i < length; ++i)
 		{
@@ -736,13 +765,13 @@ namespace _hidden_
 	}
 
 	template <typename T>
-	ND_ constexpr bool  IsAnsiString (BasicStringView<T> str) __NE___
+	NdCx__ bool  IsAnsiString (BasicStringView<T> str) __NE___
 	{
 		return IsAnsiString( str.data(), str.length() );
 	}
 
 	template <typename T, typename A>
-	ND_ constexpr bool  IsAnsiString (const BasicString<T,A> &str) __NE___
+	NdCx__ bool  IsAnsiString (const BasicString<T,A> &str) __NE___
 	{
 		return IsAnsiString( str.c_str(), str.length() );
 	}
@@ -753,792 +782,11 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	ND_ constexpr bool  StringLessThan (BasicStringView<T> lhs, BasicStringView<T> rhs) __NE___
+	NdCx__ bool  StringLessThan (BasicStringView<T> lhs, BasicStringView<T> rhs) __NE___
 	{
 		return std::lexicographical_compare( lhs.begin(), lhs.end(), rhs.begin(), rhs.end() );
 	}
 //-----------------------------------------------------------------------------
-
-
-
-#ifdef AE_ENABLE_LOGS
-/*
-=================================================
-	ToString
-=================================================
-*/
-	ND_ inline String  ToString (String value) __Th___
-	{
-		return RVRef(value);
-	}
-
-	ND_ inline String  ToString (const char value[]) __Th___
-	{
-		return String{value};
-	}
-
-	template <typename T>
-	ND_ EnableIf<not IsEnum<T>, String>  ToString (const T &value) __Th___
-	{
-		return std::to_string( value );
-	}
-
-	ND_ inline StringView  ToString (const bool value) __Th___
-	{
-		return value ? "true" : "false";
-	}
-
-/*
-=================================================
-	ToString
-=================================================
-*/
-	template <int Radix, typename T>
-	ND_ EnableIf<IsEnum<T> or IsInteger<T>, String>  ToString (const T &value) __Th___
-	{
-		if constexpr( Radix == 10 )
-		{
-			return std::to_string( value );
-		}
-		else
-		if constexpr( Radix == 16 )
-		{
-			std::stringstream	str;
-			str << std::hex << ToNearUInt( value );
-			return str.str();
-		}
-	}
-
-/*
-=================================================
-	ToString (float / double)
-=================================================
-*/
-	ND_ inline String  ToString (const double value, uint fractParts, Bool exponent = False{}) __Th___
-	{
-		ASSERT( (fractParts > 0) and (fractParts < 100) );
-		fractParts = Clamp( fractParts, 1u, 99u );
-
-		const char	fmt[8]  = {'%', '0', '.', char('0' + fractParts / 10), char('0' + fractParts % 10), (exponent ? 'e' : 'f'), '\0' };
-		char		buf[32] = {};
-
-		const int	len = std::snprintf( buf, CountOf(buf), fmt, value );
-		ASSERT( len > 0 );
-		Unused( len );
-		return buf;
-	}
-
-	ND_ inline String  ToString (const double value) __Th___
-	{
-		return ToString( value, 2 );
-	}
-
-	ND_ inline String  ToString (const float value, const uint fractParts, Bool exponent = False{}) __Th___
-	{
-		return ToString( double(value), fractParts, exponent );
-	}
-
-	ND_ inline String  ToString (const float value) __Th___
-	{
-		return ToString( double(value), 2 );
-	}
-
-/*
-=================================================
-	ToString (Radian)
-=================================================
-*/
-	template <typename T>
-	ND_ auto  ToString (const TRadian<T> &value) __Th___
-	{
-		return ToString( T{value} );
-	}
-
-/*
-=================================================
-	ToString (Vec)
-=================================================
-*/
-	template <typename T, int I, glm::qualifier Q>
-	ND_ String  ToString (const TVec<T,I,Q> &value) __Th___
-	{
-		String	str = "( ";
-
-		for (int i = 0; i < I; ++i)
-		{
-			if_likely( i > 0 )
-				str << ", ";
-			str << ToString( value[i] );
-		}
-		str << " )";
-		return str;
-	}
-
-/*
-=================================================
-	ToString (Quat)
-=================================================
-*/
-	template <typename T, glm::qualifier Q>
-	ND_ String  ToString (const TQuat<T,Q> &value) __Th___
-	{
-		String	str;
-		str << "( w: " << ToString( value.w )
-			<< " axis: "
-			<< ToString( value.x ) << ", "
-			<< ToString( value.y ) << ", "
-			<< ToString( value.z ) << " )";
-		return str;
-	}
-
-/*
-=================================================
-	ToString (VecSwizzle)
-=================================================
-*/
-	ND_ inline String  ToString (const VecSwizzle &value) __Th___
-	{
-		auto		sw			= value.ToVec();
-		const char	symbols []	= "0XYZW0+-";
-		char		str [5]		= { symbols[sw.x], symbols[sw.y], symbols[sw.z], symbols[sw.w] };
-		return str;
-	}
-
-/*
-=================================================
-	ToString (RGBAColor)
-=================================================
-*/
-	template <typename T>
-	ND_ String  ToString (const RGBAColor<T> &value) __Th___
-	{
-		String	str = "( "s;
-		for (uint i = 0; i < 4; ++i)
-		{
-			if_likely( i > 0 ) str << ", ";
-			str << ToString( value[i] );
-		}
-		str << " )";
-		return str;
-	}
-
-	template <typename T>
-	ND_ EnableIf<IsFloatPoint<T>, String>  ToString (const RGBAColor<T> &value, uint fractParts) __Th___
-	{
-		String	str = "( "s;
-		for (uint i = 0; i < 4; ++i)
-		{
-			if_likely( i > 0 ) str << ", ";
-			str << ToString( value[i], fractParts );
-		}
-		str << " )";
-		return str;
-	}
-
-/*
-=================================================
-	ToString (Rectangle)
-=================================================
-*/
-	template <typename T>
-	ND_ String  ToString (const Rectangle<T> &value) __Th___
-	{
-		return "( "s << ToString( value.left ) << ", " << ToString( value.top ) << ", "
-					<< ToString( value.right ) << ", " << ToString( value.bottom ) << " )";
-	}
-
-/*
-=================================================
-	ToString (Bytes)
-=================================================
-*/
-	template <typename T>
-	ND_ String  ToString (const TByte<T> &value) __Th___
-	{
-		if constexpr( sizeof(T) == 8 )
-		{
-			const T	kb	= SafeLeftBitShift( T{1}, 12 );
-			const T mb	= SafeLeftBitShift( T{1}, 22 );
-			const T	gb	= SafeLeftBitShift( T{1}, 32 );
-			const T	tb	= SafeLeftBitShift( T{1}, 42 );
-			const T	val	= T(value);
-			String	str;
-
-			if ( val < kb )	str << ToString( val ) << " b";								else
-			if ( val < mb )	str << ToString( SafeRightBitShift( val, 10 )) << " Kb";	else
-			if ( val < gb )	str << ToString( SafeRightBitShift( val, 20 )) << " Mb";	else
-			if ( val < tb )	str << ToString( SafeRightBitShift( val, 30 )) << " Gb";	else
-							str << ToString( SafeRightBitShift( val, 40 )) << " Tb";
-			return str;
-		}
-
-		if constexpr( sizeof(T) == 4 )
-		{
-			const T	kb	= SafeLeftBitShift( T{1}, 12 );
-			const T mb	= SafeLeftBitShift( T{1}, 22 );
-			const T	val	= T(value);
-			String	str;
-
-			if ( val < kb )	str << ToString( val ) << " b";								else
-			if ( val < mb )	str << ToString( SafeRightBitShift( val, 10 )) << " Kb";	else
-							str << ToString( SafeRightBitShift( val, 20 )) << " Mb";
-			return str;
-		}
-
-		if constexpr( sizeof(T) == 2 )
-		{
-			const T	kb	= SafeLeftBitShift( T{1}, 12 );
-			const T	val	= T(value);
-			String	str;
-
-			if ( val < kb )	str << ToString( val ) << " b";								else
-							str << ToString( SafeRightBitShift( val, 10 )) << " Kb";
-			return str;
-		}
-	}
-
-/*
-=================================================
-	ToString (TPowerOf2Value)
-=================================================
-*/
-	template <typename T>
-	ND_ String  ToString (const TPowerOf2Value<T> &value) __Th___
-	{
-		return ToString( ulong{value} );
-	}
-
-/*
-=================================================
-	ToString (chrono::duration)
-=================================================
-*/
-	template <typename T, typename Duration>
-	ND_ String  ToString (const std::chrono::duration<T,Duration> &value, uint precision = 2) __Th___
-	{
-		using SecondsD_t  = std::chrono::duration<double>;
-		using MicroSecD_t = std::chrono::duration<double, std::micro>;
-
-		const double	time	 = TimeCast<SecondsD_t>( value ).count();
-		const double	abs_time = Abs( time );
-		String			str;
-
-		if ( not IsFinite( time )) {}
-		else
-		if ( abs_time > 59.0 * 60.0 )
-			str << ToString( time * (1.0/3600.0), precision ) << " h";
-		else
-		if ( abs_time > 59.0 )
-			str << ToString( time * (1.0/60.0), precision ) << " m";
-		else
-		if ( abs_time > 1.0e-1 )
-			str << ToString( time, precision ) << " s";
-		else
-		if ( abs_time > 1.0e-4 )
-			str << ToString( time * 1.0e+3, precision ) << " ms";
-		else
-		if ( abs_time > 1.0e-7 )
-			str << ToString( TimeCast<MicroSecD_t>( value ).count(), precision ) << " us";
-		else
-			str << ToString( TimeCast<nanosecondsd>( value ).count(), precision ) << " ns";
-
-		return str;
-	}
-
-/*
-=================================================
-	ToString (Path)
-=================================================
-*/
-	ND_ inline String  ToString (const Path &path) __Th___
-	{
-		String	str = ToAnsiString<char>( path.lexically_normal().native() );
-		FindAndReplace( INOUT str, '\\', '/' );
-		return str;
-	}
-
-/*
-=================================================
-	ToString (U8String)
-=================================================
-*/
-	ND_ inline String  ToString (const U8String &str) __Th___
-	{
-		return ToAnsiString<char>( str );
-	}
-
-	ND_ inline String  ToString (const U8StringView &str) __Th___
-	{
-		return ToAnsiString<char>( str );
-	}
-
-	ND_ inline String  ToString (const CharUtf8* str) __Th___
-	{
-		return ToAnsiString<char>( U8StringView{str} );
-	}
-
-/*
-=================================================
-	ToString (WString)
-=================================================
-*/
-	ND_ inline String  ToString (const WString &str) __Th___
-	{
-		return ToAnsiString<char>( str );
-	}
-
-	ND_ inline String  ToString (const WStringView &str) __Th___
-	{
-		return ToAnsiString<char>( str );
-	}
-
-	ND_ inline String  ToString (const wchar_t* str) __Th___
-	{
-		return ToAnsiString<char>( WStringView{str} );
-	}
-
-/*
-=================================================
-	ToString (Fractional)
-=================================================
-*/
-	template <typename T>
-	ND_ String  ToString (Fractional<T> value) __Th___
-	{
-		String	str = ToString( value.num );
-
-		if ( value.num != 0 and value.den > 1 )
-			str << '/' << ToString( value.den );
-
-		return str;
-	}
-
-/*
-=================================================
-	ToString (TPhysicalDimension)
-=================================================
-*/
-	template <int SecondsNum,	int SecondsDenom,
-			  int KilogramsNum,	int KilogramsDenom,
-			  int MetersNum,	int MetersDenom,
-			  int AmperasNum,	int AmperasDenom,
-			  int KelvinsNum,	int KelvinsDenom,
-			  int MolesNum,		int MolesDenom,
-			  int CandelasNum,	int CandelasDenom,
-			  int CurrencyNum,	int CurrencyDenom,
-			  int BitsNum,		int BitsDenom
-			>
-	ND_ String  ToString (TPhysicalDimension< SecondsNum,	SecondsDenom,
-											  KilogramsNum,	KilogramsDenom,
-											  MetersNum,	MetersDenom,
-											  AmperasNum,	AmperasDenom,
-											  KelvinsNum,	KelvinsDenom,
-											  MolesNum,		MolesDenom,
-											  CandelasNum,	CandelasDenom,
-											  CurrencyNum,	CurrencyDenom,
-											  BitsNum,		BitsDenom >  value) __Th___
-	{
-		using Dim = decltype(value);
-
-		String	str_nom;
-		String	str_den;
-		uint	dim_cnt[2] = {};
-
-		const auto	Append = [&] (FractionalI frac, StringView name)
-		{{
-			if ( frac.IsZero() )
-				return;
-
-			String&	str = frac.IsPositive() ? str_nom : str_den;
-			uint&	cnt	= dim_cnt[ frac.IsPositive() ];
-
-			if ( not str.empty() )
-				str << " * ";
-
-			str << name;
-			if ( not (frac.IsInteger() and frac.num == 1) )
-				str << '^' << ToString( frac );
-
-			++cnt;
-		}};
-
-		Append( Dim::seconds,	"s"		);
-		Append( Dim::kilograms,	"kg"	);
-		Append( Dim::meters,	"m"		);
-		Append( Dim::amperes,	"A"		);
-		Append( Dim::kelvins,	"K"		);
-		Append( Dim::moles,		"mol"	);
-		Append( Dim::candelas,	"cd"	);
-		Append( Dim::currency,	"$"		);
-		Append( Dim::bits,		"bits"	);
-
-		if ( dim_cnt[1] > 1 )
-			('(' >> str_nom) << ')';
-
-		if ( dim_cnt[0] > 1 )
-			('(' >> str_den) << ')';
-
-		if ( str_nom.empty() )
-			str_nom << '1';
-
-		if ( not str_den.empty() )
-			str_nom << " / " << str_den;
-
-		return str_nom;
-	}
-
-/*
-=================================================
-	ToString (PhysicalQuantity)
-=================================================
-*/
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsInteger<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value) __Th___
-	{
-		return ToString( value.GetScaled() ) << '[' << ToString( D{} ) << ']';
-	}
-
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsFloatPoint<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value, uint fractParts, Bool exponent = True{}) __Th___
-	{
-		return ToString( value.GetScaled(), fractParts, exponent ) << '[' << ToString( D{} ) << ']';
-	}
-
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsFloatPoint<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value) __Th___
-	{
-		return ToString( value, 2 );
-	}
-
-/*
-=================================================
-	ToString (PhysicalQuantity)
-=================================================
-*/
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsInteger<V>, String>  ToDebugString (const PhysicalQuantity<V,D,S> &value) __Th___
-	{
-		return ToString( value.GetNonScaled() ) << '*' << ToString( S::Value ) << '[' << ToString( D{} ) << ']';
-	}
-
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsFloatPoint<V>, String>  ToDebugString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
-	{
-		return ToString( value.GetNonScaled(), fractParts, exponent ) << '*' << ToString( S::Value, fractParts, exponent ) << '[' << ToString( D{} ) << ']';
-	}
-
-/*
-=================================================
-	ToString (Version)
-=================================================
-*/
-	template <uint UID>
-	ND_ String  ToString (TVersion2<UID> value) __Th___
-	{
-		return ToString( value.major ) << '.' << ToString( value.minor );
-	}
-
-	template <uint UID>
-	ND_ String  ToString (TVersion3<UID> value) __Th___
-	{
-		return ToString( value.major ) << '.' << ToString( value.minor ) << '.' << ToString( value.patch );
-	}
-
-/*
-=================================================
-	ToString (Tuple)
-=================================================
-*/
-namespace _hidden_
-{
-	struct TupleToString
-	{
-		String	str;
-
-		template <typename T>
-		void  operator () (const T &x) __Th___
-		{
-			if ( not str.empty() ) str << ", ";
-			if constexpr( IsSpecializationOf< T, BasicString >		or
-						  IsSpecializationOf< T, BasicStringView >	or
-						  IsSameTypes< T, Path >					or
-						  (IsPointer<T> and IsChar<RemovePointer<T>>)
-						 )
-				str << '\'' << ToString( x ) << '\'';
-			else
-				str << ToString( x );
-		}
-	};
-}
-
-	template <typename ...Types>
-	ND_ String  ToString (const Tuple<Types...> &t) __Th___
-	{
-		Base::_hidden_::TupleToString	tmp;
-		t.ForEach( tmp );
-		return RVRef(tmp.str);
-	}
-
-/*
-=================================================
-	ToString (Array)
-=================================================
-*/
-namespace _hidden_
-{
-	template <typename T, typename ToStringFn>
-	ND_ String  Array_ToString (ArrayView<T> arr, ToStringFn fn, StringView div) __Th___
-	{
-		String	str;
-		for (const auto& item : arr)
-		{
-			if ( not str.empty() )
-				str << div;
-
-			str << fn( item );
-		}
-		return str;
-	}
-}
-
-	template <typename T>
-	ND_ String  ToString (ArrayView<T> arr, StringView (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
-	{
-		return Base::_hidden_::Array_ToString( arr, fn, div );
-	}
-
-	template <typename T>
-	ND_ String  ToString (ArrayView<T> arr, String (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
-	{
-		return Base::_hidden_::Array_ToString( arr, fn, div );
-	}
-
-	template <typename T, usize S>
-	ND_ String  ToString (const StaticArray<T,S> &arr, StringView (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
-	{
-		return Base::_hidden_::Array_ToString( ArrayView<T>{arr}, fn, div );
-	}
-
-	template <typename T, usize S>
-	ND_ String  ToString (const StaticArray<T,S> &arr, String (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
-	{
-		return Base::_hidden_::Array_ToString( ArrayView<T>{arr}, fn, div );
-	}
-
-	template <typename T, typename A>
-	ND_ String  ToString (const Array<T,A> &arr, StringView (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
-	{
-		return Base::_hidden_::Array_ToString( ArrayView<T>{arr}, fn, div );
-	}
-
-	template <typename T, typename A>
-	ND_ String  ToString (const Array<T,A> &arr, String (*fn)(const T &) = &ToString, StringView div = ", ") __Th___
-	{
-		return Base::_hidden_::Array_ToString( ArrayView<T>{arr}, fn, div );
-	}
-
-/*
-=================================================
-	ToString (EnumSet)
-=================================================
-*/
-	template <typename E>
-	ND_ String  ToString (EnumSet<E> bits, StringView (*fn)(E), StringView div = " | ") __Th___
-	{
-		String	str;
-		for (; bits.Any();)
-		{
-			if ( not str.empty() )
-				str << div;
-
-			str << fn( bits.ExtractFirst() );
-		}
-		return str;
-	}
-
-/*
-=================================================
-	ToString (Range)
-=================================================
-*/
-	template <typename T>
-	ND_ String  ToString (const Range<T> &range) __Th___
-	{
-		return "["s << ToString( range.begin ) << "; " << ToString( range.end ) << "]";
-	}
-
-/*
-=================================================
-	ToString2
-=================================================
-*/
-	template <typename T>
-	ND_ EnableIf< IsUnsignedInteger<T>, String >  ToString2 (T v) __Th___
-	{
-		char	suffix = 0;
-		if ( v < T(10'000) )			{}																else
-		if ( v < T(10'000'000) )		{ v = (v + T(500))			/ T(1000);			suffix = 'K'; }	else
-		if ( v < T(10'000'000'000) )	{ v = (v + T(500'000))		/ T(1000'000);		suffix = 'M'; }	else
-										{ v = (v + T(500'000'000))	/ T(1000'000'000);	suffix = 'G'; }
-		String	str = ToString( v );
-		if ( suffix ) str << suffix;
-		return str;
-	}
-
-	template <typename T>
-	ND_ EnableIf< IsSignedInteger<T>, String >  ToString2 (const T value) __Th___
-	{
-		T		v		= Abs(value);
-		char	suffix	= 0;
-
-		if ( v < T(10'000) )			{}																else
-		if ( v < T(10'000'000) )		{ v = (v + T(500))			/ T(1000);			suffix = 'K'; }	else
-		if ( v < T(10'000'000'000) )	{ v = (v + T(500'000))		/ T(1000'000);		suffix = 'M'; }	else
-										{ v = (v + T(500'000'000))	/ T(1000'000'000);	suffix = 'G'; }
-		String	str = ToString( v * Sign(value) );
-		if ( suffix ) str << suffix;
-		return str;
-	}
-
-	template <typename T>
-	ND_ EnableIf< IsFloatPoint<T>, String >  ToString2 (T value, uint fractPart = 0) __Th___
-	{
-		const T	v			= Abs(value);
-		char	suffix		= 0;
-
-		if ( v >= T(1) )
-		{
-			if ( v < T(1000) )		{}										else
-			if ( v < T(500.0e+3) )	{ value *= T(1.0e-3);	suffix = 'K'; }	else	// kilo
-			if ( v < T(500.0e+6) )	{ value *= T(1.0e-6);	suffix = 'M'; }	else	// mega
-			if ( v < T(500.0e+9) )	{ value *= T(1.0e-9);	suffix = 'G'; }	else	// giga
-									{ value *= T(1.0e-12);	suffix = 'T'; }			// terra
-			if ( fractPart == 0 ) fractPart = 1;
-		}
-		else
-		if ( BitEqual( v, T(0) ))
-			return "0.0";
-		else
-		{
-			if ( v > T(1.0e-3) )	{}										else
-			if ( v > T(1.0e-6) )	{ value *= T(1.0e+3);	suffix = 'm'; }	else	// milli
-			if ( v > T(1.0e-9) )	{ value *= T(1.0e+6);	suffix = 'u'; }	else	// micro
-			if ( v > T(1.0e-12) )	{ value *= T(1.0e+9);	suffix = 'n'; }	else	// nano
-									{ value *= T(1.0e+12);	suffix = 'p'; }			// pico
-			if ( fractPart == 0 ) fractPart = 3;
-		}
-		String	str = ToString( value, fractPart );
-		if ( suffix ) str << suffix;
-		return str;
-	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	AppendToString
-----
-	'11' -> '11 . . . '
-=================================================
-*/
-	inline void  AppendToString (INOUT String &str, const usize count, const char value = ' ') __Th___
-	{
-		ASSERT( value != 0 );
-
-		usize	pos = str.size();
-		str.resize( pos + count );  // throw
-
-		for (; pos < str.size(); ++pos)
-			str[pos] = value;
-	}
-
-	inline void  InsertToString (INOUT String &str, const usize count, const char value = ' ') __Th___
-	{
-		ASSERT( value != 0 );
-		str.reserve( str.size() + count );  // throw
-
-		for (usize i = 0; i < count; ++i)
-			str.insert( str.begin(), value );
-	}
-
-	inline void  AppendToString (INOUT String &str, const usize first, const usize count, const bool initial, const char value1 = '.', const char value2 = ' ') __Th___
-	{
-		ASSERT( value1 != 0 );
-		ASSERT( value2 != 0 );
-
-		usize	pos = str.size();
-		str.resize( pos + (first < count ? (count - first) : 0) );  // throw
-
-		for (usize i = first; i < count; ++i, ++pos)
-			str[pos] = ((initial and i&1) ? value1 : value2);
-	}
-
-/*
-=================================================
-	FormatAlignedI
-----
-	11 -> 0011
-=================================================
-*/
-	template <uint Radix, typename T>
-	ND_ String  FormatAlignedI (T value, const usize align, const char alignChar) __Th___
-	{
-		ASSERT( alignChar != 0 );
-
-		String	tmp		= ToString<Radix>( value );
-		String	str;	str.reserve( (align > tmp.size() ? 0 : tmp.size() - align) + tmp.size() );  // throw
-
-		for (usize i = tmp.size(); i < align; ++i) {
-			str << alignChar;
-		}
-		str << tmp;
-		return str;
-	}
-
-/*
-=================================================
-	DivStringBySteps
-----
-	1111 -> 11'11
-=================================================
-*/
-	ND_ inline String  DivStringBySteps (StringView inStr, const usize stepSize = 3, const char spaceChar = '\'') __Th___
-	{
-		String	str;	str.resize( inStr.size() + ((inStr.size()-1) / stepSize) );  // throw
-
-		usize	i = (inStr.length() % stepSize);
-		i = stepSize - i;
-		i = i >= stepSize ? 0 : i;
-
-		for (usize a = 0, b = 0; a < inStr.length(); ++b)
-		{
-			if_likely( i++ < stepSize )
-				str[b] = inStr[a++];
-			else{
-				str[b] = spaceChar;
-				i = 0;
-			}
-		}
-		return str;
-	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	ToString_HMS (time units)
-=================================================
-*/
-	ND_ inline String  ToString_HMS (const double sec) __Th___
-	{
-		return	ToString( uint(Floor( sec / 3600.0 )) ) << ':' <<
-				FormatAlignedI<10>( uint(Floor( sec / 60.0 )) % 60, 2, '0' ) << ':' <<
-				FormatAlignedI<10>( uint(sec) % 60, 2, '0' );
-	}
-//-----------------------------------------------------------------------------
-#endif // AE_ENABLE_LOGS
 
 
 
@@ -1557,7 +805,7 @@ namespace _hidden_
 			ok{ res.ec == std::errc{} }
 		{}
 
-		ND_ constexpr explicit operator bool ()	C_NE___	{ return ok; }
+		ND_ explicit operator bool ()	C_NE___	{ return ok; }
 	};
 
 	template <typename T>
@@ -1589,7 +837,7 @@ namespace _hidden_
 	}
 
 	template <typename T, ENABLEIF( IsInteger<T> )>
-	ND_ inline FromCharsResult  FromChars (OUT T &val, StringView str, int base) __NE___
+	ND_ FromCharsResult  FromChars (OUT T &val, StringView str, int base) __NE___
 	{
 		ASSERT( base == 10 or base == 16 );
 		ASSERT( not StartsWith( str, "0x" ));
@@ -1603,21 +851,21 @@ namespace _hidden_
 	StringTo***
 =================================================
 */
-	ND_ inline uint  StringToUInt (StringView str, int base = 10) __NE___
+	Nd__In uint  StringToUInt (StringView str, int base = 10) __NE___
 	{
 		uint	val = 0;
 		auto	ok	= FromChars( OUT val, str, base );	ASSERT( ok );	Unused( ok );
 		return val;
 	}
 
-	ND_ inline int  StringToInt (StringView str, int base = 10) __NE___
+	Nd__In int  StringToInt (StringView str, int base = 10) __NE___
 	{
 		int		val = 0;
 		auto	ok	= FromChars( OUT val, str, base );	ASSERT( ok );	Unused( ok );
 		return val;
 	}
 
-	ND_ inline ulong  StringToUInt64 (StringView str, int base = 10) __NE___
+	Nd__In ulong  StringToUInt64 (StringView str, int base = 10) __NE___
 	{
 		ulong	val = 0;
 		auto	ok	= FromChars( OUT val, str, base );	ASSERT( ok );	Unused( ok );
@@ -1625,14 +873,14 @@ namespace _hidden_
 	}
 
 #ifdef AE_COMPILER_MSVC
-	ND_ inline float  StringToFloat (StringView str) __NE___
+	Nd__In float  StringToFloat (StringView str) __NE___
 	{
 		float	val = 0.0f;
 		auto	ok	= FromChars( OUT val, str );	ASSERT( ok );	Unused( ok );
 		return val;
 	}
 
-	ND_ inline double  StringToDouble (StringView str) __NE___
+	Nd__In double  StringToDouble (StringView str) __NE___
 	{
 		double	val = 0.0;
 		auto	ok	= FromChars( OUT val, str );	ASSERT( ok );	Unused( ok );

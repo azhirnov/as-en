@@ -69,6 +69,12 @@ namespace AE::Profiler
 		return true;
 	}
 
+	bool  ProfilerUI::InitLogWindow ()
+	{
+		StaticLogger::AddLogger( MakeUnique<LogWindow>( OUT _logWindow ));
+		return true;
+	}
+
 /*
 =================================================
 	Deinitialize
@@ -81,6 +87,7 @@ namespace AE::Profiler
 		_memory		= null;
 		_hwpcProf	= null;
 		_enabled.store( false );
+		_logWindow	= Default;
 
 		Scheduler().SetProfiler( null );
 		MemoryManager().SetProfiler( null );
@@ -164,6 +171,9 @@ namespace AE::Profiler
 		if ( _graphics )	_graphics->DrawImGUI();
 		if ( _memory )		_memory	 ->DrawImGUI();
 		if ( _hwpcProf )	_hwpcProf->DrawImGUI();
+
+		if ( auto  wnd = _logWindow.Lock() )
+			wnd->DrawImGUI();
 	}
 #endif
 
@@ -192,6 +202,7 @@ namespace AE::Profiler
 
 	ProfilerUI::~ProfilerUI ()											{}
 	bool  ProfilerUI::Initialize (Ptr<Networking::ClientServerBase>)	{ return true; }
+	bool  ProfilerUI::InitLogWindow ()									{ return true; }
 	bool  ProfilerUI::IsInitialized () const							{ return false; }
 	void  ProfilerUI::Deinitialize ()									{}
 	void  ProfilerUI::Enable (bool)										{}

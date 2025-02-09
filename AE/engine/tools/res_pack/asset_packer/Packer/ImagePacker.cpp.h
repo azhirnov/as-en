@@ -5,6 +5,7 @@
 using ImgPackHeader_t		= AssetPacker::ImagePacker::Header;
 using ImgPackFileHeader_t	= AssetPacker::ImagePacker::FileHeader;
 using ImageUtils_t			= Graphics::ImageUtils;
+using ImageDim_t			= Graphics::ImageDim_t;
 
 
 /*
@@ -33,21 +34,21 @@ using ImageUtils_t			= Graphics::ImageUtils;
 	ImagePacker_GetOffset
 =================================================
 */
-	inline void  ImagePacker_GetOffset (const ImgPackHeader_t &header, ImageLayer layer, MipmapLevel mipmap, const uint3 &imageOffset,
-										OUT uint3 &imageDim, OUT Bytes &dataOffset,
-										OUT Bytes &rowSize, OUT Bytes &sliceSize) __NE___
+	inline void  ImagePacker_GetOffset (const ImgPackHeader_t &header, ImageLayer layer, MipmapLevel mipmap, const ImageDim_t &imageOffset,
+										OUT ImageDim_t &imageDim, OUT Bytes &dataOffset,
+										OUT Bytes32u &rowSize, OUT Bytes &sliceSize) __NE___
 	{
 		ASSERT( ImagePacker_IsValid( header ));
 		ASSERT( layer.Get() < 1 or header.dimension.z == 1 );
 
 		auto&		fmt_info		= EPixelFormat_GetInfo( header.format );
-		const auto	row_align		= POTBytes{ Math::PowerOfTwo( header.rowAlignPOT )};
+		const auto	row_align		= POTBytes{ Base::PowerOfTwo( header.rowAlignPOT )};
 		const uint2	texblock_dim	= fmt_info.TexBlockDim();
 
 		dataOffset = 0_b;
 		for (uint mip = 0;; ++mip)
 		{
-			imageDim	= ImageUtils_t::MipmapDimension( uint3{header.dimension}, mip, texblock_dim );
+			imageDim	= ImageDim_t{ImageUtils_t::MipmapDimension( uint3{header.dimension}, mip, texblock_dim )};
 			rowSize		= AlignUp( ImageUtils_t::RowSize( imageDim.x, fmt_info.bitsPerBlock, texblock_dim ), row_align );
 			sliceSize	= ImageUtils_t::SliceSize( imageDim.y, rowSize, texblock_dim );
 
@@ -57,7 +58,7 @@ using ImageUtils_t			= Graphics::ImageUtils;
 				ASSERT( All( IsMultipleOf( uint2{imageOffset}, texblock_dim )));
 
 				dataOffset	+= sliceSize * imageDim.z * layer.Get();
-				dataOffset	+= ImageUtils_t::ImageOffset( imageOffset, rowSize, sliceSize, fmt_info.bitsPerBlock, texblock_dim );
+				dataOffset	+= ImageUtils_t::ImageOffset( uint3{imageOffset}, rowSize, sliceSize, fmt_info.bitsPerBlock, texblock_dim );
 				return;
 			}
 			dataOffset += sliceSize * Max( imageDim.z, header.arrayLayers );
@@ -71,7 +72,7 @@ using ImageUtils_t			= Graphics::ImageUtils;
 */
 	ND_ inline Bytes  ImagePacker_MaxSliceSize (const ImgPackHeader_t &header) __NE___
 	{
-		auto	row_align	= POTBytes{ Math::PowerOfTwo( header.rowAlignPOT )};
+		auto	row_align	= POTBytes{ Base::PowerOfTwo( header.rowAlignPOT )};
 		auto&	fmt_info	= EPixelFormat_GetInfo( header.format );
 		Bytes	row_size	= AlignUp( ImageUtils_t::RowSize( header.dimension.x, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ), row_align );
 		Bytes	slice_size	= ImageUtils_t::SliceSize( header.dimension.y, row_size, fmt_info.TexBlockDim() );
@@ -83,6 +84,15 @@ using ImageUtils_t			= Graphics::ImageUtils;
 	ReadHeader
 =================================================
 */
+	ND_ inline bool  ImagePacker_Deserialize (Serializing::Deserializer &des, OUT ImgPackFileHeader_t &header) __NE___
+	{
+		bool	res = des( OUT header );
+		res &= (header.magic == AE::AssetPacker::ImagePacker::Magic);
+		res &= (header.version == AE::AssetPacker::ImagePacker::Version);
+
+		return res and ImagePacker_IsValid( header.imageHeader );
+	}
+
 	ND_ inline bool  ImagePacker_ReadHeader (RStream &stream, OUT ImgPackFileHeader_t &header) __NE___
 	{
 		ASSERT( stream.IsOpen() );
@@ -91,7 +101,7 @@ using ImageUtils_t			= Graphics::ImageUtils;
 		res &= (header.magic == AE::AssetPacker::ImagePacker::Magic);
 		res &= (header.version == AE::AssetPacker::ImagePacker::Version);
 
-		ASSERT( not res or ImagePacker_IsValid( header.hdr ));
+		ASSERT( not res or ImagePacker_IsValid( header.imageHeader ));
 		return res;
 	}
 
@@ -99,7 +109,7 @@ using ImageUtils_t			= Graphics::ImageUtils;
 	{
 		ImgPackFileHeader_t	tmp;
 		bool	res = ImagePacker_ReadHeader( stream, OUT tmp );
-		header = tmp.hdr;
+		header = tmp.imageHeader;
 		return res;
 	}
 
@@ -111,7 +121,7 @@ using ImageUtils_t			= Graphics::ImageUtils;
 	ND_ inline bool  ImagePacker_SaveHeader (WStream &stream, const ImgPackFileHeader_t &header) __NE___
 	{
 		ASSERT( stream.IsOpen() );
-		ASSERT( ImagePacker_IsValid( header.hdr ));
+		ASSERT( ImagePacker_IsValid( header.imageHeader ));
 		return stream.Write( &header, Sizeof(header) );
 	}
 
@@ -148,13 +158,14 @@ using ImageUtils_t			= Graphics::ImageUtils;
 					CHECK_ERR( stream.Write( part.ptr, part.size ));
 				}
 
-				uint3	dim;
-				Bytes	off, row_size, slice_size;
-				ImagePacker_GetOffset( header, ImageLayer{layer}, MipmapLevel{mip}, uint3{0},
+				ImageDim_t	dim;
+				Bytes32u	row_size;
+				Bytes		off, slice_size;
+				ImagePacker_GetOffset( header, ImageLayer{layer}, MipmapLevel{mip}, ImageDim_t{0},
 									   OUT dim, OUT off, OUT row_size, OUT slice_size );
 
 				CHECK( src_view.Format() == header.format );
-				CHECK( All( dim == src_view.Dimension() ));
+				CHECK( All( uint3{dim} == src_view.Dimension() ));
 				CHECK( row_size == src_view.RowPitch() );
 				CHECK( slice_size == src_view.SlicePitch() );
 				CHECK_Eq( base_off + off, pos );

@@ -7,18 +7,18 @@ namespace
 	static void  StackAllocator_Test1 ()
 	{
 		StackAllocator< UntypedAllocator, 1, false >	alloc;
-		alloc.SetBlockSize( 1_Kb );
+		alloc.SetBlockSize( 1_KiB );
 
 		TEST( alloc.Allocate( SizeAndAlign{ 100_b, 4_b }) != null );
 
 		auto	bm = alloc.Push();
 
-		TEST( alloc.Allocate( SizeAndAlign{ 1_Kb - 100_b, 4_b }) != null );
+		TEST( alloc.Allocate( SizeAndAlign{ 1_KiB - 100_b, 4_b }) != null );
 		TEST( alloc.Allocate( SizeAndAlign{ 100_b, 4_b }) == null );
 
 		alloc.Pop( bm );
 
-		TEST( alloc.Allocate( SizeAndAlign{ 1_Kb - 100_b, 4_b }) != null );
+		TEST( alloc.Allocate( SizeAndAlign{ 1_KiB - 100_b, 4_b }) != null );
 		TEST( alloc.Allocate( SizeAndAlign{ 100_b, 4_b }) == null );
 	}
 
@@ -26,12 +26,12 @@ namespace
 	static void  StackAllocator_Test2 ()
 	{
 		StackAllocator< UntypedAllocator, 1, false >	alloc;
-		alloc.SetBlockSize( 1_Kb );
+		alloc.SetBlockSize( 1_KiB );
 
 		auto	bm = alloc.Push();
 
 		TEST( alloc.Allocate( SizeAndAlign{ 128_b, 4_b }) != null );
-		TEST( alloc.Allocate( SizeAndAlign{ 1_Kb - 128_b, 4_b }) != null );
+		TEST( alloc.Allocate( SizeAndAlign{ 1_KiB - 128_b, 4_b }) != null );
 		TEST( alloc.Allocate( SizeAndAlign{ 100_b, 4_b }) == null );
 
 		alloc.Pop( bm );

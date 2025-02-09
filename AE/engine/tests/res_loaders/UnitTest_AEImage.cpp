@@ -7,8 +7,8 @@
 #include "res_loaders/AE/AEImageLoader.h"
 #include "res_loaders/STB/STBImageSaver.h"
 
-#include "graphics/Private/EnumUtils.cpp.h"
-#include "graphics/Private/ImageMemView.cpp"
+#include "graphics_rhi/Private/EnumUtils.cpp.h"
+#include "graphics_rhi/Private/ImageMemView.cpp"
 
 using namespace AE::Graphics;
 
@@ -20,7 +20,7 @@ namespace
 	static void  AEImageSave_Test1 ()
 	{
 		AssetPacker::ImagePacker::Header	header;
-		header.dimension	= ushort3{4096, 4096, 1};
+		header.dimension	= ImageDim_t{4096, 4096, 1};
 		header.arrayLayers	= 6;
 		header.mipmaps		= 13;
 		header.viewType		= EImage::Cube;
@@ -34,12 +34,13 @@ namespace
 		{
 			for (uint layer = 0; layer < header.arrayLayers; ++layer)
 			{
-				uint3	mip_dim = ImageUtils::MipmapDimension( uint3{header.dimension}, mipmap, fmt_info.TexBlockDim() );
-				uint3	mip_off;
+				const auto	mip_dim = ImageDim_t{ImageUtils::MipmapDimension( uint3{header.dimension}, mipmap, fmt_info.TexBlockDim() )};
+				ImageDim_t	mip_off;
 
-				uint3	dim;
-				Bytes	off, row_size, slice_size;
-				ImagePacker_GetOffset( header, ImageLayer{layer}, MipmapLevel{mipmap}, uint3{0},
+				ImageDim_t	dim;
+				Bytes		off, slice_size;
+				Bytes32u	row_size;
+				ImagePacker_GetOffset( header, ImageLayer{layer}, MipmapLevel{mipmap}, ImageDim_t{0},
 										OUT dim, OUT off, OUT row_size, OUT slice_size );
 
 				const Bytes	next_off	= off + slice_size;
@@ -47,7 +48,7 @@ namespace
 
 				for (uint part = 0; part < part_count; ++part)
 				{
-					mip_off.y = (mip_dim.y * part) / part_count;
+					mip_off.y = ushort((mip_dim.y * part) / part_count);
 
 					ImagePacker_GetOffset( header, ImageLayer{layer}, MipmapLevel{mipmap}, mip_off,
 											OUT dim, OUT off, OUT row_size, OUT slice_size );

@@ -67,17 +67,17 @@ namespace
 		_imageType{imageType}
 	{
 		_desc.imageDim = EImageDim_2D;
-		switch ( imageType & EImageType::_TexMask )
+		switch ( imageType & EImageType::_DimMask )
 		{
-			case EImageType::Img1D :
-			case EImageType::Img1DArray :		_desc.imageDim = EImageDim_1D;	break;
-			case EImageType::Img2D :
-			case EImageType::Img2DMS :			_desc.imageDim = EImageDim_2D;	break;
-			case EImageType::Img2DArray :
-			case EImageType::Img2DMSArray :		_desc.imageDim = EImageDim_2D;	_desc.arrayLayers = 6_layer;	break;
-			case EImageType::ImgCube :
-			case EImageType::ImgCubeArray :		_desc.imageDim = EImageDim_2D;	_desc.arrayLayers = 6_layer;	_desc.options = EImageOpt::CubeCompatible;	break;
-			case EImageType::Img3D :			_desc.imageDim = EImageDim_3D;	break;
+			case EImageType::Dim1D :
+			case EImageType::Dim1DArray :		_desc.imageDim = EImageDim_1D;	break;
+			case EImageType::Dim2D :
+			case EImageType::Dim2DMS :			_desc.imageDim = EImageDim_2D;	break;
+			case EImageType::Dim2DArray :
+			case EImageType::Dim2DMSArray :		_desc.imageDim = EImageDim_2D;	_desc.arrayLayers = 6_layer;	break;
+			case EImageType::DimCube :
+			case EImageType::DimCubeArray :		_desc.imageDim = EImageDim_2D;	_desc.arrayLayers = 6_layer;	_desc.options = EImageOpt::CubeCompatible;	break;
+			case EImageType::Dim3D :			_desc.imageDim = EImageDim_3D;	break;
 			default :							CHECK_THROW_MSG( false, "unsupported image type" );
 		}
 
@@ -91,7 +91,6 @@ namespace
 			case EImageType::UNorm :			_desc.format = EPixelFormat::RGBA8_UNorm;	break;
 			case EImageType::Int :				_desc.format = EPixelFormat::RGBA8I;		break;
 			case EImageType::UInt :				_desc.format = EPixelFormat::RGBA8U;		break;
-			case EImageType::sRGB :				_desc.format = EPixelFormat::sRGB8_A8;		break;
 			case EImageType::Depth :			_desc.format = ScriptExe::ScriptResourceApi::Supported_DepthFormat();			break;
 			case EImageType::DepthStencil :		_desc.format = ScriptExe::ScriptResourceApi::Supported_DepthStencilFormat();	break;
 			default :							CHECK_THROW_MSG( false, "unsupported image type" );
@@ -132,6 +131,8 @@ namespace
 		_desc.Validate();
 
 		_imageType			= GetDescriptorImageType( _desc );
+
+		_viewDesc.Validate( _desc );
 	}
 
 	ScriptImage::ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds, const ImageLayer &layers, const MipmapLevel &mipmaps) __Th___ :
@@ -149,6 +150,8 @@ namespace
 		_desc.Validate();
 
 		_imageType			= GetDescriptorImageType( _desc );
+
+		_viewDesc.Validate( _desc );
 	}
 
 /*
@@ -288,6 +291,9 @@ namespace
 */
 	bool  ScriptImage::IsMutableDimension () C_Th___
 	{
+		if ( _base )
+			return _base->IsMutableDimension();
+
 		return bool{_outDynSize} or bool{_inDynSize};
 	}
 
@@ -298,11 +304,8 @@ namespace
 */
 	packed_uint3  ScriptImage::Dimension3 () C_Th___
 	{
-		if ( _base )
-			return _base->Dimension3();
-
 		CHECK_THROW_MSG( not IsMutableDimension() );
-		return packed_uint3{_desc.dimension};
+		return packed_uint3{_viewDesc.dimension};
 	}
 
 /*
@@ -338,7 +341,7 @@ namespace
 		if ( _outDynSize )	return _outDynSize->Get();
 		if ( _inDynSize )	return _inDynSize->Get();
 
-		return null;
+		return null;  // should never happens
 	}
 
 /*
@@ -348,10 +351,7 @@ namespace
 */
 	uint  ScriptImage::ArrayLayers () C_Th___
 	{
-		if ( _base )
-			return _base->ArrayLayers();
-
-		return _desc.arrayLayers.Get();
+		return _viewDesc.layerCount;
 	}
 
 /*
@@ -361,10 +361,7 @@ namespace
 */
 	uint  ScriptImage::MipmapCount () C_Th___
 	{
-		if ( _base )
-			return _base->MipmapCount();
-
-		return _desc.mipLevels.Get();
+		return _viewDesc.mipmapCount;
 	}
 
 /*
@@ -479,30 +476,28 @@ namespace
 	_GetImageType
 =================================================
 */
-	using PCImageType = EImageType;
-
-	auto  ScriptImage::_GetImageType ()		C_Th___	{ return PCImageType(ImageType()); }
+	auto  ScriptImage::_GetImageType ()		C_Th___	{ return EImageType(ImageType()); }
 
 	bool  ScriptImage::_IsFloatFormat ()	C_Th___ {
-		return AnyEqual( _GetImageType() & PCImageType::_ValMask,
-						 PCImageType::Float, PCImageType::Half, PCImageType::SNorm, PCImageType::UNorm );
+		return AnyEqual( _GetImageType() & EImageType::_ValMask,
+						 EImageType::Float, EImageType::Half, EImageType::SNorm, EImageType::UNorm );
 	}
 
 	bool  ScriptImage::_IsIntFormat ()		C_Th___	{
-		return AnyEqual( _GetImageType() & PCImageType::_ValMask, PCImageType::Int );
+		return AnyEqual( _GetImageType() & EImageType::_ValMask, EImageType::Int );
 	}
 
 	bool  ScriptImage::_IsUIntFormat ()		C_Th___	{
-		return AnyEqual( _GetImageType() & PCImageType::_ValMask, PCImageType::UInt );
+		return AnyEqual( _GetImageType() & EImageType::_ValMask, EImageType::UInt );
 	}
 
-	bool  ScriptImage::_Is1D ()				C_Th___	{ return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img1D; }
-	bool  ScriptImage::_Is2D ()				C_Th___	{ return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img2D; }
-	bool  ScriptImage::_Is3D ()				C_Th___	{ return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img3D; }
-	bool  ScriptImage::_IsCube ()			C_Th___	{ return (_GetImageType() & PCImageType::_TexMask) == PCImageType::ImgCube; }
-	bool  ScriptImage::_Is1DArray ()		C_Th___	{ return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img1DArray; }
-	bool  ScriptImage::_Is2DArray ()		C_Th___	{ return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img2DArray; }
-	bool  ScriptImage::_IsCubeArray ()		C_Th___	{ return (_GetImageType() & PCImageType::_TexMask) == PCImageType::ImgCubeArray; }
+	bool  ScriptImage::_Is1D ()				C_Th___	{ return (_GetImageType() & EImageType::_DimMask) == EImageType::Dim1D; }
+	bool  ScriptImage::_Is2D ()				C_Th___	{ return (_GetImageType() & EImageType::_DimMask) == EImageType::Dim2D; }
+	bool  ScriptImage::_Is3D ()				C_Th___	{ return (_GetImageType() & EImageType::_DimMask) == EImageType::Dim3D; }
+	bool  ScriptImage::_IsCube ()			C_Th___	{ return (_GetImageType() & EImageType::_DimMask) == EImageType::DimCube; }
+	bool  ScriptImage::_Is1DArray ()		C_Th___	{ return (_GetImageType() & EImageType::_DimMask) == EImageType::Dim1DArray; }
+	bool  ScriptImage::_Is2DArray ()		C_Th___	{ return (_GetImageType() & EImageType::_DimMask) == EImageType::Dim2DArray; }
+	bool  ScriptImage::_IsCubeArray ()		C_Th___	{ return (_GetImageType() & EImageType::_DimMask) == EImageType::DimCubeArray; }
 
 /*
 =================================================
@@ -612,6 +607,8 @@ namespace
 			"Image array layer ("s << ToString(layer.Get()) << ") is out of bounds [0," << ToString(_desc.arrayLayers.Get()) << ")" );
 		CHECK_THROW_MSG( mipmap < _desc.mipLevels,
 			"Image mipmap level ("s << ToString(mipmap.Get()) << ") is out of bounds [0," << ToString(_desc.mipLevels.Get()) << ")" )
+		CHECK_THROW_MSG( not AllBits( flags, ELoadOpFlags::GenMipmaps ) or _desc.mipLevels.Get() > 1,
+			"Flag 'GenMipmaps' can be used when image has mipmaps" );
 
 		if ( _dbgName.empty() )
 			_dbgName = Path{filename}.stem().string().substr( 0, ResNameMaxLen );
@@ -698,16 +695,25 @@ namespace
 		if ( AllBits( _desc.usage, EImageUsage::TransferSrc ) and NoBits( _desc.usage, EImageUsage::DepthStencilAttachment ))
 			_desc.options |= EImageOpt::BlitSrc;
 
+		if ( NoBits( _desc.usage, EImageUsage_AllowImageView ))
+			_desc.usage |= EImageUsage::Sampled;
+
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		Renderer&	renderer	= ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 
-		const auto	mutable_res_usage =	EImageUsage::Storage | EImageUsage::ColorAttachment |
-										EImageUsage::TransferDst | EImageUsage::DepthStencilAttachment;
-
 		StrongImageAndViewID	id;
-		const bool				is_mutable	= AnyBits( _desc.usage, mutable_res_usage );
+		const bool				is_mutable	= AnyBits( _desc.usage, EImageUsage_MutableResource );
 		const bool				is_dummy	= not (_descDefined and is_mutable);
 		GfxMemAllocatorPtr		gfx_alloc	= renderer.ChooseAllocator( Bool{_inDynSize}, _desc );
+
+		if ( not is_dummy )
+		{
+			if ( _inDynSize ) {
+				_desc.dimension = ImageDim_t{_inDynSize->Get()->Dimension3_NonZero()};
+			}else{
+				CHECK_THROW_MSG( All( _desc.dimension > ImageDim_t{0} ), "failed to create image '"s << _dbgName << "'" );
+			}
+		}
 
 		// validate view desc
 		{
@@ -724,12 +730,6 @@ namespace
 		}
 		else
 		{
-			if ( _inDynSize ) {
-				_desc.dimension = ImageDim_t{_inDynSize->Get()->Dimension3_NonZero()};
-			}else{
-				CHECK_THROW_MSG( All( _desc.dimension > ImageDim_t{0} ), "failed to create image '"s << _dbgName << "'" );
-			}
-
 			CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
 				"Image '"s << _dbgName << "' description is not supported by GPU device" );
 

@@ -56,7 +56,7 @@ namespace AE::Profiler
 				if ( _lines[l].points.empty() )
 					desc << '-';
 				else
-					desc << ToString2( _lines[l].points.back(), 3 ) << _suffix;
+					desc << ToStringSfx( _lines[l].points.back(), 1 ) << _suffix;
 			}
 			ImGui::SetTooltip( "%s", desc.c_str() );
 		}
@@ -128,7 +128,7 @@ namespace AE::Profiler
 
 			// min value
 			{
-				String			val_str		= ToString2( _range.x, 2 ) << _suffix;
+				String			val_str		= ToStringSfx( _range.x ) << _suffix;
 				const float		text_width	= ImGui::GetTextLineHeight() * (4 + _suffix.size());
 				const ImVec2	text_pos	{ line_region.right - text_width - line_region.Width() * 0.01f,
 											  border_region.bottom - ImGui::GetTextLineHeightWithSpacing() * 1.1f };
@@ -138,7 +138,7 @@ namespace AE::Profiler
 
 			// max value
 			{
-				String			val_str		= ToString2( _range.y, 2 ) << _suffix;
+				String			val_str		= ToStringSfx( _range.y ) << _suffix;
 				const float		text_width	= ImGui::GetTextLineHeight() * (4 + _suffix.size());
 				const ImVec2	text_pos	{ line_region.right - text_width - line_region.Width() * 0.01f,
 											  border_region.top + ImGui::GetTextLineHeightWithSpacing() * 0.1f };
@@ -302,7 +302,12 @@ namespace AE::Profiler
 		StaticArray< float, MaxGraphs >		values;
 
 		for (usize i = 0; i < inValues.size(); ++i)
+		{
 			values[i] = float(inValues[i]);
+
+			if ( not IsFinite( values[i] ))
+				values[i] = 0.f;
+		}
 
 		Add( ArrayView<float>{ values.data(), inValues.size() });
 	}
@@ -397,12 +402,12 @@ namespace AE::Profiler
 
 /*
 =================================================
-	SetLimits
+	SetAlertLimits
 ----
 	limits are used to select background color
 =================================================
 */
-	void  ImLineGraph::SetLimits (float val1, float val2)
+	void  ImLineGraph::SetAlertLimits (float val1, float val2)
 	{
 		EXLOCK( _guard );
 		_limits.x  = val1;
@@ -410,7 +415,7 @@ namespace AE::Profiler
 		_invLimits = false;
 	}
 
-	void  ImLineGraph::SetInvLimits (float val1, float val2)
+	void  ImLineGraph::SetAlertInvLimits (float val1, float val2)
 	{
 		EXLOCK( _guard );
 		_limits.x  = val1;

@@ -7,7 +7,7 @@
 #include "base/Math/Radian.h"
 #include "base/Math/Rectangle.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 	using half2x2	= Matrix< half, 2, 2 >;
 	using half2x3	= Matrix< half, 2, 3 >;
@@ -77,12 +77,12 @@ namespace _hidden_
 		ubyte		columns;
 		ubyte		rows;
 
-		constexpr _MatrixDim (ubyte c, ubyte r)					__NE___ : columns{c}, rows{r} {}
+		__Cx__ _MatrixDim (ubyte c, ubyte r)				__NE___ : columns{c}, rows{r} {}
 
-		ND_ constexpr bool  operator == (const _MatrixDim &rhs)	C_NE___	{ return columns == rhs.columns and rows == rhs.rows; }
+		NdCx__ bool  operator == (const _MatrixDim &rhs)	C_NE___	{ return columns == rhs.columns and rows == rhs.rows; }
 	};
 }
-} // AE::Math
+} // AE::Base
 
 
 #define Columns	2
@@ -140,7 +140,7 @@ namespace _hidden_
 #undef  Rows
 
 
-namespace AE::Math
+namespace AE::Base
 {
 /*
 =================================================
@@ -229,4 +229,4 @@ namespace AE::Math
 	}
 
 
-} // AE::Math
+} // AE::Base

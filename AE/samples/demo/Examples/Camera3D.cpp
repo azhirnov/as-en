@@ -12,72 +12,6 @@ namespace AE::Samples::Demo
 
 
 	//
-	// Upload Texture Task
-	//
-	class Camera3DSample::UploadTextureTask final : public RenderTask
-	{
-	public:
-		RC<Camera3DSample>	t;
-
-		UploadTextureTask (Camera3DSample* p, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ batch, {"Camera3D::UploadTexture"} },
-			t{ p }
-		{}
-
-		void  Run () __Th_OV;
-	};
-
-/*
-=================================================
-	UploadTextureTask::Run
-=================================================
-*/
-	void  Camera3DSample::UploadTextureTask::Run ()
-	{
-		DirectCtx::Transfer		ctx{ *this };
-
-		// load texture
-		{
-			auto	file = GetVFS().Open<RStream>( VFS::FileName{"camera3d.cube"} );
-			CHECK_TE( file );
-
-			LoadableImage::Loader	loader;
-			auto	image = loader.Load( file, ctx, t->gfxAlloc );
-			CHECK_TE( image );
-
-			t->cubeMap = image->ReleaseImageAndView();
-
-			ctx.AccumBarriers()
-				.ImageBarrier( t->cubeMap.image, EResourceState::CopyDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
-		}
-
-		// create cube
-		{
-			auto&	res_mngr = GraphicsScheduler().GetResourceManager();
-
-			CHECK_TE( t->cube1.Create( res_mngr, ctx, True{"cubeMap"}, t->gfxAlloc ));
-			CHECK_TE( t->cube2.Create( res_mngr, ctx, t->lod, t->lod, False{"tris"}, True{"cubeMap"}, Default, t->gfxAlloc ));
-
-			ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
-				.MemoryBarrier( EResourceState::CopyDst, EResourceState::IndexBuffer );
-		}
-
-		// update DS
-		{
-			DescriptorUpdater	updater;
-			CHECK_TE( updater.Set( t->descSet, EDescUpdateMode::Partialy ));
-			updater.BindImage( UniformName{"un_ColorTexture"}, t->cubeMap.view );
-			CHECK_TE( updater.Flush() );
-		}
-
-		Execute( ctx );
-	}
-//-----------------------------------------------------------------------------
-
-
-
-	//
 	// Process Input Task
 	//
 	class Camera3DSample::ProcessInputTask final : public IAsyncTask
@@ -165,28 +99,36 @@ namespace AE::Samples::Demo
 		CHECK_TE( surface.GetTargets( OUT targets ));
 
 		const uint2		view_size	= targets[0].RegionSize();
+		auto&			res_mngr	= GraphicsScheduler().GetResourceManager();
 
 		// resize depth buffer
+		if_unlikely( not t->depthBuf.image or Any( uint2{res_mngr.GetDescription( t->depthBuf.image ).dimension} != view_size ))
 		{
-			auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+			// delayed destruction
+			res_mngr.DelayedReleaseResources( t->depthBuf.image, t->depthBuf.view );
 
-			if_unlikely( not t->depthBuf.image or Any( uint2{res_mngr.GetDescription( t->depthBuf.image ).dimension} != view_size ))
-			{
-				// delayed destruction
-				res_mngr.DelayedReleaseResources( t->depthBuf.image, t->depthBuf.view );
+			t->depthBuf.image = res_mngr.CreateImage( ImageDesc::CreateDepthAttachment( view_size, EPixelFormat::Depth16 ), "Sample3D depth" );
+			CHECK_TE( t->depthBuf.image );
 
-				t->depthBuf.image = res_mngr.CreateImage( ImageDesc::CreateDepthAttachment( view_size, EPixelFormat::Depth16 ), "Sample3D depth" );
-				CHECK_TE( t->depthBuf.image );
+			t->depthBuf.view = res_mngr.CreateImageView( ImageViewDesc{}, t->depthBuf.image, "Sample3D depth view" );
+			CHECK_TE( t->depthBuf.view );
 
-				t->depthBuf.view = res_mngr.CreateImageView( ImageViewDesc{}, t->depthBuf.image, "Sample3D depth view" );
-				CHECK_TE( t->depthBuf.view );
-
-				t->camera.SetPerspective( 90_deg, float(view_size.x) / view_size.y, 0.1f, 100.0f );
-			}
+			t->camera.SetPerspective( 90_deg, float(view_size.x) / view_size.y, 0.1f, 100.0f );
 		}
 
 
 		DirectCtx::Transfer		copy_ctx{ *this };
+
+		// create cube
+		if_unlikely( not t->cube1.IsCreated() and not t->cube2.IsCreated() )
+		{
+			CHECK_TE( t->cube1.Create( res_mngr, copy_ctx, True{"cubeMap"}, t->gfxAlloc ));
+			CHECK_TE( t->cube2.Create( res_mngr, copy_ctx, t->lod, t->lod, False{"tris"}, True{"cubeMap"}, Default, t->gfxAlloc ));
+
+			copy_ctx.AccumBarriers()
+				.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
+				.MemoryBarrier( EResourceState::CopyDst, EResourceState::IndexBuffer );
+		}
 
 		// update uniforms
 		for (usize i = 0; i < targets.size(); ++i)
@@ -252,7 +194,9 @@ namespace AE::Samples::Demo
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 				gfxAlloc = res_mngr.CreateLinearGfxMemAllocator();
 
-		rtech = res_mngr.LoadRenderTech( pack, RTech, Default );
+		uploadMngr = MakeRC<ResourceUploadManager>();
+
+		rtech = res_mngr.LoadRenderTech( pack, RTech );
 		CHECK_ERR( rtech );
 
 		ppln = rtech->GetGraphicsPipeline( use_cube1 ? RTech.Main.camera3d_draw1 : RTech.Main.camera3d_draw2 );
@@ -262,6 +206,9 @@ namespace AE::Samples::Demo
 														EBufferUsage::Uniform | EBufferUsage::TransferDst },
 											"Sample3D uniforms" );
 		CHECK_ERR( uniformBuf );
+
+		cubeMap = LoadableImage::Loader::Load( VFS::FileName{"camera3d.cube"}, gfxAlloc, *uploadMngr );
+		CHECK_ERR( cubeMap );
 
 		// update descriptors
 		{
@@ -273,6 +220,7 @@ namespace AE::Samples::Demo
 
 			CHECK_ERR( updater.Set( descSet, EDescUpdateMode::Partialy ));
 			updater.BindBuffer( UniformName{"drawUB"}, uniformBuf, 0_b, SizeOf<ShaderTypes::camera3d_ub> );
+			updater.BindImage( UniformName{"un_ColorTexture"}, cubeMap->ViewId() );
 
 			CHECK_ERR( updater.Flush() );
 		}
@@ -305,25 +253,18 @@ namespace AE::Samples::Demo
 	Draw
 =================================================
 */
-	AsyncTask  Camera3DSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> inDeps) __NE___
+	AsyncTask  Camera3DSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> deps) __NE___
 	{
 		auto	batch = rg.Render( "3D pass" );
 		CHECK_ERR( batch );
 
-		ArrayView<AsyncTask>	deps = inDeps;
-		AsyncTask				upload [1];
-
-		if ( not uploaded.load() )
-		{
-			uploaded.store( true );
-			upload[0]	= batch->Run< UploadTextureTask >( Tuple{this}, Tuple{deps} );
-			deps		= ArrayView<AsyncTask>{ upload };
-		}
-
 		auto	surf_acquire = rg.BeginOnSurface( batch, deps );
 		CHECK_ERR( surf_acquire );
 
-		return batch->Run< DrawTask >( Tuple{ this, rg.GetSurfaceArg() }, Tuple{surf_acquire}, True{"Last"}, Default );
+		auto	upload	= uploadMngr->UploadAsync( *batch, 1 );
+		auto	draw	= batch->Run< DrawTask >( Tuple{ this, rg.GetSurfaceArg() }, Tuple{surf_acquire} );
+
+		return batch->SubmitAsTask( Tuple{ upload, draw });
 	}
 
 /*
@@ -337,7 +278,7 @@ namespace AE::Samples::Demo
 
 		cube1.Destroy( res_mngr );
 		cube2.Destroy( res_mngr );
-		res_mngr.DelayedReleaseResources( uniformBuf, cubeMap.image, cubeMap.view, descSet, depthBuf.image, depthBuf.view );
+		res_mngr.DelayedReleaseResources( uniformBuf, descSet, depthBuf.image, depthBuf.view );
 	}
 
 

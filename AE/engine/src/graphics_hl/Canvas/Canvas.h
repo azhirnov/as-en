@@ -1,10 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Thread-safe:  no
+	For thread-safety use per-thread canvas.
 
 	Canvas does not allocate memory, it uses vstream from 'StagingBufferManager'.
 	VStream allocation granularity defined in 'Canvas::_MaxVertsPerBatch' and 'Canvas::_IndexBufSize'.
 	You should reuse canvas for small draw commands in single thread.
+
+	For better performance on TBDR architectures vertex positions are separated from other vertex attributes.
 */
 
 #pragma once
@@ -54,7 +57,7 @@ namespace AE::Graphics
 			uint	firstIndex;
 			uint	indexCount;
 			uint	instanceCount	: 28;
-			uint	rangeIdx		: 4;
+			uint	rangeIdx		: 4;	// 0..15
 
 			ND_ bool  Equal (uint instCnt, uint range) C_NE___ {
 				return (instanceCount == instCnt) and (rangeIdx == range);
@@ -111,7 +114,6 @@ namespace AE::Graphics
 		using DrawCalls_t		= FixedArray< DrawCall, 16 >;
 		using Buffers_t			= FixedArray< BufferRange, 16 >;
 		using VBufferCache_t	= FixedArray< Strong<BufferID>, 16 >;
-		using Allocator_t		= LinearAllocator< UntypedAllocator, 8, false >;
 
 		static constexpr uint		_MaxVertsPerBatch	= 1u << 12;
 		static constexpr Bytes32u	_PositionVBufSize	{8_b * _MaxVertsPerBatch};
@@ -153,6 +155,13 @@ namespace AE::Graphics
 		template <typename Ctx>
 		void  Flush (Ctx &ctx, EPrimitive topology = Default)															__Th___;
 
+		void  Discard ()																								__NE___;
+
+		// returns 'false' if failed to allocate
+		template <typename PosType, typename AttribType>	ND_ bool  Reserve (usize vertexCount, usize indexCount)		__NE___;
+		template <typename PrimitiveType>					ND_ bool  Reserve (usize vertexCount, usize indexCount)		__NE___;
+		ND_ bool  Reserve (Bytes positionsSize, Bytes attribsSize, Bytes indicesSize)									__NE___;
+
 		ND_ bool  IsEmpty ()																							C_NE___	{ return _drawCalls.empty(); }
 
 
@@ -172,11 +181,16 @@ namespace AE::Graphics
 
 
 	private:
-		template <typename PrimitiveType>	void  _BreakStrip    (const PrimitiveType &primitive, uint indexCount, uint vertexCount)__NE___;
-		template <typename PrimitiveType>	void  _ContinueStrip (const PrimitiveType &primitive, uint indexCount, uint vertexCount)__NE___;
+		template <typename PrimitiveType>
+		void  _BreakStrip (const PrimitiveType &primitive, INOUT uint &indexCount, INOUT uint &vertexCount)				__NE___;
 
-		ND_ bool  _AllocDrawCall (uint instanceCount, uint vertCount, Bytes32u posSize, Bytes32u attrSize, Bytes32u idxDataSize)	__NE___;
-		ND_ bool  _Alloc ()																											__NE___;
+		template <typename PrimitiveType>
+		void  _ContinueStrip (const PrimitiveType &primitive, INOUT uint &indexCount, INOUT uint &vertexCount)			__NE___;
+
+		ND_ bool  _AllocDrawCall (uint instanceCount, uint vertCount, Bytes32u posSize,
+								  Bytes32u attrSize, Bytes32u idxDataSize)												__NE___;
+		ND_ bool  _Alloc ()																								__NE___;
+		ND_ bool  _Alloc (Bytes positionsSize, Bytes attribsSize, Bytes indicesSize)									__NE___;
 	};
 
 
@@ -261,33 +275,38 @@ namespace AE::Graphics
 		)
 		ASSERT( instanceCount >= 1 );
 
-		const uint		idx_count	= primitive.IndexCount();
-		const uint		vert_count	= primitive.VertexCount();
-		const Bytes32u	pos_size	= SizeOf< typename PrimitiveType::Position_t >;
-		const Bytes32u	attr_size	= SizeOf< typename PrimitiveType::Attribs_t  >;
-		const Bytes32u	idx_size	= SizeOf< BatchIndex_t > * idx_count;
+		const uint		max_idx_count	= primitive.IndexCount();
+		const uint		max_vert_count	= primitive.VertexCount();
+		const Bytes32u	pos_size		= SizeOf< typename PrimitiveType::Position_t >;
+		const Bytes32u	attr_size		= SizeOf< typename PrimitiveType::Attribs_t  >;
+		const Bytes32u	max_idx_size	= SizeOf< BatchIndex_t > * max_idx_count;
+		uint			idx_count		= max_idx_count;
+		uint			vert_count		= max_vert_count;
 
 		// add primitive to draw call
 		if constexpr( PrimitiveType::Topology() == EPrimitive::LineStrip	or
 					  PrimitiveType::Topology() == EPrimitive::TriangleStrip )
 		{
-			CHECK_ERRV( _AllocDrawCall( instanceCount, vert_count, pos_size, attr_size, idx_size + SizeOf<BatchIndex_t>*2 ));
+			CHECK_ERRV( _AllocDrawCall( instanceCount, vert_count, pos_size, attr_size, max_idx_size + SizeOf<BatchIndex_t>*2 ));
 
-			_BreakStrip( primitive, idx_count, vert_count );
+			_BreakStrip( primitive, INOUT idx_count, INOUT vert_count );
 		}
 		else
 		{
-			CHECK_ERRV( _AllocDrawCall( instanceCount, vert_count, pos_size, attr_size, idx_size ));
+			CHECK_ERRV( _AllocDrawCall( instanceCount, max_vert_count, pos_size, attr_size, max_idx_size ));
 
-			_ContinueStrip( primitive, idx_count, vert_count );
+			_ContinueStrip( primitive, INOUT idx_count, INOUT vert_count );
 		}
+
+		ASSERT( idx_count <= max_idx_count );
+		ASSERT( vert_count <= max_vert_count );
 
 		// update buffer size
 		{
 			auto&	buf		= _buffers[ _drawCalls.back().rangeIdx ];
 			buf.posSize		+= pos_size  * vert_count;
 			buf.attribsSize	+= attr_size * vert_count;
-			buf.indexSize	+= idx_size;
+			buf.indexSize	+= SizeOf< BatchIndex_t > * idx_count;
 		}
 	}
 
@@ -297,7 +316,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename PrimitiveType>
-	void  Canvas::_BreakStrip (const PrimitiveType &primitive, const uint indexCount, const uint vertexCount) __NE___
+	void  Canvas::_BreakStrip (const PrimitiveType &primitive, INOUT uint &indexCount, INOUT uint &vertexCount) __NE___
 	{
 		auto&		dc		= _drawCalls.back();
 		auto&		buf		= _buffers[ dc.rangeIdx ];
@@ -305,7 +324,14 @@ namespace AE::Graphics
 		const uint	off		= dc.indexCount ? 2 : 0;
 		NonNull( buf.ptr );
 
-		primitive.Get( OUT indices + off, BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs(), _surfDim );
+		if constexpr( PrimitiveType::BatchVersion == 1 )
+			primitive.Get( OUT indices + off, BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs() );
+		else
+		if constexpr( PrimitiveType::BatchVersion == 2 )
+			primitive.Get( OUT indices + off, BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs(),
+						   INOUT indexCount, INOUT vertexCount, _surfDim );
+		else
+			primitive.Get();	// compilation error
 
 		if_likely( off )
 		{
@@ -324,16 +350,40 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename PrimitiveType>
-	void  Canvas::_ContinueStrip (const PrimitiveType &primitive, const uint indexCount, const uint vertexCount) __NE___
+	void  Canvas::_ContinueStrip (const PrimitiveType &primitive, INOUT uint &indexCount, INOUT uint &vertexCount) __NE___
 	{
 		auto&	dc	= _drawCalls.back();
 		auto&	buf	= _buffers[ dc.rangeIdx ];
 		NonNull( buf.ptr );
 
-		primitive.Get( OUT buf.CurrIndices(), BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs(), _surfDim );
+		if constexpr( PrimitiveType::BatchVersion == 1 )
+			primitive.Get( OUT buf.CurrIndices(), BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs() );
+		else
+		if constexpr( PrimitiveType::BatchVersion == 2 )
+			primitive.Get( OUT buf.CurrIndices(), BatchIndex_t(dc.vertexOffset), OUT buf.CurrPositions(), OUT buf.CurrAttribs(),
+						   INOUT indexCount, INOUT vertexCount, _surfDim );
+		else
+			primitive.Get();	// compilation error
 
 		dc.indexCount	+= indexCount;
 		dc.vertexOffset	+= vertexCount;
+	}
+
+/*
+=================================================
+	Reserve
+=================================================
+*/
+	template <typename PosType, typename AttribType>
+	bool  Canvas::Reserve (usize vertexCount, usize indexCount) __NE___
+	{
+		return Reserve( SizeOf<PosType> * vertexCount, SizeOf<AttribType> * vertexCount, SizeOf<BatchIndex_t> * indexCount );
+	}
+
+	template <typename PrimitiveType>
+	bool  Canvas::Reserve (usize vertexCount, usize indexCount) __NE___
+	{
+		return Reserve< typename PrimitiveType::Position_t, typename PrimitiveType::Attribs_t >( vertexCount, indexCount );
 	}
 
 

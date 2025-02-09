@@ -26,10 +26,10 @@
 # endif
 
 #include "res_loaders/Intermediate/IntermImage.h"
-#include "graphics/Private/PixelFormatDefines.h"
+#include "graphics_rhi/Private/PixelFormatDefines.h"
 
 #ifdef AE_ENABLE_VULKAN
-# include "graphics/Vulkan/VulkanLoader.h"
+# include "graphics_rhi/Vulkan/VulkanLoader.h"
 #endif
 
 namespace AE::ResLoader

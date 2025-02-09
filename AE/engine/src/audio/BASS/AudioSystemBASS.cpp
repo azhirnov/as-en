@@ -247,8 +247,8 @@ namespace AE::Audio
 			return QWORD( Cast<RStream>(user)->Size() );
 		}
 
-		static DWORD CALLBACK  Read (void* buffer, DWORD length, void* user) __NE___ {
-			return uint( Cast<RStream>(user)->ReadSeq( buffer, Bytes(length) ));
+		static DWORD CALLBACK  Read (OUT void* buffer, DWORD length, void* user) __NE___ {
+			return uint( Cast<RStream>(user)->ReadSeq( OUT buffer, Bytes(length) ));
 		}
 
 		static BOOL  CALLBACK  Seek (QWORD offset, void* user) __NE___ {
@@ -456,7 +456,7 @@ namespace AE
 */
 	Audio::IAudioSystem&  AudioSystem () __NE___
 	{
-		return Audio::s_AudioSystem.AsRef();
+		return Audio::s_AudioSystem.Ref();
 	}
 
 } // AE

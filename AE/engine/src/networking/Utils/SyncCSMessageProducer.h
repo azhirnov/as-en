@@ -25,14 +25,14 @@ namespace AE::Networking
 		using _SpinLock_t		= Networking::_hidden_::MsgAndSync_SpinLock_t;
 		using Allocator_t		= AllocatorType;
 		using DoubleBufAlloc_t	= StaticArray< Allocator_t, 2 >;
-		using LfMessageList_t	= Threading::LfChunkList< CSMessagePtr, NetConfig::MsgPerChunk >;
+		using LfMessageList_t	= Threading::LfChunkList< CSMessagePtr, NetConfig::MsgPerChunk, AllocatorRef<AllocatorType> >;
 
 
 	// variables
 	private:
-		Atomic<uint>		_index		{0};
-		LfMessageList_t		_outputMsg;
-		DoubleBufAlloc_t	_dbAlloc;
+		Atomic<uint>				_index		{0};
+		InPlace<LfMessageList_t>	_outputMsg;
+		DoubleBufAlloc_t			_dbAlloc;
 
 
 	// methods
@@ -66,7 +66,7 @@ namespace AE::Networking
 	template <typename A>
 	SyncCSMessageProducer<A>::SyncCSMessageProducer () __NE___
 	{
-		CHECK( _outputMsg.Init( _GetAllocator() ));
+		_outputMsg.Create( _GetAllocator() );
 	}
 
 /*
@@ -77,7 +77,9 @@ namespace AE::Networking
 	template <typename A>
 	SyncCSMessageProducer<A>::~SyncCSMessageProducer () __NE___
 	{
-		Unused( _outputMsg.Release() );
+		Unused( _outputMsg->Release() );
+		_outputMsg.Destroy();
+
 		for (auto& alloc : _dbAlloc)
 			alloc.Discard();
 	}
@@ -104,7 +106,7 @@ namespace AE::Networking
 	bool  SyncCSMessageProducer<A>::AddMessage (Msg<T> &msg) __NE___
 	{
 		ASSERT( msg );
-		return _outputMsg.Emplace( _GetAllocator(), CSMessagePtr{msg} );
+		return _outputMsg->Emplace( CSMessagePtr{msg} );
 	}
 
 /*
@@ -131,8 +133,9 @@ namespace AE::Networking
 				_dbAlloc[id].Discard();
 			}
 
-			result = _outputMsg.Release();
-			CHECK( _outputMsg.Init( _GetAllocator() ));
+			result = _outputMsg->Release();
+			_outputMsg.Destroy();
+			_outputMsg.Create( _GetAllocator() );
 		}
 		return result;
 	}

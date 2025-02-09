@@ -34,16 +34,18 @@ namespace
 								TEST( (co_await Coro_Status) == EStatus::InProgress );
 								TEST( (co_await Coro_TaskQueue) == ETaskQueue::PerFrame );
 
-								TEST( val.guard.try_lock() );
+								DeferExLock  guard {val.guard};
+								TEST( guard.try_lock() );
+
 								val.str += '1';
-								val.guard.unlock();
 								co_return;
 							}( value );
 		AsyncTask	task2 = [] (ExeOrder &val) -> CoroTask
 							{
-								TEST( val.guard.try_lock() );
+								DeferExLock  guard {val.guard};
+								TEST( guard.try_lock() );
+
 								val.str += '2';
-								val.guard.unlock();
 								co_return;
 							}( value );
 
@@ -57,9 +59,9 @@ namespace
 		TEST( task1->Status() == EStatus::Completed );
 		TEST( task2->Status() == EStatus::Completed );
 
-		TEST( value.guard.try_lock() );
+		DeferExLock  guard {value.guard};
+		TEST( guard.try_lock() );
 		TEST( value.str == "012" );
-		value.guard.unlock();
 	}
 
 
@@ -71,9 +73,10 @@ namespace
 
 		AsyncTask	task1 = [] (ExeOrder &val) -> CoroTask
 							{
-								TEST( val.guard.try_lock() );
+								DeferExLock  guard {val.guard};
+								TEST( guard.try_lock() );
+
 								val.str += '1';
-								val.guard.unlock();
 								co_return;
 							}( value );
 		AsyncTask	task2 = [] (ExeOrder &val, AsyncTask task) -> CoroTask
@@ -82,9 +85,10 @@ namespace
 								co_await task;
 								//co_await Tuple{ task };		// same as prev line
 
-								TEST( val.guard.try_lock() );
+								DeferExLock  guard {val.guard};
+								TEST( guard.try_lock() );
+
 								val.str += '2';
-								val.guard.unlock();
 								co_return;
 							}
 							( value, task1 );
@@ -98,9 +102,9 @@ namespace
 		TEST( task1->Status() == EStatus::Completed );
 		TEST( task2->Status() == EStatus::Completed );
 
-		TEST( value.guard.try_lock() );
+		DeferExLock  guard {value.guard};
+		TEST( guard.try_lock() );
 		TEST( value.str == "012" );
-		value.guard.unlock();
 	}
 
 
@@ -118,9 +122,11 @@ namespace
 								String	s0		 = co_await t0;
 								auto	[s1, s2] = co_await Tuple{ t1, t2 };
 
-								TEST( val.guard.try_lock() );
+								DeferExLock  guard {val.guard};
+								TEST( guard.try_lock() );
+
 								val.str += s0 + s1 + s2;
-								val.guard.unlock();
+
 								co_return;
 							}
 							( value, p0, p1, p2 );
@@ -134,9 +140,9 @@ namespace
 		TEST( AsyncTask{p1}->Status() == EStatus::Completed );
 		TEST( AsyncTask{p2}->Status() == EStatus::Completed );
 
-		TEST( value.guard.try_lock() );
+		DeferExLock  guard {value.guard};
+		TEST( guard.try_lock() );
 		TEST( value.str == "0-1-2-3" );
-		value.guard.unlock();
 	}
 
 
@@ -163,9 +169,10 @@ namespace
 								String	s0		 = co_await t0;
 								auto	[s1, s2] = co_await Tuple{ t1, t2 };
 
-								TEST( val.guard.try_lock() );
+								DeferExLock  guard {val.guard};
+								TEST( guard.try_lock() );
+
 								val.str += s0 + s1 + ToString(s2);
-								val.guard.unlock();
 
 								co_return "";
 							}
@@ -179,9 +186,9 @@ namespace
 		TEST( AsyncTask{p1}->Status() == EStatus::Completed );
 		TEST( AsyncTask{p2}->Status() == EStatus::Completed );
 
-		TEST( value.guard.try_lock() );
+		DeferExLock  guard {value.guard};
+		TEST( guard.try_lock() );
 		TEST( value.str == "0ab1" );
-		value.guard.unlock();
 	}
 
 
@@ -198,16 +205,16 @@ namespace
 							{
 								String	s0 = co_await t0;
 								{
-									TEST( val.guard.try_lock() );
+									DeferExLock  guard {val.guard};
+									TEST( guard.try_lock() );
 									val.str += s0;
-									val.guard.unlock();
 								}
 
 								String	s1 = co_await t1;
 								{
-									TEST( val.guard.try_lock() );
+									DeferExLock  guard {val.guard};
+									TEST( guard.try_lock() );
 									val.str += s1;
-									val.guard.unlock();
 								}
 								co_return "";
 							}( value, p0, p1 ));
@@ -219,9 +226,90 @@ namespace
 		TEST( AsyncTask{p1} == null );
 		TEST( AsyncTask{p2}->Status() == EStatus::Canceled );
 
-		TEST( value.guard.try_lock() );
+		DeferExLock  guard {value.guard};
+		TEST( guard.try_lock() );
 		TEST( value.str == "0a" );
-		value.guard.unlock();
+	}
+
+
+	static void  Coroutine_Test6 ()
+	{
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
+
+		auto	p0 = scheduler->Run( []() -> Coroutine<String>	{ co_return "a"s; }() );
+		auto	p1 = scheduler->Run( []() -> Coroutine<String>	{ co_return "b"s; }() );
+		auto	p2 = scheduler->Run( []() -> Coroutine<uint>	{ co_await Threading::_hidden_::AsyncTaskCoro_Error{};  co_return 1u; }() );
+
+		ExeOrder	value;
+		auto		p3 = scheduler->Run(
+							[] (ExeOrder &val, auto t0, auto t1, auto t2) -> Coroutine<String>
+							{
+								TEST( (co_await Coro_Status) == EStatus::InProgress );
+								TEST( (co_await Coro_TaskQueue) == ETaskQueue::PerFrame );
+								TEST( not co_await Coro_IsCanceled );
+								{
+									String	s0 = co_await t0;
+
+									DeferExLock  guard {val.guard};
+									TEST( guard.try_lock() );
+									val.str += s0;
+								}
+
+								TEST( not co_await Coro_IsCanceled );
+								{
+									String	s1 = co_await t1;
+
+									DeferExLock  guard {val.guard};
+									TEST( guard.try_lock() );
+									val.str += s1;
+								}
+
+								TEST( not co_await Coro_IsCanceled );
+								{
+									uint	u2 = co_await t2;
+
+									DeferExLock  guard {val.guard};
+									TEST( guard.try_lock() );
+									val.str += ToString(u2);
+								}
+
+								TEST( not co_await Coro_IsCanceled );
+								co_return "";
+							}
+							( value, p0, p1, p2 ));
+
+		auto		p4 = scheduler->Run(
+							[] (ExeOrder &val) -> CancelledCoro
+							{
+								const bool	is_canceled = co_await Coro_IsCanceled;
+								const auto	status		= co_await Coro_Status;
+								const auto	queue		= co_await Coro_TaskQueue;
+
+								TEST( is_canceled );
+								TEST( status == EStatus::Cancellation );
+								TEST( queue == ETaskQueue::PerFrame );
+								{
+									DeferExLock  guard {val.guard};
+									TEST( guard.try_lock() );
+									val.str += "-cancel-";
+								}
+								co_return;
+							}( value ),
+							Tuple{ AsyncTask{p3}}
+						 );
+
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
+
+		TEST( scheduler->Wait( List{ AsyncTask{p4}, AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }, c_MaxTimeout ));
+		TEST( AsyncTask{p0}->Status() == EStatus::Completed );
+		TEST( AsyncTask{p1}->Status() == EStatus::Completed );
+		TEST( AsyncTask{p2}->Status() == EStatus::Failed );
+		TEST( AsyncTask{p3}->Status() == EStatus::Canceled );
+		TEST( AsyncTask{p4}->Status() == EStatus::Canceled );	// TODO: should be 'Completed'
+
+		DeferExLock  guard {value.guard};
+		TEST( guard.try_lock() );
+		TEST( value.str == "0ab-cancel-" );
 	}
 }
 
@@ -233,6 +321,7 @@ extern void UnitTest_Coroutine ()
 	Coroutine_Test3();
 	Coroutine_Test4();
 	Coroutine_Test5();
+	Coroutine_Test6();
 
 	TEST_PASSED();
 }

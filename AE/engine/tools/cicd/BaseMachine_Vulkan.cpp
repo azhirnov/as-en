@@ -19,7 +19,7 @@
 # endif
 
 # include "cicd/BaseMachine.h"
-# include "graphics/Private/EnumUtils.h"
+# include "graphics_rhi/Private/EnumUtils.h"
 
 namespace AE::CICD
 {

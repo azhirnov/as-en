@@ -6,9 +6,9 @@
 #include "base/CompileTime/Math.h"
 #include "base/Math/Vec.h"
 
-namespace AE::Math
+namespace AE::Base
 {
-	enum class PowerOfTwo : uint {};
+	enum class PowerOfTwo : int {};
 
 
 	//
@@ -24,8 +24,9 @@ namespace AE::Math
 	public:
 		using Self		= TPowerOf2Value<T>;
 	private:
-		using Int_t		= typename Conditional< IsBytes<T>, T, TypeToValue_t<T> >::Value_t;
-		using POT_t		= ubyte;
+		using POT_t		= sbyte;
+
+		static constexpr sbyte	_MaxPOT = MaxValue<sbyte>();
 
 
 	// variables
@@ -35,101 +36,163 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr TPowerOf2Value ()									__NE___	{}
-		constexpr TPowerOf2Value (const Self &other)				__NE___	= default;
+		__Cx__ TPowerOf2Value ()									__NE___	{}
+		__Cx__ TPowerOf2Value (const Self &other)					__NE___	= default;
 
-		explicit constexpr TPowerOf2Value (UMax_t)					__NE___ : _pot{ CT_SizeOfInBits<T>-1 } {}
+		__Cx__ explicit TPowerOf2Value (UMax_t)						__NE___ : _pot{_MaxPOT} {}
 
-		template <typename IT>
-		explicit TPowerOf2Value (IT val)							__NE___	: _pot{POT_t( Math::Max( IntLog2( static_cast<Int_t>(val) ), 0 ))} { ASSERT( val == Cast<IT>() ); }
-		explicit constexpr TPowerOf2Value (PowerOfTwo pot)			__NE___	: _pot{POT_t(pot)} {}
+		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		__Cz__ explicit TPowerOf2Value (IT val)						__NE___	: _pot{POT_t( Base::Max( IntLog2( val ), 0 ))}  { ASSERT( val == IT(0) or val == Cast<IT>() ); }
 
-		constexpr Self&  operator = (const Self &)					__NE___ = default;
-		constexpr Self&  operator = (UMax_t)						__NE___ { _pot = CT_SizeOfInBits<T>-1;  return *this; }
+		template <typename IT, typename B=T, ENABLEIF( IsBytes<B> )>
+		explicit TPowerOf2Value (TByte<IT> val)						__NE___ : TPowerOf2Value{IT{val}} {}
 
-		ND_ constexpr operator T ()									C_NE___	{ return Cast<T>(); }
+		__Cx__ TPowerOf2Value (PowerOfTwo pot)						__NE___	: _pot{POT_t(pot)} {}
 
-		template <typename IT>
-		ND_ explicit constexpr operator IT ()						C_NE___	{ return Cast<IT>(); }
+		__Cx__ Self&	operator = (const Self &)					__NE___ = default;
+		__Cx__ Self&	operator = (UMax_t)							__NE___ { _pot = _MaxPOT;  return *this; }
 
-		ND_ constexpr Self		operator *  (Self rhs)				C_NE___	{ return Self{ _pot + rhs._pot }; }
-		ND_ constexpr Self		operator /  (Self rhs)				C_NE___	{ ASSERT( _pot >= rhs._pot );  return Self{ _pot - rhs._pot }; }
-		ND_ constexpr T			operator +  (Self rhs)				C_NE___	{ return T{*this} + T{rhs}; }
-		ND_ constexpr Self		operator << (uint rhs)				C_NE___	{ return Self{PowerOfTwo( _pot + rhs )}; }
-
-		ND_ constexpr bool		operator == (Self rhs)				C_NE___	{ return _pot == rhs._pot; }
-		ND_ constexpr bool		operator != (Self rhs)				C_NE___	{ return _pot != rhs._pot; }
-		ND_ constexpr bool		operator >  (Self rhs)				C_NE___	{ return _pot >  rhs._pot; }
-		ND_ constexpr bool		operator <  (Self rhs)				C_NE___	{ return _pot <  rhs._pot; }
-		ND_ constexpr bool		operator >= (Self rhs)				C_NE___	{ return _pot >= rhs._pot; }
-		ND_ constexpr bool		operator <= (Self rhs)				C_NE___	{ return _pot <= rhs._pot; }
-
-		ND_ constexpr Self		Max (Self rhs)						C_NE___	{ return Self{ Math::Max( _pot, rhs._pot )}; }
-		ND_ constexpr Self		Min (Self rhs)						C_NE___	{ return Self{ Math::Min( _pot, rhs._pot )}; }
-
-		ND_ constexpr uint		GetPOT ()							C_NE___	{ return _pot; }
+		NdCx__ operator T ()										C_NE___	{ return Cast<T>(); }
 
 		template <typename IT>
-		ND_ constexpr IT		BitMask ()							C_NE___	{ return ToBitMask<IT>( _pot ); }
+		NdCx__ explicit operator IT ()								C_NE___	{ return Cast<IT>(); }
+
+		NdCx__ Self		operator *  (Self rhs)						C_NE___	{ return Self{PowerOfTwo( _pot + rhs._pot )}; }
+		NdCz__ Self		operator /  (Self rhs)						C_NE___	{ ASSERT( _pot >= rhs._pot );  return Self{PowerOfTwo( Max( _pot - rhs._pot, 0 ))}; }
+		NdCx__ T		operator +  (Self rhs)						C_NE___	{ return T{*this} + T{rhs}; }
+
+		NdCx__ bool		operator == (Self rhs)						C_NE___	{ return _pot == rhs._pot; }
+		NdCx__ bool		operator != (Self rhs)						C_NE___	{ return _pot != rhs._pot; }
+		NdCx__ bool		operator >  (Self rhs)						C_NE___	{ return _pot >  rhs._pot; }
+		NdCx__ bool		operator <  (Self rhs)						C_NE___	{ return _pot <  rhs._pot; }
+		NdCx__ bool		operator >= (Self rhs)						C_NE___	{ return _pot >= rhs._pot; }
+		NdCx__ bool		operator <= (Self rhs)						C_NE___	{ return _pot <= rhs._pot; }
+
+		NdCx__ Self		LShift (uint rhs)							C_NE___	{ return Self{PowerOfTwo( _pot + rhs )}; }
+		NdCx__ Self		RShift (uint rhs)							C_NE___	{ return Self{PowerOfTwo( Max( int(_pot) - int(rhs), 0 ))}; }
+
+		NdCx__ int		GetPOT ()									C_NE___	{ return _pot; }
+		NdCx__ bool		IsInvalid ()								C_NE___	{ return _pot == -1; }
+
+		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		NdCx__ IT		BitMask ()									C_NE___	{ return Base::ToBitMask<IT>( _pot ); }
+
+		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		NdCx__ IT		InvBitMask ()								C_NE___	{ return ~BitMask(); }
+
+		NdCz__ float	AsFloat ()									C_NE___;
 
 		template <typename IT>
-		ND_ constexpr IT		InvBitMask ()						C_NE___	{ return ~BitMask(); }
+		NdCz__ IT		Cast ()										C_NE___;
 
-		template <typename IT>
-		ND_ friend constexpr IT  operator * (const Self lhs, const IT rhs) __NE___
-		{
-			if constexpr( IsInteger<IT> and not IsBytes<T> )
-				return rhs << lhs._pot;		// return integer
-			else
-			if constexpr( IsBytes<IT> and IsBytes<T> )
-				return rhs << lhs._pot;		// returns bytes
-		}
+		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		NdCz__ static Self  FromCeil (IT value)						__NE___;
 
-		template <typename IT>
-		ND_ friend constexpr IT  operator * (const IT lhs, const Self rhs) __NE___
-		{
-			if constexpr( IsInteger<IT> and not IsBytes<T> )
-				return lhs << rhs._pot;		// return integer
-			else
-			if constexpr( IsBytes<IT> )
-				return lhs << rhs._pot;		// returns bytes
-		}
-
-		template <typename IT>
-		ND_ friend constexpr IT  operator / (const IT lhs, const Self rhs) __NE___
-		{
-			if constexpr( IsInteger<IT> and not IsBytes<T> )
-				return lhs >> rhs._pot;		// return integer
-			else
-			if constexpr( IsBytes<IT> and IsBytes<T> )
-				return lhs >> rhs._pot;		// returns bytes
-		}
-
-		template <typename IT>
-		ND_ constexpr IT  Cast ()										C_NE___
-		{
-			if constexpr( IsSignedInteger<IT> )
-			{
-				ASSERT( _pot < CT_SizeOfInBits<IT> - 1 );
-				return static_cast<IT>( IT{1} << _pot );
-			}
-			else
-			if constexpr( IsUnsignedInteger<IT> )
-			{
-				ASSERT( _pot < CT_SizeOfInBits<IT> );
-				return static_cast<IT>( IT{1} << _pot );
-			}
-			else
-			if constexpr( IsBytes<IT> )
-			{
-				return IT{ Cast<typename IT::Value_t>() };
-			}
-		}
+		NdCx__ static Self  Invalid ()								__NE___	{ return Self{PowerOfTwo(-1)}; }
 	};
 
 
-	using POTValue		= TPowerOf2Value< ulong >;
-	using POTBytes		= TPowerOf2Value< Bytes >;
+	template <typename T, int I>
+	struct TPowerOf2ValueVec;
+
+
+	//
+	// Power of 2 value Vector
+	//
+	template <typename T>
+	struct TPowerOf2ValueVec< T, 2 >
+	{
+	// types
+		using Value_t	= TPowerOf2Value<T>;
+		using Self		= TPowerOf2ValueVec< T, 2 >;
+
+	// variables
+		Value_t		x, y;
+
+	// methods
+		__Cx__ TPowerOf2ValueVec ()							__NE___ {}
+		__Cx__ explicit TPowerOf2ValueVec (UMax_t)			__NE___ : x{UMax}, y{UMax} {}
+		__Cx__ TPowerOf2ValueVec (Value_t X, Value_t Y)		__NE___ : x{X}, y{Y} {}
+
+		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		__Cx__ explicit TPowerOf2ValueVec (IT X, IT Y)		__NE___ : x{X}, y{Y} {}
+
+		NdCz__ Value_t const&	operator [] (usize idx)		C_NE___	{ ASSERT( idx < 2 );  return (&x)[idx]; }
+		NdCz__ Value_t &		operator [] (usize idx)		__NE___	{ ASSERT( idx < 2 );  return (&x)[idx]; }
+
+	// constants
+		NdCx__ static Self		c_1_1 ()					__NE___	{ return Self{ 1u, 1u }; }
+		NdCx__ static Self		c_1_2 ()					__NE___	{ return Self{ 1u, 2u }; }
+		NdCx__ static Self		c_2_1 ()					__NE___	{ return Self{ 2u, 1u }; }
+		NdCx__ static Self		c_2_2 ()					__NE___	{ return Self{ 2u, 2u }; }
+	};
+
+
+	//
+	// Power of 2 value Vector
+	//
+	template <typename T>
+	struct TPowerOf2ValueVec< T, 3 >
+	{
+	// types
+		using Value_t	= TPowerOf2Value<T>;
+		using Self		= TPowerOf2ValueVec< T, 3 >;
+
+	// variables
+		Value_t		x, y, z;
+
+	// methods
+		__Cx__ TPowerOf2ValueVec ()									__NE___ {}
+		__Cx__ explicit TPowerOf2ValueVec (UMax_t)					__NE___ : x{UMax}, y{UMax}, z{UMax} {}
+		__Cx__ TPowerOf2ValueVec (Value_t X, Value_t Y, Value_t Z)	__NE___ : x{X}, y{Y}, z{Z} {}
+
+		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		__Cx__ explicit TPowerOf2ValueVec (IT X, IT Y, IT Z)		__NE___ : x{X}, y{Y}, z{Z} {}
+
+		NdCz__ Value_t const&	operator [] (usize idx)				C_NE___	{ ASSERT( idx < 3 );  return (&x)[idx]; }
+		NdCz__ Value_t &		operator [] (usize idx)				__NE___	{ ASSERT( idx < 3 );  return (&x)[idx]; }
+	};
+
+
+	//
+	// Power of 2 value Vector
+	//
+	template <typename T>
+	struct TPowerOf2ValueVec< T, 4 >
+	{
+	// types
+		using Value_t	= TPowerOf2Value<T>;
+		using Self		= TPowerOf2ValueVec< T, 4 >;
+
+	// variables
+		Value_t		x, y, z, w;
+
+	// methods
+		__Cx__ TPowerOf2ValueVec ()												__NE___ {}
+		__Cx__ explicit TPowerOf2ValueVec (UMax_t)								__NE___ : x{UMax}, y{UMax}, z{UMax}, w{UMax} {}
+		__Cx__ TPowerOf2ValueVec (Value_t X, Value_t Y, Value_t Z, Value_t W)	__NE___ : x{X}, y{Y}, z{Z}, w{W} {}
+
+		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		__Cx__ explicit TPowerOf2ValueVec (IT X, IT Y, IT Z, IT W)				__NE___ : x{X}, y{Y}, z{Z}, w{W} {}
+
+		NdCz__ Value_t const&	operator [] (usize idx)							C_NE___	{ ASSERT( idx < 4 );  return (&x)[idx]; }
+		NdCz__ Value_t &		operator [] (usize idx)							__NE___	{ ASSERT( idx < 4 );  return (&x)[idx]; }
+	};
+
+
+
+	using POTValue	= TPowerOf2Value< ulong >;
+	using POTBytes	= TPowerOf2Value< Bytes >;
+
+	using POTVec2	= TPowerOf2ValueVec< ulong, 2 >;
+	using POTVec3	= TPowerOf2ValueVec< ulong, 3 >;
+	using POTVec4	= TPowerOf2ValueVec< ulong, 4 >;
+
+
+	StaticAssert( sizeof(POTValue) == 1 );
+	StaticAssert( sizeof(POTVec2) == 2 );
+	StaticAssert( sizeof(POTVec3) == 3 );
+	StaticAssert( sizeof(POTVec4) == 4 );
 
 
 	template <typename T>
@@ -145,7 +208,7 @@ namespace AE::Math
 	inline static constexpr POTBytes	POTBytes_From	{PowerOfTwo( CT_IntLog2<X> )};
 
 
-	ND_ inline constexpr POTValue operator "" _pot (unsigned long long value) __NE___	{ return POTValue{ CheckCast<PowerOfTwo>(value) }; }
+	NdCxIn POTValue operator "" _pot (unsigned long long value) __NE___	{ return POTValue{ CheckCast<PowerOfTwo>(value) }; }
 
 	namespace _hidden_
 	{
@@ -157,8 +220,164 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	static constexpr bool  IsPowerOf2Value = Math::_hidden_::_IsPowerOf2Value<T>::value;
+	static constexpr bool  IsPowerOf2Value = Base::_hidden_::_IsPowerOf2Value<T>::value;
 
+
+/*
+=================================================
+	AsFloat
+=================================================
+*/
+	template <typename T>
+	__Cz__ float  TPowerOf2Value<T>::AsFloat () C_NE___
+	{
+		ASSERT( _pot >= 0 );
+		ASSERT( _pot <= int(Float32Bits::_NaNExp/2) );
+		uint exp = Base::Min( Float32Bits::_NaNExp/2 + _pot, Float32Bits::_NaNExp );
+		Float32Bits b;
+		b.m=0; b.e=exp; b.s=0;
+		return BitCast<float>(b);
+	}
+
+/*
+=================================================
+	operator *
+=================================================
+*/
+	template <typename T, typename IT>
+	__Cx__ IT  operator * (const TPowerOf2Value<T> lhs, const IT rhs) __NE___
+	{
+		StaticAssert( IsUnsigned<IT> );
+		ASSERT( lhs.GetPOT() >= 0 );
+		ASSERT( lhs.GetPOT() < int(CT_SizeOfInBits<IT>) );
+
+		if constexpr( IsBytes<T> ){
+			if constexpr( IsBytes<IT> )
+				return rhs << lhs.GetPOT();		// returns bytes
+		}else{
+			if constexpr( IsInteger<IT> )
+				return rhs << lhs.GetPOT();		// return integer
+		}
+	}
+
+/*
+=================================================
+	operator *
+=================================================
+*/
+	template <typename T, typename IT>
+	__Cx__ IT  operator * (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
+	{
+		StaticAssert( IsUnsigned<IT> );
+		ASSERT( rhs.GetPOT() >= 0 );
+		ASSERT( rhs.GetPOT() < int(CT_SizeOfInBits<IT>) );
+
+		if constexpr( IsBytes<T> ){
+			if constexpr( IsBytes<IT> )
+				return lhs << rhs.GetPOT();		// returns bytes
+		}else{
+			if constexpr( IsInteger<IT> )
+				return lhs << rhs.GetPOT();		// return integer
+		}
+	}
+
+/*
+=================================================
+	operator /
+=================================================
+*/
+	template <typename T, typename IT>
+	__Cx__ IT  operator / (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
+	{
+		StaticAssert( IsUnsigned<IT> );
+		ASSERT( rhs.GetPOT() >= 0 );
+		ASSERT( rhs.GetPOT() < int(CT_SizeOfInBits<IT>) );
+
+		if constexpr( IsBytes<T> ){
+			if constexpr( IsBytes<IT> )
+				return lhs >> rhs.GetPOT();		// returns bytes
+		}else{
+			if constexpr( IsInteger<IT> )
+				return lhs >> rhs.GetPOT();		// return integer
+		}
+	}
+
+/*
+=================================================
+	operator %
+=================================================
+*/
+	template <typename T, typename IT>
+	__Cx__ IT  operator % (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
+	{
+		StaticAssert( IsUnsigned<IT> );
+		ASSERT( rhs.GetPOT() >= 0 );
+        ASSERT( rhs.GetPOT() < int(CT_SizeOfInBits<IT>) );
+
+		if constexpr( IsBytes<T> ){
+			if constexpr( IsBytes<IT> ){
+				using Int_t = typename Conditional< IsBytes<T>, T, TypeToValue_t<T> >::Value_t;
+				return lhs & rhs.template BitMask< Int_t >();	// returns bytes
+			}
+		}else{
+			if constexpr( IsInteger<IT> )
+				return lhs & rhs.template BitMask<IT>();			// return integer
+		}
+	}
+
+/*
+=================================================
+	Cast
+=================================================
+*/
+	template <typename T>
+	template <typename IT>
+	__Cz__ IT  TPowerOf2Value<T>::Cast () C_NE___
+	{
+		if constexpr( IsSignedInteger<IT> )
+		{
+			//ASSERT( _pot < POT_t(CT_SizeOfInBits<IT>-1) );
+			return	_pot < POT_t(CT_SizeOfInBits<IT>-1) ?
+						static_cast<IT>( IT{1} << _pot ) :
+						MaxValue<IT>();
+		}
+		else
+		if constexpr( IsUnsignedInteger<IT> )
+		{
+			//ASSERT( _pot < POT_t(CT_SizeOfInBits<IT>) );
+			return	_pot < POT_t(CT_SizeOfInBits<IT>) ?
+						static_cast<IT>( IT{1} << _pot ) :
+						MaxValue<IT>();
+		}
+		else
+		if constexpr( IsBytes<IT> )
+		{
+			return IT{ Cast<typename IT::Value_t>() };
+		}
+		else
+		if constexpr( IsIntegerVec<IT> )
+		{
+			return IT{ Cast< VecToScalarType<IT> >() };
+		}
+		else
+		if constexpr( IsSpecializationOf< IT, TPowerOf2Value >)
+		{
+			return IT{PowerOfTwo( _pot )};
+		}
+	}
+
+/*
+=================================================
+	FromCeil
+=================================================
+*/
+	template <typename T>
+	template <typename IT, ENABLEIF_IMPL( IsUnsignedInteger<IT> )>
+	__Cz__ TPowerOf2Value<T>  TPowerOf2Value<T>::FromCeil (IT value) __NE___
+	{
+		int pot = Max( IntLog2( value ) + int(not Base::IsPowerOfTwo( value )), 0 );
+		return Self{PowerOfTwo(pot)};
+	}
 
 /*
 =================================================
@@ -166,21 +385,21 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr TPowerOf2Value<T>  Min (const TPowerOf2Value<T> x, const TPowerOf2Value<T> y) __NE___
+	NdCx__ TPowerOf2Value<T>  Min (const TPowerOf2Value<T> x, const TPowerOf2Value<T> y) __NE___
 	{
-		return TPowerOf2Value<T>{ PowerOfTwo( Math::Min( x.GetPOT(), y.GetPOT() ))};
+		return TPowerOf2Value<T>{ PowerOfTwo( Base::Min( x.GetPOT(), y.GetPOT() ))};
 	}
 
 	template <typename T>
-	ND_ constexpr TPowerOf2Value<T>  Max (const TPowerOf2Value<T> x, const TPowerOf2Value<T> y) __NE___
+	NdCx__ TPowerOf2Value<T>  Max (const TPowerOf2Value<T> x, const TPowerOf2Value<T> y) __NE___
 	{
-		return TPowerOf2Value<T>{ PowerOfTwo( Math::Max( x.GetPOT(), y.GetPOT() ))};
+		return TPowerOf2Value<T>{ PowerOfTwo( Base::Max( x.GetPOT(), y.GetPOT() ))};
 	}
 
 	template <typename T>
-	ND_ constexpr TPowerOf2Value<T>  Clamp (const TPowerOf2Value<T> x, const TPowerOf2Value<T> minValue, const TPowerOf2Value<T> maxValue) __NE___
+	NdCx__ TPowerOf2Value<T>  Clamp (const TPowerOf2Value<T> x, const TPowerOf2Value<T> minValue, const TPowerOf2Value<T> maxValue) __NE___
 	{
-		return TPowerOf2Value<T>{ PowerOfTwo( Math::Clamp( x.GetPOT(), minValue.GetPOT(), maxValue.GetPOT() ))};
+		return TPowerOf2Value<T>{ PowerOfTwo( Base::Clamp( x.GetPOT(), minValue.GetPOT(), maxValue.GetPOT() ))};
 	}
 
 /*
@@ -189,8 +408,9 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename T1>
-	ND_ constexpr auto  AlignDown (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
+	NdCx__ auto  AlignDown (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
 	{
+		StaticAssert( IsUnsigned<T> );
 		StaticAssert( not IsPowerOf2Value<T> );
 
 		const auto	pot = alignPOT.GetPOT();
@@ -214,8 +434,9 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename T1>
-	ND_ constexpr auto  AlignUp (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
+	NdCx__ auto  AlignUp (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
 	{
+		StaticAssert( IsUnsigned<T> );
 		StaticAssert( not IsPowerOf2Value<T> );
 
 		if constexpr( IsPointer<T> )
@@ -246,8 +467,9 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename T1>
-	ND_ constexpr bool  IsMultipleOf (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
+	NdCx__ bool  IsMultipleOf (const T &value, const TPowerOf2Value<T1> alignPOT) __NE___
 	{
+		StaticAssert( IsUnsigned<T> or IsPointer<T> );
 		StaticAssert( not IsPowerOf2Value<T> );
 
 		if constexpr( IsPointer<T> )
@@ -260,12 +482,182 @@ namespace AE::Math
 			return (value & alignPOT.template BitMask<T>()) == 0;
 	}
 
-} // AE::Math
+/*
+=================================================
+	operator *
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q, typename P>
+	ND_ TVec<T,I,Q>  operator * (const TVec<T,I,Q> &lhs, TPowerOf2Value<P> rhs) __NE___
+	{
+		StaticAssert( IsUnsignedInteger<T> );
 
-namespace AE::Base
-{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i)
+			res[i] = lhs[i] * rhs;
+		return res;
+	}
+
+	template <typename T, int I, glm::qualifier Q, typename P>
+	ND_ TVec<T,I,Q>  operator * (const TVec<T,I,Q> &lhs, const TVec<TPowerOf2Value<P>,I,Q> &rhs) __NE___
+	{
+		StaticAssert( IsUnsignedInteger<T> );
+
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i)
+			res[i] = lhs[i] * rhs[i];
+		return res;
+	}
+
+/*
+=================================================
+	operator /
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q, typename P>
+	ND_ TVec<T,I,Q>  operator / (const TVec<T,I,Q> &lhs, TPowerOf2Value<P> rhs) __NE___
+	{
+		StaticAssert( IsUnsignedInteger<T> );
+
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i)
+			res[i] = lhs[i] / rhs;
+		return res;
+	}
+
+	template <typename T, int I, glm::qualifier Q, typename P>
+	ND_ TVec<T,I,Q>  operator / (const TVec<T,I,Q> &lhs, const TVec<TPowerOf2Value<P>,I,Q> &rhs) __NE___
+	{
+		StaticAssert( IsUnsignedInteger<T> );
+
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i)
+			res[i] = lhs[i] / rhs[i];
+		return res;
+	}
+
+/*
+=================================================
+	DivCeil
+=================================================
+*/
+	template <typename T, typename P>
+	NdCx__ EnableIf<IsInteger<T>, T>  DivCeil (const T &x, const TPowerOf2Value<P> &divider) __NE___
+	{
+		StaticAssert( IsUnsignedInteger<T> );
+
+		return (x + (T(1) << divider.GetPOT()) - T(1)) >> divider.GetPOT();
+	}
+
+	template <typename T, int I, glm::qualifier Q, typename P>
+	NdCx__ TVec<T,I,Q>  DivCeil (const TVec<T,I,Q> &x, const TPowerOf2Value<P> &divider) __NE___
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i)
+			res[i] = DivCeil( x[i], divider );
+		return res;
+	}
+
+	template <typename T, int I, glm::qualifier Q, typename P>
+	NdCx__ TVec<T,I,Q>  DivCeil (const TVec<T,I,Q> &x, const TVec<TPowerOf2Value<P>,I,Q> &divider) __NE___
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i)
+			res[i] = DivCeil( x[i], divider[i] );
+		return res;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	operator ==
+=================================================
+*/
+	template <typename T, int I>
+	ND_ Vec<bool,I>  operator == (const TPowerOf2ValueVec<T,I> &lhs, const TPowerOf2ValueVec<T,I> &rhs) __NE___
+	{
+		Vec<bool,I>		res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = lhs[i] == rhs[i];
+		}
+		return res;
+	}
+
+/*
+=================================================
+	operator *
+=================================================
+*/
+	template <typename T0, typename T1, int I, glm::qualifier Q>
+	ND_ TVec<T0,I,Q>  operator * (const TVec<T0,I,Q> &lhs, const TPowerOf2ValueVec<T1,I> &rhs) __NE___
+	{
+		TVec<T0,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = lhs[i] * rhs[i];
+		}
+		return res;
+	}
+
+/*
+=================================================
+	operator /
+=================================================
+*/
+	template <typename T0, typename T1, int I, glm::qualifier Q>
+	ND_ TVec<T0,I,Q>  operator / (const TVec<T0,I,Q> &lhs, const TPowerOf2ValueVec<T1,I> &rhs) __NE___
+	{
+		TVec<T0,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = lhs[i] / rhs[i];
+		}
+		return res;
+	}
+
+/*
+=================================================
+	operator %
+=================================================
+*/
+	template <typename T0, typename T1, int I, glm::qualifier Q>
+	ND_ TVec<T0,I,Q>  operator % (const TVec<T0,I,Q> &lhs, const TPowerOf2ValueVec<T1,I> &rhs) __NE___
+	{
+		TVec<T0,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = lhs[i] % rhs[i];
+		}
+		return res;
+	}
+
+/*
+=================================================
+	IsMultipleOf
+=================================================
+*/
+	template <typename T0, typename T1, int I, glm::qualifier Q>
+	ND_ TVec<bool,I,Q>  IsMultipleOf (const TVec<T0,I,Q> &value, const TPowerOf2ValueVec<T1,I> &align) __NE___
+	{
+		return value % align == T0{0};
+	}
+//-----------------------------------------------------------------------------
+
+
+
 	template <typename T>	struct TMemCopyAvailable< TPowerOf2Value<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
 	template <typename T>	struct TZeroMemAvailable< TPowerOf2Value<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
 	template <typename T>	struct TTriviallySerializable< TPowerOf2Value<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
+	template <typename T>	struct TUnwrap< TPowerOf2Value<T> >					: TUnwrap<T> {};
 
 } // AE::Base
+//-----------------------------------------------------------------------------
+
+
+template <typename T>
+struct std::hash< AE::Base::TPowerOf2Value<T> >
+{
+	ND_ size_t  operator () (const AE::Base::TPowerOf2Value<T> &value) C_NE___
+	{
+		return size_t(AE::Base::HashOf( value.GetPOT() ));
+	}
+};

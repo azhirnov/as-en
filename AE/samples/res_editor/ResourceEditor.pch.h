@@ -10,7 +10,7 @@
 #include "pch/Video.h"
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-# include "graphics_lib/GraphicsLib.h"
+# include "graphics_rhi_shared/GraphicsLib.h"
 #endif
 
 #include "res_loaders/AllImages/AllImageLoaders.h"
@@ -26,3 +26,13 @@
 #endif
 
 #define OPTIMIZE_SHADER		1
+
+
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+# define RmG_UI_ON_HOST		1
+#else
+# define RmG_UI_ON_HOST		0
+#endif
+
+// disable clear screen and present if not used
+#define RE_PROFILING	1

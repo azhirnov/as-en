@@ -62,7 +62,7 @@ void  CreateCPipeline ()
 				"uint4	RGBLuma [" + HistogramSize + "];" );
 
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "Histogram.CS.ds0" );
-		ds.CombinedImage( EShaderStages::Compute, "un_Texture", EImageType::FImage2D, "Histogram.LinearClamp" );
+		ds.CombinedImage( EShaderStages::Compute, "un_Texture", EImageType::Float_2D, "Histogram.LinearClamp" );
 		ds.StorageBuffer( EShaderStages::Compute, "un_Histogram", "Histogram.ssb", EResourceState::ShaderStorage_RW );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "Histogram.CS.pl" );

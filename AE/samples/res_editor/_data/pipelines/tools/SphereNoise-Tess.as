@@ -5,7 +5,7 @@
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -33,9 +33,9 @@
 
 		{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
-			ds.CombinedImage( EShaderStages::Fragment,			"un_Palette",	EImageType::FImage2D,	Sampler_LinearClamp );
-			ds.CombinedImage( EShaderStages::Fragment,			"un_NormalMap",	EImageType::FImageCube, Sampler_LinearRepeat );
-			ds.CombinedImage( EShaderStages::TessEvaluation,	"un_HeightMap",	EImageType::FImageCube, Sampler_LinearRepeat );
+			ds.CombinedImage( EShaderStages::Fragment,			"un_Palette",	EImageType::Float_2D,	Sampler_LinearClamp );
+			ds.CombinedImage( EShaderStages::Fragment,			"un_NormalMap",	EImageType::Float_Cube, Sampler_LinearRepeat );
+			ds.CombinedImage( EShaderStages::TessEvaluation,	"un_HeightMap",	EImageType::Float_Cube, Sampler_LinearRepeat );
 			ds.UniformBuffer( EShaderStages::TessEvaluation,	"un_PerObject",	"SphericalCubeMaterialUB" );
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( "pl" );
@@ -150,7 +150,7 @@
 #ifdef SH_FRAG
 	#include "Color.glsl"
 	#include "Normal.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	void Main ()
 	{

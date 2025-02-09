@@ -4,11 +4,11 @@
 
 #include "base/ObjC/NS.h"
 
-#include <Foundation/NSArray.h>
-
 #ifndef AE_PLATFORM_APPLE
 #	error must be included in objc (.mm) file!
 #endif
+
+#include <Foundation/NSArray.h>
 
 namespace AE::NS
 {

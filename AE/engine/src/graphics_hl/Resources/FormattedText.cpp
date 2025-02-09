@@ -132,7 +132,7 @@ namespace {
 			{
 				pos += sizeof(tag_style)-1;
 
-				usize	end		= Min( str.find( ']', pos ), str.length() );
+				usize	end		= Min( str.find( CharUtf8(']'), pos ), str.length() );
 				State	state	= states.back();
 				state.type = EChunkType::Style;
 
@@ -142,7 +142,7 @@ namespace {
 
 				for (; pos < end;)
 				{
-					const char	c = str[pos];
+					const char	c = char(str[pos]);
 					if ( (c == ' ') or (c == '\t') )
 					{
 						++pos;
@@ -155,7 +155,7 @@ namespace {
 						state.height = 0;
 						for (pos += sizeof(tag_size)-1; pos < end;)
 						{
-							const char	k = str[pos];
+							const char	k = char(str[pos]);
 							if ( (k >= '0') and (k <= '9') )
 								state.height = state.height*10 + (k-'0');
 							else
@@ -171,7 +171,7 @@ namespace {
 						uint	color = 0;
 						for (pos += sizeof(tag_color)-1; pos < end;)
 						{
-							const char	k = str[pos];
+							const char	k = char(str[pos]);
 							if ( (k >= '0') and (k <= '9') )	color = (color << 4) + (k-'0');		else
 							if ( (k >= 'A') and (k <= 'F') )	color = (color << 4) + (k-'A'+10);	else
 							if ( (k >= 'a') and (k <= 'f') )	color = (color << 4) + (k-'a'+10);	else
@@ -199,7 +199,7 @@ namespace {
 				ASSERT(false);
 				return false;
 			}
-			const uint	u = *(str.data() + pos) | ((str.data() + pos)[1] << 8);
+			const uint	u = uint((str.data() + pos)[0]) | (uint((str.data() + pos)[1]) << 8);
 			switch ( u )
 			{
 				case tag_bold :
@@ -259,7 +259,7 @@ namespace {
 			auto*	chunk	= PlacementNew<Chunk>( OUT ptr );
 
 			MemCopy( OUT chunk->string, tag, Bytes{length} );
-			chunk->string[length] = '\0';
+			chunk->string[length] = CharUtf8('\0');
 			chunk->length		= uint(length);
 			chunk->color		= state.color;
 			chunk->height		= state.height;

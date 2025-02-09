@@ -153,7 +153,7 @@ namespace AE::App
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
 		ASSERT( All( IsNotZero( size )) );
-		ASSERT( not EWindowMode_IsFullscreen( _wndMode ));
+		ASSERT( not EWindowMode_IsFullScreen( _wndMode ));
 
 		if_likely( _window != null )
 		{
@@ -171,7 +171,7 @@ namespace AE::App
 		DRC_EXLOCK( _drCheck );
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
-		ASSERT( not EWindowMode_IsFullscreen( _wndMode ));
+		ASSERT( not EWindowMode_IsFullScreen( _wndMode ));
 
 		if_likely( _window != null )
 		{
@@ -253,15 +253,15 @@ namespace AE::App
 		bool			borderless		= false;
 		bool			fullscreen		= false;
 		bool			always_on_top	= false;
-		const bool		was_fullscreen	= monitor != null or EWindowMode_IsFullscreen( _wndMode );
+		const bool		was_fullscreen	= monitor != null or EWindowMode_IsFullScreen( _wndMode );
 
 		switch_enum( mode )
 		{
 			case EWindowMode::Resizable :			resizable = true;												break;
 			case EWindowMode::NonResizable :																		break;
 			case EWindowMode::Borderless :			borderless = true;												break;
-			case EWindowMode::FullscreenWindow :	fullscreen = true;	borderless = true;	always_on_top = true;	break;
-			case EWindowMode::Fullscreen :			fullscreen = true;												break;
+			case EWindowMode::FullScreenWindow :	fullscreen = true;	borderless = true;	always_on_top = true;	break;
+			case EWindowMode::FullScreen :			fullscreen = true;												break;
 			case EWindowMode::_Count :
 			default :								RETURN_ERR( "unknown window mode" );
 		}
@@ -320,7 +320,7 @@ namespace AE::App
 				monitor_size = int2{ vmode->width, vmode->height };
 
 			int2	monitor_pos {0};
-			if ( mode == EWindowMode::FullscreenWindow )
+			if ( mode == EWindowMode::FullScreenWindow )
 			{
 				glfwGetMonitorPos( monitor, OUT &monitor_pos.x, OUT &monitor_pos.y );
 				monitor = null;
@@ -331,6 +331,29 @@ namespace AE::App
 
 		_wndMode = mode;
 		return true;
+	}
+
+/*
+=================================================
+	SetColorSpace
+=================================================
+*/
+	bool  WindowGLFW::SetColorSpace (EColorSpace value) C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+		DRC_EXLOCK( _app.GetSingleThreadCheck() );
+
+	  #ifdef AE_PLATFORM_WINDOWS
+
+		RectI	region;
+		glfwGetWindowPos( _window,  OUT &region.left,  OUT &region.top );
+		glfwGetWindowSize( _window, OUT &region.right, OUT &region.bottom );
+
+		return _app.GetNvAPI().SetHDRMode( region, value );
+
+	  #else
+		return false;
+	  #endif
 	}
 
 /*
@@ -364,8 +387,8 @@ namespace AE::App
 			case EWindowMode::Resizable :			resizable = true;							break;
 			case EWindowMode::NonResizable :													break;
 			case EWindowMode::Borderless :			borderless = true;							break;
-			case EWindowMode::FullscreenWindow :	borderless = true;	always_on_top = true;	break;
-			case EWindowMode::Fullscreen :			fullscreen = true;							break;
+			case EWindowMode::FullScreenWindow :	borderless = true;	always_on_top = true;	break;
+			case EWindowMode::FullScreen :			fullscreen = true;							break;
 			case EWindowMode::_Count :
 			default :																			break;
 		}
@@ -394,7 +417,7 @@ namespace AE::App
 			window_size  = Min( window_size, work_area_size );
 			window_pos  += Max( int2{0}, (work_area_size - window_size) / 2 );
 
-			if ( desc.mode == EWindowMode::FullscreenWindow )
+			if ( desc.mode == EWindowMode::FullScreenWindow )
 			{
 				int2	mpos;
 				glfwGetMonitorPos( monitor, OUT &mpos.x, OUT &mpos.y );
@@ -436,6 +459,7 @@ namespace AE::App
 		glfwSetKeyCallback( _window, &_GLFW_KeyCallback );
 		glfwSetMouseButtonCallback( _window, &_GLFW_MouseButtonCallback );
 		glfwSetCursorPosCallback( _window, &_GLFW_CursorPosCallback );
+		glfwSetCursorEnterCallback( _window, &_GLFW_CursorEnterCallback );
 		glfwSetScrollCallback( _window, &_GLFW_MouseWheelCallback );
 		glfwSetWindowIconifyCallback( _window, &_GLFW_IconifyCallback );
 		glfwSetWindowFocusCallback( _window, &_GLFW_WindowFocusCallback );
@@ -598,6 +622,20 @@ namespace AE::App
 
 		//if_likely( self->_HasFocus() )
 		self->_input.SetCursorPos( float2{float(xpos), float(ypos)} * self->_contentScale );
+	}
+
+/*
+=================================================
+	_GLFW_CursorEnterCallback
+=================================================
+*/
+	void  WindowGLFW::_GLFW_CursorEnterCallback (GLFWwindow* wnd, int entered) __NE___
+	{
+		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
+		DRC_EXLOCK( self->_drCheck );
+
+		if ( not entered )
+			self->_input.SetCursorPos( float2{-1.0e+30f} );
 	}
 
 /*

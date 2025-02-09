@@ -5,7 +5,7 @@
 #include "base/Algorithms/Cast.h"
 #include "base/Math/BitMath.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -87,24 +87,24 @@ namespace AE::Math
 		NdCx__ explicit operator R * ()								C_NE___	{ return BitCast<R *>( CheckCast<usize>( _value )); }
 
 		NdCx__ T			get ()									C_NE___	{ return _value; }
-		NdCx__ T			Kb ()									C_NE___	{ return _value >> 10; }
-		NdCx__ T			Mb ()									C_NE___	{ return _value >> 20; }
-		NdCx__ T			Gb ()									C_NE___	{ return _value >> 30; }
+		NdCx__ T			KiB ()									C_NE___	{ return _value >> 10; }
+		NdCx__ T			MiB ()									C_NE___	{ return _value >> 20; }
+		NdCx__ T			GiB ()									C_NE___	{ return _value >> 30; }
 
 		NdCx__ static Self	FromBits (T value)						__NE___	{ return Self( value >> 3 ); }
-		NdCx__ static Self	FromKb (T value)						__NE___	{ return Self( value << 10 ); }
-		NdCx__ static Self	FromMb (T value)						__NE___	{ return Self( value << 20 ); }
-		NdCx__ static Self	FromGb (T value)						__NE___	{ return Self( value << 30 ); }
+		NdCx__ static Self	FromKiB (T value)						__NE___	{ return Self( value << 10 ); }
+		NdCx__ static Self	FromMiB (T value)						__NE___	{ return Self( value << 20 ); }
+		NdCx__ static Self	FromGiB (T value)						__NE___	{ return Self( value << 30 ); }
 
 
-		template <typename B>	NdCv__ static Self			SizeOf ()					__NE___	{ StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
-		template <typename B>	NdCv__ static Self			SizeOf (const B &)			__NE___	{ StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
+		template <typename B>	NdCe__ static Self			SizeOf ()					__NE___	{ StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
+		template <typename B>	NdCe__ static Self			SizeOf (const B &)			__NE___	{ StaticAssert( not IsVoid<B> );  return Self( sizeof(B) ); }
 
-		template <typename B>	NdCv__ static Self			AlignOf ()					__NE___	{ StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
-		template <typename B>	NdCv__ static Self			AlignOf (const B &)			__NE___	{ StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
+		template <typename B>	NdCe__ static Self			AlignOf ()					__NE___	{ StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
+		template <typename B>	NdCe__ static Self			AlignOf (const B &)			__NE___	{ StaticAssert( not IsVoid<B> );  return Self( alignof(B) ); }
 
-		template <typename B>	NdCv__ static SizeAndAlign	SizeAndAlignOf ()			__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
-		template <typename B>	NdCv__ static SizeAndAlign	SizeAndAlignOf (const B &)	__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
+		template <typename B>	NdCe__ static SizeAndAlign	SizeAndAlignOf ()			__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
+		template <typename B>	NdCe__ static SizeAndAlign	SizeAndAlignOf (const B &)	__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
 
 
 		// move any pointer
@@ -187,9 +187,10 @@ namespace AE::Math
 		NdCx__ friend bool  operator >= (T lhs, Self rhs)			__NE___ { return lhs >= rhs._value; }
 		NdCx__ friend bool  operator <= (T lhs, Self rhs)			__NE___ { return lhs <= rhs._value; }
 
-		NdCv__ static Self  Max ()									__NE___ { return Self{ MaxValue<T>() }; }
-		NdCv__ static Self  Min ()									__NE___ { return Self{ MinValue<T>() }; }
+		NdCe__ static Self  Max ()									__NE___ { return Self{ MaxValue<T>() }; }
+		NdCe__ static Self  Min ()									__NE___ { return Self{ MinValue<T>() }; }
 	};
+//-----------------------------------------------------------------------------
 
 
 	using Bytes64u		= TByte< ulong >;
@@ -205,6 +206,7 @@ namespace AE::Math
 
 	using Bytes			= Bytes64u;
 	using SizeAndAlign	= Bytes::SizeAndAlign;
+
 
 	template <typename T>
 	inline static constexpr Bytes  SizeOf = Bytes::SizeOf<T>();
@@ -225,10 +227,10 @@ namespace AE::Math
 	NdCx__ SizeAndAlign  SizeAndAlignof (const T &) __NE___ { return Bytes::SizeAndAlignOf<T>(); }
 
 
-	NdCv__ Bytes  operator "" _b  (unsigned long long value)	__NE___	{ return Bytes{ CheckCast<Bytes::Value_t>(value) }; }
-	NdCv__ Bytes  operator "" _Kb (unsigned long long value)	__NE___	{ return Bytes::FromKb( CheckCast<Bytes::Value_t>(value) ); }
-	NdCv__ Bytes  operator "" _Mb (unsigned long long value)	__NE___	{ return Bytes::FromMb( CheckCast<Bytes::Value_t>(value) ); }
-	NdCv__ Bytes  operator "" _Gb (unsigned long long value)	__NE___	{ return Bytes::FromGb( CheckCast<Bytes::Value_t>(value) ); }
+	NdCe__ Bytes  operator "" _b  (unsigned long long value)	__NE___	{ return Bytes{ CheckCast<Bytes::Value_t>(value) }; }
+	NdCe__ Bytes  operator "" _KiB (unsigned long long value)	__NE___	{ return Bytes::FromKiB( CheckCast<Bytes::Value_t>(value) ); }
+	NdCe__ Bytes  operator "" _MiB (unsigned long long value)	__NE___	{ return Bytes::FromMiB( CheckCast<Bytes::Value_t>(value) ); }
+	NdCe__ Bytes  operator "" _GiB (unsigned long long value)	__NE___	{ return Bytes::FromGiB( CheckCast<Bytes::Value_t>(value) ); }
 
 
 	namespace _hidden_
@@ -241,7 +243,19 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	static constexpr bool  IsBytes = Math::_hidden_::_IsBytes<T>::value;
+	static constexpr bool  IsBytes = Base::_hidden_::_IsBytes<T>::value;
+
+
+	template <typename T>	struct TMemCopyAvailable< TByte<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
+	template <typename T>	struct TZeroMemAvailable< TByte<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
+	template <typename T>	struct TTriviallySerializable< TByte<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
+
+	template <typename T>	struct TIsScalar< TByte<T> >				: CT_True {};
+	template <typename T>	struct TIsSigned< TByte<T> >				: TIsSigned<T> {};
+	template <typename T>	struct TIsUnsigned< TByte<T> >				: TIsUnsigned<T> {};
+	template <typename T>	struct TIsInteger< TByte<T> >				: CT_True {};
+	template <typename T>	struct TUnwrap< TByte<T> >					: TUnwrap<T> {};
+
 
 /*
 =================================================
@@ -288,32 +302,24 @@ namespace AE::Math
 		return IsPowerOfTwo( T{x} );
 	}
 
-} // AE::Math
-
-
-namespace AE::Base
-{
-	template <typename T>	struct TMemCopyAvailable< TByte<T> >		: CT_Bool< IsMemCopyAvailable<T>		>{};
-	template <typename T>	struct TZeroMemAvailable< TByte<T> >		: CT_Bool< IsZeroMemAvailable<T>		>{};
-	template <typename T>	struct TTriviallySerializable< TByte<T> >	: CT_Bool< IsTriviallySerializable<T>	>{};
-
 } // AE::Base
+//-----------------------------------------------------------------------------
 
 
 template <typename T>
-struct std::hash< AE::Math::TByte<T> >
+struct std::hash< AE::Base::TByte<T> >
 {
-	ND_ size_t  operator () (const AE::Math::TByte<T> &value) C_NE___
+	ND_ size_t  operator () (const AE::Base::TByte<T> &value) C_NE___
 	{
 		return size_t(AE::Base::HashOf( T(value) ));
 	}
 };
 
 template <typename T>
-class std::numeric_limits< AE::Math::TByte<T> >
+class std::numeric_limits< AE::Base::TByte<T> >
 {
 private:
-	using Bytes = AE::Math::TByte<T>;
+	using Bytes = AE::Base::TByte<T>;
 	using Base	= std::numeric_limits<T>;
 
 public:

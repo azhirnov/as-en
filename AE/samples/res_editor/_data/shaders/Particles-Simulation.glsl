@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 
@@ -114,21 +114,21 @@ ND_ float3  ParticleEmitter_Plane (const float index, const float count, const f
 
 ND_ float3  ParticleEmitter_Circle (const float index, const float count)
 {
-	return float3( SinCos( Pi() * 2.0 * index / (count - 1.0) ), 0.0 );
+	return float3( SinCos( float_Pi2 * index / (count - 1.0) ), 0.0 );
 }
 
 
 ND_ float3  ParticleEmitter_FillCircle (const float index, const float count)
 {
 	const float2	p = ParticleEmitter_Plane( index, count ).xy;
-	return float3( SinCos( Pi() * 2.0 * p.x ) * p.y, 0.0 );
+	return float3( SinCos( float_Pi2 * p.x ) * p.y, 0.0 );
 }
 
 
 ND_ float3  ParticleEmitter_Sphere (const float index, const float count)
 {
 	// TODO: spherical cube
-	const float2	angle	= ParticleEmitter_Plane( index, count, 0.5 ).yx * Pi();
+	const float2	angle	= ParticleEmitter_Plane( index, count, 0.5 ).yx * float_Pi;
 	const float2	theta	= SinCos( angle.x );
 	const float2	phi		= SinCos( angle.y );
 
@@ -139,7 +139,7 @@ ND_ float3  ParticleEmitter_Sphere (const float index, const float count)
 ND_ float3  ParticleEmitter_ConeVector (const float index, const float count, const float zLength)
 {
 	const float2	p = ParticleEmitter_Plane( index, count ).xy;
-	const float2	c = SinCos( Pi() * 2.0 * p.x ) * p.y;
+	const float2	c = SinCos( float_Pi2 * p.x ) * p.y;
 	return Normalize( float3( c, zLength ));
 }
 //-----------------------------------------------------------------------------

@@ -17,6 +17,10 @@ namespace AE::App
 		_listener{ RVRef(listener) }
 	{
 		CHECK( _listener );
+
+	  #ifdef AE_PLATFORM_WINDOWS
+		Unused( _nvapi.Load() );
+	  #endif
 	}
 
 /*

@@ -3,7 +3,7 @@
 #ifdef AE_PLATFORM_WINDOWS
 # include "base/Platforms/WindowsHeader.cpp.h"
 # include "base/Platforms/WindowsUtils.h"
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 # include "base/DataSource/WindowsFile.h"
 # include "base/FileSystem/FileSystem.h"
 
@@ -20,21 +20,18 @@ namespace AE::Base
 		_file{ file.Ref<HANDLE>() },
 		_fileSize{ GetFileSize( _file.Ref<HANDLE>() )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-	{}
+	{
+		if_unlikely( not IsOpen() )
+			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_filename) << "\": " );
+	}
 
 	WinFileRStream::WinFileRStream (const char* filename, EMode mode)		__NE___ :
 		WinFileRStream{ Handle_t{OpenFileForRead( filename, mode )} DEBUG_ONLY(, filename )}
-	{
-		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
-	}
+	{}
 
 	WinFileRStream::WinFileRStream (const wchar_t* filename, EMode mode)	__NE___ :
 		WinFileRStream{ Handle_t{OpenFileForRead( filename, mode )} DEBUG_ONLY(, filename )}
-	{
-		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << ToString(filename) << "\": " );
-	}
+	{}
 
 	WinFileRStream::WinFileRStream (NtStringView filename, EMode mode)		__NE___ : WinFileRStream{ filename.c_str(), mode } {}
 	WinFileRStream::WinFileRStream (const String &filename, EMode mode)		__NE___ : WinFileRStream{ filename.c_str(), mode } {}
@@ -146,21 +143,18 @@ namespace AE::Base
 	WinFileWStream::WinFileWStream (const Handle_t &file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file.Ref<HANDLE>() }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-	{}
+	{
+		if_unlikely( not IsOpen() )
+			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_filename) << "\": " );
+	}
 
 	WinFileWStream::WinFileWStream (const char* filename, EMode mode)		__NE___ :
 		WinFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT mode )} DEBUG_ONLY(, Path{filename} )}
-	{
-		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
-	}
+	{}
 
 	WinFileWStream::WinFileWStream (const wchar_t* filename, EMode mode)	__NE___ :
 		WinFileWStream{ Handle_t{OpenFileForWrite( filename, INOUT mode )} DEBUG_ONLY(, Path{filename} )}
-	{
-		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << ToString(filename) << "\": " );
-	}
+	{}
 
 	WinFileWStream::WinFileWStream (NtStringView filename, EMode mode)		__NE___	: WinFileWStream{ filename.c_str(), mode } {}
 	WinFileWStream::WinFileWStream (const String &filename, EMode mode)		__NE___	: WinFileWStream{ filename.c_str(), mode } {}
@@ -294,25 +288,22 @@ namespace AE::Base
 		_file{ file.Ref<HANDLE>() },
 		_fileSize{ GetFileSize( _file.Ref<HANDLE>() )}
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-	{}
+	{
+		if_unlikely( not IsOpen() )
+			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_filename) << "\": " );
+	}
 
 	WinFileRDataSource::WinFileRDataSource (NtStringView filename, EMode mode)		__NE___	: WinFileRDataSource{ filename.c_str(), mode } {}
 	WinFileRDataSource::WinFileRDataSource (const String &filename, EMode mode)		__NE___	: WinFileRDataSource{ filename.c_str(), mode } {}
 	WinFileRDataSource::WinFileRDataSource (const char* filename, EMode mode)		__NE___	:
 		WinFileRDataSource{ Handle_t{OpenFileForRead( filename, mode, FILE_FLAG_OVERLAPPED )} DEBUG_ONLY(, filename )}
-	{
-		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
-	}
+	{}
 
 	WinFileRDataSource::WinFileRDataSource (NtWStringView filename, EMode mode)		__NE___	: WinFileRDataSource{ filename.c_str(), mode } {}
 	WinFileRDataSource::WinFileRDataSource (const WString &filename, EMode mode)	__NE___	: WinFileRDataSource{ filename.c_str(), mode } {}
 	WinFileRDataSource::WinFileRDataSource (const wchar_t* filename, EMode mode)	__NE___	:
 		WinFileRDataSource{ Handle_t{OpenFileForRead( filename, mode, FILE_FLAG_OVERLAPPED )} DEBUG_ONLY(, filename )}
-	{
-		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << ToString(filename) << "\": " );
-	}
+	{}
 
 	WinFileRDataSource::WinFileRDataSource (const Path &path, EMode mode)			__NE___	: WinFileRDataSource{ path.c_str(), mode } {}
 
@@ -334,7 +325,7 @@ namespace AE::Base
 */
 	IDataSource::ESourceType  WinFileRDataSource::GetSourceType () C_NE___
 	{
-		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |	// allow SeekFwd() & SeekSet()
+		return	ESourceType::SequentialAccess	| ESourceType::RandomAccess |
 				ESourceType::FixedSize			| ESourceType::ReadAccess	|
 				ESourceType::ThreadSafe;
 	}
@@ -399,25 +390,22 @@ namespace AE::Base
 	WinFileWDataSource::WinFileWDataSource (const Handle_t &file DEBUG_ONLY(, Path filename)) __NE___ :
 		_file{ file.Ref<HANDLE>() }
 		DEBUG_ONLY(, _filename{ FileSystem::ToAbsolute( filename )})
-	{}
+	{
+		if_unlikely( not IsOpen() )
+			WIN_CHECK_DEV( "Can't open file: \""s << ToString(_filename) << "\": " );
+	}
 
 	WinFileWDataSource::WinFileWDataSource (NtStringView filename, EMode mode)		__NE___	: WinFileWDataSource{ filename.c_str(), mode } {}
 	WinFileWDataSource::WinFileWDataSource (const String &filename, EMode mode)		__NE___	: WinFileWDataSource{ filename.c_str(), mode } {}
 	WinFileWDataSource::WinFileWDataSource (const char* filename, EMode mode)		__NE___	:
 		WinFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT mode, FILE_FLAG_OVERLAPPED )} DEBUG_ONLY(, Path{filename} )}
-	{
-		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << filename << "\": " );
-	}
+	{}
 
 	WinFileWDataSource::WinFileWDataSource (NtWStringView filename, EMode mode)		__NE___	: WinFileWDataSource{ filename.c_str(), mode } {}
 	WinFileWDataSource::WinFileWDataSource (const WString &filename, EMode mode)	__NE___	: WinFileWDataSource{ filename.c_str(), mode } {}
 	WinFileWDataSource::WinFileWDataSource (const wchar_t* filename, EMode mode)	__NE___	:
 		WinFileWDataSource{ Handle_t{OpenFileForWrite( filename, INOUT mode, FILE_FLAG_OVERLAPPED )} DEBUG_ONLY(, Path{filename} )}
-	{
-		if_unlikely( not IsOpen() )
-			WIN_CHECK_DEV( "Can't open file: \""s << ToString(filename) << "\": " );
-	}
+	{}
 
 	WinFileWDataSource::WinFileWDataSource (const Path &path, EMode mode)			__NE___	: WinFileWDataSource{ path.c_str(), mode } {}
 

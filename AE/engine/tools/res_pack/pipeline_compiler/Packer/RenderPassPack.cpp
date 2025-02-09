@@ -1,13 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "RenderPassPack.h"
-#include "graphics/Private/EnumUtils.h"
-#include "graphics/Private/EnumToString.h"
+#include "graphics_rhi/Private/EnumUtils.h"
+#include "graphics_rhi/Private/EnumToString.h"
 #include "Packer/VulkanEnums.h"
 
 #ifdef AE_ENABLE_VULKAN
-# include "graphics/Vulkan/VEnumCast.h"
-# include "graphics/Vulkan/VQueue.h"
+# include "graphics_rhi/Vulkan/VEnumCast.h"
+# include "graphics_rhi/Vulkan/VQueue.h"
 #endif
 
 #ifdef AE_BUILD_PIPELINE_COMPILER

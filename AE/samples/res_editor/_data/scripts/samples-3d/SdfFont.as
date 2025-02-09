@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -10,9 +10,9 @@
 	{
 		// initialize
 		RC<Image>		rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
-		RC<Image>		sdf_font_32		= Image( EImageType::FImage2D, "res/font/sdf-32.dds" );
-		RC<Image>		mc_sdf_font_32	= Image( EImageType::FImage2D, "res/font/mc-sdf-32.dds" );
-		RC<Image>		mc_sdf_font_64	= Image( EImageType::FImage2D, "res/font/mc-sdf-64.dds" );
+		RC<Image>		sdf_font_32		= Image( EImageType::Float_2D, "res/font/sdf-32.dds" );
+		RC<Image>		mc_sdf_font_32	= Image( EImageType::Float_2D, "res/font/mc-sdf-32.dds" );
+		RC<Image>		mc_sdf_font_64	= Image( EImageType::Float_2D, "res/font/mc-sdf-64.dds" );
 		RC<FPVCamera>	camera			= FPVCamera();
 
 		// setup camera
@@ -35,11 +35,12 @@
 			pass.ArgIn( "un_McSdfFont_64",		mc_sdf_font_64,		Sampler_LinearRepeat );
 			pass.Output( "out_Color",			rt );
 
-			pass.Slider( "iSdfTex",		0,		2 );
-			pass.Slider( "iScale",		0.1,	8.0,	1.0 );
-			pass.Slider( "iThick",		0.0,	5.0,	1.0 );
-
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
+			pass.Slider( "iAnimate",	0,					1,					1 );
+			pass.Slider( "iMode",		0,					4 );
+			pass.Slider( "iSdfTex",		0,					2 );
+			pass.Slider( "iScale",		0.1,				8.0,				1.0 );
+			pass.Slider( "iConstThick",	float2(-5.0,0.0),	float2(0.0,8.0),	float2(0.0,0.0) );	// constant thickness
+			pass.Slider( "iAAFactor",	0.0,				5.0,				1.5 );				// anti-aliasing factor
 		}
 		Present( rt );
 	}
@@ -60,22 +61,42 @@
 	}
 
 
+	float  ApplyStyle (float2 uv, float sd, float2 size)
+	{
+		float3	thick = float3(iConstThick, iAAFactor);
+		switch ( iMode )
+		{
+			// regular
+			case 0 :	thick = float3(-0.5, 0.0, iAAFactor);	break;
+
+			// bold
+			case 1 :	thick = float3(0.0, 2.0, iAAFactor);	break;
+
+			// outline
+			case 2 :	thick = float3(-3.0, 8.0, iAAFactor);	break;
+
+			// custom
+			//case 3 :
+			//case 4 :
+		}
+
+		float2	res = AA_Font( uv, sd, thick, size );
+		sd = 1.0 - res.x;
+
+		if ( iMode == 2 or iMode == 4 )
+			sd = sd > 0.5 ? TriangleWave( (sd-0.5) * 2.0 ) : 0.0;
+
+		sd *= (1.0 - SmoothStep( Sqrt(res.y), 0.006, 0.02 ));
+		return sd;
+	}
+
+
 	float3  SdfFont (gl::CombinedTex2D<float> sdfTex, const float2 uv, float sdfScale, float sdfBias)
 	{
 		float2	size	= float2(gl.texture.GetSize( sdfTex, 0 ).xy);
-		float2	dx		= Abs( gl.dFdxFine( uv ));
-		float2	dy		= Abs( gl.dFdyFine( uv ));
-		float2	md		= Max( dx, dy );		// minimal distance for 1px
-
 		float	sd		= gl.texture.SampleLod( sdfTex, uv, 0.0 ).r;
 				sd		= FusedMulAdd( sd, sdfScale, sdfBias );
-
-		float2	t		= iThick * md * size;
-
-		sd = MinOf( 1.0 - SmoothStep( float2(sd), -t, t ));
-
-		sd *= (1.0 - SmoothStep( Length( md ), 0.006, 0.02 ));
-
+				sd		= ApplyStyle( uv, sd, size );
 		return float3(1.0, 0.3, 0.3) * sd;
 	}
 
@@ -83,20 +104,10 @@
 	float3  McSdfFont (gl::CombinedTex2D<float> msdfTex, const float2 uv, float sdfScale, float sdfBias)
 	{
 		float2	size	= float2(gl.texture.GetSize( msdfTex, 0 ).xy);
-		float2	dx		= Abs( gl.dFdxFine( uv ));
-		float2	dy		= Abs( gl.dFdyFine( uv ));
-		float2	md		= Max( dx, dy );		// minimal distance for 1px
-
 		float3	msd		= gl.texture.SampleLod( msdfTex, uv, 0.0 ).rgb;
 		float	sd		= MCSDF_Median( msd );
 				sd		= FusedMulAdd( sd, sdfScale, sdfBias );
-
-		float2	t		= iThick * md * size;
-
-		sd = MinOf( 1.0 - SmoothStep( float2(sd), -t, t ));
-
-		sd *= (1.0 - SmoothStep( Length( md ), 0.006, 0.02 ));
-
+				sd		= ApplyStyle( uv, sd, size );
 		return float3(0.0, 1.0, 0.0) * sd;
 	}
 
@@ -113,7 +124,9 @@
 		Ray_SetLength( ray, t );
 
 		float2	uv	= ray.pos.xy * iScale;
-				uv.x += TriangleWave( un_PerPass.time * 0.1 );
+
+		if ( iAnimate == 1 )
+			uv.x += TriangleWave( un_PerPass.time * 0.1 );
 
 		switch ( iSdfTex )
 		{

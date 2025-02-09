@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -19,6 +19,7 @@ namespace AE::Math
 
 		StaticAssert( IsPhysicalDimension< Dimension_t >);
 		StaticAssert( IsPhysicalQuantity< Quantity_t >);
+		StaticAssert( IsFloatPoint< Value_t >);
 
 		using Self			= PhysicalQuantityMatrix< Quantity, Columns, Rows, Q >;
 		using VQuat_t		= TQuat< Value_t, Q >;
@@ -26,8 +27,8 @@ namespace AE::Math
 		using VCol_t		= typename VMatrix_t::Col_t;			// [Rows]
 		using VRow_t		= typename VMatrix_t::Row_t;			// [Columns]
 		using QMatrix_t		= TMatrix< Quantity, Columns, Rows, Q >;
-		using QCol_t		= PhysicalQuantity_FromVec< typename VMatrix_t::Col_t, Dimension_t, Scale_t >;	// PhysicalQuantityVec< Rows >
-		using QRow_t		= PhysicalQuantity_FromVec< typename VMatrix_t::Row_t, Dimension_t, Scale_t >;	// PhysicalQuantityVec< Columns >
+		using QCol_t		= PhysicalQuantity_FromVec< typename VMatrix_t::Col_t, Dimension_t, Scale_t, Q >;	// PhysicalQuantityVec< Rows >
+		using QRow_t		= PhysicalQuantity_FromVec< typename VMatrix_t::Row_t, Dimension_t, Scale_t, Q >;	// PhysicalQuantityVec< Columns >
 
 		StaticAssert( sizeof(QMatrix_t) == sizeof(VMatrix_t) );
 		StaticAssert( sizeof(VCol_t) == sizeof(QCol_t) );
@@ -39,7 +40,7 @@ namespace AE::Math
 
 	// variables
 	public:
-		VMatrix_t		_value;
+		VMatrix_t		_mat;
 
 
 	// methods
@@ -48,18 +49,21 @@ namespace AE::Math
 		PhysicalQuantityMatrix (const Self &other)								__NE___ = default;
 		PhysicalQuantityMatrix (Self &&other)									__NE___ = default;
 
-		explicit PhysicalQuantityMatrix (const VMatrix_t &other)				__NE___ : _value{other} {}
-		explicit PhysicalQuantityMatrix (const QMatrix_t &other)				__NE___ : _value{ reinterpret_cast< VMatrix_t const &>(other) } {}
+		template <glm::qualifier Q2>
+		explicit PhysicalQuantityMatrix (const TMatrix<Value_t,Columns,Rows,Q2> &other) __NE___ : _mat{ other } {}
 
-		template <typename S>
-		PhysicalQuantityMatrix (const TPhysicalQuantityMatrix<Columns, Rows, Value_t, Dimension_t, S, Q> &other) __NE___ : _value{other._value} {}
+		template <glm::qualifier Q2>
+		explicit PhysicalQuantityMatrix (const TMatrix<Quantity,Columns,Rows,Q2> &other)__NE___ : _mat{ RefCast<VMatrix_t>(other) } {}
+
+		template <typename S, glm::qualifier Q2>
+		PhysicalQuantityMatrix (const TPhysicalQuantityMatrix<Columns, Rows, Value_t, Dimension_t, S, Q2> &other) __NE___ : _mat{other._mat} {}
 
 	#if Columns == 2
 		PhysicalQuantityMatrix (const VCol_t &col0,
-								const VCol_t &col1)								__NE___ : _value{ col0, col1 } {}
+								const VCol_t &col1)								__NE___ : _mat{ col0, col1 } {}
 
 		PhysicalQuantityMatrix (const QCol_t &col0,
-								const QCol_t &col1)								__NE___ : _value{ col0.GetNonScaled(), col1.GetNonScaled() } {}
+								const QCol_t &col1)								__NE___ : _mat{ col0.GetNonScaled(), col1.GetNonScaled() } {}
 
 		ND_ static Self  FromScalar (Value_t value)								__NE___	{ return Self{ VCol_t{value}, VCol_t{value} }; }
 		ND_ static Self  FromScalar (Quantity_t value)							__NE___	{ return Self{ QCol_t{value}, QCol_t{value} }; }
@@ -68,13 +72,13 @@ namespace AE::Math
 	#if Columns == 3
 		PhysicalQuantityMatrix (const VCol_t &col0,
 								const VCol_t &col1,
-								const VCol_t &col2)								__NE___ : _value{ col0, col1, col2 } {}
+								const VCol_t &col2)								__NE___ : _mat{ col0, col1, col2 } {}
 
 		PhysicalQuantityMatrix (const QCol_t &col0,
 								const QCol_t &col1,
-								const QCol_t &col2)								__NE___	: _value{ col0.GetNonScaled(), col1.GetNonScaled(), col2.GetNonScaled() } {}
+								const QCol_t &col2)								__NE___	: _mat{ col0.GetNonScaled(), col1.GetNonScaled(), col2.GetNonScaled() } {}
 
-		explicit PhysicalQuantityMatrix (const VQuat_t &q)						__NE___	: _value{q} {}
+		explicit PhysicalQuantityMatrix (const VQuat_t &q)						__NE___	: _mat{ q } {}
 
 		ND_ static Self  FromScalar (Value_t value)								__NE___	{ return Self{ VCol_t{value}, VCol_t{value}, VCol_t{value} }; }
 		ND_ static Self  FromScalar (Quantity_t value)							__NE___	{ return Self{ QCol_t{value}, QCol_t{value}, QCol_t{value} }; }
@@ -84,53 +88,73 @@ namespace AE::Math
 		PhysicalQuantityMatrix (const VCol_t &col0,
 								const VCol_t &col1,
 								const VCol_t &col2,
-								const VCol_t &col3)								__NE___ : _value{ col0, col1, col2, col3 } {}
+								const VCol_t &col3)								__NE___ : _mat{ col0, col1, col2, col3 } {}
 
 		PhysicalQuantityMatrix (const QCol_t &col0,
 								const QCol_t &col1,
 								const QCol_t &col2,
-								const QCol_t &col3)								__NE___ : _value{ col0.GetNonScaled(), col1.GetNonScaled(), col2.GetNonScaled(), col3.GetNonScaled() } {}
+								const QCol_t &col3)								__NE___ : _mat{ col0.GetNonScaled(), col1.GetNonScaled(), col2.GetNonScaled(), col3.GetNonScaled() } {}
 
-		explicit PhysicalQuantityMatrix (const VQuat_t &q)						__NE___	: _value{q} {}
+		explicit PhysicalQuantityMatrix (const VQuat_t &q)						__NE___	: _mat{ q } {}
 
 		ND_ static Self  FromScalar (Value_t value)								__NE___	{ return Self{ VCol_t{value}, VCol_t{value}, VCol_t{value}, VCol_t{value} }; }
 		ND_ static Self  FromScalar (Quantity_t value)							__NE___	{ return Self{ QCol_t{value}, QCol_t{value}, QCol_t{value}, QCol_t{value} }; }
 	#endif
 
-		ND_ VMatrix_t const&	GetNonScaled ()									C_NE___	{ return _value; }
-		ND_ VMatrix_t &			GetNonScaledRef ()								__NE___	{ return _value; }
+		ND_ VMatrix_t const&	GetNonScaled ()									C_NE___	{ return _mat; }
+		ND_ VMatrix_t &			GetNonScaledRef ()								__NE___	{ return _mat; }
 		ND_ VMatrix_t			GetScaled ()									C_NE___	{ return GetNonScaled() * VMatrix_t{Scale_t::Value}; }
 
-		ND_ QMatrix_t const&	AsQMatrix ()									C_NE___	{ return reinterpret_cast< QMatrix_t const &>(_value); }
-		ND_ QMatrix_t	&		AsQMatrix ()									__NE___	{ return reinterpret_cast< QMatrix_t	   &>(_value); }
+		ND_ QMatrix_t const&	AsQMatrix ()									C_NE___	{ return RefCast<QMatrix_t>(_mat); }
+		ND_ QMatrix_t &			AsQMatrix ()									__NE___	{ return RefCast<QMatrix_t>(_mat); }
 
-		ND_ Inversed_t			Inversed ()										C_NE___	{ return Inversed_t{ _value.Inversed() }; }
+		ND_ Inversed_t			Inversed ()										C_NE___	{ return Inversed_t{ _mat.Inversed() }; }
 
 		ND_ Self				operator + ()									C_NE___	{ return *this; }
-		ND_ Self				operator - ()									C_NE___	{ return Self{ -_value }; }
+		ND_ Self				operator - ()									C_NE___	{ return Self{ -_mat }; }
+
+		ND_ Self				operator +  (Value_t rhs)						C_NE___	{ return Self{ _mat + rhs }; }
+		ND_ Self				operator -  (Value_t rhs)						C_NE___	{ return Self{ _mat - rhs }; }
+		ND_ Self				operator *  (Value_t rhs)						C_NE___	{ return Self{ _mat * rhs }; }
+		ND_ Self				operator /  (Value_t rhs)						C_NE___	{ return Self{ _mat / rhs }; }
+
+		ND_ QCol_t				operator *  (const QRow_t &vec)					C_NE___	{ return QCol_t{ _mat * vec.GetNonScaled() }; }
+		ND_ friend QRow_t		operator *  (const QCol_t &lhs, const Self &rhs)__NE___	{ return QRow_t{ lhs.GetNonScaled() * rhs._mat }; }
 
 			Self&				operator = (const Self &rhs)					__NE___ = default;
 			Self&				operator = (Self &&rhs)							__NE___ = default;
 
+		ND_ bool				operator == (const Self &rhs)					C_NE___	{ return _mat == rhs._mat; }
+
+		ND_ bool				IsIdentity ()									C_NE___	{ return _mat.IsIdentity(); }
+		ND_ Quantity_t			Determinant ()									C_NE___	{ return Quantity_t{ _mat.Determinant() }; }
+
 		// return column
-		ND_ QCol_t const&		operator [] (usize c)							C_NE___	{ return reinterpret_cast< QCol_t const &>(_value[c]); }
-		ND_ QCol_t&				operator [] (usize c)							__NE___	{ return reinterpret_cast< QCol_t       &>(_value[c]); }
+		ND_ QCol_t const&		operator [] (usize c)							C_NE___	{ return RefCast<QCol_t>(_mat[c]); }
+		ND_ QCol_t &			operator [] (usize c)							__NE___	{ return RefCast<QCol_t>(_mat[c]); }
+
+		template <uint C>		ND_ QCol_t const&		get ()					C_NE___	{ return RefCast<QCol_t>(_mat.template get<C>()); }
+		template <uint C>		ND_ QCol_t &			get ()					__NE___	{ return RefCast<QCol_t>(_mat.template get<C>()); }
 
 		// return scalar
-		ND_ Quantity_t const&	operator () (usize c, usize r)					C_NE___	{ return reinterpret_cast< Quantity_t const &>(_value(c,r)); }
-		ND_ Quantity_t &		operator () (usize c, usize r)					__NE___	{ return reinterpret_cast< Quantity_t       &>(_value(c,r)); }
+		ND_ Quantity_t const&	operator () (usize c, usize r)					C_NE___	{ return RefCast<Quantity_t>(_mat(c,r)); }
+		ND_ Quantity_t &		operator () (usize c, usize r)					__NE___	{ return RefCast<Quantity_t>(_mat(c,r)); }
+
+		template <uint C, uint R>	ND_ Quantity_t		get ()					C_NE___	{ return RefCast<Quantity_t>( _mat.template get<C,R>() ); }
+		template <uint C, uint R>	ND_ Quantity_t &	get ()					__NE___	{ return RefCast<Quantity_t>( _mat.template get<C,R>() ); }
 
 		// access to array
-		ND_ Quantity_t const&	operator () (usize i)							C_NE___	{ return reinterpret_cast< Quantity_t const &>(_value(i)); }
-		ND_ Quantity_t &		operator () (usize i)							__NE___	{ return reinterpret_cast< Quantity_t       &>(_value(i)); }
+		ND_ Quantity_t const&	operator () (usize i)							C_NE___	{ return RefCast<Quantity_t>(_mat(i)); }
+		ND_ Quantity_t &		operator () (usize i)							__NE___	{ return RefCast<Quantity_t>(_mat(i)); }
 
 		ND_ static Self			Identity ()										__NE___	{ return Self{ VMatrix_t::Identity() }; }
 		ND_ static Self			Zero ()											__NE___	{ return Self{ VMatrix_t::Zero() }; }
 
-		ND_ static constexpr usize		size ()									__NE___	{ return VMatrix_t::size(); }
-		ND_ static constexpr usize		ElementCount ()							__NE___	{ return VMatrix_t::ElementCount(); }
-		ND_ static constexpr _Dim_t		Dimension ()							__NE___	{ return VMatrix_t::Dimension(); }
+		NdCe__ static usize		size ()											__NE___	{ return VMatrix_t::size(); }
+		NdCe__ static usize		ElementCount ()									__NE___	{ return VMatrix_t::ElementCount(); }
+		NdCe__ static _Dim_t	Dimension ()									__NE___	{ return VMatrix_t::Dimension(); }
+		NdCe__ static bool		IsColumnMajor ()								__NE___	{ return VMatrix_t::IsColumnMajor(); }
 	};
 
 
-} // AE::Math
+} // AE::Base

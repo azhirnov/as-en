@@ -21,8 +21,8 @@ namespace
 
 	auto			c_CoreId		= ECpuCoreId(0);
 
-	const ulong		c_FileSize		= 128ull << 20;	// Mb
-	const uint		c_BufferSize	= 4u << 10;		// Kb
+	const ulong		c_FileSize		= 128ull << 20;	// MiB
+	const uint		c_BufferSize	= 4u << 10;		// KiB
 
 	const uint		c_WaitIOFreq	= 0xF;	// 1 or 'c_WaitIOFreq' requests will trigger IO event handling
 
@@ -75,7 +75,7 @@ namespace
 			for (ulong pos = 0; pos < c_FileSize; pos += c_BufferSize)
 			{
 				TEST_Eq( Bytes{pos}, rfile->Position() );
-				TEST_Eq( rfile->ReadSeq( buf.data() + Bytes{pos}, Bytes{c_BufferSize} ), Bytes{c_BufferSize});
+				TEST_Eq( rfile->ReadSeq( OUT buf.data() + Bytes{pos}, Bytes{c_BufferSize} ), Bytes{c_BufferSize});
 			}
 			profiler.EndIteration();
 

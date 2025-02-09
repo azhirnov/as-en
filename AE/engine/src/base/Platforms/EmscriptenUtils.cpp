@@ -7,6 +7,7 @@
 namespace AE::Base
 {
 
+#ifndef AE_CFG_RELEASE
 /*
 =================================================
 	SetCurrentThreadName
@@ -29,6 +30,7 @@ namespace AE::Base
 		// TODO
 		return Default;
 	}
+#endif // AE_CFG_RELEASE
 
 /*
 =================================================
@@ -46,17 +48,17 @@ namespace AE::Base
 	SetThreadAffinity
 =================================================
 */
-	bool  EmscriptenUtils::SetThreadAffinity (const ThreadHandle &handle, uint coreIdx) __NE___
+	bool  EmscriptenUtils::SetThreadAffinity (const ThreadHandle &handle, const uint logicalCoreIdx) __NE___
 	{
 		// TODO
-		Unused( handle, coreIdx );
+		Unused( handle, logicalCoreIdx );
 		return false;
 	}
 
-	bool  EmscriptenUtils::SetCurrentThreadAffinity (uint coreIdx) __NE___
+	bool  EmscriptenUtils::SetCurrentThreadAffinity (const uint logicalCoreIdx) __NE___
 	{
 		// TODO
-		Unused( coreIdx );
+		Unused( logicalCoreIdx );
 		return false;
 	}
 
@@ -65,14 +67,14 @@ namespace AE::Base
 	SetThreadPriority
 =================================================
 */
-	bool  EmscriptenUtils::SetThreadPriority (const ThreadHandle &handle, float priority) __NE___
+	bool  EmscriptenUtils::SetThreadPriority (const ThreadHandle &handle, EThreadPriority priority) __NE___
 	{
 		// TODO
 		Unused( handle, priority );
 		return false;
 	}
 
-	bool  EmscriptenUtils::SetCurrentThreadPriority (float priority) __NE___
+	bool  EmscriptenUtils::SetCurrentThreadPriority (EThreadPriority priority) __NE___
 	{
 		// TODO
 		Unused( priority );
@@ -81,10 +83,10 @@ namespace AE::Base
 
 /*
 =================================================
-	GetProcessorCoreIndex
+	GetLogicalCoreIndex
 =================================================
 */
-	uint  EmscriptenUtils::GetProcessorCoreIndex () __NE___
+	uint  EmscriptenUtils::GetLogicalCoreIndex () __NE___
 	{
 		// TODO
 		return 0;

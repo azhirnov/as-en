@@ -46,7 +46,7 @@ namespace
 
 		// graphics
 		{
-			cfg.graphics.maxFrames = 2;
+			cfg.graphics.maxFrames				= 2;
 
 			cfg.graphics.device.appName			= "ResourceEditor";
 			cfg.graphics.device.requiredQueues	= EQueueMask::Graphics;
@@ -67,6 +67,7 @@ namespace
 			cfg.graphics.swapchain.options		= EImageOpt::BlitDst;
 			cfg.graphics.swapchain.presentMode	= EPresentMode::FIFO;		// vsync
 			cfg.graphics.swapchain.minImageCount= 2;
+			cfg.graphics.swapchain.usePreTransform = false;
 
 			cfg.graphics.useRenderGraph			= true;
 		}
@@ -507,6 +508,7 @@ void main (Config &out cfg)
 	cfg.ShaderSearchDir( local_path + "shaders" );
 	cfg.ShaderIncludeDir( shader_data_path + "shaders" );
 	cfg.ShaderIncludeDir( local_path + "shaders" );
+	cfg.ShaderIncludeDir( local_path + "script_inc" );
 
 	// scripts //
 	//	all files with '.as' extension will be added to script list in editor.
@@ -544,7 +546,7 @@ void main (Config &out cfg)
 		str << R"(
 	// remote graphics device //
 	cfg.RemoteDeviceIpAddress( 192, 168, 0, 0 );
-	cfg.GraphicsLibPath( "GraphicsLib.dll" );
+	cfg.GraphicsLibPath( "GraphicsRHI-shared.dll" );
 )";
 #endif
 
@@ -1216,7 +1218,7 @@ void main (Config &out cfg)
 					capture->testScreenshot = true;
 					capture->imageFormat	= EImageFormat::PNG;
 
-					_test.framesToSwitch.store( GraphicsConfig::MaxFrames );
+					_test.framesToSwitch.store( GraphicsConfig::MaxFrames*2 );
 					_test.status.store( ETestStatus::Screenshot );
 				}
 				return;

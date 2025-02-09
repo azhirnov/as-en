@@ -7,7 +7,7 @@
 2 - Compile without `AE_ENABLE_REMOTE_GRAPHICS` (in cmake):
 * [RemoteGraphicsDevice](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/remote_graphics_device) - for desktop
 * [RG-Device](https://github.com/azhirnov/as-en/blob/dev/AE/android/rg-device) - for android
-* [GraphicsLib](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/graphics_lib) - optional, used for UI rendering
+* [GraphicsLib](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tools/graphics_rhi_shared) - optional, used for UI rendering
 
 3 - Run `ResourceEditor`, wait until 'res_editor_cfg.as' was generated, then close it.
 

@@ -213,7 +213,7 @@ namespace AE::Threading
 		Bytes			Size ()																C_NE_OV	{ return _fileSize; }
 
 		AsyncDSRequest	ReadBlock (Bytes pos, Bytes size)									__NE_OV;
-		AsyncDSRequest	ReadBlock (Bytes pos, void* data, Bytes dataSize, RC<> mem)			__NE_OV;
+		AsyncDSRequest	ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem)		__NE_OV;
 
 		bool			CancelAllRequests ()												__NE_OV;
 

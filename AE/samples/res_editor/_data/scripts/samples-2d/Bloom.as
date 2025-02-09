@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define MAIN
 #	define INIT_BLOOM
 #	define DOWNSAMPLE_HOR_BLUR
@@ -136,7 +136,7 @@
 			final_pass.ArgIn(  "un_Bloom",		up_rt1,		Sampler_LinearClamp );
 			final_pass.ArgIn(  "un_Origin",		main_rt,	Sampler_LinearClamp );
 			final_pass.Output( "out_Color",		final_rt );
-			final_pass.Slider( "iToneMapping",	0, 10,	7 );
+			final_pass.Slider( "iToneMapping",	0, 9,	6 );
 		}
 		Present( final_rt );
 	}
@@ -257,12 +257,11 @@
 			case 2 :	hdr.rgb = ToneMap_ReinhardSq( hdr.rgb );	break;
 			case 3 :	hdr.rgb = ToneMap_Stanard( hdr.rgb );		break;
 			case 4 :	hdr.rgb = ToneMap_ACES( hdr.rgb );			break;
-			case 5 :	hdr.rgb = ToneMap_ACES_v2( hdr.rgb );		break;
-			case 6 :	hdr.rgb = ToneMap_ACES_v3( hdr.rgb );		break;
-			case 7 :	hdr.rgb = ToneMap_Unreal( hdr.rgb );		break;
-			case 8 :	hdr.rgb = ToneMap_Uchimura( hdr.rgb );		break;
-			case 9 :	hdr.rgb = Tonemap_Lottes( hdr.rgb );		break;
-			case 10 :	hdr.rgb = ToneMap_whitePreservingLumaBasedReinhardToneMapping( hdr.rgb );	break;
+			case 5 :	hdr.rgb = ToneMap_ACESFitted( hdr.rgb );	break;
+			case 6 :	hdr.rgb = ToneMap_Unreal( hdr.rgb );		break;
+			case 7 :	hdr.rgb = ToneMap_Uchimura( hdr.rgb );		break;
+			case 8 :	hdr.rgb = Tonemap_Lottes( hdr.rgb );		break;
+			case 9 :	hdr.rgb = ToneMap_whitePreservingLumaBasedReinhard( hdr.rgb );	break;
 		}
 		out_Color = hdr;
 	}

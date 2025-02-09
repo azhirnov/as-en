@@ -179,7 +179,7 @@ namespace AE::VFS
 		public:
 			Atomic<DSGen_t>			_generation		{0};
 			Atomic<EStatus>			_open			{EStatus::Initial};
-			AtomicByte<Bytes>		_fileSize;
+			AtomicBytes<Bytes>		_fileSize;
 			Atomic<Index_t>			_index			{~Index_t{0}};
 
 
@@ -192,7 +192,7 @@ namespace AE::VFS
 			bool			IsOpen ()															C_NE_OV	{ return AnyEqual( _open.load(), EStatus::Open, EStatus::Pending ); }
 			ESourceType		GetSourceType ()													C_NE_OV;
 			Bytes			Size ()																C_NE_OV	{ return _fileSize.load(); }
-			ReadRequestPtr  ReadBlock (Bytes pos, void* data, Bytes dataSize, RC<> mem)			__NE_OV;
+			ReadRequestPtr  ReadBlock (Bytes pos, OUT void* data, Bytes dataSize, RC<> mem)		__NE_OV;
 			ReadRequestPtr  ReadBlock (Bytes pos, Bytes size)									__NE_OV;
 			bool			CancelAllRequests ()												__NE_OV;
 

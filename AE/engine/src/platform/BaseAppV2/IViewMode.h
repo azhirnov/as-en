@@ -32,7 +32,8 @@ namespace AE::AppV2
 		// Called when view will start to show on screen.
 		//  Thread-safe:  main thread only
 		//
-		ND_ virtual bool			Open (Ptr<IOutputSurface>)			__NE___	= 0;
+		ND_ virtual bool			Open (Ptr<IOutputSurface>,
+										  AnyTypeCRef params)			__NE___	= 0;
 
 
 		// Called when view will hidden by another view.

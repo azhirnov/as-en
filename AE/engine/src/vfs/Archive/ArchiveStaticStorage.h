@@ -52,6 +52,7 @@ namespace AE::VFS
 
 			ND_ Bytes  Size ()		C_NE___	{ return Bytes{size}; }
 			ND_ Bytes  Offset ()	C_NE___	{ return Bytes{ulong{offset}}; }
+			ND_ Bytes  End ()		C_NE___	{ return Offset() + Size(); }
 		};
 
 		struct FileHeader
@@ -69,11 +70,13 @@ namespace AE::VFS
 
 	// variables
 	private:
-		FileMap_t			_map;
-		RC<RDataSource>		_archive;
+		FileMap_t				_map;
+
+		RC<AsyncRDataSource>	_asyncFile;
+		RC<RDataSource>			_syncFile;
 
 		DRC_ONLY(
-			RWDataRaceCheck	_drCheck;
+			RWDataRaceCheck		_drCheck;
 		)
 
 
@@ -83,6 +86,7 @@ namespace AE::VFS
 	  // IVirtualFileStorage //
 		bool  Open (OUT RC<RStream> &stream, FileName::Ref name)							C_NE_OV;
 		bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)							C_NE_OV;
+		bool  Open (OUT RC<AsyncRStream> &stream, FileName::Ref name)						C_NE_OV;
 		bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)						C_NE_OV;
 
 		using IVirtualFileStorage::Open;
@@ -96,13 +100,15 @@ namespace AE::VFS
 
 		bool  _OpenByIter (OUT RC<RStream> &stream, FileName::Ref, const void* ref)			C_NE_OV;
 		bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref, const void* ref)			C_NE_OV;
+		bool  _OpenByIter (OUT RC<AsyncRStream> &stream, FileName::Ref, const void* ref)	C_NE_OV;
 		bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref, const void* ref)	C_NE_OV;
 
 		using IVirtualFileStorage::_OpenByIter;
 
 		bool  _Open2 (OUT RC<RStream> &stream, const FileInfo &info)						C_NE___;
 		bool  _Open2 (OUT RC<RDataSource> &ds, const FileInfo &info)						C_NE___;
-	//	bool  _Open2 (OUT RC<AsyncRDataSource> &ds, const FileInfo &info)					C_NE___;
+		bool  _Open2 (OUT RC<AsyncRStream> &ds, const FileInfo &info)						C_NE___;
+		bool  _Open2 (OUT RC<AsyncRDataSource> &ds, const FileInfo &info)					C_NE___;
 
 		ND_ bool  _ReadHeader (RDataSource &ds)												__NE___;
 
@@ -111,7 +117,7 @@ namespace AE::VFS
 		ArchiveStaticStorage ()																__NE___	{}
 		~ArchiveStaticStorage ()															__NE_OV {}
 
-		ND_ bool  _Create (RC<RDataSource> archive)											__NE___;
+		ND_ bool  _Create (RC<AsyncRDataSource>, RC<RDataSource>)							__NE___;
 		ND_ bool  _Create (const Path &filename)											__NE___;
 	};
 

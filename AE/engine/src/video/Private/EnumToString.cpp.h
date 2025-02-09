@@ -4,7 +4,7 @@
 
 #ifdef AE_ENABLE_LOGS
 # include "video/Public/Common.h"
-# include "graphics/Private/EnumToString.h"
+# include "graphics_rhi/Private/EnumToString.h"
 
 namespace AE::Base
 {

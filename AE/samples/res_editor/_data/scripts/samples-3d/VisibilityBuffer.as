@@ -3,7 +3,6 @@
 	Visibility buffer prototype.
 	- Implemented using ray tracing pass which has storage buffer for vertices.
 	- Derivative calculations copy pasted from 'The Forge' engine.
-	- Without clusterization and other improvements.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

@@ -101,7 +101,7 @@ ND_ float  D_GGX (float NdotH, float alphaRoughness)
 {
 	float	alphaRoughnessSq	= alphaRoughness * alphaRoughness;
 	float	f					= (NdotH * NdotH) * (alphaRoughnessSq - 1.0) + 1.0;
-	return alphaRoughnessSq / (Pi() * f * f);
+	return alphaRoughnessSq / (float_Pi * f * f);
 }
 
 
@@ -150,7 +150,7 @@ ND_ float  D_Charlie (float sheenRoughness, float NdotH)
 	float	invR		= 1.0 / alphaG;
 	float	cos2h		= NdotH * NdotH;
 	float	sin2h		= 1.0 - cos2h;
-	return (2.0 + invR) * Pow( sin2h, invR * 0.5 ) / (2.0 * Pi());
+	return (2.0 + invR) * Pow( sin2h, invR * 0.5 ) * 0.5 * float_InvPi;
 }
 
 
@@ -158,7 +158,7 @@ ND_ float  D_Charlie (float sheenRoughness, float NdotH)
 ND_ float3  BRDF_Lambertian (float3 f0, float3 f90, float3 diffuseColor, float specularWeight, float VdotH)
 {
 	// see https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
-	return (1.0 - specularWeight * F_Schlick( f0, f90, VdotH )) * (diffuseColor / Pi());
+	return (1.0 - specularWeight * F_Schlick( f0, f90, VdotH )) * (diffuseColor * float_InvPi);
 }
 
 
@@ -176,7 +176,7 @@ ND_ float3  BRDF_LambertianIridescence (float3 f0, float3 f90, float3 iridescenc
 	float3	F = Lerp( schlickFresnel, iridescenceFresnelMax, iridescenceFactor );
 
 	// see https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
-	return (1.0 - specularWeight * F) * (diffuseColor / Pi());
+	return (1.0 - specularWeight * F) * (diffuseColor * float_InvPi);
 }
 #endif
 
@@ -210,7 +210,7 @@ ND_ float  D_GGX_Anisotropic (float NdotH, float TdotH, float BdotH, float aniso
 	float	a2	= at * ab;
 	float3	f	= float3(ab * TdotH, at * BdotH, a2 * NdotH);
 	float	w2	= a2 / Dot( f, f );
-	return a2 * w2 * w2 / Pi();
+	return a2 * w2 * w2 * float_InvPi;
 }
 
 // GGX Mask/Shadowing Anisotropic (Same as Babylon.js - smithVisibility_GGXCorrelated_Anisotropic)

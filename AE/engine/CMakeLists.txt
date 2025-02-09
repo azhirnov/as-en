@@ -14,10 +14,11 @@ set( AE_TEMP_FOLDER			"${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Temp"	CACHE INTERNAL
 set( AE_ENGINE_SHARED_DATA	"${CMAKE_CURRENT_SOURCE_DIR}/shared_data" 	CACHE INTERNAL "" FORCE )
 
 if (NOT EXISTS ${AE_EXTERNAL_BIN_PATH})
-	message( FATAL_ERROR "Path '${AE_EXTERNAL_BIN_PATH}' is not exists" )
+	message( FATAL_ERROR "Path '${AE_EXTERNAL_BIN_PATH}' is not exists. Clone 'AE-Bin' repositoty or download and build external dependencies, see 'docs/Build.md' for details." )
 endif()
 if (NOT EXISTS ${AE_TEMP_FOLDER})
-	message( FATAL_ERROR "Path '${AE_TEMP_FOLDER}' is not exists" )
+	file( MAKE_DIRECTORY "${AE_TEMP_FOLDER}" )
+	message( STATUS "Create directory '${AE_TEMP_FOLDER}'" )
 endif()
 if (NOT EXISTS ${AE_ENGINE_SHARED_DATA})
 	message( FATAL_ERROR "Path '${AE_ENGINE_SHARED_DATA}' is not exists" )

@@ -82,8 +82,8 @@ namespace
 		DWORD	dwShareMode				= FILE_SHARE_READ | FILE_SHARE_WRITE;	// file may be opened for read and write by another process
 		DWORD	dwCreationDisposition	= OPEN_EXISTING;
 		DWORD	dwFlagsAndAttributes	= FileFlagCast( flags ) | addFlags;
-		
-		if constexpr( IsSameTypes< T, char >)
+
+		if constexpr( IsSame< T, char >)
 		{
 			return ::CreateFileA( filename,			// winxp
 								  dwDesiredAccess, dwShareMode,
@@ -92,7 +92,7 @@ namespace
 								  dwFlagsAndAttributes,
 								  null );
 		}
-		if constexpr( IsSameTypes< T, wchar_t >)
+		if constexpr( IsSame< T, wchar_t >)
 		{
 			return ::CreateFileW( filename,			// winxp
 								  dwDesiredAccess, dwShareMode,
@@ -116,7 +116,7 @@ namespace
 		DWORD	dwCreationDisposition	= AnyBits( flags, WFileFlags::OpenUpdate | WFileFlags::OpenAppend ) ? OPEN_EXISTING : CREATE_ALWAYS;
 		DWORD	dwFlagsAndAttributes	= FileFlagCast( flags ) | addFlags;
 
-		if constexpr( IsSameTypes< T, char >)
+		if constexpr( IsSame< T, char >)
 		{
 			return ::CreateFileA( filename,			// winxp
 								  dwDesiredAccess, dwShareMode,
@@ -125,7 +125,7 @@ namespace
 								  dwFlagsAndAttributes,
 								  null );
 		}
-		if constexpr( IsSameTypes< T, wchar_t >)
+		if constexpr( IsSame< T, wchar_t >)
 		{
 			return ::CreateFileW( filename,			// winxp
 								  dwDesiredAccess, dwShareMode,

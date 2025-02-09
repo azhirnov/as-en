@@ -172,7 +172,7 @@ namespace AE::ResEditor
 			if ( not stream.IsInitialized() )
 			{
 				UploadImageDesc		upload;
-				upload.imageDim		= uint3{ _dimension, 1u };
+				upload.imageDim		= ImageDim_t{uint3{ _dimension, 1u }};
 				upload.heapType		= EStagingHeapType::Dynamic;
 				upload.aspectMask	= EImageAspect_Plane( i );
 				stream				= VideoImageStream{ _ids[idx], upload };

@@ -228,6 +228,7 @@ namespace AE::App
 		CHECK( ::EnumDisplayMonitors( null, null, EnumMonitor, BitCast<LPARAM>(&params) ) != FALSE );	// win2000
 
 		UtilsWinAPI::SetMonitorNames( INOUT outMonitors );
+		Unused( GetNvAPI().FillHDRConfig( outMonitors ));
 	}
 
 /*

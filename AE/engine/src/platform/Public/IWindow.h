@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "graphics/Public/SwapchainDesc.h"
-#include "graphics/Public/NativeWindow.h"
+#include "graphics_rhi/Public/SwapchainDesc.h"
+#include "graphics_rhi/Public/NativeWindow.h"
 
 #include "platform/Public/Monitor.h"
 #include "platform/Public/InputActions.h"
@@ -18,6 +18,7 @@
 namespace AE::App
 {
 	using Graphics::NativeWindow;
+	using Graphics::EColorSpace;
 
 
 	enum class EWindowMode : ubyte
@@ -26,14 +27,14 @@ namespace AE::App
 		NonResizable,
 		Borderless,
 
-		FullscreenWindow,		// borderless, always on top
-		Fullscreen,
+		FullScreenWindow,		// borderless, always on top
+		FullScreen,
 
 		_Count,
 		Unknown			= Resizable,
 	};
 
-	ND_ constexpr bool  EWindowMode_IsFullscreen (EWindowMode value) __NE___ { return value >= EWindowMode::FullscreenWindow; }
+	NdCx__ bool  EWindowMode_IsFullScreen (EWindowMode value) __NE___ { return value >= EWindowMode::FullScreenWindow; }
 
 
 	//
@@ -102,7 +103,7 @@ namespace AE::App
 
 		// Return surface size.
 		//   Note: window size with border will be greater then surface size.
-		//   Thread safe: main thread only
+		//   Thread safe: main thread only, use thread-safe 'GetSurface().GetTargetInfo()' instead.
 		//
 		ND_ virtual uint2  GetSurfaceSize ()										C_NE___ = 0;
 
@@ -130,8 +131,8 @@ namespace AE::App
 		//   Thread safe: no
 		//
 		ND_ virtual EWindowMode  GetCurrentMode ()									C_NE___ = 0;
-		ND_ bool				 IsFullscreenMode ()								C_NE___	{ return EWindowMode_IsFullscreen( GetCurrentMode() ); }
-		ND_ bool				 IsWindowedMode ()									C_NE___	{ return not IsFullscreenMode(); }
+		ND_ bool				 IsFullScreenMode ()								C_NE___	{ return EWindowMode_IsFullScreen( GetCurrentMode() ); }
+		ND_ bool				 IsWindowedMode ()									C_NE___	{ return not IsFullScreenMode(); }
 
 
 	// surface api
@@ -181,6 +182,27 @@ namespace AE::App
 		//   Thread safe: main thread only
 		//
 		ND_ virtual bool  SetMode (EWindowMode mode, Monitor::ID monitor = Default)	__NE___ = 0;
+
+
+	// mobile only
+
+		// Set screen brightness.
+		//   Thread safe: main thread only
+		//
+		ND_ virtual bool  SetBrightness (Percent level)								__NE___ = 0;
+
+
+	// private api
+
+		// Set window/monitor/system color space.
+		// Should be compatible with swapchain color space.
+		// Some platforms implicitly use swapchain color space and always returns 'true'.
+		// Other platforms requires explicitly set same color space as in swapchain.
+		// Android: scRGB color space will set maximum brightness.
+		// This method is used by IOutputSurface implementation.
+		//   Thread safe: main thread only
+		//
+		ND_ virtual bool  SetColorSpace (EColorSpace value)							C_NE___ = 0;
 	};
 
 

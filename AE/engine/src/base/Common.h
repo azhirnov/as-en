@@ -26,7 +26,7 @@ namespace AE
 
 	using CharAnsi	= char;
 	using CharUtf16	= char16_t;		// u''
-	using CharUtf32	= char32_t;		// U''
+	using CharUtf32	= char32_t;		// U''	used 21 bits
 
 #ifdef AE_PLATFORM_WINDOWS
 # if UNICODE
@@ -42,12 +42,6 @@ namespace AE
 #endif
 
 	namespace Base {}
-	namespace Math {}
-}
-
-namespace AE::Math
-{
-	using namespace AE::Base;
 }
 
 #include "base/Log/Log.h"
@@ -57,8 +51,6 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	using namespace AE::Math;
-
 	template <typename T,
 			  typename A = std::allocator<T>>
 	using BasicString		= std::basic_string< T, std::char_traits<T>, A >;
@@ -130,7 +122,7 @@ namespace AE::Base
 */
 #ifdef AE_ENABLE_RTTI
 	template <typename T>
-	ND_ constexpr StringView  TypeNameOf () __NE___
+	NdCx__ StringView  TypeNameOf () __NE___
 	{
 		return StringView{ typeid(T).name() };
 	}
@@ -138,7 +130,7 @@ namespace AE::Base
 # if defined(__cpp_char8_t) and defined(AE_PLATFORM_APPLE)
 	// bugfix: link error in MacOS clang14-15
 	template <>
-	ND_ constexpr StringView  TypeNameOf<char8_t> () __NE___
+	NdCx__ StringView  TypeNameOf<char8_t> () __NE___
 	{
 		return StringView{"char8_t"};
 	}
@@ -215,9 +207,21 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, typename B>
-	ND_ constexpr Pair<A,B>  MakePair (A&& first, B&& second) __NE___
+	NdCx__ Pair<A,B>  MakePair (A&& first, B&& second) __NE___
 	{
 		return Pair<A,B>{ FwdArg<A>(first), FwdArg<B>(second) };
+	}
+
+/*
+=================================================
+	GetNonNull
+=================================================
+*/
+	template <typename T>
+	ND_ T*  GetNonNull (T* ptr) __NE___
+	{
+		NonNull( ptr );		// assume() in release
+		return ptr;
 	}
 //-----------------------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-Source: [FeatureSet.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/FeatureSet.h)
+Source: [FeatureSet.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics_rhi/Public/FeatureSet.h)
 
 This is some kind of [Vulkan Profiles](https://github.com/KhronosGroup/Vulkan-Profiles) and [Metal Feature Set Tables](https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf).
 
@@ -156,6 +156,9 @@ __- GL_EXT_shader_atomic_float2__:
 * shaderZeroInitializeWorkgroupMemory
 * shaderIntegerDotProduct
 * maxShaderVersion
+* __quadDivergentImplicitLod__<br/>
+If the image or sampler object used by an implicit derivative image instruction is not uniform across the quad and quadDivergentImplicitLod is not supported, then the derivative and LOD values are undefined. Implicit derivatives are well-defined when the image and sampler and control flow are uniform across the quad, even if they diverge between different quads.
+
 
 ### Array dynamic indexing
 
@@ -261,7 +264,13 @@ Same as `VkPhysicalDevicePortabilitySubsetFeaturesKHR::tessellationPointMode`.
 * maxTexelBufferElements
 * maxUniformBufferSize
 * maxStorageBufferSize
-* perDescrSet
+* __perPipeline_maxUniformBuffersDynamic__<br/>
+Same as `VkPhysicalDeviceLimits::maxDescriptorSetUniformBuffersDynamic` or `VkPhysicalDeviceMaintenance7PropertiesKHR::maxDescriptorSetTotalUniformBuffersDynamic`.
+* __perPipeline_maxStorageBuffersDynamic__<br/>
+Same as `VkPhysicalDeviceLimits::maxDescriptorSetStorageBuffersDynamic` or `VkPhysicalDeviceMaintenance7PropertiesKHR::maxDescriptorSetTotalStorageBuffersDynamic`.
+* __perPipeline_maxTotalBuffersDynamic__<br/>
+Same as `VkPhysicalDeviceMaintenance7PropertiesKHR::maxDescriptorSetTotalBuffersDynamic`.
+* perPipeline
 * perStage
 * maxDescriptorSets
 * maxTexelOffset

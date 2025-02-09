@@ -4,6 +4,7 @@
 void ASmain ()
 {
 	// include:
+	//	Adreno driver 512.797.0 on Windows 11
 	//	Adreno (TM) 660 driver 512.530.0 on Android 11.0
 	//	Adreno (TM) 505 driver 512.454.0 on Android 9.0
 	//	nubia NX729J driver 512.746.0 on Android 13.0
@@ -52,21 +53,23 @@ void ASmain ()
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.maxSpirvVersion (130);
+	fset.maxDrawIndirectCount (4294967295);
 	fset.maxViewports (1);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
 	fset.maxTexelBufferElements (64 << 10);
 	fset.maxUniformBufferSize (64 << 10);
 	fset.maxStorageBufferSize (128 << 20);
-	fset.perDescrSet_maxUniformBuffersDynamic (8);
-	fset.perDescrSet_maxStorageBuffersDynamic (4);
-	fset.perDescrSet_maxInputAttachments (8);
-	fset.perDescrSet_maxSampledImages (768);
-	fset.perDescrSet_maxSamplers (96);
-	fset.perDescrSet_maxStorageBuffers (24);
-	fset.perDescrSet_maxStorageImages (24);
-	fset.perDescrSet_maxUniformBuffers (84);
-	fset.perDescrSet_maxTotalResources (512);
+	fset.perPipeline_maxUniformBuffersDynamic (8);
+	fset.perPipeline_maxStorageBuffersDynamic (4);
+	fset.perPipeline_maxTotalBuffersDynamic (12);
+	fset.perPipeline_maxInputAttachments (8);
+	fset.perPipeline_maxSampledImages (768);
+	fset.perPipeline_maxSamplers (96);
+	fset.perPipeline_maxStorageBuffers (24);
+	fset.perPipeline_maxStorageImages (24);
+	fset.perPipeline_maxUniformBuffers (84);
+	fset.perPipeline_maxTotalResources (512);
 	fset.perStage_maxInputAttachments (8);
 	fset.perStage_maxSampledImages (128);
 	fset.perStage_maxSamplers (16);
@@ -126,6 +129,10 @@ void ASmain ()
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
 	fset.imageViewExtendedUsage (True);
+	fset.maxImageDimension1D (16 << 10);
+	fset.maxImageDimension2D (16 << 10);
+	fset.maxImageDimension3D (2 << 10);
+	fset.maxImageDimensionCube (16 << 10);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U

@@ -617,7 +617,7 @@ namespace AE::Video
 		for (usize i = 0; i < image_planes.size(); ++i)
 		{
 			EPixelFormat	plane_fmt;
-			uint2			dim_scale;
+			POTVec2			dim_scale;
 			CHECK( EPixelFormat_GetPlaneInfo( _config.dstFormat, EImageAspect_Plane(i), OUT plane_fmt, OUT dim_scale ));
 
 			auto&	view = image_planes[i];
@@ -662,7 +662,6 @@ namespace AE::Video
 		}
 		else
 		// copy without scaling
-		// memory must be aligned to 16 bytes
 		{
 			for (usize i = 0; i < image_planes.size(); ++i)
 			{
@@ -679,7 +678,7 @@ namespace AE::Video
 					Bytes	dst_off;
 					for_likely (; dst_off < part.size; )
 					{
-						MemCopy16( OUT part.ptr + dst_off, _video.frame->data[i] + src_off, pitch );
+						MemCopy( OUT part.ptr + dst_off, _video.frame->data[i] + src_off, pitch );
 						dst_off += dst_pitch;
 						src_off += src_pitch;
 					}
@@ -814,7 +813,7 @@ namespace AE::Video
 		if_unlikely( buf_size < 0 )
 			return AVERROR_UNKNOWN;
 
-		int	result = int(stream->ReadSeq( buf, Bytes{ulong(buf_size)} ));
+		int	result = int(stream->ReadSeq( OUT buf, Bytes{ulong(buf_size)} ));
 
 		if_unlikely( result == 0 )
 		{

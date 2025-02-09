@@ -6,7 +6,7 @@
 #include "base/Math/Matrix.h"
 #include "base/Algorithms/ArrayUtils.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	enum class EMatrixOrder
@@ -102,7 +102,7 @@ namespace AE::Math
 		using Transposed_t	= MatrixStorage< T, Rows, Columns, EMatrixOrder::ColumnMajor, Align >;
 		using Column_t		= Vec< T, Rows >;
 		using Row_t			= Vec< T, Columns >;
-		using Dim_t			= Math::_hidden_::_MatrixDim;
+		using Dim_t			= Base::_hidden_::_MatrixDim;
 
 	private:
 		using _Columns_t	= StaticArray< _AlignedVec, Columns >;
@@ -124,10 +124,10 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr MatrixStorage () __NE___ {}
+		__Cx__ MatrixStorage () __NE___ {}
 
 		template <typename Arg0, typename ...Args>
-		constexpr explicit MatrixStorage (const Arg0 &arg0, const Args& ...args) __NE___
+		__Cx__ explicit MatrixStorage (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			if constexpr( CountOf<Arg0, Args...>() == Columns * Rows )
 				_CopyScalars<0>( arg0, args... );
@@ -141,13 +141,13 @@ namespace AE::Math
 
 
 		template <usize Align2>
-		constexpr MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+		__Cx__ MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
 		{
 			_CopyColumnMajor< Columns, Rows >( other );
 		}
 
 		template <usize Align2>
-		constexpr MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+		__Cx__ MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align2 > &other) __NE___
 		{
 			_CopyRowMajor< Columns, Rows >( other );
 		}
@@ -160,14 +160,14 @@ namespace AE::Math
 
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
 		{
 			StaticAssert( Columns != Columns2 or Rows != Rows2 );
 			_CopyColumnMajor< Columns2, Rows2 >( other );
 		}
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
 		{
 			StaticAssert( Columns != Columns2 or Rows != Rows2 );
 			_CopyRowMajor< Columns2, Rows2 >( other );
@@ -181,7 +181,7 @@ namespace AE::Math
 		}
 
 
-		ND_ static constexpr Self  Identity () __NE___
+		NdCx__ static Self  Identity () __NE___
 		{
 			constexpr uint	cnt = Min( Columns, Rows );
 			Self			result;
@@ -209,15 +209,15 @@ namespace AE::Math
 				return Column_t{ d[0], d[1], d[2], d[3] };
 		}
 
-		template <uint C>	ND_ const Column_t 	get ()				C_NE___	{ StaticAssert( C < Columns );  return (*this)[C]; }
+		template <uint C>	ND_ const Column_t 	get ()		C_NE___	{ StaticAssert( C < Columns );  return (*this)[C]; }
 
 
 		// return scalar
-		ND_ constexpr const T	operator () (usize c, usize r)		C_NE___	{ ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
-		ND_ constexpr T &		operator () (usize c, usize r)		__NE___	{ ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
+		NdCz__ const T	operator () (usize c, usize r)		C_NE___	{ ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
+		NdCz__ T &		operator () (usize c, usize r)		__NE___	{ ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
 
-		template <uint C, uint R>	ND_ constexpr const T	get ()	C_NE___	{ StaticAssert( C < Columns and R < Rows );  return _columns[C].data[R]; }
-		template <uint C, uint R>	ND_ constexpr T &		get ()	__NE___	{ StaticAssert( C < Columns and R < Rows );  return _columns[C].data[R]; }
+		template <uint C, uint R>	NdCx__ const T	get ()	C_NE___	{ StaticAssert( C < Columns and R < Rows );  return _columns[C].data[R]; }
+		template <uint C, uint R>	NdCx__ T &		get ()	__NE___	{ StaticAssert( C < Columns and R < Rows );  return _columns[C].data[R]; }
 
 
 		template <uint Columns2, uint Rows2, glm::qualifier Q>
@@ -231,16 +231,37 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ static constexpr usize		size ()				__NE___	{ return Columns; }
-		ND_ static constexpr Dim_t		Dimension ()		__NE___	{ return {Columns, Rows}; }
+		template <uint Columns2, uint Rows2, glm::qualifier Q>
+		void  Inject (const TMatrix< T, Columns2, Rows2, Q > &other) __NE___
+		{
+			StaticAssert( Rows2 <= Rows );
+			StaticAssert( Columns2 <= Columns );
 
-		ND_ static constexpr bool		IsColumnMajor ()	__NE___	{ return true; }
-		ND_ static constexpr bool		IsRowMajor ()		__NE___	{ return not IsColumnMajor(); }
+			for (uint r = 0; r < Rows2; ++r)
+			for (uint c = 0; c < Columns2; ++c) {
+				(*this)(c,r) = other(c,r);
+			}
+		}
+
+		template <int I, glm::qualifier Q>
+		void  SetTranslation (const TVec< T, I, Q > &vec) __NE___
+		{
+			StaticAssert( I <= 3 and I <= Columns );
+
+			for (int i = 0; i < I; ++i)
+				_columns[i].data[Rows-1] = vec[i];
+		}
+
+		NdCx__ static usize		size ()					__NE___	{ return Columns; }
+		NdCx__ static Dim_t		Dimension ()			__NE___	{ return {Columns, Rows}; }
+
+		NdCx__ static bool		IsColumnMajor ()		__NE___	{ return true; }
+		NdCx__ static bool		IsRowMajor ()			__NE___	{ return not IsColumnMajor(); }
 
 
 	private:
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args) __NE___
+		__Cx__ void  _CopyScalars (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			StaticAssert( IsScalar<Arg0> );
 			_columns[I / Rows].data[I % Rows] = arg0;
@@ -250,9 +271,9 @@ namespace AE::Math
 		}
 
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void  _CopyColumns (const Arg0 &arg0, const Args& ...args) __NE___
+		__Cx__ void  _CopyColumns (const Arg0 &arg0, const Args& ...args) __NE___
 		{
-			StaticAssert( IsSameTypes< Arg0, Column_t > );
+			StaticAssert( IsSame< Arg0, Column_t > );
 			std::memcpy( OUT _columns[I].data, &arg0.x, sizeof(T)*Rows );
 
 			if constexpr( I+1 < Columns )
@@ -260,7 +281,7 @@ namespace AE::Math
 		}
 
 		template <uint Columns2, uint Rows2, typename M>
-		constexpr void  _CopyColumnMajor (const M &other) __NE___
+		__Cx__ void  _CopyColumnMajor (const M &other) __NE___
 		{
 			for (uint c = 0; c < Columns; ++c)
 			for (uint r = 0; r < Rows; ++r) {
@@ -269,7 +290,7 @@ namespace AE::Math
 		}
 
 		template <uint Columns2, uint Rows2, typename M>
-		constexpr void _CopyRowMajor (const M &other) __NE___
+		__Cx__ void _CopyRowMajor (const M &other) __NE___
 		{
 			for (uint c = 0; c < Columns; ++c)
 			for (uint r = 0; r < Rows; ++r) {
@@ -301,7 +322,7 @@ namespace AE::Math
 		using ColumnMajor_t	= MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align >;
 		using Row_t			= Vec< T, Columns >;
 		using Column_t		= Vec< T, Rows >;
-		using Dim_t			= Math::_hidden_::_MatrixDim;
+		using Dim_t			= Base::_hidden_::_MatrixDim;
 
 	private:
 		using _Rows_t		= StaticArray< _AlignedVec, Rows >;
@@ -326,10 +347,10 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr MatrixStorage () __NE___ : _rows{} {}
+		__Cx__ MatrixStorage () __NE___ : _rows{} {}
 
 		template <typename Arg0, typename ...Args>
-		constexpr explicit MatrixStorage (const Arg0 &arg0, const Args& ...args) __NE___
+		__Cx__ explicit MatrixStorage (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			if constexpr( CountOf<Arg0, Args...>() == Columns * Rows )
 				_CopyScalars<0>( arg0, args... );
@@ -343,13 +364,13 @@ namespace AE::Math
 
 
 		template <usize Align2>
-		constexpr MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+		__Cx__ MatrixStorage (const MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align2 > &other) __NE___
 		{
 			_CopyRowMajor< Columns, Rows >( other );
 		}
 
 		template <usize Align2>
-		constexpr MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+		__Cx__ MatrixStorage (const MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
 		{
 			_CopyColumnMajor< Columns, Rows >( other );
 		}
@@ -362,14 +383,14 @@ namespace AE::Math
 
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
+		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Rows2, Columns2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
 		{
 			StaticAssert( Columns != Columns2 or Rows != Rows2 );
 			_CopyRowMajor< Columns2, Rows2 >( other );
 		}
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
+		__Cx__ explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
 		{
 			StaticAssert( Columns != Columns2 or Rows != Rows2 );
 			_CopyColumnMajor< Columns2, Rows2 >( other );
@@ -383,7 +404,7 @@ namespace AE::Math
 		}
 
 
-		ND_ static constexpr Self  Identity () __NE___
+		NdCx__ static Self  Identity () __NE___
 		{
 			constexpr uint	cnt = Min( Columns, Rows );
 			Self			result;
@@ -410,15 +431,15 @@ namespace AE::Math
 				return Row_t{ d[0], d[1], d[2], d[3] };
 		}
 
-		template <uint R>	ND_ const Row_t 	get ()					C_NE___	{ StaticAssert( R < Rows );  return (*this)[R]; }
+		template <uint R>	ND_ const Row_t 	get ()			C_NE___	{ StaticAssert( R < Rows );  return (*this)[R]; }
 
 
 		// return scalar
-		ND_ constexpr const T		operator () (usize r, usize c)		C_NE___	{ ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
-		ND_ constexpr T &			operator () (usize r, usize c)		__NE___	{ ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
+		NdCz__ const T		operator () (usize r, usize c)		C_NE___	{ ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
+		NdCz__ T &			operator () (usize r, usize c)		__NE___	{ ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
 
-		template <uint R, uint C>	ND_ constexpr const T	get ()		C_NE___	{ StaticAssert( C < Columns and R < Rows );  return _rows[R].data[C]; }
-		template <uint R, uint C>	ND_ constexpr T &		get ()		__NE___	{ StaticAssert( C < Columns and R < Rows );  return _rows[R].data[C]; }
+		template <uint R, uint C>	NdCx__ const T	get ()		C_NE___	{ StaticAssert( C < Columns and R < Rows );  return _rows[R].data[C]; }
+		template <uint R, uint C>	NdCx__ T &		get ()		__NE___	{ StaticAssert( C < Columns and R < Rows );  return _rows[R].data[C]; }
 
 
 		template <uint Columns2, uint Rows2, glm::qualifier Q>
@@ -432,16 +453,37 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ static constexpr usize		size ()				__NE___	{ return Rows; }
-		ND_ static constexpr Dim_t		Dimension ()		__NE___	{ return {Columns, Rows}; }
+		template <uint Columns2, uint Rows2, glm::qualifier Q>
+		void  Inject (const TMatrix< T, Columns2, Rows2, Q > &other) __NE___
+		{
+			StaticAssert( Rows2 <= Rows );
+			StaticAssert( Columns2 <= Columns );
 
-		ND_ static constexpr bool		IsColumnMajor ()	__NE___	{ return false; }
-		ND_ static constexpr bool		IsRowMajor ()		__NE___	{ return not IsColumnMajor(); }
+			for (uint c = 0; c < Columns2; ++c)
+			for (uint r = 0; r < Rows2; ++r) {
+				(*this)(r,c) = other(c,r);
+			}
+		}
+
+		template <int I, glm::qualifier Q>
+		void  SetTranslation (const TVec< T, I, Q > &vec) __NE___
+		{
+			StaticAssert( I <= 3 and I <= Rows );
+
+			for (int i = 0; i < I; ++i)
+				_rows[i].data[Columns-1] = vec[i];
+		}
+
+		NdCx__ static usize		size ()				__NE___	{ return Rows; }
+		NdCx__ static Dim_t		Dimension ()		__NE___	{ return {Columns, Rows}; }
+
+		NdCx__ static bool		IsColumnMajor ()	__NE___	{ return false; }
+		NdCx__ static bool		IsRowMajor ()		__NE___	{ return not IsColumnMajor(); }
 
 
 	private:
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args) __NE___
+		__Cx__ void  _CopyScalars (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			StaticAssert( IsScalar<Arg0> );
 			_rows[I / Columns].data[I % Columns] = arg0;
@@ -451,9 +493,9 @@ namespace AE::Math
 		}
 
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void  _CopyRows (const Arg0 &arg0, const Args& ...args) __NE___
+		__Cx__ void  _CopyRows (const Arg0 &arg0, const Args& ...args) __NE___
 		{
-			StaticAssert( IsSameTypes< Arg0, Row_t > );
+			StaticAssert( IsSame< Arg0, Row_t > );
 			std::memcpy( OUT _rows[I].data, &arg0.x, sizeof(T)*Columns );
 
 			if constexpr( I+1 < Rows )
@@ -461,7 +503,7 @@ namespace AE::Math
 		}
 
 		template <uint Columns2, uint Rows2, typename M>
-		constexpr void  _CopyRowMajor (const M &other) __NE___
+		__Cx__ void  _CopyRowMajor (const M &other) __NE___
 		{
 			for (uint r = 0; r < Rows; ++r)
 			for (uint c = 0; c < Columns; ++c) {
@@ -470,7 +512,7 @@ namespace AE::Math
 		}
 
 		template <uint Columns2, uint Rows2, typename M>
-		constexpr void  _CopyColumnMajor (const M &other) __NE___
+		__Cx__ void  _CopyColumnMajor (const M &other) __NE___
 		{
 			for (uint r = 0; r < Rows; ++r)
 			for (uint c = 0; c < Columns; ++c) {
@@ -478,13 +520,9 @@ namespace AE::Math
 			}
 		}
 	};
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
-
-
-namespace AE::Base
-{
 	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
 	struct TMemCopyAvailable< MatrixStorage< T, Columns, Rows, Order, Align >>		: CT_Bool< IsMemCopyAvailable<T> >{};
 
@@ -494,5 +532,8 @@ namespace AE::Base
 	// alignment is same on all platforms
 	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
 	struct TTriviallySerializable< MatrixStorage< T, Columns, Rows, Order, Align >>	: CT_Bool< IsTriviallySerializable<T> >{};
+
+	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
+	struct TUnwrap< MatrixStorage< T, Columns, Rows, Order, Align >>				: TUnwrap<T> {};
 
 } // AE::Base

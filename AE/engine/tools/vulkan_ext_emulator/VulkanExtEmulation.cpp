@@ -14,8 +14,8 @@
 #include "threading/Primitives/SpinLock.h"
 #include "threading/Primitives/Synchronized.h"
 
-#include "graphics/Public/Common.h"
-#include "graphics/Vulkan/VulkanCheckError.h"
+#include "graphics_rhi/Public/Common.h"
+#include "graphics_rhi/Vulkan/VulkanCheckError.h"
 
 #ifdef AE_RELEASE
 #	define ENABLE_DEBUG_CLEAR	0
@@ -38,7 +38,7 @@ namespace
 		Multiview			= 1 << 0,	// VK_KHR_multiview				or 1.1
 		RenderPass2			= 1 << 1,	// VK_KHR_create_renderpass2	or 1.2	// requires Multiview
 		Synchronization2	= 1 << 2,	// VK_KHR_synchronization2
-		LoadStoreOpNone		= 1 << 3,	// VK_KHR_load_store_op_none | VK_EXT_load_store_op_none | VK_KHR_dynamic_rendering | VK_QCOM_render_pass_store_ops
+		LoadStoreOpNone		= 1 << 3,	// VK_KHR_load_store_op_none | VK_EXT_load_store_op_none | VK_KHR_dynamic_rendering | VK_QCOM_render_pass_store_ops or 1.4
 		DebugClear			= 1 << 4,	// clear if don't care in render pass or if used undefined layout
 		DebugMarker			= 1 << 5,
 		_Last,

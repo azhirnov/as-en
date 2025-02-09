@@ -6,7 +6,7 @@
 #	define GLFW_EXPOSE_NATIVE_WIN32 1
 #	include "base/Platforms/WindowsHeader.cpp.h"
 # endif
-# ifdef AE_PLATFORM_MACOS
+# ifdef __OBJC__
 #	undef null
 # endif
 
@@ -15,14 +15,14 @@
 
 # include "GLFW/glfw3.h"
 
-# ifdef AE_PLATFORM_MACOS
+# ifdef __OBJC__
 #	include <Cocoa/Cocoa.h>
 # endif
 
 # include "GLFW/glfw3native.h"
 # include "base/Defines/Undef.h"
 
-# ifdef AE_PLATFORM_MACOS
+# ifdef __OBJC__
 #	define null nullptr
 # endif
 

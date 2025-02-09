@@ -43,7 +43,7 @@ void  CreatePipeline ()
 	// pipeline layout
 	{
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "LinearDepth.draw.ds0" );
-		ds.SampledImage( EShaderStages::Fragment, "un_Depth", EImageType::FImage2D );
+		ds.SampledImage( EShaderStages::Fragment, "un_Depth", EImageType::Float_2D );
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "LinearDepth.draw.pc" );
 		st.Set( "float2		clipPlanes;" );

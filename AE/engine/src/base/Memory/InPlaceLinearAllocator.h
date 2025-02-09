@@ -37,7 +37,7 @@ namespace AE::Base
 		InPlaceLinearAllocator (Self &&)							= delete;
 			Self&	operator = (Self &&)							= delete;
 
-		ND_ static constexpr Bytes	Capacity ()						__NE___	{ return Bytes{Size_v}; }
+		NdCx__ static Bytes	 Capacity ()							__NE___	{ return Bytes{Size_v}; }
 
 
 		// IAllocator //

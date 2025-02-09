@@ -12,7 +12,7 @@ namespace
 
 		StaticArray< StdThread, MaxThreads >	worker_thread;
 		StaticArray< Array<void*>, MaxThreads >	thread_data;
-		LfLinearAllocator< usize{2_Mb} >		alloc;
+		LfLinearAllocator< usize{2_MiB} >		alloc;
 
 		for (uint i = 0; i < MaxThreads; ++i)
 		{

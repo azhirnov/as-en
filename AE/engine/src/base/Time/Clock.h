@@ -16,30 +16,35 @@ namespace AE::Base
 	// types
 	public:
 		using Clock_t		= std::chrono::high_resolution_clock;
-		using TimePoint_t	= Clock_t::time_point;
-		using Duration_t	= Clock_t::duration;
+		using TimePoint_t	= typename Clock_t::time_point;
+		using Duration_t	= typename Clock_t::duration;
 
 
 	// variables
 	private:
 		TimePoint_t		_lastTick;
+		TimePoint_t		_start;
 
 
 	// methods
 	public:
-		Clock ()												__NE___ : _lastTick{Clock_t::now()} {}
-		explicit Clock (TimePoint_t lastTick)					__NE___ : _lastTick{lastTick} {}
+		Clock ()												__NE___ { Start(); }
+		explicit Clock (TimePoint_t lastTick)					__NE___ { Start( lastTick ); }
 
-			void		Start (TimePoint_t lastTick)			__NE___	{ _lastTick = lastTick; }
-			void		Start ()								__NE___	{ _lastTick = Clock_t::now(); }
+			void		Start (TimePoint_t lastTick)			__NE___	{ _start = _lastTick = lastTick; }
+			void		Start ()								__NE___	{ _start = _lastTick = Clock_t::now(); }
 
 		template <typename ToDuration>
 		ND_ ToDuration	Tick (TimePoint_t now = Clock_t::now())	__NE___	{ return TimeCast<ToDuration>( Tick( now )); }
 		ND_ Duration_t	Tick (TimePoint_t now = Clock_t::now())	__NE___;
 
 		template <typename ToDuration>
-		ND_ ToDuration	TimeSince ()							C_NE___	{ return TimeCast<ToDuration>( TimeSince()); }
+		ND_ ToDuration	TimeSince ()							C_NE___	{ return TimeCast<ToDuration>( TimeSince() ); }
 		ND_ Duration_t	TimeSince ()							C_NE___	{ return Clock_t::now() - _lastTick; }
+
+		template <typename ToDuration>
+		ND_ ToDuration	TimeSinceStart ()						C_NE___	{ return TimeCast<ToDuration>( TimeSinceStart() ); }
+		ND_ Duration_t	TimeSinceStart ()						C_NE___	{ return _lastTick - _start; }
 
 		ND_ TimePoint_t	Now ()									C_NE___	{ return _lastTick; }
 	};
@@ -48,6 +53,8 @@ namespace AE::Base
 /*
 =================================================
 	Tick
+----
+	returns duration from previous 'Tick()'
 =================================================
 */
 	inline Clock::Duration_t  Clock::Tick (TimePoint_t now) __NE___

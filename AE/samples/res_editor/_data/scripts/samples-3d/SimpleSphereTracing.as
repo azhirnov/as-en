@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -14,8 +14,8 @@
 		// initialize
 		RC<Image>		rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<FPVCamera>	camera	= FPVCamera();
-		RC<Image>		tex1	= Image( EImageType::FImage2D, "shadertoy/Abstract_2.jpg" );
-		RC<Image>		tex2	= Image( EImageType::FImage2D, "shadertoy/Wood.jpg" );
+		RC<Image>		tex1	= Image( EImageType::Float_2D, "shadertoy/Abstract_2.jpg" );
+		RC<Image>		tex2	= Image( EImageType::Float_2D, "shadertoy/Wood.jpg" );
 
 		// setup camera
 		{

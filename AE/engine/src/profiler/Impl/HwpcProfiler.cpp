@@ -9,7 +9,7 @@
 #include "profiler/Remote/RemoteAdrenoProfiler.h"
 #include "profiler/Remote/RemotePowerVRProfiler.h"
 #include "profiler/Remote/RemoteGeneralProfiler.h"
-#include "graphics/GraphicsImpl.h"
+#include "graphics_rhi/GraphicsImpl.h"
 
 namespace AE::Profiler
 {
@@ -257,6 +257,7 @@ namespace AE::Profiler
 						ECounter::CoreAllRegsWarpRate,
 						ECounter::CoreFullWarpRate,
 						ECounter::FragRastPartQdRate,
+						ECounter::FragThread,			ECounter::FragHelpThread,		ECounter::NonFragThread,
 					#endif
 				// Usage //
 					#if 0

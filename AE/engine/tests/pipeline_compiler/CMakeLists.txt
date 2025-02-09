@@ -1,8 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 if (TARGET "PipelineCompiler")
-	cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
-
 	file( GLOB SOURCES "*.*" )
 	add_executable( "Tests.PipelineCompiler" ${SOURCES} )
 	set_target_properties( "Tests.PipelineCompiler" PROPERTIES SUFFIX "${AE_EXECUTABLE_SUFFIX}" )

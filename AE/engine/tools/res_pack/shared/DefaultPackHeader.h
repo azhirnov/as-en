@@ -11,7 +11,7 @@ namespace AE::Base
 		uint	ver;
 		uint	license;
 
-		constexpr DefaultPackHeader ()									__NE___	{}
+		constexpr DefaultPackHeader ()									__NE___	: name{0}, ver{0}, license{0} {}
 		constexpr DefaultPackHeader (Version2 ver, uint name, uint lic)	__NE___ : name{name}, ver{ver.ToUInt()}, license{lic} {}
 
 		ND_ constexpr Version2	Version ()								C_NE___	{ return Version2::FromUInt( ver ); }

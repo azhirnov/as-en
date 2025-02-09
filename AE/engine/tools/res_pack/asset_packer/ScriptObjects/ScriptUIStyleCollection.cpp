@@ -1,35 +1,38 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "ScriptObjects/ScriptUIStyleCollection.h"
-#include "graphics_hl/UI/StyleCollection.cpp.h"
 
-AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection,					"UIStyleCollection" );
-AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptColorStyle,	"UIColorStyle" );
-AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptImageStyle,	"UIImageStyle" );
-AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptFontStyle,	"UIFontStyle" );
+AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection,								"UIStyleCollection" );
+AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptColorStyle,				"UIColorStyle" );
+AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptImageStyle,				"UIImageStyle" );
+//AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptImageAnimationStyle,	"UIImageAnimationStyle" );
+//AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptFontStyle,			"UIFontStyle" );
 
 
 namespace AE::AssetPacker
 {
+	using Graphics::CachedResourceName;
 	using Graphics::ImageInAtlasName;
 	using Graphics::PipelineName;
+	using UI::EStyleIndex;
 	using UI::StyleName;
+
 
 /*
 =================================================
 	Set*
 =================================================
 */
-	void  ScriptUIStyleCollection::ScriptColorStyle::SetDisabled (const RGBA8u &col)	__Th___	{ _internal.color.disabled	= col; }
-	void  ScriptUIStyleCollection::ScriptColorStyle::SetEnabled (const RGBA8u &col)		__Th___	{ _internal.color.enabled	= col; }
-	void  ScriptUIStyleCollection::ScriptColorStyle::SetMouseOver (const RGBA8u &col)	__Th___	{ _internal.color.mouseOver	= col; }
-	void  ScriptUIStyleCollection::ScriptColorStyle::SetTouchDown (const RGBA8u &col)	__Th___	{ _internal.color.touchDown	= col; }
-	void  ScriptUIStyleCollection::ScriptColorStyle::SetSelected (const RGBA8u &col)	__Th___	{ _internal.color.selected	= col; }
+	void  ScriptUIStyleCollection::ScriptColorStyle::SetDisabled (const RGBA8u &col)	__Th___	{ _internal.colors[uint(EStyleIndex::Disabled)]	 = col; }
+	void  ScriptUIStyleCollection::ScriptColorStyle::SetEnabled (const RGBA8u &col)		__Th___	{ _internal.colors[uint(EStyleIndex::Enabled)]	 = col; }
+	void  ScriptUIStyleCollection::ScriptColorStyle::SetMouseOver (const RGBA8u &col)	__Th___	{ _internal.colors[uint(EStyleIndex::MouseOver)] = col; }
+	void  ScriptUIStyleCollection::ScriptColorStyle::SetTouchDown (const RGBA8u &col)	__Th___	{ _internal.colors[uint(EStyleIndex::TouchDown)] = col; }
+	void  ScriptUIStyleCollection::ScriptColorStyle::SetSelected (const RGBA8u &col)	__Th___	{ _internal.colors[uint(EStyleIndex::Selected)]	 = col; }
 
 	void  ScriptUIStyleCollection::ScriptColorStyle::SetPipeline (const String &name)	__Th___
 	{
 		_collection._CheckPipeline( name );
-		_internal._pplnName = PipelineName{name};
+		_pplnName = PipelineName{name};
 	}
 
 /*
@@ -37,11 +40,10 @@ namespace AE::AssetPacker
 	Serialize
 =================================================
 */
-	void  ScriptUIStyleCollection::ScriptColorStyle::Serialize (Serializing::Serializer &ser) __Th___
+	bool  ScriptUIStyleCollection::ScriptColorStyle::Serialize (Serializing::Serializer &ser) C_NE___
 	{
-		// TODO: validate
-
-		CHECK_THROW( Serialize_ColorStyle( _internal, ser ));
+		const EType  type = EType::ColorStyle;
+		return ser( type, _pplnName, _internal.colors );
 	}
 
 /*
@@ -69,50 +71,36 @@ namespace AE::AssetPacker
 	Set*
 =================================================
 */
-	void  ScriptUIStyleCollection::ScriptImageStyle::SetDisabled (const RGBA8u &col, const String &imgName) __Th___
-	{
-		_collection._CheckImageInAtlas( imgName );
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetDisabled1 (const RGBA8u &col)	__Th___	{ _internal.scale_color[uint(EStyleIndex::Disabled)]  = MakePair( 1.f, col ); }
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetEnabled1 (const RGBA8u &col)	__Th___	{ _internal.scale_color[uint(EStyleIndex::Enabled)]   = MakePair( 1.f, col ); }
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetMouseOver1 (const RGBA8u &col)	__Th___	{ _internal.scale_color[uint(EStyleIndex::MouseOver)] = MakePair( 1.f, col ); }
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetTouchDown1 (const RGBA8u &col)	__Th___	{ _internal.scale_color[uint(EStyleIndex::TouchDown)] = MakePair( 1.f, col ); }
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetSelected1 (const RGBA8u &col)	__Th___	{ _internal.scale_color[uint(EStyleIndex::Selected)]  = MakePair( 1.f, col ); }
 
-		_internal.color.disabled	= col;
-		_internal.image.disabled	= ImageInAtlasName::Optimized_t{imgName};
-	}
-
-	void  ScriptUIStyleCollection::ScriptImageStyle::SetEnabled (const RGBA8u &col, const String &imgName) __Th___
-	{
-		_collection._CheckImageInAtlas( imgName );
-
-		_internal.color.enabled		= col;
-		_internal.image.enabled		= ImageInAtlasName::Optimized_t{imgName};
-	}
-
-	void  ScriptUIStyleCollection::ScriptImageStyle::SetMouseOver (const RGBA8u &col, const String &imgName) __Th___
-	{
-		_collection._CheckImageInAtlas( imgName );
-
-		_internal.color.mouseOver	= col;
-		_internal.image.mouseOver	= ImageInAtlasName::Optimized_t{imgName};
-	}
-
-	void  ScriptUIStyleCollection::ScriptImageStyle::SetTouchDown (const RGBA8u &col, const String &imgName) __Th___
-	{
-		_collection._CheckImageInAtlas( imgName );
-
-		_internal.color.touchDown	= col;
-		_internal.image.touchDown	= ImageInAtlasName::Optimized_t{imgName};
-	}
-
-	void  ScriptUIStyleCollection::ScriptImageStyle::SetSelected (const RGBA8u &col, const String &imgName) __Th___
-	{
-		_collection._CheckImageInAtlas( imgName );
-
-		_internal.color.selected	= col;
-		_internal.image.selected	= ImageInAtlasName::Optimized_t{imgName};
-	}
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetDisabled2 (const RGBA8u &col, float scale)	__Th___	{ _internal.scale_color[uint(EStyleIndex::Disabled)]  = MakePair( scale, col ); }
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetEnabled2 (const RGBA8u &col, float scale)	__Th___	{ _internal.scale_color[uint(EStyleIndex::Enabled)]   = MakePair( scale, col ); }
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetMouseOver2 (const RGBA8u &col, float scale)	__Th___	{ _internal.scale_color[uint(EStyleIndex::MouseOver)] = MakePair( scale, col ); }
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetTouchDown2 (const RGBA8u &col, float scale)	__Th___	{ _internal.scale_color[uint(EStyleIndex::TouchDown)] = MakePair( scale, col ); }
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetSelected2 (const RGBA8u &col, float scale)	__Th___	{ _internal.scale_color[uint(EStyleIndex::Selected)]  = MakePair( scale, col ); }
 
 	void  ScriptUIStyleCollection::ScriptImageStyle::SetPipeline (const String &name)	__Th___
 	{
 		_collection._CheckPipeline( name );
-		_internal._pplnName = PipelineName{name};
+		_pplnName = PipelineName{name};
+	}
+
+	void  ScriptUIStyleCollection::ScriptImageStyle::SetImage (const String &metaRes, const String &name) __Th___
+	{
+		auto&	storage	= *ObjectStorage::Instance();
+		auto	atlas	= storage.GetAtlas( _collection._metaDataFileName, metaRes );  // throw
+
+		atlas->Contains( name );
+
+		storage.AddName< CachedResourceName >( metaRes );	// throw
+		storage.AddName< ImageInAtlasName >( name );		// throw
+
+		_atlasName = CachedResourceName{metaRes};
+		_imageName = ImageInAtlasName{name};
 	}
 
 /*
@@ -120,11 +108,10 @@ namespace AE::AssetPacker
 	Serialize
 =================================================
 */
-	void  ScriptUIStyleCollection::ScriptImageStyle::Serialize (Serializing::Serializer &ser) __Th___
+	bool  ScriptUIStyleCollection::ScriptImageStyle::Serialize (Serializing::Serializer &ser) C_NE___
 	{
-		// TODO: validate
-
-		CHECK_THROW( Serialize_ImageStyle( _internal, ser ));
+		const EType  type = EType::ImageStyle;
+		return ser( type, _pplnName, _atlasName, _imageName, _internal.scale_color );
 	}
 
 /*
@@ -136,12 +123,20 @@ namespace AE::AssetPacker
 	{
 		Scripting::ClassBinder<ScriptImageStyle>	binder{ se };
 		binder.CreateRef( 0, False{"no ctor"} );
-		binder.AddMethod( &ScriptImageStyle::SetDisabled,	"Disabled",		{"colorWhenDisabled", "imageNameInAtlas"} );
-		binder.AddMethod( &ScriptImageStyle::SetEnabled,	"Enabled",		{"colorWhenEnabled", "imageNameInAtlas"} );
-		binder.AddMethod( &ScriptImageStyle::SetMouseOver,	"MouseOver",	{"colorWhenMouseOver", "imageNameInAtlas"} );
-		binder.AddMethod( &ScriptImageStyle::SetTouchDown,	"TouchDown",	{"colorWhenTouchDown", "imageNameInAtlas"} );
-		binder.AddMethod( &ScriptImageStyle::SetSelected,	"Selected",		{"colorWhenSelected", "imageNameInAtlas"} );
+		binder.AddMethod( &ScriptImageStyle::SetDisabled1,	"Disabled",		{"colorWhenDisabled"} );
+		binder.AddMethod( &ScriptImageStyle::SetEnabled1,	"Enabled",		{"colorWhenEnabled"} );
+		binder.AddMethod( &ScriptImageStyle::SetMouseOver1,	"MouseOver",	{"colorWhenMouseOver"} );
+		binder.AddMethod( &ScriptImageStyle::SetTouchDown1,	"TouchDown",	{"colorWhenTouchDown"} );
+		binder.AddMethod( &ScriptImageStyle::SetSelected1,	"Selected",		{"colorWhenSelected"} );
+
+		binder.AddMethod( &ScriptImageStyle::SetDisabled2,	"Disabled",		{"colorWhenDisabled", "scale"} );
+		binder.AddMethod( &ScriptImageStyle::SetEnabled2,	"Enabled",		{"colorWhenEnabled", "scale"} );
+		binder.AddMethod( &ScriptImageStyle::SetMouseOver2,	"MouseOver",	{"colorWhenMouseOver", "scale"} );
+		binder.AddMethod( &ScriptImageStyle::SetTouchDown2,	"TouchDown",	{"colorWhenTouchDown", "scale"} );
+		binder.AddMethod( &ScriptImageStyle::SetSelected2,	"Selected",		{"colorWhenSelected", "scale"} );
+
 		binder.AddMethod( &ScriptImageStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
+		binder.AddMethod( &ScriptImageStyle::SetImage,		"Image",		{"atlasMetaResName", "imageInAtlas"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -151,7 +146,91 @@ namespace AE::AssetPacker
 =================================================
 	Set*
 =================================================
-*/
+*
+	void  ScriptUIStyleCollection::ScriptImageAnimationStyle::SetAtlas (const String &metaRes) __Th___
+	{
+	}
+
+	void  ScriptUIStyleCollection::ScriptImageAnimationStyle::SetDisabled (const RGBA8u &col, const String &imgName) __Th___
+	{
+		_collection._CheckImageInAtlas( imgName );
+
+		_internal.color.disabled	= col;
+		_internal.image.disabled	= ImageInAtlasName::Optimized_t{imgName};
+	}
+
+	void  ScriptUIStyleCollection::ScriptImageAnimationStyle::SetEnabled (const RGBA8u &col, const String &imgName) __Th___
+	{
+		_collection._CheckImageInAtlas( imgName );
+
+		_internal.color.enabled		= col;
+		_internal.image.enabled		= ImageInAtlasName::Optimized_t{imgName};
+	}
+
+	void  ScriptUIStyleCollection::ScriptImageAnimationStyle::SetMouseOver (const RGBA8u &col, const String &imgName) __Th___
+	{
+		_collection._CheckImageInAtlas( imgName );
+
+		_internal.color.mouseOver	= col;
+		_internal.image.mouseOver	= ImageInAtlasName::Optimized_t{imgName};
+	}
+
+	void  ScriptUIStyleCollection::ScriptImageAnimationStyle::SetTouchDown (const RGBA8u &col, const String &imgName) __Th___
+	{
+		_collection._CheckImageInAtlas( imgName );
+
+		_internal.color.touchDown	= col;
+		_internal.image.touchDown	= ImageInAtlasName::Optimized_t{imgName};
+	}
+
+	void  ScriptUIStyleCollection::ScriptImageAnimationStyle::SetSelected (const RGBA8u &col, const String &imgName) __Th___
+	{
+		_collection._CheckImageInAtlas( imgName );
+
+		_internal.color.selected	= col;
+		_internal.image.selected	= ImageInAtlasName::Optimized_t{imgName};
+	}
+
+	void  ScriptUIStyleCollection::ScriptImageAnimationStyle::SetPipeline (const String &name)	__Th___
+	{
+		_collection._CheckPipeline( name );
+		_internal._pplnName = PipelineName{name};
+	}
+
+/*
+=================================================
+	Serialize
+=================================================
+*
+	bool  ScriptUIStyleCollection::ScriptImageAnimationStyle::Serialize (Serializing::Serializer &ser) C_NE___
+	{
+	}
+
+/*
+=================================================
+	Bind
+=================================================
+*
+	void  ScriptUIStyleCollection::ScriptImageAnimationStyle::Bind (const ScriptEnginePtr &se) __Th___
+	{
+		Scripting::ClassBinder<ScriptImageAnimationStyle>	binder{ se };
+		binder.CreateRef( 0, False{"no ctor"} );
+		binder.AddMethod( &ScriptImageAnimationStyle::SetDisabled,	"Disabled",		{"colorWhenDisabled", "imageNameInAtlas"} );
+		binder.AddMethod( &ScriptImageAnimationStyle::SetEnabled,	"Enabled",		{"colorWhenEnabled", "imageNameInAtlas"} );
+		binder.AddMethod( &ScriptImageAnimationStyle::SetMouseOver,	"MouseOver",	{"colorWhenMouseOver", "imageNameInAtlas"} );
+		binder.AddMethod( &ScriptImageAnimationStyle::SetTouchDown,	"TouchDown",	{"colorWhenTouchDown", "imageNameInAtlas"} );
+		binder.AddMethod( &ScriptImageAnimationStyle::SetSelected,	"Selected",		{"colorWhenSelected", "imageNameInAtlas"} );
+		binder.AddMethod( &ScriptImageAnimationStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Set*
+=================================================
+*
 	void  ScriptUIStyleCollection::ScriptFontStyle::SetDisabled (const RGBA8u &col)		__Th___	{ _internal.color.disabled	= col; }
 	void  ScriptUIStyleCollection::ScriptFontStyle::SetEnabled (const RGBA8u &col)		__Th___	{ _internal.color.enabled	= col; }
 	void  ScriptUIStyleCollection::ScriptFontStyle::SetMouseOver (const RGBA8u &col)	__Th___	{ _internal.color.mouseOver	= col; }
@@ -175,8 +254,8 @@ namespace AE::AssetPacker
 =================================================
 	Serialize
 =================================================
-*/
-	void  ScriptUIStyleCollection::ScriptFontStyle::Serialize (Serializing::Serializer &ser) __Th___
+*
+	bool  ScriptUIStyleCollection::ScriptFontStyle::Serialize (Serializing::Serializer &ser) C_NE___
 	{
 		// TODO: validate
 
@@ -187,7 +266,7 @@ namespace AE::AssetPacker
 =================================================
 	Bind
 =================================================
-*/
+*
 	void  ScriptUIStyleCollection::ScriptFontStyle::Bind (const ScriptEnginePtr &se) __Th___
 	{
 		Scripting::ClassBinder<ScriptFontStyle>		binder{ se };
@@ -256,7 +335,7 @@ namespace AE::AssetPacker
 =================================================
 	AddFontStyle
 =================================================
-*/
+*
 	ScriptUIStyleCollection::ScriptFontStyle*  ScriptUIStyleCollection::AddFontStyle (const String &name) __Th___
 	{
 		ObjectStorage::Instance()->AddName<StyleName>( name );
@@ -299,17 +378,18 @@ namespace AE::AssetPacker
 */
 	void  ScriptUIStyleCollection::_Pack (RC<WStream> stream) __Th___
 	{
+		CHECK_THROW( not _metaDataFileName.empty() );
+
+		// copy resource meta data
+		{
+			auto	res_meta_data = ObjectStorage::Instance()->ExtractFromArchive( _metaDataFileName );  // throw
+
+			CHECK_THROW( DataSourceUtils::BufferedCopy( *stream, *res_meta_data ) == res_meta_data->Size() );
+		}
+
 		Serializing::Serializer		ser {stream};
 
-		// serialize atlas name
-		{
-			VFS::FileName	name;
-
-			if ( _imageAtlas )
-				name = VFS::FileName{_imageAtlas->Name()};
-
-			CHECK_THROW( ser( name ));
-		}
+		CHECK_THROW( ser( UI::StyleCollection::SerID ));
 
 		// serialize debug pipeline
 		{
@@ -321,40 +401,9 @@ namespace AE::AssetPacker
 
 		for (auto& [name, base] : _styleMap)
 		{
-			CHECK_THROW( ser( StyleName::Optimized_t{name} ));
-
-			if ( auto* color_style = DynCast<ScriptColorStyle>( base.Get() ))
-			{
-				CHECK_THROW( ser( EType::ColorStyle ));
-				color_style->Serialize( ser );  // throw
-			}
-			else
-			if ( auto* image_style = DynCast<ScriptImageStyle>( base.Get() ))
-			{
-				CHECK_THROW( ser( EType::ImageStyle ));
-				image_style->Serialize( ser );  // throw
-			}
-			else
-			if ( auto* font_style = DynCast<ScriptFontStyle>( base.Get() ))
-			{
-				CHECK_THROW( ser( EType::FontStyle ));
-				font_style->Serialize( ser );  // throw
-			}
-			else
-				CHECK_THROW_MSG( false, "unsupported style: '"s << name << "'" );
+			CHECK_THROW_MSG( ser( StyleName::Optimized_t{name} ) and base->Serialize( ser ),
+				"Failed to serialize UI Style '"s << name << "'" );
 		}
-	}
-
-/*
-=================================================
-	_CheckImageInAtlas
-=================================================
-*/
-	void  ScriptUIStyleCollection::_CheckImageInAtlas (const String &imgName) __Th___
-	{
-		CHECK_THROW_MSG( _imageAtlas );
-		_imageAtlas->Contains( imgName );
-		ObjectStorage::Instance()->AddName<ImageInAtlasName>( imgName );
 	}
 
 /*
@@ -364,17 +413,31 @@ namespace AE::AssetPacker
 */
 	void  ScriptUIStyleCollection::_CheckPipeline (const String &name) __Th___
 	{
-		ObjectStorage::Instance()->AddName<PipelineName>( name );
+		ObjectStorage::Instance()->AddName<PipelineName>( name );  // throw
 	}
 
 /*
 =================================================
-	SetAtlas
+	_CheckFont
 =================================================
 */
-	void  ScriptUIStyleCollection::SetAtlas (const String &atlasName) __Th___
+	void  ScriptUIStyleCollection::_CheckFont (const String &name) __Th___
 	{
-		_imageAtlas = ObjectStorage::Instance()->GetAtlas( atlasName );  // throw
+		CHECK_THROW_MSG( not _metaDataFileName.empty(), "Not defined meta data file with UI resources" );
+
+		ObjectStorage::Instance()->RequireFont( _metaDataFileName, name );  // throw
+	}
+
+/*
+=================================================
+	SetResources
+=================================================
+*/
+	void  ScriptUIStyleCollection::SetResources (const String &metaArchive) __Th___
+	{
+		CHECK_THROW_MSG( _metaDataFileName.empty(), "already defined" );
+
+		_metaDataFileName = metaArchive;
 	}
 
 /*
@@ -384,6 +447,8 @@ namespace AE::AssetPacker
 */
 	void  ScriptUIStyleCollection::SetDebugPipeline (const String &pplnName) __Th___
 	{
+		_CheckPipeline( pplnName );  // throw
+
 		_dbgPplnName = PipelineName{pplnName};
 	}
 
@@ -396,17 +461,29 @@ namespace AE::AssetPacker
 	{
 		ScriptColorStyle::Bind( se );
 		ScriptImageStyle::Bind( se );
-		ScriptFontStyle::Bind( se );
+		//ScriptImageAnimationStyle::Bind( se );
+		//ScriptFontStyle::Bind( se );
 
 		Scripting::ClassBinder<ScriptUIStyleCollection>		binder{ se };
 		binder.CreateRef();
-		binder.AddMethod( &ScriptUIStyleCollection::SetAtlas,			"Atlas",			{"atlasName"} );
-		binder.AddMethod( &ScriptUIStyleCollection::SetDebugPipeline,	"DebugPipeline",	{"pplnName"} );
-		binder.AddMethod( &ScriptUIStyleCollection::AddColorStyle,		"AddColorStyle",	{"name"} );
-		binder.AddMethod( &ScriptUIStyleCollection::AddImageStyle,		"AddImageStyle",	{"name"} );
-		binder.AddMethod( &ScriptUIStyleCollection::AddFontStyle,		"AddFontStyle",		{"name"} );
-		binder.AddMethod( &ScriptUIStyleCollection::Store,				"Store",			{"nameInArchive"} );
+		binder.AddMethod( &ScriptUIStyleCollection::SetResources,			"Resources",				{"metaDataFileNameInArchive"} );
+		binder.AddMethod( &ScriptUIStyleCollection::SetDebugPipeline,		"DebugPipeline",			{"pplnName"} );
+		binder.AddMethod( &ScriptUIStyleCollection::AddColorStyle,			"AddColorStyle",			{"name"} );
+		binder.AddMethod( &ScriptUIStyleCollection::AddImageStyle,			"AddImageStyle",			{"name"} );
+	//	binder.AddMethod( &ScriptUIStyleCollection::AddImageAnimationStyle,	"AddImageAnimationStyle",	{"name"} );
+	//	binder.AddMethod( &ScriptUIStyleCollection::AddFontStyle,			"AddFontStyle",				{"name"} );
+		binder.AddMethod( &ScriptUIStyleCollection::Store,					"Store",					{"nameInArchive"} );
 	}
 
 
 } // AE::AssetPacker
+
+
+namespace AE::UI
+{
+	bool  StyleCollection::ColorStyle::Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE___ { return false; }
+	bool  StyleCollection::ImageStyle::Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE___ { return false; }
+	bool  StyleCollection::ImageAnimationStyle::Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE___ { return false; }
+	//bool  StyleCollection::FontStyle::Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE___ { return false; }
+
+} // AE::UI

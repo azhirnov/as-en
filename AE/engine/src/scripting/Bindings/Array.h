@@ -279,7 +279,7 @@ namespace AE::Scripting::_hidden_
 	template <typename T>
 	struct TScriptArray
 	{
-		using type = Conditional< (IsSameTypes< T, String >),
+		using type = Conditional< (IsSame< T, String >),
 						ScriptStringArray,
 						Conditional< (ScriptTypeInfo<T>::is_object or ScriptTypeInfo<T>::is_ref_counted),
 							ScriptObjArray<T>,

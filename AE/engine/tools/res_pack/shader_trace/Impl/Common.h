@@ -15,6 +15,7 @@
 #	pragma warning (push, 0)
 #	pragma warning (disable: 4005)
 #	pragma warning (disable: 4668)
+#	pragma warning (disable: 4458)
 # endif
 # if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic push
@@ -26,6 +27,7 @@
 #	pragma GCC diagnostic ignored "-Wdouble-promotion"
 #endif
 
+# include "glslang/build_info.h"
 # include "glslang/MachineIndependent/localintermediate.h"
 # include "glslang/Include/intermediate.h"
 
@@ -37,6 +39,10 @@
 # endif
 # ifdef AE_COMPILER_GCC
 #	pragma GCC diagnostic pop
+# endif
+
+# if GLSLANG_VERSION_MAJOR != 14 or GLSLANG_VERSION_MINOR != 3
+#	error invalid glslang version
 # endif
 #endif // AE_ENABLE_GLSLANG
 

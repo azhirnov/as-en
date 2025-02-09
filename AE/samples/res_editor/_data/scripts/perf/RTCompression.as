@@ -9,7 +9,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_SOLID
 #	define GEN_GRADIENT
 #	define GEN_NOISE
@@ -136,18 +136,20 @@
 				pass.Repeat( count );
 			}
 		}
-		
+
 		Slider( tex_dim,	"TexDim",	1,	8,	2 );	// NV: max 3 for RGBA32, max 5 for RGBA16, max 7 for RGBA8
 		Slider( gen_color,	"Pattern",	0,	7,	1 );
 		Slider( mode,		"Mode",		0,	3,	max_mode );
 		Slider( count,		"Repeat",	1,	16 );
+
+		Label( dim.XY(),	"Dimension" );
 
 		//Present( rt );
 	}
 
 #endif
 //-----------------------------------------------------------------------------
-#if defined(SH_FRAG) || defined(SH_COMPUTE)
+#if defined(SH_FRAG) or defined(SH_COMPUTE)
 	#include "GlobalIndex.glsl"
 	#include "Hash.glsl"
 	#include "Color.glsl"
@@ -266,7 +268,7 @@
 
 		col /= float(dim * dim);
 	#endif
-		
+
 		if ( AllLess( col, float4(-1.e+20) ))
 			gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
 	}

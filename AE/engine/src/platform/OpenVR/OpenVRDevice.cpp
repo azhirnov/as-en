@@ -6,7 +6,7 @@
 #	error OpenVR requires Vulkan API.
 # endif
 
-# include "graphics/Vulkan/VEnumCast.h"
+# include "graphics_rhi/Vulkan/VEnumCast.h"
 # include "platform/OpenVR/OpenVRDevice.h"
 
 namespace AE::App

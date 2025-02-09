@@ -18,9 +18,7 @@ namespace AE::ResEditor
 	{
 	// types
 	public:
-		using DynSlider_t	= Union< RC<DynamicInt>, RC<DynamicInt2>, RC<DynamicInt3>, RC<DynamicInt4>,
-									 RC<DynamicUInt>, RC<DynamicUInt2>, RC<DynamicUInt3>, RC<DynamicUInt4>,
-									 RC<DynamicFloat>, RC<DynamicFloat2>, RC<DynamicFloat3>, RC<DynamicFloat4> >;
+		using DynSlider_t	= AnyDynVecOrScalar_t;
 		using Sliders_t		= Array< DynSlider_t >;
 
 

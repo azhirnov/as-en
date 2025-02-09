@@ -12,13 +12,31 @@ namespace AE::VFS
 */
 	bool  ReloadableArchiveStorage::Reload (RC<RDataSource> archive) __NE___
 	{
-		CHECK_ERR( archive );
+		return Reload( null, RVRef(archive) );
+	}
+
+	bool  ReloadableArchiveStorage::Reload (RC<AsyncRDataSource> asyncFile, RC<RDataSource> syncFile) __NE___
+	{
+		CHECK_ERR( asyncFile or syncFile );
 
 		EXLOCK( _guard );
 
 		_storage = null;
 
-		auto	new_storage = VirtualFileStorageFactory::CreateStaticArchive( RVRef(archive) );
+		auto	new_storage = VirtualFileStorageFactory::CreateStaticArchive( RVRef(asyncFile), RVRef(syncFile) );
+		CHECK_ERR( new_storage );
+
+		_storage = RC<ArchiveStaticStorage>{RVRef(new_storage)};
+		return true;
+	}
+
+	bool  ReloadableArchiveStorage::Reload (const Path &filename) __NE___
+	{
+		EXLOCK( _guard );
+
+		_storage = null;
+
+		auto	new_storage = VirtualFileStorageFactory::CreateStaticArchive( filename );
 		CHECK_ERR( new_storage );
 
 		_storage = RC<ArchiveStaticStorage>{RVRef(new_storage)};
@@ -54,6 +72,13 @@ namespace AE::VFS
 		SHAREDLOCK( _guard );
 		CHECK_ERR( _storage );
 		return _storage->Open( OUT ds, name );
+	}
+
+	bool  ReloadableArchiveStorage::Open (OUT RC<AsyncRStream> &stream, FileName::Ref name) C_NE___
+	{
+		SHAREDLOCK( _guard );
+		CHECK_ERR( _storage );
+		return _storage->Open( OUT stream, name );
 	}
 
 	bool  ReloadableArchiveStorage::Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name) C_NE___

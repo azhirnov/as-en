@@ -128,9 +128,9 @@ LightingResult  OrenNayar (const float3 diffuse, const float3 lightDir, const fl
 {
 	// from https://www.pbr-book.org/3ed-2018/Reflection_Models/Microfacet_Models
 
-    float	sigma2	= roughness * roughness;
-    float	A		= 1.f - (sigma2 / (2.f * (sigma2 + 0.33f)));
-    float	B		= 0.45f * sigma2 / (sigma2 + 0.09f);
+	float	sigma2	= roughness * roughness;
+	float	A		= 1.f - (sigma2 / (2.f * (sigma2 + 0.33f)));
+	float	B		= 0.45f * sigma2 / (sigma2 + 0.09f);
 }*/
 
 /*

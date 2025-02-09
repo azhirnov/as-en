@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define ENCODE
 #	define DECODE
 #endif
@@ -155,7 +155,7 @@
 		comp -= comp.xxyz * bitMsk;
 		return comp * (256.0 / 255.0);
 	}
-	
+
 	// range: 0..1
 	// error: 1.0e-10 for value < 0.01
 	// error: 0 for value > 0.01

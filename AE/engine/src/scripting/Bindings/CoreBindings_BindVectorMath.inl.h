@@ -61,31 +61,31 @@ namespace
 			binder.AddConstructor( &_Ctor4<T>,	{"v4"} );
 			binder.AddConstructor( &_CtorArg2,	{"x", "y"} );
 
-			if constexpr( not IsSameTypes< T, short >)
+			if constexpr( not IsSame< T, short >)
 			{
 				binder.AddConstructor( &_Ctor2<short>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<short>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<short>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, ushort >)
+			if constexpr( not IsSame< T, ushort >)
 			{
 				binder.AddConstructor( &_Ctor2<ushort>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<ushort>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<ushort>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, int >)
+			if constexpr( not IsSame< T, int >)
 			{
 				binder.AddConstructor( &_Ctor2<int>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<int>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<int>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, uint >)
+			if constexpr( not IsSame< T, uint >)
 			{
 				binder.AddConstructor( &_Ctor2<uint>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<uint>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<uint>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, float >)
+			if constexpr( not IsSame< T, float >)
 			{
 				binder.AddConstructor( &_Ctor2<float>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<float>,	{"v3"} );
@@ -151,31 +151,31 @@ namespace
 			binder.AddConstructor( &_CtorArg2,	{"xy", "z"} );
 			binder.AddConstructor( &_CtorArg3,	{"x", "y", "z"} );
 
-			if constexpr( not IsSameTypes< T, short >)
+			if constexpr( not IsSame< T, short >)
 			{
 				binder.AddConstructor( &_Ctor2<short>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<short>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<short>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, ushort >)
+			if constexpr( not IsSame< T, ushort >)
 			{
 				binder.AddConstructor( &_Ctor2<ushort>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<ushort>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<ushort>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, int >)
+			if constexpr( not IsSame< T, int >)
 			{
 				binder.AddConstructor( &_Ctor2<int>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<int>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<int>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, uint >)
+			if constexpr( not IsSame< T, uint >)
 			{
 				binder.AddConstructor( &_Ctor2<uint>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<uint>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<uint>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, float >)
+			if constexpr( not IsSame< T, float >)
 			{
 				binder.AddConstructor( &_Ctor2<float>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<float>,	{"v3"} );
@@ -254,31 +254,31 @@ namespace
 			binder.AddConstructor( &_CtorArg4,	{"x", "y", "z", "w"} );
 			binder.AddConstructor( &_CtorArg5,	{"x", "yzw"} );
 
-			if constexpr( not IsSameTypes< T, short >)
+			if constexpr( not IsSame< T, short >)
 			{
 				binder.AddConstructor( &_Ctor2<short>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<short>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<short>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, ushort >)
+			if constexpr( not IsSame< T, ushort >)
 			{
 				binder.AddConstructor( &_Ctor2<ushort>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<ushort>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<ushort>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, int >)
+			if constexpr( not IsSame< T, int >)
 			{
 				binder.AddConstructor( &_Ctor2<int>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<int>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<int>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, uint >)
+			if constexpr( not IsSame< T, uint >)
 			{
 				binder.AddConstructor( &_Ctor2<uint>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<uint>,	{"v3"} );
 				binder.AddConstructor( &_Ctor4<uint>,	{"v4"} );
 			}
-			if constexpr( not IsSameTypes< T, float >)
+			if constexpr( not IsSame< T, float >)
 			{
 				binder.AddConstructor( &_Ctor2<float>,	{"v2"} );
 				binder.AddConstructor( &_Ctor3<float>,	{"v3"} );
@@ -302,7 +302,7 @@ namespace
 
 		template <typename V>
 		static bool  Equal (const V &lhs, const V &rhs) {
-			return Math::All( lhs == rhs );
+			return Base::All( lhs == rhs );
 		}
 
 		template <typename V>
@@ -385,48 +385,48 @@ namespace
 		template <typename V> static V   ShiftR_v_s (const V &lhs, typename V::value_type rhs)					{ return lhs >> rhs; }
 		template <typename V> static V   ShiftR_s_v (typename V::value_type lhs, const V &rhs)					{ return lhs >> rhs; }
 
-		template <typename V> static bool  All (const V &x)														{ return Math::All( x ); }
-		template <typename V> static bool  Any (const V &x)														{ return Math::Any( x ); }
+		template <typename V> static bool  All (const V &x)														{ return Base::All( x ); }
+		template <typename V> static bool  Any (const V &x)														{ return Base::Any( x ); }
 
-		template <typename V> static V	ToSNorm (const V& x)													{ return Math::ToSNorm( x ); }
-		template <typename V> static V	ToUNorm (const V& x)													{ return Math::ToUNorm( x ); }
+		template <typename V> static V	ToSNorm (const V& x)													{ return Base::ToSNorm( x ); }
+		template <typename V> static V	ToUNorm (const V& x)													{ return Base::ToUNorm( x ); }
 
-		template <typename V> static typename V::value_type  Sum (const V& x)									{ return Math::Sum<typename V::value_type>( x ); }
-		template <typename V> static typename V::value_type  Area (const V& x)									{ return Math::Area( x ); }
-		template <typename V> static typename V::value_type  Dot (const V& x, const V& y)						{ return Math::Dot( x, y ); }
-		template <typename V> static typename V::value_type  Length (const V& x)								{ return Math::Length( x ); }
-		template <typename V> static typename V::value_type  LengthSq (const V& x)								{ return Math::LengthSq( x ); }
-		template <typename V> static typename V::value_type  Distance (const V& x, const V& y)					{ return Math::Distance( x, y ); }
-		template <typename V> static typename V::value_type  DistanceSq (const V& x, const V& y)				{ return Math::DistanceSq( x, y ); }
-		template <typename V> static typename V::value_type  VecToLinear (const V& x, const V& y)				{ return Math::VecToLinear( x, y ); }
+		template <typename V> static typename V::value_type  Sum (const V& x)									{ return Base::Sum<typename V::value_type>( x ); }
+		template <typename V> static typename V::value_type  Area (const V& x)									{ return Base::Area( x ); }
+		template <typename V> static typename V::value_type  Dot (const V& x, const V& y)						{ return Base::Dot( x, y ); }
+		template <typename V> static typename V::value_type  Length (const V& x)								{ return Base::Length( x ); }
+		template <typename V> static typename V::value_type  LengthSq (const V& x)								{ return Base::LengthSq( x ); }
+		template <typename V> static typename V::value_type  Distance (const V& x, const V& y)					{ return Base::Distance( x, y ); }
+		template <typename V> static typename V::value_type  DistanceSq (const V& x, const V& y)				{ return Base::DistanceSq( x, y ); }
+		template <typename V> static typename V::value_type  VecToLinear (const V& x, const V& y)				{ return Base::VecToLinear( x, y ); }
 
-		template <typename V> static V  Cross (const V &x, const V &y)											{ return Math::Cross( x, y ); }
-		template <typename V> static V  Min (const V &x, const V &y)											{ return Math::Min( x, y ); }
-		template <typename V> static V  Max (const V &x, const V &y)											{ return Math::Max( x, y ); }
-		template <typename V> static V  Clamp_1 (const V &x, const V &y, const V &z)							{ return Math::Clamp( x, y, z ); }
-		template <typename V> static V  Clamp_2 (const V &x, typename V::value_type y, typename V::value_type z){ return Math::Clamp( x, y, z ); }
-		template <typename V> static V  Wrap_1 (const V &x, const V &y, const V &z)								{ return Math::Wrap( x, y, z ); }
-		template <typename V> static V  Wrap_2 (const V &x, typename V::value_type y, typename V::value_type z)	{ return Math::Wrap( x, y, z ); }
-		template <typename V> static V  MirroredWrap_1 (const V &x, const V &y, const V &z)						{ return Math::MirroredWrap( x, y, z ); }
-		template <typename V> static V  MirroredWrap_2 (const V &x, typename V::value_type y, typename V::value_type z)	{ return Math::MirroredWrap( x, y, z ); }
+		template <typename V> static V  Cross (const V &x, const V &y)											{ return Base::Cross( x, y ); }
+		template <typename V> static V  Min (const V &x, const V &y)											{ return Base::Min( x, y ); }
+		template <typename V> static V  Max (const V &x, const V &y)											{ return Base::Max( x, y ); }
+		template <typename V> static V  Clamp_1 (const V &x, const V &y, const V &z)							{ return Base::Clamp( x, y, z ); }
+		template <typename V> static V  Clamp_2 (const V &x, typename V::value_type y, typename V::value_type z){ return Base::Clamp( x, y, z ); }
+		template <typename V> static V  Wrap_1 (const V &x, const V &y, const V &z)								{ return Base::Wrap( x, y, z ); }
+		template <typename V> static V  Wrap_2 (const V &x, typename V::value_type y, typename V::value_type z)	{ return Base::Wrap( x, y, z ); }
+		template <typename V> static V  MirroredWrap_1 (const V &x, const V &y, const V &z)						{ return Base::MirroredWrap( x, y, z ); }
+		template <typename V> static V  MirroredWrap_2 (const V &x, typename V::value_type y, typename V::value_type z)	{ return Base::MirroredWrap( x, y, z ); }
 
-		template <typename V> static V	Normalize (const V& x)													{ return Math::Normalize( x ); }
-		template <typename V> static V	Floor (const V& x)														{ return Math::Floor( x ); }
-		template <typename V> static V	Ceil (const V& x)														{ return Math::Ceil( x ); }
-		template <typename V> static V	Round (const V& x)														{ return Math::Round( x ); }
-		template <typename V> static V	Fract (const V& x)														{ return Math::Fract( x ); }
-		template <typename V> static V	Sqrt (const V& x)														{ return Math::Sqrt( x ); }
-		template <typename V> static V	Abs (const V& x)														{ return Math::Abs( x ); }
-		template <typename V> static V	Lerp (const V& x, const V& y, typename V::value_type f)					{ return Math::Lerp( x, y, f ); }
-		template <typename V> static V	Ln (const V& x)															{ return Math::Ln( x ); }
-		template <typename V> static V	Log2 (const V& x)														{ return Math::Log2( x ); }
-		template <typename V> static V	Log_1 (const V& x, const V& y)											{ return Math::Log( x, y ); }
-		template <typename V> static V	Log_2 (const V& x, typename V::value_type y)							{ return Math::Log( x, y ); }
-		template <typename V> static V	Pow_1 (const V& x, const V& y)											{ return Math::Pow( x, y ); }
-		template <typename V> static V	Pow_2 (const V& x, typename V::value_type y)							{ return Math::Pow( x, y ); }
-		template <typename V> static V	Exp (const V& x)														{ return Math::Exp( x ); }
-		template <typename V> static V	Exp2 (const V& x)														{ return Math::Exp2( x ); }
-		template <typename V> static V	Exp10 (const V& x)														{ return Math::Exp10( x ); }
+		template <typename V> static V	Normalize (const V& x)													{ return Base::Normalize( x ); }
+		template <typename V> static V	Floor (const V& x)														{ return Base::Floor( x ); }
+		template <typename V> static V	Ceil (const V& x)														{ return Base::Ceil( x ); }
+		template <typename V> static V	Round (const V& x)														{ return Base::Round( x ); }
+		template <typename V> static V	Fract (const V& x)														{ return Base::Fract( x ); }
+		template <typename V> static V	Sqrt (const V& x)														{ return Base::Sqrt( x ); }
+		template <typename V> static V	Abs (const V& x)														{ return Base::Abs( x ); }
+		template <typename V> static V	Lerp (const V& x, const V& y, typename V::value_type f)					{ return Base::Lerp( x, y, f ); }
+		template <typename V> static V	Ln (const V& x)															{ return Base::Ln( x ); }
+		template <typename V> static V	Log2 (const V& x)														{ return Base::Log2( x ); }
+		template <typename V> static V	Log_1 (const V& x, const V& y)											{ return Base::Log( x, y ); }
+		template <typename V> static V	Log_2 (const V& x, typename V::value_type y)							{ return Base::Log( x, y ); }
+		template <typename V> static V	Pow_1 (const V& x, const V& y)											{ return Base::Pow( x, y ); }
+		template <typename V> static V	Pow_2 (const V& x, typename V::value_type y)							{ return Base::Pow( x, y ); }
+		template <typename V> static V	Exp (const V& x)														{ return Base::Exp( x ); }
+		template <typename V> static V	Exp2 (const V& x)														{ return Base::Exp2( x ); }
+		template <typename V> static V	Exp10 (const V& x)														{ return Base::Exp10( x ); }
 	};
 
 /*
@@ -441,7 +441,7 @@ namespace
 
 		binder.Operators()
 			.Unary(		EUnaryOperator::Not,	static_cast<T (*)(const T&) >(&glm::operator !) )
-			.Equal(							&VecFunc::template Equal< Vec_t >)
+			.Equal(								&VecFunc::template Equal< Vec_t >)
 			.Compare(							&VecFunc::template Cmp< Vec_t >);
 
 		se->AddFunction( &VecFunc::template All< Vec_t >,	"All",	{"x"} );
@@ -459,9 +459,9 @@ namespace
 		using Vec_t		= T;
 		using Scalar_t	= typename T::value_type;
 
-		if constexpr( IsSameTypes< Scalar_t, int >	or
-					  IsSameTypes< Scalar_t, uint >	or
-					  IsSameTypes< Scalar_t, float >)
+		if constexpr( IsSame< Scalar_t, int >	or
+					  IsSame< Scalar_t, uint >	or
+					  IsSame< Scalar_t, float >)
 		{
 			if constexpr( IsSignedInteger<Scalar_t> or IsFloatPoint<Scalar_t> )
 			{
@@ -664,14 +664,14 @@ namespace
 
 /*
 =================================================
-	BindVector_Func
+	BindFloatVector_Func
 =================================================
 */
-	struct BindVector_Func
+	struct BindFloatVector_Func
 	{
 		ScriptEnginePtr	_se;
 
-		explicit BindVector_Func (const ScriptEnginePtr &se) : _se{se}
+		explicit BindFloatVector_Func (const ScriptEnginePtr &se) : _se{se}
 		{}
 
 		template <typename T, usize Index>
@@ -681,16 +681,44 @@ namespace
 
 			ClassBinder<T>	binder{ _se };
 
-			InitVecFields<T>::Init( binder );
-
-			if constexpr( IsSameTypes< Value_t, bool >) {
+			if constexpr( IsSame< Value_t, bool >)
+			{
+				InitVecFields<T>::Init( binder );
 				BindBoolVec( binder, _se );
-			} else
-			if constexpr( IsInteger< Value_t >) {
-				BindIntVec( binder, _se );
-			} else
-			if constexpr( IsFloatPoint< Value_t >) {
+			}else
+			if constexpr( IsFloatPoint< Value_t >)
+			{
+				InitVecFields<T>::Init( binder );
 				BindFloatVec( binder, _se );
+			}
+		}
+	};
+
+/*
+=================================================
+	BindIntVector_Func
+=================================================
+*/
+	struct BindIntVector_Func
+	{
+		ScriptEnginePtr	_se;
+
+		explicit BindIntVector_Func (const ScriptEnginePtr &se) : _se{se}
+		{}
+
+		template <typename T, usize Index>
+		void  operator () ()
+		{
+			using Value_t = typename T::value_type;
+
+			ClassBinder<T>	binder{ _se };
+
+			if constexpr( IsSame< Value_t, bool > or IsFloatPoint< Value_t >)
+			{}else
+			if constexpr( IsInteger< Value_t >)
+			{
+				InitVecFields<T>::Init( binder );
+				BindIntVec( binder, _se );
 			}
 		}
 	};

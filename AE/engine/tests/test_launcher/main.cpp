@@ -103,7 +103,7 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 
 void  AE_OnAppDestroyed ()
 {
-	AE::Base::StaticLogger::Deinitialize(true);
+	AE::Base::StaticLogger::Deinitialize( True{"checkMemLeaks"} );
 }
 
 #ifdef AE_PLATFORM_ANDROID

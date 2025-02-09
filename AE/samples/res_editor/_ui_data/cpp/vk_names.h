@@ -6,7 +6,7 @@ namespace RenderTechs
 	using AttachmentName_t      = AE::Graphics::AttachmentName;
 	using PipelineName_t        = AE::Graphics::PipelineName;
 	using RTShaderBindingName_t = AE::Graphics::RTShaderBindingName;
-	using DescriptorSetName_t   = AE::Graphics::DescriptorSetName;
+	using DSLayoutName_t        = AE::Graphics::DSLayoutName;
 
 	static constexpr struct _Histogram_RTech
 	{

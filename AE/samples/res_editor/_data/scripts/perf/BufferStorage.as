@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define MODE		0
 #	define GEN_NOISE
 #endif
@@ -42,21 +42,23 @@
 			"SBuf32",
 			"float2x4	data;",
 			buf32_size );
-		
+
 		buf64.ArrayLayout(
 			"SBuf64",
 			"float4x4	data;",
 			buf64_size );
-		
+
 		buf128.ArrayLayout(
 			"SBuf128",
 			"float4		data[8];",
 			buf128_size );
-		
+
 		Slider( tex_dim,	"TexDim",		1,	8,	2 );
 		Slider( mode,		"Mode",			0,	11	);
 		Slider( count,		"Repeat",		1,	32	);
 		Slider( gen_tex,	"GenTex",		0,	1,  1 );
+
+		Label( dim.XY(),	"Dimension" );
 
 		// render loop
 		{
@@ -204,7 +206,7 @@
 
 			[[unroll]] for (uint i = 0; i < 8; ++i)
 				data[i] = Update( data[i] );
-			
+
 			un_Buffer.elements[ idx ].data = data;
 		}
 		#else
@@ -231,7 +233,7 @@
 		un_Buffer16.elements[ idx ].data = col0;
 		un_Buffer32.elements[ idx ].data = float2x4( col0, col1 );
 		un_Buffer64.elements[ idx ].data = float4x4( col0, col1, col2, col3 );
-		
+
 		un_Buffer128.elements[ idx ].data[0] = col0;
 		un_Buffer128.elements[ idx ].data[1] = col1;
 		un_Buffer128.elements[ idx ].data[2] = col2;

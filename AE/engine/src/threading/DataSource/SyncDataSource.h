@@ -8,7 +8,7 @@ namespace AE::Threading
 {
 
 	//
-	// Read-only Data Source (Sync on top of Async Stream)
+	// Read-only Data Source (Sync on top of Async Data Source)
 	//
 	class SyncRDataSource final : public RDataSource
 	{
@@ -30,7 +30,7 @@ namespace AE::Threading
 
 
 	//
-	// Write-only Data Source (Sync on top of Async Stream)
+	// Write-only Data Source (Sync on top of Async Data Source)
 	//
 	class SyncWDataSource final : public WDataSource
 	{
@@ -110,7 +110,7 @@ namespace AE::Threading
 	{
 	// variables
 	private:
-		AtomicByte< Bytes >		_pos;
+		AtomicBytes< Bytes >	_pos;
 		RC<AsyncRDataSource>	_ds;
 
 	// methods
@@ -136,7 +136,7 @@ namespace AE::Threading
 	{
 	// variables
 	private:
-		AtomicByte< Bytes >		_pos;
+		AtomicBytes< Bytes >	_pos;
 		RC<AsyncWDataSource>	_ds;
 
 	// methods

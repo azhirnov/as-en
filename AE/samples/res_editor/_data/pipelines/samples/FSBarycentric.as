@@ -4,7 +4,7 @@
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -82,7 +82,8 @@
 	#else
 		const float		thickness		= 1.5;	// pixels
 		const float		falloff			= 6.0;	// pixels
-		const float		wireframe		= FSBarycentricWireframe( thickness, falloff ).x;
+	//	const float		wireframe		= FSBarycentricWireframe( thickness, falloff ).x;
+		const float		wireframe		= FSBarycentricQuadWireframe( thickness, falloff ).x;
 
 	#endif
 		out_Color = float4( wireframe );

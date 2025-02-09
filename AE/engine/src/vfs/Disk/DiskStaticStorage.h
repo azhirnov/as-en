@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Will cache all files during initialization.
+*/
 
 #pragma once
 
@@ -39,6 +42,7 @@ namespace AE::VFS
 	  // IVirtualFileStorage //
 		bool  Open (OUT RC<RStream> &stream, FileName::Ref name)							C_NE_OV;
 		bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)							C_NE_OV;
+		bool  Open (OUT RC<AsyncRStream> &stream, FileName::Ref name)						C_NE_OV;
 		bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)						C_NE_OV;
 
 		using IVirtualFileStorage::Open;
@@ -52,10 +56,12 @@ namespace AE::VFS
 
 		bool  _OpenByIter (OUT RC<RStream> &stream, FileName::Ref, const void* ref)			C_NE_OV;
 		bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref, const void* ref)			C_NE_OV;
+		bool  _OpenByIter (OUT RC<AsyncRStream> &stream, FileName::Ref, const void* ref)	C_NE_OV;
 		bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref, const void* ref)	C_NE_OV;
 
 		bool  _OpenByIter (OUT RC<WStream> &stream, FileName::Ref, const void* ref)			C_NE_OV;
 		bool  _OpenByIter (OUT RC<WDataSource> &ds, FileName::Ref, const void* ref)			C_NE_OV;
+		bool  _OpenByIter (OUT RC<AsyncWStream> &stream, FileName::Ref, const void* ref)	C_NE_OV;
 		bool  _OpenByIter (OUT RC<AsyncWDataSource> &ds, FileName::Ref, const void* ref)	C_NE_OV;
 
 		using IVirtualFileStorage::_OpenByIter;

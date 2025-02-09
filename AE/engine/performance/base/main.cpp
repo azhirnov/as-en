@@ -7,6 +7,12 @@ extern void PerfTest_HashMap ();
 extern void PerfTest_MinSleepTime ();
 extern void PerfTest_Utf8 ();
 extern void PerfTest_FindSubString ();
+extern void PerfTest_LogicOp ();
+extern void PerfTest_SIMD ();
+extern void PerfTest_VertSIMD ();
+extern void PerfTest_MemCopy ();
+extern void PerfTest_CacheSize ();
+
 
 #ifdef AE_PLATFORM_ANDROID
 extern "C" AE_DLL_EXPORT int Perf_Base (const char* path)
@@ -17,13 +23,19 @@ int main (const int argc, char* argv[])
   #ifdef AE_RELEASE
 	BEGIN_TEST();
 
-	PerfTest_HashSet();
-	PerfTest_HashMap();
+	//PerfTest_HashSet();
+	//PerfTest_HashMap();
 
 	//PerfTest_MinSleepTime();
 	//PerfTest_Utf8();
-	//PerfTest_FindSubString();
+	PerfTest_FindSubString();
 	//PerfTest_LogicOp();
+
+	//PerfTest_SIMD();
+	//PerfTest_VertSIMD();
+
+	//PerfTest_MemCopy();
+	//PerfTest_CacheSize();
 
 	AE_LOGI( "PerformanceTests.Base finished" );
 

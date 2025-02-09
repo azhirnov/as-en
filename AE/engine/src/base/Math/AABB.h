@@ -5,7 +5,7 @@
 #include "base/Math/Sphere.h"
 #include "base/Containers/ArrayView.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -204,4 +204,4 @@ namespace AE::Math
 		return aabb.IsIntersects( *this );
 	}
 
-} // AE::Math
+} // AE::Base

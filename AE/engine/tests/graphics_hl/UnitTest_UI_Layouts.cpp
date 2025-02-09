@@ -39,39 +39,39 @@ namespace
 	{
 		StaticAssert( IsBaseOf< ILayout, T >);
 		CHECK_ERR( lhs != null and rhs != null );
-		CHECK_ERR( lhs->GetType() == rhs->GetType() );
+		CHECK_ERR( lhs->Type() == rhs->Type() );
 		CHECK_ERR( lhs->GetChilds().size() == rhs->GetChilds().size() );
 
 		auto*	t_lhs = Cast<T>( lhs );
 
-		if constexpr( IsSameTypes< T, FixedLayoutPx > or
-					  IsSameTypes< T, FixedLayoutMm >)
+		if constexpr( IsSame< T, FixedLayoutPx > or
+					  IsSame< T, FixedLayoutMm >)
 		{
-			CHECK_ERR( All( t_lhs->GetRegion() == rhs->GetRegion() ));
+			CHECK_ERR( All( t_lhs->Region() == rhs->Region() ));
 			return true;
 		}
 
-		if constexpr( IsSameTypes< T, PaddingLayoutPx > or
-					  IsSameTypes< T, PaddingLayoutMm > or
-					  IsSameTypes< T, PaddingLayoutRel >)
+		if constexpr( IsSame< T, PaddingLayoutPx > or
+					  IsSame< T, PaddingLayoutMm > or
+					  IsSame< T, PaddingLayoutRel >)
 		{
-			CHECK_ERR( All( t_lhs->GetPaddingX() == rhs->GetPaddingX() ));
-			CHECK_ERR( All( t_lhs->GetPaddingY() == rhs->GetPaddingY() ));
+			CHECK_ERR( All( t_lhs->PaddingX() == rhs->PaddingX() ));
+			CHECK_ERR( All( t_lhs->PaddingY() == rhs->PaddingY() ));
 			return true;
 		}
 
-		if constexpr( IsSameTypes< T, AlignedLayoutPx > or
-					  IsSameTypes< T, AlignedLayoutMm > or
-					  IsSameTypes< T, AlignedLayoutRel >)
+		if constexpr( IsSame< T, AlignedLayoutPx > or
+					  IsSame< T, AlignedLayoutMm > or
+					  IsSame< T, AlignedLayoutRel >)
 		{
-			CHECK_ERR( All( t_lhs->GetSize() == rhs->GetSize() ));
-			CHECK_ERR( t_lhs->GetAlign() == rhs->GetAlign() );
+			CHECK_ERR( All( t_lhs->Size() == rhs->Size() ));
+			CHECK_ERR( t_lhs->Align() == rhs->Align() );
 			return true;
 		}
 
-		if constexpr( IsSameTypes< T, FillStackLayout >)
+		if constexpr( IsSame< T, FillStackLayout >)
 		{
-			CHECK_ERR( t_lhs->GetOrigin() == rhs->GetOrigin() );
+			CHECK_ERR( t_lhs->Origin() == rhs->Origin() );
 			return true;
 		}
 	}

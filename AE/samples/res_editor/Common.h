@@ -4,13 +4,6 @@
 
 #include "res_editor/ResourceEditor.pch.h"
 
-#ifdef AE_ENABLE_REMOTE_GRAPHICS
-# define RmG_UI_ON_HOST		1
-#else
-# define RmG_UI_ON_HOST		0
-#endif
-
-
 namespace AE::ResEditor
 {
 	using namespace AE::App;

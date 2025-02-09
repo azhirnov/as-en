@@ -4,23 +4,15 @@
 
 /*
 =================================================
-	SaveImage
-=================================================
-*/
-#ifdef AE_BUILD_ASSET_PACKER
-	ND_ inline bool  RasterFontPacker_SaveImage (const RasterFontPacker &self, WStream &stream, const ResLoader::IntermImage &src) __NE___
-	{
-		return ImagePacker_SaveImage( stream, self.Header(), src );
-	}
-#endif
-/*
-=================================================
 	IsValid
 =================================================
 */
 	ND_ inline bool  RasterFontPacker_IsValid (const RasterFontPacker &self) __NE___
 	{
-		CHECK_ERR( ImagePacker_IsValid( self.Header() ));
+		using EFileFlags = RasterFontPacker::EFileFlags;
+
+		if ( AnyBits( self._header.flags, EFileFlags::HasImage | EFileFlags::SeparateData ))
+			ASSERT( ImagePacker_IsValid( self._imageHeader ));
 
 		CHECK_ERR( not self.glyphMap.empty() );
 		CHECK_ERR( not self.fontHeight.empty() );
@@ -49,8 +41,23 @@
 #ifdef AE_BUILD_ASSET_PACKER
 	ND_ inline bool  RasterFontPacker_Serialize (const RasterFontPacker &self, Serializing::Serializer &ser) __NE___
 	{
+		using EFileFlags = RasterFontPacker::EFileFlags;
+
 		ASSERT( RasterFontPacker_IsValid( self ));
-		return ser( self._header, self.sdfConfig, self.glyphMap, self.fontHeight );
+
+		bool	res = ser( self._header );
+
+		if ( AllBits( self._header.flags, EFileFlags::SeparateData )){
+			res &= ser( self._imageHeader, self._imageFileName );
+		}else
+		if ( AllBits( self._header.flags, EFileFlags::HasResName )){
+			res &= ser( self._imageResName );
+		}else
+		if ( AllBits( self._header.flags, EFileFlags::HasImage )){
+			res &= ser( self._imageHeader );
+		}
+
+		return res and ser( self.sdfConfig, self.glyphMap, self.fontHeight );
 	}
 #endif
 /*
@@ -60,9 +67,23 @@
 */
 	ND_ inline bool  RasterFontPacker_Deserialize (OUT RasterFontPacker &self, Serializing::Deserializer &des) __NE___
 	{
+		using EFileFlags = RasterFontPacker::EFileFlags;
+
 		bool	res = des( OUT self._header );
 		res &= (self._header.magic == RasterFontPacker::Magic);
 		res &= (self._header.version == RasterFontPacker::Version);
+
+		if_unlikely( not res )
+			return false;
+
+		if ( AllBits( self._header.flags, EFileFlags::SeparateData ))
+			res = des( OUT self._imageHeader, OUT self._imageFileName );
+		else
+		if ( AllBits( self._header.flags, EFileFlags::HasResName ))
+			res = des( OUT self._imageResName );
+		else
+		if ( AllBits( self._header.flags, EFileFlags::HasImage ))
+			res = des( OUT self._imageHeader );
 
 		if_unlikely( not res )
 			return false;

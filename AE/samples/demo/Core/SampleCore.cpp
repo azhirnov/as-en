@@ -42,8 +42,9 @@ namespace
 
 		// threading
 		{
-			cfg.threading.maxThreads	= 1;
-			cfg.threading.mask			= { EThread::PerFrame, EThread::Renderer, EThread::Background };
+			cfg.threading.maxThreads			= 1;
+			cfg.threading.maxIOAccessThreads	= 1;
+			cfg.threading.mask					= { EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO };
 		}
 
 		// graphics
@@ -54,7 +55,8 @@ namespace
 			cfg.graphics.device.requiredQueues	= EQueueMask::Graphics;
 			cfg.graphics.device.optionalQueues	= Default; //EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer;
 			cfg.graphics.device.validation		= EDeviceValidation::Enabled;
-		//	cfg.graphics.device.devFlags		= EDeviceFlags::SetStableClock;
+		//	cfg.graphics.device.devFlags		|= EDeviceFlags::SetStableClock;
+		//	cfg.graphics.device.devFlags		|= EDeviceFlags::EnableMemoryReport;
 
 		  #if 0
 			cfg.graphics.swapchain.colorFormat	= EPixelFormat::RGBA16F;
@@ -66,6 +68,7 @@ namespace
 			cfg.graphics.swapchain.options		= EImageOpt::BlitDst;
 			cfg.graphics.swapchain.presentMode	= EPresentMode::FIFO;
 			cfg.graphics.swapchain.minImageCount= ubyte(cfg.graphics.maxFrames);
+			cfg.graphics.swapchain.usePreTransform = true;
 		}
 
 		// window
@@ -426,7 +429,7 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 
 void  AE_OnAppDestroyed ()
 {
-	StaticLogger::Deinitialize( true );
+	StaticLogger::Deinitialize( True{"checkMemLeaks"} );
 }
 //-----------------------------------------------------------------------------
 

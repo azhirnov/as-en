@@ -88,7 +88,7 @@ namespace AE::ResEditor
 */
 	void  TopDownCamera::_UpdateMatrix ()
 	{
-		_view = float4x4::RotateZ( _angle ).Translate( float3{ _position, 0.f });
+		_view = float4x4::RotateZ( _angle ).AddTranslation( float3{ _position, 0.f });
 
 		// TODO: proj
 	}

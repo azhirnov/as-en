@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics_hl/Resources/LoadableImage.h"
-#include "AssetPackerImpl.h"
+#include "graphics_hl/Resources/ResourceUploadManager.h"
 
 namespace AE::Graphics
 {
@@ -19,21 +19,135 @@ namespace {
 	LoadableImage::~LoadableImage () __NE___
 	{
 		if ( _imageId )
-			GraphicsScheduler().GetResourceManager().ReleaseResource( _imageId );
+			GraphicsScheduler().GetResourceManager().ReleaseResources( _imageId, _viewId );
 	}
 
 /*
 =================================================
-	ReleaseImageAndView
+	GetWhenUploadComplete
 =================================================
 */
-	auto  LoadableImage::ReleaseImageAndView () __NE___ -> StrongImageAndViewID
+	Promise<RC<LoadableImage>>  LoadableImage::GetWhenUploadComplete () __NE___
 	{
-		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+		return MakePromiseFromValue( GetRC<LoadableImage>(),
+									 Tuple{OnUploadComplete()},
+									 "GetWhenUploadComplete",
+									 ETaskQueue::Background );
+	}
 
-		auto	view_id	= res_mngr.CreateImageView( ImageViewDesc{ _viewType }, _imageId, Default );
+/*
+=================================================
+	CloneImageView / GetImageDesc / GetViewDesc
+=================================================
+*/
+	Strong<ImageViewID>  LoadableImage::CloneImageView () C_NE___
+	{
+		ASSERT( _viewId );
+		return GraphicsScheduler().GetResourceManager().AcquireResource( _viewId.Get() );
+	}
 
-		return StrongImageAndViewID( RVRef(_imageId), RVRef(view_id) );
+	ImageDesc  LoadableImage::GetImageDesc () C_NE___
+	{
+		ASSERT( _imageId );
+		return GraphicsScheduler().GetResourceManager().GetDescription( _imageId );
+	}
+
+	ImageViewDesc  LoadableImage::GetViewDesc () C_NE___
+	{
+		ASSERT( _viewId );
+		return GraphicsScheduler().GetResourceManager().GetDescription( _viewId );
+	}
+
+/*
+=================================================
+	Loader::OnUploadCompleteTask
+=================================================
+*/
+	class LoadableImage::Loader::OnUploadCompleteTask final : public Threading::IAsyncTask
+	{
+	private:
+		RC<LoadableImage>	_image;
+
+	public:
+		OnUploadCompleteTask (RC<LoadableImage> img) __NE___ : IAsyncTask{ ETaskQueue::Background }, _image{RVRef(img)} {}
+
+		void  Run () __Th_OV
+		{
+			auto	upload	= _image->_uploadResult.release();
+			bool	ok		= upload ? upload->IsCompleted() : true;
+
+			_image->_SetLoadingStatus( ok ? ELoadingStatus::Complete : ELoadingStatus::Failed );
+			_image = null;
+		}
+
+		DEBUG_ONLY( void  OnCancel ()	__NE_OV { DBG_WARNING("should never happens"); })
+
+		StringView  DbgName ()			C_NE_OV { return "on image loading complete"; }
+	};
+
+/*
+=================================================
+	Loader::Load
+=================================================
+*/
+	RC<LoadableImage>  LoadableImage::Loader::Load (Serializing::Deserializer &des, GfxMemAllocatorPtr alloc, ResourceCache &resCache,
+													ResourceUploadManager &uploadMngr, CachedResourceName::Ref selfName) __NE___
+	{
+		using namespace AE::Threading;
+
+		ImagePacker::FileHeader		file_hdr;
+		CHECK_ERR( ImagePacker_Deserialize( des, OUT file_hdr ));
+		CHECK_ERR( file_hdr.fileName.IsDefined() );
+
+		auto&	img_header	= file_hdr.imageHeader;
+		auto	image		= MakeRC<LoadableImage>();
+		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
+
+		image->_imageId = res_mngr.CreateImage( img_header.ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, RVRef(alloc) );
+		CHECK_ERR( image->_imageId );
+
+		image->_viewId = res_mngr.CreateImageView( ImageViewDesc{img_header.viewType}, image->_imageId );
+		CHECK_ERR( image->_viewId );
+
+		auto	upload = uploadMngr.CreateTask();
+		CHECK_ERR( upload );
+
+		image->_uploadResult.store( upload );
+		image->_SetLoadingStatus( ELoadingStatus::Created );
+
+		if ( selfName.IsDefined() )
+		{
+			if ( auto cached = resCache.InsertResource( selfName, image ))
+				return cached;
+		}
+
+		RC<AsyncRDataSource>	file;
+		CHECK_ERR( GetVFS().Open( OUT file, VFS::FileName{file_hdr.fileName} ));
+
+		CHECK_ERR( uploadMngr.EnqueueImage( upload, image->_imageId, RVRef(file), 0_b,
+											EUploadFlags::UsedWhileUploading, Default, EResourceState::FragmentShader | EResourceState::ShaderSample ));
+
+		image->_SetLoadingStatus( ELoadingStatus::Uploading );
+
+		Scheduler().Run<OnUploadCompleteTask>( Tuple{image}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+
+		return image;
+	}
+
+/*
+=================================================
+	Loader::LoadAsync
+=================================================
+*/
+	Promise<RC<LoadableImage>>  LoadableImage::Loader::LoadAsync (Serializing::Deserializer &des, GfxMemAllocatorPtr alloc,
+																  ResourceCache &resCache, ResourceUploadManager &uploadMngr,
+																  CachedResourceName::Ref selfName) __NE___
+	{
+		auto	image = Loader::Load( des, RVRef(alloc), resCache, uploadMngr, selfName );
+		if ( image )
+			return image->GetWhenUploadComplete();
+		else
+			return Default;
 	}
 
 /*
@@ -41,77 +155,48 @@ namespace {
 	Loader::Load
 =================================================
 */
-	RC<LoadableImage>  LoadableImage::Loader::Load (RC<RStream> stream, ITransferContext &ctx, GfxMemAllocatorPtr alloc) __NE___
+	RC<LoadableImage>  LoadableImage::Loader::Load (RC<Threading::AsyncRDataSource> file, GfxMemAllocatorPtr alloc, ResourceUploadManager &uploadMngr) __NE___
 	{
-		// TODO: async
-		//	- read header in FileIO thread
-		//	- create image in special thread for GPU allocations
-		//	- read image data to RAM
-		//	- copy from RAM to staging buffer
+		CHECK_ERR( file );
 
-		CHECK_ERR( stream and stream->IsOpen() );
+		ImagePacker::FileHeader		file_hdr;
+		{
+			Threading::SyncRStreamOnAsyncDS		stream {file};
+			CHECK_ERR( ImagePacker_ReadHeader( stream, OUT file_hdr ));
+			CHECK_ERR( not file_hdr.fileName.IsDefined() );
+		}
 
+		auto&	img_header	= file_hdr.imageHeader;
 		auto	image		= MakeRC<LoadableImage>();
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
 
-		ImagePacker::FileHeader	header;
-		CHECK_ERR( ImagePacker_ReadHeader( *stream, OUT header ));
-
-		image->_imageId = res_mngr.CreateImage( header.hdr.ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, RVRef(alloc) );
+		image->_imageId = res_mngr.CreateImage( img_header.ToDesc().SetUsage( EImageUsage::Sampled | EImageUsage::Transfer ), Default, RVRef(alloc) );
 		CHECK_ERR( image->_imageId );
 
-		CHECK_ERR( _Load( *stream, image->_imageId, &header.hdr, ctx ));
+		image->_viewId = res_mngr.CreateImageView( ImageViewDesc{img_header.viewType}, image->_imageId );
+		CHECK_ERR( image->_viewId );
 
-		image->_viewType = header.hdr.viewType;
+		auto	upload = uploadMngr.CreateTask();
+		CHECK_ERR( upload );
+
+		image->_uploadResult.store( upload );
+		image->_SetLoadingStatus( ELoadingStatus::Created );
+
+		CHECK_ERR( uploadMngr.EnqueueImage( upload, image->_imageId, RVRef(file), Sizeof(file_hdr),
+											EUploadFlags::UsedWhileUploading, Default, EResourceState::FragmentShader | EResourceState::ShaderSample ));
+
+		image->_SetLoadingStatus( ELoadingStatus::Uploading );
+
+		Scheduler().Run<OnUploadCompleteTask>( Tuple{image}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+
 		return image;
 	}
 
-/*
-=================================================
-	Loader::_Load
-=================================================
-*/
-	bool  LoadableImage::Loader::_Load (RStream &stream, ImageID imageId, const void* hdr, ITransferContext &ctx) __NE___
+	RC<LoadableImage>  LoadableImage::Loader::Load (VFS::FileName::Ref name, GfxMemAllocatorPtr alloc, ResourceUploadManager &uploadMngr) __NE___
 	{
-		auto&			header		= *Cast<ImagePacker::Header>(hdr);
-		const Bytes		base_off	= stream.Position();
-
-		RC<SharedMem>	tmp			= SharedMem::Create( AE::GetDefaultAllocator(), ImagePacker_MaxSliceSize( header ));
-		CHECK_ERR( tmp );
-
-		// copy to staging buffer
-		ctx.ImageBarrier( imageId, EResourceState::Unknown, EResourceState::CopyDst );
-		ctx.CommitBarriers();
-
-		UploadImageDesc	upload;
-		upload.heapType	= EStagingHeapType::Dynamic;
-
-		for (uint mip = 0, mip_cnt = header.mipmaps; mip < mip_cnt; ++mip)
-		{
-			for (uint layer = 0, layer_cnt = header.arrayLayers; layer < layer_cnt; ++layer)
-			{
-				upload.arrayLayer	= ImageLayer{layer};
-				upload.mipLevel		= MipmapLevel{mip};
-
-				Bytes	off;
-				ImagePacker_GetOffset( header, upload.arrayLayer, upload.mipLevel, uint3{0},
-										OUT upload.imageDim, OUT off, OUT upload.dataRowPitch, OUT upload.dataSlicePitch );
-
-				const Bytes	size = upload.dataSlicePitch * upload.imageDim.z;
-
-				CHECK_ERR( stream.Position() == off + base_off );
-				CHECK_ERR( size <= tmp->Size() );
-				CHECK_ERR( stream.Read( OUT tmp->Data(), size ));
-
-				ImageMemView	dst_mem;
-				ctx.UploadImage( imageId, upload, OUT dst_mem );
-
-				ImageMemView	src_mem { tmp->Data(), size, uint3{}, upload.imageDim, upload.dataRowPitch,
-										  upload.dataSlicePitch, header.format, EImageAspect::Color };
-				CHECK_ERR( dst_mem.CopyFrom( src_mem ));
-			}
-		}
-		return true;
+		RC<Threading::AsyncRDataSource>		file;
+		CHECK_ERR( GetVFS().Open( OUT file, name ));
+		return Loader::Load( RVRef(file), RVRef(alloc), uploadMngr );
 	}
 
 

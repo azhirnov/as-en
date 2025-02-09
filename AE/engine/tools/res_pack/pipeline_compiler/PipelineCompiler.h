@@ -41,6 +41,16 @@ namespace AE::PipelineCompiler
 	AE_BIT_OPERATORS( EReflectionFlags );
 
 
+	enum class EPipelineCompilerFlags : uint
+	{
+		Unknown							= 0,
+		AddNameMapping					= 1 << 0,	// for debugging
+		IncludePipelinesFromCurrentDir	= 1 << 1,
+		SearchShadersInCurrentDir		= 1 << 2,
+	};
+	AE_BIT_OPERATORS( EPipelineCompilerFlags );
+
+
 	struct PathParams
 	{
 		const CharType *	path		= null;
@@ -59,6 +69,8 @@ namespace AE::PipelineCompiler
 
 	struct PipelinesInfo
 	{
+		EPipelineCompilerFlags	flags					= EPipelineCompilerFlags::Unknown;
+
 		// input pipelines
 		const PathParams *		inPipelines				= null;		// [inPipelineCount]	// files or folders
 		usize					inPipelineCount			= 0;
@@ -81,7 +93,6 @@ namespace AE::PipelineCompiler
 		const CharType *		outputCppStructsFile	= null;		// C++ reflection
 		const CharType *		outputCppNamesFile		= null;		// C++ reflection
 		const CharType *		outputScriptFile		= null;		// script reflection
-		bool					addNameMapping			= false;	// for debugging
 	};
 
 

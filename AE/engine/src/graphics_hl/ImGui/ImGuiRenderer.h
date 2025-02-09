@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Thread-safe:  no
+*/
 
 #pragma once
 
@@ -23,12 +26,14 @@ namespace AE::Graphics
 		{
 			static constexpr auto  TypeName = ShaderStructName{HashVal32{0xb41e4542u}};  // 'imgui_ub'
 
-			float2  scale;
-			float2  translate;
+			float2  transform_c0;
+			float2  transform_c1;
+			float2  transform_c2;
 		};
-		StaticAssert( offsetof(imgui_ub, scale) == 0 );
-		StaticAssert( offsetof(imgui_ub, translate) == 8 );
-		StaticAssert( sizeof(imgui_ub) == 16 );
+		StaticAssert( offsetof(imgui_ub, transform_c0) == 0 );
+		StaticAssert( offsetof(imgui_ub, transform_c1) == 8 );
+		StaticAssert( offsetof(imgui_ub, transform_c2) == 16 );
+		StaticAssert( sizeof(imgui_ub) == 24 );
 
 		using PipelineInfo_t = ArrayView< Tuple< EPixelFormat, RenderTechPassName, PipelineName >>;
 
@@ -43,10 +48,15 @@ namespace AE::Graphics
 			~StyleScope ()							__NE___;
 		};
 
-		struct AEStyleScope : StyleScope
-		{
-		public:
-			explicit AEStyleScope (ImGuiContext* ctx, Bool sRGB = True{})	__NE___;
+		struct AEStyleScope : StyleScope {
+			explicit AEStyleScope (ImGuiContext* ctx, Bool sRGB = True{}) __NE___;
+		};
+
+		struct AEStyleScope_StartBtn : StyleScope {
+			explicit AEStyleScope_StartBtn (ImGuiContext* ctx, Bool sRGB = True{}) __NE___;
+		};
+		struct AEStyleScope_StopBtn : StyleScope {
+			explicit AEStyleScope_StopBtn (ImGuiContext* ctx, Bool sRGB = True{}) __NE___;
 		};
 
 	private:
@@ -72,7 +82,7 @@ namespace AE::Graphics
 
 		float						_pixToUI			= 1.f;		// surface coords to UI coords
 		float						_uiToPix			= 1.f;		// UI coords to surface coords
-		float						_scale;
+		float						_scale				= -1.f;		// disable adaptive scaling
 
 		RenderTechPipelinesPtr		_rtech;
 		PipelineMap_t				_pplnMap;
@@ -92,7 +102,7 @@ namespace AE::Graphics
 		ND_ bool  Initialize (GfxMemAllocatorPtr		gfxAlloc,
 							  RenderTechPipelinesPtr	rtech,
 							  PipelineInfo_t			pplnInfo,
-							  const DescriptorSetName	&dsName = DescriptorSetName{"imgui.ds"},
+							  const DescriptorSetName	&dsName   = DescriptorSetName{"imgui.ds"},
 							  UniformName::Ref			unTexture = UniformName{"un_Texture"})	__NE___;
 			void  Deinitialize ()																__NE___;
 
@@ -107,17 +117,18 @@ namespace AE::Graphics
 		ND_ bool  Draw (RenderTask									&rtask,
 						App::IOutputSurface							&surface,
 						const Function< void () >					&updateUI,
-						const Function< void (DirectCtx::Draw &) >	&drawBefore,
+						const Function< void (DirectCtx::Draw &) >	&drawBefore = Default,
 						const RenderPassDesc::ClearValue_t			&clearValue = RGBA32f{})	__Th___;
 
 		ND_ bool  Draw (RenderTask									&rtask,
 						DirectCtx::CommandBuffer					cmdbuf,
 						const App::IOutputSurface::RenderTarget		&rt,
 						const Function< void () >					&updateUI,
-						const Function< void (DirectCtx::Draw &) >	&drawBefore,
+						const Function< void (DirectCtx::Draw &) >	&drawBefore	= Default,
 						const RenderPassDesc::ClearValue_t			&clearValue = RGBA32f{})	__Th___;
 
 		// v2
+		ND_ bool  NeedUpload ()																	C_NE___	{ return not _fontInitialized; }
 		ND_ bool  Upload (DirectCtx::Transfer						&ctx)						__Th___;
 		ND_ bool  Render (DirectCtx::Draw							&ctx,
 						  const App::IOutputSurface::RenderTarget	&rt,
@@ -127,7 +138,7 @@ namespace AE::Graphics
 	private:
 		ND_ bool  _Initialize (GfxMemAllocatorPtr gfxAlloc, RenderTechPipelinesPtr rtech);
 		ND_ bool  _Update (const App::IOutputSurface::RenderTarget &rt, const Function<void()> &ui);
-			bool  _DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, GraphicsPipelineID ppln);
+			bool  _DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, GraphicsPipelineID, ESurfaceTransform);
 		ND_ bool  _UploadVB (DirectCtx::Draw &dctx, const ImDrawData &drawData);
 		ND_ bool  _Upload (DirectCtx::Transfer &copyCtx);
 

@@ -9,42 +9,61 @@ namespace AE::Base
 	using CT_True	= std::bool_constant<true>;
 	using CT_False	= std::bool_constant<false>;
 
-	namespace _hidden_
-	{
-		template <typename T> struct _IsScalar		: CT_Bool< std::is_scalar_v<T>			>{};
-		template <typename T> struct _IsFloatPoint	: CT_Bool< std::is_floating_point_v<T>	>{};
-		template <typename T> struct _IsSigned		: CT_Bool< std::is_signed_v<T>			>{};
-	}
+	template <typename T> struct TIsScalar		: CT_Bool< std::is_scalar_v<T>			>{};
+	template <typename T> struct TIsFloatPoint	: CT_Bool< std::is_floating_point_v<T>	>{};
+	template <typename T> struct TIsSigned		: CT_Bool< std::is_signed_v<T>			>{};
+	template <typename T> struct TIsUnsigned	: CT_Bool< std::is_unsigned_v<T>		>{};
+	template <typename T> struct TIsInteger		: CT_Bool< std::is_integral_v<T> or std::is_enum_v<T> >{};
+	template <typename T> struct TUnwrap		{ using type = T; };
+
+
+	template <typename T>
+	static constexpr bool	IsSigned				= TIsSigned<T>::value;
+
+	template <typename T>
+	static constexpr bool	IsUnsigned				= TIsUnsigned<T>::value;
 
 	template <typename T>
 	static constexpr bool	IsFloatPoint			= std::is_floating_point_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsAnyFloatPoint			= Base::_hidden_::_IsFloatPoint<T>::value;	// software or hardware
+	static constexpr bool	IsAnyFloatPoint			= TIsFloatPoint<T>::value;					// software or hardware
 
 	template <typename T>
-	static constexpr bool	IsSignedFloatPoint		= IsAnyFloatPoint<T> and Base::_hidden_::_IsSigned<T>::value;
+	static constexpr bool	IsSwFloatPoint			= IsFloatPoint<T> != IsAnyFloatPoint<T>;	// only software
 
 	template <typename T>
-	static constexpr bool	IsUnsignedFloatPoint	= IsAnyFloatPoint<T> and not Base::_hidden_::_IsSigned<T>::value;
+	static constexpr bool	IsSignedFloatPoint		= IsAnyFloatPoint<T> and IsSigned<T>;
+
+	template <typename T>
+	static constexpr bool	IsUnsignedFloatPoint	= IsAnyFloatPoint<T> and IsUnsigned<T>;
 
 	template <typename T>
 	static constexpr bool	IsInteger				= std::is_integral_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsSignedInteger			= std::is_integral_v<T> and std::is_signed_v<T>;
+	static constexpr bool	IsAnyInteger			= TIsInteger<T>::value;						// software or hardware or enum
 
 	template <typename T>
-	static constexpr bool	IsUnsignedInteger		= std::is_integral_v<T> and std::is_unsigned_v<T>;
+	static constexpr bool	IsSwInteger				= IsInteger<T> != IsAnyInteger<T>;			// only software
 
 	template <typename T>
-	static constexpr bool	IsSigned				= std::is_signed_v<T>;
+	static constexpr bool	IsSignedInteger			= IsInteger<T> and IsSigned<T>;
 
 	template <typename T>
-	static constexpr bool	IsUnsigned				= std::is_unsigned_v<T>;
+	static constexpr bool	IsUnsignedInteger		= IsInteger<T> and IsUnsigned<T>;
 
 	template <typename T>
-	static constexpr bool	IsScalar				= Base::_hidden_::_IsScalar<T>::value;
+	static constexpr bool	IsAnySignedInteger		= IsAnyInteger<T> and IsSigned<T>;
+
+	template <typename T>
+	static constexpr bool	IsAnyUnsignedInteger	= IsAnyInteger<T> and IsUnsigned<T>;
+
+	template <typename T>
+	static constexpr bool	IsScalar				= std::is_scalar_v<T>;
+
+	template <typename T>
+	static constexpr bool	IsAnyScalar				= TIsScalar<T>::value;
 
 	template <typename T>
 	static constexpr bool	IsEnum					= std::is_enum_v<T>;
@@ -94,7 +113,7 @@ namespace AE::Base
 	static constexpr bool	IsVolatile				= std::is_volatile_v<T>;
 
 	template <typename T1, typename T2>
-	static constexpr bool	IsSameTypes				= std::is_same_v<T1, T2>;
+	static constexpr bool	IsSame					= std::is_same_v<T1, T2>;
 
 	template <typename T>
 	static constexpr bool	IsVoid					= std::is_void_v<T>;
@@ -274,7 +293,7 @@ namespace AE::Base
 	using Conditional		= std::conditional_t< Test, IfTrue, IfFalse >;
 
 
-	template <typename T>	ND_ constexpr usize		CT_SizeofInBits (const T&)	__NE___ { return sizeof(T) << 3; }
+	template <typename T>	NdCx__ usize			CT_SizeofInBits (const T&)	__NE___ { return sizeof(T) << 3; }
 	template <typename T>	static constexpr usize	CT_SizeOfInBits				=		sizeof(T) << 3;
 
 
@@ -348,7 +367,7 @@ namespace AE::Base
 		struct RemoveAllQual
 		{
 			using _NextType	= RemoveReference< RemovePointer< RemoveArray< RemoveCV< T >>>>;
-			using type		= typename Conditional< (IsSameTypes< _NextType, T >),
+			using type		= typename Conditional< (IsSame< _NextType, T >),
 								TypeToType<T>,
 								DeferredTemplate2< RemoveAllQual, _NextType > >::type;
 		};
@@ -398,14 +417,32 @@ namespace AE::Base
 	namespace _hidden_
 	{
 		template <typename T>
-		static constexpr bool	_IsChar = (IsSameTypes< T, CharAnsi >	or
-										   IsSameTypes< T, CharUtf8 >	or
-										   IsSameTypes< T, CharUtf16 >	or
-										   IsSameTypes< T, CharUtf32 >	or
-										   IsSameTypes< T, wchar_t >);
+		static constexpr bool	_IsChar = (IsSame< T, CharAnsi >	or
+										   IsSame< T, CharUtf8 >	or
+										   IsSame< T, CharUtf16 >	or
+										   IsSame< T, CharUtf32 >	or
+										   IsSame< T, wchar_t >);
 	}
 	template <typename T>
 	static constexpr bool	IsChar = Base::_hidden_::_IsChar< RemoveCV<T> >;
+
+
+	namespace _hidden_
+	{
+		template <typename T>
+		struct _UnwrapType
+		{
+			using _NextType	= typename TUnwrap< RemoveAllQualifiers<T> >::type;
+			using type		= typename Conditional< (IsSame< _NextType, T >),
+								TypeToType<T>,
+								DeferredTemplate2< _UnwrapType, _NextType > >::type;
+		};
+	}
+	template <typename T>
+	using UnwrapType = typename TUnwrap< RemoveAllQualifiers<T> >::type;
+
+	template <typename T>
+	using UnwrapRecursive = typename Base::_hidden_::_UnwrapType<T>::type;
 //-----------------------------------------------------------------------------
 
 
@@ -445,7 +482,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ constexpr auto  MaxValue ()
+	NdCx__ auto  MaxValue ()
 	{
 		using NL = std::numeric_limits< RemoveAllQualifiers<T> >;
 		StaticAssert( NL::is_specialized );
@@ -453,7 +490,7 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	ND_ constexpr auto  MinValue ()
+	NdCx__ auto  MinValue ()
 	{
 		using NL = std::numeric_limits< RemoveAllQualifiers<T> >;
 		StaticAssert( NL::is_specialized );
@@ -466,7 +503,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ constexpr auto  Infinity ()
+	NdCx__ auto  Infinity ()
 	{
 		StaticAssert( IsAnyFloatPoint<T> );
 		using NL = std::numeric_limits< RemoveAllQualifiers<T> >;
@@ -480,12 +517,58 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ constexpr auto  NaN ()
+	NdCx__ auto  NaN ()
 	{
 		StaticAssert( IsAnyFloatPoint<T> );
 		using NL = std::numeric_limits< RemoveAllQualifiers<T> >;
 		StaticAssert( NL::is_specialized );
 		return NL::quiet_NaN();
+	}
+
+/*
+=================================================
+	IsInfinity / IsNaN / IsFinite (scalar)
+=================================================
+*/
+	template <typename T>
+	ND_ EnableIf<IsFloatPoint<T>, bool>  IsInfinity (const T x) __NE___
+	{
+		return std::isinf( x );
+	}
+
+	template <typename T>
+	ND_ EnableIf<IsFloatPoint<T>, bool>  IsNaN (const T x) __NE___
+	{
+		return std::isnan( x );
+	}
+
+	template <typename T>
+	ND_ EnableIf<IsFloatPoint<T>, bool>  IsFinite (const T x) __NE___
+	{
+		return std::isfinite( x );
+	}
+
+/*
+=================================================
+	IsInfinity / IsNaN / IsFinite (chrono)
+=================================================
+*/
+	template <typename Rep, typename Period>
+	ND_ EnableIf<IsFloatPoint<Rep>, bool>  IsInfinity (const std::chrono::duration<Rep, Period> x) __NE___
+	{
+		return IsInfinity( x.count() );
+	}
+
+	template <typename Rep, typename Period>
+	ND_ EnableIf<IsFloatPoint<Rep>, bool>  IsNaN (const std::chrono::duration<Rep, Period> x) __NE___
+	{
+		return IsNaN( x.count() );
+	}
+
+	template <typename Rep, typename Period>
+	ND_ EnableIf<IsFloatPoint<Rep>, bool>  IsFinite (const std::chrono::duration<Rep, Period> x) __NE___
+	{
+		return IsFinite( x.count() );
 	}
 
 /*
@@ -565,6 +648,21 @@ namespace AE::Base
 
 	template <typename T>
 	static constexpr bool	IsTriviallyDestructible = TTriviallyDestructible< RemoveCV<T> >::value;
+
+/*
+=================================================
+	IsTriviallyConstructible
+----
+	Allow to skip constructor.
+=================================================
+*/
+	template <typename T>
+	struct TTriviallyConstructible : CT_Bool<
+										std::is_trivially_constructible_v<T> or
+										IsZeroMemAvailable<T>				>{};
+
+	template <typename T>
+	static constexpr bool	IsTriviallyConstructible = TTriviallyConstructible< RemoveCV<T> >::value;
 
 
 } // AE::Base

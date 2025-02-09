@@ -25,6 +25,7 @@ extern void Test_DrawTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::I
 =================================================
 */
 DrawTestCore::DrawTestCore () :
+	_uploadMngr{ MakeRC<ResourceUploadManager>() },
 	_device{ True{"enable info log"} }
 {
 	_tests.emplace_back( &DrawTestCore::Test_Canvas_Rect );
@@ -47,8 +48,6 @@ bool  DrawTestCore::Run (FStorage_t assetStorage, FStorage_t refStorage)
 	}
 	CHECK_ERR( _CompilePipelines( assetStorage ));
 
-	_canvas.reset( new Canvas{} );
-
 	bool	result = _RunTests();
 
 	_Destroy();
@@ -65,7 +64,12 @@ void  DrawTestCore::_Destroy ()
 {
 	_canvasPpln		= null;
 	_canvasPplnDesk	= null;
-	_canvas.reset();
+
+	if ( _uploadMngr )
+	{
+		_uploadMngr->Deinitialize();
+		_uploadMngr = null;
+	}
 
 	RenderTaskScheduler::InstanceCtor::Destroy();
 
@@ -86,25 +90,33 @@ Unique<ImageComparator>  DrawTestCore::_LoadReference (StringView name) const
 {
 	Unique<ImageComparator>	img_cmp{ new ImageComparator{} };
 
-	const Path	path	= (_refImagePath / name).replace_extension( "png" );
+	const Path	path	= (_refImagePath / name).replace_extension( ".png" );
 	bool		loaded	= false;
+	auto		open_file = [s = _refImageStorage, p = Path{path}.replace_extension( ".diff.png" )] ()
+	{{
+		VFS::FileName	fname;
+		RC<WStream>		diff_file;
+		CHECK( s->CreateFile( OUT fname, p ));
+		CHECK( s->Open( OUT diff_file, fname ));
+		return diff_file;
+	}};
 
 	if ( not UpdateAllReferences )
 	{
 		RC<RStream>	rfile;
 		if ( _refImageStorage->Open( OUT rfile, VFS::FileName{ToString(path)} ))
 		{
-			loaded = img_cmp->LoadReference( RVRef(rfile), path );
+			loaded = img_cmp->LoadReference( RVRef(rfile), path, RVRef(open_file) );
 		}
 	}
 
 	if ( not loaded )
 	{
 		VFS::FileName	fname;
-		CHECK_ERR( _refImageStorage->CreateFile( fname, path ));
+		CHECK_ERR( _refImageStorage->CreateFile( OUT fname, path ), null );
 
 		RC<WStream>		wfile;
-		CHECK_ERR( _refImageStorage->Open( OUT wfile, fname ));
+		CHECK_ERR( _refImageStorage->Open( OUT wfile, fname ), null );
 		img_cmp->Reset( RVRef(wfile), path );
 	}
 	return img_cmp;
@@ -119,10 +131,10 @@ bool  DrawTestCore::SaveImage (StringView name, const ImageMemView &view) const
 {
 	using namespace AE::ResLoader;
 
-	const Path	path = (_refImagePath / name).replace_extension( "dds" );
+	const Path	path = (_refImagePath / name).replace_extension( ".dds" );
 
 	VFS::FileName	fname;
-	CHECK_ERR( _refImageStorage->CreateFile( fname, path ));
+	CHECK_ERR( _refImageStorage->CreateFile( OUT fname, path ));
 
 	RC<WStream>		wfile;
 	CHECK_ERR( _refImageStorage->Open( OUT wfile, fname ));
@@ -159,8 +171,8 @@ bool  DrawTestCore::_CompilePipelines (FStorage_t assetStorage)
 		CHECK_ERR( res_mngr.InitializeResources( RVRef(pack_id) ));
 	}
 
-	_canvasPpln		= res_mngr.LoadRenderTech( Default, RenderTechName{"CanvasDrawTest"}, Default );
-	_canvasPplnDesk	= res_mngr.LoadRenderTech( Default, RenderTechName{"DesktopCanvasDrawTest"}, Default );		// optional
+	_canvasPpln		= res_mngr.LoadRenderTech( Default, RenderTechName{"CanvasDrawTest"} );
+	_canvasPplnDesk	= res_mngr.LoadRenderTech( Default, RenderTechName{"DesktopCanvasDrawTest"} );		// optional
 	CHECK_ERR( _canvasPpln );
 
 	return true;
@@ -176,8 +188,8 @@ GraphicsCreateInfo  DrawTestCore::_GetGraphicsCreateInfo ()
 	GraphicsCreateInfo	info;
 
 	info.maxFrames		= 2;
-	info.staging.readStaticSize		= 2_Mb;
-	info.staging.writeStaticSize	= 2_Mb;
+	info.staging.readStaticSize		= 2_MiB;
+	info.staging.writeStaticSize	= 2_MiB;
 
 	info.swapchain.colorFormat	= EPixelFormat::RGBA8_UNorm;
 
@@ -210,7 +222,7 @@ bool  DrawTestCore::_CompareDumps (StringView right, StringView filename) const
 	if ( update_ref or UpdateAllReferences )
 	{
 		VFS::FileName	name;
-		CHECK_ERR( _refImageStorage->CreateFile( name, fname ));
+		CHECK_ERR( _refImageStorage->CreateFile( OUT name, fname ));
 
 		RC<WStream>		wfile;
 		CHECK_ERR( _refImageStorage->Open( OUT wfile, name ));

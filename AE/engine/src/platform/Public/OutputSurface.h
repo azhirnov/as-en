@@ -12,7 +12,7 @@
 #pragma once
 
 #include "platform/Public/Projection.h"
-#include "pch/Graphics.h"
+#include "pch/GraphicsRHI.h"
 
 namespace AE::App
 {
@@ -27,6 +27,7 @@ namespace AE::App
 	using Graphics::CommandBatchPtr;
 	using Graphics::SurfaceFormat;
 	using Graphics::ImageDim2_t;
+	using Graphics::ESurfaceTransform;
 
 
 
@@ -49,6 +50,7 @@ namespace AE::App
 
 		EColorSpace				colorSpace		= Default;
 		EPixelFormat			format			= Default;
+		ESurfaceTransform		transform		= ESurfaceTransform::Identity;
 
 		// Projection can be null.
 		// Access is thread-safe only between 'Begin()' / 'End()'.
@@ -143,17 +145,17 @@ namespace AE::App
 
 	// interface
 	public:
-		virtual ~IOutputSurface ()																								__NE___	{}
+		virtual ~IOutputSurface ()												__NE___	{}
 
 
 		// Returns 'true' if surface is initialized.
 		//
-		ND_ virtual bool  IsInitialized ()																						C_NE___ = 0;
+		ND_ virtual bool  IsInitialized ()										C_NE___ = 0;
 
 
 		// Returns attachment parameters for render pass.
 		//
-		ND_ virtual RenderPassInfo  GetRenderPassInfo ()																		C_NE___ = 0;
+		ND_ virtual RenderPassInfo  GetRenderPassInfo ()						C_NE___ = 0;
 
 
 		// Begin rendering.
@@ -162,47 +164,50 @@ namespace AE::App
 		// 'endCmdBatch'	- last batch where render targets was rendered.
 		// 'deps'			- list of tasks which must be executed before.
 		//
-		ND_ virtual AsyncTask  Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE___	= 0;
+		ND_ virtual AsyncTask  Begin (CommandBatchPtr		beginCmdBatch,
+									  CommandBatchPtr		endCmdBatch,
+									  ArrayView<AsyncTask>	deps)				__NE___	= 0;
 
 
 		// Get render targets.
 		// Must be used between 'Begin()' / 'End()'.
 		//
-			virtual bool  GetTargets (OUT RenderTargets_t &targets)																C_NE___ = 0;
+			virtual bool  GetTargets (OUT RenderTargets_t &targets)				C_NE___ = 0;
 
 
 		// End rendering and present frame.
 		// Returns present/blit task, returns 'null' on error.
-		// 'deps'	- list of tasks which must be executed before, 'CmdBatchOnSubmit{endCmdBatch}' is implicitly added.
+		// 'deps'	- list of tasks which must be executed before,
+		//			  'CmdBatchOnSubmit{endCmdBatch}' from 'Begin()' is implicitly added to dependencies.
 		//
-		ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps)																	__NE___	= 0;
+		ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps)					__NE___	= 0;
 
 
 		// Returns current surface sizes.
 		// Size can be changed at any moment, so result may be outdated.
 		// If not changed then result is equal to 'RenderTarget::RegionSize()' and 'RenderTarget::pixToMm' which returns by 'GetTargets()'.
 		//
-		ND_ virtual TargetInfos_t  GetTargetInfo ()																				C_NE___ = 0;
+		ND_ virtual TargetInfos_t  GetTargetInfo ()								C_NE___ = 0;
 
 
 		// Returns all supported color formats and color spaces.
 		//
-		ND_ virtual SurfaceFormats_t  GetSurfaceFormats ()																		C_NE___ = 0;
+		ND_ virtual SurfaceFormats_t  GetSurfaceFormats ()						C_NE___ = 0;
 
 
 		// Returns all supported present modes.
 		//
-		ND_ virtual PresentModes_t  GetPresentModes ()																			C_NE___ = 0;
+		ND_ virtual PresentModes_t  GetPresentModes ()							C_NE___ = 0;
 
 
 		// Returns current mode.
 		//
-		ND_ virtual SurfaceInfo  GetSurfaceInfo ()																				C_NE___ = 0;
+		ND_ virtual SurfaceInfo  GetSurfaceInfo ()								C_NE___ = 0;
 
 
 		// Set color format, color space and present mode.
 		//
-		ND_ virtual bool  SetSurfaceMode (const SurfaceInfo &)																	__NE___ = 0;
+		ND_ virtual bool  SetSurfaceMode (const SurfaceInfo &)					__NE___ = 0;
 	};
 
 

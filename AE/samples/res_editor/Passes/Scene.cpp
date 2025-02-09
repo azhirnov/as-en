@@ -143,11 +143,13 @@ namespace AE::ResEditor
 
 			ShaderTypes::SceneGraphicsPassUB	ub_data;
 
-			ub_data.resolution	= float2{desc.dimension};
-			ub_data.time		= pd.totalTime.count();
-			ub_data.timeDelta	= pd.frameTime.count();
-			ub_data.frame		= pd.frameId;
-			ub_data.seed		= pd.seed;
+			ub_data.resolution		= float2{desc.dimension};
+			ub_data.invResolution	= 1.f / float2{desc.dimension};
+			ub_data.time			= pd.totalTime.count();
+			ub_data.timeDelta		= pd.frameTime.count();
+			ub_data.frame			= pd.frameId;
+			ub_data.seed			= pd.seed;
+			ub_data.mouse			= pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
 
 			if ( _controller )
 				_controller->CopyTo( OUT ub_data.camera );

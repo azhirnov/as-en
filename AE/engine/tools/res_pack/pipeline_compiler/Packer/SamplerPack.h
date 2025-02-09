@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/SamplerDesc.h"
+#include "graphics_rhi/Public/SamplerDesc.h"
 #include "Packer/PackCommon.h"
 
 #ifdef AE_BUILD_PIPELINE_COMPILER

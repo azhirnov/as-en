@@ -6,7 +6,9 @@ void ASmain ()
 	// include:
 	//	Intel(R) UHD Graphics 620.json
 	//	Intel(R) Arc(tm) A380 Graphics (DG2) driver 22.2.99 on Rocky 9.0
+	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
+	//	Intel(R) HD Graphics 520 (SKL GT2) driver 24.2.4 on Arch unknown
 	//	Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
 	//	Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2
 
@@ -113,6 +115,7 @@ void ASmain ()
 	fset.maxSpirvVersion (150);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);
+	fset.maxDrawIndirectCount (4294967295);
 	fset.multiview (True);
 	fset.multiviewGeometryShader (True);
 	fset.multiviewTessellationShader (True);
@@ -123,17 +126,18 @@ void ASmain ()
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
 	fset.maxTexelBufferElements (128 << 20);
-	fset.maxUniformBufferSize (134217724);
-	fset.maxStorageBufferSize (1073741820);
-	fset.perDescrSet_maxUniformBuffersDynamic (8);
-	fset.perDescrSet_maxStorageBuffersDynamic (8);
-	fset.perDescrSet_maxInputAttachments (8);
-	fset.perDescrSet_maxSampledImages (1800);
-	fset.perDescrSet_maxSamplers (576);
-	fset.perDescrSet_maxStorageBuffers (1800);
-	fset.perDescrSet_maxStorageImages (144);
-	fset.perDescrSet_maxUniformBuffers (384);
-	fset.perDescrSet_maxTotalResources (1024);
+	fset.maxUniformBufferSize (64 << 20);
+	fset.maxStorageBufferSize (512 << 20);
+	fset.perPipeline_maxUniformBuffersDynamic (8);
+	fset.perPipeline_maxStorageBuffersDynamic (8);
+	fset.perPipeline_maxTotalBuffersDynamic (16);
+	fset.perPipeline_maxInputAttachments (8);
+	fset.perPipeline_maxSampledImages (1800);
+	fset.perPipeline_maxSamplers (576);
+	fset.perPipeline_maxStorageBuffers (1800);
+	fset.perPipeline_maxStorageImages (144);
+	fset.perPipeline_maxUniformBuffers (384);
+	fset.perPipeline_maxTotalResources (1024);
 	fset.perStage_maxInputAttachments (8);
 	fset.perStage_maxSampledImages (200);
 	fset.perStage_maxSamplers (64);
@@ -185,16 +189,15 @@ void ASmain ()
 		EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, 
 		EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, EPixelFormat::RGB16_UNorm, EPixelFormat::RGB8_UNorm, 
 		EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
-		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, 
-		EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R8I, 
-		EPixelFormat::RG8I, EPixelFormat::RGBA8I, EPixelFormat::R16I, EPixelFormat::RG16I, 
-		EPixelFormat::RGBA16I, EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGB32I, 
-		EPixelFormat::RGBA32I, EPixelFormat::R8U, EPixelFormat::RG8U, EPixelFormat::RGBA8U, 
-		EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, 
-		EPixelFormat::RG32U, EPixelFormat::RGB32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, 
-		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGB16F, EPixelFormat::RGBA16F, 
-		EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGB32F, EPixelFormat::RGBA32F, 
-		EPixelFormat::RGB_11_11_10F
+		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::BGRA8_UNorm, 
+		EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R8I, EPixelFormat::RG8I, 
+		EPixelFormat::RGBA8I, EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGBA16I, 
+		EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGB32I, EPixelFormat::RGBA32I, 
+		EPixelFormat::R8U, EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, 
+		EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, 
+		EPixelFormat::RGB32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F, 
+		EPixelFormat::RG16F, EPixelFormat::RGB16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
+		EPixelFormat::RG32F, EPixelFormat::RGB32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
 	});
 	fset.AddTexelFormats( EFormatFeature::StorageTexelBuffer, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
@@ -216,6 +219,10 @@ void ASmain ()
 	fset.multisampleArrayImage (True);
 	fset.imageViewFormatList (True);
 	fset.imageViewExtendedUsage (True);
+	fset.maxImageDimension1D (16 << 10);
+	fset.maxImageDimension2D (16 << 10);
+	fset.maxImageDimension3D (2 << 10);
+	fset.maxImageDimensionCube (16 << 10);
 	fset.maxImageArrayLayers (2 << 10);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U, EPixelFormat::R32F
@@ -236,43 +243,42 @@ void ASmain ()
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
 		EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 
 		EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
-		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, 
-		EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R16F, 
-		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, 
-		EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
+		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, 
+		EPixelFormat::sBGR8_A8, EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, 
+		EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
 	});
 	fset.AddTexelFormats( EFormatFeature::Attachment, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 
 		EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, 
 		EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
-		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, 
-		EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R8I, 
-		EPixelFormat::RG8I, EPixelFormat::RGBA8I, EPixelFormat::R16I, EPixelFormat::RG16I, 
-		EPixelFormat::RGBA16I, EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, 
-		EPixelFormat::R8U, EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, 
-		EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, 
-		EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, 
-		EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, 
-		EPixelFormat::RGB_11_11_10F, EPixelFormat::Depth16, EPixelFormat::Depth24, EPixelFormat::Depth32F, 
-		EPixelFormat::Depth24_Stencil8, EPixelFormat::Depth32F_Stencil8
+		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::BGRA8_UNorm, 
+		EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R8I, EPixelFormat::RG8I, 
+		EPixelFormat::RGBA8I, EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGBA16I, 
+		EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGBA32I, EPixelFormat::R8U, 
+		EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U, 
+		EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, 
+		EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, 
+		EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F, 
+		EPixelFormat::Depth16, EPixelFormat::Depth24, EPixelFormat::Depth32F, EPixelFormat::Depth24_Stencil8, 
+		EPixelFormat::Depth32F_Stencil8
 	});
 	fset.AddTexelFormats( EFormatFeature::LinearSampled, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RGB16_SNorm, EPixelFormat::RGB8_SNorm, 
 		EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, 
 		EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA8_UNorm, EPixelFormat::RGB16_UNorm, EPixelFormat::RGB8_UNorm, 
 		EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, 
-		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, 
-		EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R16F, 
-		EPixelFormat::RG16F, EPixelFormat::RGB16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
-		EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F, EPixelFormat::RGB9F_E5, 
-		EPixelFormat::Depth16, EPixelFormat::Depth24, EPixelFormat::Depth32F, EPixelFormat::Depth24_Stencil8, 
-		EPixelFormat::Depth32F_Stencil8, EPixelFormat::BC1_RGB8_UNorm, EPixelFormat::BC1_sRGB8, EPixelFormat::BC1_RGB8_A1_UNorm, 
-		EPixelFormat::BC1_sRGB8_A1, EPixelFormat::BC2_RGBA8_UNorm, EPixelFormat::BC2_sRGB8, EPixelFormat::BC3_RGBA8_UNorm, 
-		EPixelFormat::BC3_sRGB8, EPixelFormat::BC4_R8_SNorm, EPixelFormat::BC4_R8_UNorm, EPixelFormat::BC5_RG8_SNorm, 
-		EPixelFormat::BC5_RG8_UNorm, EPixelFormat::BC6H_RGB16F, EPixelFormat::BC6H_RGB16UF, EPixelFormat::BC7_RGBA8_UNorm, 
-		EPixelFormat::BC7_sRGB8_A8, EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ETC2_sRGB8, EPixelFormat::ETC2_RGB8_A1_UNorm, 
-		EPixelFormat::ETC2_sRGB8_A1, EPixelFormat::ETC2_RGBA8_UNorm, EPixelFormat::ETC2_sRGB8_A8, EPixelFormat::EAC_R11_SNorm, 
-		EPixelFormat::EAC_R11_UNorm, EPixelFormat::EAC_RG11_SNorm, EPixelFormat::EAC_RG11_UNorm
+		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::BGRA8_UNorm, 
+		EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R16F, EPixelFormat::RG16F, 
+		EPixelFormat::RGB16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F, 
+		EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F, EPixelFormat::RGB9F_E5, EPixelFormat::Depth16, 
+		EPixelFormat::Depth24, EPixelFormat::Depth32F, EPixelFormat::Depth24_Stencil8, EPixelFormat::Depth32F_Stencil8, 
+		EPixelFormat::BC1_RGB8_UNorm, EPixelFormat::BC1_sRGB8, EPixelFormat::BC1_RGB8_A1_UNorm, EPixelFormat::BC1_sRGB8_A1, 
+		EPixelFormat::BC2_RGBA8_UNorm, EPixelFormat::BC2_sRGB8, EPixelFormat::BC3_RGBA8_UNorm, EPixelFormat::BC3_sRGB8, 
+		EPixelFormat::BC4_R8_SNorm, EPixelFormat::BC4_R8_UNorm, EPixelFormat::BC5_RG8_SNorm, EPixelFormat::BC5_RG8_UNorm, 
+		EPixelFormat::BC6H_RGB16F, EPixelFormat::BC6H_RGB16UF, EPixelFormat::BC7_RGBA8_UNorm, EPixelFormat::BC7_sRGB8_A8, 
+		EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ETC2_sRGB8, EPixelFormat::ETC2_RGB8_A1_UNorm, EPixelFormat::ETC2_sRGB8_A1, 
+		EPixelFormat::ETC2_RGBA8_UNorm, EPixelFormat::ETC2_sRGB8_A8, EPixelFormat::EAC_R11_SNorm, EPixelFormat::EAC_R11_UNorm, 
+		EPixelFormat::EAC_RG11_SNorm, EPixelFormat::EAC_RG11_UNorm
 	});
 	fset.samplerAnisotropy (True);
 	fset.samplerMirrorClampToEdge (True);

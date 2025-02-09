@@ -43,7 +43,7 @@ namespace AE::Base
 		}
 
 		InPlace (const Self &other)							__NE___ :
-			_value{ other.AsRef() }
+			_value{ other.Ref() }
 			DEBUG_ONLY(, _isCreated{ true })
 		{
 			CheckNothrow( IsNothrowCopyCtor< T >);
@@ -82,13 +82,13 @@ namespace AE::Base
 		}
 
 		template <typename ...Args>
-		Self&  CreateTh (Args&& ...args)					__Th___
+		Self&  CreateOrThrow (Args&& ...args)				__Th___
 		{
 			ASSERT( not _isCreated );
 
 			CheckNothrow( not IsNoExcept( new (std::addressof(_value)) T{ FwdArg<Args>( args )... }));
 
-			new (std::addressof(_value)) T{ FwdArg<Args>( args )... };
+			new (std::addressof(_value)) T{ FwdArg<Args>( args )... };  // throw
 
 			DEBUG_ONLY( _isCreated = true;)
 			return *this;
@@ -96,8 +96,7 @@ namespace AE::Base
 
 		void  Destroy ()									__NE___
 		{
-			ASSERT( _isCreated );
-			_value.~T();
+			Ref().~T();
 
 			DEBUG_ONLY(
 				_isCreated = false;
@@ -122,9 +121,8 @@ namespace AE::Base
 		void  CustomDtor (const Fn &fn)						__NE___
 		{
 			CheckNothrow( IsNoExcept( fn( _value )));
-			ASSERT( _isCreated );
 
-			fn( OUT _value );
+			fn( INOUT Ref() );
 
 			DEBUG_ONLY(
 				_isCreated = false;
@@ -132,20 +130,24 @@ namespace AE::Base
 			)
 		}
 
+		ND_ T *			Ptr ()								__NE___	{ ASSERT( _isCreated );  return std::launder( &_value ); }
+		ND_ T const*	Ptr ()								C_NE___	{ ASSERT( _isCreated );  return std::launder( &_value ); }
+		ND_ T const*	ConstPtr ()							C_NE___	{ ASSERT( _isCreated );  return std::launder( &_value ); }
 
-		ND_ T *			operator -> ()						__NE___	{ ASSERT( _isCreated );  return &_value; }
-		ND_ T const*	operator -> ()						C_NE___	{ ASSERT( _isCreated );  return &_value; }
+		ND_ T &			Ref ()								__NE___	{ return *Ptr(); }
+		ND_ T const&	Ref ()								C_NE___	{ return *Ptr(); }
 
-		ND_ T &			operator * ()						__NE___	{ ASSERT( _isCreated );  return _value; }
-		ND_ T const&	operator * ()						C_NE___	{ ASSERT( _isCreated );  return _value; }
+		ND_ T &&		AsRVRef ()							rvNE___	{ return RVRef(*Ptr()); }
 
-		ND_ T *			operator & ()						__NE___	{ ASSERT( _isCreated );  return &_value; }
-		ND_ T const*	operator & ()						C_NE___	{ ASSERT( _isCreated );  return &_value; }
 
-		ND_ T &			AsRef ()							__NE___	{ ASSERT( _isCreated );  return _value; }
-		ND_ T const&	AsRef ()							C_NE___	{ ASSERT( _isCreated );  return _value; }
+		ND_ T *			operator -> ()						__NE___	{ return Ptr(); }
+		ND_ T const*	operator -> ()						C_NE___	{ return Ptr(); }
 
-		ND_ T &&		AsRVRef ()							rvNE___	{ ASSERT( _isCreated );  return RVRef(_value); }
+		ND_ T &			operator * ()						__NE___	{ return *Ptr(); }
+		ND_ T const&	operator * ()						C_NE___	{ return *Ptr(); }
+
+		ND_ T *			operator & ()						__NE___	{ return Ref(); }
+		ND_ T const*	operator & ()						C_NE___	{ return Ref(); }
 
 
 		DEBUG_ONLY(

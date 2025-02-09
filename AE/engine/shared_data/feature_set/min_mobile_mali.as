@@ -48,21 +48,23 @@ void ASmain ()
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 	fset.maxSpirvVersion (100);
 	fset.drawIndirectFirstInstance (True);
+	fset.maxDrawIndirectCount (1);
 	fset.maxViewports (1);
 	fset.tessellationIsolines (True);
 	fset.tessellationPointMode (True);
 	fset.maxTexelBufferElements (64 << 10);
 	fset.maxUniformBufferSize (16 << 10);
 	fset.maxStorageBufferSize (128 << 20);
-	fset.perDescrSet_maxUniformBuffersDynamic (8);
-	fset.perDescrSet_maxStorageBuffersDynamic (4);
-	fset.perDescrSet_maxInputAttachments (4);
-	fset.perDescrSet_maxSampledImages (96);
-	fset.perDescrSet_maxSamplers (768);
-	fset.perDescrSet_maxStorageBuffers (24);
-	fset.perDescrSet_maxStorageImages (24);
-	fset.perDescrSet_maxUniformBuffers (72);
-	fset.perDescrSet_maxTotalResources (512);
+	fset.perPipeline_maxUniformBuffersDynamic (8);
+	fset.perPipeline_maxStorageBuffersDynamic (4);
+	fset.perPipeline_maxTotalBuffersDynamic (12);
+	fset.perPipeline_maxInputAttachments (4);
+	fset.perPipeline_maxSampledImages (96);
+	fset.perPipeline_maxSamplers (768);
+	fset.perPipeline_maxStorageBuffers (24);
+	fset.perPipeline_maxStorageImages (24);
+	fset.perPipeline_maxUniformBuffers (72);
+	fset.perPipeline_maxTotalResources (512);
 	fset.perStage_maxInputAttachments (4);
 	fset.perStage_maxSampledImages (16);
 	fset.perStage_maxSamplers (128);
@@ -130,6 +132,10 @@ void ASmain ()
 	fset.textureCompressionASTC_LDR (True);
 	fset.textureCompressionETC2 (True);
 	fset.multisampleArrayImage (True);
+	fset.maxImageDimension1D (8 << 10);
+	fset.maxImageDimension2D (8 << 10);
+	fset.maxImageDimension3D (4 << 10);
+	fset.maxImageDimensionCube (8 << 10);
 	fset.maxImageArrayLayers (256);
 	fset.AddTexelFormats( EFormatFeature::StorageImageAtomic, {
 		EPixelFormat::R32I, EPixelFormat::R32U

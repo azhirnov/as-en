@@ -2,7 +2,7 @@
 
 #ifdef AE_ENABLE_IMGUI
 # include "graphics_hl/ImGui/ImGuiRenderer.h"
-# include "graphics/Private/EnumToString.h"
+# include "graphics_rhi/Private/EnumToString.h"
 
 # include "imgui.h"
 # include "imgui_internal.h"
@@ -14,8 +14,6 @@
 namespace AE::Graphics
 {
 	using namespace AE::App;
-
-	INTERNAL_LINKAGE( const float	DefaultScale = 0.25f );
 
 /*
 =================================================
@@ -126,7 +124,7 @@ namespace AE::Graphics
 */
 	void  ImGuiRenderer::SetScale (float scale) __NE___
 	{
-		_scale = scale * DefaultScale;
+		_scale = scale;
 	}
 
 	void  ImGuiRenderer::_UpdateScale (float pixToMm)
@@ -138,8 +136,14 @@ namespace AE::Graphics
 		}
 		else
 		{
-			_uiToPix = _scale / pixToMm;
-			_pixToUI = pixToMm / _scale;
+			// TODO
+			_pixToUI = ( pixToMm * _scale );
+
+		//	auto	bits = BitCast<Float32Bits>( _pixToUI );
+		//	bits.m = 0;
+		//	_pixToUI = BitCast<float>( bits );		// round to power of 2
+
+			_uiToPix = 1.f / _pixToUI;
 		}
 	}
 
@@ -152,7 +156,7 @@ namespace AE::Graphics
 	{
 		CHECK_ERR( IsInitialized() );
 
-		if_unlikely( not _fontInitialized )
+		if_unlikely( NeedUpload() )
 		{
 			_fontInitialized = true;
 			return _Upload( ctx );
@@ -187,7 +191,7 @@ namespace AE::Graphics
 		auto*	viewport = _imguiCtx->Viewports[0];
 
 		if_likely( viewport->DrawDataP.Valid )
-			_DrawUI( ctx, viewport->DrawDataP, ps.ppln );
+			_DrawUI( ctx, viewport->DrawDataP, ps.ppln, rt.transform );
 
 		return true;
 	}
@@ -219,6 +223,7 @@ namespace AE::Graphics
 							   const Function< void (DirectCtx::Draw &) >	&drawBefore,
 							   const RenderPassDesc::ClearValue_t			&clearValue) __Th___
 	{
+		CHECK_ERR( IsInitialized() );
 		CHECK_ERR( _Update( rt, updateUI ));
 
 		// same as ImGui::GetDrawData()
@@ -247,9 +252,6 @@ namespace AE::Graphics
 
 		DirectCtx::Graphics		gfx_ctx{ rtask, RVRef(cmdbuf) };
 
-		gfx_ctx.AccumBarriers()
-			.MemoryBarrier( EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::FragmentShader | EResourceState::PreRasterizationShaders );
-
 		auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *_rtech, RenderTechPassName{ps.pass}, rt.RegionSize() }
 													.AddViewport( rt.RegionSize() )
 													.AddTarget( AttachmentName{"Color"}, rt.viewId, clearValue, rt.initialState, rt.finalState ),
@@ -258,7 +260,7 @@ namespace AE::Graphics
 			drawBefore( dctx );
 
 		if_likely( viewport->DrawDataP.Valid )
-			_DrawUI( dctx, viewport->DrawDataP, ps.ppln );
+			_DrawUI( dctx, viewport->DrawDataP, ps.ppln, rt.transform );
 
 		gfx_ctx.EndRenderPass( dctx );
 
@@ -279,7 +281,7 @@ namespace AE::Graphics
 
 		const float		dt		= GraphicsScheduler().GetFrameTimeDelta().count();
 		ImGuiIO &		io		= ImGui::GetIO();
-		const float2	size	= rt.RegionSizePxf() * _pixToUI;
+		const float2	size	= SurfaceTransformUtils::Transform( rt.transform, rt.RegionSizePxf() * _pixToUI );
 		const float2	pos		= mousePos * _pixToUI;
 
 		io.DisplaySize	= ImVec2{ size.x, size.y };
@@ -362,7 +364,7 @@ namespace AE::Graphics
 	_DrawUI
 =================================================
 */
-	bool  ImGuiRenderer::_DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, GraphicsPipelineID ppln)
+	bool  ImGuiRenderer::_DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData, GraphicsPipelineID ppln, const ESurfaceTransform orient)
 	{
 		const bool	is_minimized = (drawData.DisplaySize.x <= 0.0f or drawData.DisplaySize.y <= 0.0f);
 
@@ -373,14 +375,17 @@ namespace AE::Graphics
 		dctx.BindDescriptorSet( _dsIndex, _descSet );
 
 		{
-			ImVec2 const&	scale	= _imguiCtx->IO.DisplayFramebufferScale;
-			imgui_ub		ub_data;
+			float2		scale	{ drawData.DisplaySize.x + _imguiCtx->IO.DisplayFramebufferScale.x,
+								  drawData.DisplaySize.y + _imguiCtx->IO.DisplayFramebufferScale.y };
+			auto	s = float3x3{ float2x2::Scale( 2.0f / scale )};
+			auto	t = float3x3{ float3x2::Translate( -1.0f - float2{drawData.DisplayPos.x * scale.x, drawData.DisplayPos.y * scale.y})};
+			auto	r = float3x3{ SurfaceTransformUtils::ToInvMatrix( orient )};
+			auto	m = float3x2{r * (t * s)};
 
-			ub_data.scale.x		= 2.0f / (drawData.DisplaySize.x * scale.x);
-			ub_data.scale.y		= 2.0f / (drawData.DisplaySize.y * scale.y);
-
-			ub_data.translate.x	= -1.0f - (drawData.DisplayPos.x * ub_data.scale.x);
-			ub_data.translate.y	= -1.0f - (drawData.DisplayPos.y * ub_data.scale.y);
+			imgui_ub	ub_data;
+			ub_data.transform_c0	= m.get<0>();
+			ub_data.transform_c1	= m.get<1>();
+			ub_data.transform_c2	= m.get<2>();
 
 			dctx.PushConstant( _pcIndex, ub_data );
 		}
@@ -389,6 +394,8 @@ namespace AE::Graphics
 
 		uint	idx_offset	= 0;
 		uint	vtx_offset	= 0;
+		auto	scr_size	= int2{float2{	drawData.DisplaySize.x * _uiToPix + 0.5f,
+											drawData.DisplaySize.y * _uiToPix + 0.5f }};
 
 		for (int i = 0; i < drawData.CmdListsCount; ++i)
 		{
@@ -405,6 +412,8 @@ namespace AE::Graphics
 					scissor.top		= int(cmd.ClipRect.y * _uiToPix + 0.5f);
 					scissor.right	= int(cmd.ClipRect.z * _uiToPix + 0.5f);
 					scissor.bottom	= int(cmd.ClipRect.w * _uiToPix + 0.5f);
+
+					scissor = SurfaceTransformUtils::InvTransform( orient, scissor, scr_size );
 
 					dctx.SetScissor( scissor );
 
@@ -438,7 +447,7 @@ namespace AE::Graphics
 		UploadImageDesc		upload;
 		upload.aspectMask	= EImageAspect::Color;
 		upload.heapType		= EStagingHeapType::Dynamic;
-		upload.imageDim		= int3{ width, height, 1 };
+		upload.imageDim		= ImageDim_t{int3{ width, height, 1 }};
 		upload.dataRowPitch	= Bytes{width * 4 * sizeof(ubyte)};
 
 		const Bytes	size	{width * height * 4 * sizeof(ubyte)};
@@ -456,7 +465,7 @@ namespace AE::Graphics
 =================================================
 */
 	ImGuiRenderer::ImGuiRenderer (ImGuiContext* ctx) __NE___ :
-		_imguiCtx{ctx}, _scale{DefaultScale}
+		_imguiCtx{ctx}
 	{}
 
 /*
@@ -489,17 +498,28 @@ namespace AE::Graphics
 	AEStyleScope ctor
 =================================================
 */
+namespace {
+	static void  PushColor_sRGB (ImGuiCol idx, RGBA8u color) __NE___
+	{
+		ImU32	c = Base::BitCast<ImU32>(color);
+		ImGui::PushStyleColor( idx, c );
+	}
+
+	static void  PushColor_RemoveSRGB (ImGuiCol idx, RGBA8u color) __NE___
+	{
+		ImU32	c = Base::BitCast<ImU32>( RGBA8u{ RemoveSRGBCurve( RGBA32f{color} )});
+		ImGui::PushStyleColor( idx, c );
+	}
+}
+/*
+=================================================
+	AEStyleScope ctor
+=================================================
+*/
 	ImGuiRenderer::AEStyleScope::AEStyleScope (ImGuiContext* ctx, Bool sRGB) __NE___ :
 		StyleScope{ ctx }
 	{
-		const auto  PushStyleColor = [sRGB] (ImGuiCol idx, RGBA8u color) __NE___
-		{{
-			ImU32	c = Base::BitCast<ImU32>(color);
-			if_unlikely( not sRGB )
-				c = Base::BitCast<ImU32>( RGBA8u{ RemoveSRGBCurve( RGBA32f{color} )});
-
-			ImGui::PushStyleColor( idx, c );
-		}};
+		auto*	PushStyleColor = sRGB ? &PushColor_sRGB : &PushColor_RemoveSRGB;
 
 		// window / frame
 		PushStyleColor( ImGuiCol_WindowBg,				RGBA8u{ 20, 0,  60, 255} );
@@ -546,6 +566,35 @@ namespace AE::Graphics
 		PushStyleColor( ImGuiCol_SliderGrabActive,		RGBA8u{230, 0, 255, 255} );
 	}
 
+/*
+=================================================
+	AEStyleScope_StartBtn ctor
+=================================================
+*/
+	ImGuiRenderer::AEStyleScope_StartBtn::AEStyleScope_StartBtn (ImGuiContext* ctx, Bool sRGB) __NE___ :
+		StyleScope{ ctx }
+	{
+		auto*	PushStyleColor = sRGB ? &PushColor_sRGB : &PushColor_RemoveSRGB;
+
+		PushStyleColor( ImGuiCol_Button,		RGBA8u{ 80, 20, 170, 255} );
+		PushStyleColor( ImGuiCol_ButtonHovered,	RGBA8u{ 95, 20, 210, 255} );
+		PushStyleColor( ImGuiCol_ButtonActive,	RGBA8u{110, 20, 250, 255} );
+	}
+
+/*
+=================================================
+	AEStyleScope_StopBtn ctor
+=================================================
+*/
+	ImGuiRenderer::AEStyleScope_StopBtn::AEStyleScope_StopBtn (ImGuiContext* ctx, Bool sRGB) __NE___ :
+		StyleScope{ ctx }
+	{
+		auto*	PushStyleColor = sRGB ? &PushColor_sRGB : &PushColor_RemoveSRGB;
+
+		PushStyleColor( ImGuiCol_Button,		RGBA8u{140, 20, 150, 255} );
+		PushStyleColor( ImGuiCol_ButtonHovered,	RGBA8u{160, 20, 180, 255} );
+		PushStyleColor( ImGuiCol_ButtonActive,	RGBA8u{200, 20, 220, 255} );
+	}
 
 } // AE::Graphics
 

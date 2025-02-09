@@ -1,3 +1,37 @@
+## 25.01
+
+- Base: added FloatConversion, it is used in SFloat16, UFloat16, UFloat8, BFloat16
+- Base: remove Math namespace
+- Base: add BFloat16
+- Base: add X64Crypto (SSE, AVX, SHA, AES instructions)
+- Base: add FindChar_SIMD (SSE, AVX, Neon)
+- update UI Editor
+- Threading: SyncPoint primitive for tasks
+- Graphics: add ResourceUploadManager
+- Threading: add AsyncRDataSourceSubRange, AsyncRStreamSubRange
+- Vulkan: add VK_NV_partitioned_acceleration_structure, VK_NV_cluster_acceleration_structure
+- Graphics: minimize FeatureSet size
+
+
+## 24.12.268
+
+- Vulkan: add VK_EXT_image_compression_control, VK_EXT_image_compression_control_swapchain, VK_EXT_frame_boundary
+- Base: SIMD + tests (SSE, AVX, Neon)
+- Build: compile on Android device.
+
+
+## 24.11.264
+
+- Win/NV: new driver disable auto-HDR mode, so used NvAPI to enable HDR when used HDR swapchain.
+- rename Graphics module to GraphicsRHI
+- add ESurfaceTransform and SurfaceTransformUtils
+- Vulkan swapchain can use pre-transform for better performance
+- SIMD vector (SIMT-style)
+- Vulkan: add VK_EXT_surface_maintenance1, VK_EXT_swapchain_maintenance1, VK_EXT_device_memory_report
+- ImGui Log Window
+- Vulkan: separate queue for framebuffer delayed release
+
+
 ## 24.09.258
 
 - added PerformanceStat instead of CpuPerformance class
@@ -12,7 +46,7 @@
 ## 24.08.254
 
 - Profiling: NVML runtime profiler
-- Profiling: used AMD GPUPerfAPI tp set stable clock
+- Profiling: used AMD GPUPerfAPI to set stable clock
 - Scripting: enable on MacOS ARM64
 - Vulkan: add VK_KHR_shader_quad_control, GL_EXT_shader_quad
 - Vulkan: add VK_KHR_shader_maximal_reconvergence, GL_EXT_maximal_reconvergence

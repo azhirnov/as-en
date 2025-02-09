@@ -14,15 +14,20 @@ namespace AE::Threading
 														   Bytes	blockSize,
 														   Bytes	blockAlign) __NE___ :
 		_storage{ storage },
-		_blockSize{ blockSize },
+		_blockSize{ AlignUp( blockSize, blockAlign )},
 		_blockAlign{ blockAlign }
+		//DEBUG_ONLY(, _storageSize{ storageSize })
 	{
 		ASSERT( blockSize > 0 );
-		ASSERT_Eq( BlockSize(), blockSize );
-		ASSERT_Eq( BlockAlign(), blockAlign );
+		ASSERT( blockAlign > 0 );
+		ASSERT( blockAlign <= blockSize );		// to avoid unused memory
+
+		CHECK_Eq( BlockSize(), blockSize );		// must be power of 2
+		CHECK_Eq( BlockAlign(), blockAlign );	// must be power of 2
 
 		CHECK( _storage );
-		CHECK_Eq( storageSize, MaxMemorySize() );
+		CHECK( IsMultipleOf( storage, _blockAlign ));
+		CHECK_Eq( storageSize, MaxMemorySize() );	// see 'CalcStorageSize()'
 
 		StaticArray< TopLevelBits_t, TopLevel_Count >	top_bits = {};
 
@@ -67,8 +72,11 @@ namespace AE::Threading
 =================================================
 */
 	template <usize CS, usize MC>
-	void  LfStaticBlockAllocator<CS,MC>::Release (Bool checkMemLeak) __NE___
+	void*  LfStaticBlockAllocator<CS,MC>::Release (Bool checkMemLeak) __NE___
 	{
+		if ( not _storage )
+			return null;
+
 		for (usize i = 0; i < MaxChunks; ++i)
 		{
 			auto&	chunk		= _bottomChunks[i];
@@ -95,6 +103,10 @@ namespace AE::Threading
 					CHECK( old_low_level == 0 );	// some blocks is still allocated
 			}
 		}
+
+		void*	ptr = _storage.get();
+		_storage = null;
+		return ptr;
 	}
 
 /*
@@ -291,21 +303,22 @@ namespace AE::Threading
 
 /*
 =================================================
-	AllocatedSize
+	UsedMemorySize
 =================================================
 */
 	template <usize CS, usize MC>
-	Bytes  LfStaticBlockAllocator<CS,MC>::AllocatedSize () C_NE___
+	Bytes  LfStaticBlockAllocator<CS,MC>::UsedMemorySize () C_NE___
 	{
-		const Bytes	block_size	= LargeBlockSize();
-		Bytes		result;
+		Bytes	result;
 
-		for (uint i = 0; i < MaxChunks; ++i)
+		for (auto& chunk : _bottomChunks)
 		{
-			auto&	chunk	= _bottomChunks[i];
+			for (auto& low_lvl : chunk.lowLevel)
+			{
+				LowLevelBits_t	bits = low_lvl.load();
 
-			if ( chunk.memBlock.load() != null )
-				result += block_size;
+				result += Bytes{BitCount( bits )} * _blockSize;
+			}
 		}
 		return result;
 	}

@@ -22,7 +22,7 @@
 	T  FastASin (T x);
 	T  FastATan (T y_over_x);
 	T  FastATan (T y, T x);
-	
+
 	T  FastASin2 (T x);
 	T  FastACos2 (T x);
 	T  FastATan2 (T y_over_x);

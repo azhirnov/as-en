@@ -48,7 +48,7 @@ namespace AE::Threading
 			Chunk () __NE___ {}
 		};
 
-		StaticAssert64( sizeof(Chunk) == 1_Kb );
+		StaticAssert64( sizeof(Chunk) == 1_KiB );
 		StaticAssert( TasksPerChunk * MaxChunks * MaxDepth < 1'000'000 );
 
 		using ChunkArray_t	= StaticArray< Chunk *, MaxChunks >;

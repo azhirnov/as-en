@@ -22,7 +22,7 @@ namespace AE::Base
 {
 
 	//
-	// Fixed Size Map
+	// Fixed Capacity Map
 	//
 
 	template <typename Key,
@@ -141,7 +141,7 @@ namespace AE::Base
 		ND_ iterator		end ()										__NE___	{ return begin() + _count; }
 		ND_ const_iterator	end ()										C_NE___	{ return begin() + _count; }
 
-		ND_ static constexpr usize	capacity ()							__NE___	{ return ArraySize; }
+		NdCx__ static usize	capacity ()									__NE___	{ return ArraySize; }
 
 			Self&	operator = (Self &&)								__NE___;
 			Self&	operator = (const Self &)							__NE___;

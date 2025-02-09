@@ -2,7 +2,7 @@
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	define SH_RAY_GEN
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define CALL_0
 #	define CALL_1
 #	define CALL_2

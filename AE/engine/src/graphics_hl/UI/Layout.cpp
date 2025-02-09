@@ -157,7 +157,7 @@ namespace AE::UI
 		const _EFlags	flags	= (_drawable		? _EFlags::Drawable		: Default) |
 								  (_controller		? _EFlags::Controller	: Default) |
 								  (_childs.empty()	? Default				: _EFlags::Childs);
-		const EType		type	= GetType();
+		const EType		type	= Type();
 
 		CHECK_ERR( ser( _GetLayoutID(type), type, flags ));
 
@@ -180,7 +180,7 @@ namespace AE::UI
 		_EFlags	flags;
 		EType	type;
 
-		CHECK_ERR( des( OUT type, OUT flags ) and type == GetType() );
+		CHECK_ERR( des( OUT type, OUT flags ) and type == Type() );
 
 		if ( AllBits( flags, _EFlags::Drawable ))
 			CHECK_ERR( des( OUT _drawable ));
@@ -395,7 +395,7 @@ namespace AE::UI
 		// ILayout //
 		bool	PreInit (const PreInitParams &)			C_NE_OV;
 		bool	Init (const InitParams &)				__NE_OV;
-		EType	GetType ()								C_NE_OV	{ return EType::FillStackLayout_Cell; }
+		EType	Type ()									C_NE_OV	{ return EType::FillStackLayout_Cell; }
 
 		bool	Serialize2 (Serializer &)				C_NE_OV	{ return true; }
 		bool	Deserialize2 (Deserializer &)			__NE_OV	{ return true; }
@@ -429,7 +429,7 @@ namespace AE::UI
 		CHECK_ERRV( child );
 		CHECK_ERRV( _childs.size() < MaxChilds() );
 
-		if ( child->GetType() != EType::FillStackLayout_Cell )
+		if ( child->Type() != EType::FillStackLayout_Cell )
 		{
 			auto*	ptr = _allocator->Allocate< FSL_CellLayout >();	// TODO: choose allocator
 			CHECK_ERRV( ptr != null );
@@ -668,7 +668,7 @@ namespace
 			region.right	= region.left + size.x;
 		}
 		else
-		if ( AllBits( align, ELayoutAlign::Left | ELayoutAlign::Right ))
+		if ( AllBits( align, ELayoutAlign::FillX ))
 		{
 			region.left		= parent_region.left;
 			region.right	= parent_region.right;
@@ -687,9 +687,7 @@ namespace
 		}
 		else
 		{
-			// alignment is undefined
-			region.left		= 0.0f;
-			region.right	= 0.0f;
+			DBG_WARNING( "horizontal alignment is not defined" );
 		}
 
 
@@ -700,7 +698,7 @@ namespace
 			region.bottom	= region.top + size.y;
 		}
 		else
-		if ( AllBits( align, ELayoutAlign::Bottom | ELayoutAlign::Top ))
+		if ( AllBits( align, ELayoutAlign::FillY ))
 		{
 			region.top		= parent_region.top;
 			region.bottom	= parent_region.bottom;
@@ -719,9 +717,7 @@ namespace
 		}
 		else
 		{
-			// alignment is undefined
-			region.bottom	= 0.0f;
-			region.top		= 0.0f;
+			DBG_WARNING( "vertical alignment is not defined" );
 		}
 
 		region = Crop( region, parent_region );
@@ -790,38 +786,38 @@ namespace
 
 		state.UpdateAndFillParent( parentState );
 
-		if_unlikely( not info.arranged )
+		if_likely( info.arranged )
+			return;
+
+		info.arranged = true;
+
+		auto	child_data		= MutableArrayView{ Cast< FillStackLayout::FSL_CellLayout::Data >( &info + info.offset ), info.childCount };
+		auto	child_state		= ArrayView{ &state + 1, info.childCount };
+		usize	active_count	= 0;
+
+		for (auto& cs : child_state)
 		{
-			info.arranged = true;
-
-			auto	child_data		= MutableArrayView{ Cast< FillStackLayout::FSL_CellLayout::Data >( &info + info.offset ), info.childCount };
-			auto	child_state		= ArrayView{ &state + 1, info.childCount };
-			usize	active_count	= 0;
-
-			for (auto& cs : child_state)
-			{
-				active_count += usize{ NoBits( cs.StyleFlags(), EStyleState::Invisible )};
-			}
-
-			if ( active_count == 0 )
-				return;
-
-			const float	step	= 1.f / float(active_count);
-			usize		idx		= 0;
-
-			for (usize i : IndicesOnly( child_data ))
-			{
-				auto&	cd	= child_data[i];
-				auto&	cs	= child_state[i];
-
-				cd.origin	= info.origin;
-				cd.range.x	= step * idx;
-				cd.range.y	= step * (idx+1);
-
-				idx += usize{ NoBits( cs.StyleFlags(), EStyleState::Invisible )};
-			}
-			ASSERT( active_count == idx );
+			active_count += usize{ NoBits( cs.StyleFlags(), EStyleState::Invisible )};
 		}
+
+		if ( active_count == 0 )
+			return;
+
+		const float	step	= 1.f / float(active_count);
+		usize		idx		= 0;
+
+		for (usize i : IndicesOnly( child_data ))
+		{
+			auto&	cd	= child_data[i];
+			auto&	cs	= child_state[i];
+
+			cd.origin	= info.origin;
+			cd.range.x	= step * idx;
+			cd.range.y	= step * (idx+1);
+
+			idx += usize{ NoBits( cs.StyleFlags(), EStyleState::Invisible )};
+		}
+		ASSERT( active_count == idx );
 	}
 
 	static void  Update_FillStackLayout_Cell (INOUT void* &data, const LayoutState_t &parentState, const float, INOUT LayoutState_t &state) __NE___
@@ -991,16 +987,18 @@ namespace
 			case EType::StackLayoutL :
 			case EType::StackLayoutR :
 			case EType::StackLayoutB :
-			case EType::StackLayoutT :
+			case EType::StackLayoutT :	// TODO: not implemented
 			case EType::_Begin_AutoSize :
 			case EType::_Count :
 
-			#define REG( _name_ )												\
-				case EType::_name_ :											\
-					CHECK_ERR( factory.Register< _name_ >(						\
-									_GetLayoutID( EType::_name_ ),				\
-									&LayoutSerializer<_name_>::Serialize,		\
-									&LayoutSerializer<_name_>::Deserialize ));
+			#define REG( _name_ )	REG2( _name_, _name_ )
+			#define REG2( _name_, _typeName_ )										\
+				case EType::_name_ :												\
+					CHECK_ERR( factory.Register< _typeName_ >(						\
+									_GetLayoutID( EType::_name_ ),					\
+									&LayoutSerializer<_typeName_>::Serialize,		\
+									&LayoutSerializer<_typeName_>::Deserialize ));
+
 			// FixedLayout
 			REG( FixedLayoutPx )
 			REG( FixedLayoutMm )
@@ -1014,15 +1012,10 @@ namespace
 			REG( AlignedLayoutRel )
 			// FillStackLayout
 			REG( FillStackLayout )
+			REG2( FillStackLayout_Cell, FillStackLayout::FSL_CellLayout )
 			// StackLayout
 			#undef REG
-
-			case EType::FillStackLayout_Cell :
-				CHECK_ERR( factory.Register< FillStackLayout::FSL_CellLayout >(
-								_GetLayoutID( EType::FillStackLayout_Cell ),
-								&LayoutSerializer< FillStackLayout::FSL_CellLayout >::Serialize,
-								&LayoutSerializer< FillStackLayout::FSL_CellLayout >::Deserialize ));
-
+			#undef REG2
 			default : break;
 		}
 		switch_end

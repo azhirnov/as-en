@@ -10,6 +10,9 @@ namespace
 	using EStatus		= IAsyncTask::EStatus;
 	using ESourceType	= IDataSource::ESourceType;
 
+	static const auto			c_QueueType		= ETaskQueue::Background;
+	static const EThreadArray	c_ThreadArr		{ EThread::PerFrame, EThread::Background, EThread::FileIO };
+
 
 	template <typename RFile, typename WFile>
 	static void  AsyncReadDS_Test1 ()
@@ -17,8 +20,8 @@ namespace
 		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
 		TEST( scheduler->GetFileIOService() );
 
-		const ulong	file_size	= 128ull << 20;	// Mb
-		const uint	buf_size	= 4u << 10;		// Kb
+		static constexpr ulong	file_size	= 128ull << 20;	// MiB
+		static constexpr uint	buf_size	= 4u << 10;		// KiB
 		StaticAssert( IsMultipleOf( file_size, buf_size ));
 
 		const Path		fname {"ds11_data.bin"};
@@ -55,7 +58,7 @@ namespace
 				TEST( req );	// always non-null
 				TEST_GE( req.use_count(), 1 );
 
-				auto	task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
+				auto	task = AsyncTask{req->AsPromise( c_QueueType )
 								.Then(	[pos] (const AsyncRDataSource::Result_t &res)
 										{
 											TEST( res.data != null );
@@ -81,7 +84,7 @@ namespace
 				TEST( req->IsCompleted() );
 				req = null;
 
-				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::PerFrame }, c_MaxTimeout ));
+				TEST( scheduler->Wait( {task}, c_ThreadArr, c_MaxTimeout ));
 				TEST( task->Status() == EStatus::Completed );
 
 				pos += buf_size;
@@ -97,12 +100,10 @@ namespace
 		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
 		TEST( scheduler->GetFileIOService() );
 
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
-				EThreadArray{ EThread::PerFrame, EThread::FileIO }, "worker"
-			}));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{ c_ThreadArr, "worker" }));
 
-		const ulong	file_size	= 32ull << 20;	// Mb
-		const uint	buf_size	= 4u << 10;		// Kb
+		static constexpr ulong	file_size	= 32ull << 20;	// MiB
+		static constexpr uint	buf_size	= 4u << 10;		// KiB
 		StaticAssert( IsMultipleOf( file_size, buf_size ));
 
 		const Path		fname {"ds12_data.bin"};
@@ -139,7 +140,7 @@ namespace
 				ulong					pos		= 0;
 
 			public:
-				ReadFileTask (RC<AsyncRDataSource> rfile) __NE___ : IAsyncTask{ETaskQueue::PerFrame}, rfile{RVRef(rfile)} {}
+				ReadFileTask (RC<AsyncRDataSource> rfile) __NE___ : IAsyncTask{c_QueueType}, rfile{RVRef(rfile)} {}
 
 				void  Run () __Th_OV
 				{
@@ -148,7 +149,7 @@ namespace
 						auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
 						TEST( req );	// always non-null
 
-						auto	task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
+						auto	task = AsyncTask{req->AsPromise( c_QueueType )
 										.Then(	[cur_pos = pos] (const AsyncRDataSource::Result_t &res)
 												{
 													TEST( res.data != null );
@@ -191,8 +192,8 @@ namespace
 	template <typename RFile, typename WFile>
 	static CoroTask  AsyncReadDS_Test3_Coro ()
 	{
-		const ulong	file_size	= 32ull << 20;	// Mb
-		const uint	buf_size	= 4u << 10;		// Kb
+		static constexpr ulong	file_size	= 32ull << 20;	// MiB
+		static constexpr uint	buf_size	= 4u << 10;		// KiB
 		StaticAssert( IsMultipleOf( file_size, buf_size ));
 
 		const Path		fname {"ds13_data.bin"};
@@ -228,7 +229,7 @@ namespace
 				auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
 				TEST( req );	// always non-null
 
-				auto	res = co_await req->AsPromise( ETaskQueue::PerFrame );
+				auto	res = co_await req->AsPromise( c_QueueType );
 
 				req = null;		// request is not used anymore, but memory in 'res' must be alive
 
@@ -256,9 +257,7 @@ namespace
 		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
 		TEST( scheduler->GetFileIOService() );
 
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
-				EThreadArray{ EThread::PerFrame, EThread::FileIO }, "worker"
-			}));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{ c_ThreadArr, "worker" }));
 
 		auto	task = scheduler->Run( AsyncReadDS_Test3_Coro< RFile, WFile >() );
 		TEST( scheduler->Wait( {AsyncTask{task}}, c_MaxTimeout ));
@@ -274,8 +273,8 @@ namespace
 		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
 		TEST( scheduler->GetFileIOService() );
 
-		const ulong	file_size	= 128ull << 20;	// Mb
-		const uint	buf_size	= 4u << 10;		// Kb
+		static constexpr ulong	file_size	= 128ull << 20;	// MiB
+		static constexpr uint	buf_size	= 4u << 10;		// KiB
 		StaticAssert( IsMultipleOf( file_size, buf_size ));
 
 		const Path		fname {"ds21_data.bin"};
@@ -302,7 +301,7 @@ namespace
 				TEST( req );	// always non-null
 				TEST_GE( req.use_count(), 1 );
 
-				auto	task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
+				auto	task = AsyncTask{req->AsPromise( c_QueueType )
 								.Then(	[pos] (const AsyncWDataSource::Result_t &res)
 										{
 											TEST_Eq( pos, res.pos );
@@ -321,7 +320,7 @@ namespace
 				TEST( req->IsCompleted() );
 				req = null;
 
-				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::PerFrame }, c_MaxTimeout ));
+				TEST( scheduler->Wait( {task}, c_ThreadArr, c_MaxTimeout ));
 				TEST( task->Status() == EStatus::Completed );
 
 				pos += buf_size;

@@ -29,7 +29,7 @@ namespace
 			auto&	rid = result.emplace_back();
 			rid.usUsagePage	= HID_USAGE_PAGE_GENERIC;
 			rid.usUsage		= HID_USAGE_GENERIC_MOUSE;
-			rid.dwFlags		= 0;
+			rid.dwFlags		= 0;	// RIDEV_NOLEGACY - for better performance
 			rid.hwndTarget	= 0;
 		}
 
@@ -38,7 +38,7 @@ namespace
 			auto&	rid = result.emplace_back();
 			rid.usUsagePage	= HID_USAGE_PAGE_GENERIC;
 			rid.usUsage		= HID_USAGE_GENERIC_KEYBOARD;
-			rid.dwFlags		= 0;
+			rid.dwFlags		= 0;	// RIDEV_NOLEGACY - for better performance, RIDEV_NOHOTKEYS
 			rid.hwndTarget	= 0;
 		}
 
@@ -175,11 +175,9 @@ namespace
 */
 	void  InputActionsWinAPI::SetMonitor (const uint2 &surfaceSize, const Monitor &monitor) __NE___
 	{
-		DRC_EXLOCK( _drCheck );
+		_Setup( float2(surfaceSize), monitor.MillimetersPerPixel() );
 
-		_surfaceSize	= float2(surfaceSize);
-		_toSNorm		= 1.0f / _surfaceSize;
-		_pixToMm		= monitor.MillimetersPerPixel();
+		_surfaceSize = float2(surfaceSize);
 	}
 
 /*

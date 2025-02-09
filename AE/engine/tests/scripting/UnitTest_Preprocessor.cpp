@@ -300,6 +300,27 @@ end)";
 		TEST( expected == src );
 	}
 	//-----------------------------------------------------
+
+
+
+	static void  Preprocessor_Test7 ()
+	{
+		const char	source[] = R"(
+"str1"s;
+"str1 \"str in str\"str2"s;
+"c++ str"s + "c str";
+)";
+		String	src;
+		TEST( ScriptEngine::_Preprocessor2( source, OUT src, Default, Default ));
+
+		const char	expected[] = R"(
+"str1";
+"str1 \"str in str\"str2";
+"c++ str" + "c str";
+)";
+		TEST( expected == src );
+	}
+	//-----------------------------------------------------
 }
 
 
@@ -311,6 +332,7 @@ extern void UnitTest_Preprocessor ()
 	Preprocessor_Test4();
 	Preprocessor_Test5();
 	Preprocessor_Test6();
+	Preprocessor_Test7();
 
 	TEST_PASSED();
 }

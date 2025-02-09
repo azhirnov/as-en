@@ -236,13 +236,13 @@ namespace
 			String	str;
 			switch ( type & EImageType::_ValMask )
 			{
+				case EImageType::UFloat :		break;
 				case EImageType::Float :		break;
 				case EImageType::Half :			break;
 				case EImageType::SNorm :		break;
 				case EImageType::UNorm :		break;
 				case EImageType::Int :			str << "i";		break;
 				case EImageType::UInt :			str << "u";		break;
-				case EImageType::sRGB :			break;
 				case EImageType::Depth :		break;
 				case EImageType::Stencil :		break;
 				case EImageType::DepthStencil :	break;
@@ -251,17 +251,17 @@ namespace
 				default :						CHECK_MSG( false, "unknown image data type" );
 			}
 			str << typeName;
-			switch ( type & EImageType::_TexMask )
+			switch ( type & EImageType::_DimMask )
 			{
-				case EImageType::Img1D :		str << "1D";		break;
-				case EImageType::Img1DArray :	str << "1DArray";	break;
-				case EImageType::Img2D :		str << "2D";		break;
-				case EImageType::Img2DArray :	str << "2DArray";	break;
-				case EImageType::Img2DMS :		str << "2DMS";		break;
-				case EImageType::Img2DMSArray :	str << "2DMSArray";	break;
-				case EImageType::ImgCube :		str << "Cube";		break;
-				case EImageType::ImgCubeArray :	str << "CubeArray";	break;
-				case EImageType::Img3D :		str << "3D";		break;
+				case EImageType::Dim1D :		str << "1D";		break;
+				case EImageType::Dim1DArray :	str << "1DArray";	break;
+				case EImageType::Dim2D :		str << "2D";		break;
+				case EImageType::Dim2DArray :	str << "2DArray";	break;
+				case EImageType::Dim2DMS :		str << "2DMS";		break;
+				case EImageType::Dim2DMSArray :	str << "2DMSArray";	break;
+				case EImageType::DimCube :		str << "Cube";		break;
+				case EImageType::DimCubeArray :	str << "CubeArray";	break;
+				case EImageType::Dim3D :		str << "3D";		break;
 				case EImageType::Buffer :		str << "Buffer";	break;
 				default :						CHECK_MSG( false, "unknown image dimension" );
 			}
@@ -471,6 +471,12 @@ namespace
 						<< name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
 				}
+				case EDescriptorType::RayTracingPartitionedScene :
+				{
+					str	<< "  layout(set=" << ds_idx << ", binding=" << idx_str << ") uniform accelerationStructureEXT "
+						<< name_str << ArraySizeToStr( un.arraySize ) << ";\n";
+					break;
+				}
 				case EDescriptorType::Unknown :
 				case EDescriptorType::_Count :
 				default :
@@ -505,7 +511,6 @@ namespace
 			{
 				case EImageType::Depth :
 				case EImageType::Float :
-				case EImageType::sRGB :
 				case EImageType::SNorm :
 				case EImageType::UNorm :	return "float";
 				case EImageType::Half :		return "half";
@@ -519,17 +524,17 @@ namespace
 		const auto	ImageToStr = [] (EImageType type) -> StringView
 		{{
 			const bool	is_depth = ((type & EImageType::_QualMask) == EImageType::Shadow);
-			switch ( type & EImageType::_TexMask )
+			switch ( type & EImageType::_DimMask )
 			{
-				case EImageType::Img1D :		CHECK(not is_depth);  return "texture1d";
-				case EImageType::Img1DArray :	CHECK(not is_depth);  return "texture1d_array";
-				case EImageType::Img2D :		return is_depth ? "depth2d"			: "texture2d";
-				case EImageType::Img2DArray :	return is_depth ? "depth2d_array"	: "texture2d_array";
-				case EImageType::Img2DMS :		return is_depth ? "depth2d_ms"		: "texture2d_ms";
-				case EImageType::Img2DMSArray :	return is_depth ? "depth2d_ms_array": "texture2d_ms_array";
-				case EImageType::ImgCube :		return is_depth ? "depthcube"		: "texturecube";
-				case EImageType::ImgCubeArray :	return is_depth ? "depthcube_array"	: "texturecube_array";
-				case EImageType::Img3D :		CHECK(not is_depth);  return "texture3d";
+				case EImageType::Dim1D :		CHECK(not is_depth);  return "texture1d";
+				case EImageType::Dim1DArray :	CHECK(not is_depth);  return "texture1d_array";
+				case EImageType::Dim2D :		return is_depth ? "depth2d"			: "texture2d";
+				case EImageType::Dim2DArray :	return is_depth ? "depth2d_array"	: "texture2d_array";
+				case EImageType::Dim2DMS :		return is_depth ? "depth2d_ms"		: "texture2d_ms";
+				case EImageType::Dim2DMSArray :	return is_depth ? "depth2d_ms_array": "texture2d_ms_array";
+				case EImageType::DimCube :		return is_depth ? "depthcube"		: "texturecube";
+				case EImageType::DimCubeArray :	return is_depth ? "depthcube_array"	: "texturecube_array";
+				case EImageType::Dim3D :		CHECK(not is_depth);  return "texture3d";
 				case EImageType::Buffer :		CHECK(not is_depth);  return "texture_buffer";
 				default :						CHECK(false);
 			}
@@ -746,6 +751,7 @@ namespace
 					if ( not is_argbuf ) bindings.bufferIdx += un.arraySize;
 					break;
 				}
+				case EDescriptorType::RayTracingPartitionedScene :
 				case EDescriptorType::Unknown :
 				case EDescriptorType::_Count :
 				default :
@@ -837,6 +843,7 @@ namespace
 					break;
 				}
 				case EDescriptorType::RayTracingScene :
+				case EDescriptorType::RayTracingPartitionedScene :
 				{
 					if ( not is_argbuf ) bindings.bufferIdx += un.arraySize;
 					break;
@@ -956,6 +963,7 @@ namespace
 						}
 						case EDescriptorType::StorageBuffer :
 						case EDescriptorType::RayTracingScene :
+						case EDescriptorType::RayTracingPartitionedScene :
 						case EDescriptorType::UniformTexelBuffer :
 						case EDescriptorType::StorageTexelBuffer :
 						case EDescriptorType::StorageImage :
@@ -998,6 +1006,7 @@ namespace
 						case EDescriptorType::UniformBuffer :
 						case EDescriptorType::StorageBuffer :
 						case EDescriptorType::RayTracingScene :
+						case EDescriptorType::RayTracingPartitionedScene :
 							CHECK_ERR( (dst_binding->bufferIdx + un.arraySize) <= MaxValue< decltype(*dst_index) >() );
 							*dst_index = ubyte(dst_binding->bufferIdx);
 							dst_binding->bufferIdx += un.arraySize;
@@ -1042,8 +1051,9 @@ namespace
 		DescriptorCount		total		= {};
 		PerStageDescCount_t	per_stage	= {};
 		CountDescriptors( INOUT total, INOUT per_stage );
-		CHECK_ERR_MSG( CheckDescriptorLimits( total, per_stage, _features, ("In DescriptorSetLayout '"s << _name << "'") ),
-			"DescriptorSetLayout '"s << _name << "' failed in CheckDescriptorLimits()" );
+
+		CHECK_ERR( CheckDescriptorLimits_PerPipeline( total, _features, ("In DescriptorSetLayout '"s << _name << "'") ));
+		CHECK_ERR( CheckDescriptorLimits_PerStage( per_stage, _features, ("In DescriptorSetLayout '"s << _name << "'") ));
 
 		_uid = storage.pplnStorage->AddDescriptorSetLayout( _dsLayout );
 		return true;
@@ -1087,6 +1097,7 @@ namespace
 				samplers += count;					break;
 
 			case EDescriptorType::RayTracingScene :
+			case EDescriptorType::RayTracingPartitionedScene :
 				rayTracingScenes += count;			break;
 
 			case EDescriptorType::_Count :
@@ -1224,18 +1235,18 @@ namespace
 		binder.Comment( "Add storage texel buffer.\n"
 						"'imageType' must be 'Buffer | Int/Uint/Float'.\n"
 						"Requires 'shaderStorageImageReadWithoutFormat' or 'shaderStorageImageWriteWithoutFormat' feature." );
-		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType)													>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "imageType"} );
-		binder.AddGenericMethod< void (uint, const String &, EImageType)															>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "imageType"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType)								>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "arraySize", "imageType"} );
-		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType)											>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "arraySize", "imageType"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EResourceState)				>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "arraySize", "imageType", "state"} );
-		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EResourceState)							>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "arraySize", "imageType", "state"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EAccessType)										>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "imageType", "access"} );
-		binder.AddGenericMethod< void (uint, const String &, EImageType, EAccessType)												>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "imageType", "access"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EAccessType)					>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "arraySize", "imageType", "access"} );
-		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EAccessType)							>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "arraySize", "imageType", "access"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EAccessType, EResourceState)	>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "arraySize", "imageType", "access", "state"} );
-		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EAccessType, EResourceState)			>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer", {"shaderStages", "uniform", "arraySize", "imageType", "access", "state"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType)													>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "imageType"} );
+		binder.AddGenericMethod< void (uint, const String &, EImageType)															>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "imageType"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType)								>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "arraySize", "imageType"} );
+		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType)											>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "arraySize", "imageType"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EResourceState)				>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "arraySize", "imageType", "state"} );
+		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EResourceState)							>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "arraySize", "imageType", "state"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EAccessType)										>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "imageType", "access"} );
+		binder.AddGenericMethod< void (uint, const String &, EImageType, EAccessType)												>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "imageType", "access"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EAccessType)					>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "arraySize", "imageType", "access"} );
+		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EAccessType)							>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "arraySize", "imageType", "access"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EAccessType, EResourceState)	>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "arraySize", "imageType", "access", "state"} );
+		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EAccessType, EResourceState)			>( &DescriptorSetLayout::_AddStorageTexelBuffer, "StorageTexelBuffer2", {"shaderStages", "uniform", "arraySize", "imageType", "access", "state"} );
 
 		binder.Comment( "Add storage image.\n"
 						"'format' must be included in 'storageImageFormats' in at least one of feature set." );
@@ -1258,22 +1269,22 @@ namespace
 
 		binder.Comment( "Add storage image.\n"
 						"Requires 'shaderStorageImageReadWithoutFormat' or 'shaderStorageImageWriteWithoutFormat' feature." );
-		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType)													>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "imageType"} );
-		binder.AddGenericMethod< void (uint, const String &, EImageType)															>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "imageType"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EAccessType)										>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "imageType", "access"} );
-		binder.AddGenericMethod< void (uint, const String &, EImageType, EAccessType)												>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "imageType", "access"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EResourceState)									>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "imageType", "state"} );
-		binder.AddGenericMethod< void (uint, const String &, EImageType, EResourceState)											>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "imageType", "state"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EAccessType, EResourceState)						>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "imageType", "access", "state"} );
-		binder.AddGenericMethod< void (uint, const String &, EImageType, EAccessType, EResourceState)								>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "imageType", "access", "state"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType)								>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "arraySize", "imageType"} );
-		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType)											>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "arraySize", "imageType"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EAccessType)					>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "arraySize", "imageType", "access"} );
-		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EAccessType)							>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "arraySize", "imageType", "access"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EResourceState)				>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "arraySize", "imageType", "state"} );
-		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EResourceState)							>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "arraySize", "imageType", "state"} );
-		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EAccessType, EResourceState)	>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "arraySize", "imageType", "access", "state"} );
-		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EAccessType, EResourceState)			>( &DescriptorSetLayout::_AddStorageImage, "StorageImage", {"shaderStages", "uniform", "arraySize", "imageType", "access", "state"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType)													>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "imageType"} );
+		binder.AddGenericMethod< void (uint, const String &, EImageType)															>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "imageType"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EAccessType)										>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "imageType", "access"} );
+		binder.AddGenericMethod< void (uint, const String &, EImageType, EAccessType)												>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "imageType", "access"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EResourceState)									>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "imageType", "state"} );
+		binder.AddGenericMethod< void (uint, const String &, EImageType, EResourceState)											>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "imageType", "state"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EAccessType, EResourceState)						>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "imageType", "access", "state"} );
+		binder.AddGenericMethod< void (uint, const String &, EImageType, EAccessType, EResourceState)								>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "imageType", "access", "state"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType)								>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "arraySize", "imageType"} );
+		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType)											>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "arraySize", "imageType"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EAccessType)					>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "arraySize", "imageType", "access"} );
+		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EAccessType)							>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "arraySize", "imageType", "access"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EResourceState)				>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "arraySize", "imageType", "state"} );
+		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EResourceState)							>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "arraySize", "imageType", "state"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, EImageType, EAccessType, EResourceState)	>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "arraySize", "imageType", "access", "state"} );
+		binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EAccessType, EResourceState)			>( &DescriptorSetLayout::_AddStorageImage, "StorageImage2", {"shaderStages", "uniform", "arraySize", "imageType", "access", "state"} );
 
 		binder.Comment( "Add sampled image (without sampler)." );
 		binder.AddGenericMethod< void (EShaderStages, const String &, EImageType)										>( &DescriptorSetLayout::_AddSampledImage, "SampledImage", {"shaderStages", "uniform", "imageType"} );
@@ -1343,11 +1354,17 @@ namespace
 		binder.AddGenericMethod< void (EShaderStages, const String &, const ScriptArray<String> &)	>( &DescriptorSetLayout::_AddImmutableSampler, "ImtblSampler", {"shaderStages", "uniform", "samplerNames"} );
 		binder.AddGenericMethod< void (uint, const String &, const ScriptArray<String> &)			>( &DescriptorSetLayout::_AddImmutableSampler, "ImtblSampler", {"shaderStages", "uniform", "samplerNames"} );
 
-		binder.Comment( "Add ray tracing scene (top level acceleration structure)." );
+		binder.Comment( "Add ray tracing scene (top level acceleration structure, TLAS)." );
 		binder.AddGenericMethod< void (EShaderStages, const String &)						>( &DescriptorSetLayout::_AddRayTracingScene, "RayTracingScene", {"shaderStages", "uniform"} );
 		binder.AddGenericMethod< void (uint, const String &)								>( &DescriptorSetLayout::_AddRayTracingScene, "RayTracingScene", {"shaderStages", "uniform"} );
 		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &)	>( &DescriptorSetLayout::_AddRayTracingScene, "RayTracingScene", {"shaderStages", "uniform", "arraySize"} );
 		binder.AddGenericMethod< void (uint, const String &, const ArraySize &)				>( &DescriptorSetLayout::_AddRayTracingScene, "RayTracingScene", {"shaderStages", "uniform", "arraySize"} );
+
+		binder.Comment( "Add ray tracing partitioned scene (partitioned top level acceleration structure, PTLAS)." );
+		binder.AddGenericMethod< void (EShaderStages, const String &)						>( &DescriptorSetLayout::_AddRayTracingPartitionedScene, "RayTracingPartitionedScene", {"shaderStages", "uniform"} );
+		binder.AddGenericMethod< void (uint, const String &)								>( &DescriptorSetLayout::_AddRayTracingPartitionedScene, "RayTracingPartitionedScene", {"shaderStages", "uniform"} );
+		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &)	>( &DescriptorSetLayout::_AddRayTracingPartitionedScene, "RayTracingPartitionedScene", {"shaderStages", "uniform", "arraySize"} );
+		binder.AddGenericMethod< void (uint, const String &, const ArraySize &)				>( &DescriptorSetLayout::_AddRayTracingPartitionedScene, "RayTracingPartitionedScene", {"shaderStages", "uniform", "arraySize"} );
 
 		binder.Comment( "Check is image description is supported by feature set." );
 		binder.AddGenericMethod< bool (EPixelFormat, EImageUsage, EImageOpt, ImageLayer const&, MultiSamples const&) >( &DescriptorSetLayout::_IsImageSupported,	"IsSupported",	{"format", "usage", "options", "arrayLayers", "samples"} );
@@ -1519,8 +1536,6 @@ namespace
 */
 	void  DescriptorSetLayout::_CheckStorageFormat (EPixelFormat format, bool isReadOnly) C_Th___
 	{
-		CHECK_THROW_MSG( format < EPixelFormat::_Count );
-
 		if ( format == Default )
 		{
 			if ( isReadOnly ){
@@ -1531,8 +1546,19 @@ namespace
 		}
 		else
 		{
+			CHECK_THROW_MSG( format < EPixelFormat::_Count );
 			TestFeature_PixelFormat( _features, &FeatureSet::storageImageFormats, format, "storageImageFormats" );
 		}
+	}
+
+/*
+=================================================
+	_AddSRGB
+=================================================
+*/
+	void  DescriptorSetLayout::_AddSRGB (const String &name, EImageType type) __Th___
+	{
+	//	_defines << "\n" << name << "_sRGB = " << ((type & EImageType::_QualMask) == EImageType::sRGB ? "1" : "0");
 	}
 
 /*
@@ -1971,7 +1997,7 @@ namespace
 		uint			idx				= 0;
 		EShaderStages	stages			= Default;
 		EResourceState	res_state		= EResourceState::InputColorAttachment;
-		EImageType		image_type		= EImageType::Img2D | EImageType::Float;
+		EImageType		image_type		= EImageType::Dim2D | EImageType::Float;
 		uint			sp_index		= UMax;
 		String			uniform_name;
 
@@ -2093,6 +2119,34 @@ namespace
 
 /*
 =================================================
+	_AddRayTracingPartitionedScene
+=================================================
+*/
+	void  DescriptorSetLayout::_AddRayTracingPartitionedScene (Scripting::ScriptArgList args) __Th___
+	{
+		uint			idx				= 0;
+		EShaderStages	stages			= Default;
+		String			uniform_name;
+		ArraySize		array_size		= ArraySize{1};
+
+		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
+		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+
+		if ( args.IsArg< String const& >(idx) )
+			uniform_name = args.Arg< String const& >(idx++);
+		else
+			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+
+		if ( args.IsArg< ArraySize const& >(idx) )
+			array_size = args.Arg< ArraySize const& >(idx++);
+
+		CHECK_THROW_MSG( idx == args.ArgCount() );
+		args.GetObject< DescriptorSetLayout >()->AddRayTracingPartitionedScene( stages, uniform_name, array_size );
+	}
+
+/*
+=================================================
 	AddUniformBuffer
 =================================================
 */
@@ -2191,7 +2245,7 @@ namespace
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
-		CHECK_THROW_MSG( (type & EImageType::_TexMask) == EImageType::Buffer );
+		CHECK_THROW_MSG( (type & EImageType::_DimMask) == EImageType::Buffer );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
 		_CheckUniformName( name );
@@ -2207,6 +2261,7 @@ namespace
 		un.texelBuffer.type		= type;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
+		_AddSRGB( name, type );
 	}
 
 /*
@@ -2218,7 +2273,7 @@ namespace
 	{
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
-		CHECK_THROW_MSG( (type & EImageType::_TexMask) == EImageType::Buffer );
+		CHECK_THROW_MSG( (type & EImageType::_DimMask) == EImageType::Buffer );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
 		_CheckStateForStorage( state );
@@ -2238,6 +2293,7 @@ namespace
 	//	un.texelBuffer.format	= format;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
+		_AddSRGB( name, type );
 
 		auto&	aux_info	= _infoMap[ UniformName{name} ];
 		aux_info.access		= access;
@@ -2252,7 +2308,7 @@ namespace
 	{
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
-		CHECK_THROW_MSG( (type & EImageType::_TexMask) != Default );
+		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 
 		_CheckStateForStorage( state );
 		_CheckUniformName( name );
@@ -2279,6 +2335,7 @@ namespace
 		un.image.format	= format;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
+		_AddSRGB( name, type );
 
 		auto&	aux_info	= _infoMap[ UniformName{name} ];
 		aux_info.access		= access;
@@ -2294,7 +2351,7 @@ namespace
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
-		CHECK_THROW_MSG( (type & EImageType::_TexMask) != Default );
+		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
 		_CheckUniformName( name );
@@ -2311,6 +2368,7 @@ namespace
 		un.image.format	= Default;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
+		_AddSRGB( name, type );
 	}
 
 /*
@@ -2323,7 +2381,7 @@ namespace
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
-		CHECK_THROW_MSG( (type & EImageType::_TexMask) != Default );
+		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
 		_CheckUniformName( name );
@@ -2340,6 +2398,7 @@ namespace
 		un.image.format	= Default;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
+		_AddSRGB( name, type );
 	}
 
 /*
@@ -2357,7 +2416,7 @@ namespace
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
-		CHECK_THROW_MSG( (type & EImageType::_TexMask) != Default );
+		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
 		const uint	array_size = uint(samplerNames.size());
@@ -2379,6 +2438,7 @@ namespace
 		un.image.samplerOffsetInStorage	= DescriptorSetLayoutDesc::SamplerIdx_t(_dsLayout.samplerStorage.size());
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
+		_AddSRGB( name, type );
 
 		for (auto& samp : samplerNames)
 		{
@@ -2406,7 +2466,7 @@ namespace
 		CHECK_THROW_MSG( stages != Default );
 		state |= EResourceState_FromShaders( stages );
 
-		CHECK_THROW_MSG( (type & EImageType::_TexMask) != Default );
+		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
 		_CheckUniformName( name );
@@ -2424,6 +2484,7 @@ namespace
 		un.image.subpassInputIdx = (index == UMax ? 0xFF : ubyte(index));
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
+		_AddSRGB( name, type );
 	}
 
 /*
@@ -2486,7 +2547,7 @@ namespace
 
 			CHECK_THROW_MSG( AnyEqual( usage.type, EAttachment::Input, EAttachment::ReadWrite ));
 
-			EImageType	img_type = att->samples.Get() > 1 ? EImageType::Img2DMS : EImageType::Img2D;
+			EImageType	img_type = att->samples.Get() > 1 ? EImageType::Dim2DMS : EImageType::Dim2D;
 
 			switch_enum( usage.input.type )
 			{
@@ -2498,7 +2559,7 @@ namespace
 				case EShaderIO::Half :			img_type |= EImageType::Half;			break;
 				case EShaderIO::UNorm :			img_type |= EImageType::UNorm;			break;
 				case EShaderIO::SNorm :			img_type |= EImageType::SNorm;			break;
-				case EShaderIO::sRGB :			img_type |= EImageType::sRGB;			break;
+				case EShaderIO::sRGB :			img_type |= EImageType::UNorm;			break;
 				case EShaderIO::Depth :			img_type |= EImageType::Depth;			break;
 				case EShaderIO::Stencil :		img_type |= EImageType::Stencil;		break;
 				case EShaderIO::DepthStencil:	img_type |= EImageType::DepthStencil;	break;
@@ -2596,49 +2657,73 @@ namespace
 
 /*
 =================================================
+	AddRayTracingPartitionedScene
+=================================================
+*/
+	void  DescriptorSetLayout::AddRayTracingPartitionedScene (EShaderStages stages, const String &name, const ArraySize &arraySize) __Th___
+	{
+		CHECK_THROW_MSG( stages != Default );
+
+		_CheckUniformName( name );
+		_CheckArraySize( arraySize.value );
+
+		Uniform		un;
+		un.type			= EDescriptorType::RayTracingPartitionedScene;
+		un.stages		= stages;
+		un.arraySize	= ArraySize_t(arraySize.value);
+
+		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
+	}
+
+/*
+=================================================
 	CheckDescriptorLimits
 =================================================
 */
-	bool  DescriptorSetLayout::CheckDescriptorLimits (const DescriptorCount &total, const PerStageDescCount_t &perStage,
-													  ArrayView<ScriptFeatureSetPtr> features, StringView name)
+	bool  DescriptorSetLayout::CheckDescriptorLimits_PerPipeline (const DescriptorCount &count, ArrayView<ScriptFeatureSetPtr> features, StringView name)
 	{
-		using DT = EDescriptorType;
-
 		bool	result = true;
-		{
-			#define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )																						\
-			{																																\
-				const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perDescrSet, &FeatureSet::PerDescriptorSet::_rhs_ );	\
-				if_unlikely( (_lhs_) > rhs_val ) {																							\
-					result = false;																											\
-					AE_LOGE( String{name} << ": number of " << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<	\
-							 AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );													\
-				}																															\
-			}
-			CHECK_LIMIT( total.uniformBuffers,		maxUniformBuffers,		"uniform buffers per DS" );
-			CHECK_LIMIT( total.storageBuffers,		maxStorageBuffers,		"storage buffers per DS" );
-			CHECK_LIMIT( total.subpassInputs,		maxInputAttachments,	"input attachments per DS" );
-			CHECK_LIMIT( total.rayTracingScenes,	maxAccelStructures,		"acceleration structures per DS" );
-			CHECK_LIMIT( total.storageImages,		maxStorageImages,		"storage images per DS" );
-			CHECK_LIMIT( total.sampledImages,		maxSampledImages,		"sampler images per DS" );
-			CHECK_LIMIT( total.samplers,			maxSamplers,			"samplers per DS" );
-			CHECK_LIMIT( total.TotalCount(),		maxTotalResources,		"total resources per DS" );
-			#undef CHECK_LIMIT
-
-			#define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )																						\
-			{																																\
-				const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perDescrSet_##_rhs_ );								\
-				if_unlikely( (_lhs_) > rhs_val ) {																							\
-					result = false;																											\
-					AE_LOGE( String{name} << ": number of " << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<	\
-							 AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );													\
-				}																															\
-			}
-			CHECK_LIMIT( total.dynamicUniformBuffers,	maxUniformBuffersDynamic,	"dynamic uniform buffers per DS" );
-			CHECK_LIMIT( total.dynamicStorageBuffers,	maxStorageBuffersDynamic,	"dynamic storage buffers per DS" );
-			#undef CHECK_LIMIT
+		#define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )																						\
+		{																																\
+			const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perPipeline, &FeatureSet::PerDescriptorSet::_rhs_ );	\
+			if_unlikely( (_lhs_) > rhs_val ) {																							\
+				result = false;																											\
+				AE_LOGE( String{name} << ": number of " << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<	\
+							AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );												\
+			}																															\
 		}
+		CHECK_LIMIT( count.uniformBuffers,		maxUniformBuffers,		"uniform buffers per pipeline" );
+		CHECK_LIMIT( count.storageBuffers,		maxStorageBuffers,		"storage buffers per pipeline" );
+		CHECK_LIMIT( count.subpassInputs,		maxInputAttachments,	"input attachments per pipeline" );
+		CHECK_LIMIT( count.rayTracingScenes,	maxAccelStructures,		"acceleration structures per pipeline" );
+		CHECK_LIMIT( count.storageImages,		maxStorageImages,		"storage images per pipeline" );
+		CHECK_LIMIT( count.sampledImages,		maxSampledImages,		"sampler images per pipeline" );
+		CHECK_LIMIT( count.samplers,			maxSamplers,			"samplers per pipeline" );
+		CHECK_LIMIT( count.TotalCount(),		maxTotalResources,		"total resources per pipeline" );
+		#undef CHECK_LIMIT
 
+		#define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )																						\
+		{																																\
+			const auto	rhs_val = GetMaxValueFromFeatures( features, &FeatureSet::perPipeline_##_rhs_ );								\
+			if_unlikely( (_lhs_) > rhs_val ) {																							\
+				result = false;																											\
+				AE_LOGE( String{name} << ": number of " << (_msg_) << " (" << ToString(_lhs_) << ") exceeds the maximum allowed '" <<	\
+							AE_TOSTRING( _rhs_ ) << "' (" << ToString(rhs_val) << ")" );												\
+			}																															\
+		}
+		CHECK_LIMIT( count.dynamicUniformBuffers,	maxUniformBuffersDynamic,	"dynamic uniform buffers per pipeline" );
+		CHECK_LIMIT( count.dynamicStorageBuffers,	maxStorageBuffersDynamic,	"dynamic storage buffers per pipeline" );
+
+		const uint	total_buffers_dynamic	= count.dynamicUniformBuffers + count.dynamicStorageBuffers;
+		CHECK_LIMIT( total_buffers_dynamic,			maxTotalBuffersDynamic,		"total dynamic buffers per pipeline" );
+		#undef CHECK_LIMIT
+
+		return result;
+	}
+
+	bool  DescriptorSetLayout::CheckDescriptorLimits_PerStage (const PerStageDescCount_t &perStage, ArrayView<ScriptFeatureSetPtr> features, StringView name)
+	{
+		bool	result = true;
 		for (auto [stage, count] : perStage)
 		{
 			#define CHECK_LIMIT( _lhs_, _rhs_, _msg_ )																						\
@@ -2660,7 +2745,6 @@ namespace
 			CHECK_LIMIT( count.TotalCount(),		maxTotalResources,		"total resources per stage" );
 			#undef CHECK_LIMIT
 		}
-
 		return result;
 	}
 

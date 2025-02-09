@@ -225,7 +225,7 @@ namespace AE::PipelineCompiler
 		binder.AddMethod( &ScriptConfig::SetDefaultFeatureSet,	"SetDefaultFeatureSet",	{"fsName"} );
 
 		binder.Comment( "Set defines which will be used in all shaders.\n"
-						"Format: DEF=1\nDEF2" );
+						"Format: MACROS = value \\n DEF \\n ..." );
 		binder.AddMethod( &ScriptConfig::SetShaderDefines,		"SetShaderDefines",		{} );
 	}
 

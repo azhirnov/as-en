@@ -1,7 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Show distortion near to cube edge.
+*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT

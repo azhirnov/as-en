@@ -99,7 +99,7 @@ namespace
 	{
 		static void  Ctor (OUT void* mem, const String &str)
 		{
-			VecSwizzle	temp = Math::operator ""_vecSwizzle( str.c_str(), str.length() );
+			VecSwizzle	temp = Base::operator ""_vecSwizzle( str.c_str(), str.length() );
 
 			PlacementNew<VecSwizzle>( OUT mem, temp );
 		}
@@ -130,9 +130,10 @@ namespace
 	{
 		CHECK_THROW( se and se->IsInitialized() );
 
-		// separated on 2 parts because otherwise VS requires /bigobj
+		// separated on 3 parts because otherwise VS requires /bigobj
 		_BindVectorMath1( se );
 		_BindVectorMath2( se );
+		_BindVectorMath3( se );
 	}
 
 

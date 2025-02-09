@@ -19,41 +19,56 @@ namespace AE::AssetPacker
 		using ImageMap_t	= FlatHashMap< Graphics::ImageInAtlasName::Optimized_t, uint >;	// index in 'ImageRects_t'
 		using ImageRects_t	= Array< Rect_t >;
 
-		static constexpr ushort		Version		= 1;
+		static constexpr ushort		Version		= 2;
 		static constexpr uint		Magic		= "gr.StAtlas"_Hash;
+		static constexpr auto		SerID		= Serializing::SerializedID::Optimized_t{"StaticImageAtlas"};
 
-		struct Header2
+		enum class EFileFlags : ushort
 		{
-			uint				magic		= Magic;
-			ushort				version		= Version;
-			ImagePacker::Header	hdr;
-
-			Header2 ()										__NE___ = default;
-			explicit Header2 (const ImagePacker::Header &h)	__NE___ : hdr{h} {}
+			Unknown			= 0,
+			HasImage		= 1 << 0,	// image data in current file
+			SeparateData	= 1 << 1,	// load image data from another file
+			HasResName		= 1 << 2,	// get image from cache
 		};
-		StaticAssert( sizeof(Header2) == 24 );
+
+		struct FileHeader
+		{
+			uint			magic		= Magic;
+			ushort			version		= Version;
+			EFileFlags		flags		= Default;
+		};
+		StaticAssert( sizeof(FileHeader) == 8 );
 
 
 	// variables
 	public:
-		Header2				_header;
+		FileHeader						_header;
+		ImagePacker::Header				_imageHeader;		// HasImage or SeparateData
+		CachedResourceName::Optimized_t	_imageResName;		// HasResName
+		VFS::FileName::Optimized_t		_imageFileName;		// SeparateData
 
-		ImageMap_t			map;
-		ImageRects_t		rects;
+		ImageMap_t						map;
+		ImageRects_t					rects;
 
 
 	// methods
 	public:
-		ImageAtlasPacker ()											__NE___ {}
-		explicit ImageAtlasPacker (const ImagePacker::Header &h)	__NE___ : _header{h} {}
-
-		ND_ ImagePacker::Header const&	Header ()					C_NE___	{ return _header.hdr; }
+		ND_ auto*	ImageHeader ()			C_NE___;
+		ND_ auto	ImageResourceName ()	C_NE___	{ return _imageResName; }
+		ND_ auto	ImageFileName ()		C_NE___	{ return _imageFileName; }
 	};
 
+	AE_BIT_OPERATORS( ImageAtlasPacker::EFileFlags );
+
+
+	Nd__In auto*  ImageAtlasPacker::ImageHeader () C_NE___
+	{
+		return AnyBits( _header.flags, EFileFlags::HasImage | EFileFlags::SeparateData ) ? &_imageHeader : null;
+	}
 
 } // AE::AssetPacker
 
 namespace AE::Base
 {
-	template <> struct TTriviallySerializable< AE::AssetPacker::ImageAtlasPacker::Header2 >	: CT_True {};
+	template <> struct TTriviallySerializable< AE::AssetPacker::ImageAtlasPacker::FileHeader >	: CT_True {};
 }

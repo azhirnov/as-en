@@ -66,7 +66,7 @@ void  InitPipelineLayout ()
 		ds.StorageBuffer( EShaderStages::Vertex,	"un_Nodes",		"ModelNode_Array",		EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( EShaderStages::Fragment,	"un_Materials",	"ModelMaterial_Array",	EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( EShaderStages::Fragment,	"un_Lights",	"SceneLights",			EResourceState::ShaderStorage_Read );
-		ds.SampledImage(  EShaderStages::Fragment,	"un_AlbedoMaps", albedoMapsCount, EImageType::FImage2D );
+		ds.SampledImage(  EShaderStages::Fragment,	"un_AlbedoMaps", albedoMapsCount, EImageType::Float_2D );
 		ds.ImtblSampler(  EShaderStages::Fragment,	"un_AlbedoMapSampler", "model.Sampler" );
 	}
 
@@ -91,7 +91,7 @@ void  InitMeshPipelineLayout ()
 	//	ds.StorageBuffer( EShaderStages::Mesh,		"un_Meshes",	"ModelMesh_Array",		EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( EShaderStages::Fragment,	"un_Materials",	"ModelMaterial_Array",	EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( EShaderStages::Fragment,	"un_Lights",	"SceneLights",			EResourceState::ShaderStorage_Read );
-		ds.SampledImage(  EShaderStages::Fragment,	"un_AlbedoMaps", albedoMapsCount, EImageType::FImage2D );
+		ds.SampledImage(  EShaderStages::Fragment,	"un_AlbedoMaps", albedoMapsCount, EImageType::Float_2D );
 		ds.ImtblSampler(  EShaderStages::Fragment,	"un_AlbedoMapSampler", "model.Sampler" );
 	}
 
@@ -117,7 +117,7 @@ void  InitRayTracingPipelineLayout ()
 		ds.StorageBuffer( stages, "un_RTInstances",	"ModelRTInstances",		EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( stages, "un_Materials",	"ModelMaterial_Array",	EResourceState::ShaderStorage_Read );
 		ds.StorageBuffer( stages, "un_Lights",		"SceneLights",			EResourceState::ShaderStorage_Read );
-		ds.SampledImage(  stages, "un_AlbedoMaps",	albedoMapsCount,		EImageType::FImage2D );
+		ds.SampledImage(  stages, "un_AlbedoMaps",	albedoMapsCount,		EImageType::Float_2D );
 		ds.ImtblSampler(  stages, "un_AlbedoMapSampler", "model.Sampler" );
 	}
 

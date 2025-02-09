@@ -9,10 +9,11 @@
 
 #include "Math.glsl"
 
+// returns 'true' if visible
 ND_ bool  Frustum_TestSphere (const float4 frustum[6], const float3 center, const float radius);
-ND_ bool  Frustum_TestAABB (const float4 frustum[6], const float3 minBound, const float3 maxBound);
-ND_ bool  Frustum_TestLine (const float4 frustum[6], const float3 begin, const float3 end);
-ND_ bool  Frustum_TestPoint (const float4 frustum[6], const float3 point);
+ND_ bool  Frustum_TestAABB   (const float4 frustum[6], const float3 minBound, const float3 maxBound);
+ND_ bool  Frustum_TestLine   (const float4 frustum[6], const float3 begin, const float3 end);
+ND_ bool  Frustum_TestPoint  (const float4 frustum[6], const float3 point);
 //-----------------------------------------------------------------------------
 
 
@@ -27,7 +28,7 @@ bool  Frustum_TestSphere (const float4 frustum[6], const float3 center, const fl
 	[[unroll]] for (int i = 0; i < 6; ++i)
 	{
 		float	d = Dot( center, frustum[i].xyz ) + frustum[i].w + radius;
-		invisible += LessFp( d, 0.0 );
+		invisible += LessF( d, 0.0 );
 	}
 	return invisible < 0.f;
 }
@@ -44,7 +45,7 @@ bool  Frustum_TestAABB_v1 (const float4 frustum[6], const float3 minBound, const
 	{
 		float3	v = Max( minBound * frustum[i].xyz, maxBound * frustum[i].xyz );
 		float	d = v.x + v.y + v.z + frustum[i].w;
-		invisible += LessFp( d, 0.0 );
+		invisible += LessF( d, 0.0 );
 	}
 	return invisible < 0.f;
 }
@@ -71,8 +72,8 @@ bool  Frustum_TestLine_v1 (const float4 frustum[6], const float3 begin, const fl
 	float	invisible = -1.f;
 	[[unroll]] for (int i = 0; i < 6; ++i)
 	{
-		invisible += LessFp( Dot( frustum[i].xyz, begin ) + frustum[i].w, 0.0 ) *
-					 LessFp( Dot( frustum[i].xyz, end   ) + frustum[i].w, 0.0 );
+		invisible += LessF( Dot( frustum[i].xyz, begin ) + frustum[i].w, 0.0 ) *
+					 LessF( Dot( frustum[i].xyz, end   ) + frustum[i].w, 0.0 );
 	}
 	return invisible < 0.f;
 }
@@ -92,7 +93,7 @@ bool  Frustum_TestPoint (const float4 frustum[6], const float3 point)
 	float	invisible = -1.f;
 	[[unroll]] for (int i = 0; i < 6; ++i)
 	{
-		invisible += LessFp( Dot( frustum[i].xyz, point ) + frustum[i].w, 0.0 );
+		invisible += LessF( Dot( frustum[i].xyz, point ) + frustum[i].w, 0.0 );
 	}
 	return invisible < 0.f;
 }

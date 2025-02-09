@@ -4,8 +4,8 @@
 
 #include "platform/BaseAppV1/AppConfig.h"
 #include "platform/BaseAppV1/DefaultAppV1.h"
-#include "graphics/Remote/RMessages.h"
-#include "graphics/Remote/RConnection.h"
+#include "graphics_rhi/Remote/RMessages.h"
+#include "graphics_rhi/Remote/RConnection.h"
 
 #ifdef AE_ENABLE_VULKAN
 # include "VulkanSyncLog.h"

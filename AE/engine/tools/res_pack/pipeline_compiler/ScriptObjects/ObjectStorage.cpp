@@ -272,7 +272,7 @@ namespace AE::PipelineCompiler
 	{
 		for (auto& [name, src_rp] : compatibleRPs)
 		{
-			if ( not serializedRPs.contains( name ))
+			if ( HashTable_NotContains( serializedRPs, name ))
 			{
 				CHECK( src_rp->Validate() );
 
@@ -640,8 +640,8 @@ namespace AE::PipelineCompiler
 
 					if ( pass->GetDSLayout() )
 					{
-						tmp << "\t\t\tstatic constexpr DescriptorSetName_t  dsLayout {Hash_t{0x"
-							<< ToString<16>( uint{DescriptorSetName{pass->GetDSLayout()->Name()}} )
+						tmp << "\t\t\tstatic constexpr DSLayoutName_t  dsLayout {Hash_t{0x"
+							<< ToString<16>( uint{DSLayoutName{pass->GetDSLayout()->Name()}} )
 							<< "u}};  // '" << pass->GetDSLayout()->Name() << "'\n";
 					}
 
@@ -709,7 +709,7 @@ namespace AE::PipelineCompiler
 					<< "\tusing AttachmentName_t      = AE::Graphics::AttachmentName;\n"
 					<< "\tusing PipelineName_t        = AE::Graphics::PipelineName;\n"
 					<< "\tusing RTShaderBindingName_t = AE::Graphics::RTShaderBindingName;\n"
-					<< "\tusing DescriptorSetName_t   = AE::Graphics::DescriptorSetName;\n"
+					<< "\tusing DSLayoutName_t        = AE::Graphics::DSLayoutName;\n"
 					<< tmp
 					<< "}\n";
 			}
@@ -728,7 +728,8 @@ namespace AE::PipelineCompiler
 	CompilePipeline
 =================================================
 */
-	bool  ObjectStorage::CompilePipeline (const ScriptEnginePtr &scriptEngine, const Path &path, ArrayView<Path> includeDirs)
+	bool  ObjectStorage::CompilePipeline (const ScriptEnginePtr &scriptEngine, const Path &path,
+										  ArrayView<Path> includeDirs, const bool includeCurrentDir)
 	{
 		const String	ansi_path	= ToString(path);
 		String			script;
@@ -749,7 +750,7 @@ namespace AE::PipelineCompiler
 			}
 		}
 
-		return CompilePipelineFromSource( scriptEngine, path, script, includeDirs );
+		return CompilePipelineFromSource( scriptEngine, path, script, includeDirs, includeCurrentDir );
 	}
 
 /*
@@ -757,7 +758,8 @@ namespace AE::PipelineCompiler
 	CompilePipelineFromSource
 =================================================
 */
-	bool  ObjectStorage::CompilePipelineFromSource (const ScriptEnginePtr &scriptEngine, const Path &path, StringView source, ArrayView<Path> includeDirs)
+	bool  ObjectStorage::CompilePipelineFromSource (const ScriptEnginePtr &scriptEngine, const Path &path, StringView source,
+													ArrayView<Path> includeDirs, const bool includeCurrentDir)
 	{
 		const String	ansi_path = ToString(path);
 
@@ -766,6 +768,15 @@ namespace AE::PipelineCompiler
 		src.script			= source;
 		src.dbgLocation		= SourceLoc{ ansi_path, 0 };
 		src.usePreprocessor	= true;
+
+		Array<Path>		tmp_include;
+		if ( includeCurrentDir )
+		{
+			tmp_include.reserve( includeDirs.size()+1 );
+			tmp_include.assign( includeDirs.begin(), includeDirs.end() );
+			tmp_include.push_back( path.parent_path() );
+			includeDirs = tmp_include;
+		}
 
 		ScriptModulePtr		module = scriptEngine->CreateModule( {src}, {"SCRIPT"}, includeDirs );
 		if ( not module )
@@ -1060,15 +1071,15 @@ namespace {
 	{
 		EnumBinder<EImageType>	binder{ se };
 		binder.Create();
-		binder.AddValue( "1D",					EImageType::Img1D );
-		binder.AddValue( "1DArray",				EImageType::Img1DArray );
-		binder.AddValue( "2D",					EImageType::Img2D );
-		binder.AddValue( "2DArray",				EImageType::Img2DArray );
-		binder.AddValue( "2DMS",				EImageType::Img2DMS );
-		binder.AddValue( "2DMSArray",			EImageType::Img2DMSArray );
-		binder.AddValue( "Cube",				EImageType::ImgCube );
-		binder.AddValue( "CubeArray",			EImageType::ImgCubeArray );
-		binder.AddValue( "3D",					EImageType::Img3D );
+		binder.AddValue( "1D",					EImageType::Dim1D );
+		binder.AddValue( "1DArray",				EImageType::Dim1DArray );
+		binder.AddValue( "2D",					EImageType::Dim2D );
+		binder.AddValue( "2DArray",				EImageType::Dim2DArray );
+		binder.AddValue( "2DMS",				EImageType::Dim2DMS );
+		binder.AddValue( "2DMSArray",			EImageType::Dim2DMSArray );
+		binder.AddValue( "Cube",				EImageType::DimCube );
+		binder.AddValue( "CubeArray",			EImageType::DimCubeArray );
+		binder.AddValue( "3D",					EImageType::Dim3D );
 		binder.AddValue( "Buffer",				EImageType::Buffer );
 
 		binder.AddValue( "Float",				EImageType::Float );
@@ -1077,91 +1088,104 @@ namespace {
 		binder.AddValue( "UNorm",				EImageType::UNorm );
 		binder.AddValue( "Int",					EImageType::Int );
 		binder.AddValue( "UInt",				EImageType::UInt );
-		binder.AddValue( "sRGB",				EImageType::sRGB );
 		binder.AddValue( "Depth",				EImageType::Depth );
 		binder.AddValue( "Stencil",				EImageType::Stencil );
 		binder.AddValue( "DepthStencil",		EImageType::DepthStencil );
+		binder.AddValue( "UFloat",				EImageType::UFloat );
+		binder.AddValue( "Long",				EImageType::SLong );
+		binder.AddValue( "ULong",				EImageType::ULong );
 
 		binder.AddValue( "Shadow",				EImageType::Shadow );
+		binder.AddValue( "sRGB",				EImageType::sRGB );
 
 		// float
-		binder.AddValue( "FImage1D",			EImageType::Img1D			| EImageType::Float );
-		binder.AddValue( "FImage2D",			EImageType::Img2D			| EImageType::Float );
-		binder.AddValue( "FImage2D_sRGB",		EImageType::Img2D			| EImageType::sRGB );
-		binder.AddValue( "FImage3D",			EImageType::Img3D			| EImageType::Float );
-		binder.AddValue( "FImage1DArray",		EImageType::Img1DArray		| EImageType::Float );
-		binder.AddValue( "FImage2DArray",		EImageType::Img2DArray		| EImageType::Float );
-		binder.AddValue( "FImageCube",			EImageType::ImgCube			| EImageType::Float );
-		binder.AddValue( "FImageCubeArray",		EImageType::ImgCubeArray	| EImageType::Float );
-		binder.AddValue( "FImage2DMS",			EImageType::Img2DMS			| EImageType::Float );
-		binder.AddValue( "FImage2DMSArray",		EImageType::Img2DMSArray	| EImageType::Float );
-		binder.AddValue( "FImageBuffer",		EImageType::Buffer			| EImageType::Float );
+		binder.AddValue( "Float_1D",			EImageType::Dim1D			| EImageType::Float );
+		binder.AddValue( "Float_2D",			EImageType::Dim2D			| EImageType::Float );
+		binder.AddValue( "Float_3D",			EImageType::Dim3D			| EImageType::Float );
+		binder.AddValue( "Float_1DArray",		EImageType::Dim1DArray		| EImageType::Float );
+		binder.AddValue( "Float_2DArray",		EImageType::Dim2DArray		| EImageType::Float );
+		binder.AddValue( "Float_Cube",			EImageType::DimCube			| EImageType::Float );
+		binder.AddValue( "Float_CubeArray",		EImageType::DimCubeArray	| EImageType::Float );
+		binder.AddValue( "Float_2DMS",			EImageType::Dim2DMS			| EImageType::Float );
+		binder.AddValue( "Float_2DMSArray",		EImageType::Dim2DMSArray	| EImageType::Float );
+		binder.AddValue( "Float_Buffer",		EImageType::Buffer			| EImageType::Float );
+		// float sRGB
+		binder.AddValue( "Float_1D_sRGB",		EImageType::Dim1D			| EImageType::Float	| EImageType::sRGB );
+		binder.AddValue( "Float_2D_sRGB",		EImageType::Dim2D			| EImageType::Float	| EImageType::sRGB );
+		binder.AddValue( "Float_3D_sRGB",		EImageType::Dim3D			| EImageType::Float	| EImageType::sRGB );
+		binder.AddValue( "Float_1DArray_sRGB",	EImageType::Dim1DArray		| EImageType::Float	| EImageType::sRGB );
+		binder.AddValue( "Float_2DArray_sRGB",	EImageType::Dim2DArray		| EImageType::Float	| EImageType::sRGB );
+		binder.AddValue( "Float_Cube_sRGB",		EImageType::DimCube			| EImageType::Float	| EImageType::sRGB );
+		binder.AddValue( "Float_CubeArray_sRGB",EImageType::DimCubeArray	| EImageType::Float	| EImageType::sRGB );
+		binder.AddValue( "Float_2DMS_sRGB",		EImageType::Dim2DMS			| EImageType::Float	| EImageType::sRGB );
+		binder.AddValue( "Float_2DMSArray_sRGB",EImageType::Dim2DMSArray	| EImageType::Float	| EImageType::sRGB );
+		binder.AddValue( "Float_Buffer_sRGB",	EImageType::Buffer			| EImageType::Float	| EImageType::sRGB );
 		// half
-		binder.AddValue( "HImage1D",			EImageType::Img1D			| EImageType::Half );
-		binder.AddValue( "HImage2D",			EImageType::Img2D			| EImageType::Half );
-		binder.AddValue( "HImage3D",			EImageType::Img3D			| EImageType::Half );
-		binder.AddValue( "HImage1DArray",		EImageType::Img1DArray		| EImageType::Half );
-		binder.AddValue( "HImage2DArray",		EImageType::Img2DArray		| EImageType::Half );
-		binder.AddValue( "HImageCube",			EImageType::ImgCube			| EImageType::Half );
-		binder.AddValue( "HImageCubeArray",		EImageType::ImgCubeArray	| EImageType::Half );
-		binder.AddValue( "HImage2DMS",			EImageType::Img2DMS			| EImageType::Half );
-		binder.AddValue( "HImage2DMSArray",		EImageType::Img2DMSArray	| EImageType::Half );
-		binder.AddValue( "HImageBuffer",		EImageType::Buffer			| EImageType::Half );
+		binder.AddValue( "Half_1D",				EImageType::Dim1D			| EImageType::Half );
+		binder.AddValue( "Half_2D",				EImageType::Dim2D			| EImageType::Half );
+		binder.AddValue( "Half_3D",				EImageType::Dim3D			| EImageType::Half );
+		binder.AddValue( "Half_1DArray",		EImageType::Dim1DArray		| EImageType::Half );
+		binder.AddValue( "Half_2DArray",		EImageType::Dim2DArray		| EImageType::Half );
+		binder.AddValue( "Half_Cube",			EImageType::DimCube			| EImageType::Half );
+		binder.AddValue( "Half_CubeArray",		EImageType::DimCubeArray	| EImageType::Half );
+		binder.AddValue( "Half_2DMS",			EImageType::Dim2DMS			| EImageType::Half );
+		binder.AddValue( "Half_2DMSArray",		EImageType::Dim2DMSArray	| EImageType::Half );
+		binder.AddValue( "Half_Buffer",			EImageType::Buffer			| EImageType::Half );
 		// depth
-		binder.AddValue( "Image1DShadow",		EImageType::Img1D			| EImageType::Depth | EImageType::Shadow );
-		binder.AddValue( "Image2DShadow",		EImageType::Img2D			| EImageType::Depth | EImageType::Shadow );
-		binder.AddValue( "Image1DArrayShadow",	EImageType::Img1DArray		| EImageType::Depth | EImageType::Shadow );
-		binder.AddValue( "Image2DArrayShadow",	EImageType::Img2DArray		| EImageType::Depth | EImageType::Shadow );
-		binder.AddValue( "ImageCubeShadow",		EImageType::ImgCube			| EImageType::Depth | EImageType::Shadow );
-		binder.AddValue( "ImageCubeArrayShadow",EImageType::ImgCubeArray	| EImageType::Depth | EImageType::Shadow );
+		binder.AddValue( "1D_Shadow",			EImageType::Dim1D			| EImageType::Depth | EImageType::Shadow );
+		binder.AddValue( "2D_Shadow",			EImageType::Dim2D			| EImageType::Depth | EImageType::Shadow );
+		binder.AddValue( "1DArray_Shadow",		EImageType::Dim1DArray		| EImageType::Depth | EImageType::Shadow );
+		binder.AddValue( "2DArray_Shadow",		EImageType::Dim2DArray		| EImageType::Depth | EImageType::Shadow );
+		binder.AddValue( "Cube_Shadow",			EImageType::DimCube			| EImageType::Depth | EImageType::Shadow );
+		binder.AddValue( "CubeArray_Shadow",	EImageType::DimCubeArray	| EImageType::Depth | EImageType::Shadow );
 		// int
-		binder.AddValue( "IImage1D",			EImageType::Img1D			| EImageType::Int );
-		binder.AddValue( "IImage2D",			EImageType::Img2D			| EImageType::Int );
-		binder.AddValue( "IImage3D",			EImageType::Img3D			| EImageType::Int );
-		binder.AddValue( "IImage1DArray",		EImageType::Img1DArray		| EImageType::Int );
-		binder.AddValue( "IImage2DArray",		EImageType::Img2DArray		| EImageType::Int );
-		binder.AddValue( "IImageCube",			EImageType::ImgCube			| EImageType::Int );
-		binder.AddValue( "IImageCubeArray",		EImageType::ImgCubeArray	| EImageType::Int );
-		binder.AddValue( "IImage2DMS",			EImageType::Img2DMS			| EImageType::Int );
-		binder.AddValue( "IImage2DMSArray",		EImageType::Img2DMSArray	| EImageType::Int );
-		binder.AddValue( "IImageBuffer",		EImageType::Buffer			| EImageType::Int );
+		binder.AddValue( "Int_1D",				EImageType::Dim1D			| EImageType::Int );
+		binder.AddValue( "Int_2D",				EImageType::Dim2D			| EImageType::Int );
+		binder.AddValue( "Int_3D",				EImageType::Dim3D			| EImageType::Int );
+		binder.AddValue( "Int_1DArray",			EImageType::Dim1DArray		| EImageType::Int );
+		binder.AddValue( "Int_2DArray",			EImageType::Dim2DArray		| EImageType::Int );
+		binder.AddValue( "Int_Cube",			EImageType::DimCube			| EImageType::Int );
+		binder.AddValue( "Int_CubeArray",		EImageType::DimCubeArray	| EImageType::Int );
+		binder.AddValue( "Int_2DMS",			EImageType::Dim2DMS			| EImageType::Int );
+		binder.AddValue( "Int_2DMSArray",		EImageType::Dim2DMSArray	| EImageType::Int );
+		binder.AddValue( "Int_Buffer",			EImageType::Buffer			| EImageType::Int );
 		// uint
-		binder.AddValue( "UImage1D",			EImageType::Img1D			| EImageType::UInt );
-		binder.AddValue( "UImage2D",			EImageType::Img2D			| EImageType::UInt );
-		binder.AddValue( "UImage3D",			EImageType::Img3D			| EImageType::UInt );
-		binder.AddValue( "UImage1DArray",		EImageType::Img1DArray		| EImageType::UInt );
-		binder.AddValue( "UImage2DArray",		EImageType::Img2DArray		| EImageType::UInt );
-		binder.AddValue( "UImageCube",			EImageType::ImgCube			| EImageType::UInt );
-		binder.AddValue( "UImageCubeArray",		EImageType::ImgCubeArray	| EImageType::UInt );
-		binder.AddValue( "UImage2DMS",			EImageType::Img2DMS			| EImageType::UInt );
-		binder.AddValue( "UImage2DMSArray",		EImageType::Img2DMSArray	| EImageType::UInt );
-		binder.AddValue( "UImageBuffer",		EImageType::Buffer			| EImageType::UInt );
+		binder.AddValue( "UInt_1D",				EImageType::Dim1D			| EImageType::UInt );
+		binder.AddValue( "UInt_2D",				EImageType::Dim2D			| EImageType::UInt );
+		binder.AddValue( "UInt_3D",				EImageType::Dim3D			| EImageType::UInt );
+		binder.AddValue( "UInt_1DArray",		EImageType::Dim1DArray		| EImageType::UInt );
+		binder.AddValue( "UInt_2DArray",		EImageType::Dim2DArray		| EImageType::UInt );
+		binder.AddValue( "UInt_Cube",			EImageType::DimCube			| EImageType::UInt );
+		binder.AddValue( "UInt_CubeArray",		EImageType::DimCubeArray	| EImageType::UInt );
+		binder.AddValue( "UInt_2DMS",			EImageType::Dim2DMS			| EImageType::UInt );
+		binder.AddValue( "UInt_2DMSArray",		EImageType::Dim2DMSArray	| EImageType::UInt );
+		binder.AddValue( "UInt_Buffer",			EImageType::Buffer			| EImageType::UInt );
 		// int64 / slong
-		binder.AddValue( "SLongImage1D",		EImageType::Img1D			| EImageType::SLong );
-		binder.AddValue( "SLongImage2D",		EImageType::Img2D			| EImageType::SLong );
-		binder.AddValue( "SLongImage3D",		EImageType::Img3D			| EImageType::SLong );
-		binder.AddValue( "SLongImage1DArray",	EImageType::Img1DArray		| EImageType::SLong );
-		binder.AddValue( "SLongImage2DArray",	EImageType::Img2DArray		| EImageType::SLong );
-		binder.AddValue( "SLongImageCube",		EImageType::ImgCube			| EImageType::SLong );
-		binder.AddValue( "SLongImageCubeArray",	EImageType::ImgCubeArray	| EImageType::SLong );
-		binder.AddValue( "SLongImage2DMS",		EImageType::Img2DMS			| EImageType::SLong );
-		binder.AddValue( "SLongImage2DMSArray",	EImageType::Img2DMSArray	| EImageType::SLong );
-		binder.AddValue( "SLongImageBuffer",	EImageType::Buffer			| EImageType::SLong );
+		binder.AddValue( "SLong_Image1D",		EImageType::Dim1D			| EImageType::SLong );
+		binder.AddValue( "SLong_Image2D",		EImageType::Dim2D			| EImageType::SLong );
+		binder.AddValue( "SLong_Image3D",		EImageType::Dim3D			| EImageType::SLong );
+		binder.AddValue( "SLong_Image1DArray",	EImageType::Dim1DArray		| EImageType::SLong );
+		binder.AddValue( "SLong_Image2DArray",	EImageType::Dim2DArray		| EImageType::SLong );
+		binder.AddValue( "SLong_ImageCube",		EImageType::DimCube			| EImageType::SLong );
+		binder.AddValue( "SLong_ImageCubeArray",EImageType::DimCubeArray	| EImageType::SLong );
+		binder.AddValue( "SLong_Image2DMS",		EImageType::Dim2DMS			| EImageType::SLong );
+		binder.AddValue( "SLong_Image2DMSArray",EImageType::Dim2DMSArray	| EImageType::SLong );
+		binder.AddValue( "SLong_ImageBuffer",	EImageType::Buffer			| EImageType::SLong );
 		// uint64 / ulong
-		binder.AddValue( "ULongImage1D",		EImageType::Img1D			| EImageType::ULong );
-		binder.AddValue( "ULongImage2D",		EImageType::Img2D			| EImageType::ULong );
-		binder.AddValue( "ULongImage3D",		EImageType::Img3D			| EImageType::ULong );
-		binder.AddValue( "ULongImage1DArray",	EImageType::Img1DArray		| EImageType::ULong );
-		binder.AddValue( "ULongImage2DArray",	EImageType::Img2DArray		| EImageType::ULong );
-		binder.AddValue( "ULongImageCube",		EImageType::ImgCube			| EImageType::ULong );
-		binder.AddValue( "ULongImageCubeArray",	EImageType::ImgCubeArray	| EImageType::ULong );
-		binder.AddValue( "ULongImage2DMS",		EImageType::Img2DMS			| EImageType::ULong );
-		binder.AddValue( "ULongImage2DMSArray",	EImageType::Img2DMSArray	| EImageType::ULong );
-		binder.AddValue( "ULongImageBuffer",	EImageType::Buffer			| EImageType::ULong );
+		binder.AddValue( "ULong_Image1D",		EImageType::Dim1D			| EImageType::ULong );
+		binder.AddValue( "ULong_Image2D",		EImageType::Dim2D			| EImageType::ULong );
+		binder.AddValue( "ULong_Image3D",		EImageType::Dim3D			| EImageType::ULong );
+		binder.AddValue( "ULong_Image1DArray",	EImageType::Dim1DArray		| EImageType::ULong );
+		binder.AddValue( "ULong_Image2DArray",	EImageType::Dim2DArray		| EImageType::ULong );
+		binder.AddValue( "ULong_ImageCube",		EImageType::DimCube			| EImageType::ULong );
+		binder.AddValue( "ULong_ImageCubeArray",EImageType::DimCubeArray	| EImageType::ULong );
+		binder.AddValue( "ULong_Image2DMS",		EImageType::Dim2DMS			| EImageType::ULong );
+		binder.AddValue( "ULong_Image2DMSArray",EImageType::Dim2DMSArray	| EImageType::ULong );
+		binder.AddValue( "ULong_ImageBuffer",	EImageType::Buffer			| EImageType::ULong );
 
-		StaticAssert( uint(EImageType::_TexCount)   == 11 );
+		StaticAssert( uint(EImageType::_DimCount)   == 11 );
 		StaticAssert( uint(EImageType::_LastVal)-1  == 0xC0 );
-		StaticAssert( uint(EImageType::_LastQual)-1 == 0x100 );
+		StaticAssert( uint(EImageType::_LastQual)-1 == 0x200 );
 	}
 
 	void  ObjectStorage::Bind_ECompilationTarget (const ScriptEnginePtr &se)

@@ -125,7 +125,7 @@ namespace
 		const auto	AllocPlane	= [&] (EImageAspect aspect) -> bool
 		{{
 			EPixelFormat	plane_fmt	= cfg.dstFormat;
-			uint2			plane_scale	{1,1};
+			POTVec2			plane_scale;
 
 			if ( aspect != EImageAspect::Color ) {
 				CHECK_ERR( EPixelFormat_GetPlaneInfo( cfg.dstFormat, aspect, OUT plane_fmt, OUT plane_scale ));

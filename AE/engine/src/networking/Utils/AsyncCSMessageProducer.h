@@ -29,15 +29,15 @@ namespace AE::Networking
 		using _SpinLock_t		= Networking::_hidden_::MsgAndSync_SpinLock_t;
 		using Allocator_t		= AllocatorType;
 		using DoubleBufAlloc_t	= StaticArray< RC<Allocator_t>, 2 >;
-		using LfMessageList_t	= Threading::LfChunkList< CSMessagePtr, NetConfig::MsgPerChunk >;
+		using LfMessageList_t	= Threading::LfChunkList< CSMessagePtr, NetConfig::MsgPerChunk, AllocatorRef<AllocatorType> >;
 
 
 	// variables
 	private:
-		_SpinLock_t			_guard;
-		Atomic<uint>		_index		{0};
-		LfMessageList_t		_outputMsg;
-		DoubleBufAlloc_t	_dbAlloc;
+		_SpinLock_t					_guard;
+		Atomic<uint>				_index		{0};
+		InPlace<LfMessageList_t>	_outputMsg;
+		DoubleBufAlloc_t			_dbAlloc;
 
 
 	// methods
@@ -46,7 +46,7 @@ namespace AE::Networking
 		AsyncCSMessageProducer (Tag<A>)										__NE___	: AsyncCSMessageProducer{ MakeRC<A>(), MakeRC<A>() } {}
 		AsyncCSMessageProducer ()											__NE___	: AsyncCSMessageProducer{ MakeRC<Allocator_t>(), MakeRC<Allocator_t>() } {}
 		AsyncCSMessageProducer (RC<Allocator_t>, RC<Allocator_t>)			__NE___;
-		~AsyncCSMessageProducer ()											__NE___	{ Unused( _outputMsg.Release() ); }
+		~AsyncCSMessageProducer ()											__NE___;
 
 
 		template <typename T>
@@ -93,7 +93,19 @@ namespace AE::Networking
 		_dbAlloc{ RVRef(a0), RVRef(a1) }
 	{
 		CHECK( _dbAlloc[0] and _dbAlloc[1] );
-		CHECK( _outputMsg.Init( _GetAllocator() ));
+		_outputMsg.Create( _GetAllocator() );
+	}
+
+/*
+=================================================
+	destructor
+=================================================
+*/
+	template <typename A>
+	AsyncCSMessageProducer<A>::~AsyncCSMessageProducer () __NE___
+	{
+		Unused( _outputMsg->Release() );
+		_outputMsg.Destroy();
 	}
 
 /*
@@ -129,7 +141,7 @@ namespace AE::Networking
 	bool  AsyncCSMessageProducer<A>::AddMessage (Msg<T> &msg) __NE___
 	{
 		ASSERT( msg );
-		bool	res = _outputMsg.Emplace( _GetAllocator(), CSMessagePtr{msg} );
+		bool	res = _outputMsg->Emplace( CSMessagePtr{msg} );
 
 		msg._Unlock();
 		return res;
@@ -161,8 +173,9 @@ namespace AE::Networking
 				_dbAlloc[id]->Discard();
 			}
 
-			result = _outputMsg.Release();
-			CHECK( _outputMsg.Init( _GetAllocator() ));
+			result = _outputMsg->Release();
+			_outputMsg.Destroy();
+			_outputMsg.Create( _GetAllocator() );
 		}
 		return result;
 	}

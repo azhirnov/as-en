@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define PROCESS
 #	define GEN_NOISE
 #endif
@@ -20,11 +20,13 @@
 		RC<DynamicUInt>		count		= DynamicUInt();
 		RC<DynamicUInt>		gen_tex		= DynamicUInt();
 		RC<DynamicUInt>		noise_step	= DynamicUInt();
-		
+
 		Slider( tex_dim,	"TexDim",		1,	8,	2 );
 		Slider( count,		"Repeat",		1,	32	);
 		Slider( gen_tex,	"GenTex",		0,	1,  1 );
 		Slider( noise_step,	"NoiseStep",	0,	4	);
+
+		Label( dim.XY(),	"Dimension" );
 
 		// render loop
 		{

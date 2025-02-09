@@ -10,7 +10,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define PASS1
 #	define PASS2
 #	define PASS3
@@ -106,7 +106,7 @@
 //-----------------------------------------------------------------------------
 #ifdef PASS1
 	#include "GlobalIndex.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	void Main ()
 	{
@@ -124,7 +124,7 @@
 //-----------------------------------------------------------------------------
 #ifdef PASS2
 	#include "GlobalIndex.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	void Main ()
 	{
@@ -142,7 +142,7 @@
 //-----------------------------------------------------------------------------
 #ifdef PASS3
 	#include "GlobalIndex.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	// texture already in sRGB space
 	float4  SampleSRGB (float2 uv)

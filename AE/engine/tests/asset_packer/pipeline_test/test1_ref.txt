@@ -9,8 +9,8 @@ DescrSetLayouts {
       vkIndex      = 0
       mtlIndex     = Compute: 0
       state        = ShaderStorage_RW | ComputeShader
-      staticSize   = 16 b
-      arrayStride  = 4 b
+      staticSize   = 16 B
+      arrayStride  = 4 B
       typeName     = d8991b22
     }
   ----------------------
@@ -23,7 +23,7 @@ DescrSetLayouts {
       vkIndex      = 0
       mtlIndex     = 0
       state        = ShaderSample | FragmentShader
-      type         = FImage2D
+      type         = Float_2D
       format       = Unknown
     }
     [1] ImmutableSampler {
@@ -41,8 +41,8 @@ DescrSetLayouts {
       vkIndex      = 0
       mtlIndex     = 0
       state        = ShaderUniform | VertexProcessingShaders
-      staticSize   = 64 b
-      arrayStride  = 0 b
+      staticSize   = 64 B
+      arrayStride  = 0 B
       typeName     = UBlock
     }
   ----------------------
@@ -55,7 +55,7 @@ DescrSetLayouts {
       vkIndex      = 0
       mtlIndex     = Compute: 0
       state        = ShaderStorage_Write | ComputeShader
-      type         = UNImage2D
+      type         = UNorm_2D
       format       = RGBA8_UNorm
     }
   ----------------------
@@ -67,7 +67,7 @@ DescrSetLayouts {
       name         = 'un_OutImage'
       vkIndex      = 0
       state        = ShaderStorage_Write | RayTracingShaders
-      type         = UNImage2D
+      type         = UNorm_2D
       format       = RGBA8_UNorm
     }
     [1] RayTracingScene {
@@ -84,7 +84,7 @@ DescrSetLayouts {
       vkIndex      = 0
       mtlIndex     = Compute: 0
       state        = ShaderStorage_RW | ComputeShader
-      type         = UImage2D
+      type         = UInt_2D
       format       = R32U
     }
   ----------------------
@@ -97,8 +97,8 @@ DescrSetLayouts {
       vkIndex      = 0
       mtlIndex     = Compute: 0
       state        = ShaderUniform | ComputeShader
-      staticSize   = 32 b
-      arrayStride  = 0 b
+      staticSize   = 32 B
+      arrayStride  = 0 B
       typeName     = BufferRef
     }
   ----------------------
@@ -168,16 +168,16 @@ PipelineLayouts {
       typename = 'PushConst1'
       stage    = Vertex
       bufferId = 0
-      offset   = 0 b
-      size     = 16 b
+      offset   = 0 B
+      size     = 16 B
     }
     [1] PushConst {
       name     = 'pc2'
       typename = 'PushConst2'
       stage    = Fragment
       bufferId = 0
-      offset   = 16 b
-      size     = 16 b
+      offset   = 16 B
+      size     = 16 B
     }
   ----------------------
   [7]
@@ -432,15 +432,15 @@ GraphicsPipelineSpec {
         typeName = 'vb_input1'
         rate     = Instance
         index    = 0
-        stride   = 16 b
+        stride   = 16 B
         divisor  = 1
         attribs  = {
           type   = Float3
-          offset = 0 b
+          offset = 0 B
           index  = 0
           -------------
           type   = UShort2_Norm
-          offset = 12 b
+          offset = 12 B
           index  = 1
           -------------
       }
@@ -460,15 +460,15 @@ GraphicsPipelineSpec {
         typeName = 'vb_input1'
         rate     = Instance
         index    = 0
-        stride   = 16 b
+        stride   = 16 B
         divisor  = 1
         attribs  = {
           type   = Float3
-          offset = 0 b
+          offset = 0 B
           index  = 0
           -------------
           type   = UShort2_Norm
-          offset = 12 b
+          offset = 12 B
           index  = 1
           -------------
       }
@@ -488,11 +488,11 @@ GraphicsPipelineSpec {
         typeName = 'VB_3_Pos'
         rate     = Vertex
         index    = 0
-        stride   = 12 b
+        stride   = 12 B
         divisor  = 0
         attribs  = {
           type   = Float3
-          offset = 0 b
+          offset = 0 B
           index  = 0
           -------------
       }
@@ -501,11 +501,11 @@ GraphicsPipelineSpec {
         typeName = 'VB_3_Attribs'
         rate     = Vertex
         index    = 1
-        stride   = 8 b
+        stride   = 8 B
         divisor  = 0
         attribs  = {
           type   = Float2
-          offset = 0 b
+          offset = 0 B
           index  = 1
           -------------
       }
@@ -555,8 +555,8 @@ RayTracingPipelineSpec {
     dynamicState   = 0
     options        = Optimize
     maxRecursionDepth              = 1
-    maxPipelineRayPayloadSize      = 0 b
-    maxPipelineRayHitAttributeSize = 0 b
+    maxPipelineRayPayloadSize      = 0 B
+    maxPipelineRayHitAttributeSize = 0 B
 }
 
 RTShaderBindingTable {
@@ -653,75 +653,41 @@ RenderTechniques {
 }
 
 SpirvShaders {
-  [0]  offset = 0 b
-  [1]  offset = 8 Kb
-  [2]  offset = 9 Kb
-  [3]  offset = 11 Kb
-  [4]  offset = 12 Kb
-  [5]  offset = 14 Kb
-  [6]  offset = 16 Kb
-  [7]  offset = 17 Kb
-  [8]  offset = 19 Kb
-  [9]  offset = 23 Kb
-  [10]  offset = 25 Kb
-  [11]  offset = 29 Kb
-  [12]  offset = 33 Kb
-  [13]  offset = 36 Kb
-  [14]  offset = 38 Kb
-  [15]  offset = 40 Kb
-  [16]  offset = 42 Kb
+  [0]  offset = 0 B
+  [1]  offset = 8 KiB
+  [2]  offset = 10 KiB
+  [3]  offset = 11 KiB
+  [4]  offset = 13 KiB
+  [5]  offset = 14 KiB
+  [6]  offset = 16 KiB
+  [7]  offset = 17 KiB
+  [8]  offset = 19 KiB
+  [9]  offset = 23 KiB
+  [10]  offset = 25 KiB
+  [11]  offset = 29 KiB
+  [12]  offset = 33 KiB
+  [13]  offset = 36 KiB
+  [14]  offset = 38 KiB
+  [15]  offset = 40 KiB
+  [16]  offset = 42 KiB
 }
 
 SpirvShaderData {
-  [0]
-    codeSize = 5 Kb
-    withTrace
-  [1]
-    codeSize = 1876 b
-    codeHash = 8d355aae1434549e
-  [2]
-    codeSize = 1820 b
-    codeHash = 549e64ca77d15f57
-  [3]
-    codeSize = 1232 b
-    codeHash = 4c9627beed0949ba
-  [4]
-    codeSize = 1820 b
-    codeHash = 9676cb54b3c1cea0
-  [5]
-    codeSize = 1368 b
-    codeHash = 4580e8d6578dd9f5
-  [6]
-    codeSize = 1724 b
-    codeHash = 4ec176b7e5df2f6e
-  [7]
-    codeSize = 1776 b
-    codeHash = abfa56e707eba40f
-  [8]
-    codeSize = 3888 b
-    codeHash = 47bb31a4c181b02e
-  [9]
-    codeSize = 2324 b
-    codeHash = dc47fb7bbcae1270
-  [10]
-    codeSize = 3824 b
-    codeHash = 8466dabba1f78b8
-  [11]
-    codeSize = 4 Kb
-    codeHash = cbc3b204b9da8fa9
-  [12]
-    codeSize = 2972 b
-    codeHash = fb68a21ab420a227
-  [13]
-    codeSize = 1664 b
-    codeHash = fc69a217fd1b589f
-  [14]
-    codeSize = 2152 b
-    codeHash = d1c1d91a11241645
-  [15]
-    codeSize = 2432 b
-    codeHash = 84ae09077a958ceb
-  [16]
-    codeSize = 2856 b
-    codeHash = a1b0a442c9ff56d5
+  [0]  offset = 40 KiB
+  [1]  offset = 48 KiB
+  [2]  offset = 50 KiB
+  [3]  offset = 51 KiB
+  [4]  offset = 53 KiB
+  [5]  offset = 54 KiB
+  [6]  offset = 56 KiB
+  [7]  offset = 57 KiB
+  [8]  offset = 59 KiB
+  [9]  offset = 63 KiB
+  [10]  offset = 65 KiB
+  [11]  offset = 69 KiB
+  [12]  offset = 73 KiB
+  [13]  offset = 76 KiB
+  [14]  offset = 78 KiB
+  [15]  offset = 80 KiB
+  [16]  offset = 82 KiB
 }

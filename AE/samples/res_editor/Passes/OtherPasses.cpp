@@ -1,11 +1,15 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#include "tools/graphics_test/GraphicsTest.h"
+
 #include "res_editor/Passes/Renderer.h"
 #include "res_editor/Passes/OtherPasses.h"
 #include "res_editor/Core/EditorUI.h"
 #include "res_editor/Core/EditorCore.h"
 
 #include "res_loaders/AllImages/AllImageSavers.h"
+#include "res_loaders/STB/STBImageLoader.h"
+#include "res_loaders/STB/STBImageSaver.h"
 
 #include "res_editor/_ui_data/cpp/types.h"
 
@@ -40,6 +44,9 @@ namespace AE::ResEditor
 			const auto	capture	= ui.capture.Read();
 			auto		encoder	= _videoEncoder.load();
 
+			if ( Bitfield<uint>{_filterMode->Get()}.Has< uint(UIInteraction::EGraphicsFlags::DontPresent) >() )
+				return null;
+
 			if ( capture.video != bool{encoder} )
 			{
 				if ( encoder )
@@ -71,6 +78,8 @@ namespace AE::ResEditor
 */
 	RenderTaskCoro  Present::_Blit (RC<Present> self, IOutputSurface &surface)
 	{
+		using EGraphicsFlags = UIInteraction::EGraphicsFlags;
+
 		IOutputSurface::RenderTargets_t		targets;
 		CHECK_CE( surface.GetTargets( OUT targets ));
 
@@ -81,9 +90,12 @@ namespace AE::ResEditor
 
 		auto&		dst			= targets[0];
 		RenderTask&	rtask		= co_await RenderTask_GetRef;
-		const auto	filter		= self->_filterMode->Get() == 0 ? EBlitFilter::Nearest : EBlitFilter::Linear;
-		const bool	copy		= self->_filterMode->Get() == 2 and
-								  EPixelFormat_IsCopySupported( src_desc.format, dst.format ) and
+		const auto	flags		= Bitfield<uint>{ self->_filterMode->Get() };
+
+		const auto	filter		= flags.Has< uint(EGraphicsFlags::LinearFilter) >() ? EBlitFilter::Linear : EBlitFilter::Nearest;
+		const bool	copy		= flags.Has< uint(EGraphicsFlags::Copy) >()						and
+								  filter == EBlitFilter::Nearest								and
+								  EPixelFormat_IsCopySupported( src_desc.format, dst.format )	and
 								  All( src_dim == dst.RegionSize() );
 
 		DirectCtx::Transfer		ctx{ rtask, Default, DebugLabel{ self->_dbgName, self->_dbgColor }};
@@ -118,9 +130,9 @@ namespace AE::ResEditor
 
 			ReadbackImageDesc		readback;
 			readback.heapType		= EStagingHeapType::Static;
-			readback.imageDim		= uint3{1};
-			readback.imageOffset	= uint3{float3{ unorm_pos * float2{src_dim}, 0.f }};
-			readback.imageOffset	= Min( readback.imageOffset, uint3{src_dim - 1u, 0u} );
+			readback.imageDim		= ImageDim_t{1};
+			readback.imageOffset	= ImageDim_t{float3{ unorm_pos * float2{src_dim}, 0.f }};
+			readback.imageOffset	= Min( readback.imageOffset, ImageDim_t{uint3{ src_dim - 1u, 0u }} );
 
 			ctx.ReadbackImage( src->GetImageId(), readback )
 				.Then(	[fid = ctx.GetFrameId()] (const ImageMemView &inView)
@@ -168,7 +180,7 @@ namespace AE::ResEditor
 			{
 				ReadbackImageDesc	readback;
 				readback.heapType	= EStagingHeapType::Dynamic;
-				readback.imageDim	= uint3{src_dim, 1u};
+				readback.imageDim	= ImageDim_t{uint3{ src_dim, 1u }};
 
 				ctx.ReadbackImage( src->GetImageId(), readback )
 					.Then(	[self, capture, encoder = self->_videoEncoder.load()] (const ImageMemView &inView)
@@ -180,7 +192,10 @@ namespace AE::ResEditor
 
 									Scheduler().Run(
 										ETaskQueue::Background,
-										_SaveScreenshot( RVRef(image), capture.imageFormat, capture.testScreenshot ));
+										capture.testScreenshot ?
+											_ScreenshotTest( RVRef(image), capture.imageFormat ) :
+											_SaveScreenshot( RVRef(image), capture.imageFormat )
+									);
 								}
 
 								if ( capture.video and encoder )
@@ -200,59 +215,86 @@ namespace AE::ResEditor
 	_SaveScreenshot
 =================================================
 */
-	CoroTask  Present::_SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt, const bool testScreenshot)
+	CoroTask  Present::_SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt)
 	{
+		CHECK_CE( image );
+
+		const auto&	cfg					= ResEditorAppConfig::Get();
+		const auto&	screenshot_folder	= cfg.screenshotFolder;
+		auto		prefix				= cfg.screenshotPrefix.Read();
+
+		if ( prefix.empty() )
+			prefix = "screenshot_";
+
+		const auto	BuildName = [&screenshot_folder, &prefix, fmt] (OUT Path &fname, usize index)
+		{{
+			fname = screenshot_folder / (String{prefix} << ToString(index) << '.' << ImageFileFormatToExt( fmt ));
+		}};
+
+		const auto	WriteToFile = [image, fmt] (const Path &fname) -> bool
+		{{
+			FileWStream		file {fname};
+			if ( file.IsOpen() )
+			{
+				ResLoader::AllImageSavers	saver;
+				if ( saver.SaveImage( file, *image, fmt ))
+				{
+					AE_LOGI( "Save screenshot to '"s << ToString(fname) << "'" );
+					return true; // exit
+				}
+			}
+			return true; // exit
+		}};
+
+		FileSystem::FindUnusedFilename( BuildName, WriteToFile );
+		co_return;
+	}
+
+/*
+=================================================
+	_ScreenshotTest
+=================================================
+*/
+	CoroTask  Present::_ScreenshotTest (RC<ResLoader::IntermImage> image, EImageFormat fmt)
+	{
+		using namespace AE::ResLoader;
 		CHECK_CE( image );
 
 		const auto&	cfg = ResEditorAppConfig::Get();
 
-		if ( testScreenshot )
+		if ( image->PixelFormat() != EPixelFormat::RGBA8_UNorm )
+			fmt = EImageFormat::DDS;
+
+		const Path	fname = (cfg.testOutput / cfg.screenshotPrefix.Read()).replace_extension( ImageFileFormatToExt( fmt ));
+
+		// compare with previous
+		if ( image->PixelFormat() == EPixelFormat::RGBA8_UNorm )
 		{
-			if ( image->PixelFormat() != EPixelFormat::RGBA8_UNorm )
-				fmt = EImageFormat::DDS;
+			FileRStream		rfile { fname };
 
-			const auto	fname = (cfg.testOutput / cfg.screenshotPrefix.Read()).replace_extension( ImageFileFormatToExt( fmt ));
-
-			FileWStream		file { fname };
-			CHECK_CE( file.IsOpen() );
-
-			ResLoader::AllImageSavers	saver;
-			CHECK_CE( saver.SaveImage( file, *image, fmt ));
-
-			AE_LOGI( "Save screenshot to '"s << ToString(fname) << "'" );
-			// TODO: compare with previous
-		}
-		else
-		{
-			const auto&	screenshot_folder	= cfg.screenshotFolder;
-			auto		prefix				= cfg.screenshotPrefix.Read();
-
-			if ( prefix.empty() )
-				prefix = "screenshot_";
-
-			const auto	BuildName = [&screenshot_folder, &prefix, fmt] (OUT Path &fname, usize index)
-			{{
-				fname = screenshot_folder / (String{prefix} << ToString(index) << '.' << ImageFileFormatToExt( fmt ));
-			}};
-
-			const auto	WriteToFile = [image, fmt] (const Path &fname) -> bool
-			{{
-				FileWStream		file {fname};
-				if ( file.IsOpen() )
+			IntermImage		prev_image;
+			STBImageLoader	loader;
+			if ( rfile.IsOpen() and loader.LoadImage( OUT prev_image, rfile, False{"don't flipY"}, null, Default ))
+			{
+				IntermImage		diff_image;
+				if ( GraphicsTest::ImageComparator::Diff( prev_image.ToView(), image->ToView(), OUT diff_image ) and
+					 not diff_image.IsEmpty() )
 				{
-					ResLoader::AllImageSavers	saver;
-					if ( saver.SaveImage( file, *image, fmt ))
-					{
-						AE_LOGI( "Save screenshot to '"s << ToString(fname) << "'" );
-						return true; // exit
-					}
-				}
-				return true; // exit
-			}};
+					FileWStream		wfile { Path{fname}.replace_extension(".diff.png") };
 
-			FileSystem::FindUnusedFilename( BuildName, WriteToFile );
+					STBImageSaver	saver;
+					CHECK( saver.SaveImage( wfile, diff_image, EImageFormat::PNG ));
+				}
+			}
 		}
-		co_return;
+
+		FileWStream		file { fname };
+		CHECK_CE( file.IsOpen() );
+
+		AllImageSavers	saver;
+		CHECK_CE( saver.SaveImage( file, *image, fmt ));
+
+		AE_LOGI( "Save screenshot to '"s << ToString(fname) << "'" );
 	}
 
 /*
@@ -329,7 +371,7 @@ namespace AE::ResEditor
 			ui.SetDbgView( _index, _view );
 		}
 
-		// TODO: optimize - skip if dbg view disabled
+		// TODO: optimize - skip if dbg view is disabled
 		switch_enum( _flags )
 		{
 			case EFlags::Copy :
@@ -404,18 +446,22 @@ namespace AE::ResEditor
 		CHECK_THROW( src )
 		CHECK_THROW( renderer != null );
 
-		ImageViewDesc	view_desc;
-		view_desc.baseLayer		= layer;
-		view_desc.baseMipmap	= mipmap;
-
 		String	dbg_name = "DbgView: "s << src->GetName();
 
-		_src = src->CreateView( view_desc, dbg_name );
-		CHECK_THROW( _src );
+		{
+			ImageViewDesc	view_desc;
+			view_desc.viewType		= EImage_2D;
+			view_desc.baseLayer		= layer;
+			view_desc.baseMipmap	= mipmap;
+			view_desc.layerCount	= 1;
 
-		ImageDesc	img_desc	= _src->GetImageDesc();
-					view_desc	= Default;
-		bool		make_copy	= true;
+			_src = src->CreateView( view_desc, dbg_name );
+			CHECK_THROW( _src );
+		}
+
+		ImageDesc		img_desc	= _src->GetImageDesc();
+		ImageViewDesc	view_desc	= Default;
+		bool			make_copy	= true;
 
 		switch_enum( flags )
 		{
@@ -538,7 +584,7 @@ namespace AE::ResEditor
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
 
-		_rtech = res_mngr.LoadRenderTech( Default, RTech, Default );
+		_rtech = res_mngr.LoadRenderTech( Default, RTech );
 		CHECK_THROW( _rtech );
 
 		_ppln1 = _rtech->GetComputePipeline( RTech.Compute.Histogram_CSPass1 );
@@ -674,7 +720,7 @@ namespace AE::ResEditor
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
 
-		_rtech = res_mngr.LoadRenderTech( Default, RTech, Default );
+		_rtech = res_mngr.LoadRenderTech( Default, RTech );
 		CHECK_THROW( _rtech );
 
 		_ppln = _rtech->GetGraphicsPipeline( RTech.Graphics.LinearDepth_draw );
@@ -759,7 +805,7 @@ namespace AE::ResEditor
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
 
-		_rtech = res_mngr.LoadRenderTech( Default, RTech, Default );
+		_rtech = res_mngr.LoadRenderTech( Default, RTech );
 		CHECK_THROW( _rtech );
 
 		_ppln = _rtech->GetGraphicsPipeline( RTech.Graphics.StencilView_draw );
@@ -894,6 +940,20 @@ namespace AE::ResEditor
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
 	}
+
+/*
+=================================================
+	GetResourcesToResize
+=================================================
+*/
+	void  CopyImagePass::GetResourcesToResize (INOUT Array<RC<IResource>> &result) __NE___
+	{
+		if_unlikely( _srcImage->RequireResize() )
+			result.push_back( _srcImage );
+
+		if_unlikely( _dstImage->RequireResize() )
+			result.push_back( _dstImage );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -947,6 +1007,20 @@ namespace AE::ResEditor
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
 	}
+
+/*
+=================================================
+	GetResourcesToResize
+=================================================
+*/
+	void  BlitImagePass::GetResourcesToResize (INOUT Array<RC<IResource>> &result) __NE___
+	{
+		if_unlikely( _srcImage->RequireResize() )
+			result.push_back( _srcImage );
+
+		if_unlikely( _dstImage->RequireResize() )
+			result.push_back( _dstImage );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -998,6 +1072,20 @@ namespace AE::ResEditor
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
 	}
+
+/*
+=================================================
+	GetResourcesToResize
+=================================================
+*/
+	void  ResolveImagePass::GetResourcesToResize (INOUT Array<RC<IResource>> &result) __NE___
+	{
+		if_unlikely( _srcImage->RequireResize() )
+			result.push_back( _srcImage );
+
+		if_unlikely( _dstImage->RequireResize() )
+			result.push_back( _dstImage );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -1042,6 +1130,45 @@ namespace AE::ResEditor
 		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ClearBuffer", HtmlColor::Blue} };
 
 		ctx.FillBuffer( _buffer->GetBufferId( ctx.GetFrameId() ), _offset, _size, _value );
+
+		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		return true;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Execute
+=================================================
+*/
+	bool  ReadBufferValuePass::Execute (SyncPassData &pd) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
+
+		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ReadBufferValue", HtmlColor::Gray} };
+
+		BufferID			id = _srcBuffer->GetBufferId( ctx.GetFrameId() );
+		ReadbackBufferDesc	readback;
+
+		readback.offset		= _offset;
+		readback.size		= _size;
+		readback.blockSize	= _size;
+		readback.heapType	= EStagingHeapType::Static;
+
+		ctx.ReadbackBuffer( id, readback )
+			.Then(	[dst = _dstValue] (const BufferMemView &mem)
+					{
+						const void*	ptr = mem.begin()->ptr;
+
+						std::visit( [ptr] (auto& d) {
+										using T = RemoveRC< decltype(d) >::Value_t;
+										d->Set( *Cast<T>( ptr ));
+									},
+									dst );
+					});
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;

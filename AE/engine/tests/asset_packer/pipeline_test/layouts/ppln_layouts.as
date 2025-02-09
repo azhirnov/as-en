@@ -21,7 +21,7 @@ void GraphicsLayout ()
 		RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "DS_Material" );
 		ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
 
-		ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", EImageType::FImage2D );
+		ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", EImageType::Float_2D );
 		ds.ImtblSampler( EShaderStages::Fragment, "un_ColorTexture_sampler", "LinearRepeat"  );
 	}
 	{

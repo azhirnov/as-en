@@ -7,14 +7,15 @@
 #if AE_ENABLE_DATA_RACE_CHECK
 
 # if defined(AE_PLATFORM_ANDROID) or defined(AE_CI_BUILD_TEST)
-#	define DRC_CHECK( /* expr */... )			CHECK_FATAL( __VA_ARGS__ )
+#	define DATA_RACE_ERR( /* expr */... )		CHECK_FATAL_MSG( __VA_ARGS__, "race condition detected!" )
 # else
-#	define DRC_CHECK( /* expr */... )			CHECK_ERR( __VA_ARGS__ )
+#	define DATA_RACE_ERR( /* expr */... )		CHECK_ERR_MSG( __VA_ARGS__, "race condition detected!" )
 # endif
 
 # define DRC_EXLOCK( /* sync_obj */... )		EXLOCK( __VA_ARGS__ )
 # define DRC_SHAREDLOCK( /* sync_obj */... )	SHAREDLOCK( __VA_ARGS__ )
 # define DRC_ONLY( /* code */... )				__VA_ARGS__
+# define DRC_CHECK( /* expr */... )				CHECK( __VA_ARGS__ )
 
 
 namespace AE::Threading
@@ -45,7 +46,7 @@ namespace AE::Threading
 				if ( curr == id )
 					return false; // recursive lock, don't call 'Unlock'
 
-				DRC_CHECK( curr == 0 );		// locked by another thread - race condition detected!
+				DATA_RACE_ERR( curr == 0 );		// locked by another thread - race condition detected!
 
 				if_likely( _tid.CAS( INOUT curr, id ))
 					return true;
@@ -57,8 +58,7 @@ namespace AE::Threading
 		void  Unlock ()			C_NE___
 		{
 			usize	prev = _tid.exchange( 0 );
-			Unused( prev );
-			ASSERT( prev == ThreadUtils::GetIntID() );	// must be unlocked in the same thread
+			CHECK( prev == ThreadUtils::GetIntID() );	// must be unlocked in the same thread
 		}
 
 		ND_ bool  IsLocked ()	C_NE___
@@ -86,7 +86,13 @@ namespace AE::Threading
 		RWDataRaceCheck ()				__NE___
 		{}
 
+		ND_ int   GetLockState ()		C_NE___
+		{
+			return _readCounter.load();	// <0 - locked for write, >0 - locked for read
+		}
 
+
+	// Exclusive //
 		ND_ bool  LockExclusive ()		__NE___
 		{
 			// lock for writing
@@ -99,7 +105,7 @@ namespace AE::Threading
 					if ( curr == id )
 						break; // recursive lock
 
-					DRC_CHECK( curr == 0 );		// locked by another thread - race condition detected!
+					DATA_RACE_ERR( curr == 0 );		// locked by another thread - race condition detected!
 
 					if_likely( _lockWrite.CAS( INOUT curr, id ))
 						break;
@@ -111,7 +117,7 @@ namespace AE::Threading
 			// check that there is no readers
 			for (int expected = _readCounter.load();;)
 			{
-				DRC_CHECK( expected <= 0 );	// has read lock(s) - race condition detected!
+				DATA_RACE_ERR( expected <= 0 );		// has read lock(s) - race condition detected!
 
 				if_likely( _readCounter.CAS( INOUT expected, expected - 1 ))	// 0 -> -1
 					break;
@@ -123,15 +129,16 @@ namespace AE::Threading
 
 		void  UnlockExclusive ()		__NE___
 		{
-			auto	prev_read = _readCounter.fetch_add( 1 );	// -1 -> 0
-			ASSERT( prev_read <= 0 );
+			auto	prev_write	= _lockWrite.load();
+			auto	prev_read	= _readCounter.fetch_add( 1 );	// -1 -> 0
+			CHECK( prev_read <= 0 );
+			CHECK( prev_write == ThreadUtils::GetIntID() );	// must be unlocked in the same thread
 
 			// don't unlock if it is recursive lock
 			if ( prev_read == -1 )
 			{
-				auto	prev_write = _lockWrite.exchange( 0 );		// unlock
-				ASSERT( prev_write == ThreadUtils::GetIntID() );	// must be unlocked in the same thread
-				Unused( prev_read, prev_write );
+				prev_write = _lockWrite.exchange( 0 );			// unlock
+				CHECK( prev_write == ThreadUtils::GetIntID() );	// must be unlocked in the same thread
 			}
 		}
 
@@ -141,6 +148,7 @@ namespace AE::Threading
 		}
 
 
+	// Shared //
 		ND_ bool  LockShared ()			C_NE___
 		{
 			const usize	id = ThreadUtils::GetIntID();
@@ -151,7 +159,7 @@ namespace AE::Threading
 				if ( expected < 0 and _lockWrite.load() == id )
 					return false;	// don't call 'UnlockShared'
 
-				DRC_CHECK( expected >= 0 );	// has write lock(s) - race condition detected!
+				DATA_RACE_ERR( expected >= 0 );		// has write lock(s) - race condition detected!
 
 				if_likely( _readCounter.CAS( INOUT expected, expected + 1 )) // 0 -> 1
 					break;
@@ -164,8 +172,7 @@ namespace AE::Threading
 		void  UnlockShared ()			C_NE___
 		{
 			auto	prev_read = _readCounter.fetch_sub( 1 );	// 1 -> 0
-			Unused( prev_read );
-			ASSERT( prev_read > 0 );
+			CHECK( prev_read > 0 );
 		}
 
 		ND_ bool  IsSharedLocked ()		C_NE___
@@ -204,7 +211,7 @@ namespace AE::Threading
 			const usize	id		= ThreadUtils::GetIntID();
 			usize		exp		= _tid.load();
 
-			DRC_CHECK( exp == id );	// used in different thread
+			DATA_RACE_ERR( exp == id );	// used in different thread
 			return true;
 		}
 
@@ -243,7 +250,7 @@ namespace _hidden_
 
 } // AE::Threading
 
-#undef DRC_CHECK
+#undef DATA_RACE_ERR
 
 
 template <>
@@ -383,6 +390,7 @@ struct std::scoped_lock< const AE::Threading::SingleThreadCheck > :
 # define DRC_EXLOCK( ... )			{}
 # define DRC_SHAREDLOCK( ... )		{}
 # define DRC_ONLY( ... )
+# define DRC_CHECK( ... )			{}
 
 namespace AE::Threading
 {

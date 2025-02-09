@@ -156,7 +156,10 @@ namespace AE::PipelineCompiler
 	{
 		ASSERT( IsSingleBitSet( stage ));
 
-		String	def;
+		String	def =
+			"#define and	&& \n"
+			"#define or		|| \n\n";
+
 		String	ext =
 			"#version 460 core\n"
 			"#extension GL_ARB_separate_shader_objects                  : require\n"
@@ -633,7 +636,7 @@ namespace AE::PipelineCompiler
 			}
 		}
 
-		// demote to helper invocation
+		// stencil export
 		if ( stage == EShaderStages::Fragment )
 		{
 			FeatureSetCounter	supported;
@@ -643,6 +646,18 @@ namespace AE::PipelineCompiler
 			if ( supported.IsTrue() ) {
 				ext << "#extension GL_ARB_shader_stencil_export                    : require\n";
 				def << "#define AE_shader_stencil_export 1\n";
+			}
+		}
+
+		// expect / assume
+		{
+			FeatureSetCounter	supported;
+			for (auto& ptr : features) {
+				supported.Add( ptr->fs.shaderExpectAssume );
+			}
+			if ( supported.IsTrue() ) {
+				ext << "#extension GL_EXT_expect_assume                            : require\n";
+				def << "#define AE_expect_assume 1\n";
 			}
 		}
 

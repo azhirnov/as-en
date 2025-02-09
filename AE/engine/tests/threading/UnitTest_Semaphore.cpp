@@ -6,7 +6,7 @@ namespace
 {
 	static void  Semaphore_Test1 ()
 	{
-		constexpr uint			max_threads		= 3;
+		static const uint		max_threads		= 3;
 		Semaphore<max_threads>	sync			{max_threads};
 		Atomic<int>				active_threads	{0};
 		Array<StdThread>		threads;

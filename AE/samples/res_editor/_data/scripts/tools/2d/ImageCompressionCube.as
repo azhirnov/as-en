@@ -2,7 +2,7 @@
 #ifdef __INTELLISENSE__
 #	define SH_COMPUTE
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define COMPARE
 #endif
 //-----------------------------------------------------------------------------
@@ -19,10 +19,22 @@
 		const EPixelFormat	comp1_fmt	= Supports_Format( comp1_req ) ? comp1_req : src_fmt;
 		const EPixelFormat	comp2_fmt	= Supports_Format( comp2_req ) ? comp2_req : src_fmt;
 
+		const string		cm_addr		= "res/humus/LancellottiChapel/";	const string  cm_ext = ".jpg";	const uint2	cm_dim (2048);
+
 		RC<Image>	rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Image>	non_comp	= Image( EImageType::FImage2DArray, "res/tex/exported-image-cm-1k.aeimg" );
-		RC<Image>	comp1		= Image( comp1_fmt, non_comp.Dimension(), ImageLayer(6) );
-		RC<Image>	comp2		= Image( comp2_fmt, non_comp.Dimension(), ImageLayer(6) );
+		RC<Image>	non_comp	= Image( EPixelFormat::RGBA8_UNorm, cm_dim, ImageLayer(6) );
+		RC<Image>	comp1		= Image( comp1_fmt, non_comp.Dimension2(), ImageLayer(6) );
+		RC<Image>	comp2		= Image( comp2_fmt, non_comp.Dimension2(), ImageLayer(6) );
+
+		// load cubemap
+		{
+			non_comp.LoadLayer( cm_addr+ "posx" +cm_ext, 0 );	// -Z
+			non_comp.LoadLayer( cm_addr+ "negx" +cm_ext, 1 );	// +Z
+			non_comp.LoadLayer( cm_addr+ "posy" +cm_ext, 2 );	// +Y	- up
+			non_comp.LoadLayer( cm_addr+ "negy" +cm_ext, 3 );	// -Y	- down
+			non_comp.LoadLayer( cm_addr+ "posz" +cm_ext, 4 );	// -X
+			non_comp.LoadLayer( cm_addr+ "negz" +cm_ext, 5 );	// +X
+		}
 
 		// render loop
 		{

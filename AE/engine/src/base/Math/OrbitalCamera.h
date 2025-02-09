@@ -5,7 +5,7 @@
 #include "base/Math/Camera.h"
 #include "base/Math/Frustum.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -46,7 +46,7 @@ namespace AE::Math
 		ND_ Mat4_t const&		Projection ()								C_NE___	{ return _camera.projection; }
 
 		ND_ Vec3_t				CameraOffset ()								C_NE___	{ return Orientation() * Vec3_t{ T{0}, T{0}, -_offset }; }
-		ND_ T					CmeraOffsetScalar ()						C_NE___	{ return _offset; }
+		ND_ T					CameraOffsetScalar ()						C_NE___	{ return _offset; }
 		ND_ Vec3_t const&		CameraPosition ()							C_NE___	{ return _camera.transform.position; }
 
 		ND_ Mat4_t				ToModelViewProjMatrix ()					C_NE___	{ return Projection() * ToModelViewMatrix(); }
@@ -163,6 +163,13 @@ namespace AE::Math
 		_camera.transform.orientation = q;
 		return *this;
 	}
+//-----------------------------------------------------------------------------
 
 
-} // AE::Math
+	template <typename T>	struct TMemCopyAvailable< TOrbitalCamera<T> >		: CT_Bool< IsMemCopyAvailable<typename TOrbitalCamera<T>::Camera_t> or IsMemCopyAvailable<typename TOrbitalCamera<T>::Frustum_t> >{};
+	template <typename T>	struct TZeroMemAvailable< TOrbitalCamera<T> >		: CT_False {};
+	template <typename T>	struct TTriviallySerializable< TOrbitalCamera<T> >	: CT_False {};
+	template <typename T>	struct TUnwrap< TOrbitalCamera<T> >					: TUnwrap<T> {};
+
+} // AE::Base
+

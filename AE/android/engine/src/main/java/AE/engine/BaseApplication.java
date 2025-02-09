@@ -75,6 +75,7 @@ public class BaseApplication
 	{
 		WindowManager 	wm 		= (WindowManager) ctx.getSystemService( Context.WINDOW_SERVICE );
 		Display 		display	= wm.getDefaultDisplay();
+		Display.Mode	mode	= display.getMode();
 
 		int				min_w, min_h;
 		int				max_w, max_h;
@@ -100,9 +101,10 @@ public class BaseApplication
 		Display.HdrCapabilities	hdr = display.getHdrCapabilities();		// api 24
 
 		int[]	cutout_rects = new int[4*4];
-		int		c			 = 0;	// count
+		int		cutout_count = 0;
 
 		if ( Build.VERSION.SDK_INT >= 29 ) {
+			int		c = 0;
 			DisplayCutout cutout = display.getCutout();
 			if (cutout != null) {
 				Rect b = cutout.getBoundingRectBottom();
@@ -112,7 +114,7 @@ public class BaseApplication
 					cutout_rects[c+2] = b.right;
 					cutout_rects[c+3] = b.bottom;
 					c += 4;
-					Log.i( TAG, "Bottom: " + b.toString() );
+					//Log.i( TAG, "Bottom: " + b.toString() );
 				}
 				Rect l = cutout.getBoundingRectLeft();
 				if (! l.isEmpty()) {
@@ -121,7 +123,7 @@ public class BaseApplication
 					cutout_rects[c+2] = l.right;
 					cutout_rects[c+3] = l.bottom;
 					c += 4;
-					Log.i( TAG, "Left: " + l.toString() );
+					//Log.i( TAG, "Left: " + l.toString() );
 				}
 				Rect r = cutout.getBoundingRectRight();
 				if (! r.isEmpty()) {
@@ -130,7 +132,7 @@ public class BaseApplication
 					cutout_rects[c+2] = r.right;
 					cutout_rects[c+3] = r.bottom;
 					c += 4;
-					Log.i( TAG, "Right: " + r.toString() );
+					//Log.i( TAG, "Right: " + r.toString() );
 				}
 				Rect t = cutout.getBoundingRectTop();
 				if (! t.isEmpty()) {
@@ -139,18 +141,40 @@ public class BaseApplication
 					cutout_rects[c+2] = t.right;
 					cutout_rects[c+3] = t.bottom;
 					c += 4;
-					Log.i( TAG, "Top: " + t.toString() );
+					//Log.i( TAG, "Top: " + t.toString() );
 				}
 			}
+			cutout_count = c;
 		}
+
+		if ( (display.getFlags() & Display.FLAG_ROUND) != 0 )
+			Log.i( TAG, "Round display" );
+
+		if ( Build.VERSION.SDK_INT >= 26 ) {
+			Log.i(TAG, "isHdr: " + display.isHdr());
+			Log.i(TAG, "isWideColorGamut: " + display.isWideColorGamut());
+		}
+		if ( Build.VERSION.SDK_INT >= 30 ) {
+			Log.i(TAG, "isMinimalPostProcessingSupported: " + display.isMinimalPostProcessingSupported());
+		}
+		if ( Build.VERSION.SDK_INT >= 34 ) {
+			Log.i( TAG, "HdrSdrRatio: " + display.getHdrSdrRatio() );
+			Log.i( TAG, "isHdrSdrRatioAvailable: " + display.isHdrSdrRatioAvailable() );
+		}
+
+	//	if ( Build.VERSION.SDK_INT >= 34 ) {
+	//		int[] hdr_types = mode.getSupportedHdrTypes();
+	//	}else{
+			int[] hdr_types = hdr.getSupportedHdrTypes();
+	//	}
 
 		native_SetDisplayInfo(
 			min_w, min_h,
 			max_w, max_h,
-			dpi,
+			dpi, (int)mode.getRefreshRate(),
 			display.getRotation(),
 			hdr.getDesiredMaxAverageLuminance(), hdr.getDesiredMaxLuminance(), hdr.getDesiredMinLuminance(),
-			cutout_rects, c
+			cutout_rects, cutout_count
 		);
 
 		// TODO: https://developer.android.com/reference/android/view/Window#setPreferMinimalPostProcessing(boolean)
@@ -192,7 +216,7 @@ public class BaseApplication
 	private static native void  native_SetDirectories (String internal, String internalCache, String external, String externalCache);
 	private static native void  native_SetSystemInfo (String iso3Lang0, String iso3Lang1);
 	private static native void  native_SetDisplayInfo (int minWidth, int minHeight, int maxWidth, int maxHeight,
-													   float dpi, int orientation,
+													   float dpi, int refreshRate, int orientation,
 													   float avrLum, float maxLum, float minLum,
 													   int[] cutoutRects, int cutoutRectCount);
 	public  static native void  native_EnableCamera ();  // requires camera permission

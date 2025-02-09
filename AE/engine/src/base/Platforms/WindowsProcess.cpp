@@ -6,7 +6,7 @@
 # include "base/Platforms/WindowsProcess.h"
 # include "base/Platforms/WindowsUtils.h"
 
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 # include "base/Utils/Helpers.h"
 
 namespace AE::Base
@@ -34,7 +34,7 @@ namespace AE::Base
 		CHECK_ERR(	_thread == null and
 					_process == null );
 
-		using STARTUPINFO_t = Conditional< IsSameTypes< T, char >, STARTUPINFOA, STARTUPINFOW >;
+		using STARTUPINFO_t = Conditional< IsSame< T, char >, STARTUPINFOA, STARTUPINFOW >;
 
 		HANDLE	stdout_read	 = null;
 		HANDLE	stdout_write = null;
@@ -74,7 +74,7 @@ namespace AE::Base
 
 		bool	result = false;
 
-		if constexpr( IsSameTypes< T, char >)
+		if constexpr( IsSame< T, char >)
 		{
 			if ( AnyBits( flags, EFlags::UseCommandPrompt | EFlags::UsePowerShell ))
 			{

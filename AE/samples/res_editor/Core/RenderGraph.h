@@ -18,6 +18,7 @@ namespace AE::ResEditor
 		RG::RenderGraph &			_rg;
 		Ptr<IOutputSurface>			_surface;
 		RG::CommandBatchPtr			_uiBatch;
+		Atomic<bool>				_enableSurface	{true};
 
 		DRC_ONLY( RWDataRaceCheck	_drCheck;)
 
@@ -34,8 +35,9 @@ namespace AE::ResEditor
 		template <typename ...Deps>
 		ND_ AsyncTask	EndFrame (const Tuple<Deps...>	&deps);
 
-		ND_ AsyncTask	BeginOnSurface (const RG::CommandBatchPtr &batch);
+		ND_ AsyncTask	BeginOnSurface (const RG::CommandBatchPtr &batch, bool force = false);
 
+			void		EnablePresent (bool enable)	{ _enableSurface.store( enable ); }
 
 		ND_ FrameUID	GetPrevFrameId ()	const	{ return _rg.GetPrevFrameId(); }
 		ND_ FrameUID	GetNextFrameId ()	const	{ return _rg.GetNextFrameId(); }
@@ -100,11 +102,15 @@ namespace AE::ResEditor
 	BeginOnSurface
 =================================================
 */
-	inline AsyncTask  RenderGraphImpl::BeginOnSurface (const RG::CommandBatchPtr &batch)
+	inline AsyncTask  RenderGraphImpl::BeginOnSurface (const RG::CommandBatchPtr &batch, bool force)
 	{
 		DRC_EXLOCK( _drCheck );
 
-		if ( not _surface ) return null;
+		if ( not _surface )
+			return null;
+
+		if ( (not force) and (not _enableSurface.load()) )
+			return null;
 
 		return _rg.BeginOnSurface( _surface, batch );
 	}

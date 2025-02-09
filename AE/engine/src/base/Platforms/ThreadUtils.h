@@ -18,8 +18,13 @@ namespace AE::Base
 	struct ThreadUtils : Noninstanceable
 	{
 		// Name //
+	  #ifndef AE_CFG_RELEASE
 			static void		SetName (NtStringView name)										__NE___	{ return PlatformUtils::SetCurrentThreadName( name ); }
 		ND_ static String	GetName ()														__Th___	{ return PlatformUtils::GetCurrentThreadName(); }
+	  #else
+			static void		SetName (NtStringView name)										__NE___	{}
+		//ND_ static String	GetName ()														__NE___	{ return Default; }
+	  #endif
 
 
 		// Sleep //
@@ -36,28 +41,28 @@ namespace AE::Base
 			static void		Sleep_500us ()													__NE___	{ return PlatformUtils::ThreadSleep_500us(); }	// All: low power mode
 			static void		Sleep_15ms ()													__NE___	{ return PlatformUtils::ThreadSleep_15ms(); }	// All: low power mode
 
-		ND_ static constexpr auto  NanoSleepTimeStep ()										__NE___	{ return PlatformUtils::NanoSleepTimeStep(); }
-		ND_ static constexpr auto  MicroSleepTimeStep ()									__NE___	{ return PlatformUtils::MicroSleepTimeStep(); }
-		ND_ static constexpr auto  MilliSleepTimeStep ()									__NE___	{ return PlatformUtils::MilliSleepTimeStep(); }
+		NdCx__ static auto  NanoSleepTimeStep ()											__NE___	{ return PlatformUtils::NanoSleepTimeStep(); }
+		NdCx__ static auto  MicroSleepTimeStep ()											__NE___	{ return PlatformUtils::MicroSleepTimeStep(); }
+		NdCx__ static auto  MilliSleepTimeStep ()											__NE___	{ return PlatformUtils::MilliSleepTimeStep(); }
 
-		ND_ static constexpr uint  SpinBeforeLock ()										__NE___	{ return 1'000; }
+		NdCx__ static uint  SpinBeforeLock ()												__NE___	{ return 1'000; }
 
 
 		// Handle / Affinity / Priority //
 		ND_ static auto		GetHandle ()													__NE___	{ return PlatformUtils::GetCurrentThreadHandle(); }
 		ND_ static bool		IsCurrent (const ThreadHandle &handle)							__NE___	{ return handle == PlatformUtils::GetCurrentThreadHandle(); }
 
-			static bool		SetAffinity (const ThreadHandle &handle, uint coreIdx)			__NE___	{ return PlatformUtils::SetThreadAffinity( handle, coreIdx ); }
-			static bool		SetPriority (const ThreadHandle &handle, float priority)		__NE___	{ return PlatformUtils::SetThreadPriority( handle, priority ); }
+			static bool		SetAffinity (const ThreadHandle &handle, uint logicalCoreIdx)	__NE___	{ return PlatformUtils::SetThreadAffinity( handle, logicalCoreIdx ); }
+			static bool		SetPriority (const ThreadHandle &h, EThreadPriority priority)	__NE___	{ return PlatformUtils::SetThreadPriority( h, priority ); }
 
-			static bool		SetAffinity (uint coreIdx)										__NE___	{ return PlatformUtils::SetCurrentThreadAffinity( coreIdx ); }
-			static bool		SetPriority (float priority)									__NE___	{ return PlatformUtils::SetCurrentThreadPriority( priority ); }
+			static bool		SetAffinity (uint logicalCoreIdx)								__NE___	{ return PlatformUtils::SetCurrentThreadAffinity( logicalCoreIdx ); }
+			static bool		SetPriority (EThreadPriority priority)							__NE___	{ return PlatformUtils::SetCurrentThreadPriority( priority ); }
 
 		ND_ static Bytes	GetDefaultStackSize ()											__NE___	{ return PlatformUtils::GetDefaultStackSize(); }
 
 
 		// ID //
-		ND_	static uint		GetCoreIndex ()													__NE___	{ return PlatformUtils::GetProcessorCoreIndex(); }
+		ND_	static uint		LogicalCoreIndex ()												__NE___	{ return PlatformUtils::GetLogicalCoreIndex(); }
 
 		ND_ static auto		GetID ()														__NE___	{ return std::this_thread::get_id(); }
 		ND_ static usize	GetIntID ()														__NE___	{ return usize(HashOf( std::this_thread::get_id() )); }
@@ -83,7 +88,7 @@ namespace AE::Base
 
 	inline void  ThreadUtils::ProgressiveSleepInf (const uint iteration) __NE___
 	{
-		ProgressiveSleep( iteration, std::chrono::days{30} );
+		ProgressiveSleep( iteration, std::chrono::hours{30*24} );
 	}
 
 	inline void  ThreadUtils::ProgressiveSleep (const uint iteration, const milliseconds maxWait) __NE___

@@ -91,6 +91,18 @@ namespace AE::VFS
 		return _Open<FileRDataSource>( OUT outDS, name );
 	}
 
+	bool  DiskStaticStorage::Open (OUT RC<AsyncRStream> &stream, FileName::Ref name) C_NE___
+	{
+		RC<AsyncRDataSource>	ds;
+		if ( _Open< Threading::FileAsyncRDataSource >( OUT ds, name ))
+		{
+			stream = MakeRC< Threading::AsyncRDataSourceAsStream >( RVRef(ds) );
+			ASSERT( stream->IsOpen() );
+			return true;
+		}
+		return false;
+	}
+
 	bool  DiskStaticStorage::Open (OUT RC<AsyncRDataSource> &outDS, FileName::Ref name) C_NE___
 	{
 		return _Open< Threading::FileAsyncRDataSource >( OUT outDS, name );
@@ -171,6 +183,18 @@ namespace AE::VFS
 		return _OpenByIter2<FileRDataSource>( OUT ds, name, ref );
 	}
 
+	bool  DiskStaticStorage::_OpenByIter (OUT RC<AsyncRStream> &stream, FileName::Ref name, const void* ref) C_NE___
+	{
+		RC<AsyncRDataSource>	ds;
+		if ( _OpenByIter2< Threading::FileAsyncRDataSource >( OUT ds, name, ref ))
+		{
+			stream = MakeRC< Threading::AsyncRDataSourceAsStream >( RVRef(ds) );
+			ASSERT( stream->IsOpen() );
+			return true;
+		}
+		return false;
+	}
+
 	bool  DiskStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref name, const void* ref) C_NE___
 	{
 		return _OpenByIter2< Threading::FileAsyncRDataSource >( OUT ds, name, ref );
@@ -191,18 +215,21 @@ namespace AE::VFS
 		return _OpenByIter2<FileWDataSource>( OUT ds, name, ref );
 	}
 
+	bool  DiskStaticStorage::_OpenByIter (OUT RC<AsyncWStream> &stream, FileName::Ref name, const void* ref) C_NE___
+	{
+		RC<AsyncWDataSource>	ds;
+		if ( _OpenByIter2< Threading::FileAsyncWDataSource >( OUT ds, name, ref ))
+		{
+			stream = MakeRC< Threading::AsyncWDataSourceAsStream >( RVRef(ds) );
+			ASSERT( stream->IsOpen() );
+			return true;
+		}
+		return false;
+	}
+
 	bool  DiskStaticStorage::_OpenByIter (OUT RC<AsyncWDataSource> &ds, FileName::Ref name, const void* ref) C_NE___
 	{
-	#if defined(AE_PLATFORM_WINDOWS)
-		return _OpenByIter2< Threading::WinAsyncWDataSource >( OUT ds, name, ref );
-
-	#elif defined(AE_PLATFORM_UNIX_BASED)
-		return _OpenByIter2< Threading::UnixAsyncWDataSource >( OUT ds, name, ref );
-
-	#else
-		Unused( ds, name, ref );
-		return false;
-	#endif
+		return _OpenByIter2< Threading::FileAsyncWDataSource >( OUT ds, name, ref );
 	}
 
 /*

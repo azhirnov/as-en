@@ -5,7 +5,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define BACKGROUND
 #	define MODE		Quadratic
 #endif
@@ -19,15 +19,19 @@
 		RC<DynamicUInt>		mode1		= DynamicUInt();
 		RC<DynamicUInt>		mode2		= DynamicUInt();
 		RC<DynamicUInt>		submode		= DynamicUInt();
+		RC<DynamicUInt>		inv_x		= DynamicUInt();
+		RC<DynamicUInt>		inv_y		= DynamicUInt();
 		RC<DynamicFloat4>	color1		= DynamicFloat4( float4( 1.0, 0.0, 0.0, 1.0 ));
 		RC<DynamicFloat4>	color2		= DynamicFloat4( float4( 0.0, 1.0, 0.0, 1.0 ));
 		const array<string>	mode_str	= {
 			"Sine", "Hermite", "Quadratic", "Cubic", "Quartic", "Quintic", "Exponential", "Circular", "Elastic"
 		};
-		
+
 		Slider( mode1,		"Red",		0,	mode_str.size()-1,	0 );
 		Slider( mode2,		"Green",	0,	mode_str.size(),	0 );
-		Slider( submode,	"InOut",	0, 2,					0 );
+		Slider( submode,	"InOut",	0,	2,					0 );
+		Slider( inv_x,		"InvX",		0,	1 );
+		Slider( inv_y,		"InvY",		0,	1 );
 
 		// render loop
 		{
@@ -42,6 +46,8 @@
 			pass.OutputBlend( "out_Color",	rt,	EBlendFactor::SrcAlpha, EBlendFactor::One, EBlendOp::Add );
 			pass.Constant( "iInOut",	submode );
 			pass.Constant( "iColor",	color1 );
+			pass.Constant( "iInvX",		inv_x );
+			pass.Constant( "iInvY",		inv_y );
 			pass.EnableIfEqual( mode1, i );
 		}
 		for (uint i = 0; i < mode_str.size(); ++i)
@@ -51,6 +57,8 @@
 			pass.OutputBlend( "out_Color",	rt,	EBlendFactor::SrcAlpha, EBlendFactor::One, EBlendOp::Add );
 			pass.Constant( "iInOut",	submode );
 			pass.Constant( "iColor",	color2 );
+			pass.Constant( "iInvX",		inv_x );
+			pass.Constant( "iInvY",		inv_y );
 			pass.EnableIfEqual( mode2, i+1 );
 		}
 
@@ -108,7 +116,7 @@
 	#include "Geometry.glsl"
 
 	#define GRAPH_FN( _name_ )									\
-		float  Graph (float x)									\
+		float  Graph2 (float x)									\
 		{														\
 			x = Saturate( x );									\
 			switch ( iInOut ) {									\
@@ -122,6 +130,20 @@
 		GRAPH_FN( _name_ )
 
 	GRAPH_FN2( MODE )
+
+
+	float  Graph (float x)
+	{
+		if ( iInvX == 1 )
+			x = 1.0 - x;
+
+		x = Graph2( x );
+
+		if ( iInvY == 1 )
+			x = 1.0 - x;
+
+		return x;
+	}
 
 
 	void Main ()

@@ -1,4 +1,5 @@
-//596e1c9f
+//535568e7
+#pragma once
 #include <vector>
 #include <string>
 
@@ -23,65 +24,64 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-template <typename T>
-string  operator + (const string &lhs, T rhs);
-
-struct BaseUIController;
-struct UIWidget;
-struct UIStyleCollection;
-struct BaseLayout;
-struct RectI;
-struct uint3;
-struct RectangleDrawable;
-struct uint2;
-struct uint4;
-struct RectU;
-struct UIImageStyle;
-struct ImageAtlas;
-struct RGBA8u;
-struct RectF;
-struct RGBA32u;
-struct FillStackLayout;
-struct int4;
-struct ImageLayer;
-struct int3;
-struct int2;
-struct UIFontStyle;
-struct short4;
-struct ushort3;
-struct sbyte2;
-struct ushort2;
-struct BaseUIDrawable;
-struct Model;
-struct MipmapLevel;
-struct Mesh;
-struct Material;
-struct DepthStencil;
-struct FixedLayout;
 struct UIColorStyle;
 struct MultiSamples;
 struct float2;
-struct RasterFont;
 struct float3;
-struct ButtonController;
+struct RasterFont;
 struct float4;
+struct ButtonController;
 struct AlignedLayout;
 struct sbyte4;
 struct sbyte3;
 struct Texture;
-struct short2;
 struct ushort4;
+struct short2;
 struct short3;
+struct PaddingLayout;
+struct RGBA32f;
+struct HSVColor;
 struct bool2;
 struct bool3;
 struct RGBA32i;
 struct bool4;
-struct PaddingLayout;
-struct RGBA32f;
-struct HSVColor;
 struct ubyte4;
 struct ubyte3;
 struct ubyte2;
+struct BaseUIController;
+struct UIWidget;
+struct UIStyleCollection;
+struct BaseLayout;
+struct uint4;
+struct RectU;
+struct UIImageStyle;
+struct RectI;
+struct uint2;
+struct RectangleDrawable;
+struct uint3;
+struct MetaData;
+struct RectF;
+struct RGBA32u;
+struct FillStackLayout;
+struct ImageAtlas;
+struct RGBA8u;
+struct short4;
+struct sbyte2;
+struct ushort3;
+struct SharedImage;
+struct ushort2;
+struct ImageDrawable;
+struct BaseUIDrawable;
+struct int4;
+struct ImageLayer;
+struct int3;
+struct int2;
+struct Model;
+struct MipmapLevel;
+struct FixedLayout;
+struct Mesh;
+struct Material;
+struct DepthStencil;
 
 enum class EImage : uint8
 {
@@ -1096,6 +1096,7 @@ enum class EPipelineOpt : uint16
 	RT_NoNullIntersectionShaders,
 	RT_SkipTriangles,
 	RT_SkipAABBs,
+	RT_AllowClusterAccelStruct,
 
 	// Pipeline creation will fail if it is not exists in cache.
 	DontCompile,
@@ -1165,7 +1166,7 @@ enum class ESurfaceFormat : uint8
 	RGBA8_sRGB_nonlinear,
 	BGRA8_BT709_nonlinear,
 	RGBA16F_Extended_sRGB_linear,
-	RGBA16F_sRGB_nonlinear,
+	RGBA16F_Extended_sRGB_nonlinear,
 	RGBA16F_BT709_nonlinear,
 	RGBA16F_HDR10_ST2084,
 	RGBA16F_BT2020_linear,
@@ -1229,6 +1230,7 @@ enum class EImageOpt : uint32
 	ExtendedUsage,
 	All,
 	SparseResidencyAliased,
+	Blit,
 };
 uint32  operator | (EImageOpt lhs, EImageOpt rhs);
 uint32  operator | (uint32 lhs, EImageOpt rhs);
@@ -1249,6 +1251,7 @@ enum class EBufferUsage : uint32
 	ShaderBindingTable,
 	ASBuild_ReadOnly,
 	ASBuild_Scratch,
+	RTAS_Storage,
 	All,
 	Transfer,
 };
@@ -2173,105 +2176,6 @@ bool  All (const bool3 & x);
 bool  Any (const bool3 & x);
 bool  All (const bool4 & x);
 bool  Any (const bool4 & x);
-sbyte2  DivCeil (const sbyte2 & x, const sbyte2 & y);
-sbyte2  DivCeil (const sbyte2 & x, int8 y);
-sbyte3  DivCeil (const sbyte3 & x, const sbyte3 & y);
-sbyte3  DivCeil (const sbyte3 & x, int8 y);
-sbyte4  DivCeil (const sbyte4 & x, const sbyte4 & y);
-sbyte4  DivCeil (const sbyte4 & x, int8 y);
-ubyte2  DivCeil (const ubyte2 & x, const ubyte2 & y);
-ubyte2  DivCeil (const ubyte2 & x, uint8 y);
-ubyte3  DivCeil (const ubyte3 & x, const ubyte3 & y);
-ubyte3  DivCeil (const ubyte3 & x, uint8 y);
-ubyte4  DivCeil (const ubyte4 & x, const ubyte4 & y);
-ubyte4  DivCeil (const ubyte4 & x, uint8 y);
-short2  DivCeil (const short2 & x, const short2 & y);
-short2  DivCeil (const short2 & x, int16 y);
-short3  DivCeil (const short3 & x, const short3 & y);
-short3  DivCeil (const short3 & x, int16 y);
-short4  DivCeil (const short4 & x, const short4 & y);
-short4  DivCeil (const short4 & x, int16 y);
-ushort2  DivCeil (const ushort2 & x, const ushort2 & y);
-ushort2  DivCeil (const ushort2 & x, uint16 y);
-ushort3  DivCeil (const ushort3 & x, const ushort3 & y);
-ushort3  DivCeil (const ushort3 & x, uint16 y);
-ushort4  DivCeil (const ushort4 & x, const ushort4 & y);
-ushort4  DivCeil (const ushort4 & x, uint16 y);
-int2  Abs (const int2 & x);
-int2  MirroredWrap (const int2 & x, const int2 & min, const int2 & max);
-int2  MirroredWrap (const int2 & x, int min, int max);
-int  Sum (const int2 & x);
-int  Area (const int2 & x);
-int2  Min (const int2 & x, const int2 & y);
-int2  Max (const int2 & x, const int2 & y);
-int2  Clamp (const int2 & val, const int2 & min, const int2 & max);
-int2  Clamp (const int2 & val, int min, int max);
-int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
-int2  Wrap (const int2 & val, int min, int max);
-int  VecToLinear (const int2 & pos, const int2 & dim);
-int2  DivCeil (const int2 & x, const int2 & y);
-int2  DivCeil (const int2 & x, int y);
-int3  Abs (const int3 & x);
-int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
-int3  MirroredWrap (const int3 & x, int min, int max);
-int  Sum (const int3 & x);
-int  Area (const int3 & x);
-int3  Min (const int3 & x, const int3 & y);
-int3  Max (const int3 & x, const int3 & y);
-int3  Clamp (const int3 & val, const int3 & min, const int3 & max);
-int3  Clamp (const int3 & val, int min, int max);
-int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
-int3  Wrap (const int3 & val, int min, int max);
-int  VecToLinear (const int3 & pos, const int3 & dim);
-int3  DivCeil (const int3 & x, const int3 & y);
-int3  DivCeil (const int3 & x, int y);
-int4  Abs (const int4 & x);
-int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
-int4  MirroredWrap (const int4 & x, int min, int max);
-int  Sum (const int4 & x);
-int  Area (const int4 & x);
-int4  Min (const int4 & x, const int4 & y);
-int4  Max (const int4 & x, const int4 & y);
-int4  Clamp (const int4 & val, const int4 & min, const int4 & max);
-int4  Clamp (const int4 & val, int min, int max);
-int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
-int4  Wrap (const int4 & val, int min, int max);
-int  VecToLinear (const int4 & pos, const int4 & dim);
-int4  DivCeil (const int4 & x, const int4 & y);
-int4  DivCeil (const int4 & x, int y);
-uint  Sum (const uint2 & x);
-uint  Area (const uint2 & x);
-uint2  Min (const uint2 & x, const uint2 & y);
-uint2  Max (const uint2 & x, const uint2 & y);
-uint2  Clamp (const uint2 & val, const uint2 & min, const uint2 & max);
-uint2  Clamp (const uint2 & val, uint min, uint max);
-uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
-uint2  Wrap (const uint2 & val, uint min, uint max);
-uint  VecToLinear (const uint2 & pos, const uint2 & dim);
-uint2  DivCeil (const uint2 & x, const uint2 & y);
-uint2  DivCeil (const uint2 & x, uint y);
-uint  Sum (const uint3 & x);
-uint  Area (const uint3 & x);
-uint3  Min (const uint3 & x, const uint3 & y);
-uint3  Max (const uint3 & x, const uint3 & y);
-uint3  Clamp (const uint3 & val, const uint3 & min, const uint3 & max);
-uint3  Clamp (const uint3 & val, uint min, uint max);
-uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
-uint3  Wrap (const uint3 & val, uint min, uint max);
-uint  VecToLinear (const uint3 & pos, const uint3 & dim);
-uint3  DivCeil (const uint3 & x, const uint3 & y);
-uint3  DivCeil (const uint3 & x, uint y);
-uint  Sum (const uint4 & x);
-uint  Area (const uint4 & x);
-uint4  Min (const uint4 & x, const uint4 & y);
-uint4  Max (const uint4 & x, const uint4 & y);
-uint4  Clamp (const uint4 & val, const uint4 & min, const uint4 & max);
-uint4  Clamp (const uint4 & val, uint min, uint max);
-uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
-uint4  Wrap (const uint4 & val, uint min, uint max);
-uint  VecToLinear (const uint4 & pos, const uint4 & dim);
-uint4  DivCeil (const uint4 & x, const uint4 & y);
-uint4  DivCeil (const uint4 & x, uint y);
 float2  Abs (const float2 & x);
 float2  MirroredWrap (const float2 & x, const float2 & min, const float2 & max);
 float2  MirroredWrap (const float2 & x, float min, float max);
@@ -2378,6 +2282,105 @@ float  Length (const float4 & x);
 float  LengthSq (const float4 & x);
 float  Distance (const float4 & x, const float4 & y);
 float  DistanceSq (const float4 & x, const float4 & y);
+sbyte2  DivCeil (const sbyte2 & x, const sbyte2 & y);
+sbyte2  DivCeil (const sbyte2 & x, int8 y);
+sbyte3  DivCeil (const sbyte3 & x, const sbyte3 & y);
+sbyte3  DivCeil (const sbyte3 & x, int8 y);
+sbyte4  DivCeil (const sbyte4 & x, const sbyte4 & y);
+sbyte4  DivCeil (const sbyte4 & x, int8 y);
+ubyte2  DivCeil (const ubyte2 & x, const ubyte2 & y);
+ubyte2  DivCeil (const ubyte2 & x, uint8 y);
+ubyte3  DivCeil (const ubyte3 & x, const ubyte3 & y);
+ubyte3  DivCeil (const ubyte3 & x, uint8 y);
+ubyte4  DivCeil (const ubyte4 & x, const ubyte4 & y);
+ubyte4  DivCeil (const ubyte4 & x, uint8 y);
+short2  DivCeil (const short2 & x, const short2 & y);
+short2  DivCeil (const short2 & x, int16 y);
+short3  DivCeil (const short3 & x, const short3 & y);
+short3  DivCeil (const short3 & x, int16 y);
+short4  DivCeil (const short4 & x, const short4 & y);
+short4  DivCeil (const short4 & x, int16 y);
+ushort2  DivCeil (const ushort2 & x, const ushort2 & y);
+ushort2  DivCeil (const ushort2 & x, uint16 y);
+ushort3  DivCeil (const ushort3 & x, const ushort3 & y);
+ushort3  DivCeil (const ushort3 & x, uint16 y);
+ushort4  DivCeil (const ushort4 & x, const ushort4 & y);
+ushort4  DivCeil (const ushort4 & x, uint16 y);
+int2  Abs (const int2 & x);
+int2  MirroredWrap (const int2 & x, const int2 & min, const int2 & max);
+int2  MirroredWrap (const int2 & x, int min, int max);
+int  Sum (const int2 & x);
+int  Area (const int2 & x);
+int2  Min (const int2 & x, const int2 & y);
+int2  Max (const int2 & x, const int2 & y);
+int2  Clamp (const int2 & val, const int2 & min, const int2 & max);
+int2  Clamp (const int2 & val, int min, int max);
+int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
+int2  Wrap (const int2 & val, int min, int max);
+int  VecToLinear (const int2 & pos, const int2 & dim);
+int2  DivCeil (const int2 & x, const int2 & y);
+int2  DivCeil (const int2 & x, int y);
+int3  Abs (const int3 & x);
+int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
+int3  MirroredWrap (const int3 & x, int min, int max);
+int  Sum (const int3 & x);
+int  Area (const int3 & x);
+int3  Min (const int3 & x, const int3 & y);
+int3  Max (const int3 & x, const int3 & y);
+int3  Clamp (const int3 & val, const int3 & min, const int3 & max);
+int3  Clamp (const int3 & val, int min, int max);
+int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
+int3  Wrap (const int3 & val, int min, int max);
+int  VecToLinear (const int3 & pos, const int3 & dim);
+int3  DivCeil (const int3 & x, const int3 & y);
+int3  DivCeil (const int3 & x, int y);
+int4  Abs (const int4 & x);
+int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
+int4  MirroredWrap (const int4 & x, int min, int max);
+int  Sum (const int4 & x);
+int  Area (const int4 & x);
+int4  Min (const int4 & x, const int4 & y);
+int4  Max (const int4 & x, const int4 & y);
+int4  Clamp (const int4 & val, const int4 & min, const int4 & max);
+int4  Clamp (const int4 & val, int min, int max);
+int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
+int4  Wrap (const int4 & val, int min, int max);
+int  VecToLinear (const int4 & pos, const int4 & dim);
+int4  DivCeil (const int4 & x, const int4 & y);
+int4  DivCeil (const int4 & x, int y);
+uint  Sum (const uint2 & x);
+uint  Area (const uint2 & x);
+uint2  Min (const uint2 & x, const uint2 & y);
+uint2  Max (const uint2 & x, const uint2 & y);
+uint2  Clamp (const uint2 & val, const uint2 & min, const uint2 & max);
+uint2  Clamp (const uint2 & val, uint min, uint max);
+uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
+uint2  Wrap (const uint2 & val, uint min, uint max);
+uint  VecToLinear (const uint2 & pos, const uint2 & dim);
+uint2  DivCeil (const uint2 & x, const uint2 & y);
+uint2  DivCeil (const uint2 & x, uint y);
+uint  Sum (const uint3 & x);
+uint  Area (const uint3 & x);
+uint3  Min (const uint3 & x, const uint3 & y);
+uint3  Max (const uint3 & x, const uint3 & y);
+uint3  Clamp (const uint3 & val, const uint3 & min, const uint3 & max);
+uint3  Clamp (const uint3 & val, uint min, uint max);
+uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
+uint3  Wrap (const uint3 & val, uint min, uint max);
+uint  VecToLinear (const uint3 & pos, const uint3 & dim);
+uint3  DivCeil (const uint3 & x, const uint3 & y);
+uint3  DivCeil (const uint3 & x, uint y);
+uint  Sum (const uint4 & x);
+uint  Area (const uint4 & x);
+uint4  Min (const uint4 & x, const uint4 & y);
+uint4  Max (const uint4 & x, const uint4 & y);
+uint4  Clamp (const uint4 & val, const uint4 & min, const uint4 & max);
+uint4  Clamp (const uint4 & val, uint min, uint max);
+uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
+uint4  Wrap (const uint4 & val, uint min, uint max);
+uint  VecToLinear (const uint4 & pos, const uint4 & dim);
+uint4  DivCeil (const uint4 & x, const uint4 & y);
+uint4  DivCeil (const uint4 & x, uint y);
 struct RectI
 {
 	RectI ();
@@ -2387,7 +2390,6 @@ struct RectI
 	int top;
 	int right;
 	int bottom;
-	RectI (const RectI & value);
 	RectI (const int2 & value);
 	RectI (const int2 & leftTop, const int2 & rightBottom);
 	RectI (int sizeX, int sizeY);
@@ -2403,7 +2405,6 @@ struct RectU
 	uint top;
 	uint right;
 	uint bottom;
-	RectU (const RectU & value);
 	RectU (const uint2 & value);
 	RectU (const uint2 & leftTop, const uint2 & rightBottom);
 	RectU (uint sizeX, uint sizeY);
@@ -2419,7 +2420,6 @@ struct RectF
 	float top;
 	float right;
 	float bottom;
-	RectF (const RectF & value);
 	RectF (const float2 & value);
 	RectF (const float2 & leftTop, const float2 & rightBottom);
 	RectF (float sizeX, float sizeY);
@@ -2600,6 +2600,20 @@ struct MipmapLevel
 	MipmapLevel (uint);
 };
 
+struct MetaData
+{
+	MetaData ();
+	void  Store (const string & nameInArchive);
+};
+
+struct SharedImage
+{
+	SharedImage ();
+	void  Store (const string & nameInArchive);
+	void  Format (EPixelFormat newFormat);
+	void  PutMeta (const RC<MetaData> & metaFile, const string & nameInMeta);
+};
+
 struct Texture
 {
 	Texture ();
@@ -2626,8 +2640,11 @@ struct ImageAtlas
 {
 	ImageAtlas ();
 	void  Add (const string & imageNameInAtlas, const string & filename);
-	void  Add (const string & imageNameInAtlas, const string & filename, const RectU & region);
+	void  Add (const string & imageNameInAtlas, const string & filename, const RectU & regionInSrcImage);
 	void  Store (const string & nameInArchive);
+	void  StoreData (const string & nameInArchive);
+	void  PutMeta (const RC<MetaData> & metaFile, const string & nameInMeta);
+	void  PutData (const RC<SharedImage> & image);
 	void  Padding (uint paddingInPixels);
 	void  Format (EPixelFormat newFormat);
 };
@@ -2639,16 +2656,14 @@ struct RasterFont
 	void  AddCharset (uint firstCharIndexInUnicode, uint lastCharIndexInUnicode);
 	void  AddCharset_Ascii ();
 	void  AddCharset_Rus ();
-	void  ClearCharset ();
 	void  GlyphSize (uint heightInPixels);
 	void  GlyphPadding (uint paddingInPixels);
 	void  Store (const string & nameInArchive);
+	void  PutMeta (const RC<MetaData> & metaFile, const string & nameInMeta);
+	void  PutData (const RC<SharedImage> & image);
 	void  Format (EPixelFormat newFormat);
 	void  RasterMode (ERasterFontMode);
 	void  SDFGlyphBorder (uint borderSizeInPixels);
-
-	// Increase value for better anti-aliasing.
-	void  SDFPixelRange (float range);
 };
 
 struct Mesh
@@ -2678,33 +2693,27 @@ struct UIColorStyle
 
 struct UIImageStyle
 {
-	void  Disabled (const RGBA8u & colorWhenDisabled, const string & imageNameInAtlas);
-	void  Enabled (const RGBA8u & colorWhenEnabled, const string & imageNameInAtlas);
-	void  MouseOver (const RGBA8u & colorWhenMouseOver, const string & imageNameInAtlas);
-	void  TouchDown (const RGBA8u & colorWhenTouchDown, const string & imageNameInAtlas);
-	void  Selected (const RGBA8u & colorWhenSelected, const string & imageNameInAtlas);
-	void  Pipeline (const string & pplnName);
-};
-
-struct UIFontStyle
-{
 	void  Disabled (const RGBA8u & colorWhenDisabled);
 	void  Enabled (const RGBA8u & colorWhenEnabled);
 	void  MouseOver (const RGBA8u & colorWhenMouseOver);
 	void  TouchDown (const RGBA8u & colorWhenTouchDown);
 	void  Selected (const RGBA8u & colorWhenSelected);
-	void  Font (const string & fontName);
+	void  Disabled (const RGBA8u & colorWhenDisabled, float scale);
+	void  Enabled (const RGBA8u & colorWhenEnabled, float scale);
+	void  MouseOver (const RGBA8u & colorWhenMouseOver, float scale);
+	void  TouchDown (const RGBA8u & colorWhenTouchDown, float scale);
+	void  Selected (const RGBA8u & colorWhenSelected, float scale);
 	void  Pipeline (const string & pplnName);
+	void  Image (const string & atlasMetaResName, const string & imageInAtlas);
 };
 
 struct UIStyleCollection
 {
 	UIStyleCollection ();
-	void  Atlas (const string & atlasName);
+	void  Resources (const string & metaDataFileNameInArchive);
 	void  DebugPipeline (const string & pplnName);
 	RC<UIColorStyle>  AddColorStyle (const string & name);
 	RC<UIImageStyle>  AddImageStyle (const string & name);
-	RC<UIFontStyle>  AddFontStyle (const string & name);
 	void  Store (const string & nameInArchive);
 };
 
@@ -2714,7 +2723,12 @@ struct BaseUIDrawable
 
 struct RectangleDrawable
 {
-	RectangleDrawable (const string &);
+	RectangleDrawable (const string & styleName);
+};
+
+struct ImageDrawable
+{
+	ImageDrawable (const string & styleName);
 };
 
 struct BaseUIController
@@ -2759,8 +2773,10 @@ struct AlignedLayout
 {
 	AlignedLayout ();
 	AlignedLayout (const ELayoutType &);
+	void  Size (float width, float height);
 	void  Size (const float2 &);
 	void  Align (ELayoutAlign);
+	void  Align (int);
 	void  AddChild (const RC<BaseLayout> &);
 	void  SetDrawable (const RC<BaseUIDrawable> &);
 	void  SetController (const RC<BaseUIController> &);
@@ -2780,90 +2796,6 @@ struct UIWidget
 	UIWidget ();
 	void  Initialize (const RC<BaseLayout> &);
 	void  Store (const string &);
-};
-
-template <>
-struct RC<BaseUIController> : BaseUIController
-{
-	RC (const BaseUIController &);
-};
-
-template <>
-struct RC<UIWidget> : UIWidget
-{
-	RC (const UIWidget &);
-};
-
-template <>
-struct RC<UIStyleCollection> : UIStyleCollection
-{
-	RC (const UIStyleCollection &);
-};
-
-template <>
-struct RC<BaseLayout> : BaseLayout
-{
-	RC (const BaseLayout &);
-};
-
-template <>
-struct RC<RectangleDrawable> : RectangleDrawable
-{
-	RC (const RectangleDrawable &);
-};
-
-template <>
-struct RC<UIImageStyle> : UIImageStyle
-{
-	RC (const UIImageStyle &);
-};
-
-template <>
-struct RC<ImageAtlas> : ImageAtlas
-{
-	RC (const ImageAtlas &);
-};
-
-template <>
-struct RC<FillStackLayout> : FillStackLayout
-{
-	RC (const FillStackLayout &);
-};
-
-template <>
-struct RC<UIFontStyle> : UIFontStyle
-{
-	RC (const UIFontStyle &);
-};
-
-template <>
-struct RC<BaseUIDrawable> : BaseUIDrawable
-{
-	RC (const BaseUIDrawable &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-	RC (const Model &);
-};
-
-template <>
-struct RC<Mesh> : Mesh
-{
-	RC (const Mesh &);
-};
-
-template <>
-struct RC<Material> : Material
-{
-	RC (const Material &);
-};
-
-template <>
-struct RC<FixedLayout> : FixedLayout
-{
-	RC (const FixedLayout &);
 };
 
 template <>
@@ -2900,5 +2832,101 @@ template <>
 struct RC<PaddingLayout> : PaddingLayout
 {
 	RC (const PaddingLayout &);
+};
+
+template <>
+struct RC<BaseUIController> : BaseUIController
+{
+	RC (const BaseUIController &);
+};
+
+template <>
+struct RC<UIWidget> : UIWidget
+{
+	RC (const UIWidget &);
+};
+
+template <>
+struct RC<UIStyleCollection> : UIStyleCollection
+{
+	RC (const UIStyleCollection &);
+};
+
+template <>
+struct RC<BaseLayout> : BaseLayout
+{
+	RC (const BaseLayout &);
+};
+
+template <>
+struct RC<UIImageStyle> : UIImageStyle
+{
+	RC (const UIImageStyle &);
+};
+
+template <>
+struct RC<RectangleDrawable> : RectangleDrawable
+{
+	RC (const RectangleDrawable &);
+};
+
+template <>
+struct RC<MetaData> : MetaData
+{
+	RC (const MetaData &);
+};
+
+template <>
+struct RC<FillStackLayout> : FillStackLayout
+{
+	RC (const FillStackLayout &);
+};
+
+template <>
+struct RC<ImageAtlas> : ImageAtlas
+{
+	RC (const ImageAtlas &);
+};
+
+template <>
+struct RC<SharedImage> : SharedImage
+{
+	RC (const SharedImage &);
+};
+
+template <>
+struct RC<ImageDrawable> : ImageDrawable
+{
+	RC (const ImageDrawable &);
+};
+
+template <>
+struct RC<BaseUIDrawable> : BaseUIDrawable
+{
+	RC (const BaseUIDrawable &);
+};
+
+template <>
+struct RC<Model> : Model
+{
+	RC (const Model &);
+};
+
+template <>
+struct RC<FixedLayout> : FixedLayout
+{
+	RC (const FixedLayout &);
+};
+
+template <>
+struct RC<Mesh> : Mesh
+{
+	RC (const Mesh &);
+};
+
+template <>
+struct RC<Material> : Material
+{
+	RC (const Material &);
 };
 

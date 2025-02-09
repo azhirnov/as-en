@@ -18,37 +18,41 @@ namespace AE::Base
 	private:
 		T *		_value	= null;
 
+
 	// methods
 	public:
-		constexpr Ptr ()									__NE___ {}
-		constexpr Ptr (std::nullptr_t)						__NE___ {}
-		constexpr Ptr (T* ptr)								__NE___ : _value{ptr} {}
+		__Cx__ Ptr ()								__NE___ {}
+		__Cx__ Ptr (std::nullptr_t)					__NE___ {}
+		__Cx__ Ptr (T* ptr)							__NE___ : _value{ptr} {}
 
-		constexpr Ptr (Ref<T> ref)							__NE___ : _value{&ref} {}
-
-		template <typename B>
-		constexpr Ptr (Ptr<B> other)						__NE___ : _value{static_cast<T*>( other.get() )} {}
-
-		ND_ constexpr T *		operator -> ()				C_NE___	{ NonNull( _value );  return _value; }
-		ND_ constexpr T &		operator *  ()				C_NE___	{ NonNull( _value );  return *_value; }
-		ND_ constexpr T *		get ()						C_NE___	{ return _value; }
-
-		ND_ constexpr explicit operator T * ()				C_NE___	{ return _value; }
-
-		ND_ constexpr operator Ptr<const T> ()				C_NE___	{ return _value; }
+		__Cx__ Ptr (Ref<T> ref)						__NE___ : _value{&ref} {}
 
 		template <typename B>
-		ND_ constexpr explicit operator B  ()				C_NE___	{ return static_cast<B>( _value ); }
+		__Cx__ Ptr (Ptr<B> other)					__NE___ : _value{static_cast<T*>( other.get() )} {}
 
-		ND_ constexpr explicit operator bool ()				C_NE___	{ return _value != null; }
+		NdCz__ T *		operator -> ()				C_NE___	{ NonNull( _value );  return _value; }
+		NdCz__ T &		operator *  ()				C_NE___	{ NonNull( _value );  return *_value; }
+		NdCx__ T *		get ()						C_NE___	{ return _value; }
 
-		ND_ constexpr bool  operator == (Ptr<T> rhs)		C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool  operator != (Ptr<T> rhs)		C_NE___	{ return not (*this == rhs); }
-		ND_ constexpr bool  operator <  (Ptr<T> rhs)		C_NE___ { return _value <  rhs._value; }
-		ND_ constexpr bool  operator >  (Ptr<T> rhs)		C_NE___ { return _value >  rhs._value; }
-		ND_ constexpr bool  operator <= (Ptr<T> rhs)		C_NE___ { return _value <= rhs._value; }
-		ND_ constexpr bool  operator >= (Ptr<T> rhs)		C_NE___ { return _value >= rhs._value; }
+		NdCx__ explicit operator T * ()				C_NE___	{ return _value; }
+
+		NdCx__ operator Ptr<const T> ()				C_NE___	{ return _value; }
+
+		template <typename B>
+		NdCx__ explicit operator B  ()				C_NE___	{ return static_cast<B>( _value ); }
+
+		NdCx__ explicit operator bool ()			C_NE___	{ return _value != null; }
+
+		NdCx__ bool  operator == (Ptr<T> rhs)		C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool  operator != (Ptr<T> rhs)		C_NE___	{ return not (*this == rhs); }
+		NdCx__ bool  operator <  (Ptr<T> rhs)		C_NE___ { return _value <  rhs._value; }
+		NdCx__ bool  operator >  (Ptr<T> rhs)		C_NE___ { return _value >  rhs._value; }
+		NdCx__ bool  operator <= (Ptr<T> rhs)		C_NE___ { return _value <= rhs._value; }
+		NdCx__ bool  operator >= (Ptr<T> rhs)		C_NE___ { return _value >= rhs._value; }
 	};
+
+	template <typename T>
+	using CPtr = Ptr< const T >;
 
 
 	namespace _hidden_

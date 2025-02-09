@@ -65,7 +65,6 @@ namespace AE::Base
 		bool		SeekSet (Bytes newPos)												__NE_OV;
 
 		Bytes		ReadSeq (OUT void*, Bytes)											__NE_OV;
-		bool		Prefetch (Bytes offset, Bytes size)									__NE_OV;
 
 	private:
 		ND_ Bytes  _Position ()															C_NE___;

@@ -20,8 +20,7 @@ namespace AE::Base
 	{
 	// types
 	public:
-		using Self		= RstPtr< T >;
-		using CSelf		= RstPtr< const T >;
+		using Self	= RstPtr< T >;
 
 
 	// variables
@@ -40,54 +39,60 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr RstPtr ()								__NE___	{}
-		constexpr RstPtr (std::nullptr_t)				__NE___ {}
-		constexpr explicit RstPtr (T* ptr)				__NE___ : _ptr{ptr} {}
-		
-		template <typename B, ENABLEIF( not IsVoid<B> )>
-		constexpr explicit RstPtr (Ptr<B> ptr)			__NE___ : _ptr{ptr.get()} {}
+		__Cx__ RstPtr ()									__NE___	{}
+		__Cx__ RstPtr (std::nullptr_t)						__NE___ {}
+		__Cx__ explicit RstPtr (T* ptr)						__NE___ : _ptr{ptr} {}
 
 		template <typename B, ENABLEIF( not IsVoid<B> )>
-		constexpr explicit RstPtr (Ref<B> ref)			__NE___ : _ptr{&ref} {}
+		__Cx__ explicit RstPtr (Ptr<B> ptr)					__NE___ : _ptr{ptr.get()} {}
 
-		constexpr RstPtr (Self &&)						__NE___	= default;
-		constexpr Self&  operator = (Self &&)			__NE___	= default;
+		template <typename B, ENABLEIF( not IsVoid<B> and not IsConst<B> )>
+		__Cx__ explicit RstPtr (Ref<B> ref)					__NE___ : _ptr{&ref} {}
 
-		constexpr RstPtr (const Self &)					__NE___ = default;
-		constexpr Self&  operator = (const Self &)		__NE___ = default;
+		template <typename B, ENABLEIF( not IsConst<B> and IsSame< B, RemoveConst<T> >)>
+		__Cx__ RstPtr (RstPtr<B> other)						__NE___ : _ptr{other.get()} {}
 
-		ND_ constexpr explicit operator bool ()			__NE___	{ return _ptr != null; }
-		ND_ constexpr explicit operator bool ()			C_NE___	{ return _ptr != null; }
+		__Cx__ RstPtr (Self &&)								__NE___	= default;
+		__Cx__ Self&	operator = (Self &&)				__NE___	= default;
 
-		ND_ constexpr Self	operator + (Bytes offset)	C_NE___	{ return Self{ _ptr + offset }; }
+		__Cx__ RstPtr (const Self &)						__NE___ = default;
+		__Cx__ Self&	operator = (const Self &)			__NE___ = default;
+
+		NdCx__ explicit operator bool ()					__NE___	{ return _ptr != null; }
+		NdCx__ explicit operator bool ()					C_NE___	{ return _ptr != null; }
+
+		NdCx__ Self		operator +  (Bytes offset)			C_NE___	{ return Self{ _ptr + offset }; }
+		__Cx__ Self&	operator += (Bytes offset)			__NE___	{ _ptr += offset;  return *this; }
 
 
 	  #if defined(AE_COMPILER_MSVC)
 
-		ND_ __declspec(restrict) operator T* ()			__NE___	{ return _ptr; }
-		ND_ __declspec(restrict) operator T const* ()	C_NE___	{ return _ptr; }
+		ND_ __declspec(restrict) operator T* ()				__NE___	{ return _ptr; }
+		ND_ __declspec(restrict) operator T const* ()		C_NE___	{ return _ptr; }
 
-		ND_ __declspec(restrict) T*			get ()		__NE___	{ return _ptr; }
-		ND_ __declspec(restrict) T const*	get ()		C_NE___	{ return _ptr; }
+		ND_ __declspec(restrict) T*			get ()			__NE___	{ return _ptr; }
+		ND_ __declspec(restrict) T const*	get ()			C_NE___	{ return _ptr; }
 
 
 	  #elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
 
-		ND_ operator T* __restrict__ ()					__NE___	{ return _ptr; }
-		ND_ operator T const* __restrict__ ()			C_NE___	{ return _ptr; }
+		ND_ operator T* __restrict__ ()						__NE___	{ return _ptr; }
+		ND_ operator T const* __restrict__ ()				C_NE___	{ return _ptr; }
 
-		ND_ T* __restrict__					get ()		__NE___	{ return _ptr; }
-		ND_ T const* __restrict__			get ()		C_NE___	{ return _ptr; }
+		ND_ T* __restrict__					get ()			__NE___	{ return _ptr; }
+		ND_ T const* __restrict__			get ()			C_NE___	{ return _ptr; }
 
 
 	  #else
-		ND_ operator T* ()								__NE___	{ return _ptr; }
-		ND_ operator T const* ()						C_NE___	{ return _ptr; }
+		ND_ operator T* ()									__NE___	{ return _ptr; }
+		ND_ operator T const* ()							C_NE___	{ return _ptr; }
 
-		ND_ T*								get ()		__NE___	{ return _ptr; }
-		ND_ T const*						get ()		C_NE___	{ return _ptr; }
+		ND_ T*								get ()			__NE___	{ return _ptr; }
+		ND_ T const*						get ()			C_NE___	{ return _ptr; }
 
 	  #endif
+
+		__Cx__ friend void  Swap (Self &lhs, Self &rhs)		__NE___	{ std::swap( lhs._ptr, rhs._ptr ); }
 	};
 
 

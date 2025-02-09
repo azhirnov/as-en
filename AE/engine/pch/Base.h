@@ -14,11 +14,13 @@
 #include "base/Algorithms/ArrayUtils.h"
 #include "base/Algorithms/Cast.h"
 #include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/ToString.h"
 #include "base/Algorithms/Parser.h"
 
 // Containers
 #include "base/Containers/AnyTypeRef.h"
 #include "base/Containers/ArrayView.h"
+#include "base/Containers/BitView.h"
 #include "base/Containers/MutableArrayView.h"
 #include "base/Containers/ChunkList.h"
 #include "base/Containers/FixedArray.h"
@@ -40,6 +42,7 @@
 #include "base/Pointers/PackedPtr.h"
 #include "base/Pointers/RefCounter.h"
 #include "base/Pointers/RestrictPtr.h"
+#include "base/Pointers/AlignedPtr.h"
 
 // DataSource
 #include "base/DataSource/DataSource.h"
@@ -66,8 +69,7 @@
 #include "base/Math/Radian.h"
 #include "base/Math/VecSwizzle.h"
 #include "base/Math/Fractional.h"
-#include "base/Math/Float8.h"
-#include "base/Math/Float16.h"
+#include "base/Math/FloatConversion.h"
 #include "base/Math/Vec.h"
 #include "base/Math/Color.h"
 #include "base/Math/Quat.h"
@@ -84,8 +86,6 @@
 #include "base/Math/PhysicalQuantity.h"
 #include "base/Math/PhysicalQuantityVec.h"
 #include "base/Math/PhysicalQuantityMatrix.h"
-#include "base/Math/SIMD_Neon.h"
-#include "base/Math/SIMD_SSE.h"
 #include "base/Math/Packing.h"
 #include "base/Math/Frustum.h"
 #include "base/Math/AABB.h"
@@ -109,6 +109,11 @@
 #include "base/Memory/MemChunkList.h"
 #include "base/Memory/InPlaceLinearAllocator.h"
 #include "base/Memory/SmallLinearAllocator.h"
+
+// SIMD
+#include "base/SIMD/MemUtils.h"
+#include "base/SIMD/Math.h"
+#include "base/SIMD/Vector.h"
 
 // Platforms
 #include "base/Platforms/CPUInfo.h"

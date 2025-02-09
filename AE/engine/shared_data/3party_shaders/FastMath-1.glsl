@@ -36,7 +36,7 @@ Gen_FAST_SINCOS( float, float_vec_t )
 
 #undef Gen_FAST_SINCOS1
 #undef Gen_FAST_SINCOS
-	
+
 /*
 =================================================
 	FastTan
@@ -107,7 +107,7 @@ Gen_FAST_ASINCOS( float, float_vec_t )
 
 #undef Gen_FAST_ASINCOS1
 #undef Gen_FAST_ASINCOS
-	
+
 /*
 =================================================
 	FastATan2
@@ -169,7 +169,7 @@ Gen_FAST_ATAN( float, float_vec_t )
 #define Gen_FAST_ACOS1( _stype_, _vtype_ )\
 	ND_ _vtype_  FastACos (_vtype_ x)							\
 	{															\
-		_vtype_	negate	= LessFp( x, _vtype_(_stype_(0.0)) );	\
+		_vtype_	negate	= LessF( x, _stype_(0.0) );				\
 				x		= Abs( x );								\
 		_vtype_	ret		= _vtype_(_stype_(-0.0187293));			\
 		ret *= x;												\
@@ -214,7 +214,7 @@ Gen_FAST_ACOS( float, float_vec_t )
 #define Gen_FAST_ASIN1( _stype_, _vtype_ )\
 	ND_ _vtype_  FastASin (_vtype_ x)									\
 	{																	\
-		_vtype_	negate	= LessFp( x, _vtype_(_stype_(0.0)) );			\
+		_vtype_	negate	= LessF( x, _stype_(0.0) );						\
 				x		= Abs( x );										\
 		_vtype_	ret		= _vtype_(_stype_(-0.0187293));					\
 		ret *= x;														\
@@ -273,9 +273,9 @@ Gen_FAST_ASIN( float, float_vec_t )
 		t0 = t0 * t4 + _stype_(0.999995630);											\
 		t3 = t0 * t3;																	\
 																						\
-		t3 = SelectFp( Abs(x),  Abs(y),			  _stype_(float_HalfPi) - t3,	t3 );	\
-		t3 = SelectFp( x, _vtype_(_stype_(0.0)),  _stype_(float_Pi) - t3,		t3 );	\
-		t3 = SelectFp( y, _vtype_(_stype_(0.0)),  -t3,							t3 );	\
+		t3 = SelectF( Abs(x),  Abs(y),			 _stype_(float_HalfPi) - t3,	t3 );	\
+		t3 = SelectF( x, _vtype_(_stype_(0.0)),  _stype_(float_Pi) - t3,		t3 );	\
+		t3 = SelectF( y, _vtype_(_stype_(0.0)),  -t3,							t3 );	\
 																						\
 		return t3;																		\
 	}																					\

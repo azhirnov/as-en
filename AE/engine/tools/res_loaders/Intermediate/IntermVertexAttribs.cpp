@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_loaders/Intermediate/IntermVertexAttribs.h"
-#include "graphics/Private/EnumToString.h"
+#include "graphics_rhi/Private/EnumToString.h"
 
 template <>
 struct std::hash< AE::ResLoader::IntermVertexAttribs::VertexInput > final :

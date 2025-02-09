@@ -75,6 +75,8 @@ There are PipelineSpecializations:
 
 ### RayTracingShaderBinding
 
+This is wrapper for Shader Binding Table, as a pipelines it is configured at resource compilation time.
+
 ```cpp
 // sbtRecordStride - from 'traceRay()'
 // sbtRecordOffset - from 'traceRay()'
@@ -123,7 +125,7 @@ Macros for current shader type:<br/>
 `SH_RAY_INT` - ray intersection (*to write custom intersection function*)<br/>
 `SH_RAY_CALL` - callable shader (*can be used only in ray tracing shaders*)<br/>
 
-Extensions are added depends used FeatureSets in the shader. If feature in FeatureSet is `RequireTrue` then extension is marked as `required`.
+Shader extensions are added depending on added FeatureSets in the shader. If feature in any FeatureSet is `RequireTrue` then extension is marked as `required`.
 
 
 ### MSL shaders
@@ -159,7 +161,7 @@ cfg.SetPreprocessor( EShaderPreprocessor::AEStyle );
 
 New scalar types: bool, byte, ubyte, short, ushort, int, uint, long, ulong, float, double, half.<br/>
 New vector types: same as scalar with 2, 3, 4 suffix, example: uint3.<br/>
-New matrix types: float, half, double with suffix 2x2 ... 4x4, example float3x4.<br/>
+New matrix types: float, half, double with suffix 2x2 ... 4x4, example: float3x4.<br/>
 
 GLSL-specific:<br/>
 `gl::` namespace for types.<br/>
@@ -219,6 +221,38 @@ namespace RenderTechs
 }
 ```
 </details>
+
+## In Engine
+
+For better startup performance it is recommended to divide pipelines in 3 parts:
+1. PipelinePack with feature sets, render passes and samplers. All subsequent PipelinePacks will use this resources. Don't load pipelines in this stage to avoid pipeline compilation on engine initialization. See usage of `IResourceManager::InitializeResources()` in [demo](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/Core/SampleCore.cpp#L 280).
+2. PipelinePack with small set of pipelines without optimizations (`EPipelineOpt::DontOptimize`). Pipelines should use uniform branching instead of separate shaders without branching.
+3. PipelinePack with optimized pipelines. Non-optimized pipelines from stage 2 will be replaced after pipeline compilation. This stage can be divided on 2 stages:
+	* UI pipelines for main menu.
+	* 3D pipelines for game, they will start compilation when user in menu. Pipeline cache will be used to optimize further launches.
+
+Render pass and Sampler searching:
+* Current PipelinePack - which contains pipeline or RenderTechnique from where searching begin.
+* Parent PipelinePack which specified in `PipelinePackDesc::parentPackId`, recursively search in all parents.
+* Default PipelinePack which specified in `IResourceManager::InitializeResources()`.
+
+DescriptorSetLayout searching:
+* Only current PipelinePack - which contains pipeline or RenderTechnique from where searching begin.
+
+Unsupported Sampler.
+* If Sampler depends on FeatureSet which is not supported on current GPU, then this Sampler is marked as unsupported.
+* At resource compilation stage can not detect support for some features like a Android camera internal formats, so it is allowed to samplers to be unsupported instead of return error when loading PipelinePack.
+* If other resources depends on unsupported Sampler, then they will fail to create, but some resources allowed to be unsupported.
+
+Unsupported DescriptorSetLayout:
+* If DSL depends on FeatureSet which is not supported on current GPU, then this DSL is marked as unsupported.
+* If DSL depends on Sampler which is marked as unsupported, then this DSL is marked as unsupported too.
+* Otherwise if DSL creation will fail, then PipelinePack loading function will return error.
+
+Unsupported PipelineLayout:
+* If PL depends on DescriptorSetLayout which is marked as unsupported, then this PL is marked as unsupported too.
+* Don't create PipelineSpecialization which uses PL which may be unsupported, instead try to create pipeline at runtime.
+
 
 # Input Actions Packer
 

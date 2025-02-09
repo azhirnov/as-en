@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "graphics/Public/SwapchainDesc.h"
+#include "graphics_rhi/Public/SwapchainDesc.h"
 #include "platform/Public/Monitor.h"
 #include "platform/Public/IWindow.h"
 #include "platform/Public/VRDevice.h"

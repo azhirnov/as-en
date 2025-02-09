@@ -82,8 +82,8 @@ namespace
 
 			for (auto [e, i] : WithIndex(arr))
 			{
-				StaticAssert( IsSameTypes< decltype(e), const float >);
-				StaticAssert( IsSameTypes< decltype(i), usize >);
+				StaticAssert( IsSame< decltype(e), const float >);
+				StaticAssert( IsSame< decltype(i), const usize >);
 
 				TEST_Eq( i, j );
 				TEST_Eq( e, arr[j] );
@@ -95,8 +95,8 @@ namespace
 			j = 0;
 			for (auto [e, i] : WithIndex( ArrayView<float>{arr} ))
 			{
-				StaticAssert( IsSameTypes< decltype(e), const float >);
-				StaticAssert( IsSameTypes< decltype(i), usize >);
+				StaticAssert( IsSame< decltype(e), const float >);
+				StaticAssert( IsSame< decltype(i), const usize >);
 
 				TEST_Eq( i, j );
 				TEST_Eq( e, arr[j] );
@@ -109,8 +109,8 @@ namespace
 				j = 0;
 				for (const auto& [e, i] : WithIndex(arr))		// error in clang
 				{
-					StaticAssert( IsSameTypes< decltype(e), const float >);
-					StaticAssert( IsSameTypes< decltype(i), const usize >);
+					StaticAssert( IsSame< decltype(e), const float >);
+					StaticAssert( IsSame< decltype(i), const usize >);
 
 					TEST_Eq( i, j );
 					TEST_Eq( e, arr[j] );
@@ -126,8 +126,8 @@ namespace
 
 			for (auto&& [e, i] : WithIndex(arr))
 			{
-				StaticAssert( IsSameTypes< decltype(e), float >);
-				StaticAssert( IsSameTypes< decltype(i), usize >);
+				StaticAssert( IsSame< decltype(e), float >);
+				StaticAssert( IsSame< decltype(i), const usize >);
 
 				TEST_Eq( i, j );
 				TEST_Eq( e, arr[j] );

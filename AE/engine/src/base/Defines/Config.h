@@ -5,12 +5,10 @@
 
 #pragma once
 
-#ifdef AE_COMPILER_MSVC
-#  if _MSC_VER < 1900	// TODO
+#if defined(AE_COMPILER_MSVC) && (AE_CXX_VER <= 17)
 #	define and		&&
 #	define or		||
 #	define not		!
-#  endif
 #endif
 
 // mem leak check

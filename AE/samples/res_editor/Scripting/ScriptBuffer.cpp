@@ -929,22 +929,25 @@ namespace
 		binder.AddMethod( &ScriptBuffer::SetLayoutName,			"LayoutName",		{"typeName"} );
 
 		binder.Comment( "Allow to declare array of struct with constant or dynamic size.\n"
-						"Layout will be '{ <typeName>  elements [<count>]; }'.\n"
-						"'typeName' must be previously declared or one of built-in type:\n"
+						"Layout will be '{ <arrayElementTypeName>  elements [<count>]; }'.\n"
+						"'arrayElementTypeName' must be previously declared or one of built-in type:\n"
 						"\t'DispatchIndirectCommand', 'DrawIndirectCommand', 'DrawIndexedIndirectCommand',\n"
 						"\t'DrawMeshTasksIndirectCommand', 'TraceRayIndirectCommand', 'ASBuildIndirectCommand'\n"
-						"\t'AccelStructInstance'." );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout1,		"ArrayLayout",		{"typeName", "count"} );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout2,		"ArrayLayout",		{"typeName", "count"} );
+						"\t'AccelStructInstance'.\n"
+						"Buffer typename: '<arrayElementTypeName>_Array'." );
+		binder.AddMethod( &ScriptBuffer::SetArrayLayout1,		"ArrayLayout",		{"arrayElementTypeName", "count"} );
+		binder.AddMethod( &ScriptBuffer::SetArrayLayout2,		"ArrayLayout",		{"arrayElementTypeName", "count"} );
 
 		binder.Comment( "Allow to declare array of struct with constant or dynamic size.\n"
-						"Created a new structure with type 'typeName' and fields in 'arrayElementSource'.\n"
-						"See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).");
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout3,		"ArrayLayout",		{"typeName", "arrayElementSource", "count"} );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout4,		"ArrayLayout",		{"typeName", "arrayElementSource", "count"} );
+						"Created a new structure with type 'arrayElementTypeName' and fields in 'arrayElementSource'.\n"
+						"See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).\n"
+						"Buffer typename: '<arrayElementTypeName>_Array'." );
+		binder.AddMethod( &ScriptBuffer::SetArrayLayout3,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "count"} );
+		binder.AddMethod( &ScriptBuffer::SetArrayLayout4,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "count"} );
 
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout5,		"ArrayLayout",		{"typeName", "arrayElementSource", "staticSource", "count"} );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout6,		"ArrayLayout",		{"typeName", "arrayElementSource", "staticSource", "count"} );
+		binder.Comment( "Buffer typename: '<arrayElementTypeName>_Array2'." );
+		binder.AddMethod( &ScriptBuffer::SetArrayLayout5,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "staticSource", "count"} );
+		binder.AddMethod( &ScriptBuffer::SetArrayLayout6,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "staticSource", "count"} );
 
 		binder.Comment( "Allow to declare single structure as a buffer layout.\n"
 						"'typeName' must be previously declared or one of built-in type (see 'ArrayLayout')." );
@@ -1135,7 +1138,7 @@ namespace
 			using namespace AE::PipelineCompiler;
 
 			auto	storage = ObjectStorage::Instance();
-			if ( storage )
+			if ( storage )	// must be inside '_RunWithPipelineCompiler()'
 			{
 				auto&	st_types	= storage->structTypes;
 				auto	it			= st_types.find( GetTypeName() );
@@ -1235,7 +1238,7 @@ namespace
 		{{
 			auto	storage		= ObjectStorage::Instance();
 			if ( not storage )
-				return;
+				return;	// must be inside '_RunWithPipelineCompiler()'
 
 			auto&	st_types	= storage->structTypes;
 			auto	it			= st_types.find( typeName );
@@ -1338,11 +1341,15 @@ namespace
 		CHECK_THROW_MSG( HasLayout(),
 			"Buffer layout is not defined" );
 
-		auto&	st_types	= ObjectStorage::Instance()->structTypes;
+		auto	storage		= ObjectStorage::Instance();
+		CHECK_THROW_MSG( storage );	// must be inside '_RunWithPipelineCompiler()'
+
+		auto&	st_types	= storage->structTypes;
 		auto	it			= st_types.find( GetTypeName() );
 
+		// use 'AddLayoutReflection()' if see this error.
 		CHECK_THROW_MSG( it != st_types.end(),
-			"Can't find buffer layout type '"s << GetTypeName() << "'" )
+			"Can't find buffer layout type '"s << GetTypeName() << "'" );
 
 		for (auto& field : it->second->Fields())
 		{

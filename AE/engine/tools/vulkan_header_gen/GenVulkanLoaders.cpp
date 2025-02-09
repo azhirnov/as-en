@@ -26,7 +26,7 @@ namespace AE::Vulkan
 		StaticArray< Group, 3 >		groups;
 		const auto					feats		= _GetFeatures( minVer );
 		HashSet<StringView>			include_fn	= { "vkGetRayTracingShaderGroupHandlesKHR" };
-		HashSet<StringView>			exclude_fn	= { "vkGetInstanceProcAddr", "vkDeviceWaitIdle" };
+		HashSet<StringView>			exclude_fn	= { "vkGetInstanceProcAddr" };
 
 
 		for (auto& g : groups)
@@ -47,10 +47,10 @@ namespace AE::Vulkan
 			if ( not EndsWith( fn.data.name, "KHR" ) and
 				 not EndsWith( fn.data.name, "EXT" ))
 			{
-				if ( _funcs.contains( SearchableFunc{ String{fn.data.name} + "KHR" }))
+				if ( HashTable_Contains( _funcs, SearchableFunc{ String{fn.data.name} + "KHR" }))
 					exclude_fn.insert( fn.data.name );
 
-				if ( _funcs.contains( SearchableFunc{ String{fn.data.name} + "EXT" }))
+				if ( HashTable_Contains( _funcs, SearchableFunc{ String{fn.data.name} + "EXT" }))
 					exclude_fn.insert( fn.data.name );
 			}
 		}
@@ -156,12 +156,12 @@ namespace AE::Vulkan
 				default :						RETURN_ERR( "" );
 			}
 
-			if ( exclude_fn.contains( fn.data.name ))
+			if ( HashTable_Contains( exclude_fn, fn.data.name ))
 				continue;
 
-			if ( not (fn.data.extension.empty() or feats.enabledExt.contains( fn.data.extension )) )
+			if ( not (fn.data.extension.empty() or HashTable_Contains( feats.enabledExt, fn.data.extension )) )
 			{
-				if ( not include_fn.contains( fn.data.name ))
+				if ( HashTable_NotContains( include_fn, fn.data.name ))
 					continue;
 			}
 
@@ -423,6 +423,7 @@ namespace AE::Vulkan
 		// surface //
 			{ "surfaceCaps2",					VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_SURFACE_EXTENSION_NAME} },
 			{ "swapchainColorspace",			VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_SURFACE_EXTENSION_NAME} },
+			{ "surfaceMaintenance1",			VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME} },
 
 		// display //
 			{ "display",						VK_KHR_DISPLAY_EXTENSION_NAME,								NoVer,	{1,0},	{VK_KHR_SURFACE_EXTENSION_NAME} },
@@ -508,18 +509,32 @@ namespace AE::Vulkan
 			{ "ycbcr2Plane444",					VK_EXT_YCBCR_2PLANE_444_FORMATS_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME} },
 			{ "shaderDemoteToHelperInvocation",	VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME,	NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 
+		// 1.4 //
+		//	{ "pushDescriptor",					VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,						{1,4},	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "loadOpNone",						VK_KHR_LOAD_STORE_OP_NONE_EXTENSION_NAME,					{1,4},	{1,0},	{} },
+			{ "shaderFloatControls2",			VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME,				{1,4},	{1,1},	{VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME} },
+			{ "shaderExpectAssume",				VK_KHR_SHADER_EXPECT_ASSUME_EXTENSION_NAME,					{1,4},	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "shaderSubgroupRotate",			VK_KHR_SHADER_SUBGROUP_ROTATE_EXTENSION_NAME,				{1,4},	{1,0},	{} },
+			{ "vertexDivisor",					VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME,				{1,4},	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "maintenance5",					VK_KHR_MAINTENANCE_5_EXTENSION_NAME,						{1,4},	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
+			{ "maintenance6",					VK_KHR_MAINTENANCE_6_EXTENSION_NAME,						{1,4},	{1,1},	{} },
+			{ "pipelineRobustness",				VK_EXT_PIPELINE_ROBUSTNESS_EXTENSION_NAME,					{1,4},	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			//	VK_KHR_map_memory2
+			//	VK_KHR_line_rasterization
+			//	VK_EXT_host_image_copy
+
+		// optional 1.4 //
+
 		// extensions //
 			{ "debugMarker",					VK_EXT_DEBUG_MARKER_EXTENSION_NAME,							NoVer,	{1,0},	{VK_EXT_DEBUG_REPORT_EXTENSION_NAME} },	// deprecated, but still present on Android
 			{ "swapchain",						VK_KHR_SWAPCHAIN_EXTENSION_NAME,							NoVer,	{1,0},	{VK_KHR_SURFACE_EXTENSION_NAME} },
+			{ "swapchainMaintenance1",			VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "displaySwapchain",				VK_KHR_DISPLAY_SWAPCHAIN_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_DISPLAY_EXTENSION_NAME} },
 			{ "depthRangeUnrestricted",			VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME,				NoVer,	{1,0},	{} },
-		//	{ "pushDescriptor",					VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,						NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 		//	{ "blendOpExt",						VK_EXT_BLEND_OPERATION_ADVANCED_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "memoryPriority",					VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME,						NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
-			{ "vertexDivisor",					VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "depthClip",						VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME,					NoVer,	{1,0},	{} },
 			{ "portabilitySubset",				VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
-			{ "loadOpNone",						VK_KHR_LOAD_STORE_OP_NONE_EXTENSION_NAME,					NoVer,	{1,0},	{} },
 			{ "pagebleDeviceLocalMemory",		VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME,			NoVer,	{1,0},	{VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME} },
 			{ "sampleLocations",				VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME,						NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "fragmentBarycentric",			VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -528,14 +543,15 @@ namespace AE::Vulkan
 			{ "cooperativeMatrix",				VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "nonSeamlessCubeMap",				VK_EXT_NON_SEAMLESS_CUBE_MAP_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "shaderStencilExport",			VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME,				NoVer,	{1,0},	{} },
-		//	{ "shaderFloatControls2",			VK_KHR_SHADER_FLOAT_CONTROLS_2_EXTENSION_NAME,				NoVer,	{1,1},	{VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME} },
 			{ "shaderMaximalReconvergence",		VK_KHR_SHADER_MAXIMAL_RECONVERGENCE_EXTENSION_NAME,			NoVer,	{1,1},	{} },
 			{ "shaderQuadControl",				VK_KHR_SHADER_QUAD_CONTROL_EXTENSION_NAME,					NoVer,	{1,1},	{VK_KHR_VULKAN_MEMORY_MODEL_EXTENSION_NAME, VK_KHR_SHADER_MAXIMAL_RECONVERGENCE_EXTENSION_NAME} },
+			{ "maintenance7",					VK_KHR_MAINTENANCE_7_EXTENSION_NAME,						NoVer,	{1,1},	{} },
+		//	{ "pipelineBinary",					VK_KHR_PIPELINE_BINARY_EXTENSION_NAME,						NoVer,	{1,3},	{VK_KHR_MAINTENANCE_5_EXTENSION_NAME} },
+			{ "deviceGeneratedCommands",		VK_EXT_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, VK_KHR_MAINTENANCE_5_EXTENSION_NAME} },
 
 		// dynamic rendering //
 		#if 0
 			{ "dynamicRendering",				VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,					{1,2},	{1,1},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
-			{ "maintenance5",					VK_KHR_MAINTENANCE_5_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
 			{ "shaderTileImage",				VK_EXT_SHADER_TILE_IMAGE_EXTENSION_NAME,					NoVer,	{1,3},	{} },
 			{ "shaderObject",					VK_EXT_SHADER_OBJECT_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
 			{ "dynRenUnusedAttachments",		VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME,	NoVer,	{1,1},	{VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME} },
@@ -573,6 +589,7 @@ namespace AE::Vulkan
 			{ "toolingInfo",					VK_EXT_TOOLING_INFO_EXTENSION_NAME,							NoVer,	{1,0},	{} },
 			{ "memoryBudget",					VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,						NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME},	EPropsType::Memory },
 			{ "memoryReport",					VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
+			{ "frameBoundary",					VK_EXT_FRAME_BOUNDARY_EXTENSION_NAME,						NoVer,	{1,0},	{} },
 
 		// shading rate //
 			{ "fragShadingRate",				VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME} },
@@ -588,6 +605,8 @@ namespace AE::Vulkan
 			{ "rayTracingMaintenance1",			VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
 			{ "rayTracingPositionFetch",		VK_KHR_RAY_TRACING_POSITION_FETCH_EXTENSION_NAME,			NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
 			{ "rayTracingValidation",			VK_NV_RAY_TRACING_VALIDATION_EXTENSION_NAME,				NoVer,	{1,1},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
+		// not supported on Turing:
+		//	{ "accelStructOpacityMicromap",		VK_EXT_OPACITY_MICROMAP_EXTENSION_NAME,						NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME, VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME} },
 
 		// dynamic state //
 		//	{ "extendedDynamicState",			VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
@@ -597,7 +616,7 @@ namespace AE::Vulkan
 
 		// texture compression //
 			{ "astcDecodeMode",					VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME,						NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
-			{ "imageCompressionCtrl",			VK_EXT_IMAGE_COMPRESSION_CONTROL_EXTENSION_NAME,			NoVer,	{1,0},	{} },
+			{ "imageCompressionCtrl",			VK_EXT_IMAGE_COMPRESSION_CONTROL_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "swapchainCompressionCtrl",		VK_EXT_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_EXTENSION_NAME,	NoVer,	{1,0},	{VK_EXT_IMAGE_COMPRESSION_CONTROL_EXTENSION_NAME} },
 
 		// video //
@@ -616,7 +635,7 @@ namespace AE::Vulkan
 		//	{ "fragmentBarycentricNV",			VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 		//	{ "compShaderDerivativesNV",		VK_NV_COMPUTE_SHADER_DERIVATIVES_EXTENSION_NAME,			NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 		//	{ "rayTracingMotionBlurNV",			VK_NV_RAY_TRACING_MOTION_BLUR_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
-			{ "deviceGeneratedCmdsNV",			VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME,				NoVer,	{1,1},	{} },
+		//	{ "deviceGeneratedCmdsNV",			VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME,				NoVer,	{1,1},	{} },
 		//	{ "cooperativeMatrixNV",			VK_NV_COOPERATIVE_MATRIX_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "shaderSMBuiltinsNV",				VK_NV_SHADER_SM_BUILTINS_EXTENSION_NAME,					NoVer,	{1,1},	{} },
 		//	{ "dedicatedAllocImageAliasingNV",	VK_NV_DEDICATED_ALLOCATION_IMAGE_ALIASING_EXTENSION_NAME,	NoVer,	{1,0},	{VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME} },
@@ -628,6 +647,13 @@ namespace AE::Vulkan
 		//	{ "viewportSwizzleNV",				VK_NV_VIEWPORT_SWIZZLE_EXTENSION_NAME,						NoVer,	{1,0},	{} },
 		//	{ "linearColorAttachmentNV",		VK_NV_LINEAR_COLOR_ATTACHMENT_EXTENSION_NAME,				NoVer,	{1,0},	{VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME} },
 			{ "clipSpaceWScalingNV",			VK_NV_CLIP_SPACE_W_SCALING_EXTENSION_NAME,					NoVer,	{1,0},	{} },
+			{ "rayTracingInvocationReorderNV",	VK_NV_RAY_TRACING_INVOCATION_REORDER_EXTENSION_NAME,		NoVer,	{1,1},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
+			{ "clusterAccelStructNV",			VK_NV_CLUSTER_ACCELERATION_STRUCTURE_EXTENSION_NAME,		NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
+			{ "partitionedAccelStructNV",		VK_NV_PARTITIONED_ACCELERATION_STRUCTURE_EXTENSION_NAME,	NoVer,	{1,1},	{VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME} },
+			{ "cooperativeVectorNV",			VK_NV_COOPERATIVE_VECTOR_EXTENSION_NAME,					NoVer,	{1,0},	{} },
+		// not supported on Turing:
+		//	{ "rayTracingLinearSweptSpheresNV",	VK_NV_RAY_TRACING_LINEAR_SWEPT_SPHERES_EXTENSION_NAME,		NoVer,	{1,1},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
+		//	{ "rayTracingMotionBlurNV",			VK_NV_RAY_TRACING_MOTION_BLUR_EXTENSION_NAME,				NoVer,	{1,1},	{VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME} },
 
 		// AMD //
 		//	{ "coherentMemoryAMD",				VK_AMD_DEVICE_COHERENT_MEMORY_EXTENSION_NAME,				NoVer,	{1,0},	{} },
@@ -638,6 +664,7 @@ namespace AE::Vulkan
 
 		// ARM //
 			{ "shaderCoreBuiltinsARM",			VK_ARM_SHADER_CORE_BUILTINS_EXTENSION_NAME,					NoVer,	{1,0},	{} },
+		//	{ VK_ARM_PIPELINE_OPACITY_MICROMAP_EXTENSION_NAME }
 
 		// Huawei //
 			{ "subpassShadingHW",				VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME,					NoVer,	{1,0},	{VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME, VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME} },
@@ -679,12 +706,12 @@ namespace AE::Vulkan
 
 		for (auto& feat : instanceFeatures) {
 			for (auto& ext : feat.requireExts)
-				CHECK_ERR_MSG( existing_ext.find( ext ) != existing_ext.end(),
+				CHECK_MSG( existing_ext.find( ext ) != existing_ext.end(),
 					"Instance extension '"s << feat.extension << "' requires extension '" << ext << "' which is not enabled/exists" );
 		}
 		for (auto& feat : deviceFeatures) {
 			for (auto& ext : feat.requireExts)
-				CHECK_ERR_MSG( existing_ext.find( ext ) != existing_ext.end(),
+				CHECK_MSG( existing_ext.find( ext ) != existing_ext.end(),
 					"Device extension '"s << feat.extension << "' requires extension '" << ext << "' which is not enabled/exists" );
 		}
 
@@ -700,7 +727,7 @@ namespace AE::Vulkan
 		{
 			feat.propsType = EPropsType::Instance;
 
-			if ( not feat.extension.empty() and not _extensions.contains( feat.extension ))
+			if ( not feat.extension.empty() and HashTable_NotContains( _extensions, feat.extension ))
 				continue; // feature is not exists in headers
 
 			feat.enabled = true;
@@ -708,7 +735,7 @@ namespace AE::Vulkan
 
 		for (auto& feat : set.device)
 		{
-			if ( not feat.extension.empty() and not _extensions.contains( feat.extension ))
+			if ( not feat.extension.empty() and HashTable_NotContains( _extensions, feat.extension ))
 				continue; // feature is not exists in headers
 
 			feat.enabled = true;
@@ -993,7 +1020,7 @@ namespace AE::Vulkan
 	String  Generator::_GetFeaturesAndPropertiesFunc (const FeatureSet &feats) const
 	{
 		String	str;
-		str	<< "\tvoid  VDeviceInitializer::_InitFeaturesAndProperties (void** nextFeat)\n\t{\n"
+		str	<< "\tvoid  VDeviceInitializer::_InitFeaturesAndProperties (void** nextFeat, OUT void** &lastFeat)\n\t{\n"
 			<< "\t\tvkGetPhysicalDeviceFeatures( GetVkPhysicalDevice(), OUT &_properties.features );\n"
 			<< "\t\tvkGetPhysicalDeviceProperties( GetVkPhysicalDevice(), OUT &_properties.properties );\n"
 			<< "\t\tvkGetPhysicalDeviceMemoryProperties( GetVkPhysicalDevice(), OUT &_properties.memoryProperties );\n\n"
@@ -1064,8 +1091,10 @@ namespace AE::Vulkan
 			<< "\t\t\tvkGetPhysicalDeviceProperties2KHR( GetVkPhysicalDevice(), OUT &props2 );\n"
 			<< "\t\t\tvkGetPhysicalDeviceMemoryProperties2KHR( GetVkPhysicalDevice(), OUT &mem_props2 );\n"
 			<< "\t\t\t*nextFeat = feat2.pNext;\n"
+			<< "\t\t\tlastFeat  = next_feat;\n"
 			<< "\t\t}else{\n"
 			<< "\t\t\t*nextFeat = null;\n"
+			<< "\t\t\tlastFeat  = null;\n"
 			<< "\t\t}\n"
 			<< "\t}\n";
 		return str;
@@ -1251,7 +1280,7 @@ namespace AE::Vulkan
 			<< "\tND_ static Array<const char*>  _GetInstanceExtensions (InstanceVersion ver);\n"
 			<< "\tND_ static Array<const char*>  _GetDeviceExtensions (DeviceVersion ver);\n"
 			<< "\tND_ String  _GetVulkanExtensionsString () const;\n"
-			<< "\tvoid  _InitFeaturesAndProperties (void** nextFeat);\n"
+			<< "\tvoid  _InitFeaturesAndProperties (void** nextFeat, OUT void** &lastFeat);\n"
 			<< "\tvoid  _CheckInstanceExtensions ();\n"
 			<< "\tvoid  _CheckDeviceExtensions ();\n"
 			<< "#endif // VKFEATS_FN_DECL\n\n\n";

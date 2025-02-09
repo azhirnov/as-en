@@ -5,7 +5,7 @@
 #include "base/Math/Matrix.h"
 #include "base/Math/PhysicalQuantityVec.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	template <typename		 Quantity,
@@ -36,7 +36,7 @@ namespace AE::Math
 			 >
 	using TPhysicalQuantityMatrix = PhysicalQuantityMatrix< PhysicalQuantity<ValueType, Dimension, ValueScale>, Columns, Rows, Q >;
 
-} // AE::Math
+} // AE::Base
 
 
 #define Columns	2
@@ -94,7 +94,7 @@ namespace AE::Math
 #undef  Rows
 
 
-namespace AE::Math
+namespace AE::Base
 {
 /*
 =================================================
@@ -127,7 +127,7 @@ namespace AE::Math
 			  typename		 ValueScale	= PhysicalQuantity_Scale::Integer< typename MatType::Value_t, 1 >,
 			  glm::qualifier Q			= GLMSimdQualifier
 			 >
-	using PhysicalQuantity_FromMat = typename Math::_hidden_::_PhysicalQuantity_FromMat< MatType, Dimension, ValueScale, Q >::type;
+	using PhysicalQuantity_FromMat = typename Base::_hidden_::_PhysicalQuantity_FromMat< MatType, Dimension, ValueScale, Q >::type;
 
 /*
 =================================================
@@ -163,12 +163,9 @@ namespace _hidden_
 		return PhysicalQuantityMatrix< Type, Columns, Rows, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
 	}
 */
+//-----------------------------------------------------------------------------
 
-} // AE::Math
 
-
-namespace AE::Base
-{
 	template <typename Qt, uint C, uint R, glm::qualifier Ql>
 	struct TMemCopyAvailable< PhysicalQuantityMatrix<Qt,C,R,Ql> >		: CT_Bool< IsMemCopyAvailable<Qt> >{};
 

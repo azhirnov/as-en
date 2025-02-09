@@ -183,11 +183,11 @@ namespace AE::App
 			CursorPos,								// float2 (absolute in pixels)
 			CursorPos_mm,							// float2 (absolute in mm)
 			CursorDelta,							// float2 (delta in pixels)
-			CursorDelta_norm,						// snorm2
+			CursorDelta_norm,						// snorm2 (with correct proportions)
 			TouchPos,								// float2 (absolute in pixels)
 			TouchPos_mm,							// float2 (absolute in mm)
 			TouchDelta,								// float2 (delta in pixels)
-			TouchDelta_norm,						// snorm2
+			TouchDelta_norm,						// snorm2 (with correct proportions)
 			Cursor2DEnd			= TouchDelta_norm,
 
 		  // --- Android sensors ---
@@ -260,14 +260,14 @@ namespace AE::App
 	private:
 		ND_ static ESensorType	_InputTypeToSensorType (EInputType)		__NE___;
 
-		ND_ static constexpr bool  _IsKey (EInputType type)				__NE___;
-		ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)		__NE___;
-		ND_ static constexpr bool  _IsVec1D (EInputType type)			__NE___;
-		ND_ static constexpr bool  _IsVec2D (EInputType type)			__NE___;
-		ND_ static constexpr bool  _IsVec3D (EInputType type)			__NE___;
-		ND_ static constexpr bool  _IsSensor1f (EInputType type)		__NE___;
-		ND_ static constexpr bool  _IsSensor3f (EInputType type)		__NE___;
-		ND_ static constexpr bool  _IsSensor4f (EInputType type)		__NE___;
+		NdCx__ static bool  _IsKey (EInputType type)					__NE___;
+		NdCx__ static bool  _IsKeyOrTouch (EInputType type)				__NE___;
+		NdCx__ static bool  _IsVec1D (EInputType type)					__NE___;
+		NdCx__ static bool  _IsVec2D (EInputType type)					__NE___;
+		NdCx__ static bool  _IsVec3D (EInputType type)					__NE___;
+		NdCx__ static bool  _IsSensor1f (EInputType type)				__NE___;
+		NdCx__ static bool  _IsSensor3f (EInputType type)				__NE___;
+		NdCx__ static bool  _IsSensor4f (EInputType type)				__NE___;
 	};
 
 
@@ -276,37 +276,37 @@ namespace AE::App
 	_Is***
 =================================================
 */
-	inline constexpr bool  SerializableInputActionsGLFW::_IsKey (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsGLFW::_IsKey (EInputType type) __NE___ {
 		return	((type >= EInputType::MouseBegin) and (type <= EInputType::MouseEnd)) or
 				((type >= EInputType::KeyBegin)   and (type <= EInputType::KeyEnd));
 	}
 
-	inline constexpr bool  SerializableInputActionsGLFW::_IsKeyOrTouch (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsGLFW::_IsKeyOrTouch (EInputType type) __NE___ {
 		return	_IsKey( type ) or (type == EInputType::TouchPos) or (type == EInputType::TouchPos_mm);
 	}
 
-	inline constexpr bool  SerializableInputActionsGLFW::_IsVec1D (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsGLFW::_IsVec1D (EInputType type) __NE___ {
 		return _IsSensor1f( type );
 	}
 
-	inline constexpr bool  SerializableInputActionsGLFW::_IsVec2D (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsGLFW::_IsVec2D (EInputType type) __NE___ {
 		return	((type >= EInputType::Cursor2DBegin) and (type <= EInputType::Cursor2DEnd))	or
 				(type == EInputType::MultiTouch);
 	}
 
-	inline constexpr bool  SerializableInputActionsGLFW::_IsVec3D (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsGLFW::_IsVec3D (EInputType type) __NE___ {
 		return	_IsSensor3f( type );
 	}
 
-	inline constexpr bool  SerializableInputActionsGLFW::_IsSensor1f (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsGLFW::_IsSensor1f (EInputType type) __NE___ {
 		return (type >= EInputType::Sensors1fBegin) and (type <= EInputType::Sensors1fEnd);
 	}
 
-	inline constexpr bool  SerializableInputActionsGLFW::_IsSensor3f (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsGLFW::_IsSensor3f (EInputType type) __NE___ {
 		return (type >= EInputType::Sensors3fBegin) and (type <= EInputType::Sensors3fEnd);
 	}
 
-	inline constexpr bool  SerializableInputActionsGLFW::_IsSensor4f (EInputType type) __NE___ {
+	__CxIn bool  SerializableInputActionsGLFW::_IsSensor4f (EInputType type) __NE___ {
 		return (type >= EInputType::Sensors4fBegin) and (type <= EInputType::Sensors4fEnd);
 	}
 

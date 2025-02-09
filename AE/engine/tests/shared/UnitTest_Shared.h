@@ -14,16 +14,25 @@ using namespace AE::Base;
 	{																									\
 		const auto	_tmp_lhs_ = (_lhs_);																\
 		const auto	_tmp_rhs_ = (_rhs_);																\
-		CHECK_FATAL_MSG( AE::Math::All( _tmp_lhs_ _op_ _tmp_rhs_ ),										\
+		CHECK_FATAL_MSG( AE::Base::All( _tmp_lhs_ _op_ _tmp_rhs_ ),										\
 			AE::Base::String{AE_TOSTRING(_lhs_)} << " (" << AE::Base::ToString(_tmp_lhs_) << ") " <<	\
 			AE_TOSTRING(_op_) << " (" << AE::Base::ToString(_tmp_rhs_) << ") " << AE_TOSTRING(_rhs_))	\
 	}
-#define TEST_Eq( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), ==, (_rhs_) )
-#define TEST_NE( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), !=, (_rhs_) )
-#define TEST_Gt( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), >,  (_rhs_) )
-#define TEST_GE( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), >=, (_rhs_) )
-#define TEST_Lt( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), <,  (_rhs_) )
-#define TEST_LE( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), <=, (_rhs_) )
+#define TEST_Eq( _lhs_, _rhs_ )				__PRIVATE_TEST_OP( (_lhs_), ==, (_rhs_) )
+#define TEST_NE( _lhs_, _rhs_ )				__PRIVATE_TEST_OP( (_lhs_), !=, (_rhs_) )
+#define TEST_Gt( _lhs_, _rhs_ )				__PRIVATE_TEST_OP( (_lhs_), >,  (_rhs_) )
+#define TEST_GE( _lhs_, _rhs_ )				__PRIVATE_TEST_OP( (_lhs_), >=, (_rhs_) )
+#define TEST_Lt( _lhs_, _rhs_ )				__PRIVATE_TEST_OP( (_lhs_), <,  (_rhs_) )
+#define TEST_LE( _lhs_, _rhs_ )				__PRIVATE_TEST_OP( (_lhs_), <=, (_rhs_) )
+
+#define TEST_BitEq( _lhs_, _rhs_, _acc_ )\
+	{																									\
+		const auto	_tmp_lhs_ = (_lhs_);																\
+		const auto	_tmp_rhs_ = (_rhs_);																\
+		CHECK_FATAL_MSG( AE::Base::All( AE::Base::BitEqual( _tmp_lhs_, _tmp_rhs_, (_acc_) )),			\
+			AE::Base::String{AE_TOSTRING(_lhs_)} << " (" << AE::Base::ToString(_tmp_lhs_) << ") " <<	\
+			" == (" << AE::Base::ToString(_tmp_rhs_) << ") " << AE_TOSTRING(_rhs_))						\
+	}
 
 
 #define __PRIVATE_CHECK_THROW( _var_, _check_, ... )	\

@@ -15,7 +15,7 @@
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #	define GEN_TEX
 #	define VIEW_TEX
 #endif
@@ -56,7 +56,7 @@
 	#include "Hash.glsl"
 	#include "Color.glsl"
 	#include "GlobalIndex.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	void Main ()
 	{
@@ -73,7 +73,7 @@
 //-----------------------------------------------------------------------------
 #ifdef VIEW_TEX
 	#include "GlobalIndex.glsl"
-	#include "ColorSpaceUtility.glsl"
+	#include "ColorSpace.glsl"
 
 	float4x4  TexSample2 (gl::CombinedTex2D<float> tex, inout float2 uv)
 	{

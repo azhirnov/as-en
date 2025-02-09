@@ -233,7 +233,7 @@ namespace
 			}
 			if ( memory != null )
 			{
-				memory->peakUsage		= Bytes{ulong(usage.ru_maxrss) << 10};	// Kb to bytes
+				memory->peakUsage		= Bytes{ulong(usage.ru_maxrss) << 10};	// KiB to bytes
 				memory->pageFaults		= usage.ru_majflt;
 			}
 		}

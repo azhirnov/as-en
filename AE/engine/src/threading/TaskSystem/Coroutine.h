@@ -69,12 +69,12 @@ namespace _hidden_
 				StringView			DbgName ()									C_NE_OV	{ return "Coroutine<>"; }
 			#endif
 
-			ND_ static void*		operator new   (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }
+			ND_ static void*		operator new (usize size)					__NE___	{ return NothrowAllocatable::operator new( size ); }
 
 
 		public:
-				void  Cancel ()													__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }
-				void  Fail ()													__NE___	{ IAsyncTask::OnFailure(); }
+				void  Cancel ()													__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }	// see 'AsyncTaskCoro_AwaiterImpl'
+				void  Fail ()													__NE___	{ IAsyncTask::OnFailure(); }						// see 'AsyncTaskCoro_Error'
 			ND_ bool  IsCanceled ()												__NE___	{ return IAsyncTask::IsCanceled(); }
 
 				template <typename ...Deps>

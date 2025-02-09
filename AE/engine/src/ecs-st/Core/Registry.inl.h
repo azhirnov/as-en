@@ -458,16 +458,16 @@ DEBUG_ONLY(
 		struct CompareSingleComponents;
 
 		template <typename LT, typename RT>
-		struct CompareSingleComponents< LT, WriteAccess<RT> >		: CT_Bool< IsSameTypes< LT, RT >> {};
+		struct CompareSingleComponents< LT, WriteAccess<RT> >		: CT_Bool< IsSame< LT, RT >> {};
 
 		template <typename LT, typename RT>
-		struct CompareSingleComponents< LT, ReadAccess<RT> >		: CT_Bool< IsSameTypes< LT, RT >> {};
+		struct CompareSingleComponents< LT, ReadAccess<RT> >		: CT_Bool< IsSame< LT, RT >> {};
 
 		template <typename LT, typename RT>
-		struct CompareSingleComponents< LT, OptionalWriteAccess<RT> > : CT_Bool< IsSameTypes< LT, RT >> {};
+		struct CompareSingleComponents< LT, OptionalWriteAccess<RT> > : CT_Bool< IsSame< LT, RT >> {};
 
 		template <typename LT, typename RT>
-		struct CompareSingleComponents< LT, OptionalReadAccess<RT> > : CT_Bool< IsSameTypes< LT, RT >> {};
+		struct CompareSingleComponents< LT, OptionalReadAccess<RT> > : CT_Bool< IsSame< LT, RT >> {};
 
 		template <typename LT, typename ...RTs>
 		struct CompareSingleComponents< LT, Subtractive<RTs...> >	: CT_Bool< TypeList<RTs...>::template HasType<LT> >{};
@@ -503,7 +503,7 @@ DEBUG_ONLY(
 		struct CompareComponents
 		{
 			template <usize I>
-			static constexpr bool  Cmp () __NE___
+			NdCx__ static bool  Cmp () __NE___
 			{
 				if constexpr( I == ExceptIdx )
 				{
@@ -529,7 +529,7 @@ DEBUG_ONLY(
 		struct CheckForDuplicateComponents< WriteAccess<T> >
 		{
 			template <usize I, typename ArgsList>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not CompareComponents< CompareSingleComponents, T, ArgsList, I >::template Cmp<0>();
 			}
 		};
@@ -538,7 +538,7 @@ DEBUG_ONLY(
 		struct CheckForDuplicateComponents< ReadAccess<T> >
 		{
 			template <usize I, typename ArgsList>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not CompareComponents< CompareSingleComponents, T, ArgsList, I >::template Cmp<0>();
 			}
 		};
@@ -547,7 +547,7 @@ DEBUG_ONLY(
 		struct CheckForDuplicateComponents< OptionalWriteAccess<T> >
 		{
 			template <usize I, typename ArgsList>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not CompareComponents< CompareSingleComponents, T, ArgsList, I >::template Cmp<0>();
 			}
 		};
@@ -556,7 +556,7 @@ DEBUG_ONLY(
 		struct CheckForDuplicateComponents< OptionalReadAccess<T> >
 		{
 			template <usize I, typename ArgsList>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not CompareComponents< CompareSingleComponents, T, ArgsList, I >::template Cmp<0>();
 			}
 		};
@@ -567,7 +567,7 @@ DEBUG_ONLY(
 			StaticAssert( CountOf<Types...>() > 0 );
 
 			template <usize I, typename ArgsList>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not (CompareComponents< CompareMultiComponents, Types, ArgsList, I >::template Cmp<0>() or ...);
 			}
 		};
@@ -578,7 +578,7 @@ DEBUG_ONLY(
 			StaticAssert( CountOf<Types...>() > 0 );
 
 			template <usize I, typename ArgsList>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not (CompareComponents< CompareMultiComponents, Types, ArgsList, I >::template Cmp<0>() or ...);
 			}
 		};
@@ -589,14 +589,14 @@ DEBUG_ONLY(
 			StaticAssert( CountOf<Types...>() > 0 );
 
 			template <usize I, typename ArgsList>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not (CompareComponents< CompareMultiComponents, Types, ArgsList, I >::template Cmp<0>() or ...);
 			}
 		};
 
 
 		template <typename ArgsList, usize I = 0>
-		static constexpr void  CheckForDuplicates () __NE___
+		__Cx__ static void  CheckForDuplicates () __NE___
 		{
 			if constexpr( I < ArgsList::Count )
 			{
@@ -612,13 +612,13 @@ DEBUG_ONLY(
 		struct SC_Comparator;
 
 		template <typename LT, typename RT>
-		struct SC_Comparator< LT, RT* >			: CT_Bool< IsSameTypes< LT, RT >>{};
+		struct SC_Comparator< LT, RT* >			: CT_Bool< IsSame< LT, RT >>{};
 
 		template <typename LT, typename RT>
-		struct SC_Comparator< LT, RT const* >	: CT_Bool< IsSameTypes< LT, RT >>{};
+		struct SC_Comparator< LT, RT const* >	: CT_Bool< IsSame< LT, RT >>{};
 
 		template <typename LT, typename RT>
-		struct SC_Comparator< LT, RT& >			: CT_Bool< IsSameTypes< LT, RT >>{};
+		struct SC_Comparator< LT, RT& >			: CT_Bool< IsSame< LT, RT >>{};
 
 
 		template <typename T>
@@ -628,7 +628,7 @@ DEBUG_ONLY(
 		struct SC_CheckForDuplicateComponents< T* >
 		{
 			template <typename ArgsList, usize I>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not CompareComponents< SC_Comparator, T, ArgsList, I >::template Cmp<0>();
 			}
 		};
@@ -637,7 +637,7 @@ DEBUG_ONLY(
 		struct SC_CheckForDuplicateComponents< T const* >
 		{
 			template <typename ArgsList, usize I>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not CompareComponents< SC_Comparator, T, ArgsList, I >::template Cmp<0>();
 			}
 		};
@@ -646,13 +646,13 @@ DEBUG_ONLY(
 		struct SC_CheckForDuplicateComponents< T& >
 		{
 			template <typename ArgsList, usize I>
-			static constexpr bool  Test () __NE___ {
+			NdCx__ static bool  Test () __NE___ {
 				return not CompareComponents< SC_Comparator, T, ArgsList, I >::template Cmp<0>();
 			}
 		};
 
 		template <typename ArgsList, usize I = 0>
-		static constexpr void  SC_CheckForDuplicates () __NE___
+		__Cx__ static void  SC_CheckForDuplicates () __NE___
 		{
 			if constexpr( I < ArgsList::Count )
 			{
@@ -688,7 +688,7 @@ DEBUG_ONLY(
 
 			using ChunkTL = TypeList< Chunk >;
 			StaticAssert( ChunkTL::Count > 1 );
-			StaticAssert( IsSameTypes< typename ChunkTL::template Get<0>, usize >);
+			StaticAssert( IsSame< typename ChunkTL::template Get<0>, usize >);
 
 			using CompOnly = typename ChunkTL::PopFront::type;
 			using SCTuple  = Tuple<>;

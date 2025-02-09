@@ -67,10 +67,8 @@
 #	include <coroutine>
 #endif
 
-#ifdef __has_include
-# if __has_include(<bit>)
+#if AE_HAS_INCLUDE(<bit>) and AE_CXX_VER >= 20
 #	include <bit>
-# endif
 #endif
 
 #ifdef AE_COMPILER_MSVC
@@ -79,20 +77,6 @@
 # define AE_SEH_ACCESS_VIOLATION	0xC0000005L	// EXCEPTION_ACCESS_VIOLATION
 
 # include <intrin.h>
-
-# if 0
-#	include <mmintrin.h>		// MMX
-#	include <xmmintrin.h>		// SSE
-#	include <emmintrin.h>		// SSE2
-#	include <pmmintrin.h>		// SSE3
-#	include <tmmintrin.h>		// SSSE3
-#	include <smmintrin.h>		// SSE4.1
-#	include <nmmintrin.h>		// SSE4.2
-#	include <ammintrin.h>		// SSE4A
-#	include <wmmintrin.h>		// AES
-#	include <immintrin.h>		// AVX, AVX2, FMA
-#	include <zmmintrin.h>		// AVX512
-# endif
 
 # pragma intrinsic( _BitScanForward, _BitScanReverse )
 # pragma intrinsic( __popcnt16, __popcnt )

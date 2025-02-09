@@ -32,6 +32,7 @@ extern void UnitTest_Math_Matrix ();
 extern void UnitTest_Math_PhysicalQuantity ();
 extern void UnitTest_Math_Rectangle ();
 extern void UnitTest_Math_SIMD ();
+extern void UnitTest_Math_SimdVector ();
 extern void UnitTest_Math_Transformation ();
 extern void UnitTest_Math_Vec ();
 extern void UnitTest_MemChunkList ();
@@ -47,6 +48,10 @@ extern void UnitTest_ToString ();
 extern void UnitTest_TypeList ();
 extern void UnitTest_TypeTraits ();
 
+#ifdef AE_EXPERIMENTAL
+  extern void UnitTest_Crypto ();
+#endif
+
 
 #ifdef AE_PLATFORM_ANDROID
 extern "C" AE_DLL_EXPORT int Tests_Base (const char* path)
@@ -58,14 +63,14 @@ int main (const int argc, char* argv[])
 
 	AE_LOGI( "Engine: "s <<  AE_ENGINE_NAME << " (" << ToString( AE_VERSION ) << ')' );
 	AE_LOGI(
-		"\nPlatform name: "s << AE_PLATFORM_NAME <<
-		"\nCPU arch: " << AE_CPU_ARCH_NAME <<
-		"\nCompiler: " << AE_COMPILER_NAME <<
-		"\nCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
-		"\nOS name: " << PlatformUtils::GetOSName() <<
-		"\nOS ver: " << ToString(PlatformUtils::GetOSVersion()) <<
-		"\nStack size: " << ToString(PlatformUtils::GetDefaultStackSize()) <<
-		"\nMemory page size: "s << ToString(PlatformUtils::GetMemoryPageInfo().pageSize)
+		"\n\tPlatform name: "s << AE_PLATFORM_NAME <<
+		"\n\tCPU arch: " << AE_CPU_ARCH_NAME <<
+		"\n\tCompiler: " << AE_COMPILER_NAME <<
+		"\n\tCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
+		"\n\tOS name: " << PlatformUtils::GetOSName() <<
+		"\n\tOS ver: " << ToString(PlatformUtils::GetOSVersion()) <<
+		"\n\tStack size: " << ToString(PlatformUtils::GetDefaultStackSize()) <<
+		"\n\tMemory page size: "s << ToString(PlatformUtils::GetMemoryPageInfo().pageSize)
 	);
 
 	UnitTest_Array();
@@ -97,6 +102,7 @@ int main (const int argc, char* argv[])
 	UnitTest_Math_PhysicalQuantity();
 	UnitTest_Math_Rectangle();
 	UnitTest_Math_SIMD();
+	UnitTest_Math_SimdVector();
 	UnitTest_Math_Transformation();
 	UnitTest_Math_Vec();
 	UnitTest_MemChunkList();
@@ -112,6 +118,10 @@ int main (const int argc, char* argv[])
 	UnitTest_TypeList();
 	UnitTest_TypeTraits();
 	UnitTest_CPUInfo();
+
+	#ifdef AE_EXPERIMENTAL
+		UnitTest_Crypto ();
+	#endif
 
 	AE_LOGI( "Tests.Base finished" );
 	return 0;

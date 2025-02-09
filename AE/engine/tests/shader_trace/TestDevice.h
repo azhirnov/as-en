@@ -4,7 +4,7 @@
 
 #include "../Impl/Common.h"
 #include "../shared/UnitTest_Shared.h"
-#include "graphics/Vulkan/VDevice.h"
+#include "graphics_rhi/Vulkan/VDevice.h"
 
 namespace AE::PipelineCompiler
 {

@@ -35,9 +35,9 @@ void ASmain ()
 		fset.AddSurfaceFormats({ ESurfaceFormat::RGBA16F_Extended_sRGB_linear });
 	}
 	{
-		// Android, AMD, iOS, NV
-		RC<FeatureSet>  fset = FeatureSet( "part.Surface_RGBA16F_sRGB_nonlinear" );
-		fset.AddSurfaceFormats({ ESurfaceFormat::RGBA16F_sRGB_nonlinear });
+		// Android
+		RC<FeatureSet>  fset = FeatureSet( "part.Surface_RGBA16F_Extended_sRGB_nonlinear" );
+		fset.AddSurfaceFormats({ ESurfaceFormat::RGBA16F_Extended_sRGB_nonlinear });
 	}
 	{
 		// ...

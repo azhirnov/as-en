@@ -6,11 +6,11 @@
 #include "platform/Public/IWindow.h"
 
 #if defined(AE_ENABLE_VULKAN)
-#	include "graphics/Vulkan/VSwapchain.h"
+#	include "graphics_rhi/Vulkan/VSwapchain.h"
 #elif defined(AE_ENABLE_METAL)
-#	include "graphics/Metal/MSwapchain.h"
+#	include "graphics_rhi/Metal/MSwapchain.h"
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#	include "graphics/Remote/RSwapchain.h"
+#	include "graphics_rhi/Remote/RSwapchain.h"
 #else
 #	error not implemented
 #endif
@@ -45,7 +45,8 @@ namespace AE::App
 			CommandBatchPtr				endCmdBatch;
 			AsyncTask					prevTask;
 
-			Graphics::SwapchainDesc		desc;		// pending
+			Graphics::SwapchainDesc		desc;			// required, may not match with swapchain description
+			Graphics::EColorSpace		prevColorSpace	= Default;
 			Ptr< const IWindow >		window;
 		};
 		using SurfaceDataSync_t = Threading::Synchronized< SharedMutex, SurfaceData >;
@@ -55,7 +56,7 @@ namespace AE::App
 	private:
 		Atomic<bool>		_initialized	{false};
 		Atomic<bool>		_recreate		{false};
-		FAtomic<float>		_pixToMm		{1.f};
+		FAtomic<float>		_pixToMm		{1.f};		// pix / mm
 
 		Swapchain_t			_swapchain;		// thread safe
 

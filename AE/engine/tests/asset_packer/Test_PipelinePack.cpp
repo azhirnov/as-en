@@ -46,7 +46,7 @@ namespace
 		info.outputCppNamesFile		= Cast<CharType>(output_names.c_str());
 		info.outputScriptFile		= Cast<CharType>(output_script.c_str());
 		info.cppReflectionFlags		= EReflectionFlags::All;
-		info.addNameMapping			= true;
+		info.flags					= EPipelineCompilerFlags::AddNameMapping;
 
 		TEST( compile_pipelines( &info ));
 
@@ -278,7 +278,7 @@ namespace
 							sh.offset += offsets.shaderOffset;
 							TEST( sh.ReadData( *file ));
 
-							ser_str << "\n  [" << ToString(idx++) << "]" << sh.ToString2( hash_to_name );
+							ser_str << "\n  [" << ToString(idx++) << "]" << sh.ToString( hash_to_name );
 						}
 						ser_str << "\n}";
 					}
@@ -314,7 +314,7 @@ namespace
 							sh.offset += offsets.shaderOffset;
 							TEST( sh.ReadData( *file ));
 
-							ser_str << "\n  [" << ToString(idx++) << "]" << sh.ToString2( hash_to_name );
+							ser_str << "\n  [" << ToString(idx++) << "]" << sh.ToString( hash_to_name );
 						}
 						ser_str << "\n}";
 					}
@@ -350,7 +350,7 @@ namespace
 							sh.offset += offsets.shaderOffset;
 							TEST( sh.ReadData( *file ));
 
-							ser_str << "\n  [" << ToString(idx++) << "]" << sh.ToString2( hash_to_name );
+							ser_str << "\n  [" << ToString(idx++) << "]" << sh.ToString( hash_to_name );
 						}
 						ser_str << "\n}";
 					}
@@ -409,7 +409,7 @@ extern void Test_PipelinePack ()
 #include "base/Math/Vec.h"
 #include "base/Math/Matrix.h"
 #include "base/Math/MatrixStorage.h"
-using namespace AE::Math;
+using namespace AE::Base;
 
 namespace VkTypes {
 # include "pipeline_test/vk_types.h"

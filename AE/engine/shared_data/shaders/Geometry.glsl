@@ -17,6 +17,9 @@ ND_ float3	Line_GetEquation (const float2 begin, const float2 end);							// 2D
 
 ND_ float	Ray_MinDistance (const float3 dir, const float3 point);								// 3D
 ND_ float	Line_MinDistance (const float3 begin, const float3 end, const float3 point);		// 3D
+
+ND_ float4	Plane_PointPerpendicular (const float3 point, const float4 planeNormDist);			// 3D
+ND_ float2	Plane_ProjectPoint (const float3 point, const float3 planeNorm);					// 3D
 //-----------------------------------------------------------------------------
 
 
@@ -47,6 +50,9 @@ ND_ float2	Rect_Size (const float4 rect)													{ return rect.zw - rect.xy;
 ND_ float2	Rect_HalfSize (const float4 rect)												{ return (rect.zw - rect.xy) * 0.5; }
 //-----------------------------------------------------------------------------
 
+
+ND_ float3	GetMajorAxis (const float3 dir);
+ND_ float3	GetAbsMinorAxis (const float3 dir);
 
 ND_ int2	LeftVector  (const int2   v)													{ return int2  ( -v.y,  v.x ); }
 ND_ float2	LeftVector  (const float2 v)													{ return float2( -v.y,  v.x ); }
@@ -81,17 +87,49 @@ ND_ float4  UVtoSphereNormal (const float2 snormCoord, const float projFov);
 
 
 
-float3  GetMinorAxis (float3 dir)
+/*
+=================================================
+	GetMajorAxis
+----
+	range [-1, +1]
+=================================================
+*/
+float3  GetMajorAxis (const float3 dir)
 {
-	const float3	a	 = Abs( dir );
-	const float2	c	 = float2( 1.0f, 0.0f );
-	return a.x < a.y ? (a.x < a.z ? c.xyy : c.yyx) :
-					   (a.y < a.z ? c.xyx : c.yyx);
+	const float3	a = Abs( dir );
+
+	if ( AllGreaterEqual( a.xx, a.yz ))
+		return float3( Sign(dir.x), 0.0f, 0.0f );
+
+	if ( a.y >= a.z )
+		return float3( 0.0f, Sign(dir.y), 0.0f );
+
+	return float3( 0.0f, 0.0f, Sign(dir.z) );
+}
+
+/*
+=================================================
+	GetAbsMinorAxis
+----
+	range [0, +1]
+=================================================
+*/
+float3  GetAbsMinorAxis (const float3 dir)
+{
+	const float3	a = Abs( dir );
+
+	if ( AllLess( a.xx, a.yz ))
+		return float3( 1.0f, 0.0f, 0.0f );
+
+	if ( a.y < a.z )
+		return float3( 0.0f, 1.0f, 0.0f );
+
+	return float3( 0.0f, 0.0f, 1.0f );
 }
 
 void  Ray_GetPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp)
 {
-	float3	axis = GetMinorAxis( dir );
+	float3	axis = GetAbsMinorAxis( dir );
 	outLeft = Normalize( Cross( dir, axis ));
 	outUp   = Normalize( Cross( dir, outLeft ));
 }
@@ -132,7 +170,40 @@ float  Line_MinDistance (const float3 begin, const float3 end, const float3 poin
 				Min( Distance( point, begin ), Distance( point, end )) );
 }
 
+/*
+=================================================
+	Plane_PointPerpendicular
+----
+	returns: xyz - point on plane, w - min distance
+=================================================
+*/
+float4  Plane_PointPerpendicular (const float3 point, const float4 planeNormDist)
+{
+	// from SDF_Plane()
+	float	md = Dot( point, planeNormDist.xyz ) + planeNormDist.w;
+	return float4( point - planeNormDist.xyz * md, md );
+}
 
+/*
+=================================================
+	Plane_ProjectPoint
+----
+	returns point 2D coordinates on plane.
+=================================================
+*/
+float2  Plane_ProjectPoint (const float3 point, const float3 planeNorm)
+{
+	float3	tangent, bitangent;
+	Ray_GetPerpendicular( planeNorm, OUT tangent, OUT bitangent );
+
+	return float2( Dot( point, tangent ), Dot( point, bitangent ));
+}
+
+/*
+=================================================
+	ToLinearDepth, ToNonlinearDepth
+=================================================
+*/
 float  ToLinearDepth (const float nonLinearDepth, const float zNear, const float zFar)
 {
 	return (2.0f * zNear) / ((zFar + zNear) - nonLinearDepth * (zFar - zNear));
@@ -143,7 +214,11 @@ float  ToNonlinearDepth (const float linearDepth, const float zNear, const float
 	return ((zFar + zNear) - 2.0f * zNear / linearDepth) / (zFar - zNear);
 }
 
-
+/*
+=================================================
+	SphericalToCartesian
+=================================================
+*/
 float3  SphericalToCartesian (const float2 spherical)
 {
 	float	phi		= spherical.x;
@@ -157,6 +232,11 @@ float3  SphericalToCartesian (const float3 sphericalAndRadius)
 	return SphericalToCartesian( sphericalAndRadius.xy ) * sphericalAndRadius.z;
 }
 
+/*
+=================================================
+	CartesianToSpherical
+=================================================
+*/
 float3  CartesianToSpherical (const float3 cartesian)
 {
 	float	theta	= ACos( cartesian.y );
@@ -174,11 +254,7 @@ float3  CartesianToSpherical (const float3 cartesian)
 float4  UVtoSphereNormal (const float2 snormCoord)
 {
 	float4	n = float4(snormCoord, 0.0, 1.0 - LengthSq( snormCoord ));
-
 	if ( n.w > 0.0 ) n.z = Sqrt( n.w );
-	//n.z = Max( 0.0, Sqrt( n.w ));				// doesn't handle Inf on some devices (Adreno)
-	//n.z = Sqrt( n.w ) * LessFp( 0.0, n.w );	// doesn't handle Inf on some devices (NV)
-
 	return n;
 }
 

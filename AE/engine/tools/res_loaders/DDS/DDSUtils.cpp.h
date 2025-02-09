@@ -37,14 +37,15 @@ namespace AE::ResLoader
 
 	enum DDS_FLAGS : uint
 	{
-		DDSD_CAPS			= 0x1,
-		DDSD_HEIGHT			= 0x2,
-		DDSD_WIDTH			= 0x4,
-		DDSD_PITCH			= 0x8,
-		DDSD_PIXELFORMAT	= 0x1000,
-		DDSD_MIPMAPCOUNT	= 0x20000,
-		DDSD_LINEARSIZE		= 0x80000,
-		DDSD_DEPTH			= 0x800000,
+		DDSD_CAPS				= 0x1,
+		DDSD_HEIGHT				= 0x2,
+		DDSD_WIDTH				= 0x4,
+		DDSD_PITCH				= 0x8,
+		DDSD_PIXELFORMAT		= 0x1000,
+		DDSD_MIPMAPCOUNT		= 0x20000,
+		DDSD_LINEARSIZE			= 0x80000,
+		DDSD_DEPTH				= 0x800000,
+		DDSD_HEADER_FLAGS_VOLUME = DDSD_DEPTH,
 	};
 
 	enum DDS_CAPS : uint
@@ -56,14 +57,17 @@ namespace AE::ResLoader
 
 	enum DDS_CAPS2 : uint
 	{
-		DDSCAPS2_CUBEMAP			= 0x200,
-		DDSCAPS2_CUBEMAP_POSITIVEX	= 0x400,
-		DDSCAPS2_CUBEMAP_NEGATIVEX	= 0x800,
+		DDSCAPS2_CUBEMAP			= 0x0200,
+		DDSCAPS2_CUBEMAP_POSITIVEX	= 0x0400,
+		DDSCAPS2_CUBEMAP_NEGATIVEX	= 0x0800,
 		DDSCAPS2_CUBEMAP_POSITIVEY	= 0x1000,
 		DDSCAPS2_CUBEMAP_NEGATIVEY	= 0x2000,
 		DDSCAPS2_CUBEMAP_POSITIVEZ	= 0x4000,
 		DDSCAPS2_CUBEMAP_NEGATIVEZ	= 0x8000,
 		DDSCAPS2_VOLUME				= 0x200000,
+		DDSCAPS2_CUBEMAP_ALLFACES	= DDSCAPS2_CUBEMAP_POSITIVEX | DDSCAPS2_CUBEMAP_NEGATIVEX |
+									  DDSCAPS2_CUBEMAP_POSITIVEY | DDSCAPS2_CUBEMAP_NEGATIVEY |
+									  DDSCAPS2_CUBEMAP_POSITIVEZ | DDSCAPS2_CUBEMAP_NEGATIVEZ,
 	};
 
 	struct DDS_HEADER
@@ -209,7 +213,7 @@ namespace AE::ResLoader
 		DXGI_FORMAT_FORCE_UINT                  = 0xffffffff
 	};
 
-#	define DXGI_FG_PAIR( _visit_ ) \
+#	define DXGI_to_AE( _visit_ ) \
 		_visit_( DXGI_FORMAT_UNKNOWN,					EPixelFormat::Unknown ) \
 		_visit_( DXGI_FORMAT_R32G32B32A32_FLOAT,		EPixelFormat::RGBA32F ) \
 		_visit_( DXGI_FORMAT_R32G32B32A32_UINT,			EPixelFormat::RGBA32U ) \
@@ -333,7 +337,7 @@ namespace AE::ResLoader
 	MakeFourCC
 =================================================
 */
-	ND_ inline constexpr uint  MakeFourCC (uint8_t a, uint8_t b, uint8_t c, uint8_t d)
+	NdCxIn uint  MakeFourCC (uint8_t a, uint8_t b, uint8_t c, uint8_t d)
 	{
 		return (uint(a)) | (uint(b) << 8) | (uint(c) << 16) | (uint(d) << 24);
 	}
@@ -348,7 +352,7 @@ namespace AE::ResLoader
 		switch ( fmt )
 		{
 			#define DDS_TO_AE_VISITOR( _dxgi_, _fg_fmt_ )   case _dxgi_ : return _fg_fmt_;
-			DXGI_FG_PAIR( DDS_TO_AE_VISITOR )
+			DXGI_to_AE( DDS_TO_AE_VISITOR )
 			#undef  DDS_TO_AE_VISITOR
 		}
 		return Default;
@@ -364,11 +368,127 @@ namespace AE::ResLoader
 		switch ( fmt )
 		{
 			#define AE_TO_DDS_VISITOR( _dxgi_, _fg_fmt_ )   case _fg_fmt_ : return _dxgi_;
-			DXGI_FG_PAIR( AE_TO_DDS_VISITOR )
+			DXGI_to_AE( AE_TO_DDS_VISITOR )
 			#undef  AE_TO_DDS_VISITOR
 		}
 		return DXGI_FORMAT_UNKNOWN;
 	}
 
+/*
+=================================================
+	DDSFormatToPixelFormat
+=================================================
+*/
+	ND_ inline EPixelFormat  DDSFormatToPixelFormat (const DDS_PIXELFORMAT &ddpf)
+	{
+		#define ISBITMASK(r, g, b, a) (ddpf.dwRBitMask == r and ddpf.dwGBitMask == g and ddpf.dwBBitMask == b and ddpf.dwABitMask == a)
+
+		if ( AllBits( ddpf.dwFlags, DDPF_RGB ))
+		{
+			switch ( ddpf.dwRGBBitCount )
+			{
+				case 32 :
+				{
+					if ( ISBITMASK( 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 ) or
+						 ISBITMASK( 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 ))
+						return EPixelFormat::RGBA8_UNorm;
+
+					if ( ISBITMASK( 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 ) or
+						 ISBITMASK( 0x00ff0000, 0x0000ff00, 0x000000ff, 0x00000000 ))
+						return EPixelFormat::BGRA8_UNorm;
+
+					if ( ISBITMASK( 0x3ff00000, 0x000ffc00, 0x000003ff, 0xc0000000 ))
+						return EPixelFormat::RGB10_A2_UNorm;
+
+					if ( ISBITMASK( 0x0000ffff, 0xffff0000, 0x00000000, 0x00000000 ))
+						return EPixelFormat::RG16_UNorm;
+
+					if ( ISBITMASK( 0xffffffff, 0x00000000, 0x00000000, 0x00000000 ))
+						return EPixelFormat::R32F;
+
+					RETURN_ERR( "unknown 32bit format" );
+				}
+
+				case 24 :
+					RETURN_ERR( "unknown 24bit format" );
+
+				case 16 :
+				{
+					if ( ISBITMASK( 0x7c00, 0x03e0, 0x001f, 0x8000 ))
+						return EPixelFormat::RGB5_A1_UNorm;
+
+					if ( ISBITMASK( 0xf800, 0x07e0, 0x001f, 0x0000 ))
+						return EPixelFormat::RGB_5_6_5_UNorm;
+
+					RETURN_ERR( "unknown 16bit format" );
+				}
+
+				default :
+					RETURN_ERR( "unsupported RGB bit count" );
+			}
+		}
+		else
+		if ( AllBits( ddpf.dwFlags, DDPF_ALPHA ))
+		{
+			CHECK_ERR( ddpf.dwRGBBitCount == 8 );
+			return EPixelFormat::R8_UNorm;
+		}
+		else
+		if ( AllBits( ddpf.dwFlags, DDPF_FOURCC ))
+		{
+			if ( ddpf.dwFourCC == MakeFourCC('D', 'X', 'T', '1') )
+				return EPixelFormat::BC1_RGB8_UNorm;
+
+			if ( ddpf.dwFourCC == MakeFourCC('D', 'X', 'T', '2') )
+				return EPixelFormat::BC2_RGBA8_UNorm;
+
+			if ( ddpf.dwFourCC == MakeFourCC('D', 'X', 'T', '3') )
+				return EPixelFormat::BC3_RGBA8_UNorm;
+
+			if ( ddpf.dwFourCC == MakeFourCC('A', 'T', 'I', '1') or
+				 ddpf.dwFourCC == MakeFourCC('B', 'C', '4', 'U') )
+				return EPixelFormat::BC4_R8_UNorm;
+
+			if ( ddpf.dwFourCC == MakeFourCC('B', 'C', '4', 'S') )
+				return EPixelFormat::BC4_R8_SNorm;
+
+			if ( ddpf.dwFourCC == MakeFourCC('A', 'T', 'I', '2') or
+				 ddpf.dwFourCC == MakeFourCC('B', 'C', '5', 'U') )
+				return EPixelFormat::BC5_RG8_UNorm;
+
+			if ( ddpf.dwFourCC == MakeFourCC('B', 'C', '5', 'S') )
+				return EPixelFormat::BC5_RG8_SNorm;
+
+			switch ( ddpf.dwFourCC )
+			{
+				case 36: // D3DFMT_A16B16G16R16
+					return EPixelFormat::RGBA16_UNorm;
+
+				case 110: // D3DFMT_Q16W16V16U16
+					return EPixelFormat::RGBA16_SNorm;
+
+				case 111: // D3DFMT_R16F
+					return EPixelFormat::R16F;
+
+				case 112: // D3DFMT_G16R16F
+					return EPixelFormat::RG16F;
+
+				case 113: // D3DFMT_A16B16G16R16F
+					return EPixelFormat::RGBA16F;
+
+				case 114: // D3DFMT_R32F
+					return EPixelFormat::R32F;
+
+				case 115: // D3DFMT_G32R32F
+					return EPixelFormat::RG32F;
+
+				case 116: // D3DFMT_A32B32G32R32F
+					return EPixelFormat::RGBA32F;
+			}
+		}
+		return Default;
+
+		#undef ISBITMASK
+	}
 
 } // AE::ResLoader

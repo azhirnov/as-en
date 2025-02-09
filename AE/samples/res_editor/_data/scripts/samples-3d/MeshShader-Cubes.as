@@ -99,6 +99,7 @@
 			draw.AddPipeline( "samples/MeshShader-Cubes.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/MeshShader-Cubes.as)
 			draw.Output( "out_Color", rt, RGBA32f(0.f) );
 			draw.Output( ds, DepthStencil(1.f, 0) );
+			draw.Slider( "iDbgCulling",		0, 2,	0 );
 		}
 		Present( rt );
 	}

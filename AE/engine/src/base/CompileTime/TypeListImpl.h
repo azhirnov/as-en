@@ -21,7 +21,7 @@ namespace AE::Base::_hidden_
 	template <typename RefType, usize I, typename Head, typename... Tail>
 	struct TL_GetFirstIndex< RefType, I, Head, Tail... >
 	{
-		inline static constexpr usize	value = Conditional< IsSameTypes<RefType, Head>,
+		inline static constexpr usize	value = Conditional< IsSame<RefType, Head>,
 													std::integral_constant<usize, I>,
 													TL_GetFirstIndex< RefType, I+1, Tail... >>::value;
 	};
@@ -51,7 +51,7 @@ namespace AE::Base::_hidden_
 	{
 		using result = TL_GetLastIndex< RefType, I+1, Tail... >;
 
-		inline static constexpr usize	value = Conditional< result::value == UMax and IsSameTypes<RefType, Head>,
+		inline static constexpr usize	value = Conditional< result::value == UMax and IsSame<RefType, Head>,
 													std::integral_constant<usize, I>,
 													result >::value;
 	};
@@ -60,30 +60,83 @@ namespace AE::Base::_hidden_
 	//
 	// TL_PopFront
 	//
-	template <typename TL, typename T0, typename ...Types>
-	struct TL_PopFront {
-		using type		= typename TL_PopFront< TL, Types... >::result;
-		using result	= typename type::template PushFront< T0 >;
+	template <template <typename ...> class Tmpl, typename ...Types>
+	struct TL_PopFront;
+
+	template <template <typename ...> class Tmpl, typename T0, typename ...Types>
+	struct TL_PopFront< Tmpl, T0, Types... > {
+		using type	= Tmpl< Types... >;
 	};
 
-	template <typename TL, typename T0>
-	struct TL_PopFront< TL, T0 > {
-		using type		= TL;
-		using result	= typename TL::template PushFront<T0>;
+	template <template <typename ...> class Tmpl>
+	struct TL_PopFront< Tmpl > {
+		using type	= Tmpl<>;
 	};
 
 
 	//
-	// TL_PopBack
+	// TL_EraseFront
 	//
-	template <typename TL, typename T0, typename ...Types>
-	struct TL_PopBack {
-		using type = typename TL_PopBack< typename TL::template PushBack<T0>, Types... >::type;
+	template <usize Count, typename TL>
+	struct TL_EraseFront
+	{
+		StaticAssert( Count < TL::Count );
+
+		using type = typename Conditional< (Count > 0),
+						TL_EraseFront< Count-1, typename TL::PopFront::type >,
+						TypeToType< TL >
+					 >::type;
 	};
 
-	template <typename TL, typename T0>
-	struct TL_PopBack< TL, T0 > {
-		using type = TL;
+
+	//
+	// TL_EraseBack
+	//
+	template <usize Count, typename TL>
+	struct TL_EraseBack
+	{
+		using t0	= typename TL::Reverse::type;
+		using t1	= typename TL_EraseFront< Count, t0 >::type;
+		using type	= typename t1::Reverse::type;
+	};
+
+
+	//
+	// TL_Erase
+	//
+	template <typename Dst, usize Index, typename ...Types>
+	struct TL_Erase;
+
+	template <typename Dst, usize Index, typename T0, typename ...Types>
+	struct TL_Erase< Dst, Index, T0, Types... >
+	{
+		StaticAssert( Index <= sizeof...(Types) );
+
+		using type = typename Conditional< (Index == 0),
+						TypeToType< typename Dst::template PushBack< Types... >>,
+						TL_Erase< typename Dst::template PushBack<T0>, Index-1, Types... >
+					 >::type;
+	};
+
+
+	//
+	// TL_EraseType
+	//
+	template <typename Dst, typename EraseT, typename ...Types>
+	struct TL_EraseType;
+
+	template <typename Dst, typename EraseT>
+	struct TL_EraseType< Dst, EraseT > {
+		using type = Dst;
+	};
+
+	template <typename Dst, typename EraseT, typename T0, typename ...Types>
+	struct TL_EraseType< Dst, EraseT, T0, Types... >
+	{
+		using type = typename Conditional< (IsSame< T0, EraseT >),
+						TL_EraseType< Dst, EraseT, Types... >,
+						TL_EraseType< typename Dst::template PushBack<T0>, EraseT, Types... >
+					 >::type;
 	};
 
 
@@ -133,6 +186,22 @@ namespace AE::Base::_hidden_
 		using  type = typename TL_GetTypeByIndex2< ReqIndex, 0, Types... >::type;
 	};
 
+
+	//
+	// TL_Reverse
+	//
+	template <typename Dst, typename ...Types>
+	struct TL_Reverse;
+
+	template <typename Dst>
+	struct TL_Reverse< Dst > {
+		using type = Dst;
+	};
+
+	template <typename Dst, typename Head, typename ...Types>
+	struct TL_Reverse< Dst, Head, Types... > {
+		using type = typename TL_Reverse< typename Dst::template PushFront< Head >, Types... >::type;
+	};
 
 
 } // AE::Base::_hidden_

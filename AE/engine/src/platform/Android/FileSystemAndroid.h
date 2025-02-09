@@ -86,6 +86,7 @@ namespace AE::App
 	private:
 		using FileMap_t			= FlatHashMap< FileName::Optimized_t, const char* >;
 		using Allocator_t		= LinearAllocator<>;
+		using AsyncRStream		= Threading::AsyncRStream;
 		using AsyncRDataSource	= Threading::AsyncRDataSource;
 
 
@@ -115,7 +116,8 @@ namespace AE::App
 	  // IVirtualFileStorage //
 		bool  Open (OUT RC<RStream> &stream, FileName::Ref name)							C_NE_OV;
 		bool  Open (OUT RC<RDataSource> &ds, FileName::Ref name)							C_NE_OV;
-		bool  Open (OUT RC<AsyncRDataSource> &ds, FileName::Ref name)						C_NE_OV;
+		bool  Open (OUT RC<AsyncRStream> &, FileName::Ref)									C_NE_OV	{ return false; }
+		bool  Open (OUT RC<AsyncRDataSource> &, FileName::Ref)								C_NE_OV	{ return false; }
 
 		bool  Exists (FileName::Ref name)													C_NE_OV;
 		bool  Exists (FileGroupName::Ref name)												C_NE_OV;
@@ -124,7 +126,8 @@ namespace AE::App
 		void  _Append (INOUT GlobalFileMap_t &)												C_Th_OV;
 		bool  _OpenByIter (OUT RC<RStream> &stream, FileName::Ref, const void* ref)			C_NE_OV;
 		bool  _OpenByIter (OUT RC<RDataSource> &ds, FileName::Ref, const void* ref)			C_NE_OV;
-		bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, FileName::Ref, const void* ref)	C_NE_OV;
+		bool  _OpenByIter (OUT RC<AsyncRStream> &, FileName::Ref, const void*)				C_NE_OV	{ return false; }
+		bool  _OpenByIter (OUT RC<AsyncRDataSource> &, FileName::Ref, const void*)			C_NE_OV	{ return false; }
 
 		template <typename ImplType, typename ResultType>
 		ND_ bool  _Open (OUT ResultType &, FileName::Ref)									C_NE___;

@@ -23,8 +23,8 @@ namespace AE::Threading
 
 	// types
 	public:
-		using GlobalLinearAllocator_t	= LfLinearAllocator< usize{16_Mb}, AE_CACHE_LINE, 32 >;
-		using FrameAllocator_t			= LfLinearAllocator< usize{ 4_Mb}, AE_CACHE_LINE,  8 >;
+		using GlobalLinearAllocator_t	= LfLinearAllocator< usize{16_MiB}, AE_CACHE_LINE, 32 >;
+		using FrameAllocator_t			= LfLinearAllocator< usize{ 4_MiB}, AE_CACHE_LINE,  8 >;
 
 		class InstanceCtor {
 			friend class TaskScheduler;

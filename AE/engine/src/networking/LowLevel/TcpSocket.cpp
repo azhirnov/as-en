@@ -41,7 +41,7 @@ namespace AE::Networking
 		ASSERT( clientAddr.IsValid() );
 
 		DEBUG_ONLY(
-			if constexpr( IsSameTypes< AddressType, IpAddress6 >){
+			if constexpr( IsSame< AddressType, IpAddress6 >){
 				_dbgAddr6	= clientAddr;
 				_isIPv6		= true;
 			}else{
@@ -69,7 +69,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	bool  TcpSocket::_Listen (const AddressType &addr, const Config &cfg) __NE___
 	{
-		constexpr bool	is_ipv6 = IsSameTypes< AddressType, IpAddress6 >;
+		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));
@@ -135,7 +135,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	inline bool  TcpSocket::_Connect (const AddressType &addr, const Config &cfg) __NE___
 	{
-		constexpr bool	is_ipv6 = IsSameTypes< AddressType, IpAddress6 >;
+		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));
@@ -192,7 +192,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	inline bool  TcpSocket::_AsyncConnect (const AddressType &addr, const Config &cfg) __NE___
 	{
-		constexpr bool	is_ipv6 = IsSameTypes< AddressType, IpAddress6 >;
+		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 
 		ASSERT( addr.IsValid() );
 		CHECK_ERR( _Create( cfg, Bool{is_ipv6} ));
@@ -398,7 +398,7 @@ namespace AE::Networking
 	template <typename NativeAddress, typename AddressType>
 	bool  TcpSocket::_GetPeerName (OUT AddressType &outAddr) C_NE___
 	{
-		constexpr bool	is_ipv6 = IsSameTypes< AddressType, IpAddress6 >;
+		constexpr bool	is_ipv6 = IsSame< AddressType, IpAddress6 >;
 		ASSERT( _isIPv6 == is_ipv6 );
 		Unused( is_ipv6 );
 

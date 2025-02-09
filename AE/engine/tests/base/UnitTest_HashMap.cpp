@@ -148,8 +148,8 @@ namespace
 		T1::ClearStatistic();
 		T2::ClearStatistic();
 		{
-			Map<T1, T2>		map;
-			constexpr uint	count = 10;
+			Map<T1, T2>	            map;
+			static constexpr uint	count = 10;
 
 			for (uint i = 0; i < count; ++i) {
 				map.insert({ T1(i), T2(i*2) });

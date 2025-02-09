@@ -3,7 +3,7 @@
 include( CheckCXXSourceCompiles )
 
 list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_20" HAS_CPP20 )
-if ( ${HAS_CPP20} LESS 0 )
+if ( ${AE_FORCE_CXX17} OR (${HAS_CPP20} LESS 0) )
 	set( AE_DEFAULT_CPPFLAGS "-std=c++17" )
 else()
 	set( AE_DEFAULT_CPPFLAGS "-std=c++20" )
@@ -204,6 +204,11 @@ if (${AE_HAS_CXX_COROUTINE})
 		set( AE_HAS_CXX_COROUTINE OFF CACHE INTERNAL "" FORCE )
 		message( STATUS "Disable Coroutines for MSVC Clang" )
 	endif()
+endif()
+
+# disable coroutines for C++17
+if (${AE_FORCE_CXX17})
+	set( AE_HAS_CXX_COROUTINE OFF CACHE INTERNAL "" FORCE )
 endif()
 
 if (${AE_HAS_CXX_COROUTINE})

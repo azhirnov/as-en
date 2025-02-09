@@ -18,31 +18,31 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ constexpr usize  CountOf (T& value) __NE___
+	NdCx__ usize  CountOf (T& value) __NE___
 	{
 		return std::size( value );
 	}
 
 	template <typename ...Types>
-	ND_ constexpr usize  CountOf () __NE___
+	NdCx__ usize  CountOf () __NE___
 	{
 		return sizeof... (Types);
 	}
 
 	template <typename T, usize I, typename Class>
-	ND_ constexpr usize  CountOf (T (Class::*) [I]) __NE___
+	NdCx__ usize  CountOf (T (Class::*) [I]) __NE___
 	{
 		return I;
 	}
 
 	template <typename T, usize I, typename Class>
-	ND_ constexpr usize  CountOf (StaticArray<T,I> Class::*) __NE___
+	NdCx__ usize  CountOf (StaticArray<T,I> Class::*) __NE___
 	{
 		return I;
 	}
 
 	template <usize I>
-	ND_ constexpr usize  CountOf (const BitSet<I> &) __NE___
+	NdCx__ usize  CountOf (const BitSet<I> &) __NE___
 	{
 		return I;
 	}
@@ -77,19 +77,19 @@ namespace AE::Base
 	}
 
 	template <typename T, usize S>
-	ND_ constexpr Bytes  ArraySizeOf (const StaticArray<T,S> &) __NE___
+	NdCx__ Bytes  ArraySizeOf (const StaticArray<T,S> &) __NE___
 	{
 		return Bytes{ S * sizeof(T) };
 	}
 
 	template <typename T, usize S>
-	ND_ constexpr Bytes  ArraySizeOf (const T (&)[S]) __NE___
+	NdCx__ Bytes  ArraySizeOf (const T (&)[S]) __NE___
 	{
 		return Bytes{ sizeof(T) * S };
 	}
 
 	template <typename T, usize S>
-	ND_ constexpr Bytes  ArraySizeOf (T (&)[S]) __NE___
+	NdCx__ Bytes  ArraySizeOf (T (&)[S]) __NE___
 	{
 		return Bytes{ sizeof(T) * S };
 	}
@@ -125,19 +125,19 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ constexpr ssize  Distance (T* lhs, T* rhs) __NE___
+	NdCx__ ssize  Distance (T* lhs, T* rhs) __NE___
 	{
 		return std::distance< T *>( lhs, rhs );
 	}
 
 	template <typename T>
-	ND_ constexpr ssize  Distance (const T* lhs, T* rhs) __NE___
+	NdCx__ ssize  Distance (const T* lhs, T* rhs) __NE___
 	{
 		return std::distance< T const *>( lhs, rhs );
 	}
 
 	template <typename T>
-	ND_ constexpr ssize  Distance (T* lhs, const T* rhs) __NE___
+	NdCx__ ssize  Distance (T* lhs, const T* rhs) __NE___
 	{
 		return std::distance< T const *>( lhs, rhs );
 	}

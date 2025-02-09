@@ -16,28 +16,31 @@ namespace AE::Base
 	template <typename T>
 	struct THashVal final
 	{
+		StaticAssert( std::is_unsigned_v<T> and std::is_integral_v<T> );
+
 	// variables
 	private:
 		T	_value	= 0;
 
+
 	// methods
 	public:
-		constexpr THashVal ()											__NE___	{}
-		explicit constexpr THashVal (T val)								__NE___ : _value{val} {}
+		__Cx__ THashVal ()										__NE___	{}
+		__Cx__ explicit THashVal (T val)						__NE___ : _value{val} {}
 
 		template <typename B>
-		explicit constexpr THashVal (THashVal<B> h)						__NE___ : _value{h.template Cast<T>()} {}
+		__Cx__ explicit THashVal (THashVal<B> h)				__NE___ : _value{h.template Cast<T>()} {}
 
-		ND_ constexpr bool	operator == (const THashVal &rhs)			C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool	operator != (const THashVal &rhs)			C_NE___	{ return _value != rhs._value; }
-		ND_ constexpr bool	operator >  (const THashVal &rhs)			C_NE___	{ return _value > rhs._value; }
-		ND_ constexpr bool  operator <  (const THashVal &rhs)			C_NE___	{ return _value < rhs._value; }
+		NdCx__ bool	operator == (const THashVal &rhs)			C_NE___	{ return _value == rhs._value; }
+		NdCx__ bool	operator != (const THashVal &rhs)			C_NE___	{ return _value != rhs._value; }
+		NdCx__ bool	operator >  (const THashVal &rhs)			C_NE___	{ return _value > rhs._value; }
+		NdCx__ bool  operator <  (const THashVal &rhs)			C_NE___	{ return _value < rhs._value; }
 
-			constexpr THashVal&  operator << (const THashVal &rhs)		__NE___	{ Append( rhs );  return *this; }
-			constexpr THashVal&  operator += (const THashVal &rhs)		__NE___	{ Append( rhs );  return *this; }
+		__Cx__ THashVal&  operator << (const THashVal &rhs)		__NE___	{ Append( rhs );  return *this; }
+		__Cx__ THashVal&  operator += (const THashVal &rhs)		__NE___	{ Append( rhs );  return *this; }
 
 
-		constexpr void  Append (const THashVal &rhs)					__NE___
+		__Cx__ void  Append (const THashVal &rhs)				__NE___
 		{
 			const T	mask	= T(CT_SizeofInBits(_value) - 1);
 			T		val		= rhs._value;
@@ -47,15 +50,15 @@ namespace AE::Base
 			_value ^= (val << shift) | (val >> ( ~(shift-1) & mask ));
 		}
 
-		ND_ constexpr THashVal<T>  operator + (const THashVal<T> &rhs)	C_NE___
+		NdCx__ THashVal<T>  operator + (const THashVal<T> &rhs)	C_NE___
 		{
 			return THashVal<T>{*this} << rhs;
 		}
 
-		ND_ explicit constexpr operator T ()							C_NE___	{ return _value; }
+		NdCx__ explicit operator T ()							C_NE___	{ return _value; }
 
 		template <typename R>
-		ND_ constexpr R  Cast ()										C_NE___
+		NdCx__ R  Cast ()										C_NE___
 		{
 			if constexpr( sizeof(R) >= sizeof(T) )
 				return R(_value);

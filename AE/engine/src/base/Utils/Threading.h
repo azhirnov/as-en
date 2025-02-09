@@ -54,7 +54,10 @@ namespace AE::Base
 ----
 	Take effect only for compiler and CPU instruction reordering.
 	CompilerBarrier( Acquire ) - don't reorder with previous code
-	CompilerBarrier( Release ) - don't reorder with next code
+	CompilerBarrier( Release ) - don't reorder with next code.
+	Performance:
+		x64 - a bit slower
+		ARM - high impact
 =================================================
 */
 	forceinline void  CompilerBarrier (std::memory_order order) __NE___

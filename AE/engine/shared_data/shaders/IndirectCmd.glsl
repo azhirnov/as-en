@@ -59,6 +59,10 @@ ND_ DrawIndirectCommand  DrawIndirectCommand_Create (uint	vertexCount,
 	result.firstInstance	= firstInstance;
 	return result;
 }
+
+ND_ DrawIndirectCommand  DrawIndirectCommand_Create (uint	vertexCount) {
+	return DrawIndirectCommand_Create( vertexCount, 1, 0, 0 );
+}
 //-----------------------------------------------------------------------------
 
 
@@ -85,6 +89,10 @@ ND_ DrawIndexedIndirectCommand  DrawIndexedIndirectCommand_Create (uint	indexCou
 	result.vertexOffset			= vertexOffset;
 	result.firstInstance		= firstInstance;
 	return result;
+}
+
+ND_ DrawIndexedIndirectCommand  DrawIndexedIndirectCommand_Create (uint	indexCount) {
+	return DrawIndexedIndirectCommand_Create( indexCount, 1, 0, 0, 0 );
 }
 //-----------------------------------------------------------------------------
 
@@ -147,21 +155,49 @@ ND_ TraceRayIndirectCommand  TraceRayIndirectCommand_Create (const uint3 dim)
 //-----------------------------------------------------------------------------
 
 
-struct TraceRayIndirectCommand2
-{
-	gl::DeviceAddress	raygenShaderRecordAddress;
-	ulong				raygenShaderRecordSize;
-	gl::DeviceAddress	missShaderBindingTableAddress;
-	ulong				missShaderBindingTableSize;
-	ulong				missShaderBindingTableStride;
-	gl::DeviceAddress	hitShaderBindingTableAddress;
-	ulong				hitShaderBindingTableSize;
-	ulong				hitShaderBindingTableStride;
-	gl::DeviceAddress	callableShaderBindingTableAddress;
-	ulong				callableShaderBindingTableSize;
-	ulong				callableShaderBindingTableStride;
-	uint				width;
-	uint				height;
-	uint				depth;
-};
+#ifdef AE_ray_query
+	#ifndef TraceRayIndirectCommand2_defined
+	struct TraceRayIndirectCommand2
+	{
+		gl::DeviceAddress	raygenShaderRecordAddress;				// non-null
+		ulong				raygenShaderRecordSize;					// == shaderGroupHandleSize
+
+		gl::DeviceAddress	missShaderBindingTableAddress;			// optional
+		ulong				missShaderBindingTableSize;				// multiple of 'missShaderBindingTableStride'
+		ulong				missShaderBindingTableStride;			// >= shaderGroupHandleSize
+
+		gl::DeviceAddress	hitShaderBindingTableAddress;			// optional
+		ulong				hitShaderBindingTableSize;				// multiple of 'hitShaderBindingTableStride'
+		ulong				hitShaderBindingTableStride;			// >= shaderGroupHandleSize
+
+		gl::DeviceAddress	callableShaderBindingTableAddress;		// optional
+		ulong				callableShaderBindingTableSize;			// multiple of 'callableShaderBindingTableStride'
+		ulong				callableShaderBindingTableStride;		// >= shaderGroupHandleSize
+
+		uint				width;									// >= 1
+		uint				height;									// >= 1
+		uint				depth;									// >= 1
+	};
+	#endif
+	/*
+	ND_ TraceRayIndirectCommand2  TraceRayIndirectCommand2_Create ()
+	{
+		TraceRayIndirectCommand2	result;
+		result.raygenShaderRecordAddress			= 0;
+		result.raygenShaderRecordSize				= 0;
+		result.missShaderBindingTableAddress		= 0;
+		result.missShaderBindingTableSize			= 0;
+		result.missShaderBindingTableStride			= 0;
+		result.hitShaderBindingTableAddress			= 0;
+		result.hitShaderBindingTableSize			= 0;
+		result.hitShaderBindingTableStride			= 0;
+		result.callableShaderBindingTableAddress	= 0;
+		result.callableShaderBindingTableSize		= 0;
+		result.callableShaderBindingTableStride		= 0;
+		result.width								= 0;
+		result.height								= 0;
+		result.depth								= 1;
+		return result;
+	}*/
+#endif
 //-----------------------------------------------------------------------------

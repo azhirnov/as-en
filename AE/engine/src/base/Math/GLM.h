@@ -10,7 +10,7 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_ENABLE_EXPERIMENTAL		// for gtx
-#ifdef AE_CXX_20
+#if AE_CXX_VER >= 20
 # define GLM_FORCE_CXX20
 #else
 # define GLM_FORCE_CXX17
@@ -61,24 +61,18 @@
 
 #include "glm.hpp"
 
-#include "gtc/bitfield.hpp"
-#include "gtc/color_space.hpp"
-#include "gtc/constants.hpp"
+//#include "gtc/bitfield.hpp"
 #include "gtc/epsilon.hpp"
 #include "gtc/integer.hpp"
 #include "gtc/matrix_access.hpp"
 #include "gtc/matrix_integer.hpp"
 #include "gtc/matrix_inverse.hpp"
 #include "gtc/matrix_transform.hpp"
-#include "gtc/noise.hpp"
 #include "gtc/packing.hpp"
 #include "gtc/quaternion.hpp"
-#include "gtc/random.hpp"
-#include "gtc/reciprocal.hpp"
 #include "gtc/round.hpp"
 #include "gtc/type_precision.hpp"
-#include "gtc/type_ptr.hpp"
-#include "gtc/ulp.hpp"
+//#include "gtc/ulp.hpp"
 
 #include "gtx/matrix_decompose.hpp"
 #include "gtx/matrix_major_storage.hpp"
@@ -87,25 +81,22 @@
 #include "gtx/rotate_vector.hpp"
 #include "gtx/quaternion.hpp"
 #include "gtx/dual_quaternion.hpp"
-#include "gtx/intersect.hpp"
-#include "gtx/fast_exponential.hpp"
-#include "gtx/fast_square_root.hpp"
-#include "gtx/fast_trigonometry.hpp"
+//#include "gtx/intersect.hpp"
+//#include "gtx/fast_exponential.hpp"
+//#include "gtx/fast_square_root.hpp"
+//#include "gtx/fast_trigonometry.hpp"
 
-#include "ext/scalar_constants.hpp"
-#include "ext/scalar_int_sized.hpp"
-#include "ext/scalar_relational.hpp"
 #include "ext/quaternion_geometric.hpp"
 #include "ext/quaternion_relational.hpp"
-#include "ext/vector_relational.hpp"
-#include "ext/matrix_relational.hpp"
+//#include "ext/vector_relational.hpp"
+//#include "ext/matrix_relational.hpp"
 
 
 #if GLM_CONFIG_ALIGNED_GENTYPES != GLM_ENABLE
 #	error required GLM_CONFIG_ALIGNED_GENTYPES = GLM_ENABLE
 #endif
 
-namespace AE::Math
+namespace AE::Base
 {
 	static constexpr inline auto	GLMSimdQualifier	= glm::qualifier::aligned_highp;
 	static constexpr inline auto	GLMPackedQualifier	= glm::qualifier::packed_highp;
@@ -124,12 +115,9 @@ namespace AE::Math
 
 	template <typename T, uint Columns, uint Rows>	using Matrix		= TMatrix< T, Columns, Rows, GLMSimdQualifier >;
 	template <typename T, uint Columns, uint Rows>	using PackedMatrix	= TMatrix< T, Columns, Rows, GLMPackedQualifier >;
+//-----------------------------------------------------------------------------
 
-} // AE::Math
 
-
-namespace AE::Base
-{
 	template <typename T, int I, glm::qualifier Q>
 	struct TMemCopyAvailable< TVec<T,I,Q> >		: CT_Bool< IsMemCopyAvailable<T> >{};
 
@@ -164,6 +152,16 @@ namespace AE::Base
 	struct TZeroMemAvailable< TMatrix<T, Columns, Rows, Q> > : CT_Bool< IsZeroMemAvailable<T> >{};
 
 	// 'IsTriviallySerializable< TMatrix<> > = false' - because SIMD and packed types has different alignment
+
+
+	template <typename T, int I, glm::qualifier Q>
+	struct TUnwrap< TVec<T,I,Q> > : TUnwrap<T> {};
+
+	template <typename T, glm::qualifier Q>
+	struct TUnwrap< TQuat<T,Q> > : TUnwrap<T> {};
+
+	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
+	struct TUnwrap< TMatrix<T,Columns,Rows,Q> > : TUnwrap<T> {};
 
 } // AE::Base
 

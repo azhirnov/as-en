@@ -6,7 +6,7 @@
 #include "base/Math/Sphere.h"
 #include "base/Math/Camera.h"
 
-namespace AE::Math
+namespace AE::Base
 {
 
 	//
@@ -393,4 +393,4 @@ namespace AE::Math
 	}
 
 
-} // AE::Math
+} // AE::Base

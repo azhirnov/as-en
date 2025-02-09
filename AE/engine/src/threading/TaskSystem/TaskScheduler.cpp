@@ -166,6 +166,7 @@ DEBUG_ONLY(
 	void  IAsyncTask::_OnFinish (OUT bool& rerun) __NE___
 	{
 		ASSERT( not _isRunning.load() );
+		rerun = false;
 
 		// Flush cache before processing 'output'.
 		// Spinlock '_output' issue Acquire -> Process -> Release fences,
@@ -321,26 +322,49 @@ DEBUG_ONLY(
 
 /*
 =================================================
-	_MakeCompleted
+	_MakeCompletedUnsafe
 =================================================
 */
-	void  IAsyncTask::_MakeCompleted () __NE___
+	void  IAsyncTask::_MakeCompletedUnsafe () __NE___
 	{
 		ASSERT( _status.load() == EStatus::Initial );
+		ASSERT( _output.get() == null );	// use '_MakeCompletedSafe()' instead
 
 		_status.store( EStatus::Completed );
 		_waitBits.store( 0 );
 	}
-//-----------------------------------------------------------------------------
-
-
 
 /*
 =================================================
-	_SetDependencyCompletionStatus
+	_MakeCompletedSafe
 =================================================
 */
-	void  ITaskDependencyManager::_SetDependencyCompletionStatus (IAsyncTask &task, uint depIndex, Bool isCanceled) __NE___
+	void  IAsyncTask::_MakeCompletedSafe () __NE___
+	{
+		ASSERT( _status.load() == EStatus::Initial );
+
+		// enqueue
+		_waitBits.store( 0 );
+		_status.store( EStatus::InProgress );
+
+		// skip 'Run()'
+		//DEBUG_ONLY( _isRunning.store( true ));
+		//Run();
+		//DEBUG_ONLY( _isRunning.store( false ));
+
+		bool	rerun;
+		_OnFinish( OUT rerun );
+
+		ASSERT( not rerun );
+		ASSERT( _status.load() == EStatus::Completed );
+	}
+
+/*
+=================================================
+	SetDependencyCompletionStatus
+=================================================
+*/
+	void  IAsyncTask::Helper::SetDependencyCompletionStatus (IAsyncTask &task, uint depIndex, Bool isCanceled) __NE___
 	{
 		if_unlikely( isCanceled )
 			task._canceledDepsCount.fetch_add( 1 );
@@ -475,7 +499,7 @@ DEBUG_ONLY(
 
 	TaskScheduler&  TaskScheduler::_Instance () __NE___
 	{
-		return s_TaskScheduler.AsRef();
+		return s_TaskScheduler.Ref();
 	}
 
 /*
@@ -551,7 +575,7 @@ DEBUG_ONLY(
 
 		// setup queues
 		TRY{
-			_queues[uint( ETaskQueue::Main		)].ptr.reset( new LfTaskQueue{ POTValue{ 2 },						"main",			ETaskQueue::Main		});
+			_queues[uint( ETaskQueue::Main		)].ptr.reset( new LfTaskQueue{ POTValue{ 2u },						"main",			ETaskQueue::Main		});
 			_queues[uint( ETaskQueue::PerFrame	)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxPerFrameQueues },	"perFrame",		ETaskQueue::PerFrame	});
 			_queues[uint( ETaskQueue::Renderer	)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxRenderQueues },		"renderer",		ETaskQueue::Renderer	});
 			_queues[uint( ETaskQueue::Background)].ptr.reset( new LfTaskQueue{ POTValue{ cfg.maxBackgroundQueues },	"background",	ETaskQueue::Background	});

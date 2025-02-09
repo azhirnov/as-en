@@ -4,13 +4,14 @@
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
-#	include <aestyle.glsl.h>
+#	include <glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
 
 	void ASmain ()
-	{{
+	{
+		{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 			ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );
 			ds.StorageBuffer( EShaderStages::Vertex, "un_Geometry",  "GeometrySBlock",	EResourceState::ShaderStorage_Read );	// external

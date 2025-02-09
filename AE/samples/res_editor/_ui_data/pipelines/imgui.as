@@ -63,7 +63,7 @@ void  CreatePipeline (const array<string> &passNames)
 				"float2		translate;" );
 
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "imgui.ds" );
-		ds.SampledImage( EShaderStages::Fragment, "un_Textures", ArraySize(8), EImageType::FImage2D );
+		ds.SampledImage( EShaderStages::Fragment, "un_Textures", ArraySize(8), EImageType::Float_2D );
 		ds.ImtblSampler( EShaderStages::Fragment, "un_Sampler", "imgui.LinearRepeat" );
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "imgui.pc" );

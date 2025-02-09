@@ -187,8 +187,8 @@ namespace AE::ECS
 
 		if constexpr( FI::args::Count == 1 )
 		{
-			StaticAssert( IsSameTypes<typename FI::args::template Get<0>, ArrayView<EntityID>> );
-			//StaticAssert( not IsSameTypes< Tag, MsgTag_RemovedComponent >);
+			StaticAssert( IsSame<typename FI::args::template Get<0>, ArrayView<EntityID>> );
+			//StaticAssert( not IsSame< Tag, MsgTag_RemovedComponent >);
 			NOTHROW_ERR(
 				msg.listeners.push_back(
 					[fn = FwdArg<Fn>(fn)] (const MessageData &data)
@@ -200,8 +200,8 @@ namespace AE::ECS
 
 		if constexpr( FI::args::Count == 2 )
 		{
-			StaticAssert( IsSameTypes<typename FI::args::template Get<0>, ArrayView<EntityID>> );
-			StaticAssert( IsSameTypes<typename FI::args::template Get<1>, ArrayView<Comp>> );
+			StaticAssert( IsSame<typename FI::args::template Get<0>, ArrayView<EntityID>> );
+			StaticAssert( IsSame<typename FI::args::template Get<1>, ArrayView<Comp>> );
 			NOTHROW_ERR(
 				msg.listeners.push_back(
 					[fn = FwdArg<Fn>(fn)] (const MessageData &data)

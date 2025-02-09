@@ -9,7 +9,7 @@ namespace AE::ResEditor
 {
 
 	//
-	// RayTracing Instance Custom Index
+	// Ray Tracing Instance Custom Index
 	//
 	struct RTInstanceCustomIndex
 	{
@@ -25,7 +25,7 @@ namespace AE::ResEditor
 
 
 	//
-	// RayTracing Instance Mask
+	// Ray Tracing Instance Mask
 	//
 	struct RTInstanceMask
 	{
@@ -41,7 +41,7 @@ namespace AE::ResEditor
 
 
 	//
-	// RayTracing Instance SBT Offset
+	// Ray Tracing Instance SBT Offset
 	//
 	struct RTInstanceSBTOffset
 	{
@@ -57,7 +57,7 @@ namespace AE::ResEditor
 
 
 	//
-	// RayTracing Instance Transformation
+	// Ray Tracing Instance Transformation
 	//
 	struct RTInstanceTransform
 	{
@@ -76,7 +76,7 @@ namespace AE::ResEditor
 
 
 	//
-	// RayTracing Geometry
+	// Ray Tracing Geometry
 	//
 
 	class ScriptRTGeometry final : public EnableScriptRC
@@ -163,7 +163,7 @@ namespace AE::ResEditor
 
 
 	//
-	// RayTracing Scene
+	// Ray Tracing Scene
 	//
 
 	class ScriptRTScene final : public EnableScriptRC
@@ -237,5 +237,36 @@ namespace AE::ResEditor
 			void	_MakeInstancesImmutable ();
 	};
 
+
+
+	//
+	// Ray Tracing Partitioned Scene
+	//
+	/*
+	class ScriptRTPartitionedScene final : public EnableScriptRC
+	{
+	// types
+	private:
+
+
+	// variables
+	private:
+
+
+	// methods
+	public:
+		ScriptRTPartitionedScene ()																		__Th___;
+		~ScriptRTPartitionedScene ();
+
+
+		static void  Bind (const ScriptEnginePtr &se)													__Th___;
+
+		// Returns non-null resource or throw exception.
+		ND_ RC<RTPartitionedScene>  ToResource ()														__Th___;
+
+
+	private:
+	};
+	*/
 
 } // AE::ResEditor

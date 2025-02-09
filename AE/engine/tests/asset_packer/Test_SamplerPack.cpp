@@ -25,7 +25,7 @@ namespace
 		info.inPipelines		= sampler_files;
 		info.inPipelineCount	= CountOf( sampler_files );
 		info.outputPackName		= Cast<CharType>(output.c_str());
-		info.addNameMapping		= true;
+		info.flags				= EPipelineCompilerFlags::AddNameMapping;
 
 		TEST( compile_pipelines( &info ));
 

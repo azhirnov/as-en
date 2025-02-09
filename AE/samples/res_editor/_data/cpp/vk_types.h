@@ -1,4 +1,4 @@
-//5ca9e2b9
+//bd38ca2d
 #ifndef CameraData_DEFINED
 #	define CameraData_DEFINED
 	// size: 384, align: 16
@@ -26,19 +26,21 @@
 	StaticAssert( offsetof(CameraData, frustum) == 288 );
 	StaticAssert( sizeof(CameraData) == 384 );
 
-#ifndef ShadertoyUB_DEFINED
-#	define ShadertoyUB_DEFINED
-	// size: 1200, align: 16
-	struct ShadertoyUB
+#ifndef PostprocessPassUB_DEFINED
+#	define PostprocessPassUB_DEFINED
+	// size: 1216, align: 16
+	struct PostprocessPassUB
 	{
-		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa31fc14bu}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x6a9c4b92u}};
 
 		float3  resolution;
 		float  time;
+		float2  invResolution;
 		float  timeDelta;
 		uint  frame;
 		uint  passFrameId;
 		uint  seed;
+		uint  colorSpace;
 		float4  channelTime;
 		StaticArray< float4, 4 >    channelResolution;
 		float4  mouse;
@@ -54,26 +56,28 @@
 		StaticArray< int4, 8 >    intConst;
 	};
 #endif
-	StaticAssert( offsetof(ShadertoyUB, resolution) == 0 );
-	StaticAssert( offsetof(ShadertoyUB, time) == 16 );
-	StaticAssert( offsetof(ShadertoyUB, timeDelta) == 20 );
-	StaticAssert( offsetof(ShadertoyUB, frame) == 24 );
-	StaticAssert( offsetof(ShadertoyUB, passFrameId) == 28 );
-	StaticAssert( offsetof(ShadertoyUB, seed) == 32 );
-	StaticAssert( offsetof(ShadertoyUB, channelTime) == 48 );
-	StaticAssert( offsetof(ShadertoyUB, channelResolution) == 64 );
-	StaticAssert( offsetof(ShadertoyUB, mouse) == 128 );
-	StaticAssert( offsetof(ShadertoyUB, date) == 144 );
-	StaticAssert( offsetof(ShadertoyUB, sampleRate) == 160 );
-	StaticAssert( offsetof(ShadertoyUB, customKeys) == 164 );
-	StaticAssert( offsetof(ShadertoyUB, pixToMm) == 168 );
-	StaticAssert( offsetof(ShadertoyUB, camera) == 176 );
-	StaticAssert( offsetof(ShadertoyUB, floatSliders) == 560 );
-	StaticAssert( offsetof(ShadertoyUB, intSliders) == 688 );
-	StaticAssert( offsetof(ShadertoyUB, colors) == 816 );
-	StaticAssert( offsetof(ShadertoyUB, floatConst) == 944 );
-	StaticAssert( offsetof(ShadertoyUB, intConst) == 1072 );
-	StaticAssert( sizeof(ShadertoyUB) == 1200 );
+	StaticAssert( offsetof(PostprocessPassUB, resolution) == 0 );
+	StaticAssert( offsetof(PostprocessPassUB, time) == 16 );
+	StaticAssert( offsetof(PostprocessPassUB, invResolution) == 24 );
+	StaticAssert( offsetof(PostprocessPassUB, timeDelta) == 32 );
+	StaticAssert( offsetof(PostprocessPassUB, frame) == 36 );
+	StaticAssert( offsetof(PostprocessPassUB, passFrameId) == 40 );
+	StaticAssert( offsetof(PostprocessPassUB, seed) == 44 );
+	StaticAssert( offsetof(PostprocessPassUB, colorSpace) == 48 );
+	StaticAssert( offsetof(PostprocessPassUB, channelTime) == 64 );
+	StaticAssert( offsetof(PostprocessPassUB, channelResolution) == 80 );
+	StaticAssert( offsetof(PostprocessPassUB, mouse) == 144 );
+	StaticAssert( offsetof(PostprocessPassUB, date) == 160 );
+	StaticAssert( offsetof(PostprocessPassUB, sampleRate) == 176 );
+	StaticAssert( offsetof(PostprocessPassUB, customKeys) == 180 );
+	StaticAssert( offsetof(PostprocessPassUB, pixToMm) == 184 );
+	StaticAssert( offsetof(PostprocessPassUB, camera) == 192 );
+	StaticAssert( offsetof(PostprocessPassUB, floatSliders) == 576 );
+	StaticAssert( offsetof(PostprocessPassUB, intSliders) == 704 );
+	StaticAssert( offsetof(PostprocessPassUB, colors) == 832 );
+	StaticAssert( offsetof(PostprocessPassUB, floatConst) == 960 );
+	StaticAssert( offsetof(PostprocessPassUB, intConst) == 1088 );
+	StaticAssert( sizeof(PostprocessPassUB) == 1216 );
 
 #ifndef ComputePassUB_DEFINED
 #	define ComputePassUB_DEFINED
@@ -164,16 +168,18 @@
 
 #ifndef SceneGraphicsPassUB_DEFINED
 #	define SceneGraphicsPassUB_DEFINED
-	// size: 1056, align: 16
+	// size: 1072, align: 16
 	struct SceneGraphicsPassUB
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x1f8a4833u}};
 
 		float2  resolution;
+		float2  invResolution;
 		float  time;
 		float  timeDelta;
 		uint  frame;
 		uint  seed;
+		float4  mouse;
 		CameraData  camera;
 		StaticArray< float4, 8 >    floatSliders;
 		StaticArray< int4, 8 >    intSliders;
@@ -183,17 +189,19 @@
 	};
 #endif
 	StaticAssert( offsetof(SceneGraphicsPassUB, resolution) == 0 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, time) == 8 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, timeDelta) == 12 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, frame) == 16 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, seed) == 20 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, camera) == 32 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, floatSliders) == 416 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, intSliders) == 544 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, colors) == 672 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, floatConst) == 800 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, intConst) == 928 );
-	StaticAssert( sizeof(SceneGraphicsPassUB) == 1056 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, invResolution) == 8 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, time) == 16 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, timeDelta) == 20 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, frame) == 24 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, seed) == 28 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, mouse) == 32 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, camera) == 48 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, floatSliders) == 432 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, intSliders) == 560 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, colors) == 688 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, floatConst) == 816 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, intConst) == 944 );
+	StaticAssert( sizeof(SceneGraphicsPassUB) == 1072 );
 
 #ifndef SceneRayTracingPassUB_DEFINED
 #	define SceneRayTracingPassUB_DEFINED

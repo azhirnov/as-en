@@ -19,6 +19,17 @@ namespace AE::Base
 		Emscripten,
 		_Count
 	};
+
+	enum class EThreadPriority : ubyte
+	{
+		PerFrame,		// high priority for per frame tasks, should be used for 'EThread::PerFrame' and 'EThread::Renderer'.
+		PerFrameLow,
+		Default,		// thread created with this priority.
+		Background,		// low priority to execute large tasks, can be used for 'EThread::Background'.
+		BackgroundLow,
+		Highest,		// only for special use case.
+		_Count
+	};
 //-----------------------------------------------------------------------------
 
 

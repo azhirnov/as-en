@@ -8,6 +8,7 @@ rmdir /Q /S "_backup_3party"
 mkdir "_backup_3party"
 
 move "ae-glm" "_backup_3party/ae-glm"
+::git clone --bare "https://github.com/g-truc/glm.git" "glm"
 git clone --bare "https://github.com/azhirnov/glm.git" "ae-glm"
 
 move "Assimp" "_backup_3party/Assimp"
@@ -60,7 +61,8 @@ git clone --bare "https://github.com/nothings/stb.git" "stb"
 
 move "ARM-HWCPipe" "_backup_3party/ARM-HWCPipe"
 ::git clone --bare "https://github.com/ARM-software/HWCPipe.git" "ARM-HWCPipe"
-git clone --bare "https://github.com/ARM-software/libGPUCounters.git" "ARM-HWCPipe"
+::git clone --bare "https://github.com/ARM-software/libGPUCounters.git" "ARM-HWCPipe"
+git clone --bare "https://github.com/azhirnov/libGPUCounters.git" "ARM-HWCPipe"
 
 move "xxHash" "_backup_3party/xxHash"
 git clone --bare "https://github.com/Cyan4973/xxHash.git" "xxHash"
@@ -83,8 +85,8 @@ git clone --bare "https://github.com/lz4/lz4.git" "lz4"
 move "astc-encoder" "_backup_3party/astc-encoder"
 git clone --bare "https://github.com/ARM-software/astc-encoder.git" "astc-encoder"
 
-::move "glm" "backup_3party/glm"
-::git clone --bare "https://github.com/g-truc/glm.git" "glm"
+move "nvapi" "_backup_3party/nvapi"
+git clone --bare "https://github.com/NVIDIA/nvapi.git" "nvapi"
 
 ::move "breakpad" "_backup_3party/breakpad"
 ::git clone --bare "https://github.com/google/breakpad.git" "breakpad"
@@ -152,16 +154,16 @@ robocopy "ffmpeg/.git" "../public/ffmpeg-win64" /S
 
 
 :: download FreeType
-powershell -Command "(New-Object Net.WebClient).DownloadFile('https://sourceforge.net/projects/freetype/files/freetype2/2.11.1/ft2111.zip', 'ft.zip')"
+powershell -Command "(New-Object Net.WebClient).DownloadFile('https://sourceforge.net/projects/freetype/files/freetype2/2.13.3/ft2111.zip', 'ft.zip')"
 powershell Expand-Archive ft.zip -DestinationPath "."
 del "ft.zip"
-cd "freetype-2.11.1"
+cd "freetype-2.13.3"
 git init
 git add -A
 git commit -m "init"
 cd ..
 move "../public/FreeType" "../public/_backup_3party/FreeType"
-robocopy "freetype-2.11.1/.git" "../public/FreeType" /S
+robocopy "freetype-2.13.3/.git" "../public/FreeType" /S
 
 
 :: download DevIL

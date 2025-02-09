@@ -139,19 +139,19 @@ namespace
 
 	static void FormattedText_Test4 ()
 	{
-		U8StringView	str1 = u8"[b]1[i]23[/i]4567[/b]89";
+		U8StringView	str1 { Cast<CharUtf8>( u8"[b]1[i]23[/i]4567[/b]89" )};
 		FormattedText	text1{ str1 };
 		TEST( text1.ToString() == str1 );
 
-		U8StringView	str2 = u8"[b]1[i]23[/i][/b]456789";
+		U8StringView	str2 = Cast<CharUtf8>( u8"[b]1[i]23[/i][/b]456789" );
 		FormattedText	text2{ str2 };
 		TEST( text2.ToString() == str2 );
 
-		U8StringView	str3 = u8"[style color=#11223344 size=10]abcde[/style]11";
+		U8StringView	str3 = Cast<CharUtf8>( u8"[style color=#11223344 size=10]abcde[/style]11" );
 		FormattedText	text3{ str3 };
 		TEST( text3.ToString() == str3 );
 
-		U8StringView	str4 = u8"[style color=#11223344 size=10]ab[b]c[/b]de[/style]1[i]122[/i]45";
+		U8StringView	str4 = Cast<CharUtf8>( u8"[style color=#11223344 size=10]ab[b]c[/b]de[/style]1[i]122[/i]45" );
 		FormattedText	text4{ str4 };
 		TEST( text4.ToString() == str4 );
 	}
