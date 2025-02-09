@@ -2,6 +2,7 @@
 
 #include "Perf_Common.h"
 
+#ifdef AE_SIMD_SimdFloat4
 namespace
 {
 	static constexpr uint	c_Step	= 2;
@@ -1176,3 +1177,10 @@ extern void PerfTest_VertSIMD ()
 
 	TEST_PASSED();
 }
+
+#else
+
+extern void PerfTest_VertSIMD ()
+{}
+
+#endif // AE_SIMD_SimdFloat4

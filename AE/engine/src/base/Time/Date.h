@@ -142,17 +142,17 @@ namespace AE::Base
 		__Cx__ Builder ()								__NE___	{}
 		__Cx__ explicit Builder (const Date &value)		__NE___ : _date{value} {}
 
-		__Cz__ Builder&  Year (uint value)				__NE___	{ ASSERT( value < 65536 );					_date._year			= value;		return *this; }
-		__Cz__ Builder&  Month (uint value)				__NE___	{ ASSERT( value < 12 );						_date._month		= value;		return *this; }
+		__Cx__ Builder&  Year (uint value)				__NE___	{ ASSERT_Cx( value < 65536 );				_date._year			= value;		return *this; }
+		__Cx__ Builder&  Month (uint value)				__NE___	{ ASSERT_Cx( value < 12 );					_date._month		= value;		return *this; }
 		__Cx__ Builder&  Month (EMonth value)			__NE___	{											_date._month		= uint(value);	return *this; }
-		__Cz__ Builder&  DayOfMonth (uint value)		__NE___	{ ASSERT( value < _date.DaysInMonth() );	_date._dayOfMonth	= value;		return *this; }
-		__Cz__ Builder&  DayOfYear (uint value)			__NE___	{ ASSERT( value < _date.DaysInYear() );		_date._dayOfYear	= value;		return *this; }
-		__Cz__ Builder&  DayOfWeek (uint value)			__NE___	{ ASSERT( value < 7 );						_date._dayOfWeek	= value;		return *this; }
+		__Cx__ Builder&  DayOfMonth (uint value)		__NE___	{ ASSERT_Cx( value < _date.DaysInMonth() );	_date._dayOfMonth	= value;		return *this; }
+		__Cx__ Builder&  DayOfYear (uint value)			__NE___	{ ASSERT_Cx( value < _date.DaysInYear() );	_date._dayOfYear	= value;		return *this; }
+		__Cx__ Builder&  DayOfWeek (uint value)			__NE___	{ ASSERT_Cx( value < 7 );					_date._dayOfWeek	= value;		return *this; }
 		__Cx__ Builder&  DayOfWeek (EWeekDay value)		__NE___	{											_date._dayOfWeek	= uint(value);	return *this; }
-		__Cz__ Builder&  Hour (uint value)				__NE___	{ ASSERT( value < 24 );						_date._hour			= value;		return *this; }
-		__Cz__ Builder&  Minute (uint value)			__NE___	{ ASSERT( value < 60 );						_date._minute		= value;		return *this; }
-		__Cz__ Builder&  Second (uint value)			__NE___	{ ASSERT( value < 60 );						_date._second		= value;		return *this; }
-		__Cz__ Builder&  Milliseconds (uint value)		__NE___	{ ASSERT( value < 1000 );					_date._millis		= value;		return *this; }
+		__Cx__ Builder&  Hour (uint value)				__NE___	{ ASSERT_Cx( value < 24 );					_date._hour			= value;		return *this; }
+		__Cx__ Builder&  Minute (uint value)			__NE___	{ ASSERT_Cx( value < 60 );					_date._minute		= value;		return *this; }
+		__Cx__ Builder&  Second (uint value)			__NE___	{ ASSERT_Cx( value < 60 );					_date._second		= value;		return *this; }
+		__Cx__ Builder&  Milliseconds (uint value)		__NE___	{ ASSERT_Cx( value < 1000 );				_date._millis		= value;		return *this; }
 
 		__Cx__ Builder&  AddDayOfYear (uint value)		__NE___;
 		__Cx__ Builder&  SubDayOfYear (uint value)		__NE___;
@@ -331,7 +331,7 @@ namespace AE::Base
 		_dayOfYear	= uint(days);
 		_year		= year;
 
-		uint	m, dm;
+		uint	m = 0, dm = 0;
 		_CalcMonthAndDayOfMonth( _year, _dayOfYear, OUT m, OUT dm );
 
 		_month		= m;
@@ -361,7 +361,7 @@ namespace AE::Base
 
 	__CxIn Date::Builder&  Date::Builder::CalcMonthAndDayOfMonth () __NE___
 	{
-		uint	m, dm;
+		uint	m = 0, dm = 0;
 		Date::_CalcMonthAndDayOfMonth( _date._year, _date._dayOfYear, OUT m, OUT dm );
 
 		_date._month		= m;

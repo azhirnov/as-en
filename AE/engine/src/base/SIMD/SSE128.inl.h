@@ -2405,20 +2405,20 @@ namespace AE::Base
 */
 # if AE_SIMD_F16C
 namespace{
-	Nd__IF __m128h  cvtps_ph	(__m128  src)	__NE___	{ return _mm_cvtps_ph( src, _MM_FROUND_NINT ); }
-	Nd__IF __m128   cvtph_ps	(__m128h src)	__NE___	{ return _mm_cvtph_ps( src ); }
+	Nd__IF __m128i  cvtps_ph	(__m128  src)	__NE___	{ return _mm_cvtps_ph( src, _MM_FROUND_NINT ); }
+	Nd__IF __m128   cvtph_ps	(__m128i src)	__NE___	{ return _mm_cvtph_ps( src ); }
 #  ifdef AE_SIMD_SimdFloat8
-	Nd__IF __m128h  cvtps256_ph	(__m256  src)	__NE___	{ return _mm256_cvtps_ph( src, _MM_FROUND_NINT ); }
-	Nd__IF __m256   cvtph_ps256	(__m128h src)	__NE___	{ return _mm256_cvtph_ps( src ); }
+	Nd__IF __m128i  cvtps256_ph	(__m256  src)	__NE___	{ return _mm256_cvtps_ph( src, _MM_FROUND_NINT ); }
+	Nd__IF __m256   cvtph_ps256	(__m128i src)	__NE___	{ return _mm256_cvtph_ps( src ); }
 #  endif
 }
 # else
 namespace{
-	Nd__IF __m128h  cvtps_ph (__m128  srcF)		__NE___	{ return SimdFloatConversion::FloatToHalf( SimdFloat4{srcF} ).Ref(); }
-	Nd__IF __m128   cvtph_ps (__m128h srcH)		__NE___ { return SimdFloatConversion::HalfToFloat( SimdUShort8{srcH} ).Ref(); }
+	Nd__IF __m128i  cvtps_ph (__m128  srcF)		__NE___	{ return SimdFloatConversion::FloatToHalf( SimdFloat4{srcF} ).Ref(); }
+	Nd__IF __m128   cvtph_ps (__m128i srcH)		__NE___ { return SimdFloatConversion::HalfToFloat( SimdUShort8{srcH} ).Ref(); }
 #  ifdef AE_SIMD_SimdFloat8
-	Nd__IF __m128h  cvtps256_ph	(__m256  srcF)	__NE___	{ return SimdFloatConversion::FloatToHalf( SimdFloat8{srcF} ).Ref(); }
-	Nd__IF __m256   cvtph_ps256	(__m128h srcH)	__NE___	{ return SimdFloatConversion::HalfToFloat8( SimdUShort8{srcH} ).Ref(); }
+	Nd__IF __m128i  cvtps256_ph	(__m256  srcF)	__NE___	{ return SimdFloatConversion::FloatToHalf( SimdFloat8{srcF} ).Ref(); }
+	Nd__IF __m256   cvtph_ps256	(__m128i srcH)	__NE___	{ return SimdFloatConversion::HalfToFloat8( SimdUShort8{srcH} ).Ref(); }
 #  endif
 }
 # endif // AE_SIMD_F16C

@@ -724,8 +724,8 @@ namespace AE::Base
 	  #endif
 
 		// shift in bytes
-		template <int ShiftBytes> ND_ Self  LShiftB ()		C_NE___	{ return Self{ _mm_bslli_si128( _value, ShiftBytes )}; }
-		template <int ShiftBytes> ND_ Self  RShiftB ()		C_NE___	{ return Self{ _mm_bsrli_si128( _value, ShiftBytes )}; }
+		template <int ShiftBytes> ND_ Self  LShiftB ()		C_NE___	{ return Self{ _mm_slli_si128( _value, ShiftBytes )}; }
+		template <int ShiftBytes> ND_ Self  RShiftB ()		C_NE___	{ return Self{ _mm_srli_si128( _value, ShiftBytes )}; }
 
 
 	// conversion //
@@ -1122,7 +1122,7 @@ namespace AE::Base
 
 		using Scalar_t		= half;
 		using Self			= SimdHalf8;
-		using Native_t		= __m128h;
+		using Native_t		= __m128i;	// __m128h	- MSVC & Clang use __m128i, GCC use custom type
 		using Array_t		= StaticArray< Scalar_t, count >;
 		using Ptr_t			= AlignedPtr< sizeof(Native_t) >;
 		using SimdInt_t		= SimdShort8;
@@ -1211,7 +1211,9 @@ namespace AE::Base
 		ND_ Native_t &		Ref ()								__NE___	{ return _value; }
 		ND_ Native_t const&	Ref ()								C_NE___	{ return _value; }
 
+	  #ifndef AE_COMPILER_GCC
 		ND_ Self	Abs ()										C_NE___	{ return Self{ _mm_and_epi32( _mm_set1_epi32(0x7FFF7FFF), _value )}; }
+	  #endif
 
 		ND_ Bool8	Equal    (const Self &rhs)					C_NE___	{ return Bool8{ _mm_cmpeq_epi16( _value, rhs._value )}; }
 		ND_ Bool8	NotEqual (const Self &rhs)					C_NE___	{ return not Equal( rhs ); }

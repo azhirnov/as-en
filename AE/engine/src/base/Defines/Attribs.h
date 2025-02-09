@@ -209,9 +209,10 @@
 #	define if_likely( ... )		if ( __VA_ARGS__ ) [[likely]]
 #	define if_unlikely( ... )	if ( __VA_ARGS__ ) [[unlikely]]
 
-#elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define if_likely( ... )		if ( __builtin_expect( !!(__VA_ARGS__), 1 ))
-#	define if_unlikely( ... )	if ( __builtin_expect( !!(__VA_ARGS__), 0 ))
+// not compatible with C++17 if init-statement
+//#elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
+//#	define if_likely( ... )		if ( __builtin_expect( !!(__VA_ARGS__), 1 ))
+//#	define if_unlikely( ... )	if ( __builtin_expect( !!(__VA_ARGS__), 0 ))
 #else
 	// not supported
 #	define if_likely( ... )		if ( __VA_ARGS__ )	// by default it is hot path

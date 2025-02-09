@@ -83,7 +83,11 @@ namespace
 	static void  SimdVec_Test2 ()
 	{
 		using V = SimdVector_SingleElement<float>;
+	  #if AE_HAS_SIMD
 		StaticAssert( V::ScalarCount() == 2 or V::ScalarCount() == 4 or V::ScalarCount() == 8 or V::ScalarCount() == 16 );
+	  #else
+		StaticAssert( V::ScalarCount() == 1 );
+	  #endif
 		StaticAssert( sizeof(V) == alignof(V) );
 		StaticAssert( sizeof(V) == sizeof(float)*V::ScalarCount() );
 	}

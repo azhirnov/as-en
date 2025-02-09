@@ -87,13 +87,15 @@ namespace AE::Base
 		uint	s	: 1;		// sign bit
 
 	// methods
+		__Cx__ Float32Bits ()						__NE___ : m{0}, e{0}, s{0} {}
+
 		NdCx__ bool			IsNaN ()				C_NE___ { return e == _NaNExp and m != 0; }
 		NdCx__ bool			IsInf ()				C_NE___	{ return e == _NaNExp and m == 0; }
 
 		NdCz__ uint			AsUInt ()				C_NE___	{ return BitCast<uint>(*this); }
 		NdCz__ float		AsFloat ()				C_NE___	{ return BitCast<float>(*this); }
 
-		NdCx__ float		MinDelta ()				C_NE___	{ Float32Bits b = *this;  b.s=0; b.m=0;  return b.AsFloat(); }
+		NdCz__ float		MinDelta ()				C_NE___	{ Float32Bits b = *this;  b.s=0; b.m=0;  return b.AsFloat(); }
 
 		NdCz__ explicit operator float ()			C_NE___	{ return AsFloat(); }
 
@@ -135,13 +137,15 @@ namespace AE::Base
 		ulong	s	: 1;		// sign bit
 
 	// methods
+		__Cx__ Float64Bits ()						__NE___ : m{0}, e{0}, s{0} {}
+
 		NdCx__ bool			IsNaN ()				C_NE___ { return e == _NaNExp and m != 0; }
 		NdCx__ bool			IsInf ()				C_NE___	{ return e == _NaNExp and m == 0; }
 
 		NdCz__ ulong		AsUInt ()				C_NE___	{ return BitCast<ulong>(*this); }
 		NdCz__ double		AsFloat ()				C_NE___	{ return BitCast<double>(*this); }
 
-		NdCx__ double		MinDelta ()				C_NE___	{ Float64Bits b = *this;  b.s=0; b.m=0;  return b.AsFloat(); }
+		NdCz__ double		MinDelta ()				C_NE___	{ Float64Bits b = *this;  b.s=0; b.m=0;  return b.AsFloat(); }
 
 		NdCz__ explicit operator double ()			C_NE___	{ return AsFloat(); }
 

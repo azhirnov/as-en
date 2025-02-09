@@ -427,10 +427,11 @@ namespace {
 
 				case uint{SerID} :
 					return true;  // continue in '_DeserializeStyles()'
+
+				default:
+					RETURN_ERR( "unsupported serialized object type" );
 			}
 		}
-
-		RETURN_ERR( "unexpected end of UIResources file" );
 	}
 
 /*

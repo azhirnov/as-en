@@ -37,6 +37,8 @@
 #	pragma GCC diagnostic ignored "-Wignored-attributes"
 # endif
 
+# include "base/Common.h"
+
 # include "base/SIMD/SSE128.h"
 # include "base/SIMD/AVX256.h"
 # include "base/SIMD/AVX512.h"

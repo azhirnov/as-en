@@ -681,8 +681,8 @@ namespace AE::Base
 		ND_ int		TestBoth_And_AndNot (const Self &mask)	C_NE___	{ return _mm256_testnzc_si256( _value, mask._value ); }		// (a & mask == 0) and (a & ~mask == 0) ? 1 : 0
 
 		// shift in bytes
-		template <int ShiftBytes> ND_ Self  LShiftB ()		C_NE___	{ return Self{ _mm256_bslli_si256( _value, ShiftBytes )}; }
-		template <int ShiftBytes> ND_ Self  RShiftB ()		C_NE___	{ return Self{ _mm256_bsrli_si256( _value, ShiftBytes )}; }
+		template <int ShiftBytes> ND_ Self  LShiftB ()		C_NE___	{ return Self{ _mm256_slli_si256( _value, ShiftBytes )}; }
+		template <int ShiftBytes> ND_ Self  RShiftB ()		C_NE___	{ return Self{ _mm256_srli_si256( _value, ShiftBytes )}; }
 
 
 	// conversion //

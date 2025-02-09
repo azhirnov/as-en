@@ -9,6 +9,8 @@
 
 #include "graphics_hl/Resources/FormattedText.h"
 #include "graphics_rhi/Public/IDs.h"
+#include "graphics_rhi/Public/RenderStateEnums.h"
+#include "graphics_rhi/Public/DescriptorSet.h"
 
 namespace AE::UI::_hidden_
 {

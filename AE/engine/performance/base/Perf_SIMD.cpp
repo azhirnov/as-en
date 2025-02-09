@@ -319,7 +319,6 @@ namespace
 			StaticAssert( IsMultipleOf( arr_size-1, 16 ));
 
 			static constexpr usize	op_count	= (arr_size - 1) * VecSize<T>;
-			auto&					cpu_info	= CpuArchInfo::Get();
 
 			Array<T>	data;
 			data.resize( arr_size );
@@ -349,6 +348,7 @@ namespace
 			VFloat4_Op< VFloat_MulAdd<T> >( profiler, data.data(), count );
 
 		  #ifdef AE_CPU_ARCH_ARM_BASED
+			auto&	cpu_info = CpuArchInfo::Get();
 			if ( cpu_info.feats.NEON )
 			{
 				if constexpr( HasSimdType<T> ) {

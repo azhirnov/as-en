@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "base/Math/GLM.h"
-#include "base/Math/FloatConversion.h"
+#include "base/Math/Vec.h"
 #include "base/Math/BitMath.h"
+#include "base/Math/FloatConversion.h"
 #include "base/Pointers/AlignedPtr.h"
 
 namespace AE::Base
@@ -393,7 +393,11 @@ namespace _hidden_
 		return v.RoundEven();
 	}
 //-----------------------------------------------------------------------------
-
+	
+# ifdef AE_COMPILER_GCC
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wignored-attributes"
+# endif
 
 # ifdef AE_SIMD_SimdFloat4
 	template <>				struct TMemCopyAvailable< SimdFloat4 >		: TMemCopyAvailable< SimdFloat4::Native_t >{};
@@ -454,6 +458,10 @@ namespace _hidden_
 	template <typename T>	struct TMemCopyAvailable< SimdTInt64<T> >	: TMemCopyAvailable< typename SimdTInt64<T>::Native_t >{};
 	template <typename T>	struct TZeroMemAvailable< SimdTInt64<T> >	: TZeroMemAvailable< typename SimdTInt64<T>::Native_t >{};
 	template <typename T>	struct TUnwrap< SimdTInt64<T> >				: TUnwrap< typename SimdTInt64<T>::Scalar_t >{};
+# endif
+	
+# ifdef AE_COMPILER_GCC
+#	pragma GCC diagnostic pop
 # endif
 
 } // AE::Base

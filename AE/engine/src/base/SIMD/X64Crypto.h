@@ -105,7 +105,14 @@ namespace AE::Base
 			ND_ static Int128b		InverseMixColumn (const Int128b &v)						__NE___	{ return Int128b{_mm_aesimc_si128( v.Ref() )}; }
 
 			template <int RoundConst>
-			ND_ static Int128b		RoundKeyGenAssist (const Int128b &ckey)					__NE___	{ return Int128b{_mm_aeskeygenassist( ckey.Ref(), RoundConst )}; }
+			ND_ static Int128b		RoundKeyGenAssist (const Int128b &ckey)					__NE___
+			{
+			  #ifdef AE_COMPILER_MSVC
+				return Int128b{_mm_aeskeygenassist( ckey.Ref(), RoundConst )};
+			  #else
+				return Int128b{_mm_aeskeygenassist_si128( ckey.Ref(), RoundConst )};
+			  #endif
+			}
 
 			// requires 'vpclmulqdq' CPU feature
 		//	template <uint Idx>

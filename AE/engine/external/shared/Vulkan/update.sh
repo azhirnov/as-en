@@ -1,6 +1,6 @@
 rm -rf "../../../../../AE-Bin/external/source/Vulkan"
 rm -rf "temp"
-git clone --branch "vulkan-sdk-1.3.290.0" "../../../../../3party/Vulkan-Headers" "temp"
+git clone --branch "v1.4.307" "../../../../../3party/Vulkan-Headers" "temp"
 mkdir "../../../../../AE-Bin/external/source/Vulkan"
 cp -TR "temp/include/**/*.h" "../../../../../AE-Bin/external/source/Vulkan"
 cp "temp/LICENSE.md" "../../../../../AE-Bin/external/source/Vulkan/LICENSE.md"

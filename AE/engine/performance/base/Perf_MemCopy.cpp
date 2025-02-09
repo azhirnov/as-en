@@ -194,16 +194,17 @@ namespace
 
 
   #if AE_SIMD_SSE >= 41
-	static void  MemCopy16_SSE_v8 (OUT void* dst, const void* src, const Bytes size) __NE___
+	static void  MemCopy16_SSE_v8 (OUT void* dst, const void* inSrc, const Bytes size) __NE___
 	{
 		__m128i		r0, r1, r2, r3;
+		auto*		src = const_cast< __m128i* >( static_cast<__m128i const *>( inSrc ));
 
 		for (usize i = 0; i < usize(size);)
 		{
-			r0 = _mm_stream_load_si128( static_cast<__m128i const *>(src)+0 );
-			r1 = _mm_stream_load_si128( static_cast<__m128i const *>(src)+1 );
-			r2 = _mm_stream_load_si128( static_cast<__m128i const *>(src)+2 );
-			r3 = _mm_stream_load_si128( static_cast<__m128i const *>(src)+3 );
+			r0 = _mm_stream_load_si128( src+0 );
+			r1 = _mm_stream_load_si128( src+1 );
+			r2 = _mm_stream_load_si128( src+2 );
+			r3 = _mm_stream_load_si128( src+3 );
 
 			_mm_stream_si128( OUT static_cast<__m128i *>(dst)+0, r0 );
 			_mm_stream_si128( OUT static_cast<__m128i *>(dst)+1, r1 );

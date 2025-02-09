@@ -445,3 +445,10 @@ TODO
 | 17600 | 24000 | 20800 | 18.2% | ... | 400 instances |
 | 24000 | 33600 | 28600 | 19.2% | ... | 400 instances |
 | 27200 | 38400 | 31200 | 14.7% | ... | 400 instances |
+
+
+## Triangle Clipping
+
+When part of a single triangle clipped by depth test or `gl_ClipDistance` the resulting rectangle rasterized as 2 triangles with helper invocations in diagonal.
+
+![](img/triangle-clip/nv-turing.png)

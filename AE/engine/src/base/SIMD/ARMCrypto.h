@@ -66,7 +66,7 @@ namespace AE::Base
 			ND_ static SimdUInt4	SheduleUpd0 (SimdUInt4 a, SimdUInt4 b)				__NE___	{ return SimdUInt4{ vsha256su0q_u32( a.Ref(), b.Ref() )}; }
 
 			// SHA256 schedule update 1.
-			ND_ static SimdUInt4	SheduleUpd1 (SimdUInt4 a, SimdUInt4 b)				__NE___	{ return SimdUInt4{ vsha256su1q_u32( a.Ref(), b.Ref() )}; }
+			ND_ static SimdUInt4	SheduleUpd1 (SimdUInt4 a, SimdUInt4 b, SimdUInt4 c)	__NE___	{ return SimdUInt4{ vsha256su1q_u32( a.Ref(), b.Ref(), c.Ref() )}; }
 		};
 
 		static constexpr SHA1	sha1		= {};
@@ -84,16 +84,16 @@ namespace AE::Base
 		struct SHA3
 		{
 			// SHA512 hash update (part 1).
-			ND_ static SimdULong2	Update1 (SimdULong2 a, SimdULong2 b, SimdULong2 c)	__NE___	{ return SimdULong2{ vsha512hq_u64( a.Ref(), b.Ref(), c.Ref() )}; }
+			ND_ static SimdULong2	Update1 (SimdULong2 a, SimdULong2 b, SimdULong2 c)		__NE___	{ return SimdULong2{ vsha512hq_u64( a.Ref(), b.Ref(), c.Ref() )}; }
 
 			// SHA512 hash update (part 2).
-			ND_ static SimdULong2	Update2 (SimdULong2 a, SimdULong2 b, SimdULong2 c)	__NE___	{ return SimdULong2{ vsha512h2q_u64( a.Ref(), b.Ref(), c.Ref() )}; }
+			ND_ static SimdULong2	Update2 (SimdULong2 a, SimdULong2 b, SimdULong2 c)		__NE___	{ return SimdULong2{ vsha512h2q_u64( a.Ref(), b.Ref(), c.Ref() )}; }
 
 			// SHA256 schedule update 0.
-			ND_ static SimdULong2	SheduleUpd0 (SimdULong2 a, SimdULong2 b)			__NE___	{ return SimdULong2{ vsha512su0q_u64( a.Ref(), b.Ref() )}; }
+			ND_ static SimdULong2	SheduleUpd0 (SimdULong2 a, SimdULong2 b)				__NE___	{ return SimdULong2{ vsha512su0q_u64( a.Ref(), b.Ref() )}; }
 
 			// SHA256 schedule update 1.
-			ND_ static SimdULong2	SheduleUpd1 (SimdULong2 a, SimdULong2 b)			__NE___	{ return SimdULong2{ vsha512su1q_u64( a.Ref(), b.Ref() )}; }
+			ND_ static SimdULong2	SheduleUpd1 (SimdULong2 a, SimdULong2 b, SimdULong2 c)	__NE___	{ return SimdULong2{ vsha512su1q_u64( a.Ref(), b.Ref(), c.Ref() )}; }
 		};
 		static constexpr SHA3	sha3		= {};
 		static constexpr bool	has_sha3	= true;

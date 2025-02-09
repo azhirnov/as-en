@@ -57,6 +57,7 @@ namespace AE::UI
 
 		// methods
 		public:
+				IStyle ()												__NE___ {}
 				virtual ~IStyle ()										__NE___ {}
 			ND_ virtual UVScaleColor  Get (EStyleIndex idx)				C_NE___ = 0;
 			ND_ virtual bool  Deserialize (const StyleCollection &,
@@ -73,6 +74,7 @@ namespace AE::UI
 
 		// methods
 		public:
+			ColorStyle () __NE___ {}
 			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV	{ return UVScaleColor{ colors[ uint(idx) ] }; }
 			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
 		};
@@ -87,6 +89,7 @@ namespace AE::UI
 
 		// methods
 		public:
+			ImageStyle () __NE___ {}
 			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV	{ return UVScaleColor{ uv, scale_color[ uint(idx) ]}; }
 			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
 		};
@@ -100,6 +103,7 @@ namespace AE::UI
 
 		// methods
 		public:
+			ImageAnimationStyle () __NE___ {}
 			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV	{ return uv_scale_color[ uint(idx) ]; }
 			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
 		};
@@ -113,6 +117,7 @@ namespace AE::UI
 
 		// methods
 		public:
+			FontStyle () __NE___ {}
 			UVScaleColor  Get (EStyleIndex idx)		C_NE_OV;
 			bool  Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE_OV;
 		};*/

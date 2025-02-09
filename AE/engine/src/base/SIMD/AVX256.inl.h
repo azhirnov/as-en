@@ -285,6 +285,9 @@ namespace AE::Base
 		StaticAssert( V5 < count*2 );
 		StaticAssert( V6 < count*2 );
 		StaticAssert( V7 < count*2 );
+
+		// TODO
+		return {};
 	}
 
 /*
@@ -514,6 +517,9 @@ namespace AE::Base
 		StaticAssert( Y < count*2 );
 		StaticAssert( Z < count*2 );
 		StaticAssert( W < count*2 );
+
+		// TODO
+		return {};
 	}
 
 /*

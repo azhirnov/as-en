@@ -41,7 +41,7 @@ jobs:
         name: AsEn-Tools-macos-arm64-${{matrix.config}}
         path: |
             ${{github.workspace}}/_build/bin/CICD.app
-            ${{github.workspace}}/_build/bin/GraphicsLib.so
+            ${{github.workspace}}/_build/bin/GraphicsRHI-shared.so
             ${{github.workspace}}/_build/bin/OfflinePacker.app
             ${{github.workspace}}/_build/bin/RemoteGraphicsDevice.app
 

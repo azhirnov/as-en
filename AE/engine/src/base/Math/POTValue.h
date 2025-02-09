@@ -245,7 +245,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename IT>
-	__Cx__ IT  operator * (const TPowerOf2Value<T> lhs, const IT rhs) __NE___
+	__Cz__ IT  operator * (const TPowerOf2Value<T> lhs, const IT rhs) __NE___
 	{
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( lhs.GetPOT() >= 0 );
@@ -266,7 +266,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename IT>
-	__Cx__ IT  operator * (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
+	__Cz__ IT  operator * (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
 	{
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( rhs.GetPOT() >= 0 );
@@ -287,7 +287,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename IT>
-	__Cx__ IT  operator / (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
+	__Cz__ IT  operator / (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
 	{
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( rhs.GetPOT() >= 0 );
@@ -308,7 +308,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename IT>
-	__Cx__ IT  operator % (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
+	__Cz__ IT  operator % (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
 	{
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( rhs.GetPOT() >= 0 );

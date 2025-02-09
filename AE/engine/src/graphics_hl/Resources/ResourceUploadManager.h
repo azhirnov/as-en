@@ -182,6 +182,8 @@ namespace AE::Graphics
 			ImageID				imageId;
 			EResourceState		initialState;
 			EResourceState		finalState;
+
+			FirstTransitionData (ImageID id, EResourceState initial, EResourceState final) __NE___ : imageId{id}, initialState{initial}, finalState{final} {}
 		};
 
 		using UploadQueue_t		= RingBuffer< RC<UploadTask> >;

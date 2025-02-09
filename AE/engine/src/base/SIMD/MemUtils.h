@@ -170,7 +170,7 @@ namespace AE::Base
 			auto*	dst = static_cast<__m256i *>( inDst );
 			for (auto* end = dst + size; dst < end;)
 			{
-				__m256i	r0 = _mm256_stream_load_si256( src+0 );
+				__m256i	r0 = _mm256_stream_load_si256( src+0 );		// AVX2
 				__m256i	r1 = _mm256_stream_load_si256( src+1 );
 				__m256i	r2 = _mm256_stream_load_si256( src+2 );
 				__m256i	r3 = _mm256_stream_load_si256( src+3 );
@@ -185,7 +185,11 @@ namespace AE::Base
 			_mm_sfence();
 
 		#elif AE_SIMD_SSE >= 41
+		#  ifdef AE_COMPILER_GCC
+			auto*	src	= const_cast< __m128i* >( static_cast<__m128i const *>( inSrc ));
+		#  else
 			auto*	src	= static_cast<__m128i const *>( inSrc );
+		#  endif
 			auto*	dst = static_cast<__m128i *>( inDst );
 			for (auto* end = dst + size; dst < end;)
 			{

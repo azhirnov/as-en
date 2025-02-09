@@ -96,7 +96,7 @@ namespace AE::AssetPacker
 	{
 		AddName<FileName>( name ); // throw
 
-		CHECK_THROW_MSG( not _tempFiles.contains( name ),
+		CHECK_THROW_MSG( HashTable_NotContains( _tempFiles, name ),
 			"File '"s << name << "' already exists in archive" );
 
 		CHECK_THROW_MSG( _archive.Add( FileName::WithString_t{name}, stream, fileType ),
