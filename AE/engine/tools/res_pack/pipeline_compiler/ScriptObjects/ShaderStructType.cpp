@@ -81,14 +81,25 @@ namespace
 
 /*
 =================================================
-	IsSameLayouts
+	IsCompatibleLayouts
+----
+	mainType {
+		subType  t;
+	}
 =================================================
 */
-	ND_ static bool  IsSameLayouts (EStructLayout lhs, EStructLayout rhs)
+	ND_ static bool  IsCompatibleLayouts (EStructLayout mainType, EStructLayout subType)
 	{
-		return	IsStd140( lhs )	== IsStd140( rhs )	or
-				IsStd430( lhs ) == IsStd430( rhs )	or
-				(lhs == EStructLayout::InternalIO) == (rhs == EStructLayout::InternalIO);
+		if ( mainType == subType )
+			return true;
+
+		if ( subType == EStructLayout::Compatible_Std140 and mainType == EStructLayout::Std140 )
+			return true;
+		
+		if ( subType == EStructLayout::Compatible_Std430 and mainType == EStructLayout::Std430 )
+			return true;
+
+		return false;
 	}
 
 /*
@@ -200,6 +211,8 @@ namespace
 				align		== rhs.align		and
 				offset		== rhs.offset;
 	}
+	
+	bool  ShaderStructType::Field::IsAnyPadding () const	{ return AnyBits( flags, EFlags::Padding_GLSL | EFlags::Padding_MSL ); }
 //-----------------------------------------------------------------------------
 
 
@@ -569,18 +582,18 @@ namespace
 				{
 					case EStructLayout::Compatible_Std140 :
 					{
-						// Metal does not support custom align
+						// Metal does not support custom align and can not add padding for array element
 						if ( field.IsArray() ) {
 							CHECK_THROW_MSG( IsMultipleOf( field.align, 16 ) or IsMultipleOf( field.size, 16 ),
 								"In Struct '"s << stName << "', field '" << field.name << "': align (" << ToString(uint(field.align)) <<
 								") and size (" << ToString(uint(field.size)) << ") must be aligned to 16 bytes" );
 						}
+						field.align = Max( field.align, 16_b );
 						break;
 					}
 					case EStructLayout::Std140 :
 					{
-						if ( field.IsArray() )
-							field.align = Max( field.align, 16_b );
+						field.align = Max( field.align, 16_b );
 						break;
 					}
 					case EStructLayout::Compatible_Std430 :	break;
@@ -616,7 +629,7 @@ namespace
 						if ( field.IsMat() )
 							field.size *= field.cols;
 
-						// Metal does not support custom align for arrays
+						// Metal does not support custom align for arrays and can not add padding for array element
 						if ( field.IsArray() )
 						{
 							CHECK_THROW_MSG( IsMultipleOf( field.align, 16 ) or IsMultipleOf( field.size, 16 ),
@@ -685,6 +698,17 @@ namespace
 							"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
 							"must not be Bool8, use Bool32 or UInt instead" );
 
+						// special case for 'float3' + scalar
+						if_unlikely( field.IsVec()			and field.IsPacked()							and
+									 field.rows == 3		and IsMultipleOf( totalSize, field.align*4 )	and
+									 i+1 < fields.size()	and
+									 fields[i+1].IsScalar()	and fields[i+1].size == field.align )
+						{
+							field.flags = (field.flags & ~EFlags::Packed) | EFlags::PackedAlias;
+							field.align *= 4;
+							break;
+						}
+
 						if ( not field.IsPacked() and field.rows > 1 )
 							field.align *= (field.rows == 3 ? 4 : field.rows);
 
@@ -703,7 +727,7 @@ namespace
 				switch_end
 			}
 
-			if ( field.IsArray() )
+			if ( field.IsStruct() or field.IsArray() )
 				field.size = AlignUp( field.size, field.align );
 
 			if ( field.IsStaticArray() )
@@ -790,10 +814,12 @@ namespace
 				case EValueType::_Count :																\
 				default :						CHECK_THROW_MSG( false, "unknown value type" );			\
 			}																							\
-			switch_end																			\
+			switch_end																					\
 		}
 
 		CHECK_THROW_MSG( not (field.IsStruct() or field.IsDeviceAddress()) );
+		
+		const bool	packed = AnyBits( field.flags, EFlags::Packed | EFlags::PackedAlias );
 
 		if ( field.IsScalar() )
 		{
@@ -802,7 +828,7 @@ namespace
 			);
 		}
 		else
-		if ( field.IsVec() and field.IsPacked() )
+		if ( field.IsVec() and packed )
 		{
 			switch ( field.rows )
 			{
@@ -813,7 +839,7 @@ namespace
 			}
 		}
 		else
-		if ( field.IsVec() and not field.IsPacked() )
+		if ( field.IsVec() and (not packed) )
 		{
 			switch ( field.rows )
 			{
@@ -824,7 +850,7 @@ namespace
 			}
 		}
 		else
-		if ( field.IsMat() and field.IsPacked() )
+		if ( field.IsMat() and packed )
 		{
 			switch ( uint(field.cols)*10 + uint(field.rows) )
 			{
@@ -841,7 +867,7 @@ namespace
 			}
 		}
 		else
-		if ( field.IsMat() and not field.IsPacked() )
+		if ( field.IsMat() and (not packed) )
 		{
 			switch ( uint(field.cols)*10 + uint(field.rows) )
 			{
@@ -875,17 +901,14 @@ namespace
 
 		if ( IsStd140( layout ))
 		{
-			if ( field.IsStaticArray() )
-			{
+			if ( field.IsArray() )
 				align = Max( align, 16_b );
-				size  = AlignUp( size, align );
-				size  = AlignUp( size * field.arraySize, align );
-			}
 		}
-		else
+
+		if ( field.IsStaticArray() )
 		{
-			if ( field.IsStaticArray() )
-				size = AlignUp( size * field.arraySize, align );
+			size = AlignUp( size, align );
+			size = AlignUp( size * field.arraySize, align );
 		}
 
 		return SizeAndAlign{ size, align };
@@ -970,6 +993,9 @@ namespace
 
 	SizeAndAlign  ShaderStructType::_GetMSLSizeAndAlign (const Field &field, EStructLayout layout) __Th___
 	{
+		CHECK_THROW_MSG( NoBits( field.flags, EFlags::PackedAlias ),
+			"'vec3 + scalar' is not supported in Metal, use packed vector type" );
+
 		auto [size, align] = _GetMSLSizeAndAlign2( field );
 
 		if ( field.IsDynamicArray() )
@@ -1033,28 +1059,38 @@ namespace
 		if ( not field.IsPacked() )
 			align *= (field.rows == 3 ? 4 : field.rows);
 
-		size = AlignUp( size * field.rows, align );
+		size *= field.rows;
+
+		if ( not AllBits( field.flags, EFlags::PackedAlias ))
+			size = AlignUp( size, align );
 
 		if ( IsStd140( layout ))
 		{
 			if ( not field.IsPacked() and field.IsMat() )
 				align = Max( align, 16_b );
-
-			size = AlignUp( size * field.cols, align );
-
-			if ( field.IsStaticArray() )
+			
+			if ( field.cols > 1 )
 			{
-				align = Max( align, 16_b );
-				size  = AlignUp( size, align );
-				size  = AlignUp( size * field.arraySize, align );
+				size = AlignUp( size, align );
+				size = AlignUp( size * field.cols, align );
 			}
+			
+			if ( field.IsArray() )
+				align = Max( align, 16_b );
 		}
 		else
 		{
-			size = AlignUp( size * field.cols, align );
-
-			if ( field.IsStaticArray() )
-				size = AlignUp( size * field.arraySize, align );
+			if ( field.cols > 1 )
+			{
+				size = AlignUp( size, align );
+				size = AlignUp( size * field.cols, align );
+			}
+		}
+		
+		if ( field.IsStaticArray() )
+		{
+			size  = AlignUp( size, align );
+			size  = AlignUp( size * field.arraySize, align );
 		}
 
 		return SizeAndAlign{ size, align };
@@ -1073,8 +1109,8 @@ namespace
 		{
 			case EStructLayout::Compatible_Std140 :
 			case EStructLayout::Compatible_Std430 :
-				CHECK_THROW_MSG( data.mslOffset  == offset );
 				CHECK_THROW_MSG( data.glslOffset == offset );
+				CHECK_THROW_MSG( data.mslOffset  == offset );
 				CHECK_THROW_MSG( data.cppOffset  == offset );
 				break;
 			case EStructLayout::Metal :
@@ -1109,7 +1145,7 @@ namespace
 
 		for (auto& field : fields)
 		{
-			if ( field.IsPadding() )
+			if ( field.IsAnyPadding() )
 				continue;
 
 			CHECK( field.IsDeviceAddress() == (field.IsBufferRef() or field.IsPointer() or field.IsUntypedDeviceAddress()) );
@@ -1145,9 +1181,9 @@ namespace
 			else
 			if ( field.IsStruct() )
 			{
-				CHECK_THROW_MSG( IsSameLayouts( data.layout, field.stType->Layout() ),
+				CHECK_THROW_MSG( IsCompatibleLayouts( data.layout, field.stType->Layout() ),
 					"Struct '"s << stName << "' field '" << field.name << "' uses Struct '" << field.stType->Name() << "' with layout '" <<
-					EStructLayout_ToString(field.stType->Layout()) << "' is not compatible with layout '" << EStructLayout_ToString(data.layout) << "'" );
+					EStructLayout_ToString(field.stType->Layout()) << "' which is not compatible with layout '" << EStructLayout_ToString(data.layout) << "'" );
 
 				const Bytes		st_align = field.stType->_structAlign;
 				data.mslOffset	= AlignUp( data.mslOffset,  st_align );
@@ -1231,7 +1267,7 @@ namespace
 				{
 					auto [size, align] = _GetMSLSizeAndAlign( field, data.layout );
 
-					CHECK_THROW_MSG( field.IsDynamicArray() == (size == 0_b) );  // internal error
+					CHECK_THROW( field.IsDynamicArray() == (size == 0_b) );  // internal error
 					CHECK_THROW_MSG( size == 0_b or size == field.size,
 						"Struct '"s << stName << "' field '" << field.name << "' size mismatch for Metal backend: (" <<
 						ToString(uint(size)) << " == " << ToString(uint(field.size)) << ")" );
@@ -1245,7 +1281,7 @@ namespace
 				{
 					auto [size, align] = _GetGLSLSizeAndAlign( field, data.layout );
 
-					CHECK_THROW_MSG( field.IsDynamicArray() == (size == 0_b) );  // internal error
+					CHECK_THROW( field.IsDynamicArray() == (size == 0_b) );  // internal error
 					CHECK_THROW_MSG( size == 0_b or size == field.size,
 						"Struct '"s << stName << "' field '" << field.name << "' size mismatch for GLSL backend: (" <<
 						ToString(uint(size)) << " == " << ToString(uint(field.size)) << ")" );
@@ -1258,7 +1294,7 @@ namespace
 				{
 					auto [size, align] = _GetCPPSizeAndAlign( field, data.layout );
 
-					CHECK_THROW_MSG( field.IsDynamicArray() == (size == 0_b) );  // internal error
+					CHECK_THROW( field.IsDynamicArray() == (size == 0_b) );  // internal error
 					CHECK_THROW_MSG( size == 0_b or size == field.size,
 						"Struct '"s << stName << "' field '" << field.name << "' size mismatch for C++ backend: (" <<
 						ToString(uint(size)) << " == " << ToString(uint(field.size)) << ")" );
@@ -1283,11 +1319,83 @@ namespace
 */
 	void  ShaderStructType::_AddPadding (const EStructLayout layout, INOUT Array<Field> &fields) __Th___
 	{
+		const auto	Vec3Padding = [layout, &fields] (INOUT usize &i) -> bool
+		{{
+			auto&	field = fields[i];
+			if_unlikely( field.IsVec() and field.rows == 3 and not field.IsPacked() )
+			{
+				if ( layout == EStructLayout::Std430 and AllBits( field.flags, EFlags::PackedAlias ))
+					return false;
+
+				Field	pad = field;
+
+				pad.name	= "_"s + field.name + "_padding_w";
+				pad.rows	= 1;
+				pad.size	= field.size / 4;
+				pad.offset	= field.offset + (field.size - pad.size);
+				pad.align	= pad.size;
+				pad.flags	|= EFlags::Padding_GLSL;
+				ASSERT( pad.IsScalar() );
+
+				++i;
+				fields.insert( fields.begin()+i, RVRef(pad) );
+				return true;
+			}
+			return false;
+		}};
+
 		switch_enum( layout )
 		{
+			case EStructLayout::Compatible_Std140 :
+				for (usize i = 0; i < fields.size(); ++i)
+				{
+					auto&	field = fields[i];	// !!! don't use after 'insert()'
+
+					if ( field.IsArray() )
+						continue;
+
+					if ( Vec3Padding( INOUT i ))
+						continue;
+
+					if_unlikely( field.IsStruct() and not field.IsArray() )
+					{
+						Bytes		begin	= field.offset + field.stType->StaticSize();
+						const Bytes	end		= field.offset + field.size;
+
+						if ( begin == end )
+							continue;
+
+						Field	pad;
+						pad.name	= "_"s + field.name + "_padding";
+
+						if ( end - begin >= 4 ){
+							pad.type	= EValueType::Float32;
+							pad.align	= 4_b;
+						}else
+						if ( end - begin >= 2 ){
+							pad.type	= EValueType::Int16;
+							pad.align	= 2_b;
+						}else{
+							pad.type	= EValueType::Int8;
+							pad.align	= 1_b;
+						}
+						
+						pad.offset	= AlignUp( begin, pad.align );
+						pad.size	= end - pad.offset;
+						pad.rows	= ubyte(pad.size / pad.align);
+						pad.cols	= 1;
+						pad.flags	= EFlags::Packed | EFlags::Padding_MSL;
+						ASSERT( pad.IsPacked() and (pad.IsScalar() or pad.IsVec()) );
+
+						++i;
+						fields.insert( fields.begin()+i, RVRef(pad) );
+						continue;
+					}
+				}
+				break;
+
 			case EStructLayout::Compatible_Std430 :
 			case EStructLayout::Std430 :
-			case EStructLayout::Compatible_Std140 :
 			case EStructLayout::Std140 :
 				for (usize i = 0; i < fields.size(); ++i)
 				{
@@ -1295,22 +1403,7 @@ namespace
 
 					if ( field.IsArray() )	continue;
 
-					// add padding for vec3
-					if ( field.IsVec() and field.rows == 3 and not field.IsPacked() )
-					{
-						Field	pad = field;
-
-						pad.name	= "_"s + field.name + "_padding_w";
-						pad.rows	= 1;
-						pad.size	= field.size / 4;
-						pad.offset	= field.offset + (field.size - pad.size);
-						pad.align	= pad.size;
-						pad.flags	|= EFlags::Padding;
-						ASSERT( pad.IsScalar() );
-
-						++i;
-						fields.insert( fields.begin()+i, RVRef(pad) );
-					}
+					Vec3Padding( INOUT i );
 				}
 				break;
 
@@ -1574,8 +1667,8 @@ namespace
 		}
 		str << "};\n";
 
-		// example: 'float3  Cast (const packed_float3 src) ...'
-		str << dstType << "  Cast" << " (const " << packedTypeName << " src) { return " << dstType << "( ";
+		// example: 'float3  Unpack (const packed_float3 src) ...'
+		str << dstType << "  Unpack" << " (const " << packedTypeName << " src) { return " << dstType << "( ";
 		if ( field.IsVec() )
 		{
 			for (ubyte r = 0; r < field.rows; ++r) {
@@ -1585,13 +1678,13 @@ namespace
 		if ( field.IsMat() )
 		{
 			for (ubyte c = 0; c < field.cols; ++c) {
-				str << (c ? ", " : "") << "Cast(src.c" << ToString( uint(c) ) << ")";
+				str << (c ? ", " : "") << "Unpack(src.c" << ToString( uint(c) ) << ")";
 			}
 		}
 		str << " ); }\n";
 
-		// example: 'packed_float3  Cast (const float3 src) ...'
-		str << packedTypeName << "  Cast" << " (const " << dstType << " src) { return " << packedTypeName << "( ";
+		// example: 'packed_float3  Pack (const float3 src) ...'
+		str << packedTypeName << "  Pack" << " (const " << dstType << " src) { return " << packedTypeName << "( ";
 		if ( field.IsVec() )
 		{
 			for (ubyte r = 0; r < field.rows; ++r) {
@@ -1601,7 +1694,7 @@ namespace
 		if ( field.IsMat() )
 		{
 			for (ubyte c = 0; c < field.cols; ++c) {
-				str << (c ? ", " : "") << "Cast(src[" << ToString( uint(c) ) << "])";
+				str << (c ? ", " : "") << "Pack(src[" << ToString( uint(c) ) << "])";
 			}
 		}
 		str << " ); }\n\n";
@@ -1663,8 +1756,8 @@ namespace {
 	{
 		if ( type >= EValueType::Int8_Norm and type <= EValueType::UInt16_Norm )
 		{
-			// ignore precision
-			flags &= ~EFlags_Precision;
+			// add precision
+			flags = (flags & ~EFlags_Precision) | EFlags::MediumPrecision;
 		}
 
 		if ( type <= EValueType::UInt64 )
@@ -1684,7 +1777,9 @@ namespace {
 				case EFlags::LowPrecision :
 				case EFlags::Unknown :
 				case EFlags::Packed :
-				case EFlags::Padding :
+				case EFlags::PackedAlias :
+				case EFlags::Padding_GLSL :
+				case EFlags::Padding_MSL :
 				case EFlags::Address :
 				case EFlags::Pointer :
 				default :				RETURN_ERR( "unsupported qualifier" );
@@ -1695,26 +1790,26 @@ namespace {
 		switch_enum( type )
 		{
 			// integer
-			case EValueType::Int8 :			s_name = "int8_t";			v_name = "i8vec";			break;
-			case EValueType::UInt8 :		s_name = "uint8_t";			v_name = "u8vec";			break;
-			case EValueType::Int16 :		s_name = "int16_t";			v_name = "i16vec";			break;
-			case EValueType::UInt16 :		s_name = "uint16_t";		v_name = "u16vec";			break;
-			case EValueType::Bool32 :		s_name = "bool";			v_name = "bvec";			break;
-			case EValueType::Int32 :		s_name = "int";				v_name = "ivec";			break;
-			case EValueType::UInt32 :		s_name = "uint";			v_name = "uvec";			break;
-			case EValueType::Int64 :		s_name = "int64_t";			v_name = "i64vec";			break;
-			case EValueType::UInt64 :		s_name = "uint64_t";		v_name = "u64vec";			break;
+			case EValueType::Int8 :			s_name = "int8_t";		v_name = "i8vec";	break;
+			case EValueType::UInt8 :		s_name = "uint8_t";		v_name = "u8vec";	break;
+			case EValueType::Int16 :		s_name = "int16_t";		v_name = "i16vec";	break;
+			case EValueType::UInt16 :		s_name = "uint16_t";	v_name = "u16vec";	break;
+			case EValueType::Bool32 :		s_name = "bool";		v_name = "bvec";	break;
+			case EValueType::Int32 :		s_name = "int";			v_name = "ivec";	break;
+			case EValueType::UInt32 :		s_name = "uint";		v_name = "uvec";	break;
+			case EValueType::Int64 :		s_name = "int64_t";		v_name = "i64vec";	break;
+			case EValueType::UInt64 :		s_name = "uint64_t";	v_name = "u64vec";	break;
 
 			// normalized integer
-			case EValueType::Int8_Norm :	s_name = "mediump float";	v_name = "mediump vec";		break;
-			case EValueType::UInt8_Norm :	s_name = "mediump float";	v_name = "mediump vec";		break;
-			case EValueType::Int16_Norm :	s_name = "mediump float";	v_name = "mediump vec";		break;
-			case EValueType::UInt16_Norm :	s_name = "mediump float";	v_name = "mediump vec";		break;
+			case EValueType::Int8_Norm :
+			case EValueType::UInt8_Norm :
+			case EValueType::Int16_Norm :
+			case EValueType::UInt16_Norm :	s_name = "float";		v_name = "vec";		break;
 
 			// float point
-			case EValueType::Float16 :		s_name = "float16_t";		v_name = "f16vec";		m_name = "f16mat";		break;
-			case EValueType::Float32 :		s_name = "float";			v_name = "vec";			m_name = "mat";			break;
-			case EValueType::Float64 :		s_name = "double";			v_name = "dvec";		m_name = "dmat";		break;
+			case EValueType::Float16 :		s_name = "float16_t";	v_name = "f16vec";	m_name = "f16mat";		break;
+			case EValueType::Float32 :		s_name = "float";		v_name = "vec";		m_name = "mat";			break;
+			case EValueType::Float64 :		s_name = "double";		v_name = "dvec";	m_name = "dmat";		break;
 
 			case EValueType::Bool8 :		// TODO
 			case EValueType::DeviceAddress:
@@ -1863,16 +1958,24 @@ namespace {
 
 
 		CHECK_ERR( Layout() == EStructLayout::InternalIO or IsGLSLCompatible( Layout() ));
+		CHECK_ERR( IsMultipleOf( baseOffset, _align ));
+
+		Array<Tuple< String, String, String, String >>		field_parts;	// offset, typename, name, comment
 
 		for (auto& field : _fields)
 		{
 			// padding needed for structure declaration, buffer declaration has explicit offsets
-			if ( withOffsets and field.IsPadding() )
+			if ( withOffsets and field.IsAnyPadding() )
 				continue;
 
-			outFields << "\t";
+			if ( AllBits( field.flags, EFlags::Padding_MSL ))
+				continue;
+
+			auto& [part0, part1, part2, part3] = field_parts.emplace_back();
+
+			part0 << "\t";
 			if ( withOffsets )
-				outFields << "layout(offset=" << ToString( usize(field.offset + baseOffset) ) << ", align=" << ToString( usize(field.align) ) << ") ";
+				part0 << "layout(offset=" << ToString( usize(field.offset + baseOffset) ) << ", align=" << ToString( usize(field.align) ) << ")  ";
 
 			if ( field.IsBufferRef() and field.IsPointer() )
 			{
@@ -1891,14 +1994,16 @@ namespace {
 						<< type_name << "  data [];\n"
 						<< "};\n\n";
 				}
-				outFields << ptr_name << "  " << field.name;
+				part1 << ptr_name;
+				part2 << field.name;
 			}
 			else
 			if ( field.IsBufferRef() )
 			{
 				String	type_name;
 				CHECK_ERR( GetBufferRefName( field, OUT type_name ));
-				outFields << type_name << "  " << field.name;
+				part1 << type_name;
+				part2 << field.name;
 			}
 			else
 			if ( field.IsPointer() )
@@ -1928,7 +2033,8 @@ namespace {
 						<< "};\n\n";
 				}
 
-				outFields << type_name << "  " << field.name;
+				part1 << type_name;
+				part2 << field.name;
 			}
 			else
 			if ( field.IsStruct() )
@@ -1943,26 +2049,69 @@ namespace {
 						<< "#define " << type_name << "_defined\n"
 						<< "struct " << type_name << "\n{\n" << fields << "};\n\n";
 				}
-
-				outFields << type_name << "  " << field.name;
+				
+				part1 << type_name;
+				part2 << field.name;
 			}
 			else
 			{
-				CHECK_ERR( GetScalarName( is_std140, field, INOUT outFields ));
+				CHECK_ERR( GetScalarName( is_std140, field, INOUT part1 ));
 
 				if ( field.IsPacked() )
-					outFields << ( is_std140 ? ("( "s << field.name << " )") : ("  "s << field.name) );
+				{
+					part2 << ( is_std140 ? ("( "s << field.name << " )") : field.name );
+				}
 				else
-					outFields << "  " << field.name;
+					part2 << field.name;
 			}
 
-			outFields
+			part2
 				<< (field.IsDynamicArray() ? " []"s : (field.IsStaticArray() ? (" ["s << ToString(field.arraySize) << "]") : ""s)) << ";";
 
-			if ( withOffsets )
-				outFields << "\n";
-			else
-				outFields << "  // offset: " << ToString( usize(field.offset) ) << "\n";
+			if ( withOffsets ){
+				if ( not field.IsDynamicArray() )
+					part3 << "// size: " << ToString(usize( field.size ));
+			}else{
+				part3 << "// offset: " << ToString(usize( field.offset ))
+					<< ", align: " << ToString(usize( field.align ))
+					<< ", size: " << ToString(usize( field.size ));
+			}
+		}
+		
+		// format fields
+		usize	part0_len	= 0;
+		usize	part1_len	= 0;
+		usize	part2_len	= 0;
+		usize	total_len	= 0;
+
+		for (auto& [part0, part1, part2, part3] : field_parts)
+		{
+			part0_len  = Max( part0_len, part0.length() );
+			part1_len  = Max( part1_len, part1.length() );
+			part2_len  = Max( part2_len, part2.length() );
+			total_len += part0.length() + part1.length() + part2.length() + part3.length();
+		}
+		part1_len = (part1_len == 0 ? 0 : part1_len + 2);
+		part2_len = (part2_len == 0 ? 0 : part2_len + 2);
+
+		outFields.reserve( outFields.size() + total_len );
+		
+		for (auto& [part0, part1, part2, part3] : field_parts)
+		{
+			outFields << part0;
+			AppendToString( INOUT outFields, part0_len - part0.length(), ' ' );
+
+			outFields << part1;
+			AppendToString( INOUT outFields, part1_len - part1.length(), ' ' );
+
+			outFields << part2;
+
+			if ( not part3.empty() )
+			{
+				AppendToString( INOUT outFields, part2_len - part2.length(), ' ' );
+				outFields << part3;
+			}
+			outFields << "\n";
 		}
 		return true;
 	}
@@ -2084,7 +2233,7 @@ namespace {
 			qual << (qual.empty() ? "" : ", ") << (no_persp ? "sample_no_perspective" : "sample_perspective");
 
 		if ( not qual.empty() )
-			"  [[" >> (qual << "]]");
+			"[[" >> (qual << "]]");
 
 		// normalized types
 		switch ( type )
@@ -2219,19 +2368,20 @@ namespace {
 		}};
 
 		CHECK_ERR( Layout() == EStructLayout::InternalIO or IsMSLCompatible( Layout() ));
-
-		String	src;
-		src << "struct " << Typename() << "\n{\n";
+		
+		Array<Tuple< String, String, String >>		field_parts;	// typename, name, comment
 
 		for (auto& field : _fields)
 		{
-			if ( field.IsPadding() )
+			if ( AllBits( field.flags, EFlags::Padding_GLSL ))
 				continue;
 
-			src << "\t";
+			auto& [part0, part1, part2] = field_parts.emplace_back();
+
+			part0 << "\t";
 
 			if ( field.IsDynamicArray() )
-				src << "device ";
+				part0 << "device ";
 
 			if ( field.IsDeviceAddress() )
 			{
@@ -2241,12 +2391,12 @@ namespace {
 				String	type_name;
 				CHECK_ERR( TypeToStr( f2, INOUT type_name ));
 
-				src << "device " << type_name << "*";
+				part0 << "device " << type_name << "*";
 			}
 			else
 			if ( field.IsStruct() or field.IsScalar() or field.IsVec() or field.IsMat() )
 			{
-				CHECK_ERR( TypeToStr( field, INOUT src ));
+				CHECK_ERR( TypeToStr( field, INOUT part0 ));
 			}
 			else
 			{
@@ -2254,11 +2404,47 @@ namespace {
 			}
 
 			if ( field.IsDynamicArray() )
-				src << "*";
+				part0 << "*";
 
-			src << "  " << field.name
-				<< (field.IsStaticArray() ? (" ["s << ToString(field.arraySize) << "]") : ""s) << ";"
-				<< "  // offset: " << ToString( usize(field.offset) ) << "\n";
+			part1 << field.name
+				<< (field.IsStaticArray() ? (" ["s << ToString(field.arraySize) << "]") : ""s) << ";";
+
+			part2 << "// offset: " << ToString(usize( field.offset ))
+				<< ", align: " << ToString(usize( field.align ))
+				<< ", size: " << ToString(usize( field.size ))
+				<< "\n";
+		}
+
+		String	src;
+		src << "struct " << Typename() << "\n{\n";
+		
+		// format fields
+		{
+			usize	part0_len	= 0;
+			usize	part1_len	= 0;
+			usize	total_len	= 0;
+
+			for (auto& [part0, part1, part2] : field_parts)
+			{
+				part0_len  = Max( part0_len, part0.length() );
+				part1_len  = Max( part1_len, part1.length() );
+				total_len += part0.length() + part1.length() + part2.length();
+			}
+			part0_len = (part0_len == 0 ? 0 : part0_len + 2);
+			part1_len = (part1_len == 0 ? 0 : part1_len + 2);
+
+			src.reserve( src.size() + total_len );
+		
+			for (auto& [part0, part1, part2] : field_parts)
+			{
+				src << part0;
+				AppendToString( INOUT src, part0_len - part0.length(), ' ' );
+
+				src << part1;
+				AppendToString( INOUT src, part1_len - part1.length(), ' ' );
+
+				src << part2;
+			}
 		}
 		src << "};\n";
 
@@ -2299,7 +2485,7 @@ namespace {
 			else
 			if ( field.IsVec() or field.IsScalar() )
 			{
-				if ( field.IsVec() and field.IsPacked() )
+				if ( field.IsVec() and AnyBits( field.flags, EFlags::Packed | EFlags::PackedAlias ) )
 					str << "packed_";
 
 				CHECK_ERR( ValueTypeToStrCPP( field.type, INOUT str ));
@@ -2365,28 +2551,33 @@ namespace {
 				<< " * count); }\n";
 		}
 		src << "\n";
+		
+		Array<Tuple< String, String, String, bool >>	field_parts;	// typename, name, comment, is_dynamic_array
 
 		for (auto& field : _fields)
 		{
-			if ( field.IsPadding() )
+			if ( field.IsAnyPadding() )
 				continue;
 
-			src << (field.IsDynamicArray() ? "\t//\t" : "\t\t");
+			auto& [part0, part1, part2, is_dyn_arr] = field_parts.emplace_back();
+
+			is_dyn_arr = field.IsDynamicArray();
+			part0 << (is_dyn_arr ? "\t//\t" : "\t\t");
 
 			if ( field.IsStaticArray() )
-				src << "StaticArray< ";
+				part0 << "StaticArray< ";
 
 			if ( field.IsDeviceAddress() )
 			{
-				src << "TDeviceAddress< ";
-				CHECK_ERR( TypeToStr( field, INOUT src ));
-				src << (field.IsPointer() ? " *" : " ")
+				part0 << "TDeviceAddress< ";
+				CHECK_ERR( TypeToStr( field, INOUT part0 ));
+				part0 << (field.IsPointer() ? " *" : " ")
 					<< ">";
 			}
 			else
 			if ( field.IsStruct() or field.IsVec() or field.IsScalar() or field.IsMat() )
 			{
-				CHECK_ERR( TypeToStr( field, INOUT src ));
+				CHECK_ERR( TypeToStr( field, INOUT part0 ));
 			}
 			else
 			{
@@ -2394,24 +2585,54 @@ namespace {
 			}
 
 			if ( field.IsStaticArray() )
-				src << ", " << ToString(field.arraySize) << " >  ";
+				part0 << ", " << ToString(field.arraySize) << " >  ";
 
-			src	<< "  " << field.name;
+			part1 << field.name;
 
-			if ( field.IsDynamicArray() )
-				src << " []";
+			if ( is_dyn_arr )
+				part1 << " []";
 
-			src << ';';
+			part1 << ';';
 
 			if ( (field.IsScalar() or field.IsVec()) and (field.type >= EValueType::Int8_Norm and field.type <= EValueType::UInt16_Norm) )
-				src << "// normalized";
+				part2 << "// normalized";
 
-			src << '\n';
-
-			if ( not field.IsDynamicArray() )
+			if ( not is_dyn_arr )
 				test << "\tStaticAssert( offsetof(" << Typename() << ", " << field.name << ") == " << ToString(usize( field.offset )) << " );\n";
 		}
 
+		// format fields
+		{
+			usize	part0_len	= 0;
+			usize	part1_len	= 0;
+			usize	total_len	= 0;
+
+			for (auto& [part0, part1, part2, is_dyn_arr] : field_parts)
+			{
+				part0_len  = Max( part0_len, part0.length() - (is_dyn_arr ? 2 : 0) );
+				part1_len  = Max( part1_len, part1.length() );
+				total_len += part0.length() + part1.length() + part2.length();
+			}
+			part0_len = (part0_len == 0 ? 0 : part0_len + 2);
+			part1_len = (part1_len == 0 ? 0 : part1_len + 2);
+
+			src.reserve( src.size() + total_len );
+		
+			for (auto& [part0, part1, part2, is_dyn_arr] : field_parts)
+			{
+				src << part0;
+				AppendToString( INOUT src, part0_len - part0.length() + (is_dyn_arr ? 2 : 0), ' ' );
+
+				src << part1;
+
+				if ( not part2.empty() )
+				{
+					AppendToString( INOUT src, part1_len - part1.length(), ' ' );
+					src << part2;
+				}
+				src << '\n';
+			}
+		}
 		src << "\t};\n"
 			<< "#endif\n"
 			<< test;
@@ -2552,7 +2773,8 @@ namespace {
 	{
 		for (auto& field : _fields)
 		{
-			if ( field.IsPadding() ) continue;
+			if ( field.IsAnyPadding() )
+				continue;
 
 			CHECK_THROW_MSG( not field.IsDeviceAddress() );
 
@@ -2662,9 +2884,40 @@ namespace {
 			>> str;
 
 		str << (input ? "Input" : "Output");
-		str << " {\n"
-			<< _ToShaderIO_GLSL( shaderType, "", INOUT loc, not is_array )
-			<< "} ";
+		str << " {\n";
+
+		Array<Tuple< String, String, String >>	field_parts;
+		_ToShaderIO_GLSL( shaderType, "", not is_array, INOUT loc, INOUT field_parts );
+		
+		// format fields
+		{
+			usize	part0_len	= 0;
+			usize	part1_len	= 0;
+			usize	total_len	= 0;
+
+			for (auto& [part0, part1, part2] : field_parts)
+			{
+				part0_len  = Max( part0_len, part0.length() );
+				part1_len  = Max( part1_len, part1.length() );
+				total_len += part0.length() + part1.length() + part2.length();
+			}
+			part1_len = (part1_len == 0 ? 0 : part1_len + 2);
+
+			str.reserve( str.size() + total_len );
+		
+			for (auto& [part0, part1, part2] : field_parts)
+			{
+				str << part0;
+				AppendToString( INOUT str, part0_len - part0.length(), ' ' );
+
+				str << part1;
+				AppendToString( INOUT str, part1_len - part1.length(), ' ' );
+
+				str << part2;
+			}
+		}
+
+		str << "} ";
 		str << (input ? "In" : "Out");
 
 		if ( is_array ) str << " []";
@@ -2678,12 +2931,13 @@ namespace {
 	_ToShaderIO_GLSL
 =================================================
 */
-	String  ShaderStructType::_ToShaderIO_GLSL (EShader shaderType, const String &prefix, INOUT uint &loc, bool useLocations) C_Th___
+	void  ShaderStructType::_ToShaderIO_GLSL (EShader shaderType, const String &prefix, bool useLocations, INOUT uint &loc,
+											  INOUT Array<Tuple< String, String, String >> &fieldParts) C_Th___
 	{
-		String	str;
 		for (auto& field : _fields)
 		{
-			if ( field.IsPadding() ) continue;
+			if ( field.IsAnyPadding() )
+				continue;
 
 			CHECK_THROW_MSG( not field.IsArray() );
 			CHECK_THROW_MSG( not field.IsDeviceAddress() );
@@ -2694,28 +2948,29 @@ namespace {
 				if ( not pref.empty() ) pref += '_';
 				pref += field.name;
 
-				str << field.stType->_ToShaderIO_GLSL( shaderType, pref, INOUT loc, useLocations );
+				field.stType->_ToShaderIO_GLSL( shaderType, pref, useLocations, INOUT loc, INOUT fieldParts );
 			}
 			else
 			{
 				const auto	mask = (shaderType == EShader::Fragment ? EFlags_ShaderIO : EFlags_VSCompatible);
 
-				String		tname;
+				auto& [part0, part1, part2] = fieldParts.emplace_back();
+
+				part0 << "  ";
+				if ( useLocations ) part0 << "layout(location=" << ToString(loc++) << ") ";
+
 				StringView	s_name, v_name, m_name;
-				CHECK_ERR( ValueTypeToStrGLSL_WithPrecision( field.type, field.flags, mask,
-															 OUT tname, OUT s_name, OUT v_name, OUT m_name ));
+				CHECK_THROW( ValueTypeToStrGLSL_WithPrecision( field.type, field.flags, mask,
+																OUT part0, OUT s_name, OUT v_name, OUT m_name ));
 
-				if ( field.IsScalar() )	tname << s_name;
-				if ( field.IsVec() )	tname << v_name << ToString( field.rows );
-				if ( field.IsMat() )	tname << m_name << ToString( field.cols ) << 'x' << ToString( field.rows );
-				CHECK_ERR( not tname.empty() );
+				if ( field.IsScalar() )	part1 << s_name;
+				if ( field.IsVec() )	part1 << v_name << ToString( field.rows );
+				if ( field.IsMat() )	part1 << m_name << ToString( field.cols ) << 'x' << ToString( field.rows );
+				CHECK_THROW( not part1.empty() );
 
-				str << "  ";
-				if ( useLocations ) str << "layout(location=" << ToString(loc++) << ") ";
-				str << tname << "  " << prefix << (prefix.empty() ? ""s : "_"s) << field.name << ";\n";
+				part2 << prefix << (prefix.empty() ? ""s : "_"s) << field.name << ";\n";
 			}
 		}
-		return str;
 	}
 
 /*
@@ -2726,19 +2981,62 @@ namespace {
 	String  ShaderStructType::ToShaderIO_MSL (EShader shaderType, bool, INOUT UniqueTypes_t &) C_Th___
 	{
 		_usage |= EUsage::ShaderIO;
-
-		return	"struct "s << Typename() << "\n{\n" <<
-				"  float4  position [[position]];\n" <<
-					_ToShaderIO_MSL( shaderType, "" ) <<
-				"};\n\n";
-	}
-
-	String  ShaderStructType::_ToShaderIO_MSL (EShader shaderType, const String &prefix) C_Th___
-	{
+		
 		String	str;
+		str << "struct "s << Typename() << "\n{\n";
+
+		Array<Tuple< String, String, String >>	field_parts;
+		field_parts.emplace_back( "  float4", "position", "[[position]];\n" );
+
+		_ToShaderIO_MSL( shaderType, "", INOUT field_parts );
+		
+		// format fields
+		{
+			usize	part0_len	= 0;
+			usize	part1_len	= 0;
+			usize	total_len	= 0;
+
+			for (auto& [part0, part1, part2] : field_parts)
+			{
+				part0_len  = Max( part0_len, part0.length() );
+				part1_len  = Max( part1_len, part1.length() );
+				total_len += part0.length() + part1.length() + part2.length();
+			}
+			part0_len = (part0_len == 0 ? 0 : part0_len + 2);
+			part1_len = (part1_len == 0 ? 0 : part1_len + 2);
+
+			str.reserve( str.size() + total_len );
+		
+			for (auto& [part0, part1, part2] : field_parts)
+			{
+				str << part0;
+				AppendToString( INOUT str, part0_len - part0.length(), ' ' );
+
+				str << part1;
+
+				if ( not part2.empty() )
+				{
+					AppendToString( INOUT str, part1_len - part1.length(), ' ' );
+					str << part2;
+				}
+			}
+		}
+
+		str << "};\n\n";
+		return str;
+	}
+	
+/*
+=================================================
+	_ToShaderIO_MSL
+=================================================
+*/
+	void  ShaderStructType::_ToShaderIO_MSL (EShader shaderType, const String &prefix, INOUT Array<Tuple< String, String, String >> &fieldParts) C_Th___
+	{
 		for (auto& field : _fields)
 		{
-			if ( field.IsPadding() ) continue;
+			if ( field.IsAnyPadding() )
+				continue;
 
 			CHECK_THROW_MSG( not field.IsArray() );
 			CHECK_THROW_MSG( not field.IsDeviceAddress() );
@@ -2749,24 +3047,29 @@ namespace {
 				if ( not pref.empty() ) pref += '_';
 				pref += field.name;
 
-				str << field.stType->_ToShaderIO_MSL( shaderType, pref );
+				field.stType->_ToShaderIO_MSL( shaderType, pref, INOUT fieldParts );
 			}
 			else
 			{
 				CHECK_THROW_MSG( not field.IsMat(),
 					"Matrix is not supported for MSL ShaderIO" );
-
-				str << "  ";
+				
+				auto& [part0, part1, part2] = fieldParts.emplace_back();
 
 				const auto	mask = (shaderType == EShader::Fragment ? EFlags_ShaderIO : EFlags_VSCompatible);
 				String		qual;
 
-				CHECK_ERR( ValueTypeToStrMSL_WithNorm( field.type, field.flags, mask, field.rows, INOUT str, OUT qual ));
+				part0 << "  ";
+				part1 << field.name;
 
-				str << "  " << field.name << qual << ";\n";
+				CHECK_THROW( ValueTypeToStrMSL_WithNorm( field.type, field.flags, mask, field.rows, INOUT part0, OUT part2 ));
+
+				if ( part2.empty() )
+					part1 << ";\n";
+				else
+					part2 << ";\n";
 			}
 		}
-		return str;
 	}
 
 /*

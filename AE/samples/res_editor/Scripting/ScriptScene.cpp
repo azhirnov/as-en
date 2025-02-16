@@ -400,6 +400,9 @@ namespace AE::ResEditor
 				uint		frame;					// shader playback frame, global frame counter
 				uint		seed;					// unique value, updated on each shader reloading
 				float4		mouse;					// mouse unorm coords. xy: current (if MRB down), zw: click
+				float		customKeys;
+				float		pixPerMm;				// pix / mm
+				float		mmPerPix;				// mm / pix
 
 				// controller //
 				CameraData	camera;
@@ -759,6 +762,9 @@ namespace AE::ResEditor
 				float		timeDelta;				// frame render time (in seconds), max value: 1/30s
 				uint		frame;					// shader playback frame, global frame counter
 				uint		seed;					// unique value, updated on each shader reloading
+				float		customKeys;
+				float		pixPerMm;				// pix / mm
+				float		mmPerPix;				// mm / pix
 
 				// controller //
 				CameraData	camera;

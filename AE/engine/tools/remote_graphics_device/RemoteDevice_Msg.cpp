@@ -1368,18 +1368,62 @@ namespace AE::RemoteGraphics
 
 	void  RmGAppListener::_Cb_Query_GetPipelineStatistic (const Msg::Query_GetPipelineStatistic &msg)
 	{
-		using PipelineStatistic = IQueryManager::GraphicsPipelineStatistic;
-		Msg::Query_GetPipelineStatistic_Response  res;
+		switch ( msg.query.type )
+		{
+			case EQueryType::GraphicsPipelineStatistic :
+			{
+				using PipelineStatistic = IQueryManager::GraphicsPipelineStatistic;
+				Msg::Query_GetGraphicsPipeStat_Response  res;
 
-		PipelineStatistic*	ptr;
-		const Bytes			size = Min( 1_KiB, msg.size );
+				PipelineStatistic*	ptr;
+				const Bytes			size = Min( 1_KiB, msg.size );
 
-		AllocateOnStack2( OUT ptr, size );
+				AllocateOnStack2( OUT ptr, size );
 
-		if ( _resMngr->GetQueryManager().GetPipelineStatistic( _UnpackQuery(msg.query), OUT ptr, size ))
-			res.result = ArrayView<PipelineStatistic>{ ptr, usize{size / SizeOf<PipelineStatistic>} };
+				if ( _resMngr->GetQueryManager().GetPipelineStatistic( _UnpackQuery(msg.query), OUT ptr, size ))
+					res.result = ArrayView<PipelineStatistic>{ ptr, usize{size / SizeOf<PipelineStatistic>} };
 
-		_Send( res );
+				_Send( res );
+				break;
+			}
+
+			case EQueryType::ComputePipelineStatistic :
+			{
+				using PipelineStatistic = IQueryManager::ComputePipelineStatistic;
+				Msg::Query_GetComputePipeStat_Response  res;
+
+				PipelineStatistic*	ptr;
+				const Bytes			size = Min( 1_KiB, msg.size );
+
+				AllocateOnStack2( OUT ptr, size );
+
+				if ( _resMngr->GetQueryManager().GetPipelineStatistic( _UnpackQuery(msg.query), OUT ptr, size ))
+					res.result = ArrayView<PipelineStatistic>{ ptr, usize{size / SizeOf<PipelineStatistic>} };
+
+				_Send( res );
+				break;
+			}
+
+			case EQueryType::MeshPipelineStatistic :
+			{
+				using PipelineStatistic = IQueryManager::MeshPipelineStatistic;
+				Msg::Query_GetMeshPipeStat_Response  res;
+
+				PipelineStatistic*	ptr;
+				const Bytes			size = Min( 1_KiB, msg.size );
+
+				AllocateOnStack2( OUT ptr, size );
+
+				if ( _resMngr->GetQueryManager().GetPipelineStatistic( _UnpackQuery(msg.query), OUT ptr, size ))
+					res.result = ArrayView<PipelineStatistic>{ ptr, usize{size / SizeOf<PipelineStatistic>} };
+
+				_Send( res );
+				break;
+			}
+
+			default :
+				CHECK_MSG( false, "unsupported query type" );
+		}
 	}
 //-----------------------------------------------------------------------------
 

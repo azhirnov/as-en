@@ -93,7 +93,7 @@
 	#include "Color.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float3  Project (float3 n)
 	{
@@ -146,7 +146,7 @@
 	#include "Hash.glsl"
 	#include "CubeMap.glsl"
 	#include "Quaternion.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	#define PROJECTION  CM_TangentialSC_Forward
 

@@ -45,7 +45,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef UNIFORM_CONTROL_FLOW
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	#ifdef AE_subgroup_uniform_qualifier
 
@@ -82,7 +82,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef MAXIMAL_RECONVERGENCE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	#ifdef AE_maximal_reconvergence
 
@@ -105,7 +105,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef QUAD_CONTROL
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	#ifdef AE_shader_quad_control
 

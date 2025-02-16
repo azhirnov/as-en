@@ -44,7 +44,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	// based on code from https://stackoverflow.com/questions/34963366/encode-floating-point-data-in-a-rgba-texture

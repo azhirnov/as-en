@@ -900,6 +900,10 @@ namespace
 			CHECK_THROW_MSG( state.color == Default );
 			CHECK_THROW_MSG( state.depth == Default );
 			CHECK_THROW_MSG( state.stencil == Default );
+
+			state.rasterization.depthBiasClamp	= 0.0;
+			state.rasterization.depthClamp		= false;
+			state.rasterization.polygonMode		= EPolygonMode::Fill;
 		}
 
 		for (auto dyn_st : BitfieldIterate( dynamicState ))
@@ -931,13 +935,100 @@ namespace
 			switch_end
 		}
 
-		if ( state.rasterization.polygonMode != EPolygonMode::Fill )
-			TEST_FEATURE( features, fillModeNonSolid, ", 'rasterization.polygonMode' must be Fill" );
-
 		if ( state.depth.write and not state.depth.test )
 		{
 			state.depth.test		= true;
 			state.depth.compareOp	= ECompareOp::Always;
+		}
+
+		// same as FeatureSet::IsSupported (RenderState) 
+		{
+			if ( state.multisample.alphaToOne )
+				TEST_FEATURE( features, alphaToOne );
+
+			if ( state.multisample.sampleShading )
+				TEST_FEATURE( features, sampleRateShading );
+
+			if ( state.depth.bounds )
+				TEST_FEATURE( features, depthBounds );
+			
+			if ( state.rasterization.depthBiasClamp != 0.f )
+				TEST_FEATURE( features, depthBiasClamp );
+
+			if ( state.rasterization.depthClamp )
+				TEST_FEATURE( features, depthClamp );
+
+			if ( state.rasterization.polygonMode != EPolygonMode::Fill )
+				TEST_FEATURE( features, fillModeNonSolid, ", 'rasterization.polygonMode' must be Fill" );
+
+			if ( state.rasterization.polygonMode == EPolygonMode::Point )
+				TEST_FEATURE( features, pointPolygons );
+
+			if ( (state.rasterization.polygonMode == EPolygonMode::Line or
+				  (state.inputAssembly.topology >= EPrimitive::LineList and state.inputAssembly.topology >= EPrimitive::LineStripAdjacency)) and
+				 state.rasterization.lineWidth > 1 )
+				TEST_FEATURE( features, wideLines );
+
+			const auto	CheckBlend = [&] (EBlendFactor factor)
+			{{
+				switch_enum( factor )
+				{
+					case EBlendFactor::Zero :
+					case EBlendFactor::One :
+					case EBlendFactor::SrcColor :
+					case EBlendFactor::OneMinusSrcColor :
+					case EBlendFactor::DstColor :
+					case EBlendFactor::OneMinusDstColor :
+					case EBlendFactor::SrcAlpha :
+					case EBlendFactor::OneMinusSrcAlpha :
+					case EBlendFactor::DstAlpha :
+					case EBlendFactor::OneMinusDstAlpha :
+					case EBlendFactor::ConstColor :
+					case EBlendFactor::OneMinusConstColor :
+					case EBlendFactor::SrcAlphaSaturate :
+						break;
+
+					case EBlendFactor::ConstAlpha :
+					case EBlendFactor::OneMinusConstAlpha :
+						TEST_FEATURE( features, constantAlphaColorBlendFactors );  break;
+
+					case EBlendFactor::Src1Color :
+					case EBlendFactor::OneMinusSrc1Color :
+					case EBlendFactor::Src1Alpha :
+					case EBlendFactor::OneMinusSrc1Alpha :
+						TEST_FEATURE( features, dualSrcBlend );  break;
+
+					case EBlendFactor::_Count :
+					case EBlendFactor::Unknown :
+					default_unlikely :	break;
+				}
+				switch_end
+			}};
+
+			bool	all_equal = true;
+			for (auto& cb : state.color.buffers)
+			{
+				all_equal &= (state.color.buffers[0] == cb);
+				if ( not cb.blend )
+					continue;
+
+				CheckBlend( cb.srcBlendFactor.color );
+				CheckBlend( cb.srcBlendFactor.alpha );
+				CheckBlend( cb.dstBlendFactor.color );
+				CheckBlend( cb.dstBlendFactor.alpha );
+			}
+
+			if ( not all_equal )
+			{
+				TEST_FEATURE( features, independentBlend,
+					".\nIf 'independentBlend' is not supported all elements of 'RenderState::ColorBuffer' in 'color.buffers' must equal." );
+			}
+
+			if ( state.color.logicOp != ELogicOp::None )
+				TEST_FEATURE( features, logicOp );
+
+			if ( state.inputAssembly.topology == EPrimitive::TriangleFan )
+				TEST_FEATURE( features, triangleFans );
 		}
 	}
 

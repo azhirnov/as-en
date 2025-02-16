@@ -869,10 +869,22 @@ namespace AE::RemoteGraphics::Msg
 		Bytes						size;
 	)
 
-	DECL_RESP( Query_GetPipelineStatistic_Response,
-		using GPplnStat = IQueryManager::GraphicsPipelineStatistic;
+	DECL_RESP( Query_GetGraphicsPipeStat_Response,
+		using PplnStat = IQueryManager::GraphicsPipelineStatistic;
 
-		ArrayView<GPplnStat>		result;
+		ArrayView<PplnStat>			result;
+	)
+		
+	DECL_RESP( Query_GetMeshPipeStat_Response,
+		using PplnStat = IQueryManager::MeshPipelineStatistic;
+
+		ArrayView<PplnStat>			result;
+	)
+		
+	DECL_RESP( Query_GetComputePipeStat_Response,
+		using PplnStat = IQueryManager::ComputePipelineStatistic;
+
+		ArrayView<PplnStat>			result;
 	)
 //-----------------------------------------------------------------------------
 

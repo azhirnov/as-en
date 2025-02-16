@@ -841,7 +841,9 @@ namespace _hidden_
 =================================================
 	DivStringBySteps
 ----
-	1111 -> 11'11
+	1111  -> 1'111
+	11111 -> 11'111
+	from back to front
 =================================================
 */
 	ND_ inline String  DivStringBySteps (StringView inStr, const usize stepSize = 3, const char spaceChar = '\'') __Th___

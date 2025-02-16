@@ -6,11 +6,12 @@
 * Execution units: 8
 * Warp width: 16
 * Vulkan subgroup size: 128  (= Total ALUs = EU * warp)
+* Total ALUs: 128 - number of simultaneously executing threads
 * Clock: 950 MHz
 * F16 GFLOPS: **460** (180 on MulAdd from tests)
 * F32 GFLOPS: **230** (190 on FMA from tests)
 * FP16 FLOPs/Clock: 512
-* FP32 FLOPs/Clock: 256
+* FP32 FLOPs/Clock: 256 - 2FLOPS per clock for FMA
 * Memory: 8 GB, LPDDR5, QC 16bit, 3200 MHz, **51.2** GB/s (14.2 GB/s from tests)
 * Device: Motorola G54 5G (MediaTek Dimensity 7020, Android 13, Driver 6133109)
 
@@ -59,7 +60,7 @@ Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in compute shad
 	- fp32 Pow uses MUL loop - performance depends on power
 	- fp16 is a bit slower than fp32 because of conversion between fp16 and fp32
 
-	- base rate: 100 GOp/s
+	- base rate: 128 GOp/s
 
 	- **float point**
 

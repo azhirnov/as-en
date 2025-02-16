@@ -38,7 +38,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_RAY_GEN
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 	#include "ModelMaterial.glsl"
 
@@ -242,9 +242,9 @@
 		float3x3			norm_mat	= un_RTInstances.normalMatPerInstance[ id.x ].data[ id.y ];
 		MeshAndMaterial		result;
 
-		float3				wpos0		= LocalPosToWorldSpace( model_mat, Cast( pos_addr.data[ idx.x ]) );
-		float3				wpos1		= LocalPosToWorldSpace( model_mat, Cast( pos_addr.data[ idx.y ]) );
-		float3				wpos2		= LocalPosToWorldSpace( model_mat, Cast( pos_addr.data[ idx.z ]) );
+		float3				wpos0		= LocalPosToWorldSpace( model_mat, Unpack( pos_addr.data[ idx.x ]) );
+		float3				wpos1		= LocalPosToWorldSpace( model_mat, Unpack( pos_addr.data[ idx.y ]) );
+		float3				wpos2		= LocalPosToWorldSpace( model_mat, Unpack( pos_addr.data[ idx.z ]) );
 
 	# if 0
 		BarycentricDeriv	deriv		= CalcRayBary(	wpos0, wpos1, wpos2,
@@ -265,9 +265,9 @@
 		result.uv0_dy		= uv_res.dy;
 
 		result.smoothNormal	= Normalize( norm_mat *
-										 BaryLerp(	Cast( norm_addr.data[ idx.x ]),
-													Cast( norm_addr.data[ idx.y ]),
-													Cast( norm_addr.data[ idx.z ]),
+										 BaryLerp(	Unpack( norm_addr.data[ idx.x ]),
+													Unpack( norm_addr.data[ idx.y ]),
+													Unpack( norm_addr.data[ idx.z ]),
 													deriv.m_lambda ));
 		result.pos			= BaryLerp( wpos0, wpos1, wpos2, deriv.m_lambda );
 

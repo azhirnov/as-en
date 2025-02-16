@@ -4,7 +4,7 @@
 ## Specs
 
 * Execution units: 1
-* Total ALUs: 48 ?
+* Total ALUs: 48 ? - number of simultaneously executing threads
 * Clock: 450 MHz
 * F16 GFLOPS: **86.4** (36 GFLOPS from tests)
 * F32 GFLOPS: **43.2** (23 GFLOPS from tests)

@@ -1757,6 +1757,7 @@ namespace
 		binder.AddProperty( &RenderState::RasterizationState::rasterizerDiscard,	"rasterizerDiscard" );
 		binder.AddProperty( &RenderState::RasterizationState::frontFaceCCW,			"frontFaceCCW" );
 		binder.AddProperty( &RenderState::RasterizationState::cullMode,				"cullMode" );
+		binder.AddProperty( &RenderState::RasterizationState::lineWidth,			"lineWidth" );
 	}
 
 /*

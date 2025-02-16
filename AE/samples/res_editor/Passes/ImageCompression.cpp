@@ -147,7 +147,6 @@ namespace AE::ResEditor
 		const auto		dst_view	= _dst->GetViewDesc();
 
 		const auto		src_desc	= _src->GetImageDesc();
-		const auto		dst_desc	= _dst->GetImageDesc();
 
 		const auto&		src_fmt		= EPixelFormat_GetInfo( src_view.format );
 		const auto&		dst_fmt		= EPixelFormat_GetInfo( _dstFormat );

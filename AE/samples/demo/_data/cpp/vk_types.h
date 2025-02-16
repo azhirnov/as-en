@@ -18,8 +18,8 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x594166a8u}};
 
-		packed_ushort4  UV_Scale;// normalized
-		packed_ubyte4  Color;// normalized
+		packed_ushort4  UV_Scale;  // normalized
+		packed_ubyte4   Color;     // normalized
 	};
 #endif
 	StaticAssert( offsetof(VB_UVs2_SCs1_Col8, UV_Scale) == 0 );
@@ -34,7 +34,7 @@
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xf5d3da88u}};
 
 		packed_float2  UV;
-		packed_ubyte4  Color;// normalized
+		packed_ubyte4  Color;  // normalized
 	};
 #endif
 	StaticAssert( offsetof(VB_UVf2_Col8, UV) == 0 );
@@ -67,57 +67,13 @@
 
 		packed_float2  Position;
 		packed_float2  UV;
-		packed_ubyte4  Color;// normalized
+		packed_ubyte4  Color;     // normalized
 	};
 #endif
 	StaticAssert( offsetof(imgui_vertex, Position) == 0 );
 	StaticAssert( offsetof(imgui_vertex, UV) == 8 );
 	StaticAssert( offsetof(imgui_vertex, Color) == 16 );
 	StaticAssert( sizeof(imgui_vertex) == 20 );
-
-#ifndef CubeVertex_DEFINED
-#	define CubeVertex_DEFINED
-	// size: 40, align: 2
-	struct CubeVertex
-	{
-		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x38ec4b6bu}};
-
-		packed_short4  Position;// normalized
-		packed_short4  Texcoord;// normalized
-		packed_short4  Normal;// normalized
-		packed_short4  Tangent;// normalized
-		packed_short4  BiTangent;// normalized
-	};
-#endif
-	StaticAssert( offsetof(CubeVertex, Position) == 0 );
-	StaticAssert( offsetof(CubeVertex, Texcoord) == 8 );
-	StaticAssert( offsetof(CubeVertex, Normal) == 16 );
-	StaticAssert( offsetof(CubeVertex, Tangent) == 24 );
-	StaticAssert( offsetof(CubeVertex, BiTangent) == 32 );
-	StaticAssert( sizeof(CubeVertex) == 40 );
-
-#ifndef sdf_font_ublock_DEFINED
-#	define sdf_font_ublock_DEFINED
-	// size: 48, align: 16
-	struct sdf_font_ublock
-	{
-		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x5a07d037u}};
-
-		float2  rotation0;
-		float2  rotation1;
-		float  sdfScale;
-		float  sdfBias;
-		float  pxRange;
-		float4  bgColor;
-	};
-#endif
-	StaticAssert( offsetof(sdf_font_ublock, rotation0) == 0 );
-	StaticAssert( offsetof(sdf_font_ublock, rotation1) == 8 );
-	StaticAssert( offsetof(sdf_font_ublock, sdfScale) == 16 );
-	StaticAssert( offsetof(sdf_font_ublock, sdfBias) == 20 );
-	StaticAssert( offsetof(sdf_font_ublock, pxRange) == 24 );
-	StaticAssert( offsetof(sdf_font_ublock, bgColor) == 32 );
-	StaticAssert( sizeof(sdf_font_ublock) == 48 );
 
 #ifndef camera3d_ub_DEFINED
 #	define camera3d_ub_DEFINED
@@ -132,6 +88,27 @@
 	StaticAssert( offsetof(camera3d_ub, mvp) == 0 );
 	StaticAssert( sizeof(camera3d_ub) == 64 );
 
+#ifndef CubeVertex_DEFINED
+#	define CubeVertex_DEFINED
+	// size: 40, align: 2
+	struct CubeVertex
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x38ec4b6bu}};
+
+		packed_short4  Position;   // normalized
+		packed_short4  Texcoord;   // normalized
+		packed_short4  Normal;     // normalized
+		packed_short4  Tangent;    // normalized
+		packed_short4  BiTangent;  // normalized
+	};
+#endif
+	StaticAssert( offsetof(CubeVertex, Position) == 0 );
+	StaticAssert( offsetof(CubeVertex, Texcoord) == 8 );
+	StaticAssert( offsetof(CubeVertex, Normal) == 16 );
+	StaticAssert( offsetof(CubeVertex, Tangent) == 24 );
+	StaticAssert( offsetof(CubeVertex, BiTangent) == 32 );
+	StaticAssert( sizeof(CubeVertex) == 40 );
+
 #ifndef SphericalCubeVertex_DEFINED
 #	define SphericalCubeVertex_DEFINED
 	// size: 32, align: 2
@@ -139,10 +116,10 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x35a6eeecu}};
 
-		packed_short4  Position;// normalized
-		packed_short4  Texcoord;// normalized
-		packed_short4  Tangent;// normalized
-		packed_short4  BiTangent;// normalized
+		packed_short4  Position;   // normalized
+		packed_short4  Texcoord;   // normalized
+		packed_short4  Tangent;    // normalized
+		packed_short4  BiTangent;  // normalized
 	};
 #endif
 	StaticAssert( offsetof(SphericalCubeVertex, Position) == 0 );
@@ -150,4 +127,27 @@
 	StaticAssert( offsetof(SphericalCubeVertex, Tangent) == 16 );
 	StaticAssert( offsetof(SphericalCubeVertex, BiTangent) == 24 );
 	StaticAssert( sizeof(SphericalCubeVertex) == 32 );
+
+#ifndef sdf_font_ublock_DEFINED
+#	define sdf_font_ublock_DEFINED
+	// size: 48, align: 16
+	struct sdf_font_ublock
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x5a07d037u}};
+
+		float2  rotation0;
+		float2  rotation1;
+		float   sdfScale;
+		float   sdfBias;
+		float   pxRange;
+		float4  bgColor;
+	};
+#endif
+	StaticAssert( offsetof(sdf_font_ublock, rotation0) == 0 );
+	StaticAssert( offsetof(sdf_font_ublock, rotation1) == 8 );
+	StaticAssert( offsetof(sdf_font_ublock, sdfScale) == 16 );
+	StaticAssert( offsetof(sdf_font_ublock, sdfBias) == 20 );
+	StaticAssert( offsetof(sdf_font_ublock, pxRange) == 24 );
+	StaticAssert( offsetof(sdf_font_ublock, bgColor) == 32 );
+	StaticAssert( sizeof(sdf_font_ublock) == 48 );
 

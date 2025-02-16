@@ -35,6 +35,7 @@ namespace AE::Graphics
 
 		const auto&	render_state = *ci.specCI.renderStatePtr;
 		GRES_CHECK( ci.templCI.supportedTopology.contains( render_state.inputAssembly.topology ));
+		GRES_CHECK( resMngr.GetFeatureSet().IsSupported( render_state ));
 
 		auto*	ppln_layout = resMngr.GetResource( ci.layoutId, True{"incRef"} );
 		CHECK_ERR( ppln_layout != null );

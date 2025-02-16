@@ -347,8 +347,8 @@ namespace AE::Threading
 		{
 			for (auto& item : _iouringArray)
 			{
-			if_unlikely( not item.created )
-				continue;
+				if_unlikely( not item.created )
+					continue;
 
 				if ( not item.guard.try_lock() )
 					continue;

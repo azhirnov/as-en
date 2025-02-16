@@ -9,7 +9,6 @@
 * shaderSMCount: **46** [vk/specs]
 * shaderWarpsPerSM: **32** [vk] - this is register capacity, not a thread count
 * Warp size: **32** [vk]
-* Driver: ?
 
 ### Memory
 
@@ -27,6 +26,7 @@
 * ops per clock per SM: **128** fp16 FMA [compute capability 7.5]
 * FP32 FMA perf: **4.46** TOp/s at 1515 MHz (4.4 TOp/S from tests)
 * FP16 FMA perf: **8.9** TOp/s at 1515 MHz (8.9 TOp/S from tests)
+* Total ALUs: 2 944 [calc] - number of simultaneously executing threads
 
 Theoretical performance:
 ```
@@ -449,6 +449,7 @@ TODO
 
 ## Triangle Clipping
 
-When part of a single triangle clipped by depth test or `gl_ClipDistance` the resulting rectangle rasterized as 2 triangles with helper invocations in diagonal.
+When part of a single triangle clipped by depth test or `gl_ClipDistance` the resulting rectangle rasterized as 2 triangles with helper invocations in diagonal.<br/>
+Possible explanation: triangle is clipped, but hardware can not rasterize rectangle, so it divide rectangle on 2 new triangles. It is needed to avoid rasterization of hidden parts of triangle.
 
 ![](img/triangle-clip/nv-turing.png)

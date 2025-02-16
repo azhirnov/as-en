@@ -29,7 +29,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
 	#include "SDF.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	float2  GetUV (int dx)

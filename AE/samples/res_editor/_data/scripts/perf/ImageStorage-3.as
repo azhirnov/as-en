@@ -64,7 +64,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PROCESS
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "CodeTemplates.glsl"
 
 	float4  Update (float4 val)
@@ -87,7 +87,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GEN_NOISE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Hash.glsl"
 	#include "Color.glsl"
 

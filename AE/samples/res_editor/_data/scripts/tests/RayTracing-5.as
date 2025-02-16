@@ -82,7 +82,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GEN_MESH
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Normal.glsl"
 	#include "Waves.glsl"
 
@@ -129,7 +129,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef RAYTRACE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 
 	ND_ float4  MissShader ()

@@ -75,9 +75,10 @@
 			pass.Set( camera );
 			pass.Output( "out_Color",	rt );
 			pass.ArgIn(  "un_Cubemap",	cubemap_view,	Sampler_LinearRepeat );
-			pass.Slider( "iProj",		0,				7,				4 );
-			pass.Slider( "iFOV",		float2(1.0),	float2(270.0),	float2(215.0, 55.0) );
+			pass.Slider( "iProj",		0,				8,				5 );
+			pass.Slider( "iFOV",		float2(1.0),	float2(270.0),	float2(100.0, 0.0) );
 			pass.Slider( "iDistToEye",	0.01,			1.0,			0.25 );
+			pass.Slider( "iGrid",		0,				1 );
 		}
 		Present( rt );
 	}
@@ -87,7 +88,7 @@
 #ifdef SH_FRAG
 	#include "Ray.glsl"
 	#include "SDF.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{
@@ -95,7 +96,7 @@
 		float2			uv				= GetGlobalCoordUNorm().xy;
 		const float		z_near			= 0.1f;
 		const float2	screen_dim		= un_PerPass.resolution.xy;
-		const float		pix_to_m		= un_PerPass.pixToMm * 0.001f;
+		const float		pix_to_m		= un_PerPass.mmPerPix * 0.001f;
 		const float2	screen_size		= screen_dim * pix_to_m;	// meters
 		const float		curve_radius	= 1.8f;		// meters
 		const float2	fov				= ToRad( iFOV.x ) * float2(un_PerPass.resolution.x / un_PerPass.resolution.y, 1.0);
@@ -110,7 +111,7 @@
 			case 1 :	ray = Ray_FromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );	break;
 
 			// flat screen FOV
-			case 2 :	ray = Ray_FromScreen( float3(0.0), fov, z_near, ToSNorm(uv) );							break;
+			case 2 :	ray = Ray_FromScreen( float3(0.0), Min( fov, float_Pi*0.95 ), z_near, ToSNorm(uv) );	break;
 
 			// curved screen
 			case 3 :	ray = Ray_FromCurvedScreen( float3(0.0), iDistToEye, curve_radius, screen_size, z_near, ToSNorm(uv) ); break;
@@ -118,16 +119,16 @@
 			// sphere
 			case 4 :	ray = Ray_PlaneToSphere( fov, float3(0.0), z_near, ToSNorm(uv) );						break;
 
-			// sphere v2
-			case 5 :	ray = Ray_PlaneToSphere( fov2, float3(0.0), z_near, ToSNorm(uv) );						break;
-
 			// flat screen + sphere
-			case 6 : {
+			case 5 : {
 						ray = Ray_FromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );
 				Ray		r = Ray_PlaneToSphere( fov, float3(0.0), z_near, ToSNorm(uv) );
 				ray.dir = Normalize( Lerp( ray.dir, r.dir, 0.5 ));	// flat -> sphere
 				break;
 			}
+
+			// sphere v2
+			case 6 :	ray = Ray_PlaneToSphere( fov2, float3(0.0), z_near, ToSNorm(uv) );						break;
 
 			// flat screen + sphere v2
 			case 7 : {
@@ -136,16 +137,22 @@
 				ray.dir = Normalize( Lerp( ray.dir, r.dir, 0.5 ));	// flat -> sphere
 				break;
 			}
+
+			// panini
+			case 8 :	ray = Ray_PaniniProjection( fov.x, float3(0.0), z_near, gl.FragCoord.xy, screen_dim );	break;
 		}
 
+		float	grid = AA_QuadGrid_dxdy( ray.dir.xy * 16.0, float2(0.0, 2.75) ).x;
+
 		if ( iProj != 0 )
-			ray.dir = Normalize( (MatTranspose(un_PerPass.camera.view) * float4(ray.dir, 0.0)).xyz );
+			Ray_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );
 
 		ray.dir.y *= -1.0;
 		out_Color.rgb = gl.texture.Sample( un_Cubemap, ray.dir ).rgb;
 		out_Color.a = 1.0;
 
-		//out_Color.rgb *= Sqrt( AA_QuadGrid_dxdy( ray.dir.xy * 16.0, float2(0.0, 2.75) ).x );
+		if ( iGrid == 1 )
+			out_Color.rgb = Lerp( float3(1.0), out_Color.rgb, Sqrt(grid) );
 	}
 
 #endif

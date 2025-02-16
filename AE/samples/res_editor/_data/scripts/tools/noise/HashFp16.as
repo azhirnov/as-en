@@ -44,7 +44,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	#if !AE_ENABLE_HALF_TYPE

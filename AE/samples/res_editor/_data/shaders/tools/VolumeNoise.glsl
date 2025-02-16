@@ -11,7 +11,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #if defined(SH_COMPUTE) && defined(vTILE)
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	ND_ int3  GlobalThreadID ()
 	{
@@ -59,7 +59,7 @@
 	#include "Fog.glsl"
 	#include "Color.glsl"
 	#include "Intersectors.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 

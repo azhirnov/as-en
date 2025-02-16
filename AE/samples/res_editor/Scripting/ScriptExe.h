@@ -373,7 +373,7 @@ namespace AE::ResEditor
 		static EnableLabel  _EnableIfAnyBit  (const ScriptDynamicUIntPtr &, uint ref)							__Th___;
 
 		template <typename D>
-		static void  _Label (const D &dyn, const String &name, const EnableLabel & = Default)					__Th___;
+		static void  _Label (const D &dyn, const String &name, const EnableLabel &)								__Th___;
 
 		static packed_float3  _CM_CubeSC_Forward (const packed_float3 &);
 		static packed_float3  _CM_IdentitySC_Forward (const packed_float3 &);

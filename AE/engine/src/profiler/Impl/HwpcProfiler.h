@@ -124,13 +124,13 @@ namespace AE::Profiler
 	private:
 	  #ifdef AE_ENABLE_IMGUI
 		void  _InitImGui ();
-		void  _InitGeneralPerfImGui (const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
+		void  _InitGeneralPerfImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
 		void  _InitCpuUsageImGui ();
-		void  _InitArmCountersImGui (const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
-		void  _InitMaliCountersImGui (const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
-		void  _InitAdrenoCountersImGui (const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
-		void  _InitNVidiaCountersImGui (const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
-		void  _InitPowerVRCountersImGui (const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
+		void  _InitArmCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
+		void  _InitMaliCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
+		void  _InitAdrenoCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
+		void  _InitNVidiaCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
+		void  _InitPowerVRCountersImGui (bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &);
 
 		// 'scale' - 1/frame or 1/dt
 		// 'invDT' - 1/dt

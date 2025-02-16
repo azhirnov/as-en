@@ -178,19 +178,6 @@ namespace AE::PipelineCompiler
 			CHECK_THROW_MSG(( spirvVer == Version2{0,0} or spirvVer >= Version2{1,0} ));
 		}
 
-		// render states
-		/*{
-			bool	independent_blend	= false;
-
-			for (auto& ptr : features)
-			{
-				independent_blend	|= (ptr->fs.independentBlend == EFeature::RequireTrue);
-			}
-
-			if ( independent_blend )
-				def << "#define AE_INDEPENDENT_BLEND 1\n";
-		}*/
-
 		// subgroup
 		{
 			FeatureSet::SubgroupOperationBits	ops;
@@ -754,6 +741,22 @@ namespace AE::PipelineCompiler
 			}
 			if ( draw_params.IsTrue() )
 				def << "#define AE_shader_draw_parameters 1\n";	// allow gl_BaseInstanceARB, gl_BaseVertexARB, gl_DrawIDARB
+		}
+
+		// large points, cull/clip distance
+		{
+			FeatureSetCounter	large_points;
+			FeatureSetCounter	clip_dist;
+			FeatureSetCounter	cull_dist;
+
+			for (auto& ptr : features) {
+				large_points.Add( ptr->fs.largePoints );
+				clip_dist.Add( ptr->fs.shaderClipDistance );
+				cull_dist.Add( ptr->fs.shaderCullDistance );
+			}
+			if ( large_points.IsTrue() )	def << "#define AE_large_points  1\n";
+			if ( clip_dist.IsTrue() )		def << "#define AE_clip_distance 1\n";
+			if ( cull_dist.IsTrue() )		def << "#define AE_cull_distance 1\n";
 		}
 
 		// vendor

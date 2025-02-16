@@ -142,7 +142,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef TRACE_RAYS
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Ray.glsl"
 	#include "Fog.glsl"
 

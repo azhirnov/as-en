@@ -161,13 +161,13 @@ namespace AE::ResEditor
 
 			int		surf_scale	= UIInteraction::Instance().GetDynamicSize()->Scale().x;
 			float2	surf_size	{1.f};
-			float	pix_to_mm	= 1.f;
+			float	pix_per_mm	= 1.f;
 
 			if ( auto  surf = rg.GetSurface() )
 			{
 				if ( auto  infos = surf->GetTargetInfo();  not infos.empty() ) {
 					surf_size	= float2{infos[0].dimension};
-					pix_to_mm	= infos[0].pixToMm;
+					pix_per_mm	= infos[0].pixToMm;
 				}
 				update_pd.swapchainColorSpace = surf->GetSurfaceInfo().colorSpace;
 			}
@@ -177,7 +177,8 @@ namespace AE::ResEditor
 			update_pd.unormCursorPos= input->cursorPos / surf_size;
 			update_pd.pressed		= input->pressed;
 			update_pd.customKeys	= input->customKeys;
-			update_pd.pixToMm		= pix_to_mm * (surf_scale > 0 ? 1.f/float(surf_scale) : float(-surf_scale));
+			update_pd.pixPerMm		= pix_per_mm * (surf_scale > 0 ? float(surf_scale) : 1.f/float(-surf_scale));
+			update_pd.mmPerPix		= 1.f / update_pd.pixPerMm;
 		}
 
 		// setup shader debugger

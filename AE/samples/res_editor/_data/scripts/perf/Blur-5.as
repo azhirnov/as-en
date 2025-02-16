@@ -226,7 +226,7 @@
 	#include "SDF.glsl"
 	#include "Color.glsl"
 	#include "ColorSpace.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float3  DrawDot (float2 uv, float2 pos, float3 col, float colScale)
 	{
@@ -275,7 +275,7 @@
 #if 0
 	#include "Hash.glsl"
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void Main ()
 	{
@@ -296,7 +296,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef HDR_DEBUG
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	void  Main ()

@@ -88,7 +88,7 @@
 	#include "Color.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	int  FaceIdx () {

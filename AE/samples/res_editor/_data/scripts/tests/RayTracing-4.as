@@ -61,7 +61,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef UPD_INSTANCES
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 	#include "Matrix.glsl"
 
@@ -89,7 +89,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef TRACE_RAYS
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 
 	ND_ float4  MissShader ()

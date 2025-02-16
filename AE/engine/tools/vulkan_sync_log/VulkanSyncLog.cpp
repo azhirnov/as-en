@@ -329,10 +329,12 @@ namespace
 
 		ND_ String	GetAccelStructAsString (VkDeviceAddress addr)			const;
 
-		ND_ static VulkanLogger&  Get ()
+		ND_ static VulkanLogger&			Get ()		__NE___	{ return *_Instance(); }
+
+		ND_ static InPlace<VulkanLogger>&  _Instance ()	__NE___
 		{
-			static std::aligned_storage_t< sizeof(VulkanLogger), alignof(VulkanLogger) >	logger;
-			return *Cast<VulkanLogger>( &logger );
+			static InPlace<VulkanLogger>  logger;
+			return logger;
 		}
 	};
 
@@ -5295,8 +5297,7 @@ void  VulkanSyncLog::Initialize (INOUT VulkanDeviceFnTable& table, FlatHashMap<V
 	CHECK_ERRV( not s_Initialized );
 	s_Initialized = true;
 
-	auto&	logger = VulkanLogger::Get();
-	PlacementNew<VulkanLogger>( OUT &logger );
+	auto&	logger = VulkanLogger::_Instance().Create().Ref();
 
 	logger.Initialize( INOUT table, RVRef(queueNames) );
 }
@@ -5310,10 +5311,9 @@ void  VulkanSyncLog::Deinitialize (INOUT VulkanDeviceFnTable& table)
 {
 	if ( s_Initialized )
 	{
-		auto&	logger = VulkanLogger::Get();
+		VulkanLogger::Get().Deinitialize( INOUT table );
+		VulkanLogger::_Instance().Destroy();
 
-		logger.Deinitialize( INOUT table );
-		logger.~VulkanLogger();
 		s_Initialized = false;
 	}
 }

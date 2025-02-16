@@ -103,12 +103,14 @@ namespace AE::Graphics
 								   int  vertexOffset	= 0,
 								   uint firstInstance	= 0)																		__Th___	= 0;
 
+		//	'indirectBuffer' at 'indirectBufferOffset' must contains array of 'drawCount' elements of type 'DrawIndirectCommand' with stride 'stride'.
 				void  DrawIndirect (const DrawIndirectCmd &cmd)																		__Th___	{ DrawIndirect( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.drawCount, cmd.stride ); }
 		virtual void  DrawIndirect (BufferID	indirectBuffer,
 									Bytes		indirectBufferOffset,
 									uint		drawCount,
 									Bytes		stride)																				__Th___	= 0;
-
+		
+		//	'indirectBuffer' at 'indirectBufferOffset' must contains array of 'drawCount' elements of type 'DrawIndexedIndirectCommand' with stride 'stride'.
 				void  DrawIndexedIndirect (const DrawIndexedIndirectCmd &cmd)														__Th___ { DrawIndexedIndirect( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.drawCount, cmd.stride ); }
 		virtual void  DrawIndexedIndirect (BufferID		indirectBuffer,
 										   Bytes		indirectBufferOffset,
@@ -119,8 +121,11 @@ namespace AE::Graphics
 		virtual void  DispatchTile ()																								__Th___ = 0;
 
 		// mesh shader //
+		//	'taskCount' must be <= 'DeviceProperties::ComputeProperties::taskGroupCount'.
+		//	'taskCount' total count must be <= 'DeviceProperties::ComputeProperties::taskTotalGroups'.
 		virtual void  DrawMeshTasks (const uint3 &taskCount)																		__Th___	= 0;
-
+		
+		//	'indirectBuffer' at 'indirectBufferOffset' must contains array of 'drawCount' elements of type 'DrawMeshTasksIndirectCommand' with stride 'stride'.
 				void  DrawMeshTasksIndirect (const DrawMeshTasksIndirectCmd &cmd)													__Th___	{ DrawMeshTasksIndirect( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.drawCount, cmd.stride ); }
 		virtual void  DrawMeshTasksIndirect (BufferID	indirectBuffer,
 											 Bytes		indirectBufferOffset,
@@ -388,13 +393,14 @@ namespace AE::Graphics
 		virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void* values, ShaderStructName::Ref typeName)	__Th___	= 0;
 		template <typename T> void  PushConstant (const PushConstantIndex &idx, const T &data)										__Th___	{ return PushConstant( idx, Sizeof(data), &data, T::TypeName ); }
 
+		//	'groupCount' must be <= 'DeviceProperties::ComputeProperties::computeGroupCount'.
 		virtual void  Dispatch (const uint3 &groupCount)																			__Th___	= 0;
+				void  Dispatch (const uint2 &groupCount)																			__Th___	{ return Dispatch( uint3{ groupCount, 1u }); }
+				void  Dispatch (const uint   groupCount)																			__Th___	{ return Dispatch( uint3{ groupCount, 1u, 1u }); }
 
+		//	'buffer' at 'offset' must contains single objects with 'DispatchIndirectCommand' type.
 		//		buffer: EResourceState::IndirectBuffer
 		virtual void  DispatchIndirect (BufferID buffer, Bytes offset)																__Th___	= 0;
-
-				void  Dispatch (const uint   groupCount)																			__Th___	{ return Dispatch( uint3{ groupCount, 1u, 1u }); }
-				void  Dispatch (const uint2 &groupCount)																			__Th___	{ return Dispatch( uint3{ groupCount, 1u }); }
 	};
 
 
@@ -441,7 +447,9 @@ namespace AE::Graphics
 
 		//	requires: EPipelineDynamicState::RTStackSize
 		virtual void  SetStackSize (Bytes size)																						__Th___	= 0;
-
+		
+		//	'dim' must be <= 'DeviceProperties::RayTracingProperties::maxThreadCount'.
+		//	'dim' total count must be <= 'DeviceProperties::RayTracingProperties::maxDispatchInvocations'.
 		//		sbt: EResourceState::RTShaderBindingTable
 		virtual void  TraceRays (const uint2 dim, RTShaderBindingID sbt)															__Th___	= 0;
 		virtual void  TraceRays (const uint3 dim, RTShaderBindingID sbt)															__Th___	= 0;
@@ -449,16 +457,17 @@ namespace AE::Graphics
 		virtual void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)													__Th___	= 0;
 		virtual void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)													__Th___	= 0;
 
+		//	'indirectBuffer' at 'indirectBufferOffset' must contains single object with 'TraceRayIndirectCommand' type.
 		//		sbt:            EResourceState::RTShaderBindingTable
 		//		indirectBuffer: EResourceState::IndirectBuffer
 		virtual void  TraceRaysIndirect (RTShaderBindingID sbt,
 										 BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th___	= 0;
 		virtual void  TraceRaysIndirect (const RTShaderBindingTable &sbt,
 										 BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th___	= 0;
-
+		
+		//	'indirectBuffer' at 'indirectBufferOffset' must contains single object with 'TraceRayIndirectCommand2' type.
 		//	requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
 		virtual void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th___	= 0;
-
 	};
 
 

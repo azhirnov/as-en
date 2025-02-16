@@ -52,7 +52,7 @@
 	#include "SDF.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float3  Project (float3 n)
 	{
@@ -90,7 +90,7 @@
 	#include "Color.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	float3  ProjectToSphere (const float2 snormCoord, ECubeFace face)

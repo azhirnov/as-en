@@ -49,7 +49,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 
 	ND_ float4  MissShader ()

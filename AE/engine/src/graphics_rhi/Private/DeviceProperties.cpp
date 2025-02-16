@@ -132,7 +132,7 @@ namespace
 */
 	bool  DeviceProperties::CompareWithConstant (AnyTypeCRef vkExt_mtlFS) C_NE___
 	{
-		StaticAssert( sizeof(DeviceProperties) == 104 );
+		StaticAssert( sizeof(DeviceProperties) == 168 );
 
 		const auto	CheckLimitLess = [] (auto curr, auto constant, const char* name)
 		{{
@@ -195,7 +195,7 @@ namespace
 			CMP_L( minBufferCopyRowPitchAlign );
 		}
 
-		StaticAssert( sizeof(rayTracing) == 64 );
+		StaticAssert( sizeof(rayTracing) == 80 );
 		if ( accel_struct )
 		{
 			#undef CMP_L
@@ -222,7 +222,9 @@ namespace
 		//	CMP_G( maxClusterGeometryIndex );
 		//	CMP_G( maxPartitionCount );
 		}
+
 		// ignore shaderHW
+		// ignore compute
 
 		return result;
 	}
@@ -252,7 +254,7 @@ namespace
 			res.minThreadgroupMemoryLengthAlign		= POTBytes{ 1_b };		// not supported
 			res.minVertexBufferOffsetAlign			= POTBytes{ 1_b };		// not defined
 			#ifdef AE_PLATFORM_ANDROID
-				res.maxVerticesPerRenderPass		= POTValue( 2ull<<30 );	// no way to query
+				res.maxVerticesPerRenderPass		= POTValue_From< 2ull<<30 >;	// no way to query
 				res.minVertexBufferElementsAlign	= 4;
 			#else
 				res.maxVerticesPerRenderPass		= POTValue( UMax );		// not defined
@@ -277,10 +279,11 @@ namespace
 
 		if ( vk_ext.accelerationStructure )
 		{
-			StaticAssert( sizeof(rayTracing) == 64 );
+			StaticAssert( sizeof(rayTracing) == 80 );
 
 			const auto&		ac_props	= vk_props.accelerationStructureProps;
 			const auto&		rt_props	= vk_props.rayTracingPipelineProps;
+			const auto&		limits		= vk_props.properties.limits;
 
 			rayTracing.vertexDataAlign			= POTBytes{ 1_b };
 			rayTracing.vertexStrideAlign		= POTBytes{ 1_b };
@@ -298,6 +301,9 @@ namespace
 
 			rayTracing.maxRecursion				= rt_props.maxRayRecursionDepth;
 			rayTracing.maxDispatchInvocations	= rt_props.maxRayDispatchInvocationCount;
+			rayTracing.maxThreadCount[0]		= limits.maxComputeWorkGroupCount[0] * limits.maxComputeWorkGroupSize[0];
+			rayTracing.maxThreadCount[1]		= limits.maxComputeWorkGroupCount[1] * limits.maxComputeWorkGroupSize[1];
+			rayTracing.maxThreadCount[2]		= limits.maxComputeWorkGroupCount[2] * limits.maxComputeWorkGroupSize[2];
 		}
 		if ( vk_ext.clusterAccelStructNV )
 		{
@@ -354,6 +360,32 @@ namespace
 			{
 				InitAppleShaderHWProperties( OUT shaderHW, vk_props.properties.deviceName );
 			}
+		}
+
+		// compute properties
+		StaticAssert( sizeof(compute) == 48 );
+		{
+			const auto&		props = vk_props.properties.limits;
+			compute.computeGroupCount[0] = props.maxComputeWorkGroupCount[0];
+			compute.computeGroupCount[1] = props.maxComputeWorkGroupCount[1];
+			compute.computeGroupCount[2] = props.maxComputeWorkGroupCount[2];
+		}{
+			const auto&		props = vk_props.meshShaderProps;
+
+			compute.taskTotalGroups		= props.maxTaskWorkGroupTotalCount;
+			compute.taskGroupCount[0]	= props.maxTaskWorkGroupCount[0];
+			compute.taskGroupCount[1]	= props.maxTaskWorkGroupCount[1];
+			compute.taskGroupCount[2]	= props.maxTaskWorkGroupCount[2];
+
+			compute.meshTotalGroups		= props.maxMeshWorkGroupTotalCount;
+			compute.meshGroupCount[0]	= props.maxMeshWorkGroupCount[0];
+			compute.meshGroupCount[1]	= props.maxMeshWorkGroupCount[1];
+			compute.meshGroupCount[2]	= props.maxMeshWorkGroupCount[2];
+			
+			compute.prefersLocalInvocationVertexOutput		= props.prefersLocalInvocationVertexOutput;
+			compute.prefersLocalInvocationPrimitiveOutput	= props.prefersLocalInvocationPrimitiveOutput;
+			compute.prefersCompactVertexOutput				= props.prefersCompactVertexOutput;
+			compute.prefersCompactPrimitiveOutput			= props.prefersCompactPrimitiveOutput;
 		}
 	}
 #endif // AE_ENABLE_VULKAN
@@ -440,6 +472,7 @@ namespace
 
 			rayTracing.maxRecursion				= 0;	// not supported, yet
 			rayTracing.maxDispatchInvocations	= 0;
+			rayTracing.maxThreadCount			= {};
 		}
 
 		// shader HW
@@ -449,6 +482,11 @@ namespace
 			if ( HasSubStringIC( devName, "Apple" ))
 				InitAppleShaderHWProperties( OUT shaderHW, devName );
 		}
+
+		// compute properties
+		StaticAssert( sizeof(compute) == 48 );
+		// TODO
+
 	}
 #endif // AE_ENABLE_METAL
 
@@ -488,7 +526,7 @@ namespace
 			// ray tracing
 			if ( rayTracing.maxGeometries > 0 and rayTracing.maxInstances > 0 )
 			{
-				StaticAssert( sizeof(rayTracing) == 64 );
+				StaticAssert( sizeof(rayTracing) == 80 );
 				str << "\n  RayTracingProperties:"
 					<< "\n    vertexDataAlign: . . . . . . . . . " << ToString( Bytes{ rayTracing.vertexDataAlign })
 					<< "\n    vertexStrideAlign:                 " << ToString( Bytes{ rayTracing.vertexStrideAlign })
@@ -504,10 +542,11 @@ namespace
 					<< "\n    maxPrimitives:                     " << ToString( rayTracing.maxPrimitives )
 					<< "\n    maxRecursion:  . . . . . . . . . . " << ToString( rayTracing.maxRecursion )
 					<< "\n    maxDispatchInvocations:            " << ToString( rayTracing.maxDispatchInvocations )
-					<< "\n    maxVerticesPerCluster: . . . . . . " << ToString( rayTracing.maxVerticesPerCluster )
-					<< "\n    maxTrianglesPerCluster:            " << ToString( rayTracing.maxTrianglesPerCluster )
-					<< "\n    maxClusterGeometryIndex: . . . . . " << ToString( rayTracing.maxClusterGeometryIndex )
-					<< "\n    maxPartitionCount:                 " << ToString( rayTracing.maxPartitionCount )
+					<< "\n    maxThreadCount:  . . . . . . . . . (" << ToString( rayTracing.maxThreadCount[0] ) << ", " << ToString( rayTracing.maxThreadCount[1] ) << ", " << ToString( rayTracing.maxThreadCount[2] ) << ")"
+					<< "\n    maxVerticesPerCluster:             " << ToString( rayTracing.maxVerticesPerCluster )
+					<< "\n    maxTrianglesPerCluster:  . . . . . " << ToString( rayTracing.maxTrianglesPerCluster )
+					<< "\n    maxClusterGeometryIndex:           " << ToString( rayTracing.maxClusterGeometryIndex )
+					<< "\n    maxPartitionCount: . . . . . . . . " << ToString( rayTracing.maxPartitionCount )
 					<< "\n  ----";
 			}
 
@@ -524,6 +563,26 @@ namespace
 					<< "\n    max concurrent warps per core:     " << ToString( shaderHW.maxConcurrentWarpsPerCore )
 					<< "\n    max concurrent threads:  . . . . . " << ToString( shaderHW.MaxConcurrentThreads() )
 					<< "\n  ----";
+			}
+
+			// compute
+			{
+				StaticAssert( sizeof(compute) == 48 );
+				str << "\n  ComputeProperties:"
+					<< "\n    computeGroupCount: . . . . . . . . (" << ToString( compute.computeGroupCount[0] ) << ", " << ToString( compute.computeGroupCount[1] ) << ", " << ToString( compute.computeGroupCount[2] ) << ")";
+
+				if ( compute.taskTotalGroups > 0 )
+				{
+					str << "\n    taskTotalGroups:                   " << ToString( compute.taskTotalGroups )
+						<< "\n    taskGroupCount:  . . . . . . . . . (" << ToString( compute.taskGroupCount[0] ) << ", " << ToString( compute.taskGroupCount[1] ) << ", " << ToString( compute.taskGroupCount[2] ) << ")"
+						<< "\n    meshTotalGroups:                   " << ToString( compute.meshTotalGroups )
+						<< "\n    meshGroupCount:  . . . . . . . . . (" << ToString( compute.meshGroupCount[0] ) << ", " << ToString( compute.meshGroupCount[1] ) << ", " << ToString( compute.meshGroupCount[2] ) << ")"
+						<< "\n    prefersLocalInvocationVertexOutput:    " << ToString( compute.prefersLocalInvocationVertexOutput )
+						<< "\n    prefersLocalInvocationPrimitiveOutput: " << ToString( compute.prefersLocalInvocationPrimitiveOutput )
+						<< "\n    prefersCompactVertexOutput:            " << ToString( compute.prefersCompactVertexOutput )
+						<< "\n    prefersCompactPrimitiveOutput:  . . . ." << ToString( compute.prefersCompactPrimitiveOutput );
+				}
+				str << "\n  ----";
 			}
 
 			AE_LOGI( str );

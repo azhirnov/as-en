@@ -16,6 +16,7 @@ void ASmain ()
 	//	asus ASUS_AI2203_D driver 32.1.0 on Android 13.0
 	//	Google Pixel 8 Pro driver 44.0.0 on Android 14.0
 	//	Mali-T830 driver 28.0.0 on Android 9.0
+	//	motorola moto g13 driver 32.1.0 on Android 14.0
 	//	Mali-G71 driver 575.795.1934 on Android 7.1
 	//	OPPO PDYT20 driver 32.1.0 on Android 12.0
 	//	OPPO PFFM20 driver 32.1.0 on Android 12.0
@@ -29,6 +30,7 @@ void ASmain ()
 	//	samsung SM-G780F driver 38.1.0 on Android 13.0
 	//	Mali-G76 driver 32.1.0 on Android 12.0
 	//	vivo V2324A driver 44.1.0 on Android 14.0
+	//	vivo V2351 driver 38.1.0 on Android 14.0
 
 	const EFeature  True = EFeature::RequireTrue;
 
@@ -40,6 +42,7 @@ void ASmain ()
 	fset.constantAlphaColorBlendFactors (True);
 	fset.pointPolygons (True);
 	fset.triangleFans (True);
+	fset.largePoints (True);
 	fset.fragmentStoresAndAtomics (True);
 	fset.shaderSampleRateInterpolationFunctions (True);
 	fset.shaderSampledImageArrayDynamicIndexing (True);
@@ -197,7 +200,7 @@ void ASmain ()
 
 		// all 32 bit or smaller formats in Valhall gen1+
 		EPixelFormat::R16_UNorm, EPixelFormat::RG16_UNorm, EPixelFormat::R16_SNorm, EPixelFormat::RG16_SNorm,
-		EPixelFormat::R16F, EPixelFormat::RG16F,
+		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGB_11_11_10F,
 
 		// in Valhall gen3
 		EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16F

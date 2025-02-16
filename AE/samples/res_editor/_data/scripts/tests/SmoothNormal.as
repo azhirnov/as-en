@@ -30,7 +30,7 @@
 #ifdef SH_FRAG
 	#include "Normal.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float3  Sphere (float2 uv, float2 duv)
 	{

@@ -47,7 +47,7 @@
 #ifdef SH_FRAG
 	#define GEN_CIRCLE_NOISE
 	#include "tools/TileableNoise.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "SDF.glsl"
 
 

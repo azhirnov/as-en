@@ -35,6 +35,8 @@ void ASmain ()
 	fset.constantAlphaColorBlendFactors (True);
 	fset.pointPolygons (True);
 	fset.triangleFans (True);
+	fset.largePoints (True);
+	fset.wideLines (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Vote_Begin, ESubgroupOperation::_Vote_End );
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Arithmetic_Begin, ESubgroupOperation::_Arithmetic_End );

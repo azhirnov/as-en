@@ -207,6 +207,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_separate_depth_stencil_layouts
 - VK_EXT_pipeline_creation_cache_control
 - VK_EXT_separate_stencil_usage
+- VK_NV_fill_rectangle
 
 **Pending for debugging:**
 - VK_EXT_device_fault

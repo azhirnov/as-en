@@ -1189,29 +1189,36 @@ namespace
 */
 	bool  FeatureSet::IsSupported (const RenderState &rs) C_NE___
 	{
+		const auto	True = EFeature::RequireTrue;
+
 		if ( rs.multisample.alphaToOne )
-			CHECK_ERR( alphaToOne != EFeature::RequireFalse );
+			CHECK_ERR( alphaToOne == True );
 
 		if ( rs.multisample.sampleShading )
-			CHECK_ERR( sampleRateShading != EFeature::RequireFalse );
+			CHECK_ERR( sampleRateShading == True );
 
 		if ( rs.rasterization.depthBiasClamp != 0.f )
-			CHECK_ERR( depthBiasClamp != EFeature::RequireFalse );
+			CHECK_ERR( depthBiasClamp == True );
 
 		if ( rs.rasterization.depthClamp )
-			CHECK_ERR( depthClamp != EFeature::RequireFalse );
+			CHECK_ERR( depthClamp == True );
 
 		if ( rs.rasterization.polygonMode != EPolygonMode::Fill )
-			CHECK_ERR( fillModeNonSolid != EFeature::RequireFalse );
+			CHECK_ERR( fillModeNonSolid == True );
 
 		if ( rs.rasterization.polygonMode == EPolygonMode::Point )
-			CHECK_ERR( pointPolygons != EFeature::RequireFalse );
+			CHECK_ERR( pointPolygons == True );
 
 		if ( rs.depth.bounds )
-			CHECK_ERR( depthBounds != EFeature::RequireFalse );
+			CHECK_ERR( depthBounds == True );
+		
+		if ( (rs.rasterization.polygonMode == EPolygonMode::Line or
+			  (rs.inputAssembly.topology >= EPrimitive::LineList and rs.inputAssembly.topology >= EPrimitive::LineStripAdjacency)) and
+			 rs.rasterization.lineWidth > 1 )
+			CHECK_ERR( wideLines == True );
 
-		const auto	CheckBlend = [dual_src		= dualSrcBlend != EFeature::RequireFalse,
-								  const_alpha	= constantAlphaColorBlendFactors != EFeature::RequireFalse] (EBlendFactor factor) -> bool
+		const auto	CheckBlend = [dual_src		= dualSrcBlend == True,
+								  const_alpha	= constantAlphaColorBlendFactors == True] (EBlendFactor factor) -> bool
 		{{
 			switch_enum( factor )
 			{
@@ -1257,19 +1264,29 @@ namespace
 				CHECK_ERR( CheckBlend( cb.dstBlendFactor.color ));
 				CHECK_ERR( CheckBlend( cb.dstBlendFactor.alpha ));
 
-				if ( cb.srcBlendFactor.color != cb.srcBlendFactor.alpha )
-					CHECK_ERR( independentBlend != EFeature::RequireFalse );
+			//	if ( cb.srcBlendFactor.color != cb.srcBlendFactor.alpha )	// TODO: 'independentBlend' is not a separate blend
+			//		CHECK_ERR( independentBlend == True );
 
-				if ( cb.dstBlendFactor.color != cb.dstBlendFactor.alpha )
-					CHECK_ERR( independentBlend != EFeature::RequireFalse );
+			//	if ( cb.dstBlendFactor.color != cb.dstBlendFactor.alpha )
+			//		CHECK_ERR( independentBlend == True );
+			}
+		}
+
+		if ( independentBlend != True and rs.color.buffers.size() > 0 )
+		{
+			const auto&	ref = rs.color.buffers[0];
+			for (usize i = 1; i < rs.color.buffers.size(); ++i)
+			{
+				auto&	cb = rs.color.buffers[i];
+				CHECK_ERR( ref == cb );
 			}
 		}
 
 		if ( rs.color.logicOp != ELogicOp::None )
-			CHECK_ERR( logicOp != EFeature::RequireFalse );
+			CHECK_ERR( logicOp == True );
 
 		if ( rs.inputAssembly.topology == EPrimitive::TriangleFan )
-			CHECK_ERR( triangleFans != EFeature::RequireFalse );
+			CHECK_ERR( triangleFans == True );
 
 		return true;
 	}
@@ -1767,7 +1784,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0x68716b848c981e7full};
+		return HashVal64{0xf403c77fbb56d331ull};
 	}
 
 

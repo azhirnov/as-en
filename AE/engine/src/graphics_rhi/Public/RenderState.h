@@ -191,20 +191,20 @@ namespace AE::Graphics
 			float			depthBiasConstFactor	= 0.f;		// bias = dbclamp( m * depthBiasSlopeFactor + r * depthBiasConstFactor )
 			float			depthBiasClamp			= 0.f;		// m - max depth slope of a triangle
 			float			depthBiasSlopeFactor	= 0.f;		// r - implementation-dependent but must be at most 2*2^-n, n - number of mantissa bits
-			bool			depthBias				= 0.f;		//              { x							if depthBiasClamp = 0;
+			bool			depthBias				= false;	//              { x							if depthBiasClamp = 0;
 																// dbclamp(x) = { min(x, depthBiasClamp)	if depthBiasClamp > 0;
 																//              { max(x, depthBiasClamp)	if depthBiasClamp < 0
-
-			EPolygonMode	polygonMode				= EPolygonMode::Fill;
-
 			bool			depthClamp				= false;
 			bool			rasterizerDiscard		= false;
 
-			bool			frontFaceCCW			= true;
+			bool			frontFaceCCW			= false;
+
+			ubyte			lineWidth				= 1;
+			EPolygonMode	polygonMode				= EPolygonMode::Fill;
 			ECullMode		cullMode				= ECullMode::None;
 
 		// methods
-			RasterizationState ()									__NE___	{}
+			RasterizationState ()									__NE___ {}
 
 			ND_ bool	operator == (const RasterizationState &rhs)	C_NE___;
 			ND_ bool	operator != (const RasterizationState &rhs)	C_NE___	{ return not (*this == rhs); }

@@ -150,11 +150,13 @@ namespace
 
 		ND_ VkPipelineStageFlags	ConvertVkPipelineStageFlags2 (VkPipelineStageFlags2 inStages, SyncScope scope)	C_NE___;
 		ND_ VkAccessFlags			ConvertVkAccessFlags2 (VkAccessFlags2 inAccess, VkPipelineStageFlags2 inStages)	C_NE___;
+		
+		ND_ static VulkanEmulation&				Get ()		__NE___	{ return *_Instance(); }
 
-		ND_ static VulkanEmulation&  Get ()													__NE___
+		ND_ static InPlace<VulkanEmulation>&  _Instance ()	__NE___
 		{
-			static std::aligned_storage_t< sizeof(VulkanEmulation), alignof(VulkanEmulation) >	emulator;
-			return *Cast<VulkanEmulation>( &emulator );
+			static InPlace<VulkanEmulation>  emulator;
+			return emulator;
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -781,23 +783,17 @@ namespace
 
 /*
 =================================================
-	constructor
+	constructor / destructor
 =================================================
 */
 	VulkanExtEmulation::VulkanExtEmulation (VulkanDeviceFnTable* fnTable) __NE___
 	{
-		auto&	emulator = VulkanEmulation::Get();
-		PlacementNew<VulkanEmulation>( OUT &emulator, fnTable );
+		VulkanEmulation::_Instance().Create( fnTable );
 	}
 
-/*
-=================================================
-	destructor
-=================================================
-*/
 	VulkanExtEmulation::~VulkanExtEmulation () __NE___
 	{
-		VulkanEmulation::Get().~VulkanEmulation();
+		VulkanEmulation::_Instance().Destroy();
 	}
 
 /*

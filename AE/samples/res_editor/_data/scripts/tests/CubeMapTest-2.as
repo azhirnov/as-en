@@ -28,7 +28,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "CubeMap.glsl"
 	#include "SDF.glsl"
 

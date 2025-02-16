@@ -106,7 +106,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GEN_NOISE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Hash.glsl"
 	#include "Color.glsl"
 

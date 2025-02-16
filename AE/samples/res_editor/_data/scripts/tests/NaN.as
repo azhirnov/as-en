@@ -37,7 +37,7 @@
 		precision mediump float;
 	#endif
 
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	#if MODE == 0 or MODE == 3

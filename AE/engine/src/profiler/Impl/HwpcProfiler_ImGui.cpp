@@ -335,15 +335,16 @@ namespace
 */
 	void  HwpcProfiler::_InitImGui ()
 	{
-		ImLineGraph::ColorStyle		style4 = GetStyle4();
-		ImLineGraph::ColorStyle		style1 = GetStyle1();
+		ImLineGraph::ColorStyle		style4		= GetStyle4();
+		ImLineGraph::ColorStyle		style1		= GetStyle1();
+		const bool					per_frame	= not _isRemote;
 
-		_InitGeneralPerfImGui( style4, style1 );
-		_InitArmCountersImGui( style4, style1 );
-		_InitMaliCountersImGui( style4, style1 );
-		_InitNVidiaCountersImGui( style4, style1 );
-		_InitAdrenoCountersImGui( style4, style1 );
-		_InitPowerVRCountersImGui( style4, style1 );
+		_InitGeneralPerfImGui( per_frame, style4, style1 );
+		_InitArmCountersImGui( per_frame, style4, style1 );
+		_InitMaliCountersImGui( per_frame, style4, style1 );
+		_InitNVidiaCountersImGui( per_frame, style4, style1 );
+		_InitAdrenoCountersImGui( per_frame, style4, style1 );
+		_InitPowerVRCountersImGui( per_frame, style4, style1 );
 	}
 //-----------------------------------------------------------------------------
 
@@ -403,10 +404,11 @@ namespace
 	_InitArmCountersImGui
 =================================================
 */
-	void  HwpcProfiler::_InitArmCountersImGui (const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &style1)
+	void  HwpcProfiler::_InitArmCountersImGui (const bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &style1)
 	{
 		const uint	capacity	= 50;
 		auto&		prof		= _armProf;
+		StringView	suffix		= perFrame ? "/f" : "/s";
 
 		{
 			auto&	graph = prof.graphTable.Add( Default, ARM_CpuCycles );
@@ -551,10 +553,11 @@ namespace
 	_InitMaliCountersImGui
 =================================================
 */
-	void  HwpcProfiler::_InitMaliCountersImGui (const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
+	void  HwpcProfiler::_InitMaliCountersImGui (const bool perFrame, const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
 	{
 		const uint	capacity	= 50;
 		auto&		prof		= _maliProf;
+		StringView	suffix		= perFrame ? "/f" : "/s";
 
 		{
 			constexpr SecName	sec {"Clock"};
@@ -680,7 +683,7 @@ namespace
 				graph.SetLabel( "LS",	 1 );
 				graph.SetLabel( "tex",	 2 );
 				graph.SetColor( style4 );
-				graph.SetSuffix( "B" );		// bytes
+				graph.SetSuffix( "B"s << suffix );
 				graph.SetDescription( "Shader core memory read traffic that misses in the GPU cache and that is fetched from the external memory system.\nFront - total number of bytes read from the external memory system by the fragment front-end unit.\nLS - total number of bytes read from the external memory system by the load/store unit.\nTex - total number of bytes read from the external memory system by the texture unit." );
 			}
 			prof.graphTable.SetCaption( sec, "External memory" );
@@ -713,7 +716,7 @@ namespace
 				graph.SetLabel( "LS",	 1 );
 				graph.SetLabel( "tex",	 2 );
 				graph.SetColor( style4 );
-				graph.SetSuffix( "B" );		// bytes
+				graph.SetSuffix( "B"s << suffix );
 				graph.SetDescription( "Shader core memory read traffic that is fetched from the GPU L2 cache.\nFront - total number of bytes read from the L2 memory system by the fragment front-end unit.\nLS -  total number of bytes read from the L2 memory system by the load/ store unit.\nTex - total number of bytes read from the L2 memory system by the texture unit." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_CacheFlush );
@@ -1089,7 +1092,7 @@ namespace
 	_InitPowerVRCountersImGui
 =================================================
 */
-	void  HwpcProfiler::_InitPowerVRCountersImGui (const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
+	void  HwpcProfiler::_InitPowerVRCountersImGui (const bool, const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
 	{
 		const uint	capacity	= 50;
 		auto&		prof		= _pvrProf;
@@ -1347,10 +1350,11 @@ namespace
 	_InitAdrenoCountersImGui
 =================================================
 */
-	void  HwpcProfiler::_InitAdrenoCountersImGui (const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
+	void  HwpcProfiler::_InitAdrenoCountersImGui (const bool perFrame, const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
 	{
 		const uint	capacity	= 50;
 		auto&		prof		= _adrenoProf;
+		StringView	suffix		= perFrame ? "/f" : "/s";
 
 		{
 			constexpr SecName	sec {"LRZ"};
@@ -1361,7 +1365,7 @@ namespace
 				graph.SetLabel( "read",  0 );
 				graph.SetLabel( "write", 1 );
 				graph.SetColor( style4 );
-				graph.SetSuffix( "B" );
+				graph.SetSuffix( "B"s << suffix );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Adreno_LrzPrim );
 				graph.SetCapacity( capacity, 3 );
@@ -1411,7 +1415,7 @@ namespace
 				graph.SetLabel( "read",	 0 );
 				graph.SetLabel( "write", 1 );
 				graph.SetColor( style4 );
-				graph.SetSuffix( "B" );
+				graph.SetSuffix( "B"s << suffix );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Adreno_RbCTraffic );
 				graph.SetCapacity( capacity, 2 );
@@ -1419,7 +1423,7 @@ namespace
 				graph.SetLabel( "read",	 0 );
 				graph.SetLabel( "write", 1 );
 				graph.SetColor( style4 );
-				graph.SetSuffix( "B" );
+				graph.SetSuffix( "B"s << suffix );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Adreno_RbZSPass );
 				graph.SetCapacity( capacity, 4 );
@@ -1458,7 +1462,7 @@ namespace
 				graph.SetLabel( "read",	 0 );
 				graph.SetLabel( "write", 1 );
 				graph.SetColor( style4 );
-				graph.SetSuffix( "B" );		// bytes
+				graph.SetSuffix( "B"s << suffix );
 			}/*{
 				auto&	graph = prof.graphTable.Add( sec, Adreno_Ccu2DPix );
 				graph.SetCapacity( capacity );
@@ -1576,9 +1580,10 @@ namespace
 	_InitGeneralPerfImGui
 =================================================
 */
-	void  HwpcProfiler::_InitGeneralPerfImGui (const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
+	void  HwpcProfiler::_InitGeneralPerfImGui (const bool, const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
 	{
 		const uint	capacity	= 50;
+
 		{
 			constexpr SecName	sec {"Memory"};
 			{
@@ -1905,7 +1910,7 @@ namespace
 	_InitNVidiaCountersImGui
 =================================================
 */
-	void  HwpcProfiler::_InitNVidiaCountersImGui (const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
+	void  HwpcProfiler::_InitNVidiaCountersImGui (const bool, const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
 	{
 		const uint	capacity	= 50;
 		auto&		prof		= _nvProf;

@@ -194,7 +194,31 @@ namespace AE::Graphics
 	GetPipelineStatistic
 =================================================
 */
-	bool  RQueryManager::GetPipelineStatistic (const IQuery &iq, OUT GraphicsPipelineStatistic* result, const Bytes size) C_NE___
+	bool  RQueryManager::GetPipelineStatistic (const IQuery &q, OUT GraphicsPipelineStatistic* result, const Bytes size) C_NE___
+	{
+		return _GetPipelineStatistic< Msg::Query_GetPipelineStatistic, Msg::Query_GetGraphicsPipeStat_Response >(
+					q, OUT result, size, EQueryType::GraphicsPipelineStatistic );
+	}
+
+	bool  RQueryManager::GetPipelineStatistic (const IQuery &q, OUT MeshPipelineStatistic* result, const Bytes size) C_NE___
+	{
+		return _GetPipelineStatistic< Msg::Query_GetPipelineStatistic, Msg::Query_GetMeshPipeStat_Response >(
+					q, OUT result, size, EQueryType::MeshPipelineStatistic );
+	}
+
+	bool  RQueryManager::GetPipelineStatistic (const IQuery &q, OUT ComputePipelineStatistic* result, const Bytes size) C_NE___
+	{
+		return _GetPipelineStatistic< Msg::Query_GetPipelineStatistic, Msg::Query_GetComputePipeStat_Response >(
+					q, OUT result, size, EQueryType::ComputePipelineStatistic );
+	}
+	
+/*
+=================================================
+	_GetPipelineStatistic
+=================================================
+*/
+	template <typename MsgType, typename ResponseType, typename T>
+	bool  RQueryManager::_GetPipelineStatistic (const IQuery &iq, OUT T* result, Bytes resultSize, EQueryType type) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		StaticAssert( IsMultipleOf( sizeof(*result), sizeof(ulong) ));
@@ -202,21 +226,21 @@ namespace AE::Graphics
 		auto&	q = static_cast<Query const&>(iq);
 
 		CHECK_ERR( q and result != null );
-		CHECK_ERR( size >= (SizeOf<GraphicsPipelineStatistic> * q.count) );
-		CHECK( q.type == EQueryType::PipelineStatistic );
+		CHECK_ERR( resultSize >= (SizeOf<T> * q.count) );
+		CHECK( q.type == type );
 
-		Msg::Query_GetPipelineStatistic					msg;
-		RC<Msg::Query_GetPipelineStatistic_Response>	res;
+		MsgType				msg;
+		RC<ResponseType>	res;
 
 		msg.query	= q;
-		msg.size	= size;
+		msg.size	= resultSize;
 
 		CHECK_ERR( GraphicsScheduler().GetDevice().SendAndWait( msg, OUT res ));
 
 		if_unlikely( res->result.empty() )
 			return false;
 
-		CHECK_ERR( ArraySizeOf(res->result) <= size );
+		CHECK_ERR( ArraySizeOf(res->result) <= resultSize );
 		MemCopy( OUT result, res->result.data(), ArraySizeOf(res->result) );
 
 		return true;

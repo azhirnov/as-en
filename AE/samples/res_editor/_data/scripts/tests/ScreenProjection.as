@@ -27,7 +27,7 @@
 
 		// render loop
 		{
-			RC<Postprocess>		pass = Postprocess( EPostprocess::None );
+			RC<Postprocess>		pass = Postprocess();
 			pass.Set(	 camera );
 			pass.Output( "out_Color",		rt );
 			pass.Slider( "iProj",			0,		8 );
@@ -45,7 +45,7 @@
 #ifdef SH_FRAG
 	#include "Ray.glsl"
 	#include "SDF.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void Main ()
 	{
@@ -55,7 +55,7 @@
 		const float		ipd				= 64.0e-3f;	// meters
 		const float		z_near			= 0.1f;
 		const float2	screen_dim		= un_PerPass.resolution.xy;
-		const float		pix_to_m		= un_PerPass.pixToMm * 0.001f;
+		const float		pix_to_m		= un_PerPass.mmPerPix * 0.001f;
 		const float2	screen_size		= screen_dim * pix_to_m;	// meters
 		const float		curve_radius	= 1.8f;		// meters
 		const float2	fov				= ToRad(iFOV) * float2(un_PerPass.resolution.x / un_PerPass.resolution.y, 1.0);
@@ -67,14 +67,14 @@
 
 			// VR video:
 			case 1 :	ray = Ray_PlaneToVR180( ipd, un_PerPass.camera.pos, z_near, uv );
-						uv2 = Inverted_PlaneToVR180( ray.dir, uv.x < 0.5 ? 0 : 1 );									break;
+						uv2 = RayInverse_PlaneToVR180( ray.dir, uv.x < 0.5 ? 0 : 1 );								break;
 
 			case 2 :	ray = Ray_PlaneToVR360( ipd, un_PerPass.camera.pos, z_near, uv );
-						uv2 = Inverted_PlaneToVR360( ray.dir, uv.y < 0.5 ? 0 : 1 );									break;
+						uv2 = RayInverse_PlaneToVR360( ray.dir, uv.y < 0.5 ? 0 : 1 );								break;
 
 			// 360 video
 			case 3 :	ray = Ray_PlaneTo360( un_PerPass.camera.pos, z_near, uv );
-						uv2 = Inverted_PlaneTo360( ray.dir );														break;
+						uv2 = RayInverse_PlaneTo360( ray.dir );														break;
 
 			// flat screen	(fov=45, iDistToEye=0.474) (fov=90, iDistToEye=0.105)
 			case 4 :	ray = Ray_FromFlatScreen( un_PerPass.camera.pos, iDistToEye, screen_size, z_near, ToSNorm(uv) ); break;

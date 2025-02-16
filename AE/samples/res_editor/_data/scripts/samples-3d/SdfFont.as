@@ -28,7 +28,7 @@
 
 		// render loop
 		{
-			RC<Postprocess>		pass = Postprocess( EPostprocess::None );
+			RC<Postprocess>		pass = Postprocess();
 			pass.Set( camera );
 			pass.ArgIn( "un_SdfFont_32",		sdf_font_32,		Sampler_LinearRepeat );
 			pass.ArgIn( "un_McSdfFont_32",		mc_sdf_font_32,		Sampler_LinearRepeat );

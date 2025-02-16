@@ -38,7 +38,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_RAY_GEN
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 
 	uint3  UnpackID (uint id)

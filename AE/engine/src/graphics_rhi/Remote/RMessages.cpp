@@ -345,7 +345,9 @@ namespace AE::RemoteGraphics::Msg
 
 	StaticAssert( sizeof(IQueryManager::GraphicsPipelineStatistic) == 24 );
 	DECL_SERIALIZER( Query_GetPipelineStatistic,				Ser_Query( query ), size )
-	DECL_SERIALIZER( Query_GetPipelineStatistic_Response,		result )
+	DECL_SERIALIZER( Query_GetGraphicsPipeStat_Response,		result )
+	DECL_SERIALIZER( Query_GetMeshPipeStat_Response,			result )
+	DECL_SERIALIZER( Query_GetComputePipeStat_Response,			result )
 //-----------------------------------------------------------------------------
 
 

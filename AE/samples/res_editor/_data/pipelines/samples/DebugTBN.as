@@ -81,6 +81,7 @@
 
 				rs.rasterization.frontFaceCCW	= true;
 				rs.rasterization.cullMode		= ECullMode::None;
+				rs.rasterization.lineWidth		= 4;
 
 				spec.SetRenderState( rs );
 			}

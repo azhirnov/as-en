@@ -45,8 +45,8 @@ namespace
   // state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader
   // static size: 32 B, array stride: 0 B
   layout(set=0, binding=1, std430) coherent buffer AE_Type_ubuf {
-	layout(offset=0, align=16) uvec4  u;
-	layout(offset=16, align=16) ivec4  i;
+	layout(offset=0, align=16)   uvec4  u;  // size: 16
+	layout(offset=16, align=16)  ivec4  i;  // size: 16
   } storageBuf [2];
   // state: ShaderSample | FragmentShader
   layout(set=0, binding=2) uniform usamplerBuffer texBuffer;

@@ -45,7 +45,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef COMPARE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float4  Swizzle (float4 c)
 	{

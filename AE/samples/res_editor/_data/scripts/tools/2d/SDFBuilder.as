@@ -153,7 +153,7 @@
 #ifdef SH_FRAG
 	#include "SDF.glsl"
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	float	g_DHistory [MAX_SDF];

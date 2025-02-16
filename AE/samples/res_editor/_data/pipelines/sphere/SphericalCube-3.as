@@ -96,7 +96,7 @@
 	#include "CodeTemplates.glsl"
 	#include "Color.glsl"
 	#include "SDF.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	int3  GetGlobalSize () {
 		return int3(un_PerPass.resolution.xy, 0);

@@ -42,11 +42,13 @@ namespace AE::Graphics
 
 		CHECK_ERR( IQueryManager::_Initialize( maxFrames ));
 
+		const auto&	props = _device.GetVProperties();
+
 		_hostReset			= _device.GetVExtensions().hostQueryReset;
 		_perfQuery			= false; //_device.GetVExtensions().performanceQuery;	// TODO
 		_calibratedTs		= _device.GetVExtensions().calibratedTimestamps;
 
-		_timestampPeriod	= nanosecondsf{_device.GetVProperties().properties.limits.timestampPeriod};
+		_timestampPeriod	= nanosecondsf{props.properties.limits.timestampPeriod};
 		_timestampAllowed	= Default;
 
 		for (auto& q : _device.GetQueues())
@@ -90,7 +92,8 @@ namespace AE::Graphics
 			}
 		}
 
-		if ( _device.GetVProperties().features.pipelineStatisticsQuery )
+		// GraphicsPipelineStatistic
+		if ( props.features.pipelineStatisticsQuery )
 		{
 			static constexpr auto	StatBits =
 				//VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT	|
@@ -99,7 +102,49 @@ namespace AE::Graphics
 				VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT;
 			StaticAssert( sizeof(GraphicsPipelineStatistic) == sizeof(ulong) * CT_BitCount< StatBits >);
 
-			auto&	pool = _poolArr [uint(EQueryType::PipelineStatistic)];
+			auto&	pool = _poolArr [uint(EQueryType::GraphicsPipelineStatistic)];
+			pool.maxCount = VConfig::PipelineStatQueryPerFrame;
+
+			VkQueryPoolCreateInfo	ppln_stat_ci = {};
+			ppln_stat_ci.sType		= VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+			ppln_stat_ci.queryType	= VK_QUERY_TYPE_PIPELINE_STATISTICS;
+			ppln_stat_ci.queryCount	= _maxFrames * pool.maxCount;
+			ppln_stat_ci.pipelineStatistics = StatBits;
+
+			VK_CHECK_ERR( _device.vkCreateQueryPool( _device.GetVkDevice(), &ppln_stat_ci, null, OUT &pool.handle ));
+		}
+
+		// ComputePipelineStatistic
+		if ( props.features.pipelineStatisticsQuery )
+		{
+			static constexpr auto	StatBits =
+				VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT;
+			StaticAssert( sizeof(ComputePipelineStatistic) == sizeof(ulong) * CT_BitCount< StatBits >);
+
+			auto&	pool = _poolArr [uint(EQueryType::ComputePipelineStatistic)];
+			pool.maxCount = VConfig::PipelineStatQueryPerFrame;
+
+			VkQueryPoolCreateInfo	ppln_stat_ci = {};
+			ppln_stat_ci.sType		= VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+			ppln_stat_ci.queryType	= VK_QUERY_TYPE_PIPELINE_STATISTICS;
+			ppln_stat_ci.queryCount	= _maxFrames * pool.maxCount;
+			ppln_stat_ci.pipelineStatistics = StatBits;
+
+			VK_CHECK_ERR( _device.vkCreateQueryPool( _device.GetVkDevice(), &ppln_stat_ci, null, OUT &pool.handle ));
+		}
+		
+		// MeshPipelineStatistic
+		if ( props.features.pipelineStatisticsQuery and props.meshShaderFeats.meshShaderQueries )
+		{
+			static constexpr auto	StatBits =
+				VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT		|	// before clipping
+				VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT			|	// after clipping
+				VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT	|
+				VK_QUERY_PIPELINE_STATISTIC_TASK_SHADER_INVOCATIONS_BIT_EXT |
+				VK_QUERY_PIPELINE_STATISTIC_MESH_SHADER_INVOCATIONS_BIT_EXT;
+			StaticAssert( sizeof(MeshPipelineStatistic) == sizeof(ulong) * CT_BitCount< StatBits >);
+
+			auto&	pool = _poolArr [uint(EQueryType::MeshPipelineStatistic)];
 			pool.maxCount = VConfig::PipelineStatQueryPerFrame;
 
 			VkQueryPoolCreateInfo	ppln_stat_ci = {};
@@ -340,6 +385,7 @@ Supported queue types: Graphics / Compute
 		DRC_SHAREDLOCK( _drCheck );
 		CHECK_ERR( type < EQueryType::_Count );
 
+		// early exit if query is not supported on current queue type
 		switch_enum( type )
 		{
 			case_likely EQueryType::Timestamp :
@@ -352,11 +398,13 @@ Supported queue types: Graphics / Compute
 					return Default;
 				break;
 
-			case EQueryType::PipelineStatistic :
+			case EQueryType::GraphicsPipelineStatistic :
+			case EQueryType::MeshPipelineStatistic :
 				if_unlikely( queueType != EQueueType::Graphics )
 					return Default;
 				break;
-
+				
+			case EQueryType::ComputePipelineStatistic :
 			case EQueryType::AccelStructCompactedSize :
 			case EQueryType::AccelStructSize :
 			case EQueryType::AccelStructSerializationSize :
@@ -410,7 +458,7 @@ The second synchronization scope includes all commands which reference the queri
 
 		CHECK_ERR( q and result != null );
 		CHECK_ERR( resultSize >= (SizeOf<ulong> * q.count) );
-		ASSERT( q.type == EQueryType::Timestamp );
+		CHECK_ERR( q.type == EQueryType::Timestamp );
 
 		auto&	pool = _poolArr[ uint(q.type) ];
 		Unused( pool );
@@ -472,7 +520,7 @@ The second synchronization scope includes all commands which reference the queri
 		CHECK_ERR( _calibratedTs != 0 );
 		CHECK_ERR( q.count <= 2 );
 		CHECK_ERR( resultSize >= (SizeOf<ulong> * q.count) );
-		ASSERT( q.type == EQueryType::Timestamp );
+		CHECK_ERR( q.type == EQueryType::Timestamp );
 
 		auto&	pool = _poolArr[ uint(q.type) ];
 		Unused( pool );
@@ -568,23 +616,46 @@ The second synchronization scope includes all commands which reference the queri
 */
 	bool  VQueryManager::GetPipelineStatistic (const IQuery &iq, OUT GraphicsPipelineStatistic* result, const Bytes resultSize) C_NE___
 	{
+		return _GetPipelineStatistic( iq, OUT result, resultSize, EQueryType::GraphicsPipelineStatistic );
+	}
+	
+	bool  VQueryManager::GetPipelineStatistic (const IQuery &iq, OUT ComputePipelineStatistic* result, const Bytes resultSize) C_NE___
+	{
+		return _GetPipelineStatistic( iq, OUT result, resultSize, EQueryType::ComputePipelineStatistic );
+	}
+	
+	bool  VQueryManager::GetPipelineStatistic (const IQuery &iq, OUT MeshPipelineStatistic* result, const Bytes resultSize) C_NE___
+	{
+		return _GetPipelineStatistic( iq, OUT result, resultSize, EQueryType::MeshPipelineStatistic );
+	}
+
+/*
+=================================================
+	_GetPipelineStatistic
+=================================================
+*/
+	template <typename T>
+	bool  VQueryManager::_GetPipelineStatistic (const IQuery &iq, OUT T* result, const Bytes resultSize, const EQueryType type) C_NE___
+	{
 		DRC_SHAREDLOCK( _drCheck );
 		StaticAssert( IsMultipleOf( sizeof(*result), sizeof(ulong) ));
+
+		using Result_t = PipelineStatisticResult< T >;
 
 		auto&	q = static_cast<Query const&>(iq);
 
 		CHECK_ERR( q and result != null );
-		CHECK_ERR( resultSize >= (SizeOf<GraphicsPipelineStatistic> * q.count) );
-		CHECK( q.type == EQueryType::PipelineStatistic );
+		CHECK_ERR( resultSize >= (SizeOf<T> * q.count) );
+		CHECK_ERR( q.type == type );
 
 		auto&	pool = _poolArr[ uint(q.type) ];
 		Unused( pool );
 		ASSERT( q.first >= pool.maxCount * ReadIndex() );
 		ASSERT( q.first <  pool.maxCount * (ReadIndex()+1) );
 
-		PipelineStatisticResult*	tmp;	AllocateOnStack( OUT tmp, q.count );
-		auto						err = _device.vkGetQueryPoolResults( _device.GetVkDevice(), q.pool, q.first, q.count, sizeof(PipelineStatisticResult) * q.count, tmp,
-																		 sizeof(PipelineStatisticResult), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT );
+		Result_t*	tmp;	AllocateOnStack( OUT tmp, q.count );
+		auto		err = _device.vkGetQueryPoolResults( _device.GetVkDevice(), q.pool, q.first, q.count, sizeof(Result_t) * q.count, tmp,
+														 sizeof(Result_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT );
 		bool	available = true;
 		for (uint i = 0, cnt = q.count; i < cnt; ++i)
 		{
@@ -607,9 +678,9 @@ The second synchronization scope includes all commands which reference the queri
 		CHECK_ERR( q and result != null );
 		CHECK_ERR( resultSize >= (SizeOf<Bytes64u> * q.count) );
 
-		ASSERT(	q.type == EQueryType::AccelStructCompactedSize		or
-				q.type == EQueryType::AccelStructSerializationSize	or
-				q.type == EQueryType::AccelStructSize				);
+		CHECK_ERR(	q.type == EQueryType::AccelStructCompactedSize		or
+					q.type == EQueryType::AccelStructSerializationSize	or
+					q.type == EQueryType::AccelStructSize				);
 
 		auto&	pool = _poolArr[ uint(q.type) ];
 		Unused( pool );

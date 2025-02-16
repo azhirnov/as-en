@@ -101,7 +101,8 @@ namespace AE::ResEditor
 			uint			seed			= 0;
 
 			float2			unormCursorPos;
-			float			pixToMm			= 1.f;		// for current screen
+			float			pixPerMm		= 1.f;		// for current screen (pix / mm)
+			float			mmPerPix		= 1.f;		// for current screen (mm / pix)
 			bool			pressed			= false;	// mouse down or touch pressed
 			CustomKeys_t	customKeys		= {};
 

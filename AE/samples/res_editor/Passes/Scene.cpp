@@ -149,7 +149,10 @@ namespace AE::ResEditor
 			ub_data.timeDelta		= pd.frameTime.count();
 			ub_data.frame			= pd.frameId;
 			ub_data.seed			= pd.seed;
-			ub_data.mouse			= pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
+			ub_data.mouse			= float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, float(pd.pressed), 0.f };
+			ub_data.customKeys		= pd.customKeys[0];
+			ub_data.pixPerMm		= pd.pixPerMm;
+			ub_data.mmPerPix		= pd.mmPerPix;
 
 			if ( _controller )
 				_controller->CopyTo( OUT ub_data.camera );
@@ -284,6 +287,9 @@ namespace AE::ResEditor
 			ub_data.timeDelta	= pd.frameTime.count();
 			ub_data.frame		= pd.frameId;
 			ub_data.seed		= pd.seed;
+			ub_data.customKeys	= pd.customKeys[0];
+			ub_data.pixPerMm	= pd.pixPerMm;
+			ub_data.mmPerPix	= pd.mmPerPix;
 
 			if ( _controller )
 				_controller->CopyTo( OUT ub_data.camera );

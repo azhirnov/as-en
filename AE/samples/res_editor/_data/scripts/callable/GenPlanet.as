@@ -81,7 +81,7 @@
 #ifdef SH_COMPUTE
 	#define PROJECTION  CM_TangentialSC_Forward
 
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "SDF.glsl"
 	#include "CubeMap.glsl"
 	#include "Hash.glsl"

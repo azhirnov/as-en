@@ -48,7 +48,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "Noise.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	#define MGradientNoise				1
 	#define MValueNoise					2

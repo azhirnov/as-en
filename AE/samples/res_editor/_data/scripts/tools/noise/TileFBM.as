@@ -135,7 +135,7 @@
 	#include "SDF.glsl"
 	#include "Color.glsl"
 	#include "Normal.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{
@@ -177,7 +177,7 @@
 #ifdef VIEW_1D
 	#include "SDF.glsl"
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	ND_ float2  Noise (const int dx)
 	{
@@ -207,7 +207,7 @@
 //-----------------------------------------------------------------------------
 #ifdef VIEW_TURB_2D
 	#include "SDF.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	TURBULENCE2D_FBM_Hash( NoiseFBM )
 

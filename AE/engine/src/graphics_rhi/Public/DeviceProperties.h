@@ -53,6 +53,7 @@ namespace AE::Graphics
 			// ray tracing pipeline limits
 			uint		maxRecursion				= 0;
 			uint		maxDispatchInvocations		= 0;
+			uint		maxThreadCount [3]			= {};
 
 			// cluster acceleration structure limits
 			uint		maxVerticesPerCluster		= 0;
@@ -109,11 +110,36 @@ namespace AE::Graphics
 			ND_ uint	MaxConcurrentThreads ()	C_NE___	{ return cores * maxConcurrentWarpsPerCore * threadsPerWarp; }
 		};
 
+		//
+		// Compute & Mesh shader Properties
+		//
+		struct ComputeProperties
+		{
+			uint		computeGroupCount [3]	= {};
+			
+			uint		taskTotalGroups			= 0;
+			uint		taskGroupCount [3]		= {};
+
+			uint		meshTotalGroups			= 0;
+			uint		meshGroupCount [3]		= {};
+			
+			bool		prefersLocalInvocationVertexOutput		: 1;
+			bool		prefersLocalInvocationPrimitiveOutput	: 1;
+			bool		prefersCompactVertexOutput				: 1;
+			bool		prefersCompactPrimitiveOutput			: 1;
+
+			__Cx__ ComputeProperties () __NE___ :
+				prefersLocalInvocationVertexOutput{false}, prefersLocalInvocationPrimitiveOutput{false},
+				prefersCompactVertexOutput{false}, prefersCompactPrimitiveOutput{false}
+			{}
+		};
+
 
 	// variables
 		ResourceAlignment		res;
 		RayTracingProperties	rayTracing;
 		ShaderHWProperties		shaderHW;
+		ComputeProperties		compute;
 
 
 	// methods
@@ -189,7 +215,7 @@ namespace AE::Graphics
 		{
 			constexpr CT_DeviceProperties ()
 			{
-				StaticAssert( sizeof(DeviceProperties) == 104 );
+				StaticAssert( sizeof(DeviceProperties) == 168 );
 
 				StaticAssert( sizeof(res) == 24 );
 				{
@@ -208,7 +234,7 @@ namespace AE::Graphics
 					res.minBufferCopyOffsetAlign			= POTBytes_From< 512 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 1           other - 256
 					res.minBufferCopyRowPitchAlign			= POTBytes_From< 512 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 256         other - 256
 				}
-				StaticAssert( sizeof(rayTracing) == 64 );
+				StaticAssert( sizeof(rayTracing) == 80 );
 				{
 					rayTracing.vertexDataAlign				= POTBytes_From< 4 >;		// vulkan - 4,  metal - 4
 					rayTracing.vertexStrideAlign			= POTBytes_From< 4 >;		// vulkan - 4,  metal - 4
@@ -231,7 +257,13 @@ namespace AE::Graphics
 					rayTracing.maxRecursion					= 0;						// nvidia/intel - 31, amd/samsung - 1, apple - ???
 					rayTracing.maxDispatchInvocations		= 67108864;					// amd/samsung/nvidia - 1073741824, amd - 67108864, intel - 4294967295, apple - ???
 
-					// TODO
+					//rayTracing.maxThreadCount				= {};
+					
+					//rayTracing.maxVerticesPerCluster		= 0;
+					//rayTracing.maxTrianglesPerCluster		= 0;
+					//rayTracing.maxClusterGeometryIndex	= 0;
+
+					//rayTracing.maxPartitionCount			= 0;
 				}
 				// ignore shaderHW
 			}

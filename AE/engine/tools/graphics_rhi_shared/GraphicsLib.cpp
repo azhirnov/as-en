@@ -726,6 +726,8 @@ namespace
 
 		Scheduler().Release();
 		TaskScheduler::InstanceCtor::Destroy();
+
+		delete this;
 	}
 
 /*

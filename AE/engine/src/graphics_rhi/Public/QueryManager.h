@@ -13,7 +13,9 @@ namespace AE::Graphics
 	enum class EQueryType : ubyte
 	{
 		Timestamp,
-		PipelineStatistic,
+		GraphicsPipelineStatistic,
+		ComputePipelineStatistic,
+		MeshPipelineStatistic,
 		Performance,
 		AccelStructCompactedSize,
 		AccelStructSize,				// require 'VK_KHR_ray_tracing_maintenance1'	// TODO: add to FeatureSet ?
@@ -38,9 +40,25 @@ namespace AE::Graphics
 			ulong	beforeClipping;				// VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT
 			ulong	afterClipping;				// VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT
 			ulong	fragShaderInvocations;		// VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT
-			// VK_QUERY_PIPELINE_STATISTIC_TASK_SHADER_INVOCATIONS_BIT_EXT	- meshShaderQueries
-			// VK_QUERY_PIPELINE_STATISTIC_MESH_SHADER_INVOCATIONS_BIT_EXT	- meshShaderQueries
-			// VK_QUERY_TYPE_MESH_PRIMITIVES_GENERATED_EXT					- meshShaderQueries
+
+			void  operator += (const GraphicsPipelineStatistic &) __NE___;
+		};
+		
+		struct ComputePipelineStatistic
+		{
+			ulong	computeInvocations;			// VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT
+			
+			void  operator += (const ComputePipelineStatistic &) __NE___;
+		};
+		
+		struct MeshPipelineStatistic : GraphicsPipelineStatistic
+		{
+			// requires 'meshShaderQueries' feature
+			ulong	meshTaskInvocations;		// VK_QUERY_PIPELINE_STATISTIC_TASK_SHADER_INVOCATIONS_BIT_EXT
+			ulong	meshInvocations;			// VK_QUERY_PIPELINE_STATISTIC_MESH_SHADER_INVOCATIONS_BIT_EXT
+			// VK_QUERY_TYPE_MESH_PRIMITIVES_GENERATED_EXT
+
+			void  operator += (const MeshPipelineStatistic &) __NE___;
 		};
 
 		struct IQuery
@@ -87,7 +105,33 @@ namespace AE::Graphics
 		virtual	bool  GetTimestampCalibrated (const IQuery &, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes size)	C_NE___ = 0;	// nanoseconds in CPU-space
 
 		virtual	bool  GetPipelineStatistic (const IQuery &, OUT GraphicsPipelineStatistic* result, Bytes size)			C_NE___ = 0;
+		virtual bool  GetPipelineStatistic (const IQuery &, OUT ComputePipelineStatistic* result, Bytes size)			C_NE___ = 0;
+		virtual bool  GetPipelineStatistic (const IQuery &, OUT MeshPipelineStatistic* result, Bytes size)				C_NE___ = 0;
 	};
 
+	
+/*
+=================================================
+	operator +=
+=================================================
+*/
+	inline void  IQueryManager::GraphicsPipelineStatistic::operator += (const GraphicsPipelineStatistic &rhs) __NE___
+	{
+		beforeClipping			+= rhs.beforeClipping;
+		afterClipping			+= rhs.afterClipping;
+		fragShaderInvocations	+= rhs.fragShaderInvocations;
+	}
+
+	inline void  IQueryManager::ComputePipelineStatistic::operator += (const ComputePipelineStatistic &rhs) __NE___
+	{
+		computeInvocations	+= rhs.computeInvocations;
+	}
+
+	inline void  IQueryManager::MeshPipelineStatistic::operator += (const MeshPipelineStatistic &rhs) __NE___
+	{
+		GraphicsPipelineStatistic::operator+= (rhs);
+		meshTaskInvocations	+= rhs.meshTaskInvocations;
+		meshInvocations		+= rhs.meshInvocations;
+	}
 
 } // AE::Graphics

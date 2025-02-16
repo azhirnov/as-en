@@ -554,51 +554,45 @@ public:
 	const struct {
 		#define _GEN_IMAGE_ATOMIC( _type_, ... ) \
 			_type_   AtomicAdd (__VA_ARGS__, _type_ data) const; \
-			_type_   AtomicAdd (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			_type_   AtomicMin (__VA_ARGS__, _type_ data) const; \
-			_type_   AtomicMin (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			_type_   AtomicMax (__VA_ARGS__, _type_ data) const; \
-			_type_   AtomicMax (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			_type_   AtomicAnd (__VA_ARGS__, _type_ data) const; \
-			_type_   AtomicAnd (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			_type_   AtomicOr (__VA_ARGS__, _type_ data) const; \
-			_type_   AtomicOr (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			_type_   AtomicXor (__VA_ARGS__, _type_ data) const; \
-			_type_   AtomicXor (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			_type_   AtomicExchange (__VA_ARGS__, _type_ data) const; \
-			_type_   AtomicExchange (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			_type_   AtomicCompSwap (__VA_ARGS__, _type_ compare, _type_ data) const; \
+
+		#define _GEN_IMAGE_ATOMIC_SCOPE( _type_, ... ) \
+			_type_   AtomicAdd (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
+			_type_   AtomicMin (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
+			_type_   AtomicMax (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
+			_type_   AtomicAnd (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
+			_type_   AtomicOr (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
+			_type_   AtomicXor (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
+			_type_   AtomicExchange (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
 			_type_   AtomicCompSwap (__VA_ARGS__, _type_ compare, _type_ data, Scope scope, StorageSemantics storageEqual, Semantics semEqual, StorageSemantics storageUnequal, Semantics semUnequal) const; \
 			\
 			ND_ _type_  AtomicLoad (__VA_ARGS__, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			void  AtomicStore (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
 
 		// GL_EXT_shader_atomic_float
 		#define _GEN_IMAGE_ATOMIC_F1( _type_, ... ) \
 			_type_   AtomicAdd (__VA_ARGS__, _type_ data) const; \
-			_type_   AtomicAdd (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			_type_   AtomicExchange (__VA_ARGS__, _type_ data) const; \
+
+		#define _GEN_IMAGE_ATOMIC_SCOPE_F1( _type_, ... ) \
+			_type_   AtomicAdd (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
 			_type_   AtomicExchange (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			ND_ _type_  AtomicLoad (__VA_ARGS__, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			void  AtomicStore (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
 
 		// GL_EXT_shader_atomic_float2
 		#define _GEN_IMAGE_ATOMIC_F2( _type_, ... ) \
 			_type_   AtomicMin (__VA_ARGS__, _type_ data) const; \
-			_type_   AtomicMin (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
-			\
 			_type_   AtomicMax (__VA_ARGS__, _type_ data) const; \
+
+		#define _GEN_IMAGE_ATOMIC_SCOPE_F2( _type_, ... ) \
+			_type_   AtomicMin (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
 			_type_   AtomicMax (__VA_ARGS__, _type_ data, Scope scope, StorageSemantics storage, Semantics sem) const; \
 
 		#define _GEN_IMAGE( _type_, ... ) \
@@ -606,41 +600,17 @@ public:
 			\
 			void  Store (__VA_ARGS__, _type_ data) const; \
 
-		#define GEN_IMAGE_ATOMIC( _type_ ) \
-			_GEN_IMAGE_ATOMIC( _type_, Image1D<_type_>        img, typename Image1D<_type_>::Coord        p )\
-			_GEN_IMAGE_ATOMIC( _type_, Image2D<_type_>        img, typename Image2D<_type_>::Coord        p )\
-			_GEN_IMAGE_ATOMIC( _type_, Image3D<_type_>        img, typename Image3D<_type_>::Coord        p )\
-			_GEN_IMAGE_ATOMIC( _type_, ImageCube<_type_>      img, typename ImageCube<_type_>::Coord      p )\
-			_GEN_IMAGE_ATOMIC( _type_, ImageBuffer<_type_>    img, typename ImageBuffer<_type_>::Coord    p )\
-			_GEN_IMAGE_ATOMIC( _type_, Image1DArray<_type_>   img, typename Image1DArray<_type_>::Coord   p )\
-			_GEN_IMAGE_ATOMIC( _type_, Image2DArray<_type_>   img, typename Image2DArray<_type_>::Coord   p )\
-			_GEN_IMAGE_ATOMIC( _type_, ImageCubeArray<_type_> img, typename ImageCubeArray<_type_>::Coord p )\
-			_GEN_IMAGE_ATOMIC( _type_, Image2DMS<_type_>      img, typename Image2DMS<_type_>::Coord      p, int sample )\
-			_GEN_IMAGE_ATOMIC( _type_, Image2DMSArray<_type_> img, typename Image2DMSArray<_type_>::Coord p, int sample )\
-
-		#define GEN_IMAGE_ATOMICF1( _type_ ) \
-			_GEN_IMAGE_ATOMIC_F1( _type_, Image1D<_type_>        img, typename Image1D<_type_>::Coord        p )\
-			_GEN_IMAGE_ATOMIC_F1( _type_, Image2D<_type_>        img, typename Image2D<_type_>::Coord        p )\
-			_GEN_IMAGE_ATOMIC_F1( _type_, Image3D<_type_>        img, typename Image3D<_type_>::Coord        p )\
-			_GEN_IMAGE_ATOMIC_F1( _type_, ImageCube<_type_>      img, typename ImageCube<_type_>::Coord      p )\
-			_GEN_IMAGE_ATOMIC_F1( _type_, ImageBuffer<_type_>    img, typename ImageBuffer<_type_>::Coord    p )\
-			_GEN_IMAGE_ATOMIC_F1( _type_, Image1DArray<_type_>   img, typename Image1DArray<_type_>::Coord   p )\
-			_GEN_IMAGE_ATOMIC_F1( _type_, Image2DArray<_type_>   img, typename Image2DArray<_type_>::Coord   p )\
-			_GEN_IMAGE_ATOMIC_F1( _type_, ImageCubeArray<_type_> img, typename ImageCubeArray<_type_>::Coord p )\
-			_GEN_IMAGE_ATOMIC_F1( _type_, Image2DMS<_type_>      img, typename Image2DMS<_type_>::Coord      p, int sample )\
-			_GEN_IMAGE_ATOMIC_F1( _type_, Image2DMSArray<_type_> img, typename Image2DMSArray<_type_>::Coord p, int sample )\
-
-		#define GEN_IMAGE_ATOMICF2( _type_ ) \
-			_GEN_IMAGE_ATOMIC_F2( _type_, Image1D<_type_>        img, typename Image1D<_type_>::Coord        p )\
-			_GEN_IMAGE_ATOMIC_F2( _type_, Image2D<_type_>        img, typename Image2D<_type_>::Coord        p )\
-			_GEN_IMAGE_ATOMIC_F2( _type_, Image3D<_type_>        img, typename Image3D<_type_>::Coord        p )\
-			_GEN_IMAGE_ATOMIC_F2( _type_, ImageCube<_type_>      img, typename ImageCube<_type_>::Coord      p )\
-			_GEN_IMAGE_ATOMIC_F2( _type_, ImageBuffer<_type_>    img, typename ImageBuffer<_type_>::Coord    p )\
-			_GEN_IMAGE_ATOMIC_F2( _type_, Image1DArray<_type_>   img, typename Image1DArray<_type_>::Coord   p )\
-			_GEN_IMAGE_ATOMIC_F2( _type_, Image2DArray<_type_>   img, typename Image2DArray<_type_>::Coord   p )\
-			_GEN_IMAGE_ATOMIC_F2( _type_, ImageCubeArray<_type_> img, typename ImageCubeArray<_type_>::Coord p )\
-			_GEN_IMAGE_ATOMIC_F2( _type_, Image2DMS<_type_>      img, typename Image2DMS<_type_>::Coord      p, int sample )\
-			_GEN_IMAGE_ATOMIC_F2( _type_, Image2DMSArray<_type_> img, typename Image2DMSArray<_type_>::Coord p, int sample )\
+		#define GEN_IMAGE_ATOMIC( _visitor_, _type_ ) \
+			_visitor_( _type_, Image1D<_type_>        img, typename Image1D<_type_>::Coord        p )\
+			_visitor_( _type_, Image2D<_type_>        img, typename Image2D<_type_>::Coord        p )\
+			_visitor_( _type_, Image3D<_type_>        img, typename Image3D<_type_>::Coord        p )\
+			_visitor_( _type_, ImageCube<_type_>      img, typename ImageCube<_type_>::Coord      p )\
+			_visitor_( _type_, ImageBuffer<_type_>    img, typename ImageBuffer<_type_>::Coord    p )\
+			_visitor_( _type_, Image1DArray<_type_>   img, typename Image1DArray<_type_>::Coord   p )\
+			_visitor_( _type_, Image2DArray<_type_>   img, typename Image2DArray<_type_>::Coord   p )\
+			_visitor_( _type_, ImageCubeArray<_type_> img, typename ImageCubeArray<_type_>::Coord p )\
+			_visitor_( _type_, Image2DMS<_type_>      img, typename Image2DMS<_type_>::Coord      p, int sample )\
+			_visitor_( _type_, Image2DMSArray<_type_> img, typename Image2DMSArray<_type_>::Coord p, int sample )\
 
 		#define GEN_IMAGE( _type4_, _type_ ) \
 			_GEN_IMAGE( _type4_, Image1D<_type_>        img, typename Image1D<_type_>::Coord        p )\
@@ -655,14 +625,24 @@ public:
 			_GEN_IMAGE( _type4_, Image2DMSArray<_type_> img, typename Image2DMSArray<_type_>::Coord p, int sample )\
 
 	  #ifdef AE_HAS_ATOMICS
-		GEN_IMAGE_ATOMIC(   uint )
-		GEN_IMAGE_ATOMIC(   sint )
+		GEN_IMAGE_ATOMIC( _GEN_IMAGE_ATOMIC,  uint )
+		GEN_IMAGE_ATOMIC( _GEN_IMAGE_ATOMIC,  sint )
+	  #endif
+	  #ifdef AE_memory_scope_semantics
+		GEN_IMAGE_ATOMIC( _GEN_IMAGE_ATOMIC_SCOPE,  uint )
+		GEN_IMAGE_ATOMIC( _GEN_IMAGE_ATOMIC_SCOPE,  sint )
 	  #endif
 	  #ifdef AE_shader_atomic_float
-		GEN_IMAGE_ATOMICF1( float )		// GL_EXT_shader_atomic_float
+		GEN_IMAGE_ATOMIC( _GEN_IMAGE_ATOMIC_F1,			float )		// GL_EXT_shader_atomic_float
+	  #endif
+	  #if defined(AE_shader_atomic_float) and defined(AE_memory_scope_semantics)
+		GEN_IMAGE_ATOMIC( _GEN_IMAGE_ATOMIC_SCOPE_F1,	float )
 	  #endif
 	  #ifdef AE_shader_atomic_float2
-		GEN_IMAGE_ATOMICF2( float )		// GL_EXT_shader_atomic_float2
+		GEN_IMAGE_ATOMIC( _GEN_IMAGE_ATOMIC_F2,			float )		// GL_EXT_shader_atomic_float2
+	  #endif
+	  #if defined(AE_shader_atomic_float2) and defined(AE_memory_scope_semantics)
+		GEN_IMAGE_ATOMIC( _GEN_IMAGE_ATOMIC_SCOPE_F2,	float )
 	  #endif
 		GEN_IMAGE( uint4,  uint )
 		GEN_IMAGE( int4,   sint )
@@ -671,10 +651,11 @@ public:
 		#undef _GEN_IMAGE_ATOMIC
 		#undef _GEN_IMAGE_ATOMIC_F1
 		#undef _GEN_IMAGE_ATOMIC_F2
+		#undef _GEN_IMAGE_ATOMIC_SCOPE
+		#undef _GEN_IMAGE_ATOMIC_SCOPE_F1
+		#undef _GEN_IMAGE_ATOMIC_SCOPE_F2
 		#undef _GEN_IMAGE
 		#undef GEN_IMAGE_ATOMIC
-		#undef GEN_IMAGE_ATOMICF1
-		#undef GEN_IMAGE_ATOMICF2
 		#undef GEN_IMAGE
 
 		template <typename T>	ND_ int  GetSamples (Image2DMS<T>      img) const;
@@ -990,10 +971,15 @@ public:
 
 	// out
 			float4	Position;
-			float  	ClipDistance [_MaxClipDistance];
-			float  	CullDistance [_MaxCullDistance];
+	#ifdef AE_large_points
 			float	PointSize;
-
+	#endif
+	#ifdef AE_clip_distance
+			float  	ClipDistance [_MaxClipDistance];
+	#endif
+	#ifdef AE_cull_distance
+			float  	CullDistance [_MaxCullDistance];
+	#endif
 	#ifdef AE_shader_viewport_layer_array
 			int		Layer;
 			int		ViewportIndex;
@@ -1028,10 +1014,17 @@ public:
 
 	// out
 			float4	Position;
-			float  	ClipDistance [_MaxClipDistance];
-			float  	CullDistance [_MaxCullDistance];
-			int		Layer;
+	#ifdef AE_large_points
 			float	PointSize;
+	#endif
+	#ifdef AE_clip_distance
+			float  	ClipDistance [_MaxClipDistance];
+	#endif
+	#ifdef AE_cull_distance
+			float  	CullDistance [_MaxCullDistance];
+	#endif
+			int		Layer;
+			
   #endif
 
 
@@ -1049,10 +1042,17 @@ public:
 			int		PrimitiveID;
 			int		ViewportIndex;
 			float4	Position;
-			float  	ClipDistance [_MaxClipDistance];
-			float  	CullDistance [_MaxCullDistance];
-			int		Layer;
+	#ifdef AE_large_points
 			float	PointSize;
+	#endif
+	#ifdef AE_clip_distance
+			float  	ClipDistance [_MaxClipDistance];
+	#endif
+	#ifdef AE_cull_distance
+			float  	CullDistance [_MaxCullDistance];
+	#endif
+			int		Layer;
+
   #endif
 
 
@@ -1109,9 +1109,15 @@ public:
 	struct MeshPerVertex
 	{
 		float4		Position;
+	  #ifdef AE_large_points
 		float		PointSize;
+	  #endif
+	  #ifdef AE_clip_distance
 		float  		ClipDistance [_MaxClipDistance];
-		float		CullDistance [_MaxCullDistance];
+	  #endif
+	  #ifdef AE_cull_distance
+			float  	CullDistance [_MaxCullDistance];
+	  #endif
 	};
 	MeshPerVertex	MeshVertices [_MaxMeshVertices];
 
@@ -1171,8 +1177,12 @@ public:
 
 	// in
 	const	float4	Position						= {};
+  #ifdef AE_clip_distance
 	const	float  	ClipDistance [_MaxClipDistance]	= {};
+  #endif
+  #ifdef AE_cull_distance
 	const	float  	CullDistance [_MaxCullDistance]	= {};
+  #endif
 	const 	float4	FragCoord						= {};
 	const 	bool	FrontFacing						= {};
 	const 	bool	HelperInvocation				= {};
@@ -1546,7 +1556,135 @@ public:
 	ND_ CoopMat<T,S,M,N,MatrixUse::C>  CoopMatMulAdd (CoopMat<T,S,M,K,MatrixUse::A> a, CoopMat<T,S,K,N,MatrixUse::B> b, CoopMat<T,S,M,N,MatrixUse::C> c, MatrixOperands matrixOperands = MatrixOperands::None);
 
   #endif // AE_cooperative_matrix and AE_memory_scope_semantics
+	
+	// GLSL_NV_cooperative_vector
+  #if defined(AE_cooperative_vector)
 
+	template <typename T, uint NumComps>
+	struct CoopVec
+	{
+		CoopVec ();
+
+		template <typename B>
+		explicit CoopVec (const CoopVec<B,NumComps> &);
+
+		ND_ uint		length()						const	{ return NumComps; }
+		
+		ND_ T &			operator [] (int i);
+		ND_ T			operator [] (int i)				const;
+		
+		ND_ CoopVec		operator - ()					const;
+
+		ND_ CoopVec		operator + (const CoopVec &)	const;
+		ND_ CoopVec		operator - (const CoopVec &)	const;
+		ND_ CoopVec		operator * (const CoopVec &)	const;
+		ND_ CoopVec		operator / (const CoopVec &)	const;
+
+		ND_ CoopVec		operator * (T)					const;
+
+		// for integer types
+		ND_ CoopVec		operator & (const CoopVec &)	const;
+		ND_ CoopVec		operator ^ (const CoopVec &)	const;
+		ND_ CoopVec		operator | (const CoopVec &)	const;
+		ND_ CoopVec		operator ~ ()					const;
+
+		ND_ friend CoopVec  fma   (const CoopVec &a, const CoopVec &b, const CoopVec &c);
+		ND_ friend CoopVec  exp   (const CoopVec &);
+		ND_ friend CoopVec  log   (const CoopVec &);
+		ND_ friend CoopVec  tanh  (const CoopVec &);
+		ND_ friend CoopVec  atan  (const CoopVec &);
+		ND_ friend CoopVec  atan  (const CoopVec &,  const CoopVec &);
+		ND_ friend CoopVec  min   (const CoopVec &,  const CoopVec &);
+		ND_ friend CoopVec  max   (const CoopVec &,  const CoopVec &);
+		ND_ friend CoopVec  clamp (const CoopVec &x, const CoopVec &minVal, const CoopVec &maxVal);
+		ND_ friend CoopVec  step  (const CoopVec &a, const CoopVec &b);
+	};
+
+	// VkComponentTypeKHR
+	enum class ComponentType
+	{
+		Float16,
+		Float32,
+		Float64,
+		SignedInt8,
+		SignedInt16,
+		SignedInt32,
+		SignedInt64,
+		UnsignedInt8,
+		UnsignedInt16,
+		UnsignedInt32,
+		UnsignedInt64,
+		SignedInt8Packed,		// bitcast conversion
+		UnsignedInt8Packed,		// bitcast conversion
+		FloatE4M3,
+		FloatE5M2,
+	};
+
+	enum class CoopVectorMatrixLayout
+	{
+		RowMajor,
+		ColumnMajor,
+		InferencingOptimal,
+		TrainingOptimal
+	};
+
+	template <typename ResultTy, uint ResultComps,
+			  typename InputTy,  uint InputComps,
+			  typename MatrixTy,
+			  typename BiasTy
+			 >
+	void  CoopVecMatMulAdd (OUT CoopVec<ResultTy, ResultComps>	&result,	// [M]
+							CoopVec<InputTy, InputComps>		input,		// [K]
+							ComponentType			inputInterpretation,
+							const MatrixTy[]		matrix,					// [MxK]
+							uint					matrixOffset,
+							ComponentType			matrixInterpretation,
+							const BiasTy[]			bias,					// [M]
+							uint					biasOffset,
+							ComponentType			biasInterpretation,
+							uint					M,
+							uint					K,
+							CoopVectorMatrixLayout	matrixLayout,
+							bool					transpose,
+							uint					matrixStride);
+	
+	template <typename ResultTy, uint ResultComps,
+			  typename InputTy,  uint InputComps,
+			  typename MatrixTy
+			 >
+	void  CoopVecMatMul (OUT CoopVec<ResultTy, ResultComps> &result,	// [M]
+						 CoopVec<InputTy, InputComps>		input,		// [K]
+						 ComponentType			inputInterpretation,
+						 const MatrixTy[]		matrix,					// [MxK]
+						 uint					matrixOffset,
+						 ComponentType			matrixInterpretation,
+						 uint					M,
+						 uint					K,
+						 CoopVectorMatrixLayout	matrixLayout,
+						 bool					transpose,
+						 uint					matrixStride);
+	
+	template <typename T, uint NumComps, typename ArrayElemTy>
+	void  CoopVecLoad (OUT CoopVec<T, NumComps> &v, /*volatile coherent*/ ArrayElemTy[] buf, uint offset);
+	
+	template <typename T, uint NumComps, typename ArrayElemTy>
+	void  CoopVecStore (const CoopVec<T, NumComps> &v, /*volatile coherent*/ ArrayElemTy[] buf, uint offset);
+	
+	template <typename T, uint M, uint N>
+	void  CoopVecOuterProductAccum (const coopvecNV<T, M>	&v1,
+									const coopvecNV<T, N>	&v2,
+									T[]						buf,		// 16b align
+									uint					offset,		// 16b align
+									uint					stride,		// 16b align
+									CoopVectorMatrixLayout	matrixLayout,
+									ComponentType			matrixInterpretation);
+	
+	template <typename T, uint N>
+	void  CoopVecReduceSumAccum (const coopvecNV<T, N>	&v,
+								 T[]					buf,		// 16b align
+								 uint					offset);	// 16b align
+
+  #endif // AE_cooperative_vector
 
 	// GL_ARB_fragment_shader_interlock
   #if defined(SH_FRAG) and defined(AE_fragment_shader_interlock)

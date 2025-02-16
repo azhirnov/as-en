@@ -31,7 +31,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "Blend.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	void Main ()

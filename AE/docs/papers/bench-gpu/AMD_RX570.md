@@ -5,7 +5,7 @@
 
 * CU: 32
 * Warp width: 64
-* Total ALUs: 2048
+* Total ALUs: 2048 - number of simultaneously executing threads
 * FP16: **5.095** TFLOPS (not supported in Vulkan)
 * FP32: **5.095** TFLOPS (4.4 on FMA from tests)
 * FP64: **318.5** GFLOPS

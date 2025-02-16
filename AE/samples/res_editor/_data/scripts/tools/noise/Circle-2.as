@@ -78,7 +78,7 @@
 #ifdef TILE
 	#define GEN_NOISE_2D
 	#include "tools/TileableNoise.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	float  Noise (float posScale)
@@ -112,7 +112,7 @@
 #ifdef CIRCLE
 	#include "SDF.glsl"
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	ND_ float  NoiseFBM (in float2 pos, float posScale, float lacunarity, const float persistence, const int octaveCount)

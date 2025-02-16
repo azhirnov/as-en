@@ -41,7 +41,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "Hash.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{
@@ -79,7 +79,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
 	#include "Hash.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{

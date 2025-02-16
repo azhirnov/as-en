@@ -102,7 +102,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SPLINE
 	#include "SDF.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "tools/SplineHelper.glsl"
 
 	float  Graph (float x)
@@ -200,7 +200,7 @@
 	#include "Easing.glsl"
 	#include "Normal.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "tools/SplineHelper.glsl"
 
 	#define MAX_POINTS		4

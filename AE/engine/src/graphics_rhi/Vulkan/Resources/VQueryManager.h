@@ -53,7 +53,8 @@ namespace AE::Graphics
 			ND_ bool  IsAvailable ()	C_NE___	{ return available != 0; }
 		};
 
-		struct PipelineStatisticResult : GraphicsPipelineStatistic
+		template <typename T>
+		struct PipelineStatisticResult : T
 		{
 			ulong	available;
 
@@ -111,6 +112,8 @@ namespace AE::Graphics
 
 		//	bool  GetPerformanceCounter (const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes resultSize)	C_NE___;
 			bool  GetPipelineStatistic (const IQuery &, OUT GraphicsPipelineStatistic* result, Bytes resultSize)		C_NE_OV;
+			bool  GetPipelineStatistic (const IQuery &, OUT ComputePipelineStatistic* result, Bytes resultSize)			C_NE_OV;
+			bool  GetPipelineStatistic (const IQuery &, OUT MeshPipelineStatistic* result, Bytes resultSize)			C_NE_OV;
 			bool  GetRTASProperty (const Query &q, OUT Bytes64u* result, Bytes resultSize)								C_NE___;
 
 	private:
@@ -124,6 +127,9 @@ namespace AE::Graphics
 		ND_	bool  _GetTimestampCalibrated (const Query &q, OUT T* result, OUT T* maxDeviation, Bytes size)			C_NE___;
 
 		ND_ Query  _AllocQuery (uint writeIdx, EQueueType queue, EQueryType type, uint count)						C_NE___;
+
+		template <typename T>
+		ND_	bool  _GetPipelineStatistic (const IQuery &, OUT T* result, Bytes resultSize, EQueryType type)			C_NE___;
 	};
 
 

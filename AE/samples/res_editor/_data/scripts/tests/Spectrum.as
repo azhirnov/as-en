@@ -52,7 +52,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Color.glsl"
 	#include "SDF.glsl"
 

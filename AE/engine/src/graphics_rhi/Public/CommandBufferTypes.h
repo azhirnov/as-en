@@ -265,6 +265,7 @@ namespace AE::Graphics
 
 	struct DispatchIndirectCommand
 	{
+		//	'groupCount' must be <= 'DeviceProperties::ComputeProperties::computeGroupCount'.
 		packed_uint3	groupCount;
 	};
 	StaticAssert( sizeof(DispatchIndirectCommand) == 12 );
@@ -296,6 +297,8 @@ namespace AE::Graphics
 
 	struct DrawMeshTasksIndirectCommand
 	{
+		//	'taskCount' must be <= 'DeviceProperties::ComputeProperties::taskGroupCount'.
+		//	'taskCount' total count must be <= 'DeviceProperties::ComputeProperties::taskTotalGroups'.
 		packed_uint3	taskCount;
 	};
 	StaticAssert( sizeof(DrawMeshTasksIndirectCommand) == 12 );
@@ -304,6 +307,8 @@ namespace AE::Graphics
 
 	struct TraceRayIndirectCommand
 	{
+		//	'dim' must be <= 'DeviceProperties::RayTracingProperties::maxThreadCount'.
+		//	'dim' total count must be <= 'DeviceProperties::RayTracingProperties::maxDispatchInvocations'.
 		packed_uint3	dim;
 	};
 	StaticAssert( sizeof(TraceRayIndirectCommand) == 12 );
@@ -327,7 +332,9 @@ namespace AE::Graphics
 		VkDeviceAddress		callableShaderBindingTableAddress;	// optional
 		VkDeviceSize		callableShaderBindingTableSize;		// multiple of 'callableShaderBindingTableStride'
 		VkDeviceSize		callableShaderBindingTableStride;	// >= shaderGroupHandleSize
-
+		
+		//	'width', 'height', 'depth' must be <= 'DeviceProperties::RayTracingProperties::maxThreadCount'.
+		//	'width x height x depth' must be <= 'DeviceProperties::RayTracingProperties::maxDispatchInvocations'.
 		uint				width;								// >= 1
 		uint				height;								// >= 1
 		uint				depth;								// >= 1

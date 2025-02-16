@@ -28,7 +28,7 @@
 	#include "SDF.glsl"
 	#include "Ray.glsl"
 	#include "Normal.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	float  SDF2 (float3 pos)

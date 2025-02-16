@@ -57,7 +57,7 @@
 #ifdef GEN_IMAGE
 	#include "Hash.glsl"
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{
@@ -74,7 +74,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef COMPARE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float4  Swizzle (float4 c)
 	{

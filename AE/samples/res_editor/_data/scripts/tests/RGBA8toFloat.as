@@ -44,7 +44,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	// from http://www.gamedev.net/forums/topic/684158-rgba-to-float-percision/5321388/

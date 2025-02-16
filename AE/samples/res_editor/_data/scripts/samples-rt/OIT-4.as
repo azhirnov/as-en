@@ -82,7 +82,7 @@
 #ifdef SH_COMPUTE
 	#include "Sort.glsl"
 	#include "Blend.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 	#include "ColorSpace.glsl"
 

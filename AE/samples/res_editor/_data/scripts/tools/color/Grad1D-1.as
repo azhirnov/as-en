@@ -66,7 +66,7 @@
 	#include "Color.glsl"
 	#include "Easing.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	struct Result
@@ -183,7 +183,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PALETTE_PASS
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void Main ()
 	{

@@ -69,7 +69,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "SDF.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float2  GetUV (int dx)
 	{

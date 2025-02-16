@@ -305,7 +305,7 @@ namespace
 		outState.pNext						= null;
 		outState.flags						= 0;
 		outState.polygonMode				= VEnumCast( inState.polygonMode );
-		outState.lineWidth					= 1.f; //inState.lineWidth;		// TODO
+		outState.lineWidth					= float(inState.lineWidth);
 		outState.depthBiasConstantFactor	= inState.depthBiasConstFactor;
 		outState.depthBiasClamp				= inState.depthBiasClamp;
 		outState.depthBiasSlopeFactor		= inState.depthBiasSlopeFactor;

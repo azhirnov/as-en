@@ -24,8 +24,8 @@
 			RC<ComputePass>		pass = ComputePass();
 			pass.ArgInOut(	"un_OutImage",	cubemap_view );
 			pass.Constant(	"iProj",		proj_type );
-			pass.Slider(	"iOrient",		float3(-180.f),	float3(180.f),	float3(0.f) );
-			pass.Slider(	"iOffset",		float2(-2.0),	float2(1.0),	float2(0.0) );
+			//pass.Slider(	"iOrient",		float3(-180.f),	float3(180.f),	float3(0.f) );
+			//pass.Slider(	"iOffset",		float2(-2.0),	float2(1.0),	float2(0.0) );
 			pass.LocalSize( 8, 8 );
 			pass.DispatchThreads( cubemap_view.Dimension2_Layers() );
 
@@ -48,7 +48,7 @@
 	#include "SDF.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float3  Project (float3 n)
 	{
@@ -86,7 +86,7 @@
 	#include "Normal.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	int  FaceIdx () {
 		return int(gl.WorkGroupID.z);
@@ -127,7 +127,7 @@
 		float3	angle = float3(0.0);
 
 		#if 1
-			angle = ToSNorm( DHash33( seed ));
+			angle = ToSNorm( DHash33( seed * 200.0 ) );
 			angle *= float_Pi;
 		#else
 			angle = ToRad( iOrient );
@@ -211,7 +211,6 @@
 
 	void  Main ()
 	{
-		const float2	size	= float2(GetGlobalSize().xy);
 		const float2	ncoord	= GetGlobalCoordSNorm().xy;
 		float3			pos		= ProjectToSphere( ncoord, FaceIdx() );
 		float4			color	= CirclesLayers( pos );

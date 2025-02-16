@@ -117,7 +117,7 @@ namespace AE::Profiler
 									BitCast<uint>(item.color), tmp.c_str() );
 
 				draw_list->AddText( ImVec2{column_x + text_x_off2, column_y - text_y1},
-									BitCast<uint>(item.color), _uniqueNameArr[ usize(item.name) ].Get<String>().c_str() );
+									BitCast<uint>(item.color), item.name );
 
 				++txt_idx;
 			}
@@ -141,6 +141,11 @@ namespace AE::Profiler
 
 		f.min = f.max = nanosecondsd{0.0};
 		f.items.clear();
+
+		if_unlikely( _uniqueNames.size() > 100 )
+		{
+			_uniqueNames.clear();
+		}
 	}
 
 /*
@@ -150,7 +155,7 @@ namespace AE::Profiler
 */
 	void  ImColumnHistoryDiagram::Add (StringView fullName, RGBA8u color, nanosecondsd begin, nanosecondsd end)
 	{
-		CHECK_ERRV( not _guard.try_lock() );
+		CHECK_ERRV( not DeferExLock{_guard}.try_lock() );
 
 		String	name;
 		{
@@ -158,36 +163,16 @@ namespace AE::Profiler
 			name = String{ pos != UMax ? fullName.substr( pos+2 ) : fullName };
 		}
 
-		auto&			f				 = _frames[ _currentFrameIdx ];
-		auto			[iter, inserted] = _uniqueNames.emplace( name, UniqueNameIdx{} );
-		UNameInfo_t*	info;
+		auto&		f			= _frames[ _currentFrameIdx ];
+		auto		it			= _uniqueNames.insert( RVRef(name) ).first;
+		const char*	name_ptr	= it->c_str();
 
-		if ( inserted )
-		{
-			iter->second = UniqueNameIdx(_uniqueNameArr.size());
-			info		 = &_uniqueNameArr.emplace_back();
+		if ( color == Default )
+			color = RGBA8u{ Rainbow( HEHash( uint(BitCast<usize>(name_ptr)) ))};
 
-			info->Get<String>()			= RVRef(name);
-			info->Get<UniqueNameIdx>()	= iter->second;
+		color.a = 255;
 
-			if ( color == Default )
-				color = RGBA8u{ Rainbow( HEHash( uint(iter->second) ))};
-
-			color.a = 255;
-			info->Get<RGBA8u>() = color;
-		}
-		else
-		{
-			info = &_uniqueNameArr[ uint(iter->second) ];
-
-			if ( color != Default and color != info->Get<RGBA8u>() )
-			{
-				color.a = 255;
-				info->Get<RGBA8u>() = color;
-			}
-		}
-
-		f.items.push_back( Item{ iter->second, info->Get<RGBA8u>(), begin, end });
+		f.items.push_back( Item{ name_ptr, color, begin, end });
 	}
 
 /*
@@ -197,7 +182,7 @@ namespace AE::Profiler
 */
 	void  ImColumnHistoryDiagram::End (nanosecondsd min, nanosecondsd max)
 	{
-		CHECK_ERRV( not _guard.try_lock() );
+		CHECK_ERRV( not DeferExLock{_guard}.try_lock() );
 
 		// sort items
 		{

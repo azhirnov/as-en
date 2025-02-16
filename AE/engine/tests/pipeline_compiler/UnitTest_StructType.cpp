@@ -73,6 +73,7 @@ namespace
 		StructType_Test1_Layout( EStructLayout::Std430 );
 		StructType_Test1_Layout( EStructLayout::Compatible_Std140 );
 		StructType_Test1_Layout( EStructLayout::Std140 );
+		TEST_PASSED();
 	}
 //-----------------------------------------------------------------------------
 
@@ -136,6 +137,7 @@ namespace
 		StructType_Test2_Layout( EStructLayout::Metal );
 		StructType_Test2_Layout( EStructLayout::Compatible_Std430 );
 		StructType_Test2_Layout( EStructLayout::Std430 );
+		TEST_PASSED();
 	}
 
 
@@ -144,6 +146,7 @@ namespace
 		StructType_Test1_Layout( EStructLayout::Metal,				8 );
 		StructType_Test1_Layout( EStructLayout::Compatible_Std430,	8 );
 		StructType_Test1_Layout( EStructLayout::Std430,				8 );
+		TEST_PASSED();
 	}
 //-----------------------------------------------------------------------------
 
@@ -181,29 +184,29 @@ namespace
 #define StType1_defined
 struct StType1
 {
-	vec4  ff;  // offset: 0
-	uvec2  uu;  // offset: 16
-	ivec2  ii;  // offset: 24
+	vec4   ff;  // offset: 0, align: 16, size: 16
+	uvec2  uu;  // offset: 16, align: 8, size: 8
+	ivec2  ii;  // offset: 24, align: 8, size: 8
 };
 
 Buffer {
-	layout(offset=0, align=16) StType1  st;
-	layout(offset=32, align=16) uvec4  ua [4];
+	layout(offset=0, align=16)   StType1  st;      // size: 32
+	layout(offset=32, align=16)  uvec4    ua [4];  // size: 64
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType1
 {
-	float4  ff;  // offset: 0
-	uint2  uu;  // offset: 16
-	int2  ii;  // offset: 24
+	float4  ff;  // offset: 0, align: 16, size: 16
+	uint2   uu;  // offset: 16, align: 8, size: 8
+	int2    ii;  // offset: 24, align: 8, size: 8
 };
 static_assert( sizeof(StType1) == 32, "size mismatch" );
 
 struct StType2
 {
-	StType1  st;  // offset: 0
-	uint4  ua [4];  // offset: 32
+	StType1  st;      // offset: 0, align: 16, size: 32
+	uint4    ua [4];  // offset: 32, align: 16, size: 64
 };
 static_assert( sizeof(StType2) == 96, "size mismatch" );
 
@@ -217,8 +220,8 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd9e31216u}};
 
 		float4  ff;
-		uint2  uu;
-		int2  ii;
+		uint2   uu;
+		int2    ii;
 	};
 #endif
 	StaticAssert( offsetof(StType1, ff) == 0 );
@@ -233,7 +236,7 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x40ea43acu}};
 
-		StType1  st;
+		StType1                    st;
 		StaticArray< uint4, 4 >    ua;
 	};
 #endif
@@ -245,6 +248,7 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -253,11 +257,11 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 	// size: 32, align: 16
 	struct StType1
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd9e31216u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd9e31216u}};
 
 		float4  ff;
-		uint2  uu;
-		int2  ii;
+		uint2   uu;
+		int2    ii;
 	};
 #endif
 	StaticAssert( offsetof(StType1, ff) == 0 );
@@ -270,9 +274,9 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 	// size: 96, align: 16
 	struct StType2
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x40ea43acu}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x40ea43acu}};
 
-		StType1  st;
+		StType1                    st;
 		StaticArray< uint4, 4 >    ua;
 	};
 #endif
@@ -323,8 +327,8 @@ struct packed_half3
 	float16_t  y;
 	float16_t  z;
 };
-f16vec3  Cast (const packed_half3 src) { return f16vec3( src.x, src.y, src.z ); }
-packed_half3  Cast (const f16vec3 src) { return packed_half3( src.x, src.y, src.z ); }
+f16vec3  Unpack (const packed_half3 src) { return f16vec3( src.x, src.y, src.z ); }
+packed_half3  Pack (const f16vec3 src) { return packed_half3( src.x, src.y, src.z ); }
 
 // size: 12 B, align: 4 B
 struct packed_uint3
@@ -333,8 +337,8 @@ struct packed_uint3
 	uint  y;
 	uint  z;
 };
-uvec3  Cast (const packed_uint3 src) { return uvec3( src.x, src.y, src.z ); }
-packed_uint3  Cast (const uvec3 src) { return packed_uint3( src.x, src.y, src.z ); }
+uvec3  Unpack (const packed_uint3 src) { return uvec3( src.x, src.y, src.z ); }
+packed_uint3  Pack (const uvec3 src) { return packed_uint3( src.x, src.y, src.z ); }
 
 // size: 12 B, align: 4 B
 struct packed_int3
@@ -343,8 +347,8 @@ struct packed_int3
 	int  y;
 	int  z;
 };
-ivec3  Cast (const packed_int3 src) { return ivec3( src.x, src.y, src.z ); }
-packed_int3  Cast (const ivec3 src) { return packed_int3( src.x, src.y, src.z ); }
+ivec3  Unpack (const packed_int3 src) { return ivec3( src.x, src.y, src.z ); }
+packed_int3  Pack (const ivec3 src) { return packed_int3( src.x, src.y, src.z ); }
 
 // size: 4 B, align: 2 B
 struct packed_short2
@@ -352,39 +356,39 @@ struct packed_short2
 	int16_t  x;
 	int16_t  y;
 };
-i16vec2  Cast (const packed_short2 src) { return i16vec2( src.x, src.y ); }
-packed_short2  Cast (const i16vec2 src) { return packed_short2( src.x, src.y ); }
+i16vec2  Unpack (const packed_short2 src) { return i16vec2( src.x, src.y ); }
+packed_short2  Pack (const i16vec2 src) { return packed_short2( src.x, src.y ); }
 
 #define StType3_defined
 struct StType3
 {
-	float  f;  // offset: 0
-	packed_uint3  u;  // offset: 4
-	packed_int3  i;  // offset: 16
-	packed_short2  s;  // offset: 28
+	float          f;  // offset: 0, align: 4, size: 4
+	packed_uint3   u;  // offset: 4, align: 4, size: 12
+	packed_int3    i;  // offset: 16, align: 4, size: 12
+	packed_short2  s;  // offset: 28, align: 2, size: 4
 };
 
 Buffer {
-	layout(offset=0, align=2) packed_half3  h3;
-	layout(offset=8, align=4) StType3  st;
-	layout(offset=40, align=2) packed_short2  ua [8];
+	layout(offset=0, align=2)   packed_half3   h3;      // size: 6
+	layout(offset=8, align=4)   StType3        st;      // size: 32
+	layout(offset=40, align=2)  packed_short2  ua [8];  // size: 32
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType3
 {
-	float  f;  // offset: 0
-	packed_uint3  u;  // offset: 4
-	packed_int3  i;  // offset: 16
-	packed_short2  s;  // offset: 28
+	float          f;  // offset: 0, align: 4, size: 4
+	packed_uint3   u;  // offset: 4, align: 4, size: 12
+	packed_int3    i;  // offset: 16, align: 4, size: 12
+	packed_short2  s;  // offset: 28, align: 2, size: 4
 };
 static_assert( sizeof(StType3) == 32, "size mismatch" );
 
 struct StType4
 {
-	packed_half3  h3;  // offset: 0
-	StType3  st;  // offset: 8
-	packed_short2  ua [8];  // offset: 40
+	packed_half3   h3;      // offset: 0, align: 2, size: 6
+	StType3        st;      // offset: 8, align: 4, size: 32
+	packed_short2  ua [8];  // offset: 40, align: 2, size: 32
 };
 static_assert( sizeof(StType4) == 72, "size mismatch" );
 
@@ -397,9 +401,9 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x37ed733au}};
 
-		float  f;
-		packed_uint3  u;
-		packed_int3  i;
+		float          f;
+		packed_uint3   u;
+		packed_int3    i;
 		packed_short2  s;
 	};
 #endif
@@ -416,8 +420,8 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa989e699u}};
 
-		packed_half3  h3;
-		StType3  st;
+		packed_half3                       h3;
+		StType3                            st;
 		StaticArray< packed_short2, 8 >    ua;
 	};
 #endif
@@ -430,6 +434,7 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -438,11 +443,11 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 	// size: 32, align: 4
 	struct StType3
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x37ed733au}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x37ed733au}};
 
-		float  f;
-		packed_uint3  u;
-		packed_int3  i;
+		float          f;
+		packed_uint3   u;
+		packed_int3    i;
 		packed_short2  s;
 	};
 #endif
@@ -457,10 +462,10 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 	// size: 72, align: 4
 	struct StType4
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa989e699u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa989e699u}};
 
-		packed_half3  h3;
-		StType3  st;
+		packed_half3                       h3;
+		StType3                            st;
 		StaticArray< packed_short2, 8 >    ua;
 	};
 #endif
@@ -499,17 +504,17 @@ static_assert( sizeof(StType4) == 72, "size mismatch" );
 #define SetInplaceFloat3( _fieldName_, _src_ )  {(_fieldName_ ## _x = (_src_).x), (_fieldName_ ## _y = (_src_).y), (_fieldName_ ## _z = (_src_).z)}
 
 Buffer {
-	layout(offset=0, align=4) inplace_float3( Position );
-	layout(offset=12, align=4) inplace_float3( Normal );
-	layout(offset=24, align=4) inplace_float3( Texcoord );
+	layout(offset=0, align=4)   inplace_float3  ( Position );  // size: 12
+	layout(offset=12, align=4)  inplace_float3  ( Normal );    // size: 12
+	layout(offset=24, align=4)  inplace_float3  ( Texcoord );  // size: 12
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType5
 {
-	packed_float3  Position;  // offset: 0
-	packed_float3  Normal;  // offset: 12
-	packed_float3  Texcoord;  // offset: 24
+	packed_float3  Position;  // offset: 0, align: 4, size: 12
+	packed_float3  Normal;    // offset: 12, align: 4, size: 12
+	packed_float3  Texcoord;  // offset: 24, align: 4, size: 12
 };
 static_assert( sizeof(StType5) == 36, "size mismatch" );
 
@@ -536,6 +541,7 @@ static_assert( sizeof(StType5) == 36, "size mismatch" );
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -544,7 +550,7 @@ static_assert( sizeof(StType5) == 36, "size mismatch" );
 	// size: 36, align: 4 (16)
 	struct StType5
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xde8ed60fu}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xde8ed60fu}};
 
 		packed_float3  Position;
 		packed_float3  Normal;
@@ -577,6 +583,46 @@ static_assert( sizeof(StType5) == 36, "size mismatch" );
 		const String	msl  = ToMSL( st );
 		const String	cpp  = ToCPP( st );
 
+		const String	ref_glsl = R"#(
+// size: 24 B, align: 4 B
+struct packed_float2
+{
+	float  x;
+	float  y;
+};
+vec2  Unpack (const packed_float2 src) { return vec2( src.x, src.y ); }
+packed_float2  Pack (const vec2 src) { return packed_float2( src.x, src.y ); }
+
+// size: 24 B, align: 4 B
+struct packed_float3
+{
+	float  x;
+	float  y;
+	float  z;
+};
+vec3  Unpack (const packed_float3 src) { return vec3( src.x, src.y, src.z ); }
+packed_float3  Pack (const vec3 src) { return packed_float3( src.x, src.y, src.z ); }
+
+// size: 72 B, align: 4 B
+struct packed_float3x3
+{
+	packed_float3  c0;
+	packed_float3  c1;
+	packed_float3  c2;
+};
+mat3x3  Unpack (const packed_float3x3 src) { return mat3x3( Unpack(src.c0), Unpack(src.c1), Unpack(src.c2) ); }
+packed_float3x3  Pack (const mat3x3 src) { return packed_float3x3( Pack(src[0]), Pack(src[1]), Pack(src[2]) ); }
+
+Buffer {
+	layout(offset=0, align=4)     uint             Count;           // size: 4
+	layout(offset=4, align=4)     packed_float2    Positions [3];   // size: 24
+	layout(offset=28, align=4)    uint             Indices [3];     // size: 12
+	layout(offset=40, align=4)    packed_float3x3  Mat [2];         // size: 72
+	layout(offset=112, align=8)   vec2             Positions2 [3];  // size: 24
+	layout(offset=136, align=4)   uint             Indices2 [3];    // size: 12
+	layout(offset=160, align=16)  mat3x3           Mat2 [2];        // size: 96
+}
+)#";
 		const String	ref_msl = R"#(
 // size: 72 B, align: 4 B
 struct packed_float3x3
@@ -589,56 +635,16 @@ struct packed_float3x3
 };
 struct StType6
 {
-	uint  Count;  // offset: 0
-	packed_float2  Positions [3];  // offset: 4
-	uint  Indices [3];  // offset: 28
-	packed_float3x3  Mat [2];  // offset: 40
-	float2  Positions2 [3];  // offset: 112
-	uint  Indices2 [3];  // offset: 136
-	float3x3  Mat2 [2];  // offset: 160
+	uint             Count;           // offset: 0, align: 4, size: 4
+	packed_float2    Positions [3];   // offset: 4, align: 4, size: 24
+	uint             Indices [3];     // offset: 28, align: 4, size: 12
+	packed_float3x3  Mat [2];         // offset: 40, align: 4, size: 72
+	float2           Positions2 [3];  // offset: 112, align: 8, size: 24
+	uint             Indices2 [3];    // offset: 136, align: 4, size: 12
+	float3x3         Mat2 [2];        // offset: 160, align: 16, size: 96
 };
 static_assert( sizeof(StType6) == 256, "size mismatch" );
 
-)#";
-		const String	ref_glsl = R"#(
-// size: 24 B, align: 4 B
-struct packed_float2
-{
-	float  x;
-	float  y;
-};
-vec2  Cast (const packed_float2 src) { return vec2( src.x, src.y ); }
-packed_float2  Cast (const vec2 src) { return packed_float2( src.x, src.y ); }
-
-// size: 24 B, align: 4 B
-struct packed_float3
-{
-	float  x;
-	float  y;
-	float  z;
-};
-vec3  Cast (const packed_float3 src) { return vec3( src.x, src.y, src.z ); }
-packed_float3  Cast (const vec3 src) { return packed_float3( src.x, src.y, src.z ); }
-
-// size: 72 B, align: 4 B
-struct packed_float3x3
-{
-	packed_float3  c0;
-	packed_float3  c1;
-	packed_float3  c2;
-};
-mat3x3  Cast (const packed_float3x3 src) { return mat3x3( Cast(src.c0), Cast(src.c1), Cast(src.c2) ); }
-packed_float3x3  Cast (const mat3x3 src) { return packed_float3x3( Cast(src[0]), Cast(src[1]), Cast(src[2]) ); }
-
-Buffer {
-	layout(offset=0, align=4) uint  Count;
-	layout(offset=4, align=4) packed_float2  Positions [3];
-	layout(offset=28, align=4) uint  Indices [3];
-	layout(offset=40, align=4) packed_float3x3  Mat [2];
-	layout(offset=112, align=8) vec2  Positions2 [3];
-	layout(offset=136, align=4) uint  Indices2 [3];
-	layout(offset=160, align=16) mat3x3  Mat2 [2];
-}
 )#";
 		const String	ref_cpp = R"#(
 #ifndef StType6_DEFINED
@@ -648,13 +654,13 @@ Buffer {
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x478787b5u}};
 
-		uint  Count;
-		StaticArray< packed_float2, 3 >    Positions;
-		StaticArray< uint, 3 >    Indices;
+		uint                                         Count;
+		StaticArray< packed_float2, 3 >              Positions;
+		StaticArray< uint, 3 >                       Indices;
 		StaticArray< packed_float3x3_storage, 2 >    Mat;
-		StaticArray< float2, 3 >    Positions2;
-		StaticArray< uint, 3 >    Indices2;
-		StaticArray< float3x3_storage, 2 >    Mat2;
+		StaticArray< float2, 3 >                     Positions2;
+		StaticArray< uint, 3 >                       Indices2;
+		StaticArray< float3x3_storage, 2 >           Mat2;
 	};
 #endif
 	StaticAssert( offsetof(StType6, Count) == 0 );
@@ -670,6 +676,7 @@ Buffer {
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -678,15 +685,15 @@ Buffer {
 	// size: 256, align: 16
 	struct StType6
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x478787b5u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x478787b5u}};
 
-		uint  Count;
-		StaticArray< packed_float2, 3 >    Positions;
-		StaticArray< uint, 3 >    Indices;
+		uint                                         Count;
+		StaticArray< packed_float2, 3 >              Positions;
+		StaticArray< uint, 3 >                       Indices;
 		StaticArray< packed_float3x3_storage, 2 >    Mat;
-		StaticArray< float2, 3 >    Positions2;
-		StaticArray< uint, 3 >    Indices2;
-		StaticArray< float3x3_storage, 2 >    Mat2;
+		StaticArray< float2, 3 >                     Positions2;
+		StaticArray< uint, 3 >                       Indices2;
+		StaticArray< float3x3_storage, 2 >           Mat2;
 	};
 #endif
 	StaticAssert( offsetof(StType6, Count) == 0 );
@@ -715,13 +722,13 @@ Buffer {
 
 		const String	ref_glsl = R"#(
 Buffer {
-	layout(offset=0, align=16) vec4  pos [];
+	layout(offset=0, align=16)  vec4  pos [];
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType8
 {
-	device float4*  pos;  // offset: 0
+	device float4*  pos;  // offset: 0, align: 16, size: 16
 };
 
 )#";
@@ -742,6 +749,7 @@ struct StType8
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -750,7 +758,8 @@ struct StType8
 	// size: 0, align: 16
 	struct StType8
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xa03faab2u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa03faab2u}};
+		static constexpr size_t SizeOf (size_t count)  { return (16 * count); }
 
 	//	float4  pos [];
 	};
@@ -785,8 +794,8 @@ struct StType8
 		const String	ref_glsl = R"#(
 layout(std140, buffer_reference, buffer_reference_align=16) buffer StType9A_AERef
 {
-	layout(offset=0, align=16) vec4  pos;
-	layout(offset=16, align=16) vec3  norm;
+	layout(offset=0, align=16)   vec4  pos;   // size: 16
+	layout(offset=16, align=16)  vec3  norm;  // size: 16
 };
 
 layout(std430, buffer_reference, buffer_reference_align=8) buffer float2_AEPtr
@@ -796,8 +805,8 @@ layout(std430, buffer_reference, buffer_reference_align=8) buffer float2_AEPtr
 
 layout(std140, buffer_reference, buffer_reference_align=16) buffer StType9B_AERef
 {
-	layout(offset=0, align=8) vec2  a;
-	layout(offset=8, align=4) int  b;
+	layout(offset=0, align=8)  vec2  a;  // size: 8
+	layout(offset=8, align=4)  int   b;  // size: 4
 };
 
 layout(std430, buffer_reference, buffer_reference_align=16) buffer StType9B_AEPtr
@@ -806,31 +815,31 @@ layout(std430, buffer_reference, buffer_reference_align=16) buffer StType9B_AEPt
 };
 
 Buffer {
-	layout(offset=0, align=8) StType9A_AERef  ref;
-	layout(offset=8, align=8) float2_AEPtr  arr;
-	layout(offset=16, align=8) StType9B_AEPtr  st_arr;
+	layout(offset=0, align=8)   StType9A_AERef  ref;     // size: 8
+	layout(offset=8, align=8)   float2_AEPtr    arr;     // size: 8
+	layout(offset=16, align=8)  StType9B_AEPtr  st_arr;  // size: 8
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType9A
 {
-	float4  pos;  // offset: 0
-	float3  norm;  // offset: 16
+	float4  pos;   // offset: 0, align: 16, size: 16
+	float3  norm;  // offset: 16, align: 16, size: 16
 };
 static_assert( sizeof(StType9A) == 32, "size mismatch" );
 
 struct StType9B
 {
-	float2  a;  // offset: 0
-	int  b;  // offset: 8
+	float2  a;  // offset: 0, align: 8, size: 8
+	int     b;  // offset: 8, align: 4, size: 4
 };
 static_assert( sizeof(StType9B) == 16, "size mismatch" );
 
 struct StType9
 {
-	device StType9A*  ref;  // offset: 0
-	device float2*  arr;  // offset: 8
-	device StType9B*  st_arr;  // offset: 16
+	device StType9A*  ref;     // offset: 0, align: 8, size: 8
+	device float2*    arr;     // offset: 8, align: 8, size: 8
+	device StType9B*  st_arr;  // offset: 16, align: 8, size: 8
 };
 static_assert( sizeof(StType9) == 24, "size mismatch" );
 
@@ -859,7 +868,7 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x7604137au}};
 
 		float2  a;
-		int  b;
+		int     b;
 	};
 #endif
 	StaticAssert( offsetof(StType9B, a) == 0 );
@@ -873,8 +882,8 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd7389a24u}};
 
-		TDeviceAddress< StType9A >  ref;
-		TDeviceAddress< float2 *>  arr;
+		TDeviceAddress< StType9A >   ref;
+		TDeviceAddress< float2 *>    arr;
 		TDeviceAddress< StType9B *>  st_arr;
 	};
 #endif
@@ -887,6 +896,7 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -895,7 +905,7 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	// size: 32, align: 16
 	struct StType9A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xef0d42c0u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xef0d42c0u}};
 
 		float4  pos;
 		float3  norm;
@@ -910,10 +920,10 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	// size: 12 (16), align: 8 (16)
 	struct alignas(8) StType9B
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x7604137au}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x7604137au}};
 
 		float2  a;
-		int  b;
+		int     b;
 	};
 #endif
 	StaticAssert( offsetof(StType9B, a) == 0 );
@@ -925,10 +935,10 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 	// size: 24, align: 8 (16)
 	struct StType9
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd7389a24u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd7389a24u}};
 
-		TDeviceAddress< StType9A >  ref;
-		TDeviceAddress< float2 *>  arr;
+		TDeviceAddress< StType9A >   ref;
+		TDeviceAddress< float2 *>    arr;
 		TDeviceAddress< StType9B *>  st_arr;
 	};
 #endif
@@ -951,13 +961,13 @@ static_assert( sizeof(StType9) == 24, "size mismatch" );
 
 		const String	ref_glsl = R"#(
 Buffer {
-	layout(offset=0, align=16) vec4  pos;
+	layout(offset=0, align=16)  vec4  pos;  // size: 16
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType_10
 {
-	float4  pos;  // offset: 0
+	float4  pos;  // offset: 0, align: 16, size: 16
 };
 static_assert( sizeof(StType_10) == 16, "size mismatch" );
 
@@ -980,6 +990,7 @@ static_assert( sizeof(StType_10) == 16, "size mismatch" );
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -988,7 +999,7 @@ static_assert( sizeof(StType_10) == 16, "size mismatch" );
 	// size: 16, align: 16
 	struct StType_10
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xc35deb7u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xc35deb7u}};
 
 		float4  pos;
 	};
@@ -1015,17 +1026,17 @@ static_assert( sizeof(StType_10) == 16, "size mismatch" );
 
 		const String	ref_glsl = R"#(
 Buffer {
-	layout(offset=0, align=16) mat4x4  transform;
-	layout(offset=64, align=4) uint  meshIdx;
-	layout(offset=68, align=4) uint  materialIdx;
+	layout(offset=0, align=16)  mat4x4  transform;    // size: 64
+	layout(offset=64, align=4)  uint    meshIdx;      // size: 4
+	layout(offset=68, align=4)  uint    materialIdx;  // size: 4
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType11
 {
-	float4x4  transform;  // offset: 0
-	uint  meshIdx;  // offset: 64
-	uint  materialIdx;  // offset: 68
+	float4x4  transform;    // offset: 0, align: 16, size: 64
+	uint      meshIdx;      // offset: 64, align: 4, size: 4
+	uint      materialIdx;  // offset: 68, align: 4, size: 4
 };
 static_assert( sizeof(StType11) == 80, "size mismatch" );
 
@@ -1039,8 +1050,8 @@ static_assert( sizeof(StType11) == 80, "size mismatch" );
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x77d1b9f4u}};
 
 		float4x4_storage  transform;
-		uint  meshIdx;
-		uint  materialIdx;
+		uint              meshIdx;
+		uint              materialIdx;
 	};
 #endif
 	StaticAssert( offsetof(StType11, transform) == 0 );
@@ -1052,6 +1063,7 @@ static_assert( sizeof(StType11) == 80, "size mismatch" );
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -1060,11 +1072,11 @@ static_assert( sizeof(StType11) == 80, "size mismatch" );
 	// size: 72 (80), align: 16
 	struct alignas(16) StType11
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x77d1b9f4u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x77d1b9f4u}};
 
 		float4x4_storage  transform;
-		uint  meshIdx;
-		uint  materialIdx;
+		uint              meshIdx;
+		uint              materialIdx;
 	};
 #endif
 	StaticAssert( offsetof(StType11, transform) == 0 );
@@ -1091,15 +1103,15 @@ static_assert( sizeof(StType11) == 80, "size mismatch" );
 
 		const String	ref_glsl = R"#(
 Buffer {
-	layout(offset=0, align=4) uint  count;
-	layout(offset=16, align=16) vec4  arr [];
+	layout(offset=0, align=4)    uint  count;   // size: 4
+	layout(offset=16, align=16)  vec4  arr [];
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType12
 {
-	uint  count;  // offset: 0
-	device float4*  arr;  // offset: 16
+	uint            count;  // offset: 0, align: 4, size: 4
+	device float4*  arr;    // offset: 16, align: 16, size: 16
 };
 
 )#";
@@ -1112,7 +1124,7 @@ struct StType12
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xeed8e84eu}};
 		static constexpr size_t SizeOf (size_t count)  { return 16 + (16 * count); }
 
-		uint  count;
+		uint    count;
 	//	float4  arr [];
 	};
 #endif
@@ -1123,6 +1135,7 @@ struct StType12
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -1131,9 +1144,10 @@ struct StType12
 	// size: 4 (16), align: 16
 	struct alignas(16) StType12
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xeed8e84eu}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xeed8e84eu}};
+		static constexpr size_t SizeOf (size_t count)  { return 16 + (16 * count); }
 
-		uint  count;
+		uint    count;
 	//	float4  arr [];
 	};
 #endif
@@ -1171,9 +1185,9 @@ layout(std430, buffer_reference, buffer_reference_align=8) buffer DeviceAddress_
 
 layout(std140, buffer_reference, buffer_reference_align=16) buffer StType13A_AERef
 {
-	layout(offset=0, align=16) vec4  pos;
-	layout(offset=16, align=16) vec3  norm;
-	layout(offset=32, align=8) uint64_t  l;
+	layout(offset=0, align=16)   vec4      pos;   // size: 16
+	layout(offset=16, align=16)  vec3      norm;  // size: 16
+	layout(offset=32, align=8)   uint64_t  l;     // size: 8
 };
 
 layout(std430, buffer_reference, buffer_reference_align=16) buffer StType13A_AEPtr
@@ -1182,29 +1196,29 @@ layout(std430, buffer_reference, buffer_reference_align=16) buffer StType13A_AEP
 };
 
 Buffer {
-	layout(offset=0, align=8) DeviceAddress_AEPtr  untypedAddrArr;
-	layout(offset=8, align=8) DeviceAddress_AEPtr  untypedAddrArrArr [8];
-	layout(offset=72, align=8) StType13A_AERef  typedRef;
-	layout(offset=80, align=8) StType13A_AEPtr  typedArr;
-	layout(offset=88, align=8) StType13A_AEPtr  typedArrArr [7];
+	layout(offset=0, align=8)   DeviceAddress_AEPtr  untypedAddrArr;         // size: 8
+	layout(offset=8, align=8)   DeviceAddress_AEPtr  untypedAddrArrArr [8];  // size: 64
+	layout(offset=72, align=8)  StType13A_AERef      typedRef;               // size: 8
+	layout(offset=80, align=8)  StType13A_AEPtr      typedArr;               // size: 8
+	layout(offset=88, align=8)  StType13A_AEPtr      typedArrArr [7];        // size: 56
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType13A
 {
-	float4  pos;  // offset: 0
-	float3  norm;  // offset: 16
-	ulong  l;  // offset: 32
+	float4  pos;   // offset: 0, align: 16, size: 16
+	float3  norm;  // offset: 16, align: 16, size: 16
+	ulong   l;     // offset: 32, align: 8, size: 8
 };
 static_assert( sizeof(StType13A) == 48, "size mismatch" );
 
 struct StType13
 {
-	device void*  untypedAddrArr;  // offset: 0
-	device void*  untypedAddrArrArr [8];  // offset: 8
-	device StType13A*  typedRef;  // offset: 72
-	device StType13A*  typedArr;  // offset: 80
-	device StType13A*  typedArrArr [7];  // offset: 88
+	device void*       untypedAddrArr;         // offset: 0, align: 8, size: 8
+	device void*       untypedAddrArrArr [8];  // offset: 8, align: 8, size: 64
+	device StType13A*  typedRef;               // offset: 72, align: 8, size: 8
+	device StType13A*  typedArr;               // offset: 80, align: 8, size: 8
+	device StType13A*  typedArrArr [7];        // offset: 88, align: 8, size: 56
 };
 static_assert( sizeof(StType13) == 144, "size mismatch" );
 
@@ -1219,7 +1233,7 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 
 		float4  pos;
 		float3  norm;
-		ulong  l;
+		ulong   l;
 	};
 #endif
 	StaticAssert( offsetof(StType13A, pos) == 0 );
@@ -1234,11 +1248,11 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x99dfd8d8u}};
 
-		TDeviceAddress< DeviceAddress *>  untypedAddrArr;
+		TDeviceAddress< DeviceAddress *>                      untypedAddrArr;
 		StaticArray< TDeviceAddress< DeviceAddress *>, 8 >    untypedAddrArrArr;
-		TDeviceAddress< StType13A >  typedRef;
-		TDeviceAddress< StType13A *>  typedArr;
-		StaticArray< TDeviceAddress< StType13A *>, 7 >    typedArrArr;
+		TDeviceAddress< StType13A >                           typedRef;
+		TDeviceAddress< StType13A *>                          typedArr;
+		StaticArray< TDeviceAddress< StType13A *>, 7 >        typedArrArr;
 	};
 #endif
 	StaticAssert( offsetof(StType13, untypedAddrArr) == 0 );
@@ -1252,6 +1266,7 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -1260,11 +1275,11 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 	// size: 40 (48), align: 16
 	struct alignas(16) StType13A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x5b481bb5u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x5b481bb5u}};
 
 		float4  pos;
 		float3  norm;
-		ulong  l;
+		ulong   l;
 	};
 #endif
 	StaticAssert( offsetof(StType13A, pos) == 0 );
@@ -1277,13 +1292,13 @@ static_assert( sizeof(StType13) == 144, "size mismatch" );
 	// size: 144, align: 8
 	struct StType13
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x99dfd8d8u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x99dfd8d8u}};
 
-		TDeviceAddress< DeviceAddress *>  untypedAddrArr;
+		TDeviceAddress< DeviceAddress *>                      untypedAddrArr;
 		StaticArray< TDeviceAddress< DeviceAddress *>, 8 >    untypedAddrArrArr;
-		TDeviceAddress< StType13A >  typedRef;
-		TDeviceAddress< StType13A *>  typedArr;
-		StaticArray< TDeviceAddress< StType13A *>, 7 >    typedArrArr;
+		TDeviceAddress< StType13A >                           typedRef;
+		TDeviceAddress< StType13A *>                          typedArr;
+		StaticArray< TDeviceAddress< StType13A *>, 7 >        typedArrArr;
 	};
 #endif
 	StaticAssert( offsetof(StType13, untypedAddrArr) == 0 );
@@ -1313,8 +1328,8 @@ struct packed_float3
 	float  y;
 	float  z;
 };
-vec3  Cast (const packed_float3 src) { return vec3( src.x, src.y, src.z ); }
-packed_float3  Cast (const vec3 src) { return packed_float3( src.x, src.y, src.z ); }
+vec3  Unpack (const packed_float3 src) { return vec3( src.x, src.y, src.z ); }
+packed_float3  Pack (const vec3 src) { return packed_float3( src.x, src.y, src.z ); }
 
 layout(std430, buffer_reference, buffer_reference_align=4) buffer packed_float3_AEPtr
 {
@@ -1322,13 +1337,13 @@ layout(std430, buffer_reference, buffer_reference_align=4) buffer packed_float3_
 };
 
 Buffer {
-	layout(offset=0, align=8) packed_float3_AEPtr  normals;
+	layout(offset=0, align=8)  packed_float3_AEPtr  normals;  // size: 8
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType14
 {
-	device packed_float3*  normals;  // offset: 0
+	device packed_float3*  normals;  // offset: 0, align: 8, size: 8
 };
 static_assert( sizeof(StType14) == 8, "size mismatch" );
 
@@ -1351,6 +1366,7 @@ static_assert( sizeof(StType14) == 8, "size mismatch" );
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -1359,7 +1375,7 @@ static_assert( sizeof(StType14) == 8, "size mismatch" );
 	// size: 8, align: 8
 	struct StType14
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x7bb4d7bu}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x7bb4d7bu}};
 
 		TDeviceAddress< packed_float3 *>  normals;
 	};
@@ -1388,26 +1404,26 @@ static_assert( sizeof(StType14) == 8, "size mismatch" );
 #define StType15A_defined
 struct StType15A
 {
-	uvec3  a;  // offset: 0
-	uint  _a_padding_w;  // offset: 12
-	float  b;  // offset: 16
+	uvec3  a;             // offset: 0, align: 16, size: 16
+	uint   _a_padding_w;  // offset: 12, align: 4, size: 4
+	float  b;             // offset: 16, align: 4, size: 4
 };
 
 Buffer {
-	layout(offset=0, align=16) StType15A  arr [8];
+	layout(offset=0, align=16)  StType15A  arr [8];  // size: 256
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType15A
 {
-	uint3  a;  // offset: 0
-	float  b;  // offset: 16
+	uint3  a;  // offset: 0, align: 16, size: 16
+	float  b;  // offset: 16, align: 4, size: 4
 };
 static_assert( sizeof(StType15A) == 32, "size mismatch" );
 
 struct StType15
 {
-	StType15A  arr [8];  // offset: 0
+	StType15A  arr [8];  // offset: 0, align: 16, size: 256
 };
 static_assert( sizeof(StType15) == 256, "size mismatch" );
 
@@ -1445,6 +1461,7 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
 
@@ -1453,7 +1470,7 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
 	// size: 20 (32), align: 16
 	struct alignas(16) StType15A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xd12bc33u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd12bc33u}};
 
 		uint3  a;
 		float  b;
@@ -1468,7 +1485,7 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
 	// size: 256, align: 16
 	struct StType15
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x70bc7dedu}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x70bc7dedu}};
 
 		StaticArray< StType15A, 8 >    arr;
 	};
@@ -1501,33 +1518,33 @@ static_assert( sizeof(StType15) == 256, "size mismatch" );
 #define StType16A_defined
 struct StType16A
 {
-	float  a;  // offset: 0
-	float  b;  // offset: 4
-	float  c;  // offset: 8
+	float  a;  // offset: 0, align: 4, size: 4
+	float  b;  // offset: 4, align: 4, size: 4
+	float  c;  // offset: 8, align: 4, size: 4
 };
 
 Buffer {
-	layout(offset=0, align=8) vec2  aa;
-	layout(offset=8, align=8) vec2  bb;
-	layout(offset=16, align=4) float  cc;
-	layout(offset=20, align=4) StType16A  arr [];
+	layout(offset=0, align=8)   vec2       aa;      // size: 8
+	layout(offset=8, align=8)   vec2       bb;      // size: 8
+	layout(offset=16, align=4)  float      cc;      // size: 4
+	layout(offset=20, align=4)  StType16A  arr [];
 }
 )#";
 		const String	ref_msl = R"#(
 struct StType16A
 {
-	float  a;  // offset: 0
-	float  b;  // offset: 4
-	float  c;  // offset: 8
+	float  a;  // offset: 0, align: 4, size: 4
+	float  b;  // offset: 4, align: 4, size: 4
+	float  c;  // offset: 8, align: 4, size: 4
 };
 static_assert( sizeof(StType16A) == 12, "size mismatch" );
 
 struct StType16
 {
-	float2  aa;  // offset: 0
-	float2  bb;  // offset: 8
-	float  cc;  // offset: 16
-	device StType16A*  arr;  // offset: 20
+	float2             aa;   // offset: 0, align: 8, size: 8
+	float2             bb;   // offset: 8, align: 8, size: 8
+	float              cc;   // offset: 16, align: 4, size: 4
+	device StType16A*  arr;  // offset: 20, align: 4, size: 12
 };
 
 )#";
@@ -1557,9 +1574,9 @@ struct StType16
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xe9b52c57u}};
 		static constexpr size_t SizeOf (size_t count)  { return 20 + (12 * count); }
 
-		float2  aa;
-		float2  bb;
-		float  cc;
+		float2     aa;
+		float2     bb;
+		float      cc;
 	//	StType16A  arr [];
 	};
 #endif
@@ -1572,14 +1589,16 @@ struct StType16
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
+		TEST_PASSED();
 	}
 
+	
 #ifndef StType16A_DEFINED
 #	define StType16A_DEFINED
 	// size: 12, align: 4
 	struct StType16A
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0x263feff0u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x263feff0u}};
 
 		float  a;
 		float  b;
@@ -1596,11 +1615,12 @@ struct StType16
 	// size: 20 (24), align: 8
 	struct alignas(8) StType16
 	{
-		static constexpr auto  TypeName = ShaderStructName{HashVal32{0xe9b52c57u}};
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xe9b52c57u}};
+		static constexpr size_t SizeOf (size_t count)  { return 20 + (12 * count); }
 
-		float2  aa;
-		float2  bb;
-		float  cc;
+		float2     aa;
+		float2     bb;
+		float      cc;
 	//	StType16A  arr [];
 	};
 #endif
@@ -1636,30 +1656,613 @@ struct StType16
 
 		const String	ref_glsl = R"#(// stage input
 in FragmentInput {
-  layout(location=0) vec2  a;
-  layout(location=1) f16vec2  b;
-  layout(location=2) flat float  c;
-  layout(location=3) mediump float  d;
-  layout(location=4) mediump vec4  e;
-  layout(location=5) flat u16vec3  f;
+  layout(location=0)         vec2     a;
+  layout(location=1)         f16vec2  b;
+  layout(location=2) flat    float    c;
+  layout(location=3) mediump float    d;
+  layout(location=4) mediump vec4     e;
+  layout(location=5) flat    u16vec3  f;
 } In;
 
 )#";
 		const String	ref_msl	= R"#(struct StType17
 {
-  float4  position [[position]];
-  float2  a;
-  half2  b;
-  float  c  [[flat]];
-  float  d;
+  float4             position  [[position]];
+  float2             a;
+  half2              b;
+  float              c         [[flat]];
+  float              d;
   rgba8unorm<half4>  e;
-  ushort3  f  [[flat]];
+  ushort3            f         [[flat]];
 };
 
 )#";
-
 		TEST( glsl == ref_glsl );
 		TEST( msl == ref_msl );
+		TEST_PASSED();
+	}
+//-----------------------------------------------------------------------------
+
+
+	static void  StructType_Test18 ()
+	{
+		ShaderStructTypePtr	st{ new ShaderStructType{ "StType18" }};
+		st->Set( EStructLayout::Std430,
+				 "float3		a;"		// size: 16
+				 "float			b;"		// size: 4		offset: 16
+				 "packed_float3	c;"		// size: 12		offset: 20
+				 "packed_float3	d;"		// size: 12		offset: 32	- non-packed for GLSL
+				 "uint			e;"		// size: 4		offset: 44
+				 "float2		f;"		// size: 8		offset: 48
+				 "packed_float3	g;"		// size: 12		offset: 56
+				 "packed_uint2	h;"		// size: 8		offset: 68
+				);
+
+		const String	glsl = ToGLSL( st );
+		const String	cpp  = ToCPP( st );
+
+		const String	ref_glsl = R"#(
+// size: 12 B, align: 4 B
+struct packed_float3
+{
+	float  x;
+	float  y;
+	float  z;
+};
+vec3  Unpack (const packed_float3 src) { return vec3( src.x, src.y, src.z ); }
+packed_float3  Pack (const vec3 src) { return packed_float3( src.x, src.y, src.z ); }
+
+// size: 8 B, align: 4 B
+struct packed_uint2
+{
+	uint  x;
+	uint  y;
+};
+uvec2  Unpack (const packed_uint2 src) { return uvec2( src.x, src.y ); }
+packed_uint2  Pack (const uvec2 src) { return packed_uint2( src.x, src.y ); }
+
+Buffer {
+	layout(offset=0, align=16)   vec3           a;  // size: 16
+	layout(offset=16, align=4)   float          b;  // size: 4
+	layout(offset=20, align=4)   packed_float3  c;  // size: 12
+	layout(offset=32, align=16)  vec3           d;  // size: 12
+	layout(offset=44, align=4)   uint           e;  // size: 4
+	layout(offset=48, align=8)   vec2           f;  // size: 8
+	layout(offset=56, align=4)   packed_float3  g;  // size: 12
+	layout(offset=68, align=4)   packed_uint2   h;  // size: 8
+}
+)#";
+		const String	ref_cpp = R"#(
+#ifndef StType18_DEFINED
+#	define StType18_DEFINED
+	// size: 76 (80), align: 16
+	struct alignas(16) StType18
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xe0d0150u}};
+
+		float3         a;
+		float          b;
+		packed_float3  c;
+		packed_float3  d;
+		uint           e;
+		float2         f;
+		packed_float3  g;
+		packed_uint2   h;
+	};
+#endif
+	StaticAssert( offsetof(StType18, a) == 0 );
+	StaticAssert( offsetof(StType18, b) == 16 );
+	StaticAssert( offsetof(StType18, c) == 20 );
+	StaticAssert( offsetof(StType18, d) == 32 );
+	StaticAssert( offsetof(StType18, e) == 44 );
+	StaticAssert( offsetof(StType18, f) == 48 );
+	StaticAssert( offsetof(StType18, g) == 56 );
+	StaticAssert( offsetof(StType18, h) == 68 );
+	StaticAssert( sizeof(StType18) == 80 );
+
+)#";
+		TEST( glsl == ref_glsl );
+		TEST( cpp == ref_cpp );
+		TEST_PASSED();
+	}
+
+	
+#ifndef StType18_DEFINED
+#	define StType18_DEFINED
+	// size: 76 (80), align: 16
+	struct alignas(16) StType18
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xe0d0150u}};
+
+		float3         a;
+		float          b;
+		packed_float3  c;
+		packed_float3  d;
+		uint           e;
+		float2         f;
+		packed_float3  g;
+		packed_uint2   h;
+	};
+#endif
+	StaticAssert( offsetof(StType18, a) == 0 );
+	StaticAssert( offsetof(StType18, b) == 16 );
+	StaticAssert( offsetof(StType18, c) == 20 );
+	StaticAssert( offsetof(StType18, d) == 32 );
+	StaticAssert( offsetof(StType18, e) == 44 );
+	StaticAssert( offsetof(StType18, f) == 48 );
+	StaticAssert( offsetof(StType18, g) == 56 );
+	StaticAssert( offsetof(StType18, h) == 68 );
+	StaticAssert( sizeof(StType18) == 80 );
+//-----------------------------------------------------------------------------
+
+
+	static void  StructType_Test19 ()
+	{
+		ShaderStructTypePtr	st{ new ShaderStructType{ "StType19" }};
+		st->Set( EStructLayout::Compatible_Std430,
+				 "float3		a;"
+				 "float			b;"
+				 "packed_float3	c;"
+				 "packed_float3	d;"
+				 "float			e;" );
+
+		const String	glsl = ToGLSL( st );
+		const String	msl  = ToMSL( st );
+		const String	cpp  = ToCPP( st );
+
+		const String	ref_glsl = R"#(
+// size: 12 B, align: 4 B
+struct packed_float3
+{
+	float  x;
+	float  y;
+	float  z;
+};
+vec3  Unpack (const packed_float3 src) { return vec3( src.x, src.y, src.z ); }
+packed_float3  Pack (const vec3 src) { return packed_float3( src.x, src.y, src.z ); }
+
+Buffer {
+	layout(offset=0, align=16)  vec3           a;  // size: 16
+	layout(offset=16, align=4)  float          b;  // size: 4
+	layout(offset=20, align=4)  packed_float3  c;  // size: 12
+	layout(offset=32, align=4)  packed_float3  d;  // size: 12
+	layout(offset=44, align=4)  float          e;  // size: 4
+}
+)#";
+		const String	ref_msl = R"#(
+struct StType19
+{
+	float3         a;  // offset: 0, align: 16, size: 16
+	float          b;  // offset: 16, align: 4, size: 4
+	packed_float3  c;  // offset: 20, align: 4, size: 12
+	packed_float3  d;  // offset: 32, align: 4, size: 12
+	float          e;  // offset: 44, align: 4, size: 4
+};
+static_assert( sizeof(StType19) == 48, "size mismatch" );
+
+)#";
+		const String	ref_cpp = R"#(
+#ifndef StType19_DEFINED
+#	define StType19_DEFINED
+	// size: 48, align: 16
+	struct StType19
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x790a31c6u}};
+
+		float3         a;
+		float          b;
+		packed_float3  c;
+		packed_float3  d;
+		float          e;
+	};
+#endif
+	StaticAssert( offsetof(StType19, a) == 0 );
+	StaticAssert( offsetof(StType19, b) == 16 );
+	StaticAssert( offsetof(StType19, c) == 20 );
+	StaticAssert( offsetof(StType19, d) == 32 );
+	StaticAssert( offsetof(StType19, e) == 44 );
+	StaticAssert( sizeof(StType19) == 48 );
+
+)#";
+		TEST( glsl == ref_glsl );
+		TEST( msl == ref_msl );
+		TEST( cpp == ref_cpp );
+		TEST_PASSED();
+	}
+
+
+#ifndef StType19_DEFINED
+#	define StType19_DEFINED
+	// size: 48, align: 16
+	struct StType19
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x790a31c6u}};
+
+		float3         a;
+		float          b;
+		packed_float3  c;
+		packed_float3  d;
+		float          e;
+	};
+#endif
+	StaticAssert( offsetof(StType19, a) == 0 );
+	StaticAssert( offsetof(StType19, b) == 16 );
+	StaticAssert( offsetof(StType19, c) == 20 );
+	StaticAssert( offsetof(StType19, d) == 32 );
+	StaticAssert( offsetof(StType19, e) == 44 );
+	StaticAssert( sizeof(StType19) == 48 );
+//-----------------------------------------------------------------------------
+
+
+	static void  StructType_Test20 ()
+	{
+		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType20A" }};
+		st1->Set( EStructLayout::Std430,
+				 "float3		a;"		// size: 16
+				 "float			b;"		// size: 4		offset: 16
+				 "packed_float3	c;"		// size: 12		offset: 20
+				 "packed_float3	d;"		// size: 12		offset: 32	- non-packed for GLSL
+				 "uint			e;"		// size: 4		offset: 44
+				 "float2		f;"		// size: 8		offset: 48
+				 "packed_float3	g;"		// size: 12		offset: 56
+				 "packed_uint2	h;"		// size: 8		offset: 68
+				);
+		
+		ShaderStructTypePtr	st{ new ShaderStructType{ "StType20" }};
+		st->Set( EStructLayout::Std430,
+				 "StType20A		a;"
+				 "uint			b;"
+				 "StType20A		arr [];" );
+
+		const String	glsl = ToGLSL( st );
+		const String	cpp  = ToCPP( st );
+
+		const String	ref_glsl = R"#(
+// size: 12 B, align: 4 B
+struct packed_float3
+{
+	float  x;
+	float  y;
+	float  z;
+};
+vec3  Unpack (const packed_float3 src) { return vec3( src.x, src.y, src.z ); }
+packed_float3  Pack (const vec3 src) { return packed_float3( src.x, src.y, src.z ); }
+
+// size: 8 B, align: 4 B
+struct packed_uint2
+{
+	uint  x;
+	uint  y;
+};
+uvec2  Unpack (const packed_uint2 src) { return uvec2( src.x, src.y ); }
+packed_uint2  Pack (const uvec2 src) { return packed_uint2( src.x, src.y ); }
+
+#define StType20A_defined
+struct StType20A
+{
+	vec3           a;             // offset: 0, align: 16, size: 16
+	float          _a_padding_w;  // offset: 12, align: 4, size: 4
+	float          b;             // offset: 16, align: 4, size: 4
+	packed_float3  c;             // offset: 20, align: 4, size: 12
+	vec3           d;             // offset: 32, align: 16, size: 12
+	uint           e;             // offset: 44, align: 4, size: 4
+	vec2           f;             // offset: 48, align: 8, size: 8
+	packed_float3  g;             // offset: 56, align: 4, size: 12
+	packed_uint2   h;             // offset: 68, align: 4, size: 8
+};
+
+Buffer {
+	layout(offset=0, align=16)   StType20A  a;       // size: 80
+	layout(offset=80, align=4)   uint       b;       // size: 4
+	layout(offset=96, align=16)  StType20A  arr [];
+}
+)#";
+		const String	ref_cpp = R"#(
+#ifndef StType20A_DEFINED
+#	define StType20A_DEFINED
+	// size: 76 (80), align: 16
+	struct alignas(16) StType20A
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x7223f62fu}};
+
+		float3         a;
+		float          b;
+		packed_float3  c;
+		packed_float3  d;
+		uint           e;
+		float2         f;
+		packed_float3  g;
+		packed_uint2   h;
+	};
+#endif
+	StaticAssert( offsetof(StType20A, a) == 0 );
+	StaticAssert( offsetof(StType20A, b) == 16 );
+	StaticAssert( offsetof(StType20A, c) == 20 );
+	StaticAssert( offsetof(StType20A, d) == 32 );
+	StaticAssert( offsetof(StType20A, e) == 44 );
+	StaticAssert( offsetof(StType20A, f) == 48 );
+	StaticAssert( offsetof(StType20A, g) == 56 );
+	StaticAssert( offsetof(StType20A, h) == 68 );
+	StaticAssert( sizeof(StType20A) == 80 );
+
+#ifndef StType20_DEFINED
+#	define StType20_DEFINED
+	// size: 84 (96), align: 16
+	struct alignas(16) StType20
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x2bfbdaa1u}};
+		static constexpr size_t SizeOf (size_t count)  { return 96 + (80 * count); }
+
+		StType20A  a;
+		uint       b;
+	//	StType20A  arr [];
+	};
+#endif
+	StaticAssert( offsetof(StType20, a) == 0 );
+	StaticAssert( offsetof(StType20, b) == 80 );
+	StaticAssert( sizeof(StType20) == 96 );
+
+)#";
+		TEST( glsl == ref_glsl );
+		TEST( cpp == ref_cpp );
+		TEST_PASSED();
+	}
+//-----------------------------------------------------------------------------
+
+
+	static void  StructType_TestLayoutCompatibility ()
+	{
+		ShaderStructTypePtr	st430{ new ShaderStructType{ "StType21_std430" }};
+		st430->Set( EStructLayout::Std430, "float  a;" );
+		
+		ShaderStructTypePtr	st140{ new ShaderStructType{ "StType21_std140" }};
+		st140->Set( EStructLayout::Std140, "float  a;" );
+		
+		ShaderStructTypePtr	stC430{ new ShaderStructType{ "StType21_C430" }};
+		stC430->Set( EStructLayout::Compatible_Std430, "float  a;" );
+		
+		ShaderStructTypePtr	stC140{ new ShaderStructType{ "StType21_C140" }};
+		stC140->Set( EStructLayout::Compatible_Std140, "float  a;" );
+		
+		ShaderStructTypePtr	stMtl{ new ShaderStructType{ "StType21_mtl" }};
+		stMtl->Set( EStructLayout::Metal, "float  a;" );
+		
+		ShaderStructTypePtr	stIO{ new ShaderStructType{ "StType21_IO" }};
+		stIO->Set( EStructLayout::InternalIO, "float  a;" );
+
+		StaticAssert( uint(EStructLayout::_Count) == 6 );
+
+		// Std140 is compatible with Std140 and Compatible_Std140
+		{
+			// error
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_v1" }};
+				st->Set( EStructLayout::Std140, "StType21_std430  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_v2" }};
+				st->Set( EStructLayout::Std140, "StType21_C430  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_v3" }};
+				st->Set( EStructLayout::Std140, "StType21_mtl  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_v4" }};
+				st->Set( EStructLayout::Std140, "StType21_IO  a;" );
+				TEST(false);
+			}catch(...) {}
+			
+			// ok
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_v5" }};
+				st->Set( EStructLayout::Std140, "StType21_C140  a;" );
+			}catch(...){
+				TEST(false);
+			}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std140_v6" }};
+				st->Set( EStructLayout::Std140, "StType21_std140  a;" );
+			}catch(...){
+				TEST(false);
+			}
+		}
+
+		// Std430 is compatible with Std430 and Compatible_Std430
+		{
+			// error
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_v1" }};
+				st->Set( EStructLayout::Std430, "StType21_std140  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_v2" }};
+				st->Set( EStructLayout::Std430, "StType21_C140  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_v3" }};
+				st->Set( EStructLayout::Std430, "StType21_mtl  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_v4" }};
+				st->Set( EStructLayout::Std430, "StType21_IO  a;" );
+				TEST(false);
+			}catch(...) {}
+			
+			// ok
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_v5" }};
+				st->Set( EStructLayout::Std430, "StType21_std430  a;" );
+			}catch(...){
+				TEST(false);
+			}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_std430_v6" }};
+				st->Set( EStructLayout::Std430, "StType21_C430  a;" );
+			}catch(...){
+				TEST(false);
+			}
+		}
+
+		// Compatible_Std140 is only compatible with Compatible_Std140
+		{
+			// error
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_v1" }};
+				st->Set( EStructLayout::Compatible_Std140, "StType21_std430  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_v2" }};
+				st->Set( EStructLayout::Compatible_Std140, "StType21_C430  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_v3" }};
+				st->Set( EStructLayout::Compatible_Std140, "StType21_mtl  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_v4" }};
+				st->Set( EStructLayout::Compatible_Std140, "StType21_IO  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_v5" }};
+				st->Set( EStructLayout::Compatible_Std140, "StType21_std140  a;" );
+				TEST(false);
+			}catch(...) {}
+			
+			// ok
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C140_v6" }};
+				st->Set( EStructLayout::Compatible_Std140, "StType21_C140  a;" );
+			}catch(...){
+				TEST(false);
+			}
+		}
+		
+		// Compatible_Std430 is only compatible with Compatible_Std430
+		{
+			// error
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_v1" }};
+				st->Set( EStructLayout::Compatible_Std430, "StType21_std140  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_v2" }};
+				st->Set( EStructLayout::Compatible_Std430, "StType21_C140  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_v3" }};
+				st->Set( EStructLayout::Compatible_Std430, "StType21_mtl  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_v4" }};
+				st->Set( EStructLayout::Compatible_Std430, "StType21_IO  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_v5" }};
+				st->Set( EStructLayout::Compatible_Std430, "StType21_std430  a;" );
+				TEST(false);
+			}catch(...) {}
+			
+			// ok
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_C430_v6" }};
+				st->Set( EStructLayout::Compatible_Std430, "StType21_C430  a;" );
+			}catch(...){
+				TEST(false);
+			}
+		}
+
+		// Metal is only compatible with Metal
+		{
+			// error
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_v1" }};
+				st->Set( EStructLayout::Metal, "StType21_std140  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_v2" }};
+				st->Set( EStructLayout::Metal, "StType21_C140  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_v3" }};
+				st->Set( EStructLayout::Metal, "StType21_C430  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_v4" }};
+				st->Set( EStructLayout::Metal, "StType21_IO  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_v5" }};
+				st->Set( EStructLayout::Metal, "StType21_std430  a;" );
+				TEST(false);
+			}catch(...) {}
+			
+			// ok
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_Mtl_v6" }};
+				st->Set( EStructLayout::Metal, "StType21_mtl  a;" );
+			}catch(...){
+				TEST(false);
+			}
+		}
+		
+		// InternalIO is only compatible with InternalIO
+		{
+			// error
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_v1" }};
+				st->Set( EStructLayout::InternalIO, "StType21_std140  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_v2" }};
+				st->Set( EStructLayout::InternalIO, "StType21_C140  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_v3" }};
+				st->Set( EStructLayout::InternalIO, "StType21_mtl  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_v4" }};
+				st->Set( EStructLayout::InternalIO, "StType21_C430  a;" );
+				TEST(false);
+			}catch(...) {}
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_v5" }};
+				st->Set( EStructLayout::InternalIO, "StType21_std430  a;" );
+				TEST(false);
+			}catch(...) {}
+
+			// ok
+			try{
+				ShaderStructTypePtr	st{ new ShaderStructType{ "StType21_IO_v6" }};
+				st->Set( EStructLayout::InternalIO, "StType21_IO  a;" );
+			}catch(...){
+				TEST(false);
+			}
+		}
+
+		TEST_PASSED();
 	}
 //-----------------------------------------------------------------------------
 }
@@ -1700,6 +2303,10 @@ extern void  UnitTest_StructType ()
 		StructType_Test15();
 		StructType_Test16();
 		StructType_Test17();
+		StructType_Test18();
+		StructType_Test19();
+		StructType_Test20();
+		StructType_TestLayoutCompatibility();
 	} catch(...) {
 		TEST( false );
 	}

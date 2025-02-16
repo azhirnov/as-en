@@ -13,7 +13,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #if defined(SH_COMPUTE) && defined(tTILE)
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	ND_ int2  GlobalThreadID ()
 	{
@@ -301,7 +301,7 @@
 //-----------------------------------------------------------------------------
 #ifdef VIEW_SPLINE
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "tools/SplineHelper.glsl"
 
 	void  Main ()
@@ -329,7 +329,7 @@
 	#include "SDF.glsl"
 	#include "Color.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	ND_ float2  Noise (const int dx)
 	{
@@ -367,7 +367,7 @@
 //-----------------------------------------------------------------------------
 #ifdef VIEW_2D
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{
@@ -389,7 +389,7 @@
 //-----------------------------------------------------------------------------
 #ifdef VIEW_2D_VEC3
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{

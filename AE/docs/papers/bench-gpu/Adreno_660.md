@@ -5,7 +5,7 @@
 
 * Clock: 790 MHz
 * Cores: 2
-* Total ALUs: 1024
+* Total ALUs: 1024 - number of simultaneously executing threads
 * F16 GFLOPS: **3244** (1414 on MulAdd from tests)
 * F32 GFLOPS: **1622** (728 on FMA from tests)
 * F64 GFLOPS: **405**

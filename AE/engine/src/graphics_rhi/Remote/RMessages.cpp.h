@@ -258,7 +258,9 @@
 			_regResp_( Query_GetTimestampCalibratedUL_Response	)	and\
 			_regResp_( Query_GetTimestampCalibratedD_Response	)	and\
 			_regResp_( Query_GetTimestampCalibratedNs_Response	)	and\
-			_regResp_( Query_GetPipelineStatistic_Response		));\
+			_regResp_( Query_GetGraphicsPipeStat_Response		)	and\
+			_regResp_( Query_GetMeshPipeStat_Response			)	and\
+			_regResp_( Query_GetComputePipeStat_Response		));\
 		\
 		CHECK_ERR(\
 			_regMsg_(  ProfArm_Initialize						)	and\

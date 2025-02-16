@@ -29,8 +29,10 @@ namespace AE::Profiler
 		using OnNextFrame_t		= Function< void() >;
 
 	private:
-		using BatchNameMap_t	= FlatHashMap< const void*, String >;
-		using PipelineStatistic	= Graphics::IQueryManager::GraphicsPipelineStatistic;
+		using BatchNameMap_t			= FlatHashMap< const void*, String >;
+		using GraphicsPipelineStatistic	= Graphics::IQueryManager::GraphicsPipelineStatistic;
+		using ComputePipelineStatistic	= Graphics::IQueryManager::ComputePipelineStatistic;
+		using MeshPipelineStatistic		= Graphics::IQueryManager::MeshPipelineStatistic;
 
 	  #if defined(AE_ENABLE_VULKAN)
 		using Query = Graphics::VQueryManager::Query;
@@ -96,7 +98,7 @@ namespace AE::Profiler
 
 		struct Pass
 		{
-		//	Query			pplnStat;
+			Query			pplnStat;
 			Query			timestamp;
 			String			name;
 			RGBA8u			color;
@@ -123,7 +125,6 @@ namespace AE::Profiler
 		};
 		using PerFrame_t		= StaticArray< PerFrameData, Graphics::GraphicsConfig::MaxFrames+1 >;
 
-		using MemoryUsage_t		= Optional< Graphics::DeviceMemoryUsage >;
 		using TimeScopeArr_t	= PowerVRProfiler::TimeScopeArr_t;
 
 		class ReadResultsTask;
@@ -145,15 +146,16 @@ namespace AE::Profiler
 		}						_gpuTime;
 
 		struct {
+			bool						hasMeshShader = false;
+			Threading::RWSpinLock		guard;
+			MeshPipelineStatistic		graphics;
+			ComputePipelineStatistic	compute;
+		}						_pplnStats;
+
+		struct {
 			AtomicBytes<Bytes>		accumWrite;
 			AtomicBytes<Bytes>		accumRead;
-			Bytes					avgWrite;		// per frame
-			Bytes					avgRead;		// per frame
-			Bytes					writeBw;		// per second
-			Bytes					readBw;			// per second
 		}						_memTraffic;
-
-		MemoryUsage_t			_memUsage;
 
 		PerFrame_t				_perFrame;
 
@@ -164,7 +166,8 @@ namespace AE::Profiler
 		TimeScopeArr_t			_pvrTimings;
 
 	  #ifdef AE_ENABLE_IMGUI
-		ImColumnHistoryDiagram	_imHistory;
+		ImColumnHistoryDiagram	_imGPUTimeHistory;
+		ImLineGraphTable		_graphTable;
 	  #endif
 
 
@@ -217,6 +220,8 @@ namespace AE::Profiler
 	private:
 		void  _ReadResults ();
 		void  _ReadResultsPVR ();
+
+		void  _InitImGUI (const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1);
 	};
 
 

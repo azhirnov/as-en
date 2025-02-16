@@ -25,15 +25,12 @@ namespace AE::Profiler
 	{
 	// types
 	private:
-		enum class UniqueNameIdx : uint {};		// index in '_uniqueNameArr'
-
-		using UNameInfo_t	= Tuple< UniqueNameIdx, RGBA8u, String >;
-		using UniqueNames_t	= HashMap< StringView, UniqueNameIdx >;
+		using UniqueNames_t	= HashSet< String >;
 
 		struct Item
 		{
-			UniqueNameIdx	name;
-			RGBA8u			color;		// same as in '_uniqueNameArr'
+			const char*		name	= null;
+			RGBA8u			color;
 			nanosecondsd	begin;
 			nanosecondsd	end;
 		};
@@ -61,7 +58,6 @@ namespace AE::Profiler
 		int						_currentFrameIdx	= 0;
 
 		UniqueNames_t			_uniqueNames;
-		Array<UNameInfo_t>		_uniqueNameArr;
 		FrameHistory_t			_frames;
 
 

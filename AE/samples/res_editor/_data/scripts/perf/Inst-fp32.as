@@ -10,26 +10,58 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, IsDiscreteGPU() ? uint2(4<<10) : uint2(1<<10) );
+		uint	dim			= 1<<10;
+		uint	iter_cnt	= 32;
+
+		switch ( GPUVendor() )
+		{
+			case EGPUVendor::NVidia :
+			case EGPUVendor::AMD :
+				dim		 = 4<<10;
+				iter_cnt = 1<<6;		// NV: must be <= 1024, unroll is too slow
+				break;
+
+			case EGPUVendor::Intel :
+				dim		 = 1<<9;
+				iter_cnt = 1<<6;
+				break;
+				
+			case EGPUVendor::ARM :			// Mali
+			case EGPUVendor::Qualcomm :		// Adreno
+			case EGPUVendor::ImgTech :		// PowerVR
+				iter_cnt = 1<<4;
+				break;
+
+			case EGPUVendor::Apple :
+				dim		 = 2<<10;
+				iter_cnt = 1<<8;
+				break;
+		}
+
+		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, uint2(dim) );
 		RC<DynamicUInt>		count		= DynamicUInt();
 		RC<DynamicUInt>		mode		= DynamicUInt();
+		RC<DynamicFloat>	ops			= DynamicFloat( float(dim * dim) * float(iter_cnt) * 4.0 * 16.0 * 1.0e-9 );
+		RC<DynamicFloat>	flops		= ops.Div( 0.0 );	// put time (ms) from profiler
 		const array<string>	mode_str	= {
 			"NONE", "ADD", "ADD1", "MUL", "MUL1", "MUL_ADD", "MUL_ADD1", "FMA", "FMA1"
 		};
 
 		Slider( mode, 	"Mode", 	0,	mode_str.size()-1, 1 );
 		Slider( count,	"Repeat",	1,	32 );
+		Label(  ops,	"GOp" );		// GOp/s = TOp / ms
+		Label(  flops,	"TFLOPS" );
 
 		// render loop
 		for (uint i = 0; i < mode_str.size(); ++i)
 		{
 		#if 1
-			RC<ComputePass>	pass = ComputePass( "", "MODE="+mode_str[i] );
+			RC<ComputePass>	pass = ComputePass( "", "MODE="+mode_str[i]+";  DIM="+dim+";COUNT="+iter_cnt );
 			pass.ArgOut( "un_Image",	rt );
 			pass.LocalSize( 16, 16 );
 			pass.DispatchThreads( rt.Dimension2() );
 		#else
-			RC<Postprocess>	pass = Postprocess( "", "MODE="+mode_str[i] );
+			RC<Postprocess>	pass = Postprocess( "", "MODE="+mode_str[i]+";  DIM="+dim+";COUNT="+iter_cnt );
 			pass.Output( "out_Color",	rt,	RGBA32f(0.0) );
 		#endif
 			pass.EnableIfEqual( mode, i );
@@ -43,7 +75,7 @@
 #ifdef MODE
 	//precision mediump float;
 
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "CodeTemplates.glsl"
 
 	#define NONE		0
@@ -56,25 +88,10 @@
 	#define MUL_ADD		7
 	#define MUL_ADD1	8
 
-	#define UNROLL1		//[[unroll]]	// too slow during pipeline creation
-	#define UNROLL2		[[unroll]]
-
 	#define type		float
 	#define type4		float4
 
-	#if defined(AE_Qualcomm_Adreno_GPU) or defined(AE_Intel_GPU) or defined(AE_NVidia_GPU) or defined(AE_AMD_GPU) or defined(AE_Apple_GPU)
-	#	define FOR()	[[unroll]] for (int i = 0, cnt = COUNT1*COUNT2; i < cnt; ++i)	// NV: must be <= 1024, unroll is too slow
-	#elif defined(AE_ARM_Mali_GPU) or defined(AE_IMG_PowerVR_GPU)
-	#	define FOR()	for (int i = 0, cnt = COUNT1*COUNT2; i < cnt; ++i)
-
-	#elif 0
-	#	define FOR()	UNROLL1 for (type i = type(0.0), cnt = type(COUNT1); i < cnt; ++i)		UNROLL2 for (type j = type(0.0); j < type(COUNT2); ++j)
-	#elif 0
-	#	define FOR()	UNROLL1 for (int i = 0; i < COUNT1; ++i)								UNROLL2 for (int j = 0; j < COUNT2; ++j)
-	#elif 0
-	#	define FOR()	UNROLL2 for (int i = 0; i < COUNT1*COUNT2; ++i)
-	//#	define FOR()	UNROLL2 for (type i = type(0.0), cnt = type(COUNT1*COUNT2); i < cnt; ++i)
-	#endif
+	#define FOR()		[[unroll]] for (int i = 0, cnt = COUNT; i < cnt; ++i)
 
 	#ifdef SH_COMPUTE
 	# if defined(AE_ARM_Mali_GPU)
@@ -85,31 +102,6 @@
 	#else
 	#	define OUTPUT(x)	out_Color = Saturate(float4(x)) * 0.001;	// for high compression
 	#endif
-
-	#if defined(AE_NVidia_GPU) or defined(AE_AMD_GPU)
-	#	define DIM			(4<<10)
-	#	define COUNT1		(1<<3)
-	#	define COUNT2		(1<<3)
-	#elif defined(AE_Qualcomm_Adreno_GPU)
-	#	define DIM			(1<<8)
-	#elif defined(AE_Apple_GPU)
-	#	define DIM			(1<<10)
-	#	define COUNT1		(1<<5)
-	#	define COUNT2		(1<<5)
-	#elif defined(AE_ARM_Mali_GPU) or defined(AE_IMG_PowerVR_GPU)
-	#	define DIM			(1<<10)
-	#	define COUNT1		(1<<2)
-	#	define COUNT2		(1<<2)
-	#elif defined(AE_Intel_GPU)
-	#	define DIM			(1<<9)
-	#	define COUNT1		(1<<3)
-	#	define COUNT2		(1<<3)
-	#endif
-	// total: RTSize * COUNT1 * COUNT2 * 16 * 4
-	//		NV:			68.7 TOp/ms
-	//		Adreno:		4290 GOp/ms
-	//		Mali,PVR:	1073 GOp/ms
-
 
 	void  Main ()
 	{

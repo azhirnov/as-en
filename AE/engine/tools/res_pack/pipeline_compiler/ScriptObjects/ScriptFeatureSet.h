@@ -6,6 +6,7 @@
 	* feature sets are incompatible if feature marked as 'True' and 'False'.
 	* min limit is allowed if one of feature set in array is >= than this limit.
 	* max limit is allowed if one of feature set in array is <= than this limit.
+	* 'Ignore' feature or zero value - means value is undefined and must be ignored.
 */
 
 #pragma once

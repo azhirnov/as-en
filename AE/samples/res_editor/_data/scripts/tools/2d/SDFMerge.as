@@ -72,7 +72,7 @@
 #ifdef SH_FRAG
 	#include "SDF.glsl"
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	#define SPLINE_PARAMS	10

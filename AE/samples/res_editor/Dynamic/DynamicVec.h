@@ -132,6 +132,8 @@ namespace AE::ResEditor
 			case EOperator::DivCeil :			result = (result + _opValue - T(1)) / _opValue;	break;
 			case EOperator::Add :				result += _opValue;								break;
 			case EOperator::Sub :				result -= _opValue;								break;
+			case EOperator::Min :				result = Min( result, _opValue );				break;
+			case EOperator::Max :				result = Max( result, _opValue );				break;
 
 			case EOperator::PowOf2 :
 				if constexpr( IsFloatPoint<T> )

@@ -3,23 +3,28 @@
 
 ## Specs
 
-* Cores: 6
-* ALU: 4
+* Cores: 6  *(from name MC6)*
+* ALU (SIMD/warps): 4  *(from specs)*
 * Warp width: 16
-* FP32/cy per ALU: 32 (= 2 * warp)
-* Total ALUs: 768
 * Clock: 950 MHz
-* FP16 GFLOPS: 2884 (  on MulAdd from tests)
-* FP32 GFLOPS: 1442 (  on FMA from tests)
+* Device: Infinix GT 20 Pro (MediaTek Dimensity 8200, Android 14, Driver 32.1.0)
+
+### Memory
 
 * L2 cache: 2 MB
 * Memory: 8GB, LPDDR5-6400, 3200 MHz, QC 16bit, 51.2 Gbit/s
 
-* Device: Infinix GT 20 Pro (MediaTek Dimensity 8200, Android 14, Driver 32.1.0)
+### Float point performance
+
+* Total ALUs: 768 - number of simultaneously executing threads
+* FP16 GFLOPS: 2884 (  on MulAdd from tests)
+* FP32 GFLOPS: 1442 (  on FMA from tests)
+* FP32/cy per ALU: 32 (= 2 * warp)
 
 Theoretical performance:
 ```
 FLOPS = clock * warp_width*2 * ALUs * Cores
+Total ALUs = warp_width*2 * ALUs * Cores
 
 950M * 16*2 * 4 * 6 = 730G FMA ops per second = 1459 GFLOPS
 ```

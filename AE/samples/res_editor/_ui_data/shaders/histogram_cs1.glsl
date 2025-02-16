@@ -14,7 +14,7 @@
 
 #include "Math.glsl"
 #include "Color.glsl"
-#include "GlobalIndex.glsl"
+#include "InvocationID.glsl"
 
 uint  ColorToIndex (float col)
 {

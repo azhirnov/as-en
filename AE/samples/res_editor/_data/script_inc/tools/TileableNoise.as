@@ -67,7 +67,7 @@
 #ifdef TILE
 	#define GEN_NOISE_2D
 	#include "tools/TileableNoise.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	float  Noise (float posScale)
@@ -99,7 +99,7 @@
 #ifdef TILE_3D
 	#define GEN_NOISE_3D
 	#include "tools/TileableNoise.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	float  Noise (float posScale)

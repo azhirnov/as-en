@@ -120,9 +120,10 @@ namespace AE::ResEditor
 			ub_data.frame			= pd.frameId;
 			ub_data.passFrameId		= _dynData.frame;
 			ub_data.seed			= pd.seed;
-			ub_data.mouse			= pd.pressed ? float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, 1.f, 0.f } : float4{-MaxValue<float>()};
+			ub_data.mouse			= float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, float(pd.pressed), 0.f };
 			ub_data.customKeys		= pd.customKeys[0];
-			ub_data.pixToMm			= pd.pixToMm;
+			ub_data.pixPerMm		= pd.pixPerMm;
+			ub_data.mmPerPix		= pd.mmPerPix;
 			ub_data.colorSpace		= uint(pd.swapchainColorSpace);
 
 			if ( _controller )

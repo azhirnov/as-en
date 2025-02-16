@@ -120,7 +120,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef CLEAR_ACCUM
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{
@@ -137,7 +137,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef FRONT_VIEW
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "SDF.glsl"
 
 	struct LightRay
@@ -240,7 +240,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef MIPMAP_1
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{
@@ -267,7 +267,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef MIPMAP_2
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{
@@ -321,7 +321,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef FINAL
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Color.glsl"
 
 	void  Main ()

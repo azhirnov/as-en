@@ -86,7 +86,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GEN_MAP
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Hash.glsl"
 	#include "SDF.glsl"
 
@@ -137,7 +137,7 @@
 //-----------------------------------------------------------------------------
 #ifdef GAME_LOGIC
 	#include "Math.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	ND_ float  ReadSDF (const float2 pos)
 	{
@@ -186,7 +186,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef DRAW_GAME
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Waves.glsl"
 
 	const float3	c_BackgroundColor		= float3(0.2, 0.2, 0.2);

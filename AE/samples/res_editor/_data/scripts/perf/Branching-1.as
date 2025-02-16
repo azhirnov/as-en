@@ -60,7 +60,7 @@
 	#define M_DontFlattenUn		8
 	#define M_DontFlattenNonun	9
 
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "CubeMap.glsl"
 	#include "Ray.glsl"
 

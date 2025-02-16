@@ -6,7 +6,7 @@
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x208fe808u}};
 
 		packed_float2  Position;
-		packed_ubyte4  Color;// normalized
+		packed_ubyte4  Color;     // normalized
 	};
 #endif
 	StaticAssert( offsetof(Vertex_draw2, Position) == 0 );
@@ -34,7 +34,7 @@
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa70d7fceu}};
 
 		packed_float2  Position;
-		int  ShadingRate;
+		int            ShadingRate;
 	};
 #endif
 	StaticAssert( offsetof(Vertex_VRS, Position) == 0 );

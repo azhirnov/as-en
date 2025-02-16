@@ -24,7 +24,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "SDF.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void  Main ()
 	{

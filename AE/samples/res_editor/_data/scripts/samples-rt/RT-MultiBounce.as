@@ -185,7 +185,7 @@ layout(std430, buffer_reference) buffer readonly IndicesRef		{ uint		indices	[];
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_RAY_GEN
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void Main ()
 	{

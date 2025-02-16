@@ -58,7 +58,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef COMPARE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "CubeMap.glsl"
 
 	float4  Swizzle (float4 c)

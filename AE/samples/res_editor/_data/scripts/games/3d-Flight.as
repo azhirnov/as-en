@@ -174,17 +174,8 @@
 		}
 		else
 		{
-			// lerp between sphere and flat projection to minimize distortion effect
-			const float2	screen_size		= un_PerPass.resolution.xy * un_PerPass.pixToMm * 0.001f;	// meters
-			const float		z_near			= un_PerPass.camera.clipPlanes.x;
-			const float		dist_to_eye		= 0.19;
-			const float2	uv				= fragCoord / iResolution.xy;
-			const float2	fov				= ToRad(70.0 * (1.0 - dist_to_eye)) * float2(un_PerPass.resolution.x / un_PerPass.resolution.y, 1.0);
-			Ray				r				= Ray_PlaneToSphere( fov, un_CBuf.actualPos, z_near, ToSNorm(uv) );
-
-			ray = Ray_FromFlatScreen( un_CBuf.actualPos, dist_to_eye, screen_size, z_near, ToSNorm(uv) );
-			ray.dir = Normalize( Lerp( ray.dir, r.dir, 0.5 ));
-
+			float	fov	= ToRad(70.0) * un_PerPass.resolution.x / un_PerPass.resolution.y;
+			ray = Ray_PaniniProjection( fov, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, fragCoord, iResolution.xy );
 			Ray_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );
 		}
 

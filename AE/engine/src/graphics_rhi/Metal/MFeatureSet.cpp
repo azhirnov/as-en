@@ -337,6 +337,8 @@ namespace
 			outFeatureSet.pointPolygons						= False;
 		//	outFeatureSet.separateStencilMaskRef			= True;
 			outFeatureSet.triangleFans						= False;
+			outFeatureSet.largePoints						= True;
+			outFeatureSet.wideLines							= False;
 		}
 		// subgroup
 		if ( mac20_ios22 )

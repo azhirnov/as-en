@@ -1156,7 +1156,21 @@ namespace
 				value.assign( info.label );
 				AppendToString( INOUT value, max_len - info.label.length(), ' ' );
 
-				value << ": " << std::visit( [](auto& src) { return ToString( src->Get() ); }, info.dyn );
+				value << ": " <<
+					Visit( info.dyn,
+						[](const RC<DynamicInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
+						[](const RC<DynamicInt2> &src)		{ return ToString( src->Get() ); },
+						[](const RC<DynamicInt3> &src)		{ return ToString( src->Get() ); },
+						[](const RC<DynamicInt4> &src)		{ return ToString( src->Get() ); },
+						[](const RC<DynamicUInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
+						[](const RC<DynamicUInt2> &src)		{ return ToString( src->Get() ); },
+						[](const RC<DynamicUInt3> &src)		{ return ToString( src->Get() ); },
+						[](const RC<DynamicUInt4> &src)		{ return ToString( src->Get() ); },
+						[](const RC<DynamicFloat> &src)		{ return ToString( src->Get() ); },
+						[](const RC<DynamicFloat2> &src)	{ return ToString( src->Get() ); },
+						[](const RC<DynamicFloat3> &src)	{ return ToString( src->Get() ); },
+						[](const RC<DynamicFloat4> &src)	{ return ToString( src->Get() ); }
+					);
 
 				ImGui::TextUnformatted( value.c_str() );
 				value.clear();
@@ -1204,14 +1218,14 @@ namespace
 				const ImVec2	wsize	= ImGui::GetWindowSize();
 				const ImVec2	maxsc	{ ImGui::GetScrollMaxX(), ImGui::GetScrollMaxY() };
 				const ImageDesc	desc	= img->GetImageDesc();
-				bool			mwheel	= false;
+				//bool			mwheel	= false;
 
 				wnd_pos.x = wpos.x + wsize.x + wnd_step;
 
 				if ( ImGui::IsWindowHovered( ImGuiHoveredFlags_None ))
 				{
 					data.w = float(Clamp( data.w + imgui->mouseWheel.y * 0.25f, -1.f, 10.f ));
-					mwheel = IsNotZero( imgui->mouseWheel.y );
+					//mwheel = IsNotZero( imgui->mouseWheel.y );
 				}
 				data.z = Pow( 2.f, data.w );
 				data.x = ImGui::GetScrollX() / ImGui::GetScrollMaxX();

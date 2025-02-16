@@ -36,7 +36,9 @@ namespace AE::Graphics
 
 		const auto&	render_state	= *ci.specCI.renderStatePtr;
 		auto*		ppln_layout		= resMngr.GetResource( ci.layoutId, True{"incRef"} );
+
 		CHECK_ERR( ppln_layout != null );
+		GRES_CHECK( resMngr.GetFeatureSet().IsSupported( render_state ));
 
 		_layout = ppln_layout->Handle();
 		_layoutId.Attach( ci.layoutId );

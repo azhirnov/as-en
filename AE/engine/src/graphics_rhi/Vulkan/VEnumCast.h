@@ -1416,7 +1416,9 @@ namespace AE::Graphics
 		switch_enum( value )
 		{
 			case EQueryType::Timestamp :					return VK_QUERY_TYPE_TIMESTAMP;
-			case EQueryType::PipelineStatistic :			return VK_QUERY_TYPE_PIPELINE_STATISTICS;
+			case EQueryType::GraphicsPipelineStatistic :	return VK_QUERY_TYPE_PIPELINE_STATISTICS;
+			case EQueryType::ComputePipelineStatistic :		return VK_QUERY_TYPE_PIPELINE_STATISTICS;
+			case EQueryType::MeshPipelineStatistic :		return VK_QUERY_TYPE_PIPELINE_STATISTICS;
 			case EQueryType::Performance :					return VK_QUERY_TYPE_PERFORMANCE_QUERY_KHR;
 			case EQueryType::AccelStructCompactedSize :		return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR;
 			case EQueryType::AccelStructSize :				return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SIZE_KHR;				// require 'VK_KHR_ray_tracing_maintenance1'

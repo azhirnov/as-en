@@ -105,8 +105,10 @@ namespace _hidden_
 namespace _hidden_
 {
 	template <typename T>
-	NdCx__ uint  NumberOfSetBits (T i) __NE___
+	NdCx__ uint  NumberOfSetBits (T input) __NE___
 	{
+		auto	i = ToUnsignedInteger<T>( input );
+
 		if constexpr (sizeof(T) <= 4)
 		{
 			i = i - ((i >> 1) & 0x55555555);

@@ -35,7 +35,7 @@ namespace
 		{
 			{
 				ASYNC_EXLOCK( data.mutex );
-				CHECK_TE( data.mutexCheck.try_lock() );
+				CHECK_TE( DeferExLock{data.mutexCheck}.try_lock() );
 
 				++data.counter;
 

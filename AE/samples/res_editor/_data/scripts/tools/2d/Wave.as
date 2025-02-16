@@ -34,7 +34,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
 	#include "SDF.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	// signed
 	#define s_SMOOTHSTEP		1

@@ -1,4 +1,5 @@
 ## 25.01
+## 25.01.275
 
 - Base: added FloatConversion, it is used in SFloat16, UFloat16, UFloat8, BFloat16
 - Base: remove Math namespace
@@ -11,6 +12,7 @@
 - Threading: add AsyncRDataSourceSubRange, AsyncRStreamSubRange
 - Vulkan: add VK_NV_partitioned_acceleration_structure, VK_NV_cluster_acceleration_structure
 - Graphics: minimize FeatureSet size
+- Profiling: used Vulkan pipeline statistic
 
 
 ## 24.12.268

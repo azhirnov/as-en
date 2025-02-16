@@ -797,7 +797,7 @@ namespace AE::Threading
 	static constexpr Threading::_hidden_::Coroutine_Queue		Coro_TaskQueue	{};
 
 	using CoroTask		= Threading::_hidden_::AsyncTaskCoro;
-	using CancelledCoro = Threading::_hidden_::CancelledCoro;
+	using CancelledCoro = Threading::_hidden_::CancelledCoro;	// runs when one of dependencies is canceled
 
 /*
 =================================================

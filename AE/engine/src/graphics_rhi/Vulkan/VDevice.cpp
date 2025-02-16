@@ -2360,7 +2360,6 @@ namespace {
 		// disable some features
 		{
 			feats.features.robustBufferAccess	= VK_FALSE;	// this feature affects performance
-			feats.features.wideLines			= VK_FALSE;
 
 			feats.bufferDeviceAddressFeats.bufferDeviceAddressCaptureReplay	= VK_FALSE;
 			feats.bufferDeviceAddressFeats.bufferDeviceAddressMultiDevice	= VK_FALSE;

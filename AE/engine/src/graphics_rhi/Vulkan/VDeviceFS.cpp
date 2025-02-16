@@ -65,6 +65,8 @@ namespace
 		SET_FEAT( logicOp );
 		SET_FEAT( sampleRateShading );
 		SET_FEAT( variableMultisampleRate );
+		SET_FEAT( largePoints );
+		SET_FEAT( wideLines );
 
 		if ( _extensions.subgroup )
 		{
@@ -728,6 +730,8 @@ namespace
 		SET_FEAT( logicOp );
 		SET_FEAT( sampleRateShading );
 		SET_FEAT( variableMultisampleRate );
+		SET_FEAT( largePoints );
+		SET_FEAT( wideLines );
 
 		if ( inFS.subgroup == True )
 		{

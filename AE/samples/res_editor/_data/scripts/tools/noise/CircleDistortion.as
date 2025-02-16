@@ -42,7 +42,7 @@
 #ifdef SH_FRAG
 	#include "SDF.glsl"
 	#include "Hash.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	ND_ float  CircleNoise (const float2 uv)

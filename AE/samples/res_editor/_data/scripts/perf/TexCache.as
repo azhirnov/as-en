@@ -103,7 +103,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GEN_TEX
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Hash.glsl"
 	#include "Color.glsl"
 
@@ -117,7 +117,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef TEST_TEX_CACHE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Hash.glsl"
 
 	float4  Sample (float2 uv)

@@ -617,6 +617,8 @@ namespace AE::ResEditor
 				uint		seed;			// unique value, updated on each shader reloading
 				float4		mouse;			// mouse unorm coords. xy: current (if MRB down), zw: click
 				float		customKeys;
+				float		pixPerMm;		// pix / mm
+				float		mmPerPix;		// mm / pix
 
 				// controller //
 				CameraData	camera;

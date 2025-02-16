@@ -50,7 +50,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "SDF.glsl"
 
 	ND_ float  SDFSphere (const float3 pos) {

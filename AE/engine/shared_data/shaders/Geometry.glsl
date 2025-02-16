@@ -45,9 +45,13 @@ ND_ bool	IsInsideCircle (const float2 pos, const float3 center_radius)					{ ret
 //-----------------------------------------------------------------------------
 
 
+ND_ float4	Rect_Create (const float2 leftTop, const float2 rightBottom)					{ return float4( leftTop, rightBottom ); }
 ND_ float2	Rect_Center (const float4 rect)													{ return (rect.xy * 0.5f) + (rect.zw * 0.5f); }
 ND_ float2	Rect_Size (const float4 rect)													{ return rect.zw - rect.xy; }
 ND_ float2	Rect_HalfSize (const float4 rect)												{ return (rect.zw - rect.xy) * 0.5; }
+
+ND_ float2	Rect_Point (const float4 rect, const uint angleIdx);
+ND_ float4	Rect_Edge (const float4 rect, const uint edge);		// returns line {begin, end}
 //-----------------------------------------------------------------------------
 
 
@@ -277,3 +281,32 @@ float4  UVtoSphereNormal (const float2 snormCoord, const float projFov)
 	return n;
 }
 
+/*
+=================================================
+	Rect_Point
+=================================================
+*/
+float2  Rect_Point (const float4 rect, const uint angleIdx)
+{
+	switch ( angleIdx ) {
+		case 0:	return rect.xy;		// left top
+		case 1:	return rect.xw;		// left bottom
+		case 2:	return rect.zy;		// right top
+		case 3:	return rect.zw;		// right bottom
+	}
+}
+
+/*
+=================================================
+	Rect_Edge
+=================================================
+*/
+float4  Rect_Edge (const float4 rect, const uint edge)
+{
+	switch ( edge ) {
+		case 0:	return rect.xyxw;	// left edge {left-top, left-bottom}
+		case 1:	return rect.xwzw;	// bottom edge {left-bottom, right-bottom}
+		case 2:	return rect.zyzw;	// right edge {right-top, right-bottom}
+		case 3:	return rect.xyzy;	// top edge {left-top, right-top}
+	}
+}

@@ -544,7 +544,7 @@ namespace
 			if_likely( hint.empty() )
 				return true;
 
-			return HasSubString( name, hint );
+			return StartsWith( name, hint );
 		}};
 
 		ScriptGeomSource::PipelineNames_t	result;

@@ -85,20 +85,23 @@ namespace AE::PipelineCompiler
 			Invariant					= 1 << 7,	// all shaders must output same result on same input
 
 			Packed						= 1 << 8,	// align of vec/mat is same as for scalar
-			Padding						= 1 << 9,	// field used for padding
+			PackedAlias					= 1 << 9,	// GLSL allows to pack 'float3' with scalar, MSL and C++ doesn't allow this.
 
-			Address						= 1 << 10,	// typed device address
-			Pointer						= 1 << 11,
+			Padding_GLSL				= 1 << 10,	// field used for padding
+			Padding_MSL					= 1 << 11,
 
-			//Atomic					= 1 << 12,
+			Address						= 1 << 12,	// typed device address
+			Pointer						= 1 << 13,
+
+			//Atomic					= 1 << 14,
 		};
 
 		struct Field
 		{
 			String				name;
-			EValueType			type		= Default;
 			ShaderStructTypePtr	stType;
 			uint				arraySize	= 0;		// 0 - non-array, UMax - dynamic
+			EValueType			type		= Default;
 			ubyte				rows		= 0;
 			ubyte				cols		= 0;
 			EFlags				flags		= Default;
@@ -116,7 +119,7 @@ namespace AE::PipelineCompiler
 
 			ND_ bool	IsPointer ()					const	{ return AllBits( flags, EFlags::Pointer ); }
 			ND_ bool	IsAddress ()					const	{ return AllBits( flags, EFlags::Address ); }
-			ND_ bool	IsPadding ()					const	{ return AllBits( flags, EFlags::Padding ); }
+			ND_ bool	IsAnyPadding ()					const;
 			ND_ bool	IsPacked ()						const	{ return AllBits( flags, EFlags::Packed ); }
 
 			ND_ bool	IsDeviceAddress ()				const	{ return IsAddress() or (type == EValueType::DeviceAddress); }		// typed or untyped
@@ -246,8 +249,11 @@ namespace AE::PipelineCompiler
 		ND_ String  _VertexInputToGLSL (const String &prefix, INOUT uint &loc)							C_Th___;
 		ND_ String  _VertexInputToMSL (const String &prefix, INOUT uint &index)							C_Th___;
 
-		ND_ String  _ToShaderIO_GLSL (EShader, const String &prefix, INOUT uint &loc, bool useLocations)C_Th___;
-		ND_ String  _ToShaderIO_MSL (EShader, const String &prefix)										C_Th___;
+		void  _ToShaderIO_GLSL (EShader, const String &prefix, bool useLocations, INOUT uint &loc,
+								INOUT Array<Tuple< String, String, String >> &parts)					C_Th___;
+
+		void  _ToShaderIO_MSL (EShader, const String &prefix,
+								INOUT Array<Tuple< String, String, String >> &fieldParts)				C_Th___;
 
 		ND_ static SizeAndAlign  _GetCPPSizeAndAlign2 (const Field &field);
 		ND_ static SizeAndAlign  _GetCPPSizeAndAlign (const Field &field, EStructLayout layout);

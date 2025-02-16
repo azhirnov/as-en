@@ -296,7 +296,8 @@ namespace AE::ResEditor
 				float4		date;					// (year, month, day, time in seconds)
 				float		sampleRate;				// sound sample rate (i.e., 44100)
 				float		customKeys;
-				float		pixToMm;
+				float		pixPerMm;				// pix / mm
+				float		mmPerPix;				// mm / pix
 
 				// controller //
 				CameraData	camera;
@@ -450,7 +451,7 @@ namespace AE::ResEditor
 
 			// add shader header
 			header << R"#(
-// for "GlobalIndex.glsl"
+// for "InvocationID.glsl"
 ND_ int3  GetGlobalSize() {
 	return int3(un_PerPass.resolution);
 }

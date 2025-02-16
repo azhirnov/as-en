@@ -41,7 +41,7 @@
 #if defined(SH_FRAG) or defined(SH_COMPUTE)
 	#include "Hash.glsl"
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float4  QuadGroupId ()
 	{

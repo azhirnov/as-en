@@ -24,7 +24,7 @@
 
 		packed_float2  Position;
 		packed_float2  UV;
-		packed_ubyte4  Color;// normalized
+		packed_ubyte4  Color;     // normalized
 	};
 #endif
 	StaticAssert( offsetof(imgui_vertex, Position) == 0 );

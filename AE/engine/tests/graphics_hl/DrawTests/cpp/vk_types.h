@@ -18,7 +18,7 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xccba8f8eu}};
 
-		packed_ubyte4  Color;// normalized
+		packed_ubyte4  Color;  // normalized
 	};
 #endif
 	StaticAssert( offsetof(VB_Color8, Color) == 0 );
@@ -32,7 +32,7 @@
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xf5d3da88u}};
 
 		packed_float2  UV;
-		packed_ubyte4  Color;// normalized
+		packed_ubyte4  Color;  // normalized
 	};
 #endif
 	StaticAssert( offsetof(VB_UVf2_Col8, UV) == 0 );

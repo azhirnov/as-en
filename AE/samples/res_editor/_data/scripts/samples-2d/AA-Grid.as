@@ -25,7 +25,7 @@
 
 		// render loop
 		{
-			RC<Postprocess>		pass = Postprocess( EPostprocess::None );
+			RC<Postprocess>		pass = Postprocess();
 			pass.Set( camera );
 			pass.Output( "out_Color",	rt );
 			pass.Slider( "iType",		0,					5,				3 );
@@ -47,7 +47,7 @@
 	#include "Easing.glsl"
 	#include "Geometry.glsl"
 	#include "Intersectors.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	float  ApplyFalloff (float x)

@@ -55,7 +55,7 @@
 #ifdef GEN_TEX
 	#include "Hash.glsl"
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	void Main ()
@@ -72,7 +72,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef VIEW_TEX
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	float4x4  TexSample2 (gl::CombinedTex2D<float> tex, inout float2 uv)

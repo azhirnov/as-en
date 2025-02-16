@@ -1,4 +1,4 @@
-//e76966b9
+//46a8fb84
 #pragma once
 #include <vector>
 #include <string>
@@ -24,120 +24,120 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct RGBA8u;
-struct HSVColor;
-struct RGBA32f;
-struct bool3;
-struct SceneGraphicsPass;
-struct bool4;
-struct bool2;
-struct DynamicULong;
-struct RGBA32i;
-struct RTScene;
-struct RayIndex;
-struct Collection;
-struct RTInstanceSBTOffset;
-struct ubyte4;
-struct RTInstanceCustomIndex;
-struct RemoteCamera;
-struct ubyte3;
-struct FPVCamera;
-struct VideoImage;
-struct ubyte2;
-struct Random_Normal4;
-struct Random_Normal2;
-struct UnifiedGeometry_Draw;
-struct Random_Normal3;
-struct Random_Normal1;
-struct Random_Binomial4;
-struct Random_Binomial3;
-struct Random_Binomial1;
-struct MultiSamples;
-struct UnifiedGeometry_DrawIndexedIndirect;
-struct IPass;
-struct Random_Binomial2;
-struct float2x2;
-struct float2x3;
-struct float2x4;
-struct RTInstanceTransform;
-struct DynamicInt;
-struct float3;
-struct DynamicUInt4;
-struct float2;
-struct InstanceIndex;
-struct DynamicFloat3;
-struct float4;
-struct RTGeometry;
-struct DynamicFloat4;
-struct RTShader;
-struct DynamicFloat2;
-struct DynamicUInt2;
-struct DynamicUInt3;
-struct DynamicInt2;
-struct DynamicInt3;
-struct DynamicInt4;
-struct GeomSource;
-struct UnifiedGeometry_DrawIndirect;
-struct UnifiedGeometry_DrawIndexedIndirectCount;
-struct Image;
-struct short3;
-struct ushort4;
-struct Quat;
-struct UnifiedGeometry_DrawIndexed;
-struct sbyte4;
-struct Random;
-struct ushort2;
-struct short2;
-struct sbyte3;
-struct short4;
-struct ushort3;
-struct sbyte2;
-struct int3;
-struct Scene;
-struct int2;
-struct ImageLayer;
-struct int4;
-struct float4x2;
-struct float4x4;
-struct DynamicUInt;
-struct VertexStride;
-struct float3x3;
-struct float4x3;
-struct float3x2;
-struct float3x4;
-struct FlightCamera;
-struct Model;
+struct DepthStencil;
 struct BaseController;
 struct MipmapLevel;
-struct ScaleBiasCamera;
+struct FlightCamera;
 struct TopDownCamera;
-struct DepthStencil;
+struct ScaleBiasCamera;
+struct float4x3;
+struct VertexStride;
+struct DynamicUInt;
+struct float4x2;
+struct float4x4;
+struct float3x4;
+struct Model;
+struct float3x3;
+struct float3x2;
+struct Scene;
+struct ushort2;
+struct ushort3;
+struct sbyte2;
+struct short4;
+struct int2;
+struct int3;
+struct int4;
+struct ImageLayer;
+struct RGBA32u;
+struct UnifiedGeometry_DrawMeshTasks;
+struct RectF;
+struct SphericalCube;
+struct RGBA8u;
+struct OrbitalCamera;
+struct VertexAttribDivisor;
+struct UnifiedGeometry_DrawMeshTasksIndirectCount;
+struct RectU;
+struct uint4;
+struct RayTracingPass;
+struct FPSCamera;
+struct DynamicDim;
+struct DynamicFloat;
+struct RTInstanceMask;
+struct uint2;
+struct uint3;
+struct RectI;
+struct UnifiedGeometry;
+struct UnifiedGeometry_DrawMeshTasksIndirect;
+struct ComputePass;
+struct Postprocess;
+struct EnableLabel;
+struct SceneRayTracingPass;
 struct CallableIndex;
 struct Buffer;
 struct UnifiedGeometry_DrawIndirectCount;
-struct UnifiedGeometry;
-struct EnableLabel;
-struct Postprocess;
-struct SceneRayTracingPass;
-struct FPSCamera;
-struct DynamicDim;
-struct UnifiedGeometry_DrawMeshTasksIndirect;
-struct ComputePass;
-struct RectU;
-struct RayTracingPass;
-struct uint2;
-struct uint4;
-struct uint3;
-struct RectI;
-struct DynamicFloat;
-struct RTInstanceMask;
-struct RectF;
-struct SphericalCube;
-struct UnifiedGeometry_DrawMeshTasks;
-struct RGBA32u;
-struct VertexAttribDivisor;
-struct OrbitalCamera;
-struct UnifiedGeometry_DrawMeshTasksIndirectCount;
+struct Random_Normal4;
+struct ubyte2;
+struct ubyte3;
+struct FPVCamera;
+struct VideoImage;
+struct Random_Normal2;
+struct Random_Normal1;
+struct UnifiedGeometry_Draw;
+struct Random_Normal3;
+struct RTInstanceSBTOffset;
+struct RemoteCamera;
+struct ubyte4;
+struct RTInstanceCustomIndex;
+struct RTScene;
+struct RayIndex;
+struct Collection;
+struct HSVColor;
+struct RGBA32f;
+struct SceneGraphicsPass;
+struct bool4;
+struct RGBA32i;
+struct bool3;
+struct bool2;
+struct DynamicULong;
+struct Image;
+struct UnifiedGeometry_DrawIndexedIndirectCount;
+struct short3;
+struct Random;
+struct ushort4;
+struct short2;
+struct Quat;
+struct sbyte3;
+struct UnifiedGeometry_DrawIndexed;
+struct sbyte4;
+struct DynamicUInt2;
+struct RTShader;
+struct DynamicUInt3;
+struct DynamicFloat4;
+struct DynamicFloat3;
+struct float4;
+struct RTGeometry;
+struct DynamicUInt4;
+struct DynamicFloat2;
+struct GeomSource;
+struct UnifiedGeometry_DrawIndirect;
+struct DynamicInt3;
+struct DynamicInt2;
+struct DynamicInt4;
+struct float3;
+struct DynamicInt;
+struct float2;
+struct InstanceIndex;
+struct RTInstanceTransform;
+struct Random_Binomial3;
+struct Random_Binomial1;
+struct IPass;
+struct Random_Binomial2;
+struct MultiSamples;
+struct Random_Binomial4;
+struct float2x4;
+struct float2x2;
+struct float2x3;
+struct UnifiedGeometry_DrawIndexedIndirect;
 
 enum class EImageType : uint16
 {
@@ -3139,6 +3139,23 @@ struct DynamicFloat
 {
 	DynamicFloat ();
 	DynamicFloat (float);
+	RC<DynamicFloat>  Mul (float);
+	RC<DynamicFloat>  Div (float);
+	RC<DynamicFloat>  DivNear (float);
+	RC<DynamicFloat>  DivCeil (float);
+	RC<DynamicFloat>  Add (float);
+	RC<DynamicFloat>  Sub (float);
+	RC<DynamicFloat>  Pow (float);
+	RC<DynamicFloat>  PowOf2 ();
+	RC<DynamicFloat>  PowOf2 (float);
+	RC<DynamicFloat>  Min (float);
+	RC<DynamicFloat>  Max (float);
+	RC<DynamicFloat>  Mul (const RC<DynamicFloat> &);
+	RC<DynamicFloat>  Div (const RC<DynamicFloat> &);
+	RC<DynamicFloat>  Add (const RC<DynamicFloat> &);
+	RC<DynamicFloat>  Sub (const RC<DynamicFloat> &);
+	RC<DynamicFloat>  Min (const RC<DynamicFloat> &);
+	RC<DynamicFloat>  Max (const RC<DynamicFloat> &);
 };
 
 struct DynamicFloat2
@@ -5182,6 +5199,7 @@ float3  CM_IdentitySC_Forward (const float3 & snormCoord_cubeFace);
 
 // Convert 2D regular grid on cube face to 3D position on sphere using tangential projection.
 float3  CM_TangentialSC_Forward (const float3 & snormCoord_cubeFace);
+EGPUVendor  GPUVendor ();
 bool  IsDiscreteGPU ();
 bool  IsRemoteGPU ();
 bool  Supports_GeometryShader ();
@@ -5194,141 +5212,9 @@ bool  Supports_Format (EPixelFormat);
 #define SCRIPT
 
 template <>
-struct RC<SceneGraphicsPass> : SceneGraphicsPass
+struct RC<BaseController> : BaseController
 {
-	RC (const SceneGraphicsPass &);
-};
-
-template <>
-struct RC<DynamicULong> : DynamicULong
-{
-	RC (const DynamicULong &);
-};
-
-template <>
-struct RC<RTScene> : RTScene
-{
-	RC (const RTScene &);
-};
-
-template <>
-struct RC<Collection> : Collection
-{
-	RC (const Collection &);
-};
-
-template <>
-struct RC<RemoteCamera> : RemoteCamera
-{
-	RC (const RemoteCamera &);
-};
-
-template <>
-struct RC<FPVCamera> : FPVCamera
-{
-	RC (const FPVCamera &);
-};
-
-template <>
-struct RC<VideoImage> : VideoImage
-{
-	RC (const VideoImage &);
-};
-
-template <>
-struct RC<IPass> : IPass
-{
-	RC (const IPass &);
-};
-
-template <>
-struct RC<DynamicInt> : DynamicInt
-{
-	RC (const DynamicInt &);
-};
-
-template <>
-struct RC<DynamicUInt4> : DynamicUInt4
-{
-	RC (const DynamicUInt4 &);
-};
-
-template <>
-struct RC<DynamicFloat3> : DynamicFloat3
-{
-	RC (const DynamicFloat3 &);
-};
-
-template <>
-struct RC<RTGeometry> : RTGeometry
-{
-	RC (const RTGeometry &);
-};
-
-template <>
-struct RC<DynamicFloat4> : DynamicFloat4
-{
-	RC (const DynamicFloat4 &);
-};
-
-template <>
-struct RC<DynamicFloat2> : DynamicFloat2
-{
-	RC (const DynamicFloat2 &);
-};
-
-template <>
-struct RC<DynamicUInt2> : DynamicUInt2
-{
-	RC (const DynamicUInt2 &);
-};
-
-template <>
-struct RC<DynamicUInt3> : DynamicUInt3
-{
-	RC (const DynamicUInt3 &);
-};
-
-template <>
-struct RC<DynamicInt2> : DynamicInt2
-{
-	RC (const DynamicInt2 &);
-};
-
-template <>
-struct RC<DynamicInt3> : DynamicInt3
-{
-	RC (const DynamicInt3 &);
-};
-
-template <>
-struct RC<DynamicInt4> : DynamicInt4
-{
-	RC (const DynamicInt4 &);
-};
-
-template <>
-struct RC<GeomSource> : GeomSource
-{
-	RC (const GeomSource &);
-};
-
-template <>
-struct RC<Image> : Image
-{
-	RC (const Image &);
-};
-
-template <>
-struct RC<Scene> : Scene
-{
-	RC (const Scene &);
-};
-
-template <>
-struct RC<DynamicUInt> : DynamicUInt
-{
-	RC (const DynamicUInt &);
+	RC (const BaseController &);
 };
 
 template <>
@@ -5338,15 +5224,9 @@ struct RC<FlightCamera> : FlightCamera
 };
 
 template <>
-struct RC<Model> : Model
+struct RC<TopDownCamera> : TopDownCamera
 {
-	RC (const Model &);
-};
-
-template <>
-struct RC<BaseController> : BaseController
-{
-	RC (const BaseController &);
+	RC (const TopDownCamera &);
 };
 
 template <>
@@ -5356,33 +5236,39 @@ struct RC<ScaleBiasCamera> : ScaleBiasCamera
 };
 
 template <>
-struct RC<TopDownCamera> : TopDownCamera
+struct RC<DynamicUInt> : DynamicUInt
 {
-	RC (const TopDownCamera &);
+	RC (const DynamicUInt &);
 };
 
 template <>
-struct RC<Buffer> : Buffer
+struct RC<Model> : Model
 {
-	RC (const Buffer &);
+	RC (const Model &);
 };
 
 template <>
-struct RC<UnifiedGeometry> : UnifiedGeometry
+struct RC<Scene> : Scene
 {
-	RC (const UnifiedGeometry &);
+	RC (const Scene &);
 };
 
 template <>
-struct RC<Postprocess> : Postprocess
+struct RC<SphericalCube> : SphericalCube
 {
-	RC (const Postprocess &);
+	RC (const SphericalCube &);
 };
 
 template <>
-struct RC<SceneRayTracingPass> : SceneRayTracingPass
+struct RC<OrbitalCamera> : OrbitalCamera
 {
-	RC (const SceneRayTracingPass &);
+	RC (const OrbitalCamera &);
+};
+
+template <>
+struct RC<RayTracingPass> : RayTracingPass
+{
+	RC (const RayTracingPass &);
 };
 
 template <>
@@ -5398,32 +5284,164 @@ struct RC<DynamicDim> : DynamicDim
 };
 
 template <>
-struct RC<ComputePass> : ComputePass
-{
-	RC (const ComputePass &);
-};
-
-template <>
-struct RC<RayTracingPass> : RayTracingPass
-{
-	RC (const RayTracingPass &);
-};
-
-template <>
 struct RC<DynamicFloat> : DynamicFloat
 {
 	RC (const DynamicFloat &);
 };
 
 template <>
-struct RC<SphericalCube> : SphericalCube
+struct RC<UnifiedGeometry> : UnifiedGeometry
 {
-	RC (const SphericalCube &);
+	RC (const UnifiedGeometry &);
 };
 
 template <>
-struct RC<OrbitalCamera> : OrbitalCamera
+struct RC<ComputePass> : ComputePass
 {
-	RC (const OrbitalCamera &);
+	RC (const ComputePass &);
+};
+
+template <>
+struct RC<Postprocess> : Postprocess
+{
+	RC (const Postprocess &);
+};
+
+template <>
+struct RC<SceneRayTracingPass> : SceneRayTracingPass
+{
+	RC (const SceneRayTracingPass &);
+};
+
+template <>
+struct RC<Buffer> : Buffer
+{
+	RC (const Buffer &);
+};
+
+template <>
+struct RC<FPVCamera> : FPVCamera
+{
+	RC (const FPVCamera &);
+};
+
+template <>
+struct RC<VideoImage> : VideoImage
+{
+	RC (const VideoImage &);
+};
+
+template <>
+struct RC<RemoteCamera> : RemoteCamera
+{
+	RC (const RemoteCamera &);
+};
+
+template <>
+struct RC<RTScene> : RTScene
+{
+	RC (const RTScene &);
+};
+
+template <>
+struct RC<Collection> : Collection
+{
+	RC (const Collection &);
+};
+
+template <>
+struct RC<SceneGraphicsPass> : SceneGraphicsPass
+{
+	RC (const SceneGraphicsPass &);
+};
+
+template <>
+struct RC<DynamicULong> : DynamicULong
+{
+	RC (const DynamicULong &);
+};
+
+template <>
+struct RC<Image> : Image
+{
+	RC (const Image &);
+};
+
+template <>
+struct RC<DynamicUInt2> : DynamicUInt2
+{
+	RC (const DynamicUInt2 &);
+};
+
+template <>
+struct RC<DynamicUInt3> : DynamicUInt3
+{
+	RC (const DynamicUInt3 &);
+};
+
+template <>
+struct RC<DynamicFloat4> : DynamicFloat4
+{
+	RC (const DynamicFloat4 &);
+};
+
+template <>
+struct RC<DynamicFloat3> : DynamicFloat3
+{
+	RC (const DynamicFloat3 &);
+};
+
+template <>
+struct RC<RTGeometry> : RTGeometry
+{
+	RC (const RTGeometry &);
+};
+
+template <>
+struct RC<DynamicUInt4> : DynamicUInt4
+{
+	RC (const DynamicUInt4 &);
+};
+
+template <>
+struct RC<DynamicFloat2> : DynamicFloat2
+{
+	RC (const DynamicFloat2 &);
+};
+
+template <>
+struct RC<GeomSource> : GeomSource
+{
+	RC (const GeomSource &);
+};
+
+template <>
+struct RC<DynamicInt3> : DynamicInt3
+{
+	RC (const DynamicInt3 &);
+};
+
+template <>
+struct RC<DynamicInt2> : DynamicInt2
+{
+	RC (const DynamicInt2 &);
+};
+
+template <>
+struct RC<DynamicInt4> : DynamicInt4
+{
+	RC (const DynamicInt4 &);
+};
+
+template <>
+struct RC<DynamicInt> : DynamicInt
+{
+	RC (const DynamicInt &);
+};
+
+template <>
+struct RC<IPass> : IPass
+{
+	RC (const IPass &);
 };
 

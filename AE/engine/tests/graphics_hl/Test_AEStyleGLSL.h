@@ -19,6 +19,10 @@ void  SubpassTest ()
 	int4	a0 = gl.subpass.Load( subpassInputInt );
 	uint4	a1 = gl.subpass.Load( subpassInputUint );
 	float4	a2 = gl.subpass.Load( subpassInputFloat );
+	
+	int4	b0 = gl.subpass.Load( subpassInputMSInt, 0 );
+	uint4	b1 = gl.subpass.Load( subpassInputMSUint, 0 );
+	float4	b2 = gl.subpass.Load( subpassInputMSFloat, 0 );
 }
 
 
@@ -855,7 +859,8 @@ void  ImageTest ()
 	const uint	compareu	= 4;
 
 	const int	sample		= 0;
-
+	
+#ifdef AE_HAS_ATOMICS
 	// AtomicAdd
 	int		a0 = gl.image.AtomicAdd( image1DInt,  int(1), datai );
 	uint	a1 = gl.image.AtomicAdd( image1DUint, int(1), datau );
@@ -1103,7 +1108,9 @@ void  ImageTest ()
 
 	int		h18 = gl.image.AtomicCompSwap( image2DMSArrayInt,  int3(1), sample, comparei, datai );
 	uint	h19 = gl.image.AtomicCompSwap( image2DMSArrayUint, int3(1), sample, compareu, datau );
-
+#endif
+	
+#ifdef AE_shader_atomic_float
 	// AtomicAdd (float)
 	float	i0  = gl.image.AtomicAdd( image1DFloat,			int(1),  dataf );
 	float	i2  = gl.image.AtomicAdd( image2DFloat,			int2(1), dataf );
@@ -1127,7 +1134,9 @@ void  ImageTest ()
 	float	j14 = gl.image.AtomicExchange( imageCubeArrayFloat,	int3(1), dataf );
 	float	j16 = gl.image.AtomicExchange( image2DMSFloat,		int2(1), sample, dataf );
 	float	j18 = gl.image.AtomicExchange( image2DMSArrayFloat,	int3(1), sample, dataf );
+#endif
 
+#ifdef AE_shader_atomic_float2
 	// AtomicMin (float)
 	float	k0  = gl.image.AtomicMin( image1DFloat,			int(1),  dataf );
 	float	k2  = gl.image.AtomicMin( image2DFloat,			int2(1), dataf );
@@ -1151,6 +1160,7 @@ void  ImageTest ()
 	float	l14 = gl.image.AtomicMax( imageCubeArrayFloat,	int3(1), dataf );
 	float	l16 = gl.image.AtomicMax( image2DMSFloat,		int2(1), sample, dataf );
 	float	l18 = gl.image.AtomicMax( image2DMSArrayFloat,	int3(1), sample, dataf );
+#endif
 
 	// Load
 	int4	m0 = gl.image.Load( image1DInt,   int(1) );

@@ -173,6 +173,8 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			constantAlphaColorBlendFactors,			: 2 )\
 		_visitorF_( EFeature,			pointPolygons,							: 2 )\
 		_visitorF_( EFeature,			triangleFans,							: 2 )\
+		_visitorF_( EFeature,			largePoints,							: 2 )\
+		_visitorF_( EFeature,			wideLines,								: 2 )\
 		\
 		\
 	/*---- shader variable types and functions ----*/\

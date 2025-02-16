@@ -3,6 +3,9 @@ Performance per thread.
 
 # AMD Ryzen 3900X, 4.2 GHz, 7nm (Zen2)
 
+Theoretical performance:<br/>
+32 FLOPS/cy * 4.2 GHz = 134 GFLOPS
+
 ## Float SIMD
 
 ```
@@ -84,7 +87,10 @@ Compiling with AVX2 is 1.5 faster for non-simd vector.
 820 GFLOPS per CPU [ref](https://gadgetversus.com/processor/amd-ryzen-9-3900x-specs/)
 
 
-# AMD Phenom II X4 945, 3 GHz, 45nm (Deneb)
+# AMD Phenom II X4 945, 3 GHz, 45nm (Deneb, K10)
+
+Theoretical performance:<br/>
+8 FLOPS/cy * 3 GHz = 24 GFLOPS
 
 ## Float SIMD
 
@@ -830,6 +836,9 @@ Scalar Double2 - Div     : 1.29 s  +365.5%    - 61.8MFLOPS
 
 # Apple M1, P-core, 3.2 GHz, 5nm (Mac Mini M1 16GB, Firestorm)
 
+Theoretical performance:<br/>
+8 FLOPS/cy * 3.2 GHz = 25.6 GFLOPS
+
 ## Float SIMD
 
 ```
@@ -901,6 +910,9 @@ Simd Double2 - seq1 Div   : 2.02 s  +893.4%    - 634.6MFLOPS,  1.27GB/s
 
 
 # Apple M1, E-core, 2.06 GHz, 5nm (Mac Mini M1 16GB, Icestorm)
+
+Theoretical performance:<br/>
+4 FLOPS/cy * 2.06 GHz = 8.2 GFLOPS
 
 ## Float SIMD
 

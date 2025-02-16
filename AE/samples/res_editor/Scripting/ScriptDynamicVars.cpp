@@ -903,6 +903,232 @@ namespace
 //-----------------------------------------------------------------------------
 
 
+	
+/*
+=================================================
+	ScriptDynamicFloat::Mul
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Mul (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Mul );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Div
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Div (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Div );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+	ScriptDynamicFloat*  ScriptDynamicFloat::DivNear (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::DivNear );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+	ScriptDynamicFloat*  ScriptDynamicFloat::DivCeil (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::DivCeil );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Add / Sub
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Add (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Add );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+	ScriptDynamicFloat*  ScriptDynamicFloat::Sub (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Sub );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Pow
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Pow (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Pow );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::PowOf2
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::PowOf2a () __Th___
+	{
+		return PowOf2b( 1 );
+	}
+
+	ScriptDynamicFloat*  ScriptDynamicFloat::PowOf2b (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::PowOf2 );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Min
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Min (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Min );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Max
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Max (float value) __Th___
+	{
+		auto	du = _value->Clone();
+		du->SetOp( value, EDynamicVarOperator::Max );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Add1
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Add1 (const ScriptDynamicFloatPtr &rhs) __Th___
+	{
+		CHECK_THROW( rhs and rhs->Get() );
+
+		auto	du = _value->Clone();
+		du->SetOp( rhs->Get(), EDynamicVarOperator::Add );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Sub1
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Sub1 (const ScriptDynamicFloatPtr &rhs) __Th___
+	{
+		CHECK_THROW( rhs and rhs->Get() );
+
+		auto	du = _value->Clone();
+		du->SetOp( rhs->Get(), EDynamicVarOperator::Sub );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Mul1
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Mul1 (const ScriptDynamicFloatPtr &rhs) __Th___
+	{
+		CHECK_THROW( rhs and rhs->Get() );
+
+		auto	du = _value->Clone();
+		du->SetOp( rhs->Get(), EDynamicVarOperator::Mul );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Div1
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Div1 (const ScriptDynamicFloatPtr &rhs) __Th___
+	{
+		CHECK_THROW( rhs and rhs->Get() );
+
+		auto	du = _value->Clone();
+		du->SetOp( rhs->Get(), EDynamicVarOperator::Div );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Min1
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Min1 (const ScriptDynamicFloatPtr &rhs) __Th___
+	{
+		CHECK_THROW( rhs and rhs->Get() );
+
+		auto	du = _value->Clone();
+		du->SetOp( rhs->Get(), EDynamicVarOperator::Min );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
+	ScriptDynamicFloat::Max1
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicFloat::Max1 (const ScriptDynamicFloatPtr &rhs) __Th___
+	{
+		CHECK_THROW( rhs and rhs->Get() );
+
+		auto	du = _value->Clone();
+		du->SetOp( rhs->Get(), EDynamicVarOperator::Max );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
 
 /*
 =================================================
@@ -915,6 +1141,24 @@ namespace
 			ClassBinder<ScriptDynamicFloat>		binder{ se };
 			binder.CreateRef();
 			binder.AddFactoryCtor( &ScriptDynamicT_Ctor< ScriptDynamicFloat, DynamicFloat, float >, {} );
+			binder.AddMethod( &ScriptDynamicFloat::Mul,		"Mul",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::Div,		"Div",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::DivNear,	"DivNear",		{} );
+			binder.AddMethod( &ScriptDynamicFloat::DivCeil,	"DivCeil",		{} );
+			binder.AddMethod( &ScriptDynamicFloat::Add,		"Add",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::Sub,		"Sub",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::Pow,		"Pow",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::PowOf2a,	"PowOf2",		{} );
+			binder.AddMethod( &ScriptDynamicFloat::PowOf2b,	"PowOf2",		{} );
+			binder.AddMethod( &ScriptDynamicFloat::Min,		"Min",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::Max,		"Max",			{} );
+
+			binder.AddMethod( &ScriptDynamicFloat::Mul1,	"Mul",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::Div1,	"Div",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::Add1,	"Add",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::Sub1,	"Sub",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::Min1,	"Min",			{} );
+			binder.AddMethod( &ScriptDynamicFloat::Max1,	"Max",			{} );
 		}{
 			ClassBinder<ScriptDynamicUInt>		binder{ se };
 			binder.AddMethod( &ScriptDynamicUInt::ToFloat,		"ToFloat",		{} );

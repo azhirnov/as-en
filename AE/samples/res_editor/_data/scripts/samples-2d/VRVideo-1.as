@@ -47,7 +47,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Ray.glsl"
 
 
@@ -55,7 +55,7 @@
 	{
 		const float2	uv				= GetGlobalCoordUNorm().xy;
 		const float		dist_to_eye		= 0.5f;		// meters
-		const float2	screen_size		= un_PerPass.resolution.xy * un_PerPass.pixToMm * 0.001f;	// meters
+		const float2	screen_size		= un_PerPass.resolution.xy * un_PerPass.mmPerPix * 0.001f;	// meters
 		const float		curve_radius	= 1.8f;		// meters
 		const float		z_near			= 0.1f;
 		Ray				ray;
@@ -84,25 +84,25 @@
 			case 0 :	uv2 = uv;																break;
 
 			// 360
-			case 1 :	uv2 = Inverted_PlaneTo360( ray.dir );									break;
+			case 1 :	uv2 = RayInverse_PlaneTo360( ray.dir );									break;
 
 			// Cubemap 360 (YouTube)
-			case 2 :	uv2 = Inverted_PlaneToCubemap360( ray.dir );							break;
+			case 2 :	uv2 = RayInverse_PlaneToCubemap360( ray.dir );							break;
 
 			// VR360
 			case 3 :
 			//	ray = Ray_PlaneToSphere( ToRad(float2(90.0, 90.0)), float3(0.0), 0.1, ToSNorm(uv) );
-				uv2  = Inverted_PlaneToVR360( ray.dir, iEye );									break;
+				uv2  = RayInverse_PlaneToVR360( ray.dir, iEye );								break;
 
 			// Cubemap VR360 (YouTube)
 			case 4 :
 			//	ray = Ray_PlaneToSphere( ToRad(float2(90.0, 90.0)), float3(0.0), 0.1, ToSNorm(uv) );
-				uv2  = Inverted_PlaneToCubemapVR360( ray.dir, iEye );							break;
+				uv2  = RayInverse_PlaneToCubemapVR360( ray.dir, iEye );							break;
 
 			// VR180
 			case 5 :
 				ray = Ray_PlaneToSphere( ToRad(float2(80.0, 80.0)), float3(0.0), 0.1, ToSNorm(uv) );
-				uv2  = Inverted_PlaneToVR180( ray.dir, iEye );									break;
+				uv2  = RayInverse_PlaneToVR180( ray.dir, iEye );								break;
 		}
 
 		out_Color = gl.texture.Sample( un_Video, uv2 );

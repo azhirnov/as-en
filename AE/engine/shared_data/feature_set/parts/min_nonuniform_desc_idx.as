@@ -67,6 +67,7 @@ void ASmain ()
 	//	samsung SM-S926B driver 2.0.0 on Android 14.0
 	//	Snapdragon(R) X Elite - X1E80100 - Qualcomm(R) Adreno(TM) GPU driver 512.780.0 on Windows 11
 	//	vivo V2324A driver 44.1.0 on Android 14.0
+	//	vivo V2351 driver 38.1.0 on Android 14.0
 	//	Xiaomi 22081212G driver 512.744.1 on Android 14.0
 	//	Apple9
 	//	Apple8

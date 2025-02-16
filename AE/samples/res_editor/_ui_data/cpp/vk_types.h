@@ -28,11 +28,11 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x38ec4b6bu}};
 
-		packed_short4  Position;// normalized
-		packed_short4  Texcoord;// normalized
-		packed_short4  Normal;// normalized
-		packed_short4  Tangent;// normalized
-		packed_short4  BiTangent;// normalized
+		packed_short4  Position;   // normalized
+		packed_short4  Texcoord;   // normalized
+		packed_short4  Normal;     // normalized
+		packed_short4  Tangent;    // normalized
+		packed_short4  BiTangent;  // normalized
 	};
 #endif
 	StaticAssert( offsetof(CubeVertex, Position) == 0 );
@@ -49,10 +49,10 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x35a6eeecu}};
 
-		packed_short4  Position;// normalized
-		packed_short4  Texcoord;// normalized
-		packed_short4  Tangent;// normalized
-		packed_short4  BiTangent;// normalized
+		packed_short4  Position;   // normalized
+		packed_short4  Texcoord;   // normalized
+		packed_short4  Tangent;    // normalized
+		packed_short4  BiTangent;  // normalized
 	};
 #endif
 	StaticAssert( offsetof(SphericalCubeVertex, Position) == 0 );
@@ -70,7 +70,7 @@
 
 		float3  position;
 		float3  attenuation;
-		uint  colorRGBM;
+		uint    colorRGBM;
 	};
 #endif
 	StaticAssert( offsetof(SceneOmniLight, position) == 0 );
@@ -87,8 +87,8 @@
 
 		float4x4_storage  transform;
 		float3x3_storage  normalMat;
-		uint  meshIdx;
-		uint  materialIdx;
+		uint              meshIdx;
+		uint              materialIdx;
 	};
 #endif
 	StaticAssert( offsetof(ModelNode, transform) == 0 );
@@ -105,7 +105,7 @@
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xcaaba68fu}};
 		static constexpr size_t SizeOf (size_t count)  { return 16 + (128 * count); }
 
-		uint  instanceCount;
+		uint       instanceCount;
 	//	ModelNode  elements [];
 	};
 #endif
@@ -121,8 +121,8 @@
 
 		TDeviceAddress< packed_float3 *>  positions;
 		TDeviceAddress< packed_float3 *>  normals;
-		TDeviceAddress< float2 *>  texcoords;
-		TDeviceAddress< uint *>  indices;
+		TDeviceAddress< float2 *>         texcoords;
+		TDeviceAddress< uint *>           indices;
 	};
 #endif
 	StaticAssert( offsetof(ModelRTMesh, positions) == 0 );
@@ -138,8 +138,8 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xf83ee5cdu}};
 
-		StaticArray< TDeviceAddress< ModelRTMesh >, 4 >    meshesPerInstance;
-		StaticArray< TDeviceAddress< uint *>, 4 >    materialsPerInstance;
+		StaticArray< TDeviceAddress< ModelRTMesh >, 4 >          meshesPerInstance;
+		StaticArray< TDeviceAddress< uint *>, 4 >                materialsPerInstance;
 		StaticArray< TDeviceAddress< float3x3_storage *>, 4 >    normalMatPerInstance;
 		StaticArray< TDeviceAddress< float4x4_storage *>, 4 >    modelMatPerInstance;
 	};
@@ -159,7 +159,7 @@
 
 		float3  direction;
 		float3  attenuation;
-		uint  colorRGBM;
+		uint    colorRGBM;
 	};
 #endif
 	StaticAssert( offsetof(SceneDirectionalLight, direction) == 0 );
@@ -178,7 +178,7 @@
 		float3  direction;
 		float3  attenuation;
 		float2  cone;
-		uint  colorRGBM;
+		uint    colorRGBM;
 	};
 #endif
 	StaticAssert( offsetof(SceneConeLight, position) == 0 );
@@ -195,12 +195,12 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x34c2b6e7u}};
 
-		uint  directionalCount;
-		uint  coneCount;
-		uint  omniCount;
+		uint                                       directionalCount;
+		uint                                       coneCount;
+		uint                                       omniCount;
 		StaticArray< SceneDirectionalLight, 8 >    directional;
-		StaticArray< SceneConeLight, 16 >    cone;
-		StaticArray< SceneOmniLight, 8 >    omni;
+		StaticArray< SceneConeLight, 16 >          cone;
+		StaticArray< SceneOmniLight, 8 >           omni;
 	};
 #endif
 	StaticAssert( offsetof(SceneLights, directionalCount) == 0 );
@@ -218,8 +218,8 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x271de9a7u}};
 
-		uint  maxRGB;
-		uint  maxLuma;
+		uint                         maxRGB;
+		uint                         maxLuma;
 		StaticArray< uint4, 130 >    RGBLuma;
 	};
 #endif
@@ -265,7 +265,7 @@
 
 		packed_float2  Position;
 		packed_float2  UV;
-		packed_ubyte4  Color;// normalized
+		packed_ubyte4  Color;     // normalized
 	};
 #endif
 	StaticAssert( offsetof(imgui_vertex, Position) == 0 );

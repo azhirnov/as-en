@@ -144,7 +144,7 @@
 #endif
 //-------------------------------------------------------------------------------------------------
 #ifdef MAIN
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "SDF.glsl"
 
 	float4  DrawDot (float2 uv, float2 pos, float3 col, float colScale)

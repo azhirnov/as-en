@@ -49,6 +49,7 @@ void ASmain ()
 	//	Google Pixel 8 Pro driver 44.0.0 on Android 14.0
 	//	HUAWEI BRA-AL00 driver 472.436.143 on Android 12.0
 	//	Mali-T830 driver 28.0.0 on Android 9.0
+	//	motorola moto g13 driver 32.1.0 on Android 14.0
 	//	motorola moto g73 5G driver 1.473.1397 on Android 13.0
 	//	NINTENDO Switch v2 driver 495.0.0.0 on Android 11.0
 	//	Adreno (TM) 505 driver 512.454.0 on Android 9.0
@@ -57,6 +58,7 @@ void ASmain ()
 	//	NVIDIA Tegra X2 (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
 	//	NVIDIA Tegra Xavier (nvgpu) driver 32.4.3.0 on Ubuntu 18.04
 	//	Oculus Quest 3 driver 512.746.0 on Android 12.0
+	//	Oppo A77 driver 58.722.917 on Android 7.1
 	//	Mali-G71 driver 575.795.1934 on Android 7.1
 	//	OPPO CPH1951 driver 1.386.1368 on Android 11.0
 	//	OPPO CPH2217 driver 1.386.1368 on Android 13.0
@@ -83,6 +85,7 @@ void ASmain ()
 	//	PowerVR Rogue GE8300 driver 1.322.3448 on Android 10.0
 	//	VideoCore VII HW (V3D-720) - 7.1.9 driver 24.0 on Linux #2 SMP Tue Oct 3 14:16:30 PDT 2023
 	//	vivo V2324A driver 44.1.0 on Android 14.0
+	//	vivo V2351 driver 38.1.0 on Android 14.0
 	//	Xiaomi 22081212G driver 512.744.1 on Android 14.0
 	//	Adreno (TM) 612 driver 512.502.0 on Android 12.0
 	//	Apple9
@@ -101,7 +104,6 @@ void ASmain ()
 	RC<FeatureSet>  fset = FeatureSet( "part.MinDescriptorIndexing" );
 
 	fset.shaderSampledImageArrayDynamicIndexing (True);
-	fset.shaderStorageBufferArrayDynamicIndexing (True);
 	fset.shaderUniformBufferArrayDynamicIndexing (True);
 
 	fset.maxUniformBufferSize (16 << 10);

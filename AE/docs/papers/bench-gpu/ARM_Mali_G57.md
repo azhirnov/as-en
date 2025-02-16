@@ -3,21 +3,26 @@
 
 ## Specs
 
-* Cores: 2
-* ALU (SIMD): 2
-* Total ALUs: 64
+* Cores: 2   *(from name MC2)*
+* ALU (SIMD/warps): 2  *(from specs)*
+* Warp width: 16
+* Clock: 950 MHz
+* Max work registers (32b): 64
+* Device: Realme 8I (Android 13, Driver 32.1.0)
+
+### Memory
+
+* Memory: 4GB, LPDDR4X, DC 16bit, 2133 MHz, **17.07** GB/s (14.2 GB/s from tests)
 * L2 cache: 512 Kb
 * LS cache: 16 Kb
 * Texture cache: 32 Kb
 * Tile bits/pixel: 256 *(32 bytes/pixel, 2xRGBA32)*
-* Warp width: 16
+
+### Float point performance
+
+* Total ALUs: 64  - number of simultaneously executing threads
 * FP16 GFLOPS: **242** (242 GFLOPS on MulAdd from tests)
 * FP32 GFLOPS: **121** (121 GFLOPS on FMA from tests)
-* Clock: 950 MHz
-* Texture cache: 32 Kb
-* Max work registers (32b): 64
-* Memory: 4GB, LPDDR4X, DC 16bit, 2133 MHz, **17.07** GB/s (14.2 GB/s from tests)
-* Device: Realme 8I (Android 13, Driver 32.1.0)
 
 Theoretical performance:
 ```

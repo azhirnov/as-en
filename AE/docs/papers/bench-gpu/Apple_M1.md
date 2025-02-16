@@ -7,7 +7,8 @@
 * L3: 8M
 * Cores: 8
 * Execution units: 128
-* Total ALUs: 1024
+* Warp size: 32 [vk]
+* Total ALUs: 1024 - number of simultaneously executing threads
 * Clock: 450 - 1278 MHz
 * F16 GFLOPS: 2617 (2380 on FMA from tests)
 * F32 GFLOPS: 2617 (2360 on FMA from tests)
@@ -16,6 +17,7 @@
 Theoretical performance:
 ```
 FLOPS = clock * TotalALUs
+TotalALUs = EU * Cores
 
 1278M * 1024 = 1308G FMA ops per second = 2617 GFLOPS
 ```

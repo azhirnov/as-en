@@ -45,7 +45,7 @@
 #ifdef SH_FRAG
 	#include "Hash.glsl"
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 
 	ND_ float4  DHash (const float4 inValue)

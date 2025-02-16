@@ -161,7 +161,7 @@ namespace AE::Profiler
 */
 	void  ImTaskRangeHorDiagram::Add (StringView name, RGBA8u color, nanosecondsd begin, nanosecondsd end, usize threadId, StringView threadCaption)
 	{
-		CHECK_ERRV( not _guard.try_lock() );
+		CHECK_ERRV( not DeferExLock{_guard}.try_lock() );
 
 		auto&	f = _frames[ _frameIdx ];
 
@@ -195,14 +195,14 @@ namespace AE::Profiler
 */
 	void  ImTaskRangeHorDiagram::End ()
 	{
-		CHECK_ERRV( not _guard.try_lock() );
+		CHECK_ERRV( not DeferExLock{_guard}.try_lock() );
 
 		auto&	f = _frames[ _frameIdx ];
 
 		ASSERT( f.sortedThreads.size() == f.threadInfos.size() );
 		ASSERT( f.sortedThreads.size() == f.threads.size() );
 
-		std::sort( f.sortedThreads.begin(), f.sortedThreads.end(),
+		std::sort(	f.sortedThreads.begin(), f.sortedThreads.end(),
 					[&f] (uint lhs, uint rhs)
 					{
 						auto&	l = f.threadInfos[ lhs ];

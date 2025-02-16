@@ -70,7 +70,7 @@
 
 //-----------------------------------------------------------------------------
 #ifdef SH_RAY_GEN
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 
 	layout(location=RAY_INDEX) gl::RayPayload float4  payload;

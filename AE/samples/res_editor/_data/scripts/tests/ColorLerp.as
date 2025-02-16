@@ -24,7 +24,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Color.glsl"
 
 	float3  ColorLerpHSV1 (float3 a, float3 b, float factor)

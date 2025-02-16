@@ -24,6 +24,8 @@ void ASmain ()
 	fset.constantAlphaColorBlendFactors (True);
 	fset.pointPolygons (True);
 	fset.triangleFans (True);
+	fset.largePoints (True);
+	fset.wideLines (True);
 	fset.AddSubgroupOperationRange( ESubgroupOperation::_Basic_Begin, ESubgroupOperation::_Basic_End );
 	fset.subgroupTypes(ESubgroupTypes(
 		ESubgroupTypes::Float32 | 
@@ -207,6 +209,24 @@ void ASmain ()
 		EPixelFormat::ASTC_sRGB8_A8_8x5, EPixelFormat::ASTC_sRGB8_A8_8x6, EPixelFormat::ASTC_sRGB8_A8_8x8, EPixelFormat::ASTC_sRGB8_A8_10x5, 
 		EPixelFormat::ASTC_sRGB8_A8_10x6, EPixelFormat::ASTC_sRGB8_A8_10x8, EPixelFormat::ASTC_sRGB8_A8_10x10, EPixelFormat::ASTC_sRGB8_A8_12x10, 
 		EPixelFormat::ASTC_sRGB8_A8_12x12
+	});
+	fset.AddTexelFormats( EFormatFeature::HWCompressedAttachment, {
+		// all float/normalized (integer?) formats in B-Series
+		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RGB16_SNorm, EPixelFormat::RG16_SNorm, 
+		EPixelFormat::RG8_SNorm, EPixelFormat::R16_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA16_UNorm, 
+		EPixelFormat::RGBA8_UNorm, EPixelFormat::RGB16_UNorm, EPixelFormat::RG16_UNorm, EPixelFormat::RG8_UNorm, 
+		EPixelFormat::R16_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGBA4_UNorm, 
+		EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, 
+		EPixelFormat::sBGR8_A8, EPixelFormat::R8I, EPixelFormat::RG8I, EPixelFormat::RGBA8I, 
+		EPixelFormat::R16I, EPixelFormat::RG16I, EPixelFormat::RGB16I, EPixelFormat::RGBA16I, 
+		EPixelFormat::R32I, EPixelFormat::RG32I, EPixelFormat::RGB32I, EPixelFormat::RGBA32I, 
+		EPixelFormat::R8U, EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, 
+		EPixelFormat::RG16U, EPixelFormat::RGB16U, EPixelFormat::RGBA16U, EPixelFormat::R32U, 
+		EPixelFormat::RG32U, EPixelFormat::RGB32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, 
+		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGB16F, EPixelFormat::RGBA16F, 
+		EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGB32F, EPixelFormat::RGBA32F, 
+		EPixelFormat::RGB_11_11_10F, EPixelFormat::Depth16, EPixelFormat::Depth24, EPixelFormat::Depth32F, 
+		EPixelFormat::Depth24_Stencil8
 	});
 	fset.samplerMipLodBias (True);
 	fset.maxSamplerAnisotropy (1.00);

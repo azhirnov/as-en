@@ -37,11 +37,14 @@ ND_ Ray		Ray_PlaneToVR360 (const float ipd, const float3 origin, const float nea
 ND_ Ray		Ray_PlaneTo360 (const float3 origin, const float nearPlane, const float2 unormCoord);
 ND_ Ray		Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, const float2 snormCoord);
 
-ND_ float2  Inverted_PlaneToVR180 (const float3 rayDir, const uint eye);
-ND_ float2  Inverted_PlaneToVR360 (const float3 rayDir, const uint eye);
-ND_ float2  Inverted_PlaneTo360 (const float3 rayDir);
-ND_ float2  Inverted_PlaneToCubemap360 (const float3 rayDir);
-ND_ float2  Inverted_PlaneToCubemapVR360 (const float3 rayDir, const uint eye);
+ND_ Ray		Ray_PaniniProjection (float fov, const float3 origin, const float nearPlane, const float2 screenPos, const float2 screenSize);
+
+// ray to UV
+ND_ float2  RayInverse_PlaneToVR180 (const float3 rayDir, const uint eye);
+ND_ float2  RayInverse_PlaneToVR360 (const float3 rayDir, const uint eye);
+ND_ float2  RayInverse_PlaneTo360 (const float3 rayDir);
+ND_ float2  RayInverse_PlaneToCubemap360 (const float3 rayDir);
+ND_ float2  RayInverse_PlaneToCubemapVR360 (const float3 rayDir, const uint eye);
 
 ND_ float3	Ray_CalcX (const Ray ray, const float2 pointYZ);
 ND_ float3	Ray_CalcY (const Ray ray, const float2 pointXZ);
@@ -75,6 +78,7 @@ Ray  Ray_Create (const float3 origin, const float3 direction, const float tmin)
 	Ray_FromScreen
 ----
 	create ray for raytracing, raymarching, ...
+	used rectilinear/perspective projection.
 =================================================
 */
 Ray  Ray_FromScreen (const float3 origin, const float2 fov, const float nearPlane, float2 snormCoord)
@@ -147,6 +151,8 @@ Ray  Ray_From (const float4x4 invViewProj, const float3 origin, const float near
 	_______  -- screen
 
 	   * -- eye
+	   
+	used rectilinear/perspective projection.
 =================================================
 */
 Ray  Ray_FromFlatScreen (const float3 origin, const float distanceToEye, const float2 screenSize, const float nearPlane, const float2 snormCoord)
@@ -212,7 +218,7 @@ Ray  Ray_PlaneToVR180 (const float ipd, const float3 origin, const float nearPla
 	return ray;
 }
 
-float2  Inverted_PlaneToVR180 (const float3 rayDir, const uint eye)
+float2  RayInverse_PlaneToVR180 (const float3 rayDir, const uint eye)
 {
 	float	theta	= ASin( rayDir.y );
 	float	phi		= ATan( rayDir.z, rayDir.x );
@@ -251,7 +257,7 @@ Ray  Ray_PlaneToVR360 (const float ipd, const float3 origin, const float nearPla
 	return ray;
 }
 
-float2  Inverted_PlaneToVR360 (const float3 rayDir, const uint eye)
+float2  RayInverse_PlaneToVR360 (const float3 rayDir, const uint eye)
 {
 	float	theta	= ASin( rayDir.y );
 	float	phi		= ATan( rayDir.z, rayDir.x );
@@ -284,7 +290,7 @@ Ray  Ray_PlaneTo360 (const float3 origin, const float nearPlane, const float2 uv
 	return ray;
 }
 
-float2  Inverted_PlaneTo360 (const float3 rayDir)
+float2  RayInverse_PlaneTo360 (const float3 rayDir)
 {
 	float	theta	= ASin( rayDir.y );
 	float	phi		= ATan( rayDir.z, rayDir.x );
@@ -297,12 +303,12 @@ float2  Inverted_PlaneTo360 (const float3 rayDir)
 
 /*
 =================================================
-	Inverted_PlaneToCubemap360
+	RayInverse_PlaneToCubemap360
 ----
 	for webm 360;  top plane (horizontal): left, front, right;  bottom plane (vertical): down, back, up.
 =================================================
 */
-float2  Inverted_PlaneToCubemap360 (const float3 c)
+float2  RayInverse_PlaneToCubemap360 (const float3 c)
 {
 	// front (xy space)
 	if ( All3( Abs(c.x) <= c.z,  c.z > 0.f,  Abs(c.y) <= c.z ))
@@ -330,12 +336,12 @@ float2  Inverted_PlaneToCubemap360 (const float3 c)
 
 /*
 =================================================
-	Inverted_PlaneToCubemap360
+	RayInverse_PlaneToCubemap360
 ----
 	for webm VR360;  left plane (vertical): left, front, right;  bottom plane (vertical): down, back, up.
 =================================================
 */
-float2  Inverted_PlaneToCubemapVR360 (const float3 c, const uint eye)
+float2  RayInverse_PlaneToCubemapVR360 (const float3 c, const uint eye)
 {
 	float2	uv;
 
@@ -372,6 +378,7 @@ float2  Inverted_PlaneToCubemapVR360 (const float3 c, const uint eye)
 	Ray_PlaneToSphere
 ----
 	Z+ - forward, X+ - right, Y+ - down
+	stereographical projection.
 =================================================
 */
 Ray  Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, const float2 uv)
@@ -385,6 +392,34 @@ Ray  Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, 
 	ray.origin	= origin;
 	ray.dir		= float3( Sin(theta) * cos_p, Sin(phi), -Cos(theta) * cos_p );
 
+	Ray_SetLength( INOUT ray, nearPlane );  // set 't' and 'pos'
+	return ray;
+}
+
+/*
+=================================================
+	Ray_PaniniProjection
+=================================================
+*/
+Ray  Ray_PaniniProjection (float fov, const float3 origin, const float nearPlane, const float2 screenPos, const float2 screenSize)
+{
+	Ray		ray;
+	float2	uv = screenPos / (screenSize.xx * 0.5) - float2(1.0, screenSize.y/screenSize.x);
+	{
+		float	fo		= float_HalfPi - fov * 0.5;
+		float	f		= Cos(fo) / Sin(fo) * 2.0;
+		float	f2		= f * f;
+		float	b		= Sqrt( Max( 0.0, 4.0 * f2 * (1.0 + f2) )) - f * 2.0;
+				uv		*= b / f2;
+	}{
+		float	k		= Square(uv.x) * 0.25;
+		float	cos_phi	= (-k + 1.0) / (k + 1.0);
+		float	tan_t	= uv.y * (1.0 + cos_phi) * 0.5;
+		float	sin_phi	= Sqrt( Max( 0.0, 1.0 - Square(cos_phi) )) * Sign( uv.x );
+		float	s		= InvSqrt( 1.0 + Square(tan_t) );
+				ray.dir	= Normalize( float3(sin_phi, tan_t, cos_phi) * s );
+	}
+	ray.origin = origin;
 	Ray_SetLength( INOUT ray, nearPlane );  // set 't' and 'pos'
 	return ray;
 }

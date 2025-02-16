@@ -326,9 +326,9 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, uint>  CountRZero (const T x) __NE___
+	NdCz__ EnableIf<IsScalar<T>, uint>  CountRZero (const T x) __NE___
 	{
-	#ifdef __cpp_lib_bitops
+	#ifdef __cpp_lib_bitops  // C++20
 		return uint( std::countr_zero( ToUnsignedInteger<T>(x) ));
 
 	#elif defined(AE_COMPILER_MSVC)

@@ -105,7 +105,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PASS1
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	void Main ()
@@ -123,7 +123,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PASS2
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	void Main ()
@@ -141,7 +141,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PASS3
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	// texture already in sRGB space

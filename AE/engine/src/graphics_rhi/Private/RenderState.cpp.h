@@ -209,15 +209,16 @@ namespace AE::Graphics
 */
 	bool  RenderState::RasterizationState::operator == (const RasterizationState &rhs) C_NE___
 	{
-		return	(polygonMode				==	rhs.polygonMode)			and
-				Equal(	depthBiasConstFactor,	rhs.depthBiasConstFactor )	and
-				Equal(	depthBiasClamp,			rhs.depthBiasClamp )		and
-				Equal(	depthBiasSlopeFactor,	rhs.depthBiasSlopeFactor )	and
+		return	Equal( depthBiasConstFactor,	rhs.depthBiasConstFactor )	and
+				Equal( depthBiasClamp,			rhs.depthBiasClamp )		and
+				Equal( depthBiasSlopeFactor,	rhs.depthBiasSlopeFactor )	and
 				(depthBias					==	rhs.depthBias)				and
 				(depthClamp					==	rhs.depthClamp)				and
 				(rasterizerDiscard			==	rhs.rasterizerDiscard)		and
-				(cullMode					==	rhs.cullMode)				and
-				(frontFaceCCW				==	rhs.frontFaceCCW);
+				(frontFaceCCW				==	rhs.frontFaceCCW)			and
+				(lineWidth					==	rhs.lineWidth)				and
+				(polygonMode				==	rhs.polygonMode)			and
+				(cullMode					==	rhs.cullMode);
 	}
 
 /*
@@ -228,15 +229,16 @@ namespace AE::Graphics
 	HashVal  RenderState::RasterizationState::CalcHash () C_NE___
 	{
 		HashVal	result;
-		result << HashOf( polygonMode );
 		result << HashOf( depthBiasConstFactor );
 		result << HashOf( depthBiasClamp );
 		result << HashOf( depthBiasSlopeFactor );
 		result << HashOf( depthBias );
 		result << HashOf( depthClamp );
 		result << HashOf( rasterizerDiscard );
-		result << HashOf( cullMode );
 		result << HashOf( frontFaceCCW );
+		result << HashOf( lineWidth );
+		result << HashOf( polygonMode );
+		result << HashOf( cullMode );
 		return result;
 	}
 //-----------------------------------------------------------------------------
@@ -251,7 +253,7 @@ namespace AE::Graphics
 	{
 		return	(sampleMask				==	rhs.sampleMask)			and
 				(samples				==	rhs.samples)			and
-				Equal(	minSampleShading,	rhs.minSampleShading )	and
+				Equal( minSampleShading,	rhs.minSampleShading )	and
 				(sampleShading			==	rhs.sampleShading)		and
 				(alphaToCoverage		==	rhs.alphaToCoverage)	and
 				(alphaToOne				==	rhs.alphaToOne);

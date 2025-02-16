@@ -58,7 +58,7 @@
 //-----------------------------------------------------------------------------
 #ifdef MAIN_PASS
 	#include "Color.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "tools/SplineHelper.glsl"
 	#include "Geometry.glsl"
 
@@ -111,7 +111,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PALETTE_PASS
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	void Main ()
 	{

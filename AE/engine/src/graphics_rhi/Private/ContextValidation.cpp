@@ -129,8 +129,6 @@ namespace
 	ND_ static bool  DepthBiasClampSupported ()				__NE___	{ return _GetFeatureSet().depthBiasClamp == True; }
 	ND_ static bool  DepthBoundsSupported ()				__NE___	{ return _GetFeatureSet().depthBounds == True; }
 
-	//ND_ inline bool  DrawIndirectFirstInstanceSupported ()	__NE___	{ return _GetFeatureSet().drawIndirectFirstInstance == True; }	// TODO
-	ND_ static bool  DrawIndirectCountSupported ()			__NE___	{ return _GetFeatureSet().drawIndirectCount == True; }
 	ND_ static bool  MeshShaderSupported ()					__NE___	{ return _GetFeatureSet().meshShader == True; }
 	ND_ inline bool  TileShaderSupported ()					__NE___	{ return _GetFeatureSet().tileShader == True; }
 
@@ -1026,9 +1024,9 @@ namespace
 		auto&	fs = _GetFeatureSet();
 
 		ASSERT( maxDrawCount > 0 );
+		GCTX_CHECK( fs.drawIndirectCount == True );
 		GCTX_CHECK( maxDrawCount <= fs.maxDrawIndirectCount );
 
-		GCTX_CHECK( DrawIndirectCountSupported() );
 		GCTX_CHECK( stride >= SizeOf<DrawIndirectCommand> );
 		GCTX_CHECK( IsMultipleOf( stride, 4 ));
 	}
@@ -1079,9 +1077,9 @@ namespace
 		auto&	fs = _GetFeatureSet();
 
 		ASSERT( maxDrawCount > 0 );
+		GCTX_CHECK( fs.drawIndirectCount == True );
 		GCTX_CHECK( maxDrawCount <= fs.maxDrawIndirectCount );
 
-		GCTX_CHECK( DrawIndirectCountSupported() );
 		GCTX_CHECK( stride >= SizeOf<DrawIndexedIndirectCommand> );
 		GCTX_CHECK( IsMultipleOf( stride, 4 ));
 	}

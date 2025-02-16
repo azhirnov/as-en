@@ -56,8 +56,10 @@ namespace AE::Graphics
 			bool  GetTimestampCalibrated (const IQuery &, OUT ulong* result, OUT ulong* maxDeviation, Bytes size)				C_NE_OV;	// nanoseconds in CPU-space
 			bool  GetTimestampCalibrated (const IQuery &, OUT double* result, OUT double* maxDeviation, Bytes size)				C_NE_OV;	// nanoseconds in CPU-space
 			bool  GetTimestampCalibrated (const IQuery &, OUT nanosecondsd* result, OUT nanosecondsd* maxDeviation, Bytes size)	C_NE_OV;	// nanoseconds in CPU-space
-
+			
 			bool  GetPipelineStatistic (const IQuery &, OUT GraphicsPipelineStatistic* result, Bytes size)			C_NE_OV;
+			bool  GetPipelineStatistic (const IQuery &, OUT ComputePipelineStatistic* result, Bytes size)			C_NE_OV;
+			bool  GetPipelineStatistic (const IQuery &, OUT MeshPipelineStatistic* result, Bytes size)				C_NE_OV;
 
 	private:
 		template <typename MsgType, typename RespType, typename T>
@@ -65,6 +67,9 @@ namespace AE::Graphics
 
 		template <typename MsgType, typename RespType, typename T>
 		ND_	bool  _GetTimestampCalibrated (const Query &q, OUT T* result, OUT T* maxDeviation, Bytes size)			C_NE___;
+
+		template <typename MsgType, typename ResponseType, typename T>
+		ND_	bool  _GetPipelineStatistic (const IQuery &, OUT T* result, Bytes resultSize, EQueryType type)			C_NE___;
 	};
 
 

@@ -115,7 +115,7 @@ struct ShadowRayPayload
 
 //-----------------------------------------------------------------------------
 #ifdef SH_RAY_GEN
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 
 	layout(location=PRIMARY_RAY)	gl::RayPayload PrimaryRayPayload  PrimaryRay;
@@ -189,9 +189,9 @@ struct ShadowRayPayload
 		result.pos			= gl.WorldRayOrigin + (gl.WorldRayDirection * gl.HitT);
 
 		result.smoothNormal	= Normalize( norm_mat *
-										 BaryLerp(	Cast( norm_addr.data[ idx_addr.data[ idx+0 ]]),
-													Cast( norm_addr.data[ idx_addr.data[ idx+1 ]]),
-													Cast( norm_addr.data[ idx_addr.data[ idx+2 ]]),
+										 BaryLerp(	Unpack( norm_addr.data[ idx_addr.data[ idx+0 ]]),
+													Unpack( norm_addr.data[ idx_addr.data[ idx+1 ]]),
+													Unpack( norm_addr.data[ idx_addr.data[ idx+2 ]]),
 													barycentrics ));
 		result.uv0			= BaryLerp(	uv_addr.data[ idx_addr.data[ idx+0 ]],
 										uv_addr.data[ idx_addr.data[ idx+1 ]],

@@ -207,7 +207,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_RAY_GEN
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Matrix.glsl"
 	#include "Geometry.glsl"
 	#include "HWRayTracing.glsl"
@@ -496,7 +496,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef TRACE_GEOMETRY
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "HWRayTracing.glsl"
 	#include "Color.glsl"
 

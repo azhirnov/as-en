@@ -30,7 +30,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	#define CoopMatA	gl::CoopMat< half, gl::Scope::Subgroup, 16, 16, gl::MatrixUse::A >
 	#define CoopMatB	gl::CoopMat< half, gl::Scope::Subgroup, 16, 16, gl::MatrixUse::B >

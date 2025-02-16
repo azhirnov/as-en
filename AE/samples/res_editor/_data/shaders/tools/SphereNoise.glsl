@@ -9,7 +9,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #if defined(SH_COMPUTE) && defined(sTILE)
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	ND_ int3  GlobalThreadID ()
 	{

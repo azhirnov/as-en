@@ -127,7 +127,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PASS2
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "Geometry.glsl"
 
 	void  Main ()

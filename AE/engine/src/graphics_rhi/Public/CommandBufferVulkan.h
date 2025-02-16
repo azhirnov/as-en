@@ -32,6 +32,8 @@ namespace AE::Graphics
 
 
 	// draw commands //
+		//	'indirectBuffer' at 'indirectBufferOffset' must contains array of 'drawCount' elements of type 'DrawIndirectCommand' with stride 'stride'.
+		//	'countBuffer' at 'countBufferOffset' must contains single 'uint' value.
 				void  DrawIndirectCount (const DrawIndirectCountCmd &cmd)															__Th___	{ DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
 		virtual	void  DrawIndirectCount (BufferID	indirectBuffer,
 										 Bytes		indirectBufferOffset,
@@ -39,7 +41,9 @@ namespace AE::Graphics
 										 Bytes		countBufferOffset,
 										 uint		maxDrawCount,
 										 Bytes		stride)																			__Th___ = 0;
-
+		
+		//	'indirectBuffer' at 'indirectBufferOffset' must contains array of 'drawCount' elements of type 'DrawIndexedIndirectCommand' with stride 'stride'.
+		//	'countBuffer' at 'countBufferOffset' must contains single 'uint' value.
 				void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)												__Th___	{ DrawIndexedIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
 		virtual	void  DrawIndexedIndirectCount (BufferID	indirectBuffer,
 												Bytes		indirectBufferOffset,
@@ -47,7 +51,9 @@ namespace AE::Graphics
 												Bytes		countBufferOffset,
 												uint		maxDrawCount,
 												Bytes		stride)																	__Th___ = 0;
-
+		
+		//	'indirectBuffer' at 'indirectBufferOffset' must contains array of 'drawCount' elements of type 'DrawMeshTasksIndirectCommand' with stride 'stride'.
+		//	'countBuffer' at 'countBufferOffset' must contains single 'uint' value.
 				void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)											__Th___	{ DrawMeshTasksIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
 		virtual	void  DrawMeshTasksIndirectCount (BufferID	indirectBuffer,
 												  Bytes		indirectBufferOffset,
@@ -139,12 +145,14 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
-
-		//		address: EResourceState::BuildRTAS_IndirectBuffer  (TraceRayIndirectCommand)
+		
+		//	'address' must contains single object with 'TraceRayIndirectCommand' type.
+		//		address: EResourceState::BuildRTAS_IndirectBuffer
 		virtual	void  TraceRaysIndirectAddress (const RTShaderBindingTable &sbt, DeviceAddress address)					__Th___ = 0;
-
-		//	requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
-		//		address: EResourceState::BuildRTAS_IndirectBuffer  (TraceRayIndirectCommand2)
+		
+		//	'address' must contains single object with 'TraceRayIndirectCommand2' type.
+		//	requires 'rayTracingPipelineTraceRaysIndirect2' feature flag.
+		//		address: EResourceState::BuildRTAS_IndirectBuffer
 		virtual	void  TraceRaysIndirectAddress2 (DeviceAddress address)													__Th___ = 0;
 
 

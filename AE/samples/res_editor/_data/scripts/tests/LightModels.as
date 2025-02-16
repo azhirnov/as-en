@@ -35,7 +35,7 @@
 	#include "PBR.glsl"
 	#include "Normal.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
 	float4  Sphere (float2 uv, float2 duv)

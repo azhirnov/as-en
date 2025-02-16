@@ -45,7 +45,7 @@
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
 	#include "Quaternion.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	float3  Project (float3 n)
 	{
@@ -76,7 +76,7 @@
 	#include "Normal.glsl"
 	#include "CubeMap.glsl"
 	#include "Geometry.glsl"
-	#include "GlobalIndex.glsl"
+	#include "InvocationID.glsl"
 
 	int  FaceIdx () {
 		return int(gl.WorkGroupID.z);
@@ -95,6 +95,7 @@
 	{
 		float	seed2 = seed * iHScale + iHBias;
 
+		// random angle to quaternion
 		if ( iRndMode == 0 )
 		{
 			float3	angle = float3(0.0);
@@ -137,6 +138,7 @@
 			n = QMul( QRotationZ( angle.z ), n );
 		}
 
+		// random quaternion normalization
 		if ( iRndMode == 1 )
 		{
 			Quat	q;

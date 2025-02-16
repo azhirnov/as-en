@@ -108,6 +108,7 @@ struct _PVec
 #define VEC4_SWIZZLE						\
 	VEC3_SWIZZLE							\
 											\
+	_PVec<T,2>	zw;							\
 	_PVec<T,4>  xyzw;
 
 

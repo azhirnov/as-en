@@ -1822,20 +1822,20 @@ namespace {
 	_Label*
 =================================================
 */
-	void  ScriptExe::_LabelI1 (const ScriptDynamicIntPtr  &dyn, const String &name) __Th___		{ _Label( dyn, name ); }
-	void  ScriptExe::_LabelI2 (const ScriptDynamicInt2Ptr &dyn, const String &name) __Th___		{ _Label( dyn, name ); }
-	void  ScriptExe::_LabelI3 (const ScriptDynamicInt3Ptr &dyn, const String &name) __Th___		{ _Label( dyn, name ); }
-	void  ScriptExe::_LabelI4 (const ScriptDynamicInt4Ptr &dyn, const String &name) __Th___		{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelI1 (const ScriptDynamicIntPtr  &dyn, const String &name) __Th___		{ _Label( dyn, name, {} ); }
+	void  ScriptExe::_LabelI2 (const ScriptDynamicInt2Ptr &dyn, const String &name) __Th___		{ _Label( dyn, name, {} ); }
+	void  ScriptExe::_LabelI3 (const ScriptDynamicInt3Ptr &dyn, const String &name) __Th___		{ _Label( dyn, name, {} ); }
+	void  ScriptExe::_LabelI4 (const ScriptDynamicInt4Ptr &dyn, const String &name) __Th___		{ _Label( dyn, name, {} ); }
 
-	void  ScriptExe::_LabelU1 (const ScriptDynamicUIntPtr  &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
-	void  ScriptExe::_LabelU2 (const ScriptDynamicUInt2Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
-	void  ScriptExe::_LabelU3 (const ScriptDynamicUInt3Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
-	void  ScriptExe::_LabelU4 (const ScriptDynamicUInt4Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelU1 (const ScriptDynamicUIntPtr  &dyn, const String &name) __Th___	{ _Label( dyn, name, {} ); }
+	void  ScriptExe::_LabelU2 (const ScriptDynamicUInt2Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name, {} ); }
+	void  ScriptExe::_LabelU3 (const ScriptDynamicUInt3Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name, {} ); }
+	void  ScriptExe::_LabelU4 (const ScriptDynamicUInt4Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name, {} ); }
 
-	void  ScriptExe::_LabelF1 (const ScriptDynamicFloatPtr  &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
-	void  ScriptExe::_LabelF2 (const ScriptDynamicFloat2Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
-	void  ScriptExe::_LabelF3 (const ScriptDynamicFloat3Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
-	void  ScriptExe::_LabelF4 (const ScriptDynamicFloat4Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name ); }
+	void  ScriptExe::_LabelF1 (const ScriptDynamicFloatPtr  &dyn, const String &name) __Th___	{ _Label( dyn, name, {} ); }
+	void  ScriptExe::_LabelF2 (const ScriptDynamicFloat2Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name, {} ); }
+	void  ScriptExe::_LabelF3 (const ScriptDynamicFloat3Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name, {} ); }
+	void  ScriptExe::_LabelF4 (const ScriptDynamicFloat4Ptr &dyn, const String &name) __Th___	{ _Label( dyn, name, {} ); }
 
 	void  ScriptExe::_LabelI1a (const ScriptDynamicIntPtr  &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
 	void  ScriptExe::_LabelI2a (const ScriptDynamicInt2Ptr &dyn, const String &name, const EnableLabel &enableIf)	__Th___	{ _Label( dyn, name, enableIf ); }
@@ -2033,6 +2033,11 @@ namespace {
 	static bool  _IsDiscreteGPU ()
 	{
 		return GraphicsScheduler().GetDevice().AdapterType() == EGraphicsAdapterType::Discrete;
+	}
+
+	static EGPUVendor  _GetGPUVendor ()
+	{
+		return GraphicsScheduler().GetFeatureSet().vendorIds.include.First();
 	}
 
 	static bool  _IsRemoteGPU ()
@@ -2355,7 +2360,8 @@ namespace {
 		se->AddFunction( &ScriptExe::_CM_CubeSC_Forward,		"CM_CubeSC_Forward",		{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on cube." );
 		se->AddFunction( &ScriptExe::_CM_IdentitySC_Forward,	"CM_IdentitySC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using identity projection (normalization)." );
 		se->AddFunction( &ScriptExe::_CM_TangentialSC_Forward,	"CM_TangentialSC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using tangential projection." );
-
+		
+		se->AddFunction( &_GetGPUVendor,									"GPUVendor",					{} );
 		se->AddFunction( &_IsDiscreteGPU,									"IsDiscreteGPU",				{} );
 		se->AddFunction( &_IsRemoteGPU,										"IsRemoteGPU",					{} );
 		se->AddFunction( &_Supports_GeometryShader,							"Supports_GeometryShader",		{} );
