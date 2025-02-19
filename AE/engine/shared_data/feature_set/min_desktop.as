@@ -21,6 +21,7 @@ void ASmain ()
 	//	Intel(R) Arc(tm) A380 Graphics (DG2) driver 22.2.99 on Rocky 9.0
 	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
+	//	Intel(R) Arc(TM) B580 Graphics driver 0.405.2156 on Windows 11
 	//	Intel(R) HD Graphics 520 (SKL GT2) driver 24.2.4 on Arch unknown
 	//	Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
 	//	Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2
@@ -112,14 +113,14 @@ void ASmain ()
 	fset.perPipeline_maxUniformBuffersDynamic (8);
 	fset.perPipeline_maxStorageBuffersDynamic (4);
 	fset.perPipeline_maxTotalBuffersDynamic (8);
-	fset.perPipeline_maxInputAttachments (8);
+	fset.perPipeline_maxInputAttachments (7);
 	fset.perPipeline_maxSampledImages (640);
 	fset.perPipeline_maxSamplers (80);
 	fset.perPipeline_maxStorageBuffers (155);
 	fset.perPipeline_maxStorageImages (40);
 	fset.perPipeline_maxUniformBuffers (90);
 	fset.perPipeline_maxTotalResources (1024);
-	fset.perStage_maxInputAttachments (8);
+	fset.perStage_maxInputAttachments (7);
 	fset.perStage_maxSampledImages (128);
 	fset.perStage_maxSamplers (16);
 	fset.perStage_maxStorageBuffers (31);

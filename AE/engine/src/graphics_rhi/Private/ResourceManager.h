@@ -254,6 +254,8 @@ namespace AE::Graphics
 		ND_ bool					IsSupported (const VideoSessionDesc &desc)																		C_NE_OV;
 		ND_ bool					IsSupported (BufferID buffer, const BufferViewDesc &desc)														C_NE_OV;
 		ND_ bool					IsSupported (ImageID image, const ImageViewDesc &desc)															C_NE_OV;
+		ND_ bool					IsSupported (const BufferDesc &desc, const BufferViewDesc &viewDesc)											C_NE_OV;
+		ND_ bool					IsSupported (const ImageDesc &desc, const ImageViewDesc &viewDesc)												C_NE_OV;
 		ND_ bool					IsSupported (const RTGeometryDesc &desc)																		C_NE_OV;
 		ND_ bool					IsSupported (const RTGeometryBuild &build)																		C_NE_OV;
 		ND_ bool					IsSupported (const RTSceneDesc &desc)																			C_NE_OV;

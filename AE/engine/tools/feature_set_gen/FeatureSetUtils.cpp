@@ -1166,7 +1166,8 @@ namespace
 			{ "perPipeline_maxUniformBuffersDynamic",	"maxDescriptorSetUniformBuffersDynamic"	},
 			{ "perPipeline_maxStorageBuffersDynamic",	"maxDescriptorSetStorageBuffersDynamic"	},
 			{ "ycbcr2Plane444",							"ycbcr2plane444Formats"					},
-			{ "vertexDivisor",							"vertexAttributeInstanceRateDivisor"	}
+			{ "vertexDivisor",							"vertexAttributeInstanceRateDivisor"	},
+			{ "perPipeline_maxSubsampledSamplers",		"maxDescriptorSetSubsampledSamplers"	}
 		};
 
 		const auto	ReplaceName = [&replace_names] (StringView key)

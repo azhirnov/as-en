@@ -12,6 +12,7 @@ void ASmain ()
 	//	AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
 	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
+	//	Intel(R) Arc(TM) B580 Graphics driver 0.405.2156 on Windows 11
 	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
 	//	NVIDIA GeForce GTX 1070 driver 511.65.0.0 on Windows 10
 	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
@@ -110,7 +111,7 @@ void ASmain ()
 	fset.vulkanMemoryModelDeviceScope (True);
 	fset.rayTracingPipeline (True);
 	fset.rayTraversalPrimitiveCulling (True);
-	fset.maxRayRecursionDepth (31);
+	fset.maxRayRecursionDepth (13);
 	fset.maxSpirvVersion (150);
 	fset.maxMetalVersion (240);
 	fset.drawIndirectFirstInstance (True);
@@ -130,21 +131,21 @@ void ASmain ()
 	fset.perPipeline_maxUniformBuffersDynamic (8);
 	fset.perPipeline_maxStorageBuffersDynamic (8);
 	fset.perPipeline_maxTotalBuffersDynamic (16);
-	fset.perPipeline_maxInputAttachments (256);
+	fset.perPipeline_maxInputAttachments (7);
 	fset.perPipeline_maxSampledImages (393210);
 	fset.perPipeline_maxSamplers (393210);
 	fset.perPipeline_maxStorageBuffers (393210);
 	fset.perPipeline_maxStorageImages (393210);
 	fset.perPipeline_maxUniformBuffers (180);
-	fset.perPipeline_maxAccelStructures (65535);
+	fset.perPipeline_maxAccelStructures (16);
 	fset.perPipeline_maxTotalResources (1024);
-	fset.perStage_maxInputAttachments (64);
+	fset.perStage_maxInputAttachments (7);
 	fset.perStage_maxSampledImages (65535);
 	fset.perStage_maxSamplers (65535);
 	fset.perStage_maxStorageBuffers (65535);
 	fset.perStage_maxStorageImages (65535);
 	fset.perStage_maxUniformBuffers (15);
-	fset.perStage_maxAccelStructures (65535);
+	fset.perStage_maxAccelStructures (16);
 	fset.perStage_maxTotalResources (1000000);
 	fset.maxDescriptorSets (8);
 	fset.maxTexelOffset (7);
@@ -172,19 +173,17 @@ void ASmain ()
 		EVertexType::UShort, EVertexType::UShort2, EVertexType::UShort3, EVertexType::UShort4, 
 		EVertexType::Int, EVertexType::Int2, EVertexType::Int3, EVertexType::Int4, 
 		EVertexType::UInt, EVertexType::UInt2, EVertexType::UInt3, EVertexType::UInt4, 
-		EVertexType::Long2, EVertexType::Long3, EVertexType::Long4, EVertexType::ULong2, 
-		EVertexType::ULong3, EVertexType::ULong4, EVertexType::Half, EVertexType::Half2, 
-		EVertexType::Half3, EVertexType::Half4, EVertexType::Float, EVertexType::Float2, 
-		EVertexType::Float3, EVertexType::Float4, EVertexType::UInt_2_10_10_10, EVertexType::Byte_Norm, 
-		EVertexType::Byte2_Norm, EVertexType::Byte3_Norm, EVertexType::Byte4_Norm, EVertexType::UByte_Norm, 
-		EVertexType::UByte2_Norm, EVertexType::UByte3_Norm, EVertexType::UByte4_Norm, EVertexType::Short_Norm, 
-		EVertexType::Short2_Norm, EVertexType::Short3_Norm, EVertexType::Short4_Norm, EVertexType::UShort_Norm, 
-		EVertexType::UShort2_Norm, EVertexType::UShort3_Norm, EVertexType::UShort4_Norm, EVertexType::UInt_2_10_10_10_Norm, 
-		EVertexType::Byte_Scaled, EVertexType::Byte2_Scaled, EVertexType::Byte3_Scaled, EVertexType::Byte4_Scaled, 
-		EVertexType::UByte_Scaled, EVertexType::UByte2_Scaled, EVertexType::UByte3_Scaled, EVertexType::UByte4_Scaled, 
-		EVertexType::Short_Scaled, EVertexType::Short2_Scaled, EVertexType::Short3_Scaled, EVertexType::Short4_Scaled, 
-		EVertexType::UShort_Scaled, EVertexType::UShort2_Scaled, EVertexType::UShort3_Scaled, EVertexType::UShort4_Scaled, 
-		EVertexType::UInt_2_10_10_10_Scaled
+		EVertexType::Half, EVertexType::Half2, EVertexType::Half3, EVertexType::Half4, 
+		EVertexType::Float, EVertexType::Float2, EVertexType::Float3, EVertexType::Float4, 
+		EVertexType::UInt_2_10_10_10, EVertexType::Byte_Norm, EVertexType::Byte2_Norm, EVertexType::Byte3_Norm, 
+		EVertexType::Byte4_Norm, EVertexType::UByte_Norm, EVertexType::UByte2_Norm, EVertexType::UByte3_Norm, 
+		EVertexType::UByte4_Norm, EVertexType::Short_Norm, EVertexType::Short2_Norm, EVertexType::Short3_Norm, 
+		EVertexType::Short4_Norm, EVertexType::UShort_Norm, EVertexType::UShort2_Norm, EVertexType::UShort3_Norm, 
+		EVertexType::UShort4_Norm, EVertexType::UInt_2_10_10_10_Norm, EVertexType::Byte_Scaled, EVertexType::Byte2_Scaled, 
+		EVertexType::Byte3_Scaled, EVertexType::Byte4_Scaled, EVertexType::UByte_Scaled, EVertexType::UByte2_Scaled, 
+		EVertexType::UByte3_Scaled, EVertexType::UByte4_Scaled, EVertexType::Short_Scaled, EVertexType::Short2_Scaled, 
+		EVertexType::Short3_Scaled, EVertexType::Short4_Scaled, EVertexType::UShort_Scaled, EVertexType::UShort2_Scaled, 
+		EVertexType::UShort3_Scaled, EVertexType::UShort4_Scaled, EVertexType::UInt_2_10_10_10_Scaled
 	});
 	fset.AddTexelFormats( EFormatFeature::UniformTexelBuffer, {
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm, 

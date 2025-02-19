@@ -65,17 +65,23 @@ namespace
 	ConvertString
 =================================================
 */
-	ND_ inline BasicString<CharType>  ConvertString (const String &src)
+	template <typename T>
+	ND_ inline BasicString<CharType>  ConvertString (const BasicString<T> &src)
 	{
-		BasicString<CharType>	dst;
-		dst.assign( src.begin(), src.end() );
-		return dst;
-	}
+		constexpr bool	conv1 = IsSame< CharType, CharUtf8 > and
+								(IsSame< T, char > or IsSame< T, wchar_t >);
 
-	ND_ inline BasicString<CharType>  ConvertString (const WString &src)
-	{
+		constexpr bool	conv2 = IsSame< CharType, wchar_t > and
+								(IsSame< T, char > or IsSame< T, wchar_t >);
+
+		StaticAssert( conv1 or conv2 );
+		
 		BasicString<CharType>	dst;
-		dst.assign( src.begin(), src.end() );
+		dst.resize( src.length() );
+
+		for (usize i = 0; i < src.length(); ++i)
+			dst[i] = CharType(src[i]);
+
 		return dst;
 	}
 
@@ -450,7 +456,7 @@ namespace
 
 			CHECK_THROW_MSG( _fnPackAssets( &info ));
 
-			FileSystem::DeleteFile( _tempFile );
+			FileSystem::DeleteFile( ToPath( _tempFile ));
 
 			_files.clear();
 			_tempFile.clear();

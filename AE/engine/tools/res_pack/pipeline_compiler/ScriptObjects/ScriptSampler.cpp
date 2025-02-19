@@ -265,6 +265,11 @@ namespace
 		CHECK_THROW_MSG( value == Default or AnyBits( ESamplerOpt::All, value ));
 
 		_desc.options = value;
+		
+		if ( AnyBits( _desc.options, ESamplerOpt::Subsampled | ESamplerOpt::SubsampledCoarseReconstruction ))
+		{
+			TEST_FEATURE( GetFeatures(), fragmentDensityMap, "but required for sampler with 'Subsampled' or 'SubsampledCoarseReconstruction' flags" );
+		}
 	}
 
 	void  ScriptSampler::SetOptions2 (uint value) __Th___
@@ -541,6 +546,59 @@ namespace
 			if ( _desc.compareOp.has_value() )
 			{
 				SLOG( "compare mode for unnormalized coordinates is not supported" );
+				_desc.compareOp = {};
+			}
+		}
+
+		if ( AnyBits( _desc.options, ESamplerOpt::Subsampled | ESamplerOpt::SubsampledCoarseReconstruction ))
+		{
+			if ( _desc.UnnormalizedCoordinates() )
+			{
+				SLOG( "for subsampled sampler unnormalized coordinates must be false" );
+				_desc.options &= ~ESamplerOpt::UnnormalizedCoordinates;
+			}
+			
+			if ( _desc.minFilter != _desc.magFilter )
+			{
+				SLOG( "min & mag filter for subsampled sampler must equal" );
+				_desc.magFilter = _desc.minFilter;
+			}
+
+			if ( _desc.mipmapMode != EMipmapFilter::Nearest )
+			{
+				SLOG( "mipmap filter for subsampled sampler must be 'nearest'" );
+				_desc.mipmapMode = EMipmapFilter::Nearest;
+			}
+
+			if ( _desc.minLod != 0.0f or _desc.maxLod != 0.0f )
+			{
+				//SLOG( "min & max LOD for subsampled sampler must be zero" );
+				_desc.minLod = _desc.maxLod = 0.0f;
+			}
+
+			if ( _desc.addressMode.x != EAddressMode::ClampToEdge	and
+				 _desc.addressMode.x != EAddressMode::ClampToBorder )
+			{
+				SLOG( "U-address mode for subsampled sampler must be 'clamp'" );
+				_desc.addressMode.x = EAddressMode::ClampToEdge;
+			}
+
+			if ( _desc.addressMode.y != EAddressMode::ClampToEdge	and
+				 _desc.addressMode.y != EAddressMode::ClampToBorder )
+			{
+				SLOG( "V-address mode for subsampled sampler must be 'clamp'" );
+				_desc.addressMode.y = EAddressMode::ClampToEdge;
+			}
+			
+			if ( _desc.HasAnisotropy() )
+			{
+				SLOG( "anisotropy filter for subsampled sampler is not supported" );
+				_desc.maxAnisotropy = 0.f;
+			}
+
+			if ( _desc.compareOp.has_value() )
+			{
+				SLOG( "compare mode for subsampled sampler is not supported" );
 				_desc.compareOp = {};
 			}
 		}

@@ -321,7 +321,8 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 	block_qual.layoutBinding	= 0;
 	block_qual.layoutSet		= descSetIndex;
 
-	TIntermSymbol*	storage_buf	= new TIntermSymbol{ 0x10000001, "dbg_ShaderTrace", TType{type_list, "dbg_ShaderTraceStorage", block_qual} };
+	TIntermSymbol*	storage_buf	= new TIntermSymbol{ 0x10000001, "dbg_ShaderTrace", dbgInfo.GetShaderType(),
+													 TType{type_list, "dbg_ShaderTraceStorage", block_qual} };
 
 	pixelsOffset = pixels->getQualifier().layoutOffset;
 
@@ -349,7 +350,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 		vec4_type.qualifier.storage	= TStorageQualifier::EvqFragCoord;
 		vec4_type.qualifier.builtIn	= TBuiltInVariable::EbvFragCoord;
 
-		TIntermSymbol*	symb = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "gl_FragCoord", TType{vec4_type} };
+		TIntermSymbol*	symb = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "gl_FragCoord", dbgInfo.GetShaderType(), TType{vec4_type} };
 		symb->setLoc( loc );
 		dbgInfo.CacheSymbolNode( symb, true );
 	}
@@ -362,7 +363,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 		uint_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		uint_type.qualifier.builtIn	= TBuiltInVariable::EbvGlobalInvocationId;
 
-		TIntermSymbol*	symb = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "gl_GlobalInvocationID", TType{uint_type} };
+		TIntermSymbol*	symb = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "gl_GlobalInvocationID", dbgInfo.GetShaderType(), TType{uint_type} };
 		symb->setLoc( loc );
 		dbgInfo.CacheSymbolNode( symb, true );
 	}
@@ -375,7 +376,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 		uint_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		uint_type.qualifier.builtIn	= TBuiltInVariable::EbvLaunchId;
 
-		TIntermSymbol*	symb = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "gl_LaunchIDEXT", TType{uint_type} };
+		TIntermSymbol*	symb = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "gl_LaunchIDEXT", dbgInfo.GetShaderType(), TType{uint_type} };
 		symb->setLoc( loc );
 		dbgInfo.CacheSymbolNode( symb, true );
 	}
@@ -422,7 +423,7 @@ ND_ static TIntermBinary*  GetFragmentCoord (TIntermSymbol* coord, DebugInfo &db
 	frag_mul_scale->setRight( scale );
 
 	// "... ivec2(gl_FragCoord.xy * dbg_ShaderTrace.scale) ..."
-	TIntermUnary*		to_ivec2	= new TIntermUnary{ TOperator::EOpConvFloatToInt };
+	TIntermUnary*		to_ivec2	= new TIntermUnary{ TOperator::EOpConvNumeric };
 	type.basicType		= TBasicType::EbtInt;
 	to_ivec2->setType( TType{type} );
 	to_ivec2->setOperand( frag_mul_scale );
@@ -486,7 +487,7 @@ ND_ static TIntermBinary*  GetComputeCoord (TIntermSymbol* coord, DebugInfo &dbg
 
 	// "... vec2(gl_GlobalInvocationID) ..."
 	TIntermSymbol*		workgroup	= dbgInfo.GetCachedSymbolNode( "gl_GlobalInvocationID" );
-	TIntermUnary*		to_vec2		= new TIntermUnary{ TOperator::EOpConvUintToFloat };
+	TIntermUnary*		to_vec2		= new TIntermUnary{ TOperator::EOpConvNumeric };
 	CHECK_ERR( workgroup != null );
 
 	to_vec2->setType( TType{type} );
@@ -501,7 +502,7 @@ ND_ static TIntermBinary*  GetComputeCoord (TIntermSymbol* coord, DebugInfo &dbg
 	work_mul_scale->setRight( scale );
 
 	// "... ivec2(vec2(gl_GlobalInvocationID) * dbg_ShaderTrace.scale) ..."
-	TIntermUnary*		to_ivec2	= new TIntermUnary{ TOperator::EOpConvFloatToInt };
+	TIntermUnary*		to_ivec2	= new TIntermUnary{ TOperator::EOpConvNumeric };
 	type.basicType		= TBasicType::EbtInt;
 	to_ivec2->setType( TType{type} );
 	to_ivec2->setOperand( work_mul_scale );
@@ -564,7 +565,7 @@ ND_ static TIntermBinary*  GetRayTracingCoord (TIntermSymbol* coord, DebugInfo &
 
 	// "... vec2(gl_LaunchID) ..."
 	TIntermSymbol*		launch_id	= dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
-	TIntermUnary*		to_vec3		= new TIntermUnary{ TOperator::EOpConvUintToFloat };
+	TIntermUnary*		to_vec3		= new TIntermUnary{ TOperator::EOpConvNumeric };
 	CHECK_ERR( launch_id != null );
 
 	type.vectorSize = 3;
@@ -584,7 +585,7 @@ ND_ static TIntermBinary*  GetRayTracingCoord (TIntermSymbol* coord, DebugInfo &
 	launch_mul_scale->setRight( scale );
 
 	// "... ivec2(vec2(gl_LaunchID) * dbg_ShaderTrace.scale) ..."
-	TIntermUnary*		to_ivec2	= new TIntermUnary{ TOperator::EOpConvFloatToInt };
+	TIntermUnary*		to_ivec2	= new TIntermUnary{ TOperator::EOpConvNumeric };
 	type.basicType		= TBasicType::EbtInt;
 	to_ivec2->setType( TType{type} );
 	to_ivec2->setOperand( launch_mul_scale );
@@ -658,7 +659,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 	TIntermConstantUnion*	y_field		= new TIntermConstantUnion{ y_index, TType{index_type} };
 
 	// "ivec2  dbg_Coord = ..."
-	TIntermSymbol*	coord		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Coord", TType{type} };
+	TIntermSymbol*	coord		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Coord", dbgInfo.GetShaderType(), TType{type} };
 	TIntermBinary*	assign_coord = null;
 	{
 		switch_enum( dbgInfo.GetShaderType() )
@@ -716,7 +717,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 		time_call->setType( TType{type} );
 
 		type.qualifier.storage	= TStorageQualifier::EvqTemporary;
-		start_time = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_StartTime", TType{type} };
+		start_time = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_StartTime", dbgInfo.GetShaderType(), TType{type} };
 
 		TIntermBinary*		assign_time	= new TIntermBinary{ TOperator::EOpAssign };
 		assign_time->setType( TType{type} );
@@ -739,7 +740,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 
 			// "uvec2 dbg_EndTime"
 			type.qualifier.storage	= TStorageQualifier::EvqTemporary;
-			end_time = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_EndTime", TType{type} };
+			end_time = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_EndTime", dbgInfo.GetShaderType(), TType{type} };
 
 			// "uvec2 dbg_EndTime = clockRealtime2x32EXT();"
 			TIntermBinary*		assign_time	= new TIntermBinary{ TOperator::EOpAssign };
@@ -791,12 +792,12 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 			type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 
 			// "double(dbg_EndTime.x)"
-			TIntermUnary*		endx_to_d		= new TIntermUnary{ TOperator::EOpConvUintToDouble };
+			TIntermUnary*		endx_to_d		= new TIntermUnary{ TOperator::EOpConvNumeric };
 			endx_to_d->setType( TType{type} );
 			endx_to_d->setOperand( endx_access );
 
 			// "double(dbg_EndTime.y)"
-			TIntermUnary*		endy_to_d		= new TIntermUnary{ TOperator::EOpConvUintToDouble };
+			TIntermUnary*		endy_to_d		= new TIntermUnary{ TOperator::EOpConvNumeric };
 			endy_to_d->setType( TType{type} );
 			endy_to_d->setOperand( endy_access );
 
@@ -813,12 +814,12 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 			end_add_parts->setRight( endx_to_d );
 
 			// "double(dbg_StartTime.x)"
-			TIntermUnary*		startx_to_d		= new TIntermUnary{ TOperator::EOpConvUintToDouble };
+			TIntermUnary*		startx_to_d		= new TIntermUnary{ TOperator::EOpConvNumeric };
 			startx_to_d->setType( TType{type} );
 			startx_to_d->setOperand( startx_access );
 
 			// "double(dbg_StartTime.y)"
-			TIntermUnary*		starty_to_d		= new TIntermUnary{ TOperator::EOpConvUintToDouble };
+			TIntermUnary*		starty_to_d		= new TIntermUnary{ TOperator::EOpConvNumeric };
 			starty_to_d->setType( TType{type} );
 			starty_to_d->setOperand( starty_access );
 
@@ -842,12 +843,12 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 
 			// "float( ... )"
 			type.basicType		= TBasicType::EbtFloat;
-			TIntermUnary*		diff_to_float	= new TIntermUnary{ TOperator::EOpConvDoubleToFloat };
+			TIntermUnary*		diff_to_float	= new TIntermUnary{ TOperator::EOpConvNumeric };
 			diff_to_float->setType( TType{type} );
 			diff_to_float->setOperand( end_minus_start );
 
 			// "float dbg_Diff"
-			time_diff = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Diff", TType{type} };
+			time_diff = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Diff", dbgInfo.GetShaderType(), TType{type} };
 
 			// "float dbg_Diff = float( ... );"
 			TIntermBinary*		assign_diff	= new TIntermBinary{ TOperator::EOpAssign };
@@ -899,7 +900,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 			calc_index->setRight( cy_mul_width );
 
 			// "int  dbg_Index = dbg_Coord.x + dbg_Coord.y * dbg_ShaderTrace.dimension.x"
-								index			= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Index", TType{type} };
+								index			= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Index", dbgInfo.GetShaderType(), TType{type} };
 			TIntermBinary*		assign_index	= new TIntermBinary{ TOperator::EOpAssign };
 			assign_index->setType( TType{type} );
 			assign_index->setLeft( index );
@@ -918,7 +919,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 
 			type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 
-			TIntermSymbol*			old_value		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_OldValue", TType{type} };
+			TIntermSymbol*			old_value		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_OldValue", dbgInfo.GetShaderType(), TType{type} };
 			TIntermBinary*			init_old_val	= new TIntermBinary{ TOperator::EOpAssign };
 			init_old_val->setType( TType{type} );
 			init_old_val->setLeft( old_value );
@@ -945,7 +946,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 			old_diff_to_u->setOperand( oldf_add_diff );
 
 			// "uint dbg_NewValue = floatBitsToUint( uintBitsToFloat( dbg_OldValue ) + dbg_Diff );"
-			TIntermSymbol*		new_value		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_NewValue", TType{type} };
+			TIntermSymbol*		new_value		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_NewValue", dbgInfo.GetShaderType(), TType{type} };
 			TIntermBinary*		assign_new_val	= new TIntermBinary{ TOperator::EOpAssign };
 			assign_new_val->setType( TType{type} );
 			assign_new_val->setLeft( new_value );
@@ -954,7 +955,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 			// new line
 
 			// "dbg_Expected  = dbg_OldValue;"
-			TIntermSymbol*		expected_val	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Expected", TType{type} };
+			TIntermSymbol*		expected_val	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Expected", dbgInfo.GetShaderType(), TType{type} };
 			TIntermBinary*		assign_exp_val	= new TIntermBinary{ TOperator::EOpAssign };
 			assign_exp_val->setType( TType{type} );
 			assign_exp_val->setLeft( expected_val );

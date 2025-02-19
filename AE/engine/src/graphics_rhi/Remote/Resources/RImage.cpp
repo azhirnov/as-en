@@ -138,24 +138,22 @@ namespace AE::Graphics
 		CHECK_ERR( resMngr.GetDevice().SendAndWait( msg, OUT res ));
 		return res->supported;
 	}
-
+	
 /*
 =================================================
 	IsSupported
 =================================================
 */
-	bool  RImage::IsSupported (const RResourceManager &resMngr, const ImageViewDesc &desc) C_NE___
+	bool  RImage::IsSupported (const RResourceManager &resMngr, const ImageDesc &desc, const ImageViewDesc &viewDesc) __NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
-
-		if ( not ImageView_IsSupported( resMngr, _desc, desc ))
+		if ( not ImageView_IsSupported( resMngr, desc, viewDesc ))
 			return false;
 
 		Msg::ResMngr_IsSupported_ImageViewDesc	msg;
 		RC<Msg::ResMngr_IsSupported_Response>	res;
 
-		msg.imageId	= _imageId;
-		msg.desc	= desc;
+		msg.imgDesc		= desc;
+		msg.viewDesc	= viewDesc;
 
 		CHECK_ERR( resMngr.GetDevice().SendAndWait( msg, OUT res ));
 		return res->supported;

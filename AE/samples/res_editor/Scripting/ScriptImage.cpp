@@ -663,6 +663,18 @@ namespace
 				case EResourceUsage::Sampled :			_desc.usage |= EImageUsage::Sampled;									break;
 				case EResourceUsage::Transfer :			_desc.usage |= EImageUsage::Transfer;									break;
 
+				case EResourceUsage::FragShadingRate :	_desc.usage |= EImageUsage::ShadingRate;								break;
+
+				case EResourceUsage::FragDensityMap :
+					_desc.usage			|= EImageUsage::FragmentDensityMap;
+					_viewDesc.options	|= EImageViewOpt::FragmentDensityMap_Dynamic;
+					break;
+
+				case EResourceUsage::SubsampledAttachment :
+					_desc.usage		&= ~EImageUsage::Transfer;
+					_desc.options	|= EImageOpt::Subsampled;
+					break;
+
 				case EResourceUsage::GenMipmaps :
 					_desc.usage		|= EImageUsage::Transfer;
 					_desc.options	|= (EImageOpt::BlitSrc | EImageOpt::BlitDst);
@@ -692,7 +704,9 @@ namespace
 			return _resource;
 		}
 
-		if ( AllBits( _desc.usage, EImageUsage::TransferSrc ) and NoBits( _desc.usage, EImageUsage::DepthStencilAttachment ))
+		if ( AllBits( _desc.usage, EImageUsage::TransferSrc )			and
+			 NoBits( _desc.usage, EImageUsage::DepthStencilAttachment )	and
+			 NoBits( _desc.options, EImageOpt::Subsampled ))
 			_desc.options |= EImageOpt::BlitSrc;
 
 		if ( NoBits( _desc.usage, EImageUsage_AllowImageView ))
@@ -731,6 +745,9 @@ namespace
 		else
 		{
 			CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
+				"Image '"s << _dbgName << "' description is not supported by GPU device" );
+			
+			CHECK_THROW_MSG( res_mngr.IsSupported( _desc, _viewDesc ),
 				"Image '"s << _dbgName << "' description is not supported by GPU device" );
 
 			id.image = res_mngr.CreateImage( _desc, _dbgName, gfx_alloc );

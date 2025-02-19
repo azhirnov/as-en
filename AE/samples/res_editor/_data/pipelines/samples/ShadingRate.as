@@ -71,7 +71,9 @@
 		gl.Position		= WorldPosToClipSpace( pos );
 		Out.worldPos	= pos.xyz;
 
-		gl.PrimitiveShadingRate = (iRate.y&3) | ((iRate.x&3) << 2);
+	  #ifdef iPrimRate
+		gl.PrimitiveShadingRate = (iPrimRate.y&3) | ((iPrimRate.x&3) << 2);
+	  #endif
 	}
 
 #endif
@@ -84,7 +86,7 @@
 	{
 		uint	y	= (gl.ShadingRate & 3) + 1;				// 1..3
 		uint	x	= ((gl.ShadingRate >> 2) & 3) + 1;		// 1..3
-		float	h	= DHash13( In.worldPos );
+		float	h	= DHash13( In.worldPos * 100.0 );
 
 		out_Color = Rainbow( (x * y - 1) / 9.0 );
 

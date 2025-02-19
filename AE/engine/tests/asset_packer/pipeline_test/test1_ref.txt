@@ -258,12 +258,12 @@ DepthStencilStates {
 PipelineTemplNames {
   [0]  'graphics_2', 10000000
   [1]  'compute_2', 30000002
-  [2]  'mesh_1', 20000001
+  [2]  'mesh_1', 20000000
   [3]  'compute_3', 30000001
   [4]  'graphics_3', 10000001
   [5]  'compute_1', 30000000
   [6]  'graphics_1', 10000000
-  [7]  'mesh_2', 20000000
+  [7]  'mesh_2', 20000001
   [8]  'raytracing_1', 40000000
   [9]  'graphics_4', 10000002
 }
@@ -333,24 +333,24 @@ MeshPipelineTempl {
       Fragment = 10000009
     }
     outputTopology       = TriangleList
-    maxVertices          = 32
-    maxIndices           = 192
+    maxVertices          = 3
+    maxIndices           = 3
     earlyFragmentTests   = true
-    meshDefaultLocalSize = { 1, 1, 1 }
-    meshLocalSizeSpec    = { 0, Undefined, Undefined }
+    meshDefaultLocalSize = { 3, 1, 1 }
     features          = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
   [1]
     layout  = 3
     shaders = {
-      Mesh = 1000000a
-      Fragment = 1000000b
+      Mesh = 1000000f
+      Fragment = 10000010
     }
     outputTopology       = TriangleList
-    maxVertices          = 3
-    maxIndices           = 3
+    maxVertices          = 32
+    maxIndices           = 192
     earlyFragmentTests   = true
-    meshDefaultLocalSize = { 3, 1, 1 }
+    meshDefaultLocalSize = { 1, 1, 1 }
+    meshLocalSizeSpec    = { 0, Undefined, Undefined }
     features          = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
 }
@@ -386,29 +386,29 @@ RayTracingPipelineTempl {
     generalShaders = {
       [0] {
         name   = 'Main'
-        shader = 1000000c
+        shader = 1000000a
       }
       [1] {
         name   = 'Miss'
-        shader = 1000000d
+        shader = 1000000b
       }
     }
     triangleGroups = {
       [0] {
         name       = 'TriHit1'
-        closestHit = 1000000e
+        closestHit = 1000000c
         anyHit     = none
       }
       [1] {
         name       = 'TriHit2'
-        closestHit = 1000000e
-        anyHit     = 1000000f
+        closestHit = 1000000c
+        anyHit     = 1000000d
       }
     }
     proceduralGroups = {
       [0] {
         name         = 'ProcHit1'
-        intersection = 10000010
+        intersection = 1000000e
         closestHit   = none
         anyHit       = none
       }
@@ -522,7 +522,6 @@ MeshPipelineSpec {
     viewportCount = 1
     dynamicState  = 0
     options       = Optimize
-    meshLocalSize = { 3, Default, Default }
   [1]
     templUID      = 20000001
     rStateUID     = 2
@@ -532,6 +531,7 @@ MeshPipelineSpec {
     viewportCount = 1
     dynamicState  = 0
     options       = Optimize
+    meshLocalSize = { 3, Default, Default }
 }
 
 ComputePipelineSpec {
@@ -611,8 +611,8 @@ RenderTechniques {
       }
     }
     pipelines = {
-      [0]  'mesh_2 rp:Simple', 20000000
-      [1]  'mesh_1 rp:Simple', 20000001
+      [0]  'mesh_2 rp:Simple', 20000001
+      [1]  'mesh_1 rp:Simple', 20000000
     }
     shader binding tables = {}
   ----------------------
@@ -656,38 +656,38 @@ SpirvShaders {
   [0]  offset = 0 B
   [1]  offset = 8 KiB
   [2]  offset = 10 KiB
-  [3]  offset = 11 KiB
+  [3]  offset = 12 KiB
   [4]  offset = 13 KiB
-  [5]  offset = 14 KiB
+  [5]  offset = 15 KiB
   [6]  offset = 16 KiB
-  [7]  offset = 17 KiB
-  [8]  offset = 19 KiB
+  [7]  offset = 18 KiB
+  [8]  offset = 20 KiB
   [9]  offset = 23 KiB
-  [10]  offset = 25 KiB
-  [11]  offset = 29 KiB
-  [12]  offset = 33 KiB
-  [13]  offset = 36 KiB
-  [14]  offset = 38 KiB
+  [10]  offset = 28 KiB
+  [11]  offset = 31 KiB
+  [12]  offset = 32 KiB
+  [13]  offset = 35 KiB
+  [14]  offset = 37 KiB
   [15]  offset = 40 KiB
-  [16]  offset = 42 KiB
+  [16]  offset = 44 KiB
 }
 
 SpirvShaderData {
-  [0]  offset = 40 KiB
-  [1]  offset = 48 KiB
-  [2]  offset = 50 KiB
-  [3]  offset = 51 KiB
-  [4]  offset = 53 KiB
-  [5]  offset = 54 KiB
-  [6]  offset = 56 KiB
-  [7]  offset = 57 KiB
-  [8]  offset = 59 KiB
-  [9]  offset = 63 KiB
-  [10]  offset = 65 KiB
-  [11]  offset = 69 KiB
-  [12]  offset = 73 KiB
-  [13]  offset = 76 KiB
-  [14]  offset = 78 KiB
-  [15]  offset = 80 KiB
-  [16]  offset = 82 KiB
+  [0]  offset = 43 KiB
+  [1]  offset = 51 KiB
+  [2]  offset = 53 KiB
+  [3]  offset = 55 KiB
+  [4]  offset = 56 KiB
+  [5]  offset = 58 KiB
+  [6]  offset = 59 KiB
+  [7]  offset = 61 KiB
+  [8]  offset = 63 KiB
+  [9]  offset = 67 KiB
+  [10]  offset = 71 KiB
+  [11]  offset = 74 KiB
+  [12]  offset = 76 KiB
+  [13]  offset = 78 KiB
+  [14]  offset = 80 KiB
+  [15]  offset = 83 KiB
+  [16]  offset = 87 KiB
 }

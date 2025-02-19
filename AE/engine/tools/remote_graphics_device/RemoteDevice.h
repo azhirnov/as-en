@@ -332,6 +332,8 @@ namespace AE::RemoteGraphics
 
 		ND_ Query  _UnpackQuery (const Msg::Query_Alloc_Response::SerQuery &);
 
+		ND_ auto&  _GetDevice ()				{ return _device; }
+
 	private:
 		template <typename ID, typename T, typename P>	ND_ ID   _Set2 (T, P& pool);
 		template <typename T, typename ID, typename P>	ND_ T    _Get2 (ID, P& pool);

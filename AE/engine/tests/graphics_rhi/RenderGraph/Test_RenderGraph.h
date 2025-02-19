@@ -31,12 +31,13 @@ protected:
 protected:
 	RenderTechPipelinesPtr		_pipelines;
 	RenderTechPipelinesPtr		_dbgPipelines;
-	RenderTechPipelinesPtr		_acPipelines;		// async compute
-	RenderTechPipelinesPtr		_msPipelines;		// mesh shader
-	RenderTechPipelinesPtr		_rtPipelines;		// ray tracing
-	RenderTechPipelinesPtr		_rqPipelines;		// ray query
-	RenderTechPipelinesPtr		_vrsPipelines;		// fragment shading rate
-	RenderTechPipelinesPtr		_ycbcrPipelines;	// video image, ycbcr
+	RenderTechPipelinesPtr		_acPipelines;			// async compute
+	RenderTechPipelinesPtr		_msPipelines;			// mesh shader
+	RenderTechPipelinesPtr		_rtPipelines;			// ray tracing
+	RenderTechPipelinesPtr		_rqPipelines;			// ray query
+	RenderTechPipelinesPtr		_vrsPipelines;			// fragment shading rate
+	RenderTechPipelinesPtr		_ycbcrPipelines;		// video image, ycbcr
+	RenderTechPipelinesPtr		_mvPipelines;			// multiview, viewport array
 
 	TestQueue_t					_tests;
 	uint						_testsPassed		= 0;
@@ -124,6 +125,8 @@ private:
 
 	bool  Test_ShadingRate1 ();
 	bool  Test_Ycbcr1 ();
+	bool  Test_MultiView ();
+	bool  Test_ViewportArray ();
 
 	bool  Test_Debugger1 ();		// compute
 	bool  Test_Debugger2 ();		// graphics

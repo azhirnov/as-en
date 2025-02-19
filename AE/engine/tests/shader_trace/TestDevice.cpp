@@ -441,7 +441,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 	SpvOptions				spv_options;
 	spv::SpvBuildLogger		logger;
 
-	spv_options.generateDebugInfo	= false;
+	spv_options.generateDebugInfo	= true;
 	spv_options.disableOptimizer	= true;
 	spv_options.optimizeSize		= false;
 	spv_options.validate			= true;
@@ -449,13 +449,13 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 	spirvData.clear();
 	GlslangToSpv( *intermediate, OUT spirvData, &logger, &spv_options );
 
-	//AE_LOGI( logger.getAllMessages() );
 	CHECK_ERR( not spirvData.empty() );
 
 	// for debugging
-	#if 0 //def AE_ENABLE_SPIRV_CROSS
-	//if ( logger.getAllMessages().size() )
-	{
+	const auto	Decompile = [&spirvData]()
+	{{
+	#ifdef AE_ENABLE_SPIRV_CROSS
+	
 		spirv_cross::CompilerGLSL			compiler {spirvData.data(), spirvData.size()};
 		spirv_cross::CompilerGLSL::Options	opt = {};
 
@@ -476,28 +476,74 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 
 		String	glsl_src = compiler.compile();	// throw
 		AE_LOGI( glsl_src );
-	}
 	#endif
+	}};
 
-	// disassembly
-	#if 0 //defined(ENABLE_OPT)
+	#ifdef ENABLE_OPT
 	{
-		spv_context	ctx = spvContextCreate( SPV_ENV_VULKAN_1_1 );
-		CHECK_ERR( ctx != null );
+		String						log;
+		spvtools::ValidatorOptions	options;
+		spvtools::SpirvTools		tools{ SPV_ENV_VULKAN_1_4 };
+		tools.SetMessageConsumer(
+			[&log] (spv_message_level_t level, const char *source, const spv_position_t &position, const char *message) {
+				switch ( level )
+				{
+					case SPV_MSG_FATAL:
+					case SPV_MSG_INTERNAL_ERROR:
+					case SPV_MSG_ERROR:
+						log << "error: ";
+						break;
+					case SPV_MSG_WARNING:
+						log << "warning: ";
+						break;
+					case SPV_MSG_INFO:
+					case SPV_MSG_DEBUG:
+						log << "info: ";
+						break;
+				}
 
-		spv_text		text		= null;
-		spv_diagnostic	diagnostic	= null;
+				if ( source )
+					log << source << ":";
 
-		if ( spvBinaryToText( ctx, spirvData.data(), spirvData.size(), 0, &text, &diagnostic ) == SPV_SUCCESS )
+				log << ToString(position.line) << ":" << ToString(position.column) << ":" << ToString(position.index) << ":";
+				if ( message )
+					log << " " << message;
+			});
+		const bool	is_valid = tools.Validate( spirvData.data(), spirvData.size(), options );
+
+		// disassembly
+		if ( not is_valid )
 		{
-			AE_LOGI( String{ text->str, text->length });
-		}
+			spv_context		ctx = ::spvContextCreate( SPV_ENV_VULKAN_1_4 );
+			CHECK_ERR( ctx != null );
 
-		spvTextDestroy( text );
-		spvDiagnosticDestroy( diagnostic );
-		spvContextDestroy( ctx );
+			spv_text		text		= null;
+			spv_diagnostic	diagnostic	= null;
+
+			if ( ::spvBinaryToText( ctx, spirvData.data(), spirvData.size(), 0, OUT &text, OUT &diagnostic ) == SPV_SUCCESS )
+			{
+				AE_LOGI( "Disassembly:\n"s << StringView( text->str, text->length ));
+			}
+			::spvTextDestroy( text );
+			::spvDiagnosticDestroy( diagnostic );
+			::spvContextDestroy( ctx );
+		}
+		
+		if ( not is_valid )
+			Decompile();
+
+		CHECK_ERR_MSG( is_valid, "SPIRV validation error: "s << log );
 	}
-	#endif
+	#else
+	{
+		if ( logger.getAllMessages().size() )
+		{
+			Decompile();
+			AE_LOGI( logger.getAllMessages() );
+		}
+	}
+	#endif // ENABLE_OPT
+	
 	return true;
 }
 

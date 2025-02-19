@@ -75,21 +75,22 @@ namespace AE::Graphics
 
 	enum class ESamplerOpt : ubyte
 	{
-		Unknown					= 0,
+		Unknown							= 0,
 
-		ArgumentBuffer			= 1 << 0,	// for Metal	// TODO
+		ArgumentBuffer					= 1 << 0,	// for Metal	// TODO
 
 		// extension: 'nonSeamlessCubeMap'
-		NonSeamlessCubeMap		= 1 << 1,
+		NonSeamlessCubeMap				= 1 << 1,
 
-		UnnormalizedCoordinates	= 1 << 2,
+		UnnormalizedCoordinates			= 1 << 2,
 
 		// extension: 'fragDensityMap'
-		//Subsampled						= 1 << ,
-		//SubsampledCoarseReconstruction	= 1 << ,
+		Subsampled						= 1 << 3,	// sampler will read from image with 'EImageOpt::Subsampled'.
+		SubsampledCoarseReconstruction	= 1 << 4,	// implementation may use approximations when reconstructing a full color from subsampled image.
+													// if 'subsampledCoarseReconstructionEarlyAccess = true' then image will be additionally accessed in VS.
 
 		_Last,
-		All						= ((_Last - 1) << 1) - 1
+		All								= ((_Last - 1) << 1) - 1
 	};
 	AE_BIT_OPERATORS( ESamplerOpt );
 

@@ -213,6 +213,17 @@ If the image or sampler object used by an implicit derivative image instruction 
 * fragmentShadingRateTexelSize
 * fragmentShadingRates
 
+### Fragment density map (GL_EXT_fragment_invocation_density)
+
+* fragmentDensityMap
+* fragmentDensityMapDynamic
+* fragmentDensityMapNonSubsampledImages
+* fragmentDensityInvocations
+* subsampledLoads
+* maxSubsampledArrayLayers
+* __perPipeline_maxSubsampledSamplers__<br/>
+Vulkan: maxDescriptorSetSubsampledSamplers
+
 ### Inline ray tracing (GL_EXT_ray_query)
 
 * __rayQuery__<br/>

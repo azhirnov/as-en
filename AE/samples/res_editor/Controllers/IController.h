@@ -64,6 +64,7 @@ namespace AE::ResEditor
 
 		ND_ virtual float2			GetClipPlanes ()							C_NE___ = 0;
 		ND_ virtual float			GetZoom ()									C_NE___ = 0;
+		ND_ virtual float2			GetFOV ()									C_NE___ = 0;
 
 	//	ND_ virtual RaysGrid_t		GetRaysGrid ()								C_NE___ = 0;
 
@@ -126,6 +127,7 @@ namespace AE::ResEditor
 		camera.clipPlanes	= GetClipPlanes();
 		camera.zoom			= GetZoom();
 		camera.pos			= GetPosition();
+		camera.fov			= GetFOV();
 
 		for (uint i = 0; i < 6; ++i) {
 			camera.frustum[i] = float4{frustum.GetPlane( i )};

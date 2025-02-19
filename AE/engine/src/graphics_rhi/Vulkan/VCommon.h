@@ -90,6 +90,7 @@ namespace AE::Graphics
 	VULKAN_ENUM_BIT_OPERATORS( VkImageCreateFlagBits );
 	VULKAN_ENUM_BIT_OPERATORS( VkQueueFlagBits );
 	VULKAN_ENUM_BIT_OPERATORS( VkImageUsageFlagBits );
+	VULKAN_ENUM_BIT_OPERATORS( VkImageViewCreateFlagBits );
 	VULKAN_ENUM_BIT_OPERATORS( VkBufferUsageFlagBits );
 	VULKAN_ENUM_BIT_OPERATORS( VkSampleCountFlagBits );
 	VULKAN_ENUM_BIT_OPERATORS( VkMemoryPropertyFlagBits );

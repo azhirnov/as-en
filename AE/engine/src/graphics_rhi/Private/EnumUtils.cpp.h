@@ -135,6 +135,7 @@ namespace AE::Graphics
 			case _EResState::IndexBuffer :
 			case _EResState::VertexBuffer :
 			case _EResState::ShadingRateImage :
+			case _EResState::FragmentDensityMap :
 			case _EResState::CopyRTAS_Read :
 			case _EResState::CopyRTAS_Write :
 			case _EResState::BuildRTAS_Read :
@@ -260,6 +261,7 @@ namespace AE::Graphics
 			case _EResState::BuildRTAS_IndirectBuffer :
 			case _EResState::RTShaderBindingTable :
 			case _EResState::ShadingRateImage :
+			case _EResState::FragmentDensityMap :
 			case _EResState::General :
 				return false;
 

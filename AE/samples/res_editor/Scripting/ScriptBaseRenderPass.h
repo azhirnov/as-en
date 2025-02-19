@@ -38,6 +38,7 @@ namespace AE::ResEditor
 			ClearValue_t		clear;
 			EAttachmentLoadOp	loadOp			= EAttachmentLoadOp::Load;
 			EAttachmentStoreOp	storeOp			= EAttachmentStoreOp::Store;
+			EResourceUsage		usage			= Default;		// single bit
 		};
 
 
@@ -48,6 +49,8 @@ namespace AE::ResEditor
 		Viewports_t			_viewports;
 		ViewportWScaling_t	_wScaling;
 		Scissors_t			_scissors;
+	private:
+		bool				_subsampled		= false;
 
 
 	// methods
@@ -57,6 +60,9 @@ namespace AE::ResEditor
 
 		static void  _Output (Scripting::ScriptArgList args)						__Th___;
 		static void  _OutputBlend (Scripting::ScriptArgList args)					__Th___;
+
+		static void  _FragmentShadingRate (Scripting::ScriptArgList args)			__Th___;
+		static void  _FragmentDensityMap (Scripting::ScriptArgList args)			__Th___;
 
 	private:
 		void  _Output2 (Scripting::ScriptArgList args)								__Th___;

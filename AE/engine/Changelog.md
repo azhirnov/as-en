@@ -1,5 +1,4 @@
-## 25.01
-## 25.01.275
+## 25.01.277
 
 - Base: added FloatConversion, it is used in SFloat16, UFloat16, UFloat8, BFloat16
 - Base: remove Math namespace
@@ -13,7 +12,8 @@
 - Vulkan: add VK_NV_partitioned_acceleration_structure, VK_NV_cluster_acceleration_structure
 - Graphics: minimize FeatureSet size
 - Profiling: used Vulkan pipeline statistic
-
+- Vulkan: add VK_KHR_multiview, VK_EXT_fragment_density_map, VK_EXT_fragment_density_map2
+- Vulkan: add VK_NV_cooperative_vector
 
 ## 24.12.268
 

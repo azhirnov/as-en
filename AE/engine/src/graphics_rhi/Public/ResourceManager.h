@@ -286,6 +286,8 @@ namespace AE::Graphics
 		ND_ virtual bool						IsSupported (const VideoSessionDesc &desc)																		C_NE___ = 0;
 		ND_ virtual bool						IsSupported (BufferID buffer, const BufferViewDesc &desc)														C_NE___ = 0;
 		ND_ virtual bool						IsSupported (ImageID image, const ImageViewDesc &desc)															C_NE___ = 0;
+		ND_ virtual bool						IsSupported (const BufferDesc &desc, const BufferViewDesc &viewDesc)											C_NE___ = 0;
+		ND_ virtual bool						IsSupported (const ImageDesc &desc, const ImageViewDesc &viewDesc)												C_NE___ = 0;
 		ND_ virtual bool						IsSupported (const RTGeometryDesc &desc)																		C_NE___ = 0;
 		ND_ virtual bool						IsSupported (const RTGeometryBuild &build)																		C_NE___ = 0;
 		ND_ virtual bool						IsSupported (const RTSceneDesc &desc)																			C_NE___ = 0;

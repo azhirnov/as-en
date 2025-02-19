@@ -13,9 +13,24 @@ namespace AE::ResEditor
 */
 	void  ScriptBaseRenderPass::_Output (Scripting::ScriptArgList args) __Th___
 	{
-		args.GetObject< ScriptBaseRenderPass >()->_Output2( args );
-	}
+		auto*	obj = args.GetObject< ScriptBaseRenderPass >();
+		obj->_Output2( args );
+		
+		auto&	dst = obj->_output.back();
+		dst.rt->AddUsage( dst.usage );
 
+		if ( obj->_subsampled )
+			dst.rt->AddUsage( EResourceUsage::SubsampledAttachment );
+
+		if ( dst.rt->IsMutableDimension() )
+			obj->_SetDynamicDimension( dst.rt->DimensionRC() );
+	}
+	
+/*
+=================================================
+	_Output2
+=================================================
+*/
 	void  ScriptBaseRenderPass::_Output2 (Scripting::ScriptArgList args) __Th___
 	{
 		auto&	dst	= _output.emplace_back();
@@ -31,13 +46,10 @@ namespace AE::ResEditor
 		{
 			dst.rt = args.Arg< ScriptImagePtr const& >(idx++);
 			CHECK_THROW_MSG( dst.rt );
-			dst.rt->AddUsage( dst.rt->IsDepthOrStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment );
+			dst.usage = (dst.rt->IsDepthOrStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment);
 
 			if ( dst.rt->IsDepthOrStencil() )
 				dst.name = "DepthStencil";
-
-			if ( dst.rt->IsMutableDimension() )
-				_SetDynamicDimension( dst.rt->DimensionRC() );
 		}
 		else
 			CHECK_THROW_MSG( false, "image is not defined" );
@@ -107,9 +119,24 @@ namespace AE::ResEditor
 */
 	void  ScriptBaseRenderPass::_OutputBlend (Scripting::ScriptArgList args) __Th___
 	{
-		args.GetObject< ScriptBaseRenderPass >()->_OutputBlend2( args );
-	}
+		auto*	obj = args.GetObject< ScriptBaseRenderPass >();
+		obj->_OutputBlend2( args );
+		
+		auto&	dst = obj->_output.back();
+		dst.rt->AddUsage( dst.usage );
+		
+		if ( obj->_subsampled )
+			dst.rt->AddUsage( EResourceUsage::SubsampledAttachment );
 
+		if ( dst.rt->IsMutableDimension() )
+			obj->_SetDynamicDimension( dst.rt->DimensionRC() );
+	}
+	
+/*
+=================================================
+	_OutputBlend2
+=================================================
+*/
 	void  ScriptBaseRenderPass::_OutputBlend2 (Scripting::ScriptArgList args) __Th___
 	{
 		auto&	dst	= _output.emplace_back();
@@ -129,10 +156,7 @@ namespace AE::ResEditor
 			dst.rt = args.Arg< ScriptImagePtr const& >(idx++);
 			CHECK_THROW_MSG( dst.rt );
 			CHECK_THROW_MSG( dst.rt->IsColor() );
-			dst.rt->AddUsage( EResourceUsage::ColorAttachment );
-
-			if ( dst.rt->IsMutableDimension() )
-				_SetDynamicDimension( dst.rt->DimensionRC() );
+			dst.usage = EResourceUsage::ColorAttachment;
 		}
 		else
 			CHECK_THROW_MSG( false, "image is not defined" );
@@ -189,6 +213,66 @@ namespace AE::ResEditor
 				"unsupported fn signature" );
 		}
 	}
+	
+/*
+=================================================
+	_FragmentShadingRate
+=================================================
+*/
+	 void  ScriptBaseRenderPass::_FragmentShadingRate (Scripting::ScriptArgList args) __Th___
+	 {
+		auto*	obj = args.GetObject< ScriptBaseRenderPass >();
+		
+		for (auto& out : obj->_output)
+		{
+			CHECK_THROW_MSG( out.usage != EResourceUsage::FragShadingRate,
+				"'FragShadingRate' already added" );
+			
+			CHECK_THROW_MSG( out.usage != EResourceUsage::FragDensityMap,
+				"can not combine 'FragShadingRate' with 'FragDensityMap'" );
+		}
+
+		obj->_Output2( args );
+
+		auto&	dst = obj->_output.back();
+		dst.name	= "ShadingRate";
+		dst.usage	= EResourceUsage::FragShadingRate;
+		dst.loadOp	= EAttachmentLoadOp::Load;
+		dst.storeOp	= EAttachmentStoreOp::None;
+		dst.rt->AddUsage( dst.usage );
+	 }
+	 
+/*
+=================================================
+	_FragmentDensityMap
+=================================================
+*/
+	 void  ScriptBaseRenderPass::_FragmentDensityMap (Scripting::ScriptArgList args) __Th___
+	 {
+		auto*	obj = args.GetObject< ScriptBaseRenderPass >();
+
+		for (auto& out : obj->_output)
+		{
+			CHECK_THROW_MSG( out.usage != EResourceUsage::FragDensityMap,
+				"'FragDensityMap' already added" );
+			
+			CHECK_THROW_MSG( out.usage != EResourceUsage::FragShadingRate,
+				"can not combine 'FragShadingRate' with 'FragDensityMap'" );
+
+			out.rt->AddUsage( EResourceUsage::SubsampledAttachment );
+		}
+
+		obj->_Output2( args );
+		
+		auto&	dst = obj->_output.back();
+		dst.name	= "FragmentDensity";
+		dst.usage	= EResourceUsage::FragDensityMap;
+		dst.loadOp	= EAttachmentLoadOp::Load;
+		dst.storeOp = EAttachmentStoreOp::None;
+		dst.rt->AddUsage( dst.usage );
+
+		obj->_subsampled = true;
+	 }
 
 /*
 =================================================
@@ -271,8 +355,10 @@ namespace AE::ResEditor
 		dst.inName	= inName;
 		dst.rt		= rt;
 
-		rt->AddUsage( rt->IsDepthOrStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment );
-		rt->AddUsage( EResourceUsage::InputAttachment );
+		dst.usage	= (rt->IsDepthOrStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment);
+		dst.usage	|= EResourceUsage::InputAttachment;
+
+		dst.rt->AddUsage( dst.usage );
 
 		if ( rt->IsMutableDimension() )
 			_SetDynamicDimension( rt->DimensionRC() );

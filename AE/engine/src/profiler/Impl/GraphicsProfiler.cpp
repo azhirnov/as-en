@@ -980,6 +980,26 @@ namespace
 			Cast<CmdBuf>(cmdbuf)->WriteTimestamp( q_time, 0, BeginContextTypeToStage( type ));
 			pass.timestamp = q_time;
 		}
+
+		if ( type == EContextType::RenderPass )
+		{
+			ASSERT( not pass.pplnStat );
+			if ( auto q_stat = qm.AllocQuery( queue, _pplnStats.hasMeshShader ? EQueryType::MeshPipelineStatistic : EQueryType::GraphicsPipelineStatistic ))
+			{
+				Cast<CmdBuf>(cmdbuf)->BeginQuery( q_stat, 0 );
+				pass.pplnStat = q_stat;
+			}
+		}
+
+		if ( type == EContextType::Compute )
+		{
+			ASSERT( not pass.pplnStat );
+			if ( auto q_stat = qm.AllocQuery( queue, EQueryType::ComputePipelineStatistic ))
+			{
+				Cast<CmdBuf>(cmdbuf)->BeginQuery( q_stat, 0 );
+				pass.pplnStat = q_stat;
+			}
+		}
 		
 		if ( not (pass.pplnStat or pass.timestamp) )
 			return;	// failed to allocate
@@ -1021,6 +1041,7 @@ namespace
 				CHECK( not last.recorded );
 
 				last.recorded	= true;
+				pass.pplnStat	= last.pplnStat;
 				pass.timestamp	= last.timestamp;
 			}
 		}
@@ -1028,6 +1049,10 @@ namespace
 		if ( pass.timestamp )
 		{
 			Cast<CmdBuf>(cmdbuf)->WriteTimestamp( pass.timestamp, 1, EndContextTypeToStage( type ));
+		}
+		if ( pass.pplnStat )
+		{
+			Cast<CmdBuf>(cmdbuf)->EndQuery( pass.pplnStat, 0 );
 		}
 	}
 

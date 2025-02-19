@@ -35,6 +35,7 @@ namespace AE::Graphics
 			DepthRW_StencilTest,
 			PresentImage,
 			ShadingRateImage,
+			FragmentDensityMap,
 			General,
 
 			// image layout in shader stages
@@ -174,6 +175,7 @@ namespace AE::Graphics
 		RTShaderBindingTable					= _EResState::RTShaderBindingTable | _EResState::Read,
 
 		ShadingRateImage						= _EResState::ShadingRateImage | _EResState::Read,
+		FragmentDensityMap						= _EResState::FragmentDensityMap | _EResState::Read,
 
 		General									= _EResState::General | _EResState::ReadWrite,				// all stages & all access types
 

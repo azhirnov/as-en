@@ -925,6 +925,21 @@ namespace
 			chNotEqual2( fragmentShadingRateWithFragmentShaderInterlock,	True, neg_feat );
 			chNotEqual2( fragmentShadingRateWithCustomSampleLocations,		True, neg_feat );
 		}
+		
+		if ( fEqual( fragmentDensityMap, EFeature::RequireTrue ))
+		{
+			chGreaterEq( maxSubsampledArrayLayers,				POTValue_From<1> );
+			chGreaterEq( perPipeline_maxSubsampledSamplers,		1 );
+		}
+		else
+		{
+			chNotEqual2( fragmentDensityMapDynamic,				EFeature::RequireTrue, neg_feat );
+			chNotEqual2( fragmentDensityMapNonSubsampledImages,	EFeature::RequireTrue, neg_feat );
+			chNotEqual2( fragmentDensityInvocations,			EFeature::RequireTrue, neg_feat );
+			chNotEqual2( subsampledLoads,						EFeature::RequireTrue, neg_feat );
+			chEqual(	 maxSubsampledArrayLayers,				invalid_pot );
+			chEqual(	 perPipeline_maxSubsampledSamplers,		0 );
+		}
 
 		if ( fNotEq( bufferDeviceAddress, True ))
 		{
@@ -1145,6 +1160,10 @@ namespace
 			chNotEqual2( cooperativeMatrixStages, EShaderStages::Unknown, EShaderStages::Compute );
 		}else{
 			chEqual( cooperativeMatrixStages, EShaderStages::Unknown );
+		}
+		
+		if ( fEqual( cooperativeVectorTraining, True )) {
+			chEqual( cooperativeVector, True );
 		}
 
 		if ( fEqual( externalFormatAndroid, True )) {
@@ -1421,6 +1440,7 @@ namespace
 				case EImageUsage::DepthStencilAttachment :
 				case EImageUsage::InputAttachment :			result &= CheckFormatUsage( attachmentFormats );	break;
 				case EImageUsage::ShadingRate :				result &= (attachmentFragmentShadingRate == EFeature::RequireTrue);	break;
+				case EImageUsage::FragmentDensityMap :		result &= (fragmentDensityMap			 == EFeature::RequireTrue);	break;
 				case EImageUsage::TransferSrc :				break;
 				case EImageUsage::TransferDst :				break;
 				case EImageUsage::Sampled :					break;
@@ -1453,6 +1473,7 @@ namespace
 				case EImageOpt::SampledMinMax :				break;	// TODO
 				case EImageOpt::VertexPplnStore :			result &= (fragmentStoresAndAtomics			== EFeature::RequireTrue);	break;
 				case EImageOpt::FragmentPplnStore :			result &= (vertexPipelineStoresAndAtomics	== EFeature::RequireTrue);	break;
+				case EImageOpt::Subsampled :				result &= (fragmentDensityMap				== EFeature::RequireTrue);	break;
 				case EImageOpt::LossyRTCompression :		break;	// TODO
 				case EImageOpt::BlitSrc :					break;
 				case EImageOpt::BlitDst :					break;
@@ -1502,6 +1523,7 @@ namespace
 					case EImageUsage::DepthStencilAttachment :
 					case EImageUsage::InputAttachment :			result &= attachmentFormats.contains( view.format );				break;
 					case EImageUsage::ShadingRate :				result &= (attachmentFragmentShadingRate == EFeature::RequireTrue);	break;
+					case EImageUsage::FragmentDensityMap :		result &= (fragmentDensityMap			 == EFeature::RequireTrue);	break;
 
 					case EImageUsage::_Last :
 					case EImageUsage::All :
@@ -1513,6 +1535,15 @@ namespace
 				switch_end
 			}
 		}
+
+		const EImageUsage	all_usage = desc.usage | view.extUsage;		// may contain incompatible flags
+		
+		if ( AllBits( view.options, EImageViewOpt::FragmentDensityMap_Dynamic ))
+			result &= (fragmentDensityMapDynamic == EFeature::RequireTrue);
+
+		if ( AllBits( desc.options, EImageOpt::Subsampled ) and AllBits( all_usage, EImageUsage::Sampled ))
+			result &= (view.layerCount <= maxSubsampledArrayLayers);
+
 		return result;
 	}
 
@@ -1784,7 +1815,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0xf403c77fbb56d331ull};
+		return HashVal64{0x15d3028c4ed61a60ull};
 	}
 
 

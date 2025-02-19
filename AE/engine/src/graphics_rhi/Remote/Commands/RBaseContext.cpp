@@ -290,8 +290,40 @@ namespace AE::Graphics::_hidden_
 
 		Msg::CmdBuf_Bake::WriteTimestampCmd  cmd;
 		cmd.query	= q;
-		cmd.index	= index;
+		cmd.index	= ushort(index);
 		cmd.scope	= srcScope;
+		AddCommand( cmd );
+	}
+
+/*
+=================================================
+	BeginQuery
+=================================================
+*/
+	void  RSoftwareCmdBuf::BeginQuery (const RQueryManager::Query &q, uint index) __Th___
+	{
+		GCTX_CHECK( index < q.count );
+
+		Msg::CmdBuf_Bake::BeginEndQueryCmd  cmd;
+		cmd.query	= q;
+		cmd.index	= ushort(index);
+		cmd.begin	= true;
+		AddCommand( cmd );
+	}
+
+/*
+=================================================
+	EndQuery
+=================================================
+*/
+	void  RSoftwareCmdBuf::EndQuery (const RQueryManager::Query &q, uint index) __Th___
+	{
+		GCTX_CHECK( index < q.count );
+
+		Msg::CmdBuf_Bake::BeginEndQueryCmd  cmd;
+		cmd.query	= q;
+		cmd.index	= ushort(index);
+		cmd.begin	= false;
 		AddCommand( cmd );
 	}
 //-----------------------------------------------------------------------------
@@ -487,6 +519,30 @@ namespace AE::Graphics::_hidden_
 		GCTX_CHECK( _mngr.GetDevice().HasFeature( RDevice::EFeature::WriteTimestamp ));
 
 		_cmdbuf->WriteTimestamp( q, index, srcScope );
+	}
+	
+/*
+=================================================
+	_BeginQuery
+=================================================
+*/
+	void  RBaseContext::_BeginQuery (const RQueryManager::Query &q, uint index) __Th___
+	{
+		GCTX_CHECK( _mngr.GetDevice().HasFeature( RDevice::EFeature::Query ));
+
+		_cmdbuf->BeginQuery( q, index );
+	}
+	
+/*
+=================================================
+	_EndQuery
+=================================================
+*/
+	void  RBaseContext::_EndQuery (const RQueryManager::Query &q, uint index) __Th___
+	{
+		GCTX_CHECK( _mngr.GetDevice().HasFeature( RDevice::EFeature::Query ));
+
+		_cmdbuf->EndQuery( q, index );
 	}
 
 

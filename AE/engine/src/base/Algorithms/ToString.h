@@ -70,6 +70,12 @@ namespace AE::Base
 			str << std::hex << ToNearUInt( value );
 			return str.str();
 		}
+		else
+		if constexpr( Radix == 2 )
+		{
+			if ( value == T(0) ) return "0";
+			return std::bitset< sizeof(T)*8 >{ value }.to_string();
+		}
 	}
 
 /*

@@ -186,8 +186,6 @@ namespace AE::Graphics
 		if ( NoBits( usage, EImageUsage::DepthStencilAttachment ))
 			options &= ~EImageOpt::SampleLocationsCompatible;
 
-		// TODO: BlockTexelViewCompatible requires VK_KHR_maintenance2
-
 		if ( AllBits( options, EImageOpt::BlockTexelViewCompatible ) and (not is_comp_fmt) )
 			options &= EImageOpt::BlockTexelViewCompatible;
 
@@ -290,6 +288,14 @@ namespace AE::Graphics
 			.SetUsage( EImageUsage::Transfer )
 			.SetFormat( fmt )
 			.SetMemory( EMemoryType::HostCoherent );
+	}
+
+	ImageDesc  ImageDesc::CreateFragmentDensityMap (const uint2 &dim) __NE___
+	{
+		return ImageDesc{}
+			.SetDimension( dim )
+			.SetUsage( EImageUsage::FragmentDensityMap | EImageUsage::TransferDst )
+			.SetFormat( EPixelFormat::RG8_UNorm );
 	}
 //-----------------------------------------------------------------------------
 

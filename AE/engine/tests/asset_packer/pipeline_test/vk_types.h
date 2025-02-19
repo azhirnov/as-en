@@ -74,8 +74,8 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x892b138u}};
 
-		packed_float3  Position;
-		packed_ushort2  Texcoord;// normalized
+		packed_float3   Position;
+		packed_ushort2  Texcoord;  // normalized
 	};
 #endif
 	StaticAssert( offsetof(vb_input1, Position) == 0 );

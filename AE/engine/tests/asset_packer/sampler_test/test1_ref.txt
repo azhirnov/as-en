@@ -1,6 +1,6 @@
 name:  'NearestClamp'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest
@@ -14,7 +14,7 @@ Sampler{
 --------------
 name:  'NearestClamp|ycbcr|AndroidNV16'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest
@@ -36,7 +36,7 @@ Sampler{
 --------------
 name:  'LinearMipmapRepeat'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Linear
@@ -50,7 +50,7 @@ Sampler{
 --------------
 name:  'AnisotropyRepeat'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Linear
@@ -65,7 +65,7 @@ Sampler{
 --------------
 name:  'NearestClamp|ycbcr|AndroidYUY2'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest
@@ -87,7 +87,7 @@ Sampler{
 --------------
 name:  'LinearMipmapClamp'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Linear
@@ -101,7 +101,7 @@ Sampler{
 --------------
 name:  'LinearClamp'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Nearest
@@ -115,7 +115,7 @@ Sampler{
 --------------
 name:  'NearestRepeat'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest
@@ -129,7 +129,7 @@ Sampler{
 --------------
 name:  'LinearRepeat'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Linear
   minFilter:     Linear
   mipmapMode:    Nearest
@@ -143,7 +143,7 @@ Sampler{
 --------------
 name:  'NearestClamp|ycbcr|G8_B8R8_420_UNorm'
 Sampler{
-  options:       
+  options:       none
   magFilter:     Nearest
   minFilter:     Nearest
   mipmapMode:    Nearest

@@ -292,6 +292,8 @@ namespace
 		bool						IsSupported (const VideoSessionDesc &desc)															C_NE_OV	{ return _rm->IsSupported( desc ); }
 		bool						IsSupported (BufferID buffer, const BufferViewDesc &desc)											C_NE_OV	{ return _rm->IsSupported( buffer, desc ); }
 		bool						IsSupported (ImageID image, const ImageViewDesc &desc)												C_NE_OV	{ return _rm->IsSupported( image, desc ); }
+		bool						IsSupported (const BufferDesc &desc, const BufferViewDesc &viewDesc)								C_NE_OV	{ return _rm->IsSupported( desc, viewDesc ); }
+		bool						IsSupported (const ImageDesc &desc, const ImageViewDesc &viewDesc)									C_NE_OV	{ return _rm->IsSupported( desc, viewDesc ); }
 		bool						IsSupported (const RTGeometryDesc &desc)															C_NE_OV	{ return _rm->IsSupported( desc ); }
 		bool						IsSupported (const RTGeometryBuild &build)															C_NE_OV	{ return _rm->IsSupported( build ); }
 		bool						IsSupported (const RTSceneDesc &desc)																C_NE_OV	{ return _rm->IsSupported( desc ); }

@@ -48,6 +48,7 @@ namespace AE::Graphics
 			StateInfo{ UseDSStages,															VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,											VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL, _EResState::DepthRW_StencilTest				},
 			StateInfo{ VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,						VK_ACCESS_2_NONE,																														VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,							_EResState::PresentImage					},	// swapchain semaphore creates memory dependency
 			StateInfo{ VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,		VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR,																				VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR,_EResState::ShadingRateImage				},
+			StateInfo{ VK_PIPELINE_STAGE_2_FRAGMENT_DENSITY_PROCESS_BIT_EXT,				VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT,																							VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT,			_EResState::FragmentDensityMap				},
 			StateInfo{ VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,								VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT,																				VK_IMAGE_LAYOUT_GENERAL,									_EResState::General							},
 			StateInfo{ UseShaderStages,														VK_ACCESS_2_SHADER_STORAGE_READ_BIT,																									VK_IMAGE_LAYOUT_GENERAL,									_EResState::ShaderStorage_Read				},
 			StateInfo{ UseShaderStages,														VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT,																									VK_IMAGE_LAYOUT_GENERAL,									_EResState::ShaderStorage_Write				},

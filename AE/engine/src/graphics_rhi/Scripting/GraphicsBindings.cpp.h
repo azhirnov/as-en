@@ -885,8 +885,8 @@ namespace
 			BIND( ArgumentBuffer )
 			BIND( UnnormalizedCoordinates )
 			BIND( NonSeamlessCubeMap )
-		//	BIND( Subsampled )
-		//	BIND( SubsampledCoarseReconstruction )
+			BIND( Subsampled )
+			BIND( SubsampledCoarseReconstruction )
 			#undef BIND
 			case ESamplerOpt::_Last :
 			case ESamplerOpt::All :
@@ -1159,6 +1159,7 @@ namespace
 			BIND( DepthStencilAttachment )
 			BIND( InputAttachment )
 			BIND( ShadingRate )
+			BIND( FragmentDensityMap )
 			#undef BIND
 			default :
 				binder.AddValue( "All",				EImageUsage::All			);
@@ -1204,6 +1205,7 @@ namespace
 			BIND( FragmentPplnStore )
 			BIND( LossyRTCompression )
 			BIND( ExtendedUsage )
+			BIND( Subsampled )
 			#undef BIND
 			default :
 				binder.AddValue( "All",						EImageOpt::All						);
@@ -1328,17 +1330,20 @@ namespace
 	{
 		EnumBinder<EShadingRateCombinerOp>	binder{ se };
 		binder.Create();
+		binder.Comment( "S - original rate\nD - new rate" );
 		switch_enum( EShadingRateCombinerOp::Unknown )
 		{
 			case EShadingRateCombinerOp::Unknown :
 			case EShadingRateCombinerOp::_Count :
-			#define BIND( _name_ )		case EShadingRateCombinerOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), EShadingRateCombinerOp::_name_ );
-			BIND( Keep )
-			BIND( Replace )
-			BIND( Min )
-			BIND( Max )
-			BIND( Sum )
-			BIND( Mul )
+			#define BIND( _name_, _comment_ )		case EShadingRateCombinerOp::_name_ : \
+														binder.Comment( _comment_ ); \
+														binder.AddValue( AE_TOSTRING(_name_), EShadingRateCombinerOp::_name_ );
+			BIND( Keep,		"S" )
+			BIND( Replace,	"D" )
+			BIND( Min,		"min( S, D )" )
+			BIND( Max,		"max( S, D )" )
+			BIND( Sum,		"S + D  -- check 'fragmentShadingRateStrictMultiplyCombiner' feature" )
+			BIND( Mul,		"S * D  -- check 'fragmentShadingRateStrictMultiplyCombiner' feature" )
 			#undef BIND
 		}
 		switch_end
@@ -1388,6 +1393,7 @@ namespace
 			BIND( IndexBuffer )
 			BIND( VertexBuffer )
 			BIND( ShadingRateImage )
+			BIND( FragmentDensityMap )
 			BIND( CopyRTAS_Read )
 			BIND( CopyRTAS_Write )
 			BIND( BuildRTAS_Read )

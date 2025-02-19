@@ -53,7 +53,7 @@ namespace AE::Graphics
 
 
 		ND_ static bool	 IsSupported (const VResourceManager &, const BufferDesc &desc)		__NE___;
-		ND_ bool		 IsSupported (const VResourceManager &, const BufferViewDesc &desc)	C_NE___;
+		ND_ static bool	 IsSupported (const VResourceManager &, const BufferDesc &, const BufferViewDesc &)	__NE___;
 
 		ND_ static Bytes GetMemoryAlignment (const VDevice &dev, const BufferDesc &desc)	__NE___;
 

@@ -68,9 +68,9 @@ namespace AE::ResEditor
 		_camera.Rotate( Rad{rotation.x * _rotationScale.x}, Rad{rotation.y * _rotationScale.y} );
 		_camera.AddOffset( offset * _offsetScale * timeDelta.count() );
 
-		if_unlikely( _dynDim->IsChanged( INOUT _dimAspect ))
+		if_unlikely( _dynDim->IsChanged( INOUT _dimRatio ))
 		{
-			_camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
+			_camera.SetPerspective( _fovY, _dimRatio, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
 		}
 
 		_UpdateMatrix();
@@ -87,9 +87,9 @@ namespace AE::ResEditor
 		_camera.ResetOrientation();
 		_camera.SetOffset( _initialOffset );
 
-		_dimAspect	= _dynDim->Aspect();
+		_dimRatio	= _dynDim->Ratio();
 
-		_camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
+		_camera.SetPerspective( _fovY, _dimRatio, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
 
 		_UpdateMatrix();
 	}

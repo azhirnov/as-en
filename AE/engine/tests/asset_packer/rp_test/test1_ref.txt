@@ -1,3 +1,119 @@
+Name:  'MultiView.RPass'
+Attachments {
+  [0] 'Color'
+  [1] 'Stencil'
+}
+Subpasses {
+  [0] 'Main'
+    colorAttachments = {
+      [0] UNorm, 'out_Color'
+    }
+    inputAttachments = {
+      [0] Float, 'in_Stencil'
+    }
+}
+FeatureSets = { 'MinimalFS', 'part.MultiView', 'MinDesktop' }
+name               = --
+ci.flags           = 0
+ci.attachmentCount = 2
+ci.pAttachments    = {
+  [0].flags          = 0
+  [0].format         = R8G8B8A8_UNORM
+  [0].samples        = 1
+  [0].loadOp         = DONT_CARE
+  [0].storeOp        = DONT_CARE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = GENERAL  (Unknown)
+  [0].finalLayout    = GENERAL  (Unknown)
+  --------
+  [1].flags          = 0
+  [1].format         = D32_SFLOAT_S8_UINT
+  [1].samples        = 1
+  [1].loadOp         = DONT_CARE
+  [1].storeOp        = DONT_CARE
+  [1].stencilLoadOp  = DONT_CARE
+  [1].stencilStoreOp = DONT_CARE
+  [1].initialLayout  = GENERAL  (Unknown)
+  [1].finalLayout    = GENERAL  (Unknown)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 00000000000000000000000000000011
+  [0].inputAttachmentCount = 1
+  [0].pInputAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 1
+    [0].layout     = GENERAL
+    [0].aspectMask = DEPTH
+  }
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = GENERAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {}
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
+=========================================================================
+
+
+name               = 'MultiView.RPass'
+ci.flags           = 0
+ci.attachmentCount = 2
+ci.pAttachments    = {
+  [0].flags          = 0
+  [0].format         = R8G8B8A8_UNORM
+  [0].samples        = 1
+  [0].loadOp         = DONT_CARE
+  [0].storeOp        = STORE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  [0].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  --------
+  [1].flags          = 0
+  [1].format         = D32_SFLOAT_S8_UINT
+  [1].samples        = 1
+  [1].loadOp         = LOAD
+  [1].storeOp        = NONE
+  [1].stencilLoadOp  = LOAD
+  [1].stencilStoreOp = NONE
+  [1].initialLayout  = SHADER_READ_ONLY_OPTIMAL  (InputDepthStencilAttachment | FragmentShader)
+  [1].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (InputDepthStencilAttachment | FragmentShader)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 00000000000000000000000000000011
+  [0].inputAttachmentCount = 1
+  [0].pInputAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 1
+    [0].layout     = SHADER_READ_ONLY_OPTIMAL
+    [0].aspectMask = DEPTH
+  }
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = COLOR_ATTACHMENT_OPTIMAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {}
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
+=========================================================================
+
 Name:  'Simple'
 Attachments {
   [0] 'Color1'
@@ -75,6 +191,7 @@ ci.pDependencies   = {
   [1].dependencyFlags = BY_REGION
   [1].viewOffset      = 0
 }
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 
@@ -143,6 +260,7 @@ ci.pDependencies   = {
   [1].dependencyFlags = BY_REGION
   [1].viewOffset      = 0
 }
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 
@@ -211,6 +329,7 @@ ci.pDependencies   = {
   [1].dependencyFlags = BY_REGION
   [1].viewOffset      = 0
 }
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 Name:  'StencilView.RPass'
@@ -275,6 +394,7 @@ ci.pSubpasses   = {
   [0].preserveAttachmentCount = 0
 }
 ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 
@@ -325,6 +445,7 @@ ci.pSubpasses   = {
   [0].preserveAttachmentCount = 0
 }
 ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 Name:  'UIRenderPass'
@@ -369,6 +490,7 @@ ci.pSubpasses   = {
   [0].preserveAttachmentCount = 0
 }
 ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 
@@ -403,6 +525,7 @@ ci.pSubpasses   = {
   [0].preserveAttachmentCount = 0
 }
 ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 Name:  'Multipass'
@@ -416,7 +539,6 @@ Subpasses {
   [0] 'DepthPrepass'
   [1] 'GBuffer'
     colorAttachments = {
-      [0] 
       [1] Float, 'out_Normal'
       [2] UNorm, 'out_Color'
     }
@@ -656,6 +778,7 @@ ci.pDependencies   = {
   [5].dependencyFlags = BY_REGION
   [5].viewOffset      = 0
 }
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 
@@ -873,6 +996,7 @@ ci.pDependencies   = {
   [5].dependencyFlags = BY_REGION
   [5].viewOffset      = 0
 }
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 
@@ -1090,6 +1214,7 @@ ci.pDependencies   = {
   [5].dependencyFlags = BY_REGION
   [5].viewOffset      = 0
 }
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 Name:  'VRSRenderPass'
@@ -1143,7 +1268,7 @@ ci.pSubpasses   = {
   }
   [0].pDepthStencilAttachment = {}
   [0].preserveAttachmentCount = 0
-  [0].fragmentShadingRateAttachment = { 
+  [0].fragmentShadingRateAttachment = {
     .pNext      = null
     .attachment = 1
     .layout     = GENERAL
@@ -1152,6 +1277,7 @@ ci.pSubpasses   = {
   }
 }
 ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
 =========================================================================
 
 
@@ -1194,7 +1320,7 @@ ci.pSubpasses   = {
   }
   [0].pDepthStencilAttachment = {}
   [0].preserveAttachmentCount = 0
-  [0].fragmentShadingRateAttachment = { 
+  [0].fragmentShadingRateAttachment = {
     .pNext      = null
     .attachment = 1
     .layout     = FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL
@@ -1203,5 +1329,155 @@ ci.pSubpasses   = {
   }
 }
 ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
+=========================================================================
+
+Name:  'FragmentDensityMap.RPass'
+Attachments {
+  [0] 'Color'
+  [1] 'FragmentDensity'
+}
+Subpasses {
+  [0] 'Main'
+    colorAttachments = {
+      [0] UNorm, 'out_Color'
+    }
+}
+FeatureSets = { 'MinimalFS', 'part.FragmentDensityMap' }
+name               = --
+ci.flags           = 0
+ci.fragmentDensityMapAttachment = { 1, GENERAL }
+ci.attachmentCount = 2
+ci.pAttachments    = {
+  [0].flags          = 0
+  [0].format         = R8G8B8A8_UNORM
+  [0].samples        = 1
+  [0].loadOp         = DONT_CARE
+  [0].storeOp        = DONT_CARE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = GENERAL  (Unknown)
+  [0].finalLayout    = GENERAL  (Unknown)
+  --------
+  [1].flags          = 0
+  [1].format         = R8G8_UNORM
+  [1].samples        = 1
+  [1].loadOp         = DONT_CARE
+  [1].storeOp        = DONT_CARE
+  [1].stencilLoadOp  = DONT_CARE
+  [1].stencilStoreOp = DONT_CARE
+  [1].initialLayout  = GENERAL  (Unknown)
+  [1].finalLayout    = GENERAL  (Unknown)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 0
+  [0].inputAttachmentCount = 0
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = GENERAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {}
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
+=========================================================================
+
+
+name               = 'FragmentDensityMap.RPass'
+ci.flags           = 0
+ci.fragmentDensityMapAttachment = { 1, FRAGMENT_DENSITY_MAP_OPTIMAL }
+ci.attachmentCount = 2
+ci.pAttachments    = {
+  [0].flags          = 0
+  [0].format         = R8G8B8A8_UNORM
+  [0].samples        = 1
+  [0].loadOp         = DONT_CARE
+  [0].storeOp        = STORE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  [0].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  --------
+  [1].flags          = 0
+  [1].format         = R8G8_UNORM
+  [1].samples        = 1
+  [1].loadOp         = LOAD
+  [1].storeOp        = NONE
+  [1].stencilLoadOp  = DONT_CARE
+  [1].stencilStoreOp = DONT_CARE
+  [1].initialLayout  = FRAGMENT_DENSITY_MAP_OPTIMAL  (FragmentDensityMap)
+  [1].finalLayout    = FRAGMENT_DENSITY_MAP_OPTIMAL  (FragmentDensityMap)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 0
+  [0].inputAttachmentCount = 0
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = COLOR_ATTACHMENT_OPTIMAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {}
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
+=========================================================================
+
+
+name               = 'FragmentDensityMap.RPass2'
+ci.flags           = 0
+ci.fragmentDensityMapAttachment = { 1, FRAGMENT_DENSITY_MAP_OPTIMAL }
+ci.attachmentCount = 2
+ci.pAttachments    = {
+  [0].flags          = 0
+  [0].format         = R8G8B8A8_UNORM
+  [0].samples        = 1
+  [0].loadOp         = DONT_CARE
+  [0].storeOp        = STORE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  [0].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  --------
+  [1].flags          = 0
+  [1].format         = R8G8_UNORM
+  [1].samples        = 1
+  [1].loadOp         = LOAD
+  [1].storeOp        = NONE
+  [1].stencilLoadOp  = DONT_CARE
+  [1].stencilStoreOp = DONT_CARE
+  [1].initialLayout  = FRAGMENT_DENSITY_MAP_OPTIMAL  (FragmentDensityMap)
+  [1].finalLayout    = FRAGMENT_DENSITY_MAP_OPTIMAL  (FragmentDensityMap)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 0
+  [0].inputAttachmentCount = 0
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = COLOR_ATTACHMENT_OPTIMAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {}
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 0
+ci.correlatedViewMaskCount = 0
 =========================================================================
 

@@ -717,18 +717,28 @@ namespace {
 		return Image_t::IsSupported( *this, desc );
 	}
 
-	bool  ResourceManager::IsSupported (BufferID buffer, const BufferViewDesc &desc) C_NE___
+	bool  ResourceManager::IsSupported (BufferID buffer, const BufferViewDesc &viewDesc) C_NE___
 	{
 		auto*	buf = GetResource( buffer );
 		CHECK_ERR( buf != null );
-		return buf->IsSupported( *this, desc );
+		return Buffer_t::IsSupported( *this, buf->Description(), viewDesc );
 	}
 
-	bool  ResourceManager::IsSupported (ImageID image, const ImageViewDesc &desc) C_NE___
+	bool  ResourceManager::IsSupported (ImageID image, const ImageViewDesc &viewDesc) C_NE___
 	{
 		auto*	img = GetResource( image );
 		CHECK_ERR( img != null );
-		return img->IsSupported( *this, desc );
+		return Image_t::IsSupported( *this, img->Description(), viewDesc );
+	}
+	
+	bool  ResourceManager::IsSupported (const BufferDesc &desc, const BufferViewDesc &viewDesc) C_NE___
+	{
+		return Buffer_t::IsSupported( *this, desc, viewDesc );
+	}
+
+	bool  ResourceManager::IsSupported (const ImageDesc &desc, const ImageViewDesc &viewDesc) C_NE___
+	{
+		return Image_t::IsSupported( *this, desc, viewDesc );
 	}
 
 	bool  ResourceManager::IsSupported (const VideoImageDesc &desc) C_NE___

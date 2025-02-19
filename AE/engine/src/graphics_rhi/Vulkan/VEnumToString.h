@@ -139,8 +139,8 @@ namespace AE::Graphics
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR :		result << "VideoEncodeDPB";				break;
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR :		result << "VideoEncodeDst";				break;
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :		result << "VideoEncodeSrc";				break;
+				case VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT :	result << "FragmentDensityMap";			break;
 
-				case VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT :
 				case VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI:
 				case VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT :
 				case VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM :

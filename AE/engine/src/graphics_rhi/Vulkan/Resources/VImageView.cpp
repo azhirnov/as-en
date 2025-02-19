@@ -39,14 +39,14 @@ namespace AE::Graphics
 
 		_desc = desc;
 		_desc.Validate( img_desc );
-		GRES_CHECK( image->IsSupported( resMngr, _desc ));
+		GRES_CHECK( VImage::IsSupported( resMngr, img_desc, _desc ));
 
 		VkImageViewUsageCreateInfo	ext_usage_info = {};
 		ext_usage_info.sType	= VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO;
 
 		VkImageViewCreateInfo	info = {};
 		info.sType		= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		info.flags		= 0;
+		info.flags		= VEnumCast( _desc.options );
 		info.image		= image->Handle();
 		info.viewType	= VEnumCast( _desc.viewType );
 		info.format		= VEnumCast( _desc.format );

@@ -56,8 +56,9 @@ Tools:
 
 Papers:
  * [HDR Display](AE/docs/papers/HDR_Display.md)
+ * [Projection on Sphere (ru)](AE/docs/papers/SphericalCube-ru.md)
+ * [Ultra-wide Screen Projection (ru)](AE/docs/papers/ScreenProjections-ru.md)
  * [GPU Benchmarks](AE/docs/papers/GPU_Benchmarks.md)
- * [Spherical Cube (ru)](AE/docs/papers/SphericalCube-ru.md)
 
 Notes:
  * [Async Programming (ru)](AE/docs/papers/AsyncProgramming-ru.md)
@@ -83,8 +84,8 @@ __AsEn__ - полностью асинхронный движок.
 
 Статьи:
  * [HDR дисплеи](AE/docs/papers/HDR_Display-ru.md)
- * [Сферический куб](AE/docs/papers/SphericalCube-ru.md)
- * [GPU Benchmarks](AE/docs/papers/GPU_Benchmarks.md)
+ * [Проекция на сферу](AE/docs/papers/SphericalCube-ru.md)
+ * [Проекции на ультра широкий экран](AE/docs/papers/ScreenProjections-ru.md)
 
 Заметки:
  * [Асинхронное программирование](AE/docs/papers/AsyncProgramming-ru.md)

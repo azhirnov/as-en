@@ -222,7 +222,10 @@ ND_ float2  SinCos (const float x)		{ return float2(sin(x), cos(x)); }
 	ND_ bool   _name_ (const _stype_          lhs, const _stype_          rhs)	{ return lhs _opS_ rhs; }		\
 	ND_ bool2  _name_ (const UNITE(_vtype_,2) lhs, const UNITE(_vtype_,2) rhs)	{ return _opV_( lhs, rhs ); }	\
 	ND_ bool3  _name_ (const UNITE(_vtype_,3) lhs, const UNITE(_vtype_,3) rhs)	{ return _opV_( lhs, rhs ); }	\
-	ND_ bool4  _name_ (const UNITE(_vtype_,4) lhs, const UNITE(_vtype_,4) rhs)	{ return _opV_( lhs, rhs ); }
+	ND_ bool4  _name_ (const UNITE(_vtype_,4) lhs, const UNITE(_vtype_,4) rhs)	{ return _opV_( lhs, rhs ); }	\
+	ND_ bool2  _name_ (const UNITE(_vtype_,2) lhs, const _stype_          rhs)	{ return _opV_( lhs, UNITE(_vtype_,2)(rhs) ); }	\
+	ND_ bool3  _name_ (const UNITE(_vtype_,3) lhs, const _stype_          rhs)	{ return _opV_( lhs, UNITE(_vtype_,3)(rhs) ); }	\
+	ND_ bool4  _name_ (const UNITE(_vtype_,4) lhs, const _stype_          rhs)	{ return _opV_( lhs, UNITE(_vtype_,4)(rhs) ); }
 
 #define Gen_CMP( _stype_, _vtype_ )										\
 	Gen_CMP1( _stype_, _vtype_, Equal,			==, equal )				\
@@ -1742,7 +1745,17 @@ ND_ bool  IsNormalized (const float3 v)						{ return IsNormalized( v, float_eps
 	ND_ bool  IsSNorm (const _stype_			x)		{ return Abs(x) <= _stype_(1.0); }											\
 	ND_ bool  IsSNorm (const UNITE(_vtype_,2)	x)		{ return AllLessEqual( Abs(x), UNITE(_vtype_,2)(1.0) ); }					\
 	ND_ bool  IsSNorm (const UNITE(_vtype_,3)	x)		{ return AllLessEqual( Abs(x), UNITE(_vtype_,3)(1.0) ); }					\
-	ND_ bool  IsSNorm (const UNITE(_vtype_,4)	x)		{ return AllLessEqual( Abs(x), UNITE(_vtype_,4)(1.0) ); }
+	ND_ bool  IsSNorm (const UNITE(_vtype_,4)	x)		{ return AllLessEqual( Abs(x), UNITE(_vtype_,4)(1.0) ); }					\
+																																	\
+	ND_ bool  IsNotUNorm (const _stype_				x)	{ return Abs( x - _stype_(0.5) ) > _stype_(0.5); }							\
+	ND_ bool  IsNotUNorm (const UNITE(_vtype_,2)	x)	{ return AnyGreater( Abs( x - _stype_(0.5) ), UNITE(_vtype_,2)(0.5) ); }	\
+	ND_ bool  IsNotUNorm (const UNITE(_vtype_,3)	x)	{ return AnyGreater( Abs( x - _stype_(0.5) ), UNITE(_vtype_,3)(0.5) ); }	\
+	ND_ bool  IsNotUNorm (const UNITE(_vtype_,4)	x)	{ return AnyGreater( Abs( x - _stype_(0.5) ), UNITE(_vtype_,4)(0.5) ); }	\
+																																	\
+	ND_ bool  IsNotSNorm (const _stype_				x)	{ return Abs(x) > _stype_(1.0); }											\
+	ND_ bool  IsNotSNorm (const UNITE(_vtype_,2)	x)	{ return AnyGreater( Abs(x), UNITE(_vtype_,2)(1.0) ); }						\
+	ND_ bool  IsNotSNorm (const UNITE(_vtype_,3)	x)	{ return AnyGreater( Abs(x), UNITE(_vtype_,3)(1.0) ); }						\
+	ND_ bool  IsNotSNorm (const UNITE(_vtype_,4)	x)	{ return AnyGreater( Abs(x), UNITE(_vtype_,4)(1.0) ); }
 
 Gen_IS_UNORM_SNORM( float,	float_vec_t )
 

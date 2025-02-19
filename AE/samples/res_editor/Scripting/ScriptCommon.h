@@ -74,31 +74,35 @@ namespace AE::ResEditor
 
 	enum class EResourceUsage : uint
 	{
-		Unknown			= 0,
+		Unknown					= 0,
 
-		ComputeRead		= 1 << 0,
-		ComputeWrite	= 1 << 1,
-		ComputeRW		= ComputeRead | ComputeWrite,
+		ComputeRead				= 1 << 0,
+		ComputeWrite			= 1 << 1,
+		ComputeRW				= ComputeRead | ComputeWrite,
 
-		ColorAttachment	= 1 << 2,
-		DepthStencil	= 1 << 3,
+		ColorAttachment			= 1 << 2,
+		DepthStencil			= 1 << 3,
 
-		UploadedData	= 1 << 4,
-		WillReadback	= 1 << 5,
+		UploadedData			= 1 << 4,
+		WillReadback			= 1 << 5,
 
-		Sampled			= 1 << 6,
-		GenMipmaps		= 1 << 7,
-		Present			= 1 << 8,
+		Sampled					= 1 << 6,
+		GenMipmaps				= 1 << 7,
+		Present					= 1 << 8,
 
-		VertexInput		= 1 << 9,
-		IndirectBuffer	= 1 << 10,
-		ASBuild			= 1 << 11,
-		ShaderAddress	= 1 << 12,
+		VertexInput				= 1 << 9,
+		IndirectBuffer			= 1 << 10,
+		ASBuild					= 1 << 11,
+		ShaderAddress			= 1 << 12,
 
-		WithHistory		= 1 << 13,
-		Transfer		= 1 << 14,
+		WithHistory				= 1 << 13,
+		Transfer				= 1 << 14,
 
-		InputAttachment	= 1 << 15,
+		InputAttachment			= 1 << 15,
+
+		FragShadingRate			= 1 << 16,
+		FragDensityMap			= 1 << 17,
+		SubsampledAttachment	= 1 << 18,
 	};
 	AE_BIT_OPERATORS( EResourceUsage );
 

@@ -100,4 +100,15 @@ void ASmain ()
 		fset.AddShadingRate( {4,2}, {1} );
 		fset.AddShadingRate( {4,4}, {1} );
 	}
+
+	// Mali
+	{
+		RC<FeatureSet>  fset = FeatureSet( "part.FragmentDensityMap" );
+
+		fset.fragmentDensityMap (True);
+		fset.fragmentDensityMapDynamic (True);
+		fset.fragmentDensityInvocations (True);
+		fset.maxSubsampledArrayLayers (4096);
+		fset.perPipeline_maxSubsampledSamplers (8);
+	}
 }

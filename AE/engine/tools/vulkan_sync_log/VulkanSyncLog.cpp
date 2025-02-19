@@ -139,6 +139,7 @@ namespace
 			Array<VkMemoryBarrier2>			barriers;
 			Array<VkAttachmentReference2>	references;
 			Array<uint>						preserve;
+			VkAttachmentReference			densityMapRef	{ VK_ATTACHMENT_UNUSED, VK_IMAGE_LAYOUT_MAX_ENUM };
 		};
 		using RenderPassMap_t = FlatHashMap< VkRenderPass, RenderPassData >;
 
@@ -729,6 +730,18 @@ namespace
 			rp.barriers[i]			= *bar;
 			rp.barriers[i].pNext	= null;
 			dep.pNext				= &rp.barriers[i];
+		}
+		
+		for (auto* next = Cast<VkBaseInStructure>(pCreateInfo->pNext); next != null; next = next->pNext)
+		{
+			switch ( next->sType )
+			{
+				case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT :
+					rp.densityMapRef = Cast<VkRenderPassFragmentDensityMapCreateInfoEXT>(next)->fragmentDensityMapAttachment;	break;
+
+				default :
+					DBG_WARNING( "unsupported extension" );
+			}
 		}
 
 		return VK_SUCCESS;
@@ -2172,12 +2185,17 @@ namespace
 		//	log << "    framebuffer: '" << fb.name << "'\n";
 		}
 
-		auto&	pass = rp.info.pSubpasses [cmdbuf.subpassIndex];
+		auto&			pass = rp.info.pSubpasses [cmdbuf.subpassIndex];
+		std::bitset<32>	used_att;
 
 		for (uint i = 0; i < pass.colorAttachmentCount; ++i)
 		{
 			auto&	ref	= pass.pColorAttachments[i];
+			if ( ref.attachment == VK_ATTACHMENT_UNUSED )
+				continue;
+
 			auto&	at	= rp.info.pAttachments[ref.attachment];
+			used_att.set( ref.attachment );
 
 			log << "    color attachment:";
 
@@ -2208,32 +2226,36 @@ namespace
 		if ( pass.pDepthStencilAttachment != null )
 		{
 			auto&	ref	= *pass.pDepthStencilAttachment;
-			auto&	at	= rp.info.pAttachments[ref.attachment];
-
-			log << "    depth-stencil attachment:";
-
-			if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
-				return;
-
-			log << "\n      layout:        " << VkImageLayoutToString( at.initialLayout );
-
-			if ( subpassIndex == 0 )
+			if ( ref.attachment != VK_ATTACHMENT_UNUSED )
 			{
-				if ( at.initialLayout != ref.layout )
-					log << " ---> " << VkImageLayoutToString( ref.layout );
+				auto&	at	= rp.info.pAttachments[ref.attachment];
+				used_att.set( ref.attachment );
 
-				log << "\n      depthLoadOp:   " << VkAttachmentLoadOpToString( at.loadOp );
-				log << "\n      stencilLoadOp: " << VkAttachmentLoadOpToString( at.stencilLoadOp ) << '\n';
-			}
-			else
-			{
-				auto	prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout, ref.aspectMask );
-				log << "\n      layout:        " << VkImageLayoutToString( prev.first );
+				log << "    depth-stencil attachment:";
 
-				if ( prev.first != ref.layout )
-					log << " ---> " << VkImageLayoutToString( ref.layout );
+				if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
+					return;
 
-				log << "\n      aspect:  " << VkImageAspectFlagsToString( prev.second ) << '\n';
+				log << "\n      layout:        " << VkImageLayoutToString( at.initialLayout );
+
+				if ( subpassIndex == 0 )
+				{
+					if ( at.initialLayout != ref.layout )
+						log << " ---> " << VkImageLayoutToString( ref.layout );
+
+					log << "\n      depthLoadOp:   " << VkAttachmentLoadOpToString( at.loadOp );
+					log << "\n      stencilLoadOp: " << VkAttachmentLoadOpToString( at.stencilLoadOp ) << '\n';
+				}
+				else
+				{
+					auto	prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout, ref.aspectMask );
+					log << "\n      layout:        " << VkImageLayoutToString( prev.first );
+
+					if ( prev.first != ref.layout )
+						log << " ---> " << VkImageLayoutToString( ref.layout );
+
+					log << "\n      aspect:  " << VkImageAspectFlagsToString( prev.second ) << '\n';
+				}
 			}
 		}
 
@@ -2276,6 +2298,39 @@ namespace
 					log << " ---> " << VkImageLayoutToString( ref.layout );
 
 				log << "\n      aspect:  " << VkImageAspectFlagsToString( prev.second ) << '\n';
+			}
+		}
+		
+		if ( subpassIndex == 0 )
+		{
+			if ( rp.densityMapRef.attachment != VK_ATTACHMENT_UNUSED )
+			{
+				auto&	at	= rp.info.pAttachments[ rp.densityMapRef.attachment ];
+				used_att.set( rp.densityMapRef.attachment );
+
+				log << "    fragment density map:";
+				if ( not PrintRPImageViewName( log, fb.attachments[ rp.densityMapRef.attachment ] ))
+					return;
+
+				log << "\n      layout:  " << VkImageLayoutToString( at.initialLayout );
+				if ( at.initialLayout != rp.densityMapRef.layout )
+					log << " ---> " << VkImageLayoutToString( rp.densityMapRef.layout );
+
+				log << "\n      loadOp:  " << VkAttachmentLoadOpToString( at.loadOp ) << '\n';
+			}
+
+			for (uint i = 0; i < rp.attachments.size(); ++i)
+			{
+				if ( used_att.test( i ))
+					continue;
+
+				log << "    attachment:";
+				if ( not PrintRPImageViewName( log, fb.attachments[i] ))
+					return;
+
+				auto&	at = rp.attachments[i];
+				log << "\n      initialLayout:  " << VkImageLayoutToString( at.initialLayout );
+				log << "\n      loadOp:         " << VkAttachmentLoadOpToString( at.loadOp ) << '\n';
 			}
 		}
 

@@ -52,9 +52,9 @@ namespace AE::ResEditor
 		ND_ bool		IsChanged (INOUT uint3 &dim)				C_NE___;
 		ND_ bool		IsChanged_NonZero (INOUT uint3 &dim)		C_NE___;
 		ND_ bool		IsChanged_NonZero (INOUT ImageDim_t &)		C_NE___;
-		ND_ bool		IsChanged (INOUT float &aspect)				C_NE___;
+		ND_ bool		IsChanged (INOUT float &ratio)				C_NE___;
 
-		ND_ float		Aspect ()									C_NE___;
+		ND_ float		Ratio ()									C_NE___;
 		ND_ uint		Dimension1 ()								C_NE___	{ ASSERT( _numDimensions == EImageDim_1D );  return Dimension3().x; }
 		ND_ uint		Dimension1_NonZero ()						C_NE___	{ ASSERT( _numDimensions == EImageDim_1D );  return Dimension3_NonZero().x; }
 		ND_ uint2		Dimension2 ()								C_NE___	{ ASSERT( _numDimensions == EImageDim_2D );  return uint2(Dimension3()); }
@@ -64,6 +64,7 @@ namespace AE::ResEditor
 		ND_ int3		Scale ()									C_NE___	{ SHAREDLOCK( _guard );  return _scale; }
 		ND_ EImageDim	NumDimensions ()							C_NE___	{ return _numDimensions; }
 		ND_ uint3		BaseDimension ()							C_NE___;
+		ND_ RC<>		BaseDimensionRC ()							C_NE___	{ SHAREDLOCK( _guard );  return _base; }
 
 		ND_ uint		Area ()										C_NE___;
 		ND_ uint		Volume ()									C_NE___;
@@ -333,13 +334,13 @@ namespace AE::ResEditor
 	IsChanged
 =================================================
 */
-	inline bool  DynamicDim::IsChanged (INOUT float &oldAspect) C_NE___
+	inline bool  DynamicDim::IsChanged (INOUT float &oldRatio) C_NE___
 	{
-		const float	new_aspect = Aspect();
+		const float	new_ratio = Ratio();
 
-		if ( not Equal( new_aspect, oldAspect ))
+		if ( not Equal( new_ratio, oldRatio ))
 		{
-			oldAspect = new_aspect;
+			oldRatio = new_ratio;
 			return true;
 		}
 		return false;
@@ -347,10 +348,10 @@ namespace AE::ResEditor
 
 /*
 =================================================
-	Aspect
+	Ratio
 =================================================
 */
-	inline float  DynamicDim::Aspect () C_NE___
+	inline float  DynamicDim::Ratio () C_NE___
 	{
 		ASSERT( _numDimensions >= EImageDim_2D );
 		uint2	dim = Dimension2();

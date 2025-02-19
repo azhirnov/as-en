@@ -160,18 +160,16 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  RBuffer::IsSupported (const RResourceManager &resMngr, const BufferViewDesc &view) C_NE___
+	bool  RBuffer::IsSupported (const RResourceManager &resMngr, const BufferDesc &desc, const BufferViewDesc &viewDesc) __NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
-
-		if ( not BufferView_IsSupported( resMngr, _desc, view ))
+		if ( not BufferView_IsSupported( resMngr, desc, viewDesc ))
 			return false;
 
 		Msg::ResMngr_IsSupported_BufferViewDesc		msg;
 		RC<Msg::ResMngr_IsSupported_Response>		res;
 
-		msg.bufferId	= _bufferId;
-		msg.desc		= view;
+		msg.bufDesc		= desc;
+		msg.viewDesc	= viewDesc;
 
 		CHECK_ERR( resMngr.GetDevice().SendAndWait( msg, OUT res ));
 		return res->supported;

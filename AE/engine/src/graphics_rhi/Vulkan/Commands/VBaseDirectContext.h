@@ -37,6 +37,8 @@ namespace AE::Graphics::_hidden_
 
 		void  PipelineBarrier (const VkDependencyInfo &info)							__NE___;
 
+		ND_ VkCommandBuffer  GetVkCommandBuffer ()										C_NE___	{ return _cmdbuf.Get(); }
+
 	protected:
 		explicit _VBaseDirectContext (VCommandBuffer cmdbuf)							__Th___;
 

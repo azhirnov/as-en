@@ -221,13 +221,12 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  VBuffer::IsSupported (const VResourceManager &resMngr, const BufferViewDesc &view) C_NE___
+	bool  VBuffer::IsSupported (const VResourceManager &resMngr, const BufferDesc &desc, const BufferViewDesc &view) __NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
 		StaticAssert( uint(EBufferUsage::All) == 0x3FFF );
 		StaticAssert( uint(EBufferOpt::All) == 0x1F );
 
-		if_unlikely( not BufferView_IsSupported( resMngr, _desc, view ))
+		if_unlikely( not BufferView_IsSupported( resMngr, desc, view ))
 			return false;
 
 		const auto&		dev		= resMngr.GetDevice();
@@ -240,25 +239,25 @@ namespace AE::Graphics
 		const VkFormatFeatureFlags	available_flags	= fmt_props.bufferFeatures;
 		VkFormatFeatureFlags		required_flags	= 0;
 
-		if ( AllBits( _desc.usage, EBufferUsage::UniformTexel ))
+		if ( AllBits( desc.usage, EBufferUsage::UniformTexel ))
 			required_flags |= VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT;
 
-		if ( AllBits( _desc.usage, EBufferUsage::StorageTexel ))
+		if ( AllBits( desc.usage, EBufferUsage::StorageTexel ))
 		{
 			required_flags |= VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT;
 
-			if ( AllBits( _desc.options, EBufferOpt::StorageTexelAtomic ))
+			if ( AllBits( desc.options, EBufferOpt::StorageTexelAtomic ))
 				required_flags |= VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT;
 		}
 
 		if_unlikely( not AllBits( available_flags, required_flags ))
 			return false;
 
-		if_unlikely( AllBits( _desc.usage, EBufferUsage::UniformTexel )						and
+		if_unlikely( AllBits( desc.usage, EBufferUsage::UniformTexel )						and
 					 not IsMultipleOf( view.offset, props.res.minUniformTexelBufferOffsetAlign ))
 			return false;
 
-		if_unlikely( AllBits( _desc.usage, EBufferUsage::StorageTexel )						and
+		if_unlikely( AllBits( desc.usage, EBufferUsage::StorageTexel )						and
 					 not IsMultipleOf( view.offset, props.res.minStorageTexelBufferOffsetAlign ))
 			return false;
 

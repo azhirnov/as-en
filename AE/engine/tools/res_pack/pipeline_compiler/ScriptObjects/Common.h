@@ -28,6 +28,7 @@ namespace AE::PipelineCompiler
 		uint	subpassInputs			= 0;
 		uint	samplers				= 0;
 		uint	rayTracingScenes		= 0;
+		uint	subsampledSamplers		= 0;	// always counted in 'samplers'
 
 		DescriptorCount () {}
 

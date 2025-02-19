@@ -107,6 +107,37 @@ void DeclVRSRenderPass ()
 		}
 	}
 }
+
+
+void DeclMultiViewRenderPass ()
+{
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "MultiViewRP" );
+	
+	compat.AddFeatureSet( "part.MultiView" );
+	compat.AddMultiViewCorrelatedViewMask( 1|2 );
+
+	const string	pass = "Main";
+	compat.AddSubpass( pass, MultiViewMask(1|2) );
+
+	{
+		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
+		rt.format	= EPixelFormat::RGBA8_UNorm;
+		rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
+	}
+
+	// specialization
+	{
+		RC<RenderPass>		rp = compat.AddSpecialization( "MultiViewRP.Draw" );
+		{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+			rt.loadOp	= EAttachmentLoadOp::Clear;
+			rt.storeOp	= EAttachmentStoreOp::Store;
+			rt.Layout( InitialLayout,	EResourceState::ShaderSample | EResourceState::FragmentShader );
+			rt.Layout( pass,			EResourceState::ColorAttachment );
+			rt.Layout( FinalLayout,		EResourceState::ShaderSample | EResourceState::FragmentShader );
+		}
+	}
+}
 //-----------------------------------------------------------------------------
 
 
@@ -227,6 +258,21 @@ void DeclYcbcrSRenderTech ()
 		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
 	}
 }
+
+void DeclMultiViewRenderTech ()
+{
+	RC<RenderTechnique>	rtech = RenderTechnique( "MultiView.RTech" );
+
+	{
+		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "MultiView" );
+
+		pass.SetRenderPass( "MultiViewRP.Draw", /*subpass*/"Main" );
+	}{
+		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "ViewportArray" );
+
+		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
+	}
+}
 //-----------------------------------------------------------------------------
 
 
@@ -235,6 +281,7 @@ void ASmain ()
 	DeclRenderPass1();
 	DeclRenderPass2();
 	DeclVRSRenderPass();
+	DeclMultiViewRenderPass();
 
 	DeclRenderTech();
 	DeclDebugRenderTech();
@@ -244,4 +291,5 @@ void ASmain ()
 	DeclRayQueryRenderTech();
 	DeclVRSRenderTech();
 	DeclYcbcrSRenderTech();
+	DeclMultiViewRenderTech();
 }

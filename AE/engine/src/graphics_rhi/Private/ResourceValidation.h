@@ -84,6 +84,10 @@ namespace AE::Graphics
 
 		if_unlikely( desc.imageDim == Default or desc.usage == Default or desc.format == Default or desc.memType == Default )
 			return false;
+		
+		// validate usage
+		if_unlikely( not AllBits( res_flags.imageUsage, desc.usage ))
+			return false;
 
 		// validate options
 		{
@@ -125,6 +129,15 @@ namespace AE::Graphics
 				}
 				switch_end
 			}
+		}
+
+		// check incompatible flags
+		if_unlikely( AllBits( desc.options, EImageOpt::Subsampled ))
+		{
+			if ( desc.imageDim != EImageDim_2D							or
+				 AnyBits( desc.options, EImageOpt::Blit )				or
+				 AnyBits( desc.usage, EImageUsage::FragmentDensityMap | EImageUsage::Transfer | EImageUsage::Storage ))
+				return false;
 		}
 
 		// validate memory type
@@ -187,8 +200,8 @@ namespace AE::Graphics
 	template <typename ResMngr>
 	ND_ bool  ImageView_IsSupported (const ResMngr &resMngr, const ImageDesc &desc, const ImageViewDesc &view) __NE___
 	{
-		StaticAssert( uint(EImageUsage::All) == 0xFF );
-		StaticAssert( uint(EImageOpt::All) == 0x3FFFF );
+		StaticAssert( uint(EImageUsage::All) == 0x1FF );
+		StaticAssert( uint(EImageOpt::All) == 0x7FFFF );
 		ASSERT( view.format != Default );
 
 		if_unlikely( NoBits( desc.usage, EImageUsage_AllowImageView ))
@@ -250,6 +263,10 @@ namespace AE::Graphics
 					return false;
 			}
 		}
+
+		if ( AllBits( view.options, EImageViewOpt::FragmentDensityMap_Dynamic ) and
+			 NoBits( desc.usage, EImageUsage::FragmentDensityMap ))
+			return false;
 
 		if_unlikely( not resMngr.GetFeatureSet().IsSupported( desc, view ))
 			return false;

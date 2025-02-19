@@ -395,6 +395,8 @@ namespace AE::Graphics
 				case EImageOpt::SparseAliased :					flags |= VK_IMAGE_CREATE_SPARSE_BINDING_BIT | VK_IMAGE_CREATE_SPARSE_ALIASED_BIT;	break;
 				case EImageOpt::Alias :							flags |= VK_IMAGE_CREATE_ALIAS_BIT;													break;
 				case EImageOpt::SampleLocationsCompatible :		flags |= VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT;					break;
+					
+				case EImageOpt::Subsampled :					flags |= VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT;				break;
 
 				case EImageOpt::BlitSrc :
 				case EImageOpt::BlitDst :
@@ -503,6 +505,7 @@ namespace AE::Graphics
 				case EImageUsage::DepthStencilAttachment :	flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;	break;
 				case EImageUsage::InputAttachment :			flags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;			break;
 				case EImageUsage::ShadingRate :				flags |= VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;	break;
+				case EImageUsage::FragmentDensityMap :		flags |= VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT;	break;
 
 				case EImageUsage::_Last :
 				case EImageUsage::Unknown :
@@ -835,7 +838,7 @@ namespace AE::Graphics
 		outVideoUsage	= Default;
 		outMemType		= Default;
 
-		StaticAssert( uint(EImageUsage::All) == 0xFF );
+		StaticAssert( uint(EImageUsage::All) == 0x1FF );
 		for (auto t : BitfieldIterate( usage ))
 		{
 			switch_enum( t )
@@ -847,6 +850,7 @@ namespace AE::Graphics
 				case VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT :			outUsage |= EImageUsage::ColorAttachment;			outMemType |= EMemoryType::DeviceLocal;	break;
 				case VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT :	outUsage |= EImageUsage::DepthStencilAttachment;	outMemType |= EMemoryType::DeviceLocal;	break;
 				case VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT :			outUsage |= EImageUsage::InputAttachment;			outMemType |= EMemoryType::DeviceLocal;	break;
+				case VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT :	outUsage |= EImageUsage::FragmentDensityMap;		outMemType |= EMemoryType::DeviceLocal;	break;
 				case VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR: outUsage |= EImageUsage::ShadingRate;		outMemType |= EMemoryType::DeviceLocal;	break;
 				case VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT :
 					outUsage	|= EImageUsage::ColorAttachment | EImageUsage::DepthStencilAttachment | EImageUsage::InputAttachment;
@@ -860,7 +864,6 @@ namespace AE::Graphics
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR :		outVideoUsage |= EVideoImageUsage::EncodeDst;		break;
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :		outVideoUsage |= EVideoImageUsage::EncodeSrc;		break;
 
-				case VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT :
 				case VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI:
 				case VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT :
 				case VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM :
@@ -904,7 +907,7 @@ namespace AE::Graphics
 	{
 		EImageOpt	result = Zero;
 
-		StaticAssert( uint(EImageOpt::All) == 0x3FFFF );
+		StaticAssert( uint(EImageOpt::All) == 0x7FFFF );
 		for (auto t : BitfieldIterate( values ))
 		{
 			switch_enum( t )
@@ -918,10 +921,10 @@ namespace AE::Graphics
 				case VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT :				result |= EImageOpt::BlockTexelViewCompatible;	break;
 				case VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT :	result |= EImageOpt::SampleLocationsCompatible;	break;
 				case VK_IMAGE_CREATE_EXTENDED_USAGE_BIT :							result |= EImageOpt::ExtendedUsage;				break;
+				case VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT :							result |= EImageOpt::Subsampled;				break;
 
 				case VK_IMAGE_CREATE_DISJOINT_BIT :									break;	// skip
 
-				case VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT :
 				case VK_IMAGE_CREATE_SPARSE_BINDING_BIT :
 				case VK_IMAGE_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT :
 				case VK_IMAGE_CREATE_PROTECTED_BIT :
@@ -1648,6 +1651,31 @@ namespace AE::Graphics
 
 /*
 =================================================
+	VEnumCast (EImageViewOpt)
+=================================================
+*/
+	ND_ inline VkImageViewCreateFlagBits  VEnumCast (EImageViewOpt options)
+	{
+		VkImageViewCreateFlagBits	flags = Zero;
+
+		for (auto t : BitfieldIterate( options ))
+		{
+			switch_enum( t )
+			{
+				case EImageViewOpt::FragmentDensityMap_Dynamic :	flags |= VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT;	break;
+
+				case EImageViewOpt::_Last :
+				//case EImageViewOpt::All :
+				case EImageViewOpt::Unknown :
+				default_unlikely :					RETURN_ERR( "unsupported EImageViewOpt", Zero );
+			}
+			switch_end
+		}
+		return flags;
+	}
+
+/*
+=================================================
 	VEnumCast (EFilter)
 =================================================
 */
@@ -1741,18 +1769,18 @@ namespace AE::Graphics
 			switch_enum( t )
 			{
 				// VK_EXT_fragment_density_map
-				//case ESamplerOpt::Subsampled :						flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;	break;
-				//case ESamplerOpt::SubsampledCoarseReconstruction :	flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT | VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;	break;
+				case ESamplerOpt::Subsampled :						flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;	break;
+				case ESamplerOpt::SubsampledCoarseReconstruction :	flags |= VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT | VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;	break;
 
 				// VK_EXT_non_seamless_cube_map
-				case ESamplerOpt::NonSeamlessCubeMap :					flags |= VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT;	break;
+				case ESamplerOpt::NonSeamlessCubeMap :				flags |= VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT;	break;
 
 				case ESamplerOpt::UnnormalizedCoordinates :
 				case ESamplerOpt::ArgumentBuffer :
 				case ESamplerOpt::Unknown :
 				case ESamplerOpt::_Last :
 				case ESamplerOpt::All :
-				default :												RETURN_ERR( "unknown sampler flags", VK_SAMPLER_CREATE_FLAG_BITS_MAX_ENUM );
+				default :											RETURN_ERR( "unknown sampler flags", VK_SAMPLER_CREATE_FLAG_BITS_MAX_ENUM );
 			}
 			switch_end
 		}

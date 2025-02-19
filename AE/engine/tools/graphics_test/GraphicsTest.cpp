@@ -70,12 +70,18 @@ namespace AE::GraphicsTest
 */
 	void  ImageComparator::Reset (RC<WStream> imgFile, Path imgName)
 	{
+		return Reset( RVRef(imgFile), RVRef(imgName), Default );
+	}
+
+	void  ImageComparator::Reset (RC<WStream> imgFile, Path imgName, Function< RC<WStream>() > openDiffFile)
+	{
 		ASSERT( not imgName.empty() );
 
 		_dstFile	= RVRef(imgFile);
 		_fname		= RVRef(imgName);
 		_loaded		= false;
 		_newRef		= false;
+		_openDiffFile = RVRef(openDiffFile);
 	}
 
 /*
@@ -178,7 +184,8 @@ namespace AE::GraphicsTest
 			return true;
 
 		hasDiff = true;
-		CHECK_ERR( openDiffFile );
+		if ( not openDiffFile )
+			return true;
 
 		auto	diff_file = openDiffFile();
 		CHECK_ERR( diff_file );

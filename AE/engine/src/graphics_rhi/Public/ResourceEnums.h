@@ -124,7 +124,7 @@ namespace AE::Graphics
 	static constexpr auto	EImage_CubeArray	= EImage::CubeArray;
 
 
-	enum class EImageUsage : uint
+	enum class EImageUsage : ushort
 	{
 		TransferSrc					= 1 << 0,		// for all copy operations (copy/blit)
 		TransferDst					= 1 << 1,		// for all copy operations (copy/blit/clear)
@@ -133,7 +133,8 @@ namespace AE::Graphics
 		ColorAttachment				= 1 << 4,		// color or resolve attachment
 		DepthStencilAttachment		= 1 << 5,		// depth/stencil attachment
 		InputAttachment				= 1 << 6,		// input attachment in shader
-		ShadingRate					= 1 << 7,		// shading rate attachment
+		ShadingRate					= 1 << 7,		// shading rate attachment (defines fragment count in 4x4 region)
+		FragmentDensityMap			= 1 << 8,		// fragment density map attachment (defines tile scale for rasterization and FS)
 		_Last,
 
 		All							= ((_Last-1) << 1) - 1,
@@ -146,7 +147,8 @@ namespace AE::Graphics
 	static constexpr EImageUsage	EImageUsage_MutableResource = EImageUsage::TransferDst | EImageUsage::Storage |
 																  EImageUsage::ColorAttachment | EImageUsage::DepthStencilAttachment;
 	static constexpr EImageUsage	EImageUsage_AllowImageView	= EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::ColorAttachment |
-																  EImageUsage::DepthStencilAttachment | EImageUsage::InputAttachment | EImageUsage::ShadingRate;
+																  EImageUsage::DepthStencilAttachment | EImageUsage::InputAttachment |
+																  EImageUsage::ShadingRate | EImageUsage::FragmentDensityMap;
 
 
 	enum class EImageOpt : uint
@@ -173,6 +175,10 @@ namespace AE::Graphics
 
 		LossyRTCompression			= 1 << 16,		// allow to use hardware lossy compression for the color attachments
 		ExtendedUsage				= 1 << 17,		// image may not support all usage flags
+		
+		Subsampled					= 1 << 18,		// intermediate attachments to use with fragment density map,
+													// when used fragment density map all other attachments in render pass
+													// must be created with this flag.
 
 		//DepthComparison	// TODO
 
@@ -184,6 +190,18 @@ namespace AE::Graphics
 		Unknown						= 0,
 	};
 	AE_BIT_OPERATORS( EImageOpt );
+
+
+	enum class EImageViewOpt : ubyte
+	{
+		FragmentDensityMap_Dynamic	= 1 << 0,		// fragment density map will be read on GPU-side at 'EResourceState::FragmentDensityMap',
+													// otherwise will be read on CPU-side at 'BeginRenderPass()'.
+
+		_Last,
+		All							= ((_Last-1) << 1) - 1,
+		Unknown						= 0,
+	};
+	AE_BIT_OPERATORS( EImageViewOpt );
 
 
 	enum class EImageAspect : ubyte

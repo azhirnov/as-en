@@ -70,6 +70,8 @@ namespace AE::Graphics::_hidden_
 		ND_	void*  ReadbackAlloc (FrameUID frameId, RmDevicePtr ptr, Bytes size)		__Th___;
 			void   PipelineBarrier (const RDependencyInfo &)							__Th___;
 			void   WriteTimestamp (const RQueryManager::Query &, uint, EPipelineScope)	__Th___;
+			void   BeginQuery (const RQueryManager::Query &, uint)						__Th___;
+			void   EndQuery (const RQueryManager::Query &, uint)						__Th___;
 
 	private:
 		void  _Upload (OUT Array<RemoteGraphics::Msg::UploadData> &,
@@ -157,6 +159,8 @@ namespace AE::Graphics::_hidden_
 
 		ND_	void*	_ReadbackAlloc (RmDevicePtr ptr, Bytes size)							__Th___	{ return _cmdbuf->ReadbackAlloc( _mngr.GetFrameId(), ptr, size ); }
 			void	_WriteTimestamp (const RQueryManager::Query &, uint, EPipelineScope)	__Th___;
+			void	_BeginQuery (const RQueryManager::Query &, uint)						__Th___;
+			void	_EndQuery (const RQueryManager::Query &, uint)							__Th___;
 
 		ND_ RmCommandBufferID	_EndCommandBuffer (ECtxType)								__Th___;
 		ND_ CmdBuf_t			_ReleaseCommandBuffer (ECtxType)							__Th___;

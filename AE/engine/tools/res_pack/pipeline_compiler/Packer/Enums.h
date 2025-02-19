@@ -17,8 +17,8 @@ namespace AE::PipelineCompiler
 		Depth,
 		Preserve,
 		ShadingRate,
+		FragmentDensity,
 		// TODO
-		//	FragmentDensity,
 		//	DepthStencilResolve,
 		//	Depth_ShaderRead,
 		_Count,

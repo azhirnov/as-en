@@ -36,6 +36,7 @@ namespace AE::GraphicsTest
 			bool  LoadReference (RC<RStream> imgFile, Path imgName, Function< RC<WStream>() > openDiffFile);
 
 			void  Reset (RC<WStream> imgFile, Path imgName);
+			void  Reset (RC<WStream> imgFile, Path imgName, Function< RC<WStream>() > openDiffFile);
 
 		ND_ bool  Compare (const ImageMemView &view);
 

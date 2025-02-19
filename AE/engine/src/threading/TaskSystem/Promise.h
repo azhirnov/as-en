@@ -143,6 +143,12 @@ namespace _hidden_
 		auto  Then (Fn &&fn,
 					StringView dbgName		= Default,
 					ETaskQueue queueType	= Default)							__NE___;
+		
+		template <typename Fn, typename ...Deps>
+		auto  Then (Fn						&&fn,
+					const Tuple<Deps...>	&deps,
+					StringView				dbgName		= Default,
+					ETaskQueue				queueType	= Default)				__NE___;
 
 		// used to process errors
 		template <typename Fn>
@@ -580,6 +586,13 @@ namespace _hidden_
 	template <typename Fn>
 	auto  Promise<T>::Then (Fn &&fn, StringView dbgName, ETaskQueue queueType) __NE___
 	{
+		return Then( FwdArg<Fn>(fn), Tuple{}, dbgName, queueType );
+	}
+
+	template <typename T>
+	template <typename Fn, typename ...Deps>
+	auto  Promise<T>::Then (Fn &&fn, const Tuple<Deps...> &deps, StringView dbgName, ETaskQueue queueType) __NE___
+	{
 		using FI		= FunctionInfo< Fn >;
 		using Result	= typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
 
@@ -602,10 +615,10 @@ namespace _hidden_
 			if ( _impl->IsExcept() )
 			{
 				// on error promise will NOT be marked as cancelled
-				Scheduler().Run( AsyncTask{result}, Tuple{WeakDep{_impl}} );
+				Scheduler().Run( AsyncTask{result}, TupleAppend( deps, WeakDep{_impl} ));
 			}else{
 				// on error promise will be marked as cancelled
-				Scheduler().Run( AsyncTask{result}, Tuple{StrongDep{_impl}} );
+				Scheduler().Run( AsyncTask{result}, TupleAppend( deps, StrongDep{_impl} ));
 			}
 
 			return result;

@@ -173,12 +173,23 @@ namespace AE::PipelineCompiler
 	{
 	// types
 		using AttachBits_t = BitSet< GraphicsConfig::MaxAttachments >;
+		
+		struct ViewMask
+		{
+			uint	value	= 0;
+
+			ViewMask ()						__NE___ {}
+			explicit ViewMask (uint val)	__NE___ : value{val} {}
+		};
 
 		struct SubpassInfo
 		{
 			SubpassName				name;
+			ViewMask				viewMask;
 			mutable AttachBits_t	assignedColorAttachment	{0};
 			mutable AttachBits_t	assignedInputAttachment	{0};
+
+			SubpassInfo (SubpassName::Ref name, ViewMask mask) : name{name}, viewMask{mask} {}
 		};
 
 		using Attachments_t		= HashMap< AttachmentName, RPAttachmentPtr, AttachmentName::Hasher_t, AttachmentName::EqualTo_t >;
@@ -217,13 +228,12 @@ namespace AE::PipelineCompiler
 		SubpassesMap_t					_subpassMap;
 		Specializations_t				_specializations;
 		Array< ScriptFeatureSetPtr >	_features;
+		Array< uint >					_correlatedViewMasks;
 
 
 	// methods
 		CompatibleRenderPassDesc ();
 		explicit CompatibleRenderPassDesc (const String &name)					__Th___;
-
-			void				AddFeatureSet (const String &name)				__Th___;
 
 		ND_ RenderPassSpec*		AddSpecialization (const String &rpName)		__Th___;
 		ND_ RenderPassSpecPtr	AddSpecialization2 (const String &rpName)		__Th___;
@@ -232,11 +242,17 @@ namespace AE::PipelineCompiler
 		ND_ RPAttachmentPtr		AddAttachment2 (const String &attachmentName)	__Th___;
 
 			void				AddSubpass (const String &subpassName)			__Th___;
+			void				AddSubpass2 (const String &subpassName,
+											 const ViewMask &mask)				__Th___;
 
 		ND_ RenderPassSpecPtr	GetRenderPass (RenderPassName::Ref name)		const;
 		ND_ bool				IsFirstSubpass (SubpassName::Ref name)			const;
 
-		ND_ bool	Validate ();
+			void	AddFeatureSet (const String &name)							__Th___;
+
+			void	AddMultiViewCorrelatedViewMask (uint bits)					__Th___;
+
+		ND_ bool	Validate ()													__NE___;
 
 			void	Print ()													const;
 		ND_ String	ToString (StringView padding)								const;

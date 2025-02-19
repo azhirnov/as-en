@@ -132,7 +132,8 @@ namespace AE::Base
 
 		return dst.size() == src.size();
 	}
-
+	
+#ifdef AE_ENABLE_ABSEIL
 	template <typename T,
 			  typename Hasher1, typename Hasher2,
 			  typename KeyEq1,  typename KeyEq2,
@@ -148,6 +149,7 @@ namespace AE::Base
 
 		return dst.size() == src.size();
 	}
+#endif
 
 	template <typename K,		typename V,
 			  typename Hasher1,	typename Hasher2,
@@ -180,7 +182,8 @@ namespace AE::Base
 
 		return dst.size() == src.size();
 	}
-
+	
+#ifdef AE_ENABLE_ABSEIL
 	template <typename K,		typename V,
 			  typename Hasher1,	typename Hasher2,
 			  typename KeyEq1,	typename KeyEq2,
@@ -196,6 +199,7 @@ namespace AE::Base
 
 		return dst.size() == src.size();
 	}
+#endif
 
 /*
 =================================================

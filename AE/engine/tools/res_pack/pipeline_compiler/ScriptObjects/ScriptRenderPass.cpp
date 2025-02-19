@@ -12,6 +12,7 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::RPAttachmentSpec,			"AttachmentSpec
 AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::RenderPassSpec,			"RenderPass"			);
 AE_DECL_SCRIPT_OBJ_RC(	AE::PipelineCompiler::CompatibleRenderPassDesc,	"CompatibleRenderPass"	);
 AE_DECL_SCRIPT_OBJ(		AE::PipelineCompiler::RPAttachment::ShaderIO,	"ShaderIO"				);
+AE_DECL_SCRIPT_OBJ(		AE::PipelineCompiler::CompatibleRenderPassDesc::ViewMask,	"MultiViewMask" );
 
 
 namespace AE::Base
@@ -30,6 +31,7 @@ namespace AE::Base
 			case EAttachment::Depth :			return "Depth";
 			case EAttachment::Preserve :		return "Preserve";
 			case EAttachment::ShadingRate :		return "ShadingRate";
+			case EAttachment::FragmentDensity :	return "FragmentDensity";
 			case EAttachment::Unknown :			return "Unknown";
 			case EAttachment::_Count :			break;
 		}
@@ -116,6 +118,16 @@ namespace
 	static void  ShaderIO_Ctor4 (void* mem, uint index, const String &name)
 	{
 		ShaderIO_Ctor( OUT mem, name, NullOptional, index );
+	}
+
+/*
+=================================================
+	ViewMask_Ctor*
+=================================================
+*/
+	static void  ViewMask_Ctor1 (void* mem, uint mask)
+	{
+		PlacementNew<CompatibleRenderPassDesc::ViewMask>( mem, mask );
 	}
 
 
@@ -205,6 +217,9 @@ namespace
 		CHECK_THROW_MSG( inserted,
 			"subpass '"s << subpassName << "' is already has usage" );
 
+		if ( usage != EAttachment::ShadingRate )
+			CHECK_THROW_MSG( All(IsZero( texelSize )));
+
 		switch_enum( usage )
 		{
 			case EAttachment::Color :
@@ -264,6 +279,10 @@ namespace
 				CHECK_THROW_MSG( All(IsNotZero( texelSize )));
 				CHECK_THROW_MSG( All(IsPowerOfTwo( texelSize )));
 				iter->second.texelSize = texelSize;
+				break;
+				
+			case EAttachment::FragmentDensity :
+				CHECK_THROW_MSG( not inVar.has_value() and not outVar.has_value() );
 				break;
 
 			case EAttachment::Invalidate :
@@ -369,6 +388,23 @@ namespace
 			is_valid = false;
 		}
 
+		bool	is_fragment_density	= false;
+
+		for (auto& [name, usage] : usageMap)
+		{
+			is_fragment_density |= (usage.type == EAttachment::FragmentDensity);
+		}
+
+		if ( is_fragment_density )
+		{
+			for (auto& [name, usage] : usageMap) {
+				if ( usage.type != EAttachment::FragmentDensity ) {
+					AE_LOGE( String{msg} << "with 'FragmentDensity' usage must have same usage for all subpasses" );
+					is_valid = false;
+				}
+			}
+		}
+
 		return is_valid;
 	}
 
@@ -423,7 +459,7 @@ namespace
 	AddLayout
 =================================================
 */
-	void  RPAttachmentSpec::AddLayout (const String &subpassName, EResourceState state) __Th___
+	void  RPAttachmentSpec::AddLayout (const String &subpassName, const EResourceState state) __Th___
 	{
 		CHECK_THROW_MSG( layouts.size() < GraphicsConfig::MaxSubpasses );
 
@@ -471,6 +507,7 @@ namespace
 				const bool				invalidate	= AllBits( state, _EResState::Invalidate );
 				const EResourceState	shaders		= state & EResourceState::AllShaders;
 				const bool				is_color	= att_it->second->IsColor();
+				const bool				is_general	= access == _EResState::General;
 
 				const String	msg = "in subpass '"s << subpassName << "', attachment '" << storage.GetName( _name ) << "' with usage '" << Base::ToString( usage_it->second.type ) << "' ";
 
@@ -486,8 +523,8 @@ namespace
 					}
 					case EAttachment::Color :
 					{
-						CHECK_THROW_MSG( access == _EResState::ColorAttachment,
-							String{msg} << "allow only 'ColorAttachment' state" );
+						CHECK_THROW_MSG( access == _EResState::ColorAttachment or is_general,
+							String{msg} << "allow 'ColorAttachment' or 'General' state" );
 						CHECK_THROW_MSG( shaders == Default,
 							String{msg} << "must not contain shader stages" );
 						break;
@@ -495,11 +532,11 @@ namespace
 					case EAttachment::ReadWrite :
 					{
 						if ( is_color ) {
-							CHECK_THROW_MSG( access == _EResState::InputColorAttachment_RW,
-								String{msg} << "allow only 'InputColorAttachment_RW' state" );
+							CHECK_THROW_MSG( access == _EResState::InputColorAttachment_RW or is_general,
+								String{msg} << "allow 'InputColorAttachment_RW' or 'General' state" );
 						}else{
-							CHECK_THROW_MSG( access == _EResState::InputDepthStencilAttachment_RW,
-								String{msg} << "allow only 'InputDepthStencilAttachment_RW' state" );
+							CHECK_THROW_MSG( access == _EResState::InputDepthStencilAttachment_RW or is_general,
+								String{msg} << "allow 'InputDepthStencilAttachment_RW' or 'General' state" );
 						}
 						CHECK_THROW_MSG( AnyBits( shaders, EResourceState::PostRasterizationShaders ),
 							String{msg} << "must contains 'Tile' or 'Fragment' shader stage" );
@@ -507,8 +544,8 @@ namespace
 					}
 					case EAttachment::ColorResolve:
 					{
-						CHECK_THROW_MSG( access == _EResState::ColorAttachment,
-							String{msg} << "allow only 'ColorAttachment' state" );
+						CHECK_THROW_MSG( access == _EResState::ColorAttachment or is_general,
+							String{msg} << "allow 'ColorAttachment' or 'General' state" );
 						CHECK_THROW_MSG( shaders == Default,
 							String{msg} << "must not contain shader stages" );
 						break;
@@ -516,11 +553,11 @@ namespace
 					case EAttachment::Input :
 					{
 						if ( is_color ) {
-							CHECK_THROW_MSG( access == _EResState::InputColorAttachment,
-								String{msg} << "allow only 'InputColorAttachment' state" );
+							CHECK_THROW_MSG( access == _EResState::InputColorAttachment or is_general,
+								String{msg} << "allow 'InputColorAttachment' or 'General' state" );
 						}else{
-							CHECK_THROW_MSG( access == _EResState::InputDepthStencilAttachment,
-								String{msg} << "allow only 'InputDepthStencilAttachment' state" );
+							CHECK_THROW_MSG( access == _EResState::InputDepthStencilAttachment or is_general,
+								String{msg} << "allow 'InputDepthStencilAttachment' or 'General' state" );
 						}
 						CHECK_THROW_MSG( AnyBits( shaders, EResourceState::PostRasterizationShaders ),
 							String{msg} << "must contains Tile or Fragment shader stage" );
@@ -533,8 +570,9 @@ namespace
 						CHECK_THROW_MSG( access == _EResState::DepthStencilTest				or
 										 access == _EResState::DepthStencilAttachment_RW	or
 										 access == _EResState::DepthTest_StencilRW			or
-										 access == _EResState::DepthRW_StencilTest,
-							String{msg} << "allow all combinations of DepthStencilAttachment states" );
+										 access == _EResState::DepthRW_StencilTest			or
+										 is_general,
+							String{msg} << "allow all combinations of 'DepthStencilAttachment' states or 'General' state" );
 						CHECK_THROW_MSG( ds_stages != Default,
 							String{msg} << "requires DSTestBeforeFS or DSTestAfterFS stages" );
 						CHECK_THROW_MSG( shaders == Default,
@@ -551,8 +589,16 @@ namespace
 					}
 					case EAttachment::ShadingRate :
 					{
-						CHECK_THROW_MSG( access == _EResState::ShadingRateImage,
-							String{msg} << "allow only 'ShadingRateImage' state" );
+						CHECK_THROW_MSG( access == _EResState::ShadingRateImage or is_general,
+							String{msg} << "allow 'ShadingRateImage' or 'General' state" );
+						CHECK_THROW_MSG( shaders == Default,
+							String{msg} << "must not contain shader stages" );
+						break;
+					}
+					case EAttachment::FragmentDensity :
+					{
+						CHECK_THROW_MSG( access == _EResState::FragmentDensityMap or is_general,
+							String{msg} << "allow 'FragmentDensityMap' or 'General' state" );
 						CHECK_THROW_MSG( shaders == Default,
 							String{msg} << "must not contain shader stages" );
 						break;
@@ -694,6 +740,11 @@ namespace
 							"add 'Preserve' usage for previous subpass '" << storage.GetName( prev_sp ) << "'" );
 						new_state = EResourceState::ShadingRateImage;
 						break;
+						
+					case EAttachment::FragmentDensity :
+						CHECK_THROW_MSG( rt->format == EPixelFormat::RG8_UNorm );
+						new_state = EResourceState::FragmentDensityMap;
+						break;
 
 					case EAttachment::Unknown :
 					case EAttachment::_Count :
@@ -752,6 +803,9 @@ namespace
 		{
 			this->loadOp	= AnyBits( rt_states.front(), EResourceState::Invalidate ) ? EAttachmentLoadOp::Clear		: EAttachmentLoadOp::Load;
 			this->storeOp	= AnyBits( rt_states.back(),  EResourceState::Invalidate ) ? EAttachmentStoreOp::Invalidate	: EAttachmentStoreOp::Store;
+
+			if ( rt_states.back() == EResourceState::FragmentDensityMap )
+				this->storeOp = EAttachmentStoreOp::None;
 		}
 	}
 
@@ -811,21 +865,24 @@ namespace
 */
 	bool  RPAttachmentSpec::_ValidatePass1 (RenderPassName::Ref rpName) const
 	{
-		auto&				storage			= *ObjectStorage::Instance();
-		bool				is_valid		= true;
-		const bool			store_op_store	= storeOp == EAttachmentStoreOp::Store or storeOp == EAttachmentStoreOp::StoreCustomSamplePositions;
-		EAttachmentLoadOp	subpass_load_op	= loadOp;
-		const String		msg				= "in render pass '"s << storage.GetName( rpName ) << "' attachment '" << storage.GetName( _name ) << "' ";
+		auto&				storage				= *ObjectStorage::Instance();
+		bool				is_valid			= true;
+		const bool			store_op_store		= storeOp == EAttachmentStoreOp::Store or storeOp == EAttachmentStoreOp::StoreCustomSamplePositions;
+		EAttachmentLoadOp	subpass_load_op		= loadOp;
+		const String		msg					= "in render pass '"s << storage.GetName( rpName ) << "' attachment '" << storage.GetName( _name ) << "' ";
+		bool				is_fragment_density	= false;
 
 		const auto	AddUsage = [&] (uint subpassIdx, SubpassName::Ref spName, const EAttachment usage, const EResourceState state)
 		{{
-			Unused( usage );
+			const auto	res_state = ToEResState( state );
 
 			String	msg2 = String{msg} << "in subpass '" << storage.GetName( spName ) << "' ";
 
+			is_fragment_density |= (usage == EAttachment::FragmentDensity);
+
 			// check subpass load op
 			{
-				if ( ToEResState(state) == _EResState::Preserve )
+				if ( res_state == _EResState::Preserve )
 				{
 					if ( subpass_load_op != EAttachmentLoadOp::Load )
 					{
@@ -878,7 +935,7 @@ namespace
 				}
 			}
 			else
-			if ( ToEResState(state) == _EResState::Preserve )
+			if ( res_state == _EResState::Preserve )
 			{
 				subpass_load_op = EAttachmentLoadOp::Load;
 			}
@@ -971,6 +1028,20 @@ namespace
 					AE_LOGE( String{msg} << "with 'storeOp = Invalidate' must have 'Invalidate' in final state" );
 					is_valid = false;
 				}
+			}
+		}
+
+		if ( is_fragment_density )
+		{
+			if ( loadOp != EAttachmentLoadOp::Load )
+			{
+				AE_LOGE( String{msg} << "with 'usage = FragmentDensityMap' must have 'loadOp = Load'" );
+				is_valid = false;
+			}
+			if ( storeOp != EAttachmentStoreOp::None )
+			{
+				AE_LOGE( String{msg} << "with 'usage = FragmentDensityMap' must have 'storeOp = None'" );
+				is_valid = false;
 			}
 		}
 
@@ -1157,6 +1228,24 @@ namespace
 
 		_features.push_back( fs_it->second );
 	}
+	
+/*
+=================================================
+	AddMultiViewCorrelatedViewMask
+=================================================
+*/
+	void  CompatibleRenderPassDesc::AddMultiViewCorrelatedViewMask (const uint bits) __Th___
+	{
+		CHECK_THROW_MSG( bits != 0 );
+
+		for (auto& mask : _correlatedViewMasks)
+		{
+			CHECK_THROW_MSG( NoBits( bits, mask ),
+				"ViewMask must not overlap with previously added." );
+		}
+
+		_correlatedViewMasks.push_back( bits );
+	}
 
 /*
 =================================================
@@ -1194,81 +1283,98 @@ namespace
 	Validate
 =================================================
 */
-	bool  CompatibleRenderPassDesc::Validate () __Th___
+	bool  CompatibleRenderPassDesc::Validate () __NE___
 	{
-		auto&	storage = *ObjectStorage::Instance();
+		try{
+			auto&	storage = *ObjectStorage::Instance();
 
-		for (const auto& att : _attachments)
-		{
-			CHECK_ERR( att.second->Validate() );
-		}
-
-		for (const auto& sp : _subpasses)
-		{
-			for (auto& [att_name, att] : _attachments)
+			for (const auto& att : _attachments)
 			{
-				auto	usage_it = att->usageMap.find( sp.name );
-				if ( usage_it == att->usageMap.end() )
-					continue;
+				CHECK_ERR( att.second->Validate() );
+			}
 
-				switch_enum( usage_it->second.type )
+			for (const auto& sp : _subpasses)
+			{
+				for (auto& [att_name, att] : _attachments)
 				{
-					case EAttachment::Color :
-					case EAttachment::ColorResolve :
-					case EAttachment::ReadWrite :
-					case EAttachment::Input :
-					case EAttachment::DepthStencil :
-						if ( att->format != EPixelFormat::SwapchainColor ) {
+					auto	usage_it = att->usageMap.find( sp.name );
+					if ( usage_it == att->usageMap.end() )
+						continue;
+
+					switch_enum( usage_it->second.type )
+					{
+						case EAttachment::Color :
+						case EAttachment::ColorResolve :
+						case EAttachment::ReadWrite :
+						case EAttachment::Input :
+						case EAttachment::DepthStencil :
+							if ( att->format != EPixelFormat::SwapchainColor ) {
+								TestFeature_PixelFormat( _features, &FeatureSet::attachmentFormats, att->format, "attachmentFormats",
+														 ", which used in Attachment '"s << storage.GetName(att_name) << "' in CompatibleRenderPass '" <<
+														 storage.GetName(_name) << "' with subpass '" << storage.GetName(sp.name) << "'" );  // throw
+							}
+							break;
+
+						case EAttachment::ShadingRate :
+							TEST_FEATURE( _features, attachmentFragmentShadingRate );
 							TestFeature_PixelFormat( _features, &FeatureSet::attachmentFormats, att->format, "attachmentFormats",
 													 ", which used in Attachment '"s << storage.GetName(att_name) << "' in CompatibleRenderPass '" <<
-													 storage.GetName(_name) << "' with subpass '" << storage.GetName(sp.name) << "'" );  // throw
-						}
-						break;
+													 storage.GetName(_name) << "' with subpass '" << storage.GetName(sp.name) << "'" );		// throw
+							CHECK_THROW_MSG( att->format == EPixelFormat::R8U );
 
-					case EAttachment::ShadingRate :
-						TEST_FEATURE( _features, attachmentFragmentShadingRate );
-						TestFeature_PixelFormat( _features, &FeatureSet::attachmentFormats, att->format, "attachmentFormats",
-												 ", which used in Attachment '"s << storage.GetName(att_name) << "' in CompatibleRenderPass '" <<
-												 storage.GetName(_name) << "' with subpass '" << storage.GetName(sp.name) << "'" );		// throw
-						CHECK_THROW_MSG( att->format == EPixelFormat::R8U );
+							for (auto& fs : _features) {
+								if ( fs->fs.attachmentFragmentShadingRate == FeatureSet::EFeature::RequireTrue )
+								{
+									const uint2		texel_size		= usage_it->second.texelSize;
+									const uint2		min_texel_size	= fs->fs.fragmentShadingRateTexelSize.Min();
+									const uint2		max_texel_size	= fs->fs.fragmentShadingRateTexelSize.Max();
+									const uint		aspect			= fs->fs.fragmentShadingRateTexelSize.MaxAspect();
 
-						for (auto& fs : _features) {
-							if ( fs->fs.attachmentFragmentShadingRate == FeatureSet::EFeature::RequireTrue )
-							{
-								const uint2		texel_size		= usage_it->second.texelSize;
-								const uint2		min_texel_size	= fs->fs.fragmentShadingRateTexelSize.Min();
-								const uint2		max_texel_size	= fs->fs.fragmentShadingRateTexelSize.Max();
-								const uint		aspect			= fs->fs.fragmentShadingRateTexelSize.MaxAspect();
-
-								CHECK_THROW_MSG( All( texel_size >= min_texel_size ),
-									"ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
-									" must be >= minTexelSize" << Base::ToString(min_texel_size) << " in feature sets" );
-								CHECK_THROW_MSG( All( texel_size <= max_texel_size ),
-									"ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
-									" must be <= maxTexelSize" << Base::ToString(min_texel_size) << " in feature sets" );
-								CHECK_THROW_MSG( ((texel_size.x / texel_size.y) <= aspect) or ((texel_size.y / texel_size.x) <= aspect),
-									"ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
-									" aspect must be <= maxAspectRatio(" << Base::ToString(aspect) << ") in feature sets" );
+									CHECK_THROW_MSG( All( texel_size >= min_texel_size ),
+										"ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
+										" must be >= minTexelSize" << Base::ToString(min_texel_size) << " in feature sets" );
+									CHECK_THROW_MSG( All( texel_size <= max_texel_size ),
+										"ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
+										" must be <= maxTexelSize" << Base::ToString(min_texel_size) << " in feature sets" );
+									CHECK_THROW_MSG( ((texel_size.x / texel_size.y) <= aspect) or ((texel_size.y / texel_size.x) <= aspect),
+										"ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
+										" aspect must be <= maxAspectRatio(" << Base::ToString(aspect) << ") in feature sets" );
+								}
 							}
-						}
-						break;
+							break;
+						
+						case EAttachment::FragmentDensity :
+							TEST_FEATURE( _features, fragmentDensityMap );
+							TestFeature_PixelFormat( _features, &FeatureSet::attachmentFormats, att->format, "attachmentFormats",
+													 ", which used in Attachment '"s << storage.GetName(att_name) << "' in CompatibleRenderPass '" <<
+													 storage.GetName(_name) << "' with subpass '" << storage.GetName(sp.name) << "'" );		// throw
+							CHECK_THROW_MSG( att->format == EPixelFormat::RG8_UNorm );
+							break;
 
-					case EAttachment::Preserve :
-					case EAttachment::_Count :
-					case EAttachment::Unknown :
-					case EAttachment::Invalidate :
-						break;
+						case EAttachment::Preserve :
+						case EAttachment::_Count :
+						case EAttachment::Unknown :
+						case EAttachment::Invalidate :
+							break;
+					}
+					switch_end
 				}
-				switch_end
 			}
-		}
 
-		CHECK_ERR( not _specializations.empty() );
-		for (const auto& spec : _specializations)
-		{
-			CHECK_ERR( spec.second->Validate() );
+			CHECK_ERR( not _specializations.empty() );
+			for (const auto& spec : _specializations)
+			{
+				CHECK_ERR( spec.second->Validate() );
+			}
+
+			if ( not _correlatedViewMasks.empty() )
+				TEST_FEATURE( _features, multiview );
+
+			return true;
 		}
-		return true;
+		catch(...){
+			return false;
+		}
 	}
 
 /*
@@ -1337,6 +1443,11 @@ namespace
 */
 	void  CompatibleRenderPassDesc::AddSubpass (const String &subpassName) __Th___
 	{
+		return AddSubpass2( subpassName, ViewMask{} );
+	}
+	
+	void  CompatibleRenderPassDesc::AddSubpass2 (const String &subpassName, const ViewMask &mask) __Th___
+	{
 		CHECK_ERRV( _subpassMap.size() < GraphicsConfig::MaxSubpasses );
 
 		const SubpassName	sp_name {subpassName};
@@ -1354,7 +1465,7 @@ namespace
 		CHECK_THROW_MSG( inserted,
 			"subpass '"s << subpassName << "' is already exists" );
 
-		_subpasses.push_back( SubpassInfo{ sp_name });
+		_subpasses.push_back( SubpassInfo{ sp_name, mask });
 	}
 
 /*
@@ -1396,83 +1507,119 @@ namespace
 	{
 		EnumBinder<EAttachment>		binder{ se };
 		binder.Create();
-		binder.Comment( "Discard previous content. Used as optimization for TBDR architectures." );
-		binder.AddValue( "Invalidate",		EAttachment::Invalidate		);
+		switch_enum( EAttachment::_Count )
+		{
+			case EAttachment::_Count :
+			case EAttachment::Unknown :
 
-		binder.Comment( "Color attachment." );
-		binder.AddValue( "Color",			EAttachment::Color			);
+			case EAttachment::Invalidate :
+				binder.Comment( "Discard previous content. Used as optimization for TBDR architectures." );
+				binder.AddValue( "Invalidate",		EAttachment::Invalidate		);
 
-		binder.Comment( "Used as input attachment and color attachment." );
-		binder.AddValue( "ReadWrite",		EAttachment::ReadWrite		);
+			case EAttachment::Color :
+				binder.Comment( "Color attachment." );
+				binder.AddValue( "Color",			EAttachment::Color			);
 
-		binder.Comment( "Resolve attachment - will get content from multisampled color attachment." );
-		binder.AddValue( "ColorResolve",	EAttachment::ColorResolve	);
+			case EAttachment::ColorResolve :
+				binder.Comment( "Resolve attachment - will get content from multisampled color attachment." );
+				binder.AddValue( "ColorResolve",	EAttachment::ColorResolve	);
 
-		binder.Comment( "Input attachment." );
-		binder.AddValue( "Input",			EAttachment::Input			);
+			case EAttachment::ReadWrite :
+				binder.Comment( "Used as input attachment and color attachment." );
+				binder.AddValue( "ReadWrite",		EAttachment::ReadWrite		);
 
-		binder.Comment( "Depth attachment." );
-		binder.AddValue( "Depth",			EAttachment::Depth			);
+			case EAttachment::Input :
+				binder.Comment( "Input attachment." );
+				binder.AddValue( "Input",			EAttachment::Input			);
 
-		binder.Comment( "Keep attachment content between passes." );
-		binder.AddValue( "Preserve",		EAttachment::Preserve		);
+			case EAttachment::Depth :
+				binder.Comment( "Depth attachment." );
+				binder.AddValue( "Depth",			EAttachment::Depth			);
 
-		binder.Comment( "Depth and stencil attachment." );
-		binder.AddValue( "DepthStencil",	EAttachment::DepthStencil	);
+				binder.Comment( "Depth and stencil attachment." );
+				binder.AddValue( "DepthStencil",	EAttachment::DepthStencil	);
 
-		binder.Comment( "Fragment shading rate attachment." );
-		binder.AddValue( "ShadingRate",		EAttachment::ShadingRate	);
+			case EAttachment::Preserve :
+				binder.Comment( "Keep attachment content between passes." );
+				binder.AddValue( "Preserve",		EAttachment::Preserve		);
 
-		StaticAssert( uint(EAttachment::_Count) == 8 );
+			case EAttachment::ShadingRate :
+				binder.Comment( "Fragment shading rate attachment." );
+				binder.AddValue( "ShadingRate",		EAttachment::ShadingRate	);
+
+			case EAttachment::FragmentDensity :
+				binder.Comment( "Fragment density (read-only) attachment." );
+				binder.AddValue( "FragmentDensity",	EAttachment::FragmentDensity	);
+		}
+		switch_end
 	}
 
 	static void  Bind_EAttachmentLoadOp (const ScriptEnginePtr &se) __Th___
 	{
 		EnumBinder<EAttachmentLoadOp>	binder{ se };
 		binder.Create();
+		switch_enum( EAttachmentLoadOp::_Count )
+		{
+			case EAttachmentLoadOp::_Count :
+			case EAttachmentLoadOp::Unknown :
 
-		binder.Comment( "Previous content will not be preserved.\n"
-						"In TBDR is allow to avoid transfer from global memory to cache." );
-		binder.AddValue( "Invalidate",	EAttachmentLoadOp::Invalidate );
+			case EAttachmentLoadOp::Invalidate :
+				binder.Comment( "Previous content will not be preserved.\n"
+								"In TBDR is allow to avoid transfer from global memory to cache." );
+				binder.AddValue( "Invalidate",	EAttachmentLoadOp::Invalidate );
 
-		binder.Comment( "Preserve attachment content.\n"
-						"In TBDR contents in global memory will be copied to cache." );
-		binder.AddValue( "Load",		EAttachmentLoadOp::Load );
+			case EAttachmentLoadOp::Load :
+				binder.Comment( "Preserve attachment content.\n"
+								"In TBDR contents in global memory will be copied to cache." );
+				binder.AddValue( "Load",		EAttachmentLoadOp::Load );
 
-		binder.Comment( "Clear attachment before first pass.\n"
-						"In TBDR is allow to avoid transfer from global memory to cache." );
-		binder.AddValue( "Clear",		EAttachmentLoadOp::Clear );
+			case EAttachmentLoadOp::Clear :
+				binder.Comment( "Clear attachment before first pass.\n"
+								"In TBDR is allow to avoid transfer from global memory to cache." );
+				binder.AddValue( "Clear",		EAttachmentLoadOp::Clear );
 
-		binder.Comment( "Attachment is not used at all.\n"
-						"Can be used to keep one compatible render pass and avoid unnecessary synchronizations for unused attachment." );
-		binder.AddValue( "None",		EAttachmentLoadOp::None );
-
-		StaticAssert( uint(EAttachmentLoadOp::_Count) == 4 );
+			case EAttachmentLoadOp::None :
+				binder.Comment( "Attachment is not used at all.\n"
+								"Can be used to keep one compatible render pass and avoid unnecessary synchronizations for unused attachment." );
+				binder.AddValue( "None",		EAttachmentLoadOp::None );
+		}
+		switch_end
 	}
 
 	static void  Bind_EAttachmentStoreOp (const ScriptEnginePtr &se) __Th___
 	{
 		EnumBinder<EAttachmentStoreOp>	binder{ se };
 		binder.Create();
+		switch_enum( EAttachmentStoreOp::_Count )
+		{
+			case EAttachmentStoreOp::_Count :
+			case EAttachmentStoreOp::Unknown :
 
-		binder.Comment( "Attachment content will not needed after rendering.\n"
-						"In TBDR it allow to avoid transfer from cache to global memory." );
-		binder.AddValue( "Invalidate",	EAttachmentStoreOp::Invalidate );
+			case EAttachmentStoreOp::Invalidate :
+				binder.Comment( "Attachment content will not needed after rendering.\n"
+								"In TBDR it allow to avoid transfer from cache to global memory." );
+				binder.AddValue( "Invalidate",	EAttachmentStoreOp::Invalidate );
 
-		binder.Comment( "Attachment content will be written to global memory." );
-		binder.AddValue( "Store",		EAttachmentStoreOp::Store );
+			case EAttachmentStoreOp::Store :
+				binder.Comment( "Attachment content will be written to global memory." );
+				binder.AddValue( "Store",		EAttachmentStoreOp::Store );
 
-		binder.Comment( "Attachment is read-only. Content may not be written to memory, but if changed then content in memory will be undefined.\n"
-						"In TBDR it allow to avoid transfer from cache to global memory." );
-		binder.AddValue( "None",		EAttachmentStoreOp::None );
+			case EAttachmentStoreOp::None :
+				binder.Comment( "Attachment is read-only. Content may not be written to memory, but if changed then content in memory will be undefined.\n"
+								"In TBDR it allow to avoid transfer from cache to global memory." );
+				binder.AddValue( "None",		EAttachmentStoreOp::None );
 
-		//binder.Comment( "Vulkan: same as 'Store'.\n"
-		//				"Metal: " );
-		//binder.AddValue( "StoreCustomSamplePositions",	EAttachmentStoreOp::StoreCustomSamplePositions );
-
-		StaticAssert( uint(EAttachmentStoreOp::_Count) == 4 );
+			case EAttachmentStoreOp::StoreCustomSamplePositions :
+				//binder.Comment( "Vulkan: same as 'Store'.\n"
+				//				"Metal: " );
+				//binder.AddValue( "StoreCustomSamplePositions",	EAttachmentStoreOp::StoreCustomSamplePositions );
+				{}
+		}
+		switch_end
 	}
-}
+
+} // namespace
+
 
 	void  CompatibleRenderPassDesc::Bind (const ScriptEnginePtr &se) __Th___
 	{
@@ -1505,6 +1652,13 @@ namespace
 			binder.AddConstructor( &ShaderIO_Ctor2,	{"shaderVariableName", "type"} );
 			binder.AddConstructor( &ShaderIO_Ctor3,	{"colorOrInputAttachmentIndex", "shaderVariableName", "type"} );
 			binder.AddConstructor( &ShaderIO_Ctor4,	{"colorOrInputAttachmentIndex", "shaderVariableName"} );
+		}
+
+		// view mask
+		{
+			ClassBinder<ViewMask>	binder{ se };
+			binder.CreateClassValue();
+			binder.AddConstructor( &ViewMask_Ctor1,	{} );
 		}
 
 		// attachment
@@ -1590,10 +1744,14 @@ namespace
 			binder.Comment( "Create render pass subpass.\n"
 							"Name may be used in C++ code to create graphics/mesh/tile pipeline." );
 			binder.AddMethod( &CompatibleRenderPassDesc::AddSubpass,		"AddSubpass",			{"subpassName"} );
+			binder.AddMethod( &CompatibleRenderPassDesc::AddSubpass2,		"AddSubpass",			{"subpassName", "viewMask"} );
 
 			binder.Comment( "Add FeatureSet to the render pass.\n"
 							"Render pass can use only features that are enabled in at least one FeatureSet." );
 			binder.AddMethod( &CompatibleRenderPassDesc::AddFeatureSet,		"AddFeatureSet",		{"fsName"} );
+			
+			binder.Comment( "Add indices of view which can be rendered concurrently." );
+			binder.AddMethod( &CompatibleRenderPassDesc::AddMultiViewCorrelatedViewMask, "AddMultiViewCorrelatedViewMask",	{"bitMask"} );
 
 			binder.Comment( "For debugging: print information to the log." );
 			binder.AddMethod( &CompatibleRenderPassDesc::Print,				"Print",				{} );

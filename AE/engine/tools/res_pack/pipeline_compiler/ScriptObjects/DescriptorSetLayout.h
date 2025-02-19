@@ -53,6 +53,7 @@ namespace AE::PipelineCompiler
 		const String					_name;
 		Optional<DescrSetUID>			_uid;
 		String							_defines;
+		uint							_subsampledSamplerCount	= 0;
 
 
 	// methods

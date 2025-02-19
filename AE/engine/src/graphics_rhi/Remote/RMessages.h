@@ -146,6 +146,7 @@ namespace AE::RemoteGraphics::Msg
 
 			// All contexts (Vulkan / Metal)
 			WriteTimestamp,		// on Metal with ARM HW supported time query only on begin/end of encoder
+			Query,
 
 			// Device
 			TimelineSemaphore,
@@ -458,13 +459,13 @@ namespace AE::RemoteGraphics::Msg
 	)
 
 	DECL_MSG( ResMngr_IsSupported_BufferViewDesc,
-		RmBufferID				bufferId;
-		BufferViewDesc			desc;
+		BufferDesc				bufDesc;
+		BufferViewDesc			viewDesc;
 	)
 
 	DECL_MSG( ResMngr_IsSupported_ImageViewDesc,
-		RmImageID				imageId;
-		ImageViewDesc			desc;
+		ImageDesc				imgDesc;
+		ImageViewDesc			viewDesc;
 	)
 
 	DECL_MSG( ResMngr_IsSupported_RTGeometryDesc,
@@ -1290,8 +1291,16 @@ namespace AE::RemoteGraphics::Msg
 			using SerQuery = Query_Alloc_Response::SerQuery;
 
 			SerQuery				query;
-			uint					index;
+			ushort					index;
 			EPipelineScope			scope;
+		)
+			
+		DECL_CMD( BeginEndQueryCmd,
+			using SerQuery = Query_Alloc_Response::SerQuery;
+
+			SerQuery				query;
+			ushort					index;
+			bool					begin;
 		)
 
 		//-------------------------------------------------

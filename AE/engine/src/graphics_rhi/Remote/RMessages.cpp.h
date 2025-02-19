@@ -16,6 +16,7 @@
 			_reg_( CmdBuf_Bake::PushDebugGroupCmd					)	and\
 			_reg_( CmdBuf_Bake::PopDebugGroupCmd					)	and\
 			_reg_( CmdBuf_Bake::WriteTimestampCmd					)	and\
+			_reg_( CmdBuf_Bake::BeginEndQueryCmd					)	and\
 			/* pipeline barriers */\
 			_reg_( CmdBuf_Bake::BufferBarrierCmd					)	and\
 			_reg_( CmdBuf_Bake::BufferViewBarrierCmd				)	and\

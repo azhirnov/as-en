@@ -55,9 +55,9 @@ namespace AE::Graphics
 		static constexpr uint	MaxColorAttachments		= 8;
 		static constexpr uint	MaxAttachments			= MaxColorAttachments + 1;	// color + depth_stencil
 		static constexpr uint	MaxSamples				= 32;
-		static constexpr uint	MaxMultiViews			= 2;
 		static constexpr uint	MaxSubpasses			= 8;
 		static constexpr uint	MaxSubpassDeps			= MaxSubpasses * 2;
+		static constexpr uint	MaxMultiViews			= 32;
 
 		// pipeline
 		static constexpr uint	MaxDescriptorSets		= 8;

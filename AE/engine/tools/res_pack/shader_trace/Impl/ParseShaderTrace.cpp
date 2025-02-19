@@ -36,12 +36,16 @@ namespace
 		EbtRayQuery,
 		EbtHitObjectNV,
 		EbtCoopmat,
+		EbtFunction,
+		EbtTensorLayoutNV,
+		EbtTensorViewNV,
+		EbtCoopvecNV,
 		EbtSpirvType,
 		EbtString,
 		EbtNumTypes
 	};
 #endif
-	StaticAssert( uint(TBasicType::EbtNumTypes) == 24 );
+	StaticAssert( uint(TBasicType::EbtNumTypes) == 28 );
 
 
 	//

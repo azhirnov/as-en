@@ -7,11 +7,11 @@ namespace
 	static void  IntLog2_Test1 ()
 	{
 		int	val;
-		val = IntLog2( 0 );				TEST( val < 0 );
-		val = IntLog2( 1 );				TEST( val == 0 );
-		val = IntLog2( 0x100 );			TEST( val == 8 );	TEST( (1u << val) == 0x100 );
-		val = IntLog2( 0x101 );			TEST( val == 8 );	TEST( (1u << val) == 0x100 );
-		val = IntLog2( 0x80000000u );	TEST( val == 31 );	TEST( (1u << val) == 0x80000000u );
+		val = IntLog2( 0 );				TEST_Lt( val, 0 );
+		val = IntLog2( 1 );				TEST_Eq( val, 0 );
+		val = IntLog2( 0x100 );			TEST_Eq( val, 8 );	TEST( (1u << val) == 0x100 );
+		val = IntLog2( 0x101 );			TEST_Eq( val, 8 );	TEST( (1u << val) == 0x100 );
+		val = IntLog2( 0x80000000u );	TEST_Eq( val, 31 );	TEST( (1u << val) == 0x80000000u );
 
 		StaticAssert( CT_IntLog2<0> < 0 );
 		StaticAssert( CT_IntLog2<1> == 0 );
@@ -30,22 +30,22 @@ namespace
 	static void  BitScanForward_Test1 ()
 	{
 		int	val;
-		val = BitScanForward( 0 );			TEST( val < 0 );
-		val = BitScanForward( 0x100 );		TEST( val == 8 );
-		val = BitScanForward( 0x101 );		TEST( val == 0 );
+		val = BitScanForward( 0 );			TEST_Lt( val, 0 );
+		val = BitScanForward( 0x100 );		TEST_Eq( val, 8 );
+		val = BitScanForward( 0x101 );		TEST_Eq( val, 0 );
 	}
 
 
 	static void  CountRZero_Test1 ()
 	{
 		uint	val;
-		val = CountRZero( 0u );				TEST( val == 32u );
-		val = CountRZero( ubyte{0} );		TEST( val == 8u );
-		val = CountRZero( ushort{0} );		TEST( val == 16u );
-		val = CountRZero( ulong{0} );		TEST( val == 64u );
-		val = CountRZero( 0x100u );			TEST( val == 8 );
-		val = CountRZero( 0x101u );			TEST( val == 0 );
-		val = CountRZero( 0x8000'0000u );	TEST( val == 31u );
+		val = CountRZero( 0u );				TEST_Eq( val, 32u );
+		val = CountRZero( ubyte{0} );		TEST_Eq( val, 8u );
+		val = CountRZero( ushort{0} );		TEST_Eq( val, 16u );
+		val = CountRZero( ulong{0} );		TEST_Eq( val, 64u );
+		val = CountRZero( 0x100u );			TEST_Eq( val, 8 );
+		val = CountRZero( 0x101u );			TEST_Eq( val, 0 );
+		val = CountRZero( 0x8000'0000u );	TEST_Eq( val, 31u );
 	}
 
 

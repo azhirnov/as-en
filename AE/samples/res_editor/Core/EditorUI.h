@@ -151,10 +151,14 @@ namespace AE::ResEditor
 
 			void  AddSliders (const void* uid, PerPassSlidersInfo info);
 		ND_ auto  GetSliders (const void* uid) const -> Ptr<const PerPassMutableSliders>;
-		ND_ auto  GetAllSliders () -> AllSliders_t;
+
+			template <typename FN>
+			void  GetAllSliders (FN &&fn);
 
 			void  AddLabels (const void* uid, Labels_t labels);
-		ND_ auto  GetAllLabels () -> AllLabels_t;
+			
+			template <typename FN>
+			void  GetAllLabels (FN &&fn);
 
 			void		SetDbgView (usize idx, RC<Image> img);
 			void		ResetDbgView (usize idx);

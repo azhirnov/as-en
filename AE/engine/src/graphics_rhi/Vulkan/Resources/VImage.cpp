@@ -104,6 +104,13 @@ namespace {
 
 					required |= VK_FORMAT_FEATURE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
 					break;
+					
+				case EImageUsage::FragmentDensityMap :
+					if ( fs.fragmentDensityMap != FeatureSet::EFeature::RequireTrue )
+						return false;
+
+					required |= VK_FORMAT_FEATURE_FRAGMENT_DENSITY_MAP_BIT_EXT;
+					break;
 
 				case EImageUsage::InputAttachment :		break;
 
@@ -431,6 +438,7 @@ namespace {
 				case EImageOpt::Alias :						// checked in Image_IsSupported()
 				case EImageOpt::SampleLocationsCompatible :	// checked in Image_IsSupported()
 				case EImageOpt::SparseResidencyAliased :	// checked in Image_IsSupported()
+				case EImageOpt::Subsampled :				// checked in FeatureSet
 			*/
 		}
 
@@ -514,11 +522,9 @@ namespace {
 	IsSupported
 =================================================
 */
-	bool  VImage::IsSupported (const VResourceManager &resMngr, const ImageViewDesc &view) C_NE___
+	bool  VImage::IsSupported (const VResourceManager &resMngr, const ImageDesc &desc, const ImageViewDesc &view) __NE___
 	{
-		DRC_SHAREDLOCK( _drCheck );
-
-		if_unlikely( not ImageView_IsSupported( resMngr, _desc, view ))
+		if_unlikely( not ImageView_IsSupported( resMngr, desc, view ))
 			return false;
 
 		const auto&		dev	= resMngr.GetDevice();
@@ -547,32 +553,6 @@ namespace {
 		if ( EMemoryType_IsNonCoherent( desc.memType ))
 			align = Max( align, dev.GetDeviceProperties().res.minNonCoherentAtomSize );
 
-		// TODO ?
-		/*
-		for (auto t : BitfieldIterate( desc.usage ))
-		{
-			switch_enum( t )
-			{
-				case EImageUsage::TransferSrc :				break;
-				case EImageUsage::TransferDst :				break;
-				case EImageUsage::Sampled :					break;
-				case EImageUsage::Storage :					break;
-				case EImageUsage::SampledMinMax :			break;
-				case EImageUsage::StorageAtomic :			break;
-				case EImageUsage::ColorAttachment :			break;
-				case EImageUsage::ColorAttachmentBlend :	break;
-				case EImageUsage::DepthStencilAttachment :	break;
-				case EImageUsage::TransientAttachment :		break;
-				case EImageUsage::InputAttachment :			break;
-				case EImageUsage::ShadingRate :				break;
-				case EImageUsage::_Last :
-				case EImageUsage::All :
-				case EImageUsage::Transfer :
-				case EImageUsage::Unknown :
-				default_unlikely :							ASSERT(false);	break;
-			}
-			switch_end
-		}*/
 		return align;
 	}
 

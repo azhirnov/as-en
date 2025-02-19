@@ -161,6 +161,9 @@ namespace AE::Base
 /*
 =================================================
 	ASin
+----
+	result in range [-Pi/2 ... Pi/2],
+	result is undefined if abs(x) > 1
 =================================================
 */
 	template <typename T>
@@ -174,6 +177,9 @@ namespace AE::Base
 /*
 =================================================
 	ACos
+----
+	result in range [0 .. Pi],
+	result is undefined if abs(x) > 1
 =================================================
 */
 	template <typename T>
@@ -276,6 +282,8 @@ namespace AE::Base
 /*
 =================================================
 	ATan
+----
+	result in range [-Pi/2 ... Pi/2], result is undefined if y_over_x == 0
 =================================================
 */
 	template <typename T>
@@ -287,6 +295,8 @@ namespace AE::Base
 /*
 =================================================
 	ATan
+----
+	result in range [-Pi...+Pi]
 =================================================
 */
 	template <typename T>

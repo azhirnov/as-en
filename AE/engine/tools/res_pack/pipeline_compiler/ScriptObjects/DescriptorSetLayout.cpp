@@ -1118,6 +1118,8 @@ namespace
 				perStage(shader).Add( un );
 			}
 		}
+
+		total.subsampledSamplers = _subsampledSamplerCount;
 	}
 
 /*
@@ -1493,6 +1495,9 @@ namespace
 			_features.push_back( fs );
 		}
 		ScriptFeatureSet::Minimize( INOUT _features );
+
+		if ( AnyBits( samp->Desc().options, ESamplerOpt::Subsampled | ESamplerOpt::SubsampledCoarseReconstruction ))
+			++_subsampledSamplerCount;
 	}
 
 /*
@@ -2713,6 +2718,7 @@ namespace
 		}
 		CHECK_LIMIT( count.dynamicUniformBuffers,	maxUniformBuffersDynamic,	"dynamic uniform buffers per pipeline" );
 		CHECK_LIMIT( count.dynamicStorageBuffers,	maxStorageBuffersDynamic,	"dynamic storage buffers per pipeline" );
+		CHECK_LIMIT( count.subsampledSamplers,		maxSubsampledSamplers,		"subsampled samplers per pipeline" );
 
 		const uint	total_buffers_dynamic	= count.dynamicUniformBuffers + count.dynamicStorageBuffers;
 		CHECK_LIMIT( total_buffers_dynamic,			maxTotalBuffersDynamic,		"total dynamic buffers per pipeline" );

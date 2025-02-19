@@ -14,7 +14,8 @@
 // Enable it if you have very rare bug with synchs.
 // When Vulkan validation reports error put breakpoint in 'log.clear();' and check 'log' content.
 #define ENABLE_SYNC_LOG		0
-#if ENABLE_SYNC_LOG
+
+#if ENABLE_SYNC_LOG and defined(AE_ENABLE_VULKAN)
 #	include "VulkanSyncLog.h"
 #endif
 
@@ -299,7 +300,7 @@ namespace AE::AppV1
 
 		RenderTaskScheduler::InstanceCtor::Destroy();
 
-		#if ENABLE_SYNC_LOG
+		#if ENABLE_SYNC_LOG and defined(AE_ENABLE_VULKAN)
 			VulkanSyncLog::Deinitialize( INOUT _device.EditDeviceFnTable() );
 		#endif
 

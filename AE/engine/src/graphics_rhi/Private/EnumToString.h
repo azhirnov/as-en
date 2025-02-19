@@ -410,8 +410,8 @@ namespace AE::Base
 				case ESamplerOpt::ArgumentBuffer :					str << "ArgumentBuffer";					break;
 				case ESamplerOpt::NonSeamlessCubeMap :				str << "NonSeamlessCubeMap";				break;
 				case ESamplerOpt::UnnormalizedCoordinates :			str << "UnnormalizedCoordinates";			break;
-			//	case ESamplerOpt::Subsampled :						str << "Subsampled";						break;
-			//	case ESamplerOpt::SubsampledCoarseReconstruction:	str << "SubsampledCoarseReconstruction";	break;
+				case ESamplerOpt::Subsampled :						str << "Subsampled";						break;
+				case ESamplerOpt::SubsampledCoarseReconstruction:	str << "SubsampledCoarseReconstruction";	break;
 
 				case ESamplerOpt::Unknown :
 				case ESamplerOpt::_Last :
@@ -420,6 +420,8 @@ namespace AE::Base
 			}
 			switch_end
 		}
+		if ( str.empty() )
+			str << "none";
 		return str;
 	}
 
@@ -997,6 +999,7 @@ namespace AE::Base
 			case _EResState::ShaderRTAS :						str << "ShaderRTAS";							break;
 			case _EResState::RTShaderBindingTable :				str << "RTShaderBindingTable";					break;
 			case _EResState::ShadingRateImage :					str << "ShadingRateImage";						break;
+			case _EResState::FragmentDensityMap :				str << "FragmentDensityMap";					break;
 			case _EResState::Unknown :							str << "Unknown";								break;
 			case _EResState::Preserve :							str << "Preserve";								break;
 			case _EResState::General :							str << "General";								break;

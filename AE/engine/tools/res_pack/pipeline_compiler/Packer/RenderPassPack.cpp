@@ -116,7 +116,7 @@ namespace
 					const auto&	input	= usage_it->second.input;
 					const auto&	output	= usage_it->second.output;
 
-					switch ( usage_it->second.type )
+					switch_enum( usage_it->second.type )
 					{
 						case EAttachment::Depth :
 							dst_sp.hasDepth		= EPixelFormat_HasDepth( att->format );
@@ -125,13 +125,25 @@ namespace
 							break;
 
 						case EAttachment::ShadingRate :
+						case EAttachment::FragmentDensity :
 						case EAttachment::Preserve :
 						case EAttachment::Invalidate :
 							break;
 
-						default :
+						case EAttachment::Color :
+						case EAttachment::ColorResolve :
+						case EAttachment::ReadWrite :
+						case EAttachment::Input :
 							CHECK_ERR( input.IsDefined() or output.IsDefined() );
+							break;
+
+						case EAttachment::_Count :
+						case EAttachment::Unknown :
+						default :
+							DBG_WARNING( "unknown EAttachment" );
+							break;
 					}
+					switch_end
 
 					if ( output.IsDefined() )
 					{
@@ -209,9 +221,11 @@ namespace
 					for (usize i = 0; i < sp.second.colorAttachments.size(); ++i)
 					{
 						const auto&	ca = sp.second.colorAttachments[i];
-						str << "\n      [" << Base::ToString(i) << "] ";
 						if ( ca.Get<0>().IsDefined() )
+						{
+							str << "\n      [" << Base::ToString(i) << "] ";
 							str << Base::ToString(ca.Get<1>()) << ", '" << nameMap( ca.Get<0>() ) << "'";
+						}
 					}
 					str << "\n    }";
 				}
@@ -222,9 +236,11 @@ namespace
 					for (usize i = 0; i < sp.second.inputAttachments.size(); ++i)
 					{
 						const auto&	ia = sp.second.inputAttachments[i];
-						str << "\n      [" << Base::ToString(i) << "] ";
 						if ( ia.Get<0>().IsDefined() )
+						{
+							str << "\n      [" << Base::ToString(i) << "] ";
 							str << Base::ToString(ia.Get<1>()) << ", '" << nameMap( ia.Get<0>() ) << "'";
+						}
 					}
 					str << "\n    }";
 				}
@@ -387,6 +403,13 @@ namespace
 		CHECK_ERR( not compat._subpasses.empty() );
 		CHECK_ERR( compat._subpasses.size() <= GraphicsConfig::MaxSubpasses );
 
+		void const **	ci_p_next;
+		{
+			VkBaseOutStructure*		next = Cast<VkBaseOutStructure>( &_ci );
+			for (; next->pNext != null; next = next->pNext) {}
+			ci_p_next = Cast<void const*>( &next->pNext );
+		}
+
 		const uint	count			= uint(compat._subpasses.size());
 		auto*		dst_subpasses	= _allocator.Allocate<VkSubpassDescription2>( count );
 		CHECK_ERR( dst_subpasses != null );
@@ -396,17 +419,17 @@ namespace
 
 		for (usize i = 0; i < compat._subpasses.size(); ++i)
 		{
-			const auto&				sp		= compat._subpasses[i];
-			const auto&				sp_name	= sp.name;
-			VkSubpassDescription2&	dst		= dst_subpasses[i];
-			void const * *			p_next	= &dst.pNext;
+			const auto&				sp			= compat._subpasses[i];
+			const auto&				sp_name		= sp.name;
+			VkSubpassDescription2&	dst			= dst_subpasses[i];
+			void const * *			sp_p_next	= &dst.pNext;
 
 			dst						= {};
 			dst.sType				= VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2;
 			dst.pNext				= null;	// TODO: VkSubpassDescriptionDepthStencilResolve
 			dst.flags				= 0;
 			dst.pipelineBindPoint	= VK_PIPELINE_BIND_POINT_GRAPHICS;
-			//dst.viewMask			= uint(src.viewMask.to_ulong());
+			dst.viewMask			= sp.viewMask.value;
 
 			Array<VkAttachmentReference2>	color_attachments;
 			Array<VkAttachmentReference2>	resolve_attachments;
@@ -526,13 +549,30 @@ namespace
 
 							InitAttachmentRef( name, rt->index, OUT *sra_ref, rt->format );
 
-							*p_next = sra;
-							p_next	= &sra->pNext;
+							*sp_p_next	= sra;
+							sp_p_next	= &sra->pNext;
 
 							sra->sType	= VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR;
 							sra->pNext	= null;
 							sra->pFragmentShadingRateAttachment = sra_ref;
 							sra->shadingRateAttachmentTexelSize = { usage_it->second.texelSize.x, usage_it->second.texelSize.y };
+							break;
+						}
+						case EAttachment::FragmentDensity :
+						{
+							auto*	fdm = _allocator.Allocate<VkRenderPassFragmentDensityMapCreateInfoEXT>( 1 );
+							CHECK_ERR( fdm != null );
+							
+							*ci_p_next	= fdm;
+							ci_p_next	= &fdm->pNext;
+
+							VkAttachmentReference2	fdm_ref;
+							InitAttachmentRef( name, rt->index, OUT fdm_ref, rt->format );
+
+							fdm->sType	= VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT;
+							fdm->pNext	= null;
+							fdm->fragmentDensityMapAttachment.attachment = fdm_ref.attachment;
+							fdm->fragmentDensityMapAttachment.layout     = fdm_ref.layout;
 							break;
 						}
 						case EAttachment::Invalidate :
@@ -579,9 +619,10 @@ namespace
 				dst.pPreserveAttachments	= ptr;
 			}
 
-			p_next = null;
+			*sp_p_next = null;
 		}
 
+		*ci_p_next = null;
 		return true;
 	}
 
@@ -792,7 +833,7 @@ namespace
 		_name = rp._name;	// for compatible RP name is not defined
 
 		_ci.sType	= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2;
-		_ci.pNext	= null;		// TODO: VkRenderPassFragmentDensityMapCreateInfoEXT
+		_ci.pNext	= null;
 		_ci.flags	= 0;		// unused
 
 		CHECK_ERR( _ConvertAttachments( compat, rp ));
@@ -801,11 +842,16 @@ namespace
 		if ( withDeps )
 			CHECK_ERR( _ConvertDependencies( compat, rp ));
 
-		_ci.correlatedViewMaskCount	= 0;
-		_ci.pCorrelatedViewMasks	= null;		// TODO
+		if ( not compat._correlatedViewMasks.empty() )
+		{
+			auto*	view_mask = _allocator.Allocate<uint>( compat._correlatedViewMasks.size() );
+			CHECK_ERR( view_mask != null );
+
+			MemCopy( OUT view_mask, compat._correlatedViewMasks.data(), ArraySizeOf(compat._correlatedViewMasks) );
+			_ci.pCorrelatedViewMasks = view_mask;
+		}
 
 		_isCompatible = false;
-
 		return true;
 	}
 
@@ -963,14 +1009,29 @@ namespace
 			}
 		}};
 
-		CHECK( _ci.pNext == null );
-
 		str << "\nname               = " << (_name.IsDefined() ? ("'" + nameMap( _name ) + "'") : "--")		// for compatible RP name is not defined
 			//<< "\nci.sType           = " << VkStructureTypeToString( _ci.sType )
 			//<< "\nci.pNext          " << (_ci.pNext == null ? " = null" : "!= null")
-			<< "\nci.flags           = " << VkRenderPassCreateFlagsToString( _ci.flags )
-			<< "\nci.attachmentCount = " << Base::ToString( _ci.attachmentCount );
+			<< "\nci.flags           = " << VkRenderPassCreateFlagsToString( _ci.flags );
+		
+		for (auto* next = Cast<VkBaseInStructure>(_ci.pNext); next != null; next = next->pNext)
+		{
+			switch ( next->sType )
+			{
+				case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT :
+				{
+					auto&	fdm = *Cast<VkRenderPassFragmentDensityMapCreateInfoEXT>(next);
+					str << "\nci.fragmentDensityMapAttachment = { "
+						<< Base::ToString( fdm.fragmentDensityMapAttachment.attachment ) << ", "
+						<< VkImageLayoutToString( fdm.fragmentDensityMapAttachment.layout ) << " }";
+					break;
+				}
+				default :
+					DBG_WARNING( "unsupported extension" );
+			}
+		}
 
+		str << "\nci.attachmentCount = " << Base::ToString( _ci.attachmentCount );
 		if ( _ci.attachmentCount > 0 )
 		{
 			CHECK_ERR( _ci.pAttachments != null );
@@ -1014,7 +1075,7 @@ namespace
 					//<< "\n  [" << Base::ToString(i) << "].pNext               " << (sp.pNext == null ? " = null" : "!= null")
 					<< "\n  [" << Base::ToString(i) << "].flags                = " << VkSubpassDescriptionFlagsToString( sp.flags )
 					<< "\n  [" << Base::ToString(i) << "].pipelineBindPoint    = " << VkPipelineBindPointToString( sp.pipelineBindPoint )
-					<< "\n  [" << Base::ToString(i) << "].viewMask             = " << Base::ToString( sp.viewMask )
+					<< "\n  [" << Base::ToString(i) << "].viewMask             = " << Base::ToString<2>( sp.viewMask )
 					<< "\n  [" << Base::ToString(i) << "].inputAttachmentCount = " << Base::ToString( sp.inputAttachmentCount );
 
 				if ( sp.inputAttachmentCount > 0 )
@@ -1070,7 +1131,7 @@ namespace
 						case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR :
 						{
 							auto&	sra = *Cast<VkFragmentShadingRateAttachmentInfoKHR>(next);
-							str << "\n  ["s << Base::ToString(i) << "].fragmentShadingRateAttachment = { ";
+							str << "\n  ["s << Base::ToString(i) << "].fragmentShadingRateAttachment = {";
 							AttachmentRefsToString( "\n    ", sra.pFragmentShadingRateAttachment, 1, false );
 							str << "\n    .shadingRateAttachmentTexelSize = {" << Base::ToString( sra.shadingRateAttachmentTexelSize.width )
 								<< ", " << Base::ToString( sra.shadingRateAttachmentTexelSize.height ) << "}";
@@ -1122,6 +1183,19 @@ namespace
 			str << "\n}";
 		}
 
+		str << "\nci.correlatedViewMaskCount = " << Base::ToString( _ci.correlatedViewMaskCount );
+		if ( _ci.correlatedViewMaskCount > 0 )
+		{
+			CHECK_ERR( _ci.pCorrelatedViewMasks != null );
+			str << "\nci.pCorrelatedViewMasks = { ";
+			for (uint i = 0; i < _ci.correlatedViewMaskCount; ++i)
+			{
+				if ( i != 0 )	str << ", ";
+				str << Base::ToString<2>( _ci.pCorrelatedViewMasks[i] );
+			}
+			str << " }";
+		}
+
 		str << "\n=========================================================================\n\n";
 		return str;
 	}
@@ -1135,29 +1209,11 @@ namespace
 */
 	bool  SerializableVkRenderPass::Serialize (Serializing::Serializer &ser) C_NE___
 	{
-		ASSERT( _isCompatible );
-
-		bool	result = true;
-
-		CHECK( _ci.sType == VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2 );
-		CHECK( _ci.pNext == null );
-		CHECK( _ci.flags == 0 );
-
-		result &= ser( _name, _states );
-
-		result &= ser( _ci.attachmentCount );
-		for (uint i = 0; i < _ci.attachmentCount; ++i)
-		{
-			const auto&	att = _ci.pAttachments[i];
-
-			CHECK( att.sType == VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2 );
-			CHECK( att.pNext == null );
-			CHECK( att.flags == 0 );
-
-			result &= ser( att.format, att.samples, att.loadOp, att.storeOp,
-						   att.stencilLoadOp, att.stencilStoreOp,
-						   att.initialLayout, att.finalLayout );
-		}
+		const auto	SerFragDensityMapAtt = [] (const VkRenderPassFragmentDensityMapCreateInfoEXT &fdm, Serializing::Serializer &ser2) -> bool
+		{{
+			CHECK( fdm.sType == VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT );
+			return	ser2( uint(fdm.sType), fdm.fragmentDensityMapAttachment.attachment, fdm.fragmentDensityMapAttachment.layout );
+		}};
 
 		const auto	SerAttachmentRef = [] (const VkAttachmentReference2 &ref, Serializing::Serializer &ser2) -> bool
 		{{
@@ -1174,6 +1230,51 @@ namespace
 					SerAttachmentRef( *sra.pFragmentShadingRateAttachment, ser2 );
 		}};
 
+
+		ASSERT( _isCompatible );
+
+		bool	result = true;
+
+		CHECK( _ci.sType == VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2 );
+		CHECK( _ci.flags == 0 );
+
+		result &= ser( _name, _states );
+		
+		// serialize extensions
+		{
+			uint	count = 0;
+			for (auto* next = Cast<VkBaseInStructure>(_ci.pNext); next != null; next = next->pNext, ++count) {}
+			result &= ser( count );
+		}
+
+		for (auto* next = Cast<VkBaseInStructure>(_ci.pNext); next != null; next = next->pNext)
+		{
+			switch ( next->sType )
+			{
+				case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT :
+					result &= SerFragDensityMapAtt( *Cast<VkRenderPassFragmentDensityMapCreateInfoEXT>(next), ser );
+					break;
+
+				default :
+					RETURN_ERR( "unsupported extension" );
+			}
+		}
+
+		result &= ser( _ci.attachmentCount );
+		for (uint i = 0; i < _ci.attachmentCount; ++i)
+		{
+			const auto&	att = _ci.pAttachments[i];
+
+			CHECK( att.sType == VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2 );
+			CHECK( att.pNext == null );
+			CHECK( att.flags == 0 );
+
+			result &= ser( att.format, att.samples, att.loadOp, att.storeOp,
+						   att.stencilLoadOp, att.stencilStoreOp,
+						   att.initialLayout, att.finalLayout );
+		}
+
+
 		result &= ser( _ci.subpassCount );
 		for (uint i = 0; i < _ci.subpassCount; ++i)
 		{
@@ -1182,7 +1283,6 @@ namespace
 			CHECK( sp.sType == VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2 );
 			CHECK( sp.flags == 0 );
 			CHECK( sp.pipelineBindPoint == VK_PIPELINE_BIND_POINT_GRAPHICS );
-			CHECK( sp.viewMask == 0 );
 
 			result &= ser( sp.inputAttachmentCount );
 			for (uint j = 0; j < sp.inputAttachmentCount; ++j) {
@@ -1213,6 +1313,8 @@ namespace
 			for (uint j = 0; j < sp.preserveAttachmentCount; ++j) {
 				result &= ser( sp.pPreserveAttachments[j] );
 			}
+
+			result &= ser( sp.viewMask );
 
 			// serialize extensions
 			{
@@ -1252,8 +1354,17 @@ namespace
 			result &= ser( bar.srcStageMask, bar.srcAccessMask, bar.dstStageMask, bar.dstAccessMask );
 		}
 
-		CHECK( _ci.correlatedViewMaskCount == 0 );
-		CHECK( _ci.pCorrelatedViewMasks == null );
+		{
+			CHECK_ERR( _ci.correlatedViewMaskCount <= GraphicsConfig::MaxMultiViews );
+
+			FixedArray<uint, GraphicsConfig::MaxMultiViews>		view_mask_arr;
+
+			if ( _ci.correlatedViewMaskCount > 0 ) {
+				view_mask_arr.resize( _ci.correlatedViewMaskCount );
+				MemCopy( OUT view_mask_arr.data(), _ci.pCorrelatedViewMasks, ArraySizeOf(view_mask_arr) );
+			}
+			result &= ser( view_mask_arr );
+		}
 
 		return result;
 	}
@@ -1270,6 +1381,46 @@ namespace
 
 	bool  SerializableVkRenderPass::Deserialize (EPixelFormat surfaceFormat, Serializing::Deserializer &des) __NE___
 	{
+		const auto	DesAttachmentRef = [] (OUT VkAttachmentReference2 &ref, Serializing::Deserializer &des2) -> bool
+		{{
+			ref			= {};
+			ref.sType	= VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
+			ref.pNext	= null;
+			return des2( OUT ref.attachment, OUT ref.layout, OUT ref.aspectMask );
+		}};
+
+		const auto	DesFragShadingRateAtt = [&DesAttachmentRef, this] (VkBaseOutStructure** &pNext, Serializing::Deserializer &des2) -> bool
+		{{
+			auto*	sra	= _allocator.Allocate<VkFragmentShadingRateAttachmentInfoKHR>(1);
+			auto*	ref	= _allocator.Allocate<VkAttachmentReference2>(1);
+			CHECK_ERR( sra != null and ref != null );
+
+			sra->sType							= VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR;
+			sra->pNext							= null;
+			sra->pFragmentShadingRateAttachment	= ref;
+
+			*pNext = Cast<VkBaseOutStructure>(sra);
+			pNext = &(*pNext)->pNext;
+
+			return	des2( OUT sra->shadingRateAttachmentTexelSize.width, OUT sra->shadingRateAttachmentTexelSize.height ) and
+					DesAttachmentRef( OUT *ref, des2 );
+		}};
+
+		const auto	DesFragDensityMapAtt = [this] (VkBaseOutStructure** &pNext, Serializing::Deserializer &des2) -> bool
+		{{
+			auto*	fdm	= _allocator.Allocate<VkRenderPassFragmentDensityMapCreateInfoEXT>(1);
+			CHECK_ERR( fdm != null );
+			
+			fdm->sType	= VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT;
+			fdm->pNext	= null;
+
+			*pNext = Cast<VkBaseOutStructure>(fdm);
+			pNext = &(*pNext)->pNext;
+
+			return	des2( OUT fdm->fragmentDensityMapAttachment.attachment, OUT fdm->fragmentDensityMapAttachment.layout );
+		}};
+
+
 		const VkFormat	vk_swfmt = (surfaceFormat != Default ? VEnumCast( surfaceFormat ) : VK_FORMAT_MAX_ENUM);
 		bool			result	 = true;
 
@@ -1277,8 +1428,32 @@ namespace
 
 		_ci			= {};
 		_ci.sType	= VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2;
-		_ci.pNext	= null;		// TODO: VkRenderPassFragmentDensityMapCreateInfoEXT
+		_ci.pNext	= null;
 		_ci.flags	= 0;		// unused
+		
+		// deserialize extensions
+		{
+			uint	ext_count = 0;
+			result &= des( OUT ext_count );
+			
+			VkBaseOutStructure**	ci_p_next = BitCast<VkBaseOutStructure**>( &_ci.pNext );
+
+			for (uint j = 0; j < ext_count; ++j)
+			{
+				uint	type = 0;
+				result &= des( OUT type );
+
+				switch ( type )
+				{
+					case VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT :
+						result &= DesFragDensityMapAtt( OUT ci_p_next, des );
+						break;
+
+					default :
+						RETURN_ERR( "unsupported extension" );
+				}
+			}
+		}
 
 		result &= des( OUT _ci.attachmentCount );
 		CHECK_ERR( result and _ci.attachmentCount <= GraphicsConfig::MaxAttachments );
@@ -1307,31 +1482,6 @@ namespace
 			_ci.pAttachments = attachments;
 		}
 
-		const auto	DesAttachmentRef = [] (OUT VkAttachmentReference2 &ref, Serializing::Deserializer &des2) -> bool
-		{{
-			ref			= {};
-			ref.sType	= VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2;
-			ref.pNext	= null;
-			return des2( OUT ref.attachment, OUT ref.layout, OUT ref.aspectMask );
-		}};
-
-		const auto	DesFragShadingRateAtt = [&DesAttachmentRef, this] (VkBaseOutStructure** &pNext, Serializing::Deserializer &des2) -> bool
-		{{
-			auto*	sra	= _allocator.Allocate<VkFragmentShadingRateAttachmentInfoKHR>(1);
-			auto*	ref	= _allocator.Allocate<VkAttachmentReference2>(1);
-			CHECK_ERR( sra != null and ref != null );
-
-			sra->sType							= VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR;
-			sra->pNext							= null;
-			sra->pFragmentShadingRateAttachment	= ref;
-
-			*pNext = Cast<VkBaseOutStructure>(sra);
-			pNext = &(*pNext)->pNext;
-
-			return	des2( OUT sra->shadingRateAttachmentTexelSize.width, OUT sra->shadingRateAttachmentTexelSize.height ) and
-					DesAttachmentRef( OUT *ref, des2 );
-		}};
-
 		result &= des( _ci.subpassCount );
 		CHECK_ERR( result and _ci.subpassCount <= GraphicsConfig::MaxSubpasses );
 
@@ -1342,15 +1492,14 @@ namespace
 
 			for (uint i = 0; i < _ci.subpassCount; ++i)
 			{
-				auto&					sp		= subpasses[i];
-				VkBaseOutStructure**	p_next	= BitCast<VkBaseOutStructure**>( &sp.pNext );
+				auto&					sp			= subpasses[i];
+				VkBaseOutStructure**	sp_p_next	= BitCast<VkBaseOutStructure**>( &sp.pNext );
 
 				sp						= {};
 				sp.sType				= VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2;
 				sp.pNext				= null;
 				sp.flags				= 0;
 				sp.pipelineBindPoint	= VK_PIPELINE_BIND_POINT_GRAPHICS;
-				sp.viewMask				= 0;
 
 				result &= des( OUT sp.inputAttachmentCount );
 				CHECK_ERR( result and sp.inputAttachmentCount <= GraphicsConfig::MaxAttachments );
@@ -1416,6 +1565,8 @@ namespace
 					}
 					sp.pPreserveAttachments = refs;
 				}
+				
+				result &= des( OUT sp.viewMask );
 
 				// deserialize extensions
 				{
@@ -1430,7 +1581,7 @@ namespace
 						switch ( type )
 						{
 							case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR :
-								result &= DesFragShadingRateAtt( OUT p_next, des );
+								result &= DesFragShadingRateAtt( OUT sp_p_next, des );
 								break;
 
 							default :
@@ -1439,7 +1590,7 @@ namespace
 					}
 				}
 
-				p_next = null;
+				*sp_p_next = null;
 			}
 			_ci.pSubpasses = subpasses;
 		}
@@ -1474,12 +1625,26 @@ namespace
 			}
 			_ci.pDependencies = dependencies;
 		}
+		
+		{
+			FixedArray<uint, GraphicsConfig::MaxMultiViews>		view_mask_arr;
+			result &= des( OUT view_mask_arr );
 
-		_ci.correlatedViewMaskCount	= 0;
-		_ci.pCorrelatedViewMasks	= null;		// TODO
+			if ( not view_mask_arr.empty() )
+			{
+				auto*	view_mask_ptr = _allocator.Allocate<uint>( _ci.correlatedViewMaskCount );
+
+				_ci.correlatedViewMaskCount = uint(view_mask_arr.size());
+				CHECK_ERR(	result					and
+							view_mask_ptr != null	and
+							_ci.correlatedViewMaskCount <= GraphicsConfig::MaxMultiViews );
+
+				MemCopy( OUT view_mask_ptr, view_mask_arr.data(), ArraySizeOf(view_mask_arr) );
+				_ci.pCorrelatedViewMasks = view_mask_ptr;
+			}
+		}
 
 		_isCompatible = true;
-
 		return result;
 	}
 
@@ -1695,7 +1860,8 @@ namespace
 		str << "\n=========================================================================\n\n";
 		return str;
 	}
-#endif
+
+#endif // AE_TEST_PIPELINE_COMPILER
 
 /*
 =================================================
@@ -1842,6 +2008,6 @@ namespace
 		return true;
 	}
 
-#endif
+#endif // AE_BUILD_PIPELINE_COMPILER
 
 } // AE::PipelineCompiler

@@ -31,7 +31,7 @@ namespace AE::ResEditor
 		const float				_zoomSpeed		= 10.f;	// zoom/sec
 		const bool				_reverseZ;
 
-		float					_dimAspect		= 1.f;
+		float					_dimRatio		= 1.f;
 
 
 	// methods
@@ -51,6 +51,7 @@ namespace AE::ResEditor
 		float4x4		GetView ()										C_NE_OV { SHAREDLOCK( _guard );  return _view; }
 		float			GetZoom ()										C_NE_OV	{ return 1.f; }
 		float2			GetClipPlanes ()								C_NE_OV	{ return _clipPlanes; }
+		float2			GetFOV ()										C_NE_OV	{ SHAREDLOCK( _guard );  return float2{ float{_fovY} * _dimRatio, float{_fovY} }; }
 		StringView		GetHelpText ()									C_NE_OV;
 	//	RaysGrid_t		GetRaysGrid ()									C_NE_OV;
 

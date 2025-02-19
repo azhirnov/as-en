@@ -81,9 +81,9 @@ namespace AE::ResEditor
 	{
 		_camera.SetPosition( _initialPos );
 		_camera.ResetOrientation();
-		_dimAspect	= _dynDim->Aspect();
+		_dimRatio	= _dynDim->Ratio();
 
-		_camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
+		_camera.SetPerspective( _fovY, _dimRatio, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
 
 		_UpdateMatrix();
 	}

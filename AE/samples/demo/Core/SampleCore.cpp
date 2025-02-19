@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "demo/Core/SampleCore.h"
+#include "threading/DataSource/FileAsyncDataSource.h"
 
 // samples
 #include "demo/Examples/Canvas2D.h"
@@ -138,7 +139,11 @@ namespace
 		auto	storage = VFS::VirtualFileStorageFactory::CreateStaticArchive( RVRef(ds) );
 	#else
 		Unused( app );
-		auto	storage = VFS::VirtualFileStorageFactory::CreateStaticArchive( "resources.bin" );
+		
+		auto	ads = MakeRC<FileAsyncRDataSource>( "resources.bin" );
+		auto	ds	= MakeRC<FileRDataSource>( "resources.bin" );
+
+		auto	storage = VFS::VirtualFileStorageFactory::CreateStaticArchive( RVRef(ads), RVRef(ds) );
 	#endif
 
 		CHECK_ERR( storage );

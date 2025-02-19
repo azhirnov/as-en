@@ -60,7 +60,7 @@ namespace AE::Graphics
 
 
 		ND_ static bool	 IsSupported (const RResourceManager &, const BufferDesc &desc)		__NE___;
-		ND_ bool		 IsSupported (const RResourceManager &, const BufferViewDesc &desc)	C_NE___;
+		ND_ static bool	 IsSupported (const RResourceManager &, const BufferDesc &, const BufferViewDesc &) __NE___;
 
 		ND_ static bool  IsSupportedForVertex (const RResourceManager &, EVertexType type)	__NE___;
 		ND_ static bool  IsSupportedForASVertex (const RResourceManager &, EVertexType type)__NE___;

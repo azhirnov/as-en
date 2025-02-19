@@ -1,3 +1,18 @@
+#ifndef Vertex_multiview_DEFINED
+#	define Vertex_multiview_DEFINED
+	// size: 12, align: 4
+	struct Vertex_multiview
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x152bf4c3u}};
+
+		packed_float2  Position;
+		packed_ubyte4  Color;     // normalized
+	};
+#endif
+	StaticAssert( offsetof(Vertex_multiview, Position) == 0 );
+	StaticAssert( offsetof(Vertex_multiview, Color) == 8 );
+	StaticAssert( sizeof(Vertex_multiview) == 12 );
+
 #ifndef Vertex_draw2_DEFINED
 #	define Vertex_draw2_DEFINED
 	// size: 12, align: 4
@@ -25,4 +40,19 @@
 #endif
 	StaticAssert( offsetof(PC_draw3, PositionColorArr) == 0 );
 	StaticAssert( sizeof(PC_draw3) == 48 );
+
+#ifndef Vertex_viewportArray_DEFINED
+#	define Vertex_viewportArray_DEFINED
+	// size: 12, align: 4
+	struct Vertex_viewportArray
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x5a3ada9u}};
+
+		packed_float2  Position;
+		packed_ubyte4  Color;     // normalized
+	};
+#endif
+	StaticAssert( offsetof(Vertex_viewportArray, Position) == 0 );
+	StaticAssert( offsetof(Vertex_viewportArray, Color) == 8 );
+	StaticAssert( sizeof(Vertex_viewportArray) == 12 );
 

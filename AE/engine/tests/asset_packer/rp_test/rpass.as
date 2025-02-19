@@ -268,6 +268,95 @@ void  RenderPassWithInput ()
 }
 
 
+void  MultiViewRenderPass ()
+{
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "MultiView.RPass" );
+	compat.AddFeatureSet( "part.MultiView" );
+	compat.AddFeatureSet( "MinDesktop" );
+	compat.AddMultiViewCorrelatedViewMask( 1|2 );
+
+	const string	pass = "Main";
+	compat.AddSubpass( pass, MultiViewMask(1|2) );
+
+	{
+		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
+		rt.format		= EPixelFormat::RGBA8_UNorm;
+		rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
+	}{
+		RC<Attachment>	rt	= compat.AddAttachment( "Stencil" );
+		rt.format		= EPixelFormat::Depth32F_Stencil8;
+		rt.Usage( pass, EAttachment::Input, ShaderIO("in_Stencil") );
+	}
+
+	// specialization
+	{
+		RC<RenderPass>		rp = compat.AddSpecialization( "MultiView.RPass" );
+		{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+			rt.loadOp	= EAttachmentLoadOp::Invalidate;
+			rt.storeOp	= EAttachmentStoreOp::Store;
+			rt.Layout( pass, EResourceState::ColorAttachment );
+		}{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "Stencil" );
+			rt.loadOp	= EAttachmentLoadOp::Load;
+			rt.storeOp	= EAttachmentStoreOp::None;
+			rt.Layout( pass, EResourceState::InputDepthStencilAttachment | EResourceState::FragmentShader );
+		}
+	}
+}
+
+
+void  FragmentDensityMapRenderPass ()
+{
+	if ( ! IsVulkan() )
+		return;
+
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "FragmentDensityMap.RPass" );
+	compat.AddFeatureSet( "part.FragmentDensityMap" );
+
+	const string	pass = "Main";
+	compat.AddSubpass( pass );
+
+	{
+		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
+		rt.format		= EPixelFormat::RGBA8_UNorm;
+		rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
+	}{
+		RC<Attachment>	rt	= compat.AddAttachment( "FragmentDensity" );
+		rt.format		= EPixelFormat::RG8_UNorm;
+		rt.Usage( pass, EAttachment::FragmentDensity );
+	}
+
+	// specialization
+	{
+		RC<RenderPass>		rp = compat.AddSpecialization( "FragmentDensityMap.RPass" );
+		{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+			rt.loadOp	= EAttachmentLoadOp::Invalidate;
+			rt.storeOp	= EAttachmentStoreOp::Store;
+			rt.Layout( pass, EResourceState::ColorAttachment );
+		}{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "FragmentDensity" );
+			rt.loadOp	= EAttachmentLoadOp::Load;
+			rt.storeOp	= EAttachmentStoreOp::None;
+			rt.Layout( pass, EResourceState::FragmentDensityMap );
+		}
+	}
+	{
+		RC<RenderPass>		rp = compat.AddSpecialization( "FragmentDensityMap.RPass2" );
+		{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+			rt.loadOp	= EAttachmentLoadOp::Invalidate;
+			rt.storeOp	= EAttachmentStoreOp::Store;
+			rt.Layout( pass, EResourceState::ColorAttachment );
+		}{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "FragmentDensity" );
+			rt.GenOptimalLayouts();
+		}
+	}
+}
+
+
 void ASmain ()
 {
 	SimpleRenderPass();
@@ -275,4 +364,6 @@ void ASmain ()
 	UIRenderPass();
 	VRSRenderPass();
 	RenderPassWithInput();
+	MultiViewRenderPass();
+	FragmentDensityMapRenderPass();
 }

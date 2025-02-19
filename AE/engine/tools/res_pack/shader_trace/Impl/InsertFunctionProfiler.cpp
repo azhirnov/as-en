@@ -189,10 +189,10 @@ ND_ static TIntermAggregate*  CreateAddTimeToTraceBody2 (DebugInfo &dbgInfo)
 	// build function argument sequence
 	{
 		uint_type.vectorSize	= 4;
-		TIntermSymbol*	arg0	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "startTime", TType{uint_type} };
+		TIntermSymbol*	arg0	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "startTime", dbgInfo.GetShaderType(), TType{uint_type} };
 
 		uint_type.vectorSize	= 1;
-		TIntermSymbol*	arg1	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "sourceLocation", TType{uint_type} };
+		TIntermSymbol*	arg1	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "sourceLocation", dbgInfo.GetShaderType(), TType{uint_type} };
 
 		fn_args->setType( TType{EbtVoid} );
 		fn_args->getSequence().push_back( arg0 );
@@ -205,7 +205,7 @@ ND_ static TIntermAggregate*  CreateAddTimeToTraceBody2 (DebugInfo &dbgInfo)
 	// "endTime = vec4( clock(), clock() );"
 	uint_type.qualifier.storage = TStorageQualifier::EvqTemporary;
 	uint_type.vectorSize		= 4;
-	TIntermSymbol*	end_time	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "endTime", TType{uint_type} };
+	TIntermSymbol*	end_time	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "endTime", dbgInfo.GetShaderType(), TType{uint_type} };
 
 	TIntermBinary*  end_time_assign = AssignClock( end_time, Default, dbgInfo );
 	CHECK_ERR( end_time_assign != null );
@@ -213,7 +213,7 @@ ND_ static TIntermAggregate*  CreateAddTimeToTraceBody2 (DebugInfo &dbgInfo)
 
 	// "pos" variable
 	uint_type.vectorSize		= 1;
-	TIntermSymbol*	var_pos		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "pos", TType{uint_type} };
+	TIntermSymbol*	var_pos		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "pos", dbgInfo.GetShaderType(), TType{uint_type} };
 
 	// "uint pos = atomicAdd( dbg_ShaderTrace.position, x );"
 	{
@@ -438,13 +438,13 @@ ND_ static TIntermAggregate*  CreateAddTimeToTraceBody (const TString &fnName, D
 	// build function argument sequence
 	{
 		uint_type.vectorSize		= 4;
-		TIntermSymbol*		arg0	 = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "startTime", TType{uint_type} };
+		TIntermSymbol*		arg0	 = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "startTime", dbgInfo.GetShaderType(), TType{uint_type} };
 
 		value_type.qualifier.storage = TStorageQualifier::EvqConstReadOnly;
-		TIntermSymbol*		arg1	 = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "value", TType{value_type} };
+		TIntermSymbol*		arg1	 = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "value", dbgInfo.GetShaderType(), TType{value_type} };
 
 		uint_type.vectorSize		= 1;
-		TIntermSymbol*		arg2	 = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "sourceLocation", TType{uint_type} };
+		TIntermSymbol*		arg2	 = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "sourceLocation", dbgInfo.GetShaderType(), TType{uint_type} };
 
 		fn_args->setType( TType{EbtVoid} );
 		fn_args->getSequence().push_back( arg0 );
@@ -464,7 +464,7 @@ ND_ static TIntermAggregate*  CreateAddTimeToTraceBody (const TString &fnName, D
 	// "endTime = vec4( clock(), clock() );"
 	uint_type.qualifier.storage = TStorageQualifier::EvqTemporary;
 	uint_type.vectorSize		= 4;
-	TIntermSymbol*	end_time	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "endTime", TType{uint_type} };
+	TIntermSymbol*	end_time	= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "endTime", dbgInfo.GetShaderType(), TType{uint_type} };
 
 	TIntermBinary*  end_time_assign = AssignClock( end_time, Default, dbgInfo );
 	CHECK_ERR( end_time_assign != null );
@@ -472,7 +472,7 @@ ND_ static TIntermAggregate*  CreateAddTimeToTraceBody (const TString &fnName, D
 
 	// "pos" variable
 	uint_type.vectorSize		= 1;
-	TIntermSymbol*	var_pos		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "pos", TType{uint_type} };
+	TIntermSymbol*	var_pos		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "pos", dbgInfo.GetShaderType(), TType{uint_type} };
 
 	// "uint pos = atomicAdd( dbg_ShaderTrace.position, x );"
 	{
@@ -647,7 +647,7 @@ ND_ static TIntermAggregate*  CreateGetCurrentTimeBody (DebugInfo &dbgInfo)
 		fn_node->getSequence().push_back( fn_body );
 
 		uint_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
-		curr_time					= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "curr_time", TType{uint_type} };
+		curr_time					= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "curr_time", dbgInfo.GetShaderType(), TType{uint_type} };
 
 		TConstUnionArray		zero_value{ 4 };
 		zero_value[0].setUConst( 0 );
@@ -767,7 +767,7 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 	type.basicType			= TBasicType::EbtBool;
 	type.qualifier.storage	= TStorageQualifier::EvqGlobal;
 
-	TIntermSymbol*			is_debug_enabled = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_IsEnabled", TType{type} };
+	TIntermSymbol*			is_debug_enabled = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_IsEnabled", dbgInfo.GetShaderType(), TType{type} };
 	dbgInfo.CacheSymbolNode( is_debug_enabled );
 	linkerObjs->getSequence().insert( linkerObjs->getSequence().begin(), is_debug_enabled );
 
@@ -834,7 +834,7 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 	type.basicType			= TBasicType::EbtUint;
 	type.qualifier.storage	= TStorageQualifier::EvqGlobal;
 
-	TIntermSymbol*			last_pos		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_LastPosition", TType{type} };
+	TIntermSymbol*			last_pos		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_LastPosition", dbgInfo.GetShaderType(), TType{type} };
 	dbgInfo.CacheSymbolNode( last_pos );
 	linkerObjs->getSequence().insert( linkerObjs->getSequence().begin(), last_pos );
 
@@ -1103,6 +1103,10 @@ ND_ static TIntermAggregate*  CreateAddTimeToTrace (TIntermTyped* exprNode, TInt
 		case TBasicType::EbtSpirvType :
 		case TBasicType::EbtHitObjectNV :
 		case TBasicType::EbtCoopmat :
+		case TBasicType::EbtFunction :
+		case TBasicType::EbtTensorLayoutNV :
+		case TBasicType::EbtTensorViewNV :
+		case TBasicType::EbtCoopvecNV :
 		default :						RETURN_ERR( "not supported" );
 	}
 	switch_end

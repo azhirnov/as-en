@@ -1060,13 +1060,13 @@ public:
   #if defined(AE_fragment_shading_rate) and (defined(SH_VERT) or defined(SH_GEOM) or defined(SH_FRAG) or defined(SH_MESH))
 	enum class ShadingRateFlag : uint
 	{
-		Y1,
-		Y2,
-		Y4,
+		Y1	= 0,
+		Y2	= 1,
+		Y4	= 2,
 
-		X1,
-		X2,
-		X4,
+		X1	= 0,
+		X2	= 4,
+		X4	= 8,
 	};
   # ifdef SH_FRAG
 	// in
@@ -1568,6 +1568,8 @@ public:
 		template <typename B>
 		explicit CoopVec (const CoopVec<B,NumComps> &);
 
+		explicit CoopVec (T);
+
 		ND_ uint		length()						const	{ return NumComps; }
 		
 		ND_ T &			operator [] (int i);
@@ -1606,16 +1608,16 @@ public:
 		Float16,
 		Float32,
 		Float64,
-		SignedInt8,
-		SignedInt16,
-		SignedInt32,
-		SignedInt64,
-		UnsignedInt8,
-		UnsignedInt16,
-		UnsignedInt32,
-		UnsignedInt64,
-		SignedInt8Packed,		// bitcast conversion
-		UnsignedInt8Packed,		// bitcast conversion
+		SInt8,
+		SInt16,
+		SInt32,
+		SInt64,
+		UInt8,
+		UInt16,
+		UInt32,
+		UInt64,
+		SInt8Packed,		// bitcast conversion
+		UInt8Packed,		// bitcast conversion
 		FloatE4M3,
 		FloatE5M2,
 	};
@@ -1669,7 +1671,9 @@ public:
 	
 	template <typename T, uint NumComps, typename ArrayElemTy>
 	void  CoopVecStore (const CoopVec<T, NumComps> &v, /*volatile coherent*/ ArrayElemTy[] buf, uint offset);
-	
+
+	// requires 'cooperativeVectorTraining' feature
+  # if defined(AE_cooperative_vector_training)
 	template <typename T, uint M, uint N>
 	void  CoopVecOuterProductAccum (const coopvecNV<T, M>	&v1,
 									const coopvecNV<T, N>	&v2,
@@ -1684,6 +1688,7 @@ public:
 								 T[]					buf,		// 16b align
 								 uint					offset);	// 16b align
 
+  # endif // AE_cooperative_vector_training
   #endif // AE_cooperative_vector
 
 	// GL_ARB_fragment_shader_interlock
@@ -1699,6 +1704,13 @@ public:
 	const	float3	BaryCoordNoPersp ();
 
 	// PerVertex<>
+  #endif
+
+	// GLSL_EXT_fragment_invocation_density
+  #if defined(SH_FRAG) and defined(AE_fragment_invocation_density)
+	// in
+	const	int2	FragSize;
+	const	int		FragInvocationCount;
   #endif
 
 	// NVidia extensions

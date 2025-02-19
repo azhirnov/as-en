@@ -78,10 +78,10 @@ namespace AE::ResEditor
 						Rad{yaw_pitch_roll.z * _rotationScale.z} );
 		_camera.Move( move );
 
-		if_unlikely( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
+		if_unlikely( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimRatio ))
 		{
 			_zoom = Clamp( _zoom - zoom * _zoomStep, _3d_minZoom, _3d_maxZoom );
-			_camera.SetPerspective( _fovY * _zoom, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
+			_camera.SetPerspective( _fovY * _zoom, _dimRatio, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
 		}
 
 		_UpdateMatrix();
@@ -98,9 +98,9 @@ namespace AE::ResEditor
 		_camera.SetOrientation( Quat::Identity() );
 		_zoom			= 1.0f;
 		_engineThrust	= 0.f;
-		_dimAspect		= _dynDim->Aspect();
+		_dimRatio		= _dynDim->Ratio();
 
-		_camera.SetPerspective( _fovY, _dimAspect, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
+		_camera.SetPerspective( _fovY, _dimRatio, _clipPlanes.x, _clipPlanes.y, Bool{_reverseZ} );
 
 		_UpdateMatrix();
 	}

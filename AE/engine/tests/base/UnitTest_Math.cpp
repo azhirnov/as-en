@@ -138,18 +138,22 @@ namespace
 		const float		hf6		= float{h6};
 		TEST( h6.IsInfinity() );
 		TEST( h6 == half::Inf() );
-		TEST( IsInfinity( hf6 ));
 		TEST( hf6 > 0.f );
 		TEST( h6.GetU() == 0x7C00 );
+	  #ifndef AE_CFG_RELEASE
+		TEST( IsInfinity( hf6 ));
+	  #endif
 
 		const float		f7		= 65504.0f * -2.f;
 		const half		h7		{f7};
 		const float		hf7		= float{h7};
 		TEST( h7.IsInfinity() );
 		TEST( h7 == half::NegInf() );
-		TEST( IsInfinity( hf7 ));
 		TEST( hf7 < 0.f );
 		TEST( h7.GetU() == 0xFC00 );
+	  #ifndef AE_CFG_RELEASE
+		TEST( IsInfinity( hf7 ));
+	  #endif
 	}
 
 
@@ -250,9 +254,11 @@ namespace
 		const float		hf7		= float{h7};
 		TEST( h7.IsInfinity() );
 		TEST( h7 == BFloat16::Inf() );
-		TEST( IsInfinity( hf7 ));
 		TEST( hf7 > 0.f );
 		TEST( h7.GetU() == 0x7F80 );
+	  #ifndef AE_CFG_RELEASE
+		TEST( IsInfinity( hf7 ));
+	  #endif
 	}
 
 

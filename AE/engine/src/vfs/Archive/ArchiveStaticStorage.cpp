@@ -448,6 +448,7 @@ namespace AE::VFS
 	bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRStream> &outStream, FileName::Ref name, const void* ref) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
+		CHECK_ERR( _asyncFile );
 
 		DEBUG_ONLY(
 			auto	iter = _map.find( FileName::Optimized_t{name} );
@@ -467,6 +468,7 @@ namespace AE::VFS
 	bool  ArchiveStaticStorage::_OpenByIter (OUT RC<AsyncRDataSource> &outDS, FileName::Ref name, const void* ref) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
+		CHECK_ERR( _asyncFile );
 
 		DEBUG_ONLY(
 			auto	iter = _map.find( FileName::Optimized_t{name} );

@@ -274,7 +274,7 @@ namespace AE::PipelineCompiler
 		{
 			if ( HashTable_NotContains( serializedRPs, name ))
 			{
-				CHECK( src_rp->Validate() );
+				CHECK_ERR( src_rp->Validate() );
 
 				SerializableRenderPassInfo	dst_rp;
 				CHECK_ERR( dst_rp.Create( *src_rp ));

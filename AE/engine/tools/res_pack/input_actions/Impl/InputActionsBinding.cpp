@@ -21,7 +21,7 @@ namespace
 		CHECK_ERR( info->outputPackName != null );
 
 		ScriptEnginePtr		script_engine	= MakeRC<ScriptEngine>();
-		const Path			pack_fname		= FileSystem::ToAbsolute( info->outputPackName );
+		const Path			pack_fname		= FileSystem::ToAbsolute( ToPath( info->outputPackName ));
 		ObjectStorage		obj_storage;
 
 		NOTHROW_ERR( obj_storage.Bind( script_engine ));
@@ -30,7 +30,7 @@ namespace
 		Array<Path>			script_include_dirs;
 		for (usize i = 0; i < info->inIncludeFolderCount; ++i)
 		{
-			Path	path {info->inIncludeFolders[i]};
+			Path	path = ToPath( info->inIncludeFolders[i] );
 			if ( FileSystem::IsDirectory( path ))
 				script_include_dirs.push_back( RVRef(path) );
 			else
@@ -45,7 +45,7 @@ namespace
 			{
 				CHECK_ERR( info->inFiles[i] != null );
 
-				Path	path { FileSystem::ToAbsolute( info->inFiles[i] )};
+				Path	path = FileSystem::ToAbsolute( ToPath( info->inFiles[i] ));
 
 				if ( unique_files.insert( path ).second )
 				{
@@ -59,10 +59,10 @@ namespace
 		CHECK_ERR( obj_storage.Save( pack_fname ));
 
 		if ( info->outputScriptFile != null )
-			CHECK_ERR( script_engine->SaveCppHeader( info->outputScriptFile ));
+			CHECK_ERR( script_engine->SaveCppHeader( ToPath( info->outputScriptFile )));
 
 		if ( info->outputCppFile != null )
-			CHECK_ERR( obj_storage.SaveCppTypes( info->outputCppFile ));
+			CHECK_ERR( obj_storage.SaveCppTypes( ToPath( info->outputCppFile )));
 
 		ObjectStorage::SetInstance( null );
 		return true;

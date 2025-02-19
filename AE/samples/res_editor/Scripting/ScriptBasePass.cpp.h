@@ -310,6 +310,15 @@ namespace
 			classBinder.AddMethod( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image"} );
 		}
 
+		// shading rate
+		{
+			classBinder.Comment( "Add fragment shading rate attachment." );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &)	>( &ScriptBaseRenderPass::_FragmentShadingRate,	"FragmentShadingRate", {"image"} );
+			
+			classBinder.Comment( "Add fragment density map attachment." );
+			classBinder.template AddGenericMethod< void (const ScriptImagePtr &)	>( &ScriptBaseRenderPass::_FragmentDensityMap,	"FragmentDensityMap", {"image"} );
+		}
+
 		// depth
 		classBinder.AddMethod( &ScriptBaseRenderPass::_SetDepthRange, "DepthRange", {"min", "max"} );
 

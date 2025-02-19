@@ -35,7 +35,7 @@ namespace AE::ResEditor
 
 		float					_zoom			= 1.0f;
 		float					_engineThrust	= 0.f;
-		float					_dimAspect		= 1.f;
+		float					_dimRatio		= 1.f;
 
 
 	// methods
@@ -56,9 +56,9 @@ namespace AE::ResEditor
 		float4x4		GetView ()										C_NE_OV { SHAREDLOCK( _guard );  return _view; }
 		float			GetZoom ()										C_NE_OV	{ SHAREDLOCK( _guard );  return _zoom; }
 		float2			GetClipPlanes ()								C_NE_OV	{ return _clipPlanes; }
+		float2			GetFOV ()										C_NE_OV	{ SHAREDLOCK( _guard );  return float2{ float{_fovY} * _dimRatio, float{_fovY} } * _zoom; }
 		StringView		GetHelpText ()									C_NE_OV;
 	//	RaysGrid_t		GetRaysGrid ()									C_NE_OV;
-
 
 		void			CopyTo (OUT AE::ShaderTypes::CameraData &)		C_NE_OV;
 

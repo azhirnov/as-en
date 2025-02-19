@@ -41,7 +41,14 @@ namespace AE::Base
 	template <typename R, typename T>
 	__Cz__ void  CheckPointerCast (T const* ptr) __NE___
 	{
-	#ifdef AE_DEBUG
+	#if defined(AE_PLATFORM_APPLE) and AE_CXX_VER <= 17
+		if constexpr( not IsVoid<R> and not IsConstEvaluated() )
+		{
+			// don't use 'TypeNameOf'
+			CHECK( CheckPointerAlignment<R>( ptr ));
+		}
+
+	#elif defined(AE_DEBUG)
 		if constexpr( not IsVoid<R> and not IsConstEvaluated() )
 		{
 			if ( not CheckPointerAlignment<R>( ptr ))

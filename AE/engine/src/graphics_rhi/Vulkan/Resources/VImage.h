@@ -61,10 +61,10 @@ namespace AE::Graphics
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
-		ND_ static bool	 IsSupported (const VResourceManager &, const ImageDesc &desc)		__NE___;
-		ND_ bool		 IsSupported (const VResourceManager &, const ImageViewDesc &desc)	C_NE___;
+		ND_ static bool	 IsSupported (const VResourceManager &, const ImageDesc &desc)						__NE___;
+		ND_ static bool	 IsSupported (const VResourceManager &, const ImageDesc &, const ImageViewDesc &)	__NE___;
 
-		ND_ static Bytes  GetMemoryAlignment (const VDevice &dev, const ImageDesc &desc)	__NE___;
+		ND_ static Bytes  GetMemoryAlignment (const VDevice &dev, const ImageDesc &desc)					__NE___;
 	};
 
 

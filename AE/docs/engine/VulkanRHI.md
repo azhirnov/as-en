@@ -66,6 +66,8 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_EXT_ycbcr_2plane_444_formats
 - [x] VK_NV_partitioned_acceleration_structure
 - [x] VK_NV_cluster_acceleration_structure
+- [x] VK_KHR_multiview
+- [x] VK_EXT_fragment_density_map, VK_EXT_fragment_density_map2
 
 **Supported shader extensions:**
 - [x] VK_KHR_shader_clock, GL_EXT_shader_realtime_clock, GL_ARB_shader_clock
@@ -104,7 +106,10 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_KHR_shader_quad_control, GL_EXT_shader_quad
 - [x] VK_KHR_shader_maximal_reconvergence, GL_EXT_maximal_reconvergence
 - [x] VK_KHR_shader_expect_assume, GL_EXT_expect_assume
-- [ ] GL_NV_cluster_acceleration_structure - wait for support in glslang
+- [x] GL_NV_cluster_acceleration_structure
+- [x] GL_EXT_multiview
+- [x] GL_EXT_fragment_invocation_density
+- [x] VK_NV_cooperative_vector, GLSL_NV_cooperative_vector
 
 
 # Not implemented
@@ -126,7 +131,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_EXT_queue_family_foreign
 - VK_ANDROID_external_memory_android_hardware_buffer (for NdkCamera)
 - VK_EXT_pageable_device_local_memory
-- VK_KHR_multiview
 - VK_KHR_uniform_buffer_standard_layout
 - VK_KHR_format_feature_flags2
 - VK_EXT_inline_uniform_block
@@ -192,7 +196,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_NV_display_stereo
 - VK_NV_per_stage_descriptor_set
 - VK_EXT_attachment_feedback_loop_dynamic_state, VK_EXT_attachment_feedback_loop_layout
-- VK_NV_cooperative_vector
 - VK_ARM_pipeline_opacity_micromap
 - VK_EXT_external_memory_metal
 - VK_KHR_video_maintenance2
@@ -259,7 +262,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_NV_ray_tracing
 
 **Pending shader extensions:**
-- GL_EXT_multiview
 - GL_EXT_null_initializer
 - VK_KHR_zero_initialize_workgroup_memory
 - VK_EXT_scalar_block_layout, GL_EXT_scalar_block_layout
@@ -274,7 +276,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_shader_float_controls2, SPV_KHR_float_controls2 - not supported by glslang
 - GL_EXT_spirv_intrinsics
 - GL_EXT_shared_memory_block
-- GL_EXT_fragment_invocation_density
 - GL_EXT_shader_tile_image
 - GL_EXT_subgroupuniform_qualifier - not supported by glslang
 - GL_EXT_terminate_invocation

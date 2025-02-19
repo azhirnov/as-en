@@ -35,9 +35,11 @@ namespace AE::Graphics
 		_bufferId = Strong<BufferID>{bufferId};
 		_canBeDestroyed = true;
 
+		const auto	buf_desc = buffer->Description();
+
 		_desc = desc;
-		_desc.Validate( buffer->Description() );
-		GRES_CHECK( buffer->IsSupported( resMngr, _desc ));
+		_desc.Validate( buf_desc );
+		GRES_CHECK( VBuffer::IsSupported( resMngr, buf_desc, _desc ));
 
 		VkBufferViewCreateInfo	info = {};
 		info.sType		= VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;

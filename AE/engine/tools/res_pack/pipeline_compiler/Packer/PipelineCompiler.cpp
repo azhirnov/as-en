@@ -55,7 +55,7 @@ namespace
 			if ( NoBits( item.flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
 				continue;
 
-			Path	path {item.path};
+			Path	path = ToPath( item.path );
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
@@ -99,7 +99,7 @@ namespace
 			if ( AnyBits( info->inPipelines[i].flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
 				continue;
 
-			Path	path{ info->inPipelines[i].path };
+			Path	path = ToPath( info->inPipelines[i].path );
 
 			if ( not FileSystem::IsFile( path ))
 			{
@@ -123,7 +123,7 @@ namespace
 
 		for (usize i = 0; i < info->shaderIncludeDirCount; ++i)
 		{
-			Path	path{ info->shaderIncludeDirs[i] };
+			Path	path = ToPath( info->shaderIncludeDirs[i] );
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
@@ -136,7 +136,7 @@ namespace
 
 		for (usize i = 0; i < info->shaderFolderCount; ++i)
 		{
-			Path	path{ info->shaderFolders[i] };
+			Path	path = ToPath( info->shaderFolders[i] );
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
@@ -149,7 +149,7 @@ namespace
 
 		for (usize i = 0; i < info->pipelineIncludeDirCount; ++i)
 		{
-			Path	path{ info->pipelineIncludeDirs[i] };
+			Path	path = ToPath( info->pipelineIncludeDirs[i] );
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
@@ -221,9 +221,9 @@ namespace
 			ObjectStorage::SetInstance( &obj_storage );
 		}
 
-		const Path	pack_fname			= FileSystem::ToAbsolute( info->outputPackName );
-		const Path	cpp_structs_fname	= info->outputCppStructsFile != null ? FileSystem::ToAbsolute( info->outputCppStructsFile ) : Default;
-		const Path	cpp_names_fname		= info->outputCppNamesFile   != null ? FileSystem::ToAbsolute( info->outputCppNamesFile   ) : Default;
+		const Path	pack_fname			= FileSystem::ToAbsolute( ToPath( info->outputPackName ));
+		const Path	cpp_structs_fname	= info->outputCppStructsFile != null ? FileSystem::ToAbsolute( ToPath( info->outputCppStructsFile )) : Default;
+		const Path	cpp_names_fname		= info->outputCppNamesFile   != null ? FileSystem::ToAbsolute( ToPath( info->outputCppNamesFile   )) : Default;
 
 		NOTHROW_ERR( ObjectStorage::Bind( script_engine ));
 
@@ -242,7 +242,7 @@ namespace
 
 		if ( info->outputScriptFile != null )
 		{
-			CHECK_ERR( script_engine->SaveCppHeader( info->outputScriptFile ));
+			CHECK_ERR( script_engine->SaveCppHeader( ToPath( info->outputScriptFile )));
 		}
 
 		ObjectStorage::SetInstance( null );

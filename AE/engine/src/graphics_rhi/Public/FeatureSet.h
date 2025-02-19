@@ -247,6 +247,8 @@ namespace AE::Graphics
 		/*  */\
 		_visitorF_( EFeature,			cooperativeMatrix,						: 2 )	/*\ 																				*/\
 		_visitorP_( EShaderStages,		cooperativeMatrixStages,					)	/*-'-- GL_KHR_cooperative_matrix													*/\
+		_visitorF_( EFeature,			cooperativeVector,						: 2 )	/*\																					*/\
+		_visitorF_( EFeature,			cooperativeVectorTraining,				: 2 )	/*-'-- GLSL_NV_cooperative_vector													*/\
 		\
 		\
 	/*---- shader features/limits ----*/\
@@ -315,6 +317,14 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			fragmentShadingRateWithCustomSampleLocations,		: 2 )	/*-|																	*/\
 		_visitorP_( VRSTexelSize,		fragmentShadingRateTexelSize,							)	/*-|																	*/\
 		_visitorL_( ShadingRateSet_t,	fragmentShadingRates,									)	/*-/																	*/\
+		/* fragment density map */\
+		_visitorF_( EFeature,			fragmentDensityMap,						: 2 )	/*\																					*/\
+		_visitorF_( EFeature,			fragmentDensityMapDynamic,				: 2 )	/*-|																				*/\
+		_visitorF_( EFeature,			fragmentDensityMapNonSubsampledImages,	: 2 )	/*-|--GL_EXT_fragment_invocation_density											*/\
+		_visitorF_( EFeature,			fragmentDensityInvocations,				: 2 )	/*-|																				*/\
+		_visitorF_( EFeature,			subsampledLoads,						: 2 )	/*-|																				*/\
+		_visitorP_( POTValue,			maxSubsampledArrayLayers,					)	/*-|																				*/\
+		_visitorP_( ubyte,				perPipeline_maxSubsampledSamplers,			)	/*/	 	maxDescriptorSetSubsampledSamplers											*/\
 		/* acceleration structure */\
 		_visitorF_( EFeature,			accelerationStructureIndirectBuild,		: 2 )\
 		_visitorF_( EFeature,			clusterAccelerationStructure,			: 2 )	/* VK_NV_cluster_acceleration_structure, GL_NV_cluster_acceleration_structure		*/\

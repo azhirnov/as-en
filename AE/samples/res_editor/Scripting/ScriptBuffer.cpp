@@ -1110,6 +1110,9 @@ namespace
 				case EResourceUsage::ComputeRW :
 				case EResourceUsage::Present :
 				case EResourceUsage::InputAttachment :
+				case EResourceUsage::FragDensityMap :
+				case EResourceUsage::FragShadingRate :
+				case EResourceUsage::SubsampledAttachment :
 				default :								RETURN_ERR( "unsupported usage" );
 			}
 			switch_end

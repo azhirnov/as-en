@@ -128,7 +128,7 @@ namespace AE::Graphics
 					RETURN_ERR( str );
 				}
 
-				if ( not AllBits( img_desc.usage, EImageUsage::ShadingRate ))
+				if ( NoBits( img_desc.usage, EImageUsage::ShadingRate | EImageUsage::FragmentDensityMap ))
 					ASSERT_GE( view->Description().Dimension2(), uint2{_dimension} );
 
 				ASSERT_GE( view->Description().layerCount, _layers.Get() );

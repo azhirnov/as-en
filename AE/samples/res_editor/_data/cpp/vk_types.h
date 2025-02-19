@@ -1,7 +1,7 @@
-//b20a42b5
+//93f5214d
 #ifndef CameraData_DEFINED
 #	define CameraData_DEFINED
-	// size: 384, align: 16
+	// size: 400, align: 16
 	struct CameraData
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x8142e66cu}};
@@ -12,6 +12,7 @@
 		float4x4_storage            view;
 		float3                      pos;
 		float2                      clipPlanes;
+		float2                      fov;
 		float                       zoom;
 		StaticArray< float4, 6 >    frustum;
 	};
@@ -22,13 +23,14 @@
 	StaticAssert( offsetof(CameraData, view) == 192 );
 	StaticAssert( offsetof(CameraData, pos) == 256 );
 	StaticAssert( offsetof(CameraData, clipPlanes) == 272 );
-	StaticAssert( offsetof(CameraData, zoom) == 280 );
-	StaticAssert( offsetof(CameraData, frustum) == 288 );
-	StaticAssert( sizeof(CameraData) == 384 );
+	StaticAssert( offsetof(CameraData, fov) == 280 );
+	StaticAssert( offsetof(CameraData, zoom) == 288 );
+	StaticAssert( offsetof(CameraData, frustum) == 304 );
+	StaticAssert( sizeof(CameraData) == 400 );
 
 #ifndef PostprocessPassUB_DEFINED
 #	define PostprocessPassUB_DEFINED
-	// size: 1216, align: 16
+	// size: 1232, align: 16
 	struct PostprocessPassUB
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x6a9c4b92u}};
@@ -74,16 +76,16 @@
 	StaticAssert( offsetof(PostprocessPassUB, pixPerMm) == 184 );
 	StaticAssert( offsetof(PostprocessPassUB, mmPerPix) == 188 );
 	StaticAssert( offsetof(PostprocessPassUB, camera) == 192 );
-	StaticAssert( offsetof(PostprocessPassUB, floatSliders) == 576 );
-	StaticAssert( offsetof(PostprocessPassUB, intSliders) == 704 );
-	StaticAssert( offsetof(PostprocessPassUB, colors) == 832 );
-	StaticAssert( offsetof(PostprocessPassUB, floatConst) == 960 );
-	StaticAssert( offsetof(PostprocessPassUB, intConst) == 1088 );
-	StaticAssert( sizeof(PostprocessPassUB) == 1216 );
+	StaticAssert( offsetof(PostprocessPassUB, floatSliders) == 592 );
+	StaticAssert( offsetof(PostprocessPassUB, intSliders) == 720 );
+	StaticAssert( offsetof(PostprocessPassUB, colors) == 848 );
+	StaticAssert( offsetof(PostprocessPassUB, floatConst) == 976 );
+	StaticAssert( offsetof(PostprocessPassUB, intConst) == 1104 );
+	StaticAssert( sizeof(PostprocessPassUB) == 1232 );
 
 #ifndef ComputePassUB_DEFINED
 #	define ComputePassUB_DEFINED
-	// size: 1088, align: 16
+	// size: 1104, align: 16
 	struct ComputePassUB
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xaba36a57u}};
@@ -115,12 +117,12 @@
 	StaticAssert( offsetof(ComputePassUB, pixPerMm) == 52 );
 	StaticAssert( offsetof(ComputePassUB, mmPerPix) == 56 );
 	StaticAssert( offsetof(ComputePassUB, camera) == 64 );
-	StaticAssert( offsetof(ComputePassUB, floatSliders) == 448 );
-	StaticAssert( offsetof(ComputePassUB, intSliders) == 576 );
-	StaticAssert( offsetof(ComputePassUB, colors) == 704 );
-	StaticAssert( offsetof(ComputePassUB, floatConst) == 832 );
-	StaticAssert( offsetof(ComputePassUB, intConst) == 960 );
-	StaticAssert( sizeof(ComputePassUB) == 1088 );
+	StaticAssert( offsetof(ComputePassUB, floatSliders) == 464 );
+	StaticAssert( offsetof(ComputePassUB, intSliders) == 592 );
+	StaticAssert( offsetof(ComputePassUB, colors) == 720 );
+	StaticAssert( offsetof(ComputePassUB, floatConst) == 848 );
+	StaticAssert( offsetof(ComputePassUB, intConst) == 976 );
+	StaticAssert( sizeof(ComputePassUB) == 1104 );
 
 #ifndef ComputePassPC_DEFINED
 #	define ComputePassPC_DEFINED
@@ -137,7 +139,7 @@
 
 #ifndef RayTracingPassUB_DEFINED
 #	define RayTracingPassUB_DEFINED
-	// size: 1088, align: 16
+	// size: 1104, align: 16
 	struct RayTracingPassUB
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x1539319au}};
@@ -169,16 +171,16 @@
 	StaticAssert( offsetof(RayTracingPassUB, pixPerMm) == 52 );
 	StaticAssert( offsetof(RayTracingPassUB, mmPerPix) == 56 );
 	StaticAssert( offsetof(RayTracingPassUB, camera) == 64 );
-	StaticAssert( offsetof(RayTracingPassUB, floatSliders) == 448 );
-	StaticAssert( offsetof(RayTracingPassUB, intSliders) == 576 );
-	StaticAssert( offsetof(RayTracingPassUB, colors) == 704 );
-	StaticAssert( offsetof(RayTracingPassUB, floatConst) == 832 );
-	StaticAssert( offsetof(RayTracingPassUB, intConst) == 960 );
-	StaticAssert( sizeof(RayTracingPassUB) == 1088 );
+	StaticAssert( offsetof(RayTracingPassUB, floatSliders) == 464 );
+	StaticAssert( offsetof(RayTracingPassUB, intSliders) == 592 );
+	StaticAssert( offsetof(RayTracingPassUB, colors) == 720 );
+	StaticAssert( offsetof(RayTracingPassUB, floatConst) == 848 );
+	StaticAssert( offsetof(RayTracingPassUB, intConst) == 976 );
+	StaticAssert( sizeof(RayTracingPassUB) == 1104 );
 
 #ifndef SceneGraphicsPassUB_DEFINED
 #	define SceneGraphicsPassUB_DEFINED
-	// size: 1088, align: 16
+	// size: 1104, align: 16
 	struct SceneGraphicsPassUB
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x1f8a4833u}};
@@ -212,16 +214,16 @@
 	StaticAssert( offsetof(SceneGraphicsPassUB, pixPerMm) == 52 );
 	StaticAssert( offsetof(SceneGraphicsPassUB, mmPerPix) == 56 );
 	StaticAssert( offsetof(SceneGraphicsPassUB, camera) == 64 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, floatSliders) == 448 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, intSliders) == 576 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, colors) == 704 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, floatConst) == 832 );
-	StaticAssert( offsetof(SceneGraphicsPassUB, intConst) == 960 );
-	StaticAssert( sizeof(SceneGraphicsPassUB) == 1088 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, floatSliders) == 464 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, intSliders) == 592 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, colors) == 720 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, floatConst) == 848 );
+	StaticAssert( offsetof(SceneGraphicsPassUB, intConst) == 976 );
+	StaticAssert( sizeof(SceneGraphicsPassUB) == 1104 );
 
 #ifndef SceneRayTracingPassUB_DEFINED
 #	define SceneRayTracingPassUB_DEFINED
-	// size: 1056, align: 16
+	// size: 1072, align: 16
 	struct SceneRayTracingPassUB
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xd09ba9b0u}};
@@ -249,12 +251,12 @@
 	StaticAssert( offsetof(SceneRayTracingPassUB, pixPerMm) == 20 );
 	StaticAssert( offsetof(SceneRayTracingPassUB, mmPerPix) == 24 );
 	StaticAssert( offsetof(SceneRayTracingPassUB, camera) == 32 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, floatSliders) == 416 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, intSliders) == 544 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, colors) == 672 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, floatConst) == 800 );
-	StaticAssert( offsetof(SceneRayTracingPassUB, intConst) == 928 );
-	StaticAssert( sizeof(SceneRayTracingPassUB) == 1056 );
+	StaticAssert( offsetof(SceneRayTracingPassUB, floatSliders) == 432 );
+	StaticAssert( offsetof(SceneRayTracingPassUB, intSliders) == 560 );
+	StaticAssert( offsetof(SceneRayTracingPassUB, colors) == 688 );
+	StaticAssert( offsetof(SceneRayTracingPassUB, floatConst) == 816 );
+	StaticAssert( offsetof(SceneRayTracingPassUB, intConst) == 944 );
+	StaticAssert( sizeof(SceneRayTracingPassUB) == 1072 );
 
 #ifndef SphericalCubeMaterialUB_DEFINED
 #	define SphericalCubeMaterialUB_DEFINED

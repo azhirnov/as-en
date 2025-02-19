@@ -56,6 +56,8 @@ RGTest::RGTest () :
 	//_tests.emplace_back( &RGTest::Test_RayTracingPartitioned1 );
 	_tests.emplace_back( &RGTest::Test_ShadingRate1 );
 	_tests.emplace_back( &RGTest::Test_Ycbcr1 );
+	_tests.emplace_back( &RGTest::Test_MultiView );
+	_tests.emplace_back( &RGTest::Test_ViewportArray );
   #endif
   #ifdef AE_TEST_SHADER_DEBUGGER
 	_tests.emplace_back( &RGTest::Test_Debugger1 );
@@ -110,7 +112,7 @@ Unique<ImageComparator>  RGTest::_LoadReference (StringView name) const
 		RC<RStream>	rfile;
 		if ( _refImageStorage->Open( OUT rfile, VFS::FileName{ToString(path)} ))
 		{
-			loaded = img_cmp->LoadReference( RVRef(rfile), path, RVRef(open_file) );
+			loaded = img_cmp->LoadReference( RVRef(rfile), path, open_file );
 		}
 	}
 
@@ -121,7 +123,7 @@ Unique<ImageComparator>  RGTest::_LoadReference (StringView name) const
 
 		RC<WStream>		wfile;
 		if ( _refImageStorage->Open( OUT wfile, fname ))
-			img_cmp->Reset( RVRef(wfile), path );
+			img_cmp->Reset( RVRef(wfile), path, open_file );
 	}
 	return img_cmp;
 }
@@ -189,6 +191,7 @@ void  RGTest::_Destroy ()
 	_rqPipelines	= null;
 	_vrsPipelines	= null;
 	_ycbcrPipelines	= null;
+	_mvPipelines	= null;
 
 	RenderTaskScheduler::InstanceCtor::Destroy();
 
@@ -235,6 +238,7 @@ bool  RGTest::_CompilePipelines (FStorage_t assetStorage)
 	_rqPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::RayQueryTestRT );
 	_vrsPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::VRSTestRT );
 	_ycbcrPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::Ycbcr_RTech );
+	_mvPipelines	= res_mngr.LoadRenderTech( Default, RenderTechs::MultiView_RTech );
 
 	return true;
 }

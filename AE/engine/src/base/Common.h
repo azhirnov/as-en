@@ -18,28 +18,28 @@ namespace AE
 	using ssize		= intptr_t;
 	using usize		= size_t;
 
-#if defined(__cpp_char8_t)
-	using CharUtf8	= char8_t;		// u8''  (C++20)
-#else
-	enum class CharUtf8 : char {};
-#endif
+	#if defined(__cpp_char8_t)
+		using CharUtf8	= char8_t;		// u8''  (C++20)
+	#else
+		enum class CharUtf8 : char {};
+	#endif
 
 	using CharAnsi	= char;
 	using CharUtf16	= char16_t;		// u''
 	using CharUtf32	= char32_t;		// U''	used 21 bits
 
-#ifdef AE_PLATFORM_WINDOWS
-# if UNICODE
-	using CharType			= wchar_t;	// L''
-#	define TXT( _text_ )	(L"" _text_)
-# else
-	using CharType			= CharAnsi;
-#	define TXT( _text_ )	("" _text_)
-# endif
-#else
-	using CharType			= CharUtf8;
-#	define TXT( _text_ )	(u8"" _text_)
-#endif
+	#ifdef AE_PLATFORM_WINDOWS
+	# if UNICODE
+		using CharType			= wchar_t;	// L''
+	#	define TXT( _text_ )	(L"" _text_)
+	# else
+		using CharType			= CharAnsi;
+	#	define TXT( _text_ )	("" _text_)
+	# endif
+	#else
+		using CharType			= CharUtf8;
+	#	define TXT( _text_ )	(u8"" _text_)
+	#endif
 
 	namespace Base {}
 }
@@ -51,9 +51,18 @@ namespace AE
 
 namespace AE::Base
 {
+	#ifdef AE_COMPILER_CLANG
+	#	pragma clang diagnostic push
+	#	pragma clang diagnostic ignored "-Wdeprecated-declarations"
+	#endif
+
 	template <typename T,
 			  typename A = std::allocator<T>>
 	using BasicString		= std::basic_string< T, std::char_traits<T>, A >;
+
+	#ifdef AE_COMPILER_CLANG
+	#	pragma clang diagnostic pop
+	#endif
 
 	using String			= BasicString< CharAnsi >;
 	using WString			= BasicString< wchar_t >;

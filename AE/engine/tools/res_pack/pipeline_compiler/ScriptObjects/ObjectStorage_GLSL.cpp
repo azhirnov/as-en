@@ -652,14 +652,23 @@ namespace AE::PipelineCompiler
 		if ( stage == EShaderStages::Fragment )
 		{
 			FeatureSetCounter	supported;
+			FeatureSetCounter	sample;
+			FeatureSetCounter	pixel;
+			FeatureSetCounter	shading_rate;
 			for (auto& ptr : features) {
-				supported.Add( ptr->fs.fragmentShaderSampleInterlock );
-				supported.Add( ptr->fs.fragmentShaderPixelInterlock );
-				supported.Add( ptr->fs.fragmentShaderShadingRateInterlock );
+				supported	.Add( ptr->fs.fragmentShaderSampleInterlock );
+				supported	.Add( ptr->fs.fragmentShaderPixelInterlock );
+				supported	.Add( ptr->fs.fragmentShaderShadingRateInterlock );
+				sample		.Add( ptr->fs.fragmentShaderSampleInterlock );
+				pixel		.Add( ptr->fs.fragmentShaderPixelInterlock );
+				shading_rate.Add( ptr->fs.fragmentShaderShadingRateInterlock );
 			}
 			if ( supported.IsTrue() ) {
 				ext << "#extension GL_ARB_fragment_shader_interlock                : require\n";
 				def << "#define AE_fragment_shader_interlock 1\n";
+				if ( sample.IsTrue() )			def << "#define AE_fragmentShaderSampleInterlock 1\n";
+				if ( pixel.IsTrue() )			def << "#define AE_fragmentShaderPixelInterlock 1\n";
+				if ( shading_rate.IsTrue() )	def << "#define AE_fragmentShaderShadingRateInterlock 1\n";
 			}
 		}
 
@@ -667,14 +676,20 @@ namespace AE::PipelineCompiler
 		if ( AnyEqual( stage, EShaderStages::Fragment, EShaderStages::Vertex, EShaderStages::Geometry, EShaderStages::Mesh ))
 		{
 			FeatureSetCounter	supported;
+			FeatureSetCounter	primitive_sr;
+			FeatureSetCounter	attachment_sr;
 			for (auto& ptr : features) {
-				supported.Add( ptr->fs.pipelineFragmentShadingRate );
-				supported.Add( ptr->fs.primitiveFragmentShadingRate );
-				supported.Add( ptr->fs.attachmentFragmentShadingRate );
+				supported	 .Add( ptr->fs.pipelineFragmentShadingRate );
+				supported	 .Add( ptr->fs.primitiveFragmentShadingRate );
+				supported	 .Add( ptr->fs.attachmentFragmentShadingRate );
+				primitive_sr .Add( ptr->fs.primitiveFragmentShadingRate );
+				attachment_sr.Add( ptr->fs.attachmentFragmentShadingRate );
 			}
 			if ( supported.IsTrue() ) {
 				ext << "#extension GL_EXT_fragment_shading_rate                    : require\n";
 				def << "#define AE_fragment_shading_rate 1\n";
+				if ( primitive_sr.IsTrue() )	def << "#define AE_primitiveFragmentShadingRate 1\n";
+				if ( attachment_sr.IsTrue() )	def << "#define AE_attachmentFragmentShadingRate 1\n";
 			}
 		}
 
@@ -694,11 +709,11 @@ namespace AE::PipelineCompiler
 		// multiview
 		if ( AnyBits( stage, EShaderStages::VertexProcessingStages | EShaderStages::Fragment ))
 		{
-			FeatureSetCounter	supported;
+			FeatureSetCounter	multiview;
 			for (auto& ptr : features) {
-				supported.Add( ptr->fs.multiview );
+				multiview.Add( ptr->fs.multiview );
 			}
-			if ( supported.IsTrue() ) {
+			if ( multiview.IsTrue() ) {
 				ext << "#extension GL_EXT_multiview                                : require\n";
 				def << "#define AE_multiview 1\n";
 			}
@@ -707,17 +722,35 @@ namespace AE::PipelineCompiler
 		// cooperativeMatrix
 		if ( stage == EShaderStages::Compute )
 		{
-			FeatureSetCounter	supported;
-			FeatureSetCounter	supported2;
+			FeatureSetCounter	coop_mat;
+			FeatureSetCounter	mem_model;
 			for (auto& ptr : features) {
 				if ( AllBits( ptr->fs.cooperativeMatrixStages, stage ))
-					supported .Add( ptr->fs.cooperativeMatrix );
-				supported2.Add( ptr->fs.vulkanMemoryModel );
+					coop_mat.Add( ptr->fs.cooperativeMatrix );
+				mem_model.Add( ptr->fs.vulkanMemoryModel );
 			}
-			if ( supported.IsTrue() ) {
-				CHECK_THROW_MSG( supported2.IsTrue() );	// required
+			if ( coop_mat.IsTrue() ) {
+				CHECK_THROW_MSG( mem_model.IsTrue(), "'vulkanMemoryModel' required for 'cooperativeMatrix'" );
 				ext << "#extension GL_KHR_cooperative_matrix                       : require\n";
 				def << "#define AE_cooperative_matrix 1\n";
+			}
+		}
+
+		// cooperativeVector
+		{
+			FeatureSetCounter	coop_vec;
+			FeatureSetCounter	training;
+			for (auto& ptr : features) {
+				coop_vec.Add( ptr->fs.vulkanMemoryModel );
+				training.Add( ptr->fs.vulkanMemoryModel );
+			}
+			if ( coop_vec.IsTrue() )
+			{
+				ext << "#extension GL_NV_cooperative_vector                        : require\n";
+				def << "#define AE_cooperative_vector 1\n";
+
+				if ( training.IsTrue() )
+					def << "#define AE_cooperative_vector_training 1\n";
 			}
 		}
 
@@ -757,6 +790,18 @@ namespace AE::PipelineCompiler
 			if ( large_points.IsTrue() )	def << "#define AE_large_points  1\n";
 			if ( clip_dist.IsTrue() )		def << "#define AE_clip_distance 1\n";
 			if ( cull_dist.IsTrue() )		def << "#define AE_cull_distance 1\n";
+		}
+
+		// fragment density map
+		{
+			FeatureSetCounter	supported;
+			for (auto& ptr : features) {
+				supported.Add( ptr->fs.fragmentDensityMap );
+			}
+			if ( supported.IsEnable() ) {
+				ext << "#extension GL_EXT_fragment_invocation_density              : require\n";
+				def << "#define AE_fragment_invocation_density 1\n";
+			}
 		}
 
 		// vendor

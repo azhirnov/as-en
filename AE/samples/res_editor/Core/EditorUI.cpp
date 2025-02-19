@@ -225,7 +225,8 @@ namespace
 	GetAllSliders
 =================================================
 */
-	auto  UIInteraction::GetAllSliders () -> AllSliders_t
+	template <typename FN>
+	void  UIInteraction::GetAllSliders (FN &&fn)
 	{
 		AllSliders_t	result;
 
@@ -236,12 +237,12 @@ namespace
 			result.emplace_back( &pass_sliders.Get<PerPassMutableSliders>(),
 								 &pass_sliders.Get<PerPassSlidersInfo>() );
 		}
-		return result;
+		fn( result );
 	}
 
 /*
 =================================================
-	GetAllSliders
+	AddLabels
 =================================================
 */
 	void  UIInteraction::AddLabels (const void* uid, Labels_t labels)
@@ -257,7 +258,8 @@ namespace
 	GetAllLabels
 =================================================
 */
-	auto  UIInteraction::GetAllLabels () -> AllLabels_t
+	template <typename FN>
+	void  UIInteraction::GetAllLabels (FN &&fn)
 	{
 		AllLabels_t		result;
 		auto			label_map = _labelMap.WriteLock();
@@ -266,7 +268,7 @@ namespace
 		{
 			result.push_back( &pass_labels );
 		}
-		return result;
+		fn( result );
 	}
 
 /*
@@ -1054,62 +1056,65 @@ namespace
 */
 	void  EditorUI::DrawTask::_UpdateEditor_Sliders ()
 	{
-		const auto	all_sliders = s_UIInteraction.GetAllSliders();
-		const char	xyzw[]		= "xyzw";
-
-		for (auto& pass : all_sliders)
-		{
-			if ( ImGui::TreeNodeEx( pass.Get<1>()->passName.c_str(), ImGuiTreeNodeFlags_DefaultOpen ))
+		s_UIInteraction.GetAllSliders(
+			[](auto &all_sliders)
 			{
-				auto	sliders = pass.Get<0>()->WriteLock();
+				const char	xyzw[]		= "xyzw";
 
-				for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+				for (auto& pass : all_sliders)
 				{
-					const auto&		name	= pass.Get<1>()->names [i] [UIInteraction::IntSliderIdx];
-					int4&			slider	= sliders->intSliders [i];
-					int4 const*		range	= pass.Get<1>()->intRange [i].data();
-					const uint		vsize	= pass.Get<1>()->intVecSize [i];
-
-					if ( name.empty() ) continue;
-					for (uint j = 0; j < vsize; ++j)
+					if ( ImGui::TreeNodeEx( pass.template Get<1>()->passName.c_str(), ImGuiTreeNodeFlags_DefaultOpen ))
 					{
-						String	sname {name};
-						if ( vsize > 1 )	sname << '.' << xyzw[j];
-						sname << "##CustomSliderI" << char('0'+i) << char('0'+j);
-						ImGui::SliderInt( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
+						auto	sliders = pass.template Get<0>()->WriteLock();
+
+						for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+						{
+							const auto&		name	= pass.template Get<1>()->names [i] [UIInteraction::IntSliderIdx];
+							int4&			slider	= sliders->intSliders [i];
+							int4 const*		range	= pass.template Get<1>()->intRange [i].data();
+							const uint		vsize	= pass.template Get<1>()->intVecSize [i];
+
+							if ( name.empty() ) continue;
+							for (uint j = 0; j < vsize; ++j)
+							{
+								String	sname {name};
+								if ( vsize > 1 )	sname << '.' << xyzw[j];
+								sname << "##CustomSliderI" << char('0'+i) << char('0'+j);
+								ImGui::SliderInt( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
+							}
+						}
+
+						for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+						{
+							const auto&		name	= pass.template Get<1>()->names [i] [UIInteraction::FloatSliderIdx];
+							float4&			slider	= sliders->floatSliders [i];
+							float4 const*	range	= pass.template Get<1>()->floatRange [i].data();
+							const uint		vsize	= pass.template Get<1>()->floatVecSize [i];
+
+							if ( name.empty() ) continue;
+							for (uint j = 0; j < vsize; ++j)
+							{
+								String	sname {name};
+								if ( vsize > 1 )	sname << '.' << xyzw[j];
+								sname << "##CustomSliderF" << char('0'+i) << char('0'+j);
+								ImGui::SliderFloat( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
+							}
+						}
+
+						for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+						{
+							const auto&		name	= pass.template Get<1>()->names [i] [UIInteraction::ColorSelectorIdx];
+							auto&			slider	= sliders->colors[i];
+
+							if ( name.empty() ) continue;
+							ImGui::ColorEdit4( (name + "##CustomColor" + char('0'+i)).c_str(), INOUT slider.data(), ImGuiColorEditFlags_None );
+						}
+						ImGui::TreePop();
 					}
-				}
-
-				for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
-				{
-					const auto&		name	= pass.Get<1>()->names [i] [UIInteraction::FloatSliderIdx];
-					float4&			slider	= sliders->floatSliders [i];
-					float4 const*	range	= pass.Get<1>()->floatRange [i].data();
-					const uint		vsize	= pass.Get<1>()->floatVecSize [i];
-
-					if ( name.empty() ) continue;
-					for (uint j = 0; j < vsize; ++j)
-					{
-						String	sname {name};
-						if ( vsize > 1 )	sname << '.' << xyzw[j];
-						sname << "##CustomSliderF" << char('0'+i) << char('0'+j);
-						ImGui::SliderFloat( sname.c_str(), INOUT &slider[j], range[0][j], range[1][j] );
-					}
-				}
-
-				for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
-				{
-					const auto&		name	= pass.Get<1>()->names [i] [UIInteraction::ColorSelectorIdx];
-					auto&			slider	= sliders->colors[i];
-
-					if ( name.empty() ) continue;
-					ImGui::ColorEdit4( (name + "##CustomColor" + char('0'+i)).c_str(), INOUT slider.data(), ImGuiColorEditFlags_None );
 				}
 				ImGui::TreePop();
-			}
-		}
-		ImGui::TreePop();
-		ImGui::Separator();
+				ImGui::Separator();
+			});
 	}
 
 /*
@@ -1119,65 +1124,68 @@ namespace
 */
 	void  EditorUI::DrawTask::_UpdateEditor_Labels ()
 	{
-		const auto	all_labels = s_UIInteraction.GetAllLabels();
-		String		value;
-
-		for (auto& pass : all_labels)
-		{
-			auto	labels	= pass->ReadLock();
-			usize	max_len	= 0;
-
-			for (auto& info : *labels) {
-				max_len = Max( max_len, info.label.length() );
-			}
-			++max_len;
-
-			for (auto& info : *labels)
+		s_UIInteraction.GetAllLabels(
+			[](auto &all_labels)
 			{
-				if ( info.ifDyn )
+				String		value;
+
+				for (auto& pass : all_labels)
 				{
-					uint	lhs		= info.ifDyn->Get();
-					uint	rhs		= info.ref;
-					bool	enable	= false;
-					switch_enum( info.op )
-					{
-						case IPass::ECompare::Less :	enable = lhs <  rhs;			break;
-						case IPass::ECompare::Equal :	enable = lhs == rhs;			break;
-						case IPass::ECompare::Greater :	enable = lhs >  rhs;			break;
-						case IPass::ECompare::AnyBit :	enable = AnyBits( lhs, rhs );	break;
-						case IPass::ECompare::Unknown :	break;
+					auto	labels	= pass->ReadLock();
+					usize	max_len	= 0;
+
+					for (auto& info : *labels) {
+						max_len = Max( max_len, info.label.length() );
 					}
-					switch_end
+					++max_len;
 
-					if ( not enable )
-						continue;
+					for (auto& info : *labels)
+					{
+						if ( info.ifDyn )
+						{
+							uint	lhs		= info.ifDyn->Get();
+							uint	rhs		= info.ref;
+							bool	enable	= false;
+							switch_enum( info.op )
+							{
+								case IPass::ECompare::Less :	enable = lhs <  rhs;			break;
+								case IPass::ECompare::Equal :	enable = lhs == rhs;			break;
+								case IPass::ECompare::Greater :	enable = lhs >  rhs;			break;
+								case IPass::ECompare::AnyBit :	enable = AnyBits( lhs, rhs );	break;
+								case IPass::ECompare::Unknown :	break;
+							}
+							switch_end
+
+							if ( not enable )
+								continue;
+						}
+
+						value.assign( info.label );
+						AppendToString( INOUT value, max_len - info.label.length(), ' ' );
+
+						value << ": " <<
+							Visit( info.dyn,
+								[](const RC<DynamicInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
+								[](const RC<DynamicInt2> &src)		{ return ToString( src->Get() ); },
+								[](const RC<DynamicInt3> &src)		{ return ToString( src->Get() ); },
+								[](const RC<DynamicInt4> &src)		{ return ToString( src->Get() ); },
+								[](const RC<DynamicUInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
+								[](const RC<DynamicUInt2> &src)		{ return ToString( src->Get() ); },
+								[](const RC<DynamicUInt3> &src)		{ return ToString( src->Get() ); },
+								[](const RC<DynamicUInt4> &src)		{ return ToString( src->Get() ); },
+								[](const RC<DynamicFloat> &src)		{ return ToString( src->Get() ); },
+								[](const RC<DynamicFloat2> &src)	{ return ToString( src->Get() ); },
+								[](const RC<DynamicFloat3> &src)	{ return ToString( src->Get() ); },
+								[](const RC<DynamicFloat4> &src)	{ return ToString( src->Get() ); }
+							);
+
+						ImGui::TextUnformatted( value.c_str() );
+						value.clear();
+					}
 				}
-
-				value.assign( info.label );
-				AppendToString( INOUT value, max_len - info.label.length(), ' ' );
-
-				value << ": " <<
-					Visit( info.dyn,
-						[](const RC<DynamicInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
-						[](const RC<DynamicInt2> &src)		{ return ToString( src->Get() ); },
-						[](const RC<DynamicInt3> &src)		{ return ToString( src->Get() ); },
-						[](const RC<DynamicInt4> &src)		{ return ToString( src->Get() ); },
-						[](const RC<DynamicUInt> &src)		{ return DivStringBySteps( ToString( src->Get() ), 3, '\'' ); },
-						[](const RC<DynamicUInt2> &src)		{ return ToString( src->Get() ); },
-						[](const RC<DynamicUInt3> &src)		{ return ToString( src->Get() ); },
-						[](const RC<DynamicUInt4> &src)		{ return ToString( src->Get() ); },
-						[](const RC<DynamicFloat> &src)		{ return ToString( src->Get() ); },
-						[](const RC<DynamicFloat2> &src)	{ return ToString( src->Get() ); },
-						[](const RC<DynamicFloat3> &src)	{ return ToString( src->Get() ); },
-						[](const RC<DynamicFloat4> &src)	{ return ToString( src->Get() ); }
-					);
-
-				ImGui::TextUnformatted( value.c_str() );
-				value.clear();
-			}
-		}
-		ImGui::TreePop();
-		ImGui::Separator();
+				ImGui::TreePop();
+				ImGui::Separator();
+			});
 	}
 
 /*
@@ -1880,85 +1888,88 @@ namespace
 */
 	void  EditorUI::_CopySliderState ()
 	{
-		const auto	all_sliders = s_UIInteraction.GetAllSliders();
-		String		str2;
-		Array< Pair< String, StringView >>	arr;
-
-		for (auto& pass : all_sliders)
-		{
-			arr.clear();
-
-			auto	sliders = pass.Get<0>()->WriteLock();
-
-			for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+		s_UIInteraction.GetAllSliders(
+			[](auto& all_sliders)
 			{
-				StringView	name	= pass.Get<1>()->names [i] [UIInteraction::IntSliderIdx];
-				int4&		slider	= sliders->intSliders [i];
-				const uint	vsize	= pass.Get<1>()->intVecSize [i];
+				String		str2;
+				Array< Pair< String, StringView >>	arr;
 
-				if ( name.empty() ) continue;
+				for (auto& pass : all_sliders)
+				{
+					arr.clear();
 
-				String	str;
-				for (uint j = 0; j < vsize; ++j)
-					str << ToString( slider[j] ) << ", ";
+					auto	sliders = pass.template Get<0>()->WriteLock();
 
-				arr.emplace_back( RVRef(str), name );
-			}
+					for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+					{
+						StringView	name	= pass.template Get<1>()->names [i] [UIInteraction::IntSliderIdx];
+						int4&		slider	= sliders->intSliders [i];
+						const uint	vsize	= pass.template Get<1>()->intVecSize [i];
 
-			for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
-			{
-				StringView	name	= pass.Get<1>()->names [i] [UIInteraction::FloatSliderIdx];
-				float4&		slider	= sliders->floatSliders [i];
-				const uint	vsize	= pass.Get<1>()->floatVecSize [i];
+						if ( name.empty() ) continue;
 
-				if ( name.empty() ) continue;
+						String	str;
+						for (uint j = 0; j < vsize; ++j)
+							str << ToString( slider[j] ) << ", ";
 
-				String	str;
-				for (uint j = 0; j < vsize; ++j)
-					str << ToString( slider[j], 4 ) << "f, ";
+						arr.emplace_back( RVRef(str), name );
+					}
 
-				arr.emplace_back( RVRef(str), name );
-			}
+					for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+					{
+						StringView	name	= pass.template Get<1>()->names [i] [UIInteraction::FloatSliderIdx];
+						float4&		slider	= sliders->floatSliders [i];
+						const uint	vsize	= pass.template Get<1>()->floatVecSize [i];
 
-			for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
-			{
-				StringView	name	= pass.Get<1>()->names [i] [UIInteraction::ColorSelectorIdx];
-				RGBA32f&	slider	= sliders->colors[i];
+						if ( name.empty() ) continue;
 
-				if ( name.empty() ) continue;
+						String	str;
+						for (uint j = 0; j < vsize; ++j)
+							str << ToString( slider[j], 4 ) << "f, ";
 
-				String	str;
-				for (uint j = 0; j < 4; ++j)
-					str << ToString( slider[j], 4 ) << "f, ";
+						arr.emplace_back( RVRef(str), name );
+					}
 
-				arr.emplace_back( RVRef(str), name );
-			}
+					for (uint i = 0; i < UIInteraction::MaxSlidersPerType; ++i)
+					{
+						StringView	name	= pass.template Get<1>()->names [i] [UIInteraction::ColorSelectorIdx];
+						RGBA32f&	slider	= sliders->colors[i];
 
-			if ( arr.empty() )
-				continue;
+						if ( name.empty() ) continue;
 
-			const usize	tab_size	= 4;
-			usize		max_len		= 0;
+						String	str;
+						for (uint j = 0; j < 4; ++j)
+							str << ToString( slider[j], 4 ) << "f, ";
 
-			for (auto& [params_str, name] : arr) {
-				max_len = Max( max_len, params_str.size() );
-			}
-			max_len = AlignUp( max_len, tab_size ) + 1;
+						arr.emplace_back( RVRef(str), name );
+					}
 
-			str2 << "\n// pass: " << pass.Get<1>()->passName;
+					if ( arr.empty() )
+						continue;
 
-			for (auto& [params_str, name] : arr)
-			{
-				str2 << "\n\t\t" << params_str;
-				for (usize i = AlignDown( params_str.size(), tab_size ); i < max_len; i += 4)
-					str2 << '\t';
-				str2 << "// " << name;
-			}
-			str2 << '\n';
-		}
+					const usize	tab_size	= 4;
+					usize		max_len		= 0;
 
-		CHECK( PlatformUtils::ClipboardPut( str2 ));
-		AE_LOGI( "slider state copied to clipboard" );
+					for (auto& [params_str, name] : arr) {
+						max_len = Max( max_len, params_str.size() );
+					}
+					max_len = AlignUp( max_len, tab_size ) + 1;
+
+					str2 << "\n// pass: " << pass.template Get<1>()->passName;
+
+					for (auto& [params_str, name] : arr)
+					{
+						str2 << "\n\t\t" << params_str;
+						for (usize i = AlignDown( params_str.size(), tab_size ); i < max_len; i += 4)
+							str2 << '\t';
+						str2 << "// " << name;
+					}
+					str2 << '\n';
+				}
+
+				CHECK( PlatformUtils::ClipboardPut( str2 ));
+				AE_LOGI( "slider state copied to clipboard" );
+			});
 	}
 
 /*

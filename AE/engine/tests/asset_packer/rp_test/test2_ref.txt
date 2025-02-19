@@ -1,3 +1,65 @@
+Name:  'MultiView.RPass'
+Attachments {
+  [0] 'Color'
+  [1] 'Stencil'
+}
+Subpasses {
+  [0] 'Main'
+    colorAttachments = {
+      [0] UNorm, 'out_Color'
+    }
+    inputAttachments = {
+      [0] Float, 'in_Stencil'
+    }
+}
+FeatureSets = { 'MinimalFS', 'part.MultiView', 'MinDesktop' }
+name              = --
+colorAttachments  = {
+  [0].format         = MTLPixelFormatRGBA8Unorm
+  [0].loadAction     = MTLLoadActionDontCare
+  [0].storeAction    = MTLStoreActionDontCare
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+depthAttachment = {
+  format         = MTLPixelFormatDepth32Float_Stencil8
+  loadAction     = MTLLoadActionDontCare
+  storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleDepthResolveFilterSample0
+}
+stencilAttachment = {
+  format         = MTLPixelFormatDepth32Float_Stencil8
+  loadAction     = MTLLoadActionDontCare
+  storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleStencilResolveFilterSample0
+}
+=========================================================================
+
+
+name              = 'MultiView.RPass'
+colorAttachments  = {
+  [0].format         = MTLPixelFormatRGBA8Unorm
+  [0].loadAction     = MTLLoadActionDontCare
+  [0].storeAction    = MTLStoreActionStore
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+depthAttachment = {
+  format         = MTLPixelFormatDepth32Float_Stencil8
+  loadAction     = MTLLoadActionLoad
+  storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleDepthResolveFilterSample0
+}
+stencilAttachment = {
+  format         = MTLPixelFormatDepth32Float_Stencil8
+  loadAction     = MTLLoadActionLoad
+  storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleStencilResolveFilterSample0
+}
+=========================================================================
+
 Name:  'Simple'
 Attachments {
   [0] 'Color1'
@@ -163,7 +225,6 @@ Subpasses {
   [0] 'DepthPrepass'
   [1] 'GBuffer'
     colorAttachments = {
-      [0] 
       [1] Float, 'out_Normal'
       [2] UNorm, 'out_Color'
     }

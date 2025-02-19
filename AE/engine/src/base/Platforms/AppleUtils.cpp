@@ -140,6 +140,7 @@ namespace AE::Base
 			case EThreadPriority::_Count :
 			default :								RETURN_ERR( "unknown thread priority" );
 		}
+		switch_end
 
 		::pthread_set_qos_class_self_np( qos, 0 );
 		return true;
@@ -155,7 +156,6 @@ namespace AE::Base
 		return 0;
 		//return ::sched_getcpu();
 	}
-
 
 } // AE::Base
 

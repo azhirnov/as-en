@@ -358,7 +358,6 @@ namespace AE::ResEditor
 			{
 				RPAttachmentPtr		att		= compat_rp->AddAttachment2( out.name );
 				const auto			desc	= out.rt->ToResource()->GetImageDesc();
-				EAttachment			type	= (out.rt->IsDepthOrStencil() ? EAttachment::DepthStencil : EAttachment::Color);
 
 				att->format		= desc.format;
 				att->samples	= desc.samples;
@@ -368,8 +367,28 @@ namespace AE::ResEditor
 					att->AddUsage3( subpass, EAttachment::ReadWrite,
 									RPAttachment::ShaderIO{ out.inName, Default, uint(i) },
 									RPAttachment::ShaderIO{ out.name,   Default, uint(i) });
-				}else
-					att->AddUsage( subpass, type );
+					continue;
+				}
+
+				if ( out.usage == EResourceUsage::FragShadingRate )
+				{
+					auto	dim = out.rt->DynamicDimension();
+					CHECK_THROW( dim );
+					CHECK_THROW( _dynamicDim and _dynamicDim->Get() );
+					CHECK_THROW( _dynamicDim->Get() == dim->BaseDimensionRC() );	// scale must depends on other attachments dimension
+
+					int2	scale {-dim->Scale()};
+					CHECK_THROW( All( scale > Zero ));
+
+					att->AddUsage4( subpass, EAttachment::ShadingRate, packed_uint2(scale) );
+					continue;
+				}
+				
+				EAttachment		type = (out.rt->IsDepthOrStencil() ? EAttachment::DepthStencil : EAttachment::Color);
+				if ( out.usage == EResourceUsage::FragDensityMap )
+					type = EAttachment::FragmentDensity;
+
+				att->AddUsage( subpass, type );
 			}
 		}{
 			RenderPassSpecPtr	rp_spec		= compat_rp->AddSpecialization2( "rp" );
@@ -392,6 +411,11 @@ namespace AE::ResEditor
 					state = (out.rt->IsDepthOrStencil() ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW)
 							| EResourceState::FragmentShader;
 				}
+				switch ( out.usage ) {
+					case EResourceUsage::FragShadingRate :	state = EResourceState::ShadingRateImage;		break;
+					case EResourceUsage::FragDensityMap :	state = EResourceState::FragmentDensityMap;		break;
+				}
+
 				att->AddLayout( subpass, state );
 			}
 		}

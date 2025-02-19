@@ -1591,8 +1591,8 @@ namespace {
 		{
 			StaticAssert( uint(EBufferUsage::All) == 0x3FFF );
 			StaticAssert( uint(EBufferOpt::All) == 0x1F );
-			StaticAssert( uint(EImageUsage::All) == 0xFF );
-			StaticAssert( uint(EImageOpt::All) == 0x3FFFF );
+			StaticAssert( uint(EImageUsage::All) == 0x1FF );
+			StaticAssert( uint(EImageOpt::All) == 0x7FFFF );
 
 			outResFlags.bufferUsage =	EBufferUsage::TransferSrc | EBufferUsage::TransferDst | EBufferUsage::Uniform |
 										EBufferUsage::UniformTexel | EBufferUsage::StorageTexel | EBufferUsage::Storage |
@@ -1647,6 +1647,12 @@ namespace {
 
 			if ( props.fragShadingRateFeats.attachmentFragmentShadingRate )
 				outResFlags.imageUsage |= EImageUsage::ShadingRate;
+			
+			if ( props.fragDensityMapFeats.fragmentDensityMap )
+			{
+				outResFlags.imageUsage   |= EImageUsage::FragmentDensityMap;
+				outResFlags.imageOptions |= EImageOpt::Subsampled;
+			}
 
 			// If filterMinmaxImageComponentMapping is VK_FALSE only the R component of the sampled image value is defined and the other component values are undefined.
 			if ( _extensions.samplerFilterMinmax and not props.samplerFilterMinmaxProps.filterMinmaxImageComponentMapping )
@@ -2371,6 +2377,9 @@ namespace {
 			feats.rayTracingPipelineFeats.rayTracingPipelineShaderGroupHandleCaptureReplayMixed	= VK_FALSE;
 
 			feats.cooperativeMatrixFeats.cooperativeMatrixRobustBufferAccess = VK_FALSE;
+
+			feats.fragDensityMapFeats.fragmentDensityMapNonSubsampledImages	= VK_FALSE;
+			feats.fragDensityMap2Feats.fragmentDensityMapDeferred			= VK_FALSE;
 		}
 
 		if ( not IsEnabledDebugCallback() )
@@ -2635,6 +2644,11 @@ namespace {
 		{
 			remove_stages |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;
 			remove_access |= VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR;
+		}
+		if ( not _properties.fragDensityMapFeats.fragmentDensityMapDynamic )
+		{
+			remove_stages |= VK_PIPELINE_STAGE_2_FRAGMENT_DENSITY_PROCESS_BIT_EXT;
+			remove_access |= VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;
 		}
 
 		for (usize i = 0, cnt = _queueCount; i < cnt; ++i)

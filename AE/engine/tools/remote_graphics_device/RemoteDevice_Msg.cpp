@@ -113,6 +113,7 @@ namespace AE::RemoteGraphics
 						case EFeature::DeserializeFromMemory :		if ( as_feats.accelerationStructure )					res.features.insert( t );	break;
 
 						case EFeature::WriteTimestamp :																		res.features.insert( t );	break;
+						case EFeature::Query :																				res.features.insert( t );	break;
 
 						case EFeature::TimelineSemaphore :			if ( ext.timelineSemaphore )							res.features.insert( t );	break;
 						case EFeature::HostQueryReset :				if ( ext.hostQueryReset )								res.features.insert( t );	break;
@@ -768,14 +769,14 @@ namespace AE::RemoteGraphics
 	void  RmGAppListener::_Cb_ResMngr_IsSupported_BufferViewDesc (const Msg::ResMngr_IsSupported_BufferViewDesc &msg)
 	{
 		Msg::ResMngr_IsSupported_Response	res;
-		res.supported = _resMngr->IsSupported( RmCast(msg.bufferId), msg.desc );
+		res.supported = _resMngr->IsSupported( msg.bufDesc, msg.viewDesc );
 		_Send( res );
 	}
 
 	void  RmGAppListener::_Cb_ResMngr_IsSupported_ImageViewDesc (const Msg::ResMngr_IsSupported_ImageViewDesc &msg)
 	{
 		Msg::ResMngr_IsSupported_Response	res;
-		res.supported = _resMngr->IsSupported( RmCast(msg.imageId), msg.desc );
+		res.supported = _resMngr->IsSupported( msg.imgDesc, msg.viewDesc );
 		_Send( res );
 	}
 
@@ -2104,6 +2105,36 @@ namespace AE::RemoteGraphics::Msg
 			default :							CHECK_THROW_MSG( false, "unsupported context type" );
 		}
 		switch_end
+	}
+
+	void  CmdBuf_Bake::BeginEndQueryCmd::Execute (void* inCtx) __Th___
+	{
+		#ifdef AE_ENABLE_VULKAN
+			auto&			ctx		= *Cast<CmdCtx>(inCtx);
+			auto			q		= ctx.rmdev._UnpackQuery( query );
+			auto&			dev		= ctx.rmdev._GetDevice();
+			VkCommandBuffer	cmdbuf	= Default;
+
+			switch_enum( ctx.type )
+			{
+				case EContextType::Transfer :		cmdbuf = ctx.transfer.GetVkCommandBuffer();		break;
+				case EContextType::Compute :		cmdbuf = ctx.compute.GetVkCommandBuffer();		break;
+				case EContextType::Graphics :		cmdbuf = ctx.graphics.GetVkCommandBuffer();		break;
+				case EContextType::ASBuild :		cmdbuf = ctx.asBuild.GetVkCommandBuffer();		break;
+				case EContextType::RayTracing :		cmdbuf = ctx.rayTracing.GetVkCommandBuffer();	break;
+				case EContextType::RenderPass :		cmdbuf = ctx.draw.GetVkCommandBuffer();			break;
+				case EContextType::VideoDecode :
+				case EContextType::VideoEncode :
+				case EContextType::Unknown :
+				default :							CHECK_THROW_MSG( false, "unsupported context type" );
+			}
+			switch_end
+
+			if ( begin )
+				dev.vkCmdBeginQuery( cmdbuf, q.pool, q.first + index, 0 );
+			else
+				dev.vkCmdEndQuery( cmdbuf, q.pool, q.first + index );
+		#endif
 	}
 
 	//-------------------------------------------------

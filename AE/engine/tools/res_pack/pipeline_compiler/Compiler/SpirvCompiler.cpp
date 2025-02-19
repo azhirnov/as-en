@@ -44,7 +44,7 @@
 #	pragma message("GLSL-Trace library is missing, shader debugging and profiling will be disabled")
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 14 or GLSLANG_VERSION_MINOR != 3
+#if GLSLANG_VERSION_MAJOR != 15 or GLSLANG_VERSION_MINOR != 1
 #	error invalid glslang version
 #endif
 
@@ -719,7 +719,7 @@ namespace AE::PipelineCompiler
 
 		return tools.Validate( spirv.data(), spirv.size(), options );
 	}
-#endif	// ENABLE_OPT
+#endif // ENABLE_OPT
 
 /*
 =================================================
@@ -1158,6 +1158,10 @@ namespace AE::PipelineCompiler
 			case TBasicType::EbtSpirvType :
 			case TBasicType::EbtHitObjectNV :
 			case TBasicType::EbtCoopmat :
+			case TBasicType::EbtFunction :
+			case TBasicType::EbtTensorLayoutNV :
+			case TBasicType::EbtTensorViewNV :
+			case TBasicType::EbtCoopvecNV :
 			default :
 				COMP_RETURN_ERR( "unknown basic type!" );
 		}
@@ -1432,6 +1436,10 @@ namespace AE::PipelineCompiler
 			case TBasicType::EbtSpirvType :
 			case TBasicType::EbtHitObjectNV :
 			case TBasicType::EbtCoopmat :
+			case TBasicType::EbtFunction :
+			case TBasicType::EbtTensorLayoutNV :
+			case TBasicType::EbtTensorViewNV :
+			case TBasicType::EbtCoopvecNV :
 			default :						COMP_RETURN_ERR( "unsupported basic type!" );
 		}
 		switch_end

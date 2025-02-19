@@ -342,13 +342,12 @@ namespace AE::Base
 			return _BitScanForward( OUT &index, uint(x) ) ? index : INVALID_INDEX;
 
 	#elif defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG)
-		constexpr uint	mask = CT_SizeOfInBits<T> - 1;
 
 		if constexpr( sizeof(x) == 8 )
-			return (__builtin_ffsll( ulong(x) ) - 1) & mask;
+			return x == 0 ? CT_SizeOfInBits<T> : __builtin_ffsll( ulong(x) ) - 1;
 		else
 		if constexpr( sizeof(x) <= 4 )
-			return (__builtin_ffs( uint(x) ) - 1) & mask;
+			return x == 0 ? CT_SizeOfInBits<T> : __builtin_ffs( uint(x) ) - 1;
 
 	#else
 		#error add CountRZero implementation

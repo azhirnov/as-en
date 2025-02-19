@@ -132,7 +132,12 @@ namespace AE::ResEditor
 			for (auto& rt : _renderTargets)
 			{
 				const uint2		dim = rt.image->GetViewDesc().Dimension2();
-				CHECK_ERR( All( cur_dim == dim ));
+
+				if ( rt.name == AttachmentName{"ShadingRate"} or rt.name == AttachmentName{"FragmentDensity"} ){
+					CHECK_ERR( All( dim < cur_dim ));
+				}else{
+					CHECK_ERR( All( dim == cur_dim ));
+				}
 			}
 		}
 

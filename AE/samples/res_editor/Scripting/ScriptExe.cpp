@@ -866,6 +866,7 @@ namespace {
 		const String	Anisotropy16Repeat		{"Anisotropy16Repeat"};
 		const String	Anisotropy16MirrorRepeat{"Anisotropy16MirrorRepeat"};
 		const String	Anisotropy16Clamp		{"Anisotropy16Clamp"};
+		const String	NearestClampSubsampled	{"NearestClampSubsampled"};
 	};
 
 /*
@@ -2445,8 +2446,9 @@ namespace {
 		se->AddConstProperty( _sampConsts->Anisotropy16Repeat,			"Sampler_" + _sampConsts->Anisotropy16Repeat );
 		se->AddConstProperty( _sampConsts->Anisotropy16MirrorRepeat,	"Sampler_" + _sampConsts->Anisotropy16MirrorRepeat );
 		se->AddConstProperty( _sampConsts->Anisotropy16Clamp,			"Sampler_" + _sampConsts->Anisotropy16Clamp );
+		se->AddConstProperty( _sampConsts->NearestClampSubsampled,		"Sampler_" + _sampConsts->NearestClampSubsampled );
 
-		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 16 );
+		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 17 );
 	}
 
 /*
@@ -3043,7 +3045,18 @@ namespace {
 			}
 		}
 
-		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 16 );
+		if ( fs.fragmentDensityMap == FeatureSet::EFeature::RequireTrue )
+		{
+			{
+				ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->NearestClampSubsampled}};
+				samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
+				samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
+				samp->SetOptions( ESamplerOpt::Subsampled );
+				samp->SetLodRange( 0.f, 0.f );
+			}
+		}
+
+		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 17 );
 		CHECK_THROW( obj_storage->Build() );
 	}
 
@@ -3066,6 +3079,7 @@ namespace {
 					float4x4	view;
 					float3		pos;
 					float2		clipPlanes;
+					float2		fov;
 					float		zoom;
 					float4		frustum [6];
 				)#");

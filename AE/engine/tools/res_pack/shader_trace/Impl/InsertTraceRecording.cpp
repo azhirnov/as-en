@@ -112,7 +112,7 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 	type.basicType			= TBasicType::EbtBool;
 	type.qualifier.storage	= TStorageQualifier::EvqGlobal;
 
-	TIntermSymbol*			is_enable_recording = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_EnableRecording", TType{type} };
+	TIntermSymbol*			is_enable_recording = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_EnableRecording", dbgInfo.GetShaderType(), TType{type} };
 	dbgInfo.CacheSymbolNode( is_enable_recording );
 	linkerObjs->getSequence().insert( linkerObjs->getSequence().begin(), is_enable_recording );
 
@@ -178,7 +178,7 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 
 	// "bool dbg_IsEnabled"
 	type.qualifier.storage	= TStorageQualifier::EvqGlobal;
-	TIntermSymbol*			is_debug_enabled = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_IsEnabled", TType{type} };
+	TIntermSymbol*			is_debug_enabled = new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_IsEnabled", dbgInfo.GetShaderType(), TType{type} };
 	dbgInfo.CacheSymbolNode( is_debug_enabled );
 	linkerObjs->getSequence().insert( linkerObjs->getSequence().begin(), is_debug_enabled );
 
@@ -195,7 +195,7 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 	type.basicType			= TBasicType::EbtUint;
 	type.qualifier.storage	= TStorageQualifier::EvqGlobal;
 
-	TIntermSymbol*			last_pos		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_LastPosition", TType{type} };
+	TIntermSymbol*			last_pos		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_LastPosition", dbgInfo.GetShaderType(), TType{type} };
 	dbgInfo.CacheSymbolNode( last_pos );
 	linkerObjs->getSequence().insert( linkerObjs->getSequence().begin(), last_pos );
 

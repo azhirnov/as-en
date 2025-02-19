@@ -23,13 +23,13 @@ namespace AE::Graphics
 
 	// variables
 		ImageDim_t			dimension;					// width, height, depth
-		EImageDim			imageDim		= Default;
 		ImageLayer			arrayLayers		= 1_layer;
+		EImageDim			imageDim		= Default;
 		MipmapLevel			mipLevels		= 1_mipmap;
-		EImageOpt			options			= Default;
-		EImageUsage			usage			= Default;
 		EPixelFormat		format			= Default;
 		MultiSamples		samples;					// if > 1 then enabled multisampling
+		EImageOpt			options			= Default;
+		EImageUsage			usage			= Default;
 		EMemoryType			memType			= EMemoryType::DeviceLocal;
 		EQueueMask			queues			= Default;
 		FormatList_t		viewFormats		{ Default, Default, Default, Default };		// 'imageFormatList' extension
@@ -69,6 +69,7 @@ namespace AE::Graphics
 		ND_ static ImageDesc  CreateColorAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)	__NE___;
 		ND_ static ImageDesc  CreateDepthAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)	__NE___;
 		ND_ static ImageDesc  CreateShadingRate (const uint2 &dim)														__NE___;
+		ND_ static ImageDesc  CreateFragmentDensityMap (const uint2 &dim)												__NE___;
 		ND_ static ImageDesc  CreateStaging (const uint2 &dim, EPixelFormat fmt)										__NE___;
 	};
 
@@ -83,7 +84,7 @@ namespace AE::Graphics
 		EImage				viewType		= Default;
 		EPixelFormat		format			= Default;	// optional
 		EImageAspect		aspectMask		= Default;
-		//					1 byte padding
+		EImageViewOpt		options			= Default;
 		EImageUsage			extUsage		= Default;	// 'maintenance2' extension
 		MipmapLevel			baseMipmap;
 		MipmapCount_t		mipmapCount		= UMax;
@@ -116,6 +117,7 @@ namespace AE::Graphics
 
 		ImageViewDesc&  SetType (EImage value)							__NE___	{ viewType	= value;				return *this; }
 		ImageViewDesc&  SetFormat (EPixelFormat value)					__NE___	{ format	= value;				return *this; }
+		ImageViewDesc&  SetOptions (EImageViewOpt value)				__NE___	{ options	= value;				return *this; }
 		ImageViewDesc&  SetBaseMipmap (uint value)						__NE___	{ baseMipmap= MipmapLevel{value};	return *this; }
 		ImageViewDesc&  SetMipLevels (uint base, uint count)			__NE___	{ baseMipmap= MipmapLevel{base};	mipmapCount = CheckCast<MipmapCount_t>(count);  return *this; }
 		ImageViewDesc&  SetBaseLayer (uint value)						__NE___	{ baseLayer	= ImageLayer{value};	return *this; }
@@ -136,7 +138,7 @@ namespace AE::Base
 	template <> struct TMemCopyAvailable< AE::Graphics::ImageViewDesc >		: CT_True {};
 	template <> struct TTriviallySerializable< AE::Graphics::ImageViewDesc >: CT_True {};
 
-	StaticAssert( sizeof(AE::Graphics::ImageDesc) == 28 );
-	StaticAssert( sizeof(AE::Graphics::ImageViewDesc) == 24 );
+	StaticAssert( sizeof(AE::Graphics::ImageDesc) == 24 );
+	StaticAssert( sizeof(AE::Graphics::ImageViewDesc) == 20 );
 
 } // AE::Base

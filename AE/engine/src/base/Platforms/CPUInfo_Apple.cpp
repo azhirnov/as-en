@@ -80,7 +80,7 @@ namespace AE::Base
 						  ReadUInt("hw.optional.AdvSIMD_HPFPCvt") > 0;
 		feats.BF16		= ReadUInt("hw.optional.arm.FEAT_BF16") > 0;
 
-		//feats.CRC32	= ReadUInt("hw.optional.armv8_crc32") > 0;
+		feats.CRC32		= ReadUInt("hw.optional.armv8_crc32") > 0;
 		feats.AES		= (ReadUInt("hw.optional.arm.FEAT_AES") > 0) or (ReadUInt("hw.optional.aes") > 0);
 		feats.SHA2_256	= ReadUInt("hw.optional.arm.FEAT_SHA256") > 0;
 		feats.SHA2_512	= (ReadUInt("hw.optional.arm.FEAT_SHA512") > 0) or (ReadUInt("hw.optional.armv8_2_sha512") > 0);

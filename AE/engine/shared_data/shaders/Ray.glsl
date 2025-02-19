@@ -45,6 +45,7 @@ ND_ float2  RayInverse_PlaneToVR360 (const float3 rayDir, const uint eye);
 ND_ float2  RayInverse_PlaneTo360 (const float3 rayDir);
 ND_ float2  RayInverse_PlaneToCubemap360 (const float3 rayDir);
 ND_ float2  RayInverse_PlaneToCubemapVR360 (const float3 rayDir, const uint eye);
+ND_ float2  RayInverse_SphereToPlane (const float2 invHalfFov, const float3 rayDir);	// returns snorm
 
 ND_ float3	Ray_CalcX (const Ray ray, const float2 pointYZ);
 ND_ float3	Ray_CalcY (const Ray ray, const float2 pointXZ);
@@ -152,7 +153,7 @@ Ray  Ray_From (const float4x4 invViewProj, const float3 origin, const float near
 
 	   * -- eye
 	   
-	used rectilinear/perspective projection.
+	used rectilinear pinhole perspective projection.
 =================================================
 */
 Ray  Ray_FromFlatScreen (const float3 origin, const float distanceToEye, const float2 screenSize, const float nearPlane, const float2 snormCoord)
@@ -384,16 +385,33 @@ float2  RayInverse_PlaneToCubemapVR360 (const float3 c, const uint eye)
 Ray  Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, const float2 uv)
 {
 			fov		*= 0.5;
-	float	theta	= fov.x * -uv.x + float_Pi;
+	float	theta	= fov.x * uv.x;
 	float	phi		= fov.y * uv.y;
 	float	cos_p	= Cos( phi );
 
 	Ray		ray;
 	ray.origin	= origin;
-	ray.dir		= float3( Sin(theta) * cos_p, Sin(phi), -Cos(theta) * cos_p );
+	ray.dir		= float3( Sin(theta) * cos_p, Sin(phi), Cos(theta) * cos_p );
 
 	Ray_SetLength( INOUT ray, nearPlane );  // set 't' and 'pos'
 	return ray;
+}
+
+/*
+=================================================
+	RayInverse_SphereToPlane
+=================================================
+*/
+float2  RayInverse_SphereToPlane (const float2 invHalfFov, const float3 rayDir)
+{
+	float	phi		= ASin( rayDir.y );
+	float	theta	= ATan( rayDir.x, rayDir.z );
+
+	float2	uv;
+	uv.y = phi   * invHalfFov.y;
+	uv.x = theta * invHalfFov.x;
+
+	return Clamp( uv, -1.0, 1.0 );	// snorm
 }
 
 /*

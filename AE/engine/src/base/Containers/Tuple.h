@@ -92,7 +92,8 @@ namespace _hidden_
 		NdCxIA exact_t			Get ()								rvNE___	{ return std::get<I>( RVRef(*this) ); }
 
 
-		NdCxIA usize			Count ()							C_NE___	{ return sizeof... (Types); }
+		NdCxIA static usize		Count ()							__NE___	{ return sizeof... (Types); }
+		NdCxIA static bool		Empty ()							__NE___	{ return sizeof... (Types) == 0; }
 
 		NdCxIA Base_t const&	AsBase ()							CrNE___	{ return static_cast<const Base_t &>(*this); }
 		NdCxIA Base_t &			AsBase ()							r_NE___	{ return static_cast<Base_t &>(*this); }
@@ -315,6 +316,34 @@ namespace _hidden_
 	{
 		return TupleConcat( FwdArg<Tuple1>(tuple1),
 							TupleConcat( FwdArg<Tuple2>(tuple2), FwdArg<Tuples>(tuples)... ));
+	}
+	
+/*
+=================================================
+	TupleAppend
+=================================================
+*/
+	namespace _hidden_
+	{
+		template <typename TupleType, typename ValueType, usize ...Idx>
+		NdCxIA auto  _TupleAppend (TupleType&& tuple, ValueType&& value, IndexSequence<Idx...>) __Th___
+		{
+			return Tuple{ std::get<Idx>( FwdArg<TupleType>( tuple )) ...,
+						  FwdArg<ValueType>( value )};
+		}
+	}
+
+	template <typename TupleType, typename ValueType>
+	NdCxIA auto  TupleAppend (TupleType&& tuple, ValueType&& value) __Th___
+	{
+		StaticAssert( IsTuple<TupleType> );
+		StaticAssert( not IsTuple<ValueType> );
+		using Tuple_t = RemoveCVRef< TupleType >;
+
+		if constexpr( Tuple_t::Empty() )
+			return Tuple{ FwdArg<ValueType>(value) };
+		else
+			return Base::_hidden_::_TupleAppend( FwdArg<TupleType>(tuple), FwdArg<ValueType>(value), typename Tuple_t::Indices_t{} );
 	}
 
 /*

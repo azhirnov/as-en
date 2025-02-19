@@ -51,7 +51,7 @@ namespace AE::Base
 			ND_ static SimdUInt4	SheduleUpd0 (SimdUInt4 a, SimdUInt4 b, SimdUInt4 c)	__NE___	{ return SimdUInt4{ vsha1su0q_u32( a.Ref(), b.Ref(), c.Ref() )}; }
 
 			// SHA1 schedule update 1.
-			ND_ static SimdUInt4	SheduleUpd1 (SimdUInt4 a, SimdUInt4 b, SimdUInt4 c)	__NE___	{ return SimdUInt4{ vsha1su1q_u32( a.Ref(), b.Ref(), c.Ref() )}; }
+			ND_ static SimdUInt4	SheduleUpd1 (SimdUInt4 a, SimdUInt4 b)				__NE___	{ return SimdUInt4{ vsha1su1q_u32( a.Ref(), b.Ref() )}; }
 		};
 
 		struct SHA2	// SHA2-256
@@ -66,7 +66,7 @@ namespace AE::Base
 			ND_ static SimdUInt4	SheduleUpd0 (SimdUInt4 a, SimdUInt4 b)				__NE___	{ return SimdUInt4{ vsha256su0q_u32( a.Ref(), b.Ref() )}; }
 
 			// SHA256 schedule update 1.
-			ND_ static SimdUInt4	SheduleUpd1 (SimdUInt4 a, SimdUInt4 b)				__NE___	{ return SimdUInt4{ vsha256su1q_u32( a.Ref(), b.Ref() )}; }
+			ND_ static SimdUInt4	SheduleUpd1 (SimdUInt4 a, SimdUInt4 b, SimdUInt4 c)	__NE___	{ return SimdUInt4{ vsha256su1q_u32( a.Ref(), b.Ref(), c.Ref() )}; }
 		};
 
 		static constexpr SHA1	sha1		= {};

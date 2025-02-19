@@ -23,7 +23,7 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	NdCx__ exact_t  VAddressOf (T &value) __NE___
+	NdCx__ exact_t  VoidAddressOf (T &value) __NE___
 	{
 		return Cast<void>( std::addressof( value ));
 	}
@@ -242,7 +242,7 @@ namespace _hidden_
 		StaticAssert( IsMemCopyAvailable<T1> );
 		StaticAssert( IsMemCopyAvailable<T2> );
 		StaticAssert( not IsConst<T1> );
-		ASSERT( VAddressOf(dst) != VAddressOf(src) );
+		ASSERT( VoidAddressOf(dst) != VoidAddressOf(src) );
 
 		std::memcpy( OUT std::addressof(dst), std::addressof(src), sizeof(src) );
 	}

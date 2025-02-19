@@ -33,14 +33,14 @@ namespace AE::RemoteGraphics::Msg
 
 	StaticAssert( sizeof(Viewport) == 24 );
 
-	StaticAssert64( sizeof(SwapchainDesc) == 16 );
+	StaticAssert64( sizeof(SwapchainDesc) == 12 );
 	#define Ser_SwapchainDesc( _desc_ )\
 		_desc_.colorFormat, _desc_.colorSpace, _desc_.presentMode, _desc_.minImageCount, _desc_.usePreTransform, _desc_.usage, _desc_.options
 
   #ifdef AE_ENABLE_REMOTE_GRAPHICS
-	StaticAssert64( sizeof(GraphicsCreateInfo) == 176 );
+	StaticAssert64( sizeof(GraphicsCreateInfo) == 168 );
   #else
-	StaticAssert64( sizeof(GraphicsCreateInfo) == 144 );
+	StaticAssert64( sizeof(GraphicsCreateInfo) == 136 );
   #endif
 	#define Ser_GraphicsCreateInfo( _desc_ )\
 		_desc_.maxFrames, \
@@ -122,12 +122,12 @@ namespace AE::RemoteGraphics::Msg
 //-----------------------------------------------------------------------------
 
 
-	StaticAssert64( sizeof(ImageDesc) == 28 );
+	StaticAssert64( sizeof(ImageDesc) == 24 );
 	#define Ser_ImageDesc( _desc_ )\
 		_desc_.dimension, _desc_.arrayLayers, _desc_.mipLevels, _desc_.imageDim, _desc_.options, \
 		_desc_.usage, _desc_.format, _desc_.samples, _desc_.memType, _desc_.queues, _desc_.viewFormats
 
-	StaticAssert64( sizeof(ImageViewDesc) == 24 );
+	StaticAssert64( sizeof(ImageViewDesc) == 20 );
 	#define Ser_ImageViewDesc( _desc_ )\
 		_desc_.viewType, _desc_.format, _desc_.aspectMask, _desc_.extUsage, _desc_.baseMipmap, \
 		_desc_.mipmapCount, _desc_.baseLayer, _desc_.layerCount, _desc_.dimension, _desc_.swizzle
@@ -246,8 +246,8 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( ResMngr_IsSupported_VideoImageDesc,	Ser_VideoImageDesc( desc ))
 	DECL_SERIALIZER( ResMngr_IsSupported_VideoBufferDesc,	Ser_VideoBufferDesc( desc ))
 	DECL_SERIALIZER( ResMngr_IsSupported_VideoSessionDesc,	Ser_VideoSessionDesc( desc ))
-	DECL_SERIALIZER( ResMngr_IsSupported_BufferViewDesc,	bufferId, Ser_BufferViewDesc( desc ))
-	DECL_SERIALIZER( ResMngr_IsSupported_ImageViewDesc,		imageId, Ser_ImageViewDesc( desc ))
+	DECL_SERIALIZER( ResMngr_IsSupported_BufferViewDesc,	Ser_BufferDesc( bufDesc ), Ser_BufferViewDesc( viewDesc ))
+	DECL_SERIALIZER( ResMngr_IsSupported_ImageViewDesc,		Ser_ImageDesc( imgDesc ), Ser_ImageViewDesc( viewDesc ))
 	DECL_SERIALIZER( ResMngr_IsSupported_RTGeometryDesc,	Ser_RTGeometryDesc( desc ))
 	DECL_SERIALIZER( ResMngr_IsSupported_RTGeometryBuild,	Ser_RTGeometryBuild( desc ))
 	DECL_SERIALIZER( ResMngr_IsSupported_RTSceneDesc,		Ser_RTSceneDesc( desc ))
@@ -440,6 +440,7 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( CmdBuf_Bake::PushDebugGroupCmd,		Ser_DebugLabel( dbgLabel ))
 	DECL_EMPTY_SERIALIZER( CmdBuf_Bake::PopDebugGroupCmd	)
 	DECL_SERIALIZER( CmdBuf_Bake::WriteTimestampCmd,		Ser_Query( query ), index, scope )
+	DECL_SERIALIZER( CmdBuf_Bake::BeginEndQueryCmd,			Ser_Query( query ), index, begin )
 
 	// pipeline barriers
 	DECL_SERIALIZER( CmdBuf_Bake::BufferBarrierCmd,					buffer, srcState, dstState )

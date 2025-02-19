@@ -12,6 +12,7 @@ void ASmain ()
 	//	AMD Radeon RX 7900 XTX (RADV GFX1100) driver 23.2.1 on Arch unknown
 	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
+	//	Intel(R) Arc(TM) B580 Graphics driver 0.405.2156 on Windows 11
 	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
 	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
 	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
@@ -116,21 +117,21 @@ void ASmain ()
 	fset.perPipeline_maxUniformBuffersDynamic (8);
 	fset.perPipeline_maxStorageBuffersDynamic (4);
 	fset.perPipeline_maxTotalBuffersDynamic (8);
-	fset.perPipeline_maxInputAttachments (256);
+	fset.perPipeline_maxInputAttachments (7);
 	fset.perPipeline_maxSampledImages (393210);
 	fset.perPipeline_maxSamplers (1024);
 	fset.perPipeline_maxStorageBuffers (393210);
 	fset.perPipeline_maxStorageImages (393210);
 	fset.perPipeline_maxUniformBuffers (384);
-	fset.perPipeline_maxAccelStructures (65535);
+	fset.perPipeline_maxAccelStructures (16);
 	fset.perPipeline_maxTotalResources (1024);
-	fset.perStage_maxInputAttachments (64);
+	fset.perStage_maxInputAttachments (7);
 	fset.perStage_maxSampledImages (65535);
 	fset.perStage_maxSamplers (8192);
 	fset.perStage_maxStorageBuffers (65535);
 	fset.perStage_maxStorageImages (65535);
 	fset.perStage_maxUniformBuffers (64);
-	fset.perStage_maxAccelStructures (65535);
+	fset.perStage_maxAccelStructures (16);
 	fset.perStage_maxTotalResources (1000000);
 	fset.maxDescriptorSets (8);
 	fset.maxTexelOffset (7);

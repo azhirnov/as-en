@@ -713,7 +713,40 @@ namespace AE::PipelineCompiler
 		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GL_EXT_expect_assume.txt
 		_typeMap.emplace( "gl.Assume",				"assumeEXT" );
 		_typeMap.emplace( "gl.Expect",				"expectEXT" );
+		
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/nv/GLSL_NV_cooperative_vector.txt
+		_typeMap.emplace( "gl::CoopVec",					"coopvecNV" );
+		_typeMap.emplace( "gl.CoopVecMatMulAdd",				"coopVecMatMulAddNV" );
+		_typeMap.emplace( "gl.CoopVecMatMul",					"coopVecMatMulNV" );
+		_typeMap.emplace( "gl.CoopVecLoad",						"coopVecLoadNV" );
+		_typeMap.emplace( "gl.CoopVecStore",					"coopVecStoreNV" );
+		_typeMap.emplace( "gl.CoopVecOuterProductAccum",		"coopVecOuterProductAccumulateNV" );
+		_typeMap.emplace( "gl.CoopVecReduceSumAccum",			"coopVecReduceSumAccumulateNV" );
+		_typeMap.emplace( "gl::ComponentType",						"int" );
+		_typeMap.emplace( "gl::ComponentType::Float16",				"gl_ComponentTypeFloat16NV" );
+		_typeMap.emplace( "gl::ComponentType::Float32",				"gl_ComponentTypeFloat32NV" );
+		_typeMap.emplace( "gl::ComponentType::Float64",				"gl_ComponentTypeFloat64NV" );
+		_typeMap.emplace( "gl::ComponentType::SInt8",				"gl_ComponentTypeSignedInt8NV" );
+		_typeMap.emplace( "gl::ComponentType::SInt16",				"gl_ComponentTypeSignedInt16NV" );
+		_typeMap.emplace( "gl::ComponentType::SInt32",				"gl_ComponentTypeSignedInt32NV" );
+		_typeMap.emplace( "gl::ComponentType::SInt64",				"gl_ComponentTypeSignedInt64NV" );
+		_typeMap.emplace( "gl::ComponentType::UInt8",				"gl_ComponentTypeUnsignedInt8NV" );
+		_typeMap.emplace( "gl::ComponentType::UInt16",				"gl_ComponentTypeUnsignedInt16NV" );
+		_typeMap.emplace( "gl::ComponentType::UInt32",				"gl_ComponentTypeUnsignedInt32NV" );
+		_typeMap.emplace( "gl::ComponentType::UInt64",				"gl_ComponentTypeUnsignedInt64NV" );
+		_typeMap.emplace( "gl::ComponentType::SInt8Packed",			"gl_ComponentTypeSignedInt8PackedNV" );
+		_typeMap.emplace( "gl::ComponentType::UInt8Packed",			"gl_ComponentTypeUnsignedInt8PackedNV" );
+		_typeMap.emplace( "gl::ComponentType::FloatE4M3",			"gl_ComponentTypeFloatE4M3NV" );
+		_typeMap.emplace( "gl::ComponentType::FloatE5M2",			"gl_ComponentTypeFloatE5M2NV" );
+		_typeMap.emplace( "gl::CoopVectorMatrixLayout",						"int" );
+		_typeMap.emplace( "gl::CoopVectorMatrixLayout::RowMajor",			"gl_CooperativeVectorMatrixLayoutRowMajorNV" );
+		_typeMap.emplace( "gl::CoopVectorMatrixLayout::ColumnMajor",		"gl_CooperativeVectorMatrixLayoutColumnMajorNV" );
+		_typeMap.emplace( "gl::CoopVectorMatrixLayout::InferencingOptimal",	"gl_CooperativeVectorMatrixLayoutInferencingOptimalNV" );
+		_typeMap.emplace( "gl::CoopVectorMatrixLayout::TrainingOptimal",	"gl_CooperativeVectorMatrixLayoutTrainingOptimalNV" );
 
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_fragment_invocation_density.txt
+		_typeMap.emplace( "gl.FragSize",				"gl_FragSizeEXT" );
+		_typeMap.emplace( "gl.FragInvocationCount",		"gl_FragInvocationCountEXT" );
 	}
 
 /*

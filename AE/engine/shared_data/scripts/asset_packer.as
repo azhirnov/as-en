@@ -1,4 +1,4 @@
-//535568e7
+//9468752a
 #pragma once
 #include <vector>
 #include <string>
@@ -24,64 +24,64 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct UIColorStyle;
-struct MultiSamples;
-struct float2;
-struct float3;
+struct RectangleDrawable;
+struct HSVColor;
+struct RGBA32f;
+struct PaddingLayout;
+struct bool4;
+struct RGBA32i;
+struct bool3;
+struct bool2;
+struct ubyte2;
+struct ubyte3;
+struct ubyte4;
 struct RasterFont;
-struct float4;
-struct ButtonController;
-struct AlignedLayout;
-struct sbyte4;
+struct float3;
+struct float2;
+struct MultiSamples;
+struct UIColorStyle;
 struct sbyte3;
 struct Texture;
-struct ushort4;
-struct short2;
+struct sbyte4;
 struct short3;
-struct PaddingLayout;
-struct RGBA32f;
-struct HSVColor;
-struct bool2;
-struct bool3;
-struct RGBA32i;
-struct bool4;
-struct ubyte4;
-struct ubyte3;
-struct ubyte2;
-struct BaseUIController;
-struct UIWidget;
+struct short2;
+struct ushort4;
+struct AlignedLayout;
+struct float4;
+struct ButtonController;
+struct Model;
+struct BaseUIDrawable;
+struct ImageDrawable;
+struct SharedImage;
+struct short4;
+struct ushort2;
+struct sbyte2;
+struct ushort3;
+struct int4;
+struct int2;
+struct int3;
+struct ImageLayer;
+struct FixedLayout;
+struct DepthStencil;
+struct Material;
+struct Mesh;
+struct MipmapLevel;
 struct UIStyleCollection;
 struct BaseLayout;
+struct UIWidget;
+struct BaseUIController;
+struct RGBA32u;
+struct FillStackLayout;
+struct RectF;
+struct RGBA8u;
+struct ImageAtlas;
 struct uint4;
 struct RectU;
 struct UIImageStyle;
-struct RectI;
-struct uint2;
-struct RectangleDrawable;
-struct uint3;
 struct MetaData;
-struct RectF;
-struct RGBA32u;
-struct FillStackLayout;
-struct ImageAtlas;
-struct RGBA8u;
-struct short4;
-struct sbyte2;
-struct ushort3;
-struct SharedImage;
-struct ushort2;
-struct ImageDrawable;
-struct BaseUIDrawable;
-struct int4;
-struct ImageLayer;
-struct int3;
-struct int2;
-struct Model;
-struct MipmapLevel;
-struct FixedLayout;
-struct Mesh;
-struct Material;
-struct DepthStencil;
+struct uint3;
+struct uint2;
+struct RectI;
 
 enum class EImage : uint8
 {
@@ -338,7 +338,7 @@ enum class EBlendFactor : uint8
 	// S1 - from shader (dual src blend)
 	// cc - constant color
 	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
-	//
+	// 
 
 	// 0
 	Zero,
@@ -407,7 +407,7 @@ enum class EBlendOp : uint8
 	// S, srcColor - from shader
 	// D, dstColor - from render target
 	// result = srcColor * srcBlend [blendOp] dstColor * dstBlend
-	//
+	// 
 
 	// S + D
 	Add,
@@ -434,7 +434,7 @@ enum class ELogicOp : uint8
 	// S - from shader
 	// D - from render target
 	// result = S [logicOp] D
-	//
+	// 
 
 	// disabled
 	None,
@@ -610,6 +610,7 @@ enum class EResourceState : uint32
 	IndexBuffer,
 	VertexBuffer,
 	ShadingRateImage,
+	FragmentDensityMap,
 	CopyRTAS_Read,
 	CopyRTAS_Write,
 	BuildRTAS_Read,
@@ -1058,6 +1059,8 @@ enum class ESamplerOpt : uint8
 	ArgumentBuffer,
 	UnnormalizedCoordinates,
 	NonSeamlessCubeMap,
+	Subsampled,
+	SubsampledCoarseReconstruction,
 };
 uint8  operator | (ESamplerOpt lhs, ESamplerOpt rhs);
 uint8  operator | (uint8 lhs, ESamplerOpt rhs);
@@ -1190,7 +1193,7 @@ uint8  operator | (ERTInstanceOpt lhs, ERTInstanceOpt rhs);
 uint8  operator | (uint8 lhs, ERTInstanceOpt rhs);
 uint8  operator | (ERTInstanceOpt lhs, uint8 rhs);
 
-enum class EImageUsage : uint32
+enum class EImageUsage : uint16
 {
 	TransferSrc,
 	TransferDst,
@@ -1200,13 +1203,14 @@ enum class EImageUsage : uint32
 	DepthStencilAttachment,
 	InputAttachment,
 	ShadingRate,
+	FragmentDensityMap,
 	All,
 	Transfer,
 	RWAttachment,
 };
-uint32  operator | (EImageUsage lhs, EImageUsage rhs);
-uint32  operator | (uint32 lhs, EImageUsage rhs);
-uint32  operator | (EImageUsage lhs, uint32 rhs);
+uint16  operator | (EImageUsage lhs, EImageUsage rhs);
+uint16  operator | (uint16 lhs, EImageUsage rhs);
+uint16  operator | (EImageUsage lhs, uint16 rhs);
 
 enum class EImageOpt : uint32
 {
@@ -1228,6 +1232,7 @@ enum class EImageOpt : uint32
 	FragmentPplnStore,
 	LossyRTCompression,
 	ExtendedUsage,
+	Subsampled,
 	All,
 	SparseResidencyAliased,
 	Blit,
@@ -1291,11 +1296,26 @@ uint8  operator | (EShadingRate lhs, uint8 rhs);
 
 enum class EShadingRateCombinerOp : uint8
 {
+
+	// S - original rate
+	// D - new rate
+
+	// S
 	Keep,
+
+	// D
 	Replace,
+
+	// min( S, D )
 	Min,
+
+	// max( S, D )
 	Max,
+
+	// S + D  -- check 'fragmentShadingRateStrictMultiplyCombiner' feature
 	Sum,
+
+	// S * D  -- check 'fragmentShadingRateStrictMultiplyCombiner' feature
 	Mul,
 };
 uint8  operator | (EShadingRateCombinerOp lhs, EShadingRateCombinerOp rhs);
@@ -2799,33 +2819,9 @@ struct UIWidget
 };
 
 template <>
-struct RC<UIColorStyle> : UIColorStyle
+struct RC<RectangleDrawable> : RectangleDrawable
 {
-	RC (const UIColorStyle &);
-};
-
-template <>
-struct RC<RasterFont> : RasterFont
-{
-	RC (const RasterFont &);
-};
-
-template <>
-struct RC<ButtonController> : ButtonController
-{
-	RC (const ButtonController &);
-};
-
-template <>
-struct RC<AlignedLayout> : AlignedLayout
-{
-	RC (const AlignedLayout &);
-};
-
-template <>
-struct RC<Texture> : Texture
-{
-	RC (const Texture &);
+	RC (const RectangleDrawable &);
 };
 
 template <>
@@ -2835,15 +2831,75 @@ struct RC<PaddingLayout> : PaddingLayout
 };
 
 template <>
-struct RC<BaseUIController> : BaseUIController
+struct RC<RasterFont> : RasterFont
 {
-	RC (const BaseUIController &);
+	RC (const RasterFont &);
 };
 
 template <>
-struct RC<UIWidget> : UIWidget
+struct RC<UIColorStyle> : UIColorStyle
 {
-	RC (const UIWidget &);
+	RC (const UIColorStyle &);
+};
+
+template <>
+struct RC<Texture> : Texture
+{
+	RC (const Texture &);
+};
+
+template <>
+struct RC<AlignedLayout> : AlignedLayout
+{
+	RC (const AlignedLayout &);
+};
+
+template <>
+struct RC<ButtonController> : ButtonController
+{
+	RC (const ButtonController &);
+};
+
+template <>
+struct RC<Model> : Model
+{
+	RC (const Model &);
+};
+
+template <>
+struct RC<BaseUIDrawable> : BaseUIDrawable
+{
+	RC (const BaseUIDrawable &);
+};
+
+template <>
+struct RC<ImageDrawable> : ImageDrawable
+{
+	RC (const ImageDrawable &);
+};
+
+template <>
+struct RC<SharedImage> : SharedImage
+{
+	RC (const SharedImage &);
+};
+
+template <>
+struct RC<FixedLayout> : FixedLayout
+{
+	RC (const FixedLayout &);
+};
+
+template <>
+struct RC<Material> : Material
+{
+	RC (const Material &);
+};
+
+template <>
+struct RC<Mesh> : Mesh
+{
+	RC (const Mesh &);
 };
 
 template <>
@@ -2859,21 +2915,15 @@ struct RC<BaseLayout> : BaseLayout
 };
 
 template <>
-struct RC<UIImageStyle> : UIImageStyle
+struct RC<UIWidget> : UIWidget
 {
-	RC (const UIImageStyle &);
+	RC (const UIWidget &);
 };
 
 template <>
-struct RC<RectangleDrawable> : RectangleDrawable
+struct RC<BaseUIController> : BaseUIController
 {
-	RC (const RectangleDrawable &);
-};
-
-template <>
-struct RC<MetaData> : MetaData
-{
-	RC (const MetaData &);
+	RC (const BaseUIController &);
 };
 
 template <>
@@ -2889,44 +2939,14 @@ struct RC<ImageAtlas> : ImageAtlas
 };
 
 template <>
-struct RC<SharedImage> : SharedImage
+struct RC<UIImageStyle> : UIImageStyle
 {
-	RC (const SharedImage &);
+	RC (const UIImageStyle &);
 };
 
 template <>
-struct RC<ImageDrawable> : ImageDrawable
+struct RC<MetaData> : MetaData
 {
-	RC (const ImageDrawable &);
-};
-
-template <>
-struct RC<BaseUIDrawable> : BaseUIDrawable
-{
-	RC (const BaseUIDrawable &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-	RC (const Model &);
-};
-
-template <>
-struct RC<FixedLayout> : FixedLayout
-{
-	RC (const FixedLayout &);
-};
-
-template <>
-struct RC<Mesh> : Mesh
-{
-	RC (const Mesh &);
-};
-
-template <>
-struct RC<Material> : Material
-{
-	RC (const Material &);
+	RC (const MetaData &);
 };
 

@@ -246,6 +246,14 @@ namespace
 			// use vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR to get supported props
 		}
 
+		if ( _extensions.cooperativeVectorNV )
+		{
+			outFeatureSet.cooperativeVector			= _properties.cooperativeVectorNVFeats.cooperativeVector ? True : False;
+			outFeatureSet.cooperativeVectorTraining = _properties.cooperativeVectorNVFeats.cooperativeVectorTraining ? True : False;
+
+			// use vkGetPhysicalDeviceCooperativeVectorPropertiesNV to get supported props
+		}
+
 		if ( _extensions.bufferDeviceAddress )
 			SET_FEAT2( bufferDeviceAddress, _properties.bufferDeviceAddressFeats );
 
@@ -357,6 +365,20 @@ namespace
 			outFeatureSet.fragmentShadingRateTexelSize.maxX		= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.width }.GetPOT();
 			outFeatureSet.fragmentShadingRateTexelSize.maxY		= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.height}.GetPOT();
 			outFeatureSet.fragmentShadingRateTexelSize.aspect	= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio}.GetPOT();
+		}
+		
+		if ( _extensions.fragDensityMap )
+		{
+			SET_FEAT2( fragmentDensityMap,						_properties.fragDensityMapFeats );
+			SET_FEAT2( fragmentDensityMapDynamic,				_properties.fragDensityMapFeats );
+			SET_FEAT2( fragmentDensityMapNonSubsampledImages,	_properties.fragDensityMapFeats );
+			SET_FEAT2( fragmentDensityInvocations,				_properties.fragDensityMapProps );
+		}
+		if ( _extensions.fragDensityMap2 )
+		{
+			SET_FEAT2( subsampledLoads,						_properties.fragDensityMap2Props );
+			outFeatureSet.maxSubsampledArrayLayers			= POTValue{ _properties.fragDensityMap2Props.maxSubsampledArrayLayers };
+			outFeatureSet.perPipeline_maxSubsampledSamplers	= CheckCast<ubyte>( _properties.fragDensityMap2Props.maxDescriptorSetSubsampledSamplers );
 		}
 
 		if ( _extensions.rayQuery and _extensions.accelerationStructure )
@@ -983,6 +1005,18 @@ namespace
 		_properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize				= BitCast<VkExtent2D>(inFS.fragmentShadingRateTexelSize.Min());
 		_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize				= BitCast<VkExtent2D>(inFS.fragmentShadingRateTexelSize.Max());
 		_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio	= inFS.fragmentShadingRateTexelSize.MaxAspect();
+		
+		_extensions.fragDensityMap = (inFS.fragmentDensityMap == True);
+		SET_FEAT2( fragmentDensityMap,						_properties.fragDensityMapFeats );
+		SET_FEAT2( fragmentDensityMapDynamic,				_properties.fragDensityMapFeats );
+		SET_FEAT2( fragmentDensityMapNonSubsampledImages,	_properties.fragDensityMapFeats );
+		
+		_extensions.fragDensityMap2 =	(inFS.fragmentDensityMap	== True)		and
+										((inFS.subsampledLoads		== True)	or
+										 (inFS.maxSubsampledArrayLayers > 0)	or
+										 (inFS.perPipeline_maxSubsampledSamplers > 0));
+		if ( _extensions.fragDensityMap2 )
+			_properties.fragDensityMap2Feats.fragmentDensityMapDeferred = false;
 
 		_extensions.rayQuery = (inFS.rayQuery == True);
 		SET_FEAT2( rayQuery,	_properties.rayQueryFeats );
