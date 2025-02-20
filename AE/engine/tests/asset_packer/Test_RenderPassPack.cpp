@@ -14,7 +14,7 @@ namespace
 		const PathParams	rpass_dir[]		= { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::RecursiveFolder},
 												{isVk ? TXT("config_vk.as") : TXT("config_mac.as"), 0},
 											    {TXT("rpass.as"), 2} };
-		const Path			output_folder	= TXT("_output");
+		const Path			output_folder	{"_output"};
 		const Path			ref_dump_fname	= FileSystem::ToAbsolute( refName );
 
 		FileSystem::DeleteDirectory( output_folder );

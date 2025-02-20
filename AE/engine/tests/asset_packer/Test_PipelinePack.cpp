@@ -23,8 +23,8 @@ namespace
 												    {TXT("layouts"), 4, EPathParamsFlags::Folder} };
 		const CharType *	shader_folder[]		= { TXT("shaders_glsl"), TXT("shaders_msl") };
 		const CharType *	include_dir[]		= { TXT("shaders_glsl/include"), TXT("shaders_msl/include") };
-		const Path			output_folder		= TXT("_output");
-		const Path			output_script		= TXT( AE_SHARED_DATA "/scripts/pipeline_compiler.as" );
+		const Path			output_folder		{"_output"};
+		const Path			output_script		{ AE_SHARED_DATA "/scripts/pipeline_compiler.as" };
 		const Path			ref_dump_fname		= FileSystem::ToAbsolute( refName );
 
 		FileSystem::DeleteDirectory( output_folder );

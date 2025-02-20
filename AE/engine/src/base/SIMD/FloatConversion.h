@@ -71,7 +71,7 @@ private:
 		UIntV	v0		= m | e.Max( 0 ).template BitCast<UIntV>().template LShift_Logic< HMan >();	// default
 		UIntV	v1		= m.Or( HNanE << HMan );													// nan/inf
 
-		UIntV	c0		= src_e == UIntV{HNanE};
+		UIntV	c0		= src_e == UIntV{FNanE};
 		UIntV	c1		= src.And( (1u<<FSign)-1 ).IsZero();
 
 		UIntV	s0		= Select( c0, v1, v0 );

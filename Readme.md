@@ -1,13 +1,15 @@
-[![](https://github.com/azhirnov/as-en/actions/workflows/windows.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/windows.yml)
-[![](https://github.com/azhirnov/as-en/actions/workflows/linux.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/linux.yml)
-[![](https://github.com/azhirnov/as-en/actions/workflows/android.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/android.yml)
-[![](https://github.com/azhirnov/as-en/actions/workflows/macos.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/macos.yml)
+| OS | build & test |
+|---|---|
+| Windows | [![](https://github.com/azhirnov/as-en/actions/workflows/windows-msvc.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/windows-msvc.yml) [![](https://github.com/azhirnov/as-en/actions/workflows/windows-clang.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/windows-clang.yml) |
+| Linux   | [![](https://github.com/azhirnov/as-en/actions/workflows/linux-clang.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/linux-clang.yml) [![](https://github.com/azhirnov/as-en/actions/workflows/linux-gcc.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/linux-gcc.yml) [![](https://github.com/azhirnov/as-en/actions/workflows/sse.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/sse.yml) |
+| Android | [![](https://github.com/azhirnov/as-en/actions/workflows/android.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/android.yml) |
+| MacOS   | [![](https://github.com/azhirnov/as-en/actions/workflows/macos.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/macos.yml) |
 
 ## Async Game Engine
 
 __AsEn__ - is a totally asynchronous engine for desktop and mobile.
 
-Language: minimal C++ 17, preferred C++ 20<br/>
+Language: minimal C++ 17, preferred C++ 20/23<br/>
 Platforms: Windows, Android, Linux, MacOS, Emscripten (without graphics)<br/>
 GraphicsAPI: Vulkan, Metal<br/>
 Shaders: GLSL, MSL<br/>
@@ -70,7 +72,7 @@ Notes:
 
 __AsEn__ - полностью асинхронный движок.
 
-Язык: минимально C++ 17, рекомендуется C++ 20<br/>
+Язык: минимально C++ 17, рекомендуется C++ 20/23<br/>
 Платформы: Windows, Android, Linux, MacOS, Emscripten (без графики)<br/>
 Графика: Vulkan, Metal<br/>
 Шейдеры: GLSL, MSL<br/>

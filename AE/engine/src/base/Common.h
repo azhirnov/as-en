@@ -36,9 +36,12 @@ namespace AE
 		using CharType			= CharAnsi;
 	#	define TXT( _text_ )	("" _text_)
 	# endif
-	#else
+	#elif defined(__cpp_char8_t)
 		using CharType			= CharUtf8;
 	#	define TXT( _text_ )	(u8"" _text_)
+	#else
+		using CharType			= CharUtf8;
+	#	define TXT( _text_ )	static_cast<const CharUtf8 *>(static_cast<const void *>( u8"" _text_ ))
 	#endif
 
 	namespace Base {}

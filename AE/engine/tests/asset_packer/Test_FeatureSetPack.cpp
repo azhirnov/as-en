@@ -13,7 +13,7 @@ namespace
 	{
 		const PathParams	features[]	= { {TXT("config_vk.as"), 0},
 											{TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::RecursiveFolder} };
-		Path				output		= TXT("_output");
+		Path				output		{"_output"};
 
 		FileSystem::DeleteDirectory( output );
 		TEST( FileSystem::CreateDirectories( output ));

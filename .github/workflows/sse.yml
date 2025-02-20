@@ -1,0 +1,135 @@
+name: Linux-SSE
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build-clang-16:
+    strategy:
+      matrix:
+        config: [Debug]
+        
+    runs-on: ubuntu-24.04
+    name: Linux x64, Clang 16, SSE/AVX, ${{matrix.config}}
+    
+    steps:
+    - uses: actions/checkout@v4
+       
+    - name: Configure dependencies
+      run: |
+        sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+          libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
+          libxkbcommon-dev libc++-dev libc++abi-dev
+ 
+    - name: Create Build Environment
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir _build
+        cd AE-Bin
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/JTtMdRLBLfGZwg"
+        unzip external.zip
+    
+    - name: AVX2
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
+        rm -rf "_build"
+        cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_SIMD_AVX=2 -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+        cmake --build "_build" --config ${{matrix.config}} -j 2 --target Tests.Base
+      
+    - name: AVX1
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
+        rm -rf "_build"
+        cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_SIMD_AVX=1 -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+        cmake --build "_build" --config ${{matrix.config}} -j 2 --target Tests.Base
+      
+    - name: SSE 4.2
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
+        rm -rf "_build"
+        cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_SIMD_SSE=42 -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+        cmake --build "_build" --config ${{matrix.config}} -j 2 --target Tests.Base
+      
+    - name: SSE 4.1
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
+        rm -rf "_build"
+        cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_SIMD_SSE=41 -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+        cmake --build "_build" --config ${{matrix.config}} -j 2 --target Tests.Base
+      
+    - name: SSSE 3
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
+        rm -rf "_build"
+        cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_SIMD_SSE=31 -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+        cmake --build "_build" --config ${{matrix.config}} -j 2 --target Tests.Base
+        
+    - name: SSE 3
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
+        rm -rf "_build"
+        cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_SIMD_SSE=30 -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+        cmake --build "_build" --config ${{matrix.config}} -j 2 --target Tests.Base
+        
+    - name: SSE 2.0
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
+        rm -rf "_build"
+        cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_SIMD_SSE=20 -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+        cmake --build "_build" --config ${{matrix.config}} -j 2 --target Tests.Base
+        
+    - name: SSE 2.0 & SHA1
+      env:
+        CC: clang-16
+        CXX: clang++-16
+        CPP: clang-cpp-16
+        LD: ld.lld-16
+      shell: bash
+      working-directory: ${{github.workspace}}
+      run: |
+        rm -rf "_build"
+        cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.config}} -DAE_SIMD_SSE=20 -DAE_SIMD_SHA=1 -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+        cmake --build "_build" --config ${{matrix.config}} -j 2 --target Tests.Base
+        

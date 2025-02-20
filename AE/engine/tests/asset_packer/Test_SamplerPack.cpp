@@ -14,7 +14,7 @@ namespace
 		const PathParams	sampler_files[]	= { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::RecursiveFolder},
 												{TXT("config_vk.as"), 0},
 											    {TXT("samplers.as"), 2} };
-		const Path			output_folder	= TXT("_output");
+		const Path			output_folder	{"_output"};
 
 		FileSystem::DeleteDirectory( output_folder );
 		TEST( FileSystem::CreateDirectories( output_folder ));

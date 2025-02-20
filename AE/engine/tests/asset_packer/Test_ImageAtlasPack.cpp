@@ -17,9 +17,9 @@ namespace
 	static void  ImageAtlasPack_Test1 ()
 	{
 		const PathParams	files[]			= { {TXT("atlas1.as")} };
-		const Path			output			= TXT("atlas1.bin");
-		const Path			temp_file		= TXT("temp.bin");
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
+		const Path			output			{"atlas1.bin"};
+		const Path			temp_file		{"temp.bin"};
+		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
@@ -55,9 +55,9 @@ namespace
 	static void  ImageAtlasPack_Test2 ()
 	{
 		const PathParams	files[]			= { {TXT("atlas2.as")} };
-		const Path			output			= TXT("atlas2.bin");
-		const Path			temp_file		= TXT("temp.bin");
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
+		const Path			output			{"atlas2.bin"};
+		const Path			temp_file		{"temp.bin"};
+		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );

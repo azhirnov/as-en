@@ -1390,9 +1390,15 @@ namespace
 			Dst			ref;
 
 			if constexpr( IsSame< Dst, half > and IsInteger< Src >)
-				ref = Dst(float(src));
-			else
+			{
+			  #if AE_SIMD_F16C
+				ref = Dst( float(src) );
+			  #else
+				ref = Dst{}.SetFast( float(src) );
+			  #endif
+			}else{
 				ref = Dst(src);
+			}
 
 			const auto	dst = dst_arr[i];
 
@@ -2299,6 +2305,20 @@ namespace
 			CHECK( BitCast<uint>(f[3]) == BitCast<uint>(ref[3]) );
 		}
 
+		// nan, inf
+		{
+			SimdFloat4		a		{ Float32Bits::NaN().AsFloat(), Float32Bits::Inf().AsFloat(),
+									  Float32Bits::NegInf().AsFloat(), Float32Bits::SmallestSubnormal().AsFloat() };
+			SimdUShort8		b		= SimdFloatConversion::FloatToHalf( a );
+			const auto		c		= b.ToArray();
+			const ushort	ref[]	= { half{}.SetFast(a.get<0>()).GetU(), half{}.SetFast(a.get<1>()).GetU(),
+										half{}.SetFast(a.get<2>()).GetU(), half{}.SetFast(a.get<3>()).GetU() };
+			
+			CHECK_Eq( c[0], ref[0] );
+			CHECK_Eq( c[1], ref[1] );
+			CHECK_Eq( c[2], ref[2] );
+			CHECK_Eq( c[3], ref[3] );
+		}
 	#endif
 	}
 }

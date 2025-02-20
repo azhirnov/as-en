@@ -12,8 +12,8 @@ namespace
 	static void  ImageCompression_Test1 ()
 	{
 		const PathParams	files[]			= { {TXT("img_comp.as")} };
-		const Path			output			= TXT("img_comp.bin");
-		const Path			temp_file		= TXT("temp.bin");
+		const Path			output			{"img_comp.bin"};
+		const Path			temp_file		{"temp.bin"};
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );

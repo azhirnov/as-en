@@ -246,12 +246,14 @@ namespace AE::Base
 
 			MaybeUnused int  cnt = RefCounterUtils::IncRef( _value );
 			ASSERT_Eq( cnt, 0 );
+			Unused( cnt );
 		}
 
 		~StaticRC ()						__NE___
 		{
 			MaybeUnused int  cnt = RefCounterUtils::DecRef( _value );
 			ASSERT_Eq( cnt, 1 );
+			Unused( cnt );
 		}
 
 		ND_ T *			operator -> ()		__NE___	{ return &_value; }

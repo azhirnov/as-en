@@ -20,9 +20,9 @@ namespace
 	static void  InputActions_Test1 ()
 	{
 		const CharType*		files[]			= { TXT("glfw.as"), TXT("android.as"), TXT("winapi.as") };
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/input_actions.as" );
+		const Path			output_script	{ AE_SHARED_DATA "/scripts/input_actions.as" };
 		const Path			ref_dump_fname	= FileSystem::ToAbsolute( "input_actions_ref.txt" );
-		const Path			output_folder	= TXT("_output");
+		const Path			output_folder	{"_output"};
 		const Path			output			= FileSystem::ToAbsolute( output_folder / "input_actions.bin" );
 		const Path			output_cpp		= FileSystem::ToAbsolute( output_folder / "../names.h" );
 

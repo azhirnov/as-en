@@ -17,9 +17,9 @@ namespace
 	static void  RasterFontPack_Test1 ()
 	{
 		const PathParams	files[]			= { {TXT("font1.as")} };
-		const Path			output			= TXT("font1.bin");
-		const Path			temp_file		= TXT("temp.bin");
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
+		const Path			output			{"font1.bin"};
+		const Path			temp_file		{"temp.bin"};
+		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
@@ -54,9 +54,9 @@ namespace
 	static void  RasterFontPack_Test2 ()
 	{
 		const PathParams	files[]			= { {TXT("font2.as")} };
-		const Path			output			= TXT("font2.bin");
-		const Path			temp_file		= TXT("temp.bin");
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
+		const Path			output			{"font2.bin"};
+		const Path			temp_file		{"temp.bin"};
+		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
@@ -91,9 +91,9 @@ namespace
 	static void  RasterFontPack_Test3 ()
 	{
 		const PathParams	files[]			= { {TXT("font3.as")} };
-		const Path			output			= TXT("font3.bin");
-		const Path			temp_file		= TXT("temp.bin");
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
+		const Path			output			{"font3.bin"};
+		const Path			temp_file		{"temp.bin"};
+		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
@@ -128,9 +128,9 @@ namespace
 	static void  RasterFontPack_Test4 ()
 	{
 		const PathParams	files[]			= { {TXT("font4.as")} };
-		const Path			output			= TXT("font4.bin");
-		const Path			temp_file		= TXT("temp.bin");
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
+		const Path			output			{"font4.bin"};
+		const Path			temp_file		{"temp.bin"};
+		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );

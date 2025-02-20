@@ -81,9 +81,9 @@ namespace
 	static void  UIPack_Test1 ()
 	{
 		const PathParams	files[]			= { {TXT("ui_atlas_font.as")}, {TXT("ui_style.as")} };
-		const Path			output			= TXT("ui_style.bin");
-		const Path			temp_file		= TXT("temp.bin");
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
+		const Path			output			{"ui_style.bin"};
+		const Path			temp_file		{"temp.bin"};
+		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );
@@ -112,9 +112,9 @@ namespace
 	static void  UIPack_Test2 ()
 	{
 		const PathParams	files[]			= { {TXT("ui_atlas_font.as")}, {TXT("ui_style.as")}, {TXT("ui_widgets.as")} };
-		const Path			output			= TXT("ui_widgets.bin");
-		const Path			temp_file		= TXT("temp.bin");
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
+		const Path			output			{"ui_widgets.bin"};
+		const Path			temp_file		{"temp.bin"};
+		const Path			output_script	{ AE_SHARED_DATA "/scripts/asset_packer.as" };
 
 		FileSystem::DeleteFile( output );
 		FileSystem::DeleteFile( temp_file );

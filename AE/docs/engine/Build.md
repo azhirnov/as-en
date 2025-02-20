@@ -67,7 +67,7 @@ Download prebuild binaries which is used in CI and extract it to the `AE-Bin/ext
 [Linux x64 Clang-16](https://disk.yandex.ru/d/JTtMdRLBLfGZwg)<br/>
 [MacOS arm64](https://disk.yandex.ru/d/pxXmzRwiai_nBQ)<br/>
 [Windows x64 MSVC](https://disk.yandex.ru/d/NCadPOI83qQRtQ)<br/>
-[Windows x64 Clang](https://disk.yandex.ru/d/fi7RLlSMIh5TZw)<br/>
+[Windows x64 Clang](https://disk.yandex.ru/d/bK8OfuHJ0VVxHg)<br/>
 Then [Build engine and samples](#Build-engine-and-samples)
 
 
