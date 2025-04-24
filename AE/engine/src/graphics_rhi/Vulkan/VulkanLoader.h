@@ -101,6 +101,7 @@ namespace AE::Graphics
 	{
 		ND_ static bool  Initialize (NtStringView libName = {})															__NE___;
 			static void  Unload ()																						__NE___;
+		ND_ static bool  IsLoaded ()																					__NE___;
 
 		ND_ static bool  LoadInstance (VkInstance instance)																__NE___;
 			static void  ResetInstance ()																				__NE___;

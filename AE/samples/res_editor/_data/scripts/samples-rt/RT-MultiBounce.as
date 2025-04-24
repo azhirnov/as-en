@@ -189,7 +189,7 @@ layout(std430, buffer_reference) buffer readonly IndicesRef		{ uint		indices	[];
 
 	void Main ()
 	{
-		Ray		ray		= Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
+		Ray		ray		= Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 		HWRay	hwray	= HWRay_Create( ray, un_PerPass.camera.clipPlanes.y, PRIMARY_RAY_INDEX );
 
 		CastPrimaryRay( hwray, 0 );

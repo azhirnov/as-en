@@ -17,7 +17,7 @@ if (NOT (DEFINED ENGINE_LIBS_PATH))
 endif()
 
 
-set( UI_DIR "${MAIN_SOURCE_DIR}/engine/src/graphics_hl/UI" )
+set( UI_DIR "${MAIN_SOURCE_DIR}/engine/src/graphics/UI" )
 set( UI_HPP_SRC
 	"${UI_DIR}/Layout.h"
 	"${UI_DIR}/Drawable.h"

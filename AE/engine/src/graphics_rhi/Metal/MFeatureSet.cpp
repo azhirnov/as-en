@@ -534,7 +534,7 @@ namespace
 			outFeatureSet.shaderDemoteToHelperInvocation				= True;
 			outFeatureSet.shaderTerminateInvocation						= False;
 			outFeatureSet.shaderZeroInitializeWorkgroupMemory			= False;
-			outFeatureSet.shaderIntegerDotProduct						= True;
+			//outFeatureSet.shaderIntegerDotProduct						= True;
 
 			// fragment shader interlock
 			outFeatureSet.fragmentShaderSampleInterlock			= features.rasterOrderGroups ? True : False;

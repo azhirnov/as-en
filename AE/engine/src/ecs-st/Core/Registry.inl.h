@@ -929,9 +929,9 @@ DEBUG_ONLY(
 				{
 					for (usize i = 0, cnt = chunk.template Get<0>(); i < cnt; ++i)
 					{
-						CheckNothrow( IsNoExcept( fn( _reg_detail_::GetStorageElement<Args>::template Get( chunk, i )... )));
+						CheckNothrow( IsNoExcept( fn( _reg_detail_::GetStorageElement<Args>::Get( chunk, i )... )));
 
-						fn( _reg_detail_::GetStorageElement<Args>::template Get( chunk, i )... );
+						fn( _reg_detail_::GetStorageElement<Args>::Get( chunk, i )... );
 					}
 				}
 			});

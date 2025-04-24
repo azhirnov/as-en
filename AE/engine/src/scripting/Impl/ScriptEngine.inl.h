@@ -27,6 +27,7 @@ namespace AE::Scripting
 	AddFunction
 =================================================
 */
+#ifndef AS_MAX_PORTABILITY
 	template <typename T>
 	void  ScriptEngine::AddFunction (T func, StringView name) __Th___
 	{
@@ -65,6 +66,7 @@ namespace AE::Scripting
 		}
 	}
 
+#endif
 /*
 =================================================
 	AddGenericFn
@@ -84,7 +86,8 @@ namespace AE::Scripting
 		String	signature;
 		GlobalFunction<Fn>::GetDescriptor( INOUT signature, name );
 
-		AS_CHECK_THROW( _engine->RegisterGlobalFunction( signature.c_str(), asFUNCTION(reinterpret_cast<asGENFUNC_t>(fn)), asCALL_GENERIC ));
+		AS_CHECK_THROW( _engine->RegisterGlobalFunction( signature.c_str(),
+									asFUNCTION( FnUnsafeCast< asGENFUNC_t >( fn )), asCALL_GENERIC ));
 
 		if_unlikely( IsUsingCppHeader() )
 		{

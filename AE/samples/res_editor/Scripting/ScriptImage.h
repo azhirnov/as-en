@@ -28,6 +28,7 @@ namespace AE::ResEditor
 		ImageViewDesc			_viewDesc;
 		const bool				_descDefined	= false;
 
+		Image::EImageFlags		_flags			= Default;
 		EResourceUsage			_resUsage		= Default;
 		EImageType				_imageType		= Default;
 		LoadOps_t				_loadOps;
@@ -78,6 +79,8 @@ namespace AE::ResEditor
 		ND_ ImageViewDesc		ViewDescription ()									C_NE___	{ return _viewDesc; }
 		ND_ EImageType			ImageType ()										C_NE___	{ return _imageType; }
 		ND_ EPixelFormat		PixelFormat ()										C_NE___	{ return _viewDesc.format == Default ? _desc.format : _viewDesc.format; }
+
+		ND_ StringView			GetName ()											C_NE___	{ return _dbgName; }
 
 		ND_ bool				IsColor ()											C_NE___	{ return not IsDepthOrStencil(); }
 		ND_ bool				HasDepth ()											C_NE___;

@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-		 VERSION 25.1.277	# year, release per year, version
+		 VERSION 25.2.280	# year, release per year, version
 		 LANGUAGES C CXX
 		 DESCRIPTION "async game engine"
 		)
@@ -30,7 +30,7 @@ message( STATUS "===============================================================
 message( STATUS "project '${PROJECT_NAME}' generation started" )
 
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
-message( STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER_VERSION})" )
+message( STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER_VERSION}), path '${CMAKE_CXX_COMPILER}'" )
 message( STATUS "host system: ${CMAKE_HOST_SYSTEM_NAME} (${CMAKE_HOST_SYSTEM_VERSION})" )
 message( STATUS "target system: ${CMAKE_SYSTEM_NAME} (${CMAKE_SYSTEM_VERSION})" )
 message( STATUS "host processor: ${CMAKE_HOST_SYSTEM_PROCESSOR}" )

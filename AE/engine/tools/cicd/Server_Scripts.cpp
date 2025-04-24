@@ -548,6 +548,8 @@ namespace AE::CICD
 											binder.AddValue( "Arm64",		ECPUArch::ARM_64 );
 				case ECPUArch::RISCV :		binder.AddValue( "RISCV",		ECPUArch::RISCV );
 				case ECPUArch::RISCV_64 :	binder.AddValue( "RISCV_64",	ECPUArch::RISCV_64 );
+				case ECPUArch::Loong64 :	binder.AddValue( "Loong64",		ECPUArch::Loong64 );
+				case ECPUArch::E2K :		binder.AddValue( "E2K",			ECPUArch::E2K );
 				default :					break;
 			}
 			switch_end
@@ -607,68 +609,68 @@ namespace AE::CICD
 			switch_end
 		}
 
-		_engine->AddFunction( &_Namespace,			"Server_SetFolder",		{} );
-		_engine->AddFunction( &_StartBuild1,		"StartBuild",			{"os", "arch"} );
-		_engine->AddFunction( &_StartBuild2,		"StartBuild",			{"os", "arch", "name"} );
-		_engine->AddFunction( &_StartTest1,			"StartTest",			{"os", "arch"} );
-		_engine->AddFunction( &_StartTest2,			"StartTest",			{"os", "arch", "name"} );
-		_engine->AddFunction( &_StartTests1,		"StartTests",			{"os", "arch"} );
-		_engine->AddFunction( &_StartTests2,		"StartTests",			{"os", "arch", "name"} );
-		_engine->AddFunction( &_SessionBarrier,		"SessionBarrier",		{} );
+		AS_GLOBAL_FN( _engine, _Namespace,			"Server_SetFolder",		{} );
+		AS_GLOBAL_FN( _engine, _StartBuild1,		"StartBuild",			{"os", "arch"} );
+		AS_GLOBAL_FN( _engine, _StartBuild2,		"StartBuild",			{"os", "arch", "name"} );
+		AS_GLOBAL_FN( _engine, _StartTest1,			"StartTest",			{"os", "arch"} );
+		AS_GLOBAL_FN( _engine, _StartTest2,			"StartTest",			{"os", "arch", "name"} );
+		AS_GLOBAL_FN( _engine, _StartTests1,		"StartTests",			{"os", "arch"} );
+		AS_GLOBAL_FN( _engine, _StartTests2,		"StartTests",			{"os", "arch", "name"} );
+		AS_GLOBAL_FN( _engine, _SessionBarrier,		"SessionBarrier",		{} );
 
 		// fs //
-		_engine->AddFunction( &_RemoveDir,			"RemoveFolder",			{} );
-		_engine->AddFunction( &_MakeDir,			"MakeFolder",			{} );
-		_engine->AddFunction( &_CopyDir,			"CopyFolder",			{"src", "dst"} );
-		_engine->AddFunction( &_CopyFile,			"CopyFile",				{"src", "dst"} );
-		_engine->AddFunction( &_DeleteFile,			"DeleteFile",			{} );
+		AS_GLOBAL_FN( _engine, _RemoveDir,			"RemoveFolder",			{} );
+		AS_GLOBAL_FN( _engine, _MakeDir,			"MakeFolder",			{} );
+		AS_GLOBAL_FN( _engine, _CopyDir,			"CopyFolder",			{"src", "dst"} );
+		AS_GLOBAL_FN( _engine, _CopyFile,			"CopyFile",				{"src", "dst"} );
+		AS_GLOBAL_FN( _engine, _DeleteFile,			"DeleteFile",			{} );
 
 		// to server
-		_engine->AddFunction( &_UploadFile1,		"UploadFile",			{"src", "dst"} );
-		_engine->AddFunction( &_UploadFile2,		"UploadFile",			{"src", "dst", "mode"} );
-		_engine->AddFunction( &_UploadFolder1,		"UploadFolder",			{"src", "dst"} );
-		_engine->AddFunction( &_UploadFolder2,		"UploadFolder",			{"src", "dst", "filter"} );
-		_engine->AddFunction( &_UploadFolder3,		"UploadFolder",			{"src", "dst", "mode"} );
-		_engine->AddFunction( &_UploadFolder4,		"UploadFolder",			{"src", "dst", "filter", "mode"} );
+		AS_GLOBAL_FN( _engine, _UploadFile1,		"UploadFile",			{"src", "dst"} );
+		AS_GLOBAL_FN( _engine, _UploadFile2,		"UploadFile",			{"src", "dst", "mode"} );
+		AS_GLOBAL_FN( _engine, _UploadFolder1,		"UploadFolder",			{"src", "dst"} );
+		AS_GLOBAL_FN( _engine, _UploadFolder2,		"UploadFolder",			{"src", "dst", "filter"} );
+		AS_GLOBAL_FN( _engine, _UploadFolder3,		"UploadFolder",			{"src", "dst", "mode"} );
+		AS_GLOBAL_FN( _engine, _UploadFolder4,		"UploadFolder",			{"src", "dst", "filter", "mode"} );
 
 		// from server
-		_engine->AddFunction( &_DownloadFile1,		"DownloadFile",			{"src", "dst"} );
-		_engine->AddFunction( &_DownloadFile2,		"DownloadFile",			{"src", "dst", "mode"} );
-		_engine->AddFunction( &_DownloadFolder1,	"DownloadFolder",		{"src", "dst"} );
-		_engine->AddFunction( &_DownloadFolder2,	"DownloadFolder",		{"src", "dst", "filter"} );
-		_engine->AddFunction( &_DownloadFolder3,	"DownloadFolder",		{"src", "dst", "mode"} );
-		_engine->AddFunction( &_DownloadFolder4,	"DownloadFolder",		{"src", "dst", "filter", "mode"} );
+		AS_GLOBAL_FN( _engine, _DownloadFile1,		"DownloadFile",			{"src", "dst"} );
+		AS_GLOBAL_FN( _engine, _DownloadFile2,		"DownloadFile",			{"src", "dst", "mode"} );
+		AS_GLOBAL_FN( _engine, _DownloadFolder1,	"DownloadFolder",		{"src", "dst"} );
+		AS_GLOBAL_FN( _engine, _DownloadFolder2,	"DownloadFolder",		{"src", "dst", "filter"} );
+		AS_GLOBAL_FN( _engine, _DownloadFolder3,	"DownloadFolder",		{"src", "dst", "mode"} );
+		AS_GLOBAL_FN( _engine, _DownloadFolder4,	"DownloadFolder",		{"src", "dst", "filter", "mode"} );
 
 		// git //
-		_engine->AddFunction( &_GitClone1,			"GitClone",				{"repository", "dstFolder"} );
-		_engine->AddFunction( &_GitClone2,			"GitClone",				{"tag", "repository", "dstFolder"} );
-		_engine->AddFunction( &_GitClone3,			"GitClone",				{"repository", "dstFolder", "recurseSubmodules"} );
-		_engine->AddFunction( &_GitClone4,			"GitClone",				{"tag", "repository", "dstFolder", "recurseSubmodules"} );
-		_engine->AddFunction( &_Git_GetLongHash,	"Git_GetHash",			{"repository", "branch"} );
-		_engine->AddFunction( &_Git_GetShortHash,	"Git_GetShortHash",		{"repository", "branch"} );
-		_engine->AddFunction( &_GitCommitAndPush,	"GitCommitAndPush",		{"path", "branch"} );
-		_engine->AddFunction( &_GitRebase,			"GitRebase",			{"path", "srcBranch", "dstBranch"} );
+		AS_GLOBAL_FN( _engine, _GitClone1,			"GitClone",				{"repository", "dstFolder"} );
+		AS_GLOBAL_FN( _engine, _GitClone2,			"GitClone",				{"tag", "repository", "dstFolder"} );
+		AS_GLOBAL_FN( _engine, _GitClone3,			"GitClone",				{"repository", "dstFolder", "recurseSubmodules"} );
+		AS_GLOBAL_FN( _engine, _GitClone4,			"GitClone",				{"tag", "repository", "dstFolder", "recurseSubmodules"} );
+		AS_GLOBAL_FN( _engine, _Git_GetLongHash,	"Git_GetHash",			{"repository", "branch"} );
+		AS_GLOBAL_FN( _engine, _Git_GetShortHash,	"Git_GetShortHash",		{"repository", "branch"} );
+		AS_GLOBAL_FN( _engine, _GitCommitAndPush,	"GitCommitAndPush",		{"path", "branch"} );
+		AS_GLOBAL_FN( _engine, _GitRebase,			"GitRebase",			{"path", "srcBranch", "dstBranch"} );
 
 
 		// cmake //
-		_engine->AddFunction( &_CMake1,				"CMake",				{"compiler", "compilerVersion", "config", "cmakeOptions", "sourcePath", "buildPath"} );
-		_engine->AddFunction( &_CMake2,				"CMake",				{"compiler", "compilerVersion", "config", "cmakeOptions", "sourcePath", "buildPath", "arch"} );
-		_engine->AddFunction( &_CMakeBuild,			"CMakeBuild",			{"buildPath", "config", "target", "threadCount"} );
+		AS_GLOBAL_FN( _engine, _CMake1,				"CMake",				{"compiler", "compilerVersion", "config", "cmakeOptions", "sourcePath", "buildPath"} );
+		AS_GLOBAL_FN( _engine, _CMake2,				"CMake",				{"compiler", "compilerVersion", "config", "cmakeOptions", "sourcePath", "buildPath", "arch"} );
+		AS_GLOBAL_FN( _engine, _CMakeBuild,			"CMakeBuild",			{"buildPath", "config", "target", "threadCount"} );
 
 		// android //
-		_engine->AddFunction( &_AndroidPatchGradle,	"AndroidPatchGradle",	{"buildGradlePath", "cmakeOptions"} );
-		_engine->AddFunction( &_AndroidBuild,		"AndroidBuild",			{"projectFolder", "isDebug", "target"} );
-		_engine->AddFunction( &_RunAndroidTest,		"RunAndroidTest",		{"libName", "fnName"} );
+		AS_GLOBAL_FN( _engine, _AndroidPatchGradle,	"AndroidPatchGradle",	{"buildGradlePath", "cmakeOptions"} );
+		AS_GLOBAL_FN( _engine, _AndroidBuild,		"AndroidBuild",			{"projectFolder", "isDebug", "target"} );
+		AS_GLOBAL_FN( _engine, _RunAndroidTest,		"RunAndroidTest",		{"libName", "fnName"} );
 
 		// tests //
-		_engine->AddFunction( &_RunTest1,			"RunTest",				{"exe"} );
-		_engine->AddFunction( &_RunTest2,			"RunTest",				{"exe", "workDir"} );
+		AS_GLOBAL_FN( _engine, _RunTest1,			"RunTest",				{"exe"} );
+		AS_GLOBAL_FN( _engine, _RunTest2,			"RunTest",				{"exe", "workDir"} );
 
 		// utils //
-		_engine->AddFunction( &_IsFile,				"Server_HasFile",		{"path"} );
-		_engine->AddFunction( &_IsDirectory,		"Server_HasFolder",		{"path"} );
-		_engine->AddFunction( &_RunScript,			"RunScript",			{"path"} );
-		_engine->AddFunction( &_Unzip,				"Unzip",				{"archive"} );
+		AS_GLOBAL_FN( _engine, _IsFile,				"Server_HasFile",		{"path"} );
+		AS_GLOBAL_FN( _engine, _IsDirectory,		"Server_HasFolder",		{"path"} );
+		AS_GLOBAL_FN( _engine, _RunScript,			"RunScript",			{"path"} );
+		AS_GLOBAL_FN( _engine, _Unzip,				"Unzip",				{"archive"} );
 
 		if ( saveCpp and _engine->IsUsingCppHeader() )
 			CHECK( _engine->SaveCppHeader( path ));

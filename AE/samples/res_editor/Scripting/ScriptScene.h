@@ -67,11 +67,12 @@ namespace AE::ResEditor
 
 
 	//
-	// Scene Graphics Pass
+	// Scene Graphics Subpass
 	//
-	class ScriptSceneGraphicsPass final : public ScriptBaseRenderPass
+	class ScriptSceneGraphicsSubpass final : public ScriptBaseRenderPass
 	{
 		friend class ScriptScene;
+		friend class ScriptSceneGraphicsPass;
 
 	// types
 	private:
@@ -80,14 +81,63 @@ namespace AE::ResEditor
 		using EDebugMode				= IPass::EDebugMode;
 		using PipelineNames_t			= ScriptGeomSource::PipelineNames_t;
 		using PipelinesPerInstance_t	= Array< PipelineNames_t >;
-		using ShadingRate				= SceneGraphicsPass::ShadingRate;
+		using ShadingRate				= SceneGraphicsSubpass::ShadingRate;
 
 
 	// variables
 	private:
 		ScriptScenePtr			_scene;
+		String					_passName;
+
+		PipelinePaths_t			_pipelines;
+		UniquePipelines_t		_uniquePplns;
+
+		ERenderLayer			_renderLayer	= ERenderLayer::Opaque;
+		ShadingRate				_shadingRate;
+
+		PipelinesPerInstance_t	_pplnPerInst;	// \__ temporary data
+		String					_dslName;		// /
+
+
+	// methods
+	private:
+		ScriptSceneGraphicsSubpass ()														__Th___ {}
+
+		RC<IPass>  ToPass ()																__Th_OV	{ return null; }	// unused
+
+		void  _OnAddArg (INOUT ScriptPassArgs::Argument &)									C_Th_OV {}
+
+		ND_ RC<SceneGraphicsSubpass>  _ToPass2 (SceneGraphicsPass &)						__Th___;
+	};
+
+
+
+	//
+	// Scene Graphics Pass
+	//
+	class ScriptSceneGraphicsPass final : public ScriptBaseRenderPass
+	{
+		friend class ScriptScene;
+
+	// types
+	private:
+		using Subpasses_t				= Array< ScriptSceneGraphicsSubpassPtr >;
+		using PipelinePaths_t			= ScriptSceneGraphicsSubpass::PipelinePaths_t;
+		using UniquePipelines_t			= ScriptSceneGraphicsSubpass::UniquePipelines_t;
+		using EDebugMode				= IPass::EDebugMode;
+		using PipelineNames_t			= ScriptGeomSource::PipelineNames_t;
+		using ShadingRate				= SceneGraphicsSubpass::ShadingRate;
+
+
+	// variables
+	private:
+		ScriptScenePtr			_scene;
+		String					_subpassName;
 		const String			_passName;
 
+		Subpasses_t				_subpasses;
+
+		// will be copied to subpass
 		PipelinePaths_t			_pipelines;
 		UniquePipelines_t		_uniquePplns;
 
@@ -106,6 +156,9 @@ namespace AE::ResEditor
 		void  AddPipelines (const String &pplnsFolder)										__Th___;
 
 		void  SetLayer (ERenderLayer layer)													__Th___;
+		
+		void  NextSubpass1 ()																__Th___;
+		void  NextSubpass2 (const String &passName)											__Th___;
 
 		void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp, EShadingRateCombinerOp) __Th___;	// TODO: remove
 
@@ -115,14 +168,19 @@ namespace AE::ResEditor
 	// ScriptBasePass //
 
 		// Returns non-null pass or throw exception.
-		RC<IPass>  ToPass ()																C_Th_OV;
+		RC<IPass>  ToPass ()																__Th_OV;
 
 
 	private:
-		ND_ RTechInfo	_CompilePipelines (OUT PipelinesPerInstance_t &, OUT RC<SceneData> &)C_Th___;
-			void		_CompilePipelines2 (ScriptEnginePtr se, OUT PipelinesPerInstance_t &)C_Th___;
+		ND_ RTechInfo	_CompilePipelines (OUT RC<SceneData>&)								C_Th___;
+			static void	_CompilePipelines2 (ScriptEnginePtr, ArrayView<Output>,
+											ArrayView<ScriptSceneGraphicsSubpassPtr>,
+											const ScriptScene &scene,
+											const ScriptDynamicDim* dynamicDim)				__Th___;
 
 		ND_ static auto  _CreateUBType ()													__Th___;
+		
+		void  _MoveTo (OUT ScriptSceneGraphicsSubpass &dst)									__NE___;
 
 		void  _WithPipelineCompiler ()														C_Th___;
 		void  _SetDynamicDimension2 (const ScriptDynamicDimPtr &value)						__Th___	{ ScriptBasePass::_SetDynamicDimension( value ); }
@@ -130,7 +188,7 @@ namespace AE::ResEditor
 	// ScriptBasePass //
 		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)								C_Th_OV;
 	};
-
+	
 
 
 	//
@@ -181,7 +239,7 @@ namespace AE::ResEditor
 	// ScriptBasePass //
 
 		// Returns non-null pass or throw exception.
-		RC<IPass>  ToPass ()																C_Th_OV;
+		RC<IPass>  ToPass ()																__Th_OV;
 
 
 	private:

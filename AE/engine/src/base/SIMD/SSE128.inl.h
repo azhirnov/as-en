@@ -399,7 +399,7 @@ namespace AE::Base
 		return SimdInt4{_mm_cvtpd_epi32( _value )};
 	}
 
-# if AE_SIMD_AVX >= 3 // AVX512DQ, AVX512VL
+# if AE_SIMD_AVX >= 31 // AVX512DQ, AVX512VL
 	inline SimdLong2  SimdDouble2::ToLong () C_NE___
 	{
 		return SimdLong2{_mm_cvtpd_epi64( _value )};
@@ -430,7 +430,7 @@ namespace AE::Base
 		if constexpr( IsSame< DstScalar, int >)
 			return ToInt();
 		else
-	  #if AE_SIMD_AVX >= 3 // AVX512DQ, AVX512VL
+	  #if AE_SIMD_AVX >= 31 // AVX512DQ, AVX512VL
 		if constexpr( IsSame< DstScalar, slong >)
 			return ToLong();
 		else
@@ -464,7 +464,7 @@ namespace AE::Base
 		if constexpr( IsSame< DstScalar, int >)
 			return true;
 		else
-	  #if AE_SIMD_AVX >= 3 // AVX512DQ, AVX512VL
+	  #if AE_SIMD_AVX >= 31 // AVX512DQ, AVX512VL
 		if constexpr( IsSame< DstScalar, slong >)
 			return true;
 		else
@@ -796,7 +796,7 @@ namespace AE::Base
 		if constexpr( isI16 )	return Self{ _mm_abs_epi16( _value )};
 		if constexpr( isI32 )	return Self{ _mm_abs_epi32( _value )};
 	  #endif
-	  #if AE_SIMD_AVX >= 3
+	  #if AE_SIMD_AVX >= 31  // AVX512VL
 		if constexpr( isI64 )	return Self{ _mm_abs_epi64( _value )};
 	  #endif
 	}
@@ -895,7 +895,7 @@ namespace AE::Base
 		if constexpr( isI32 )	return Self{ _mm_min_epi32( _value, rhs._value )};	else
 		if constexpr( isU32 )	return Self{ _mm_min_epu32( _value, rhs._value )};	else
 	  #endif
-	  #if AE_SIMD_AVX >= 3	// AVX 512
+	  #if AE_SIMD_AVX >= 31	// AVX512VL
 		if constexpr( isI64 )	return Self{ _mm_min_epi64( _value, rhs._value )};	else
 		if constexpr( isU64 )	return Self{ _mm_min_epu64( _value, rhs._value )};	else
 	  #endif
@@ -908,7 +908,7 @@ namespace AE::Base
 	{
 		return	isU8 or isI16 or
 				((isI8 or isU16 or isI32 or isU32) and (AE_SIMD_SSE >= 41)) or
-				((isI64 or isU64) and (AE_SIMD_AVX >= 3)) or
+				((isI64 or isU64) and (AE_SIMD_AVX >= 31)) or
 				isI32;
 	}
 
@@ -929,7 +929,7 @@ namespace AE::Base
 		if constexpr( isI32 )	return Self{ _mm_max_epi32( _value, rhs._value )};	else
 		if constexpr( isU32 )	return Self{ _mm_max_epu32( _value, rhs._value )};	else
 	  #endif
-	  #if AE_SIMD_AVX >= 3	// AVX 512
+	  #if AE_SIMD_AVX >= 31	// AVX512VL
 		if constexpr( isI64 )	return Self{ _mm_max_epi64( _value, rhs._value )};	else
 		if constexpr( isU64 )	return Self{ _mm_max_epu64( _value, rhs._value )};	else
 	  #endif
@@ -1293,7 +1293,7 @@ namespace AE::Base
 
 			if constexpr( is16 )	return Self{ _mm_srai_epi16( _value, shift )};
 			if constexpr( is32 )	return Self{ _mm_srai_epi32( _value, shift )};
-		  #if AE_SIMD_AVX >= 3  // AVX512VL
+		  #if AE_SIMD_AVX >= 31  // AVX512VL
 			if constexpr( is64 )	return Self{ _mm_srai_epi64( _value, shift )};
 		  #endif
 		}else
@@ -1311,7 +1311,7 @@ namespace AE::Base
 
 			if constexpr( is16 )	return Self{ _mm_sra_epi16( _value, shift.Ref() )};
 			if constexpr( is32 )	return Self{ _mm_sra_epi32( _value, shift.Ref() )};
-		  #if AE_SIMD_AVX >= 3  // AVX512VL
+		  #if AE_SIMD_AVX >= 31  // AVX512VL
 			if constexpr( is64 )	return Self{ _mm_sra_epi64( _value, shift.Ref() )};
 		  #endif
 		}else
@@ -1321,7 +1321,7 @@ namespace AE::Base
 	template <typename IT>
 	__Ce__ bool  SimdTInt128<IT>::Has_ScalarShift_Arithmetic ()
 	{
-		return	is16 or is32 or (is64 and AE_SIMD_AVX >= 3) or
+		return	is16 or is32 or (is64 and AE_SIMD_AVX >= 31) or
 				(IsUnsigned<IT> and Has_ScalarShift_Logic());
 	}
 
@@ -1341,7 +1341,7 @@ namespace AE::Base
 			ASSERT_MSG( shift.GEqual( Unsigned_t{} ).All(), "Result will be zero" );
 		}
 
-	  #if AE_SIMD_AVX >= 3  // AVX512BW
+	  #if AE_SIMD_AVX >= 31  // AVX512BW
 		if constexpr( is16 )	return Self{ _mm_sllv_epi16( _value, shift.Ref() )};
 	  #endif
 	  #if AE_SIMD_AVX >= 2	// AVX2
@@ -1353,7 +1353,7 @@ namespace AE::Base
 	template <typename IT>
 	__Ce__ bool  SimdTInt128<IT>::Has_VecLShift_Logic ()
 	{
-	  #if AE_SIMD_AVX >= 3  // AVX512BW
+	  #if AE_SIMD_AVX >= 31  // AVX512BW
 		if constexpr( is16 )	return true;
 	  #endif
 	  #if AE_SIMD_AVX >= 2	// AVX2
@@ -1379,7 +1379,7 @@ namespace AE::Base
 			ASSERT_MSG( shift.GEqual( Unsigned_t{} ).All(), "Result will be zero" );
 		}
 
-	  #if AE_SIMD_AVX >= 3  // AVX512BW
+	  #if AE_SIMD_AVX >= 31  // AVX512BW
 		if constexpr( is16 )	return Self{ _mm_srlv_epi16( _value, shift.Ref() )};
 	  #endif
 	  #if AE_SIMD_AVX >= 2	// AVX2
@@ -1391,7 +1391,7 @@ namespace AE::Base
 	template <typename IT>
 	__Ce__ bool  SimdTInt128<IT>::Has_VecRShift_Logic ()
 	{
-	  #if AE_SIMD_AVX >= 3  // AVX512BW
+	  #if AE_SIMD_AVX >= 31  // AVX512BW
 		if constexpr( is16 )	return true;
 	  #endif
 	  #if AE_SIMD_AVX >= 2	// AVX2
@@ -1422,7 +1422,7 @@ namespace AE::Base
 				ASSERT_MSG( shift.GEqual( Unsigned_t{} ).All(), "Result will be zero" );
 			}
 
-		  #if AE_SIMD_AVX >= 3  // AVX512BW
+		  #if AE_SIMD_AVX >= 31  // AVX512BW
 			if constexpr( is16 )	return Self{ _mm_srav_epi16( _value, shift.Ref() )};
 			if constexpr( is64 )	return Self{ _mm_srav_epi64( _value, shift.Ref() )};
 		  #endif
@@ -1438,7 +1438,7 @@ namespace AE::Base
 	{
 		if constexpr( IsSigned<IT> )
 		{
-		  #if AE_SIMD_AVX >= 3  // AVX512BW
+		  #if AE_SIMD_AVX >= 31  // AVX512BW
 			if constexpr( is16 )	return true;
 			if constexpr( is64 )	return true;
 		  #endif
@@ -1519,11 +1519,11 @@ namespace AE::Base
 		StaticAssert( V6 < count );
 		StaticAssert( V7 < count );
 
-		using Req	= std::integer_sequence< uint, V0, V1, V2, V3, V4, V5, V6, V7 >;
-		using ReqHi	= std::integer_sequence< uint, V4, V5, V6, V7 >;
-		using ReqLo	= std::integer_sequence< uint, V0, V1, V2, V3 >;
-		using DefHi	= std::integer_sequence< uint, 4, 5, 6, 7 >;
-		using DefLo	= std::integer_sequence< uint, 0, 1, 2, 3 >;
+		using Req	= UIntSequence< V0, V1, V2, V3, V4, V5, V6, V7 >;
+		using ReqHi	= UIntSequence< V4, V5, V6, V7 >;
+		using ReqLo	= UIntSequence< V0, V1, V2, V3 >;
+		using DefHi	= UIntSequence< 4, 5, 6, 7 >;
+		using DefLo	= UIntSequence< 0, 1, 2, 3 >;
 
 		constexpr bool	is_def_hi = IsSame< ReqHi, DefHi >;
 		constexpr bool	is_def_lo = IsSame< ReqLo, DefLo >;
@@ -1544,7 +1544,7 @@ namespace AE::Base
 		{
 			return Self{_mm_shuffle_epi32( _value, _MM_SHUFFLE( 1, 0, 3, 2 ))};
 		}else
-		if constexpr( IsSame< Req, std::integer_sequence< uint, V0,V0,V0,V0, V0,V0,V0,V0 >>)
+		if constexpr( IsSame< Req, UIntSequence< V0,V0,V0,V0, V0,V0,V0,V0 >>)
 		{
 		  #if AE_SIMD_AVX >= 2
 			if constexpr( V0 == 0 )
@@ -1567,17 +1567,17 @@ namespace AE::Base
 			return Self{_mm_set1_epi16( short(_mm_extract_epi16( _value, V0 )))};
 		  #endif
 		}else
-		if constexpr( IsSame< Req, std::integer_sequence< uint, 0,4, 1,5, 2,6, 3,7 >>)
+		if constexpr( IsSame< Req, UIntSequence< 0,4, 1,5, 2,6, 3,7 >>)
 		{
 			auto	high = _mm_shuffle_epi32( _value, _MM_SHUFFLE( 3, 2, 3, 2 ));
 			return Self{_mm_unpacklo_epi16( _value, high )};
 		}else
-		if constexpr( IsSame< Req, std::integer_sequence< uint, 0,0, 1,1, 2,2, 3,3 >>)
+		if constexpr( IsSame< Req, UIntSequence< 0,0, 1,1, 2,2, 3,3 >>)
 		{
 			auto	low = _mm_shuffle_epi32( _value, _MM_SHUFFLE( 1, 0, 1, 0 ));
 			return Self{_mm_unpacklo_epi16( _value, low )};
 		}else
-		if constexpr( IsSame< Req, std::integer_sequence< uint, 4,4, 5,5, 6,6, 7,7 >>)
+		if constexpr( IsSame< Req, UIntSequence< 4,4, 5,5, 6,6, 7,7 >>)
 		{
 			auto	high = _mm_shuffle_epi32( _value, _MM_SHUFFLE( 3, 2, 3, 2 ));
 			return Self{_mm_unpackhi_epi16( _value, high )};
@@ -1658,12 +1658,12 @@ namespace AE::Base
 		StaticAssert( V6 < count*2 );
 		StaticAssert( V7 < count*2 );
 
-		using Req = std::integer_sequence< uint, V0, V1, V2, V3, V4, V5, V6, V7 >;
+		using Req = UIntSequence< V0, V1, V2, V3, V4, V5, V6, V7 >;
 
-		if constexpr( IsSame< Req, std::integer_sequence< uint, 0,1,2,3, 8,9,10,11 >>)
+		if constexpr( IsSame< Req, UIntSequence< 0,1,2,3, 8,9,10,11 >>)
 			return Self{ _mm_unpacklo_epi64( _value, v8._value )};
 
-		if constexpr( IsSame< Req, std::integer_sequence< uint, 4,5,6,7, 12,13,14,15 >>)
+		if constexpr( IsSame< Req, UIntSequence< 4,5,6,7, 12,13,14,15 >>)
 			return Self{ _mm_unpackhi_epi64( _value, v8._value )};
 	}
 
@@ -1795,7 +1795,7 @@ namespace AE::Base
 	{
 		StaticAssert( I < 2 );
 
-	  #if AE_SIMD_AVX >= 3
+	  #if AE_SIMD_AVX >= 30  // AVX512F
 		if constexpr( I == 0 )
 			return SimdDouble2{_mm_cvtepu32_pd( _value )};
 		else
@@ -1816,19 +1816,19 @@ namespace AE::Base
 	_LongToDouble2 / _ULongToDouble2
 =================================================
 */
-# if AE_SIMD_AVX >= 3 // AVX512DQ, AVX512VL
+# if AE_SIMD_AVX >= 31 // AVX512DQ, AVX512VL
 
-	template <typename T = Scalar_t, ENABLEIF( IsSame<T,slong> )>
+	template <typename IT>
+	template <typename T, ENABLEIF_IMPL( IsSame<T,slong> )>
 	SimdDouble2	 SimdTInt128<IT>::_LongToDouble2 () C_NE___
 	{
-		StaticAssert( I == 0 );
 		return SimdDouble2{_mm_cvtepi64_pd( _value )};
 	}
 
-	template <typename T = Scalar_t, ENABLEIF( IsSame<T,ulong> )>
+	template <typename IT>
+	template <typename T, ENABLEIF_IMPL( IsSame<T,ulong> )>
 	SimdDouble2	 SimdTInt128<IT>::_ULongToDouble2 () C_NE___
 	{
-		StaticAssert( I == 0 );
 		return SimdDouble2{_mm_cvtepu64_pd( _value )};
 	}
 
@@ -2117,7 +2117,7 @@ namespace AE::Base
 		if constexpr( isU32 )
 		{
 			StaticAssert( Idx == 0 );
-		  #if AE_SIMD_AVX >= 3
+		  #if AE_SIMD_AVX >= 31  // AVX512VL
 			return SimdFloat4{_mm_cvtepu32_ps( _value )};
 		  #else
 			auto	u_lo = _mm_and_si128( _value, _mm_set1_epi32(0xFFFF) );
@@ -2128,7 +2128,7 @@ namespace AE::Base
 			return SimdFloat4{_mm_add_ps( f_hi, f_lo )};
 		  #endif
 		}else
-	  #if AE_SIMD_AVX >= 3 // AVX512DQ, AVX512VL
+	  #if AE_SIMD_AVX >= 31 // AVX512DQ, AVX512VL
 		if constexpr( isI64 )
 		{
 			StaticAssert( Idx == 0 );
@@ -2304,7 +2304,7 @@ namespace AE::Base
 			}
 		}
 
-	  #if AE_SIMD_AVX >= 3
+	  #if AE_SIMD_AVX >= 31  // AVX512DQ, AVX512VL
 		if constexpr( IsSame< DstScalar, double > and is64 )
 		{
 			if constexpr( isI64 )	return _LongToDouble2();
@@ -2343,7 +2343,7 @@ namespace AE::Base
 		if constexpr( IsSame< DstScalar, double > and is32 )
 			return true;
 		else
-	  #if AE_SIMD_AVX >= 3
+	  #if AE_SIMD_AVX >= 31  // AVX512DQ, AVX512VL
 		if constexpr( IsSame< DstScalar, double > and is64 )
 			return true;
 		else

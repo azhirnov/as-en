@@ -2,7 +2,7 @@
 
 set( AE_ENABLE_PROFILER  ON  CACHE BOOL "enable engine profiler UI" )
 
-if ( (TARGET "GraphicsHL") AND (${AE_ENABLE_PROFILER}) )
+if ( (TARGET "Graphics") AND (${AE_ENABLE_PROFILER}) )
 
 	file( GLOB_RECURSE HPP_SOURCES "*.h" )
 	if (NOT (DEFINED ENGINE_LIBS_PATH))
@@ -14,7 +14,7 @@ if ( (TARGET "GraphicsHL") AND (${AE_ENABLE_PROFILER}) )
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 
 	set_property( TARGET "Profiler" PROPERTY FOLDER "Engine" )
-	target_link_libraries( "Profiler" PUBLIC "GraphicsHL" "Networking" )
+	target_link_libraries( "Profiler" PUBLIC "Graphics" "Networking" )
 
 	if (TARGET "Mali-HWCPipe-lib")
 		target_link_libraries( "Profiler" PUBLIC "Mali-HWCPipe-lib" )

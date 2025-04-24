@@ -15,6 +15,7 @@
 #include "res_editor/Passes/PassGroup.h"
 #include "res_editor/Scripting/ScriptPostprocess.h"
 #include "res_editor/Scripting/ScriptComputePass.h"
+#include "res_editor/Scripting/ScriptComputeMip.h"
 #include "res_editor/Scripting/ScriptRayTracingPass.h"
 #include "res_editor/Scripting/ScriptScene.h"
 
@@ -88,6 +89,7 @@ namespace AE::ResEditor
 		class ScriptPassGroup;
 		class ScriptGenMipmaps;
 		class ScriptCopyImage;
+		class ScriptCopyImage2;
 		class ScriptBlitImage;
 		class ScriptResolveImage;
 		class ScriptClearImage;
@@ -178,6 +180,7 @@ namespace AE::ResEditor
 
 		static void  _GenMipmaps (const ScriptImagePtr &rt)														__Th___;
 		static void  _CopyImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)							__Th___;
+		static void  _CopyImage2 (const ScriptImagePtr &src, const ScriptImagePtr &dst)							__Th___;
 		static void  _BlitImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)							__Th___;
 		static void  _ResolveImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)						__Th___;
 		static void  _CompressImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)						__Th___;
@@ -433,6 +436,9 @@ namespace AE::ResEditor
 	class ScriptExe::ScriptPassApi
 	{
 		friend class ScriptBasePass;
+		friend class ScriptGenMipmaps;
+		friend class ScriptCopyImage2;
+		friend class ScriptComputeMip;
 		friend class ScriptPostprocess;
 		friend class ScriptComputePass;
 		friend class ScriptRayTracingPass;
@@ -499,6 +505,7 @@ AE_DECL_SCRIPT_OBJ(		AE::ResEditor::RTInstanceTransform,				"RTInstanceTransform
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptBasePass,					"IPass"				);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptPostprocess,				"Postprocess"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptComputePass,				"ComputePass"		);
+AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptComputeMip,				"ComputeMip"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptRayTracingPass,			"RayTracingPass"	);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptScene,						"Scene"				);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptSceneGraphicsPass,			"SceneGraphicsPass"	);

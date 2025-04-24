@@ -283,7 +283,7 @@ namespace AE::Graphics::_hidden_
 
 		GFX_DBG_ONLY( prevPassCtx.PopDebugGroup();)
 
-		RawCtx::_NextSubpass( this->_RawCmdBuf(), VK_SUBPASS_CONTENTS_INLINE );
+		RawCtx::_NextSubpass( prevPassCtx._RawCmdBuf(), VK_SUBPASS_CONTENTS_INLINE );
 
 		GFX_DBG_ONLY(
 			String	dbg_name;

@@ -7,7 +7,7 @@
 # include "base/DataSource/Lz4Stream.h"
 
 # if LZ4_VERSION_MAJOR != 1 or LZ4_VERSION_MINOR != 10
-#	error required lz4 version 1.10.0
+#	pragma message( "required lz4 version 1.10.0" )
 # endif
 
 namespace AE::Base

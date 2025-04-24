@@ -1,3 +1,4 @@
+echo "update 'Brotli'..."
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\android-clang\Brotli"
 rmdir /Q /S "temp"
 git clone --branch "v1.1.0" "..\..\..\..\..\3party\brotli" "temp"

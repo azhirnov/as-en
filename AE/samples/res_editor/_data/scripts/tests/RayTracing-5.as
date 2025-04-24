@@ -148,7 +148,7 @@
 
 	void  Main ()
 	{
-		const Ray		ray		= Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
+		const Ray		ray		= Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 		const HWRay		hwray	= HWRay_Create( ray, un_PerPass.camera.clipPlanes.y );
 		gl::RayQuery	ray_query;
 		float4			color;

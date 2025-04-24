@@ -135,7 +135,7 @@ namespace AE::Profiler
 			_visit_( NonFragQueueWaitFlushCy )	/* Non-fragment queue cache flush wait cycles								*/\
 			_visit_( ResQueueWaitFlushCy )		/* Non-fragment queue cache flush wait cycles								*/\
 			_visit_( L2CacheFlush )				/* L2 cache flush requests													*/\
-			_visit_( GeomSampleCullPrim )		/* Sample test culled primitives											*/\
+			_visit_( GeomSampleCullPrim )		/* Sample test culled primitives					(4.2.4)					*/\
 			_visit_( TilerRdBt )				/* Output internal read beats												*/\
 			_visit_( TilerWrBt )\
 			_visit_( GeomPosShadTask )			/* Tiler position shading requests											*/\

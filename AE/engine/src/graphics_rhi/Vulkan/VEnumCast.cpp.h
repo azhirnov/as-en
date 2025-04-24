@@ -44,8 +44,8 @@ namespace AE::Graphics
 			StateInfo{ VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,						VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,															VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,					_EResState::ColorAttachment					},
 			StateInfo{ UseDSStages,															VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT,																							VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,			_EResState::DepthStencilTest				},
 			StateInfo{ UseDSStages,															VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,											VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,			_EResState::DepthStencilAttachment_RW		},
-			StateInfo{ UseDSStages,															VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,											VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,	_EResState::DepthTest_StencilRW				},
-			StateInfo{ UseDSStages,															VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,											VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL, _EResState::DepthRW_StencilTest				},
+			StateInfo{ UseDSStages,															VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,											VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,	_EResState::DepthTest_StencilRW				},	// VK_KHR_maintenance2 or 1.1
+			StateInfo{ UseDSStages,															VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,											VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL, _EResState::DepthRW_StencilTest				},	// VK_KHR_maintenance2 or 1.1
 			StateInfo{ VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,						VK_ACCESS_2_NONE,																														VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,							_EResState::PresentImage					},	// swapchain semaphore creates memory dependency
 			StateInfo{ VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,		VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR,																				VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR,_EResState::ShadingRateImage				},
 			StateInfo{ VK_PIPELINE_STAGE_2_FRAGMENT_DENSITY_PROCESS_BIT_EXT,				VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT,																							VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT,			_EResState::FragmentDensityMap				},
@@ -60,7 +60,7 @@ namespace AE::Graphics
 			StateInfo{ UseShaderStages,														VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT,																									VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,					_EResState::InputDepthStencilAttachment		},
 			StateInfo{ UseShaderStages | UseDSStages,										VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,	VK_IMAGE_LAYOUT_GENERAL,									_EResState::InputDepthStencilAttachment_RW	},
 			StateInfo{ UseShaderStages | UseDSStages,										VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,													VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,			_EResState::DepthStencilTest_ShaderSample	},
-			StateInfo{ UseShaderStages | UseDSStages,										VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,	VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL, _EResState::DepthTest_DepthSample_StencilRW	},
+			StateInfo{ UseShaderStages | UseDSStages,										VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,	VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL, _EResState::DepthTest_DepthSample_StencilRW	},	// VK_KHR_maintenance2 or 1.1
 			StateInfo{ VK_PIPELINE_STAGE_2_HOST_BIT | VK_PIPELINE_STAGE_2_COPY_BIT,			VK_ACCESS_2_HOST_READ_BIT | VK_ACCESS_2_TRANSFER_WRITE_BIT,																				VK_IMAGE_LAYOUT_GENERAL,									_EResState::Host_Read						},	// sync with host and with subsequent copy command
 			StateInfo{ UseShaderStages,														VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR,																						VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::ShaderRTAS						},
 			StateInfo{ VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,								VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT,																									VK_IMAGE_LAYOUT_MAX_ENUM,									_EResState::IndirectBuffer					},
@@ -82,8 +82,15 @@ namespace AE::Graphics
 			VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT |
 			VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT;
 
-		DBG_CHECK_MSG( EResourceState_RequireShaderStage( value ) == AnyBits( value, EResourceState::AllShaders ),
-					   "shader stage is not compatible with access mask" );
+		DEBUG_ONLY(
+			if ( EResourceState_RequireShaderStage( value )) {
+				CHECK_MSG( AnyBits( value, EResourceState::AllShaders ),
+					"Resource state ("s << ToString( value ) << ") must contain shader stage." );
+			}else{
+				CHECK_MSG( not AnyBits( value, EResourceState::AllShaders ),
+					"Resource state ("s << ToString( value ) << ") should not contain shader stage." );
+			}
+		)
 
 		VkPipelineStageFlagBits2	sh_stages	= Zero;
 		VkPipelineStageFlagBits2	ds_stages	= Zero;

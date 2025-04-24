@@ -100,11 +100,11 @@ namespace
 	//	const StringView	bass_flac_name		= "bassflac.dll";
 	//	const StringView	bass_webm_name		= "basswebm.dll";
 	  #else
-		const StringView	bass_name			= "bass.so";
-		const StringView	bass_enc_name		= "bassenc.so";
-	//	const StringView	bass_enc_ogg_name	= "bassenc_ogg.so";
-	//	const StringView	bass_flac_name		= "bassflac.so";
-	//	const StringView	bass_webm_name		= "basswebm.so";
+		const StringView	bass_name			= "./libbass.so";
+		const StringView	bass_enc_name		= "./libbassenc.so";
+	//	const StringView	bass_enc_ogg_name	= "./libbassenc_ogg.so";
+	//	const StringView	bass_flac_name		= "./libbassflac.so";
+	//	const StringView	bass_webm_name		= "./libbasswebm.so";
 	  #endif
 
 		bool	result = true;

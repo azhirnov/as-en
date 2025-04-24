@@ -102,33 +102,32 @@ namespace
 
 		using F = QuatFunc<T>;
 
-		binder.Operators()
-		//	.BinaryAssign(	EBinaryOperator::Add, &F::Add_am_s )
-			.Binary(		EBinaryOperator::Add, &F::Add_q_q )
+		//AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Add, F::Add_am_s );
+		AS_OP_BINARY_T(			binder, EBinaryOperator::Add, F::Add_q_q );
 
-		//	.BinaryAssign(	EBinaryOperator::Sub, &F::Sub_am_s )
-			.Binary(		EBinaryOperator::Sub, &F::Sub_q_q )
+		//AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Sub, F::Sub_am_s );
+		AS_OP_BINARY_T(			binder, EBinaryOperator::Sub, F::Sub_q_q );
 
-		//	.BinaryAssign(	EBinaryOperator::Mul, &F::Mul_am_s )
-			.Binary(		EBinaryOperator::Mul, &F::Mul_q_q )
-			.Binary(		EBinaryOperator::Mul, &F::Mul_q_v3 )
-			.Binary(		EBinaryOperator::Mul, &F::Mul_q_v4 )
-			.Binary(		EBinaryOperator::Mul, &F::Mul_q_s )
+		//AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mul, F::Mul_am_s );
+		AS_OP_BINARY_T(			binder, EBinaryOperator::Mul, F::Mul_q_q );
+		AS_OP_BINARY_T(			binder, EBinaryOperator::Mul, F::Mul_q_v3 );
+		AS_OP_BINARY_T(			binder, EBinaryOperator::Mul, F::Mul_q_v4 );
+		AS_OP_BINARY_T(			binder, EBinaryOperator::Mul, F::Mul_q_s );
 
-			.Binary(		EBinaryOperator::Div, &F::Div_q_s );
+		AS_OP_BINARY_T(			binder, EBinaryOperator::Div, F::Div_q_s );
 
-		binder.AddMethodFromGlobal( &F::RotateX,		"RotateX",			{"angle"} );
-		binder.AddMethodFromGlobal( &F::RotateY,		"RotateY",			{"angle"} );
-		binder.AddMethodFromGlobal( &F::RotateZ,		"RotateZ",			{"angle"} );
+		AS_METHOD_T( binder, F::RotateX,		"RotateX",			{"angle"} );
+		AS_METHOD_T( binder, F::RotateY,		"RotateY",			{"angle"} );
+		AS_METHOD_T( binder, F::RotateZ,		"RotateZ",			{"angle"} );
 
-		binder.AddMethodFromGlobal( &F::Rotate,			"Rotate",			{"angle", "axis"} );
-		binder.AddMethodFromGlobal( &F::Rotate1,		"Rotate",			{"angles"} );
-		binder.AddMethodFromGlobal( &F::Rotate2,		"Rotate2",			{"angles"} );
-		binder.AddMethodFromGlobal( &F::Rotate3,		"Rotate",			{"angleX", "angleY", "angleZ"} );
+		AS_METHOD_T( binder, F::Rotate,			"Rotate",			{"angle", "axis"} );
+		AS_METHOD_T( binder, F::Rotate1,		"Rotate",			{"angles"} );
+		AS_METHOD_T( binder, F::Rotate2,		"Rotate2",			{"angles"} );
+		AS_METHOD_T( binder, F::Rotate3,		"Rotate",			{"angleX", "angleY", "angleZ"} );
 
-		binder.AddMethodFromGlobal( &F::LookAt,			"LookAt",			{"dir", "up"} );
-		binder.AddMethodFromGlobal( &F::From2Normals,	"From2Normals",		{"norm1", "norm2"} );
-		binder.AddMethodFromGlobal( &F::FromAngleAxis,	"FromAngleAxis",	{"angle", "axis"} );
+		AS_METHOD_T( binder, F::LookAt,			"LookAt",			{"dir", "up"} );
+		AS_METHOD_T( binder, F::From2Normals,	"From2Normals",		{"norm1", "norm2"} );
+		AS_METHOD_T( binder, F::FromAngleAxis,	"FromAngleAxis",	{"angle", "axis"} );
 	}
 
 /*

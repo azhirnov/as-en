@@ -119,9 +119,9 @@ namespace {
 		Scripting::ClassBinder<ScriptSharedImage>	binder{ se };
 		binder.CreateRef();
 
-		binder.AddMethod( &ScriptSharedImage::Store,		"Store",		{"nameInArchive"} );
-		binder.AddMethod( &ScriptSharedImage::SetFormat,	"Format",		{"newFormat"} );
-		binder.AddMethod( &ScriptSharedImage::PutMeta,		"PutMeta",		{"metaFile", "nameInMeta"} );
+		AS_METHOD( binder, ScriptSharedImage::Store,		"Store",		{"nameInArchive"} );
+		AS_METHOD( binder, ScriptSharedImage::SetFormat,	"Format",		{"newFormat"} );
+		AS_METHOD( binder, ScriptSharedImage::PutMeta,		"PutMeta",		{"metaFile", "nameInMeta"} );
 	}
 
 /*

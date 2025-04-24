@@ -6,6 +6,7 @@ void ASmain ()
 	// include:
 	//	NVIDIA GeForce RTX 2080.json
 	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
+	//	AMD Radeon Graphics (RADV PHOENIX) driver 25.0.1 on Ubuntu 22.04
 	//	AMD Radeon RX 6750 XT (RADV NAVI22) driver 23.3.4 on Arch unknown
 	//	AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
 	//	AMD Radeon RX 7800 XT (RADV NAVI32) driver 24.0.99 on Arch unknown
@@ -14,6 +15,7 @@ void ASmain ()
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
 	//	Intel(R) Arc(TM) B580 Graphics driver 0.405.2156 on Windows 11
 	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
+	//	llvmpipe (LLVM 20.1.0, 256 bits) driver 25.0.99 on Windows 11
 	//	NVIDIA GeForce RTX 2080 driver 553.31.0.0 on Windows 11
 	//	NVIDIA GeForce RTX 3060 Ti driver 553.22.0.0 on Windows 11
 	//	NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
@@ -59,10 +61,8 @@ void ASmain ()
 		ESubgroupTypes::Float16
 	));
 	fset.subgroupStages(EShaderStages(
-		EShaderStages::Fragment | 
-		EShaderStages::Compute | 
-		EShaderStages::MeshTask | 
-		EShaderStages::Mesh
+		EShaderStages::MeshPipeStages | 
+		EShaderStages::Compute
 	));
 	fset.subgroupQuadStages(EShaderStages(
 		EShaderStages::Fragment | 

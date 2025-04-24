@@ -23,7 +23,7 @@ if ((TARGET "Scripting") AND (TARGET "AssetPacker") AND AE_HAS_CXX_COROUTINE AND
 	)
 
 	target_link_libraries( ${APP_NAME} PUBLIC
-		"Platform" "GraphicsHL"
+		"Platform" "Graphics"
 		"ResourceLoaders"
 	)
 
@@ -40,7 +40,7 @@ if ((TARGET "Scripting") AND (TARGET "AssetPacker") AND AE_HAS_CXX_COROUTINE AND
 	target_compile_definitions( ${APP_NAME} PUBLIC
 		AE_RES_FOLDER="${AE_TEMP_FOLDER_UIEDITOR}"
 		AE_UI_SCRIPT_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/_data/ui"
-		AE_CANVAS_VERTS="${MAIN_SOURCE_DIR}/engine/src/graphics_hl/Canvas/VertexTypes.as"
+		AE_CANVAS_VERTS="${MAIN_SOURCE_DIR}/engine/src/graphics/Canvas/VertexTypes.as"
 		AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
 		AE_LIBRARY_FOLDER="${MAIN_BINARY_DIR}"
 	)

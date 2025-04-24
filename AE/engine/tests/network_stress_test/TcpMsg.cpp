@@ -23,8 +23,8 @@ namespace AE::Networking
 
 	CSMSG_ENC_DEC_EXDATA( Text,  size, data,  AE_ARGS() );
 
-	CSMSG_ENC_DEC( RequestNextFrame );
-	CSMSG_ENC_DEC( NextFrameResponse );
+	CSMSG_ENC_DEC( RequestNextFrame, );
+	CSMSG_ENC_DEC( NextFrameResponse, );
 }
 
 

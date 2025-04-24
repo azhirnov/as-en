@@ -130,11 +130,11 @@ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSize
 float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx, const float snormScale)
 {
 	const float2	snorm		= ToSNorm( srcPosPx / srcSizePx );
-	const float		src_aspect	= srcSizePx.x / srcSizePx.y;
-	const float		dst_aspect	= dstSizePx.x / dstSizePx.y;
-	const float		scale1		= Max( src_aspect, dst_aspect ) / dst_aspect;
-	const float		scale2		= Min( src_aspect, dst_aspect ) / dst_aspect;
-	const float2	scale		= src_aspect >= dst_aspect ? float2(scale1, 1.0f) : float2(1.0f, 1.0f/scale2);
+	const float		src_ratio	= srcSizePx.x / srcSizePx.y;
+	const float		dst_ratio	= dstSizePx.x / dstSizePx.y;
+	const float		scale1		= Max( src_ratio, dst_ratio ) / dst_ratio;
+	const float		scale2		= Min( src_ratio, dst_ratio ) / dst_ratio;
+	const float2	scale		= src_ratio >= dst_ratio ? float2(scale1, 1.0f) : float2(1.0f, 1.0f/scale2);
 	return ToUNorm( snorm * scale * snormScale );
 }
 //-----------------------------------------------------------------------------
@@ -153,6 +153,14 @@ int3  GetGlobalCoord ()
   #endif
 }
 
+float3  GetGlobalCoordUF ()
+{
+  #if 0 //def AE_GEOMETRY_SHADER
+	return float3( Floor(gl.FragCoord.xy), gl.Layer );	// error on Adreno
+  #else
+	return float3( Floor(gl.FragCoord.xy), 0 );
+  #endif
+}
 
 int3  GetGlobalCoordQuadCorrected ()
 {
@@ -281,6 +289,19 @@ int3  GetGroupSize ()
 
 
 
+#if defined(SH_COMPUTE) or defined(SH_MESH_TASK) or defined(SH_MESH) or \
+	defined(SH_RAY_GEN) or defined(SH_RAY_AHIT) or defined(SH_RAY_CHIT) or defined(SH_RAY_INT) or defined(SH_RAY_MISS) or defined(SH_RAY_CALL)
+
+float3  GetGlobalCoordUF ()
+{
+	return float3(GetGlobalCoord());
+}
+
+#endif
+//-----------------------------------------------------------------------------
+
+
+
 // global linear index
 int  GetGlobalIndex ()
 {
@@ -373,11 +394,6 @@ float3  GetGlobalCoordSNorm (int3 offset)
 float3  GetGlobalCoordSF ()
 {
 	return float3(GetGlobalCoord()) - float3(GetGlobalSize()-1) * 0.5f;
-}
-
-float3  GetGlobalCoordUF ()
-{
-	return float3(GetGlobalCoord());
 }
 
 

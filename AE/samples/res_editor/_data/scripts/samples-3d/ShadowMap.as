@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Draw cube with parallax mapping.
+	Simple shadow mapping.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

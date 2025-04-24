@@ -24,7 +24,7 @@ namespace AE::ResEditor
 
 	private:
 		using PassArr_t		= Array< RC<IPass> >;
-		using CustomKeys_t	= StaticArray< float, 1 >;
+		using CustomKeys_t	= IPass::CustomKeys_t;
 
 		struct ScriptFile
 		{

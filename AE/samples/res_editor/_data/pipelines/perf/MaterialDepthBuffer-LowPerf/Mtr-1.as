@@ -14,7 +14,7 @@
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( prefix+".ds" );
 			ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject",	 "UnifiedGeometryMaterialUB" );
 			ds.StorageBuffer( EShaderStages::Vertex,	"un_CBuffer",	 "CBuffer", EResourceState::ShaderStorage_Read );	// external
-			ds.SampledImage(  EShaderStages::Fragment,	"un_Textures",	 8*4, EImageType::Float_2D );	// external
+			ds.SampledImage(  EShaderStages::Fragment,	"un_Textures",	 ArraySize(8*4), EImageType::Float_2D );			// external
 			ds.ImtblSampler(  EShaderStages::Fragment,	"un_Sampler",	 Sampler_LinearRepeat );
 		}{
 			RC<PipelineLayout>		pl = PipelineLayout( prefix+".pl" );

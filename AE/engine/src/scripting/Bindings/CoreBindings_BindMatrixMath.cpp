@@ -184,8 +184,8 @@ namespace
 		static Mat_t	RotateZ (const Mat_t&, Scalar_t angle)						{ return Mat_t::RotateZ( Rad{angle} ); }
 
 		static Mat_t	Ortho (const Mat_t&, const Rect_t &viewport, const Vec2_t &range)						{ return Mat_t::Ortho( viewport, range ); }
-		static Mat_t	InfinitePerspective (const Mat_t&, Scalar_t fovY, Scalar_t aspect, Scalar_t zNear)		{ return Mat_t::InfinitePerspective( Rad{fovY}, aspect, zNear ); }
-		static Mat_t	Perspective1 (const Mat_t&, Scalar_t fovY, Scalar_t aspect, const Vec2_t &range)		{ return Mat_t::Perspective( Rad{fovY}, aspect, range ); }
+		static Mat_t	InfinitePerspective (const Mat_t&, Scalar_t fovY, Scalar_t aspectRatio, Scalar_t zNear)	{ return Mat_t::InfinitePerspective( Rad{fovY}, aspectRatio, zNear ); }
+		static Mat_t	Perspective1 (const Mat_t&, Scalar_t fovY, Scalar_t aspectRatio, const Vec2_t &range)	{ return Mat_t::Perspective( Rad{fovY}, aspectRatio, range ); }
 		static Mat_t	Perspective2 (const Mat_t&, Scalar_t fovY, const Vec2_t &viewport, const Vec2_t &range)	{return Mat_t::Perspective( Rad{fovY}, viewport, range ); }
 		static Mat_t	Frustum (const Mat_t&, const Rect_t &viewport, const Vec2_t &range)						{ return Mat_t::Frustum( viewport, range ); }
 		static Mat_t	InfiniteFrustum (const Mat_t&, const Rect_t &viewport, Scalar_t zNear)					{ return Mat_t::InfiniteFrustum( viewport, zNear ); }
@@ -215,51 +215,50 @@ namespace
 
 		constexpr uint	R = T::Dimension().columns;
 
-		binder.Operators()
-		//	.BinaryAssign(	EBinaryOperator::Add, &F::Add_am_s )
-			.Binary(		EBinaryOperator::Add, &F::Add_m_s )
-			.BinaryRH(		EBinaryOperator::Add, &F::Add_s_m )
+	//	AS_OP_BIN_ASSIGN(	binder, EBinaryOperator::Add, F::Add_am_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Add, F::Add_m_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Add, F::Add_s_m );
 
-		//	.BinaryAssign(	EBinaryOperator::Sub, &F::Sub_am_s )
-			.Binary(		EBinaryOperator::Sub, &F::Sub_m_s )
+	//	AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Sub, F::Sub_am_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Sub, F::Sub_m_s );
 
-		//	.BinaryAssign(	EBinaryOperator::Mul, &F::Mul_am_s )
-			.Binary(		EBinaryOperator::Mul, &F::Mul_m_s )
-			.BinaryRH(		EBinaryOperator::Mul, &F::Mul_s_m )
-			.Binary(		EBinaryOperator::Mul, &F::Mul_m_v )
-			.BinaryRH(		EBinaryOperator::Mul, &F::Mul_v_m )
+	//	AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mul, F::Mul_am_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, F::Mul_m_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Mul, F::Mul_s_m );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, F::Mul_m_v );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Mul, F::Mul_v_m );
 
-			.Binary(		EBinaryOperator::Mul, &F::template Mul_m_m<2,R> )
-			.Binary(		EBinaryOperator::Mul, &F::template Mul_m_m<3,R> )
-			.Binary(		EBinaryOperator::Mul, &F::template Mul_m_m<4,R> )
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, (F::template Mul_m_m<2,R>) );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, (F::template Mul_m_m<3,R>) );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, (F::template Mul_m_m<4,R>) );
 
-			.Binary(		EBinaryOperator::Div, &F::Div_m_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Div, F::Div_m_s );
 
 		if constexpr( IsSame< T, packed_float3x3 > or
 					  IsSame< T, packed_float3x4 > or
 					  IsSame< T, packed_float4x3 > or
 					  IsSame< T, packed_float4x4 >)
 		{
-			binder.AddMethodFromGlobal( &F::RotateX,				"RotateX",			{"angle"} );
-			binder.AddMethodFromGlobal( &F::RotateY,				"RotateY",			{"angle"} );
-			binder.AddMethodFromGlobal( &F::RotateZ,				"RotateZ",			{"angle"} );
+			AS_METHOD_T( binder, F::RotateX,			"RotateX",			{"angle"} );
+			AS_METHOD_T( binder, F::RotateY,			"RotateY",			{"angle"} );
+			AS_METHOD_T( binder, F::RotateZ,			"RotateZ",			{"angle"} );
 		}
 
 		if constexpr( IsSame< T, packed_float4x4 >)
 		{
-			binder.AddMethodFromGlobal( &F::Rotate,					"Rotate",			{"angle", "axis"} );
-			binder.AddMethodFromGlobal( &F::Ortho,					"Ortho",			{"viewport", "range"} );
-			binder.AddMethodFromGlobal( &F::InfinitePerspective,	"InfinitePerspective", {"fovY", "aspect", "zNear"} );
-			binder.AddMethodFromGlobal( &F::Perspective1,			"Perspective",		{"fovY", "aspect", "range"} );
-			binder.AddMethodFromGlobal( &F::Perspective2,			"Perspective",		{"fovY", "viewport", "range"} );
-			binder.AddMethodFromGlobal( &F::Frustum,				"Frustum",			{"viewport", "range"} );
-			binder.AddMethodFromGlobal( &F::InfiniteFrustum,		"InfiniteFrustum",	{"viewport", "zNear"} );
-			binder.AddMethodFromGlobal( &F::Translate,				"Translate",		{"translation"} );
-			binder.AddMethodFromGlobal( &F::Scale1,					"Scale",			{"scale"} );
-			binder.AddMethodFromGlobal( &F::Scale2,					"Scale",			{"scale"} );
-			binder.AddMethodFromGlobal( &F::Project,				"Project",			{"pos", "viewport"} );
-			binder.AddMethodFromGlobal( &F::UnProject,				"UnProject",		{"pos", "viewport"} );
-			binder.AddMethodFromGlobal( &F::LookAt,					"LookAt",			{"eye", "center", "up"} );
+			AS_METHOD_T( binder, F::Rotate,				"Rotate",			{"angle", "axis"} );
+			AS_METHOD_T( binder, F::Ortho,				"Ortho",			{"viewport", "range"} );
+			AS_METHOD_T( binder, F::InfinitePerspective,"InfinitePerspective", {"fovY", "aspectRatio", "zNear"} );
+			AS_METHOD_T( binder, F::Perspective1,		"Perspective",		{"fovY", "aspectRatio", "range"} );
+			AS_METHOD_T( binder, F::Perspective2,		"Perspective",		{"fovY", "viewport", "range"} );
+			AS_METHOD_T( binder, F::Frustum,			"Frustum",			{"viewport", "range"} );
+			AS_METHOD_T( binder, F::InfiniteFrustum,	"InfiniteFrustum",	{"viewport", "zNear"} );
+			AS_METHOD_T( binder, F::Translate,			"Translate",		{"translation"} );
+			AS_METHOD_T( binder, F::Scale1,				"Scale",			{"scale"} );
+			AS_METHOD_T( binder, F::Scale2,				"Scale",			{"scale"} );
+			AS_METHOD_T( binder, F::Project,			"Project",			{"pos", "viewport"} );
+			AS_METHOD_T( binder, F::UnProject,			"UnProject",		{"pos", "viewport"} );
+			AS_METHOD_T( binder, F::LookAt,				"LookAt",			{"eye", "center", "up"} );
 		}
 	}
 

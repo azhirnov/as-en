@@ -18,8 +18,16 @@ namespace AE::Networking
 		struct Config : BaseSocket::_Config
 		{
 			bool	noDelay			= true;
-			bool	reuseAddress	= false;	// only for 'Listen()'
-			uint	maxConnections	= UMax;		// only for 'Listen()'
+
+			// Allow to open multiple sockets with same address.
+			// For TCP it allows to immediatlly reopen socket when OS waiting for incoming messages
+			// until timeout is returned on client side and socket will be closed.
+			// Warning: attacker may use it to open socket and avoid firewall.
+			// Used only for 'Listen()'.
+			bool	reuseAddress	= false;
+			
+			// Used only for 'Listen()'.
+			uint	maxConnections	= UMax;
 
 			Config () __NE___ :
 				_Config{ NetConfig::TCP_SendBufferSize, NetConfig::TCP_ReceiveBufferSize }

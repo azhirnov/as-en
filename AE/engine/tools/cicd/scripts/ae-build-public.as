@@ -9,8 +9,8 @@ const string	c_GitAddress	= c_GitServer+"as-en-dev.git"; // "https://github.com/
 const string	c_GitBranch		= "dev-github";
 
 const array<string>	c_Targets	= { "Tests.Base", "Tests.Serializing", "Tests.Scripting", "Tests.Threading",
-									"Tests.Networking", "Tests.ECS-st", "Tests.Graphics", "Tests.GraphicsHL", "Tests.VFS",
-									"Tests.GeometryTools", "Tests.AtlasTools", "CICD", "RemoteGraphicsDevice", "GraphicsLib" };
+									"Tests.Networking", "Tests.ECS-st", "Tests.GraphicsRHI", "Tests.Graphics", "Tests.VFS",
+									"Tests.GeometryTools", "Tests.AtlasTools", "CICD", "RemoteGraphicsDevice", "GraphicsRHI-shared" };
 const array<string>	c_Samples	= { "Sample.Demo", "ResourceEditor" };
 
 
@@ -36,11 +36,11 @@ void  CompileResources (const string build_dir)
 
 	g_compileResources = false;
 
+	CMakeBuild( build_dir, "Release", "Tests.GraphicsRHI.PackRes" );
 	CMakeBuild( build_dir, "Release", "Tests.Graphics.PackRes" );
-	CMakeBuild( build_dir, "Release", "Tests.GraphicsHL.PackRes" );
 
-	UploadFolder( "AE-Temp/engine/graphics",	c_BasePath+"Assets",  ECopyMode::FolderMerge_FileKeep );
-	UploadFolder( "AE-Temp/engine/graphics_hl",	c_BasePath+"Assets",  ECopyMode::FolderMerge_FileKeep );
+	UploadFolder( "AE-Temp/engine/graphics_rhi",	c_BasePath+"Assets",  ECopyMode::FolderMerge_FileKeep );
+	UploadFolder( "AE-Temp/engine/graphics",		c_BasePath+"Assets",  ECopyMode::FolderMerge_FileKeep );
 }
 //-----------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ void  CompileResources (const string build_dir)
 
 void  BuildMSVC (const string path, const ECompiler compiler, const string cmakeOptions)
 {
-	if ( ! Server_HasFolder( path ) || c_ForceRebuild )
+	if ( ! Server_HasFolder( path ) or c_ForceRebuild )
 	{
 		StartBuild( OS::Windows, CPUArch::x64 );
 		CloneRepository( "win64-android" );
@@ -109,7 +109,7 @@ void  BuildMSVC (const string path, const ECompiler compiler, const string cmake
 
 void  BuildAndroid (const string path, const string cmakeOptions)
 {
-	if ( ! Server_HasFolder( path ) || c_ForceRebuild )
+	if ( ! Server_HasFolder( path ) or c_ForceRebuild )
 	{
 		StartBuild( OS::Windows, CPUArch::x64 );
 		CloneRepository( "win64-android" );
@@ -189,7 +189,7 @@ void  BuildAndroid (const string path, const string cmakeOptions)
 
 void  BuildLinux (const string path, const ECompiler compiler, uint compilerVer, const string cmakeOptions)
 {
-	if ( ! Server_HasFolder( path ) || c_ForceRebuild )
+	if ( ! Server_HasFolder( path ) or c_ForceRebuild )
 	{
 		StartBuild( OS::Linux, CPUArch::x64 );
 		CloneRepository( "linux-x64" );
@@ -244,7 +244,7 @@ void  BuildLinux (const string path, const ECompiler compiler, uint compilerVer,
 
 void  BuildMacOS (const string path, const ECompiler compiler, uint compilerVer, const string cmakeOptions, CPUArch arch)
 {
-	if ( ! Server_HasFolder( path ) || c_ForceRebuild )
+	if ( ! Server_HasFolder( path ) or c_ForceRebuild )
 	{
 		StartBuild( OS::MacOS, CPUArch::Arm64 );
 		CloneRepository( "macos" );

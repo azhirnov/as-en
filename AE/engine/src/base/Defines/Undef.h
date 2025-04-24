@@ -35,3 +35,4 @@
 #undef CreateFile
 #undef CopyFile
 #undef GetEnvironmentVariable
+#undef SetEnvironmentVariable

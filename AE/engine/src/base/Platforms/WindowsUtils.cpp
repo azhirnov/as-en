@@ -862,7 +862,44 @@ namespace
 		DWORD	err = ::GetEnvironmentVariableA( name.c_str(), null, 0 );
 		return err != 0;
 	}
+	
+/*
+=================================================
+	SetEnvironmentVariable
+=================================================
+*/
+	bool  WindowsUtils::SetEnvironmentVariable (NtStringView name, NtStringView value) __NE___
+	{
+		CHECK_ERR( not name.empty() );
+		CHECK_ERR( not value.empty() );
+		CHECK_ERR( value.size() < 32'767 );
 
+		return ::SetEnvironmentVariableA( name.c_str(), value.c_str() ) != 0;
+	}
+	
+/*
+=================================================
+	DeleteEnvironmentVariable
+=================================================
+*/
+	bool  WindowsUtils::DeleteEnvironmentVariable (NtStringView name) __NE___
+	{
+		CHECK_ERR( not name.empty() );
+		return ::SetEnvironmentVariableA( name.c_str(), null ) != 0;
+	}
+	
+/*
+=================================================
+	GetExeLocation
+=================================================
+*/
+	Path  WindowsUtils::GetExeLocation () __NE___
+	{
+		wchar_t	buf[MAX_PATH] = {};
+		CHECK_ERR( ::GetModuleFileNameW( null, buf, DWORD(CountOf(buf)) ) != FALSE );
+
+		NOTHROW_ERR( return Path{ buf };)
+	}
 
 } // AE::Base
 

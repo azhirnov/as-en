@@ -22,7 +22,7 @@ namespace AE::ResEditor
 	// types
 	public:
 		using TransferCtx_t = DirectCtx::Transfer;
-		using CustomKeys_t	= StaticArray< float, 1 >;
+		using CustomKeys_t	= StaticArray< float, 2 >;
 
 		enum class EPassType : uint
 		{

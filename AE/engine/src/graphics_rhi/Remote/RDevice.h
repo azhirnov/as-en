@@ -137,7 +137,8 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit RDeviceInitializer (Bool enableInfoLog = False{})							__NE___;
+		explicit RDeviceInitializer (Bool enableInfoLog			= False{},
+									 Bool enableAllocatorStats	= True{})					__NE___;
 		~RDeviceInitializer ()																__NE___;
 
 	  // LowLevel //

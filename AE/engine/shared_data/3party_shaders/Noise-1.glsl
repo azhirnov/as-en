@@ -119,9 +119,9 @@
 																		\
 		float va = 0.0;													\
 		float wt = 0.0;													\
-		for (int z = -2; z <= 2; ++z)									\
-		for (int y = -2; y <= 2; ++y)									\
-		for (int x = -2; x <= 2; ++x)									\
+		UNROLL for (int z = -2; z <= 2; ++z)							\
+		UNROLL for (int y = -2; y <= 2; ++y)							\
+		UNROLL for (int x = -2; x <= 2; ++x)							\
 		{																\
 			float3	g	= float3(x,y,z);								\
 			float3	o	= hash( p + g ) * u;							\
@@ -388,8 +388,8 @@
 			VoronoiResult2	result;								\
 			result.minDist = float_max;							\
 																\
-			for (int y = -1; y <= 1; ++y)						\
-			for (int x = -1; x <= 1; ++x)						\
+			UNROLL for (int y = -1; y <= 1; ++y)				\
+			UNROLL for (int x = -1; x <= 1; ++x)				\
 			{													\
 				float2	ioffset	= float2( x, y );				\
 				float2	offset	= hash( ipoint + ioffset );		\
@@ -452,9 +452,9 @@
 			VoronoiResult3	result;								\
 			result.minDist = float_max;							\
 																\
-			for (int z = -1; z <= 1; ++z)						\
-			for (int y = -1; y <= 1; ++y)						\
-			for (int x = -1; x <= 1; ++x)						\
+			UNROLL for (int z = -1; z <= 1; ++z)				\
+			UNROLL for (int y = -1; y <= 1; ++y)				\
+			UNROLL for (int x = -1; x <= 1; ++x)				\
 			{													\
 				float3	ioffset	= float3( x, y, z );			\
 				float3	offset	= hash( ipoint + ioffset );		\
@@ -524,8 +524,8 @@
 			VoronoiResult2	result;																		\
 			result.minDist = float_max;																	\
 																										\
-			for (int y = -1; y <= 1; ++y)																\
-			for (int x = -1; x <= 1; ++x)																\
+			UNROLL for (int y = -1; y <= 1; ++y)														\
+			UNROLL for (int x = -1; x <= 1; ++x)														\
 			{																							\
 				float2	ioffset	= float2( x, y );														\
 				float2	offset	= hash( ipoint + ioffset );												\
@@ -543,8 +543,8 @@
 																										\
 			result.minDist = float_max;																	\
 																										\
-			for (int y = -2; y <= 2; ++y)																\
-			for (int x = -2; x <= 2; ++x)																\
+			UNROLL for (int y = -2; y <= 2; ++y)														\
+			UNROLL for (int x = -2; x <= 2; ++x)														\
 			{																							\
 				float2	ioffset	= result.icenter + float2( x, y );										\
 				float2	offset	= hash( ipoint + ioffset );												\
@@ -596,9 +596,9 @@
 			VoronoiResult3	result;																		\
 			result.minDist = float_max;																	\
 																										\
-			for (int z = -1; z <= 1; ++z)																\
-			for (int y = -1; y <= 1; ++y)																\
-			for (int x = -1; x <= 1; ++x)																\
+			UNROLL for (int z = -1; z <= 1; ++z)														\
+			UNROLL for (int y = -1; y <= 1; ++y)														\
+			UNROLL for (int x = -1; x <= 1; ++x)														\
 			{																							\
 				float3	ioffset	= float3( x, y, z );													\
 				float3	offset	= hash( ipoint + ioffset );												\
@@ -616,9 +616,9 @@
 																										\
 			result.minDist = float_max;																	\
 																										\
-			for (int z = -2; z <= 2; ++z)																\
-			for (int y = -2; y <= 2; ++y)																\
-			for (int x = -2; x <= 2; ++x)																\
+			UNROLL for (int z = -2; z <= 2; ++z)														\
+			UNROLL for (int y = -2; y <= 2; ++y)														\
+			UNROLL for (int x = -2; x <= 2; ++x)														\
 			{																							\
 				float3	ioffset	= result.icenter + float3( x, y, z );									\
 				float3	offset	= hash( ipoint + ioffset );												\
@@ -688,8 +688,8 @@
 		float	mr		= float_max;
 
 		// find nearest circle
-		for (int y = -1; y <= 1; ++y)
-		for (int x = -1; x <= 1; ++x)
+		UNROLL for (int y = -1; y <= 1; ++y)
+		UNROLL for (int x = -1; x <= 1; ++x)
 		{
 			float2	cur	= float2(x, y);
 			float2	off	= hash( cur + ipoint ) + cur - fpoint;
@@ -703,8 +703,8 @@
 		}
 
 		// calc circle radius
-		for (int y = -2; y <= 2; ++y)
-		for (int x = -2; x <= 2; ++x)
+		UNROLL for (int y = -2; y <= 2; ++y)
+		UNROLL for (int x = -2; x <= 2; ++x)
 		{
 			if ( AllEqual( int2(x,y), int2(0) ))
 				continue;
@@ -741,6 +741,8 @@
 =================================================
 	WaveletNoise
 ----
+	range [-1..1]
+
 	from https://www.shadertoy.com/view/wsBfzK
 	The MIT License
 	Copyright (c) 2020 Martijn Steinrucken
@@ -756,7 +758,7 @@
 		float z = params.custom.x;
 		float k = Max( 0.4, params.custom.y );
 
-		for (float i = 0.0f; i < 4.0f; ++i)
+		UNROLL for (float i = 0.0f; i < 4.0f; ++i)
 		{
 			float2 q = pos * s;
 			float2 g = Fract(Floor(q) * float2(123.34f, 233.53f));

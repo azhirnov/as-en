@@ -103,6 +103,16 @@ namespace
 	  #endif
 
 		CHECK( cfg.graphics.maxFrames <= cfg.graphics.swapchain.minImageCount );
+
+		#ifdef AE_ENABLE_VULKAN
+		# ifdef AE_PLATFORM_WINDOWS
+		//	cfg.graphics.driverList[0] = Graphics::EDriver::LavaPipe;	// enable software Vulkan
+		# endif
+		# ifdef AE_PLATFORM_LINUX
+			cfg.graphics.driverList[0] = Graphics::EDriver::AMD_PRO;
+		# endif
+		#endif
+
 		return cfg;
 	}
 
@@ -111,18 +121,21 @@ namespace
 	ResEditorAppConfig_VFSPath
 =================================================
 */
-	static void  ResEditorAppConfig_VFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
+	static void  ResEditorAppConfig_StaticVFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
 	{
-		CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-			"VFSPath '"s << ToString(path) << "' must be existed folder" );
+		if ( not FileSystem::IsDirectory( path ))
+		{
+			AE_LOGW( "VFSPath '"s << ToString(path) << "' is not a directory" );
+			return;
+		}
 
 		self.vfsPaths.emplace_back( FileSystem::ToAbsolute( Path{path} ), prefix );
 	}
 
-	static void  ResEditorAppConfig_MakeVFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
+	static void  ResEditorAppConfig_DynamicVFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
 	{
 		FileSystem::CreateDirectories( path );
-		ResEditorAppConfig_VFSPath( self, path, prefix );
+		self.vfsPaths.emplace_back( FileSystem::ToAbsolute( Path{path} ), prefix );
 	}
 
 /*
@@ -391,30 +404,32 @@ namespace
 		{
 			ClassBinder<ResEditorAppConfig>		binder{ se };
 			binder.CreateClassValue();
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_VFSPath,					"VFSPath",				{"path", "prefixInVFS"} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_MakeVFSPath,				"MakeVFSPath",			{"path", "prefixInVFS"} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_NetVFS,						"NetVFS",				{"host", "service", "prefixInVFS"} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_UIDataDir,					"UIDataDir",			{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineSearchDir,			"PipelineSearchDir",	{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineIncludeDir,			"PipelineIncludeDir",	{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderSearchDir,			"ShaderSearchDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderIncludeDir,			"ShaderIncludeDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ScriptDir,					"ScriptDir",			{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_CallableScriptDir,			"CallableScriptDir",	{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_AddScriptIncludeDir,		"ScriptIncludeDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderTraceDir,				"ShaderTraceDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ScreenshotDir,				"ScreenshotDir",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_VideoDir,					"VideoDir",				{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_ExportDir,					"ExportDir",			{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_SetRemoteDeviceIpAddress,	"RemoteDeviceIpAddress",{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_SetGraphicsLibPath,			"GraphicsLibPath",		{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_AddTestFolder,				"TestFolder",			{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_AddTestOutput,				"TestOutput",			{} );
-			binder.AddMethodFromGlobal( &ResEditorAppConfig_SetRemoteInputServerPort,	"RemoteInputServerPort",{} );
-			binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,					"setStableGPUClock"		);
-			binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,					"enableRenderDoc"		);
-			binder.AddProperty( &ResEditorAppConfig::screenWidth,						"screenWidth"			);
-			binder.AddProperty( &ResEditorAppConfig::screenHeight,						"screenHeight"			);
+			AS_METHOD( binder, ResEditorAppConfig_StaticVFSPath,			"VFSPath",				{"path", "prefixInVFS"} );	// deprecated
+			AS_METHOD( binder, ResEditorAppConfig_DynamicVFSPath,			"MakeVFSPath",			{"path", "prefixInVFS"} );	// deprecated
+			AS_METHOD( binder, ResEditorAppConfig_StaticVFSPath,			"StaticVFSPath",		{"path", "prefixInVFS"} );
+			AS_METHOD( binder, ResEditorAppConfig_DynamicVFSPath,			"DynamicVFSPath",		{"path", "prefixInVFS"} );
+			AS_METHOD( binder, ResEditorAppConfig_NetVFS,					"NetVFS",				{"host", "service", "prefixInVFS"} );
+			AS_METHOD( binder, ResEditorAppConfig_UIDataDir,				"UIDataDir",			{} );
+			AS_METHOD( binder, ResEditorAppConfig_PipelineSearchDir,		"PipelineSearchDir",	{} );
+			AS_METHOD( binder, ResEditorAppConfig_PipelineIncludeDir,		"PipelineIncludeDir",	{} );
+			AS_METHOD( binder, ResEditorAppConfig_ShaderSearchDir,			"ShaderSearchDir",		{} );
+			AS_METHOD( binder, ResEditorAppConfig_ShaderIncludeDir,			"ShaderIncludeDir",		{} );
+			AS_METHOD( binder, ResEditorAppConfig_ScriptDir,				"ScriptDir",			{} );
+			AS_METHOD( binder, ResEditorAppConfig_CallableScriptDir,		"CallableScriptDir",	{} );
+			AS_METHOD( binder, ResEditorAppConfig_AddScriptIncludeDir,		"ScriptIncludeDir",		{} );
+			AS_METHOD( binder, ResEditorAppConfig_ShaderTraceDir,			"ShaderTraceDir",		{} );
+			AS_METHOD( binder, ResEditorAppConfig_ScreenshotDir,			"ScreenshotDir",		{} );
+			AS_METHOD( binder, ResEditorAppConfig_VideoDir,					"VideoDir",				{} );
+			AS_METHOD( binder, ResEditorAppConfig_ExportDir,				"ExportDir",			{} );
+			AS_METHOD( binder, ResEditorAppConfig_SetRemoteDeviceIpAddress,	"RemoteDeviceIpAddress",{} );
+			AS_METHOD( binder, ResEditorAppConfig_SetGraphicsLibPath,		"GraphicsLibPath",		{} );
+			AS_METHOD( binder, ResEditorAppConfig_AddTestFolder,			"TestFolder",			{} );
+			AS_METHOD( binder, ResEditorAppConfig_AddTestOutput,			"TestOutput",			{} );
+			AS_METHOD( binder, ResEditorAppConfig_SetRemoteInputServerPort,	"RemoteInputServerPort",{} );
+			binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,		"setStableGPUClock"		);
+			binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,		"enableRenderDoc"		);
+			binder.AddProperty( &ResEditorAppConfig::screenWidth,			"screenWidth"			);
+			binder.AddProperty( &ResEditorAppConfig::screenHeight,			"screenHeight"			);
 		}
 
 		ScriptEngine::ModuleSource	src;
@@ -491,31 +506,34 @@ void main (Config &out cfg)
 		str << R"(
 	// VFS //
 	//	attach path on disk to VFS
-	cfg.VFSPath( vfs_path + "shadertoy_data",	"shadertoy/" );
-	cfg.VFSPath( vfs_path + "res_editor_data",	"res/" );
-	//	create directory and add as mutable file system
-	cfg.MakeVFSPath( local_path + "../_export",	"export/" );
+	//	all file paths listed at startup, new files will be accessible after app restart 
+	cfg.StaticVFSPath( vfs_path + "shadertoy_data",  "shadertoy/" );
+	cfg.StaticVFSPath( vfs_path + "res_editor_data", "res/" );
+	//	create directory if not exists
+	//	new files can be added at runtime
+	cfg.DynamicVFSPath( local_path + "../_export",   "export/" );
 	//	connect to network file system
 	//cfg.NetVFS( "localhost", "4000", "net/" );
 
 	// pipeline dirs //
-	//	where to search pipelines for 'UnifiedGeometry' and 'Model'.
+	//	where to search pipelines
 	cfg.PipelineSearchDir( local_path + "pipelines" );
 	cfg.PipelineIncludeDir( local_path + "pipeline_inc" );
 
 	// shaders //
-	//	where to search shaders for pipelines and passes.
+	//	where to search shaders for pipelines and passes
 	cfg.ShaderSearchDir( local_path + "shaders" );
 	cfg.ShaderIncludeDir( shader_data_path + "shaders" );
 	cfg.ShaderIncludeDir( local_path + "shaders" );
 	cfg.ShaderIncludeDir( local_path + "script_inc" );
+	cfg.ShaderIncludeDir( local_path + "pipeline_inc" );
 
 	// scripts //
-	//	all files with '.as' extension will be added to script list in editor.
+	//	all files with '.as' extension will be added to script list in editor
 	cfg.ScriptDir( local_path + "scripts" );
-	//	scripts which can be used directly and for 'RunScript()' call.
+	//	scripts which can be used directly and for 'RunScript()' call
 	cfg.CallableScriptDir( local_path + "scripts/callable" );
-	//	scripts which can be included in other scripts.
+	//	scripts which can be included in other scripts
 	cfg.ScriptIncludeDir( local_path + "script_inc" );
 
 	// output //
@@ -539,6 +557,7 @@ void main (Config &out cfg)
 	cfg.enableRenderDoc = false;
 
 	// remote input //
+	//	see 'Setup Remote Input' in 'docs/Remote.md'
 	//cfg.RemoteInputServerPort( 0 );
 )";
 

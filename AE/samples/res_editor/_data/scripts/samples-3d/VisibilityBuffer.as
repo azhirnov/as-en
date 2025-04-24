@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Visibility buffer prototype.
-	- Implemented using ray tracing pass which has storage buffer for vertices.
-	- Derivative calculations copy pasted from 'The Forge' engine.
+	- Implemented using ray tracing pass which already has storage buffer for all vertices.
+	- Derivative calculations copy-pasted from 'The Forge' engine.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

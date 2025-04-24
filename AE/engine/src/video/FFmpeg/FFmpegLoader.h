@@ -221,7 +221,7 @@ namespace AE::Video
 	}
 # endif
 
-# define FG_PRIVATE_FF_CHECK_R( _func_, _ret_, ... )																							\
+# define FG_PRIVATE_FF_CHECK_R( _func_, _ret_ )																							\
 	{																																			\
 		int __ff_err__ = (_func_);																												\
 		if_unlikely( not _ffmpeg_CheckError( _ffmpeg->av_strerror, __ff_err__, AE_TOSTRING( _func_ ), AE_FUNCTION_NAME, SourceLoc_Current() ))	\
@@ -229,7 +229,7 @@ namespace AE::Video
 	}
 
 # define FF_CHECK_ERR( ... ) \
-	FG_PRIVATE_FF_CHECK_R( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
+	FG_PRIVATE_FF_CHECK_R( AE_PRIVATE_GETARG_0( __VA_ARGS__, ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default, ))
 
 
 #endif // AE_ENABLE_FFMPEG

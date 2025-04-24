@@ -6,6 +6,55 @@
 
 namespace AE::Graphics
 {
+	//
+	// Cooperative Matrix Config
+	//
+	enum class ECoopMatrixCfg : ubyte
+	{
+		// A, B, C, R:		R = A * B + C
+		// M, N, K:			A[MxK], B[KxN], C[MxN], R[MxN]
+		// SA				saturatingAccumulation
+
+		Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16,
+		Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16,
+
+		Au8_Bu8_Cu32_Ru32_M16_N16_K32,
+		As8_Bs8_Cs32_Rs32_M16_N16_K32,
+
+		_Count
+	};
+
+
+
+	//
+	// Cooperative Vector Config
+	//
+	enum class ECoopVecCfg : ubyte
+	{
+		// T	- inputType				- CoopVec<T>
+		// I	- inputInterpretation
+		// M	- matrixInterpretation
+		// B	- biasInterpretation
+		// R	- resultType
+		// Tp	- transpose=true
+		//
+		// R = I(T) * M + B
+		//
+		// s8x4		- uint32 as 4x uint8
+		// fp8e4m3	- 8bit float point with 1bit sign, 4bit exponent, 3bit mantissa
+		// fp8e5m2	- 8bit float point with 1bit sign, 5bit exponent, 2bit mantissa
+
+		Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp,
+
+		Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16,
+		Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16,
+
+		Ts8_Is8_Ms8_Bs32_Rs32,
+
+		_Count
+	};
+
+
 
 	//
 	// Surface Format
@@ -15,7 +64,8 @@ namespace AE::Graphics
 		BGRA8_sRGB_nonlinear,			// BGRA8_UNorm,		sRGB_nonlinear
 		RGBA8_sRGB_nonlinear,			// RGBA8_UNorm,		sRGB_nonlinear
 		BGRA8_BT709_nonlinear,			// BGRA8_UNorm,		BT709_nonlinear
-
+		
+		RGBA16F_sRGB_nonlinear,			// RGBA16F,			sRGB_nonlinear
 		RGBA16F_Extended_sRGB_linear,	// RGBA16F,			Extended_sRGB_linear
 		RGBA16F_Extended_sRGB_nonlinear,// RGBA16F,			Extended_sRGB_nonlinear
 		RGBA16F_BT709_nonlinear,		// RGBA16F,			BT709_nonlinear
@@ -120,11 +170,11 @@ namespace AE::Graphics
 
 		//								|-------------------------------------------------------|-----------------------------------------------|
 		// ---- Ballot ----				|						  GL_KHR_shader_subgroup_ballot |												|
-		Ballot,						//	|	uint4 subgroupBallot(bool value)					|	simd_vote simd_ballot(bool value)			|
-		Broadcast,					//	|	T subgroupBroadcast(T value, uint id)				|	T simd_broadcast(T value, ushort id)		|
-		BroadcastFirst,				//	|	T subgroupBroadcastFirst(T value)					|	T simd_broadcast_first(T value)				|
-		InverseBallot,				//	|	bool subgroupInverseBallot(uint4 value)				|	-											|
-		BallotBitExtract,			//	| bool subgroupBallotBitExtract(uint4 value, uint index)|	-											|
+		Ballot,						//	|	uint4 subgroupBallot(bool value)					|	simd_vote simd_ballot(bool value)			| - returns a set of bitfields containing the result of evaluating the expression 'value' in all active invocations in the subgroup
+		Broadcast,					//	|	T subgroupBroadcast(T value, uint id)				|	T simd_broadcast(T value, ushort id)		| - returns the 'value' from the invocation whose ID is equal to 'id'
+		BroadcastFirst,				//	|	T subgroupBroadcastFirst(T value)					|	T simd_broadcast_first(T value)				| - returns the 'value' from the active invocation with the lowest ID
+		InverseBallot,				//	|	bool subgroupInverseBallot(uint4 value)				|	-											| - returns a bool that is true if the bit in 'value' that corresponds to the current invocation in 'value' is true
+		BallotBitExtract,			//	| bool subgroupBallotBitExtract(uint4 value, uint index)|	-											| - returns a bool that is true if the bit in 'value' that corresponds to 'index'
 		BallotBitCount,				//	|	uint subgroupBallotBitCount(uint4 value)			|	-											|
 		BallotInclusiveBitCount,	//	|	uint subgroupBallotInclusiveBitCount(uint4 value)	|	-											|
 		BallotExclusiveBitCount,	//	|	uint subgroupBallotExclusiveBitCount(uint4 value)	|	-											|
@@ -152,7 +202,7 @@ namespace AE::Graphics
 
 		//								|-------------------------------------------------------|-----------------------------------------------|
 		// ---- Clustered ----			|					   GL_KHR_shader_subgroup_clustered |												|
-		ClusteredAdd,				//	|	T subgroupClusteredAdd(T value, uint clusterSize)	|	-											|
+		ClusteredAdd,				//	|	T subgroupClusteredAdd(T value, uint clusterSize)	|	-											| - returns a clustered operation that is the summation of all active invocation-provided 'value's within a cluster, with a cluster size of 'clusterSize'.
 		ClusteredMul,				//	|	T subgroupClusteredMul(T value, uint clusterSize)	|	-											|
 		ClusteredMin,				//	|	T subgroupClusteredMin(T value, uint clusterSize)	|	-											|
 		ClusteredMax,				//	|	T subgroupClusteredMax(T value, uint clusterSize)	|	-											|

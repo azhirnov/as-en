@@ -110,19 +110,19 @@ namespace
 		{
 			ClassBinder<ScriptRandom_Binomial<1>>	binder{ se };
 			binder.CreateClassValue( flags );
-			binder.Operators().Call( &ScriptRandom_Binomial<1>::Gen );
+			AS_OP_CALL( binder, ScriptRandom_Binomial<1>::Gen );
 		}{
 			ClassBinder<ScriptRandom_Binomial<2>>	binder{ se };
 			binder.CreateClassValue( flags );
-			binder.Operators().Call( &ScriptRandom_Binomial<2>::Gen );
+			AS_OP_CALL( binder, ScriptRandom_Binomial<2>::Gen );
 		}{
 			ClassBinder<ScriptRandom_Binomial<3>>	binder{ se };
 			binder.CreateClassValue( flags );
-			binder.Operators().Call( &ScriptRandom_Binomial<3>::Gen );
+			AS_OP_CALL( binder, ScriptRandom_Binomial<3>::Gen );
 		}{
 			ClassBinder<ScriptRandom_Binomial<4>>	binder{ se };
 			binder.CreateClassValue( flags );
-			binder.Operators().Call( &ScriptRandom_Binomial<4>::Gen );
+			AS_OP_CALL( binder, ScriptRandom_Binomial<4>::Gen );
 		}
 	}
 
@@ -140,19 +140,19 @@ namespace
 		{
 			ClassBinder<ScriptRandom_Normal<1>>		binder{ se };
 			binder.CreateClassValue( flags );
-			binder.Operators().Call( &ScriptRandom_Normal<1>::Gen );
+			AS_OP_CALL( binder, ScriptRandom_Normal<1>::Gen );
 		}{
 			ClassBinder<ScriptRandom_Normal<2>>		binder{ se };
 			binder.CreateClassValue( flags );
-			binder.Operators().Call( &ScriptRandom_Normal<2>::Gen );
+			AS_OP_CALL( binder, ScriptRandom_Normal<2>::Gen );
 		}{
 			ClassBinder<ScriptRandom_Normal<3>>		binder{ se };
 			binder.CreateClassValue( flags );
-			binder.Operators().Call( &ScriptRandom_Normal<3>::Gen );
+			AS_OP_CALL( binder, ScriptRandom_Normal<3>::Gen );
 		}{
 			ClassBinder<ScriptRandom_Normal<4>>		binder{ se };
 			binder.CreateClassValue( flags );
-			binder.Operators().Call( &ScriptRandom_Normal<4>::Gen );
+			AS_OP_CALL( binder, ScriptRandom_Normal<4>::Gen );
 		}
 	}
 
@@ -166,37 +166,37 @@ namespace
 		ClassBinder<ScriptRandom>	binder{ se };
 		binder.CreateClassValue();
 
-		binder.AddMethod( &ScriptRandom::Uniform1f,		"Uniform",		{"min", "max"} );
-		binder.AddMethod( &ScriptRandom::Uniform2f,		"Uniform",		{"min", "max"} );
-		binder.AddMethod( &ScriptRandom::Uniform3f,		"Uniform",		{"min", "max"} );
-		binder.AddMethod( &ScriptRandom::Uniform4f,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform1f,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform2f,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform3f,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform4f,		"Uniform",		{"min", "max"} );
 
-		binder.AddMethod( &ScriptRandom::Uniform1i,		"Uniform",		{"min", "max"} );
-		binder.AddMethod( &ScriptRandom::Uniform2i,		"Uniform",		{"min", "max"} );
-		binder.AddMethod( &ScriptRandom::Uniform3i,		"Uniform",		{"min", "max"} );
-		binder.AddMethod( &ScriptRandom::Uniform4i,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform1i,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform2i,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform3i,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform4i,		"Uniform",		{"min", "max"} );
 
-		binder.AddMethod( &ScriptRandom::Uniform1u,		"Uniform",		{"min", "max"} );
-		binder.AddMethod( &ScriptRandom::Uniform2u,		"Uniform",		{"min", "max"} );
-		binder.AddMethod( &ScriptRandom::Uniform3u,		"Uniform",		{"min", "max"} );
-		binder.AddMethod( &ScriptRandom::Uniform4u,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform1u,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform2u,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform3u,		"Uniform",		{"min", "max"} );
+		AS_METHOD( binder, ScriptRandom::Uniform4u,		"Uniform",		{"min", "max"} );
 
-		binder.AddMethod( &ScriptRandom::UniformColor,	"UniformColor",	{} );
+		AS_METHOD( binder, ScriptRandom::UniformColor,	"UniformColor",	{} );
 
-		binder.AddMethod( &ScriptRandom::Bernoulli1,	"Bernoulli",	{"p"} );
-		binder.AddMethod( &ScriptRandom::Bernoulli2,	"Bernoulli2",	{"p"} );
-		binder.AddMethod( &ScriptRandom::Bernoulli3,	"Bernoulli3",	{"p"} );
-		binder.AddMethod( &ScriptRandom::Bernoulli4,	"Bernoulli4",	{"p"} );
+		AS_METHOD( binder, ScriptRandom::Bernoulli1,	"Bernoulli",	{"p"} );
+		AS_METHOD( binder, ScriptRandom::Bernoulli2,	"Bernoulli2",	{"p"} );
+		AS_METHOD( binder, ScriptRandom::Bernoulli3,	"Bernoulli3",	{"p"} );
+		AS_METHOD( binder, ScriptRandom::Bernoulli4,	"Bernoulli4",	{"p"} );
 
-		binder.AddMethod( &ScriptRandom::Binomial1,		"Binomial",		{"trials", "probability"} );
-		binder.AddMethod( &ScriptRandom::Binomial2,		"Binomial2",	{"trials", "probability"} );
-		binder.AddMethod( &ScriptRandom::Binomial3,		"Binomial3",	{"trials", "probability"} );
-		binder.AddMethod( &ScriptRandom::Binomial4,		"Binomial4",	{"trials", "probability"} );
+		AS_METHOD( binder, ScriptRandom::Binomial1,		"Binomial",		{"trials", "probability"} );
+		AS_METHOD( binder, ScriptRandom::Binomial2,		"Binomial2",	{"trials", "probability"} );
+		AS_METHOD( binder, ScriptRandom::Binomial3,		"Binomial3",	{"trials", "probability"} );
+		AS_METHOD( binder, ScriptRandom::Binomial4,		"Binomial4",	{"trials", "probability"} );
 
-		binder.AddMethod( &ScriptRandom::Normal1,		"Normal",		{"mean", "sigma"} );
-		binder.AddMethod( &ScriptRandom::Normal2,		"Normal2",		{"mean", "sigma"} );
-		binder.AddMethod( &ScriptRandom::Normal3,		"Normal3",		{"mean", "sigma"} );
-		binder.AddMethod( &ScriptRandom::Normal4,		"Normal4",		{"mean", "sigma"} );
+		AS_METHOD( binder, ScriptRandom::Normal1,		"Normal",		{"mean", "sigma"} );
+		AS_METHOD( binder, ScriptRandom::Normal2,		"Normal2",		{"mean", "sigma"} );
+		AS_METHOD( binder, ScriptRandom::Normal3,		"Normal3",		{"mean", "sigma"} );
+		AS_METHOD( binder, ScriptRandom::Normal4,		"Normal4",		{"mean", "sigma"} );
 	}
 
 } // namespace

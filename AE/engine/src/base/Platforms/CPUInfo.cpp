@@ -59,7 +59,6 @@ namespace AE::Base
 				<< "\n  AVX: . . . . " << ToString( feats.AVX )
 				<< "\n  AVX 2:       " << ToString( feats.AVX2 )
 				<< "\n  AVX512F: . . " << ToString( feats.AVX512F )
-				<< "\n  AVX512 fp16: " << ToString( feats.AVX512_FP16 )
 				<< "\n  FMA: . . . . " << ToString( feats.FMA )
 				<< "\n  POPCNT:      " << ToString( feats.POPCNT )
 				<< "\n  AES: . . . . " << ToString( feats.AES )
@@ -91,28 +90,24 @@ namespace AE::Base
 			str << "\n--------------------"
 				<< "\nCPU info:"
 				<< "\n  vendor:       " << ToString( cpu.vendor )
-				<< "\n  architecture: " << ToString( cpu.arch )
+				<< "\n  architecture: " << ToString( cpu.arch ) << "(" << ToString( cpu.microArch ) << ")"
 				<< "\n  total cores:  " << ToString( cpu.physicalCoreCount ) << " / " << ToString( cpu.logicalCoreCount );
 
-			const auto	PrintCache = [&str] (ECacheType cacheType, const CacheGeom &g)
+			const auto	PrintCache = [&str] (ECacheType cacheType, const CacheGeom &g, uint logicalCoreCount)
 			{{
-				StringView	name;
-				switch_enum( cacheType )
-				{
-					case ECacheType::L1_Instuction :	name = "L1I";	break;
-					case ECacheType::L1_Data :			name = "L1D";	break;
-					case ECacheType::L2 :				name = "L2 ";	break;
-					case ECacheType::L3 :				name = "L3 ";	break;
-					case ECacheType::_Count :			break;
-				}
-				switch_end
+				String	name {ToString( cacheType )};
+				if ( name.length() == 2 ) name << ' ';
 
 				if ( g.lineSize > 0 )			str	<< "\n    " << name << ".lineSize:      " << ToString( g.lineSize ) << " B";
 				if ( g.associativity > 0 )		str << "\n    " << name << ".associativity: " << ToString( g.associativity );
-				if ( g.logicalCoreCount > 0 )	str << "\n    " << name << ".cores   . . .  " << ToString( g.logicalCoreCount );
+				if ( g.logicalCoreCount > 0 )	str << "\n    " << name << ".cores          " << ToString( g.logicalCoreCount );
 				if ( g.size > 0 )				str << "\n    " << name << ".size:  . . . . " << ToString( g.size );
+
+				if ( g.size > 0 and g.logicalCoreCount > 0 and logicalCoreCount > 0 )
+												str << "\n    " << name << ".total:         " << ToString( g.size * (logicalCoreCount / g.logicalCoreCount) );
 			}};
 
+			uint	total_cores = 0;
 			for (auto& core : cpu.coreTypes)
 			{
 				str << "\n  cluster:      " << StringView{core.name}
@@ -122,12 +117,15 @@ namespace AE::Base
 					<< "\n    threads:    " << ToString( core.PhysicalCount() ) << " / " << ToString( core.LogicalCount() )
 					<< "\n    IDs:        [" << ToString( core.FirstLogicalCore() ) << ", " << ToString( core.LastLogicalCore()+1 ) << ')';
 
+				const uint	core_cnt = core.LogicalCount();
+				total_cores += core_cnt;
+
 				for (uint i = 0; i < uint(ECacheType::_Count); ++i)
 				{
 					if (auto* c = GetCache( ECacheType(i), core.type ))
 					{
 						str	<< "\n    -----";
-						PrintCache( ECacheType(i), *c );
+						PrintCache( ECacheType(i), *c, core_cnt );
 					}
 				}
 				str	<< "\n    ----------";
@@ -138,7 +136,7 @@ namespace AE::Base
 			{
 				if (auto* c = GetCache( ECacheType(i), ECoreType::Unknown ))
 				{
-					PrintCache( ECacheType(i), *c );
+					PrintCache( ECacheType(i), *c, total_cores );
 					str	<< "\n    ----------";
 				}
 			}
@@ -188,13 +186,30 @@ namespace AE::Base
 		#if (AE_SIMD_AVX >= 2) or (GLM_ARCH & GLM_ARCH_AVX2_BIT)
 			CHECK_ERR_MSG( feats.AVX2,		"AE_SIMD_AVX=2 requires AVX2 feature" );
 		#endif
-		#if (AE_SIMD_AVX >= 3)
-			CHECK_ERR_MSG( feats.AVX512F,	"AE_SIMD_AVX=3 requires AVX512F feature" );
 
-			#if (AE_SIMD_AVX & 0x10)
-				CHECK_ERR_MSG( feats.AVX512_FP16,	"AE_SIMD_AVX=0x10 requires AVX512_FP16 feature" );
-			#endif
-		#endif // AVX512
+		#if (AE_SIMD_AVX >= 30)
+			CHECK_ERR_MSG( feats.AVX512F,	"AE_SIMD_AVX=30 requires AVX512F feature" );
+		#endif
+		#if (AE_SIMD_AVX >= 31)
+		//	CHECK_ERR_MSG( feats.AVX512_CD,		"AE_SIMD_AVX=31 requires AVX512_CD feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_VL,		"AE_SIMD_AVX=31 requires AVX512_VL feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_DQ,		"AE_SIMD_AVX=31 requires AVX512_DQ feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_BW,		"AE_SIMD_AVX=31 requires AVX512_BW feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_IFMA,	"AE_SIMD_AVX=31 requires AVX512_IFMA feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_VBMI,	"AE_SIMD_AVX=31 requires AVX512_VBMI feature" );
+		#endif
+		#if (AE_SIMD_AVX >= 32)
+		//	CHECK_ERR_MSG( feats.AVX512_VBMI2,		"AE_SIMD_AVX=32 requires AVX512_VBMI2 feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_VPOPCNTDQ,	"AE_SIMD_AVX=32 requires AVX512_VPOPCNTDQ feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_BITALG,		"AE_SIMD_AVX=32 requires AVX512_BITALG feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_VNNI,		"AE_SIMD_AVX=32 requires AVX512_VNNI feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_VPCLMULQDQ,	"AE_SIMD_AVX=32 requires AVX512_VPCLMULQDQ feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_GFNI,		"AE_SIMD_AVX=32 requires AVX512_GFNI feature" );
+			CHECK_ERR_MSG( feats.VAES,				"AE_SIMD_AVX=32 requires VAES feature" );
+		#endif
+		#if (AE_SIMD_AVX >= 33)
+		//	CHECK_ERR_MSG( feats.AVX512_BF16,		"AE_SIMD_AVX=33 requires AVX512_BF16 feature" );
+		#endif
 
 		#if AE_SIMD_NEON or (GLM_ARCH & GLM_ARCH_NEON_BIT)
 			CHECK_ERR_MSG( feats.NEON,		"AE_SIMD_NEON requires NEON feature" );

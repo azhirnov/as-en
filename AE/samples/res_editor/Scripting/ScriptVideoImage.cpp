@@ -165,37 +165,37 @@ namespace
 		binder.AddFactoryCtor( &ScriptVideoImage_Ctor2,		{"format", "videoFilePath"} );
 
 		binder.Comment( "Set resource name. It is used for debugging." );
-		binder.AddMethod( &ScriptVideoImage::Name,								"Name",								{} );
+		AS_METHOD( binder, ScriptVideoImage::Name,								"Name",								{} );
 
 		binder.Comment( "Returns dynamic dimension of the image" );
-		binder.AddMethod( &ScriptVideoImage::Dimension,							"Dimension",						{} );
+		AS_METHOD( binder, ScriptVideoImage::Dimension,							"Dimension",						{} );
 
-		binder.AddMethod( &ScriptVideoImage::SetSampler,						"Sampler",							{} );
+		AS_METHOD( binder, ScriptVideoImage::SetSampler,						"Sampler",							{} );
 
 		binder.Comment( "Set Ycbcr format. Requires multiplanar format." );
-		binder.AddMethod( &ScriptVideoImage::Ycbcr_SetFormat,					"Ycbcr_Format",						{} );
+		AS_METHOD( binder, ScriptVideoImage::Ycbcr_SetFormat,					"Ycbcr_Format",						{} );
 
 		binder.Comment( "Set Ycbcr model conversion." );
-		binder.AddMethod( &ScriptVideoImage::Ycbcr_SetModel,					"Ycbcr_Model",						{} );
+		AS_METHOD( binder, ScriptVideoImage::Ycbcr_SetModel,					"Ycbcr_Model",						{} );
 
 		binder.Comment( "Set Ycbcr range." );
-		binder.AddMethod( &ScriptVideoImage::Ycbcr_SetRange,					"Ycbcr_Range",						{} );
+		AS_METHOD( binder, ScriptVideoImage::Ycbcr_SetRange,					"Ycbcr_Range",						{} );
 
 		binder.Comment( "Set Ycbcr component swizzle.\n"
 						"Format: 'ARGB', 'R001'." );
-		binder.AddMethod( &ScriptVideoImage::Ycbcr_SetComponents,				"Ycbcr_Components",					{} );
+		AS_METHOD( binder, ScriptVideoImage::Ycbcr_SetComponents,				"Ycbcr_Components",					{} );
 
 		binder.Comment( "Set Ycbcr X chroma location." );
-		binder.AddMethod( &ScriptVideoImage::Ycbcr_SetXChromaOffset,			"Ycbcr_XChromaOffset",				{} );
+		AS_METHOD( binder, ScriptVideoImage::Ycbcr_SetXChromaOffset,			"Ycbcr_XChromaOffset",				{} );
 
 		binder.Comment( "Set Ycbcr Y chroma location." );
-		binder.AddMethod( &ScriptVideoImage::Ycbcr_SetYChromaOffset,			"Ycbcr_YChromaOffset",				{} );
+		AS_METHOD( binder, ScriptVideoImage::Ycbcr_SetYChromaOffset,			"Ycbcr_YChromaOffset",				{} );
 
 		binder.Comment( "Set Ycbcr Y chroma filter." );
-		binder.AddMethod( &ScriptVideoImage::Ycbcr_SetChromaFilter,				"Ycbcr_ChromaFilter",				{} );
+		AS_METHOD( binder, ScriptVideoImage::Ycbcr_SetChromaFilter,				"Ycbcr_ChromaFilter",				{} );
 
 		binder.Comment( "Set Ycbcr force explicit reconstruction." );
-		binder.AddMethod( &ScriptVideoImage::Ycbcr_ForceExplicitReconstruction,	"Ycbcr_ForceExplicitReconstruction", {} );
+		AS_METHOD( binder, ScriptVideoImage::Ycbcr_ForceExplicitReconstruction,	"Ycbcr_ForceExplicitReconstruction", {} );
 	}
 
 /*

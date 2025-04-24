@@ -55,7 +55,7 @@ namespace AE::Base
 		ND_ Mat4_t				ToModelMatrix ()							C_NE___	{ return _camera.ToModelMatrix(); }
 		ND_ Mat4_t				ToModelViewMatrix ()						C_NE___	{ return ToViewMatrix() * ToModelMatrix(); }
 
-			void	SetPerspective (Rad fovY, T aspect,
+			void	SetPerspective (Rad fovY, T aspectRatio,
 									T zNear, T zFar,
 									Bool reverseZ = False{})				__NE___;
 
@@ -81,9 +81,9 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  TOrbitalCamera<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar, Bool reverseZ) __NE___
+	void  TOrbitalCamera<T>::SetPerspective (Rad fovY, T aspectRatio, T zNear, T zFar, Bool reverseZ) __NE___
 	{
-		_camera.SetPerspective( fovY, aspect, Vec2_t{zNear, zFar}, reverseZ );
+		_camera.SetPerspective( fovY, aspectRatio, Vec2_t{zNear, zFar}, reverseZ );
 		_frustum.Setup( _camera );
 	}
 

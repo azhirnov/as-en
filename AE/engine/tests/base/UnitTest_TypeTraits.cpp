@@ -80,6 +80,20 @@ namespace
 	}
 
 
+	static void  Test_IsCompleteType ()
+	{
+		struct Incomplete;
+		struct Complete {};
+
+		StaticAssert( not IsCompleteType< Incomplete >);
+		StaticAssert( IsCompleteType< Complete >);
+		StaticAssert( IsCompleteType< int >);
+
+		StaticAssert( not AllTypesAreComplete< Incomplete, Complete, int >);
+		StaticAssert( AllTypesAreComplete< Complete, int >);
+	}
+
+
 	static void  Test_IsTrivial ()
 	{
 		StaticAssert( IsZeroMemAvailable<int> );
@@ -331,6 +345,7 @@ namespace
 extern void UnitTest_TypeTraits ()
 {
 	Test_IsSpecializationOf();
+	Test_IsCompleteType();
 	Test_IsTrivial();
 	Test_RemoveAllQualifiers();
 

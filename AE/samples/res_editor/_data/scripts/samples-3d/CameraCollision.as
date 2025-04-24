@@ -148,7 +148,7 @@
 
 	void  Main ()
 	{
-		Ray			ray			= Ray_From( un_PerPass.camera.invViewProj, un_CollisionData.actualPos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
+		Ray			ray			= Ray_Perspective( un_PerPass.camera.invViewProj, un_CollisionData.actualPos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 
 		const uint	max_iter	= 256;
 		const float	min_dist	= 0.00625;

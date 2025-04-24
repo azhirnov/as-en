@@ -1,0 +1,84 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
+#pragma once
+
+#include "res_editor/Passes/IPass.h"
+#include "res_editor/Resources/IResource.h"
+
+namespace AE::ResEditor
+{
+
+	//
+	// Compute Mip
+	//
+
+	class ComputeMip final : public IPass
+	{
+		friend class ScriptComputeMip;
+
+	// types
+	private:
+		static constexpr uint	_localSize		= 8;
+		static constexpr uint	_MaxVariables	= 8;
+
+		using PipelineMap_t		= FixedMap< EDebugMode, ComputePipelineID, uint(EDebugMode::_Count) >;
+		using MipChainDS_t		= Array< Strong<DescriptorSetID> >;
+		using MipChainGroups_t	= Array< uint2 >;
+
+		struct DynamicData
+		{
+			uint	frame		= 0;
+			uint	prevFrame	= UMax;
+		};
+
+		struct Variable
+		{
+			RC<Image>					image;
+			MipmapLevel					baseMipmap;
+			EResourceState				inState		= Default;
+			EResourceState				outState	= Default;
+			Array<Strong<ImageViewID>>	inViews;
+			Array<Strong<ImageViewID>>	outViews;
+			UniformName					inName;
+			UniformName					outName;
+		};
+		using Variables_t	= FixedArray< Variable, _MaxVariables >;
+
+
+	// variables
+	private:
+		RTechInfo				_rtech;
+		Variables_t				_variables;
+		uint2					_lastDim;
+
+		PipelineMap_t			_pipelines;
+		PerFrameDescSet_t		_descSets;
+		MipChainDS_t			_mipChainDS;
+		MipChainGroups_t		_mipChainGroupSizes;
+		DescSetBinding			_ds0Index;
+		DescSetBinding			_ds1Index;		// mip chain
+
+		Strong<BufferID>		_ubuffer;
+		mutable DynamicData		_dynData;		// used only in 'Upload()'
+
+		ResourceArray			_resources;
+
+
+	// methods
+	public:
+		ComputeMip ()													__NE___ {}
+		~ComputeMip ();
+
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync | EPassType::Update; }
+		bool		Execute (SyncPassData &)							__Th_OV;
+		bool		Update (TransferCtx_t &, const UpdatePassData &)	__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
+
+	private:
+		ND_ bool	_CreateMipChain ();
+			void	_DestroyMipChain ();
+	};
+
+
+} // AE::ResEditor

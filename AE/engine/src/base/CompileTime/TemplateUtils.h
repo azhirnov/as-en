@@ -65,19 +65,28 @@ namespace AE::Base
 
 	namespace _hidden_
 	{
-		template <usize First, typename SeqType>
+		template <typename T, T First, typename SeqType>
 		struct MakeIntSequenceRange;
 
-		template <usize First, usize ...I>
-		struct MakeIntSequenceRange< First, std::integer_sequence<usize, I...> >
+		template <typename T, T First, T ...I>
+		struct MakeIntSequenceRange< T, First, std::integer_sequence<T, I...> >
 		{
-			using type = std::integer_sequence< usize, (I + First)... >;
+			using type = std::integer_sequence< T, (I + First)... >;
 		};
 
 	} // _hidden_
 
 	template <usize First, usize Count>
-	using MakeIntSequence = typename Base::_hidden_::MakeIntSequenceRange< First, std::make_integer_sequence< usize, Count > >::type;
+	using MakeUSizeSequence	= typename Base::_hidden_::MakeIntSequenceRange< usize, First, std::make_integer_sequence< usize, Count > >::type;
+	
+	template <uint First, uint Count>
+	using MakeUIntSequence	= typename Base::_hidden_::MakeIntSequenceRange< uint, First, std::make_integer_sequence< uint, Count > >::type;
+
+	template <usize ...Indices>
+	using USizeSequence		= std::integer_sequence< usize, Indices... >;
+	
+	template <uint ...Indices>
+	using UIntSequence		= std::integer_sequence< uint, Indices... >;
 
 
 } // AE::Base

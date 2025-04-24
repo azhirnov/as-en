@@ -83,13 +83,13 @@ namespace AE::Base
 	static constexpr bool	IsNullPtr				= std::is_null_pointer_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsLValueRef				= std::is_lvalue_reference_v<T>;
+	static constexpr bool	IsLValueRef				= std::is_lvalue_reference_v<T>;	// &
 
 	template <typename T>
 	static constexpr bool	IsRValueRef				= std::is_rvalue_reference_v<T>;	// &&
 
 	template <typename T>
-	static constexpr bool	IsReference				= std::is_reference_v<T>;
+	static constexpr bool	IsReference				= std::is_reference_v<T>;			// & or &&
 
 	template <typename T>
 	static constexpr bool	IsClass					= std::is_class_v<T>;
@@ -234,11 +234,20 @@ namespace AE::Base
 	template <typename T>
 	static constexpr bool	IsNothrowCopyCtor		= TNothrowCopyCtor<T>::value;
 
+	template <typename ...Types>
+	static constexpr bool	AllNothrowCopyCtor		= (... and IsNothrowCopyCtor<Types>);
+
 	template <typename T>
 	static constexpr bool	IsNothrowMoveCtor		= TNothrowMoveCtor<T>::value;
+	
+	template <typename ...Types>
+	static constexpr bool	AllNothrowMoveCtor		= (... and IsNothrowMoveCtor<Types>);
 
 	template <typename T>
 	static constexpr bool	IsNothrowDefaultCtor	= TNothrowDefaultCtor<T>::value;
+
+	template <typename ...Types>
+	static constexpr bool	AllNothrowDefaultCtor	= (... and IsNothrowDefaultCtor<Types>);
 
 	template <typename T, typename ...Args>
 	static constexpr bool	IsNothrowCtor			= TNothrowCtor<T,Args...>::value;
@@ -248,9 +257,15 @@ namespace AE::Base
 
 	template <typename T>
 	static constexpr bool	IsNothrowCopyAssignable	= TNothrowCopyAssignable<T>::value;
+	
+	template <typename ...Types>
+	static constexpr bool	AllNothrowCopyAssignable	= (... and IsNothrowCopyAssignable<Types>);
 
 	template <typename T>
 	static constexpr bool	IsNothrowMoveAssignable	= TNothrowMoveAssignable<T>::value;
+	
+	template <typename ...Types>
+	static constexpr bool	AllNothrowMoveAssignable	= (... and IsNothrowMoveAssignable<Types>);
 
 	template <typename Fn, typename ...Args>
 	static constexpr bool	IsNothrowInvocable		= TNothrowInvocable< Fn, Args... >::value;
@@ -339,6 +354,15 @@ namespace AE::Base
 
 	namespace _hidden_
 	{
+		template <typename T>
+		struct RemoveAllQual
+		{
+			using _NextType	= RemoveReference< RemovePointer< RemoveArray< RemoveCV< T >>>>;
+			using type		= typename Conditional< (IsSame< _NextType, T >),
+								TypeToType<T>,
+								DeferredTemplate2< RemoveAllQual, _NextType > >::type;
+		};
+
 		template <typename T, template <typename...> class Templ>
 		struct _IsSpecializationOf		: CT_False {};
 
@@ -350,8 +374,18 @@ namespace AE::Base
 
 		template <template <typename ...> class T>
 		struct _IsSameTemplates< T, T >	: CT_True {};
+		
+		template <typename T, usize = sizeof(T)>
+		CT_True   _IsCompleteType2 (T*);
+		CT_False  _IsCompleteType2 (...);
+
+		template <typename T>
+		using _IsCompleteType = decltype(_IsCompleteType2( std::declval<T*>() ));
 
 	} // _hidden_
+
+	template <typename T>
+	using RemoveAllQualifiers	= typename Base::_hidden_::RemoveAllQual<T>::type;
 
 
 	template <typename T, template <typename...> class Templ>
@@ -359,21 +393,15 @@ namespace AE::Base
 
 	template <template <typename ...> class Left, template <typename ...> class Right>
 	static constexpr bool	IsSameTemplates		= Base::_hidden_::_IsSameTemplates< Left, Right >::value;
-
-
-	namespace _hidden_
-	{
-		template <typename T>
-		struct RemoveAllQual
-		{
-			using _NextType	= RemoveReference< RemovePointer< RemoveArray< RemoveCV< T >>>>;
-			using type		= typename Conditional< (IsSame< _NextType, T >),
-								TypeToType<T>,
-								DeferredTemplate2< RemoveAllQual, _NextType > >::type;
-		};
-	}
+	
 	template <typename T>
-	using RemoveAllQualifiers	= typename Base::_hidden_::RemoveAllQual<T>::type;
+	struct TIsCompleteType : Base::_hidden_::_IsCompleteType< RemoveAllQualifiers<T> > {};
+
+	template <typename T>
+	static constexpr bool	IsCompleteType		= TIsCompleteType< T >::value;
+	
+	template <typename ...Types>
+	static constexpr bool	AllTypesAreComplete	= (... and IsCompleteType<Types>);
 
 
 	template <typename Base, typename Derived>
@@ -437,12 +465,23 @@ namespace AE::Base
 								TypeToType<T>,
 								DeferredTemplate2< _UnwrapType, _NextType > >::type;
 		};
+
+		template <typename A>
+		struct AreSameTypes
+		{
+			template <typename B>
+			struct Impl : CT_Bool< IsSame< A, B > >{};
+		};
 	}
 	template <typename T>
 	using UnwrapType = typename TUnwrap< RemoveAllQualifiers<T> >::type;
 
 	template <typename T>
 	using UnwrapRecursive = typename Base::_hidden_::_UnwrapType<T>::type;
+
+
+	template <typename T, typename ...Types>
+	static constexpr bool	AllAreSameTypes		= (... and Base::_hidden_::AreSameTypes<T>::template Impl<Types>::value);
 //-----------------------------------------------------------------------------
 
 

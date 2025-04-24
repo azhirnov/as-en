@@ -44,11 +44,13 @@ namespace {
 				  const ImageViewDesc&	viewDesc,
 				  RC<DynamicDim>		inDynSize,
 				  RC<DynamicDim>		outDynSize,
+				  EImageFlags			flags,
 				  StringView			dbgName) :
 		IResource{ renderer },
 		_id{ RVRef(id) },
 		_view{ RVRef(view) },
 		_isDummy{ isDummy },
+		_flags{ flags },
 		_inDynSize{ RVRef(inDynSize) },
 		_outDynSize{ RVRef(outDynSize) },
 		_loadOps{ loadOps.begin(), loadOps.end() },
@@ -67,7 +69,7 @@ namespace {
 		{
 			_uploadStatus.store( EUploadStatus::Completed );
 
-			RenderGraph().GetStateTracker().AddResource( _id.Get() );
+			CHECK( RenderGraph().GetStateTracker().AddResource( _id.Get() ));
 		}
 
 		if ( not _loadOps.empty() )
@@ -254,7 +256,17 @@ namespace {
 		if ( not _inDynSize->IsChanged_NonZero( INOUT desc.dimension ))
 			return false;
 
-		return _ResizeImage( ctx, desc, GetViewDesc() );
+		ImageViewDesc	view = GetViewDesc();
+
+		if ( AllBits( _flags, EImageFlags::AllMipmaps ))
+		{
+			desc.mipLevels		= MipmapLevel{UMax};
+			view.mipmapCount	= UMax;
+			desc.Validate();
+			view.Validate( desc );
+		}
+
+		return _ResizeImage( ctx, desc, view );
 	}
 
 /*
@@ -273,10 +285,10 @@ namespace {
 			auto	image = res_mngr.CreateImage( imageDesc, _dbgName, _Renderer().ChooseAllocator( True{"dynamic"}, imageDesc ));
 			CHECK_ERR( image );
 
-			RenderGraph().GetStateTracker().AddResource( image.Get(),
+			CHECK( RenderGraph().GetStateTracker().AddResource( image.Get(),
 														EResourceState::_InvalidState,	// current is not used
 														EResourceState::General,		// default
-														ctx.GetCommandBatchRC() );
+														ctx.GetCommandBatchRC() ));
 			ctx.ResourceState( image, EResourceState::Invalidate );
 
 			_imageDesc.Write( res_mngr.GetDescription( image ));
@@ -441,7 +453,7 @@ namespace {
 			return;
 		}
 
-		// RenderGraph doesn't tack specific image layers, so we need to put explicit barriers
+		// RenderGraph doesn't track specific image layers, so we need to put explicit barriers
 		ctx.ResourceState( _id, EResourceState::BlitSrc );
 		ctx.CommitBarriers();
 
@@ -456,7 +468,7 @@ namespace {
 				range.baseLayer		= op.layer;
 				range.layerCount	= 1;
 				range.baseMipLevel	= op.mipmap;
-				range.mipmapCount	= ushort(desc.mipLevels.Get() - op.mipmap.Get());
+				range.mipmapCount	= MipmapCount_t(desc.mipLevels.Get() - op.mipmap.Get());
 
 				if ( range.mipmapCount > 1 )
 					ctx.GetBaseContext().GenerateMipmaps( _id, {range}, EResourceState::BlitSrc );
@@ -663,6 +675,7 @@ namespace {
 
 		RC<Image>	result	{new Image{ _Renderer(), dbgName }};
 
+		result->_flags		= _flags;
 		result->_inDynSize	= _inDynSize;
 		result->_base		= GetRC<Image>();
 		result->_uploadStatus.store( EUploadStatus::Completed );
@@ -759,10 +772,10 @@ namespace {
 				auto	image	= res_mngr.CreateImage( desc, _dbgName, _Renderer().ChooseAllocator( False{"static"}, desc ));
 				CHECK_ERR( image );
 
-				RenderGraph().GetStateTracker().AddResource( image,
+				CHECK( RenderGraph().GetStateTracker().AddResource( image,
 															 EResourceState::_InvalidState,								// current is not used
 															 EResourceState::ShaderSample | EResourceState::AllShaders,	// default
-															 ctx.GetCommandBatchRC() );
+															 ctx.GetCommandBatchRC() ));
 				ctx.ResourceState( image, EResourceState::Invalidate );
 
 				_imageDesc.Write( res_mngr.GetDescription( image ));

@@ -2,7 +2,7 @@
 #
 # download HWCPipe (MIT license)
 
-set( MALI_HWCPIPE_PATH "${AE_DST_SHARED_PATH}/HWCPipe" )
+set( MALI_HWCPIPE_PATH "${AE_DST_PATH}/HWCPipe" )
 
 if (NOT EXISTS "${MALI_HWCPIPE_PATH}/lib")
 	message( FATAL_ERROR "'${MALI_HWCPIPE_PATH}/lib' path is not found" )

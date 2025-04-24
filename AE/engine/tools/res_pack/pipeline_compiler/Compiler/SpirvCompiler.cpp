@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "SpirvCompiler.h"
-#include "PrivateDefines.h"
 
 // glslang includes
 #ifdef AE_COMPILER_MSVC
@@ -44,8 +43,8 @@
 #	pragma message("GLSL-Trace library is missing, shader debugging and profiling will be disabled")
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 15 or GLSLANG_VERSION_MINOR != 1
-#	error invalid glslang version
+#if GLSLANG_VERSION_MAJOR != 15 or GLSLANG_VERSION_MINOR != 2
+#	pragma message("invalid glslang version")
 #endif
 
 #ifdef AE_ENABLE_SPIRV_CROSS
@@ -64,6 +63,43 @@
 #endif
 
 #include "ScriptObjects/ObjectStorage.h"
+
+
+#define PRIVATE_COMP_RETURN_ERR( _text_, _ret_ )				\
+		{if( not _quietWarnings ) {								\
+			AE_LOGE( _text_ );									\
+		}else{													\
+			AE_LOGI( _text_ );									\
+		}return (_ret_);										\
+		}
+
+#define COMP_RETURN_ERR( ... ) \
+		PRIVATE_COMP_RETURN_ERR( AE_PRIVATE_GETARG_0( __VA_ARGS__, ), AE_PRIVATE_GETARG_1( __VA_ARGS__, ::AE::Base::Default, ))
+
+
+#define PRIVATE_COMP_CHECK_ERR( _expr_, _text_, _ret_ )			\
+		{if_likely(( _expr_ )) {}								\
+		 else													\
+			PRIVATE_COMP_RETURN_ERR( _text_, (_ret_) )			\
+		}
+
+#define PRIVATE_COMP_CHECK_LOG( _expr_, _log_, _text_, _ret_ )	\
+		{if_likely(( _expr_ )) {}								\
+		 else{													\
+			(_log_) << _text_;									\
+			return (_ret_);										\
+		}}
+
+#define COMP_CHECK_ERR( /* expr, message */... )																		\
+		PRIVATE_COMP_CHECK_ERR(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),													\
+								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( AE_PRIVATE_GETARG_0( __VA_ARGS__, )), ),	\
+								::AE::Base::Default )
+
+#define COMP_CHECK_LOG( /* expr, log, message */... )																	\
+		PRIVATE_COMP_CHECK_LOG(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),													\
+								AE_PRIVATE_GETARG_1( __VA_ARGS__, log, ),												\
+								AE_PRIVATE_GETARG_2( __VA_ARGS__, AE_TOSTRING( AE_PRIVATE_GETARG_0( __VA_ARGS__, )), ),	\
+								::AE::Base::Default )
 
 
 template <>
@@ -394,7 +430,7 @@ namespace AE::PipelineCompiler
 		if ( not _ParseGLSL( in, INOUT includer, OUT glslang_data, INOUT out.log ))
 			return false;
 
-	#ifdef AE_ENABLE_GLSL_TRACE
+	  #ifdef AE_ENABLE_GLSL_TRACE
 		if ( dbg_mode != Default )
 		{
 			out.trace.reset( new ShaderTrace{} );
@@ -430,9 +466,9 @@ namespace AE::PipelineCompiler
 					break;
 			}
 		}
-	#else
+	  #else
 		COMP_CHECK_LOG( dbg_mode == Default, out.log, "debug mode is not supported without GLSLTrace library" );
-	#endif
+	  #endif
 
 		COMP_CHECK_LOG( _CompileSPIRV( glslang_data, in.options, OUT out.spirv, INOUT out.log ), out.log );
 

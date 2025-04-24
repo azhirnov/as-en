@@ -7,6 +7,7 @@ void ASmain ()
 	//	NVIDIA GeForce RTX 2080.json
 	//	Apple M1 driver 0.2.2017 on Osx 14.1
 	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
+	//	llvmpipe (LLVM 20.1.0, 256 bits) driver 25.0.99 on Windows 11
 	//	NVIDIA GeForce GTX 1070 driver 511.65.0.0 on Windows 10
 	//	NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
 	//	NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10

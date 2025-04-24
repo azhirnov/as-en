@@ -28,7 +28,6 @@ namespace AE::Base
 		using SimdInt_t		= SimdInt8;
 		using SimdUInt_t	= SimdUInt8;
 		using Mask_t		= Base::_hidden_::MSBMask< count, 0 >;
-
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
 
 
@@ -68,7 +67,7 @@ namespace AE::Base
 			template <typename DstType>
 			ND_ DstType	BitCast ()								C_NE___;
 
-			ND_ static Bool8	True ()							__NE___	{ auto z = _mm256_undefined_ps();  return Bool8{_mm256_cmp_ps( z, z, _CMP_EQ_OQ )}; }
+			ND_ static Bool8	True ()							__NE___	{ auto z = _mm256_setzero_ps();  return Bool8{_mm256_cmp_ps( z, z, _CMP_EQ_OQ )}; }
 			ND_ static Bool8	False ()						__NE___	{ return Bool8{_mm256_setzero_ps()}; }
 		};
 		using Bool_t = Bool8;
@@ -254,7 +253,7 @@ namespace AE::Base
 
 		template <uint Idx>
 		ND_ auto		ToDouble ()								C_NE___	{ return Lane<Idx>().ToDouble4(); }
-		ND_ SimdDouble8	ToDouble8 ()							C_NE___;	// _mm512_cvtps_pd (AVX512F), _mm512_cvtepi64_pd (AVX512DQ)
+	//	ND_ SimdDouble8	ToDouble8 ()							C_NE___;	// _mm512_cvtps_pd (AVX512F), _mm512_cvtepi64_pd (AVX512DQ)
 
 		ND_ SimdInt8	ToInt ()								C_NE___;
 
@@ -380,7 +379,7 @@ namespace AE::Base
 			template <typename DstType>
 			ND_ DstType	BitCast ()								C_NE___;
 
-			ND_ static Bool4	True ()							__NE___	{ auto z = _mm256_undefined_pd();  return Bool4{_mm256_cmp_pd( z, z, _CMP_EQ_OQ )}; }
+			ND_ static Bool4	True ()							__NE___	{ auto z = _mm256_setzero_pd();  return Bool4{_mm256_cmp_pd( z, z, _CMP_EQ_OQ )}; }
 			ND_ static Bool4	False ()						__NE___	{ return Bool4{_mm256_setzero_pd()}; }
 		};
 		using Bool_t = Bool4;
@@ -445,7 +444,7 @@ namespace AE::Base
 		ND_ Self	PreciseSqrt ()								C_NE___	{ return Self{ _mm256_sqrt_pd( _value )}; }
 
 		ND_ Self	Reciprocal_fp32 ()							C_NE___;
-	  #if AE_SIMD_AVX >= 3	// AVX512F, AVX512VL
+	  #if AE_SIMD_AVX >= 31	// AVX512VL
 		ND_ Self	Reciprocal ()								C_NE___	{ return Self{ _mm256_rcp14_pd( _value )}; }	// approx (1 / x)
 	  #else
 		ND_ Self	Reciprocal ()								C_NE___	{ return Reciprocal_fp32(); }
@@ -600,7 +599,7 @@ namespace AE::Base
 		NdCe__ static bool  Has_MulAdd ()						{ return false; }
 		NdCe__ static bool  Has_PreciseSqrt ()					{ return true; }
 		NdCe__ static bool  Has_PreciseDiv ()					{ return true; }
-		NdCe__ static bool  Has_ApproxReciprocal ()				{ return AE_SIMD_AVX >= 3; }
+		NdCe__ static bool  Has_ApproxReciprocal ()				{ return AE_SIMD_AVX >= 31; }
 		NdCe__ static bool  Has_ApproxInvSqrt ()				{ return false; }
 		NdCe__ static bool  Has_PrefixSum ()					{ return true; }
 		NdCe__ static bool  Has_PrefixMinMax ()					{ return true; }
@@ -654,7 +653,7 @@ namespace AE::Base
 	public:
 		Int256b ()											__NE___	: _value{ _mm256_setzero_si256() } {}
 		Int256b (Zero_t)									__NE___	: _value{ _mm256_setzero_si256() } {}
-		Int256b (UMax_t)									__NE___	 { auto z = _mm256_undefined_si256();  _value = _mm256_cmpeq_epi32( z, z ); }
+		Int256b (UMax_t)									__NE___	 { auto z = _mm256_setzero_si256();  _value = _mm256_cmpeq_epi32( z, z ); }
 		explicit Int256b (const Native_t &v)				__NE___	: _value{ v } {}
 		explicit Int256b (const Ptr_t ptr)					__NE___	: _value{ _mm256_load_si256( ptr.Cast<Native_t>() )} {}
 
@@ -748,7 +747,7 @@ namespace AE::Base
 	public:
 		SimdTInt256 ()										__NE___	: _value{ _mm256_setzero_si256() } {}
 		SimdTInt256 (Zero_t)								__NE___	: _value{ _mm256_setzero_si256() } {}
-		SimdTInt256 (UMax_t)								__NE___	 { auto z = _mm256_undefined_si256();  _value = _mm256_cmpeq_epi32( z, z ); }
+		SimdTInt256 (UMax_t)								__NE___	 { auto z = _mm256_setzero_si256();  _value = _mm256_cmpeq_epi32( z, z ); }
 		explicit SimdTInt256 (const Native_t &v)			__NE___	: _value{ v } {}
 		explicit SimdTInt256 (const Ptr_t ptr)				__NE___	: _value{ _mm256_load_si256( ptr.Cast<Native_t>() )} {}
 		explicit SimdTInt256 (const Scalar_t* ptr)			__NE___ : _value{ _mm256_loadu_si256( reinterpret_cast<Native_t const *>( GetNonNull( ptr )) )} {}
@@ -1051,7 +1050,7 @@ namespace AE::Base
 		template <typename DstType>	NdCe__ static bool  Has_Convert ();
 
 	private:
-	  #if AE_SIMD_AVX >= 3
+	  #if 0 //AE_SIMD_AVX >= 30 // ???
 		template <typename T = Scalar_t, ENABLEIF( IsSame<T,int> )>
 		ND_ SimdDouble8  _IntToDouble8 ()					C_NE___;
 

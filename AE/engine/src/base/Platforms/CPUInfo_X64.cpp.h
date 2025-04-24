@@ -31,7 +31,7 @@ namespace
 		uint*	b = &arr[1];	// ebx
 		uint*	c = &arr[2];	// ecx
 		uint*	d = &arr[3];	// edx
-		__cpuid_count( ext, ext2, a, b, c, d );
+		__get_cpuid_count( ext, ext2, a, b, c, d );
 	}
 #endif
 
@@ -161,7 +161,15 @@ namespace
 				break;
 
 			case 0x1A :
-				return ECPUMicroArch::AMD_Zen5;
+				switch ( ext_model )
+				{
+					case 0x1 :
+					case 0x3 :
+					case 0x7 :
+						return ECPUMicroArch::AMD_Zen5c;
+					default :
+						return ECPUMicroArch::AMD_Zen5;
+				}
 		}
 		return Default;
 	}
@@ -318,7 +326,7 @@ namespace
 		if ( HasBit< 23 >( cpui[2] ))
 		{
 
-			for (uint i = 0;; ++i)
+			for (uint i = 0; i < 1000; ++i)
 			{
 				CPUIDExt( 0x8000'001D, i, OUT cpui );	// cache info for Zen
 
@@ -381,7 +389,7 @@ namespace
 
 		StaticArray<uint, 4>	cpui = {};
 
-		for (uint i = 0;; ++i)
+		for (uint i = 0; i < 1000; ++i)
 		{
 			CPUIDExt( 0x4, i, OUT cpui );
 
@@ -502,7 +510,7 @@ namespace
 			feats.AESKL				= HasBit< 23 >( cpui[2] );
 
 		//	feats.AVX512_4FMAPS		= HasBit<  2 >( cpui[3] );
-			feats.AVX512_FP16		= HasBit< 23 >( cpui[3] );
+		//	feats.AVX512_FP16		= HasBit< 23 >( cpui[3] );
 
 			feats.SHA2_256			= HasBit< 29 >( cpui[1] );
 

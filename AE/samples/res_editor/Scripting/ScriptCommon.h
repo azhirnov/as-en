@@ -46,6 +46,7 @@ namespace AE::ResEditor
 
 	using ScriptPostprocessPtr			= ScriptRC< class ScriptPostprocess >;
 	using ScriptComputePassPtr			= ScriptRC< class ScriptComputePass >;
+	using ScriptComputeMipPtr			= ScriptRC< class ScriptComputeMip >;
 	using ScriptRayTracingPassPtr		= ScriptRC< class ScriptRayTracingPass >;
 	using ScriptBasePassPtr				= ScriptRC< class ScriptBasePass >;
 	using ScriptDynamicDimPtr			= ScriptRC< class ScriptDynamicDim >;
@@ -68,6 +69,7 @@ namespace AE::ResEditor
 	using ScriptGeomSourcePtr			= ScriptRC< class ScriptGeomSource >;
 
 	using ScriptSceneGraphicsPassPtr	= ScriptRC< class ScriptSceneGraphicsPass >;
+	using ScriptSceneGraphicsSubpassPtr	= ScriptRC< class ScriptSceneGraphicsSubpass >;
 	using ScriptSceneRayTracingPassPtr	= ScriptRC< class ScriptSceneRayTracingPass >;
 	using ScriptScenePtr				= ScriptRC< class ScriptScene >;
 

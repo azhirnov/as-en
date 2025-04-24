@@ -68,6 +68,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_NV_cluster_acceleration_structure
 - [x] VK_KHR_multiview
 - [x] VK_EXT_fragment_density_map, VK_EXT_fragment_density_map2
+- [x] VK_EXT_shader_replicated_composites - required for coopvec, coopmat
 
 **Supported shader extensions:**
 - [x] VK_KHR_shader_clock, GL_EXT_shader_realtime_clock, GL_ARB_shader_clock
@@ -224,6 +225,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_EXT_pipeline_creation_feedback
 - VK_EXT_primitives_generated_query
 - VK_KHR_performance_query
+- VK_AMD_shader_info
 
 **Will not be supported**
 - VK_NV_linear_color_attachment
@@ -283,12 +285,12 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - GL_NV_shader_texture_footprint
 - GL_NV_shader_subgroup_partitioned
 - VK_KHR_shader_relaxed_extended_instruction
-- VK_EXT_shader_replicated_composites
 - GL_EXT_nontemporal_keyword
 - GL_NV_linear_swept_spheres, VK_NV_ray_tracing_linear_swept_spheres - sphere and hair ray tracing
 - VK_KHR_shader_non_semantic_info
 - VK_KHR_storage_buffer_storage_class - ???
 - VK_KHR_variable_pointers - ???
+- GL_EXT_bfloat16 
 
 **Will not be supported**
 - GL_EXT_vulkan_glsl_relaxed

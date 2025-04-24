@@ -1,3 +1,4 @@
+echo "update 'AMDGpuPerf'..."
 rmdir /Q /S "build"
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\win-x64\AMDGpuPerf"
 rmdir /Q /S "temp"

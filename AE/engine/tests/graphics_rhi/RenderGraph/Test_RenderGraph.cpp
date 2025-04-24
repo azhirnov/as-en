@@ -15,8 +15,12 @@ static constexpr uint  c_MaxRenderThreads = 3;
 =================================================
 */
 RGTest::RGTest () :
-	_device{ True{"enable info log"} }
+	_device{ True{"enable info log"}, False{"disable allocator stats"} }
 {
+	#ifdef AE_ENABLE_VULKAN
+	//	_device.ChooseDriver( List{ EDriver::LavaPipe });
+	#endif
+
 	// too slow
 	//_tests.emplace_back( &RGTest::Test_Buffer );
 	//_tests.emplace_back( &RGTest::Test_Image );
@@ -215,10 +219,10 @@ bool  RGTest::_CompilePipelines (FStorage_t assetStorage)
 	{
 	  #ifdef AE_ENABLE_METAL
 		RC<RStream>	file;
-		CHECK_ERR( assetStorage->Open( OUT file, VFS::FileName{"Tests.Graphics.mtlPipelines.bin"} ));
+		CHECK_ERR( assetStorage->Open( OUT file, VFS::FileName{"Tests.GraphicsRHI.mtlPipelines.bin"} ));
 	  #else
 		RC<RStream>	file;
-		CHECK_ERR( assetStorage->Open( OUT file, VFS::FileName{"Tests.Graphics.vkPipelines.bin"} ));
+		CHECK_ERR( assetStorage->Open( OUT file, VFS::FileName{"Tests.GraphicsRHI.vkPipelines.bin"} ));
 	  #endif
 
 		PipelinePackDesc	desc;

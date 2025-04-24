@@ -792,6 +792,7 @@ namespace _hidden_
 	inline void  AppendToString (INOUT String &str, const usize count, const char value = ' ') __Th___
 	{
 		ASSERT( value != 0 );
+		ASSERT( ssize(count) >= 0 );	// unsigned overflow
 
 		usize	pos = str.size();
 		str.resize( pos + count );  // throw
@@ -803,6 +804,8 @@ namespace _hidden_
 	inline void  InsertToString (INOUT String &str, const usize count, const char value = ' ') __Th___
 	{
 		ASSERT( value != 0 );
+		ASSERT( ssize(count) >= 0 );	// unsigned overflow
+
 		str.reserve( str.size() + count );  // throw
 
 		for (usize i = 0; i < count; ++i)
@@ -813,6 +816,7 @@ namespace _hidden_
 	{
 		ASSERT( value1 != 0 );
 		ASSERT( value2 != 0 );
+		ASSERT( ssize(count) >= 0 );	// unsigned overflow
 
 		usize	pos = str.size();
 		str.resize( pos + (first < count ? (count - first) : 0) );  // throw

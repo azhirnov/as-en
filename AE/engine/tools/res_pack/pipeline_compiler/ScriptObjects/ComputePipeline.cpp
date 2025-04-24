@@ -75,7 +75,7 @@ namespace
 */
 	bool  ComputePipelineScriptBinding::Build () __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		try {
@@ -145,24 +145,24 @@ namespace
 
 		binder.Comment( "Add macros which will be used in shader.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		binder.AddMethod( &ComputePipelineScriptBinding::Define,			"Define",				{} );
+		AS_METHOD( binder, ComputePipelineScriptBinding::Define,			"Define",				{} );
 
 		binder.Comment( "Set compute shader.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &ComputePipelineScriptBinding::SetShader,			"SetShader",			{} );
+		AS_METHOD( binder, ComputePipelineScriptBinding::SetShader,			"SetShader",			{} );
 
 		binder.Comment( "Create specialization for pipeline template.\n"
 						"Name is used in C++ code to get pipeline from render technique.\n"
 						"Pipeline specialization use the same pipeline layout, same shader binary, difference only in some parameters." );
-		binder.AddMethod( &ComputePipelineScriptBinding::AddSpecialization,	"AddSpecialization",	{"specName"} );
+		AS_METHOD( binder, ComputePipelineScriptBinding::AddSpecialization,	"AddSpecialization",	{"specName"} );
 
 		binder.Comment( "Add FeatureSet to the pipeline." );
-		binder.AddMethod( &ComputePipelineScriptBinding::AddFeatureSet,		"AddFeatureSet",		{"fsName"} );
+		AS_METHOD( binder, ComputePipelineScriptBinding::AddFeatureSet,		"AddFeatureSet",		{"fsName"} );
 
 		binder.Comment( "Set pipeline layout.\n"
 						"Pipeline will inherit layout feature sets." );
-		binder.AddMethod( &ComputePipelineScriptBinding::SetLayout,			"SetLayout",			{"plName"} );
-		binder.AddMethod( &ComputePipelineScriptBinding::SetLayout2,		"SetLayout",			{"pl"} );
+		AS_METHOD( binder, ComputePipelineScriptBinding::SetLayout,			"SetLayout",			{"plName"} );
+		AS_METHOD( binder, ComputePipelineScriptBinding::SetLayout2,		"SetLayout",			{"pl"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -208,6 +208,7 @@ namespace
 	void  ComputePipelineSpecScriptBinding::SetLocalGroupSize3 (uint x, uint y, uint z) __Th___
 	{
 		CHECK_THROW_MSG( GetBase() != null and GetBase()->shader, "shader is not compiled" );
+		CHECK_THROW_MSG( desc.subgroupSize == 0, "Set local group size before setting subgroup size." );
 
 		const auto&	spec		= GetBase()->shader->reflection.compute.localGroupSpec;
 		const uint	inv_count	= x * y * z;
@@ -241,6 +242,7 @@ namespace
 	{
 		CHECK_THROW_MSG( GetBase() != null and GetBase()->shader, "shader is not compiled" );
 		CHECK_THROW_MSG( All( desc.localSize == BasePipelineDesc::UndefinedLocalSize ), "Workgroup size is already set" );
+		CHECK_THROW_MSG( desc.subgroupSize == 0, "Explicit subgroup size is not compatible with load time workgroup size." );
 
 		const auto&	spec = GetBase()->shader->reflection.compute.localGroupSpec;
 		CHECK_THROW_MSG( All( spec != uint3{~0u} ),
@@ -257,9 +259,6 @@ namespace
 	void  ComputePipelineSpecScriptBinding::SetSubgroupSize (uint value) __Th___
 	{
 		CHECK_THROW_MSG( GetBase() != null and GetBase()->shader, "shader is not compiled" );
-
-		CHECK_THROW_MSG( All( desc.localSize != BasePipelineDesc::UndefinedLocalSize ),
-			"Specify subgroup size after workgroup size (local size)" );
 
 		CHECK_THROW_MSG( All( desc.localSize != WGLocalSize_t{BasePipelineDesc::LoadTimeLocalSize} ),
 			"Workgroup size (local size) which will be set at load time is not compatible with explicit subgroup size" );
@@ -301,7 +300,7 @@ namespace
 */
 	bool  ComputePipelineSpecScriptBinding::Build (PipelineTemplUID templUID) __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		if ( IsBuilded() )
@@ -330,35 +329,35 @@ namespace
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetSpecValueU,			"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetSpecValueI,			"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetSpecValueF,			"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetSpecValueU,			"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetSpecValueI,			"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetSpecValueF,			"SetSpecValue",		{"name", "value"} );
 
 		binder.Comment( "Set subgroup size.\n"
 						"Requires 'subgroupSizeControl' feature, value must be in range [minSubgroupSize, maxSubgroupSize]." );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetSubgroupSize,		"SubgroupSize",		{} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetSubgroupSize,		"SubgroupSize",		{} );
 
 		binder.Comment( "Set dynamic states (EPipelineDynamicState).\n"
 						"None of the states are supported for compute pipeline." );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetDynamicState,		"SetDynamicState",	{"states"} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetDynamicState,		"SetDynamicState",	{"states"} );
 
 		binder.Comment( "Set compute shader workgroup size. All threads in workgroup can use same (shared) memory.\n"
 						"Shader must use 'ComputeSpec1/2/3()' to define specialization constant." );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetLocalGroupSize1,	"SetLocalSize",		{"x"} );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetLocalGroupSize2,	"SetLocalSize",		{"x", "y"} );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetLocalGroupSize3,	"SetLocalSize",		{"x", "y", "z"});
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetLocalGroupSize1,	"SetLocalSize",		{"x"} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetLocalGroupSize2,	"SetLocalSize",		{"x", "y"} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetLocalGroupSize3,	"SetLocalSize",		{"x", "y", "z"});
 
 		binder.Comment( "Compute shader workgroup size will be set at load time in 'RenderTechDesc::computeLocalSize'." );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetLocalGroupSizeAtLoadTime,	"LoadTimeLocalSize",	{} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetLocalGroupSizeAtLoadTime,	"LoadTimeLocalSize",	{} );
 
 		binder.Comment( "Attach pipeline to the render technique.\n"
 						"Render technique will create all attached pipelines during its creation." );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::AddToRenderTech,		"AddToRenderTech",	{"rtech", "gpass"} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::AddToRenderTech,		"AddToRenderTech",	{"rtech", "gpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"
 						"Supported: 'Optimize', 'CS_DispatchBase'.\n"
 						"By default used value from 'GlobalConfig::SetPipelineOptions()'." );
-		binder.AddMethod( &ComputePipelineSpecScriptBinding::SetOptions,			"SetOptions",		{"opts"} );
+		AS_METHOD( binder, ComputePipelineSpecScriptBinding::SetOptions,			"SetOptions",		{"opts"} );
 	}
 
 

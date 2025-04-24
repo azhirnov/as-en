@@ -1,3 +1,4 @@
+echo "update 'PowerVRScopeStats'..."
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\android-clang\PowerVRScopeStats"
 rmdir /Q /S "temp"
 git clone "..\..\..\..\..\3party\PowerVR-SDK" "temp"

@@ -33,7 +33,7 @@ namespace AE::Networking
 		void  Execute ()	C_NE___;
 	);
 
-	DECL_CSMSG( NextFrame,  Global );
+	DECL_CSMSG( NextFrame,  Global, );
 
 	DECL_CSMSG( Sync,  Global,
 		ulong			timeNs;
@@ -51,7 +51,7 @@ namespace AE::Networking
 	}
 
 
-	CSMSG_ENC_DEC( NextFrame	);
+	CSMSG_ENC_DEC( NextFrame,	);
 
 	CSMSG_ENC_DEC( Sync,		timeNs, frameId );
 

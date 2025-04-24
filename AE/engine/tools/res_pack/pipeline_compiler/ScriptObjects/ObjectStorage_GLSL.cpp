@@ -181,6 +181,7 @@ namespace AE::PipelineCompiler
 		// subgroup
 		{
 			FeatureSet::SubgroupOperationBits	ops;
+			FeatureSet::SubgroupOperationBits	quad_ops;
 
 			ESubgroupTypes			types			= Default;
 			FeatureSetCounter		dynamic_id;
@@ -203,6 +204,11 @@ namespace AE::PipelineCompiler
 					//min_size		= Max( min_size, ptr->fs.minSubgroupSize );
 					//max_size		= Max( max_size, ptr->fs.maxSubgroupSize );
 					//CHECK( min_size <= max_size );
+
+					if ( AllBits( ptr->fs.subgroupQuadStages, stage ))
+					{
+						quad_ops	|= ptr->fs.subgroupOperations;
+					}
 				}
 			}
 
@@ -236,7 +242,7 @@ namespace AE::PipelineCompiler
 				ext << "#extension GL_KHR_shader_subgroup_clustered                : require\n";
 				def << "#define AE_shader_subgroup_clustered 1\n";
 			}
-			if ( ops.AnyInRange( ESubgroupOperation::_Quad_Begin, ESubgroupOperation::_Quad_End )) {
+			if ( quad_ops.AnyInRange( ESubgroupOperation::_Quad_Begin, ESubgroupOperation::_Quad_End )) {
 				ext << "#extension GL_KHR_shader_subgroup_quad                     : require\n";
 				def << "#define AE_shader_subgroup_quad 1\n";
 			}
@@ -869,9 +875,9 @@ namespace AE::PipelineCompiler
 	CompileShaderGLSL
 =================================================
 */
-	void  ObjectStorage::CompileShaderGLSL (INOUT CompiledShaderPtr &outShader, const ScriptShaderPtr &inShader, EShaderVersion version,
+	void  ObjectStorage::CompileShaderGLSL (OUT CompiledShaderPtr &outShader, const ScriptShaderPtr &inShader, const EShaderVersion version,
 											const String &defines, const String &resources, ArrayView<String> include, ArrayView<ScriptFeatureSetPtr> features,
-											uint debugDSIndex, bool useMetalArgBuffer) __Th___
+											const uint debugDSIndex, const bool useMetalArgBuffer) __Th___
 	{
 		CHECK_THROW_MSG( not outShader );
 		CHECK_THROW_MSG( inShader );

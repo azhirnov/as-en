@@ -431,32 +431,32 @@ namespace
 		binder.CreateRef();
 
 		binder.Comment( "Set resource name. It is used for debugging." );
-		binder.AddMethod( &ScriptRTGeometry::Name,					"Name",					{} );
+		AS_METHOD( binder, ScriptRTGeometry::Name,					"Name",					{} );
 
 		binder.Comment( "Add triangle mesh.\n"
 						"Supported formats:\n"
 						"	float2/float3  position []/[x];\n"
 						"	Vertex{ float2/float3  pos; ... }  verts []/[x];\n"
 						"	with static or dynamic array." );
-		binder.AddMethod( &ScriptRTGeometry::AddTriangles1,			"AddTriangles",			{"vertexBuffer"} );
-		binder.AddMethod( &ScriptRTGeometry::AddTriangles2,			"AddTriangles",			{"vertexBuffer", "maxVertex", "maxPrimitives"} );
-		binder.AddMethod( &ScriptRTGeometry::AddTriangles3,			"AddTriangles",			{"vertexBuffer", "vbField"} );
-		binder.AddMethod( &ScriptRTGeometry::AddTriangles4,			"AddTriangles",			{"vertexBuffer", "vbField", "maxVertex", "maxPrimitives"} );
+		AS_METHOD( binder, ScriptRTGeometry::AddTriangles1,			"AddTriangles",			{"vertexBuffer"} );
+		AS_METHOD( binder, ScriptRTGeometry::AddTriangles2,			"AddTriangles",			{"vertexBuffer", "maxVertex", "maxPrimitives"} );
+		AS_METHOD( binder, ScriptRTGeometry::AddTriangles3,			"AddTriangles",			{"vertexBuffer", "vbField"} );
+		AS_METHOD( binder, ScriptRTGeometry::AddTriangles4,			"AddTriangles",			{"vertexBuffer", "vbField", "maxVertex", "maxPrimitives"} );
 
 		binder.Comment( "Add indexed triangle mesh.\n"
 						"Supported formats:\n"
 						"	ushort/uint  indices []/[x];\n"
 						"	with static or dynamic array." );
-		binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles1,	"AddIndexedTriangles",	{"vertexBuffer", "indexBuffer"} );
-		binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles2,	"AddIndexedTriangles",	{"vertexBuffer", "maxVertex", "maxPrimitives", "indexBuffer", "indexType"} );
-		binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles3,	"AddIndexedTriangles",	{"vertexBuffer", "vbField", "indexBuffer", "ibField"} );
-		binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles4,	"AddIndexedTriangles",	{"vertexBuffer", "vbField", "maxVertex", "maxPrimitives", "indexBuffer", "ibField"} );
+		AS_METHOD( binder, ScriptRTGeometry::AddIndexedTriangles1,	"AddIndexedTriangles",	{"vertexBuffer", "indexBuffer"} );
+		AS_METHOD( binder, ScriptRTGeometry::AddIndexedTriangles2,	"AddIndexedTriangles",	{"vertexBuffer", "maxVertex", "maxPrimitives", "indexBuffer", "indexType"} );
+		AS_METHOD( binder, ScriptRTGeometry::AddIndexedTriangles3,	"AddIndexedTriangles",	{"vertexBuffer", "vbField", "indexBuffer", "ibField"} );
+		AS_METHOD( binder, ScriptRTGeometry::AddIndexedTriangles4,	"AddIndexedTriangles",	{"vertexBuffer", "vbField", "maxVertex", "maxPrimitives", "indexBuffer", "ibField"} );
 
 		binder.Comment( "Returns indirect buffer, only this buffer must be used for indirect build." );
-		binder.AddMethod( &ScriptRTGeometry::_GetIndirectBuffer,	"IndirectBuffer",		{} );
+		AS_METHOD( binder, ScriptRTGeometry::_GetIndirectBuffer,	"IndirectBuffer",		{} );
 
 		binder.Comment( "Returns number of meshes." );
-		binder.AddMethod( &ScriptRTGeometry::_GetGeometryCount,		"GeometryCount",		{} );
+		AS_METHOD( binder, ScriptRTGeometry::_GetGeometryCount,		"GeometryCount",		{} );
 	}
 
 /*
@@ -1021,7 +1021,7 @@ namespace
 		binder.CreateRef();
 
 		binder.Comment( "Set resource name. It is used for debugging." );
-		binder.AddMethod( &ScriptRTScene::Name,		"Name",		{} );
+		AS_METHOD( binder, ScriptRTScene::Name,		"Name",		{} );
 
 		binder.Comment( "Add instance to the scene." );
 		binder.AddGenericMethod< void (const ScriptRTGeometryPtr &)																						>( &ScriptRTScene::_AddInstance, "AddInstance", {"rtGeometry"} );
@@ -1065,16 +1065,16 @@ namespace
 		binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {"rtGeometry", "transform", "customIndex", "mask", "sbtOffset", "options"} );
 
 		binder.Comment( "Returns instance buffer, can be used to update instances in compute shader." );
-		binder.AddMethod( &ScriptRTScene::_GetInstanceBuffer,	"InstanceBuffer",	{} );
+		AS_METHOD( binder, ScriptRTScene::_GetInstanceBuffer,	"InstanceBuffer",	{} );
 
 		binder.Comment( "Returns number of instances." );
-		binder.AddMethod( &ScriptRTScene::GetInstanceCount,		"InstanceCount",	{} );
+		AS_METHOD( binder, ScriptRTScene::GetInstanceCount,		"InstanceCount",	{} );
 
 		binder.Comment( "Returns indirect buffer, only this buffer must be used for indirect build." );
-		binder.AddMethod( &ScriptRTScene::_GetIndirectBuffer,	"IndirectBuffer",	{} );
+		AS_METHOD( binder, ScriptRTScene::_GetIndirectBuffer,	"IndirectBuffer",	{} );
 
 		binder.Comment( "Set number of ray types. It is used to calculate SBTOffset for instances." );
-		binder.AddMethod( &ScriptRTScene::MaxRayTypes,			"MaxRayTypes",		{} );
+		AS_METHOD( binder, ScriptRTScene::MaxRayTypes,			"MaxRayTypes",		{} );
 	}
 
 /*

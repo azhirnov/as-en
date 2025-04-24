@@ -317,7 +317,6 @@ namespace AE::Graphics {
 		}
 
 		ASSERT( buffers.size() == mem_view.Parts().size() );
-		ASSERT( offset == dst_buf_size );
 
 		return	ReadbackBufferResult2{
 					Threading::MakePromiseFromValue( mem_view,

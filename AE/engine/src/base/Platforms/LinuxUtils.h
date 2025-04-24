@@ -5,6 +5,7 @@
 #ifdef AE_PLATFORM_LINUX
 # include "base/Platforms/UnixUtils.h"
 # include "base/Containers/NtStringView.h"
+# include "base/FileSystem/Path.h"
 
 namespace AE::Base
 {
@@ -32,6 +33,10 @@ namespace AE::Base
 		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
 
 
+		// Process //
+		ND_ static Path		GetExeLocation ()												__NE___;
+
+
 		// OS //
 		ND_ static bool			IsUnderDebugger ()											__NE___;
 		ND_ static Version3		GetOSVersion ()												__NE___;
@@ -43,6 +48,11 @@ namespace AE::Base
 		ND_ static String		GetOSName ()												__NE___;
 		#endif
 
+		ND_ static bool		GetEnvironmentVariable (NtStringView name, OUT String &value)	__NE___;
+		ND_ static bool		HasEnvironmentVariable (NtStringView name)						__NE___;
+		ND_ static bool		SetEnvironmentVariable (NtStringView name, NtStringView value)	__NE___;
+		ND_ static bool		DeleteEnvironmentVariable (NtStringView name)					__NE___;
+		
 
 		// Clipboard //
 		ND_ static bool		ClipboardExtract (OUT String &result, void* disp = null, void* wnd = null)	__NE___;

@@ -105,23 +105,23 @@
 		switch ( iProj )
 		{
 			// screen ViewProj matrix to ray:
-			case 0 :	ray = Ray_From( un_PerPass.camera.invViewProj, float3(0.0), z_near, uv );				break;
+			case 0 :	ray = Ray_Perspective( un_PerPass.camera.invViewProj, float3(0.0), z_near, uv );				break;
 
 			// flat screen	(fov=45, iDistToEye=0.474) (fov=90, iDistToEye=0.105)
-			case 1 :	ray = Ray_FromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );	break;
+			case 1 :	ray = Ray_PerspectiveFromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );	break;
 
 			// flat screen FOV
-			case 2 :	ray = Ray_FromScreen( float3(0.0), Min( fov, float_Pi*0.95 ), z_near, ToSNorm(uv) );	break;
+			case 2 :	ray = Ray_Perspective( float3(0.0), Min( fov, float_Pi*0.95 ), z_near, ToSNorm(uv) );	break;
 
 			// curved screen
-			case 3 :	ray = Ray_FromCurvedScreen( float3(0.0), iDistToEye, curve_radius, screen_size, z_near, ToSNorm(uv) ); break;
+			case 3 :	ray = Ray_PerspectiveFromCurvedScreen( float3(0.0), iDistToEye, curve_radius, screen_size, z_near, ToSNorm(uv) ); break;
 
 			// sphere
 			case 4 :	ray = Ray_PlaneToSphere( fov, float3(0.0), z_near, ToSNorm(uv) );						break;
 
 			// flat screen + sphere
 			case 5 : {
-						ray = Ray_FromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );
+						ray = Ray_PerspectiveFromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );
 				Ray		r = Ray_PlaneToSphere( fov, float3(0.0), z_near, ToSNorm(uv) );
 				ray.dir = Normalize( Lerp( ray.dir, r.dir, 0.5 ));	// flat -> sphere
 				break;
@@ -132,7 +132,7 @@
 
 			// flat screen + sphere v2
 			case 7 : {
-						ray = Ray_FromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );
+						ray = Ray_PerspectiveFromFlatScreen( float3(0.0), iDistToEye, screen_size, z_near, ToSNorm(uv) );
 				Ray		r = Ray_PlaneToSphere( fov2, float3(0.0), z_near, ToSNorm(uv) );
 				ray.dir = Normalize( Lerp( ray.dir, r.dir, 0.5 ));	// flat -> sphere
 				break;

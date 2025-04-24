@@ -12,7 +12,6 @@ namespace AE::ResEditor
 	//
 	// Present pass
 	//
-
 	class Present final : public IPass
 	{
 	// types
@@ -59,7 +58,6 @@ namespace AE::ResEditor
 	//
 	// Debug View
 	//
-
 	class DebugView final : public IPass
 	{
 	// types
@@ -192,7 +190,6 @@ namespace AE::ResEditor
 	//
 	// Generate Mipmaps pass
 	//
-
 	class GenerateMipmapsPass final : public IPass
 	{
 	// variables
@@ -208,7 +205,7 @@ namespace AE::ResEditor
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
 		bool		Execute (SyncPassData &)							__Th_OV;
-		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV {}
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
 	};
 
 
@@ -216,7 +213,6 @@ namespace AE::ResEditor
 	//
 	// Copy Image pass
 	//
-
 	class CopyImagePass final : public IPass
 	{
 	// variables
@@ -239,9 +235,39 @@ namespace AE::ResEditor
 
 
 	//
+	// Relaxed Copy Image pass
+	//
+	class RelaxedCopyImagePass final : public IPass
+	{
+	// variables
+	private:
+		RTechInfo				_rtech;
+		ComputePipelineID		_ppln;
+		DescSetBinding			_dsIndex;
+		PerFrameDescSet_t		_descSets;
+		RC<Image>				_srcImage;
+		RC<Image>				_dstImage;
+
+
+	// methods
+	public:
+		static constexpr uint	localSize	= 8;
+
+		explicit RelaxedCopyImagePass (RC<Image> src, RC<Image> dst, RTechInfo rtech,
+										ComputePipelineID ppln, StringView dbgName) __Th___;
+		~RelaxedCopyImagePass ();
+
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
+		bool		Execute (SyncPassData &)							__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
+	};
+
+
+
+	//
 	// Blit Image pass
 	//
-
 	class BlitImagePass final : public IPass
 	{
 	// variables
@@ -266,7 +292,6 @@ namespace AE::ResEditor
 	//
 	// Resolve Image pass
 	//
-
 	class ResolveImagePass final : public IPass
 	{
 	// variables
@@ -291,7 +316,6 @@ namespace AE::ResEditor
 	//
 	// Clear Image pass
 	//
-
 	class ClearImagePass final : public IPass
 	{
 	// types
@@ -313,7 +337,7 @@ namespace AE::ResEditor
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
 		bool		Execute (SyncPassData &)							__Th_OV;
-		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
 	};
 
 
@@ -321,7 +345,6 @@ namespace AE::ResEditor
 	//
 	// Clear Buffer pass
 	//
-
 	class ClearBufferPass final : public IPass
 	{
 	// variables
@@ -348,7 +371,6 @@ namespace AE::ResEditor
 	//
 	// Read Buffer Value pass
 	//
-
 	class ReadBufferValuePass final : public IPass
 	{
 	// variables

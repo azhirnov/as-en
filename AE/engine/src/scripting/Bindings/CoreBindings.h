@@ -3,6 +3,7 @@
 #pragma once
 
 #include "scripting/Bindings/Array.h"
+#include "scripting/Impl/FnWrapper.h"
 
 namespace AE::Scripting
 {
@@ -187,7 +188,7 @@ AE_DECL_SCRIPT_OBJ( AE::Base::RectF,				"RectF"	);
 	_visitor_( Atmosphere				)\
 
 #define AE_PHYSICAL_TYPES_VIS( _name_ )\
-	AE_DECL_SCRIPT_TYPE( AE::Base::DefaultPhysicalQuantity<float>::_name_, AE_TOSTRING(_name_) );											\
+	AE_DECL_SCRIPT_OBJ( AE::Base::DefaultPhysicalQuantity<float>::_name_, AE_TOSTRING(_name_) );											\
 	AE_DECL_SCRIPT_OBJ( AE::Base::PhysicalQuantityPackedVec2< AE::Base::DefaultPhysicalQuantity<float>::_name_>, AE_TOSTRING(_name_ ## 2) );\
 	AE_DECL_SCRIPT_OBJ( AE::Base::PhysicalQuantityPackedVec3< AE::Base::DefaultPhysicalQuantity<float>::_name_>, AE_TOSTRING(_name_ ## 3) );
 

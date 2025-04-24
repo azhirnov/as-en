@@ -6,6 +6,7 @@
 #	define APPLY_SPLINE
 #	define TRACE_OPAQUE
 #	define TRACE_CLOUD
+#	define TRACE_CLOUD2
 #	define VIEW_2D
 #	define vTILE		8	// volume tile size
 #endif
@@ -55,7 +56,7 @@
 
 #endif
 //-----------------------------------------------------------------------------
-#if defined(TRACE_OPAQUE) or defined(TRACE_CLOUD)
+#if defined(TRACE_OPAQUE) or defined(TRACE_CLOUD) or defined(TRACE_CLOUD2)
 	#include "Fog.glsl"
 	#include "Color.glsl"
 	#include "Intersectors.glsl"
@@ -67,9 +68,6 @@
 	const AABB		c_VolumeAABB	= {float3(-1.0) + c_VolumePos, float3(1.0) + c_VolumePos};
 	const uint		c_MaxOpSteps	= 512;
 	const uint		c_MaxTrSteps	= 256;
-
-	const uint		c_MaxLightSteps	= 10;
-	const float3	c_LightDir		= Normalize(float3( 0.0, 1.0, 0.4 ));
 
 
 	ND_ float  Noise (float3 pos)
@@ -112,7 +110,55 @@
 	ND_ float  DensityLowRes (float3 pos)
 	{
 		// TODO: use mipmap
-		return Max( ToSNorm( Noise( pos )) * iDensity, 0.0 );
+		return ToSNorm( Noise( pos )) * iDensity;
+	}
+
+	ND_ float4  RayTraceTranslucent (in Ray ray, const float3 center, const float maxT)
+	{
+		const float		max_depth		= Distance( c_VolumeAABB.min, c_VolumeAABB.max );
+		const float		step			= max_depth / float(c_MaxTrSteps);
+
+		float			accum_density	= 0.0;
+		float			optical_depth	= 0.0;
+		float			transmittance	= 1.0;
+
+		for (uint i = 0; All3( i < c_MaxTrSteps, transmittance > 0.01, ray.t < maxT ); ++i)
+		{
+			float3	local_pos	= ray.pos - center;
+			float	density		= DensityLowRes( local_pos );
+			
+			// simple volumetric
+			if ( density > 0.0 )
+			{
+				float	scattering	= density;
+				float	powder		= 1.0 - Exp( -scattering * 122.0 );
+				float	prev_t		= transmittance;
+
+				optical_depth += scattering * step;
+				transmittance  = Exp( -optical_depth * 400.0 );
+				accum_density += powder * (prev_t - transmittance);
+			}
+
+			Ray_Move( INOUT ray, step );
+		}
+		
+		transmittance	= Saturate( 1.0 - transmittance );
+		accum_density	= Saturate( accum_density );
+
+		float3	light_col = RemoveSRGBCurve( iLightColor.rgb ) * transmittance * accum_density;
+		
+		return float4(ApplySRGBCurve( light_col ), 1.0);
+	}
+  #endif
+
+
+  #ifdef TRACE_CLOUD2
+	const uint		c_MaxLightSteps	= 3;
+
+	ND_ float  DensityLowRes (float3 pos)
+	{
+		// TODO: use mipmap
+		return ToSNorm( Noise( pos )) * iDensity;
 	}
 
 	ND_ float4  RayTraceTranslucent (in Ray ray, const float3 center, const float maxT)
@@ -120,23 +166,24 @@
 		const float		max_depth		= Distance( c_VolumeAABB.min, c_VolumeAABB.max );
 		const float		step			= max_depth / float(c_MaxTrSteps);
 		const float		light_step		= max_depth / float(c_MaxLightSteps) * 0.5;
-		const float		cos_theta		= Dot( ray.dir, c_LightDir );
+		const float3	light_dir		= Normalize( iLightDir );
+		const float		cos_theta		= Dot( ray.dir, light_dir );
 
 		float			accum_density	= 0.0;
 		float			transmittance	= 1.0;
 
-		for (uint i = 0; All3( i < c_MaxTrSteps, accum_density < 0.999, ray.t < maxT ); ++i)
+		for (uint i = 0; All3( i < c_MaxTrSteps, ray.t < maxT, accum_density < 0.999 ); ++i)
 		{
 			float3	local_pos	= ray.pos - center;
 			float	density		= DensityLowRes( local_pos );
-
+			
 			if ( density > 0.0 )
 			{
 				float	density_along_light = 0.0;
 
 				for (uint j = 0; j < c_MaxLightSteps; ++j)
 				{
-					float3	pos2 = local_pos + c_LightDir * float(j) * light_step;
+					float3	pos2 = local_pos + light_dir * float(j) * light_step;
 					density_along_light += DensityLowRes( pos2 );
 				}
 
@@ -150,14 +197,13 @@
 
 			Ray_Move( INOUT ray, step );
 		}
-
+		
 		transmittance	= Max( 0.0, transmittance );
 		accum_density	= Min( 1.0, accum_density );
 
-		float3	light_col = RemoveSRGBCurve( iLightColor.rgb );
+		float3	light_col = RemoveSRGBCurve( iLightColor.rgb ) * transmittance * accum_density;
 
-		return float4(	ApplySRGBCurve( light_col * transmittance * accum_density ),
-						Saturate( Max( 1.0 - accum_density, 0.0 ) ));
+		return float4(ApplySRGBCurve( light_col ), 1.0);
 	}
   #endif
 
@@ -181,11 +227,14 @@
 	  #ifdef TRACE_CLOUD
 		return RayTraceTranslucent( ray, center, t_min_max.y );
 	  #endif
+	  #ifdef TRACE_CLOUD2
+		return RayTraceTranslucent( ray, center, t_min_max.y );
+	  #endif
 	}
 
 	void  Main ()
 	{
-		Ray	ray = Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
+		Ray	ray = Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 		out_Color = RayTrace( ray );
 	}
 

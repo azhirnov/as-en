@@ -8,14 +8,24 @@ namespace AE::Scripting
 	Arg
 =================================================
 */
-	template <typename T>
-	exact_t  ScriptArgList::Arg (uint idx) C_NE___
+	template <typename B>
+	exact_t  ScriptArgList::Arg (const uint idx) C_Th___
 	{
 		using namespace AngelScript;
 
-		ASSERT( IsArg<T>( idx ));
+		using T = RemoveAllQualifiers< B >;
+		
+		CHECK_THROW( idx < ArgCount() );
+		CHECK_THROW( IsArg<B>( idx ));
 
-		if constexpr( IsSame< T, ubyte > or IsSame< T, sbyte >)
+		if constexpr( (IsInteger<T> or IsFloatPoint<T>) and IsPointer<B> )
+			return static_cast<B>( _gen->GetAddressOfArg( idx ));
+		else
+		if constexpr( (IsInteger<T> or IsFloatPoint<T>) and IsLValueRef<B> )
+			return *static_cast<T*>( _gen->GetAddressOfArg( idx ));
+		else
+
+		if constexpr( IsSame< T, ubyte > or IsSame< T, sbyte > or IsSame< T, bool >)
 			return T(_gen->GetArgByte( idx ));
 		else
 		if constexpr( IsSame< T, ushort > or IsSame< T, sshort >)
@@ -34,45 +44,50 @@ namespace AE::Scripting
 			return T(_gen->GetArgDouble( idx ));
 		else
 		{
-			using T2 = RemoveAllQualifiers<T>;
+			StaticAssert( IsCompleteType< ScriptTypeInfo<T> >);
 
-			constexpr bool	is_obj	= ScriptTypeInfo<T2>::is_object;
-			constexpr bool	is_rc	= ScriptTypeInfo<T2>::is_ref_counted	or
-									  ScriptTypeInfo<T2*>::is_ref_counted	or
-									  AngelScriptHelper::IsSharedPtrNoQual<T2>;
+			constexpr bool	is_obj	= ScriptTypeInfo<T>::is_object;
+			constexpr bool	is_rc	= ScriptTypeInfo<T>::is_ref_counted		or
+									  ScriptTypeInfo<T*>::is_ref_counted	or
+									  AngelScriptHelper::IsSharedPtrNoQual<T>;
 
-			using CT2 = Conditional< IsAnyConst<T>, const T2, T2 >;
+			using CT2 = Conditional< IsAnyConst<B>, const T, T >;
 
-			if constexpr( IsSame< T2, String >)
+			if constexpr( IsSame< T, String >)
 				return *Cast<CT2>(_gen->GetArgAddress( idx ));
 			else
 			if constexpr( is_obj and not is_rc )
 			{
 				CT2*  arg = Cast<CT2>(_gen->GetArgObject( idx ));
-				return *arg;
+				CHECK_THROW( arg != null );
+				if constexpr( IsPointer<B> )	return arg;
+				else							return *arg;
 			}
 			else
 			if constexpr( is_rc )
 			{
-				if constexpr( AngelScriptHelper::IsSharedPtrNoQual<T2> )
+				if constexpr( AngelScriptHelper::IsSharedPtrNoQual<T> )
 				{
-					using T3 = typename AngelScriptHelper::RemoveSharedPtr<T2>;
+					using T3 = typename AngelScriptHelper::RemoveSharedPtr<T>;
 					T3*  arg = *static_cast<T3 **>(_gen->GetArgAddress( idx ));
-					ASSERT( arg == null or arg->__Counter() > 0 );
-					return T2{arg};
+					CHECK_THROW( arg == null or arg->__Counter() > 0 );
+					return T{arg};
 				}
 				else
 				{
-					StaticAssert( IsClass<T2> );
-					T2*	arg = *static_cast<T2 **>(_gen->GetArgAddress( idx ));
-					ASSERT( arg == null );
-					return *arg;
+					T*  arg = Cast<T>(_gen->GetArgObject( idx ));
+					CHECK_THROW( arg != null );
+					if constexpr( IsPointer<B> )	return arg;
+					else							return *arg;
 				}
 			}
 			else
 			{
-				StaticAssert( IsClass<T2> );
-				return *Cast<CT2>(_gen->GetArgAddress( idx ));
+				StaticAssert( IsClass<T> );
+				CT2*  arg = Cast<CT2>(_gen->GetArgAddress( idx ));
+				CHECK_THROW( arg != null );
+				if constexpr( IsPointer<B> )	return arg;
+				else							return *arg;
 			}
 		}
 	}
@@ -83,9 +98,12 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T>
-	bool  ScriptArgList::IsArg (uint idx) C_NE___
+	bool  ScriptArgList::IsArg (const uint idx) C_NE___
 	{
 		using namespace AngelScript;
+
+		if ( idx >= ArgCount() )
+			return false;
 
 		asDWORD		flags	= 0;
 		const int	tid		= _gen->GetArgTypeId( idx, OUT &flags );
@@ -111,6 +129,7 @@ namespace AE::Scripting
 	template <typename T>
 	void  ScriptArgList::Return (const T &value) C_Th___
 	{
+		CHECK_THROW( IsReturn<T>() );
 		AS_CHECK_THROW( _Return( value ));
 	}
 
@@ -118,8 +137,6 @@ namespace AE::Scripting
 	int  ScriptArgList::_Return (const T &value) C_NE___
 	{
 		using namespace AngelScript;
-
-		ASSERT( IsReturn<T>() );
 
 		if constexpr( IsSame< T, bool > or IsSame< T, ubyte > or IsSame< T, sbyte > or IsSame< T, char >)
 			return _gen->SetReturnByte( asBYTE(value) );
@@ -140,11 +157,20 @@ namespace AE::Scripting
 			return _gen->SetReturnDouble( value );
 		else
 		if constexpr( IsPointer<T> )
-			return _gen->SetReturnAddress( const_cast<T*>(&value) );
+			return _gen->SetReturnAddress( BitCast<void*>( const_cast<T>( value )));
 		else
+		if constexpr( IsCompleteType< ScriptTypeInfo<T> >)
 		{
-			StaticAssert( ScriptTypeInfo<T>::is_object );
-			return _gen->SetReturnObject( const_cast<T*>(&value) );
+			if constexpr( ScriptTypeInfo<T>::is_object )
+				return _gen->SetReturnObject( const_cast<T*>(&value) );
+			else{
+				*Cast<T>(_gen->GetAddressOfReturnLocation()) = value;
+				return 0;
+			}
+		}else
+		{
+			*Cast<T>(_gen->GetAddressOfReturnLocation()) = value;
+			return 0;
 		}
 	}
 

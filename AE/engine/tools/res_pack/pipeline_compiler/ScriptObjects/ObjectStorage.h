@@ -21,6 +21,7 @@
 
 #include "Compiler/SpirvCompiler.h"
 #include "Compiler/MetalCompiler.h"
+#include "Compiler/SlangCompiler.h"
 
 namespace AE::PipelineCompiler
 {
@@ -156,6 +157,7 @@ namespace AE::PipelineCompiler
 		Ptr<PipelineStorage>		pplnStorage;
 		Unique< SpirvCompiler >		spirvCompiler;
 		Unique< MetalCompiler >		metalCompiler;
+		Unique<SLangCompiler>		slangCompiler;
 		Unique< CompatRTConsts >	_compatRPConstPtr;
 		Unique< StructTypeConsts >	_structTypeConstPtr;
 
@@ -189,13 +191,17 @@ namespace AE::PipelineCompiler
 		ND_ CompatibleRenderPassDescPtr  RenderPassExists (RenderPassName::Ref rpName, SubpassName::Ref subpass)					C_Th___;
 		ND_ RenderPassSpecPtr			 GetRenderPass (RenderPassName::Ref rpName)													C_Th___;
 
-		void  CompileShaderGLSL (INOUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
+		void  CompileShaderGLSL (OUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
 								 const String &defines, const String &resources, ArrayView<String> include,
 								 ArrayView<ScriptFeatureSetPtr> features, uint debugDSIndex, bool useMetalArgBuffer)				__Th___;
 
-		void  CompileShaderMSL (INOUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
+		void  CompileShaderMSL (OUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
 								const String &defines, const String &resources, ArrayView<String> include,
 								ArrayView<ScriptFeatureSetPtr> features)															__Th___;
+		
+		void  CompileShaderSLang (OUT CompiledShaderPtr &shader, const ScriptShaderPtr &inShader, EShaderVersion version,
+								  const String &defines, const String &resources, ArrayView<String> include,
+								  ArrayView<ScriptFeatureSetPtr> features)															__Th___;
 
 		ND_ String  GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, EShaderStages stage, ArrayView<ScriptFeatureSetPtr> features)__Th___;
 		ND_ String  GetShaderExtensionsMSL  (INOUT Version2 &metalVer, EShaderStages stage, ArrayView<ScriptFeatureSetPtr> features)__Th___;
@@ -242,6 +248,8 @@ namespace AE::PipelineCompiler
 			static void  SetInstance (ObjectStorage* inst);
 
 	private:
+		void  _CompileShaderSLang (const ShaderSrcKey &info, ArrayView<ScriptFeatureSetPtr> features,
+									const PathAndLine &shaderPath, const String &entry, OUT CompiledShader &compiled)				__Th___;
 		void  _CompileShaderGLSL (const ShaderSrcKey &info, ArrayView<ScriptFeatureSetPtr> features, uint debugDSIndex,
 								  const PathAndLine &shaderPath, const String &entry, OUT CompiledShader &compiled)					__Th___;
 		void  _CompileShaderMSL (const ShaderSrcKey &info, ArrayView<ScriptFeatureSetPtr> features, const PathAndLine &shaderPath,

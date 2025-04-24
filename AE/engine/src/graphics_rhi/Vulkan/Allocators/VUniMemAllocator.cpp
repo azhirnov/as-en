@@ -202,7 +202,7 @@ namespace {
 		StaticAssert64( sizeof(info) == 48 );
 
 	  #if USE_AE_MEM_SELECTOR
-		info.memoryTypeBits = GraphicsScheduler().GetDevice().GetMemoryTypeBits( desc.memType );
+		info.memoryTypeBits = _device.GetMemoryTypeBits( desc.memType );
 	  #else
 		info.requiredFlags	= VEnumCast( desc.memType );
 	  #endif
@@ -252,7 +252,7 @@ namespace {
 		StaticAssert64( sizeof(info) == 48 );
 
 	  #if USE_AE_MEM_SELECTOR
-		info.memoryTypeBits = GraphicsScheduler().GetDevice().GetMemoryTypeBits( desc.memType );
+		info.memoryTypeBits = _device.GetMemoryTypeBits( desc.memType );
 	  #else
 		info.requiredFlags	= VEnumCast( desc.memType );
 	  #endif

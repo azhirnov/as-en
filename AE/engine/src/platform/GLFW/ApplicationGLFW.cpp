@@ -203,8 +203,17 @@ namespace {
 			result.native = BitCast<Monitor::NativeMonitor_t>( ::MonitorFromPoint( pt, MONITOR_DEFAULTTONULL ));
 
 		#elif defined(AE_PLATFORM_LINUX)
-			result.native = BitCast<Monitor::NativeMonitor_t>( ::glfwGetX11Monitor( ptr ));
+			switch ( glfwGetPlatform() )
+			{
+				case GLFW_PLATFORM_X11 :
+					result.native = BitCast<Monitor::NativeMonitor_t>( ::glfwGetX11Monitor( ptr ));		break;
 
+				case GLFW_PLATFORM_WAYLAND :
+					// TODO
+
+				default :
+					AE_LOG_DBG( "Unknown window system" );
+			}
 		#elif defined(AE_PLATFORM_MACOS)
 			result.native = BitCast<Monitor::NativeMonitor_t>( usize(::glfwGetCocoaMonitor( ptr )));
 
@@ -290,6 +299,12 @@ namespace {
 	{
 		int	res = 0;
 		{
+			// Choose X11 or Wayland
+			#ifdef AE_PLATFORM_LINUX
+				glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_X11 );
+			//	glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND );
+			#endif
+
 			CHECK_ERR( glfwInit() == GLFW_TRUE, -1 );
 
 			AE::App::ApplicationGLFW	app{ RVRef(listener) };

@@ -307,7 +307,7 @@ namespace {
 			_imageHeader.viewType		= EImage_2D;
 			_imageHeader.format			= dst_image.PixelFormat();
 			_imageHeader.flags			= 0;
-			_imageHeader.rowAlignPOT	= 0;
+			_imageHeader.rowAlignPOT	= POTBytes{};
 
 			StaticAssert( sizeof(_imageHeader) == 16 );
 		}
@@ -383,14 +383,14 @@ namespace {
 	{
 		Scripting::ClassBinder<ScriptImageAtlas>	binder{ se };
 		binder.CreateRef();
-		binder.AddMethod( &ScriptImageAtlas::Add,			"Add",			{"imageNameInAtlas", "filename"} );
-		binder.AddMethod( &ScriptImageAtlas::Add2,			"Add",			{"imageNameInAtlas", "filename", "regionInSrcImage"} );
-		binder.AddMethod( &ScriptImageAtlas::Store,			"Store",		{"nameInArchive"} );
-		binder.AddMethod( &ScriptImageAtlas::StoreData,		"StoreData",	{"nameInArchive"} );
-		binder.AddMethod( &ScriptImageAtlas::PutMeta,		"PutMeta",		{"metaFile", "nameInMeta"} );
-		binder.AddMethod( &ScriptImageAtlas::PutData,		"PutData",		{"image"} );
-		binder.AddMethod( &ScriptImageAtlas::SetPadding,	"Padding",		{"paddingInPixels"} );
-		binder.AddMethod( &ScriptImageAtlas::SetFormat,		"Format",		{"newFormat"} );
+		AS_METHOD( binder, ScriptImageAtlas::Add,			"Add",			{"imageNameInAtlas", "filename"} );
+		AS_METHOD( binder, ScriptImageAtlas::Add2,			"Add",			{"imageNameInAtlas", "filename", "regionInSrcImage"} );
+		AS_METHOD( binder, ScriptImageAtlas::Store,			"Store",		{"nameInArchive"} );
+		AS_METHOD( binder, ScriptImageAtlas::StoreData,		"StoreData",	{"nameInArchive"} );
+		AS_METHOD( binder, ScriptImageAtlas::PutMeta,		"PutMeta",		{"metaFile", "nameInMeta"} );
+		AS_METHOD( binder, ScriptImageAtlas::PutData,		"PutData",		{"image"} );
+		AS_METHOD( binder, ScriptImageAtlas::SetPadding,	"Padding",		{"paddingInPixels"} );
+		AS_METHOD( binder, ScriptImageAtlas::SetFormat,		"Format",		{"newFormat"} );
 	}
 
 /*

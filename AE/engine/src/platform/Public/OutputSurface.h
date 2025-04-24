@@ -119,7 +119,7 @@ namespace AE::App
 			Attachments_t	attachments;
 		};
 
-		using SurfaceFormats_t	= FixedArray< SurfaceFormat, 16 >;
+		using SurfaceFormats_t	= FixedArray< SurfaceFormat, 31 >;
 		using PresentModes_t	= FixedArray< EPresentMode, 8 >;
 		using TargetInfos_t		= FixedArray< RenderTargetInfo, MaxOutputTargets >;
 

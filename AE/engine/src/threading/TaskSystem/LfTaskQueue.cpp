@@ -289,7 +289,7 @@ namespace AE::Threading
 */
 	void  LfTaskQueue::Add (AsyncTask task, const EThreadSeed seed) __NE___
 	{
-		NonNull( task );
+		ASSERT( task );
 
 		DEBUG_ONLY(
 			const auto	start_time = TimePoint_t::clock::now();

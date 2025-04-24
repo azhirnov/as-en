@@ -580,7 +580,7 @@ namespace
 						<< "\n    prefersLocalInvocationVertexOutput:    " << ToString( compute.prefersLocalInvocationVertexOutput )
 						<< "\n    prefersLocalInvocationPrimitiveOutput: " << ToString( compute.prefersLocalInvocationPrimitiveOutput )
 						<< "\n    prefersCompactVertexOutput:            " << ToString( compute.prefersCompactVertexOutput )
-						<< "\n    prefersCompactPrimitiveOutput:  . . . ." << ToString( compute.prefersCompactPrimitiveOutput );
+						<< "\n    prefersCompactPrimitiveOutput: . . . . " << ToString( compute.prefersCompactPrimitiveOutput );
 				}
 				str << "\n  ----";
 			}

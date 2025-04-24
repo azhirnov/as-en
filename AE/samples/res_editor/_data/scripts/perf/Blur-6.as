@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Separate vertical and horizontal passes.
-	UV defined in VS to avoid dependent loockup.
+	UV defined in VS to avoid dependent lookup.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

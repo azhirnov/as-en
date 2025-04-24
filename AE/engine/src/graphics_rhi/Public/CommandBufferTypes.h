@@ -25,7 +25,7 @@ namespace AE::Graphics
 		EImageAspect	aspectMask		= Default;
 		MipmapLevel		mipLevel;
 		ImageLayer		baseLayer;
-		ushort			layerCount		= 1;
+		LayerCount_t	layerCount		= 1;
 
 		ImageSubresourceLayers ()												__NE___ = default;
 		ImageSubresourceLayers (EImageAspect aspectMask)						__NE___ : aspectMask{aspectMask} {}
@@ -33,7 +33,7 @@ namespace AE::Graphics
 		ImageSubresourceLayers (EImageAspect aspectMask, MipmapLevel mipLevel,
 								ImageLayer baseLayer, uint layerCount = 1)		__NE___ :
 			aspectMask{aspectMask}, mipLevel{mipLevel},
-			baseLayer{baseLayer}, layerCount{ushort(layerCount)} {}
+			baseLayer{baseLayer}, layerCount{LayerCount_t(layerCount)} {}
 	};
 
 
@@ -41,9 +41,9 @@ namespace AE::Graphics
 	{
 		EImageAspect	aspectMask		= Default;
 		MipmapLevel		baseMipLevel;
-		ushort			mipmapCount		= 1;
+		MipmapCount_t	mipmapCount		= 1;
 		ImageLayer		baseLayer;
-		ushort			layerCount		= 1;
+		LayerCount_t	layerCount		= 1;
 
 		ImageSubresourceRange ()												__NE___ = default;
 		ImageSubresourceRange (EImageAspect aspectMask)							__NE___ : aspectMask{aspectMask} {}
@@ -56,8 +56,8 @@ namespace AE::Graphics
 							   MipmapLevel baseMipLevel, uint mipmapCount,
 							   ImageLayer baseLayer, uint layerCount)			__NE___ :
 			aspectMask{aspectMask},
-			baseMipLevel{baseMipLevel}, mipmapCount{ushort(mipmapCount)},
-			baseLayer{baseLayer}, layerCount{ushort(layerCount)} {}
+			baseMipLevel{baseMipLevel}, mipmapCount{MipmapCount_t(mipmapCount)},
+			baseLayer{baseLayer}, layerCount{LayerCount_t(layerCount)} {}
 
 		explicit ImageSubresourceRange (const ImageSubresourceLayers &other)	__NE___ :
 			aspectMask{other.aspectMask}, baseMipLevel{other.mipLevel},

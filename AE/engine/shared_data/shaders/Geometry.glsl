@@ -23,8 +23,8 @@ ND_ float2	Plane_ProjectPoint (const float3 point, const float3 planeNorm);					
 //-----------------------------------------------------------------------------
 
 
-ND_ float	ToLinearDepth (const float nonLinearDepth, const float zNear, const float zFar);
-ND_ float	ToNonlinearDepth (const float linearDepth, const float zNear, const float zFar);
+ND_ float	ToLinearDepth (const float nonLinearDepth, const float2 clipPlanes);
+ND_ float	ToNonlinearDepth (const float linearDepth, const float2 clipPlanes);
 //-----------------------------------------------------------------------------
 
 
@@ -208,14 +208,18 @@ float2  Plane_ProjectPoint (const float3 point, const float3 planeNorm)
 	ToLinearDepth, ToNonlinearDepth
 =================================================
 */
-float  ToLinearDepth (const float nonLinearDepth, const float zNear, const float zFar)
+float  ToLinearDepth (const float nonLinearDepth, const float2 clipPlanes)
 {
-	return (2.0f * zNear) / ((zFar + zNear) - nonLinearDepth * (zFar - zNear));
+	float	near = clipPlanes.x;
+	float	far  = clipPlanes.y;
+	return (2.0f * near) / ((far + near) - nonLinearDepth * (far - near));
 }
 
-float  ToNonlinearDepth (const float linearDepth, const float zNear, const float zFar)
+float  ToNonlinearDepth (const float linearDepth, const float2 clipPlanes)
 {
-	return ((zFar + zNear) - 2.0f * zNear / linearDepth) / (zFar - zNear);
+	float	near = clipPlanes.x;
+	float	far  = clipPlanes.y;
+	return ((far + near) - 2.0f * near / linearDepth) / (far - near);
 }
 
 /*

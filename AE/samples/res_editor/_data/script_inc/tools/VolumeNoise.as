@@ -24,7 +24,7 @@ const uint			tile_size		= 4;		// ? frames to whole update
 
 uint				pass_id			= 1;
 bool				has_dist_tex	= false;
-uint				max_view_mode	= 3;		// can be overridden by user
+uint				max_view_mode	= 4;		// can be overridden by user
 
 
 void  AddNoise (const array<float> &params)
@@ -34,7 +34,8 @@ void  AddNoise (const array<float> &params)
 
 	pass.Slider( "iNoise",			0,						17,					int(params[0]) );
 	pass.Slider( "iOctaves",		1,						10,					int(params[1]) );
-	pass.Slider( "iOp",				int2(0),				int2(4),			int2( int(params[2]), int(params[3]) ));
+	pass.Slider( "iOp",				int2(0),				int2(4),			int2( int(params[2]), int(params[3]) ));	// neg, abs, >, <, [0,1], [-1,0], [-1,0]
+																															// none, add, mul, mul unorm, min, max
 	pass.Slider( "iPScale",			0.1f,					10.f,				params[4] );
 	pass.Slider( "iPBias",			float3(-10.f),			float3(10.f),		float3( params[5],  params[6], params[7] ));
 	pass.Slider( "iParams",			float4(-1.f),			float4(2.f),		float4( params[8],  params[9], params[10], params[11] ));
@@ -172,12 +173,21 @@ void  SetupVolumeNoise (SetupPasses_t @setupPasses)
 		pass.ColorSelector( "iLightColor", RGBA8u(255) );
 		pass.EnableIfEqual( view_mode,	2 );
 	}{
+		RC<Postprocess>		pass = Postprocess( "tools/VolumeNoise.glsl", "TRACE_CLOUD2" );
+		pass.Set( camera );
+		pass.Output( "out_Color",		rt );
+		pass.ArgIn(  "un_Volume",		noise_tex,		Sampler_LinearClamp );
+		pass.Slider( "iDensity",		0.01f,			0.3f,			0.1f );
+		pass.Slider( "iLightDir",		float3(-1.0),	float3(1.0),	float3(0.0, 1.0, 0.4) );
+		pass.ColorSelector( "iLightColor", RGBA8u(255) );
+		pass.EnableIfEqual( view_mode,	3 );
+	}{
 		RC<Postprocess>		pass = Postprocess( "tools/TerrainNoise.glsl", "VIEW_1D" );
 		pass.OutputBlend( "out_Color",	rt,			EBlendFactor::OneMinusDstAlpha, EBlendFactor::One, EBlendOp::Add );	// blend with spline editor
 		pass.ArgIn(		"un_Noise",		noise_tex,	Sampler_LinearClamp );
 		pass.Slider(	"iYOffset",		0.f,		1.f,		0.5f );
 		pass.Slider(	"iTilePos",		int2(0),	int2(4),	int2(0) );
 		pass.Constant(	"iLayer",		view_layer );
-		pass.EnableIfEqual( view_mode,	3 );
+		pass.EnableIfEqual( view_mode,	4 );
 	}
 }

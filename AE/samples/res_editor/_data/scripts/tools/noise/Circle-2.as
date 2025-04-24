@@ -87,15 +87,15 @@
 		params.seedScale	= float3(1.0);
 		params.custom		= float4(-float_max);
 
-		float	aspect		= float(GetGlobalSize().x) / float(GetGlobalSize().y);
+		float	ratio		= float(GetGlobalSize().x) / float(GetGlobalSize().y);
 				posScale	= Max( 1.0, RoundToBase( posScale, 2.0 ));
-		float3	pos			= (GetGlobalCoordUNorm() + float3(0.f, 0.f, iPBias.w)) * posScale;	pos.x *= aspect;
+		float3	pos			= (GetGlobalCoordUNorm() + float3(0.f, 0.f, iPBias.w)) * posScale;	pos.x *= ratio;
 		float	lac			= iLacunarity;
 		float	pers		= iPersistence * 0.5;
 
 		params.seedBias		= iPBias.xyz * posScale;
 		params.tileSize		= float3(posScale);
-		params.tileSize.x	*= aspect;
+		params.tileSize.x	*= ratio;
 
 		return TileableNoise2D( pos, params, CreateFBMParams( lac, pers, iOctaves ));
 	}

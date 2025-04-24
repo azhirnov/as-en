@@ -15,7 +15,7 @@
 #	AE_DISABLE_THREADS				BOOL :		for emscripten
 #	AE_ENABLE_EXCEPTIONS			BOOL :		TRUE - enable,		FALSE - disable exception and RTTI
 #	AE_ENABLE_LOGS					BOOL
-#	AE_SIMD_AVX						STRING :	0, 1, 2, 3(AVX512F + extensions)
+#	AE_SIMD_AVX						STRING :	0, 1, 2, 30(AVX512F), 31(Cannon Lake), 32(Ice Lake), 33(Zen4)
 #	AE_SIMD_SSE						STRING :	0, 20, 30, 31, 41, 42
 #	AE_SIMD_AES						STRING :	0, 1, 2, 3
 #	AE_SIMD_SHA						STRING :	0, 20, 21, 30
@@ -85,7 +85,7 @@ else()
 	string( TOUPPER ${CMAKE_SYSTEM_PROCESSOR} PLATFORM_NAME )
 	if (${PLATFORM_NAME} STREQUAL "AMD64")
 		set( TARGET_CPU_ARCH "X64" )
-	elseif ((${PLATFORM_NAME} STREQUAL "X86_64") OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64"))
+	elseif (${PLATFORM_NAME} STREQUAL "X86_64")
 		set( TARGET_CPU_ARCH "X64" )
 	elseif (${PLATFORM_NAME} STREQUAL "X86")
 		set( TARGET_CPU_ARCH "X86" )
@@ -101,6 +101,15 @@ else()
 		message( FATAL_ERROR "unknown processor '${CMAKE_SYSTEM_PROCESSOR}'" )
 	endif()
 endif()
+
+# cmake detects E2K (elbrus 64) LCC as x64 GCC
+set( COMPILER_LCC OFF )
+string( FIND "${CMAKE_CXX_COMPILER}" "/lcc" outPos )
+if ( (outPos GREATER -1) )
+	set( COMPILER_LCC ON )
+	set( TARGET_CPU_ARCH "E2K" )
+endif()
+
 message( STATUS "TARGET_CPU_ARCH: ${TARGET_CPU_ARCH}" )
 set( "AE_CPU_ARCH_${TARGET_CPU_ARCH}" ON CACHE INTERNAL "" FORCE )
 
@@ -130,7 +139,7 @@ set( PROJECTS_SHARED_DEFINES_DEBUG   "AE_CFG_DEBUG"		"AE_DEBUG"	)
 # setup SIMD
 #==================================================================================================
 if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") )
-	set( AE_SIMD_AVX  "0" CACHE STRING "AVX version: 0, 1, 2, 3(AVX512)" )
+	set( AE_SIMD_AVX  "0" CACHE STRING "AVX version: 0, 1, 2, 30(AVX512F), 31(Cannon Lake), 32(Ice Lake), 33(Zen4)" )
 	set( AE_SIMD_SSE  "0" CACHE STRING "SSE version: 0, 20, 30, 31(SSS3), 41, 42, 50(SSE4A)" )
 	set( AE_SIMD_AES  "0" CACHE STRING "enable AES: 0, 1(AES), 2(VAES), 3(AESKL)" )
 	set( AE_SIMD_SHA  "0" CACHE STRING "enable SHA: 0, 20(SHA256), 21(SHA2_512)" )
@@ -159,7 +168,7 @@ if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") 
 	endif()
 
 	if ( MSVC AND (NOT ${COMPILER_MSVC_CLANG}) )
-		if (${AE_SIMD_AVX} GREATER_EQUAL 3)
+		if (${AE_SIMD_AVX} GREATER_EQUAL 30)
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} /arch:AVX512 )
 		elseif (${AE_SIMD_AVX} EQUAL 2)
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} /arch:AVX2 )
@@ -178,7 +187,16 @@ if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") 
 			message( FATAL_ERROR "unsupported AE_SIMD_AVX flags: ${AE_SIMD_AVX}" )
 		endif()
 	else()
-		if (${AE_SIMD_AVX} GREATER_EQUAL 3)
+		if (${AE_SIMD_AVX} EQUAL 33)		# Zen4
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx512f -mavx512cd -mavx512vl -mavx512dq -mavx512bw -mavx512ifma -mavx512vbmi
+												  -mavx512vbmi2 -mavx512vpopcntdq -mavx512bitalg -mavx512vnni #-mavx512_vpclmulqdq -mavx512_gfni -mavx512-vaes
+												  -mavx512bf16 )
+		elseif (${AE_SIMD_AVX} EQUAL 32)	# Ice Lake
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx512f -mavx512cd -mavx512vl -mavx512dq -mavx512bw -mavx512ifma -mavx512vbmi
+												  -mavx512vbmi2 -mavx512vpopcntdq -mavx512bitalg -mavx512vnni ) # -mavx512vpclmulqdq -mavx512gfni -mavx512vaes )
+		elseif (${AE_SIMD_AVX} EQUAL 31)	# Cannon Lake
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx512f -mavx512cd -mavx512vl -mavx512dq -mavx512bw -mavx512ifma -mavx512vbmi )
+		elseif (${AE_SIMD_AVX} EQUAL 30)
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx512f )
 		elseif (${AE_SIMD_AVX} EQUAL 2)
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-avx512f )
@@ -268,6 +286,8 @@ elseif ( (${TARGET_CPU_ARCH} STREQUAL "ARM64") OR (${TARGET_CPU_ARCH} STREQUAL "
 
 elseif (${TARGET_CPU_ARCH} STREQUAL "i686")
 	# no SIMD
+elseif (${TARGET_CPU_ARCH} STREQUAL "E2K")
+	# auto-detect
 else()
 	message( FATAL_ERROR "unknown platform '${TARGET_CPU_ARCH}' for SIMD flags" )
 endif()
@@ -285,13 +305,13 @@ if ( MSVC )
 	string( FIND "${CMAKE_CXX_COMPILER_ID}" "MSVC" outPos )
 	if ( (outPos GREATER -1) )
 		set( COMPILER_MSVC ON )
-		set( DETECTED_COMPILER "COMPILER_MSVC" )
+		set( DETECTED_COMPILER "MSVC" )
 	endif()
 	string( FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" outPos )
 	set( COMPILER_MSVC_CLANG OFF )
 	if ( (outPos GREATER -1) )
 		set( COMPILER_MSVC_CLANG ON )
-		set( DETECTED_COMPILER "COMPILER_MSVC_CLANG" )
+		set( DETECTED_COMPILER "MSVC_CLANG" )
 	endif()
 
 	set( TEMP_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
@@ -476,10 +496,60 @@ endif()
 # TODO:
 #	-ffast-math
 #	-ffp-contract=fast
-#	-fvisibility-inlines-hidden -fvisibility=hidden
 #	-ffunction-sections -fdata-sections
 #	-no-canonical-prefixes
 
+#==================================================================================================
+# Elbrus LCC Compilation settings
+#==================================================================================================
+if ( COMPILER_LCC )
+	if (DEFINED DETECTED_COMPILER)
+		message( FATAL_ERROR "multiple compiler types detected, previous: '${DETECTED_COMPILER}'" )
+	endif()
+	set( DETECTED_COMPILER "E2K_LCC" )
+	#--------------------------------------------
+	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
+
+	set( LCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=sign-compare -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=multichar -Winvalid-offsetof -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wno-missing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Warray-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC )
+	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_LCC" "AE_COMPILER_GCC" )
+
+	# Release  TODO: -Ofast ?
+	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Release>: > )
+	set( CMAKE_C_FLAGS_RELEASE "-O3 -finline-functions ${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX}" CACHE STRING "" FORCE )
+	set( CMAKE_CXX_FLAGS_RELEASE "-O3 -finline-functions ${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_CXX}" CACHE STRING "" FORCE )
+	set( CMAKE_EXE_LINKER_FLAGS_RELEASE "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_RELEASE  ${LCC_SHARED_OPTS} -O3 -Ofast -fomit-frame-pointer -finline-functions CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_RELEASE " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
+	# Profile
+	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Profile>: > )
+	set( CMAKE_C_FLAGS_PROFILE "-O2 ${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX}" CACHE STRING "" FORCE )
+	set( CMAKE_CXX_FLAGS_PROFILE "-O2 ${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_CXX}" CACHE STRING "" FORCE )
+	set( CMAKE_EXE_LINKER_FLAGS_PROFILE "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( CMAKE_STATIC_LINKER_FLAGS_PROFILE "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_PROFILE  ${LCC_SHARED_OPTS} -O2 CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_PROFILE " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
+	# Develop
+	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Develop>: > )
+	set( CMAKE_C_FLAGS_DEVELOP "-O2 ${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX}" CACHE STRING "" FORCE )
+	set( CMAKE_CXX_FLAGS_DEVELOP "-O2 ${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_CXX}" CACHE STRING "" FORCE )
+	set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP  ${LCC_SHARED_OPTS} -g -ggdb -O2 -Wno-terminate  CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
+	# Debug
+	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>: > )
+	set( CMAKE_C_FLAGS_DEBUG "-O0 ${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX}" CACHE STRING "" FORCE )
+	set( CMAKE_CXX_FLAGS_DEBUG "-O0 ${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_CXX}" CACHE STRING "" FORCE )
+	set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG  ${LCC_SHARED_OPTS} -g -ggdb -O0 -Wno-terminate  CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
+endif()
 
 #==================================================================================================
 # GCC Compilation settings
@@ -490,11 +560,11 @@ string( FIND "${CMAKE_CXX_COMPILER_ID}" "GNU" outPos )
 if ( (outPos GREATER -1) )
 	set( COMPILER_GCC ON )
 endif()
-if ( COMPILER_GCC )
+if ( COMPILER_GCC AND NOT COMPILER_LCC )
 	if (DEFINED DETECTED_COMPILER)
 		message( FATAL_ERROR "multiple compiler types detected, previous: '${DETECTED_COMPILER}'" )
 	endif()
-	set( DETECTED_COMPILER "COMPILER_GCC" )
+	set( DETECTED_COMPILER "GCC" )
 	#--------------------------------------------
 	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 
@@ -560,7 +630,7 @@ if ( COMPILER_CLANG )
 	if (DEFINED DETECTED_COMPILER)
 		message( FATAL_ERROR "multiple compiler types detected, previous: '${DETECTED_COMPILER}'" )
 	endif()
-	set( DETECTED_COMPILER "COMPILER_CLANG" )
+	set( DETECTED_COMPILER "CLANG" )
 	#--------------------------------------------
 	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
@@ -625,7 +695,7 @@ if ( COMPILER_CLANG_EMSCRIPTEN )
 	if (DEFINED DETECTED_COMPILER)
 		message( FATAL_ERROR "multiple compiler types detected, previous: '${DETECTED_COMPILER}'" )
 	endif()
-	set( DETECTED_COMPILER "COMPILER_CLANG_EMSCRIPTEN" )
+	set( DETECTED_COMPILER "CLANG_EMSCRIPTEN" )
 	#--------------------------------------------
 	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
@@ -713,7 +783,7 @@ if ( COMPILER_CLANG_APPLE )
 	if (DEFINED DETECTED_COMPILER)
 		message( FATAL_ERROR "multiple compiler types detected, previous: '${DETECTED_COMPILER}'" )
 	endif()
-	set( DETECTED_COMPILER "COMPILER_CLANG_APPLE" )
+	set( DETECTED_COMPILER "CLANG_APPLE" )
 	#--------------------------------------------
 	set( AE_CONFIGURATION_DEPENDENT_PATH ON CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
@@ -789,7 +859,7 @@ if ( COMPILER_CLANG_ANDROID )
 	if (DEFINED DETECTED_COMPILER)
 		message( FATAL_ERROR "multiple compiler types detected, previous: '${DETECTED_COMPILER}'" )
 	endif()
-	set( DETECTED_COMPILER "COMPILER_CLANG_ANDROID" )
+	set( DETECTED_COMPILER "CLANG_ANDROID" )
 	#--------------------------------------------
 	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
@@ -863,6 +933,7 @@ else()
 	message( FATAL_ERROR "current compiler: '${CMAKE_CXX_COMPILER_ID}' is not configured for this project!" )
 endif()
 
+set( AE_COMPILER_NAME 					${DETECTED_COMPILER} 				CACHE INTERNAL "" FORCE )
 set( PROJECTS_SHARED_DEFINES			${PROJECTS_SHARED_DEFINES}			CACHE INTERNAL "" FORCE )
 set( PROJECTS_SHARED_DEFINES_RELEASE	${PROJECTS_SHARED_DEFINES_RELEASE}	CACHE INTERNAL "" FORCE )
 set( PROJECTS_SHARED_DEFINES_PROFILE	${PROJECTS_SHARED_DEFINES_PROFILE}	CACHE INTERNAL "" FORCE )

@@ -19,11 +19,10 @@ set( AE_ENABLE_MESH_OPTIMIZER	OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_NVML				OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_KTX				OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_TINYGLTF			OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_SLANG			OFF CACHE INTERNAL "" FORCE )
 
 #----------------------------------------------------------
 
-set( AE_DST_PATH			"${AE_EXTERNAL_BIN_PATH}/external/android-clang"		CACHE INTERNAL "" FORCE )
-set( AE_DST_SHARED_PATH		"${AE_EXTERNAL_BIN_PATH}/external/android-clang"		CACHE INTERNAL "" FORCE )
 set( AE_ANDROID_JNILIB_PATH	"${MAIN_SOURCE_DIR}/android/engine/src/main/jniLibs"	CACHE INTERNAL "" FORCE )
 
 if (${AE_ENABLE_EXTERNAL_TESTS})

@@ -172,10 +172,6 @@ namespace _hidden_
 {
 	forceinline void  MemCopyChecks (const void* dst, const void* src, Bytes size, uint ptrAlign = 0, uint sizeAlign = 0)
 	{
-		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
-		NonNull( dst );
-		NonNull( src );
-
 		// spec: "If the objects overlap, the behavior is undefined."
 		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
 
@@ -194,10 +190,6 @@ namespace _hidden_
 
 	forceinline void  MemMoveChecks (const void* dst, const void* src, uint align = 0)
 	{
-		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
-		NonNull( dst );
-		NonNull( src );
-
 		// spec: "The objects may overlap: copying takes place as if the characters were copied to a temporary character array
 		//        and then the characters were copied from the array to dest."
 
@@ -212,8 +204,6 @@ namespace _hidden_
 
 	forceinline void  ZeroMemChecks (const void* dst, Bytes size, uint ptrAlign = 0, uint sizeAlign = 0)
 	{
-		NonNull( dst );
-
 		if ( ptrAlign != 0 )
 		{
 			ASSERT( CheckPointerAlignment( dst, ptrAlign ));
@@ -231,8 +221,7 @@ namespace _hidden_
 =================================================
 	MemCopy
 ----
-	memory must not intersects,
-	null pointers are not allowed
+	memory must not intersects
 =================================================
 */
 	template <typename T1, typename T2>
@@ -250,7 +239,12 @@ namespace _hidden_
 	inline void  MemCopy (OUT void* dst, const void* src, const Bytes size) __NE___
 	{
 		Base::_hidden_::MemCopyChecks( dst, src, size );
-		std::memcpy( OUT dst, src, usize(size) );
+		
+		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
+		if_likely( dst != null and src != null and size != 0 )
+		{
+			std::memcpy( OUT dst, src, usize(size) );
+		}
 	}
 
 	inline void  MemCopy (OUT void* dst, Bytes dstSize, const void* src, const Bytes srcSize) __NE___
@@ -265,38 +259,7 @@ namespace _hidden_
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
 		Base::_hidden_::MemCopyChecks( dst, src, SizeOf<T>*count );
-
-		std::memcpy( OUT dst, src, sizeof(T)*count );
-	}
-
-/*
-=================================================
-	MemCopy_NullCheck
-----
-	memory must not intersects,
-	null pointers are allowed
-=================================================
-*/
-	forceinline void  MemCopy_NullCheck (OUT void* dst, const void* src, const Bytes size) __NE___
-	{
-		// spec: "If the objects overlap, the behavior is undefined."
-		ASSERT( not IsIntersects<const void *>( dst, dst + size, src, src + size ));
-
-		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
-		if_likely( dst != null and src != null and size != 0 )
-		{
-			std::memcpy( OUT dst, src, usize(size) );
-		}
-	}
-
-	template <typename T>
-	void  MemCopy_NullCheck (OUT T* dst, const T* src, const usize count) __NE___
-	{
-		StaticAssert( IsMemCopyAvailable<T> );
-
-		// spec: "If the objects overlap, the behavior is undefined."
-		ASSERT( not IsIntersects<const void *>( dst, dst + count, src, src + count ));
-
+		
 		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
 		if_likely( dst != null and src != null and count != 0 )
 		{
@@ -308,14 +271,18 @@ namespace _hidden_
 =================================================
 	MemMove
 ----
-	memory may intersects,
-	null pointers are not allowed
+	memory may intersects
 =================================================
 */
 	inline void  MemMove (OUT void* dst, const void* src, Bytes size) __NE___
 	{
 		Base::_hidden_::MemMoveChecks( dst, src );
-		std::memmove( OUT dst, src, usize(size) );
+		
+		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
+		if_likely( dst != null and src != null and size != 0 )
+		{
+			std::memmove( OUT dst, src, usize(size) );
+		}
 	}
 
 	inline void  MemMove (OUT void* dst, Bytes dstSize, const void* src, Bytes srcSize) __NE___
@@ -330,32 +297,7 @@ namespace _hidden_
 	{
 		StaticAssert( IsMemCopyAvailable<T> );
 		Base::_hidden_::MemMoveChecks( dst, src );
-
-		std::memmove( OUT dst, src, sizeof(T)*count );
-	}
-
-/*
-=================================================
-	MemMove_NullCheck
-----
-	memory may intersects,
-	null pointers are allowed
-=================================================
-*/
-	inline void  MemMove_NullCheck (OUT void* dst, const void* src, Bytes size) __NE___
-	{
-		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
-		if_likely( dst != null and src != null and size != 0 )
-		{
-			std::memmove( OUT dst, src, usize(size) );
-		}
-	}
-
-	template <typename T>
-	void  MemMove_NullCheck (OUT T* dst, const T* src, const usize count) __NE___
-	{
-		StaticAssert( IsMemCopyAvailable<T> );
-
+		
 		// spec: "If either dest or src is an invalid or null pointer, the behavior is undefined, even if count is zero."
 		if_likely( dst != null and src != null and count != 0 )
 		{
@@ -385,8 +327,10 @@ namespace _hidden_
 
 	inline void  ZeroMem (OUT void* ptr, Bytes size) __NE___
 	{
-		NonNull( ptr );
-		std::memset( OUT ptr, 0, usize{size} );
+		if_likely( ptr != null and size > 0 )
+		{
+			std::memset( OUT ptr, 0, usize{size} );
+		}
 	}
 
 	template <typename T>
@@ -394,22 +338,11 @@ namespace _hidden_
 	{
 		StaticAssert( not IsVoid<T> );
 		StaticAssert( IsZeroMemAvailable<T> );
-		NonNull( ptr );
-
-		std::memset( OUT ptr, 0, sizeof(T) * count );
-	}
-
-	inline void  ZeroMem_NullCheck (OUT void* ptr, Bytes size) __NE___
-	{
-		if_likely( ptr != null and size > 0 )
-			ZeroMem( OUT ptr, size );
-	}
-
-	template <typename T>
-	void  ZeroMem_NullCheck (OUT T* ptr, usize count) __NE___
-	{
+		
 		if_likely( ptr != null and count > 0 )
-			ZeroMem( OUT ptr, count );
+		{
+			std::memset( OUT ptr, 0, sizeof(T) * count );
+		}
 	}
 
 /*

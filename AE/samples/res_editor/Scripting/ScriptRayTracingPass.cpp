@@ -384,32 +384,32 @@ namespace
 			binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor2,		{"defines"} );
 
 			binder.Comment( "Run RayGen shader with specified number of threads." );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreads1,			"Dispatch",			{"threadsX"} );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreads2,			"Dispatch",			{"threadsX", "threadsY"} );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreads3,			"Dispatch",			{"threadsX", "threadsY", "threadsZ"} );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreads2v,			"Dispatch",			{"threads"} );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreads3v,			"Dispatch",			{"threads"} );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsDS,			"Dispatch",			{"dynamicThreadCount"} );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreads1D,			"Dispatch",			{"dynamicThreadCount"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreads1,			"Dispatch",			{"threadsX"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreads2,			"Dispatch",			{"threadsX", "threadsY"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreads3,			"Dispatch",			{"threadsX", "threadsY", "threadsZ"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreads2v,			"Dispatch",			{"threads"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreads3v,			"Dispatch",			{"threads"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreadsDS,			"Dispatch",			{"dynamicThreadCount"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreads1D,			"Dispatch",			{"dynamicThreadCount"} );
 
 			binder.Comment( "Run RayGen shader with number of threads from indirect command." );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect1,	"DispatchIndirect",	{"indirectBuffer"} );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect2,	"DispatchIndirect",	{"indirectBuffer", "indirectBufferOffset"} );
-			binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect3,	"DispatchIndirect",	{"indirectBuffer", "indirectBufferFieldName"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreadsIndirect1,	"DispatchIndirect",	{"indirectBuffer"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreadsIndirect2,	"DispatchIndirect",	{"indirectBuffer", "indirectBufferOffset"} );
+			AS_METHOD( binder, ScriptRayTracingPass::DispatchThreadsIndirect3,	"DispatchIndirect",	{"indirectBuffer", "indirectBufferFieldName"} );
 
-			binder.AddMethod( &ScriptRayTracingPass::SetRayGen,					"RayGen",			{} );
-			binder.AddMethod( &ScriptRayTracingPass::MaxRayTypes,				"MaxRayTypes",		{} );
-			binder.AddMethod( &ScriptRayTracingPass::SetRayMiss,				"RayMiss",			{"missIndex", "missShader"} );
-			binder.AddMethod( &ScriptRayTracingPass::SetCallable,				"Callable",			{"callableIndex", "callableShader"} );
-			binder.AddMethod( &ScriptRayTracingPass::SetTriangleHit1,			"TriangleHit",		{"rayIndex", "instanceIndex", "closestHit"} );
-			binder.AddMethod( &ScriptRayTracingPass::SetTriangleHit2,			"TriangleHit",		{"rayIndex", "instanceIndex", "closestHit", "anyHit"} );
-			binder.AddMethod( &ScriptRayTracingPass::SetProceduralHit1,			"ProceduralHit",	{"rayIndex", "instanceIndex", "intersection", "closestHit"} );
-			binder.AddMethod( &ScriptRayTracingPass::SetProceduralHit2,			"ProceduralHit",	{"rayIndex", "instanceIndex", "intersection", "closestHit", "anyHit"} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetRayGen,					"RayGen",			{} );
+			AS_METHOD( binder, ScriptRayTracingPass::MaxRayTypes,				"MaxRayTypes",		{} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetRayMiss,				"RayMiss",			{"missIndex", "missShader"} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetCallable,				"Callable",			{"callableIndex", "callableShader"} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetTriangleHit1,			"TriangleHit",		{"rayIndex", "instanceIndex", "closestHit"} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetTriangleHit2,			"TriangleHit",		{"rayIndex", "instanceIndex", "closestHit", "anyHit"} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetProceduralHit1,			"ProceduralHit",	{"rayIndex", "instanceIndex", "intersection", "closestHit"} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetProceduralHit2,			"ProceduralHit",	{"rayIndex", "instanceIndex", "intersection", "closestHit", "anyHit"} );
 
-			binder.AddMethod( &ScriptRayTracingPass::SetMaxRayRecursion1,		"MaxRayRecursion",		{} );
-			binder.AddMethod( &ScriptRayTracingPass::SetMaxRayRecursion2,		"MaxRayRecursion",		{} );
-			binder.AddMethod( &ScriptRayTracingPass::SetMaxCallableRecursion1,	"MaxCallableRecursion",	{} );
-			binder.AddMethod( &ScriptRayTracingPass::SetMaxCallableRecursion2,	"MaxCallableRecursion",	{} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetMaxRayRecursion1,		"MaxRayRecursion",		{} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetMaxRayRecursion2,		"MaxRayRecursion",		{} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetMaxCallableRecursion1,	"MaxCallableRecursion",	{} );
+			AS_METHOD( binder, ScriptRayTracingPass::SetMaxCallableRecursion2,	"MaxCallableRecursion",	{} );
 		}
 	}
 
@@ -431,7 +431,7 @@ namespace
 	ToPass
 =================================================
 */
-	RC<IPass>  ScriptRayTracingPass::ToPass () C_Th___
+	RC<IPass>  ScriptRayTracingPass::ToPass () __Th___
 	{
 		CHECK_THROW_MSG( not _iterations.empty(), "add at least one Dispatch() call" );
 		CHECK_THROW_MSG( not _args.Empty(), "empty argument list" );
@@ -616,7 +616,7 @@ namespace AE::ResEditor
 				uint		passFrameId;	// current pass frame index
 				uint		seed;			// unique value, updated on each shader reloading
 				float4		mouse;			// mouse unorm coords. xy: current (if MRB down), zw: click
-				float		customKeys;
+				float2		customKeys;
 				float		pixPerMm;		// pix / mm
 				float		mmPerPix;		// mm / pix
 
@@ -635,7 +635,7 @@ namespace AE::ResEditor
 
 		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
 		StaticAssert( IPass::Constants::MaxCount == 8 );
-		StaticAssert( IPass::CustomKeys_t{}.max_size() == 1 );
+		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
 		return st;
 	}
 

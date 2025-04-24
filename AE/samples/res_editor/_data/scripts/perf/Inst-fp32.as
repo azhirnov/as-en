@@ -12,13 +12,14 @@
 		// initialize
 		uint	dim			= 1<<10;
 		uint	iter_cnt	= 32;
+		uint2	wg_size		= uint2( 16, 16 );
 
 		switch ( GPUVendor() )
 		{
 			case EGPUVendor::NVidia :
 			case EGPUVendor::AMD :
 				dim		 = 4<<10;
-				iter_cnt = 1<<6;		// NV: must be <= 1024, unroll is too slow
+				iter_cnt = 1<<6;			// NV: must be <= 1024, unroll is too slow
 				break;
 
 			case EGPUVendor::Intel :
@@ -27,9 +28,15 @@
 				break;
 				
 			case EGPUVendor::ARM :			// Mali
+				wg_size = uint2(8,8);
+				dim		 = 1<<10;
+				iter_cnt = 1<<8;
+				break;
+
 			case EGPUVendor::Qualcomm :		// Adreno
 			case EGPUVendor::ImgTech :		// PowerVR
-				iter_cnt = 1<<4;
+				dim		 = 1<<10;
+				iter_cnt = 1<<8;
 				break;
 
 			case EGPUVendor::Apple :
@@ -41,10 +48,14 @@
 		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, uint2(dim) );
 		RC<DynamicUInt>		count		= DynamicUInt();
 		RC<DynamicUInt>		mode		= DynamicUInt();
-		RC<DynamicFloat>	ops			= DynamicFloat( float(dim * dim) * float(iter_cnt) * 4.0 * 16.0 * 1.0e-9 );
+		RC<DynamicFloat>	ops			= DynamicFloat( float(dim * dim) * float(iter_cnt) * /*float4*/4.0 * /*unroll*/16.0 * /*giga*/1.0e-9 );
 		RC<DynamicFloat>	flops		= ops.Div( 0.0 );	// put time (ms) from profiler
 		const array<string>	mode_str	= {
-			"NONE", "ADD", "ADD1", "MUL", "MUL1", "MUL_ADD", "MUL_ADD1", "FMA", "FMA1"
+			"NONE",
+			"ADD", "ADD1", "ADD2",
+			"MUL", "MUL1",
+			"MUL_ADD", "MUL_ADD1",
+			"FMA", "FMA1", "FMA2"
 		};
 
 		Slider( mode, 	"Mode", 	0,	mode_str.size()-1, 1 );
@@ -58,11 +69,11 @@
 		#if 1
 			RC<ComputePass>	pass = ComputePass( "", "MODE="+mode_str[i]+";  DIM="+dim+";COUNT="+iter_cnt );
 			pass.ArgOut( "un_Image",	rt );
-			pass.LocalSize( 16, 16 );
+			pass.LocalSize( wg_size );
 			pass.DispatchThreads( rt.Dimension2() );
 		#else
 			RC<Postprocess>	pass = Postprocess( "", "MODE="+mode_str[i]+";  DIM="+dim+";COUNT="+iter_cnt );
-			pass.Output( "out_Color",	rt,	RGBA32f(0.0) );
+			pass.OutputLS( "out_Color",	rt, EAttachmentLoadOp::Invalidate, EAttachmentStoreOp::Invalidate );
 		#endif
 			pass.EnableIfEqual( mode, i );
 			pass.Repeat( count );
@@ -87,6 +98,8 @@
 	#define FMA1		6
 	#define MUL_ADD		7
 	#define MUL_ADD1	8
+	#define ADD2		9
+	#define FMA2		10
 
 	#define type		float
 	#define type4		float4
@@ -127,6 +140,27 @@
 				a += p;  a -= t;
 			}
 			OUTPUT(a);
+			
+		#elif MODE == ADD2
+			const type4	p0 = p * 1.1234;
+			const type4	t0 = t * 0.8463;
+
+			type4	a = t;
+			type4	b = p;
+
+			// 16 adds
+			FOR()
+			{
+				a += p;  b += p0;
+				a -= t;  b -= t0;
+				a += p;  b += p0;
+				a -= t;  b -= t0;
+				a += p;  b += p0;
+				a -= t;  b -= t0;
+				a += p;  b += p0;
+				a -= t;  b -= t0;
+			}
+			OUTPUT(a*b);
 
 		#elif MODE == MUL1
 			type4	a = type4(1.0);
@@ -309,25 +343,34 @@
 			// 16 fma
 			FOR()
 			{
-				a = fma( a, p, t );
-				a = fma( a, p, t );
-				a = fma( a, t, p );
-				a = fma( a, t, p );
-				a = fma( a, p, t );
-				a = fma( a, p, t );
-				a = fma( a, t, p );
-				a = fma( a, t, p );
-
-				a = fma( a, p, t );
-				a = fma( a, p, t );
-				a = fma( a, t, p );
-				a = fma( a, t, p );
-				a = fma( a, p, t );
-				a = fma( a, p, t );
-				a = fma( a, t, p );
-				a = fma( a, t, p );
+				a = fma( a, p, t );		a = fma( a, p, t );
+				a = fma( a, t, p );		a = fma( a, t, p );
+				a = fma( a, p, t );		a = fma( a, p, t );
+				a = fma( a, t, p );		a = fma( a, t, p );
+				a = fma( a, p, t );		a = fma( a, p, t );
+				a = fma( a, t, p );		a = fma( a, t, p );
+				a = fma( a, p, t );		a = fma( a, p, t );
+				a = fma( a, t, p );		a = fma( a, t, p );
 			}
 			OUTPUT(a);
+			
+		#elif MODE == FMA2
+			type4	a = type4(1.23);
+			type4	b = type4(2.11);
+
+			// 16 fma
+			FOR()
+			{
+				a = fma( a, p, t );		b = fma( b, p, t );
+				a = fma( a, t, p );		b = fma( b, t, p );
+				a = fma( a, p, t );		b = fma( b, p, t );
+				a = fma( a, t, p );		b = fma( b, t, p );
+				a = fma( a, p, t );		b = fma( b, p, t );
+				a = fma( a, t, p );		b = fma( b, t, p );
+				a = fma( a, p, t );		b = fma( b, p, t );
+				a = fma( a, t, p );		b = fma( b, t, p );
+			}
+			OUTPUT(a-b);
 
 		#else
 		#	error

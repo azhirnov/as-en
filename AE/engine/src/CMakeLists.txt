@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #
-#  Base    Threading    Serializing    Scripting    Graphics    GraphicsHL    Networking    VFS    Platform    ECS    Profiler    Video    Audio
+#  Base    Threading    Serializing    Scripting    GraphicsRHI    Graphics    Networking    VFS    Platform    ECS    Profiler    Video    Audio
 #    o-->>-----o                                                                                                                                 |
 #    o-->>----------->>------o                                                                                                                   |
 #    o-->>----------->>------------->>-----o                                                                                                     |
@@ -29,5 +29,5 @@ add_subdirectory( "audio" )
 add_subdirectory( "platform" )
 add_subdirectory( "video" )
 
-add_subdirectory( "graphics_hl" )
+add_subdirectory( "graphics" )
 add_subdirectory( "profiler" )

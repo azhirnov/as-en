@@ -152,9 +152,10 @@ namespace {
 	constructor / destructor
 =================================================
 */
-	RDeviceInitializer::RDeviceInitializer (Bool enableInfoLog) __NE___ :
+	RDeviceInitializer::RDeviceInitializer (Bool enableInfoLog, Bool enableAllocatorStats) __NE___ :
 		_enableInfoLog{ enableInfoLog }
 	{
+		Unused( enableAllocatorStats );  // TODO: send to remove device?
 	}
 
 	RDeviceInitializer::~RDeviceInitializer () __NE___

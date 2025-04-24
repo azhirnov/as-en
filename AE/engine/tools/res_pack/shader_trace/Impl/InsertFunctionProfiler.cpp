@@ -74,6 +74,7 @@ static bool  RecursiveProcessNode (TIntermNode* node, DebugInfo &dbgInfo)
 
 	if ( auto* op = node->getAsOperator() )
 	{
+		Unused( op );
 		return true;
 	}
 
@@ -115,6 +116,7 @@ static bool  RecursiveProcessNode (TIntermNode* node, DebugInfo &dbgInfo)
 
 	if ( auto* cunion = node->getAsConstantUnion() )
 	{
+		Unused( cunion );
 		fn_scope.SetLoc( dbgInfo.GetCurrentLocation() );
 		return true;
 	}
@@ -129,6 +131,7 @@ static bool  RecursiveProcessNode (TIntermNode* node, DebugInfo &dbgInfo)
 
 	if ( auto* method = node->getAsMethodNode() )
 	{
+		Unused( method );
 		return true;
 	}
 
@@ -141,6 +144,7 @@ static bool  RecursiveProcessNode (TIntermNode* node, DebugInfo &dbgInfo)
 
 	if ( auto* typed = node->getAsTyped() )
 	{
+		Unused( typed );
 		fn_scope.SetLoc( dbgInfo.GetCurrentLocation() );
 		return true;
 	}

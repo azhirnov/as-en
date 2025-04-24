@@ -31,7 +31,7 @@
 Theoretical performance:
 ```
 FLOPS v1 = clock * ops_per_clock_per_SM * SMCount
-FLOPS v2 = clock * SMCount * WarpSize * 4 (warp-scheduler units) / 2 (latency)
+FLOPS v2 = clock * SMCount * WarpSize * 4 (warp-scheduler units) / 2 (perform cycles)
 specs:
 	- Each Turing SM includes 4 warp-scheduler units.
 	- Instructions are performed over two cycles.
@@ -39,6 +39,22 @@ specs:
 v1: 1515M * 64 * 46 = 4.46T FMA ops per second = 8.9 TFLOPS
 v2: 1515M * 46 * 32 * 4 / 2 = 4.46T FMA ops per second = 8.9 TFLOPS
 ```
+
+### Tensor Core performance
+
+* Tensor Cores: 368  *(46 SM * 8 perSM)*
+* FP16 FLOPS/cy per Core: 128  *(64 FMA from specs)*
+* INT8 IPS/cy per Core: 256
+* INT4 IPS/cy per Core: 512
+* FP16 TFLOPS: **71** at 1515 MHz (69.5 from tests)
+* INT8 TIPS: **142** at 1515 MHz
+* INT4 TIPS: **285** at 1515 MHz
+
+### Ray tracing performance
+
+* RT Cores: 46  *(46 SM * 1 perSM)*
+* Giga Rays/s: **69.7** at 1515 MHz
+
 
 ## Shader
 
@@ -94,6 +110,15 @@ Result of `Rainbow( gl_SMIDNV / gl_SMCountNV )` in compute shader.<br/>
 Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red to violet) has gl_SMIDNV = 0,2,4..., next set has gl_SMIDNV = 1,3,5... and next - again 0,2,4... [[6](../GPU_Benchmarks.md#6-Subgroups)]
 
 ![](img/nv-turing-smid-compute.png)
+
+
+### SM tile size depends on register count
+
+* SM supports limited number of registers, but must run multiple warps to hide memory latency.
+* SM will decrease tile size to execute minimal required number of warps which has a large number of registers.
+* Maximal tile size is 16x16 pix (left side in image).
+
+![](img/nv-turing-smid-regcount.png)
 
 
 ### Instruction cost
@@ -195,6 +220,7 @@ Workgroup size: 8x8, image size: 102x53, gl_SMCountNV: 46. First set (from red t
 	- Benchmarking in compute shader is only 1% faster.
 	- Minimal dispatch size: 256x276 (1.5 of total thread count), lower size will lost performance.
 	- Measured with fixed clock at 1515 MHz.
+	- minimal workgroup size 32x2, because FMA perform over 2 cycles (like a SIMD16 with dual issue).
 
 	| TOp/s | ops | max TFLOPS |
 	|---|---|---|

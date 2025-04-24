@@ -726,8 +726,8 @@ namespace AE::Graphics::_hidden_
 		range.aspectMask	= EPixelFormat_ToImageAspect( desc.format );
 		range.baseMipLevel	= 0_mipmap;
 		range.baseLayer		= 0_layer;
-		range.layerCount	= ushort(desc.arrayLayers.Get());
-		range.mipmapCount	= ushort(desc.mipLevels.Get());
+		range.layerCount	= LayerCount_t(desc.arrayLayers.Get());
+		range.mipmapCount	= MipmapCount_t(desc.mipLevels.Get());
 
 		VALIDATE_GCTX( GenerateMipmaps( img.Description(), {range} ));
 		RawCtx::GenerateMipmaps( img.Handle(), desc.Dimension(), {range}, srcState );

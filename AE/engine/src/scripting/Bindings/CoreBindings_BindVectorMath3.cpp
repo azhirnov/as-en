@@ -2,6 +2,7 @@
 
 #include "scripting/Bindings/CoreBindings.h"
 #include "scripting/Impl/ClassBinder.h"
+#include "scripting/Impl/FnWrapper.h"
 #include "scripting/Impl/ScriptEngine.inl.h"
 #include "CoreBindings_BindVectorMath.inl.h"
 

@@ -7,13 +7,14 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x2a68f4afu}}; }  // 'Controller.Camera3D'
 
-		static constexpr uint  actionCount = 14;
+		static constexpr uint  actionCount = 15;
 		enum Bindings : uint {
 			Camera_Move  = 0x87c9a2a2u,  // InputActionName{"Camera.Move"}
 			Camera_Reset  = 0x36f37312u,  // InputActionName{"Camera.Reset"}
 			Camera_Rotate  = 0xcc3b70a5u,  // InputActionName{"Camera.Rotate"}
 			Camera_Zoom  = 0xdfdcecaeu,  // InputActionName{"Camera.Zoom"}
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
@@ -30,13 +31,14 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x816d7dbu}}; }  // 'Controller.FPSCamera'
 
-		static constexpr uint  actionCount = 14;
+		static constexpr uint  actionCount = 15;
 		enum Bindings : uint {
 			Camera_Move  = 0x87c9a2a2u,  // InputActionName{"Camera.Move"}
 			Camera_Reset  = 0x36f37312u,  // InputActionName{"Camera.Reset"}
 			Camera_Rotate  = 0xcc3b70a5u,  // InputActionName{"Camera.Rotate"}
 			Camera_Zoom  = 0xdfdcecaeu,  // InputActionName{"Camera.Zoom"}
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
@@ -53,13 +55,14 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x5a2ef87cu}}; }  // 'Controller.FPVCamera'
 
-		static constexpr uint  actionCount = 14;
+		static constexpr uint  actionCount = 15;
 		enum Bindings : uint {
 			Camera_Move  = 0x87c9a2a2u,  // InputActionName{"Camera.Move"}
 			Camera_Reset  = 0x36f37312u,  // InputActionName{"Camera.Reset"}
 			Camera_Rotate  = 0xcc3b70a5u,  // InputActionName{"Camera.Rotate"}
 			Camera_Zoom  = 0xdfdcecaeu,  // InputActionName{"Camera.Zoom"}
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
@@ -76,9 +79,10 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0xfe46c841u}}; }  // 'Controller.FlightCamera'
 
-		static constexpr uint  actionCount = 15;
+		static constexpr uint  actionCount = 16;
 		enum Bindings : uint {
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			FlightCamera_Reset  = 0x80fdc727u,  // InputActionName{"FlightCamera.Reset"}
 			FlightCamera_ResetRoll  = 0x6b289662u,  // InputActionName{"FlightCamera.ResetRoll"}
 			FlightCamera_Rotate  = 0x9a3eba32u,  // InputActionName{"FlightCamera.Rotate"}
@@ -100,13 +104,14 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x7d884966u}}; }  // 'Controller.Orbital'
 
-		static constexpr uint  actionCount = 14;
+		static constexpr uint  actionCount = 15;
 		enum Bindings : uint {
 			Camera_Move  = 0x87c9a2a2u,  // InputActionName{"Camera.Move"}
 			Camera_Reset  = 0x36f37312u,  // InputActionName{"Camera.Reset"}
 			Camera_Rotate  = 0xcc3b70a5u,  // InputActionName{"Camera.Rotate"}
 			Camera_Zoom  = 0xdfdcecaeu,  // InputActionName{"Camera.Zoom"}
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
@@ -123,9 +128,10 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0xd29b913bu}}; }  // 'Controller.RemoteCamera'
 
-		static constexpr uint  actionCount = 12;
+		static constexpr uint  actionCount = 13;
 		enum Bindings : uint {
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
@@ -151,12 +157,13 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0xba9857f5u}}; }  // 'Controller.ScaleBias'
 
-		static constexpr uint  actionCount = 13;
+		static constexpr uint  actionCount = 14;
 		enum Bindings : uint {
 			Camera_Bias  = 0x2a70ff81u,  // InputActionName{"Camera.Bias"}
 			Camera_Reset  = 0x36f37312u,  // InputActionName{"Camera.Reset"}
 			Camera_Scale  = 0x8a28e9dbu,  // InputActionName{"Camera.Scale"}
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
@@ -173,12 +180,13 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0xd84bb7cu}}; }  // 'Controller.TopDown'
 
-		static constexpr uint  actionCount = 15;
+		static constexpr uint  actionCount = 16;
 		enum Bindings : uint {
 			Camera_Move  = 0x87c9a2a2u,  // InputActionName{"Camera.Move"}
 			Camera_Reset  = 0x36f37312u,  // InputActionName{"Camera.Reset"}
 			Camera_Rotate  = 0xcc3b70a5u,  // InputActionName{"Camera.Rotate"}
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
@@ -197,9 +205,10 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0xcedcb9fbu}}; }  // 'Main.UI'
 
-		static constexpr uint  actionCount = 18;
+		static constexpr uint  actionCount = 19;
 		enum Bindings : uint {
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
@@ -224,9 +233,10 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x1420f18du}}; }  // 'Shared'
 
-		static constexpr uint  actionCount = 9;
+		static constexpr uint  actionCount = 10;
 		enum Bindings : uint {
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}
@@ -242,9 +252,10 @@ namespace InputActions
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x788070a3u}}; }  // 'SwitchInputMode'
 
-		static constexpr uint  actionCount = 10;
+		static constexpr uint  actionCount = 11;
 		enum Bindings : uint {
 			CustomKey1  = 0x23e12a05u,  // InputActionName{"CustomKey1"}
+			CustomKey2  = 0xbae87bbfu,  // InputActionName{"CustomKey2"}
 			Freeze  = 0x413df12cu,  // InputActionName{"Freeze"}
 			FullscreenOnOff  = 0xf5db7d10u,  // InputActionName{"FullscreenOnOff"}
 			PauseRendering  = 0xba3bd32fu,  // InputActionName{"PauseRendering"}

@@ -32,7 +32,7 @@ namespace AE::ResEditor
 		}						_dummyRes;
 
 		Bytes					_gpuMemSize;
-		const Bytes				_pageSize		= 256_MiB;
+		const Bytes				_pageSize;
 
 
 	// methods

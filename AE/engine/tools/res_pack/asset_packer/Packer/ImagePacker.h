@@ -35,7 +35,7 @@ namespace AE::AssetPacker
 	{
 	// types
 	public:
-		static constexpr ushort		Version		= 1;
+		static constexpr ushort		Version		= 2;
 		static constexpr uint		Magic		= "gr.Image"_Hash;
 		static constexpr auto		SerID		= Serializing::SerializedID::Optimized_t{"Image"};
 
@@ -47,7 +47,7 @@ namespace AE::AssetPacker
 			EImage			viewType	= Default;
 			EPixelFormat	format		= Default;
 			ushort			flags		= 0;		// 0
-			ubyte			rowAlignPOT	= 0;		// POTBytes
+			POTBytes		rowAlignPOT;
 
 			// TODO: viewFormats, usage, options
 
@@ -67,6 +67,7 @@ namespace AE::AssetPacker
 			uint							magic			= Magic;
 			ushort							version			= Version;
 			Header							imageHeader;
+			// padding 2 bytes
 			VFS::FileName::Optimized_t		fileName;
 
 			FileHeader ()							__NE___ = default;
@@ -100,12 +101,12 @@ namespace AE::AssetPacker
 			case EImage::CubeArray :	options |= EImageOpt::CubeCompatible;	break;
 		}
 		return ImageDesc{}
-			.SetDimension( uint3{dimension} )
-			.SetArrayLayers( arrayLayers )
-			.SetMaxMipmaps( mipmaps )
-			.SetType( viewType )
-			.SetFormat( format )
-			.SetOptions( options );
+				.SetDimension( uint3{dimension} )
+				.SetArrayLayers( arrayLayers )
+				.SetMaxMipmaps( mipmaps )
+				.SetType( viewType )
+				.SetFormat( format )
+				.SetOptions( options );
 	}
 
 /*

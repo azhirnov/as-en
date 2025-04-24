@@ -41,7 +41,7 @@ struct Emitter
 ND_ float3  GravityAccel (const float3 position, const float3 center, const float gravity)
 {
 	const float3 v = center - position;
-	return Normalize( v ) * gravity / Dot( v, v );
+	return Normalize( v ) * gravity / LengthSq( v );
 }
 
 
@@ -57,9 +57,9 @@ ND_ float3  SphericalMagneticFieldAccel (const float3 velocity, const float3 pos
 									     const float induction)
 {
 	const float3	nv = postion - northPos;
-	const float3	n  = Normalize( nv ) * induction / Dot( nv, nv );
+	const float3	n  = Normalize( nv ) * induction / LengthSq( nv );
 	const float3	sv = southPos - postion;
-	const float3	s  = Normalize( sv ) * induction / Dot( sv, sv );
+	const float3	s  = Normalize( sv ) * induction / LengthSq( sv );
 	return LinearMagneticFieldAccel( velocity, n + s );
 }
 

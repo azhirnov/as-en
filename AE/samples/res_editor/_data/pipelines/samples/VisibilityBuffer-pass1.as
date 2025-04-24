@@ -63,7 +63,7 @@
 	void Main ()
 	{
 		const int2	coord		= GetGlobalCoord().xy;
-		float3		view_dir	= Ray_From( un_PerPass.camera.invViewProj, float3(0.0), 0.f, GetGlobalCoordUNorm().xy ).dir;
+		float3		view_dir	= Ray_Perspective( un_PerPass.camera.invViewProj, float3(0.0), 0.f, GetGlobalCoordUNorm().xy ).dir;
 
 		gl::RayQuery	ray_query;
 		gl.rayQuery.Initialize( ray_query, un_RtScene, gl::RayFlags::Opaque,

@@ -227,9 +227,9 @@ namespace AE::App
 			ClassBinder<ScriptBindingsMode>		binder{ se };
 			binder.CreateRef();
 
-			binder.AddMethod( &ScriptBindingsMode::Add,					"Add"				);
-			binder.AddMethod( &ScriptBindingsMode::Inherit,				"Inherit"			);
-			binder.AddMethod( &ScriptBindingsMode::LockAndHideCursor,	"LockAndHideCursor"	);
+			AS_METHOD( binder, ScriptBindingsMode::Add,					"Add"				);
+			AS_METHOD( binder, ScriptBindingsMode::Inherit,				"Inherit"			);
+			AS_METHOD( binder, ScriptBindingsMode::LockAndHideCursor,	"LockAndHideCursor"	);
 		}
 
 		// ActionBindings
@@ -237,7 +237,7 @@ namespace AE::App
 			ClassBinder<ScriptActionBindings>	binder{ se };
 			binder.CreateRef( &Scripting::AngelScriptHelper::FactoryCreate<ScriptActionBindings>, null, null, 0 );
 
-			binder.AddMethod( &ScriptActionBindings::CreateMode, "CreateMode" );
+			AS_METHOD( binder, ScriptActionBindings::CreateMode, "CreateMode" );
 		}
 	}
 

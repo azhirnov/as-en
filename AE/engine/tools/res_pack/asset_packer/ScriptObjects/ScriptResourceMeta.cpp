@@ -119,7 +119,7 @@ namespace AE::AssetPacker
 		Scripting::ClassBinder<ScriptResourceMeta>	binder{ se };
 		binder.CreateRef();
 
-		binder.AddMethod( &ScriptResourceMeta::Store,	"Store",	{"nameInArchive"} );
+		AS_METHOD( binder, ScriptResourceMeta::Store,	"Store",	{"nameInArchive"} );
 	}
 
 

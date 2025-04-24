@@ -1,3 +1,5 @@
+[source](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/base/Perf_VertSIMD.cpp)
+
 
 # AMD Ryzen 3900X
 

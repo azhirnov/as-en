@@ -324,6 +324,9 @@ ND_ float3 Turbulence_***FBM (gl::CombinedTex2D<float> noiseTex, const float3 po
 #endif
 //-----------------------------------------------------------------------------
 
+#ifndef UNROLL
+#	define UNROLL	// [[unroll]]
+#endif
 
 
 #include "../3party_shaders/Noise-1.glsl"
@@ -381,20 +384,20 @@ ND_ float2  _FBMTransform (const float2 pos)
 //-----------------------------------------------------------------------------
 
 
-#define _FBM_NOISE2( _noise_ )									\
-	{															\
-		float	value	= 0.0;									\
-		float	pers	= 1.0;									\
-		float	scale	= fbm.octaveCount < 1 ? 1.0 : 0.0;		\
-																\
-		for (int octave = 0; octave < fbm.octaveCount; ++octave)\
-		{														\
-			value += (_noise_) * pers;							\
-			scale += pers;										\
-			pos    = _FBMTransform( pos * fbm.lacunarity );		\
-			pers  *= fbm.persistence;							\
-		}														\
-		return value / scale;									\
+#define _FBM_NOISE2( _noise_ )											\
+	{																	\
+		float	value	= 0.0;											\
+		float	pers	= 1.0;											\
+		float	scale	= fbm.octaveCount < 1 ? 1.0 : 0.0;				\
+																		\
+		UNROLL for (int octave = 0; octave < fbm.octaveCount; ++octave)	\
+		{																\
+			value += (_noise_) * pers;									\
+			scale += pers;												\
+			pos    = _FBMTransform( pos * fbm.lacunarity );				\
+			pers  *= fbm.persistence;									\
+		}																\
+		return value / scale;											\
 	}
 
 #define FBM_NOISE_Hash( _noise_ )																\
@@ -439,7 +442,7 @@ ND_ float2  _FBMTransform (const float2 pos)
 																					\
 		fbm.lacunarity = Max( 1.0, Round( fbm.lacunarity ));						\
 																					\
-		for (int octave = 0; octave < fbm.octaveCount; ++octave)					\
+		UNROLL for (int octave = 0; octave < fbm.octaveCount; ++octave)				\
 		{																			\
 			value			 += (_noise_) * pers;									\
 			scale			 += pers;												\

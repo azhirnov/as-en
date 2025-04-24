@@ -598,7 +598,7 @@ namespace AE::ResEditor
 	_AddSlidersAsMacros
 =================================================
 */
-	void  ScriptBasePass::_AddSlidersAsMacros (OUT String &macros) C_Th___
+	void  ScriptBasePass::_AddSlidersAsMacros (INOUT String &macros) C_Th___
 	{
 		String	temp;
 		_AddSliders( OUT temp );
@@ -691,7 +691,7 @@ namespace AE::ResEditor
 	_Init
 =================================================
 */
-	void  ScriptBasePass::_Init (IPass &dst, const ScriptBaseControllerPtr &defaultController) C_Th___
+	void  ScriptBasePass::_Init (IPass &dst, const ScriptBaseControllerPtr &defaultController, Bool enableLog) C_Th___
 	{
 		_CopyConstants( OUT dst._shConst );
 		_AddSlidersToUIInteraction( &dst );
@@ -718,7 +718,8 @@ namespace AE::ResEditor
 		if ( this->_repeatCount )
 			dst._repeatCount = this->_repeatCount->Get();
 
-		AE_LOGI( "Compiled: "s << this->_dbgName );
+		if ( enableLog )
+			AE_LOGI( "Compiled: "s << this->_dbgName );
 	}
 
 /*
@@ -737,6 +738,38 @@ namespace AE::ResEditor
 
 		rstate.AddResource( id, EResourceState::Invalidate, defaultState );
 		return id;
+	}
+	
+/*
+=================================================
+	_MoveTo
+=================================================
+*/
+	void  ScriptBasePass::_MoveTo (OUT ScriptBasePass &dst) __NE___
+	{
+		dst._baseFlags			= this->_baseFlags;						this->_baseFlags	= Default;
+		dst._defines			= RVRef( this->_defines );				this->_defines.clear();
+
+		dst._dbgName			= RVRef( this->_dbgName );				this->_dbgName.clear();
+		dst._dbgColor			= this->_dbgColor;						this->_dbgColor		= HtmlColor::Red;
+
+		dst._dynamicDim			= RVRef( this->_dynamicDim );			this->_dynamicDim	= null;
+		dst._repeatCount		= RVRef( this->_repeatCount );			this->_repeatCount	= null;
+		dst._controller			= RVRef( this->_controller );			this->_controller	= null;
+
+		this->_args.MoveTo( OUT dst._args );
+
+		dst._enablePass.dynamic	= RVRef( this->_enablePass.dynamic );	this->_enablePass.dynamic	= null;
+		dst._enablePass.ref		= this->_enablePass.ref;				this->_enablePass.ref		= 0;
+		dst._enablePass.op		= this->_enablePass.op;					this->_enablePass.op		= Default;
+
+		dst._sliders			= RVRef( this->_sliders );				this->_sliders.clear();
+		dst._sliderCounter		= this->_sliderCounter;					this->_sliderCounter.fill( 0 );
+
+		dst._constants			= RVRef( this->_constants );			this->_constants.clear();
+		dst._constantCounter	= this->_constantCounter;				this->_constantCounter.fill( 0 );
+
+		dst._uniqueSliderNames	= RVRef( this->_uniqueSliderNames );	this->_uniqueSliderNames.clear();
 	}
 
 

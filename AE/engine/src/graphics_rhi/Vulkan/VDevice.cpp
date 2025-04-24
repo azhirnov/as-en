@@ -32,7 +32,7 @@ namespace
 
 	StaticAssert( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
 
-	StaticAssert( VK_HEADER_VERSION == 307 );
+	StaticAssert( VK_HEADER_VERSION == 309 );
 
 	static constexpr usize	c_MaxMemTypes = List<EMemoryType>{
 												EMemoryType::DeviceLocal,	EMemoryType::Transient,		EMemoryType::HostCoherent,
@@ -989,14 +989,19 @@ namespace
 	constructor
 =================================================
 */
-	VDeviceInitializer::VDeviceInitializer (Bool enableInfoLog) __NE___ :
+	VDeviceInitializer::VDeviceInitializer (Bool enableInfoLog, Bool enableAllocatorStats) __NE___ :
 		_enableInfoLog{ enableInfoLog }
 	{
-	#ifndef AE_CFG_RELEASE
+	  #ifndef AE_CFG_RELEASE
 		auto	dbg_report = _dbgReport.WriteLock();
 		NOTHROW( dbg_report->tempObjectDbgInfos.reserve( 16 ));
 		dbg_report->tempString.reserve( 1024 );
-	#endif
+	  #endif
+
+	  #ifdef AE_DEBUG
+		_logAllocatorStats = enableAllocatorStats;
+	  #endif
+		Unused( enableAllocatorStats );
 	}
 
 /*
@@ -1070,6 +1075,133 @@ namespace
 		CHECK_ERR( GetVkInstance() != Default );
 
 		return _rdc.Initialize( GetVkInstance(), NativeWindow{} );
+	}
+#endif
+/*
+=================================================
+	ChooseDriver (Linux)
+----
+	https://www.reddit.com/r/linux_gaming/comments/h8b7zv/amd_gpu_vulkan_driver_how_to_easily_switch/
+=================================================
+*/
+#ifdef AE_PLATFORM_LINUX
+	bool  VDeviceInitializer::ChooseDriver (ArrayView<EDriver> driverList) C_NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		CHECK_ERR( not VulkanLoader::IsLoaded() );
+		CHECK_ERR( not driverList.empty() );
+		
+		CHECK_ERR( LinuxUtils::SetEnvironmentVariable( "DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1", "1" ));  // to use 'VK_DRIVER_FILES'
+
+		const auto	SetDriver = [] (const EDriver driver)
+		{{
+			static const char	lavapipe_icd []	= "/usr/share/vulkan/icd.d/lvp_icd.x86_64.json";
+			static const char	radv_icd []		= "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json";
+			static const char	amdvlk_icd []	= "/opt/amdgpu/etc/vulkan/icd.d/amd_icd64.json";
+			static const char	amdpro_icd []	= "/opt/amdgpu-pro/etc/vulkan/icd.d/amd_icd64.json";
+
+			switch_enum( driver )
+			{
+				case EDriver::LavaPipe :
+					if ( FileSystem::IsFile( lavapipe_icd ))
+						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", lavapipe_icd );
+					else
+						AE_LOGW( "LavaPipe ICD is not exist in '"s << lavapipe_icd << "'" );
+					break;
+
+				case EDriver::RADV :
+					if ( FileSystem::IsFile( radv_icd ))
+						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", radv_icd );
+					else
+						AE_LOGW( "RADV ICD is not exist in '"s << radv_icd << "'" );
+					break;
+
+				case EDriver::AMDVLK :
+					if ( FileSystem::IsFile( amdvlk_icd ))
+						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", amdvlk_icd );
+					else
+						AE_LOGW( "AMDVLK ICD is not exist in '"s << amdvlk_icd << "'" );
+					break;
+
+				case EDriver::AMD_PRO :
+					if ( FileSystem::IsFile( amdpro_icd ))
+						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", amdpro_icd );
+					else
+						AE_LOGW( "AMD PRO ICD is not exist in '"s << amdpro_icd << "'" );
+					break;
+					
+				case EDriver::_LinuxDrivers :
+				case EDriver::Unknown : break;
+			}
+			switch_end
+			return false;
+		}};
+
+		for (auto driver : driverList)
+		{
+			if ( driver == Default )
+				break;
+
+			if ( SetDriver( driver ))
+				return true;
+		}
+
+		// rollback changes
+		Unused( LinuxUtils::DeleteEnvironmentVariable( "DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1" ));
+		return false;
+	}
+#endif
+/*
+=================================================
+	ChooseDriver (Windows)
+=================================================
+*/
+#ifdef AE_PLATFORM_WINDOWS
+	bool  VDeviceInitializer::ChooseDriver (ArrayView<EDriver> driverList) C_NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		CHECK_ERR( not VulkanLoader::IsLoaded() );
+		CHECK_ERR( not driverList.empty() );
+		
+		const auto	SetDriver = [] (const EDriver driver)
+		{{
+			static const char	lavapipe_icd []	= "lvp_icd.x86_64.json";
+
+			switch_enum( driver )
+			{
+				case EDriver::LavaPipe :
+					if ( FileSystem::IsFile( lavapipe_icd ))
+						return WindowsUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", lavapipe_icd );
+					else
+						AE_LOGW( "LavaPipe ICD is not exist in '"s << ToString( FileSystem::ToAbsolute( lavapipe_icd )) << "'" );
+					break;
+
+				case EDriver::Unknown : break;
+			}
+			switch_end
+			return false;
+		}};
+
+		for (auto driver : driverList)
+		{
+			if ( driver == Default )
+				break;
+
+			if ( SetDriver( driver ))
+				return true;
+		}
+		return false;
+	}
+#endif
+/*
+=================================================
+	ChooseDriver
+=================================================
+*/
+#if not defined(AE_PLATFORM_WINDOWS) and not defined(AE_PLATFORM_LINUX)
+	bool  VDeviceInitializer::ChooseDriver (ArrayView<EDriver>) C_NE___
+	{
+		return false;
 	}
 #endif
 /*
@@ -1473,7 +1605,7 @@ namespace {
 
 
 			float	perf = 0.f;												// magic function:
-			perf += float(ulong(dev_local_mem)) / float(1u << 30);					// memory in Gb
+			perf += is_discrete ? float(ulong(dev_local_mem)) / 8.0e+9f : 0.f;		// memory in Gb
 			perf += float(is_discrete) * 4.f + float(is_integrated) * 1.f;			// discrete > integrated > any other
 			perf += float(feat.tessellationShader + feat.geometryShader +
 						  accel_struct + ray_tracing_ppln + mesh_shader) * 0.2f;	// new features in newer GPU
@@ -3388,6 +3520,12 @@ namespace {
 	bool  VDeviceInitializer::Init (const GraphicsCreateInfo &ci, ArrayView<const char*> instanceExtensions) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
+
+		// driver
+		{
+			if ( ci.driverList[0] != Default )
+				ChooseDriver( ci.driverList );
+		}
 
 		// instance
 		{

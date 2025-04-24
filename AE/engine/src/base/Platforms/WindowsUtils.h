@@ -9,6 +9,7 @@
 # include "base/Utils/Threading.h"
 # include "base/Platforms/CPUInfo.h"
 # include "base/Platforms/PlatformEnums.h"
+# include "base/FileSystem/Path.h"
 
 namespace AE::Base
 {
@@ -85,6 +86,8 @@ namespace AE::Base
 		// Process //
 		ND_ static ulong	GetProcessID ()													__NE___;
 
+		ND_ static Path		GetExeLocation ()												__NE___;
+
 
 		// OS //
 		ND_ static Version3		GetOSVersion ()												__NE___;
@@ -99,6 +102,8 @@ namespace AE::Base
 
 		ND_ static bool		GetEnvironmentVariable (NtStringView name, OUT String &value)	__NE___;
 		ND_ static bool		HasEnvironmentVariable (NtStringView name)						__NE___;
+		ND_ static bool		SetEnvironmentVariable (NtStringView name, NtStringView value)	__NE___;
+		ND_ static bool		DeleteEnvironmentVariable (NtStringView name)					__NE___;
 
 
 		// Locale //

@@ -26,16 +26,17 @@ extern void UnitTest_Exceptions ()
 #if defined(AE_PLATFORM_ANDROID) and defined(AE_CPU_ARCH_ARM32)
 	// crash
 #else
+	auto	se = MakeRC<ScriptEngine>();
+
 	TEST_NOTHROW(
-		auto	se = MakeRC<ScriptEngine>();
 		TEST( se->Create() );
 
 		CoreBindings::BindString( se );
 		CoreBindings::BindLog( se );
-
-		ScriptException_Test1( se );
-
-		TEST_PASSED();
 	)
+
+	ScriptException_Test1( se );
+
+	TEST_PASSED();
 #endif
 }

@@ -87,21 +87,21 @@ namespace
 							"It will be used to calculate offsets in table:\n"
 							"\t'hitShaders [InstanceCount] [RayTypeCount]'"
 							"Where 'ray type' is primary, shadow, reflection and other. All types are user-defined." );
-			binder.AddMethod( &RayTracingShaderBinding::MaxRayTypes,	"MaxRayTypes",		{"count"} );
+			AS_METHOD( binder, RayTracingShaderBinding::MaxRayTypes,	"MaxRayTypes",		{"count"} );
 
 			binder.Comment( "Bind shader group from ray tracing pipeline as a ray generation shader." );
-			binder.AddMethod( &RayTracingShaderBinding::BindRayGen,		"BindRayGen",		{"groupName"} );
+			AS_METHOD( binder, RayTracingShaderBinding::BindRayGen,		"BindRayGen",		{"groupName"} );
 
 			binder.Comment( "Bind shader group from ray tracing pipeline as a miss shader.\n"
 							"'missIndex' should be < MaxRayTypes." );
-			binder.AddMethod( &RayTracingShaderBinding::BindMiss,		"BindMiss",			{"groupName", "missIndex"} );
+			AS_METHOD( binder, RayTracingShaderBinding::BindMiss,		"BindMiss",			{"groupName", "missIndex"} );
 
 			binder.Comment( "Bind shader group from ray tracing pipeline as a hit group.\n"
 							"'rayIndex' must be < MaxRayTypes." );
-			binder.AddMethod( &RayTracingShaderBinding::BindHitGroup,	"BindHitGroup",		{"groupName", "instanceIndex", "rayIndex"} );
+			AS_METHOD( binder, RayTracingShaderBinding::BindHitGroup,	"BindHitGroup",		{"groupName", "instanceIndex", "rayIndex"} );
 
 			binder.Comment( "Bind shader group from ray tracing pipeline as callable shader." );
-			binder.AddMethod( &RayTracingShaderBinding::BindCallable,	"BindCallable",		{"groupName", "callableIndex"} );
+			AS_METHOD( binder, RayTracingShaderBinding::BindCallable,	"BindCallable",		{"groupName", "callableIndex"} );
 		}
 	}
 

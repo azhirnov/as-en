@@ -29,8 +29,8 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr TPercent ()										__NE___ = default;
-		explicit constexpr TPercent (T val)							__NE___ : _value{val} {}
+		__Cx__ TPercent ()											__NE___ = default;
+		__Cx__ explicit TPercent (T val)							__NE___ : _value{val} {}
 
 		NdCx__ bool  operator == (const Self rhs)					C_NE___	{ return _value == rhs._value; }
 		NdCx__ bool  operator != (const Self rhs)					C_NE___	{ return _value != rhs._value; }

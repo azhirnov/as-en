@@ -7,6 +7,7 @@ Content:
 * [Samples](docs/Samples.md)
 * [Scripts](docs/Scripts.md)
 * [Remote](docs/Remote.md)
+* [Download binaries](docs/DownloadFromCI.md)
 
 
 ## Features
@@ -50,21 +51,3 @@ Content:
 `Esc` - switch between camera and UI<br/>
 `Tab` - show/hide UI<br/>
 `F1` - show/hide help with key bindings<br/>
-
-
-## Release
-
-Download `ResourceEditor` binaries from CI:
-* [Windows](https://github.com/azhirnov/as-en/actions/workflows/windows.yml)
-* [Linux](https://github.com/azhirnov/as-en/actions/workflows/linux.yml)
-* [MacOS](https://github.com/azhirnov/as-en/actions/workflows/macos.yml)
-
-Optional: download `RemoteGraphicsDevice` from CI to run on any platform:
-* [Windows](https://github.com/azhirnov/as-en/actions/workflows/windows.yml)
-* [Linux](https://github.com/azhirnov/as-en/actions/workflows/linux.yml)
-* [MacOS](https://github.com/azhirnov/as-en/actions/workflows/macos.yml)
-* [Android](https://github.com/azhirnov/as-en/actions/workflows/android.yml) - `rg-device.apk`
-
-Optional: download samples from [`_data` folder](https://github.com/azhirnov/as-en/tree/dev/AE/samples/res_editor/_data) from git.
-
-Optional: download [resources](https://disk.yandex.ru/d/nbdf1UYipPV0CA) for samples.

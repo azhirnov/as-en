@@ -615,6 +615,7 @@ namespace AE::Graphics::_hidden_
 	void  _VIndirectASBuildCtx::_BuildClusterIndirect (const RTClusterBuild &cmd) __Th___
 	{
 		// TODO
+		Unused( cmd );
 	}
 
 /*
@@ -625,6 +626,7 @@ namespace AE::Graphics::_hidden_
 	void  _VIndirectASBuildCtx::_BuildPartitionedIndirect (const RTPartitionedSceneBuild &cmd) __Th___
 	{
 		// TODO
+		Unused( cmd );
 	}
 
 /*

@@ -1,13 +1,15 @@
 GPUs:
 * [Adreno 660](bench-gpu/Adreno_660.md)
 * [Adreno 505](bench-gpu/Adreno_505.md)
-* [AMD RX 570](bench-gpu/AMD_RX570.md)
+* [AMD RX 570 (GCN4)](bench-gpu/AMD_RX570.md)
+* [AMD Radeon 780M (RDNA3)](bench-gpu/AMD_780M.md)
 * [Apple M1](bench-gpu/Apple_M1.md)
-* [Intel UHD 620](bench-gpu/Intel_UHD620.md)
-* [Mali G57](bench-gpu/ARM_Mali_G57.md)
-* [Mali G610](bench-gpu/ARM_Mali_G610.md)
+* [Intel UHD 620 (gen9.5)](bench-gpu/Intel_UHD620.md)
+* [Intel N150 (Twin Lake, Xe Graphics)](bench-gpu/Intel_N150.md)
+* [Mali G57 (Valhall gen1)](bench-gpu/ARM_Mali_G57.md)
+* [Mali G610 (Valhall gen3)](bench-gpu/ARM_Mali_G610.md)
 * [Mali T830](bench-gpu/ARM_Mali_T830.md)
-* [NVidia RTX 2080](bench-gpu/NVidia_RTX2080.md)
+* [NVidia RTX 2080 (Turing)](bench-gpu/NVidia_RTX2080.md)
 * [PowerVR BXM-8-256](bench-gpu/PowerVR_BXM.md)
 
 Other:
@@ -47,10 +49,12 @@ Other:
 | Adreno 5xx            | ?      | as large as possible | -       |         | -              | -       |
 | Adreno 6xx            | 64/128 | as large as possible | **yes** |         | **yes**        | no      |
 | AMD GCN4              | 64     | -                    | no      | **yes** | no             | ?       |
+| AMD RDNA3             | ?      | ?                    | ?       | ?       | ?              | ?       |
 | Apple M1              | 32     | 16x16                | no      | **yes** | no             | no      |
-| ARM Mali Midgard gen4 | (4)    | 16x16                | -       | -       | -              | -       |
+| ARM Mali Midgard gen4 | (4)    | 16x16                | ?       | ?       | ?              | ?       |
 | ARM Mali Valhall gen1 | 16     | 16x16                | **yes** | **yes** | **yes** (rare) | no      |
 | Intel UHD 6xx 9.5gen  | 16     | -                    | no      | no      | no             | ?       |
+| Intel Xe-LP 12gen     |
 | NV RTX 20xx           | 32     | 16x16                | no      | **yes** | no             | no      |
 | PowerVR B‑Series      | 128    | 32x32?               | no      | **yes** | no             | **yes** |
 
@@ -70,10 +74,12 @@ Other:
 | Adreno 5xx            | fma/mad | mad     | -       | 1     | no  | no  |
 | Adreno 6xx            | fma/mad | mad     | -       | 1     | 2:1 | 2:1 |
 | AMD GCN4              | fma/mad | -       | -       | 1     | no  | no  |
+| AMD RDNA3             | ?       | ?       | ?       | ?     | ?   | ?   |
 | Apple M1              | fma/mad | no      | fma/mad | 1     | 2:1 | 2:1 |
 | ARM Mali Midgard gen4 | **mad** | no      | mad     | 1     | no  | no  |
 | ARM Mali Valhall gen1 | fma/mad | mad     | -       | 1     | 2:1 | 2:1 |
 | Intel UHD 6xx 9.5gen  | fma/mad | **fma** | -       | **2** | 2:1 | no  |
+| Intel Xe-LP 12gen     |
 | NV RTX 20xx (Turing)  | fma/mad | **fma** | -       | **2** | 1:1 **(specs)** | 2:1 |
 | PowerVR B‑Series      | fma/mad | no      | mad     | 1     | 1:1 | no  |
 
@@ -81,7 +87,7 @@ Other:
 ## Shader instructions performance groups
 
 | GPU | |
-|----------|---|---|---|---|---|
+|----------|---|
 | Adreno 5xx            |
 | Adreno 6xx            |
 | AMD GCN4              |
@@ -89,13 +95,14 @@ Other:
 | ARM Mali Midgard gen4 |
 | ARM Mali Valhall gen1 |
 | Intel UHD 6xx 9.5gen  |
+| Intel Xe-LP 12gen     |
 | NV RTX 20xx (Turing)  |
 | PowerVR B‑Series      |
 
 ## Branching
 
 How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Branching)]
-* Uniform branching is faster on most GPUs.
+* Uniform branching is faster on most GPUs and used as reference.
 * GPU with vector architecture has faster `Matrix uniform` version.
 * If `Branch non-uniform < 2` it indicates that GPU can not optimize short branches.
 * If `Branch non-uniform` is much greater than `Mul non-uniform` it indicates that non-uniform branches has additional cost.
@@ -105,10 +112,13 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Adreno 5xx            | 1.6 | 0.88 |   **1.9** | 2.1 | 2.7 |   1.72 | **1.54** | 1.78 |
 | Adreno 6xx            | 1.6 | 1.0  |   2.3 | **1.8** | 3.0 |   1.95 | **1.4**  | 2.0  |
 | AMD GCN4              | 1.7 | 0.94 |   2.3 | **1.6** | 2.6 |   2.0  | **1.3**  | 1.8  |
+| AMD RDNA3             | ?   | ?    | ?     | ?       | ?   |   ?    | ?        | ?    |
 | Apple M1              | 1.1 | 0.8  |   1.4 | **1.1** | 1.8 |   1.24 | **1.03** | 1.26 |
 | ARM Mali Midgard gen4 | 1.5 | 0.7  |   1.8 | **1.3** | 2.4 |   1.64 | **1.1**  | 1.57 |
 | ARM Mali Valhall gen1 | 2.1 | 1.4  |   2.3 | **2.1** | 3.5 |   2.18 | **1.56** | 2.45 |
+| ARM Mali Valhall gen3 | 1.7 | 1.2  |   2.1 | **1.6** | 3.0 |   1.9  | **1.3**  | 2.1  |
 | Intel UHD 6xx 9.5gen  | 1.3 | 0.87 |   1.9 | **1.2** | 2.6 |   1.59 | **1.07** | 1.71 |
+| Intel Xe-LP 12gen     |
 | NV RTX 20xx (Turing)  | 2.1 | 1.5  |   **2.4** | 3.1 | 3.0 |   2.1  | 2.1      | 2.1  |
 | PowerVR B‑Series      | 2.3 | 1.5  |   **2.6** | 3.5 | 3.1 |   2.46 | **2.25** | 2.33 |
 
@@ -120,9 +130,12 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Adreno 5xx            | ? |
 | Adreno 6xx            | grid of 4 large quads (4x4 threads) with 4 quads, row major | ![](bench-gpu/img/graphics-subgroups/adreno-600.png)   | row major 8x8    | ![](bench-gpu/img/compute-subgroups/adreno-600.png) |
 | AMD GCN4              | grid of 4 large quads (4x4 threads) with 4 quads, row major | ![](bench-gpu/img/graphics-subgroups/amd-gcn4.png)     | column major 8x4, 2 threads in row per column | ![](bench-gpu/img/compute-subgroups/amd-gcn4.png) |
+| AMD RDNA3             |
 | Apple M1              | row major 4x2                                               | ![](bench-gpu/img/graphics-subgroups/mac-m1.png)       | row major 8x4    | ![](bench-gpu/img/compute-subgroups/mac-m1.png) |
 | ARM Mali Valhall gen1 | random                                                      | ![](bench-gpu/img/graphics-subgroups/valhall-1.png)    | row major 8x2    | ![](bench-gpu/img/compute-subgroups/valhall-1.png) |
+| ARM Mali Valhall gen3 |
 | Intel UHD 6xx 9.5gen  | grid of 4 quads, row major                                  | ![](bench-gpu/img/graphics-subgroups/intel-gen9_5.png) | column major 4x4 | ![](bench-gpu/img/compute-subgroups/intel-gen9_5.png) |
+| Intel Xe-LP 12gen     |
 | NV RTX 20xx (Turing)  | column major 2x4                                            | ![](bench-gpu/img/graphics-subgroups/nv-turing.png)    | row major 8x4    | ![](bench-gpu/img/compute-subgroups/nv-turing.png) |
 | PowerVR B‑Series      | [_]-curve, row major 8x4 (Hilbert curve?)                   | ![](bench-gpu/img/graphics-subgroups/powervr-bxm.png)  | row major 8x16   | ![](bench-gpu/img/compute-subgroups/powervr-bxm-16x16.png) |
 
@@ -527,10 +540,13 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Adreno 505                   | 6.4   | 5    | | | | |
 | Adreno 660                   | 51.2  | 34   | | | | |
 | AMD RX570 (GCN4)             | 224.0 | 86   | | | | |
+| AMD 780M (RDNA3)             |
 | Apple M1                     | 68.25 |      | | | | |
 | ARM Mali T830 (Midgard gen4) | 14.9  | 4    | | | | |
 | ARM Mali G57 (Valhall gen1)  | 17.07 | 14.2 | | | | |
+| ARM Mali G610 (Valhall gen3) |
 | Intel UHD 620 (9.5gen)       | 29.8  | 23   | | | | |
+| Intel N150 (Xe-LP 12gen)     |
 | NV RTX 2080 (Turing)         | 448.0 | 403  | | | | |
 | PowerVR BXM‑8‑256            | 51.2  | 14.2 | | | | |
 
@@ -545,10 +561,13 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Adreno 505                   | 128  |      |     |    |      |     |      |
 | Adreno 660                   | 1536 | 128  | ?   |    | 4?   | 2?  | ?    |
 | AMD RX570 (GCN4)             | -    |      |     |    |      |     |      |
+| AMD 780M (RDNA3)             |
 | Apple M1                     | ?    |      |     |    |      |     |      |
 | ARM Mali T830 (Midgard gen4) | 4    |      |     | 64 |      |     |      |
 | ARM Mali G57 (Valhall gen1)  | 8    | 512  | 49  | 64 | 32?  | 32  | ?    |
+| ARM Mali G610 (Valhall gen3) |
 | Intel UHD 620 (9.5gen)       | -    | 128  | 48? |    | 8?   | 8?  | 112? |
+| Intel N150 (Xe-LP 12gen)     |
 | NV RTX 2080 (Turing)         | -    | 4096 | ?   |    | 64   | 32  | ?    |
 | PowerVR BXM‑8‑256            | ?    | 1024 | ?   | ?  | 256? | 256 | ?    |
 
@@ -562,28 +581,38 @@ How match Mul and Matrix variants are slower than uniform Branch. [[12](#12-Bran
 | Adreno 5xx            | 4x4   | 2.5 | 2.7 | ?   | ?    | exec time       |
 | Adreno 6xx            | 16x16 | 1.9 | 6.9 | ?   | 3.3  | exec time       |
 | AMD GCN4              | 4x4   | 2.3 | 3   | 2.3 | 3    | exec time       |
+| AMD RDNA3             |
 | Apple M1              | 8x8   | 3.4 | 3.4 | 6.8 | 6.8  | exec time       |
 | Intel UHD 6xx 9.5gen  | 8x8   | 1.6 | 1.8 | 1.8 | 1.85 | exec time       |
+| Intel Xe-LP 12gen     |
 | NV RTX 20xx           | 4x4   | 3   | 3.2 | 4.1 | 4.1  | exec time       |
 | ARM Mali Valhall gen1 | 4x4   | 1.9 | 3.9 | 1.9 | 3.7  | exec time       | only 32bit formats, **V2** |
 | ARM Mali Valhall gen1 | 4x4   | 5.9 | 19  | 5.7 | 20   | **mem traffic** | used performance counters |
+| ARM Mali Valhall gen3 |
 | PowerVR B‑Series      | 8x8   | 23  | 134 | 24  | 134  | **mem traffic** | used performance counters |
 
 
 ## Draw Indirect
 
-| GPU | direct vs indirect performance |
-|---|---|
-| Adreno 5xx            | direct is faster (20ms vs 41ms) |
-| Adreno 6xx            | same |
-| AMD GCN4              | |
-| Apple M1              | |
-| Intel UHD 6xx 9.5gen  | |
-| NV RTX 20xx           | same |
-| ARM Mali Midgard gen4 | maxDrawIndirectCount = 1, used instancing instead of multiDraw, indirect is faster (120ms vs 130ms) |
-| ARM Mali Valhall gen1 | maxDrawIndirectCount = 1, used instancing instead of multiDraw, indirect is faster (12ms vs 15ms) |
+* Direct draw calls, like `vkDrawIndexed()`, may have CPU overhead depends on driver implementation.
+* Validation layers have high overhead and must be disabled for this test.
+* Performance compared between multiple calls of `vkDrawIndexed()` and same number of `vkDrawIndexedIndirect()`.
+* Some GPUs has `maxDrawIndirectCount = 1`, so used second test with single `vkDrawIndexedIndirect()` and multiple instances.
+
+| GPU | multi draw direct vs<br/> multi draw indirect | multi draw direct vs<br/> instanced indirect |
+|---|---|---|
+| Adreno 5xx            | direct is faster (20ms vs 41ms)   |
+| Adreno 6xx            | same                              |
+| AMD GCN4              |                                   |
+| AMD RDNA3             |                                   |
+| Apple M1              |                                   |
+| Intel UHD 6xx 9.5gen  |                                   |
+| Intel Xe-LP 12gen     | same                              | same                                |
+| NV RTX 20xx           | same                              |
+| ARM Mali Midgard gen4 | not supported                     | indirect is faster (120ms vs 130ms) |
+| ARM Mali Valhall gen1 | not supported                     | indirect is faster (12ms vs 15ms)   |
 | ARM Mali Valhall gen3 | indirect is faster (25ms vs 31ms) |
-| PowerVR B‑Series      | same |
+| PowerVR B‑Series      | same                              |
 
 
 # Test Sources

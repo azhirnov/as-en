@@ -1074,6 +1074,7 @@ namespace AE::Base
 			case ESurfaceFormat::BGRA8_sRGB_nonlinear :				return "BGRA8_sRGB_nonlinear";
 			case ESurfaceFormat::RGBA8_sRGB_nonlinear :				return "RGBA8_sRGB_nonlinear";
 			case ESurfaceFormat::BGRA8_BT709_nonlinear :			return "BGRA8_BT709_nonlinear";
+			case ESurfaceFormat::RGBA16F_sRGB_nonlinear :			return "RGBA16F_sRGB_nonlinear";
 			case ESurfaceFormat::RGBA16F_Extended_sRGB_linear :		return "RGBA16F_Extended_sRGB_linear";
 			case ESurfaceFormat::RGBA16F_Extended_sRGB_nonlinear :	return "RGBA16F_Extended_sRGB_nonlinear";
 			case ESurfaceFormat::RGBA16F_BT709_nonlinear :			return "RGBA16F_BT709_nonlinear";

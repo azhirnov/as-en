@@ -170,9 +170,11 @@ namespace AE::Profiler
 	bool  NVidiaProfiler::Impl::Init () __NE___
 	{
 	  #ifdef AE_PLATFORM_WINDOWS
-		if ( not _lib.Load( FileSystem::GetWindowsPath() / "System32/nvml.dll" ))
-			return false;
+		Unused( _lib.Load( FileSystem::GetWindowsPath() / "System32/nvml.dll" ));
 	  #endif
+
+		if ( not _lib )
+			return false;
 
 		bool	loaded = true;
 		#define NVML_GET_FN( _name_ )	loaded &= _lib.GetProcAddr( "nvml" #_name_, OUT fn##_name_ );

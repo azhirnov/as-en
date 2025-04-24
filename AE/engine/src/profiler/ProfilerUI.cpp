@@ -2,7 +2,7 @@
 
 #ifdef AE_ENABLE_IMGUI
 # include "imgui.h"
-# include "graphics_hl/ImGui/ImGuiRenderer.h"
+# include "graphics/ImGui/ImGuiRenderer.h"
 #endif
 
 #include "profiler/ProfilerUI.h"

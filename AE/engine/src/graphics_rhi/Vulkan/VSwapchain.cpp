@@ -126,11 +126,16 @@ namespace AE::Graphics
 		NOTHROW_ERR( surf_formats.resize( count ));
 		VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceFormatsKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT surf_formats.data() ));
 
-		for (usize i = 0, cnt = Min( maxCount, surf_formats.size() ); i < cnt; ++i)
+		usize	j = 0;
+		for (usize i = 0; i < surf_formats.size() and j < maxCount; ++i)
 		{
-			dst[i] = SurfaceFormat{ AEEnumCast(surf_formats[i].format), AEEnumCast(surf_formats[i].colorSpace) };
+			auto	fmt = AEEnumCast( surf_formats[i].format );
+			auto	cs	= AEEnumCast( surf_formats[i].colorSpace );
+
+			if ( fmt != Default and cs != Default )
+				dst[j++] = SurfaceFormat{ fmt, cs };
 		}
-		return count;
+		return j;
 	}
 
 /*
@@ -154,12 +159,15 @@ namespace AE::Graphics
 
 		NOTHROW_ERR( present_modes.resize( count ));
 		VK_CHECK_ERR( vkGetPhysicalDeviceSurfacePresentModesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT present_modes.data() ));
-
-		for (usize i = 0, cnt = Min( maxCount, present_modes.size() ); i < cnt; ++i)
+		
+		usize	j = 0;
+		for (usize i = 0; i < present_modes.size() and j < maxCount; ++i)
 		{
-			dst[i] = AEEnumCast( present_modes[i] );
+			auto	mode = AEEnumCast( present_modes[i] );
+			if ( mode != Default )
+				dst[j++] = mode;
 		}
-		return count;
+		return j;
 	}
 
 /*

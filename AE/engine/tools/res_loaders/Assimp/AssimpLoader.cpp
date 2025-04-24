@@ -179,6 +179,11 @@ namespace
 			case aiTextureType_CLEARCOAT :			return IntermMaterial::EKey::PBR_Clearcoat;
 			case aiTextureType_TRANSMISSION :		return IntermMaterial::EKey::PBR_Transmission;
 
+			case aiTextureType_MAYA_BASE :
+			case aiTextureType_MAYA_SPECULAR :
+			case aiTextureType_MAYA_SPECULAR_COLOR :
+			case aiTextureType_MAYA_SPECULAR_ROUGHNESS :	// TODO
+
 			case aiTextureType_NONE :
 			case aiTextureType_UNKNOWN :
 			case _aiTextureType_Force32Bit :		break;
@@ -245,6 +250,11 @@ namespace
 			case aiTextureType_SHEEN :				GET_COLOR( AI_MATKEY_SHEEN_COLOR_FACTOR );
 			case aiTextureType_CLEARCOAT :			break;
 			case aiTextureType_TRANSMISSION :		break;
+				
+			case aiTextureType_MAYA_BASE :
+			case aiTextureType_MAYA_SPECULAR :
+			case aiTextureType_MAYA_SPECULAR_COLOR :
+			case aiTextureType_MAYA_SPECULAR_ROUGHNESS :	// TODO
 
 			case aiTextureType_NONE :
 			case aiTextureType_UNKNOWN :

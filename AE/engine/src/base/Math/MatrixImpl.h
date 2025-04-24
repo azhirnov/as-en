@@ -168,8 +168,8 @@ namespace AE::Base
 
 	#if Columns == 4 and Rows == 4
 		ND_ static Self  Ortho (const Rect_t &viewport, const Vec2_t &range)			__NE___	{ return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
-		ND_ static Self  InfinitePerspective (Rad_t fovY, T aspect, T zNear)			__NE___;
-		ND_ static Self  Perspective (Rad_t fovY, T aspect, const Vec2_t &range)		__NE___	{ return Self{ glm::perspective( T(fovY), aspect, range[0], range[1] )}; }
+		ND_ static Self  InfinitePerspective (Rad_t fovY, T aspectRatio, T zNear)		__NE___;
+		ND_ static Self  Perspective (Rad_t fovY, T aspectRatio, const Vec2_t &range)	__NE___	{ return Self{ glm::perspective( T(fovY), aspectRatio, range[0], range[1] )}; }
 		ND_ static Self  Perspective (Rad_t fovY, const Vec2_t &viewport, const Vec2_t &range)	__NE___	{ return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
 		ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)			__NE___	{ return Self{ glm::frustum( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
 		ND_ static Self  InfiniteFrustum (const Rect_t &viewport, T zNear)				__NE___;
@@ -443,11 +443,11 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::InfinitePerspective (Rad_t fovY, T aspect, T zNear) __NE___
+	TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::InfinitePerspective (Rad_t fovY, T aspectRatio, T zNear) __NE___
 	{
 		T const	range	= glm::tan( T(fovY) * T(0.5) ) * zNear;
-		T const	left	= -range * aspect;
-		T const	right	= range * aspect;
+		T const	left	= -range * aspectRatio;
+		T const	right	= range * aspectRatio;
 		T const	bottom	= -range;
 		T const	top		= range;
 

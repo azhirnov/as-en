@@ -67,6 +67,10 @@
 #	include <coroutine>
 #endif
 
+#ifdef __cpp_lib_stacktrace
+#	include <stacktrace>
+#endif
+
 #if AE_HAS_INCLUDE(<bit>) and AE_CXX_VER >= 20
 #	include <bit>
 #endif

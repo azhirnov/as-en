@@ -917,16 +917,16 @@ namespace
 		binder.AddFactoryCtor( &ScriptBuffer_Ctor2,		{"filenameInVFS"} );
 
 		binder.Comment( "Set resource name. It is used for debugging." );
-		binder.AddMethod( &ScriptBuffer::Name,					"Name",				{} );
+		AS_METHOD( binder, ScriptBuffer::Name,					"Name",				{} );
 
 		binder.Comment( "Get buffer type name. Result is valid only after 'Layout*()' methods.\n"
 						"Can be used for debugging: 'LogInfo( buf.TypeName() );'" );
-		binder.AddMethod( &ScriptBuffer::GetTypeName,			"TypeName",			{} );
+		AS_METHOD( binder, ScriptBuffer::GetTypeName,			"TypeName",			{} );
 
 		binder.Comment( "Set explicit name of the 'ShaderStructType' which will be created for buffer data layout.\n"
 						"It is used when buffer is passed to the pipeline which is explicitly declared (in 'pipelines' folder)\n"
 						"so typename must match in 'Layout()' and in 'ds.StorageBuffer()' call in pipeline script." );
-		binder.AddMethod( &ScriptBuffer::SetLayoutName,			"LayoutName",		{"typeName"} );
+		AS_METHOD( binder, ScriptBuffer::SetLayoutName,			"LayoutName",		{"typeName"} );
 
 		binder.Comment( "Allow to declare array of struct with constant or dynamic size.\n"
 						"Layout will be '{ <arrayElementTypeName>  elements [<count>]; }'.\n"
@@ -935,111 +935,111 @@ namespace
 						"\t'DrawMeshTasksIndirectCommand', 'TraceRayIndirectCommand', 'ASBuildIndirectCommand'\n"
 						"\t'AccelStructInstance'.\n"
 						"Buffer typename: '<arrayElementTypeName>_Array'." );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout1,		"ArrayLayout",		{"arrayElementTypeName", "count"} );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout2,		"ArrayLayout",		{"arrayElementTypeName", "count"} );
+		AS_METHOD( binder, ScriptBuffer::SetArrayLayout1,		"ArrayLayout",		{"arrayElementTypeName", "count"} );
+		AS_METHOD( binder, ScriptBuffer::SetArrayLayout2,		"ArrayLayout",		{"arrayElementTypeName", "count"} );
 
 		binder.Comment( "Allow to declare array of struct with constant or dynamic size.\n"
 						"Created a new structure with type 'arrayElementTypeName' and fields in 'arrayElementSource'.\n"
 						"See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).\n"
 						"Buffer typename: '<arrayElementTypeName>_Array'." );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout3,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "count"} );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout4,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "count"} );
+		AS_METHOD( binder, ScriptBuffer::SetArrayLayout3,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "count"} );
+		AS_METHOD( binder, ScriptBuffer::SetArrayLayout4,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "count"} );
 
 		binder.Comment( "Buffer typename: '<arrayElementTypeName>_Array2'." );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout5,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "staticSource", "count"} );
-		binder.AddMethod( &ScriptBuffer::SetArrayLayout6,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "staticSource", "count"} );
+		AS_METHOD( binder, ScriptBuffer::SetArrayLayout5,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "staticSource", "count"} );
+		AS_METHOD( binder, ScriptBuffer::SetArrayLayout6,		"ArrayLayout",		{"arrayElementTypeName", "arrayElementSource", "staticSource", "count"} );
 
 		binder.Comment( "Allow to declare single structure as a buffer layout.\n"
 						"'typeName' must be previously declared or one of built-in type (see 'ArrayLayout')." );
-		binder.AddMethod( &ScriptBuffer::SetLayout1,			"UseLayout",		{"typeName"} );
+		AS_METHOD( binder, ScriptBuffer::SetLayout1,			"UseLayout",		{"typeName"} );
 
 		binder.Comment( "Created a new structure with type 'typeName' and fields in 'source'.\n"
 						"See field declaration rules for 'ShaderStructType::Set()' method in [pipeline_compiler.as](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/scripts/pipeline_compiler.as).");
-		binder.AddMethod( &ScriptBuffer::SetLayout2,			"UseLayout",		{"typeName", "source"} );
+		AS_METHOD( binder, ScriptBuffer::SetLayout2,			"UseLayout",		{"typeName", "source"} );
 
 		binder.Comment( "Returns buffer device address.\n"
 						"Requires 'GL_EXT_buffer_reference' extension in GLSL.\n"
 						"It passed as 'uint64' type so you should cast it to buffer reference type." );
-		binder.AddMethod( &ScriptBuffer::GetDeviceAddress,		"DeviceAddress",	{} );
+		AS_METHOD( binder, ScriptBuffer::GetDeviceAddress,		"DeviceAddress",	{} );
 
 		binder.Comment( "Force enable buffer content history.\n"
 						"It store copy of the buffer content on last N frames." );
-		binder.AddMethod( &ScriptBuffer::EnableHistory,			"EnableHistory",	{} );
+		AS_METHOD( binder, ScriptBuffer::EnableHistory,			"EnableHistory",	{} );
 
 		binder.Comment( "Call this method if 'DeviceAddress()' of another buffer is used in current buffer to avoid missed synchronizations." );
-		binder.AddMethod( &ScriptBuffer::AddReference,			"AddReference",		{} );
+		AS_METHOD( binder, ScriptBuffer::AddReference,			"AddReference",		{} );
 
 		binder.Comment( "Dynamic array size, can be used for draw call." );
-		binder.AddMethod( &ScriptBuffer::ArraySize,				"ArraySize",		{} );
+		AS_METHOD( binder, ScriptBuffer::ArraySize,				"ArraySize",		{} );
 
 		binder.Comment( "Constant array size, can be used for draw call." );
-		binder.AddMethod( &ScriptBuffer::ConstArraySize,		"ConstArraySize",	{} );
+		AS_METHOD( binder, ScriptBuffer::ConstArraySize,		"ConstArraySize",	{} );
 
 		binder.Comment( "Build buffer data layout with initial content.\n"
 						"Returns offset in bytes where data is begin." );
 
-		binder.AddMethod( &ScriptBuffer::Float1,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float2,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float3,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float4,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float2v,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float3v,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float4v,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float1,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float2,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float3,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float4,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float2v,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float3v,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float4v,		"Float",		{} );
 
-		binder.AddMethod( &ScriptBuffer::Float2x2,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float2x3,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float2x4,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float3x2,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float3x3,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float3x4,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float4x2,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float4x3,		"Float",		{} );
-		binder.AddMethod( &ScriptBuffer::Float4x4,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float2x2,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float2x3,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float2x4,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float3x2,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float3x3,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float3x4,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float4x2,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float4x3,		"Float",		{} );
+		AS_METHOD( binder, ScriptBuffer::Float4x4,		"Float",		{} );
 
-		binder.AddMethod( &ScriptBuffer::Int1,			"Int",			{} );
-		binder.AddMethod( &ScriptBuffer::Int2,			"Int",			{} );
-		binder.AddMethod( &ScriptBuffer::Int3,			"Int",			{} );
-		binder.AddMethod( &ScriptBuffer::Int4,			"Int",			{} );
-		binder.AddMethod( &ScriptBuffer::Int2v,			"Int",			{} );
-		binder.AddMethod( &ScriptBuffer::Int3v,			"Int",			{} );
-		binder.AddMethod( &ScriptBuffer::Int4v,			"Int",			{} );
+		AS_METHOD( binder, ScriptBuffer::Int1,			"Int",			{} );
+		AS_METHOD( binder, ScriptBuffer::Int2,			"Int",			{} );
+		AS_METHOD( binder, ScriptBuffer::Int3,			"Int",			{} );
+		AS_METHOD( binder, ScriptBuffer::Int4,			"Int",			{} );
+		AS_METHOD( binder, ScriptBuffer::Int2v,			"Int",			{} );
+		AS_METHOD( binder, ScriptBuffer::Int3v,			"Int",			{} );
+		AS_METHOD( binder, ScriptBuffer::Int4v,			"Int",			{} );
 
-		binder.AddMethod( &ScriptBuffer::UInt1,			"Uint",			{} );
-		binder.AddMethod( &ScriptBuffer::UInt2,			"Uint",			{} );
-		binder.AddMethod( &ScriptBuffer::UInt3,			"Uint",			{} );
-		binder.AddMethod( &ScriptBuffer::UInt4,			"Uint",			{} );
-		binder.AddMethod( &ScriptBuffer::UInt2v,		"Uint",			{} );
-		binder.AddMethod( &ScriptBuffer::UInt3v,		"Uint",			{} );
-		binder.AddMethod( &ScriptBuffer::UInt4v,		"Uint",			{} );
+		AS_METHOD( binder, ScriptBuffer::UInt1,			"Uint",			{} );
+		AS_METHOD( binder, ScriptBuffer::UInt2,			"Uint",			{} );
+		AS_METHOD( binder, ScriptBuffer::UInt3,			"Uint",			{} );
+		AS_METHOD( binder, ScriptBuffer::UInt4,			"Uint",			{} );
+		AS_METHOD( binder, ScriptBuffer::UInt2v,		"Uint",			{} );
+		AS_METHOD( binder, ScriptBuffer::UInt3v,		"Uint",			{} );
+		AS_METHOD( binder, ScriptBuffer::UInt4v,		"Uint",			{} );
 
-		binder.AddMethod( &ScriptBuffer::ULong1,		"ULong",		{} );
+		AS_METHOD( binder, ScriptBuffer::ULong1,		"ULong",		{} );
 
-		binder.AddMethod( &ScriptBuffer::Float1Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float2Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float3Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float4Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float1Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float2Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float3Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float4Array,	"FloatArray",	{} );
 
-		binder.AddMethod( &ScriptBuffer::Float2x2Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float2x3Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float2x4Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float3x2Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float3x3Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float3x4Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float4x2Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float4x3Array,	"FloatArray",	{} );
-		binder.AddMethod( &ScriptBuffer::Float4x4Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float2x2Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float2x3Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float2x4Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float3x2Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float3x3Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float3x4Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float4x2Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float4x3Array,	"FloatArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::Float4x4Array,	"FloatArray",	{} );
 
-		binder.AddMethod( &ScriptBuffer::Int1Array,		"IntArray",		{} );
-		binder.AddMethod( &ScriptBuffer::Int2Array,		"IntArray",		{} );
-		binder.AddMethod( &ScriptBuffer::Int3Array,		"IntArray",		{} );
-		binder.AddMethod( &ScriptBuffer::Int4Array,		"IntArray",		{} );
+		AS_METHOD( binder, ScriptBuffer::Int1Array,		"IntArray",		{} );
+		AS_METHOD( binder, ScriptBuffer::Int2Array,		"IntArray",		{} );
+		AS_METHOD( binder, ScriptBuffer::Int3Array,		"IntArray",		{} );
+		AS_METHOD( binder, ScriptBuffer::Int4Array,		"IntArray",		{} );
 
-		binder.AddMethod( &ScriptBuffer::UInt1Array,	"UIntArray",	{} );
-		binder.AddMethod( &ScriptBuffer::UInt2Array,	"UIntArray",	{} );
-		binder.AddMethod( &ScriptBuffer::UInt3Array,	"UIntArray",	{} );
-		binder.AddMethod( &ScriptBuffer::UInt4Array,	"UIntArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::UInt1Array,	"UIntArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::UInt2Array,	"UIntArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::UInt3Array,	"UIntArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::UInt4Array,	"UIntArray",	{} );
 
-		binder.AddMethod( &ScriptBuffer::ULong1Array,	"ULongArray",	{} );
+		AS_METHOD( binder, ScriptBuffer::ULong1Array,	"ULongArray",	{} );
 	}
 
 /*
@@ -1312,7 +1312,7 @@ namespace
 		auto*	field = GetField( name ).GetIf< PipelineCompiler::ShaderStructType::Field >();	// throw
 		CHECK_THROW_MSG( field != null,
 			"field '"s << name << "' is not exists in '" << GetTypeName() << "'" );
-		return	field->stType ? field->stType->Typename() : Default;
+		return	field->IsStruct() ? field->stType->Typename() : Default;
 	}
 
 /*

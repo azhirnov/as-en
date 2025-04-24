@@ -256,7 +256,7 @@ namespace AE::Base
 	NdCx__ EnableIf<IsScalar<T>, int>  CeilIntLog2 (const T x) __NE___
 	{
 		int	i = IntLog2( x );
-		return i >= 0 ? i + int(not IsPowerOfTwo( x )) : MinValue<int>();
+		return i >= 0 ? i + int(not IsPowerOfTwo( x )) : -1;
 	}
 
 /*
@@ -634,19 +634,18 @@ namespace AE::Base
 	HasBit
 =================================================
 */
-	template <uint Index, typename T>
-	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, bool>  HasBit (const T x) __NE___
-	{
-		StaticAssert( Index < CT_SizeOfInBits<T> );
-		using U = ToUnsignedInteger<T>;
-		return (static_cast<U>(x) & (U{1} << Index)) != 0;
-	}
-
 	template <typename T>
 	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, bool>  HasBit (const T x, const usize index) __NE___
 	{
 		using U = ToUnsignedInteger<T>;
 		return (static_cast<U>(x) & (U{1} << index)) != 0;
+	}
+
+	template <uint Index, typename T>
+	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, bool>  HasBit (const T x) __NE___
+	{
+		StaticAssert( Index < CT_SizeOfInBits<T> );
+		return HasBit( x, Index );
 	}
 
 /*
@@ -662,6 +661,13 @@ namespace AE::Base
 			return static_cast<T>( static_cast<U>(x) | (U{1} << index) );
 		else
 			return static_cast<T>( static_cast<U>(x) & ~(U{1} << index) );
+	}
+
+	template <uint Index, typename T>
+	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, T>  SetBit (const T x, const bool bit) __NE___
+	{
+		StaticAssert( Index < CT_SizeOfInBits<T> );
+		SetBit( x, bit, Index );
 	}
 
 /*
@@ -753,6 +759,17 @@ namespace AE::Base
 	{
 		int	i = IntLog2( x );
 		return i >= 0 ? (T{1} << (i + int(not IsPowerOfTwo( x )))) : T{0};
+	}
+	
+	template <typename T>
+	NdCx__ EnableIf<IsScalar<T>, T>  NearPOT (const T x) __NE___
+	{
+		int	i		= IntLog2( x );
+		T	floor	= i >= 0 ? (T{1} << i) : T{0};
+		T	ceil	= floor << 1;
+		T	d0		= x - floor;
+		T	d1		= ceil - x;
+		return d0 < d1 ? floor : ceil;
 	}
 
 /*

@@ -54,10 +54,10 @@ namespace
 		StringToColor( OUT _dbgColor, StringView{_dbgName} );
 		FindAndReplace( INOUT _defines, '=', ' ' );
 
-		ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
-
 		CHECK_THROW_MSG( FileSystem::IsFile( _pplnPath ),
 			"File '"s << name << "' is not exists" );
+
+		ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
 	}
 
 /*
@@ -114,7 +114,7 @@ namespace
 			binder.AddFactoryCtor( &ScriptPostprocess_Ctor5,	{"shaderPath", "defines"} );
 
 			binder.Comment( "Can be used only if pass hasn't attachments." );
-			binder.AddMethod( &ScriptPostprocess::_SetDynamicDimension2,	"SetDimension",	{} );
+			AS_METHOD( binder, ScriptPostprocess::_SetDynamicDimension2,	"SetDimension",	{} );
 		}
 	}
 
@@ -136,7 +136,7 @@ namespace
 	ToPass
 =================================================
 */
-	RC<IPass>  ScriptPostprocess::ToPass () C_Th___
+	RC<IPass>  ScriptPostprocess::ToPass () __Th___
 	{
 		auto		result		= MakeRC<Postprocess>();
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
@@ -185,10 +185,14 @@ namespace
 			{
 				if ( out.inName.empty() )
 					continue;
+				
+				bool	is_ds	= out.rt->IsDepthOrStencil();
+				auto	state	= out.usage == EResourceUsage::InputAttachment ?
+									(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
+									(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
 
 				result->_resources.Add( UniformName{out.inName}, out.rt->ToResource(),
-										(out.rt->IsDepthOrStencil() ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW)
-										| EResourceState::FragmentShader );
+										state | EResourceState::FragmentShader );
 			}
 		}
 
@@ -295,9 +299,9 @@ namespace AE::ResEditor
 				float4		mouse;					// mouse unorm coords. xy: current (if MRB down), zw: click
 				float4		date;					// (year, month, day, time in seconds)
 				float		sampleRate;				// sound sample rate (i.e., 44100)
-				float		customKeys;
 				float		pixPerMm;				// pix / mm
 				float		mmPerPix;				// mm / pix
+				float2		customKeys;
 
 				// controller //
 				CameraData	camera;
@@ -314,7 +318,7 @@ namespace AE::ResEditor
 
 		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
 		StaticAssert( IPass::Constants::MaxCount == 8 );
-		StaticAssert( IPass::CustomKeys_t{}.max_size() == 1 );
+		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
 		return st;
 	}
 
@@ -361,9 +365,18 @@ namespace AE::ResEditor
 
 				att->format		= desc.format;
 				att->samples	= desc.samples;
+				
+				if ( not out.inName.empty() and out.usage == EResourceUsage::InputAttachment )
+				{
+					att->AddUsage2( subpass, EAttachment::Input,
+									RPAttachment::ShaderIO{ out.inName, Default, uint(i) });
+					continue;
+				}
 
 				if ( not out.inName.empty() )
 				{
+					ASSERT( out.usage == (EResourceUsage::InputAttachment | EResourceUsage::DepthStencil) or
+							out.usage == (EResourceUsage::InputAttachment | EResourceUsage::ColorAttachment) );
 					att->AddUsage3( subpass, EAttachment::ReadWrite,
 									RPAttachment::ShaderIO{ out.inName, Default, uint(i) },
 									RPAttachment::ShaderIO{ out.name,   Default, uint(i) });
@@ -396,7 +409,9 @@ namespace AE::ResEditor
 
 			for (auto [out, i] : WithIndex(_output))
 			{
-				RPAttachmentSpecPtr	att = rp_spec->AddAttachment2( out.name );
+				RPAttachmentSpecPtr	att		= rp_spec->AddAttachment2( out.name );
+				const bool			is_ds	= out.rt->IsDepthOrStencil();
+
 				att->loadOp		= out.loadOp;
 				att->storeOp	= out.storeOp;
 
@@ -404,13 +419,16 @@ namespace AE::ResEditor
 					att->AddLayout( "ExternalIn", EResourceState::Invalidate );
 
 				// input attachment
-				EResourceState	state = (out.rt->IsDepthOrStencil() ? ds_state : EResourceState::ColorAttachment);
+				EResourceState	state = (is_ds ? ds_state : EResourceState::ColorAttachment);
 				if ( not out.inName.empty() )
 				{
-					CHECK( out.loadOp == EAttachmentLoadOp::Load  );
-					state = (out.rt->IsDepthOrStencil() ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW)
-							| EResourceState::FragmentShader;
+					CHECK( out.loadOp == EAttachmentLoadOp::Load );
+					state = out.usage == EResourceUsage::InputAttachment ?
+							(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
+							(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
+					state |= EResourceState::FragmentShader;
 				}
+
 				switch ( out.usage ) {
 					case EResourceUsage::FragShadingRate :	state = EResourceState::ShadingRateImage;		break;
 					case EResourceUsage::FragDensityMap :	state = EResourceState::FragmentDensityMap;		break;
@@ -439,9 +457,13 @@ namespace AE::ResEditor
 			for (auto [out, i] : WithIndex(_output))
 			{
 				if ( out.inName.empty() ) continue;
-				ds_layout->AddSubpassInput( stage, out.inName, uint(i), out.rt->ImageType(),
-											(out.rt->IsDepthOrStencil() ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW)
-											| EResourceState::FragmentShader );
+
+				bool	is_ds = out.rt->IsDepthOrStencil();
+				auto	state = out.usage == EResourceUsage::InputAttachment ?
+								(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
+								(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
+
+				ds_layout->AddSubpassInput( stage, out.inName, uint(i), out.rt->ImageType(), state | EResourceState::FragmentShader );
 			}
 		}
 		_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
@@ -545,7 +567,7 @@ void Main ()
 						switch ( _ppFlags )
 						{
 							case EPostprocess::ShadertoyVR :
-								header << "Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
+								header << "Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";
 								break;
 							case EPostprocess::ShadertoyVR_180 :
 								header << "Ray_PlaneToVR180( un_PerPass.cameraIPD, un_PerPass.camera.pos, 0.f, gl.FragCoord.xy / iResolution.xy );\n";

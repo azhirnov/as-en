@@ -74,18 +74,23 @@
 
 	void Main ()
 	{
-	#if 0
+	#ifdef AE_fragment_shader_barycentric
+	# if 0
 		// without derivatives
 		const float		closest_edge	= Min( gl.BaryCoord.x, Min( gl.BaryCoord.y, gl.BaryCoord.z ));
 		const float		wireframe		= SmoothStep( closest_edge, 0.0, 0.01 );
 
-	#else
+	# else
 		const float		thickness		= 1.5;	// pixels
 		const float		falloff			= 6.0;	// pixels
 	//	const float		wireframe		= FSBarycentricWireframe( thickness, falloff ).x;
 		const float		wireframe		= FSBarycentricQuadWireframe( thickness, falloff ).x;
 
+	# endif
+	#else
+	#	error not supported
 	#endif
+
 		out_Color = float4( wireframe );
 	}
 

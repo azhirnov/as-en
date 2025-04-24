@@ -35,17 +35,13 @@ void ASmain ()
 		ESubgroupTypes::Float16
 	));
 	fset.subgroupStages(EShaderStages(
-		EShaderStages::Fragment | 
-		EShaderStages::Compute | 
-		EShaderStages::MeshTask | 
-		EShaderStages::Mesh
+		EShaderStages::MeshPipeStages | 
+		EShaderStages::Compute
 	));
 	fset.subgroupQuadStages(EShaderStages(
+		EShaderStages::MeshPipeStages | 
 		EShaderStages::Vertex | 
-		EShaderStages::Fragment | 
-		EShaderStages::Compute | 
-		EShaderStages::MeshTask | 
-		EShaderStages::Mesh
+		EShaderStages::Compute
 	));
 	fset.minSubgroupSize (4);
 	fset.maxSubgroupSize (32);
@@ -98,7 +94,6 @@ void ASmain ()
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.shaderDemoteToHelperInvocation (True);
-	fset.shaderIntegerDotProduct (True);
 	fset.fragmentShaderSampleInterlock (True);
 	fset.fragmentShaderPixelInterlock (True);
 	fset.rayQuery (True);

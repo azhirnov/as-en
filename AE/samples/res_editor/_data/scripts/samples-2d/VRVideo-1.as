@@ -64,16 +64,16 @@
 		switch ( CameraMode )
 		{
 			case 0 :
-				ray	= Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, z_near, uv );
+				ray	= Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, z_near, uv );
 				break;
 
 			case 1 :
-				ray = Ray_FromFlatScreen( un_PerPass.camera.pos, dist_to_eye, screen_size, z_near, ToSNorm(uv) );
+				ray = Ray_PerspectiveFromFlatScreen( un_PerPass.camera.pos, dist_to_eye, screen_size, z_near, ToSNorm(uv) );
 				Ray_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );
 				break;
 
 			case 2 :
-				ray = Ray_FromCurvedScreen( un_PerPass.camera.pos, dist_to_eye, curve_radius, screen_size, z_near, ToSNorm(uv) );
+				ray = Ray_PerspectiveFromCurvedScreen( un_PerPass.camera.pos, dist_to_eye, curve_radius, screen_size, z_near, ToSNorm(uv) );
 				Ray_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );
 				break;
 		}

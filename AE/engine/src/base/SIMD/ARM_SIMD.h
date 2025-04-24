@@ -17,6 +17,8 @@
 
 # include "base/Common.h"
 
+# include "base/SIMD/ARMRuntimeConfig.h"
+
 # include "base/SIMD/Neon.h"
 # include "base/SIMD/SVE.h"
 # include "base/SIMD/ARMCrypto.h"

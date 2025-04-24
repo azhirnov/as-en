@@ -44,9 +44,7 @@ LightingResult  Phong (const float3 diffuse, const float3 specular, const float 
 =================================================
 	Blinn
 ----
-	possible source (CC BY-NC 4.0 license)
-	https://github.com/JoeyDeVries/LearnOpenGL/blob/master/src/5.advanced_lighting/1.advanced_lighting/1.advanced_lighting.fs
-	other source (MIT license)
+	possible source (MIT license)
 	https://github.com/pboechat/cook_torrance/blob/master/application/shaders/blinn_phong_colored.fs.glsl
 =================================================
 */
@@ -55,7 +53,7 @@ LightingResult  Phong (const float3 diffuse, const float3 specular, const float 
 float  BlinnSpecular (const float shininess, const float3 lightDir, const float3 viewDir, const float3 surfNorm)
 {
 	float3	halfway_dir = Normalize( lightDir + viewDir );
-	return Pow( Max( Dot( surfNorm, halfway_dir ), 0.0 ), shininess );
+	return Pow( Saturate( Dot( surfNorm, halfway_dir )), shininess );
 }
 
 LightingResult  Blinn (const float3 diffuse, const float3 specular, const float shininess,
@@ -146,10 +144,10 @@ LightingResult  CookTorrance (const float3 diffuse, const float3 specular, const
 							  const float3 surfNorm, const float roughness, const float F0)
 {
 	float3		H 		= Normalize( lightDir + viewDir );
-	float		NdotH	= Max( 0.0, Dot( surfNorm, H ));
-	float		NdotV	= Max( 0.0, Dot( surfNorm, viewDir ));
-	float		VdotH	= Max( 0.0, Dot( lightDir, H ));
-	float		NdotL	= LambertDiffuse( lightDir, surfNorm );
+	float		NdotH	= Saturate( Dot( surfNorm, H ));
+	float		NdotV	= Saturate( Dot( surfNorm, viewDir ));
+	float		VdotH	= Saturate( Dot( lightDir, H ));
+	float		NdotL	= Saturate( Dot( surfNorm, lightDir ));
 
 	// Fresnel reflectance
 	float		F		= Pow( 1.0 - VdotH, 5.0 ) * (1.0 - F0) + F0;
@@ -158,7 +156,7 @@ LightingResult  CookTorrance (const float3 diffuse, const float3 specular, const
 	float		m_sq	= roughness * roughness;
 	float		r1		= 1.0 / (4.0 * m_sq * Pow( NdotH, 4.0 ));
 	float		r2		= (NdotH * NdotH - 1.0) / (m_sq * NdotH * NdotH);
-	float		D		= r1 * Exp( r2 );
+	float		D		= Max( r1 * Exp( r2 ), 0.0 );
 
 	// Geometric shadowing
 	float		g1		= (2.0 * NdotH * NdotV) / VdotH;
@@ -179,7 +177,7 @@ LightingResult  CookTorrance (const float3 diffuse, const float3 specular, const
 =================================================
 	SpecularBRDF
 ----
-	from https://github.com/SaschaWillems/Vulkan?tab=readme-ov-file#pbr-basics (MIT license)
+	from https://github.com/SaschaWillems/Vulkan?tab=readme-ov-file#physically-based-rendering (MIT license)
 =================================================
 */
 #ifdef AE_LICENSE_MIT
@@ -188,16 +186,16 @@ float3  SpecularBRDF (const float3 albedo, const float3 lightDir, const float3 v
 					  const float3 surfNorm, const float metallic, const float roughness)
 {
 	float3	halfway_dir	= Normalize( viewDir + lightDir );
-	float	n_dot_v		= Max( 0.0, Dot( surfNorm, viewDir ));
-	float	n_dot_h		= Max( 0.0, Dot( surfNorm, halfway_dir ));
-	float	n_dot_l		= LambertDiffuse( lightDir, surfNorm );
+	float	n_dot_v		= Saturate( Dot( surfNorm, viewDir ));
+	float	n_dot_h		= Saturate( Dot( surfNorm, halfway_dir ));
+	float	n_dot_l		= Saturate( Dot( surfNorm, lightDir ));
 	float3	color		= float3(0.0);
 
 	if ( n_dot_l > 0.0 )
 	{
 		float  rough = Max( 0.05, roughness );
 
-		// Normal Distribution function
+		// Normal Distribution function (D_GGX)
 		float  D;
 		{
 			float	alpha	= rough * rough;
@@ -206,7 +204,7 @@ float3  SpecularBRDF (const float3 albedo, const float3 lightDir, const float3 v
 			D = (alpha2) / (float_Pi * denom * denom);
 		}
 
-		// Geometric Shadowing function
+		// Geometric Shadowing function (G_SchlicksmithGGX)
 		float  G;
 		{
 			float	r	= (rough + 1.0f);
@@ -216,14 +214,14 @@ float3  SpecularBRDF (const float3 albedo, const float3 lightDir, const float3 v
 			G = GL * GV;
 		}
 
-		// Fresnel function
+		// Fresnel function (F_Schlick)
 		float3 F;
 		{
 			float3	F0 = Lerp( float3(0.04f), albedo, metallic );
 			F = F0 + (1.0f - F0) * Pow( 1.0f - n_dot_v, 5.0f );
 		}
 
-		float3	spec = D * F * G / (4.0f * n_dot_l * n_dot_v);
+		float3	spec = D * F * G / (4.0f * n_dot_l * n_dot_v);		// TODO: too high values when n_dot_v = 0.01
 
 		color += spec * n_dot_l;
 	}

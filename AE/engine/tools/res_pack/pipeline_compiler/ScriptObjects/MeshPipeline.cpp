@@ -171,7 +171,7 @@ namespace
 */
 	bool  MeshPipelineScriptBinding::Build () __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		try {
@@ -309,46 +309,46 @@ namespace
 
 		binder.Comment( "Add macros which will be used in shader.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		binder.AddMethod( &MeshPipelineScriptBinding::Define,				"Define",			{} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::Define,				"Define",			{} );
 
 		binder.Comment( "Set task shader. This shader is optional.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &MeshPipelineScriptBinding::SetTaskShader,		"SetTaskShader",	{} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::SetTaskShader,		"SetTaskShader",	{} );
 
 		binder.Comment( "Set mesh shader.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &MeshPipelineScriptBinding::SetMeshShader,		"SetMeshShader",	{} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::SetMeshShader,		"SetMeshShader",	{} );
 
 		binder.Comment( "Set fragment shader.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &MeshPipelineScriptBinding::SetFragmentShader,	"SetFragmentShader", {} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::SetFragmentShader,	"SetFragmentShader", {} );
 
 		binder.Comment( "Create specialization for pipeline template.\n"
 						"Name is used in C++ code to get pipeline from render technique.\n"
 						"Pipeline specialization use the same pipeline layout, same shader binaries, compatible render pass, difference only in some parameters." );
-		binder.AddMethod( &MeshPipelineScriptBinding::AddSpecialization,	"AddSpecialization", {"specName"} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::AddSpecialization,	"AddSpecialization", {"specName"} );
 
 		binder.Comment( "Check is fragment shader compatible with render pass." );
-		binder.AddMethod( &MeshPipelineScriptBinding::TestRenderPass,		"TestRenderPass",	{"compatRP", "subpass"} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::TestRenderPass,		"TestRenderPass",	{"compatRP", "subpass"} );
 
 		binder.Comment( "Add FeatureSet to the pipeline." );
-		binder.AddMethod( &MeshPipelineScriptBinding::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
 
 		binder.Comment( "Set pipeline layout.\n"
 						"Pipeline will inherit layout feature sets." );
-		binder.AddMethod( &MeshPipelineScriptBinding::SetLayout,			"SetLayout",		{"plName"} );
-		binder.AddMethod( &MeshPipelineScriptBinding::SetLayout2,			"SetLayout",		{"pl"} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::SetLayout,			"SetLayout",		{"plName"} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::SetLayout2,			"SetLayout",		{"pl"} );
 
 		binder.Comment( "Set shader interface between stages." );
-		binder.AddMethod( &MeshPipelineScriptBinding::SetShaderIO,			"SetShaderIO",		{"output", "input", "typeName"} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::SetShaderIO,			"SetShaderIO",		{"output", "input", "typeName"} );
 
 		binder.Comment( "Add fragment shader output variables from render technique graphics pass.\n"
 						"Don't use it with explicit shader output." );
-		binder.AddMethod( &MeshPipelineScriptBinding::SetFragmentOutputFromRenderTech,	"SetFragmentOutputFromRenderTech", {"renTechName", "passName"} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::SetFragmentOutputFromRenderTech,	"SetFragmentOutputFromRenderTech", {"renTechName", "passName"} );
 
 		binder.Comment( "Add fragment shader output variables from render pass.\n"
 						"Don't use it with explicit shader output." );
-		binder.AddMethod( &MeshPipelineScriptBinding::SetFragmentOutputFromRenderPass,	"SetFragmentOutputFromRenderPass", {"compatRP", "subpass"} );
+		AS_METHOD( binder, MeshPipelineScriptBinding::SetFragmentOutputFromRenderPass,	"SetFragmentOutputFromRenderPass", {"compatRP", "subpass"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -524,6 +524,28 @@ namespace
 
 		desc.meshLocalSize = WGLocalSize_t{BasePipelineDesc::LoadTimeLocalSize};
 	}
+	
+/*
+=================================================
+	GetSubpassIndex
+=================================================
+*/
+	uint  MeshPipelineSpecScriptBinding::GetSubpassIndex () C_NE___
+	{
+		CHECK( desc.renderPass.IsDefined() );
+
+		auto&	storage = *ObjectStorage::Instance();
+		
+		auto	rp_it = storage.serializedRPs.find( desc.renderPass );
+		if ( rp_it == storage.serializedRPs.end() )
+			return UMax;
+
+		auto	sp_it = rp_it->second.subpasses.find( desc.subpass );
+		if ( sp_it == rp_it->second.subpasses.end() )
+			return UMax;
+
+		return sp_it->second.subpassIndex;
+	}
 
 /*
 =================================================
@@ -532,7 +554,7 @@ namespace
 */
 	bool  MeshPipelineSpecScriptBinding::Build (PipelineTemplUID templUID) __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		if ( IsBuilded() )
@@ -589,48 +611,48 @@ namespace
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetSpecValueU,		"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetSpecValueI,		"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetSpecValueF,		"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetSpecValueU,		"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetSpecValueI,		"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetSpecValueF,		"SetSpecValue",		{"name", "value"} );
 
 		binder.Comment( "Set dynamic states (EPipelineDynamicState).\n"
 						"Supported: StencilCompareMask, StencilWriteMask, StencilReference, DepthBias, BlendConstants', FragmentShadingRate." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetDynamicState,		"SetDynamicState",	{"states"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetDynamicState,		"SetDynamicState",	{"states"} );
 
 		binder.Comment( "Set render state." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetRenderState,		"SetRenderState",	{"rs"} );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetRenderState2,		"SetRenderState2",	{"rsName"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetRenderState,		"SetRenderState",	{"rs"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetRenderState2,		"SetRenderState2",	{"rsName"} );
 
 		binder.Comment( "Set number of viewports. Default is 1.\n"
 						"Requires 'multiViewport' feature." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetViewportCount,		"SetViewportCount",	{"count"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetViewportCount,		"SetViewportCount",	{"count"} );
 
 		binder.Comment( "Set task shader workgroup size. All threads in workgroup can use same (shared) memory and payload.\n"
 						"Shader must use 'SetMeshSpec1/2/3()' to define specialization constant." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetTaskGroupSize1,	"SetTaskLocalSize",	{"x"} );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetTaskGroupSize2,	"SetTaskLocalSize",	{"x", "y"} );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetTaskGroupSize3,	"SetTaskLocalSize",	{"x", "y", "z"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetTaskGroupSize1,	"SetTaskLocalSize",	{"x"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetTaskGroupSize2,	"SetTaskLocalSize",	{"x", "y"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetTaskGroupSize3,	"SetTaskLocalSize",	{"x", "y", "z"} );
 
 		binder.Comment( "Task shader workgroup size will be set at load time in 'RenderTechDesc::taskLocalSize'." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetTaskGroupSizeAtLoadTime,	"LoadTimeTaskLocalSize",	{} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetTaskGroupSizeAtLoadTime,	"LoadTimeTaskLocalSize",	{} );
 
 		binder.Comment( "Set mesh shader workgroup size. All threads in workgroup can use same (shared) memory.\n"
 						"Shader must use 'SetMeshSpec1/2/3()' to define specialization constant." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetMeshGroupSize1,	"SetMeshLocalSize",	{"x"} );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetMeshGroupSize2,	"SetMeshLocalSize",	{"x", "y"} );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetMeshGroupSize3,	"SetMeshLocalSize",	{"x", "y", "z"});
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetMeshGroupSize1,	"SetMeshLocalSize",	{"x"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetMeshGroupSize2,	"SetMeshLocalSize",	{"x", "y"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetMeshGroupSize3,	"SetMeshLocalSize",	{"x", "y", "z"});
 
 		binder.Comment( "Mesh shader workgroup size will be set at load time in 'RenderTechDesc::meshLocalSize'." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetMeshGroupSizeAtLoadTime,	"LoadTimeMeshLocalSize",	{} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetMeshGroupSizeAtLoadTime,	"LoadTimeMeshLocalSize",	{} );
 
 		binder.Comment( "Attach pipeline to the render technique.\n"
 						"Render technique will create all attached pipelines during its creation." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::AddToRenderTech,		"AddToRenderTech",	{"rtech", "gpass"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::AddToRenderTech,		"AddToRenderTech",	{"rtech", "gpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"
 						"Supported: 'Optimize'.\n"
 						"By default used value from 'GlobalConfig::SetPipelineOptions()'." );
-		binder.AddMethod( &MeshPipelineSpecScriptBinding::SetOptions,			"SetOptions",		{"opts"} );
+		AS_METHOD( binder, MeshPipelineSpecScriptBinding::SetOptions,			"SetOptions",		{"opts"} );
 	}
 
 

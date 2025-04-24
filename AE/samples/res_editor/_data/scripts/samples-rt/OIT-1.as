@@ -120,7 +120,7 @@
 
 	void  Main ()
 	{
-		const Ray	ray		= Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
+		const Ray	ray		= Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 		HWRay		hwray	= HWRay_Create( ray, un_PerPass.camera.clipPlanes.y );
 		float4		color	= float4(0.0);
 

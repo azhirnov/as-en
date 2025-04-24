@@ -867,59 +867,59 @@ namespace
 		binder.AddProperty( &ScriptShader::type,		"type"		);
 
 		binder.Comment( "Add specialization constant.\n" );
-		binder.AddMethod( &ScriptShader::AddSpec,					"AddSpec",					{"valueType", "name"} );
+		AS_METHOD( binder, ScriptShader::AddSpec,					"AddSpec",					{"valueType", "name"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		binder.AddMethod( &ScriptShader::Define,					"Define",					{} );
+		AS_METHOD( binder, ScriptShader::Define,					"Define",					{} );
 
 		binder.Comment( "Load shader source from current file." );
-		binder.AddMethod( &ScriptShader::LoadSelf,					"LoadSelf",					{} );
+		AS_METHOD( binder, ScriptShader::LoadSelf,					"LoadSelf",					{} );
 
 		binder.Comment( "Add specialization constant for dynamic workgroup size.\n"
 						"Only for compute shader. Must be explicitly specialized by 'ComputePipelineSpec::SetLocalSize()'." );
-		binder.AddMethod( &ScriptShader::SetComputeSpec1,			"ComputeSpec1",				{} );
-		binder.AddMethod( &ScriptShader::SetComputeSpec2,			"ComputeSpec2",				{} );
-		binder.AddMethod( &ScriptShader::SetComputeSpec3,			"ComputeSpec3",				{} );
+		AS_METHOD( binder, ScriptShader::SetComputeSpec1,			"ComputeSpec1",				{} );
+		AS_METHOD( binder, ScriptShader::SetComputeSpec2,			"ComputeSpec2",				{} );
+		AS_METHOD( binder, ScriptShader::SetComputeSpec3,			"ComputeSpec3",				{} );
 
 		binder.Comment( "Add specialization constant for dynamic workgroup size.\n"
 						"Only for compute shader. Can be explicitly specialized by 'ComputePipelineSpec::SetLocalSize()', otherwise default value will be used" );
-		binder.AddMethod( &ScriptShader::SetComputeSpecAndDefault1,	"ComputeSpecAndDefault",	{"x"} );
-		binder.AddMethod( &ScriptShader::SetComputeSpecAndDefault2,	"ComputeSpecAndDefault",	{"x", "y"} );
-		binder.AddMethod( &ScriptShader::SetComputeSpecAndDefault3,	"ComputeSpecAndDefault",	{"x", "y", "z"} );
+		AS_METHOD( binder, ScriptShader::SetComputeSpecAndDefault1,	"ComputeSpecAndDefault",	{"x"} );
+		AS_METHOD( binder, ScriptShader::SetComputeSpecAndDefault2,	"ComputeSpecAndDefault",	{"x", "y"} );
+		AS_METHOD( binder, ScriptShader::SetComputeSpecAndDefault3,	"ComputeSpecAndDefault",	{"x", "y", "z"} );
 
 		binder.Comment( "Set constant workgroup size. Only for compute shader." );
-		binder.AddMethod( &ScriptShader::SetComputeLocalSize1,		"ComputeLocalSize",			{"x"} );
-		binder.AddMethod( &ScriptShader::SetComputeLocalSize2,		"ComputeLocalSize",			{"x", "y"} );
-		binder.AddMethod( &ScriptShader::SetComputeLocalSize3,		"ComputeLocalSize",			{"x", "y", "z"} );
+		AS_METHOD( binder, ScriptShader::SetComputeLocalSize1,		"ComputeLocalSize",			{"x"} );
+		AS_METHOD( binder, ScriptShader::SetComputeLocalSize2,		"ComputeLocalSize",			{"x", "y"} );
+		AS_METHOD( binder, ScriptShader::SetComputeLocalSize3,		"ComputeLocalSize",			{"x", "y", "z"} );
 
 		binder.Comment( "Add specialization constant for dynamic workgroup size.\n"
 						"Only for mesh/task shader. Must be explicitly specialized by 'MeshPipelineSpec::SetLocalSize()'." );
-		binder.AddMethod( &ScriptShader::SetMeshSpec1,				"MeshSpec1",				{} );
-		binder.AddMethod( &ScriptShader::SetMeshSpec2,				"MeshSpec2",				{} );
-		binder.AddMethod( &ScriptShader::SetMeshSpec3,				"MeshSpec3",				{} );
+		AS_METHOD( binder, ScriptShader::SetMeshSpec1,				"MeshSpec1",				{} );
+		AS_METHOD( binder, ScriptShader::SetMeshSpec2,				"MeshSpec2",				{} );
+		AS_METHOD( binder, ScriptShader::SetMeshSpec3,				"MeshSpec3",				{} );
 
 		binder.Comment( "Add specialization constant for dynamic workgroup size.\n"
 						"Only for mesh/task shader. Can be explicitly specialized by 'MeshPipelineSpec::SetLocalSize()', otherwise default value will be used" );
-		binder.AddMethod( &ScriptShader::SetMeshSpecAndDefault1,	"MeshSpecAndDefault",		{"x"} );
-		binder.AddMethod( &ScriptShader::SetMeshSpecAndDefault2,	"MeshSpecAndDefault",		{"x", "y"} );
-		binder.AddMethod( &ScriptShader::SetMeshSpecAndDefault3,	"MeshSpecAndDefault",		{"x", "y", "z"} );
+		AS_METHOD( binder, ScriptShader::SetMeshSpecAndDefault1,	"MeshSpecAndDefault",		{"x"} );
+		AS_METHOD( binder, ScriptShader::SetMeshSpecAndDefault2,	"MeshSpecAndDefault",		{"x", "y"} );
+		AS_METHOD( binder, ScriptShader::SetMeshSpecAndDefault3,	"MeshSpecAndDefault",		{"x", "y", "z"} );
 
 		binder.Comment( "Set constant workgroup size. Only for mesh/task shader." );
-		binder.AddMethod( &ScriptShader::SetMeshLocalSize1,			"MeshLocalSize",			{"x"} );
-		binder.AddMethod( &ScriptShader::SetMeshLocalSize2,			"MeshLocalSize",			{"x", "y"} );
-		binder.AddMethod( &ScriptShader::SetMeshLocalSize3,			"MeshLocalSize",			{"x", "y", "z"} );
+		AS_METHOD( binder, ScriptShader::SetMeshLocalSize1,			"MeshLocalSize",			{"x"} );
+		AS_METHOD( binder, ScriptShader::SetMeshLocalSize2,			"MeshLocalSize",			{"x", "y"} );
+		AS_METHOD( binder, ScriptShader::SetMeshLocalSize3,			"MeshLocalSize",			{"x", "y", "z"} );
 
 		binder.Comment( "Set size and topology for mesh shader output." );
-		binder.AddMethod( &ScriptShader::SetMeshOutput,				"MeshOutput",				{"maxVertices", "maxPrimitives", "primitive"} );
+		AS_METHOD( binder, ScriptShader::SetMeshOutput,				"MeshOutput",				{"maxVertices", "maxPrimitives", "primitive"} );
 
 		binder.Comment( "Set number of vertices in tessellation patch.\n"
 						"Only for graphics pipeline with tessellation shader." );
-		binder.AddMethod( &ScriptShader::SetTessPatchSize,			"TessPatchSize",			{"vertexCount"} );
+		AS_METHOD( binder, ScriptShader::SetTessPatchSize,			"TessPatchSize",			{"vertexCount"} );
 
 		binder.Comment( "Set tessellation mode.\n"
 						"Only for graphics pipeline with tessellation shader." );
-		binder.AddMethod( &ScriptShader::SetTessPatchMode,			"TessPatchMode",			{"mode", "spacing", "ccw"} );
+		AS_METHOD( binder, ScriptShader::SetTessPatchMode,			"TessPatchMode",			{"mode", "spacing", "ccw"} );
 	}
 
 } // AE::PipelineCompiler

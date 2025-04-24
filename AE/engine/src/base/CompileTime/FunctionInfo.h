@@ -150,4 +150,34 @@ namespace AE::Base
 	template <typename T>
 	using FunctionInfo = typename Base::_hidden_::_FuncInfo3<T>::type;
 
+	template <typename T>
+	static constexpr bool	IsGlobalFunction = IsSame< typename FunctionInfo<T>::clazz, void >;
+	
+	
+/*
+=================================================
+	FnUnsafeCast
+=================================================
+*/
+	template <typename R, typename T>
+	NdCx__ R  FnUnsafeCast (T fn) __NE___
+	{
+		#if defined(__clang__)
+		# if __clang_major__ >= 18
+		#	pragma clang diagnostic push
+		#	pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+		# endif
+		#endif
+
+		StaticAssert( IsGlobalFunction<R> == IsGlobalFunction<T> );
+
+		return reinterpret_cast<R>(fn);
+
+		#if defined(__clang__)
+		# if __clang_major__ >= 18
+		#	pragma clang diagnostic pop
+		# endif
+		#endif
+	}
+
 } // AE::Base

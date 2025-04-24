@@ -75,6 +75,8 @@ namespace AE::Graphics
 		using VertexFormatSet_t		= EnumSet< EVertexType >;
 		using SurfaceFormatSet_t	= EnumSet< ESurfaceFormat >;
 		using ShadingRateSet_t		= FixedArray< EShadingRate, uint(EShadingRate::_SizeCount) >;	// 10 bytes
+		using CoopMatrixSet_t		= EnumSet< ECoopMatrixCfg >;
+		using CoopVecSet_t			= EnumSet< ECoopVecCfg >;
 
 		enum class SampleCountBits : uint { Unknown = 0 };
 
@@ -104,7 +106,7 @@ namespace AE::Graphics
 		static constexpr uint	MaxSpirvVersion	= 160;
 
 		static constexpr uint	MinMetalVersion	= 200;
-		static constexpr uint	MaxMetalVersion	= 310;
+		static constexpr uint	MaxMetalVersion	= 320;
 
 		struct ShaderVersion
 		{
@@ -116,11 +118,11 @@ namespace AE::Graphics
 
 		struct VRSTexelSize
 		{
-			ushort	minX	: 3;	// power of 2, range: 1..256
-			ushort	minY	: 3;	// power of 2, range: 1..256
-			ushort	maxX	: 3;	// power of 2, range: 1..256
-			ushort	maxY	: 3;	// power of 2, range: 1..256
-			ushort	aspect	: 4;	// power of 2, range: 1..512
+			ushort	minX		: 3;	// power of 2, range: 1..256
+			ushort	minY		: 3;	// power of 2, range: 1..256
+			ushort	maxX		: 3;	// power of 2, range: 1..256
+			ushort	maxY		: 3;	// power of 2, range: 1..256
+			ushort	aspectRatio	: 4;	// power of 2, range: 1..512
 
 			VRSTexelSize ()					__NE___	{ std::memset( this, 0, sizeof(*this) ); }
 
@@ -129,7 +131,7 @@ namespace AE::Graphics
 
 			ND_ uint2	Min ()				C_NE___	{ return uint2{ 1u << minX, 1u << minY }; }
 			ND_ uint2	Max ()				C_NE___	{ return uint2{ 1u << maxX, 1u << maxY }; }
-			ND_ uint	MaxAspect ()		C_NE___	{ return 1u << aspect; }
+			ND_ uint	MaxAspectRatio ()	C_NE___	{ return 1u << aspectRatio; }
 		};
 
 		struct KiBytes
@@ -246,9 +248,11 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderDeviceClock,						: 2 )	/* GL_EXT_shader_realtime_clock														*/\
 		/*  */\
 		_visitorF_( EFeature,			cooperativeMatrix,						: 2 )	/*\ 																				*/\
-		_visitorP_( EShaderStages,		cooperativeMatrixStages,					)	/*-'-- GL_KHR_cooperative_matrix													*/\
+		_visitorP_( EShaderStages,		cooperativeMatrixStages,					)	/*-|-- GL_KHR_cooperative_matrix													*/\
+		_visitorP_( CoopMatrixSet_t,	cooperativeMatrixConfig,					)	/*/		- can be empty is default config is not supported							*/\
 		_visitorF_( EFeature,			cooperativeVector,						: 2 )	/*\																					*/\
-		_visitorF_( EFeature,			cooperativeVectorTraining,				: 2 )	/*-'-- GLSL_NV_cooperative_vector													*/\
+		_visitorF_( EFeature,			cooperativeVectorTraining,				: 2 )	/*-|-- GLSL_NV_cooperative_vector													*/\
+		_visitorP_( CoopVecSet_t,		cooperativeVectorConfig,					)	/*/		- can be empty is default config is not supported							*/\
 		\
 		\
 	/*---- shader features/limits ----*/\
@@ -281,7 +285,7 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderStorageTexelBufferArrayNonUniformIndexing,	: 2 )	/*-|																	*/\
 		_visitorF_( EFeature,			shaderUniformBufferArrayNonUniformIndexingNative,	: 2 )	/*-|\																	*/\
 		_visitorF_( EFeature,			shaderSampledImageArrayNonUniformIndexingNative,	: 2 )	/*-|-|																	*/\
-		_visitorF_( EFeature,			shaderStorageBufferArrayNonUniformIndexingNative,	: 2 )	/*-|-|-- without native support branching will be used					*/\
+		_visitorF_( EFeature,			shaderStorageBufferArrayNonUniformIndexingNative,	: 2 )	/*-|-|-- without native support 'waterfall loop' will be used			*/\
 		_visitorF_( EFeature,			shaderStorageImageArrayNonUniformIndexingNative,	: 2 )	/*-|-|																	*/\
 		_visitorF_( EFeature,			shaderInputAttachmentArrayNonUniformIndexingNative, : 2 )	/*/-/																	*/\
 		_visitorF_( EFeature,			quadDivergentImplicitLod,							: 2 )	/* derivative calculation for non-uniform image 						*/\
@@ -297,7 +301,7 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderDemoteToHelperInvocation,						: 2 )	/* GL_EXT_demote_to_helper_invocation									*/\
 		_visitorF_( EFeature,			shaderTerminateInvocation,							: 2 )\
 		_visitorF_( EFeature,			shaderZeroInitializeWorkgroupMemory,				: 2 )\
-		_visitorF_( EFeature,			shaderIntegerDotProduct,							: 2 )\
+		/*_visitorF_( EFeature,			shaderIntegerDotProduct,							: 2 )*/\
 		/* fragment shader interlock */\
 		_visitorF_( EFeature,			fragmentShaderSampleInterlock,						: 2 )	/*\																		*/\
 		_visitorF_( EFeature,			fragmentShaderPixelInterlock,						: 2 )	/*-|-- GL_ARB_fragment_shader_interlock									*/\

@@ -10,7 +10,7 @@
 # include "base/Platforms/CPUInfo.h"
 # include "base/Math/BitMath.h"
 # include "base/Memory/MemUtils.h"
-# include "base/Algorithms/StringUtils.h"
+# include "base/Algorithms/ToString.h"
 # include "base/Containers/FixedSet.h"
 
 # include "base/Platforms/CPUInfo_X64.cpp.h"
@@ -27,6 +27,40 @@ namespace
 	ND_ static uint  ReadUint16 (StringView line)
 	{
 		return StringToUInt( line.substr( line.find(": ")+4, line.length() ), 16 );
+	}
+	
+	ND_ static uint  GetMinClockSpeed (uint id)
+	{
+		String			line;
+		std::ifstream	stream;
+
+		stream.open( "/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/cpuinfo_min_freq" );
+		if ( not stream ) {
+			stream.open( "/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/scaling_min_freq" );
+		}
+		if ( stream ) {
+			std::getline( stream, OUT line );
+			stream.close();
+			return StringToUInt( line ) / 1000;	// in MHz
+		}
+		return 0;
+	}
+
+	ND_ static uint  GetMaxClockSpeed (uint id)
+	{
+		String			line;
+		std::ifstream	stream;
+
+		stream.open( "/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/cpuinfo_max_freq" );
+		if ( not stream ) {
+			stream.open( "/sys/devices/system/cpu/cpu"s << Base::ToString(id) << "/cpufreq/scaling_max_freq" );
+		}
+		if ( stream ) {
+			std::getline( stream, OUT line );
+			stream.close();
+			return StringToUInt( line ) / 1000;	// in MHz
+		}
+		return 0;
 	}
 
 } // namespace
@@ -55,52 +89,68 @@ namespace
 		{
 			struct TmpCore
 			{
-				uint	id		= UMax;
-				uint	part	= 0;
-				uint	vendor	= 0;
+				uint	logicId		= UMax;		// logical core in CPU
+				uint	physId		= UMax;		// physical core in CPU
+				uint	cpuId		= UMax;		// physical CPU
+				uint	family		= 0;
+				uint	model		= 0;
+				uint	minClock	= 0;
+				uint	maxClock	= 0;
 			};
+			constexpr uint	max_cores = 64;
 
+			// ref https://doc.callmematthi.eu/static/webArticles/Understanding%20Linux%20_proc_cpuinfo.pdf
 			std::ifstream	stream {"/proc/cpuinfo"};
 			if ( stream )
 			{
-				FixedArray< TmpCore, 64 >	cores;
-				String						line;
+				FixedArray< TmpCore, max_cores >	cores;
+				String								line;
+				String								flags_str;
 
 				while ( std::getline( stream, OUT line ))
 				{
-					if ( StartsWith( line, "processor" ))
+					if ( StartsWith( line, "processor\t" ))
 					{
 						if ( cores.size()+1 == cores.capacity() )
 							break;
-						cores.emplace_back().id = ReadUint10( line );
+
+						cores.emplace_back().logicId = ReadUint10( line );
 					}else
 					if ( not cores.empty() )
 					{
-						if ( StartsWith( line, "CPU part" )) {
-							cores.back().part = ReadUint16( line );
+						if ( StartsWith( line, "core id\t" )) {
+							cores.back().physId = ReadUint10( line );
 						}else
-						if ( StartsWith( line, "CPU implementer" )) {
-							cores.back().vendor = ReadUint16( line );
+						if ( StartsWith( line, "physical id\t" )) {
+							cores.back().cpuId = ReadUint10( line );
+						}else
+						if ( StartsWith( line, "cpu family\t" )) {
+							cores.back().family = ReadUint10( line );
+						}else
+						if ( StartsWith( line, "model\t" )) {
+							cores.back().model = ReadUint10( line );
 						}
 					}
+					if ( flags_str.empty() and StartsWith( line, "flags\t" ))
+						flags_str = line.substr( line.find(':'));
 				}
 
-				FixedSet< uint, 64 >	unique_cores;
+				FixedSet< uint, max_cores >	unique_cores;
 				for (auto& core : cores) {
-					unique_cores.insert( (core.vendor << 24) | (core.part & 0xFFFFFF) );
+					unique_cores.insert( (core.family & 0xFF) | ((core.model & 0xFF) << 8) );
 				}
 
 				for (auto& unique : unique_cores)
 				{
-					const uint	vendor	= (unique >> 24);
-					const uint	part	= (unique & 0xFFFFFF);
+					const uint	family	= (unique & 0xFF);
+					const uint	model	= (unique >> 8) & 0xFF;
 					auto&		dst		= cpu.coreTypes.emplace_back();
 
 					for (auto& core : cores)
 					{
-						if ( core.vendor == vendor and core.part == part ) {
-							dst.logicalBits.set( core.id );
-							dst.physicalBits.set( core.id );
+						if ( core.family == family and core.model == model ) {
+							dst.logicalBits.set( core.logicId );
+							dst.physicalBits.set( core.physId );
 						}
 					}
 				}
@@ -117,6 +167,33 @@ namespace
 					auto&	dst = cpu.coreTypes[i];
 					dst.type	= types[ Min( j, CountOf(types)-1 )];
 					dst.name	= cpu_name;
+
+					uint	id = dst.FirstLogicalCore();
+					dst.baseClock = GetMinClockSpeed( id );
+					dst.maxClock  = GetMaxClockSpeed( id );
+				}
+
+				// parse CPU features which may be not detected by cpuid
+				{
+					feats.VAES				= feats.VAES 			or (flags_str.find( "vaes" ) != String::npos);
+					feats.AESKL				= feats.AESKL 			or (flags_str.find( "aeskl" ) != String::npos);
+					feats.SHA2_256			= feats.SHA2_256 		or (flags_str.find( "sha_ni" ) != String::npos);	// sha ???
+
+					feats.AVX2				= feats.AVX2 			or (flags_str.find( "avx2" ) != String::npos);
+					feats.AVX512F			= feats.AVX512F 		or (flags_str.find( "avx512f" ) != String::npos);
+				//	feats.AVX512_DQ			= feats.AVX512_DQ 		or (flags_str.find( "avx512dq" ) != String::npos);
+				//	feats.AVX512_IFMA		= feats.AVX512_IFMA		or (flags_str.find( "avx512ifma" ) != String::npos);
+				//	feats.AVX512_ER			= feats.AVX512_ER 		or (flags_str.find( "avx512er" ) != String::npos);
+				//	feats.AVX512_BW			= feats.AVX512_BW 		or (flags_str.find( "avx512bw" ) != String::npos);
+				//	feats.AVX512_VL			= feats.AVX512_VL 		or (flags_str.find( "avx512vl" ) != String::npos);
+				//	feats.AVX512_VBMI		= feats.AVX512_VBMI		or (flags_str.find( "avx512vbmi" ) != String::npos);
+				//	feats.AVX512_VBMI2		= feats.AVX512_VBMI2 	or (flags_str.find( "avx512_vbmi2" ) != String::npos);
+				//	feats.AVX512_VNNI		= feats.AVX512_VNNI 	or (flags_str.find( "avx512_vnni" ) != String::npos);
+				//	feats.AVX512_BITALG		= feats.AVX512_BITALG 	or (flags_str.find( "avx512_bitalg" ) != String::npos);
+				//	feats.AVX512_VPOPCNTDQ	= feats.AVX512_VPOPCNTDQ or (flags_str.find( "avx512_vpopcntdq" ) != String::npos);
+				//	feats.AVX512_4FMAPS		= feats.AVX512_4FMAPS 	or (flags_str.find( "avx5124fmaps" ) != String::npos);
+				//	feats.AVX512_FP16		= feats.AVX512_FP16 	or (flags_str.find( "avx512fp16" ) != String::npos);
+				//	feats.AVX512_BF16		= feats.AVX512_BF16 	or (flags_str.find( "avx512_bf16" ) != String::npos);
 				}
 			}
 		}

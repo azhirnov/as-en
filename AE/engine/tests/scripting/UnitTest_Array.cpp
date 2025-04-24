@@ -53,7 +53,7 @@ namespace
 		)#";
 
 		TEST_NOTHROW(
-			se->AddFunction( &Utils::CheckArray, "CheckArray" );
+			AS_GLOBAL_FN( se, Utils::CheckArray, "CheckArray" );
 		)
 		TEST( Run< void() >( se, script, "ASmain" ));
 	}
@@ -99,7 +99,7 @@ namespace
 		)#";
 
 		TEST_NOTHROW(
-			se->AddFunction( &Utils::CheckArray, "CheckArray" );
+			AS_GLOBAL_FN( se, Utils::CheckArray, "CheckArray" );
 		)
 
 		int	res = 0;
@@ -137,7 +137,7 @@ namespace
 			}
 		)#";
 		TEST_NOTHROW(
-			se->AddFunction( &Utils::CheckArray, "CheckArray" );
+			AS_GLOBAL_FN( se, Utils::CheckArray, "CheckArray" );
 		)
 		TEST( Run< void() >( se, script, "ASmain" ));
 	}
@@ -181,7 +181,7 @@ namespace
 			}
 		)#";
 		TEST_NOTHROW(
-			se->AddFunction( &Utils::CheckArray, "CheckArray" );
+			AS_GLOBAL_FN( se, Utils::CheckArray, "CheckArray" );
 		)
 		TEST( Run< void() >( se, script, "ASmain" ));
 	}
@@ -190,8 +190,9 @@ namespace
 
 extern void UnitTest_Array ()
 {
+	auto	se = MakeRC<ScriptEngine>();
+
 	TEST_NOTHROW(
-		auto	se = MakeRC<ScriptEngine>();
 		TEST( se->Create() );
 
 		CoreBindings::BindArray( se );
@@ -199,13 +200,13 @@ extern void UnitTest_Array ()
 		CoreBindings::BindVectorMath( se );
 		CoreBindings::BindRect( se );
 		CoreBindings::BindMatrixMath( se );
-
-		ScriptArray_Test1( se );
-		ScriptArray_Test2( se );
-		ScriptArray_Test3( se );
-		ScriptArray_Test4( se );
-		ScriptArray_Test5( se );
-
-		TEST_PASSED();
 	)
+
+	ScriptArray_Test1( se );
+	ScriptArray_Test2( se );
+	ScriptArray_Test3( se );
+	ScriptArray_Test4( se );
+	ScriptArray_Test5( se );
+
+	TEST_PASSED();
 }

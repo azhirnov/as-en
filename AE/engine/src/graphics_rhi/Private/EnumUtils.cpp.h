@@ -1385,11 +1385,20 @@ namespace AE::Graphics
 			return true;
 		}
 
+		if ( src == dst )
+		{
+			srcBlockDim = dstBlockDim = a.TexBlockDim();
+			return true;
+		}
+
 		return false;
 	}
 
 	bool  EPixelFormat_IsCopySupportedRelaxed (EPixelFormat src, EPixelFormat dst) __NE___
 	{
+		if ( src == dst )
+			return true;
+
 		auto&	a = EPixelFormat_GetInfo( src );
 		auto&	b = EPixelFormat_GetInfo( dst );
 
@@ -1397,6 +1406,10 @@ namespace AE::Graphics
 		//  "Color formats with the same texel block size are considered size-compatible"
 		if ( a.IsColor() and b.IsColor() and a.bitsPerBlock == b.bitsPerBlock )
 			return true;
+		
+		// Vulkan docs:
+		// "Copy operations between color formats and a depth-stencil are size-compatible as defined by the list of compatible depth-stencil and color formats."
+		// TODO: requires maintenance8
 
 		return false;
 	}
@@ -1896,7 +1909,8 @@ namespace AE::Graphics
 			case ESurfaceFormat::BGRA8_sRGB_nonlinear :				return { EPixelFormat::BGRA8_UNorm,		EColorSpace::sRGB_nonlinear			};
 			case ESurfaceFormat::RGBA8_sRGB_nonlinear :				return { EPixelFormat::RGBA8_UNorm,		EColorSpace::sRGB_nonlinear			};
 			case ESurfaceFormat::BGRA8_BT709_nonlinear :			return { EPixelFormat::BGRA8_UNorm,		EColorSpace::BT709_nonlinear		};
-
+													   
+			case ESurfaceFormat::RGBA16F_sRGB_nonlinear :			return { EPixelFormat::RGBA16F,			EColorSpace::sRGB_nonlinear			};
 			case ESurfaceFormat::RGBA16F_Extended_sRGB_linear :		return { EPixelFormat::RGBA16F,			EColorSpace::Extended_sRGB_linear	};
 			case ESurfaceFormat::RGBA16F_Extended_sRGB_nonlinear :	return { EPixelFormat::RGBA16F,			EColorSpace::Extended_sRGB_nonlinear };
 			case ESurfaceFormat::RGBA16F_BT709_nonlinear :			return { EPixelFormat::RGBA16F,			EColorSpace::BT709_nonlinear		};
@@ -1920,12 +1934,13 @@ namespace AE::Graphics
 */
 	ESurfaceFormat  ESurfaceFormat_Cast (EPixelFormat format, EColorSpace space) __NE___
 	{
-		StaticAssert( uint(ESurfaceFormat::_Count) == 10 );
+		StaticAssert( uint(ESurfaceFormat::_Count) == 11 );
 
 		if ( format == EPixelFormat::BGRA8_UNorm	and space == EColorSpace::sRGB_nonlinear )			return ESurfaceFormat::BGRA8_sRGB_nonlinear;
 		if ( format == EPixelFormat::RGBA8_UNorm	and space == EColorSpace::sRGB_nonlinear )			return ESurfaceFormat::RGBA8_sRGB_nonlinear;
 		if ( format == EPixelFormat::BGRA8_UNorm	and space == EColorSpace::BT709_nonlinear )			return ESurfaceFormat::BGRA8_BT709_nonlinear;
-
+		
+		if ( format == EPixelFormat::RGBA16F		and space == EColorSpace::sRGB_nonlinear )			return ESurfaceFormat::RGBA16F_sRGB_nonlinear;
 		if ( format == EPixelFormat::RGBA16F		and space == EColorSpace::Extended_sRGB_linear )	return ESurfaceFormat::RGBA16F_Extended_sRGB_linear;
 		if ( format == EPixelFormat::RGBA16F		and space == EColorSpace::Extended_sRGB_nonlinear )	return ESurfaceFormat::RGBA16F_Extended_sRGB_nonlinear;
 		if ( format == EPixelFormat::RGBA16F		and space == EColorSpace::BT709_nonlinear )			return ESurfaceFormat::RGBA16F_BT709_nonlinear;

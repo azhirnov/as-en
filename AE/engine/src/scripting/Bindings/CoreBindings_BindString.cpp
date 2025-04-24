@@ -50,11 +50,11 @@ namespace
 
 		AngelScript::RegisterStdString( se->Get() );
 
-		se->AddFunction( &String_FindAndReplace,	"FindAndReplace"	);
-		se->AddFunction( &String_StartsWith,		"StartsWith"		);
-		se->AddFunction( &String_StartsWithIC,		"StartsWithIC"		);
-		se->AddFunction( &String_EndsWith,			"EndsWith"			);
-		se->AddFunction( &String_EndsWithIC,		"EndsWithIC"		);
+		AS_GLOBAL_FN( se, String_FindAndReplace,	"FindAndReplace"	);
+		AS_GLOBAL_FN( se, String_StartsWith,		"StartsWith"		);
+		AS_GLOBAL_FN( se, String_StartsWithIC,		"StartsWithIC"		);
+		AS_GLOBAL_FN( se, String_EndsWith,			"EndsWith"			);
+		AS_GLOBAL_FN( se, String_EndsWithIC,		"EndsWithIC"		);
 	}
 
 } // AE::Scripting

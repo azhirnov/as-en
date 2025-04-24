@@ -269,7 +269,7 @@ namespace AE::Scripting
 			virtual ~SimpleRefCounter (){ ASSERT( _counter == 0 );  DEBUG_ONLY( _dbgTotalCount.fetch_sub( 1 ); )}
 
 			void  __AddRef ()			{ ASSERT( _counter >= 0 );  ++_counter; }
-			void  __Release ()			{ ASSERT( _counter >= 0 );  if_unlikely( (--_counter) == 0 ) { delete this; }}
+			void  __Release ()			{ ASSERT( _counter > 0 );  if_unlikely( (--_counter) == 0 ) { delete this; }}
 			int   __Counter () const	{ return _counter; }
 		};
 
@@ -379,13 +379,13 @@ namespace AE::Scripting
 
 
 		template <typename T>
-		static T *  FactoryCreateRC ()
+		static T*  FactoryCreateRC ()
 		{
 			return SharedPtr<T>{ new T{} }.Detach();
 		}
 
 		template <typename T, typename ...Args>
-		static T *  FactoryCreateRC2 (const Args& ...args)
+		static T*  FactoryCreateRC2 (const Args& ...args)
 		{
 			return SharedPtr<T>{ new T{ args... }}.Detach();
 		}
@@ -411,7 +411,8 @@ namespace AE::Scripting
 		static void  CopyConstructor (AngelScript::asIScriptGeneric* gen) __Th___
 		{
 			T const*	src = static_cast< const T *>( gen->GetArgObject(0) );
-			void *		dst = gen->GetObject();
+			void*		dst = gen->GetObject();
+			NonNull( src );
 			PlacementNew<T>( OUT dst, *src );	// throw
 		}
 
@@ -419,7 +420,9 @@ namespace AE::Scripting
 		template <typename T>
 		static void  Destructor (AngelScript::asIScriptGeneric* gen)
 		{
-			static_cast<T *>(gen->GetObject())->~T();
+			auto*	ptr = gen->GetObject();
+			NonNull( ptr );
+			static_cast<T *>(ptr)->~T();
 		}
 
 
@@ -428,6 +431,9 @@ namespace AE::Scripting
 		{
 			T const*	src = static_cast< const T *>( gen->GetArgObject(0) );
 			T*			dst = static_cast< T *>( gen->GetObject() );
+			
+			NonNull( src );
+			NonNull( dst );
 
 			dst->~T();
 			PlacementNew<T>( OUT dst, *src );	// throw
@@ -964,7 +970,7 @@ namespace AE::Scripting
 
 			if constexpr( not IsAnyConst<Type> )
 			{
-				if constexpr( IsReference<Type> or IsPointer<Type> )
+				if constexpr( IsReference<Type> )
 				{
 					if ( not (is_inoutref or is_outref) )
 						return false;
@@ -976,7 +982,7 @@ namespace AE::Scripting
 
 			if constexpr( IsAnyConst<Type> )
 			{
-				if constexpr( IsReference<Type> or IsPointer<Type> )
+				if constexpr( IsReference<Type> )
 				{
 					if ( not is_inref )
 						return false;
@@ -1015,6 +1021,9 @@ namespace AE::Scripting
 				using T2	= AngelScriptHelper::RemoveSharedPtr<T>;
 				using Info	= ScriptTypeInfo<T>;
 
+				StaticAssert( IsCompleteType< ScriptTypeInfo<T> >);
+				StaticAssert( IsCompleteType< ScriptTypeInfo<T2*> >);
+
 				constexpr bool	is_obj		= Info::is_object;
 				constexpr bool	is_rc		= Info::is_ref_counted					or
 											  ScriptTypeInfo<T2*>::is_ref_counted	or
@@ -1036,10 +1045,13 @@ namespace AE::Scripting
 				else
 					Info::Name( OUT name2 );
 
-				if ( name1 != name2 )
-					return false;
+				StringView	name2a {name2};
+				name2a = name2a.substr( 0, name2a.find( '<' ));
 
-				return AllBits( info->GetFlags(), obj_flags );
+				if ( name1 == name2 or name1 == name2a )
+					return AllBits( info->GetFlags(), obj_flags );
+
+				return false;
 			}
 		}
 

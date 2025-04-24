@@ -42,14 +42,13 @@ using ImageDim_t			= Graphics::ImageDim_t;
 		ASSERT( layer.Get() < 1 or header.dimension.z == 1 );
 
 		auto&		fmt_info		= EPixelFormat_GetInfo( header.format );
-		const auto	row_align		= POTBytes{ Base::PowerOfTwo( header.rowAlignPOT )};
 		const uint2	texblock_dim	= fmt_info.TexBlockDim();
 
 		dataOffset = 0_b;
 		for (uint mip = 0;; ++mip)
 		{
 			imageDim	= ImageDim_t{ImageUtils_t::MipmapDimension( uint3{header.dimension}, mip, texblock_dim )};
-			rowSize		= AlignUp( ImageUtils_t::RowSize( imageDim.x, fmt_info.bitsPerBlock, texblock_dim ), row_align );
+			rowSize		= AlignUp( ImageUtils_t::RowSize( imageDim.x, fmt_info.bitsPerBlock, texblock_dim ), header.rowAlignPOT );
 			sliceSize	= ImageUtils_t::SliceSize( imageDim.y, rowSize, texblock_dim );
 
 			if_unlikely( mip == mipmap.Get() )
@@ -72,9 +71,8 @@ using ImageDim_t			= Graphics::ImageDim_t;
 */
 	ND_ inline Bytes  ImagePacker_MaxSliceSize (const ImgPackHeader_t &header) __NE___
 	{
-		auto	row_align	= POTBytes{ Base::PowerOfTwo( header.rowAlignPOT )};
 		auto&	fmt_info	= EPixelFormat_GetInfo( header.format );
-		Bytes	row_size	= AlignUp( ImageUtils_t::RowSize( header.dimension.x, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ), row_align );
+		Bytes	row_size	= AlignUp( ImageUtils_t::RowSize( header.dimension.x, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ), header.rowAlignPOT );
 		Bytes	slice_size	= ImageUtils_t::SliceSize( header.dimension.y, row_size, fmt_info.TexBlockDim() );
 		return slice_size * header.dimension.z;
 	}

@@ -219,20 +219,22 @@ namespace AE::Profiler
 					#endif
 				// Binning phase //
 					#if 1
-						ECounter::GeomTotalCullPrim,	ECounter::GeomVisiblePrim,		ECounter::GeomTotalPrim,
-					//	ECounter::GeomPosShadTask,		ECounter::GeomVarShadTask,
-						ECounter::GeomPosShadThread,	ECounter::GeomVarShadThread,
-						ECounter::GeomVarShadThreadPerPrim,	ECounter::GeomPosShadThreadPerPrim,
+						ECounter::GeomTotalCullPrim,	ECounter::GeomVisiblePrim,			ECounter::GeomTotalPrim,
+						ECounter::GeomZPlaneCullPrim,	ECounter::GeomSampleCullPrim,		ECounter::GeomFaceXYPlaneCullPrim,
 					#endif
 				// Rasterization //
 					#if 1
+						ECounter::GeomPosShadThread,	ECounter::GeomVarShadThread,
+						ECounter::GeomVarShadThreadPerPrim,	ECounter::GeomPosShadThreadPerPrim,
 						ECounter::FragEZSTestQd,		ECounter::FragEZSKillQd,		ECounter::FragLZSTestQd,	ECounter::FragLZSKillQd,
-						ECounter::FragEZSKillRate,		ECounter::FragFPKKillRate,		ECounter::FragLZSKillRate,
-						ECounter::FragOpaqueQdRate,		ECounter::FragOverdraw,
+						ECounter::FragFPKKillQd,		ECounter::FragEZSUpdateQd,
 						ECounter::GeomTrianglePrim,		ECounter::GeomPointPrim,		ECounter::GeomLinePrim,
-						ECounter::FragTile,				ECounter::FragTileKill,
-						ECounter::FragTileKillRate,
-					//	ECounter::FragRastQd,			ECounter::FragOpaqueQd,			ECounter::FragTransparentQd,	ECounter::FragShadedQd,
+						ECounter::FragRastQd,			ECounter::FragOpaqueQd,			ECounter::FragTransparentQd, ECounter::FragShadedQd,
+						ECounter::FragRastPrim,
+					#endif
+				// Output (fragment backend) //
+					#if 1
+						ECounter::FragTile,				ECounter::FragTileKill,			ECounter::FragTileKillRate,
 					#endif
 				// Functional unit utilization //
 					#if 1

@@ -35,11 +35,12 @@ namespace AE::Graphics
 		CHECK_ERR( _sampler == Default );
 		CHECK_ERR( _ycbcrConversion	== Default );
 
-		VkSamplerCreateInfo				sampler_ci;
-		VkSamplerYcbcrConversionInfo	conv_info	= {};
+		VkSamplerCreateInfo						sampler_ci;
+		VkSamplerYcbcrConversionInfo			conv_info;
+		VkSamplerReductionModeCreateInfoEXT		reduction_ci;
+		void const**							p_next			= &sampler_ci.pNext;
 
 		sampler_ci.sType			= VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		sampler_ci.pNext			= null;
 		sampler_ci.flags			= VEnumCast( desc.options );
 		sampler_ci.magFilter		= VEnumCast( desc.magFilter );
 		sampler_ci.minFilter		= VEnumCast( desc.minFilter );
@@ -60,18 +61,31 @@ namespace AE::Graphics
 		auto&	dev = resMngr.GetDevice();
 		//GRES_CHECK( IsSupported( dev, sampler_ci ));
 
+		if ( dev.GetVExtensions().samplerFilterMinmax and
+			 desc.reductionMode != EReductionMode::Average )
+		{
+			*p_next						= &reduction_ci;
+			p_next						= &reduction_ci.pNext;
+
+			reduction_ci.sType			= VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO;
+			reduction_ci.reductionMode	= VEnumCast( desc.reductionMode );
+		}
+
 		if ( ycbcrDesc != null )
 		{
 			VK_CHECK_ERR( dev.vkCreateSamplerYcbcrConversionKHR( dev.GetVkDevice(), ycbcrDesc, null, OUT &_ycbcrConversion ));
 			dev.SetObjectName( _ycbcrConversion, dbgName, VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION );
 
-			sampler_ci.pNext		= &conv_info;
+			*p_next					= &conv_info;
+			p_next					= &conv_info.pNext;
 
 			conv_info.sType			= VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO;
 			conv_info.conversion	= _ycbcrConversion;
 
 			_ycbcrFormat			= ycbcrDesc->format;
 		}
+
+		*p_next = null;
 
 		VK_CHECK_ERR( dev.vkCreateSampler( dev.GetVkDevice(), &sampler_ci, null, OUT &_sampler ));
 		dev.SetObjectName( _sampler, dbgName, VK_OBJECT_TYPE_SAMPLER );

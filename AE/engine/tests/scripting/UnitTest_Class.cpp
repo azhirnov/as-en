@@ -203,7 +203,7 @@ namespace
 		TEST_NOTHROW(
 			ClassBinder<Test1_CL>	binder( se );
 			binder.CreateRef();
-			binder.AddMethod( &Test1_CL::F, "F" );
+			AS_METHOD( binder, Test1_CL::F, "F" );
 		)
 
 		static const int  line		= __LINE__ + 1;
@@ -226,10 +226,10 @@ namespace
 			ClassBinder<Test2_Value>	binder{ se };
 			binder.CreateClassValue();
 			binder.AddConstructor( &Test2_Value::Ctor );
-			binder.AddMethod( &Test2_Value::F, "F" );
 			binder.AddProperty( &Test2_Value::i, "i" );
-			binder.AddMethod( &Test2_Value::Add, "Add" );
-			binder.AddMethodFromGlobal( &Test2_Value::Append, "Append" );
+			AS_METHOD( binder, Test2_Value::F,		"F" );
+			AS_METHOD( binder, Test2_Value::Add,	"Add" );
+			AS_METHOD( binder, Test2_Value::Append, "Append" );
 		)
 
 		static const int  line		= __LINE__ + 1;
@@ -314,7 +314,7 @@ namespace
 		TEST_NOTHROW(
 			ClassBinder<ScriptCl>	binder{ se, "Script" };
 			binder.CreateClassValue();
-			binder.AddMethod( &ScriptCl::Run, "Run" );
+			AS_METHOD( binder, ScriptCl::Run, "Run" );
 		)
 
 		int	res = 0;
@@ -330,7 +330,7 @@ namespace
 		TEST_NOTHROW(
 			ClassBinder<Test5_CL> binder( se );
 			binder.CreateRef();
-			binder.AddMethod( &Test5_CL::F, "F" );
+			AS_METHOD( binder, Test5_CL::F, "F" );
 		)
 
 		static const int  line		= __LINE__ + 1;
@@ -354,7 +354,7 @@ namespace
 		TEST_NOTHROW(
 			ClassBinder<Test6_CL> binder( se );
 			binder.CreateRef();
-			binder.AddMethod( &Test6_CL::Set, "Set" );
+			AS_METHOD( binder, Test6_CL::Set, "Set" );
 		)
 
 		static const int  line		= __LINE__ + 1;
@@ -380,8 +380,8 @@ namespace
 		TEST_NOTHROW(
 			ClassBinder<Test7_Value>	binder{ se };
 			binder.CreateRef( &AngelScriptHelper::FactoryCreate<Test7_Value>, null, null, 0 );
-			binder.AddMethod( &Test7_Value::F, "F" );
-			binder.AddMethodFromGlobal( &Test7_Value::Append, "Append" );
+			AS_METHOD( binder, Test7_Value::F,		"F" );
+			AS_METHOD( binder, Test7_Value::Append, "Append" );
 		)
 
 		static const int  line		= __LINE__ + 1;
@@ -406,7 +406,7 @@ namespace
 		TEST_NOTHROW(
 			ClassBinder<Test8_CL> binder( se );
 			binder.CreateRef();
-			binder.AddMethod( &Test8_CL::Set, "Set" );
+			AS_METHOD( binder, Test8_CL::Set, "Set" );
 		)
 
 		static const int  line		= __LINE__ + 1;
@@ -442,8 +442,8 @@ namespace
 		TEST_NOTHROW(
 			ClassBinder<Test9_2_CL> binder( se );
 			binder.CreateRef();
-			binder.AddMethod( &Test9_2_CL::Add,  "Add"  );
-			binder.AddMethod( &Test9_2_CL::Add2, "Add2" );
+			AS_METHOD( binder, Test9_2_CL::Add,  "Add"  );
+			AS_METHOD( binder, Test9_2_CL::Add2, "Add2" );
 		)
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
@@ -533,24 +533,25 @@ namespace
 
 extern void UnitTest_Class ()
 {
+	auto	se = MakeRC<ScriptEngine>();
+
 	TEST_NOTHROW(
-		auto	se = MakeRC<ScriptEngine>();
 		TEST( se->Create() );
 
 		CoreBindings::BindString( se );
-
-		ScriptClass_Test1( se );
-		ScriptClass_Test2( se );
-		ScriptClass_Test3( se );
-		ScriptClass_Test4( se );
-		ScriptClass_Test5( se );
-		ScriptClass_Test6( se );
-		ScriptClass_Test7( se );
-		ScriptClass_Test8( se );
-		ScriptClass_Test9( se );
-		ScriptClass_Test10( se );
-		ScriptClass_Test11( se );
-
-		TEST_PASSED();
 	)
+
+	ScriptClass_Test1( se );
+	ScriptClass_Test2( se );
+	ScriptClass_Test3( se );
+	ScriptClass_Test4( se );
+	ScriptClass_Test5( se );
+	ScriptClass_Test6( se );
+	ScriptClass_Test7( se );
+	ScriptClass_Test8( se );
+	ScriptClass_Test9( se );
+	ScriptClass_Test10( se );
+	ScriptClass_Test11( se );
+
+	TEST_PASSED();
 }

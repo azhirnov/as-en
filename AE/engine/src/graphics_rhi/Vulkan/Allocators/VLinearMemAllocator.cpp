@@ -52,6 +52,11 @@ namespace
 		EXLOCK( _pageGuard );
 
 		auto&	dev = GraphicsScheduler().GetDevice();
+		
+		DEBUG_ONLY(
+			if ( dev._EnableAllocatorStats() )
+				_PrintStats();
+		)
 
 		for (auto [key, pages] : _pages)
 		{
@@ -67,6 +72,34 @@ namespace
 			}
 		}
 	}
+	
+/*
+=================================================
+	_PrintStats
+=================================================
+*/
+	inline void  VLinearMemAllocator::_PrintStats () C_NE___
+	{
+		Bytes	capacity, used;
+		usize	page_count	= 0;
+		
+		for (auto [key, pages] : _pages)
+		{
+			for (auto& page : pages)
+			{
+				capacity += page.capacity;
+				used	 += page.size;
+			}
+			page_count += pages.size();
+		}
+
+		AE_LOGI( "Vulkan linear allocator stats:\nallocated: "s << ToString(capacity) <<
+				 "\nused:      " << ToString(used) << " (" <<
+				 ToString(uint(double(ulong{used})*100.0 / double(ulong{capacity}) + 0.5)) << "%)" <<
+				 "\npages:     " << ToString(page_count) <<	// - number of allocations
+				 "\npageSize:  " << ToString(_pageSize)
+				);
+	}
 
 /*
 =================================================
@@ -76,7 +109,12 @@ namespace
 	void  VLinearMemAllocator::Discard () __NE___
 	{
 		EXLOCK( _pageGuard );
-
+		
+		DEBUG_ONLY(
+			if ( GraphicsScheduler().GetDevice()._EnableAllocatorStats() )
+				_PrintStats();
+		)
+		
 		for (auto [key, pages] : _pages)
 		{
 			for (auto& page : pages)

@@ -1,3 +1,4 @@
+echo "update 'DevIL'..."
 rmdir /Q /S "build"
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\win-x64\DevIL"
 rmdir /Q /S "temp"

@@ -1328,7 +1328,7 @@ namespace
 									const uint2		texel_size		= usage_it->second.texelSize;
 									const uint2		min_texel_size	= fs->fs.fragmentShadingRateTexelSize.Min();
 									const uint2		max_texel_size	= fs->fs.fragmentShadingRateTexelSize.Max();
-									const uint		aspect			= fs->fs.fragmentShadingRateTexelSize.MaxAspect();
+									const uint		aspect_ratio	= fs->fs.fragmentShadingRateTexelSize.MaxAspectRatio();
 
 									CHECK_THROW_MSG( All( texel_size >= min_texel_size ),
 										"ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
@@ -1336,9 +1336,9 @@ namespace
 									CHECK_THROW_MSG( All( texel_size <= max_texel_size ),
 										"ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
 										" must be <= maxTexelSize" << Base::ToString(min_texel_size) << " in feature sets" );
-									CHECK_THROW_MSG( ((texel_size.x / texel_size.y) <= aspect) or ((texel_size.y / texel_size.x) <= aspect),
+									CHECK_THROW_MSG( ((texel_size.x / texel_size.y) <= aspect_ratio) or ((texel_size.y / texel_size.x) <= aspect_ratio),
 										"ShadingRateAttachment '"s << storage.GetName( att_name ) << "' texelSize" << Base::ToString(texel_size) <<
-										" aspect must be <= maxAspectRatio(" << Base::ToString(aspect) << ") in feature sets" );
+										" aspect ratio must be <= maxAspectRatio(" << Base::ToString(aspect_ratio) << ") in feature sets" );
 								}
 							}
 							break;
@@ -1673,13 +1673,13 @@ namespace
 			binder.AddProperty( &RPAttachment::samples,	"samples" );
 
 			binder.Comment( "Attachment usage in subpass." );
-			binder.AddMethod( &RPAttachment::AddUsage,	"Usage",	{"subpass", "usage"} );
-			binder.AddMethod( &RPAttachment::AddUsage2,	"Usage",	{"subpass", "usage", "inOrOut"} );
-			binder.AddMethod( &RPAttachment::AddUsage3,	"Usage",	{"subpass", "usage", "in", "out" } );
-			binder.AddMethod( &RPAttachment::AddUsage4,	"Usage",	{"subpass", "usage", "shadingRateTexelSize"} );
+			AS_METHOD( binder, RPAttachment::AddUsage,	"Usage",	{"subpass", "usage"} );
+			AS_METHOD( binder, RPAttachment::AddUsage2,	"Usage",	{"subpass", "usage", "inOrOut"} );
+			AS_METHOD( binder, RPAttachment::AddUsage3,	"Usage",	{"subpass", "usage", "in", "out" } );
+			AS_METHOD( binder, RPAttachment::AddUsage4,	"Usage",	{"subpass", "usage", "shadingRateTexelSize"} );
 
 			binder.Comment( "For debugging: print information to the log." );
-			binder.AddMethod( &RPAttachment::Print,		"Print",	{} );
+			AS_METHOD( binder, RPAttachment::Print,		"Print",	{} );
 		}
 
 		// attachment specialization
@@ -1696,16 +1696,16 @@ namespace
 			binder.AddProperty( &RPAttachmentSpec::storeOp,				"storeOp" );
 
 			binder.Comment( "Set image layout in subpass." );
-			binder.AddMethod( &RPAttachmentSpec::AddLayout,				"Layout",				{"subpass", "state"} );
-			binder.AddMethod( &RPAttachmentSpec::AddLayout2,			"Layout",				{"subpass", "state"} );
+			AS_METHOD( binder, RPAttachmentSpec::AddLayout,				"Layout",				{"subpass", "state"} );
+			AS_METHOD( binder, RPAttachmentSpec::AddLayout2,			"Layout",				{"subpass", "state"} );
 
 			binder.Comment( "Generate optimal layouts for current attachment." );
-			binder.AddMethod( &RPAttachmentSpec::GenOptimalLayouts,		"GenOptimalLayouts",	{} );
-			binder.AddMethod( &RPAttachmentSpec::GenOptimalLayouts2,	"GenOptimalLayouts",	{"initialState", "finalState"} );
-			binder.AddMethod( &RPAttachmentSpec::GenOptimalLayouts3,	"GenOptimalLayouts",	{"initialState", "finalState"} );
+			AS_METHOD( binder, RPAttachmentSpec::GenOptimalLayouts,		"GenOptimalLayouts",	{} );
+			AS_METHOD( binder, RPAttachmentSpec::GenOptimalLayouts2,	"GenOptimalLayouts",	{"initialState", "finalState"} );
+			AS_METHOD( binder, RPAttachmentSpec::GenOptimalLayouts3,	"GenOptimalLayouts",	{"initialState", "finalState"} );
 
 			binder.Comment( "For debugging: print information to the log." );
-			binder.AddMethod( &RPAttachmentSpec::Print,					"Print",				{} );
+			AS_METHOD( binder, RPAttachmentSpec::Print,					"Print",				{} );
 		}
 
 		// render pass specialization
@@ -1715,13 +1715,13 @@ namespace
 
 			binder.Comment( "Create specialization for attachment to set layout per subpass and load/store operations.\n"
 							"Specialization contains params which can not break render pass compatibility." );
-			binder.AddMethod( &RenderPassSpec::AddAttachment,		"AddAttachment",		{"name"} );
+			AS_METHOD( binder, RenderPassSpec::AddAttachment,		"AddAttachment",		{"name"} );
 
 			binder.Comment( "Generate optimal layouts for all attachments. Used instead of specialization." );
-			binder.AddMethod( &RenderPassSpec::GenOptimalLayouts,	"GenOptimalLayouts",	{} );
+			AS_METHOD( binder, RenderPassSpec::GenOptimalLayouts,	"GenOptimalLayouts",	{} );
 
 			binder.Comment( "For debugging: print information to the log." );
-			binder.AddMethod( &RenderPassSpec::Print,				"Print",				{} );
+			AS_METHOD( binder, RenderPassSpec::Print,				"Print",				{} );
 		}
 
 		// compatible render pass
@@ -1735,26 +1735,26 @@ namespace
 
 			binder.Comment( "Create render pass specialization.\n"
 							"Name is used in C++ code to begin render pass (in 'RenderPassDesc')." );
-			binder.AddMethod( &CompatibleRenderPassDesc::AddSpecialization,	"AddSpecialization",	{"rpName"} );
+			AS_METHOD( binder, CompatibleRenderPassDesc::AddSpecialization,	"AddSpecialization",	{"rpName"} );
 
 			binder.Comment( "Create render pass attachment.\n"
 							"Name is used in C++ code to bind image to attachment (in 'RenderPassDesc')." );
-			binder.AddMethod( &CompatibleRenderPassDesc::AddAttachment,		"AddAttachment",		{"attachmentName"} );
+			AS_METHOD( binder, CompatibleRenderPassDesc::AddAttachment,		"AddAttachment",		{"attachmentName"} );
 
 			binder.Comment( "Create render pass subpass.\n"
 							"Name may be used in C++ code to create graphics/mesh/tile pipeline." );
-			binder.AddMethod( &CompatibleRenderPassDesc::AddSubpass,		"AddSubpass",			{"subpassName"} );
-			binder.AddMethod( &CompatibleRenderPassDesc::AddSubpass2,		"AddSubpass",			{"subpassName", "viewMask"} );
+			AS_METHOD( binder, CompatibleRenderPassDesc::AddSubpass,		"AddSubpass",			{"subpassName"} );
+			AS_METHOD( binder, CompatibleRenderPassDesc::AddSubpass2,		"AddSubpass",			{"subpassName", "viewMask"} );
 
 			binder.Comment( "Add FeatureSet to the render pass.\n"
 							"Render pass can use only features that are enabled in at least one FeatureSet." );
-			binder.AddMethod( &CompatibleRenderPassDesc::AddFeatureSet,		"AddFeatureSet",		{"fsName"} );
+			AS_METHOD( binder, CompatibleRenderPassDesc::AddFeatureSet,		"AddFeatureSet",		{"fsName"} );
 			
 			binder.Comment( "Add indices of view which can be rendered concurrently." );
-			binder.AddMethod( &CompatibleRenderPassDesc::AddMultiViewCorrelatedViewMask, "AddMultiViewCorrelatedViewMask",	{"bitMask"} );
+			AS_METHOD( binder, CompatibleRenderPassDesc::AddMultiViewCorrelatedViewMask, "AddMultiViewCorrelatedViewMask",	{"bitMask"} );
 
 			binder.Comment( "For debugging: print information to the log." );
-			binder.AddMethod( &CompatibleRenderPassDesc::Print,				"Print",				{} );
+			AS_METHOD( binder, CompatibleRenderPassDesc::Print,				"Print",				{} );
 		}
 	}
 

@@ -121,17 +121,19 @@ ND_ float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float2 thickn
 	ND_ float2  AA_Line_dxdy (const float3 uv, float3 dist, const float2 thicknessAndFalloffPx);
 
 	ND_ float2  AA_Circles_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
-	ND_ float2  AA_CirclesSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
+	ND_ float3  AA_CirclesSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
 
 	ND_ float2  AA_QuadGrid_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
 	ND_ float2  AA_QuadGrid_dxdy (const float3 uv, const float2 thicknessAndFalloffPx);
-	ND_ float2  AA_QuadGridSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
+	ND_ float3  AA_QuadGridSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
 
 	ND_ float2  AA_LinesX_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
 	ND_ float2  AA_LinesY_dxdy (const float2 uv, const float2 thicknessAndFalloffPx);
 
 	ND_ float2  AA_RadialLines_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx);
-	ND_ float2  AA_RadialLinesSubDiv_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx);
+	ND_ float3  AA_RadialLinesSubDiv_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx);
+
+	ND_ float   AA_Rect_dxdy (float2 uv, const float2 thicknessAndFalloffPx);
 #endif
 
 
@@ -172,6 +174,13 @@ float3  SDF_Isolines (const float dist)
 			(dist > 0.0 ? float3(0.8, 0.4, 0.0) : float3(0.2, 0.5, 1.0));
 }
 
+float3  SDF_Isolines2 (const float dist, const float dd)
+{
+	float3	c0 = SDF_Isolines( dist );
+	float3	c1 = float3(1.0);
+	return Lerp( c1, c0, SmoothStep( Abs(dist), 0.0, dd ));
+}
+
 /*
 =================================================
 	AA_QuadGrid
@@ -191,7 +200,7 @@ float  AA_QuadGrid (float2 uv, const float2 invGridSize, const float2 thicknessA
 {
 	uv = TriangleWave( uv * invGridSize );
 	// grid lines
-	uv = LinearStep( uv, invGridSize * thicknessAndFalloffPx.xx, invGridSize * thicknessAndFalloffPx.y );
+	uv = LinearStep( uv, invGridSize * thicknessAndFalloffPx.x, invGridSize * thicknessAndFalloffPx.y );
 	return MinOf( uv );
 }
 
@@ -282,7 +291,7 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 	'dist'	- distance for 'uv' coordinate.
 	Returns:
 		x - unorm line gradient, where zero is line center.
-		y - square length of gradient between pixels, can be used for fog to hide grid aliasing.
+		y - square length of gradient between pixels, can be used for fog to hide aliasing.
 =================================================
 */
 	float2  AA_Line_dxdy (const float uv, float dist, const float2 thicknessAndFalloffPx)
@@ -294,14 +303,14 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 
 	float2  AA_Line_dxdy (const float2 uv, float2 dist, const float2 thicknessAndFalloffPx)
 	{
-		float2	md	= AA_Helper_minDist( uv );		// minimal distance for 1px
+		float2	md	 = AA_Helper_minDist( uv );		// minimal distance for 1px
 				dist = LinearStep( dist, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y );
 		return float2( MinOf( dist ), LengthSq( md ));
 	}
 
 	float2  AA_Line_dxdy (const float3 uv, float3 dist, const float2 thicknessAndFalloffPx)
 	{
-		float3	md	= AA_Helper_minDist( uv );		// minimal distance for 1px
+		float3	md	 = AA_Helper_minDist( uv );		// minimal distance for 1px
 				dist = LinearStep( dist, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y );
 		return float2( MinOf( dist ), LengthSq( md ));
 	}
@@ -313,7 +322,7 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 
 	float2  AA_LinesY_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
 	{
-		return AA_Line_dxdy( uv, float2(TriangleWave( uv.y )), thicknessAndFalloffPx );
+		return AA_LinesX_dxdy( uv.yx, thicknessAndFalloffPx );
 	}
 
 /*
@@ -337,10 +346,14 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 =================================================
 	AA_QuadGridSubDiv_dxdy
 ----
-	see 'AA_Line_dxdy' description
+	see 'AA_Line_dxdy' description.
+	Returns:
+		x - unorm line gradient, where zero is line center.
+		y - detail level, can be used for fog to hide aliasing.
+		z - line index, can be used to select color.
 =================================================
 */
-	float2  AA_QuadGridSubDiv_dxdy (const float2 uv, const float3 scaleBias, const float2 thicknessAndFalloffPx)
+	float3  AA_QuadGridSubDiv_dxdy (const float2 uv, const float3 scaleBias, const float2 thicknessAndFalloffPx)
 	{
 		float2	md	= AA_Helper_minDist( uv );				// minimal distance for 1px
 		float	s	= Max( 0.0, Log2( Length( md ) * scaleBias.x ) * scaleBias.y + scaleBias.z );
@@ -351,12 +364,12 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 
 		float	d0	= MinOf( LinearStep( TriangleWave( uv / s2 ) * s2, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y * 1.2 ));
 		float	d1	= MinOf( LinearStep( TriangleWave( uv / s3 ) * s3, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y ));
+		float	d	= Min( d0, d1 + f );
 
-		d0 = Saturate( Min( d0, d1 + f ));
-		return float2( d0, s );
+		return float3( Saturate(d), s, float(d==d0) );
 	}
 
-	float2  AA_QuadGridSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
+	float3  AA_QuadGridSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
 	{
 		return AA_QuadGridSubDiv_dxdy( uv, float3(60.0, 0.6, 0.1), thicknessAndFalloffPx );
 	}
@@ -370,38 +383,121 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 */
 	float2  AA_Circles_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
 	{
-		return AA_Line_dxdy( uv, float2(TriangleWave( Length( uv ))), thicknessAndFalloffPx );
+		float r = Length( uv );
+		return AA_Line_dxdy( r, TriangleWave( r ), thicknessAndFalloffPx );
 	}
-
-/*	float2  AA_CirclesSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
+	
+/*
+=================================================
+	AA_CirclesSubDiv_dxdy
+----
+	see 'AA_Line_dxdy' description.
+	Returns:
+		x - unorm line gradient, where zero is line center.
+		y - detail level, can be used for fog to hide aliasing.
+		z - line index, can be used to select color.
+=================================================
+*/
+	float3  AA_CirclesSubDiv_dxdy (const float2 uv, const float3 scaleBias, const float2 thicknessAndFalloffPx)
 	{
+		float	r	= Length( uv );
+		float	md	= AA_Helper_minDist( r );				// minimal distance for 1px
+		float	s	= Max( 0.0, Log2( md * scaleBias.x ) * scaleBias.y + scaleBias.z );
+		float	s3	= Max( 0.5, Exp2( Floor( s ) - 1.0 ));	// values: 0.5, 1, 2, 4 ...
+		float	s2	= s3 * 2.0;								// values: 1, 2, 4, 8 ...
+		float	s4	= Exp2( s - 1.0 );
+		float	f	= Saturate( (s4 - s3) / (s2 - s3) );
+
+		float	d0	= LinearStep( TriangleWave( r / s2 ) * s2, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y * 1.2 );
+		float	d1	= LinearStep( TriangleWave( r / s3 ) * s3, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y );
+		float	d	= Min( d0, d1 + f );
+
+		return float3( Saturate(d), s, float(d==d0) );
+	}
+	
+	float3  AA_CirclesSubDiv_dxdy (const float2 uv, const float2 thicknessAndFalloffPx)
+	{
+		return AA_CirclesSubDiv_dxdy( uv, float3(60.0, 0.6, 0.1), thicknessAndFalloffPx );
 	}
 
 /*
 =================================================
 	AA_RadialLines_dxdy
 ----
-	see 'AA_Line_dxdy' description
+	see 'AA_Line_dxdy' description.
+	Returns:
+		x - unorm line gradient, where zero is line center.
+		y - angle gradient between pixels (don't use it for fog!).
 =================================================
 */
 	float2  AA_RadialLines_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx)
 	{
-		float	angle	= ATan( uv.y, uv.x );	// -Pi..+Pi
-				angle	= (angle * float_InvPi * 0.5) * lineCount;
-		return AA_Line_dxdy( angle, TriangleWave( angle ), thicknessAndFalloffPx );
+		float	angle	= ATan( uv.y, uv.x );			// -Pi..+Pi
+		float	da		= AA_Helper_minDist( angle );	// minimal difference for 1px
+				da		= Min( da, float_Pi2 - da );	// fix discontinuity
+				angle	= (angle * float_InvPi) * (lineCount * 0.5);
+				da		= (da * float_InvPi) * (lineCount * 0.5);
+		float	dist	= TriangleWave( angle );
+				dist	= LinearStep( dist, da * thicknessAndFalloffPx.x, da * thicknessAndFalloffPx.y );
+		return float2( dist, da );
 	}
 
 /*
 =================================================
 	AA_RadialLinesSubDiv_dxdy
 ----
-	see 'AA_Line_dxdy' description
+	see 'AA_Line_dxdy' description.
+	Returns:
+		x - unorm line gradient, where zero is line center.
+		y - detail level, can be used for fog to hide aliasing.
+		z - line index, can be used to select color.
 =================================================
-*
-	float2  AA_RadialLinesSubDiv_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx);
-	{
-	}
 */
+	float3  AA_RadialLinesSubDiv_dxdy (const float2 uv, const float lineCount, const float3 scaleBias, const float2 thicknessAndFalloffPx)
+	{
+		float	md		= AA_Helper_minDist( Length(uv) );		// minimal distance for 1px
+		float	s		= Max( 0.0, Log2( md * 10000.0 ) * scaleBias.y + scaleBias.z );
+		float	s3		= Max( 0.5, Exp2( Floor( s ) - 1.0 ));	// values: 0.5, 1, 2, 4 ...
+		float	s2		= s3 * 2.0;								// values: 1, 2, 4, 8 ...
+		float	s4		= Exp2( s - 1.0 );
+		float	f		= Saturate( (s4 - s3) / (s2 - s3) );
+		
+		float	angle	= ATan( uv.y, uv.x );			// -Pi..+Pi
+		float	da		= AA_Helper_minDist( angle );	// minimal difference for 1px
+				da		= Min( da, float_Pi2 - da );	// fix discontinuity
+				angle	= (angle * float_InvPi) * (lineCount * 0.5);
+				da		= (da * float_InvPi) * (lineCount * 0.5);
+
+		float	d0		= LinearStep( TriangleWave( angle * s2 ), da * s2 * thicknessAndFalloffPx.x, da * s2 * thicknessAndFalloffPx.y * 1.2 );
+		float	d1		= LinearStep( TriangleWave( angle * s3 ), da * s3 * thicknessAndFalloffPx.x, da * s3 * thicknessAndFalloffPx.y );
+		float	d		= Saturate( Min( d0, d1 + f ));
+
+		return float3( d, s, float(d==d0) );
+	}
+	
+	float3  AA_RadialLinesSubDiv_dxdy (const float2 uv, const float lineCount, const float2 thicknessAndFalloffPx)
+	{
+		return AA_RadialLinesSubDiv_dxdy( uv, lineCount, float3(60.0, 0.6, 0.1), thicknessAndFalloffPx );
+	}
+	
+/*
+=================================================
+	AA_Rect_dxdy
+----
+	'uv'	- must be in linear continuous space.
+	Returns gradient where 1 - rect border.
+=================================================
+*/
+	float  AA_Rect_dxdy (float2 uv, const float2 thicknessAndFalloffPx)
+	{
+				uv		= ToSNorm( uv );
+		float2	md		= AA_Helper_minDist( uv );		// minimal distance for 1px
+		float2	hsize	= Max( 1.0 - md * thicknessAndFalloffPx.y, 0.01 );
+		float2	dist	= float2(Abs( SDF2_Rect( uv, hsize )));
+				dist	= LinearStep( dist, md * thicknessAndFalloffPx.x, md * thicknessAndFalloffPx.y );
+		return 1.0 - MinOf( dist );
+	}
+
 #endif // SH_FRAG or QuadGroup_dFdxFine
 
 /*
@@ -421,7 +517,7 @@ float  AA_Lines (float x, const float invStep, const float falloffPx)
 #ifdef SH_FRAG
 	float2  AA_Font (const float2 uv, const float dist, float3 thickness, const float2 uvToPx)
 	{
-		float2	md	= AA_Helper_minDist( uv );		// minimal distance for 1px
+		float2	md	= AA_Helper_minDist( uv );		// minimal distance for 1px, can be precalculated for 2D
 
 		thickness.xy += float2(-0.5, 0.5) * thickness.z * MinOf( md * uvToPx );
 

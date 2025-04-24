@@ -1,3 +1,8 @@
+## 04.2025
+- Add subpasses to SceneGraphicsPass
+- Sample: HiZ, Geometry culling
+
+
 ## 09.2024
 - Tests: GPU performance tests.
 - Sample: procedural sphere without geometry.

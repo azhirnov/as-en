@@ -21,7 +21,7 @@ namespace AE::ResEditor
 	{
 	// types
 	public:
-		static constexpr uint	MaxDebugViews		= 7;
+		static constexpr uint	MaxDebugViews		= 8;
 		static constexpr uint	MaxSlidersPerType	= 8;
 
 		static constexpr uint	IntSliderIdx		= 0;

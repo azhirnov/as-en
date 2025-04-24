@@ -29,9 +29,9 @@ cmake --build . --config Debug --target Networking
 copy /Y "bin\Debug\Networking.lib" "..\AE-Temp\engine\precompiled\Debug\Networking.lib"
 copy /Y "bin\Debug\Networking.pdb" "..\AE-Temp\engine\precompiled\Debug\Networking.pdb"
 
-cmake --build . --config Debug --target Graphics
-copy /Y "bin\Debug\Graphics.lib" "..\AE-Temp\engine\precompiled\Debug\Graphics.lib"
-copy /Y "bin\Debug\Graphics.pdb" "..\AE-Temp\engine\precompiled\Debug\Graphics.pdb"
+cmake --build . --config Debug --target GraphicsRHI
+copy /Y "bin\Debug\GraphicsRHI.lib" "..\AE-Temp\engine\precompiled\Debug\GraphicsRHI.lib"
+copy /Y "bin\Debug\GraphicsRHI.pdb" "..\AE-Temp\engine\precompiled\Debug\GraphicsRHI.pdb"
 
 cmake --build . --config Debug --target VFS
 copy /Y "bin\Debug\VFS.lib" "..\AE-Temp\engine\precompiled\Debug\VFS.lib"
@@ -57,9 +57,9 @@ cmake --build . --config Debug --target HuLang
 copy /Y "bin\Debug\HuLang.lib" "..\AE-Temp\engine\precompiled\Debug\HuLang.lib"
 copy /Y "bin\Debug\HuLang.pdb" "..\AE-Temp\engine\precompiled\Debug\HuLang.pdb"
 
-cmake --build . --config Debug --target GraphicsHL
-copy /Y "bin\Debug\GraphicsHL.lib" "..\AE-Temp\engine\precompiled\Debug\GraphicsHL.lib"
-copy /Y "bin\Debug\GraphicsHL.pdb" "..\AE-Temp\engine\precompiled\Debug\GraphicsHL.pdb"
+cmake --build . --config Debug --target Graphics
+copy /Y "bin\Debug\Graphics.lib" "..\AE-Temp\engine\precompiled\Debug\Graphics.lib"
+copy /Y "bin\Debug\Graphics.pdb" "..\AE-Temp\engine\precompiled\Debug\Graphics.pdb"
 
 cmake --build . --config Debug --target Profiler
 copy /Y "bin\Debug\Profiler.lib" "..\AE-Temp\engine\precompiled\Debug\Profiler.lib"
@@ -120,9 +120,9 @@ cmake --build . --config Develop --target Networking
 copy /Y "bin\Develop\Networking.lib" "..\AE-Temp\engine\precompiled\Develop\Networking.lib"
 copy /Y "bin\Develop\Networking.pdb" "..\AE-Temp\engine\precompiled\Develop\Networking.pdb"
 
-cmake --build . --config Develop --target Graphics
-copy /Y "bin\Develop\Graphics.lib" "..\AE-Temp\engine\precompiled\Develop\Graphics.lib"
-copy /Y "bin\Develop\Graphics.pdb" "..\AE-Temp\engine\precompiled\Develop\Graphics.pdb"
+cmake --build . --config Develop --target GraphicsRHI
+copy /Y "bin\Develop\GraphicsRHI.lib" "..\AE-Temp\engine\precompiled\Develop\GraphicsRHI.lib"
+copy /Y "bin\Develop\GraphicsRHI.pdb" "..\AE-Temp\engine\precompiled\Develop\GraphicsRHI.pdb"
 
 cmake --build . --config Develop --target VFS
 copy /Y "bin\Develop\VFS.lib" "..\AE-Temp\engine\precompiled\Develop\VFS.lib"
@@ -148,9 +148,9 @@ cmake --build . --config Develop --target HuLang
 copy /Y "bin\Develop\HuLang.lib" "..\AE-Temp\engine\precompiled\Develop\HuLang.lib"
 copy /Y "bin\Develop\HuLang.pdb" "..\AE-Temp\engine\precompiled\Develop\HuLang.pdb"
 
-cmake --build . --config Develop --target GraphicsHL
-copy /Y "bin\Develop\GraphicsHL.lib" "..\AE-Temp\engine\precompiled\Develop\GraphicsHL.lib"
-copy /Y "bin\Develop\GraphicsHL.pdb" "..\AE-Temp\engine\precompiled\Develop\GraphicsHL.pdb"
+cmake --build . --config Develop --target Graphics
+copy /Y "bin\Develop\Graphics.lib" "..\AE-Temp\engine\precompiled\Develop\Graphics.lib"
+copy /Y "bin\Develop\Graphics.pdb" "..\AE-Temp\engine\precompiled\Develop\Graphics.pdb"
 
 cmake --build . --config Develop --target Profiler
 copy /Y "bin\Develop\Profiler.lib" "..\AE-Temp\engine\precompiled\Develop\Profiler.lib"
@@ -211,9 +211,9 @@ cmake --build . --config Profile --target Networking
 copy /Y "bin\Profile\Networking.lib" "..\AE-Temp\engine\precompiled\Profile\Networking.lib"
 copy /Y "bin\Profile\Networking.pdb" "..\AE-Temp\engine\precompiled\Profile\Networking.pdb"
 
-cmake --build . --config Profile --target Graphics
-copy /Y "bin\Profile\Graphics.lib" "..\AE-Temp\engine\precompiled\Profile\Graphics.lib"
-copy /Y "bin\Profile\Graphics.pdb" "..\AE-Temp\engine\precompiled\Profile\Graphics.pdb"
+cmake --build . --config Profile --target GraphicsRHI
+copy /Y "bin\Profile\GraphicsRHI.lib" "..\AE-Temp\engine\precompiled\Profile\GraphicsRHI.lib"
+copy /Y "bin\Profile\GraphicsRHI.pdb" "..\AE-Temp\engine\precompiled\Profile\GraphicsRHI.pdb"
 
 cmake --build . --config Profile --target VFS
 copy /Y "bin\Profile\VFS.lib" "..\AE-Temp\engine\precompiled\Profile\VFS.lib"
@@ -239,9 +239,9 @@ cmake --build . --config Profile --target HuLang
 copy /Y "bin\Profile\HuLang.lib" "..\AE-Temp\engine\precompiled\Profile\HuLang.lib"
 copy /Y "bin\Profile\HuLang.pdb" "..\AE-Temp\engine\precompiled\Profile\HuLang.pdb"
 
-cmake --build . --config Profile --target GraphicsHL
-copy /Y "bin\Profile\GraphicsHL.lib" "..\AE-Temp\engine\precompiled\Profile\GraphicsHL.lib"
-copy /Y "bin\Profile\GraphicsHL.pdb" "..\AE-Temp\engine\precompiled\Profile\GraphicsHL.pdb"
+cmake --build . --config Profile --target Graphics
+copy /Y "bin\Profile\Graphics.lib" "..\AE-Temp\engine\precompiled\Profile\Graphics.lib"
+copy /Y "bin\Profile\Graphics.pdb" "..\AE-Temp\engine\precompiled\Profile\Graphics.pdb"
 
 cmake --build . --config Profile --target Profiler
 copy /Y "bin\Profile\Profiler.lib" "..\AE-Temp\engine\precompiled\Profile\Profiler.lib"
@@ -302,9 +302,9 @@ cmake --build . --config Release --target Networking
 copy /Y "bin\Release\Networking.lib" "..\AE-Temp\engine\precompiled\Release\Networking.lib"
 copy /Y "bin\Release\Networking.pdb" "..\AE-Temp\engine\precompiled\Release\Networking.pdb"
 
-cmake --build . --config Release --target Graphics
-copy /Y "bin\Release\Graphics.lib" "..\AE-Temp\engine\precompiled\Release\Graphics.lib"
-copy /Y "bin\Release\Graphics.pdb" "..\AE-Temp\engine\precompiled\Release\Graphics.pdb"
+cmake --build . --config Release --target GraphicsRHI
+copy /Y "bin\Release\GraphicsRHI.lib" "..\AE-Temp\engine\precompiled\Release\GraphicsRHI.lib"
+copy /Y "bin\Release\GraphicsRHI.pdb" "..\AE-Temp\engine\precompiled\Release\GraphicsRHI.pdb"
 
 cmake --build . --config Release --target VFS
 copy /Y "bin\Release\VFS.lib" "..\AE-Temp\engine\precompiled\Release\VFS.lib"
@@ -330,9 +330,9 @@ cmake --build . --config Release --target HuLang
 copy /Y "bin\Release\HuLang.lib" "..\AE-Temp\engine\precompiled\Release\HuLang.lib"
 copy /Y "bin\Release\HuLang.pdb" "..\AE-Temp\engine\precompiled\Release\HuLang.pdb"
 
-cmake --build . --config Release --target GraphicsHL
-copy /Y "bin\Release\GraphicsHL.lib" "..\AE-Temp\engine\precompiled\Release\GraphicsHL.lib"
-copy /Y "bin\Release\GraphicsHL.pdb" "..\AE-Temp\engine\precompiled\Release\GraphicsHL.pdb"
+cmake --build . --config Release --target Graphics
+copy /Y "bin\Release\Graphics.lib" "..\AE-Temp\engine\precompiled\Release\Graphics.lib"
+copy /Y "bin\Release\Graphics.pdb" "..\AE-Temp\engine\precompiled\Release\Graphics.pdb"
 
 cmake --build . --config Release --target Profiler
 copy /Y "bin\Release\Profiler.lib" "..\AE-Temp\engine\precompiled\Release\Profiler.lib"

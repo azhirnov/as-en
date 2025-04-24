@@ -427,27 +427,27 @@ namespace {
 		Scripting::ClassBinder<ScriptTexture>	binder{ se };
 		binder.CreateRef();
 
-		binder.AddMethod( &ScriptTexture::Alloc1,		"Alloc",		{"dimension", "format"} );
-		binder.AddMethod( &ScriptTexture::Alloc2,		"Alloc",		{"dimension", "format", "layers"} );
-		binder.AddMethod( &ScriptTexture::Alloc3,		"Alloc",		{"dimension", "format", "mipmaps"} );
-		binder.AddMethod( &ScriptTexture::Alloc4,		"Alloc",		{"dimension", "format", "layers", "mipmaps"} );
-		binder.AddMethod( &ScriptTexture::Alloc5,		"Alloc",		{"dimension", "format"} );
-		binder.AddMethod( &ScriptTexture::Alloc6,		"Alloc",		{"dimension", "format", "mipmaps"} );
-		binder.AddMethod( &ScriptTexture::AllocCube1,	"AllocCube",	{"dimension", "format"} );
-		binder.AddMethod( &ScriptTexture::AllocCube2,	"AllocCube",	{"dimension", "format", "mipmaps"} );
+		AS_METHOD( binder, ScriptTexture::Alloc1,		"Alloc",		{"dimension", "format"} );
+		AS_METHOD( binder, ScriptTexture::Alloc2,		"Alloc",		{"dimension", "format", "layers"} );
+		AS_METHOD( binder, ScriptTexture::Alloc3,		"Alloc",		{"dimension", "format", "mipmaps"} );
+		AS_METHOD( binder, ScriptTexture::Alloc4,		"Alloc",		{"dimension", "format", "layers", "mipmaps"} );
+		AS_METHOD( binder, ScriptTexture::Alloc5,		"Alloc",		{"dimension", "format"} );
+		AS_METHOD( binder, ScriptTexture::Alloc6,		"Alloc",		{"dimension", "format", "mipmaps"} );
+		AS_METHOD( binder, ScriptTexture::AllocCube1,	"AllocCube",	{"dimension", "format"} );
+		AS_METHOD( binder, ScriptTexture::AllocCube2,	"AllocCube",	{"dimension", "format", "mipmaps"} );
 
-		binder.AddMethod( &ScriptTexture::Load1,		"Load",			{"imageFile"} );
-		binder.AddMethod( &ScriptTexture::Load2,		"Load",			{"imageFile", "flipY"} );
-		binder.AddMethod( &ScriptTexture::Load3,		"Load",			{"imageFile", "region"} );
+		AS_METHOD( binder, ScriptTexture::Load1,		"Load",			{"imageFile"} );
+		AS_METHOD( binder, ScriptTexture::Load2,		"Load",			{"imageFile", "flipY"} );
+		AS_METHOD( binder, ScriptTexture::Load3,		"Load",			{"imageFile", "region"} );
 
-		binder.AddMethod( &ScriptTexture::AddLayer1,	"AddLayer",		{"imageFile", "layer"} );
-		binder.AddMethod( &ScriptTexture::AddLayer2,	"AddLayer",		{"imageFile", "layer", "flipY"} );
-		binder.AddMethod( &ScriptTexture::AddLayer3,	"AddLayer",		{"imageFile", "region", "layer"} );
+		AS_METHOD( binder, ScriptTexture::AddLayer1,	"AddLayer",		{"imageFile", "layer"} );
+		AS_METHOD( binder, ScriptTexture::AddLayer2,	"AddLayer",		{"imageFile", "layer", "flipY"} );
+		AS_METHOD( binder, ScriptTexture::AddLayer3,	"AddLayer",		{"imageFile", "region", "layer"} );
 
-		binder.AddMethod( &ScriptTexture::LoadChannel1,	"LoadChannel",	{"imageFile", "srcSwizzle", "dstSwizzle"} );
+		AS_METHOD( binder, ScriptTexture::LoadChannel1,	"LoadChannel",	{"imageFile", "srcSwizzle", "dstSwizzle"} );
 
-		binder.AddMethod( &ScriptTexture::Store,		"Store",		{"nameInArchive"} );
-		binder.AddMethod( &ScriptTexture::SetFormat,	"Format",		{"newFormat"} );
+		AS_METHOD( binder, ScriptTexture::Store,		"Store",		{"nameInArchive"} );
+		AS_METHOD( binder, ScriptTexture::SetFormat,	"Format",		{"newFormat"} );
 	}
 
 } // AE::AssetPacker

@@ -10,8 +10,8 @@
 * Warp size: 32 [vk]
 * Total ALUs: 1024 - number of simultaneously executing threads
 * Clock: 450 - 1278 MHz
-* F16 GFLOPS: 2617 (2380 on FMA from tests)
-* F32 GFLOPS: 2617 (2360 on FMA from tests)
+* F16 TFLOPS: 2.6 (2.38 on FMA from tests)
+* F32 TFLOPS: 2.6 (2.36 on FMA from tests)
 * Memory: 16 GB, LPDDR4X-4266 DC 16bit, 2133 MHz, 128bit Bus, 68.25 GB/s (64.3 GB/s from tests)
 
 Theoretical performance:

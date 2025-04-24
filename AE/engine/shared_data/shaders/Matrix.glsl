@@ -43,9 +43,16 @@ ND_ float4x4	f4x4_Rotate  (const float angle, const float3 axis);
 
 // Projection
 ND_ float4x4	f4x4_Ortho (const float4 viewport, const float2 range);
-ND_ float4x4	f4x4_InfinitePerspective (const float fovY, const float aspect, const float zNear);
-ND_ float4x4	f4x4_Perspective (float fovY, const float aspect, const float2 range);
+ND_ float4x4	f4x4_InfinitePerspective (const float fovY, const float aspectRatio, const float zNear);
+ND_ float4x4	f4x4_Perspective (float fovY, const float aspectRatio, const float2 range);
 ND_ float4x4	f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 range);
+
+ND_ float3		Project (const float4x4 mvp, const float3 pos, const float4 viewport);
+
+ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordZ, const float4 viewport);
+ND_ float3		UnProject (const float4x4 invMat, const float3 screenCoordZ, const float2 invViewportSize);
+
+ND_ float		FastProjectZ (const float4x4 proj, float z);
 
 
 // Scale
@@ -73,9 +80,6 @@ ND_ float3		GetAxisZ (const float4x4 m);
 
 ND_ float3x3	LookAt (const float3 dir, const float3 up);
 ND_ float2		Transform2D (const float4x4 mat, const float2 point);
-
-ND_ float3		Project (const float4x4 mat, const float3 pos, const float4 viewport);
-ND_ float3		UnProject (const float4x4 invMat, const float3 pos, const float4 viewport);
 
 ND_ float3		ViewDir (const float4x4 invMat, const float2 screenPos, const float2 screenSize);
 ND_ float3		ViewDir (const float4x4 invMat, const float2 unormPos);
@@ -279,23 +283,42 @@ float2  Transform2D (const float4x4 mat, const float2 point)
 //-----------------------------------------------------------------------------
 
 
-float3  Project (const float4x4 mat, const float3 pos, const float4 viewport)
+float3  Project (const float4x4 mvp, const float3 pos, const float4 viewport)
 {
-	float4	temp	= mat * float4( pos, 1.0 );
-	float2	size	= float2( viewport[2] - viewport[0], viewport[3] - viewport[0] );
-	temp = ToUNorm( temp * (1.0 / temp.w) );
-	temp.xy = temp.xy * size + viewport.xy;
-	return temp.xyz;
+	float4	temp	 = mvp * float4( pos, 1.0 );
+	float2	size	 = viewport.zw - viewport.xy;
+			temp.xyz *= Rcp( temp.w );
+			temp.xy	 = ToUNorm( temp.xy ) * size + viewport.xy;
+	return	temp.xyz;
 }
 
-float3  UnProject (const float4x4 invMat, const float3 pos, const float4 viewport)
+float  FastProjectZ (const float4x4 proj, float z)
 {
-	float4	temp	= float4( pos, 1.0 );
-	float2	size	= float2( viewport[2] - viewport[0], viewport[3] - viewport[0] );
-	temp.xy = (temp.xy - viewport.xy) / size;
-	temp = invMat * ToSNorm( temp );
-	temp *= (1.0 / temp.w);
-	return temp.xyz;
+	// assume that only (0,0), (1,1), (2,2), (2,3), (3,2) are not zero as in perspective projection matrix
+	float	p23 = 1.0;			// proj[2][3]
+	float	p22	= proj[2][2];	// 1 for infinite perspective
+	float	p32	= proj[3][2];	// -zNear for infinite perspective
+
+	float	w = p23 * z;
+			z = (p22 * z) + p32;
+	return	z / w;
+}
+
+// return world space if invViewProj provided
+// return local space if invMVP provided
+float3  UnProject (const float4x4 invMat, float3 screenCoordZ, const float4 viewport)
+{
+	screenCoordZ.xy -= viewport.xy;
+	return UnProject( invMat, screenCoordZ, 1.0 / (viewport.zw - viewport.xy) );
+}
+
+float3  UnProject (const float4x4 invMat, const float3 screenCoordZ, const float2 invViewportSize)
+{
+	float4	temp	= float4( screenCoordZ, 1.0 );
+			temp.xy	= ToSNorm( temp.xy * invViewportSize );
+			temp	= invMat * temp;
+			temp	*= Rcp( temp.w );
+	return	temp.xyz;
 }
 //-----------------------------------------------------------------------------
 
@@ -336,63 +359,91 @@ float3  GetAxisZ (const float4x4 m)		{ return float3( m[0][2], m[1][2], m[2][2] 
 
 #ifdef AE_LICENSE_MIT
 
-// based on code from GLM (MIT license) https://github.com/g-truc/glm
+	// based on code from GLM (MIT license) https://github.com/g-truc/glm
 
-float4x4  f4x4_InfinitePerspective (const float fovY, const float aspect, const float zNear)
-{
-	const float		range	= Tan( fovY * 0.5 ) * zNear;
-	const float		left	= -range * aspect;
-	const float		right	= range * aspect;
-	const float		bottom	= -range;
-	const float		top		= range;
+	float4x4  f4x4_InfinitePerspective (const float fovY, const float aspectRatio, const float zNear)
+	{
+		const float		range	= Tan( fovY * 0.5 ) * zNear;
+		const float		left	= -range * aspectRatio;
+		const float		right	= range * aspectRatio;
+		const float		bottom	= -range;
+		const float		top		= range;
 
-	float4x4	result = float4x4( 0.f );
-	result[0][0] = (2.f * zNear) / (right - left);
-	result[1][1] = (2.f * zNear) / (top - bottom);
-	result[2][2] = 1.f;
-	result[2][3] = 1.f;
-	result[3][2] = - zNear;
-	return result;
-}
+		float4x4	result = float4x4( 0.f );
+		result[0][0] = (2.f * zNear) / (right - left);
+		result[1][1] = (2.f * zNear) / (top - bottom);
+		result[2][2] = 1.f;
+		result[2][3] = 1.f;
+		result[3][2] = - zNear;
+		return result;
+	}
 
-float4x4  f4x4_Ortho (const float4 viewport, const float2 range)
-{
-	// viewport - {left, top, right, bottom}
-	float4x4	result = float4x4( 1.f );
-	result[0][0] = 2.f / (viewport.z - viewport.x);
-	result[1][1] = 2.f / (viewport.y - viewport.w);
-	result[2][2] = - 1.f;
-	result[3][0] = - (viewport.z + viewport.x) / (viewport.z - viewport.x);
-	result[3][1] = - (viewport.y + viewport.w) / (viewport.y - viewport.w);
-	return result;
-}
+	float4x4  f4x4_Ortho (const float4 viewport, const float2 range)
+	{
+		// viewport - {left, top, right, bottom}
+		float4x4	result = float4x4( 1.f );
+		result[0][0] = 2.f / (viewport.z - viewport.x);
+		result[1][1] = 2.f / (viewport.y - viewport.w);
+		result[2][2] = - 1.f;
+		result[3][0] = - (viewport.z + viewport.x) / (viewport.z - viewport.x);
+		result[3][1] = - (viewport.y + viewport.w) / (viewport.y - viewport.w);
+		return result;
+	}
 
-float4x4  f4x4_Perspective (float fovY, const float aspect, const float2 range)
-{
-	fovY = Tan( fovY * 0.5f );
+	float4x4  f4x4_Perspective (float fovY, const float aspectRatio, const float2 range)
+	{
+		fovY = Tan( fovY * 0.5f );
 
-	float4x4	result = float4x4( 0.f );
-	result[0][0] = 1.f / (aspect * fovY);
-	result[1][1] = 1.f / fovY;
-	result[2][2] = range.y / (range.y - range.x);
-	result[2][3] = 1.f;
-	result[3][2] = -(range.y * range.x) / (range.y - range.x);
-	return result;
-}
+		float4x4	result = float4x4( 0.f );
+		result[0][0] = 1.f / (aspectRatio * fovY);
+		result[1][1] = 1.f / fovY;
+		result[2][2] = range.y / (range.y - range.x);
+		result[2][3] = 1.f;
+		result[3][2] = -(range.y * range.x) / (range.y - range.x);
+		return result;
+	}
 
-float4x4  f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 range)
-{
-	const float	h = Cos( 0.5f * fovY ) / Sin( 0.5f * fovY );
-	const float	w = h * viewportSize.y / viewportSize.x;
+	float4x4  f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 range)
+	{
+		const float	h = Cos( 0.5f * fovY ) / Sin( 0.5f * fovY );
+		const float	w = h * viewportSize.y / viewportSize.x;
 
-	float4x4	result = float4x4( 0.f );
-	result[0][0] = w;
-	result[1][1] = h;
-	result[2][2] = range.y / (range.y - range.x);
-	result[2][3] = 1.f;
-	result[3][2] = -(range.y * range.x) / (range.y - range.x);
-	return result;
-}
+		float4x4	result = float4x4( 0.f );
+		result[0][0] = w;
+		result[1][1] = h;
+		result[2][2] = range.y / (range.y - range.x);
+		result[2][3] = 1.f;
+		result[3][2] = -(range.y * range.x) / (range.y - range.x);
+		return result;
+	}
 
 #endif // AE_LICENSE_MIT
 //-----------------------------------------------------------------------------
+
+
+// for debugging
+#if 1
+
+	// col = mat * row
+	float4  Mul (const float4x4 lhs, const float4 rhs)
+	{
+		float4	m0  = lhs[0] * rhs[0];
+		float4	m1  = lhs[1] * rhs[1];
+		float4	a01 = m0 + m1;
+		float4	m2  = lhs[2] * rhs[2];
+		float4	m3  = lhs[3] * rhs[3];
+		float4	a23 = m2 + m3;
+		return	a01 + a23;
+	}
+
+	// row = col * mat
+	float4  Mul (const float4 lhs, const float4x4 rhs)
+	{
+		float	x = Dot( rhs[0], float4(lhs[0]) );
+		float	y = Dot( rhs[1], float4(lhs[1]) );
+		float	z = Dot( rhs[2], float4(lhs[2]) );
+		float	w = Dot( rhs[3], float4(lhs[3]) );
+		return float4(x,y,z,w);
+	}
+
+#endif

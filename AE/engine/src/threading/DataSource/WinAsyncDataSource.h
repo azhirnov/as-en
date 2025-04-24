@@ -123,8 +123,9 @@ namespace AE::Threading
 
 
 	private:
-		static constexpr uint		c_OverlappedOffset = offsetof( _RequestBase, _overlapped );
-
+		AE_DISABLE_OFFSETOF_WARNINGS(
+		static constexpr uint		c_OverlappedOffset = offsetof( _RequestBase, _overlapped );)
+		
 		template <typename T, usize ChunkSize, usize MaxChunks>
 		using PoolTmpl				= LfIndexedPool< T, Index_t, ChunkSize, MaxChunks, GlobalLinearAllocatorRef >;
 

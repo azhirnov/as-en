@@ -47,12 +47,14 @@
 			RC<ComputePass>		logic = ComputePass();
 			logic.ArgInOut(	"un_CBuf",		cbuf );
 			logic.Set(		camera );
+			logic.Slider( "iGravity",	0,	1,	1 );
 			logic.LocalSize( 1 );
 			logic.DispatchGroups( 1 );
 		}{
 			RC<Postprocess>		draw = Postprocess( EPostprocess::Shadertoy );
 			draw.ArgIn(	"un_CBuf",	cbuf );
-			draw.Slider( "iProj",	0,	1 );
+			draw.Slider( "iProj",	0,		2 );
+			draw.Slider( "iFov",	60.0,	250.0,	70.0 );
 			draw.Set(	camera );
 			draw.Output( rt );
 		}
@@ -111,7 +113,7 @@
 
 	ND_ bool  HasCollision (const float3 pos, const float radius)
 	{
-		const Ray	ray	= Ray_From( un_PerPass.camera.invViewProj, pos, un_PerPass.camera.clipPlanes.x, float2(0.5) );
+		const Ray	ray	= Ray_Perspective( un_PerPass.camera.invViewProj, pos, un_PerPass.camera.clipPlanes.x, float2(0.5) );
 		const float	d	= RayTrace( ray, 5.0, 50 );
 		return d < radius;
 	}
@@ -123,7 +125,8 @@
 			  float3	pos			= prev_pos + delta;
 		const float		ground		= 0.f;
 
-		pos.y -= LiftMinusGravity();
+		if ( iGravity == 1 )
+			pos.y -= LiftMinusGravity();
 
 		if ( pos.y < ground )
 			pos.y = ground;
@@ -137,7 +140,7 @@
 		un_CBuf.prevPos		= un_PerPass.camera.pos;
 
 		// restart
-		if ( un_PerPass.customKeys == 1.0 )
+		if ( un_PerPass.customKeys.x == 1.0 )
 		{
 			un_CBuf.crashed		= 0;
 			un_CBuf.actualPos	= float3(0.f, 1.f, 0.f);
@@ -168,16 +171,30 @@
 		}
 
 		Ray	ray;
-		if ( iProj == 0 )
+		switch ( iProj )
 		{
-			ray = Ray_From( un_PerPass.camera.invViewProj, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, fragCoord / iResolution.xy );
+			case 0 : {
+				float	fov		= ToRad(Min( iFov, 140.0 ));
+				float	ratio	= un_PerPass.resolution.x / un_PerPass.resolution.y;
+				ray = Ray_Perspective( un_CBuf.actualPos, fov, ratio, un_PerPass.camera.clipPlanes.x, ToSNorm( fragCoord / iResolution.xy ));
+				break;
+			}
+
+			case 1 : {
+				float	fov = ToRad(Min( iFov, 179.0 ));
+				ray = Ray_PaniniProjection( fov, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, fragCoord, iResolution.xy );
+				break;
+			}
+
+			case 2 : {
+				float2	fov = float2(ToRad(iFov));
+				fov.y *= un_PerPass.resolution.y / un_PerPass.resolution.x;
+				ray = Ray_PlaneToSphere( fov, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, ToSNorm( fragCoord / iResolution.xy ));
+				break;
+			}
 		}
-		else
-		{
-			float	fov	= ToRad(70.0) * un_PerPass.resolution.x / un_PerPass.resolution.y;
-			ray = Ray_PaniniProjection( fov, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, fragCoord, iResolution.xy );
-			Ray_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );
-		}
+
+		Ray_Rotate( INOUT ray, MatTranspose(float3x3(un_PerPass.camera.view)) );
 
 		fragColor = Trace( ray, fragCoord );
 	}

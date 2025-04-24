@@ -151,6 +151,9 @@ namespace
 
 		_imageType			= GetDescriptorImageType( _desc );
 
+		if ( mipmaps.Get() > 1 )
+			_flags = Image::EImageFlags::AllMipmaps;
+
 		_viewDesc.Validate( _desc );
 	}
 
@@ -422,6 +425,9 @@ namespace
 
 		if ( viewType == EImage::Cube or viewType == EImage::CubeArray )
 			_desc.options |= EImageOpt::CubeCompatible;
+		
+		if ( _desc.imageDim == EImageDim_3D or viewType == EImage_2DArray )
+			_desc.options |= EImageOpt::Array2DCompatible;
 
 		if ( format != Default and format != _desc.format )
 			_desc.options |= EImageOpt::MutableFormat;	// TODO: use format list
@@ -539,56 +545,56 @@ namespace
 			binder.AddFactoryCtor( &ScriptImage_Ctor11, {"format", "dynamicDimension", "layers", "mipmaps"} );
 
 			binder.Comment( "Set resource name. It is used for debugging." );
-			binder.AddMethod( &ScriptImage::Name,				"Name",					{} );
+			AS_METHOD( binder, ScriptImage::Name,				"Name",					{} );
 
 			binder.Comment( "Load specified array layer from file, can be used for 2DArray/CubeMap/CubeMapArray.\n"
 							"File will be searched in VFS." );
-			binder.AddMethod( &ScriptImage::LoadLayer1,			"LoadLayer",			{"filenameInVFS", "layer"} );
-			binder.AddMethod( &ScriptImage::LoadLayer2,			"LoadLayer",			{"filenameInVFS", "layer", "flags"} );
-			binder.AddMethod( &ScriptImage::LoadLayer3,			"LoadLayer",			{"filenameInVFS", "layer", "flags"} );
+			AS_METHOD( binder, ScriptImage::LoadLayer1,			"LoadLayer",			{"filenameInVFS", "layer"} );
+			AS_METHOD( binder, ScriptImage::LoadLayer2,			"LoadLayer",			{"filenameInVFS", "layer", "flags"} );
+			AS_METHOD( binder, ScriptImage::LoadLayer3,			"LoadLayer",			{"filenameInVFS", "layer", "flags"} );
 
 			binder.Comment( "Returns 'true' if used dynamic dimension, methods 'Dimension2()', 'Dimension2_Layers()', 'Dimension3()' can not be used for dynamic dimension, only 'Dimension()' is allowed" );
-			binder.AddMethod( &ScriptImage::IsMutableDimension,	"IsMutableDimension",	{} );
+			AS_METHOD( binder, ScriptImage::IsMutableDimension,	"IsMutableDimension",	{} );
 
 			binder.Comment( "Returns constant dimension of the image" );
-			binder.AddMethod( &ScriptImage::Dimension2,			"Dimension2",			{} );
-			binder.AddMethod( &ScriptImage::Dimension2_Layers,	"Dimension2_Layers",	{} );
-			binder.AddMethod( &ScriptImage::Dimension3,			"Dimension3",			{} );
-			binder.AddMethod( &ScriptImage::ArrayLayers,		"ArrayLayers",			{} );
-			binder.AddMethod( &ScriptImage::MipmapCount,		"MipmapCount",			{} );
+			AS_METHOD( binder, ScriptImage::Dimension2,			"Dimension2",			{} );
+			AS_METHOD( binder, ScriptImage::Dimension2_Layers,	"Dimension2_Layers",	{} );
+			AS_METHOD( binder, ScriptImage::Dimension3,			"Dimension3",			{} );
+			AS_METHOD( binder, ScriptImage::ArrayLayers,		"ArrayLayers",			{} );
+			AS_METHOD( binder, ScriptImage::MipmapCount,		"MipmapCount",			{} );
 
 			binder.Comment( "Returns dynamic dimension of the image" );
-			binder.AddMethod( &ScriptImage::Dimension,			"Dimension",			{} );
+			AS_METHOD( binder, ScriptImage::Dimension,			"Dimension",			{} );
 
 			binder.Comment( "Set image swizzle like a 'RGBA', 'R000', ..." );
-			binder.AddMethod( &ScriptImage::SetSwizzle,			"SetSwizzle",			{} );
+			AS_METHOD( binder, ScriptImage::SetSwizzle,			"SetSwizzle",			{} );
 
 			binder.Comment( "Set image aspect, otherwise it will be auto-detected.\n"
 							"DepthStencil images can not be sampled, you must choose depth or stencil aspect." );
-			binder.AddMethod( &ScriptImage::SetAspectMask,		"SetAspectMask",		{} );
+			AS_METHOD( binder, ScriptImage::SetAspectMask,		"SetAspectMask",		{} );
 
 			binder.Comment( "Returns image description" );
-			binder.AddMethod( &ScriptImage::_GetImageType,		"ImageType",			{} );
-			binder.AddMethod( &ScriptImage::_IsFloatFormat,		"IsFloatFormat",		{} );
-			binder.AddMethod( &ScriptImage::_IsIntFormat,		"IsIntFormat",			{} );
-			binder.AddMethod( &ScriptImage::_IsUIntFormat,		"IsUIntFormat",			{} );
-			binder.AddMethod( &ScriptImage::_Is1D,				"Is1D",					{} );
-			binder.AddMethod( &ScriptImage::_Is2D,				"Is2D",					{} );
-			binder.AddMethod( &ScriptImage::_Is3D,				"Is3D",					{} );
-			binder.AddMethod( &ScriptImage::_IsCube,			"IsCube",				{} );
-			binder.AddMethod( &ScriptImage::_Is1DArray,			"Is1DArray",			{} );
-			binder.AddMethod( &ScriptImage::_Is2DArray,			"Is2DArray",			{} );
-			binder.AddMethod( &ScriptImage::_IsCubeArray,		"IsCubeArray",			{} );
+			AS_METHOD( binder, ScriptImage::_GetImageType,		"ImageType",			{} );
+			AS_METHOD( binder, ScriptImage::_IsFloatFormat,		"IsFloatFormat",		{} );
+			AS_METHOD( binder, ScriptImage::_IsIntFormat,		"IsIntFormat",			{} );
+			AS_METHOD( binder, ScriptImage::_IsUIntFormat,		"IsUIntFormat",			{} );
+			AS_METHOD( binder, ScriptImage::_Is1D,				"Is1D",					{} );
+			AS_METHOD( binder, ScriptImage::_Is2D,				"Is2D",					{} );
+			AS_METHOD( binder, ScriptImage::_Is3D,				"Is3D",					{} );
+			AS_METHOD( binder, ScriptImage::_IsCube,			"IsCube",				{} );
+			AS_METHOD( binder, ScriptImage::_Is1DArray,			"Is1DArray",			{} );
+			AS_METHOD( binder, ScriptImage::_Is2DArray,			"Is2DArray",			{} );
+			AS_METHOD( binder, ScriptImage::_IsCubeArray,		"IsCubeArray",			{} );
 
 			binder.Comment( "Create image as view for current image."
 							"Can be used to create CubeMap from 2DArray or set different swizzle." );
-			binder.AddMethod( &ScriptImage::CreateView1,		"CreateView",			{"viewType", "format", "baseMipmap", "mipmapCount", "baseLayer", "layerCount"} );
-			binder.AddMethod( &ScriptImage::CreateView2,		"CreateView",			{"viewType", "baseMipmap", "mipmapCount", "baseLayer", "layerCount"} );
-			binder.AddMethod( &ScriptImage::CreateView3,		"CreateView",			{"viewType", "baseMipmap", "mipmapCount"} );
-			binder.AddMethod( &ScriptImage::CreateView4,		"CreateView",			{"viewType", "baseLayer", "layerCount"} );
-			binder.AddMethod( &ScriptImage::CreateView5,		"CreateView",			{"viewType"} );
-			binder.AddMethod( &ScriptImage::CreateView6,		"CreateView",			{"viewType", "format"} );
-			binder.AddMethod( &ScriptImage::CreateView7,		"CreateView",			{} );
+			AS_METHOD( binder, ScriptImage::CreateView1,		"CreateView",			{"viewType", "format", "baseMipmap", "mipmapCount", "baseLayer", "layerCount"} );
+			AS_METHOD( binder, ScriptImage::CreateView2,		"CreateView",			{"viewType", "baseMipmap", "mipmapCount", "baseLayer", "layerCount"} );
+			AS_METHOD( binder, ScriptImage::CreateView3,		"CreateView",			{"viewType", "baseMipmap", "mipmapCount"} );
+			AS_METHOD( binder, ScriptImage::CreateView4,		"CreateView",			{"viewType", "baseLayer", "layerCount"} );
+			AS_METHOD( binder, ScriptImage::CreateView5,		"CreateView",			{"viewType"} );
+			AS_METHOD( binder, ScriptImage::CreateView6,		"CreateView",			{"viewType", "format"} );
+			AS_METHOD( binder, ScriptImage::CreateView7,		"CreateView",			{} );
 		}
 	}
 
@@ -722,9 +728,18 @@ namespace
 
 		if ( not is_dummy )
 		{
-			if ( _inDynSize ) {
+			if ( _inDynSize )
+			{
 				_desc.dimension = ImageDim_t{_inDynSize->Get()->Dimension3_NonZero()};
-			}else{
+				
+				if ( AllBits( _flags, Image::EImageFlags::AllMipmaps ))
+				{
+					uint	mip_count		= ImageUtils::NumberOfMipmaps( uint3{_desc.dimension} );
+					_desc.mipLevels			= MipmapLevel{mip_count};
+					_viewDesc.mipmapCount	= MipmapCount_t(mip_count);
+				}
+			}
+			else{
 				CHECK_THROW_MSG( All( _desc.dimension > ImageDim_t{0} ), "failed to create image '"s << _dbgName << "'" );
 			}
 		}
@@ -761,7 +776,7 @@ namespace
 
 		_resource = MakeRCTh<Image>( RVRef(id.image), RVRef(id.view), RVRef(_loadOps), renderer, is_dummy, _desc, _viewDesc,
 									 (_inDynSize ? _inDynSize->Get() : null), (_outDynSize ? _outDynSize->Get() : null),
-									 _dbgName );	// throw
+									 _flags, _dbgName );	// throw
 		return _resource;
 	}
 

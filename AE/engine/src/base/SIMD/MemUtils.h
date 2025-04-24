@@ -39,7 +39,7 @@ namespace AE::Base
 	{
 		Base::_hidden_::MemCopyChecks( inDst, inSrc, size, 64, 256 );
 
-		#if AE_SIMD_AVX >= 3
+		#if AE_SIMD_AVX >= 30
 			auto*	src	= static_cast<__m512i const *>( inSrc );
 			auto*	dst = static_cast<__m512i *>( inDst );
 			for (auto* end = dst + size; dst < end;)
@@ -49,10 +49,10 @@ namespace AE::Base
 				__m512i	r2 = _mm512_load_si512( src+2 );
 				__m512i	r3 = _mm512_load_si512( src+3 );
 
-				_mm512_stream_si512( OUT dst+0, src[0] );
-				_mm512_stream_si512( OUT dst+1, src[1] );
-				_mm512_stream_si512( OUT dst+2, src[2] );
-				_mm512_stream_si512( OUT dst+3, src[3] );
+				_mm512_stream_si512( OUT dst+0, r0 );
+				_mm512_stream_si512( OUT dst+1, r1 );
+				_mm512_stream_si512( OUT dst+2, r2 );
+				_mm512_stream_si512( OUT dst+3, r3 );
 
 				src += 256_b;	dst += 256_b;
 			}
@@ -146,7 +146,7 @@ namespace AE::Base
 	{
 		Base::_hidden_::MemCopyChecks( inDst, inSrc, size, 64, 256 );
 
-		#if AE_SIMD_AVX >= 3
+		#if AE_SIMD_AVX >= 30
 			auto*	src	= static_cast<__m512i const *>( inSrc );
 			auto*	dst = static_cast<__m512i *>( inDst );
 			for (auto* end = dst + size; dst < end;)
@@ -156,10 +156,10 @@ namespace AE::Base
 				__m512i	r2 = _mm512_stream_load_si512( src+2 );
 				__m512i	r3 = _mm512_stream_load_si512( src+3 );
 
-				_mm512_stream_si512( OUT dst+0, src[0] );
-				_mm512_stream_si512( OUT dst+1, src[1] );
-				_mm512_stream_si512( OUT dst+2, src[2] );
-				_mm512_stream_si512( OUT dst+3, src[3] );
+				_mm512_stream_si512( OUT dst+0, r0 );
+				_mm512_stream_si512( OUT dst+1, r1 );
+				_mm512_stream_si512( OUT dst+2, r2 );
+				_mm512_stream_si512( OUT dst+3, r3 );
 
 				src += 256_b;	dst += 256_b;
 			}
@@ -248,7 +248,7 @@ namespace AE::Base
 	{
 		Base::_hidden_::MemCopyChecks( inDst, inSrc, size, 64, 256 );
 
-		#if AE_SIMD_AVX >= 3
+		#if AE_SIMD_AVX >= 30
 			auto*	src	= static_cast<__m512i const *>( inSrc );
 			auto*	dst = static_cast<__m512i *>( inDst );
 			for (auto* end = dst + size; dst < end;)
@@ -331,7 +331,7 @@ namespace AE::Base
 	{
 		Base::_hidden_::ZeroMemChecks( inDst, size, 64, 256 );
 
-		#if AE_SIMD_AVX >= 3
+		#if AE_SIMD_AVX >= 30
 			__m512i	r0  = _mm512_setzero_si512();
 			auto*	dst = static_cast<__m512i *>( inDst );
 			for (auto* end = dst + size; dst < end; dst += 256_b)
@@ -391,7 +391,7 @@ namespace AE::Base
 	{
 		Base::_hidden_::ZeroMemChecks( inDst, size, 64, 256 );
 
-		#if AE_SIMD_AVX >= 3
+		#if AE_SIMD_AVX >= 30
 			__m512i	r0  = _mm512_setzero_si512();
 			auto*	dst = static_cast<__m512i *>( inDst );
 			for (auto* end = dst + size; dst < end; dst += 256_b)
@@ -645,7 +645,7 @@ namespace AE::Base
 */
 namespace _hidden_
 {
-#if AE_SIMD_AVX >= 3	// TODO: requires AVX512_BW
+#if AE_SIMD_AVX >= 31	// AVX512_BW
 	Nd__IF const char*  FindChar_AVX512 (char const* str, char const* const end, const char ch) __NE___
 	{
 		if_likely( str+64_b <= end )
@@ -654,8 +654,8 @@ namespace _hidden_
 
 			// unaligned head
 			{
-				__m512i		s	= _mm512_loadu_si512( Cast<__m512i>( str ));
-				uint		m	= _mm512_cmpeq_epi8_mask( s, v_ch );
+				__m512i		s	= _mm512_loadu_si512( NonAlignedCast<__m512i>( str ));
+				__mmask64	m	= _mm512_cmpeq_epi8_mask( s, v_ch );
 
 				cold_if( m )
 					return str + CountRZero( m );
@@ -670,10 +670,10 @@ namespace _hidden_
 				__m512i		s2	= _mm512_load_si512( Cast<__m512i>( str ) + 2 );
 				__m512i		s3	= _mm512_load_si512( Cast<__m512i>( str ) + 3 );
 
-				ulong		m0	= _mm512_cmpeq_epi8_mask( s0, v_ch );
-				ulong		m1	= _mm512_cmpeq_epi8_mask( s1, v_ch );
-				ulong		m2	= _mm512_cmpeq_epi8_mask( s2, v_ch );
-				ulong		m3	= _mm512_cmpeq_epi8_mask( s3, v_ch );
+				__mmask64	m0	= _mm512_cmpeq_epi8_mask( s0, v_ch );
+				__mmask64	m1	= _mm512_cmpeq_epi8_mask( s1, v_ch );
+				__mmask64	m2	= _mm512_cmpeq_epi8_mask( s2, v_ch );
+				__mmask64	m3	= _mm512_cmpeq_epi8_mask( s3, v_ch );
 
 				cold_if( m0 | m1 | m2 | m3 )
 				{
@@ -704,7 +704,7 @@ namespace _hidden_
 
 			// unaligned head, perf overhead: 2-5%
 			{
-				__m256i		s	= _mm256_loadu_si256( Cast<__m256i>( str ));
+				__m256i		s	= _mm256_loadu_si256( NonAlignedCast<__m256i>( str ));
 				__m256i		eq	= _mm256_cmpeq_epi8( s, v_ch );
 				uint		m	= _mm256_movemask_epi8( eq );
 
@@ -764,7 +764,7 @@ namespace _hidden_
 
 			// unaligned head
 			{
-				__m128i		s	= _mm_loadu_si128( Cast<__m128i>( str ));
+				__m128i		s	= _mm_loadu_si128( NonAlignedCast<__m128i>( str ));
 				__m128i		eq	= _mm_cmpeq_epi8( s, v_ch );
 				uint		m	= _mm_movemask_epi8( eq );
 
@@ -882,7 +882,7 @@ namespace _hidden_
 
 	Nd__IF const char*  FindChar_SIMD (char const* const begin, char const* const end, const char ch) __NE___
 	{
-		#if AE_SIMD_AVX >= 3
+		#if AE_SIMD_AVX >= 31  // AVX512_BW
 			return Base::_hidden_::FindChar_AVX512( begin, end, ch );
 
 		#elif AE_SIMD_AVX >= 2

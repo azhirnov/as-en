@@ -766,13 +766,53 @@ namespace AE::RemoteGraphics
 */
 	ILogger::EResult  RmGAppListener::LogToHost::Process (const MessageInfo &info) __Th___
 	{
-		Msg::Log  msg;
-		msg.message		= info.message;
-		msg.func		= info.func;
-		msg.file		= info.file;
-		msg.line		= info.line;
-		msg.level		= info.level;
-		msg.scope		= info.scope;
+		StringView	text = info.message;
+
+	  #ifdef __cpp_lib_stacktrace
+		String		msg_with_call_stack;
+		if ( info.level >= ELogLevel::Warning )
+		{
+		  #ifdef AE_PLATFORM_WINDOWS
+			constexpr StringView	fname = "base\\Log\\Log.cpp";
+		  #else
+			constexpr StringView	fname = "base/Log/Log.cpp";
+		  #endif
+
+			auto		stack	= std::stacktrace::current();
+			auto		it		= stack.begin();
+			usize		i		= 0;
+			const usize	count	= stack.size();
+			String&		str		= msg_with_call_stack;
+
+			// skip logger functions
+			{
+				for (; i < count; ++i, ++it) {
+					if_unlikely( HasSubString( it->source_file(), fname )) {
+						++i;  ++it;
+						break;
+					}
+				}
+				for (; i < count; ++i, ++it) {
+					if_unlikely( not HasSubString( it->source_file(), fname ))
+						break;
+				}
+			}
+
+			for (; i < count; ++i, ++it) {
+				str << "  " << FileSystem::ToShortPath( it->source_file() ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
+			}
+			str.pop_back();
+			text = msg_with_call_stack;
+		}
+	  #endif
+
+		Msg::Log	msg;
+		msg.message	= text;
+		msg.func	= info.func;
+		msg.file	= info.file;
+		msg.line	= info.line;
+		msg.level	= info.level;
+		msg.scope	= info.scope;
 
 		auto*	td = _GetThreadData();
 		if ( td != null and td->looping.load() )

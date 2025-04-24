@@ -2,7 +2,7 @@
 /*
 	local_pos * model_mat	= world_pos (world space)
 	world_pos * view_mat	= view_pos  (view space)
-	view_pos  * proj_mat	= clip_pos  (clip space)	- range [-1,+1]
+	view_pos  * proj_mat	= clip_pos  (clip space)	- range [-1,+1] after /W
 	clip_pos  * viewport_tr	= scr_pos   (screen space)	- happens before FS
 */
 

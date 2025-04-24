@@ -24,7 +24,7 @@ namespace AE::Graphics
 		MinimalPreset			= 1 << 24,
 		SynchronizationPreset	= 2 << 24,
 		BestPracticesPreset		= 3 << 24,
-		ShaderBasedPreset		= 4 << 24,
+		ShaderBasedPreset		= 4 << 24,	// validate access in shaders and indirect commands
 		ShaderPrintfPreset		= 5 << 24,
 
 		// Metal
@@ -51,6 +51,21 @@ namespace AE::Graphics
 	};
 	AE_BIT_OPERATORS( EDeviceFlags );
 
+
+	enum class EDriver : ubyte
+	{
+		Unknown	= 0,
+		LavaPipe,		// software emulation from Mesa package
+
+	  #ifdef AE_PLATFORM_LINUX
+		_LinuxDrivers	= 0x10,
+		RADV,			// open-source driver for AMD GPU from Mesa package
+		AMDVLK,			// AMD open-source driver
+		AMD_PRO,		// AMD proprietory driver
+	  #endif
+
+		// TODO: other
+	};
 
 
 	//
@@ -111,6 +126,7 @@ namespace AE::Graphics
 		StringView				graphicsLibPath;
 		bool					enableSyncLog	= false;
 	  #endif
+		StaticArray<EDriver, 8>	driverList = {};
 	};
 
 } // AE::Graphics

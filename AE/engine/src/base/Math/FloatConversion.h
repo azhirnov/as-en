@@ -34,25 +34,32 @@ namespace AE::Base
 
 
 		template <EMode Mode, typename SrcBits, typename DstBits>
-		__Cz__ static void  ConvertBits_Accurate (SrcBits src, OUT DstBits &dst)	__NE___;
+		__Cz__ static void	ConvertBits_Accurate (SrcBits src, OUT DstBits &dst)	__NE___;
 
 		template <EMode Mode, typename SrcBits, typename DstBits,
 				  typename SrcU = ToUnsignedInteger< SrcBits >,
 				  typename DstU = ToUnsignedInteger< DstBits >
 				 >
-		__Cz__ static void  ConvertBits_Fast (SrcU src, OUT DstU &dst)				__NE___;
+		__Cz__ static void	ConvertBits_Fast (SrcU src, OUT DstU &dst)				__NE___;
 
 		template <EMode Mode, typename Src, typename Dst>
-		__Cz__ static void  Convert (Src src, OUT Dst &dst)							__NE___;
+		__Cz__ static void	Convert (Src src, OUT Dst &dst)							__NE___;
 
 		template <EMode Mode, typename Dst, typename Src>
-		NdCz__ static Dst  Convert2 (Src src)										__NE___	{ Dst dst;  Convert<Mode>( src, OUT dst );  return dst; }
+		NdCz__ static Dst	Convert2 (Src src)										__NE___	{ Dst dst;  Convert<Mode>( src, OUT dst );  return dst; }
 
 		template <EMode Mode, typename Dst, typename Src, typename DstBits>
-		__Cz__ static Dst  Convert3 (Src src, OUT DstBits &dstBits)					__NE___	{ Dst dst;  Convert<Mode>( src, OUT dst );  dstBits = BitCast<DstBits>(dst);  return dst; }
+		__Cz__ static Dst	Convert3 (Src src, OUT DstBits &dstBits)				__NE___	{ Dst dst;  Convert<Mode>( src, OUT dst );  dstBits = BitCast<DstBits>(dst);  return dst; }
 
 		template <typename T>
 		struct BitsForType;
+
+	// utils
+		template <typename Bits>
+		__Cz__ static Bits	MinDelta (Bits x)										__NE___;
+		
+		template <typename Bits>
+		__Cz__ static Bits	Next (Bits x)											__NE___;	// x + ulp
 	};
 
 	AE_BIT_OPERATORS( FloatConversion::EMode );
@@ -76,8 +83,9 @@ namespace AE::Base
 	// types
 		static constexpr uint	_ManBits	= 23;
 		static constexpr uint	_ExpBits	= 8;
-		static constexpr uint	_MaxExp		= (1u << (_ExpBits-1)) - 1;
 		static constexpr uint	_NaNExp		= (1u << _ExpBits) - 1;
+		static constexpr uint	_MidExp		= (1u << (_ExpBits-1)) - 1;		// zero in signed form
+		static constexpr uint	_MaxExp		= _NaNExp - 1;
 		static constexpr uint	_MaxMan		= (1u << _ManBits) - 1;
 		static constexpr uint	_Signed		= true;
 
@@ -88,26 +96,33 @@ namespace AE::Base
 
 	// methods
 		__Cx__ Float32Bits ()						__NE___ : m{0}, e{0}, s{0} {}
+		__Cz__ explicit Float32Bits (float val)		__NE___ { auto f = BitCast<Float32Bits>(val);  m=f.m;  e=f.e;  s=f.s; }
 
 		NdCx__ bool			IsNaN ()				C_NE___ { return e == _NaNExp and m != 0; }
 		NdCx__ bool			IsInf ()				C_NE___	{ return e == _NaNExp and m == 0; }
+		NdCx__ bool			IsSubnormal ()			C_NE___	{ return e == 0 and m != 0; }			// denormal
+		NdCx__ bool			IsZero ()				C_NE___	{ return e == 0 and m == 0; }
 
-		NdCz__ uint			AsUInt ()				C_NE___	{ return BitCast<uint>(*this); }
-		NdCz__ float		AsFloat ()				C_NE___	{ return BitCast<float>(*this); }
+		NdCx__ int			IntExp2 ()				C_NE___	{ return int(e) - int(_MidExp); }
 
-		NdCz__ float		MinDelta ()				C_NE___	{ Float32Bits b = *this;  b.s=0; b.m=0;  return b.AsFloat(); }
+		NdCz__ uint			AsInteger ()			C_NE___	{ return BitCast<uint>(*this); }
+		NdCz__ float		AsFloatPoint ()			C_NE___	{ return BitCast<float>(*this); }
 
-		NdCz__ explicit operator float ()			C_NE___	{ return AsFloat(); }
+		NdCz__ float		MinDelta ()				C_NE___	{ return FloatConversion::MinDelta( *this ).AsFloatPoint(); }	// ULP
+		
+		NdCz__ bool  operator == (Float32Bits rhs)	C_NE___	{ return AsInteger() == rhs.AsInteger(); }
+
+		NdCz__ explicit operator float ()			C_NE___	{ return AsFloatPoint(); }
 
 		NdCx__ static auto	SmallestSubnormal ()	__NE___	{ Float32Bits b;  b.m=1;		b.e=0;			b.s=0;  return b; }		// 1.4012e-45
 		NdCx__ static auto	SmallestNormal ()		__NE___	{ Float32Bits b;  b.m=0;		b.e=1;			b.s=0;  return b; }		// 1.1754e−38
-		NdCx__ static auto	LargestNormal ()		__NE___	{ Float32Bits b;  b.m=_MaxMan;	b.e=_NaNExp-1;	b.s=0;  return b; }		// 3.4028e+38
+		NdCx__ static auto	LargestNormal ()		__NE___	{ Float32Bits b;  b.m=_MaxMan;	b.e=_MaxExp;	b.s=0;  return b; }		// 3.4028e+38
 
 		NdCx__ static auto	Min ()					__NE___	{ return SmallestSubnormal(); }
 		NdCx__ static auto	Max ()					__NE___	{ return LargestNormal(); }
 
 		NdCx__ static auto	Zero ()					__NE___	{ Float32Bits b;  b.m=0;		b.e=0;			b.s=0;  return b; }		// 0.0
-		NdCx__ static auto	One ()					__NE___	{ Float32Bits b;  b.m=0;		b.e=_NaNExp/2;	b.s=0;  return b; }		// 1.0
+		NdCx__ static auto	One ()					__NE___	{ Float32Bits b;  b.m=0;		b.e=_MidExp;	b.s=0;  return b; }		// 1.0
 
 		NdCx__ static auto  Inf ()					__NE___	{ Float32Bits b;  b.m=0;		b.e=_NaNExp;	b.s=0;  return b; }
 		NdCx__ static auto  NegInf ()				__NE___	{ Float32Bits b;  b.m=0;		b.e=_NaNExp;	b.s=1;  return b; }
@@ -126,8 +141,9 @@ namespace AE::Base
 	// types
 		static constexpr uint	_ManBits	= 52;
 		static constexpr uint	_ExpBits	= 11;
-		static constexpr uint	_MaxExp		= (1u << (_ExpBits-1)) - 1;
 		static constexpr uint	_NaNExp		= (1u << _ExpBits) - 1;
+		static constexpr uint	_MidExp		= (1u << (_ExpBits-1)) - 1;		// zero in signed form
+		static constexpr uint	_MaxExp		= _NaNExp - 1;
 		static constexpr ulong	_MaxMan		= (1ull << _ManBits) - 1;
 		static constexpr uint	_Signed		= true;
 
@@ -138,26 +154,33 @@ namespace AE::Base
 
 	// methods
 		__Cx__ Float64Bits ()						__NE___ : m{0}, e{0}, s{0} {}
+		__Cz__ explicit Float64Bits (double val)	__NE___ { auto f = BitCast<Float64Bits>(val);  m=f.m;  e=f.e;  s=f.s; }
 
 		NdCx__ bool			IsNaN ()				C_NE___ { return e == _NaNExp and m != 0; }
 		NdCx__ bool			IsInf ()				C_NE___	{ return e == _NaNExp and m == 0; }
+		NdCx__ bool			IsSubnormal ()			C_NE___	{ return e == 0 and m != 0; }
+		NdCx__ bool			IsZero ()				C_NE___	{ return e == 0 and m == 0; }
 
-		NdCz__ ulong		AsUInt ()				C_NE___	{ return BitCast<ulong>(*this); }
-		NdCz__ double		AsFloat ()				C_NE___	{ return BitCast<double>(*this); }
+		NdCx__ int			IntExp2 ()				C_NE___	{ return int(e) - int(_MidExp); }
 
-		NdCz__ double		MinDelta ()				C_NE___	{ Float64Bits b = *this;  b.s=0; b.m=0;  return b.AsFloat(); }
+		NdCz__ ulong		AsInteger ()			C_NE___	{ return BitCast<ulong>(*this); }
+		NdCz__ double		AsFloatPoint ()			C_NE___	{ return BitCast<double>(*this); }
+		
+		NdCz__ double		MinDelta ()				C_NE___	{ return FloatConversion::MinDelta( *this ).AsFloatPoint(); }	// ULP
+		
+		NdCz__ bool  operator == (Float64Bits rhs)	C_NE___	{ return AsInteger() == rhs.AsInteger(); }
 
-		NdCz__ explicit operator double ()			C_NE___	{ return AsFloat(); }
+		NdCz__ explicit operator double ()			C_NE___	{ return AsFloatPoint(); }
 
 		NdCx__ static auto	SmallestSubnormal ()	__NE___	{ Float64Bits b;  b.m=1;		b.e=0;			b.s=0;  return b; }		// 4.9406e-324
 		NdCx__ static auto	SmallestNormal ()		__NE___	{ Float64Bits b;  b.m=0;		b.e=1;			b.s=0;  return b; }		// 2.2250e-308
-		NdCx__ static auto	LargestNormal ()		__NE___	{ Float64Bits b;  b.m=_MaxMan;	b.e=_NaNExp-1;	b.s=0;  return b; }		// 1.7976e+308
+		NdCx__ static auto	LargestNormal ()		__NE___	{ Float64Bits b;  b.m=_MaxMan;	b.e=_MaxExp;	b.s=0;  return b; }		// 1.7976e+308
 
 		NdCx__ static auto	Min ()					__NE___	{ return SmallestSubnormal(); }
 		NdCx__ static auto	Max ()					__NE___	{ return LargestNormal(); }
 
 		NdCx__ static auto	Zero ()					__NE___	{ Float64Bits b;  b.m=0;		b.e=0;			b.s=0;  return b; }		// 0.0
-		NdCx__ static auto	One ()					__NE___	{ Float64Bits b;  b.m=0;		b.e=_NaNExp/2;	b.s=0;  return b; }		// 1.0
+		NdCx__ static auto	One ()					__NE___	{ Float64Bits b;  b.m=0;		b.e=_MidExp;	b.s=0;  return b; }		// 1.0
 
 		NdCx__ static auto  Inf ()					__NE___	{ Float64Bits b;  b.m=0;		b.e=_NaNExp;	b.s=0;  return b; }
 		NdCx__ static auto  NegInf ()				__NE___	{ Float64Bits b;  b.m=0;		b.e=_NaNExp;	b.s=1;  return b; }
@@ -182,7 +205,9 @@ namespace AE::Base
 			static constexpr uint	_ManBits	= 10;
 			static constexpr uint	_ExpBits	= 5;
 			static constexpr uint	_NaNExp		= (1u << _ExpBits) - 1;
-			static constexpr uint	_MaxExp		= (1u << (_ExpBits-1)) - 1;
+			static constexpr uint	_MidExp		= (1u << (_ExpBits-1)) - 1;		// zero in signed form
+			static constexpr uint	_MaxExp		= _NaNExp - 1;
+			static constexpr uint	_MaxMan		= (1u << _ManBits) - 1;
 			static constexpr uint	_Signed		= true;
 
 			ushort	m	: _ManBits;		// mantissa bits
@@ -204,6 +229,7 @@ namespace AE::Base
 	// methods
 	private:
 		__Cx__ explicit SFloat16 (EValue val)				__NE___	: _bits{ BitCast<Bits>( val )} {}
+		__Cx__ explicit SFloat16 (Bits bits)				__NE___	: _bits{ bits } {}
 
 	public:
 		__Cx__ SFloat16 ()									__NE___	: _bits{} {}
@@ -215,10 +241,10 @@ namespace AE::Base
 
 		__Cx__ Self&		operator =  (const Self &rhs)	__NE___	= default;
 
-		NdCx__ bool			operator == (const Self &rhs)	C_NE___	{ return GetU() == rhs.GetU(); }
+		NdCz__ bool			operator == (const Self &rhs)	C_NE___	{ return AsInteger() == rhs.AsInteger(); }
 
 		// set/get
-		NdCx__ ushort		GetU ()							C_NE___	{ return BitCast<ushort>( _bits ); }
+		NdCx__ ushort		AsInteger ()					C_NE___	{ return BitCast<ushort>( _bits ); }
 		NdCx__ Bits			GetBits ()						C_NE___	{ return _bits; }
 
 		template <typename T = float>
@@ -232,13 +258,17 @@ namespace AE::Base
 
 		template <typename T>
 		__Cz__ Self&		SetFast (T val)					__NE___	{ FC::Convert3< FC::EMode::RoundFast, Self >( val, OUT _bits );  return *this; }
+		
+		NdCx__ int			IntExp2 ()						C_NE___	{ return int(_bits.e) - int(Bits::_MidExp); }
 
 		NdCx__ bool			IsNaN ()						C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
 		NdCx__ bool			IsInfinity ()					C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m == 0; }
 		NdCx__ bool			IsFinite ()						C_NE___	{ return _bits.e != Bits::_NaNExp; }
 		NdCx__ bool			IsNegative ()					C_NE___	{ return _bits.s == 1; }
+		NdCx__ bool			IsSubnormal ()					C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
+		NdCx__ bool			IsZero ()						C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
 
-		NdCx__ Self			MinDelta ()						C_NE___	{ Self h = *this;  h._bits.s=0; h._bits.m=0;  return h; }
+		NdCz__ Self			MinDelta ()						C_NE___	{ return Self{ FloatConversion::MinDelta( _bits )}; }	// ULP
 
 		NdCz__ explicit operator float ()					C_NE___	{ return Get<float>(); }
 		NdCz__ explicit operator double ()					C_NE___	{ return Get<double>(); }
@@ -277,7 +307,9 @@ namespace AE::Base
 			static constexpr uint	_ManBits	= 10;
 			static constexpr uint	_ExpBits	= 6;
 			static constexpr uint	_NaNExp		= (1u << _ExpBits) - 1;
-			static constexpr uint	_MaxExp		= (1u << (_ExpBits-1)) - 1;
+			static constexpr uint	_MidExp		= (1u << (_ExpBits-1)) - 1;		// zero in signed form
+			static constexpr uint	_MaxExp		= _NaNExp - 1;
+			static constexpr uint	_MaxMan		= (1u << _ManBits) - 1;
 			static constexpr uint	_Signed		= false;
 
 			ushort	m	: _ManBits;	// mantissa bits
@@ -298,6 +330,7 @@ namespace AE::Base
 	// methods
 	private:
 		__Cx__ explicit UFloat16 (EValue val)				__NE___	: _bits{ BitCast<Bits>( val )} {}
+		__Cx__ explicit UFloat16 (Bits bits)				__NE___	: _bits{ bits } {}
 
 	public:
 		__Cx__ UFloat16 ()									__NE___	: _bits{} {}
@@ -306,10 +339,10 @@ namespace AE::Base
 
 		__Cx__ Self&		operator =  (const Self &rhs)	__NE___	= default;
 
-		NdCx__ bool			operator == (const Self &rhs)	C_NE___	{ return GetU() == rhs.GetU(); }
+		NdCz__ bool			operator == (const Self &rhs)	C_NE___	{ return AsInteger() == rhs.AsInteger(); }
 
 		// set/get
-		NdCx__ ushort		GetU ()							C_NE___	{ return BitCast<ushort>( _bits ); }
+		NdCx__ ushort		AsInteger ()					C_NE___	{ return BitCast<ushort>( _bits ); }
 		NdCx__ Bits			GetBits ()						C_NE___	{ return _bits; }
 
 		template <typename T = float>
@@ -323,13 +356,17 @@ namespace AE::Base
 
 		template <typename T>
 		__Cz__ Self&		SetFast (T val)					__NE___	{ FC::Convert3< FC::EMode::RoundFast, Self >( val, OUT _bits );  return *this; }
+		
+		NdCx__ int			IntExp2 ()						C_NE___	{ return int(_bits.e) - int(Bits::_MidExp); }
 
 		NdCx__ bool			IsNaN ()						C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
 		NdCx__ bool			IsInfinity ()					C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m == 0; }
 		NdCx__ bool			IsFinite ()						C_NE___	{ return _bits.e != Bits::_NaNExp; }
 		NdCx__ bool			IsNegative ()					C_NE___	{ return false; }
-
-		NdCx__ Self			MinDelta ()						C_NE___	{ Self h = *this;  h._bits.m=0;  return h; }
+		NdCx__ bool			IsSubnormal ()					C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
+		NdCx__ bool			IsZero ()						C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
+		
+		NdCz__ Self			MinDelta ()						C_NE___	{ return Self{ FloatConversion::MinDelta( _bits )}; }	// ULP
 
 		NdCz__ explicit operator float ()					C_NE___	{ return Get<float>(); }
 		NdCz__ explicit operator double ()					C_NE___	{ return Get<double>(); }
@@ -363,7 +400,9 @@ namespace AE::Base
 			static constexpr uint	_ManBits	= 4;
 			static constexpr uint	_ExpBits	= 4;
 			static constexpr int	_NaNExp		= (1u << _ExpBits) - 1;
-			static constexpr uint	_MaxExp		= (1u << (_ExpBits-1)) - 1;
+			static constexpr uint	_MidExp		= (1u << (_ExpBits-1)) - 1;		// zero in signed form
+			static constexpr uint	_MaxExp		= _NaNExp - 1;
+			static constexpr uint	_MaxMan		= (1u << _ManBits) - 1;
 			static constexpr uint	_Signed		= false;
 
 			ubyte	m	: _ManBits;		// mantissa bits
@@ -384,6 +423,7 @@ namespace AE::Base
 	// methods
 	private:
 		__Cx__ explicit UFloat8 (EValue val)			__NE___	: _bits{ BitCast<Bits>( val )} {}
+		__Cx__ explicit UFloat8 (Bits bits)				__NE___	: _bits{ bits } {}
 
 	public:
 		__Cx__ UFloat8 ()								__NE___	: _bits{} {}
@@ -392,10 +432,10 @@ namespace AE::Base
 
 		__Cx__ Self&		operator = (Self rhs)		__NE___	{ _bits = rhs._bits;  return *this; }
 
-		NdCx__ bool			operator == (Self rhs)		C_NE___	{ return GetU() == rhs.GetU(); }
+		NdCz__ bool			operator == (Self rhs)		C_NE___	{ return AsInteger() == rhs.AsInteger(); }
 
 		// set/get
-		NdCx__ ubyte		GetU ()						C_NE___	{ return BitCast<ubyte>( _bits ); }
+		NdCx__ ubyte		AsInteger ()				C_NE___	{ return BitCast<ubyte>( _bits ); }
 		NdCx__ Bits			GetBits ()					C_NE___	{ return _bits; }
 
 		template <typename T = float>
@@ -409,13 +449,17 @@ namespace AE::Base
 
 		template <typename T>
 		__Cz__ Self&		SetFast (T val)				__NE___	{ FC::Convert3< FC::EMode::RoundFast, Self >( val, OUT _bits );  return *this; }
+		
+		NdCx__ int			IntExp2 ()					C_NE___	{ return int(_bits.e) - int(Bits::_MidExp); }
 
 		NdCx__ bool			IsNaN ()					C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
 		NdCx__ bool			IsInfinity ()				C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m == 0; }
 		NdCx__ bool			IsFinite ()					C_NE___	{ return _bits.e != Bits::_NaNExp; }
 		NdCx__ bool			IsNegative ()				C_NE___	{ return false; }
-
-		NdCx__ Self			MinDelta ()					C_NE___	{ Self h = *this;  h._bits.m=0;  return h; }
+		NdCx__ bool			IsSubnormal ()				C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
+		NdCx__ bool			IsZero ()					C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
+		
+		NdCz__ Self			MinDelta ()					C_NE___	{ return Self{ FloatConversion::MinDelta( _bits )}; }	// ULP
 
 		NdCz__ explicit operator float ()				C_NE___	{ return Get<float>(); }
 		NdCz__ explicit operator double ()				C_NE___	{ return Get<double>(); }
@@ -451,7 +495,9 @@ namespace AE::Base
 			static constexpr uint	_ManBits	= 16 - Float32Bits::_ExpBits - 1;
 			static constexpr uint	_ExpBits	= Float32Bits::_ExpBits;
 			static constexpr uint	_NaNExp		= (1u << _ExpBits) - 1;
-			static constexpr uint	_MaxExp		= (1u << (_ExpBits-1)) - 1;
+			static constexpr uint	_MidExp		= (1u << (_ExpBits-1)) - 1;		// zero in signed form
+			static constexpr uint	_MaxExp		= _NaNExp - 1;
+			static constexpr uint	_MaxMan		= (1u << _ManBits) - 1;
 			static constexpr uint	_Signed		= true;
 
 			ushort	m	: _ManBits;		// mantissa bits
@@ -473,6 +519,7 @@ namespace AE::Base
 	// methods
 	private:
 		__Cx__ explicit BFloat16 (EValue val)				__NE___	: _bits{ BitCast<Bits>( val )} {}
+		__Cx__ explicit BFloat16 (Bits bits)				__NE___	: _bits{ bits } {}
 
 	public:
 		__Cx__ BFloat16 ()									__NE___	: _bits{} {}
@@ -481,10 +528,10 @@ namespace AE::Base
 
 		__Cx__ Self&		operator =  (const Self &rhs)	__NE___	= default;
 
-		NdCx__ bool			operator == (const Self &rhs)	C_NE___	{ return GetU() == rhs.GetU(); }
+		NdCz__ bool			operator == (const Self &rhs)	C_NE___	{ return AsInteger() == rhs.AsInteger(); }
 
 		// set/get
-		NdCx__ ushort		GetU ()							C_NE___	{ return BitCast<ushort>( _bits ); }
+		NdCx__ ushort		AsInteger ()					C_NE___	{ return BitCast<ushort>( _bits ); }
 		NdCx__ Bits			GetBits ()						C_NE___	{ return _bits; }
 
 		template <typename T = float>
@@ -498,13 +545,17 @@ namespace AE::Base
 
 		template <typename T>
 		__Cz__ Self&		SetFast (T val)					__NE___	{ FC::Convert3< FC::EMode::RoundFast, Self >( val, OUT _bits );  return *this; }
+		
+		NdCx__ int			IntExp2 ()						C_NE___	{ return int(_bits.e) - int(Bits::_MidExp); }
 
 		NdCx__ bool			IsNaN ()						C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
 		NdCx__ bool			IsInfinity ()					C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m == 0; }
 		NdCx__ bool			IsFinite ()						C_NE___	{ return _bits.e != Bits::_NaNExp; }
 		NdCx__ bool			IsNegative ()					C_NE___	{ return _bits.s == 1; }
-
-		NdCx__ Self			MinDelta ()						C_NE___	{ Self h = *this;  h._bits.s=0; h._bits.m=0;  return h; }
+		NdCx__ bool			IsSubnormal ()					C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
+		NdCx__ bool			IsZero ()						C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
+		
+		NdCz__ Self			MinDelta ()						C_NE___	{ return Self{ FloatConversion::MinDelta( _bits )}; }	// ULP
 
 		NdCz__ explicit operator float ()					C_NE___	{ return Get<float>(); }
 		NdCz__ explicit operator double ()					C_NE___	{ return Get<double>(); }
@@ -565,10 +616,10 @@ namespace AE::Base
 	template <> struct TIsUnsigned< float16_t >		: CT_False {};
   #endif
 
-	template <> struct TIsScalar< UFloat8 >		: CT_True  {};
-	template <> struct TIsFloatPoint< UFloat8 >	: CT_True  {};
-	template <> struct TIsSigned< UFloat8 >		: CT_False {};
-	template <> struct TIsUnsigned< UFloat8 >	: CT_True  {};
+	template <> struct TIsScalar< UFloat8 >			: CT_True  {};
+	template <> struct TIsFloatPoint< UFloat8 >		: CT_True  {};
+	template <> struct TIsSigned< UFloat8 >			: CT_False {};
+	template <> struct TIsUnsigned< UFloat8 >		: CT_True  {};
 
 /*
 =================================================
@@ -642,7 +693,7 @@ namespace AE::Base
 		const bool	src_nan	= src.e == SrcBits::_NaNExp;
 
 		U		m = src.m;
-		int		e = int(src.e) - int(SrcBits::_MaxExp) + int(DstBits::_MaxExp);
+		int		e = int(src.e) - int(SrcBits::_MidExp) + int(DstBits::_MidExp);
 
 		// decrease precision
 		if constexpr( SrcBits::_ManBits >= DstBits::_ManBits )
@@ -794,7 +845,7 @@ namespace AE::Base
 
 			const auto	src_e	= (src >> SrcMan) & ((SrcU{1} << SrcExp) - 1);
 			U			m		= src & ((U{1} << SrcMan) - 1);
-			int			e		= int(src_e) - int(SrcBits::_MaxExp) + int(DstBits::_MaxExp);
+			int			e		= int(src_e) - int(SrcBits::_MidExp) + int(DstBits::_MidExp);
 
 			if constexpr( AllBits( Mode, EMode::RoundToNearest ))
 			{
@@ -832,7 +883,7 @@ namespace AE::Base
 			constexpr uint	ManBitsDelta = DstMan - SrcMan;
 
 			const auto	src_e	= (src >> SrcMan) & ((SrcU{1} << SrcExp) - 1);
-			const auto	dst_e	= (src_e + (DstBits::_MaxExp - SrcBits::_MaxExp)) & ((DstU{1} << DstExp) - 1);
+			const auto	dst_e	= (src_e + (DstBits::_MidExp - SrcBits::_MidExp)) & ((DstU{1} << DstExp) - 1);
 			const DstU	dst_m	= DstU( src & ((SrcU{1} << SrcMan) - 1) ) << ManBitsDelta;
 			const DstU	branches[] = {
 				(dst_e << DstMan)			 | dst_m,	// default
@@ -889,6 +940,59 @@ namespace AE::Base
 		{
 			ASSERT_Cx( (src < Zero) == (dst < Zero) );
 		}
+	}
+	
+/*
+=================================================
+	MinDelta
+=================================================
+*/
+	template <typename Bits>
+	__CzIF Bits  FloatConversion::MinDelta (const Bits cur) __NE___
+	{
+		int		e	= int(cur.e) - Bits::_ManBits;
+		Bits	ulp;
+		
+		if constexpr( Bits::_Signed )
+			ulp.s = cur.s;
+
+		if ( cur.m & 1 )
+		{
+			ulp.m = Bits::_MaxMan;
+			--e;
+		}
+		ulp.e = std::clamp( e, 0, int(Bits::_MaxExp) );
+
+		// denormal
+		if ( e <= 0 )
+		{
+			using U = Base::ByteSizeToUInt< sizeof(Bits) >;
+			e = int(Bits::_ManBits-1) + e;
+			ulp.m = e >= 0 ? U{1} << e : U{0};
+		}
+		return ulp;
+	}
+	
+/*
+=================================================
+	Next
+=================================================
+*/
+	template <typename Bits>
+	__CzIF Bits  FloatConversion::Next (Bits b) __NE___
+	{
+		auto	m = b.m + 1;
+		auto	e = b.e;
+
+		if ( m > Bits::_MaxMan )
+		{
+			m = 0;
+			++e;
+		}
+
+		b.m = m;
+		b.e = e;
+		return b;
 	}
 
 } // AE::Base

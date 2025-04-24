@@ -148,6 +148,7 @@ namespace AE::ResEditor
 		using IGeomSource::StateTransition;
 
 		bool  Draw (const DrawData &)									__Th_OV;
+		bool  PostProcess (const DrawData &)							__Th_OV;
 		bool  Update (const UpdateData &)								__Th_OV;
 		void  PrepareForDebugging (INOUT DebugPrepareData &)			__Th_OV;
 	};

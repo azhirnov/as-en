@@ -42,7 +42,7 @@ namespace
 */
 	ND_ static Version2  MetalToMacOSVersion (Version2 ver)
 	{
-		StaticAssert( Graphics::FeatureSet::MaxMetalVersion == 310 );
+		StaticAssert( Graphics::FeatureSet::MaxMetalVersion == 320 );
 		switch ( ver.To10() )
 		{
 			case 20 :	return {10, 13};
@@ -52,6 +52,7 @@ namespace
 			case 24 :	return {12, 0};
 			case 30 :	return {13, 0};
 			case 31 :	return {14, 0};
+			case 32 :	return {15, 0};
 		}
 		RETURN_ERR( "unsupported metal version" );
 	}
@@ -63,7 +64,7 @@ namespace
 */
 	ND_ static Version2  MetalToiOSVersion (Version2 ver)
 	{
-		StaticAssert( Graphics::FeatureSet::MaxMetalVersion == 310 );
+		StaticAssert( Graphics::FeatureSet::MaxMetalVersion == 320 );
 		switch ( ver.To10() )
 		{
 			case 20 :	return {11, 0};
@@ -73,6 +74,7 @@ namespace
 			case 24 :	return {15, 0};
 			case 30 :	return {16, 0};
 			case 31 :	return {17, 0};
+			case 32 :	return {18, 0};
 		}
 		RETURN_ERR( "unsupported metal version" );
 	}

@@ -1093,6 +1093,7 @@ namespace
 			BIND( BGRA8_sRGB_nonlinear )
 			BIND( RGBA8_sRGB_nonlinear )
 			BIND( BGRA8_BT709_nonlinear )
+			BIND( RGBA16F_sRGB_nonlinear )
 			BIND( RGBA16F_Extended_sRGB_linear )
 			BIND( RGBA16F_Extended_sRGB_nonlinear )
 			BIND( RGBA16F_BT709_nonlinear )
@@ -1495,11 +1496,11 @@ namespace
 	{
 		ClassBinder<RenderState::ColorBuffer::ColorMask>	binder{ se };
 		binder.CreateClassValue();
-		binder.AddMethodFromGlobal( &RS_ColorBuffer_ColorMask_SetR,		"setR",		{} );
-		binder.AddMethodFromGlobal( &RS_ColorBuffer_ColorMask_SetG,		"setG",		{} );
-		binder.AddMethodFromGlobal( &RS_ColorBuffer_ColorMask_SetB,		"setB",		{} );
-		binder.AddMethodFromGlobal( &RS_ColorBuffer_ColorMask_SetA,		"setA",		{} );
-		binder.AddMethodFromGlobal( &RS_ColorBuffer_ColorMask_SetRGBA,	"setRGBA",	{} );
+		AS_METHOD( binder, RS_ColorBuffer_ColorMask_SetR,		"setR",		{} );
+		AS_METHOD( binder, RS_ColorBuffer_ColorMask_SetG,		"setG",		{} );
+		AS_METHOD( binder, RS_ColorBuffer_ColorMask_SetB,		"setB",		{} );
+		AS_METHOD( binder, RS_ColorBuffer_ColorMask_SetA,		"setA",		{} );
+		AS_METHOD( binder, RS_ColorBuffer_ColorMask_SetRGBA,	"setRGBA",	{} );
 	}
 
 /*
@@ -1553,12 +1554,12 @@ namespace
 		ClassBinder<RenderState::ColorBuffer>	binder{ se };
 		binder.CreateClassValue();
 
-		binder.AddMethodFromGlobal( &RenderState_ColorBuffer_Set1<0,EBlendFactor>,	"SrcBlendFactor",	{"colorAndAlpha"} );
-		binder.AddMethodFromGlobal( &RenderState_ColorBuffer_Set2<0,EBlendFactor>,	"SrcBlendFactor",	{"color", "alpha"} );
-		binder.AddMethodFromGlobal( &RenderState_ColorBuffer_Set1<1,EBlendFactor>,	"DstBlendFactor",	{"colorAndAlpha"} );
-		binder.AddMethodFromGlobal( &RenderState_ColorBuffer_Set2<1,EBlendFactor>,	"DstBlendFactor",	{"color", "alpha"} );
-		binder.AddMethodFromGlobal( &RenderState_ColorBuffer_Set1<2,EBlendOp>,		"BlendOp",			{"colorAndAlpha"} );
-		binder.AddMethodFromGlobal( &RenderState_ColorBuffer_Set2<2,EBlendOp>,		"BlendOp",			{"color", "alpha"} );
+		AS_METHOD( binder, (RenderState_ColorBuffer_Set1<0,EBlendFactor>),	"SrcBlendFactor",	{"colorAndAlpha"} );
+		AS_METHOD( binder, (RenderState_ColorBuffer_Set2<0,EBlendFactor>),	"SrcBlendFactor",	{"color", "alpha"} );
+		AS_METHOD( binder, (RenderState_ColorBuffer_Set1<1,EBlendFactor>),	"DstBlendFactor",	{"colorAndAlpha"} );
+		AS_METHOD( binder, (RenderState_ColorBuffer_Set2<1,EBlendFactor>),	"DstBlendFactor",	{"color", "alpha"} );
+		AS_METHOD( binder, (RenderState_ColorBuffer_Set1<2,EBlendOp>),		"BlendOp",			{"colorAndAlpha"} );
+		AS_METHOD( binder, (RenderState_ColorBuffer_Set2<2,EBlendOp>),		"BlendOp",			{"color", "alpha"} );
 
 	//	binder.AddProperty( &RenderState::ColorBuffer::srcBlendFactor,		"srcBlendFactor" );
 	//	binder.AddProperty( &RenderState::ColorBuffer::dstBlendFactor,		"dstBlendFactor" );
@@ -1594,8 +1595,8 @@ namespace
 	{
 		ClassBinder<RenderState::ColorBuffersState>	binder{ se };
 		binder.CreateClassValue();
-		binder.AddMethodFromGlobal( &RenderState_ColorBuffersState_SetColorBuffer,	"SetColorBuffer",	{"index", "cb"} );
-		binder.AddMethodFromGlobal( &RenderState_ColorBuffersState_GetColorBuffer,	"GetColorBuffer",	{"index"} );
+		AS_METHOD( binder, RenderState_ColorBuffersState_SetColorBuffer,	"SetColorBuffer",	{"index", "cb"} );
+		AS_METHOD( binder, RenderState_ColorBuffersState_GetColorBuffer,	"GetColorBuffer",	{"index"} );
 		binder.AddProperty( &RenderState::ColorBuffersState::logicOp,				"logicOp" );
 		binder.AddProperty( &RenderState::ColorBuffersState::blendColor,			"blendColor" );
 	}
@@ -1692,27 +1693,27 @@ namespace
 
 		binder.Comment( "Stencil test compare operator.\n"
 						"if '(stencilAttachment & CompareMask) [CompareOp] (Reference & CompareMask)' then sample passed stencil test." );
-		binder.AddMethodFromGlobal( &RenderState_StencilBufferState_CompareOp,		"CompareOp",	{} );
-		binder.AddMethodFromGlobal( &RenderState_StencilBufferState_Reference,		"Reference",	{} );
-		binder.AddMethodFromGlobal( &RenderState_StencilBufferState_CompareMask,	"CompareMask",	{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_CompareOp,		"CompareOp",	{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_Reference,		"Reference",	{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_CompareMask,		"CompareMask",	{} );
 
 		binder.Comment( "Action performed on samples that fail the stencil test.\n"
 						"'stencilValue = FailOp( stencilAttachment )'\n"
 						"See 'CompareOp', 'Reference' and 'CompareMask' to know how stencil test is performed." );
-		binder.AddMethodFromGlobal( &RenderState_StencilBufferState_FailOp,			"FailOp",		{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_FailOp,			"FailOp",		{} );
 
 		binder.Comment( "Action performed on samples that pass the stencil test and fail the depth test.\n"
 						"'stencilValue = DepthFailOp( stencilAttachment )'\n"
 						"Depth test happens after stencil test and before stencil update." );
-		binder.AddMethodFromGlobal( &RenderState_StencilBufferState_DepthFailOp,	"DepthFailOp",	{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_DepthFailOp,		"DepthFailOp",	{} );
 
 		binder.Comment( "Action performed on samples that pass both the depth and stencil tests.\n"
 						"'stencilValue = PassOp( stencilAttachment )'" );
-		binder.AddMethodFromGlobal( &RenderState_StencilBufferState_PassOp,			"PassOp",		{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_PassOp,			"PassOp",		{} );
 
 		binder.Comment( "Bitmask which is ANDed with new stencil value and stencil attachment value before updating stencil attachment.\n"
 						"'stencilAttachment = (stencilAttachment & WriteMask) | (stencilValue & WriteMask)'" );
-		binder.AddMethodFromGlobal( &RenderState_StencilBufferState_WriteMask,		"WriteMask",	{} );
+		AS_METHOD( binder, RenderState_StencilBufferState_WriteMask,		"WriteMask",	{} );
 	}
 
 /*

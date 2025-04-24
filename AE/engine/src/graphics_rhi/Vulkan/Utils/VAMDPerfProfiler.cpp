@@ -161,7 +161,7 @@ namespace {
 	  #ifdef AE_PLATFORM_WINDOWS
 		Unused( _module.Load( "GPUPerfAPIVK-x64.dll" ));
 	  #else
-		Unused( _module.Load( "libGPUPerfAPIVK.so" ));
+		Unused( _module.Load( "./libGPUPerfAPIVK.so" ));
 	  #endif
 
 		if ( not _module )

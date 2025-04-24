@@ -29,8 +29,8 @@
 		{
 			RC<Postprocess>		pass = Postprocess();
 			pass.Output( "out_Color",	rt );
-			pass.Slider( "iIsolines",		0,						1 );
-			pass.Slider( "iCurve",			0,						2 );
+			pass.Slider( "iIsolines",		0,						1,						1 );
+			pass.Slider( "iCurve",			0,						4,						1 );
 			pass.Slider( "iNoise",			0,						16,						int(params[0]) );
 			pass.Slider( "iOctaves",		1,						4,						int(params[1]) );
 			pass.Slider( "iPScale",			0.1f,					60.f,					params[2] );
@@ -71,16 +71,17 @@
 	ND_ float  CircleNoise (const float2 uv)
 	{
 		float	a = ATan( uv.y, uv.x ) * float_InvPi;
-		return Noise( ToUNorm( a ));
+		return Noise( ToUNorm( a ));	// unorm
 	}
 
-	ND_ float  ApplyDistortionCurve (float d)
+	ND_ float  ApplyDistortionCurve (float d, float n)
 	{
 		switch ( iCurve )
 		{
-			case 0 :	return d;
-			case 1 :	return d * SmoothStep( d, 0.0, 0.3 );
-			case 2 :	return d * SmoothStep( d, 0.0, 0.4 ) * (1.0 - SmoothStep( d, 0.3, 1.0 ));
+			case 0 :	return d + n * d;
+			case 1 :	return d + n * d * SmoothStep( d, 0.0, 0.3 );
+			case 2 :	return d + ToSNorm(n) * 0.1 * LinearStep( d, 0.0, 0.5 );
+			case 3 :	return d + n * d * SmoothStep( d, 0.0, 0.4 ) * (1.0 - SmoothStep( d, 0.3, 1.0 ));
 		}
 	}
 
@@ -90,13 +91,13 @@
 		float2	uv	= GetGlobalCoordSNormCorrected();
 
 		float	d	= Length( uv );
-		float	d2	= d + CircleNoise( uv ) * ApplyDistortionCurve( d );
+		float	d2	= ApplyDistortionCurve( d, CircleNoise( uv ));
 
 		out_Color = float4(0.25);
 
 		if ( iIsolines == 0 )
 		{
-			out_Color.rgb *= AA_Lines( d * un_PerPass.resolution.x, 1.0/300.0, 3.0 );
+			out_Color.rgb *= AA_Lines( d * un_PerPass.resolution.x, 1.0/600.0, 3.0 );
 
 			if ( Abs( d2 - 0.5 ) < 0.003 )
 				out_Color = float4(1.0);
@@ -104,7 +105,7 @@
 
 		if ( iIsolines == 1 )
 		{
-			out_Color.rgb = SDF_Isolines( (d2 - 0.5) * 20.0 );
+			out_Color.rgb = SDF_Isolines( (d2 - 0.5) * 40.0 );
 		}
 	}
 

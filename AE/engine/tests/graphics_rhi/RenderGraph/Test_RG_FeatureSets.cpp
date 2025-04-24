@@ -100,6 +100,9 @@ bool RGTest::Test_FeatureSets ()
 			case EGPUVendor::ImgTech :
 				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobilePowerVR"} ));
 				break;
+			case EGPUVendor::Mesa :
+				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktop"} ));
+				break;
 		}
 
 		if ( (dev >= EGraphicsDeviceID::Adreno_500			and dev <= EGraphicsDeviceID::_Adreno_End)	or

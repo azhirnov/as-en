@@ -97,6 +97,8 @@ static void  ValidateFS (INOUT FeatureSet &fs)
 	using ShaderVersion			= Graphics::FeatureSet::ShaderVersion;
 	using Queues				= Graphics::FeatureSet::Queues;
 	using ShadingRateSet_t		= Graphics::FeatureSet::ShadingRateSet_t;
+	using CoopMatrixSet_t		= Graphics::FeatureSet::CoopMatrixSet_t;
+	using CoopVecSet_t			= Graphics::FeatureSet::CoopVecSet_t;
 	using VRSTexelSize			= Graphics::FeatureSet::VRSTexelSize;
 	using KiBytes				= Graphics::FeatureSet::KiBytes;
 

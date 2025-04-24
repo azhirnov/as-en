@@ -139,7 +139,7 @@
 
 	void  Main ()
 	{
-		Ray				ray		= Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
+		Ray				ray		= Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 		gl::RayQuery	ray_query;
 		float4			color;
 

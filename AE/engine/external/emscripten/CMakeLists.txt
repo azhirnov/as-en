@@ -37,7 +37,3 @@ set( AE_ENABLE_UTF8PROC 		OFF CACHE INTERNAL "" FORCE )
 #set( AE_ENABLE_WEBGPU 			ON  CACHE BOOL "use WebGPU" )
 
 #----------------------------------------------------------
-
-set( CMAKE_INSTALL_PREFIX 	"${CMAKE_BINARY_DIR}/install" 					CACHE INTERNAL "installation directory"	FORCE )
-set( AE_DST_PATH			"${AE_EXTERNAL_BIN_PATH}/external/emscripten"	CACHE INTERNAL ""						FORCE )
-set( AE_DST_SHARED_PATH		"${AE_EXTERNAL_BIN_PATH}/external/emscripten"	CACHE INTERNAL ""						FORCE )

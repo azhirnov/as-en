@@ -8,6 +8,7 @@ if (${AE_DESKTOP})
 	add_subdirectory( "feature_set_gen" )
 	add_subdirectory( "lfas" )
 	add_subdirectory( "net_storage_server" )
+	add_subdirectory( "res_updater" )
 endif()
 
 add_subdirectory( "atlas_tools" )

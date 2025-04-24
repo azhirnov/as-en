@@ -247,7 +247,7 @@ namespace
 */
 	bool  GraphicsPipelineScriptBinding::Build () __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		try {
@@ -431,58 +431,58 @@ namespace
 
 		binder.Comment( "Add macros which will be used in shader.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::Define,				"Define",				{} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::Define,				"Define",				{} );
 
 		binder.Comment( "Set vertex shader.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetVertexShader,		"SetVertexShader",		{} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetVertexShader,		"SetVertexShader",		{} );
 
 		binder.Comment( "Set tessellation control shader. This shader is optional.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetTessControlShader,	"SetTessControlShader",	{} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetTessControlShader,	"SetTessControlShader",	{} );
 
 		binder.Comment( "Set tessellation evaluation shader. This shader is optional.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetTessEvalShader,	"SetTessEvalShader",	{} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetTessEvalShader,	"SetTessEvalShader",	{} );
 
 		binder.Comment( "Set geometry shader. This shader is optional.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetGeometryShader,	"SetGeometryShader",	{} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetGeometryShader,	"SetGeometryShader",	{} );
 
 		binder.Comment( "Set vertex shader.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetFragmentShader,	"SetFragmentShader",	{} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetFragmentShader,	"SetFragmentShader",	{} );
 
 		binder.Comment( "Create specialization for pipeline template.\n"
 						"Name is used in C++ code to get pipeline from render technique.\n"
 						"Pipeline specialization use the same pipeline layout, same shader binaries, compatible render pass, difference only in some parameters." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::AddSpecialization,	"AddSpecialization",	{"specName"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::AddSpecialization,	"AddSpecialization",	{"specName"} );
 
 		binder.Comment( "Check is fragment shader compatible with render pass." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::TestRenderPass,		"TestRenderPass",		{"compatRP", "subpass"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::TestRenderPass,		"TestRenderPass",		{"compatRP", "subpass"} );
 
 		binder.Comment( "Add FeatureSet to the pipeline." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::AddFeatureSet,		"AddFeatureSet",		{"fsName"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::AddFeatureSet,		"AddFeatureSet",		{"fsName"} );
 
 		binder.Comment( "Set pipeline layout.\n"
 						"Pipeline will inherit layout feature sets." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetLayout,			"SetLayout",			{"plName"} );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetLayout2,			"SetLayout",			{"pl"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetLayout,			"SetLayout",			{"plName"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetLayout2,			"SetLayout",			{"pl"} );
 
 		binder.Comment( "Set vertex default attributes." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetVertexInput,		"SetVertexInput",		{"vbName"} );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetVertexInput2,		"SetVertexInput",		{"vb"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetVertexInput,		"SetVertexInput",		{"vbName"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetVertexInput2,		"SetVertexInput",		{"vb"} );
 
 		binder.Comment( "Set shader interface between stages." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetShaderIO,			"SetShaderIO",			{"output", "input", "typeName"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetShaderIO,			"SetShaderIO",			{"output", "input", "typeName"} );
 
 		binder.Comment( "Add fragment shader output variables from render technique graphics pass.\n"
 						"Don't use it with explicit shader output." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetFragmentOutputFromRenderTech,	"SetFragmentOutputFromRenderTech", {"renTechName", "passName"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetFragmentOutputFromRenderTech,	"SetFragmentOutputFromRenderTech", {"renTechName", "passName"} );
 
 		binder.Comment( "Add fragment shader output variables from render pass.\n"
 						"Don't use it with explicit shader output." );
-		binder.AddMethod( &GraphicsPipelineScriptBinding::SetFragmentOutputFromRenderPass,	"SetFragmentOutputFromRenderPass", {"compatRP", "subpass"} );
+		AS_METHOD( binder, GraphicsPipelineScriptBinding::SetFragmentOutputFromRenderPass,	"SetFragmentOutputFromRenderPass", {"compatRP", "subpass"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -627,7 +627,7 @@ namespace
 		CHECK_THROW_MSG( value <= GraphicsConfig::MaxViewports );
 
 		if ( value > 1 )
-			TEST_FEATURE( GetBase()->GetFeatures(), multiViewport, ", it required when viewport count ("s << ToString(value) << ") is greater than 1" );
+			TEST_FEATURE_MSG( GetBase()->GetFeatures(), multiViewport, ", it required when viewport count ("s << ToString(value) << ") is greater than 1" );
 
 		TestFeature_Min( GetBase()->GetFeatures(), &FeatureSet::maxViewports, value, "maxViewports", "viewportCount" );
 
@@ -641,7 +641,7 @@ namespace
 */
 	bool  GraphicsPipelineSpecScriptBinding::Build (PipelineTemplUID templUID) __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		if ( IsBuilded() )
@@ -692,6 +692,28 @@ namespace
 		CHECK_THROW_MSG( ptr );
 		_vertexBuffers = ptr;
 	}
+	
+/*
+=================================================
+	GetSubpassIndex
+=================================================
+*/
+	uint  GraphicsPipelineSpecScriptBinding::GetSubpassIndex () C_NE___
+	{
+		CHECK( desc.renderPass.IsDefined() );
+
+		auto&	storage = *ObjectStorage::Instance();
+
+		auto	rp_it = storage.serializedRPs.find( desc.renderPass );
+		if ( rp_it == storage.serializedRPs.end() )
+			return UMax;
+
+		auto	sp_it = rp_it->second.subpasses.find( desc.subpass );
+		if ( sp_it == rp_it->second.subpasses.end() )
+			return UMax;
+
+		return sp_it->second.subpassIndex;
+	}
 
 /*
 =================================================
@@ -705,34 +727,34 @@ namespace
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetSpecValueU,	"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetSpecValueI,	"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetSpecValueF,	"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetSpecValueU,	"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetSpecValueI,	"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetSpecValueF,	"SetSpecValue",		{"name", "value"} );
 
 		binder.Comment( "Set dynamic states (EPipelineDynamicState).\n"
 						"Supported: StencilCompareMask, StencilWriteMask, StencilReference, DepthBias, BlendConstants', FragmentShadingRate." );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetDynamicState,	"SetDynamicState",	{"states"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetDynamicState,	"SetDynamicState",	{"states"} );
 
 		binder.Comment( "Set render state." );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetRenderState,	"SetRenderState",	{"rs"} );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetRenderState2,	"SetRenderState",	{"rsName"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetRenderState,	"SetRenderState",	{"rs"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetRenderState2,	"SetRenderState",	{"rsName"} );
 
 		binder.Comment( "Set number of viewports. Default is 1.\n"
 						"Requires 'multiViewport' feature." );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetViewportCount,	"SetViewportCount",	{"count"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetViewportCount,	"SetViewportCount",	{"count"} );
 
 		binder.Comment( "Attach pipeline to the render technique.\n"
 						"Render technique will create all attached pipelines during its creation." );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::AddToRenderTech,	"AddToRenderTech",	{"rtech", "gpass"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::AddToRenderTech,	"AddToRenderTech",	{"rtech", "gpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"
 						"Supported: 'Optimize'.\n"
 						"By default used value from 'GlobalConfig::SetPipelineOptions()'." );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetOptions,		"SetOptions",		{"opts"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetOptions,		"SetOptions",		{"opts"} );
 
 		binder.Comment( "Set vertex attributes." );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetVertexInput,	"SetVertexInput",	{"vbName"} );
-		binder.AddMethod( &GraphicsPipelineSpecScriptBinding::SetVertexInput2,	"SetVertexInput",	{"vb"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetVertexInput,	"SetVertexInput",	{"vbName"} );
+		AS_METHOD( binder, GraphicsPipelineSpecScriptBinding::SetVertexInput2,	"SetVertexInput",	{"vb"} );
 	}
 
 

@@ -4,7 +4,7 @@
 #include "scripting/Impl/ScriptTypes.h"
 
 #if ANGELSCRIPT_VERSION != 23700
-#	error required AngelScript 2.37
+#	pragma message( "required AngelScript 2.37" )
 #endif
 
 namespace AE::Scripting
@@ -598,6 +598,8 @@ namespace
 	bool  ScriptEngine::_CreateContext (const String &signature, const ScriptModulePtr &module, OUT AngelScript::asIScriptContext* &ctx)
 	{
 		using namespace AngelScript;
+
+		CHECK_ERR( module and module->_module );
 
 		ctx = _engine->CreateContext();
 		CHECK_ERR( ctx != null );

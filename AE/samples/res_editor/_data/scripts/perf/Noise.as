@@ -86,10 +86,11 @@
 
 	void Main ()
 	{
-		const float		lac		= 5.0;
-		const float		pers	= 1.0;
-		float3			pos		= GetGlobalCoordSNorm() * 100.f;
-		float			n		= 0.f;
+		const float			lac		= 5.0;
+		const float			pers	= 1.0;
+		float3				pos		= GetGlobalCoordSNorm() * 100.f;
+		float				n		= 0.f;
+		const FBMParams		fbm		= CreateFBMParams( lac, pers, iOctaves );
 
 		#if MODE == MGradientNoise
 			n = GradientNoise( pos );
@@ -134,31 +135,31 @@
 			n = WarleyNoise( pos );
 
 		#elif MODE == MGradientNoiseFBM
-			n = GradientNoiseFBM( pos, lac, pers, iOctaves );
+			n = GradientNoiseFBM( pos, fbm );
 
 		#elif MODE == MValueNoiseFBM
-			n = ValueNoiseFBM( pos, lac, pers, iOctaves );
+			n = ValueNoiseFBM( pos, fbm );
 
 		#elif MODE == MPerlinNoiseFBM
-			n = PerlinNoiseFBM( pos, lac, pers, iOctaves );
+			n = PerlinNoiseFBM( pos, fbm );
 
 		#elif MODE == MSimplexNoiseFBM
-			n = SimplexNoiseFBM( pos, lac, pers, iOctaves );
+			n = SimplexNoiseFBM( pos, fbm );
 
 		#elif MODE == MVoronoiFBM
-			n = VoronoiFBM( pos, lac, pers, iOctaves );
+			n = VoronoiFBM( pos, fbm );
 
 		#elif MODE == MWarleyNoiseFBM
-			n = WarleyNoiseFBM( pos, lac, pers, iOctaves );
+			n = WarleyNoiseFBM( pos, fbm );
 
 		#elif MODE == MIQNoiseFBM
-			n = IQNoiseFBM( pos, lac, pers, iOctaves );
+			n = IQNoiseFBM( pos, fbm );
 
 		#elif MODE == MVoronoiContourFBM
-			n = VoronoiContourFBM( pos, lac, pers, iOctaves );
+			n = VoronoiContourFBM( pos, fbm );
 
 		#elif MODE == MVoronoiContourSparseFBM
-			n = VoronoiContourSparseFBM( pos, lac, pers, iOctaves );
+			n = VoronoiContourSparseFBM( pos, fbm );
 
 		#else
 		#	error !!!

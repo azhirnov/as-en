@@ -725,9 +725,10 @@ namespace AE::Vulkan
 				fn.data.scope = EFuncScope::Library;
 			}
 			else
-			if ( res_info->second.type == VK_OBJECT_TYPE_INSTANCE or
-				 res_info->second.type == VK_OBJECT_TYPE_PHYSICAL_DEVICE or
-				 is_inst )
+			if ( res_info != _resourceTypes.end() and
+				 (res_info->second.type == VK_OBJECT_TYPE_INSTANCE or
+				  res_info->second.type == VK_OBJECT_TYPE_PHYSICAL_DEVICE or
+				  is_inst) )
 			{
 				fn.data.scope = EFuncScope::Instance;
 			}

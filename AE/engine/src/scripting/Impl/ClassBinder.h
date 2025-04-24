@@ -66,6 +66,7 @@ namespace AE::Scripting
 		using ArgNames_t	= List<StringView>;
 
 
+	  #ifndef AS_MAX_PORTABILITY
 		//
 		// Operator Binder (helper class)
 		// see http://www.angelcode.com/angelscript/sdk/docs/manual/doc_script_class_ops.html
@@ -137,9 +138,10 @@ namespace AE::Scripting
 			template <typename OutType> Self &	ImplCast (OutType const* (*) (const T *))	__Th___;
 
 			// compare
-			template <typename Fn>		Self &	Equal (Fn func)							__Th___;	// x == y
+			template <typename Fn>		Self &	Equal (Fn func)								__Th___;	// x == y
 			template <typename Fn>		Self &	Compare (Fn func)							__Th___;	// x <> y
 		};
+	  #endif
 
 
 	// variables
@@ -191,10 +193,12 @@ namespace AE::Scripting
 		void  AddProperty (const T &self, B &value, StringView name)									__Th___;
 
 		template <typename Fn>
-		void  AddMethod (Fn methodPtr, StringView name, ArgNames_t = {})								__Th___;
-
-		template <typename Fn>
 		void  AddGenericMethod (void (*fn)(ScriptArgList), StringView name, ArgNames_t = {})			__Th___;
+
+
+	  #ifndef AS_MAX_PORTABILITY
+		template <typename Fn>
+		void  AddMethod (Fn methodPtr, StringView name, ArgNames_t = {})								__Th___;
 
 		template <typename Fn>
 		void  AddMethodFromGlobal (Fn funcPtr, StringView name, ArgNames_t = {})						__Th___;
@@ -205,7 +209,11 @@ namespace AE::Scripting
 		template <typename Fn>
 		void  AddMethodFromGlobalObjLast (Fn funcPtr, StringView name, ArgNames_t = {})					__Th___;
 
+		template <typename Fn>
+		void  AddMethodOrGlobal (Fn methodPtr, StringView name, ArgNames_t = {})						__Th___;
+
 		ND_ OperatorBinder						Operators ()											__NE___	{ return OperatorBinder( this ); }
+	  #endif
 
 		ND_ StringView							Name ()													C_NE___	{ return _name; }
 

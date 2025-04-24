@@ -36,9 +36,9 @@ namespace AE::Graphics
 	public:
 		struct GraphicsPipelineStatistic
 		{
-			//ulong	inputAssemblyPrimitives;	// VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT
-			ulong	beforeClipping;				// VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT
+			ulong	inputAssemblyPrimitives;	// VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT
 			ulong	afterClipping;				// VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT
+			ulong	vertShaderInvocations;		// VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT
 			ulong	fragShaderInvocations;		// VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT
 
 			void  operator += (const GraphicsPipelineStatistic &) __NE___;
@@ -117,8 +117,9 @@ namespace AE::Graphics
 */
 	inline void  IQueryManager::GraphicsPipelineStatistic::operator += (const GraphicsPipelineStatistic &rhs) __NE___
 	{
-		beforeClipping			+= rhs.beforeClipping;
+		inputAssemblyPrimitives	+= rhs.inputAssemblyPrimitives;
 		afterClipping			+= rhs.afterClipping;
+		vertShaderInvocations	+= rhs.vertShaderInvocations;
 		fragShaderInvocations	+= rhs.fragShaderInvocations;
 	}
 

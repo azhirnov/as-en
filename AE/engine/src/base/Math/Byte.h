@@ -290,6 +290,12 @@ namespace AE::Base
 	{
 		return TByte<T>{ CeilPOT( T{x} )};
 	}
+	
+	template <typename T>
+	NdCx__ TByte<T>  NearPOT (const TByte<T> x) __NE___
+	{
+		return TByte<T>{ NearPOT( T{x} )};
+	}
 
 /*
 =================================================

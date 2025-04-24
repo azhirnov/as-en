@@ -5,7 +5,7 @@
 
 	Test without profiler:
 		* set 'Mode=1' to use a single pipeline.
-		* use internal graphics profiler to measure 'apply materials' pass duration.
+		* use engine internal graphics profiler to measure 'apply materials' pass duration.
 		* change 'PipelineHint()' to find pipeline with lowest duration.
 		* set 'Mode=0' and measure duration of multiple materials:
 			- if 'iQuads==1' then it should be the same as a single slowest material.

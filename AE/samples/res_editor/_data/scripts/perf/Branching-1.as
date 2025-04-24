@@ -55,10 +55,11 @@
 	#define M_BranchNonun		3
 	#define M_MatUn				4
 	#define M_MatNonun			5
-	#define M_FlattenUn			6
-	#define M_FlattenNonun		7
-	#define M_DontFlattenUn		8
-	#define M_DontFlattenNonun	9
+
+	#define M_FlattenUn			6	// \.
+	#define M_FlattenNonun		7	//  |- dosn't have effect
+	#define M_DontFlattenUn		8	//  |
+	#define M_DontFlattenNonun	9	// /
 
 	#include "InvocationID.glsl"
 	#include "CubeMap.glsl"
@@ -177,13 +178,13 @@
 				dir	= RotateVec4( dir, un_face );
 
 			#elif MODE == M_FlattenNonun
-				dir	= RotateVec4( dir, un_face );
+				dir	= RotateVec4( dir, face );
 
 			#elif MODE == M_DontFlattenUn
 				dir	= RotateVec5( dir, un_face );
 
 			#elif MODE == M_DontFlattenNonun
-				dir	= RotateVec5( dir, un_face );
+				dir	= RotateVec5( dir, face );
 
 			#else
 			#	error !!!

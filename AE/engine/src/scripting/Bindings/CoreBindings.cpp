@@ -80,12 +80,12 @@ namespace AE::Scripting
 	{
 		CHECK_THROW( se and se->IsInitialized() );
 
-		se->AddFunction( &LogFunc::Err,		"LogError",		{"msg"} );
-		se->AddFunction( &LogFunc::Info,	"LogInfo",		{"msg"} );
-		se->AddFunction( &LogFunc::Dbg,		"LogDebug",		{"msg"} );
-		se->AddFunction( &LogFunc::Fatal,	"LogFatal",		{"msg"} );
-		se->AddFunction( &LogFunc::Assert1,	"Assert",		{"expr"} );
-		se->AddFunction( &LogFunc::Assert2,	"Assert",		{"expr", "msg"} );
+		AS_GLOBAL_FN( se, LogFunc::Err,		"LogError",		{"msg"} );
+		AS_GLOBAL_FN( se, LogFunc::Info,	"LogInfo",		{"msg"} );
+		AS_GLOBAL_FN( se, LogFunc::Dbg,		"LogDebug",		{"msg"} );
+		AS_GLOBAL_FN( se, LogFunc::Fatal,	"LogFatal",		{"msg"} );
+		AS_GLOBAL_FN( se, LogFunc::Assert1,	"Assert",		{"expr"} );
+		AS_GLOBAL_FN( se, LogFunc::Assert2,	"Assert",		{"expr", "msg"} );
 	}
 
 /*

@@ -32,8 +32,8 @@ namespace
 			}
 		)#";
 
-		se->AddGenericFn< int (int, float) >( &GenericFn1, "gen" );
-		se->AddGenericFn< int (double, ulong) >( &GenericFn1, "gen" );
+		se->AddGenericFn< int (int, float)		>( &GenericFn1, "gen" );
+		se->AddGenericFn< int (double, ulong)	>( &GenericFn1, "gen" );
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "ASmain", OUT res ));

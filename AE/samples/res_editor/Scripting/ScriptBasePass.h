@@ -118,7 +118,8 @@ namespace AE::ResEditor
 	// interface
 	public:
 		// Returns non-null pass or throw exception.
-		ND_ virtual RC<IPass>	ToPass ()																					C_Th___ = 0;
+		// Called once.
+		ND_ virtual RC<IPass>	ToPass ()																					__Th___ = 0;
 
 
 	// methods
@@ -239,7 +240,9 @@ namespace AE::ResEditor
 	protected:
 		ScriptBasePass ()																				__Th___;
 
-		void  _Init (IPass &dst, const ScriptBaseControllerPtr &defaultController)						C_Th___;
+		void  _Init (IPass &dst, const ScriptBaseControllerPtr &defaultController,
+					 Bool enableLog = True{})															C_Th___;
+		void  _MoveTo (OUT ScriptBasePass &dst)															__NE___;
 
 		ND_ ScriptDynamicDim*	_Dimension ()															__Th___;
 		void  _SetDynamicDimension (const ScriptDynamicDimPtr &)										__Th___;
@@ -255,7 +258,7 @@ namespace AE::ResEditor
 		static void  _AddDefines (StringView defines, INOUT String &header)								__Th___;
 
 		void  _AddSliders (INOUT String &header)														C_Th___;
-		void  _AddSlidersAsMacros (OUT String &macros)													C_Th___;
+		void  _AddSlidersAsMacros (INOUT String &macros)												C_Th___;
 
 		ND_ Strong<BufferID>  _CreateUBuffer (Bytes size, StringView dbgName, EResourceState defaultState)	C_Th___;
 	};

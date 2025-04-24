@@ -21,7 +21,7 @@ static void  GraphicsPerfTests (RC<VFS::IVirtualFileStorage> assetStorage)
 	}
 	#endif
 
-	AE_LOGI( "PerformanceTests.GraphicsHL finished" );
+	AE_LOGI( "PerformanceTests.Graphics finished" );
 }
 
 

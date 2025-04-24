@@ -3,6 +3,46 @@ rmdir /Q /S "_build_clang_sse"
 mkdir _build_clang_sse
 cd _build_clang_sse
 
+cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_AVX=33 -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON "../AE"
+cmake --build . --config Debug --target Tests.Base
+ctest -R "Tests.Base" -C Debug -V
+pause
+
+cd ..
+rmdir /Q /S "_build_clang_sse"
+mkdir _build_clang_sse
+cd _build_clang_sse
+
+cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_AVX=32 -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON "../AE"
+cmake --build . --config Debug --target Tests.Base
+ctest -R "Tests.Base" -C Debug -V
+pause
+
+cd ..
+rmdir /Q /S "_build_clang_sse"
+mkdir _build_clang_sse
+cd _build_clang_sse
+
+cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_AVX=31 -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON "../AE"
+cmake --build . --config Debug --target Tests.Base
+ctest -R "Tests.Base" -C Debug -V
+pause
+
+cd ..
+rmdir /Q /S "_build_clang_sse"
+mkdir _build_clang_sse
+cd _build_clang_sse
+
+cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_AVX=30 -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON "../AE"
+cmake --build . --config Debug --target Tests.Base
+ctest -R "Tests.Base" -C Debug -V
+pause
+
+cd ..
+rmdir /Q /S "_build_clang_sse"
+mkdir _build_clang_sse
+cd _build_clang_sse
+
 cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_AVX=2 -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON "../AE"
 cmake --build . --config Debug --target Tests.Base
 ctest -R "Tests.Base" -C Debug -V
@@ -73,7 +113,27 @@ rmdir /Q /S "_build_clang_sse"
 mkdir _build_clang_sse
 cd _build_clang_sse
 
-cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_SSE=20 -DAE_SIMD_SHA=1 -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON "../AE"
+cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_SSE=20 -DAE_SIMD_SHA=20 -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON "../AE"
+cmake --build . --config Debug --target Tests.Base
+ctest -R "Tests.Base" -C Debug -V
+pause
+
+cd ..
+rmdir /Q /S "_build_clang_sse"
+mkdir _build_clang_sse
+cd _build_clang_sse
+
+cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_SSE=20 -DAE_SIMD_SHA=21 -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON "../AE"
+cmake --build . --config Debug --target Tests.Base
+ctest -R "Tests.Base" -C Debug -V
+pause
+
+cd ..
+rmdir /Q /S "_build_clang_sse"
+mkdir _build_clang_sse
+cd _build_clang_sse
+
+cmake -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_SIMD_SSE=20 -DAE_SIMD_SHA=30 -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON "../AE"
 cmake --build . --config Debug --target Tests.Base
 ctest -R "Tests.Base" -C Debug -V
 pause

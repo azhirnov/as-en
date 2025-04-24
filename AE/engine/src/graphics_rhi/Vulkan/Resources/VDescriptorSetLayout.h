@@ -37,6 +37,7 @@ namespace AE::Graphics
 		{
 			Array< VkDescriptorSetLayoutBinding >		desc;		// TODO: temp allocator ?
 			Array< VkDescriptorUpdateTemplateEntry >	entries;
+			Array< VkDescriptorBindingFlags >			flags;
 			Bytes										tmplEntryOffset;
 			uint										dbCount			= 0;
 			bool										allowUpdateTmpl	= false;

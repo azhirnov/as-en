@@ -617,14 +617,14 @@ namespace
 		CoreBindings::BindString( se );
 		CoreBindings::BindLog( se );
 
-		se->AddFunction( &GetSharedFeatureSetPath,	"GetSharedFeatureSetPath"	);
-		se->AddFunction( &GetSharedShadersPath,		"GetSharedShadersPath"		);
-		se->AddFunction( &GetCanvasVerticesPath,	"GetCanvasVerticesPath"		);
-		se->AddFunction( &GetUIBindingsPath,		"GetUIBindingsPath"			);
-		se->AddFunction( &GetOutputDir,				"GetOutputDir"				);
-		se->AddFunction( &DeleteFolder,				"DeleteFolder"				);
-		se->AddFunction( &IsGLSLCompilerSupported,	"IsGLSLCompilerSupported"	);
-		se->AddFunction( &IsMetalCompilerSupported,	"IsMetalCompilerSupported"	);
+		AS_GLOBAL_FN( se, GetSharedFeatureSetPath,	"GetSharedFeatureSetPath"	);
+		AS_GLOBAL_FN( se, GetSharedShadersPath,		"GetSharedShadersPath"		);
+		AS_GLOBAL_FN( se, GetCanvasVerticesPath,	"GetCanvasVerticesPath"		);
+		AS_GLOBAL_FN( se, GetUIBindingsPath,		"GetUIBindingsPath"			);
+		AS_GLOBAL_FN( se, GetOutputDir,				"GetOutputDir"				);
+		AS_GLOBAL_FN( se, DeleteFolder,				"DeleteFolder"				);
+		AS_GLOBAL_FN( se, IsGLSLCompilerSupported,	"IsGLSLCompilerSupported"	);
+		AS_GLOBAL_FN( se, IsMetalCompilerSupported,	"IsMetalCompilerSupported"	);
 
 		// pipeline compiler path params
 		{
@@ -671,43 +671,43 @@ namespace
 		{
 			ClassBinder<ScriptPipelineCompiler>		binder{ se };
 			binder.CreateRef();
-			binder.AddMethod( &ScriptPipelineCompiler::AddPipelineFolder,				"AddPipelineFolder"				);
-			binder.AddMethod( &ScriptPipelineCompiler::AddPipelineRecursiveFolder,		"AddPipelineFolderRecursive"	);
-			binder.AddMethod( &ScriptPipelineCompiler::AddPipeline,						"AddPipeline"					);
-			binder.AddMethod( &ScriptPipelineCompiler::AddShaderFolder,					"AddShaderFolder"				);
-			binder.AddMethod( &ScriptPipelineCompiler::AddShaderIncludeDir,				"ShaderIncludeDir"				);
-			binder.AddMethod( &ScriptPipelineCompiler::AddPipelineIncludeDir,			"PipelineIncludeDir"			);
-			binder.AddMethod( &ScriptPipelineCompiler::IncludePipelinesFromCurrentDir,	"IncludePipelinesFromCurrentDir");
-			binder.AddMethod( &ScriptPipelineCompiler::IncludePipelinesFromCurrentDir2,	"IncludePipelinesFromCurrentDir");
-			binder.AddMethod( &ScriptPipelineCompiler::SearchShadersInCurrentDir,		"SearchShadersInCurrentDir"		);
-			binder.AddMethod( &ScriptPipelineCompiler::SearchShadersInCurrentDir2,		"SearchShadersInCurrentDir"		);
-			binder.AddMethod( &ScriptPipelineCompiler::AddNameMapping,					"AddNameMapping"				);
-			binder.AddMethod( &ScriptPipelineCompiler::AddNameMapping2,					"AddNameMapping"				);
+			AS_METHOD( binder, ScriptPipelineCompiler::AddPipelineFolder,				"AddPipelineFolder"				);
+			AS_METHOD( binder, ScriptPipelineCompiler::AddPipelineRecursiveFolder,		"AddPipelineFolderRecursive"	);
+			AS_METHOD( binder, ScriptPipelineCompiler::AddPipeline,						"AddPipeline"					);
+			AS_METHOD( binder, ScriptPipelineCompiler::AddShaderFolder,					"AddShaderFolder"				);
+			AS_METHOD( binder, ScriptPipelineCompiler::AddShaderIncludeDir,				"ShaderIncludeDir"				);
+			AS_METHOD( binder, ScriptPipelineCompiler::AddPipelineIncludeDir,			"PipelineIncludeDir"			);
+			AS_METHOD( binder, ScriptPipelineCompiler::IncludePipelinesFromCurrentDir,	"IncludePipelinesFromCurrentDir");
+			AS_METHOD( binder, ScriptPipelineCompiler::IncludePipelinesFromCurrentDir2,	"IncludePipelinesFromCurrentDir");
+			AS_METHOD( binder, ScriptPipelineCompiler::SearchShadersInCurrentDir,		"SearchShadersInCurrentDir"		);
+			AS_METHOD( binder, ScriptPipelineCompiler::SearchShadersInCurrentDir2,		"SearchShadersInCurrentDir"		);
+			AS_METHOD( binder, ScriptPipelineCompiler::AddNameMapping,					"AddNameMapping"				);
+			AS_METHOD( binder, ScriptPipelineCompiler::AddNameMapping2,					"AddNameMapping"				);
 
-			binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile1,				"SetOutputCPPFile"				);
-			binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile2,				"SetOutputCPPFile"				);
-			binder.AddMethod( &ScriptPipelineCompiler::Compile,							"Compile"						);
+			AS_METHOD( binder, ScriptPipelineCompiler::SetOutputCPPFile1,				"SetOutputCPPFile"				);
+			AS_METHOD( binder, ScriptPipelineCompiler::SetOutputCPPFile2,				"SetOutputCPPFile"				);
+			AS_METHOD( binder, ScriptPipelineCompiler::Compile,							"Compile"						);
 		}
 
 		// input actions
 		{
 			ClassBinder<ScriptInputActions>		binder{ se };
 			binder.CreateRef();
-			binder.AddMethod( &ScriptInputActions::Add,					"Add"				);
-			binder.AddMethod( &ScriptInputActions::Include,				"Include"			);
-			binder.AddMethod( &ScriptInputActions::SetOutputCPPFile,	"SetOutputCPPFile"	);
-			binder.AddMethod( &ScriptInputActions::Convert,				"Convert"			);
+			AS_METHOD( binder, ScriptInputActions::Add,					"Add"				);
+			AS_METHOD( binder, ScriptInputActions::Include,				"Include"			);
+			AS_METHOD( binder, ScriptInputActions::SetOutputCPPFile,	"SetOutputCPPFile"	);
+			AS_METHOD( binder, ScriptInputActions::Convert,				"Convert"			);
 		}
 
 		// asset packer
 		{
 			ClassBinder<ScriptAssetPacker>		binder{ se };
 			binder.CreateRef();
-			binder.AddMethod( &ScriptAssetPacker::Add,					"Add"				);
-			binder.AddMethod( &ScriptAssetPacker::AddFolder,			"AddFolder"			);
-			binder.AddMethod( &ScriptAssetPacker::Include,				"Include"			);
-			binder.AddMethod( &ScriptAssetPacker::SetTempFile,			"SetTempFile"		);
-			binder.AddMethod( &ScriptAssetPacker::ToArchive,			"ToArchive"			);
+			AS_METHOD( binder, ScriptAssetPacker::Add,					"Add"				);
+			AS_METHOD( binder, ScriptAssetPacker::AddFolder,			"AddFolder"			);
+			AS_METHOD( binder, ScriptAssetPacker::Include,				"Include"			);
+			AS_METHOD( binder, ScriptAssetPacker::SetTempFile,			"SetTempFile"		);
+			AS_METHOD( binder, ScriptAssetPacker::ToArchive,			"ToArchive"			);
 		}
 
 		// archive
@@ -715,14 +715,14 @@ namespace
 			ClassBinder<ScriptArchive>		binder{ se };
 			binder.CreateRef();
 			binder.Comment( "Initialize archive, set path to temporary file which will be used to store archive before 'Store()' call." );
-			binder.AddMethod( &ScriptArchive::SetTempFile,				"SetTempFile"			);
-			binder.AddMethod( &ScriptArchive::SetDefaultFileType,		"SetDefaultFileType"	);
-			binder.AddMethod( &ScriptArchive::Add1,						"Add",					{"nameInArchive", "filePath", "archiveFileType"} );
-			binder.AddMethod( &ScriptArchive::Add2,						"Add",					{"filePath", "archiveFileType"} );
-			binder.AddMethod( &ScriptArchive::Add3,						"Add",					{"nameInArchive", "filePath"} );
-			binder.AddMethod( &ScriptArchive::Add4,						"Add",					{"filePath"} );
-			binder.AddMethod( &ScriptArchive::AddArchive,				"AddArchive"			);
-			binder.AddMethod( &ScriptArchive::Store,					"Store"					);
+			AS_METHOD( binder, ScriptArchive::SetTempFile,				"SetTempFile"			);
+			AS_METHOD( binder, ScriptArchive::SetDefaultFileType,		"SetDefaultFileType"	);
+			AS_METHOD( binder, ScriptArchive::Add1,						"Add",					{"nameInArchive", "filePath", "archiveFileType"} );
+			AS_METHOD( binder, ScriptArchive::Add2,						"Add",					{"filePath", "archiveFileType"} );
+			AS_METHOD( binder, ScriptArchive::Add3,						"Add",					{"nameInArchive", "filePath"} );
+			AS_METHOD( binder, ScriptArchive::Add4,						"Add",					{"filePath"} );
+			AS_METHOD( binder, ScriptArchive::AddArchive,				"AddArchive"			);
+			AS_METHOD( binder, ScriptArchive::Store,					"Store"					);
 		}
 	}
 
@@ -801,20 +801,28 @@ namespace
 
 		s_SearchDirs.clear();
 
-		for (int i = 1; i+1 < argc; i += 2)
+		#if 0
+		// for debugging
 		{
-			auto	type	= StringView{argv[i+0]};
-			if ( type == "-i" )
-				input_script = FileSystem::ToAbsolute( Path{ argv[i+1] });
-			else
-			if ( type == "-o" )
-				output_dir = FileSystem::ToAbsolute( Path{ argv[i+1] });
-			else
-			if ( type == "-d" )
-				s_SearchDirs.push_back( FileSystem::ToAbsolute( Path{ argv[i+1] }));
-			else
-				RETURN_ERR( "unknown command: '"s << type << "' + '" << argv[i+1] << "'", -1 );
+			input_script 	= "";	// -i
+			output_dir 		= "";				// -o
 		}
+		#else
+			for (int i = 1; i+1 < argc; i += 2)
+			{
+				auto	type	= StringView{argv[i+0]};
+				if ( type == "-i" )
+					input_script = FileSystem::ToAbsolute( Path{ argv[i+1] });
+				else
+				if ( type == "-o" )
+					output_dir = FileSystem::ToAbsolute( Path{ argv[i+1] });
+				else
+				if ( type == "-d" )
+					s_SearchDirs.push_back( FileSystem::ToAbsolute( Path{ argv[i+1] }));
+				else
+					RETURN_ERR( "unknown command: '"s << type << "' + '" << argv[i+1] << "'", -1 );
+			}
+		#endif
 
 		CHECK_ERR( RunScript( input_script, output_dir ), -2 );
 		return 0;

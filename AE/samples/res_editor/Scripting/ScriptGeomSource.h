@@ -84,7 +84,7 @@ namespace AE::ResEditor
 		ND_ virtual ScriptRTGeometryPtr  GetRTGeometry (EGeometryType)												__Th___ { return null; }
 
 		ND_ virtual RC<IGeomSource>		ToGeomSource ()																__Th___ = 0;
-		ND_ virtual PipelineNames_t		FindMaterialGraphicsPipelines (ERenderLayer)								C_Th___	= 0;
+		ND_ virtual PipelineNames_t		FindMaterialGraphicsPipelines (ERenderLayer, uint subpassIdx)				C_Th___	= 0;
 			virtual void				AddLayoutReflection ()														C_Th___	{ _args.AddLayoutReflection(); }
 		ND_ virtual RC<IGSMaterials>	ToMaterial (ERenderLayer, RenderTechPipelinesPtr, const PipelineNames_t &)	C_Th___ = 0;
 
@@ -126,7 +126,7 @@ namespace AE::ResEditor
 
 	// ScriptGeomSource //
 		ND_ RC<IGeomSource>		ToGeomSource ()																__Th_OV;
-		ND_ PipelineNames_t		FindMaterialGraphicsPipelines (ERenderLayer layer)							C_Th_OV;
+		ND_ PipelineNames_t		FindMaterialGraphicsPipelines (ERenderLayer layer, uint subpassIdx)			C_Th_OV;
 		ND_ RC<IGSMaterials>	ToMaterial (ERenderLayer, RenderTechPipelinesPtr, const PipelineNames_t &)	C_Th_OV;
 
 	private:
@@ -173,6 +173,7 @@ namespace AE::ResEditor
 			uint					instanceCount			= 1;
 			uint					firstVertex				= 0;
 			uint					firstInstance			= 0;
+			ERenderLayer			layer					= ERenderLayer::Opaque;
 
 			void  SetDynVertexCount (const ScriptDynamicUIntPtr &);
 			void  SetDynInstanceCount (const ScriptDynamicUIntPtr &);
@@ -194,6 +195,7 @@ namespace AE::ResEditor
 			uint					firstIndex				= 0;
 			int						vertexOffset			= 0;
 			uint					firstInstance			= 0;
+			ERenderLayer			layer					= ERenderLayer::Opaque;
 
 			void  SetDynIndexCount (const ScriptDynamicUIntPtr &);
 			void  SetDynInstanceCount (const ScriptDynamicUIntPtr &);
@@ -210,6 +212,7 @@ namespace AE::ResEditor
 			uint					drawCount				= 1;
 			ScriptDynamicUIntPtr	dynDrawCount;
 			uint					stride					= sizeof(Graphics::DrawIndirectCommand);
+			ERenderLayer			layer					= ERenderLayer::Opaque;
 
 			void  SetDynDrawCount (const ScriptDynamicUIntPtr &);
 
@@ -229,6 +232,7 @@ namespace AE::ResEditor
 			uint					drawCount				= 1;
 			ScriptDynamicUIntPtr	dynDrawCount;
 			uint					stride					= sizeof(Graphics::DrawIndexedIndirectCommand);
+			ERenderLayer			layer					= ERenderLayer::Opaque;
 
 			void  SetDynDrawCount (const ScriptDynamicUIntPtr &);
 
@@ -240,6 +244,7 @@ namespace AE::ResEditor
 			String					_pplnHint;
 			ScriptDynamicUInt3Ptr	dynTaskCount;
 			packed_uint3			taskCount				{1};
+			ERenderLayer			layer					= ERenderLayer::Opaque;
 
 			void  SetDynTaskCount (const ScriptDynamicUInt3Ptr &);
 			void  SetDynTaskCount1 (const ScriptDynamicUIntPtr &);
@@ -256,6 +261,7 @@ namespace AE::ResEditor
 			uint					drawCount				= 1;
 			ScriptDynamicUIntPtr	dynDrawCount;
 			uint					stride					= sizeof(Graphics::DrawMeshTasksIndirectCommand);
+			ERenderLayer			layer					= ERenderLayer::Opaque;
 
 			void  SetDynDrawCount (const ScriptDynamicUIntPtr &);
 
@@ -274,6 +280,7 @@ namespace AE::ResEditor
 			uint					maxDrawCount			= 1;
 			ScriptDynamicUIntPtr	dynMaxDrawCount;
 			uint					stride					= sizeof(Graphics::DrawIndirectCommand);
+			ERenderLayer			layer					= ERenderLayer::Opaque;
 
 			void  SetDynMaxDrawCount (const ScriptDynamicUIntPtr &);
 
@@ -296,6 +303,7 @@ namespace AE::ResEditor
 			uint					maxDrawCount			= 1;
 			ScriptDynamicUIntPtr	dynMaxDrawCount;
 			uint					stride					= sizeof(Graphics::DrawIndexedIndirectCommand);
+			ERenderLayer			layer					= ERenderLayer::Opaque;
 
 			void  SetDynMaxDrawCount (const ScriptDynamicUIntPtr &);
 
@@ -314,6 +322,7 @@ namespace AE::ResEditor
 			uint					maxDrawCount			= 1;
 			ScriptDynamicUIntPtr	dynMaxDrawCount;
 			uint					stride					= sizeof(Graphics::DrawMeshTasksIndirectCommand);
+			ERenderLayer			layer					= ERenderLayer::Opaque;
 
 			void  SetDynMaxDrawCount (const ScriptDynamicUIntPtr &);
 
@@ -377,7 +386,7 @@ namespace AE::ResEditor
 
 	// ScriptGeomSource //
 		ND_ RC<IGeomSource>		ToGeomSource ()																__Th_OV;
-		ND_ PipelineNames_t		FindMaterialGraphicsPipelines (ERenderLayer layer)							C_Th_OV;
+		ND_ PipelineNames_t		FindMaterialGraphicsPipelines (ERenderLayer layer, uint subpassIdx)			C_Th_OV;
 		ND_ RC<IGSMaterials>	ToMaterial (ERenderLayer, RenderTechPipelinesPtr, const PipelineNames_t &)	C_Th_OV;
 
 	private:
@@ -479,7 +488,7 @@ namespace AE::ResEditor
 
 	// ScriptGeomSource //
 		ND_ RC<IGeomSource>		ToGeomSource ()																__Th_OV;
-		ND_ PipelineNames_t		FindMaterialGraphicsPipelines (ERenderLayer layer)							C_Th_OV;
+		ND_ PipelineNames_t		FindMaterialGraphicsPipelines (ERenderLayer layer, uint subpassIdx)			C_Th_OV;
 		ND_ RC<IGSMaterials>	ToMaterial (ERenderLayer, RenderTechPipelinesPtr, const PipelineNames_t &)	C_Th_OV;
 
 	private:

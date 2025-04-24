@@ -336,6 +336,31 @@ Gen_SATURATE( float, float_vec_t )
 
 #undef Gen_SATURATE1
 #undef Gen_SATURATE
+	
+/*
+=================================================
+	Rcp
+----
+	Reciprocal - fast division with less accuracy
+=================================================
+*/
+ND_ float	Rcp (const float  x)	{ return 1.0f / x; }
+ND_ float2	Rcp (const float2 x)	{ return 1.0f / x; }
+ND_ float3	Rcp (const float3 x)	{ return 1.0f / x; }
+ND_ float4	Rcp (const float4 x)	{ return 1.0f / x; }
+
+#if AE_ENABLE_HALF_TYPE
+	ND_ half	Rcp (const half  x)	{ return 1.0hf / x; }
+	ND_ half2	Rcp (const half2 x)	{ return 1.0hf / x; }
+	ND_ half3	Rcp (const half3 x)	{ return 1.0hf / x; }
+	ND_ half4	Rcp (const half4 x)	{ return 1.0hf / x; }
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	ND_ double	Rcp (const double  x)	{ return 1.0lf / x; }
+	ND_ double2	Rcp (const double2 x)	{ return 1.0lf / x; }
+	ND_ double3	Rcp (const double3 x)	{ return 1.0lf / x; }
+	ND_ double4	Rcp (const double4 x)	{ return 1.0lf / x; }
+#endif
 
 /*
 =================================================

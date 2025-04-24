@@ -5,6 +5,7 @@ void ASmain ()
 {
 	// include:
 	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
+	//	AMD Radeon Graphics (RADV PHOENIX) driver 25.0.1 on Ubuntu 22.04
 	//	AMD Radeon HD 7970M (RADV PITCAIRN) driver 23.3.3 on Manjaro unknown
 	//	AMD Radeon HD 8790M (RADV OLAND) driver 23.0.4 on Ubuntu 22.04
 	//	AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
@@ -49,19 +50,11 @@ void ASmain ()
 		ESubgroupTypes::Int64
 	));
 	fset.subgroupStages(EShaderStages(
-		EShaderStages::Vertex | 
-		EShaderStages::TessControl | 
-		EShaderStages::TessEvaluation | 
-		EShaderStages::Geometry | 
-		EShaderStages::Fragment | 
+		EShaderStages::GraphicsPipeStages | 
 		EShaderStages::Compute
 	));
 	fset.subgroupQuadStages(EShaderStages(
-		EShaderStages::Vertex | 
-		EShaderStages::TessControl | 
-		EShaderStages::TessEvaluation | 
-		EShaderStages::Geometry | 
-		EShaderStages::Fragment | 
+		EShaderStages::GraphicsPipeStages | 
 		EShaderStages::Compute
 	));
 	fset.minSubgroupSize (32);
@@ -118,7 +111,6 @@ void ASmain ()
 	fset.shaderDemoteToHelperInvocation (True);
 	fset.shaderTerminateInvocation (True);
 	fset.shaderZeroInitializeWorkgroupMemory (True);
-	fset.shaderIntegerDotProduct (True);
 	fset.maxSpirvVersion (150);
 	fset.drawIndirectFirstInstance (True);
 	fset.drawIndirectCount (True);

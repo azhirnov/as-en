@@ -277,18 +277,18 @@ namespace {
 			Scripting::ClassBinder<ScriptRasterFont>	binder{ se };
 			binder.CreateRef();
 
-			binder.AddMethod( &ScriptRasterFont::Load,				"Load",				{"fontFile"} );
-			binder.AddMethod( &ScriptRasterFont::AddCharset,		"AddCharset",		{"firstCharIndexInUnicode", "lastCharIndexInUnicode"} );
-			binder.AddMethod( &ScriptRasterFont::AddCharset_Ascii,	"AddCharset_Ascii",	{} );
-			binder.AddMethod( &ScriptRasterFont::AddCharset_Rus,	"AddCharset_Rus",	{} );
-			binder.AddMethod( &ScriptRasterFont::SetGlyphSize,		"GlyphSize",		{"heightInPixels"} );
-			binder.AddMethod( &ScriptRasterFont::SetGlyphPadding,	"GlyphPadding",		{"paddingInPixels"} );
-			binder.AddMethod( &ScriptRasterFont::Store,				"Store",			{"nameInArchive"} );
-			binder.AddMethod( &ScriptRasterFont::PutMeta,			"PutMeta",			{"metaFile", "nameInMeta"} );
-			binder.AddMethod( &ScriptRasterFont::PutData,			"PutData",			{"image"} );
-			binder.AddMethod( &ScriptRasterFont::SetFormat,			"Format",			{"newFormat"} );
-			binder.AddMethod( &ScriptRasterFont::SetRasterMode,		"RasterMode",		{} );
-			binder.AddMethod( &ScriptRasterFont::SetSDFGlyphBorder,	"SDFGlyphBorder",	{"borderSizeInPixels"} );
+			AS_METHOD( binder, ScriptRasterFont::Load,				"Load",				{"fontFile"} );
+			AS_METHOD( binder, ScriptRasterFont::AddCharset,		"AddCharset",		{"firstCharIndexInUnicode", "lastCharIndexInUnicode"} );
+			AS_METHOD( binder, ScriptRasterFont::AddCharset_Ascii,	"AddCharset_Ascii",	{} );
+			AS_METHOD( binder, ScriptRasterFont::AddCharset_Rus,	"AddCharset_Rus",	{} );
+			AS_METHOD( binder, ScriptRasterFont::SetGlyphSize,		"GlyphSize",		{"heightInPixels"} );
+			AS_METHOD( binder, ScriptRasterFont::SetGlyphPadding,	"GlyphPadding",		{"paddingInPixels"} );
+			AS_METHOD( binder, ScriptRasterFont::Store,				"Store",			{"nameInArchive"} );
+			AS_METHOD( binder, ScriptRasterFont::PutMeta,			"PutMeta",			{"metaFile", "nameInMeta"} );
+			AS_METHOD( binder, ScriptRasterFont::PutData,			"PutData",			{"image"} );
+			AS_METHOD( binder, ScriptRasterFont::SetFormat,			"Format",			{"newFormat"} );
+			AS_METHOD( binder, ScriptRasterFont::SetRasterMode,		"RasterMode",		{} );
+			AS_METHOD( binder, ScriptRasterFont::SetSDFGlyphBorder,	"SDFGlyphBorder",	{"borderSizeInPixels"} );
 		}
 	}
 
@@ -432,7 +432,7 @@ namespace {
 			_imageHeader.viewType		= EImage_2D;
 			_imageHeader.format			= dst_image.PixelFormat();
 			_imageHeader.flags			= 0;
-			_imageHeader.rowAlignPOT	= 0;
+			_imageHeader.rowAlignPOT	= POTBytes{};
 
 			StaticAssert( sizeof(_imageHeader) == 16 );
 		}

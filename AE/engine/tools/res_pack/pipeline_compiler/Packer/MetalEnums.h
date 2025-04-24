@@ -275,7 +275,7 @@ namespace AE::PipelineCompiler
 */
 	ND_ inline MtlPixelFormat  MEnumCast (EPixelFormat value)
 	{
-#		define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_, ... ) \
+		#define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_, ... ) \
 			case EPixelFormat::_engineFmt_ : return MtlPixelFormat::_mtlFormat_;
 
 		switch_enum( value )
@@ -348,7 +348,7 @@ namespace AE::PipelineCompiler
 		}
 		switch_end
 
-#		undef FMT_BUILDER
+		#undef FMT_BUILDER
 
 		RETURN_ERR( "invalid pixel format", MtlPixelFormat::Invalid );
 	}

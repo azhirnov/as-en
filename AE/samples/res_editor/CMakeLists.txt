@@ -20,6 +20,7 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 	target_include_directories( ${APP_NAME} PUBLIC
 		".."
 		"${MAIN_SOURCE_DIR}/engine/tools/res_pack/asset_packer/Utils"
+		"${AE_ENGINE_SHARED_DATA}/scripts"
 	)
 
 	EnablePCH( ${APP_NAME} )
@@ -36,7 +37,7 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 		# tools
 		"PipelineCompiler" "ResourceLoaders" "GeometryTools" "GraphicsTestUtils"
 		# engine
-		"GraphicsHL" "Video"
+		"Graphics" "Video"
 	)
 	if (TARGET "Profiler")
 		target_link_libraries( ${APP_NAME} PUBLIC "Profiler" )

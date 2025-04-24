@@ -1,4 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+
+	-- Android --
+	fixed performance mode:		adb shell cmd power set-fixed-performance-mode-enabled [true|false]
+	game mode:					adb shell cmd game mode [standard|performance|battery] <PACKAGE_NAME>
+*/
 
 #pragma once
 

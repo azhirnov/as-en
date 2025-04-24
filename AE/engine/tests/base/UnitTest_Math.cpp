@@ -76,29 +76,138 @@ namespace
 	}
 
 
+	template <typename T>
+	inline void  IsMinDelta (const T x)
+	{
+		using Bits = typename FloatConversion::BitsForType<T>::type;
+
+		const T	ulp = Bits{x}.MinDelta();
+		const T	a	= x + ulp;
+		const T	b	= x + (ulp * T(0.5));
+		
+		Bits	x0 {Abs(x)};
+		Bits	a0 {a};
+		Bits	b0 {b};
+		Bits	u0 {Abs(ulp)};
+
+		if ( x0.IsSubnormal() or x0.IsZero() )
+		{
+			TEST( ulp == T(0.0) );
+			return;
+		}
+
+		if ( x0.IsNaN() or x0.IsInf() )
+			return;
+
+		TEST( b == x );
+		TEST( a != b );
+
+		if ( a0.IsNaN() or a0.IsInf() )
+			return;
+
+		TEST_Eq( a0.e, b0.e );
+		TEST_Eq( a0.s, b0.s );
+		TEST_Eq( a0.m - b0.m, 1 );
+	}
+
+
 	static void  Float32_Test1 ()
 	{
-		float	f1	= Float32Bits::SmallestSubnormal().AsFloat();
+		float	f1	= Float32Bits::SmallestSubnormal().AsFloatPoint();
 		TEST( f1 == FLT_TRUE_MIN );
 
-		float	f2	= Float32Bits::SmallestNormal().AsFloat();
+		float	f2	= Float32Bits::SmallestNormal().AsFloatPoint();
 		TEST( f2 == FLT_MIN );
 
-		float	f3	= Float32Bits::LargestNormal().AsFloat();
+		float	f3	= Float32Bits::LargestNormal().AsFloatPoint();
 		TEST( f3 == FLT_MAX );
+		
+		IsMinDelta( 0.f );
+		IsMinDelta( 1.f );
+		IsMinDelta( 1.0e-2f );
+		IsMinDelta( 1.0e-7f );
+		IsMinDelta( 1.0e-20f );
+		IsMinDelta( 1.0e-30f );
+		IsMinDelta( 1.0e-36f );
+		IsMinDelta( FLT_MIN );
+		IsMinDelta( FLT_TRUE_MIN );
+		
+		IsMinDelta( -0.f );
+		IsMinDelta( -1.f );
+		IsMinDelta( -2.f );
+		IsMinDelta( -2.0e-2f );
+		IsMinDelta( -2.0e-7f );
+		IsMinDelta( -2.0e-20f );
+		IsMinDelta( -2.0e-30f );
+		IsMinDelta( -2.0e-36f );
+		IsMinDelta( -FLT_MIN );
+		IsMinDelta( -FLT_TRUE_MIN );
+
+		IsMinDelta( 12.0e+5f );
+		IsMinDelta( 723.0e+11f );
+		IsMinDelta( 95.0e+26f );
+		IsMinDelta( 6.7e+35f );
+		IsMinDelta( FLT_MAX );
+		IsMinDelta( Float32Bits::NaN().AsFloatPoint() );
+		IsMinDelta( Float32Bits::Inf().AsFloatPoint() );
+		
+		IsMinDelta( -12.0e+5f );
+		IsMinDelta( -723.0e+11f );
+		IsMinDelta( -95.0e+26f );
+		IsMinDelta( -6.7e+35f );
+		IsMinDelta( -FLT_MAX );
+		IsMinDelta( -Float32Bits::NaN().AsFloatPoint() );
+		IsMinDelta( -Float32Bits::Inf().AsFloatPoint() );
 	}
 
 
 	static void  Float64_Test1 ()
 	{
-		double	f1	= Float64Bits::SmallestSubnormal().AsFloat();
+		double	f1	= Float64Bits::SmallestSubnormal().AsFloatPoint();
 		TEST( f1 == DBL_TRUE_MIN );
 
-		double	f2	= Float64Bits::SmallestNormal().AsFloat();
+		double	f2	= Float64Bits::SmallestNormal().AsFloatPoint();
 		TEST( f2 == DBL_MIN );
 
-		double	f3	= Float64Bits::LargestNormal().AsFloat();
+		double	f3	= Float64Bits::LargestNormal().AsFloatPoint();
 		TEST( f3 == DBL_MAX );
+
+		IsMinDelta( 0.0 );
+		IsMinDelta( 1.0 );
+		IsMinDelta( 1.0e-2 );
+		IsMinDelta( 1.0e-7 );
+		IsMinDelta( 1.0e-100 );
+		IsMinDelta( 1.0e-200 );
+		IsMinDelta( 1.0e-306 );
+		IsMinDelta( DBL_MIN );
+		IsMinDelta( DBL_TRUE_MIN );
+		
+		IsMinDelta( -0.0 );
+		IsMinDelta( -1.0 );
+		IsMinDelta( -2.0 );
+		IsMinDelta( -2.0e-2 );
+		IsMinDelta( -2.0e-7 );
+		IsMinDelta( -2.0e-100 );
+		IsMinDelta( -2.0e-200 );
+		IsMinDelta( -2.0e-306 );
+		IsMinDelta( -DBL_MIN );
+		IsMinDelta( -DBL_TRUE_MIN );
+
+		IsMinDelta( 12.0e+5 );
+		IsMinDelta( 723.0e+101 );
+		IsMinDelta( 95.0e+206 );
+		IsMinDelta( 6.7e+305 );
+		IsMinDelta( DBL_MAX );
+		IsMinDelta( Float64Bits::NaN().AsFloatPoint() );
+		IsMinDelta( Float64Bits::Inf().AsFloatPoint() );
+		
+		IsMinDelta( -12.0e+5 );
+		IsMinDelta( -723.0e+101 );
+		IsMinDelta( -95.0e+206 );
+		IsMinDelta( -6.7e+305 );
+		IsMinDelta( -DBL_MAX );
+		IsMinDelta( -Float64Bits::NaN().AsFloatPoint() );
+		IsMinDelta( -Float64Bits::Inf().AsFloatPoint() );
 	}
 
 
@@ -111,19 +220,19 @@ namespace
 		const half		h1		{f1};
 		const float		hf1		= float{h1};
 		TEST( hf1 == f1 );
-		TEST( h1.GetU() == 0 );
+		TEST( h1.AsInteger() == 0 );
 
 		const float		f2		= 1.11f;
 		const half		h2		{f2};
 		const float		hf2		= float{h2};
 		TEST( Equal( hf2, f2, 0.0004f ));
-		TEST( h2.GetU() == 0x3C71 );
+		TEST( h2.AsInteger() == 0x3C71 );
 
 		const float		f3		= -0.3456f;
 		const half		h3		{f3};
 		const float		hf3		= float{h3};
 		TEST( Equal( hf3, f3, 0.0004f ));
-		TEST( h3.GetU() == 0xB588 );
+		TEST( h3.AsInteger() == 0xB588 );
 
 		const half		h4		= half::Max();
 		const float		hf4		= float{h4};
@@ -139,7 +248,7 @@ namespace
 		TEST( h6.IsInfinity() );
 		TEST( h6 == half::Inf() );
 		TEST( hf6 > 0.f );
-		TEST( h6.GetU() == 0x7C00 );
+		TEST( h6.AsInteger() == 0x7C00 );
 	  #ifndef AE_CFG_RELEASE
 		TEST( IsInfinity( hf6 ));
 	  #endif
@@ -150,7 +259,7 @@ namespace
 		TEST( h7.IsInfinity() );
 		TEST( h7 == half::NegInf() );
 		TEST( hf7 < 0.f );
-		TEST( h7.GetU() == 0xFC00 );
+		TEST( h7.AsInteger() == 0xFC00 );
 	  #ifndef AE_CFG_RELEASE
 		TEST( IsInfinity( hf7 ));
 	  #endif
@@ -170,7 +279,7 @@ namespace
 		const UFloat16	h2		{f2};
 		const float		hf2		= float{h2};
 		TEST( Equal( hf2, f2, UFloat16::Epsilon() ));
-		TEST( h2.GetU() == 0xFBFF );
+		TEST( h2.AsInteger() == 0xFBFF );
 
 		const UFloat16	h3		= UFloat16::Min();
 		const float		hf3		= float{h3};
@@ -180,7 +289,7 @@ namespace
 		const UFloat16	h4		{f4};
 		const float		hf4		= float{h4};
 		TEST( hf4 == f4 );
-		TEST( h4.GetU() == 0 );
+		TEST( h4.AsInteger() == 0 );
 
 		const UFloat16	h5		= UFloat16{}.SetFast( f4 );
 		TEST( h4 == h5 );
@@ -192,7 +301,7 @@ namespace
 		const UFloat16	h6		{f6};
 		const float		hf6		= float{h6};
 		TEST( Equal( hf6, f6, 0.0004f ));
-		TEST( h6.GetU() == 0x7C71 );
+		TEST( h6.AsInteger() == 0x7C71 );
 
 		const UFloat16	h7		= UFloat16{}.SetFast( f6 );
 		TEST( h6 == h7 );
@@ -221,19 +330,19 @@ namespace
 		const BFloat16	h1		{f1};
 		const float		hf1		= float{h1};
 		TEST( hf1 == f1 );
-		TEST( h1.GetU() == 0 );
+		TEST( h1.AsInteger() == 0 );
 
 		const float		f2		= 1.11f;
 		const BFloat16	h2		{f2};
 		const float		hf2		= float{h2};
 		TEST( Equal( hf2, f2, 0.01f ));
-		TEST( h2.GetU() == 0x3F8E );
+		TEST( h2.AsInteger() == 0x3F8E );
 
 		const float		f3		= -0.3456f;
 		const BFloat16	h3		{f3};
 		const float		hf3		= float{h3};
 		TEST( Equal( hf3, f3, 0.0002f ));
-		TEST( h3.GetU() == 0xBEB1 );
+		TEST( h3.AsInteger() == 0xBEB1 );
 
 		const BFloat16	h4		= BFloat16::Max();
 		const float		hf4		= float{h4};
@@ -242,14 +351,14 @@ namespace
 	  #ifndef AE_CFG_RELEASE
 		const BFloat16	h5		= BFloat16::SmallestSubnormal();
 		const float		hf5		= float{h5};
-		const float		dif5	= hf5 / Float32Bits::SmallestSubnormal().AsFloat();  // nan in release
+		const float		dif5	= hf5 / Float32Bits::SmallestSubnormal().AsFloatPoint();  // nan in release
 		const float		eps5	= float( 1u << (Float32Bits::_ManBits - BFloat16::Bits::_ManBits) );
 		TEST( dif5 <= eps5 );
 	  #endif
 
 		const BFloat16	h6		= BFloat16::SmallestNormal();
 		const float		hf6		= float{h6};
-		TEST( hf6 == Float32Bits::SmallestNormal().AsFloat() );
+		TEST( hf6 == Float32Bits::SmallestNormal().AsFloatPoint() );
 
 		const float		f7		= MaxValue<float>();
 		const BFloat16	h7		{f7};
@@ -257,7 +366,7 @@ namespace
 		TEST( h7.IsInfinity() );
 		TEST( h7 == BFloat16::Inf() );
 		TEST( hf7 > 0.f );
-		TEST( h7.GetU() == 0x7F80 );
+		TEST( h7.AsInteger() == 0x7F80 );
 	  #ifndef AE_CFG_RELEASE
 		TEST( IsInfinity( hf7 ));
 	  #endif
@@ -280,7 +389,7 @@ namespace
 		const UFloat8	a4		{4.0f};
 		const float		af4		= float{a4};
 		TEST( Equal( af4, 4.0f, UFloat8::Epsilon() ));
-		TEST( a4.GetU() == 0x90 );
+		TEST( a4.AsInteger() == 0x90 );
 
 		const UFloat8	a6		{UFloat8::Max()};
 		const float		af6		= float{a6};
@@ -293,12 +402,12 @@ namespace
 		const UFloat8	a8		{1.1f};
 		const float		af8		= float{a8};
 		TEST( Equal( af8, 1.125f, UFloat8::Epsilon() ));
-		TEST( a8.GetU() == 0x72 );
+		TEST( a8.AsInteger() == 0x72 );
 
 		const UFloat8	a9		{1.2f};
 		const float		af9		= float{a9};
 		TEST( Equal( af9, 1.1875f, UFloat8::Epsilon() ));
-		TEST( a9.GetU() == 0x73 );
+		TEST( a9.AsInteger() == 0x73 );
 
 	  #ifndef AE_CFG_RELEASE
 		const UFloat8	a10		{UFloat8::Inf()};
@@ -473,6 +582,26 @@ namespace
 
 		a = CeilExp2( 1.00001f );					TEST_Eq( a, 2.f );
 	}
+
+
+	static void  RoundToPOT_Test1 ()
+	{
+		uint	a;
+		a = FloorPOT( 63u );		TEST_Eq( a, 32u );
+		a = FloorPOT( 64u );		TEST_Eq( a, 64u );
+		a = FloorPOT( 65u );		TEST_Eq( a, 64u );
+		a = FloorPOT( 0u );			TEST_Eq( a, 0u );
+
+		a = CeilPOT( 63u );			TEST_Eq( a, 64u );
+		a = CeilPOT( 64u );			TEST_Eq( a, 64u );
+		a = CeilPOT( 65u );			TEST_Eq( a, 128u );
+
+		a = NearPOT( 63u );			TEST_Eq( a, 64u );
+		a = NearPOT( 64u );			TEST_Eq( a, 64u );
+		a = NearPOT( 65u );			TEST_Eq( a, 64u );
+		a = NearPOT( 64u + 31u );	TEST_Eq( a, 64u );
+		a = NearPOT( 64u + 32u );	TEST_Eq( a, 128u );
+	}
 }
 
 
@@ -504,6 +633,7 @@ extern void UnitTest_Math ()
 	POTValue_Test1();
 
 	RoundExp2_Test1();
+	RoundToPOT_Test1();
 
 	TEST_PASSED();
 }

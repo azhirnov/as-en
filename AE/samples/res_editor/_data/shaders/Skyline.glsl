@@ -1,5 +1,6 @@
 // from https://www.shadertoy.com/view/XtsSWs
 
+#ifdef AE_LICENSE_CC0
 /*--------------------------------------------------------------------------------------
 License CC0 - http://creativecommons.org/publicdomain/zero/1.0/
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
@@ -370,8 +371,10 @@ void CalcWindows(vec2 block, vec3 pos, inout vec3 texColor, inout float windowRe
 	pits = min(1.0, abs(sin((pos.x*80.0)*PI))*4.0)-1.0;
 	normal.x += pits*0.25;
 }
+//-----------------------------------------------------------------------------
 
-#ifdef SH_FRAG
+
+# ifdef SH_FRAG
 
 // Input is UV coordinate of pixel to render.
 // Output is RGB color.
@@ -692,7 +695,7 @@ vec3 RayTrace (const Ray ray, const vec2 fragCoord)
 	}
 
 	// vignette?
-	finalColor *= vec3(1.0) * saturate(1.0 - length(uv/2.5));
+	//finalColor *= vec3(1.0) * saturate(1.0 - length(uv/2.5));
 	finalColor *= 1.3*exposure;
 
 	// output the final color without gamma correction - will do gamma later.
@@ -732,4 +735,5 @@ vec4 Trace (const Ray ray, const vec2 fragCoord)
 	return vec4(sqrt(clamp(finalColor, 0.0, 1.0)),1.0);
 }
 
-#endif // SH_FRAG
+# endif // SH_FRAG
+#endif // AE_LICENSE_CC0

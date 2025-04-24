@@ -55,12 +55,12 @@ namespace AE::AssetPacker
 	{
 		Scripting::ClassBinder<ScriptColorStyle>	binder{ se };
 		binder.CreateRef( 0, False{"no ctor"} );
-		binder.AddMethod( &ScriptColorStyle::SetDisabled,	"Disabled",		{"colorWhenDisabled"} );
-		binder.AddMethod( &ScriptColorStyle::SetEnabled,	"Enabled",		{"colorWhenEnabled"} );
-		binder.AddMethod( &ScriptColorStyle::SetMouseOver,	"MouseOver",	{"colorWhenMouseOver"} );
-		binder.AddMethod( &ScriptColorStyle::SetTouchDown,	"TouchDown",	{"colorWhenTouchDown"} );
-		binder.AddMethod( &ScriptColorStyle::SetSelected,	"Selected",		{"colorWhenSelected"} );
-		binder.AddMethod( &ScriptColorStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
+		AS_METHOD( binder, ScriptColorStyle::SetDisabled,	"Disabled",		{"colorWhenDisabled"} );
+		AS_METHOD( binder, ScriptColorStyle::SetEnabled,	"Enabled",		{"colorWhenEnabled"} );
+		AS_METHOD( binder, ScriptColorStyle::SetMouseOver,	"MouseOver",	{"colorWhenMouseOver"} );
+		AS_METHOD( binder, ScriptColorStyle::SetTouchDown,	"TouchDown",	{"colorWhenTouchDown"} );
+		AS_METHOD( binder, ScriptColorStyle::SetSelected,	"Selected",		{"colorWhenSelected"} );
+		AS_METHOD( binder, ScriptColorStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -123,20 +123,20 @@ namespace AE::AssetPacker
 	{
 		Scripting::ClassBinder<ScriptImageStyle>	binder{ se };
 		binder.CreateRef( 0, False{"no ctor"} );
-		binder.AddMethod( &ScriptImageStyle::SetDisabled1,	"Disabled",		{"colorWhenDisabled"} );
-		binder.AddMethod( &ScriptImageStyle::SetEnabled1,	"Enabled",		{"colorWhenEnabled"} );
-		binder.AddMethod( &ScriptImageStyle::SetMouseOver1,	"MouseOver",	{"colorWhenMouseOver"} );
-		binder.AddMethod( &ScriptImageStyle::SetTouchDown1,	"TouchDown",	{"colorWhenTouchDown"} );
-		binder.AddMethod( &ScriptImageStyle::SetSelected1,	"Selected",		{"colorWhenSelected"} );
+		AS_METHOD( binder, ScriptImageStyle::SetDisabled1,	"Disabled",		{"colorWhenDisabled"} );
+		AS_METHOD( binder, ScriptImageStyle::SetEnabled1,	"Enabled",		{"colorWhenEnabled"} );
+		AS_METHOD( binder, ScriptImageStyle::SetMouseOver1,	"MouseOver",	{"colorWhenMouseOver"} );
+		AS_METHOD( binder, ScriptImageStyle::SetTouchDown1,	"TouchDown",	{"colorWhenTouchDown"} );
+		AS_METHOD( binder, ScriptImageStyle::SetSelected1,	"Selected",		{"colorWhenSelected"} );
 
-		binder.AddMethod( &ScriptImageStyle::SetDisabled2,	"Disabled",		{"colorWhenDisabled", "scale"} );
-		binder.AddMethod( &ScriptImageStyle::SetEnabled2,	"Enabled",		{"colorWhenEnabled", "scale"} );
-		binder.AddMethod( &ScriptImageStyle::SetMouseOver2,	"MouseOver",	{"colorWhenMouseOver", "scale"} );
-		binder.AddMethod( &ScriptImageStyle::SetTouchDown2,	"TouchDown",	{"colorWhenTouchDown", "scale"} );
-		binder.AddMethod( &ScriptImageStyle::SetSelected2,	"Selected",		{"colorWhenSelected", "scale"} );
+		AS_METHOD( binder, ScriptImageStyle::SetDisabled2,	"Disabled",		{"colorWhenDisabled", "scale"} );
+		AS_METHOD( binder, ScriptImageStyle::SetEnabled2,	"Enabled",		{"colorWhenEnabled", "scale"} );
+		AS_METHOD( binder, ScriptImageStyle::SetMouseOver2,	"MouseOver",	{"colorWhenMouseOver", "scale"} );
+		AS_METHOD( binder, ScriptImageStyle::SetTouchDown2,	"TouchDown",	{"colorWhenTouchDown", "scale"} );
+		AS_METHOD( binder, ScriptImageStyle::SetSelected2,	"Selected",		{"colorWhenSelected", "scale"} );
 
-		binder.AddMethod( &ScriptImageStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
-		binder.AddMethod( &ScriptImageStyle::SetImage,		"Image",		{"atlasMetaResName", "imageInAtlas"} );
+		AS_METHOD( binder, ScriptImageStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
+		AS_METHOD( binder, ScriptImageStyle::SetImage,		"Image",		{"atlasMetaResName", "imageInAtlas"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -215,12 +215,12 @@ namespace AE::AssetPacker
 	{
 		Scripting::ClassBinder<ScriptImageAnimationStyle>	binder{ se };
 		binder.CreateRef( 0, False{"no ctor"} );
-		binder.AddMethod( &ScriptImageAnimationStyle::SetDisabled,	"Disabled",		{"colorWhenDisabled", "imageNameInAtlas"} );
-		binder.AddMethod( &ScriptImageAnimationStyle::SetEnabled,	"Enabled",		{"colorWhenEnabled", "imageNameInAtlas"} );
-		binder.AddMethod( &ScriptImageAnimationStyle::SetMouseOver,	"MouseOver",	{"colorWhenMouseOver", "imageNameInAtlas"} );
-		binder.AddMethod( &ScriptImageAnimationStyle::SetTouchDown,	"TouchDown",	{"colorWhenTouchDown", "imageNameInAtlas"} );
-		binder.AddMethod( &ScriptImageAnimationStyle::SetSelected,	"Selected",		{"colorWhenSelected", "imageNameInAtlas"} );
-		binder.AddMethod( &ScriptImageAnimationStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
+		AS_METHOD( binder, ScriptImageAnimationStyle::SetDisabled,	"Disabled",		{"colorWhenDisabled", "imageNameInAtlas"} );
+		AS_METHOD( binder, ScriptImageAnimationStyle::SetEnabled,	"Enabled",		{"colorWhenEnabled", "imageNameInAtlas"} );
+		AS_METHOD( binder, ScriptImageAnimationStyle::SetMouseOver,	"MouseOver",	{"colorWhenMouseOver", "imageNameInAtlas"} );
+		AS_METHOD( binder, ScriptImageAnimationStyle::SetTouchDown,	"TouchDown",	{"colorWhenTouchDown", "imageNameInAtlas"} );
+		AS_METHOD( binder, ScriptImageAnimationStyle::SetSelected,	"Selected",		{"colorWhenSelected", "imageNameInAtlas"} );
+		AS_METHOD( binder, ScriptImageAnimationStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -271,13 +271,13 @@ namespace AE::AssetPacker
 	{
 		Scripting::ClassBinder<ScriptFontStyle>		binder{ se };
 		binder.CreateRef( 0, False{"no ctor"} );
-		binder.AddMethod( &ScriptFontStyle::SetDisabled,	"Disabled",		{"colorWhenDisabled"} );
-		binder.AddMethod( &ScriptFontStyle::SetEnabled,		"Enabled",		{"colorWhenEnabled"} );
-		binder.AddMethod( &ScriptFontStyle::SetMouseOver,	"MouseOver",	{"colorWhenMouseOver"} );
-		binder.AddMethod( &ScriptFontStyle::SetTouchDown,	"TouchDown",	{"colorWhenTouchDown"} );
-		binder.AddMethod( &ScriptFontStyle::SetSelected,	"Selected",		{"colorWhenSelected"} );
-		binder.AddMethod( &ScriptFontStyle::SetFont,		"Font",			{"fontName"} );
-		binder.AddMethod( &ScriptFontStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
+		AS_METHOD( binder, ScriptFontStyle::SetDisabled,	"Disabled",		{"colorWhenDisabled"} );
+		AS_METHOD( binder, ScriptFontStyle::SetEnabled,		"Enabled",		{"colorWhenEnabled"} );
+		AS_METHOD( binder, ScriptFontStyle::SetMouseOver,	"MouseOver",	{"colorWhenMouseOver"} );
+		AS_METHOD( binder, ScriptFontStyle::SetTouchDown,	"TouchDown",	{"colorWhenTouchDown"} );
+		AS_METHOD( binder, ScriptFontStyle::SetSelected,	"Selected",		{"colorWhenSelected"} );
+		AS_METHOD( binder, ScriptFontStyle::SetFont,		"Font",			{"fontName"} );
+		AS_METHOD( binder, ScriptFontStyle::SetPipeline,	"Pipeline",		{"pplnName"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -466,13 +466,13 @@ namespace AE::AssetPacker
 
 		Scripting::ClassBinder<ScriptUIStyleCollection>		binder{ se };
 		binder.CreateRef();
-		binder.AddMethod( &ScriptUIStyleCollection::SetResources,			"Resources",				{"metaDataFileNameInArchive"} );
-		binder.AddMethod( &ScriptUIStyleCollection::SetDebugPipeline,		"DebugPipeline",			{"pplnName"} );
-		binder.AddMethod( &ScriptUIStyleCollection::AddColorStyle,			"AddColorStyle",			{"name"} );
-		binder.AddMethod( &ScriptUIStyleCollection::AddImageStyle,			"AddImageStyle",			{"name"} );
-	//	binder.AddMethod( &ScriptUIStyleCollection::AddImageAnimationStyle,	"AddImageAnimationStyle",	{"name"} );
-	//	binder.AddMethod( &ScriptUIStyleCollection::AddFontStyle,			"AddFontStyle",				{"name"} );
-		binder.AddMethod( &ScriptUIStyleCollection::Store,					"Store",					{"nameInArchive"} );
+		AS_METHOD( binder, ScriptUIStyleCollection::SetResources,			"Resources",				{"metaDataFileNameInArchive"} );
+		AS_METHOD( binder, ScriptUIStyleCollection::SetDebugPipeline,		"DebugPipeline",			{"pplnName"} );
+		AS_METHOD( binder, ScriptUIStyleCollection::AddColorStyle,			"AddColorStyle",			{"name"} );
+		AS_METHOD( binder, ScriptUIStyleCollection::AddImageStyle,			"AddImageStyle",			{"name"} );
+	//	AS_METHOD( binder, ScriptUIStyleCollection::AddImageAnimationStyle,	"AddImageAnimationStyle",	{"name"} );
+	//	AS_METHOD( binder, ScriptUIStyleCollection::AddFontStyle,			"AddFontStyle",				{"name"} );
+		AS_METHOD( binder, ScriptUIStyleCollection::Store,					"Store",					{"nameInArchive"} );
 	}
 
 

@@ -288,6 +288,16 @@ namespace AE::ResEditor
 
 		return true;
 	}
+	
+/*
+=================================================
+	PostProcess
+=================================================
+*/
+	bool  UnifiedGeometry::PostProcess (const DrawData &in) __Th___
+	{
+		return Draw( in );
+	}
 
 /*
 =================================================

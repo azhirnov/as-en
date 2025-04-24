@@ -20,7 +20,7 @@ namespace AE::Serializing
 
 	// types
 	public:
-		static constexpr uint	MaxStringLength	= 0xFFFF;
+		static constexpr uint	MaxStringLength	= 0xFFFFF;
 		static constexpr uint	MaxArrayLength	= 0xFFFFFF;	// TODO: remove or limit mem size
 
 

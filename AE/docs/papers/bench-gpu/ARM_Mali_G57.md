@@ -13,7 +13,7 @@
 ### Memory
 
 * Memory: 4GB, LPDDR4X, DC 16bit, 2133 MHz, **17.07** GB/s (14.2 GB/s from tests)
-* L2 cache: 512 Kb
+* L2 cache: 512 Kb (31.2GB/s from tests)
 * LS cache: 16 Kb
 * Texture cache: 32 Kb
 * Tile bits/pixel: 256 *(32 bytes/pixel, 2xRGBA32)*
@@ -424,6 +424,18 @@ TODO
 | 96 | 8x8          |
 
 
+## Blur
+
+| tech | dimension & format| time (ms) | traffic (GB/s) | cache miss R/W (%) | FMA (%) |
+|---|---|---|
+| 5x5x4 texel fetch | 1024x1024, RGBA16F    |  75 |
+| x9, 2 pass        | 5120x5120, RGBA16F    | 120 | 11.0 | 41 / 42 | 45 |
+| Dual filter       | 5120x5120, RGBA16F    | 150 | 8.1  | 34 / 51 | 40 |
+| Kawase            | 5120x5120, RGBA16F    | 140 | 8.4  | 44 / 52 | 42 |
+| Dual filter       | 7168x7168, R11G11B10F |  90 | 0.06 | 44 / 23 | 25 |
+| x9, 2 pass        | 7168x7168, R11G11B10F | 130 | 0.06 | 36 / 30 | 33 |
+
+
 ## Vertex Cache
 
 Display: 2.6 MPix
@@ -440,8 +452,11 @@ Display: 2.6 MPix
 
 Performance is same.
 
-vertex limit: ~11 M
+**Vertex limit**<br/>
+~11 Mega vertices<br/>
+will lost data if exceed the limit
 
-vertices: 1 714 368 x5
-buffer size: 13 MB x5 = 65 MB
+**Vertex packing**<br/>
+vertices: 1 714 368 x5<br/>
+buffer size: 13 MB x5 = 65 MB<br/>
 tile write: 72 MB - float3/float4 packed to ~9 bytes per vertex

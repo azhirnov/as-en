@@ -59,7 +59,6 @@ float4  Blur5Ref (gl::CombinedTex2D<float> image, const int2 center)
 			float4	col2 = gl.texture.Fetch( image, pos + int2(0,1), 0 );
 			float4	col3 = gl.texture.Fetch( image, pos + int2(1,1), 0 );
 
-		//	float4	col  = Max( Max( col0, col1 ), Max( col2, col3 ));
 			float4	col  = (col0 + col1 + col2 + col3) * 0.25;
 
 			blur += col * GaussianBlurKernel[x][y];
@@ -67,11 +66,5 @@ float4  Blur5Ref (gl::CombinedTex2D<float> image, const int2 center)
 	}
 	return blur;
 }
-
-
-// TODO:
-//	Kawase blur, dual filtering (https://web.archive.org/web/20230527032549/https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-20-66/siggraph2015_2D00_mmg_2D00_marius_2D00_slides.pdf)
-//	https://www.rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
-
 
 #include "../3party_shaders/Blur-1.glsl"

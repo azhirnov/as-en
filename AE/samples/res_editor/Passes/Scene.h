@@ -15,6 +15,7 @@ namespace AE::ResEditor
 	class SceneData final : public EnableRC< SceneData >
 	{
 		friend class SceneGraphicsPass;
+		friend class SceneGraphicsSubpass;
 		friend class SceneRayTracingPass;
 		friend class ScriptScene;
 
@@ -40,11 +41,13 @@ namespace AE::ResEditor
 
 
 	//
-	// Scene Graphics Pass
+	// Scene Graphics Subpass
 	//
-	class SceneGraphicsPass final : public IPass
+	class SceneGraphicsSubpass final : public IPass
 	{
+		friend class SceneGraphicsPass;
 		friend class ScriptSceneGraphicsPass;
+		friend class ScriptSceneGraphicsSubpass;
 
 	// types
 	private:
@@ -53,6 +56,7 @@ namespace AE::ResEditor
 		using ViewportWScaling_t	= FixedArray< packed_float2, GraphicsConfig::MaxViewports >;
 		using FScissors_t			= FixedArray< RectF, GraphicsConfig::MaxViewports >;
 		using Scissors_t			= FixedArray< RectI, GraphicsConfig::MaxViewports >;
+		using Viewports_t			= FixedArray< Viewport, GraphicsConfig::MaxViewports >;
 
 	public:
 		struct ShadingRate
@@ -67,18 +71,16 @@ namespace AE::ResEditor
 
 	// variables
 	private:
-		RTechInfo				_rtech;
-
 		RC<SceneData>			_scene;
 		Materials_t				_materials;
 
-		RenderPassDesc			_rpDesc;
+		uint2					_dimension;			// updated by main pass
 		ERenderLayer			_renderLayer;
 		ViewportWScaling_t		_wScaling;
 		FScissors_t				_scissors;
+		Viewports_t				_viewports;
 
 		ResourceArray			_resources;			// per pass
-		RenderTargets_t			_renderTargets;
 
 		Strong<BufferID>		_ubuffer;
 		PerFrameDescSet_t		_descSets;
@@ -91,8 +93,48 @@ namespace AE::ResEditor
 
 	// methods
 	public:
+		SceneGraphicsSubpass ()											__NE___	{}
+		~SceneGraphicsSubpass ();
+		
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync | EPassType::Update; }
+		bool		Execute (SyncPassData &)							__Th_OV { return false; }
+		bool		Update (TransferCtx_t &, const UpdatePassData &)	__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
+	};
+
+
+
+	//
+	// Scene Graphics Pass
+	//
+	class SceneGraphicsPass final : public IPass
+	{
+		friend class ScriptSceneGraphicsPass;
+		friend class ScriptSceneGraphicsSubpass;
+
+	// types
+	private:
+		using Subpasses_t	= Array< RC<SceneGraphicsSubpass> >;
+		using Scissors_t	= SceneGraphicsSubpass::Scissors_t;
+		using Viewports_t	= SceneGraphicsSubpass::Viewports_t;
+
+
+	// variables
+	private:
+		RTechInfo				_rtech;
+
+		RC<SceneData>			_scene;
+		RenderPassDesc			_rpDesc;
+		RenderTargets_t			_renderTargets;
+
+		Subpasses_t				_subpasses;
+
+
+	// methods
+	public:
 		SceneGraphicsPass ()											__NE___	{}
-		~SceneGraphicsPass ();
+		~SceneGraphicsPass ()													{}
 
 	// IPass //
 		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync | EPassType::Update; }

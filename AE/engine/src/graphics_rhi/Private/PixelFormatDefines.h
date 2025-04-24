@@ -348,24 +348,24 @@
 		/*_visitor_( Depth24,			,)*/\
 		_visitor_( Depth32F,			Depth32Float,			macos 10.11, ios 8	)\
 		/*_visitor_( Depth16_Stencil8,	,)*/\
-		_visitor_( Depth24_Stencil8,	Depth24Unorm_Stencil8,	macos 10.11			)\
+		_visitor_( Depth24_Stencil8,	Depth24Unorm_Stencil8,	macos 10.11,		)\
 		_visitor_( Depth32F_Stencil8,	Depth32Float_Stencil8,	macos 10.11, ios 9	)\
 		/*_visitor_( BC1_RGB8_UNorm,	,)*/\
 		/*_visitor_( BC1_sRGB8,			,)*/\
-		_visitor_( BC1_RGB8_A1_UNorm,	BC1_RGBA,				macos 10.11			)\
-		_visitor_( BC1_sRGB8_A1,		BC1_RGBA_sRGB,			macos 10.11			)\
-		_visitor_( BC2_RGBA8_UNorm,		BC2_RGBA,				macos 10.11			)\
-		_visitor_( BC2_sRGB8,			BC2_RGBA_sRGB,			macos 10.11			)\
-		_visitor_( BC3_RGBA8_UNorm,		BC3_RGBA,				macos 10.11			)\
-		_visitor_( BC3_sRGB8,			BC3_RGBA_sRGB,			macos 10.11			)\
-		_visitor_( BC4_R8_SNorm,		BC4_RSnorm,				macos 10.11			)\
-		_visitor_( BC4_R8_UNorm,		BC4_RUnorm,				macos 10.11			)\
-		_visitor_( BC5_RG8_SNorm,		BC5_RGSnorm,			macos 10.11			)\
-		_visitor_( BC5_RG8_UNorm,		BC5_RGUnorm,			macos 10.11			)\
-		_visitor_( BC6H_RGB16F,			BC6H_RGBFloat,			macos 10.11			)\
-		_visitor_( BC6H_RGB16UF,		BC6H_RGBUfloat,			macos 10.11			)\
-		_visitor_( BC7_RGBA8_UNorm,		BC7_RGBAUnorm,			macos 10.11			)\
-		_visitor_( BC7_sRGB8_A8,		BC7_RGBAUnorm_sRGB,		macos 10.11			)\
+		_visitor_( BC1_RGB8_A1_UNorm,	BC1_RGBA,				macos 10.11,		)\
+		_visitor_( BC1_sRGB8_A1,		BC1_RGBA_sRGB,			macos 10.11,		)\
+		_visitor_( BC2_RGBA8_UNorm,		BC2_RGBA,				macos 10.11,		)\
+		_visitor_( BC2_sRGB8,			BC2_RGBA_sRGB,			macos 10.11,		)\
+		_visitor_( BC3_RGBA8_UNorm,		BC3_RGBA,				macos 10.11,		)\
+		_visitor_( BC3_sRGB8,			BC3_RGBA_sRGB,			macos 10.11,		)\
+		_visitor_( BC4_R8_SNorm,		BC4_RSnorm,				macos 10.11,		)\
+		_visitor_( BC4_R8_UNorm,		BC4_RUnorm,				macos 10.11,		)\
+		_visitor_( BC5_RG8_SNorm,		BC5_RGSnorm,			macos 10.11,		)\
+		_visitor_( BC5_RG8_UNorm,		BC5_RGUnorm,			macos 10.11,		)\
+		_visitor_( BC6H_RGB16F,			BC6H_RGBFloat,			macos 10.11,		)\
+		_visitor_( BC6H_RGB16UF,		BC6H_RGBUfloat,			macos 10.11,		)\
+		_visitor_( BC7_RGBA8_UNorm,		BC7_RGBAUnorm,			macos 10.11,		)\
+		_visitor_( BC7_sRGB8_A8,		BC7_RGBAUnorm_sRGB,		macos 10.11,		)\
 		_visitor_( ETC2_RGB8_UNorm,		ETC2_RGB8,				macos 11.0, ios 8	)\
 		_visitor_( ETC2_sRGB8,			ETC2_RGB8_sRGB,			macos 11.0, ios 8	)\
 		_visitor_( ETC2_RGB8_A1_UNorm,	ETC2_RGB8A1,			macos 11.0, ios 8	)\
@@ -387,9 +387,9 @@
 		_visitor_( ASTC_RGBA8_10x5,		ASTC_10x5_LDR,			macos 11.0, ios 8	)\
 		_visitor_( ASTC_RGBA8_10x6,		ASTC_10x6_LDR,			macos 11.0, ios 8	)\
 		_visitor_( ASTC_RGBA8_10x8,		ASTC_10x8_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA8_10x10,		ASTC_10x10_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA8_12x10,		ASTC_12x10_LDR,			macos 11.0, ios 8	)\
-		_visitor_( ASTC_RGBA8_12x12,		ASTC_12x12_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_10x10,	ASTC_10x10_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_12x10,	ASTC_12x10_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA8_12x12,	ASTC_12x12_LDR,			macos 11.0, ios 8	)\
 		_visitor_( ASTC_sRGB8_A8_4x4,	ASTC_4x4_sRGB,			macos 11.0, ios 8	)\
 		_visitor_( ASTC_sRGB8_A8_5x4,	ASTC_5x4_sRGB,			macos 11.0, ios 8	)\
 		_visitor_( ASTC_sRGB8_A8_5x5,	ASTC_5x5_sRGB,			macos 11.0, ios 8	)\
@@ -501,7 +501,7 @@
 		/*_visitor_( Double2,			 )*/\
 		/*_visitor_( Double3,			 )*/\
 		/*_visitor_( Double4,			 )*/\
-		/*_visitor_( UInt_2_10_10_10,		 )*/\
+		/*_visitor_( UInt_2_10_10_10,	 )*/\
 		_visitor_( UInt_2_10_10_10_Norm, UInt1010102Normalized,	macos 10.11, ios 8 )\
 		/*_visitor_( UInt_2_10_10_10_Scaled, )*/\
 
@@ -587,7 +587,7 @@
 		/*_visitor_( Double2,			 )*/\
 		/*_visitor_( Double3,			 )*/\
 		/*_visitor_( Double4,			 )*/\
-		/*_visitor_( UInt_2_10_10_10,		 )*/\
+		/*_visitor_( UInt_2_10_10_10,	 )*/\
 		_visitor_( UInt_2_10_10_10_Norm, UInt1010102Normalized,	macos 10.12, ios 10 )\
 		/*_visitor_( UInt_2_10_10_10_Scaled, )*/\
 

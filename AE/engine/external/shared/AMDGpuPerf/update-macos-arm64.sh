@@ -1,3 +1,4 @@
+echo "update 'AMDGpuPerf'..."
 rm -rf "build"
 rm -rf "../../../../../AE-Bin/external/macos-arm64/AMDGpuPerf"
 rm -rf "temp"

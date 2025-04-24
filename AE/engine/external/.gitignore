@@ -58,12 +58,18 @@
 /shared/imgui/build
 /shared/imgui/temp
 
+/shared/lavapipe/build
+/shared/lavapipe/temp
+
 /shared/lz4/.gradle
 /shared/lz4/build
 /shared/lz4/temp
 
 /shared/msdfgen/build
 /shared/msdfgen/temp
+
+/shared/slang/build
+/shared/slang/temp
 
 /shared/zstd/.gradle
 /shared/zstd/build

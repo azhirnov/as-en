@@ -1,3 +1,4 @@
+echo "update 'lz4'..."
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\android-clang\lz4"
 rmdir /Q /S "temp"
 git clone --branch "v1.10.0" "..\..\..\..\..\3party\lz4" "temp"

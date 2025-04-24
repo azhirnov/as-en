@@ -236,26 +236,26 @@ namespace
 			binder.AddFactoryCtor( &ScriptVertexBufferInput_Ctor, {"name"} );
 
 			binder.Comment( "Add vertex attribute." );
-			binder.AddMethod( &ScriptVertexBufferInput::Add1,			"Add",	{"bufferName", "vertexTypeName", "stride"} );
-			binder.AddMethod( &ScriptVertexBufferInput::Add2,			"Add",	{"bufferName", "vertexType", "stride"} );
-			binder.AddMethod( &ScriptVertexBufferInput::Add3,			"Add",	{"bufferName", "vertexTypeName"} );
-			binder.AddMethod( &ScriptVertexBufferInput::Add4,			"Add",	{"bufferName", "vertexType"} );
-			binder.AddMethod( &ScriptVertexBufferInput::Add5,			"Add",	{"bufferName", "vertexTypeName", "align"} );
-			binder.AddMethod( &ScriptVertexBufferInput::Add6,			"Add",	{"bufferName", "vertexType", "align"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::Add1,			"Add",	{"bufferName", "vertexTypeName", "stride"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::Add2,			"Add",	{"bufferName", "vertexType", "stride"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::Add3,			"Add",	{"bufferName", "vertexTypeName"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::Add4,			"Add",	{"bufferName", "vertexType"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::Add5,			"Add",	{"bufferName", "vertexTypeName", "align"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::Add6,			"Add",	{"bufferName", "vertexType", "align"} );
 
 			binder.Comment( "Add vertex attribute with divisor." );
-			binder.AddMethod( &ScriptVertexBufferInput::AddD1,			"Add",	{"bufferName", "vertexTypeName", "stride", "divisor"} );
-			binder.AddMethod( &ScriptVertexBufferInput::AddD2,			"Add",	{"bufferName", "vertexType", "stride", "divisor"} );
-			binder.AddMethod( &ScriptVertexBufferInput::AddD3,			"Add",	{"bufferName", "vertexTypeName", "divisor"} );
-			binder.AddMethod( &ScriptVertexBufferInput::AddD4,			"Add",	{"bufferName", "vertexType", "divisor"});
-			binder.AddMethod( &ScriptVertexBufferInput::AddD5,			"Add",	{"bufferName", "vertexTypeName", "align", "divisor"});
-			binder.AddMethod( &ScriptVertexBufferInput::AddD6,			"Add",	{"bufferName", "vertexType", "align", "divisor"});
+			AS_METHOD( binder, ScriptVertexBufferInput::AddD1,			"Add",	{"bufferName", "vertexTypeName", "stride", "divisor"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::AddD2,			"Add",	{"bufferName", "vertexType", "stride", "divisor"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::AddD3,			"Add",	{"bufferName", "vertexTypeName", "divisor"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::AddD4,			"Add",	{"bufferName", "vertexType", "divisor"});
+			AS_METHOD( binder, ScriptVertexBufferInput::AddD5,			"Add",	{"bufferName", "vertexTypeName", "align", "divisor"});
+			AS_METHOD( binder, ScriptVertexBufferInput::AddD6,			"Add",	{"bufferName", "vertexType", "align", "divisor"});
 
 			binder.Comment( "Add FeatureSet to the vertex buffer." );
-			binder.AddMethod( &ScriptVertexBufferInput::AddFeatureSet,	"AddFeatureSet", {"fsName"} );
+			AS_METHOD( binder, ScriptVertexBufferInput::AddFeatureSet,	"AddFeatureSet", {"fsName"} );
 		}
 
-		se->AddFunction( &VB_SameAttribs, "SameAttribs",	{"lhs", "rhs"}, "Check if two vertex buffers have the same attributes." );
+		AS_GLOBAL_FN( se, VB_SameAttribs, "SameAttribs",	{"lhs", "rhs"}, "Check if two vertex buffers have the same attributes." );
 	}
 
 /*

@@ -129,7 +129,7 @@ namespace {
 		{
 			Msg::CmdBuf_Bake::Graphics_NextSubpass  cmd;
 			cmd.dbgLabel = dbg;
-			_cmdbuf->AddCommand( cmd );
+			prevPassCtx._cmdbuf->AddCommand( cmd );
 		}
 		return DrawCtx{ _primaryState, prevPassCtx.ReleaseCommandBuffer() };	// throw
 	}

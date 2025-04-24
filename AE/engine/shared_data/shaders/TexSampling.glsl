@@ -15,8 +15,8 @@ ND_ float4  TriplanarMapping (const float3 uvw, float3 dir, gl::CombinedTex2D<fl
 ND_ float4  CubicFilter (gl::CombinedTex2D<float> tex, float2 uv);
 ND_ float4  CubicFilter (gl::CombinedTex2D<float> tex, float2 uv, const float2 dim, const float2 invDim);
 
-ND_ float	LinearFilterHighP (gl::CombinedTex2D<float> tex, float2 uv);
-ND_ float	CubicFilterHighP (gl::CombinedTex2D<float> tex, float2 uv);
+ND_ float	LinearFilterHQ (gl::CombinedTex2D<float> tex, float2 uv);
+ND_ float	CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv);
 
 // helper
 ND_ float2	UVLerpFactor (float2 uv, float2 dim);
@@ -25,6 +25,11 @@ ND_ float2	UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex);
 
 
 
+/*
+=================================================
+	TriplanarMapping
+=================================================
+*/
 float4  TriplanarMapping (const float3 uvw, float3 dir, gl::CombinedTex2D<float> samp)
 {
 	float4  a = gl.texture.Sample( samp, uvw.zy );
@@ -36,36 +41,36 @@ float4  TriplanarMapping (const float3 uvw, float3 dir, gl::CombinedTex2D<float>
 
 /*
 =================================================
-	LinearFilterHighP
+	LinearFilterHQ
 =================================================
 */
-float  LinearFilterHighP (gl::CombinedTex2D<float> tex, float2 uv, float2 dim)
+float  LinearFilterHQ (gl::CombinedTex2D<float> tex, float2 uv, float2 dim)
 {
 	float2	f		= Fract( uv * dim + 0.5 + 1.0/512.0 );	// 0.5/256 - rounding for 8-bit precision
 	float4	data	= gl.texture.Gather( tex, uv, 0 );
 	return BiLerp( data[3], data[2], data[0], data[1], f );
 }
 
-float  LinearFilterHighP (gl::CombinedTex2D<float> tex, float2 uv)
+float  LinearFilterHQ (gl::CombinedTex2D<float> tex, float2 uv)
 {
-	return LinearFilterHighP( tex, uv, float2(gl.texture.GetSize( tex, 0 )) );
+	return LinearFilterHQ( tex, uv, float2(gl.texture.GetSize( tex, 0 )) );
 }
 
 /*
 =================================================
-	CubicFilterHighP
+	CubicFilterHQ
 =================================================
 */
-float  CubicFilterHighP (gl::CombinedTex2D<float> tex, float2 uv, float2 dim)
+float  CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv, float2 dim)
 {
 	float2	f		= Fract( uv * dim + 0.5 + 1.0/512.0 );
 	float4	data	= gl.texture.Gather( tex, uv, 0 );
 	return BiCubic( data[3], data[2], data[0], data[1], f );
 }
 
-float  CubicFilterHighP (gl::CombinedTex2D<float> tex, float2 uv)
+float  CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv)
 {
-	return CubicFilterHighP( tex, uv, float2(gl.texture.GetSize( tex, 0 )) );
+	return CubicFilterHQ( tex, uv, float2(gl.texture.GetSize( tex, 0 )) );
 }
 
 /*

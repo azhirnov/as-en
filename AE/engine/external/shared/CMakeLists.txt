@@ -34,6 +34,7 @@ set( AE_ENABLE_REMOTE_GRAPHICS		OFF CACHE BOOL "enable Remote Graphics" )
 
 set( AE_ENABLE_SPIRV_CROSS 			ON  CACHE BOOL "use SPIRV-Cross" )
 set( AE_ENABLE_STB 					ON  CACHE BOOL "use STB" )
+set( AE_ENABLE_SLANG				OFF CACHE BOOL "use SLang" )
 
 set( AE_ENABLE_TINYGLTF 			ON  CACHE BOOL "use tinygltf" )
 
@@ -167,4 +168,8 @@ endif()
 
 if (${AE_ENABLE_ZSTD})
 	add_subdirectory( "zstd" )
+endif()
+
+if (${AE_ENABLE_SLANG})
+	add_subdirectory( "slang" )
 endif()

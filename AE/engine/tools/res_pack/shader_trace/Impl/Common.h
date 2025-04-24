@@ -41,8 +41,8 @@
 #	pragma GCC diagnostic pop
 # endif
 
-# if GLSLANG_VERSION_MAJOR != 15 or GLSLANG_VERSION_MINOR != 1
-#	error invalid glslang version
+# if GLSLANG_VERSION_MAJOR != 15 or GLSLANG_VERSION_MINOR != 2
+#	pragma message("invalid glslang version")
 # endif
 #endif // AE_ENABLE_GLSLANG
 

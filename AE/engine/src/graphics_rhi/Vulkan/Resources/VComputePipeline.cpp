@@ -90,8 +90,7 @@ namespace AE::Graphics
 			if ( feats.computeFullSubgroups )
 				pipeline_info.stage.flags |= VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT;
 
-			*p_next	= &subgroup_size_ci;
-			p_next	= const_cast<void const**>( &subgroup_size_ci.pNext );
+			pipeline_info.stage.pNext = &subgroup_size_ci;
 
 			subgroup_size_ci.sType	= VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO;
 			subgroup_size_ci.pNext	= null;

@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if ((TARGET "GraphicsHL") AND AE_HAS_CXX_COROUTINE)
+if ((TARGET "Graphics") AND AE_HAS_CXX_COROUTINE)
 	file( GLOB_RECURSE SOURCES "*.*" )
 	if (ANDROID)
 		set( TEST_NAME "PerfGraphics" )
@@ -15,7 +15,7 @@ if ((TARGET "GraphicsHL") AND AE_HAS_CXX_COROUTINE)
 	endif()
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/PerfTests" )
-	target_link_libraries( ${TEST_NAME} PUBLIC "GraphicsHL" "Profiler" )
+	target_link_libraries( ${TEST_NAME} PUBLIC "Graphics" "Profiler" )
 	target_include_directories( ${TEST_NAME} PUBLIC
 		"${AE_ENGINE_SHARED_DATA}/scripts"
 		"${AE_ENGINE_SHARED_DATA}/shaders"

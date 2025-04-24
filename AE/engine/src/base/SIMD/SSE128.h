@@ -73,7 +73,7 @@ namespace AE::Base
 			template <typename DstType>
 			ND_ DstType	BitCast ()								C_NE___;
 
-			ND_ static Bool4	True ()							__NE___	{ auto z = _mm_undefined_ps();  return Bool4{_mm_cmpeq_ps( z, z )}; }
+			ND_ static Bool4	True ()							__NE___	{ auto z = _mm_setzero_ps();  return Bool4{_mm_cmpeq_ps( z, z )}; }
 			ND_ static Bool4	False ()						__NE___	{ return Bool4{_mm_setzero_ps()}; }
 		};
 		using Bool_t = Bool4;
@@ -406,7 +406,7 @@ namespace AE::Base
 			template <typename DstType>
 			ND_ DstType	BitCast ()								C_NE___;
 
-			ND_ static Bool2	True ()							__NE___	{ auto z = _mm_undefined_pd();  return Bool2{_mm_cmpeq_pd( z, z )}; }
+			ND_ static Bool2	True ()							__NE___	{ auto z = _mm_setzero_pd();  return Bool2{_mm_cmpeq_pd( z, z )}; }
 			ND_ static Bool2	False ()						__NE___	{ return Bool2{_mm_setzero_pd()}; }
 		};
 		using Bool_t = Bool2;
@@ -561,7 +561,7 @@ namespace AE::Base
 		ND_ Self	PreciseSqrt ()								C_NE___	{ return Self{ _mm_sqrt_pd( _value )}; }
 
 		ND_ Self	Reciprocal_fp32 ()							C_NE___;
-	  #if AE_SIMD_AVX >= 3	// AVX512F, AVX512VL
+	  #if AE_SIMD_AVX >= 31	// AVX512VL
 		ND_ Self	Reciprocal ()								C_NE___	{ return Self{ _mm_rcp14_pd( _value )}; }	// approx (1 / x)
 	  #else
 		ND_ Self	Reciprocal ()								C_NE___	{ return Reciprocal_fp32(); }
@@ -639,7 +639,7 @@ namespace AE::Base
 		NdCe__ static bool  Has_MulAdd ()						{ return false; }
 		NdCe__ static bool  Has_PreciseSqrt ()					{ return true; }
 		NdCe__ static bool  Has_PreciseDiv ()					{ return true; }
-		NdCe__ static bool  Has_ApproxReciprocal ()				{ return AE_SIMD_AVX >= 3; }
+		NdCe__ static bool  Has_ApproxReciprocal ()				{ return AE_SIMD_AVX >= 31; }
 		NdCe__ static bool  Has_ApproxInvSqrt ()				{ return false; }
 		NdCe__ static bool  Has_PrefixSum ()					{ return true; }
 		NdCe__ static bool  Has_PrefixMinMax ()					{ return true; }
@@ -693,7 +693,7 @@ namespace AE::Base
 	public:
 		Int128b ()											__NE___	: _value{ _mm_setzero_si128() } {}
 		Int128b (Zero_t)									__NE___	: _value{ _mm_setzero_si128() } {}
-		Int128b (UMax_t)									__NE___	 { auto z = _mm_undefined_si128();  _value = _mm_cmpeq_epi32( z, z ); }
+		Int128b (UMax_t)									__NE___	 { auto z = _mm_setzero_si128();  _value = _mm_cmpeq_epi32( z, z ); }
 		explicit Int128b (int v)							__NE___	: _value{ _mm_cvtsi32_si128( v )} {}
 		explicit Int128b (slong v)							__NE___	: _value{ _mm_cvtsi64_si128( v )} {}
 		explicit Int128b (const Native_t &v)				__NE___	: _value{ v } {}
@@ -793,7 +793,7 @@ namespace AE::Base
 	public:
 		SimdTInt128 ()										__NE___	: _value{ _mm_setzero_si128() } {}
 		SimdTInt128 (Zero_t)								__NE___	: _value{ _mm_setzero_si128() } {}
-		SimdTInt128 (UMax_t)								__NE___	 { auto z = _mm_undefined_si128();  _value = _mm_cmpeq_epi32( z, z ); }
+		SimdTInt128 (UMax_t)								__NE___	 { auto z = _mm_setzero_si128();  _value = _mm_cmpeq_epi32( z, z ); }
 		explicit SimdTInt128 (const Native_t &v)			__NE___	: _value{ v } {}
 		explicit SimdTInt128 (const Ptr_t ptr)				__NE___	: _value{ _mm_load_si128( ptr.Cast<Native_t>() )} {}
 		explicit SimdTInt128 (const Scalar_t* ptr)			__NE___	: _value{ _mm_loadu_si128( reinterpret_cast<Native_t const *>( GetNonNull( ptr )) )} {}
@@ -1099,12 +1099,14 @@ namespace AE::Base
 
 		template <typename T = Scalar_t, ENABLEIF( IsSame<T,uint> )>
 		ND_ SimdDouble4	_UIntToDouble4 ()					C_NE___;	// AVX
-
+		
+	  #if AE_SIMD_AVX >= 31  // AVX512DQ, AVX512VL
 		template <typename T = Scalar_t, ENABLEIF( IsSame<T,slong> )>
-		ND_ SimdDouble2	_LongToDouble2 ()					C_NE___;	// AVX512
+		ND_ SimdDouble2	_LongToDouble2 ()					C_NE___;
 
 		template <typename T = Scalar_t, ENABLEIF( IsSame<T,ulong> )>
-		ND_ SimdDouble2	_ULongToDouble2 ()					C_NE___;	// AVX512
+		ND_ SimdDouble2	_ULongToDouble2 ()					C_NE___;
+	  #endif
 	};
 
 

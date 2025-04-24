@@ -188,11 +188,11 @@ namespace AE::AssetPacker
 	void  ScriptBaseLayout::_BindBase (B &binder) __Th___
 	{
 		using T = typename B::Class_t;
-		binder.Operators().ImplCast( &ScriptBaseLayout_ToBase<T> );
+		AS_IMPL_CAST_T( binder, ScriptBaseLayout_ToBase<T> );
 
-		binder.AddMethod( &ScriptBaseLayout::_AddChild,			"AddChild",			{} );
-		binder.AddMethod( &ScriptBaseLayout::_SetDrawable,		"SetDrawable",		{} );
-		binder.AddMethod( &ScriptBaseLayout::_SetController,	"SetController",	{} );
+		AS_METHOD_T( binder, ScriptBaseLayout::_AddChild,		"AddChild",			{} );
+		AS_METHOD_T( binder, ScriptBaseLayout::_SetDrawable,	"SetDrawable",		{} );
+		AS_METHOD_T( binder, ScriptBaseLayout::_SetController,	"SetController",	{} );
 	}
 
 /*
@@ -369,7 +369,7 @@ namespace AE::AssetPacker
 		Scripting::ClassBinder<ScriptFixedLayout>	binder{ se };
 		binder.CreateRef();
 		binder.AddFactoryCtor< ELayoutType >();
-		binder.AddMethod( &ScriptFixedLayout::SetRegion1,	"Region" );
+		AS_METHOD( binder, ScriptFixedLayout::SetRegion1,	"Region" );
 		_BindBase( binder );
 	}
 //-----------------------------------------------------------------------------
@@ -462,9 +462,9 @@ namespace AE::AssetPacker
 		Scripting::ClassBinder<ScriptPaddingLayout>	binder{ se };
 		binder.CreateRef();
 		binder.AddFactoryCtor< ELayoutType >();
-		binder.AddMethod( &ScriptPaddingLayout::SetPaddingX,	"PaddingX" );
-		binder.AddMethod( &ScriptPaddingLayout::SetPaddingY,	"PaddingY" );
-		binder.AddMethod( &ScriptPaddingLayout::SetPadding,		"Padding"  );
+		AS_METHOD( binder, ScriptPaddingLayout::SetPaddingX,	"PaddingX" );
+		AS_METHOD( binder, ScriptPaddingLayout::SetPaddingY,	"PaddingY" );
+		AS_METHOD( binder, ScriptPaddingLayout::SetPadding,		"Padding"  );
 		_BindBase( binder );
 	}
 //-----------------------------------------------------------------------------
@@ -584,10 +584,10 @@ namespace AE::AssetPacker
 		Scripting::ClassBinder<ScriptAlignedLayout>	binder{ se };
 		binder.CreateRef();
 		binder.AddFactoryCtor< ELayoutType >();
-		binder.AddMethod( &ScriptAlignedLayout::SetSize1,	"Size",	{"width", "height"} );
-		binder.AddMethod( &ScriptAlignedLayout::SetSize2,	"Size" );
-		binder.AddMethod( &ScriptAlignedLayout::SetAlign1,	"Align" );
-		binder.AddMethod( &ScriptAlignedLayout::SetAlign2,	"Align" );
+		AS_METHOD( binder, ScriptAlignedLayout::SetSize1,	"Size",	{"width", "height"} );
+		AS_METHOD( binder, ScriptAlignedLayout::SetSize2,	"Size" );
+		AS_METHOD( binder, ScriptAlignedLayout::SetAlign1,	"Align" );
+		AS_METHOD( binder, ScriptAlignedLayout::SetAlign2,	"Align" );
 		_BindBase( binder );
 	}
 //-----------------------------------------------------------------------------
@@ -635,7 +635,7 @@ namespace AE::AssetPacker
 	{
 		Scripting::ClassBinder<ScriptFillStackLayout>	binder{ se };
 		binder.CreateRef();
-		binder.AddMethod( &ScriptFillStackLayout::SetOrigin,	"Origin" );
+		AS_METHOD( binder, ScriptFillStackLayout::SetOrigin,	"Origin" );
 		_BindBase( binder );
 	}
 

@@ -75,6 +75,7 @@ namespace AE::ResEditor
 		void  AddLayoutReflection ()																		C_Th___;
 
 		void  CopyFrom (const ScriptPassArgs &)																__Th___;
+		void  MoveTo (OUT ScriptPassArgs &dst)																__NE___;
 
 	private:
 		void  _AddArg (const String &name, const ScriptBufferPtr &buf, EResourceUsage usage)				__Th___;

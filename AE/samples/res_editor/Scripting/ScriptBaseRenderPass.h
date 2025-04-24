@@ -64,11 +64,14 @@ namespace AE::ResEditor
 		static void  _FragmentShadingRate (Scripting::ScriptArgList args)			__Th___;
 		static void  _FragmentDensityMap (Scripting::ScriptArgList args)			__Th___;
 
+		void  _MoveTo (OUT ScriptBaseRenderPass &dst)								__NE___;
+
 	private:
 		void  _Output2 (Scripting::ScriptArgList args)								__Th___;
 		void  _OutputBlend2 (Scripting::ScriptArgList args)							__Th___;
 
 		void  _InOut (const String &, const String&, const ScriptImagePtr &)		__Th___;
+		void  _Input (const String &, const ScriptImagePtr &, const String&)		__Th___;
 
 		void  _SetDepthRange (float min, float max)									__Th___;
 
@@ -80,8 +83,6 @@ namespace AE::ResEditor
 		void  _AddViewport4 (const RectF &rect, float minDepth, float maxDepth,
 							 const RectF &scissor)									__Th___;
 	};
-
-
 
 
 } // AE::ResEditor

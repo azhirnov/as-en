@@ -22,7 +22,7 @@ namespace AE::Base
 			static void		SetName (NtStringView name)										__NE___	{ return PlatformUtils::SetCurrentThreadName( name ); }
 		ND_ static String	GetName ()														__Th___	{ return PlatformUtils::GetCurrentThreadName(); }
 	  #else
-			static void		SetName (NtStringView name)										__NE___	{}
+			static void		SetName (NtStringView)											__NE___	{}
 		//ND_ static String	GetName ()														__NE___	{ return Default; }
 	  #endif
 

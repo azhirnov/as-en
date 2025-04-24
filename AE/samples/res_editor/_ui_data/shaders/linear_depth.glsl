@@ -21,7 +21,7 @@
 	void Main ()
 	{
 		float	depth	= gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), 0 ).r;
-				depth	= ToLinearDepth( depth, pc.clipPlanes.x, pc.clipPlanes.y );
+				depth	= ToLinearDepth( depth, pc.clipPlanes );
 		out_Color		= float4(depth);
 	}
 

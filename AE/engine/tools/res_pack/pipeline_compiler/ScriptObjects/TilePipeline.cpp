@@ -75,7 +75,7 @@ namespace
 */
 	bool  TilePipelineScriptBinding::Build () __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		try {
@@ -143,24 +143,24 @@ namespace
 
 		binder.Comment( "Add macros which will be used in shader.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		binder.AddMethod( &TilePipelineScriptBinding::Define,				"Define",			{} );
+		AS_METHOD( binder, TilePipelineScriptBinding::Define,				"Define",			{} );
 
 		binder.Comment( "Set tile shader.\n"
 						"Pipeline will inherit shader feature sets." );
-		binder.AddMethod( &TilePipelineScriptBinding::SetShader,			"SetShader",		{} );
+		AS_METHOD( binder, TilePipelineScriptBinding::SetShader,			"SetShader",		{} );
 
 		binder.Comment( "Create specialization for pipeline template.\n"
 						"Name is used in C++ code to get pipeline from render technique.\n"
 						"Pipeline specialization use the same pipeline layout, same shader binary, difference only in some parameters." );
-		binder.AddMethod( &TilePipelineScriptBinding::AddSpecialization,	"AddSpecialization", {"specName"} );
+		AS_METHOD( binder, TilePipelineScriptBinding::AddSpecialization,	"AddSpecialization", {"specName"} );
 
 		binder.Comment( "Add FeatureSet to the pipeline." );
-		binder.AddMethod( &TilePipelineScriptBinding::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
+		AS_METHOD( binder, TilePipelineScriptBinding::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
 
 		binder.Comment( "Set pipeline layout.\n"
 						"Pipeline will inherit layout feature sets." );
-		binder.AddMethod( &TilePipelineScriptBinding::SetLayout,			"SetLayout",		{"plName"} );
-		binder.AddMethod( &TilePipelineScriptBinding::SetLayout2,			"SetLayout",		{"pl"} );
+		AS_METHOD( binder, TilePipelineScriptBinding::SetLayout,			"SetLayout",		{"plName"} );
+		AS_METHOD( binder, TilePipelineScriptBinding::SetLayout2,			"SetLayout",		{"pl"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -227,7 +227,7 @@ namespace
 */
 	bool  TilePipelineSpecScriptBinding::Build (PipelineTemplUID templUID) __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		if ( IsBuilded() )
@@ -256,26 +256,26 @@ namespace
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );
-		binder.AddMethod( &TilePipelineSpecScriptBinding::SetSpecValueU,		"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &TilePipelineSpecScriptBinding::SetSpecValueI,		"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &TilePipelineSpecScriptBinding::SetSpecValueF,		"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, TilePipelineSpecScriptBinding::SetSpecValueU,		"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, TilePipelineSpecScriptBinding::SetSpecValueI,		"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, TilePipelineSpecScriptBinding::SetSpecValueF,		"SetSpecValue",		{"name", "value"} );
 
 		binder.Comment( "Set dynamic states (EPipelineDynamicState).\n"
 						"None of the states are supported for tile pipeline." );
-		binder.AddMethod( &TilePipelineSpecScriptBinding::SetDynamicState,		"SetDynamicState",	{"states"} );
+		AS_METHOD( binder, TilePipelineSpecScriptBinding::SetDynamicState,		"SetDynamicState",	{"states"} );
 
 		binder.Comment( "Set tile shader tile size. All threads in tile can use same (tile) memory." );
-		binder.AddMethod( &TilePipelineSpecScriptBinding::SetLocalGroupSize1,	"SetLocalSize",		{"x"} );
-		binder.AddMethod( &TilePipelineSpecScriptBinding::SetLocalGroupSize2,	"SetLocalSize",		{"x", "y"} );
+		AS_METHOD( binder, TilePipelineSpecScriptBinding::SetLocalGroupSize1,	"SetLocalSize",		{"x"} );
+		AS_METHOD( binder, TilePipelineSpecScriptBinding::SetLocalGroupSize2,	"SetLocalSize",		{"x", "y"} );
 
 		binder.Comment( "Attach pipeline to the render technique.\n"
 						"Render technique will create all attached pipelines during its creation." );
-		binder.AddMethod( &TilePipelineSpecScriptBinding::AddToRenderTech,		"AddToRenderTech",	{"rtech", "gpass"} );
+		AS_METHOD( binder, TilePipelineSpecScriptBinding::AddToRenderTech,		"AddToRenderTech",	{"rtech", "gpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"
 						"Supported: 'Optimize'.\n"
 						"By default used value from 'GlobalConfig::SetPipelineOptions()'." );
-		binder.AddMethod( &TilePipelineSpecScriptBinding::SetOptions,			"SetOptions",		{"opts"} );
+		AS_METHOD( binder, TilePipelineSpecScriptBinding::SetOptions,			"SetOptions",		{"opts"} );
 	}
 
 

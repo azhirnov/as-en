@@ -2,7 +2,7 @@
 
 #include "Test_Common.h"
 #include "graphics_rhi/Private/EnumUtils.h"
-#include "graphics_hl/UI/StyleCollection.h"
+#include "graphics/UI/StyleCollection.h"
 #include "vfs/VirtualFileSystem.h"
 using namespace AE::AssetPacker;
 

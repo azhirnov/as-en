@@ -292,20 +292,13 @@ namespace
 	VecFunc
 =================================================
 */
+	template <typename V>
 	struct VecFunc
 	{
-		template <typename V, typename R>
-		using FloatOnly = EnableIf<IsFloatPoint<typename V::value_type>, R>;
-
-		template <typename V, typename R>
-		using ExceptFloat = EnableIf<not IsFloatPoint<typename V::value_type>, R>;
-
-		template <typename V>
 		static bool  Equal (const V &lhs, const V &rhs) {
 			return Base::All( lhs == rhs );
 		}
 
-		template <typename V>
 		static int  Cmp (const V &lhs, const V &rhs) {
 			for (uint i = 0; i < VecSize<V>; ++i) {
 				if ( lhs[i] > rhs[i] )	return +1;
@@ -314,119 +307,130 @@ namespace
 			return 0;
 		}
 
-		template <typename V> static V   Neg (const V& v)														{ return -v; }
+		static V   Neg (const V& v)															{ return -v; }
 
-		template <typename V> static V&  Add_a_v (V& lhs, const V &rhs)											{ return lhs += rhs; }
-		template <typename V> static V&  Add_a_s (V& lhs, typename V::value_type rhs)							{ return lhs += rhs; }
-		template <typename V> static V   Add_v_v (const V& lhs, const V &rhs)									{ return lhs + rhs; }
-		template <typename V> static V   Add_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs + rhs; }
-		template <typename V> static V   Add_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs + rhs; }
+		static V&  Add_a_v (V& lhs, const V &rhs)											{ return lhs += rhs; }
+		static V&  Add_a_s (V& lhs, typename V::value_type rhs)								{ return lhs += rhs; }
+		static V   Add_v_v (const V &lhs, const V &rhs)										{ return lhs + rhs; }
+		static V   Add_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs + rhs; }
+		static V   Add_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs + rhs; }
 
-		template <typename V> static V&  Sub_a_v (V& lhs, const V &rhs)											{ return lhs -= rhs; }
-		template <typename V> static V&  Sub_a_s (V& lhs, typename V::value_type rhs)							{ return lhs -= rhs; }
-		template <typename V> static V   Sub_v_v (const V& lhs, const V &rhs)									{ return lhs - rhs; }
-		template <typename V> static V   Sub_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs - rhs; }
-		template <typename V> static V   Sub_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs - rhs; }
+		static V&  Sub_a_v (V& lhs, const V &rhs)											{ return lhs -= rhs; }
+		static V&  Sub_a_s (V& lhs, typename V::value_type rhs)								{ return lhs -= rhs; }
+		static V   Sub_v_v (const V &lhs, const V &rhs)										{ return lhs - rhs; }
+		static V   Sub_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs - rhs; }
+		static V   Sub_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs - rhs; }
 
-		template <typename V> static V&  Mul_a_v (V& lhs, const V &rhs)											{ return lhs *= rhs; }
-		template <typename V> static V&  Mul_a_s (V& lhs, typename V::value_type rhs)							{ return lhs *= rhs; }
-		template <typename V> static V   Mul_v_v (const V& lhs, const V &rhs)									{ return lhs * rhs; }
-		template <typename V> static V   Mul_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs * rhs; }
-		template <typename V> static V   Mul_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs * rhs; }
+		static V&  Mul_a_v (V& lhs, const V &rhs)											{ return lhs *= rhs; }
+		static V&  Mul_a_s (V& lhs, typename V::value_type rhs)								{ return lhs *= rhs; }
+		static V   Mul_v_v (const V &lhs, const V &rhs)										{ return lhs * rhs; }
+		static V   Mul_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs * rhs; }
+		static V   Mul_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs * rhs; }
 
-		template <typename V> static V&  Div_a_v (V& lhs, const V &rhs)											{ return lhs /= rhs; }
-		template <typename V> static V&  Div_a_s (V& lhs, typename V::value_type rhs)							{ return lhs /= rhs; }
-		template <typename V> static V   Div_v_v (const V& lhs, const V &rhs)									{ return lhs / rhs; }
-		template <typename V> static V   Div_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs / rhs; }
-		template <typename V> static V   Div_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs / rhs; }
+		static V&  Div_a_v (V& lhs, const V &rhs)											{ return lhs /= rhs; }
+		static V&  Div_a_s (V& lhs, typename V::value_type rhs)								{ return lhs /= rhs; }
+		static V   Div_v_v (const V &lhs, const V &rhs)										{ return lhs / rhs; }
+		static V   Div_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs / rhs; }
+		static V   Div_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs / rhs; }
 
-		template <typename V> static V   DivCeil_v_v (const V& lhs, const V &rhs)								{ return DivCeil( lhs, rhs ); }
-		template <typename V> static V   DivCeil_v_s (const V &lhs, typename V::value_type rhs)					{ return DivCeil( lhs, rhs ); }
+		static V   DivCeil_v_v (const V &lhs, const V &rhs)									{ return DivCeil( lhs, rhs ); }
+		static V   DivCeil_v_s (const V &lhs, typename V::value_type rhs)					{ return DivCeil( lhs, rhs ); }
+
+		static V&  And_a_v (V& lhs, const V &rhs)											{ return lhs &= rhs; }
+		static V&  And_a_s (V& lhs, typename V::value_type rhs)								{ return lhs &= rhs; }
+		static V   And_v_v (const V &lhs, const V &rhs)										{ return lhs & rhs; }
+		static V   And_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs & rhs; }
+		static V   And_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs & rhs; }
+
+		static V&  Or_a_v (V& lhs, const V &rhs)											{ return lhs |= rhs; }
+		static V&  Or_a_s (V& lhs, typename V::value_type rhs)								{ return lhs |= rhs; }
+		static V   Or_v_v (const V &lhs, const V &rhs)										{ return lhs | rhs; }
+		static V   Or_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs | rhs; }
+		static V   Or_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs | rhs; }
+
+		static V&  Xor_a_v (V& lhs, const V &rhs)											{ return lhs ^= rhs; }
+		static V&  Xor_a_s (V& lhs, typename V::value_type rhs)								{ return lhs ^= rhs; }
+		static V   Xor_v_v (const V &lhs, const V &rhs)										{ return lhs ^ rhs; }
+		static V   Xor_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs ^ rhs; }
+		static V   Xor_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs ^ rhs; }
+
+		static V&  ShiftL_a_v (V& lhs, const V &rhs)										{ return lhs <<= rhs; }
+		static V&  ShiftL_a_s (V& lhs, typename V::value_type rhs)							{ return lhs <<= rhs; }
+		static V   ShiftL_v_v (const V &lhs, const V &rhs)									{ return lhs << rhs; }
+		static V   ShiftL_v_s (const V &lhs, typename V::value_type rhs)					{ return lhs << rhs; }
+		static V   ShiftL_s_v (typename V::value_type lhs, const V &rhs)					{ return lhs << rhs; }
+
+		static V&  ShiftR_a_v (V& lhs, const V &rhs)										{ return lhs >>= rhs; }
+		static V&  ShiftR_a_s (V& lhs, typename V::value_type rhs)							{ return lhs >>= rhs; }
+		static V   ShiftR_v_v (const V &lhs, const V &rhs)									{ return lhs >> rhs; }
+		static V   ShiftR_v_s (const V &lhs, typename V::value_type rhs)					{ return lhs >> rhs; }
+		static V   ShiftR_s_v (typename V::value_type lhs, const V &rhs)					{ return lhs >> rhs; }
+
+		static bool  All (const V &x)														{ return Base::All( x ); }
+		static bool  Any (const V &x)														{ return Base::Any( x ); }
+
+		static V	ToSNorm (const V& x)													{ return Base::ToSNorm( x ); }
+		static V	ToUNorm (const V& x)													{ return Base::ToUNorm( x ); }
+
+		static typename V::value_type  Sum (const V& x)										{ return Base::Sum<typename V::value_type>( x ); }
+		static typename V::value_type  Area (const V& x)									{ return Base::Area( x ); }
+		static typename V::value_type  Dot (const V& x, const V& y)							{ return Base::Dot( x, y ); }
+		static typename V::value_type  Length (const V& x)									{ return Base::Length( x ); }
+		static typename V::value_type  LengthSq (const V& x)								{ return Base::LengthSq( x ); }
+		static typename V::value_type  Distance (const V& x, const V& y)					{ return Base::Distance( x, y ); }
+		static typename V::value_type  DistanceSq (const V& x, const V& y)					{ return Base::DistanceSq( x, y ); }
+		static typename V::value_type  VecToLinear (const V& x, const V& y)					{ return Base::VecToLinear( x, y ); }
+
+		static V  Cross (const V &x, const V &y)											{ return Base::Cross( x, y ); }
+		static V  Min (const V &x, const V &y)												{ return Base::Min( x, y ); }
+		static V  Max (const V &x, const V &y)												{ return Base::Max( x, y ); }
+		static V  Clamp_1 (const V &x, const V &y, const V &z)								{ return Base::Clamp( x, y, z ); }
+		static V  Clamp_2 (const V &x, typename V::value_type y, typename V::value_type z)	{ return Base::Clamp( x, y, z ); }
+		static V  Wrap_1 (const V &x, const V &y, const V &z)								{ return Base::Wrap( x, y, z ); }
+		static V  Wrap_2 (const V &x, typename V::value_type y, typename V::value_type z)	{ return Base::Wrap( x, y, z ); }
+		static V  MirroredWrap_1 (const V &x, const V &y, const V &z)						{ return Base::MirroredWrap( x, y, z ); }
+		static V  MirroredWrap_2 (const V &x, typename V::value_type y, typename V::value_type z)	{ return Base::MirroredWrap( x, y, z ); }
+
+		static V	Normalize (const V &x)													{ return Base::Normalize( x ); }
+		static V	Floor (const V &x)														{ return Base::Floor( x ); }
+		static V	Ceil (const V &x)														{ return Base::Ceil( x ); }
+		static V	Round (const V &x)														{ return Base::Round( x ); }
+		static V	Fract (const V &x)														{ return Base::Fract( x ); }
+		static V	Sqrt (const V &x)														{ return Base::Sqrt( x ); }
+		static V	Abs (const V &x)														{ return Base::Abs( x ); }
+		static V	Lerp (const V &x, const V &y, typename V::value_type f)					{ return Base::Lerp( x, y, f ); }
+		static V	Ln (const V &x)															{ return Base::Ln( x ); }
+		static V	Log2 (const V &x)														{ return Base::Log2( x ); }
+		static V	Log_1 (const V &x, const V &y)											{ return Base::Log( x, y ); }
+		static V	Log_2 (const V &x, typename V::value_type y)							{ return Base::Log( x, y ); }
+		static V	Pow_1 (const V &x, const V &y)											{ return Base::Pow( x, y ); }
+		static V	Pow_2 (const V &x, typename V::value_type y)							{ return Base::Pow( x, y ); }
+		static V	Exp (const V &x)														{ return Base::Exp( x ); }
+		static V	Exp2 (const V &x)														{ return Base::Exp2( x ); }
+		static V	Exp10 (const V &x)														{ return Base::Exp10( x ); }
+
+		static V	Not (const V &x)														{ return glm::operator ! (x); }
+	};
+	
+	struct VecFunc2
+	{
+		template <typename V, typename R>
+		using FloatOnly		= EnableIf<IsFloatPoint<typename V::value_type>, R>;
+
+		template <typename V, typename R>
+		using ExceptFloat	= EnableIf<not IsFloatPoint<typename V::value_type>, R>;
 
 		template <typename V> static FloatOnly<V, V&>  Mod_a_v (V& lhs, const V &rhs)							{ return lhs = glm::mod( lhs, rhs ); }
 		template <typename V> static FloatOnly<V, V&>  Mod_a_s (V& lhs, typename V::value_type rhs)				{ return lhs = glm::mod( lhs, rhs ); }
-		template <typename V> static FloatOnly<V, V>   Mod_v_v (const V& lhs, const V &rhs)						{ return glm::mod( lhs, rhs ); }
+		template <typename V> static FloatOnly<V, V>   Mod_v_v (const V &lhs, const V &rhs)						{ return glm::mod( lhs, rhs ); }
 		template <typename V> static FloatOnly<V, V>   Mod_v_s (const V &lhs, typename V::value_type rhs)		{ return glm::mod( lhs, rhs ); }
 		template <typename V> static FloatOnly<V, V>   Mod_s_v (typename V::value_type lhs, const V &rhs)		{ return glm::mod( V(lhs), rhs ); }
 
 		template <typename V> static ExceptFloat<V, V&>  Mod_a_v (V& lhs, const V &rhs)							{ return lhs %= rhs; }
 		template <typename V> static ExceptFloat<V, V&>  Mod_a_s (V& lhs, typename V::value_type rhs)			{ return lhs %= rhs; }
-		template <typename V> static ExceptFloat<V, V>   Mod_v_v (const V& lhs, const V &rhs)					{ return lhs % rhs; }
+		template <typename V> static ExceptFloat<V, V>   Mod_v_v (const V &lhs, const V &rhs)					{ return lhs % rhs; }
 		template <typename V> static ExceptFloat<V, V>   Mod_v_s (const V &lhs, typename V::value_type rhs)		{ return lhs % rhs; }
 		template <typename V> static ExceptFloat<V, V>   Mod_s_v (typename V::value_type lhs, const V &rhs)		{ return lhs % rhs; }
-
-		template <typename V> static V&  And_a_v (V& lhs, const V &rhs)											{ return lhs &= rhs; }
-		template <typename V> static V&  And_a_s (V& lhs, typename V::value_type rhs)							{ return lhs &= rhs; }
-		template <typename V> static V   And_v_v (const V& lhs, const V &rhs)									{ return lhs & rhs; }
-		template <typename V> static V   And_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs & rhs; }
-		template <typename V> static V   And_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs & rhs; }
-
-		template <typename V> static V&  Or_a_v (V& lhs, const V &rhs)											{ return lhs |= rhs; }
-		template <typename V> static V&  Or_a_s (V& lhs, typename V::value_type rhs)							{ return lhs |= rhs; }
-		template <typename V> static V   Or_v_v (const V& lhs, const V &rhs)									{ return lhs | rhs; }
-		template <typename V> static V   Or_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs | rhs; }
-		template <typename V> static V   Or_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs | rhs; }
-
-		template <typename V> static V&  Xor_a_v (V& lhs, const V &rhs)											{ return lhs ^= rhs; }
-		template <typename V> static V&  Xor_a_s (V& lhs, typename V::value_type rhs)							{ return lhs ^= rhs; }
-		template <typename V> static V   Xor_v_v (const V& lhs, const V &rhs)									{ return lhs ^ rhs; }
-		template <typename V> static V   Xor_v_s (const V &lhs, typename V::value_type rhs)						{ return lhs ^ rhs; }
-		template <typename V> static V   Xor_s_v (typename V::value_type lhs, const V &rhs)						{ return lhs ^ rhs; }
-
-		template <typename V> static V&  ShiftL_a_v (V& lhs, const V &rhs)										{ return lhs <<= rhs; }
-		template <typename V> static V&  ShiftL_a_s (V& lhs, typename V::value_type rhs)						{ return lhs <<= rhs; }
-		template <typename V> static V   ShiftL_v_v (const V& lhs, const V &rhs)								{ return lhs << rhs; }
-		template <typename V> static V   ShiftL_v_s (const V &lhs, typename V::value_type rhs)					{ return lhs << rhs; }
-		template <typename V> static V   ShiftL_s_v (typename V::value_type lhs, const V &rhs)					{ return lhs << rhs; }
-
-		template <typename V> static V&  ShiftR_a_v (V& lhs, const V &rhs)										{ return lhs >>= rhs; }
-		template <typename V> static V&  ShiftR_a_s (V& lhs, typename V::value_type rhs)						{ return lhs >>= rhs; }
-		template <typename V> static V   ShiftR_v_v (const V& lhs, const V &rhs)								{ return lhs >> rhs; }
-		template <typename V> static V   ShiftR_v_s (const V &lhs, typename V::value_type rhs)					{ return lhs >> rhs; }
-		template <typename V> static V   ShiftR_s_v (typename V::value_type lhs, const V &rhs)					{ return lhs >> rhs; }
-
-		template <typename V> static bool  All (const V &x)														{ return Base::All( x ); }
-		template <typename V> static bool  Any (const V &x)														{ return Base::Any( x ); }
-
-		template <typename V> static V	ToSNorm (const V& x)													{ return Base::ToSNorm( x ); }
-		template <typename V> static V	ToUNorm (const V& x)													{ return Base::ToUNorm( x ); }
-
-		template <typename V> static typename V::value_type  Sum (const V& x)									{ return Base::Sum<typename V::value_type>( x ); }
-		template <typename V> static typename V::value_type  Area (const V& x)									{ return Base::Area( x ); }
-		template <typename V> static typename V::value_type  Dot (const V& x, const V& y)						{ return Base::Dot( x, y ); }
-		template <typename V> static typename V::value_type  Length (const V& x)								{ return Base::Length( x ); }
-		template <typename V> static typename V::value_type  LengthSq (const V& x)								{ return Base::LengthSq( x ); }
-		template <typename V> static typename V::value_type  Distance (const V& x, const V& y)					{ return Base::Distance( x, y ); }
-		template <typename V> static typename V::value_type  DistanceSq (const V& x, const V& y)				{ return Base::DistanceSq( x, y ); }
-		template <typename V> static typename V::value_type  VecToLinear (const V& x, const V& y)				{ return Base::VecToLinear( x, y ); }
-
-		template <typename V> static V  Cross (const V &x, const V &y)											{ return Base::Cross( x, y ); }
-		template <typename V> static V  Min (const V &x, const V &y)											{ return Base::Min( x, y ); }
-		template <typename V> static V  Max (const V &x, const V &y)											{ return Base::Max( x, y ); }
-		template <typename V> static V  Clamp_1 (const V &x, const V &y, const V &z)							{ return Base::Clamp( x, y, z ); }
-		template <typename V> static V  Clamp_2 (const V &x, typename V::value_type y, typename V::value_type z){ return Base::Clamp( x, y, z ); }
-		template <typename V> static V  Wrap_1 (const V &x, const V &y, const V &z)								{ return Base::Wrap( x, y, z ); }
-		template <typename V> static V  Wrap_2 (const V &x, typename V::value_type y, typename V::value_type z)	{ return Base::Wrap( x, y, z ); }
-		template <typename V> static V  MirroredWrap_1 (const V &x, const V &y, const V &z)						{ return Base::MirroredWrap( x, y, z ); }
-		template <typename V> static V  MirroredWrap_2 (const V &x, typename V::value_type y, typename V::value_type z)	{ return Base::MirroredWrap( x, y, z ); }
-
-		template <typename V> static V	Normalize (const V& x)													{ return Base::Normalize( x ); }
-		template <typename V> static V	Floor (const V& x)														{ return Base::Floor( x ); }
-		template <typename V> static V	Ceil (const V& x)														{ return Base::Ceil( x ); }
-		template <typename V> static V	Round (const V& x)														{ return Base::Round( x ); }
-		template <typename V> static V	Fract (const V& x)														{ return Base::Fract( x ); }
-		template <typename V> static V	Sqrt (const V& x)														{ return Base::Sqrt( x ); }
-		template <typename V> static V	Abs (const V& x)														{ return Base::Abs( x ); }
-		template <typename V> static V	Lerp (const V& x, const V& y, typename V::value_type f)					{ return Base::Lerp( x, y, f ); }
-		template <typename V> static V	Ln (const V& x)															{ return Base::Ln( x ); }
-		template <typename V> static V	Log2 (const V& x)														{ return Base::Log2( x ); }
-		template <typename V> static V	Log_1 (const V& x, const V& y)											{ return Base::Log( x, y ); }
-		template <typename V> static V	Log_2 (const V& x, typename V::value_type y)							{ return Base::Log( x, y ); }
-		template <typename V> static V	Pow_1 (const V& x, const V& y)											{ return Base::Pow( x, y ); }
-		template <typename V> static V	Pow_2 (const V& x, typename V::value_type y)							{ return Base::Pow( x, y ); }
-		template <typename V> static V	Exp (const V& x)														{ return Base::Exp( x ); }
-		template <typename V> static V	Exp2 (const V& x)														{ return Base::Exp2( x ); }
-		template <typename V> static V	Exp10 (const V& x)														{ return Base::Exp10( x ); }
 	};
 
 /*
@@ -438,14 +442,15 @@ namespace
 	static void  BindBoolVec (ClassBinder<T> &binder, const ScriptEnginePtr &se)
 	{
 		using Vec_t = T;
+		using VF	= VecFunc< Vec_t >;
 
-		binder.Operators()
-			.Unary(		EUnaryOperator::Not,	static_cast<T (*)(const T&) >(&glm::operator !) )
-			.Equal(								&VecFunc::template Equal< Vec_t >)
-			.Compare(							&VecFunc::template Cmp< Vec_t >);
+		AS_OP_EQUAL_T(	binder, VF::Equal	);
+		AS_OP_CMP_T(	binder, VF::Cmp	);
 
-		se->AddFunction( &VecFunc::template All< Vec_t >,	"All",	{"x"} );
-		se->AddFunction( &VecFunc::template Any< Vec_t >,	"Any",	{"x"} );
+		AS_OP_UNARY_T(	binder,	EUnaryOperator::Not, VF::Not );
+
+		AS_GLOBAL_FN( se, VF::All,	"All",	{"x"} );
+		AS_GLOBAL_FN( se, VF::Any,	"Any",	{"x"} );
 	}
 
 /*
@@ -458,6 +463,7 @@ namespace
 	{
 		using Vec_t		= T;
 		using Scalar_t	= typename T::value_type;
+		using VF		= VecFunc< Vec_t >;
 
 		if constexpr( IsSame< Scalar_t, int >	or
 					  IsSame< Scalar_t, uint >	or
@@ -465,23 +471,22 @@ namespace
 		{
 			if constexpr( IsSignedInteger<Scalar_t> or IsFloatPoint<Scalar_t> )
 			{
-				se->AddFunction( &VecFunc::template Abs< Vec_t >,				"Abs",			{"x"} );
-				se->AddFunction( &VecFunc::template MirroredWrap_1< Vec_t >,	"MirroredWrap",	{"x", "min", "max"} );
-				se->AddFunction( &VecFunc::template MirroredWrap_2< Vec_t >,	"MirroredWrap",	{"x", "min", "max"} );
+				AS_GLOBAL_FN( se, VF::Abs,				"Abs",			{"x"} );
+				AS_GLOBAL_FN( se, VF::MirroredWrap_1,	"MirroredWrap",	{"x", "min", "max"} );
+				AS_GLOBAL_FN( se, VF::MirroredWrap_2,	"MirroredWrap",	{"x", "min", "max"} );
 
-				binder.Operators()
-					.Unary(	EUnaryOperator::Inverse, &VecFunc::template Neg< Vec_t >);
+				AS_OP_UNARY_T( binder, EUnaryOperator::Inverse, VF::Neg );
 			}
 
-			se->AddFunction( &VecFunc::template Sum< Vec_t >,				"Sum",			{"x"} );
-			se->AddFunction( &VecFunc::template Area< Vec_t >,				"Area",			{"x"} );
-			se->AddFunction( &VecFunc::template Min< Vec_t >,				"Min",			{"x", "y"} );
-			se->AddFunction( &VecFunc::template Max< Vec_t >,				"Max",			{"x", "y"} );
-			se->AddFunction( &VecFunc::template Clamp_1< Vec_t >,			"Clamp",		{"val", "min", "max"} );
-			se->AddFunction( &VecFunc::template Clamp_2< Vec_t >,			"Clamp",		{"val", "min", "max"} );
-			se->AddFunction( &VecFunc::template Wrap_1< Vec_t >,			"Wrap",			{"val", "min", "max"} );
-			se->AddFunction( &VecFunc::template Wrap_2< Vec_t >,			"Wrap",			{"val", "min", "max"} );
-			se->AddFunction( &VecFunc::template VecToLinear< Vec_t >,		"VecToLinear",	{"pos", "dim"} );
+			AS_GLOBAL_FN( se, VF::Sum,				"Sum",			{"x"} );
+			AS_GLOBAL_FN( se, VF::Area,				"Area",			{"x"} );
+			AS_GLOBAL_FN( se, VF::Min,				"Min",			{"x", "y"} );
+			AS_GLOBAL_FN( se, VF::Max,				"Max",			{"x", "y"} );
+			AS_GLOBAL_FN( se, VF::Clamp_1,			"Clamp",		{"val", "min", "max"} );
+			AS_GLOBAL_FN( se, VF::Clamp_2,			"Clamp",		{"val", "min", "max"} );
+			AS_GLOBAL_FN( se, VF::Wrap_1,			"Wrap",			{"val", "min", "max"} );
+			AS_GLOBAL_FN( se, VF::Wrap_2,			"Wrap",			{"val", "min", "max"} );
+			AS_GLOBAL_FN( se, VF::VecToLinear,		"VecToLinear",	{"pos", "dim"} );
 		}
 	}
 
@@ -494,75 +499,75 @@ namespace
 	static void  BindIntVec (ClassBinder<T> &binder, const ScriptEnginePtr &se)
 	{
 		using Vec_t = T;
+		using VF	= VecFunc< Vec_t >;
 
-		binder.Operators()
-			.BinaryAssign(	EBinaryOperator::Add, &VecFunc::template Add_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Add, &VecFunc::template Add_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Add, &VecFunc::template Add_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Add, &VecFunc::template Add_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Add, &VecFunc::template Add_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Add, VF::Add_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Add, VF::Add_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Add, VF::Add_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Add, VF::Add_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Add, VF::Add_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Sub, &VecFunc::template Sub_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Sub, &VecFunc::template Sub_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Sub, &VecFunc::template Sub_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Sub, &VecFunc::template Sub_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Sub, &VecFunc::template Sub_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Sub, VF::Sub_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Sub, VF::Sub_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Sub, VF::Sub_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Sub, VF::Sub_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Sub, VF::Sub_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Mul, &VecFunc::template Mul_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Mul, &VecFunc::template Mul_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Mul, &VecFunc::template Mul_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Mul, &VecFunc::template Mul_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Mul, &VecFunc::template Mul_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mul, VF::Mul_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mul, VF::Mul_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, VF::Mul_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, VF::Mul_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Mul, VF::Mul_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Div, &VecFunc::template Div_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Div, &VecFunc::template Div_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Div, &VecFunc::template Div_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Div, &VecFunc::template Div_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Div, &VecFunc::template Div_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Div, VF::Div_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Div, VF::Div_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Div, VF::Div_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Div, VF::Div_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Div, VF::Div_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Mod, &VecFunc::template Mod_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Mod, &VecFunc::template Mod_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Mod, &VecFunc::template Mod_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Mod, &VecFunc::template Mod_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Mod, &VecFunc::template Mod_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mod, VecFunc2::template Mod_a_v< Vec_t >);
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mod, VecFunc2::template Mod_a_s< Vec_t >);
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mod, VecFunc2::template Mod_v_v< Vec_t >);
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mod, VecFunc2::template Mod_v_s< Vec_t >);
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Mod, VecFunc2::template Mod_s_v< Vec_t >);
 
-			.BinaryAssign(	EBinaryOperator::And, &VecFunc::template And_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::And, &VecFunc::template And_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::And, &VecFunc::template And_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::And, &VecFunc::template And_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::And, &VecFunc::template And_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::And, VF::And_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::And, VF::And_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::And, VF::And_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::And, VF::And_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::And, VF::And_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Or,  &VecFunc::template Or_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Or,  &VecFunc::template Or_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Or,  &VecFunc::template Or_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Or,  &VecFunc::template Or_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Or,  &VecFunc::template Or_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Or,  VF::Or_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Or,  VF::Or_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Or,  VF::Or_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Or,  VF::Or_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Or,  VF::Or_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Xor, &VecFunc::template Xor_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Xor, &VecFunc::template Xor_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Xor, &VecFunc::template Xor_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Xor, &VecFunc::template Xor_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Xor, &VecFunc::template Xor_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Xor, VF::Xor_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Xor, VF::Xor_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Xor, VF::Xor_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Xor, VF::Xor_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Xor, VF::Xor_s_v );
 
-			.BinaryAssign(	EBinaryOperator::ShiftLeft, &VecFunc::template ShiftL_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::ShiftLeft, &VecFunc::template ShiftL_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::ShiftLeft, &VecFunc::template ShiftL_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::ShiftLeft, &VecFunc::template ShiftL_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::ShiftLeft, &VecFunc::template ShiftL_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::ShiftLeft, VF::ShiftL_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::ShiftLeft, VF::ShiftL_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::ShiftLeft, VF::ShiftL_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::ShiftLeft, VF::ShiftL_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::ShiftLeft, VF::ShiftL_s_v );
 
-			.BinaryAssign(	EBinaryOperator::ShiftRight, &VecFunc::template ShiftR_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::ShiftRight, &VecFunc::template ShiftR_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::ShiftRight, &VecFunc::template ShiftR_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::ShiftRight, &VecFunc::template ShiftR_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::ShiftRight, &VecFunc::template ShiftR_s_v< Vec_t >)
-
-			.Equal(			&VecFunc::template Equal< Vec_t >)
-			.Compare(		&VecFunc::template Cmp< Vec_t >);
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::ShiftRight, VF::ShiftR_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::ShiftRight, VF::ShiftR_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::ShiftRight, VF::ShiftR_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::ShiftRight, VF::ShiftR_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::ShiftRight, VF::ShiftR_s_v );
+		
+		AS_OP_EQUAL_T(		binder, VF::Equal );
+		AS_OP_CMP_T(		binder, VF::Cmp );
 
 		BindIntFloatVec( binder, se );
 
-		se->AddFunction( &VecFunc::template DivCeil_v_v<Vec_t>,	"DivCeil",	{"x", "y"} );
-		se->AddFunction( &VecFunc::template DivCeil_v_s<Vec_t>,	"DivCeil",	{"x", "y"} );
+		AS_GLOBAL_FN( se, VF::DivCeil_v_v,		"DivCeil",	{"x", "y"} );
+		AS_GLOBAL_FN( se, VF::DivCeil_v_s,		"DivCeil",	{"x", "y"} );
 	}
 
 /*
@@ -574,71 +579,71 @@ namespace
 	static void  BindFloatVec (ClassBinder<T> &binder, const ScriptEnginePtr &se)
 	{
 		using Vec_t = T;
+		using VF	= VecFunc< Vec_t >;
 
-		binder.Operators()
-			.BinaryAssign(	EBinaryOperator::Add, &VecFunc::template Add_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Add, &VecFunc::template Add_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Add, &VecFunc::template Add_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Add, &VecFunc::template Add_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Add, &VecFunc::template Add_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Add, VF::Add_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Add, VF::Add_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Add, VF::Add_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Add, VF::Add_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Add, VF::Add_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Sub, &VecFunc::template Sub_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Sub, &VecFunc::template Sub_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Sub, &VecFunc::template Sub_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Sub, &VecFunc::template Sub_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Sub, &VecFunc::template Sub_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Sub, VF::Sub_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Sub, VF::Sub_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Sub, VF::Sub_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Sub, VF::Sub_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Sub, VF::Sub_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Mul, &VecFunc::template Mul_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Mul, &VecFunc::template Mul_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Mul, &VecFunc::template Mul_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Mul, &VecFunc::template Mul_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Mul, &VecFunc::template Mul_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mul, VF::Mul_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mul, VF::Mul_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, VF::Mul_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, VF::Mul_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Mul, VF::Mul_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Div, &VecFunc::template Div_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Div, &VecFunc::template Div_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Div, &VecFunc::template Div_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Div, &VecFunc::template Div_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Div, &VecFunc::template Div_s_v< Vec_t >)
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Div, VF::Div_a_v );
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Div, VF::Div_a_s );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Div, VF::Div_v_v );
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Div, VF::Div_v_s );
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Div, VF::Div_s_v );
 
-			.BinaryAssign(	EBinaryOperator::Mod, &VecFunc::template Mod_a_v< Vec_t >)
-			.BinaryAssign(	EBinaryOperator::Mod, &VecFunc::template Mod_a_s< Vec_t >)
-			.Binary(		EBinaryOperator::Mod, &VecFunc::template Mod_v_v< Vec_t >)
-			.Binary(		EBinaryOperator::Mod, &VecFunc::template Mod_v_s< Vec_t >)
-			.BinaryRH(		EBinaryOperator::Mod, &VecFunc::template Mod_s_v< Vec_t >)
-
-			.Equal( &VecFunc::template Equal< Vec_t >)
-			.Compare( &VecFunc::template Cmp< Vec_t >);
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mod, VecFunc2::template Mod_a_v< Vec_t >);
+		AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mod, VecFunc2::template Mod_a_s< Vec_t >);
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mod, VecFunc2::template Mod_v_v< Vec_t >);
+		AS_OP_BINARY_T(		binder, EBinaryOperator::Mod, VecFunc2::template Mod_v_s< Vec_t >);
+		AS_OP_BINARY_RH_T(	binder, EBinaryOperator::Mod, VecFunc2::template Mod_s_v< Vec_t >);
+		
+		AS_OP_EQUAL_T(		binder, VF::Equal );
+		AS_OP_CMP_T(		binder, VF::Cmp );
 
 		BindIntFloatVec( binder, se );
 
 		if constexpr( VecSize<Vec_t> == 3 ) {
-			se->AddFunction( &VecFunc::template Cross< Vec_t >,		"Cross",		{"x", "y"} );
+			AS_GLOBAL_FN( se, VF::Cross,	"Cross",		{"x", "y"} );
 		}
 
-		se->AddFunction( &VecFunc::template ToSNorm< Vec_t >,		"ToSNorm",		{"x"} );
-		se->AddFunction( &VecFunc::template ToUNorm< Vec_t >,		"ToUNorm",		{"x"} );
+		AS_GLOBAL_FN( se, VF::ToSNorm,		"ToSNorm",		{"x"} );
+		AS_GLOBAL_FN( se, VF::ToUNorm,		"ToUNorm",		{"x"} );
 
-		se->AddFunction( &VecFunc::template Dot< Vec_t >,			"Dot",			{"x", "y"} );
-		se->AddFunction( &VecFunc::template Lerp< Vec_t >,			"Lerp",			{"x", "y", "factor"} );
-		se->AddFunction( &VecFunc::template Normalize< Vec_t >,		"Normalize",	{"x"} );
-		se->AddFunction( &VecFunc::template Floor< Vec_t >,			"Floor",		{"x"} );
-		se->AddFunction( &VecFunc::template Ceil< Vec_t >,			"Ceil",			{"x"} );
-		se->AddFunction( &VecFunc::template Round< Vec_t >,			"Round",		{"x"} );
-		se->AddFunction( &VecFunc::template Fract< Vec_t >,			"Fract",		{"x"} );
-		se->AddFunction( &VecFunc::template Sqrt< Vec_t >,			"Sqrt",			{"x"} );
-		se->AddFunction( &VecFunc::template Ln< Vec_t >,			"Ln",			{"x"} );
-		se->AddFunction( &VecFunc::template Log2< Vec_t >,			"Log2",			{"x"} );
-		se->AddFunction( &VecFunc::template Log_1< Vec_t >,			"Log",			{"x", "base"} );
-		se->AddFunction( &VecFunc::template Log_2< Vec_t >,			"Log",			{"x", "base"} );
-		se->AddFunction( &VecFunc::template Pow_1< Vec_t >,			"Pow",			{"x", "pow"} );
-		se->AddFunction( &VecFunc::template Pow_2< Vec_t >,			"Pow",			{"x", "pow"} );
-		se->AddFunction( &VecFunc::template Exp< Vec_t >,			"Exp",			{"x"} );
-		se->AddFunction( &VecFunc::template Exp2< Vec_t >,			"Exp2",			{"x"} );
-		se->AddFunction( &VecFunc::template Exp10< Vec_t >,			"Exp10",		{"x"} );
-		se->AddFunction( &VecFunc::template Length< Vec_t >,		"Length",		{"x"} );
-		se->AddFunction( &VecFunc::template LengthSq< Vec_t >,		"LengthSq",	{"x"} );
-		se->AddFunction( &VecFunc::template Distance< Vec_t >,		"Distance",		{"x", "y"} );
-		se->AddFunction( &VecFunc::template DistanceSq< Vec_t >,	"DistanceSq",	{"x", "y"} );
+		AS_GLOBAL_FN( se, VF::Dot,			"Dot",			{"x", "y"} );
+		AS_GLOBAL_FN( se, VF::Lerp,			"Lerp",			{"x", "y", "factor"} );
+		AS_GLOBAL_FN( se, VF::Normalize,	"Normalize",	{"x"} );
+		AS_GLOBAL_FN( se, VF::Floor,		"Floor",		{"x"} );
+		AS_GLOBAL_FN( se, VF::Ceil,			"Ceil",			{"x"} );
+		AS_GLOBAL_FN( se, VF::Round,		"Round",		{"x"} );
+		AS_GLOBAL_FN( se, VF::Fract,		"Fract",		{"x"} );
+		AS_GLOBAL_FN( se, VF::Sqrt,			"Sqrt",			{"x"} );
+		AS_GLOBAL_FN( se, VF::Ln,			"Ln",			{"x"} );
+		AS_GLOBAL_FN( se, VF::Log2,			"Log2",			{"x"} );
+		AS_GLOBAL_FN( se, VF::Log_1,		"Log",			{"x", "base"} );
+		AS_GLOBAL_FN( se, VF::Log_2,		"Log",			{"x", "base"} );
+		AS_GLOBAL_FN( se, VF::Pow_1,		"Pow",			{"x", "pow"} );
+		AS_GLOBAL_FN( se, VF::Pow_2,		"Pow",			{"x", "pow"} );
+		AS_GLOBAL_FN( se, VF::Exp,			"Exp",			{"x"} );
+		AS_GLOBAL_FN( se, VF::Exp2,			"Exp2",			{"x"} );
+		AS_GLOBAL_FN( se, VF::Exp10,		"Exp10",		{"x"} );
+		AS_GLOBAL_FN( se, VF::Length,		"Length",		{"x"} );
+		AS_GLOBAL_FN( se, VF::LengthSq,		"LengthSq",		{"x"} );
+		AS_GLOBAL_FN( se, VF::Distance,		"Distance",		{"x", "y"} );
+		AS_GLOBAL_FN( se, VF::DistanceSq,	"DistanceSq",	{"x", "y"} );
 	}
 
 /*

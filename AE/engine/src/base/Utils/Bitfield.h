@@ -129,6 +129,8 @@ namespace AE::Base
 		ND_ usize		ZeroBitCount ()						C_NE___	{ return Base::BitCount( ~_bits ); }
 
 		ND_ HashVal		CalcHash ()							C_NE___;
+
+		NdCx__ static usize  Count ()						__NE___	{ return _BitCount; }
 	};
 
 
@@ -179,35 +181,35 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	template <usize Bit, usize Count>
+	template <usize Bit, usize Cnt>
 	__Cx__ Bitfield<T>&  Bitfield<T>::SetRange () __NE___
 	{
 		StaticAssert( Bit < _BitCount );
-		StaticAssert( Bit+Count <= _BitCount );
+		StaticAssert( Bit+Cnt <= _BitCount );
 
-		_bits |= ToBitMask<T>( Count ) << Bit;
+		_bits |= ToBitMask<T>( Cnt ) << Bit;
 		return *this;
 	}
 
 	template <typename T>
-	template <usize Bit, usize Count>
+	template <usize Bit, usize Cnt>
 	__Cx__ Bitfield<T>&  Bitfield<T>::EraseRange () __NE___
 	{
 		StaticAssert( Bit < _BitCount );
-		StaticAssert( Bit+Count <= _BitCount );
+		StaticAssert( Bit+Cnt <= _BitCount );
 
-		_bits &= ~(ToBitMask<T>( Count ) << Bit);
+		_bits &= ~(ToBitMask<T>( Cnt ) << Bit);
 		return *this;
 	}
 
 	template <typename T>
-	template <usize Bit, usize Count>
+	template <usize Bit, usize Cnt>
 	__Cx__ bool  Bitfield<T>::HasRange () C_NE___
 	{
 		StaticAssert( Bit < _BitCount );
-		StaticAssert( Bit+Count <= _BitCount );
+		StaticAssert( Bit+Cnt <= _BitCount );
 
-		const T	mask = ToBitMask<T>( Count ) << Bit;
+		const T	mask = ToBitMask<T>( Cnt ) << Bit;
 		return (_bits & mask) == mask;
 	}
 

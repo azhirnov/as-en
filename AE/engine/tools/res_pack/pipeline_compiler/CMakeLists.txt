@@ -61,6 +61,9 @@ if (TARGET "GLSLang-lib")
 	if (TARGET "ShaderTrace")
 		target_link_libraries( "PipelineCompiler" PUBLIC "ShaderTrace" )
 	endif()
+	if (TARGET "SLang-lib")
+		target_link_libraries( "PipelineCompiler" PUBLIC "SLang-lib" )
+	endif()
 
 	# must be same as in 'Graphics' module
 	if (DEFINED AE_GRAPHICS_STRONG_VALIDATION)

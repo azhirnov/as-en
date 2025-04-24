@@ -13,8 +13,8 @@ if (TARGET "Scripting")
 	target_link_libraries( "OfflinePacker" PRIVATE "Scripting" "VFS" )
 	target_include_directories( "OfflinePacker" PRIVATE ".." )
 
-	set( CANVAS_VERTS_PATH	"${MAIN_SOURCE_DIR}/engine/src/graphics_hl/Canvas/VertexTypes.as" )
-	set( UI_BINDINGS_PATH	"${MAIN_SOURCE_DIR}/engine/src/graphics_hl/UI" )
+	set( CANVAS_VERTS_PATH	"${MAIN_SOURCE_DIR}/engine/src/graphics/Canvas/VertexTypes.as" )
+	set( UI_BINDINGS_PATH	"${MAIN_SOURCE_DIR}/engine/src/graphics/UI" )
 
 	if (NOT EXISTS ${CANVAS_VERTS_PATH})
 		message( FATAL_ERROR "Path '${CANVAS_VERTS_PATH}' is not exists" )
@@ -64,7 +64,12 @@ if (TARGET "Scripting")
 
 	#------------------------------------------------------
 
-	add_executable( "PACK_RES" EXCLUDE_FROM_ALL "empty.cpp" )
+	set( AE_EXCLUDE_PACK_RES OFF CACHE BOOL "don't pack resources when build all" )
+
+	if (${AE_EXCLUDE_PACK_RES})
+		add_executable( "PACK_RES" EXCLUDE_FROM_ALL "empty.cpp" )
+	else()
+		add_executable( "PACK_RES" "empty.cpp" )
+	endif()
 	set_property( TARGET "PACK_RES" PROPERTY FOLDER "CMakePredefinedTargets" )
-	add_dependencies( "PACK_RES" "OfflinePacker" )
 endif()

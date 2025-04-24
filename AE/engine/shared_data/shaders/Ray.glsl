@@ -21,17 +21,14 @@ struct Ray
 
 ND_ Ray		Ray_Create (const float3 origin, const float3 direction, const float tmin);
 
-ND_ Ray		Ray_FromScreen (const float3 origin, const float fovX, const float nearPlane,
-							const float2 screenSizePx, const float2 screenCoordPx);
-ND_ Ray		Ray_FromScreen (const float3 origin, const float2 fov, const float nearPlane, float2 snormCoord);
+// perspective
+ND_ Ray		Ray_Perspective (const float3 origin, const float fovY, const float ratio, const float nearPlane, float2 snormCoord);
+ND_ Ray		Ray_Perspective (const float4x4 invViewProj, const float3 origin, const float nearPlane, const float2 unormCoord);
 
-ND_ Ray		Ray_From (const float3 leftBottom, const float3 rightBottom, const float3 leftTop, const float3 rightTop,
-					  const float3 origin, const float nearPlane, const float2 unormCoord);
-ND_ Ray		Ray_From (const float4x4 invViewProj, const float3 origin, const float nearPlane, const float2 unormCoord);
+ND_ Ray		Ray_PerspectiveFromFlatScreen (const float3 origin, const float distanceToEye, const float2 screenSize, const float nearPlane, const float2 snormCoord);
+ND_ Ray		Ray_PerspectiveFromCurvedScreen (const float3 origin, const float distanceToEye, const float screenRadius, float2 screenSize, const float nearPlane, const float2 snormCoord);
 
-ND_ Ray		Ray_FromFlatScreen (const float3 origin, const float distanceToEye, const float2 screenSize, const float nearPlane, const float2 snormCoord);
-ND_ Ray		Ray_FromCurvedScreen (const float3 origin, const float distanceToEye, const float screenRadius, float2 screenSize, const float nearPlane, const float2 snormCoord);
-
+// stereographical
 ND_ Ray		Ray_PlaneToVR180 (const float ipd, const float3 origin, const float nearPlane, float2 unormCoord);
 ND_ Ray		Ray_PlaneToVR360 (const float ipd, const float3 origin, const float nearPlane, float2 unormCoord);
 ND_ Ray		Ray_PlaneTo360 (const float3 origin, const float nearPlane, const float2 unormCoord);
@@ -45,7 +42,9 @@ ND_ float2  RayInverse_PlaneToVR360 (const float3 rayDir, const uint eye);
 ND_ float2  RayInverse_PlaneTo360 (const float3 rayDir);
 ND_ float2  RayInverse_PlaneToCubemap360 (const float3 rayDir);
 ND_ float2  RayInverse_PlaneToCubemapVR360 (const float3 rayDir, const uint eye);
-ND_ float2  RayInverse_SphereToPlane (const float2 invHalfFov, const float3 rayDir);	// returns snorm
+ND_ float2  RayInverse_PlaneToSphere (const float2 invHalfFov, const float3 rayDir);			// returns snorm
+ND_ float2  RayInverse_Perspective (const float2 fov, const float3 rayDir);						// returns snorm
+ND_ float2  RayInverse_Perspective (const float fovY, const float ratio, const float3 rayDir);	// returns snorm
 
 ND_ float3	Ray_CalcX (const Ray ray, const float2 pointYZ);
 ND_ float3	Ray_CalcY (const Ray ray, const float2 pointXZ);
@@ -76,63 +75,56 @@ Ray  Ray_Create (const float3 origin, const float3 direction, const float tmin)
 
 /*
 =================================================
-	Ray_FromScreen
+	Ray_Perspective
 ----
 	create ray for raytracing, raymarching, ...
 	used rectilinear/perspective projection.
 =================================================
 */
-Ray  Ray_FromScreen (const float3 origin, const float2 fov, const float nearPlane, float2 snormCoord)
+Ray  Ray_Perspective (const float3 origin, const float fovY, const float ratio, const float nearPlane, float2 snormCoord)
 {
-	float2 	scale;
-	scale.x = nearPlane / Cos( fov.x * 0.5 );
-	scale.y = scale.x * (fov.y / fov.x);
+	float3	dir = float3( snormCoord * Tan( fovY * 0.5 ), 1.0 );
+			dir.x *= ratio;
 
 	Ray		ray;
 	ray.origin	= origin;
-	ray.dir		= Normalize( float3( snormCoord * scale, 0.25 ));
+	ray.dir		= Normalize( dir );
 
 	Ray_SetLength( INOUT ray, nearPlane );  // set 't' and 'pos'
 	return ray;
 }
 
-Ray  Ray_FromScreen (const float3 origin, const float fovX, const float nearPlane,
-					 const float2 screenSize, const float2 screenCoord)
-{
-	float 	fovY = fovX * (screenSize.y / screenSize.x);
-	return Ray_FromScreen( origin, float2(fovX, fovY), nearPlane, ToSNorm(screenCoord / screenSize) );
-}
-
 /*
 =================================================
-	Ray_From
+	RayInverse_Perspective
 ----
-	create ray from frustum rays and origin
+	inverse perspective projection
 =================================================
 */
-Ray  Ray_From (const float3 leftBottom, const float3 rightBottom, const float3 leftTop, const float3 rightTop,
-			   const float3 origin, const float nearPlane, const float2 unormCoord)
+float2  RayInverse_Perspective (const float2 fov, const float3 rayDir)
 {
-	const float3 vec = Lerp( Lerp( leftBottom, rightBottom, unormCoord.x ),
-							 Lerp( leftTop, rightTop, unormCoord.x ),
-							 unormCoord.y );
+	float2	uv = rayDir.xy / Abs(rayDir.z);
+	uv.x *= fov.x / fov.y;
+	uv /= Tan( fov.y * 0.5 );
+	return uv;
+}
 
-	Ray		ray;
-	ray.origin	= origin;
-	ray.dir		= Normalize( vec );
-
-	Ray_SetLength( INOUT ray, nearPlane );  // set 't' and 'pos'
-	return ray;
+float2  RayInverse_Perspective (const float fovY, const float ratio, const float3 rayDir)
+{
+	float2	uv = rayDir.xy / Abs(rayDir.z);
+	uv.x *= ratio;
+	uv /= Tan( fovY * 0.5 );
+	return uv;
 }
 
 /*
 =================================================
-	Ray_From
+	Ray_Perspective
 ----
 	create ray from view-proj matrix
 =================================================
 */
-Ray  Ray_From (const float4x4 invViewProj, const float3 origin, const float nearPlane, const float2 unormCoord)
+Ray  Ray_Perspective (const float4x4 invViewProj, const float3 origin, const float nearPlane, const float2 unormCoord)
 {
 	const float4	world_pos	= invViewProj * float4(ToSNorm( unormCoord ), 1.0, 1.0);
 	const float3	dir			= Normalize( world_pos.xyz / world_pos.w );
@@ -147,16 +139,16 @@ Ray  Ray_From (const float4x4 invViewProj, const float3 origin, const float near
 
 /*
 =================================================
-	Ray_FromFlatScreen
+	Ray_PerspectiveFromFlatScreen
 ----
 	_______  -- screen
 
 	   * -- eye
 	   
-	used rectilinear pinhole perspective projection.
+	used rectilinear/perspective projection.
 =================================================
 */
-Ray  Ray_FromFlatScreen (const float3 origin, const float distanceToEye, const float2 screenSize, const float nearPlane, const float2 snormCoord)
+Ray  Ray_PerspectiveFromFlatScreen (const float3 origin, const float distanceToEye, const float2 screenSize, const float nearPlane, const float2 snormCoord)
 {
 	Ray		ray;
 	ray.origin	= origin;
@@ -168,7 +160,7 @@ Ray  Ray_FromFlatScreen (const float3 origin, const float distanceToEye, const f
 
 /*
 =================================================
-	Ray_FromCurvedScreen
+	Ray_PerspectiveFromCurvedScreen
 ----
 	Field of view on Y-axis is larger because of screen curvature.
 	_____  -- curved screen
@@ -176,7 +168,8 @@ Ray  Ray_FromFlatScreen (const float3 origin, const float distanceToEye, const f
 	  * --- eye
 =================================================
 */
-Ray  Ray_FromCurvedScreen (const float3 origin, const float distanceToEye, const float screenRadius, float2 screenSize, const float nearPlane, const float2 snormCoord)
+Ray  Ray_PerspectiveFromCurvedScreen (const float3 origin, const float distanceToEye, const float screenRadius, float2 screenSize,
+									  const float nearPlane, const float2 snormCoord)
 {
 	screenSize *= 0.5f;
 
@@ -399,10 +392,10 @@ Ray  Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, 
 
 /*
 =================================================
-	RayInverse_SphereToPlane
+	RayInverse_PlaneToSphere
 =================================================
 */
-float2  RayInverse_SphereToPlane (const float2 invHalfFov, const float3 rayDir)
+float2  RayInverse_PlaneToSphere (const float2 invHalfFov, const float3 rayDir)
 {
 	float	phi		= ASin( rayDir.y );
 	float	theta	= ATan( rayDir.x, rayDir.z );

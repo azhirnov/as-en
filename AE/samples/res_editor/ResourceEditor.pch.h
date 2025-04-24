@@ -5,7 +5,7 @@
 #include "PipelineCompiler.pch.h"
 
 #include "pch/Platform.h"
-#include "pch/GraphicsHL.h"
+#include "pch/Graphics.h"
 #include "pch/Profiler.h"
 #include "pch/Video.h"
 

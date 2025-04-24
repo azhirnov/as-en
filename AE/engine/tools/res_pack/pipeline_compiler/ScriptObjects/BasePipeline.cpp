@@ -557,10 +557,14 @@ namespace
 		for (const auto& [name, att] : compat_it->second->_attachments)
 		{
 			auto	sp_att_it = att->usageMap.find( SubpassName{ subpassName });
-			CHECK_ERR_MSG( sp_att_it != att->usageMap.end(),
-				"Subpass '"s << subpassName << "' is not defined for Attachment '" << storage.GetName( name ) << "'" );
+			if ( sp_att_it == att->usageMap.end() )
+			{
+				AE_LOGW( "Subpass '"s << subpassName << "' is not defined for attachment '" << storage.GetName( name ) << "'.\n"
+						 "Call 'attachment.Usage( <subpass>, EAttachment::Preserve/Invalidate )` if attachment is not used by subpass." );
+				continue;
+			}
 
-			const auto&	usage	= sp_att_it->second;
+			const auto&	usage = sp_att_it->second;
 			if ( not usage.output.IsDefined() )
 				continue;
 
@@ -959,7 +963,7 @@ namespace
 				TEST_FEATURE( features, depthClamp );
 
 			if ( state.rasterization.polygonMode != EPolygonMode::Fill )
-				TEST_FEATURE( features, fillModeNonSolid, ", 'rasterization.polygonMode' must be Fill" );
+				TEST_FEATURE_MSG( features, fillModeNonSolid, ", 'rasterization.polygonMode' must be Fill" );
 
 			if ( state.rasterization.polygonMode == EPolygonMode::Point )
 				TEST_FEATURE( features, pointPolygons );
@@ -1020,7 +1024,7 @@ namespace
 
 			if ( not all_equal )
 			{
-				TEST_FEATURE( features, independentBlend,
+				TEST_FEATURE_MSG( features, independentBlend,
 					".\nIf 'independentBlend' is not supported all elements of 'RenderState::ColorBuffer' in 'color.buffers' must equal." );
 			}
 

@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	[results](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-cpu/MemAccess.md)
+*/
 
 #include "Perf_Common.h"
 
@@ -707,7 +710,7 @@ namespace
 	static void  Test_MemSet (IntervalProfiler &profiler, StringView version, RstPtr<void> data, const Bytes size, const usize count)
 	{
 		AE_LOGI( version );
-		profiler.BeginTest( version, [s=size*count](secondsd dt) { return " - "s << ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
+		profiler.BeginTest( version, [s=size*count](secondsd dt) { return ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
 
 		HashVal	h;
 
@@ -759,7 +762,7 @@ namespace
 	static void  Test_StdMemCopy (IntervalProfiler &profiler, StringView version, RstPtr<void> data0, RstPtr<void> data1, const Bytes size, const usize count)
 	{
 		AE_LOGI( "std::memcpy - "s << version );
-		profiler.BeginTest( "std::memcpy - "s << version, [s=size*count](secondsd dt) { return " - "s << ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
+		profiler.BeginTest( "std::memcpy - "s << version, [s=size*count](secondsd dt) { return ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
 
 		HashVal	h;
 
@@ -792,7 +795,7 @@ namespace
 	static void  Test_MemCopy16 (IntervalProfiler &profiler, StringView version, RstPtr<void> data0, RstPtr<void> data1, const Bytes size, const usize count)
 	{
 		AE_LOGI( "MemCopy16 - "s << version );
-		profiler.BeginTest( "MemCopy16 - "s << version, [s=size*count](secondsd dt) { return " - "s << ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
+		profiler.BeginTest( "MemCopy16 - "s << version, [s=size*count](secondsd dt) { return ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
 
 		HashVal	h;
 
@@ -852,7 +855,7 @@ namespace
 	static void  Test_MemCopy32 (IntervalProfiler &profiler, StringView version, RstPtr<void> data0, RstPtr<void> data1, const Bytes size, const usize count)
 	{
 		AE_LOGI( "MemCopy32 - "s << version );
-		profiler.BeginTest( "MemCopy32 - "s << version, [s=size*count](secondsd dt) { return " - "s << ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
+		profiler.BeginTest( "MemCopy32 - "s << version, [s=size*count](secondsd dt) { return ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
 
 		HashVal	h;
 
@@ -892,7 +895,7 @@ namespace
 	static void  Test_MemCopy64 (IntervalProfiler &profiler, StringView version, RstPtr<void> data0, RstPtr<void> data1, const Bytes size, const usize count)
 	{
 		AE_LOGI( "MemCopy64 - "s << version );
-		profiler.BeginTest( "MemCopy64 - "s << version, [s=size*count](secondsd dt) { return " - "s << ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
+		profiler.BeginTest( "MemCopy64 - "s << version, [s=size*count](secondsd dt) { return ToStringSfx( double(usize(s)) / dt.count() ) << "B/s"; });
 
 		HashVal	h;
 
@@ -927,11 +930,13 @@ namespace
 	static void  MemCopyTests (RstPtr<void> data0, RstPtr<void> data1, const Bytes size, const usize count)
 	{
 		ForEachCoreType(
-			[&] (ECoreType coreType, Function<void()>)
+			[&] (auto& core, Function<void()> setAffinity)
 			{
+				setAffinity();
+
 				#if 1
 				{
-					IntervalProfiler	profiler{ "MemSet test on "s << ToString( coreType ) << ", block: " << ToString( size )};
+					IntervalProfiler	profiler{ "MemSet test on "s << ToString( core.type ) << " core, block: " << ToString( size )};
 
 					Test_MemSet<0>( profiler, "std::memset", data0, size, count );
 					Test_MemSet<1>( profiler, "ZeroMem256_Cached", data0, size, count );
@@ -963,7 +968,7 @@ namespace
 
 				#if 1
 				{
-					IntervalProfiler	profiler{ "MemCopy test on "s << ToString( coreType ) << ", block: " << ToString( size )};
+					IntervalProfiler	profiler{ "MemCopy test on "s << ToString( core.type ) << " core, block: " << ToString( size )};
 
 					Test_StdMemCopy<0>( profiler, "",			data0, data1, size, count );
 					Test_StdMemCopy<1>( profiler, "align64",	data0, data1, size, count );

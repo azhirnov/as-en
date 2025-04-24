@@ -43,7 +43,8 @@ void  AddNoise (const array<float> &params)
 
 	pass.Slider( "iNoise",			0,						17,					int(params[0]) );
 	pass.Slider( "iOctaves",		1,						10,					int(params[1]) );
-	pass.Slider( "iOp",				int2(0),				int2(7,5),			int2( int(params[2]), int(params[3]) ));
+	pass.Slider( "iOp",				int2(0),				int2(7,5),			int2( int(params[2]), int(params[3]) ));	// neg, abs, >, <, [0,1], [-1,0], [-1,0]
+																															// none, add, mul, mul unorm, min, max
 	pass.Slider( "iPScale",			0.1f,					100.f,				params[4] );
 	pass.Slider( "iPBias",			float3(-10.f),			float3(10.f),		float3( params[5],  params[6], params[7] ));
 	pass.Slider( "iParams",			float4(-1.f),			float4(2.f),		float4( params[8],  params[9], params[10], params[11] ));

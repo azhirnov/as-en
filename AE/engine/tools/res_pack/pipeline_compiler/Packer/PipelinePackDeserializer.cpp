@@ -240,9 +240,9 @@ namespace AE::PipelineCompiler
 			case EImageType::Half :			return EShaderIO::Half;
 			case EImageType::Int :			return EShaderIO::Int;
 			case EImageType::UInt :			return EShaderIO::UInt;
-			case EImageType::Depth :		return EShaderIO::Depth;
-			case EImageType::Stencil :		return EShaderIO::Stencil;
-			case EImageType::DepthStencil :	return EShaderIO::DepthStencil;
+			case EImageType::Depth :		return EShaderIO::Float;
+			case EImageType::Stencil :		return EShaderIO::Int;
+			case EImageType::DepthStencil :	return EShaderIO::DepthStencil;		// TODO
 		}
 		RETURN_ERR( "unknown image type" );
 	}

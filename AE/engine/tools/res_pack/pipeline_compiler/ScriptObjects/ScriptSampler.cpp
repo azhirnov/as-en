@@ -268,7 +268,7 @@ namespace
 		
 		if ( AnyBits( _desc.options, ESamplerOpt::Subsampled | ESamplerOpt::SubsampledCoarseReconstruction ))
 		{
-			TEST_FEATURE( GetFeatures(), fragmentDensityMap, "but required for sampler with 'Subsampled' or 'SubsampledCoarseReconstruction' flags" );
+			TEST_FEATURE_MSG( GetFeatures(), fragmentDensityMap, "but required for sampler with 'Subsampled' or 'SubsampledCoarseReconstruction' flags" );
 		}
 	}
 
@@ -427,68 +427,68 @@ namespace
 
 			binder.Comment( "Add FeatureSet to the sampler.\n"
 							"Sampler must only use features which is enable in FS." );
-			binder.AddMethod( &ScriptSampler::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
+			AS_METHOD( binder, ScriptSampler::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
 
 			binder.Comment( "Set min/mag/mipmap filter." );
-			binder.AddMethod( &ScriptSampler::SetFilter,			"Filter",			{"min", "mag", "mipmap"} );
+			AS_METHOD( binder, ScriptSampler::SetFilter,			"Filter",			{"min", "mag", "mipmap"} );
 
 			binder.Comment( "Set UVW address mode." );
-			binder.AddMethod( &ScriptSampler::SetAddressModeV,		"AddressMode",		{"uvw"} );
-			binder.AddMethod( &ScriptSampler::SetAddressMode,		"AddressMode",		{"u", "v", "w"} );
+			AS_METHOD( binder, ScriptSampler::SetAddressModeV,		"AddressMode",		{"uvw"} );
+			AS_METHOD( binder, ScriptSampler::SetAddressMode,		"AddressMode",		{"u", "v", "w"} );
 
 			binder.Comment( "Set mipmap level of detail bias." );
-			binder.AddMethod( &ScriptSampler::SetMipLodBias,		"MipLodBias",		{"bias"} );
+			AS_METHOD( binder, ScriptSampler::SetMipLodBias,		"MipLodBias",		{"bias"} );
 
 			binder.Comment( "Set level of detail range." );
-			binder.AddMethod( &ScriptSampler::SetLodRange,			"LodRange",			{"min", "max"} );
+			AS_METHOD( binder, ScriptSampler::SetLodRange,			"LodRange",			{"min", "max"} );
 
 			binder.Comment( "Set anisotropy level." );
-			binder.AddMethod( &ScriptSampler::SetAnisotropy,		"Anisotropy",		{"level"} );
-			binder.AddMethod( &ScriptSampler::TrySetAnisotropy,		"TrySetAnisotropy",	{"level"} );
+			AS_METHOD( binder, ScriptSampler::SetAnisotropy,		"Anisotropy",		{"level"} );
+			AS_METHOD( binder, ScriptSampler::TrySetAnisotropy,		"TrySetAnisotropy",	{"level"} );
 
 			binder.Comment( "Set compare operator." );
-			binder.AddMethod( &ScriptSampler::SetCompareOp,			"CompareOp",		{"op"} );
+			AS_METHOD( binder, ScriptSampler::SetCompareOp,			"CompareOp",		{"op"} );
 
 			binder.Comment( "Set border color." );
-			binder.AddMethod( &ScriptSampler::SetBorderColor,		"BorderColor",		{"color"} );
+			AS_METHOD( binder, ScriptSampler::SetBorderColor,		"BorderColor",		{"color"} );
 
 			binder.Comment( "Set reduction mode.\n"
 							"Requires 'samplerFilterMinmax' feature. Default value is 'Average'." );
-			binder.AddMethod( &ScriptSampler::SetReductionMode,		"ReductionMode",	{"mode"} );
+			AS_METHOD( binder, ScriptSampler::SetReductionMode,		"ReductionMode",	{"mode"} );
 
 			binder.Comment( "Set sampler options." );
-			binder.AddMethod( &ScriptSampler::SetOptions,			"Options",			{} );
-			binder.AddMethod( &ScriptSampler::SetOptions2,			"Options",			{} );
+			AS_METHOD( binder, ScriptSampler::SetOptions,			"Options",			{} );
+			AS_METHOD( binder, ScriptSampler::SetOptions2,			"Options",			{} );
 
 
 			// samplerYcbcrConversion
 			binder.Comment( "----\nRequires 'samplerYcbcrConversion' feature\n----\n" );
 
 			binder.Comment( "Set Ycbcr format. Requires multiplanar format." );
-			binder.AddMethod( &ScriptSampler::Ycbcr_SetFormat,						"Ycbcr_Format",						{} );
-			binder.AddMethod( &ScriptSampler::Ycbcr_SetFormat2,						"Ycbcr_Format",						{} );
+			AS_METHOD( binder, ScriptSampler::Ycbcr_SetFormat,						"Ycbcr_Format",						{} );
+			AS_METHOD( binder, ScriptSampler::Ycbcr_SetFormat2,						"Ycbcr_Format",						{} );
 
 			binder.Comment( "Set Ycbcr model conversion." );
-			binder.AddMethod( &ScriptSampler::Ycbcr_SetModel,						"Ycbcr_Model",						{} );
+			AS_METHOD( binder, ScriptSampler::Ycbcr_SetModel,						"Ycbcr_Model",						{} );
 
 			binder.Comment( "Set Ycbcr range." );
-			binder.AddMethod( &ScriptSampler::Ycbcr_SetRange,						"Ycbcr_Range",						{} );
+			AS_METHOD( binder, ScriptSampler::Ycbcr_SetRange,						"Ycbcr_Range",						{} );
 
 			binder.Comment( "Set Ycbcr component swizzle.\n"
 							"Format: 'ARGB', 'R001'." );
-			binder.AddMethod( &ScriptSampler::Ycbcr_SetComponents,					"Ycbcr_Components",					{} );
+			AS_METHOD( binder, ScriptSampler::Ycbcr_SetComponents,					"Ycbcr_Components",					{} );
 
 			binder.Comment( "Set Ycbcr X chroma location." );
-			binder.AddMethod( &ScriptSampler::Ycbcr_SetXChromaOffset,				"Ycbcr_XChromaOffset",				{} );
+			AS_METHOD( binder, ScriptSampler::Ycbcr_SetXChromaOffset,				"Ycbcr_XChromaOffset",				{} );
 
 			binder.Comment( "Set Ycbcr Y chroma location." );
-			binder.AddMethod( &ScriptSampler::Ycbcr_SetYChromaOffset,				"Ycbcr_YChromaOffset",				{} );
+			AS_METHOD( binder, ScriptSampler::Ycbcr_SetYChromaOffset,				"Ycbcr_YChromaOffset",				{} );
 
 			binder.Comment( "Set Ycbcr Y chroma filter." );
-			binder.AddMethod( &ScriptSampler::Ycbcr_SetChromaFilter,				"Ycbcr_ChromaFilter",				{} );
+			AS_METHOD( binder, ScriptSampler::Ycbcr_SetChromaFilter,				"Ycbcr_ChromaFilter",				{} );
 
 			binder.Comment( "Set Ycbcr force explicit reconstruction." );
-			binder.AddMethod( &ScriptSampler::Ycbcr_ForceExplicitReconstruction,	"Ycbcr_ForceExplicitReconstruction", {} );
+			AS_METHOD( binder, ScriptSampler::Ycbcr_ForceExplicitReconstruction,	"Ycbcr_ForceExplicitReconstruction", {} );
 		}
 	}
 

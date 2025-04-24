@@ -3,5 +3,6 @@
 *.cxx
 *.trigger.cpp
 .DS_Store
+*.idx
 imgui.ini
 build

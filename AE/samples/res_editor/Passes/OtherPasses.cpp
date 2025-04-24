@@ -226,6 +226,12 @@ namespace AE::ResEditor
 		if ( prefix.empty() )
 			prefix = "screenshot_";
 
+		if ( not AnyEqual( image->PixelFormat(), EPixelFormat::RGBA8_UNorm, EPixelFormat::RGB8_UNorm ) and
+			 not AnyEqual( fmt, EImageFormat::DDS, EImageFormat::KTX, EImageFormat::AEImg ))
+		{
+			fmt = EImageFormat::DDS;
+		}
+
 		const auto	BuildName = [&screenshot_folder, &prefix, fmt] (OUT Path &fname, usize index)
 		{{
 			fname = screenshot_folder / (String{prefix} << ToString(index) << '.' << ImageFileFormatToExt( fmt ));
@@ -513,7 +519,7 @@ namespace AE::ResEditor
 			renderer->GetDataTransferQueue().EnqueueImageTransition( image_id );
 
 			_copy = MakeRCTh<Image>( RVRef(image_id), RVRef(view_id), Default, *renderer, false,
-									 img_desc, ImageViewDesc{img_desc}, null, null, dbg_name );
+									 img_desc, ImageViewDesc{img_desc}, null, null, Default, dbg_name );
 		}else{
 			_copy = _src;
 		}
@@ -874,6 +880,17 @@ namespace AE::ResEditor
 
 /*
 =================================================
+	GetResourcesToResize
+=================================================
+*/
+	void  GenerateMipmapsPass::GetResourcesToResize (INOUT Array<RC<IResource>> &result) __NE___
+	{
+		if_unlikely( _image->RequireResize() )
+			result.push_back( _image );
+	}
+
+/*
+=================================================
 	Execute
 =================================================
 */
@@ -882,7 +899,7 @@ namespace AE::ResEditor
 		if_unlikely( not _IsEnabled() )
 			return true;
 
-		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"GenerateMipmaps", HtmlColor::Blue} };
+		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, HtmlColor::Blue} };
 
 		ctx.GenerateMipmaps( _image->GetImageId() );
 
@@ -947,6 +964,95 @@ namespace AE::ResEditor
 =================================================
 */
 	void  CopyImagePass::GetResourcesToResize (INOUT Array<RC<IResource>> &result) __NE___
+	{
+		if_unlikely( _srcImage->RequireResize() )
+			result.push_back( _srcImage );
+
+		if_unlikely( _dstImage->RequireResize() )
+			result.push_back( _dstImage );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	RelaxedCopyImagePass::RelaxedCopyImagePass (RC<Image> src, RC<Image> dst, RTechInfo rtech, ComputePipelineID ppln, StringView dbgName) __Th___ :
+		IPass{dbgName}, _rtech{RVRef(rtech)}, _ppln{ppln}, _srcImage{RVRef(src)}, _dstImage{RVRef(dst)}
+	{
+		const auto&	src_desc = _srcImage->GetViewDesc();
+		const auto&	dst_desc = _dstImage->GetViewDesc();
+
+		CHECK_THROW( All( src_desc.dimension == dst_desc.dimension ));
+		CHECK_THROW( src_desc.layerCount == dst_desc.layerCount );
+
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+
+		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT _dsIndex, OUT _descSets.data(), _descSets.size(), _ppln, DescriptorSetName{"ds0"} ));
+	}
+		
+/*
+=================================================
+	destructor
+=================================================
+*/
+	RelaxedCopyImagePass::~RelaxedCopyImagePass ()
+	{
+		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+
+		res_mngr.ReleaseResourceArray( _descSets );
+	}
+
+/*
+=================================================
+	Execute
+=================================================
+*/
+	bool  RelaxedCopyImagePass::Execute (SyncPassData &pd) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
+
+		const auto&		src_desc = _srcImage->GetViewDesc();
+		const auto&		dst_desc = _dstImage->GetViewDesc();
+		CHECK_THROW( All( src_desc.dimension == dst_desc.dimension ));
+		CHECK_THROW( src_desc.layerCount == dst_desc.layerCount );
+
+		DirectCtx::Compute		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"RelaxedCopyImagePass", HtmlColor::Blue} };
+		
+		// update descriptors
+		{
+			DescriptorUpdater	updater;
+			DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
+
+			CHECK_THROW( updater.Set( ds, EDescUpdateMode::Partialy ));
+			CHECK_THROW( updater.BindImage( UniformName{"un_InImage"}, _srcImage->GetViewId() ));
+			CHECK_THROW( updater.BindImage( UniformName{"un_OutImage"}, _dstImage->GetViewId() ));
+			CHECK_THROW( updater.Flush() );
+		}
+
+		ctx.BindPipeline( _ppln );
+		ctx.BindDescriptorSet( _dsIndex, _descSets[ ctx.GetFrameId().Index() ]);
+
+		ctx.ResourceState( _srcImage->GetImageId(), EResourceState::ShaderSample | EResourceState::ComputeShader );
+		ctx.ResourceState( _dstImage->GetImageId(), EResourceState::ShaderStorage_Write | EResourceState::ComputeShader );
+		ctx.CommitBarriers();
+
+		ctx.Dispatch( DivCeil( src_desc.Dimension(), uint3{localSize, localSize, 1u} ));
+
+		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		return true;
+	}
+
+/*
+=================================================
+	GetResourcesToResize
+=================================================
+*/
+	void  RelaxedCopyImagePass::GetResourcesToResize (INOUT Array<RC<IResource>> &result) __NE___
 	{
 		if_unlikely( _srcImage->RequireResize() )
 			result.push_back( _srcImage );
@@ -1112,6 +1218,17 @@ namespace AE::ResEditor
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
+	}
+
+/*
+=================================================
+	GetResourcesToResize
+=================================================
+*/
+	void  ClearImagePass::GetResourcesToResize (INOUT Array<RC<IResource>> &result) __NE___
+	{
+		if_unlikely( _image->RequireResize() )
+			result.push_back( _image );
 	}
 //-----------------------------------------------------------------------------
 

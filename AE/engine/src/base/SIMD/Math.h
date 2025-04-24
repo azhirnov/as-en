@@ -122,11 +122,11 @@ namespace AE::Base
 	template <typename T> ND_ bool  All (const SimdTInt512<T> &v)	__NE___	{ return v.All(); }
 	template <typename T> ND_ bool  Any (const SimdTInt512<T> &v)	__NE___	{ return v.Any(); }
 #endif
-#ifdef AE_SIMD_SimdFloat16
+#if 0 //def AE_SIMD_SimdFloat16
 	ND_ inline bool  All (const SimdFloat16::Bool16 &v)				__NE___	{ return v.All(); }
 	ND_ inline bool  Any (const SimdFloat16::Bool16 &v)				__NE___	{ return v.Any(); }
 #endif
-#ifdef AE_SIMD_SimdDouble8
+#if 0 //def AE_SIMD_SimdDouble8
 	ND_ inline bool  All (const SimdDouble8::Bool8 &v)				__NE___	{ return v.All(); }
 	ND_ inline bool  Any (const SimdDouble8::Bool8 &v)				__NE___	{ return v.Any(); }
 #endif
@@ -302,7 +302,7 @@ namespace _hidden_
 		{
 			auto	arr = v.ToArray();
 			for (auto& a : arr) {
-				a = Base::Sqrt( a );
+				a = Base::FastSqrt( a );
 			}
 			return SimdType{ arr.data() };
 		}
@@ -319,7 +319,10 @@ namespace _hidden_
 	ND_ SimdType  InvSqrt (const SimdType &v) __NE___
 	{
 		if constexpr( SimdType::Has_ApproxInvSqrt() )
-			return v.FastSqrt();
+			return v.FastInvSqrt();
+		else
+		if constexpr( SimdType::Has_PreciseSqrt() )
+			return v.PreciseInvSqrt();
 		else
 		{
 			auto	arr = v.ToArray();

@@ -70,7 +70,7 @@ namespace {
 			Unused( lib.module.Load( libName ));
 
 
-	#if defined(AE_PLATFORM_WINDOWS)
+	  #if defined(AE_PLATFORM_WINDOWS)
 		if ( not lib.module )
 			Unused( lib.module.Load( NtStringView{ "vulkan-1.dll" }));
 
@@ -81,8 +81,7 @@ namespace {
 		if ( not lib.module )
 			Unused( lib.module.Load( NtStringView{ "vkswiftshader.dll" }));
 
-
-	#elif defined(AE_PLATFORM_APPLE)
+	  #elif defined(AE_PLATFORM_APPLE)
 		if ( not lib.module )
 			Unused( lib.module.Load( NtStringView{ "libvulkan.1.dylib" }));
 
@@ -90,7 +89,7 @@ namespace {
 			Unused( lib.module.Load( NtStringView{ "/usr/local/lib/libvulkan.1.dylib" }));
 
 
-	#elif defined(AE_PLATFORM_UNIX_BASED)
+	  #elif defined(AE_PLATFORM_UNIX_BASED)
 		if ( not lib.module )
 			Unused( lib.module.Load( NtStringView{ "libvulkan.so" }));
 
@@ -101,9 +100,9 @@ namespace {
 		if ( not lib.module )
 			Unused( lib.module.Load( NtStringView{ "libvkswiftshader.so" }));
 
-	#else
-	#	error not implemented
-	#endif
+	  #else
+	  #	error not implemented
+	  #endif
 
 		if ( not lib.module  )
 			return false;
@@ -111,11 +110,31 @@ namespace {
 		// write library path to log
 		AE_LOG_DBG( "Vulkan library path: \""s << ToString(lib.module.GetPath()) << '"' );
 
+	  #if defined(AE_DEBUG) and (defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX))
+		if ( String vk_icd; PlatformUtils::GetEnvironmentVariable( "VK_DRIVER_FILES", OUT vk_icd ))
+			AE_LOGI( "VK_DRIVER_FILES = "s << vk_icd );
+	  #endif
+
 		_var_vkGetInstanceProcAddr = &Dummy_vkGetInstanceProcAddr;
 
 		// all global functions can be loaded using 'vkGetInstanceProcAddr', so we need to import only this function address.
-		if ( not lib.module.GetProcAddr( "vkGetInstanceProcAddr", OUT lib.getInstanceProcAddr ))
-			return false;
+		if_unlikely( not lib.module.GetProcAddr( "vkGetInstanceProcAddr", OUT lib.getInstanceProcAddr ))
+		{
+			if ( PFN_vkGetInstanceProcAddr tmp;  lib.module.GetProcAddr( "vk_icdGetInstanceProcAddr", OUT tmp ))
+			{
+				lib.getInstanceProcAddr = BitCast<PFN_vkGetInstanceProcAddr>( tmp( null, "vkGetInstanceProcAddr" ));
+				CHECK_ERR( lib.getInstanceProcAddr != null );
+
+				AE_LOGE( "Vulkan driver is loaded directly, validation layers are not attached.\n"
+						 "To fix this:\n"
+						 " - set env variable VK_DRIVER_FILES to your driver <icd>.json\n"
+						 " - if vulkan driver is not installed:\n"
+						 "   - download vulkan runtime\n"
+						 "   - use 'vulkan-1.*' from archive" );
+			}
+			else
+				return false;
+		}
 
 		_var_vkGetInstanceProcAddr = lib.getInstanceProcAddr;
 
@@ -268,6 +287,20 @@ namespace {
 		#include "vulkan_loader/fn_vulkan_lib.h"
 		#include "vulkan_loader/fn_vulkan_inst.h"
 		#undef  VKLOADER_STAGE_GETADDRESS
+	}
+	
+/*
+=================================================
+	IsLoaded
+----
+	must be externally synchronized!
+=================================================
+*/
+	bool  VulkanLoader::IsLoaded () __NE___
+	{
+		VulkanLib&	lib = VulkanLib::Instance();
+
+		return bool{lib.module};
 	}
 
 /*

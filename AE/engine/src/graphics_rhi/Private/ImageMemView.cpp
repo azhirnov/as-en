@@ -1472,18 +1472,18 @@ namespace
 
 			if ( AnyBits( src_info.valueType, float_mask ) and AnyBits( dst_info.valueType, float_mask ))
 			{
-				load	= reinterpret_cast<LoadPixelFn_t>( srcImage._loadF4 );
-				store	= reinterpret_cast<StorePixelFn_t>( this->_storeF4 );
+				load	= FnUnsafeCast<LoadPixelFn_t>( srcImage._loadF4 );
+				store	= FnUnsafeCast<StorePixelFn_t>( this->_storeF4 );
 			}else
 			if ( AnyBits( src_info.valueType, int_mask ) and AnyBits( dst_info.valueType, int_mask ))
 			{
-				load	= reinterpret_cast<LoadPixelFn_t>( srcImage._loadI4 );
-				store	= reinterpret_cast<StorePixelFn_t>( this->_storeI4 );
+				load	= FnUnsafeCast<LoadPixelFn_t>( srcImage._loadI4 );
+				store	= FnUnsafeCast<StorePixelFn_t>( this->_storeI4 );
 			}else
 			if ( AnyBits( src_info.valueType, uint_mask ) and AnyBits( dst_info.valueType, uint_mask ))
 			{
-				load	= reinterpret_cast<LoadPixelFn_t>( srcImage._loadU4 );
-				store	= reinterpret_cast<StorePixelFn_t>( this->_storeU4 );
+				load	= FnUnsafeCast<LoadPixelFn_t>( srcImage._loadU4 );
+				store	= FnUnsafeCast<StorePixelFn_t>( this->_storeU4 );
 			}
 		}
 		CHECK_ERR( load != null and store != null );

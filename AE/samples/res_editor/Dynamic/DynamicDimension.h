@@ -82,6 +82,7 @@ namespace AE::ResEditor
 		ND_ RC<DynamicUInt2>	GetDynamicXY ()						__NE___;
 		ND_ RC<DynamicUInt>		GetDynamicArea ()					__NE___;
 		ND_ RC<DynamicUInt>		GetDynamicVolume ()					__NE___;
+		ND_ RC<DynamicDim>		GetFloorPOT ()						__NE___;
 
 		ND_ RC<DynamicFloat2>	ToFloat2 ()							__NE___;
 		ND_ RC<DynamicFloat2>	Inverse ()							__NE___;
@@ -97,7 +98,8 @@ namespace AE::ResEditor
 		ND_ static uint2	_GetXY (EnableRCBase*)					__NE___;
 		ND_ static uint		_GetArea (EnableRCBase*)				__NE___;
 		ND_ static uint		_GetVolume (EnableRCBase*)				__NE___;
-
+		
+		ND_ static uint3	_GetFloorPOT (EnableRCBase*)			__NE___;
 		ND_ static uint3	_GetDim (EnableRCBase*)					__NE___;
 
 		ND_ static float2	_GetFloat2 (EnableRCBase*)				__NE___;
@@ -420,6 +422,21 @@ namespace AE::ResEditor
 	{
 		ASSERT( _numDimensions == EImageDim_3D );
 		return MakeRC<DynamicUInt>( RC<>{GetRC()}, &_GetVolume );
+	}
+	
+/*
+=================================================
+	GetFloorPOT
+=================================================
+*/
+	inline uint3  DynamicDim::_GetFloorPOT (EnableRCBase* base) __NE___
+	{
+		return FloorPOT( Cast<DynamicDim>(base)->Dimension3() );
+	}
+
+	inline RC<DynamicDim>  DynamicDim::GetFloorPOT () __NE___
+	{
+		return MakeRC<DynamicDim>( RC<>{GetRC()}, &_GetFloorPOT );
 	}
 
 /*

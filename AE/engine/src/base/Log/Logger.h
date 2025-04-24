@@ -23,6 +23,23 @@ namespace AE::Base
 #endif
 
 
+#ifdef AE_PLATFORM_LINUX
+
+	//
+	// VS Code Log output
+	//
+	class VSCodeLogOutput final : public ILogger, public NothrowAllocatable
+	{
+	private:
+		Mutex		_guard;
+		
+	public:
+		EResult  Process (const MessageInfo &info) __Th_OV;
+	};
+
+#endif
+
+
 #ifdef AE_PLATFORM_ANDROID
 
 	//
@@ -150,6 +167,7 @@ namespace AE::Base
 			DarkRed		= 0xA00000,
 
 			Silver		= 0x909090,
+			DarkGrey	= 0x080808,
 
 			Black		= 0x000000,
 			White		= 0xFFFFFF,
@@ -174,6 +192,8 @@ namespace AE::Base
 
 		ThreadInfoMap_t		_threadInfos;
 		const bool			_enableThreadNames;
+
+		const bool			_addStackTrace;
 
 
 	// methods

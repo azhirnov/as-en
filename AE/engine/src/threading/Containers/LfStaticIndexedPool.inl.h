@@ -180,6 +180,7 @@ namespace AE::Threading
 					if_likely( chunk.assigned.CAS( INOUT bits, bits | new_bit ))	// 0 -> 1
 					{
 						outIndex = CheckCast<Index_t>( chunk_idx * ChunkSize + idx );
+						ASSERT( outIndex < capacity() );
 						return true;
 					}
 

@@ -1,5 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#ifndef AE_ENABLE_LOGS
+#	error AE_ENABLE_LOGS must be enabled
+#endif
+
 #include "VulkanSyncLog.h"
 #include "base/Algorithms/StringUtils.h"
 #include "graphics_rhi/Public/ImageUtils.h"
@@ -17,6 +21,9 @@ using namespace AE::Threading;
 // Enable 'seq_no' field in the sync commands.
 // You should disable 'ENABLE_DEBUG_CLEAR' in 'VulkanExtEmulation' module, otherwise command indices will not match.
 #define ENABLE_SEQNO		0
+
+// Can be used to find resources with same name. For example, when resource recreated, but old resource is already used by descriptor set.
+#define PRINT_RESOURCE_ID	0
 
 // Always add objectId to the debug name
 #if 0
@@ -367,6 +374,25 @@ namespace
 
 		return VkPipelineStageFlags2ToString( stages );
 	}
+	
+/*
+=================================================
+	PrintName
+=================================================
+*/
+	template <typename VkID>
+	ND_ static String  PrintName (String name, VkID id)
+	{
+		'\'' >> name;
+		name << '\'';
+
+	  #if PRINT_RESOURCE_ID
+		return name << " [" << ToString<16>(BitCast<ulong>(id)) << ']';
+	  #else
+		Unused( id );
+		return name;
+	  #endif
+	}
 
 /*
 =================================================
@@ -687,17 +713,17 @@ namespace
 		{
 			sp.pNext = null;
 
-			MemCopy_NullCheck( OUT rp.references.data() + ref_count, sp.pInputAttachments, sp.inputAttachmentCount );
+			MemCopy( OUT rp.references.data() + ref_count, sp.pInputAttachments, sp.inputAttachmentCount );
 			sp.pInputAttachments	 = rp.references.data() + ref_count;
 			ref_count				+= sp.inputAttachmentCount;
 
-			MemCopy_NullCheck( OUT rp.references.data() + ref_count, sp.pColorAttachments, sp.colorAttachmentCount );
+			MemCopy( OUT rp.references.data() + ref_count, sp.pColorAttachments, sp.colorAttachmentCount );
 			sp.pColorAttachments	 = rp.references.data() + ref_count;
 			ref_count				+= sp.colorAttachmentCount;
 
 			if ( sp.pResolveAttachments != null )
 			{
-				MemCopy_NullCheck( OUT rp.references.data() + ref_count, sp.pResolveAttachments, sp.colorAttachmentCount );
+				MemCopy( OUT rp.references.data() + ref_count, sp.pResolveAttachments, sp.colorAttachmentCount );
 				sp.pResolveAttachments	 = rp.references.data() + ref_count;
 				ref_count				+= sp.colorAttachmentCount;
 			}
@@ -709,7 +735,7 @@ namespace
 				++ref_count;
 			}
 
-			MemCopy_NullCheck( OUT rp.preserve.data() + preserve_count, sp.pPreserveAttachments, sp.preserveAttachmentCount );
+			MemCopy( OUT rp.preserve.data() + preserve_count, sp.pPreserveAttachments, sp.preserveAttachmentCount );
 			sp.pPreserveAttachments	 = rp.preserve.data() + preserve_count;
 			preserve_count			+= sp.preserveAttachmentCount;
 		}
@@ -1432,7 +1458,7 @@ namespace
 						continue;
 
 					log << "--------------------------------------------------\n";
-					log << "name: '" << cmdbuf.name << "'\n{\n";
+					log << "name: " << PrintName( cmdbuf.name, batch.pCommandBuffers[j] ) << "\n{\n";
 					log << cmdbuf.log;
 					log << "}\n";
 
@@ -1576,7 +1602,7 @@ namespace
 					cmdbuf.state = VulkanLogger::CommandBufferData::EState::Initial;
 
 					log << "--------------------------------------------------\n";
-					log << "name: '" << cmdbuf.name << "'\n{\n";
+					log << "name: " << PrintName( cmdbuf.name, cmd_info.commandBuffer ) << "\n{\n";
 					log << cmdbuf.log;
 					log << "}\n";
 
@@ -1888,7 +1914,7 @@ namespace
 			auto	buf = logger.bufferMap.find( barrier.buffer );
 
 			if ( buf != logger.bufferMap.end() )
-				log << "\n      name:   '" << buf->second.name << "'";
+				log << "\n      name:   " << PrintName( buf->second.name, barrier.buffer );
 
 			log << "\n      access: " << VkAccessFlagsToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlagsToString( barrier.dstAccessMask );
 
@@ -1915,7 +1941,7 @@ namespace
 			if ( img != logger.imageMap.end() )
 			{
 				img_ci = img->second.info;
-				log << "\n      name:    '" << img->second.name << "'";
+				log << "\n      name:    " << PrintName( img->second.name, barrier.image );
 			}
 			log << "\n      layout:  " << VkImageLayoutToString( barrier.oldLayout );
 
@@ -1988,7 +2014,7 @@ namespace
 
 			auto	buf = logger.bufferMap.find( barrier.buffer );
 			if ( buf != logger.bufferMap.end() )
-				log << "\n      name:   '" << buf->second.name << "'";
+				log << "\n      name:   " << PrintName( buf->second.name, barrier.buffer );
 
 			log << "\n      stage:  " << VkPipelineStage2ToString( barrier.srcStageMask ) << " ---> " << VkPipelineStage2ToString( barrier.dstStageMask );
 			log << "\n      access: " << VkAccessFlags2ToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( barrier.dstAccessMask );
@@ -2016,7 +2042,7 @@ namespace
 			if ( img != logger.imageMap.end() )
 			{
 				img_ci = img->second.info;
-				log << "\n      name:    '" << img->second.name << "'";
+				log << "\n      name:    " << PrintName( img->second.name, barrier.image );
 			}
 			log << "\n      stage:   " << VkPipelineStage2ToString( barrier.srcStageMask ) << " ---> " << VkPipelineStage2ToString( barrier.dstStageMask );
 			log << "\n      access:  " << VkAccessFlags2ToString( barrier.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( barrier.dstAccessMask );
@@ -2147,8 +2173,8 @@ namespace
 
 		auto&	subres = view_it->second.info.subresourceRange;
 
-		log << "\n      view:    '" << view_it->second.name << "'";
-		log << "\n      image:   '" << img_it->second.name << "'";
+		log << "\n      view:    " << PrintName( view_it->second.name, id );
+		log << "\n      image:   " << PrintName( img_it->second.name, view_it->second.info.image );
 
 		if ( subres.baseMipLevel+1 != img_it->second.info.mipLevels )
 			log << "\n      mipmap:   " << ToString(subres.baseMipLevel);
@@ -4676,7 +4702,7 @@ namespace
 
 		auto&	log = cmdbuf->log;
 		log << "  BindIndexBuffer\n";
-		log << "    buffer: '" << buf_it->second.name << "'\n";
+		log << "    buffer: " << PrintName( buf_it->second.name, buffer ) << "\n";
 		log << "    offset: " << ToString( offset ) << '\n';
 		#if ENABLE_SEQNO
 		log << "    seq_no: " << ToString( cmdbuf->cmdIndex ) << '\n';
@@ -4706,12 +4732,14 @@ namespace
 		log << "  BindVertexBuffers\n";
 		for (uint i = 0; i < bindingCount; ++i)
 		{
-			log << "    [" << ToString(i + firstBinding) << "] buffer: '";
+			log << "    [" << ToString(i + firstBinding) << "] buffer: ";
 
 			if (auto buf_it = logger.bufferMap.find( pBuffers[i] );  buf_it != logger.bufferMap.end() )
-				log << buf_it->second.name;
+				log << PrintName( buf_it->second.name, pBuffers[i] );
+			else
+				log << "''";
 
-			log << "', offset: " << ToString( pOffsets[i] ) << "\n";
+			log << ", offset: " << ToString( pOffsets[i] ) << "\n";
 		}
 
 		#if ENABLE_SEQNO
@@ -4983,8 +5011,12 @@ namespace
 							if ( image_it == imageMap.end() )
 								continue;
 
-							auto&	img = image_it->second;
-							tmp_log << "      image: '" << img.name << "', layout: " << VkImageLayoutToString( bind.images[a].imageLayout ) << '\n';
+							auto&	img		= image_it->second;
+							auto&	subres	= view_it->second.info.subresourceRange;
+
+							tmp_log << "      image: " << PrintName( img.name, view_it->second.info.image ) << ", layout: " << VkImageLayoutToString( bind.images[a].imageLayout )
+								<< MipmapsToString( ", ", subres.baseMipLevel, subres.levelCount, img.info.mipLevels, true )
+								<< ArrayLayersToString( ", ", subres.baseArrayLayer, subres.layerCount, img.info.arrayLayers, true ) << '\n';
 						}
 						break;
 					}
@@ -5009,7 +5041,7 @@ namespace
 								continue;
 
 							auto&	buf = buffer_it->second;
-							tmp_log << "      buffer: '" << buf.name << "'\n";
+							tmp_log << "      buffer: " << PrintName( buf.name, view_it->second.info.buffer ) << "\n";
 						}
 						break;
 					}
@@ -5032,7 +5064,7 @@ namespace
 								continue;
 
 							auto&	buf = buf_it->second;
-							tmp_log << "      buffer: '" << buf.name << "'\n";
+							tmp_log << "      buffer: " << PrintName( buf.name, bind.buffers[a].buffer ) << "\n";
 						}
 						break;
 					}
@@ -5052,7 +5084,7 @@ namespace
 								continue;
 
 							auto&	as = as_it->second;
-							tmp_log << "      accel struct: '" << as.name << "'\n";
+							tmp_log << "      accel struct: " << PrintName( as.name, bind.accelStructs[a] ) << "\n";
 						}
 						break;
 					}

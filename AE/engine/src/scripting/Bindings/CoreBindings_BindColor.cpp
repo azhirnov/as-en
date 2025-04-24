@@ -153,20 +153,18 @@ namespace
 		binder.AddProperty( &T::b, "b" );
 		binder.AddProperty( &T::a, "a" );
 
-		binder.Operators()
-			.Equal( &T::operator== );
+		AS_OP_EQUAL_T( binder, T::operator== );
 
 		if constexpr( IsSame< T, RGBA32f >)
 		{
-			binder.AddMethodFromGlobal( &RGBA32f_Luminance,		"Luminance",		{} );
-			binder.AddMethodFromGlobal( &RGBA32f_OpaqueBlack,	"OpaqueBlack",		{} );
-			se->AddFunction( &RGBA32f_Lerp,						"Lerp",				{"x", "y", "factor"} );
-			se->AddFunction( &RGBA32f_AdjustContrast,			"AdjustContrast",	{"col", "factor"} );
-			se->AddFunction( &RGBA32f_Rainbow,					"Rainbow",			{"factor"} );
-			se->AddFunction( &RGBA32f_RainbowWrap,				"RainbowWrap",		{"factor"} );
+			AS_METHOD_T( binder, RGBA32f_Luminance,		"Luminance",		{} );
+			AS_METHOD_T( binder, RGBA32f_OpaqueBlack,	"OpaqueBlack",		{} );
+			AS_GLOBAL_FN( se,	RGBA32f_Lerp,			"Lerp",				{"x", "y", "factor"} );
+			AS_GLOBAL_FN( se,	RGBA32f_AdjustContrast,	"AdjustContrast",	{"col", "factor"} );
+			AS_GLOBAL_FN( se,	RGBA32f_Rainbow,		"Rainbow",			{"factor"} );
+			AS_GLOBAL_FN( se,	RGBA32f_RainbowWrap,	"RainbowWrap",		{"factor"} );
 
-			binder.Operators()
-				.Binary( EBinaryOperator::Mul, &RGBA32f_mul_RGBA32f );
+			AS_OP_BINARY_T( binder,  EBinaryOperator::Mul, RGBA32f_mul_RGBA32f );
 
 			ClassBinder<packed_float4>	binder2{ se };
 			if ( binder2.IsRegistered() )
@@ -177,14 +175,14 @@ namespace
 
 		if constexpr( IsSame< T, RGBA8u >)
 		{
-			se->AddFunction( &RGBA8u_AdjustContrast,			"AdjustContrast",	{"col", "factor"} );
-			se->AddFunction( &RGBA8u_AdjustSaturation,			"AdjustSaturation",	{"col", "factor"} );
-			se->AddFunction( &RGBA8u_Lerp,						"Lerp",				{"x", "y", "factor"} );
-			se->AddFunction( &RGBA8u_OpaqueBlack,				"OpaqueBlack",		{} );
-			binder.AddMethodFromGlobal( &RGBA8u_Luminance,		"Luminance",		{} );
-			binder.AddMethodFromGlobal( &RGBA8u_ToUInt,			"ToUInt",			{} );
-			binder.AddMethodFromGlobal( &RGBA8u_FromUIntARGB,	"FromUintARGB",		{} );
-			binder.AddMethodFromGlobal( &RGBA8u_FromUIntRGBA,	"FromUint",			{} );
+			AS_GLOBAL_FN( se,		RGBA8u_AdjustContrast,		"AdjustContrast",	{"col", "factor"} );
+			AS_GLOBAL_FN( se,		RGBA8u_AdjustSaturation,	"AdjustSaturation",	{"col", "factor"} );
+			AS_GLOBAL_FN( se,		RGBA8u_Lerp,				"Lerp",				{"x", "y", "factor"} );
+			AS_GLOBAL_FN( se,		RGBA8u_OpaqueBlack,			"OpaqueBlack",		{} );
+			AS_METHOD_T( binder,	RGBA8u_Luminance,			"Luminance",		{} );
+			AS_METHOD_T( binder,	RGBA8u_ToUInt,				"ToUInt",			{} );
+			AS_METHOD_T( binder,	RGBA8u_FromUIntARGB,		"FromUintARGB",		{} );
+			AS_METHOD_T( binder,	RGBA8u_FromUIntRGBA,		"FromUint",			{} );
 		}
 	}
 
@@ -267,8 +265,7 @@ namespace
 		binder.AddConstructor( &HSVColor_Ctor3,			{"h", "s", "v"} );
 		binder.AddConstructor( &HSVColor_Ctor_RGBA32f,	{"col"} );
 
-		binder.Operators()
-			.Equal( &HSVColor::operator== );
+		AS_OP_EQUAL( binder, HSVColor::operator== );
 	}
 
 /*
@@ -297,8 +294,7 @@ namespace
 
 		binder.AddConstructor( &DepthStencil_Ctor,	{"depth", "stencil"} );
 
-		binder.Operators()
-			.Equal( &DepthStencil::operator== );
+		AS_OP_EQUAL( binder, DepthStencil::operator== );
 	}
 
 } // namespace

@@ -418,6 +418,14 @@ bool RGTest::Test_Debugger4 ()
 		return true;
 	}
 
+  #ifdef AE_ENABLE_VULKAN
+	if ( GraphicsScheduler().GetFeatureSet().vendorIds.include.contains( EGPUVendor::Mesa ))
+	{
+		AE_LOGI( TEST_NAME << " - skipped" );
+		return true;	// bug in lavapipe
+	}
+  #endif
+
 	auto	img_cmp = _LoadReference( TEST_NAME );
 	bool	result	= true;
 

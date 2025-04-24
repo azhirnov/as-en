@@ -6,7 +6,6 @@
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Containers/NtStringView.h"
 # include "base/Utils/Helpers.h"
-# include "base/FileSystem/Path.h"
 # include "base/Algorithms/ArrayUtils.h"
 
 namespace AE::Base

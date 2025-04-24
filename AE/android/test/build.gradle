@@ -43,19 +43,20 @@ android {
 	sourceSets {
 		main {
 			assets.srcDirs = [	'../../../AE-Temp/engine/graphics_rhi',			// TODO: include only vulkan pipelines
-								'../../../AE-Temp/engine/graphics_hl',
+								'../../../AE-Temp/engine/graphics',
 								'../../../AE-Temp/engine/perf_graphics' ]
 		}
 	}
 	packagingOptions {
 		jniLibs {
 			excludes += ['lib/**/*.so']
-			pickFirsts += ['lib/**/libTestLauncher.so',		'lib/**/libTestsBase.so',		'lib/**/libTestsScripting.so',
-						   'lib/**/libTestsThreading.so',	'lib/**/libTestsNetworking.so',	'lib/**/libTestsSerializing.so',
-						   'lib/**/libTestsPlatform.so',	'lib/**/libTestsGraphics.so',	'lib/**/libTestsGraphicsHL.so',
-						   'lib/**/libTestsECS-st.so',		'lib/**/libTestsVFS.so',		'lib/**/libTestsHuLang.so',
+			pickFirsts += ['lib/**/libTestLauncher.so',		'lib/**/libTestsBase.so',			'lib/**/libTestsScripting.so',
+						   'lib/**/libTestsThreading.so',	'lib/**/libTestsNetworking.so',		'lib/**/libTestsSerializing.so',
+						   'lib/**/libTestsPlatform.so',	'lib/**/libTestsGraphicsRHI.so',	'lib/**/libTestsGraphics.so',
+						   'lib/**/libTestsECS-st.so',		'lib/**/libTestsVFS.so',			'lib/**/libTestsHuLang.so',
 						   'lib/**/libTestsAtlasTools.so',	'lib/**/libTestsGeometryTools.so',
-						   'lib/**/libPerfBase.so',			'lib/**/libPerfThreading.so',	'lib/**/libPerfGraphics.so']
+						   'lib/**/libPerfBase.so',			'lib/**/libPerfThreading.so',		'lib/**/libPerfGraphics.so',
+						   'lib/**/libNetworkStressTest.so' ]
 			pickFirsts += ['lib/**/libVkLayer_khronos_validation.so']
 		}
 		resources  {

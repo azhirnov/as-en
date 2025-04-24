@@ -12,13 +12,15 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<DynamicUInt>		tex_dim	= DynamicUInt();
-		RC<Image>			rt		= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Image>			tex		= Image( EPixelFormat::R8_UNorm, tex_dim.Mul(32).Dimension2() );
-		RC<DynamicUInt>		mode	= DynamicUInt();
+		RC<DynamicUInt>		tex_dim		= DynamicUInt();
+		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
+		RC<Image>			tex			= Image( EPixelFormat::R8_UNorm, tex_dim.Mul(32).Dimension2() );
+		RC<DynamicUInt>		mode		= DynamicUInt();
+		RC<DynamicUInt>		p_filter	= DynamicUInt();
 
 		Slider( tex_dim,	"TexDim",	1,	16,		4 );
 		Slider( mode,		"2D",		0,	1,		1 );
+		Slider( p_filter,	"Filter",	0,	2,		1 );
 
 		// render loop
 		{
@@ -30,17 +32,46 @@
 			pass.Slider( "iGrid",		0,		1,		0 );
 			pass.Slider( "iColor",		0,		3,		0 );
 			pass.Slider( "iScale",		1,		8,		4 );
+			pass.Constant( "iFilter",	p_filter	);
 			pass.EnableIfEqual( mode, 1 );
 		}{
 			RC<Postprocess>		pass = Postprocess( "", "VIEW_1D" );
 			pass.Output( "out_Color",	rt );
 			pass.ArgIn(  "un_Noise",	tex,	Sampler_LinearRepeat );
 			pass.Slider( "iYOffset",	0.f,	1.f,	0.5f );
+			pass.Constant( "iFilter",	p_filter	);
 			pass.EnableIfEqual( mode, 0 );
 		}
 
 		Present( rt );
 		Export( tex, "tile-noise-.aeimg" );
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#if defined(VIEW_2D) or defined(VIEW_1D)
+	#include "Math.glsl"
+	
+	float  NoiseTex (float2 uv)
+	{
+		const float2	dim = gl.texture.GetSize( un_Noise, 0 );
+		const float2	f	= Fract( uv * dim + 0.5 + 1.0/512.0 );
+
+		switch ( iFilter )
+		{
+			case 0 :
+				return gl.texture.SampleLod( un_Noise, uv, 0.f ).r;
+
+			case 1 : {
+				float4	data = gl.texture.Gather( un_Noise, uv, 0 );
+				return BiLerp( data[3], data[2], data[0], data[1], f );
+			}
+
+			case 2 : {
+				float4	data = gl.texture.Gather( un_Noise, uv, 0 );
+				return BiCubic( data[3], data[2], data[0], data[1], f );
+			}
+		}
 	}
 
 #endif
@@ -56,7 +87,7 @@
 		float	size	= GetGlobalSize().x;
 		float2	pos		= GetGlobalCoordSF().xy / size;
 		float2	uv		= pos * iScale;
-		float	n		= gl.texture.Sample( un_Noise, uv ).r;
+		float	n		= NoiseTex( uv );
 		float3	border_col;
 
 		switch ( iColor )
@@ -98,7 +129,7 @@
 	{
 		float	x	= GetGlobalCoordUNorm( int3(dx) ).x;
 		float2	uv	= Saturate( float2( x, iYOffset ));
-		float	n	= gl.texture.Sample( un_Noise, uv ).r;
+		float	n	= NoiseTex( uv );
 		return float2( x, 1.0 - n );
 	}
 

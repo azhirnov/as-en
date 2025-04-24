@@ -7,8 +7,8 @@
 # include "base/DataSource/ZStdStream.h"
 # include "base/Algorithms/StringUtils.h"
 
-# if ZSTD_VERSION_MAJOR != 1 or ZSTD_VERSION_MINOR != 5 or ZSTD_VERSION_RELEASE != 6
-#	error required zstd version 1.5.6
+# if ZSTD_VERSION_MAJOR != 1 or ZSTD_VERSION_MINOR != 5 or ZSTD_VERSION_RELEASE != 7
+#	pragma message( "required zstd version 1.5.7" )
 # endif
 
 namespace AE::Base

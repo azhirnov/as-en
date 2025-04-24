@@ -90,7 +90,7 @@ namespace AE::Graphics
 		CHECK_ERR( pack != null );
 
 		auto	layout_id = pack->GetDSLayout( dslName );
-		CHECK_ERR( layout_id );
+		CHECK_ERR( layout_id );		// warning: if two layouts are same then only one is stored
 
 		return CreateDescriptorSets( OUT dst, count, layout_id, RVRef(allocator), dbgName );
 	}

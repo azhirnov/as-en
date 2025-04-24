@@ -142,6 +142,34 @@ namespace AE::Base
 	{
 		return "";
 	}
+	
+	ND_ StringView  ToString (ECoopMatrixCfg type)
+	{
+		switch_enum( type )
+		{
+			case ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 :		return "A: fp16, B: fp16, C: fp16, Res: fp16, MxNxK: 16x16x16";
+			case ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 :		return "A: fp16, B: fp16, C: fp32, Res: fp32, MxNxK: 16x16x16";
+			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 :			return "A: u8, B: u8, C: u32, Res: u32, MxNxK: 16x16x32";
+			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 :			return "A: s8, B: s8, C: s32, Res: s32, MxNxK: 16x16x32";
+			case ECoopMatrixCfg::_Count :									break;
+		}
+		switch_end
+		return "";
+	}
+
+	ND_ StringView  ToString (ECoopVecCfg type)
+	{
+		switch_enum( type )
+		{
+			case ECoopVecCfg::Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp :		return "Vec: fp16, In: fp16, Mat: fp16, Bias: fp16, Res: fp16, transpose";
+			case ECoopVecCfg::Ts8_Is8_Ms8_Bs32_Rs32 :					return "Vec: s8, In: s8, Mat: s8, Bias: s32, Res: s32";
+			case ECoopVecCfg::Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16 :		return "Vec: fp16, In: fp8_e7m3, Mat: fp8_e7m3, Bias: fp16, Res: fp16";
+			case ECoopVecCfg::Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16 :		return "Vec: fp16, In: fp8_e5m2, Mat: fp8_e5m2, Bias: fp16, res: fp16";
+			case ECoopVecCfg::_Count :									break;
+		}
+		switch_end
+		return "";
+	}
 
 	template <typename E>
 	ND_ String  ToString (const EnumSet<E> &bits)
@@ -222,11 +250,11 @@ namespace
 	}
 
 	ND_ static bool  FS_Equal (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___ {
-		return	lhs.minX	== rhs.minX		and
-				lhs.minY	== rhs.minY		and
-				lhs.maxX	== rhs.maxX		and
-				lhs.maxY	== rhs.maxY		and
-				lhs.aspect	== rhs.aspect;
+		return	lhs.minX		== rhs.minX		and
+				lhs.minY		== rhs.minY		and
+				lhs.maxX		== rhs.maxX		and
+				lhs.maxY		== rhs.maxY		and
+				lhs.aspectRatio	== rhs.aspectRatio;
 	}
 
 /*
@@ -338,11 +366,11 @@ namespace
 
 	ND_ static bool  FS_GreaterEqual (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___
 	{
-		return	lhs.minX	>= rhs.minX		and
-				lhs.minY	>= rhs.minY		and
-				lhs.maxX	>= rhs.maxX		and
-				lhs.maxY	>= rhs.maxY		and
-				lhs.aspect	== rhs.aspect;
+		return	lhs.minX		>= rhs.minX		and
+				lhs.minY		>= rhs.minY		and
+				lhs.maxX		>= rhs.maxX		and
+				lhs.maxY		>= rhs.maxY		and
+				lhs.aspectRatio	== rhs.aspectRatio;
 	}
 
 /*
@@ -522,11 +550,11 @@ namespace
 			return {};
 
 		FeatureSet::VRSTexelSize	res;
-		res.minX	= Max( lhs.minX,	rhs.minX );
-		res.minY	= Max( lhs.minY,	rhs.minY );
-		res.maxX	= Min( lhs.maxX,	rhs.maxX );
-		res.maxY	= Min( lhs.maxY,	rhs.maxY );
-		res.aspect	= Min( lhs.aspect,	rhs.aspect );
+		res.minX		= Max( lhs.minX,		rhs.minX );
+		res.minY		= Max( lhs.minY,		rhs.minY );
+		res.maxX		= Min( lhs.maxX,		rhs.maxX );
+		res.maxY		= Min( lhs.maxY,		rhs.maxY );
+		res.aspectRatio	= Min( lhs.aspectRatio,	rhs.aspectRatio );
 		return res;
 	}
 
@@ -636,11 +664,11 @@ namespace
 	ND_ static FeatureSet::VRSTexelSize  FS_MergeMax (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___
 	{
 		FeatureSet::VRSTexelSize	res;
-		res.minX	= Min( lhs.minX,	rhs.minX );
-		res.minY	= Min( lhs.minY,	rhs.minY );
-		res.maxX	= Max( lhs.maxX,	rhs.maxX );
-		res.maxY	= Max( lhs.maxY,	rhs.maxY );
-		res.aspect	= Max( lhs.aspect,	rhs.aspect );
+		res.minX		= Min( lhs.minX,		rhs.minX );
+		res.minY		= Min( lhs.minY,		rhs.minY );
+		res.maxX		= Max( lhs.maxX,		rhs.maxX );
+		res.maxY		= Max( lhs.maxY,		rhs.maxY );
+		res.aspectRatio	= Max( lhs.aspectRatio,	rhs.aspectRatio );
 		return res;
 	}
 
@@ -1815,7 +1843,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0x15d3028c4ed61a60ull};
+		return HashVal64{0x7111c4a85da813ebull};
 	}
 
 

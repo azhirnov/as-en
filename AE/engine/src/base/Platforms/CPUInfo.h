@@ -18,92 +18,101 @@ namespace AE::Base
 		ARM_64,		// ARMv8
 		RISCV,
 		RISCV_64,
+		Loong64,
+		E2K,
 		_Count,
 		Unknown	= 0xFF,
 	};
 
 	enum class ECPUMicroArch : ushort
 	{
+		#define CPU_MICRO_ARCH( _visitor_ )\
+			_visitor_( AMD_Athlon2,			= _AMD_Begin )\
+			_visitor_( AMD_Phenom2,			)\
+			_visitor_( AMD_Turion2,			)\
+			_visitor_( AMD_Llano,			)\
+			_visitor_( AMD_Bobcat,			)\
+			_visitor_( AMD_Bulldozer,		)\
+			_visitor_( AMD_Piledriver,		)\
+			_visitor_( AMD_Steamroller,		)\
+			_visitor_( AMD_Excavator,		)\
+			_visitor_( AMD_Jaguar,			)\
+			_visitor_( AMD_Puma,			)\
+			_visitor_( AMD_Zen1,			)\
+			_visitor_( AMD_Zen1Plus,		)	/* Zen+ */\
+			_visitor_( AMD_Zen2,			)\
+			_visitor_( AMD_Zen3,			)\
+			_visitor_( AMD_Zen4,			)\
+			_visitor_( AMD_Zen5,			)\
+			_visitor_( AMD_Zen5c,			)\
+			\
+			_visitor_( Intel_Nehelem,		= _Intel_Client_Begin )\
+			_visitor_( Intel_Westmere,		)\
+			_visitor_( Intel_SandyBridge,	)\
+			_visitor_( Intel_IvyBridge,		)\
+			_visitor_( Intel_Haswell,		)\
+			_visitor_( Intel_Broadwell,		)\
+			_visitor_( Intel_Skylake,		)\
+			_visitor_( Intel_KabyLake,		)\
+			_visitor_( Intel_CoffeeLake,	)\
+			_visitor_( Intel_CannonLake,	)\
+			_visitor_( Intel_CometLake,		)\
+			_visitor_( Intel_IceLake,		)\
+			_visitor_( Intel_TigerLake,		)\
+			_visitor_( Intel_RocketLake,	)\
+			_visitor_( Intel_AlderLake,		)\
+			_visitor_( Intel_ReptorLake,	)\
+			\
+			_visitor_( Intel_SandyBridge_Server,	= _Intel_Server_Begin )\
+			_visitor_( Intel_IvyBridge_Server,		)\
+			_visitor_( Intel_Haswell_Server,		)\
+			_visitor_( Intel_Broadwell_Server,		)\
+			_visitor_( Intel_Skylake_Server,		)\
+			_visitor_( Intel_IceLake_Server,		)\
+			_visitor_( Intel_SapphireRapids,		)\
+			_visitor_( Intel_EmeraldRapids,			)\
+			\
+			_visitor_( Intel_Bonnell,		= _Intel_LowPower_Begin )\
+			_visitor_( Intel_Saltwell,		)\
+			_visitor_( Intel_Silvermont,	)\
+			_visitor_( Intel_Airmont,		)\
+			_visitor_( Intel_Goldmont,		)\
+			_visitor_( Intel_GoldmontPlus,	)\
+			_visitor_( Intel_Tremont,		)\
+			\
+			_visitor_( ARM_ISA_7_0,		)\
+			_visitor_( ARM_ISA_8_0,		)\
+			_visitor_( ARM_ISA_8_1,		)\
+			_visitor_( ARM_ISA_8_2,		)\
+			_visitor_( ARM_ISA_8_3,		)\
+			_visitor_( ARM_ISA_8_4,		)\
+			_visitor_( ARM_ISA_8_5,		)\
+			_visitor_( ARM_ISA_8_6,		)\
+			_visitor_( ARM_ISA_8_7,		)\
+			_visitor_( ARM_ISA_8_8,		)\
+			_visitor_( ARM_ISA_8_9,		)\
+			_visitor_( ARM_ISA_9_0,		)\
+			_visitor_( ARM_ISA_9_1,		)\
+			_visitor_( ARM_ISA_9_2,		)\
+			_visitor_( ARM_ISA_9_3,		)\
+		
 		_AMD_Begin				= 0x1000,
-		AMD_Athlon2,
-		AMD_Phenom2,
-		AMD_Turion2,
-		AMD_Llano,
-		AMD_Bobcat,
-		AMD_Bulldozer,
-		AMD_Piledriver,
-		AMD_Steamroller,
-		AMD_Excavator,
-		AMD_Jaguar,
-		AMD_Puma,
-		AMD_Zen1,
-		AMD_Zen1Plus,	// Zen+
-		AMD_Zen2,
-		AMD_Zen3,
-		AMD_Zen4,
-		AMD_Zen5,
-		_AMD_End,
-
 		_Intel_Begin			= 0x2000,
 		_Intel_Client_Begin		= _Intel_Begin,
-		Intel_Nehelem,
-		Intel_Westmere,
-		Intel_SandyBridge,
-		Intel_IvyBridge,
-		Intel_Haswell,
-		Intel_Broadwell,
-		Intel_Skylake,
-		Intel_KabyLake,
-		Intel_CoffeeLake,
-		Intel_CannonLake,
-		Intel_CometLake,
-		Intel_IceLake,
-		Intel_TigerLake,
-		Intel_RocketLake,
-		Intel_AlderLake,
-		Intel_ReptorLake,
-		_Intel_Client_End,
-
 		_Intel_Server_Begin		= 0x2100,
-		Intel_SandyBridge_Server,
-		Intel_IvyBridge_Server,
-		Intel_Haswell_Server,
-		Intel_Broadwell_Server,
-		Intel_Skylake_Server,
-		Intel_IceLake_Server,
-		Intel_SapphireRapids,
-		Intel_EmeraldRapids,
-		_Intel_Server_End,
-
 		_Intel_LowPower_Begin	= 0x2200,
-		Intel_Bonnell,
-		Intel_Saltwell,
-		Intel_Silvermont,
-		Intel_Airmont,
-		Intel_Goldmont,
-		Intel_GoldmontPlus,
-		Intel_Tremont,
-		_Intel_LowPower_End,
-
 		_ARM_ISA_Begin			= 0x3000,
-		ARM_ISA_7_0,
-		ARM_ISA_8_0,
-		ARM_ISA_8_1,
-		ARM_ISA_8_2,
-		ARM_ISA_8_3,
-		ARM_ISA_8_4,
-		ARM_ISA_8_5,
-		ARM_ISA_8_6,
-		ARM_ISA_8_7,
-		ARM_ISA_8_8,
-		ARM_ISA_8_9,
-		ARM_ISA_9_0,
-		ARM_ISA_9_1,
-		ARM_ISA_9_2,
-		ARM_ISA_9_3,
-		_ARM_ISA_End,
 
-		Unknown	= 0xFFFF,
+		#define CPU_MICRO_ARCH_VISIT( _name_, _setValue_ )		_name_	_setValue_,
+		CPU_MICRO_ARCH( CPU_MICRO_ARCH_VISIT )
+		#undef CPU_MICRO_ARCH_VISIT
+
+		_AMD_End,
+		_Intel_Client_End		= Intel_ReptorLake,
+		_Intel_Server_End		= Intel_EmeraldRapids,
+		_Intel_LowPower_End		= Intel_Tremont,
+		_ARM_ISA_End			= ARM_ISA_9_3,
+		Unknown					= 0xFFFF,
 	};
 
 	enum class ECPUVendor : ubyte
@@ -141,12 +150,16 @@ namespace AE::Base
 		// E-cores on new Intel processors.
 		EnergyEfficient,
 
+		// Intel LP core
+		LowPower,
+
 		_Count,
 		Unknown	= 0xFF,
 
 		HP	= HighPerformance,
 		P	= Performance,
 		EE	= EnergyEfficient,
+		LP	= LowPower,
 	};
 
 
@@ -168,22 +181,32 @@ namespace AE::Base
 			bool	SSSE3			: 1;	// AE_SIMD_SSE	31
 			bool	SSE41			: 1;	// AE_SIMD_SSE	41
 			bool	SSE42			: 1;	// AE_SIMD_SSE	42
-		//	bool	SSE4A			: 1;	// AE_SIMD_SSE	50			- not available in Intel
+		//	bool	SSE4A			: 1;	// AE_SIMD_SSE	50	- not available on Intel
 
 			bool	AVX				: 1;	// AE_SIMD_AVX	1
 			bool	AVX2			: 1;	// AE_SIMD_AVX	2
-			bool	AVX512F			: 1;	// AE_SIMD_AVX	3			- Foundation
-			bool	AVX512_FP16		: 1;	// AE_SIMD_AVX	3|(1<<4)	- half-precision floating-point arithmetic instructions
-		//	bool	AVX512_DQ		: 1;	// AE_SIMD_AVX	3|(1<<5)	- Doubleword and Quadword Instructions
-		//	bool	AVX512_IFMA		: 1;	// AE_SIMD_AVX	3|(1<<6)	- Integer Fused Multiply-Add Instructions
-		//	bool	AVX512_ER		: 1;	// AE_SIMD_AVX	3|(1<<7)	- Exponential and Reciprocal Instructions
-		//	bool	AVX512_BW		: 1;	// AE_SIMD_AVX	3|(1<<8)	- Byte and Word Instructions
-		//	bool	AVX512_VL		: 1;	// AE_SIMD_AVX	3|(1<<9)	- Vector Length Extensions
-		//	bool	AVX512_VBMI		: 1;	// AE_SIMD_AVX	3|(1<<10)	- Vector Bit Manipulation Instructions
-		//	bool	AVX512_VBMI2	: 1;	// AE_SIMD_AVX	3|(1<<11)	- Vector Bit Manipulation Instructions 2
-		//	bool	AVX512_BITALG	: 1;	// AE_SIMD_AVX	3|(1<<12)	- BITALG instructions
-		//	bool	AVX512_VPOPCNTDQ: 1;	// AE_SIMD_AVX	3|(1<<13)	- Vector Population Count Double and Quad-word
-		//	bool	AVX512_4FMAPS	: 1;	// AE_SIMD_AVX	3|(1<<14)	- 4-register Multiply Accumulation Single precision
+		//	bool	AVX_VNNI		: 1;
+			bool	AVX512F			: 1;	// AE_SIMD_AVX	30	- Foundation
+
+			// Cannon Lake //
+			//		AVX512_CD				// AE_SIMD_AVX	31	-
+		//	bool	AVX512_VL		: 1;	// AE_SIMD_AVX	31	- Vector Length Extensions
+		//	bool	AVX512_DQ		: 1;	// AE_SIMD_AVX	31	- Doubleword and Quadword Instructions
+		//	bool	AVX512_BW		: 1;	// AE_SIMD_AVX	31	- Byte and Word Instructions
+		//	bool	AVX512_IFMA		: 1;	// AE_SIMD_AVX	31	- Integer Fused Multiply-Add Instructions
+		//	bool	AVX512_VBMI		: 1;	// AE_SIMD_AVX	31	- Vector Bit Manipulation Instructions
+
+			// Ice Lake //
+		//	bool	AVX512_VBMI2	: 1;	// AE_SIMD_AVX	32	- Vector Bit Manipulation Instructions 2
+		//	bool	AVX512_VPOPCNTDQ: 1;	// AE_SIMD_AVX	32	- Vector Population Count Double and Quad-word
+		//	bool	AVX512_BITALG	: 1;	// AE_SIMD_AVX	32	- BITALG instructions
+			//		AVX512_VNNI				// AE_SIMD_AVX	32	-
+			//		AVX512_VPCLMULQDQ		// AE_SIMD_AVX	32	-
+			//		AVX512_GFNI				// AE_SIMD_AVX	32	-
+			bool	VAES			: 1;	// AE_SIMD_AVX	32	or AE_SIMD_AES	2	- AVX512-VAES
+
+			// Zen4 //
+			//		AVX512_BF16		: 1;	// AE_SIMD_AVX	33	-
 
 		//	bool	AMX_BF16		: 1;	// matrices with bfloat16 type
 		//	bool	AMX_Tile		: 1;	// tile load/store
@@ -195,7 +218,6 @@ namespace AE::Base
 			bool	POPCNT			: 1;
 
 			bool	AES				: 1;	// AE_SIMD_AES	1
-			bool	VAES			: 1;	// AE_SIMD_AES	2			- AVX512-VAES
 			bool	AESKL			: 1;	// AE_SIMD_AES	3			- AES Key Locker
 
 			bool	SHA2_256		: 1;	// AE_SIMD_SHA	20			- SHA2-256 and SHA-1
@@ -235,7 +257,7 @@ namespace AE::Base
 			uint		lineSize			: 16;	// bytes
 			uint		associativity		: 8;
 			uint		logicalCoreCount	: 8;
-			Bytes32u	size;
+			Bytes32u	size;						// per 'logicalCoreCount'
 
 			CacheGeom () : lineSize{0}, associativity{0}, logicalCoreCount{0} {}
 		};
@@ -365,6 +387,8 @@ namespace AE::Base
 			case ECPUArch::ARM_64 :		return "ARM-64";
 			case ECPUArch::RISCV :		return "RISC-V";
 			case ECPUArch::RISCV_64 :	return "RISC-V 64";
+			case ECPUArch::Loong64 :	return "Loong64";
+			case ECPUArch::E2K :		return "E2K";
 			case ECPUArch::_Count :
 			case ECPUArch::Unknown:		break;
 		}
@@ -384,8 +408,28 @@ namespace AE::Base
 			case ECoreType::HighPerformance :	return "HighPerformance";
 			case ECoreType::Performance :		return "Performance";
 			case ECoreType::EnergyEfficient :	return "EnergyEfficient";
+			case ECoreType::LowPower :			return "LowPower";
 			case ECoreType::_Count :
 			case ECoreType::Unknown:			break;
+		}
+		switch_end
+		return "";
+	}
+	
+/*
+=================================================
+	ToString (ECacheType)
+=================================================
+*/
+	ND_ inline StringView  ToString (CpuArchInfo::ECacheType value) __NE___
+	{
+		switch_enum( value )
+		{
+			case CpuArchInfo::ECacheType::L1_Instuction :	return "L1I";
+			case CpuArchInfo::ECacheType::L1_Data :			return "L1D";
+			case CpuArchInfo::ECacheType::L2 :				return "L2";
+			case CpuArchInfo::ECacheType::L3 :				return "L3";
+			case CpuArchInfo::ECacheType::_Count :			break;
 		}
 		switch_end
 		return "";
@@ -420,6 +464,22 @@ namespace AE::Base
 			case ECPUVendor::Unknown:		break;
 		}
 		switch_end
+		return "";
+	}
+	
+/*
+=================================================
+	ToString (ECPUMicroArch)
+=================================================
+*/
+	ND_ inline StringView  ToString (ECPUMicroArch value) __NE___
+	{
+		switch ( value )
+		{
+			#define CPU_MICRO_ARCH_VISIT( _name_, _setValue_ )		case ECPUMicroArch::_name_ :	return AE_TOSTRING( _name_ );
+			CPU_MICRO_ARCH( CPU_MICRO_ARCH_VISIT )
+			#undef CPU_MICRO_ARCH_VISIT
+		}
 		return "";
 	}
 

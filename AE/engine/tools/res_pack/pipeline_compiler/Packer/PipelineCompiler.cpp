@@ -214,6 +214,9 @@ namespace
 		  #ifdef AE_METAL_TOOLS
 			obj_storage.metalCompiler	= MakeUnique<MetalCompiler>( shader_include_dirs );
 		  #endif
+		  #ifdef AE_ENABLE_SLANG
+			obj_storage.slangCompiler	= MakeUnique<SLangCompiler>( shader_include_dirs );
+		  #endif
 
 			obj_storage.spirvCompiler	= MakeUnique<SpirvCompiler>( shader_include_dirs );
 			obj_storage.spirvCompiler->SetDefaultResourceLimits();

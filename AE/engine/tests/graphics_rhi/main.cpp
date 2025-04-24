@@ -73,22 +73,22 @@ static void  RenderTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVi
 	Scheduler().Release();
 	TaskScheduler::InstanceCtor::Destroy();
 
-	AE_LOGI( "Tests.Graphics finished" );
+	AE_LOGI( "Tests.GraphicsRHI finished" );
 }
 
 
 #ifdef AE_PLATFORM_ANDROID
 
-	extern "C" AE_DLL_EXPORT int Tests_Graphics2 (VFS::IVirtualFileStorage* assetStorage,
-												  VFS::IVirtualFileStorage* refStorage)
+	extern "C" AE_DLL_EXPORT int Tests_GraphicsRHI2 (VFS::IVirtualFileStorage* assetStorage,
+													 VFS::IVirtualFileStorage* refStorage)
 	{
 		StaticLogger::LoggerDbgScope log{};
 
-		RenderTests( assetStorage, refStorage );
+		RenderTests( RC{assetStorage}, RC{refStorage} );
 		return 0;
 	}
 
-	extern "C" AE_DLL_EXPORT int Tests_Graphics (const char* path)
+	extern "C" AE_DLL_EXPORT int Tests_GraphicsRHI (const char* path)
 	{
 		BEGIN_TEST();
 
@@ -172,7 +172,7 @@ static void  RenderTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::IVi
 			#endif
 
 			wnd.Close();
-			AE_LOGI( "Tests.Graphics finished" );
+			AE_LOGI( "Tests.GraphicsRHI finished" );
 		}
 	};
 

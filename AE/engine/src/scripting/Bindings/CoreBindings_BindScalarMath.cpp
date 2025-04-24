@@ -56,8 +56,8 @@ namespace
 		template <typename T>	static bool  AllBits (T x, T y)				{ return Base::AllBits( x, y ); }
 		template <typename T>	static bool  AnyBits (T x, T y)				{ return Base::AnyBits( x, y ); }
 
-		template <typename T>	static T  ExtractBit (T& x)					{ return Base::ExtractBit( x ); }
-		template <typename T>	static T  ExtractBitIndex (T& x)				{ return Base::ExtractBitIndex( x ); }
+		template <typename T>	static T  ExtractBit (T& x)					{ return Base::ExtractBit( INOUT x ); }
+		template <typename T>	static T  ExtractBitIndex (T& x)			{ return Base::ExtractBitIndex( INOUT x ); }
 
 		template <typename T>	static T  BitRotateLeft (T x, uint shift)	{ return Base::BitRotateLeft( x, shift ); }
 		template <typename T>	static T  BitRotateRight (T x, uint shift)	{ return Base::BitRotateRight( x, shift ); }
@@ -123,28 +123,28 @@ namespace
 	template <typename T>
 	static void  BindIntScalar (const ScriptEnginePtr &se)
 	{
-		se->AddFunction( &ScalarFunc::IntLog2<T>,			"IntLog2",			{"x"} );
-		se->AddFunction( &ScalarFunc::CeilIntLog2<T>,		"CeilIntLog2",		{"x"} );
-		se->AddFunction( &ScalarFunc::BitScanReverse<T>,	"BitScanReverse",	{"x"} );
-		se->AddFunction( &ScalarFunc::BitScanForward<T>,	"BitScanForward",	{"x"} );
-		se->AddFunction( &ScalarFunc::BitCount<T>,			"BitCount",			{"x"} );
-		se->AddFunction( &ScalarFunc::IsPowerOfTwo<T>,		"IsPowerOfTwo",		{"x"} );
-		se->AddFunction( &ScalarFunc::IsSingleBitSet<T>,	"IsSingleBitSet",	{"x"} );
-		se->AddFunction( &ScalarFunc::AllBits<T>,			"AllBits",			{"x", "y"} );
-		se->AddFunction( &ScalarFunc::AnyBits<T>,			"AnyBits",			{"x", "y"} );
-		se->AddFunction( &ScalarFunc::ExtractBit<T>,		"ExtractBit",		{"x"} );
-		se->AddFunction( &ScalarFunc::ExtractBitIndex<T>,	"ExtractBitIndex",	{"x"} );
-		se->AddFunction( &ScalarFunc::BitRotateLeft<T>,		"BitRotateLeft",	{"x", "shift"} );
-		se->AddFunction( &ScalarFunc::BitRotateRight<T>,	"BitRotateRight",	{"x", "shift"} );
-		se->AddFunction( &ScalarFunc::FloorPOT<T>,			"FloorPOT",			{"x"} );
-		se->AddFunction( &ScalarFunc::CeilPOT<T>,			"CeilPOT",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::IntLog2<T>,			"IntLog2",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::CeilIntLog2<T>,		"CeilIntLog2",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::BitScanReverse<T>,	"BitScanReverse",	{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::BitScanForward<T>,	"BitScanForward",	{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::BitCount<T>,			"BitCount",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::IsPowerOfTwo<T>,		"IsPowerOfTwo",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::IsSingleBitSet<T>,	"IsSingleBitSet",	{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::AllBits<T>,			"AllBits",			{"x", "y"} );
+		AS_GLOBAL_FN( se, ScalarFunc::AnyBits<T>,			"AnyBits",			{"x", "y"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ExtractBit<T>,		"ExtractBit",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ExtractBitIndex<T>,	"ExtractBitIndex",	{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::BitRotateLeft<T>,		"BitRotateLeft",	{"x", "shift"} );
+		AS_GLOBAL_FN( se, ScalarFunc::BitRotateRight<T>,	"BitRotateRight",	{"x", "shift"} );
+		AS_GLOBAL_FN( se, ScalarFunc::FloorPOT<T>,			"FloorPOT",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::CeilPOT<T>,			"CeilPOT",			{"x"} );
 
-		se->AddFunction( &ScalarFunc::AlignDown<T>,			"AlignDown",		{"x", "align"} );
-		se->AddFunction( &ScalarFunc::AlignUp<T>,			"AlignUp",			{"x", "align"} );
-		se->AddFunction( &ScalarFunc::IsMultipleOf<T>,		"IsMultipleOf",		{"x", "align"} );
+		AS_GLOBAL_FN( se, ScalarFunc::AlignDown<T>,			"AlignDown",		{"x", "align"} );
+		AS_GLOBAL_FN( se, ScalarFunc::AlignUp<T>,			"AlignUp",			{"x", "align"} );
+		AS_GLOBAL_FN( se, ScalarFunc::IsMultipleOf<T>,		"IsMultipleOf",		{"x", "align"} );
 
-		se->AddFunction( &ScalarFunc::SafeDiv<T>,			"SafeDiv",			{"x", "y", "defVal"} );
-		se->AddFunction( &ScalarFunc::DivCeil<T>,			"DivCeil",			{"x", "y"} );
+		AS_GLOBAL_FN( se, ScalarFunc::SafeDiv<T>,			"SafeDiv",			{"x", "y", "defVal"} );
+		AS_GLOBAL_FN( se, ScalarFunc::DivCeil<T>,			"DivCeil",			{"x", "y"} );
 	}
 
 /*
@@ -158,59 +158,59 @@ namespace
 		const String	suffix = IsSame<T,float> ? "" : "D";
 
 		//
-		se->AddFunction( &ScalarFunc::Floor<T>,			"Floor",		{"x"} );
-		se->AddFunction( &ScalarFunc::Ceil<T>,			"Ceil",			{"x"} );
-		se->AddFunction( &ScalarFunc::Trunc<T>,			"Trunc",		{"x"} );
-		se->AddFunction( &ScalarFunc::Fract<T>,			"Fract",		{"x"} );
-		se->AddFunction( &ScalarFunc::Round<T>,			"Round",		{"x"} );
-		se->AddFunction( &ScalarFunc::Mod<T>,			"Mod",			{"x", "y"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Floor<T>,			"Floor",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Ceil<T>,			"Ceil",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Trunc<T>,			"Trunc",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Fract<T>,			"Fract",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Round<T>,			"Round",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Mod<T>,			"Mod",			{"x", "y"} );
 
 		//
-		se->AddFunction( &ScalarFunc::Sqrt<T>,			"Sqrt",			{"x"} );
-		se->AddFunction( &ScalarFunc::Pow<T>,			"Pow",			{"x", "pow"} );
-		se->AddFunction( &ScalarFunc::Ln<T>,			"Ln",			{"x"} );
-		se->AddFunction( &ScalarFunc::Log<T>,			"Log",			{"x", "base"} );
-		se->AddFunction( &ScalarFunc::Log2<T>,			"Log2",			{"x"} );
-		se->AddFunction( &ScalarFunc::Log10<T>,			"Log10",		{"x"} );
-		se->AddFunction( &ScalarFunc::Exp<T>,			"Exp",			{"x"} );
-		se->AddFunction( &ScalarFunc::Exp2<T>,			"Exp2",			{"x"} );
-		se->AddFunction( &ScalarFunc::Exp10<T>,			"Exp10",		{"x"} );
-		se->AddFunction( &ScalarFunc::ExpMinus1<T>,		"ExpMinus1",	{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Sqrt<T>,			"Sqrt",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Pow<T>,			"Pow",			{"x", "pow"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Ln<T>,			"Ln",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Log<T>,			"Log",			{"x", "base"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Log2<T>,			"Log2",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Log10<T>,			"Log10",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Exp<T>,			"Exp",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Exp2<T>,			"Exp2",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Exp10<T>,			"Exp10",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ExpMinus1<T>,		"ExpMinus1",	{"x"} );
 
 		// trigonometry
-		se->AddFunction( &ScalarFunc::Sin<T>,			"Sin",			{"x"} );
-		se->AddFunction( &ScalarFunc::SinH<T>,			"SinH",			{"x"} );
-		se->AddFunction( &ScalarFunc::ASin<T>,			"ASin",			{"x"} );
-		se->AddFunction( &ScalarFunc::Cos<T>,			"Cos",			{"x"} );
-		se->AddFunction( &ScalarFunc::CosH<T>,			"CosH",			{"x"} );
-		se->AddFunction( &ScalarFunc::ACos<T>,			"ACos",			{"x"} );
-		se->AddFunction( &ScalarFunc::Tan<T>,			"Tan",			{"x"} );
-		se->AddFunction( &ScalarFunc::TanH<T>,			"TanH",			{"x"} );
-		se->AddFunction( &ScalarFunc::ATan<T>,			"ATan",			{"y", "x"} );
-		se->AddFunction( &ScalarFunc::ToRad<T>,			"ToRad",		{"x"} );
-		se->AddFunction( &ScalarFunc::ToDeg<T>,			"ToDeg",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Sin<T>,			"Sin",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::SinH<T>,			"SinH",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ASin<T>,			"ASin",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Cos<T>,			"Cos",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::CosH<T>,			"CosH",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ACos<T>,			"ACos",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Tan<T>,			"Tan",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::TanH<T>,			"TanH",			{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ATan<T>,			"ATan",			{"y", "x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ToRad<T>,			"ToRad",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ToDeg<T>,			"ToDeg",		{"x"} );
 
 		// interpolation
-		se->AddFunction( &ScalarFunc::Lerp<T>,			"Lerp",			{"x", "y", "factor"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Lerp<T>,			"Lerp",			{"x", "y", "factor"} );
 
-		se->AddFunction( &ScalarFunc::ToSNorm<T>,		"ToSNorm",		{"x"} );
-		se->AddFunction( &ScalarFunc::ToUNorm<T>,		"ToUNorm",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ToSNorm<T>,		"ToSNorm",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::ToUNorm<T>,		"ToUNorm",		{"x"} );
 
-		se->AddFunction( &ScalarFunc::Remap<T>,			"Remap",		{"srcMin", "srcMax", "dstMin", "dstMax", "x"} );
-		se->AddFunction( &ScalarFunc::RemapClamp<T>,	"RemapClamp",	{"srcMin", "srcMax", "dstMin", "dstMax", "x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Remap<T>,			"Remap",		{"srcMin", "srcMax", "dstMin", "dstMax", "x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::RemapClamp<T>,	"RemapClamp",	{"srcMin", "srcMax", "dstMin", "dstMax", "x"} );
 
-		se->AddFunction( &ScalarFunc::RoundToInt<T>,	"RoundToInt",	{"x"} );
-		se->AddFunction( &ScalarFunc::RoundToUint<T>,	"RoundToUint",	{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::RoundToInt<T>,	"RoundToInt",	{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::RoundToUint<T>,	"RoundToUint",	{"x"} );
 
-		se->AddFunction( &ScalarFunc::IsInfinity<T>,	"IsInfinity",	{"x"} );
-		se->AddFunction( &ScalarFunc::IsNaN<T>,			"IsNaN",		{"x"} );
-		se->AddFunction( &ScalarFunc::IsFinite<T>,		"IsFinite",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::IsInfinity<T>,	"IsInfinity",	{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::IsNaN<T>,			"IsNaN",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::IsFinite<T>,		"IsFinite",		{"x"} );
 
 		if constexpr( IsSame< T, float >)
-			se->AddFunction( &ScalarFunc::Pi<T>,		"Pi",			{} );
+			AS_GLOBAL_FN( se, ScalarFunc::Pi<T>,		"Pi",			{} );
 
 		if constexpr( IsSame< T, double >)
-			se->AddFunction( &ScalarFunc::Pi<T>,		"dPi",			{} );
+			AS_GLOBAL_FN( se, ScalarFunc::Pi<T>,		"dPi",			{} );
 	}
 
 /*
@@ -223,18 +223,18 @@ namespace
 	{
 		if constexpr( IsSignedInteger<T> or IsFloatPoint<T> )
 		{
-			se->AddFunction( &ScalarFunc::Abs<T>,			"Abs",			{"x"} );
-			se->AddFunction( &ScalarFunc::MirroredWrap<T>,	"MirroredWrap",	{"x", "min", "max"} );
+			AS_GLOBAL_FN( se, ScalarFunc::Abs<T>,			"Abs",			{"x"} );
+			AS_GLOBAL_FN( se, ScalarFunc::MirroredWrap<T>,	"MirroredWrap",	{"x", "min", "max"} );
 		}
 
-		se->AddFunction( &ScalarFunc::Square<T>,		"Square",		{"x"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Square<T>,		"Square",		{"x"} );
 
-		se->AddFunction( &ScalarFunc::Min<T>,			"Min",			{"x", "y"} );
-		se->AddFunction( &ScalarFunc::Max<T>,			"Max",			{"x", "y"} );
-		se->AddFunction( &ScalarFunc::Clamp<T>,			"Clamp",		{"x", "min", "max"} );
-		se->AddFunction( &ScalarFunc::Wrap<T>,			"Wrap",			{"x", "min", "max"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Min<T>,			"Min",			{"x", "y"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Max<T>,			"Max",			{"x", "y"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Clamp<T>,			"Clamp",		{"x", "min", "max"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Wrap<T>,			"Wrap",			{"x", "min", "max"} );
 
-		se->AddFunction( &ScalarFunc::Average<T>,		"Average",		{"x", "y"} );
+		AS_GLOBAL_FN( se, ScalarFunc::Average<T>,		"Average",		{"x", "y"} );
 	}
 
 } // namespace

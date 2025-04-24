@@ -13,6 +13,7 @@ void  SetupPasses ()
 			0.0000f, 0.0000f, 0.0000f, 	// iPBias
 			1.f, 1.f, 1.f, 1.f,			// iParams
 			0.5f,						// iDScale
+			0.0f,						// iDOffset
 		};
 		//AddTurbulence( params );
 	}{

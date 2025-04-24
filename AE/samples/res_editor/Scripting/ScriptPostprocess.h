@@ -46,7 +46,7 @@ namespace AE::ResEditor
 	// ScriptBasePass //
 
 		// Returns non-null pass or throw exception.
-		ND_ RC<IPass>  ToPass ()																		C_Th_OV;
+		ND_ RC<IPass>  ToPass ()																		__Th_OV;
 
 
 	private:

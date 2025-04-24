@@ -12,7 +12,7 @@
 ### Memory
 
 * L2 cache: 2 MB
-* Memory: 8GB, LPDDR5-6400, 3200 MHz, QC 16bit, 51.2 Gbit/s
+* Memory: 8GB, LPDDR5-6400, 3200 MHz, QC 16bit, 51.2 GB/s
 
 ### Float point performance
 
@@ -29,3 +29,22 @@ Total ALUs = warp_width*2 * ALUs * Cores
 950M * 16*2 * 4 * 6 = 730G FMA ops per second = 1459 GFLOPS
 ```
 
+
+### Branching
+
+* Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
+	- 1.6 MPix, 128 iter, 6 mul/branch ops.
+
+	| op | exec time (ms) | diff |
+	|---|---|---|
+	| Mul uniform          | 18.2 | 1.7 |
+	| Branch uniform       | **10.7** | - | 
+	| Matrix uniform       | 12.8 | 1.2 |
+	| - |
+	| Mul non-uniform      | 22.6 | 2.1 |
+	| Branch non-uniform   | 17.3 | 1.6 |
+	| Matrix non-uniform   | 31.7 | 3.0 |
+	| - |
+	| Mul avg              | 20.4 | 1.9 |
+	| Branch avg           | 14.0 | 1.3 |
+	| Matrix avg           | 22.2 | 2.1 |

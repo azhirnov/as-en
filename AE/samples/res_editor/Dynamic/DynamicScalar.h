@@ -24,7 +24,9 @@ namespace AE::ResEditor
 		Add,			// x + const
 		Sub,			// x - const
 		Pow,			// pow( x, const )
-		PowOf2,			// const << 2
+		PowOf2,			// const << x
+		FloorPOT,
+		CeilPOT,
 		Min,			// min( x, const )
 		Max,			// max( x, const )
 	};
@@ -78,7 +80,10 @@ namespace AE::ResEditor
 		ND_ RC<Self>	Clone ()							__NE___;
 
 		ND_ RC<TDynamicVec<T,2>>	ToX1 ()					__NE___;
+		ND_ RC<TDynamicVec<T,2>>	ToXX ()					__NE___;
+
 		ND_ RC<TDynamicVec<T,3>>	ToX11 ()				__NE___;
+		ND_ RC<TDynamicVec<T,3>>	ToXXX ()				__NE___;
 
 		ND_ RC<DynamicDim>			ToDim2 ()				__NE___;
 		ND_ RC<DynamicDim>			ToDim3 ()				__NE___;
@@ -86,7 +91,9 @@ namespace AE::ResEditor
 	protected:
 		ND_ static T		_Get (EnableRCBase*)			__NE___;
 		ND_ static Vec<T,2>	_GetX1 (EnableRCBase*)			__NE___;
+		ND_ static Vec<T,2>	_GetXX (EnableRCBase*)			__NE___;
 		ND_ static Vec<T,3>	_GetX11 (EnableRCBase*)			__NE___;
+		ND_ static Vec<T,3>	_GetXXX (EnableRCBase*)			__NE___;
 		ND_ static uint3	_GetDim2 (EnableRCBase*)		__NE___;
 		ND_ static uint3	_GetDim3 (EnableRCBase*)		__NE___;
 	};
@@ -164,6 +171,16 @@ namespace AE::ResEditor
 			case EOperator::Sub :				result -= r_value;							break;
 			case EOperator::Min :				result = Min( result, r_value );			break;
 			case EOperator::Max :				result = Max( result, r_value );			break;
+
+			case EOperator::FloorPOT :
+				if constexpr( IsInteger<T> )
+					result = FloorPOT( result );
+				break;
+
+			case EOperator::CeilPOT :
+				if constexpr( IsInteger<T> )
+					result = CeilPOT( result );
+				break;
 
 			case EOperator::PowOf2 :
 				if constexpr( IsFloatPoint<T> )

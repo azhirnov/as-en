@@ -4,7 +4,7 @@
 
 	- Generate random dots on sphere.
 	- Render to cubemap, in GS dot projected to the face and constructed quad.
-	- Bug: geometry doesn't match between faces, it causes a incorrect UV interpolation and other.
+	- Bug: geometry doesn't match between faces, it causes a incorrect UV interpolation and other. Only identity projection is correct.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -58,8 +58,8 @@
 			pass.LocalSize( local_size );
 			pass.DispatchThreads( buf_dim.x, buf_dim.y, 6 );
 			pass.Slider( "iHash",	0,				3 );
-			pass.Slider( "iHScale",	float3(0.f),	float3(100.f),	float3(1.f) );
-			pass.Slider( "iAScale",	0.f,			1.f,			0.1f );
+			pass.Slider( "iHScale",	float3(0.f),	float3(100.f),	float3(30.f) );
+			pass.Slider( "iAScale",	0.f,			1.f,			0.47f );
 		}{
 			RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "draw to cubemap" );
 			draw.AddPipeline( "sphere/UVSphere-2.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/sphere/UVSphere-2.as)
@@ -67,7 +67,7 @@
 			draw.ArgIn(		"un_Dots",		buf );
 			draw.ArgIn(		"un_CBuf",		cbuf );
 			draw.Constant(	"iProj",		proj_type );
-			draw.Slider(	"iRadius",		0.02f,	0.9f,	0.04f );
+			draw.Slider(	"iRadius",		0.02f,	0.9f,	0.4f );
 			draw.Slider(	"iMinZ",		0.0f,	0.7f,	0.6f );
 			draw.Slider(	"iDbgFace",		0,		5 );
 			draw.Slider(	"iView",		0,		3 );

@@ -1,3 +1,12 @@
+## 25.02
+
+- rename GraphicsHL to Graphics
+- Scripting: add support for AS_MAX_PORTABILITY, it fixes some errors on Linux/Android
+- PipelineCompiler: initial support for slang.
+- Base: float ulp, next float
+- Vulkan|Linux: switch driver (RADV/AMDVLK/AMDPRO)
+
+
 ## 25.01.277
 
 - Base: added FloatConversion, it is used in SFloat16, UFloat16, UFloat8, BFloat16

@@ -45,6 +45,11 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "CustomKey1", EValueType::Float, EGestureType::Down, float4(9.f) ));
 		bind.Add( WinAPI_Input::0,
 				  ActionInfo( "CustomKey1", EValueType::Float, EGestureType::Down, float4(10.f) ));
+
+		bind.Add( WinAPI_Input::Minus,
+				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Down, float4(2.f) ));
+		bind.Add( WinAPI_Input::Equal,
+				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Down, float4(3.f) ));
 	}
 
 	// switch input mode
@@ -91,9 +96,12 @@ void ASmain (WinAPI_ActionBindings& bindings)
 		bind.Add( WinAPI_Input::TouchDelta_norm,
 				  ActionInfo( "Camera.Bias", EValueType::Float2, EGestureType::Move, float4(1.f, -1.f, 0.f, 0.f) ));
 		bind.Add( WinAPI_Input::MouseWheel,
-				  ActionInfo( "Camera.Scale", EValueType::Float2, EGestureType::Move, 0.1f ));
+				  ActionInfo( "Camera.Scale", EValueType::Float2, EGestureType::Move, float4(0.1f) ));
 		bind.Add( WinAPI_Input::R,
 				  ActionInfo( "Camera.Reset", EGestureType::Down ));
+
+		bind.Add( WinAPI_Input::MouseLeft,
+				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Hold, float4(1.f) ));
 	}
 
 	// TopDown camera
@@ -124,6 +132,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "UI.MousePos", EValueType::Float2, EGestureType::Move ));
 		bind.Add( WinAPI_Input::MouseRight,
 				  ActionInfo( "UI.MouseRBDown", EGestureType::Hold ));
+
+		bind.Add( WinAPI_Input::MouseLeft,
+				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Hold, float4(1.f) ));
 	}
 
 	// Orbital Camera
@@ -135,7 +146,7 @@ void ASmain (WinAPI_ActionBindings& bindings)
 		const float		mouse_scale		= 4.0f;
 
 		bind.Add( WinAPI_Input::TouchDelta_norm,
-				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, float4(1.f, 1.f, 0.f, 0.f) * mouse_scale ));
+				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, float4(mouse_scale, mouse_scale, 0.f, 0.f) ));
 
 		bind.Add( WinAPI_Input::ArrowLeft,
 				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("-0"), arrow_scale ));
@@ -160,6 +171,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
 
 		bind.Add( WinAPI_Input::R,
 				  ActionInfo( "Camera.Reset", EGestureType::Down ));
+
+		bind.Add( WinAPI_Input::MouseLeft,
+				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Hold, float4(1.f) ));
 	}
 
 	// Camera 3D
@@ -185,7 +199,7 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "Camera.Move", EValueType::Float3, EGestureType::Hold, VecSwizzle("00-") ));
 
 		bind.Add( WinAPI_Input::CursorDelta_norm,
-				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, float4(1.f, 1.f, 0.f, 0.f) * mouse_scale ));
+				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, float4(mouse_scale, mouse_scale, 0.f, 0.f) ));
 		bind.Add( WinAPI_Input::MouseWheel,
 				  ActionInfo( "Camera.Zoom", EValueType::Float2, EGestureType::Move ));
 		bind.Add( WinAPI_Input::R,
@@ -199,6 +213,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0-"), arrow_scale ));
 		bind.Add( WinAPI_Input::ArrowDown,
 				  ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Hold, VecSwizzle("0+"), arrow_scale ));
+
+		bind.Add( WinAPI_Input::MouseLeft,
+				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Hold, float4(1.f) ));
 	}
 
 	// FPS camera
@@ -245,7 +262,7 @@ void ASmain (WinAPI_ActionBindings& bindings)
 
 		// roll, pitch
 		bind.Add( WinAPI_Input::CursorDelta_norm,
-				  ActionInfo( "FlightCamera.Rotate", EValueType::Float3, EGestureType::Move, VecSwizzle("0yx"), mouse_scale ));
+				  ActionInfo( "FlightCamera.Rotate", EValueType::Float3, EGestureType::Move, VecSwizzle("0yx"), float4(mouse_scale) ));
 
 		bind.Add( WinAPI_Input::T,
 				  ActionInfo( "FlightCamera.ResetRoll", EGestureType::Down ));
@@ -259,6 +276,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "FlightCamera.Thrust", EValueType::Float, EGestureType::Hold, VecSwizzle("-"), thrust_scale ));
 		bind.Add( WinAPI_Input::C,
 				  ActionInfo( "FlightCamera.Thrust", EValueType::Float, EGestureType::Hold, VecSwizzle("+"), thrust_scale ));
+
+		bind.Add( WinAPI_Input::MouseLeft,
+				  ActionInfo( "CustomKey2", EValueType::Float, EGestureType::Hold, float4(1.f) ));
 	}
 
 	// Remote camera

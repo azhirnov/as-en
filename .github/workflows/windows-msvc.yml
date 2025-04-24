@@ -19,24 +19,38 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/NCadPOI83qQRtQ', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/iWQDcgIu-4FN9A', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: cmake -G "Visual Studio 17 2022" -A x64 -DAE_ENABLE_VULKAN=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+      run: cmake -G "Visual Studio 17 2022" -A x64 -DAE_SIMD_AVX=2 -DAE_ENABLE_VULKAN=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
 
     - name: Build
+      id: build
       working-directory: ${{github.workspace}}
       run: cmake --build "_build" --config ${{matrix.config}}
+ 
+    - name: Release ResEditor
+      working-directory: ${{github.workspace}}
+      shell: cmd
+      run: |
+        mkdir _res_editor
+        robocopy "${{github.workspace}}\AE-Temp\samples\res_editor" "_res_editor\ui" /S
+        robocopy "${{github.workspace}}\AE\samples\res_editor\_data" "_res_editor\data" /S
+        robocopy "${{github.workspace}}\AE\engine\shared_data" "_res_editor\shared_data" /S
+        robocopy "${{github.workspace}}\AE-Data\res_editor_data" "_res_editor\res_editor_data" /S
+        robocopy "${{github.workspace}}\AE-Data\shadertoy_data" "_res_editor\shadertoy_data" /S
+        copy /Y "${{github.workspace}}\_build\bin\${{matrix.config}}\ResourceEditor.exe" "${{github.workspace}}\_res_editor"
+        ls
         
     - uses: actions/upload-artifact@v4
       with:
         name: AsEn-ResourceEditor-windows-x64-msvc-${{matrix.config}}
-        path: |
-            ${{github.workspace}}/_build/bin/${{matrix.config}}/ResourceEditor.exe
-        
+        path: ${{github.workspace}}/_res_editor
+
     - uses: actions/upload-artifact@v4
+      if: success() || steps.build.conclusion == 'success'
       with:
         name: AsEn-Tools-windows-x64-msvc-${{matrix.config}}
         path: |
@@ -47,53 +61,87 @@ jobs:
 
     - name: Tests.Base
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Base" -C ${{matrix.config}} -V
       
     - name: Tests.Serializing
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Serializing" -C ${{matrix.config}} -V
         
     - name: Tests.Scripting
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Scripting" -C ${{matrix.config}} -V
         
     - name: Tests.Threading
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Threading" -C ${{matrix.config}} -V
        
     - name: Tests.Networking
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Networking" -C ${{matrix.config}} -V
        
     - name: Tests.ECS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.ECS-st" -C ${{matrix.config}} -V
        
     - name: Tests.VFS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.VFS" -C ${{matrix.config}} -V
        
     - name: Tests.Video
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Video" -C ${{matrix.config}} -V
        
     - name: Tests.AtlasTools
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.AtlasTools" -C ${{matrix.config}} -V
        
     - name: Tests.GeometryTools
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.GeometryTools" -C ${{matrix.config}} -V
        
     - name: Tests.ResourceLoaders
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}} -V
         
     - name: Tests.PipelineCompiler
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.PipelineCompiler" -C ${{matrix.config}} -V
-
     
+    - name: Tests.GraphicsRHI
+      working-directory: ${{github.workspace}}/_build
+      if: false
+      shell: cmd
+      env:
+        VK_DRIVER_FILES: lvp_icd.x86_64.json
+      run: |
+        robocopy "../AE-Bin/external/win-x64/lavapipe" "bin/${{matrix.config}}" /S
+        copy /Y "${{github.workspace}}\/AE-Temp\engine\graphics_rhi\Tests.GraphicsRHI.vkPipelines.bin" "${{github.workspace}}\_build\bin\${{matrix.config}}"
+        ctest -R "Tests.GraphicsRHI" -C ${{matrix.config}} -V
+    
+    - name: Tests.Graphics
+      working-directory: ${{github.workspace}}/_build
+      if: false
+      shell: cmd
+      env:
+        VK_DRIVER_FILES: lvp_icd.x86_64.json
+      run: |
+        robocopy "../AE-Bin/external/win-x64/lavapipe" "bin/${{matrix.config}}" /S
+        copy /Y "${{github.workspace}}\/AE-Temp\engine\graphics\Tests.Graphics.vkPipelines.bin" "${{github.workspace}}\_build\bin\${{matrix.config}}"
+        ctest -R "Tests.GraphicsRHI" -C ${{matrix.config}} -V
+    
+
     
   build-vs17-x64-rg:
     strategy:
@@ -111,7 +159,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/NCadPOI83qQRtQ', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/iWQDcgIu-4FN9A', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake
@@ -119,15 +167,27 @@ jobs:
       run: cmake -G "Visual Studio 17 2022" -A x64 -DAE_ENABLE_REMOTE_GRAPHICS=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_ENABLE_OPENVR=OFF -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
 
     - name: Build
+      id: build
       working-directory: ${{github.workspace}}
       run: cmake --build "_build" --config ${{matrix.config}} --target "ResourceEditor"
         
+    - name: Release ResEditor
+      working-directory: ${{github.workspace}}
+      shell: cmd
+      run: |
+        mkdir _res_editor
+        robocopy "${{github.workspace}}\AE-Temp\samples\res_editor" "_res_editor\ui" /S
+        robocopy "${{github.workspace}}\AE\samples\res_editor\_data" "_res_editor\data" /S
+        robocopy "${{github.workspace}}\AE\engine\shared_data" "_res_editor\shared_data" /S
+        robocopy "${{github.workspace}}\AE-Data\res_editor_data" "_res_editor\res_editor_data" /S
+        robocopy "${{github.workspace}}\AE-Data\shadertoy_data" "_res_editor\shadertoy_data" /S
+        copy /Y "${{github.workspace}}\_build\bin\${{matrix.config}}\ResourceEditor.exe" "${{github.workspace}}\_res_editor"
+        ls
+    
     - uses: actions/upload-artifact@v4
       with:
         name: AsEn-ResourceEditor-windows-x64-msvc-${{matrix.config}}-RemoteGraphics
-        path: |
-            ${{github.workspace}}/_build/bin/${{matrix.config}}/ResourceEditor.exe
-    
+        path: ${{github.workspace}}/_res_editor
     
     
   build-vs17-x64-cxx17:
@@ -146,7 +206,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/NCadPOI83qQRtQ', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/iWQDcgIu-4FN9A', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake
@@ -154,35 +214,43 @@ jobs:
       run: cmake -G "Visual Studio 17 2022" -A x64 -DAE_ENABLE_VULKAN=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -DAE_FORCE_CXX17=ON -S "AE" -B "_build"
 
     - name: Build
+      id: build
       working-directory: ${{github.workspace}}
       run: cmake --build "_build" --config ${{matrix.config}}
 
     - name: Tests.Base
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Base" -C ${{matrix.config}} -V
       
     - name: Tests.Serializing
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Serializing" -C ${{matrix.config}} -V
         
     - name: Tests.Scripting
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Scripting" -C ${{matrix.config}} -V
         
     - name: Tests.Threading
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Threading" -C ${{matrix.config}} -V
        
     - name: Tests.Networking
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Networking" -C ${{matrix.config}} -V
        
     - name: Tests.ECS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.ECS-st" -C ${{matrix.config}} -V
        
     - name: Tests.VFS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.VFS" -C ${{matrix.config}} -V
 
 
@@ -203,7 +271,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/NCadPOI83qQRtQ', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/iWQDcgIu-4FN9A', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake
@@ -211,33 +279,41 @@ jobs:
       run: cmake -G "Visual Studio 17 2022" -A x64 -DAE_ENABLE_VULKAN=ON -DAE_RES_EDITOR_RELEASE=ON -DAE_GRAPHICS_STRONG_VALIDATION=ON -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -DAE_FORCE_CXX20=ON -S "AE" -B "_build"
 
     - name: Build
+      id: build
       working-directory: ${{github.workspace}}
       run: cmake --build "_build" --config ${{matrix.config}}
 
     - name: Tests.Base
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Base" -C ${{matrix.config}} -V
       
     - name: Tests.Serializing
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Serializing" -C ${{matrix.config}} -V
         
     - name: Tests.Scripting
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Scripting" -C ${{matrix.config}} -V
         
     - name: Tests.Threading
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Threading" -C ${{matrix.config}} -V
        
     - name: Tests.Networking
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Networking" -C ${{matrix.config}} -V
        
     - name: Tests.ECS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.ECS-st" -C ${{matrix.config}} -V
        
     - name: Tests.VFS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.VFS" -C ${{matrix.config}} -V

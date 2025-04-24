@@ -48,6 +48,8 @@ namespace
 	using Queues				= Graphics::FeatureSet::Queues;
 	using SurfaceFormatSet_t	= Graphics::FeatureSet::SurfaceFormatSet_t;
 	using ShadingRateSet_t		= Graphics::FeatureSet::ShadingRateSet_t;
+	using CoopMatrixSet_t		= Graphics::FeatureSet::CoopMatrixSet_t;
+	using CoopVecSet_t			= Graphics::FeatureSet::CoopVecSet_t;
 	using VRSTexelSize			= Graphics::FeatureSet::VRSTexelSize;
 	using EFeature				= Graphics::FeatureSet::EFeature;
 	using KiBytes				= Graphics::FeatureSet::KiBytes;
@@ -259,11 +261,11 @@ namespace
 
 		ASSERT( ptr->fs.attachmentFragmentShadingRate == EFeature::RequireTrue );
 
-		ptr->fs.fragmentShadingRateTexelSize.minX	= POTValue{ minTexelSize[0] }.GetPOT();
-		ptr->fs.fragmentShadingRateTexelSize.minY	= POTValue{ minTexelSize[1] }.GetPOT();
-		ptr->fs.fragmentShadingRateTexelSize.maxX	= POTValue{ maxTexelSize[0] }.GetPOT();
-		ptr->fs.fragmentShadingRateTexelSize.maxY	= POTValue{ maxTexelSize[1] }.GetPOT();
-		ptr->fs.fragmentShadingRateTexelSize.aspect	= POTValue{ aspect }.GetPOT();
+		ptr->fs.fragmentShadingRateTexelSize.minX		= POTValue{ minTexelSize[0] }.GetPOT();
+		ptr->fs.fragmentShadingRateTexelSize.minY		= POTValue{ minTexelSize[1] }.GetPOT();
+		ptr->fs.fragmentShadingRateTexelSize.maxX		= POTValue{ maxTexelSize[0] }.GetPOT();
+		ptr->fs.fragmentShadingRateTexelSize.maxY		= POTValue{ maxTexelSize[1] }.GetPOT();
+		ptr->fs.fragmentShadingRateTexelSize.aspectRatio= POTValue{ aspect }.GetPOT();
 	}
 
 	static void  FS_MergeMin (ScriptFeatureSet* ptr, ScriptFeatureSet* from) __Th___
@@ -405,30 +407,30 @@ namespace
 			}};
 
 			binder.AddFactoryCtor( &ScriptFeatureSet_Ctor, {"name"} );
-			binder.AddMethodFromGlobalObjFirst( &FS_AddTexelFormats,				"AddTexelFormats",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_AddSurfaceFormats,				"AddSurfaceFormats",			{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_AddSubgroupOperation,			"AddSubgroupOperation",			{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_AddSubgroupOperations,			"AddSubgroupOperations",		{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_AddSubgroupOperationRange,		"AddSubgroupOperationRange",	{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_AddVertexFormats,				"AddVertexFormats",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_AddAccelStructVertexFormats,	"AddAccelStructVertexFormats",	{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_IncludeVendorId,				"IncludeVendor",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_ExcludeVendorId,				"ExcludeVendor",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_IncludeVendorIds,				"IncludeVendors",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_ExcludeVendorIds,				"ExcludeVendors",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_IncludeGraphicsDevice,			"IncludeDevice",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_ExcludeGraphicsDevice,			"ExcludeDevice",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_MergeMin,						"MergeMin",						{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_MergeMax,						"MergeMax",						{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_Copy,							"Copy",							{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_framebufferColorSampleCounts,	"framebufferColorSampleCounts",	{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_framebufferDepthSampleCounts,	"framebufferDepthSampleCounts",	{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_maxSpirvVersion,				"maxSpirvVersion",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_maxMetalVersion,				"maxMetalVersion",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_supportedQueues,				"supportedQueues",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_requiredQueues,					"requiredQueues",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_AddShadingRate,					"AddShadingRate",				{} );
-			binder.AddMethodFromGlobalObjFirst( &FS_fragmentShadingRateTexelSize,	"fragmentShadingRateTexelSize",	{} );
+			AS_METHOD( binder, FS_AddTexelFormats,				"AddTexelFormats",				{} );
+			AS_METHOD( binder, FS_AddSurfaceFormats,			"AddSurfaceFormats",			{} );
+			AS_METHOD( binder, FS_AddSubgroupOperation,			"AddSubgroupOperation",			{} );
+			AS_METHOD( binder, FS_AddSubgroupOperations,		"AddSubgroupOperations",		{} );
+			AS_METHOD( binder, FS_AddSubgroupOperationRange,	"AddSubgroupOperationRange",	{} );
+			AS_METHOD( binder, FS_AddVertexFormats,				"AddVertexFormats",				{} );
+			AS_METHOD( binder, FS_AddAccelStructVertexFormats,	"AddAccelStructVertexFormats",	{} );
+			AS_METHOD( binder, FS_IncludeVendorId,				"IncludeVendor",				{} );
+			AS_METHOD( binder, FS_ExcludeVendorId,				"ExcludeVendor",				{} );
+			AS_METHOD( binder, FS_IncludeVendorIds,				"IncludeVendors",				{} );
+			AS_METHOD( binder, FS_ExcludeVendorIds,				"ExcludeVendors",				{} );
+			AS_METHOD( binder, FS_IncludeGraphicsDevice,		"IncludeDevice",				{} );
+			AS_METHOD( binder, FS_ExcludeGraphicsDevice,		"ExcludeDevice",				{} );
+			AS_METHOD( binder, FS_MergeMin,						"MergeMin",						{} );
+			AS_METHOD( binder, FS_MergeMax,						"MergeMax",						{} );
+			AS_METHOD( binder, FS_Copy,							"Copy",							{} );
+			AS_METHOD( binder, FS_framebufferColorSampleCounts,	"framebufferColorSampleCounts",	{} );
+			AS_METHOD( binder, FS_framebufferDepthSampleCounts,	"framebufferDepthSampleCounts",	{} );
+			AS_METHOD( binder, FS_maxSpirvVersion,				"maxSpirvVersion",				{} );
+			AS_METHOD( binder, FS_maxMetalVersion,				"maxMetalVersion",				{} );
+			AS_METHOD( binder, FS_supportedQueues,				"supportedQueues",				{} );
+			AS_METHOD( binder, FS_requiredQueues,				"requiredQueues",				{} );
+			AS_METHOD( binder, FS_AddShadingRate,				"AddShadingRate",				{} );
+			AS_METHOD( binder, FS_fragmentShadingRateTexelSize,	"fragmentShadingRateTexelSize",	{} );
 
 			#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )					\
 				if constexpr( (not IsSame< _type_, PerDescriptorSet			>)	and \
@@ -442,26 +444,31 @@ namespace
 							  (not IsSame< _type_, SurfaceFormatSet_t		>)	and	\
 							  (not IsSame< _type_, Queues					>)	and	\
 							  (not IsSame< _type_, ShadingRateSet_t			>)	and	\
+							  (not IsSame< _type_, CoopMatrixSet_t			>)	and	\
+							  (not IsSame< _type_, CoopVecSet_t				>)	and	\
 							  (not IsSame< _type_, VRSTexelSize				>))		\
-					binder.AddMethodFromGlobalObjFirst( &Set_FS_ ## _name_, ToMethodName( "", AE_TOSTRING( _name_ )), {} );\
-				\
-				if constexpr( IsSame< _type_, EFeature >)\
-					binder.AddMethodFromGlobalObjFirst( &Get_FS_ ## _name_, ToMethodName2( "has", AE_TOSTRING( _name_ )), {} );
+					AS_METHOD( binder, Set_FS_ ## _name_, ToMethodName( "", AE_TOSTRING( _name_ )), {} );		\
+																												\
+				if constexpr( IsSame< _type_, EFeature >)														\
+					AS_METHOD( binder, Get_FS_ ## _name_, ToMethodName2( "has", AE_TOSTRING( _name_ )), {} );	\
+																												\
+				if constexpr( IsInteger< _type_ >)																\
+					AS_METHOD( binder, Get_FS_ ## _name_, ToMethodName2( "get", AE_TOSTRING( _name_ )), {} );	\
 
 			AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
 			#undef AE_FEATURE_SET_VISIT
 
 			#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ ) \
-				binder.AddMethodFromGlobalObjFirst( &Set_FS_perPipeline_ ## _name_, ToMethodName( "perPipeline_", AE_TOSTRING( _name_ )), {} );
+				AS_METHOD( binder, Set_FS_perPipeline_ ## _name_, ToMethodName( "perPipeline_", AE_TOSTRING( _name_ )), {} );
 			AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
 			#undef AE_FEATURE_SET_PER_DS_VISIT
 
 			#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ ) \
-				binder.AddMethodFromGlobalObjFirst( &Set_FS_perStage_ ## _name_, ToMethodName( "perStage_", AE_TOSTRING( _name_ )), {} );
+				AS_METHOD( binder, Set_FS_perStage_ ## _name_, ToMethodName( "perStage_", AE_TOSTRING( _name_ )), {} );
 			AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
 			#undef AE_FEATURE_SET_PER_DS_VISIT
 		}
-		se->AddFunction( &ScriptFeatureSet::Find, "FindFeatureSet", {"name"} );
+		AS_GLOBAL_FN( se, ScriptFeatureSet::Find, "FindFeatureSet", {"name"} );
 
 		Unused( &Set_FS_subgroupOperations, &Set_FS_perPipeline, &Set_FS_perStage,
 				&Set_FS_storageImageFormats, &Set_FS_storageImageAtomicFormats,

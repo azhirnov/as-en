@@ -33,13 +33,15 @@ namespace AE::ResEditor
 */
 	void  ScriptBaseRenderPass::_Output2 (Scripting::ScriptArgList args) __Th___
 	{
-		auto&	dst	= _output.emplace_back();
-		uint	idx	= 0;
+		auto&	dst		 = _output.emplace_back();
+		uint	idx		 = 0;
+		bool	def_name = false;
 
 		if ( args.IsArg< String const& >(idx) ) {
 			dst.name = args.Arg< String const& >(idx++);
 		}else{
 			dst.name = "out_Color"s << ToString(_output.size()-1);
+			def_name = true;
 		}
 
 		if ( args.IsArg< ScriptImagePtr const& >(idx) )
@@ -48,7 +50,7 @@ namespace AE::ResEditor
 			CHECK_THROW_MSG( dst.rt );
 			dst.usage = (dst.rt->IsDepthOrStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment);
 
-			if ( dst.rt->IsDepthOrStencil() )
+			if ( dst.rt->IsDepthOrStencil() and def_name )
 				dst.name = "DepthStencil";
 		}
 		else
@@ -297,6 +299,7 @@ namespace AE::ResEditor
 		CHECK_THROW_MSG( _viewports.size() == _scissors.size() );
 		CHECK_THROW_MSG( GraphicsScheduler().GetFeatureSet().clipSpaceWScalingNV == FeatureSet::EFeature::RequireTrue,
 			"'clipSpaceWScalingNV' feature is not supported" );
+		CHECK_THROW_MSG( rect.bottom <= 1.f and rect.right <= 1.f, "must be in unorm coords" );
 
 		auto&	vp	= _viewports.emplace_back();
 		vp.rect		= rect;
@@ -309,6 +312,8 @@ namespace AE::ResEditor
 
 	void  ScriptBaseRenderPass::_AddViewport1 (const RectF &rect, float minDepth, float maxDepth) __Th___
 	{
+		CHECK_THROW_MSG( rect.bottom <= 1.f and rect.right <= 1.f, "must be in unorm coords" );
+
 		auto&	vp	= _viewports.emplace_back();
 		vp.rect		= rect;
 		vp.minDepth	= minDepth;
@@ -328,6 +333,7 @@ namespace AE::ResEditor
 	void  ScriptBaseRenderPass::_AddViewport4 (const RectF &rect, float minDepth, float maxDepth, const RectF &scissor) __Th___
 	{
 		CHECK_THROW_MSG( _viewports.size() == _scissors.size() );
+		CHECK_THROW_MSG( rect.bottom <= 1.f and rect.right <= 1.f, "must be in unorm coords" );
 
 		auto&	vp	= _viewports.emplace_back();
 		vp.rect		= rect;
@@ -346,22 +352,74 @@ namespace AE::ResEditor
 	{
 		CHECK_THROW_MSG( rt );
 		CHECK_THROW_MSG( not inName.empty() );
-		CHECK_THROW_MSG( not outName.empty() );
 		CHECK_THROW_MSG( inName != outName );
 
-		auto&	dst	= _output.emplace_back();
+		auto&	dst		= _output.emplace_back();
+		bool	is_ds	= rt->IsDepthOrStencil();
 
 		dst.name	= outName;
 		dst.inName	= inName;
 		dst.rt		= rt;
 
-		dst.usage	= (rt->IsDepthOrStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment);
+		dst.usage	= (is_ds ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment);
 		dst.usage	|= EResourceUsage::InputAttachment;
 
 		dst.rt->AddUsage( dst.usage );
 
+		if ( is_ds and outName.empty() )
+			dst.name = "DepthStencil";
+		else
+			CHECK_THROW_MSG( not outName.empty() );
+
 		if ( rt->IsMutableDimension() )
 			_SetDynamicDimension( rt->DimensionRC() );
+	}
+	
+/*
+=================================================
+	_Input
+=================================================
+*/
+	void  ScriptBaseRenderPass::_Input (const String &inName, const ScriptImagePtr &rt, const String &attName) __Th___
+	{
+		CHECK_THROW_MSG( rt );
+		CHECK_THROW_MSG( not inName.empty() );
+		CHECK_THROW_MSG( inName != attName );
+
+		auto&	dst		= _output.emplace_back();
+		bool	is_ds	= rt->IsDepthOrStencil();
+
+		dst.name	= attName;
+		dst.inName	= inName;
+		dst.rt		= rt;
+		dst.usage	= EResourceUsage::InputAttachment;
+
+		dst.rt->AddUsage( dst.usage );
+		
+		if ( is_ds and attName.empty() )
+			dst.name = "DepthStencil";
+		else
+			CHECK_THROW_MSG( not attName.empty() );
+
+		if ( rt->IsMutableDimension() )
+			_SetDynamicDimension( rt->DimensionRC() );
+	}
+
+/*
+=================================================
+	_MoveTo
+=================================================
+*/
+	void  ScriptBaseRenderPass::_MoveTo (OUT ScriptBaseRenderPass &dst) __NE___
+	{
+		ScriptBasePass::_MoveTo( OUT dst );
+
+		dst._output		= RVRef( this->_output );		this->_output.clear();
+		dst._depthRange	= this->_depthRange;			this->_depthRange = {0.f, 1.f};
+		dst._viewports	= RVRef( this->_viewports );	this->_viewports.clear();
+		dst._wScaling	= RVRef( this->_wScaling );		this->_wScaling.clear();
+		dst._scissors	= RVRef( this->_scissors );		this->_scissors.clear();
+		dst._subsampled	= this->_subsampled;			this->_subsampled = false;
 	}
 
 

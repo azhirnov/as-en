@@ -186,7 +186,7 @@ namespace AE::PipelineCompiler
 
 		CHECK( storage.defaultShaderDefines.empty() );
 		storage.defaultShaderDefines.clear();
-		storage.defaultShaderDefines << '\n' << value;
+		storage.defaultShaderDefines << value;
 	}
 
 /*
@@ -200,33 +200,33 @@ namespace AE::PipelineCompiler
 		binder.CreateClassValue();
 
 		binder.Comment( "Set target GAPI and platform." );
-		binder.AddMethod( &ScriptConfig::SetTarget,				"SetTarget",			{} );
+		AS_METHOD( binder, ScriptConfig::SetTarget,				"SetTarget",			{} );
 
 		binder.Comment( "Set default shader version." );
-		binder.AddMethod( &ScriptConfig::SetShaderVersion,		"SetShaderVersion",		{} );
+		AS_METHOD( binder, ScriptConfig::SetShaderVersion,		"SetShaderVersion",		{} );
 
 		binder.Comment( "Set MSL version which is used when cross compiling from SPIRV." );
-		binder.AddMethod( &ScriptConfig::SetSpirvToMslVersion,	"SetSpirvToMslVersion",	{} );
+		AS_METHOD( binder, ScriptConfig::SetSpirvToMslVersion,	"SetSpirvToMslVersion",	{} );
 
 		binder.Comment( "Set default shader options." );
-		binder.AddMethod( &ScriptConfig::SetShaderOptions,		"SetShaderOptions",		{} );
+		AS_METHOD( binder, ScriptConfig::SetShaderOptions,		"SetShaderOptions",		{} );
 
 		binder.Comment( "Set default layout (align rules) for shader structure." );
-		binder.AddMethod( &ScriptConfig::SetDefaultLayout,		"SetDefaultLayout",		{} );
+		AS_METHOD( binder, ScriptConfig::SetDefaultLayout,		"SetDefaultLayout",		{} );
 
 		binder.Comment( "Set default pipeline options." );
-		binder.AddMethod( &ScriptConfig::SetPipelineOptions,	"SetPipelineOptions",	{} );
+		AS_METHOD( binder, ScriptConfig::SetPipelineOptions,	"SetPipelineOptions",	{} );
 
 		binder.Comment( "Set shader preprocessor.\n"
 						"Can transform any source to GLSL/MSL code." );
-		binder.AddMethod( &ScriptConfig::SetPreprocessor,		"SetPreprocessor",		{} );
+		AS_METHOD( binder, ScriptConfig::SetPreprocessor,		"SetPreprocessor",		{} );
 
 		binder.Comment( "Set FeatureSet which will be added to all resources." );
-		binder.AddMethod( &ScriptConfig::SetDefaultFeatureSet,	"SetDefaultFeatureSet",	{"fsName"} );
+		AS_METHOD( binder, ScriptConfig::SetDefaultFeatureSet,	"SetDefaultFeatureSet",	{"fsName"} );
 
 		binder.Comment( "Set defines which will be used in all shaders.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		binder.AddMethod( &ScriptConfig::SetShaderDefines,		"SetShaderDefines",		{} );
+		AS_METHOD( binder, ScriptConfig::SetShaderDefines,		"SetShaderDefines",		{} );
 	}
 
 

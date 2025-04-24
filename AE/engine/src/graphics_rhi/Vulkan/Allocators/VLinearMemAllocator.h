@@ -91,6 +91,8 @@ namespace AE::Graphics
 
 
 	private:
+			void  _PrintStats ()																C_NE___;
+
 		ND_ static Data &		_CastStorage (Storage_t &data)									__NE___	{ return *data.Ptr<Data>(); }
 		ND_ static Data const&	_CastStorage (const Storage_t &data)							__NE___	{ return *data.Ptr<Data>(); }
 

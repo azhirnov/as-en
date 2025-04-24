@@ -1,3 +1,4 @@
+echo "update 'AngelScript'..."
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\android-clang\AngelScript"
 rmdir /Q /S "temp"
 git clone "..\..\..\..\..\3party\AngelScript" "temp"

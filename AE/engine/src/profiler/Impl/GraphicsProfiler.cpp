@@ -23,8 +23,8 @@ namespace
 	static constexpr GraphName	GPU_MemTrafficToDev2		{"GPU_MemTrafficToDevPerSec"};
 	static constexpr GraphName	GPU_MemTrafficToHost2		{"GPU_MemTrafficToHostPerSec"};
 
-	static constexpr GraphName	Stat_Clipping				{"Stat_Clipping"};
-	static constexpr GraphName	Stat_FS_CS_Invoc			{"Stat_FS_CS_Invoc"};
+	static constexpr GraphName	Stat_Primitives				{"Stat_Primitives"};
+	static constexpr GraphName	Stat_VS_FS_CS_Invoc			{"Stat_VS_FS_CS_Invoc"};
 	static constexpr GraphName	Stat_TS_MS_Invoc			{"Stat_TS_MS_Invoc"};
 
 /*
@@ -274,22 +274,24 @@ namespace
 		}{
 			constexpr SecName	sec {"PipelineStat"};
 			{
-				auto&	graph = _graphTable.Add( sec, Stat_Clipping );
+				auto&	graph = _graphTable.Add( sec, Stat_Primitives );
 				graph.SetCapacity( capacity, 2 );
-				graph.SetName( "clip" );
-				graph.SetLabel( "before",  0 );
-				graph.SetLabel( "after",   1 );
+				graph.SetName( "prim" );
+				graph.SetLabel( "in",  0 );
+				graph.SetLabel( "out", 1 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "/f" );
+				graph.SetDescription( "Input assembly primitives and output of clipping stage.\nLarge difference between them indicates that frustum culling it not used." );
 			}{
-				auto&	graph = _graphTable.Add( sec, Stat_FS_CS_Invoc );
-				graph.SetCapacity( capacity, 2 );
+				auto&	graph = _graphTable.Add( sec, Stat_VS_FS_CS_Invoc );
+				graph.SetCapacity( capacity, 3 );
 				graph.SetName( "invoc" );
-				graph.SetLabel( "frag",  0 );
-				graph.SetLabel( "comp",  1 );
+				graph.SetLabel( "vert",  0 );
+				graph.SetLabel( "frag",  1 );
+				graph.SetLabel( "comp",  2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "/f" );
-				graph.SetDescription( "Number of fragment and compute shader invocations." );
+				graph.SetDescription( "Number of vertex, fragment and compute shader invocations." );
 			}{
 				auto&	graph = _graphTable.Add( sec, Stat_TS_MS_Invoc );
 				graph.SetCapacity( capacity, 2 );
@@ -390,15 +392,23 @@ namespace
 				g_stat	= _pplnStats.graphics;
 				c_stat	= _pplnStats.compute;
 			}
-
-			if ( auto graph = _graphTable.Get( Stat_Clipping ))
-				graph->AddNonScaled( List{ double(g_stat.beforeClipping) / double(dt.count()), double(g_stat.afterClipping) / double(dt.count()) });
 			
-			if ( auto graph = _graphTable.Get( Stat_FS_CS_Invoc ))
-				graph->AddNonScaled( List{ double(g_stat.fragShaderInvocations) / double(dt.count()), double(c_stat.computeInvocations) / double(dt.count()) });
-			
+			if ( auto graph = _graphTable.Get( Stat_Primitives ))
+			{
+				graph->AddNonScaled( List{	double(g_stat.inputAssemblyPrimitives) / double(dt.count()),
+											double(g_stat.afterClipping) / double(dt.count()) });
+			}
+			if ( auto graph = _graphTable.Get( Stat_VS_FS_CS_Invoc ))
+			{
+				graph->AddNonScaled( List{	double(g_stat.vertShaderInvocations) / double(dt.count()),
+											double(g_stat.fragShaderInvocations) / double(dt.count()),
+											double(c_stat.computeInvocations) / double(dt.count()) });
+			}
 			if ( auto graph = _graphTable.Get( Stat_TS_MS_Invoc ))
-				graph->AddNonScaled( List{ double(g_stat.meshTaskInvocations) / double(dt.count()), double(g_stat.meshInvocations) / double(dt.count()) });
+			{
+				graph->AddNonScaled( List{	double(g_stat.meshTaskInvocations) / double(dt.count()),
+											double(g_stat.meshInvocations) / double(dt.count()) });
+			}
 		}
 	}
 
@@ -559,6 +569,8 @@ namespace
 						{
 							GraphicsPipelineStatistic	stat;
 							Unused( qm.GetPipelineStatistic( pass.pplnStat, OUT &stat, Sizeof(stat) ));
+
+							StaticAssert( IsBaseOf< GraphicsPipelineStatistic, MeshPipelineStatistic >);
 							RefCast<GraphicsPipelineStatistic>(g_stat) += stat;
 							break;
 						}
@@ -631,6 +643,21 @@ namespace
 		// find significant time
 		FixedArray< PowerVRProfiler::TimeScope, 32 >	timings;
 
+		for (auto& t : timings_view)
+		{
+			_gpuTime.min = Min( _gpuTime.min, t.begin );
+			_gpuTime.max = Max( _gpuTime.max, t.end );
+
+			auto	dt = t.end - t.begin;
+			if ( dt > min_dt )
+				timings.try_push_back( t );
+		}
+		timings_view = timings;
+
+	#elif 1
+		FixedArray< PowerVRProfiler::TimeScope, 32 >	timings;
+		const nanosecondsd								min_dt {milliseconds{1}};
+		
 		for (auto& t : timings_view)
 		{
 			_gpuTime.min = Min( _gpuTime.min, t.begin );

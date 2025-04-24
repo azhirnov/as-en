@@ -99,6 +99,7 @@ namespace AE::ResEditor
 
 			_resources.SetStates( ctx, Default );
 			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
+			if ( cnt > 1 ) ctx.MemoryBarrier( EPipelineScope::All, EPipelineScope::All );	// disable overlapping, only for profiling!
 			ctx.CommitBarriers();
 
 			ctx.BindPipeline( ppln );
@@ -159,7 +160,7 @@ namespace AE::ResEditor
 			ub_data.passFrameId	= _dynData.frame;
 			ub_data.seed		= pd.seed;
 			ub_data.mouse		= float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, float(pd.pressed), 0.f };
-			ub_data.customKeys	= pd.customKeys[0];
+			ub_data.customKeys	= float2{ pd.customKeys[0], pd.customKeys[1] };
 			ub_data.pixPerMm	= pd.pixPerMm;
 			ub_data.mmPerPix	= pd.mmPerPix;
 

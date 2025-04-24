@@ -38,10 +38,11 @@ namespace AE::RemoteGraphics::Msg
 		_desc_.colorFormat, _desc_.colorSpace, _desc_.presentMode, _desc_.minImageCount, _desc_.usePreTransform, _desc_.usage, _desc_.options
 
   #ifdef AE_ENABLE_REMOTE_GRAPHICS
-	StaticAssert64( sizeof(GraphicsCreateInfo) == 168 );
+	StaticAssert64( sizeof(GraphicsCreateInfo) == 176 );
   #else
-	StaticAssert64( sizeof(GraphicsCreateInfo) == 136 );
+	StaticAssert64( sizeof(GraphicsCreateInfo) == 144 );
   #endif
+
 	#define Ser_GraphicsCreateInfo( _desc_ )\
 		_desc_.maxFrames, \
 		_desc_.staging.writeStaticSize, _desc_.staging.readStaticSize, \
@@ -50,7 +51,7 @@ namespace AE::RemoteGraphics::Msg
 		_desc_.device.appName, _desc_.device.deviceName, \
 		_desc_.device.requiredQueues, _desc_.device.optionalQueues, \
 		_desc_.device.validation, _desc_.device.devFlags, \
-		Ser_SwapchainDesc( _desc_.swapchain )
+		Ser_SwapchainDesc( _desc_.swapchain ), _desc_.driverList
 
 
 	DECL_SERIALIZER( ProfGeneral_Initialize_Response::SerCpuCluster,	name, logicalCores )
@@ -343,7 +344,6 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( Query_GetTimestampCalibratedNs,			Ser_Query( query ), size )
 	DECL_SERIALIZER( Query_GetTimestampCalibratedNs_Response,	result, maxDeviation )
 
-	StaticAssert( sizeof(IQueryManager::GraphicsPipelineStatistic) == 24 );
 	DECL_SERIALIZER( Query_GetPipelineStatistic,				Ser_Query( query ), size )
 	DECL_SERIALIZER( Query_GetGraphicsPipeStat_Response,		result )
 	DECL_SERIALIZER( Query_GetMeshPipeStat_Response,			result )

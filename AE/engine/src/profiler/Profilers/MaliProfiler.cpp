@@ -99,7 +99,9 @@ namespace
 	static constexpr MaliProfiler::ECounterSet	c_RequiredForCustomCounters = MaliProfiler::ECounterSet{}
 																		.insert( MaliProfiler::ECounter::ExtBusRdBy )
 																		.insert( MaliProfiler::ECounter::ExtBusWrBy )
-																		.insert( MaliProfiler::ECounter::CoreActiveCy );
+																		.insert( MaliProfiler::ECounter::CoreActiveCy )
+																		.insert( MaliProfiler::ECounter::FragLZSTestTd )	// for Midgard
+																		.insert( MaliProfiler::ECounter::FragLZSKillTd );	// for Midgard
 
 	StaticAssert( (uint(MaliProfiler::ECounter::_Count) - uint(MaliProfiler::ECounter::_LastCounter)) == 5 );
 
@@ -142,14 +144,20 @@ namespace
 */
 	struct MaliProfiler::Impl
 	{
+	// types
+		using gpu_family = hwcpipe::device::gpu_family;
+		using product_id = hwcpipe::device::product_id;
+
 	// variables
 		hwcpipe::gpu				gpu;
+		gpu_family					gpuFamily;					
+
 		Unique<hwcpipe::sampler<>>	sampler;
 		ECounterSet					enabled;
 
 
 	// methods
-		Impl ()		__NE___ : gpu{hwcpipe::gpu(0)} {}
+		Impl ()		__NE___ : gpu{hwcpipe::gpu(0)}, gpuFamily{gpu.get_gpu_family()} {}
 		~Impl ()	__NE___;
 
 		void  Print ();
@@ -179,9 +187,6 @@ namespace
 	#ifdef AE_ENABLE_LOGS
 		if ( not gpu.valid() )
 			return;
-
-		using gpu_family = hwcpipe::device::gpu_family;
-		using product_id = hwcpipe::device::product_id;
 
 		auto						counter_db = hwcpipe::counter_database{};
 		hwcpipe::counter_metadata	meta;
@@ -459,6 +464,18 @@ namespace
 
 		if_likely( total_energy > 0.0 )
 			outCounters.emplace( ECounter::TotalEnergy, total_energy );
+
+		if ( _impl->gpuFamily < Impl::gpu_family::valhall )
+		{
+			double	lzs_test = Get( ECounter::FragLZSTestTd );
+			double	lzs_kill = Get( ECounter::FragLZSKillTd );
+
+			if ( lzs_test >= 0.0 or lzs_kill >= 0.0 )
+			{
+				outCounters.emplace( ECounter::FragLZSTestQd, lzs_test );	// TODO: x4 ?
+				outCounters.emplace( ECounter::FragLZSKillQd, lzs_kill );
+			}
+		}
 	}
 
 } // AE::Profiler

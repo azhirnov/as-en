@@ -49,14 +49,13 @@ namespace AE::PipelineCompiler
 		Array<ScriptFeatureSetPtr>	_features;
 		EShaderStages				_stages		= Default;
 
-		bool						_enabled	= true;
-
 	private:
 		PipelineLayoutPtr			_layoutPtr;
 		Optional<PipelineLayoutUID>	_layoutUID;
 		DSLayouts_t					_dsLayoutsFromReflection;
 		DSLayoutNames_t				_dsLayoutNames;
 		PushConstants				_pushConstants;
+		bool						_enabled	= true;
 
 
 	// methods
@@ -70,6 +69,7 @@ namespace AE::PipelineCompiler
 		ND_ ArrayView<ScriptFeatureSetPtr>  GetFeatures ()	const	{ return _features; }
 
 		ND_ StringView						GetName ()		const	{ return _nameStr; }
+		ND_ bool							IsEnabled ()	const	{ return _enabled; }
 
 		void  Disable ();
 		void  Enable ();
@@ -136,6 +136,7 @@ namespace AE::PipelineCompiler
 		ND_ bool							IsBuilded ()	const	{ return _uid.has_value(); }
 		ND_ ArrayView<RenderTechniquePtr>	GetRTechs ()	const	{ return _linkedRTechs; }
 		ND_ ArrayView<ScriptFeatureSetPtr>  GetFeatures ()	const	{ return _tmpl->GetFeatures(); }
+		ND_ bool							IsEnabled ()	const	{ return _enabled; }
 
 		void  Disable ();
 		void  Enable ();

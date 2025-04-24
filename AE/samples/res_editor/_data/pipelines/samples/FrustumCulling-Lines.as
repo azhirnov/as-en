@@ -52,6 +52,7 @@
 
 				rs.inputAssembly.topology		= EPrimitive::LineList;
 
+				rs.rasterization.lineWidth		= 4;
 				rs.rasterization.frontFaceCCW	= true;
 				rs.rasterization.cullMode		= ECullMode::Back;
 
@@ -102,15 +103,10 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
-	#include "Normal.glsl"
 
 	void Main ()
 	{
-		float3	norm		= ComputeNormalInWS_dxdy( In.worldPos.xyz );
-		float3	light_dir	= Normalize(float3( 0.f, -1.f, 0.5f ));
-		float	lighting	= Max( Dot( norm, light_dir ), 0.0f ) + 0.2f;
-
-		out_Color = In.color * lighting;
+		out_Color = In.color;
 	}
 
 #endif

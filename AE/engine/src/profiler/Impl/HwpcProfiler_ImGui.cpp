@@ -7,7 +7,7 @@
 # include "base/Platforms/CPUInfo.h"
 # include "profiler/Impl/HwpcProfiler.h"
 # include "graphics_rhi/GraphicsImpl.h"
-# include "graphics_hl/ImGui/ImGuiRenderer.h"
+# include "graphics/ImGui/ImGuiRenderer.h"
 
 namespace AE::Profiler
 {
@@ -91,18 +91,21 @@ namespace
 	static constexpr GraphName	Mali_LSTileWrite			{"LS & Tile write"};
 	static constexpr GraphName	Mali_CacheReads				{"CacheReads"};
 	static constexpr GraphName	Mali_CacheFlush				{"CacheFlush"};
-
-	static constexpr GraphName	Mali_Primitives				{"Primitives"};
-	static constexpr GraphName	Mali_PosVarShadingReq		{"PosVarShadingRequests"};
-	static constexpr GraphName	Mali_PosVarShadingThread	{"PosVarShadingThreads"};
-	static constexpr GraphName	Mali_PosVarShadingPerPrim	{"PosVarShadingPerInputPrimitive"};
-	static constexpr GraphName	Mali_PrimitiveType			{"PrimitiveType"};
 	static constexpr GraphName	Mali_TilerCacheHit			{"TilerCacheHit"};
 
+	static constexpr GraphName	Mali_IOPrimitives			{"IOPrimitives"};
+	static constexpr GraphName	Mali_PrimitiveType			{"PrimitiveType"};
+	static constexpr GraphName	Mali_CullPrimitives			{"CullPrimitives"};
+
+	static constexpr GraphName	Mali_PosVarShadingThread	{"PosVarShadingThreads"};
+	static constexpr GraphName	Mali_PosVarShadingPerPrim	{"PosVarShadingPerInputPrimitive"};
 	static constexpr GraphName	Mali_ZSTest					{"ZSTest"};
-	static constexpr GraphName	Mali_ZSTest2				{"ZSTest2"};
-	static constexpr GraphName	Mali_FragOpaqueRate			{"FragOpaqueRate"};
-	static constexpr GraphName	Mali_FragOverdraw			{"FragOverdraw"};
+	static constexpr GraphName	Mali_ZSKill					{"ZSKill"};
+	static constexpr GraphName	Mali_Quads					{"Quads"};
+	static constexpr GraphName	Mali_RastPrims				{"RastPrims"};
+	//static constexpr GraphName	Mali_FragOpaqueRate		{"FragOpaqueRate"};
+	//static constexpr GraphName	Mali_FragOverdraw		{"FragOverdraw"};
+
 	static constexpr GraphName	Mali_TileCount				{"TileCount"};
 	static constexpr GraphName	Mali_FragTileKillRate		{"FragTileKillRate"};
 
@@ -404,11 +407,10 @@ namespace
 	_InitArmCountersImGui
 =================================================
 */
-	void  HwpcProfiler::_InitArmCountersImGui (const bool perFrame, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &style1)
+	void  HwpcProfiler::_InitArmCountersImGui (const bool, const ImLineGraph::ColorStyle &, const ImLineGraph::ColorStyle &style1)
 	{
 		const uint	capacity	= 50;
 		auto&		prof		= _armProf;
-		StringView	suffix		= perFrame ? "/f" : "/s";
 
 		{
 			auto&	graph = prof.graphTable.Add( Default, ARM_CpuCycles );
@@ -503,8 +505,6 @@ namespace
 		AddPoint1( ECounter::RTUUtil,				Mali_RTUtil,			1.0	);
 		AddPoint1( ECounter::EngNarrowInstrRate,	Mali_NarrowArithUtil,	1.0 );
 		AddPoint1( ECounter::EngDivergedInstrRate,	Mali_WarpDivRate,		1.0 );
-		AddPoint1( ECounter::FragOpaqueQdRate,		Mali_FragOpaqueRate,	1.0	);
-		AddPoint1( ECounter::FragOverdraw,			Mali_FragOverdraw		);
 		AddPoint1( ECounter::CoreAllRegsWarpRate,	Mali_AllRegWarpRate,	1.0	);
 		AddPoint1( ECounter::CoreFullWarpRate,		Mali_FullQuadWarpRate,	1.0 );
 		AddPoint1( ECounter::FragRastPartQdRate,	Mali_FragRastPartRate,	1.0 );
@@ -513,9 +513,9 @@ namespace
 		AddPoint1( ECounter::TilerUtil,				Mali_TilerUtil,			1.0 );
 		AddPoint1( ECounter::FragFPKBUtil,			Mali_FPKUtil,			1.0 );
 		AddPoint1( ECounter::TilerActiveCy,			Mali_TilerActiveCy,		inv_dt );
+		AddPoint1( ECounter::FragRastPrim,			Mali_RastPrims			);
 
 		AddPoint2( ECounter::ExtBusRdStallRate,			ECounter::ExtBusWrStallRate,		Mali_ExtMemStalls,			1.0 );
-	//	AddPoint2( ECounter::GeomPosShadTask,			ECounter::GeomVarShadTask,			Mali_PosVarShadingReq		);
 		AddPoint2( ECounter::GeomPosShadThread,			ECounter::GeomVarShadThread,		Mali_PosVarShadingThread	);
 		AddPoint2( ECounter::GeomVarShadThreadPerPrim,	ECounter::GeomPosShadThreadPerPrim,	Mali_PosVarShadingPerPrim	);
 		AddPoint2( ECounter::NonFragUtil,				ECounter::FragUtil,					Mali_FragNonFragUtil,		1.0 );
@@ -532,10 +532,12 @@ namespace
 		AddPoint3( ECounter::ExtBusRdBy,		ECounter::ExtBusWrBy,		ECounter::ExtBusTotalBy,	Mali_ExtMemTraffic2,	inv_dt );
 		AddPoint3( ECounter::ExtBusRdLat0,		ECounter::ExtBusRdLat128,	ECounter::ExtBusRdLat192,	Mali_ExtReadLatency1	);
 		AddPoint3( ECounter::ExtBusRdLat256,	ECounter::ExtBusRdLat320,	ECounter::ExtBusRdLat384,	Mali_ExtReadLatency2	);
-		AddPoint3( ECounter::GeomTotalCullPrim,	ECounter::GeomVisiblePrim,	ECounter::GeomTotalPrim,	Mali_Primitives			);
+		AddPoint3( ECounter::GeomTotalCullPrim,	ECounter::GeomVisiblePrim,	ECounter::GeomTotalPrim,	Mali_IOPrimitives		);
 		AddPoint3( ECounter::GeomTrianglePrim,	ECounter::GeomPointPrim,	ECounter::GeomLinePrim,		Mali_PrimitiveType		);
+		AddPoint3( ECounter::GeomFaceXYPlaneCullPrim, ECounter::GeomZPlaneCullPrim, ECounter::GeomSampleCullPrim, Mali_CullPrimitives	);
 		AddPoint3( ECounter::EngFMAPipeUtil,	ECounter::EngCVTPipeUtil,	ECounter::EngSFUPipeUtil,	Mali_ArithPipeUtil,		1.0 );
-		AddPoint3( ECounter::FragEZSKillRate,	ECounter::FragFPKKillRate,	ECounter::FragLZSKillRate,	Mali_ZSTest2,			1.0 );
+		AddPoint3( ECounter::FragEZSKillQd,		ECounter::FragLZSKillQd,	ECounter::FragFPKKillQd,	Mali_ZSKill				);
+		AddPoint3( ECounter::FragEZSTestQd,		ECounter::FragLZSTestQd,	ECounter::FragEZSUpdateQd,	Mali_ZSTest				);
 		AddPoint3( ECounter::SCBusFFEExtRdBy,	ECounter::SCBusLSExtRdBy,	ECounter::SCBusTexExtRdBy,	Mali_ExtReads			);
 		AddPoint3( ECounter::SCBusFFEL2RdBy,	ECounter::SCBusLSL2RdBy,	ECounter::SCBusTexL2RdBy,	Mali_CacheReads			);
 		AddPoint3( ECounter::NonFragQueueUtil,	ECounter::FragQueueUtil,	ECounter::GPUIRQUtil,		Mali_QueueUtil,			1.0 );
@@ -544,8 +546,8 @@ namespace
 
 		AddPoint4( ECounter::ExtBusRdOTQ1,		ECounter::ExtBusRdOTQ2,		ECounter::ExtBusRdOTQ3,		ECounter::ExtBusRdOTQ4,		Mali_ExtOutstandingReads	);
 		AddPoint4( ECounter::ExtBusWrOTQ1,		ECounter::ExtBusWrOTQ2,		ECounter::ExtBusWrOTQ3,		ECounter::ExtBusWrOTQ4,		Mali_ExtOutstandingWrites	);
-		AddPoint4( ECounter::FragEZSTestQd,		ECounter::FragEZSKillQd,	ECounter::FragLZSTestQd,	ECounter::FragLZSKillQd,	Mali_ZSTest					);
 		AddPoint4( ECounter::NonFragWarp,		ECounter::FragWarp,			ECounter::CoreFullWarp,		ECounter::CoreAllRegsWarp,	Mali_WrapCount				);
+		AddPoint4( ECounter::FragRastQd,		ECounter::FragOpaqueQd,		ECounter::FragTransparentQd, ECounter::FragShadedQd,	Mali_Quads					);
 	}
 
 /*
@@ -555,9 +557,9 @@ namespace
 */
 	void  HwpcProfiler::_InitMaliCountersImGui (const bool perFrame, const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1)
 	{
-		const uint	capacity	= 50;
-		auto&		prof		= _maliProf;
-		StringView	suffix		= perFrame ? "/f" : "/s";
+		const uint		capacity	= 50;
+		auto&			prof		= _maliProf;
+		const String	suffix		= perFrame ? "/f" : "/s";
 
 		{
 			constexpr SecName	sec {"Clock"};
@@ -570,7 +572,9 @@ namespace
 				graph.SetColor( style4 );
 				graph.SetSuffix( "Hz" );
 				graph.SetAlertLimits( 500.0e+6f, 800.0e+6f );
-				graph.SetDescription( "GPU clock speed.\nLow clock indicates low workload." );
+				graph.SetDescription( "GPU clock  - include fixed pipeline and shader core.\n"
+									  "Core clock - only shader core clock.\n"
+									  "Low clock indicates low workload." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_TilerActiveCy );
 				graph.SetCapacity( capacity );
@@ -595,7 +599,8 @@ namespace
 				graph.SetLabel( "total",	2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "W" );
-				graph.SetDescription( "Power budget 2-3W.\nMemory power consumption calculated as external memory access * 100mW per 1GB/s.\n" );
+				graph.SetDescription( "Power budget 2-3W.\n"
+									  "Memory power consumption calculated as external memory access * 100mW per 1GB/s." );
 			}
 			prof.graphTable.SetCaption( sec, "Clock" );
 		}{
@@ -636,7 +641,8 @@ namespace
 				graph.SetLabel( "write", 1 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "A high stall rate is indicative of content which is requesting more data than the downstream memory system can provide.\nTo optimize the workload, try to reduce memory bandwidth." );
+				graph.SetDescription( "A high stall rate is indicative of content which is requesting more data than the downstream memory system can provide.\n"
+									  "To optimize the workload, try to reduce memory bandwidth." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_ExtReadLatency1 );
 				graph.SetCapacity( capacity, 3 );
@@ -645,6 +651,7 @@ namespace
 				graph.SetLabel( "<191",	1 );
 				graph.SetLabel( "<255",	2 );
 				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
 				graph.SetDescription( read_latency_cy_desc );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_ExtReadLatency2 );
@@ -654,6 +661,7 @@ namespace
 				graph.SetLabel( "<383",	1 );
 				graph.SetLabel( ">384",	2 );
 				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
 				graph.SetDescription( read_latency_cy_desc );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_ExtOutstandingReads );
@@ -664,6 +672,7 @@ namespace
 				graph.SetLabel( "<75%",		2 );
 				graph.SetLabel( "<100%",	3 );
 				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
 				graph.SetDescription( outstanding_rw_desc );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_ExtOutstandingWrites );
@@ -674,6 +683,7 @@ namespace
 				graph.SetLabel( "<75%",		2 );
 				graph.SetLabel( "<100%",	3 );
 				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
 				graph.SetDescription( outstanding_rw_desc );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_ExtReads );
@@ -684,7 +694,10 @@ namespace
 				graph.SetLabel( "tex",	 2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "B"s << suffix );
-				graph.SetDescription( "Shader core memory read traffic that misses in the GPU cache and that is fetched from the external memory system.\nFront - total number of bytes read from the external memory system by the fragment front-end unit.\nLS - total number of bytes read from the external memory system by the load/store unit.\nTex - total number of bytes read from the external memory system by the texture unit." );
+				graph.SetDescription( "Shader core memory read traffic that misses in the GPU cache and that is fetched from the external memory system.\n"
+									  "Front - total number of bytes read from the external memory system by the fragment front-end unit.\n"
+									  "LS - total number of bytes read from the external memory system by the load/store unit.\n"
+									  "Tex - total number of bytes read from the external memory system by the texture unit." );
 			}
 			prof.graphTable.SetCaption( sec, "External memory" );
 		}{
@@ -706,8 +719,9 @@ namespace
 				graph.SetLabel( "tile",	 0 );
 				graph.SetLabel( "LS",	 1 );
 				graph.SetColor( style4 );
-				graph.SetSuffix( "B" );		// bytes
-				graph.SetDescription( "Tile - total number of bytes written to the L2 memory system by the tile write-back unit.\nLS - total number of bytes written to the L2 memory system by the load/store unit." );
+				graph.SetSuffix( "B"s << suffix );
+				graph.SetDescription( "Tile - total number of bytes written to the L2 memory system by the tile write-back unit.\n"
+									  "LS - total number of bytes written to the L2 memory system by the load/store unit." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_CacheReads );
 				graph.SetCapacity( capacity, 3 );
@@ -717,7 +731,10 @@ namespace
 				graph.SetLabel( "tex",	 2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "B"s << suffix );
-				graph.SetDescription( "Shader core memory read traffic that is fetched from the GPU L2 cache.\nFront - total number of bytes read from the L2 memory system by the fragment front-end unit.\nLS -  total number of bytes read from the L2 memory system by the load/ store unit.\nTex - total number of bytes read from the L2 memory system by the texture unit." );
+				graph.SetDescription( "Shader core memory read traffic that is fetched from the GPU L2 cache.\n"
+									  "Front - total number of bytes read from the L2 memory system by the fragment front-end unit.\n"
+									  "LS -  total number of bytes read from the L2 memory system by the load/ store unit.\n"
+									  "Tex - total number of bytes read from the L2 memory system by the texture unit." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_CacheFlush );
 				graph.SetCapacity( capacity );
@@ -732,27 +749,72 @@ namespace
 				graph.SetLabel( "var",	1 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "Position cache hit / miss.\nVarying cache hit / miss." );
+				graph.SetDescription( "Position cache hit / miss.\n"
+									  "Varying cache hit / miss." );
 			}
 			prof.graphTable.SetCaption( sec, "Cache" );
 		}{
 			constexpr SecName	sec {"Geometry"};	// tiler, binning, culling
 			{
-				auto&	graph = prof.graphTable.Add( sec, Mali_Primitives );
+				auto&	graph = prof.graphTable.Add( sec, Mali_PrimitiveType );
+				graph.SetCapacity( capacity, 3 );
+				graph.SetName( "prim types" );
+				graph.SetLabel( "triangle",	0 );
+				graph.SetLabel( "point",	1 );
+				graph.SetLabel( "line",		2 );
+				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
+			}{
+				auto&	graph = prof.graphTable.Add( sec, Mali_IOPrimitives );
 				graph.SetCapacity( capacity, 3 );
 				graph.SetName( "tris" );
 				graph.SetLabel( "culled",  0 );
 				graph.SetLabel( "visible", 1 );
 				graph.SetLabel( "input",   2 );
 				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
 			}{
-				auto&	graph = prof.graphTable.Add( sec, Mali_PosVarShadingReq );
-				graph.SetCapacity( capacity, 2 );
-				graph.SetName( "shading req" );
-				graph.SetLabel( "pos", 0 );
-				graph.SetLabel( "var", 1 );
+				auto&	graph = prof.graphTable.Add( sec, Mali_CullPrimitives );
+				graph.SetCapacity( capacity, 3 );
+				graph.SetName( "cull prims" );
+				graph.SetLabel( "FXY",	0 );
+				graph.SetLabel( "Z",	1 );
+				graph.SetLabel( "samp",	2 );
 				graph.SetColor( style4 );
-				graph.SetDescription( "Position shading - part of VS which contributes to vertex position.\nVarying shading - other part of VS." );
+				graph.SetSuffix( suffix );
+				graph.SetDescription( "Culling stages in binning phase. This primitives doesn't stored to external memory and doesn't rasterized.\n"
+									  "XY plane test - primitives that are outside of the view frustum in the XY axis, \n"
+									  "                or that are back-facing inside the frustum, are culled by this stage.\n"
+									  "Z plane test - primitives that are closer than the frustum near clip plane, or further away\n"
+									  "               than the frustum far clip plane, are culled by this stage.\n"
+									  "Sample test - culls primitives that are so small that they hit no rasterizer sample points." );
+			}
+			prof.graphTable.SetCaption( sec, "Binning phase" );
+		}{
+			constexpr SecName	sec {"Rasterization"};
+			{
+				auto&	graph = prof.graphTable.Add( sec, Mali_ZSTest );
+				graph.SetCapacity( capacity, 3 );
+				graph.SetName( "ZS qd test" );
+				graph.SetLabel( "early", 0 );
+				graph.SetLabel( "upd",   1 );
+				graph.SetLabel( "late",  2 );
+				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
+				graph.SetDescription( "Number of rasterized quads which is ZS tested.\n"
+									  "Upd - early ZS updated quads.\n"
+									  "It is important that as many fragments as possible are early ZS (depth and stencil) tested before shading." );
+			}{
+				auto&	graph = prof.graphTable.Add( sec, Mali_ZSKill );
+				graph.SetCapacity( capacity, 3 );
+				graph.SetName( "ZS qd kill" );
+				graph.SetLabel( "early", 0 );
+				graph.SetLabel( "fpk",	 1 );
+				graph.SetLabel( "late",	 2 );
+				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
+				graph.SetDescription( "Number of rasterized quads which is killed by stage.\n"
+									  "It is important that as many fragments as possible are early ZS (depth and stencil) tested before shading." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_PosVarShadingThread );
 				graph.SetCapacity( capacity, 2 );
@@ -760,7 +822,10 @@ namespace
 				graph.SetLabel( "pos", 0 );
 				graph.SetLabel( "var", 1 );
 				graph.SetColor( style4 );
-				graph.SetDescription( "Position shading - part of VS which contributes to vertex position.\nVarying shading - other part of VS." );
+				graph.SetSuffix( suffix );
+				graph.SetDescription( "Position shading - part of VS which contributes to vertex position.\n"
+									  "Varying shading - other part of VS.\n"
+									  "Difference between 'pos' and 'var' indicates a number of invisible polygons." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_PosVarShadingPerPrim );
 				graph.SetCapacity( capacity, 2 );
@@ -769,61 +834,16 @@ namespace
 				graph.SetLabel( "var", 1 );
 				graph.SetColor( style4 );
 				graph.SetAlertLimits( 1.6f, 2.7f );
-				graph.SetDescription( "Efficient meshes with a good vertex reuse have average less than 1.5 vertices shaded per triangle,\nas vertex computation is shared by multiple primitives." );
-			}{
-				auto&	graph = prof.graphTable.Add( sec, Mali_PrimitiveType );
-				graph.SetCapacity( capacity, 3 );
-				graph.SetName( "prim types" );
-				graph.SetLabel( "triangle",	0 );
-				graph.SetLabel( "point",	1 );
-				graph.SetLabel( "line",		2 );
-				graph.SetColor( style4 );
-			}
-			prof.graphTable.SetCaption( sec, "Binning phase" );
-		}{
-			constexpr SecName	sec {"Rasterization"};
-			{
-				auto&	graph = prof.graphTable.Add( sec, Mali_ZSTest );
-				graph.SetCapacity( capacity, 4 );
-				graph.SetName( "ZS" );
-				graph.SetLabel( "E-test", 0 );
-				graph.SetLabel( "E-kill", 1 );
-				graph.SetLabel( "L-test", 2 );
-				graph.SetLabel( "L-kill", 3 );
-				graph.SetColor( style4 );
-				graph.SetDescription( "It is important that as many fragments as possible are early ZS (depth and stencil) tested before shading." );
-			}{
-				auto&	graph = prof.graphTable.Add( sec, Mali_ZSTest2 );
-				graph.SetCapacity( capacity, 3 );
-				graph.SetName( "ZS kill rate" );
-				graph.SetLabel( "early", 0 );
-				graph.SetLabel( "fpk",	 1 );
-				graph.SetLabel( "late",	 2 );
-				graph.SetColor( style4 );
-				graph.SetSuffix( "%" );
-				graph.SetAlertInvLimits( 70.f, 90.f );
-				graph.SetDescription( "It is important that as many fragments as possible are early ZS (depth and stencil) tested before shading." );
-			}{
-				auto&	graph = prof.graphTable.Add( sec, Mali_FragOpaqueRate );
-				graph.SetCapacity( capacity );
-				graph.SetName( "opq/trp" );
-				graph.SetColor( style1 );
-				graph.SetSuffix( "%" );
-				graph.SetAlertLimits( 10.f, 50.f );
-				graph.SetDescription( "Occluding quad percentage" );
-			}{
-				auto&	graph = prof.graphTable.Add( sec, Mali_FragOverdraw );
-				graph.SetCapacity( capacity );
-				graph.SetName( "overdraw" );
-				graph.SetColor( style1 );
-				graph.SetDescription( "Number of fragments shaded per output pixel.\nGPU processing cost per pixel accumulates with the layer count. High overdraw can build up to a\nsignificant processing cost, especially when rendering to a high-resolution framebuffer. Minimize\noverdraw by rendering opaque objects front-to-back and minimizing use of blended transparent layers." );
+				graph.SetDescription( "Efficient meshes with a good vertex reuse have average less than 1.5 vertices shaded per triangle,\n"
+									  "as vertex computation is shared by multiple primitives." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FragTileKillRate );
 				graph.SetCapacity( capacity );
 				graph.SetName( "tile kill" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "Defines the percentage of tiles that are killed by the transaction elimination\nCRC check because the content of a tile matches the content already stored in memory." );
+				graph.SetDescription( "Defines the percentage of tiles that are killed by the transaction elimination\n"
+									  "CRC check because the content of a tile matches the content already stored in memory." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_TileCount );
 				graph.SetCapacity( capacity, 2 );
@@ -831,6 +851,31 @@ namespace
 				graph.SetLabel( "pass",	0 );
 				graph.SetLabel( "kill",	1 );
 				graph.SetColor( style4 );
+				graph.SetDescription( "Pass - tile content stored to external memory.\n"
+									  "Kill - tile is L2 has same content as in external memory, content in L2 discarded." );
+			}{
+				auto&	graph = prof.graphTable.Add( sec, Mali_Quads );
+				graph.SetCapacity( capacity, 4 );
+				graph.SetName( "quads" );
+				graph.SetLabel( "rast",		0 );
+				graph.SetLabel( "opq",		1 );
+				graph.SetLabel( "non-opq",	2 );
+				graph.SetLabel( "fs",		3 );
+				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
+				graph.SetDescription( "rast - rasterized fine quads.\n"
+									  "opq  - Occluding quads.\n"
+									  "non-opq - late ZS or blended quads.\n"
+									  "fs   - Shaded quads." );
+			}{
+				auto&	graph = prof.graphTable.Add( sec, Mali_RastPrims );
+				graph.SetCapacity( capacity );
+				graph.SetName( "prims" );
+				graph.SetColor( style1 );
+				graph.SetSuffix( suffix );
+				graph.SetDescription( "Rasterized primitives.\n"
+									  "Depends on number of visible primitives from binning phase, size of tile and number of tiles.\n"
+									  "Primitives which covers multiple tiles will be counted multiple times." );
 			}
 			prof.graphTable.SetCaption( sec, "Rasterization" );
 		}{
@@ -842,7 +887,9 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 70.f, 90.f );
-				graph.SetDescription( "Utilization of the programmable execution core,\nmonitoring any cycle where the shader core contains at least one warp." );
+				graph.SetDescription( "Utilization of the programmable execution core,\n"
+									  "monitoring any cycle where the shader core contains at least one warp.\n"
+									  "If it < 100% then botlneck in external memory bandwidth or in fixed pipeline (rasterization, ZS)." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_VarUtil );
 				graph.SetCapacity( capacity );
@@ -850,7 +897,10 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 25.f, 75.f );
-				graph.SetDescription( "Utilization of the varying unit.\nThe most effective technique for reducing varying load is reducing the number of interpolated\nvalues read by the fragment shading. Increasing shader usage of 16-bit (mediump) input variables\nalso helps, as they can be interpolated as twice the speed of 32-bit variables." );
+				graph.SetDescription( "Utilization of the varying unit.\n"
+									  "The most effective technique for reducing varying load is reducing the number of interpolated\n"
+									  "values read by the fragment shading. Increasing shader usage of 16-bit (mediump) input variables\n"
+									  "also helps, as they can be interpolated as twice the speed of 32-bit variables." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_TexUtil );
 				graph.SetCapacity( capacity );
@@ -858,7 +908,10 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 70.f, 90.f );
-				graph.SetDescription( "Utilization of the texturing unit.\nThe most effective technique for reducing texturing unit load is reducing the number of texture\nsamples read by the fragment shader. Using simpler texture filters can reduce filtering cost. Using\n32bpp color formats, and the ASTC decode mode extensions can reduce data access cost." );
+				graph.SetDescription( "Utilization of the texturing unit.\n"
+									  "The most effective technique for reducing texturing unit load is reducing the number of texture\n"
+									  "samples read by the fragment shader. Using simpler texture filters can reduce filtering cost. Using\n"
+									  "32bpp color formats, and the ASTC decode mode extensions can reduce data access cost." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_TexCacheUtil );
 				graph.SetCapacity( capacity );
@@ -873,7 +926,11 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 70.f, 90.f );
-				graph.SetDescription( "Utilization of the load/store unit.\nThe load/store unit is used for general-purpose memory accesses, and includes vertex attribute access, buffer access, work\ngroup shared memory access, and stack access. This unit also implements imageLoad/Store and\natomic access functionality." );
+				graph.SetDescription( "Utilization of the load/store unit.\n"
+									  "The load/store unit is used for general-purpose memory accesses,\n"
+									  "and includes vertex attribute access, buffer access, work\n"
+									  "group shared memory access, and stack access. This unit also implements\n"
+									  "imageLoad/Store and atomic access functionality." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_RTUtil );
 				graph.SetCapacity( capacity );
@@ -881,7 +938,8 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 70.f, 90.f );
-				graph.SetDescription( "The most effective technique for reducing ray tracing load is reducing the amount of geometry in\nthe acceleration structure, and ensuring that rays issued in each warp are coherent." );
+				graph.SetDescription( "The most effective technique for reducing ray tracing load is reducing the amount of geometry in\n"
+									  "the acceleration structure, and ensuring that rays issued in each warp are coherent." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FragNonFragUtil );
 				graph.SetCapacity( capacity, 2 );
@@ -898,7 +956,9 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 70.f, 90.f );
-				graph.SetDescription( "Defines the tiler utilization compared to the total GPU active cycles.\nNote that this metric measures the overall processing time for the tiler geometry pipeline. The\nmetric includes aspects of vertex shading, in addition to the fixed-function tiling process." );
+				graph.SetDescription( "Defines the tiler utilization compared to the total GPU active cycles.\n"
+									  "Note that this metric measures the overall processing time for the tiler geometry pipeline.\n"
+									  "The metric includes aspects of vertex shading, in addition to the fixed-function tiling process." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FPKUtil );
 				graph.SetCapacity( capacity );
@@ -906,7 +966,19 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertInvLimits( 70.f, 90.f );
-				graph.SetDescription( "Defines the percentage of cycles where the Forward Pixel Kill (FPK) quad buffer\ncontains at least one fragment quad. This buffer is located after early ZS but before the execution core.\n\nDuring fragment shading this counter must be close to 100%. This indicates that the fragment\nfront-end is able to keep up with the shader core shading rate. This counter commonly drops below\n100% for three reasons:\n* The running workload has many empty tiles with no geometry to render. Empty tiles are\ncommon in shadow maps, for any screen region with no shadow casters.\n* The application consists of simple shaders but a high percentage of microtriangles. This\ncombination causes the shader core to complete fragments faster than they are rasterized, so\nthe quad buffer starts to drain.\n* The application consists of layers which stall at early ZS because of a dependency on an earlier\nfragment layer which is still in flight. Stalled layers prevent new fragments entering the quad\nbuffer, so the quad buffer starts to drain." );
+				graph.SetDescription( "Defines the percentage of cycles where the Forward Pixel Kill (FPK) quad buffer\n"
+									  "contains at least one fragment quad. This buffer is located after early ZS but before the execution core.\n\n"
+									  "During fragment shading this counter must be close to 100%. This indicates that the fragment\n"
+									  "front-end is able to keep up with the shader core shading rate. This counter commonly drops below\n"
+									  "100% for three reasons:\n"
+									  " * The running workload has many empty tiles with no geometry to render. Empty tiles are\n"
+									  "   common in shadow maps, for any screen region with no shadow casters.\n"
+									  " * The application consists of simple shaders but a high percentage of microtriangles. This\n"
+									  "   combination causes the shader core to complete fragments faster than they are rasterized, so\n"
+									  "   the quad buffer starts to drain.\n"
+									  " * The application consists of layers which stall at early ZS because of a dependency on an earlier\n"
+									  "   fragment layer which is still in flight. Stalled layers prevent new fragments entering the quad\n"
+									  "   buffer, so the quad buffer starts to drain." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_QueueUtil );
 				graph.SetCapacity( capacity, 3 );
@@ -917,7 +989,17 @@ namespace
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertInvLimits( 50.f, 70.f );
-				graph.SetDescription( "IRQ pending utilization compared against the GPU active cycles.\nIn a well-functioning system, this expression is ideally less than 3% of the total cycles.\nIf the value is much higher than 3%, a system issue might be preventing the CPU from efficiently handling interrupts.\n\nNon-fragment queue utilization compared against the GPU active cycles.\nFor GPU bound content, it is expected that the GPU queues process work in parallel.\nThe dominant queue must be close to 100% utilized. If no queue is dominant, but the GPU is close to\n100% utilized, then there might be a serialization or dependency problem preventing better overlap\nacross the queues.\n\nFragment queue utilization compared against the GPU active cycles.\nFor GPU bound content, the GPU queues are expected to process work in parallel.\nAim to keep the dominant queue close to 100% utilized. If no queue is dominant, but the GPU is close to\n100% utilized, then there might be a serialization or dependency problem preventing better queue overlap." );
+				graph.SetDescription( "IRQ pending utilization compared against the GPU active cycles.\n"
+									  "In a well-functioning system, this expression is ideally less than 3% of the total cycles.\n"
+									  "If the value is much higher than 3%, a system issue might be preventing the CPU from efficiently handling interrupts.\n\n"
+									  "Non-fragment queue utilization compared against the GPU active cycles.\n"
+									  "For GPU bound content, it is expected that the GPU queues process work in parallel.\n"
+									  "The dominant queue must be close to 100% utilized. If no queue is dominant, but the GPU is close to 100% utilized,\n"
+									  "then there might be a serialization or dependency problem preventing better overlap across the queues.\n\n"
+									  "Fragment queue utilization compared against the GPU active cycles.\n"
+									  "For GPU bound content, the GPU queues are expected to process work in parallel.\n"
+									  "Aim to keep the dominant queue close to 100% utilized. If no queue is dominant, but the GPU is close to 100% utilized,"
+									  "then there might be a serialization or dependency problem preventing better queue overlap." );
 			}
 			prof.graphTable.SetCaption( sec, "Functional unit utilization" );
 		}{
@@ -929,14 +1011,17 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 70.f, 90.f );
-				graph.SetDescription( "Utilization of the arithmetic unit in the execution engine.\nThe most effective technique for reducing arithmetic load is reducing the complexity of your shader programs.\nIncreasing shader usage of 16-bit (mediump) variables can also help." );
+				graph.SetDescription( "Utilization of the arithmetic unit in the execution engine.\n"
+									  "The most effective technique for reducing arithmetic load is reducing the complexity of your shader programs.\n"
+									  "Increasing shader usage of 16-bit (mediump) variables can also help." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_NarrowArithUtil );
 				graph.SetCapacity( capacity );
 				graph.SetName( "8/16 bit" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "This expression defines the percentage of arithmetic instructions that operate on 8/16-bit types.\nThese are more energy efficient, and require fewer registers for variable storage, than 32-bit operations." );
+				graph.SetDescription( "This expression defines the percentage of arithmetic instructions that operate on 8/16-bit types.\n"
+									  "These are more energy efficient, and require fewer registers for variable storage, than 32-bit operations." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_ArithPipeUtil );
 				graph.SetCapacity( capacity, 3 );
@@ -947,7 +1032,10 @@ namespace
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 70.f, 90.f );
-				graph.SetDescription( "Utilization of the ALU pipes.\nFMA pipe - multiply/add instructions\nCVT pipe - convert data types\nSFU pipe - special functions unit (sqrt/sin/cos)" );
+				graph.SetDescription( "Utilization of the ALU pipes.\n"
+									  "FMA pipe - multiply/add instructions\n"
+									  "CVT pipe - convert data types\n"
+									  "SFU pipe - special functions unit (sqrt/sin/cos)" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_WarpDivRate );
 				graph.SetCapacity( capacity );
@@ -955,7 +1043,8 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 5.f, 25.f );
-				graph.SetDescription( "This expression defines the percentage of instructions that have\ncontrol flow divergence (false branches) across the warp." );
+				graph.SetDescription( "This expression defines the percentage of instructions that have\n"
+									  "control flow divergence (false branches) across the warp." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_WrapCount );
 				graph.SetCapacity( capacity, 4 );
@@ -965,6 +1054,7 @@ namespace
 				graph.SetLabel( "full",		 2 );
 				graph.SetLabel( "all reg",	 3 );
 				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
 				graph.SetDescription( "Number of non-fragment warps, fragment warps, full warps, warps using more than 32 registers." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_ThreadCount );
@@ -974,6 +1064,7 @@ namespace
 				graph.SetLabel( "frag",		 1 );
 				graph.SetLabel( "frag-help", 2 );
 				graph.SetColor( style4 );
+				graph.SetSuffix( suffix );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_AllRegWarpRate );
 				graph.SetCapacity( capacity );
@@ -981,7 +1072,9 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 5.f, 25.f );
-				graph.SetDescription( "Warps that use more than 32 registers, requiring the full register allocation of 64 registers.\nWarps that require more than 32 registers halve the peak thread occupancy of the shader core,\nand can make shader performance more sensitive to cache misses and memory stalls." );
+				graph.SetDescription( "Warps that use more than 32 registers, requiring the full register allocation of 64 registers.\n"
+									  "Warps that require more than 32 registers halve the peak thread occupancy of the shader core,\n"
+									  "and can make shader performance more sensitive to cache misses and memory stalls." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FullQuadWarpRate );
 				graph.SetCapacity( capacity );
@@ -989,7 +1082,13 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertInvLimits( 25.f, 50.f );
-				graph.SetDescription( "Warps that have a full thread slot allocation.\nNote that allocated thread slots may not contain a running thread\nif the workload cannot fill the whole allocation.\nFully allocated warps are more likely if:\n* Draw calls avoid late ZS dependency hazards.\n* Draw calls use meshes with a low percentage of tiny primitives.\n* Compute dispatches use work groups that are a multiple of warp size." );
+				graph.SetDescription( "Warps that have a full thread slot allocation.\n"
+									  "Note that allocated thread slots may not contain a running thread\n"
+									  "if the workload cannot fill the whole allocation.\n"
+									  "Fully allocated warps are more likely if:\n"
+									  " * Draw calls avoid late ZS dependency hazards.\n"
+									  " * Draw calls use meshes with a low percentage of tiny primitives.\n"
+									  " * Compute dispatches use work groups that are a multiple of warp size." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Mali_FragRastPartRate );
 				graph.SetCapacity( capacity );
@@ -997,7 +1096,10 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
 				graph.SetAlertLimits( 25.f, 35.f );
-				graph.SetDescription( "Fragment quads that contain samples with no coverage.\nA high percentage can indicate that the content has a high density of small triangles, which are\nexpensive to process. To avoid this, use mesh level-of-detail algorithms to select simpler meshes as\nobjects move further from the camera." );
+				graph.SetDescription( "Fragment quads that contain samples with no coverage.\n"
+									  "A high percentage can indicate that the content has a high density of small triangles, which are\n"
+									  "expensive to process. To avoid this, use mesh level-of-detail algorithms to select simpler meshes as\n"
+									  "objects move further from the camera." );
 			}
 			prof.graphTable.SetCaption( sec, "Shader core" );
 		}
@@ -1125,7 +1227,9 @@ namespace
 				graph.SetName( "bus" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "GPU memory interface load.\nShows the total utilization of the GPU memory bus, for both read and write memory operations over the GPU memory interface within the current period." );
+				graph.SetDescription( "GPU memory interface load.\n"
+									  "Shows the total utilization of the GPU memory bus, for both read and write memory operations\n"
+									  "over the GPU memory interface within the current period." );
 			}
 			prof.graphTable.SetCaption( sec, "External memory" );
 		}{
@@ -1139,7 +1243,10 @@ namespace
 				graph.SetLabel( "tdm",  2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "s" );
-				graph.SetDescription( "Time per frame.\nRenderer - rasterization, fragment shader, output.\nBinning - vertex shader and binning on tiles.\nTDM - ?" );
+				graph.SetDescription( "Time per frame.\n"
+									  "Renderer - rasterization, fragment shader, output.\n"
+									  "Binning - vertex shader and binning on tiles.\n"
+									  "TDM - ?" );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, PVR_GpuActive );
 				graph.SetCapacity( capacity, 4 );
@@ -1150,7 +1257,14 @@ namespace
 				graph.SetLabel( "spm",  3 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "Active/inactive cycles in % for: Renderer, Binning, TDM, SPM.\nRenderer - shows percentage of time that Renderer tasks were active. Renderer time refers to\nany time that is spent processing pixels and shading them. This includes the ISP (Image Synthesis Processor),\n Texturing and Shader Processor units.\nGeometry - input primitives, tiler ?\nTDM - texture data master ?\nSPM - If the GPU overflows the parameter buffer during vertex processing it will enter smart parameter mode and attempt to grow the parameter buffer.\n" );
+				graph.SetDescription( "Active/inactive cycles in % for: Renderer, Binning, TDM, SPM.\n"
+									  "Renderer - shows percentage of time that Renderer tasks were active. Renderer time refers to\n"
+									  "any time that is spent processing pixels and shading them. This includes the ISP (Image Synthesis Processor),\n"
+									  "Texturing and Shader Processor units.\n"
+									  "Geometry - input primitives, tiler ?\n"
+									  "TDM - texture data master ?\n"
+									  "SPM - If the GPU overflows the parameter buffer during vertex processing it will enter smart parameter mode and\n"
+									  "      attempt to grow the parameter buffer." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, PVR_GpuClockSpeed );
 				graph.SetCapacity( capacity );
@@ -1158,7 +1272,8 @@ namespace
 				graph.SetColor( style1 );
 				graph.SetSuffix( "Hz" );
 				graph.SetAlertLimits( 500.0e+6f, 800.0e+6f );
-				graph.SetDescription( "GPU clock speed.\nLow clock indicates low workload." );
+				graph.SetDescription( "GPU clock speed.\n"
+									  "Low clock indicates low workload." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, PVR_GpuCycles );
 				graph.SetCapacity( capacity, 3 );
@@ -1195,7 +1310,15 @@ namespace
 				graph.SetLabel( "isp", 1 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "HSR - represents the effectiveness of the Hidden Surface Removal (HSR) engine, rejecting\nobscured pixels before they get processed. This tells you the percentage of pixels sent to be shaded,\nout of the total number of pixels submitted.\n\nISP show percentage of the time that the ISP pixel-processing is busy.\nThe Image Synthesis Processor (ISP) is the part of the graphic core that fetches the primitive data\nand performs Hidden Surface Removal (HSR), along with depth and stencil tests.\nIt would mean that a large quantity of non-visible (non-shaded) pixels are being processed. These may be hidden due to:\n* The depth/stencil test (e.g. hidden behind an opaque object).\n* A process may be rendering triangles that update only the depth/stencil buffer (and not any colour buffer).\n" );
+				graph.SetDescription( "HSR - represents the effectiveness of the Hidden Surface Removal (HSR) engine, rejecting\n"
+									  "      obscured pixels before they get processed. This tells you the percentage of pixels sent to be shaded,\n"
+									  "      out of the total number of pixels submitted.\n\n"
+									  "ISP show percentage of the time that the ISP pixel-processing is busy.\n"
+									  "The Image Synthesis Processor (ISP) is the part of the graphic core that fetches the primitive data\n"
+									  "and performs Hidden Surface Removal (HSR), along with depth and stencil tests.\n"
+									  "It would mean that a large quantity of non-visible (non-shaded) pixels are being processed. These may be hidden due to:\n"
+									  " * The depth/stencil test (e.g. hidden behind an opaque object).\n"
+									  " * A process may be rendering triangles that update only the depth/stencil buffer (and not any colour buffer)." );
 			}
 			prof.graphTable.SetCaption( sec, "Tiler / Renderer" );
 		}{
@@ -1209,14 +1332,17 @@ namespace
 				graph.SetLabel( "frag",	2 );
 				graph.SetColor( style4 );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "Shader processing load: compute, vertex, pixel.\nA high value indicates that a large percentage of the Shader's workload has been spent executing shader.\nPixel: Reduce alpha blending and discard/alpha test." );
+				graph.SetDescription( "Shader processing load: compute, vertex, pixel.\n"
+									  "A high value indicates that a large percentage of the Shader's workload has been spent executing shader.\n"
+									  "Pixel: Reduce alpha blending and discard/alpha test." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, PVR_ShaderLoad );
 				graph.SetCapacity( capacity );
 				graph.SetName( "shader load" );
 				graph.SetColor( style1 );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "Shader processing load.\nA high value indicates that a large percentage of the Shader's workload has been spent processing vertices, fragments and/or compute kernels." );
+				graph.SetDescription( "Shader processing load.\n"
+									  "A high value indicates that a large percentage of the Shader's workload has been spent processing vertices, fragments and/or compute kernels." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, PVR_RegisterOverload );
 				graph.SetCapacity( capacity, 2 );
@@ -1226,7 +1352,9 @@ namespace
 				graph.SetColor( style4 );
 				graph.SetAlertLimits( 10.f, 25.f );
 				graph.SetSuffix( "%" );
-				graph.SetDescription( "Shader register overload: vertex, pixel.\nThis counter indicates when the hardware is under register pressure.\nThe value should be near 0% or very low in most situations." );
+				graph.SetDescription( "Shader register overload: vertex, pixel.\n"
+									  "This counter indicates when the hardware is under register pressure.\n"
+									  "The value should be near 0% or very low in most situations." );
 			}
 			prof.graphTable.SetCaption( sec, "Shader core" );
 		}{
@@ -1259,7 +1387,8 @@ namespace
 				graph.SetLabel( "filter",	0 );
 				graph.SetLabel( "read",		1 );
 				graph.SetColor( style4 );
-				graph.SetDescription( "Texture filter cycles per fetch.\nTexture read cycles per fetch." );
+				graph.SetDescription( "Texture filter cycles per fetch.\n"
+									  "Texture read cycles per fetch." );
 			}
 			prof.graphTable.SetCaption( sec, "Texture" );
 		}
@@ -1374,7 +1503,9 @@ namespace
 				graph.SetLabel( "kill",		1 );
 				graph.SetLabel( "pass",		2 );
 				graph.SetColor( style4 );
-				graph.SetDescription( "maskgen - primitives killed by maskgen.\nkill - primitives killed by LRZ.\npass - passed primitives." );
+				graph.SetDescription( "maskgen - primitives killed by maskgen.\n"
+									  "kill - primitives killed by LRZ.\n"
+									  "pass - passed primitives." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Adreno_LrzTileKilled );
 				graph.SetCapacity( capacity );
@@ -1396,7 +1527,8 @@ namespace
 				graph.SetLabel( "total", 0 );
 				graph.SetLabel( "full",  1 );
 				graph.SetColor( style4 );
-				graph.SetDescription( "Super tile count. Super tile has size from 32x32px to 256x256px or greater.\nFull - number of fully covered tiles." );
+				graph.SetDescription( "Super tile count. Super tile has size from 32x32px to 256x256px or greater.\n"
+									  "Full - number of fully covered tiles." );
 			}{
 				auto&	graph = prof.graphTable.Add( sec, Adreno_Ras8x4Tiles );
 				graph.SetCapacity( capacity, 2 );
@@ -1606,7 +1738,9 @@ namespace
 				graph.SetColor( style );
 				graph.SetSuffix( "%" );
 				graph.SetRange( 0.f, 100.f );
-				graph.SetDescription( "proc - current process memory usage.\nphys - physical memory (RAM) usage.\nvirt - virtual memory usage (on disk)." );
+				graph.SetDescription( "proc - current process memory usage.\n"
+									  "phys - physical memory (RAM) usage.\n"
+									  "virt - virtual memory usage (on disk)." );
 			}{
 				auto&	graph = _genProf.graphTable.Add( sec, GenPerf_PhysMemUsage );
 				graph.SetCapacity( capacity );
@@ -1630,7 +1764,11 @@ namespace
 				graph.SetLabel( "io",    0 );
 				graph.SetLabel( "hip",   1 );
 				graph.SetColor( style4 );
-				graph.SetDescription( "Context switches per second:\n* io - context switch when awaiting availability of a resource (IO).\n    Use AsyncFile to avoid context switches.\n* hip - higher priority process replace current process.\n    Minimize usage of sync primitives, use task dependencies instead." );
+				graph.SetDescription( "Context switches per second:\n"
+									  " * io  - context switch when awaiting availability of a resource (IO).\n"
+									  "         Use AsyncFile to avoid context switches.\n"
+									  " * hip - higher priority process replace current process.\n"
+									  "         Minimize usage of sync primitives, use task dependencies instead." );
 			}{
 				auto&	graph = _genProf.graphTable.Add( sec, GenPerf_FileIO );
 				graph.SetCapacity( capacity, 2 );
@@ -1648,7 +1786,9 @@ namespace
 				graph.SetSuffix( "%" );
 				graph.SetRange( 0.f, 100.f );
 				graph.SetAlertLimits( 20.f, 60.f );
-				graph.SetDescription( "Percentage of kernel time.\nCan be large when app has low workload (low CPU usage).\nOn high CPU usage should be low." );
+				graph.SetDescription( "Percentage of kernel time.\n"
+									  "Can be large when app has low workload (low CPU usage).\n"
+									  "On high CPU usage should be low." );
 			}
 			_genProf.graphTable.SetCaption( sec, "Process" );
 		}{
@@ -1662,7 +1802,9 @@ namespace
 				graph.SetColor( style4 );
 				graph.SetSuffix( "W" );
 				graph.SetAlertLimits( 3.f, 6.f );	// for mobile
-				graph.SetDescription( "Device power consumption based on battery indicators.\nNow - measure power as current * voltage.\nAvg - measure changes in battery capacity." );
+				graph.SetDescription( "Device power consumption based on battery indicators.\n"
+									  "Now - measure power as current * voltage.\n"
+									  "Avg - measure changes in battery capacity." );
 			}{
 				auto&	graph = _genProf.graphTable.Add( sec, GenPerf_BatteryDischargeTotal );
 				graph.SetCapacity( capacity );

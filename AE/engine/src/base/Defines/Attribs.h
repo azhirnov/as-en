@@ -491,7 +491,7 @@
 #	 if AE_SIMD_NEON_HALF
 #	  undef  AE_SIMD_NEON_HALF
 #	  define AE_SIMD_NEON_HALF	0
-#	  pragma message "AE_SIMD_NEON_HALF requires ARMv8.2-A"
+#	  pragma message( "AE_SIMD_NEON_HALF requires ARMv8.2-A" )
 #	 endif
 #	endif
 
@@ -531,11 +531,11 @@
 #  endif
 
 	// AVX 512
-#  if AE_SIMD_AVX >= 3
-#	if defined(AE_COMPILER_MSVC)
-#	  include <zmmintrin.h>			// included in 'immintrin.h'
-#	elif defined(AE_COMPILER_CLANG)
+#  if AE_SIMD_AVX >= 30
+#	if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	  include <avx512fp16intrin.h>	// clang
+#	elif defined(AE_COMPILER_MSVC)
+#	  include <zmmintrin.h>			// included in 'immintrin.h'
 #	else
 #	  error include AVX512 header
 #	endif

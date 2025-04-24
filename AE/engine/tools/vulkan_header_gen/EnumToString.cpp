@@ -128,7 +128,8 @@ namespace
 			"VkFormat", "VkPipelineStageFlagBits", "VkAccessFlagBits", "VkImageLayout",
 			"VkDependencyFlagBits", "VkSampleCountFlagBits", "VkAttachmentLoadOp", "VkAttachmentStoreOp",
 			"VkImageAspectFlagBits", "VkStructureType", "VkRenderPassCreateFlagBits", "VkAttachmentDescriptionFlagBits",
-			"VkSubpassDescriptionFlagBits", "VkPipelineBindPoint", "VkQueueFlagBits", "VkDeviceMemoryReportEventTypeEXT"
+			"VkSubpassDescriptionFlagBits", "VkPipelineBindPoint", "VkQueueFlagBits", "VkDeviceMemoryReportEventTypeEXT",
+			"VkComponentTypeKHR", "VkScopeKHR"
 		};
 		const Pair<const char*, const char*>	req_bitfields[] = {
 			{ "VkPipelineStageFlags",			"VkPipelineStageFlagBits" },

@@ -63,7 +63,7 @@
 		switch ( iProj )
 		{
 			// screen ViewProj matrix to ray:
-			case 0 :	ray = Ray_From( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, z_near, uv );			break;
+			case 0 :	ray = Ray_Perspective( un_PerPass.camera.invViewProj, un_PerPass.camera.pos, z_near, uv );			break;
 
 			// VR video:
 			case 1 :	ray = Ray_PlaneToVR180( ipd, un_PerPass.camera.pos, z_near, uv );
@@ -77,20 +77,20 @@
 						uv2 = RayInverse_PlaneTo360( ray.dir );														break;
 
 			// flat screen	(fov=45, iDistToEye=0.474) (fov=90, iDistToEye=0.105)
-			case 4 :	ray = Ray_FromFlatScreen( un_PerPass.camera.pos, iDistToEye, screen_size, z_near, ToSNorm(uv) ); break;
+			case 4 :	ray = Ray_PerspectiveFromFlatScreen( un_PerPass.camera.pos, iDistToEye, screen_size, z_near, ToSNorm(uv) ); break;
 
 			// flat screen FOV
-			case 5 :	ray = Ray_FromScreen( un_PerPass.camera.pos, fov, z_near, ToSNorm(uv) );					break;
+			case 5 :	ray = Ray_Perspective( un_PerPass.camera.pos, fov, z_near, ToSNorm(uv) );					break;
 
 			// curved screen
-			case 6 :	ray = Ray_FromCurvedScreen( un_PerPass.camera.pos, iDistToEye, curve_radius, screen_size, z_near, ToSNorm(uv) ); break;
+			case 6 :	ray = Ray_PerspectiveFromCurvedScreen( un_PerPass.camera.pos, iDistToEye, curve_radius, screen_size, z_near, ToSNorm(uv) ); break;
 
 			// sphere
 			case 7 :	ray = Ray_PlaneToSphere( fov, un_PerPass.camera.pos, z_near, ToSNorm(uv) );					break;
 
 			// flat screen + sphere
 			case 8 : {
-						ray = Ray_FromFlatScreen( un_PerPass.camera.pos, iDistToEye, screen_size, z_near, ToSNorm(uv) );
+						ray = Ray_PerspectiveFromFlatScreen( un_PerPass.camera.pos, iDistToEye, screen_size, z_near, ToSNorm(uv) );
 				Ray		r = Ray_PlaneToSphere( fov, un_PerPass.camera.pos, z_near, ToSNorm(uv) );
 				ray.dir = Normalize( Lerp( ray.dir, r.dir, iLerp ));	// flat -> sphere
 				break;

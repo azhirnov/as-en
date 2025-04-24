@@ -41,10 +41,10 @@ Engine documentation:
  * [Resource Compilation](AE/docs/engine/ResourceCompilation.md)
 
 Source code:
- * [Engine](engine/src)
- * [Engine tests](engine/tests)
- * [Engine tools](engine/tools)
- * [All samples](samples)
+ * [Engine](AE/engine/src)
+ * [Engine tests](AE/engine/tests)
+ * [Engine tools](AE/engine/tools)
+ * [All samples](AE/samples)
 
 Tools:
  * [Lock-Free Algorithms Sandbox](AE/engine/tools/lfas/Readme.md)

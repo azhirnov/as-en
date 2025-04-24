@@ -292,21 +292,12 @@
 
 		float4	c0	= gl.texture.Sample( un_Texture, uv ) * 0.5;
 
-		float4	c1	= gl.texture.Sample( un_Texture, uv + float2(-off.x, -off.y) ) * (1.0/8.0);
-		float4	c2	= gl.texture.Sample( un_Texture, uv + float2( off.x, -off.y) ) * (1.0/8.0);
-		float4	c3	= gl.texture.Sample( un_Texture, uv + float2(-off.x,  off.y) ) * (1.0/8.0);
-		float4	c4	= gl.texture.Sample( un_Texture, uv + float2( off.x,  off.y) ) * (1.0/8.0);
+		float4	c1	= gl.texture.Sample( un_Texture, uv + float2(-off.x, -off.y) );
+		float4	c2	= gl.texture.Sample( un_Texture, uv + float2( off.x, -off.y) );
+		float4	c3	= gl.texture.Sample( un_Texture, uv + float2(-off.x,  off.y) );
+		float4	c4	= gl.texture.Sample( un_Texture, uv + float2( off.x,  off.y) );
 
-		{
-			float2	dim	= float2(gl.texture.GetSize( un_Texture, 0 ));
-			float2	p0	= uv * dim;
-			float2	p1	= (uv + float2(-off.x, -off.y)) * dim;
-			float2	p2	= (uv + float2( off.x, -off.y)) * dim;
-			float2	p3	= (uv + float2(-off.x,  off.y)) * dim;
-			float2	p4	= (uv + float2( off.x,  off.y)) * dim;
-		}
-
-		out_Color = c0 + c1 + c2 + c3 + c4;
+		out_Color = c0 + (c1 + c2 + c3 + c4) * (1.0/8.0);
 	}
 
 #endif

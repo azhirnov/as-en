@@ -1,4 +1,4 @@
-//d9b27fd8
+//7a05a821
 #pragma once
 #include <vector>
 #include <string>
@@ -24,120 +24,122 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
+struct Random_Normal1;
+struct UnifiedGeometry_Draw;
+struct Random_Normal2;
+struct Random_Normal3;
+struct ComputeMip;
 struct ubyte2;
 struct ubyte3;
 struct FPVCamera;
 struct VideoImage;
 struct Random_Normal4;
-struct Random_Normal1;
-struct Random_Normal2;
-struct UnifiedGeometry_Draw;
-struct Random_Normal3;
-struct RTInstanceSBTOffset;
-struct RTInstanceCustomIndex;
 struct ubyte4;
+struct RTInstanceCustomIndex;
 struct RemoteCamera;
+struct RTInstanceSBTOffset;
 struct RayIndex;
 struct RTScene;
 struct Collection;
-struct HSVColor;
-struct RGBA32f;
 struct bool3;
 struct bool2;
 struct DynamicULong;
-struct bool4;
 struct SceneGraphicsPass;
+struct bool4;
 struct RGBA32i;
-struct Image;
-struct UnifiedGeometry_DrawIndexedIndirectCount;
-struct UnifiedGeometry_DrawIndexed;
+struct HSVColor;
+struct RGBA32f;
 struct short3;
 struct Random;
 struct short2;
-struct ushort4;
 struct Quat;
+struct UnifiedGeometry_DrawIndexed;
+struct ushort4;
 struct sbyte3;
 struct sbyte4;
-struct float4;
-struct DynamicFloat3;
-struct DynamicUInt4;
-struct RTGeometry;
-struct DynamicFloat2;
-struct RTShader;
-struct DynamicUInt2;
-struct DynamicUInt3;
-struct DynamicFloat4;
+struct UnifiedGeometry_DrawIndexedIndirectCount;
+struct Image;
 struct DynamicInt3;
 struct DynamicInt2;
 struct DynamicInt4;
 struct GeomSource;
 struct UnifiedGeometry_DrawIndirect;
+struct DynamicFloat3;
+struct float4;
+struct RTGeometry;
+struct DynamicUInt4;
+struct DynamicFloat2;
+struct RTShader;
+struct DynamicUInt2;
+struct DynamicUInt3;
+struct DynamicFloat4;
 struct RTInstanceTransform;
 struct float3;
 struct float2;
 struct DynamicInt;
 struct InstanceIndex;
-struct Random_Binomial4;
-struct Random_Binomial3;
-struct Random_Binomial1;
-struct IPass;
-struct MultiSamples;
-struct Random_Binomial2;
 struct UnifiedGeometry_DrawIndexedIndirect;
 struct float2x4;
 struct float2x2;
 struct float2x3;
+struct Random_Binomial4;
+struct Random_Binomial3;
+struct Random_Binomial1;
+struct IPass;
+struct Random_Binomial2;
+struct MultiSamples;
 struct DepthStencil;
+struct ScaleBiasCamera;
+struct TopDownCamera;
 struct FlightCamera;
 struct BaseController;
 struct MipmapLevel;
-struct ScaleBiasCamera;
-struct TopDownCamera;
+struct float3x3;
+struct float3x2;
+struct float3x4;
+struct Model;
 struct DynamicUInt;
 struct float4x2;
 struct float4x4;
 struct float4x3;
 struct VertexStride;
-struct float3x3;
-struct float3x2;
-struct float3x4;
-struct Model;
-struct ushort2;
-struct sbyte2;
-struct ushort3;
-struct short4;
-struct Scene;
 struct int2;
 struct int3;
 struct int4;
 struct ImageLayer;
-struct RectF;
-struct SphericalCube;
-struct RGBA32u;
+struct ushort2;
+struct ushort3;
+struct sbyte2;
+struct short4;
+struct Scene;
 struct OrbitalCamera;
-struct UnifiedGeometry_DrawMeshTasks;
 struct VertexAttribDivisor;
 struct RGBA8u;
 struct UnifiedGeometry_DrawMeshTasksIndirectCount;
-struct FPSCamera;
+struct RectF;
+struct SphericalCube;
+struct RGBA32u;
+struct uint3;
+struct uint2;
+struct RectI;
+struct UnifiedGeometry_DrawMeshTasks;
+struct DynamicFloat;
+struct RTInstanceMask;
 struct DynamicDim;
+struct FPSCamera;
 struct RectU;
 struct uint4;
 struct RayTracingPass;
-struct uint2;
-struct uint3;
-struct RectI;
-struct DynamicFloat;
-struct RTInstanceMask;
-struct UnifiedGeometry;
 struct EnableLabel;
 struct Postprocess;
 struct SceneRayTracingPass;
+struct FeatureSet;
 struct UnifiedGeometry_DrawMeshTasksIndirect;
 struct ComputePass;
+struct UnifiedGeometry;
+struct UnifiedGeometry_DrawIndirectCount;
 struct CallableIndex;
 struct Buffer;
-struct UnifiedGeometry_DrawIndirectCount;
 
 enum class EImageType : uint16
 {
@@ -1352,6 +1354,7 @@ enum class ESurfaceFormat : uint8
 	BGRA8_sRGB_nonlinear,
 	RGBA8_sRGB_nonlinear,
 	BGRA8_BT709_nonlinear,
+	RGBA16F_sRGB_nonlinear,
 	RGBA16F_Extended_sRGB_linear,
 	RGBA16F_Extended_sRGB_nonlinear,
 	RGBA16F_BT709_nonlinear,
@@ -1518,6 +1521,16 @@ uint8  operator | (EColorSpace lhs, EColorSpace rhs);
 uint8  operator | (uint8 lhs, EColorSpace rhs);
 uint8  operator | (EColorSpace lhs, uint8 rhs);
 
+enum class ERenderLayer : uint32
+{
+	Opaque,
+	Translucent,
+	PostProcess,
+};
+uint32  operator | (ERenderLayer lhs, ERenderLayer rhs);
+uint32  operator | (uint32 lhs, ERenderLayer rhs);
+uint32  operator | (ERenderLayer lhs, uint32 rhs);
+
 enum class DbgViewFlags : uint32
 {
 	NoCopy,
@@ -1581,7 +1594,7 @@ enum class EPassFlags : uint8
 	// Reference to the last recorded trace will be added to console and IDE log, click on it to open file.
 	Enable_ShaderTrace,
 
-	// ShaderFunctionProfiling - record time of user function calls, sort it and save to file.
+	// ShaderFunctionProfiling - record time of user function calls, then sort results and save to file.
 	Enable_ShaderFnProf,
 
 	// Enable all debug features.
@@ -1591,15 +1604,22 @@ uint8  operator | (EPassFlags lhs, EPassFlags rhs);
 uint8  operator | (uint8 lhs, EPassFlags rhs);
 uint8  operator | (EPassFlags lhs, uint8 rhs);
 
-enum class ERenderLayer : uint32
+enum class EFormatFeature : uint32
 {
-	Opaque,
-	Translucent,
-	PostProcess,
+	StorageImageAtomic,
+	StorageImage,
+	AttachmentBlend,
+	Attachment,
+	LinearSampled,
+	UniformTexelBuffer,
+	StorageTexelBuffer,
+	StorageTexelBufferAtomic,
+	HWCompressedAttachment,
+	LossyCompressedAttachment,
 };
-uint32  operator | (ERenderLayer lhs, ERenderLayer rhs);
-uint32  operator | (uint32 lhs, ERenderLayer rhs);
-uint32  operator | (ERenderLayer lhs, uint32 rhs);
+uint32  operator | (EFormatFeature lhs, EFormatFeature rhs);
+uint32  operator | (uint32 lhs, EFormatFeature rhs);
+uint32  operator | (EFormatFeature lhs, uint32 rhs);
 
 string  FindAndReplace (const string &, const string &, const string &);
 bool  StartsWith (const string &, const string &);
@@ -1623,6 +1643,8 @@ const string Sampler_Anisotropy16Repeat;
 const string Sampler_Anisotropy16MirrorRepeat;
 const string Sampler_Anisotropy16Clamp;
 const string Sampler_NearestClampSubsampled;
+const string Sampler_MaxLinearClamp;
+const string Sampler_MinLinearClamp;
 using sbyte = int8;
 using ubyte = uint8;
 using sshort = int16;
@@ -2813,8 +2835,8 @@ struct float4x4
 	float4x4  RotateZ (float angle) const;
 	float4x4  Rotate (float angle, const float3 & axis) const;
 	float4x4  Ortho (const RectF & viewport, const float2 & range) const;
-	float4x4  InfinitePerspective (float fovY, float aspect, float zNear) const;
-	float4x4  Perspective (float fovY, float aspect, const float2 & range) const;
+	float4x4  InfinitePerspective (float fovY, float aspectRatio, float zNear) const;
+	float4x4  Perspective (float fovY, float aspectRatio, const float2 & range) const;
 	float4x4  Perspective (float fovY, const float2 & viewport, const float2 & range) const;
 	float4x4  Frustum (const RectF & viewport, const float2 & range) const;
 	float4x4  InfiniteFrustum (const RectF & viewport, float zNear) const;
@@ -3079,15 +3101,21 @@ struct DynamicUInt
 	RC<DynamicUInt>  Sub (uint);
 	RC<DynamicUInt>  Pow (uint);
 	RC<DynamicUInt>  PowOf2 ();
-	RC<DynamicUInt>  PowOf2 (uint);
+	RC<DynamicUInt>  PowOf2 (uint scale);
 	RC<DynamicUInt>  Min (uint);
 	RC<DynamicUInt>  Max (uint);
+	RC<DynamicUInt>  FloorPOT ();
+	RC<DynamicUInt>  CeilPOT ();
 	RC<DynamicUInt>  Mul (const RC<DynamicUInt> &);
 	RC<DynamicUInt>  Div (const RC<DynamicUInt> &);
 	RC<DynamicUInt>  Add (const RC<DynamicUInt> &);
 	RC<DynamicUInt>  Sub (const RC<DynamicUInt> &);
 	RC<DynamicUInt>  Min (const RC<DynamicUInt> &);
 	RC<DynamicUInt>  Max (const RC<DynamicUInt> &);
+	RC<DynamicUInt2>  X1 ();
+	RC<DynamicUInt2>  XX ();
+	RC<DynamicUInt3>  X11 ();
+	RC<DynamicUInt3>  XXX ();
 	RC<DynamicFloat>  ToFloat ();
 	RC<DynamicFloat>  Percent (const RC<DynamicUInt> &);
 	RC<DynamicDim>  Dimension2 ();
@@ -3101,6 +3129,24 @@ struct DynamicUInt2
 	RC<DynamicUInt>  X () const;
 	RC<DynamicUInt>  Y () const;
 	RC<DynamicUInt2>  PowOf2 ();
+	RC<DynamicUInt2>  Mul (const uint2 &);
+	RC<DynamicUInt2>  Div (const uint2 &);
+	RC<DynamicUInt2>  DivNear (const uint2 &);
+	RC<DynamicUInt2>  DivCeil (const uint2 &);
+	RC<DynamicUInt2>  Add (const uint2 &);
+	RC<DynamicUInt2>  Sub (const uint2 &);
+	RC<DynamicUInt2>  Pow (const uint2 &);
+	RC<DynamicUInt2>  Min (const uint2 &);
+	RC<DynamicUInt2>  Max (const uint2 &);
+	RC<DynamicUInt2>  FloorPOT ();
+	RC<DynamicUInt2>  CeilPOT ();
+	RC<DynamicUInt2>  Mul (const RC<DynamicUInt2> &);
+	RC<DynamicUInt2>  Div (const RC<DynamicUInt2> &);
+	RC<DynamicUInt2>  Add (const RC<DynamicUInt2> &);
+	RC<DynamicUInt2>  Sub (const RC<DynamicUInt2> &);
+	RC<DynamicUInt2>  Min (const RC<DynamicUInt2> &);
+	RC<DynamicUInt2>  Max (const RC<DynamicUInt2> &);
+	RC<DynamicUInt>  Area () const;
 	RC<DynamicDim>  Dimension ();
 };
 
@@ -3111,6 +3157,24 @@ struct DynamicUInt3
 	RC<DynamicUInt>  X () const;
 	RC<DynamicUInt>  Y () const;
 	RC<DynamicUInt>  Z () const;
+	RC<DynamicUInt3>  Mul (const uint3 &);
+	RC<DynamicUInt3>  Div (const uint3 &);
+	RC<DynamicUInt3>  DivNear (const uint3 &);
+	RC<DynamicUInt3>  DivCeil (const uint3 &);
+	RC<DynamicUInt3>  Add (const uint3 &);
+	RC<DynamicUInt3>  Sub (const uint3 &);
+	RC<DynamicUInt3>  Pow (const uint3 &);
+	RC<DynamicUInt3>  Min (const uint3 &);
+	RC<DynamicUInt3>  Max (const uint3 &);
+	RC<DynamicUInt3>  FloorPOT ();
+	RC<DynamicUInt3>  CeilPOT ();
+	RC<DynamicUInt3>  Mul (const RC<DynamicUInt3> &);
+	RC<DynamicUInt3>  Div (const RC<DynamicUInt3> &);
+	RC<DynamicUInt3>  Add (const RC<DynamicUInt3> &);
+	RC<DynamicUInt3>  Sub (const RC<DynamicUInt3> &);
+	RC<DynamicUInt3>  Min (const RC<DynamicUInt3> &);
+	RC<DynamicUInt3>  Max (const RC<DynamicUInt3> &);
+	RC<DynamicUInt>  Volume () const;
 };
 
 struct DynamicUInt4
@@ -3168,7 +3232,7 @@ struct DynamicFloat
 	RC<DynamicFloat>  Sub (float);
 	RC<DynamicFloat>  Pow (float);
 	RC<DynamicFloat>  PowOf2 ();
-	RC<DynamicFloat>  PowOf2 (float);
+	RC<DynamicFloat>  PowOf2 (float scale);
 	RC<DynamicFloat>  Min (float);
 	RC<DynamicFloat>  Max (float);
 	RC<DynamicFloat>  Mul (const RC<DynamicFloat> &);
@@ -3233,6 +3297,7 @@ struct DynamicDim
 	RC<DynamicDim>  Div (const int3 &) const;
 	RC<DynamicDim>  DivRound (const int3 &) const;
 	RC<DynamicDim>  DivCeil (const int3 &) const;
+	RC<DynamicDim>  FloorPOT () const;
 	RC<DynamicUInt>  X () const;
 	RC<DynamicUInt>  Y () const;
 	RC<DynamicUInt2>  XY () const;
@@ -3916,6 +3981,7 @@ struct UnifiedGeometry_Draw
 	uint instanceCount;
 	uint firstVertex;
 	uint firstInstance;
+	ERenderLayer layer;
 };
 
 struct UnifiedGeometry_DrawIndexed
@@ -3938,6 +4004,7 @@ struct UnifiedGeometry_DrawIndexed
 	uint firstIndex;
 	int vertexOffset;
 	uint firstInstance;
+	ERenderLayer layer;
 };
 
 struct UnifiedGeometry_DrawIndirect
@@ -3958,6 +4025,7 @@ struct UnifiedGeometry_DrawIndirect
 	// Stride must be at least 16 bytes and multiple of 4.
 	uint stride;
 	uint drawCount;
+	ERenderLayer layer;
 };
 
 struct UnifiedGeometry_DrawIndexedIndirect
@@ -3983,6 +4051,7 @@ struct UnifiedGeometry_DrawIndexedIndirect
 	// Stride must be at least 20 bytes and multiple of 4.
 	uint stride;
 	uint drawCount;
+	ERenderLayer layer;
 };
 
 struct UnifiedGeometry_DrawMeshTasks
@@ -3993,6 +4062,7 @@ struct UnifiedGeometry_DrawMeshTasks
 	void  TaskCount (const RC<DynamicUInt3> &);
 	void  TaskCount (const RC<DynamicUInt> &);
 	uint3 taskCount;
+	ERenderLayer layer;
 };
 
 struct UnifiedGeometry_DrawMeshTasksIndirect
@@ -4013,6 +4083,7 @@ struct UnifiedGeometry_DrawMeshTasksIndirect
 	// Stride must be at least 12 bytes and multiple of 4.
 	uint stride;
 	uint drawCount;
+	ERenderLayer layer;
 };
 
 struct UnifiedGeometry_DrawIndirectCount
@@ -4038,6 +4109,7 @@ struct UnifiedGeometry_DrawIndirectCount
 	// Stride must be at least 16 bytes and multiple of 4.
 	uint stride;
 	uint maxDrawCount;
+	ERenderLayer layer;
 };
 
 struct UnifiedGeometry_DrawIndexedIndirectCount
@@ -4068,6 +4140,7 @@ struct UnifiedGeometry_DrawIndexedIndirectCount
 	// Stride must be at least 20 bytes and multiple of 4.
 	uint stride;
 	uint maxDrawCount;
+	ERenderLayer layer;
 };
 
 struct UnifiedGeometry_DrawMeshTasksIndirectCount
@@ -4093,6 +4166,7 @@ struct UnifiedGeometry_DrawMeshTasksIndirectCount
 	// Stride must be at least 12 bytes and multiple of 4.
 	uint stride;
 	uint maxDrawCount;
+	ERenderLayer layer;
 };
 
 struct UnifiedGeometry
@@ -4380,12 +4454,17 @@ struct Postprocess
 	// Used instead of 'Output()' to define image as input attachment & color attachment (read/write input attachment).
 	void  InOut (const string & inName, const string & outName, const RC<Image> & image);
 
+	// Used instead of 'ArgIn' to define image as input attachment. Supports color and depth formats.
+	void  Input (const string & inName, const RC<Image> & image, const string & attachmentName);
+
 	// Add fragment shading rate attachment.
 	void  FragmentShadingRate (const RC<Image> & image);
 
 	// Add fragment density map attachment.
 	void  FragmentDensityMap (const RC<Image> & image);
 	void  DepthRange (float min, float max);
+
+	// Add viewport. 'rect' defined in unorm coords.
 	void  AddViewport (const RectF & rect, float minDepth, float maxDepth, const RectF & scissor, const float2 & wScale);
 	void  AddViewport (const RectF & rect, float minDepth, float maxDepth);
 	void  AddViewport (const RectF & rect);
@@ -4537,6 +4616,106 @@ struct ComputePass
 	void  DispatchGroupsIndirect (const RC<Buffer> & indirectBuffer);
 	void  DispatchGroupsIndirect (const RC<Buffer> & indirectBuffer, uint64 indirectBufferOffset);
 	void  DispatchGroupsIndirect (const RC<Buffer> & indirectBuffer, const string & indirectBufferField);
+};
+
+struct ComputeMip
+{
+
+	// Set debug label and color. It is used in graphics profiler.
+	void  SetDebugLabel (const string & label);
+	void  SetDebugLabel (const string & label, const RGBA8u & color);
+	void  SetDebugLabel (const string & label, const RGBA32f & color);
+	void  AddFlag (EPassFlags);
+
+	// Add slider to UI. Data passed to all shaders in the current pass.
+	void  SliderI (const string & name);
+	void  Slider (const string & name, int min, int max);
+	void  Slider (const string & name, const int2 & min, const int2 & max);
+	void  Slider (const string & name, const int3 & min, const int3 & max);
+	void  Slider (const string & name, const int4 & min, const int4 & max);
+	void  Slider (const string & name, int min, int max, int initial);
+	void  Slider (const string & name, const int2 & min, const int2 & max, const int2 & initial);
+	void  Slider (const string & name, const int3 & min, const int3 & max, const int3 & initial);
+	void  Slider (const string & name, const int4 & min, const int4 & max, const int4 & initial);
+	void  SliderF (const string & name);
+	void  Slider (const string & name, float min, float max);
+	void  Slider (const string & name, const float2 & min, const float2 & max);
+	void  Slider (const string & name, const float3 & min, const float3 & max);
+	void  Slider (const string & name, const float4 & min, const float4 & max);
+	void  Slider (const string & name, float min, float max, float initial);
+	void  Slider (const string & name, const float2 & min, const float2 & max, const float2 & initial);
+	void  Slider (const string & name, const float3 & min, const float3 & max, const float3 & initial);
+	void  Slider (const string & name, const float4 & min, const float4 & max, const float4 & initial);
+	void  ColorSelector (const string & name);
+	void  ColorSelector (const string & name, const RGBA32f & initial);
+	void  ColorSelector (const string & name, const RGBA8u & initial);
+
+	// Value of 'dynamicValue' will be passed to all shaders in the current pass.
+	// Value of 'dynamicValue' is constant for whole frame and also can be used in draw call or another pass.
+	void  Constant (const string & name, const RC<DynamicFloat> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicFloat2> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicFloat3> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicFloat4> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicInt> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicInt2> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicInt3> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicInt4> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicUInt> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicUInt2> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicUInt3> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicUInt4> & dynamicValue);
+	void  Constant (const string & name, const RC<DynamicDim> & dynamicValue);
+	void  Constant (const string & name, float constValue);
+	void  Constant (const string & name, const float2 & constValue);
+	void  Constant (const string & name, const float3 & constValue);
+	void  Constant (const string & name, const float4 & constValue);
+	void  Constant (const string & name, int constValue);
+	void  Constant (const string & name, const int2 & constValue);
+	void  Constant (const string & name, const int3 & constValue);
+	void  Constant (const string & name, const int4 & constValue);
+	void  Constant (const string & name, uint constValue);
+	void  Constant (const string & name, const uint2 & constValue);
+	void  Constant (const string & name, const uint3 & constValue);
+	void  Constant (const string & name, const uint4 & constValue);
+
+	// Returns dynamic dimension of the pass.
+	// It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches.
+	RC<DynamicDim>  Dimension ();
+	void  EnableIfEqual (const RC<DynamicUInt> & dynamic, uint refValue);
+	void  EnableIfLess (const RC<DynamicUInt> & dynamic, uint refValue);
+	void  EnableIfGreater (const RC<DynamicUInt> & dynamic, uint refValue);
+	void  EnableIfAnyBit (const RC<DynamicUInt> & dynamic, uint refValue);
+
+	// Repeat pass multiple times.
+	// Can be used for performance tests.
+	void  Repeat (const RC<DynamicUInt> &);
+
+	// Add resource to all shaders in the current pass.
+	// In  - resource is used for read access.
+	// Out - resource is used for write access.
+	void  ArgIn (const string & uniformName, const RC<RTScene> & resource);
+	void  ArgIn (const string & uniformName, const RC<Buffer> & resource);
+	void  ArgOut (const string & uniformName, const RC<Buffer> & resource);
+	void  ArgInOut (const string & uniformName, const RC<Buffer> & resource);
+	void  ArgIn (const string & uniformName, const RC<Image> & resource);
+	void  ArgOut (const string & uniformName, const RC<Image> & resource);
+	void  ArgInOut (const string & uniformName, const RC<Image> & resource);
+	void  ArgTex (const string & uniformName, const RC<Image> & resource);
+	void  ArgIn (const string & uniformName, const RC<Image> & resource, const string & samplerName);
+	void  ArgTex (const string & uniformName, const array<Image@> & resources);
+	void  ArgIn (const string & uniformName, const array<Image@> & resources, const string & samplerName);
+	void  ArgIn (const string & uniformName, const RC<VideoImage> & resource, const string & samplerName);
+	void  Set (const RC<BaseController> & camera);
+	void  ArgIn (const string & uniformName, const array<Image@> & resources);
+	void  ArgOut (const string & uniformName, const array<Image@> & resources);
+	void  ArgInOut (const string & uniformName, const array<Image@> & resources);
+	ComputeMip  ();
+	ComputeMip (const string & shaderPath);
+	ComputeMip (const string & shaderPath, const string & defines);
+	void  Variable (const string & inName, const string & outName, const RC<Image> & image);
+	void  Variable (const string & inName, const string & outName, const RC<Image> & image, const string & sampler);
+	void  Variable (const string & inName, const string & outName, const RC<Image> & image, const MipmapLevel & baseMipmap);
+	void  Variable (const string & inName, const string & outName, const RC<Image> & image, const MipmapLevel & baseMipmap, const string & sampler);
 };
 
 struct InstanceIndex
@@ -4852,12 +5031,20 @@ struct SceneGraphicsPass
 	void  OutputLS (const RC<Image> & image, EAttachmentLoadOp loadOp, EAttachmentStoreOp storeOp);
 	void  OutputLS (const string & name, const RC<Image> & image, EAttachmentLoadOp loadOp, EAttachmentStoreOp storeOp);
 
+	// Used instead of 'Output()' to define image as input attachment & color attachment (read/write input attachment).
+	void  InOut (const string & inName, const string & outName, const RC<Image> & image);
+
+	// Used instead of 'ArgIn' to define image as input attachment. Supports color and depth formats.
+	void  Input (const string & inName, const RC<Image> & image, const string & attachmentName);
+
 	// Add fragment shading rate attachment.
 	void  FragmentShadingRate (const RC<Image> & image);
 
 	// Add fragment density map attachment.
 	void  FragmentDensityMap (const RC<Image> & image);
 	void  DepthRange (float min, float max);
+
+	// Add viewport. 'rect' defined in unorm coords.
 	void  AddViewport (const RectF & rect, float minDepth, float maxDepth, const RectF & scissor, const float2 & wScale);
 	void  AddViewport (const RectF & rect, float minDepth, float maxDepth);
 	void  AddViewport (const RectF & rect);
@@ -4873,6 +5060,8 @@ struct SceneGraphicsPass
 
 	// Can be used only if pass hasn't attachments.
 	void  SetDimension (const RC<DynamicDim> &);
+	void  NextSubpass ();
+	void  NextSubpass (const string & passName);
 };
 
 struct SceneRayTracingPass
@@ -5004,6 +5193,478 @@ struct Scene
 	RC<SceneRayTracingPass>  AddRayTracingPass (const string & name);
 };
 
+struct FeatureSet
+{
+	FeatureSet ();
+	FeatureSet (const string & name);
+	void  AddTexelFormats (EFormatFeature, const array<EPixelFormat> &);
+	void  AddSurfaceFormats (const array<ESurfaceFormat> &);
+	void  AddSubgroupOperation (ESubgroupOperation);
+	void  AddSubgroupOperations (const array<ESubgroupOperation> &);
+	void  AddSubgroupOperationRange (ESubgroupOperation, ESubgroupOperation);
+	void  AddVertexFormats (const array<EVertexType> &);
+	void  AddAccelStructVertexFormats (const array<EVertexType> &);
+	void  IncludeVendor (EGPUVendor);
+	void  ExcludeVendor (EGPUVendor);
+	void  IncludeVendors (const array<EGPUVendor> &);
+	void  ExcludeVendors (const array<EGPUVendor> &);
+	void  IncludeDevice (EGraphicsDeviceID);
+	void  ExcludeDevice (EGraphicsDeviceID);
+	void  MergeMin (RC<FeatureSet>);
+	void  MergeMax (RC<FeatureSet>);
+	void  Copy (RC<FeatureSet>);
+	void  framebufferColorSampleCounts (const array<uint> &);
+	void  framebufferDepthSampleCounts (const array<uint> &);
+	void  maxSpirvVersion (uint);
+	void  maxMetalVersion (uint);
+	void  supportedQueues (EQueueMask);
+	void  requiredQueues (EQueueMask);
+	void  AddShadingRate (const array<uint> &, const array<uint> &);
+	void  fragmentShadingRateTexelSize (const array<uint> &, const array<uint> &, uint);
+	void  alphaToOne (EFeature);
+	bool  hasAlphaToOne ();
+	void  depthBiasClamp (EFeature);
+	bool  hasDepthBiasClamp ();
+	void  depthBounds (EFeature);
+	bool  hasDepthBounds ();
+	void  depthClamp (EFeature);
+	bool  hasDepthClamp ();
+	void  dualSrcBlend (EFeature);
+	bool  hasDualSrcBlend ();
+	void  fillModeNonSolid (EFeature);
+	bool  hasFillModeNonSolid ();
+	void  independentBlend (EFeature);
+	bool  hasIndependentBlend ();
+	void  logicOp (EFeature);
+	bool  hasLogicOp ();
+	void  sampleRateShading (EFeature);
+	bool  hasSampleRateShading ();
+	void  constantAlphaColorBlendFactors (EFeature);
+	bool  hasConstantAlphaColorBlendFactors ();
+	void  pointPolygons (EFeature);
+	bool  hasPointPolygons ();
+	void  triangleFans (EFeature);
+	bool  hasTriangleFans ();
+	void  largePoints (EFeature);
+	bool  hasLargePoints ();
+	void  wideLines (EFeature);
+	bool  hasWideLines ();
+	void  subgroupTypes (uint);
+	void  subgroupStages (uint);
+	void  subgroupQuadStages (uint);
+	void  requiredSubgroupSizeStages (uint);
+	void  minSubgroupSize (uint);
+	void  maxSubgroupSize (uint);
+	void  subgroup (EFeature);
+	bool  hasSubgroup ();
+	void  subgroupBroadcastDynamicId (EFeature);
+	bool  hasSubgroupBroadcastDynamicId ();
+	void  subgroupSizeControl (EFeature);
+	bool  hasSubgroupSizeControl ();
+	void  shaderSubgroupUniformControlFlow (EFeature);
+	bool  hasShaderSubgroupUniformControlFlow ();
+	void  shaderMaximalReconvergence (EFeature);
+	bool  hasShaderMaximalReconvergence ();
+	void  shaderQuadControl (EFeature);
+	bool  hasShaderQuadControl ();
+	void  shaderInt8 (EFeature);
+	bool  hasShaderInt8 ();
+	void  shaderInt16 (EFeature);
+	bool  hasShaderInt16 ();
+	void  shaderInt64 (EFeature);
+	bool  hasShaderInt64 ();
+	void  shaderFloat16 (EFeature);
+	bool  hasShaderFloat16 ();
+	void  shaderFloat64 (EFeature);
+	bool  hasShaderFloat64 ();
+	void  storageBuffer16BitAccess (EFeature);
+	bool  hasStorageBuffer16BitAccess ();
+	void  uniformAndStorageBuffer16BitAccess (EFeature);
+	bool  hasUniformAndStorageBuffer16BitAccess ();
+	void  storageInputOutput16 (EFeature);
+	bool  hasStorageInputOutput16 ();
+	void  storageBuffer8BitAccess (EFeature);
+	bool  hasStorageBuffer8BitAccess ();
+	void  uniformAndStorageBuffer8BitAccess (EFeature);
+	bool  hasUniformAndStorageBuffer8BitAccess ();
+	void  uniformBufferStandardLayout (EFeature);
+	bool  hasUniformBufferStandardLayout ();
+	void  scalarBlockLayout (EFeature);
+	bool  hasScalarBlockLayout ();
+	void  bufferDeviceAddress (EFeature);
+	bool  hasBufferDeviceAddress ();
+	void  storagePushConstant8 (EFeature);
+	bool  hasStoragePushConstant8 ();
+	void  storagePushConstant16 (EFeature);
+	bool  hasStoragePushConstant16 ();
+	void  fragmentStoresAndAtomics (EFeature);
+	bool  hasFragmentStoresAndAtomics ();
+	void  vertexPipelineStoresAndAtomics (EFeature);
+	bool  hasVertexPipelineStoresAndAtomics ();
+	void  shaderImageInt64Atomics (EFeature);
+	bool  hasShaderImageInt64Atomics ();
+	void  shaderBufferInt64Atomics (EFeature);
+	bool  hasShaderBufferInt64Atomics ();
+	void  shaderSharedInt64Atomics (EFeature);
+	bool  hasShaderSharedInt64Atomics ();
+	void  shaderBufferFloat32Atomics (EFeature);
+	bool  hasShaderBufferFloat32Atomics ();
+	void  shaderBufferFloat32AtomicAdd (EFeature);
+	bool  hasShaderBufferFloat32AtomicAdd ();
+	void  shaderBufferFloat64Atomics (EFeature);
+	bool  hasShaderBufferFloat64Atomics ();
+	void  shaderBufferFloat64AtomicAdd (EFeature);
+	bool  hasShaderBufferFloat64AtomicAdd ();
+	void  shaderSharedFloat32Atomics (EFeature);
+	bool  hasShaderSharedFloat32Atomics ();
+	void  shaderSharedFloat32AtomicAdd (EFeature);
+	bool  hasShaderSharedFloat32AtomicAdd ();
+	void  shaderSharedFloat64Atomics (EFeature);
+	bool  hasShaderSharedFloat64Atomics ();
+	void  shaderSharedFloat64AtomicAdd (EFeature);
+	bool  hasShaderSharedFloat64AtomicAdd ();
+	void  shaderImageFloat32Atomics (EFeature);
+	bool  hasShaderImageFloat32Atomics ();
+	void  shaderImageFloat32AtomicAdd (EFeature);
+	bool  hasShaderImageFloat32AtomicAdd ();
+	void  shaderBufferFloat16Atomics (EFeature);
+	bool  hasShaderBufferFloat16Atomics ();
+	void  shaderBufferFloat16AtomicAdd (EFeature);
+	bool  hasShaderBufferFloat16AtomicAdd ();
+	void  shaderBufferFloat16AtomicMinMax (EFeature);
+	bool  hasShaderBufferFloat16AtomicMinMax ();
+	void  shaderBufferFloat32AtomicMinMax (EFeature);
+	bool  hasShaderBufferFloat32AtomicMinMax ();
+	void  shaderBufferFloat64AtomicMinMax (EFeature);
+	bool  hasShaderBufferFloat64AtomicMinMax ();
+	void  shaderSharedFloat16Atomics (EFeature);
+	bool  hasShaderSharedFloat16Atomics ();
+	void  shaderSharedFloat16AtomicAdd (EFeature);
+	bool  hasShaderSharedFloat16AtomicAdd ();
+	void  shaderSharedFloat16AtomicMinMax (EFeature);
+	bool  hasShaderSharedFloat16AtomicMinMax ();
+	void  shaderSharedFloat32AtomicMinMax (EFeature);
+	bool  hasShaderSharedFloat32AtomicMinMax ();
+	void  shaderSharedFloat64AtomicMinMax (EFeature);
+	bool  hasShaderSharedFloat64AtomicMinMax ();
+	void  shaderImageFloat32AtomicMinMax (EFeature);
+	bool  hasShaderImageFloat32AtomicMinMax ();
+	void  sparseImageFloat32AtomicMinMax (EFeature);
+	bool  hasSparseImageFloat32AtomicMinMax ();
+	void  shaderOutputViewportIndex (EFeature);
+	bool  hasShaderOutputViewportIndex ();
+	void  shaderOutputLayer (EFeature);
+	bool  hasShaderOutputLayer ();
+	void  shaderSubgroupClock (EFeature);
+	bool  hasShaderSubgroupClock ();
+	void  shaderDeviceClock (EFeature);
+	bool  hasShaderDeviceClock ();
+	void  cooperativeMatrix (EFeature);
+	bool  hasCooperativeMatrix ();
+	void  cooperativeMatrixStages (uint);
+	void  cooperativeVector (EFeature);
+	bool  hasCooperativeVector ();
+	void  cooperativeVectorTraining (EFeature);
+	bool  hasCooperativeVectorTraining ();
+	void  shaderClipDistance (EFeature);
+	bool  hasShaderClipDistance ();
+	void  shaderCullDistance (EFeature);
+	bool  hasShaderCullDistance ();
+	void  shaderResourceMinLod (EFeature);
+	bool  hasShaderResourceMinLod ();
+	void  shaderDrawParameters (EFeature);
+	bool  hasShaderDrawParameters ();
+	void  runtimeDescriptorArray (EFeature);
+	bool  hasRuntimeDescriptorArray ();
+	void  shaderSMBuiltinsNV (EFeature);
+	bool  hasShaderSMBuiltinsNV ();
+	void  shaderCoreBuiltinsARM (EFeature);
+	bool  hasShaderCoreBuiltinsARM ();
+	void  shaderSampleRateInterpolationFunctions (EFeature);
+	bool  hasShaderSampleRateInterpolationFunctions ();
+	void  shaderStencilExport (EFeature);
+	bool  hasShaderStencilExport ();
+	void  shaderExpectAssume (EFeature);
+	bool  hasShaderExpectAssume ();
+	void  clipSpaceWScalingNV (EFeature);
+	bool  hasClipSpaceWScalingNV ();
+	void  shaderSampledImageArrayDynamicIndexing (EFeature);
+	bool  hasShaderSampledImageArrayDynamicIndexing ();
+	void  shaderStorageBufferArrayDynamicIndexing (EFeature);
+	bool  hasShaderStorageBufferArrayDynamicIndexing ();
+	void  shaderStorageImageArrayDynamicIndexing (EFeature);
+	bool  hasShaderStorageImageArrayDynamicIndexing ();
+	void  shaderUniformBufferArrayDynamicIndexing (EFeature);
+	bool  hasShaderUniformBufferArrayDynamicIndexing ();
+	void  shaderInputAttachmentArrayDynamicIndexing (EFeature);
+	bool  hasShaderInputAttachmentArrayDynamicIndexing ();
+	void  shaderUniformTexelBufferArrayDynamicIndexing (EFeature);
+	bool  hasShaderUniformTexelBufferArrayDynamicIndexing ();
+	void  shaderStorageTexelBufferArrayDynamicIndexing (EFeature);
+	bool  hasShaderStorageTexelBufferArrayDynamicIndexing ();
+	void  shaderUniformBufferArrayNonUniformIndexing (EFeature);
+	bool  hasShaderUniformBufferArrayNonUniformIndexing ();
+	void  shaderSampledImageArrayNonUniformIndexing (EFeature);
+	bool  hasShaderSampledImageArrayNonUniformIndexing ();
+	void  shaderStorageBufferArrayNonUniformIndexing (EFeature);
+	bool  hasShaderStorageBufferArrayNonUniformIndexing ();
+	void  shaderStorageImageArrayNonUniformIndexing (EFeature);
+	bool  hasShaderStorageImageArrayNonUniformIndexing ();
+	void  shaderInputAttachmentArrayNonUniformIndexing (EFeature);
+	bool  hasShaderInputAttachmentArrayNonUniformIndexing ();
+	void  shaderUniformTexelBufferArrayNonUniformIndexing (EFeature);
+	bool  hasShaderUniformTexelBufferArrayNonUniformIndexing ();
+	void  shaderStorageTexelBufferArrayNonUniformIndexing (EFeature);
+	bool  hasShaderStorageTexelBufferArrayNonUniformIndexing ();
+	void  shaderUniformBufferArrayNonUniformIndexingNative (EFeature);
+	bool  hasShaderUniformBufferArrayNonUniformIndexingNative ();
+	void  shaderSampledImageArrayNonUniformIndexingNative (EFeature);
+	bool  hasShaderSampledImageArrayNonUniformIndexingNative ();
+	void  shaderStorageBufferArrayNonUniformIndexingNative (EFeature);
+	bool  hasShaderStorageBufferArrayNonUniformIndexingNative ();
+	void  shaderStorageImageArrayNonUniformIndexingNative (EFeature);
+	bool  hasShaderStorageImageArrayNonUniformIndexingNative ();
+	void  shaderInputAttachmentArrayNonUniformIndexingNative (EFeature);
+	bool  hasShaderInputAttachmentArrayNonUniformIndexingNative ();
+	void  quadDivergentImplicitLod (EFeature);
+	bool  hasQuadDivergentImplicitLod ();
+	void  shaderStorageImageMultisample (EFeature);
+	bool  hasShaderStorageImageMultisample ();
+	void  shaderStorageImageReadWithoutFormat (EFeature);
+	bool  hasShaderStorageImageReadWithoutFormat ();
+	void  shaderStorageImageWriteWithoutFormat (EFeature);
+	bool  hasShaderStorageImageWriteWithoutFormat ();
+	void  vulkanMemoryModel (EFeature);
+	bool  hasVulkanMemoryModel ();
+	void  vulkanMemoryModelDeviceScope (EFeature);
+	bool  hasVulkanMemoryModelDeviceScope ();
+	void  vulkanMemoryModelAvailabilityVisibilityChains (EFeature);
+	bool  hasVulkanMemoryModelAvailabilityVisibilityChains ();
+	void  shaderDemoteToHelperInvocation (EFeature);
+	bool  hasShaderDemoteToHelperInvocation ();
+	void  shaderTerminateInvocation (EFeature);
+	bool  hasShaderTerminateInvocation ();
+	void  shaderZeroInitializeWorkgroupMemory (EFeature);
+	bool  hasShaderZeroInitializeWorkgroupMemory ();
+	void  fragmentShaderSampleInterlock (EFeature);
+	bool  hasFragmentShaderSampleInterlock ();
+	void  fragmentShaderPixelInterlock (EFeature);
+	bool  hasFragmentShaderPixelInterlock ();
+	void  fragmentShaderShadingRateInterlock (EFeature);
+	bool  hasFragmentShaderShadingRateInterlock ();
+	void  fragmentShaderBarycentric (EFeature);
+	bool  hasFragmentShaderBarycentric ();
+	void  pipelineFragmentShadingRate (EFeature);
+	bool  hasPipelineFragmentShadingRate ();
+	void  primitiveFragmentShadingRate (EFeature);
+	bool  hasPrimitiveFragmentShadingRate ();
+	void  attachmentFragmentShadingRate (EFeature);
+	bool  hasAttachmentFragmentShadingRate ();
+	void  primitiveFragmentShadingRateWithMultipleViewports (EFeature);
+	bool  hasPrimitiveFragmentShadingRateWithMultipleViewports ();
+	void  layeredShadingRateAttachments (EFeature);
+	bool  hasLayeredShadingRateAttachments ();
+	void  fragmentShadingRateWithShaderDepthStencilWrites (EFeature);
+	bool  hasFragmentShadingRateWithShaderDepthStencilWrites ();
+	void  fragmentShadingRateWithSampleMask (EFeature);
+	bool  hasFragmentShadingRateWithSampleMask ();
+	void  fragmentShadingRateWithShaderSampleMask (EFeature);
+	bool  hasFragmentShadingRateWithShaderSampleMask ();
+	void  fragmentShadingRateWithFragmentShaderInterlock (EFeature);
+	bool  hasFragmentShadingRateWithFragmentShaderInterlock ();
+	void  fragmentShadingRateWithCustomSampleLocations (EFeature);
+	bool  hasFragmentShadingRateWithCustomSampleLocations ();
+	void  fragmentDensityMap (EFeature);
+	bool  hasFragmentDensityMap ();
+	void  fragmentDensityMapDynamic (EFeature);
+	bool  hasFragmentDensityMapDynamic ();
+	void  fragmentDensityMapNonSubsampledImages (EFeature);
+	bool  hasFragmentDensityMapNonSubsampledImages ();
+	void  fragmentDensityInvocations (EFeature);
+	bool  hasFragmentDensityInvocations ();
+	void  subsampledLoads (EFeature);
+	bool  hasSubsampledLoads ();
+	void  maxSubsampledArrayLayers (uint);
+	void  perPipeline_maxSubsampledSamplers (uint);
+	uint8  getPerPipeline_maxSubsampledSamplers ();
+	void  accelerationStructureIndirectBuild (EFeature);
+	bool  hasAccelerationStructureIndirectBuild ();
+	void  clusterAccelerationStructure (EFeature);
+	bool  hasClusterAccelerationStructure ();
+	void  partitionedAccelerationStructure (EFeature);
+	bool  hasPartitionedAccelerationStructure ();
+	void  rayQuery (EFeature);
+	bool  hasRayQuery ();
+	void  rayQueryStages (uint);
+	void  rayTracingPipeline (EFeature);
+	bool  hasRayTracingPipeline ();
+	void  rayTraversalPrimitiveCulling (EFeature);
+	bool  hasRayTraversalPrimitiveCulling ();
+	void  maxRayRecursionDepth (uint);
+	uint8  getMaxRayRecursionDepth ();
+	void  drawIndirectFirstInstance (EFeature);
+	bool  hasDrawIndirectFirstInstance ();
+	void  drawIndirectCount (EFeature);
+	bool  hasDrawIndirectCount ();
+	void  maxDrawIndirectCount (uint);
+	uint  getMaxDrawIndirectCount ();
+	void  multiview (EFeature);
+	bool  hasMultiview ();
+	void  multiviewGeometryShader (EFeature);
+	bool  hasMultiviewGeometryShader ();
+	void  multiviewTessellationShader (EFeature);
+	bool  hasMultiviewTessellationShader ();
+	void  maxMultiviewViewCount (uint);
+	uint8  getMaxMultiviewViewCount ();
+	void  multiViewport (EFeature);
+	bool  hasMultiViewport ();
+	void  maxViewports (uint);
+	uint8  getMaxViewports ();
+	void  sampleLocations (EFeature);
+	bool  hasSampleLocations ();
+	void  variableSampleLocations (EFeature);
+	bool  hasVariableSampleLocations ();
+	void  tessellationIsolines (EFeature);
+	bool  hasTessellationIsolines ();
+	void  tessellationPointMode (EFeature);
+	bool  hasTessellationPointMode ();
+	void  maxTexelBufferElements (uint);
+	void  maxUniformBufferSize (uint);
+	void  maxStorageBufferSize (uint);
+	void  perPipeline_maxUniformBuffersDynamic (uint);
+	uint8  getPerPipeline_maxUniformBuffersDynamic ();
+	void  perPipeline_maxStorageBuffersDynamic (uint);
+	uint8  getPerPipeline_maxStorageBuffersDynamic ();
+	void  perPipeline_maxTotalBuffersDynamic (uint);
+	uint8  getPerPipeline_maxTotalBuffersDynamic ();
+	void  maxDescriptorSets (uint);
+	uint8  getMaxDescriptorSets ();
+	void  maxTexelOffset (uint);
+	uint8  getMaxTexelOffset ();
+	void  maxTexelGatherOffset (uint);
+	uint8  getMaxTexelGatherOffset ();
+	void  maxFragmentOutputAttachments (uint);
+	uint8  getMaxFragmentOutputAttachments ();
+	void  maxFragmentDualSrcAttachments (uint);
+	uint8  getMaxFragmentDualSrcAttachments ();
+	void  maxFragmentCombinedOutputResources (uint);
+	uint  getMaxFragmentCombinedOutputResources ();
+	void  maxPushConstantsSize (uint);
+	void  maxVertAmplification (uint);
+	uint8  getMaxVertAmplification ();
+	void  maxTotalThreadgroupSize (uint);
+	void  maxTotalTileMemory (uint);
+	void  maxComputeSharedMemorySize (uint);
+	void  maxComputeWorkGroupInvocations (uint);
+	void  maxComputeWorkGroupSizeX (uint);
+	void  maxComputeWorkGroupSizeY (uint);
+	void  maxComputeWorkGroupSizeZ (uint);
+	void  taskShader (EFeature);
+	bool  hasTaskShader ();
+	void  meshShader (EFeature);
+	bool  hasMeshShader ();
+	void  maxTaskWorkGroupSize (uint);
+	void  maxMeshWorkGroupSize (uint);
+	void  maxMeshOutputVertices (uint);
+	void  maxMeshOutputPrimitives (uint);
+	void  maxMeshOutputPerVertexGranularity (uint);
+	void  maxMeshOutputPerPrimitiveGranularity (uint);
+	void  maxTaskPayloadSize (uint);
+	void  maxTaskSharedMemorySize (uint);
+	void  maxMeshSharedMemorySize (uint);
+	void  maxMeshOutputMemorySize (uint);
+	void  maxTaskPayloadAndSharedMemorySize (uint);
+	void  maxMeshPayloadAndSharedMemorySize (uint);
+	void  maxMeshPayloadAndOutputMemorySize (uint);
+	void  maxMeshMultiviewViewCount (uint);
+	uint8  getMaxMeshMultiviewViewCount ();
+	void  maxPreferredTaskWorkGroupInvocations (uint);
+	void  maxPreferredMeshWorkGroupInvocations (uint);
+	void  maxRasterOrderGroups (uint);
+	uint16  getMaxRasterOrderGroups ();
+	void  geometryShader (EFeature);
+	bool  hasGeometryShader ();
+	void  tessellationShader (EFeature);
+	bool  hasTessellationShader ();
+	void  computeShader (EFeature);
+	bool  hasComputeShader ();
+	void  tileShader (EFeature);
+	bool  hasTileShader ();
+	void  vertexDivisor (EFeature);
+	bool  hasVertexDivisor ();
+	void  maxVertexAttribDivisor (uint);
+	uint  getMaxVertexAttribDivisor ();
+	void  maxVertexAttributes (uint);
+	uint8  getMaxVertexAttributes ();
+	void  maxVertexBuffers (uint);
+	uint8  getMaxVertexBuffers ();
+	void  imageCubeArray (EFeature);
+	bool  hasImageCubeArray ();
+	void  textureCompressionASTC_LDR (EFeature);
+	bool  hasTextureCompressionASTC_LDR ();
+	void  textureCompressionASTC_HDR (EFeature);
+	bool  hasTextureCompressionASTC_HDR ();
+	void  textureCompressionBC (EFeature);
+	bool  hasTextureCompressionBC ();
+	void  textureCompressionETC2 (EFeature);
+	bool  hasTextureCompressionETC2 ();
+	void  imageViewMinLod (EFeature);
+	bool  hasImageViewMinLod ();
+	void  multisampleArrayImage (EFeature);
+	bool  hasMultisampleArrayImage ();
+	void  imageViewFormatList (EFeature);
+	bool  hasImageViewFormatList ();
+	void  imageViewExtendedUsage (EFeature);
+	bool  hasImageViewExtendedUsage ();
+	void  maxImageDimension1D (uint);
+	void  maxImageDimension2D (uint);
+	void  maxImageDimension3D (uint);
+	void  maxImageDimensionCube (uint);
+	void  maxImageArrayLayers (uint);
+	void  samplerAnisotropy (EFeature);
+	bool  hasSamplerAnisotropy ();
+	void  samplerMirrorClampToEdge (EFeature);
+	bool  hasSamplerMirrorClampToEdge ();
+	void  samplerFilterMinmax (EFeature);
+	bool  hasSamplerFilterMinmax ();
+	void  filterMinmaxImageComponentMapping (EFeature);
+	bool  hasFilterMinmaxImageComponentMapping ();
+	void  samplerMipLodBias (EFeature);
+	bool  hasSamplerMipLodBias ();
+	void  samplerYcbcrConversion (EFeature);
+	bool  hasSamplerYcbcrConversion ();
+	void  ycbcr2Plane444 (EFeature);
+	bool  hasYcbcr2Plane444 ();
+	void  nonSeamlessCubeMap (EFeature);
+	bool  hasNonSeamlessCubeMap ();
+	void  maxSamplerAnisotropy (float);
+	void  maxSamplerLodBias (float);
+	void  maxFramebufferLayers (uint);
+	void  variableMultisampleRate (EFeature);
+	bool  hasVariableMultisampleRate ();
+	void  externalFormatAndroid (EFeature);
+	bool  hasExternalFormatAndroid ();
+	void  metalArgBufferTier (uint);
+	uint8  getMetalArgBufferTier ();
+	void  perPipeline_maxInputAttachments (uint);
+	void  perPipeline_maxSampledImages (uint);
+	void  perPipeline_maxSamplers (uint);
+	void  perPipeline_maxStorageBuffers (uint);
+	void  perPipeline_maxStorageImages (uint);
+	void  perPipeline_maxUniformBuffers (uint);
+	void  perPipeline_maxAccelStructures (uint);
+	void  perPipeline_maxTotalResources (uint);
+	void  perStage_maxInputAttachments (uint);
+	void  perStage_maxSampledImages (uint);
+	void  perStage_maxSamplers (uint);
+	void  perStage_maxStorageBuffers (uint);
+	void  perStage_maxStorageImages (uint);
+	void  perStage_maxUniformBuffers (uint);
+	void  perStage_maxAccelStructures (uint);
+	void  perStage_maxTotalResources (uint);
+};
+
+RC<FeatureSet>  FindFeatureSet (const string & name);
 struct EnableLabel
 {
 	EnableLabel ();
@@ -5034,6 +5695,9 @@ void  GenMipmaps (const RC<Image> &);
 
 // Pass which copy image content to another image.
 void  CopyImage (const RC<Image> & src, const RC<Image> & dst);
+
+// Pass which copy image content to another image without format restrictions.
+void  CopyImage2 (const RC<Image> & src, const RC<Image> & dst);
 
 // Pass which blits image to another image.
 void  BlitImage (const RC<Image> & src, const RC<Image> & dst);
@@ -5139,12 +5803,12 @@ void  TriangulateAndExtrude (const array<float2> & vertices, const array<uint> &
 // Run script, path to script must be added to 'res_editor_cfg.as' as 'SecondaryScriptDir()'
 RC<IPass>  RunScript (const string & filePath, const RC<Collection> & collection);
 RC<IPass>  RunScript (const string & filePath, ScriptFlags flags, const RC<Collection> & collection);
+
+// Add slider to UI.
 void  Slider (const RC<DynamicInt> & dyn, const string & name);
 void  Slider (const RC<DynamicInt> & dyn, const string & name, int min, int max);
 void  Slider (const RC<DynamicInt2> & dyn, const string & name, const int2 & min, const int2 & max);
 void  Slider (const RC<DynamicInt3> & dyn, const string & name, const int3 & min, const int3 & max);
-
-// Add slider to UI.
 void  Slider (const RC<DynamicInt4> & dyn, const string & name, const int4 & min, const int4 & max);
 void  Slider (const RC<DynamicInt> & dyn, const string & name, int min, int max, int initial);
 void  Slider (const RC<DynamicInt2> & dyn, const string & name, const int2 & min, const int2 & max, const int2 & initial);
@@ -5168,6 +5832,8 @@ void  Slider (const RC<DynamicFloat> & dyn, const string & name, float min, floa
 void  Slider (const RC<DynamicFloat2> & dyn, const string & name, const float2 & min, const float2 & max, const float2 & initial);
 void  Slider (const RC<DynamicFloat3> & dyn, const string & name, const float3 & min, const float3 & max, const float3 & initial);
 void  Slider (const RC<DynamicFloat4> & dyn, const string & name, const float4 & min, const float4 & max, const float4 & initial);
+
+// Add label to UI.
 void  Label (const RC<DynamicInt> & dyn, const string & name);
 void  Label (const RC<DynamicInt2> & dyn, const string & name);
 void  Label (const RC<DynamicInt3> & dyn, const string & name);
@@ -5196,6 +5862,8 @@ EnableLabel  EnableIfEqual (const RC<DynamicUInt> & dyn, uint ref);
 EnableLabel  EnableIfGreater (const RC<DynamicUInt> & dyn, uint ref);
 EnableLabel  EnableIfLess (const RC<DynamicUInt> & dyn, uint ref);
 EnableLabel  EnableIfAnyBit (const RC<DynamicUInt> & dyn, uint ref);
+
+// Read field from buffer and copy to dynamic variable.
 void  ReadBuffer (const RC<DynamicInt> & dyn, const RC<Buffer> & buffer, const string & field);
 void  ReadBuffer (const RC<DynamicInt2> & dyn, const RC<Buffer> & buffer, const string & field);
 void  ReadBuffer (const RC<DynamicInt3> & dyn, const RC<Buffer> & buffer, const string & field);
@@ -5242,7 +5910,14 @@ bool  Supports_SamplerAnisotropy ();
 EPixelFormat  Supported_DepthFormat ();
 EPixelFormat  Supported_DepthStencilFormat ();
 bool  Supports_Format (EPixelFormat);
+RC<FeatureSet>  GetFeatureSet ();
 #define SCRIPT
+
+template <>
+struct RC<ComputeMip> : ComputeMip
+{
+	RC (const ComputeMip &);
+};
 
 template <>
 struct RC<FPVCamera> : FPVCamera
@@ -5293,21 +5968,45 @@ struct RC<Image> : Image
 };
 
 template <>
+struct RC<DynamicInt3> : DynamicInt3
+{
+	RC (const DynamicInt3 &);
+};
+
+template <>
+struct RC<DynamicInt2> : DynamicInt2
+{
+	RC (const DynamicInt2 &);
+};
+
+template <>
+struct RC<DynamicInt4> : DynamicInt4
+{
+	RC (const DynamicInt4 &);
+};
+
+template <>
+struct RC<GeomSource> : GeomSource
+{
+	RC (const GeomSource &);
+};
+
+template <>
 struct RC<DynamicFloat3> : DynamicFloat3
 {
 	RC (const DynamicFloat3 &);
 };
 
 template <>
-struct RC<DynamicUInt4> : DynamicUInt4
-{
-	RC (const DynamicUInt4 &);
-};
-
-template <>
 struct RC<RTGeometry> : RTGeometry
 {
 	RC (const RTGeometry &);
+};
+
+template <>
+struct RC<DynamicUInt4> : DynamicUInt4
+{
+	RC (const DynamicUInt4 &);
 };
 
 template <>
@@ -5335,30 +6034,6 @@ struct RC<DynamicFloat4> : DynamicFloat4
 };
 
 template <>
-struct RC<DynamicInt3> : DynamicInt3
-{
-	RC (const DynamicInt3 &);
-};
-
-template <>
-struct RC<DynamicInt2> : DynamicInt2
-{
-	RC (const DynamicInt2 &);
-};
-
-template <>
-struct RC<DynamicInt4> : DynamicInt4
-{
-	RC (const DynamicInt4 &);
-};
-
-template <>
-struct RC<GeomSource> : GeomSource
-{
-	RC (const GeomSource &);
-};
-
-template <>
 struct RC<DynamicInt> : DynamicInt
 {
 	RC (const DynamicInt &);
@@ -5368,18 +6043,6 @@ template <>
 struct RC<IPass> : IPass
 {
 	RC (const IPass &);
-};
-
-template <>
-struct RC<FlightCamera> : FlightCamera
-{
-	RC (const FlightCamera &);
-};
-
-template <>
-struct RC<BaseController> : BaseController
-{
-	RC (const BaseController &);
 };
 
 template <>
@@ -5395,9 +6058,15 @@ struct RC<TopDownCamera> : TopDownCamera
 };
 
 template <>
-struct RC<DynamicUInt> : DynamicUInt
+struct RC<FlightCamera> : FlightCamera
 {
-	RC (const DynamicUInt &);
+	RC (const FlightCamera &);
+};
+
+template <>
+struct RC<BaseController> : BaseController
+{
+	RC (const BaseController &);
 };
 
 template <>
@@ -5407,15 +6076,15 @@ struct RC<Model> : Model
 };
 
 template <>
-struct RC<Scene> : Scene
+struct RC<DynamicUInt> : DynamicUInt
 {
-	RC (const Scene &);
+	RC (const DynamicUInt &);
 };
 
 template <>
-struct RC<SphericalCube> : SphericalCube
+struct RC<Scene> : Scene
 {
-	RC (const SphericalCube &);
+	RC (const Scene &);
 };
 
 template <>
@@ -5425,21 +6094,9 @@ struct RC<OrbitalCamera> : OrbitalCamera
 };
 
 template <>
-struct RC<FPSCamera> : FPSCamera
+struct RC<SphericalCube> : SphericalCube
 {
-	RC (const FPSCamera &);
-};
-
-template <>
-struct RC<DynamicDim> : DynamicDim
-{
-	RC (const DynamicDim &);
-};
-
-template <>
-struct RC<RayTracingPass> : RayTracingPass
-{
-	RC (const RayTracingPass &);
+	RC (const SphericalCube &);
 };
 
 template <>
@@ -5449,9 +6106,21 @@ struct RC<DynamicFloat> : DynamicFloat
 };
 
 template <>
-struct RC<UnifiedGeometry> : UnifiedGeometry
+struct RC<DynamicDim> : DynamicDim
 {
-	RC (const UnifiedGeometry &);
+	RC (const DynamicDim &);
+};
+
+template <>
+struct RC<FPSCamera> : FPSCamera
+{
+	RC (const FPSCamera &);
+};
+
+template <>
+struct RC<RayTracingPass> : RayTracingPass
+{
+	RC (const RayTracingPass &);
 };
 
 template <>
@@ -5467,9 +6136,21 @@ struct RC<SceneRayTracingPass> : SceneRayTracingPass
 };
 
 template <>
+struct RC<FeatureSet> : FeatureSet
+{
+	RC (const FeatureSet &);
+};
+
+template <>
 struct RC<ComputePass> : ComputePass
 {
 	RC (const ComputePass &);
+};
+
+template <>
+struct RC<UnifiedGeometry> : UnifiedGeometry
+{
+	RC (const UnifiedGeometry &);
 };
 
 template <>

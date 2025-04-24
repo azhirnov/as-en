@@ -213,7 +213,8 @@ namespace
 		auto&	storage = *ObjectStorage::Instance();
 
 		storage.AddName< DSLayoutName >( _name );
-		CHECK_THROW_MSG( storage.dsLayouts.emplace( _name, DescriptorSetLayoutPtr{this} ).second );
+		CHECK_THROW_MSG( storage.dsLayouts.emplace( _name, DescriptorSetLayoutPtr{this} ).second,
+			"DescriptorSetLayout with name '"s << name << "' is already exists." );
 
 		_dsLayout.name = DSLayoutName{_name};
 	}
@@ -1137,21 +1138,21 @@ namespace
 		binder.AddFactoryCtor( &DescriptorSetLayout_Ctor, {"name"} );
 
 		binder.Comment( "Add FeatureSet to the descriptor set and all dependent resources." );
-		binder.AddMethod( &DescriptorSetLayout::AddFeatureSet,					"AddFeatureSet",	{"fsName"} );
+		AS_METHOD( binder, DescriptorSetLayout::AddFeatureSet,					"AddFeatureSet",	{"fsName"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		binder.AddMethod( &DescriptorSetLayout::Define,							"Define",			{} );
+		AS_METHOD( binder, DescriptorSetLayout::Define,							"Define",			{} );
 
 		binder.Comment( "Set descriptor set usage (EDescSetUsage)." );
-		binder.AddMethod( &DescriptorSetLayout::SetUsage,						"SetUsage",			{} );
-		binder.AddMethod( &DescriptorSetLayout::SetUsage2,						"SetUsage",			{} );
+		AS_METHOD( binder, DescriptorSetLayout::SetUsage,						"SetUsage",			{} );
+		AS_METHOD( binder, DescriptorSetLayout::SetUsage2,						"SetUsage",			{} );
 
 		binder.Comment( "Add input attachment from render technique graphics pass." );
-		binder.AddMethod( &DescriptorSetLayout::AddSubpassInputFromRenderTech,	"SubpassInputFromRenderTech", {"rtech", "gpass"} );
+		AS_METHOD( binder, DescriptorSetLayout::AddSubpassInputFromRenderTech,	"SubpassInputFromRenderTech", {"rtech", "gpass"} );
 
 		binder.Comment( "Add input attachment from render pass subpass." );
-		binder.AddMethod( &DescriptorSetLayout::AddSubpassInputFromRenderPass,	"SubpassInputFromRenderPass", {"compatRP", "subpass"} );
+		AS_METHOD( binder, DescriptorSetLayout::AddSubpassInputFromRenderPass,	"SubpassInputFromRenderPass", {"compatRP", "subpass"} );
 
 		binder.Comment( "Add uniform buffer." );
 		binder.AddGenericMethod< void (EShaderStages, const String &, const ArraySize &, const String &)					>( &DescriptorSetLayout::_AddUniformBuffer, "UniformBuffer", {"shaderStages", "uniform", "arraySize", "typeName"} );
@@ -1561,7 +1562,7 @@ namespace
 	_AddSRGB
 =================================================
 */
-	void  DescriptorSetLayout::_AddSRGB (const String &name, EImageType type) __Th___
+	void  DescriptorSetLayout::_AddSRGB (const String &, EImageType) __Th___
 	{
 	//	_defines << "\n" << name << "_sRGB = " << ((type & EImageType::_QualMask) == EImageType::sRGB ? "1" : "0");
 	}
@@ -2173,7 +2174,7 @@ namespace
 
 		if ( IsStd430( st_it->second->Layout() ))
 		{
-			TEST_FEATURE( _features, scalarBlockLayout,
+			TEST_FEATURE_MSG( _features, scalarBlockLayout,
 				", UniformBuffer '"s << name << "' with struct '" << st_it->second->Name() <<
 				"' with Std430 layout requires 'scalarBlockLayout'" );
 		}

@@ -2,7 +2,7 @@
 #
 # download google/hardware-perfcounter (Apache 2.0 license)
 
-set( POWERVR_SCOPESTATS_PATH "${AE_DST_SHARED_PATH}/PowerVRScopeStats" )
+set( POWERVR_SCOPESTATS_PATH "${AE_DST_PATH}/PowerVRScopeStats" )
 
 if (NOT EXISTS "${POWERVR_SCOPESTATS_PATH}/lib")
 	message( FATAL_ERROR "'${POWERVR_SCOPESTATS_PATH}/lib' path is not found" )

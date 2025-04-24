@@ -7,10 +7,45 @@
 		"AE_SIMD_FMA": 0,
 		"AE_SIMD_F16C": 0,
 		"AE_ENABLE_VULKAN": "ON",
+		"AE_ENABLE_REMOTE_GRAPHICS": "OFF",
 		"AE_GRAPHICS_STRONG_VALIDATION": "OFF"
 	},
 	"files.associations": {
-		"array": "cpp",
-		"string": "cpp"
-	}
+		"*.as": "cpp",
+		"*.glsl": "cpp",
+		"*.glsl_dbg": "cpp"
+	},
+	"editor.inlayHints.enabled": "off",
+	"editor.fontSize": 12,
+
+	// https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/variants.md
+	// https://github.com/microsoft/vscode-cmake-tools/issues/3351 - build types are merged instead of replacing, so override default types
+    "cmake.defaultVariants": {
+        "buildType": {
+            "default": "debug",
+            "description": "The build type.",
+            "choices": {
+                "debug": {
+                    "short": "Debug",
+                    "long": "Disable optimizations - include debug information.",
+                    "buildType": "Debug"
+                },
+                "release": {
+                    "short": "Release",
+                    "long": "Optimize for speed - exclude debug information.",
+                    "buildType": "Release"
+                },
+                "minsizerel": {
+                    "short": "Develop",
+                    "long": "Debug build with some optimizations.",
+                    "buildType": "Develop"
+                },
+                "relwithdebinfo": {
+                    "short": "Profile",
+                    "long": "Release build with some debug info (function names, etc).",
+                    "buildType": "Profile"
+                }
+            }
+        }
+    }
 }

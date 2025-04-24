@@ -166,13 +166,13 @@ namespace AE::Base
 	template <typename T>
 	void  MemCopy (OUT MutableArrayView<T> dst, ArrayView<T> src) __NE___
 	{
-		MemCopy_NullCheck( OUT dst.data(), src.data(), Min( dst.size(), src.size() ));
+		MemCopy( OUT dst.data(), src.data(), Min( dst.size(), src.size() ));
 	}
 
 	template <typename T>
 	void  MemMove (OUT MutableArrayView<T> dst, ArrayView<T> src) __NE___
 	{
-		MemMove_NullCheck( OUT dst.data(), src.data(), Min( dst.size(), src.size() ));
+		MemMove( OUT dst.data(), src.data(), Min( dst.size(), src.size() ));
 	}
 
 } // AE::Base

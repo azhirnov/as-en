@@ -263,6 +263,7 @@ namespace AE::RG::_hidden_
 	public:
 		explicit DrawContext (const DrawTask &task)																			__Th___	: _ctx{ task } {}
 		explicit DrawContext (BaseCtx &&ctx)																				__Th___	: _ctx{ RVRef(ctx) } {}
+		explicit DrawContext (DrawContext &&ctx)																			__Th___	= default;
 
 		DrawContext ()																										= delete;
 		DrawContext (const DrawContext &)																					= delete;
@@ -1155,7 +1156,7 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	typename GraphicsContext<C>::DrawCtx  GraphicsContext<C>::NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg) __Th___
 	{
-		return DrawCtx{ _ctx.NextSubpass( prevPassCtx, dbg, BitCast<void*>(&GetRenderTask()) )};
+		return DrawCtx{ _ctx.NextSubpass( prevPassCtx.GetBaseContext(), dbg, BitCast<void*>(&GetRenderTask()) )};
 	}
 
 	template <typename C>

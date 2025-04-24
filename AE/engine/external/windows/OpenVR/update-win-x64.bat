@@ -1,3 +1,4 @@
+echo "update 'OpenVR'..."
 rmdir /Q /S "build"
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\win-x64\OpenVR"
 rmdir /Q /S "temp"

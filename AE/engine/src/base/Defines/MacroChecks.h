@@ -107,7 +107,8 @@
 
 #if defined(AE_COMPILER_MSVC)	or \
 	defined(AE_COMPILER_GCC)	or \
-	defined(AE_COMPILER_CLANG)
+	defined(AE_COMPILER_CLANG)	or \
+	defined(AE_COMPILER_LCC)
 #else
 #	error unknown compiler!
 #endif
@@ -140,7 +141,8 @@
 	defined(AE_CPU_ARCH_ARM32)	or \
 	defined(AE_CPU_ARCH_X64)	or \
 	defined(AE_CPU_ARCH_X86)	or \
-	defined(AE_CPU_ARCH_i686)
+	defined(AE_CPU_ARCH_i686)	or \
+	defined(AE_CPU_ARCH_E2K)
 #else
 #	error unknown CPU architecture!
 #endif
@@ -412,8 +414,14 @@
 #	  pragma detect_mismatch( "AE_SIMD_AVX", "1" )
 #	elif AE_SIMD_AVX == 2
 #	  pragma detect_mismatch( "AE_SIMD_AVX", "2" )
-#	elif AE_SIMD_AVX >= 3
-#	  pragma detect_mismatch( "AE_SIMD_AVX", "3" )
+#	elif AE_SIMD_AVX == 30
+#	  pragma detect_mismatch( "AE_SIMD_AVX", "30" )
+#	elif AE_SIMD_AVX == 31
+#	  pragma detect_mismatch( "AE_SIMD_AVX", "31" )		// Cannon Lake
+#	elif AE_SIMD_AVX == 32
+#	  pragma detect_mismatch( "AE_SIMD_AVX", "32" )		// Ice Lake
+#	elif AE_SIMD_AVX == 33
+#	  pragma detect_mismatch( "AE_SIMD_AVX", "33" )		// Zen4
 #	else
 #	  error unsupported value in 'AE_SIMD_AVX'
 #	endif

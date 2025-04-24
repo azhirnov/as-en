@@ -45,6 +45,8 @@ namespace AE::PipelineCompiler
 
 		void  AddToRenderTech (const String &rtech, const String &pass)		__Th___	{ return BasePipelineSpec::_AddToRenderTech( rtech, pass ); }
 
+		ND_ uint	GetSubpassIndex ()										C_NE___;
+
 		ND_ const GraphicsPipelineScriptBinding*	GetBase ()				const;
 		ND_ ScriptVertexBufferInput*				GetVertexBuffers ()		const	{ return _vertexBuffers.Get(); }
 

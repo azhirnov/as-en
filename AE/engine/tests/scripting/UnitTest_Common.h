@@ -13,6 +13,9 @@ Run (const ScriptEnginePtr &se, StringView script, const String &entry, const So
 {
 	auto mod = se->CreateModule({ScriptEngine::ModuleSource{ "def", script, dbgLocation }});
 	auto scr = se->CreateScript<Fn>( entry, mod );
+	if ( not scr )
+		return false;
+
 	auto res = scr->Run( FwdArg<Args>(args)... );
 	if ( not res.has_value() )
 		return false;
@@ -38,5 +41,8 @@ Run (const ScriptEnginePtr &se, StringView script, const String &entry, Args&& .
 {
 	auto mod = se->CreateModule({ ScriptEngine::ModuleSource{"def", script} });
 	auto scr = se->CreateScript<Fn>( entry, mod );
+	if ( not scr )
+		return false;
+
 	return scr->Run( FwdArg<Args>(args)... );
 }

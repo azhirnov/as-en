@@ -305,7 +305,7 @@ namespace AE::Base
 			T	_bits;
 
 		public:
-			__Cx__ explicit BitfieldIterateView (T bits)				__NE___ : _bits{bits} {}
+			__Cx__ explicit BitfieldIterateView (T bits)		__NE___ : _bits{bits} {}
 
 			NdCx__ auto	begin ()								__NE___	{ return BitfieldIterate_Iter<T>{ _bits }; }
 			NdCx__ auto	end ()									__NE___	{ return BitfieldIterate_End{}; }

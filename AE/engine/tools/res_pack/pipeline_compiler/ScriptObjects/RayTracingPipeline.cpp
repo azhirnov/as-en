@@ -160,7 +160,7 @@ namespace
 */
 	bool  RayTracingPipelineScriptBinding::Build () __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		try {
@@ -423,31 +423,31 @@ namespace
 
 		binder.Comment( "Add macros which will be used in shader.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		binder.AddMethod( &RayTracingPipelineScriptBinding::Define,					"Define",				{} );
+		AS_METHOD( binder, RayTracingPipelineScriptBinding::Define,					"Define",				{} );
 
 		binder.Comment( "Create specialization for pipeline template.\n"
 						"Name is used in C++ code to get pipeline from render technique.\n"
 						"Pipeline specialization use the same pipeline layout, same shader binary, difference only in some parameters." );
-		binder.AddMethod( &RayTracingPipelineScriptBinding::AddSpecialization,		"AddSpecialization",	{"specName"} );
+		AS_METHOD( binder, RayTracingPipelineScriptBinding::AddSpecialization,		"AddSpecialization",	{"specName"} );
 
 		binder.Comment( "Add FeatureSet to the pipeline." );
-		binder.AddMethod( &RayTracingPipelineScriptBinding::AddFeatureSet,			"AddFeatureSet",		{"fsName"} );
+		AS_METHOD( binder, RayTracingPipelineScriptBinding::AddFeatureSet,			"AddFeatureSet",		{"fsName"} );
 
 		binder.Comment( "Set pipeline layout.\n"
 						"Pipeline will inherit layout feature sets." );
-		binder.AddMethod( &RayTracingPipelineScriptBinding::SetLayout,				"SetLayout",			{"plName"} );
-		binder.AddMethod( &RayTracingPipelineScriptBinding::SetLayout2,				"SetLayout",			{"pl"} );
+		AS_METHOD( binder, RayTracingPipelineScriptBinding::SetLayout,				"SetLayout",			{"plName"} );
+		AS_METHOD( binder, RayTracingPipelineScriptBinding::SetLayout2,				"SetLayout",			{"pl"} );
 
 		binder.Comment( "Create general shader group. Can be used as RayGen/Miss/Callable shaders." );
-		binder.AddMethod( &RayTracingPipelineScriptBinding::AddGeneralShader,		"AddGeneralShader",		{"groupName", "shader"} );
+		AS_METHOD( binder, RayTracingPipelineScriptBinding::AddGeneralShader,		"AddGeneralShader",		{"groupName", "shader"} );
 
 		binder.Comment( "Create triangle hit group. Can be used only as HitGroup.\n"
 						"'closestHit' must be defined, 'anyHit' is optional." );
-		binder.AddMethod( &RayTracingPipelineScriptBinding::AddTriangleHitGroup,	"AddTriangleHitGroup",	{"groupName", "closestHit", "anyHit"} );
+		AS_METHOD( binder, RayTracingPipelineScriptBinding::AddTriangleHitGroup,	"AddTriangleHitGroup",	{"groupName", "closestHit", "anyHit"} );
 
 		binder.Comment( "Create procedural hit group. Can be used only as HitGroup.\n"
 						"'intersection' and 'closestHit' must be defined, 'anyHit' is optional." );
-		binder.AddMethod( &RayTracingPipelineScriptBinding::AddProceduralHitGroup,	"AddProceduralHitGroup",{"groupName", "intersection", "closestHit", "anyHit"} );
+		AS_METHOD( binder, RayTracingPipelineScriptBinding::AddProceduralHitGroup,	"AddProceduralHitGroup",{"groupName", "intersection", "closestHit", "anyHit"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -493,7 +493,7 @@ namespace
 */
 	bool  RayTracingPipelineSpecScriptBinding::Build (PipelineTemplUID templUID) __NE___
 	{
-		if ( not _enabled )
+		if ( not IsEnabled() )
 			return true;
 
 		if ( IsBuilded() )
@@ -544,26 +544,26 @@ namespace
 
 		binder.Comment( "Set specialization value.\n"
 						"Specialization constant must be previously defined in shader by 'Shader::AddSpec()'." );
-		binder.AddMethod( &RayTracingPipelineSpecScriptBinding::SetSpecValueU,		"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &RayTracingPipelineSpecScriptBinding::SetSpecValueI,		"SetSpecValue",		{"name", "value"} );
-		binder.AddMethod( &RayTracingPipelineSpecScriptBinding::SetSpecValueF,		"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, RayTracingPipelineSpecScriptBinding::SetSpecValueU,		"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, RayTracingPipelineSpecScriptBinding::SetSpecValueI,		"SetSpecValue",		{"name", "value"} );
+		AS_METHOD( binder, RayTracingPipelineSpecScriptBinding::SetSpecValueF,		"SetSpecValue",		{"name", "value"} );
 
 		binder.Comment( "Set dynamic states (EPipelineDynamicState).\n"
 						"Supported: 'RTStackSize'." );
-		binder.AddMethod( &RayTracingPipelineSpecScriptBinding::SetDynamicState,	"SetDynamicState",	{"states"} );
+		AS_METHOD( binder, RayTracingPipelineSpecScriptBinding::SetDynamicState,	"SetDynamicState",	{"states"} );
 
 		binder.Comment( "Attach pipeline to the render technique.\n"
 						"Render technique will create all attached pipelines during its creation." );
-		binder.AddMethod( &RayTracingPipelineSpecScriptBinding::AddToRenderTech,	"AddToRenderTech",	{"rtech", "cpass"} );
+		AS_METHOD( binder, RayTracingPipelineSpecScriptBinding::AddToRenderTech,	"AddToRenderTech",	{"rtech", "cpass"} );
 
 		binder.Comment( "Set pipeline options (EPipelineOpt).\n"
 						"Supported: Optimize, RT_NoNullAnyHitShaders, RT_NoNullClosestHitShaders, RT_NoNullMissShaders, RT_NoNullIntersectionShaders, RT_SkipTriangles, RT_SkipAABBs.\n"
 						"By default used value from 'GlobalConfig::SetPipelineOptions()'." );
-		binder.AddMethod( &RayTracingPipelineSpecScriptBinding::SetOptions,			"SetOptions",		{"opts"} );
+		AS_METHOD( binder, RayTracingPipelineSpecScriptBinding::SetOptions,			"SetOptions",		{"opts"} );
 
 		binder.Comment( "Set max recursion.\n"
 						"User must check recursion depth in shader and avoid exceeding this limit." );
-		binder.AddMethod( &RayTracingPipelineSpecScriptBinding::MaxRecursionDepth,	"MaxRecursionDepth", {} );
+		AS_METHOD( binder, RayTracingPipelineSpecScriptBinding::MaxRecursionDepth,	"MaxRecursionDepth", {} );
 	}
 
 

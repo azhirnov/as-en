@@ -424,7 +424,7 @@ namespace _hidden_
 	AllEqual
 =================================================
 */
-	template <typename T, int I, typename S, glm::qualifier Q>
+	template <typename T, int I, glm::qualifier Q>
 	ND_ GLM_CONSTEXPR bool  AllEqual (const TVec<T,I,Q> &v1, const TVec<T,I,Q> &v2) __NE___
 	{
 		using namespace glm;
@@ -775,7 +775,7 @@ namespace _hidden_
 	NdCx__ bool  Equal (const Optional<T> &lhs, const Optional<T> &rhs) __NE___
 	{
 		return	lhs.has_value() == rhs.has_value()	and
-				(lhs.has_value() ? All( *lhs == *rhs ) : false);
+				(lhs.has_value() ? All( *lhs == *rhs ) : true);
 	}
 
 /*
@@ -1851,6 +1851,23 @@ namespace _hidden_
 	{
 		return glm::inversesqrt( v );
 	}
+	
+/*
+=================================================
+	FastSqrt
+=================================================
+*/
+	template <typename T>
+	NdCx__ EnableIf<IsFloatPoint<T>, T>  FastSqrt (const T value) __NE___
+	{
+		return InvSqrt( value ) * value;
+	}
+	
+	template <typename T, int I, glm::qualifier Q>
+	ND_ EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  FastSqrt (const TVec<T,I,Q> &v)
+	{
+		return InvSqrt( v ) * v;
+	}
 
 /*
 =================================================
@@ -2577,12 +2594,21 @@ namespace _hidden_
 */
 	template <typename T>
 	NdCx__ bool  IsIntersects (const T begin1, const T end1,
-									  const T begin2, const T end2) __NE___
+							   const T begin2, const T end2) __NE___
 	{
 		StaticAssert( IsScalar<T> or IsPointer<T> or IsBytes<T> );
 		ASSERT_Cx( begin1 <= end1 );
 		ASSERT_Cx( begin2 <= end2 );
 		return (end1 > begin2) and (begin1 < end2);
+	}
+	
+	template <typename T, int I, glm::qualifier Q>
+	NdCx__ bool  IsIntersects (const TVec<T,I,Q> &begin1, const TVec<T,I,Q> &end1,
+							   const TVec<T,I,Q> &begin2, const TVec<T,I,Q> &end2) __NE___
+	{
+		ASSERT_Cx( All( begin1 <= end1 ));
+		ASSERT_Cx( All( begin2 <= end2 ));
+		return All(end1 > begin2) and All(begin1 < end2);
 	}
 
 /*
@@ -2592,7 +2618,7 @@ namespace _hidden_
 */
 	template <typename T>
 	NdCx__ bool  IsCompletelyInside (const T largeBlockBegin, const T largeBlockEnd,
-											const T smallBlockBegin, const T smallBlockEnd) __NE___
+									 const T smallBlockBegin, const T smallBlockEnd) __NE___
 	{
 		StaticAssert( IsScalar<T> or IsPointer<T> or IsBytes<T> );
 		return (smallBlockBegin >= largeBlockBegin) and (smallBlockEnd <= largeBlockEnd);
@@ -2605,8 +2631,8 @@ namespace _hidden_
 */
 	template <typename T>
 	NdCx__ bool  GetIntersection (const T begin1, const T end1,
-										 const T begin2, const T end2,
-										 OUT T& outBegin, OUT T& outEnd) __NE___
+								  const T begin2, const T end2,
+								  OUT T& outBegin, OUT T& outEnd) __NE___
 	{
 		StaticAssert( IsScalar<T> or IsPointer<T> or IsBytes<T> );
 		outBegin = Max( begin1, begin2 );
@@ -2653,7 +2679,8 @@ namespace _hidden_
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ EnableIf< IsFloatPoint<T>, TVec<T,I,Q>>  SelectF (const TVec<T,I,Q> &x, const TVec<T,I,Q> &y, const TVec<T,I,Q> &ifTrue, const TVec<T,I,Q> &ifFalse) __NE___
+	ND_ EnableIf< IsFloatPoint<T>, TVec<T,I,Q>>  SelectF (const TVec<T,I,Q> &x, const TVec<T,I,Q> &y,
+														  const TVec<T,I,Q> &ifTrue, const TVec<T,I,Q> &ifFalse) __NE___
 	{
 		return glm::mix( ifFalse, ifTrue, glm::step( x, y ));
 	}

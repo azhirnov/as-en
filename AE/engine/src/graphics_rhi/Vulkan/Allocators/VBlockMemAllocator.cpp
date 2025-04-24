@@ -51,6 +51,11 @@ namespace AE::Graphics
 		const		uint	low_mask	= ToBitMask<uint>( _bitsPerPage );
 		constexpr	uint	hi_mask		= ToBitMask<uint>( _PageCount );
 
+		DEBUG_ONLY(
+			if ( dev._EnableAllocatorStats() )
+				_PrintStats();
+		)
+
 		for (auto [key, page_arr] : _pageMap)
 		{
 			CHECK_MSG( (page_arr.hiLevel.load() & hi_mask) == 0,
@@ -74,6 +79,40 @@ namespace AE::Graphics
 				dev.vkFreeMemory( dev.GetVkDevice(), page.memory, null );
 			}
 		}
+	}
+	
+/*
+=================================================
+	_PrintStats
+=================================================
+*/
+	inline void  VBlockMemAllocator::_PrintStats () C_NE___
+	{
+		usize	block_count	= 0;
+		usize	page_count	= 0;
+		
+		for (auto [key, page_arr] : _pageMap)
+		{
+			for (auto& lvl : page_arr.lowLevel)
+			{
+				block_count += BitCount( lvl.load() );
+			}
+			
+			for (auto& page : page_arr.pages)
+			{
+				page_count += usize(page.memory != Default);
+			}
+		}
+		
+		Bytes	capacity	= _blockSize * page_count;
+		Bytes	used		= _blockSize * block_count;	// may be 0 if used in destructor
+
+		AE_LOGI( "Vulkan block allocator stats:\nallocated: "s << ToString(capacity) <<
+				 "\nused:      " << ToString(used) << " (" <<
+				 ToString(uint(double(ulong{used})*100.0 / double(ulong{capacity}) + 0.5)) << "%)" <<
+				 "\npages:     " << ToString(page_count) <<	// - number of allocations
+				 "\nblockSize: " << ToString(_blockSize)
+				);
 	}
 
 /*

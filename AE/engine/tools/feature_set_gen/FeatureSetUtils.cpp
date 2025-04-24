@@ -688,6 +688,18 @@ namespace
 		return prev;
 	}
 
+	ND_ static FeatureSet::CoopMatrixSet_t  FS_ParseJSON (const FeatureSet::CoopMatrixSet_t &prev, StringView json, StringView name)
+	{
+		Unused( json, name );
+		return prev;
+	}
+
+	ND_ static FeatureSet::CoopVecSet_t  FS_ParseJSON (const FeatureSet::CoopVecSet_t &prev, StringView json, StringView name)
+	{
+		Unused( json, name );
+		return prev;
+	}
+
 	ND_ static FeatureSet::VRSTexelSize  FS_ParseJSON (const FeatureSet::VRSTexelSize &prev, StringView json, StringView name)
 	{
 		Unused( json, name );
@@ -1320,18 +1332,18 @@ namespace
 		if ( outFeatureSet.attachmentFragmentShadingRate == EFeature::RequireTrue )
 		{
 			VkExtent2D	min, max;
-			uint		aspect = FS_ParseJSON( 0u, json, "maxFragmentShadingRateAttachmentTexelSizeAspectRatio" );
+			uint		aspect_ratio = FS_ParseJSON( 0u, json, "maxFragmentShadingRateAttachmentTexelSizeAspectRatio" );
 			CHECK( FS_ParseJSON_Extent2D( "minFragmentShadingRateAttachmentTexelSize", json, OUT min ));
 			CHECK( FS_ParseJSON_Extent2D( "maxFragmentShadingRateAttachmentTexelSize", json, OUT max ));
 
 			CHECK( min.width > 0 and min.height > 0 );
 			CHECK( min.width <= max.width and min.height <= max.height );
 
-			outFeatureSet.fragmentShadingRateTexelSize.minX		= POTValue{ min.width	}.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.minY		= POTValue{ min.height	}.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.maxX		= POTValue{ max.width	}.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.maxY		= POTValue{ max.height	}.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.aspect	= POTValue{ aspect		}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.minX			= POTValue{ min.width	}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.minY			= POTValue{ min.height	}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.maxX			= POTValue{ max.width	}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.maxY			= POTValue{ max.height	}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.aspectRatio	= POTValue{ aspect_ratio		}.GetPOT();
 		}
 
 		// deviceID, vendorID
@@ -1662,14 +1674,16 @@ namespace
 	FS_ToString (EShaderStages)
 =================================================
 */
-	static void  FS_ToString (INOUT String &str, EShaderStages val, StringView name)
+	static void  FS_ToString (INOUT String &str, const EShaderStages inStages, StringView name)
 	{
-		if ( val == Default )
+		if ( inStages == Default )
 			return;
+
+		EShaderStages	stages = inStages;
 
 		str << "\tfset." << name << "(";
 
-		if ( val == EShaderStages::All )
+		if ( stages == EShaderStages::All )
 		{
 			str << "EShaderStages::All);\n";
 			return;
@@ -1677,19 +1691,31 @@ namespace
 
 		str << "EShaderStages(";
 
-		if ( AllBits( val, EShaderStages::AllGraphics ))
+		if ( AllBits( stages, EShaderStages::AllGraphics ))
 		{
-			val &= ~EShaderStages::AllGraphics;
+			stages &= ~EShaderStages::AllGraphics;
 			str << "\n\t\tEShaderStages::AllGraphics | ";
 		}
 
-		if ( AllBits( val, EShaderStages::AllRayTracing ))
+		if ( AllBits( stages, EShaderStages::AllRayTracing ))
 		{
-			val &= ~EShaderStages::AllRayTracing;
+			stages &= ~EShaderStages::AllRayTracing;
 			str << "\n\t\tEShaderStages::AllRayTracing | ";
 		}
 
-		for (auto t : BitIndexIterate<EShader>( val ))
+		if ( AllBits( stages, EShaderStages::GraphicsPipeStages ))
+		{
+			stages &= ~EShaderStages::GraphicsPipeStages;
+			str << "\n\t\tEShaderStages::GraphicsPipeStages | ";
+		}
+
+		if ( AllBits( stages | (inStages & EShaderStages::Fragment), EShaderStages::MeshPipeStages ))	// FS may be removed by previous checks
+		{
+			stages &= ~EShaderStages::MeshPipeStages;
+			str << "\n\t\tEShaderStages::MeshPipeStages | ";
+		}
+
+		for (auto t : BitIndexIterate<EShader>( stages ))
 		{
 			str << "\n\t\tEShaderStages::" << ToString( t ) << " | ";
 		}
@@ -1841,7 +1867,7 @@ namespace
 
 		if ( val ) {
 			str << "\tfset.fragmentShadingRateTexelSize ( {" << ToStr( val.minX ) << ", " << ToStr( val.minY )
-				<< "}, {" << ToStr( val.maxX ) << ", " << ToStr( val.maxY ) << "}, " << ToStr( val.aspect ) << " );\n";
+				<< "}, {" << ToStr( val.maxX ) << ", " << ToStr( val.maxY ) << "}, " << ToStr( val.aspectRatio ) << " );\n";
 		}
 	}
 
@@ -1851,6 +1877,24 @@ namespace
 =================================================
 */
 	static void  FS_ToString (INOUT String &, const FeatureSet::ShadingRateSet_t &, StringView)
+	{
+	}
+
+/*
+=================================================
+	FS_ToString (CoopMatrixSet_t)
+=================================================
+*/
+	static void  FS_ToString (INOUT String &, const FeatureSet::CoopMatrixSet_t &, StringView)
+	{
+	}
+
+/*
+=================================================
+	FS_ToString (CoopVecSet_t)
+=================================================
+*/
+	static void  FS_ToString (INOUT String &, const FeatureSet::CoopVecSet_t &, StringView)
 	{
 	}
 

@@ -4,7 +4,7 @@
 
 #include "ScriptObjects/ObjectStorage.h"
 
-#include "graphics_hl/UI/StyleCollection.h"
+#include "graphics/UI/StyleCollection.h"
 
 namespace AE::AssetPacker
 {

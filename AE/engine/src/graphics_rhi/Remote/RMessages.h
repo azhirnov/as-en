@@ -53,7 +53,7 @@ namespace AE::RemoteGraphics::Msg
 	{};
 
 
-	#define DECL_MSG( _name_, ... )															\
+	#define DECL_MSG( _name_, /*fields*/... )												\
 		struct _name_ final : BaseMsg														\
 		{																					\
 			__VA_ARGS__																		\
@@ -64,7 +64,7 @@ namespace AE::RemoteGraphics::Msg
 			TypeId	GetTypeId ()					C_NE_OV	{ return TypeIdOf<_name_>(); }	\
 		};
 
-	#define DECL_RESP( _name_, ... )														\
+	#define DECL_RESP( _name_, /*fields*/... )												\
 		struct _name_ final : BaseResponse													\
 		{																					\
 			__VA_ARGS__																		\
@@ -899,7 +899,7 @@ namespace AE::RemoteGraphics::Msg
 		Profiler::ArmProfiler::ECounterSet		enabled;
 	)
 
-	DECL_MSG( ProfArm_Sample )
+	DECL_MSG( ProfArm_Sample, )
 
 	DECL_RESP( ProfArm_Sample_Response,
 		Profiler::ArmProfiler::Counters_t		counters;
@@ -917,7 +917,7 @@ namespace AE::RemoteGraphics::Msg
 		Profiler::MaliProfiler::HWInfo			info;
 	)
 
-	DECL_MSG( ProfMali_Sample )
+	DECL_MSG( ProfMali_Sample, )
 
 	DECL_RESP( ProfMali_Sample_Response,
 		Profiler::MaliProfiler::Counters_t		counters;
@@ -935,7 +935,7 @@ namespace AE::RemoteGraphics::Msg
 		Profiler::AdrenoProfiler::HWInfo		info;
 	)
 
-	DECL_MSG( ProfAdreno_Sample )
+	DECL_MSG( ProfAdreno_Sample, )
 
 	DECL_RESP( ProfAdreno_Sample_Response,
 		Profiler::AdrenoProfiler::Counters_t	counters;
@@ -952,13 +952,13 @@ namespace AE::RemoteGraphics::Msg
 		Profiler::PowerVRProfiler::ECounterSet	enabled;
 	)
 
-	DECL_MSG( ProfPVR_GetTiming )
+	DECL_MSG( ProfPVR_GetTiming, )
 
 	DECL_RESP( ProfPVR_GetTiming_Response,
 		Profiler::PowerVRProfiler::TimeScopeArr_t	timings;
 	)
 
-	DECL_MSG( ProfPVR_Sample )
+	DECL_MSG( ProfPVR_Sample, )
 
 	DECL_RESP( ProfPVR_Sample_Response,
 		Profiler::PowerVRProfiler::Counters_t	counters;
@@ -976,7 +976,7 @@ namespace AE::RemoteGraphics::Msg
 	//	Profiler::NVidiaProfiler::HWInfo		info;
 	)
 
-	DECL_MSG( ProfNVidia_Sample )
+	DECL_MSG( ProfNVidia_Sample, )
 
 	DECL_RESP( ProfNVidia_Sample_Response,
 		Profiler::NVidiaProfiler::Counters_t	counters;
@@ -1005,7 +1005,7 @@ namespace AE::RemoteGraphics::Msg
 		FixedArray< SerCpuCluster, CpuArchInfo::MaxCoreTypes >	cpuClusters;
 	)
 
-	DECL_MSG( ProfGeneral_Sample )
+	DECL_MSG( ProfGeneral_Sample, )
 
 	DECL_RESP( ProfGeneral_Sample_Response,
 		Profiler::GeneralProfiler::Counters_t	counters;

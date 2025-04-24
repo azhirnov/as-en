@@ -7,6 +7,7 @@ void ASmain ()
 	//	Intel(R) UHD Graphics 620.json
 	//	NVIDIA GeForce RTX 2080.json
 	//	AMD Radeon 780M driver 2.0.321 on Arch unknown
+	//	AMD Radeon Graphics (RADV PHOENIX) driver 25.0.1 on Ubuntu 22.04
 	//	AMD Radeon HD 7970M (RADV PITCAIRN) driver 23.3.3 on Manjaro unknown
 	//	AMD Radeon HD 8790M (RADV OLAND) driver 23.0.4 on Ubuntu 22.04
 	//	AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
@@ -26,6 +27,7 @@ void ASmain ()
 	//	Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
 	//	Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2
 	//	llvmpipe (LLVM 18.1.8, 256 bits) driver 0.0.1 on Arch unknown
+	//	llvmpipe (LLVM 20.1.0, 256 bits) driver 25.0.99 on Windows 11
 	//	NVIDIA GeForce GTX 1070 driver 511.65.0.0 on Windows 10
 	//	NVIDIA GeForce GTX 750 driver 535.113.1.0 on Linuxmint 21.2
 	//	NVIDIA GeForce GTX 980 Ti driver 516.94.0.0 on Windows 10

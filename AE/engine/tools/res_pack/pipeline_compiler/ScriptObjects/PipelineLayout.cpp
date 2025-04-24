@@ -173,7 +173,7 @@ namespace
 
 		if ( IsStd430( ptr->Layout() ))
 		{
-			TEST_FEATURE( _features, scalarBlockLayout,
+			TEST_FEATURE_MSG( _features, scalarBlockLayout,
 				", PushConstant '"s << name << "' with struct '" << ptr->Name() <<
 				"' with Std430 layout requires 'scalarBlockLayout'" );
 		}
@@ -447,30 +447,30 @@ namespace
 		binder.AddFactoryCtor( &PipelineLayout_Ctor, {"name"} );
 
 		binder.Comment( "Add FeatureSet to the pipeline layout." );
-		binder.AddMethod( &PipelineLayout::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
+		AS_METHOD( binder, PipelineLayout::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
 
 		binder.Comment( "Add descriptor set layout." );
-		binder.AddMethod( &PipelineLayout::AddDSLayout,			"DSLayout",			{"index", "dslName"} );
-		binder.AddMethod( &PipelineLayout::AddDSLayout2,		"DSLayout",			{"dsName", "index", "dslName"} );
-		binder.AddMethod( &PipelineLayout::AddDSLayout3,		"DSLayout",			{"index", "dsl"} );
-		binder.AddMethod( &PipelineLayout::AddDSLayout4,		"DSLayout",			{"dsName", "index", "dsl"} );
+		AS_METHOD( binder, PipelineLayout::AddDSLayout,			"DSLayout",			{"index", "dslName"} );
+		AS_METHOD( binder, PipelineLayout::AddDSLayout2,		"DSLayout",			{"dsName", "index", "dslName"} );
+		AS_METHOD( binder, PipelineLayout::AddDSLayout3,		"DSLayout",			{"index", "dsl"} );
+		AS_METHOD( binder, PipelineLayout::AddDSLayout4,		"DSLayout",			{"dsName", "index", "dsl"} );
 
 		binder.Comment( "Add descriptor set layout for shader debugging." );
-		binder.AddMethod( &PipelineLayout::AddDebugDSLayout1,	"AddDebugDSLayout",	{"dbgMode", "shaderStages"} );
-		binder.AddMethod( &PipelineLayout::AddDebugDSLayout2,	"AddDebugDSLayout", {"index", "dbgMode", "shaderStages"} );
+		AS_METHOD( binder, PipelineLayout::AddDebugDSLayout1,	"AddDebugDSLayout",	{"dbgMode", "shaderStages"} );
+		AS_METHOD( binder, PipelineLayout::AddDebugDSLayout2,	"AddDebugDSLayout", {"index", "dbgMode", "shaderStages"} );
 
 		binder.Comment( "Add descriptor set layout for shader debugging, returns 'false' if failed." );
-		binder.AddMethod( &PipelineLayout::TryAddDebugDSLayout1,	"TryAddDebugDSLayout",	{"dbgMode", "shaderStages"} );
-		binder.AddMethod( &PipelineLayout::TryAddDebugDSLayout2,	"TryAddDebugDSLayout",	{"index", "dbgMode", "shaderStages"} );
+		AS_METHOD( binder, PipelineLayout::TryAddDebugDSLayout1,	"TryAddDebugDSLayout",	{"dbgMode", "shaderStages"} );
+		AS_METHOD( binder, PipelineLayout::TryAddDebugDSLayout2,	"TryAddDebugDSLayout",	{"index", "dbgMode", "shaderStages"} );
 
 		binder.Comment( "Set push constant layout for specific shader stage.\n"
 						"Push constants are native in Vulkan and emulated in Metal." );
-		binder.AddMethod( &PipelineLayout::AddPushConst1,		"PushConst",		{"pcName", "structName", "stage"} );
-		binder.AddMethod( &PipelineLayout::AddPushConst2,		"PushConst",		{"pcName", "type", "stage"} );
+		AS_METHOD( binder, PipelineLayout::AddPushConst1,		"PushConst",		{"pcName", "structName", "stage"} );
+		AS_METHOD( binder, PipelineLayout::AddPushConst2,		"PushConst",		{"pcName", "type", "stage"} );
 
 		binder.Comment( "Add macros which will be used in shader.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		binder.AddMethod( &PipelineLayout::Define,				"Define",			{} );
+		AS_METHOD( binder, PipelineLayout::Define,				"Define",			{} );
 	}
 
 /*

@@ -31,8 +31,8 @@ namespace AE::Graphics
 			ColorAttachment,
 			DepthStencilTest,
 			DepthStencilAttachment_RW,
-			DepthTest_StencilRW,
-			DepthRW_StencilTest,
+			DepthTest_StencilRW,				// VK_KHR_maintenance2 or 1.1
+			DepthRW_StencilTest,				// VK_KHR_maintenance2 or 1.1
 			PresentImage,
 			ShadingRateImage,
 			FragmentDensityMap,
@@ -49,7 +49,7 @@ namespace AE::Graphics
 			InputDepthStencilAttachment,
 			InputDepthStencilAttachment_RW,
 			DepthStencilTest_ShaderSample,
-			DepthTest_DepthSample_StencilRW,
+			DepthTest_DepthSample_StencilRW,	// VK_KHR_maintenance2 or 1.1
 			Host_Read,
 
 			// buffer state in shader stages
@@ -186,7 +186,7 @@ namespace AE::Graphics
 		Invalidate								= _EResState::Invalidate,				// only for image
 
 		// shader bits
-		MeshTaskShader							= _EResState::MeshTaskShader,			// AMD: executed in compute queue
+		MeshTaskShader							= _EResState::MeshTaskShader,			// can be executed in compute queue
 		VertexProcessingShaders					= _EResState::VertexProcessingShaders,	// executed only in graphics queue (VS, TCS, TES, GS, Mesh)
 		TileShader								= _EResState::TileShader,
 		FragmentShader							= _EResState::FragmentShader,

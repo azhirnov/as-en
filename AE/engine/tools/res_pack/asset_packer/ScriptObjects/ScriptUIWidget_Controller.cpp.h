@@ -102,7 +102,7 @@ namespace AE::AssetPacker
 	void  ScriptUIController::_BindBase (B &binder) __Th___
 	{
 		using T = typename B::Class_t;
-		binder.Operators().ImplCast( &ScriptUIController_ToBase<T> );
+		AS_IMPL_CAST_T( binder, ScriptUIController_ToBase<T> );
 	}
 //-----------------------------------------------------------------------------
 
@@ -118,9 +118,9 @@ namespace AE::AssetPacker
 		Scripting::ClassBinder<ScriptButtonController>	binder{ se };
 		binder.CreateRef();
 		_BindBase( binder );
-		binder.AddMethod( &ScriptButtonController::SetOnClick,			"OnClick",			{} );
-		binder.AddMethod( &ScriptButtonController::SetOnDoubleClick,	"OnDoubleClick",	{} );
-		binder.AddMethod( &ScriptButtonController::SetOnLongPress,		"OnLongPress",		{} );
+		AS_METHOD( binder, ScriptButtonController::SetOnClick,			"OnClick",			{} );
+		AS_METHOD( binder, ScriptButtonController::SetOnDoubleClick,	"OnDoubleClick",	{} );
+		AS_METHOD( binder, ScriptButtonController::SetOnLongPress,		"OnLongPress",		{} );
 	}
 
 /*

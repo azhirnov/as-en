@@ -108,7 +108,7 @@ namespace AE::Graphics::_hidden_
 		cmd.bindPoint			= bindPoint;
 		cmd.index				= CheckCast<ushort>( index );
 		cmd.dynamicOffsetCount	= CheckCast<ushort>( dynamicOffsets.size() );
-		MemCopy_NullCheck( OUT offsets, dynamicOffsets.data(), ArraySizeOf(dynamicOffsets) );
+		MemCopy( OUT offsets, dynamicOffsets.data(), ArraySizeOf(dynamicOffsets) );
 	}
 
 /*
@@ -158,7 +158,7 @@ namespace AE::Graphics::_hidden_
 		cmd.type	= type;
 		cmd.color	= color;
 
-		MemCopy_NullCheck( OUT str, taskName.data(), Bytes{taskName.size()} );
+		MemCopy( OUT str, taskName.data(), Bytes{taskName.size()} );
 		str[taskName.size()] = '\0';
 	}
 
@@ -208,7 +208,7 @@ namespace AE::Graphics::_hidden_
 		auto*	str	= Cast<char>( &cmd + 1 );
 
 		cmd.color = dbg.color;
-		MemCopy_NullCheck( OUT str, dbg.label.data(), Bytes{dbg.label.size()} );
+		MemCopy( OUT str, dbg.label.data(), Bytes{dbg.label.size()} );
 		str[dbg.label.size()] = '\0';
 	}
 
@@ -225,7 +225,7 @@ namespace AE::Graphics::_hidden_
 		auto*	str	= Cast<char>( &cmd + 1 );
 
 		cmd.color = dbg.color;
-		MemCopy_NullCheck( OUT str, dbg.label.data(), Bytes{dbg.label.size()} );
+		MemCopy( OUT str, dbg.label.data(), Bytes{dbg.label.size()} );
 		str[dbg.label.size()] = '\0';
 	}
 
@@ -270,13 +270,13 @@ namespace AE::Graphics::_hidden_
 		cmd->imageBarrierCount	= CheckCast<ushort>( barrier.imageMemoryBarrierCount );
 		cmd->dependencyFlags	= CheckCast<ushort>( barrier.dependencyFlags );
 
-		MemCopy_NullCheck( OUT ptr, barrier.pMemoryBarriers, SizeOf<VkMemoryBarrier2> * barrier.memoryBarrierCount );
+		MemCopy( OUT ptr, barrier.pMemoryBarriers, SizeOf<VkMemoryBarrier2> * barrier.memoryBarrierCount );
 		ptr = AlignUp( ptr + SizeOf<VkMemoryBarrier2> * barrier.memoryBarrierCount, align );
 
-		MemCopy_NullCheck( OUT ptr, barrier.pBufferMemoryBarriers, SizeOf<VkBufferMemoryBarrier2> * barrier.bufferMemoryBarrierCount );
+		MemCopy( OUT ptr, barrier.pBufferMemoryBarriers, SizeOf<VkBufferMemoryBarrier2> * barrier.bufferMemoryBarrierCount );
 		ptr = AlignUp( ptr + SizeOf<VkBufferMemoryBarrier2> * barrier.bufferMemoryBarrierCount, align );
 
-		MemCopy_NullCheck( OUT ptr, barrier.pImageMemoryBarriers, SizeOf<VkImageMemoryBarrier2> * barrier.imageMemoryBarrierCount );
+		MemCopy( OUT ptr, barrier.pImageMemoryBarriers, SizeOf<VkImageMemoryBarrier2> * barrier.imageMemoryBarrierCount );
 		ptr = AlignUp( ptr + SizeOf<VkImageMemoryBarrier2> * barrier.imageMemoryBarrierCount, align );
 	}
 

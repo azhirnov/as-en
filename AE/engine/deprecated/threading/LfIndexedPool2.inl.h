@@ -201,6 +201,7 @@ namespace AE::Threading
 					_UpdateHiLevel( chunkIndex, hiLevelIndex );
 
 				outIndex = Index_t(idx) | (Index_t(hiLevelIndex) * LowLevel_Count) | (Index_t(chunkIndex) * ChunkSize);
+				ASSERT( outIndex < capacity() );
 
 				// if element is not created
 				if ( (created.load() & mask) == 0 )

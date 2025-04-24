@@ -14,3 +14,4 @@
 * [Заметки по ECS/DOD](papers/ECSNotes-ru.md)
 * [Проекция на сферу](papers/SphericalCube-ru.md)
 * [Проекции на ультра широкий экран](papers/ScreenProjections-ru.md)
+* [Отсечение невидимой геометриии](papers/GeometryCulling-ru.md)

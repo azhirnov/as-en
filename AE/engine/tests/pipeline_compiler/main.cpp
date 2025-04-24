@@ -26,5 +26,10 @@ int main (const int argc, char* argv[])
 	UnitTest_VertexBufferInput_MSL();
 
 	AE_LOGI( "Tests.PipelineCompiler finished" );
+	
+	// Don't check for memleaks because of
+	// false positive in glslang when used dynamic allocation in static variable.
+	StaticLogger::Deinitialize( false );
+
 	return 0;
 }

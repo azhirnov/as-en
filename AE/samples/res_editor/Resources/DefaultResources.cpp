@@ -12,7 +12,8 @@ namespace AE::ResEditor
 =================================================
 */
 	DefaultResources::DefaultResources () :
-		_dtQueue{ MakeRC<DataTransferQueue>() }
+		_dtQueue{ MakeRC<DataTransferQueue>() },
+		_pageSize{ 64_MiB }		// TODO: set 16
 	{
 		auto&	rts = GraphicsScheduler();
 

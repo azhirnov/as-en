@@ -124,25 +124,25 @@ namespace
 
 
 #define FINDSUBSTRING( _name_, _findChar_ )\
-	ND_ inline size_t  _name_ (StringView str, StringView substr, usize offset)		\
-	{																				\
-		const auto*	end = str.data() + str.size() - substr.size() + 1;				\
-		const auto*	ptr = str.data() + offset;										\
-																					\
-		for_likely(; ptr < end; )													\
-		{																			\
-			ptr = _findChar_( ptr, end, substr[0] );								\
-			if_likely( ptr < end )													\
-			{																		\
-				usize	j = 1;														\
-				for (; (j < substr.length()) and (ptr[j] == substr[j]); ++j)		\
-				{}																	\
-				cold_if( j >= substr.length() )										\
-					return ptr - str.data();										\
-				++ptr;																\
-			}																		\
-		}																			\
-		return 0;																	\
+	ND_ inline size_t  _name_ (StringView str, StringView substr, usize offset) __NE___	\
+	{																					\
+		const auto*	end = str.data() + str.size() - substr.size() + 1;					\
+		const auto*	ptr = str.data() + offset;											\
+																						\
+		for_likely(; ptr < end; )														\
+		{																				\
+			ptr = _findChar_( ptr, end, substr[0] );									\
+			if_likely( ptr < end )														\
+			{																			\
+				usize	j = 1;															\
+				for (; (j < substr.length()) and (ptr[j] == substr[j]); ++j)			\
+				{}																		\
+				cold_if( j >= substr.length() )											\
+					return ptr - str.data();											\
+				++ptr;																	\
+			}																			\
+		}																				\
+		return 0;																		\
 	}
 
 
@@ -474,9 +474,8 @@ namespace
 		const usize			search_off	= 13;
 		usize				ref_sum		= 0;
 
-		const auto			PrintStat = [offset, N] (secondsd dt)
+		const auto			PrintStat = [ch_cnt	= ulong{offset} * N] (secondsd dt)
 		{{
-			ulong	ch_cnt	= ulong{offset} * N;
 			return " - "s << ToStringSfx( double(ch_cnt) / dt.count() ) << "B/s";
 		}};
 
@@ -526,20 +525,6 @@ namespace
 			{
 				for (uint i = 0; i < N; ++i)
 					sum += FindSubString4( large_str, substr, search_off );
-			}
-			profiler.EndIteration();
-			profiler.EndTest();
-			CHECK( ref_sum == sum );
-		}
-		#endif
-		#if AE_SIMD_AVX >= 2
-		{
-			usize	sum = 0;
-			profiler.BeginTest( "FindChar_AVX2", PrintStat );
-			profiler.BeginIteration();
-			{
-				for (uint i = 0; i < N; ++i)
-					sum += FindSubString5( large_str, substr, search_off );
 			}
 			profiler.EndIteration();
 			profiler.EndTest();
@@ -638,6 +623,21 @@ namespace
 			{
 				for (uint i = 0; i < N; ++i)
 					sum += FindSubString12( large_str, substr, search_off );
+			}
+			profiler.EndIteration();
+			profiler.EndTest();
+			CHECK( ref_sum == sum );
+		}
+		#endif
+		//-----------------------------------------------------------
+		#if AE_SIMD_AVX >= 2
+		{
+			usize	sum = 0;
+			profiler.BeginTest( "FindChar_AVX2", PrintStat );
+			profiler.BeginIteration();
+			{
+				for (uint i = 0; i < N; ++i)
+					sum += FindSubString5( large_str, substr, search_off );
 			}
 			profiler.EndIteration();
 			profiler.EndTest();

@@ -158,42 +158,10 @@ namespace _hidden_
 		using type = TypeList< LeftTypes..., RightTypes... >;
 	};
 
-
-	template <typename A>
-	struct AreSameTypes
-	{
-		template <typename B>
-		struct Impl : CT_Bool< IsSame< A, B > >{};
-	};
-
 } // _hidden_
 
 	template <typename T>
 	static constexpr bool	IsTypeList = Base::_hidden_::_IsTypeList< T >::value;
-
-
-	// Type traits //
-
-	template <typename T, typename ...Types>
-	static constexpr bool	AllAreSameTypes				= TypeList< Types... >::template ForEach_And< Base::_hidden_::AreSameTypes<T>::Impl >();
-
-	template <typename ...Types>
-	static constexpr bool	AllNothrowCopyCtor			= TypeList< Types... >::template ForEach_And< TNothrowCopyCtor >();
-
-	template <typename ...Types>
-	static constexpr bool	AllNothrowMoveCtor			= TypeList< Types... >::template ForEach_And< TNothrowMoveCtor >();
-
-	template <typename ...Types>
-	static constexpr bool	AllNothrowDefaultCtor		= TypeList< Types... >::template ForEach_And< TNothrowDefaultCtor >();
-
-	template <typename ...Types>
-	static constexpr bool	AllNothrowCopyAssignable	= TypeList< Types... >::template ForEach_And< TNothrowCopyAssignable >();
-
-	template <typename ...Types>
-	static constexpr bool	AllNothrowMoveAssignable	= TypeList< Types... >::template ForEach_And< TNothrowMoveAssignable >();
-
-	template <typename ...Types>
-	static constexpr bool	AllNothrowInvocable			= TypeList< Types... >::template ForEach_And< TNothrowInvocable >();
 
 } // AE::Base
 

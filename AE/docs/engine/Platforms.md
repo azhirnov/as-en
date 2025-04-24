@@ -4,7 +4,7 @@ Supported platforms
 
 - [x] OS: Win7 (without some features)
 - [x] OS: Win8 - Win10
-- [ ] OS: Win11 (not tested)
+- [x] OS: Win11
 - [ ] Architecture: x86 (not tested)
 - [x] Architecture: x64
 - [ ] Architecture: ARM64 (compiled but not tested)
@@ -49,8 +49,8 @@ Supported platforms
 - [x] Architecture: x64
 - [ ] Architecture: ARM64
 - [ ] Architecture: RISC-V 64
-- [x] Compiler: GCC12
-- [x] Compiler: Clang15
+- [x] Compiler: GCC12, 13
+- [x] Compiler: Clang15, 16
 - [x] CPU info
 - [ ] Memory info (not tested)
 - [x] Thread affinity
@@ -69,6 +69,10 @@ Supported platforms
 - [x] Graphics:
 	- Vulkan (by default requires timeline semaphore)
 	- Vulkan (without timeline semaphore, compile with `-DAE_VK_TIMELINE_SEMAPHORE=OFF`)
+- Vulkan drivers:
+	- [x] RADV
+	- [ ] AMDVLK
+	- [ ] AMDPRO
 - Window system:
 	- [x] X11
 	- [ ] Wayland
@@ -118,7 +122,7 @@ Supported platforms
 - [x] CPU info
 - [ ] Memory info
 - [ ] Thread affinity
-- [ ] Thread priority
+- [x] Thread priority
 - [x] Thread pause instruction
 - [x] Thread: nano/micro sleep
 - [x] Window mode: Fullscreen, Borderless

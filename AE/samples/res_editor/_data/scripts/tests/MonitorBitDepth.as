@@ -1,0 +1,57 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Visualize gradient and match grid with gradient lanes.
+
+	bit depth = 1 / (iRange / iGridSize)
+*/
+#ifdef __INTELLISENSE__
+# 	include <res_editor.as>
+#	include <glsl.h>
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SCRIPT
+
+	void ASmain ()
+	{
+		RC<Image>	rt = Image( EPixelFormat::RGBA16F, SurfaceSize() );
+
+		// render loop
+		{
+			RC<Postprocess>		pass = Postprocess();
+			pass.Output( "out_Color",	rt,		RGBA32f(0.0) );
+			pass.Slider( "iBegin",		0.0,	1.0,	0.15 );
+			pass.Slider( "iRange",		0.0,	0.1,	0.05 );
+			pass.Slider( "iSRGB",		0,		1 );				// set 1 for sRGB swapchain image
+			pass.Slider( "iGridSize",	8,		16,		8 );
+			pass.Slider( "iGridOffset",	0.0,	0.1,	0.0 );
+			pass.ColorSelector( "iColor", RGBA8u(255) );
+		}
+		Present( rt );
+	}
+
+#endif
+//-----------------------------------------------------------------------------
+#ifdef SH_FRAG
+	#include "SDF.glsl"
+	#include "ColorSpace.glsl"
+	#include "InvocationID.glsl"
+
+	void  Main ()
+	{
+		float2	uv = GetGlobalCoordUNorm().xy;
+		float	x = uv.x;
+		float	a = AA_LinesX_dxdy( (uv + iGridOffset) * float(iGridSize), float2(1.0, 2.0) ).x;
+
+		x = Saturate( iBegin + x * iRange );
+
+		out_Color = iColor * x;
+
+		if ( iSRGB == 1 )
+			out_Color = ApplySRGBCurve( out_Color );
+
+		if ( uv.y > 0.7 )
+			out_Color.rgb = Lerp( float3(0.0), out_Color.rgb, a );
+	}
+
+#endif
+//-----------------------------------------------------------------------------

@@ -44,9 +44,41 @@ inline void  ForEachCoreType (FN &&fn)
 					CHECK_FATAL( ThreadUtils::SetAffinity( core->FirstLogicalCore() ));
 				#endif
 			}};
-			SetAffinity();
 
-			fn( core_type, SetAffinity );
+			fn( *core, SetAffinity );
 		}
 	}
+}
+
+ND_ inline String  FindNearestCacheType (const Bytes size, const ECoreType coreType)
+{
+	auto&	cpu_info	= CpuArchInfo::Get();
+	auto	page_size	= PlatformUtils::GetMemoryPageInfo().pageSize;
+
+	if ( page_size == size )
+		return "page, "s << ToString( page_size );
+
+	for (auto cache_type : IndicesOnly<CpuArchInfo::ECacheType>())
+	{
+		if ( cache_type == CpuArchInfo::ECacheType::L1_Instuction )
+			continue;
+
+		if ( auto* cache = cpu_info.GetCache( cache_type, coreType ))
+		{
+			if ( NearPOT( cache->size ) == size )
+			{
+				return String{ToString( cache_type )} << ", " << ToString( cache->size );
+			}
+		}
+
+		if ( auto* cache = cpu_info.GetCache( cache_type, ECoreType::Unknown ))
+		{
+			if ( NearPOT( cache->size ) == size )
+			{
+				return String{ToString( cache_type )} << ", " << ToString( cache->size );
+			}
+		}
+	}
+
+	return {};
 }

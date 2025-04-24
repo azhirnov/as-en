@@ -139,16 +139,39 @@ namespace
 #endif
 /*
 =================================================
+	VSCodeLogOutput
+=================================================
+*/
+#ifdef AE_PLATFORM_LINUX
+	ILogger::EResult  VSCodeLogOutput::Process (const MessageInfo &info)
+	{
+		const String	str = String{info.file} << ':' << ToString( info.line ) << ": "
+							<< ScopeToString( info.scope ) << LevelToString( info.level )
+							<< ": " << info.message << '\n';
+
+		{
+			EXLOCK( _guard );
+			std::cout << str;
+		}
+		return EResult::Unknown;
+	}
+#endif
+/*
+=================================================
 	CreateIDEOutput
 =================================================
 */
 	ILogger::LoggerPtr  ILogger::CreateIDEOutput () __NE___
 	{
-	#ifdef AE_COMPILER_MSVC
+	#ifdef AE_CI_BUILD_TEST
+		return {};
+	#elif defined(AE_COMPILER_MSVC)
 		if ( ::IsDebuggerPresent() )
 			return MakeUnique<VisualStudioLogOutput>();
 		else
 			return {};
+	#elif defined(AE_PLATFORM_LINUX)
+		return MakeUnique<VSCodeLogOutput>();
 	#else
 		return {};
 	#endif
@@ -327,7 +350,7 @@ namespace
 
 /*
 =================================================
-	CreateConsoleOutput
+	CreateConsoleOutput (Android)
 =================================================
 */
 	ILogger::LoggerPtr	ILogger::CreateConsoleOutput (StringView tag) __NE___
@@ -347,7 +370,7 @@ namespace
 */
 	ILogger::EResult  ConsoleLogOutput::Process (const MessageInfo &info)
 	{
-		String str = String{ FileSystem::ToShortPath( info.file )} << '(' << ToString( info.line ) << "): " << info.message;
+		String	str = String{ FileSystem::ToShortPath( info.file )} << '(' << ToString( info.line ) << "): " << info.message;
 
 	  #if not (defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF))
 		switch_enum( info.level )
@@ -389,8 +412,13 @@ namespace
 			::SetConsoleMode( hnd, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING );
 		}
 		#endif
-
-		return MakeUnique<ConsoleLogOutput>();
+		
+		#if defined(AE_PLATFORM_LINUX) and not defined(AE_CI_BUILD_TEST)
+			// use 'CreateIDEOutput()' instead
+			return {};
+		#else
+			return MakeUnique<ConsoleLogOutput>();
+		#endif
 	}
 
 #endif
@@ -491,7 +519,8 @@ namespace
 		_file{ RVRef(file) },
 		_txtColor{ uint(EColor::Black) },
 		_bgColor{ uint(EColor::White) },
-		_enableThreadNames{ tnames }
+		_enableThreadNames{ tnames },
+		_addStackTrace{ not PlatformUtils::IsUnderDebugger() }
 	{
 		CHECK( _file and _file->IsOpen() );
 
@@ -632,8 +661,51 @@ namespace
 			_SetColor( EColor::Silver, EColor(_bgColor), INOUT str );
 			str << "  (file: '" << FileSystem::ToShortPath( info.file ) << "', line: " << ToString( info.line ) << ")";
 		}
+		
+	  #ifdef __cpp_lib_stacktrace
+		if_unlikely( info.level >= ELevel::Error and _addStackTrace )
+		{
+			"<details><summary>" >> str;
+			str << "</summary>";
+			
+			_SetColor( EColor::DarkGrey, EColor(_bgColor), INOUT str );
 
-		str << "\n";
+			#ifdef AE_PLATFORM_WINDOWS
+				constexpr StringView	fname = "base\\Log\\Log.cpp";
+			#else
+				constexpr StringView	fname = "base/Log/Log.cpp";
+			#endif
+
+			auto		stack	= std::stacktrace::current();
+			auto		it		= stack.begin();
+			usize		i		= 0;
+			const usize	count	= stack.size();
+
+			// skip logger functions
+			{
+				for (; i < count; ++i, ++it) {
+					if_unlikely( HasSubString( it->source_file(), fname )) {
+						++i;  ++it;
+						break;
+					}
+				}
+				for (; i < count; ++i, ++it) {
+					if_unlikely( not HasSubString( it->source_file(), fname ))
+						break;
+				}
+			}
+
+			for (; i < count; ++i, ++it) {
+				//str << "  " << std::to_string( *it ) << '\n';
+				str << "  " << FileSystem::ToShortPath( it->source_file() ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
+			}
+
+			str.pop_back();
+			str << "</details>";
+		}
+		else
+	  #endif
+			str << "\n";
 
 		_Flush( str );
 		return EResult::Unknown;

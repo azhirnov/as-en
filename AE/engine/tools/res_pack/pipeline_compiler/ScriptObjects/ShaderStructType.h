@@ -11,7 +11,7 @@ namespace AE::PipelineCompiler
 	struct ArraySize
 	{
 	// variables
-		uint		value	= 0;
+		uint		value	= 1;
 
 	// methods
 		ArraySize ()									__NE___	{}

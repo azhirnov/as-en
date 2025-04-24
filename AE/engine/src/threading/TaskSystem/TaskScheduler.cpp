@@ -1254,7 +1254,7 @@ DEBUG_ONLY(
 
 		for (auto& [task, io] : map)
 		{
-			log << "\n\n'" << task->DbgName() << "' (" << ToString<16>(usize(task)) << ")"
+			log << "\n\n  '" << task->DbgName() << "' (" << ToString<16>(usize(task)) << ")"
 				//<< " wait for (" << ToString(BitCount(task->_waitBits.load())) << ")"
 				<< (task->_canceledDepsCount.load() > 0 ? ", canceled" : "");
 
@@ -1281,25 +1281,28 @@ DEBUG_ONLY(
 				log	<< ", in:";
 				for (uint i : BitIndexIterate( bits ))
 				{
-					log << "\n    [" << ToString(i) << "] ";
+					log << "\n      [" << ToString(i) << "] ";
 					LogDep( i, io );
 				}
 			}
 
 			if ( not io.out.empty() )
 			{
-				log	<< "\n  out:";
+				log	<< "\n    out:";
 
 				for (auto& dep : io.out)
 				{
-					log << "\n    '" << dep.Get<0>()->DbgName() << "' (" << ToString<16>(usize(dep.Get<0>().get())) << ") ["
+					log << "\n      '" << dep.Get<0>()->DbgName() << "' (" << ToString<16>(usize(dep.Get<0>().get())) << ") ["
 						<< ToString(dep.Get<1>().bitIndex) << "]";
 				}
 			}
 		}
 
 		if ( not log.empty() )
+		{
+			log << "\n------------------------------------\n";
 			AE_LOGW( log );
+		}
 
 	#endif // AE_DEBUG
 	}

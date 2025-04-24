@@ -353,6 +353,24 @@ namespace AE::ResEditor
 			}
 		}
 	}
+	
+/*
+=================================================
+	MoveTo
+=================================================
+*/
+	void  ScriptPassArgs::MoveTo (OUT ScriptPassArgs &dst) __NE___
+	{
+		dst._args			= RVRef( this->_args );				this->_args.clear();
+		dst._uniqueNames	= RVRef( this->_uniqueNames );		this->_uniqueNames.clear();
+
+		if ( dst._onAddArg )
+		{
+			for (auto& arg : dst._args) {
+				dst._onAddArg( arg );
+			}
+		}
+	}
 
 
 } // AE::ResEditor

@@ -1,3 +1,4 @@
+echo "update 'NvAPI'..."
 rmdir /Q /S "build"
 rmdir /Q /S "..\..\..\..\..\AE-Bin\external\win-x64\NvAPI"
 rmdir /Q /S "temp"

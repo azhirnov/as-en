@@ -2,7 +2,7 @@
 
 #include "ScriptObjects/ScriptUIWidget.h"
 
-#include "graphics_hl/UI/Widget.h"
+#include "graphics/UI/Widget.h"
 
 #include "ScriptObjects/ScriptUIWidget_Controller.cpp.h"
 #include "ScriptObjects/ScriptUIWidget_Drawable.cpp.h"
@@ -187,8 +187,8 @@ namespace AE::AssetPacker
 		{
 			ClassBinder<ScriptUIWidget>	binder{ se };
 			binder.CreateRef();
-			binder.AddMethod( &ScriptUIWidget::Initialize,	"Initialize"	);
-			binder.AddMethod( &ScriptUIWidget::Store,		"Store"			);
+			AS_METHOD( binder, ScriptUIWidget::Initialize,	"Initialize"	);
+			AS_METHOD( binder, ScriptUIWidget::Store,		"Store"			);
 		}
 	}
 

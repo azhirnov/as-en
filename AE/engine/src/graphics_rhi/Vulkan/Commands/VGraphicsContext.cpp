@@ -100,7 +100,6 @@ namespace
 	void  ConvertViewports (ArrayView<Viewport> inViewports, ArrayView<RectI> inScissors, const int2 &areaSize,
 							OUT VDrawCommandBatch::Viewports_t &outViewports, OUT VDrawCommandBatch::Scissors_t &outScissors) __NE___
 	{
-		ASSERT( not inViewports.empty() );
 		ASSERT( inScissors.empty() or inScissors.size() == inViewports.size() );
 
 		// set viewports and default scissors
@@ -183,6 +182,9 @@ namespace
 */
 	void  _VDirectGraphicsCtx::_InitViewports (const RenderPassDesc &desc)
 	{
+		if ( desc.viewports.empty() )
+			return;
+
 		Viewports_t		viewports;
 		Scissors_t		scissors;
 		ConvertViewports( desc.viewports, Default, desc.area.Size(), OUT viewports, OUT scissors );

@@ -1,6 +1,6 @@
 
 * [Build instructions](engine/Build.md)
-* [Licensing information](https://github.com/azhirnov/as-en/blob/dev/AE/LICENSE.md)
+* [Licensing information](../LICENSE.md)
 * [Engine Concept](engine/Concept.md)
 * Graphics: [DeviceProperties](engine/DeviceProperties.md)
 * Graphics: [FeatureSet](engine/FeatureSet.md)

@@ -52,7 +52,7 @@
 		pos3 = QMul( QRotationY(ToRad( iRotation.x )), pos3 );
 		pos3 = QMul( QRotationX(ToRad( iRotation.y )), pos3 );
 		pos3 = QMul( QRotationZ(ToRad( iRotation.z )), pos3 );
-
+		
 		float	n		= gl.texture.Sample( un_Noise, pos3 ).r;
 		float3	border_col;
 

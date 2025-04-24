@@ -86,6 +86,10 @@ namespace AE::Graphics
 		VulkanDeviceFnTable		_deviceFnTable;			// large
 		VProperties				_properties;			// very large
 
+		DEBUG_ONLY(
+			bool				_logAllocatorStats	= true;		// constant after initialization
+		)
+
 
 	// methods
 	public:
@@ -122,6 +126,9 @@ namespace AE::Graphics
 
 		ND_ RenderDocApi const&		GetRenderDocApi ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rdc; }
 		ND_ bool					HasRenderDocApi ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rdc.IsInitialized(); }
+	  #endif
+	  #ifdef AE_DEBUG
+		ND_ bool					_EnableAllocatorStats ()						C_NE___	{ return _logAllocatorStats; }
 	  #endif
 
 		ND_ DeviceMemoryInfo		GetMemoryInfo ()								C_NE_OF;
@@ -286,7 +293,8 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit VDeviceInitializer (Bool enableInfoLog = False{})									__NE___;
+		explicit VDeviceInitializer (Bool enableInfoLog			= False{},
+									 Bool enableAllocatorStats	= True{})							__NE___;
 		~VDeviceInitializer ()																		__NE___;
 
 
@@ -298,6 +306,8 @@ namespace AE::Graphics
 			bool  LoadAmdPerf ()																	__NE___;
 			bool  LoadRenderDoc ()																	__NE___;
 		#endif
+
+			bool  ChooseDriver (ArrayView<EDriver> driverList)										C_NE___;
 
 		ND_ bool  CreateInstance (const InstanceCreateInfo &ci)										__NE___;
 		//  bool  SetInstance (VkInstance value, const InstanceCreateInfo &ci)						__NE___;

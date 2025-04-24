@@ -666,7 +666,7 @@ SpirvShaders {
   [10]  offset = 28 KiB
   [11]  offset = 31 KiB
   [12]  offset = 32 KiB
-  [13]  offset = 35 KiB
+  [13]  offset = 34 KiB
   [14]  offset = 37 KiB
   [15]  offset = 40 KiB
   [16]  offset = 44 KiB

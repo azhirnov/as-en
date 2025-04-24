@@ -59,17 +59,17 @@ namespace
 	{
 		using T = typename B::Class_t;
 
-		binder.Operators().ImplCast( &ScriptBaseController_ToBase<T> );
+		AS_IMPL_CAST_T( binder, ScriptBaseController_ToBase<T> );
 
 		binder.Comment( "Returns dynamic dimension which is attached to the camera.\n"
 						"If not specified then render target size will be used from first pass where camera attached." );
-		binder.AddMethod( &ScriptBaseController::_Dimension,	"Dimension",	{} );
+		AS_METHOD_T( binder, ScriptBaseController::_Dimension,	"Dimension",	{} );
 
 		binder.Comment( "Set dynamic dimension for camera.\n"
 						"If camera is used in single pass use default value.\n"
 						"If camera is used in multiple passes with different resolution then set explicit dimension.\n"
 						"When dimension changed camera with perspective projection will be resized for new aspect ratio." );
-		binder.AddMethod( &ScriptBaseController::_SetDimension,	"Dimension",	{} );
+		AS_METHOD_T( binder, ScriptBaseController::_SetDimension,	"Dimension",	{} );
 	}
 
 /*
@@ -141,17 +141,17 @@ namespace
 		binder.CreateRef();
 
 		binder.Comment( "Set scale for forward and backward movement." );
-		binder.AddMethod( &ScriptControllerTopDown::ForwardBackwardScale1,		"ForwardBackwardScale",	{} );
-		binder.AddMethod( &ScriptControllerTopDown::ForwardBackwardScale2,		"ForwardBackwardScale",	{"forward", "backward"} );
+		AS_METHOD( binder, ScriptControllerTopDown::ForwardBackwardScale1,		"ForwardBackwardScale",	{} );
+		AS_METHOD( binder, ScriptControllerTopDown::ForwardBackwardScale2,		"ForwardBackwardScale",	{"forward", "backward"} );
 
 		binder.Comment( "Set scale for side (left/right) movement." );
-		binder.AddMethod( &ScriptControllerTopDown::SideMovementScale,			"SideMovementScale",	{} );
+		AS_METHOD( binder, ScriptControllerTopDown::SideMovementScale,			"SideMovementScale",	{} );
 
 		binder.Comment( "Set rotation scale for mouse/touches/arrows." );
-		binder.AddMethod( &ScriptControllerTopDown::SetRotationScale,			"RotationScale",		{} );
+		AS_METHOD( binder, ScriptControllerTopDown::SetRotationScale,			"RotationScale",		{} );
 
 		binder.Comment( "Set initial position" );
-		binder.AddMethod( &ScriptControllerTopDown::SetPosition,				"Position",				{} );
+		AS_METHOD( binder, ScriptControllerTopDown::SetPosition,				"Position",				{} );
 
 		_BindBase( binder );
 	}
@@ -268,28 +268,28 @@ namespace
 		_BindBase( binder );
 
 		binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
-		binder.AddMethod( &ScriptControllerOrbitalCamera::SetFovY,				"FovY",				{} );
+		AS_METHOD( binder, ScriptControllerOrbitalCamera::SetFovY,				"FovY",				{} );
 
 		binder.Comment( "Set near and far clip planes." );
-		binder.AddMethod( &ScriptControllerOrbitalCamera::SetClipPlanes1,		"ClipPlanes",		{"near", "far"} );
+		AS_METHOD( binder, ScriptControllerOrbitalCamera::SetClipPlanes1,		"ClipPlanes",		{"near", "far"} );
 
 		binder.Comment( "Set near clip plane for infinity projection." );
-		binder.AddMethod( &ScriptControllerOrbitalCamera::SetClipPlanes2,		"ClipPlanes",		{"near"} );
+		AS_METHOD( binder, ScriptControllerOrbitalCamera::SetClipPlanes2,		"ClipPlanes",		{"near"} );
 
-		binder.AddMethod( &ScriptControllerOrbitalCamera::ReverseZ,				"ReverseZ",			{} );
+		AS_METHOD( binder, ScriptControllerOrbitalCamera::ReverseZ,				"ReverseZ",			{} );
 
 		binder.Comment( "Set rotation scale for mouse/touches/arrows." );
-		binder.AddMethod( &ScriptControllerOrbitalCamera::SetRotationScale1,	"RotationScale",	{"xy"} );
-		binder.AddMethod( &ScriptControllerOrbitalCamera::SetRotationScale2,	"RotationScale",	{"x", "y"} );
+		AS_METHOD( binder, ScriptControllerOrbitalCamera::SetRotationScale1,	"RotationScale",	{"xy"} );
+		AS_METHOD( binder, ScriptControllerOrbitalCamera::SetRotationScale2,	"RotationScale",	{"x", "y"} );
 
 		//binder.Comment( "" );
-		binder.AddMethod( &ScriptControllerOrbitalCamera::SetOffsetScale,		"OffsetScale",		{} );
+		AS_METHOD( binder, ScriptControllerOrbitalCamera::SetOffsetScale,		"OffsetScale",		{} );
 
 		binder.Comment( "Set initial position." );
-		binder.AddMethod( &ScriptControllerOrbitalCamera::SetPosition,			"Position",			{} );
+		AS_METHOD( binder, ScriptControllerOrbitalCamera::SetPosition,			"Position",			{} );
 
 		//binder.Comment( "" );
-		binder.AddMethod( &ScriptControllerOrbitalCamera::SetOffset,			"Offset",			{} );
+		AS_METHOD( binder, ScriptControllerOrbitalCamera::SetOffset,			"Offset",			{} );
 	}
 
 /*
@@ -410,18 +410,18 @@ namespace
 	void  ScriptControllerCamera3D::_BindCamera3D (B &binder) __Th___
 	{
 		binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
-		binder.AddMethod( &ScriptControllerCamera3D::SetFovY,				"FovY",				{} );
+		AS_METHOD_T( binder, ScriptControllerCamera3D::SetFovY,				"FovY",				{} );
 
 		binder.Comment( "Set near and far clip planes." );
-		binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes1,		"ClipPlanes",		{"near", "far"} );
+		AS_METHOD_T( binder, ScriptControllerCamera3D::SetClipPlanes1,		"ClipPlanes",		{"near", "far"} );
 
 		binder.Comment( "Set near clip plane for infinity projection." );
-		binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes2,		"ClipPlanes",		{"near"} );
+		AS_METHOD_T( binder, ScriptControllerCamera3D::SetClipPlanes2,		"ClipPlanes",		{"near"} );
 
-		binder.AddMethod( &ScriptControllerCamera3D::ReverseZ,				"ReverseZ",			{} );
+		AS_METHOD_T( binder, ScriptControllerCamera3D::ReverseZ,			"ReverseZ",			{} );
 
 		binder.Comment( "Set initial position." );
-		binder.AddMethod( &ScriptControllerCamera3D::SetPosition,			"Position",			{} );
+		AS_METHOD_T( binder, ScriptControllerCamera3D::SetPosition,			"Position",			{} );
 
 		_BindBase( binder );
 	}
@@ -455,10 +455,10 @@ namespace
 		binder.CreateRef();
 
 		binder.Comment( "Set rotation scale for mouse/touches/arrows." );
-		binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,			"RotationScale",	{} );
-		binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale3,			"RotationScale",	{"yaw", "pitch", "roll"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::SetRotationScale1,			"RotationScale",	{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::SetRotationScale3,			"RotationScale",	{"yaw", "pitch", "roll"} );
 
-		binder.AddMethod( &ScriptControllerFlightCamera::SetEngineThrustRange,	"EngineThrust",		{"min", "max"} );
+		AS_METHOD( binder, ScriptControllerFlightCamera::SetEngineThrustRange,	"EngineThrust",		{"min", "max"} );
 
 		_BindCamera3D( binder );
 	}
@@ -494,19 +494,19 @@ namespace
 		binder.CreateRef();
 
 		binder.Comment( "Set scale for forward and backward movement." );
-		binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1,	"ForwardBackwardScale",	{} );
-		binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2,	"ForwardBackwardScale",	{"forward", "backward"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::ForwardBackwardScale1,	"ForwardBackwardScale",	{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::ForwardBackwardScale2,	"ForwardBackwardScale",	{"forward", "backward"} );
 
 		binder.Comment( "Set scale for up and down movement." );
-		binder.AddMethod( &ScriptControllerCamera3D::UpDownScale1,			"UpDownScale",			{} );
-		binder.AddMethod( &ScriptControllerCamera3D::UpDownScale2,			"UpDownScale",			{"up", "down"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::UpDownScale1,			"UpDownScale",			{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::UpDownScale2,			"UpDownScale",			{"up", "down"} );
 
 		binder.Comment( "Set scale for side (left/right) movement." );
-		binder.AddMethod( &ScriptControllerCamera3D::SideMovementScale,		"SideMovementScale",	{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::SideMovementScale,		"SideMovementScale",	{} );
 
 		binder.Comment( "Set rotation scale for mouse/touches/arrows." );
-		binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,		"RotationScale",		{"xy"} );
-		binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale2,		"RotationScale",		{"x", "y"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::SetRotationScale1,		"RotationScale",		{"xy"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::SetRotationScale2,		"RotationScale",		{"x", "y"} );
 
 		_BindCamera3D( binder );
 	}
@@ -542,15 +542,15 @@ namespace
 		binder.CreateRef();
 
 		binder.Comment( "Set scale for forward and backward movement." );
-		binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1,	"ForwardBackwardScale",	{} );
-		binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2,	"ForwardBackwardScale",	{"forward", "backward"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::ForwardBackwardScale1,	"ForwardBackwardScale",	{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::ForwardBackwardScale2,	"ForwardBackwardScale",	{"forward", "backward"} );
 
 		binder.Comment( "Set scale for up and down movement." );
-		binder.AddMethod( &ScriptControllerCamera3D::UpDownScale1,			"UpDownScale",			{} );
-		binder.AddMethod( &ScriptControllerCamera3D::UpDownScale2,			"UpDownScale",			{"up", "down"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::UpDownScale1,			"UpDownScale",			{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::UpDownScale2,			"UpDownScale",			{"up", "down"} );
 
 		binder.Comment( "Set scale for side (left/right) movement." );
-		binder.AddMethod( &ScriptControllerCamera3D::SideMovementScale,		"SideMovementScale",	{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::SideMovementScale,		"SideMovementScale",	{} );
 
 		_BindCamera3D( binder );
 	}
@@ -586,19 +586,19 @@ namespace
 		binder.CreateRef();
 
 		binder.Comment( "Set scale for forward and backward movement." );
-		binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1,	"ForwardBackwardScale",	{} );
-		binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2,	"ForwardBackwardScale",	{"forward", "backward"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::ForwardBackwardScale1,	"ForwardBackwardScale",	{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::ForwardBackwardScale2,	"ForwardBackwardScale",	{"forward", "backward"} );
 
 		binder.Comment( "Set scale for up and down movement." );
-		binder.AddMethod( &ScriptControllerCamera3D::UpDownScale1,			"UpDownScale",			{} );
-		binder.AddMethod( &ScriptControllerCamera3D::UpDownScale2,			"UpDownScale",			{"up", "down"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::UpDownScale1,			"UpDownScale",			{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::UpDownScale2,			"UpDownScale",			{"up", "down"} );
 
 		binder.Comment( "Set scale for side (left/right) movement." );
-		binder.AddMethod( &ScriptControllerCamera3D::SideMovementScale,		"SideMovementScale",	{} );
+		AS_METHOD( binder, ScriptControllerCamera3D::SideMovementScale,		"SideMovementScale",	{} );
 
 		binder.Comment( "Set rotation scale for mouse/touches/arrows." );
-		binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,		"RotationScale",		{"xy"} );
-		binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale2,		"RotationScale",		{"x", "y"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::SetRotationScale1,		"RotationScale",		{"xy"} );
+		AS_METHOD( binder, ScriptControllerCamera3D::SetRotationScale2,		"RotationScale",		{"x", "y"} );
 
 		_BindCamera3D( binder );
 	}

@@ -406,6 +406,8 @@ namespace
 					case ePVRScopeEvent2DEnd :			pass = EPass::Transfer;		break;
 					case ePVRScopeEventRTUEnd :			pass = EPass::RayTracing;	break;
 					case ePVRScopeEventSHGEnd :			pass = EPass::RTASBuild;	break;
+
+                    case ePVRScopeEventCount :          break;
 				}
 				switch_end;
 

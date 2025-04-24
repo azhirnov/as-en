@@ -26,16 +26,21 @@ namespace AE::ResEditor
 
 		if_unlikely( pd.dbg.IsEnabled( this ))
 		{
-			DirectCtx::Transfer		tctx	{ pd.rtask, RVRef(pd.cmdbuf) };
+		/*	DirectCtx::Transfer		tctx	{ pd.rtask, RVRef(pd.cmdbuf) };
 			const uint2				coord	= uint2{pd.dbg.coord * float2(dim-1u)};
 
 			dbg_result.resize( instances.size() );
-			for (usize i = 0; i < instances.size(); ++i)
+
+			for (auto& subpass : _subpasses)
 			{
-				IGeomSource::DebugPrepareData	dd{ *_materials[i], tctx, pd.dbg, coord, allocator, _tempPplnToObjID, dbg_result[i] };
-				instances[i].geometry->PrepareForDebugging( INOUT dd );
+				for (usize i = 0; i < instances.size(); ++i)
+				{
+					IGeomSource::DebugPrepareData	dd{ *subpass->_materials[i], tctx, pd.dbg, coord, allocator, _tempPplnToObjID, dbg_result[i] };
+					instances[i].geometry->PrepareForDebugging( INOUT dd );
+				}
 			}
-			pd.cmdbuf = tctx.ReleaseCommandBuffer();
+
+			pd.cmdbuf = tctx.ReleaseCommandBuffer(); */
 		}
 
 		DirectCtx::Graphics		ctx	{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
@@ -44,69 +49,104 @@ namespace AE::ResEditor
 		{
 			// state transition
 			{
-				for (usize i = 0; i < instances.size(); ++i) {
-					instances[i].geometry->StateTransition( *_materials[i], ctx );
+				for (auto& subpass : _subpasses)
+				{
+					for (usize i = 0; i < instances.size(); ++i)
+					{
+						auto&	mtr = subpass->_materials[i];
+						if ( mtr != null )
+							instances[i].geometry->StateTransition( *mtr, ctx );
+					}
+
+					subpass->_resources.SetStates( ctx, Default );
+					ctx.ResourceState( subpass->_ubuffer, EResourceState::UniformRead | EResourceState::AllGraphicsShaders );
 				}
-				_resources.SetStates( ctx, Default );
-				ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::AllGraphicsShaders );
+				if ( cnt > 1 ) ctx.MemoryBarrier( EPipelineScope::All, EPipelineScope::All );	// disable overlapping, only for profiling!
 				ctx.CommitBarriers();
 			}
 
 			// render pass
 			{
-				Scissors_t		scissors;
 				RenderPassDesc	rp_desc = _rpDesc;
+				Scissors_t		scissors;
+				Viewports_t		viewports;
 
 				for (auto& rt : _renderTargets) {
 					rp_desc.AddTarget( rt.name, rt.image->GetViewId(), rt.clear );
 				}
-
 				rp_desc.area = RectI{ int2{dim} };
-				for (auto& vp : rp_desc.viewports) {
-					vp.rect *= float2{dim};
-				}
 
-				for (usize i = 0; i < _scissors.size(); ++i)
-					scissors.push_back( RectI{ _scissors[i] * float2{dim} });
+				auto	dctx = ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
 
-				DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
-				auto				dctx	= ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
-
-				if ( not scissors.empty() )
-					dctx.SetScissors( scissors );
-
-				if ( _shadingRate )
-					dctx.SetFragmentShadingRate( _shadingRate.rate, _shadingRate.primitiveOp, _shadingRate.textureOp );
-
-				if ( not _wScaling.empty() )
-					dctx.SetViewportWScaling( _wScaling );
-
-				decltype(&IGeomSource::Draw)	draw_fn = null;
-				switch_enum( _renderLayer )
+				// draw subpasses
+				for (auto& subpass : _subpasses)
 				{
-					case ERenderLayer::Opaque :
-					case ERenderLayer::Translucent :	draw_fn = &IGeomSource::Draw;			break;
-					case ERenderLayer::PostProcess :	draw_fn = &IGeomSource::PostProcess;	break;
-					case ERenderLayer::_Count :			break;
-				}
-				switch_end
+					if ( not IsFirstElement( subpass, _subpasses ))
+					{
+						DirectCtx::Draw		temp = ctx.NextSubpass( dctx, DebugLabel{_dbgName, _dbgColor} );
+						PlacementDelete( dctx );
+						new(&dctx) DirectCtx::Draw{ RVRef(temp) };
+					}
 
-				// draw
-				if ( draw_fn != null )
-				{
+					// setup
+					if ( not subpass->_viewports.empty() )
+					{
+						viewports.clear();
+						for (auto& src : subpass->_viewports)
+						{
+							auto&	vp = viewports.emplace_back( src );
+							vp.rect *= float2{dim};
+						}
+						dctx.SetViewports( viewports );
+					}
+
+					if ( not subpass->_scissors.empty() )
+					{
+						scissors.clear();
+						for (auto& src : subpass->_scissors) {
+							scissors.push_back( RectI{ src * float2{dim} });
+						}
+						dctx.SetScissors( scissors );
+					}
+
+					if ( subpass->_shadingRate )
+						dctx.SetFragmentShadingRate( subpass->_shadingRate.rate, subpass->_shadingRate.primitiveOp, subpass->_shadingRate.textureOp );
+
+					if ( not subpass->_wScaling.empty() )
+						dctx.SetViewportWScaling( subpass->_wScaling );
+
+					decltype(&IGeomSource::Draw)	draw_fn = null;
+					switch_enum( subpass->_renderLayer )
+					{
+						case ERenderLayer::Opaque :
+						case ERenderLayer::Translucent :	draw_fn = &IGeomSource::Draw;			break;
+						case ERenderLayer::PostProcess :	draw_fn = &IGeomSource::PostProcess;	break;
+						case ERenderLayer::_Count :			break;
+					}
+					switch_end
+						
+					if ( draw_fn == null )
+						continue;
+
+					// draw
+					DescriptorSetID		ds = subpass->_descSets[ ctx.GetFrameId().Index() ];
+
 					for (usize i = 0; i < instances.size(); ++i)
 					{
-						bool	has_dbg_result = (not dbg_result.empty()) and (dbg_result[i] != null);
+						bool	has_dbg_result	= false; //(not dbg_result.empty()) and (dbg_result[i] != null);
+						auto&	mtr				= subpass->_materials[i];
+
+						if ( mtr == null )
+							continue;
 
 						CHECK_ERR( ((*instances[i].geometry).*draw_fn)( IGeomSource::DrawData{
-										*_materials[i], dctx, ds,
+										*mtr, dctx, ds,
 										(has_dbg_result ? dbg_result[i]	: null),
 										(has_dbg_result ? pd.dbg.mode	: Default),
 										(has_dbg_result ? pd.dbg.stage	: Default)
 									}));
 					}
 				}
-
 				ctx.EndRenderPass( dctx );
 			}
 		}
@@ -126,36 +166,71 @@ namespace AE::ResEditor
 		CHECK_ERR( not _renderTargets.empty() );
 
 		// validate dimensions
+		const uint2		cur_dim = _renderTargets.front().image->GetViewDesc().Dimension2();
+		
+		for (auto& rt : _renderTargets)
 		{
-			const uint2		cur_dim = _renderTargets.front().image->GetViewDesc().Dimension2();
+			const uint2		dim = rt.image->GetViewDesc().Dimension2();
 
-			for (auto& rt : _renderTargets)
-			{
-				const uint2		dim = rt.image->GetViewDesc().Dimension2();
-
-				if ( rt.name == AttachmentName{"ShadingRate"} or rt.name == AttachmentName{"FragmentDensity"} ){
-					CHECK_ERR( All( dim < cur_dim ));
-				}else{
-					CHECK_ERR( All( dim == cur_dim ));
-				}
+			if ( rt.name == AttachmentName{"ShadingRate"} or rt.name == AttachmentName{"FragmentDensity"} ){
+				CHECK_ERR( All( dim < cur_dim ));
+			}else{
+				CHECK_ERR( All( dim == cur_dim ));
 			}
 		}
 
+		for (auto& subpass : _subpasses)
+		{
+			subpass->_dimension = cur_dim;
+			subpass->Update( ctx, pd );
+		}
+
+		return true;
+	}
+
+/*
+=================================================
+	GetResourcesToResize
+=================================================
+*/
+	void  SceneGraphicsPass::GetResourcesToResize (INOUT Array<RC<IResource>> &resources) __NE___
+	{
+		for (auto& rt : _renderTargets) {
+			if_unlikely( rt.image->RequireResize() )
+				resources.push_back( rt.image );
+		}
+		
+		for (auto& subpass : _subpasses) {
+			subpass->GetResourcesToResize( INOUT resources );
+		}
+
+		// TODO: _scene->_geomInstances ?
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Update
+=================================================
+*/
+	bool  SceneGraphicsSubpass::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __Th___
+	{
+		CHECK_ERR( _scene );
+
 		// update uniform buffer
 		{
-			const auto&		rt		= *_renderTargets[0].image;
-			const auto		desc	= rt.GetImageDesc();
-
 			ShaderTypes::SceneGraphicsPassUB	ub_data;
 
-			ub_data.resolution		= float2{desc.dimension};
-			ub_data.invResolution	= 1.f / float2{desc.dimension};
+			ub_data.resolution		= float2{_dimension};
+			ub_data.invResolution	= 1.f / float2{_dimension};
 			ub_data.time			= pd.totalTime.count();
 			ub_data.timeDelta		= pd.frameTime.count();
 			ub_data.frame			= pd.frameId;
 			ub_data.seed			= pd.seed;
 			ub_data.mouse			= float4{ pd.unormCursorPos.x, pd.unormCursorPos.y, float(pd.pressed), 0.f };
-			ub_data.customKeys		= pd.customKeys[0];
+			ub_data.customKeys		= float2{ pd.customKeys[0], pd.customKeys[1] };
 			ub_data.pixPerMm		= pd.pixPerMm;
 			ub_data.mmPerPix		= pd.mmPerPix;
 
@@ -185,10 +260,12 @@ namespace AE::ResEditor
 
 			for (usize i = 0; i < instances.size(); ++i)
 			{
-				CHECK_ERR( instances[i].geometry->Update( IGeomSource::UpdateData{ *_materials[i], ctx, instances[i].transform, pd }));
+				auto&	mtr = _materials[i];
+				if ( mtr != null )
+					CHECK_ERR( instances[i].geometry->Update( IGeomSource::UpdateData{ *mtr, ctx, instances[i].transform, pd }));
 			}
 		}
-
+		
 		return true;
 	}
 
@@ -197,15 +274,9 @@ namespace AE::ResEditor
 	GetResourcesToResize
 =================================================
 */
-	void  SceneGraphicsPass::GetResourcesToResize (INOUT Array<RC<IResource>> &resources) __NE___
+	void  SceneGraphicsSubpass::GetResourcesToResize (INOUT Array<RC<IResource>> &resources) __NE___
 	{
-		for (auto& rt : _renderTargets) {
-			if_unlikely( rt.image->RequireResize() )
-				resources.push_back( rt.image );
-		}
 		_resources.GetResourcesToResize( INOUT resources );
-
-		// TODO: _scene->_geomInstances ?
 	}
 
 /*
@@ -213,7 +284,7 @@ namespace AE::ResEditor
 	destructor
 =================================================
 */
-	SceneGraphicsPass::~SceneGraphicsPass ()
+	SceneGraphicsSubpass::~SceneGraphicsSubpass ()
 	{
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 		res_mngr.ReleaseResourceArray( INOUT _descSets );
@@ -248,6 +319,7 @@ namespace AE::ResEditor
 				}
 				_resources.SetStates( ctx, Default );
 				ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::RayTracingShaders );
+				if ( cnt > 1 ) ctx.MemoryBarrier( EPipelineScope::All, EPipelineScope::All );	// disable overlapping, only for profiling!
 				ctx.CommitBarriers();
 			}
 
@@ -292,7 +364,7 @@ namespace AE::ResEditor
 			ub_data.timeDelta	= pd.frameTime.count();
 			ub_data.frame		= pd.frameId;
 			ub_data.seed		= pd.seed;
-			ub_data.customKeys	= pd.customKeys[0];
+			ub_data.customKeys	= float2{ pd.customKeys[0], pd.customKeys[1] };
 			ub_data.pixPerMm	= pd.pixPerMm;
 			ub_data.mmPerPix	= pd.mmPerPix;
 

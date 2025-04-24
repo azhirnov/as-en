@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if (TARGET "GraphicsHL")
+if (TARGET "Graphics")
 	file( GLOB_RECURSE CPP_SOURCES "*.h" "*.cpp" "*.as" "*.glsl" "*.msl" "*.md" )
 
 	if (ANDROID)
@@ -28,7 +28,7 @@ if (TARGET "GraphicsHL")
 
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CPP_SOURCES} )
 	set_property( TARGET ${APP_NAME} PROPERTY FOLDER "Samples" )
-	target_link_libraries( ${APP_NAME} PUBLIC "Platform" "GraphicsHL" "GeometryTools" "ResourceLoaders" )
+	target_link_libraries( ${APP_NAME} PUBLIC "Platform" "Graphics" "GeometryTools" "ResourceLoaders" )
 	if (TARGET "Profiler")
 		target_link_libraries( ${APP_NAME} PUBLIC "Profiler" )
 	endif()

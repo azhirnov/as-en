@@ -19,7 +19,7 @@
 #define lowp
 #define precise		// avoid optimizations
 #define WGShared	// workgroup shared variable qualifier
-#define invariant	// all shaders must output same result on same input
+#define invariant	// all shaders must output same result on same input, only for shader IO
 
 #define out
 #define inout
@@ -509,42 +509,22 @@ public:
 	slong  AtomicCompSwap (INOUT slong &mem, slong compare, slong data, Scope scope, StorageSemantics storageEqual, Semantics semEqual, StorageSemantics storageUnequal, Semantics semUnequal);
 	#endif
 
-	ND_ uint   AtomicLoad (uint  &mem);
-	ND_ sint   AtomicLoad (sint  &mem);
-	ND_ ulong  AtomicLoad (ulong &mem);
-	ND_ slong  AtomicLoad (slong &mem);
-
 	#ifdef AE_memory_scope_semantics
 	ND_ uint   AtomicLoad (uint  &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	ND_ sint   AtomicLoad (sint  &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	ND_ ulong  AtomicLoad (ulong &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	ND_ slong  AtomicLoad (slong &mem, Scope scope, StorageSemantics storage, Semantics sem);
-	#endif
 
-	ND_ float  AtomicLoad (float  &mem);
-	ND_ double AtomicLoad (double &mem);
-
-	#ifdef AE_memory_scope_semantics
 	ND_ float  AtomicLoad (float  &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	ND_ double AtomicLoad (double &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	#endif
-
-	void  AtomicStore (INOUT uint  &mem, uint  data);
-	void  AtomicStore (INOUT sint  &mem, sint  data);
-	void  AtomicStore (INOUT ulong &mem, ulong data);
-	void  AtomicStore (INOUT slong &mem, slong data);
-
+	
 	#ifdef AE_memory_scope_semantics
 	void  AtomicStore (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
-	#endif
-
-	void  AtomicStore (INOUT float  &mem, float  data);
-	void  AtomicStore (INOUT double &mem, double data);
-
-	#ifdef AE_memory_scope_semantics
+	
 	void  AtomicStore (INOUT float  &mem, float  data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT double &mem, double data, Scope scope, StorageSemantics storage, Semantics sem);
 	#endif
@@ -850,7 +830,7 @@ public:
 		} memoryBarrier {};
 
 			void	ExecutionBarrier () const;
-		ND_ bool	Elect () const;
+		ND_ bool	Elect () const;											// exactly one invocation will return true
 
 		// in
 		const	uint	Size;
@@ -862,22 +842,22 @@ public:
 	  #endif
 
 	  #ifdef AE_shader_subgroup_vote
-		ND_ bool	All (bool) const;
-		ND_ bool	Any (bool) const;
+		ND_ bool	All (bool) const;										// returns true if any active invocation has 'value == true'
+		ND_ bool	Any (bool) const;										// returns true if all active invocation have 'value == true'
 
-		template <typename T>	ND_ bool	AllEqual (const T) const;
+		template <typename T>	ND_ bool	AllEqual (const T) const;		// returns true if all active invocation have a 'value' that is equal
 	  #endif
 
 	  #ifdef AE_shader_subgroup_ballot
-		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;
-		template <typename T>	ND_ T		BroadcastFirst (const T) const;
+		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;	// returns the 'value' from the invocation whose ID is equal to 'id'
+		template <typename T>	ND_ T		BroadcastFirst (const T) const;	// returns the 'value' from the active invocation with the lowest ID
 
-		ND_ uint4	Ballot (bool) const;
+		ND_ uint4	Ballot (bool) const;									// returns a set of bitfields containing the result of evaluating the expression 'value' in all active invocations in the subgroup
 		ND_ bool	InverseBallot (const uint4) const;
 		ND_ bool	BallotBitExtract (const uint4 value, uint index) const;
 		ND_ uint	BallotBitCount (const uint4) const;
-		ND_ uint	BallotInclusiveBitCount (const uint4) const;
-		ND_ uint	BallotExclusiveBitCount (const uint4) const;
+		ND_ uint	BallotInclusiveBitCount (const uint4) const;			// see Inclusive<op>
+		ND_ uint	BallotExclusiveBitCount (const uint4) const;			// see Exclusive<op>
 		ND_ uint	BallotFindLSB (const uint4) const;
 		ND_ uint	BallotFindMSB (const uint4) const;
 
@@ -899,28 +879,28 @@ public:
 	  #endif
 
 	  #ifdef AE_shader_subgroup_arithmetic
-		template <typename T>	ND_ T		Add (const T) const;
-		template <typename T>	ND_ T		Mul (const T) const;
-		template <typename T>	ND_ T		Min (const T) const;
-		template <typename T>	ND_ T		Max (const T) const;
-		template <typename T>	ND_ T		And (const T) const;
+		template <typename T>	ND_ T		Add (const T) const;				//	same as:
+		template <typename T>	ND_ T		Mul (const T) const;				//		input[ subgroup.Index ] = x
+		template <typename T>	ND_ T		Min (const T) const;				//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
+		template <typename T>	ND_ T		Max (const T) const;				//			accum <op>= input[i]
+		template <typename T>	ND_ T		And (const T) const;				//		return accum
 		template <typename T>	ND_ T		Or  (const T) const;
 		template <typename T>	ND_ T		Xor (const T) const;
 
-		template <typename T>	ND_ T		InclusiveAdd (const T) const;
-		template <typename T>	ND_ T		InclusiveMul (const T) const;
-		template <typename T>	ND_ T		InclusiveMin (const T) const;
-		template <typename T>	ND_ T		InclusiveMax (const T) const;
-		template <typename T>	ND_ T		InclusiveAnd (const T) const;
-		template <typename T>	ND_ T		InclusiveOr  (const T) const;
+		template <typename T>	ND_ T		InclusiveAdd (const T) const;		//	same as:
+		template <typename T>	ND_ T		InclusiveMul (const T) const;		//		input[ subgroup.Index ] = x
+		template <typename T>	ND_ T		InclusiveMin (const T) const;		//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
+		template <typename T>	ND_ T		InclusiveAnd (const T) const;		//			accum <op>= input[i]
+		template <typename T>	ND_ T		InclusiveMax (const T) const;		//			result[i] = accum
+		template <typename T>	ND_ T		InclusiveOr  (const T) const;		//		return result[ subgroup.Index ]
 		template <typename T>	ND_ T		InclusiveXor (const T) const;
 
-		template <typename T>	ND_ T		ExclusiveAdd (const T) const;
-		template <typename T>	ND_ T		ExclusiveMul (const T) const;
-		template <typename T>	ND_ T		ExclusiveMin (const T) const;
-		template <typename T>	ND_ T		ExclusiveMax (const T) const;
-		template <typename T>	ND_ T		ExclusiveAnd (const T) const;
-		template <typename T>	ND_ T		ExclusiveOr  (const T) const;
+		template <typename T>	ND_ T		ExclusiveAdd (const T) const;		//	same as:
+		template <typename T>	ND_ T		ExclusiveMul (const T) const;		//		input[ subgroup.Index ] = x
+		template <typename T>	ND_ T		ExclusiveMin (const T) const;		//		for (accum = 0, i = 0; i < subgroup.Size; ++i)
+		template <typename T>	ND_ T		ExclusiveMax (const T) const;		//			result[i] = accum
+		template <typename T>	ND_ T		ExclusiveAnd (const T) const;		//			accum <op>= input[i]
+		template <typename T>	ND_ T		ExclusiveOr  (const T) const;		//		return result[ subgroup.Index ]
 		template <typename T>	ND_ T		ExclusiveXor (const T) const;
 	  #endif
 
@@ -961,7 +941,6 @@ public:
 	// in
 	const	int		InstanceIndex		= {};	// BaseInstance + InstanceID
 	const	int		VertexIndex			= {};	// BaseVertex + VertexID
-	const	int		PrimitiveID			= {};
 
 	#ifdef AE_shader_draw_parameters
 	const	int		BaseInstance		= {};
@@ -1176,13 +1155,6 @@ public:
 
 
 	// in
-	const	float4	Position						= {};
-  #ifdef AE_clip_distance
-	const	float  	ClipDistance [_MaxClipDistance]	= {};
-  #endif
-  #ifdef AE_cull_distance
-	const	float  	CullDistance [_MaxCullDistance]	= {};
-  #endif
 	const 	float4	FragCoord						= {};
 	const 	bool	FrontFacing						= {};
 	const 	bool	HelperInvocation				= {};
@@ -1616,10 +1588,10 @@ public:
 		UInt16,
 		UInt32,
 		UInt64,
-		SInt8Packed,		// bitcast conversion
-		UInt8Packed,		// bitcast conversion
-		FloatE4M3,
-		FloatE5M2,
+		SInt8Packed,		// u32 as 4x s8
+		UInt8Packed,		// u32 as 4x u8
+		FloatE4M3,			// fp8
+		FloatE5M2,			// fp8
 	};
 
 	enum class CoopVectorMatrixLayout

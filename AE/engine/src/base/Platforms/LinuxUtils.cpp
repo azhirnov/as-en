@@ -185,6 +185,67 @@ namespace AE::Base
 		return false;
 	}
 
+/*
+=================================================
+	GetEnvironmentVariable
+=================================================
+*/
+	bool  LinuxUtils::GetEnvironmentVariable (NtStringView name, OUT String &value) __NE___
+	{
+		if ( char* ptr = ::getenv( name.c_str() ))
+		{
+			value = ptr;
+			return true;
+		}
+		return false;
+	}
+
+/*
+=================================================
+	HasEnvironmentVariable
+=================================================
+*/
+	bool  LinuxUtils::HasEnvironmentVariable (NtStringView name) __NE___
+	{
+		return ::getenv( name.c_str() ) != null;
+	}
+
+/*
+=================================================
+	SetEnvironmentVariable
+=================================================
+*/
+	bool  LinuxUtils::SetEnvironmentVariable (NtStringView name, NtStringView value) __NE___
+	{
+		return ::setenv( name.c_str(), value.c_str(), 1 ) == 0;
+	}
+
+/*
+=================================================
+	DeleteEnvironmentVariable
+=================================================
+*/
+	bool  LinuxUtils::DeleteEnvironmentVariable (NtStringView name) __NE___
+	{
+		return ::unsetenv( name.c_str() ) == 0;
+	}
+
+/*
+=================================================
+	GetExeLocation
+=================================================
+*/
+	Path  LinuxUtils::GetExeLocation () __NE___
+	{
+		char 	buf [512];
+		ssize  	size = ::readlink( "/proc/self/exe", OUT buf, CountOf(buf) );
+
+		if ( size <= 0 )
+			return {};
+
+		NOTHROW_ERR( return Path{ StringView( buf, size )};)
+	}
+
 
 } // AE::Base
 

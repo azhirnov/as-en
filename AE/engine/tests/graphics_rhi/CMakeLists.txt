@@ -26,7 +26,9 @@ if (TARGET "GraphicsRHI")
 
 	# disable if pipelines are compiled on linux
 	# enable on all platforms if pipelines are precompiled
-	target_compile_definitions( ${TEST_NAME} PRIVATE AE_TEST_SHADER_DEBUGGER )
+	if (WIN32)
+		target_compile_definitions( ${TEST_NAME} PRIVATE AE_TEST_SHADER_DEBUGGER )
+	endif()
 
 	target_compile_definitions( ${TEST_NAME} PRIVATE
 		AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"

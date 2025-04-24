@@ -72,8 +72,9 @@ public:
 			_LoadAndRun( "libTestsECS-st.so",			"Tests_ECSst",			cache_path.c_str() );
 			_LoadAndRun( "libTestsVFS.so",				"Tests_VFS",			cache_path.c_str() );
 			_LoadAndRun( "libTestsHuLang.so",			"Tests_HuLang",			cache_path.c_str() );
+			_LoadAndRun( "libTestsLogic.so",			"Tests_Logic",			cache_path.c_str() );
+			_LoadAndRun( "libTestsGraphicsRHI.so",		"Tests_GraphicsRHI2",	asset_storage.get(), cache_storage.get() );
 			_LoadAndRun( "libTestsGraphics.so",			"Tests_Graphics2",		asset_storage.get(), cache_storage.get() );
-			_LoadAndRun( "libTestsGraphicsHL.so",		"Tests_GraphicsHL2",	asset_storage.get(), cache_storage.get() );
 
 			_LoadAndRun( "libTestsAtlasTools.so",		"Tests_AtlasTools",		cache_path.c_str() );
 			_LoadAndRun( "libTestsGeometryTools.so",	"Tests_GeometryTools",	cache_path.c_str() );

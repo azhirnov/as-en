@@ -64,13 +64,13 @@ namespace
 	{
 		{
 			ClassBinder<T1>		binder{ se };
-			binder.Operators().Binary( EBinaryOperator::Div, &PhysicalQuantity_Mul2<T1,T2,T3> );
+			AS_OP_BINARY_T( binder, EBinaryOperator::Div, (PhysicalQuantity_Mul2<T1,T2,T3>) );
 		}
 
 		if constexpr( not IsSame< T1, T2 >)
 		{
 			ClassBinder<T2>		binder{ se };
-			binder.Operators().Binary( EBinaryOperator::Div, &PhysicalQuantity_Mul2<T2,T1,T3> );
+			AS_OP_BINARY_T( binder, EBinaryOperator::Div, (PhysicalQuantity_Mul2<T2,T1,T3>) );
 		}
 	}
 
@@ -79,7 +79,7 @@ namespace
 	static void  BindPhysicalQuantity_Div (const ScriptEnginePtr &se) __Th___
 	{
 		ClassBinder<T1>		binder{ se };
-		binder.Operators().Binary( EBinaryOperator::Div, &PhysicalQuantity_Div2<T1,T2,T3> );
+		AS_OP_BINARY_T( binder, EBinaryOperator::Div, (PhysicalQuantity_Div2<T1,T2,T3>) );
 	}
 
 
@@ -87,19 +87,18 @@ namespace
 	{
 		using PQ = Base::DefaultPhysicalQuantity<float>;
 
-		#define AE_PHYSICAL_TYPES_VIS( _name_ )														\
-		{																							\
-			using T = PQ::_name_;																	\
-			ClassBinder<T>		binder{ se };														\
-			binder.CreateClassValue();																\
-			binder.AddConstructor( &PhysicalQuantity_Ctor<T>, {"x"} );								\
-			binder.Operators()																		\
-				.Binary( EBinaryOperator::Add, &PhysicalQuantity_Add<T> )							\
-				.Binary( EBinaryOperator::Sub, &PhysicalQuantity_Sub<T> )							\
-				.Binary( EBinaryOperator::Mul, &PhysicalQuantity_Mul<T> )							\
-				.Binary( EBinaryOperator::Div, &PhysicalQuantity_Div<T> );							\
-			binder.AddMethodFromGlobal( &PhysicalQuantity_GetNonScaled<T>,	"GetNonScaled",	{} );	\
-			binder.AddMethodFromGlobal( &PhysicalQuantity_GetScaled<T>,		"GetScaled",	{} );	\
+		#define AE_PHYSICAL_TYPES_VIS( _name_ )												\
+		{																					\
+			using T = PQ::_name_;															\
+			ClassBinder<T>		binder{ se };												\
+			binder.CreateClassValue();														\
+			binder.AddConstructor( &PhysicalQuantity_Ctor<T>, {"x"} );						\
+			AS_OP_BINARY( binder, EBinaryOperator::Add, PhysicalQuantity_Add<T> );			\
+			AS_OP_BINARY( binder, EBinaryOperator::Sub, PhysicalQuantity_Sub<T> );			\
+			AS_OP_BINARY( binder, EBinaryOperator::Mul, PhysicalQuantity_Mul<T> );			\
+			AS_OP_BINARY( binder, EBinaryOperator::Div, PhysicalQuantity_Div<T> );			\
+			AS_METHOD( binder, PhysicalQuantity_GetNonScaled<T>,	"GetNonScaled",	{} );	\
+			AS_METHOD( binder, PhysicalQuantity_GetScaled<T>,		"GetScaled",	{} );	\
 		}
 		AE_PHYSICAL_TYPES( AE_PHYSICAL_TYPES_VIS );
 		#undef AE_PHYSICAL_TYPES_VIS

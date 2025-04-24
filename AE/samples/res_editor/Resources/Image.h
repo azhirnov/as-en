@@ -44,6 +44,13 @@ namespace AE::ResEditor
 			StoreOp () {}
 		};
 
+		enum class EImageFlags : uint
+		{
+			Unknown					= 0,
+			AllMipmaps				= 1 << 0,		// for dynamic dimension
+			DynamicZ_As_ArrayLayer	= 1 << 1,
+		};
+
 
 	private:
 		using IntermImageRC = RC< ResLoader::IntermImage >;
@@ -87,6 +94,7 @@ namespace AE::ResEditor
 		StrongAtom<ImageID>			_id;
 		StrongAtom<ImageViewID>		_view;
 		Atomic<bool>				_isDummy		{false};
+		EImageFlags					_flags			= Default;
 
 		RC<DynamicDim>				_inDynSize;		// used to check if current image must be resized
 		RC<DynamicDim>				_outDynSize;	// triggered when current image has been resized
@@ -122,6 +130,7 @@ namespace AE::ResEditor
 			   const ImageViewDesc&	viewDesc,
 			   RC<DynamicDim>		inDynSize,
 			   RC<DynamicDim>		outDynSize,
+			   EImageFlags			flags,
 			   StringView			dbgName)										__Th___;
 
 		~Image ()																	__NE_OV;

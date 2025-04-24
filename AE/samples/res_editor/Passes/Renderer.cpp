@@ -69,11 +69,12 @@ namespace AE::ResEditor
 		switchMode				= false;
 		input->pressed			= false;
 		input->customKeys[0]	= 0.f;
+		input->customKeys[1]	= 0.f;
 
 		ActionQueueReader::Header	hdr;
 		for (; reader.ReadHeader( OUT hdr );)
 		{
-			StaticAssert( IA.actionCount == 10 );
+			StaticAssert( IA.actionCount == 11 );
 			switch ( uint{hdr.name} )
 			{
 				// compatible with UI
@@ -98,6 +99,9 @@ namespace AE::ResEditor
 
 				case IA.CustomKey1 :
 					input->customKeys[0] = reader.Data<float>( hdr.offset );		break;
+
+				case IA.CustomKey2 :
+					input->customKeys[1] = reader.Data<float>( hdr.offset );		break;
 
 				case IA.Freeze :
 					_freeze.store( not _freeze.load() );							break;

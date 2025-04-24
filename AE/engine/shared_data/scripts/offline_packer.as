@@ -1,4 +1,5 @@
 //0afb5604
+#pragma once
 #include <vector>
 #include <string>
 
@@ -23,37 +24,34 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-template <typename T>
-string  operator + (const string &lhs, T rhs);
-
-struct PipelineCompiler;
-struct ubyte4;
-struct InputActions;
-struct ubyte2;
-struct ubyte3;
-struct bool4;
-struct int2;
-struct int3;
-struct bool2;
-struct bool3;
-struct int4;
-struct sbyte2;
-struct Archive;
-struct ushort2;
-struct short4;
-struct ushort3;
 struct uint2;
 struct uint3;
 struct uint4;
 struct float4;
 struct ushort4;
 struct short2;
-struct sbyte3;
-struct sbyte4;
 struct short3;
+struct sbyte4;
+struct sbyte3;
 struct AssetPacker;
-struct float3;
 struct float2;
+struct float3;
+struct PipelineCompiler;
+struct ubyte4;
+struct InputActions;
+struct ubyte3;
+struct ubyte2;
+struct bool4;
+struct bool2;
+struct int3;
+struct bool3;
+struct int2;
+struct int4;
+struct Archive;
+struct sbyte2;
+struct ushort3;
+struct ushort2;
+struct short4;
 
 enum class EFileType : uint32
 {
@@ -875,105 +873,6 @@ bool  All (const bool3 & x);
 bool  Any (const bool3 & x);
 bool  All (const bool4 & x);
 bool  Any (const bool4 & x);
-sbyte2  DivCeil (const sbyte2 & x, const sbyte2 & y);
-sbyte2  DivCeil (const sbyte2 & x, int8 y);
-sbyte3  DivCeil (const sbyte3 & x, const sbyte3 & y);
-sbyte3  DivCeil (const sbyte3 & x, int8 y);
-sbyte4  DivCeil (const sbyte4 & x, const sbyte4 & y);
-sbyte4  DivCeil (const sbyte4 & x, int8 y);
-ubyte2  DivCeil (const ubyte2 & x, const ubyte2 & y);
-ubyte2  DivCeil (const ubyte2 & x, uint8 y);
-ubyte3  DivCeil (const ubyte3 & x, const ubyte3 & y);
-ubyte3  DivCeil (const ubyte3 & x, uint8 y);
-ubyte4  DivCeil (const ubyte4 & x, const ubyte4 & y);
-ubyte4  DivCeil (const ubyte4 & x, uint8 y);
-short2  DivCeil (const short2 & x, const short2 & y);
-short2  DivCeil (const short2 & x, int16 y);
-short3  DivCeil (const short3 & x, const short3 & y);
-short3  DivCeil (const short3 & x, int16 y);
-short4  DivCeil (const short4 & x, const short4 & y);
-short4  DivCeil (const short4 & x, int16 y);
-ushort2  DivCeil (const ushort2 & x, const ushort2 & y);
-ushort2  DivCeil (const ushort2 & x, uint16 y);
-ushort3  DivCeil (const ushort3 & x, const ushort3 & y);
-ushort3  DivCeil (const ushort3 & x, uint16 y);
-ushort4  DivCeil (const ushort4 & x, const ushort4 & y);
-ushort4  DivCeil (const ushort4 & x, uint16 y);
-int2  Abs (const int2 & x);
-int2  MirroredWrap (const int2 & x, const int2 & min, const int2 & max);
-int2  MirroredWrap (const int2 & x, int min, int max);
-int  Sum (const int2 & x);
-int  Area (const int2 & x);
-int2  Min (const int2 & x, const int2 & y);
-int2  Max (const int2 & x, const int2 & y);
-int2  Clamp (const int2 & val, const int2 & min, const int2 & max);
-int2  Clamp (const int2 & val, int min, int max);
-int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
-int2  Wrap (const int2 & val, int min, int max);
-int  VecToLinear (const int2 & pos, const int2 & dim);
-int2  DivCeil (const int2 & x, const int2 & y);
-int2  DivCeil (const int2 & x, int y);
-int3  Abs (const int3 & x);
-int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
-int3  MirroredWrap (const int3 & x, int min, int max);
-int  Sum (const int3 & x);
-int  Area (const int3 & x);
-int3  Min (const int3 & x, const int3 & y);
-int3  Max (const int3 & x, const int3 & y);
-int3  Clamp (const int3 & val, const int3 & min, const int3 & max);
-int3  Clamp (const int3 & val, int min, int max);
-int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
-int3  Wrap (const int3 & val, int min, int max);
-int  VecToLinear (const int3 & pos, const int3 & dim);
-int3  DivCeil (const int3 & x, const int3 & y);
-int3  DivCeil (const int3 & x, int y);
-int4  Abs (const int4 & x);
-int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
-int4  MirroredWrap (const int4 & x, int min, int max);
-int  Sum (const int4 & x);
-int  Area (const int4 & x);
-int4  Min (const int4 & x, const int4 & y);
-int4  Max (const int4 & x, const int4 & y);
-int4  Clamp (const int4 & val, const int4 & min, const int4 & max);
-int4  Clamp (const int4 & val, int min, int max);
-int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
-int4  Wrap (const int4 & val, int min, int max);
-int  VecToLinear (const int4 & pos, const int4 & dim);
-int4  DivCeil (const int4 & x, const int4 & y);
-int4  DivCeil (const int4 & x, int y);
-uint  Sum (const uint2 & x);
-uint  Area (const uint2 & x);
-uint2  Min (const uint2 & x, const uint2 & y);
-uint2  Max (const uint2 & x, const uint2 & y);
-uint2  Clamp (const uint2 & val, const uint2 & min, const uint2 & max);
-uint2  Clamp (const uint2 & val, uint min, uint max);
-uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
-uint2  Wrap (const uint2 & val, uint min, uint max);
-uint  VecToLinear (const uint2 & pos, const uint2 & dim);
-uint2  DivCeil (const uint2 & x, const uint2 & y);
-uint2  DivCeil (const uint2 & x, uint y);
-uint  Sum (const uint3 & x);
-uint  Area (const uint3 & x);
-uint3  Min (const uint3 & x, const uint3 & y);
-uint3  Max (const uint3 & x, const uint3 & y);
-uint3  Clamp (const uint3 & val, const uint3 & min, const uint3 & max);
-uint3  Clamp (const uint3 & val, uint min, uint max);
-uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
-uint3  Wrap (const uint3 & val, uint min, uint max);
-uint  VecToLinear (const uint3 & pos, const uint3 & dim);
-uint3  DivCeil (const uint3 & x, const uint3 & y);
-uint3  DivCeil (const uint3 & x, uint y);
-uint  Sum (const uint4 & x);
-uint  Area (const uint4 & x);
-uint4  Min (const uint4 & x, const uint4 & y);
-uint4  Max (const uint4 & x, const uint4 & y);
-uint4  Clamp (const uint4 & val, const uint4 & min, const uint4 & max);
-uint4  Clamp (const uint4 & val, uint min, uint max);
-uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
-uint4  Wrap (const uint4 & val, uint min, uint max);
-uint  VecToLinear (const uint4 & pos, const uint4 & dim);
-uint4  DivCeil (const uint4 & x, const uint4 & y);
-uint4  DivCeil (const uint4 & x, uint y);
 float2  Abs (const float2 & x);
 float2  MirroredWrap (const float2 & x, const float2 & min, const float2 & max);
 float2  MirroredWrap (const float2 & x, float min, float max);
@@ -1080,6 +979,105 @@ float  Length (const float4 & x);
 float  LengthSq (const float4 & x);
 float  Distance (const float4 & x, const float4 & y);
 float  DistanceSq (const float4 & x, const float4 & y);
+sbyte2  DivCeil (const sbyte2 & x, const sbyte2 & y);
+sbyte2  DivCeil (const sbyte2 & x, int8 y);
+sbyte3  DivCeil (const sbyte3 & x, const sbyte3 & y);
+sbyte3  DivCeil (const sbyte3 & x, int8 y);
+sbyte4  DivCeil (const sbyte4 & x, const sbyte4 & y);
+sbyte4  DivCeil (const sbyte4 & x, int8 y);
+ubyte2  DivCeil (const ubyte2 & x, const ubyte2 & y);
+ubyte2  DivCeil (const ubyte2 & x, uint8 y);
+ubyte3  DivCeil (const ubyte3 & x, const ubyte3 & y);
+ubyte3  DivCeil (const ubyte3 & x, uint8 y);
+ubyte4  DivCeil (const ubyte4 & x, const ubyte4 & y);
+ubyte4  DivCeil (const ubyte4 & x, uint8 y);
+short2  DivCeil (const short2 & x, const short2 & y);
+short2  DivCeil (const short2 & x, int16 y);
+short3  DivCeil (const short3 & x, const short3 & y);
+short3  DivCeil (const short3 & x, int16 y);
+short4  DivCeil (const short4 & x, const short4 & y);
+short4  DivCeil (const short4 & x, int16 y);
+ushort2  DivCeil (const ushort2 & x, const ushort2 & y);
+ushort2  DivCeil (const ushort2 & x, uint16 y);
+ushort3  DivCeil (const ushort3 & x, const ushort3 & y);
+ushort3  DivCeil (const ushort3 & x, uint16 y);
+ushort4  DivCeil (const ushort4 & x, const ushort4 & y);
+ushort4  DivCeil (const ushort4 & x, uint16 y);
+int2  Abs (const int2 & x);
+int2  MirroredWrap (const int2 & x, const int2 & min, const int2 & max);
+int2  MirroredWrap (const int2 & x, int min, int max);
+int  Sum (const int2 & x);
+int  Area (const int2 & x);
+int2  Min (const int2 & x, const int2 & y);
+int2  Max (const int2 & x, const int2 & y);
+int2  Clamp (const int2 & val, const int2 & min, const int2 & max);
+int2  Clamp (const int2 & val, int min, int max);
+int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
+int2  Wrap (const int2 & val, int min, int max);
+int  VecToLinear (const int2 & pos, const int2 & dim);
+int2  DivCeil (const int2 & x, const int2 & y);
+int2  DivCeil (const int2 & x, int y);
+int3  Abs (const int3 & x);
+int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
+int3  MirroredWrap (const int3 & x, int min, int max);
+int  Sum (const int3 & x);
+int  Area (const int3 & x);
+int3  Min (const int3 & x, const int3 & y);
+int3  Max (const int3 & x, const int3 & y);
+int3  Clamp (const int3 & val, const int3 & min, const int3 & max);
+int3  Clamp (const int3 & val, int min, int max);
+int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
+int3  Wrap (const int3 & val, int min, int max);
+int  VecToLinear (const int3 & pos, const int3 & dim);
+int3  DivCeil (const int3 & x, const int3 & y);
+int3  DivCeil (const int3 & x, int y);
+int4  Abs (const int4 & x);
+int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
+int4  MirroredWrap (const int4 & x, int min, int max);
+int  Sum (const int4 & x);
+int  Area (const int4 & x);
+int4  Min (const int4 & x, const int4 & y);
+int4  Max (const int4 & x, const int4 & y);
+int4  Clamp (const int4 & val, const int4 & min, const int4 & max);
+int4  Clamp (const int4 & val, int min, int max);
+int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
+int4  Wrap (const int4 & val, int min, int max);
+int  VecToLinear (const int4 & pos, const int4 & dim);
+int4  DivCeil (const int4 & x, const int4 & y);
+int4  DivCeil (const int4 & x, int y);
+uint  Sum (const uint2 & x);
+uint  Area (const uint2 & x);
+uint2  Min (const uint2 & x, const uint2 & y);
+uint2  Max (const uint2 & x, const uint2 & y);
+uint2  Clamp (const uint2 & val, const uint2 & min, const uint2 & max);
+uint2  Clamp (const uint2 & val, uint min, uint max);
+uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
+uint2  Wrap (const uint2 & val, uint min, uint max);
+uint  VecToLinear (const uint2 & pos, const uint2 & dim);
+uint2  DivCeil (const uint2 & x, const uint2 & y);
+uint2  DivCeil (const uint2 & x, uint y);
+uint  Sum (const uint3 & x);
+uint  Area (const uint3 & x);
+uint3  Min (const uint3 & x, const uint3 & y);
+uint3  Max (const uint3 & x, const uint3 & y);
+uint3  Clamp (const uint3 & val, const uint3 & min, const uint3 & max);
+uint3  Clamp (const uint3 & val, uint min, uint max);
+uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
+uint3  Wrap (const uint3 & val, uint min, uint max);
+uint  VecToLinear (const uint3 & pos, const uint3 & dim);
+uint3  DivCeil (const uint3 & x, const uint3 & y);
+uint3  DivCeil (const uint3 & x, uint y);
+uint  Sum (const uint4 & x);
+uint  Area (const uint4 & x);
+uint4  Min (const uint4 & x, const uint4 & y);
+uint4  Max (const uint4 & x, const uint4 & y);
+uint4  Clamp (const uint4 & val, const uint4 & min, const uint4 & max);
+uint4  Clamp (const uint4 & val, uint min, uint max);
+uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
+uint4  Wrap (const uint4 & val, uint min, uint max);
+uint  VecToLinear (const uint4 & pos, const uint4 & dim);
+uint4  DivCeil (const uint4 & x, const uint4 & y);
+uint4  DivCeil (const uint4 & x, uint y);
 string  FindAndReplace (const string &, const string &, const string &);
 bool  StartsWith (const string &, const string &);
 bool  StartsWithIC (const string &, const string &);
@@ -1154,6 +1152,12 @@ struct Archive
 };
 
 template <>
+struct RC<AssetPacker> : AssetPacker
+{
+	RC (const AssetPacker &);
+};
+
+template <>
 struct RC<PipelineCompiler> : PipelineCompiler
 {
 	RC (const PipelineCompiler &);
@@ -1169,11 +1173,5 @@ template <>
 struct RC<Archive> : Archive
 {
 	RC (const Archive &);
-};
-
-template <>
-struct RC<AssetPacker> : AssetPacker
-{
-	RC (const AssetPacker &);
 };
 

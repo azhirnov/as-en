@@ -5,13 +5,21 @@ project( "ResourceEditor" )
 
 file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" )
 
-file( GLOB_RECURSE SHADERS_SHARED "${AE_ENGINE_SHARED_DATA}/shaders/*.glsl" )
-file( GLOB_RECURSE SHADERS_3PARTY "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl" "${AE_ENGINE_SHARED_DATA}/experimental/*.glsl" )
+if (NOT DEFINED AE_ENGINE_SHARED_DATA)
+	set( AE_ENGINE_SHARED_DATA "${CMAKE_CURRENT_SOURCE_DIR}/../shared_data" )
+endif()
 
-if (WIN32)
-	file( GLOB CONFIGS "${MAIN_BINARY_DIR}/*/res_editor_cfg.as" )
+file( GLOB_RECURSE SHADERS_SHARED "${AE_ENGINE_SHARED_DATA}/shaders/*.glsl" "${AE_ENGINE_SHARED_DATA}/experimental/*.glsl" )
+file( GLOB_RECURSE SHADERS_3PARTY "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl" )
+
+if (DEFINED MAIN_BINARY_DIR)
+	if (WIN32)
+		file( GLOB CONFIGS "${MAIN_BINARY_DIR}/*/res_editor_cfg.as" )
+	else()
+		file( GLOB CONFIGS "${MAIN_BINARY_DIR}/res_editor_cfg.as" )
+	endif()
 else()
-	file( GLOB CONFIGS "${MAIN_BINARY_DIR}/res_editor_cfg.as" )
+	file( GLOB CONFIGS "../res_editor_cfg.as" )
 endif()
 set( SOURCES ${DATA_FILES} ${SHADERS_SHARED} ${SHADERS_3PARTY} ${CONFIGS} )
 
@@ -28,11 +36,11 @@ if (TARGET "ResourceEditor")
 	set_property( TARGET "ResourceEditor.App" PROPERTY FOLDER "Samples" )
 else()
 	if (WIN32)
-		add_custom_target( "ResourceEditor"
+		add_custom_target( "ResourceEditor.App"
 			COMMAND  "../ResourceEditor.exe"
 		)
 	else()
-		add_custom_target( "ResourceEditor"
+		add_custom_target( "ResourceEditor.App"
 			COMMAND  "../ResourceEditor"
 		)
 	endif()

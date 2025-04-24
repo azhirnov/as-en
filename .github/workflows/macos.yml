@@ -19,22 +19,32 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/pxXmzRwiai_nBQ"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/nCzXmvKaQpa9JQ"
         unzip external.zip
       
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: cmake -DCMAKE_BUILD_TYPE=${{matrix.config}} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DAE_ENABLE_VULKAN=ON -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -S "AE" -B "_build"
+      run: cmake -DCMAKE_BUILD_TYPE=${{matrix.config}} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DAE_ENABLE_VULKAN=ON -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -DAE_EXCLUDE_PACK_RES=ON -S "AE" -B "_build"
     
     - name: Build
+      id: build
       working-directory: ${{github.workspace}}
-      run: cmake --build "_build" --config ${{matrix.config}} -j 2
-
+      run: cmake --build "_build" --config ${{matrix.config}} -j 4
+        
+    - name: Release ResEditor
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir _res_editor
+        cp -TR "${{github.workspace}}/AE-Temp/samples/res_editor" "_res_editor/ui"
+        cp -TR "${{github.workspace}}/AE/samples/res_editor/_data" "_res_editor/data"
+        cp -TR "${{github.workspace}}/AE/engine/shared_data" "_res_editor/shared_data"
+        cp ${{github.workspace}}/_build/bin/ResourceEditor.app _res_editor/ResourceEditor.app
+        cp "${{github.workspace}}/AE/build_scripts/utils-unix/download-resources.sh" "_res_editor"
+      
     - uses: actions/upload-artifact@v4
       with:
         name: AsEn-ResourceEditor-macos-arm64-${{matrix.config}}
-        path: |
-            ${{github.workspace}}/_build/bin/ResourceEditor.app
+        path: ${{github.workspace}}/_res_editor
             
     - uses: actions/upload-artifact@v4
       with:
@@ -47,42 +57,52 @@ jobs:
 
     - name: Tests.Base
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Base" -C ${{matrix.config}} -V
       
     - name: Tests.Serializing
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Serializing" -C ${{matrix.config}} -V
         
     - name: Tests.Scripting
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Scripting" -C ${{matrix.config}} -V
         
     - name: Tests.Threading
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Threading" -C ${{matrix.config}} -V
        
     - name: Tests.Networking
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Networking" -C ${{matrix.config}} -V
        
     - name: Tests.ECS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.ECS-st" -C ${{matrix.config}} -V
        
     - name: Tests.VFS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.VFS" -C ${{matrix.config}} -V
        
     - name: Tests.AtlasTools
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.AtlasTools" -C ${{matrix.config}} -V
        
     - name: Tests.GeometryTools
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.GeometryTools" -C ${{matrix.config}} -V
        
     - name: Tests.ResourceLoaders
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.ResourceLoaders" -C ${{matrix.config}} -V
      
         
@@ -103,42 +123,50 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/pxXmzRwiai_nBQ"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/nCzXmvKaQpa9JQ"
         unzip external.zip
       
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: cmake -DCMAKE_BUILD_TYPE=${{matrix.config}} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DAE_ENABLE_VULKAN=ON -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -DAE_FORCE_CXX17=ON -S "AE" -B "_build"
+      run: cmake -DCMAKE_BUILD_TYPE=${{matrix.config}} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DAE_ENABLE_VULKAN=ON -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -DAE_FORCE_CXX17=ON -DAE_EXCLUDE_PACK_RES=ON -S "AE" -B "_build"
     
     - name: Build
+      id: build
       working-directory: ${{github.workspace}}
-      run: cmake --build "_build" --config ${{matrix.config}} -j 2
+      run: cmake --build "_build" --config ${{matrix.config}} -j 4
 
     - name: Tests.Base
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Base" -C ${{matrix.config}} -V
       
     - name: Tests.Serializing
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Serializing" -C ${{matrix.config}} -V
         
     - name: Tests.Scripting
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Scripting" -C ${{matrix.config}} -V
         
     - name: Tests.Threading
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Threading" -C ${{matrix.config}} -V
        
     - name: Tests.Networking
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.Networking" -C ${{matrix.config}} -V
        
     - name: Tests.ECS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.ECS-st" -C ${{matrix.config}} -V
        
     - name: Tests.VFS
       working-directory: ${{github.workspace}}/_build
+      if: success() || steps.build.conclusion == 'success'
       run: ctest -R "Tests.VFS" -C ${{matrix.config}} -V
          

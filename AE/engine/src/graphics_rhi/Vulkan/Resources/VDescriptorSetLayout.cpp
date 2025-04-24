@@ -22,6 +22,8 @@ namespace AE::Graphics
 /*
 =================================================
 	Create
+----
+	create empty layout
 =================================================
 */
 	bool  VDescriptorSetLayout::Create (const VDevice &dev, StringView dbgName) __NE___
@@ -73,10 +75,24 @@ namespace AE::Graphics
 			_bindCount = Max( _bindCount, un.binding.vkIndex + 1u );
 		}
 
+		VkDescriptorSetLayoutBindingFlagsCreateInfo	ext_flags = {};
+		ext_flags.sType	= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+
 		VkDescriptorSetLayoutCreateInfo	descriptor_info = {};
 		descriptor_info.sType			= VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		descriptor_info.pBindings		= binding.desc.data();
 		descriptor_info.bindingCount	= uint(binding.desc.size());
+
+		if ( dev.GetVExtensions().descriptorIndexing and not binding.flags.empty() )
+		{
+			CHECK_ERR( binding.desc.size() == binding.flags.size() );
+			
+			descriptor_info.pNext	= &ext_flags;
+
+			ext_flags.bindingCount	= uint(binding.flags.size());
+			ext_flags.pBindingFlags	= binding.flags.data();
+		}
+
 		VK_CHECK_ERR( dev.vkCreateDescriptorSetLayout( dev.GetVkDevice(), &descriptor_info, null, OUT &_layout ));
 
 		if ( binding.allowUpdateTmpl )

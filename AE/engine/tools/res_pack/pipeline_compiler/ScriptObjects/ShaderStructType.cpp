@@ -698,15 +698,24 @@ namespace
 							"In Struct '"s << stName << "', field '" << field.name << "', type '" << EValueType_ToString(field.type) << "': "
 							"must not be Bool8, use Bool32 or UInt instead" );
 
-						// special case for 'float3' + scalar
-						if_unlikely( field.IsVec()			and field.IsPacked()							and
-									 field.rows == 3		and IsMultipleOf( totalSize, field.align*4 )	and
-									 i+1 < fields.size()	and
-									 fields[i+1].IsScalar()	and fields[i+1].size == field.align )
+						if_unlikely( field.IsVec()		and field.IsPacked()						and
+									 field.rows == 3	and IsMultipleOf( totalSize, field.align*4 ))
 						{
-							field.flags = (field.flags & ~EFlags::Packed) | EFlags::PackedAlias;
-							field.align *= 4;
-							break;
+							// special case for 'packed_vec3 + scalar'
+							if ( i+1 < fields.size()	and
+								 fields[i+1].IsScalar()	and fields[i+1].size == field.align )
+							{
+								field.flags = (field.flags & ~EFlags::Packed) | EFlags::PackedAlias;
+								field.align *= 4;
+								break;
+							}
+
+							// special case for 'packed_vec3 + aligned_vec'
+							if ( (i+1 < fields.size() and not fields[i+1].IsPacked() and fields[i+1].rows > 1) or
+								 (i+1 == fields.size() and maxAlign >= field.align*4) )
+							{
+								field.flags &= ~EFlags::Packed;
+							}
 						}
 
 						if ( not field.IsPacked() and field.rows > 1 )
@@ -1161,7 +1170,7 @@ namespace
 
 			if ( field.IsDeviceAddress() )
 			{
-				TEST_FEATURE( data.features, bufferDeviceAddress, ", required for field '"s << field.name << "'" );
+				TEST_FEATURE_MSG( data.features, bufferDeviceAddress, ", required for field '"s << field.name << "'" );
 
 				const Bytes		ptr_size	= 8_b;
 				const Bytes		ptr_align	= 8_b;
@@ -1186,6 +1195,7 @@ namespace
 					EStructLayout_ToString(field.stType->Layout()) << "' which is not compatible with layout '" << EStructLayout_ToString(data.layout) << "'" );
 
 				const Bytes		st_align = field.stType->_structAlign;
+				data.baseOffset	= AlignUp( data.baseOffset, st_align );
 				data.mslOffset	= AlignUp( data.mslOffset,  st_align );
 				data.glslOffset	= AlignUp( data.glslOffset, st_align );
 				data.cppOffset	= AlignUp( data.cppOffset,  st_align );
@@ -1196,7 +1206,7 @@ namespace
 				if ( not str.empty() )	str << '.';
 
 				ValidationData	data2 = data;
-				data2.baseOffset = field.offset;
+				data2.baseOffset += field.offset;
 
 				_Validate( (str << field.name), field.stType->Name(), field.stType->_fields, INOUT data2 );
 
@@ -1226,30 +1236,30 @@ namespace
 
 					case EValueType::Int64 :
 					case EValueType::UInt64 :
-						TEST_FEATURE( data.features, shaderInt64, ", required for field '"s << field.name << "'" );
+						TEST_FEATURE_MSG( data.features, shaderInt64, ", required for field '"s << field.name << "'" );
 						break;
 
 					case EValueType::Float64 :
-						TEST_FEATURE( data.features, shaderFloat64, ", required for field '"s << field.name << "'" );
+						TEST_FEATURE_MSG( data.features, shaderFloat64, ", required for field '"s << field.name << "'" );
 						break;
 
 					case EValueType::Float16 :
-						TEST_FEATURE( data.features, shaderFloat16, ", required for field '"s << field.name << "'" );
+						TEST_FEATURE_MSG( data.features, shaderFloat16, ", required for field '"s << field.name << "'" );
 						break;
 
 					case EValueType::Bool8 :
 					case EValueType::Int8 :
 					case EValueType::UInt8 :
-						TEST_FEATURE( data.features, shaderInt8, ", required for field '"s << field.name << "'" );
+						TEST_FEATURE_MSG( data.features, shaderInt8, ", required for field '"s << field.name << "'" );
 						break;
 
 					case EValueType::Int16 :
 					case EValueType::UInt16 :
-						TEST_FEATURE( data.features, shaderInt16, ", required for field '"s << field.name << "'" );
+						TEST_FEATURE_MSG( data.features, shaderInt16, ", required for field '"s << field.name << "'" );
 						break;
 
 					case EValueType::DeviceAddress :
-						TEST_FEATURE( data.features, bufferDeviceAddress, ", required for field '"s << field.name << "'" );
+						TEST_FEATURE_MSG( data.features, bufferDeviceAddress, ", required for field '"s << field.name << "'" );
 						break;
 
 					case EValueType::Unknown :
@@ -3146,23 +3156,23 @@ namespace {
 
 			binder.Comment( "Add FeatureSet to the structure.\n"
 							"If used float64/int64 types FeatureSet must support this features." );
-			binder.AddMethod( &ShaderStructType::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
+			AS_METHOD( binder, ShaderStructType::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
 
 			binder.Comment( "Set source with structure fields.\n"
 							"Layout - offset and align rules." );
-			binder.AddMethod( &ShaderStructType::Set,				"Set",				{"layout", "fields"} );
-			binder.AddMethod( &ShaderStructType::Set2,				"Set",				{"fields"} );
+			AS_METHOD( binder, ShaderStructType::Set,				"Set",				{"layout", "fields"} );
+			AS_METHOD( binder, ShaderStructType::Set2,				"Set",				{"fields"} );
 
-		//	binder.AddMethod( &ShaderStructType::FieldsToString,	"FieldsToString"	);
+		//	AS_METHOD( binder, ShaderStructType::FieldsToString,	"FieldsToString"	);
 
 			binder.Comment( "Manually specify how structure will be used." );
-			binder.AddMethod( &ShaderStructType::AddUsage,			"AddUsage",			{} );
+			AS_METHOD( binder, ShaderStructType::AddUsage,			"AddUsage",			{} );
 
 			binder.Comment( "Returns size of the static data." );
-			binder.AddMethod( &ShaderStructType::_StaticSize,		"StaticSize",		{} );
+			AS_METHOD( binder, ShaderStructType::_StaticSize,		"StaticSize",		{} );
 
 			binder.Comment( "Returns array element size for dynamic arrays." );
-			binder.AddMethod( &ShaderStructType::_ArrayStride,		"ArrayStride",		{} );
+			AS_METHOD( binder, ShaderStructType::_ArrayStride,		"ArrayStride",		{} );
 		}
 	}
 

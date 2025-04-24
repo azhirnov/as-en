@@ -1900,12 +1900,17 @@ static_assert( sizeof(StType19) == 48, "size mismatch" );
 		st1->Set( EStructLayout::Std430,
 				 "float3		a;"		// size: 16
 				 "float			b;"		// size: 4		offset: 16
-				 "packed_float3	c;"		// size: 12		offset: 20
+				 "packed_float3	c;"		// size: 12		offset: 20	- packed
 				 "packed_float3	d;"		// size: 12		offset: 32	- non-packed for GLSL
 				 "uint			e;"		// size: 4		offset: 44
 				 "float2		f;"		// size: 8		offset: 48
-				 "packed_float3	g;"		// size: 12		offset: 56
+				 "packed_float3	g;"		// size: 12		offset: 56	- packed
 				 "packed_uint2	h;"		// size: 8		offset: 68
+				 "float4		aa;"	//				offset: 80
+				 "packed_float3	k;"		// size: 12		offset: 96	- non-packed for GLSL
+				 "float2		l;"		// size: 8		offset: 112
+				 "packed_float3	m;"		// size: 12		offset: 120	- packed
+				// end									offset: 132
 				);
 		
 		ShaderStructTypePtr	st{ new ShaderStructType{ "StType20" }};
@@ -1949,18 +1954,23 @@ struct StType20A
 	vec2           f;             // offset: 48, align: 8, size: 8
 	packed_float3  g;             // offset: 56, align: 4, size: 12
 	packed_uint2   h;             // offset: 68, align: 4, size: 8
+	vec4           aa;            // offset: 80, align: 16, size: 16
+	vec3           k;             // offset: 96, align: 16, size: 16
+	float          _k_padding_w;  // offset: 108, align: 4, size: 4
+	vec2           l;             // offset: 112, align: 8, size: 8
+	packed_float3  m;             // offset: 120, align: 4, size: 12
 };
 
 Buffer {
-	layout(offset=0, align=16)   StType20A  a;       // size: 80
-	layout(offset=80, align=4)   uint       b;       // size: 4
-	layout(offset=96, align=16)  StType20A  arr [];
+	layout(offset=0, align=16)    StType20A  a;       // size: 144
+	layout(offset=144, align=4)   uint       b;       // size: 4
+	layout(offset=160, align=16)  StType20A  arr [];
 }
 )#";
 		const String	ref_cpp = R"#(
 #ifndef StType20A_DEFINED
 #	define StType20A_DEFINED
-	// size: 76 (80), align: 16
+	// size: 132 (144), align: 16
 	struct alignas(16) StType20A
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x7223f62fu}};
@@ -1973,6 +1983,10 @@ Buffer {
 		float2         f;
 		packed_float3  g;
 		packed_uint2   h;
+		float4         aa;
+		float3         k;
+		float2         l;
+		packed_float3  m;
 	};
 #endif
 	StaticAssert( offsetof(StType20A, a) == 0 );
@@ -1983,15 +1997,19 @@ Buffer {
 	StaticAssert( offsetof(StType20A, f) == 48 );
 	StaticAssert( offsetof(StType20A, g) == 56 );
 	StaticAssert( offsetof(StType20A, h) == 68 );
-	StaticAssert( sizeof(StType20A) == 80 );
+	StaticAssert( offsetof(StType20A, aa) == 80 );
+	StaticAssert( offsetof(StType20A, k) == 96 );
+	StaticAssert( offsetof(StType20A, l) == 112 );
+	StaticAssert( offsetof(StType20A, m) == 120 );
+	StaticAssert( sizeof(StType20A) == 144 );
 
 #ifndef StType20_DEFINED
 #	define StType20_DEFINED
-	// size: 84 (96), align: 16
+	// size: 148 (160), align: 16
 	struct alignas(16) StType20
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x2bfbdaa1u}};
-		static constexpr size_t SizeOf (size_t count)  { return 96 + (80 * count); }
+		static constexpr size_t SizeOf (size_t count)  { return 160 + (144 * count); }
 
 		StType20A  a;
 		uint       b;
@@ -1999,14 +2017,232 @@ Buffer {
 	};
 #endif
 	StaticAssert( offsetof(StType20, a) == 0 );
-	StaticAssert( offsetof(StType20, b) == 80 );
-	StaticAssert( sizeof(StType20) == 96 );
+	StaticAssert( offsetof(StType20, b) == 144 );
+	StaticAssert( sizeof(StType20) == 160 );
 
 )#";
 		TEST( glsl == ref_glsl );
 		TEST( cpp == ref_cpp );
 		TEST_PASSED();
 	}
+
+
+#ifndef StType20A_DEFINED
+#	define StType20A_DEFINED
+	// size: 132 (144), align: 16
+	struct alignas(16) StType20A
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x7223f62fu}};
+
+		float3         a;
+		float          b;
+		packed_float3  c;
+		packed_float3  d;
+		uint           e;
+		float2         f;
+		packed_float3  g;
+		packed_uint2   h;
+		float4         aa;
+		float3         k;
+		float2         l;
+		packed_float3  m;
+	};
+#endif
+	StaticAssert( offsetof(StType20A, a) == 0 );
+	StaticAssert( offsetof(StType20A, b) == 16 );
+	StaticAssert( offsetof(StType20A, c) == 20 );
+	StaticAssert( offsetof(StType20A, d) == 32 );
+	StaticAssert( offsetof(StType20A, e) == 44 );
+	StaticAssert( offsetof(StType20A, f) == 48 );
+	StaticAssert( offsetof(StType20A, g) == 56 );
+	StaticAssert( offsetof(StType20A, h) == 68 );
+	StaticAssert( offsetof(StType20A, aa) == 80 );
+	StaticAssert( offsetof(StType20A, k) == 96 );
+	StaticAssert( offsetof(StType20A, l) == 112 );
+	StaticAssert( offsetof(StType20A, m) == 120 );
+	StaticAssert( sizeof(StType20A) == 144 );
+
+#ifndef StType20_DEFINED
+#	define StType20_DEFINED
+	// size: 148 (160), align: 16
+	struct alignas(16) StType20
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x2bfbdaa1u}};
+		static constexpr size_t SizeOf (size_t count)  { return 160 + (144 * count); }
+
+		StType20A  a;
+		uint       b;
+	//	StType20A  arr [];
+	};
+#endif
+	StaticAssert( offsetof(StType20, a) == 0 );
+	StaticAssert( offsetof(StType20, b) == 144 );
+	StaticAssert( sizeof(StType20) == 160 );
+//-----------------------------------------------------------------------------
+
+
+	static void  StructType_Test21 ()
+	{
+		ShaderStructTypePtr	st1{ new ShaderStructType{ "StType21A" }};
+		st1->Set( EStructLayout::Compatible_Std430,
+				  "uint			a;"
+				  "uint2		b;" );
+		
+		ShaderStructTypePtr	st2{ new ShaderStructType{ "StType21B" }};
+		st2->Set( EStructLayout::Compatible_Std430,
+				  "StType21A	a;"
+				  "uint			b;" );
+
+		ShaderStructTypePtr	st{ new ShaderStructType{ "StType21" }};
+		st->Set( EStructLayout::Compatible_Std430,
+				 "uint			a;"
+				 "StType21B		arr [4];" );
+
+		const String	glsl = ToGLSL( st );
+		const String	msl  = ToMSL( st );
+		const String	cpp  = ToCPP( st );
+
+		const String	ref_glsl = R"#(
+#define StType21A_defined
+struct StType21A
+{
+	uint   a;  // offset: 0, align: 4, size: 4
+	uvec2  b;  // offset: 8, align: 8, size: 8
+};
+
+#define StType21B_defined
+struct StType21B
+{
+	StType21A  a;  // offset: 0, align: 8, size: 16
+	uint       b;  // offset: 16, align: 4, size: 4
+};
+
+Buffer {
+	layout(offset=0, align=4)  uint       a;        // size: 4
+	layout(offset=8, align=8)  StType21B  arr [4];  // size: 96
+}
+)#";
+		const String	ref_msl = R"#(
+struct StType21A
+{
+	uint   a;  // offset: 0, align: 4, size: 4
+	uint2  b;  // offset: 8, align: 8, size: 8
+};
+static_assert( sizeof(StType21A) == 16, "size mismatch" );
+
+struct StType21B
+{
+	StType21A  a;  // offset: 0, align: 8, size: 16
+	uint       b;  // offset: 16, align: 4, size: 4
+};
+static_assert( sizeof(StType21B) == 24, "size mismatch" );
+
+struct StType21
+{
+	uint       a;        // offset: 0, align: 4, size: 4
+	StType21B  arr [4];  // offset: 8, align: 8, size: 96
+};
+static_assert( sizeof(StType21) == 104, "size mismatch" );
+
+)#";
+		const String	ref_cpp = R"#(
+#ifndef StType21A_DEFINED
+#	define StType21A_DEFINED
+	// size: 16, align: 8
+	struct StType21A
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x6b38c76eu}};
+
+		uint   a;
+		uint2  b;
+	};
+#endif
+	StaticAssert( offsetof(StType21A, a) == 0 );
+	StaticAssert( offsetof(StType21A, b) == 8 );
+	StaticAssert( sizeof(StType21A) == 16 );
+
+#ifndef StType21B_DEFINED
+#	define StType21B_DEFINED
+	// size: 20 (24), align: 8
+	struct alignas(8) StType21B
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xf23196d4u}};
+
+		StType21A  a;
+		uint       b;
+	};
+#endif
+	StaticAssert( offsetof(StType21B, a) == 0 );
+	StaticAssert( offsetof(StType21B, b) == 16 );
+	StaticAssert( sizeof(StType21B) == 24 );
+
+#ifndef StType21_DEFINED
+#	define StType21_DEFINED
+	// size: 104, align: 8
+	struct StType21
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x5cfcea37u}};
+
+		uint                           a;
+		StaticArray< StType21B, 4 >    arr;
+	};
+#endif
+	StaticAssert( offsetof(StType21, a) == 0 );
+	StaticAssert( offsetof(StType21, arr) == 8 );
+	StaticAssert( sizeof(StType21) == 104 );
+
+)#";
+		TEST( glsl == ref_glsl );
+		TEST( msl == ref_msl );
+		TEST( cpp == ref_cpp );
+		TEST_PASSED();
+	}
+
+
+#ifndef StType21A_DEFINED
+#	define StType21A_DEFINED
+	// size: 16, align: 8
+	struct StType21A
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x6b38c76eu}};
+
+		uint   a;
+		uint2  b;
+	};
+#endif
+	StaticAssert( offsetof(StType21A, a) == 0 );
+	StaticAssert( offsetof(StType21A, b) == 8 );
+	StaticAssert( sizeof(StType21A) == 16 );
+
+#ifndef StType21B_DEFINED
+#	define StType21B_DEFINED
+	// size: 20 (24), align: 8
+	struct alignas(8) StType21B
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xf23196d4u}};
+
+		StType21A  a;
+		uint       b;
+	};
+#endif
+	StaticAssert( offsetof(StType21B, a) == 0 );
+	StaticAssert( offsetof(StType21B, b) == 16 );
+	StaticAssert( sizeof(StType21B) == 24 );
+
+#ifndef StType21_DEFINED
+#	define StType21_DEFINED
+	// size: 104, align: 8
+	struct StType21
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x5cfcea37u}};
+
+		uint                           a;
+		StaticArray< StType21B, 4 >    arr;
+	};
+#endif
+	StaticAssert( offsetof(StType21, a) == 0 );
+	StaticAssert( offsetof(StType21, arr) == 8 );
+	StaticAssert( sizeof(StType21) == 104 );
 //-----------------------------------------------------------------------------
 
 
@@ -2306,6 +2542,7 @@ extern void  UnitTest_StructType ()
 		StructType_Test18();
 		StructType_Test19();
 		StructType_Test20();
+		StructType_Test21();
 		StructType_TestLayoutCompatibility();
 	} catch(...) {
 		TEST( false );

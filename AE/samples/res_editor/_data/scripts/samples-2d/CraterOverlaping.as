@@ -20,7 +20,6 @@
 		RC<DynamicUInt>		s_mode		= DynamicUInt();
 		RC<DynamicFloat2>	s_off		= DynamicFloat2();
 		RC<DynamicFloat>	s_scale		= DynamicFloat();
-		RC<DynamicFloat>	s_aspect	= DynamicFloat();
 
 
 		{
@@ -58,7 +57,7 @@
 			pass.Constant( "iScale",	s_scale );
 			pass.Constant( "iP01",		s_p01 );
 			pass.Constant( "iP23",		s_p23 );
-			pass.Slider( "iAspect",		1.0f,	4.0f,	2.2f );
+			pass.Slider( "iRatio",		1.0f,	4.0f,	2.2f );
 			pass.Slider( "iCurve",		0,	4 );
 			pass.EnableIfEqual( mode, 1 );
 		}{
@@ -123,8 +122,8 @@
 	void Main ()
 	{
 		const float		a	= 1.02;
-		const float2	uv	= GetGlobalCoordSNorm().xy * float2(a, iAspect);
-		const float		w	= 0.002f * iAspect;
+		const float2	uv	= GetGlobalCoordSNorm().xy * float2(a, iRatio);
+		const float		w	= 0.002f * iRatio;
 
 		out_Color = float4(0.25);
 
@@ -339,8 +338,6 @@
 
 		if ( iEnable.z == 1 )
 			Crater( pos, iC2 );
-
-		gl.subgroup.ExecutionBarrier();
 
 		float	h = g_PixHistory.h;
 		h = h * iHScaleBias.x + iHScaleBias.y;

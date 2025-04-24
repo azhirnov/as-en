@@ -24,7 +24,9 @@ namespace
 		template <typename T, usize I>
 		void  operator () () __Th___
 		{
-			se->AddFunction( static_cast< String (*)(const T &) >(&Base::ToString), "ToString", {"value"} );
+			auto*	fn = static_cast< String (*)(const T &) >(&Base::ToString);
+
+			AS_GLOBAL_FN( se, fn, "ToString", {"value"} );
 		}
 	};
 }
@@ -44,15 +46,17 @@ namespace
 
 		if ( scalar )
 		{
-			se->AddFunction( &ToString_SInt,	"ToString",	{"value"} );
-			se->AddFunction( &ToString_UInt,	"ToString",	{"value"} );
-			se->AddFunction( &ToString_SLong,	"ToString",	{"value"} );
-			se->AddFunction( &ToString_ULong,	"ToString",	{"value"} );
-			se->AddFunction( &ToString_Float,	"ToString",	{"value"} );
-			se->AddFunction( &ToString_Double,	"ToString",	{"value"} );
-			se->AddFunction( &ToString_Float2,	"ToString",	{"value", "fractParts"} );
-			se->AddFunction( &ToString_Double2,	"ToString",	{"value", "fractParts"} );
+			AS_GLOBAL_FN( se, ToString_SInt,	"ToString",	{"value"} );
+			AS_GLOBAL_FN( se, ToString_UInt,	"ToString",	{"value"} );
+			AS_GLOBAL_FN( se, ToString_SLong,	"ToString",	{"value"} );
+			AS_GLOBAL_FN( se, ToString_ULong,	"ToString",	{"value"} );
+			AS_GLOBAL_FN( se, ToString_Float,	"ToString",	{"value"} );
+			AS_GLOBAL_FN( se, ToString_Double,	"ToString",	{"value"} );
+			AS_GLOBAL_FN( se, ToString_Float2,	"ToString",	{"value", "fractParts"} );
+			AS_GLOBAL_FN( se, ToString_Double2,	"ToString",	{"value", "fractParts"} );
 		}
+
+	  #ifndef AS_MAX_PORTABILITY
 		if ( vec )
 		{
 			VecTypes::VisitTh( ToStringVisitor{ se });
@@ -65,6 +69,7 @@ namespace
 		{
 			ColorTypes::VisitTh( ToStringVisitor{ se });
 		}
+	  #endif
 	}
 
 } // AE::Scripting

@@ -57,7 +57,11 @@ static IpAddress6  GetSelfIPv6AddressFromGoogleDNS ()
 }
 
 
+#ifdef AE_PLATFORM_ANDROID
+extern "C" AE_DLL_EXPORT int Tests_NetworkStressTest (const char* path)
+#else
 int main (const int argc, char* argv[])
+#endif
 {
 	BEGIN_TEST();
 

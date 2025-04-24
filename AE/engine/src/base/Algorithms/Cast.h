@@ -81,6 +81,33 @@ namespace AE::Base
 			return ptr;
 		#endif
 	}
+	
+/*
+=================================================
+	NonAlignedCast (pointer)
+=================================================
+*/
+	template <typename R, typename T>
+	NdCx__ R const*  NonAlignedCast (T const* value) __NE___
+	{
+		StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
+
+		if constexpr( std::is_convertible_v< T const*, R const* > or IsBaseOf< T, R >)
+			return static_cast< R const *>(value);
+		else
+			return static_cast< R const *>( static_cast< void const *>(value) );
+	}
+
+	template <typename R, typename T>
+	NdCx__ R*  NonAlignedCast (T* value) __NE___
+	{
+		StaticAssert( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
+
+		if constexpr( std::is_convertible_v< T const*, R const* > or IsBaseOf< T, R >)
+			return static_cast< R *>(value);
+		else
+			return static_cast< R *>( static_cast< void *>(value) );
+	}
 
 /*
 =================================================

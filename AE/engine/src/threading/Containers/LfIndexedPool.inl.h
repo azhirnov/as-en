@@ -186,6 +186,7 @@ namespace AE::Threading
 			if ( _AssignInChunk( high_chunk, OUT outIndex ))
 			{
 				outIndex = CheckCast<Index_t>( outIndex + i * ChunkSize );
+				ASSERT( outIndex < capacity() );
 				return true;
 			}
 		}
@@ -221,6 +222,7 @@ namespace AE::Threading
 			if_likely( _AssignInChunk( high_chunk, OUT outIndex ))
 			{
 				outIndex = CheckCast<Index_t>( outIndex + i * ChunkSize );
+				ASSERT( outIndex < capacity() );
 				return true;
 			}
 		}

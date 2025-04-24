@@ -9,6 +9,7 @@
 #include "res_editor/Core/EditorUI.h"
 #include "res_editor/Scripting/PipelineCompiler.inl.h"
 
+
 AE_DECL_SCRIPT_OBJ( AE::ResEditor::ScriptExe::EnableLabel,  "EnableLabel" );
 
 
@@ -20,6 +21,8 @@ namespace {
 
 	using namespace AE::Scripting;
 	using namespace AE::PipelineCompiler;
+
+	#include "res_editor/Scripting/ScriptExe_Passes.inl.h"
 
 
 	//
@@ -50,803 +53,6 @@ namespace {
 //-----------------------------------------------------------------------------
 
 
-	//
-	// Present Pass
-	//
-	class ScriptExe::ScriptPresent final : public ScriptBasePass
-	{
-	private:
-		ScriptImagePtr		rt;
-		ImageLayer			layer;
-		MipmapLevel			mipmap;
-		RC<DynamicDim>		dynSize;
-
-	public:
-		ScriptPresent (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, RC<DynamicDim> dynSize) :
-			rt{rt}, layer{layer}, mipmap{mipmap}, dynSize{dynSize} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV;
-	};
-
-/*
-=================================================
-	ScriptPresent::ToPass
-=================================================
-*/
-	RC<IPass>  ScriptExe::ScriptPresent::ToPass () C_Th___
-	{
-		Array< RC<Image> >	src;
-
-		ImageViewDesc	desc;
-		desc.baseLayer	= layer;
-		desc.baseMipmap	= mipmap;
-
-		RC<Image>	img = rt->ToResource();
-		CHECK_THROW( img );
-
-		img = img->CreateView( desc, "PresentSrc" );
-		CHECK_THROW( img );
-
-		src.push_back( img );
-
-		return MakeRCTh<ResEditor::Present>( RVRef(src), "Present", dynSize );
-	}
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Dbg View Pass
-	//
-	class ScriptExe::ScriptDbgView final : public ScriptBasePass
-	{
-	private:
-		ScriptImagePtr		rt;
-		ImageLayer			layer;
-		MipmapLevel			mipmap;
-		DebugView::EFlags	flags;
-		uint				index;
-
-	public:
-		ScriptDbgView (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, DebugView::EFlags flags, uint idx) :
-			rt{rt}, layer{layer}, mipmap{mipmap}, flags{flags}, index{idx} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			return MakeRCTh<ResEditor::DebugView>( rt->ToResource(), index, flags, layer, mipmap,
-												   s_scriptExe->_GetRenderer(), "DbgView" );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Generate Mipmaps Pass
-	//
-	class ScriptExe::ScriptGenMipmaps final : public ScriptBasePass
-	{
-	private:
-		ScriptImagePtr		rt;
-
-	public:
-		ScriptGenMipmaps (const ScriptImagePtr &rt) : rt{rt} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			return MakeRCTh<ResEditor::GenerateMipmapsPass>( rt->ToResource(), "GenMipmaps" );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-	ND_ inline String  EValueType_ToStr (PipelineCompiler::EValueType type, uint rows)
-	{
-		rows = Min( rows, 3 );
-		const char  rows_str[] = { '\0', '2', '3', '4' };
-		switch ( type ) {
-			case PipelineCompiler::EValueType::Int32 :		return "int"s + rows_str[rows];
-			case PipelineCompiler::EValueType::UInt32 :		return "uint"s + rows_str[rows];
-			case PipelineCompiler::EValueType::Float32 :	return "float"s + rows_str[rows];
-		}
-		return "<unknown>";
-	}
-
-
-	//
-	// Read Buffer Value
-	//
-	class ScriptExe::ScriptReadBufferValue final : public ScriptBasePass
-	{
-	private:
-		ScriptBufferPtr						buffer;
-		const String						fieldName;
-		AnyDynVecOrScalar_t					dst;
-		const PipelineCompiler::EValueType	type;
-		const ubyte							rows;
-
-	public:
-		ScriptReadBufferValue (ScriptBufferPtr buf, const String &field, AnyDynVecOrScalar_t dst, PipelineCompiler::EValueType type, uint count) :
-			buffer{buf}, fieldName{field}, dst{RVRef(dst)}, type{type}, rows{ubyte(count)} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			RC<Buffer>	buf;
-			Bytes		offset;
-			Bytes		size;
-
-			s_scriptExe->_RunWithPipelineCompiler(
-				[&] () {
-					buf = buffer->ToResource();
-					CHECK_THROW( buf );
-
-					buffer->AddLayoutReflection();
-
-					auto*	field = buffer->GetField( fieldName ).GetIf< PipelineCompiler::ShaderStructType::Field >();
-					CHECK_THROW_MSG( field != null,
-						"Field '"s << fieldName << "' is not exist in buffer '" << buffer->GetName() << "'." );
-
-					CHECK_THROW_MSG( field->type == type and field->rows == rows,
-						"Field '"s << fieldName << "' in buffer '" << buffer->GetName() << "' has '" << EValueType_ToStr( field->type, field->rows ) <<
-						"' but destination type is '" << EValueType_ToStr( type, rows ) << "'" );
-
-					CHECK_THROW_MSG( field->cols == 1 );  // matrix type is not supported
-
-					offset	= field->offset;
-					size	= field->size;
-				});
-
-			return MakeRCTh<ResEditor::ReadBufferValuePass>( buf, offset, size, dst );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Compress Image Pass
-	//
-	class ScriptExe::ScriptCompressImage final : public ScriptBasePass
-	{
-	private:
-		ScriptImagePtr		src;
-		ScriptImagePtr		dst;
-		EPixelFormat		dstFormat;
-
-	public:
-		ScriptCompressImage (const ScriptImagePtr &src, const ScriptImagePtr &dst, EPixelFormat dstFormat) :
-			src{src}, dst{dst}, dstFormat{dstFormat} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			return MakeRCTh<ResEditor::ImageCompressionPass>( src->ToResource(), dst->ToResource(), dstFormat, "CompressImage" );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Copy Image Pass
-	//
-	class ScriptExe::ScriptCopyImage final : public ScriptBasePass
-	{
-	private:
-		ScriptImagePtr		src;
-		ScriptImagePtr		dst;
-
-	public:
-		ScriptCopyImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
-			src{src}, dst{dst} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			return MakeRCTh<ResEditor::CopyImagePass>( src->ToResource(), dst->ToResource(), "CopyImage" );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Blit Image Pass
-	//
-	class ScriptExe::ScriptBlitImage final : public ScriptBasePass
-	{
-	private:
-		ScriptImagePtr		src;
-		ScriptImagePtr		dst;
-
-	public:
-		ScriptBlitImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
-			src{src}, dst{dst} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			return MakeRCTh<ResEditor::BlitImagePass>( src->ToResource(), dst->ToResource(), "BlitImage" );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Resolve Image Pass
-	//
-	class ScriptExe::ScriptResolveImage final : public ScriptBasePass
-	{
-	private:
-		ScriptImagePtr		src;
-		ScriptImagePtr		dst;
-
-	public:
-		ScriptResolveImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
-			src{src}, dst{dst} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			return MakeRCTh<ResEditor::ResolveImagePass>( src->ToResource(), dst->ToResource(), "ResolveImage" );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Clear Image Pass
-	//
-	class ScriptExe::ScriptClearImage final : public ScriptBasePass
-	{
-	private:
-		ScriptImagePtr					image;
-		ClearImagePass::ClearValue_t	value;
-
-	public:
-		ScriptClearImage (const ScriptImagePtr &image, ClearImagePass::ClearValue_t value) :
-			image{image}, value{value} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			return MakeRCTh<ResEditor::ClearImagePass>( image->ToResource(), value, "ClearImage" );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Clear Buffer Pass
-	//
-	class ScriptExe::ScriptClearBuffer final : public ScriptBasePass
-	{
-	private:
-		ScriptBufferPtr		buffer;
-		Bytes				offset;
-		Bytes				size	= UMax;
-		uint				value;
-
-	public:
-		ScriptClearBuffer (const ScriptBufferPtr &buffer, uint value) :
-			buffer{buffer}, value{value} {}
-
-		ScriptClearBuffer (const ScriptBufferPtr &buffer, Bytes offset, Bytes size, uint value) :
-			buffer{buffer}, offset{offset}, size{size}, value{value} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			RC<Buffer>	buf;
-
-			s_scriptExe->_RunWithPipelineCompiler(
-				[&] () {
-					buf = buffer->ToResource();
-					CHECK_THROW( buf );
-				});
-
-			return MakeRCTh<ResEditor::ClearBufferPass>( buf, offset, size, value, "ClearBuffer" );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Export Image
-	//
-	class ScriptExe::ScriptExportImage final : public ScriptBasePass
-	{
-	private:
-		ScriptImagePtr		image;
-		String				prefix;
-
-	public:
-		ScriptExportImage (const ScriptImagePtr &image, const String &prefix) :
-			image{image}, prefix{prefix} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV
-		{
-			return MakeRCTh<ResEditor::ExportImage>( image->ToResource(), RVRef(prefix) );
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Export Buffer
-	//
-	class ScriptExe::ScriptExportBuffer final : public ScriptBasePass
-	{
-	public:
-		enum class EMode {
-			Structured,
-			Binary,
-		};
-
-	private:
-		ScriptBufferPtr		buffer;
-		String				prefix;
-		EMode				mode;
-
-	public:
-		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix, EMode mode) :
-			buffer{buffer}, prefix{prefix}, mode{mode} {}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV;
-
-	private:
-		struct _Utils;
-	};
-
-/*
-=================================================
-	ScriptExportBuffer::_Utils
-=================================================
-*/
-	struct ScriptExe::ScriptExportBuffer::_Utils
-	{
-	private:
-		ShaderStructType &		_bufferType;
-		BufferMemView const&	_memView;
-
-		String					str;
-
-	public:
-		explicit _Utils (ShaderStructType &stType, const BufferMemView &memView) :
-			_bufferType{stType}, _memView{memView}
-		{}
-
-		void  Parse (WStream &stream);
-
-	private:
-		void  _AddTypeName (const ShaderStructType::Field &field);
-
-		ND_ bool  _Parse (const ShaderStructType &stType, Bytes baseOffset, uint depth);
-
-		template <typename T>
-		ND_ bool  _ParseVal (const ShaderStructType::Field &field, Bytes baseOffset, ulong arraySize, uint depth);
-	};
-
-
-/*
-=================================================
-	ScriptExportBuffer::_Utils::Parse
-=================================================
-*/
-	void  ScriptExe::ScriptExportBuffer::_Utils::Parse (WStream &stream)
-	{
-		str.reserve( 1024 );
-
-		str << "buffer ";
-		switch_enum( _bufferType.Layout() )
-		{
-			case EStructLayout::Compatible_Std140 :
-			case EStructLayout::Std140 :			str << "(std140) ";	break;
-			case EStructLayout::Compatible_Std430 :
-			case EStructLayout::Std430 :			str << "(std430) ";	break;
-			case EStructLayout::Metal :				str << "(metal) ";	break;
-			case EStructLayout::InternalIO :		break;
-			case EStructLayout::_Count :
-			case EStructLayout::Unknown :			break;
-		}
-		switch_end
-		str << _bufferType.Typename() << " {\n";
-
-		CHECK( _Parse( _bufferType, 0_b, 1 ));
-
-		str << "} // " << _bufferType.Typename() << "\n";
-
-		CHECK( stream.Write( str ));
-	}
-
-/*
-=================================================
-	ScriptExportBuffer::_Utils::_AddTypeName
-=================================================
-*/
-	void  ScriptExe::ScriptExportBuffer::_Utils::_AddTypeName (const ShaderStructType::Field &field)
-	{
-		if ( field.IsStruct() )
-		{
-			str << field.stType->Typename();
-		}
-		else
-		{
-			switch_enum( field.type )
-			{
-				case EValueType::Bool8 :		str << "bool";			break;
-				case EValueType::Bool32 :		str << "bool";			break;
-				case EValueType::Int8 :			str << "byte";			break;
-				case EValueType::Int16 :		str << "short";			break;
-				case EValueType::Int32 :		str << "int";			break;
-				case EValueType::Int64 :		str << "long";			break;
-				case EValueType::UInt8 :		str << "ubyte";			break;
-				case EValueType::UInt16 :		str << "ushort";		break;
-				case EValueType::UInt32 :		str << "uint";			break;
-				case EValueType::DeviceAddress:	str << "DeviceAddress";	break;
-				case EValueType::UInt64 :		str << "ulong";			break;
-				case EValueType::Float16 :		str << "half";			break;
-				case EValueType::Float32 :		str << "float";			break;
-				case EValueType::Float64 :		str << "double";		break;
-				case EValueType::Int8_Norm :
-				case EValueType::Int16_Norm :
-				case EValueType::UInt8_Norm :
-				case EValueType::UInt16_Norm :
-				case EValueType::Unknown :
-				case EValueType::_Count :		str << "<unknown>";		break;
-			}
-			switch_end
-
-			if ( field.IsVec() )	str << ToString( field.rows );
-			if ( field.IsMat() )	str << ToString( field.cols ) << 'x' << ToString( field.rows );
-		}
-	}
-
-/*
-=================================================
-	ScriptExportBuffer::_Utils::_Parse
-=================================================
-*/
-	bool  ScriptExe::ScriptExportBuffer::_Utils::_Parse (const ShaderStructType &stType, const Bytes baseOffset, const uint depth)
-	{
-		for (auto& field : stType.Fields())
-		{
-			ulong	array_size	= field.IsStaticArray() ? field.arraySize : 0;
-
-			if ( field.IsDynamicArray() )
-			{
-				Bytes	remain_size = _memView.DataSize() - baseOffset - field.offset;
-				CHECK_ERR( IsMultipleOf( remain_size, field.size ));
-
-				array_size	= ulong{remain_size / field.size};
-			}
-
-			AppendToString( INOUT str, depth*2, ' ' );
-			_AddTypeName( field );
-			str << "  " << field.name;
-
-			if ( array_size > 0 )	str << " [" << ToString( array_size ) << "] = {\n";
-			else					str << " = ";
-
-			if ( field.IsStruct() )
-			{
-				const uint	depth2 = depth+1 + uint(array_size > 0);
-
-				for (ulong i = 0, cnt = Max( array_size, 1u ); i < cnt; ++i)
-				{
-					if ( array_size > 0 ) {
-						AppendToString( INOUT str, (depth+1)*2, ' ' );
-						str << field.stType->Typename() << " { // [" << ToString(i) << "]\n";
-					}else{
-						str << field.stType->Typename() << " {\n";
-					}
-
-					Bytes	off = baseOffset + field.offset + AlignUp( field.size, field.align ) * i;
-					ASSERT( off + field.size <= _memView.DataSize() );
-
-					CHECK_ERR( _Parse( *field.stType, off, depth2 ));
-
-					AppendToString( INOUT str, (depth+1)*2, ' ' );
-
-					if ( array_size > 0 ) {
-						str << "}" << (i+1 != cnt ? "," : " ") << " // " << field.stType->Typename() << "\n";
-					}else{
-						str << "} // " << field.stType->Typename();
-					}
-				}
-			}
-			else
-			{
-				switch_enum( field.type )
-				{
-					case EValueType::Bool8 :		CHECK_ERR( _ParseVal< bool   >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::Bool32 :		CHECK_ERR( _ParseVal< lbool  >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::Int8 :			CHECK_ERR( _ParseVal< sbyte  >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::Int16 :		CHECK_ERR( _ParseVal< sshort >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::Int32 :		CHECK_ERR( _ParseVal< sint   >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::Int64 :		CHECK_ERR( _ParseVal< slong  >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::UInt8 :		CHECK_ERR( _ParseVal< ubyte  >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::UInt16 :		CHECK_ERR( _ParseVal< ushort >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::UInt32 :		CHECK_ERR( _ParseVal< uint   >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::DeviceAddress:	CHECK_ERR( _ParseVal<DeviceAddress>( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::UInt64 :		CHECK_ERR( _ParseVal< ulong  >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::Float16 :		CHECK_ERR( _ParseVal< half   >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::Float32 :		CHECK_ERR( _ParseVal< float  >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::Float64 :		CHECK_ERR( _ParseVal< double >( field, baseOffset, array_size, depth+1 ));	break;
-					case EValueType::Int8_Norm :
-					case EValueType::Int16_Norm :
-					case EValueType::UInt8_Norm :
-					case EValueType::UInt16_Norm :
-					case EValueType::Unknown :
-					case EValueType::_Count :
-					default :						RETURN_ERR( "unsupported value type" );
-				}
-				switch_end
-			}
-
-			if ( array_size > 0 )	{ AppendToString( INOUT str, depth*2, ' ' );  str << "} // " << field.name << "[]\n"; }
-			else					str << "\n";
-		}
-
-		return true;
-	}
-
-/*
-=================================================
-	ScriptExportBuffer::_Utils::_ParseVal
-=================================================
-*/
-	template <typename T>
-	bool  ScriptExe::ScriptExportBuffer::_Utils::_ParseVal (const ShaderStructType::Field &field, Bytes baseOffset,
-															const ulong arraySize, const uint depth)
-	{
-		const bool	is_array	= arraySize > 0;
-		const Bytes	elem_size	= field.size / Max( arraySize, 1u );
-
-		baseOffset += field.offset;
-		ASSERT( baseOffset + field.size <= _memView.DataSize() );
-		ASSERT( SizeOf<T> * field.rows * field.cols == elem_size );
-
-		for (ulong i = 0, cnt = Max( arraySize, 1u ); i < cnt; ++i)
-		{
-			Bytes	off  = baseOffset + elem_size * i;
-			auto	data = _memView.GetRange( off, elem_size );
-
-			CHECK_ERR( data.size == elem_size );
-
-			if ( is_array )  AppendToString( INOUT str, depth*2, ' ' );
-
-			if ( field.rows > 1 ) str << "{ ";
-
-			for (uint r = 0, rows = field.rows; r < rows; ++r)
-			{
-				if constexpr( IsSame< T, DeviceAddress >)
-					str << "0x" << ToString<16>( Cast<T>(data.ptr)[r] );
-				else
-				if constexpr( IsSame< T, half >)
-					str << ToString( float{Cast<T>(data.ptr)[r]}, 5, True{"exp"} );
-				else
-				if constexpr( IsFloatPoint<T> )
-					str << ToString( Cast<T>(data.ptr)[r], 5, True{"exp"} );
-				else
-					str << ToString( Cast<T>(data.ptr)[r] );
-
-				if ( r+1 != rows )  str << ", ";
-			}
-
-			if ( field.rows > 1 ) str << " }";
-
-			if ( is_array ) str << (i+1 != arraySize ? "," : " ") << "  // [" << ToString(i) << "]\n";
-		}
-		return true;
-	}
-
-/*
-=================================================
-	ScriptExportBuffer::ToPass
-=================================================
-*/
-	RC<IPass>  ScriptExe::ScriptExportBuffer::ToPass () C_Th___
-	{
-		ShaderStructTypePtr	st_type;
-		RC<Buffer>			buf;
-
-		s_scriptExe->_RunWithPipelineCompiler(
-			[&] () {
-				auto	storage = ObjectStorage::Instance();
-				CHECK_THROW( storage );
-
-				buffer->AddLayoutReflection();
-				buf = buffer->ToResource();
-				CHECK_THROW( buf );
-
-				auto&	st_types	= storage->structTypes;
-				auto	it			= st_types.find( buffer->GetTypeName() );
-
-				CHECK_THROW( it != st_types.end() );
-				st_type = it->second;
-			});
-
-		switch_enum( mode )
-		{
-			case EMode::Structured :
-				return MakeRCTh<ResEditor::ExportBuffer>( buf, RVRef(prefix),
-								[st_type] (const BufferMemView &memView, WStream &stream) {
-									_Utils{ *st_type, memView }.Parse( stream );
-								});
-
-			case EMode::Binary :
-				return MakeRCTh<ResEditor::ExportBuffer>( buf, RVRef(prefix), Default );
-
-			default :
-				CHECK_THROW_MSG( false, "unsupported buffer export mode" );
-		}
-		switch_end
-	}
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Build Ray Tracing Geometry Pass
-	//
-	class ScriptExe::ScriptBuildRTGeometry final : public ScriptBasePass
-	{
-	private:
-		ScriptRTGeometryPtr	_dstGeometry;
-		const bool			_indirect;
-
-
-	public:
-		ScriptBuildRTGeometry (ScriptRTGeometryPtr	dstGeometry,
-							   bool					indirect) :
-			_dstGeometry{ dstGeometry },
-			_indirect{ indirect }
-		{}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV;
-	};
-
-/*
-=================================================
-	ScriptBuildRTGeometry::ToPass
-=================================================
-*/
-	RC<IPass>  ScriptExe::ScriptBuildRTGeometry::ToPass () C_Th___
-	{
-		CHECK_THROW( s_scriptExe != null );
-
-		RC<RTGeometry>	dst_geom;
-		s_scriptExe->_RunWithPipelineCompiler(
-			[&] () {
-				dst_geom = _dstGeometry->ToResource();
-			});
-
-		return MakeRCTh<ResEditor::BuildRTGeometry>(
-					dst_geom, _indirect,
-					"BuildRTGeometry" );
-	}
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Build Ray Tracing Scene Pass
-	//
-	class ScriptExe::ScriptBuildRTScene final : public ScriptBasePass
-	{
-	private:
-		ScriptRTScenePtr	_dstScene;
-		const bool			_indirect;
-
-
-	public:
-		ScriptBuildRTScene (ScriptRTScenePtr	dstScene,
-							bool				indirect) :
-			_dstScene{ dstScene },
-			_indirect{ indirect }
-		{}
-
-		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
-
-		RC<IPass>	ToPass () C_Th_OV;
-	};
-
-/*
-=================================================
-	ScriptBuildRTScene::ToPass
-=================================================
-*/
-	RC<IPass>  ScriptExe::ScriptBuildRTScene::ToPass () C_Th___
-	{
-		CHECK_THROW( s_scriptExe != null );
-
-		RC<RTScene>		dst_scene;
-		s_scriptExe->_RunWithPipelineCompiler(
-			[&] () {
-				dst_scene = _dstScene->ToResource();
-			});
-
-		return MakeRCTh<ResEditor::BuildRTScene>(
-					dst_scene, _indirect,
-					"BuildRTScene" );
-	}
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Pass Group
-	//
-	class ScriptExe::ScriptPassGroup final : public ScriptBasePass
-	{
-	private:
-		Array< ScriptBasePassPtr >	_passes;
-		const PassGroup::EFlags		_flags;
-		RC<Renderer>				_renderer;
-		mutable RC<IPass>			_result;
-
-	public:
-		ScriptPassGroup (PassGroup::EFlags flags, RC<Renderer> renderer) :
-			_flags{flags}, _renderer{RVRef(renderer)}
-		{}
-
-			void  Add (ScriptBasePassPtr pass)							{ _passes.push_back( RVRef(pass) ); }
-			void  _OnAddArg (INOUT ScriptPassArgs::Argument &)	C_Th_OV	{}
-
-		ND_ ArrayView<ScriptBasePassPtr>	GetPasses ()		const	{ return _passes; }
-		ND_ RC<IPass>						ToPass ()			C_Th_OV;
-	};
-
-/*
-=================================================
-	ScriptPassGroup::ToPass
-=================================================
-*/
-	RC<IPass>  ScriptExe::ScriptPassGroup::ToPass () C_Th___
-	{
-		if ( _result )
-			return _result;
-
-		CHECK_THROW( not _passes.empty() );
-
-		RC<PassGroup>	pg = MakeRC<PassGroup>( _flags, _renderer->GetDataTransferQueue() );
-
-		for (auto& script_pass : _passes) {
-			pg->AddPass( script_pass->ToPass() );  // throw
-		}
-
-		_result = pg;
-		return pg;
-	}
-//-----------------------------------------------------------------------------
-
-
 
 	struct ScriptExe::SamplerConsts
 	{
@@ -867,6 +73,8 @@ namespace {
 		const String	Anisotropy16MirrorRepeat{"Anisotropy16MirrorRepeat"};
 		const String	Anisotropy16Clamp		{"Anisotropy16Clamp"};
 		const String	NearestClampSubsampled	{"NearestClampSubsampled"};
+		const String	MaxLinearClamp			{"MaxLinearClamp"};
+		const String	MinLinearClamp			{"MinLinearClamp"};
 	};
 
 /*
@@ -1356,6 +564,23 @@ namespace {
 		CHECK_THROW_MSG( data.passGroup );
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptCopyImage{ src, dst }});
+	}
+	
+/*
+=================================================
+	_CopyImage2
+=================================================
+*/
+	void  ScriptExe::_CopyImage2 (const ScriptImagePtr &src, const ScriptImagePtr &dst) __Th___
+	{
+		CHECK_THROW_MSG( src and dst );
+		src->AddUsage( EResourceUsage::Sampled );
+		dst->AddUsage( EResourceUsage::ComputeWrite );
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptCopyImage2{ src, dst }});
 	}
 
 /*
@@ -2100,6 +1325,13 @@ namespace {
 			return fs.linearSampledFormats.contains( fmt );
 		}
 	}
+
+	static ScriptFeatureSet*  _GetFeatureSet ()
+	{
+		ScriptFeatureSetPtr	tmp{ new ScriptFeatureSet{} };
+		tmp->fs = GraphicsScheduler().GetFeatureSet();
+		return tmp.Detach();
+	}
 }
 
 /*
@@ -2135,7 +1367,7 @@ namespace {
 			binder.AddValue( "HDR10_ST2084",			EColorSpace::HDR10_ST2084 );
 			binder.AddValue( "BT2020_linear",			EColorSpace::BT2020_linear );
 			StaticAssert( uint(EColorSpace::_Count) == 15 );
-			StaticAssert( uint(ESurfaceFormat::_Count) == 10 );
+			StaticAssert( uint(ESurfaceFormat::_Count) == 11 );
 
 			// not compatible with ESurfaceFormat
 			//binder.AddValue( "Display_P3_nonlinear",		EColorSpace::Display_P3_nonlinear );
@@ -2148,6 +1380,13 @@ namespace {
 			//binder.AddValue( "AdobeRGB_nonlinear",		EColorSpace::AdobeRGB_nonlinear );
 			//binder.AddValue( "PassThrough",				EColorSpace::PassThrough );
 			//binder.AddValue( "Extended_sRGB_nonlinear",	EColorSpace::Extended_sRGB_nonlinear );
+		}{
+			EnumBinder<ERenderLayer>	binder{ se };
+			binder.Create();
+			binder.AddValue( "Opaque",		ERenderLayer::Opaque );
+			binder.AddValue( "Translucent",	ERenderLayer::Translucent );
+			binder.AddValue( "PostProcess",	ERenderLayer::PostProcess );
+			StaticAssert( uint(ERenderLayer::_Count) == 3 );
 		}
 
 		_Bind_DbgViewFlags( se );
@@ -2193,185 +1432,191 @@ namespace {
 		// don't forget to update '_SaveCppStructs()'
 		ScriptPostprocess::Bind( se );
 		ScriptComputePass::Bind( se );
+		ScriptComputeMip::Bind( se );
 		ScriptRayTracingPass::Bind( se );
 		ScriptSceneGraphicsPass::Bind( se );
 		ScriptSceneRayTracingPass::Bind( se );
 		ScriptScene::Bind( se );
+
+		PipelineCompiler::ScriptFeatureSet::Bind( se );
 
 		{
 			Scripting::ClassBinder<EnableLabel>	binder{ se };
 			binder.CreateClassValue();
 		}
 
-		se->AddFunction( &ScriptExe::_SurfaceSize,				"SurfaceSize",				{},		"Returns dynamic dimensions of the screen surface."	);
+		AS_GLOBAL_FN( se, ScriptExe::_SurfaceSize,				"SurfaceSize",				{},		"Returns dynamic dimensions of the screen surface."	);
 
-		se->AddFunction( &ScriptExe::_Present1,					"Present",					{},		"Present image to the screen." );
-		se->AddFunction( &ScriptExe::_Present2,					"Present",					{} );
-		se->AddFunction( &ScriptExe::_Present3,					"Present",					{} );
-		se->AddFunction( &ScriptExe::_Present4,					"Present",					{} );
-		se->AddFunction( &ScriptExe::_Present5,					"Present",					{} );
-		se->AddFunction( &ScriptExe::_Present6,					"Present",					{} );
+		AS_GLOBAL_FN( se, ScriptExe::_Present1,					"Present",					{},		"Present image to the screen." );
+		AS_GLOBAL_FN( se, ScriptExe::_Present2,					"Present",					{} );
+		AS_GLOBAL_FN( se, ScriptExe::_Present3,					"Present",					{} );
+		AS_GLOBAL_FN( se, ScriptExe::_Present4,					"Present",					{} );
+		AS_GLOBAL_FN( se, ScriptExe::_Present5,					"Present",					{} );
+		AS_GLOBAL_FN( se, ScriptExe::_Present6,					"Present",					{} );
 
-		se->AddFunction( &ScriptExe::_DbgView1,					"DbgView",					{},		"Draw image in child window for debugging." );
-		se->AddFunction( &ScriptExe::_DbgView2,					"DbgView",					{} );
-		se->AddFunction( &ScriptExe::_DbgView3,					"DbgView",					{} );
-		se->AddFunction( &ScriptExe::_DbgView4,					"DbgView",					{} );
+		AS_GLOBAL_FN( se, ScriptExe::_DbgView1,					"DbgView",					{},		"Draw image in child window for debugging." );
+		AS_GLOBAL_FN( se, ScriptExe::_DbgView2,					"DbgView",					{} );
+		AS_GLOBAL_FN( se, ScriptExe::_DbgView3,					"DbgView",					{} );
+		AS_GLOBAL_FN( se, ScriptExe::_DbgView4,					"DbgView",					{} );
 
-		se->AddFunction( &ScriptExe::_GenMipmaps,				"GenMipmaps",				{},				"Pass which generates mipmaps for image." );
-		se->AddFunction( &ScriptExe::_CopyImage,				"CopyImage",				{"src", "dst"},	"Pass which copy image content to another image." );
-		se->AddFunction( &ScriptExe::_BlitImage,				"BlitImage",				{"src", "dst"},	"Pass which blits image to another image." );
-		se->AddFunction( &ScriptExe::_ResolveImage,				"ResolveImage",				{"src", "dst"},	"Pass which resolve multisample image to another single-sampled image." );
-		se->AddFunction( &ScriptExe::_CompressImage,			"CompressImage",			{"src", "dst"},	"Pass which compress image on CPU or GPU." );
-		se->AddFunction( &ScriptExe::_CompressImage2,			"CompressImage",			{"src", "dst", "dstFormat"}, "Pass which compress image on CPU or GPU.\n'dstFormat' may not be supported by current GPU, but may be used for software decoding.\n'dst' image must be compatible with 'dstFormat'." );
+		AS_GLOBAL_FN( se, ScriptExe::_GenMipmaps,				"GenMipmaps",				{},		"Pass which generates mipmaps for image." );
 
-		se->AddFunction( &ScriptExe::_ClearImage1,				"ClearImage",				{},		"Pass to clear float-color image." );
-		se->AddFunction( &ScriptExe::_ClearImage2,				"ClearImage",				{},		"Pass to clear uint-color image." );
-		se->AddFunction( &ScriptExe::_ClearImage3,				"ClearImage",				{},		"Pass to clear int-color image." );
-		se->AddFunction( &ScriptExe::_ClearBuffer1,				"ClearBuffer",				{},		"Pass to clear buffer." );
-		se->AddFunction( &ScriptExe::_ClearBuffer2,				"ClearBuffer",				{"buffer", "offset", "size", "value"} );
+		AS_GLOBAL_FN( se, ScriptExe::_CopyImage,				"CopyImage",				{"src", "dst"},	"Pass which copy image content to another image." );
+		AS_GLOBAL_FN( se, ScriptExe::_CopyImage2,				"CopyImage2",				{"src", "dst"},	"Pass which copy image content to another image without format restrictions." );
+		AS_GLOBAL_FN( se, ScriptExe::_BlitImage,				"BlitImage",				{"src", "dst"},	"Pass which blits image to another image." );
+		AS_GLOBAL_FN( se, ScriptExe::_ResolveImage,				"ResolveImage",				{"src", "dst"},	"Pass which resolve multisample image to another single-sampled image." );
+		AS_GLOBAL_FN( se, ScriptExe::_CompressImage,			"CompressImage",			{"src", "dst"},	"Pass which compress image on CPU or GPU." );
+		AS_GLOBAL_FN( se, ScriptExe::_CompressImage2,			"CompressImage",			{"src", "dst", "dstFormat"}, "Pass which compress image on CPU or GPU.\n'dstFormat' may not be supported by current GPU, but may be used for software decoding.\n'dst' image must be compatible with 'dstFormat'." );
 
-		se->AddFunction( &ScriptExe::_ExportImage,				"Export",					{"image", "prefix"},	"Readback the image and save it to a file in DDS format. Rendering will be paused until the readback is completed." );
-		se->AddFunction( &ScriptExe::_DbgExportBuffer,			"DbgExport",				{"buffer", "prefix"},	"Readback the buffer and save it to a file in structured format. Rendering will be paused until the readback is completed." );
-		se->AddFunction( &ScriptExe::_ExportBuffer,				"Export",					{"buffer", "prefix"},	"Readback the buffer and save it to a file in binary format. Rendering will be paused until the readback is completed." );
-	//	se->AddFunction( &ScriptExe::_ExportGeometry,			"Export",					{"geometry", "prefix"},	"Readback the geometry data (images, buffers, etc) and save it to a file in glTF format. Rendering will be paused until the readback is completed." );
+		AS_GLOBAL_FN( se, ScriptExe::_ClearImage1,				"ClearImage",				{},		"Pass to clear float-color image." );
+		AS_GLOBAL_FN( se, ScriptExe::_ClearImage2,				"ClearImage",				{},		"Pass to clear uint-color image." );
+		AS_GLOBAL_FN( se, ScriptExe::_ClearImage3,				"ClearImage",				{},		"Pass to clear int-color image." );
+		AS_GLOBAL_FN( se, ScriptExe::_ClearBuffer1,				"ClearBuffer",				{},		"Pass to clear buffer." );
+		AS_GLOBAL_FN( se, ScriptExe::_ClearBuffer2,				"ClearBuffer",				{"buffer", "offset", "size", "value"} );
 
-		se->AddFunction( &ScriptExe::_BuildRTGeometry,			"BuildRTGeometry",			{},		"Pass to build RTGeometry, executed every frame."			);
-		se->AddFunction( &ScriptExe::_BuildRTGeometryIndirect,	"BuildRTGeometryIndirect",	{},		"Pass to indirect build RTGeometry, executed every frame."	);
+		AS_GLOBAL_FN( se, ScriptExe::_ExportImage,				"Export",					{"image", "prefix"},	"Readback the image and save it to a file in DDS format. Rendering will be paused until the readback is completed." );
+		AS_GLOBAL_FN( se, ScriptExe::_DbgExportBuffer,			"DbgExport",				{"buffer", "prefix"},	"Readback the buffer and save it to a file in structured format. Rendering will be paused until the readback is completed." );
+		AS_GLOBAL_FN( se, ScriptExe::_ExportBuffer,				"Export",					{"buffer", "prefix"},	"Readback the buffer and save it to a file in binary format. Rendering will be paused until the readback is completed." );
+	//	AS_GLOBAL_FN( se, ScriptExe::_ExportGeometry,			"Export",					{"geometry", "prefix"},	"Readback the geometry data (images, buffers, etc) and save it to a file in glTF format. Rendering will be paused until the readback is completed." );
 
-		se->AddFunction( &ScriptExe::_BuildRTScene,				"BuildRTScene",				{},		"Pass to build RTScene, executed every frame."				);
-		se->AddFunction( &ScriptExe::_BuildRTSceneIndirect,		"BuildRTSceneIndirect",		{},		"Pass to indirect build RTScene, executed every frame."		);
+		AS_GLOBAL_FN( se, ScriptExe::_BuildRTGeometry,			"BuildRTGeometry",			{},		"Pass to build RTGeometry, executed every frame."			);
+		AS_GLOBAL_FN( se, ScriptExe::_BuildRTGeometryIndirect,	"BuildRTGeometryIndirect",	{},		"Pass to indirect build RTGeometry, executed every frame."	);
 
-		se->AddFunction( &ScriptExe::_GetCube2,					"GetCube",					{"positions", "normals", "indices"} );
-		se->AddFunction( &ScriptExe::_GetCube3,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"} );
-		se->AddFunction( &ScriptExe::_GetCube4,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"} );
-		se->AddFunction( &ScriptExe::_GetGrid1,					"GetGrid",					{"size", "unorm2Positions", "indices"},					"Returns (size * size) grid" );
-		se->AddFunction( &ScriptExe::_GetGrid2,					"GetGrid",					{"size", "unorm3Positions", "indices"},					"Returns (size * size) grid in XY space." );
-		se->AddFunction( &ScriptExe::_GetSphere1,				"GetSphere",				{"lod", "positions", "indices"},						"Returns spherical cube" );
-		se->AddFunction( &ScriptExe::_GetSphere2,				"GetSphere",				{"lod", "positions", "cubemapTexcoords", "indices"},	"Returns spherical cube" );
-		se->AddFunction( &ScriptExe::_GetSphere3,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"},	"Returns spherical cube with tangential projection for cubemap." );
-		se->AddFunction( &ScriptExe::_GetSphere4,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"},		"Returns spherical cube" );
-		se->AddFunction( &ScriptExe::_GetCylinder1,				"GetCylinder",				{"segmentCount", "isInner", "positions", "texcoords", "indices"},			"Returns cylinder" );
-		se->AddFunction( &ScriptExe::_GetCylinder2,				"GetCylinder",				{"segmentCount", "isInner", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cylinder" );
+		AS_GLOBAL_FN( se, ScriptExe::_BuildRTScene,				"BuildRTScene",				{},		"Pass to build RTScene, executed every frame."				);
+		AS_GLOBAL_FN( se, ScriptExe::_BuildRTSceneIndirect,		"BuildRTSceneIndirect",		{},		"Pass to indirect build RTScene, executed every frame."		);
 
-		se->AddFunction( &ScriptExe::_GetSphericalCube1,		"GetSphericalCube",			{"lod", "positions", "indices"},						"Returns spherical cube without projection and face rotation.\nIn 'positions': xy - pos on face, z - face index." );
+		AS_GLOBAL_FN( se, ScriptExe::_GetCube2,					"GetCube",					{"positions", "normals", "indices"} );
+		AS_GLOBAL_FN( se, ScriptExe::_GetCube3,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"} );
+		AS_GLOBAL_FN( se, ScriptExe::_GetCube4,					"GetCube",					{"positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"} );
+		AS_GLOBAL_FN( se, ScriptExe::_GetGrid1,					"GetGrid",					{"size", "unorm2Positions", "indices"},					"Returns (size * size) grid" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetGrid2,					"GetGrid",					{"size", "unorm3Positions", "indices"},					"Returns (size * size) grid in XY space." );
+		AS_GLOBAL_FN( se, ScriptExe::_GetSphere1,				"GetSphere",				{"lod", "positions", "indices"},						"Returns spherical cube" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetSphere2,				"GetSphere",				{"lod", "positions", "cubemapTexcoords", "indices"},	"Returns spherical cube" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetSphere3,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"},	"Returns spherical cube with tangential projection for cubemap." );
+		AS_GLOBAL_FN( se, ScriptExe::_GetSphere4,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"},		"Returns spherical cube" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetCylinder1,				"GetCylinder",				{"segmentCount", "isInner", "positions", "texcoords", "indices"},			"Returns cylinder" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetCylinder2,				"GetCylinder",				{"segmentCount", "isInner", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},	"Returns cylinder" );
 
-		se->AddFunction( &ScriptExe::_IndicesToPrimitives,		"IndicesToPrimitives",		{"indices", "primitives"},		"Helper function to convert array of indices to array of uint3 indices per triangle" );
-		se->AddFunction( &ScriptExe::_GetFrustumPlanes,			"GetFrustumPlanes",			{"viewProj", "outPlanes"},		"Helper function to convert matrix to 6 planes of the frustum." );
-		se->AddFunction( &ScriptExe::_MergeMesh,				"MergeMesh",				{"srcIndices", "srcVertexCount", "indicesToAdd"} );
+		AS_GLOBAL_FN( se, ScriptExe::_GetSphericalCube1,		"GetSphericalCube",			{"lod", "positions", "indices"},						"Returns spherical cube without projection and face rotation.\nIn 'positions': xy - pos on face, z - face index." );
+
+		AS_GLOBAL_FN( se, ScriptExe::_IndicesToPrimitives,		"IndicesToPrimitives",		{"indices", "primitives"},		"Helper function to convert array of indices to array of uint3 indices per triangle" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetFrustumPlanes,			"GetFrustumPlanes",			{"viewProj", "outPlanes"},		"Helper function to convert matrix to 6 planes of the frustum." );
+		AS_GLOBAL_FN( se, ScriptExe::_MergeMesh,				"MergeMesh",				{"srcIndices", "srcVertexCount", "indicesToAdd"} );
 
 		#ifdef AE_ENABLE_CDT
-		se->AddFunction( &ScriptExe::_ExtrudeAndMerge,			"Extrude",					{"lineStrip", "height", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
-		se->AddFunction( &ScriptExe::_TriangulateAndMerge1,		"Triangulate",				{"lineStrip", "yCoord", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
-		se->AddFunction( &ScriptExe::_TriangulateAndMerge2,		"Triangulate",				{"vertices", "lineListIndices", "yCoord", "positions", "indices"},	"Output is a TriangleList, front face: CCW" );
-		se->AddFunction( &ScriptExe::_TriangulateExtrudeAndMerge1,"TriangulateAndExtrude",	{"lineStrip", "height", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
-		se->AddFunction( &ScriptExe::_TriangulateExtrudeAndMerge2,"TriangulateAndExtrude",	{"vertices", "lineListIndices", "height", "positions", "indices"},	"Output is a TriangleList, front face: CCW" );
+		AS_GLOBAL_FN( se, ScriptExe::_ExtrudeAndMerge,			"Extrude",					{"lineStrip", "height", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
+		AS_GLOBAL_FN( se, ScriptExe::_TriangulateAndMerge1,		"Triangulate",				{"lineStrip", "yCoord", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
+		AS_GLOBAL_FN( se, ScriptExe::_TriangulateAndMerge2,		"Triangulate",				{"vertices", "lineListIndices", "yCoord", "positions", "indices"},	"Output is a TriangleList, front face: CCW" );
+		AS_GLOBAL_FN( se, ScriptExe::_TriangulateExtrudeAndMerge1,"TriangulateAndExtrude",	{"lineStrip", "height", "positions", "indices"},					"Output is a TriangleList, front face: CCW" );
+		AS_GLOBAL_FN( se, ScriptExe::_TriangulateExtrudeAndMerge2,"TriangulateAndExtrude",	{"vertices", "lineListIndices", "height", "positions", "indices"},	"Output is a TriangleList, front face: CCW" );
 		#endif
 
-		se->AddFunction( &ScriptExe::_RunScript1,				"RunScript",				{"filePath", "collection"},		"Run script, path to script must be added to 'res_editor_cfg.as' as 'SecondaryScriptDir()'" );
-		se->AddFunction( &ScriptExe::_RunScript2,				"RunScript",				{"filePath", "flags", "collection"} );
+		AS_GLOBAL_FN( se, ScriptExe::_RunScript1,				"RunScript",				{"filePath", "collection"},		"Run script, path to script must be added to 'res_editor_cfg.as' as 'SecondaryScriptDir()'" );
+		AS_GLOBAL_FN( se, ScriptExe::_RunScript2,				"RunScript",				{"filePath", "flags", "collection"} );
 
-		se->AddFunction( &ScriptExe::_SliderI0,					"Slider",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_SliderI1,					"Slider",					{"dyn", "name", "min", "max"} );
-		se->AddFunction( &ScriptExe::_SliderI2,					"Slider",					{"dyn", "name", "min", "max"} );
-		se->AddFunction( &ScriptExe::_SliderI3,					"Slider",					{"dyn", "name", "min", "max"} );
-		se->AddFunction( &ScriptExe::_SliderI4,					"Slider",					{"dyn", "name", "min", "max"},		"Add slider to UI." );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderI0,					"Slider",					{"dyn", "name"},				"Add slider to UI." );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderI1,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderI2,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderI3,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderI4,					"Slider",					{"dyn", "name", "min", "max"} );
 
-		se->AddFunction( &ScriptExe::_SliderI1a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
-		se->AddFunction( &ScriptExe::_SliderI2a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
-		se->AddFunction( &ScriptExe::_SliderI3a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
-		se->AddFunction( &ScriptExe::_SliderI4a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderI1a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderI2a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderI3a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderI4a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
 
-		se->AddFunction( &ScriptExe::_SliderU0,					"Slider",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_SliderU1,					"Slider",					{"dyn", "name", "min", "max"} );
-		se->AddFunction( &ScriptExe::_SliderU2,					"Slider",					{"dyn", "name", "min", "max"} );
-		se->AddFunction( &ScriptExe::_SliderU3,					"Slider",					{"dyn", "name", "min", "max"} );
-		se->AddFunction( &ScriptExe::_SliderU4,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderU0,					"Slider",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderU1,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderU2,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderU3,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderU4,					"Slider",					{"dyn", "name", "min", "max"} );
 
-		se->AddFunction( &ScriptExe::_SliderU1a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
-		se->AddFunction( &ScriptExe::_SliderU2a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
-		se->AddFunction( &ScriptExe::_SliderU3a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
-		se->AddFunction( &ScriptExe::_SliderU4a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderU1a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderU2a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderU3a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderU4a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
 
-		se->AddFunction( &ScriptExe::_SliderF0,					"Slider",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_SliderF1,					"Slider",					{"dyn", "name", "min", "max"} );
-		se->AddFunction( &ScriptExe::_SliderF2,					"Slider",					{"dyn", "name", "min", "max"} );
-		se->AddFunction( &ScriptExe::_SliderF3,					"Slider",					{"dyn", "name", "min", "max"} );
-		se->AddFunction( &ScriptExe::_SliderF4,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderF0,					"Slider",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderF1,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderF2,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderF3,					"Slider",					{"dyn", "name", "min", "max"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderF4,					"Slider",					{"dyn", "name", "min", "max"} );
 
-		se->AddFunction( &ScriptExe::_SliderF1a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
-		se->AddFunction( &ScriptExe::_SliderF2a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
-		se->AddFunction( &ScriptExe::_SliderF3a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
-		se->AddFunction( &ScriptExe::_SliderF4a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderF1a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderF2a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderF3a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
+		AS_GLOBAL_FN( se, ScriptExe::_SliderF4a,				"Slider",					{"dyn", "name", "min", "max", "initial"} );
 
-		se->AddFunction( &ScriptExe::_LabelI1,					"Label",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_LabelI2,					"Label",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_LabelI3,					"Label",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_LabelI4,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelI1,					"Label",					{"dyn", "name"},	"Add label to UI." );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelI2,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelI3,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelI4,					"Label",					{"dyn", "name"} );
 
-		se->AddFunction( &ScriptExe::_LabelU1,					"Label",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_LabelU2,					"Label",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_LabelU3,					"Label",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_LabelU4,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelU1,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelU2,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelU3,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelU4,					"Label",					{"dyn", "name"} );
 
-		se->AddFunction( &ScriptExe::_LabelF1,					"Label",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_LabelF2,					"Label",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_LabelF3,					"Label",					{"dyn", "name"} );
-		se->AddFunction( &ScriptExe::_LabelF4,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelF1,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelF2,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelF3,					"Label",					{"dyn", "name"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelF4,					"Label",					{"dyn", "name"} );
 
-		se->AddFunction( &ScriptExe::_LabelI1a,					"Label",					{"dyn", "name", "enableIf"} );
-		se->AddFunction( &ScriptExe::_LabelI2a,					"Label",					{"dyn", "name", "enableIf"} );
-		se->AddFunction( &ScriptExe::_LabelI3a,					"Label",					{"dyn", "name", "enableIf"} );
-		se->AddFunction( &ScriptExe::_LabelI4a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelI1a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelI2a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelI3a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelI4a,					"Label",					{"dyn", "name", "enableIf"} );
 
-		se->AddFunction( &ScriptExe::_LabelU1a,					"Label",					{"dyn", "name", "enableIf"} );
-		se->AddFunction( &ScriptExe::_LabelU2a,					"Label",					{"dyn", "name", "enableIf"} );
-		se->AddFunction( &ScriptExe::_LabelU3a,					"Label",					{"dyn", "name", "enableIf"} );
-		se->AddFunction( &ScriptExe::_LabelU4a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelU1a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelU2a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelU3a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelU4a,					"Label",					{"dyn", "name", "enableIf"} );
 
-		se->AddFunction( &ScriptExe::_LabelF1a,					"Label",					{"dyn", "name", "enableIf"} );
-		se->AddFunction( &ScriptExe::_LabelF2a,					"Label",					{"dyn", "name", "enableIf"} );
-		se->AddFunction( &ScriptExe::_LabelF3a,					"Label",					{"dyn", "name", "enableIf"} );
-		se->AddFunction( &ScriptExe::_LabelF4a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelF1a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelF2a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelF3a,					"Label",					{"dyn", "name", "enableIf"} );
+		AS_GLOBAL_FN( se, ScriptExe::_LabelF4a,					"Label",					{"dyn", "name", "enableIf"} );
 
-		se->AddFunction( &ScriptExe::_EnableIfEqual,			"EnableIfEqual",			{"dyn", "ref"} );
-		se->AddFunction( &ScriptExe::_EnableIfGreater,			"EnableIfGreater",			{"dyn", "ref"} );
-		se->AddFunction( &ScriptExe::_EnableIfLess,				"EnableIfLess",				{"dyn", "ref"} );
-		se->AddFunction( &ScriptExe::_EnableIfAnyBit,			"EnableIfAnyBit",			{"dyn", "ref"} );
+		AS_GLOBAL_FN( se, ScriptExe::_EnableIfEqual,			"EnableIfEqual",			{"dyn", "ref"} );
+		AS_GLOBAL_FN( se, ScriptExe::_EnableIfGreater,			"EnableIfGreater",			{"dyn", "ref"} );
+		AS_GLOBAL_FN( se, ScriptExe::_EnableIfLess,				"EnableIfLess",				{"dyn", "ref"} );
+		AS_GLOBAL_FN( se, ScriptExe::_EnableIfAnyBit,			"EnableIfAnyBit",			{"dyn", "ref"} );
 
-		se->AddFunction( &ScriptExe::_ReadBufferI1,				"ReadBuffer",				{"dyn", "buffer", "field"} );
-		se->AddFunction( &ScriptExe::_ReadBufferI2,				"ReadBuffer",				{"dyn", "buffer", "field"} );
-		se->AddFunction( &ScriptExe::_ReadBufferI3,				"ReadBuffer",				{"dyn", "buffer", "field"} );
-		se->AddFunction( &ScriptExe::_ReadBufferI4,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferI1,				"ReadBuffer",				{"dyn", "buffer", "field"},		"Read field from buffer and copy to dynamic variable." );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferI2,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferI3,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferI4,				"ReadBuffer",				{"dyn", "buffer", "field"} );
 
-		se->AddFunction( &ScriptExe::_ReadBufferU1,				"ReadBuffer",				{"dyn", "buffer", "field"} );
-		se->AddFunction( &ScriptExe::_ReadBufferU2,				"ReadBuffer",				{"dyn", "buffer", "field"} );
-		se->AddFunction( &ScriptExe::_ReadBufferU3,				"ReadBuffer",				{"dyn", "buffer", "field"} );
-		se->AddFunction( &ScriptExe::_ReadBufferU4,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferU1,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferU2,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferU3,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferU4,				"ReadBuffer",				{"dyn", "buffer", "field"} );
 
-		se->AddFunction( &ScriptExe::_ReadBufferF1,				"ReadBuffer",				{"dyn", "buffer", "field"} );
-		se->AddFunction( &ScriptExe::_ReadBufferF2,				"ReadBuffer",				{"dyn", "buffer", "field"} );
-		se->AddFunction( &ScriptExe::_ReadBufferF3,				"ReadBuffer",				{"dyn", "buffer", "field"} );
-		se->AddFunction( &ScriptExe::_ReadBufferF4,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferF1,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferF2,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferF3,				"ReadBuffer",				{"dyn", "buffer", "field"} );
+		AS_GLOBAL_FN( se, ScriptExe::_ReadBufferF4,				"ReadBuffer",				{"dyn", "buffer", "field"} );
 
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrum3,			"WhiteColorSpectrum3",			{"wavelengthToRGB"},				"Returns array with 3 elements, where x - wavelength in nm, yzw - RGB color in linear space." );
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrum7,			"WhiteColorSpectrum7",			{"wavelengthToRGB", "normalized"},	"Returns array with 7 elements, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep100nm,	"WhiteColorSpectrumStep100nm",	{"wavelengthToRGB", "normalized"},	"Returns array 4 elements with visible light spectrum with step 100nm, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
-		se->AddFunction( &ScriptExe::_WhiteColorSpectrumStep50nm,	"WhiteColorSpectrumStep50nm",	{"wavelengthToRGB", "normalized"},	"Returns array 7 elements with visible light spectrum with step 50nm, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
+		AS_GLOBAL_FN( se, ScriptExe::_WhiteColorSpectrum3,			"WhiteColorSpectrum3",			{"wavelengthToRGB"},				"Returns array with 3 elements, where x - wavelength in nm, yzw - RGB color in linear space." );
+		AS_GLOBAL_FN( se, ScriptExe::_WhiteColorSpectrum7,			"WhiteColorSpectrum7",			{"wavelengthToRGB", "normalized"},	"Returns array with 7 elements, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
+		AS_GLOBAL_FN( se, ScriptExe::_WhiteColorSpectrumStep100nm,	"WhiteColorSpectrumStep100nm",	{"wavelengthToRGB", "normalized"},	"Returns array 4 elements with visible light spectrum with step 100nm, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
+		AS_GLOBAL_FN( se, ScriptExe::_WhiteColorSpectrumStep50nm,	"WhiteColorSpectrumStep50nm",	{"wavelengthToRGB", "normalized"},	"Returns array 7 elements with visible light spectrum with step 50nm, where x - wavelength in nm, yzw - RGB color in linear space.\nnormalized - sum of colors will be 1." );
 
-		se->AddFunction( &ScriptExe::_CM_CubeSC_Forward,		"CM_CubeSC_Forward",		{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on cube." );
-		se->AddFunction( &ScriptExe::_CM_IdentitySC_Forward,	"CM_IdentitySC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using identity projection (normalization)." );
-		se->AddFunction( &ScriptExe::_CM_TangentialSC_Forward,	"CM_TangentialSC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using tangential projection." );
+		AS_GLOBAL_FN( se, ScriptExe::_CM_CubeSC_Forward,		"CM_CubeSC_Forward",		{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on cube." );
+		AS_GLOBAL_FN( se, ScriptExe::_CM_IdentitySC_Forward,	"CM_IdentitySC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using identity projection (normalization)." );
+		AS_GLOBAL_FN( se, ScriptExe::_CM_TangentialSC_Forward,	"CM_TangentialSC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using tangential projection." );
 		
-		se->AddFunction( &_GetGPUVendor,									"GPUVendor",					{} );
-		se->AddFunction( &_IsDiscreteGPU,									"IsDiscreteGPU",				{} );
-		se->AddFunction( &_IsRemoteGPU,										"IsRemoteGPU",					{} );
-		se->AddFunction( &_Supports_GeometryShader,							"Supports_GeometryShader",		{} );
-		se->AddFunction( &_Supports_MeshShader,								"Supports_MeshShader",			{} );
-		se->AddFunction( &_Supports_TessellationShader,						"Supports_TessellationShader",	{} );
-		se->AddFunction( &_Supports_SamplerAnisotropy,						"Supports_SamplerAnisotropy",	{} );
-		se->AddFunction( &ScriptResourceApi::Supported_DepthFormat,			"Supported_DepthFormat",		{} );
-		se->AddFunction( &ScriptResourceApi::Supported_DepthStencilFormat,	"Supported_DepthStencilFormat",	{} );
-		se->AddFunction( &_Supports_Format,									"Supports_Format",				{} );
+		AS_GLOBAL_FN( se, _GetGPUVendor,									"GPUVendor",					{} );
+		AS_GLOBAL_FN( se, _IsDiscreteGPU,									"IsDiscreteGPU",				{} );
+		AS_GLOBAL_FN( se, _IsRemoteGPU,										"IsRemoteGPU",					{} );
+		AS_GLOBAL_FN( se, _Supports_GeometryShader,							"Supports_GeometryShader",		{} );
+		AS_GLOBAL_FN( se, _Supports_MeshShader,								"Supports_MeshShader",			{} );
+		AS_GLOBAL_FN( se, _Supports_TessellationShader,						"Supports_TessellationShader",	{} );
+		AS_GLOBAL_FN( se, _Supports_SamplerAnisotropy,						"Supports_SamplerAnisotropy",	{} );
+		AS_GLOBAL_FN( se, ScriptResourceApi::Supported_DepthFormat,			"Supported_DepthFormat",		{} );
+		AS_GLOBAL_FN( se, ScriptResourceApi::Supported_DepthStencilFormat,	"Supported_DepthStencilFormat",	{} );
+		AS_GLOBAL_FN( se, _Supports_Format,									"Supports_Format",				{} );
+		AS_GLOBAL_FN( se, _GetFeatureSet,									"GetFeatureSet",				{} );
 
 		// TODO:
 		//	PresentVR( left, left_layer, left_mipmap,  right, right_layer, right_mipmap )
@@ -2447,8 +1692,10 @@ namespace {
 		se->AddConstProperty( _sampConsts->Anisotropy16MirrorRepeat,	"Sampler_" + _sampConsts->Anisotropy16MirrorRepeat );
 		se->AddConstProperty( _sampConsts->Anisotropy16Clamp,			"Sampler_" + _sampConsts->Anisotropy16Clamp );
 		se->AddConstProperty( _sampConsts->NearestClampSubsampled,		"Sampler_" + _sampConsts->NearestClampSubsampled );
+		se->AddConstProperty( _sampConsts->MaxLinearClamp,				"Sampler_" + _sampConsts->MaxLinearClamp );
+		se->AddConstProperty( _sampConsts->MinLinearClamp,				"Sampler_" + _sampConsts->MinLinearClamp );
 
-		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 17 );
+		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 19 );
 	}
 
 /*
@@ -2490,6 +1737,7 @@ namespace {
 		// don't forget to update '_Bind()'
 		ScriptPostprocess::GetShaderTypes( INOUT data );
 		ScriptComputePass::GetShaderTypes( INOUT data );
+		ScriptComputeMip::GetShaderTypes( INOUT data );
 		ScriptRayTracingPass::GetShaderTypes( INOUT data );
 		ScriptSceneGraphicsPass::GetShaderTypes( INOUT data );
 		ScriptSceneRayTracingPass::GetShaderTypes( INOUT data );
@@ -3047,16 +2295,29 @@ namespace {
 
 		if ( fs.fragmentDensityMap == FeatureSet::EFeature::RequireTrue )
 		{
+			ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->NearestClampSubsampled}};
+			samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
+			samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
+			samp->SetOptions( ESamplerOpt::Subsampled );
+			samp->SetLodRange( 0.f, 0.f );
+		}
+
+		if ( fs.samplerFilterMinmax == FeatureSet::EFeature::RequireTrue )
+		{
 			{
-				ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->NearestClampSubsampled}};
-				samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
+				ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->MaxLinearClamp}};
+				samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
 				samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
-				samp->SetOptions( ESamplerOpt::Subsampled );
-				samp->SetLodRange( 0.f, 0.f );
+				samp->SetReductionMode( EReductionMode::Max );
+			}{
+				ScriptSamplerPtr	samp{new ScriptSampler{_sampConsts->MinLinearClamp}};
+				samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
+				samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
+				samp->SetReductionMode( EReductionMode::Min );
 			}
 		}
 
-		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 17 );
+		StaticAssert( (sizeof(SamplerConsts) / sizeof(String)) == 19 );
 		CHECK_THROW( obj_storage->Build() );
 	}
 
@@ -3081,7 +2342,7 @@ namespace {
 					float2		clipPlanes;
 					float2		fov;
 					float		zoom;
-					float4		frustum [6];
+					float4		frustum [6];	// world space
 				)#");
 		}
 

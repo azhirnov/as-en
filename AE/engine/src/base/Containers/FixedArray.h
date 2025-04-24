@@ -192,7 +192,7 @@ namespace AE::Base
 	template <typename B>
 	__Cz__ FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<B> rhs) __NE___
 	{
-		ASSERT( rhs.size() < capacity() );
+		ASSERT( rhs.size() <= capacity() );
 		assign( rhs.begin(), rhs.end() );
 		return *this;
 	}
@@ -382,6 +382,7 @@ namespace AE::Base
 	template <typename T, usize S, typename CS>
 	__Cz__ void  FixedArray<T,S,CS>::resize (usize newSize) __NE___
 	{
+		ASSERT( newSize <= capacity() );
 		newSize = Min( newSize, capacity() );
 
 		if ( newSize < _count )
@@ -401,6 +402,7 @@ namespace AE::Base
 	template <typename T, usize S, typename CS>
 	__Cz__ void  FixedArray<T,S,CS>::resize (usize newSize, const T &defaultValue) __NE___
 	{
+		ASSERT( newSize <= capacity() );
 		newSize = Min( newSize, capacity() );
 
 		if ( newSize < _count )

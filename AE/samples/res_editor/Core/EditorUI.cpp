@@ -399,6 +399,8 @@ namespace
 		using DrawCtx		= Graphics::DirectCtx::Draw;
 	  #endif
 
+		using DbgViewAndState_t = StaticArray< Pair< ImageID, EResourceState >, UIInteraction::MaxDebugViews >;
+
 
 	// variables
 	private:
@@ -408,6 +410,7 @@ namespace
 		ImGuiDataSync::WriteNoLock_t	imgui;
 		const bool						isFirst;
 		const bool						hasSurface;
+		DbgViewAndState_t				dbgViewDstState = {};
 
 		inline static const float		wnd_step		= 20.f;
 		inline static const float		wnd_width		= 370.f;
@@ -439,8 +442,9 @@ namespace
 			void  _ShowHelp ();
 
 			bool  _DrawUI (DrawCtx &dctx, const ImDrawData &drawData, const PipelineSet &ppln);
-		ND_ bool  _UpdateDS (FrameUID);
+		ND_ bool  _UpdateDS (GraphicsCtx&, FrameUID);
 		ND_ bool  _UploadVB (DrawCtx &dctx, const ImDrawData &drawData);
+			void  _TransitDbgViewToDefaultState (GraphicsCtx& );
 
 			void  _RecursiveVisitFolder (const Path &rootPath, const ScriptFolder &);
 			void  _LoadScript (const Path &rootPath);
@@ -529,7 +533,7 @@ namespace
 
 		CHECK_TE( _Update() );
 
-		CHECK_TE( _UpdateDS( GetFrameId() ));
+		CHECK_TE( _UpdateDS( gfx_ctx, GetFrameId() ));
 
 		if_unlikely( auto [fmt, cs] = ESurfaceFormat_Cast( imgui->reqSurfFormat );
 					 fmt != Default or cs != Default )
@@ -574,6 +578,8 @@ namespace
 		}
 
 		gfx_ctx.EndRenderPass( dctx );
+
+		_TransitDbgViewToDefaultState( gfx_ctx );
 
 	  #if RmG_UI_ON_HOST
 		CHECK_TE( glib->EndFrame( gfx_ctx_rc ));
@@ -627,7 +633,6 @@ namespace
 		// update input
 		{
 			ZeroMem( OUT io.MouseDown );
-			ZeroMem( OUT io.NavInputs );
 
 			io.MouseDown[0]	= imgui->mouseLBDown;
 			io.MousePos		= { imgui->mousePos.x, imgui->mousePos.y };
@@ -1464,19 +1469,33 @@ namespace
 	DrawTask::_UpdateDS
 =================================================
 */
-	bool  EditorUI::DrawTask::_UpdateDS (FrameUID fid)
+	bool  EditorUI::DrawTask::_UpdateDS (GraphicsCtx &ctx, FrameUID fid)
 	{
-		DescriptorSetID	ds = t._res.descSets[ fid.Index() ];
+		DescriptorSetID	ds			= t._res.descSets[ fid.Index() ];
+		auto&			rs_tracker	= GraphicsScheduler().GetRenderGraph();
 
-		StaticArray< ImageViewID, 8 >	textures;
+		StaticArray< ImageViewID, UIInteraction::MaxDebugViews >	textures;
 		textures.fill( t._res.fontView );
+		dbgViewDstState.fill( {} );
 
 		for (uint i = 0; i < UIInteraction::MaxDebugViews; ++i)
 		{
 			RC<Image>	img = s_UIInteraction.GetDbgView( i );
 			if ( img )
+			{
 				textures[i+1] = img->GetViewId();
+
+				ImageID	id = img->GetImageId();
+
+				auto [state, undef] = rs_tracker.GetDefaultState( id );
+				CHECK_MSG( not undef, "resource must not be in undefined state" );
+
+				ctx.ImageBarrier( id, state, EResourceState::ShaderSample | EResourceState::FragmentShader );
+
+				dbgViewDstState[i] = { id, state };
+			}
 		}
+		ctx.CommitBarriers();
 
 	  #if RmG_UI_ON_HOST
 		auto				du_rc	= GetGraphicsLib()->CreateDescriptorUpdater();
@@ -1487,10 +1506,26 @@ namespace
 
 		CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
 		CHECK_ERR( textures.size() == updater.ImageCount( UniformName{"un_Textures"} ));
-		updater.BindImages( UniformName{"un_Textures"}, textures );
+		CHECK_ERR( updater.BindImages( UniformName{"un_Textures"}, textures ));
 		CHECK_ERR( updater.Flush() );
 
 		return true;
+	}
+	
+/*
+=================================================
+	DrawTask::_TransitDbgViewToDefaultState
+=================================================
+*/
+	void  EditorUI::DrawTask::_TransitDbgViewToDefaultState (GraphicsCtx &ctx)
+	{
+		for (auto [id, state] : dbgViewDstState)
+		{
+			if ( id == Default ) continue;
+
+			ctx.ImageBarrier( id, EResourceState::ShaderSample | EResourceState::FragmentShader, state );
+		}
+		ctx.CommitBarriers();
 	}
 
 /*
@@ -1875,6 +1910,7 @@ namespace
 				case IA.UI_MouseRBDown :
 				case IA.UI_ResExport :
 				case IA.CustomKey1 :
+				case IA.CustomKey2 :
 				case IA.Freeze :			break;	// ignore
 			}
 			switch_end

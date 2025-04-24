@@ -3,6 +3,7 @@
 #ifdef AE_PLATFORM_WINDOWS
 # include "base/Platforms/WindowsHeader.cpp.h"
 # include "base/Platforms/WindowsLibrary.h"
+# include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {
@@ -30,7 +31,7 @@ namespace AE::Base
 		_handle = ::LoadLibraryA( libName.c_str() );
 
 		if_unlikely( _handle == null )
-			WIN_CHECK_DEV( "LoadLibrary error: " );
+			WIN_CHECK_DEV( "Error when loading shared library '"s << libName << "': " );
 
 		return _handle != null;
 	}
@@ -41,7 +42,7 @@ namespace AE::Base
 		_handle = ::LoadLibraryW( libName.c_str() );
 
 		if_unlikely( _handle == null )
-			WIN_CHECK_DEV( "LoadLibrary error: " );
+			WIN_CHECK_DEV( "Error when loading shared library '"s << ToString(libName) << "': " );
 
 		return _handle != null;
 	}

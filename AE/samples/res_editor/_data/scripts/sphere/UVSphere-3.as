@@ -126,7 +126,6 @@
 		return dir;
 	}
 
-
 	void  CirclesLayer (float2 ncoord, const float lod, out float3 uv_d, out float3 pos_face)
 	{
 		float3	n		= ProjectToSphere( ncoord, FaceIdx() );	// == normal
@@ -178,18 +177,14 @@
 		// isolines for distance
 		if ( iMode == 0 )
 		{
-			color.g = Saturate( 1.0 - SmoothStep( uv_d.z, -0.005, 0.005 ));
-			color.b *= (1.0 - color.g);
-			color.rgb = SDF_Isolines( uv_d.z * 100.0 );
+			color.rgb = SDF_Isolines2( uv_d.z * 100.0, 0.2 );
 		}
 
 		// isolines for distance from UV, which may be broken without UV correction
 		if ( iMode == 1 )
 		{
 			uv_d.z  = Length( uv_d.xy ) - 1.0;
-			color.g = Saturate( 1.0 - SmoothStep( uv_d.z, -0.005, 0.005 ));
-			color.b *= (1.0 - color.g);
-			color.rgb = SDF_Isolines( uv_d.z * 5.0 );
+			color.rgb = SDF_Isolines2( uv_d.z * 5.0, 0.1 );
 		}
 
 		if ( iMode == 2 )

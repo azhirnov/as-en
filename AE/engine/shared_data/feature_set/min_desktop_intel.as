@@ -47,19 +47,11 @@ void ASmain ()
 		ESubgroupTypes::Float16
 	));
 	fset.subgroupStages(EShaderStages(
-		EShaderStages::Vertex | 
-		EShaderStages::TessControl | 
-		EShaderStages::TessEvaluation | 
-		EShaderStages::Geometry | 
-		EShaderStages::Fragment | 
+		EShaderStages::GraphicsPipeStages | 
 		EShaderStages::Compute
 	));
 	fset.subgroupQuadStages(EShaderStages(
-		EShaderStages::Vertex | 
-		EShaderStages::TessControl | 
-		EShaderStages::TessEvaluation | 
-		EShaderStages::Geometry | 
-		EShaderStages::Fragment | 
+		EShaderStages::GraphicsPipeStages | 
 		EShaderStages::Compute
 	));
 	fset.requiredSubgroupSizeStages(EShaderStages(

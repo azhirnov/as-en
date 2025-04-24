@@ -12,6 +12,7 @@
 		// initialize
 		uint	dim			= 1<<10;
 		uint	iter_cnt	= 32;
+		uint2	wg_size		= uint2( 16, 16 );
 
 		switch ( GPUVendor() )
 		{
@@ -27,6 +28,10 @@
 				break;
 				
 			case EGPUVendor::ARM :			// Mali
+				wg_size = uint2(8,8);
+				iter_cnt = 1<<4;
+				break;
+
 			case EGPUVendor::Qualcomm :		// Adreno
 			case EGPUVendor::ImgTech :		// PowerVR
 				iter_cnt = 1<<4;
@@ -41,10 +46,11 @@
 		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, uint2(dim) );
 		RC<DynamicUInt>		count		= DynamicUInt();
 		RC<DynamicUInt>		mode		= DynamicUInt();
-		RC<DynamicFloat>	ops			= DynamicFloat( float(dim * dim) * float(iter_cnt) * 4.0 * 16.0 * 1.0e-9 );
+		RC<DynamicFloat>	ops			= DynamicFloat( float(dim * dim) * float(iter_cnt) * /*half4*/4.0 * /*unroll*/16.0 * /*giga*/1.0e-9 );
 		RC<DynamicFloat>	flops		= ops.Div( 0.0 );	// put time (ms) from profiler
 		const array<string>	mode_str	= {
-			"V4_ADD", "V4_ADD1", "V4_MUL", "V4_MUL1",
+			"V4_ADD", "V4_ADD1", "V4_ADD2",
+			"V4_MUL", "V4_MUL1",
 			"V4_MUL_ADD", "V2_MUL_ADD", "S_MUL_ADD",
 			"V4_FMA", "V2_FMA", "S_FMA"
 		};
@@ -60,7 +66,7 @@
 		#if 1
 			RC<ComputePass>	pass = ComputePass( "", "MODE="+mode_str[i]+";  DIM="+dim+";COUNT="+iter_cnt );
 			pass.ArgOut( "un_Image",	rt );
-			pass.LocalSize( 16, 16 );
+			pass.LocalSize( wg_size );
 			pass.DispatchThreads( rt.Dimension2() );
 		#else
 			RC<Postprocess>	pass = Postprocess( "", "MODE="+mode_str[i]+";  DIM="+dim+";COUNT="+iter_cnt );
@@ -89,6 +95,7 @@
 	#define V2_FMA		8
 	#define V2_MUL_ADD	9
 	#define S_MUL_ADD	10
+	#define V4_ADD2		11
 
 	#define type		half
 	#define type2		half2
@@ -132,6 +139,24 @@
 				a += p;  a -= t;
 			}
 			OUTPUT(a);
+			
+		#elif MODE == V4_ADD2
+			type4	a = t;
+			type4	b = p;
+
+			// 16 adds
+			FOR()
+			{
+				a += p;  b += p;
+				a -= t;  b -= t;
+				a += p;  b += p;
+				a -= t;  b -= t;
+				a += p;  b += p;
+				a -= t;  b -= t;
+				a += p;  b += p;
+				a -= t;  b -= t;
+			}
+			OUTPUT(Pow( a, b ));
 
 		#elif MODE == V4_MUL1
 			type4	a = type4(1.0);
@@ -247,7 +272,7 @@
 			const type2	w	= t.zw;
 			type2		a	= type2(1.0);
 
-			// 16 muls, 16 adds
+			// 16 muls, 16 adds, 1/2 flops
 			FOR()
 			{
 				a = (a * q) + w;
@@ -275,7 +300,7 @@
 			const type	w	= t.y;
 			type		a	= type(1.0);
 
-			// 16 muls, 16 adds
+			// 16 muls, 16 adds, 1/4 flops
 			FOR()
 			{
 				a = (a * q) + w;
@@ -304,23 +329,14 @@
 			// 16 fma
 			FOR()
 			{
-				a = fma( a, p, t );
-				a = fma( a, p, t );
-				a = fma( a, t, p );
-				a = fma( a, t, p );
-				a = fma( a, p, t );
-				a = fma( a, p, t );
-				a = fma( a, t, p );
-				a = fma( a, t, p );
-
-				a = fma( a, p, t );
-				a = fma( a, p, t );
-				a = fma( a, t, p );
-				a = fma( a, t, p );
-				a = fma( a, p, t );
-				a = fma( a, p, t );
-				a = fma( a, t, p );
-				a = fma( a, t, p );
+				a = fma( a, p, t );		a = fma( a, p, t );
+				a = fma( a, t, p );		a = fma( a, t, p );
+				a = fma( a, p, t );		a = fma( a, p, t );
+				a = fma( a, t, p );		a = fma( a, t, p );
+				a = fma( a, p, t );		a = fma( a, p, t );
+				a = fma( a, t, p );		a = fma( a, t, p );
+				a = fma( a, p, t );		a = fma( a, p, t );
+				a = fma( a, t, p );		a = fma( a, t, p );
 			}
 			OUTPUT(a);
 
@@ -329,7 +345,7 @@
 			const type	w	= t.y;
 			type		a	= type(1.0);
 
-			// 16 fma
+			// 16 fma, 1/4 flops
 			FOR()
 			{
 				a = fma( a, q, w );
@@ -357,7 +373,7 @@
 			const type2	w	= t.zw;
 			type2		a = type2(1.0);
 
-			// 16 fma
+			// 16 fma, 1/2 flops
 			FOR()
 			{
 				a = fma( a, q, w );

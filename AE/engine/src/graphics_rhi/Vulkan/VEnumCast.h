@@ -1756,6 +1756,25 @@ namespace AE::Graphics
 
 /*
 =================================================
+	VEnumCast (EReductionMode)
+=================================================
+*/
+	ND_ inline VkSamplerReductionMode  VEnumCast (EReductionMode value) __NE___
+	{
+		switch_enum( value )
+		{
+			case EReductionMode::Average :	return VK_SAMPLER_REDUCTION_MODE_WEIGHTED_AVERAGE;
+			case EReductionMode::Min :		return VK_SAMPLER_REDUCTION_MODE_MIN;
+			case EReductionMode::Max :		return VK_SAMPLER_REDUCTION_MODE_MAX;
+			case EReductionMode::_Count :
+			case EReductionMode::Unknown :	break;
+		}
+		switch_end
+		RETURN_ERR( "unknown sampler reduction mode", VK_SAMPLER_REDUCTION_MODE_MAX_ENUM );
+	}
+
+/*
+=================================================
 	VEnumCast (ESamplerOpt)
 =================================================
 */

@@ -63,6 +63,8 @@ namespace
 		DRC_EXLOCK( _drCheck );
 
 		CHECK_MSG( _dsLayout == null, "missing 'Flush()' call" );
+		
+		_resMngr.ImmediatelyRelease( INOUT _descSetId );
 	}
 
 /*

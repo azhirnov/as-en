@@ -4,10 +4,12 @@
 ## Specs
 
 * Arch: Kaby Lake-R
+* CPU: i5 8250U
 * Clock: 300 / 1000 MHz
 * Execution Units: 24
 * warp size: 16
-* FP16 GFLOPS: **768.0** (825 on Add from tests)
+* Total ALUs: 384
+* FP16 GFLOPS: **768.0** (794 on FMA from tests)
 * FP32 GFLOPS: **384.0** (416 on FMA from tests)
 * FP64 GFLOPS: **96.00**
 * Memory: 8GB DDR3, 1867MHz, **29.8** GB/s (23 GB/s from tests)
@@ -18,9 +20,10 @@
 Theoretical performance:
 ```
 FLOPS = clock * EU * warp_size
+Total ALUs = EU * warp_size
 
 1000M * 24 * 16 = 384G ADD ops per second = 384 GFLOPS
-TODO: FMA ?
+1000M * 24 * 16 / 2 = 192G FMA ops per second = 384 GFLOPS  (why FMA takes 2 cycles ???)
 ```
 
 ## Shader

@@ -282,20 +282,20 @@ namespace
 
 		binder.Comment( "Set RenderPass and Subpass which is used in current pass.\n"
 						"All pipelines must be compatible with RenderPass and use same Subpass." );
-		binder.AddMethod( &RTGraphicsPass::SetRenderPass,		"SetRenderPass",	{"rp", "subpass"} );
+		AS_METHOD( binder, RTGraphicsPass::SetRenderPass,		"SetRenderPass",	{"rp", "subpass"} );
 
 		binder.Comment( "Set default render state.\n"
 						"Pipelines can override some parameters." );
-		binder.AddMethod( &RTGraphicsPass::SetRenderState1,		"SetRenderState",	{"rs"} );
-		binder.AddMethod( &RTGraphicsPass::SetRenderState2,		"SetRenderState",	{"rsName"} );
+		AS_METHOD( binder, RTGraphicsPass::SetRenderState1,		"SetRenderState",	{"rs"} );
+		AS_METHOD( binder, RTGraphicsPass::SetRenderState2,		"SetRenderState",	{"rsName"} );
 
 		binder.Comment( "Set render state mutable state which can be overriden by pipelines." );
-		binder.AddMethod( &RTGraphicsPass::SetMutableStates,	"SetMutableStates",	{"states"} );
+		AS_METHOD( binder, RTGraphicsPass::SetMutableStates,	"SetMutableStates",	{"states"} );
 
 		binder.Comment( "Set per-pass descriptor set layout.\n"
 						"All pipelines must contains this DSLayout in 0 binding." );
-		binder.AddMethod( &RTGraphicsPass::SetDSLayout1,		"SetDSLayout",		{"typeName"} );
-		binder.AddMethod( &RTGraphicsPass::SetDSLayout2,		"SetDSLayout",		{"dsl"} );
+		AS_METHOD( binder, RTGraphicsPass::SetDSLayout1,		"SetDSLayout",		{"typeName"} );
+		AS_METHOD( binder, RTGraphicsPass::SetDSLayout2,		"SetDSLayout",		{"dsl"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -332,8 +332,8 @@ namespace
 
 		binder.Comment( "Set per-pass descriptor set layout.\n"
 						"All pipelines must contains this DSLayout in 0 binding." );
-		binder.AddMethod( &RTComputePass::SetDSLayout1,	"SetDSLayout",	{"typeName"} );
-		binder.AddMethod( &RTComputePass::SetDSLayout2,	"SetDSLayout",	{"dsl"} );
+		AS_METHOD( binder, RTComputePass::SetDSLayout1,	"SetDSLayout",	{"typeName"} );
+		AS_METHOD( binder, RTComputePass::SetDSLayout2,	"SetDSLayout",	{"dsl"} );
 	}
 //-----------------------------------------------------------------------------
 
@@ -567,6 +567,7 @@ namespace
 				else
 				if ( auto* cpass = DynCast<RTComputePass>(src.Get()))
 				{
+					Unused( cpass );
 				}
 				else
 					RETURN_ERR( "must be graphics or compute pass" );
@@ -684,20 +685,20 @@ namespace
 			binder.AddFactoryCtor( &RenderTechnique_Ctor, {"name"} );
 
 			binder.Comment( "Add FeatureSet to the render technique." );
-			binder.AddMethod( &RenderTechnique::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
+			AS_METHOD( binder, RenderTechnique::AddFeatureSet,		"AddFeatureSet",	{"fsName"} );
 
 			binder.Comment( "Create graphics pass.\n"
 							"Name is used in C++ to begin render pass." );
-			binder.AddMethod( &RenderTechnique::AddGraphicsPass,	"AddGraphicsPass",	{"passName"} );
+			AS_METHOD( binder, RenderTechnique::AddGraphicsPass,	"AddGraphicsPass",	{"passName"} );
 
 			binder.Comment( "Create compute pass." );
-			binder.AddMethod( &RenderTechnique::AddComputePass,		"AddComputePass",	{"passName"} );
+			AS_METHOD( binder, RenderTechnique::AddComputePass,		"AddComputePass",	{"passName"} );
 
 			binder.Comment( "Copy graphics pass from another render technique." );
-			binder.AddMethod( &RenderTechnique::CopyGraphicsPass,	"CopyGraphicsPass",	{"newName", "rtech", "gpass"} );
+			AS_METHOD( binder, RenderTechnique::CopyGraphicsPass,	"CopyGraphicsPass",	{"newName", "rtech", "gpass"} );
 
 			binder.Comment( "Copy compute pass from another render technique." );
-			binder.AddMethod( &RenderTechnique::CopyComputePass,	"CopyComputePass",	{"newName", "rtech", "cpass"} );
+			AS_METHOD( binder, RenderTechnique::CopyComputePass,	"CopyComputePass",	{"newName", "rtech", "cpass"} );
 		}
 	}
 

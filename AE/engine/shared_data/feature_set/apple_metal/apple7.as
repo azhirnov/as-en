@@ -90,7 +90,6 @@ void ASmain ()
 	fset.shaderStorageImageReadWithoutFormat (True);
 	fset.shaderStorageImageWriteWithoutFormat (True);
 	fset.shaderDemoteToHelperInvocation (True);
-	fset.shaderIntegerDotProduct (True);
 	fset.fragmentShaderSampleInterlock (True);
 	fset.fragmentShaderPixelInterlock (True);
 	fset.rayQuery (True);

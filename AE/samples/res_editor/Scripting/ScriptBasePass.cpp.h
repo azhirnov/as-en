@@ -49,7 +49,7 @@ namespace
 								"Reference to the last recorded trace will be added to console and IDE log, click on it to open file." );
 				binder.AddValue( "Enable_ShaderTrace",	EFlags::Enable_ShaderTrace );
 
-				binder.Comment( "ShaderFunctionProfiling - record time of user function calls, sort it and save to file.\n" );
+				binder.Comment( "ShaderFunctionProfiling - record time of user function calls, then sort results and save to file.\n" );
 				binder.AddValue( "Enable_ShaderFnProf",	EFlags::Enable_ShaderFnProf );
 
 				//binder.AddValue( "Enable_ShaderTmProf",	EFlags::Enable_ShaderTmProf );	// not supported yet
@@ -61,112 +61,112 @@ namespace
 		}
 
 		using T = typename B::Class_t;
-		classBinder.Operators().ImplCast( &ScriptBasePass_ToBase<T> );
+		AS_IMPL_CAST_T( classBinder, ScriptBasePass_ToBase<T> );
 
 		classBinder.Comment( "Set debug label and color. It is used in graphics profiler." );
-		classBinder.AddMethod( &ScriptBasePass::SetDebugLabel1,		"SetDebugLabel",	{"label"} );
-		classBinder.AddMethod( &ScriptBasePass::SetDebugLabel2,		"SetDebugLabel",	{"label", "color"} );
-		classBinder.AddMethod( &ScriptBasePass::SetDebugLabel3,		"SetDebugLabel",	{"label", "color"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SetDebugLabel1,	"SetDebugLabel",	{"label"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SetDebugLabel2,	"SetDebugLabel",	{"label", "color"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SetDebugLabel3,	"SetDebugLabel",	{"label", "color"} );
 
-		classBinder.AddMethod( &ScriptBasePass::AddFlag,			"AddFlag",			{} );
+		AS_METHOD_T( classBinder, ScriptBasePass::AddFlag,			"AddFlag",			{} );
 
 		classBinder.Comment( "Add slider to UI. Data passed to all shaders in the current pass." );
-		classBinder.AddMethod( &ScriptBasePass::SliderI0,			"SliderI",			{"name"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderI1,			"Slider",			{"name", "min", "max"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderI2,			"Slider",			{"name", "min", "max"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderI3,			"Slider",			{"name", "min", "max"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderI4,			"Slider",			{"name", "min", "max"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderI1a,			"Slider",			{"name", "min", "max", "initial"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderI2a,			"Slider",			{"name", "min", "max", "initial"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderI3a,			"Slider",			{"name", "min", "max", "initial"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderI4a,			"Slider",			{"name", "min", "max", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderI0,			"SliderI",			{"name"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderI1,			"Slider",			{"name", "min", "max"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderI2,			"Slider",			{"name", "min", "max"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderI3,			"Slider",			{"name", "min", "max"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderI4,			"Slider",			{"name", "min", "max"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderI1a,		"Slider",			{"name", "min", "max", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderI2a,		"Slider",			{"name", "min", "max", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderI3a,		"Slider",			{"name", "min", "max", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderI4a,		"Slider",			{"name", "min", "max", "initial"} );
 
-		classBinder.AddMethod( &ScriptBasePass::SliderF0,			"SliderF",			{"name"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderF1,			"Slider",			{"name", "min", "max"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderF2,			"Slider",			{"name", "min", "max"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderF3,			"Slider",			{"name", "min", "max"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderF4,			"Slider",			{"name", "min", "max"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderF1a,			"Slider",			{"name", "min", "max", "initial"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderF2a,			"Slider",			{"name", "min", "max", "initial"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderF3a,			"Slider",			{"name", "min", "max", "initial"} );
-		classBinder.AddMethod( &ScriptBasePass::SliderF4a,			"Slider",			{"name", "min", "max", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderF0,			"SliderF",			{"name"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderF1,			"Slider",			{"name", "min", "max"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderF2,			"Slider",			{"name", "min", "max"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderF3,			"Slider",			{"name", "min", "max"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderF4,			"Slider",			{"name", "min", "max"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderF1a,		"Slider",			{"name", "min", "max", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderF2a,		"Slider",			{"name", "min", "max", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderF3a,		"Slider",			{"name", "min", "max", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SliderF4a,		"Slider",			{"name", "min", "max", "initial"} );
 
-		classBinder.AddMethod( &ScriptBasePass::ColorSelector1,		"ColorSelector",	{"name"} );
-		classBinder.AddMethod( &ScriptBasePass::ColorSelector2,		"ColorSelector",	{"name", "initial"} );
-		classBinder.AddMethod( &ScriptBasePass::ColorSelector3,		"ColorSelector",	{"name", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ColorSelector1,	"ColorSelector",	{"name"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ColorSelector2,	"ColorSelector",	{"name", "initial"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ColorSelector3,	"ColorSelector",	{"name", "initial"} );
 
 		classBinder.Comment( "Value of 'dynamicValue' will be passed to all shaders in the current pass.\n"
 							 "Value of 'dynamicValue' is constant for whole frame and also can be used in draw call or another pass." );
-		classBinder.AddMethod( &ScriptBasePass::ConstantF1,			"Constant",			{"name", "dynamicValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantF2,			"Constant",			{"name", "dynamicValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantF3,			"Constant",			{"name", "dynamicValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantF4,			"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantF1,		"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantF2,		"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantF3,		"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantF4,		"Constant",			{"name", "dynamicValue"} );
 
-		classBinder.AddMethod( &ScriptBasePass::ConstantI1,			"Constant",			{"name", "dynamicValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantI2,			"Constant",			{"name", "dynamicValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantI3,			"Constant",			{"name", "dynamicValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantI4,			"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantI1,		"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantI2,		"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantI3,		"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantI4,		"Constant",			{"name", "dynamicValue"} );
 
-		classBinder.AddMethod( &ScriptBasePass::ConstantU1,			"Constant",			{"name", "dynamicValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantU2,			"Constant",			{"name", "dynamicValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantU3,			"Constant",			{"name", "dynamicValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantU4,			"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantU1,		"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantU2,		"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantU3,		"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantU4,		"Constant",			{"name", "dynamicValue"} );
 
-		classBinder.AddMethod( &ScriptBasePass::ConstantDD,			"Constant",			{"name", "dynamicValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantDD,		"Constant",			{"name", "dynamicValue"} );
 
-		classBinder.AddMethod( &ScriptBasePass::ConstantCF1,		"Constant",			{"name", "constValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantCF2,		"Constant",			{"name", "constValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantCF3,		"Constant",			{"name", "constValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantCF4,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCF1,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCF2,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCF3,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCF4,		"Constant",			{"name", "constValue"} );
 
-		classBinder.AddMethod( &ScriptBasePass::ConstantCI1,		"Constant",			{"name", "constValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantCI2,		"Constant",			{"name", "constValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantCI3,		"Constant",			{"name", "constValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantCI4,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCI1,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCI2,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCI3,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCI4,		"Constant",			{"name", "constValue"} );
 
-		classBinder.AddMethod( &ScriptBasePass::ConstantCU1,		"Constant",			{"name", "constValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantCU2,		"Constant",			{"name", "constValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantCU3,		"Constant",			{"name", "constValue"} );
-		classBinder.AddMethod( &ScriptBasePass::ConstantCU4,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCU1,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCU2,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCU3,		"Constant",			{"name", "constValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::ConstantCU4,		"Constant",			{"name", "constValue"} );
 
 		classBinder.Comment( "Returns dynamic dimension of the pass.\n"
 							 "It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches." );
-		classBinder.AddMethod( &ScriptBasePass::_Dimension,			"Dimension",		{} );
+		AS_METHOD_T( classBinder, ScriptBasePass::_Dimension,		"Dimension",		{} );
 
-		classBinder.AddMethod( &ScriptBasePass::EnableIfEqual,		"EnableIfEqual",	{"dynamic", "refValue"} );
-		classBinder.AddMethod( &ScriptBasePass::EnableIfLess,		"EnableIfLess",		{"dynamic", "refValue"} );
-		classBinder.AddMethod( &ScriptBasePass::EnableIfGreater,	"EnableIfGreater",	{"dynamic", "refValue"} );
-		classBinder.AddMethod( &ScriptBasePass::EnableIfAnyBit,		"EnableIfAnyBit",	{"dynamic", "refValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::EnableIfEqual,	"EnableIfEqual",	{"dynamic", "refValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::EnableIfLess,		"EnableIfLess",		{"dynamic", "refValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::EnableIfGreater,	"EnableIfGreater",	{"dynamic", "refValue"} );
+		AS_METHOD_T( classBinder, ScriptBasePass::EnableIfAnyBit,	"EnableIfAnyBit",	{"dynamic", "refValue"} );
 
 		classBinder.Comment( "Repeat pass multiple times.\nCan be used for performance tests." );
-		classBinder.AddMethod( &ScriptBasePass::SetRepeatCount,		"Repeat",			{} );
+		AS_METHOD_T( classBinder, ScriptBasePass::SetRepeatCount,	"Repeat",			{} );
 
 		if ( withArgs )
 		{
 			classBinder.Comment( "Add resource to all shaders in the current pass.\n"
 								 "In  - resource is used for read access.\n"
 								 "Out - resource is used for write access.\n" );
-			classBinder.AddMethod( &ScriptBasePass::ArgSceneIn,			"ArgIn",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgSceneIn,		"ArgIn",			{"uniformName", "resource"} );
 
-			classBinder.AddMethod( &ScriptBasePass::ArgBufferIn,		"ArgIn",			{"uniformName", "resource"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgBufferOut,		"ArgOut",			{"uniformName", "resource"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgBufferInOut,		"ArgInOut",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferIn,		"ArgIn",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferOut,		"ArgOut",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgBufferInOut,	"ArgInOut",			{"uniformName", "resource"} );
 
-			classBinder.AddMethod( &ScriptBasePass::ArgImageIn,			"ArgIn",			{"uniformName", "resource"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgImageOut,		"ArgOut",			{"uniformName", "resource"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgImageInOut,		"ArgInOut",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageIn,		"ArgIn",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageOut,		"ArgOut",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageInOut,	"ArgInOut",			{"uniformName", "resource"} );
 
-			classBinder.AddMethod( &ScriptBasePass::ArgTextureIn,		"ArgTex",			{"uniformName", "resource"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgTextureIn2,		"ArgIn",			{"uniformName", "resource", "samplerName"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgTextureArrIn,	"ArgTex",			{"uniformName", "resources"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgTextureArrIn2,	"ArgIn",			{"uniformName", "resources", "samplerName"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureIn,		"ArgTex",			{"uniformName", "resource"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureIn2,	"ArgIn",			{"uniformName", "resource", "samplerName"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureArrIn,	"ArgTex",			{"uniformName", "resources"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgTextureArrIn2,	"ArgIn",			{"uniformName", "resources", "samplerName"} );
 
-			classBinder.AddMethod( &ScriptBasePass::ArgVideoIn,			"ArgIn",			{"uniformName", "resource", "samplerName"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgController,		"Set",				{"camera"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgVideoIn,		"ArgIn",			{"uniformName", "resource", "samplerName"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgController,	"Set",				{"camera"} );
 
-			classBinder.AddMethod( &ScriptBasePass::ArgImageArrIn,		"ArgIn",			{"uniformName", "resources"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgImageArrOut,		"ArgOut",			{"uniformName", "resources"} );
-			classBinder.AddMethod( &ScriptBasePass::ArgImageArrInOut,	"ArgInOut",			{"uniformName", "resources"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageArrIn,	"ArgIn",			{"uniformName", "resources"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageArrOut,	"ArgOut",			{"uniformName", "resources"} );
+			AS_METHOD_T( classBinder, ScriptBasePass::ArgImageArrInOut,	"ArgInOut",			{"uniformName", "resources"} );
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -307,7 +307,10 @@ namespace
 		if ( withRWAtt )
 		{
 			classBinder.Comment( "Used instead of 'Output()' to define image as input attachment & color attachment (read/write input attachment)." );
-			classBinder.AddMethod( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image"} );
+			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image"} );
+			
+			classBinder.Comment( "Used instead of 'ArgIn' to define image as input attachment. Supports color and depth formats." );
+			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_Input, "Input", {"inName", "image", "attachmentName"} );
 		}
 
 		// shading rate
@@ -320,14 +323,17 @@ namespace
 		}
 
 		// depth
-		classBinder.AddMethod( &ScriptBaseRenderPass::_SetDepthRange, "DepthRange", {"min", "max"} );
+		AS_METHOD_T( classBinder, ScriptBaseRenderPass::_SetDepthRange, "DepthRange", {"min", "max"} );
 
 		// viewports
-		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport0, "AddViewport", {"rect", "minDepth", "maxDepth", "scissor", "wScale"} );
-		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport1, "AddViewport", {"rect", "minDepth", "maxDepth"} );
-		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport2, "AddViewport", {"rect"} );
-		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport3, "AddViewport", {"left", "top", "right", "bottom"} );
-		classBinder.AddMethod( &ScriptBaseRenderPass::_AddViewport4, "AddViewport", {"rect", "minDepth", "maxDepth", "scissor"} );
+		{
+			classBinder.Comment( "Add viewport. 'rect' defined in unorm coords." );
+			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_AddViewport0, "AddViewport", {"rect", "minDepth", "maxDepth", "scissor", "wScale"} );
+			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_AddViewport1, "AddViewport", {"rect", "minDepth", "maxDepth"} );
+			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_AddViewport2, "AddViewport", {"rect"} );
+			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_AddViewport3, "AddViewport", {"left", "top", "right", "bottom"} );
+			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_AddViewport4, "AddViewport", {"rect", "minDepth", "maxDepth", "scissor"} );
+		}
 	}
 
 

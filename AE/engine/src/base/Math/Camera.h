@@ -55,7 +55,7 @@ namespace AE::Base
 		// for projection
 		Self&  SetOrtho (const Rect_t &viewport, const Vec2_t &range)						__NE___;
 
-		Self&  SetPerspective (Rad_t fovY, Value_t aspect,
+		Self&  SetPerspective (Rad_t fovY, Value_t aspectRatio,
 							   const Vec2_t &range, Bool reverseZ = False{})				__NE___;
 		Self&  SetPerspective (Rad_t fovY, const Vec2_t &viewport,
 							   const Vec2_t &range, Bool reverseZ = False{})				__NE___;
@@ -115,12 +115,12 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	TCamera<T>&  TCamera<T>::SetPerspective (Rad_t fovY, Value_t aspect, const Vec2_t &range, Bool reverseZ) __NE___
+	TCamera<T>&  TCamera<T>::SetPerspective (Rad_t fovY, Value_t aspectRatio, const Vec2_t &range, Bool reverseZ) __NE___
 	{
 		if ( IsFinite( range.y ))
-			projection = Mat4_t::Perspective( fovY, aspect, range );
+			projection = Mat4_t::Perspective( fovY, aspectRatio, range );
 		else
-			projection = Mat4_t::InfinitePerspective( fovY, aspect, range.x );
+			projection = Mat4_t::InfinitePerspective( fovY, aspectRatio, range.x );
 		if ( reverseZ )
 			projection = Mat4_t::ReverseZTransform() * projection;
 		return *this;

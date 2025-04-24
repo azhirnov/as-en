@@ -1408,7 +1408,7 @@ namespace
 					CHECK( dst == half::Max() or dst.IsNaN() or dst.IsInfinity() );
 				}else
 				if ( Abs(float(src)) > float(half::Max())*0.5f ){
-					CHECK( (ref.GetU() ^ dst.GetU()) <= 3 );	// allow 1-2 bit difference
+					CHECK( (ref.AsInteger() ^ dst.AsInteger()) <= 3 );	// allow 1-2 bit difference
 				}else{
 					CHECK_Eq( ref, dst );
 				}
@@ -2258,8 +2258,8 @@ namespace
 			SimdFloat4		a		{ f0, f1, f2, f3 };
 			SimdUShort8		b		= SimdFloatConversion::FloatToHalf( a );
 			const auto		c		= b.ToArray();
-			const ushort	ref[]	= { half{}.SetFast(a.get<0>()).GetU(), half{}.SetFast(a.get<1>()).GetU(),
-										half{}.SetFast(a.get<2>()).GetU(), half{}.SetFast(a.get<3>()).GetU() };
+			const ushort	ref[]	= { half{}.SetFast(a.get<0>()).AsInteger(), half{}.SetFast(a.get<1>()).AsInteger(),
+										half{}.SetFast(a.get<2>()).AsInteger(), half{}.SetFast(a.get<3>()).AsInteger() };
 
 			CHECK_Eq( c[0], ref[0] );
 			CHECK_Eq( c[1], ref[1] );
@@ -2307,12 +2307,12 @@ namespace
 
 		// nan, inf
 		{
-			SimdFloat4		a		{ Float32Bits::NaN().AsFloat(), Float32Bits::Inf().AsFloat(),
-									  Float32Bits::NegInf().AsFloat(), Float32Bits::SmallestSubnormal().AsFloat() };
+			SimdFloat4		a		{ Float32Bits::NaN().AsFloatPoint(), Float32Bits::Inf().AsFloatPoint(),
+									  Float32Bits::NegInf().AsFloatPoint(), Float32Bits::SmallestSubnormal().AsFloatPoint() };
 			SimdUShort8		b		= SimdFloatConversion::FloatToHalf( a );
 			const auto		c		= b.ToArray();
-			const ushort	ref[]	= { half{}.SetFast(a.get<0>()).GetU(), half{}.SetFast(a.get<1>()).GetU(),
-										half{}.SetFast(a.get<2>()).GetU(), half{}.SetFast(a.get<3>()).GetU() };
+			const ushort	ref[]	= { half{}.SetFast(a.get<0>()).AsInteger(), half{}.SetFast(a.get<1>()).AsInteger(),
+										half{}.SetFast(a.get<2>()).AsInteger(), half{}.SetFast(a.get<3>()).AsInteger() };
 			
 			CHECK_Eq( c[0], ref[0] );
 			CHECK_Eq( c[1], ref[1] );
@@ -2321,12 +2321,65 @@ namespace
 		}
 	#endif
 	}
+
+
+	static void  Test_SimdRuntimeConfig ()
+	{
+	#if defined(AE_SIMD_SimdFloat4) and defined(AE_SimdRuntimeConfig)
+		const SimdRuntimeConfig::State	prev_state = SimdRuntimeConfig::GetState();
+
+		SimdRuntimeConfig::DenormalFlushToZero( true );
+		{
+			SimdFloat4	a {Float32Bits::SmallestNormal().AsFloatPoint()};
+			TEST( not Float32Bits{a.get<0>()}.IsSubnormal() );
+
+			for (;;)
+			{
+				a = a * 0.5f;
+
+				Float32Bits	b {a.get<0>()};
+
+				if ( b.IsZero() )
+					break;
+
+				TEST( not b.IsSubnormal() );
+			}
+		}
+
+		SimdRuntimeConfig::DenormalFlushToZero( false );
+		{
+			SimdFloat4	a {Float32Bits::SmallestNormal().AsFloatPoint()};
+			for (;;)
+			{
+				a = a * 0.5f;
+
+				Float32Bits	b {a.get<0>()};
+				TEST( not b.IsZero() );
+
+				if ( b.IsSubnormal() )
+					break;
+			}
+		}
+
+		#if 0
+			SimdRuntimeConfig::ResetExceptionState();
+			SimdRuntimeConfig::ExceptionMask( Default );	// enable all
+			{
+				SimdFloat4	a {Float32Bits::SmallestNormal().AsFloatPoint()};
+				a = a * 0.5f;		// throw exception
+			}
+		#endif
+
+		SimdRuntimeConfig::SetState( prev_state );
+	#endif
+	}
 }
 
 
 extern void UnitTest_Math_SIMD ()
 {
 	Test_FloatConversion();
+	Test_SimdRuntimeConfig();
 
 	Test_SimdInt2();
 	Test_SimdShort4();

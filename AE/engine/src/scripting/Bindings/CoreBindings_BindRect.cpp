@@ -100,26 +100,25 @@ namespace
 	protected:
 		static void  _Bind (ClassBinder<Rect_t> &binder)
 		{
-			binder.Operators()
-				.BinaryAssign(	EBinaryOperator::Add, &Add_av )
-				.BinaryAssign(	EBinaryOperator::Add, &Add_as )
-				.Binary(		EBinaryOperator::Add, &Add_v )
-				.Binary(		EBinaryOperator::Add, &Add_s )
+			AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Add, Add_av );
+			AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Add, Add_as );
+			AS_OP_BINARY_T(		binder, EBinaryOperator::Add, Add_v );
+			AS_OP_BINARY_T(		binder, EBinaryOperator::Add, Add_s );
 
-				.BinaryAssign(	EBinaryOperator::Sub, &Sub_av )
-				.BinaryAssign(	EBinaryOperator::Sub, &Sub_as )
-				.Binary(		EBinaryOperator::Sub, &Sub_v )
-				.Binary(		EBinaryOperator::Sub, &Sub_s )
+			AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Sub, Sub_av );
+			AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Sub, Sub_as );
+			AS_OP_BINARY_T(		binder, EBinaryOperator::Sub, Sub_v );
+			AS_OP_BINARY_T(		binder, EBinaryOperator::Sub, Sub_s );
 
-				.BinaryAssign(	EBinaryOperator::Mul, &Mul_av )
-				.BinaryAssign(	EBinaryOperator::Mul, &Mul_as )
-				.Binary(		EBinaryOperator::Mul, &Mul_v )
-				.Binary(		EBinaryOperator::Mul, &Mul_s )
+			AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mul, Mul_av );
+			AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Mul, Mul_as );
+			AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, Mul_v );
+			AS_OP_BINARY_T(		binder, EBinaryOperator::Mul, Mul_s );
 
-				.BinaryAssign(	EBinaryOperator::Div, &Div_av )
-				.BinaryAssign(	EBinaryOperator::Div, &Div_as )
-				.Binary(		EBinaryOperator::Div, &Div_v )
-				.Binary(		EBinaryOperator::Div, &Div_s );
+			AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Div, Div_av );
+			AS_OP_BIN_ASSIGN_T(	binder, EBinaryOperator::Div, Div_as );
+			AS_OP_BINARY_T(		binder, EBinaryOperator::Div, Div_v );
+			AS_OP_BINARY_T(		binder, EBinaryOperator::Div, Div_s );
 		}
 	};
 

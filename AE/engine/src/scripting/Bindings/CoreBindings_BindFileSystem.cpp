@@ -140,15 +140,15 @@ namespace
 		ClassBinder<T>	binder {se};
 		binder.CreateClassValue();
 		binder.AddConstructor( &T::Ctor1,	{"folder"} );
-		binder.AddMethod( &T::IsFile,		"IsFile"		);
-		binder.AddMethod( &T::IsDirectory,	"IsDirectory"	);
-		binder.AddMethod( &T::IsValid,		"IsValid"		);
-		binder.AddMethod( &T::Inc,			"Inc"			);
-		binder.AddMethod( &T::Path,			"Path"			);
-		binder.AddMethod( &T::Extension,	"Extension"		);
-		binder.AddMethod( &T::FileName,		"FileName"		);
-		binder.AddMethod( &T::Stem,			"Stem"			);
-		binder.AddMethod( &T::ParentPath,	"ParentPath"	);
+		AS_METHOD_T( binder, T::IsFile,			"IsFile"		);
+		AS_METHOD_T( binder, T::IsDirectory,	"IsDirectory"	);
+		AS_METHOD_T( binder, T::IsValid,		"IsValid"		);
+		AS_METHOD_T( binder, T::Inc,			"Inc"			);
+		AS_METHOD_T( binder, T::Path,			"Path"			);
+		AS_METHOD_T( binder, T::Extension,		"Extension"		);
+		AS_METHOD_T( binder, T::FileName,		"FileName"		);
+		AS_METHOD_T( binder, T::Stem,			"Stem"			);
+		AS_METHOD_T( binder, T::ParentPath,		"ParentPath"	);
 	}
 
 } // namespace
@@ -163,12 +163,12 @@ namespace
 		FileSystem_DirectoryIter_Bind< FileSystem_DirectoryIter >( se );
 		FileSystem_DirectoryIter_Bind< FileSystem_RecursiveDirectoryIter >( se );
 
-		se->AddFunction( &ReadTextFile,		"ReadTextFile",		{"path"} );
+		AS_GLOBAL_FN( se, ReadTextFile,		"ReadTextFile",		{"path"} );
 
 		if ( allowWrite )
 		{
-			se->AddFunction( &WriteTextFile,		"WriteFile",		{"path", "text"} );
-			se->AddFunction( &AppendTextFile,		"AppendFile",		{"path", "text"} );
+			AS_GLOBAL_FN( se, WriteTextFile,	"WriteFile",		{"path", "text"} );
+			AS_GLOBAL_FN( se, AppendTextFile,	"AppendFile",		{"path", "text"} );
 		}
 	}
 

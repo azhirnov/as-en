@@ -96,7 +96,7 @@
 	float  NoiseTex (float2 uv)
 	{
 		const float2	dim = gl.texture.GetSize( un_Noise, 0 );
-		const float2	f	= Fract( uv * dim + 0.5 + 1.0/512.0);
+		const float2	f	= Fract( uv * dim + 0.5 + 1.0/512.0 );
 
 		switch ( iFilter )
 		{

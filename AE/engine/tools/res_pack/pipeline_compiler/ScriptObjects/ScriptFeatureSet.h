@@ -88,7 +88,7 @@ namespace AE::PipelineCompiler
 	TEST_FEATURE
 =================================================
 */
-#	define TEST_FEATURE( _featArr_, _feature_, /*msg*/... )																\
+#	define TEST_FEATURE_MSG( _featArr_, _feature_, _msg_ )																\
 	{																													\
 		CHECK_THROW_MSG( not _featArr_.empty(), "empty FeatureSet array" );												\
 																														\
@@ -97,12 +97,15 @@ namespace AE::PipelineCompiler
 		{																												\
 			has_feat |= (feat->fs._feature_ == FeatureSet::EFeature::RequireTrue);										\
 			CHECK_THROW_MSG( feat->fs._feature_ != FeatureSet::EFeature::RequireFalse,									\
-				"Feature '" # _feature_ "' is not supported in FS '"s << feat->Name() << "'" __VA_ARGS__ );				\
+				"Feature '" # _feature_ "' is not supported in FS '"s << feat->Name() << "'" _msg_ );					\
 		}																												\
 		CHECK_THROW_MSG( has_feat,																						\
-			"Feature '" # _feature_ "' is not marked as RequireTrue in at least one feature set" __VA_ARGS__ ""s <<		\
+			"Feature '" # _feature_ "' is not marked as RequireTrue in at least one feature set" _msg_ ""s <<			\
 			ScriptFeatureSet::GetNames( _featArr_ ));																	\
 	}
+
+#	define TEST_FEATURE( _featArr_, _feature_ )\
+		TEST_FEATURE_MSG( _featArr_, _feature_, "" )
 
 /*
 =================================================

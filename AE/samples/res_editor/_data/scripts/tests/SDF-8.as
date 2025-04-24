@@ -62,7 +62,7 @@
 		const float2	uv2		= ToSNorm( Fract( uv * scale ));
 		const float		min_d	= 0.001;
 
-		Ray		ray = Ray_FromScreen( float3(0.0), float2(ToRad(45)), 0.1, uv2 );
+		Ray		ray = Ray_Perspective( float3(0.0), float2(ToRad(45)), 0.1, uv2 );
 		float	md = float_max;
 
 		for (uint i = 0; i < 64; ++i)

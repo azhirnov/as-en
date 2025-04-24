@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	[results](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-cpu/VerticalSIMD.md)
+*/
 
 #include "Perf_Common.h"
 
@@ -1043,9 +1046,8 @@ namespace
 		profiler.BeginTest( name,
 							[s=op.Size(), f=op.Flops(), c=op.VecCount()] (secondsd dt)
 							{
-								return	" - "s <<
-										ToStringSfx(double(c) / dt.count()) << "Op/s,  " <<		// processed vectors
-										ToStringSfx(double(f) / dt.count()) << "FLOPS,  " <<
+								return	ToStringSfx(double(c) / dt.count()) << "Op/s|" <<		// processed vectors
+										ToStringSfx(double(f) / dt.count()) << "FLOPS|" <<
 										ToStringSfx(double(usize(s)) / dt.count()) << "B/s";
 							});
 
@@ -1068,7 +1070,8 @@ namespace
 
 	static void  DotProductPerf (const String &name)
 	{
-		IntervalProfiler	profiler{ "Vertical SIMD, Dot test" };
+		IntervalProfiler	profiler{ "Vertical SIMD, Dot test, "s << name,
+									  IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludePerfDiff };
 
 		DynUntypedStorage	st0;
 		TEST( st0.Alloc( 512_MiB, 4_KiB, null ));
@@ -1090,40 +1093,41 @@ namespace
 	  #endif
 
 	  #if AE_SIMD_SSE >= 20
-		RunOp< Dot3_SSE_Op	>( profiler, name + " - Dot3 SSE2",			st0.Data(), count );
+		RunOp< Dot3_SSE_Op	>( profiler, "Dot3 SSE2",		st0.Data(), count );
 	  #endif
 	  #if AE_SIMD_SSE >= 30
-		RunOp< Dot3_SSE30_Op>( profiler, name + " - Dot3 SSE3",			st0.Data(), count );
+		RunOp< Dot3_SSE30_Op>( profiler, "Dot3 SSE3",		st0.Data(), count );
 	  #endif
 	  #if AE_SIMD_SSE >= 41
-		RunOp< Dot3_SSE41_Op>( profiler, name + " - Dot3 SSE4.1",		st0.Data(), count );
+		RunOp< Dot3_SSE41_Op>( profiler, "Dot3 SSE4.1",		st0.Data(), count );
 	  #endif
 	  #if AE_SIMD_NEON
-		RunOp< Dot3_Neon1_Op>( profiler, name + " - Dot3 Neon v1",		st0.Data(), count );
-		RunOp< Dot3_Neon2_Op>( profiler, name + " - Dot3 Neon v2",		st0.Data(), count );
+		RunOp< Dot3_Neon1_Op>( profiler, "Dot3 Neon v1",	st0.Data(), count );
+		RunOp< Dot3_Neon2_Op>( profiler, "Dot3 Neon v2",	st0.Data(), count );
 	  #endif
 	  #if AE_SIMD_FMA
-		RunOp< DotV1_Op		>( profiler, name + " - vert Dot v1",		st0.Data(), count );
-		RunOp< DotV5_Op		>( profiler, name + " - vert Dot v5",		st0.Data(), count );
+		RunOp< DotV1_Op		>( profiler, "vert Dot v1",		st0.Data(), count );
+		RunOp< DotV5_Op		>( profiler, "vert Dot v5",		st0.Data(), count );
 	  #endif
-		RunOp< DotV2_Op		>( profiler, name + " - vert Dot v2",		st0.Data(), count );
-		RunOp< DotV3_Op		>( profiler, name + " - vert Dot v3",		st0.Data(), count );
-		RunOp< DotV4_Op		>( profiler, name + " - vert Dot v4",		st0.Data(), count );
+		RunOp< DotV2_Op		>( profiler, "vert Dot v2",		st0.Data(), count );
+		RunOp< DotV3_Op		>( profiler, "vert Dot v3",		st0.Data(), count );
+		RunOp< DotV4_Op		>( profiler, "vert Dot v4",		st0.Data(), count );
 	  #ifdef AE_SIMD_SimdFloat8
 	  # if AE_SIMD_FMA
-		RunOp< DotW1_Op		>( profiler, name + " - vert DotAVX v1",	st0.Data(), count );
-		RunOp< DotW5_Op		>( profiler, name + " - vert DotAVX v5",	st0.Data(), count );
+		RunOp< DotW1_Op		>( profiler, "vert DotAVX v1",	st0.Data(), count );
+		RunOp< DotW5_Op		>( profiler, "vert DotAVX v5",	st0.Data(), count );
 	  # endif
-		RunOp< DotW2_Op		>( profiler, name + " - vert DotAVX v2",	st0.Data(), count );
-		RunOp< DotW3_Op		>( profiler, name + " - vert DotAVX v3",	st0.Data(), count );
-		RunOp< DotW4_Op		>( profiler, name + " - vert DotAVX v4",	st0.Data(), count );
+		RunOp< DotW2_Op		>( profiler, "vert DotAVX v2",	st0.Data(), count );
+		RunOp< DotW3_Op		>( profiler, "vert DotAVX v3",	st0.Data(), count );
+		RunOp< DotW4_Op		>( profiler, "vert DotAVX v4",	st0.Data(), count );
 	  #endif
 	}
 
 
 	static void  CrossProductPerf (const String &name)
 	{
-		IntervalProfiler	profiler{ "Vertical SIMD, Cross test" };
+		IntervalProfiler	profiler{ "Vertical SIMD, Cross test, "s << name,
+									  IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludePerfDiff };
 
 		DynUntypedStorage	st0;
 		TEST( st0.Alloc( 512_MiB, 4_KiB, null ));
@@ -1145,19 +1149,19 @@ namespace
 	  #endif
 
 	  #if AE_SIMD_SSE >= 20
-		RunOp< Cross_SSEv1_Op	>( profiler, name + " - Cross SSE2 v1",		st0.Data(), count );
-		RunOp< Cross_SSEv2_Op	>( profiler, name + " - Cross SSE2 v2",		st0.Data(), count );
+		RunOp< Cross_SSEv1_Op	>( profiler, "Cross SSE2 v1",		st0.Data(), count );
+		RunOp< Cross_SSEv2_Op	>( profiler, "Cross SSE2 v2",		st0.Data(), count );
 	  #endif
 	  #if AE_SIMD_NEON
-		RunOp< Cross_Neon1_Op	>( profiler, name + " - Cross Neon v1",		st0.Data(), count );
+		RunOp< Cross_Neon1_Op	>( profiler, "Cross Neon v1",		st0.Data(), count );
 	  #endif
-		RunOp< CrossV1_Op		>( profiler, name + " - vert Cross v1",		st0.Data(), count );
-		RunOp< CrossV2_Op		>( profiler, name + " - vert Cross v2",		st0.Data(), count );
-		RunOp< CrossV3_Op		>( profiler, name + " - vert Cross v3",		st0.Data(), count );
+		RunOp< CrossV1_Op		>( profiler, "vert Cross v1",		st0.Data(), count );
+		RunOp< CrossV2_Op		>( profiler, "vert Cross v2",		st0.Data(), count );
+		RunOp< CrossV3_Op		>( profiler, "vert Cross v3",		st0.Data(), count );
 	  #ifdef AE_SIMD_SimdFloat8
-		RunOp< CrossW1_Op		>( profiler, name + " - vert CrossAVX v1",	st0.Data(), count );
-		RunOp< CrossW2_Op		>( profiler, name + " - vert CrossAVX v2",	st0.Data(), count );
-		RunOp< CrossW3_Op		>( profiler, name + " - vert CrossAVX v3",	st0.Data(), count );
+		RunOp< CrossW1_Op		>( profiler, "vert CrossAVX v1",	st0.Data(), count );
+		RunOp< CrossW2_Op		>( profiler, "vert CrossAVX v2",	st0.Data(), count );
+		RunOp< CrossW3_Op		>( profiler, "vert CrossAVX v3",	st0.Data(), count );
 	  #endif
 	}
 
@@ -1167,9 +1171,11 @@ namespace
 extern void PerfTest_VertSIMD ()
 {
 	ForEachCoreType(
-		[] (ECoreType coreType, Function<void()>)
+		[] (auto& core, Function<void()> setAffinity)
 		{
-			const String	name {ToString( coreType )};
+			setAffinity();
+
+			const String	name = String{ToString( core.type )} << " core";
 
 			DotProductPerf( name );
 			CrossProductPerf( name );

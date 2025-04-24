@@ -154,17 +154,20 @@ namespace AE::PipelineCompiler
 			"Pipeline uses stencil test/write but stencil attachment is not exists in render pass '"s <<
 			GetName( compatRP ) << "' subpass '" << GetName( subpass ) << "'" );
 
+		const String	where = "' in render pass '"s << GetName( compatRP ) << "' subpass '" << GetName( subpass ) << "' pipeline '" << pplnName << "'.";
+
 		for (usize i = 0; i < fragIO.colorAttachments.size(); ++i)
 		{
 			auto	lhs = sp_it->second.colorAttachments[i];
 			auto	rhs = fragIO.colorAttachments[i];
 			CHECK_THROW_MSG( lhs.Get<0>() == rhs.Get<0>(),	// name
-				"color attachment ["s << ToString(i) << "] name mismatch: RP('" <<
-				ToString<16>(usize(lhs.Get<0>().GetHash())) << "') != Shader('" <<
-				ToString<16>(usize(rhs.Get<0>().GetHash())) << "')" );
+				"Color attachment ["s << ToString(i) << "] name mismatch: RP('" <<
+				GetName( lhs.Get<0>() ) << "') != Shader('" << GetName( rhs.Get<0>() ) << "').\n"
+				"Attachment '" << GetName( lhs.Get<0>() ) << where );
 			CHECK_THROW_MSG( EShaderIO_IsConvertible( lhs.Get<1>(), rhs.Get<1>() ),	// type
-				"color attachment ["s << ToString(i) << "] type mismatch: RP(" <<
-				ToString( lhs.Get<1>() ) << ") != Shader(" << ToString( rhs.Get<1>() ) << ")" );
+				"Color attachment ["s << ToString(i) << "] type mismatch: RP(" <<
+				ToString( lhs.Get<1>() ) << ") != Shader(" << ToString( rhs.Get<1>() ) << ").\n"
+				"Attachment '" << GetName( lhs.Get<0>() ) << where );
 		}
 
 		CHECK_THROW_MSG( sp_it->second.inputAttachments.size() == fragIO.inputAttachments.size(),
@@ -178,12 +181,13 @@ namespace AE::PipelineCompiler
 			auto	lhs = sp_it->second.inputAttachments[i];
 			auto	rhs = fragIO.inputAttachments[i];
 			CHECK_THROW_MSG( lhs.Get<0>() == rhs.Get<0>(),	// name
-				"input attachment ["s << ToString(i) << "] name mismatch: RP(" <<
-				ToString<16>(usize(lhs.Get<0>().GetHash())) << ") != Shader(" <<
-				ToString<16>(usize(rhs.Get<0>().GetHash())) << ")" );
+				"Input attachment ["s << ToString(i) << "] name mismatch: RP(" <<
+				GetName( lhs.Get<0>() ) << ") != Shader(" << GetName( rhs.Get<0>() ) << ").\n"
+				"Attachment '" << GetName( lhs.Get<0>() ) << where );
 			CHECK_THROW_MSG( EShaderIO_IsConvertible( lhs.Get<1>(), rhs.Get<1>() ),	// type
-				"input attachment ["s << ToString(i) << "] type mismatch: RP(" <<
-				ToString( lhs.Get<1>() ) << ") != Shader(" << ToString( rhs.Get<1>() ) << ")" );
+				"Input attachment ["s << ToString(i) << "] type mismatch: RP(" <<
+				ToString( lhs.Get<1>() ) << ") != Shader(" << ToString( rhs.Get<1>() ) << ").\n"
+				"Attachment '" << GetName( lhs.Get<0>() ) << where );
 		}
 	}
 
@@ -627,11 +631,15 @@ namespace AE::PipelineCompiler
 				{
 					tmp << "\n";
 					if ( auto* gpass = DynCast<RTGraphicsPass>( pass.Get() ))
+					{
 						tmp << "\t\t// graphics (" << ToString(pass->PassIndex()) << ")\n";
-					else
+						Unused( gpass );
+					}else
 					if ( auto* cpass = DynCast<RTComputePass>( pass.Get() ))
+					{
 						tmp << "\t\t// compute (" << ToString(pass->PassIndex()) << ")\n";
-					else
+						Unused( cpass );
+					}else
 						tmp << "\t\t// pass (" << ToString(pass->PassIndex()) << ")\n";
 
 					tmp << "\t\tstatic constexpr struct _" << ValidateName(pass->Name()) << "\n\t\t{\n";
@@ -885,8 +893,21 @@ namespace {
 	{
 		auto&	rtech_map	= ObjectStorage::Instance()->rtechMap;
 		auto	it			= rtech_map.find( name );
-
 		return it != rtech_map.end();
+	}
+	
+	static bool  HasDescriptorSetLayout (const String &name) __Th___
+	{
+		auto&	map	= ObjectStorage::Instance()->dsLayouts;
+		auto	it	= map.find( name );
+		return it != map.end();
+	}
+	
+	static bool  HasPipelineLayout (const String &name) __Th___
+	{
+		auto&	map	= ObjectStorage::Instance()->pplnLayouts;
+		auto	it	= map.find( PipelineLayoutName{name} );
+		return it != map.end();
 	}
 
 	static String  CurPipelineFileName () __Th___
@@ -959,16 +980,18 @@ namespace {
 		ScriptSampler::Bind( se );
 		RayTracingShaderBinding::Bind( se );
 
-		se->AddFunction( &Cfg_IsShaderTraceSupported,	"IsShaderTraceSupported",	{} );
-		se->AddFunction( &Cfg_IsMetalCompilerSupported,	"IsMetalCompilerSupported",	{} );
-		se->AddFunction( &Cfg_IsVulkan,					"IsVulkan",					{} );
-		se->AddFunction( &Cfg_IsMetal_iOS,				"IsMetal_iOS",				{} );
-		se->AddFunction( &Cfg_IsMetal_Mac,				"IsMetal_Mac",				{} );
-		se->AddFunction( &Cfg_IsMetal,					"IsMetal",					{} );
-		se->AddFunction( &GetShaderStructType,			"GetShaderStructType",		{"name"} );
-		se->AddFunction( &HasRenderTech,				"HasRenderTech",			{} );
-		se->AddFunction( &CurPipelineFileName,			"FileName",					{} );
-		se->AddFunction( &GetDefaultFeatureSet,			"GetDefaultFeatureSet",		{} );
+		AS_GLOBAL_FN( se, Cfg_IsShaderTraceSupported,	"IsShaderTraceSupported",	{} );
+		AS_GLOBAL_FN( se, Cfg_IsMetalCompilerSupported,	"IsMetalCompilerSupported",	{} );
+		AS_GLOBAL_FN( se, Cfg_IsVulkan,					"IsVulkan",					{} );
+		AS_GLOBAL_FN( se, Cfg_IsMetal_iOS,				"IsMetal_iOS",				{} );
+		AS_GLOBAL_FN( se, Cfg_IsMetal_Mac,				"IsMetal_Mac",				{} );
+		AS_GLOBAL_FN( se, Cfg_IsMetal,					"IsMetal",					{} );
+		AS_GLOBAL_FN( se, GetShaderStructType,			"GetShaderStructType",		{"name"} );
+		AS_GLOBAL_FN( se, HasRenderTech,				"HasRenderTech",			{} );
+		AS_GLOBAL_FN( se, HasDescriptorSetLayout,		"HasDescriptorSetLayout",	{} );
+		AS_GLOBAL_FN( se, HasPipelineLayout,			"HasPipelineLayout",		{} );
+		AS_GLOBAL_FN( se, CurPipelineFileName,			"FileName",					{} );
+		AS_GLOBAL_FN( se, GetDefaultFeatureSet,			"GetDefaultFeatureSet",		{} );
 
 		se->AddCppHeader( "", "#define SCRIPT\n\n", 0 );
 	}
@@ -1001,7 +1024,8 @@ namespace {
 		binder.Comment( "Added mesh shading." );
 		binder.AddValue( "Metal_3_0",		EShaderVersion::Metal_3_0 );
 		binder.AddValue( "Metal_3_1",		EShaderVersion::Metal_3_1 );
-		StaticAssert( EShaderVersion::_Metal_Last == EShaderVersion::Metal_3_1 );
+		binder.AddValue( "Metal_3_2",		EShaderVersion::Metal_3_2 );
+		StaticAssert( EShaderVersion::_Metal_Last == EShaderVersion::Metal_3_2 );
 
 		binder.Comment( "Compile for iOS." );
 		binder.AddValue( "Metal_iOS_2_0",	EShaderVersion::Metal_iOS_2_0 );
@@ -1011,7 +1035,8 @@ namespace {
 		binder.AddValue( "Metal_iOS_2_4",	EShaderVersion::Metal_iOS_2_4 );
 		binder.AddValue( "Metal_iOS_3_0",	EShaderVersion::Metal_iOS_3_0 );
 		binder.AddValue( "Metal_iOS_3_1",	EShaderVersion::Metal_iOS_3_1 );
-		StaticAssert( EShaderVersion::_Metal_iOS_Last == EShaderVersion::Metal_iOS_3_1 );
+		binder.AddValue( "Metal_iOS_3_2",	EShaderVersion::Metal_iOS_3_2 );
+		StaticAssert( EShaderVersion::_Metal_iOS_Last == EShaderVersion::Metal_iOS_3_2 );
 
 		binder.Comment( "Compile for MacOS." );
 		binder.AddValue( "Metal_Mac_2_0",	EShaderVersion::Metal_Mac_2_0 );
@@ -1021,7 +1046,8 @@ namespace {
 		binder.AddValue( "Metal_Mac_2_4",	EShaderVersion::Metal_Mac_2_4 );
 		binder.AddValue( "Metal_Mac_3_0",	EShaderVersion::Metal_Mac_3_0 );
 		binder.AddValue( "Metal_Mac_3_1",	EShaderVersion::Metal_Mac_3_1 );
-		StaticAssert( EShaderVersion::_Metal_Mac_Last == EShaderVersion::Metal_Mac_3_1 );
+		binder.AddValue( "Metal_Mac_3_2",	EShaderVersion::Metal_Mac_3_2 );
+		StaticAssert( EShaderVersion::_Metal_Mac_Last == EShaderVersion::Metal_Mac_3_2 );
 	}
 
 	void  ObjectStorage::Bind_EShaderOpt (const ScriptEnginePtr &se)

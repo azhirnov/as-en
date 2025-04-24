@@ -72,7 +72,7 @@ extern void  UnitTest_DSLayout_GLSL ()
 	obj.defaultFeatureSet	= "DefaultFS";
 	obj.target				= ECompilationTarget::Vulkan;
 	obj.pplnStorage			= &ppln;
-	obj.spirvCompiler		= MakeUnique<SpirvCompiler>( Array<Path>{} );
+	obj.spirvCompiler		= MakeUnique<SpirvCompiler>( ArrayView<Path>{} );
 	obj.spirvCompiler->SetDefaultResourceLimits();
 	ObjectStorage::SetInstance( &obj );
 

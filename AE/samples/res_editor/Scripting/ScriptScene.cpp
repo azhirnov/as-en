@@ -109,17 +109,17 @@ namespace AE::ResEditor
 		binder.CreateRef();
 
 		binder.Comment( "Attach geometry to scene." );
-		binder.AddMethod( &ScriptScene::InputGeometry1,		"Add",					{"geometry", "position", "rotationInRads", "scale"} );
-		binder.AddMethod( &ScriptScene::InputGeometry2,		"Add",					{"geometry", "position"} );
-		binder.AddMethod( &ScriptScene::InputGeometry3,		"Add",					{"geometry"} );
-		binder.AddMethod( &ScriptScene::InputGeometry4,		"Add",					{"geometry", "transform"} );
+		AS_METHOD( binder, ScriptScene::InputGeometry1,		"Add",					{"geometry", "position", "rotationInRads", "scale"} );
+		AS_METHOD( binder, ScriptScene::InputGeometry2,		"Add",					{"geometry", "position"} );
+		AS_METHOD( binder, ScriptScene::InputGeometry3,		"Add",					{"geometry"} );
+		AS_METHOD( binder, ScriptScene::InputGeometry4,		"Add",					{"geometry", "transform"} );
 
 		binder.Comment( "Set camera to scene." );
-		binder.AddMethod( &ScriptScene::InputController,	"Set",					{"controller"} );
+		AS_METHOD( binder, ScriptScene::InputController,	"Set",					{"controller"} );
 
 		binder.Comment( "Add graphics pass. It will link geometries with pipelines and draw it." );
-		binder.AddMethod( &ScriptScene::AddGraphicsPass,	"AddGraphicsPass",		{"name"} );
-		binder.AddMethod( &ScriptScene::AddRayTracingPass,	"AddRayTracingPass",	{"name"} );
+		AS_METHOD( binder, ScriptScene::AddGraphicsPass,	"AddGraphicsPass",		{"name"} );
+		AS_METHOD( binder, ScriptScene::AddRayTracingPass,	"AddRayTracingPass",	{"name"} );
 	}
 
 /*
@@ -168,10 +168,9 @@ namespace AE::ResEditor
 =================================================
 */
 	ScriptSceneGraphicsPass::ScriptSceneGraphicsPass (ScriptScenePtr scene, const String &passName) __Th___ :
-		_scene{scene}, _passName{passName}
+		_scene{scene}, _subpassName{passName}, _passName{passName}
 	{
 		_dbgName = passName;
-
 		StringToColor( OUT _dbgColor, StringView{_dbgName} );
 
 		ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
@@ -242,48 +241,162 @@ namespace AE::ResEditor
 	{
 		arg.state |= EResourceState::FragmentShader;
 	}
+	
+/*
+=================================================
+	NextSubpass
+=================================================
+*/
+	void  ScriptSceneGraphicsPass::NextSubpass1 () __Th___
+	{
+		NextSubpass2( String{_passName} << '-' << ToString(_subpasses.size()+1) );
+	}
+
+	void  ScriptSceneGraphicsPass::NextSubpass2 (const String &passName) __Th___
+	{
+		auto&	dst = _subpasses.emplace_back();
+		dst = ScriptSceneGraphicsSubpassPtr{ new ScriptSceneGraphicsSubpass{} };
+
+		_MoveTo( OUT *dst );
+
+		_subpassName = passName;
+	}
+	
+/*
+=================================================
+	_MoveTo
+=================================================
+*/
+	void  ScriptSceneGraphicsPass::_MoveTo (OUT ScriptSceneGraphicsSubpass &dst) __NE___
+	{
+		// save state
+		ScriptBaseControllerPtr	tmp_controller	= _controller;
+		ScriptDynamicDimPtr		tmp_dynamicDim	= RVRef( _dynamicDim );
+		ScriptDynamicUIntPtr	tmp_repeatCount	= RVRef( _repeatCount );
+		auto					tmp_enablePass	= RVRef( _enablePass );
+		String					tmp_dbgName		= RVRef( _dbgName );
+		RGBA8u					tmp_dbgColor	= _dbgColor;
+
+		// move
+		_dbgName = this->_subpassName;
+		ScriptBaseRenderPass::_MoveTo( OUT dst );
+
+		dst._scene			= this->_scene;
+		dst._passName		= RVRef( this->_subpassName );	this->_subpassName.clear();
+
+		dst._pipelines		= RVRef( this->_pipelines );	this->_pipelines.clear();
+		dst._uniquePplns	= RVRef( this->_uniquePplns );	this->_uniquePplns.clear();
+
+		dst._renderLayer	= this->_renderLayer;			this->_renderLayer	= ERenderLayer::Opaque;
+		dst._shadingRate	= this->_shadingRate;			this->_shadingRate	= Default;
+
+		// restore state
+		_controller		= RVRef( tmp_controller );
+		_dynamicDim		= RVRef( tmp_dynamicDim );
+		_repeatCount	= RVRef( tmp_repeatCount );
+		_enablePass		= RVRef( tmp_enablePass );
+		_dbgName		= RVRef( tmp_dbgName );
+		_dbgColor		= tmp_dbgColor;
+	}
 
 /*
 =================================================
 	ToPass
 =================================================
 */
-	RC<IPass>  ScriptSceneGraphicsPass::ToPass () C_Th___
+	RC<IPass>  ScriptSceneGraphicsPass::ToPass () __Th___
 	{
-		CHECK_THROW_MSG( not _pipelines.empty(), "pipelines must be defined" );
-
-		RC<SceneGraphicsPass>	result		= MakeRC<SceneGraphicsPass>();
-		auto&					res_mngr	= GraphicsScheduler().GetResourceManager();
-		auto&					materials	= result->_materials;
-		const auto				max_frames	= GraphicsScheduler().GetMaxFrames();
-		PipelinesPerInstance_t	pplns_per_inst;
-		DebugModeBits			dbg_modes;
-
-		result->_rtech	= _CompilePipelines( OUT pplns_per_inst, OUT result->_scene );	// throw
-
-		CHECK_THROW( pplns_per_inst.size() == _scene->_geomInstances.size() );
-		materials.reserve( pplns_per_inst.size() );
-
-		for (usize i = 0; i < pplns_per_inst.size(); ++i)
+		// add last subpass
 		{
-			const auto&		geom	= _scene->_geomInstances[i].geom;
-			const auto&		pplns	= pplns_per_inst[i];
-			auto			mtr		= geom->ToMaterial( _renderLayer, result->_rtech.rtech, pplns );  // throw
-			CHECK_THROW( mtr );
-			materials.push_back( mtr );
-			dbg_modes |= mtr->GetDebugModeBits();
+			auto&	dst = _subpasses.emplace_back();
+			dst = ScriptSceneGraphicsSubpassPtr{ new ScriptSceneGraphicsSubpass{} };
+			_MoveTo( OUT *dst );
+		}
+		ASSERT( _output.empty() );
+
+		// merge attachments between subpasses
+		{
+			HashMap< String, Output* >	unique_rt;
+			_output.reserve( GraphicsConfig::MaxAttachments );
+
+			for (auto& subpass : _subpasses)
+			{
+				for (auto& out : subpass->_output)
+				{
+					CHECK_THROW( not out.name.empty() );
+
+					auto	it = unique_rt.find( out.name );
+					if ( it == unique_rt.end() )
+					{
+						it = unique_rt.emplace( out.name, &_output.emplace_back() ).first;
+
+						it->second->name		= out.name;
+						it->second->inName		= subpass->_passName;
+						it->second->rt			= out.rt;
+						it->second->layer		= out.layer;
+						it->second->layerCount	= out.layerCount;
+						it->second->mipmap		= out.mipmap;
+
+						if ( IsFirstElement( subpass, _subpasses ))
+						{
+							it->second->loadOp	= out.loadOp;
+							it->second->clear	= out.clear;
+						}
+
+						if ( IsLastElement( subpass, _subpasses ))
+							it->second->storeOp = out.storeOp;
+					}
+					else
+					{
+						// merge
+						const String	msg =	"Attachment '"s << out.name << "' in subpass '" << subpass->_passName << "' doesn't match with same attachment name, "
+												"which previously added by subpass '" << it->second->inName << "'.\n";
+
+						CHECK_THROW_MSG( it->second->rt == out.rt,
+							String{msg} << "New render target '" << out.rt->GetName() << "' is not equal to previous '" << it->second->rt->GetName() << "'." );
+
+						CHECK_THROW_MSG( it->second->layer == out.layer,
+							String{msg} << "New base layer (" << ToString( out.layer.Get() ) << ") is not equal to previous (" << ToString( it->second->layer.Get() ) << ")." );
+
+						CHECK_THROW_MSG( it->second->layerCount == out.layerCount,
+							String{msg} << "New layer count (" << ToString( out.layerCount ) << ") is not equal to previous (" << ToString( it->second->layerCount ) << ")." );
+
+						CHECK_THROW_MSG( it->second->mipmap == out.mipmap,
+							String{msg} << "New mipmap level (" << ToString( out.mipmap.Get() ) << ") is not equal to previous (" << ToString( it->second->mipmap.Get() ) << ")." );
+						
+						if ( not IsFirstElement( subpass, _subpasses ))
+						{
+							CHECK_THROW_MSG( out.loadOp == EAttachmentLoadOp::Load,
+								"Attachment '"s << out.name << "' in subpass '" << subpass->_passName << "' must have loadOp = Load, other ops will be ignored" );
+						}
+						
+						if ( not IsLastElement( subpass, _subpasses ))
+						{
+							CHECK_THROW_MSG( out.storeOp == EAttachmentStoreOp::Store,
+								"Attachment '"s << out.name << "' in subpass '" << subpass->_passName << "' must have storeOp = Store, other ops will be ignored" );
+						}
+					}
+				}
+			}
+			ASSERT( _output.size() == unique_rt.size() );
 		}
 
-		result->_renderLayer	= this->_renderLayer;
-		result->_shadingRate	= this->_shadingRate;
+		RC<SceneGraphicsPass>	result = MakeRC<SceneGraphicsPass>();
 
-		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::SceneGraphicsPassUB>, "SceneGraphicsPassUB",
-											EResourceState::UniformRead | EResourceState::AllGraphicsShaders );  // throw
+		result->_rtech = _CompilePipelines( OUT result->_scene );	// throw
 
-		// create descriptor set
-		CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), max_frames, result->_rtech.packId, DSLayoutName{"pass.ds"}, null, _dbgName ));
-		_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
+		// create subpasses
+		for (auto& src : _subpasses)
+		{
+			if ( not src->_dynamicDim )
+				src->_dynamicDim = this->_dynamicDim;
 
+			auto	subpass = src->_ToPass2( *result );	// throw
+
+			result->_subpasses.push_back( RVRef(subpass) );
+		}
+
+		// init render pass description
 		uint	min_layer_count = UMax;
 		for (auto& src : _output)
 		{
@@ -297,18 +410,13 @@ namespace AE::ResEditor
 		}
 		CHECK_THROW( min_layer_count > 0 );
 
-		result->_wScaling				= _wScaling;
-		result->_scissors				= _scissors;
 		result->_rpDesc.renderPassName	= RenderPassName{"rp"};
-		result->_rpDesc.subpassName		= SubpassName{"main"};
+		result->_rpDesc.subpassName		= SubpassName{ _subpasses.size() == 1 ? "main" : "pass-0" };
 		result->_rpDesc.packId			= result->_rtech.packId;
 		result->_rpDesc.layerCount		= ImageLayer{min_layer_count};
 		result->_rpDesc.area			= RectI{0,0,1,1};
-		result->_rpDesc.viewports		= _viewports;
 
-		if ( result->_rpDesc.viewports.empty() )
-			result->_rpDesc.AddViewport( RectF{0.f, 0.f, 1.f, 1.f}, _depthRange.x, _depthRange.y );
-
+		// create render targets
 		for (usize i = 0; i < _output.size(); ++i)
 		{
 			auto&	src	= _output[i];
@@ -333,8 +441,6 @@ namespace AE::ResEditor
 		CHECK_THROW( not result->_renderTargets.empty() );
 
 		_Init( *result, _scene->GetController() );
-		UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllGraphics );
-
 		return result;
 	}
 
@@ -347,32 +453,26 @@ namespace AE::ResEditor
 	{
 		using namespace Scripting;
 
-		{
-			EnumBinder<ERenderLayer>	binder{ se };
-			binder.Create();
-			binder.AddValue( "Opaque",		ERenderLayer::Opaque );
-			binder.AddValue( "Translucent",	ERenderLayer::Translucent );
-			binder.AddValue( "PostProcess",	ERenderLayer::PostProcess );
-			StaticAssert( uint(ERenderLayer::_Count) == 3 );
-		}
-		{
-			ClassBinder<ScriptSceneGraphicsPass>	binder{ se };
-			binder.CreateRef( 0, False{"no ctor"} );
+		ClassBinder<ScriptSceneGraphicsPass>	binder{ se };
+		binder.CreateRef( 0, False{"no ctor"} );
 
-			_BindBase( binder, True{"with args"} );
-			_BindBaseRenderPass( binder, False{"without blending"}, False{"without RWAttachment"} );
+		_BindBase( binder, True{"with args"} );
+		_BindBaseRenderPass( binder, False{"without blending"}, True{"with RWAttachment"} );
 
-			binder.Comment( "Add path to single pipeline or folder with pipelines.\n"
-							"Scene geometry will be linked with compatible pipeline or error will be generated." );
-			binder.AddMethod( &ScriptSceneGraphicsPass::AddPipeline,			"AddPipeline",			{"pplnFile"} );
-			binder.AddMethod( &ScriptSceneGraphicsPass::AddPipelines,			"AddPipelines",			{"pplnFolder"} );
+		binder.Comment( "Add path to single pipeline or folder with pipelines.\n"
+						"Scene geometry will be linked with compatible pipeline or error will be generated." );
+		AS_METHOD( binder, ScriptSceneGraphicsPass::AddPipeline,			"AddPipeline",			{"pplnFile"} );
+		AS_METHOD( binder, ScriptSceneGraphicsPass::AddPipelines,			"AddPipelines",			{"pplnFolder"} );
 
-			binder.AddMethod( &ScriptSceneGraphicsPass::SetLayer,				"Layer",				{} );
-			binder.AddMethod( &ScriptSceneGraphicsPass::SetFragmentShadingRate,	"FragmentShadingRate",	{"rate", "primitiveOp", "textureOp"} );
+		AS_METHOD( binder, ScriptSceneGraphicsPass::SetLayer,				"Layer",				{} );
+		AS_METHOD( binder, ScriptSceneGraphicsPass::SetFragmentShadingRate,	"FragmentShadingRate",	{"rate", "primitiveOp", "textureOp"} );
 
-			binder.Comment( "Can be used only if pass hasn't attachments." );
-			binder.AddMethod( &ScriptSceneGraphicsPass::_SetDynamicDimension2,	"SetDimension",			{} );
-		}
+		binder.Comment( "Can be used only if pass hasn't attachments." );
+		AS_METHOD( binder, ScriptSceneGraphicsPass::_SetDynamicDimension2,	"SetDimension",			{} );
+			
+		//binder.Comment( "" );
+		AS_METHOD( binder, ScriptSceneGraphicsPass::NextSubpass1,			"NextSubpass",			{} );
+		AS_METHOD( binder, ScriptSceneGraphicsPass::NextSubpass2,			"NextSubpass",			{"passName"} );
 	}
 
 /*
@@ -400,7 +500,7 @@ namespace AE::ResEditor
 				uint		frame;					// shader playback frame, global frame counter
 				uint		seed;					// unique value, updated on each shader reloading
 				float4		mouse;					// mouse unorm coords. xy: current (if MRB down), zw: click
-				float		customKeys;
+				float2		customKeys;
 				float		pixPerMm;				// pix / mm
 				float		mmPerPix;				// mm / pix
 
@@ -419,6 +519,7 @@ namespace AE::ResEditor
 
 		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
 		StaticAssert( IPass::Constants::MaxCount == 8 );
+		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
 		return st;
 	}
 
@@ -439,100 +540,225 @@ namespace AE::ResEditor
 	_CompilePipelines2
 =================================================
 */
-	void  ScriptSceneGraphicsPass::_CompilePipelines2 (ScriptEnginePtr se, OUT PipelinesPerInstance_t &pplnNames) C_Th___
+	void  ScriptSceneGraphicsPass::_CompilePipelines2 (ScriptEnginePtr se, ArrayView<Output> attachments,
+														ArrayView<ScriptSceneGraphicsSubpassPtr> subpasses,
+														const ScriptScene &scene,
+														const ScriptDynamicDim* dynamicDim) __Th___
 	{
 		using namespace AE::PipelineCompiler;
 
-		_args.ValidateArgs();
-
-		auto&			storage = *ObjectStorage::Instance();
-		const String	subpass = "main";
-
-		CompatibleRenderPassDescPtr	compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
-		compat_rp->AddSubpass( subpass );
+		const auto	SubpassName = [&subpasses] (auto& subpass) -> String
+		{{
+			if ( subpasses.size() == 1 )
+				return "main"s;
+			else
+				return "pass-"s << ToString( std::distance( subpasses.data(), &subpass ));
+		}};
+		
+		for (auto& subpass : subpasses)
 		{
-			for (auto [out, i] : WithIndex(_output))
+			subpass->_args.ValidateArgs();
+		}
+
+		auto&	storage = *ObjectStorage::Instance();
+
+		// compatible render pass
+		CompatibleRenderPassDescPtr	compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
+		
+		for (auto& subpass : subpasses) {
+			compat_rp->AddSubpass( SubpassName( subpass ));
+		}
+
+		for (auto [out2, i] : WithIndex(attachments))
+		{
+			RPAttachmentPtr		att		= compat_rp->AddAttachment2( out2.name );
+			const auto			desc	= out2.rt->ToResource()->GetImageDesc();
+
+			att->format		= desc.format;
+			att->samples	= desc.samples;
+		
+			for (auto& subpass : subpasses)
 			{
-				RPAttachmentPtr		att		= compat_rp->AddAttachment2( out.name );
-				const auto			desc	= out.rt->ToResource()->GetImageDesc();
+				const auto	sp_name = SubpassName( subpass );
 
-				att->format		= desc.format;
-				att->samples	= desc.samples;
-
-				if ( out.usage == EResourceUsage::FragShadingRate )
+				for (auto [out, _] : WithIndex(subpass->_output))
 				{
-					auto	dim = out.rt->DynamicDimension();
-					CHECK_THROW( dim );
-					CHECK_THROW( _dynamicDim and _dynamicDim->Get() );
-					CHECK_THROW( _dynamicDim->Get() == dim->BaseDimensionRC() );	// scale must depends on other attachments dimension
+					if ( out.name != out2.name )
+						continue;
+				
+					if ( not out.inName.empty() and out.usage == EResourceUsage::InputAttachment )
+					{
+						att->AddUsage2( sp_name, EAttachment::Input,
+										RPAttachment::ShaderIO{ out.inName, Default, uint(i) });
+						break;
+					}
 
-					int2	scale {-dim->Scale()};
-					CHECK_THROW( All( scale > Zero ));
+					if ( not out.inName.empty() )
+					{
+						ASSERT( out.usage == (EResourceUsage::InputAttachment | EResourceUsage::DepthStencil) or
+								out.usage == (EResourceUsage::InputAttachment | EResourceUsage::ColorAttachment) );
+						att->AddUsage3( sp_name, EAttachment::ReadWrite,
+										RPAttachment::ShaderIO{ out.inName, Default, uint(i) },
+										RPAttachment::ShaderIO{ out.name,   Default, uint(i) });
+						break;
+					}
 
-					att->AddUsage4( subpass, EAttachment::ShadingRate, packed_uint2(scale) );
-					continue;
+					if ( out.usage == EResourceUsage::FragShadingRate )
+					{
+						auto	dim = out.rt->DynamicDimension();
+						CHECK_THROW( dim );
+						CHECK_THROW( dynamicDim != null and dynamicDim->Get() );
+						CHECK_THROW( dynamicDim->Get() == dim->BaseDimensionRC() );	// scale must depends on other attachments dimension
+
+						int2	scale {-dim->Scale()};
+						CHECK_THROW( All( scale > Zero ));
+
+						att->AddUsage4( sp_name, EAttachment::ShadingRate, packed_uint2(scale) );
+						break;
+					}
+
+					EAttachment		type = out.rt->IsDepthOrStencil() ? EAttachment::DepthStencil : EAttachment::Color;
+					if ( out.usage == EResourceUsage::FragDensityMap )
+						type = EAttachment::FragmentDensity;
+
+					att->AddUsage( sp_name, type );
+					break;
 				}
-
-				EAttachment		type = out.rt->IsDepthOrStencil() ? EAttachment::DepthStencil : EAttachment::Color;
-				if ( out.usage == EResourceUsage::FragDensityMap )
-					type = EAttachment::FragmentDensity;
-
-				att->AddUsage( subpass, type );
-			}
-		}{
-			RenderPassSpecPtr	rp_spec = compat_rp->AddSpecialization2( "rp" );
-
-			for (auto [out, i] : WithIndex(_output))
-			{
-				RPAttachmentSpecPtr	att		= rp_spec->AddAttachment2( out.name );
-				EResourceState		state	= EResourceState::ColorAttachment;
-
-				if ( out.rt->IsDepthOrStencil() )
-				{
-					if ( out.loadOp == EAttachmentLoadOp::Load and out.storeOp == EAttachmentStoreOp::None )
-						state = EResourceState::DepthStencilTest;
-					else
-						state = EResourceState::DepthStencilAttachment_RW;
-
-					state |= EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS;
-				}
-				switch ( out.usage ) {
-					case EResourceUsage::FragShadingRate :	state = EResourceState::ShadingRateImage;		break;
-					case EResourceUsage::FragDensityMap :	state = EResourceState::FragmentDensityMap;		break;
-				}
-
-				att->loadOp		= out.loadOp;
-				att->storeOp	= out.storeOp;
-
-				if ( out.loadOp == EAttachmentLoadOp::Clear )
-					att->AddLayout( "ExternalIn", EResourceState::Invalidate | state );
-
-				att->AddLayout( subpass, state );
+				
+				if ( HashTable_NotContains( att->usageMap, Graphics::SubpassName{sp_name} ))
+					att->AddUsage( sp_name, EAttachment::Preserve );
 			}
 		}
 
+
+		// render pass specialization
+		RenderPassSpecPtr	rp_spec = compat_rp->AddSpecialization2( "rp" );
+
+		for (auto [out2, __] : WithIndex(attachments))
+		{
+			RPAttachmentSpecPtr	att = rp_spec->AddAttachment2( out2.name );
+
+			att->loadOp		= out2.loadOp;
+			att->storeOp	= out2.storeOp;
+			
+			for (auto& subpass : subpasses)
+			{
+				const auto	sp_name = SubpassName( subpass );
+
+				for (auto [out, _] : WithIndex(subpass->_output))
+				{
+					if ( out.name != out2.name )
+						continue;
+
+					auto		state	= EResourceState::ColorAttachment;
+					const bool	is_ds	= out.rt->IsDepthOrStencil();
+
+					if ( is_ds )
+					{
+						state = EResourceState::DepthStencilAttachment_RW;
+
+						if ( subpasses.size() == 1 and out.loadOp == EAttachmentLoadOp::Load and out.storeOp == EAttachmentStoreOp::None )
+							state = EResourceState::DepthStencilTest;	// read-only
+
+						state |= EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS;
+					}
+					
+					// input attachment
+					if ( not out.inName.empty() )
+					{
+						state = out.usage == EResourceUsage::InputAttachment ?
+								(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
+								(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
+						state |= EResourceState::FragmentShader;
+					}
+
+					switch ( out.usage ) {
+						case EResourceUsage::FragShadingRate :	state = EResourceState::ShadingRateImage;		break;
+						case EResourceUsage::FragDensityMap :	state = EResourceState::FragmentDensityMap;		break;
+					}
+
+					if ( IsFirstElement( subpass, subpasses ) and out.loadOp == EAttachmentLoadOp::Clear )
+						att->AddLayout( "ExternalIn", EResourceState::Invalidate | state );
+
+					att->AddLayout( sp_name, state );
+					break;
+				}
+
+				if ( HashTable_NotContains( att->layouts, Graphics::SubpassName{sp_name} ))
+					att->AddLayout( sp_name, EResourceState::Preserve );
+			}
+		}
 
 		RenderTechniquePtr	rtech{ new RenderTechnique{ "rtech" }};
 		{
-			RTGraphicsPassPtr	pass = rtech->AddGraphicsPass2( subpass );
-			pass->SetRenderPass( "rp", subpass );
+			for (auto& subpass : subpasses)
+			{
+				const auto			sp_name = SubpassName( subpass );
+				RTGraphicsPassPtr	pass	= rtech->AddGraphicsPass2( sp_name );
+				pass->SetRenderPass( "rp", sp_name );
+			}
 		}
 
+		// descriptor set layout
 		{
 			Unused( _CreateUBType() );	// throw
-
+			
 			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ "pass.ds" }};
 			const auto				stage	= EShaderStages::AllGraphics;
 
 			ds_layout->AddUniformBuffer( EShaderStages::AllGraphics, "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform, False{} );
-			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 
-			String	str;
-			_AddSlidersAsMacros( OUT str );
-			ds_layout->Define( str );
+			if ( subpasses.size() == 1 )
+				subpasses.front()->_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
+		}
+		
+		// descriptor set layout with input attachment
+		for (auto& subpass : subpasses)
+		{
+			bool	skip = subpasses.size() == 1 or subpass->_args.Empty();
+
+			for (auto [out, _] : WithIndex(subpass->_output))
+			{
+				if ( not out.inName.empty() )
+				{
+					skip = false;
+					break;
+				}
+			}
+			if ( skip )
+			{
+				subpass->_dslName = "pass.ds";
+				continue;
+			}
+
+			subpass->_dslName = "subpass-"s << ToString( std::distance( subpasses.data(), &subpass )) << ".ds";
+			
+			DescriptorSetLayoutPtr	ds_layout{ new DescriptorSetLayout{ subpass->_dslName }};
+			const auto				stage	= EShaderStages::AllGraphics;
+
+			ds_layout->AddUniformBuffer( EShaderStages::AllGraphics, "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform, False{} );
+			subpass->_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
+			
+			for (auto [out, _] : WithIndex(subpass->_output))
+			{
+				if ( out.inName.empty() ) continue;
+
+				usize	i = 0;
+				for (; i < attachments.size(); ++i) {
+					if ( attachments[i].name == out.name )
+						break;
+				}
+
+				bool	is_ds = out.rt->IsDepthOrStencil();
+				auto	state = out.usage == EResourceUsage::InputAttachment ?
+									(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
+									(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
+
+				ds_layout->AddSubpassInput( EShaderStages::Fragment, out.inName, uint(i), out.rt->ImageType(), state | EResourceState::FragmentShader );
+			}
 		}
 
-		for (auto& inst : _scene->_geomInstances) {
+		for (auto& inst : scene._geomInstances) {
 			inst.geom->AddLayoutReflection();  // throw
 		}
 
@@ -541,23 +767,44 @@ namespace AE::ResEditor
 
 		if ( GraphicsScheduler().GetFeatureSet().bufferDeviceAddress == FeatureSet::EFeature::RequireTrue )
 			CHECK_THROW( storage.CompilePipeline( se, ScriptExe::ScriptPassApi::ToPipelinePath( "ModelShared.as" ), include_dirs ));
+		
+		String	prev_defs = RVRef(storage.defaultShaderDefines);
+		for (auto& subpass : subpasses)
+		{
+			storage.defaultShaderDefines = prev_defs;
+			subpass->_AddSlidersAsMacros( INOUT storage.defaultShaderDefines );
 
-		for (auto& ppln : _pipelines) {
-			if ( not storage.CompilePipeline( se, ppln, include_dirs ))
-				continue;
+			for (auto& ppln : subpass->_pipelines) {
+				Unused( storage.CompilePipeline( se, ppln, include_dirs ));		// ignore if failed to compile
+			}
 		}
+		storage.defaultShaderDefines = RVRef(prev_defs);
 
 		CHECK_THROW( not storage.gpipelines.empty() or
 					 not storage.mpipelines.empty() );
 
-		pplnNames.reserve( _scene->_geomInstances.size() );
-
-		for (auto& inst : _scene->_geomInstances)
+		for (auto& subpass : subpasses)
 		{
-			auto	names = inst.geom->FindMaterialGraphicsPipelines( _renderLayer );  // throw
-			pplnNames.push_back( RVRef(names) );
+			auto&	ppln_names = subpass->_pplnPerInst;
+			ppln_names.reserve( scene._geomInstances.size() );
+
+			for (auto& inst : scene._geomInstances)
+			{
+				uint	sp_idx	= uint(std::distance( subpasses.data(), &subpass ));
+				auto	names	= inst.geom->FindMaterialGraphicsPipelines( subpass->_renderLayer, sp_idx );  // throw
+				ppln_names.push_back( RVRef(names) );
+			}
+			ASSERT( scene._geomInstances.size() == ppln_names.size() );
+
+			// check if DSL was renamed
+			auto	it = storage.dsLayouts.find( subpass->_dslName );
+			CHECK_THROW( it != storage.dsLayouts.end() );
+
+			auto*	dsl = storage.pplnStorage->GetDescriptorSetLayout( it->second->UID() );
+			CHECK_THROW( dsl != null );
+
+			subpass->_dslName = storage.GetName( dsl->name );
 		}
-		ASSERT( _scene->_geomInstances.size() == pplnNames.size() );
 	}
 
 /*
@@ -565,14 +812,95 @@ namespace AE::ResEditor
 	_CompilePipelines
 =================================================
 */
-	RTechInfo  ScriptSceneGraphicsPass::_CompilePipelines (OUT PipelinesPerInstance_t &pplnNames, OUT RC<SceneData> &outScene) C_Th___
+	RTechInfo  ScriptSceneGraphicsPass::_CompilePipelines (OUT RC<SceneData> &outScene) C_Th___
 	{
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
-					[this, &pplnNames, &outScene] (ScriptEnginePtr se)
+					[this, &outScene] (ScriptEnginePtr se)
 					{
-						outScene = _scene->ToScene();				// throw
-						_CompilePipelines2( se, OUT pplnNames );	// throw
+						outScene = _scene->ToScene();												// throw
+						_CompilePipelines2( se, _output, _subpasses, *_scene, _dynamicDim.Get() );	// throw
 					});
+	}
+//-----------------------------------------------------------------------------
+
+
+	
+/*
+=================================================
+	_ToPass2
+=================================================
+*/
+	RC<SceneGraphicsSubpass>  ScriptSceneGraphicsSubpass::_ToPass2 (SceneGraphicsPass &graphicsPass) __Th___
+	{
+		CHECK_THROW_MSG( not _pipelines.empty(), "pipelines must be defined" );
+
+		RC<SceneGraphicsSubpass>	result		= MakeRC<SceneGraphicsSubpass>();
+		auto&						res_mngr	= GraphicsScheduler().GetResourceManager();
+		auto&						materials	= result->_materials;
+		const auto					max_frames	= GraphicsScheduler().GetMaxFrames();
+		DebugModeBits				dbg_modes;
+
+		CHECK_THROW( _pplnPerInst.size() == _scene->_geomInstances.size() );
+		materials.reserve( _pplnPerInst.size() );
+
+		for (usize i = 0; i < _pplnPerInst.size(); ++i)
+		{
+			const auto&		geom	= _scene->_geomInstances[i].geom;
+			const auto&		pplns	= _pplnPerInst[i];
+
+			if ( pplns.empty() )
+			{
+				materials.emplace_back();
+				continue;
+			}
+
+			auto	mtr = geom->ToMaterial( _renderLayer, graphicsPass._rtech.rtech, pplns );  // throw
+			CHECK_THROW( mtr );
+
+			materials.push_back( mtr );
+			dbg_modes |= mtr->GetDebugModeBits();
+		}
+
+		CHECK_THROW( materials.size() == _scene->_geomInstances.size() );
+
+		result->_scene			= graphicsPass._scene;
+		result->_renderLayer	= this->_renderLayer;
+		result->_shadingRate	= this->_shadingRate;
+		result->_wScaling		= this->_wScaling;
+		result->_scissors		= this->_scissors;
+		result->_viewports		= this->_viewports;
+
+		if ( result->_viewports.empty() )
+			result->_viewports.push_back( Viewport{ RectF{0.f, 0.f, 1.f, 1.f}, this->_depthRange.x, this->_depthRange.y });
+
+		if ( result->_scissors.empty() )
+			result->_scissors.push_back( RectF{0.f, 0.f, 1.f, 1.f} );
+
+		result->_ubuffer = _CreateUBuffer( SizeOf<ShaderTypes::SceneGraphicsPassUB>, "SceneGraphicsPassUB",
+											EResourceState::UniformRead | EResourceState::AllGraphicsShaders );  // throw
+
+		// create descriptor set
+		CHECK_THROW_MSG( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), max_frames, graphicsPass._rtech.packId, DSLayoutName{_dslName}, null, _dbgName ),
+			"Failed to create descriptor set with layout '"s << _dslName << "' for pass '" << _passName << "'." );
+
+		_args.InitResources( OUT result->_resources, graphicsPass._rtech.packId );  // throw
+		
+		for (auto [out, i] : WithIndex(_output))
+		{
+			if ( out.inName.empty() ) continue;
+
+			bool	is_ds = out.rt->IsDepthOrStencil();
+			auto	state = out.usage == EResourceUsage::InputAttachment ?
+								(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
+								(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
+
+			result->_resources.Add( UniformName{out.inName}, out.rt->ToResource(), state | EResourceState::FragmentShader );
+		}
+
+		_Init( *result, _scene->GetController(), False{"disable log"} );
+		UIInteraction::Instance().AddPassDbgInfo( result.get(), dbg_modes, EShaderStages::AllGraphics );
+
+		return result;
 	}
 //-----------------------------------------------------------------------------
 
@@ -676,7 +1004,7 @@ namespace AE::ResEditor
 	ToPass
 =================================================
 */
-	RC<IPass>  ScriptSceneRayTracingPass::ToPass () C_Th___
+	RC<IPass>  ScriptSceneRayTracingPass::ToPass () __Th___
 	{
 		CHECK_THROW_MSG( not _iterations.empty(), "add at least one Dispatch() call" );
 		CHECK_THROW_MSG( not _args.Empty(), "empty argument list" );
@@ -745,21 +1073,21 @@ namespace AE::ResEditor
 
 		binder.Comment( "Set path to single pipeline.\n"
 						"Scene geometry will be linked with compatible pipeline or error will be generated." );
-		binder.AddMethod( &ScriptSceneRayTracingPass::SetPipeline,				"SetPipeline",		{"pplnFile"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::SetPipeline,				"SetPipeline",		{"pplnFile"} );
 
 		binder.Comment( "Run RayGen shader with specified number of threads." );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads1,			"Dispatch",			{"threadsX"} );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads2,			"Dispatch",			{"threadsX", "threadsY"} );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads3,			"Dispatch",			{"threadsX", "threadsY", "threadsZ"} );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads2v,		"Dispatch",			{"threads"} );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads3v,		"Dispatch",			{"threads"} );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreadsDS,		"Dispatch",			{"dynamicThreadCount"} );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreads1D,		"Dispatch",			{"dynamicThreadCount"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreads1,			"Dispatch",			{"threadsX"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreads2,			"Dispatch",			{"threadsX", "threadsY"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreads3,			"Dispatch",			{"threadsX", "threadsY", "threadsZ"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreads2v,		"Dispatch",			{"threads"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreads3v,		"Dispatch",			{"threads"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreadsDS,		"Dispatch",			{"dynamicThreadCount"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreads1D,		"Dispatch",			{"dynamicThreadCount"} );
 
 		binder.Comment( "Run RayGen shader with number of threads from indirect command." );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreadsIndirect1,	"DispatchIndirect",	{"indirectBuffer"} );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreadsIndirect2,	"DispatchIndirect",	{"indirectBuffer", "indirectBufferOffset"} );
-		binder.AddMethod( &ScriptSceneRayTracingPass::DispatchThreadsIndirect3,	"DispatchIndirect",	{"indirectBuffer", "indirectBufferFieldName"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreadsIndirect1,	"DispatchIndirect",	{"indirectBuffer"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreadsIndirect2,	"DispatchIndirect",	{"indirectBuffer", "indirectBufferOffset"} );
+		AS_METHOD( binder, ScriptSceneRayTracingPass::DispatchThreadsIndirect3,	"DispatchIndirect",	{"indirectBuffer", "indirectBufferFieldName"} );
 	}
 
 /*
@@ -784,7 +1112,7 @@ namespace AE::ResEditor
 				float		timeDelta;				// frame render time (in seconds), max value: 1/30s
 				uint		frame;					// shader playback frame, global frame counter
 				uint		seed;					// unique value, updated on each shader reloading
-				float		customKeys;
+				float2		customKeys;
 				float		pixPerMm;				// pix / mm
 				float		mmPerPix;				// mm / pix
 
@@ -803,6 +1131,7 @@ namespace AE::ResEditor
 
 		StaticAssert( UIInteraction::MaxSlidersPerType == 8 );
 		StaticAssert( IPass::Constants::MaxCount == 8 );
+		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
 		return st;
 	}
 
@@ -848,7 +1177,7 @@ namespace AE::ResEditor
 			_args.ArgsToDescSet( stage, ds_layout, ArraySize{1} );  // throw
 
 			String	str;
-			_AddSlidersAsMacros( OUT str );
+			_AddSlidersAsMacros( INOUT str );
 			ds_layout->Define( str );
 		}
 

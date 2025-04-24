@@ -18,10 +18,10 @@
 */
 #ifdef AE_LICENSE_CC_BY_NC_SA_3
 
-int  HilbertCurve (int2 p, int level)
+int  HilbertCurve (int2 p, const int level)
 {
 	int	d = 0;
-	for (int k = 0; k < level; ++k)
+	UNROLL for (int k = 0; k < level; ++k)
 	{
 		int		n = level-k-1;
 		int2	r = (p>>n)&1;
@@ -37,10 +37,10 @@ int  HilbertCurve (int2 p, int level)
 	return d;
 }
 
-int2  InvHilbertCurve (int i, int level)
+int2  InvHilbertCurve (int i, const int level)
 {
 	int2	p = int2(0);
-	for (int k = 0; k < level; ++k)
+	UNROLL for (int k = 0; k < level; ++k)
 	{
 		int2 r = int2( i>>1, i^(i>>1) ) & 1;
 

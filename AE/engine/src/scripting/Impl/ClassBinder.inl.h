@@ -8,20 +8,6 @@ namespace AE::Scripting
 
 /*
 =================================================
-	IsGlobal
-=================================================
-*/
-namespace _hidden_ {
-	template <typename Fn>
-	constexpr bool  IsGlobal ()
-	{
-		return IsSame< typename FunctionInfo<Fn>::clazz, void >;
-	}
-} // _hidden_
-
-
-/*
-=================================================
 	constructor
 =================================================
 */
@@ -111,6 +97,13 @@ namespace _hidden_ {
 	{
 		using namespace AngelScript;
 
+		if constexpr( IsCompleteType< ScriptTypeInfo<T> >) {
+			StaticAssert( not ScriptTypeInfo<T>::is_object );
+			StaticAssert( not ScriptTypeInfo<T>::is_ref_counted );
+		}
+		StaticAssert( IsZeroMemAvailable<T> );
+		StaticAssert( IsMemCopyAvailable<T> );
+		StaticAssert( IsTriviallyConstructible<T> );
 		StaticAssert( alignof(T) <= 16 );
 
 		_flags = asOBJ_VALUE | asOBJ_POD | flags;
@@ -120,6 +113,12 @@ namespace _hidden_ {
 		else
 		if constexpr( alignof(T) == 8 )
 			_flags |= asOBJ_APP_CLASS_ALIGN8;
+		
+		if constexpr( IsCopyConstructible<T> )
+			_flags |= asOBJ_APP_CLASS_COPY_CONSTRUCTOR;
+
+		if constexpr( IsCopyAssignable<T> or IsMoveAssignable<T> )
+			_flags |= asOBJ_APP_CLASS_ASSIGNMENT;
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectType( _name.c_str(), sizeof(T), _flags ));
 
@@ -135,6 +134,11 @@ namespace _hidden_ {
 	void  ClassBinder<T>::CreateClassValue (int flags) __Th___
 	{
 		using namespace AngelScript;
+
+		if constexpr( IsCompleteType< ScriptTypeInfo<T> >) {
+			StaticAssert( ScriptTypeInfo<T>::is_object );
+			StaticAssert( not ScriptTypeInfo<T>::is_ref_counted );
+		}
 
 		if ( AnyBits( flags, asOBJ_APP_CLASS_CDAK ))
 			_flags = asOBJ_VALUE | flags;
@@ -168,6 +172,10 @@ namespace _hidden_ {
 	template <typename T>
 	void  ClassBinder<T>::CreateRef (int flags, const Bool hasFactory) __Th___
 	{
+		if constexpr( IsCompleteType< ScriptTypeInfo<T> >) {
+			StaticAssert( ScriptTypeInfo<T>::is_object );
+			StaticAssert( ScriptTypeInfo<T>::is_ref_counted );
+		}
 		using Constructor_t = T* (*) ();
 
 		Constructor_t	create = null;
@@ -198,6 +206,13 @@ namespace _hidden_ {
 
 		if_unlikely( _genHeader )
 			_header << "struct " << _name << "\n{\n";
+		
+		if constexpr( IsCompleteType< ScriptTypeInfo<T> >)
+		{
+			StaticAssert( ScriptTypeInfo<T>::is_object );
+			if constexpr( ScriptTypeInfo<T>::is_ref_counted )
+				CHECK_THROW( addRef != null and releaseRef != null );
+		}
 
 		if ( addRef != null )
 		{
@@ -311,11 +326,16 @@ namespace _hidden_ {
 	{
 		using namespace AngelScript;
 
+		if constexpr( IsCompleteType< ScriptTypeInfo<T> >) {
+			StaticAssert( not ScriptTypeInfo<T>::is_ref_counted );
+		}
 		StaticAssert(( not IsBaseOf< AngelScriptHelper::SimpleRefCounter, T > ));
 		StaticAssert(( IsSame< void *, typename GlobalFunction<Fn>::TypeList_t::Front::type > ));
 
 		String	signature("void f ");
 		GlobalFunction<Fn>::GetArgs( INOUT signature, 1 );	// skip	(void *)
+
+		signature << " explicit";
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_CONSTRUCT,
 										signature.c_str(), asFUNCTION( *ctorPtr ), asCALL_CDECL_OBJFIRST ));
@@ -344,6 +364,9 @@ namespace _hidden_ {
 	{
 		using namespace AngelScript;
 
+		if constexpr( IsCompleteType< ScriptTypeInfo<T> >) {
+			StaticAssert( ScriptTypeInfo<T>::is_ref_counted );
+		}
 		StaticAssert(( IsBaseOf< AngelScriptHelper::SimpleRefCounter, T > ));
 		StaticAssert(( IsSame< T*, typename GlobalFunction<Fn>::Result_t > ));
 
@@ -375,6 +398,14 @@ namespace _hidden_ {
 	template <typename T> template <typename B>
 	void  ClassBinder<T>::AddProperty (B T::* value, StringView name) __Th___
 	{
+		using namespace AngelScript;
+
+		if constexpr( IsFloatPoint<B> )
+			ASSERT( NoBits( _flags, asOBJ_APP_CLASS_ALLINTS ));
+		
+		if constexpr( IsInteger<B> )
+			ASSERT( NoBits( _flags, asOBJ_APP_CLASS_ALLFLOATS ));
+
 		String	signature;
 		ScriptTypeInfo<B>::Name( INOUT signature );
 
@@ -414,6 +445,14 @@ namespace _hidden_ {
 	template <typename T> template <typename A, typename B>
 	void  ClassBinder<T>::AddProperty (A T::* base, B A::* value, StringView name) __Th___
 	{
+		using namespace AngelScript;
+
+		if constexpr( IsFloatPoint<B> )
+			ASSERT( NoBits( _flags, asOBJ_APP_CLASS_ALLINTS ));
+		
+		if constexpr( IsInteger<B> )
+			ASSERT( NoBits( _flags, asOBJ_APP_CLASS_ALLFLOATS ));
+
 		String	signature;
 		ScriptTypeInfo<B>::Name( INOUT signature );
 
@@ -493,6 +532,39 @@ namespace _hidden_ {
 
 /*
 =================================================
+	AddGenericMethod
+=================================================
+*/
+	template <typename T> template <typename Fn>
+	void  ClassBinder<T>::AddGenericMethod (void (*fn)(ScriptArgList), StringView name, ArgNames_t argNames) __Th___
+	{
+		using namespace AngelScript;
+
+		String	signature;
+		if constexpr( IsGlobalFunction<Fn> )
+			GlobalFunction<Fn>::GetDescriptor( INOUT signature, name );
+		else
+			MemberFunction<Fn>::GetDescriptor( INOUT signature, name );
+
+		AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(), signature.c_str(),
+								asFUNCTION( FnUnsafeCast< asGENFUNC_t >( fn )),
+								asCALL_GENERIC ));
+
+		if_unlikely( _genHeader )
+		{
+			_header << '\t';
+			if constexpr( IsGlobalFunction<Fn> )
+				GlobalFunction<Fn>::GetCppDescriptor( INOUT _header, name, argNames );
+			else
+				MemberFunction<Fn>::GetCppDescriptor( INOUT _header, name, argNames );
+			_header << ";\n";
+		}
+	}
+
+
+#ifndef AS_MAX_PORTABILITY
+/*
+=================================================
 	AddMethod
 =================================================
 */
@@ -516,31 +588,6 @@ namespace _hidden_ {
 		{
 			_header << '\t';
 			MemberFunction<Fn>::GetCppDescriptor( INOUT _header, name, argNames );
-			_header << ";\n";
-		}
-	}
-
-/*
-=================================================
-	AddGenericMethod
-=================================================
-*/
-	template <typename T> template <typename Fn>
-	void  ClassBinder<T>::AddGenericMethod (void (*fn)(ScriptArgList), StringView name, ArgNames_t argNames) __Th___
-	{
-		using namespace AngelScript;
-
-		String	signature;
-		GlobalFunction<Fn>::GetDescriptor( INOUT signature, name );
-
-		AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(), signature.c_str(),
-								asFUNCTION(reinterpret_cast<asGENFUNC_t>(fn)),
-								asCALL_GENERIC ));
-
-		if_unlikely( _genHeader )
-		{
-			_header << '\t';
-			GlobalFunction<Fn>::GetCppDescriptor( INOUT _header, name, argNames );
 			_header << ";\n";
 		}
 	}
@@ -635,6 +682,20 @@ namespace _hidden_ {
 			_header << ";\n";
 		}
 	}
+	
+/*
+=================================================
+	AddMethodOrGlobal
+=================================================
+*/
+	template <typename T> template <typename Fn>
+	void  ClassBinder<T>::AddMethodOrGlobal (Fn methodPtr, StringView name, ArgNames_t argNames) __Th___
+	{
+		if constexpr( std::is_member_function_pointer_v< Fn >)
+			AddMethod( methodPtr, name, argNames );
+		else
+			AddMethodFromGlobal( methodPtr, name, argNames );
+	}
 
 /*
 =================================================
@@ -648,7 +709,7 @@ namespace _hidden_ {
 
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-		if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
+		if constexpr( IsGlobalFunction<Fn> )
 		{
 			StaticAssert( FuncInfo::args::Count == 1 );
 			_binder->AddMethodFromGlobalObjFirst( func, _UnaryToStr( op ), {} );
@@ -673,7 +734,7 @@ namespace _hidden_ {
 
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-		if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
+		if constexpr( IsGlobalFunction<Fn> )
 		{
 			StaticAssert( FuncInfo::args::Count == 2 );
 			_binder->AddMethodFromGlobalObjFirst( func, _BinAssignToStr( op ), {} );
@@ -707,7 +768,7 @@ namespace _hidden_ {
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-		if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
+		if constexpr( IsGlobalFunction<Fn> )
 			_binder->AddMethodFromGlobalObjFirst( func, "opIndex", {} );
 		else
 			_binder->AddMethod( func, "opIndex", {} );
@@ -963,7 +1024,7 @@ namespace _hidden_ {
 
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-		if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
+		if constexpr( IsGlobalFunction<Fn> )
 		{
 			StaticAssert( FuncInfo::args::Count == 2 );
 			_binder->AddMethodFromGlobalObjFirst( func, _BinToStr( op ), {} );
@@ -984,7 +1045,7 @@ namespace _hidden_ {
 	template <typename T> template <typename Fn>
 	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryRH (EBinaryOperator op, Fn func) __Th___
 	{
-		StaticAssert( Scripting::_hidden_::IsGlobal<Fn>() );
+		StaticAssert( IsGlobalFunction<Fn> );
 		StaticAssert( FunctionInfo<Fn>::args::Count == 2 );
 
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
@@ -1007,7 +1068,7 @@ namespace _hidden_ {
 
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-		if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
+		if constexpr( IsGlobalFunction<Fn> )
 		{
 			StaticAssert( FuncInfo::args::Count == 2 );
 			StaticAssert(( IsSame< typename FuncInfo::args::template Get<0>, T > or IsSame< typename FuncInfo::args::template Get<0>, const T& > ));
@@ -1040,13 +1101,15 @@ namespace _hidden_ {
 
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-		if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
+		if constexpr( IsGlobalFunction<Fn> )
 			_binder->AddMethodFromGlobalObjFirst( func, "opCmp", {} );
 		else
 			_binder->AddMethod( func, "opCmp", {} );
 
 		return *this;
 	}
+
+#endif // AS_MAX_PORTABILITY
 
 
 } // AE::Scripting

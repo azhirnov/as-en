@@ -315,9 +315,9 @@ namespace {
 		DEV_CHECK( ImmediatelyRelease2( INOUT _emptyDSLayout ));
 		ForceReleaseResources();
 
+		LogAssignedResourcesAndDestroy( this, INOUT _resPool.descSet );
 		{ auto tmp = _defaultPack.Release();  DEV_CHECK( ImmediatelyRelease2( INOUT tmp )); }
 		LogAssignedResourcesAndDestroy( this, INOUT _resPool.pipelinePacks );
-		LogAssignedResourcesAndDestroy( this, INOUT _resPool.descSet );
 
 		DestroyResources( this, INOUT _resPool.samplers );
 		DestroyResources( this, INOUT _resPool.graphicsPpln );

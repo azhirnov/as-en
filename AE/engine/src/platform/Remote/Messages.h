@@ -33,7 +33,7 @@ namespace AE::Networking
 
 
 	// RemoteInputSurface //
-	DECL_CSMSG( RemCtrl_CameraInfoReq,  RemoteControl );
+	DECL_CSMSG( RemCtrl_CameraInfoReq,  RemoteControl, );
 
 	DECL_CSMSG( RemCtrl_CameraInfoBegin,  RemoteControl,
 		ubyte			count;
@@ -81,14 +81,14 @@ namespace AE::Networking
 
 	CSMSG_ENC_DEC_EXARRAY( RemCtrl_SensorF,					count, arr,  AE_ARGS( type, count ));
 
-	CSMSG_ENC_DEC( RemCtrl_CameraInfoReq					);
-	CSMSG_ENC_DEC( RemCtrl_CameraInfoRes					);
+	CSMSG_ENC_DEC( RemCtrl_CameraInfoReq,					);
+	CSMSG_ENC_DEC( RemCtrl_CameraInfoRes,					);
 	CSMSG_ENC_DEC_EXARRAY( RemCtrl_CameraInfoStreamCfg,		count, arr,  AE_ARGS( cameraId, format, count ));
 	CSMSG_ENC_DEC( RemCtrl_CameraInfoBegin,					count, hasPermission );
 	CSMSG_ENC_DEC( RemCtrl_CameraInfoEnd,					cameraId );
 
-	CSMSG_ENC_DEC( RemCtrl_OpenCamera						);
-	CSMSG_ENC_DEC( RemCtrl_CloseCamera						);
+	CSMSG_ENC_DEC( RemCtrl_OpenCamera,						);
+	CSMSG_ENC_DEC( RemCtrl_CloseCamera,						);
 	CSMSG_ENC_DEC_EXDATA( RemCtrl_CameraFrame,				size, data,  AE_ARGS( cameraId, seqIndex ));
 
 

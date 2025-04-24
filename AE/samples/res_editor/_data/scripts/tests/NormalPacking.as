@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-
+	Compare accuracy of normal packing for G-Buffer
 */
 #ifdef __INTELLISENSE__
 #	define SH_COMPUTE

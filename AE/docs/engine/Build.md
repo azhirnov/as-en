@@ -62,12 +62,13 @@ Currently script is written only for Windows platform, on other platforms you ca
 
 **Alternative**<br/>
 Download prebuild binaries which is used in CI and extract it to the `AE-Bin/external` folder:<br/>
-[Android](https://disk.yandex.ru/d/TvUAYS9c0r-xeA)<br/>
-[Linux x64 GCC-13](https://disk.yandex.ru/d/-gMu1U0O4qvEug)<br/>
-[Linux x64 Clang-16](https://disk.yandex.ru/d/JTtMdRLBLfGZwg)<br/>
-[MacOS arm64](https://disk.yandex.ru/d/pxXmzRwiai_nBQ)<br/>
-[Windows x64 MSVC](https://disk.yandex.ru/d/NCadPOI83qQRtQ)<br/>
-[Windows x64 Clang](https://disk.yandex.ru/d/bK8OfuHJ0VVxHg)<br/>
+[Android](https://disk.yandex.ru/d/binEtmjE0Whadw)<br/>
+[Linux x64 GCC-13](https://disk.yandex.ru/d/YG4jHX2HEu2kMQ)<br/>
+[Linux x64 Clang-16](https://disk.yandex.ru/d/dv0z_Ih3AYqJlQ)<br/>
+[MacOS arm64](https://disk.yandex.ru/d/nCzXmvKaQpa9JQ)<br/>
+[Windows x64 MSVC 19.43](https://disk.yandex.ru/d/iWQDcgIu-4FN9A)<br/>
+[Windows x64 Clang 19](https://disk.yandex.ru/d/mvqEotth1yBwSA)<br/>
+
 Then [Build engine and samples](#Build-engine-and-samples)
 
 
@@ -89,7 +90,7 @@ You should build dependencies on PC or download them.
 ### Linux
 
 `update-all-linux.sh` - to load header-only sources.<br/>
-`update-all-linux-x64-clang16.sh` or `update-all-linux-x64-gcc13.sh` - to compile static (.a) libs.
+`update-all-linux-x64-clang.sh` or `update-all-linux-x64-gcc.sh` - to compile static (.a) libs.
 
 ### MacOS
 
@@ -123,7 +124,7 @@ arch -x86_64 /usr/local/bin/brew install llvm
 ### Windows
 
 `update-all-win.bat` - to load header-only sources.<br/>
-`update-all-win-x64-msvc143.bat` or `update-all-win-x64-clang17.bat` - to compile static (.lib) and dynamic (.dll) libs.
+`update-all-win-x64-msvc.bat` or `update-all-win-x64-clang.bat` - to compile static (.lib) and dynamic (.dll) libs.
 
 To compile Metal shaders put [MetalTools for Windows](https://developer.apple.com/download/all/?q=metal%20developer%20tools%20for%20windows) into the folder `AE-Bin/external/win-x64/MetalTools`:
 ```
@@ -195,3 +196,8 @@ Open `TOOLS- > Options...`, select `Text Editor -> File Extension` and add file 
 `.glsl`, `.msl` - shader language.<br/>
 `.glsl_dbg` - for shader debugger.<br/>
 `.mm` - for ObjC code.
+
+
+### VSCode
+
+Already setup, see `AE/.vscode/settings.json`.

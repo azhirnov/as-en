@@ -25,6 +25,10 @@
 # define AE_SCRIPT_CPP_REFLECTION	1
 #endif
 
+#ifdef AE_PLATFORM_UNIX_BASED
+#	define AS_MAX_PORTABILITY
+#endif
+
 namespace AE::Scripting
 {
 	using namespace AE::Base;
@@ -169,11 +173,13 @@ namespace AE::Scripting
 		ND_ bool  IsRegistered (NtStringView name)													__NE___;
 
 
+	  #ifndef AS_MAX_PORTABILITY
 		template <typename T>
 		void  AddFunction (T func, StringView name)													__Th___;
 
 		template <typename T>
 		void  AddFunction (T func, StringView name, ArgNames_t argNames, StringView comment = {})	__Th___;
+	  #endif
 
 
 		template <typename Fn>

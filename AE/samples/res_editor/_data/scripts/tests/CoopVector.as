@@ -20,6 +20,10 @@
 
 		array<float>	matrix;
 		matrix.resize( 16*16 );
+		
+		for (uint y = 0; y < 16; ++y)
+		for (uint x = 0; x < 16; ++x)
+			matrix[x + y*16] = (x == y ? 1.0 : 0.0);
 
 		buf.FloatArray( "matrix",	matrix );
 
@@ -52,7 +56,7 @@
 		gl::CoopVec< half, 16 >		c;
 		gl.CoopVecMatMul(	OUT c,
 							a, gl::ComponentType::Float16,					// input
-							un_CBuf.matrix, 0, gl::ComponentType::Float32,	// matrix
+							un_CBuf.matrix, 0, gl::ComponentType::Float16,	// matrix
 							16, 16,											// M x K
 							gl::CoopVectorMatrixLayout::ColumnMajor,
 							false,											// transpose
@@ -66,7 +70,7 @@
 		}
 		#endif
 
-		gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(0.0) );
+		gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(c[0], c[1], c[2], c[3]) );
 	}
 
 #endif

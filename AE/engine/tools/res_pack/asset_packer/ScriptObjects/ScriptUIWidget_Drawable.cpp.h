@@ -107,7 +107,7 @@ namespace AE::AssetPacker
 	void  ScriptUIDrawable::_BindBase (B &binder) __Th___
 	{
 		using T = typename B::Class_t;
-		binder.Operators().ImplCast( &ScriptUIDrawable_ToBase<T> );
+		AS_IMPL_CAST_T( binder, ScriptUIDrawable_ToBase<T> );
 	}
 //-----------------------------------------------------------------------------
 

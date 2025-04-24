@@ -24,7 +24,11 @@ namespace
 		DEBUG_ONLY( if ( uint{dst} != src ) AE_LOG_DBG( "Not a POT value ("s << ToString(src) << ")" );)
 		return dst;
 	}
-}
+	
+# ifdef AE_ENABLE_LOGS
+	#include "vulkan_loader/vkenum_to_str.h"
+# endif
+} // namespace
 
 /*
 =================================================
@@ -104,9 +108,8 @@ namespace
 			outFeatureSet.subgroupBroadcastDynamicId = _vkDeviceVersion >= DeviceVersion{1,2} ? True : False;
 		}
 
-		if ( _extensions.subgroupSizeControl )
+		if ( _extensions.subgroupSizeControl and _properties.subgroupSizeControlFeats.subgroupSizeControl )
 		{
-			CHECK( _properties.subgroupSizeControlFeats.subgroupSizeControl == VK_TRUE );
 			CHECK( IsPowerOfTwo( _properties.subgroupSizeControlProps.minSubgroupSize ));
 			CHECK( IsPowerOfTwo( _properties.subgroupSizeControlProps.maxSubgroupSize ));
 			CHECK( outFeatureSet.minSubgroupSize <= _properties.subgroupProperties.subgroupSize );
@@ -118,10 +121,8 @@ namespace
 			outFeatureSet.maxSubgroupSize			= CastPOT( _properties.subgroupSizeControlProps.maxSubgroupSize );
 		}
 
-		if ( _extensions.subgroupExtendedTypes )
+		if ( _extensions.subgroupExtendedTypes and _properties.subgroupExtendedTypesFeats.shaderSubgroupExtendedTypes )
 		{
-			CHECK( _properties.subgroupExtendedTypesFeats.shaderSubgroupExtendedTypes == VK_TRUE );
-
 			if ( feats10.shaderInt16 )	outFeatureSet.subgroupTypes |= ESubgroupTypes::Int16;
 			if ( feats10.shaderInt64 )	outFeatureSet.subgroupTypes |= ESubgroupTypes::Int64;
 
@@ -131,21 +132,18 @@ namespace
 			}
 		}
 
-		if ( _extensions.shaderSubgroupUniformControlFlow )
+		if ( _extensions.shaderSubgroupUniformControlFlow and _properties.shaderSubgroupUniformControlFlowFeats.shaderSubgroupUniformControlFlow )
 		{
-			CHECK( _properties.shaderSubgroupUniformControlFlowFeats.shaderSubgroupUniformControlFlow == VK_TRUE );
 			outFeatureSet.shaderSubgroupUniformControlFlow = True;
 		}
 
-		if ( _extensions.shaderMaximalReconvergence )
+		if ( _extensions.shaderMaximalReconvergence and _properties.shaderMaximalReconvergenceFeats.shaderMaximalReconvergence )
 		{
-			CHECK( _properties.shaderMaximalReconvergenceFeats.shaderMaximalReconvergence == VK_TRUE );
 			outFeatureSet.shaderMaximalReconvergence = True;
 		}
 
-		if ( _extensions.shaderQuadControl )
+		if ( _extensions.shaderQuadControl and _properties.shaderQuadControlFeats.shaderQuadControl )
 		{
-			CHECK( _properties.shaderQuadControlFeats.shaderQuadControl == VK_TRUE );
 			outFeatureSet.shaderQuadControl = True;
 		}
 
@@ -238,20 +236,119 @@ namespace
 			SET_FEAT2( shaderDeviceClock,	_properties.shaderClockFeats );
 		}
 
-		if ( _extensions.cooperativeMatrix )
+		if ( _extensions.cooperativeMatrix and _properties.cooperativeMatrixFeats.cooperativeMatrix )
 		{
-			outFeatureSet.cooperativeMatrix			= _properties.cooperativeMatrixFeats.cooperativeMatrix ? True : False;
+			outFeatureSet.cooperativeMatrix			= True;
 			outFeatureSet.cooperativeMatrixStages	= AEEnumCast( VkShaderStageFlagBits( _properties.cooperativeMatrixProps.cooperativeMatrixSupportedStages )) & all_stages;
 
-			// use vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR to get supported props
+			FixedArray<VkCooperativeMatrixPropertiesKHR, 32>	mat_props;
+			uint	count = 0;
+
+			VK_CHECK( vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR( GetVkPhysicalDevice(), OUT &count, null ));
+
+			mat_props.resize( count );
+			for (auto& mp : mat_props) {
+				mp.sType = VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_KHR;
+				mp.pNext = null;
+			}
+			
+			VK_CHECK( vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR( GetVkPhysicalDevice(), INOUT &count, OUT mat_props.data() ));
+			
+			for (auto& mp : mat_props)
+			{
+				if ( mp.AType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.BType      == VK_COMPONENT_TYPE_FLOAT16_KHR and
+					 mp.CType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT16_KHR and
+					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 );
+				else
+				if ( mp.AType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.BType      == VK_COMPONENT_TYPE_FLOAT16_KHR and
+					 mp.CType == VK_COMPONENT_TYPE_FLOAT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT32_KHR and
+					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 );
+				else
+				if ( mp.AType == VK_COMPONENT_TYPE_UINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_UINT8_KHR  and
+					 mp.CType == VK_COMPONENT_TYPE_UINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_UINT32_KHR and
+					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 32 )
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 );
+				else
+				if ( mp.AType == VK_COMPONENT_TYPE_SINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_SINT8_KHR  and
+					 mp.CType == VK_COMPONENT_TYPE_SINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_SINT32_KHR and
+					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 32 )
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 );
+			}
+			ASSERT( outFeatureSet.cooperativeMatrixConfig.Any() );
+
+		  #if 0
+			String	str = "CooperativeMatrixProperties:";
+			for (auto& mp : mat_props)
+			{
+				str << "\nMSize: " << ToString( mp.MSize ) << ", NSize: " << ToString( mp.NSize )
+					<< ", KSize: " << ToString( mp.KSize ) << ", AType: " << VkComponentTypeKHRToString( mp.AType )
+					<< ", BType: " << VkComponentTypeKHRToString( mp.BType )
+					<< ", CType: " << VkComponentTypeKHRToString( mp.CType )
+					<< ", ResultType: " << VkComponentTypeKHRToString( mp.ResultType )
+					<< ", saturatingAccumulation: " << ToString( bool(mp.saturatingAccumulation) )
+					<< ", scope: " << VkScopeKHRToString( mp.scope );
+			}
+			AE_LOGI( str );
+		  #endif
 		}
 
-		if ( _extensions.cooperativeVectorNV )
+		if ( _extensions.cooperativeVectorNV and _properties.cooperativeVectorNVFeats.cooperativeVector )
 		{
-			outFeatureSet.cooperativeVector			= _properties.cooperativeVectorNVFeats.cooperativeVector ? True : False;
+			outFeatureSet.cooperativeVector			= True;
 			outFeatureSet.cooperativeVectorTraining = _properties.cooperativeVectorNVFeats.cooperativeVectorTraining ? True : False;
 
-			// use vkGetPhysicalDeviceCooperativeVectorPropertiesNV to get supported props
+			FixedArray<VkCooperativeVectorPropertiesNV, 32>	vec_props;
+			uint	count = 0;
+
+			VK_CHECK( vkGetPhysicalDeviceCooperativeVectorPropertiesNV( GetVkPhysicalDevice(), OUT &count, null ));
+
+			vec_props.resize( count );
+			for (auto& vp : vec_props) {
+				vp.sType = VK_STRUCTURE_TYPE_COOPERATIVE_VECTOR_PROPERTIES_NV;
+				vp.pNext = null;
+			}
+			
+			VK_CHECK( vkGetPhysicalDeviceCooperativeVectorPropertiesNV( GetVkPhysicalDevice(), INOUT &count, OUT vec_props.data() ));
+			
+			for (auto& vp : vec_props)
+			{
+				if ( vp.inputType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.inputInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and
+					 vp.matrixInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.biasInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and
+					 vp.resultType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.transpose )
+					outFeatureSet.cooperativeVectorConfig.insert( ECoopVecCfg::Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp );
+				else
+				if ( vp.inputType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.inputInterpretation == VK_COMPONENT_TYPE_FLOAT_E4M3_NV and
+					 vp.matrixInterpretation == VK_COMPONENT_TYPE_FLOAT_E4M3_NV and vp.biasInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and
+					 vp.resultType == VK_COMPONENT_TYPE_FLOAT16_KHR )
+					outFeatureSet.cooperativeVectorConfig.insert( ECoopVecCfg::Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16 );
+				else
+				if ( vp.inputType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.inputInterpretation == VK_COMPONENT_TYPE_FLOAT_E5M2_NV and
+					 vp.matrixInterpretation == VK_COMPONENT_TYPE_FLOAT_E5M2_NV and vp.biasInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and
+					 vp.resultType == VK_COMPONENT_TYPE_FLOAT16_KHR )
+					outFeatureSet.cooperativeVectorConfig.insert( ECoopVecCfg::Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16 );
+				else
+				if ( vp.inputType == VK_COMPONENT_TYPE_SINT8_KHR and vp.inputInterpretation == VK_COMPONENT_TYPE_SINT8_KHR and
+					 vp.matrixInterpretation == VK_COMPONENT_TYPE_SINT8_KHR and vp.biasInterpretation == VK_COMPONENT_TYPE_SINT32_KHR and
+					 vp.resultType == VK_COMPONENT_TYPE_SINT32_KHR )
+					outFeatureSet.cooperativeVectorConfig.insert( ECoopVecCfg::Ts8_Is8_Ms8_Bs32_Rs32 );
+			}
+			ASSERT( outFeatureSet.cooperativeVectorConfig.Any() );
+
+		  #if 0
+			String	str = "CooperativeVectorProperties:";
+			for (auto& vp : vec_props)
+			{
+				str << "\ninputType: " << VkComponentTypeKHRToString( vp.inputType )
+					<< ", inputInterpretation: " << VkComponentTypeKHRToString( vp.inputInterpretation )
+					<< ", matrixInterpretation: " << VkComponentTypeKHRToString( vp.matrixInterpretation )
+					<< ", biasInterpretation: " << VkComponentTypeKHRToString( vp.biasInterpretation )
+					<< ", resultType: " << VkComponentTypeKHRToString( vp.resultType )
+					<< ", transpose: " << ToString( bool(vp.transpose) );
+			}
+			AE_LOGI( str );
+		  #endif
 		}
 
 		if ( _extensions.bufferDeviceAddress )
@@ -360,11 +457,11 @@ namespace
 			}
 			std::sort( outFeatureSet.fragmentShadingRates.begin(), outFeatureSet.fragmentShadingRates.end() );
 
-			outFeatureSet.fragmentShadingRateTexelSize.minX		= POTValue{_properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize.width }.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.minY		= POTValue{_properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize.height}.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.maxX		= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.width }.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.maxY		= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.height}.GetPOT();
-			outFeatureSet.fragmentShadingRateTexelSize.aspect	= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.minX			= POTValue{_properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize.width }.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.minY			= POTValue{_properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize.height}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.maxX			= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.width }.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.maxY			= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize.height}.GetPOT();
+			outFeatureSet.fragmentShadingRateTexelSize.aspectRatio	= POTValue{_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio}.GetPOT();
 		}
 		
 		if ( _extensions.fragDensityMap )
@@ -1004,7 +1101,7 @@ namespace
 		SET_FEAT2( attachmentFragmentShadingRate,	_properties.fragShadingRateFeats );
 		_properties.fragShadingRateProps.minFragmentShadingRateAttachmentTexelSize				= BitCast<VkExtent2D>(inFS.fragmentShadingRateTexelSize.Min());
 		_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSize				= BitCast<VkExtent2D>(inFS.fragmentShadingRateTexelSize.Max());
-		_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio	= inFS.fragmentShadingRateTexelSize.MaxAspect();
+		_properties.fragShadingRateProps.maxFragmentShadingRateAttachmentTexelSizeAspectRatio	= inFS.fragmentShadingRateTexelSize.MaxAspectRatio();
 		
 		_extensions.fragDensityMap = (inFS.fragmentDensityMap == True);
 		SET_FEAT2( fragmentDensityMap,						_properties.fragDensityMapFeats );

@@ -15,7 +15,7 @@
 		RC<Image>		ds			= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 		RC<Scene>		scene		= Scene();
 
-		RC<Image>		color_map	= Image( EImageType::Float_2D, "res/tex/rocks_color_rgba.ktx" );
+		RC<Image>		color_map	= Image( EImageType::Float_2D, "res/tex/rocks_color_rgba.ktx" );			// TODO: tileable texture
 		RC<Image>		norm_h_map	= Image( EImageType::Float_2D, "res/tex/rocks_normal_height_rgba.ktx" );
 						norm_h_map.SetSwizzle( "ARGB" );	// R - height, GBA - normal
 
