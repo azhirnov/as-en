@@ -348,31 +348,76 @@ namespace AE::ResEditor
 	_InOut
 =================================================
 */
-	void  ScriptBaseRenderPass::_InOut (const String &inName, const String& outName, const ScriptImagePtr &rt) __Th___
+	void  ScriptBaseRenderPass::_InOut (Scripting::ScriptArgList args) __Th___
 	{
-		CHECK_THROW_MSG( rt );
-		CHECK_THROW_MSG( not inName.empty() );
-		CHECK_THROW_MSG( inName != outName );
+		auto*	obj = args.GetObject< ScriptBaseRenderPass >();
+		obj->_InOut2( args );
+	}
 
-		auto&	dst		= _output.emplace_back();
-		bool	is_ds	= rt->IsDepthOrStencil();
+	void  ScriptBaseRenderPass::_InOut2 (Scripting::ScriptArgList args) __Th___
+	{
+		auto&	dst	= _output.emplace_back();
+		uint	idx	= 0;
+		
+		if ( args.IsArg< String const& >(idx) ){
+			dst.inName = args.Arg< String const& >(idx++);
+		}
+		if ( args.IsArg< String const& >(idx) ){
+			dst.name = args.Arg< String const& >(idx++);
+		}
 
-		dst.name	= outName;
-		dst.inName	= inName;
-		dst.rt		= rt;
+		CHECK_THROW_MSG( not dst.inName.empty() );
+		CHECK_THROW_MSG( dst.inName != dst.name );
+		
+		if ( args.IsArg< ScriptImagePtr const& >(idx) )
+		{
+			dst.rt = args.Arg< ScriptImagePtr const& >(idx++);
+			CHECK_THROW_MSG( dst.rt );
 
-		dst.usage	= (is_ds ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment);
-		dst.usage	|= EResourceUsage::InputAttachment;
+			dst.usage  = (dst.rt->IsDepthOrStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment);
+			dst.usage |= EResourceUsage::InputAttachment;
+			dst.rt->AddUsage( dst.usage );
+		}
+		else
+			CHECK_THROW_MSG( false, "image is not defined" );
 
-		dst.rt->AddUsage( dst.usage );
+		if ( args.IsArg< RGBA32f const& >(idx) )
+		{
+			CHECK_THROW_MSG( dst.rt->IsColor() );
+			dst.clear	= args.Arg< RGBA32f const& >(idx++);
+			dst.loadOp	= EAttachmentLoadOp::Clear;
+		}
+		else
+		if ( args.IsArg< RGBA32u const& >(idx) )
+		{
+			CHECK_THROW_MSG( dst.rt->IsColor() );
+			dst.clear	= args.Arg< RGBA32u const& >(idx++);
+			dst.loadOp	= EAttachmentLoadOp::Clear;
+		}
+		else
+		if ( args.IsArg< RGBA32i const& >(idx) )
+		{
+			CHECK_THROW_MSG( dst.rt->IsColor() );
+			dst.clear	= args.Arg< RGBA32i const& >(idx++);
+			dst.loadOp	= EAttachmentLoadOp::Clear;
+		}
+		else
+		if ( args.IsArg< DepthStencil const& >(idx) )
+		{
+			CHECK_THROW_MSG( dst.rt->IsDepthOrStencil() );
+			dst.clear	= args.Arg< DepthStencil const& >(idx++);
+			dst.loadOp	= EAttachmentLoadOp::Clear;
+		}
 
-		if ( is_ds and outName.empty() )
+		CHECK_THROW_MSG( idx == args.ArgCount() );
+
+		if ( dst.rt->IsDepthOrStencil() and dst.name.empty() )
 			dst.name = "DepthStencil";
 		else
-			CHECK_THROW_MSG( not outName.empty() );
+			CHECK_THROW_MSG( not dst.name.empty() );
 
-		if ( rt->IsMutableDimension() )
-			_SetDynamicDimension( rt->DimensionRC() );
+		if ( dst.rt->IsMutableDimension() )
+			_SetDynamicDimension( dst.rt->DimensionRC() );
 	}
 	
 /*
@@ -412,6 +457,12 @@ namespace AE::ResEditor
 */
 	void  ScriptBaseRenderPass::_MoveTo (OUT ScriptBaseRenderPass &dst) __NE___
 	{
+		#ifdef AE_COMPILER_MSVC
+		# if _ITERATOR_DEBUG_LEVEL == 0
+			StaticAssert64( sizeof(ScriptBaseRenderPass) == 800 );
+		# endif
+		#endif
+
 		ScriptBasePass::_MoveTo( OUT dst );
 
 		dst._output		= RVRef( this->_output );		this->_output.clear();

@@ -1,9 +1,12 @@
 
-* Дым
-* Туман
+Содержание:
+* [Дым](#Дым)
+* [Туман](#Туман)
 * [Облака](#Облака)
-    - [Примеры](#Примеры)
-
+    - [Примеры](#Примеры-1)
+	- [Оптимизируем](#Оптимизируем)
+* [Атмосфера](#Атмосфера)
+* [Исходники](#Исходники)
 
 
 # Дым
@@ -61,7 +64,7 @@
 * "Темная обводка" (Powder effect)<br/>
   В плотных дождевых облаках большой вклад вносит рассеяное освещение, тогда кажется что свет идет изнутри облака, а внешние детали только затеняют его.
   Эффект проявляется на определенных углах, когда свет сбоку проходит через облако, затем затеняется внешними деталями и попадает на камеру. Углы определяются HG-функцией.<br/>
-  Является противоположностью SilverLining (свечение краев) эффекта.<br/>
+  Является противоположностью SilverLining эффекта (свечение краев).<br/>
   ![](img/Clouds_PowderEffect.jpg)<br/>
   Хорошо заметен в инфракрасном диапазоне.<br/>
   ![](img/Clouds_Thermal.jpg)<br/>
@@ -78,7 +81,10 @@
 
 ## Примеры
 
-### [Shadertoy: 60FPS Volumetric Clouds on iGPU](https://www.shadertoy.com/view/DtBGR1)
+### Shadertoy: 60FPS Volumetric Clouds on iGPU
+
+[![](https://www.shadertoy.com/media/shaders/DtBGR1.jpg)](https://www.shadertoy.com/view/DtBGR1)
+
 Сделано просто, код читаем и работает быстро, но это не физически-корректные облака.
 
 <details><summary>Подробнее</summary>
@@ -86,7 +92,7 @@
 Рисование облаков сделано в `Buffer C`.
 
 ```glsl
-// строка 139
+//< строка 139
 float fog = pow(1.0 - (dist_from_camera / DRAW_DISTANCE), 0.5);
                         
 vec3 lighting = lightMarch(current_position, direction);
@@ -107,7 +113,7 @@ accumulation = alphaOver(accumulation, vec4(cloud_color, density));
 vec3 lightMarch(vec3 start_position, vec3 view_direction) {
     // Computes the lighting in the cloud at a given point
     float lighting = 1.0;
-    float transmission = 1.0 - dot(LIGHT_DIRECTION, view_direction);  // упрощенная фазовая функция, должна быть HG
+    float transmission = 1.0 - dot(LIGHT_DIRECTION, view_direction);  //< упрощенная фазовая функция, должна быть HG
     transmission += 0.1;
     lighting *= clamp(1.0 - sampleCloudMapDensity(start_position + LIGHT_DIRECTION * 1.0) * 0.2 * transmission, 0.0, 1.0); // Self
     lighting *= clamp(1.0 - sampleCloudMapDensity(start_position + LIGHT_DIRECTION * 2.0) * 0.2 * transmission, 0.0, 1.0); // Far
@@ -133,30 +139,36 @@ vec4 alphaOver(vec4 top, vec4 bottom) {
 
 </details>
 
-### [Shadertoy: Single Sample Tricubic Sampling](https://www.shadertoy.com/view/tdtyzj)
+### Shadertoy: Single Sample Tricubic Sampling
+
+[![](https://www.shadertoy.com/media/shaders/tdtyzj.jpg)](https://www.shadertoy.com/view/tdtyzj)
+
 Сделана только темная обводка (powder effect), но смотрится хорошо и работает быстро.
 
 <details><summary>Подробнее</summary>
 
 ```glsl
-// строка 178
-sigma  = -f * (1024.0*1.0);                              // f - плотность, sigma - коэффициент рассеивания
+//< строка 178
+sigma  = -f * (1024.0*1.0);                              //< f - плотность, sigma - коэффициент рассеивания
 
-float rad  = 1.0 - exp2(-sigma * 0.04);                  // темная обводка
-      rad *= 1.0 - Pow2(cubic(1.0-clamp01(p0.y + 0.5))); // эффект зависит от высоты
+float rad  = 1.0 - exp2(-sigma * 0.04);                  //< темная обводка
+      rad *= 1.0 - Pow2(cubic(1.0-clamp01(p0.y + 0.5))); //< эффект зависит от высоты
 
-tau += sigma * stepSize;                                 // tau - оптическая плотность
+tau += sigma * stepSize;                                 //< tau - оптическая плотность
 
-float T0 = T;                                            // T - коэффициент пропускания, меняется от 1 до 0
-T = exp2(-tau);                                          // поглощение света (Beer's law)
+float T0 = T;                                            //< T - коэффициент пропускания, меняется от 1 до 0
+T = exp2(-tau);                                          //< поглощение света (Beer's law)
                         
-float prob = T0 - T;                                     // вероятность рассеивания
-r += rad * prob;                                         // накопление света
+float prob = T0 - T;                                     //< вероятность рассеивания
+r += rad * prob;                                         //< накопление света
 ```
 
 </details>
 
-### [Shadertoy: PBR CLOUDS](https://www.shadertoy.com/view/XcjXWy)
+### Shadertoy: PBR CLOUDS
+
+[![](https://www.shadertoy.com/media/shaders/XcjXWy.jpg)](https://www.shadertoy.com/view/XcjXWy)
+
 Выглядит физически корректно, но код сложнее читать.
 
 <details><summary>Подробнее</summary>
@@ -165,10 +177,16 @@ r += rad * prob;                                         // накопление
 
 </details>
 
-### [Shadertoy: Cloud Flight](https://www.shadertoy.com/view/XtlfDn)
+### Shadertoy: Cloud Flight
+
+[![](https://www.shadertoy.com/media/shaders/XtlfDn.jpg)](https://www.shadertoy.com/view/XtlfDn)
+
 Нет физической корректности, но смотрится хорошо и работает быстро.
 
-### [Shadertoy: Swiss Alps](https://www.shadertoy.com/view/ttcSD8)
+### Shadertoy: Swiss Alps
+
+[![](https://www.shadertoy.com/media/shaders/ttcSD8.jpg)](https://www.shadertoy.com/view/ttcSD8)
+
 Выглядит физически корректно.
 
 <details><summary>Подробнее</summary>
@@ -177,7 +195,7 @@ r += rad * prob;                                         // накопление
 В цикле считается освещение для каждой точки внутри облака.
 
 ```glsl
-// строка 158
+//< строка 158
 float density = getCloudDensity(p, heightFract, true);
 if (density > 0.)
 {
@@ -186,13 +204,13 @@ if (density > 0.)
     // cloud illumination
     vec3 luminance = (ambient * SAT(pow(sun.z + .04, 1.4))
         + skyCol * .125 + (sunHeight * skyCol + vec3(.0075, .015, .03))
-        * SUN_COLOR * hgPhase                                              // HG-функция расчитывается один раз, хотя на таком масштабе солнце это точечный источник, а не направленный
-        * marchToLight(p, sunDir, sunDot, sunScatterHeight))               // рассчитывается освещение в данной точке
-        * density;                                                         // вклад освещения зависит от плотности
+        * SUN_COLOR * hgPhase                                              //< HG-функция расчитывается один раз, хотя на таком масштабе солнце это точечный источник, а не направленный
+        * marchToLight(p, sunDir, sunDot, sunScatterHeight))               //< рассчитывается освещение в данной точке
+        * density;                                                         //< вклад освещения зависит от плотности
 
     // improved scatter integral by Sébastien Hillaire
-    float transmittance = exp(-density * cameraRayStepSize);               // поглощение света (Beer's law)
-    vec3 integScatter = (luminance - luminance * transmittance) * (1. / density);  // интеграл - тут похоже ошибка, так как luminance умножено на density и они сократятся
+    float transmittance = exp(-density * cameraRayStepSize);               //< поглощение света (Beer's law)
+    vec3 integScatter = (luminance - luminance * transmittance) * (1. / density);  //< интеграл - тут похоже ошибка, так как luminance умножено на density и они сократятся
 
     intScatterTrans.rgb += intScatterTrans.a * integScatter; 
     intScatterTrans.a *= transmittance;
@@ -221,15 +239,15 @@ float marchToLight(vec3 p, vec3 sunDir, float sunDot, float scatterHeight)
     }
     
     return 32. *
-           exp(-totalDensity * mix(CLOUD_ABSORPTION_BOTTOM, CLOUD_ABSORPTION_TOP, scatterHeight)) * // поглощение света (Beer's law)
-           (1. - exp(-totalDensity * 2.));                                                          // темная обводка (powder effect)
+           exp(-totalDensity * mix(CLOUD_ABSORPTION_BOTTOM, CLOUD_ABSORPTION_TOP, scatterHeight)) * //< поглощение света (Beer's law)
+           (1. - exp(-totalDensity * 2.));                                                          //< темная обводка (powder effect)
 }
 ```
 
 Финальный цвет с учетом атмосферного рассеивания.
 
 ```glsl
-// строка 185
+//< строка 185
 float fogMask = 1. - exp(-smoothstep(.15, 0., ray.direction.y) * 2.);
 vec3 fogCol = atmosphericScattering(uv * .5 + .2, sun.xy * .5 + .2, false);
 intScatterTrans.rgb = mix(intScatterTrans.rgb, fogCol * sunHeight, fogMask);
@@ -240,10 +258,18 @@ col = vec4(max(vec3(intScatterTrans.rgb), 0.), intScatterTrans.a);
 
 </details>
 
-https://www.shadertoy.com/view/Xttcz2
-https://www.shadertoy.com/view/MstBWs
+### Shadertoy: Volumetric Overcast Clouds
 
-### [Shadertoy: STARRY NIGHT](https://www.shadertoy.com/view/3dlfWs)
+[![](https://www.shadertoy.com/media/shaders/Xttcz2.jpg)](https://www.shadertoy.com/view/Xttcz2)
+
+### Real time PBR Volumetric Clouds
+
+[![](https://www.shadertoy.com/media/shaders/MstBWs.jpg)](https://www.shadertoy.com/view/MstBWs)
+
+### Shadertoy: STARRY NIGHT
+
+[![](https://www.shadertoy.com/media/shaders/3dlfWs.jpg)](https://www.shadertoy.com/view/3dlfWs)
+
 Хорошо видны мелкие детали облаков.
 
 <details><summary>Подробнее</summary>
@@ -269,8 +295,8 @@ float multipleOctaves(float extinction, float mu, float stepL){
     
     for(float i = 0.0; i < octaves; i++){
         //Two-lobed HG
-        phase = mix(HenyeyGreenstein(-0.1*c, mu), HenyeyGreenstein(0.3*c, mu), 0.7);  // HG-функция
-        luminance += b * phase * exp(-stepL * extinction * a);                        // поглощение света (Beer's law)
+        phase = mix(HenyeyGreenstein(-0.1*c, mu), HenyeyGreenstein(0.3*c, mu), 0.7);  //< HG-функция
+        luminance += b * phase * exp(-stepL * extinction * a);                        //< поглощение света (Beer's law)
         //Lower is brighter
         a *= 0.25;
         //Higher is brighter
@@ -284,7 +310,7 @@ float multipleOctaves(float extinction, float mu, float stepL){
 Комбинация поглощение света и темной обводки, темная обводка зависит от угла между взглядом и светом, что как раз выглядит физически корректно.
 
 ```glsl
-// строка 371
+//< строка 371
 float beersLaw = multipleOctaves(lightRayDensity, mu, stepL);
 
 //Return product of Beer's law and powder effect depending on the
@@ -295,7 +321,7 @@ return mix(beersLaw * 2.0 * (1.0-(exp(-stepL*lightRayDensity*2.0))), beersLaw, 0
 Комбинация освещения на каждом шаге маршинга немного отличается от варианта **Swiss Alps** и по формулам выглядит более корректно.
 
 ```glsl
-// строка 445
+//< строка 445
 
 //Amount of sunlight that reaches the sample point through the cloud 
 //is the combination of ambient light and attenuated direct light.
@@ -312,7 +338,7 @@ float transmittance = exp(-sampleSigmaE * stepS);
 //"From Physically based sky, atmosphere and cloud rendering in Frostbite" 5.6
 //by Sebastian Hillaire.
 colour += 
-    totalTransmittance * (luminance - luminance * transmittance) / sampleSigmaE;  // интеграл, тут luminance умножено на sampleSigmaS и делится на sampleSigmaE
+    totalTransmittance * (luminance - luminance * transmittance) / sampleSigmaE;  //< интеграл, тут luminance умножено на sampleSigmaS и делится на sampleSigmaE
 
 //Attenuate the amount of light that reaches the camera.
 totalTransmittance *= transmittance;
@@ -321,7 +347,7 @@ totalTransmittance *= transmittance;
 Но в итоге `sigmaA = 0` и `sampleSigmaS == sampleSigmaE`.
 
 ```glsl
-// строка 429
+//< строка 429
 
 //Scattering and absorption coefficients.
 float sigmaS = 1.0;

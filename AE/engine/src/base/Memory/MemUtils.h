@@ -132,7 +132,7 @@ namespace AE::Base
 		StaticAssert( std::is_nothrow_destructible_v<T> );
 		StaticAssert( IsConstructible< T, Args... >);
 
-		if constexpr( IsNothrowCtor< T, Args... > or IsConstEvaluated() )
+		if constexpr( IsNothrowCtor< T, Args... >)
 		{
 			value.~T();
 			DEBUG_ONLY( DbgFreeMem( value ));
@@ -145,7 +145,8 @@ namespace AE::Base
 		}
 		else
 		{
-			TRY{
+			if ( IsConstEvaluated() )
+			{
 				value.~T();
 				DEBUG_ONLY( DbgFreeMem( value ));
 
@@ -155,11 +156,24 @@ namespace AE::Base
 				return ( ::new(&value) T{ FwdArg<Args>(args)... });
 			  #endif
 			}
-			CATCH_ALL(
-				DBG_WARNING( "exception in ctor!" );
-				DEBUG_ONLY( DbgFreeMem( value ));
-				return null;
-			);
+			else
+			{
+				TRY{
+					value.~T();
+					DEBUG_ONLY( DbgFreeMem( value ));
+
+				  #if AE_CXX_VER >= 20
+					return std::construct_at( OUT &value, FwdArg<Args>(args)... );
+				  #else
+					return ( ::new(&value) T{ FwdArg<Args>(args)... });
+				  #endif
+				}
+				CATCH_ALL(
+					DBG_WARNING( "exception in ctor!" );
+					DEBUG_ONLY( DbgFreeMem( value ));
+					return null;
+				);
+			}
 		}
 	}
 

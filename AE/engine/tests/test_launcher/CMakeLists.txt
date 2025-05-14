@@ -64,7 +64,7 @@ if (ANDROID)
 		add_dependencies( "TestLauncher" "NetworkStressTest" )
 	endif()
 
-else()
+elseif (${AE_INCLUDE_ANDROID_SRC})
 	set( ANDROID_SRC_PATH "${MAIN_SOURCE_DIR}/android/test/src/main" )
 	if (NOT EXISTS "${ANDROID_SRC_PATH}")
 		message( FATAL_ERROR "Android source is not exists in ${ANDROID_SRC_PATH}" )
@@ -72,6 +72,12 @@ else()
 	file( GLOB_RECURSE ANDROID_SOURCES "${ANDROID_SRC_PATH}/*.*" )
 	list( APPEND ANDROID_SOURCES "${ANDROID_SRC_PATH}/../../build.gradle" )
 
+	add_executable( "TestLauncher" EXCLUDE_FROM_ALL ${CPP_SOURCES} ${ANDROID_SOURCES} )
+
+	source_group( "Apk" FILES ${ANDROID_SOURCES} )
+	set_source_files_properties( ${ANDROID_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
+
+else()
 	add_executable( "TestLauncher" EXCLUDE_FROM_ALL ${CPP_SOURCES} ${ANDROID_SOURCES} )
 
 	source_group( "Apk" FILES ${ANDROID_SOURCES} )

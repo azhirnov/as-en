@@ -241,14 +241,27 @@ namespace AE::Graphics
 		StaticAssert( sizeof(MultisampleState) == 12 );
 
 
+		//
+		// Rasterization Order Access
+		//
+		struct RasterizationOrderAccess
+		{
+			bool	color	= false;		// require 'rasterOrderColorAccess' feature
+			bool	depth	= false;		// require 'rasterOrderDepthAccess' feature
+			bool	stencil	= false;		// require 'rasterOrderStencilAccess' feature
+		};
+		StaticAssert( sizeof(RasterizationOrderAccess) == 3 );
+
+
 	// variables
 	public:
-		ColorBuffersState		color;
-		DepthBufferState		depth;
-		StencilBufferState		stencil;
-		InputAssemblyState		inputAssembly;
-		RasterizationState		rasterization;
-		MultisampleState		multisample;
+		ColorBuffersState			color;
+		DepthBufferState			depth;
+		StencilBufferState			stencil;
+		InputAssemblyState			inputAssembly;
+		RasterizationState			rasterization;
+		MultisampleState			multisample;
+		RasterizationOrderAccess	rasterOrderAccess;
 
 
 	// methods
@@ -262,7 +275,7 @@ namespace AE::Graphics
 			void	Set (const MDepthStencilState &ds, const MDynamicRenderState &rs)	__NE___;
 			void	SetDefault (EPipelineDynamicState)									__NE___;
 	};
-	StaticAssert( sizeof(RenderState) == 148 );
+	StaticAssert( sizeof(RenderState) == 152 );
 
 
 

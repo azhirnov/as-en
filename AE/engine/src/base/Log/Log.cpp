@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#ifdef AE_COMPILER_MSVC
+#ifdef AE_PLATFORM_WINDOWS
 #	include "base/Platforms/WindowsHeader.cpp.h"
 #endif
 
@@ -15,8 +15,8 @@ namespace AE::Base
 {
 namespace
 {
-	static StaticLogger::LevelBits				s_levelBits	{ ~0u };
-	static StaticLogger::ScopeBits				s_scopeBits	{ ~0u };
+	static StaticLogger::LevelBits				s_levelBits		{ ~0u };
+	static StaticLogger::ScopeBits				s_scopeBits		{ ~0u };
 	static std::shared_mutex					s_loggersGuard;
 	static Optional< Array< Unique<ILogger> >>	s_loggers;
 	static int									s_refCounter	= 0;
@@ -24,7 +24,7 @@ namespace
 
 /*
 =================================================
-	ProcessMessage
+	ProcessMessage2
 =================================================
 */
 	ND_ static StaticLogger::EResult  ProcessMessage2 (const ILogger::MessageInfo &info)
@@ -55,7 +55,12 @@ namespace
 
 		return result;
 	}
-
+	
+/*
+=================================================
+	ProcessMessage
+=================================================
+*/
 	ND_ static StaticLogger::EResult  ProcessMessage (const ILogger::MessageInfo &info)
 	{
 		StaticLogger::EResult	res;
@@ -66,7 +71,7 @@ namespace
 		}
 		else
 		{
-		  #ifdef AE_COMPILER_MSVC
+		  #ifdef AE_PLATFORM_WINDOWS
 			::OutputDebugStringA( "Recursion call for logger." );
 		  #endif
 		  #if 0 //def AE_DEBUG
@@ -78,6 +83,31 @@ namespace
 		s_recursion.fetch_sub( 1 );
 		return res;
 	}
+	
+/*
+=================================================
+	SetDebugReportHook
+----
+	without hook CI will stall on error dialog
+=================================================
+*/
+#if defined(AE_PLATFORM_WINDOWS) and (defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF)) and defined(_DEBUG)
+
+	static int __CRTDECL CrtReportHook (int type, char* msg, int* ret)
+	{
+		AE_LOGE( msg );
+		AE_PRIVATE_EXIT();
+		return true;
+	}
+
+	static void  SetDebugReportHook ()
+	{
+		::_CrtSetReportHook( &CrtReportHook );
+	}
+
+#else
+	static void  SetDebugReportHook () {}
+#endif
 
 } // namespace
 
@@ -93,6 +123,8 @@ namespace
 
 		++s_refCounter;
 		s_loggers.emplace();
+
+		SetDebugReportHook();
 	}
 
 /*
@@ -110,7 +142,7 @@ namespace
 		s_loggers.reset();
 
 		Unused( checkMemLeaks );
-		#ifdef AE_ENABLE_MEMLEAK_CHECKS
+	  #ifdef AE_ENABLE_MEMLEAK_CHECKS
 		if ( checkMemLeaks )
 		{
 			if ( not AE_DUMP_MEMLEAKS() )
@@ -133,7 +165,7 @@ namespace
 			  #endif
 			}
 		}
-		#endif
+	  #endif
 	}
 
 /*

@@ -85,12 +85,15 @@ namespace AE::Graphics
 	usage: in tools only, optimization is not needed
 =================================================
 */
-	bool  EResourceState_Validate (EResourceState state) __NE___
+	bool  EResourceState_Validate (const EResourceState state) __NE___
 	{
 		const auto				access	= ToEResState( state );
 		const EResourceState	shaders	= state & EResourceState::AllShaders;
 
-		const bool	has_any_shader = AnyBits( shaders, EResourceState::AllShaders );
+		const bool	has_any_shader			= shaders != Zero;
+		const bool	has_post_raster_shaders	= AnyBits( shaders, EResourceState::PostRasterizationShaders );
+		const bool	has_pre_raster_shaders	= AnyBits( shaders, ~EResourceState::PostRasterizationShaders );
+		const bool	has_ds_stage			= AnyBits( state, EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS );
 
 		switch_enum( access )
 		{
@@ -100,21 +103,34 @@ namespace AE::Graphics
 			case _EResState::ShaderUniform :
 			case _EResState::ShaderSample :
 			case _EResState::ShaderRTAS :
-				CHECK_ERR( AnyBits( shaders, EResourceState::AllShaders ));
+				CHECK_ERR_MSG( has_any_shader,  "Resource state ("s << ToString( state ) << ") must contain shader stage." );
 				break;
 
 			case _EResState::InputColorAttachment :
 			case _EResState::InputColorAttachment_RW :
 			case _EResState::InputDepthStencilAttachment :
+				CHECK_ERR_MSG( has_post_raster_shaders,  "Resource state ("s << ToString( state ) << ") must contain fragment or tile shader." );
+				CHECK_ERR_MSG( not has_pre_raster_shaders,  "Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
+				break;
+
 			case _EResState::InputDepthStencilAttachment_RW :
-				CHECK_ERR( AnyBits( shaders, EResourceState::PostRasterizationShaders ));
-				CHECK_ERR( NoBits( shaders, EResourceState::AllShaders & ~EResourceState::PostRasterizationShaders ));
+				CHECK_ERR_MSG( has_post_raster_shaders,  "Resource state ("s << ToString( state ) << ") must contain fragment or tile shader." );
+				CHECK_ERR_MSG( not has_pre_raster_shaders,  "Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
+				CHECK_ERR_MSG( has_ds_stage,  "Resource state ("s << ToString( state ) << ") must contain depth stage." );
 				break;
 
 			case _EResState::DepthStencilTest_ShaderSample :
 			case _EResState::DepthTest_DepthSample_StencilRW :
-				CHECK_ERR( AnyBits( shaders, EResourceState::AllGraphicsShaders ));
-				CHECK_ERR( NoBits( shaders, EResourceState::AllShaders & ~EResourceState::AllGraphicsShaders ));
+				CHECK_ERR_MSG( AnyBits( shaders, EResourceState::AllGraphicsShaders ),  "Resource state ("s << ToString( state ) << ") must contain graphics shader stage." );
+				CHECK_ERR_MSG( not has_pre_raster_shaders,  "Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
+				break;
+				
+			case _EResState::DepthStencilTest :
+			case _EResState::DepthStencilAttachment_RW :
+			case _EResState::DepthTest_StencilRW :
+			case _EResState::DepthRW_StencilTest :
+				CHECK_ERR_MSG( has_ds_stage,  "Resource state ("s << ToString( state ) << ") must contain depth stage." );
+				CHECK_ERR_MSG( not has_any_shader,  "Resource state ("s << ToString( state ) << ") should not contain shader stages." );
 				break;
 
 			case _EResState::Unknown :
@@ -125,10 +141,6 @@ namespace AE::Graphics
 			case _EResState::BlitSrc :
 			case _EResState::BlitDst :
 			case _EResState::ColorAttachment :
-			case _EResState::DepthStencilTest :
-			case _EResState::DepthStencilAttachment_RW :
-			case _EResState::DepthTest_StencilRW :
-			case _EResState::DepthRW_StencilTest :
 			case _EResState::Host_Read :
 			case _EResState::PresentImage :
 			case _EResState::IndirectBuffer :
@@ -142,7 +154,7 @@ namespace AE::Graphics
 			case _EResState::BuildRTAS_RW :
 			case _EResState::BuildRTAS_IndirectBuffer :
 			case _EResState::RTShaderBindingTable :
-				CHECK_ERR( not has_any_shader );
+				CHECK_ERR_MSG( not has_any_shader,  "Resource state ("s << ToString( state ) << ") should not contain shader stages." );
 				break;
 
 			case _EResState::General :
@@ -219,7 +231,7 @@ namespace AE::Graphics
 	usage: debug checks, optimization is not needed
 =================================================
 */
-	bool  EResourceState_RequireShaderStage (EResourceState state) __NE___
+	bool  EResourceState_RequireShaderStage (const EResourceState state) __NE___
 	{
 		switch_enum( ToEResState( state ))
 		{

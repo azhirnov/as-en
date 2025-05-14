@@ -5,7 +5,7 @@
 	Each mip-level calculation has correction to read all texels that affects the destination pixel.
 	As a result it cause to read 3x3 blocks in worst case.
 
-	Has less performance than 'GenHiZ-1'
+	Has less performance than 'GenHiZ-1' on POT image.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -20,29 +20,64 @@
 	void ASmain ()
 	{
 		// initialize
+	  #if 0
+		// debugging
 		RC<DynamicUInt2>	tex_dim		= DynamicUInt2();
 		RC<DynamicDim>		dim			= tex_dim.Dimension();
+
+		Slider( tex_dim,	"Dimension",	uint2(3),	uint2(64),	uint2(54, 57) );
+
+	  #else
+		// performance test
+		RC<DynamicUInt>		dim_scale	= DynamicUInt();
+		RC<DynamicUInt2>	tex_dim		= DynamicUInt2( uint2(1920, 1080)/2 ).Mul( dim_scale.PowOf2().XX() );
+		RC<DynamicDim>		dim			= tex_dim.Dimension();
+
+		Slider( dim_scale,	"DimensionScale",	0, 3, 1 );	// 1K, 2K, 4K, 8K
+		Label(  tex_dim,	"Dimension" );
+	  #endif
 		
-		RC<Image>			mipmaps		= Image( EPixelFormat::R16F, dim, MipmapLevel(~0) );	mipmaps.Name( "Mipmapped" );
-		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );		rt.Name( "RT" );
+		EPixelFormat		fmt			= EPixelFormat::R16F;	// R16F or R32F
+		RC<Image>			mipmaps		= Image( fmt, dim, MipmapLevel(~0) );				mipmaps.Name( "Mipmapped" );
+		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );	rt.Name( "RT" );
+		RC<DynamicUInt>		repeat		= DynamicUInt();
+		RC<DynamicUInt>		raster		= DynamicUInt( 1 );
+		const bool			gfx_only	= false;	// some devices disable compression if have 'Storage' usage
+		
+		Slider( repeat,		"Repeat",	1,	30 );
+		
+		if ( not gfx_only )
+			Slider( raster,		"Raster",	0,	1 );
 
-		Slider( tex_dim,	"Dim",		uint2(3),	uint2(64),	uint2(54, 57) );
+		// render loop //
 
-		// render loop
 		{
 			RC<Postprocess>		pass = Postprocess( "", "GEN_DEPTH" );
-			pass.Output( "out_Color",		mipmaps );
-			pass.Slider( "iHash",			0.0,	3.0,	0.0 );
-		}{
+			pass.Output( "out_Color",	mipmaps );
+			pass.Slider( "iHash",		0.0,	3.0,	0.0 );
+		}
+		
+		// generate mipmap chain
+		if ( not gfx_only )
+		{
 			RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP" );
 			pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_NearestClamp );
+			pass.Repeat( repeat );
+			pass.EnableIfEqual( raster, 0 );
 		}{
+			RC<RasterMip>		pass = RasterMip( "", "GEN_MIPMAP" );
+			pass.Variable( "un_InImage",	"out_Color",	mipmaps,	Sampler_NearestClamp );
+			pass.Repeat( repeat );
+			pass.EnableIfEqual( raster, 1 );
+		}
+
+		{
 			RC<Postprocess>		pass = Postprocess( "", "VIEW" );
 			pass.Output( "out_Color",		rt );
-			pass.ArgIn(  "un_Mipmaps",		mipmaps,	Sampler_NearestClamp );
+			pass.ArgIn(  "un_Mipmaps",		mipmaps,		Sampler_NearestClamp );
 			pass.Slider( "iBeginEnd",		float2(0.0),	float2(1.0),	float2(0.0, 1.0) );
-			pass.Slider( "iMip",			-1,		5,		0 );
-			pass.Slider( "iGrid",			0,		1 );
+			pass.Slider( "iMip",			-1,				5,				0 );
+			pass.Slider( "iGrid",			0,				1 );
 		}
 		Present( rt );
 	}
@@ -75,11 +110,11 @@
 
 	void  Main ()
 	{
-		int2	dim			= gl.texture.GetSize( un_InImage, 0 );
-		float2	inv_size	= 1.0 / float2(dim/2);
+		int2	dim		= int2(iResolution) * 2;
+		float2	inv_res	= iInvResolution;
 		
-		float2	uv0		= (GetGlobalCoordUF().xy * inv_size) * dim;
-		float2	uv1		= ((GetGlobalCoordUF().xy + 1.0) * inv_size) * dim;
+		float2	uv0		= (GetGlobalCoordUF().xy * inv_res) * dim;
+		float2	uv1		= ((GetGlobalCoordUF().xy + 1.0) * inv_res) * dim;
 
 		float	d		= float_max;
 
@@ -92,7 +127,11 @@
 			d = Min( d, gl.texture.Fetch( un_InImage, int2(x,y), 0 ).r);
 		}
 		
-		gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(d) );
+		#ifdef SH_FRAG
+			out_Color = float4(d);
+		#else
+			gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(d) );
+		#endif
 	}
 
 #endif

@@ -10,6 +10,7 @@ jobs:
     
     runs-on: macos-latest
     name: MacOS ARM64, ${{matrix.config}}
+    timeout-minutes: 90
     
     steps:
     - uses: actions/checkout@v4
@@ -19,7 +20,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/nCzXmvKaQpa9JQ"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/Fp1BRXACry17nQ"
         unzip external.zip
       
     - name: Configure CMake
@@ -114,6 +115,7 @@ jobs:
     
     runs-on: macos-latest
     name: MacOS ARM64, C++17, ${{matrix.config}}
+    timeout-minutes: 90
     
     steps:
     - uses: actions/checkout@v4
@@ -123,7 +125,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/nCzXmvKaQpa9JQ"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/Fp1BRXACry17nQ"
         unzip external.zip
       
     - name: Configure CMake

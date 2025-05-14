@@ -135,8 +135,12 @@
 Круги на планете образуются за счет пересечения множества сфер в 3D пространсве с планетой, центр сферы не лежит на планете, значит получается неправильная дистанция на поверхности планеты, из-за чего не получится наложить форму кратера.<br/>
 В примере [Lunar Cubemap](https://www.shadertoy.com/view/4t3yzj) решают эту проблему искажением дистанции, это работает, но форма кратеров одинаковая и вблизи смотрится не достаточно хорошо. И главный минус такого подхода - 125 итераций для расчета одного слоя диаграммы Вороного, а слоев нужно много.
 
+![](https://www.shadertoy.com/media/shaders/4t3yzj.jpg)
+
 **2D Вороной на грани куба**
 В примере [Space egg](https://www.shadertoy.com/view/Mtj3DV) используются диаграммы Воронного для кубической карты, это дает 9 вычислений расстояния с учетом соседних граней и рассчет коррекции, это не много, но есть куда оптимизировать.
+
+![](https://www.shadertoy.com/media/shaders/Mtj3DV.jpg)
 
 **Вариант от Coding Adventure**<br/>
 В видео [Coding Adventure: Procedural Moons and Planets](https://youtu.be/lctXaT9pxA0?t=189) кратеры генерируются на CPU в [CraterSettings](https://github.com/SebLague/Solar-System/blob/Episode_02/Assets/Celestial%20Body/Scripts/NoiseSettings/CraterSettings.cs#L46), затем идет полный перебор в компьют шейдере: [Craters.cginc](https://github.com/SebLague/Solar-System/blob/Episode_02/Assets/Celestial%20Body/Scripts/Shaders/Includes/Craters.cginc#L18) и [MoonHeight.compute](https://github.com/SebLague/Solar-System/blob/Episode_02/Assets/Celestial%20Body/Scripts/Shaders/Compute/Height/MoonHeight.compute#L26) для каждой вершины на сфере.<br/>
@@ -150,7 +154,7 @@
 [Пример](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-2.as)
 
 **2й вариант**<br/>
-Можно модифицировать [один из примеров](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-1.as), диаграмма Воронного не требуется, нужно случайно распределить круги без наложения в пределах одного слоя. Слоев будет несколько, они имитируют падение метеоритов в старый кратер.<br/>
+Можно модифицировать [один из примеров](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-1.as). Диаграмма Воронного не требуется, нужно случайно распределить круги без наложения в пределах одного слоя. Слоев будет несколько, они имитируют падение метеоритов в старый кратер.<br/>
 Алгоритм:
 1. Точка в 2D на грани куба проецируется в 3D нормаль сферы и вращается.
 2. Нормаль проецируется обратно в 2D и ищется центр ближайшей ячейки на сетке.
@@ -164,10 +168,10 @@
 * [Случайное распределение кругов на сфере](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/sphere/UVSphere-4.as)<br/>
 
 
-<details><summary><b>Наложение кратеров</b></summary>
+<details><summary><b>Подробнее про наложение кратеров</b></summary>
 
 Проблема не связана с проекцией на сферу, но влияет на выбор алгоритма генерации точек для кратеров.<br/>
-В видео [Coding Adventure: Procedural Moons and Planets](https://youtu.be/lctXaT9pxA0?t=424) эта проблема решается зашумлением, что работает при небольшой плотности кратеров, но совсем не подходит для реальных лунных пейзажей.
+В видео [Coding Adventure: Procedural Moons and Planets](https://youtu.be/lctXaT9pxA0?t=424) эта проблема решается зашумлением, что работает при небольшой плотности кратеров, но совсем не подходит для реальных лунных пейзажей.<br/>
 ![](img/SC_CratersWithNoise.jpg)
 
 Другой вариант - для каждого пикселя хранить историю кратеров, которые внесли вклад в высоту, и использовать это для правильного смешивания.

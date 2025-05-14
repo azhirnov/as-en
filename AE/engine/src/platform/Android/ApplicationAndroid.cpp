@@ -336,7 +336,10 @@ namespace {
 		Base::Android_IsUnderDebugger = isUnderDebugger;
 
 		if ( isUnderDebugger )
+		{
+			AE_LOGW( ">>> Enabled Android debugging <<<" );
 			StaticLogger::AddLogger( ILogger::CreateBreakOnError() );
+		}
 	}
 
 /*

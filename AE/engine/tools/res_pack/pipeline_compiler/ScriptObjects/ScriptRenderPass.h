@@ -75,6 +75,8 @@ namespace AE::PipelineCompiler
 		ND_ String	ToString (StringView padding)																	const;
 
 		ND_ bool	IsColor ()																						const;
+		ND_ bool	HasDepth ()																						const;
+		ND_ bool	HasStencil ()																					const;
 
 	private:
 		void  _AddUsage (const String &subpassName, EAttachment type, Optional<ShaderIO> in, Optional<ShaderIO> out,

@@ -54,26 +54,34 @@ namespace AE::Base
 		struct State
 		{
 			FPCR_t		_fpcr	= 0;
+			
+			ND_ bool  		DenormalFlushToZero ()						C_NE___;
+			ND_ ERounding	RoundingMode ()								C_NE___;
+
+			ND_ bool		Fp3264DenormalFlushToZero ()				C_NE___;	// non-portable			
+			ND_ bool		Fp16DenormalFlushToZero	()					C_NE___;	// non-portable			
+			ND_ bool		Fp3264DenormalFlushToZero_InputAndOutput ()	C_NE___;	// non-portable, input and output or only output
+			
+			ND_ bool		Fp16AlternativeFormat ()					C_NE___;	// non-portable
 		};
 
 
 	// methods
-		ND_ static ExceptionFlags	GetExceptionState		()					__NE___;
-			static void				ResetExceptionState		()					__NE___;
+		ND_ static ExceptionFlags	GetExceptionState			()					__NE___;
+			static void				ResetExceptionState			()					__NE___;
 
-			static void				ExceptionMask			(ExceptionFlags)	__NE___;
+			static void				ExceptionMask				(ExceptionFlags)	__NE___;
 
-			static void				RoundingMode			(ERounding)			__NE___;
-			static void				DenormalFlushToZero		(bool flushToZero)	__NE___;
+			static void				RoundingMode				(ERounding)			__NE___;
+			static void				DenormalFlushToZero			(bool flushToZero)	__NE___;
 
-			static void				Fp32DenormalFlushToZero	(bool flushToZero)	__NE___;
-			static void				Fp16DenormalFlushToZero	(bool flushToZero)	__NE___;
+			static void				Fp3264DenormalFlushToZero	(bool flushToZero)	__NE___;	// non-portable
+			static void				Fp16DenormalFlushToZero		(bool flushToZero)	__NE___;	// non-portable
 
-			static void				Fp16AlternativeFormat	(bool enable)		__NE___;
-		ND_ static bool				Fp16AlternativeFormat	()					__NE___;
+			static void				Fp16AlternativeFormat		(bool enable)		__NE___;	// non-portable
 
-		ND_ static State			GetState				()					__NE___;
-			static void				SetState				(State)				__NE___;
+		ND_ static State			GetState					()					__NE___;
+			static void				SetState					(State)				__NE___;
 	};
 
 	AE_BIT_OPERATORS( SimdRuntimeConfig::ExceptionFlags );
@@ -98,12 +106,26 @@ namespace AE::Base
 
 		auto	s = GetState();
 
-		s._fpcr &= 3u << 22;	// bits 22, 23
+		s._fpcr &= ~(3u << 22);		// clear bits 22, 23
 		s._fpcr |= bits;
 
 		SetState( s );
 	}
 
+	inline SimdRuntimeConfig::ERounding  SimdRuntimeConfig::State::RoundingMode () C_NE___
+	{
+		uint	bits = (_fpcr >> 22) & 0x3;
+		switch ( bits )
+		{
+			case 0 :		return ERounding::Nearest;
+			case 0b01 :		return ERounding::TowardPlus;
+			case 0b10 :		return ERounding::TowardMinus;
+			case 0b11 :		return ERounding::TowardZero;
+		}
+		// never happens
+		return ERounding::Nearest;
+	}
+			
 /*
 =================================================
 	DenormalFlushToZero
@@ -111,29 +133,47 @@ namespace AE::Base
 */
 	inline void  SimdRuntimeConfig::DenormalFlushToZero (bool flushToZero) __NE___
 	{
-		auto	s = GetState();
-		uint	m = /*fp32*/(1u << 24) | /*fp16*/(1u << 19);
-
-		s._fpcr &= m;
-		s._fpcr |= flushToZero ? m : 0;
+		auto	s 	 = GetState();
+		uint	fz 	 = /*fp32-64*/(1 << 24) | /*fp16*/(1 << 19);
+		uint	ah 	 = 1 << 1;
+		
+		s._fpcr &= ~(fz | ah);
+		s._fpcr |= (flushToZero ? fz : 0) | ah;
 
 		SetState( s );
 	}
 
+	inline bool  SimdRuntimeConfig::State::DenormalFlushToZero () C_NE___
+	{
+		return HasBit<24>( _fpcr ) and HasBit<19>( _fpcr );
+	}
+
 /*
 =================================================
-	Fp32DenormalFlushToZero
+	Fp3264DenormalFlushToZero
+----
+	0 bit -	If FPCR.AH is 1, the flushing to zero of single-precision and double-precision denormalized outputs
+			of floating-point instructions not enabled by this control, but other factors might cause the input
+			denormalized numbers to be flushed to zero.
+	1 bit - If FPCR.AH is 1, denormalized single-precision and double-precision outputs
+			from floating-point instructions are flushed to zero.
 =================================================
 */
-	inline void  SimdRuntimeConfig::Fp32DenormalFlushToZero (bool flushToZero) __NE___
+	inline void  SimdRuntimeConfig::Fp3264DenormalFlushToZero (bool flushToZero) __NE___
 	{
 		auto	s = GetState();
-		uint	m = 1u << 24;
+		uint	fz = (1u << 24);
+		uint	ah = (1 << 1);		// FPCR.AH
 
-		s._fpcr &= m;
-		s._fpcr |= flushToZero ? m : 0;
+		s._fpcr &= ~(fz | ah);
+		s._fpcr |= (flushToZero ? fz : 0) | ah;
 
 		SetState( s );
+	}
+
+	inline bool  SimdRuntimeConfig::State::Fp3264DenormalFlushToZero () C_NE___
+	{
+		return HasBit<24>( _fpcr );
 	}
 
 /*
@@ -146,12 +186,27 @@ namespace AE::Base
 		auto	s = GetState();
 		uint	m = 1u << 19;
 
-		s._fpcr &= m;
+		s._fpcr &= ~m;
 		s._fpcr |= flushToZero ? m : 0;
 
 		SetState( s );
 	}
 
+	inline bool  SimdRuntimeConfig::State::Fp16DenormalFlushToZero () C_NE___
+	{
+		return HasBit<19>( _fpcr );
+	}
+	
+/*
+=================================================
+	Fp3264DenormalFlushToZero_InputAndOutput
+=================================================
+*/
+	inline bool  SimdRuntimeConfig::State::Fp3264DenormalFlushToZero_InputAndOutput () C_NE___
+	{
+		return not HasBit<1>( _fpcr );
+	}
+			
 /*
 =================================================
 	Fp16AlternativeFormat
@@ -166,15 +221,15 @@ namespace AE::Base
 		auto	s = GetState();
 		uint	m = 1u << 26;
 
-		s._fpcr &= m;
+		s._fpcr &= ~m;
 		s._fpcr |= enable ? m : 0;
 
 		SetState( s );
 	}
 
-	inline bool  SimdRuntimeConfig::Fp16AlternativeFormat () __NE___
+	inline bool  SimdRuntimeConfig::State::Fp16AlternativeFormat () C_NE___
 	{
-		return HasBit<26>( GetState()._fpcr );
+		return HasBit<26>( _fpcr );
 	}
 
 /*
@@ -262,7 +317,7 @@ namespace AE::Base
 			ulong	fpcr;
 			asm( "mrs %0,   fpcr" : "=r"( fpcr ));
 
-			fpcr &= mask;
+			fpcr &= ~mask;
 			fpcr |= add;
 
 			asm( "msr fpcr, %0"   :: "r"( fpcr ));
@@ -275,7 +330,7 @@ namespace AE::Base
 			uint	fpscr;
 			asm( "vmrs %0,   fpscr" : "=r"( fpscr ));
 
-			fpscr &= mask;
+			fpscr &= ~mask;
 			fpscr |= add;
 
 			asm( "vmsr fpscr, %0"   :: "r"( fpscr ));

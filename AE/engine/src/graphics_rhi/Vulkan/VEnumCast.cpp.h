@@ -82,16 +82,6 @@ namespace AE::Graphics
 			VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT |
 			VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT;
 
-		DEBUG_ONLY(
-			if ( EResourceState_RequireShaderStage( value )) {
-				CHECK_MSG( AnyBits( value, EResourceState::AllShaders ),
-					"Resource state ("s << ToString( value ) << ") must contain shader stage." );
-			}else{
-				CHECK_MSG( not AnyBits( value, EResourceState::AllShaders ),
-					"Resource state ("s << ToString( value ) << ") should not contain shader stage." );
-			}
-		)
-
 		VkPipelineStageFlagBits2	sh_stages	= Zero;
 		VkPipelineStageFlagBits2	ds_stages	= Zero;
 
@@ -117,7 +107,25 @@ namespace AE::Graphics
 		outStage	= AnyBits( outStage, UseDSStages )      ? ((outStage & ~UseDSStages)     | ds_stages)  : outStage;
 
 		#ifdef AE_DEBUG
-		CHECK( ToEResState(value) == info._dbgState );
+			Unused( EResourceState_Validate( value ));
+
+			if ( AnyBits( info.stage, UseShaderStages )) {
+				CHECK_MSG( sh_stages != Zero,
+					"Resource state ("s << ToString( value ) << ") must contain shader stage." );
+			}else{
+				CHECK_MSG( sh_stages == Zero,
+					"Resource state ("s << ToString( value ) << ") should not contain shader stage." );
+			}
+			
+			if ( AnyBits( info.stage, UseDSStages )) {
+				CHECK_MSG( ds_stages != Zero,
+					"Resource state ("s << ToString( value ) << ") must contain depth stage." );
+			}else{
+				CHECK_MSG( ds_stages == Zero,
+					"Resource state ("s << ToString( value ) << ") should not contain depth stage." );
+			}
+
+			CHECK( ToEResState(value) == info._dbgState );
 		#endif
 	}
 

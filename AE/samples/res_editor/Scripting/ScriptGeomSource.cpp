@@ -278,14 +278,14 @@ namespace
 		if ( args.empty() )
 			return;	// keep all pipelines
 
-		auto&												storage		= *ObjectStorage::Instance();
-		Array<PplnSpec>										out_pplns;
-		const DescriptorSetName								req_ds_name {dsName};
-		FlatHashMap< UniformName::Optimized_t, StringView >	tex_names;
-		FlatHashSet< UniformName::Optimized_t >				buf_names;
-		FlatHashSet< UniformName::Optimized_t >				texbuf_names;
-		FlatHashSet< UniformName::Optimized_t >				img_names;
-		FlatHashSet< UniformName::Optimized_t >				rtas_names;
+		auto&											storage		= *ObjectStorage::Instance();
+		Array<PplnSpec>									out_pplns;
+		const DescriptorSetName							req_ds_name {dsName};
+		HashMap< UniformName::Optimized_t, StringView >	tex_names;
+		HashSet< UniformName::Optimized_t >				buf_names;
+		HashSet< UniformName::Optimized_t >				texbuf_names;
+		HashSet< UniformName::Optimized_t >				img_names;
+		HashSet< UniformName::Optimized_t >				rtas_names;
 
 		for (auto& arg : args)
 		{
@@ -302,14 +302,17 @@ namespace
 					else
 						tex_names.emplace( UniformName::Optimized_t{arg.name}, arg.samplerName );
 				},
-				[&] (ScriptVideoImagePtr video) {
+				[&] (ScriptVideoImagePtr) {
 					tex_names.emplace( UniformName::Optimized_t{arg.name}, arg.samplerName );
 				},
 				[&] (ScriptRTScenePtr) {
 					rtas_names.insert( UniformName::Optimized_t{arg.name} );
 				},
-				[] (const Array<ScriptImagePtr> &) {
-					// skip
+				[&] (const Array<ScriptImagePtr> &) {
+					if ( arg.samplerName.empty() )
+						img_names.emplace( UniformName::Optimized_t{arg.name} );
+					else
+						tex_names.emplace( UniformName::Optimized_t{arg.name}, arg.samplerName );
 				},
 				[] (NullUnion) {
 					CHECK_THROW_MSG( false, "unsupported argument type" );
@@ -345,6 +348,11 @@ namespace
 				{
 					// storage image
 					if ( un.type == EDescriptorType::StorageImage ) {
+						IncCounter( img_names.contains( un_name ), img_counter );
+						continue;
+					}else
+					if ( un.type == EDescriptorType::SampledImage )
+					{
 						IncCounter( img_names.contains( un_name ), img_counter );
 						continue;
 					}else{
@@ -405,7 +413,7 @@ namespace
 					 rtas_counter	== rtas_names.size()	)
 				{
 					CHECK_THROW_MSG( unbound_counter == 0,
-						"Pipeline '"s << ppln->NameStr() << "' with DS '" << dsName << "' has all bound resources but has " << ToString(unbound_counter) << " unbound resources" );
+						"Pipeline '"s << ppln->NameStr() << "' with DS '" << dsName << "' has all resources from geometry, but has " << ToString(unbound_counter) << " unbound resources" );
 
 					out_pplns.push_back( ppln );
 					break;
@@ -865,8 +873,8 @@ namespace
 		CHECK_THROW( names[0].dbgMode == Default );
 
 		result->rtech = rtech;
-
-		#if PIPELINE_STATISTICS
+		
+		#ifdef AE_ENABLE_VULKAN
 		{
 			auto&	res = res_mngr.GetResourcesOrThrow( ppln );
 			Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( "SphericalCube", res.Handle(), res.Options() ));
@@ -2126,8 +2134,8 @@ namespace
 		{{
 			auto	ppln = rtech->GetMeshPipeline( info.pplnName );
 			CHECK_THROW( ppln );
-
-			#if PIPELINE_STATISTICS
+			
+			#ifdef AE_ENABLE_VULKAN
 			{
 				auto&	res = res_mngr.GetResourcesOrThrow( ppln );
 				Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( "UnifiedGeometry", res.Handle(), res.Options() ));
@@ -2149,8 +2157,8 @@ namespace
 		{{
 			auto	ppln = rtech->GetGraphicsPipeline( info.pplnName );
 			CHECK_THROW( ppln );
-
-			#if PIPELINE_STATISTICS
+			
+			#ifdef AE_ENABLE_VULKAN
 			{
 				auto&	res = res_mngr.GetResourcesOrThrow( ppln );
 				Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( "UnifiedGeometry", res.Handle(), res.Options() ));
@@ -2556,8 +2564,8 @@ namespace {
 
 		GraphicsPipelineID	ppln = rtech->GetGraphicsPipeline( names[0].pplnName );
 		CHECK_THROW( ppln );
-
-		#if PIPELINE_STATISTICS
+		
+		#ifdef AE_ENABLE_VULKAN
 		{
 			auto&	res = res_mngr.GetResourcesOrThrow( ppln );
 			Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));
@@ -2706,8 +2714,8 @@ namespace {
 
 				auto	ppln = rtech->GetGraphicsPipeline( names[i].pplnName );
 				CHECK_THROW( ppln );
-
-				#if PIPELINE_STATISTICS
+				
+				#ifdef AE_ENABLE_VULKAN
 				{
 					auto&	res = res_mngr.GetResourcesOrThrow( ppln );
 					Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));

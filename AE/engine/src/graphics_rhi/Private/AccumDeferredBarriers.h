@@ -67,6 +67,7 @@ namespace _hidden_
 		Self&  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)																				__NE___	{ _mngr.MemoryBarrier( srcScope, dstScope );					return *this; }
 		Self&  MemoryBarrier ()																																__NE___	{ _mngr.MemoryBarrier();										return *this; }
 
+		Self&  ExecutionBarrier (EResourceState srcState, EResourceState dstState)																			__NE___	{ _mngr.ExecutionBarrier( srcState, dstState );					return *this; }
 		Self&  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)																			__NE___	{ _mngr.ExecutionBarrier( srcScope, dstScope );					return *this; }
 		Self&  ExecutionBarrier ()																															__NE___	{ _mngr.ExecutionBarrier();										return *this; }
 

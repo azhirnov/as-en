@@ -256,6 +256,8 @@ namespace AE::RG::_hidden_
 */
 	bool  RGCommandBatchPtr::RGBatchData::_ResourceState (uint taskIdx, ResourceKey key, EResourceState newState, OUT EResourceState &oldState) __NE___
 	{
+		DBG_CHECK( EResourceState_Validate( newState ));
+
 		auto&	rs = _perTask[ taskIdx ];
 		DRC_EXLOCK( rs.drCheck );
 
@@ -286,6 +288,8 @@ namespace AE::RG::_hidden_
 /*
 =================================================
 	_CheckResourceState
+----
+	Used in DrawContext, where barriers are not allowed, to check that resource is compatible with required state.		
 =================================================
 */
 	bool  RGCommandBatchPtr::RGBatchData::_CheckResourceState (uint taskIdx, ResourceKey key, const EResourceState state) C_NE___

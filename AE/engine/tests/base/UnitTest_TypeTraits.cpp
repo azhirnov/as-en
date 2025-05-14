@@ -339,6 +339,30 @@ namespace
 			Unused( t.Get<0>() );
 		}
 	}
+
+	
+#ifdef __cpp_lib_is_constant_evaluated
+	ND_ static constexpr bool  CxFunction (uint value)
+	{
+		if ( IsConstEvaluated() )
+			return value == 1;
+		else
+			return value == 2;
+	}
+
+	static void  Test_IsConstEvaluated ()
+	{
+		constexpr bool	a = CxFunction( 1 );
+		StaticAssert( a );
+
+		auto	fn		= &CxFunction;
+		uint	tmp1	= 2;
+		uint*	tmp2	= &tmp1;
+
+		const bool	b = fn( *tmp2 );
+		TEST( b );
+	}
+#endif
 }
 
 
@@ -359,6 +383,10 @@ extern void UnitTest_TypeTraits ()
 	Test_IsNothrowInvocable();
 
 	Test_Attributes();
+	
+	#ifdef __cpp_lib_is_constant_evaluated
+		Test_IsConstEvaluated();
+	#endif
 
 	TEST_PASSED();
 }

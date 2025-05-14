@@ -267,6 +267,17 @@ namespace AE::Graphics
 	};
 
 
+	enum class EPresentScaling : ubyte
+	{
+		OneToOne,					// Present() return 'suboptimal' if swapchain doesn't match the surface size
+		AspectRatioStretch,			// image can be minified or magnified, aspect ratio must match to original swapchain image 
+		Stretch,					// 
+		
+		_Count,
+		Unknown		= 0xFF,
+	};
+
+
 	enum class EPixelFormat : ubyte
 	{
 	#define AE_PIXELFORMAT_LIST( _visitor_ )\

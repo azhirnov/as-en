@@ -133,7 +133,7 @@ namespace AE::ResEditor
 					if ( not arg.samplerName.empty() )
 					{
 						Array<String>	samplers;  samplers.resize( arr.size(), arg.samplerName );
-						dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, type, arg.state, samplers );
+						dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, type, arg.state, arraySize, samplers );
 					}else
 					if ( AllBits( arg.state, EResourceState::ShaderSample )) {
 						dsLayout->AddSampledImage( stages, arg.name, AS{uint(arr.size())}, type, arg.state );

@@ -10,8 +10,9 @@ set( AE_CI_BUILD_TEST		OFF CACHE BOOL "CI settings for tests" )
 set( AE_CI_BUILD_PERF		OFF CACHE BOOL "CI settings for performance tests" )
 set( AE_ENABLE_EXCEPTIONS	ON  CACHE BOOL "enable exception and RTTI" )
 set( AE_ENABLE_LOGS			ON  CACHE BOOL "enable logging, disable to remove a lot of strings" )
+set( AE_INCLUDE_ANDROID_SRC	ON  CACHE BOOL "" )
 
-mark_as_advanced( AE_USE_SANITIZER AE_CI_BUILD_TEST AE_CI_BUILD_PERF AE_ENABLE_EXCEPTIONS AE_ENABLE_LOGS )
+mark_as_advanced( AE_USE_SANITIZER AE_CI_BUILD_TEST AE_CI_BUILD_PERF AE_ENABLE_EXCEPTIONS AE_ENABLE_LOGS AE_INCLUDE_ANDROID_SRC )
 
 #----------------------------------------------------------
 # internal constants

@@ -163,6 +163,11 @@ namespace AE::ResEditor
 				if constexpr( IsInteger<T> )
 					result = CeilPOT( result );
 				break;
+				
+			case EOperator::NearPOT :
+				if constexpr( IsInteger<T> )
+					result = NearPOT( result );
+				break;
 
 			case EOperator::PowOf2 :
 				if constexpr( IsFloatPoint<T> )

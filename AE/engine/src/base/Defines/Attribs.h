@@ -132,8 +132,8 @@
 
 // C++20 is constant evaluated
 #ifdef __cpp_lib_is_constant_evaluated
-#	define cxx20_constexpr		constexpr		// allow 'IsConstEvaluated()' inside
-#	define IsConstEvaluated()	std::is_constant_evaluated()
+#	define cxx20_constexpr		constexpr						// allow 'IsConstEvaluated()' inside
+#	define IsConstEvaluated()	std::is_constant_evaluated()	// warning: don't use in 'if constexpr()' it is always 'true'
 #else
 #	define IsConstEvaluated()	false
 #	define cxx20_constexpr

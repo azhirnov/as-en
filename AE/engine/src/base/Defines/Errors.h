@@ -59,8 +59,8 @@
 // debug/dev only check
 #ifdef AE_DEBUG
 # ifdef __cpp_lib_is_constant_evaluated
-#	define ASSERT_Cx( /* expr */... )				if constexpr( not IsConstEvaluated() ) { CHECK( __VA_ARGS__ ); }
-#	define ASSERT_MSG_Cx( _expr_, _text_ )			if constexpr( not IsConstEvaluated() ) { CHECK_MSG( (_expr_), (_text_) ); }
+#	define ASSERT_Cx( /* expr */... )				if ( not IsConstEvaluated() ) { CHECK( __VA_ARGS__ ); }
+#	define ASSERT_MSG_Cx( _expr_, _text_ )			if ( not IsConstEvaluated() ) { CHECK_MSG( (_expr_), (_text_) ); }
 # else
 #	define ASSERT_Cx( /* expr */... )				{}
 #	define ASSERT_MSG_Cx( /* expr, msg */... )		{}

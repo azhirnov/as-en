@@ -562,6 +562,7 @@ namespace
 
 		renderState = state;
 		_ValidateRenderState( desc.dynamicState, INOUT renderState, GetFeatures() );
+		_ValidateRenderPass( renderState, desc.renderPass, desc.subpass, GetFeatures() );
 
 		CHECK_THROW_MSG( _CheckTopology() );
 

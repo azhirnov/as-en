@@ -3,6 +3,7 @@
 * [Техники отсечения невидимой геометрии](#Техники-отсечения-невидимой-геометрии)
 * [Тесты производительности](#Тесты-производительности)
 * [Итоги тестов](#Итоги-тестов)
+* [Исходники](#Исходники)
 
 
 **Какие возникают проблемы при увеличении количества геометриии**:
@@ -77,7 +78,7 @@
 * Для разных шейдеров требуется произвести классификацию пикселей - выбрать пиксели с одним материалом, сгруппировать их и вызвать шейдер.
 
 **Этап классификации**
-* Material Depth Buffer ([Dawn Engine, страница 16](https://gitea.yiem.net/QianMo/Real-Time-Rendering-4th-Bibliography-Collection/raw/branch/main/Chapter%201-24/%5B0363%5D%20%5BGPU%20Zen%202017%5D%20Deferred+-%20Next-Gen%20Culling%20and%20Rendering%20for%20the%20Dawn%20Engine.pdf) и [Nanite, слайды 100-105](https://advances.realtimerendering.com/s2021/Karis_Nanite_SIGGRAPH_Advances_2021_final.pdf), есть [тест производительности](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/MaterialDepthBuffer.as)).<br/>
+* Material Depth Buffer ([Dawn Engine (страница 16)](https://gitea.yiem.net/QianMo/Real-Time-Rendering-4th-Bibliography-Collection/raw/branch/main/Chapter%201-24/%5B0363%5D%20%5BGPU%20Zen%202017%5D%20Deferred+-%20Next-Gen%20Culling%20and%20Rendering%20for%20the%20Dawn%20Engine.pdf) и [Nanite (слайды 100-105)](https://advances.realtimerendering.com/s2021/Karis_Nanite_SIGGRAPH_Advances_2021_final.pdf), есть [тест производительности](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/MaterialDepthBuffer.as)).<br/>
   Идея в том, что после прохождения буфера глубины пиксели (на самом деле квадраты 2х2) группируются чтобы максимально заполнить варп, но не могут собирать пиксели за пределами тайла (на TBR и TBDR), поэтому эффективность снижается.
   А размер тайла может зависить от количества регистров в фрагментном шейдере, то есть для тяжелого шейдера эффективность падает сильнее.
 * Классификация в компьют шейдере как в [Horizon Forbidden West](https://www.gdcvault.com/play/1027553/Adventures-with-Deferred-Texturing-in).<br/>
@@ -107,7 +108,7 @@
 * Требуется нарезать геометрию на более мелкие части (мешлеты), чтобы улучшить точность, тогда берутся более высокие мип-уровни.
 * Альтернативный вариант - рисовать упрощенную геометрию в низком разрешении, строить пирамиду и проверять видимость.
 * Тестирование видимости выполняется в компьют шейдере, который параллелится с другими проходами, например тенями.
-* На медленной памяти плохо справляется с 4К, для оптимизации можно не сохранять верхние мип-уровни, так как они редко используются. На TBDR архитектуре можно расчитать мипы в тайловом шейдере.
+* На медленной памяти плохо справляется с 4К, для оптимизации можно не сохранять верхние мип-уровни, так как они редко используются.
 
 <details><summary><b>Детали реализации</b></summary>
 
@@ -127,7 +128,7 @@
 	- Искажаются пропорции, квадраты становятся прямоугольниками и точность проверки видимости немного снижается.
 * Для каждого мип уровня выбирать какие пиксели из верхнего уровня влияют на него. [Пример](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GenHiZ-1.as).
 
-[Пример HiZ с визуализацией для отладки](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/HiZ-DebugVis.as)
+[Пример HiZ с визуализацией для отладки](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/HiZ-DebugVis.as).
 
 </details>
 
@@ -205,6 +206,16 @@
 * [A trip through the Graphics Pipeline 2011, part 5](https://fgiesen.wordpress.com/2011/07/05/a-trip-through-the-graphics-pipeline-2011-part-5/)
 
 
+### AMD Vega Deferred pixel processing
+
+Что-то похожее на Mali FPK. Упоминается только в Vega (GCN5) архитектуре.
+
+* Фрагментный шейдер не сразу запускается для растеризованных треугольников.
+* Сначала пиксели накапливаются в небольшом буфере, а потом рисуется только один.
+
+Ссылки: [Vega Whitepaper](https://en.wikichip.org/w/images/a/a1/vega-whitepaper.pdf)
+
+
 ### Adreno Low Resolution Z-Pass (LRZ)
 
 * На этапе нарезки на тайлы заполняется LRZ. Часть примитивов может быть отброшена уже на этом этапе.
@@ -227,7 +238,7 @@
 
 ### Mali Fragment Prepass (FPP)
 
-* Появился в новой архитектуре (5th gen).
+* Появился в новой архитектуре 5th gen.
 * Для каждого пикселя перебирает примитивы и выбирает единственный для отрисовки.
 * Для невидимых пикселей фрагментный шейдер не вызывается совсем.
 
@@ -237,7 +248,7 @@
 
 ### Mali Deferred Vertex Shading (DVS)
 
-* Появился в новой архитектуре (5th gen).
+* Появился в новой архитектуре 5th gen.
 * На этапе нарезания на тайлы вызывается часть вершинного шейдера, отвечающая за позицию, если треугольник маленький, то он помечается для использования DVS и не выгружается в глобальную память.
 * На этапе растеризации для DVS треугольников заново вызывается вершинный шейдер и затем фрагментный. Получается расчет позиции для DVS треугольников происходит дважды, что может быть затратно если есть вершинная анимация.
 
@@ -267,6 +278,16 @@
 Второй вариант - нагрузка ALU генерацией шума.<br/>
 [Исходники](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GeometryCulling-2.as).
 
+**Тест генерации пирамиды глубины (HZB)**<br/>
+Используется R32F или R16_UNorm формат в зависимости от формата буфера глубины.
+Сравнивается генерация в компьют шейдере (cs) и в фрагментном шейдер, что включает компрессию и снижает нагрузку на память (gfx).
+Дополнительная оптимизация - sampler min reduction, позволяет заменить линейную фильтрацию на min функцию, получается один запрос к текстуре вместо 4х.<br/>
+Разрешение не степени 2:<br/>
+2К: 1024x512<br/>
+4K: 2048x1024<br/>
+8K: 4096x2048<br/>
+Исходники: [GenHiZ-1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GenHiZ-1.as), [GenHiZ-2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GenHiZ-2.as).
+
 **Используются техники:**
 1. without ZS - не использует тест глубины, должен показать максимальную нагрузку на растеризатор или FS.
 2. LateZS - аналогично первому, но использование буфера глубины может дать дополнительную нагрузку.
@@ -283,19 +304,27 @@ HiZ и RasterCulling показывают насколько отсечение 
 В итоговом рендере нужно выбрать между HiZ и RasterCulling, затем между сортировкой, depth pre-pass, visibility buffer и другими техниками.
 
 **Результаты** представлены в таблицах. Время кадра разных техник сравнивается с EarlyZS как наилучший из простых реализаций, чем меньше значение, тем лучше.
-* [AMD Radeon 780M](#AMD-Radeon-780M)
-* [Nvidia RTX 2080](#Nvidia-RTX-2080)
-* [ARM Mali G57](#ARM-Mali-G57)
+* [AMD RX570](#AMD-RX570)
+* [AMD Radeon 780M, RADV](#AMD-Radeon-780M-RADV)
+* [AMD Radeon 780M, PRO](#AMD-Radeon-780M-PRO)
+* [Adreno 505](#Adreno-505)
 * [Adreno 660](#Adreno-660)
-* [PowerVR BXM-8-256](#PowerVR-BXM-8-256)
+* [Apple M1](#Apple-M1)
 * [Intel UHD 620](#Intel-UHD-620)
+* [Intel N150](#Intel-N150)
 * [Lavapipe](#Lavapipe)
+* [Mali T830](#ARM-Mali-T830)
+* [Mali G57](#ARM-Mali-G57)
+* [Mali G610](#ARM-Mali-G610)
+* [Nvidia RTX 2080](#Nvidia-RTX-2080)
+* [PowerVR BXM-8-256](#PowerVR-BXM-8-256)
 
 **Резрешение:**<br/>
 1K - 960x540, 0.5 MPix<br/>
 2K - 1920x1080, 2.07MPix<br/>
 2K+ - 2400x1080, 2.6MPix - типичное разрешение на 6" смартфонах<br/>
 4K - 3840×2160, 8.3 MPix<br/>
+
 
 ## Nvidia RTX 2080
 
@@ -307,7 +336,6 @@ HiZ и RasterCulling показывают насколько отсечение 
 ### VS/Raster/ZS bound
 
 RasterCulling дает наилучшее отсечение и нагрузка на растеризатор снижается, пропускная способность памяти в 440GB/s справляется с нагрузкой даже в 4К.
-В 4К проход RasterCulling занимает столько же времени что и построение HZB, а отсекает в 2 раза больше треугольников.
 
 | technique | 1K | 2K | 4K |
 |---|---|---|---|
@@ -354,6 +382,21 @@ VisBuf дает наилучший результат, но требует пр�
 | raster culling            | 10 | 35 | 57 | 0.56   | 0.76   | 0.84   |
 | HiZ + pyramid             | 13 | 44 | 58 |**0.53**| 1.38   | 1.13   |
 | HiZ + dpp + pyramid       |  7 | 21 | 52 | 0.58   |**0.54**|**0.53**|
+
+### Генерация HZB
+
+Рендер в текстуру быстрее за счет компресии.
+Min sampler дает небольшое ускорение.
+
+| technique                                    |  2K (ms)  |  4K (ms)  |  8K (ms)  |
+|----------------------------------------------|-----------|-----------|-----------|
+| non power of 2, cs                           | 0.14      | 0.37      | 1.29      |
+| non power of 2, gfx                          | 0.11      | 0.27      | 0.89      |
+| to power of 2, cs                            | 0.12      | 0.28      | 0.91      |
+| to power of 2, gfx                           | 0.096     | 0.23      | 0.77      |
+| to power of 2, reduction, cs                 | 0.12      | 0.27      | 0.86      |
+| to power of 2, reduction, gfx                | 0.096     | 0.23      | 0.77      |
+| to power of 2, skip high mip, reduction, gfx |**0.094**  |**0.21**   |**0.62**   |
 
 
 <details><summary><b>Подробные результаты</b></summary>
@@ -407,12 +450,86 @@ PERF_LEVEL = 1 (old)
 </details>
 
 
+## ARM Mali T830
+
+Количество объектов: 2K<br/>
+Всего треугольников: 880K<br/>
+Осталось объектов после HiZ: 356<br/>
+Осталось объектов после Raster culling: 150<br/>
+
+### VS/Raster/ZS bound
+
+| technique | 1K |
+|---|---|
+| without ZS                | 1.09   |
+| late ZS, front to back    | 1.74   |
+| early ZS, back to front   | 1.02   |
+| early ZS, discard         | 1.04   |
+|**early ZS, front to back**| 1.0    |
+| depth pre-pass            | 1.99   |
+| raster culling            | 5.5    |
+| HiZ + pyramid             |**0.19**| 
+| HiZ + dpp + pyramid       | 0.32   |
+
+Слишком низкая производительность для более сложного теста.
+
+<details><summary><b>Подробные результаты</b></summary>
+
+**VS/Raster/ZS bound**
+
+| technique | 1K (ms) | 2K (ms) |
+|---|---|---|
+| without ZS                | 100           | 140            |
+| late ZS, front to back    | 160           | 530            |
+| early ZS, back to front   | 94            | 120            |
+| early ZS, discard         | 96            | 150            |
+|**early ZS, front to back**| 92            | 120            |
+| depth pre-pass            | 89 + 94       | 110 + 120      |
+| raster culling            | 500 + 6.5     | 1900 + 18      |
+| HiZ + pyramid             | 11.8 + 5.7    | 20.8 + 22.3    |
+| HiZ + dpp + pyramid       | 10.5+12.8+5.7 | 14.8+28.5+22.3 |
+
+**ALU bound**<br/>
+PERF_LEVEL = 
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 
+| late ZS, front to back    | 
+| early ZS, back to front   | 
+|**early ZS, front to back**| 
+| depth pre-pass            | 
+| vis buf                   | 
+| vis buf (bary)            | 
+| raster culling            | 
+| HiZ + pyramid             | 
+| HiZ + dpp + pyramid       | 
+
+**Memory bound**<br/>
+PERF_LEVEL = 
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 
+| late ZS, front to back    | 
+| early ZS, back to front   | 
+|**early ZS, front to back**| 
+| depth pre-pass            | 
+| vis buf                   | 
+| vis buf (bary)            | 
+| raster culling            | 
+| HiZ + pyramid             | 
+| HiZ + dpp + pyramid       | 
+
+</details>
+
+
 ## ARM Mali G57
 
 Количество объектов: 11K<br/>
 Всего треугольников: 4.7M<br/>
 Осталось объектов после HiZ: 2.6K / 1.12M tris<br/>
-Осталось объектов после Raster culling: 1.5K / 660K tris<br/>
+Осталось объектов после Raster culling: 1.2K / 660K tris<br/>
 
 ### VS/Raster/ZS bound
 
@@ -505,7 +622,7 @@ VisBuf на 1К и 2К упирается в растеризатор, но эт
 |**early ZS, front to back**| 42.6          | 50.6          | 84.4         |
 | depth pre-pass            | 37 + 38       | 41.9 + 44     | 58.2 + 80    |
 | depth pre-pass, subpass   | 77.3          | 87.2          | 120          |
-| vis buf                   |
+| vis buf                   | 39.2 + 4.5    | 48.7 + 17.4   | 75.1 + 69.2  |
 | vis buf, subpass          | 40            | 50            | 100          |
 | raster culling            | 5.2 + 13.3    | 16 + 23       | 61 + 63      |
 | HiZ + pyramid             | 18 + 0.84     | 29 + 3.1      | 67 + 12.5    |
@@ -514,8 +631,9 @@ VisBuf на 1К и 2К упирается в растеризатор, но эт
 **Memory bound**<br/>
 PERF_LEVEL = 4
 
-Если нагрузка на память больше 12GB/s значит все упирается в чтение текстур, это хорошо, когда время кадра наименьшее, иначе это показывает, что выполняется много FS результат которых потом отбрасывается.
+Если нагрузка на память больше 12GB/s значит все упирается в чтение текстур, это не страшно, когда время кадра наименьшее, иначе это показывает, что выполняется много FS результат которых потом отбрасывается.
 В 4К EarlyZS и VisBuf выполняются за одинаковое время, но нагрузка на память разная, так как в EarlyZS больше FS и каждый запрашивает память, а потом прерывается, на общее время выполнения это слабо влияет пока не упрется в скорость памяти.
+Для DPP сортировка не важна.
 
 | technique | 1K (ms) | 1K (GB/s) | 2K (ms) | 2K (GB/s) | 4K (ms) | 4K (GB/s) |
 |---|---|---|---|---|---|---|
@@ -523,14 +641,228 @@ PERF_LEVEL = 4
 | late ZS, front to back    | 400           | 12.9 | 1190          | 12.9 | 3380          | 13.4 |
 | early ZS, back to front   | 140           | 10   | 190           | 12.5 | 170           | 11   |
 |**early ZS, front to back**| 59            |  9.2 | 90            | 11.4 | 140           | 12.6 |
-| DPP, back to front        |
-| DPP, front to back        | 37 + 46       |  5.3 | 41.8 + 61.2   |  7.4 | 58 + 130      |  8.0 |
+| depth pre-pass            | 37 + 46       |  5.3 | 41.8 + 61.2   |  7.4 | 58 + 130      |  8.0 |
 | depth pre-pass, subpass   | 87.1          |  5.8 | 110           |  7.8 | 180           | 10.0 |
-| vis buf                   |
+| vis buf                   | 39.3 + 6.7    |      | 46.4 + 19.7   |      | 70.7 + 52.6   |      |
 | vis buf, subpass          | 48            |  7.4 | 72.6          | 10.0 | 140           | 11.9 |
 | raster culling            | 5.2 + 23.3    | 12.0 | 16 + 49.2     | 12.4 | 61 + 110      | 11.6 |
 | HiZ + pyramid             | 30.8 + 0.84   | 11.9 | 57 + 3.1      | 12.7 | 110 + 12.5    | 13.3 |
 | HiZ + dpp + pyramid       | 8.8+19.0+0.84 |  8.4 | 10.6+45.6+3.1 | 10.7 | 15.7+100+12.5 | 12.0 |
+
+</details>
+
+
+## ARM Mali G610
+
+Количество объектов: 11K<br/>
+Всего треугольников: 4.7M<br/>
+Осталось объектов после HiZ: 3K / 1.3M tris<br/>
+Осталось объектов после Raster culling: 1.2K / 660K tris<br/>
+
+### VS/Raster/ZS bound
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 1.17   | 1.19   | 1.64   |
+| late ZS, front to back    | 1.78   | 2.68   | 5.1    |
+| early ZS, back to front   | 1.03   | 1.03   | 1.15   |
+| early ZS, discard         | 1.06   | 0.98   | 1.34   |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0    |
+| depth pre-pass            | 2.16   | 1.92   | 2.3    |
+| raster culling            |**0.19**|**0.27**| 0.71   |
+| HiZ + pyramid             | 0.3    | 0.31   |**0.48**|
+| HiZ + dpp + pyramid       | 0.58   | 0.57   | 0.74   |
+
+### ALU bound
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 5.6    | 7.2    | 6.5   |
+| late ZS, front to back    | 13.4   | 23     | 23    |
+| early ZS, back to front   | 2.24   | 2.6    | 2.4   |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0   |
+| depth pre-pass            | 1.57   | 1.23   | 0.92  |
+| vis buf                   | 0.79   | 0.85   | 0.82  |
+| raster culling            |**0.44**| 0.68   | 0.84  |
+| HiZ + pyramid             | 0.57   | 0.79   | 0.92  |
+| HiZ + dpp + pyramid       | 0.53   |**0.64**|**0.7**|
+
+### Memory bound
+
+Нагрузка на память сильно больше нагрузки на растеризатор, поэтому VisBuf оказался быстрее за счет наименьшего количества FS.
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 6      | 7.7    | 7.2   |
+| late ZS, front to back    | 6.3    | 12     | 19    |
+| early ZS, back to front   | 2.4    | 2.8    | 2.6   |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0   |
+| depth pre-pass            | 1.42   | 0.92   | 0.79  |
+| vis buf                   | 0.8    | 0.61   |**0.6**|
+| raster culling            |**0.49**| 0.7    | 0.87  |
+| HiZ + pyramid             | 0.7    | 0.86   | 0.95  |
+| HiZ + dpp + pyramid       | 0.56   |**0.57**| 0.63  |
+
+
+<details><summary><b>Подробные результаты</b></summary>
+
+Замер времени генерации пирамиды глубины неточный, так как время нестабильно и может зависить от общей нагрузки на память.
+
+**VS/Raster/ZS bound**
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                   | 23.2                | 27.9                | 38.8                 |
+| late ZS, front to back       | 35.5                | 63.1                | 120                  |
+| early ZS, back to front      | 20.5                | 24.2                | 27.2                 |
+| early ZS, discard            | 21.1                | 23.0                | 31.6                 |
+|**early ZS, front to back**   | 19.9                | 23.5                | 23.6                 |
+| depth pre-pass               | 20.8 + 22.2         | 21 + 24.1           | 26.9 + 31.9          |
+| depth pre-pass, subpass      | 42.9                | 47.2                | 54.5                 |
+| raster culling               | 1.5 + 2.2 (270MHz)  | 3.6 + 2.7 (320MHz)  | 12.7 + 4.0 (530 MHz) |
+| HiZ + pyramid                | 5.6 + 0.35 (660MHz) | 6.3 + 1.01 (720MHz) | 8.6 + 2.8            |
+| HiZ + dpp + pyramid          | 5.6 + 6.2 + 0.35    | 6.2 + 6.9 + 1.01    | 7.4 + 9.4 + 2.8      |
+| HiZ + dpp + pyramid, subpass | 11.2 + 0.35         | 12.4 + 1.01         | 14.6 + 2.8           |
+
+**ALU bound**<br/>
+PERF_LEVEL = 2
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 160          | 280           | 540          |
+| late ZS, front to back    | 380          | 910           | 1910         |
+| early ZS, back to front   | 63.7         | 99.4          | 200          |
+|**early ZS, front to back**| 28.4         | 38.9          | 82.7         |
+| depth pre-pass            | 21.5 + 23    | 22.9 + 29.0   | 23.3 + 58.3  |
+| depth pre-pass, subpass   | 45.5         | 48.1          | 76.2         |
+| vis buf                   | 20 + 2.5     | 23.3 + 9.9    | 25.7 + 39.4  |
+| vis buf, subpass          | 23.5         | 33.2          | 67.6         |
+| raster culling            | 1.4 + 11.2   | 3.8 + 22.8    | 12.2 + 57.5  |
+| HiZ + pyramid             | 15.7 + 0.35  | 29.8 + 1.01   | 72.9 + 2.8   |
+| HiZ + dpp + pyramid       | 5.6+9.0+0.35 | 6.7+17.3+1.01 | 7.5+47.7+2.8 |
+
+**Memory bound**<br/>
+PERF_LEVEL = 2
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 180           | 460         | 1010         |
+| late ZS, front to back    | 190           | 700         | 2720         |
+| early ZS, back to front   | 71.5          | 170         |  370         |
+|**early ZS, front to back**| 30            | 59.7        |  140         |
+| depth pre-pass            | 19.9 + 23.3   | 21 + 38     | 23.2 + 89.6  |
+| depth pre-pass, subpass   | 42.5          | 55.0        | 110          |
+| vis buf                   | 21.3 + 7.3    | 21.5 + 24   | 23.7 + 79.2  |
+| vis buf, subpass          | 24.1          | 36.5        | 83.5         |
+| raster culling            | 1.4 + 13.2    | 3.6 + 38.2  | 12.2 + 110   |
+| HiZ + pyramid             | 20.7 + 0.35   | 50.2 + 1.01 | 130 + 2.8    |
+| HiZ + dpp + pyramid       | 5.6+10.8+0.35 | 6.2+27+1.01 | 7.4+78.2+2.8 |
+
+</details>
+
+
+## Adreno 505
+
+### VS/Raster/ZS bound
+
+Количество объектов: 2K<br/>
+Всего треугольников: 880K<br/>
+Осталось объектов после HiZ: 640<br/>
+Осталось объектов после Raster culling: 330<br/>
+
+Чтение индексов в вершинном шейдере сильно замедляет рисование, поэтому отсечение на стороне ГП работает медленно.
+
+| technique | 1K | 2K |
+|---|---|---|
+| without ZS                | 5.5  | 7.9  |
+| late ZS, front to back    | 38   | 50   |
+| early ZS, back to front   | 1.17 | 1.14 |
+| early ZS, discard         | 5    | 6.8  |
+|**early ZS, front to back**| 1.0  | 1.0  |
+| DPP, front to back        | 1.76 | 1.67 |
+| DPP, back to front        | 2.4  | 2.6  |
+| raster culling            | 4.9  | 5.8  |
+| HiZ + pyramid             | 2.5  | 3.8  |
+| HiZ + dpp + pyramid       | 2.6  | 5.2  |
+
+### ALU bound
+
+Количество объектов: 860<br/>
+Всего треугольников: 370K<br/>
+Осталось объектов после HiZ: 780<br/>
+Осталось объектов после Raster culling: 380<br/>
+
+VisBuf работает некорректно, это не должно влиять на производительность ALU, но и не позволяет применять такую технику.
+По какой-то причине даже EarlyZS оказался слишком медленным, Raster culling быстрее за счет уменьшения количества FS.
+
+| technique | 1K | 2K |
+|---|---|---|
+| without ZS                |
+| late ZS, front to back    |
+| early ZS, back to front   |
+|**early ZS, front to back**| 1.0    | 1.0    |
+| depth pre-pass            | 1.04   | 1.03   |
+| vis buf                   | (0.17) | (0.19) |
+| raster culling            | 0.55   | 0.55   |
+| HiZ + pyramid             | 1.01   | 0.99   |
+| HiZ + dpp + pyramid       | 1.05   |
+
+
+<details><summary><b>Подробные результаты</b></summary>
+
+**VS/Raster/ZS bound**
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                   | 47.7        | 140          | 480        |
+| late ZS, front to back       | 330         | 890          | too slow   |
+| early ZS, back to front      | 10.1        | 20.2         | 68.6       |
+| early ZS, discard            | 42.7        | 120          | 420        |
+|**early ZS, front to back**   | 8.6         | 17.7         | 65.7       |
+| depth pre-pass               | 6.7 + 30.3  | 13.3 + 74.6  | 37.2 + 230 |
+| depth pre-pass, subpass      | 15.1        | 29.6         | 97.4       |
+| DPP, subpass, back to front  | 20.5        | 45.5         | 150        |
+| raster culling               | 32.1 + 10.1 | 71 + 30.8    | 270 + 110  |
+| HiZ + pyramid                | 17.9 + 3.6  | 53.5 + 14.6  | 190 + 59   |
+| HiZ + dpp + pyramid          | 8.4+10+3.6  | 22.8+54+14.6 | 71+190+59  |
+| HiZ + dpp + pyramid, subpass | 26.6 + 3.6  | 77.5 + 14.6  | 260 + 59   |
+
+**ALU bound**<br/>
+PERF_LEVEL = 4
+
+VisBuf работает некорректно.
+
+| technique | 1K (ms) | 2K (ms) |
+|---|---|---|
+| without ZS                | 
+| late ZS, front to back    | 
+| early ZS, back to front   | 
+|**early ZS, front to back**| 260         | 830        | 
+| depth pre-pass            | 10.3 + 260  | 27 + 830   |
+| depth pre-pass, subpass   | 270         | 860        |
+| vis buf                   | 12.7 + 32.2 | 31 + 130   | 
+| vis buf, subpass          | 45.6        | 160        |
+| raster culling            | 13.5 + 130  | 31 + 430   |
+| HiZ + pyramid             | 260 + 3.6   | 810 + 14.6 |
+| HiZ + dpp + pyramid       | 9.9+260+3.6 | 
+
+**Memory bound**<br/>
+PERF_LEVEL = 4
+
+Слишком медленно для тестирования.
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 
+| late ZS, front to back    | 
+| early ZS, back to front   | 
+|**early ZS, front to back**| 
+| depth pre-pass            | 
+| vis buf                   | 
+| vis buf (bary)            | 
+| raster culling            | 
+| HiZ + pyramid             | 
+| HiZ + dpp + pyramid       | 
 
 </details>
 
@@ -644,7 +976,128 @@ PERF_LEVEL = 2
 </details>
 
 
-## AMD Radeon 780M
+
+## AMD RX570
+
+Количество объектов: 11K<br/>
+Всего треугольников: 4.7M<br/>
+Осталось объектов после HiZ: 3K<br/>
+Осталось объектов после Raster culling: 1.2K<br/>
+
+### VS/Raster/ZS bound
+
+DPP должен был показать вдвое меньшую производительность из-за нагрузки на растеризатор, но встроенный HiZ отбрасывает невидимые треугольники до растеризации.
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 1.14   | 3.2   | 6.7    |
+| late ZS, front to back    | 1.28   | 2.8   | 4.3    |
+| early ZS, back to front   | 1.02   | 2.0   | 3.0    |
+| early ZS, discard         | 1.0    | 0.97  | 1.0    |
+|**early ZS, front to back**| 1.0    | 1.0   | 1.0    |
+| depth pre-pass            | 1.99   | 1.67  | 1.33   |
+| raster culling            |**0.38**| 0.83  | 1.22   |
+| HiZ + pyramid             | 0.52   |**0.8**| 1.05   |
+| HiZ + dpp + pyramid       | 0.95   | 0.95  |**0.89**|
+
+### ALU bound
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 7.2    | 10.2   | 11.8  |
+| late ZS, front to back    | 7.2    | 10.2   | 11.8  |
+| early ZS, back to front   | 2.6    | 3.5    | 3.9   |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0   |
+| depth pre-pass            | 1.25   | 0.88   | 0.7   |
+| vis buf                   | 1.16   | 0.84   | 0.66  |
+| vis buf (bary)            | 1.14   | 0.83   | 0.71  |
+| raster culling            |**0.58**| 0.82   | 1.01  |
+| HiZ + pyramid             | 0.82   | 1.11   | 1.23  |
+| HiZ + dpp + pyramid       | 0.73   |**0.65**|**0.6**|
+
+### Memory bound
+
+DPP оказался быстрее VisBuf, так как quad overdraw слабо влияет на производительность.
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 10.4   | 12.3   | 13     |
+| late ZS, front to back    | 10.4   | 12.3   | 13     |
+| early ZS, back to front   | 3.3    | 4.1    | 4.3    |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0    |
+| depth pre-pass            | 1.23   | 0.75   | 0.62   |
+| vis buf                   | 1.3    | 0.83   | 0.66   |
+| vis buf (bary)            | 1.32   | 0.89   | 0.83   |
+| raster culling            | 0.75   | 0.89   | 0.98   |
+| HiZ + pyramid             | 1.01   | 1.22   | 1.25   |
+| HiZ + dpp + pyramid       |**0.73**|**0.61**|**0.55**|
+
+### Генерация HZB
+
+Формат R32F. Производительность падает при рендере в нижние мип-уровни, возможно замер времени неточный или влияет на производительность, возможно переключение фреймбуфера занимает много времени.
+
+| technique                                    |  2K (ms)  |  4K (ms)  |
+|----------------------------------------------|-----------|-----------|
+| non power of 2, cs                           | 0.99      | 3.17      |
+| non power of 2, gfx                          | 1.07      | 3.1       |
+| to power of 2, cs                            | 0.93      | 2.72      |
+| to power of 2, gfx                           | 0.97      | 2.7       |
+| to power of 2, reduction, cs                 |**0.87**   |**2.55**   |
+| to power of 2, reduction, gfx                | 0.93      | 2.6       |
+| to power of 2, skip high mip, reduction, gfx | 1.04      | 3.36      |
+
+<details><summary><b>Подробные результаты</b></summary>
+
+**VS/Raster/ZS bound**
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 6.2          | 21.7         | 100          |
+| late ZS, front to back    | 6.92         | 19           | 64.7         |
+| early ZS, back to front   | 5.55         | 13.7         | 45.2         |
+| early ZS, discard         | 5.42         | 6.55         | 15           |
+|**early ZS, front to back**| 5.42         | 6.75         | 15           |
+| depth pre-pass            | 5.4 + 5.4    | 5.5 + 5.8    | 9.2 + 10.7   |
+| raster culling            | 1 + 1.08     | 2.7 + 2.9    | 9.1 + 9.2    |
+| HiZ + pyramid             | 2.46 + 0.37  | 4.6 + 0.82   | 13.3 + 2.51  |
+| HiZ + dpp + pyramid       | 2.4+2.4+0.37 | 2.7+2.9+0.82 | 4.8+6.1+2.51 |
+
+**ALU bound**<br/>
+PERF_LEVEL = 2
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 76.6          | 210             | 690              |
+| late ZS, front to back    | 76.6          | 210             | 690              |
+| early ZS, back to front   | 27.7          | 72.8            | 230              |
+|**early ZS, front to back**| 10.6          | 20.6            | 58.3             |
+| depth pre-pass            | 5.4 + 7.9     | 5.5 + 12.7      | 9.2 + 31.5       |
+| vis buf                   | 10.7 + 1.63   | 11 + 6.3        | 13.8 + 24.9      |
+| vis buf (bary)            | 12.1          | 17              | 41.6             |
+| raster culling            | 1 + 5.2       | 2.7 + 14.2      | 9.1 + 49.8       |
+| HiZ + pyramid             | 8.3 + 0.37    | 22 + 0.82       | 69.1 + 2.51      |
+| HiZ + dpp + pyramid       | 2.4 + 5 +0.37 | 2.7 + 9.8 +0.82 | 4.8 + 27.6 +2.51 |
+
+**Memory bound**<br/>
+PERF_LEVEL = 2
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 110         | 330           | 1070          |
+| late ZS, front to back    | 110         | 330           | 1070          |
+| early ZS, back to front   | 35.1        | 110           | 350           |
+|**early ZS, front to back**| 10.6        | 26.9          | 81.4          |
+| depth pre-pass            | 5.4 + 7.65  | 5.5 + 14.8    | 9.2 + 41.6    |
+| vis buf                   | 10.7 + 3.14 | 11 + 11.2     | 13.8 + 39.8   |
+| vis buf (bary)            | 14          | 24            | 67.8          |
+| raster culling            | 1 + 7       | 2.7 + 21.2    | 9.1 + 70.5    |
+| HiZ + pyramid             | 10.3 + 0.37 | 32.1 + 0.82   | 99 + 2.51     |
+| HiZ + dpp + pyramid       | 2.4+5+0.37  | 2.7+12.8+0.82 | 4.8+37.5+2.51 |
+
+</details>
+
+
+## AMD Radeon 780M, RADV
 
 Количество объектов: 11K<br/>
 Всего треугольников: 33M<br/>
@@ -686,6 +1139,21 @@ RasterCulling оказался сильно быстрее HiZ, особенно
 | HiZ + pyramid             | 0.44   | 0.67   | 0.98   |
 | HiZ + dpp + pyramid       | 0.59   | 0.61   |**0.66**|
 
+Больше вычислений и больше регистров.
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 7.5   | 10.8  | -      |
+| late ZS, front to back    | 7.5   | 11    | -      |
+| early ZS, back to front   | 2.7   | 3.5   | 4      |
+|**early ZS, front to back**| 1.0   | 1.0   | 1.0    |
+| depth pre-pass            | 1.22  | 0.89  | 0.66   |
+| vis buf                   | 1.32  | 0.87  | 0.57   |
+| vis buf (bary)            | 1.34  | 0.89  | 0.59   |
+| raster culling            | 0.51  | 0.69  | 0.88   |
+| HiZ + pyramid             | 0.7   | 0.95  | 1.14   |
+| HiZ + dpp + pyramid       |**0.5**|**0.5**|**0.51**|
+
 ### Memory bound
 
 | technique | 1K | 2K | 4K |
@@ -694,7 +1162,7 @@ RasterCulling оказался сильно быстрее HiZ, особенно
 | late ZS, front to back    | 5.8    | 8.9   | 9.0   |
 | early ZS, back to front   | 2.3    | 3.2   | 3.7   |
 |**early ZS, front to back**| 1.0    | 1.0   | 1.0   |
-| depth pre-pass            | 1.33   | 0.91  | 
+| depth pre-pass            | 1.33   | 0.91  | 0.74  |
 | vis buf                   | 0.97   | 0.76  | 0.73  |
 | vis buf (bary)            | 0.97   | 0.77  | 0.78  |
 | raster culling            |**0.45**| 0.63  | 0.72  |
@@ -733,20 +1201,20 @@ PERF_LEVEL = 2
 | HiZ + pyramid             | 3.8 + 0.09   | 7.6 + 0.33   | 20 + 1.3    |
 | HiZ + dpp + pyramid       | 2.4+2.8+0.09 | 2.8+4.1+0.33 | 4.3+8.8+1.3 |
 
-PERF_LEVEL = 1
+PERF_LEVEL = 1 (Новая версия, результаты могут отличаться от других таблиц)
 
 | technique | 1K (ms) | 2K (ms) | 4K (ms) |
 |---|---|---|---|
-| without ZS                | 
-| late ZS, front to back    | 
-| early ZS, back to front   | 
-|**early ZS, front to back**| 
-| depth pre-pass            | 
-| vis buf                   | 
-| vis buf (bary)            | 
-| raster culling            | 
-| HiZ + pyramid             | 
-| HiZ + dpp + pyramid       | 
+| without ZS                | 140          | 370         | too slow     |
+| late ZS, front to back    | 140          | 380         | too slow     |
+| early ZS, back to front   | 49.7         | 120         | 340          |
+|**early ZS, front to back**| 18.6         | 34.2        | 84.2         |
+| depth pre-pass            | 8.1 + 14.6   | 9 + 21.6    | 10.9 + 44.8  |
+| vis buf                   | 23.4 + 1.2   | 24.5 + 5.3  | 25.8 + 22.6  |
+| vis buf (bary)            | 25.0         | 30.5        | 49.6         |
+| raster culling            | 0.3 + 9.2    | 0.8 + 23    | 2.5 + 72     |
+| HiZ + pyramid             | 13 + 0.09    | 32 + 0.33   | 95 + 1.3     |
+| HiZ + dpp + pyramid       | 2.4+6.9+0.09 | 2.8+14+0.33 | 4.4+37.5+1.3 |
 
 **Memory bound**<br/>
 PERF_LEVEL = 2
@@ -757,7 +1225,7 @@ PERF_LEVEL = 2
 | late ZS, front to back    | 84           | 250         | 530        |
 | early ZS, back to front   | 33.2         | 91          | 220        |
 |**early ZS, front to back**| 14.4         | 28.2        | 59         |
-| depth pre-pass            | 8.1 + 11     | 9 + 16.8    | 
+| depth pre-pass            | 8.1 + 11     | 9 + 16.8    | 10.9 + 33  |
 | vis buf                   | 10.9 + 3     | 11.3 + 10   | 13 + 30    |
 | vis buf (bary)            | 10.9 + 3     | 11.6 + 10   | 14.8 + 31  |
 | raster culling            | 0.26 + 6.2   | 0.7 + 17    | 2.3 + 40   |
@@ -766,6 +1234,111 @@ PERF_LEVEL = 2
 
 </details>
 
+
+## AMD Radeon 780M, PRO
+
+Количество объектов: 11K<br/>
+Всего треугольников: 33M<br/>
+Осталось объектов после HiZ: 2.9K<br/>
+Осталось объектов после Raster culling: 1.17K<br/>
+
+### VS/Raster/ZS bound
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 1.02   | 0.99   | 1.79   |
+| late ZS, front to back    | 1.02   | 1.02   | 1.72   |
+| early ZS, back to front   | 1.12   | 1.19   | 1.56   |
+| early ZS, discard         | 0.96   | 0.92   | 0.91   |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0    |
+| depth pre-pass            | 1.94   | 1.82   | 1.59   |
+| raster culling            |**0.17**|**0.24**|**0.51**|
+| HiZ + pyramid             | 0.34   | 0.4    | 0.6    |
+| HiZ + dpp + pyramid       | 0.59   | 0.62   | 0.73   |
+
+### ALU bound
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 2.9    | 5.3    | 8.5    |
+| late ZS, front to back    | 3      | 5.3    | 8.5    |
+| early ZS, back to front   | 1.52   | 2.06   | 2.9    |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0    |
+| depth pre-pass            | 1.77   | 1.48   | 1.21   |
+| vis buf                   | 1.12   | 0.95   | 0.83   |
+| vis buf (bary)            | 1.14   | 0.98   | 0.88   |
+| raster culling            |**0.24**|**0.42**| 0.69   |
+| HiZ + pyramid             | 0.44   | 0.57   | 0.86   |
+| HiZ + dpp + pyramid       | 0.57   | 0.58   |**0.63**|
+
+### Memory bound
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 2.1    | 5.3    | 6.5    |
+| late ZS, front to back    | 2.2    | 5.4    | 6.5    |
+| early ZS, back to front   | 1.48   | 2.15   | 3      |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0    |
+| depth pre-pass            | 1.71   | 1.32   | 0.94   |
+| vis buf                   | 1.11   | 0.86   | 0.61   |
+| vis buf (bary)            | 1.12   | 0.86   | 0.68   |
+| raster culling            |**0.27**|**0.46**| 0.66   |
+| HiZ + pyramid             | 0.45   | 0.63   | 0.81   |
+| HiZ + dpp + pyramid       | 0.56   | 0.54   |**0.56**|
+
+
+
+<details><summary><b>Подробные результаты</b></summary>
+
+Новая версия, результаты нельзя сравнивать с RADV версией.
+
+**VS/Raster/ZS bound**
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 8.5           | 9.6          | 25           |
+| late ZS, front to back    | 8.5           | 9.9          | 24.1         |
+| early ZS, back to front   | 9.4           | 11.5         | 21.9         |
+| early ZS, discard         | 8.0           | 8.9          | 12.8         |
+|**early ZS, front to back**| 8.37          | 9.7          | 14.0         |
+| depth pre-pass            | 8.13 + 8.11   | 9 + 8.7      | 11 + 11.2    |
+| raster culling            | 0.19 + 1.27   | 0.54 + 1.76  | 2.2 + 4.9    |
+| HiZ + pyramid             | 2.75 + 0.078  | 3.6 + 0.31   | 7.2 + 1.23   |
+| HiZ + dpp + pyramid       | 2.4+2.5+0.078 | 2.9+2.8+0.31 | 4.3+4.7+1.23 |
+
+**ALU bound**<br/>
+PERF_LEVEL = 2
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 28.3          | 69.2         | 200          |
+| late ZS, front to back    | 28.8          | 70           | 200          |
+| early ZS, back to front   | 14.6          | 27           | 67.2         |
+|**early ZS, front to back**| 9.6           | 13.1         | 23.5         |
+| depth pre-pass            | 8.1 + 8.9     | 9.0 + 10.4   | 12.7 + 15.7  |
+| vis buf                   | 10.5 + 0.29   | 11.2 + 1.3   | 14.2 + 5.2   |
+| vis buf (bary)            | 10.9          | 12.8         | 20.7         |
+| raster culling            | 0.19 + 2.1    | 0.56 + 4.9   | 2.6 + 13.7   |
+| HiZ + pyramid             | 4.1 + 0.078   | 7.2 + 0.31   | 19 + 1.23    |
+| HiZ + dpp + pyramid       | 2.4+3.0+0.078 | 2.9+4.4+0.31 | 4.4+9.2+1.23 |
+
+**Memory bound**<br/>
+PERF_LEVEL = 2
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 21.1        | 81           | 200           | 
+| late ZS, front to back    | 21.3        | 82.2         | 200           |
+| early ZS, back to front   | 14.5        | 32.4         | 92            |
+|**early ZS, front to back**| 9.8         | 15.1         | 31            |
+| depth pre-pass            | 8.1 + 8.7   | 9 + 11       | 11 + 18       |
+| vis buf                   | 10.5 + 0.4  | 11.2 + 1.2   | 14.2 + 4.8    |
+| vis buf (bary)            | 11          | 13           | 21.2          |
+| raster culling            | 0.19 + 2.5  | 0.5 + 6.4    | 2.6 + 18      |
+| HiZ + pyramid             | 4.3 + 0.078 | 9.2 + 0.31   | 24 + 1.23     |
+| HiZ + dpp + pyramid       | 2.4+3+0.078 | 2.8+5.1+0.31 | 4.8+11.2+1.23 |
+
+</details>
 
 ## PowerVR BXM-8-256
 
@@ -917,7 +1490,7 @@ PERF_LEVEL = 3
 
 HiZ вдвое уменьшает количество треугольников, что вдвое ускоряет растеризацию, но построение пирамиды глубины занимает 13.5мс в 4К и 3.3мс в 2К, что сильно снижает производительность.
 Построение HZB и проход RasterCulling сильно нагружают память поэтому неэффективны.
-DPP уменьшает количество FS, из-за чего второй проход оказывается быстрее чем EarlyZS.
+DPP уменьшает количество FS, из-за чего второй проход оказывается немного быстрее чем EarlyZS.
 
 | technique | 1K | 2K | 4K |
 |---|---|---|---|
@@ -961,6 +1534,20 @@ VisBuf выигрывает за счет наименьшего количес�
 | raster culling            | 1.02   | 1.02   | 1.0    |
 | HiZ + pyramid             | 1.03   | 1.09   | 1.02   |
 | HiZ + dpp + pyramid       |**0.63**| 0.63   | 0.61   |
+
+### Генерация HZB
+
+Цикл в шейдере оказался медленее, чем рисование в промежуточный мип, поэтому пропускать верхний мип не имеет смысла, либо нужна ручная оптимизация.
+
+| technique                                    |  2K (ms)  |  4K (ms)  |
+|----------------------------------------------|-----------|-----------|
+| non power of 2, cs                           | 4.3       | 17.9      |
+| non power of 2, gfx                          | 1.6       | 5.2       |
+| to power of 2, cs                            | 1.99      | 8         | 
+| to power of 2, gfx                           | 1.1       | 4.5       |
+| to power of 2, reduction, cs                 | 1.98      | 7.8       | 
+| to power of 2, reduction, gfx                |**1.1**    |**4.4**    |
+| to power of 2, skip high mip, reduction, gfx | 1.2       | 4.6       |
 
 <details><summary><b>Подробные результаты</b></summary>
 
@@ -1011,6 +1598,123 @@ PERF_LEVEL = 3
 </details>
 
 
+## Intel N150
+
+Количество объектов: 11K<br/>
+Всего треугольников: 4.7M<br/>
+Осталось объектов после HiZ: 3K<br/>
+Осталось объектов после Raster culling: 1.2K<br/>
+
+### VS/Raster/ZS bound
+
+За счет меньших задержек по памяти вариант с RasterCulling оказался быстрее.
+Построение HZB упирается в пропускную способность памяти и не отличается от UHD620 с DDR3. 
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 2.6    | 4.4    | 4.2   |
+| late ZS, front to back    | 3.0    | 5.7    | 6.2   | 
+| early ZS, back to front   | 1.23   | 1.7    | 1.66  |
+| early ZS, discard         | 1.03   | 1.1    | 1.03  |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0   |
+| depth pre-pass            | 1.78   | 1.77   | 1.38  |
+| raster culling            |**0.29**|**0.58**|**0.9**|
+| HiZ + pyramid             | 0.47   | 0.9    | 1.36  |
+| HiZ + dpp + pyramid       | 0.65   | 1.07   | 1.36  |
+
+### ALU bound
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 10.8   | 11.9   | 12     |
+| late ZS, front to back    | 10.8   | 12.1   | 12     |
+| early ZS, back to front   | 3.6    | 3.9    | 3.9    |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0    |
+| depth pre-pass            | 0.82   | 0.64   | 0.57   |
+| vis buf                   |**0.47**|**0.49**|**0.54**|
+| raster culling            | 0.66   | 0.78   | 0.80   |
+| HiZ + pyramid             | 0.84   | 0.96   | 1.02   |
+| HiZ + dpp + pyramid       | 0.51   | 0.54   | 0.57   |
+
+### Memory bound
+
+| technique | 1K | 2K | 4K |
+|---|---|---|---|
+| without ZS                | 4.5    | 8.3    | 10.3   |
+| late ZS, front to back    | 4.5    | 8.7    | 10.3   |
+| early ZS, back to front   | 1.9    | 3.0    | 3.4    |
+|**early ZS, front to back**| 1.0    | 1.0    | 1.0    |
+| depth pre-pass            | 1.38   | 1.1    | 0.86   |
+| vis buf                   | 0.93   | 0.85   |**0.78**|
+| raster culling            |**0.42**|**0.72**| 0.85   |
+| HiZ + pyramid             | 0.6    | 0.95   | 1.11   |
+| HiZ + dpp + pyramid       | 0.62   | 0.77   | 0.85   |
+
+
+<details><summary><b>Подробные результаты</b></summary>
+
+**VS/Raster/ZS bound**
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 15.3         | 31.2        | 74.2         |
+| late ZS, front to back    | 18.0         | 40.7        | 110          |
+| early ZS, back to front   | 7.4          | 12.0        | 29.4         |
+| early ZS, discard         | 6.2          | 7.8         | 18.3         |
+|**early ZS, front to back**| 6.0          | 7.1         | 17.7         | 
+| depth pre-pass            | 4.9 + 5.8    | 6.1 + 6.5   | 11.9 + 12.5  |
+| raster culling            | 0.72 + 1.03  | 2.1 + 2.0   | 7.9 + 8.1    |
+| HiZ + pyramid             | 2.0 + 0.82   | 3.2 + 3.2   | 10.9 + 13.2  |
+| HiZ + dpp + pyramid       | 1.4+1.7+0.82 | 2.1+2.3+3.2 | 5.2+5.6+13.2 |
+
+**ALU bound**<br/>
+PERF_LEVEL = 2
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 240         | 620        | 1920          |
+| late ZS, front to back    | 240         | 630        | 1930          |
+| early ZS, back to front   | 79.2        | 200        | 630           |
+|**early ZS, front to back**| 22.2        | 51.9       | 160           |
+| depth pre-pass            | 4.9 + 13.3  | 6.2 + 27.2 | 12.1 + 78.8   |
+| vis buf                   | 6 + 4.5     | 7.3 + 18   | 15.2 + 71.7   |
+| raster culling            | 0.72 + 14   | 2.1 + 38.2 | 7.9 + 120     |
+| HiZ + pyramid             | 17.8 + 0.82 | 46.8 + 3.2 | 150 + 13.2    |
+| HiZ + dpp + pyramid       | 1.4+9+0.82  | 2+23+3.2   | 5.3+72.5+13.2 |
+
+**Memory bound**<br/>
+PERF_LEVEL = 3
+
+По сравнению с UHD 620 тут более быстрая память, поэтому производительность значительно отличается и нагрузка на FS сильно меньше чем в ALU bound версии.
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 35.7         | 125         | 480           |
+| late ZS, front to back    | 35.9         | 130         | 480           |
+| early ZS, back to front   | 15.2         | 44.9        | 160           |
+|**early ZS, front to back**| 8.0          | 15.0        | 46.6          |
+| depth pre-pass            | 4.9 + 6.1    | 6.2 + 10.3  | 12 + 28       |
+| vis buf                   | 5.9 + 1.5    | 7.2 + 5.5   | 15.1 + 21.2   |
+| raster culling            | 0.72 + 2.6   | 2.1 + 8.7   | 7.9 + 31.5    |
+| HiZ + pyramid             | 4.0 + 0.82   | 11 + 3.2    | 38.5 + 13.2   |
+| HiZ + dpp + pyramid       | 1.4+2.7+0.82 | 2.0+6.3+3.2 | 5.2+21.1+13.2 |
+
+PERF_LEVEL = 2
+
+| technique | 1K (ms) | 2K (ms) | 4K (ms) |
+|---|---|---|---|
+| without ZS                | 
+| late ZS, front to back    | 
+| early ZS, back to front   | 
+|**early ZS, front to back**| 
+| depth pre-pass            | 
+| vis buf                   |
+| raster culling            | 
+| HiZ + pyramid             | 
+| HiZ + dpp + pyramid       | 
+
+</details>
+
 
 ## Lavapipe
 
@@ -1025,3 +1729,20 @@ TBDR архитектура сама по себе не предполагает
 Так у Adreno без сортировки теряется всего 10% на 2К и 4К.<br/>
 У Mali на 2К производительность проседает в 2 раза, но на 4К теряется 15%, значит FPK начинает работать. FPK не справляется с микротреугольниками, поэтому нужно подстраивать детализацию.<br/>
 PowerVR BXM как и Mali плохо справляется с микротреугольниками, но при повышении разрешения все меняется.
+
+
+# Исходники
+
+* [GeometryCulling-1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GeometryCulling-1.as) - тест производительности, нагрузка на VS и растеризатор.
+  Тут [VS и FS шейдеры](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/GeometryCulling-1-shared.as).
+* [GeometryCulling-2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GeometryCulling-2.as) - тест производительности, нагрузка на FS.
+  Тут [VS и FS шейдеры](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/GeometryCulling-2-shared.as).
+* [GenHiZ-1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GenHiZ-1.as) - расчет мип-уровней HiZ, вариант со степенью 2.
+* [GenHiZ-2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GenHiZ-2.as) - расчет мип-уровней HiZ, вариант с сохранением пропорций.
+* [DepthPyramidCulling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/DepthPyramidCulling.as) - визуализация проверки видимости прямоугольника на пирамиде глубины, используется в HiZ.
+* [ProjectSphere test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/ProjectSphere.as) - отладочная визуализация быстрой проекции сферы, используется для HiZ.
+  Тут [шейдер с проекцией](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/tests/ProjectSphere.as).
+* [HiZ-DebugVis](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/HiZ-DebugVis.as) - отладочная визуализаций HiZ теста.
+* [MaterialDepthBuffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/MaterialDepthBuffer.as) - тест производительности этапа классификации для visibility buffer.
+* [VisibilityBuffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/VisibilityBuffer.as) - реализация visibility buffer. В редакторе шейдеров нет подготовки геометрии для VisBuf, поэтому используется RTX, где все подготовленно под bindless.
+* [DeferredTexturing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/DeferredTexturing.as) - реализация отложенного текстурирования.

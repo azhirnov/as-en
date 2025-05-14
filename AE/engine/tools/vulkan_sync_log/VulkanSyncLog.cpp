@@ -335,8 +335,6 @@ namespace
 		ND_ String	GetBufferAsString (VkDeviceOrHostAddressConstKHR addr)	const	{ return GetBufferAsString( addr.deviceAddress ); }
 		ND_ String	GetBufferAsString (VkDeviceOrHostAddressKHR addr)		const	{ return GetBufferAsString( addr.deviceAddress ); }
 
-		ND_ String	GetAccelStructAsString (VkDeviceAddress addr)			const;
-
 		ND_ static VulkanLogger&			Get ()		__NE___	{ return *_Instance(); }
 
 		ND_ static InPlace<VulkanLogger>&  _Instance ()	__NE___
@@ -434,7 +432,13 @@ namespace
 			{
 				usize	idx = LowerBound2( logger.devAddrToBuffer, VulkanLogger::DeviceAddressKey{it->second.address} );
 				if ( idx != UMax )
+				{
+					ASSERT( logger.devAddrToBuffer[idx].address == it->second.address );
+					ASSERT( logger.devAddrToBuffer[idx].type == VK_OBJECT_TYPE_BUFFER );
+					ASSERT( logger.devAddrToBuffer[idx].resource == BitCast<ulong>(buffer) );
+
 					logger.devAddrToBuffer.erase( logger.devAddrToBuffer.begin() + idx );
+				}
 
 				auto	it2 = logger.memoryMap.find( it->second.mem );
 				if ( it2 != logger.memoryMap.end() )
@@ -4176,7 +4180,22 @@ namespace
 		auto&		logger	= VulkanLogger::Get();
 		{
 			EXLOCK( logger.guard );
-			logger.accelStructMap.erase( accelerationStructure );
+			
+			auto	it = logger.accelStructMap.find( accelerationStructure );
+			if ( it != logger.accelStructMap.end() )
+			{
+				usize	idx = LowerBound2( logger.devAddrToBuffer, VulkanLogger::DeviceAddressKey{it->second.address} );
+				if ( idx != UMax )
+				{
+					ASSERT( logger.devAddrToBuffer[idx].address == it->second.address );
+					ASSERT( logger.devAddrToBuffer[idx].type == VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR );
+					ASSERT( logger.devAddrToBuffer[idx].resource == BitCast<ulong>(accelerationStructure) );
+
+					logger.devAddrToBuffer.erase( logger.devAddrToBuffer.begin() + idx );
+				}
+
+				logger.accelStructMap.erase( it );
+			}
 		}
 
 		logger.vkDestroyAccelerationStructureKHR( device, accelerationStructure, pAllocator );
@@ -5345,20 +5364,7 @@ namespace
 			if ( it != bufferMap.end() )
 				return "'"s << it->second.name << "', offset: " << ToString(ulong{addr - it->second.address});
 		}
-		return "<unknown>";
-	}
 
-/*
-=================================================
-	GetAccelStructAsString
-=================================================
-*/
-	String  VulkanLogger::GetAccelStructAsString (VkDeviceAddress addr) const
-	{
-		if ( addr == 0 )
-			return "null"s;
-
-		usize	idx = LowerBound2( devAddrToBuffer, DeviceAddressKey{addr} );
 		if ( idx != UMax and
 			 devAddrToBuffer[ idx ].type == VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR )
 		{

@@ -62,12 +62,12 @@ Currently script is written only for Windows platform, on other platforms you ca
 
 **Alternative**<br/>
 Download prebuild binaries which is used in CI and extract it to the `AE-Bin/external` folder:<br/>
-[Android](https://disk.yandex.ru/d/binEtmjE0Whadw)<br/>
-[Linux x64 GCC-13](https://disk.yandex.ru/d/YG4jHX2HEu2kMQ)<br/>
-[Linux x64 Clang-16](https://disk.yandex.ru/d/dv0z_Ih3AYqJlQ)<br/>
-[MacOS arm64](https://disk.yandex.ru/d/nCzXmvKaQpa9JQ)<br/>
-[Windows x64 MSVC 19.43](https://disk.yandex.ru/d/iWQDcgIu-4FN9A)<br/>
-[Windows x64 Clang 19](https://disk.yandex.ru/d/mvqEotth1yBwSA)<br/>
+[Android](https://disk.yandex.ru/d/H9jlOAbM8Hmg8Q)<br/>
+[Linux x64 GCC-13](https://disk.yandex.ru/d/KZP1e6ujXTcgTA)<br/>
+[Linux x64 Clang-16](https://disk.yandex.ru/d/Q3YGfAA9OoMukg)<br/>
+[MacOS arm64](https://disk.yandex.ru/d/Fp1BRXACry17nQ)<br/>
+[Windows x64 MSVC 19.43](https://disk.yandex.ru/d/YVLpgUtOxas_9Q)<br/>
+[Windows x64 Clang 19](https://disk.yandex.ru/d/2cQgkCY93y10JQ)<br/>
 
 Then [Build engine and samples](#Build-engine-and-samples)
 

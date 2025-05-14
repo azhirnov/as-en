@@ -203,7 +203,8 @@ namespace AE::PipelineCompiler
 								  const String &defines, const String &resources, ArrayView<String> include,
 								  ArrayView<ScriptFeatureSetPtr> features)															__Th___;
 
-		ND_ String  GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, EShaderStages stage, ArrayView<ScriptFeatureSetPtr> features)__Th___;
+		ND_ String  GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, EShaderStages stage, bool hasDebugInfo,
+											 ArrayView<ScriptFeatureSetPtr> features)												__Th___;
 		ND_ String  GetShaderExtensionsMSL  (INOUT Version2 &metalVer, EShaderStages stage, ArrayView<ScriptFeatureSetPtr> features)__Th___;
 
 

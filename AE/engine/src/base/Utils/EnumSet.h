@@ -30,11 +30,13 @@ namespace AE::Base
 		using BitArr_t	= StaticArray< Elem_t, _ArraySize >;
 		using Index_t	= ByteSizeToUInt< Max( sizeof(E), sizeof(usize) )>;
 
+		// must be large enough to contains out-of-bounds indices
 		StaticAssert( sizeof(E) <= sizeof(Index_t) );
 		StaticAssert( _BitCount <= _ElemSize * _ArraySize );
 		StaticAssert( _BitCount > 0 );
 		StaticAssert( _BitCount <= CT_SizeOfInBits<BitArr_t> );
 
+		StaticAssert( _BitCount == Index_t(E::_Count) );
 		StaticAssert( _ElemSize > 0 );
 		StaticAssert( _BitCount <= 8*1024 );	// 1 KiB
 
@@ -178,6 +180,7 @@ namespace AE::Base
 	__Cx__ EnumSet<E>&  EnumSet<E>::set (E value, bool bit) __NE___
 	{
 		ASSERT_Cx( Index_t(value) < size() );
+		_bits[ Index_t(value) / _ElemSize ] &= ~(Elem_t{1} << (Index_t(value) % _ElemSize));
 		_bits[ Index_t(value) / _ElemSize ] |= (Elem_t{bit} << (Index_t(value) % _ElemSize));
 		return *this;
 	}

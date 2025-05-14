@@ -69,6 +69,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_KHR_multiview
 - [x] VK_EXT_fragment_density_map, VK_EXT_fragment_density_map2
 - [x] VK_EXT_shader_replicated_composites - required for coopvec, coopmat
+- [x] VK_EXT_rasterization_order_attachment_access, VK_ARM_rasterization_order_attachment_access
 
 **Supported shader extensions:**
 - [x] VK_KHR_shader_clock, GL_EXT_shader_realtime_clock, GL_ARB_shader_clock
@@ -137,7 +138,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_EXT_inline_uniform_block
 - VK_EXT_depth_range_unrestricted
 - VK_EXT_sample_locations
-- VK_EXT_rasterization_order_attachment_access, VK_ARM_rasterization_order_attachment_access
 - VK_EXT_astc_decode_mode
 - VK_NV_shader_image_footprint
 - VK_KHR_incremental_present
@@ -268,7 +268,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_zero_initialize_workgroup_memory
 - VK_EXT_scalar_block_layout, GL_EXT_scalar_block_layout
 - VK_HUAWEI_subpass_shading, GL_HUAWEI_subpass_shading ???
-- VK_KHR_shader_terminate_invocation - TODO: supported?
+- VK_KHR_shader_terminate_invocation - for discard, in core 1.3
 - VK_KHR_workgroup_memory_explicit_layout
 - VK_EXT_shader_image_atomic_int64
 - VK_HUAWEI_cluster_culling_shader, GL_HUAWEI_cluster_culling_shader
@@ -287,7 +287,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_shader_relaxed_extended_instruction
 - GL_EXT_nontemporal_keyword
 - GL_NV_linear_swept_spheres, VK_NV_ray_tracing_linear_swept_spheres - sphere and hair ray tracing
-- VK_KHR_shader_non_semantic_info
+- VK_KHR_shader_non_semantic_info - shader debugging, in core 1.3
 - VK_KHR_storage_buffer_storage_class - ???
 - VK_KHR_variable_pointers - ???
 - GL_EXT_bfloat16 

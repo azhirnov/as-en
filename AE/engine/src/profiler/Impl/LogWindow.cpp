@@ -84,28 +84,42 @@ namespace
 		{
 			EXLOCK( _strongRef->Guard() );
 
-			auto	path	= FileSystem::ToShortPath( info.file );
-			auto	line	= ToString( info.line );
-			usize	len		= Min( path.length() + line.length() + 1 + after_line.length() + info.message.length(), c_MaxMsgLen );
-			usize	begin	= _lines[_lastLine] >> c_LevelBits;
-			usize	offset	= 0;
+			CHECK_Lt( _lastLine, _maxLines );
+
+			const auto		path	= FileSystem::ToShortPath( info.file );
+			const auto		line	= ToString( info.line );
+			const usize		len		= Min( path.length() + line.length() + 1 + after_line.length() + info.message.length(), c_MaxMsgLen );
+			const usize		begin	= _lines[_lastLine] >> c_LevelBits;
+			usize			offset	= 0;
+
+			CHECK_Lt( begin, _bufSize );
+			CHECK_Lt( begin + len, _bufSize );
 
 			_lastLine = (_lastLine + 1) % _maxLines;
 
+			// copy file path
 			MemCopy( OUT &_buffer[begin], path.data(), Bytes{Min( len, path.length() )} );
 			offset = Min( len, offset + path.length() );
 
+			// copy line number
 			if ( offset+1 < len ) {
+				CHECK_Lt( begin + len, _bufSize );
 				_buffer[begin + offset] = '(';
 				offset += 1;
 				MemCopy( OUT &_buffer[begin + offset], line.data(), Bytes{Min( len - offset, line.length() )} );
 				offset = Min( len, offset + line.length() );
 			}
+
+			// copy delimiter between file+line and message body
 			if ( offset < len ) {
+				CHECK_Lt( begin + len, _bufSize );
 				MemCopy( OUT &_buffer[begin + offset], after_line.data(), Bytes{Min( len - offset, after_line.length() )} );
 				offset = Min( len, offset + after_line.length() );
 			}
+
+			// copy message body
 			if ( offset < len ) {
+				CHECK_Lt( begin + len, _bufSize );
 				MemCopy( OUT &_buffer[begin + offset], info.message.data(), Bytes{Min( len - offset, info.message.length() )} );
 				offset = Min( len, offset + info.message.length() );
 			}
@@ -129,6 +143,7 @@ namespace
 	{
 		ASSERT( _strongRef );
 		ASSERT( not DeferExLock{ _strongRef->Guard() }.try_lock() );
+		ASSERT_Lt( _lastLine, _maxLines );
 
 		const ImGuiWindowFlags	wnd_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar;
 

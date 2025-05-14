@@ -84,7 +84,6 @@ void ASmain ()
 	fset.shaderImageFloat32Atomics (True);
 	fset.shaderOutputViewportIndex (True);
 	fset.shaderOutputLayer (True);
-	fset.shaderSubgroupClock (True);
 	fset.shaderClipDistance (True);
 	fset.shaderCullDistance (True);
 	fset.shaderDrawParameters (True);

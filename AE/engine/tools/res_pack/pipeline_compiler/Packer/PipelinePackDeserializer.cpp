@@ -1622,9 +1622,9 @@ namespace {
 		}
 		str << "}";
 
-		str << "\n    shader binding tables = {";
 		if ( not rtSBTs.empty() )
 		{
+			str << "\n    shader binding tables = {";
 			Array<Pair< RTShaderBindingName, RTShaderBindingUID >>	temp {rtSBTs};
 			std::sort( temp.begin(), temp.end(), [](auto &lhs, auto &rhs) { return lhs.first < rhs.first; });
 
@@ -1632,9 +1632,8 @@ namespace {
 			for (auto& sbt : temp) {
 				str << "\n      [" << Base::ToString(idx++) << "]  '" << nameMap( sbt.first ) << "', " << Base::ToString<16>( usize(sbt.second) );
 			}
-			str << "\n    ";
+			str << "\n    }";
 		}
-		str << "}";
 
 		str << "\n  ----------------------";
 		return str;

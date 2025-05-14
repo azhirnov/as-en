@@ -225,9 +225,8 @@ namespace {
 		// enable logger
 		{
 			GpaLoggingType	log_type = GpaLoggingType::kGpaLoggingError;
-
 		  #ifdef AE_DEBUG
-			log_type = GpaLoggingType( GpaLoggingType::kGpaLoggingAll | GpaLoggingType::kGpaLoggingDebugAll );
+			log_type = GpaLoggingType::kGpaLoggingAll;
 		  #endif
 
 			CHECK_ERR( _impl->fnTable.GpaRegisterLoggingCallback( log_type, &_LoggingCallback ) == kGpaStatusOk );

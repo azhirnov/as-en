@@ -1250,7 +1250,7 @@ namespace
 			outFeatureSet.shaderExpectAssume = EFeature::RequireTrue;
 
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	outFeatureSet._name_ = FS_ParseJSON( outFeatureSet._name_, json, ReplaceName(AE_TOSTRING(_name_)) );
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 
 		#define AE_FEATURE_SET_VISIT( _type_, _name_ )	outFeatureSet.ext._name_ = FS_ParseJSON( outFeatureSet.ext._name_, json, "\"" AE_TOSTRING(_name_) "\"" );
@@ -1955,7 +1955,7 @@ namespace
 			<< "\tRC<FeatureSet>  fset = FeatureSet( \"" << fsName << "\" );\n\n";
 
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	FS_ToString( INOUT str, fs. _name_, AE_TOSTRING(_name_) );
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 
 		str << "}\n";

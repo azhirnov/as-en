@@ -227,10 +227,18 @@ namespace AE::Graphics::_hidden_
 		Msg::CmdBuf_Bake::MemoryBarrier3Cmd  cmd;
 		_AddCommand( cmd );
 	}
+	
+	void  RBarrierManager::ExecutionBarrier (EResourceState srcState, EResourceState dstState) __Th___
+	{
+		Msg::CmdBuf_Bake::ExecutionBarrierCmd  cmd;
+		cmd.srcState	= srcState;
+		cmd.dstState	= dstState;
+		_AddCommand( cmd );
+	}
 
 	void  RBarrierManager::ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope) __Th___
 	{
-		Msg::CmdBuf_Bake::ExecutionBarrierCmd  cmd;
+		Msg::CmdBuf_Bake::ExecutionBarrier2Cmd  cmd;
 		cmd.srcScope	= srcScope;
 		cmd.dstScope	= dstScope;
 		_AddCommand( cmd );
@@ -238,7 +246,7 @@ namespace AE::Graphics::_hidden_
 
 	void  RBarrierManager::ExecutionBarrier () __Th___
 	{
-		Msg::CmdBuf_Bake::ExecutionBarrier2Cmd  cmd;
+		Msg::CmdBuf_Bake::ExecutionBarrier3Cmd  cmd;
 		_AddCommand( cmd );
 	}
 

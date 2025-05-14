@@ -839,7 +839,7 @@ namespace
 
 		if_unlikely( len == 0 )
 		{
-			WIN_CHECK_DEV( "GetEnvironmentVariable" );
+			//WIN_CHECK_DEV( "GetEnvironmentVariable" );
 			return false;
 		}
 

@@ -266,6 +266,7 @@ namespace AE::PipelineCompiler
 						CHECK_ERR( AllBits( dst_un.buffer.state, src_un.buffer.state, ~EResourceState::AllShaders ));
 
 						dst_un.buffer.state |= (src_un.buffer.state & EResourceState::AllShaders);
+						CHECK( EResourceState_Validate( dst_un.buffer.state ));
 						break;
 					}
 					case EDescriptorType::UniformTexelBuffer :
@@ -274,6 +275,7 @@ namespace AE::PipelineCompiler
 						CHECK_ERR( AllBits( dst_un.texelBuffer.state, src_un.texelBuffer.state, ~EResourceState::AllShaders ));
 
 						dst_un.texelBuffer.state |= (src_un.texelBuffer.state & EResourceState::AllShaders);
+						CHECK( EResourceState_Validate( dst_un.texelBuffer.state ));
 						break;
 					}
 					case EDescriptorType::StorageImage :
@@ -286,6 +288,7 @@ namespace AE::PipelineCompiler
 						CHECK_ERR( src_un.image.subpassInputIdx == UMax and dst_un.image.subpassInputIdx == UMax );
 
 						dst_un.image.state |= (src_un.image.state & EResourceState::AllShaders);
+						CHECK( EResourceState_Validate( dst_un.image.state ));
 						break;
 					}
 					case EDescriptorType::CombinedImage_ImmutableSampler :
@@ -297,6 +300,7 @@ namespace AE::PipelineCompiler
 						CHECK_ERR( dst_un.image.type == src_un.image.type );
 
 						dst_un.image.state |= (src_un.image.state & EResourceState::AllShaders);
+						CHECK( EResourceState_Validate( dst_un.image.state ));
 
 						// compare samplers
 						for (usize i = 0; i < dst_un.arraySize; ++i)
@@ -315,6 +319,7 @@ namespace AE::PipelineCompiler
 						CHECK_ERR( src_un.image.subpassInputIdx == dst_un.image.subpassInputIdx );
 
 						dst_un.image.state |= (src_un.image.state & EResourceState::AllShaders);
+						CHECK( EResourceState_Validate( dst_un.image.state ));
 						break;
 					}
 					case EDescriptorType::ImmutableSampler :

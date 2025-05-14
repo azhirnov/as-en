@@ -154,6 +154,26 @@ namespace RenderTechs
 		} Compute1 = {};
 	} MinForward;
 
+	static constexpr struct _RasterOrderAttachment_RTech
+	{
+		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0xe4b5ccbeu}};}  // 'RasterOrderAttachment.RTech'
+
+		// graphics (0)
+		static constexpr struct _Graphics0
+		{
+			constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{Hash_t{0x135a4df8u}};}  // 'Graphics0'
+
+			// RenderPass 'RasterOrderAttachment.RPass' subpass 'Main'
+
+			static constexpr uint  attachmentsCount = 2;
+			static constexpr AttachmentName_t  att_Depth {Hash_t{0x3b62336du}};  // 'Depth'
+			static constexpr AttachmentName_t  att_Color {Hash_t{0xa79767edu}};  // 'Color'
+
+			// pipelines
+			static constexpr PipelineName_t  raster_order {Hash_t{0xbfe08dc4u}};  // 'raster_order'
+		} Graphics0 = {};
+	} RasterOrderAttachment_RTech;
+
 	static constexpr struct _RayTracing
 	{
 		constexpr operator RenderTechName_t () const { return RenderTechName_t{Hash_t{0xd573045cu}};}  // 'RayTracing'

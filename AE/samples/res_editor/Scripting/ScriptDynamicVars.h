@@ -113,6 +113,7 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt*	PowOf2b (uint value)					__Th___;
 		ND_ ScriptDynamicUInt*	FloorPOT ()								__Th___;
 		ND_ ScriptDynamicUInt*	CeilPOT ()								__Th___;
+		ND_ ScriptDynamicUInt*	NearPOT ()								__Th___;
 
 		ND_ ScriptDynamicDim*	ToDim2 ()								__Th___;
 		ND_ ScriptDynamicDim*	ToDim3 ()								__Th___;
@@ -166,6 +167,7 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt2*	DivCeil (const packed_uint2 &value)		__Th___;
 		ND_ ScriptDynamicUInt2*	FloorPOT ()								__Th___;
 		ND_ ScriptDynamicUInt2*	CeilPOT ()								__Th___;
+		ND_ ScriptDynamicUInt2*	NearPOT ()								__Th___;
 		
 		ND_ ScriptDynamicUInt2*	Add1 (const ScriptDynamicUInt2Ptr &)	__Th___;
 		ND_ ScriptDynamicUInt2*	Sub1 (const ScriptDynamicUInt2Ptr &)	__Th___;
@@ -173,6 +175,8 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt2*	Div1 (const ScriptDynamicUInt2Ptr &)	__Th___;
 		ND_ ScriptDynamicUInt2*	Min1 (const ScriptDynamicUInt2Ptr &)	__Th___;
 		ND_ ScriptDynamicUInt2*	Max1 (const ScriptDynamicUInt2Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt2*	DivNear1 (const ScriptDynamicUInt2Ptr &)__Th___;
+		ND_ ScriptDynamicUInt2*	DivCeil1 (const ScriptDynamicUInt2Ptr &)__Th___;
 
 		ND_ ScriptDynamicUInt*  X ()									C_Th___;
 		ND_ ScriptDynamicUInt*  Y ()									C_Th___;
@@ -218,6 +222,7 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt3*	DivCeil (const packed_uint3 &value)		__Th___;
 		ND_ ScriptDynamicUInt3*	FloorPOT ()								__Th___;
 		ND_ ScriptDynamicUInt3*	CeilPOT ()								__Th___;
+		ND_ ScriptDynamicUInt3*	NearPOT ()								__Th___;
 		
 		ND_ ScriptDynamicUInt3*	Add1 (const ScriptDynamicUInt3Ptr &)	__Th___;
 		ND_ ScriptDynamicUInt3*	Sub1 (const ScriptDynamicUInt3Ptr &)	__Th___;
@@ -225,6 +230,8 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt3*	Div1 (const ScriptDynamicUInt3Ptr &)	__Th___;
 		ND_ ScriptDynamicUInt3*	Min1 (const ScriptDynamicUInt3Ptr &)	__Th___;
 		ND_ ScriptDynamicUInt3*	Max1 (const ScriptDynamicUInt3Ptr &)	__Th___;
+		ND_ ScriptDynamicUInt3*	DivNear1 (const ScriptDynamicUInt3Ptr &)__Th___;
+		ND_ ScriptDynamicUInt3*	DivCeil1 (const ScriptDynamicUInt3Ptr &)__Th___;
 
 		ND_ ScriptDynamicUInt*  Volume ()								C_Th___;
 

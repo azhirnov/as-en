@@ -174,10 +174,10 @@ namespace AE::Graphics
 		CHECK_ERR( SetShaderStages( OUT pipeline_info.pStages, OUT pipeline_info.stageCount, ci.shaders, ci.specCI.specialization, allocator, AddCustomSpec ));
 		CHECK_ERR( SetDynamicState( OUT dynamic_state_info, ci.specCI.dynamicState, true, allocator ));
 		SetMultisampleState( OUT multisample_info, render_state.multisample );
-		SetDepthStencilState( OUT depth_stencil_info, render_state.depth, render_state.stencil );
+		SetDepthStencilState( OUT depth_stencil_info, render_state.depth, render_state.stencil, render_state.rasterOrderAccess );
 		SetRasterizationState( OUT rasterization_info, render_state.rasterization );
 		SetViewportState( OUT viewport_info, ci.specCI.viewportCount );
-		CHECK_ERR( SetColorBlendState( OUT blend_info, render_state.color, *subpass, allocator ));
+		CHECK_ERR( SetColorBlendState( OUT blend_info, render_state.color, *subpass, render_state.rasterOrderAccess, allocator ));
 
 		vertex_input_info.sType	= VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 

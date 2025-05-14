@@ -270,14 +270,16 @@ namespace
 */
 	void  SetDepthStencilState (OUT VkPipelineDepthStencilStateCreateInfo	&outState,
 								const RenderState::DepthBufferState			&depth,
-								const RenderState::StencilBufferState		&stencil) __NE___
+								const RenderState::StencilBufferState		&stencil,
+								const RenderState::RasterizationOrderAccess	&rasterOrderAccess) __NE___
 	{
 		if ( depth.write )
 			ASSERT_MSG( depth.test, "'depth.write' requires 'depth.test'" );
 
 		outState.sType					= VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		outState.pNext					= null;
-		outState.flags					= 0;
+		outState.flags					= (rasterOrderAccess.depth ? VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_EXT : 0) |
+										  (rasterOrderAccess.stencil ? VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_EXT : 0);
 
 		// depth
 		outState.depthTestEnable		= depth.test;
@@ -461,10 +463,11 @@ namespace
 	SetColorBlendState
 =================================================
 */
-	ND_ bool  SetColorBlendState (OUT VkPipelineColorBlendStateCreateInfo	&outState,
-								  const RenderState::ColorBuffersState		&inState,
-								  const VRenderPass::SubpassInfo			&subpass,
-								  VTempLinearAllocator						&allocator) __NE___
+	ND_ bool  SetColorBlendState (OUT VkPipelineColorBlendStateCreateInfo		&outState,
+								  const RenderState::ColorBuffersState			&inState,
+								  const VRenderPass::SubpassInfo				&subpass,
+								  const RenderState::RasterizationOrderAccess	&rasterOrderAccess,
+								  VTempLinearAllocator							&allocator) __NE___
 	{
 		if ( subpass.colorAttachments.empty() )
 			return true;
@@ -480,7 +483,7 @@ namespace
 
 		outState.sType				= VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 		outState.pNext				= null;
-		outState.flags				= 0;
+		outState.flags				= (rasterOrderAccess.color ? VK_PIPELINE_COLOR_BLEND_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_BIT_EXT : 0);
 		outState.attachmentCount	= uint(subpass.colorAttachments.size());
 		outState.pAttachments		= outState.attachmentCount ? attachments : null;
 		outState.logicOpEnable		= logic_op_enabled;

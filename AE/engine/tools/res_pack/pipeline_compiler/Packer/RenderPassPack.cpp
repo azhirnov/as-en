@@ -119,8 +119,8 @@ namespace
 					switch_enum( usage_it->second.type )
 					{
 						case EAttachment::Depth :
-							dst_sp.hasDepth		= EPixelFormat_HasDepth( att->format );
-							dst_sp.hasStencil	= EPixelFormat_HasStencil( att->format );
+							dst_sp.hasDepth		|= EPixelFormat_HasDepth( att->format );
+							dst_sp.hasStencil	|= EPixelFormat_HasStencil( att->format );
 							CHECK_ERR( dst_sp.hasDepth or dst_sp.hasStencil );
 							break;
 
@@ -132,9 +132,23 @@ namespace
 
 						case EAttachment::Color :
 						case EAttachment::ColorResolve :
-						case EAttachment::ReadWrite :
+							CHECK_ERR( att->IsColor() );
+							CHECK_ERR( output.IsDefined() );
+							break;
+
 						case EAttachment::Input :
-							CHECK_ERR( input.IsDefined() or output.IsDefined() );
+							CHECK_ERR( input.IsDefined() );
+							break;
+
+						case EAttachment::ReadWrite :
+						case EAttachment::RasterOrder :
+							CHECK_ERR( input.IsDefined() );
+							if ( att->IsColor() ){
+								CHECK_ERR( output.IsDefined() );
+							}else{
+								dst_sp.hasDepth		|= EPixelFormat_HasDepth( att->format );
+								dst_sp.hasStencil	|= EPixelFormat_HasStencil( att->format );
+							}
 							break;
 
 						case EAttachment::_Count :
@@ -145,7 +159,7 @@ namespace
 					}
 					switch_end
 
-					if ( output.IsDefined() )
+					if ( output.IsDefined() and att->IsColor() )
 					{
 						CHECK_ERR( output.index < GraphicsConfig::MaxColorAttachments );
 						dst_sp.colorAttachments.resize( Max( output.index + 1, dst_sp.colorAttachments.size() ));
@@ -377,6 +391,9 @@ namespace
 				if ( attach_spec->second->storeOp == EAttachmentStoreOp::Invalidate )
 					dst_state.final |= EResourceState::Invalidate;
 
+				CHECK( EResourceState_Validate( dst_state.initial ));
+				CHECK( EResourceState_Validate( dst_state.final ));
+
 				dst.initialLayout	= EResourceState_ToSrcImageLayout( dst_state.initial );
 				dst.finalLayout		= EResourceState_ToDstImageLayout( dst_state.final );
 			}
@@ -508,14 +525,30 @@ namespace
 							break;
 						}
 						case EAttachment::ReadWrite :
+						case EAttachment::RasterOrder :
 						{
 							CHECK_ERR( usage_it->second.input.index < input_attachments.size() );
 							InitAttachmentRef( name, rt->index, OUT input_attachments[ usage_it->second.input.index ], rt->format );
-							if ( rt->IsColor() ) {
+							if ( rt->IsColor() )
+							{
 								CHECK_ERR( usage_it->second.output.index < color_attachments.size() );
 								InitAttachmentRef( name, rt->index, OUT color_attachments[ usage_it->second.output.index ], rt->format );
+								if ( usage_it->second.type == EAttachment::RasterOrder )
+									dst.flags |= VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_COLOR_ACCESS_BIT_EXT;
 							}else{
-								CHECK_ERR( false );	// not supported yet
+								CHECK_ERR( rt->HasDepth() or rt->HasStencil() );
+								CHECK_ERR( dst.pDepthStencilAttachment == null );
+
+								auto*	ds_ref = _allocator.Allocate<VkAttachmentReference2>( 1 );
+								CHECK_ERR( ds_ref != null );
+								InitAttachmentRef( name, rt->index, OUT *ds_ref );
+								dst.pDepthStencilAttachment = ds_ref;
+								
+								if ( usage_it->second.type == EAttachment::RasterOrder and rt->HasDepth() )
+									dst.flags |= VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_EXT;
+								else
+								if ( usage_it->second.type == EAttachment::RasterOrder and rt->HasStencil() )
+									dst.flags |= VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_EXT;
 							}
 							break;
 						}
@@ -1281,10 +1314,9 @@ namespace
 			const auto&	sp = _ci.pSubpasses[i];
 
 			CHECK( sp.sType == VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2 );
-			CHECK( sp.flags == 0 );
 			CHECK( sp.pipelineBindPoint == VK_PIPELINE_BIND_POINT_GRAPHICS );
 
-			result &= ser( sp.inputAttachmentCount );
+			result &= ser( sp.flags, sp.inputAttachmentCount );
 			for (uint j = 0; j < sp.inputAttachmentCount; ++j) {
 				result &= SerAttachmentRef( sp.pInputAttachments[j], ser );
 			}
@@ -1498,10 +1530,9 @@ namespace
 				sp						= {};
 				sp.sType				= VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2;
 				sp.pNext				= null;
-				sp.flags				= 0;
 				sp.pipelineBindPoint	= VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-				result &= des( OUT sp.inputAttachmentCount );
+				result &= des( OUT sp.flags, OUT sp.inputAttachmentCount );
 				CHECK_ERR( result and sp.inputAttachmentCount <= GraphicsConfig::MaxAttachments );
 				if ( sp.inputAttachmentCount > 0 )
 				{

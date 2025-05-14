@@ -24,9 +24,9 @@ namespace AE::PipelineCompiler
 	public:
 		struct Input
 		{
-			EShader				shaderType		= Default;
-			Version2			spirvVersion;
-			EShaderOpt			options			= Default;
+		//	EShader				shaderType		= Default;
+		//	Version2			spirvVersion;
+		//	EShaderOpt			options			= Default;
 			StringView			entry;
 			StringView			header;
 			StringView			source;

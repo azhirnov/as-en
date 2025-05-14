@@ -56,6 +56,7 @@ namespace AE::Graphics::_hidden_
 		Self&&  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)																			rvTh___	{ _ctx.MemoryBarrier( srcScope, dstScope );						return RVRef(*this); }
 		Self&&  MemoryBarrier ()																															rvTh___	{ _ctx.MemoryBarrier();											return RVRef(*this); }
 
+		Self&&  ExecutionBarrier (EResourceState srcState, EResourceState dstState)																			rvTh___	{ _ctx.ExecutionBarrier( srcState, dstState );						return RVRef(*this); }
 		Self&&  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)																			rvTh___	{ _ctx.ExecutionBarrier( srcScope, dstScope );					return RVRef(*this); }
 		Self&&  ExecutionBarrier ()																															rvTh___	{ _ctx.ExecutionBarrier();										return RVRef(*this); }
 

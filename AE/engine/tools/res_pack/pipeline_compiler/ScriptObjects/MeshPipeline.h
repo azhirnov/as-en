@@ -80,7 +80,6 @@ namespace AE::PipelineCompiler
 		Optional<FragOutput_t>	_fragOutput;
 		Specializations_t		_pplnSpec;
 		ShaderIOMap_t			_shaderIO;
-		bool					_isPrepared	= false;
 
 
 	// methods

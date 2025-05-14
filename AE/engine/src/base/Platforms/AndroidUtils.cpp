@@ -203,11 +203,14 @@ namespace AE::Base
 
 	bool  AndroidUtils::IsUnderDebugger () __NE___
 	{
-	#ifdef AE_CFG_RELEASE
+	  #if AE_CXX_VER >= 26
+		return std::is_debugger_present();
+
+	  #elif defined(AE_CFG_RELEASE)
 		return false;
-	#else
+	  #else
 		return Android_IsUnderDebugger;
-	#endif
+	  #endif
 	}
 
 } // AE::Base

@@ -65,6 +65,7 @@ ND_ float3  GetGlobalCoordUNorm (int3 offset);		//  0..1
 ND_ float3  GetGlobalCoordSNorm (int3 offset);		// -1..1
 ND_ float3  GetGlobalCoordSF ();					// -size/2 .. +size/2
 ND_ float3  GetGlobalCoordUF ();					// 0..size-1
+ND_ float3  GetGlobalSizeRcp ();
 
 // global normalized coordinate in 2D with same aspect ratio
 ND_ float2  GetGlobalCoordUNormCorrected ();		//  0..1
@@ -297,6 +298,11 @@ float3  GetGlobalCoordUF ()
 	return float3(GetGlobalCoord());
 }
 
+float3  GetGlobalSizeRcp ()
+{
+	return 1.0 / float3(GetGlobalSize());
+}
+
 #endif
 //-----------------------------------------------------------------------------
 
@@ -373,7 +379,7 @@ float  GetGroupIndexSNorm ()
 // global coordinate in 3D
 float3  GetGlobalCoordUNorm ()
 {
-	return (float3(GetGlobalCoord())+0.5f) / float3(GetGlobalSize());
+	return (float3(GetGlobalCoord())+0.5f) * GetGlobalSizeRcp();
 }
 
 float3  GetGlobalCoordSNorm ()
@@ -383,7 +389,7 @@ float3  GetGlobalCoordSNorm ()
 
 float3  GetGlobalCoordUNorm (int3 offset)
 {
-	return (float3(GetGlobalCoord()+offset)+0.5f) / float3(GetGlobalSize());
+	return (float3(GetGlobalCoord()+offset)+0.5f) * GetGlobalSizeRcp();
 }
 
 float3  GetGlobalCoordSNorm (int3 offset)

@@ -157,10 +157,10 @@ namespace AE::Graphics
 		};
 
 
-	#define AE_FEATURE_SET_FIELDS3( _visitor_ )\
-		AE_FEATURE_SET_FIELDS( _visitor_, _visitor_, _visitor_ )
+	#define AE_FEATURE_SET_FIELDS_ALL( _visitor_ )\
+		AE_FEATURE_SET_FIELDS( _visitor_, _visitor_, _visitor_, _visitor_, _visitor_ )
 
-	#define AE_FEATURE_SET_FIELDS( _visitorF_, _visitorP_, _visitorL_ )\
+	#define AE_FEATURE_SET_FIELDS( _visitorF_, _visitor1_, _visitor2_, _visitor4_, _visitor8_ )\
 	/*---- render states ----*/\
 		_visitorF_( EFeature,			alphaToOne,								: 2 )\
 		_visitorF_( EFeature,			depthBiasClamp,							: 2 )\
@@ -181,13 +181,13 @@ namespace AE::Graphics
 		\
 	/*---- shader variable types and functions ----*/\
 		/* subgroup */\
-		_visitorL_( SubgroupOperationBits,subgroupOperations,						)	/* GL_KHR_shader_subgroup															*/\
-		_visitorP_( ESubgroupTypes,		subgroupTypes,								)	/* GL_EXT_shader_subgroup_extended_types_int8, *_int16, *_int64, *_float16			*/\
-		_visitorP_( EShaderStages,		subgroupStages,								)\
-		_visitorP_( EShaderStages,		subgroupQuadStages,							)\
-		_visitorP_( EShaderStages,		requiredSubgroupSizeStages,					)\
-		_visitorP_( POTValue,			minSubgroupSize,							)\
-		_visitorP_( POTValue,			maxSubgroupSize,							)\
+		_visitor8_( SubgroupOperationBits,subgroupOperations,						)	/* GL_KHR_shader_subgroup															*/\
+		_visitor1_( ESubgroupTypes,		subgroupTypes,								)	/* GL_EXT_shader_subgroup_extended_types_int8, *_int16, *_int64, *_float16			*/\
+		_visitor2_( EShaderStages,		subgroupStages,								)\
+		_visitor2_( EShaderStages,		subgroupQuadStages,							)\
+		_visitor2_( EShaderStages,		requiredSubgroupSizeStages,					)\
+		_visitor1_( POTValue,			minSubgroupSize,							)\
+		_visitor1_( POTValue,			maxSubgroupSize,							)\
 		_visitorF_( EFeature,			subgroup,								: 2 )\
 		_visitorF_( EFeature,			subgroupBroadcastDynamicId,				: 2 )	/* GL_ARB_shader_ballot																*/\
 		_visitorF_( EFeature,			subgroupSizeControl,					: 2 )	/* VK_EXT_subgroup_size_control														*/\
@@ -248,11 +248,11 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderDeviceClock,						: 2 )	/* GL_EXT_shader_realtime_clock														*/\
 		/*  */\
 		_visitorF_( EFeature,			cooperativeMatrix,						: 2 )	/*\ 																				*/\
-		_visitorP_( EShaderStages,		cooperativeMatrixStages,					)	/*-|-- GL_KHR_cooperative_matrix													*/\
-		_visitorP_( CoopMatrixSet_t,	cooperativeMatrixConfig,					)	/*/		- can be empty is default config is not supported							*/\
+		_visitor2_( EShaderStages,		cooperativeMatrixStages,					)	/*-|-- GL_KHR_cooperative_matrix													*/\
+		_visitor1_( CoopMatrixSet_t,	cooperativeMatrixConfig,					)	/*/		- can be empty is default config is not supported							*/\
 		_visitorF_( EFeature,			cooperativeVector,						: 2 )	/*\																					*/\
 		_visitorF_( EFeature,			cooperativeVectorTraining,				: 2 )	/*-|-- GLSL_NV_cooperative_vector													*/\
-		_visitorP_( CoopVecSet_t,		cooperativeVectorConfig,					)	/*/		- can be empty is default config is not supported							*/\
+		_visitor1_( CoopVecSet_t,		cooperativeVectorConfig,					)	/*/		- can be empty is default config is not supported							*/\
 		\
 		\
 	/*---- shader features/limits ----*/\
@@ -319,96 +319,96 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			fragmentShadingRateWithShaderSampleMask,			: 2 )	/*-|																	*/\
 		_visitorF_( EFeature,			fragmentShadingRateWithFragmentShaderInterlock,		: 2 )	/*-|																	*/\
 		_visitorF_( EFeature,			fragmentShadingRateWithCustomSampleLocations,		: 2 )	/*-|																	*/\
-		_visitorP_( VRSTexelSize,		fragmentShadingRateTexelSize,							)	/*-|																	*/\
-		_visitorL_( ShadingRateSet_t,	fragmentShadingRates,									)	/*-/																	*/\
+		_visitor2_( VRSTexelSize,		fragmentShadingRateTexelSize,							)	/*-|																	*/\
+		_visitor1_( ShadingRateSet_t,	fragmentShadingRates,									)	/*-/																	*/\
 		/* fragment density map */\
 		_visitorF_( EFeature,			fragmentDensityMap,						: 2 )	/*\																					*/\
 		_visitorF_( EFeature,			fragmentDensityMapDynamic,				: 2 )	/*-|																				*/\
 		_visitorF_( EFeature,			fragmentDensityMapNonSubsampledImages,	: 2 )	/*-|--GL_EXT_fragment_invocation_density											*/\
 		_visitorF_( EFeature,			fragmentDensityInvocations,				: 2 )	/*-|																				*/\
 		_visitorF_( EFeature,			subsampledLoads,						: 2 )	/*-|																				*/\
-		_visitorP_( POTValue,			maxSubsampledArrayLayers,					)	/*-|																				*/\
-		_visitorP_( ubyte,				perPipeline_maxSubsampledSamplers,			)	/*/	 	maxDescriptorSetSubsampledSamplers											*/\
+		_visitor1_( POTValue,			maxSubsampledArrayLayers,					)	/*-|																				*/\
+		_visitor1_( ubyte,				perPipeline_maxSubsampledSamplers,			)	/*/	 	maxDescriptorSetSubsampledSamplers											*/\
 		/* acceleration structure */\
 		_visitorF_( EFeature,			accelerationStructureIndirectBuild,		: 2 )\
 		_visitorF_( EFeature,			clusterAccelerationStructure,			: 2 )	/* VK_NV_cluster_acceleration_structure, GL_NV_cluster_acceleration_structure		*/\
 		_visitorF_( EFeature,			partitionedAccelerationStructure,		: 2 )	/* VK_NV_partitioned_acceleration_structure											*/\
 		/* inline ray tracing */\
 		_visitorF_( EFeature,			rayQuery,								: 2 )	/* GL_EXT_ray_query																	*/\
-		_visitorP_( EShaderStages,		rayQueryStages,								)\
+		_visitor2_( EShaderStages,		rayQueryStages,								)\
 		/* ray tracing */\
 		_visitorF_( EFeature,			rayTracingPipeline,						: 2 )	/* GL_EXT_ray_tracing, VK_KHR_ray_tracing_pipeline									*/\
 		/*_visitorF_( EFeature,			rayTracingPipelineTraceRaysIndirect,	: 2 )*/\
 		_visitorF_( EFeature,			rayTraversalPrimitiveCulling,			: 2 )	/* GL_EXT_ray_flags_primitive_culling												*/\
-		_visitorP_( ubyte,				maxRayRecursionDepth,						)\
-		/*_visitorP_( KiBytes,			maxRayHitAttributeSize,						)*/\
+		_visitor1_( ubyte,				maxRayRecursionDepth,						)\
+		/*_visitor2_( KiBytes,			maxRayHitAttributeSize,						)*/\
 		/* shader version */\
-		_visitorL_( ShaderVersion,		maxShaderVersion,							)\
+		_visitor2_( ShaderVersion,		maxShaderVersion,							)\
 		/* draw indirect */\
 		_visitorF_( EFeature,			drawIndirectFirstInstance,				: 2 )	/* Vulkan feature: drawIndirectFirstInstance										*/\
 		_visitorF_( EFeature,			drawIndirectCount,						: 2 )	/* VK_KHR_draw_indirect_count														*/\
-		_visitorL_( uint,				maxDrawIndirectCount,						)\
+		_visitor4_( uint,				maxDrawIndirectCount,						)\
 		/* multi view */\
 		_visitorF_( EFeature,			multiview,								: 2 )	/*\																					*/\
 		_visitorF_( EFeature,			multiviewGeometryShader,				: 2 )	/*-|																				*/\
 		_visitorF_( EFeature,			multiviewTessellationShader,			: 2 )	/*-|--GL_EXT_multiview																*/\
-		_visitorP_( ubyte,				maxMultiviewViewCount,						)	/*/																					*/\
+		_visitor1_( ubyte,				maxMultiviewViewCount,						)	/*/																					*/\
 		/* multi viewport */\
 		_visitorF_( EFeature,			multiViewport,							: 2 )\
-		_visitorP_( ubyte,				maxViewports,								)\
+		_visitor1_( ubyte,				maxViewports,								)\
 		/* sample locations */\
 		_visitorF_( EFeature,			sampleLocations,						: 2 )	/* VK_EXT_sample_locations															*/\
 		_visitorF_( EFeature,			variableSampleLocations,				: 2 )\
-		/*_visitorL_( SampleCountBits,	sampleLocationSampleCounts,					)*/\
+		/*_visitor4_( SampleCountBits,	sampleLocationSampleCounts,					)*/\
 		/* tessellation */\
 		_visitorF_( EFeature,			tessellationIsolines,					: 2 )\
 		_visitorF_( EFeature,			tessellationPointMode,					: 2 )\
 		/* shader limits */\
-		_visitorP_( POTValue,			maxTexelBufferElements,						)\
-		_visitorP_( POTBytes,			maxUniformBufferSize,						)	/* maxUniformBufferRange															*/\
-		_visitorP_( POTBytes,			maxStorageBufferSize,						)	/* maxStorageBufferRange															*/\
-		_visitorP_( ubyte,				perPipeline_maxUniformBuffersDynamic,		)	/* maxDescriptorSetUniformBuffersDynamic, maxDescriptorSetTotalUniformBuffersDynamic*/\
-		_visitorP_( ubyte,				perPipeline_maxStorageBuffersDynamic,		)	/* maxDescriptorSetStorageBuffersDynamic, maxDescriptorSetTotalStorageBuffersDynamic*/\
-		_visitorP_( ubyte,				perPipeline_maxTotalBuffersDynamic,			)	/* maxDescriptorSetTotalBuffersDynamic												*/\
-		_visitorL_( PerDescriptorSet,	perPipeline,								)	/* Metal: no limits																	*/\
-		_visitorL_( PerShaderStage,		perStage,									)\
-		_visitorP_( ubyte,				maxDescriptorSets,							)	/* maxBoundDescriptorSets															*/\
-		_visitorP_( ubyte,				maxTexelOffset,								)	/* maxTexelOffset, minTexelOffset  - [-N-1...+N] for textureOffset()				*/\
-		_visitorP_( ubyte,				maxTexelGatherOffset,						)	/* maxTexelGatherOffset, minTexelGatherOffset										*/\
-		_visitorP_( ubyte,				maxFragmentOutputAttachments,				)	/* maxFragmentOutputAttachments, maxColorAttachments								*/\
-		_visitorP_( ubyte,				maxFragmentDualSrcAttachments,				)\
-		_visitorL_( uint,				maxFragmentCombinedOutputResources,			)	/* = storage buffers + storage images + color attachments							*/\
-		_visitorP_( POTBytes,			maxPushConstantsSize,						)\
-		_visitorP_( ubyte,				maxVertAmplification,						)	/* only for Metal																	*/\
-		_visitorP_( KiBytes,			maxTotalThreadgroupSize,					)	/* only for Metal																	*/\
-		_visitorP_( KiBytes,			maxTotalTileMemory,							)	/* only for Metal																	*/\
+		_visitor1_( POTValue,			maxTexelBufferElements,						)\
+		_visitor1_( POTBytes,			maxUniformBufferSize,						)	/* maxUniformBufferRange															*/\
+		_visitor1_( POTBytes,			maxStorageBufferSize,						)	/* maxStorageBufferRange															*/\
+		_visitor1_( ubyte,				perPipeline_maxUniformBuffersDynamic,		)	/* maxDescriptorSetUniformBuffersDynamic, maxDescriptorSetTotalUniformBuffersDynamic*/\
+		_visitor1_( ubyte,				perPipeline_maxStorageBuffersDynamic,		)	/* maxDescriptorSetStorageBuffersDynamic, maxDescriptorSetTotalStorageBuffersDynamic*/\
+		_visitor1_( ubyte,				perPipeline_maxTotalBuffersDynamic,			)	/* maxDescriptorSetTotalBuffersDynamic												*/\
+		_visitor4_( PerDescriptorSet,	perPipeline,								)	/* Metal: no limits																	*/\
+		_visitor4_( PerShaderStage,		perStage,									)\
+		_visitor1_( ubyte,				maxDescriptorSets,							)	/* maxBoundDescriptorSets															*/\
+		_visitor1_( ubyte,				maxTexelOffset,								)	/* maxTexelOffset, minTexelOffset  - [-N-1...+N] for textureOffset()				*/\
+		_visitor1_( ubyte,				maxTexelGatherOffset,						)	/* maxTexelGatherOffset, minTexelGatherOffset										*/\
+		_visitor1_( ubyte,				maxFragmentOutputAttachments,				)	/* maxFragmentOutputAttachments, maxColorAttachments								*/\
+		_visitor1_( ubyte,				maxFragmentDualSrcAttachments,				)\
+		_visitor4_( uint,				maxFragmentCombinedOutputResources,			)	/* = storage buffers + storage images + color attachments							*/\
+		_visitor1_( POTBytes,			maxPushConstantsSize,						)\
+		_visitor1_( ubyte,				maxVertAmplification,						)	/* only for Metal																	*/\
+		_visitor2_( KiBytes,			maxTotalThreadgroupSize,					)	/* only for Metal																	*/\
+		_visitor2_( KiBytes,			maxTotalTileMemory,							)	/* only for Metal																	*/\
 		/* compute shader */\
-		_visitorP_( KiBytes,			maxComputeSharedMemorySize,					)\
-		_visitorP_( POTValue,			maxComputeWorkGroupInvocations,				)\
-		_visitorP_( POTValue,			maxComputeWorkGroupSizeX,					)	/* local_size_x, maxComputeWorkGroupCount											*/\
-		_visitorP_( POTValue,			maxComputeWorkGroupSizeY,					)	/* local_size_y																		*/\
-		_visitorP_( POTValue,			maxComputeWorkGroupSizeZ,					)	/* local_size_z																		*/\
+		_visitor2_( KiBytes,			maxComputeSharedMemorySize,					)\
+		_visitor1_( POTValue,			maxComputeWorkGroupInvocations,				)\
+		_visitor1_( POTValue,			maxComputeWorkGroupSizeX,					)	/* local_size_x, maxComputeWorkGroupCount											*/\
+		_visitor1_( POTValue,			maxComputeWorkGroupSizeY,					)	/* local_size_y																		*/\
+		_visitor1_( POTValue,			maxComputeWorkGroupSizeZ,					)	/* local_size_z																		*/\
 		/* mesh shader */\
 		_visitorF_( EFeature,			taskShader,								: 2 )	/*\																					*/\
 		_visitorF_( EFeature,			meshShader,								: 2 )	/*-|--GL_EXT_mesh_shader															*/\
-		_visitorP_( POTValue,			maxTaskWorkGroupSize,						)	/*-|	- local_size_x/y/z															*/\
-		_visitorP_( POTValue,			maxMeshWorkGroupSize,						)	/*-|	- local_size_x/y/z															*/\
-		_visitorP_( POTValue,			maxMeshOutputVertices,						)	/*-|																				*/\
-		_visitorP_( POTValue,			maxMeshOutputPrimitives,					)	/*-|																				*/\
-		_visitorP_( POTValue,			maxMeshOutputPerVertexGranularity,			)	/*-|	- meshOutputPerVertexGranularity											*/\
-		_visitorP_( POTValue,			maxMeshOutputPerPrimitiveGranularity,		)	/*-|	- meshOutputPerPrimitiveGranularity											*/\
-		_visitorP_( KiBytes,			maxTaskPayloadSize,							)	/*-|																				*/\
-		_visitorP_( KiBytes,			maxTaskSharedMemorySize,					)	/*-|																				*/\
-		_visitorP_( KiBytes,			maxMeshSharedMemorySize,					)	/*-|																				*/\
-		_visitorP_( KiBytes,			maxMeshOutputMemorySize,					)	/*-|																				*/\
-		_visitorP_( KiBytes,			maxTaskPayloadAndSharedMemorySize,			)	/*-|																				*/\
-		_visitorP_( KiBytes,			maxMeshPayloadAndSharedMemorySize,			)	/*-|																				*/\
-		_visitorP_( KiBytes,			maxMeshPayloadAndOutputMemorySize,			)	/*-|																				*/\
-		_visitorP_( ubyte,				maxMeshMultiviewViewCount,					)	/*-|																				*/\
-		_visitorP_( POTValue,			maxPreferredTaskWorkGroupInvocations,		)	/*-|																				*/\
-		_visitorP_( POTValue,			maxPreferredMeshWorkGroupInvocations,		)	/*/																					*/\
+		_visitor1_( POTValue,			maxTaskWorkGroupSize,						)	/*-|	- local_size_x/y/z															*/\
+		_visitor1_( POTValue,			maxMeshWorkGroupSize,						)	/*-|	- local_size_x/y/z															*/\
+		_visitor1_( POTValue,			maxMeshOutputVertices,						)	/*-|																				*/\
+		_visitor1_( POTValue,			maxMeshOutputPrimitives,					)	/*-|																				*/\
+		_visitor1_( POTValue,			maxMeshOutputPerVertexGranularity,			)	/*-|	- meshOutputPerVertexGranularity											*/\
+		_visitor1_( POTValue,			maxMeshOutputPerPrimitiveGranularity,		)	/*-|	- meshOutputPerPrimitiveGranularity											*/\
+		_visitor2_( KiBytes,			maxTaskPayloadSize,							)	/*-|																				*/\
+		_visitor2_( KiBytes,			maxTaskSharedMemorySize,					)	/*-|																				*/\
+		_visitor2_( KiBytes,			maxMeshSharedMemorySize,					)	/*-|																				*/\
+		_visitor2_( KiBytes,			maxMeshOutputMemorySize,					)	/*-|																				*/\
+		_visitor2_( KiBytes,			maxTaskPayloadAndSharedMemorySize,			)	/*-|																				*/\
+		_visitor2_( KiBytes,			maxMeshPayloadAndSharedMemorySize,			)	/*-|																				*/\
+		_visitor2_( KiBytes,			maxMeshPayloadAndOutputMemorySize,			)	/*-|																				*/\
+		_visitor1_( ubyte,				maxMeshMultiviewViewCount,					)	/*-|																				*/\
+		_visitor1_( POTValue,			maxPreferredTaskWorkGroupInvocations,		)	/*-|																				*/\
+		_visitor1_( POTValue,			maxPreferredMeshWorkGroupInvocations,		)	/*/																					*/\
 		/* raster order group */\
-		_visitorP_( ushort,				maxRasterOrderGroups,						)	/* only for Metal																	*/\
+		_visitor2_( ushort,				maxRasterOrderGroups,						)	/* only for Metal																	*/\
 		/* shaders */\
 		_visitorF_( EFeature,			geometryShader,							: 2 )\
 		_visitorF_( EFeature,			tessellationShader,						: 2 )\
@@ -416,17 +416,21 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			tileShader,								: 2 )	/* GL_HUAWEI_subpass_shading														*/\
 		/* vertex buffer */\
 		_visitorF_( EFeature,			vertexDivisor,							: 2 )	/* \ 																				*/\
-		_visitorL_( uint,				maxVertexAttribDivisor,						)	/*-'-- VK_EXT_vertex_attribute_divisor												*/\
-		_visitorP_( ubyte,				maxVertexAttributes,						)	/* maxVertexInputAttributes															*/\
-		_visitorP_( ubyte,				maxVertexBuffers,							)	/* maxVertexInputBindings															*/\
+		_visitor4_( uint,				maxVertexAttribDivisor,						)	/*-'-- VK_EXT_vertex_attribute_divisor												*/\
+		_visitor1_( ubyte,				maxVertexAttributes,						)	/* maxVertexInputAttributes															*/\
+		_visitor1_( ubyte,				maxVertexBuffers,							)	/* maxVertexInputBindings															*/\
+		/* rasterization order attachment access */\
+		_visitorF_( EFeature,			rasterizationOrderColorAttachmentAccess,	: 2 )	/*\ 																			*/\
+		_visitorF_( EFeature,			rasterizationOrderDepthAttachmentAccess,	: 2 )	/*-|-- VK_EXT_rasterization_order_attachment_access								*/\
+		_visitorF_( EFeature,			rasterizationOrderStencilAttachmentAccess,	: 2 )	/*/ 																			*/\
 		\
 		\
 	/*---- buffer ----*/\
-		_visitorL_( VertexFormatSet_t,	vertexFormats,								)	/* VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT												*/\
-		_visitorL_( PixelFormatSet_t,	uniformTexBufferFormats,					)	/* VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT										*/\
-		_visitorL_( PixelFormatSet_t,	storageTexBufferFormats,					)	/* VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT										*/\
-		_visitorL_( PixelFormatSet_t,	storageTexBufferAtomicFormats,				)	/* VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT								*/\
-		_visitorL_( VertexFormatSet_t,	accelStructVertexFormats,					)	/* VK_FORMAT_FEATURE_ACCELERATION_STRUCTURE_VERTEX_BUFFER_BIT_KHR					*/\
+		_visitor8_( VertexFormatSet_t,	vertexFormats,								)	/* VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT												*/\
+		_visitor8_( PixelFormatSet_t,	uniformTexBufferFormats,					)	/* VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT										*/\
+		_visitor8_( PixelFormatSet_t,	storageTexBufferFormats,					)	/* VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT										*/\
+		_visitor8_( PixelFormatSet_t,	storageTexBufferAtomicFormats,				)	/* VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT								*/\
+		_visitor8_( VertexFormatSet_t,	accelStructVertexFormats,					)	/* VK_FORMAT_FEATURE_ACCELERATION_STRUCTURE_VERTEX_BUFFER_BIT_KHR					*/\
 		\
 		\
 	/*---- image -----*/\
@@ -439,22 +443,22 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			multisampleArrayImage,					: 2 )\
 		_visitorF_( EFeature,			imageViewFormatList,					: 2 )	/* VK_KHR_image_format_list															*/\
 		_visitorF_( EFeature,			imageViewExtendedUsage,					: 2 )	/* VK_KHR_maintenance2																*/\
-		_visitorP_( SurfaceFormatSet_t,	surfaceFormats,								)\
-		_visitorP_( POTValue,			maxImageDimension1D,						)\
-		_visitorP_( POTValue,			maxImageDimension2D,						)\
-		_visitorP_( POTValue,			maxImageDimension3D,						)\
-		_visitorP_( POTValue,			maxImageDimensionCube,						)\
-		_visitorP_( POTValue,			maxImageArrayLayers,						)\
-		_visitorL_( PixelFormatSet_t,	storageImageAtomicFormats,					)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT										*/\
-		_visitorL_( PixelFormatSet_t,	storageImageFormats,						)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT		TODO: R or W							*/\
-		_visitorL_( PixelFormatSet_t,	attachmentBlendFormats,						)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT										*/\
-		_visitorL_( PixelFormatSet_t,	attachmentFormats,							)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |	VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT */\
-		_visitorL_( PixelFormatSet_t,	linearSampledFormats,						)	/* VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT								*/\
-		/*_visitorL_( PixelFormatSet_t,	minmaxFilterFormats,						)	/ * VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT								*/\
-		/*_visitorL_( PixelFormatSet_t,	sparseImageFormats,							)*/\
-		/*_visitorL_( PixelFormatSet_t,	multisampleImageFormats,					)*/\
-		_visitorL_( PixelFormatSet_t,	hwCompressedAttachmentFormats,				)	/* formats which is compatible with lossless hardware compression					*/\
-		_visitorL_( PixelFormatSet_t,	lossyCompressedAttachmentFormats,			)	/* formats which is compatible with lossy hardware compression						*/\
+		_visitor2_( SurfaceFormatSet_t,	surfaceFormats,								)\
+		_visitor1_( POTValue,			maxImageDimension1D,						)\
+		_visitor1_( POTValue,			maxImageDimension2D,						)\
+		_visitor1_( POTValue,			maxImageDimension3D,						)\
+		_visitor1_( POTValue,			maxImageDimensionCube,						)\
+		_visitor1_( POTValue,			maxImageArrayLayers,						)\
+		_visitor8_( PixelFormatSet_t,	storageImageAtomicFormats,					)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT										*/\
+		_visitor8_( PixelFormatSet_t,	storageImageFormats,						)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT		TODO: R or W							*/\
+		_visitor8_( PixelFormatSet_t,	attachmentBlendFormats,						)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT										*/\
+		_visitor8_( PixelFormatSet_t,	attachmentFormats,							)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |	VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT */\
+		_visitor8_( PixelFormatSet_t,	linearSampledFormats,						)	/* VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT								*/\
+		/*_visitor8_( PixelFormatSet_t,	minmaxFilterFormats,						)	/ * VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT								*/\
+		/*_visitor8_( PixelFormatSet_t,	sparseImageFormats,							)*/\
+		/*_visitor8_( PixelFormatSet_t,	multisampleImageFormats,					)*/\
+		_visitor8_( PixelFormatSet_t,	hwCompressedAttachmentFormats,				)	/* formats which is compatible with lossless hardware compression					*/\
+		_visitor8_( PixelFormatSet_t,	lossyCompressedAttachmentFormats,			)	/* formats which is compatible with lossy hardware compression						*/\
 		\
 		\
 	/*---- sampler ----*/\
@@ -467,20 +471,20 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			samplerYcbcrConversion,					: 2 )	/* VK_KHR_sampler_ycbcr_conversion													*/\
 		_visitorF_( EFeature,			ycbcr2Plane444,							: 2 )	/* VK_EXT_ycbcr_2plane_444_formats													*/\
 		_visitorF_( EFeature,			nonSeamlessCubeMap,						: 2 )	/* VK_EXT_non_seamless_cube_map														*/\
-		_visitorL_( float,				maxSamplerAnisotropy,						)\
-		_visitorL_( float,				maxSamplerLodBias,							)\
-		/*_visitorL_( SampleCountBits,	sampledImageColorSampleCounts,				)*/\
-		/*_visitorL_( SampleCountBits,	sampledImageDepthSampleCounts,				)*/\
-		/*_visitorL_( SampleCountBits,	sampledImageIntegerSampleCounts,			)*/\
-		/*_visitorL_( SampleCountBits,	sampledImageStencilSampleCounts,			)*/\
-		/*_visitorL_( SampleCountBits,	storageImageSampleCounts,					)*/\
+		_visitor4_( float,				maxSamplerAnisotropy,						)\
+		_visitor4_( float,				maxSamplerLodBias,							)\
+		/*_visitor4_( SampleCountBits,	sampledImageColorSampleCounts,				)*/\
+		/*_visitor4_( SampleCountBits,	sampledImageDepthSampleCounts,				)*/\
+		/*_visitor4_( SampleCountBits,	sampledImageIntegerSampleCounts,			)*/\
+		/*_visitor4_( SampleCountBits,	sampledImageStencilSampleCounts,			)*/\
+		/*_visitor4_( SampleCountBits,	storageImageSampleCounts,					)*/\
 		\
 		\
 	/*---- framebuffer ----*/\
-		_visitorL_( SampleCountBits,	framebufferColorSampleCounts,				)\
-		_visitorL_( SampleCountBits,	framebufferDepthSampleCounts,				)\
-		/*_visitorL_( SampleCountBits,	framebufferIntegerColorSampleCounts,		)*/\
-		_visitorP_( POTValue,			maxFramebufferLayers,						)\
+		_visitor4_( SampleCountBits,	framebufferColorSampleCounts,				)\
+		_visitor4_( SampleCountBits,	framebufferDepthSampleCounts,				)\
+		/*_visitor4_( SampleCountBits,	framebufferIntegerColorSampleCounts,		)*/\
+		_visitor1_( POTValue,			maxFramebufferLayers,						)\
 		\
 		\
 	/*---- render pass ----*/\
@@ -492,13 +496,13 @@ namespace AE::Graphics
 		\
 		\
 	/*---- metal ----*/\
-		_visitorP_( ubyte,				metalArgBufferTier,							)\
+		_visitor1_( ubyte,				metalArgBufferTier,							)\
 		\
 		\
 	/* HW info */\
-		_visitorP_( Queues,				queues,										)\
-		_visitorL_( VendorIDs_t,		vendorIds,									)\
-		_visitorL_( GraphicsDevices_t,	devicesIds,									)\
+		_visitor1_( Queues,				queues,										)\
+		_visitor2_( VendorIDs_t,		vendorIds,									)\
+		_visitor8_( GraphicsDevices_t,	devicesIds,									)\
 
 
 		// TODO:
@@ -512,9 +516,11 @@ namespace AE::Graphics
 		#define AE_FS_ADDFIELD( _type_, _name_, _bits_ )		_type_	_name_	_bits_;
 		#define AE_FS_SKIP( _type_, _name_, _bits_ )
 
-		AE_FEATURE_SET_FIELDS( AE_FS_ADDFIELD,	AE_FS_SKIP,		AE_FS_SKIP		)
-		AE_FEATURE_SET_FIELDS( AE_FS_SKIP,		AE_FS_ADDFIELD,	AE_FS_SKIP		)
-		AE_FEATURE_SET_FIELDS( AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_ADDFIELD	)
+		AE_FEATURE_SET_FIELDS( AE_FS_ADDFIELD,	AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_SKIP		)
+		AE_FEATURE_SET_FIELDS( AE_FS_SKIP,		AE_FS_ADDFIELD,	AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_SKIP		)
+		AE_FEATURE_SET_FIELDS( AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_ADDFIELD,	AE_FS_SKIP,		AE_FS_SKIP		)
+		AE_FEATURE_SET_FIELDS( AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_ADDFIELD,	AE_FS_SKIP		)
+		AE_FEATURE_SET_FIELDS( AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_SKIP,		AE_FS_ADDFIELD	)
 
 		#undef AE_FS_ADDFIELD
 		#undef AE_FS_SKIP
@@ -554,6 +560,7 @@ namespace AE::Graphics
 		ND_ static HashVal64  GetHashOfDependencies ()								__NE___;
 		ND_ static HashVal64  GetHashOfFS ()										__NE___	{ return GetHashOfFieldNames() + GetHashOfDependencies(); }
 		ND_ static HashVal64  GetHashOfFS_Precalculated ()							__NE___;
+		NdCx__ static uint    GetFeatureCount ()									__NE___;
 
 
 		ND_ EFeature  accelerationStructure ()										C_NE___;
@@ -561,12 +568,29 @@ namespace AE::Graphics
 
 		ND_ EShaderStages  SupportedShaderStages ()									C_NE___;
 
+		ND_ EGPUVendor			GetGPUVendor ()										C_NE___	{ return vendorIds.include.First(); }
+		ND_ EGraphicsDeviceID	GetEGraphicsDeviceID ()								C_NE___	{ return devicesIds.include.First(); }
+
 
 	private:
 		template <bool Mutable>
 		bool  _Validate ()															__NE___;
 	};
-	StaticAssert( sizeof(FeatureSet) == 576 );
+	StaticAssert( sizeof(FeatureSet) == 568 );
+
+	
+	__CxIn uint  FeatureSet::GetFeatureCount () __NE___
+	{
+		enum class FeatureCount
+		{
+			#define AE_FS_COUNT( _type_, _name_, _bits_ )	_name_,
+			AE_FEATURE_SET_FIELDS_ALL( AE_FS_COUNT )
+			#undef AE_FS_COUNT
+
+			_Count
+		};
+		return uint(FeatureCount::_Count);
+	}
 
 } // AE::Graphics
 

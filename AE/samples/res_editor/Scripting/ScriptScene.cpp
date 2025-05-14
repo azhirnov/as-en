@@ -659,8 +659,6 @@ namespace AE::ResEditor
 
 						if ( subpasses.size() == 1 and out.loadOp == EAttachmentLoadOp::Load and out.storeOp == EAttachmentStoreOp::None )
 							state = EResourceState::DepthStencilTest;	// read-only
-
-						state |= EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS;
 					}
 					
 					// input attachment
@@ -671,6 +669,9 @@ namespace AE::ResEditor
 								(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
 						state |= EResourceState::FragmentShader;
 					}
+
+					if ( is_ds )
+						state |= EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS;
 
 					switch ( out.usage ) {
 						case EResourceUsage::FragShadingRate :	state = EResourceState::ShadingRateImage;		break;
@@ -754,6 +755,9 @@ namespace AE::ResEditor
 									(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
 									(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
 
+				if ( is_ds )
+					state |= EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS;
+
 				ds_layout->AddSubpassInput( EShaderStages::Fragment, out.inName, uint(i), out.rt->ImageType(), state | EResourceState::FragmentShader );
 			}
 		}
@@ -775,7 +779,7 @@ namespace AE::ResEditor
 			subpass->_AddSlidersAsMacros( INOUT storage.defaultShaderDefines );
 
 			for (auto& ppln : subpass->_pipelines) {
-				Unused( storage.CompilePipeline( se, ppln, include_dirs ));		// ignore if failed to compile
+				CHECK_THROW( storage.CompilePipeline( se, ppln, include_dirs ));
 			}
 		}
 		storage.defaultShaderDefines = RVRef(prev_defs);
@@ -1022,8 +1026,8 @@ namespace AE::ResEditor
 
 		result->_pipeline	= result->_rtech.rtech->GetRayTracingPipeline( ppln_name );
 		CHECK_THROW( result->_pipeline );
-
-		#if PIPELINE_STATISTICS
+		
+		#ifdef AE_ENABLE_VULKAN
 		{
 			auto&	res = res_mngr.GetResourcesOrThrow( result->_pipeline );
 			Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));

@@ -43,7 +43,7 @@ namespace AE::Scripting::_hidden_
 
 		ND_ explicit operator ArrayView<T> ()		C_NE___
 		{
-			CHECK_ERR( this->GetElementSize() == sizeof(T) );
+			CHECK_ERR( this->elementSize == sizeof(T) );
 			return ArrayView<T>{ Cast<T>( const_cast< Self *>(this)->GetBuffer() ), size() };
 		}
 
@@ -70,7 +70,7 @@ namespace AE::Scripting::_hidden_
 			return	StructView<T>{
 						Cast<T>( const_cast< Self *>(this)->GetBuffer() ),
 						size(),
-						Bytes{uint(this->GetElementSize())}
+						Bytes{uint(this->elementSize)}
 					};
 		}
 	};

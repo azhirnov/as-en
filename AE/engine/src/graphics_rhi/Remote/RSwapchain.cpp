@@ -99,8 +99,19 @@ namespace AE::Graphics
 		idx.imageIdx	= res->imageIdx;
 		_indices.store( idx );
 
-		if ( AnyEqual( res->result, EAcquireResult::OK, EAcquireResult::OK_RecreateLater ))
-			CHECK_ERR( IsImageAcquired(), EAcquireResult::Error );
+		switch_enum( res->result )
+		{
+			case EAcquireResult::OK :
+			case EAcquireResult::OK_RecreateLater :
+				CHECK_ERR( IsImageAcquired(), EAcquireResult::Error );
+				break;
+
+			case EAcquireResult::Error_RecreateImmediately :
+			case EAcquireResult::Error :
+				CHECK( not IsImageAcquired() );
+				break;
+		}
+		switch_end
 
 		return res->result;
 	}
@@ -110,7 +121,7 @@ namespace AE::Graphics
 	Present
 =================================================
 */
-	RSwapchain::EPresentResult  RSwapchain::Present (RQueuePtr queue, FrameUID frameId) __NE___
+	RSwapchain::EPresentResult  RSwapchain::Present (RQueuePtr queue, FrameUID) __NE___
 	{
 		SHAREDLOCK( _guard );
 		CHECK_ERR( IsImageAcquired(), EPresentResult::Error );

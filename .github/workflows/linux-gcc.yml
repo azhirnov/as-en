@@ -1,11 +1,6 @@
 name: Linux-GCC
 
-on:
-  push:
-    branches:
-      - none
-  pull_request
-  workflow_dispatch
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build-gcc-13:
@@ -15,6 +10,7 @@ jobs:
     
     runs-on: ubuntu-24.04
     name: Linux x64, GCC 13, ${{matrix.config}}
+    timeout-minutes: 90
     
     steps:
     - uses: actions/checkout@v4
@@ -32,7 +28,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/YG4jHX2HEu2kMQ"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/KZP1e6ujXTcgTA"
         unzip external.zip
     
     - name: Configure CMake
@@ -139,7 +135,7 @@ jobs:
       if: success() || steps.build.conclusion == 'success'
       run: |
         cp "${{github.workspace}}/AE-Temp/engine/graphics/Tests.Graphics.vkPipelines.bin" "${{github.workspace}}/_build/bin"
-        ctest -R "Tests.Graphics" -C ${{matrix.config}} -V
+        ctest -R "^Tests.Graphics$" -C ${{matrix.config}} -V
             
       
             
@@ -150,6 +146,7 @@ jobs:
     
     runs-on: ubuntu-24.04
     name: Linux x64, GCC 13, C++17, ${{matrix.config}}
+    timeout-minutes: 90
     
     steps:
     - uses: actions/checkout@v4
@@ -166,7 +163,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/YG4jHX2HEu2kMQ"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/KZP1e6ujXTcgTA"
         unzip external.zip
     
     - name: Configure CMake
@@ -226,6 +223,7 @@ jobs:
     
     runs-on: ubuntu-24.04
     name: Linux x64, GCC 13, C++20, ${{matrix.config}}
+    timeout-minutes: 90
     
     steps:
     - uses: actions/checkout@v4
@@ -242,7 +240,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/YG4jHX2HEu2kMQ"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/KZP1e6ujXTcgTA"
         unzip external.zip
     
     - name: Configure CMake

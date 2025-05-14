@@ -1208,7 +1208,7 @@ public:
 	const	uint	LocalInvocationIndex	= {};
 	const	uint3	NumWorkGroups			= {};
 	const	uint3	WorkGroupID				= {};
-	const	uint3	WorkGroupSize			= {};
+	constexpr uint3	WorkGroupSize			= {};
 
   #else
 
@@ -1718,6 +1718,9 @@ public:
 	template <typename T>
 	ND_ T  Expect (T value, T expected);
   #endif
+
+	// GLSL_EXT_debug_printf
+	void  Printf (const char*, ...);
 
 } gl;
 

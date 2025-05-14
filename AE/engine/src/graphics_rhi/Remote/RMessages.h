@@ -1348,13 +1348,18 @@ namespace AE::RemoteGraphics::Msg
 		)
 
 		DECL_CMD( MemoryBarrier3Cmd, )
-
+			
 		DECL_CMD( ExecutionBarrierCmd,
+			EResourceState			srcState;
+			EResourceState			dstState;
+		)
+
+		DECL_CMD( ExecutionBarrier2Cmd,
 			EPipelineScope			srcScope;
 			EPipelineScope			dstScope;
 		)
 
-		DECL_CMD( ExecutionBarrier2Cmd, )
+		DECL_CMD( ExecutionBarrier3Cmd, )
 
 		DECL_CMD( AcquireBufferOwnershipCmd,
 			RmBufferID				buffer;

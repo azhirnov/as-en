@@ -16,6 +16,7 @@
 #include "res_editor/Scripting/ScriptPostprocess.h"
 #include "res_editor/Scripting/ScriptComputePass.h"
 #include "res_editor/Scripting/ScriptComputeMip.h"
+#include "res_editor/Scripting/ScriptRasterMip.h"
 #include "res_editor/Scripting/ScriptRayTracingPass.h"
 #include "res_editor/Scripting/ScriptScene.h"
 
@@ -264,6 +265,10 @@ namespace AE::ResEditor
 							      OUT ScriptArray<packed_float3>	&bitangents,
 							      OUT ScriptArray<packed_float2>	&texcoords,		// 2d
 							      OUT ScriptArray<uint>				&indices)									__Th___;
+		static void  _GetSphere5 (uint								lod,
+								  OUT ScriptArray<packed_float3>	&positions,
+								  OUT ScriptArray<packed_float2>	&texcoords,		// 2d
+								  OUT ScriptArray<uint>				&indices)									__Th___;
 
 		static void  _GetGrid1 (uint							size,
 							    OUT ScriptArray<packed_float2>	&positions,			// unorm
@@ -439,6 +444,7 @@ namespace AE::ResEditor
 		friend class ScriptGenMipmaps;
 		friend class ScriptCopyImage2;
 		friend class ScriptComputeMip;
+		friend class ScriptRasterMip;
 		friend class ScriptPostprocess;
 		friend class ScriptComputePass;
 		friend class ScriptRayTracingPass;
@@ -506,6 +512,7 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptBasePass,					"IPass"				);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptPostprocess,				"Postprocess"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptComputePass,				"ComputePass"		);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptComputeMip,				"ComputeMip"		);
+AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptRasterMip,					"RasterMip"			);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptRayTracingPass,			"RayTracingPass"	);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptScene,						"Scene"				);
 AE_DECL_SCRIPT_OBJ_RC(	AE::ResEditor::ScriptSceneGraphicsPass,			"SceneGraphicsPass"	);

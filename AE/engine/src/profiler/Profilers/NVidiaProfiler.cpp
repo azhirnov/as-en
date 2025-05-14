@@ -169,6 +169,9 @@ namespace AE::Profiler
 */
 	bool  NVidiaProfiler::Impl::Init () __NE___
 	{
+		if ( GraphicsScheduler().GetFeatureSet().GetGPUVendor() != Graphics::EGPUVendor::NVidia )
+			return false;
+
 	  #ifdef AE_PLATFORM_WINDOWS
 		Unused( _lib.Load( FileSystem::GetWindowsPath() / "System32/nvml.dll" ));
 	  #endif

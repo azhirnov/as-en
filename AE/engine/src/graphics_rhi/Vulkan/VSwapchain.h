@@ -57,6 +57,8 @@ namespace AE::Graphics
 			VkCompositeAlphaFlagBitsKHR		compositeAlpha		= VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 			VkImageUsageFlagBits			colorImageUsage		= DefaultImageUsage;
 			EImageOpt						colorImageOptions	= Default;
+			VkPresentScalingFlagBitsEXT		presentScaling		= Zero;
+			float							scale				= 1.f;
 		};
 
 		using Semaphores_t		= StaticArray< VkSemaphore, _MaxSwapchainLength >;

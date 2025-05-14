@@ -60,6 +60,36 @@ namespace AE::ResEditor
 		CHECK_THROW_MSG( _map.emplace( key, value ).second,
 			"Variable '"s << key << "' is already exists" );
 	}
+	
+/*
+=================================================
+	Add*
+=================================================
+*/
+	void  ScriptCollection::Add11 (const String &key, const ScriptArray<ScriptImagePtr> &value) __Th___ {
+		_AddArr< ScriptImagePtr >( key, value );
+	}
+
+	void  ScriptCollection::Add12 (const String &key, const ScriptArray<ScriptBufferPtr> &value) __Th___ {
+		_AddArr< ScriptBufferPtr >( key, value );
+	}
+
+	template <typename T>
+	void  ScriptCollection::_AddArr (const String &key, const ScriptArray<T> &value) __Th___
+	{
+		CHECK_THROW_MSG( not key.empty() );
+
+		auto [it, inserted] = _arrMap.emplace( key, ObjArray_t{} );
+
+		CHECK_THROW_MSG( inserted,
+			"Variable '"s << key << "' is already exists" );
+
+		it->second.reserve( value.size() );
+
+		for (auto& obj : value) {
+			it->second.push_back( obj );
+		}
+	}
 
 /*
 =================================================
@@ -119,6 +149,44 @@ namespace AE::ResEditor
 
 		return ScriptRC<T>{result}.Detach();
 	}
+	
+/*
+=================================================
+	Get*
+=================================================
+*/
+	void  ScriptCollection::GetImageArray (const String &key, OUT ScriptArray<ScriptImagePtr> &result) C_Th___ {
+		_GetArr< ScriptImagePtr >( key, OUT result );
+	}
+
+	void  ScriptCollection::GetBufferArray (const String &key, OUT ScriptArray<ScriptBufferPtr> &result) C_Th___ {
+		_GetArr< ScriptBufferPtr >( key, OUT result );
+	}
+	
+	template <typename T>
+	void  ScriptCollection::_GetArr (const String &key, OUT ScriptArray<T> &result) C_Th___
+	{
+		using P = AE::Scripting::AngelScriptHelper::RemoveSharedPtr< T >;
+
+		result.clear();
+
+		auto	it = _arrMap.find( key );
+		CHECK_THROW_MSG( it != _arrMap.end(),
+			"Variable '"s << key << "' is not exists in collection" );
+
+		if ( it->second.empty() )
+			return;
+
+		P*	temp = DynCast<P>( it->second[0].Get() );
+		CHECK_THROW_MSG( temp != null,
+			"Variable '"s << key << "' is not a '" << TypeNameOf<P>() << "' type" );
+
+		result.reserve( it->second.size() );
+
+		for (auto& obj : it->second) {
+			result.push_back( obj );
+		}
+	}
 
 /*
 =================================================
@@ -141,6 +209,8 @@ namespace AE::ResEditor
 		AS_METHOD( binder, ScriptCollection::Add8,			"Add",			{"key", "value"} );
 		AS_METHOD( binder, ScriptCollection::Add9,			"Add",			{"key", "value"} );
 		AS_METHOD( binder, ScriptCollection::Add10,			"Add",			{"key", "value"} );
+		AS_METHOD( binder, ScriptCollection::Add11,			"Add",			{"key", "value"} );
+		AS_METHOD( binder, ScriptCollection::Add12,			"Add",			{"key", "value"} );
 
 		binder.Comment( "Returns dynamic values." );
 		AS_METHOD( binder, ScriptCollection::GetDynDim,		"DynDim",		{"key"} );
@@ -155,6 +225,8 @@ namespace AE::ResEditor
 		AS_METHOD( binder, ScriptCollection::GetController,	"Controller",	{"key"} );
 		AS_METHOD( binder, ScriptCollection::GetRTGeometry,	"RTGeometry",	{"key"} );
 		AS_METHOD( binder, ScriptCollection::GetRTScene,	"RTScene",		{"key"} );
+		AS_METHOD( binder, ScriptCollection::GetImageArray,	"ImageArray",	{"key", "result"} );
+		AS_METHOD( binder, ScriptCollection::GetBufferArray,"BufferArray",	{"key", "result"} );
 	}
 
 

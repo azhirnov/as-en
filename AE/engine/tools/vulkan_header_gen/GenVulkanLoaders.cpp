@@ -846,10 +846,7 @@ namespace AE::Vulkan
 			<< "\t\tVkPhysicalDeviceMemoryProperties   memoryProperties;\n"
 			<< "\t\tVkPhysicalDeviceSubgroupProperties subgroupProperties;\n";
 
-		{
-			auto	it = _extInfo.find( "VK_KHR_portability_subset" );
-			CHECK( it != _extInfo.end() );
-		}
+		CHECK( HashTable_Contains( _extInfo, "VK_KHR_portability_subset" ));
 
 		for (auto& feat : feats.device)
 		{
@@ -872,6 +869,10 @@ namespace AE::Vulkan
 
 				if ( old_size != str.size() )
 					str.insert( old_size, "\n\t\t// "s << feat.extension << "\n" );
+			}
+			else
+			{
+				AE_LOGI( "Extension '"s << feat.extension << "' doesn't have features & properties" );
 			}
 		}
 
@@ -1023,7 +1024,10 @@ namespace AE::Vulkan
 	String  Generator::_GetFeaturesAndPropertiesFunc (const FeatureSet &feats) const
 	{
 		String	str;
-		str	<< "\tvoid  VDeviceInitializer::_InitFeaturesAndProperties (void** nextFeat, OUT void** &lastFeat)\n\t{\n"
+		str << "\t// 'nextFeat' - will write pointer to the first feature in chain, can be passed to 'VkDeviceCreateInfo::pNext'.\n"
+			<< "\t// 'lastFeat' - will write pointer to the pNext field of last feature in chain, can be used to insert new features.\n"
+			<< "\t//\n"
+			<< "\tvoid  VDeviceInitializer::_InitFeaturesAndProperties (OUT void* &nextFeat, OUT void** &lastFeat)\n\t{\n"
 			<< "\t\tvkGetPhysicalDeviceFeatures( GetVkPhysicalDevice(), OUT &_properties.features );\n"
 			<< "\t\tvkGetPhysicalDeviceProperties( GetVkPhysicalDevice(), OUT &_properties.properties );\n"
 			<< "\t\tvkGetPhysicalDeviceMemoryProperties( GetVkPhysicalDevice(), OUT &_properties.memoryProperties );\n\n"
@@ -1046,6 +1050,8 @@ namespace AE::Vulkan
 			<< "\t\t\t\t_properties.subgroupProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;\n"
 			<< "\t\t\t}\n";
 
+		String	ext_validation = "\t\t\t// All structures are initialized by zero, so not needed to check if extension is supported\n";
+
 		for (auto& feat : feats.device)
 		{
 			if ( not feat.enabled )
@@ -1061,7 +1067,24 @@ namespace AE::Vulkan
 					tmp << "\t\t\t\t*next_feat = &_properties." << feat_name << ";\n"
 						<< "\t\t\t\tnext_feat  = &_properties." << feat_name << ".pNext;\n"
 						<< "\t\t\t\t_properties." << feat_name << ".sType = " << info->second.featsSType << ";\n";
+
+					// If extensions has only one feature check that it is enabled.
+					// In some rare cases extension may exist but all features are disabled.
+					const VkStructInfo&	feat_st = info->second.feats.value()->data;
+					if ( feat_st.fields.size() == 3 )
+					{
+						CHECK( feat_st.fields[0].name == "sType" );
+						CHECK( feat_st.fields[1].name == "pNext" );
+						
+						ext_validation << "\t\t\t_extensions." << feat.shortName;
+						AppendToString( INOUT ext_validation, feats.maxNameLen - feat.shortName.size() );
+
+						ext_validation << " &= (_properties." << feat_name << '.' << feat_st.fields[2].name << " == VK_TRUE);\n";
+
+						// TODO: add support for structures with multiple features but with one main feature
+					}
 				}
+
 				if ( info->second.props )
 				{
 					const auto	feat_name = String{feat.shortName} << "Props";
@@ -1092,12 +1115,13 @@ namespace AE::Vulkan
 			<< "\n\t\t\t*next_mem   = null;\n\n"
 			<< "\t\t\tvkGetPhysicalDeviceFeatures2KHR( GetVkPhysicalDevice(), OUT &feat2 );\n"
 			<< "\t\t\tvkGetPhysicalDeviceProperties2KHR( GetVkPhysicalDevice(), OUT &props2 );\n"
-			<< "\t\t\tvkGetPhysicalDeviceMemoryProperties2KHR( GetVkPhysicalDevice(), OUT &mem_props2 );\n"
-			<< "\t\t\t*nextFeat = feat2.pNext;\n"
-			<< "\t\t\tlastFeat  = next_feat;\n"
+			<< "\t\t\tvkGetPhysicalDeviceMemoryProperties2KHR( GetVkPhysicalDevice(), OUT &mem_props2 );\n\n"
+			<< "\t\t\tnextFeat = feat2.pNext;\n"
+			<< "\t\t\tlastFeat = next_feat;\n\n"
+			<< ext_validation
 			<< "\t\t}else{\n"
-			<< "\t\t\t*nextFeat = null;\n"
-			<< "\t\t\tlastFeat  = null;\n"
+			<< "\t\t\tnextFeat = null;\n"
+			<< "\t\t\tlastFeat = null;\n"
 			<< "\t\t}\n"
 			<< "\t}\n";
 		return str;
@@ -1283,7 +1307,7 @@ namespace AE::Vulkan
 			<< "\tND_ static Array<const char*>  _GetInstanceExtensions (InstanceVersion ver);\n"
 			<< "\tND_ static Array<const char*>  _GetDeviceExtensions (DeviceVersion ver);\n"
 			<< "\tND_ String  _GetVulkanExtensionsString () const;\n"
-			<< "\tvoid  _InitFeaturesAndProperties (void** nextFeat, OUT void** &lastFeat);\n"
+			<< "\tvoid  _InitFeaturesAndProperties (OUT void* &nextFeat, OUT void** &lastFeat);\n"
 			<< "\tvoid  _CheckInstanceExtensions ();\n"
 			<< "\tvoid  _CheckDeviceExtensions ();\n"
 			<< "#endif // VKFEATS_FN_DECL\n\n\n";

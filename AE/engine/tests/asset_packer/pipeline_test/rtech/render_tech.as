@@ -80,6 +80,16 @@ void  UIRTech ()
 }
 
 
+void  RasterOrderAttachmentRTech ()
+{
+	RC<RenderTechnique> rtech = RenderTechnique( "RasterOrderAttachment.RTech" );
+	{
+		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Graphics0" );
+		pass.SetRenderPass( "RasterOrderAttachment.RPass", /*subpass*/"Main" );
+	}
+}
+
+
 void ASmain ()
 {
 	MinimalRTech();
@@ -87,4 +97,5 @@ void ASmain ()
 	MeshRTech();
 	RayTracingRTech();
 	UIRTech();
+	RasterOrderAttachmentRTech();
 }

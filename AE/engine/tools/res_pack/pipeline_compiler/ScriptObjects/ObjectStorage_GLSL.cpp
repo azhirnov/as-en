@@ -55,7 +55,7 @@ namespace AE::PipelineCompiler
 		// add header
 		{
 			Version2	max_spv_ver;
-			header = GetShaderExtensionsGLSL( INOUT max_spv_ver, EShaderStages::Unknown | info.type, features );
+			header = GetShaderExtensionsGLSL( INOUT max_spv_ver, EShaderStages::Unknown | info.type, AllBits( info.options, EShaderOpt::DebugInfo ), features);
 
 			CHECK_THROW_MSG( EShaderVersion_Ver2( info.version ) <= max_spv_ver );
 
@@ -152,7 +152,7 @@ namespace AE::PipelineCompiler
 	GetShaderExtensionsGLSL
 =================================================
 */
-	String  ObjectStorage::GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, const EShaderStages stage, ArrayView<ScriptFeatureSetPtr> features) __Th___
+	String  ObjectStorage::GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, const EShaderStages stage, bool hasDebugInfo, ArrayView<ScriptFeatureSetPtr> features) __Th___
 	{
 		ASSERT( IsSingleBitSet( stage ));
 
@@ -168,8 +168,10 @@ namespace AE::PipelineCompiler
 			"#extension GL_GOOGLE_cpp_style_line_directive              : require\n"
 			"#extension GL_EXT_control_flow_attributes                  : require\n"
 			"#extension GL_EXT_control_flow_attributes2                 : require\n"
-			"#extension GL_EXT_debug_printf                             : enable\n"
 			"#extension GL_EXT_samplerless_texture_functions            : enable\n";
+
+		if ( hasDebugInfo )
+			ext << "#extension GL_EXT_debug_printf                             : enable\n";
 
 		// SPIRV version
 		{

@@ -46,12 +46,14 @@ namespace AE::ResEditor
 		Path			screenshotFolder;
 		Path			videoFolder;
 		Path			exportFolder;
+		Path			renderDocFolder;
 
 		// graphics settings
 		uint			screenWidth			= 0;
 		uint			screenHeight		= 0;
 		bool			setStableGPUClock	= false;
 		bool			enableRenderDoc		= false;
+		String			deviceName;
 
 		// remote graphics device
 		ubyte4			ipAddress		{0};

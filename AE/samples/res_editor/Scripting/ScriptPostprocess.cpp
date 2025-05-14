@@ -166,7 +166,7 @@ namespace
 
 		auto	ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second;
 
-		#if PIPELINE_STATISTICS
+		#ifdef AE_ENABLE_VULKAN
 		{
 			auto&	res = res_mngr.GetResourcesOrThrow( ppln );
 			Unused( res_mngr.GetDevice().PrintPipelineExecutableInfo( _dbgName, res.Handle(), res.Options() ));
@@ -355,7 +355,7 @@ namespace AE::ResEditor
 		}
 
 
-		CompatibleRenderPassDescPtr	compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
+		CompatibleRenderPassDescPtr		compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
 		compat_rp->AddSubpass( subpass );
 		{
 			for (auto [out, i] : WithIndex(_output))
@@ -498,8 +498,11 @@ namespace AE::ResEditor
 			// add shader header
 			header << R"#(
 // for "InvocationID.glsl"
-ND_ int3  GetGlobalSize() {
+ND_ int3  GetGlobalSize () {
 	return int3(un_PerPass.resolution);
+}
+ND_ float3  GetGlobalSizeRcp () {
+	return float3(un_PerPass.invResolution, 0.0);
 }
 )#";
 			if ( _ppFlags != EPostprocess::Unknown )
@@ -609,17 +612,29 @@ void Main ()
 				fs_line = uint(Parser::CalculateNumberOfLines( header )) - 1;
 			}
 		}
-
-		EShaderOpt		sh_opt	 = Default;		//EShaderOpt::DebugInfo;	// for shader debugging in RenderDoc
+		
+		const auto		flags	 = UIInteraction::Instance().graphics->shaderFlags;
+		EShaderOpt		sh_opt	 = Default;
 		EPipelineOpt	ppln_opt = Default;
 
-	  #if OPTIMIZE_SHADER
-		sh_opt   = EShaderOpt::Optimize;
-		ppln_opt |= EPipelineOpt::Optimize;
-	  #endif
-	  #if PIPELINE_STATISTICS
-		ppln_opt |= EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
-	  #endif
+		if ( flags.contains( UIInteraction::EShaderFlags::DebugInfo ))
+		{
+			sh_opt = EShaderOpt::DebugInfo;
+		}
+		else
+		if ( flags.contains( UIInteraction::EShaderFlags::Optimize ))
+		{
+			sh_opt   = EShaderOpt::Optimize;
+			ppln_opt |= EPipelineOpt::Optimize;
+		}
+		
+		if ( flags.contains( UIInteraction::EShaderFlags::CaptureStatistics ))
+			ppln_opt |= EPipelineOpt::CaptureStatistics;
+		
+		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
+			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
+
+		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 4 );
 
 		_CompilePipeline3( subpass, vs, fs, fs_line, "postprocess", uint(sh_opt), ppln_opt );
 

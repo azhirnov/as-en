@@ -245,6 +245,7 @@ namespace
 		const float		f6		= 65504.0f * 2.f;
 		const half		h6		{f6};
 		const float		hf6		= float{h6};
+		TEST( not h6.IsNaN() );
 		TEST( h6.IsInfinity() );
 		TEST( h6 == half::Inf() );
 		TEST( hf6 > 0.f );
@@ -256,6 +257,7 @@ namespace
 		const float		f7		= 65504.0f * -2.f;
 		const half		h7		{f7};
 		const float		hf7		= float{h7};
+		TEST( not h7.IsNaN() );
 		TEST( h7.IsInfinity() );
 		TEST( h7 == half::NegInf() );
 		TEST( hf7 < 0.f );
@@ -363,6 +365,7 @@ namespace
 		const float		f7		= MaxValue<float>();
 		const BFloat16	h7		{f7};
 		const float		hf7		= float{h7};
+		TEST( not h7.IsNaN() );
 		TEST( h7.IsInfinity() );
 		TEST( h7 == BFloat16::Inf() );
 		TEST( hf7 > 0.f );

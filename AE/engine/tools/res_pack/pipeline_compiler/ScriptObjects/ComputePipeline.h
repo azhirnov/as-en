@@ -63,7 +63,6 @@ namespace AE::PipelineCompiler
 		CompiledShaderPtr	shader;
 	private:
 		Specializations_t	_pplnSpec;
-		bool				_isPrepared	= false;
 
 
 	// methods

@@ -40,7 +40,7 @@ namespace AE::ResEditor
 		const FrameUID	fid = ctx.GetFrameId();
 		for (auto& [un, res, in_state] : _resources)
 		{
-			const EResourceState	state	= in_state | shaderStages;
+			const EResourceState	state = in_state | shaderStages;
 			Visit( res,
 				[&] (const RC<Buffer> &buf) {
 					ctx.ResourceState( buf->GetBufferId( fid ), state );

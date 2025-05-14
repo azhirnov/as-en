@@ -37,7 +37,7 @@ namespace
 */
 	void  VDevice::InitFeatureSet (OUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( sizeof(FeatureSet) == 576 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 263 );
 
 		using EFeature	= FeatureSet::EFeature;
 		using KiBytes	= FeatureSet::KiBytes;
@@ -58,6 +58,8 @@ namespace
 
 		#define SET_FEAT2( _name_, _feat_ )	outFeatureSet._name_ = _feat_._name_ ? True : False
 		#define SET_FEAT( _name_ )			outFeatureSet._name_ = feats10._name_  ? True : False
+		#define SET_EXT2( _name_, _ext_ )	outFeatureSet._name_ = _extensions._ext_  ? True : False
+		#define SET_EXT( _name_ )			outFeatureSet._name_ = _extensions._name_  ? True : False
 
 		SET_FEAT( alphaToOne );
 		SET_FEAT( depthBiasClamp );
@@ -121,7 +123,7 @@ namespace
 			outFeatureSet.maxSubgroupSize			= CastPOT( _properties.subgroupSizeControlProps.maxSubgroupSize );
 		}
 
-		if ( _extensions.subgroupExtendedTypes and _properties.subgroupExtendedTypesFeats.shaderSubgroupExtendedTypes )
+		if ( _extensions.subgroupExtendedTypes )
 		{
 			if ( feats10.shaderInt16 )	outFeatureSet.subgroupTypes |= ESubgroupTypes::Int16;
 			if ( feats10.shaderInt64 )	outFeatureSet.subgroupTypes |= ESubgroupTypes::Int64;
@@ -132,26 +134,11 @@ namespace
 			}
 		}
 
-		if ( _extensions.shaderSubgroupUniformControlFlow and _properties.shaderSubgroupUniformControlFlowFeats.shaderSubgroupUniformControlFlow )
-		{
-			outFeatureSet.shaderSubgroupUniformControlFlow = True;
-		}
-
-		if ( _extensions.shaderMaximalReconvergence and _properties.shaderMaximalReconvergenceFeats.shaderMaximalReconvergence )
-		{
-			outFeatureSet.shaderMaximalReconvergence = True;
-		}
-
-		if ( _extensions.shaderQuadControl and _properties.shaderQuadControlFeats.shaderQuadControl )
-		{
-			outFeatureSet.shaderQuadControl = True;
-		}
-
-		if ( _extensions.clipSpaceWScalingNV )
-			outFeatureSet.clipSpaceWScalingNV = True;
-
-		if ( _extensions.shaderExpectAssume )
-			outFeatureSet.shaderExpectAssume = True;
+		SET_EXT( shaderSubgroupUniformControlFlow );
+		SET_EXT( shaderMaximalReconvergence );
+		SET_EXT( shaderQuadControl );
+		SET_EXT( clipSpaceWScalingNV );
+		SET_EXT( shaderExpectAssume );
 
 		if ( _extensions.shaderFloat16Int8 )
 		{
@@ -177,11 +164,8 @@ namespace
 			SET_FEAT2( storagePushConstant8,				_properties.storage8bitsFeats );
 		}
 
-		if ( _extensions.uniformBufferStandardLayout )
-			SET_FEAT2( uniformBufferStandardLayout, _properties.uniformBufferStandardLayoutFeats );
-
-		if ( _extensions.scalarBlockLayout )
-			SET_FEAT2( scalarBlockLayout, _properties.scalarBlockLayoutFeats );
+		SET_EXT( uniformBufferStandardLayout );
+		SET_EXT( scalarBlockLayout );
 
 		SET_FEAT( fragmentStoresAndAtomics );
 		SET_FEAT( vertexPipelineStoresAndAtomics );
@@ -358,10 +342,10 @@ namespace
 		SET_FEAT( shaderCullDistance );
 		SET_FEAT( shaderResourceMinLod );
 
-		outFeatureSet.shaderDrawParameters	= _extensions.shaderDrawParams		? True : False;
-		outFeatureSet.shaderSMBuiltinsNV	= _extensions.shaderSMBuiltinsNV	? True : False;
-		outFeatureSet.shaderCoreBuiltinsARM	= _extensions.shaderCoreBuiltinsARM	? True : False;
-		outFeatureSet.shaderStencilExport	= _extensions.shaderStencilExport	? True : False;
+		SET_EXT2( shaderDrawParameters, shaderDrawParams );
+		SET_EXT( shaderSMBuiltinsNV	);
+		SET_EXT( shaderCoreBuiltinsARM );
+		SET_EXT( shaderStencilExport );
 
 		SET_FEAT( shaderUniformBufferArrayDynamicIndexing );
 		SET_FEAT( shaderSampledImageArrayDynamicIndexing );
@@ -400,14 +384,9 @@ namespace
 			SET_FEAT2( vulkanMemoryModelAvailabilityVisibilityChains,	_properties.memoryModelFeats );
 		}
 
-		if ( _extensions.shaderDemoteToHelperInvocation )
-			SET_FEAT2( shaderDemoteToHelperInvocation, _properties.shaderDemoteToHelperInvocationFeats );
-
-		if ( _extensions.shaderTerminateInvocation )
-			SET_FEAT2( shaderTerminateInvocation, _properties.shaderTerminateInvocationFeats );
-
-		if ( _extensions.zeroInitializeWorkgroupMem )
-			SET_FEAT2( shaderZeroInitializeWorkgroupMemory, _properties.zeroInitializeWorkgroupMemFeats );
+		SET_EXT( shaderDemoteToHelperInvocation );
+		SET_EXT( shaderTerminateInvocation );
+		SET_EXT2( shaderZeroInitializeWorkgroupMemory, zeroInitializeWorkgroupMem );
 
 		// TODO: shaderIntegerDotProduct
 
@@ -418,8 +397,8 @@ namespace
 			SET_FEAT2( fragmentShaderShadingRateInterlock,	_properties.fragShaderInterlockFeats );
 		}
 
-		if ( _extensions.fragmentBarycentric )
-			SET_FEAT2( fragmentShaderBarycentric,		_properties.fragmentBarycentricFeats );
+		SET_EXT2( fragmentShaderBarycentric, fragmentBarycentric );
+		SET_EXT( nonSeamlessCubeMap );
 
 		if ( _extensions.fragShadingRate )
 		{
@@ -480,7 +459,7 @@ namespace
 
 		if ( _extensions.rayQuery and _extensions.accelerationStructure )
 		{
-			SET_FEAT2( rayQuery,			_properties.rayQueryFeats );
+			outFeatureSet.rayQuery		 = True;
 			outFeatureSet.rayQueryStages =	all_stages;
 		}
 
@@ -494,8 +473,7 @@ namespace
 		outFeatureSet.maxShaderVersion.spirv = (_spirvVersion.major * 100) + (_spirvVersion.minor * 10);
 
 		SET_FEAT( drawIndirectFirstInstance );
-		if ( _extensions.drawIndirectCount )
-			outFeatureSet.drawIndirectCount = True;
+		SET_EXT( drawIndirectCount );
 
 		outFeatureSet.maxDrawIndirectCount = limits.maxDrawIndirectCount;
 
@@ -551,14 +529,10 @@ namespace
 		}
 
 		if ( _extensions.clusterAccelStructNV )
-		{
-			SET_FEAT2( clusterAccelerationStructure, _properties.clusterAccelStructNVFeats );
-		}
+			outFeatureSet.clusterAccelerationStructure = True;	// TODO: use macros
 
 		if ( _extensions.partitionedAccelStructNV )
-		{
-			SET_FEAT2( partitionedAccelerationStructure, _properties.partitionedAccelStructNVFeats );
-		}
+			outFeatureSet.partitionedAccelerationStructure = True;
 
 		outFeatureSet.maxTexelBufferElements= CastPOT( limits.maxTexelBufferElements );
 		outFeatureSet.maxUniformBufferSize	= CastPOTBytes( limits.maxUniformBufferRange );
@@ -650,16 +624,9 @@ namespace
 		SET_FEAT( textureCompressionBC );
 		// skip imageViewMinLod		// VkPhysicalDeviceImageViewMinLodFeaturesEXT
 
-		if ( _extensions.imageFormatList )
-			outFeatureSet.imageViewFormatList = True;
-
-		if ( _extensions.maintenance2 )
-			outFeatureSet.imageViewExtendedUsage = True;
-
-		if ( _extensions.astcHdr )
-		{
-			SET_FEAT2( textureCompressionASTC_HDR, _properties.astcHdrFeats );
-		}
+		SET_EXT2( imageViewFormatList,			imageFormatList );
+		SET_EXT2( imageViewExtendedUsage,		maintenance2 );
+		SET_EXT2( textureCompressionASTC_HDR,	astcHdr );
 
 		outFeatureSet.maxImageDimension1D	= CastPOT( limits.maxImageDimension1D );
 		outFeatureSet.maxImageDimension2D	= CastPOT( limits.maxImageDimension2D );
@@ -673,20 +640,22 @@ namespace
 		outFeatureSet.maxSamplerAnisotropy	= limits.maxSamplerAnisotropy;
 		outFeatureSet.maxSamplerLodBias		= limits.maxSamplerLodBias;
 
-		if ( _extensions.samplerMirrorClamp )
-			outFeatureSet.samplerMirrorClampToEdge = True;
-
-		if ( _extensions.samplerYcbcrConversion )
-			outFeatureSet.samplerYcbcrConversion = True;
-
-		if ( _extensions.ycbcr2Plane444 )
-			outFeatureSet.ycbcr2Plane444 = True;
+		SET_EXT2( samplerMirrorClampToEdge, samplerMirrorClamp );
+		SET_EXT( samplerYcbcrConversion );
+		SET_EXT( ycbcr2Plane444 );
 
 		if ( _extensions.samplerFilterMinmax )
 		{
 			outFeatureSet.samplerFilterMinmax = True;
 			SET_FEAT2( filterMinmaxImageComponentMapping,	_properties.samplerFilterMinmaxProps );
 			//SET_FEAT2( filterMinmaxSingleComponentFormats,	_properties.samplerFilterMinmaxProps );
+		}
+
+		if ( _extensions.rasterOrderAttachment )
+		{
+			SET_FEAT2( rasterizationOrderColorAttachmentAccess,		_properties.rasterOrderAttachmentFeats );
+			SET_FEAT2( rasterizationOrderDepthAttachmentAccess,		_properties.rasterOrderAttachmentFeats );
+			SET_FEAT2( rasterizationOrderStencilAttachmentAccess,	_properties.rasterOrderAttachmentFeats );
 		}
 
 		constexpr usize	max_samples = CT_SizeOfInBits< FeatureSet::SampleCountBits >;
@@ -807,7 +776,7 @@ namespace
 			}
 		}
 
-		outFeatureSet.externalFormatAndroid = (_extensions.androidExternalMemoryHwBuf ? True : False);
+		SET_EXT2( externalFormatAndroid, androidExternalMemoryHwBuf );
 
 		outFeatureSet.AddDevice( _properties.properties.vendorID,
 								 _properties.properties.deviceID,
@@ -829,8 +798,8 @@ namespace
 	{
 		#define SET_FEAT( _name_ )			feats10._name_ = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 		#define SET_FEAT2( _name_, _feat_ )	_feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
-
-		StaticAssert( sizeof(FeatureSet) == 576 );
+		
+		StaticAssert( FeatureSet::GetFeatureCount() == 263 );
 		using EFeature = FeatureSet::EFeature;
 
 		auto&			feats10		= _properties.features;

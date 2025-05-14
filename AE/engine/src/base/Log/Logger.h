@@ -186,14 +186,10 @@ namespace AE::Base
 		Mutex				_guard;
 
 		RC< WStream >		_file;
-		uint				_txtColor;
-		uint				_bgColor;
 		Random				_random;
 
 		ThreadInfoMap_t		_threadInfos;
 		const bool			_enableThreadNames;
-
-		const bool			_addStackTrace;
 
 
 	// methods

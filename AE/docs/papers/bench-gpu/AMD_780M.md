@@ -46,6 +46,24 @@ FLOPS = clock * CU * warp_width * 2 (dual issue)
 		| 1.7  | FMA    | 3.4 |
 		| 1.8  | MulAdd | **3.6** |
 
+	- AMDVLK driver:
+		* Clock: 2.2 GHz
+	
+		| TOp/s | ops | max TFLOPS |
+		|---|---|---|
+		| 2.45 | Add, Mul | 2.45 |
+		| 1.71 | MulAdd   | **3.42** |
+		| 1.67 | FMA      | 3.34 |
+	
+	- AMDPRO driver:
+		* Clock: 2.2 GHz
+	
+		| TOp/s | ops | max TFLOPS |
+		|---|---|---|
+		| 2.44 | Add, Mul | 2.44 |
+		| 1.71 | MulAdd   | **3.42** |
+		| 1.69 | FMA      | 3.38 |
+
 * FP16 instruction performance: 
 	- RADV driver:
 		* Clock: 2.3-2.4 GHz

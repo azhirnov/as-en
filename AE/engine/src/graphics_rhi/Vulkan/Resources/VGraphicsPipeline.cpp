@@ -102,12 +102,12 @@ namespace AE::Graphics
 		CHECK_ERR( SetDynamicState( OUT dynamic_state_info, ci.specCI.dynamicState, true, allocator ));
 		SetMultisampleState( OUT multisample_info, render_state.multisample );
 		SetTessellationState( OUT tessellation_info, ci.templCI.patchControlPoints );
-		SetDepthStencilState( OUT depth_stencil_info, render_state.depth, render_state.stencil );
+		SetDepthStencilState( OUT depth_stencil_info, render_state.depth, render_state.stencil, render_state.rasterOrderAccess );
 		SetRasterizationState( OUT rasterization_info, render_state.rasterization );
 		SetupPipelineInputAssemblyState( OUT input_assembly_info, render_state.inputAssembly );
 		CHECK_ERR( SetVertexInputState( OUT vertex_input_info, ci.specCI.vertexBuffers, ci.specCI.vertexInput, allocator, vertex_divisor_supported ));
 		SetViewportState( OUT viewport_info, ci.specCI.viewportCount );
-		CHECK_ERR( SetColorBlendState( OUT blend_info, render_state.color, *subpass, allocator ));
+		CHECK_ERR( SetColorBlendState( OUT blend_info, render_state.color, *subpass, render_state.rasterOrderAccess, allocator ));
 
 		pipeline_info.sType					= VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipeline_info.flags					= VEnumCast( ci.specCI.options );

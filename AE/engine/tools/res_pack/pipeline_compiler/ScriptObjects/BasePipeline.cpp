@@ -554,6 +554,8 @@ namespace
 		CHECK_ERR_MSG( sp_it != subpass_map.end(),
 			"Subpass '"s << subpassName << "' is not exists in CompatibleRenderPass '" << compatRPassName << "'" );
 
+		fragOut.clear();
+
 		for (const auto& [name, att] : compat_it->second->_attachments)
 		{
 			auto	sp_att_it = att->usageMap.find( SubpassName{ subpassName });
@@ -564,11 +566,14 @@ namespace
 				continue;
 			}
 
+			if ( not att->IsColor() )
+				continue;
+
 			const auto&	usage = sp_att_it->second;
 			if ( not usage.output.IsDefined() )
 				continue;
 
-			CHECK_ERR_MSG( AnyEqual( usage.type, EAttachment::Color, EAttachment::ReadWrite ),
+			CHECK_ERR_MSG( AnyEqual( usage.type, EAttachment::Color, EAttachment::ReadWrite, EAttachment::RasterOrder ),
 				"Attachment '"s << storage.GetName( name ) << "' is not a color attachment" );
 
 			fragOut.push_back( usage.output );
@@ -1033,6 +1038,15 @@ namespace
 
 			if ( state.inputAssembly.topology == EPrimitive::TriangleFan )
 				TEST_FEATURE( features, triangleFans );
+
+			if ( state.rasterOrderAccess.color )
+				TEST_FEATURE( features, rasterizationOrderColorAttachmentAccess );
+			
+			if ( state.rasterOrderAccess.depth )
+				TEST_FEATURE( features, rasterizationOrderDepthAttachmentAccess );
+			
+			if ( state.rasterOrderAccess.stencil )
+				TEST_FEATURE( features, rasterizationOrderStencilAttachmentAccess );
 		}
 	}
 
@@ -1058,14 +1072,37 @@ namespace
 			{
 				case EAttachment::Color :
 				case EAttachment::ReadWrite :
+				case EAttachment::RasterOrder :
 				{
-					CHECK_THROW_MSG( att->index < state.color.buffers.size() );
+					CHECK_THROW( att->index < state.color.buffers.size() );
 
 					auto&	cb = state.color.buffers[ att->index ];
 					if ( cb.blend ) {
 						TestFeature_PixelFormat( features, &FeatureSet::attachmentBlendFormats, att->format, "attachmentBlendFormats",
 												 ", which used in Attachment '"s << storage.GetName(name) << "' in CompatibleRenderPass '" <<
 												 storage.GetName(renderPass) << "' with subpass '" << storage.GetName(subpass) << "'" );  // throw
+					}
+
+					if ( sp_it->second.type == EAttachment::RasterOrder )
+					{
+						if ( att->IsColor() ){
+							CHECK_THROW_MSG( state.rasterOrderAccess.color,
+								"RasterizationOrderAttachment '"s << storage.GetName(name) << "' in CompatibleRenderPass '" <<
+								storage.GetName(renderPass) << "' with subpass '" << storage.GetName(subpass) <<
+								"' requires that pipeline must have RenderState with 'rasterOrderAccess.color = true'." );
+						}else
+						if ( att->HasDepth() ){
+							CHECK_THROW_MSG( state.rasterOrderAccess.color,
+								"RasterizationOrderAttachment '"s << storage.GetName(name) << "' in CompatibleRenderPass '" <<
+								storage.GetName(renderPass) << "' with subpass '" << storage.GetName(subpass) <<
+								"' requires that pipeline must have RenderState with 'rasterOrderAccess.depth = true'." );
+						}else
+						if ( att->HasStencil() ){
+							CHECK_THROW_MSG( state.rasterOrderAccess.color,
+								"RasterizationOrderAttachment '"s << storage.GetName(name) << "' in CompatibleRenderPass '" <<
+								storage.GetName(renderPass) << "' with subpass '" << storage.GetName(subpass) <<
+								"' requires that pipeline must have RenderState with 'rasterOrderAccess.stencil = true'." );
+						}
 					}
 					break;
 				}

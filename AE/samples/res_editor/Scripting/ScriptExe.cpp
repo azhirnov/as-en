@@ -1297,6 +1297,13 @@ namespace {
 		return GraphicsScheduler().GetFeatureSet().samplerAnisotropy == FeatureSet::EFeature::RequireTrue;
 	}
 
+	// TODO:
+	//	Supports_AttachmentFormat
+	//	Supports_AttachmentBlendFormat
+	//	Supports_LinearSampledFormat
+	//	Supports_StorageImageFormat
+	//	Supports_TexelBufferFormat
+
 	static bool  _Supports_Format (const EPixelFormat fmt)
 	{
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
@@ -1433,6 +1440,7 @@ namespace {
 		ScriptPostprocess::Bind( se );
 		ScriptComputePass::Bind( se );
 		ScriptComputeMip::Bind( se );
+		ScriptRasterMip::Bind( se );
 		ScriptRayTracingPass::Bind( se );
 		ScriptSceneGraphicsPass::Bind( se );
 		ScriptSceneRayTracingPass::Bind( se );
@@ -1491,6 +1499,7 @@ namespace {
 		AS_GLOBAL_FN( se, ScriptExe::_GetGrid1,					"GetGrid",					{"size", "unorm2Positions", "indices"},					"Returns (size * size) grid" );
 		AS_GLOBAL_FN( se, ScriptExe::_GetGrid2,					"GetGrid",					{"size", "unorm3Positions", "indices"},					"Returns (size * size) grid in XY space." );
 		AS_GLOBAL_FN( se, ScriptExe::_GetSphere1,				"GetSphere",				{"lod", "positions", "indices"},						"Returns spherical cube" );
+		AS_GLOBAL_FN( se, ScriptExe::_GetSphere5,				"GetSphere",				{"lod", "positions", "texcoords2d", "indices"},			"Returns spherical cube with 2D UV" );
 		AS_GLOBAL_FN( se, ScriptExe::_GetSphere2,				"GetSphere",				{"lod", "positions", "cubemapTexcoords", "indices"},	"Returns spherical cube" );
 		AS_GLOBAL_FN( se, ScriptExe::_GetSphere3,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"},	"Returns spherical cube with tangential projection for cubemap." );
 		AS_GLOBAL_FN( se, ScriptExe::_GetSphere4,				"GetSphere",				{"lod", "positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"},		"Returns spherical cube" );
@@ -1738,6 +1747,7 @@ namespace {
 		ScriptPostprocess::GetShaderTypes( INOUT data );
 		ScriptComputePass::GetShaderTypes( INOUT data );
 		ScriptComputeMip::GetShaderTypes( INOUT data );
+		ScriptRasterMip::GetShaderTypes( INOUT data );
 		ScriptRayTracingPass::GetShaderTypes( INOUT data );
 		ScriptSceneGraphicsPass::GetShaderTypes( INOUT data );
 		ScriptSceneRayTracingPass::GetShaderTypes( INOUT data );
@@ -2104,17 +2114,29 @@ namespace {
 
 				cfg.SetDefaultLayout( EStructLayout::Std140 );
 				cfg.SetPreprocessor( EShaderPreprocessor::AEStyle );
-
-				EShaderOpt		sh_opt	 = Default;		//EShaderOpt::DebugInfo;	// for shader debugging in RenderDoc
+				
+				const auto		flags	 = UIInteraction::Instance().graphics->shaderFlags;
+				EShaderOpt		sh_opt	 = Default;
 				EPipelineOpt	ppln_opt = Default;
 
-			  #if OPTIMIZE_SHADER
-				sh_opt   = EShaderOpt::Optimize;
-				ppln_opt |= EPipelineOpt::Optimize;
-			  #endif
-			  #if PIPELINE_STATISTICS
-				ppln_opt |= EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
-			  #endif
+				if ( flags.contains( UIInteraction::EShaderFlags::DebugInfo ))
+				{
+					sh_opt = EShaderOpt::DebugInfo;
+				}
+				else
+				if ( flags.contains( UIInteraction::EShaderFlags::Optimize ))
+				{
+					sh_opt   = EShaderOpt::Optimize;
+					ppln_opt |= EPipelineOpt::Optimize;
+				}
+		
+				if ( flags.contains( UIInteraction::EShaderFlags::CaptureStatistics ))
+					ppln_opt |= EPipelineOpt::CaptureStatistics;
+		
+				if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
+					ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
+
+				StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 4 );
 
 				cfg.SetPipelineOptions( ppln_opt );
 				cfg.SetShaderOptions( sh_opt );

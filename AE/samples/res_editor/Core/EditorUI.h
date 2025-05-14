@@ -102,27 +102,37 @@ namespace AE::ResEditor
 			_Count
 		};
 
+		enum class EShaderFlags
+		{
+			DebugInfo,		// for RenderDoc shader debugging
+			Optimize,
+			CaptureStatistics,
+			CaptureInternalRepresentation,
+			_Count
+		};
+
 		struct Graphics
 		{
-			EPixelFormat		colorFormat		= Default;
-			EColorSpace			colorSpace		= Default;
-			EPresentMode		presentMode		= Default;
-			RC<DynamicDim>		dynSize;
-			RC<DynamicUInt>		filterMode;					// EGraphicsFlags
-			uint				colorModeIdx	= UMax;
-			uint				presentModeIdx	= UMax;
+			EPixelFormat			colorFormat		= Default;
+			EColorSpace				colorSpace		= Default;
+			EPresentMode			presentMode		= Default;
+			RC<DynamicDim>			dynSize;
+			RC<DynamicUInt>			filterMode;					// EGraphicsFlags
+			uint					colorModeIdx	= UMax;
+			uint					presentModeIdx	= UMax;
+			EnumSet<EShaderFlags>	shaderFlags;
 		};
 
 		struct Capture
 		{
-			bool				video			= false;
-			bool				screenshot		= false;
-			bool				testScreenshot	= false;	// hidden for user
-			EImageFormat		imageFormat		= EImageFormat::PNG;
-			float				bitrate			= 50.0f;	// Mbit/s
-			EVideoFormat		videoFormat		= EVideoFormat::YUV420P;
-			EVideoCodec			videoCodec		= EVideoCodec::H265;
-			EVideoColorPreset	colorPreset		= EVideoColorPreset::Unspecified;
+			bool					video			= false;
+			bool					screenshot		= false;
+			bool					testScreenshot	= false;	// hidden for user
+			EImageFormat			imageFormat		= EImageFormat::PNG;
+			float					bitrate			= 50.0f;	// Mbit/s
+			EVideoFormat			videoFormat		= EVideoFormat::YUV420P;
+			EVideoCodec				videoCodec		= EVideoCodec::H265;
+			EVideoColorPreset		colorPreset		= EVideoColorPreset::Unspecified;
 		};
 
 

@@ -88,14 +88,15 @@ AE_DECL_SCRIPT_OBJ(	 AE::Graphics::MipmapLevel,					"MipmapLevel"			);
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::ColorBuffer::ColorPair< AE::Graphics::EBlendFactor >,	"RenderState_ColorBuffer_BlendFactor"	);
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::ColorBuffer::ColorPair< AE::Graphics::EBlendOp >,		"RenderState_ColorBuffer_BlendOp"		);
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::ColorBuffer::ColorMask,									"RenderState_ColorBuffer_ColorMask"		);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::ColorBuffer,		"RenderState_ColorBuffer"			);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::ColorBuffersState,	"RenderState_ColorBuffersState"		);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::StencilFaceState,	"RenderState_StencilFaceState"		);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::StencilBufferState,	"RenderState_StencilBufferState"	);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::DepthBufferState,	"RenderState_DepthBufferState"		);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::InputAssemblyState,	"RenderState_InputAssemblyState"	);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::RasterizationState,	"RenderState_RasterizationState"	);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::MultisampleState,	"RenderState_MultisampleState"		);
-AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState,						"RenderState"						);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::ColorBuffer,				"RenderState_ColorBuffer"				);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::ColorBuffersState,			"RenderState_ColorBuffersState"			);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::StencilFaceState,			"RenderState_StencilFaceState"			);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::StencilBufferState,			"RenderState_StencilBufferState"		);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::DepthBufferState,			"RenderState_DepthBufferState"			);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::InputAssemblyState,			"RenderState_InputAssemblyState"		);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::RasterizationState,			"RenderState_RasterizationState"		);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::MultisampleState,			"RenderState_MultisampleState"			);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState::RasterizationOrderAccess,	"RenderState_RasterizationOrderAccess"	);
+AE_DECL_SCRIPT_OBJ(	 AE::Graphics::RenderState,								"RenderState"							);
 
 #endif // AE_ENABLE_SCRIPTING

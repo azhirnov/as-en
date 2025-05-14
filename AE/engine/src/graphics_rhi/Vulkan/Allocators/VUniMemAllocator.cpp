@@ -332,6 +332,7 @@ namespace {
 		VkDevice				dev		= _device.GetVkDevice();
 		VmaVulkanFunctions		funcs	= {};
 		auto&					vk_fn	= *_device._GetVkTable();
+		const auto&				vk_ext	= _device.GetVExtensions();
 
 		funcs.vkGetInstanceProcAddr					= _var_vkGetInstanceProcAddr;
 		funcs.vkGetDeviceProcAddr					= _var_vkGetDeviceProcAddr;
@@ -366,19 +367,19 @@ namespace {
 		info.device			= dev;
 
 	  #if VMA_DEDICATED_ALLOCATION
-		if ( _device.GetVExtensions().dedicatedAllocation )
+		if ( vk_ext.dedicatedAllocation )
 			info.flags |= VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
 	  #endif
 	  #if VMA_MEMORY_BUDGET
-		if ( _device.GetVExtensions().memoryBudget )
+		if ( vk_ext.memoryBudget )
 			info.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
 	  #endif
 	  #if VMA_BUFFER_DEVICE_ADDRESS
-		if ( _device.GetVExtensions().bufferDeviceAddress )
+		if ( vk_ext.bufferDeviceAddress )
 			info.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 	  #endif
 	  #if VMA_MEMORY_PRIORITY
-		if ( _device.GetVExtensions().memoryPriority )
+		if ( vk_ext.memoryPriority )
 			info.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT;
 	  #endif
 

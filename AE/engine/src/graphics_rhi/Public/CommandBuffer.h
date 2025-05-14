@@ -184,7 +184,8 @@ namespace AE::Graphics
 		virtual void  MemoryBarrier (EResourceState srcState, EResourceState dstState)														__Th___	= 0;
 		virtual void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th___	= 0;
 		virtual void  MemoryBarrier ()																										__Th___	= 0;
-
+		
+		virtual void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)													__Th___ = 0;
 		virtual void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__Th___	= 0;
 		virtual void  ExecutionBarrier ()																									__Th___	= 0;
 

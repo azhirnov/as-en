@@ -357,6 +357,49 @@ void  FragmentDensityMapRenderPass ()
 }
 
 
+void  RasterOrderAttachmentRenderPass ()
+{
+	if ( ! IsVulkan() )
+		return;
+
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "RasterOrderAttachment.RPass" );
+	compat.AddFeatureSet( "part.RasterOrderAttachment" );
+
+	const string	pass = "Main";
+	compat.AddSubpass( pass );
+
+	{
+		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
+		rt.format		= EPixelFormat::RGBA8_UNorm;
+		rt.Usage( pass, EAttachment::RasterOrder, ShaderIO("in_Color"), ShaderIO("out_Color") );
+	}{
+		RC<Attachment>	rt	= compat.AddAttachment( "Depth" );
+		rt.format		= EPixelFormat::Depth16;
+		rt.Usage( pass, EAttachment::RasterOrder, ShaderIO("in_Depth"), ShaderIO("Depth") );
+	}
+
+	// specialization
+	{
+		RC<RenderPass>		rp = compat.AddSpecialization( "RasterOrderAttachment.RPass" );
+		{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+			rt.loadOp	= EAttachmentLoadOp::Load;
+			rt.storeOp	= EAttachmentStoreOp::Store;
+			rt.Layout( Subpass_ExternalIn, EResourceState::ShaderSample | EResourceState::ComputeShader );
+			rt.Layout( pass, EResourceState::InputColorAttachment_RW | EResourceState::FragmentShader );
+			rt.Layout( Subpass_ExternalOut, EResourceState::ShaderSample | EResourceState::ComputeShader );
+		}{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "Depth" );
+			rt.loadOp	= EAttachmentLoadOp::Clear;
+			rt.storeOp	= EAttachmentStoreOp::Store;
+			rt.Layout( Subpass_ExternalIn, EResourceState::DepthStencilAttachment_Write | EResourceState::DSTestBeforeFS | EResourceState::Invalidate );
+			rt.Layout( pass, EResourceState::InputDepthStencilAttachment_RW | EResourceState::FragmentShader | EResourceState::DSTestBeforeFS );
+			rt.Layout( Subpass_ExternalOut, EResourceState::DepthStencilAttachment_Read | EResourceState::DSTestBeforeFS );
+		}
+	}
+}
+
+
 void ASmain ()
 {
 	SimpleRenderPass();
@@ -366,4 +409,5 @@ void ASmain ()
 	RenderPassWithInput();
 	MultiViewRenderPass();
 	FragmentDensityMapRenderPass();
+	RasterOrderAttachmentRenderPass();
 }

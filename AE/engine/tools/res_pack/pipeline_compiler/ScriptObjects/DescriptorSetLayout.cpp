@@ -1562,9 +1562,10 @@ namespace
 	_AddSRGB
 =================================================
 */
-	void  DescriptorSetLayout::_AddSRGB (const String &, EImageType) __Th___
+	void  DescriptorSetLayout::_AddSRGB (const String &name, EImageType type) __Th___
 	{
-	//	_defines << "\n" << name << "_sRGB = " << ((type & EImageType::_QualMask) == EImageType::sRGB ? "1" : "0");
+		// TODO: sRGB format store in gamma space and read in linear space, but other formats can be in linear or in sRGB
+		_defines << "\n" << name << "_InLinearSpace = " << ((type & EImageType::_QualMask) == EImageType::sRGB ? "1" : "0");
 	}
 
 /*
@@ -1588,6 +1589,8 @@ namespace
 		un.buffer.arrayStride			= Bytes32u{arraySize};
 		un.buffer.typeName				= ShaderStructName{"dbg_ShaderTraceStorage"};
 
+		CHECK( EResourceState_Validate( un.buffer.state ));
+
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
 	}
 
@@ -1607,12 +1610,12 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
@@ -1620,7 +1623,7 @@ namespace
 		if ( args.IsArg< String const& >(idx) )
 			type_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required typename as 'String'" );
+			CHECK_THROW_MSG( false, "Required typename as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EResourceState >(idx) )
 			res_state = args.Arg< EResourceState >(idx++);
@@ -1646,12 +1649,12 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
@@ -1659,7 +1662,7 @@ namespace
 		if ( args.IsArg< String const& >(idx) )
 			type_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required typename as 'String'" );
+			CHECK_THROW_MSG( false, "Required typename as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EAccessType >(idx) )
 			access = args.Arg< EAccessType >(idx++);
@@ -1687,12 +1690,12 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
@@ -1700,7 +1703,7 @@ namespace
 		if ( args.IsArg< String const& >(idx) )
 			type_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required typename as 'String'" );
+			CHECK_THROW_MSG( false, "Required typename as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EResourceState >(idx) )
 			res_state = args.Arg< EResourceState >(idx++);
@@ -1726,12 +1729,12 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
@@ -1739,7 +1742,7 @@ namespace
 		if ( args.IsArg< String const& >(idx) )
 			type_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required typename as 'String'" );
+			CHECK_THROW_MSG( false, "Required typename as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EAccessType >(idx) )
 			access = args.Arg< EAccessType >(idx++);
@@ -1767,18 +1770,20 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
 
 		if ( args.IsArg< EImageType >(idx) )
 			image_type = args.Arg< EImageType >(idx++);
+		else
+			CHECK_THROW_MSG( false, "Required image type as 'EImageType', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EResourceState >(idx) )
 			res_state = args.Arg< EResourceState >(idx++);
@@ -1805,18 +1810,20 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
 
 		if ( args.IsArg< EImageType >(idx) )
 			image_type = args.Arg< EImageType >(idx++);
+		else
+			CHECK_THROW_MSG( false, "Required image type as 'EImageType', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EPixelFormat >(idx) )
 			format = args.Arg< EPixelFormat >(idx++);
@@ -1849,18 +1856,20 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
 
 		if ( args.IsArg< EImageType >(idx) )
 			image_type = args.Arg< EImageType >(idx++);
+		else
+			CHECK_THROW_MSG( false, "Required image type as 'EImageType', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EPixelFormat >(idx) )
 			format = args.Arg< EPixelFormat >(idx++);
@@ -1891,18 +1900,20 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
 
 		if ( args.IsArg< EImageType >(idx) )
 			image_type = args.Arg< EImageType >(idx++);
+		else
+			CHECK_THROW_MSG( false, "Required image type as 'EImageType', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EResourceState >(idx) )
 			res_state = args.Arg< EResourceState >(idx++);
@@ -1927,18 +1938,20 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
 
 		if ( args.IsArg< EImageType >(idx) )
 			image_type = args.Arg< EImageType >(idx++);
+		else
+			CHECK_THROW_MSG( false, "Required image type as 'EImageType', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EResourceState >(idx) )
 			res_state = args.Arg< EResourceState >(idx++);
@@ -1960,18 +1973,24 @@ namespace
 		EImageType		image_type		= Default;
 		String			uniform_name;
 		Array<String>	sampler_names;
+		ArraySize		array_size		= ArraySize{1};
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
+		
+		if ( args.IsArg< ArraySize const& >(idx) )
+			array_size = args.Arg< ArraySize const& >(idx++);
 
 		if ( args.IsArg< EImageType >(idx) )
 			image_type = args.Arg< EImageType >(idx++);
+		else
+			CHECK_THROW_MSG( false, "Required image type as 'EImageType', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EResourceState >(idx) )
 			res_state = args.Arg< EResourceState >(idx++);
@@ -1987,10 +2006,10 @@ namespace
 		if ( args.IsArg< String const& >(idx) )
 			sampler_names.push_back( args.Arg< String const& >(idx++) );
 		else
-			CHECK_THROW_MSG( false, "Required sampler name as 'String' or 'Array<String>'" );
+			CHECK_THROW_MSG( false, "Required sampler name as 'String' or 'Array<String>', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		CHECK_THROW_MSG( idx == args.ArgCount() );
-		args.GetObject< DescriptorSetLayout >()->AddCombinedImage_ImmutableSampler( stages, uniform_name, image_type, res_state, sampler_names );
+		args.GetObject< DescriptorSetLayout >()->AddCombinedImage_ImmutableSampler( stages, uniform_name, image_type, res_state, array_size, sampler_names );
 	}
 
 /*
@@ -2009,18 +2028,20 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< uint >(idx) )
 			sp_index = args.Arg< uint >(idx++);
 
 		if ( args.IsArg< EImageType >(idx) )
 			image_type = args.Arg< EImageType >(idx++);
+		else
+			CHECK_THROW_MSG( false, "Required image type as 'EImageType', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< EResourceState >(idx) )
 			res_state = args.Arg< EResourceState >(idx++);
@@ -2043,12 +2064,12 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
@@ -2071,12 +2092,12 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ScriptArray<String> const& >(idx) )
 		{
@@ -2089,7 +2110,7 @@ namespace
 		if ( args.IsArg< String const& >(idx) )
 			sampler_names.push_back( args.Arg< String const& >(idx++) );
 		else
-			CHECK_THROW_MSG( false, "Required sampler name as 'String' or 'Array<String>'" );
+			CHECK_THROW_MSG( false, "Required sampler name as 'String' or 'Array<String>', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		CHECK_THROW_MSG( idx == args.ArgCount() );
 		args.GetObject< DescriptorSetLayout >()->AddImmutableSampler( stages, uniform_name, sampler_names );
@@ -2109,12 +2130,12 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
@@ -2137,12 +2158,12 @@ namespace
 
 		if ( args.IsArg< EShaderStages >(idx) )	stages = args.Arg< EShaderStages >(idx++);			else
 		if ( args.IsArg< uint >(idx) )			stages = EShaderStages(args.Arg< uint >(idx++));	else
-												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint'" );
+												CHECK_THROW_MSG( false, "Required 'EShaderStages' or 'uint', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< String const& >(idx) )
 			uniform_name = args.Arg< String const& >(idx++);
 		else
-			CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
+			CHECK_THROW_MSG( false, "Required uniform name as 'String', provided '"s << args.GetArgTypename(idx) << "'" );
 
 		if ( args.IsArg< ArraySize const& >(idx) )
 			array_size = args.Arg< ArraySize const& >(idx++);
@@ -2160,7 +2181,9 @@ namespace
 	{
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderUniform );
 		CHECK_THROW_MSG( stages != Default );
+
 		state |= EResourceState_FromShaders( stages );
+		CHECK_THROW_MSG( EResourceState_Validate( state ));
 
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
@@ -2210,7 +2233,9 @@ namespace
 	void  DescriptorSetLayout::AddStorageBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, const String &typeName, EAccessType access, EResourceState state, Bool dynamic) __Th___
 	{
 		CHECK_THROW_MSG( stages != Default );
+
 		state |= EResourceState_FromShaders( stages );
+		CHECK_THROW_MSG( EResourceState_Validate( state ));
 
 		_CheckStateForStorage( state );
 		_CheckUniformName( name );
@@ -2221,7 +2246,7 @@ namespace
 		auto		st_it	= st_map.find( typeName );
 		CHECK_THROW_MSG( st_it != st_map.end(),
 			"ShaderStructType '"s << typeName << "' is not exists" );
-
+		
 		auto&	aux_info	= _infoMap[ UniformName{name} ];
 		aux_info.type		= st_it->second;
 		aux_info.access		= access;
@@ -2250,9 +2275,11 @@ namespace
 	{
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
-		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) == EImageType::Buffer );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
+
+		state |= EResourceState_FromShaders( stages );
+		CHECK_THROW_MSG( EResourceState_Validate( state ));
 
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
@@ -2267,7 +2294,7 @@ namespace
 		un.texelBuffer.type		= type;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
-		_AddSRGB( name, type );
+		//_AddSRGB( name, type );
 	}
 
 /*
@@ -2278,9 +2305,11 @@ namespace
 	void  DescriptorSetLayout::AddStorageTexelBuffer (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EPixelFormat format, EAccessType access, EResourceState state) __Th___
 	{
 		CHECK_THROW_MSG( stages != Default );
-		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) == EImageType::Buffer );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
+
+		state |= EResourceState_FromShaders( stages );
+		CHECK_THROW_MSG( EResourceState_Validate( state ));
 
 		_CheckStateForStorage( state );
 		_CheckUniformName( name );
@@ -2299,7 +2328,7 @@ namespace
 	//	un.texelBuffer.format	= format;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
-		_AddSRGB( name, type );
+		//_AddSRGB( name, type );
 
 		auto&	aux_info	= _infoMap[ UniformName{name} ];
 		aux_info.access		= access;
@@ -2313,8 +2342,10 @@ namespace
 	void  DescriptorSetLayout::AddStorageImage (EShaderStages stages, const String &name, const ArraySize &arraySize, EImageType type, EPixelFormat format, EAccessType access, EResourceState state) __Th___
 	{
 		CHECK_THROW_MSG( stages != Default );
-		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
+
+		state |= EResourceState_FromShaders( stages );
+		CHECK_THROW_MSG( EResourceState_Validate( state ));
 
 		_CheckStateForStorage( state );
 		_CheckUniformName( name );
@@ -2341,7 +2372,7 @@ namespace
 		un.image.format	= format;
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
-		_AddSRGB( name, type );
+		//_AddSRGB( name, type );
 
 		auto&	aux_info	= _infoMap[ UniformName{name} ];
 		aux_info.access		= access;
@@ -2356,9 +2387,11 @@ namespace
 	{
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
-		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
+
+		state |= EResourceState_FromShaders( stages );
+		CHECK_THROW_MSG( EResourceState_Validate( state ));
 
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
@@ -2386,9 +2419,11 @@ namespace
 	{
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
-		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
+
+		state |= EResourceState_FromShaders( stages );
+		CHECK_THROW_MSG( EResourceState_Validate( state ));
 
 		_CheckUniformName( name );
 		_CheckArraySize( arraySize.value );
@@ -2414,18 +2449,30 @@ namespace
 */
 	void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state, const String &samplerName) __Th___
 	{
-		AddCombinedImage_ImmutableSampler( stages, name, type, state, ArrayView<String>{&samplerName, 1} );
+		AddCombinedImage_ImmutableSampler( stages, name, type, state, ArraySize{1}, ArrayView<String>{&samplerName, 1} );
+	}
+	
+	void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state,
+																  const ArraySize &arraySize, const String &samplerName) __Th___
+	{
+		AddCombinedImage_ImmutableSampler( stages, name, type, state, arraySize, ArrayView<String>{&samplerName, 1} );
 	}
 
-	void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state, ArrayView<String> samplerNames) __Th___
+	void  DescriptorSetLayout::AddCombinedImage_ImmutableSampler (EShaderStages stages, const String &name, EImageType type, EResourceState state,
+																  const ArraySize &arraySize, ArrayView<String> samplerNames) __Th___
 	{
 		CHECK_THROW_MSG( ToEResState(state) == _EResState::ShaderSample );
 		CHECK_THROW_MSG( stages != Default );
-		state |= EResourceState_FromShaders( stages );
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
-		const uint	array_size = uint(samplerNames.size());
+		state |= EResourceState_FromShaders( stages );
+		CHECK_THROW_MSG( EResourceState_Validate( state ));
+
+		const uint	array_size = Max( uint(samplerNames.size()), arraySize.value );
+
+		if ( arraySize.value != array_size )
+			CHECK_THROW_MSG( arraySize.value == 1 );
 
 		_CheckUniformName( name );
 		_CheckArraySize( array_size );
@@ -2445,11 +2492,25 @@ namespace
 
 		_dsLayout.uniforms.emplace_back( UniformName{name}, un );
 		_AddSRGB( name, type );
-
-		for (auto& samp : samplerNames)
+		
+		if ( samplerNames.size() == array_size )
 		{
-			_CheckSamplerName( samp );
-			_dsLayout.samplerStorage.push_back( SamplerName{samp} );
+			for (auto& samp : samplerNames)
+			{
+				_CheckSamplerName( samp );
+				_dsLayout.samplerStorage.push_back( SamplerName{samp} );
+			}
+		}
+		else
+		{
+			CHECK_THROW_MSG( samplerNames.size() == 1 );
+
+			SamplerName		samp {samplerNames[0]};
+			_CheckSamplerName( samplerNames[0] );
+
+			for (uint i = 0; i < array_size; ++i) {
+				_dsLayout.samplerStorage.push_back( samp );
+			}
 		}
 
 		// TODO: cubemap supports only CLAMP sampler
@@ -2470,10 +2531,11 @@ namespace
 			default :											CHECK_THROW_MSG( false, "state must be one of InputColorAttachment or InputDepthStencilAttachment" );
 		}
 		CHECK_THROW_MSG( stages != Default );
-		state |= EResourceState_FromShaders( stages );
-
 		CHECK_THROW_MSG( (type & EImageType::_DimMask) != Default );
 		CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
+
+		state |= EResourceState_FromShaders( stages );
+		CHECK_THROW_MSG( EResourceState_Validate( state ));
 
 		_CheckUniformName( name );
 
@@ -2551,7 +2613,7 @@ namespace
 			if ( not usage.input.IsDefined() )
 				continue;
 
-			CHECK_THROW_MSG( AnyEqual( usage.type, EAttachment::Input, EAttachment::ReadWrite ));
+			CHECK_THROW_MSG( AnyEqual( usage.type, EAttachment::Input, EAttachment::ReadWrite, EAttachment::RasterOrder ));
 
 			EImageType	img_type = att->samples.Get() > 1 ? EImageType::Dim2DMS : EImageType::Dim2D;
 
@@ -2576,10 +2638,18 @@ namespace
 			switch_end
 
 			EResourceState	state =
-				(usage.type == EAttachment::ReadWrite ? EResourceState::InputColorAttachment_RW : EResourceState::InputColorAttachment);
+				(usage.type == EAttachment::Input ?
+					EResourceState::InputColorAttachment :
+					EResourceState::InputColorAttachment_RW);
 
 			if ( (img_type & EImageType::_ValMask) >= EImageType::Depth )
-				state = (usage.type == EAttachment::ReadWrite ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputDepthStencilAttachment);
+				state = (usage.type == EAttachment::Input ?
+							EResourceState::InputDepthStencilAttachment :
+							EResourceState::InputDepthStencilAttachment_RW | EResourceState::DSTestAfterFS | EResourceState::DSTestBeforeFS);
+
+			state |= EResourceState::FragmentShader;	// TODO: tile shader
+
+			CHECK_THROW_MSG( EResourceState_Validate( state ));
 
 			AddSubpassInput( EShaderStages::Fragment, storage.GetName( usage.input.name ), usage.input.index, img_type, state );
 		}

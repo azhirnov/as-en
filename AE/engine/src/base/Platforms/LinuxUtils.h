@@ -63,11 +63,14 @@ namespace AE::Base
 
 	inline bool  LinuxUtils::IsUnderDebugger () __NE___
 	{
-	#ifdef AE_DEBUG
+	  #if AE_CXX_VER >= 26
+		return std::is_debugger_present();
+
+	  #elif defined(AE_DEBUG)
 		return true;
-	#else
+	  #else
 		return false;
-	#endif
+	  #endif
 	}
 
 } // AE::Base

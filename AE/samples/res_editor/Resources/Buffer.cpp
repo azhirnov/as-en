@@ -184,6 +184,8 @@ namespace
 		auto	buf = res_mngr.CreateBuffer( desc, _dbgName, _Renderer().ChooseAllocator( True{"dynamic"}, desc.size ));
 		CHECK_ERR( buf );
 
+		// TODO: sync problem: _bufDesc updated before _id
+		// possible fix: don't allow to access '_bufDesc', use 'GetDescription( _id )' instead
 		_bufDesc.Write( desc );
 
 		rs_track.AddResource( buf.Get(),

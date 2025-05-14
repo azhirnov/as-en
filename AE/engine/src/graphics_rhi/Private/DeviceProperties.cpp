@@ -269,7 +269,7 @@ namespace
 			res.minBufferCopyOffsetAlign			= POTBytes{ limits.optimalBufferCopyOffsetAlignment };
 			res.minBufferCopyRowPitchAlign			= POTBytes{ limits.optimalBufferCopyRowPitchAlignment };
 
-			if ( vk_ext.texelBufferAlignment and vk_props.texelBufferAlignmentFeats.texelBufferAlignment )
+			if ( vk_ext.texelBufferAlignment )
 			{
 				const auto&	tba_props = vk_props.texelBufferAlignmentProps;
 				res.minUniformTexelBufferOffsetAlign	= POTBytes{ tba_props.uniformTexelBufferOffsetAlignmentBytes };

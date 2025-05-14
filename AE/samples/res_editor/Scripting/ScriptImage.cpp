@@ -476,6 +476,16 @@ namespace
 	{
 		return CreateView1( viewType, format, 0_mipmap, UMax, 0_layer, UMax );
 	}
+	
+/*
+=================================================
+	AddOption
+=================================================
+*/
+	void  ScriptImage::AddOption (EImageOpt value) __Th___
+	{
+		_desc.options |= value;
+	}
 
 /*
 =================================================
@@ -595,6 +605,8 @@ namespace
 			AS_METHOD( binder, ScriptImage::CreateView5,		"CreateView",			{"viewType"} );
 			AS_METHOD( binder, ScriptImage::CreateView6,		"CreateView",			{"viewType", "format"} );
 			AS_METHOD( binder, ScriptImage::CreateView7,		"CreateView",			{} );
+
+			AS_METHOD( binder, ScriptImage::AddOption,			"AddOption",			{} );
 		}
 	}
 

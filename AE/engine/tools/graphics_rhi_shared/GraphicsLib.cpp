@@ -71,6 +71,7 @@ namespace
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th_OV	{ _ctx.MemoryBarrier( srcScope, dstScope ); }
 		void  MemoryBarrier ()																										__Th_OV	{ _ctx.MemoryBarrier(); }
 
+		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)													__Th_OV	{ _ctx.ExecutionBarrier( srcState, dstState ); }
 		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__Th_OV	{ _ctx.ExecutionBarrier( srcScope, dstScope ); }
 		void  ExecutionBarrier ()																									__Th_OV	{ _ctx.ExecutionBarrier(); }
 
@@ -181,6 +182,7 @@ namespace
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th_OV	{ _ctx.MemoryBarrier( srcScope, dstScope ); }
 		void  MemoryBarrier ()																										__Th_OV	{ _ctx.MemoryBarrier(); }
 
+		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)													__Th_OV	{ _ctx.ExecutionBarrier( srcState, dstState ); }
 		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__Th_OV	{ _ctx.ExecutionBarrier( srcScope, dstScope ); }
 		void  ExecutionBarrier ()																									__Th_OV	{ _ctx.ExecutionBarrier(); }
 
@@ -246,6 +248,7 @@ namespace
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th_OV	{ _ctx.MemoryBarrier( srcScope, dstScope ); }
 		void  MemoryBarrier ()																										__Th_OV	{ _ctx.MemoryBarrier(); }
 
+		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)													__Th_OV	{ _ctx.ExecutionBarrier( srcState, dstState ); }
 		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__Th_OV	{ _ctx.ExecutionBarrier( srcScope, dstScope ); }
 		void  ExecutionBarrier ()																									__Th_OV	{ _ctx.ExecutionBarrier(); }
 

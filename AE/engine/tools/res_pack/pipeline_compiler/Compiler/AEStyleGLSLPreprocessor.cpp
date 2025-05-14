@@ -12,6 +12,8 @@ namespace AE::PipelineCompiler
 */
 	AEStyleGLSLPreprocessor::AEStyleGLSLPreprocessor ()
 	{
+		// see forward declarations in [aestyle.glsl.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/shared_data/shaders/aestyle.glsl.h)
+
 		// types
 	  #if 1
 		_typeMap.emplace( "float2",			"vec2" );
@@ -747,6 +749,9 @@ namespace AE::PipelineCompiler
 		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_fragment_invocation_density.txt
 		_typeMap.emplace( "gl.FragSize",				"gl_FragSizeEXT" );
 		_typeMap.emplace( "gl.FragInvocationCount",		"gl_FragInvocationCountEXT" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_debug_printf.txt
+		_typeMap.emplace( "gl.Printf",					"debugPrintfEXT" );
 	}
 
 /*

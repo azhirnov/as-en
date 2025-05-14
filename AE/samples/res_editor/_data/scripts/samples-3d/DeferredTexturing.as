@@ -10,8 +10,9 @@
 	Second pass:
 		* draw fullscreen triangle
 		* unpack G-Buffer
+		* calculate worldPos from depth
 		* apply material, used material ID, texture UV and UV derivatives
-		* apply lighting, used normal
+		* apply lighting, used worldPos and normal
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>

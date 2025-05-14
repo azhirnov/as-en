@@ -1334,6 +1334,15 @@ namespace
 
 		if ( rs.inputAssembly.topology == EPrimitive::TriangleFan )
 			CHECK_ERR( triangleFans == True );
+		
+		if ( rs.rasterOrderAccess.color )
+			CHECK_ERR( rasterizationOrderColorAttachmentAccess == True );
+			
+		if ( rs.rasterOrderAccess.depth )
+			CHECK_ERR( rasterizationOrderDepthAttachmentAccess == True );
+			
+		if ( rs.rasterOrderAccess.stencil )
+			CHECK_ERR( rasterizationOrderStencilAttachmentAccess == True );
 
 		return true;
 	}
@@ -1587,7 +1596,7 @@ namespace
 	#else
 		bool	res = true;
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	res &= FS_IsCompatible( this->_name_, rhs._name_, AE_TOSTRING(_name_) );
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 		return res;
 	#endif
@@ -1602,7 +1611,7 @@ namespace
 				return false;																											\
 			}
 
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 		return true;
 	}
@@ -1616,7 +1625,7 @@ namespace
 	{
 		bool	res = true;
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	res &= FS_Equal( this->_name_, rhs._name_, AE_TOSTRING(_name_) );
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 		return res;
 	}
@@ -1630,7 +1639,7 @@ namespace
 	{
 		bool	res = true;
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )		res &= FS_GreaterEqual( this->_name_, rhs._name_, AE_TOSTRING(_name_) );
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 		return res;
 	}
@@ -1644,7 +1653,7 @@ namespace
 	{
 		HashVal	res;
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )		res << HashOf( _name_ );
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 		return res;
 	}
@@ -1663,8 +1672,22 @@ namespace
 			if constexpr( IsSame< _type_, POTValue >)	_name_ = FS_Set<_type_>( POTValue::Invalid() );	\
 			if constexpr( IsSame< _type_, POTBytes >)	_name_ = FS_Set<_type_>( POTBytes::Invalid() );
 
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
+
+			#define FS_CHECK_ALIGN( _name_, _align_ )	StaticAssert( alignof(_name_) == _align_, "" #_name_ );
+		#define FS_CHECK_ALIGN_1( _name_, ... )		FS_CHECK_ALIGN( _name_, 1 )
+		#define FS_CHECK_ALIGN_2( _name_, ... )		FS_CHECK_ALIGN( _name_, 2 )
+		#define FS_CHECK_ALIGN_4( _name_, ... )		FS_CHECK_ALIGN( _name_, 4 )
+		#define FS_CHECK_ALIGN_8( _name_, ... )		FS_CHECK_ALIGN( _name_, 8 )
+
+		AE_FEATURE_SET_FIELDS( FS_CHECK_ALIGN_1, FS_CHECK_ALIGN_1, FS_CHECK_ALIGN_2, FS_CHECK_ALIGN_4, FS_CHECK_ALIGN_8 )
+
+		#undef FS_CHECK_ALIGN
+		#undef FS_CHECK_ALIGN_1
+		#undef FS_CHECK_ALIGN_2
+		#undef FS_CHECK_ALIGN_4
+		#undef FS_CHECK_ALIGN_8
 	}
 
 /*
@@ -1699,7 +1722,7 @@ namespace
 	void  FeatureSet::MergeMin (const FeatureSet &rhs) __NE___
 	{
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	_name_ = FS_MergeMin( _name_, rhs. _name_, AE_TOSTRING(_name_) );
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 	}
 
@@ -1711,7 +1734,7 @@ namespace
 	void  FeatureSet::MergeMax (const FeatureSet &rhs) __NE___
 	{
 		#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )	_name_ = FS_MergeMax( _name_, rhs. _name_, AE_TOSTRING(_name_) );
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 	}
 
@@ -1755,7 +1778,7 @@ namespace {
 			result += (HashOfStr( AE_TOSTRING( _type_ ), counter ) + HashOfStr( AE_TOSTRING( _name_ ), counter ));	\
 			++counter;																								\
 
-		AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 
 		return result;
@@ -1843,7 +1866,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0x7111c4a85da813ebull};
+		return HashVal64{0x4a4fcdabf6cd5725ull};
 	}
 
 

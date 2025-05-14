@@ -40,6 +40,9 @@ namespace AE::Base
 		struct State
 		{
 			uint	_value	= 0;
+
+			ND_ bool  		DenormalFlushToZero ()		C_NE___;
+			ND_ ERounding	RoundingMode ()				C_NE___;
 		};
 
 
@@ -166,6 +169,19 @@ namespace AE::Base
 		_MM_SET_ROUNDING_MODE( m );
 	}
 	
+	inline SimdRuntimeConfig::ERounding  SimdRuntimeConfig::State::RoundingMode () C_NE___
+	{
+		uint	m = _value & _MM_ROUND_MASK;
+		switch ( m )
+		{
+			case _MM_ROUND_NEAREST :		return ERounding::Nearest;
+			case _MM_ROUND_DOWN :			return ERounding::Down;
+			case _MM_ROUND_UP :				return ERounding::Up;
+			case _MM_ROUND_TOWARD_ZERO :	return ERounding::TowardZero;
+		}
+		return ERounding::Nearest;
+	}
+
 /*
 =================================================
 	DenormalFlushToZero
@@ -176,6 +192,11 @@ namespace AE::Base
 		_MM_SET_FLUSH_ZERO_MODE( flushToZero ? _MM_FLUSH_ZERO_ON : _MM_FLUSH_ZERO_OFF );
 	}
 	
+	inline bool  SimdRuntimeConfig::State::DenormalFlushToZero () C_NE___
+	{
+		return (_value & _MM_FLUSH_ZERO_MASK) == _MM_FLUSH_ZERO_ON;
+	}
+
 /*
 =================================================
 	GetState

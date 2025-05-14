@@ -1385,7 +1385,6 @@ namespace AE::Graphics
 		RETURN_ERR( "unknown present mode", VK_PRESENT_MODE_MAX_ENUM_KHR );
 	}
 
-
 /*
 =================================================
 	AEEnumCast (VkPresentModeKHR)
@@ -1407,6 +1406,46 @@ namespace AE::Graphics
 		}
 		switch_end
 		RETURN_ERR( "unknown present mode" );
+	}
+
+/*
+=================================================
+	VEnumCast (EPresentScaling)
+=================================================
+*/
+	ND_ inline VkPresentScalingFlagBitsEXT  VEnumCast (EPresentScaling value) __NE___
+	{
+		switch_enum( value )
+		{
+			case EPresentScaling::OneToOne :			return VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT;
+			case EPresentScaling::AspectRatioStretch :	return VK_PRESENT_SCALING_ASPECT_RATIO_STRETCH_BIT_EXT;
+			case EPresentScaling::Stretch :				return VK_PRESENT_SCALING_STRETCH_BIT_EXT;
+			case EPresentScaling::Unknown :				return VkPresentScalingFlagBitsEXT(0);
+			case EPresentScaling::_Count :				break;
+		}
+		switch_end
+		RETURN_ERR( "unknown present scaling", Zero );
+	}
+	
+/*
+=================================================
+	AEEnumCast ()
+=================================================
+*/
+	ND_ inline EPresentScaling  AEEnumCast (VkPresentScalingFlagBitsEXT value) __NE___
+	{
+		if ( value == VkPresentScalingFlagBitsEXT(0) )
+			return Default;
+
+		switch_enum( value )
+		{
+			case VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT :			return EPresentScaling::OneToOne;
+			case VK_PRESENT_SCALING_ASPECT_RATIO_STRETCH_BIT_EXT :	return EPresentScaling::AspectRatioStretch;
+			case VK_PRESENT_SCALING_STRETCH_BIT_EXT :				return EPresentScaling::Stretch;
+			case VK_PRESENT_SCALING_FLAG_BITS_MAX_ENUM_EXT :		break;
+		}
+		switch_end
+		RETURN_ERR( "unknown present scaling" );
 	}
 
 /*

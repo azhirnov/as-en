@@ -74,7 +74,7 @@ namespace
 		static typename FS_ReplaceOutType<_type_>::dst  Get_FS_ ## _name_ (ScriptFeatureSet* ptr) {					\
 			 return FS_ReplaceOutType<_type_>::Cast( ptr->fs._name_ );												\
 		}
-	AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+	AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 	#undef AE_FEATURE_SET_VISIT
 
 	#define AE_FEATURE_SET_PER_DS( _visitor_ ) \
@@ -87,11 +87,15 @@ namespace
 		_visitor_( uint,	maxAccelStructures	);\
 		_visitor_( uint,	maxTotalResources	);\
 
-	#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )	static void  Set_FS_perPipeline_ ## _name_ (ScriptFeatureSet* ptr, const _type_ val) { ptr->fs.perPipeline._name_ = val; }
+	#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )\
+		static void		Set_FS_perPipeline_ ## _name_ (ScriptFeatureSet* ptr, const _type_ val)	{ ptr->fs.perPipeline._name_ = val; }\
+		static _type_	Set_FS_getPerPipeline_ ## _name_ (ScriptFeatureSet* ptr)				{ return ptr->fs.perPipeline._name_; }
 	AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
 	#undef AE_FEATURE_SET_PER_DS_VISIT
 
-	#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )	static void  Set_FS_perStage_ ## _name_ (ScriptFeatureSet* ptr, const _type_ val) { ptr->fs.perStage._name_ = val; }
+	#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ )\
+		static void		Set_FS_perStage_ ## _name_ (ScriptFeatureSet* ptr, const _type_ val)	{ ptr->fs.perStage._name_ = val; }\
+		static _type_	Set_FS_getPerStage_ ## _name_ (ScriptFeatureSet* ptr)					{ return ptr->fs.perStage._name_; }
 	AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
 	#undef AE_FEATURE_SET_PER_DS_VISIT
 
@@ -455,16 +459,18 @@ namespace
 				if constexpr( IsInteger< _type_ >)																\
 					AS_METHOD( binder, Get_FS_ ## _name_, ToMethodName2( "get", AE_TOSTRING( _name_ )), {} );	\
 
-			AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+			AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 			#undef AE_FEATURE_SET_VISIT
 
 			#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ ) \
-				AS_METHOD( binder, Set_FS_perPipeline_ ## _name_, ToMethodName( "perPipeline_", AE_TOSTRING( _name_ )), {} );
+				AS_METHOD( binder, Set_FS_perPipeline_ ## _name_,    ToMethodName( "perPipeline_",    AE_TOSTRING( _name_ )), {} );	\
+				AS_METHOD( binder, Set_FS_getPerPipeline_ ## _name_, ToMethodName( "getPerPipeline_", AE_TOSTRING( _name_ )), {} );
 			AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
 			#undef AE_FEATURE_SET_PER_DS_VISIT
 
 			#define AE_FEATURE_SET_PER_DS_VISIT( _type_, _name_ ) \
-				AS_METHOD( binder, Set_FS_perStage_ ## _name_, ToMethodName( "perStage_", AE_TOSTRING( _name_ )), {} );
+				AS_METHOD( binder, Set_FS_perStage_ ## _name_,    ToMethodName( "perStage_",    AE_TOSTRING( _name_ )), {} );	\
+				AS_METHOD( binder, Set_FS_getPerStage_ ## _name_, ToMethodName( "getPerStage_", AE_TOSTRING( _name_ )), {} );
 			AE_FEATURE_SET_PER_DS( AE_FEATURE_SET_PER_DS_VISIT )
 			#undef AE_FEATURE_SET_PER_DS_VISIT
 		}
@@ -491,6 +497,11 @@ namespace
 	{
 		CHECK_THROW_MSG( not features.empty(), "empty FeatureSet array" );
 
+		if ( fmt == EPixelFormat::SwapchainColor )
+			return;  // always supported
+
+		CHECK_THROW( fmt < EPixelFormat::_Count );
+
 		bool	supported = false;
 
 		for (auto& feat : features)
@@ -514,6 +525,7 @@ namespace
 								  EVertexType fmt, StringView memberName, StringView message) __Th___
 	{
 		CHECK_THROW_MSG( not features.empty(), "empty FeatureSet array" );
+		CHECK_THROW( fmt < EVertexType::_Count );
 
 		bool	supported = false;
 

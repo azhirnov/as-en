@@ -103,7 +103,7 @@ static void  ValidateFS (INOUT FeatureSet &fs)
 	using KiBytes				= Graphics::FeatureSet::KiBytes;
 
 	#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )		if constexpr( IsSame< _type_, EFeature >)  fs._name_ = FS_Validate<_type_>( fs._name_ );
-	AE_FEATURE_SET_FIELDS3( AE_FEATURE_SET_VISIT )
+	AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 	#undef AE_FEATURE_SET_VISIT
 }
 

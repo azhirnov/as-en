@@ -28,6 +28,7 @@
 			_reg_( CmdBuf_Bake::MemoryBarrier3Cmd					)	and\
 			_reg_( CmdBuf_Bake::ExecutionBarrierCmd					)	and\
 			_reg_( CmdBuf_Bake::ExecutionBarrier2Cmd				)	and\
+			_reg_( CmdBuf_Bake::ExecutionBarrier3Cmd				)	and\
 			_reg_( CmdBuf_Bake::AcquireBufferOwnershipCmd			)	and\
 			_reg_( CmdBuf_Bake::ReleaseBufferOwnershipCmd			)	and\
 			_reg_( CmdBuf_Bake::AcquireImageOwnershipCmd			)	and\

@@ -166,6 +166,7 @@ TODO
 
 * Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]
 	- 1.04 MPix, 128 iter, 6 mul/branch ops.
+	- Non-uniform branching is fast.
 
 	| op | exec time (ms) | diff |
 	|---|---|---|
@@ -253,6 +254,8 @@ TODO
 	| 1.07 | 7.5 | 22.4 | 1x1 noise      |
 	| 1.9  | 4.1 | 41   | 8x8 noise      | **same as block size** |
 	| 2    | 4   | 42   | 16x16 noise    |
+
+* RGBA32F - has compression.
 
 
 ## Texture cache

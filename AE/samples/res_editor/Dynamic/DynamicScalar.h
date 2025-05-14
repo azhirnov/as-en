@@ -27,6 +27,7 @@ namespace AE::ResEditor
 		PowOf2,			// const << x
 		FloorPOT,
 		CeilPOT,
+		NearPOT,
 		Min,			// min( x, const )
 		Max,			// max( x, const )
 	};
@@ -180,6 +181,11 @@ namespace AE::ResEditor
 			case EOperator::CeilPOT :
 				if constexpr( IsInteger<T> )
 					result = CeilPOT( result );
+				break;
+				
+			case EOperator::NearPOT :
+				if constexpr( IsInteger<T> )
+					result = NearPOT( result );
 				break;
 
 			case EOperator::PowOf2 :

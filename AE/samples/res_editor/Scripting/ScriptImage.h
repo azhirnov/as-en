@@ -58,6 +58,7 @@ namespace AE::ResEditor
 		void  AddUsage (EResourceUsage usage)										__Th___;
 		void  SetSwizzle (const String &value)										__Th___;
 		void  SetAspectMask (EImageAspect value)									__Th___;
+		void  AddOption (EImageOpt value)											__Th___;
 
 		void  LoadLayer1 (const String &filename, uint layer)						__Th___;
 		void  LoadLayer2 (const String &filename, uint layer, ELoadOpFlags flags)	__Th___;

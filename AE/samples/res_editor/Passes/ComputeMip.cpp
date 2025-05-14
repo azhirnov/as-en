@@ -43,64 +43,73 @@ namespace AE::ResEditor
 		if ( not dbg )
 			ppln = _pipelines.find( IPass::EDebugMode::Unknown )->second;
 
-		DirectCtx::Compute	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
-		auto&				ctx2 = ctx.GetBaseContext();
-
-		DescriptorSetID		ds0	= _descSets[ ctx.GetFrameId().Index() ];
-
-		_resources.SetStates( ctx, Default );
-		ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
-		ctx.CommitBarriers();
-
-		ctx.BindPipeline( ppln );
-		ctx.BindDescriptorSet( _ds0Index, ds0 );
-		if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
-
-		for (usize mip = 0; mip < _mipChainDS.size(); ++mip)
+		for (uint i = 0, cnt = _GetRepeatCount(); i < cnt; ++i)
 		{
+			DirectCtx::Compute	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
+			auto&				ctx2 = ctx.GetBaseContext();
+
+			DescriptorSetID		ds0	= _descSets[ ctx.GetFrameId().Index() ];
+		
+			_resources.SetStates( ctx, Default );
+			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
+			ctx.CommitBarriers();
+
+			ctx.BindPipeline( ppln );
+			ctx.BindDescriptorSet( _ds0Index, ds0 );
+			if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
+
+			for (usize mip = 0; mip < _mipChainDS.size(); ++mip)
+			{
+				for (auto& var : _variables)
+				{
+					usize	src_mip	= var.baseMipmap.Get() + mip;
+					usize	dst_mip	= var.baseMipmap.Get() + mip + 1;
+					ImageID	img_id	= var.image->GetImageId();
+
+					ImageSubresourceRange	subres;
+					subres.aspectMask	= EImageAspect::Color;
+					subres.baseMipLevel	= MipmapLevel{src_mip};
+
+					// RenderGraph use single state for whole resource, so transit to 'inState'.
+					// Now we have known state and can manage it manually.
+					if ( mip == 0 ){
+						ctx.ResourceState( img_id, var.inState );
+						ctx.CommitBarriers();
+					}else
+						ctx2.ImageBarrier( img_id, var.outState, var.inState, subres );
+
+					subres.baseMipLevel	= MipmapLevel{dst_mip};
+					ctx2.ImageBarrier( img_id, EResourceState::Invalidate, var.outState, subres );
+				}
+				ctx.CommitBarriers();
+
+				ctx.BindDescriptorSet( _ds1Index, _mipChainDS[mip] );
+
+				ShaderTypes::ComputeMipPC	pc;
+				pc.resolution		= Max( _variables.front().image->GetImageDesc().Dimension2() >> (mip + 1), 1u );
+				pc.invResolution	= 1.f / float2{pc.resolution};
+
+				ctx.PushConstant( _pcIndex, pc );
+
+				ctx.Dispatch( _mipChainGroupSizes[mip] );
+			}
+
+			// All variable resources has all mips except last in 'inState'.
+			// Transit last mip from 'outState' to 'inState' then RenderGraph will have correct state for whole resource.
 			for (auto& var : _variables)
 			{
-				usize	src_mip	= var.baseMipmap.Get() + mip;
-				usize	dst_mip	= var.baseMipmap.Get() + mip + 1;
 				ImageID	img_id	= var.image->GetImageId();
 
 				ImageSubresourceRange	subres;
 				subres.aspectMask	= EImageAspect::Color;
-				subres.baseMipLevel	= MipmapLevel{src_mip};
+				subres.baseMipLevel	= MipmapLevel{var.baseMipmap.Get() + _mipChainDS.size()};
 
-				// RenderGraph use single state for whole resource, so transit to 'inState'.
-				// Now we have known state and can manage it manually.
-				if ( mip == 0 ){
-					ctx.ResourceState( img_id, var.inState );
-					ctx.CommitBarriers();
-				}else
-					ctx2.ImageBarrier( img_id, var.outState, var.inState, subres );
-
-				subres.baseMipLevel	= MipmapLevel{dst_mip};
-				ctx2.ImageBarrier( img_id, EResourceState::Invalidate, var.outState, subres );
+				ctx2.ImageBarrier( img_id, var.outState, var.inState, subres );
 			}
-			ctx.CommitBarriers();
-
-			ctx.BindDescriptorSet( _ds1Index, _mipChainDS[mip] );
-			ctx.Dispatch( _mipChainGroupSizes[mip] );
+			ctx2.CommitBarriers();
+			
+			pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		}
-
-		// All variable resources has all mips except last in 'inState'.
-		// Transit last mip from 'outState' to 'inState' then RenderGraph will have correct state for whole resource.
-		for (auto& var : _variables)
-		{
-			ImageID	img_id	= var.image->GetImageId();
-
-			ImageSubresourceRange	subres;
-			subres.aspectMask	= EImageAspect::Color;
-			subres.baseMipLevel	= MipmapLevel{var.baseMipmap.Get() + _mipChainDS.size()};
-
-			ctx2.ImageBarrier( img_id, var.outState, var.inState, subres );
-		}
-		ctx2.CommitBarriers();
-
-
-		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
 	}
 

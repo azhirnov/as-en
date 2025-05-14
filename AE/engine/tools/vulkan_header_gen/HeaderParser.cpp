@@ -893,7 +893,7 @@ namespace AE::Vulkan
 	ExtToStruct
 =================================================
 */
-	ND_ inline String  ExtToStruct (StringView extName, StringView suffix)
+	ND_ inline String  ExtToStruct (StringView extName, StringView stSuffix, StringView extSuffix)
 	{
 		String	res;
 		usize	num_divs = 0;
@@ -907,7 +907,7 @@ namespace AE::Vulkan
 			if ( num_divs >= 2 )
 				res << (p == '_' ? ToUpperCase(c) : ToLowerCase(c));
 		}
-		return res << suffix;
+		return res << stSuffix << extSuffix;
 	}
 
 /*
@@ -965,13 +965,51 @@ namespace AE::Vulkan
 			return best_match;
 		}};
 
+		const auto	BuildNewExt = [] (ArrayView<StringView> tokens, StringView newExt)
+		{{
+			String	res;
+			for (usize i = 0; i < tokens.size(); ++i)
+			{
+				if ( i > 0 ) res << '_';
+				if ( i == 1 ) { res << newExt;  continue; }
+				res << tokens[i];
+			}
+			return res;
+		}};
+
+		const auto	ExtractExt = [] (StringView structName) -> StringView
+		{{
+			for (usize i = structName.length()-1; i < structName.length(); --i)
+			{
+				if ( not IsUpperCase( structName[i] ))
+					return structName.substr( i+1 );
+			}
+			return {};
+		}};
+
+		const auto	ExtToTokens = [] (StringView ext) -> Array<StringView>
+		{{
+			Array<StringView>	tokens;
+			Parser::Tokenize( ext, '_', OUT tokens );
+
+			CHECK( tokens.size() > 2 );
+			CHECK( tokens[0] == "VK" );
+			return tokens;
+		}};
+
+
 		const HashSet<StringView>	skip_ext = {
 			VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
 		};
 
+		Array< StructMap_t::const_iterator >		defer_structs;
+		Array< StructTypedefs_t::const_iterator >	defer_typedefs;
+
+		// find struct with feature and properties for each extension
 		for (auto it = _structs.begin(); it != _structs.end(); ++it)
 		{
-			auto&	ext = it->data.extension;
+			auto&	ext		= it->data.extension;
+			auto&	st_name	= it->data.name;
 
 			if ( ext.empty() )
 				continue;
@@ -979,39 +1017,50 @@ namespace AE::Vulkan
 			if ( HashTable_Contains( skip_ext, ext ))
 				continue;
 
-			if ( not StartsWith( it->data.name, "VkPhysicalDevice" ))
+			if ( not StartsWith( st_name, "VkPhysicalDevice" ))
 				continue;
+
+			Array<StringView>	tokens = ExtToTokens( ext );
+			
+			if ( not EndsWith( st_name, tokens[1] ))
+			{
+				defer_structs.push_back( it );
+				continue;
+			}
 
 			auto&	info = _extInfo[ ext ];
 			info.structs.push_back( it );
 
-			if ( HasSubStringIC( it->data.name, ExtToStruct( ext, "Features" )))
+			if ( EndsWithIC( st_name, ExtToStruct( ext, "Features", tokens[1] )))
 			{
 				CHECK( not info.feats.has_value() );
 				info.feats		= it;
-				info.featsSType	= FindSType( it->data.name );
+				info.featsSType	= FindSType( st_name );
 			}
 			else
-			if ( HasSubStringIC( it->data.name, ExtToStruct( ext, "Properties" )))
+			if ( EndsWithIC( st_name, ExtToStruct( ext, "Properties", tokens[1] )))
 			{
 				CHECK( not info.props.has_value() );
 				info.props		= it;
-				info.propsSType	= FindSType( it->data.name );
+				info.propsSType	= FindSType( st_name );
 			}
 			else
 			// some extensions don't duplicate 'Properties' in properties struct,
 			// example: VK_AMD_shader_core_properties and VkPhysicalDeviceShaderCorePropertiesAMD
-			if ( EndsWithIC( ext, "Properties" ) and HasSubStringIC( it->data.name, ExtToStruct( ext, "" )))
+			if ( EndsWithIC( ext, "Properties" ) and EndsWithIC( st_name, ExtToStruct( ext, "", tokens[1] )))
 			{
 				CHECK( not info.props.has_value() );
 				info.props		= it;
-				info.propsSType	= FindSType( it->data.name );
+				info.propsSType	= FindSType( st_name );
 			}
 		}
-
+		
+		// find alias with feature and properties for each extension
 		for (auto it = _typedefs.begin(); it != _typedefs.end(); ++it)
 		{
-			auto&	ext = it->second.extension;
+			auto&	ext			= it->second.extension;
+			auto&	st_name		= it->first;			// 'typedef <st_name>  <new_name>' or 'using <new_name> = <st_name>'
+			auto&	new_name	= it->second.dstType;
 
 			if ( ext.empty() )
 				continue;
@@ -1019,34 +1068,134 @@ namespace AE::Vulkan
 			if ( HashTable_Contains( skip_ext, ext ))
 				continue;
 
-			if ( not StartsWith( it->second.dstType, "VkPhysicalDevice" ))
+			if ( not StartsWith( new_name, "VkPhysicalDevice" ))
 				continue;
 
-			auto&	info	= _extInfo[ ext ];
-			auto	st_it	= _structs.find( SearchableStruct{it->second.dstType} );
+			Array<StringView>	tokens = ExtToTokens( ext );
+			
+			if ( not EndsWith( st_name, tokens[1] ))
+			{
+				defer_typedefs.push_back( it );
+				continue;
+			}
 
+			auto	st_it = _structs.find( SearchableStruct{new_name} );
 			if ( st_it == _structs.end() )
 				continue;
 
-			if ( not info.feats and HasSubStringIC( it->first, ExtToStruct( ext, "Features" )))
+			auto&	info = _extInfo[ ext ];
+			info.structs.push_back( st_it );
+
+			if ( not info.feats and EndsWithIC( st_name, ExtToStruct( ext, "Features", tokens[1] )))
 			{
 				info.feats		= st_it;
 				info.featsSType	= FindSType( st_it->data.name );
-				info.structs.push_back( st_it );
 			}
 			else
-			if ( not info.props and HasSubStringIC( it->first, ExtToStruct( ext, "Properties" )))
+			if ( not info.props and EndsWithIC( st_name, ExtToStruct( ext, "Properties", tokens[1] )))
 			{
 				info.props		= st_it;
 				info.propsSType	= FindSType( st_it->data.name );
-				info.structs.push_back( st_it );
 			}
 			else
-			if ( not info.props and EndsWithIC( ext, "Properties" ) and HasSubStringIC( it->first, ExtToStruct( ext, "" )))
+			// some extensions don't duplicate 'Properties' in properties struct,
+			// example: VK_AMD_shader_core_properties and VkPhysicalDeviceShaderCorePropertiesAMD
+			if ( not info.props and EndsWithIC( ext, "Properties" ) and EndsWithIC( st_name, ExtToStruct( ext, "", tokens[1] )))
 			{
 				info.props		= st_it;
 				info.propsSType	= FindSType( st_it->data.name );
-				info.structs.push_back( st_it );
+			}
+		}
+
+		// another way to find alias
+		// EXT to KHR
+		// NV, AMD, ARM, etc to EXT, KHR
+		for (auto it : defer_structs)
+		{
+			auto&		st_name		= it->data.name;
+			StringView	short_ext	= ExtractExt( st_name );
+			auto&		old_ext		= it->data.extension;
+			auto		tokens		= ExtToTokens( old_ext );
+			String		new_ext		= BuildNewExt( tokens, short_ext );
+			auto		ext_it		= _extensions.find( StringView{new_ext} );
+
+			if ( ext_it == _extensions.end() )
+			{
+				AE_LOGW( "unknown extension '"s << new_ext << "'" );
+				continue;
+			}
+			
+			auto&	info = _extInfo[ *ext_it ];	// use 'StringView' instead of 'String'
+			info.structs.push_back( it );
+
+			if ( EndsWithIC( st_name, ExtToStruct( new_ext, "Features", short_ext )))
+			{
+				CHECK( not info.feats.has_value() );
+				info.feats		= it;
+				info.featsSType	= FindSType( st_name );
+			}
+			else
+			if ( EndsWithIC( st_name, ExtToStruct( new_ext, "Properties", short_ext )))
+			{
+				CHECK( not info.props.has_value() );
+				info.props		= it;
+				info.propsSType	= FindSType( st_name );
+			}
+			else
+			// some extensions don't duplicate 'Properties' in properties struct,
+			// example: VK_AMD_shader_core_properties and VkPhysicalDeviceShaderCorePropertiesAMD
+			if ( EndsWithIC( new_ext, "Properties" ) and EndsWithIC( st_name, ExtToStruct( new_ext, "", short_ext )))
+			{
+				CHECK( not info.props.has_value() );
+				info.props		= it;
+				info.propsSType	= FindSType( st_name );
+			}
+		}
+		
+		for (auto it : defer_typedefs)
+		{
+			auto&		old_ext		= it->second.extension;
+			auto&		st_name		= it->first;			// 'typedef <st_name>  <new_name>' or 'using <new_name> = <st_name>'
+			auto&		new_name	= it->second.dstType;
+			StringView	short_ext	= ExtractExt( st_name );
+			auto		tokens		= ExtToTokens( old_ext );
+			String		new_ext		= BuildNewExt( tokens, short_ext );
+			auto		ext_it		= _extensions.find( StringView{new_ext} );
+			
+			if ( ext_it == _extensions.end() )
+			{
+				AE_LOGW( "unknown extension '"s << new_ext << "'" );
+				continue;
+			}
+			
+			auto	st_it = _structs.find( SearchableStruct{new_name} );
+			if ( st_it == _structs.end() )
+				continue;
+			
+			auto&	info = _extInfo[ *ext_it ];	// use 'StringView' instead of 'String'
+			info.structs.push_back( st_it );
+
+			if ( EndsWithIC( st_name, ExtToStruct( new_ext, "Features", short_ext )))
+			{
+				CHECK( not info.feats.has_value() );
+				info.feats		= st_it;
+				info.featsSType	= FindSType( st_name );
+			}
+			else
+			if ( EndsWithIC( st_name, ExtToStruct( new_ext, "Properties", short_ext )))
+			{
+				CHECK( not info.props.has_value() );
+				info.props		= st_it;
+				info.propsSType	= FindSType( st_name );
+			}
+			else
+			// some extensions don't duplicate 'Properties' in properties struct,
+			// example: VK_AMD_shader_core_properties and VkPhysicalDeviceShaderCorePropertiesAMD
+			if ( EndsWithIC( new_ext, "Properties" ) and EndsWithIC( st_name, ExtToStruct( new_ext, "", short_ext )))
+			{
+				CHECK( not info.props.has_value() );
+				info.props		= st_it;
+				info.propsSType	= FindSType( st_name );
 			}
 		}
 

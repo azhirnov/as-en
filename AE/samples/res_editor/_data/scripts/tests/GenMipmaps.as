@@ -20,19 +20,48 @@
 	//	RC<DynamicDim>	dim = SurfaceSize();
 		RC<DynamicDim>	dim = DynamicDim( uint3(1324, 1024, 1) );
 
-		RC<Image>		mipmaps = Image( EPixelFormat::RGBA8_UNorm, dim, MipmapLevel(~0) );	mipmaps.Name( "Mipmapped" );
-		RC<Image>		rt		= Image( EPixelFormat::RGBA16F, dim );						rt.Name( "RT" );
+		RC<Image>		mipmaps		= Image( EPixelFormat::RGBA8_UNorm, dim, MipmapLevel(~0) );	mipmaps.Name( "Mipmapped" );
+		RC<Image>		rt			= Image( EPixelFormat::RGBA16F, dim );						rt.Name( "RT" );
+		RC<DynamicUInt>	raster		= DynamicUInt();
+		RC<DynamicUInt>	reduction	= DynamicUInt();
+		RC<DynamicUInt>	mode		= raster.Add( reduction.Mul(2) );
+		
+		if ( GetFeatureSet().hasSamplerFilterMinmax() )
+			Slider( reduction,	"UseReduction",		0,	1 );
+
+		Slider( raster,	"Raster",	0,	1 );
 
 		// render loop
 		{
 			RC<Postprocess>		pass = Postprocess( "", "FILL" );
 			pass.Output( "out_Color",	mipmaps );
 			pass.Slider( "iMinValPos",	float2(0.0),	float2(1.0),	float2(0.5) );
-		}{
+		}
+		
+		{
 			RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP" );
-			pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_MinLinearClamp );
-			pass.Slider( "iUseReduction",	0,	1 );
+			pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_NearestClamp );
+			pass.EnableIfEqual( mode, 0 );
 		}{
+			RC<RasterMip>		pass = RasterMip( "", "GEN_MIPMAP" );
+			pass.Variable( "un_InImage",	"out_Color",	mipmaps,	Sampler_NearestClamp );
+			pass.EnableIfEqual( mode, 1 );
+		}
+
+		if ( GetFeatureSet().hasSamplerFilterMinmax() )
+		{
+			{
+				RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP; USE_REDUCTION" );
+				pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_MinLinearClamp );
+				pass.EnableIfEqual( mode, 2 );
+			}{
+				RC<RasterMip>		pass = RasterMip( "", "GEN_MIPMAP; USE_REDUCTION" );
+				pass.Variable( "un_InImage",	"out_Color",	mipmaps,	Sampler_MinLinearClamp );
+				pass.EnableIfEqual( mode, 3 );
+			}
+		}
+
+		{
 			RC<Postprocess>		pass = Postprocess( "", "VIEW" );
 			pass.Output( "out_Color",	rt );
 			pass.ArgIn(  "un_Image",	mipmaps,	Sampler_NearestClamp );
@@ -67,12 +96,12 @@
 	{
 		float4	c;
 
-		if ( iUseReduction == 1 )
+		#ifdef USE_REDUCTION
 		{
-			float2	uv = (float2(GetGlobalCoord().xy) + 0.5) / float2(gl.image.GetSize( un_OutImage ));
+			float2	uv = (float2(GetGlobalCoord().xy) + 0.5) * iInvResolution;
 			c = gl.texture.SampleLod( un_InImage, uv, 0.0 );
 		}
-		else
+		#else
 		{
 			int2	p = GetGlobalCoord().xy * 2;
 			c = gl.texture.Fetch( un_InImage, p, 0 );
@@ -80,8 +109,13 @@
 			c = Min( c, gl.texture.Fetch( un_InImage, p + int2(0,1), 0 ));
 			c = Min( c, gl.texture.Fetch( un_InImage, p + int2(1,1), 0 ));
 		}
+		#endif
 
-		gl.image.Store( un_OutImage, GetGlobalCoord().xy, c );
+		#ifdef SH_FRAG
+			out_Color = c;
+		#else
+			gl.image.Store( un_OutImage, GetGlobalCoord().xy, c );
+		#endif
 	}
 
 #endif

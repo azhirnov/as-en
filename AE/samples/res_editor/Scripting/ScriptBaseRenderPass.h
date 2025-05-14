@@ -60,6 +60,7 @@ namespace AE::ResEditor
 
 		static void  _Output (Scripting::ScriptArgList args)						__Th___;
 		static void  _OutputBlend (Scripting::ScriptArgList args)					__Th___;
+		static void  _InOut (Scripting::ScriptArgList args)							__Th___;
 
 		static void  _FragmentShadingRate (Scripting::ScriptArgList args)			__Th___;
 		static void  _FragmentDensityMap (Scripting::ScriptArgList args)			__Th___;
@@ -70,7 +71,7 @@ namespace AE::ResEditor
 		void  _Output2 (Scripting::ScriptArgList args)								__Th___;
 		void  _OutputBlend2 (Scripting::ScriptArgList args)							__Th___;
 
-		void  _InOut (const String &, const String&, const ScriptImagePtr &)		__Th___;
+		void  _InOut2 (Scripting::ScriptArgList args)								__Th___;
 		void  _Input (const String &, const ScriptImagePtr &, const String&)		__Th___;
 
 		void  _SetDepthRange (float min, float max)									__Th___;

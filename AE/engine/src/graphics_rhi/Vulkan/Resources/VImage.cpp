@@ -213,7 +213,6 @@ namespace {
 			if ( fmt != Default )
 				fmt_list.push_back( VEnumCast( fmt ));
 		}
-
 		VkImageFormatListCreateInfo		fmt_list_info = {};
 		if ( not fmt_list.empty() )
 		{
@@ -470,7 +469,7 @@ namespace {
 
 				if ( AllBits( desc.options, EImageOpt::LossyRTCompression ))
 				{
-					ASSERT( dev_props.imageCompressionCtrlFeats.imageCompressionControl == VK_TRUE );
+					ASSERT( ext.imageCompressionCtrl );
 
 					// enable fixed-rate (lossy) compression, otherwise it will be lossless compression
 					compress_info.flags	= VK_IMAGE_COMPRESSION_FIXED_RATE_DEFAULT_EXT;
@@ -508,7 +507,8 @@ namespace {
 			if_unlikely( NoBits( props.sampleCounts, desc.samples.Get() ))
 				return false;
 
-			// properties will report supported fixed compression rates or other flags indicating that lossy compression is not supported
+			// properties will report supported fixed compression rates or other flags indicating that lossy compression is not supported.
+			// VK_IMAGE_COMPRESSION_FIXED_RATE_DEFAULT_EXT is not used here.
 			if_unlikely( AllBits( desc.options, EImageOpt::LossyRTCompression ) and
 						 compress_props.imageCompressionFlags != VK_IMAGE_COMPRESSION_FIXED_RATE_EXPLICIT_EXT )
 				return false;

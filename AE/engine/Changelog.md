@@ -5,6 +5,7 @@
 - PipelineCompiler: initial support for slang.
 - Base: float ulp, next float
 - Vulkan|Linux: switch driver (RADV/AMDVLK/AMDPRO)
+- Vulkan: add VK_EXT_rasterization_order_attachment_access
 
 
 ## 25.01.277

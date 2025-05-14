@@ -737,7 +737,7 @@ namespace
 		if constexpr( Simd::Has_ApproxReciprocal() )
 		{
 			const auto	acc1 = sizeof(A) < 4 ? EnabledBitCount(16) : EnabledBitCount(20);
-			const Simd	a1 = Simd{B(0.1)}.Reciprocal();					AllEqual( a1, B(10.0),		acc );
+			const Simd	a1 = Simd{B(0.1)}.Reciprocal();					AllEqual( a1, B(10.0),		acc1 );
 			const Simd	a2 = Simd{B(0.1)}.FastDiv( Simd{B(0.02)} );		AllEqual( a2, B(0.1/0.02),  acc1 );
 		}
 		if constexpr( Simd::Has_ApproxInvSqrt() )
@@ -1391,7 +1391,7 @@ namespace
 
 			if constexpr( IsSame< Dst, half > and IsInteger< Src >)
 			{
-			  #if AE_SIMD_F16C
+			  #if AE_SIMD_F16C or defined(AE_SIMD_NEON)
 				ref = Dst( float(src) );
 			  #else
 				ref = Dst{}.SetFast( float(src) );
@@ -2325,10 +2325,32 @@ namespace
 
 	static void  Test_SimdRuntimeConfig ()
 	{
-	#if defined(AE_SIMD_SimdFloat4) and defined(AE_SimdRuntimeConfig)
+	#if defined(AE_SIMD_SimdFloat4) and defined(AE_SimdRuntimeConfig) and defined(AE_CFG_DEBUG)
 		const SimdRuntimeConfig::State	prev_state = SimdRuntimeConfig::GetState();
 
 		SimdRuntimeConfig::DenormalFlushToZero( true );
+		
+		TEST( SimdRuntimeConfig::GetState().DenormalFlushToZero() );
+		
+		// scalar
+		{
+			float	a {Float32Bits::SmallestNormal().AsFloatPoint()};
+			TEST( not Float32Bits{a}.IsSubnormal() );
+
+			for (;;)
+			{
+				a = a * 0.5f;
+
+				Float32Bits	b {a};
+
+				if ( b.IsZero() )
+					break;
+
+				TEST( not b.IsSubnormal() );
+			}
+		}
+		
+		// vector
 		{
 			SimdFloat4	a {Float32Bits::SmallestNormal().AsFloatPoint()};
 			TEST( not Float32Bits{a.get<0>()}.IsSubnormal() );
@@ -2347,6 +2369,25 @@ namespace
 		}
 
 		SimdRuntimeConfig::DenormalFlushToZero( false );
+		
+		TEST( not SimdRuntimeConfig::GetState().DenormalFlushToZero() );
+		
+		// scalar
+		{
+			float	a {Float32Bits::SmallestNormal().AsFloatPoint()};
+			for (;;)
+			{
+				a = a * 0.5f;
+
+				Float32Bits	b {a};
+				TEST( not b.IsZero() );
+
+				if ( b.IsSubnormal() )
+					break;
+			}
+		}
+		
+		// vector
 		{
 			SimdFloat4	a {Float32Bits::SmallestNormal().AsFloatPoint()};
 			for (;;)

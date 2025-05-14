@@ -264,7 +264,7 @@ namespace AE::Base
 		NdCx__ bool			IsNaN ()						C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
 		NdCx__ bool			IsInfinity ()					C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m == 0; }
 		NdCx__ bool			IsFinite ()						C_NE___	{ return _bits.e != Bits::_NaNExp; }
-		NdCx__ bool			IsNegative ()					C_NE___	{ return _bits.s == 1; }
+		NdCx__ bool			IsNegative ()					C_NE___	{ return _bits.s == 1; }			// same as 'std::signbit'
 		NdCx__ bool			IsSubnormal ()					C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
 		NdCx__ bool			IsZero ()						C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
 
@@ -362,7 +362,7 @@ namespace AE::Base
 		NdCx__ bool			IsNaN ()						C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
 		NdCx__ bool			IsInfinity ()					C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m == 0; }
 		NdCx__ bool			IsFinite ()						C_NE___	{ return _bits.e != Bits::_NaNExp; }
-		NdCx__ bool			IsNegative ()					C_NE___	{ return false; }
+		NdCx__ bool			IsNegative ()					C_NE___	{ return false; }					// same as 'std::signbit'
 		NdCx__ bool			IsSubnormal ()					C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
 		NdCx__ bool			IsZero ()						C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
 		
@@ -455,7 +455,7 @@ namespace AE::Base
 		NdCx__ bool			IsNaN ()					C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
 		NdCx__ bool			IsInfinity ()				C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m == 0; }
 		NdCx__ bool			IsFinite ()					C_NE___	{ return _bits.e != Bits::_NaNExp; }
-		NdCx__ bool			IsNegative ()				C_NE___	{ return false; }
+		NdCx__ bool			IsNegative ()				C_NE___	{ return false; }				// same as 'std::signbit'
 		NdCx__ bool			IsSubnormal ()				C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
 		NdCx__ bool			IsZero ()					C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
 		
@@ -551,7 +551,7 @@ namespace AE::Base
 		NdCx__ bool			IsNaN ()						C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m != 0; }
 		NdCx__ bool			IsInfinity ()					C_NE___	{ return _bits.e == Bits::_NaNExp and _bits.m == 0; }
 		NdCx__ bool			IsFinite ()						C_NE___	{ return _bits.e != Bits::_NaNExp; }
-		NdCx__ bool			IsNegative ()					C_NE___	{ return _bits.s == 1; }
+		NdCx__ bool			IsNegative ()					C_NE___	{ return _bits.s == 1; }			// same as 'std::signbit'
 		NdCx__ bool			IsSubnormal ()					C_NE___	{ return _bits.e == 0 and _bits.m != 0; }
 		NdCx__ bool			IsZero ()						C_NE___	{ return _bits.e == 0 and _bits.m == 0; }
 		
@@ -627,19 +627,19 @@ namespace AE::Base
 =================================================
 */
 	Nd__In bool  IsInfinity (const SFloat16 x)	__NE___	{ return x.IsInfinity(); }
-	Nd__In bool  IsNaN (const SFloat16 x)		__NE___	{ return x.IsInfinity(); }
+	Nd__In bool  IsNaN (const SFloat16 x)		__NE___	{ return x.IsNaN(); }
 	Nd__In bool  IsFinite (const SFloat16 x)	__NE___ { return x.IsFinite(); }
 
 	Nd__In bool  IsInfinity (const UFloat16 x)	__NE___	{ return x.IsInfinity(); }
-	Nd__In bool  IsNaN (const UFloat16 x)		__NE___	{ return x.IsInfinity(); }
+	Nd__In bool  IsNaN (const UFloat16 x)		__NE___	{ return x.IsNaN(); }
 	Nd__In bool  IsFinite (const UFloat16 x)	__NE___ { return x.IsFinite(); }
 
 	Nd__In bool  IsInfinity (const UFloat8 x)	__NE___	{ return x.IsInfinity(); }
-	Nd__In bool  IsNaN (const UFloat8 x)		__NE___	{ return x.IsInfinity(); }
+	Nd__In bool  IsNaN (const UFloat8 x)		__NE___	{ return x.IsNaN(); }
 	Nd__In bool  IsFinite (const UFloat8 x)		__NE___ { return x.IsFinite(); }
 
 	Nd__In bool  IsInfinity (const BFloat16 x)	__NE___	{ return x.IsInfinity(); }
-	Nd__In bool  IsNaN (const BFloat16 x)		__NE___	{ return x.IsInfinity(); }
+	Nd__In bool  IsNaN (const BFloat16 x)		__NE___	{ return x.IsNaN(); }
 	Nd__In bool  IsFinite (const BFloat16 x)	__NE___ { return x.IsFinite(); }
 
 /*
@@ -925,20 +925,37 @@ namespace AE::Base
 			DstBits	dst_bits;
 			ConvertBits_Accurate< Mode >( BitCast<SrcBits>(src), OUT dst_bits );
 			dst = BitCast<Dst>( dst_bits );
-		}else{
+
+			if constexpr( AllBits( Mode, EMode::CheckNanInf ))
+			{
+				ASSERT_Cx( IsNaN(src) ? IsNaN(dst) : true );
+				ASSERT_Cx( IsInfinity(src) ? IsInfinity(dst) : true );
+			}
+		}
+		else
+		{
 			DstU	dst_u;
 			ConvertBits_Fast< Mode, SrcBits, DstBits >( BitCast<SrcU>(src), OUT dst_u );
 			dst = BitCast<Dst>( dst_u );
+			
+			if constexpr( AllBits( Mode, EMode::CheckNanInf ))
+			{
+				// TODO: may loose mantissa bit and NaN converted to Inf
+				ASSERT_Cx( (IsNaN(src) or IsInfinity(src)) ? (IsNaN(src) or IsInfinity(dst)) : true );
+			}
 		}
 
-		if constexpr( AllBits( Mode, EMode::CheckNanInf ))
-		{
-			ASSERT_Cx( IsNaN(src) == IsNaN(dst) );
-			ASSERT_Cx( IsInfinity(src) == IsInfinity(dst) );
-		}
 		if constexpr( SrcBits::_Signed and DstBits::_Signed )
 		{
-			ASSERT_Cx( (src < Zero) == (dst < Zero) );
+			if constexpr( IsClass<Src> and IsClass<Dst> ){
+				ASSERT_Cx( src.IsNegative() == dst.IsNegative() );
+			}else
+			if constexpr( IsClass<Src> ){
+				ASSERT_Cx( src.IsNegative() == std::signbit(dst) );
+			}else
+			if constexpr( IsClass<Dst> ){
+				ASSERT_Cx( std::signbit(src) == dst.IsNegative() );
+			}
 		}
 	}
 	

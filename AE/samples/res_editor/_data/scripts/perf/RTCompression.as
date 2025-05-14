@@ -39,6 +39,8 @@
 		// with DCC
 		if ( @rt2 != null )
 		{
+			//rt2.AddOption( EImageOpt::LossyRTCompression );
+
 			{
 				RC<Postprocess>		pass = Postprocess( "", "GEN_SOLID" );
 				pass.Output( "out_Color",	rt2 );

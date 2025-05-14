@@ -747,6 +747,12 @@ namespace AE::ResEditor
 */
 	void  ScriptBasePass::_MoveTo (OUT ScriptBasePass &dst) __NE___
 	{
+		#ifdef AE_COMPILER_MSVC
+		# if _ITERATOR_DEBUG_LEVEL == 0
+			StaticAssert64( sizeof(ScriptBasePass) == 368 );
+		# endif
+		#endif
+
 		dst._baseFlags			= this->_baseFlags;						this->_baseFlags	= Default;
 		dst._defines			= RVRef( this->_defines );				this->_defines.clear();
 

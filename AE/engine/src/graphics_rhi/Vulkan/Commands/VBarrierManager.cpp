@@ -330,6 +330,9 @@ namespace AE::Graphics::_hidden_
 		barrier.dstStageMask	= VPipelineScope::GetStages( dst ) & _supportedStages;
 		barrier.srcAccessMask	= VPipelineScope::GetAccess( src ) & _supportedAccess;
 		barrier.dstAccessMask	= VPipelineScope::GetAccess( dst ) & _supportedAccess;
+		
+		barrier.srcStageMask	|= (barrier.srcStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
+		barrier.dstStageMask	|= (barrier.dstStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 
 		_AddMemoryBarrier( barrier );
 	}
@@ -352,15 +355,32 @@ namespace AE::Graphics::_hidden_
 	ExecutionBarrier
 =================================================
 */
+	void  VBarrierManager::ExecutionBarrier (EResourceState srcState, EResourceState dstState) __NE___
+	{
+		VkMemoryBarrier2	barrier;
+		barrier.sType	= VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
+		barrier.pNext	= null;
+		_FillMemoryBarrier( srcState, dstState, INOUT barrier );
+
+		barrier.srcAccessMask	= VK_ACCESS_2_NONE;
+		barrier.dstAccessMask	= VK_ACCESS_2_NONE;
+		
+		DbgValidateBarrier( srcState, dstState, barrier );
+		_AddMemoryBarrier( barrier );
+	}
+
 	void  VBarrierManager::ExecutionBarrier (EPipelineScope src, EPipelineScope dst) __NE___
 	{
 		VkMemoryBarrier2	barrier;
 		barrier.sType			= VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
 		barrier.pNext			= null;
-		barrier.srcStageMask	= VPipelineScope::GetStages( src );
-		barrier.dstStageMask	= VPipelineScope::GetStages( dst );
+		barrier.srcStageMask	= VPipelineScope::GetStages( src ) & _supportedStages;
+		barrier.dstStageMask	= VPipelineScope::GetStages( dst ) & _supportedStages;
 		barrier.srcAccessMask	= VK_ACCESS_2_NONE;
 		barrier.dstAccessMask	= VK_ACCESS_2_NONE;
+		
+		barrier.srcStageMask	|= (barrier.srcStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
+		barrier.dstStageMask	|= (barrier.dstStageMask == 0 ? VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT : 0);	// same as VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 
 		_AddMemoryBarrier( barrier );
 	}

@@ -1666,7 +1666,7 @@ namespace _hidden_
 
 /*
 =================================================
-	FloorPOT / CeilPOT
+	FloorPOT / CeilPOT / NearPOT
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
@@ -1685,6 +1685,16 @@ namespace _hidden_
 		TVec<T,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
 			result[i] = CeilPOT( v[i] );
+		}
+		return result;
+	}
+	
+	template <typename T, int I, glm::qualifier Q>
+	ND_ EnableIf<IsInteger<T>, TVec<T,I,Q>>  NearPOT (const TVec<T,I,Q> &v) __NE___
+	{
+		TVec<T,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = NearPOT( v[i] );
 		}
 		return result;
 	}

@@ -26,7 +26,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/dv0z_Ih3AYqJlQ"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/Q3YGfAA9OoMukg"
         unzip external.zip
     
     - name: AVX512 (Zen4)

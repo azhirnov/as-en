@@ -11,6 +11,7 @@
 # ifdef AE_PLATFORM_LINUX
 #	include <X11/Xlib.h>
 #	include <vulkan/vulkan_xlib.h>
+#	include <vulkan/vulkan_wayland.h>
 # endif
 
 # ifdef AE_PLATFORM_APPLE
@@ -123,11 +124,14 @@ namespace AE::Graphics
 		VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceFormatsKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, null ));
 		CHECK_ERR( count > 0 );
 
+		if ( dst == null and maxCount == 0 )
+			return count;
+
 		NOTHROW_ERR( surf_formats.resize( count ));
 		VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceFormatsKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT surf_formats.data() ));
 
-		usize	j = 0;
-		for (usize i = 0; i < surf_formats.size() and j < maxCount; ++i)
+		usize	i = 0, j = 0;
+		for (; i < surf_formats.size() and j < maxCount; ++i)
 		{
 			auto	fmt = AEEnumCast( surf_formats[i].format );
 			auto	cs	= AEEnumCast( surf_formats[i].colorSpace );
@@ -135,6 +139,8 @@ namespace AE::Graphics
 			if ( fmt != Default and cs != Default )
 				dst[j++] = SurfaceFormat{ fmt, cs };
 		}
+
+		ASSERT_MSG( i == surf_formats.size(), "Input buffer is too small" );
 		return j;
 	}
 
@@ -157,16 +163,21 @@ namespace AE::Graphics
 		VK_CHECK_ERR( vkGetPhysicalDeviceSurfacePresentModesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, null ));
 		CHECK_ERR( count > 0 );
 
+		if ( dst == null and maxCount == 0 )
+			return count;
+
 		NOTHROW_ERR( present_modes.resize( count ));
 		VK_CHECK_ERR( vkGetPhysicalDeviceSurfacePresentModesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &count, OUT present_modes.data() ));
 		
-		usize	j = 0;
-		for (usize i = 0; i < present_modes.size() and j < maxCount; ++i)
+		usize	i = 0, j = 0;
+		for (; i < present_modes.size() and j < maxCount; ++i)
 		{
 			auto	mode = AEEnumCast( present_modes[i] );
 			if ( mode != Default )
 				dst[j++] = mode;
 		}
+		
+		ASSERT_MSG( i == present_modes.size(), "Input buffer is too small" );
 		return j;
 	}
 
@@ -349,7 +360,8 @@ namespace AE::Graphics
 				VK_KHR_ANDROID_SURFACE_EXTENSION_NAME,
 			#endif
 			#ifdef AE_PLATFORM_LINUX
-				VK_KHR_XLIB_SURFACE_EXTENSION_NAME,		// TODO: Wayland
+				VK_KHR_XLIB_SURFACE_EXTENSION_NAME,
+				VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME,
 			#endif
 			#ifdef AE_PLATFORM_MACOS
 				VK_MVK_MACOS_SURFACE_EXTENSION_NAME,
@@ -454,6 +466,8 @@ namespace AE::Graphics
 
 			VK_CHECK_ERR( fpCreateXlibSurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
 			AE_LOG_DBG( "Created X11 Vulkan surface" );
+
+			// TODO: wayland
 		}
 		#elif defined(AE_PLATFORM_APPLE)
 		{
@@ -508,6 +522,11 @@ namespace AE::Graphics
 		#endif
 
 		_device->SetObjectName( _vkSurface, dbgName, VK_OBJECT_TYPE_SURFACE_KHR );
+		
+	  #ifndef AE_CFG_RELEASE
+		if ( _device->HasRenderDocApi() )
+			_device->GetRenderDocApi().SetWindow( window );
+	  #endif
 
 		// check that surface supported with current device
 		bool	present_supported = false;
@@ -540,6 +559,11 @@ namespace AE::Graphics
 
 		if ( _device != null )
 		{
+		  #ifndef AE_CFG_RELEASE
+			if ( _device->HasRenderDocApi() )
+				_device->GetRenderDocApi().SetWindow( Default );
+		  #endif
+
 			if ( _vkSurface != Default )
 			{
 				vkDestroySurfaceKHR( _device->GetVkInstance(), _vkSurface, null );
@@ -696,17 +720,17 @@ namespace AE::Graphics
 		CHECK_ERR( _device->GetVkPhysicalDevice() != Default and
 				   _device->GetVkDevice()		  != Default and
 				   _vkSurface					  != Default );
-		CHECK_ERR( _device->GetVExtensions().swapchain );
 		CHECK_ERR( not IsImageAcquired() );		// TODO: it's allowed
-
-		VkSurfaceCapabilitiesKHR	surf_caps;
-		VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceCapabilitiesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &surf_caps ));
+		
+		const auto&	ext = _device->GetVExtensions();
+		CHECK_ERR( ext.swapchain );
 
 		VkSwapchainKHR							old_swapchain		= _vkSwapchain;
 		VkSwapchainCreateInfoKHR				swapchain_info		= {};
 		VkSwapchainPresentScalingCreateInfoEXT	swapchain_scaling	= {};
 		VkImageCompressionControlEXT			compress_info		= {};
 		auto**									p_next				= &swapchain_info.pNext;
+		VkSurfaceCapabilitiesKHR				surf_caps;
 
 		swapchain_info.sType			= VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		swapchain_info.surface			= _vkSurface;
@@ -725,19 +749,67 @@ namespace AE::Graphics
 		swapchain_scaling.sType	= VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_SCALING_CREATE_INFO_EXT;
 		compress_info.sType		= VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_CONTROL_EXT;
 
-		if ( _device->GetVExtensions().swapchainMaintenance1 )
+		if ( ext.surfaceCaps2 and ext.swapchainMaintenance1 and info.presentScaling != 0 )
 		{
-			swapchain_scaling.scalingBehavior = VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT;	// return 'suboptimal' if swapchain dosn't match the surface size
+			// in //
+			// values returned in 'minImageCount, maxImageCount, minScaledImageExtent, maxScaledImageExtent' are valid only for the specified 'presentMode'.
+			VkSurfacePresentModeEXT		present_mode_info = {};
+			present_mode_info.sType			= VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_EXT;
+			present_mode_info.presentMode	= info.presentMode;
 
-			*p_next = &swapchain_scaling;
-			p_next  = &swapchain_scaling.pNext;
+			VkPhysicalDeviceSurfaceInfo2KHR	surf_info = {};
+			surf_info.sType		= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR;
+			surf_info.pNext		= &present_mode_info;
+			surf_info.surface	= _vkSurface;
+
+			// out //
+			VkSurfaceCapabilities2KHR	surf_caps2 = {};
+			surf_caps2.sType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR;
+
+			VkPresentModeKHR						present_modes [16];
+			VkSurfacePresentModeCompatibilityEXT	present_mode_caps = {};
+			present_mode_caps.sType				= VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_COMPATIBILITY_EXT;
+			present_mode_caps.presentModeCount	= uint(CountOf( present_modes ));
+			present_mode_caps.pPresentModes		= present_modes;	// will contain compatible present modes
+
+			VkSurfacePresentScalingCapabilitiesEXT	scaling_caps = {};
+			scaling_caps.sType = VK_STRUCTURE_TYPE_SURFACE_PRESENT_SCALING_CAPABILITIES_EXT;
+
+			surf_caps2.pNext = &scaling_caps;
+			scaling_caps.pNext = &present_mode_caps;
+
+			VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceCapabilities2KHR( _device->GetVkPhysicalDevice(), &surf_info, OUT &surf_caps2 ));
+
+			// validate //
+			surf_caps = surf_caps2.surfaceCapabilities;
+
+			swapchain_scaling.scalingBehavior = info.presentScaling & scaling_caps.supportedPresentScaling;
+			// If presentGravityX or presentGravityY are 0, the presentation gravity must match that defined
+			// by the native platform surface on platforms which define surface gravity.
+
+			if ( swapchain_scaling.scalingBehavior != 0 ){
+				*p_next = &swapchain_scaling;
+				p_next  = &swapchain_scaling.pNext;
+			}
+			if ( swapchain_scaling.scalingBehavior != VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT )
+			{
+				surf_caps.currentExtent  = { UMax, UMax };
+				surf_caps.minImageExtent = scaling_caps.minScaledImageExtent;
+				surf_caps.maxImageExtent = scaling_caps.maxScaledImageExtent;
+
+				swapchain_info.imageExtent.width  = uint( float(swapchain_info.imageExtent.width)  * info.scale + 0.5f );
+				swapchain_info.imageExtent.height = uint( float(swapchain_info.imageExtent.height) * info.scale + 0.5f );
+			}
+		}
+		else
+		{
+			VK_CHECK_ERR( vkGetPhysicalDeviceSurfaceCapabilitiesKHR( _device->GetVkPhysicalDevice(), _vkSurface, OUT &surf_caps ));
 		}
 
-		if ( _device->GetVExtensions().swapchainCompressionCtrl and AllBits( info.colorImageOptions, EImageOpt::LossyRTCompression ))
+		if ( ext.swapchainCompressionCtrl and AllBits( info.colorImageOptions, EImageOpt::LossyRTCompression ))
 		{
 			compress_info.flags	= VK_IMAGE_COMPRESSION_FIXED_RATE_DEFAULT_EXT;	// lossy compression
 									// VK_IMAGE_COMPRESSION_DEFAULT_EXT - lossless compression
-
 			*p_next	= &compress_info;
 			p_next	= &compress_info.pNext;
 		}
@@ -773,6 +845,8 @@ namespace AE::Graphics
 			_desc.presentMode	= AEEnumCast( swapchain_info.presentMode );
 			_desc.minImageCount	= CheckCast<ubyte>( swapchain_info.minImageCount );
 			_desc.options		= info.colorImageOptions;
+			_desc.scaling		= AEEnumCast( VkPresentScalingFlagBitsEXT(swapchain_scaling.scalingBehavior) );
+			_desc.scale			= info.scale;
 			_transform.store( transform );
 			AEEnumCast( VkImageUsageFlagBits(swapchain_info.imageUsage), OUT _desc.usage, OUT mem_type );
 		}
@@ -827,6 +901,8 @@ namespace AE::Graphics
 		swapchain_ci.minImageCount		= desc.minImageCount;
 		swapchain_ci.presentMode		= VEnumCast( desc.presentMode );
 		swapchain_ci.preTransform		= desc.usePreTransform ? VK_SURFACE_TRANSFORM_FLAG_BITS_MAX_ENUM_KHR : VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+		swapchain_ci.presentScaling		= VEnumCast( desc.scaling );
+		swapchain_ci.scale				= desc.scale;
 
 		return Create( swapchain_ci, dbgName );
 	}
@@ -1098,8 +1174,10 @@ namespace AE::Graphics
 			VkPhysicalDeviceSurfaceInfo2KHR	surf_info = {};
 			surf_info.sType		= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR;
 			surf_info.surface	= _vkSurface;
+			
+			VkSurfaceCapabilities2KHR	surf_caps2 = {};
+			surf_caps2.sType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR;
 
-			VkSurfaceCapabilities2KHR	surf_caps2;
 			VK_CHECK( vkGetPhysicalDeviceSurfaceCapabilities2KHR( _device->GetVkPhysicalDevice(), &surf_info, OUT &surf_caps2 ));
 
 			for (VkBaseInStructure const* iter = reinterpret_cast<VkBaseInStructure const *>(&surf_caps2);

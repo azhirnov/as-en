@@ -57,6 +57,7 @@ namespace AE::ResEditor
 		MipChainGroups_t		_mipChainGroupSizes;
 		DescSetBinding			_ds0Index;
 		DescSetBinding			_ds1Index;		// mip chain
+		PushConstantIndex		_pcIndex;
 
 		Strong<BufferID>		_ubuffer;
 		mutable DynamicData		_dynData;		// used only in 'Upload()'

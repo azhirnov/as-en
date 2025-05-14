@@ -155,14 +155,18 @@ namespace AE::RG::_hidden_
 
 			void  AddSurfaceTargets (uint taskIdx, ArrayView<App::IOutputSurface_RenderTarget>)	__NE___;
 
+			// Used in DrawContext, where barriers are not allowed, to check that resource is compatible with required state.
 			template <typename ID>
-		ND_ bool  CheckResourceState (uint taskIdx, ID id, EResourceState state)				C_Th___;
+		ND_ bool  CheckResourceState (uint taskIdx, ID id, EResourceState requiredState)		C_Th___;
 
+			// Used to transit resource to new state.
 			template <typename ID, typename Ctx>
-			void  ResourceState (uint taskIdx, Ctx &ctx, ID id, EResourceState state)			__Th___;
+			void  ResourceState (uint taskIdx, Ctx &ctx, ID id, EResourceState newState)		__Th___;
 
+			// Reset resource state to the new state and return old state.
+			// Pipeline barrier is not issued.
 			template <typename ID>
-		ND_ auto  ResetResourceState (uint taskIdx, ID id, EResourceState state)				__NE___ -> EResourceState;
+		ND_ auto  ResetResourceState (uint taskIdx, ID id, EResourceState newState)				__NE___ -> EResourceState;
 
 			template <typename Ctx>
 			void  FinalBarriers (uint taskIdx, Ctx &ctx)										C_Th___;

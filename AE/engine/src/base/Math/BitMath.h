@@ -744,7 +744,7 @@ namespace AE::Base
 
 /*
 =================================================
-	FloorPOT / CeilPOT
+	FloorPOT / CeilPOT / NearPOT
 =================================================
 */
 	template <typename T>

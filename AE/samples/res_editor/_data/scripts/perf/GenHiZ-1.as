@@ -9,7 +9,7 @@
 	 * downsampling of power-of-2 image is faster, because GPU optimized to load 2x2 blocks of texels.
 	 * can be used min/max reduction sampler which is a bit faster.
 
-	NV RTX2080:	+40% compared to 'GenHiZ-2'
+	NV RTX2080:	+40% compared to 'GenHiZ-2' on POT images, same performance on non-POT.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -25,44 +25,112 @@
 	void ASmain ()
 	{
 		// initialize
+	  #if 0
+		// debugging
 		RC<DynamicUInt2>	tex_dim		= DynamicUInt2();
-		RC<DynamicUInt2>	tex_dim2	= tex_dim.FloorPOT();
 		RC<DynamicDim>		dim			= tex_dim.Dimension();
-		RC<DynamicDim>		dim2		= tex_dim2.Dimension();
+
+		Slider( tex_dim,	"Dimension",	uint2(3),	uint2(64),	uint2(54, 57) );
+
+	  #else
+		// performance test
+		RC<DynamicUInt>		dim_scale	= DynamicUInt();
+		RC<DynamicUInt2>	tex_dim		= DynamicUInt2( uint2(1920, 1080)/2 ).Mul( dim_scale.PowOf2().XX() );
+		RC<DynamicDim>		dim			= tex_dim.Dimension();
+
+		Slider( dim_scale,	"DimensionScale",	0, 3, 1 );	// 1K, 2K, 4K, 8K
+		Label(  tex_dim,	"Dimension" );
+	  #endif
 		
-		RC<Image>			high_mip	= Image( EPixelFormat::R16F, dim );						high_mip.Name( "High mip" );
-		RC<Image>			mipmaps		= Image( EPixelFormat::R16F, dim2, MipmapLevel(~0) );	mipmaps.Name( "Mipmapped" );
-		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );		rt.Name( "RT" );
+		RC<DynamicUInt>		first_mip	= DynamicUInt();
+		RC<DynamicUInt2>	tex_dim2	= tex_dim.Div(uint2(2)).NearPOT().DivCeil( first_mip.PowOf2().XX() );
+		RC<DynamicDim>		dim2		= tex_dim2.Dimension();
 
-		Slider( tex_dim,	"Dim",		uint2(3),	uint2(64),	uint2(54, 57) );
+		EPixelFormat		fmt			= EPixelFormat::R16F;	// R16F or R32F
+		RC<Image>			high_mip	= Image( fmt, dim );								high_mip.Name( "High mip" );
+		RC<Image>			mipmaps		= Image( fmt, dim2, MipmapLevel(~0) );				mipmaps.Name( "Mipmapped" );
+		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );	rt.Name( "RT" );
+		RC<DynamicUInt>		repeat		= DynamicUInt();
+		RC<DynamicUInt>		raster		= DynamicUInt( 1 );
+		RC<DynamicUInt>		reduction	= DynamicUInt();
+		RC<DynamicUInt>		mode		= raster.Add( reduction.Mul(2) );
+		const bool			gfx_only	= false;	// some devices disable compression if have 'Storage' usage
+
 		Label( tex_dim2,	"MipDim" );
+		Slider( repeat,		"Repeat",		1,	30 );
+		Slider( first_mip,	"FirstMip",		0,	10 );
 
-		// render loop
+		if ( not gfx_only )
+			Slider( raster,		"Raster",			0,	1 );
+		
+		if ( GetFeatureSet().hasSamplerFilterMinmax() )
+			Slider( reduction,	"UseReduction",		0,	1 );
+
+		// render loop //
+
 		{
 			RC<Postprocess>		pass = Postprocess( "", "GEN_DEPTH" );
-			pass.Output( "out_Color",		high_mip );
-			pass.Slider( "iHash",			0.0,	3.0,	0.0 );
+			pass.Output( "out_Color",	high_mip );
+			pass.Slider( "iHash",		0.0,	3.0,	0.0 );
+		}
+
+		// non-POT to POT image
+		if ( not gfx_only )
+		{
+			RC<ComputePass>		pass = ComputePass( "", "MIPMAP_0" );	
+			pass.ArgOut( "un_OutImage",		mipmaps );
+			pass.ArgIn(  "un_HighMip",		high_mip,	Sampler_NearestClamp );
+			pass.LocalSize( 8, 8 );
+			pass.DispatchThreads( dim2 );
+			pass.Repeat( repeat );
+			pass.EnableIfEqual( raster, 0 );
 		}{
-			RC<Postprocess>		pass = Postprocess( "", "MIPMAP_0" );	// non-POT to POT image
+			RC<Postprocess>		pass = Postprocess( "", "MIPMAP_0" );
 			pass.Output( "out_Color",		mipmaps );
 			pass.ArgIn(  "un_HighMip",		high_mip,	Sampler_NearestClamp );
-		}{
+			pass.Repeat( repeat );
+			pass.EnableIfEqual( raster, 1 );
+		}
+
+		// generate mipmap chain
+		if ( not gfx_only )
+		{
 			RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP" );
-			if ( GetFeatureSet().hasSamplerFilterMinmax() ){
-				pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_MinLinearClamp );
-				pass.Slider( "iUseReduction",	0,	1 );
-			}else{
-				pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_NearestClamp );
-				pass.Slider( "iUseReduction",	0,	0 );
-			}
+			pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_NearestClamp );
+			pass.Repeat( repeat );
+			pass.EnableIfEqual( mode, 0 );
 		}{
+			RC<RasterMip>		pass = RasterMip( "", "GEN_MIPMAP" );
+			pass.Variable( "un_InImage",	"out_Color",	mipmaps,	Sampler_NearestClamp );
+			pass.Repeat( repeat );
+			pass.EnableIfEqual( mode, 1 );
+		}
+		
+		// mipmap chain
+		if ( GetFeatureSet().hasSamplerFilterMinmax() )
+		{
+			if ( not gfx_only )
+			{
+				RC<ComputeMip>		pass = ComputeMip( "", "GEN_MIPMAP; USE_REDUCTION" );
+				pass.Variable( "un_InImage",	"un_OutImage",	mipmaps,	Sampler_MinLinearClamp );
+				pass.Repeat( repeat );
+				pass.EnableIfEqual( mode, 2 );
+			}{
+				RC<RasterMip>		pass = RasterMip( "", "GEN_MIPMAP; USE_REDUCTION" );
+				pass.Variable( "un_InImage",	"out_Color",	mipmaps,	Sampler_MinLinearClamp );
+				pass.Repeat( repeat );
+				pass.EnableIfEqual( mode, 3 );
+			}
+		}
+
+		{
 			RC<Postprocess>		pass = Postprocess( "", "VIEW" );
 			pass.Output( "out_Color",		rt );
-			pass.ArgIn(  "un_HighMip",		high_mip,	Sampler_NearestClamp );
-			pass.ArgIn(  "un_Mipmaps",		mipmaps,	Sampler_NearestClamp );
+			pass.ArgIn(  "un_HighMip",		high_mip,		Sampler_NearestClamp );
+			pass.ArgIn(  "un_Mipmaps",		mipmaps,		Sampler_NearestClamp );
 			pass.Slider( "iBeginEnd",		float2(0.0),	float2(1.0),	float2(0.0, 1.0) );
-			pass.Slider( "iMip",			-1,		5,		0 );
-			pass.Slider( "iGrid",			0,		1 );
+			pass.Slider( "iMip",			-1,				5,				0 );
+			pass.Slider( "iGrid",			0,				1 );
 		}
 		Present( rt );
 	}
@@ -96,9 +164,11 @@
 	void  Main ()
 	{
 		int2	dim		= gl.texture.GetSize( un_HighMip, 0 );
+		float2	fdim	= float2(dim);
+		float2	inv_res	= GetGlobalSizeRcp().xy;
 
-		float2	uv0		= (GetGlobalCoordUF().xy * un_PerPass.invResolution.xy) * dim;
-		float2	uv1		= ((GetGlobalCoordUF().xy + 1.0) * un_PerPass.invResolution.xy) * dim;
+		float2	uv0		= (GetGlobalCoordUF().xy * inv_res) * fdim;
+		float2	uv1		= ((GetGlobalCoordUF().xy + 1.0) * inv_res) * fdim;
 
 		float	d		= float_max;
 
@@ -111,7 +181,11 @@
 			d = Min( d, gl.texture.Fetch( un_HighMip, int2(x,y), 0 ).r);
 		}
 
-		out_Color = float4(d);
+		#ifdef SH_FRAG
+			out_Color = float4(d);
+		#else
+			gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(d) );
+		#endif
 	}
 
 #endif
@@ -123,12 +197,12 @@
 	{
 		float4	c;
 
-		if ( iUseReduction == 1 )
+		#ifdef USE_REDUCTION
 		{
-			float2	uv = (float2(GetGlobalCoord().xy) + 0.5) / float2(gl.image.GetSize( un_OutImage ));
+			float2	uv = (float2(GetGlobalCoord().xy) + 0.5) * iInvResolution;
 			c = gl.texture.SampleLod( un_InImage, uv, 0.0 );
 		}
-		else
+		#else
 		{
 			int2	p = GetGlobalCoord().xy * 2;
 			c = gl.texture.Fetch( un_InImage, p, 0 );
@@ -136,8 +210,13 @@
 			c = Min( c, gl.texture.Fetch( un_InImage, p + int2(0,1), 0 ));
 			c = Min( c, gl.texture.Fetch( un_InImage, p + int2(1,1), 0 ));
 		}
+		#endif
 
-		gl.image.Store( un_OutImage, GetGlobalCoord().xy, c );
+		#ifdef SH_FRAG
+			out_Color = c;
+		#else
+			gl.image.Store( un_OutImage, GetGlobalCoord().xy, c );
+		#endif
 	}
 
 #endif

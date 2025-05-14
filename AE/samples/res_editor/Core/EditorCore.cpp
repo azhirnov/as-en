@@ -54,6 +54,7 @@ namespace
 			cfg.graphics.device.devFlags		= (s_REConfig.setStableGPUClock ? EDeviceFlags::SetStableClock : Default) |
 												  (s_REConfig.enableRenderDoc ? EDeviceFlags::EnableRenderDoc : Default) |
 												  EDeviceFlags::EnablePerfCounters;
+			cfg.graphics.device.deviceName		= s_REConfig.deviceName;
 
 		  #if AE_PUBLIC_VERSION and defined(AE_RELEASE)
 			cfg.graphics.device.validation		= EDeviceValidation::Disabled;
@@ -109,7 +110,7 @@ namespace
 		//	cfg.graphics.driverList[0] = Graphics::EDriver::LavaPipe;	// enable software Vulkan
 		# endif
 		# ifdef AE_PLATFORM_LINUX
-			cfg.graphics.driverList[0] = Graphics::EDriver::AMD_PRO;
+			cfg.graphics.driverList[0] = Graphics::EDriver::RADV;
 		# endif
 		#endif
 
@@ -284,6 +285,23 @@ namespace
 		CHECK_THROW( self.exportFolder.empty() );
 		self.exportFolder = FileSystem::ToAbsolute( Path{path} );
 	}
+	
+/*
+=================================================
+	ResEditorAppConfig_RenderDocDir
+=================================================
+*/
+	static void  ResEditorAppConfig_RenderDocDir (ResEditorAppConfig &self, const String &path)
+	{
+		if ( not FileSystem::IsDirectory( path ))
+		{
+			CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
+				"Failed to create folder '"s << ToString(path) << "'" );
+		}
+
+		CHECK_THROW( self.renderDocFolder.empty() );
+		self.renderDocFolder = FileSystem::ToAbsolute( Path{path} );
+	}
 
 /*
 =================================================
@@ -421,6 +439,7 @@ namespace
 			AS_METHOD( binder, ResEditorAppConfig_ScreenshotDir,			"ScreenshotDir",		{} );
 			AS_METHOD( binder, ResEditorAppConfig_VideoDir,					"VideoDir",				{} );
 			AS_METHOD( binder, ResEditorAppConfig_ExportDir,				"ExportDir",			{} );
+			AS_METHOD( binder, ResEditorAppConfig_RenderDocDir,				"RenderDocDir",			{} );
 			AS_METHOD( binder, ResEditorAppConfig_SetRemoteDeviceIpAddress,	"RemoteDeviceIpAddress",{} );
 			AS_METHOD( binder, ResEditorAppConfig_SetGraphicsLibPath,		"GraphicsLibPath",		{} );
 			AS_METHOD( binder, ResEditorAppConfig_AddTestFolder,			"TestFolder",			{} );
@@ -430,6 +449,7 @@ namespace
 			binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,		"enableRenderDoc"		);
 			binder.AddProperty( &ResEditorAppConfig::screenWidth,			"screenWidth"			);
 			binder.AddProperty( &ResEditorAppConfig::screenHeight,			"screenHeight"			);
+			binder.AddProperty( &ResEditorAppConfig::deviceName,			"deviceName"			);
 		}
 
 		ScriptEngine::ModuleSource	src;
@@ -537,7 +557,7 @@ void main (Config &out cfg)
 	cfg.ScriptIncludeDir( local_path + "script_inc" );
 
 	// output //
-	//	path for imgui
+	//	path for imgui and ui pipelines
 	cfg.UIDataDir( ui_path );
 	//	where to put shader traces
 	cfg.ShaderTraceDir( local_path + "../_shader_trace" );
@@ -547,14 +567,18 @@ void main (Config &out cfg)
 	cfg.VideoDir( local_path + "../_video" );
 	//	where to save export (images, models, scenes, etc)
 	cfg.ExportDir( local_path + "../_export" );
+	//	where to save RenderDoc captures
+	cfg.RenderDocDir( local_path + "../_renderDoc" );
 
 	// graphics settings //
 	cfg.screenWidth  = 1600;
 	cfg.screenHeight = 900;
-	//	AMD/NV only: set stable GPU clock for profiling, otherwise driver can move GPU to low power mode.
+	//	AMD/NV only: set stable GPU clock for profiling, otherwise driver can move GPU to low power mode or use temporary boost.
 	cfg.setStableGPUClock = false;
 	//	on start attach RenderDoc to the app, this will disable some new extensions.
 	cfg.enableRenderDoc = false;
+	//	GPU index or part of name
+	//cfg.deviceName = "";
 
 	// remote input //
 	//	see 'Setup Remote Input' in 'docs/Remote.md'
@@ -939,6 +963,12 @@ void main (Config &out cfg)
 */
 	bool  ResEditorCore::OnSurfaceCreated (IWindow &wnd) __NE___
 	{
+	  #if ENABLE_RDC
+		auto&	re_cfg = ResEditorAppConfig::Get();
+		if ( re_cfg.enableRenderDoc and not re_cfg.renderDocFolder.empty() )
+			GraphicsScheduler().GetDevice().GetRenderDocApi().CaptureFolder( ToString( re_cfg.renderDocFolder ) << '/' );
+	  #endif
+
 		_window = &wnd;
 		return _ui.Init( wnd.GetSurface(), c_WindowMode );
 	}

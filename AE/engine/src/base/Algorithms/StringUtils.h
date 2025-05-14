@@ -781,8 +781,8 @@ namespace AE::Base
 	StringLessThan
 =================================================
 */
-	template <typename T>
-	NdCx__ bool  StringLessThan (BasicStringView<T> lhs, BasicStringView<T> rhs) __NE___
+	template <typename StringType>
+	NdCx__ bool  StringLessThan (const StringType& lhs, const StringType& rhs) __NE___
 	{
 		return std::lexicographical_compare( lhs.begin(), lhs.end(), rhs.begin(), rhs.end() );
 	}

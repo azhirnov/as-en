@@ -372,7 +372,7 @@ namespace
 	{
 		String	str = String{ FileSystem::ToShortPath( info.file )} << '(' << ToString( info.line ) << "): " << info.message;
 
-	  #if not (defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF))
+	  #if defined(AE_PLATFORM_WINDOWS) and not (defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF))
 		switch_enum( info.level )
 		{
 			case ELevel::Warning :		"\x1B[33m" >> str;	str << "\x1B[0m ";	break;
@@ -517,19 +517,22 @@ namespace
 */
 	HtmlLogOutput::HtmlLogOutput (RC<WStream> file, bool tnames) __NE___ :
 		_file{ RVRef(file) },
-		_txtColor{ uint(EColor::Black) },
-		_bgColor{ uint(EColor::White) },
-		_enableThreadNames{ tnames },
-		_addStackTrace{ not PlatformUtils::IsUnderDebugger() }
+		_enableThreadNames{ tnames }
 	{
-		CHECK( _file and _file->IsOpen() );
-
 		EXLOCK( _guard );
 
-		_Flush( R"(
+		if ( _file and _file->IsOpen() )
+		{
+			_Flush( R"(
 <html> <head> <title> log </title> </head> <body BGCOLOR="#ffffff">
-<p><PRE><font face="Courier New, Verdana" size="2" color="#000000">
+<p><PRE><font face="Courier New, Verdana" size="2" color="#000000"/>
 )" );
+		}
+		else
+		{
+			CHECK_MSG( false, "failed to open html log" );
+			_file = null;
+		}
 	}
 
 /*
@@ -541,11 +544,15 @@ namespace
 	{
 		EXLOCK( _guard );
 
-		String	str;
-		_SetColor( EColor::Black, EColor::White, INOUT str );
-		str << "Log closed.</font></PRE> </p> </body> </html>\n";
+		if ( _file )
+		{
+			String	str;
+			_SetColor( EColor::Black, EColor::White, INOUT str );
+			str << "Log closed.</PRE> </p> </body> </html>\n";
 
-		_Flush( str );
+			_Flush( str );
+			_file = null;
+		}
 	}
 
 /*
@@ -553,16 +560,11 @@ namespace
 	HtmlLogOutput::_SetColor
 =================================================
 */
-	void  HtmlLogOutput::_SetColor (EColor col, EColor bg, INOUT String &str)
+	void  HtmlLogOutput::_SetColor (EColor col, EColor, INOUT String &str)
 	{
-		if ( _txtColor != uint(col) or _bgColor != uint(bg) )
-		{
-			_txtColor	= uint(col);
-			_bgColor	= uint(bg);
-
-			str << "</font><font color=\"#" << FormatAlignedI<16>( _txtColor, 6, '0' )
-				<< "\"; style=\"background-color: #" << FormatAlignedI<16>( _bgColor, 6, '0' ) << "\">";
-		}
+		str << "<font color=\"#" << FormatAlignedI<16>( uint(col), 6, '0' )
+			//<< "\"; style=\"background-color: #" << FormatAlignedI<16>( uint(bg), 6, '0' )
+			<< "\">";
 	}
 
 /*
@@ -590,12 +592,12 @@ namespace
 
 		/*switch_enum( info.scope )
 		{
-			case EScope::Unknown :			col = EColor::Black;	break;
-			case EScope::GraphicsDriver :	col = EColor::Green;	break;
-			case EScope::Network :			col = EColor::Gray;		break;
-			case EScope::Engine :			col = EColor::Gold;		break;
-			case EScope::System :			col = EColor::Gray;		break;
-			case EScope::Client :			col = EColor::Blue;		break;
+			case EScope::Unknown :			bg_col = EColor::Black;	break;
+			case EScope::GraphicsDriver :	bg_col = EColor::Green;	break;
+			case EScope::Network :			bg_col = EColor::Gray;	break;
+			case EScope::Engine :			bg_col = EColor::Gold;	break;
+			case EScope::System :			bg_col = EColor::Gray;	break;
+			case EScope::Client :			bg_col = EColor::Blue;	break;
 			case EScope::_Count :
 			default :						DBG_WARNING( "unknown log level" );
 		}
@@ -614,19 +616,18 @@ namespace
 		switch_end
 
 
-		EXLOCK( _guard );
-
-		if_unlikely( not _file )
-			return EResult::Unknown;
-
 		String	str;
 		str.reserve( 256 );
+
+		_SetColor( col, bg_col, INOUT str );
 
 		str << LevelToChar( info.level ) << ' ';
 
 		// thread name
 		if ( _enableThreadNames )
 		{
+			EXLOCK( _guard );
+
 			str << '[';
 
 			usize	tid	= ThreadUtils::GetIntID();
@@ -643,32 +644,24 @@ namespace
 			str << "] ";
 		}
 
-		// insert color
-		{
-			String	tmp;
-			_SetColor( col, bg_col, OUT tmp );
-
-			tmp >> str;
-		}
-
 		if ( add_time )
 		{} // TODO
 
-		str << info.message;
+		str << info.message << "</font>";
 
 		if ( add_file )
 		{
-			_SetColor( EColor::Silver, EColor(_bgColor), INOUT str );
-			str << "  (file: '" << FileSystem::ToShortPath( info.file ) << "', line: " << ToString( info.line ) << ")";
+			_SetColor( EColor::Silver, bg_col, INOUT str );
+			str << "  (file: '" << FileSystem::ToShortPath( info.file ) << "', line: " << ToString( info.line ) << ")</font>";
 		}
 		
-	  #ifdef __cpp_lib_stacktrace
-		if_unlikely( info.level >= ELevel::Error and _addStackTrace )
+	  #if defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
+		if_unlikely( info.level >= ELevel::Warning )
 		{
 			"<details><summary>" >> str;
-			str << "</summary>";
+			str << "</summary>  callstack:\n";
 			
-			_SetColor( EColor::DarkGrey, EColor(_bgColor), INOUT str );
+			_SetColor( EColor::DarkGrey, bg_col, INOUT str );
 
 			#ifdef AE_PLATFORM_WINDOWS
 				constexpr StringView	fname = "base\\Log\\Log.cpp";
@@ -695,19 +688,27 @@ namespace
 				}
 			}
 
-			for (; i < count; ++i, ++it) {
-				//str << "  " << std::to_string( *it ) << '\n';
-				str << "  " << FileSystem::ToShortPath( it->source_file() ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
+			for (; i < count; ++i, ++it)
+			{
+				if ( it->source_file().empty() )
+					break;
+
+				str << "    " << FileSystem::ToShortPath( it->source_file() ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
 			}
 
 			str.pop_back();
-			str << "</details>";
+			str << "</font></details>";
 		}
 		else
 	  #endif
 			str << "\n";
 
-		_Flush( str );
+
+		EXLOCK( _guard );
+
+		if ( _file )
+			_Flush( str );
+
 		return EResult::Unknown;
 	}
 

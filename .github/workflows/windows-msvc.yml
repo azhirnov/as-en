@@ -10,6 +10,7 @@ jobs:
     
     runs-on: windows-latest
     name: Windows x64, VS17, ${{matrix.config}}
+    timeout-minutes: 90
 
     steps:
     - uses: actions/checkout@v4
@@ -19,7 +20,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/iWQDcgIu-4FN9A', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/YVLpgUtOxas_9Q', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake
@@ -42,7 +43,7 @@ jobs:
         robocopy "${{github.workspace}}\AE-Data\res_editor_data" "_res_editor\res_editor_data" /S
         robocopy "${{github.workspace}}\AE-Data\shadertoy_data" "_res_editor\shadertoy_data" /S
         copy /Y "${{github.workspace}}\_build\bin\${{matrix.config}}\ResourceEditor.exe" "${{github.workspace}}\_res_editor"
-        ls
+        copy /Y "${{github.workspace}}\AE\build_scripts\utils-win\download-resources.bat" "${{github.workspace}}\_res_editor"
         
     - uses: actions/upload-artifact@v4
       with:
@@ -139,7 +140,7 @@ jobs:
       run: |
         robocopy "../AE-Bin/external/win-x64/lavapipe" "bin/${{matrix.config}}" /S
         copy /Y "${{github.workspace}}\/AE-Temp\engine\graphics\Tests.Graphics.vkPipelines.bin" "${{github.workspace}}\_build\bin\${{matrix.config}}"
-        ctest -R "Tests.GraphicsRHI" -C ${{matrix.config}} -V
+        ctest -R "^Tests.Graphics$" -C ${{matrix.config}} -V
     
 
     
@@ -150,6 +151,7 @@ jobs:
     
     runs-on: windows-latest
     name: Windows x64, VS17, ${{matrix.config}}, RemoteGraphics
+    timeout-minutes: 90
 
     steps:
     - uses: actions/checkout@v4
@@ -159,7 +161,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/iWQDcgIu-4FN9A', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/YVLpgUtOxas_9Q', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake
@@ -182,7 +184,7 @@ jobs:
         robocopy "${{github.workspace}}\AE-Data\res_editor_data" "_res_editor\res_editor_data" /S
         robocopy "${{github.workspace}}\AE-Data\shadertoy_data" "_res_editor\shadertoy_data" /S
         copy /Y "${{github.workspace}}\_build\bin\${{matrix.config}}\ResourceEditor.exe" "${{github.workspace}}\_res_editor"
-        ls
+        copy /Y "${{github.workspace}}\AE\build_scripts\utils-win\download-resources.bat" "${{github.workspace}}\_res_editor"
     
     - uses: actions/upload-artifact@v4
       with:
@@ -197,6 +199,7 @@ jobs:
     
     runs-on: windows-latest
     name: Windows x64, VS17, C++17, ${{matrix.config}}
+    timeout-minutes: 90
 
     steps:
     - uses: actions/checkout@v4
@@ -206,7 +209,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/iWQDcgIu-4FN9A', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/YVLpgUtOxas_9Q', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake
@@ -262,6 +265,7 @@ jobs:
     
     runs-on: windows-latest
     name: Windows x64, VS17, C++20, ${{matrix.config}}
+    timeout-minutes: 90
 
     steps:
     - uses: actions/checkout@v4
@@ -271,7 +275,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/iWQDcgIu-4FN9A', 'external.zip' )"
+        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/YVLpgUtOxas_9Q', 'external.zip' )"
         powershell Expand-Archive external.zip -DestinationPath "."
 
     - name: Configure CMake

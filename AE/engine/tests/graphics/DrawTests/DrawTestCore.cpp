@@ -26,7 +26,7 @@ extern void Test_DrawTests (RC<VFS::IVirtualFileStorage> assetStorage, RC<VFS::I
 */
 DrawTestCore::DrawTestCore () :
 	_uploadMngr{ MakeRC<ResourceUploadManager>() },
-	_device{ True{"enable info log"} }
+	_device{ True{"enable info log"}, False{"disable allocator stats"} }
 {
 	_tests.emplace_back( &DrawTestCore::Test_Canvas_Rect );
 }

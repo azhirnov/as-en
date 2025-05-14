@@ -74,12 +74,12 @@ namespace AE::PipelineCompiler
 
 		SLangCompiler::Output	out;
 		SLangCompiler::Input	in;
-		in.shaderType			= info.type;
-		in.spirvVersion			= EShaderVersion_Ver2( info.version );
+	//	in.shaderType			= info.type;
+	//	in.spirvVersion			= EShaderVersion_Ver2( info.version );
 		in.entry				= entry.c_str();
 		in.header				= header;
 		in.source				= info.source;
-		in.options				= info.options;
+	//	in.options				= info.options;
 		in.fileLoc				= shaderPath;
 			
 		if_unlikely( not slangCompiler->Compile( in, OUT out ))

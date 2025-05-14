@@ -203,6 +203,7 @@ namespace AE::ResEditor
 				continue;
 
 			BindPipeline( ppln_it->second, i );
+			// TODO: push constant with draw ID ?
 
 			Visit( _drawCommands[i],
 

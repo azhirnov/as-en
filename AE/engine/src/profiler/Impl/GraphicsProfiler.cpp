@@ -879,10 +879,10 @@ namespace
 		Pass	pass;
 
 		{
-			auto&	f	= _perFrame[ _writeIndex ];
+			auto&	f = _perFrame[ _writeIndex ];
 			SHAREDLOCK( f.guard );
 
-			auto	it	= f.activeCmdbufs.find( BatchCmdbufKey{ batch, cmdbuf, type });
+			auto	it = f.activeCmdbufs.find( BatchCmdbufKey{ batch, cmdbuf, type });
 			if ( it != f.activeCmdbufs.end() )
 			{
 				ASSERT( it->second.ctxType == type );

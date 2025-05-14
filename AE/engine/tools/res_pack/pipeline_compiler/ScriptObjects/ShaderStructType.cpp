@@ -1512,7 +1512,7 @@ namespace
 			Version2	spv_ver {1,0};
 			String		header, source;
 
-			header	<< storage.GetShaderExtensionsGLSL( INOUT spv_ver, EShaderStages::Fragment, _features )
+			header	<< storage.GetShaderExtensionsGLSL( INOUT spv_ver, EShaderStages::Fragment, false, _features )
 					<< dsl_hdr
 					<< "layout(set=0, binding=0, "
 					<< (IsStd430( _layout ) ? "std430" : "std140")

@@ -8,6 +8,7 @@
 * Clock: 1000 MHz
 * Execution Units: 24
 * warp size: 32 *(16 with dual issue)*
+* subgroupSize: 8 - 32 [vk]
 * Total ALUs: 384
 * FP16 GFLOPS: 768
 * FP32 GFLOPS: 384

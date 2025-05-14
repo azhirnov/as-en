@@ -33,14 +33,15 @@ namespace AE::RemoteGraphics::Msg
 
 	StaticAssert( sizeof(Viewport) == 24 );
 
-	StaticAssert64( sizeof(SwapchainDesc) == 12 );
+	StaticAssert64( sizeof(SwapchainDesc) == 16 );
 	#define Ser_SwapchainDesc( _desc_ )\
-		_desc_.colorFormat, _desc_.colorSpace, _desc_.presentMode, _desc_.minImageCount, _desc_.usePreTransform, _desc_.usage, _desc_.options
+		_desc_.colorFormat, _desc_.colorSpace, _desc_.presentMode, _desc_.minImageCount, \
+		_desc_.usePreTransform, _desc_.scaling, _desc_.usage, _desc_.options, _desc_.scale
 
   #ifdef AE_ENABLE_REMOTE_GRAPHICS
-	StaticAssert64( sizeof(GraphicsCreateInfo) == 176 );
+	StaticAssert64( sizeof(GraphicsCreateInfo) == 184 );
   #else
-	StaticAssert64( sizeof(GraphicsCreateInfo) == 144 );
+	StaticAssert64( sizeof(GraphicsCreateInfo) == 152 );
   #endif
 
 	#define Ser_GraphicsCreateInfo( _desc_ )\
@@ -451,8 +452,9 @@ namespace AE::RemoteGraphics::Msg
 	DECL_SERIALIZER( CmdBuf_Bake::MemoryBarrierCmd,					srcState, dstState )
 	DECL_SERIALIZER( CmdBuf_Bake::MemoryBarrier2Cmd,				srcScope, dstScope )
 	DECL_EMPTY_SERIALIZER( CmdBuf_Bake::MemoryBarrier3Cmd			)
-	DECL_SERIALIZER( CmdBuf_Bake::ExecutionBarrierCmd,				srcScope, dstScope )
-	DECL_EMPTY_SERIALIZER( CmdBuf_Bake::ExecutionBarrier2Cmd		)
+	DECL_SERIALIZER( CmdBuf_Bake::ExecutionBarrierCmd,				srcState, dstState )
+	DECL_SERIALIZER( CmdBuf_Bake::ExecutionBarrier2Cmd,				srcScope, dstScope )
+	DECL_EMPTY_SERIALIZER( CmdBuf_Bake::ExecutionBarrier3Cmd		)
 	DECL_SERIALIZER( CmdBuf_Bake::AcquireBufferOwnershipCmd,		buffer, srcQueue, srcState, dstState )
 	DECL_SERIALIZER( CmdBuf_Bake::ReleaseBufferOwnershipCmd,		buffer, srcState, dstState, dstQueue )
 	DECL_SERIALIZER( CmdBuf_Bake::AcquireImageOwnershipCmd,			image, srcQueue, srcState, dstState )

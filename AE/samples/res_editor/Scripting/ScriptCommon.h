@@ -47,6 +47,7 @@ namespace AE::ResEditor
 	using ScriptPostprocessPtr			= ScriptRC< class ScriptPostprocess >;
 	using ScriptComputePassPtr			= ScriptRC< class ScriptComputePass >;
 	using ScriptComputeMipPtr			= ScriptRC< class ScriptComputeMip >;
+	using ScriptRasterMipPtr			= ScriptRC< class ScriptRasterMip >;
 	using ScriptRayTracingPassPtr		= ScriptRC< class ScriptRayTracingPass >;
 	using ScriptBasePassPtr				= ScriptRC< class ScriptBasePass >;
 	using ScriptDynamicDimPtr			= ScriptRC< class ScriptDynamicDim >;

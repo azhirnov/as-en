@@ -15,6 +15,9 @@ namespace
 	static void  DbgValidateBarrier (EResourceState srcState, EResourceState dstState, const T &barrier) __NE___
 	{
 		Unused( srcState, dstState, barrier );
+		
+		DBG_CHECK( EResourceState_Validate( srcState ));
+		DBG_CHECK( EResourceState_Validate( dstState ));
 
 	#if 0 //def AE_DEBUG
 

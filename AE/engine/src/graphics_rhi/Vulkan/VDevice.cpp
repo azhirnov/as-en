@@ -710,6 +710,8 @@ namespace
 /*
 =================================================
 	PrintPipelineExecutableStatistics
+----
+	print register count, local memory usage
 =================================================
 */
 	bool  VDevice::PrintPipelineExecutableStatistics (StringView pplnName, const VkPipeline pipeline) C_NE___
@@ -779,7 +781,8 @@ namespace
 
 				for (const auto [stat, i] : WithIndex(statistics))
 				{
-					StringView	name {stat.name};
+					StringView	name		{stat.name};
+					bool		is_bytes	= HasSubStringIC( stat.description, "bytes" );
 
 					str << "\n  " << name << ": ";
 					AppendToString( INOUT str, name.size(), max_len, !!(j++ & 1), '.', ' ' );
@@ -789,8 +792,13 @@ namespace
 					{
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_BOOL32_KHR :	str << (stat.value.b32 ? "true" : "false");		break;
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_INT64_KHR :	str << ToString( stat.value.i64 );				break;
-						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_UINT64_KHR :	str << ToString( stat.value.u64 );				break;
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_FLOAT64_KHR :	str << ToString( stat.value.f64 );				break;
+							
+						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_UINT64_KHR :
+							if ( is_bytes )	str << ToString( stat.value.u64 );
+							else			str << ToString( Bytes{stat.value.u64} );
+							break;
+
 						case VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_MAX_ENUM_KHR :	break;
 					}
 					switch_end
@@ -1074,7 +1082,7 @@ namespace
 		CHECK_ERR( not _rdc.IsInitialized() );
 		CHECK_ERR( GetVkInstance() != Default );
 
-		return _rdc.Initialize( GetVkInstance(), NativeWindow{} );
+		return _rdc.Initialize( GetVkInstance() );
 	}
 #endif
 /*
@@ -1233,6 +1241,11 @@ namespace
 	{
 		CHECK_ERR( _vkInstance == Default );
 		CHECK_ERR( VulkanLoader::Initialize() );
+		
+	  #ifndef AE_CFG_RELEASE
+		if ( AnyBits( devFlags, EDeviceFlags::EnableRenderDoc ))
+			Unused( RenderDocApi::EnableVkLayer() );
+	  #endif
 
 		uint	vk_ver = VK_MAKE_VERSION( version.major, version.minor, 0 );
 		_ValidateInstanceVersion( Default, layers, extensions, INOUT vk_ver );
@@ -1257,8 +1270,6 @@ namespace
 			if ( LoadAmdPerf() )
 				_amdPerf.GetInstanceExtensions( *this, INOUT instance_extensions );
 		}
-		if ( AnyBits( devFlags, EDeviceFlags::EnableRenderDoc ))
-			instance_layers.push_back( RenderDocApi::GetVkLayer() );
 	  #endif
 		Unused( devFlags );
 
@@ -1392,6 +1403,9 @@ namespace
 
 		if ( _amdPerf.IsLoaded() )
 			_amdPerf.Deinitialize();
+
+		if ( _rdc.IsInitialized() )
+			_rdc.Deinitialize();
 	  #endif
 
 		_vkInstance			= Default;
@@ -1447,6 +1461,16 @@ namespace {
 			count = uint(devices.size());
 			VK_CHECK( vkEnumeratePhysicalDevices( GetVkInstance(), OUT &count, OUT devices.data() ));
 			devices.resize( Min( count, devices.size() ));
+		}
+
+		if ( deviceName.size() == 1 )
+		{
+			uint	dev_id = StringToUInt( deviceName, 10 );
+
+			if ( dev_id >= devices.size() )
+				return false;
+			
+			return SetPhysicalDevice( devices[ dev_id ]);
 		}
 
 		VkPhysicalDevice	pdev = Default;
@@ -1790,7 +1814,7 @@ namespace {
 			if ( _extensions.samplerFilterMinmax and not props.samplerFilterMinmaxProps.filterMinmaxImageComponentMapping )
 				outResFlags.imageOptions |= EImageOpt::SampledMinMax;
 
-			if ( _properties.imageCompressionCtrlFeats.imageCompressionControl )
+			if ( _extensions.imageCompressionCtrl )
 				outResFlags.imageOptions |= EImageOpt::LossyRTCompression;
 
 			if ( _extensions.sampleLocations )
@@ -2329,7 +2353,7 @@ namespace {
 			_SetupDeviceExtensions( INOUT _extensions );
 
 			void*	dev_info_pnext = null;
-			_InitFeaturesAndProperties( &dev_info_pnext, OUT dev_info_last_pnext );	// in 'vk_features.h'
+			_InitFeaturesAndProperties( OUT dev_info_pnext, OUT dev_info_last_pnext );	// in 'vk_features.h'
 
 			if ( devCI.fsToDeviceFeatures != null )
 				CHECK_ERR( _InitFeaturesAndPropertiesByFeatureSet( *devCI.fsToDeviceFeatures ));

@@ -294,6 +294,7 @@ namespace AE::Graphics::_hidden_
 
 			prevPassCtx.PushDebugGroup( DebugLabel{ dbg_name, dbg.color });
 		)
+		Unused( dbg );
 
 		return DrawCtx{ _primaryState, prevPassCtx.ReleaseCommandBuffer() };	// throw
 	}

@@ -248,6 +248,37 @@ namespace AE::ResEditor
 			indices.push_back( idx );
 		}
 	}
+	
+	void  ScriptExe::_GetSphere5 (uint								lod,
+								  OUT ScriptArray<packed_float3>	&positions,
+								  OUT ScriptArray<packed_float2>	&texcoords,
+								  OUT ScriptArray<uint>				&indices) __Th___
+	{
+		positions .clear();
+		texcoords .clear();
+		indices   .clear();
+
+		GeometryTools::SphericalCubeGen	sphere;
+		CHECK_THROW( sphere.Create( lod, lod, False{"tris"}, False{"2d"} ));
+
+		ArrayView<GeometryTools::SphericalCubeGen::Vertex>	verts;
+		CHECK_THROW( sphere.GetVertices( lod, OUT verts ));
+
+		ArrayView<GeometryTools::SphericalCubeGen::Index>	idxs;
+		CHECK_THROW( sphere.GetIndices( lod, OUT idxs ));
+
+		positions .reserve( verts.size() );
+		texcoords .reserve( verts.size() );
+		indices   .reserve( idxs.size() );
+
+		for (auto& vert : verts) {
+			positions .push_back( float3{SNormShortToFloat( vert.position )});
+			texcoords .push_back( float2{SNormShortToFloat( vert.texcoord )});
+		}
+		for (auto idx : idxs) {
+			indices.push_back( idx );
+		}
+	}
 
 /*
 =================================================

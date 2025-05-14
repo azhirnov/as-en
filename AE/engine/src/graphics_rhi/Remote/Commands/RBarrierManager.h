@@ -72,6 +72,7 @@ namespace AE::Graphics::_hidden_
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)														__Th___;
 		void  MemoryBarrier ()																										__Th___;
 
+		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)													__Th___;
 		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__Th___;
 		void  ExecutionBarrier ()																									__Th___;
 
@@ -116,6 +117,7 @@ namespace AE::Graphics::_hidden_
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__NE_OV { return _mngr.MemoryBarrier( srcScope, dstScope ); } \
 		void  MemoryBarrier ()																									__NE_OV { return _mngr.MemoryBarrier(); } \
 		\
+		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)												__NE_OV { return _mngr.ExecutionBarrier( srcState, dstState ); } \
 		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												__NE_OV { return _mngr.ExecutionBarrier( srcScope, dstScope ); } \
 		void  ExecutionBarrier ()																								__NE_OV { return _mngr.ExecutionBarrier(); } \
 		\

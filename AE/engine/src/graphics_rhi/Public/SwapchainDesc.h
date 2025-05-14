@@ -33,10 +33,11 @@ namespace AE::Graphics
 	{
 		EPresentMode	presentMode		= EPresentMode::FIFO;
 		ubyte			minImageCount	= 2;
-		bool			usePreTransform	= true;					// a bit faster
+		bool			usePreTransform	= true;							// a bit faster on smartphones
+		EPresentScaling	scaling			= EPresentScaling::OneToOne;	// requires 'swapchainMaintenance1'
 		EImageUsage		usage			= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;	// TODO: keep ColorAttachment only
 		EImageOpt		options			= EImageOpt::BlitDst;
-
+		float			scale			= 1.f;							// if 'scaling = Stretch*'
 
 		SwapchainDesc () __NE___ : SurfaceFormat{ Default, EColorSpace::sRGB_nonlinear } {}
 	};

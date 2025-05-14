@@ -32,9 +32,6 @@ namespace AE::RG::_hidden_
 		ND_ uint							_ExeIdx ()																			__NE___ { return _ctx._GetBarrierMngr().GetRenderTask().GetExecutionIndex(); } \
 		ND_ auto&							_ResMngr ()																			C_NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
 		\
-		ND_ auto  _SetResourceState (ImageID      id, EResourceState state)														__NE___ { return _RGBatch().ResetResourceState( _ExeIdx(), id, state ); } \
-		ND_ auto  _SetResourceState (ImageViewID  id, EResourceState state)														__NE___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  return _RGBatch().ResetResourceState( _ExeIdx(), v.ImageId(),  state ); } \
-		\
 	public: \
 		void  CommitBarriers ()																									__Th_OV { return _ctx.CommitBarriers(); } \
 		\
@@ -42,6 +39,7 @@ namespace AE::RG::_hidden_
 		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													__NE_OV { return _ctx.MemoryBarrier( srcScope, dstScope ); } \
 		void  MemoryBarrier ()																									__NE_OV { return _ctx.MemoryBarrier(); } \
 		\
+		void  ExecutionBarrier (EResourceState srcState, EResourceState dstState)												__NE_OV { return _ctx.ExecutionBarrier( srcState, dstState ); } \
 		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												__NE_OV { return _ctx.ExecutionBarrier( srcScope, dstScope ); } \
 		void  ExecutionBarrier ()																								__NE_OV { return _ctx.ExecutionBarrier(); } \
 		\
@@ -66,6 +64,9 @@ namespace AE::RG::_hidden_
 		void  ResourceState (RTGeometryID  id, EResourceState state)															__Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
 		void  ResourceState (VideoBufferID id, EResourceState state)															__Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetBufferID(), state ); } \
 		void  ResourceState (VideoImageID  id, EResourceState state)															__Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.GetImageID(), state ); } \
+		\
+		ND_ auto  SetResourceState (ImageID      id, EResourceState state)														__NE___ { return _RGBatch().ResetResourceState( _ExeIdx(), id, state ); } \
+		ND_ auto  SetResourceState (ImageViewID  id, EResourceState state)														__NE___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  return _RGBatch().ResetResourceState( _ExeIdx(), v.ImageId(),  state ); } \
 		\
 		ND_ auto  ReleaseCommandBuffer ()																						__Th___ { return _ctx.ReleaseCommandBuffer(); } \
 		ND_ auto  EndCommandBuffer ()																							__Th___ { _RGBatch().FinalBarriers( _ExeIdx(), _ctx );  return _ctx.EndCommandBuffer(); } \
@@ -906,7 +907,7 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::GenerateMipmaps (ImageID image, EResourceState state) __Th___
 	{
-		const EResourceState	prev_state = _SetResourceState( image, EResourceState::BlitSrc );
+		const EResourceState	prev_state = SetResourceState( image, EResourceState::BlitSrc );
 		ASSERT( prev_state == state or state == Default );
 		Unused( state );
 
@@ -917,7 +918,7 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state) __Th___
 	{
-		const EResourceState	prev_state = _SetResourceState( image, EResourceState::BlitSrc );
+		const EResourceState	prev_state = SetResourceState( image, EResourceState::BlitSrc );
 		ASSERT( prev_state == state or state == Default );
 		Unused( state );
 

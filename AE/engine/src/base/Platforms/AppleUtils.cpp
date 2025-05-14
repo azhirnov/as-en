@@ -83,11 +83,16 @@ namespace AE::Base
 =================================================
 	SetThreadAffinity
 ----
+	doesn't work on ARM!
 	https://developer.apple.com/library/archive/releasenotes/Performance/RN-AffinityAPI/index.html#//apple_ref/doc/uid/TP40006635
 =================================================
 */
 	bool  AppleUtils::SetThreadAffinity (const ThreadHandle &handle, const uint logicalCoreIdx) __NE___
 	{
+	#ifdef AE_CPU_ARCH_ARM_BASED
+		RETURN_ERR( "use SetCurrentThreadAffinity instead" );
+	
+	#else
 		ASSERT_Lt( logicalCoreIdx, std::thread::hardware_concurrency() );
 
 		thread_affinity_policy	ap = {};
@@ -98,11 +103,33 @@ namespace AE::Base
 		ASSERT( res == 0 );  Unused( res );
 
 		return true;
+	#endif
 	}
 
 	bool  AppleUtils::SetCurrentThreadAffinity (const uint logicalCoreIdx) __NE___
 	{
+	#ifdef AE_CPU_ARCH_ARM_BASED
+		const auto&		cpu_info = Base::CpuArchInfo::Get();
+		
+		if ( auto* core = cpu_info.GetCore( logicalCoreIdx ))
+		{
+			EThreadPriority		priority = EThreadPriority::Default;
+			switch_enum( core->type )
+			{
+				case ECoreType::HighPerformance :	priority = EThreadPriority::PerFrame;
+				case ECoreType::Performance :		priority = EThreadPriority::PerFrameLow;
+				case ECoreType::EnergyEfficient :	priority = EThreadPriority::Background;
+				case ECoreType::LowPower :			priority = EThreadPriority::BackgroundLow;
+				case ECoreType::_Count :
+				case ECoreType::Unknown	: 			break;
+			}
+			switch_end
+			return SetCurrentThreadPriority( priority );
+		}
+		return false;
+	#else
 		return SetThreadAffinity( GetCurrentThreadHandle(), logicalCoreIdx );
+	#endif
 	}
 
 /*

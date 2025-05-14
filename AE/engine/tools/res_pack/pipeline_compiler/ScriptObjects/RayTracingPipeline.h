@@ -85,7 +85,6 @@ namespace AE::PipelineCompiler
 		FlatHashSet<String>			_uniqueNames;
 
 		Specializations_t			_pplnSpec;
-		bool						_isPrepared		= false;
 		ubyte						_isSupported	= 0;
 
 

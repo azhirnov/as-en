@@ -1,4 +1,4 @@
-//459f225f
+//adac0dcd
 #ifndef CameraData_DEFINED
 #	define CameraData_DEFINED
 	// size: 400, align: 16
@@ -175,6 +175,21 @@
 	StaticAssert( offsetof(ComputeMipUB, floatConst) == 448 );
 	StaticAssert( offsetof(ComputeMipUB, intConst) == 576 );
 	StaticAssert( sizeof(ComputeMipUB) == 704 );
+
+#ifndef ComputeMipPC_DEFINED
+#	define ComputeMipPC_DEFINED
+	// size: 16, align: 8 (16)
+	struct ComputeMipPC
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x68c279feu}};
+
+		float2  invResolution;
+		uint2   resolution;
+	};
+#endif
+	StaticAssert( offsetof(ComputeMipPC, invResolution) == 0 );
+	StaticAssert( offsetof(ComputeMipPC, resolution) == 8 );
+	StaticAssert( sizeof(ComputeMipPC) == 16 );
 
 #ifndef RayTracingPassUB_DEFINED
 #	define RayTracingPassUB_DEFINED

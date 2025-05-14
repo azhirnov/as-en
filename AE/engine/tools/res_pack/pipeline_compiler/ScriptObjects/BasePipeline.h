@@ -48,6 +48,7 @@ namespace AE::PipelineCompiler
 		Optional<PipelineTemplUID>	_pipelineUID;
 		Array<ScriptFeatureSetPtr>	_features;
 		EShaderStages				_stages		= Default;
+		bool						_isPrepared	= false;
 
 	private:
 		PipelineLayoutPtr			_layoutPtr;
@@ -117,9 +118,9 @@ namespace AE::PipelineCompiler
 
 		BasePipelineTmpl*			_tmpl		= null;
 		Optional<PipelineSpecUID>	_uid;
+		bool						_enabled	= true;
 	protected:
 		EPipelineOpt				_options	= Default;
-		bool						_enabled	= true;
 
 		Array<RenderTechniquePtr>	_linkedRTechs;
 

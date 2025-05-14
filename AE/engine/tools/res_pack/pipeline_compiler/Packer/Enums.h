@@ -18,6 +18,7 @@ namespace AE::PipelineCompiler
 		Preserve,
 		ShadingRate,
 		FragmentDensity,
+		RasterOrder,
 		// TODO
 		//	DepthStencilResolve,
 		//	Depth_ShaderRead,

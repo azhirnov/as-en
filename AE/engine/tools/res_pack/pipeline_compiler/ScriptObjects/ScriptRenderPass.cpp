@@ -32,6 +32,7 @@ namespace AE::Base
 			case EAttachment::Preserve :		return "Preserve";
 			case EAttachment::ShadingRate :		return "ShadingRate";
 			case EAttachment::FragmentDensity :	return "FragmentDensity";
+			case EAttachment::RasterOrder :		return "RasterOrder";
 			case EAttachment::Unknown :			return "Unknown";
 			case EAttachment::_Count :			break;
 		}
@@ -241,6 +242,7 @@ namespace
 				break;
 
 			case EAttachment::ReadWrite :
+			case EAttachment::RasterOrder :
 				if ( inVar.has_value() and outVar.has_value() )
 				{
 					iter->second.input  = *inVar;
@@ -249,7 +251,7 @@ namespace
 				else
 				{
 					CHECK_MSG( inVar.has_value() == outVar.has_value(),
-						"for 'ReadWrite' usage both input and output shader IO must be defined" );
+						"for 'ReadWrite' or 'RasterOrder' usage both input and output shader IO must be defined" );
 
 					// set default
 					ShaderIO_Ctor1( OUT &iter->second.input, storage.GetName( _name ));
@@ -353,7 +355,7 @@ namespace
 			CheckIOType( iter->second.input.type );
 		}
 
-		if ( iter->second.output.IsDefined() and _compat != null )
+		if ( iter->second.output.IsDefined() and _compat != null and IsColor() )
 		{
 			auto&	sp = _compat->_subpasses[subpass_idx];
 			CheckIOIndex( sp.assignedColorAttachment, iter->second.output, "output" );
@@ -450,6 +452,16 @@ namespace
 	{
 		return format == EPixelFormat::SwapchainColor or EPixelFormat_IsColor( format );
 	}
+
+	bool  RPAttachment::HasDepth () const
+	{
+		return EPixelFormat_HasDepth( format );
+	}
+
+	bool  RPAttachment::HasStencil () const
+	{
+		return EPixelFormat_HasStencil( format );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -530,6 +542,7 @@ namespace
 						break;
 					}
 					case EAttachment::ReadWrite :
+					case EAttachment::RasterOrder :
 					{
 						if ( is_color ) {
 							CHECK_THROW_MSG( access == _EResState::InputColorAttachment_RW or is_general,
@@ -643,6 +656,9 @@ namespace
 		const EResourceState	InDSAtt_State		= EResourceState::InputDepthStencilAttachment	| EResourceState::FragmentShader;	// TODO: TileShader
 		const EResourceState	RWInColAtt_State	= EResourceState::InputColorAttachment_RW		| EResourceState::FragmentShader;
 
+		CHECK( EResourceState_Validate( initialState ));
+		CHECK( EResourceState_Validate( finalState ));
+
 		auto&	storage	= *ObjectStorage::Instance();
 
 		auto	att_it = _compat->_attachments.find( _name );
@@ -692,6 +708,7 @@ namespace
 						break;
 
 					case EAttachment::ReadWrite :
+					case EAttachment::RasterOrder :
 						CHECK_THROW_MSG( is_color,
 							"RWInputAttachment '"s << storage.GetName( _name ) << "' in subpass '" << storage.GetName( sp.name ) <<
 							"' must have color format, but current format is " << Base::ToString( rt->format ));
@@ -766,6 +783,8 @@ namespace
 
 				new_state |= EResourceState::Invalidate;
 			}
+			
+			CHECK( EResourceState_Validate( new_state ));
 
 			rt_states.push_back( new_state );
 			prev_sp = sp.name;
@@ -1306,6 +1325,7 @@ namespace
 						case EAttachment::Color :
 						case EAttachment::ColorResolve :
 						case EAttachment::ReadWrite :
+						case EAttachment::RasterOrder :
 						case EAttachment::Input :
 						case EAttachment::DepthStencil :
 							if ( att->format != EPixelFormat::SwapchainColor ) {
@@ -1525,7 +1545,8 @@ namespace
 				binder.AddValue( "ColorResolve",	EAttachment::ColorResolve	);
 
 			case EAttachment::ReadWrite :
-				binder.Comment( "Used as input attachment and color attachment." );
+				binder.Comment( "Used as input attachment and color attachment.\n"
+								"Only one primitive can modify pixel, otherwise pipeline barrier is required between draws." );
 				binder.AddValue( "ReadWrite",		EAttachment::ReadWrite		);
 
 			case EAttachment::Input :
@@ -1544,12 +1565,20 @@ namespace
 				binder.AddValue( "Preserve",		EAttachment::Preserve		);
 
 			case EAttachment::ShadingRate :
-				binder.Comment( "Fragment shading rate attachment." );
+				binder.Comment( "Fragment shading rate attachment.\n"
+								"Requires 'attachmentFragmentShadingRate' feature." );
 				binder.AddValue( "ShadingRate",		EAttachment::ShadingRate	);
 
 			case EAttachment::FragmentDensity :
-				binder.Comment( "Fragment density (read-only) attachment." );
-				binder.AddValue( "FragmentDensity",	EAttachment::FragmentDensity	);
+				binder.Comment( "Fragment density (read-only) attachment.\n"
+								"Requires 'fragmentDensityMap' feature." );
+				binder.AddValue( "FragmentDensity",	EAttachment::FragmentDensity );
+				
+			case EAttachment::RasterOrder :
+				binder.Comment( "Used as input attachment and color attachment.\n"
+								"Allows to access framebuffer content in rasterization order, without explicit synchronization.\n"
+								"Awailable in TBDR architectures. Requires 'rasterizationOrderColorAttachmentAccess' feature." );
+				binder.AddValue( "RasterOrder",		EAttachment::RasterOrder	);
 		}
 		switch_end
 	}
@@ -1565,7 +1594,7 @@ namespace
 
 			case EAttachmentLoadOp::Invalidate :
 				binder.Comment( "Previous content will not be preserved.\n"
-								"In TBDR is allow to avoid transfer from global memory to cache." );
+								"In TBDR it allow to avoid transfer from global memory to cache." );
 				binder.AddValue( "Invalidate",	EAttachmentLoadOp::Invalidate );
 
 			case EAttachmentLoadOp::Load :
@@ -1575,7 +1604,7 @@ namespace
 
 			case EAttachmentLoadOp::Clear :
 				binder.Comment( "Clear attachment before first pass.\n"
-								"In TBDR is allow to avoid transfer from global memory to cache." );
+								"In TBDR it allow to avoid transfer from global memory to cache." );
 				binder.AddValue( "Clear",		EAttachmentLoadOp::Clear );
 
 			case EAttachmentLoadOp::None :
@@ -1695,7 +1724,8 @@ namespace
 							"Specify how image content will be stored from tile memory to global memory." );
 			binder.AddProperty( &RPAttachmentSpec::storeOp,				"storeOp" );
 
-			binder.Comment( "Set image layout in subpass." );
+			binder.Comment( "Set image layout in subpass.\n"
+							"Use 'Subpass_ExternalIn' and 'Subpass_ExternalOut' to define state before and after render pass." );
 			AS_METHOD( binder, RPAttachmentSpec::AddLayout,				"Layout",				{"subpass", "state"} );
 			AS_METHOD( binder, RPAttachmentSpec::AddLayout2,			"Layout",				{"subpass", "state"} );
 

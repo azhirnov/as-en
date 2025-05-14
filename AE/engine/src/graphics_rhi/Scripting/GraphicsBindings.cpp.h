@@ -1783,6 +1783,20 @@ namespace
 		binder.AddProperty( &RenderState::MultisampleState::alphaToCoverage,	"alphaToCoverage" );
 		binder.AddProperty( &RenderState::MultisampleState::alphaToOne,			"alphaToOne" );
 	}
+	
+/*
+=================================================
+	Bind_RenderState_RasterizationOrderAccess
+=================================================
+*/
+	static void  Bind_RenderState_RasterizationOrderAccess (const ScriptEnginePtr &se) __Th___
+	{
+		ClassBinder<RenderState::RasterizationOrderAccess>	binder{ se };
+		binder.CreateClassValue();
+		binder.AddProperty( &RenderState::RasterizationOrderAccess::color,		"color" );
+		binder.AddProperty( &RenderState::RasterizationOrderAccess::depth,		"depth" );
+		binder.AddProperty( &RenderState::RasterizationOrderAccess::stencil,	"stencil" );
+	}
 
 /*
 =================================================
@@ -1793,12 +1807,14 @@ namespace
 	{
 		ClassBinder<RenderState>	binder{ se };
 		binder.CreateClassValue();
-		binder.AddProperty( &RenderState::color,			"color" );
-		binder.AddProperty( &RenderState::depth,			"depth" );
-		binder.AddProperty( &RenderState::stencil,			"stencil" );
-		binder.AddProperty( &RenderState::inputAssembly,	"inputAssembly" );
-		binder.AddProperty( &RenderState::rasterization,	"rasterization" );
-		binder.AddProperty( &RenderState::multisample,		"multisample" );
+		binder.AddProperty( &RenderState::color,				"color" );
+		binder.AddProperty( &RenderState::depth,				"depth" );
+		binder.AddProperty( &RenderState::stencil,				"stencil" );
+		binder.AddProperty( &RenderState::inputAssembly,		"inputAssembly" );
+		binder.AddProperty( &RenderState::rasterization,		"rasterization" );
+		binder.AddProperty( &RenderState::multisample,			"multisample" );
+		binder.AddProperty( &RenderState::rasterOrderAccess,	"rasterOrderAccess" );
+		StaticAssert( sizeof(RenderState) == 152 );
 	}
 
 } // namespace
@@ -1896,6 +1912,7 @@ namespace
 		Bind_RenderState_InputAssemblyState( se );
 		Bind_RenderState_RasterizationState( se );
 		Bind_RenderState_MultisampleState( se );
+		Bind_RenderState_RasterizationOrderAccess( se );
 		Bind_RenderState( se );
 	}
 

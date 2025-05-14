@@ -19,6 +19,17 @@ namespace AE::Base
 		_handle = lib;
 		return true;
 	}
+	
+	bool  WindowsLibrary::Open (NtStringView libName) __NE___
+	{
+		CHECK_ERR( _handle == null );
+		_handle = ::GetModuleHandleA( libName.c_str() );
+		
+		if_unlikely( _handle == null )
+			WIN_CHECK_DEV( "Error when opening shared library '"s << libName << "': " );
+
+		return _handle != null;
+	}
 
 /*
 =================================================

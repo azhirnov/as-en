@@ -27,8 +27,13 @@ namespace AE::Base
 		WindowsLibrary ()											__NE___	{}
 		~WindowsLibrary ()											__NE___	{ Unload(); }
 
+		// open already loaded library to avoid conflicts
 		ND_ bool  Open (void* lib)									__NE___;
+		ND_ bool  Open (NtStringView libName)						__NE___;
+		ND_ bool  Open (StringView libName)							__NE___	{ return Open( NtStringView{libName} ); }
+		ND_ bool  Open (const char* libName)						__NE___	{ return Open( NtStringView{libName} ); }
 
+		// load new library
 		ND_ bool  Load (NtStringView libName)						__NE___;
 		ND_ bool  Load (StringView libName)							__NE___	{ return Load( NtStringView{libName} ); }
 		ND_ bool  Load (const char* libName)						__NE___	{ return Load( NtStringView{libName} ); }

@@ -780,6 +780,7 @@ namespace AE::PipelineCompiler
 		spv_options.validate						= false;
 		spv_options.emitNonSemanticShaderDebugInfo	= spv_options.generateDebugInfo;
 		spv_options.emitNonSemanticShaderDebugSource= spv_options.generateDebugInfo;
+		// TODO: set optimizerAllowExpandedIDBound=true and run compactID pass
 
 		GlslangToSpv( *intermediate, OUT spirv, &logger, &spv_options );
 		log += logger.getAllMessages();

@@ -45,6 +45,17 @@ void GraphicsLayout ()
 		pl.DSLayout( Material_DSIdx,	"DS_Material" );
 	}
 	{
+		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "DS_InputAttach" );
+
+		ds.SubpassInputFromRenderPass( "RasterOrderAttachment.RPass", "Main" );
+	}
+	{
+		RC<PipelineLayout>		pl = PipelineLayout( "RasterOrder_PL" );
+		pl.DSLayout( DrawCmd_DSIdx,		"DS_PerDraw3D" );
+		pl.DSLayout( Material_DSIdx,	"DS_Material" );
+		pl.DSLayout( RenderPass_DSIdx,	"DS_InputAttach" );
+	}
+	{
 		RC<ShaderStructType>	pc1 = ShaderStructType( "PushConst1" );
 		pc1.Set( "float2	scale;" +
 				 "float2	bias;" );

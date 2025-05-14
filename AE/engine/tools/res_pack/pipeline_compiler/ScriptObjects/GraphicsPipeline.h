@@ -85,7 +85,6 @@ namespace AE::PipelineCompiler
 		Specializations_t		_pplnSpec;
 		VertexBufferInputPtr	_vertexBuffers;
 		ShaderIOMap_t			_shaderIO;
-		bool					_isPrepared	= false;
 
 
 	// methods

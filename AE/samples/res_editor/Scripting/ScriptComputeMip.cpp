@@ -181,6 +181,9 @@ namespace
 			CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_ds0Index, OUT result->_descSets.data(), max_frames,
 														ppln, DescriptorSetName{"ds0"}, null, _dbgName ));
 			_args.InitResources( OUT result->_resources, result->_rtech.packId );  // throw
+			
+			result->_pcIndex = res_mngr.GetPushConstantIndex< ShaderTypes::ComputeMipPC >( ppln, PushConstantName{"pc"} );
+			CHECK_THROW( result->_pcIndex );
 		}
 
 		result->_variables.resize( _variables.size() );
@@ -259,6 +262,28 @@ namespace AE::ResEditor
 		StaticAssert( IPass::CustomKeys_t{}.max_size() == 2 );
 		return st;
 	}
+	
+/*
+=================================================
+	_CreatePCType
+=================================================
+*/
+	auto  ScriptComputeMip::_CreatePCType () __Th___
+	{
+		auto&	obj_storage = *ObjectStorage::Instance();
+		auto	it			= obj_storage.structTypes.find( "ComputeMipPC" );
+
+		if ( it != obj_storage.structTypes.end() )
+			return it->second;
+
+		ShaderStructTypePtr	st{ new ShaderStructType{"ComputeMipPC"}};
+		st->Set( EStructLayout::Std140, R"#(
+				float2	invResolution;
+				uint2	resolution;
+			)#");
+
+		return st;
+	}
 
 /*
 =================================================
@@ -267,8 +292,13 @@ namespace AE::ResEditor
 */
 	void  ScriptComputeMip::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
 	{
-		auto	st = _CreateUBType();	// throw
-		CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
+		{
+			auto	st = _CreateUBType();	// throw
+			CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
+		}{
+			auto	st = _CreatePCType();	// throw
+			CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
+		}
 	}
 
 /*
@@ -332,16 +362,28 @@ namespace AE::ResEditor
 			}
 		}
 
-		EShaderOpt		sh_opt	 = Default;		//EShaderOpt::DebugInfo;	// for shader debugging in RenderDoc
+		const auto		flags	 = UIInteraction::Instance().graphics->shaderFlags;
+		EShaderOpt		sh_opt	 = Default;
 		EPipelineOpt	ppln_opt = Default;
 
-	  #if OPTIMIZE_SHADER
-		sh_opt   = EShaderOpt::Optimize;
-		ppln_opt |= EPipelineOpt::Optimize;
-	  #endif
-	  #if PIPELINE_STATISTICS
-		ppln_opt |= EPipelineOpt::CaptureStatistics | EPipelineOpt::CaptureInternalRepresentation;
-	  #endif
+		if ( flags.contains( UIInteraction::EShaderFlags::DebugInfo ))
+		{
+			sh_opt = EShaderOpt::DebugInfo;
+		}
+		else
+		if ( flags.contains( UIInteraction::EShaderFlags::Optimize ))
+		{
+			sh_opt   = EShaderOpt::Optimize;
+			ppln_opt |= EPipelineOpt::Optimize;
+		}
+		
+		if ( flags.contains( UIInteraction::EShaderFlags::CaptureStatistics ))
+			ppln_opt |= EPipelineOpt::CaptureStatistics;
+		
+		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
+			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
+
+		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 4 );
 
 		_CompilePipeline3( cs, cs_line, "compute", uint(sh_opt), ppln_opt );
 
@@ -368,6 +410,14 @@ namespace AE::ResEditor
 		PipelineLayoutPtr		ppln_layout{ new PipelineLayout{ pplnName + ".pl" }};
 		ppln_layout->AddDSLayout2( "ds0", 0, "dsl.0" );
 		ppln_layout->AddDSLayout2( "ds1", 1, "dsl.1" );
+		
+		{
+			ShaderStructTypePtr	st = _CreatePCType();	// throw
+			ppln_layout->AddPushConst2( "pc", st, EShader::Compute );
+
+			ppln_layout->Define( "iInvResolution=pc.invResolution" );
+			ppln_layout->Define( "iResolution=pc.resolution" );
+		}
 
 		if ( AnyBits( EShaderOpt(shaderOpts), EShaderOpt::_ShaderTrace_Mask ))
 			ppln_layout->AddDebugDSLayout2( 2, EShaderOpt(shaderOpts) & EShaderOpt::_ShaderTrace_Mask, uint(EShaderStages::Compute) );

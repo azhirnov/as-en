@@ -767,8 +767,8 @@ namespace AE::RemoteGraphics
 	ILogger::EResult  RmGAppListener::LogToHost::Process (const MessageInfo &info) __Th___
 	{
 		StringView	text = info.message;
-
-	  #ifdef __cpp_lib_stacktrace
+		
+	  #if defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
 		String		msg_with_call_stack;
 		if ( info.level >= ELogLevel::Warning )
 		{

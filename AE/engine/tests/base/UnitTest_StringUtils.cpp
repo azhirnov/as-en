@@ -156,6 +156,22 @@ namespace
 		TEST( EndsWithIC( a0, a2 ));
 		TEST( not EndsWithIC( a0, a3 ));
 	}
+
+
+	static void  StringView_Hash ()
+	{
+		StringView	a0 = "adskash;skldmdkjfnlsdkm";
+		String		a1 {a0};
+
+		'*'>> a1;
+		a1 = a1.substr( 1 );
+
+		auto	h0 = HashOf( a0 );
+		auto	h1 = HashOf( a1 );
+		
+		TEST( a0 == a1 );
+		TEST( h0 == h1 );
+	}
 }
 
 
@@ -169,6 +185,8 @@ extern void UnitTest_StringUtils ()
 	StringUtils_FindStringIC();
 	StringUtils_StartsWith();
 	StringUtils_EndsWith();
+
+	StringView_Hash();
 
 	TEST_PASSED();
 }

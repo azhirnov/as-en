@@ -1,8 +1,18 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_SLANG
+
+# ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wcast-qual"
+# endif
+
 # include "slang.h"
 # include "slang-com-ptr.h"
+
+# ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic pop
+# endif
 
 # include "SlangCompiler.h"
 # include "ScriptObjects/ObjectStorage.h"
@@ -130,6 +140,7 @@ namespace
 		target_desc[0].format	= SLANG_SPIRV;
 		target_desc[0].profile	= _globalSession->findProfile( "spirv_1_5" );	// TODO
 
+		// TODO: compilerOptionEntries
 		//target_desc[1].format	= SLANG_METAL_LIB;
 		//target_desc[2].format	= SLANG_WGSL_SPIRV;
 

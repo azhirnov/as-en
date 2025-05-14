@@ -762,9 +762,8 @@ namespace
 			bool	dont_present = HasBit< uint(EGraphicsFlags::DontPresent) >( prev_fm );
 			if ( ImGui::Checkbox( "Don't present", INOUT &dont_present ))
 				g_mode->filterMode->Set( SetBit( prev_fm, dont_present, uint(EGraphicsFlags::DontPresent) ));
-
-			ImGui::Separator();
 		}
+		ImGui::Separator();
 
 		auto		mode			= g_data->output->GetSurfaceInfo();
 		uint		color_mode		= int(FindArrayElementIndex( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{mode} ));
@@ -815,6 +814,26 @@ namespace
 				g_mode->presentModeIdx	 = present_mode;
 				imgui->defaultSurfFormat = ESurfaceFormat_Cast( mode.colorFormat, mode.colorSpace );
 			}
+		}
+		ImGui::Separator();
+
+		// shader & pipeline options
+		{
+			if ( bool dbg_info = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::DebugInfo );
+				 ImGui::Checkbox( "Shader debug info", INOUT &dbg_info ))
+				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::DebugInfo, dbg_info );
+			
+			if ( bool pipe_opt = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::Optimize );
+				 ImGui::Checkbox( "Optimize shader & pipeline", INOUT &pipe_opt ))
+				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::Optimize, pipe_opt );
+			
+			if ( bool pipe_stat = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CaptureStatistics );
+				 ImGui::Checkbox( "Pipeline statistics", INOUT &pipe_stat ))
+				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CaptureStatistics, pipe_stat );
+			
+			if ( bool pipe_internal = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation );
+				 ImGui::Checkbox( "Pipeline internal representation", INOUT &pipe_internal ))
+				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CaptureInternalRepresentation, pipe_internal );
 		}
 	}
 
@@ -1064,11 +1083,15 @@ namespace
 		s_UIInteraction.GetAllSliders(
 			[](auto &all_sliders)
 			{
-				const char	xyzw[]		= "xyzw";
+				const char	xyzw[]	= "xyzw";
+				uint		idx		= 0;
 
 				for (auto& pass : all_sliders)
 				{
-					if ( ImGui::TreeNodeEx( pass.template Get<1>()->passName.c_str(), ImGuiTreeNodeFlags_DefaultOpen ))
+					String	pass_name = pass.template Get<1>()->passName;
+					pass_name << "##Pass_" << ToString( ++idx );
+
+					if ( ImGui::TreeNodeEx( pass_name.c_str(), ImGuiTreeNodeFlags_DefaultOpen ))
 					{
 						auto	sliders = pass.template Get<0>()->WriteLock();
 
@@ -2061,7 +2084,12 @@ R"(UI controls:
 		usize	node_id = 0;
 		_RecursiveCheckScriptDir( INOUT scriptDir.rootInfo, INOUT node_id, scriptDir.root, 0, scriptDir.maxDepth );
 	}
-
+	
+/*
+=================================================
+	_RecursiveCheckScriptDir
+=================================================
+*/
 	void  EditorUI::_RecursiveCheckScriptDir (INOUT ScriptFolder &rootDst, INOUT usize &nodeID, const Path &rootDir, uint depth, const uint maxDepth)
 	{
 		ASSERT( depth < maxDepth );
@@ -2084,7 +2112,7 @@ R"(UI controls:
 			{
 				auto&	dst = rootDst.folders.emplace_back();
 				dst.reset( new ScriptFolder{} );
-				dst->name	= name;
+				dst->name = name;
 
 				_RecursiveCheckScriptDir( INOUT *dst, INOUT nodeID, dir, depth+1, maxDepth );
 			}
@@ -2105,8 +2133,17 @@ R"(UI controls:
 				rootDst.scripts.push_back( name.substr( 0, name.length()-3 ));
 		}
 
+		std::sort( rootDst.folders.begin(), rootDst.folders.end(),
+					[](auto& lhs, auto &rhs) { return StringLessThan( lhs->name, rhs->name ); } );
+
+		std::sort( rootDst.scripts.begin(), rootDst.scripts.end(),
+					[](auto& lhs, auto &rhs) { return StringLessThan( lhs, rhs ); });
+
 		nodeID += rootDst.scripts.size();
 		rootDst.lastId = nodeID;
+
+		// reserve for new script files
+		nodeID = AlignUp( nodeID + 32, 128 );
 	}
 
 /*

@@ -35,15 +35,17 @@ namespace
 
 	enum class Extension : uint
 	{
-		Multiview			= 1 << 0,	// VK_KHR_multiview				or 1.1
-		RenderPass2			= 1 << 1,	// VK_KHR_create_renderpass2	or 1.2	// requires Multiview
-		Synchronization2	= 1 << 2,	// VK_KHR_synchronization2
-		LoadStoreOpNone		= 1 << 3,	// VK_KHR_load_store_op_none | VK_EXT_load_store_op_none | VK_KHR_dynamic_rendering | VK_QCOM_render_pass_store_ops or 1.4
-		DebugClear			= 1 << 4,	// clear if don't care in render pass or if used undefined layout
-		DebugMarker			= 1 << 5,
+		Multiview				= 1 << 0,	// VK_KHR_multiview				or 1.1
+		RenderPass2				= 1 << 1,	// VK_KHR_create_renderpass2	or 1.2	// requires Multiview
+		Synchronization2		= 1 << 2,	// VK_KHR_synchronization2
+		LoadStoreOpNone			= 1 << 3,	// VK_KHR_load_store_op_none | VK_EXT_load_store_op_none | VK_KHR_dynamic_rendering | VK_QCOM_render_pass_store_ops or 1.4
+		DebugClear				= 1 << 4,	// clear if don't care in render pass or if used undefined layout
+		DebugMarker				= 1 << 5,
+		RasterOrderAttachment	= 1 << 6,	// VK_ARM_rasterization_order_attachment_access as VK_EXT_rasterization_order_attachment_access
+		// TODO: maintenanace2
 		_Last,
-		All					= ((_Last-1) << 1) - 1,
-		Unknown				= 0,
+		All						= ((_Last-1) << 1) - 1,
+		Unknown					= 0,
 	};
 	AE_BIT_OPERATORS( Extension );
 
@@ -98,6 +100,7 @@ namespace
 		VkPhysicalDeviceMultiviewFeatures				devMultiviewFeats					= {};
 		VkPhysicalDeviceTimelineSemaphoreFeatures		devTimelineSemFeats					= {};
 		VkPhysicalDeviceSynchronization2Features		devSync2Feats						= {};
+		VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT	devRasterOrderAttFeats = {};
 
 		// device functions
 		PFN_vkCmdPipelineBarrier						origin_vkCmdPipelineBarrier			= null;
@@ -196,7 +199,11 @@ namespace
 
 			VK_CHECK( origin_vkEnumerateDeviceExtensionProperties( physicalDevice, null, OUT &prop_count, OUT ext_props.data() ));
 
-			Extension	exist_ext = Default;
+			// find existing extensions
+			Extension	exist_ext				= Default;
+			bool		has_ext_raster_order	= false;
+			bool		has_arm_raster_order	= false;
+
 			for (uint i = 0; i < prop_count and exist_ext != Extension::All; ++i)
 			{
 				StringView	ext_name {ext_props[i].extensionName};
@@ -215,6 +222,12 @@ namespace
 
 				if ( ext_name == VK_EXT_DEBUG_MARKER_EXTENSION_NAME )
 					exist_ext |= Extension::DebugMarker;
+
+				if ( ext_name == VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME )
+					has_ext_raster_order = true;
+				
+				if ( ext_name == VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME )
+					has_arm_raster_order = true;
 			}
 
 			if ( vk_ver >= Version2{1,1} )
@@ -226,12 +239,20 @@ namespace
 			if ( vk_ver >= Version2{1,3} )
 				exist_ext |= Extension::Synchronization2;
 
+			if ( vk_ver >= Version2{1,4} )
+				exist_ext |= Extension::LoadStoreOpNone;
+
 		  #if not ENABLE_DEBUG_CLEAR
 			exist_ext |= Extension::DebugClear;		// disable
 		  #endif
 
+			exist_ext |= Extension::RasterOrderAttachment;	// disable emulation
+
 			info.enabledExt = ~exist_ext & Extension::All;
 			info.version	= vk_ver;
+
+			if ( not has_ext_raster_order and has_arm_raster_order )
+				info.enabledExt |= Extension::RasterOrderAttachment;
 		}
 	}
 
@@ -279,11 +300,11 @@ namespace
 				VK_HUAWEI_INVOCATION_MASK_EXTENSION_NAME,
 				VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME,
 				VK_NV_OPTICAL_FLOW_EXTENSION_NAME,
-			//	VK_AMDX_SHADER_ENQUEUE_EXTENSION_NAME,
+				VK_AMDX_SHADER_ENQUEUE_EXTENSION_NAME,
 				// second level deps:
 				VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME,
 				VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME,
-			//	VK_KHR_VIDEO_DECODE_AV1_EXTENSION_NAME,
+				VK_KHR_VIDEO_DECODE_AV1_EXTENSION_NAME,
 				VK_KHR_VIDEO_ENCODE_H264_EXTENSION_NAME,
 				VK_KHR_VIDEO_ENCODE_H265_EXTENSION_NAME,
 			};
@@ -378,6 +399,20 @@ namespace
 						}
 						break;
 					}
+					case Extension::RasterOrderAttachment :
+					{
+						if ( pProperties != null )
+						{
+							if ( idx < capacity )
+							{
+								CopyCString( OUT pProperties[idx].extensionName, VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME );
+								pProperties[idx].specVersion = VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_SPEC_VERSION;
+							}
+							else
+								result = VK_INCOMPLETE;
+						}
+						break;
+					}
 
 					case Extension::DebugClear :
 					case Extension::_Last :
@@ -430,6 +465,9 @@ namespace
 
 		if ( dev_feat.geometryShader )
 			emulator.devFeatures |= EFeatures::Geometry;
+
+		// features for 'VK_EXT_rasterization_order_attachment_access' will be interpreted as 'VK_ARM_rasterization_order_attachment_access' features
+		StaticAssert( VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_ARM );
 
 		for (auto const* const* next = Cast<VkBaseInStructure*>(&pCreateInfo->pNext); *next != null;)
 		{
@@ -492,6 +530,11 @@ namespace
 				{
 					extensions.erase( extensions.begin() + i );
 					--i;
+				}
+
+				if ( AllBits( emulator.devEnabledExt, Extension::RasterOrderAttachment ) and ext_name == VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME )
+				{
+					extensions[i] = VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME;
 				}
 			}
 

@@ -127,6 +127,10 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
+	#ifndef LATE_ZS
+		layout(early_fragment_tests) in;
+	#endif
+
 	#include "Hash.glsl"
 	#include "Color.glsl"
 	#include "Normal.glsl"

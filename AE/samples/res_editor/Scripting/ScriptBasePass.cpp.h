@@ -307,7 +307,12 @@ namespace
 		if ( withRWAtt )
 		{
 			classBinder.Comment( "Used instead of 'Output()' to define image as input attachment & color attachment (read/write input attachment)." );
-			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image"} );
+			classBinder.template AddGenericMethod< void (const String &, const String&, const ScriptImagePtr &)						>( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image"} );
+			classBinder.template AddGenericMethod< void (const String &, const String&, const ScriptImagePtr &, const RGBA32f &)	>( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const String&, const ScriptImagePtr &, const RGBA32i &)	>( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const String&, const ScriptImagePtr &, const RGBA32u &)	>( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image", "clearColor"} );
+			classBinder.template AddGenericMethod< void (const String &, const String&, const ScriptImagePtr &, const DepthStencil &)>( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "outName", "image", "clearDS"} );
+			classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const DepthStencil &)				>( &ScriptBaseRenderPass::_InOut, "InOut", {"inName", "image", "clearDS"} );
 			
 			classBinder.Comment( "Used instead of 'ArgIn' to define image as input attachment. Supports color and depth formats." );
 			AS_METHOD_T( classBinder, ScriptBaseRenderPass::_Input, "Input", {"inName", "image", "attachmentName"} );

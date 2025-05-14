@@ -22,10 +22,21 @@ namespace
 
 /*
 =================================================
+	EnableVkLayer
+=================================================
+*/
+	bool  RenderDocApi::EnableVkLayer () __NE___
+	{
+		// see 'enable_environment' field in 'renderdoc.json'
+		return PlatformUtils::SetEnvironmentVariable( "ENABLE_VULKAN_RENDERDOC_CAPTURE", "1" );
+	}
+	
+/*
+=================================================
 	Initialize
 =================================================
 */
-	bool  RenderDocApi::Initialize (VkInstance instance, const NativeWindow &wndHandle) __NE___
+	bool  RenderDocApi::Initialize (VkInstance instance) __NE___
 	{
 		constexpr Version3			min_ver		{ 1, 4, 0 };
 		constexpr RENDERDOC_Version	min_ver2	= RENDERDOC_Version( (min_ver.major * 10000) + (min_ver.minor * 100) + (min_ver.patch) );
@@ -33,7 +44,11 @@ namespace
 		if ( _api != null )
 			return true;
 
-		CHECK_ERR( _lib.Load( AE_RENDERDOC_LIB ));
+		#ifdef AE_PLATFORM_WINDOWS
+			CHECK_ERR( _lib.Open( "renderdoc.dll" ));
+		#else
+			CHECK_ERR( _lib.Open( "librenderdoc.so" ));
+		#endif
 
 		pRENDERDOC_GetAPI	fn;
 		CHECK_ERR( _lib.GetProcAddr( "RENDERDOC_GetAPI", OUT fn ));
@@ -51,31 +66,76 @@ namespace
 			rdoc_api->SetCaptureOptionU32( eRENDERDOC_Option_CaptureAllCmdLists,	1 );
 			rdoc_api->SetCaptureOptionU32( eRENDERDOC_Option_VerifyBufferAccess,	0 );
 			rdoc_api->SetCaptureOptionU32( eRENDERDOC_Option_CaptureCallstacks,		0 );
-			rdoc_api->SetCaptureOptionU32( eRENDERDOC_Option_APIValidation,			0 );
+			rdoc_api->SetCaptureOptionU32( eRENDERDOC_Option_APIValidation,			0 );	// already enabled
 
-			RENDERDOC_InputButton	key = eRENDERDOC_Key_PrtScrn;
-			rdoc_api->SetCaptureKeys( &key, 1 );
+			// disable key bindings
+			rdoc_api->SetCaptureKeys( null, 0 );
+			rdoc_api->SetFocusToggleKeys( null, 0 );
+
+			// hide UI
+			rdoc_api->MaskOverlayBits( eRENDERDOC_Overlay_None, eRENDERDOC_Overlay_None );
+
+			//rdoc_api->UnloadCrashHandler();
 		}
 
 		_api	= rdoc_api;
 		_device	= RENDERDOC_DEVICEPOINTER_FROM_VKINSTANCE( instance );
 
+		CHECK_ERR( _device != null );
+		return true;
+	}
+	
+/*
+=================================================
+	Deinitialize
+=================================================
+*/
+	void  RenderDocApi::Deinitialize () __NE___
+	{
+		//_lib.Unload();
+
+		_api = null;
+		_device	= null;
+		_wndHandle.store( null );
+	}
+
+/*
+=================================================
+	SetWindow
+=================================================
+*/
+	void  RenderDocApi::SetWindow (const NativeWindow &wndHandle) C_NE___
+	{
+		if ( _api == null )
+			return;
+
 		#if defined(AE_PLATFORM_WINDOWS)
-			_wndHandle	= wndHandle.hWnd;
+			_wndHandle.store( wndHandle.hWnd );
 
 		#elif defined(AE_PLATFORM_ANDROID)
-			_wndHandle	= wndHandle.nativeWindow;
+			_wndHandle.store( wndHandle.nativeWindow );
 
 		#elif defined(AE_PLATFORM_LINUX)
-			_wndHandle	= wndHandle.x11Window;
+			_wndHandle.store( wndHandle.x11Window );
 		#else
 		#	error Unsupported platform!
 		#endif
-
-		CHECK_ERR( _device != null );
-
-		rdoc_api->SetActiveWindow( _device, _wndHandle );
-		return true;
+			
+		auto*	rdoc_api = Cast<RDocApi_t>(_api);
+		rdoc_api->SetActiveWindow( _device, _wndHandle.load() );
+	}
+	
+/*
+=================================================
+	CaptureFolder
+=================================================
+*/
+	void  RenderDocApi::CaptureFolder (NtStringView path) C_NE___
+	{
+		CHECK_ERRV( not path.empty() );
+		
+		auto*	rdoc_api = Cast<RDocApi_t>(_api);
+		rdoc_api->SetCaptureFilePathTemplate( path.c_str() );
 	}
 
 /*
@@ -110,12 +170,18 @@ namespace
 	BeginFrame
 =================================================
 */
-	bool  RenderDocApi::BeginFrame () C_NE___
+	bool  RenderDocApi::BeginFrame (NtStringView name) C_NE___
 	{
 		if ( _api == null )
 			return false;
+		
+		auto*	rdoc_api = Cast<RDocApi_t>(_api);
+		rdoc_api->StartFrameCapture( _device, _wndHandle.load() );
 
-		Cast<RDocApi_t>(_api)->StartFrameCapture( _device, _wndHandle );
+		if ( not name.empty() )
+			rdoc_api->SetCaptureTitle( name.c_str() );
+		
+		_captureIdx.Inc();
 		return true;
 	}
 
@@ -129,7 +195,7 @@ namespace
 		if ( _api == null )
 			return false;
 
-		Cast<RDocApi_t>(_api)->DiscardFrameCapture( _device, _wndHandle );
+		Cast<RDocApi_t>(_api)->DiscardFrameCapture( _device, _wndHandle.load() );
 		return true;
 	}
 
@@ -143,7 +209,7 @@ namespace
 		if ( _api == null )
 			return false;
 
-		Cast<RDocApi_t>(_api)->EndFrameCapture( _device, _wndHandle );
+		Cast<RDocApi_t>(_api)->EndFrameCapture( _device, _wndHandle.load() );
 
 		// TODO: use GetCapture() to print capture name
 		return true;
@@ -154,12 +220,18 @@ namespace
 	TriggerFrameCapture
 =================================================
 */
-	bool  RenderDocApi::TriggerFrameCapture () C_NE___
+	bool  RenderDocApi::TriggerFrameCapture (NtStringView name) C_NE___
 	{
 		if ( _api == null )
 			return false;
+		
+		auto*	rdoc_api = Cast<RDocApi_t>(_api);
+		rdoc_api->TriggerCapture();
 
-		Cast<RDocApi_t>(_api)->TriggerCapture();
+		if ( not name.empty() )
+			rdoc_api->SetCaptureTitle( name.c_str() );
+
+		_captureIdx.Inc();
 		return true;
 	}
 
@@ -173,7 +245,12 @@ namespace
 		if ( _api == null )
 			return false;
 
+		if ( count == 0 )
+			return false;
+
 		Cast<RDocApi_t>(_api)->TriggerMultiFrameCapture( count );
+		
+		_captureIdx.fetch_add( count );
 		return true;
 	}
 
@@ -197,13 +274,17 @@ namespace
 
 namespace AE::Graphics
 {
-	bool  RenderDocApi::Initialize (VkInstance, const NativeWindow &)	__NE___	{ return false; }
+	bool  RenderDocApi::EnableVkLayer ()								__NE___	{ return false; }
+	bool  RenderDocApi::Initialize (VkInstance)							__NE___	{ return false; }
+	void  RenderDocApi::Deinitialize ()									__NE___	{}
+	void  RenderDocApi::SetWindow (const NativeWindow &)				C_NE___	{}
 	void  RenderDocApi::PrintCaptures ()								C_NE___	{}
-	bool  RenderDocApi::BeginFrame ()									C_NE___	{ return false; }
+	void  RenderDocApi::CaptureFolder (NtStringView)					C_NE___ {}
+	bool  RenderDocApi::BeginFrame (NtStringView)						C_NE___	{ return false; }
 	bool  RenderDocApi::CancelFrame ()									C_NE___	{ return false; }
 	bool  RenderDocApi::EndFrame ()										C_NE___	{ return false; }
 	bool  RenderDocApi::IsFrameCapturing ()								C_NE___	{ return false; }
-	bool  RenderDocApi::TriggerFrameCapture ()							C_NE___	{ return false; }
+	bool  RenderDocApi::TriggerFrameCapture (NtStringView)				C_NE___	{ return false; }
 	bool  RenderDocApi::TriggerMultiFrameCapture (uint)					C_NE___	{ return false; }
 
 } // AE::Graphics

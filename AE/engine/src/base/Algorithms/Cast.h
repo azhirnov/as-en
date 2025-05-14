@@ -41,26 +41,29 @@ namespace AE::Base
 	template <typename R, typename T>
 	__Cz__ void  CheckPointerCast (T const* ptr) __NE___
 	{
-	#if defined(AE_PLATFORM_APPLE) and AE_CXX_VER <= 17
-		if constexpr( not IsVoid<R> and not IsConstEvaluated() )
+		if ( not IsConstEvaluated() )
 		{
-			// don't use 'TypeNameOf'
-			CHECK( CheckPointerAlignment<R>( ptr ));
-		}
-
-	#elif defined(AE_DEBUG)
-		if constexpr( not IsVoid<R> and not IsConstEvaluated() )
-		{
-			if ( not CheckPointerAlignment<R>( ptr ))
+		#if defined(AE_PLATFORM_APPLE) and AE_CXX_VER <= 17
+			if constexpr( not IsVoid<R> )
 			{
-				AE_LOGE( (std::stringstream{} << "Failed to cast pointer from '" << TypeNameOf<T>() << "' to '" << TypeNameOf<R>()
-					<< "': memory address " << std::hex << usize(ptr) << " is not aligned to " << std::dec << alignof(R)
-					<< ", it may cause undefined behavior").str() );
+				// don't use 'TypeNameOf'
+				CHECK( CheckPointerAlignment<R>( ptr ));
 			}
+
+		#elif defined(AE_DEBUG)
+			if constexpr( not IsVoid<R> )
+			{
+				if ( not CheckPointerAlignment<R>( ptr ))
+				{
+					AE_LOGE( (std::stringstream{} << "Failed to cast pointer from '" << TypeNameOf<T>() << "' to '" << TypeNameOf<R>()
+						<< "': memory address " << std::hex << usize(ptr) << " is not aligned to " << std::dec << alignof(R)
+						<< ", it may cause undefined behavior").str() );
+				}
+			}
+		#else
+			Unused( ptr );
+		#endif
 		}
-	#else
-		Unused( ptr );
-	#endif
 	}
 
 /*

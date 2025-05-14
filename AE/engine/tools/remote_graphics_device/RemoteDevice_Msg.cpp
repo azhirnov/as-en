@@ -286,6 +286,9 @@ namespace AE::RemoteGraphics
 		using EAcquireResult = Msg::Swapchain_AcquireNextImage_Response::EAcquireResult;
 		Msg::Swapchain_AcquireNextImage_Response  res;
 
+		res.imageIdx	= UMax;
+		res.semaphoreId	= UMax;
+
 		const uint2	wnd_size = uint2{_windowSize.load()};
 
 		if_unlikely( All( wnd_size == Zero ))
@@ -2182,10 +2185,15 @@ namespace AE::RemoteGraphics::Msg
 
 	void  CmdBuf_Bake::ExecutionBarrierCmd::Execute (void* inCtx) __Th___
 	{
-		Cast<CmdCtx>(inCtx)->GetBaseCtx().ExecutionBarrier( srcScope, dstScope );
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ExecutionBarrier( srcState, dstState );
 	}
 
 	void  CmdBuf_Bake::ExecutionBarrier2Cmd::Execute (void* inCtx) __Th___
+	{
+		Cast<CmdCtx>(inCtx)->GetBaseCtx().ExecutionBarrier( srcScope, dstScope );
+	}
+
+	void  CmdBuf_Bake::ExecutionBarrier3Cmd::Execute (void* inCtx) __Th___
 	{
 		Cast<CmdCtx>(inCtx)->GetBaseCtx().ExecutionBarrier();
 	}

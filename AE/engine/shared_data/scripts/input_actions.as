@@ -1,4 +1,4 @@
-//7e3f8044
+//f60471aa
 #pragma once
 #include <vector>
 #include <string>
@@ -24,40 +24,40 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct ubyte2;
-struct ubyte3;
-struct WinAPI_ActionBindings;
-struct ubyte4;
-struct VecSwizzle;
-struct Android_ActionBindings;
-struct short4;
-struct ushort3;
-struct sbyte2;
-struct Android_BindingsMode;
-struct ActionInfo;
-struct ushort2;
-struct int4;
-struct OpenVR_BindingsMode;
-struct int2;
-struct bool3;
-struct int3;
-struct bool4;
-struct bool2;
-struct GLFW_BindingsMode;
-struct short3;
-struct sbyte3;
-struct short2;
-struct ushort4;
-struct sbyte4;
-struct float4;
-struct uint4;
-struct uint3;
-struct uint2;
 struct float2;
 struct float3;
-struct OpenVR_ActionBindings;
-struct WinAPI_BindingsMode;
 struct GLFW_ActionBindings;
+struct WinAPI_BindingsMode;
+struct OpenVR_ActionBindings;
+struct GLFW_BindingsMode;
+struct ushort4;
+struct short2;
+struct short3;
+struct sbyte4;
+struct sbyte3;
+struct uint4;
+struct float4;
+struct uint3;
+struct uint2;
+struct VecSwizzle;
+struct Android_ActionBindings;
+struct OpenVR_BindingsMode;
+struct ushort3;
+struct sbyte2;
+struct ActionInfo;
+struct Android_BindingsMode;
+struct ushort2;
+struct short4;
+struct bool4;
+struct int3;
+struct bool2;
+struct bool3;
+struct int2;
+struct int4;
+struct ubyte3;
+struct ubyte2;
+struct WinAPI_ActionBindings;
+struct ubyte4;
 
 enum class EGestureState : uint8
 {
@@ -889,9 +889,6 @@ struct bool2
 	bool2 (const float2 & v2);
 	bool2 (const float3 & v3);
 	bool2 (const float4 & v4);
-	bool  opEquals (const bool2 &, const bool2 &);
-	int  opCmp (const bool2 &, const bool2 &);
-	bool2  opCom () const;
 };
 
 struct bool3
@@ -922,9 +919,6 @@ struct bool3
 	bool3 (const float2 & v2);
 	bool3 (const float3 & v3);
 	bool3 (const float4 & v4);
-	bool  opEquals (const bool3 &, const bool3 &);
-	int  opCmp (const bool3 &, const bool3 &);
-	bool3  opCom () const;
 };
 
 struct bool4
@@ -958,9 +952,6 @@ struct bool4
 	bool4 (const float2 & v2);
 	bool4 (const float3 & v3);
 	bool4 (const float4 & v4);
-	bool  opEquals (const bool4 &, const bool4 &);
-	int  opCmp (const bool4 &, const bool4 &);
-	bool4  opCom () const;
 };
 
 struct sbyte2
@@ -989,58 +980,6 @@ struct sbyte2
 	sbyte2 (const float2 & v2);
 	sbyte2 (const float3 & v3);
 	sbyte2 (const float4 & v4);
-	sbyte2 &  opAddAssign (const sbyte2 &);
-	sbyte2 &  opAddAssign (int8);
-	sbyte2  opAdd (const sbyte2 &) const;
-	sbyte2  opAdd (int8) const;
-	sbyte2  opAdd_r (int8, const sbyte2 &);
-	sbyte2 &  opSubAssign (const sbyte2 &);
-	sbyte2 &  opSubAssign (int8);
-	sbyte2  opSub (const sbyte2 &) const;
-	sbyte2  opSub (int8) const;
-	sbyte2  opSub_r (int8, const sbyte2 &);
-	sbyte2 &  opMulAssign (const sbyte2 &);
-	sbyte2 &  opMulAssign (int8);
-	sbyte2  opMul (const sbyte2 &) const;
-	sbyte2  opMul (int8) const;
-	sbyte2  opMul_r (int8, const sbyte2 &);
-	sbyte2 &  opDivAssign (const sbyte2 &);
-	sbyte2 &  opDivAssign (int8);
-	sbyte2  opDiv (const sbyte2 &) const;
-	sbyte2  opDiv (int8) const;
-	sbyte2  opDiv_r (int8, const sbyte2 &);
-	sbyte2 &  opModAssign (const sbyte2 &);
-	sbyte2 &  opModAssign (int8);
-	sbyte2  opMod (const sbyte2 &) const;
-	sbyte2  opMod (int8) const;
-	sbyte2  opMod_r (int8, const sbyte2 &);
-	sbyte2 &  opAndAssign (const sbyte2 &);
-	sbyte2 &  opAndAssign (int8);
-	sbyte2  opAnd (const sbyte2 &) const;
-	sbyte2  opAnd (int8) const;
-	sbyte2  opAnd_r (int8, const sbyte2 &);
-	sbyte2 &  opOrAssign (const sbyte2 &);
-	sbyte2 &  opOrAssign (int8);
-	sbyte2  opOr (const sbyte2 &) const;
-	sbyte2  opOr (int8) const;
-	sbyte2  opOr_r (int8, const sbyte2 &);
-	sbyte2 &  opXorAssign (const sbyte2 &);
-	sbyte2 &  opXorAssign (int8);
-	sbyte2  opXor (const sbyte2 &) const;
-	sbyte2  opXor (int8) const;
-	sbyte2  opXor_r (int8, const sbyte2 &);
-	sbyte2 &  opShlAssign (const sbyte2 &);
-	sbyte2 &  opShlAssign (int8);
-	sbyte2  opShl (const sbyte2 &) const;
-	sbyte2  opShl (int8) const;
-	sbyte2  opShl_r (int8, const sbyte2 &);
-	sbyte2 &  opShrAssign (const sbyte2 &);
-	sbyte2 &  opShrAssign (int8);
-	sbyte2  opShr (const sbyte2 &) const;
-	sbyte2  opShr (int8) const;
-	sbyte2  opShr_r (int8, const sbyte2 &);
-	bool  opEquals (const sbyte2 &, const sbyte2 &);
-	int  opCmp (const sbyte2 &, const sbyte2 &);
 };
 
 struct sbyte3
@@ -1071,58 +1010,6 @@ struct sbyte3
 	sbyte3 (const float2 & v2);
 	sbyte3 (const float3 & v3);
 	sbyte3 (const float4 & v4);
-	sbyte3 &  opAddAssign (const sbyte3 &);
-	sbyte3 &  opAddAssign (int8);
-	sbyte3  opAdd (const sbyte3 &) const;
-	sbyte3  opAdd (int8) const;
-	sbyte3  opAdd_r (int8, const sbyte3 &);
-	sbyte3 &  opSubAssign (const sbyte3 &);
-	sbyte3 &  opSubAssign (int8);
-	sbyte3  opSub (const sbyte3 &) const;
-	sbyte3  opSub (int8) const;
-	sbyte3  opSub_r (int8, const sbyte3 &);
-	sbyte3 &  opMulAssign (const sbyte3 &);
-	sbyte3 &  opMulAssign (int8);
-	sbyte3  opMul (const sbyte3 &) const;
-	sbyte3  opMul (int8) const;
-	sbyte3  opMul_r (int8, const sbyte3 &);
-	sbyte3 &  opDivAssign (const sbyte3 &);
-	sbyte3 &  opDivAssign (int8);
-	sbyte3  opDiv (const sbyte3 &) const;
-	sbyte3  opDiv (int8) const;
-	sbyte3  opDiv_r (int8, const sbyte3 &);
-	sbyte3 &  opModAssign (const sbyte3 &);
-	sbyte3 &  opModAssign (int8);
-	sbyte3  opMod (const sbyte3 &) const;
-	sbyte3  opMod (int8) const;
-	sbyte3  opMod_r (int8, const sbyte3 &);
-	sbyte3 &  opAndAssign (const sbyte3 &);
-	sbyte3 &  opAndAssign (int8);
-	sbyte3  opAnd (const sbyte3 &) const;
-	sbyte3  opAnd (int8) const;
-	sbyte3  opAnd_r (int8, const sbyte3 &);
-	sbyte3 &  opOrAssign (const sbyte3 &);
-	sbyte3 &  opOrAssign (int8);
-	sbyte3  opOr (const sbyte3 &) const;
-	sbyte3  opOr (int8) const;
-	sbyte3  opOr_r (int8, const sbyte3 &);
-	sbyte3 &  opXorAssign (const sbyte3 &);
-	sbyte3 &  opXorAssign (int8);
-	sbyte3  opXor (const sbyte3 &) const;
-	sbyte3  opXor (int8) const;
-	sbyte3  opXor_r (int8, const sbyte3 &);
-	sbyte3 &  opShlAssign (const sbyte3 &);
-	sbyte3 &  opShlAssign (int8);
-	sbyte3  opShl (const sbyte3 &) const;
-	sbyte3  opShl (int8) const;
-	sbyte3  opShl_r (int8, const sbyte3 &);
-	sbyte3 &  opShrAssign (const sbyte3 &);
-	sbyte3 &  opShrAssign (int8);
-	sbyte3  opShr (const sbyte3 &) const;
-	sbyte3  opShr (int8) const;
-	sbyte3  opShr_r (int8, const sbyte3 &);
-	bool  opEquals (const sbyte3 &, const sbyte3 &);
-	int  opCmp (const sbyte3 &, const sbyte3 &);
 };
 
 struct sbyte4
@@ -1156,58 +1043,6 @@ struct sbyte4
 	sbyte4 (const float2 & v2);
 	sbyte4 (const float3 & v3);
 	sbyte4 (const float4 & v4);
-	sbyte4 &  opAddAssign (const sbyte4 &);
-	sbyte4 &  opAddAssign (int8);
-	sbyte4  opAdd (const sbyte4 &) const;
-	sbyte4  opAdd (int8) const;
-	sbyte4  opAdd_r (int8, const sbyte4 &);
-	sbyte4 &  opSubAssign (const sbyte4 &);
-	sbyte4 &  opSubAssign (int8);
-	sbyte4  opSub (const sbyte4 &) const;
-	sbyte4  opSub (int8) const;
-	sbyte4  opSub_r (int8, const sbyte4 &);
-	sbyte4 &  opMulAssign (const sbyte4 &);
-	sbyte4 &  opMulAssign (int8);
-	sbyte4  opMul (const sbyte4 &) const;
-	sbyte4  opMul (int8) const;
-	sbyte4  opMul_r (int8, const sbyte4 &);
-	sbyte4 &  opDivAssign (const sbyte4 &);
-	sbyte4 &  opDivAssign (int8);
-	sbyte4  opDiv (const sbyte4 &) const;
-	sbyte4  opDiv (int8) const;
-	sbyte4  opDiv_r (int8, const sbyte4 &);
-	sbyte4 &  opModAssign (const sbyte4 &);
-	sbyte4 &  opModAssign (int8);
-	sbyte4  opMod (const sbyte4 &) const;
-	sbyte4  opMod (int8) const;
-	sbyte4  opMod_r (int8, const sbyte4 &);
-	sbyte4 &  opAndAssign (const sbyte4 &);
-	sbyte4 &  opAndAssign (int8);
-	sbyte4  opAnd (const sbyte4 &) const;
-	sbyte4  opAnd (int8) const;
-	sbyte4  opAnd_r (int8, const sbyte4 &);
-	sbyte4 &  opOrAssign (const sbyte4 &);
-	sbyte4 &  opOrAssign (int8);
-	sbyte4  opOr (const sbyte4 &) const;
-	sbyte4  opOr (int8) const;
-	sbyte4  opOr_r (int8, const sbyte4 &);
-	sbyte4 &  opXorAssign (const sbyte4 &);
-	sbyte4 &  opXorAssign (int8);
-	sbyte4  opXor (const sbyte4 &) const;
-	sbyte4  opXor (int8) const;
-	sbyte4  opXor_r (int8, const sbyte4 &);
-	sbyte4 &  opShlAssign (const sbyte4 &);
-	sbyte4 &  opShlAssign (int8);
-	sbyte4  opShl (const sbyte4 &) const;
-	sbyte4  opShl (int8) const;
-	sbyte4  opShl_r (int8, const sbyte4 &);
-	sbyte4 &  opShrAssign (const sbyte4 &);
-	sbyte4 &  opShrAssign (int8);
-	sbyte4  opShr (const sbyte4 &) const;
-	sbyte4  opShr (int8) const;
-	sbyte4  opShr_r (int8, const sbyte4 &);
-	bool  opEquals (const sbyte4 &, const sbyte4 &);
-	int  opCmp (const sbyte4 &, const sbyte4 &);
 };
 
 struct ubyte2
@@ -1236,58 +1071,6 @@ struct ubyte2
 	ubyte2 (const float2 & v2);
 	ubyte2 (const float3 & v3);
 	ubyte2 (const float4 & v4);
-	ubyte2 &  opAddAssign (const ubyte2 &);
-	ubyte2 &  opAddAssign (uint8);
-	ubyte2  opAdd (const ubyte2 &) const;
-	ubyte2  opAdd (uint8) const;
-	ubyte2  opAdd_r (uint8, const ubyte2 &);
-	ubyte2 &  opSubAssign (const ubyte2 &);
-	ubyte2 &  opSubAssign (uint8);
-	ubyte2  opSub (const ubyte2 &) const;
-	ubyte2  opSub (uint8) const;
-	ubyte2  opSub_r (uint8, const ubyte2 &);
-	ubyte2 &  opMulAssign (const ubyte2 &);
-	ubyte2 &  opMulAssign (uint8);
-	ubyte2  opMul (const ubyte2 &) const;
-	ubyte2  opMul (uint8) const;
-	ubyte2  opMul_r (uint8, const ubyte2 &);
-	ubyte2 &  opDivAssign (const ubyte2 &);
-	ubyte2 &  opDivAssign (uint8);
-	ubyte2  opDiv (const ubyte2 &) const;
-	ubyte2  opDiv (uint8) const;
-	ubyte2  opDiv_r (uint8, const ubyte2 &);
-	ubyte2 &  opModAssign (const ubyte2 &);
-	ubyte2 &  opModAssign (uint8);
-	ubyte2  opMod (const ubyte2 &) const;
-	ubyte2  opMod (uint8) const;
-	ubyte2  opMod_r (uint8, const ubyte2 &);
-	ubyte2 &  opAndAssign (const ubyte2 &);
-	ubyte2 &  opAndAssign (uint8);
-	ubyte2  opAnd (const ubyte2 &) const;
-	ubyte2  opAnd (uint8) const;
-	ubyte2  opAnd_r (uint8, const ubyte2 &);
-	ubyte2 &  opOrAssign (const ubyte2 &);
-	ubyte2 &  opOrAssign (uint8);
-	ubyte2  opOr (const ubyte2 &) const;
-	ubyte2  opOr (uint8) const;
-	ubyte2  opOr_r (uint8, const ubyte2 &);
-	ubyte2 &  opXorAssign (const ubyte2 &);
-	ubyte2 &  opXorAssign (uint8);
-	ubyte2  opXor (const ubyte2 &) const;
-	ubyte2  opXor (uint8) const;
-	ubyte2  opXor_r (uint8, const ubyte2 &);
-	ubyte2 &  opShlAssign (const ubyte2 &);
-	ubyte2 &  opShlAssign (uint8);
-	ubyte2  opShl (const ubyte2 &) const;
-	ubyte2  opShl (uint8) const;
-	ubyte2  opShl_r (uint8, const ubyte2 &);
-	ubyte2 &  opShrAssign (const ubyte2 &);
-	ubyte2 &  opShrAssign (uint8);
-	ubyte2  opShr (const ubyte2 &) const;
-	ubyte2  opShr (uint8) const;
-	ubyte2  opShr_r (uint8, const ubyte2 &);
-	bool  opEquals (const ubyte2 &, const ubyte2 &);
-	int  opCmp (const ubyte2 &, const ubyte2 &);
 };
 
 struct ubyte3
@@ -1318,58 +1101,6 @@ struct ubyte3
 	ubyte3 (const float2 & v2);
 	ubyte3 (const float3 & v3);
 	ubyte3 (const float4 & v4);
-	ubyte3 &  opAddAssign (const ubyte3 &);
-	ubyte3 &  opAddAssign (uint8);
-	ubyte3  opAdd (const ubyte3 &) const;
-	ubyte3  opAdd (uint8) const;
-	ubyte3  opAdd_r (uint8, const ubyte3 &);
-	ubyte3 &  opSubAssign (const ubyte3 &);
-	ubyte3 &  opSubAssign (uint8);
-	ubyte3  opSub (const ubyte3 &) const;
-	ubyte3  opSub (uint8) const;
-	ubyte3  opSub_r (uint8, const ubyte3 &);
-	ubyte3 &  opMulAssign (const ubyte3 &);
-	ubyte3 &  opMulAssign (uint8);
-	ubyte3  opMul (const ubyte3 &) const;
-	ubyte3  opMul (uint8) const;
-	ubyte3  opMul_r (uint8, const ubyte3 &);
-	ubyte3 &  opDivAssign (const ubyte3 &);
-	ubyte3 &  opDivAssign (uint8);
-	ubyte3  opDiv (const ubyte3 &) const;
-	ubyte3  opDiv (uint8) const;
-	ubyte3  opDiv_r (uint8, const ubyte3 &);
-	ubyte3 &  opModAssign (const ubyte3 &);
-	ubyte3 &  opModAssign (uint8);
-	ubyte3  opMod (const ubyte3 &) const;
-	ubyte3  opMod (uint8) const;
-	ubyte3  opMod_r (uint8, const ubyte3 &);
-	ubyte3 &  opAndAssign (const ubyte3 &);
-	ubyte3 &  opAndAssign (uint8);
-	ubyte3  opAnd (const ubyte3 &) const;
-	ubyte3  opAnd (uint8) const;
-	ubyte3  opAnd_r (uint8, const ubyte3 &);
-	ubyte3 &  opOrAssign (const ubyte3 &);
-	ubyte3 &  opOrAssign (uint8);
-	ubyte3  opOr (const ubyte3 &) const;
-	ubyte3  opOr (uint8) const;
-	ubyte3  opOr_r (uint8, const ubyte3 &);
-	ubyte3 &  opXorAssign (const ubyte3 &);
-	ubyte3 &  opXorAssign (uint8);
-	ubyte3  opXor (const ubyte3 &) const;
-	ubyte3  opXor (uint8) const;
-	ubyte3  opXor_r (uint8, const ubyte3 &);
-	ubyte3 &  opShlAssign (const ubyte3 &);
-	ubyte3 &  opShlAssign (uint8);
-	ubyte3  opShl (const ubyte3 &) const;
-	ubyte3  opShl (uint8) const;
-	ubyte3  opShl_r (uint8, const ubyte3 &);
-	ubyte3 &  opShrAssign (const ubyte3 &);
-	ubyte3 &  opShrAssign (uint8);
-	ubyte3  opShr (const ubyte3 &) const;
-	ubyte3  opShr (uint8) const;
-	ubyte3  opShr_r (uint8, const ubyte3 &);
-	bool  opEquals (const ubyte3 &, const ubyte3 &);
-	int  opCmp (const ubyte3 &, const ubyte3 &);
 };
 
 struct ubyte4
@@ -1403,58 +1134,6 @@ struct ubyte4
 	ubyte4 (const float2 & v2);
 	ubyte4 (const float3 & v3);
 	ubyte4 (const float4 & v4);
-	ubyte4 &  opAddAssign (const ubyte4 &);
-	ubyte4 &  opAddAssign (uint8);
-	ubyte4  opAdd (const ubyte4 &) const;
-	ubyte4  opAdd (uint8) const;
-	ubyte4  opAdd_r (uint8, const ubyte4 &);
-	ubyte4 &  opSubAssign (const ubyte4 &);
-	ubyte4 &  opSubAssign (uint8);
-	ubyte4  opSub (const ubyte4 &) const;
-	ubyte4  opSub (uint8) const;
-	ubyte4  opSub_r (uint8, const ubyte4 &);
-	ubyte4 &  opMulAssign (const ubyte4 &);
-	ubyte4 &  opMulAssign (uint8);
-	ubyte4  opMul (const ubyte4 &) const;
-	ubyte4  opMul (uint8) const;
-	ubyte4  opMul_r (uint8, const ubyte4 &);
-	ubyte4 &  opDivAssign (const ubyte4 &);
-	ubyte4 &  opDivAssign (uint8);
-	ubyte4  opDiv (const ubyte4 &) const;
-	ubyte4  opDiv (uint8) const;
-	ubyte4  opDiv_r (uint8, const ubyte4 &);
-	ubyte4 &  opModAssign (const ubyte4 &);
-	ubyte4 &  opModAssign (uint8);
-	ubyte4  opMod (const ubyte4 &) const;
-	ubyte4  opMod (uint8) const;
-	ubyte4  opMod_r (uint8, const ubyte4 &);
-	ubyte4 &  opAndAssign (const ubyte4 &);
-	ubyte4 &  opAndAssign (uint8);
-	ubyte4  opAnd (const ubyte4 &) const;
-	ubyte4  opAnd (uint8) const;
-	ubyte4  opAnd_r (uint8, const ubyte4 &);
-	ubyte4 &  opOrAssign (const ubyte4 &);
-	ubyte4 &  opOrAssign (uint8);
-	ubyte4  opOr (const ubyte4 &) const;
-	ubyte4  opOr (uint8) const;
-	ubyte4  opOr_r (uint8, const ubyte4 &);
-	ubyte4 &  opXorAssign (const ubyte4 &);
-	ubyte4 &  opXorAssign (uint8);
-	ubyte4  opXor (const ubyte4 &) const;
-	ubyte4  opXor (uint8) const;
-	ubyte4  opXor_r (uint8, const ubyte4 &);
-	ubyte4 &  opShlAssign (const ubyte4 &);
-	ubyte4 &  opShlAssign (uint8);
-	ubyte4  opShl (const ubyte4 &) const;
-	ubyte4  opShl (uint8) const;
-	ubyte4  opShl_r (uint8, const ubyte4 &);
-	ubyte4 &  opShrAssign (const ubyte4 &);
-	ubyte4 &  opShrAssign (uint8);
-	ubyte4  opShr (const ubyte4 &) const;
-	ubyte4  opShr (uint8) const;
-	ubyte4  opShr_r (uint8, const ubyte4 &);
-	bool  opEquals (const ubyte4 &, const ubyte4 &);
-	int  opCmp (const ubyte4 &, const ubyte4 &);
 };
 
 struct short2
@@ -1480,58 +1159,6 @@ struct short2
 	short2 (const float2 & v2);
 	short2 (const float3 & v3);
 	short2 (const float4 & v4);
-	short2 &  opAddAssign (const short2 &);
-	short2 &  opAddAssign (int16);
-	short2  opAdd (const short2 &) const;
-	short2  opAdd (int16) const;
-	short2  opAdd_r (int16, const short2 &);
-	short2 &  opSubAssign (const short2 &);
-	short2 &  opSubAssign (int16);
-	short2  opSub (const short2 &) const;
-	short2  opSub (int16) const;
-	short2  opSub_r (int16, const short2 &);
-	short2 &  opMulAssign (const short2 &);
-	short2 &  opMulAssign (int16);
-	short2  opMul (const short2 &) const;
-	short2  opMul (int16) const;
-	short2  opMul_r (int16, const short2 &);
-	short2 &  opDivAssign (const short2 &);
-	short2 &  opDivAssign (int16);
-	short2  opDiv (const short2 &) const;
-	short2  opDiv (int16) const;
-	short2  opDiv_r (int16, const short2 &);
-	short2 &  opModAssign (const short2 &);
-	short2 &  opModAssign (int16);
-	short2  opMod (const short2 &) const;
-	short2  opMod (int16) const;
-	short2  opMod_r (int16, const short2 &);
-	short2 &  opAndAssign (const short2 &);
-	short2 &  opAndAssign (int16);
-	short2  opAnd (const short2 &) const;
-	short2  opAnd (int16) const;
-	short2  opAnd_r (int16, const short2 &);
-	short2 &  opOrAssign (const short2 &);
-	short2 &  opOrAssign (int16);
-	short2  opOr (const short2 &) const;
-	short2  opOr (int16) const;
-	short2  opOr_r (int16, const short2 &);
-	short2 &  opXorAssign (const short2 &);
-	short2 &  opXorAssign (int16);
-	short2  opXor (const short2 &) const;
-	short2  opXor (int16) const;
-	short2  opXor_r (int16, const short2 &);
-	short2 &  opShlAssign (const short2 &);
-	short2 &  opShlAssign (int16);
-	short2  opShl (const short2 &) const;
-	short2  opShl (int16) const;
-	short2  opShl_r (int16, const short2 &);
-	short2 &  opShrAssign (const short2 &);
-	short2 &  opShrAssign (int16);
-	short2  opShr (const short2 &) const;
-	short2  opShr (int16) const;
-	short2  opShr_r (int16, const short2 &);
-	bool  opEquals (const short2 &, const short2 &);
-	int  opCmp (const short2 &, const short2 &);
 };
 
 struct short3
@@ -1559,58 +1186,6 @@ struct short3
 	short3 (const float2 & v2);
 	short3 (const float3 & v3);
 	short3 (const float4 & v4);
-	short3 &  opAddAssign (const short3 &);
-	short3 &  opAddAssign (int16);
-	short3  opAdd (const short3 &) const;
-	short3  opAdd (int16) const;
-	short3  opAdd_r (int16, const short3 &);
-	short3 &  opSubAssign (const short3 &);
-	short3 &  opSubAssign (int16);
-	short3  opSub (const short3 &) const;
-	short3  opSub (int16) const;
-	short3  opSub_r (int16, const short3 &);
-	short3 &  opMulAssign (const short3 &);
-	short3 &  opMulAssign (int16);
-	short3  opMul (const short3 &) const;
-	short3  opMul (int16) const;
-	short3  opMul_r (int16, const short3 &);
-	short3 &  opDivAssign (const short3 &);
-	short3 &  opDivAssign (int16);
-	short3  opDiv (const short3 &) const;
-	short3  opDiv (int16) const;
-	short3  opDiv_r (int16, const short3 &);
-	short3 &  opModAssign (const short3 &);
-	short3 &  opModAssign (int16);
-	short3  opMod (const short3 &) const;
-	short3  opMod (int16) const;
-	short3  opMod_r (int16, const short3 &);
-	short3 &  opAndAssign (const short3 &);
-	short3 &  opAndAssign (int16);
-	short3  opAnd (const short3 &) const;
-	short3  opAnd (int16) const;
-	short3  opAnd_r (int16, const short3 &);
-	short3 &  opOrAssign (const short3 &);
-	short3 &  opOrAssign (int16);
-	short3  opOr (const short3 &) const;
-	short3  opOr (int16) const;
-	short3  opOr_r (int16, const short3 &);
-	short3 &  opXorAssign (const short3 &);
-	short3 &  opXorAssign (int16);
-	short3  opXor (const short3 &) const;
-	short3  opXor (int16) const;
-	short3  opXor_r (int16, const short3 &);
-	short3 &  opShlAssign (const short3 &);
-	short3 &  opShlAssign (int16);
-	short3  opShl (const short3 &) const;
-	short3  opShl (int16) const;
-	short3  opShl_r (int16, const short3 &);
-	short3 &  opShrAssign (const short3 &);
-	short3 &  opShrAssign (int16);
-	short3  opShr (const short3 &) const;
-	short3  opShr (int16) const;
-	short3  opShr_r (int16, const short3 &);
-	bool  opEquals (const short3 &, const short3 &);
-	int  opCmp (const short3 &, const short3 &);
 };
 
 struct short4
@@ -1641,58 +1216,6 @@ struct short4
 	short4 (const float2 & v2);
 	short4 (const float3 & v3);
 	short4 (const float4 & v4);
-	short4 &  opAddAssign (const short4 &);
-	short4 &  opAddAssign (int16);
-	short4  opAdd (const short4 &) const;
-	short4  opAdd (int16) const;
-	short4  opAdd_r (int16, const short4 &);
-	short4 &  opSubAssign (const short4 &);
-	short4 &  opSubAssign (int16);
-	short4  opSub (const short4 &) const;
-	short4  opSub (int16) const;
-	short4  opSub_r (int16, const short4 &);
-	short4 &  opMulAssign (const short4 &);
-	short4 &  opMulAssign (int16);
-	short4  opMul (const short4 &) const;
-	short4  opMul (int16) const;
-	short4  opMul_r (int16, const short4 &);
-	short4 &  opDivAssign (const short4 &);
-	short4 &  opDivAssign (int16);
-	short4  opDiv (const short4 &) const;
-	short4  opDiv (int16) const;
-	short4  opDiv_r (int16, const short4 &);
-	short4 &  opModAssign (const short4 &);
-	short4 &  opModAssign (int16);
-	short4  opMod (const short4 &) const;
-	short4  opMod (int16) const;
-	short4  opMod_r (int16, const short4 &);
-	short4 &  opAndAssign (const short4 &);
-	short4 &  opAndAssign (int16);
-	short4  opAnd (const short4 &) const;
-	short4  opAnd (int16) const;
-	short4  opAnd_r (int16, const short4 &);
-	short4 &  opOrAssign (const short4 &);
-	short4 &  opOrAssign (int16);
-	short4  opOr (const short4 &) const;
-	short4  opOr (int16) const;
-	short4  opOr_r (int16, const short4 &);
-	short4 &  opXorAssign (const short4 &);
-	short4 &  opXorAssign (int16);
-	short4  opXor (const short4 &) const;
-	short4  opXor (int16) const;
-	short4  opXor_r (int16, const short4 &);
-	short4 &  opShlAssign (const short4 &);
-	short4 &  opShlAssign (int16);
-	short4  opShl (const short4 &) const;
-	short4  opShl (int16) const;
-	short4  opShl_r (int16, const short4 &);
-	short4 &  opShrAssign (const short4 &);
-	short4 &  opShrAssign (int16);
-	short4  opShr (const short4 &) const;
-	short4  opShr (int16) const;
-	short4  opShr_r (int16, const short4 &);
-	bool  opEquals (const short4 &, const short4 &);
-	int  opCmp (const short4 &, const short4 &);
 };
 
 struct ushort2
@@ -1718,58 +1241,6 @@ struct ushort2
 	ushort2 (const float2 & v2);
 	ushort2 (const float3 & v3);
 	ushort2 (const float4 & v4);
-	ushort2 &  opAddAssign (const ushort2 &);
-	ushort2 &  opAddAssign (uint16);
-	ushort2  opAdd (const ushort2 &) const;
-	ushort2  opAdd (uint16) const;
-	ushort2  opAdd_r (uint16, const ushort2 &);
-	ushort2 &  opSubAssign (const ushort2 &);
-	ushort2 &  opSubAssign (uint16);
-	ushort2  opSub (const ushort2 &) const;
-	ushort2  opSub (uint16) const;
-	ushort2  opSub_r (uint16, const ushort2 &);
-	ushort2 &  opMulAssign (const ushort2 &);
-	ushort2 &  opMulAssign (uint16);
-	ushort2  opMul (const ushort2 &) const;
-	ushort2  opMul (uint16) const;
-	ushort2  opMul_r (uint16, const ushort2 &);
-	ushort2 &  opDivAssign (const ushort2 &);
-	ushort2 &  opDivAssign (uint16);
-	ushort2  opDiv (const ushort2 &) const;
-	ushort2  opDiv (uint16) const;
-	ushort2  opDiv_r (uint16, const ushort2 &);
-	ushort2 &  opModAssign (const ushort2 &);
-	ushort2 &  opModAssign (uint16);
-	ushort2  opMod (const ushort2 &) const;
-	ushort2  opMod (uint16) const;
-	ushort2  opMod_r (uint16, const ushort2 &);
-	ushort2 &  opAndAssign (const ushort2 &);
-	ushort2 &  opAndAssign (uint16);
-	ushort2  opAnd (const ushort2 &) const;
-	ushort2  opAnd (uint16) const;
-	ushort2  opAnd_r (uint16, const ushort2 &);
-	ushort2 &  opOrAssign (const ushort2 &);
-	ushort2 &  opOrAssign (uint16);
-	ushort2  opOr (const ushort2 &) const;
-	ushort2  opOr (uint16) const;
-	ushort2  opOr_r (uint16, const ushort2 &);
-	ushort2 &  opXorAssign (const ushort2 &);
-	ushort2 &  opXorAssign (uint16);
-	ushort2  opXor (const ushort2 &) const;
-	ushort2  opXor (uint16) const;
-	ushort2  opXor_r (uint16, const ushort2 &);
-	ushort2 &  opShlAssign (const ushort2 &);
-	ushort2 &  opShlAssign (uint16);
-	ushort2  opShl (const ushort2 &) const;
-	ushort2  opShl (uint16) const;
-	ushort2  opShl_r (uint16, const ushort2 &);
-	ushort2 &  opShrAssign (const ushort2 &);
-	ushort2 &  opShrAssign (uint16);
-	ushort2  opShr (const ushort2 &) const;
-	ushort2  opShr (uint16) const;
-	ushort2  opShr_r (uint16, const ushort2 &);
-	bool  opEquals (const ushort2 &, const ushort2 &);
-	int  opCmp (const ushort2 &, const ushort2 &);
 };
 
 struct ushort3
@@ -1797,58 +1268,6 @@ struct ushort3
 	ushort3 (const float2 & v2);
 	ushort3 (const float3 & v3);
 	ushort3 (const float4 & v4);
-	ushort3 &  opAddAssign (const ushort3 &);
-	ushort3 &  opAddAssign (uint16);
-	ushort3  opAdd (const ushort3 &) const;
-	ushort3  opAdd (uint16) const;
-	ushort3  opAdd_r (uint16, const ushort3 &);
-	ushort3 &  opSubAssign (const ushort3 &);
-	ushort3 &  opSubAssign (uint16);
-	ushort3  opSub (const ushort3 &) const;
-	ushort3  opSub (uint16) const;
-	ushort3  opSub_r (uint16, const ushort3 &);
-	ushort3 &  opMulAssign (const ushort3 &);
-	ushort3 &  opMulAssign (uint16);
-	ushort3  opMul (const ushort3 &) const;
-	ushort3  opMul (uint16) const;
-	ushort3  opMul_r (uint16, const ushort3 &);
-	ushort3 &  opDivAssign (const ushort3 &);
-	ushort3 &  opDivAssign (uint16);
-	ushort3  opDiv (const ushort3 &) const;
-	ushort3  opDiv (uint16) const;
-	ushort3  opDiv_r (uint16, const ushort3 &);
-	ushort3 &  opModAssign (const ushort3 &);
-	ushort3 &  opModAssign (uint16);
-	ushort3  opMod (const ushort3 &) const;
-	ushort3  opMod (uint16) const;
-	ushort3  opMod_r (uint16, const ushort3 &);
-	ushort3 &  opAndAssign (const ushort3 &);
-	ushort3 &  opAndAssign (uint16);
-	ushort3  opAnd (const ushort3 &) const;
-	ushort3  opAnd (uint16) const;
-	ushort3  opAnd_r (uint16, const ushort3 &);
-	ushort3 &  opOrAssign (const ushort3 &);
-	ushort3 &  opOrAssign (uint16);
-	ushort3  opOr (const ushort3 &) const;
-	ushort3  opOr (uint16) const;
-	ushort3  opOr_r (uint16, const ushort3 &);
-	ushort3 &  opXorAssign (const ushort3 &);
-	ushort3 &  opXorAssign (uint16);
-	ushort3  opXor (const ushort3 &) const;
-	ushort3  opXor (uint16) const;
-	ushort3  opXor_r (uint16, const ushort3 &);
-	ushort3 &  opShlAssign (const ushort3 &);
-	ushort3 &  opShlAssign (uint16);
-	ushort3  opShl (const ushort3 &) const;
-	ushort3  opShl (uint16) const;
-	ushort3  opShl_r (uint16, const ushort3 &);
-	ushort3 &  opShrAssign (const ushort3 &);
-	ushort3 &  opShrAssign (uint16);
-	ushort3  opShr (const ushort3 &) const;
-	ushort3  opShr (uint16) const;
-	ushort3  opShr_r (uint16, const ushort3 &);
-	bool  opEquals (const ushort3 &, const ushort3 &);
-	int  opCmp (const ushort3 &, const ushort3 &);
 };
 
 struct ushort4
@@ -1879,58 +1298,6 @@ struct ushort4
 	ushort4 (const float2 & v2);
 	ushort4 (const float3 & v3);
 	ushort4 (const float4 & v4);
-	ushort4 &  opAddAssign (const ushort4 &);
-	ushort4 &  opAddAssign (uint16);
-	ushort4  opAdd (const ushort4 &) const;
-	ushort4  opAdd (uint16) const;
-	ushort4  opAdd_r (uint16, const ushort4 &);
-	ushort4 &  opSubAssign (const ushort4 &);
-	ushort4 &  opSubAssign (uint16);
-	ushort4  opSub (const ushort4 &) const;
-	ushort4  opSub (uint16) const;
-	ushort4  opSub_r (uint16, const ushort4 &);
-	ushort4 &  opMulAssign (const ushort4 &);
-	ushort4 &  opMulAssign (uint16);
-	ushort4  opMul (const ushort4 &) const;
-	ushort4  opMul (uint16) const;
-	ushort4  opMul_r (uint16, const ushort4 &);
-	ushort4 &  opDivAssign (const ushort4 &);
-	ushort4 &  opDivAssign (uint16);
-	ushort4  opDiv (const ushort4 &) const;
-	ushort4  opDiv (uint16) const;
-	ushort4  opDiv_r (uint16, const ushort4 &);
-	ushort4 &  opModAssign (const ushort4 &);
-	ushort4 &  opModAssign (uint16);
-	ushort4  opMod (const ushort4 &) const;
-	ushort4  opMod (uint16) const;
-	ushort4  opMod_r (uint16, const ushort4 &);
-	ushort4 &  opAndAssign (const ushort4 &);
-	ushort4 &  opAndAssign (uint16);
-	ushort4  opAnd (const ushort4 &) const;
-	ushort4  opAnd (uint16) const;
-	ushort4  opAnd_r (uint16, const ushort4 &);
-	ushort4 &  opOrAssign (const ushort4 &);
-	ushort4 &  opOrAssign (uint16);
-	ushort4  opOr (const ushort4 &) const;
-	ushort4  opOr (uint16) const;
-	ushort4  opOr_r (uint16, const ushort4 &);
-	ushort4 &  opXorAssign (const ushort4 &);
-	ushort4 &  opXorAssign (uint16);
-	ushort4  opXor (const ushort4 &) const;
-	ushort4  opXor (uint16) const;
-	ushort4  opXor_r (uint16, const ushort4 &);
-	ushort4 &  opShlAssign (const ushort4 &);
-	ushort4 &  opShlAssign (uint16);
-	ushort4  opShl (const ushort4 &) const;
-	ushort4  opShl (uint16) const;
-	ushort4  opShl_r (uint16, const ushort4 &);
-	ushort4 &  opShrAssign (const ushort4 &);
-	ushort4 &  opShrAssign (uint16);
-	ushort4  opShr (const ushort4 &) const;
-	ushort4  opShr (uint16) const;
-	ushort4  opShr_r (uint16, const ushort4 &);
-	bool  opEquals (const ushort4 &, const ushort4 &);
-	int  opCmp (const ushort4 &, const ushort4 &);
 };
 
 struct int2
@@ -1956,59 +1323,6 @@ struct int2
 	int2 (const float2 & v2);
 	int2 (const float3 & v3);
 	int2 (const float4 & v4);
-	int2 &  opAddAssign (const int2 &);
-	int2 &  opAddAssign (int);
-	int2  opAdd (const int2 &) const;
-	int2  opAdd (int) const;
-	int2  opAdd_r (int, const int2 &);
-	int2 &  opSubAssign (const int2 &);
-	int2 &  opSubAssign (int);
-	int2  opSub (const int2 &) const;
-	int2  opSub (int) const;
-	int2  opSub_r (int, const int2 &);
-	int2 &  opMulAssign (const int2 &);
-	int2 &  opMulAssign (int);
-	int2  opMul (const int2 &) const;
-	int2  opMul (int) const;
-	int2  opMul_r (int, const int2 &);
-	int2 &  opDivAssign (const int2 &);
-	int2 &  opDivAssign (int);
-	int2  opDiv (const int2 &) const;
-	int2  opDiv (int) const;
-	int2  opDiv_r (int, const int2 &);
-	int2 &  opModAssign (const int2 &);
-	int2 &  opModAssign (int);
-	int2  opMod (const int2 &) const;
-	int2  opMod (int) const;
-	int2  opMod_r (int, const int2 &);
-	int2 &  opAndAssign (const int2 &);
-	int2 &  opAndAssign (int);
-	int2  opAnd (const int2 &) const;
-	int2  opAnd (int) const;
-	int2  opAnd_r (int, const int2 &);
-	int2 &  opOrAssign (const int2 &);
-	int2 &  opOrAssign (int);
-	int2  opOr (const int2 &) const;
-	int2  opOr (int) const;
-	int2  opOr_r (int, const int2 &);
-	int2 &  opXorAssign (const int2 &);
-	int2 &  opXorAssign (int);
-	int2  opXor (const int2 &) const;
-	int2  opXor (int) const;
-	int2  opXor_r (int, const int2 &);
-	int2 &  opShlAssign (const int2 &);
-	int2 &  opShlAssign (int);
-	int2  opShl (const int2 &) const;
-	int2  opShl (int) const;
-	int2  opShl_r (int, const int2 &);
-	int2 &  opShrAssign (const int2 &);
-	int2 &  opShrAssign (int);
-	int2  opShr (const int2 &) const;
-	int2  opShr (int) const;
-	int2  opShr_r (int, const int2 &);
-	bool  opEquals (const int2 &, const int2 &);
-	int  opCmp (const int2 &, const int2 &);
-	int2  opNeg () const;
 };
 
 struct int3
@@ -2036,59 +1350,6 @@ struct int3
 	int3 (const float2 & v2);
 	int3 (const float3 & v3);
 	int3 (const float4 & v4);
-	int3 &  opAddAssign (const int3 &);
-	int3 &  opAddAssign (int);
-	int3  opAdd (const int3 &) const;
-	int3  opAdd (int) const;
-	int3  opAdd_r (int, const int3 &);
-	int3 &  opSubAssign (const int3 &);
-	int3 &  opSubAssign (int);
-	int3  opSub (const int3 &) const;
-	int3  opSub (int) const;
-	int3  opSub_r (int, const int3 &);
-	int3 &  opMulAssign (const int3 &);
-	int3 &  opMulAssign (int);
-	int3  opMul (const int3 &) const;
-	int3  opMul (int) const;
-	int3  opMul_r (int, const int3 &);
-	int3 &  opDivAssign (const int3 &);
-	int3 &  opDivAssign (int);
-	int3  opDiv (const int3 &) const;
-	int3  opDiv (int) const;
-	int3  opDiv_r (int, const int3 &);
-	int3 &  opModAssign (const int3 &);
-	int3 &  opModAssign (int);
-	int3  opMod (const int3 &) const;
-	int3  opMod (int) const;
-	int3  opMod_r (int, const int3 &);
-	int3 &  opAndAssign (const int3 &);
-	int3 &  opAndAssign (int);
-	int3  opAnd (const int3 &) const;
-	int3  opAnd (int) const;
-	int3  opAnd_r (int, const int3 &);
-	int3 &  opOrAssign (const int3 &);
-	int3 &  opOrAssign (int);
-	int3  opOr (const int3 &) const;
-	int3  opOr (int) const;
-	int3  opOr_r (int, const int3 &);
-	int3 &  opXorAssign (const int3 &);
-	int3 &  opXorAssign (int);
-	int3  opXor (const int3 &) const;
-	int3  opXor (int) const;
-	int3  opXor_r (int, const int3 &);
-	int3 &  opShlAssign (const int3 &);
-	int3 &  opShlAssign (int);
-	int3  opShl (const int3 &) const;
-	int3  opShl (int) const;
-	int3  opShl_r (int, const int3 &);
-	int3 &  opShrAssign (const int3 &);
-	int3 &  opShrAssign (int);
-	int3  opShr (const int3 &) const;
-	int3  opShr (int) const;
-	int3  opShr_r (int, const int3 &);
-	bool  opEquals (const int3 &, const int3 &);
-	int  opCmp (const int3 &, const int3 &);
-	int3  opNeg () const;
 };
 
 struct int4
@@ -2119,59 +1380,6 @@ struct int4
 	int4 (const float2 & v2);
 	int4 (const float3 & v3);
 	int4 (const float4 & v4);
-	int4 &  opAddAssign (const int4 &);
-	int4 &  opAddAssign (int);
-	int4  opAdd (const int4 &) const;
-	int4  opAdd (int) const;
-	int4  opAdd_r (int, const int4 &);
-	int4 &  opSubAssign (const int4 &);
-	int4 &  opSubAssign (int);
-	int4  opSub (const int4 &) const;
-	int4  opSub (int) const;
-	int4  opSub_r (int, const int4 &);
-	int4 &  opMulAssign (const int4 &);
-	int4 &  opMulAssign (int);
-	int4  opMul (const int4 &) const;
-	int4  opMul (int) const;
-	int4  opMul_r (int, const int4 &);
-	int4 &  opDivAssign (const int4 &);
-	int4 &  opDivAssign (int);
-	int4  opDiv (const int4 &) const;
-	int4  opDiv (int) const;
-	int4  opDiv_r (int, const int4 &);
-	int4 &  opModAssign (const int4 &);
-	int4 &  opModAssign (int);
-	int4  opMod (const int4 &) const;
-	int4  opMod (int) const;
-	int4  opMod_r (int, const int4 &);
-	int4 &  opAndAssign (const int4 &);
-	int4 &  opAndAssign (int);
-	int4  opAnd (const int4 &) const;
-	int4  opAnd (int) const;
-	int4  opAnd_r (int, const int4 &);
-	int4 &  opOrAssign (const int4 &);
-	int4 &  opOrAssign (int);
-	int4  opOr (const int4 &) const;
-	int4  opOr (int) const;
-	int4  opOr_r (int, const int4 &);
-	int4 &  opXorAssign (const int4 &);
-	int4 &  opXorAssign (int);
-	int4  opXor (const int4 &) const;
-	int4  opXor (int) const;
-	int4  opXor_r (int, const int4 &);
-	int4 &  opShlAssign (const int4 &);
-	int4 &  opShlAssign (int);
-	int4  opShl (const int4 &) const;
-	int4  opShl (int) const;
-	int4  opShl_r (int, const int4 &);
-	int4 &  opShrAssign (const int4 &);
-	int4 &  opShrAssign (int);
-	int4  opShr (const int4 &) const;
-	int4  opShr (int) const;
-	int4  opShr_r (int, const int4 &);
-	bool  opEquals (const int4 &, const int4 &);
-	int  opCmp (const int4 &, const int4 &);
-	int4  opNeg () const;
 };
 
 struct uint2
@@ -2197,58 +1405,6 @@ struct uint2
 	uint2 (const float2 & v2);
 	uint2 (const float3 & v3);
 	uint2 (const float4 & v4);
-	uint2 &  opAddAssign (const uint2 &);
-	uint2 &  opAddAssign (uint);
-	uint2  opAdd (const uint2 &) const;
-	uint2  opAdd (uint) const;
-	uint2  opAdd_r (uint, const uint2 &);
-	uint2 &  opSubAssign (const uint2 &);
-	uint2 &  opSubAssign (uint);
-	uint2  opSub (const uint2 &) const;
-	uint2  opSub (uint) const;
-	uint2  opSub_r (uint, const uint2 &);
-	uint2 &  opMulAssign (const uint2 &);
-	uint2 &  opMulAssign (uint);
-	uint2  opMul (const uint2 &) const;
-	uint2  opMul (uint) const;
-	uint2  opMul_r (uint, const uint2 &);
-	uint2 &  opDivAssign (const uint2 &);
-	uint2 &  opDivAssign (uint);
-	uint2  opDiv (const uint2 &) const;
-	uint2  opDiv (uint) const;
-	uint2  opDiv_r (uint, const uint2 &);
-	uint2 &  opModAssign (const uint2 &);
-	uint2 &  opModAssign (uint);
-	uint2  opMod (const uint2 &) const;
-	uint2  opMod (uint) const;
-	uint2  opMod_r (uint, const uint2 &);
-	uint2 &  opAndAssign (const uint2 &);
-	uint2 &  opAndAssign (uint);
-	uint2  opAnd (const uint2 &) const;
-	uint2  opAnd (uint) const;
-	uint2  opAnd_r (uint, const uint2 &);
-	uint2 &  opOrAssign (const uint2 &);
-	uint2 &  opOrAssign (uint);
-	uint2  opOr (const uint2 &) const;
-	uint2  opOr (uint) const;
-	uint2  opOr_r (uint, const uint2 &);
-	uint2 &  opXorAssign (const uint2 &);
-	uint2 &  opXorAssign (uint);
-	uint2  opXor (const uint2 &) const;
-	uint2  opXor (uint) const;
-	uint2  opXor_r (uint, const uint2 &);
-	uint2 &  opShlAssign (const uint2 &);
-	uint2 &  opShlAssign (uint);
-	uint2  opShl (const uint2 &) const;
-	uint2  opShl (uint) const;
-	uint2  opShl_r (uint, const uint2 &);
-	uint2 &  opShrAssign (const uint2 &);
-	uint2 &  opShrAssign (uint);
-	uint2  opShr (const uint2 &) const;
-	uint2  opShr (uint) const;
-	uint2  opShr_r (uint, const uint2 &);
-	bool  opEquals (const uint2 &, const uint2 &);
-	int  opCmp (const uint2 &, const uint2 &);
 };
 
 struct uint3
@@ -2276,58 +1432,6 @@ struct uint3
 	uint3 (const float2 & v2);
 	uint3 (const float3 & v3);
 	uint3 (const float4 & v4);
-	uint3 &  opAddAssign (const uint3 &);
-	uint3 &  opAddAssign (uint);
-	uint3  opAdd (const uint3 &) const;
-	uint3  opAdd (uint) const;
-	uint3  opAdd_r (uint, const uint3 &);
-	uint3 &  opSubAssign (const uint3 &);
-	uint3 &  opSubAssign (uint);
-	uint3  opSub (const uint3 &) const;
-	uint3  opSub (uint) const;
-	uint3  opSub_r (uint, const uint3 &);
-	uint3 &  opMulAssign (const uint3 &);
-	uint3 &  opMulAssign (uint);
-	uint3  opMul (const uint3 &) const;
-	uint3  opMul (uint) const;
-	uint3  opMul_r (uint, const uint3 &);
-	uint3 &  opDivAssign (const uint3 &);
-	uint3 &  opDivAssign (uint);
-	uint3  opDiv (const uint3 &) const;
-	uint3  opDiv (uint) const;
-	uint3  opDiv_r (uint, const uint3 &);
-	uint3 &  opModAssign (const uint3 &);
-	uint3 &  opModAssign (uint);
-	uint3  opMod (const uint3 &) const;
-	uint3  opMod (uint) const;
-	uint3  opMod_r (uint, const uint3 &);
-	uint3 &  opAndAssign (const uint3 &);
-	uint3 &  opAndAssign (uint);
-	uint3  opAnd (const uint3 &) const;
-	uint3  opAnd (uint) const;
-	uint3  opAnd_r (uint, const uint3 &);
-	uint3 &  opOrAssign (const uint3 &);
-	uint3 &  opOrAssign (uint);
-	uint3  opOr (const uint3 &) const;
-	uint3  opOr (uint) const;
-	uint3  opOr_r (uint, const uint3 &);
-	uint3 &  opXorAssign (const uint3 &);
-	uint3 &  opXorAssign (uint);
-	uint3  opXor (const uint3 &) const;
-	uint3  opXor (uint) const;
-	uint3  opXor_r (uint, const uint3 &);
-	uint3 &  opShlAssign (const uint3 &);
-	uint3 &  opShlAssign (uint);
-	uint3  opShl (const uint3 &) const;
-	uint3  opShl (uint) const;
-	uint3  opShl_r (uint, const uint3 &);
-	uint3 &  opShrAssign (const uint3 &);
-	uint3 &  opShrAssign (uint);
-	uint3  opShr (const uint3 &) const;
-	uint3  opShr (uint) const;
-	uint3  opShr_r (uint, const uint3 &);
-	bool  opEquals (const uint3 &, const uint3 &);
-	int  opCmp (const uint3 &, const uint3 &);
 };
 
 struct uint4
@@ -2358,58 +1462,6 @@ struct uint4
 	uint4 (const float2 & v2);
 	uint4 (const float3 & v3);
 	uint4 (const float4 & v4);
-	uint4 &  opAddAssign (const uint4 &);
-	uint4 &  opAddAssign (uint);
-	uint4  opAdd (const uint4 &) const;
-	uint4  opAdd (uint) const;
-	uint4  opAdd_r (uint, const uint4 &);
-	uint4 &  opSubAssign (const uint4 &);
-	uint4 &  opSubAssign (uint);
-	uint4  opSub (const uint4 &) const;
-	uint4  opSub (uint) const;
-	uint4  opSub_r (uint, const uint4 &);
-	uint4 &  opMulAssign (const uint4 &);
-	uint4 &  opMulAssign (uint);
-	uint4  opMul (const uint4 &) const;
-	uint4  opMul (uint) const;
-	uint4  opMul_r (uint, const uint4 &);
-	uint4 &  opDivAssign (const uint4 &);
-	uint4 &  opDivAssign (uint);
-	uint4  opDiv (const uint4 &) const;
-	uint4  opDiv (uint) const;
-	uint4  opDiv_r (uint, const uint4 &);
-	uint4 &  opModAssign (const uint4 &);
-	uint4 &  opModAssign (uint);
-	uint4  opMod (const uint4 &) const;
-	uint4  opMod (uint) const;
-	uint4  opMod_r (uint, const uint4 &);
-	uint4 &  opAndAssign (const uint4 &);
-	uint4 &  opAndAssign (uint);
-	uint4  opAnd (const uint4 &) const;
-	uint4  opAnd (uint) const;
-	uint4  opAnd_r (uint, const uint4 &);
-	uint4 &  opOrAssign (const uint4 &);
-	uint4 &  opOrAssign (uint);
-	uint4  opOr (const uint4 &) const;
-	uint4  opOr (uint) const;
-	uint4  opOr_r (uint, const uint4 &);
-	uint4 &  opXorAssign (const uint4 &);
-	uint4 &  opXorAssign (uint);
-	uint4  opXor (const uint4 &) const;
-	uint4  opXor (uint) const;
-	uint4  opXor_r (uint, const uint4 &);
-	uint4 &  opShlAssign (const uint4 &);
-	uint4 &  opShlAssign (uint);
-	uint4  opShl (const uint4 &) const;
-	uint4  opShl (uint) const;
-	uint4  opShl_r (uint, const uint4 &);
-	uint4 &  opShrAssign (const uint4 &);
-	uint4 &  opShrAssign (uint);
-	uint4  opShr (const uint4 &) const;
-	uint4  opShr (uint) const;
-	uint4  opShr_r (uint, const uint4 &);
-	bool  opEquals (const uint4 &, const uint4 &);
-	int  opCmp (const uint4 &, const uint4 &);
 };
 
 struct float2
@@ -2435,34 +1487,6 @@ struct float2
 	float2 (const uint2 & v2);
 	float2 (const uint3 & v3);
 	float2 (const uint4 & v4);
-	float2 &  opAddAssign (const float2 &);
-	float2 &  opAddAssign (float);
-	float2  opAdd (const float2 &) const;
-	float2  opAdd (float) const;
-	float2  opAdd_r (float, const float2 &);
-	float2 &  opSubAssign (const float2 &);
-	float2 &  opSubAssign (float);
-	float2  opSub (const float2 &) const;
-	float2  opSub (float) const;
-	float2  opSub_r (float, const float2 &);
-	float2 &  opMulAssign (const float2 &);
-	float2 &  opMulAssign (float);
-	float2  opMul (const float2 &) const;
-	float2  opMul (float) const;
-	float2  opMul_r (float, const float2 &);
-	float2 &  opDivAssign (const float2 &);
-	float2 &  opDivAssign (float);
-	float2  opDiv (const float2 &) const;
-	float2  opDiv (float) const;
-	float2  opDiv_r (float, const float2 &);
-	float2 &  opModAssign (const float2 &);
-	float2 &  opModAssign (float);
-	float2  opMod (const float2 &) const;
-	float2  opMod (float) const;
-	float2  opMod_r (float, const float2 &);
-	bool  opEquals (const float2 &, const float2 &);
-	int  opCmp (const float2 &, const float2 &);
-	float2  opNeg () const;
 };
 
 struct float3
@@ -2490,34 +1514,6 @@ struct float3
 	float3 (const uint2 & v2);
 	float3 (const uint3 & v3);
 	float3 (const uint4 & v4);
-	float3 &  opAddAssign (const float3 &);
-	float3 &  opAddAssign (float);
-	float3  opAdd (const float3 &) const;
-	float3  opAdd (float) const;
-	float3  opAdd_r (float, const float3 &);
-	float3 &  opSubAssign (const float3 &);
-	float3 &  opSubAssign (float);
-	float3  opSub (const float3 &) const;
-	float3  opSub (float) const;
-	float3  opSub_r (float, const float3 &);
-	float3 &  opMulAssign (const float3 &);
-	float3 &  opMulAssign (float);
-	float3  opMul (const float3 &) const;
-	float3  opMul (float) const;
-	float3  opMul_r (float, const float3 &);
-	float3 &  opDivAssign (const float3 &);
-	float3 &  opDivAssign (float);
-	float3  opDiv (const float3 &) const;
-	float3  opDiv (float) const;
-	float3  opDiv_r (float, const float3 &);
-	float3 &  opModAssign (const float3 &);
-	float3 &  opModAssign (float);
-	float3  opMod (const float3 &) const;
-	float3  opMod (float) const;
-	float3  opMod_r (float, const float3 &);
-	bool  opEquals (const float3 &, const float3 &);
-	int  opCmp (const float3 &, const float3 &);
-	float3  opNeg () const;
 };
 
 struct float4
@@ -2548,34 +1544,6 @@ struct float4
 	float4 (const uint2 & v2);
 	float4 (const uint3 & v3);
 	float4 (const uint4 & v4);
-	float4 &  opAddAssign (const float4 &);
-	float4 &  opAddAssign (float);
-	float4  opAdd (const float4 &) const;
-	float4  opAdd (float) const;
-	float4  opAdd_r (float, const float4 &);
-	float4 &  opSubAssign (const float4 &);
-	float4 &  opSubAssign (float);
-	float4  opSub (const float4 &) const;
-	float4  opSub (float) const;
-	float4  opSub_r (float, const float4 &);
-	float4 &  opMulAssign (const float4 &);
-	float4 &  opMulAssign (float);
-	float4  opMul (const float4 &) const;
-	float4  opMul (float) const;
-	float4  opMul_r (float, const float4 &);
-	float4 &  opDivAssign (const float4 &);
-	float4 &  opDivAssign (float);
-	float4  opDiv (const float4 &) const;
-	float4  opDiv (float) const;
-	float4  opDiv_r (float, const float4 &);
-	float4 &  opModAssign (const float4 &);
-	float4 &  opModAssign (float);
-	float4  opMod (const float4 &) const;
-	float4  opMod (float) const;
-	float4  opMod_r (float, const float4 &);
-	bool  opEquals (const float4 &, const float4 &);
-	int  opCmp (const float4 &, const float4 &);
-	float4  opNeg () const;
 };
 
 bool  All (const bool2 & x);
@@ -2874,39 +1842,9 @@ struct OpenVR_ActionBindings
 };
 
 template <>
-struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
 {
-	RC (const WinAPI_ActionBindings &);
-};
-
-template <>
-struct RC<Android_ActionBindings> : Android_ActionBindings
-{
-	RC (const Android_ActionBindings &);
-};
-
-template <>
-struct RC<Android_BindingsMode> : Android_BindingsMode
-{
-	RC (const Android_BindingsMode &);
-};
-
-template <>
-struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
-{
-	RC (const OpenVR_BindingsMode &);
-};
-
-template <>
-struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
-{
-	RC (const GLFW_BindingsMode &);
-};
-
-template <>
-struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
-{
-	RC (const OpenVR_ActionBindings &);
+	RC (const GLFW_ActionBindings &);
 };
 
 template <>
@@ -2916,8 +1854,38 @@ struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
 };
 
 template <>
-struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
+struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
 {
-	RC (const GLFW_ActionBindings &);
+	RC (const OpenVR_ActionBindings &);
+};
+
+template <>
+struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
+{
+	RC (const GLFW_BindingsMode &);
+};
+
+template <>
+struct RC<Android_ActionBindings> : Android_ActionBindings
+{
+	RC (const Android_ActionBindings &);
+};
+
+template <>
+struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
+{
+	RC (const OpenVR_BindingsMode &);
+};
+
+template <>
+struct RC<Android_BindingsMode> : Android_BindingsMode
+{
+	RC (const Android_BindingsMode &);
+};
+
+template <>
+struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+{
+	RC (const WinAPI_ActionBindings &);
 };
 

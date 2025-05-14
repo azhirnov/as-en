@@ -13,8 +13,8 @@
 		EShaderOpt	dbg_mode = EShaderOpt::Trace;
 
 		string	ppln_name = name;
-		if ( dbgVS ) ppln_name += ".vs";
-		if ( dbgFS ) ppln_name += ".fs";
+		if ( dbgVS ) ppln_name += ".dbg_vs";
+		if ( dbgFS ) ppln_name += ".dbg_fs";
 		
 		if ( not HasPipelineLayout( "pl."+ppln_name ))
 		{
@@ -172,6 +172,10 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
+	#ifndef LATE_ZS
+		layout(early_fragment_tests) in;
+	#endif
+
 	#define PERF_LEVEL	3	// [1, 4]
 	#define ALU_BOUND	0	// 0/1
 
@@ -312,9 +316,14 @@
 				out_Color.rgb = DHash33( pos );
 				out_Color.a   = 1.0;
 			}
-			#else
+			#elif PERF_LEVEL == 3
 			{
 				float	h = ToUNorm( PerlinNoiseFBM( float3(uv, 0.0), CreateFBMParams( 1.5, 1.1, 2 )));
+				out_Color = Rainbow( h );
+			}
+			#else
+			{
+				float	h = ToUNorm( PerlinNoise( float3(uv, 0.0) ));
 				out_Color = Rainbow( h );
 			}
 			#endif

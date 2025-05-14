@@ -110,15 +110,11 @@
 
 		// create geometry
 		{
-			array<float3>	positions, cubemapTexcoords;
+			array<float3>	positions;
 			array<float2>	uvs;
 			array<uint>		indices;
-			GetSphere( (low_detail ? 3 : 8), OUT positions, OUT cubemapTexcoords, OUT indices );
+			GetSphere( (low_detail ? 3 : 8), OUT positions, OUT uvs, OUT indices );
 			index_count = indices.size();
-
-			uvs.resize( cubemapTexcoords.size() );
-			for (uint i = 0; i < cubemapTexcoords.size(); ++i)
-				uvs[i] = float2(cubemapTexcoords[i]);
 
 			@tris_count = count.Mul( index_count/3 );
 

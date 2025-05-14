@@ -89,7 +89,8 @@ namespace AE::Base
 
 		struct EqualTo_t {
 			ND_ bool  operator () (const Self &lhs, const Self &rhs) C_NE___ {
-				return lhs._hash == rhs._hash and lhs._name == rhs._name;
+				return	lhs._hash == rhs._hash and
+						(not lhs._name.empty() and not rhs._name.empty()  ? lhs._name == rhs._name : true);
 			}
 		};
 
