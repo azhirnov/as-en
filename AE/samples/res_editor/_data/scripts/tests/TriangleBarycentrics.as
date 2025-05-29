@@ -9,10 +9,11 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>	rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );		rt.Name( "RT" );
-		RC<Scene>	scene		= Scene();
-		uint		shape_count	= 0;
-		uint		proj_count	= 0;
+		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );		rt.Name( "RT" );
+		RC<Scene>		scene		= Scene();
+		uint			shape_count	= 0;
+		uint			proj_count	= 0;
+		RC<DynamicUInt>	mode		= DynamicUInt();
 
 		{
 			RC<UnifiedGeometry>		geometry	= UnifiedGeometry();
@@ -20,6 +21,10 @@
 			const array<float3>		vertices	= {
 				float3(0.f, -1.f, 0.5f), float3(-1.f,  1.f, 0.5f), float3(1.f,  1.f, 0.5f),
 				float3(0.f, -1.f, 0.1f), float3(-1.f,  1.f, 0.7f), float3(1.f,  1.f, 0.3f)
+			};
+			const array<float2>		uvs			= {
+				float2(0.5f, 0.0f), float2(0.0f, 1.0f), float2(1.0f, 1.0f),
+				float2(0.5f, 0.0f), float2(0.0f, 1.0f), float2(1.0f, 1.0f)
 			};
 			const array<float4x4>	proj		= {
 				float4x4(),
@@ -32,6 +37,7 @@
 			proj_count	= proj.size();
 
 			vbuf.FloatArray( "vertices",	vertices );
+			vbuf.FloatArray( "uvs",			uvs );
 			vbuf.FloatArray( "projection",	proj );
 			vbuf.LayoutName( "VBuffer" );
 
@@ -44,9 +50,11 @@
 			scene.Add( geometry );
 		}
 
+		Slider( mode, "ModeID",		0,	1 );	// barycentrics, derivatives
+
 		// render loop
 		{
-			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "draw" );
+			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "barycentrics" );
 			pass.AddPipeline( "tests/TriangleBarycentrics.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/tests/TriangleBarycentrics.as)
 			pass.Output( "out_Color",	rt,		RGBA32f(0.0) );
 			pass.Slider( "iMode",		0,		3 );
@@ -55,7 +63,21 @@
 			pass.Slider( "iShape",		0,		shape_count-1 );
 			pass.Slider( "iProj",		0,		proj_count-1 );
 			pass.Slider( "iCameraPos",	float3(-10.f),	float3(10.f, 10.f, 100.f),	float3(0.f, 0.f, 0.f) );
+			pass.EnableIfEqual( mode, 0 );
+		}{
+			RC<SceneGraphicsPass>	pass = scene.AddGraphicsPass( "derivatives" );
+			pass.AddPipeline( "tests/UVDerivatives.as" );			// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/tests/UVDerivatives.as)
+			pass.Output( "out_Color",	rt,		RGBA32f(0.0) );
+			pass.Slider( "iMode",		0,		5 );
+			pass.Slider( "iCmp",		0,		3 );
+			pass.Slider( "iScale",		0,		9,					2 );
+			pass.Slider( "iShape",		0,		shape_count-1 );
+			pass.Slider( "iProj",		0,		proj_count-1 );
+			pass.Slider( "iCameraPos",	float3(-10.f),	float3(10.f, 10.f, 100.f),	float3(0.f, 0.f, 0.f) );
+			pass.EnableIfEqual( mode, 1 );
+			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}
+
 		Present( rt );
 	}
 

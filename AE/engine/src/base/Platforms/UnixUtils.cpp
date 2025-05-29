@@ -118,6 +118,7 @@ namespace AE::Base
 	ThreadMicroSleep
 ----
 	On MacOS: min 6us, 10us = 17us, 100us = 130us, min error: 10%.
+	On Android: min: 70us, 1us = 110us, 100us = 300us, 2ms = 2.1ms, min error: 5%
 =================================================
 */
 	bool  UnixUtils::ThreadMicroSleep (nanoseconds relativeTime) __NE___
@@ -151,6 +152,7 @@ namespace AE::Base
 ----
 	Used for compatibility with Windows timer step (1s/64).
 	On MacOS: sleep_for() has better accuracy, for time in ms it has error <1ms.
+	On Android: equal to ThreadMicroSleep()
 =================================================
 */
 	void  UnixUtils::ThreadSleep_15ms () __NE___

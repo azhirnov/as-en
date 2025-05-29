@@ -140,7 +140,8 @@ namespace AE::Graphics
 				dst[j++] = SurfaceFormat{ fmt, cs };
 		}
 
-		ASSERT_MSG( i == surf_formats.size(), "Input buffer is too small" );
+		if ( i < surf_formats.size() )
+			AE_LOG_DBG( "Input buffer is too small" );
 		return j;
 	}
 
@@ -177,7 +178,8 @@ namespace AE::Graphics
 				dst[j++] = mode;
 		}
 		
-		ASSERT_MSG( i == present_modes.size(), "Input buffer is too small" );
+		if ( i < present_modes.size() )
+			AE_LOG_DBG( "Input buffer is too small" );
 		return j;
 	}
 

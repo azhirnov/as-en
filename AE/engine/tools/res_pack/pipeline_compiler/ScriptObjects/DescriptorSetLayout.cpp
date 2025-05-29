@@ -216,7 +216,8 @@ namespace
 		CHECK_THROW_MSG( storage.dsLayouts.emplace( _name, DescriptorSetLayoutPtr{this} ).second,
 			"DescriptorSetLayout with name '"s << name << "' is already exists." );
 
-		_dsLayout.name = DSLayoutName{_name};
+		_dsLayout.name	= DSLayoutName{_name};
+		_dsLayout.usage	= storage.defaultDescSetUsage;
 	}
 
 /*
@@ -283,7 +284,7 @@ namespace
 				case EPixelFormat::RGBA16F :		return "rgba16f";
 				case EPixelFormat::RG32F :			return "rg32f";
 				case EPixelFormat::RG16F :			return "rg16f";
-				case EPixelFormat::RGB_11_11_10F :	return "r11f_g11f_b10f";
+				case EPixelFormat::R11G11B10F :		return "r11f_g11f_b10f";
 				case EPixelFormat::R32F :			return "r32f";
 				case EPixelFormat::R16F :			return "r16f";
 				case EPixelFormat::RGBA16_UNorm :	return "rgba16";
@@ -805,6 +806,8 @@ namespace
 			if ( not is_argbuf and NoBits( stages, un.stages ))
 				continue;
 
+			bool	req_binding = true;
+
 			switch_enum( un.type )
 			{
 				case EDescriptorType::UniformBuffer :
@@ -825,12 +828,13 @@ namespace
 				}
 				case EDescriptorType::CombinedImage :
 				{
-					CHECK_ERR_MSG( is_argbuf, "combined image type is not supported in MSL outside of argument buffer" );
+					CHECK_ERR_MSG( is_argbuf, "combined image type outside of argument buffer is not supported in MSL" );
 					break;
 				}
 				case EDescriptorType::SubpassInput :
 				{
-					RETURN_ERR( "subpass input type is not supported in MSL" );	// TODO
+					req_binding = false;
+					//RETURN_ERR( "subpass input type is not supported in MSL" );	// TODO
 					break;
 				}
 				case EDescriptorType::Sampler :
@@ -856,7 +860,8 @@ namespace
 			}
 			switch_end
 
-			CHECK_ERR( un.binding.IsMetalDefined() );
+			if ( req_binding )
+				CHECK_ERR( un.binding.IsMetalDefined() );
 		}
 
 		if ( is_argbuf )

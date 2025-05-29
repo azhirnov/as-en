@@ -58,13 +58,6 @@
 
 // debug/dev only check
 #ifdef AE_DEBUG
-# ifdef __cpp_lib_is_constant_evaluated
-#	define ASSERT_Cx( /* expr */... )				if ( not IsConstEvaluated() ) { CHECK( __VA_ARGS__ ); }
-#	define ASSERT_MSG_Cx( _expr_, _text_ )			if ( not IsConstEvaluated() ) { CHECK_MSG( (_expr_), (_text_) ); }
-# else
-#	define ASSERT_Cx( /* expr */... )				{}
-#	define ASSERT_MSG_Cx( /* expr, msg */... )		{}
-# endif
 #	define ASSERT									CHECK		// TODO: DBG_CHECK
 #	define ASSERT_Eq								CHECK_Eq	// ==
 #	define ASSERT_NE								CHECK_NE	// !=
@@ -84,7 +77,29 @@
 #	define ASSERT_Lt( /* lhs, rhs */... )			{}			// <
 #	define ASSERT_LE( /* lhs, rhs */... )			{}			// <=
 #	define ASSERT_MSG( /* expr, msg */... )			{}
-# endif
+#endif
+
+
+// debug/dev only check in consteval function
+// must be inside 'if_consteval() {}' block
+#ifdef AE_CPP_IF_CONSTEVAL
+#	define CvAssert( ... )							{if consteval {if ( not bool{__VA_ARGS__} ) { throw 1; }}}
+#	define CvAssertMsg( _expr_, _msg_ )				{if consteval {if ( not bool{_expr_} ) { throw _msg_; }}}
+#else
+	// in consteval context runtime assert will be ignored during 'if_not_consteval()' inside the 'AE_LOGE' macros
+#	define CvAssert									ASSERT
+#	define CvAssertMsg								ASSERT_MSG
+#endif
+
+
+// debug/dev only check in constexpr function
+#ifdef __cpp_lib_is_constant_evaluated
+#	define ASSERT_Cx( /* expr */... )				{if_consteval() { CvAssert( __VA_ARGS__ ); } else { ASSERT( __VA_ARGS__ ); }}
+#	define ASSERT_MSG_Cx( _expr_, _text_ )			{if_consteval() { CvAssertMsg( (_expr_), (_text_) ); } else { ASSERT_MSG( (_expr_), (_text_) ); }}
+#else
+#	define ASSERT_Cx( /* expr */... )				{}
+#	define ASSERT_MSG_Cx( /* expr, msg */... )		{}
+#endif
 
 
 // debug/dev/ci check

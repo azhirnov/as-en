@@ -68,9 +68,9 @@
 
 		Present( rt );
 
-		DbgView( tex, ImageLayer(0), DbgViewFlags::NoCopy );
-		DbgView( tex, ImageLayer(1), DbgViewFlags::NoCopy );
-		DbgView( tex, ImageLayer(2), DbgViewFlags::NoCopy );
+	//	DbgView( tex, ImageLayer(0), DbgViewFlags::NoCopy );
+	//	DbgView( tex, ImageLayer(1), DbgViewFlags::NoCopy );
+	//	DbgView( tex, ImageLayer(2), DbgViewFlags::NoCopy );
 	}
 
 #endif

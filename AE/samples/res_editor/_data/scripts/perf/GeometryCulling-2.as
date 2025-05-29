@@ -21,13 +21,13 @@
 		Slider( dim_scale,	"DimensionScale",	0, 2, 1 );	// 1K, 2K, 4K
 		Label(  rt_dim,		"Dimension" );
 	  #endif
-
-		RC<DynamicDim>		pyramid_dim			= dim.FloorPOT();
-		RC<Image>			rt					= Image( EPixelFormat::RGBA8_UNorm, dim );						rt.Name( "RT" );
-		RC<Image>			ds					= Image( Supported_DepthFormat(), dim );						ds.Name( "Depth" );
-		RC<Image>			pyramid				= Image( EPixelFormat::R32F, pyramid_dim, MipmapLevel(~0) );	pyramid.Name( "Depth pyramid" );
-		RC<Image>			vis					= Image( EPixelFormat::RG16U, dim );							vis.Name( "Visibility buffer" );
-		RC<Image>			vis2				= Image( EPixelFormat::RGBA16F, dim );							vis2.Name( "Visibility buffer barycentrics" );
+		
+		RC<DynamicUInt2>	pyramid_dim			= rt_dim.Div(uint2(2)).NearPOT();
+		RC<Image>			rt					= Image( EPixelFormat::RGBA8_UNorm, dim );		rt.Name( "RT" );
+		RC<Image>			ds					= Image( Supported_DepthFormat(), dim );		ds.Name( "Depth" );
+		RC<Image>			pyramid				= Image( EPixelFormat::R32F, pyramid_dim.Dimension(), MipmapLevel(~0) );	pyramid.Name( "Depth pyramid" );
+		RC<Image>			vis					= Image( EPixelFormat::RG16U, dim );			vis.Name( "Visibility buffer" );
+		RC<Image>			vis2				= Image( EPixelFormat::RGBA16F, dim );			vis2.Name( "Visibility buffer barycentrics" );
 		
 		RC<Scene>			scene_direct_draw	= Scene();
 		RC<Scene>			scene_indirect_draw	= Scene();
@@ -476,8 +476,10 @@
 		Slider( obj_count,	"ObjCount",		1,	10 );
 		Slider( repeat,		"Repeat",		1,	30 );
 
+		Label( pyramid_dim,	"PyramidDim" );
 		Label( count,		"Sphere count" );
 		Label( tris_count,	"Triangles" );
+
 		RC<DynamicUInt>		vis_objects = DynamicUInt();
 		ReadBuffer( vis_objects, indirect_buf, "cmd.instanceCount" );
 		Label( vis_objects,	"Visible spheres" );
@@ -538,8 +540,15 @@
 		obj.position = QMul( QRotationY(ToRad(-45.0)), obj.position );
 
 		obj.color = packUnorm4x8( RainbowWrap( float(idx) / 5.0 ));
-
+		
+	  #if 0
 		un_Objects.elements[idx] = obj;
+	  #else
+		// fix for Metal
+		un_Objects.elements[idx].position	= obj.position;
+		un_Objects.elements[idx].scale		= obj.scale;
+		un_Objects.elements[idx].color		= obj.color;
+	  #endif
 	}
 
 #endif
@@ -549,7 +558,16 @@
 	
 	void  Main ()
 	{
+	  #if 0
 		un_IndirectCmd.cmd = DrawIndexedIndirectCommand_Create( iIndexCount );
+	  #else
+		// fix for Metal
+		un_IndirectCmd.cmd.indexCount		= iIndexCount;
+		un_IndirectCmd.cmd.instanceCount	= 1;
+		un_IndirectCmd.cmd.firstIndex		= 0;
+		un_IndirectCmd.cmd.vertexOffset		= 0;
+		un_IndirectCmd.cmd.firstInstance	= 0;
+	  #endif
 	}
 
 #endif
@@ -619,8 +637,8 @@
 		
 	#ifdef AE_shader_subgroup_ballot
 		
-		bool	is_visible	= IsVisible( idx );
-		uint	dst_idx		= 0;
+		bool	is_visible		= IsVisible( idx );
+		uint	dst_idx			= 0;
 		uint4	visible_mask	= gl.subgroup.Ballot( is_visible );
 		uint	visible_count	= gl.subgroup.BallotBitCount( visible_mask );
 

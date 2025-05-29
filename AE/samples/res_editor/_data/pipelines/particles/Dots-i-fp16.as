@@ -15,8 +15,8 @@
 		{
 			RC<ShaderStructType>	st = ShaderStructType( "io" );
 			st.Set( EStructLayout::InternalIO,
-					"half2		uv;" +
-					"half4		color;" );
+					"mediump float2		uv;" +
+					"mediump float4		color;" );
 		}{
 			RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 			ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );

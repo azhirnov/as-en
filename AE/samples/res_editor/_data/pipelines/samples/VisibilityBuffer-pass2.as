@@ -101,14 +101,14 @@
 		BarycentricDeriv	deriv		= CalcRayBary(	wpos0, wpos1, wpos2,
 														float3(GetGlobalCoordSNorm().xy, 0.0), float3(0.0),
 														MatInverse(un_PerPass.camera.view), MatInverse(un_PerPass.camera.proj),
-														2.0 / float2(GetGlobalSize().xy) );
+														2.0 * GetGlobalSizeRcp().xy );
 	# else
 		// faster
 		BarycentricDeriv	deriv		= CalcFullBary( WorldPosToClipSpace( wpos0 ),
 														WorldPosToClipSpace( wpos1 ),
 														WorldPosToClipSpace( wpos2 ),
 														GetGlobalCoordSNorm().xy,
-														2.0 / float2(GetGlobalSize().xy) );
+														2.0 * GetGlobalSizeRcp().xy );
 	# endif
 		GradientInterpolationResults uv_res = Interpolate2DWithDeriv( deriv, uv_addr.data[idx.x], uv_addr.data[idx.y], uv_addr.data[idx.z] );
 

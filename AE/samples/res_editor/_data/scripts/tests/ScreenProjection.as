@@ -58,7 +58,8 @@
 		const float		pix_to_m		= un_PerPass.mmPerPix * 0.001f;
 		const float2	screen_size		= screen_dim * pix_to_m;	// meters
 		const float		curve_radius	= 1.8f;		// meters
-		const float2	fov				= ToRad(iFOV) * float2(un_PerPass.resolution.x / un_PerPass.resolution.y, 1.0);
+		const float		aspect_ratio	= un_PerPass.resolution.x / un_PerPass.resolution.y;
+		const float2	fov				= ToRad(iFOV) * float2(aspect_ratio, 1.0);
 
 		switch ( iProj )
 		{
@@ -80,7 +81,7 @@
 			case 4 :	ray = Ray_PerspectiveFromFlatScreen( un_PerPass.camera.pos, iDistToEye, screen_size, z_near, ToSNorm(uv) ); break;
 
 			// flat screen FOV
-			case 5 :	ray = Ray_Perspective( un_PerPass.camera.pos, fov, z_near, ToSNorm(uv) );					break;
+			case 5 :	ray = Ray_Perspective( un_PerPass.camera.pos, Min( fov.y, float_Pi*0.95 ), aspect_ratio, z_near, ToSNorm(uv) );	break;
 
 			// curved screen
 			case 6 :	ray = Ray_PerspectiveFromCurvedScreen( un_PerPass.camera.pos, iDistToEye, curve_radius, screen_size, z_near, ToSNorm(uv) ); break;

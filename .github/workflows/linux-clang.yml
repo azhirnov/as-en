@@ -7,6 +7,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug, Develop, Profile, Release]
+      fail-fast: false
         
     runs-on: ubuntu-24.04
     name: Linux x64, Clang 16, ${{matrix.config}}
@@ -18,7 +19,7 @@ jobs:
     - name: Configure dependencies
       run: |
         sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libudev-dev \
           libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
           libxkbcommon-dev libc++-dev libc++abi-dev \
           mesa-vulkan-drivers libvulkan1 vulkan-validationlayers
@@ -50,9 +51,9 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         mkdir _res_editor
-        cp -TR "${{github.workspace}}/AE-Temp/samples/res_editor" "_res_editor/ui"
-        cp -TR "${{github.workspace}}/AE/samples/res_editor/_data" "_res_editor/data"
-        cp -TR "${{github.workspace}}/AE/engine/shared_data" "_res_editor/shared_data"
+        cp -R "${{github.workspace}}/AE-Temp/samples/res_editor" "_res_editor/ui"
+        cp -R "${{github.workspace}}/AE/samples/res_editor/_data" "_res_editor/data"
+        cp -R "${{github.workspace}}/AE/engine/shared_data" "_res_editor/shared_data"
         cp "${{github.workspace}}/_build/bin/ResourceEditor" "_res_editor"
         cp "${{github.workspace}}/AE/build_scripts/utils-unix/download-resources.sh" "_res_editor"
       
@@ -144,6 +145,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug]
+      fail-fast: false
         
     runs-on: ubuntu-24.04
     name: Linux x64, Clang 16, C++17, ${{matrix.config}}
@@ -155,7 +157,7 @@ jobs:
     - name: Configure dependencies
       run: |
         sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libudev-dev \
           libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
           libxkbcommon-dev libc++-dev libc++abi-dev
  
@@ -223,6 +225,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug]
+      fail-fast: false
         
     runs-on: ubuntu-24.04
     name: Linux x64, Clang 16, C++20, ${{matrix.config}}
@@ -234,7 +237,7 @@ jobs:
     - name: Configure dependencies
       run: |
         sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libudev-dev \
           libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
           libxkbcommon-dev libc++-dev libc++abi-dev
  
@@ -302,6 +305,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug, Profile]
+      fail-fast: false
         
     runs-on: ubuntu-24.04
     name: Linux x64, Clang 16, ${{matrix.config}}, RemoteGraphics
@@ -313,7 +317,7 @@ jobs:
     - name: Configure dependencies
       run: |
         sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libudev-dev \
           libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
           libxkbcommon-dev libc++-dev libc++abi-dev
  
@@ -344,9 +348,9 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         mkdir _res_editor
-        cp -TR "${{github.workspace}}/AE-Temp/samples/res_editor" "_res_editor/ui"
-        cp -TR "${{github.workspace}}/AE/samples/res_editor/_data" "_res_editor/data"
-        cp -TR "${{github.workspace}}/AE/engine/shared_data" "_res_editor/shared_data"
+        cp -R "${{github.workspace}}/AE-Temp/samples/res_editor" "_res_editor/ui"
+        cp -R "${{github.workspace}}/AE/samples/res_editor/_data" "_res_editor/data"
+        cp -R "${{github.workspace}}/AE/engine/shared_data" "_res_editor/shared_data"
         cp "${{github.workspace}}/_build/bin/ResourceEditor" "_res_editor"
         cp "${{github.workspace}}/AE/build_scripts/utils-unix/download-resources.sh" "_res_editor"
       

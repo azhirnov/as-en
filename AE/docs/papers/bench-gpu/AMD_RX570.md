@@ -310,3 +310,41 @@ TODO
 ## Texture cache
 TODO
 
+
+## Nonuniform
+
+* __depth pre-pass__ [[14.2](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
+	dpp = 0.4ms, 
+	Scale=0.6, Dim=2K, ObjCount=4K<br/>
+	**Texture bias doesn't work with nonuniform! Nonuniform access sometimes has flickering!**
+	 
+	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
+	|-------------------------|-----------------|---------------|---------------|----------------|
+	| texture layer           | 2.4             | 2.4           | 2.4           | 2.4            |
+	| texture index           | 19              | 19.5          | 19.5          | 19.5           |
+	| texture & sampler index | 19              | 19.5          | 19.5          | 19.5           |
+
+* __visibility buffer__ [[14.3](../GPU_Benchmarks.md#14-Nonuniform)]<br/>
+	visibility buffer build = 1.15ms<br/>
+	visibility buffer FS overhead = 0.52ms<br/>
+	Scale=0.6, Dim=2K, ObjCount=4K, TexDim=1024<br/>
+	**Texture bias doesn't work with nonuniform! Nonuniform access sometimes has flickering!**
+
+	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
+	|-------------------------|-----------------|---------------|---------------|----------------|
+	| texture layer           | 1.45            | 1.6           | 1.54          | 1.52           |
+	| texture index           | 3.25            | 3.25          | 3.8           | 3.83           |
+	| texture & sampler index | 3.25            | 3.25          | 3.8           | 3.83           |
+	
+* __visibility buffer__ v2
+	visibility buffer build = 3.8ms<br/>
+	visibility buffer FS overhead ms<br/>
+	Scale=1.0, Dim=4K, ObjCount=4K, TexDim=64<br/>
+	**Textures stored in cache and nonuniform access is fast and correct.**
+
+	| nonuniform              | per object (ms) | per warp (ms) | per quad (ms) | per pixel (ms) |
+	|-------------------------|-----------------|---------------|---------------|----------------|
+	| texture layer           | 5.74            | 6.35          | 6.13          | 6.24           |
+	| texture index           | 5.84            | 6.43          | 7.40          | 11.2           |
+	| texture & sampler index | 5.89            | 6.49          | 7.41          | 11.25          |
+

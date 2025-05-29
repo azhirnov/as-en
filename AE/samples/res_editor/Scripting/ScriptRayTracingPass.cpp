@@ -34,11 +34,11 @@ namespace
 	}
 
 	static void  RTShader_Ctor1 (OUT void* mem, const String &filename) {
-		PlacementNew<RTShader>( OUT mem, filename, "" );
+		::new( OUT mem ) RTShader{ filename, "" };
 	}
 
 	static void  RTShader_Ctor2 (OUT void* mem, const String &filename, const String &defines) {
-		PlacementNew<RTShader>( OUT mem, filename, defines );
+		::new( OUT mem ) RTShader{ filename, defines };
 	}
 
 } // namespace
@@ -702,7 +702,7 @@ namespace AE::ResEditor
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 
-		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 4 );
+		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 5 );
 
 		_CompilePipeline3( header, "raytrace", uint(sh_opt), ppln_opt );
 

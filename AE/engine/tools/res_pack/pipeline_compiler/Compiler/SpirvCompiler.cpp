@@ -1285,7 +1285,7 @@ namespace AE::PipelineCompiler
 			case TLayoutFormat::ElfRgba8Snorm :		return EPixelFormat::RGBA8_SNorm;
 			case TLayoutFormat::ElfRg32f :			return EPixelFormat::RG32F;
 			case TLayoutFormat::ElfRg16f :			return EPixelFormat::RG16F;
-			case TLayoutFormat::ElfR11fG11fB10f :	return EPixelFormat::RGB_11_11_10F;
+			case TLayoutFormat::ElfR11fG11fB10f :	return EPixelFormat::R11G11B10F;
 			case TLayoutFormat::ElfR16f :			return EPixelFormat::R16F;
 			case TLayoutFormat::ElfRgba16 :			return EPixelFormat::RGBA16_UNorm;
 			case TLayoutFormat::ElfRgb10A2 :		return EPixelFormat::RGB10_A2_UNorm;

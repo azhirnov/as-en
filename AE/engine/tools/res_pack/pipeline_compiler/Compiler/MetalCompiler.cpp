@@ -116,14 +116,15 @@ namespace
 			const auto	msl		= EShaderVersion_Ver2( cfg.version );
 			const bool	is_mac	= AllBits( cfg.version, EShaderVersion::_Metal_Mac, EShaderVersion::_Mask );
 			const bool	is_ios	= AllBits( cfg.version, EShaderVersion::_Metal_iOS, EShaderVersion::_Mask );
+			const bool	is_msl3	= (cfg.version >= EShaderVersion::Metal_3_0 and cfg.version <= EShaderVersion::_Metal_Last);
 
 			CHECK_ERR(( msl >= Version2{2,0} ));
-			CHECK_ERR( is_mac != is_ios );
+			CHECK_ERR( is_msl3 or is_mac != is_ios );
 
 			options.set_msl_version( msl.major, msl.minor );
-			options.platform	= is_mac ?	EPlatform::macOS :
-								  is_ios ?	EPlatform::iOS   :
-											EPlatform(0xFF);
+			options.platform	= is_mac or is_msl3 ?	EPlatform::macOS :
+								  is_ios ?				EPlatform::iOS   :
+														EPlatform(0xFF);
 
 			options.texture_buffer_native					= (msl >= Version2{2,1});
 			options.argument_buffers						= cfg.useArgBuffer;
@@ -271,14 +272,23 @@ namespace
 
 			String			output;
 			WindowsProcess	proc;
+			bool			is_compiled;
 			CHECK_ERR( proc.ExecuteAsync( cmd, EFlags::ReadOutput | EFlags::NoWindow ));
-			CHECK_ERR( proc.WaitAndClose( OUT output, seconds{60*10} ));
+			CHECK_ERR( proc.WaitAndClose( OUT output, OUT is_compiled, seconds{60} ));
 
 			if ( not output.empty() )
 			{
 				if ( not _ParseOutput( in, output, tmp_shader_name, OUT log ) or not FileSystem::IsFile( out_name ))
+				{
+					ASSERT( not is_compiled );
 					return false;
+				}
+
+				ASSERT( is_compiled );
 			}
+
+			if ( not is_compiled )
+				return false;  // failed to compile, but log is empty
 		}
 
 		// read bytecode

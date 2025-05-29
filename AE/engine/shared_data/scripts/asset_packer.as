@@ -169,7 +169,7 @@ enum class EPixelFormat : uint8
 	RG32F,
 	RGB32F,
 	RGBA32F,
-	RGB_11_11_10F,
+	R11G11B10F,
 	RGB9F_E5,
 	Depth16,
 	Depth24,

@@ -1866,7 +1866,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0x4a4fcdabf6cd5725ull};
+		return HashVal64{0xaed9cdabf6cd9bf0ull};
 	}
 
 

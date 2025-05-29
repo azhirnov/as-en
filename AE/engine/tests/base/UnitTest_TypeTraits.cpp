@@ -342,12 +342,18 @@ namespace
 
 	
 #ifdef __cpp_lib_is_constant_evaluated
-	ND_ static constexpr bool  CxFunction (uint value)
+	ND_ static constexpr bool  CxFunction (uint value) __NE___
 	{
-		if ( IsConstEvaluated() )
+		ASSERT_Cx( value != 3 );
+		if_consteval()
+		{
+			CvAssert( value != 0 );
+			//CvAssert( value == 0 );	// must be compile-time error
 			return value == 1;
-		else
+		}else{
+			ASSERT( value != 0 );
 			return value == 2;
+		}
 	}
 
 	static void  Test_IsConstEvaluated ()
@@ -361,6 +367,15 @@ namespace
 
 		const bool	b = fn( *tmp2 );
 		TEST( b );
+
+		#if 0
+			constexpr bool	c = CxFunction( 3 );	// must be compile-time error
+		#endif
+		#if 0
+			tmp1 = 3;
+			const bool	d = fn( *tmp2 );			// must be runtime error
+			TEST( not d );
+		#endif
 	}
 #endif
 }

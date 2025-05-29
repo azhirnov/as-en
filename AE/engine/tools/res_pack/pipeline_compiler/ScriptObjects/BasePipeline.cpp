@@ -686,10 +686,18 @@ namespace
 		const uint	min_spirv	= sh_ver.spirv;
 		const uint	min_metal	= sh_ver.metal;
 
+		const auto	ToShVer		= [] (uint ver)
+		{{
+			uint	major = ver / 100;
+			uint	minor = (ver / 10) % 10;
+			CHECK( major <= 0xF and minor <= 0xF );
+			return EShaderVersion( (major << 4) | minor );
+		}};
+
 		if ( min_spirv != UMax )
 		{
 			ASSERT( min_spirv >= 100 and min_spirv <= 150 );
-			return EShaderVersion(min_spirv) | EShaderVersion::_SPIRV;
+			return ToShVer( min_spirv ) | EShaderVersion::_SPIRV;
 		}
 
 		if ( target == ECompilationTarget::Vulkan )
@@ -700,7 +708,7 @@ namespace
 			if ( min_metal != UMax )
 			{
 				ASSERT( min_metal >= 200 and min_metal <= 240 );
-				return EShaderVersion(min_metal) | EShaderVersion::_Metal_iOS;
+				return ToShVer( min_metal ) | EShaderVersion::_Metal_iOS;
 			}
 			return EShaderVersion::Metal_iOS_2_0;
 		}
@@ -710,7 +718,7 @@ namespace
 			if ( min_metal != UMax )
 			{
 				ASSERT( min_metal >= 200 and min_metal <= 240 );
-				return EShaderVersion(min_metal) | EShaderVersion::_Metal_Mac;
+				return ToShVer( min_metal ) | EShaderVersion::_Metal_Mac;
 			}
 			return EShaderVersion::Metal_Mac_2_0;
 		}

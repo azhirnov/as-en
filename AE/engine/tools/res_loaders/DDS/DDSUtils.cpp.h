@@ -232,7 +232,7 @@ namespace AE::ResLoader
 		_visit_( DXGI_FORMAT_D32_FLOAT_S8X24_UINT,		EPixelFormat::Depth24 ) \
 		_visit_( DXGI_FORMAT_R10G10B10A2_UNORM,			EPixelFormat::RGB10_A2_UNorm ) \
 		_visit_( DXGI_FORMAT_R10G10B10A2_UINT,			EPixelFormat::RGB10_A2U ) \
-		_visit_( DXGI_FORMAT_R11G11B10_FLOAT,			EPixelFormat::RGB_11_11_10F ) \
+		_visit_( DXGI_FORMAT_R11G11B10_FLOAT,			EPixelFormat::R11G11B10F ) \
 		_visit_( DXGI_FORMAT_R8G8B8A8_UNORM,			EPixelFormat::RGBA8_UNorm ) \
 		_visit_( DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,		EPixelFormat::sRGB8_A8 ) \
 		_visit_( DXGI_FORMAT_R8G8B8A8_UINT,				EPixelFormat::RGBA8U ) \

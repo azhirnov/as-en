@@ -60,6 +60,9 @@ namespace AE::Base
 
 		bool  WaitAndClose (milliseconds timeout = _DefTimeout);
 		bool  WaitAndClose (INOUT String &output, milliseconds timeout = _DefTimeout);
+		
+		bool  WaitAndClose (OUT bool &isSuccess, milliseconds timeout = _DefTimeout);
+		bool  WaitAndClose (INOUT String &output, OUT bool &isSuccess, milliseconds timeout = _DefTimeout);
 
 		bool  ReadOutput (INOUT String &output);
 
@@ -71,6 +74,8 @@ namespace AE::Base
 	private:
 		template <typename T>
 		bool  _ExecuteAsync (BasicString<T> &commandLine, const Path* currentDir, EFlags flags);
+
+		bool  _WaitAndClose (INOUT String *output, OUT bool &isSuccess, milliseconds timeout);
 	};
 
 	AE_BIT_OPERATORS( WindowsProcess::EFlags );

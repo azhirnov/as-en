@@ -134,7 +134,7 @@ namespace AE
 
 #ifdef AE_ENABLE_LOGS
 # define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ )							\
-	if ( not IsConstEvaluated() ) {																						\
+	if_not_consteval () {																								\
 		TRY{																											\
 			{switch_enum( AE::Base::StaticLogger::Process(	std::string_view{_msg_}, (AE_FUNCTION_NAME),				\
 															std::string_view{_file_}, (_line_), (_level_), (_scope_) ))	\

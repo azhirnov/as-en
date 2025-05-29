@@ -78,6 +78,8 @@ public:
 
 			_LoadAndRun( "libTestsAtlasTools.so",		"Tests_AtlasTools",		cache_path.c_str() );
 			_LoadAndRun( "libTestsGeometryTools.so",	"Tests_GeometryTools",	cache_path.c_str() );
+
+		//	_LoadAndRun( "libNetworkStressTest.so",		"Tests_NetworkStressTest", cache_path.c_str() );
 		}
 		AE_LOGI( "<< Tests complete" );
 

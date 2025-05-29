@@ -14,7 +14,7 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>		rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );
+		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<Buffer>		id_buf		= Buffer();
 		RC<DynamicUInt>	row_count	= DynamicUInt();
 		const uint		local_size	= 32;	// TODO: get subgroup size
@@ -60,10 +60,12 @@
 
 	void  Main ()
 	{
-		const int	idx	= GetGlobalIndex();
-		float		x	= DHash11( GetGlobalCoordUNorm().x * 100.0 );
+		const int	idx		= GetGlobalIndex();
+		const uint	off		= GetGlobalIndexSize();
+		float		x		= DHash11( GetGlobalCoordUNorm().x * 100.0 );
 
 		un_IdBuf.elements[idx].id = (x < iDensity ? idx : -1);
+		un_IdBuf.elements[idx + off].id = -1;
 	}
 
 #endif
@@ -81,16 +83,11 @@
 		int			src1_id	= un_IdBuf.elements[ src_idx + 1 ].id;
 		int			src2_id	= un_IdBuf.elements[ src_idx + 2 ].id;
 		int			src3_id	= un_IdBuf.elements[ src_idx + 3 ].id;
-		
-		un_IdBuf.elements[ src_idx + off + 0 ].id = -1;
-		un_IdBuf.elements[ src_idx + off + 1 ].id = -1;
-		un_IdBuf.elements[ src_idx + off + 2 ].id = -1;
-		un_IdBuf.elements[ src_idx + off + 3 ].id = -1;
 
 		const uint	cnt		= uint(src0_id >= 0) + uint(src1_id >= 0) + uint(src2_id >= 0) + uint(src3_id >= 0);
-		uint		i		= gl.subgroup.ExclusiveAdd( cnt );
 		
-		gl.subgroup.ExecutionBarrier();
+		// builtin prefix sum
+		uint		i		= gl.subgroup.ExclusiveAdd( cnt );
 
 		if ( src0_id >= 0 )	un_IdBuf.elements[ dst_off + i++ ].id = src0_id;
 		if ( src1_id >= 0 )	un_IdBuf.elements[ dst_off + i++ ].id = src1_id;

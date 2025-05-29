@@ -101,9 +101,9 @@
 		uint	tex1_id;	float2	tex1_uv;	RandomTexID( 0.72, 0.00, In.texId+2, OUT tex1_id, OUT tex1_uv );
 		uint	tex2_id;	float2	tex2_uv;	RandomTexID( 0.58, 0.81, In.texId+5, OUT tex2_id, OUT tex2_uv );
 
-		out_Color  = gl.texture.Sample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex0_id)], un_Sampler ), tex0_uv );
-		out_Color += gl.texture.Sample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex1_id)], un_Sampler ), tex1_uv );
-		out_Color += gl.texture.Sample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex2_id)], un_Sampler ), tex2_uv );
+		out_Color  = gl.texture.Sample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex0_id], un_Sampler )), tex0_uv );
+		out_Color += gl.texture.Sample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex1_id], un_Sampler )), tex1_uv );
+		out_Color += gl.texture.Sample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex2_id], un_Sampler )), tex2_uv );
 		out_Color /= 3.0;
 
 		if ( iShowHelpInvoc == 1 )

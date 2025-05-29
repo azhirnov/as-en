@@ -439,7 +439,7 @@ namespace
 						else
 							str << "\n  CombinedImage '" << arg.name << "' with immutable sampler '" << arg.samplerName << "'";
 					},
-					[&] (ScriptVideoImagePtr video) {
+					[&] (ScriptVideoImagePtr) {
 						str << "\n  CombinedImage '" << arg.name << "' with immutable sampler '" << arg.samplerName << "'";
 					},
 					[&] (ScriptRTScenePtr) {

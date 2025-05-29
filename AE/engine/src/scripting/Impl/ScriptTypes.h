@@ -403,7 +403,7 @@ namespace AE::Scripting
 		template <typename T>
 		static void  Constructor (AngelScript::asIScriptGeneric* gen)
 		{
-			PlacementNew<T>( OUT gen->GetObject() );	// throw
+			::new( OUT gen->GetObject() ) T{};	// throw
 		}
 
 
@@ -413,7 +413,7 @@ namespace AE::Scripting
 			T const*	src = static_cast< const T *>( gen->GetArgObject(0) );
 			void*		dst = gen->GetObject();
 			NonNull( src );
-			PlacementNew<T>( OUT dst, *src );	// throw
+			::new( OUT dst ) T{ *src };	// throw
 		}
 
 
@@ -436,7 +436,7 @@ namespace AE::Scripting
 			NonNull( dst );
 
 			dst->~T();
-			PlacementNew<T>( OUT dst, *src );	// throw
+			::new( OUT dst ) T{ *src };	// throw
 		}
 
 	}; // AngelScriptHelper

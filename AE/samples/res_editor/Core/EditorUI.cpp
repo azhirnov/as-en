@@ -834,6 +834,12 @@ namespace
 			if ( bool pipe_internal = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation );
 				 ImGui::Checkbox( "Pipeline internal representation", INOUT &pipe_internal ))
 				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CaptureInternalRepresentation, pipe_internal );
+			
+		  #if defined(AE_PLATFORM_WINDOWS) and defined(AE_METAL_TOOLS)
+			if ( bool msl = g_mode->shaderFlags.contains( UIInteraction::EShaderFlags::CompileMSL );
+				 ImGui::Checkbox( "Compile MSL", INOUT &msl ))
+				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CompileMSL, msl );
+		  #endif
 		}
 	}
 
@@ -866,14 +872,14 @@ namespace
 
 		if ( ImGui::TreeNodeEx( "Statistic", ImGuiTreeNodeFlags_DefaultOpen ))
 		{
-			const auto	ColoredButton = [] (RGBA32f col)
+			const auto	ColoredButton = [] (RGBA32f col, const char* label)
 			{{
 				float	h	= ImGui::GetTextLineHeight();
 				col.a = 1.f;
 				ImGui::PushStyleColor( ImGuiCol_Button,			col );
 				ImGui::PushStyleColor( ImGuiCol_ButtonHovered,	col );
 				ImGui::PushStyleColor( ImGuiCol_ButtonActive,	col );
-				ImGui::Button( "##PixelColor", ImVec2{h,h} );
+				ImGui::Button( label, ImVec2{h,h} );
 				ImGui::PopStyleColor(3);
 			}};
 			const auto	sp = s_UIInteraction.selectedPixel.Read();
@@ -883,18 +889,18 @@ namespace
 
 			ImGui::Text( "raw color:   %s", ToString( sp.color, 3 ).c_str() );
 			ImGui::SameLine();
-			ColoredButton( sp.color );
+			ColoredButton( sp.color, "##RawPixelColor" );
 			ImGui::Separator();
 
 			RGBA32f	col1 = ApplySRGBCurve( Saturate( sp.color ));
 			ImGui::Text( "apply sRGB:  %s", ToString( col1, 3 ).c_str() );
 			ImGui::SameLine();
-			ColoredButton( col1 );
+			ColoredButton( col1, "##sRGBPixelColor" );
 
 			RGBA32f	col2 = RemoveSRGBCurve( Saturate( sp.color ));
 			ImGui::Text( "remove sRGB: %s", ToString( col2, 3 ).c_str() );
 			ImGui::SameLine();
-			ColoredButton( col2 );
+			ColoredButton( col2, "##LinearPixelColor" );
 
 			ImGui::TreePop();
 			ImGui::Separator();

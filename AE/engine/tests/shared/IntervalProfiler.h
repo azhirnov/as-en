@@ -315,6 +315,8 @@ inline void  IntervalProfiler::_FormatTable (ArrayView<String> lines, INOUT Stri
 		for (uint j = 0; j < max_cols; ++j)
 		{
 			StringView	part = SubString2( line, prev, sizes[j] );
+			ASSERT( not part.empty() );
+
 			str << part;
 
 			AppendToString( INOUT str, usize{max_sizes[j]} - part.size() );
@@ -322,7 +324,7 @@ inline void  IntervalProfiler::_FormatTable (ArrayView<String> lines, INOUT Stri
 			str << " | ";
 			prev = sizes[j] + 1;
 
-			if ( sizes[j] >= line.size() )
+			if ( prev >= line.size() )
 				break;
 		}
 	}

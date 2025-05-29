@@ -13,7 +13,7 @@ namespace AE::ResEditor
 */
 	DefaultResources::DefaultResources () :
 		_dtQueue{ MakeRC<DataTransferQueue>() },
-		_pageSize{ 64_MiB }		// TODO: set 16
+		_pageSize{ 16_MiB }
 	{
 		auto&	rts = GraphicsScheduler();
 
@@ -21,6 +21,9 @@ namespace AE::ResEditor
 			auto	mem_info = rts.GetDevice().GetMemoryInfo();
 			_gpuMemSize = mem_info.deviceTotal + mem_info.unifiedTotal;
 		}
+
+		if ( _gpuMemSize >= 4_GiB )
+			_pageSize = 64_MiB;
 
 		_gfxLinearAlloc	= rts.GetResourceManager().CreateLinearGfxMemAllocator( _pageSize );
 		_gfxLargeAlloc	= rts.GetResourceManager().CreateLargeSizeGfxMemAllocator();

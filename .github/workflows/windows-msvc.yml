@@ -7,6 +7,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug, Develop, Profile, Release]
+      fail-fast: false
     
     runs-on: windows-latest
     name: Windows x64, VS17, ${{matrix.config}}
@@ -148,6 +149,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug, Develop, Profile, Release]
+      fail-fast: false
     
     runs-on: windows-latest
     name: Windows x64, VS17, ${{matrix.config}}, RemoteGraphics
@@ -196,6 +198,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug]
+      fail-fast: false
     
     runs-on: windows-latest
     name: Windows x64, VS17, C++17, ${{matrix.config}}
@@ -262,6 +265,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug]
+      fail-fast: false
     
     runs-on: windows-latest
     name: Windows x64, VS17, C++20, ${{matrix.config}}

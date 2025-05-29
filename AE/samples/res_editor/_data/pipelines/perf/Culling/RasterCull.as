@@ -82,14 +82,29 @@
 
 	void Main ()
 	{
-	  #if 0
-		float	z = gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), iLod ).r;
-		if ( z > gl.FragCoord.z )
-			return;
-	  #endif
+	#if 1
 
 		// atomic is not needed, see [gl_occlusion_culling](https://github.com/nvpro-samples/gl_occlusion_culling)
 		un_VisFlags.elements[ In.objId ].visible = 1;
+
+	#else
+
+		// waterfall loop
+		for (;;)
+		{
+			uint	id = gl.subgroup.BroadcastFirst( In.objId );
+			
+			[[branch]]
+			if ( id == In.objId )
+			{
+				if ( gl.subgroup.Elect() )
+					un_VisFlags.elements[ In.objId ].visible = 1;
+
+				break;
+			}
+		}
+
+	#endif
 	}
 
 #endif

@@ -37,7 +37,7 @@
 		Label(  tex_dim,	"Dimension" );
 	  #endif
 		
-		EPixelFormat		fmt			= EPixelFormat::R16F;	// R16F or R32F
+		EPixelFormat		fmt			= EPixelFormat::R32F;	// R16_UNorm or R32F
 		RC<Image>			mipmaps		= Image( fmt, dim, MipmapLevel(~0) );				mipmaps.Name( "Mipmapped" );
 		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );	rt.Name( "RT" );
 		RC<DynamicUInt>		repeat		= DynamicUInt();
@@ -47,7 +47,7 @@
 		Slider( repeat,		"Repeat",	1,	30 );
 		
 		if ( not gfx_only )
-			Slider( raster,		"Raster",	0,	1 );
+			Slider( raster,		"Gfx",	0,	1 );
 
 		// render loop //
 

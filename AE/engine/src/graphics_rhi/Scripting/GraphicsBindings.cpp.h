@@ -1467,7 +1467,7 @@ namespace
 =================================================
 */
 	static void  MipmapLevel_Ctor (void* mem, uint level) {
-		PlacementNew<MipmapLevel>( OUT mem, ushort(level) );
+		PlacementNew<MipmapLevel>( OUT mem, ubyte(level) );
 	}
 
 	static void  Bind_MipmapLevel (const ScriptEnginePtr &se) __Th___

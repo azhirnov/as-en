@@ -108,6 +108,7 @@ namespace AE::ResEditor
 			Optimize,
 			CaptureStatistics,
 			CaptureInternalRepresentation,
+			CompileMSL,
 			_Count
 		};
 

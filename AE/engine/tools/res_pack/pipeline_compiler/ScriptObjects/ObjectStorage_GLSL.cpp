@@ -57,7 +57,8 @@ namespace AE::PipelineCompiler
 			Version2	max_spv_ver;
 			header = GetShaderExtensionsGLSL( INOUT max_spv_ver, EShaderStages::Unknown | info.type, AllBits( info.options, EShaderOpt::DebugInfo ), features);
 
-			CHECK_THROW_MSG( EShaderVersion_Ver2( info.version ) <= max_spv_ver );
+			Version2	req_spv_ver = EShaderVersion_Ver2( info.version );
+			CHECK_THROW_MSG( req_spv_ver <= max_spv_ver );
 
 			header << "\n#define " << ShaderToStr( info.type ) << " 1\n";
 			header << "#define ND_\n";
@@ -869,6 +870,10 @@ namespace AE::PipelineCompiler
 		}
 
 		ext << '\n' << def << '\n';
+
+		ext << "precision highp int;\n"
+			<< "precision highp float;\n\n";
+
 		return ext;
 	}
 
@@ -967,6 +972,7 @@ namespace AE::PipelineCompiler
 
 				if ( not metalCompiler->Compile( in, OUT mtbc, OUT log ))
 				{
+					AE_LOGI( "MSL shader source:\n"s << msl );
 					CHECK_THROW_MSG( false, "Failed to compile shader:\n"s << log );
 				}
 
@@ -1012,14 +1018,16 @@ namespace AE::PipelineCompiler
 		else
 		if ( target == ECompilationTarget::Metal_iOS )
 		{
-			CHECK_THROW_MSG( AllBits( sprvToMslVersion, EShaderVersion::_Metal_iOS, EShaderVersion::_Mask ));
+			CHECK_THROW_MSG( AllBits( sprvToMslVersion, EShaderVersion::_Metal_iOS, EShaderVersion::_Mask ) or
+							 (sprvToMslVersion >= EShaderVersion::Metal_3_0 and sprvToMslVersion <= EShaderVersion::_Metal_Last));
 
 			outShader = ToMetalBytecode( &PipelineStorage::AddMsliOSShader );
 		}
 		else
 		if ( target == ECompilationTarget::Metal_Mac )
 		{
-			CHECK_THROW_MSG( AllBits( sprvToMslVersion, EShaderVersion::_Metal_Mac, EShaderVersion::_Mask ));
+			CHECK_THROW_MSG( AllBits( sprvToMslVersion, EShaderVersion::_Metal_Mac, EShaderVersion::_Mask ) or
+							 (sprvToMslVersion >= EShaderVersion::Metal_3_0 and sprvToMslVersion <= EShaderVersion::_Metal_Last) );
 
 			outShader = ToMetalBytecode( &PipelineStorage::AddMslMacShader );
 		}

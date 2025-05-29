@@ -235,68 +235,93 @@ namespace AE::Base
 	WaitAndClose
 =================================================
 */
-	bool  WindowsProcess::WaitAndClose (const milliseconds inTimeout)
+	bool  WindowsProcess::WaitAndClose (milliseconds timeout)
 	{
-		if ( _thread == null or _process == null )
-			return true;
+		bool	ok;
+		return _WaitAndClose( null, OUT ok, timeout );
+	}
 
-		bool		result	= false;
-		const DWORD	timeout	= (inTimeout.count() >= INFINITE ? INFINITE : DWORD(inTimeout.count()));
+	bool  WindowsProcess::WaitAndClose (INOUT String &output, milliseconds timeout)
+	{
+		bool	ok;
+		return _WaitAndClose( INOUT &output, OUT ok, timeout );
+	}
+	
+	bool  WindowsProcess::WaitAndClose (OUT bool &isSuccess, milliseconds timeout)
+	{
+		return _WaitAndClose( null, OUT isSuccess, timeout );
+	}
 
-		if ( ::WaitForSingleObject( _thread, timeout ) == WAIT_OBJECT_0 )	// winxp
-		{
-			DWORD process_exit;
-			::GetExitCodeProcess( _process, OUT &process_exit );	// winxp
-
-			ASSERT( process_exit != STILL_ACTIVE );
-			result = true;
-		}
-
-		::CloseHandle( _thread );
-		::CloseHandle( _process );
-
-		if ( _streamOutRead )
-			::CloseHandle( _streamOutRead );
-
-		if ( _streamInWrite != null )
-			::CloseHandle( _streamInWrite );
-
-		_thread			= null;
-		_process		= null;
-		_streamOutRead	= null;
-		_streamInWrite	= null;
-		_flags			= Default;
-
-		return result;
+	bool  WindowsProcess::WaitAndClose (INOUT String &output, OUT bool &isSuccess, milliseconds timeout)
+	{
+		return _WaitAndClose( INOUT &output, OUT isSuccess, timeout );
 	}
 
 /*
 =================================================
-	WaitAndClose
+	_WaitAndClose
 =================================================
 */
-	bool  WindowsProcess::WaitAndClose (INOUT String &output, const milliseconds inTimeout)
+	bool  WindowsProcess::_WaitAndClose (INOUT String *output, OUT bool &isSuccess, const milliseconds inTimeout)
 	{
+		using TimePoint_t = std::chrono::high_resolution_clock::time_point;
+
+		isSuccess = false;
+
 		if ( _thread == null or _process == null )
 			return true;
-
-		bool		result	= false;
-		const DWORD	timeout	= (inTimeout.count() >= INFINITE ? INFINITE : DWORD(inTimeout.count()));
-
-		if ( ::WaitForSingleObject( _thread, timeout ) == WAIT_OBJECT_0 )	// winxp
+		
+		if ( output != null )
 		{
+			ASSERT( AllBits( _flags, EFlags::ReadOutput ));
+			ASSERT( _streamOutRead != null );
+		}
+
+		const DWORD			timeout		= 15;
+		const TimePoint_t	end_time	= TimePoint_t::clock::now() + inTimeout;
+
+		for (;;)
+		{
+			const auto	tp = TimePoint_t::clock::now();
+			if_unlikely( tp >= end_time )
+				return false;	// time is out
+
+			::Sleep( timeout );
+
 			DWORD process_exit;
 			::GetExitCodeProcess( _process, OUT &process_exit );	// winxp
+			
+			// process may be blocked by buffer overflow, need to read output and wait
+			if ( process_exit == STILL_ACTIVE and _streamOutRead != null )
+			{
+				CHAR	buf [_BufSize];
+				for (;;)
+				{
+					DWORD	readn;
+					BOOL	success = ::ReadFile( _streamOutRead, buf, DWORD(CountOf(buf)), OUT &readn, null );
 
-			ASSERT( process_exit != STILL_ACTIVE );
-			result = true;
+					if ( not success or readn == 0 )
+						break;
+
+					if_likely( output != null )
+						*output << StringView{ buf, readn };
+				}
+				continue;
+			}
+
+			if ( ::WaitForSingleObject( _thread, timeout ) == WAIT_OBJECT_0 )	// winxp
+			{
+				// thread is complete
+				ASSERT( AnyEqual( process_exit, 0u, 1u ));
+				isSuccess = (process_exit == 0);
+				break;
+			}
 		}
 
 		::CloseHandle( _thread );
 		::CloseHandle( _process );
 
-		ASSERT( AllBits( _flags, EFlags::ReadOutput ));
-
+		// read last output
 		if ( _streamOutRead != null )
 		{
 			CHAR	buf [_BufSize];
@@ -307,8 +332,9 @@ namespace AE::Base
 
 				if ( not success or readn == 0 )
 					break;
-
-				output << StringView{ buf, readn };
+				
+				if_likely( output != null )
+					*output << StringView{ buf, readn };
 			}
 			::CloseHandle( _streamOutRead );
 		}
@@ -322,7 +348,7 @@ namespace AE::Base
 		_streamInWrite	= null;
 		_flags			= Default;
 
-		return result;
+		return true;
 	}
 
 /*

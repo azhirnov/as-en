@@ -21,7 +21,7 @@
 		RC<DynamicDim>	dim = DynamicDim( uint3(1324, 1024, 1) );
 
 		RC<Image>		mipmaps		= Image( EPixelFormat::RGBA8_UNorm, dim, MipmapLevel(~0) );	mipmaps.Name( "Mipmapped" );
-		RC<Image>		rt			= Image( EPixelFormat::RGBA16F, dim );						rt.Name( "RT" );
+		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, dim );					rt.Name( "RT" );
 		RC<DynamicUInt>	raster		= DynamicUInt();
 		RC<DynamicUInt>	reduction	= DynamicUInt();
 		RC<DynamicUInt>	mode		= raster.Add( reduction.Mul(2) );
@@ -29,7 +29,7 @@
 		if ( GetFeatureSet().hasSamplerFilterMinmax() )
 			Slider( reduction,	"UseReduction",		0,	1 );
 
-		Slider( raster,	"Raster",	0,	1 );
+		Slider( raster,	"Gfx",	0,	1 );
 
 		// render loop
 		{

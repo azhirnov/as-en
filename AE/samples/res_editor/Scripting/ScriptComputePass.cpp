@@ -551,7 +551,7 @@ namespace AE::ResEditor
 		if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 			ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 
-		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 4 );
+		StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 5 );
 
 		_CompilePipeline3( cs, cs_line, "compute", uint(sh_opt), ppln_opt );
 

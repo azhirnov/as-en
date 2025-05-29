@@ -375,7 +375,7 @@ if ( MSVC )
 		# errors
 		/we4002 /we4099 /we4129 /we4130 /we4172 /we4201 /we4238 /we4239 /we4240 /we4251 /we4263 /we4264 /we4266 /we4273 /we4293
 		/we4305 /we4390 /we4455 /we4456 /we4457 /we4458 /we4459 /we4473 /we4474 /we4522 /we4552 /we4553 /we4554 /we4700 /we4706 /we4715 /we4716 /we4717
-		/we4927 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584 /we4566 /we4033
+		/we4927 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584 /we4566 /we4033 /we5063
 		# disable warnings
 		/wd4061 /wd4062 /wd4063 /wd4310 /wd4324 /wd4365 /wd4503 /wd4514 /wd4530 /wd4623 /wd4625 /wd4626 /wd4710 /wd4714 /wd5026 /wd5027 /wd5063
 	)
@@ -1007,4 +1007,47 @@ if (FALSE)
 	message( STATUS "CMAKE_STATIC_LINKER_FLAGS_DEBUG: ${CMAKE_STATIC_LINKER_FLAGS_DEBUG}" )
 	message( STATUS "CMAKE_SHARED_LINKER_FLAGS_DEBUG: ${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
 	message( STATUS "-------------------------------------------" )
+endif()
+#==================================================================================================
+
+
+# C++ standard
+if (TRUE)
+	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_17" HAS_CPP17 )
+	if ( ${HAS_CPP17} LESS 0 )
+		message( FATAL_ERROR "C++17 is required" )
+	endif()
+
+	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_20" HAS_CPP20 )
+	if ( ${HAS_CPP20} LESS 0 )
+		message( STATUS "C++20 is NOT supported" )
+	endif()
+
+	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_23" HAS_CPP23 )
+	if ( ${HAS_CPP23} LESS 0 )
+		message( STATUS "C++23 is NOT supported" )
+	endif()
+
+	# use C++ 17
+	if ( ${AE_FORCE_CXX17} OR ((${HAS_CPP20} LESS 0) AND (${HAS_CPP23} LESS 0)) )
+		set( AE_CXX_17	ON	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_20	OFF	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_23	OFF	CACHE INTERNAL "" FORCE )
+		message( STATUS "Used C++17" )
+
+	# use C++ 20
+	elseif( ${AE_FORCE_CXX20} OR ((${HAS_CPP20} GREATER_EQUAL 0) AND (${HAS_CPP23} LESS 0)) )
+		set( AE_CXX_17	OFF	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_20	ON	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_23	OFF	CACHE INTERNAL "" FORCE )
+		message( STATUS "Used C++20" )
+
+	# use C++ 23
+	elseif( ${HAS_CPP23} GREATER_EQUAL 0 )
+		set( AE_CXX_17	OFF	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_20	OFF	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_23	ON	CACHE INTERNAL "" FORCE )
+		message( STATUS "Used C++23" )
+
+	endif()
 endif()

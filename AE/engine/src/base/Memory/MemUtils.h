@@ -145,7 +145,7 @@ namespace AE::Base
 		}
 		else
 		{
-			if ( IsConstEvaluated() )
+			if_consteval()
 			{
 				value.~T();
 				DEBUG_ONLY( DbgFreeMem( value ));

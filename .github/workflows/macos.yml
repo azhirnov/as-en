@@ -7,6 +7,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug, Develop, Profile, Release]
+      fail-fast: false
     
     runs-on: macos-latest
     name: MacOS ARM64, ${{matrix.config}}
@@ -36,9 +37,8 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         mkdir _res_editor
-        cp -TR "${{github.workspace}}/AE-Temp/samples/res_editor" "_res_editor/ui"
-        cp -TR "${{github.workspace}}/AE/samples/res_editor/_data" "_res_editor/data"
-        cp -TR "${{github.workspace}}/AE/engine/shared_data" "_res_editor/shared_data"
+        cp -R "${{github.workspace}}/AE/samples/res_editor/_data" "_res_editor/data"
+        cp -R "${{github.workspace}}/AE/engine/shared_data" "_res_editor/shared_data"
         cp ${{github.workspace}}/_build/bin/ResourceEditor.app _res_editor/ResourceEditor.app
         cp "${{github.workspace}}/AE/build_scripts/utils-unix/download-resources.sh" "_res_editor"
       
@@ -112,6 +112,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug]
+      fail-fast: false
     
     runs-on: macos-latest
     name: MacOS ARM64, C++17, ${{matrix.config}}

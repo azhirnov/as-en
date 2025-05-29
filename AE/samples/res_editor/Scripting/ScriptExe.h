@@ -155,7 +155,7 @@ namespace AE::ResEditor
 		ND_ bool  _Run (const Path &filePath, const ScriptCollectionPtr &collection)							__NE___;
 		ND_ bool  _Run2 (const Path &filePath)																	__NE___;
 
-			void  _RunWithPipelineCompiler (Function<void ()> fn)												__Th___;
+			void  _RunWithPipelineCompiler (Function<void ()> fn, Bool compileMSL = False{})					__Th___;
 
 		ND_ static TempData&  _GetTempData ()																	__Th___;
 

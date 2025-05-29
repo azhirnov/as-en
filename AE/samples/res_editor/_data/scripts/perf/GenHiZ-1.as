@@ -46,7 +46,7 @@
 		RC<DynamicUInt2>	tex_dim2	= tex_dim.Div(uint2(2)).NearPOT().DivCeil( first_mip.PowOf2().XX() );
 		RC<DynamicDim>		dim2		= tex_dim2.Dimension();
 
-		EPixelFormat		fmt			= EPixelFormat::R16F;	// R16F or R32F
+		EPixelFormat		fmt			= EPixelFormat::R32F;	// R16_UNorm or R32F
 		RC<Image>			high_mip	= Image( fmt, dim );								high_mip.Name( "High mip" );
 		RC<Image>			mipmaps		= Image( fmt, dim2, MipmapLevel(~0) );				mipmaps.Name( "Mipmapped" );
 		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );	rt.Name( "RT" );
@@ -61,7 +61,7 @@
 		Slider( first_mip,	"FirstMip",		0,	10 );
 
 		if ( not gfx_only )
-			Slider( raster,		"Raster",			0,	1 );
+			Slider( raster,		"Gfx",				0,	1 );
 		
 		if ( GetFeatureSet().hasSamplerFilterMinmax() )
 			Slider( reduction,	"UseReduction",		0,	1 );

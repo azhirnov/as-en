@@ -170,6 +170,7 @@ namespace AE::PipelineCompiler
 		EShaderOpt				shaderOptions		= Default;
 		EStructLayout			defaultLayout		= EStructLayout::Compatible_Std140;
 		EPipelineOpt			defaultPipelineOpt	= Default;
+		EDescSetUsage			defaultDescSetUsage	= Default;
 		String					defaultFeatureSet;
 		String					defaultShaderDefines;
 

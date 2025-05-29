@@ -33,6 +33,7 @@ Other:
 	- [11](#11-NaN)
 	- [12](#12-Branching)
 	- [13](#13-Circle-geometry)
+	- [14](#14-Nonuniform)
 
 
 # Comparison of Results
@@ -685,4 +686,11 @@ Used 6 branches.
 
 [Small circles](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/CircleQuadOverdraw-1.as)<br/>
 [Large circles blending](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/CircleQuadOverdraw-2.as)
+
+### 14. Nonuniform
+
+1. [Stress test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-Stress.as)
+2. [Depth pre-pass](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform.as)
+3. [Visibility buffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-VB.as)
+
 

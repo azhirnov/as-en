@@ -52,7 +52,6 @@ namespace AE::ResEditor
 	// types
 	private:
 		using Materials_t			= Array< RC<IGSMaterials> >;
-		using PplnToObjID_t			= IGeomSource::DebugPrepareData::PplnToObjID_t;
 		using ViewportWScaling_t	= FixedArray< packed_float2, GraphicsConfig::MaxViewports >;
 		using FScissors_t			= FixedArray< RectF, GraphicsConfig::MaxViewports >;
 		using Scissors_t			= FixedArray< RectI, GraphicsConfig::MaxViewports >;
@@ -86,8 +85,6 @@ namespace AE::ResEditor
 		PerFrameDescSet_t		_descSets;
 		DescSetBinding			_dsIndex;
 
-		PplnToObjID_t			_tempPplnToObjID;
-
 		ShadingRate				_shadingRate;
 
 
@@ -118,6 +115,7 @@ namespace AE::ResEditor
 		using Subpasses_t	= Array< RC<SceneGraphicsSubpass> >;
 		using Scissors_t	= SceneGraphicsSubpass::Scissors_t;
 		using Viewports_t	= SceneGraphicsSubpass::Viewports_t;
+		using PplnToObjID_t	= IGeomSource::DebugPrepareData::PplnToObjID_t;
 
 
 	// variables
@@ -129,6 +127,8 @@ namespace AE::ResEditor
 		RenderTargets_t			_renderTargets;
 
 		Subpasses_t				_subpasses;
+
+		PplnToObjID_t			_tempPplnToObjID;
 
 
 	// methods

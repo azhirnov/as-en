@@ -20,7 +20,7 @@
 		RC<DynamicDim>		dim				= SurfaceSize();
 		RC<DynamicDim>		pyramid_dim		= dim.FloorPOT();
 
-		RC<Image>			rt				= Image( EPixelFormat::RGBA16F, dim );							rt.Name( "RT" );
+		RC<Image>			rt				= Image( EPixelFormat::RGBA8_UNorm, dim );						rt.Name( "RT" );
 		RC<Image>			ds				= Image( Supported_DepthFormat(), dim );						ds.Name( "Depth" );
 		RC<Image>			pyramid			= Image( EPixelFormat::R32F, pyramid_dim, MipmapLevel(~0) );	pyramid.Name( "Depth pyramid" );
 		RC<Scene>			scene			= Scene();	// indirect draw
@@ -104,6 +104,7 @@
 			RC<ComputePass>		pass = ComputePass( "", "PUT_OBJECTS" );
 			pass.ArgInOut(	"un_Objects",	obj_buf );
 			pass.Constant(	"iDimension",	dim );
+			pass.Slider(	"iRadius",		0.5,	2.0,	1.0 );
 			pass.LocalSize( local_size );
 			pass.DispatchThreads( count3d );
 		}
@@ -200,17 +201,21 @@
 		float3	unorm	= GetGlobalCoordUNorm();
 		float3	seed	= unorm;
 
-		unorm.z   = ToSNorm( unorm.z ) + ToSNorm( DHash13( 111.0 * seed )) * 1.5 * inv_size.z;
-		unorm.xy += ToSNorm( DHash23( 222.0 * seed )) * 0.2 * inv_size.xy;
+		unorm.z   = ToSNorm( unorm.z ) + ToSNorm( DHash13( 111.0 * seed )) * 2.0 * inv_size.z;
+		unorm.xy += ToSNorm( DHash23( 222.0 * seed )) * 0.4 * inv_size.xy;
 
 		unorm.xy *= aspect_ratio;
 		unorm.z  *= Length( unorm.xy ) * 2.1 + 0.3;
 		unorm.xy -= RemapClamp( float2(0.0, 4.0), float2(-0.1, 0.25), aspect_ratio );
 
-		obj.position.xz = unorm.xy * 40.0;
+		obj.position.xz = unorm.xy * 50.0;
 		obj.position.y  = unorm.z * 10.0;
 
+		// emulate LOD
 		obj.scale *= Clamp( Length( unorm.xy ) * 1.1 + 0.1, 0.1, 4.0 );
+
+		// change triangle density, required for low-end devices
+		obj.scale *= iRadius;
 		
 		obj.position = QMul( QRotationY(ToRad(-45.0)), obj.position );
 

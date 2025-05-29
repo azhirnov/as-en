@@ -17,7 +17,7 @@
 	{
 		// initialize
 		const EPixelFormat	hdr_fmt	= EPixelFormat::RGBA16F;		// HDR
-	//	const EPixelFormat	hdr_fmt	= EPixelFormat::RGB_11_11_10F;	// HDR on mobile
+	//	const EPixelFormat	hdr_fmt	= EPixelFormat::R11G11B10F;	// HDR on mobile
 
 		RC<Image>	rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
 		RC<DynamicUInt>	tex_dim		= DynamicUInt();
@@ -315,7 +315,7 @@
 
 		// filter
 		{
-			float3	c0 = gl.texture.Sample( un_HalfSize, uv ).rgb;
+			float3	c0 = gl.texture.Sample( un_HalfSize, uv ).rgb * 2.0;
 
 			float3	c1;
 			c1  = gl.texture.Sample( un_HalfSize, uv + float2(-off1.x, -off1.y) ).rgb;

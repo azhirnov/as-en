@@ -69,6 +69,8 @@ namespace
 			cfg.graphics.swapchain.presentMode	= EPresentMode::FIFO;		// vsync
 			cfg.graphics.swapchain.minImageCount= 2;
 			cfg.graphics.swapchain.usePreTransform = false;
+		//	cfg.graphics.swapchain.scaling		= EPresentScaling::AspectRatioStretch;
+		//	cfg.graphics.swapchain.scale		= 0.5f;
 
 			cfg.graphics.useRenderGraph			= true;
 		}
@@ -92,11 +94,15 @@ namespace
 		cfg.enableNetwork = true;
 
 	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
-		cfg.window.mode						= EWindowMode::NonResizable;
-		cfg.graphics.maxFrames				= 2;
-		cfg.graphics.swapchain.minImageCount= 2;
-		cfg.graphics.graphicsLibPath		= s_REConfig.graphicsLibPath;
-		cfg.graphics.enableSyncLog			= false;
+		cfg.graphics.staging.maxWriteDynamicSize = 8_MiB;	// limited by network bandwidth
+		cfg.graphics.staging.maxReadDynamicSize	 = 8_MiB;
+		cfg.graphics.staging.dynamicBlockSize	 = 8_MiB;
+
+		cfg.window.mode							= EWindowMode::NonResizable;
+		cfg.graphics.maxFrames					= 2;
+		cfg.graphics.swapchain.minImageCount	= 2;
+		cfg.graphics.graphicsLibPath			= s_REConfig.graphicsLibPath;
+		cfg.graphics.enableSyncLog				= false;
 
 		cfg.graphics.deviceAddr	= Networking::IpAddress::FromInt( s_REConfig.ipAddress[0], s_REConfig.ipAddress[1], s_REConfig.ipAddress[2], s_REConfig.ipAddress[3], 0 );
 		CHECK_THROW_MSG( cfg.graphics.deviceAddr.IsValid(),

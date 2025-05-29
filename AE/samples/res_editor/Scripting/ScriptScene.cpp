@@ -650,8 +650,11 @@ namespace AE::ResEditor
 					if ( out.name != out2.name )
 						continue;
 
-					auto		state	= EResourceState::ColorAttachment;
-					const bool	is_ds	= out.rt->IsDepthOrStencil();
+					auto		state			= EResourceState::ColorAttachment;
+					const bool	is_ds			= out.rt->IsDepthOrStencil();
+					const bool	is_rw_att		= AllBits( out.usage, EResourceUsage::InputAttachment ) and
+												  AnyBits( out.usage, EResourceUsage::ColorAttachment | EResourceUsage::DepthStencil );
+					const bool	is_input_att	= AllBits( out.usage, EResourceUsage::InputAttachment ) and not is_rw_att;
 
 					if ( is_ds )
 					{
@@ -664,13 +667,14 @@ namespace AE::ResEditor
 					// input attachment
 					if ( not out.inName.empty() )
 					{
-						state = out.usage == EResourceUsage::InputAttachment ?
-								(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
-								(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
+						ASSERT( is_input_att or is_rw_att );
+						state = is_rw_att ?
+								(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW) :
+								(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment);
 						state |= EResourceState::FragmentShader;
 					}
 
-					if ( is_ds )
+					if ( is_ds and not is_input_att )
 						state |= EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS;
 
 					switch ( out.usage ) {
@@ -750,12 +754,17 @@ namespace AE::ResEditor
 						break;
 				}
 
-				bool	is_ds = out.rt->IsDepthOrStencil();
-				auto	state = out.usage == EResourceUsage::InputAttachment ?
-									(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment) :
-									(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW);
+				bool	is_ds			= out.rt->IsDepthOrStencil();
+				bool	is_rw_att		= AllBits( out.usage, EResourceUsage::InputAttachment ) and
+												  AnyBits( out.usage, EResourceUsage::ColorAttachment | EResourceUsage::DepthStencil );
+				bool	is_input_att	= AllBits( out.usage, EResourceUsage::InputAttachment ) and not is_rw_att;
+				ASSERT( is_input_att or is_rw_att );
 
-				if ( is_ds )
+				auto	state			= is_rw_att ?
+											(is_ds ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputColorAttachment_RW) :
+											(is_ds ? EResourceState::InputDepthStencilAttachment : EResourceState::InputColorAttachment);
+				
+				if ( is_ds and not is_input_att )
 					state |= EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS;
 
 				ds_layout->AddSubpassInput( EShaderStages::Fragment, out.inName, uint(i), out.rt->ImageType(), state | EResourceState::FragmentShader );
@@ -790,6 +799,7 @@ namespace AE::ResEditor
 		for (auto& subpass : subpasses)
 		{
 			auto&	ppln_names = subpass->_pplnPerInst;
+			ppln_names.clear();
 			ppln_names.reserve( scene._geomInstances.size() );
 
 			for (auto& inst : scene._geomInstances)

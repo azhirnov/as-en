@@ -18,6 +18,10 @@ ND_ float4  CubicFilter (gl::CombinedTex2D<float> tex, float2 uv, const float2 d
 ND_ float	LinearFilterHQ (gl::CombinedTex2D<float> tex, float2 uv);
 ND_ float	CubicFilterHQ (gl::CombinedTex2D<float> tex, float2 uv);
 
+// software version of gl.texture.* functions
+ND_ float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv, float bias);	// .Sample()
+ND_ float2  SwQueryLod (gl::CombinedTex2D<float> tex, float2 uv, float bias);	// .QueryLod()
+
 // helper
 ND_ float2	UVLerpFactor (float2 uv, float2 dim);
 ND_ float2	UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex);
@@ -119,3 +123,72 @@ float2  UVLerpFactor (float2 uv, gl::CombinedTex2D<float> tex)
 {
 	return UVLerpFactor( uv, float2(gl.texture.GetSize( tex, 0 )) );
 }
+
+/*
+=================================================
+	SwSampling
+----
+	calculate derivatives in software
+=================================================
+*/
+#if defined(SH_FRAG) or defined(QuadGroup_dFdxCoarse)
+
+	float4  SwSampling_GetDxDy (float2 uv)
+	{
+	  #ifdef SH_FRAG
+		float2	dx = gl.dFdxCoarse( uv );
+		float2	dy = gl.dFdyCoarse( uv );
+	  #elif defined(QuadGroup_dFdxCoarse)
+		float2	dx = QuadGroup_dFdxCoarse( uv );
+		float2	dy = QuadGroup_dFdyCoarse( uv );
+	  #endif
+		return float4( dx, dy );
+	}
+
+	float4  SwSampling_GetDxDy (float2 uv, float bias)
+	{
+		return SwSampling_GetDxDy( uv ) * Exp2( bias );
+	}
+
+	float4  SwSampling (gl::CombinedTex2D<float> tex, float2 uv, float bias)
+	{
+		float4	dxdy = SwSampling_GetDxDy( uv, bias );
+		return gl.texture.SampleGrad( tex, uv, dxdy.xy, dxdy.zw );
+	}
+
+	float2  SwQueryLod (gl::CombinedTex2D<float> tex, float2 uv, float bias)
+	{
+		bias += 0.08; // TODO: mipmapPrecisionBits?
+		float4	dxdy	= SwSampling_GetDxDy( uv, bias );
+		float2	size	= float2(gl.texture.GetSize( tex, 0 ));
+		float2	dx		= dxdy.xy * size.x;
+		float2	dy		= dxdy.zw * size.y;
+
+	  #if 1
+		float	Pmax	= Max( Length(dx), Length(dy) );
+	  #elif 0
+		float	Px		= ( Abs(dx.x) + Abs(dy.x) ) * Sqrt(2.0);
+		float	Py		= ( Abs(dx.y) + Abs(dy.y) ) * Sqrt(2.0);
+		float	Pmax	= Max( Px, Py );
+	  #elif 0
+		float	Px		= Max( Abs(dx.x), Abs(dy.x) );
+		float	Py		= Max( Abs(dx.y), Abs(dy.y) );
+		float	Pmax	= Max( Px, Py );
+	  #elif 0
+		// https://pema.dev/2025/05/09/mipmaps-too-much-detail/
+		float	Px		= Sqrt( dx.x*dx.x + dy.x*dy.x );
+		float	Py		= Sqrt( dx.y*dx.y + dy.y*dy.y );
+		float	Pmax	= Max( Px, Py );
+	  #elif 0
+		dx = Abs(dx);  dy = Abs(dy);
+		const float magic = 1.0/3.0;
+		float	Px		= Lerp( dx.x + magic * dx.y, dx.y + magic * dx.x, Step( dx.x, dx.y ));
+		float	Py		= Lerp( dy.x + magic * dy.y, dy.y + magic * dy.x, Step( dy.x, dy.y ));
+		float	Pmax	= Max( Px, Py );
+	  #endif
+
+		float	level	= Log2( Pmax );
+		return float2( Round(level), level );
+	}
+
+#endif

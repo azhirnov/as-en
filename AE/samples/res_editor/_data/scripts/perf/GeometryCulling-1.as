@@ -22,10 +22,11 @@
 		Label(  rt_dim,		"Dimension" );
 	  #endif
 
-		RC<DynamicDim>		pyramid_dim			= dim.FloorPOT();
-		RC<Image>			rt					= Image( EPixelFormat::RGBA16F, dim );							rt.Name( "RT" );
-		RC<Image>			ds					= Image( Supported_DepthFormat(), dim );						ds.Name( "Depth" );
-		RC<Image>			pyramid				= Image( EPixelFormat::R32F, pyramid_dim, MipmapLevel(~0) );	pyramid.Name( "Depth pyramid" );
+		RC<DynamicUInt2>	pyramid_dim			= rt_dim.Div(uint2(2)).NearPOT();
+		RC<Image>			rt					= Image( EPixelFormat::RGBA16F, dim );		rt.Name( "RT" );
+		RC<Image>			ds					= Image( Supported_DepthFormat(), dim );	ds.Name( "Depth" );
+		RC<Image>			pyramid				= Image( EPixelFormat::R32F, pyramid_dim.Dimension(), MipmapLevel(~0) );	pyramid.Name( "Depth pyramid" );
+		RC<Image>			vis					= Image( EPixelFormat::RG16U, dim );		vis.Name( "Visibility buffer" );
 		RC<Scene>			scene_direct_draw	= Scene();
 		RC<Scene>			scene_indirect_draw	= Scene();
 		RC<Scene>			scene_aabb			= Scene();
@@ -95,14 +96,16 @@
 		// create geometry
 		{
 			array<float3>	positions;
+			array<float2>	uvs;
 			array<uint>		indices;
-			GetSphere( (low_detail ? 3 : 8), OUT positions, OUT indices );
+			GetSphere( (low_detail ? 3 : 8), OUT positions, OUT uvs, OUT indices );
 			index_count = indices.size();
 
 			@tris_count = count.Mul( index_count/3 );
 
 			RC<Buffer>		geom_data = Buffer();
 			geom_data.FloatArray( "positions",	positions );
+			geom_data.FloatArray( "uvs",		uvs );
 			geom_data.UIntArray(  "indices",	indices );
 			geom_data.LayoutName( "GeometryData" );
 
@@ -128,6 +131,21 @@
 				cmd.IndirectBuffer( indirect_buf, "cmd" );
 				geometry.Draw( cmd );
 
+				scene_indirect_draw.Add( geometry );
+			}
+
+			// create full screen quad
+			{
+				RC<UnifiedGeometry>		geometry = UnifiedGeometry();
+				geometry.ArgIn( "un_Geometry",	geom_data );
+				geometry.ArgIn( "un_Transform",	obj_buf );
+
+				UnifiedGeometry_Draw	cmd;
+				cmd.vertexCount = 3;
+				cmd.layer		= ERenderLayer::PostProcess;
+				geometry.Draw( cmd );
+				
+				scene_direct_draw.Add( geometry );
 				scene_indirect_draw.Add( geometry );
 			}
 		}
@@ -161,10 +179,12 @@
 
 		{
 			RC<ComputePass>		pass = ComputePass( "", "PUT_OBJECTS" );
-			pass.ArgInOut(	"un_Objects",	obj_buf );
-			pass.Slider(	"iBackToFront",	0,		1 );
-			pass.Slider(	"iRadius",		0.5,	2.0,	1.0 );
-			pass.Constant(	"iDimension",	dim );
+			pass.ArgInOut(	"un_Objects",		obj_buf );
+			pass.ArgOut(	"un_IndirectCmd",	indirect_buf );
+			pass.Slider(	"iBackToFront",		0,		1 );
+			pass.Slider(	"iRadius",			0.5,	2.0,	1.0 );
+			pass.Constant(	"iIndexCount",		index_count );
+			pass.Constant(	"iDimension",		dim );
 			pass.LocalSize( local_size );
 			pass.DispatchThreads( count3d );
 		}
@@ -251,15 +271,46 @@
 				pass.Constant( "iLight",	light_dir );
 			}
 		}
-
-		// reset indirect buffer
+		
+		// visibility buffer
+		++mode_id;
 		{
-			RC<ComputePass>		pass = ComputePass( "", "RESET_INDIRECT_BUF" );
-			pass.ArgOut(	"un_IndirectCmd",	indirect_buf );
-			pass.Constant(	"iIndexCount",		index_count );
-			pass.LocalSize( 1 );
-			pass.DispatchGroups( 1 );
-			//pass.EnableIfGreater( mode, mode_id );
+			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "VisBuf1-build" );
+			pass.AddPipeline( "perf/Culling/1-VisBuf1-build.as" );		// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-VisBuf1-build.as)
+			pass.Output( "out_VisBuf",	vis,	RGBA32u(~0) );
+			pass.Output(				ds,		DepthStencil(1.0, 0) );
+			pass.EnableIfEqual( mode, mode_id );
+			pass.Repeat( repeat );
+		}{
+			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "VisBuf1-resolve" );
+			pass.AddPipeline( "perf/Culling/1-VisBuf1-resolve.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-VisBuf1-resolve.as)
+			pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+			pass.ArgIn(  "un_VisBuf",	vis,	Sampler_NearestClamp );
+			pass.Constant( "iLight",	light_dir );
+			pass.Layer( ERenderLayer::PostProcess );
+			pass.EnableIfEqual( mode, mode_id );
+			pass.Repeat( repeat );
+		}
+		
+		// visibility buffer as subpass
+		++mode_id;
+		{
+			RC<SceneGraphicsPass>	pass = scene_direct_draw.AddGraphicsPass( "VisBuf1" );
+			pass.EnableIfEqual( mode, mode_id );
+			pass.Repeat( repeat );
+			{
+				pass.AddPipeline( "perf/Culling/1-VisBuf1-p0.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-VisBuf1-p0.as)
+				pass.Output( "out_VisBuf",	vis,	RGBA32u(~0) );
+				pass.Output(				ds,		DepthStencil(1.0, 0) );
+			}
+			pass.NextSubpass( "resolve" );
+			{
+				pass.AddPipeline( "perf/Culling/1-VisBuf1-p1.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/perf/Culling/1-VisBuf1-p1.as)
+				pass.Output( "out_Color",	rt,		RGBA32f(1.0) );
+				pass.Input(  "in_VisBuf",	vis,	"out_VisBuf" );
+				pass.Constant( "iLight",	light_dir );
+				pass.Layer( ERenderLayer::PostProcess );
+			}
 		}
 
 		// raster culling
@@ -270,7 +321,7 @@
 			pass.OutputLS(					ds,		EAttachmentLoadOp::Load,	EAttachmentStoreOp::None );
 			pass.ArgInOut( "un_VisFlags",	vis_flags );
 			pass.EnableIfEqual( mode, mode_id );
-			//pass.Repeat( repeat );  // incorrect time on multiple passes
+			pass.Repeat( repeat );  // incorrect time on multiple passes
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "CHECK_VIS_FLAGS" );
 			pass.ArgInOut(  "un_VisFlags",		vis_flags );		// read and set zero
@@ -385,12 +436,22 @@
 		Slider( obj_count,	"ObjCount",		1,	10 );
 		Slider( repeat,		"Repeat",		1,	30 );
 
+		Label( pyramid_dim,	"PyramidDim" );
 		Label( count,		"Sphere count" );
 		Label( tris_count,	"Triangles" );
 
 		RC<DynamicUInt>		vis_objects = DynamicUInt();
 		ReadBuffer( vis_objects, indirect_buf, "cmd.instanceCount" );
 		Label( vis_objects,	"Visible spheres" );
+		
+		string depth_fmt;
+		switch ( Supported_DepthFormat() )
+		{
+			case EPixelFormat::Depth16 :	depth_fmt = "Depth16";	break;
+			case EPixelFormat::Depth24 :	depth_fmt = "Depth24";	break;
+			case EPixelFormat::Depth32F :	depth_fmt = "Depth32F";	break;
+		}
+		Label( DynamicUInt(low_detail ? 0 : 1), depth_fmt + ", lod:"  );
 
 		Present( rt );
 	}
@@ -405,13 +466,14 @@
 #	define GEN_MIPMAP
 #	define USE_REDUCTION	1
 #	define CHECK_VIS_FLAGS
-#	define RESET_INDIRECT_BUF
+#	define CHECK_VIS_BITS
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PUT_OBJECTS
 	#include "Hash.glsl"
 	#include "Color.glsl"
 	#include "Quaternion.glsl"
+	#include "IndirectCmd.glsl"
 	#include "InvocationID.glsl"
 
 	void  Main ()
@@ -449,17 +511,28 @@
 
 		obj.color = packUnorm4x8( RainbowWrap( float(idx) / 5.0 ));
 
+	  #if 0
 		un_Objects.elements[idx] = obj;
-	}
+	  #else
+		// fix for Metal
+		un_Objects.elements[idx].position	= obj.position;
+		un_Objects.elements[idx].scale		= obj.scale;
+		un_Objects.elements[idx].color		= obj.color;
+	  #endif
 
-#endif
-//-----------------------------------------------------------------------------
-#ifdef RESET_INDIRECT_BUF
-	#include "IndirectCmd.glsl"
-	
-	void  Main ()
-	{
-		un_IndirectCmd.cmd = DrawIndexedIndirectCommand_Create( iIndexCount );
+		if ( idx == 0 )
+		{
+		  #if 0
+			un_IndirectCmd.cmd = DrawIndexedIndirectCommand_Create( iIndexCount );
+		  #else
+			// fix for Metal
+			un_IndirectCmd.cmd.indexCount		= iIndexCount;
+			un_IndirectCmd.cmd.instanceCount	= 1;
+			un_IndirectCmd.cmd.firstIndex		= 0;
+			un_IndirectCmd.cmd.vertexOffset		= 0;
+			un_IndirectCmd.cmd.firstInstance	= 0;
+		  #endif
+		}
 	}
 
 #endif
@@ -573,7 +646,7 @@
 
 	#ifdef AE_shader_subgroup_ballot
 		
-		uint	dst_idx		= 0;
+		uint	dst_idx			= 0;
 		uint4	visible_mask	= gl.subgroup.Ballot( is_visible );
 		uint	visible_count	= gl.subgroup.BallotBitCount( visible_mask );
 
@@ -635,17 +708,27 @@
 	void  Main ()
 	{
 		float4	c;
-		#if USE_REDUCTION
-			float2	uv = (float2(GetGlobalCoord().xy) + 0.5) / float2(gl.image.GetSize( un_OutImage ));
-			c  = gl.texture.SampleLod( un_InImage, uv, 0.0 );
+
+		#ifdef USE_REDUCTION
+		{
+			float2	uv = (float2(GetGlobalCoord().xy) + 0.5) * iInvResolution;
+			c = gl.texture.SampleLod( un_InImage, uv, 0.0 );
+		}
 		#else
+		{
 			int2	p = GetGlobalCoord().xy * 2;
 			c = gl.texture.Fetch( un_InImage, p, 0 );
-			c = Max( c, gl.texture.Fetch( un_InImage, p + int2(1,0), 0 ));
-			c = Max( c, gl.texture.Fetch( un_InImage, p + int2(0,1), 0 ));
-			c = Max( c, gl.texture.Fetch( un_InImage, p + int2(1,1), 0 ));
+			c = Min( c, gl.texture.Fetch( un_InImage, p + int2(1,0), 0 ));
+			c = Min( c, gl.texture.Fetch( un_InImage, p + int2(0,1), 0 ));
+			c = Min( c, gl.texture.Fetch( un_InImage, p + int2(1,1), 0 ));
+		}
 		#endif
-		gl.image.Store( un_OutImage, GetGlobalCoord().xy, c );
+		
+		#ifdef SH_FRAG
+			out_Color = c;
+		#else
+			gl.image.Store( un_OutImage, GetGlobalCoord().xy, c );
+		#endif
 	}
 
 #endif

@@ -171,7 +171,7 @@ namespace {
 			if ( AnyBits( fmt_info.valueType, PixelFormatInfo::EType::UNorm )) {
 				CHECK_THROW( dst_view.Fill( RGBA32f{0} ));
 			}else
-			if ( AnyBits( fmt_info.valueType, PixelFormatInfo::EType::Int | PixelFormatInfo::EType::UInt )) {
+			if ( AnyBits( fmt_info.valueType, PixelFormatInfo::EType::SInt | PixelFormatInfo::EType::UInt )) {
 				CHECK_THROW( dst_view.Fill( RGBA32u{0} ));
 			}
 		}

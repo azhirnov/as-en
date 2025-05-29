@@ -73,7 +73,7 @@
 #endif
 
 
-#ifdef AE_COMPILER_MSVC
+#if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
 #	define AE_COMPILER_NAME			"MS Visual Studio"
 #	define AE_COMPILER_VERSION		AE::Base::Version3{ _MSC_FULL_VER / 10000000, (_MSC_FULL_VER % 10000000) / 100000, _MSC_FULL_VER % 100000 } // (4) _MSC_BUILD
 									// 2017: 19.10 - 19.16
@@ -84,7 +84,7 @@
 #	define AE_COMPILER_NAME			"GCC"
 #	define AE_COMPILER_VERSION		AE::Base::Version3{ __GNUC_MINOR__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__ }
 #endif
-#ifdef AE_COMPILER_CLANG
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	define AE_COMPILER_NAME			"Clang"
 #	define AE_COMPILER_VERSION		AE::Base::Version3{ __clang_major__, __clang_minor__, __clang_patchlevel__ }
 #endif

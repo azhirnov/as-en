@@ -47,7 +47,9 @@ ND_ float4x4	f4x4_InfinitePerspective (const float fovY, const float aspectRatio
 ND_ float4x4	f4x4_Perspective (float fovY, const float aspectRatio, const float2 range);
 ND_ float4x4	f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 range);
 
-ND_ float3		Project (const float4x4 mvp, const float3 pos, const float4 viewport);
+ND_ float3		ProjectToNormClipSpace (const float4x4 mvp, const float3 pos);
+ND_ float3		ProjectToScreenSpace (const float4x4 mvp, const float3 pos, const float4 viewport);
+ND_ float3		Project (const float4x4 mvp, const float3 pos, const float4 viewport) { return ProjectToScreenSpace( mvp, pos, viewport ); }
 
 ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordZ, const float4 viewport);
 ND_ float3		UnProject (const float4x4 invMat, const float3 screenCoordZ, const float2 invViewportSize);
@@ -283,7 +285,14 @@ float2  Transform2D (const float4x4 mat, const float2 point)
 //-----------------------------------------------------------------------------
 
 
-float3  Project (const float4x4 mvp, const float3 pos, const float4 viewport)
+float3  ProjectToNormClipSpace (const float4x4 mvp, const float3 pos)
+{
+	float4	temp	 = mvp * float4( pos, 1.0 );
+			temp.xyz *= Rcp( temp.w );	// xy - snorm, z - unorm
+	return	temp.xyz;
+}
+
+float3  ProjectToScreenSpace (const float4x4 mvp, const float3 pos, const float4 viewport)
 {
 	float4	temp	 = mvp * float4( pos, 1.0 );
 	float2	size	 = viewport.zw - viewport.xy;

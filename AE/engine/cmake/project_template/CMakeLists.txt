@@ -78,45 +78,23 @@ if (PROJECTS_SHARED_LINKER_FLAGS_RELEASE)
 	set_target_properties( "ProjectTemplate" PROPERTIES LINK_FLAGS_RELEASE ${PROJECTS_SHARED_LINKER_FLAGS_RELEASE} )
 endif()
 
-# C++ standard
-if (TRUE)
-	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_17" HAS_CPP17 )
-	if ( ${HAS_CPP17} LESS 0 )
-		message( FATAL_ERROR "C++17 is required" )
-	endif()
+# use C++ 17
+if ( ${AE_CXX_17} )
+	set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
+	target_compile_features( "ProjectTemplate" PUBLIC cxx_std_17 )
+	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=17" )
 
-	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_20" HAS_CPP20 )
-	if ( ${HAS_CPP20} LESS 0 )
-		message( STATUS "C++20 is NOT supported" )
-	endif()
+# use C++ 20
+elseif( ${AE_CXX_20} )
+	set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED YES )
+	target_compile_features( "ProjectTemplate" PUBLIC cxx_std_20 )
+	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=20" )
 
-	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_23" HAS_CPP23 )
-	if ( ${HAS_CPP23} LESS 0 )
-		message( STATUS "C++23 is NOT supported" )
-	endif()
-
-	# use C++ 17
-	if ( ${AE_FORCE_CXX17} OR ((${HAS_CPP20} LESS 0) AND (${HAS_CPP23} LESS 0)) )
-		set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
-		target_compile_features( "ProjectTemplate" PUBLIC cxx_std_17 )
-		target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=17" )
-		message( STATUS "Used C++17" )
-
-	# use C++ 20
-	elseif( ${AE_FORCE_CXX20} OR ((${HAS_CPP20} GREATER_EQUAL 0) AND (${HAS_CPP23} LESS 0)) )
-		set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED YES )
-		target_compile_features( "ProjectTemplate" PUBLIC cxx_std_20 )
-		target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=20" )
-		message( STATUS "Used C++20" )
-
-	# use C++ 23
-	elseif( ${HAS_CPP23} GREATER_EQUAL 0 )
-		set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 23 CXX_STANDARD_REQUIRED YES )
-		target_compile_features( "ProjectTemplate" PUBLIC cxx_std_23 )
-		target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=23" )
-		message( STATUS "Used C++23" )
-
-	endif()
+# use C++ 23
+elseif( ${AE_CXX_23} )
+	set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 23 CXX_STANDARD_REQUIRED YES )
+	target_compile_features( "ProjectTemplate" PUBLIC cxx_std_23 )
+	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=23" )
 endif()
 
 if (${AE_CI_BUILD_TEST})

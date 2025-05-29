@@ -17,36 +17,37 @@
 		// initialize
 		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<Buffer>		id_buf		= Buffer();
-		RC<DynamicUInt>	count		= DynamicUInt();
+		RC<DynamicUInt>	row_count	= DynamicUInt();
 		const uint		local_size	= 32;	// TODO: get subgroup size
-		RC<DynamicUInt>	id_count	= count.Mul( local_size );
+		const uint		col_count	= local_size;
+		RC<DynamicUInt>	id_count	= row_count.Mul( col_count );
 
 		id_buf.ArrayLayout(
 			"IdBuffer",
 			"	int		id;",
 			id_count.Mul(2) );
 
-		Slider( count,	"Count",	1,	32,		20 );
+		Slider( row_count,	"Count",	1,	32,		20 );
 
 		// render loop
 		{
 			RC<ComputePass>		pass = ComputePass( "", "INIT_IDs" );
 			pass.ArgOut( "un_IdBuf",		id_buf );
 			pass.Slider( "iDensity",		0.0,	1.0,	0.5 );
-			pass.LocalSize( local_size );
-			pass.DispatchGroups( count );
+			pass.LocalSize( col_count );
+			pass.DispatchGroups( row_count );
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "PREFIX_SCAN" );
 			pass.ArgInOut( "un_IdBuf",		id_buf );
-			pass.LocalSize( local_size );
-			pass.DispatchGroups( count );
+			pass.LocalSize( col_count );
+			pass.DispatchGroups( row_count );
 		}{
 			RC<Postprocess>		pass = Postprocess();
 			pass.ArgIn(  "un_IdBuf",		id_buf );
 			pass.Output( "out_Color",		rt );
 			pass.Constant( "idCount",		id_count );
-			pass.Constant( "iRows",			count );
-			pass.Constant( "iColSize",		local_size );
+			pass.Constant( "iRows",			row_count );
+			pass.Constant( "iColSize",		col_count );
 		}
 
 		Present( rt );
@@ -60,10 +61,12 @@
 
 	void  Main ()
 	{
-		const int	idx	= GetGlobalIndex();
-		float		x	= DHash11( GetGlobalCoordUNorm().x * 100.0 );
+		const int	idx		= GetGlobalIndex();
+		const uint	off		= GetGlobalIndexSize();
+		float		x		= DHash11( GetGlobalCoordUNorm().x * 100.0 );
 
 		un_IdBuf.elements[idx].id = (x < iDensity ? idx : -1);
+		un_IdBuf.elements[idx + off].id = -1;
 	}
 
 #endif
@@ -76,12 +79,12 @@
 		const int	src_idx	= GetGlobalIndex();
 		const int	off		= GetGlobalIndexSize();
 		int			src_id	= un_IdBuf.elements[ src_idx ].id;
-		
-		un_IdBuf.elements[ src_idx + off ].id = -1;
 
-		uint		dst_idx = (src_idx & ~(gl.subgroup.Size-1)) + gl.subgroup.ExclusiveAdd( uint(src_id >= 0) );
-		
-		gl.subgroup.ExecutionBarrier();
+		// builtin prefix sum
+		uint		dst_idx = gl.subgroup.ExclusiveAdd( uint(src_id >= 0) );
+
+		// select column
+		dst_idx += (src_idx & ~(gl.subgroup.Size-1));
 
 		if ( src_id >= 0 )
 			un_IdBuf.elements[ dst_idx + off ].id = src_id;

@@ -54,11 +54,14 @@ namespace AE::Scripting
 			using CT2 = Conditional< IsAnyConst<B>, const T, T >;
 
 			if constexpr( IsSame< T, String >)
-				return *Cast<CT2>(_gen->GetArgAddress( idx ));
+			{
+				// AS doesn't correctly handle alignment, so all checks are disabled
+				return *static_cast<CT2 *>( static_cast<void *>( _gen->GetArgAddress( idx )));
+			}
 			else
 			if constexpr( is_obj and not is_rc )
 			{
-				CT2*  arg = Cast<CT2>(_gen->GetArgObject( idx ));
+				CT2*  arg = static_cast<CT2*>(_gen->GetArgObject( idx ));
 				CHECK_THROW( arg != null );
 				if constexpr( IsPointer<B> )	return arg;
 				else							return *arg;
@@ -229,7 +232,7 @@ namespace AE::Scripting
 	T*  ScriptArgList::GetObject () C_NE___
 	{
 		//ASSERT( IsObject<T>() );
-		return Cast<T>( _gen->GetObject() );
+		return static_cast<T*>( _gen->GetObject() );
 	}
 
 /*

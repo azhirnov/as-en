@@ -30,6 +30,15 @@ Total ALUs = warp_width*2 * ALUs * Cores
 ```
 
 
+### Instruction cost
+
+* FP32 instruction performance: [[2](../GPU_Benchmarks.md#2-fp32-instruction-performance)]
+
+	| Gop/s | op | GFLOPS |
+	|---|---|---|
+	| 352 | Add         | 352 |
+	| 354 | Mul         | 354 |
+	| 266 | MulAdd, FMA | 532 |
 ### Branching
 
 * Mul vs Branch vs Matrix [[12](../GPU_Benchmarks.md#12-Branching)]

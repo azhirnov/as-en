@@ -60,7 +60,7 @@
 * Apple A9
 * Intel gen9
 * Mali Midgard Gen3
-* NVidia Kepler ?
+* NVidia Kepler/GTX600 ?
 * PowerVR Series 8
 
 </details>
@@ -78,6 +78,8 @@
 
 `shaderSampledImageArrayNonUniformIndexingNative` и другие определяет как будет реализован доступ к ресурсам в случае, когда индекс внутри варпа не совпадает. Если нет поддержки в железе, то код компилируется в waterfall loop - цикл по всем уникальным значениям индекса в пределах варпа.
 
+Для ускоряющих структур (ray tracing acceleration structure) всегда разрешен неоднородный доступ.
+
 <details><summary>Опции *NonUniformIndexing поддерживается начиная с:</summary>
 
 * Adreno 600 *(все опции, включая Native)*
@@ -86,7 +88,7 @@
 * Intel gen9 ? *(все опции)*
 * Mali Valhall gen1 *(все опции и shaderStorageBufferArrayNonUniformIndexingNative)*
 * Maleoon 9xx *(все опции, кроме InputAttachment)*
-* NVidia Kepler ? *(все опции, включая Native)*
+* NVidia Kepler/GTX600 ? *(все опции, включая Native)*
 * PowerVR B-Series *(все опции, включая Native)*
 
 </details>
@@ -110,17 +112,51 @@
 
 Какие данные являются однородными:
 * Данные из uniform buffer и push constant.
-* При чтении массивов из uniform buffer индекс должен быть однородным.
 * `gl_DrawID`.
+* Для компьют шейдера: одинаковые значения в пределах воркгруппы, например `gl_WorkGroupID`.
 
 Неоднородные данные:
 * `gl_VertexIndex`, `gl_PrimitiveID`, вершинные аттрибуты и тд.
 * `gl_InstanceIndex` на TBDR архитектуре, так как фрагментные шейдеры примитивов из разных инстансов могут попасть в один варп.
 
+При использовании `nonuniform()` компилятор может добавить дополнительные инструкции.<br/>
+Пример [UniqueIDs](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/UniqueIDs-1.as) показывает как компилятор превращает неоднородный доступ к ресурсам в однородный.
+
+Пример [BrokenNonuniform](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/BrokenNonuniform.as) показывает, что будет если не использовать `nonuniform()`.
+Почти на всех протестированных ГП драйвер сам обнаруживает неоднородность и `nonuniform()` ни на что не влияет, поэтому такие ошибки сложно отловить. Только на AMD GCN берется один индекс на варп и ошибки сразу проявляются.
+
+Хорошо разобрано в [Vulkan Samples: descriptor indexing](https://github.com/KhronosGroup/Vulkan-Samples/tree/main/samples/extensions/descriptor_indexing#non-uniform-indexing-enabling-advanced-algorithms).
+
+Также есть параметр `quadDivergentImplicitLod`, который показывает может ли драйвер рассчитать LOD для текстуры, когда индекс меняется в пределах квадрата.
+
+> If the image or sampler object used by an implicit derivative image instruction is not uniform across the quad and quadDivergentImplicitLod is not supported, then the derivative and LOD values are undefined.
+
+Проблем не возникает при одинаковых индексах на треугольник, так как даже на мобилках при объединении нескольких треугольников в один варп, всегда закрашивание идет квадратами.
+Для visibility buffer производные и так считаются попиксельно.
+
+Если все же нужно менять индекс попиксельно, то требуется явно посчитать производные:
+```
+float2 dx = dFdx(uv) * Exp2(bias);
+float2 dy = dFdy(uv) * Exp2(bias);
+textureGrad( un_Textures[nonuniform(tex_id)], dx, dy );
+```
+
+Поддержка `quadDivergentImplicitLod` зависит от производителя, а не версии архитектуры.
+Так параметр поддерживается на Adreno, Intel, NVidia, PowerVR и не поддерживается на AMD, Apple, Mali, VideoCore, Maleoon.
+
+Пример [QuadDivergentImplicitLod](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/QuadDivergentImplicitLod.as) покажет появляется ли ошибка, если не использовать `textureGrad()`.
+На AMD RX570 разница только в `textureQueryLod().x`.
+NVidia, Intel и PowerVR показали небольшое отличие между `texture()` и `textureGrad()`, это может быть связано с меньшей точностью при неявном расчете дериватив.
+
+С Mali оказалось сложнее - `textureQueryLod( nonuniform(...))` не работает вовсе, а `textureGrad( nonuniform(...), dFdx(), dFdy() )` показывает худшую фультрацию вдали. В рекомендациях по оптимизации для Mali даже не советуют использовать `textureGrad` если есть такая возможность.
+
+Более старые Mali Midgard не поддерживают `nonuniform()`, но работают также как более новые Mali Valhall.
+На старом Adreno 500 неоднородный доступ не работает вовсе - чтение текстуры возвращает черный цвет.
+
 
 ### Device Address
 
-Расширение `VK_KHR_buffer_device_address` позволяет использовать указатели на память буфера. Адрес получается из `ulong` млм `uint2` типа.
+Расширение `VK_KHR_buffer_device_address` позволяет использовать указатели на память буфера. Адрес получается из `ulong` или `uint2` типа.<br/>
 [Пример](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/BufferReference.as) с бинарным деревом.
 
 <details><summary>Поддерживается начиная с:</summary>
@@ -130,7 +166,7 @@
 * Intel gen9 ?
 * Mali Bifrost gen1
 * Maleoon 9xx
-* NVidia Kepler ?
+* NVidia Kepler/GTX600 ?
 * PowerVR Series 8
 
 </details>
@@ -174,8 +210,8 @@ Bindless техники позволяют перенести больше ло�
 После проверки видимости получаем массив из ID объектов и пустые элементы, чтобы сгруппировать ID используется prefix scan / prefix sum алгоритм.
 Примеры: [PrefixScan-1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/PrefixScan-1.as), [PrefixScan-2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/PrefixScan-2.as).
 
-Если порядок ID не важен, то используется более простой алгоритм с атомиком.
-Пример: [PrefixScan-3](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/PrefixScan-3.as).
+Если порядок ID не важен, то используется более простой алгоритм с атомиком. 
+Пример: [PrefixScan-3](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/PrefixScan-3.as), мелькание возникает из-за перемешивания ID при использовании атомика.
 
 
 ## Radix Sort
@@ -201,7 +237,7 @@ Bindless техники позволяют перенести больше ло�
 * Adreno 600
 * Samsung Xclipse 530
 * PowerVR Series 8
-* NVidia Kepler ?
+* NVidia Kepler/GTX600 ?
 * Intel gen9 ?
 * Mali Valhall gen3
 
@@ -236,14 +272,23 @@ Bindless техники позволяют перенести больше ло�
 
 # Тесты производительности
 
-1. Nonuniform.<br/>
+1.1. Nonuniform stress test<br/>
 Разница в производительности между использованием `nonuniform()` и выбором слоя из Texture2DArray.
 Чтобы в варп попадали разные индексы используется хэш от `gl_FragCoord` с двумя режимами: квадрат 2х2 и попиксельно.<br/>
 Вариант per object больше приближен к реальному использованию, тогда как per quad и per pixel это стресс-тест, но могут возникнуть: per quad для микротреугольников, per pixel в visibility buffer.<br/>
+Тест сравнивает производительность разного доступа к ресурсам при низкой нагрузке на другие системы, но не показывает влияния bindless на производительность в целом.<br/>
+Исходники: [скрипт](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-Stress.as), [шейдер](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/NonUniform-Stress-shared.as).
 
-Тест сравнивает производительность разного доступа к ресурсам при низкой нагрузке на другие системы, но не показывает влияния bindless на производительность в целом, поэтому тест будет заменен на новый.
+1.2. Nonuniform with depth pre-pass<br/>
+Сделаны примитивные объекты в виде повернутых прямоугольников, вытянутые формы приводят к тому, что больше треугольников попадают в варп и сильнее проявляется неоднородность индексов.
+Показывает разницу в производительности между использованием `nonuniform()` и выбором слоя из Texture2DArray.
+Можно менять детализацию текстур, чтобы определить насколько bindless влияет на производительность при нормальной нагрузке на память и при пониженой, когда читаются нижние мип-уровни.<br/>
+Исходники: [скрипт](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform.as), [шейдер](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/NonUniform-shared.as).
 
-Исходники: [скрипт](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-Tex.as), [шейдер](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/NonUniformTex-shared.as).
+1.3. Nonuniform with visibility buffer<br/>
+Аналогично предыдущему, но вызывается меньше фрагментных шейдеров и больше уникальных индексов в варпе.<br/>
+Исходники: [скрипт](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-VB.as), [шейдер](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/NonUniform-VB-shared.as).
+
 
 
 **Результаты**
@@ -255,228 +300,264 @@ Bindless техники позволяют перенести больше ло�
 * [ARM Mali G57](#ARM-Mali-G57)
 * [ARM Mali G610](#ARM-Mali-G610)
 * [Adreno 660](#Adreno-660)
+* [Apple M1](#Apple-M1)
 * [PowerVR BXM-8-256](#PowerVR-BXM-8-256)
 * [Intel UHD 620](#Intel-UHD-620)
 * [Intel N150](#Intel-N150)
 
 ## Nvidia RTX 2080
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.0        | 1.06     | 2.3       |
-| texture & sampler index | 1.01       | 1.06     | 2.3       |
+**Nonuniform, depth pre-pass**
 
-<details><summary><b>Подробные результаты</b></summary>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.0        | 1.014    | 1.13     | 1.99      |
+| texture & sampler index | 1.0        | 1.018    | 1.11     | 1.97      |
 
-Тестируется в 8К разрешении, 4К в 4 раза быстрее, значит все упирается в FS.
+**Nonuniform, visibility buffer**
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 1.55            | 1.59          | 1.71           |
-| texture index           | 1.55            | 1.69          | 3.98           |
-| texture & sampler index | 1.57            | 1.69          | 3.93           |
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.007      | 1.007    | 1.02     | 1.43      |
+| texture & sampler index | 1.007      | 1.007    | 1.03     | 1.41      |
 
-</details>
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/NVidia_RTX2080.md#Nonuniform)
+
 
 ## AMD RX570
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.0        | 1.04     | 1.42      |
-| texture & sampler index | 1.0        | 1.05     | 1.42      |
+Из-за бага в драйвере nonuniform работает через раз. Первые тесты делались на текстурах с низким разрешением (64х64) и видимо они попадали в кэш, поэтому проблема не проявлялась и разница в производительности оказалась небольшой.
+В новом тесте используются текстуры 1024х1024 и это приводит к некорректным данным при чтении, а также потере производительности.
+Когда драйвер работал корректно вариант с visibility buffer оказался намного быстрее с bindless подходом.
 
-<details><summary><b>Подробные результаты</b></summary>
+**Nonuniform, depth pre-pass**
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 6.65            | 6.65          | 8.3            |
-| texture index           | 6.65            | 6.94          | 11.8           |
-| texture & sampler index | 6.65            | 6.95          | 11.8           |
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 2.24       | 2.03     | 2.47     | 2.52      |
+| texture & sampler index | 2.24       | 2.03     | 2.47     | 2.52      |
 
-</details>
+**Nonuniform, visibility buffer**
+
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.017      | 1.013    | 1.21     | 1.79      |
+| texture & sampler index | 1.026      | 1.022    | 1.21     | 1.8       |
+
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/AMD_RX570.md#Nonuniform)
+
 
 ## AMD Radeon 780M, AMDPRO
 
 Хоть и нет нативной поддержки неоднородных индексов, но производительность меняется незначительно.
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.0        | 0.99     | 1.19      |
-| texture & sampler index | 1.0        | 0.99     | 1.19      |
+**Nonuniform, depth pre-pass**
 
-<details><summary><b>Подробные результаты</b></summary>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index | 
 
-GPU Clock: 2600MHz
+**Nonuniform, visibility buffer**
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 9.1             | 10.0          | 10.0           |
-| texture index           | 9.1             | 9.9           | 11.9           |
-| texture & sampler index | 9.1             | 9.9           | 11.9           |
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index |
 
-</details>
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/AMD_780M.md#Nonuniform-AMDPRO)
+
 
 ## AMD Radeon 780M, AMDVLK
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.0        | 0.99     | 1.21      |
-| texture & sampler index | 1.0        | 0.99     | 1.21      |
+**Nonuniform, depth pre-pass**
 
-<details><summary><b>Подробные результаты</b></summary>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index | 
 
-GPU Clock: 2600MHz
+**Nonuniform, visibility buffer**
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 9.7             | 10.1          | 10.1           |
-| texture index           | 9.7             | 10.0          | 12.2           |
-| texture & sampler index | 9.7             | 10.0          | 12.2           |
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index |
 
-</details>
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/AMD_780M.md#Nonuniform-AMDVLK)
+
 
 ## AMD Radeon 780M, RADV
 
 RADV драйвер оказался быстрее других, но bindless сильнее влияет на производительность.
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.0        | 1.04     | 1.18      |
-| texture & sampler index | 1.0        | 1.07     | 1.26      |
+**Nonuniform, depth pre-pass**
 
-<details><summary><b>Подробные результаты</b></summary>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index | 
 
-GPU Clock: 2500MHz
+**Nonuniform, visibility buffer**
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 5.9             | 7.4           | 8.9            |
-| texture index           | 5.9             | 7.7           | 10.5           |
-| texture & sampler index | 5.9             | 7.9           | 11.2           |
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index |
 
-</details>
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/AMD_780M.md#Nonuniform-RADV)
+
 
 ## ARM Mali G57
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.0        | 1.6      | 2.3       |
-| texture & sampler index | 1.0        | 1.64     | 2         |
+**Nonuniform, depth pre-pass**
 
-<details><summary><b>Подробные результаты</b></summary>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.034      | 0.94     | 1.35     | 2.68      |
+| texture & sampler index | 1.034      | 0.92     | 1.39     | 2.6       |
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 4.87            | 5.4           | 6.2            |
-| texture index           | 4.9             | 8.65          | 14.4           |
-| texture & sampler index | 4.9             | 8.85          | 12.4           |
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/ARM_Mali_G57.md#Nonuniform)
 
-</details>
 
 ## ARM Mali G610
 
 Valhall gen3 архитектура уже лучше справляется с bindless по сравнению с gen1.
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.0        | 1.27     | 1.52      |
-| texture & sampler index | 1.0        | 1.33     | 1.54      |
+**Nonuniform, depth pre-pass**
 
-<details><summary><b>Подробные результаты</b></summary>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index | 
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 6.5             | 6.7           | 6.9            |
-| texture index           | 6.5             | 8.5           | 10.5           |
-| texture & sampler index | 6.5             | 8.9           | 10.6           |
+**Nonuniform, visibility buffer**
 
-</details>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index |
+
+
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/ARM_Mali_G610.md#Nonuniform)
+
 
 ## Adreno 660
 
-В per object режиме texture layer оказывается в 1.7 раз быстрее, но при переходе к per quad разница минимальна. Скорее всего связано с общей просадкой производительности.
+**Nonuniform, depth pre-pass**
 
-Разница между per object и per quad в 2.1 раза, а между per object и per pixel аж 4.5 раза, что влияет на подход к рисования в целом.
-Возможно нужна большая локальность текселей к которым обращается варп, так будет меньше потерь.
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index | 
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.7        | 1.05     | 1.3       |
-| texture & sampler index | 1.7        | 1.04     | 1.28      |
+**Nonuniform, visibility buffer**
 
-<details><summary><b>Подробные результаты</b></summary>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index |
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 3.8             | 8.1           | 17.2           |
-| texture index           | 6.6             | 8.5           | 22.3           |
-| texture & sampler index | 6.6             | 8.4           | 22.1           |
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/Adreno_660.md#Nonuniform)
 
-</details>
+
+## Apple M1
+
+**Nonuniform, depth pre-pass**
+
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.03       | 0.98     | 0.99     | 0.99      |
+| texture & sampler index | 1.06       | 0.96     | 0.95     | 0.96      |
+
+**Nonuniform, visibility buffer**
+
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.06       | 0.99     | 1.005    | 1.07      |
+| texture & sampler index | 1.09       | 1.005    | 1.016    | 1.07      |
+
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/Apple_M1.md#Nonuniform)
+
 
 ## PowerVR BXM-8-256
 
-| nonuniform              | per object | per quad | per pixel | per pixel 4K |
-|-------------------------|------------|----------|-----------|--------------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       | 1.0          |
-| texture index           | 1.0        | 1.0      | 1.17      | 1.5          |
-| texture & sampler index | 1.0        | 1.0      | 1.14      | 1.35         |
+**Nonuniform, depth pre-pass**
 
-<details><summary><b>Подробные результаты</b></summary>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index | 
 
-| nonuniform              | per object 2K (ms) | per quad 2K (ms) | per pixel 2K (ms) | per pixel 4K (ms) |
-|-------------------------|--------------------|------------------|-------------------|-------------------|
-| texture layer           | 3.53               | 3.59             | 3.86              | 10.1              |
-| texture index           | 3.53               | 3.59             | 4.5               | 15.1              |
-| texture & sampler index | 3.53               | 3.59             | 4.4               | 13.7              |
+**Nonuniform, visibility buffer**
 
-</details>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 
+| texture index           | 
+| texture & sampler index |
+
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/PowerVR_BXM.md#Nonuniform)
+
 
 ## Intel UHD 620
 
-Вариант с bindless texture в разы медленее, скорее всего компилятор сопоставлял immutable sampler с динамической индексацией и получилось очень плохо.
+**Nonuniform, depth pre-pass**
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.0        | 4.9      | 10.8      |
-| texture & sampler index | 1.0        | 1.4      | 2.4       |
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.0        | 2.2      | 7.5      | 9.7       |
+| texture & sampler index | 1.03       | 1.0      | 1.86     | 1.94      |
 
-<details><summary><b>Подробные результаты</b></summary>
+**Nonuniform, visibility buffer**
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 8.8             | 9.0           | 9.3            |
-| texture index           | 8.8             | 44.0          | 100            |
-| texture & sampler index | 8.8             | 13.0          | 22.0           |
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.14       | 1.08     | 3.7      | 8.7       |
+| texture & sampler index | 1.14       | 1.04     | 1.57     | 2.6       |
 
-</details>
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/Intel_UHD620.md#Nonuniform)
+
 
 ## Intel N150
 
-| nonuniform              | per object | per quad | per pixel |
-|-------------------------|------------|----------|-----------|
-| **texture layer**       | 1.0        | 1.0      | 1.0       |
-| texture index           | 1.04       | 1.21     | 1.5       |
-| texture & sampler index | 1.04       | 1.21     | 1.5       |
+**Nonuniform, depth pre-pass**
 
-<details><summary><b>Подробные результаты</b></summary>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.19       | 0.82     | 1.48     | 1.6       | 
+| texture & sampler index | 1.19       | 0.82     | 1.48     | 1.6       |
 
-| nonuniform              | per object (ms) | per quad (ms) | per pixel (ms) |
-|-------------------------|-----------------|---------------|----------------|
-| texture layer           | 12.0            | 12.4          | 12.7           |
-| texture index           | 12.5            | 15.0          | 19.0           |
-| texture & sampler index | 12.5            | 15.0          | 19.0           |
+**Nonuniform, visibility buffer**
 
-</details>
+| nonuniform              | per object | per warp | per quad | per pixel |
+|-------------------------|------------|----------|----------|-----------|
+| **texture layer**       | 1.0        | 1.0      | 1.0      | 1.0       |
+| texture index           | 1.17       | 1.02     | 1.56     | 2.4       |
+| texture & sampler index | 1.15       | 1.02     | 1.56     | 2.4       |
+
+[Подробные результаты](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-gpu/Intel_N150.md#Nonuniform)
 
 
 # Итоги
@@ -489,6 +570,7 @@ Valhall gen3 архитектура уже лучше справляется с 
 2. Когда bindless texture + bindless sampler быстрее. Это Intel UHD620, PowerVR BXM, Adreno 660, Mali G57.
 3. Одинаковая производительность у bindless. Это Intel N150, Mali G610, AMD 780M PRO и VLK, AMD RX570, NV RTX 2080.
 
-`shaderSampledImageArrayNonUniformIndexingNative` флаг не дает информации о производительности.
+Тесты показали, что `*NonUniformIndexingNative` параметры ни на что не влияет: производительность всегда снижается, `nonuniform()` нужен только для AMD GCN.
 
-На старых устройствах Mali T830 и Adreno 505 нет поддержки nonuniform и забиндить можно всего 16 текстур.
+На старых устройствах Mali T830 и Adreno 505 нет поддержки `nonuniform()` и забиндить можно всего 16 текстур.
+Зато даже старый Mali T830 поддерживает неоднородный доступ к текстурам.

@@ -90,7 +90,7 @@ namespace AE::Base
 			str << "\n--------------------"
 				<< "\nCPU info:"
 				<< "\n  vendor:       " << ToString( cpu.vendor )
-				<< "\n  architecture: " << ToString( cpu.arch ) << "(" << ToString( cpu.microArch ) << ")"
+				<< "\n  architecture: " << ToString( cpu.arch ) << " (" << ToString( cpu.microArch ) << ")"
 				<< "\n  total cores:  " << ToString( cpu.physicalCoreCount ) << " / " << ToString( cpu.logicalCoreCount );
 
 			const auto	PrintCache = [&str] (ECacheType cacheType, const CacheGeom &g, uint logicalCoreCount)

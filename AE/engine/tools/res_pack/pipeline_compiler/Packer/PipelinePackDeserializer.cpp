@@ -114,7 +114,7 @@ namespace AE::PipelineCompiler
 			}
 			case EType::UNorm :	return EImageType::UNorm;
 			case EType::SNorm :	return EImageType::SNorm;
-			case EType::Int :	return EImageType::Int;
+			case EType::SInt :	return EImageType::Int;
 			case EType::UInt :	return EImageType::UInt;
 		}
 
@@ -143,7 +143,7 @@ namespace AE::PipelineCompiler
 			case EType::UNorm :
 			case EType::SNorm :	return EImageType::Float;
 
-			case EType::Int :	return EImageType::Int;
+			case EType::SInt :	return EImageType::Int;
 			case EType::UInt :	return EImageType::UInt;
 		}
 

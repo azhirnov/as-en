@@ -194,7 +194,7 @@ namespace AE::Graphics
 			UFloat		= 1 << 1,
 			UNorm		= 1 << 2,
 			SNorm		= 1 << 3,
-			Int			= 1 << 4,
+			SInt		= 1 << 4,
 			UInt		= 1 << 5,
 			Depth		= 1 << 6,
 			Stencil		= 1 << 7,
@@ -249,6 +249,9 @@ namespace AE::Graphics
 		ND_ bool	HasDepthOrStencil ()			C_NE___	{ return AnyBits( valueType, EType::DepthStencil ); }
 		ND_ bool	IsYcbcr ()						C_NE___	{ return AllBits( valueType, EType::Ycbcr ); }
 		ND_ bool	IsMultiPlanar ()				C_NE___	{ return AnyBits( aspectMask, EImageAspect::_PlaneMask ); }
+		ND_ bool	IsNormalized ()					C_NE___;
+		ND_ bool	IsInteger ()					C_NE___;
+		ND_ bool	IsFloat ()						C_NE___;
 
 		// only for color or depth
 		ND_ uint	BitsPerPixel ()					C_NE___	{ return uint(bitsPerBlock) / Area( TexBlockDim() ); }
@@ -264,6 +267,10 @@ namespace AE::Graphics
 
 
 	ND_ PixelFormatInfo const&  EPixelFormat_GetInfo (EPixelFormat value) __NE___;
+	
+	inline bool  PixelFormatInfo::IsNormalized ()	C_NE___	{ return AnyBits( valueType, EType::UNorm | EType::SNorm ); }
+	inline bool  PixelFormatInfo::IsInteger ()		C_NE___	{ return AnyBits( valueType, EType::SInt | EType::UInt ); }
+	inline bool  PixelFormatInfo::IsFloat ()		C_NE___	{ return AnyBits( valueType, EType::SFloat | EType::UFloat ); }
 
 /*
 =================================================
@@ -366,7 +373,7 @@ namespace AE::Graphics
 	{
 		using EType = PixelFormatInfo::EType;
 
-		constexpr auto	mask		= EType::SFloat | EType::UFloat | EType::UNorm | EType::SNorm | EType::Int | EType::UInt | EType::sRGB;
+		constexpr auto	mask		= EType::SFloat | EType::UFloat | EType::UNorm | EType::SNorm | EType::SInt | EType::UInt | EType::sRGB;
 		const auto&		fmt_info	= EPixelFormat_GetInfo( format );
 
 		switch ( fmt_info.valueType & mask )
@@ -376,7 +383,7 @@ namespace AE::Graphics
 			case EType::UNorm :					return EShaderIO::UNorm;
 			case EType::UNorm | EType::sRGB :	return EShaderIO::sRGB;
 			case EType::SNorm :					return EShaderIO::SNorm;
-			case EType::Int :					return EShaderIO::Int;
+			case EType::SInt :					return EShaderIO::Int;
 			case EType::UInt :					return EShaderIO::UInt;
 		}
 		return Default;

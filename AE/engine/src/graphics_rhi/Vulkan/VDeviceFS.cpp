@@ -496,7 +496,7 @@ namespace
 
 		outFeatureSet.perPipeline_maxUniformBuffersDynamic	= CheckCast<ubyte>( limits.maxDescriptorSetUniformBuffersDynamic );
 		outFeatureSet.perPipeline_maxStorageBuffersDynamic	= CheckCast<ubyte>( limits.maxDescriptorSetStorageBuffersDynamic );
-		outFeatureSet.perPipeline_maxTotalBuffersDynamic	= CheckCast<ubyte>( outFeatureSet.perPipeline_maxUniformBuffersDynamic + outFeatureSet.perPipeline_maxStorageBuffersDynamic );
+		outFeatureSet.perPipeline_maxTotalBuffersDynamic	= CheckCast<ubyte>( outFeatureSet.perPipeline_maxUniformBuffersDynamic + outFeatureSet.perPipeline_maxStorageBuffersDynamic ); // TODO: set ushort or silent worning
 		outFeatureSet.perPipeline.maxInputAttachments		= limits.maxDescriptorSetInputAttachments;
 		outFeatureSet.perPipeline.maxSampledImages			= limits.maxDescriptorSetSampledImages;
 		outFeatureSet.perPipeline.maxSamplers				= limits.maxDescriptorSetSamplers;

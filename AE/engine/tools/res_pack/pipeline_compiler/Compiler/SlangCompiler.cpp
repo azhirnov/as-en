@@ -2,7 +2,7 @@
 
 #ifdef AE_ENABLE_SLANG
 
-# ifdef AE_COMPILER_CLANG
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic push
 #	pragma clang diagnostic ignored "-Wcast-qual"
 # endif
@@ -10,7 +10,7 @@
 # include "slang.h"
 # include "slang-com-ptr.h"
 
-# ifdef AE_COMPILER_CLANG
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic pop
 # endif
 

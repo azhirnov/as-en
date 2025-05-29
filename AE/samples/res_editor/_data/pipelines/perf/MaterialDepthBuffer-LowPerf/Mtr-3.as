@@ -91,7 +91,7 @@
 	void Main ()
 	{
 		float2	uv = ( gl.FragCoord.xy * 5.5 / 1024.0 + 0.15 );
-		out_Color = gl.texture.Sample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(In.texId)], un_Sampler ), uv );
+		out_Color = gl.texture.Sample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[In.texId], un_Sampler )), uv );
 
 		if ( iShowHelpInvoc == 1 )
 		{

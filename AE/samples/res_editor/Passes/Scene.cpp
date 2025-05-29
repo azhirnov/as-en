@@ -23,24 +23,26 @@ namespace AE::ResEditor
 		const auto&						instances	= _scene->_geomInstances;
 		Array<ShaderDebugger::Result*>	dbg_result;
 		LinearAllocator<>				allocator;
+		SceneGraphicsSubpass const*		dbg_subpass	= null;
 
-		if_unlikely( pd.dbg.IsEnabled( this ))
+		for (auto& subpass : _subpasses)
 		{
-		/*	DirectCtx::Transfer		tctx	{ pd.rtask, RVRef(pd.cmdbuf) };
-			const uint2				coord	= uint2{pd.dbg.coord * float2(dim-1u)};
-
-			dbg_result.resize( instances.size() );
-
-			for (auto& subpass : _subpasses)
+			if_unlikely( pd.dbg.IsEnabled( subpass.get() ))
 			{
+				DirectCtx::Transfer		tctx	{ pd.rtask, RVRef(pd.cmdbuf) };
+				const uint2				coord	= uint2{pd.dbg.coord * float2(dim-1u)};
+
+				dbg_result.resize( instances.size() );
+
 				for (usize i = 0; i < instances.size(); ++i)
 				{
 					IGeomSource::DebugPrepareData	dd{ *subpass->_materials[i], tctx, pd.dbg, coord, allocator, _tempPplnToObjID, dbg_result[i] };
 					instances[i].geometry->PrepareForDebugging( INOUT dd );
 				}
-			}
 
-			pd.cmdbuf = tctx.ReleaseCommandBuffer(); */
+				pd.cmdbuf	= tctx.ReleaseCommandBuffer();
+				dbg_subpass	= subpass.get();
+			}
 		}
 
 		DirectCtx::Graphics		ctx	{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
@@ -133,7 +135,10 @@ namespace AE::ResEditor
 
 					for (usize i = 0; i < instances.size(); ++i)
 					{
-						bool	has_dbg_result	= false; //(not dbg_result.empty()) and (dbg_result[i] != null);
+						bool	has_dbg_result	= (dbg_subpass == subpass.get())	and
+												  (not dbg_result.empty())			and
+												  (dbg_result[i] != null)			and
+												  it == 0;
 						auto&	mtr				= subpass->_materials[i];
 
 						if ( mtr == null )

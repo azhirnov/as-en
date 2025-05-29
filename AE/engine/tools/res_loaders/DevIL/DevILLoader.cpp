@@ -233,6 +233,29 @@ namespace {
 	{
 		CHECK_ERR( stream.IsOpen() );
 
+		switch_enum( fileFormat )
+		{
+			case EImageFormat::Unknown :
+			case EImageFormat::DDS :
+			case EImageFormat::BMP :
+			case EImageFormat::JPG :
+			case EImageFormat::PCX :
+			case EImageFormat::PNG :
+			case EImageFormat::TGA :
+			case EImageFormat::TIF :
+			case EImageFormat::PSD :
+			case EImageFormat::RadianceHDR :
+			case EImageFormat::OpenEXR :
+			case EImageFormat::KTX :
+				break;  // supported
+
+			case EImageFormat::AEImg :
+			case EImageFormat::_Count :
+			default :
+				return false;  // unsupported
+		}
+		switch_end
+
 		auto&	devil	= DevILUtils::Instance();
 		CHECK_ERR( devil.IsInitialized() );
 		EXLOCK( devil.guard );

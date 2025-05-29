@@ -15,7 +15,7 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>	rt = Image( EPixelFormat::RGBA16F, SurfaceSize()/16 );		rt.Name( "RT" );
+		RC<Image>	rt = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize()/16 );		rt.Name( "RT" );
 
 		// render loop
 		{

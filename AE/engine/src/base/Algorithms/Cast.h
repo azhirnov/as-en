@@ -41,7 +41,7 @@ namespace AE::Base
 	template <typename R, typename T>
 	__Cz__ void  CheckPointerCast (T const* ptr) __NE___
 	{
-		if ( not IsConstEvaluated() )
+		if_not_consteval()
 		{
 		#if defined(AE_PLATFORM_APPLE) and AE_CXX_VER <= 17
 			if constexpr( not IsVoid<R> )

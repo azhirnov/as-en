@@ -124,7 +124,7 @@ namespace
 				for (auto& un_name : ptr->_uniqueNames)
 				{
 					CHECK_THROW_MSG( HashTable_NotContains( dsPtr->_uniqueNames, un_name ),
-						"uniform with name '"s << un_name << "' is already exists in DS '" << ptr->_name << "'" );
+						"uniform with name '"s << un_name << "' is already exists in DescSet '" << ptr->_name << "'" );
 				}
 			}
 		}
@@ -134,7 +134,7 @@ namespace
 
 		_dsLayouts.resize( Max( index+1, _dsLayouts.size() ));
 		CHECK_THROW_MSG( not _dsLayouts[index].Get<0>(),
-			"DS index "s << ToString(index) << " is already used" );
+			"DescSet index "s << ToString(index) << " is already used" );
 
 		_dsLayouts[index] = Tuple{ dsPtr, DescriptorSetName{name} };
 	}
@@ -507,10 +507,14 @@ namespace
 				{
 					for (auto stage : BitfieldIterate( ptr->GetStages() ))
 					{
-						auto&	msl_bindings	= msl_per_stage( stage );
-						ubyte*	dst				= dsl.mtlIndex.PtrForShader( stage );
+						ubyte*	dst = dsl.mtlIndex.PtrForShader( stage );
+						if ( dst == null )
+						{
+							AE_LOGW( "unsupported shader stage ("s << ToString(stage) << ") for Metal" );
+							continue;
+						}
 
-						CHECK_ERR( dst != null, "unsupported shader stage for Metal" );
+						auto&	msl_bindings = msl_per_stage( stage );
 						CHECK_ERR( CheckCast( OUT *dst, msl_bindings.BufferCount() ));
 
 						CHECK_ERR( ptr->CountMSLBindings( stage, INOUT msl_bindings ));
@@ -565,9 +569,14 @@ namespace
 		{
 			for (auto [stage, bindings] : msl_per_stage)
 			{
-				CHECK_ERR( bindings.BufferCount()  <= MetalLimits::maxBuffers );
-				CHECK_ERR( bindings.SamplerCount() <= MetalLimits::maxSamplers );
-				CHECK_ERR( bindings.textureIdx     <= MetalLimits::maxImages );
+				CHECK_ERR_MSG( bindings.BufferCount()  <= MetalLimits::maxBuffers,
+					"Number of buffers ("s << ToString(bindings.BufferCount()) << ") exceed the maximum allowed (" << ToString(MetalLimits::maxBuffers) << ")" );
+
+				CHECK_ERR_MSG( bindings.SamplerCount() <= MetalLimits::maxSamplers,
+					"Number of samplers ("s << ToString(bindings.SamplerCount()) << ") exceed the maximum allowed (" << ToString(MetalLimits::maxSamplers) << ")" );
+
+				CHECK_ERR_MSG( bindings.textureIdx     <= MetalLimits::maxImages,
+					"Number of textures ("s << ToString(bindings.textureIdx) << ") exceed the maximum allowed (" << ToString(MetalLimits::maxImages) << ")" );
 			}
 		}
 
@@ -608,7 +617,7 @@ namespace
 			return with_arg_buf != 0;
 		}
 
-		String	msg = "PipelineLayout '"s << _name << "' has DS with adn without usage: ArgumentBuffer which is not compatible with SpvToMsl:";
+		String	msg = "PipelineLayout '"s << _name << "' has DescSet with and without usage: ArgumentBuffer, which is not compatible with SpvToMsl:";
 
 		for (auto& ds : _dsLayouts)
 		{

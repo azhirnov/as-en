@@ -2,11 +2,16 @@
 
 include( CheckCXXSourceCompiles )
 
-list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_20" HAS_CPP20 )
-if ( ${AE_FORCE_CXX17} OR (${HAS_CPP20} LESS 0) )
+if (NOT DEFINED AE_CXX_17)
+	message( FATAL_ERROR "'compiler_tests.cmake' included before C++ version check" )
+endif()
+
+if ( ${AE_CXX_17} )
 	set( AE_DEFAULT_CPPFLAGS "-std=c++17" )
-else()
+elseif( ${AE_CXX_20} )
 	set( AE_DEFAULT_CPPFLAGS "-std=c++20" )
+elseif( ${AE_CXX_23} )
+	set( AE_DEFAULT_CPPFLAGS "-std=c++23" )
 endif()
 
 string( FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" outPos )
@@ -215,7 +220,50 @@ if (${AE_HAS_CXX_COROUTINE})
 	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_HAS_COROUTINE" )
 endif()
 
-#------------------------------------------------------------------------------
+#==============================================================================
+
+if ( ${AE_CXX_23} )
+	set( CPP_IF_CONSTEVAL_SUPPORTED_SRC
+		"constexpr bool is_constant_evaluated() noexcept
+		{
+			if consteval {
+				return true;
+			}else{
+				return false;
+			}
+		}
+		int main () {
+			return is_constant_evaluated();
+		}" )
+
+	if (${CMAKE_VERSION} VERSION_LESS "3.25.0")
+		check_cxx_source_compiles(
+			"${CPP_IF_CONSTEVAL_SUPPORTED_SRC}"
+			CPP_IF_CONSTEVAL_SUPPORTED )
+	else()
+		# use CXX_STANDARD instead of flags
+		if (NOT DEFINED CPP_IF_CONSTEVAL_SUPPORTED)
+			message( STATUS "Performing Test CPP_IF_CONSTEVAL_SUPPORTED" )
+			try_compile(
+				CPP_IF_CONSTEVAL_SUPPORTED
+				SOURCE_FROM_VAR 		"main.cpp" CPP_IF_CONSTEVAL_SUPPORTED_SRC
+				CXX_STANDARD  			23
+				CXX_STANDARD_REQUIRED 	YES
+			)
+			set( CPP_IF_CONSTEVAL_SUPPORTED ${CPP_IF_CONSTEVAL_SUPPORTED} CACHE INTERNAL "" FORCE )
+			if (CPP_IF_CONSTEVAL_SUPPORTED)
+				message( STATUS "Performing Test CPP_IF_CONSTEVAL_SUPPORTED - Success" )
+			else()
+				message( STATUS "Performing Test CPP_IF_CONSTEVAL_SUPPORTED - Failed" )
+			endif()
+		endif()
+	endif()
+
+	if (CPP_IF_CONSTEVAL_SUPPORTED)
+		set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CPP_IF_CONSTEVAL" )
+	endif()
+endif()
+#==============================================================================
 
 set( CMAKE_REQUIRED_FLAGS "" )
 set( CMAKE_REQUIRED_LIBRARIES "" )

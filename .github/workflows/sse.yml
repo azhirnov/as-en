@@ -7,6 +7,7 @@ jobs:
     strategy:
       matrix:
         config: [Debug]
+      fail-fast: false
         
     runs-on: ubuntu-24.04
     name: Linux x64, Clang 16, SSE/AVX, ${{matrix.config}}
@@ -17,7 +18,7 @@ jobs:
     - name: Configure dependencies
       run: |
         sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libudev-dev \
           libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
           libxkbcommon-dev libc++-dev libc++abi-dev
  

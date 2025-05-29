@@ -1,4 +1,4 @@
-#include "NonUniformTex-shared.as"
+#include "NonUniform-shared.as"
 
 #ifdef SCRIPT
 

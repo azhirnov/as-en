@@ -54,7 +54,7 @@
 			pass.Slider( "iMode",			0,			3 );
 			pass.Slider( "iView",			0,			2 );
 			pass.Slider( "iEnableBias",		0,			1,		1 );
-			pass.Slider( "iBias",			-2.0,		2.0,	-0.12 );
+			pass.Slider( "iBias",			-3.0,		3.0,	-0.12 );	// limits: [-maxSamplerLodBias, maxSamplerLodBias]
 			pass.Slider( "iAngleBias",		0.0,		10.0,	5.0 );
 		}
 		Present( rt );
@@ -63,10 +63,11 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GENTEX
+	#include "InvocationID.glsl"
 	
 	void Main ()
 	{
-		uint2	pos = uint2(gl.FragCoord.xy) / 32;
+		uint2	pos = uint2(GetGlobalCoord().xy) / 32;
 
 		if ( ((pos.x + pos.y) & 1) == 0 )
 			out_Color = float4(1.0);

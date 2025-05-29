@@ -43,7 +43,7 @@
 			pass.ArgInOut( "un_Images",		tmp );
 			pass.Constant( "IMAGE_ARRAY",	1 );
 			pass.Constant( "iBaseLayer",	first );
-			pass.LocalSize( 16, 16 );
+			pass.LocalSize( 16, 8 );
 			pass.DispatchThreads( uint3( img_dim, tmp.size() ));
 		}
 
@@ -51,7 +51,7 @@
 			RC<ComputePass>		pass = ComputePass();
 			pass.ArgInOut( "un_ImgArray",	img_arr );
 			pass.Constant( "iBaseLayer",	0 );
-			pass.LocalSize( 16, 16 );
+			pass.LocalSize( 16, 8 );
 			pass.DispatchThreads( uint3( img_dim, images.size() ));
 		}
 
@@ -70,7 +70,7 @@
 	
 	void  Main ()
 	{
-		uint	layer	= GetGlobalCoord().z;
+		uint	layer	= GetGroupCoord().z;	// uniform
 		int2	pos		= GetGlobalCoord().xy;
 
 		float	n		= PerlinNoise( float3( pos * 0.01, layer + iBaseLayer ));

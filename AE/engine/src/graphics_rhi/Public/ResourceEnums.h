@@ -356,7 +356,7 @@ namespace AE::Graphics
 		_visitor_( RG32F			)\
 		_visitor_( RGB32F			)\
 		_visitor_( RGBA32F			)\
-		_visitor_( RGB_11_11_10F	)\
+		_visitor_( R11G11B10F		)\
 		_visitor_( RGB9F_E5			)\
 		\
 		/* depth stencil */\

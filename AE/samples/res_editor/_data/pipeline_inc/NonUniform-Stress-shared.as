@@ -36,6 +36,7 @@
 			fs.LoadSelf();
 			if ( EndsWith( name, "-pp" ))	fs.Define( "PER_PIXEL_TEX" );
 			if ( EndsWith( name, "-pq" ))	fs.Define( "PER_QUAD_TEX" );
+			if ( EndsWith( name, "-pw" ))	fs.Define( "PER_WARP_TEX" );
 			if ( dbgFS )					fs.options = dbg_mode;
 			ppln.SetFragmentShader( fs );
 		}
@@ -144,16 +145,22 @@
 		tex_id = HashCombine( tex_id, int(gl.FragCoord.y)/2 );
 		tex_id = tex_id % TEX_COUNT;
 	#endif
+	#ifdef PER_WARP_TEX
+		tex_id = HashCombine( tex_id, int(gl.FragCoord.x) );
+		tex_id = HashCombine( tex_id, int(gl.FragCoord.y) );
+		tex_id = tex_id % TEX_COUNT;
+		tex_id = gl.subgroup.BroadcastFirst( tex_id );
+	#endif
 
 	#ifdef BINDLESS_SAMPLER
 		uint	samp_id	= tex_id % SAMP_COUNT;
-		out_Color = gl.texture.Sample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex_id)], un_Samplers[gl::Nonuniform(samp_id)] ), In.uv );
+		out_Color = gl.texture.Sample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex_id], un_Samplers[samp_id] )), In.uv, iTexBias );
 
 	#elif defined(BINDLESS_TEX)
-		out_Color = gl.texture.Sample( un_Textures[gl::Nonuniform(tex_id)], In.uv );
+		out_Color = gl.texture.Sample( un_Textures[gl::Nonuniform(tex_id)], In.uv, iTexBias );
 
 	#else
-		out_Color = gl.texture.Sample( un_TextureArr, float3(In.uv, tex_id) );
+		out_Color = gl.texture.Sample( un_TextureArr, float3(In.uv, tex_id), iTexBias );
 	#endif
 
 		out_Color *= In.color;

@@ -1193,7 +1193,7 @@ namespace
 				_storeU4 = &WriteUInt<16,16,16,16>;
 				break;
 
-			case EPixelFormat::RGB_11_11_10F :
+			case EPixelFormat::R11G11B10F :
 				REQ_COLOR_ASPECT();
 				ASSERT( _bitsPerBlock == 11 + 11 + 10 );
 				_loadF4 = &ReadFloat_11_11_10;
@@ -1467,7 +1467,7 @@ namespace
 
 			using EType = PixelFormatInfo::EType;
 			constexpr auto	float_mask	= EType::UNorm | EType::SNorm | EType::SFloat | EType::UFloat;
-			constexpr auto	int_mask	= EType::Int;
+			constexpr auto	int_mask	= EType::SInt;
 			constexpr auto	uint_mask	= EType::UInt;
 
 			if ( AnyBits( src_info.valueType, float_mask ) and AnyBits( dst_info.valueType, float_mask ))
@@ -1547,7 +1547,7 @@ namespace
 
 		using EType = PixelFormatInfo::EType;
 		constexpr auto	float_mask	= EType::UNorm | EType::SNorm | EType::SFloat | EType::UFloat;
-		constexpr auto	int_mask	= EType::Int;
+		constexpr auto	int_mask	= EType::SInt;
 		constexpr auto	uint_mask	= EType::UInt;
 
 		if ( AnyBits( src_info.valueType, float_mask ) and AnyBits( dst_info.valueType, float_mask ))

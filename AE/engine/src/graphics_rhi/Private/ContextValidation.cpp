@@ -111,16 +111,17 @@ namespace
 		return ImageUtils::MipmapDimension( desc.Dimension(), mip.Get(), EPixelFormat_GetInfo( desc.format ).TexBlockDim() );
 	}
 
-	static void  ValidateImageSubresourceLayers (const ImageDesc &desc, const ImageSubresourceLayers &subres, const uint3 &offset, const uint3 &extent) __Th___
+	static void  ValidateImageSubresourceLayers (const ImageDesc &imgDesc, const ImageSubresourceLayers &subres, const uint3 &offset, const uint3 &extent) __Th___
 	{
-		const uint3	dim = MipmapDimension( desc, subres.mipLevel );
+		const uint3	dim = MipmapDimension( imgDesc, subres.mipLevel );
 
 		GCTX_CHECK( All( offset < dim ));
 		GCTX_CHECK( All( (offset + extent) <= dim ));
 
-		GCTX_CHECK( subres.mipLevel < desc.mipLevels );
-		GCTX_CHECK( subres.baseLayer < desc.arrayLayers );
+		GCTX_CHECK( subres.mipLevel < imgDesc.mipLevels );
+		GCTX_CHECK( subres.baseLayer < imgDesc.arrayLayers );
 		GCTX_CHECK( subres.aspectMask != Default );
+		GCTX_CHECK( subres.aspectMask == EPixelFormat_ToImageAspect( imgDesc.format ));
 	}
 
 	ND_ static bool  BuildIndirectSupported ()				__NE___	{ return _GetFeatureSet().accelerationStructureIndirectBuild == True; }
@@ -182,6 +183,7 @@ namespace
 		{
 			GCTX_CHECK( range.baseMipLevel < imgDesc.mipLevels );
 			GCTX_CHECK( range.baseLayer < imgDesc.arrayLayers );
+			GCTX_CHECK( range.aspectMask == EPixelFormat_ToImageAspect( imgDesc.format ));
 		}
 	}
 
@@ -213,6 +215,7 @@ namespace
 		{
 			GCTX_CHECK( range.baseMipLevel < imgDesc.mipLevels );
 			GCTX_CHECK( range.baseLayer < imgDesc.arrayLayers );
+			GCTX_CHECK( range.aspectMask == EPixelFormat_ToImageAspect( imgDesc.format ));
 		}
 	}
 

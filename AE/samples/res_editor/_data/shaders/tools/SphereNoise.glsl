@@ -86,28 +86,28 @@
 		#endif
 		switch ( iNoise )
 		{
-			case 0 :								n = GradientNoise( pos, params );			CastSNorm;	break;
-			case 1 :								n = ValueNoise( pos, params );				CastSNorm;	break;
-			case 2 :								n = PerlinNoise( pos, params );				CastSNorm;	break;
-			case 3 :								n = SimplexNoise( pos * 0.5, params );		CastSNorm;	break;
-			case 4 :	SetupIQWavelet( params );	n = IQNoise( pos * 2.0, params );			CastUNorm;	break;
+			case 0 :								n = GradientNoise( pos, params );			break;
+			case 1 :								n = ValueNoise( pos, params );				break;
+			case 2 :								n = PerlinNoise( pos, params );				break;
+			case 3 :								n = SimplexNoise( pos * 0.5, params );		break;
+			case 4 :	SetupIQWavelet( params );	n = IQNoise( pos * 2.0, params );			n = ToSNorm( n );	break;
 
-			case 5 :	SetupVoronoi( params );		n = Voronoi( pos, params );					CastUNorm;	break;
-			case 6 :	SetupVoronoi( params );		n = VoronoiContour( pos, params );			CastUNorm;	break;
-			case 7 :	SetupIQWavelet( params );	n = WarleyNoise( pos, params );				CastUNorm;	break;
-			case 8 :	SetupVCSparse( params );	n = VoronoiContourSparse( pos, params );	CastSNorm;	break;
+			case 5 :	SetupVoronoi( params );		n = Voronoi( pos, params );					n = ToSNorm( n );	break;
+			case 6 :	SetupVoronoi( params );		n = VoronoiContour( pos, params );			n = ToSNorm( n );	break;
+			case 7 :	SetupIQWavelet( params );	n = WarleyNoise( pos, params );				n = ToSNorm( n );	break;
+			case 8 :	SetupVCSparse( params );	n = VoronoiContourSparse( pos, params );	break;
 
 			// FBM
-			case 9 :								n = GradientNoiseFBM( pos, params, fbm );		CastSNorm;	break;
-			case 10 :								n = ValueNoiseFBM( pos, params, fbm );			CastSNorm;	break;
-			case 11 :								n = PerlinNoiseFBM( pos, params, fbm );			CastSNorm;	break;
-			case 12 :								n = SimplexNoiseFBM( pos * 0.5, params, fbm );	CastSNorm;	break;
-			case 13 :	SetupIQWavelet( params );	n = IQNoiseFBM( pos * 2.0, params, fbm );		CastUNorm;	break;
+			case 9 :								n = GradientNoiseFBM( pos, params, fbm );		break;
+			case 10 :								n = ValueNoiseFBM( pos, params, fbm );			break;
+			case 11 :								n = PerlinNoiseFBM( pos, params, fbm );			break;
+			case 12 :								n = SimplexNoiseFBM( pos * 0.5, params, fbm );	break;
+			case 13 :	SetupIQWavelet( params );	n = IQNoiseFBM( pos * 2.0, params, fbm );		n = ToSNorm( n );	break;
 
-			case 14 :	SetupVoronoi( params );		n = VoronoiFBM( pos, params, fbm );				CastUNorm;	break;
-			case 15 :	SetupIQWavelet( params );	n = WarleyNoiseFBM( pos, params, fbm );			CastUNorm;	break;
-			case 16 :	SetupVoronoi( params );		n = VoronoiContourFBM( pos, params, fbm );		CastUNorm;	break;
-			case 17 :	SetupVCSparse( params );	n = VoronoiContourSparseFBM( pos, params, fbm );CastSNorm;	break;
+			case 14 :	SetupVoronoi( params );		n = VoronoiFBM( pos, params, fbm );				n = ToSNorm( n );	break;
+			case 15 :	SetupIQWavelet( params );	n = WarleyNoiseFBM( pos, params, fbm );			n = ToSNorm( n );	break;
+			case 16 :	SetupVoronoi( params );		n = VoronoiContourFBM( pos, params, fbm );		n = ToSNorm( n );	break;
+			case 17 :	SetupVCSparse( params );	n = VoronoiContourSparseFBM( pos, params, fbm ); break;
 		}
 
 		n = n * iVScaleBias.x + iVScaleBias.y;

@@ -132,11 +132,13 @@
 
 // C++20 is constant evaluated
 #ifdef __cpp_lib_is_constant_evaluated
-#	define cxx20_constexpr		constexpr						// allow 'IsConstEvaluated()' inside
-#	define IsConstEvaluated()	std::is_constant_evaluated()	// warning: don't use in 'if constexpr()' it is always 'true'
+#	define cxx20_constexpr		constexpr								// allow 'is_constant_evaluated()' inside
+#	define if_consteval()		if ( std::is_constant_evaluated() )		// warning: don't use in 'if constexpr()' it is always 'true'
+#	define if_not_consteval()	if ( not std::is_constant_evaluated() )
 #else
-#	define IsConstEvaluated()	false
 #	define cxx20_constexpr
+#	define if_consteval()		if constexpr( false )
+#	define if_not_consteval()	if constexpr( true )
 #endif
 
 
@@ -151,7 +153,7 @@
 
 // C++20 constinit specifier
 // not constant, can be used with 'static' and 'thread_local'
-#ifdef __cpp_consteval
+#ifdef __cpp_constinit
 #	define cxx20_constinit		constinit
 #else
 #	define cxx20_constinit
@@ -160,7 +162,7 @@
 
 // C++20 concepts
 #ifdef __cpp_concepts
-#	define if_constexpr_requires( ... )		if constexpr( requires{ __VA_ARGS___ })
+#	define if_requires( ... )	if constexpr( requires{ __VA_ARGS___ })
 #endif
 
 
@@ -190,13 +192,16 @@
 
 // function name
 #ifdef AE_COMPILER_MSVC
-#	define AE_FUNCTION_NAME		__func__	//	local variable of type 'const char[]'
+#	define AE_FUNCTION_NAME			__func__	//	local variable of type 'const char[]'
+#	define AE_FUNCTION_SIGNATURE	__FUNSIG__
 
 #elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define AE_FUNCTION_NAME		__func__	//	local variable of type 'const char[]'
+#	define AE_FUNCTION_NAME			__func__	//	local variable of type 'const char[]'
+#	define AE_FUNCTION_SIGNATURE	__PRETTY_FUNCTION__ 
 
 #else
-#	define AE_FUNCTION_NAME		"unknown function"
+#	define AE_FUNCTION_NAME			"unknown function"
+#	define AE_FUNCTION_SIGNATURE	""
 #endif
 
 

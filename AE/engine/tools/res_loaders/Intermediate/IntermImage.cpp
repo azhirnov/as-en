@@ -230,7 +230,8 @@ namespace AE::ResLoader
 		auto&	img = _data [mipmap.Get()] [layer.Get()];
 		CHECK_ERR_MSG( not img.Empty(), "not allocated" );
 
-		return ImageMemView{ img.PixelData(), img.DataSize(), uint3{}, img.dimension, img.rowPitch, img.slicePitch, img.format, EImageAspect::Color };
+		return ImageMemView{ img.PixelData(), img.DataSize(), uint3{}, img.dimension, img.rowPitch,
+							 img.slicePitch, img.format, EPixelFormat_ToImageAspect( img.format ) };
 	}
 
 /*

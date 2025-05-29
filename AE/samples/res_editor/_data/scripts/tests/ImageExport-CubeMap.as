@@ -14,11 +14,11 @@
 		RC<Image>			rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
 		RC<Image>			ds				= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 
-		const int2			tile_size		= int2(128);
-		const int			tile_count_pot	= 5;							// 2^X
-		const int2			cubemap_dim		= tile_size << tile_count_pot;	// 4096
+		const uint2			tile_size		= uint2(128);
+		const uint			tile_count_pot	= 5;							// 2^X
+		const uint2			cubemap_dim		= tile_size << tile_count_pot;	// 4096
 
-		RC<Image>			cubemap			= Image( EPixelFormat::RGBA8_UNorm, uint2(cubemap_dim), ImageLayer(6), MipmapLevel(~0) );	cubemap.Name( "Cubemap tex" );
+		RC<Image>			cubemap			= Image( EPixelFormat::RGBA8_UNorm, cubemap_dim, ImageLayer(6), MipmapLevel(~0) );	cubemap.Name( "Cubemap tex" );
 		RC<Image>			cubemap_view	= cubemap.CreateView( EImage::Cube );
 
 		RC<Scene>			scene			= Scene();
@@ -41,9 +41,9 @@
 
 		// setup constants
 		{
-			cbuf.Int(	"tileSize",		tile_size );
-			cbuf.Int(	"dim",			cubemap_dim );
-			cbuf.Int(	"frameToTile",	tile_count_pot );
+			cbuf.Int(	"tileSize",		int2(tile_size) );
+			cbuf.Uint(	"dim",			cubemap_dim );
+			cbuf.Uint(	"frameToTile",	tile_count_pot );
 		}
 
 		// setup skybox

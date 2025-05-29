@@ -10,7 +10,7 @@ namespace
 
 	static void  MinSleepTime_Test1 ()
 	{
-		IntervalProfiler	profiler{ "std sleep_for" };
+		IntervalProfiler	profiler{ "std sleep_for", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
 
 		profiler.BeginTest( "1 us" );
 		for (uint i = 0; i < c_Count; ++i)
@@ -70,7 +70,7 @@ namespace
 
 	static void  MinSleepTime_Test2 ()
 	{
-		IntervalProfiler	profiler{ "AE" };
+		IntervalProfiler	profiler{ "AE", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
 
 		profiler.BeginTest( "Pause" );
 		for (uint i = 0; i < c_Count; ++i)
@@ -121,7 +121,7 @@ namespace
 
 	static void  MinSleepTime_Test3 ()
 	{
-		IntervalProfiler	profiler{ "Micro Sleep" };
+		IntervalProfiler	profiler{ "Micro Sleep", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
 
 		profiler.BeginTest( "100 ns" );
 		for (uint i = 0; i < c_Count; ++i)
@@ -199,7 +199,7 @@ namespace
 
 	static void  MinSleepTime_Test4 ()
 	{
-		IntervalProfiler	profiler{ "Nano Sleep" };
+		IntervalProfiler	profiler{ "Nano Sleep", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
 
 		profiler.BeginTest( "70 ns" );
 		for (uint i = 0; i < c_Count; ++i)
@@ -246,6 +246,57 @@ namespace
 		}
 		profiler.EndTest();
 	}
+
+
+	static void  MinSleepTime_Test5 ()
+	{
+		IntervalProfiler	profiler{ "Milli Sleep", IntervalProfiler::EFlags::ExcludeDelta | IntervalProfiler::EFlags::ExcludePerfDiff };
+
+		profiler.BeginTest( "1 ms" );
+		for (uint i = 0; i < c_Count; ++i)
+		{
+			profiler.BeginIteration();
+			ThreadUtils::MilliSleep( milliseconds{1} );
+			profiler.EndIteration();
+		}
+		profiler.EndTest();
+		
+		profiler.BeginTest( "3 ms" );
+		for (uint i = 0; i < c_Count; ++i)
+		{
+			profiler.BeginIteration();
+			ThreadUtils::MilliSleep( milliseconds{3} );
+			profiler.EndIteration();
+		}
+		profiler.EndTest();
+
+		profiler.BeginTest( "5 ms" );
+		for (uint i = 0; i < c_Count; ++i)
+		{
+			profiler.BeginIteration();
+			ThreadUtils::MilliSleep( milliseconds{5} );
+			profiler.EndIteration();
+		}
+		profiler.EndTest();
+
+		profiler.BeginTest( "15 ms" );
+		for (uint i = 0; i < c_Count; ++i)
+		{
+			profiler.BeginIteration();
+			ThreadUtils::MilliSleep( milliseconds{15} );
+			profiler.EndIteration();
+		}
+		profiler.EndTest();
+
+		profiler.BeginTest( "20 ms" );
+		for (uint i = 0; i < c_Count; ++i)
+		{
+			profiler.BeginIteration();
+			ThreadUtils::MilliSleep( milliseconds{20} );
+			profiler.EndIteration();
+		}
+		profiler.EndTest();
+	}
 }
 
 
@@ -271,7 +322,7 @@ extern void PerfTest_MinSleepTime ()
 
 		if ( core_id >= 0 )
 		{
-			AE_LOGI( "bind to core: "s << ToString(core_id) );
+			AE_LOGI( "bound to core: "s << ToString(core_id) );
 			ThreadUtils::SetAffinity( uint(core_id) );
 		}
 	}
@@ -280,6 +331,7 @@ extern void PerfTest_MinSleepTime ()
 	MinSleepTime_Test2();
 	MinSleepTime_Test3();
 	MinSleepTime_Test4();
+	MinSleepTime_Test5();
 
 	TEST_PASSED();
 }

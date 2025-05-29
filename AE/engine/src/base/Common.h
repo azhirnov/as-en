@@ -138,14 +138,15 @@ namespace AE::Base
 	{
 		return StringView{ typeid(T).name() };
 	}
-
-# if defined(__cpp_char8_t) and defined(AE_PLATFORM_APPLE)
+	
 	// bugfix: link error in MacOS clang14-15
-	template <>
-	NdCx__ StringView  TypeNameOf<char8_t> () __NE___
-	{
-		return StringView{"char8_t"};
-	}
+# ifdef AE_PLATFORM_APPLE
+#	ifdef __cpp_char8_t
+		template <>	NdCx__ StringView  TypeNameOf<char8_t> () __NE___ { return StringView{"char8_t"}; }
+#	endif
+#	if AE_SIMD_NEON_HALF
+		template <>	NdCx__ StringView  TypeNameOf<float16_t> () __NE___	{ return StringView{"float16_t"}; }
+#	endif
 # endif
 #endif
 

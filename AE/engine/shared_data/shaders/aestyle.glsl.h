@@ -341,7 +341,8 @@ public:
 	// Dynamically uniform:
 	//	- Data from uniform buffer, for arrays it must be constant or dynamically uniform indexing.
 	//	- Data from push constants.
-	//	- 'DrawID'.
+	//	- 'DrawID' / 'DrawIndex'.
+	//	- 'WorkGroupID' and any value that is the same for the entire workgroup.
 	//
 	// Non-dynamically uniform:
 	//	- 'VertexIndex', 'PrimitiveID', ...
@@ -849,7 +850,8 @@ public:
 	  #endif
 
 	  #ifdef AE_shader_subgroup_ballot
-		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;	// returns the 'value' from the invocation whose ID is equal to 'id'
+		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;	// returns the 'value' from the invocation whose ID is equal to 'id',
+																						// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id', but it is slow
 		template <typename T>	ND_ T		BroadcastFirst (const T) const;	// returns the 'value' from the active invocation with the lowest ID
 
 		ND_ uint4	Ballot (bool) const;									// returns a set of bitfields containing the result of evaluating the expression 'value' in all active invocations in the subgroup
@@ -922,7 +924,7 @@ public:
 		// quad ids:	bits:
 		//   0  1		00  01
 		//   2  3		10  11
-		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;	// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id',
+		template <typename T>	ND_ T		Broadcast (const T value, uint id) const;	// 'AE_subgroupBroadcastDynamicId' allows dynamically uniform 'id'
 																						// otherwise it must be constant
 		template <typename T>	ND_ T		SwapHorizontal (const T) const;
 		template <typename T>	ND_ T		SwapVertical (const T) const;

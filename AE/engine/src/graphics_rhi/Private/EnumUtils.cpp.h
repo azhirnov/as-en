@@ -103,20 +103,22 @@ namespace AE::Graphics
 			case _EResState::ShaderUniform :
 			case _EResState::ShaderSample :
 			case _EResState::ShaderRTAS :
-				CHECK_ERR_MSG( has_any_shader,  "Resource state ("s << ToString( state ) << ") must contain shader stage." );
+				CHECK_ERR_MSG( has_any_shader,	"Resource state ("s << ToString( state ) << ") must contain shader stage." );
+				CHECK_MSG( not has_ds_stage,	"Resource state ("s << ToString( state ) << ") should not contain depth stage." );
 				break;
 
 			case _EResState::InputColorAttachment :
 			case _EResState::InputColorAttachment_RW :
 			case _EResState::InputDepthStencilAttachment :
-				CHECK_ERR_MSG( has_post_raster_shaders,  "Resource state ("s << ToString( state ) << ") must contain fragment or tile shader." );
-				CHECK_ERR_MSG( not has_pre_raster_shaders,  "Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
+				CHECK_ERR_MSG( has_post_raster_shaders,	"Resource state ("s << ToString( state ) << ") must contain fragment or tile shader." );
+				CHECK_MSG( not has_pre_raster_shaders,	"Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
+				CHECK_MSG( not has_ds_stage,			"Resource state ("s << ToString( state ) << ") should not contain depth stage." );
 				break;
 
 			case _EResState::InputDepthStencilAttachment_RW :
-				CHECK_ERR_MSG( has_post_raster_shaders,  "Resource state ("s << ToString( state ) << ") must contain fragment or tile shader." );
-				CHECK_ERR_MSG( not has_pre_raster_shaders,  "Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
-				CHECK_ERR_MSG( has_ds_stage,  "Resource state ("s << ToString( state ) << ") must contain depth stage." );
+				CHECK_ERR_MSG( has_post_raster_shaders,	"Resource state ("s << ToString( state ) << ") must contain fragment or tile shader." );
+				CHECK_MSG( not has_pre_raster_shaders,	"Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
+				CHECK_ERR_MSG( has_ds_stage,			"Resource state ("s << ToString( state ) << ") must contain depth stage." );
 				break;
 
 			case _EResState::DepthStencilTest_ShaderSample :
@@ -129,8 +131,8 @@ namespace AE::Graphics
 			case _EResState::DepthStencilAttachment_RW :
 			case _EResState::DepthTest_StencilRW :
 			case _EResState::DepthRW_StencilTest :
-				CHECK_ERR_MSG( has_ds_stage,  "Resource state ("s << ToString( state ) << ") must contain depth stage." );
-				CHECK_ERR_MSG( not has_any_shader,  "Resource state ("s << ToString( state ) << ") should not contain shader stages." );
+				CHECK_ERR_MSG( has_ds_stage,	"Resource state ("s << ToString( state ) << ") must contain depth stage." );
+				CHECK_MSG( not has_any_shader,	"Resource state ("s << ToString( state ) << ") should not contain shader stages." );
 				break;
 
 			case _EResState::Unknown :
@@ -154,7 +156,8 @@ namespace AE::Graphics
 			case _EResState::BuildRTAS_RW :
 			case _EResState::BuildRTAS_IndirectBuffer :
 			case _EResState::RTShaderBindingTable :
-				CHECK_ERR_MSG( not has_any_shader,  "Resource state ("s << ToString( state ) << ") should not contain shader stages." );
+				CHECK_MSG( not has_any_shader,	"Resource state ("s << ToString( state ) << ") should not contain shader stages." );
+				CHECK_MSG( not has_ds_stage,	"Resource state ("s << ToString( state ) << ") should not contain depth stage." );
 				break;
 
 			case _EResState::General :
@@ -324,19 +327,19 @@ namespace AE::Graphics
 			{ EPixelFormat::sRGB8_A8,				8*4,			4,	EType::UNorm | EType::sRGB },
 			{ EPixelFormat::sBGR8,					8*3,			3,	EType::UNorm | EType::sRGB | EType::BGR },
 			{ EPixelFormat::sBGR8_A8,				8*4,			4,	EType::UNorm | EType::sRGB | EType::BGR },
-			{ EPixelFormat::R8I,					8*1,			1,	EType::Int },
-			{ EPixelFormat::RG8I,					8*2,			2,	EType::Int },
-			{ EPixelFormat::RGB8I,					8*3,			3,	EType::Int },
-			{ EPixelFormat::RGBA8I,					8*4,			4,	EType::Int },
-			{ EPixelFormat::R16I,					16*1,			1,	EType::Int },
-			{ EPixelFormat::RG16I,					16*2,			2,	EType::Int },
-			{ EPixelFormat::RGB16I,					16*3,			3,	EType::Int },
-			{ EPixelFormat::RGBA16I,				16*4,			4,	EType::Int },
-			{ EPixelFormat::R32I,					32*1,			1,	EType::Int },
-			{ EPixelFormat::RG32I,					32*2,			2,	EType::Int },
-			{ EPixelFormat::RGB32I,					32*3,			3,	EType::Int },
-			{ EPixelFormat::RGBA32I,				32*4,			4,	EType::Int },
-			{ EPixelFormat::R64I,					64*1,			1,	EType::Int },
+			{ EPixelFormat::R8I,					8*1,			1,	EType::SInt },
+			{ EPixelFormat::RG8I,					8*2,			2,	EType::SInt },
+			{ EPixelFormat::RGB8I,					8*3,			3,	EType::SInt },
+			{ EPixelFormat::RGBA8I,					8*4,			4,	EType::SInt },
+			{ EPixelFormat::R16I,					16*1,			1,	EType::SInt },
+			{ EPixelFormat::RG16I,					16*2,			2,	EType::SInt },
+			{ EPixelFormat::RGB16I,					16*3,			3,	EType::SInt },
+			{ EPixelFormat::RGBA16I,				16*4,			4,	EType::SInt },
+			{ EPixelFormat::R32I,					32*1,			1,	EType::SInt },
+			{ EPixelFormat::RG32I,					32*2,			2,	EType::SInt },
+			{ EPixelFormat::RGB32I,					32*3,			3,	EType::SInt },
+			{ EPixelFormat::RGBA32I,				32*4,			4,	EType::SInt },
+			{ EPixelFormat::R64I,					64*1,			1,	EType::SInt },
 			{ EPixelFormat::R8U,					8*1,			1,	EType::UInt },
 			{ EPixelFormat::RG8U,					8*2,			2,	EType::UInt },
 			{ EPixelFormat::RGB8U,					8*3,			3,	EType::UInt },
@@ -359,7 +362,7 @@ namespace AE::Graphics
 			{ EPixelFormat::RG32F,					32*2,			2,	EType::SFloat },
 			{ EPixelFormat::RGB32F,					32*3,			3,	EType::SFloat },
 			{ EPixelFormat::RGBA32F,				32*4,			4,	EType::SFloat },
-			{ EPixelFormat::RGB_11_11_10F,			11+11+10,		3,	EType::SFloat },
+			{ EPixelFormat::R11G11B10F,				11+11+10,		3,	EType::UFloat },
 			{ EPixelFormat::RGB9F_E5,				9+9+9+5,		3,	EType::UFloat },
 
 			// format							depth/stencil bits	  		flags									aspect
@@ -536,7 +539,7 @@ namespace AE::Graphics
 			case EPixelFormat::RGB16F :
 				return EPixelFormat::BC6H_RGB16F;
 
-			case EPixelFormat::RGB_11_11_10F :
+			case EPixelFormat::R11G11B10F :
 				return EPixelFormat::BC6H_RGB16UF;
 		}
 		return Default;
@@ -674,7 +677,7 @@ namespace AE::Graphics
 		using EType = PixelFormatInfo::EType;
 
 		constexpr auto	float_mask	= EType::SFloat | EType::UFloat;
-		constexpr auto	int_mask	= EType::UNorm | EType::SNorm | EType::Int | EType::UInt | EType::BGR | EType::sRGB;
+		constexpr auto	int_mask	= EType::UNorm | EType::SNorm | EType::SInt | EType::UInt | EType::BGR | EType::sRGB;
 
 		const auto&	src_fmt	 = EPixelFormat_GetInfo( srcFormat );
 
@@ -1358,7 +1361,7 @@ namespace AE::Graphics
 		const auto	float_flags	= EType::SFloat | EType::UFloat | EType::UNorm | EType::SNorm;
 
 		if ( AnyBits( src_fmt.valueType, float_flags )			!= AnyBits( dst_fmt.valueType, float_flags ) or
-			 AllBits( src_fmt.valueType, EType::Int  )			!= AllBits( dst_fmt.valueType, EType::Int  ) or
+			 AllBits( src_fmt.valueType, EType::SInt  )			!= AllBits( dst_fmt.valueType, EType::SInt ) or
 			 AllBits( src_fmt.valueType, EType::UInt )			!= AllBits( dst_fmt.valueType, EType::UInt ) or
 			 AnyBits( src_fmt.valueType, EType::DepthStencil )	!= AnyBits( dst_fmt.valueType, EType::DepthStencil ))
 		{

@@ -333,7 +333,7 @@ namespace
 	_visitor_( RG32F,				GL_RG32F,									0x8230 )\
 	_visitor_( RGB32F,				GL_RGB32F,									0x8815 )\
 	_visitor_( RGBA32F,				GL_RGBA32F,									0x8814 )\
-	_visitor_( RGB_11_11_10F,		GL_R11F_G11F_B10F,							0x8C3A )\
+	_visitor_( R11G11B10F,			GL_R11F_G11F_B10F,							0x8C3A )\
 	_visitor_( RGB9F_E5,			GL_RGB9_E5,									0x8C3D )\
 	\
 	_visitor_( Depth16,				GL_DEPTH_COMPONENT16,						0x81A5 )\

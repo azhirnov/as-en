@@ -10,6 +10,11 @@
 
 	[docs](https://man7.org/linux/man-pages/man7/aio.7.html)
 	[AIO + kqueue](https://habr.com/ru/articles/600123/#asynchronous-file-io-with-kqueue) - for FreeBSD, not supported on MacOS
+	
+	For better performance on MacOS run in terminal:
+		sudo sysctl kern.aiomax=2048 
+		sudo sysctl kern.aioprocmax=1024  // < aiomax
+		sudo sysctl kern.aiothreads=8     // == number of CPU cores
 */
 
 #include <aio.h>

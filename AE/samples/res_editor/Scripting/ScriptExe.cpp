@@ -1808,6 +1808,28 @@ namespace {
 	RTechInfo  ScriptExe::ScriptPassApi::ConvertAndLoad (Function<void (ScriptEnginePtr)> fn) __Th___
 	{
 		CHECK_THROW( s_scriptExe != null );
+		
+	#ifdef AE_PLATFORM_WINDOWS
+		try{
+			const auto	flags = UIInteraction::Instance().graphics->shaderFlags;
+			if ( flags.contains( UIInteraction::EShaderFlags::CompileMSL ))
+			{
+				s_scriptExe->_RunWithPipelineCompiler(
+					[&] ()
+					{
+						ScriptBasePass::CppStructsFromShaders	data;
+						ScriptSphericalCube::GetShaderTypes( INOUT data );
+						ScriptUniGeometry::GetShaderTypes( INOUT data );
+						ScriptModelGeometrySrc::GetShaderTypes( INOUT data );
+
+						fn( s_scriptExe->_engine2 );
+					},
+					True{"compileMSL"} );
+			}
+		}catch(...){
+			AE_LOGE( "failed to compile for Metal API" );
+		}
+	#endif
 
 		RTechInfo	result;
 		s_scriptExe->_RunWithPipelineCompiler(
@@ -2079,7 +2101,7 @@ namespace {
 	_RunWithPipelineCompiler
 =================================================
 */
-	void  ScriptExe::_RunWithPipelineCompiler (Function<void ()> fn) __Th___
+	void  ScriptExe::_RunWithPipelineCompiler (Function<void ()> fn, const Bool compileMSL) __Th___
 	{
 		try
 		{
@@ -2100,8 +2122,16 @@ namespace {
 					"AE_LICENSE_CC_BY_NC_SA_3\n"
 					"AE_ENABLE_UNKNOWN_LICENSE\n";
 
-				obj_storage.spirvCompiler		= MakeUnique<SpirvCompiler>( _GetTempData().cfg.includeDirs );
+				obj_storage.spirvCompiler	= MakeUnique<SpirvCompiler>( _GetTempData().cfg.includeDirs );
 				obj_storage.spirvCompiler->SetDefaultResourceLimits();
+				
+			  #ifdef AE_METAL_TOOLS
+				if ( compileMSL )
+				{
+					obj_storage.metalCompiler		= MakeUnique<MetalCompiler>( _GetTempData().cfg.includeDirs );
+					obj_storage.defaultDescSetUsage	= EDescSetUsage::ArgumentBuffer;
+				}
+			  #endif
 
 				ObjectStorage::SetInstance( &obj_storage );
 
@@ -2109,7 +2139,6 @@ namespace {
 				fs->fs = ScriptResourceApi::GetFeatureSet();
 
 				PipelineCompiler::ScriptConfig	cfg;
-				cfg.SetTarget( ECompilationTarget::Vulkan );
 				cfg.SetShaderVersion( EShaderVersion(Version2::From100( fs->fs.maxShaderVersion.spirv ).ToHex()) | EShaderVersion::_SPIRV );
 
 				cfg.SetDefaultLayout( EStructLayout::Std140 );
@@ -2136,7 +2165,17 @@ namespace {
 				if ( flags.contains( UIInteraction::EShaderFlags::CaptureInternalRepresentation ))
 					ppln_opt |= EPipelineOpt::CaptureInternalRepresentation;
 
-				StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 4 );
+				if ( compileMSL )
+				{
+					cfg.SetTarget( ECompilationTarget::Metal_Mac );
+					cfg.SetSpirvToMslVersion( EShaderVersion::Metal_Mac_3_0 );	// TODO
+				}
+				else
+				{
+					cfg.SetTarget( ECompilationTarget::Vulkan );
+				}
+
+				StaticAssert( uint(UIInteraction::EShaderFlags::_Count) == 5 );
 
 				cfg.SetPipelineOptions( ppln_opt );
 				cfg.SetShaderOptions( sh_opt );

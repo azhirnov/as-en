@@ -19,7 +19,7 @@
 	{
 		// initialize
 		const EPixelFormat	hdr_fmt	= EPixelFormat::RGBA16F;		// HDR
-	//	const EPixelFormat	hdr_fmt	= EPixelFormat::RGB_11_11_10F;	// HDR on mobile
+	//	const EPixelFormat	hdr_fmt	= EPixelFormat::R11G11B10F;	// HDR on mobile
 
 		RC<Image>	rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT" );
 		RC<DynamicUInt>	tex_dim		= DynamicUInt();

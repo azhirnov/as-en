@@ -188,6 +188,23 @@ namespace AE::PipelineCompiler
 		storage.defaultShaderDefines.clear();
 		storage.defaultShaderDefines << value;
 	}
+	
+/*
+=================================================
+	SetDefaultDescSetUsage
+=================================================
+*/
+	void  ScriptConfig::SetDefaultDescSetUsage (EDescSetUsage value) __Th___
+	{
+		auto&	storage = *ObjectStorage::Instance();
+
+		storage.defaultDescSetUsage = value;
+	}
+
+	void  ScriptConfig::SetDefaultDescSetUsage2 (uint value) __Th___
+	{
+		SetDefaultDescSetUsage( EDescSetUsage(value) );
+	}
 
 /*
 =================================================
@@ -200,33 +217,38 @@ namespace AE::PipelineCompiler
 		binder.CreateClassValue();
 
 		binder.Comment( "Set target GAPI and platform." );
-		AS_METHOD( binder, ScriptConfig::SetTarget,				"SetTarget",			{} );
+		AS_METHOD( binder, ScriptConfig::SetTarget,					"SetTarget",				{} );
 
 		binder.Comment( "Set default shader version." );
-		AS_METHOD( binder, ScriptConfig::SetShaderVersion,		"SetShaderVersion",		{} );
+		AS_METHOD( binder, ScriptConfig::SetShaderVersion,			"SetShaderVersion",			{} );
 
 		binder.Comment( "Set MSL version which is used when cross compiling from SPIRV." );
-		AS_METHOD( binder, ScriptConfig::SetSpirvToMslVersion,	"SetSpirvToMslVersion",	{} );
+		AS_METHOD( binder, ScriptConfig::SetSpirvToMslVersion,		"SetSpirvToMslVersion",		{} );
 
 		binder.Comment( "Set default shader options." );
-		AS_METHOD( binder, ScriptConfig::SetShaderOptions,		"SetShaderOptions",		{} );
+		AS_METHOD( binder, ScriptConfig::SetShaderOptions,			"SetShaderOptions",			{} );
 
 		binder.Comment( "Set default layout (align rules) for shader structure." );
-		AS_METHOD( binder, ScriptConfig::SetDefaultLayout,		"SetDefaultLayout",		{} );
+		AS_METHOD( binder, ScriptConfig::SetDefaultLayout,			"SetDefaultLayout",			{} );
 
 		binder.Comment( "Set default pipeline options." );
-		AS_METHOD( binder, ScriptConfig::SetPipelineOptions,	"SetPipelineOptions",	{} );
+		AS_METHOD( binder, ScriptConfig::SetPipelineOptions,		"SetPipelineOptions",		{} );
 
 		binder.Comment( "Set shader preprocessor.\n"
 						"Can transform any source to GLSL/MSL code." );
-		AS_METHOD( binder, ScriptConfig::SetPreprocessor,		"SetPreprocessor",		{} );
+		AS_METHOD( binder, ScriptConfig::SetPreprocessor,			"SetPreprocessor",			{} );
 
 		binder.Comment( "Set FeatureSet which will be added to all resources." );
-		AS_METHOD( binder, ScriptConfig::SetDefaultFeatureSet,	"SetDefaultFeatureSet",	{"fsName"} );
+		AS_METHOD( binder, ScriptConfig::SetDefaultFeatureSet,		"SetDefaultFeatureSet",		{"fsName"} );
 
 		binder.Comment( "Set defines which will be used in all shaders.\n"
 						"Format: MACROS = value \\n DEF \\n ..." );
-		AS_METHOD( binder, ScriptConfig::SetShaderDefines,		"SetShaderDefines",		{} );
+		AS_METHOD( binder, ScriptConfig::SetShaderDefines,			"SetShaderDefines",			{} );
+		
+		binder.Comment( "Set default DescriptorSetLayout usage." );
+		AS_METHOD( binder, ScriptConfig::SetDefaultDescSetUsage,	"SetDefaultDescSetUsage",	{} );
+		AS_METHOD( binder, ScriptConfig::SetDefaultDescSetUsage2,	"SetDefaultDescSetUsage",	{} );
+
 	}
 
 

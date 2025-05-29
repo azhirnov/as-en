@@ -1894,7 +1894,7 @@ namespace {
 				String	public_name;
 				CHECK_ERR( ValueTypeToStrCPP( field.type, OUT public_name ));
 
-				// Prefix 'inplace_' - packed in the same place, because in 'std140' struct aligned to 16 bytes
+				// Prefix 'inplace_' - packed in the same place, because in 'std140' structure aligned to 16 bytes
 
 				String	packed	= (isStd140 ? "inplace_"s : "packed_"s) << public_name;
 				String	memt	{s_name};
@@ -2051,14 +2051,7 @@ namespace {
 			{
 				const StringView	type_name = field.stType->Typename();
 
-				if ( uniqueTypes.insert( String{type_name} ).second )
-				{
-					String	fields;
-					CHECK_ERR( field.stType->ToGLSL( false, INOUT outTypes, INOUT fields, INOUT uniqueTypes ));
-					outTypes
-						<< "#define " << type_name << "_defined\n"
-						<< "struct " << type_name << "\n{\n" << fields << "};\n\n";
-				}
+				CHECK_ERR( field.stType->StructToGLSL( INOUT outTypes, INOUT uniqueTypes ));
 				
 				part1 << type_name;
 				part2 << field.name;

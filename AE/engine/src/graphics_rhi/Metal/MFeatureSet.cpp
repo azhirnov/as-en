@@ -703,7 +703,7 @@ namespace
 				EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, EPixelFormat::R32U,
 				EPixelFormat::RG32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, EPixelFormat::R16F,
 				EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, EPixelFormat::RG32F,
-				EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F, EPixelFormat::RGB9F_E5	// TODO
+				EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F, EPixelFormat::RGB9F_E5	// TODO
 			};
 			outFeatureSet.storageTexBufferFormats = FeatureSet::PixelFormatSet_t{
 				EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG8_SNorm,
@@ -715,7 +715,7 @@ namespace
 				EPixelFormat::RG8U, EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U,
 				EPixelFormat::RGBA16U, EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U,
 				EPixelFormat::RGB10_A2U, EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F,
-				EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F	// TODO
+				EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F	// TODO
 			};
 			if ( f.apple >= 2 ) {
 				outFeatureSet.storageTexBufferAtomicFormats = FeatureSet::PixelFormatSet_t{
@@ -766,7 +766,7 @@ namespace
 					EPixelFormat::RG8_UNorm, EPixelFormat::RG8_SNorm, EPixelFormat::R32F, EPixelFormat::RG16_UNorm, EPixelFormat::RG16_SNorm,
 					EPixelFormat::RG16F, EPixelFormat::RGBA8_UNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::sRGB8_A8, EPixelFormat::BGRA8_UNorm,
 					EPixelFormat::sBGR8_A8, EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RG32F, EPixelFormat::RGBA16_UNorm,
-					EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16F, EPixelFormat::RGB_11_11_10F
+					EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16F, EPixelFormat::R11G11B10F
 				};
 				// Color
 				outFeatureSet.attachmentFormats			|= FeatureSet::PixelFormatSet_t{
@@ -779,7 +779,7 @@ namespace
 					EPixelFormat::BGRA8_UNorm, EPixelFormat::sBGR8_A8, EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB10_A2U,
 					EPixelFormat::RG32U, EPixelFormat::RG32I, EPixelFormat::RG32F, EPixelFormat::RGBA16_UNorm,
 					EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16U, EPixelFormat::RGBA16I, EPixelFormat::RGBA16F,
-					EPixelFormat::RGBA32U, EPixelFormat::RGBA32I, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
+					EPixelFormat::RGBA32U, EPixelFormat::RGBA32I, EPixelFormat::RGBA32F, EPixelFormat::R11G11B10F
 				};
 				// Depth
 				outFeatureSet.attachmentFormats			|= FeatureSet::PixelFormatSet_t{
@@ -791,7 +791,7 @@ namespace
 					EPixelFormat::R16F, EPixelFormat::RG8_UNorm, EPixelFormat::RG8_SNorm, EPixelFormat::RG16_UNorm, EPixelFormat::RG16_SNorm,
 					EPixelFormat::RG16F, EPixelFormat::RGBA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::RGBA8_SNorm,
 					EPixelFormat::BGRA8_UNorm, EPixelFormat::sBGR8_A8, EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB9F_E5,
-					EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16F, EPixelFormat::RGB_11_11_10F,
+					EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16F, EPixelFormat::R11G11B10F,
 					EPixelFormat::Depth16
 				};
 				// MSAA
@@ -802,7 +802,7 @@ namespace
 					EPixelFormat::R32F, EPixelFormat::RG16_UNorm, EPixelFormat::RG16_SNorm, EPixelFormat::RG16U, EPixelFormat::RG16I,
 					EPixelFormat::RG16F, EPixelFormat::RGBA8_UNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::sRGB8_A8,
 					EPixelFormat::RGBA8U, EPixelFormat::RGBA8I, EPixelFormat::BGRA8_UNorm, EPixelFormat::sBGR8_A8,
-					EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB10_A2U,  EPixelFormat::RGB_11_11_10F,
+					EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB10_A2U,  EPixelFormat::R11G11B10F,
 					EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16F, EPixelFormat::RGBA16U, EPixelFormat::RGBA16I,
 					EPixelFormat::Depth16, EPixelFormat::Depth32F, EPixelFormat::Depth32F_Stencil8
 				};
@@ -821,8 +821,8 @@ namespace
 			}
 			if ( f.apple >= 3 )
 			{
-				outFeatureSet.linearSampledFormats		|= EPixelFormat::RGB_11_11_10F;
-				outFeatureSet.storageImageFormats		|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB10_A2U, EPixelFormat::RGB9F_E5, EPixelFormat::RGB_11_11_10F };
+				outFeatureSet.linearSampledFormats		|= EPixelFormat::R11G11B10F;
+				outFeatureSet.storageImageFormats		|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB10_A2U, EPixelFormat::RGB9F_E5, EPixelFormat::R11G11B10F };
 				outFeatureSet.attachmentBlendFormats	|= EPixelFormat::RGB9F_E5;
 			}
 			if ( f.apple >= 6 )
@@ -858,10 +858,10 @@ namespace
 
 				outFeatureSet.attachmentBlendFormats	|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGBA32F };
 				outFeatureSet.attachmentFormats			|= FeatureSet::PixelFormatSet_t{ EPixelFormat::Depth24_Stencil8 };
-				outFeatureSet.storageImageFormats		|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB10_A2U, EPixelFormat::RGB_11_11_10F };
+				outFeatureSet.storageImageFormats		|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB10_A2U, EPixelFormat::R11G11B10F };
 
 				outFeatureSet.linearSampledFormats		|= FeatureSet::PixelFormatSet_t{
-					EPixelFormat::RGB_11_11_10F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F,
+					EPixelFormat::R11G11B10F, EPixelFormat::R32F, EPixelFormat::RG32F, EPixelFormat::RGBA32F,
 					EPixelFormat::Depth32F, EPixelFormat::Depth24_Stencil8, EPixelFormat::Depth32F_Stencil8
 				};
 				multisampleImageFormats					|= FeatureSet::PixelFormatSet_t{

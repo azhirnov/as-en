@@ -750,7 +750,7 @@
 		const Bytes		slice_pitch			= Max( uploadDesc.dataSlicePitch, min_slice_pitch );
 			  Bytes		total_size			= region_dim.z > 1 ? slice_pitch * region_dim.z : min_slice_pitch;
 		const uint		row_length			= CheckCast<uint>((row_pitch * texblock_dim.x * 8) / texblock_bits);
-		const Bytes		mem_offset_align	= Bytes{ (texblock_bits + 7) / 8 };
+		const Bytes		mem_offset_align	= CeilPOT( Bytes{ (texblock_bits + 7) / 8 });
 
 		ASSERT( IsPowerOfTwo( mem_offset_align ));
 		ASSERT( maxSize >= total_size or IsMultipleOf( maxSize, row_pitch ));

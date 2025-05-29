@@ -6,8 +6,6 @@
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
 
-	const uint	tex_count = 8*4;
-
 	void  CreatePipeline3 (string name, string pass, bool dbgVS, bool dbgFS)
 	{
 		EShaderOpt	dbg_mode = EShaderOpt::Trace;
@@ -66,7 +64,6 @@
 			if ( name == "VisibilityBuffer2Pass1" )	{ fs.Define( "VIS_BUF2_1" );  if ( pass != "main" ) fs.Define( "VISBUF_SUBPASS" ); }
 			if ( name == "VisibilityBuffer2Pass2" )	{ fs.Define( "VIS_BUF2_2" );  if ( pass != "main" ) fs.Define( "VISBUF_SUBPASS" ); }
 			if ( dbgFS )							fs.options = dbg_mode;
-			fs.Define( "TEX_COUNT="+tex_count );
 			ppln.SetFragmentShader( fs );
 		}
 
@@ -110,12 +107,15 @@
 						"mediump float2		uv;" +
 						"uint				objId;" );
 			}{
+				const uint	tex_count = 8*4;
+
 				RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "mtr.ds" );
 				ds.UniformBuffer( EShaderStages::Vertex,	"un_PerObject", "UnifiedGeometryMaterialUB" );
 				ds.StorageBuffer( EShaderStages::Vertex | EShaderStages::Fragment,	"un_Geometry",  "GeometryData",				EResourceState::ShaderStorage_Read );	// external
 				ds.StorageBuffer( EShaderStages::Vertex | EShaderStages::Fragment,	"un_Transform", "ObjectTransform_Array",	EResourceState::ShaderStorage_Read );	// external
 				ds.SampledImage(  EShaderStages::Fragment,	"un_Textures",	 ArraySize(tex_count), EImageType::Float_2D );												// external
 				ds.ImtblSampler(  EShaderStages::Fragment,	"un_Sampler",	 Sampler_LinearRepeat );
+				ds.Define( "TEX_COUNT="+tex_count );
 			}
 		}
 
@@ -250,7 +250,6 @@
 
 	#else
 		#ifdef VIS_BUF1_2
-			// like in 'The Forge'
 			const uint2			primId_objId = SubpassLoad( VisBuf ).rg;
 
 			if ( primId_objId.y == 0xFFFF )
@@ -336,9 +335,9 @@
 				float	lod = float(PERF_LEVEL - 1);
 
 				// don't use derivatives!
-				out_Color  = gl.texture.SampleLod( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex0_id)], un_Sampler ), tex0_uv, lod );
-				out_Color += gl.texture.SampleLod( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex1_id)], un_Sampler ), tex1_uv, lod );
-				out_Color += gl.texture.SampleLod( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex2_id)], un_Sampler ), tex2_uv, lod );
+				out_Color  = gl.texture.SampleLod( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex0_id], un_Sampler )), tex0_uv, lod );
+				out_Color += gl.texture.SampleLod( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex1_id], un_Sampler )), tex1_uv, lod );
+				out_Color += gl.texture.SampleLod( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex2_id], un_Sampler )), tex2_uv, lod );
 				out_Color /= 3.0;
 			}
 			#elif PERF_LEVEL == 3
@@ -347,14 +346,14 @@
 				uint	tex1_id = (texId + 4) % TEX_COUNT;
 				uint	tex2_id = (texId + 7) % TEX_COUNT;
 				
-				out_Color  = TexSample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex0_id)], un_Sampler ));
-				out_Color += TexSample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex1_id)], un_Sampler ));
-				out_Color += TexSample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(tex2_id)], un_Sampler ));
+				out_Color  = TexSample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex0_id], un_Sampler )));
+				out_Color += TexSample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex1_id], un_Sampler )));
+				out_Color += TexSample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[tex2_id], un_Sampler )));
 				out_Color /= 3.0;
 			}
 			#elif defined(AE_nonuniform_qualifier)
 			{
-				out_Color = TexSample( gl::CombinedTex2D<float>( un_Textures[gl::Nonuniform(texId)], un_Sampler ));
+				out_Color = TexSample( gl::Nonuniform(gl::CombinedTex2D<float>( un_Textures[texId], un_Sampler )));
 			}
 			#else
 			{

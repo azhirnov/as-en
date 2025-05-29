@@ -19,7 +19,7 @@
 	{
 		// initialize
 		RC<Image>			depth		= Image( EPixelFormat::R32F, SurfaceSize()/4, MipmapLevel(~0) );	depth.Name( "Depth pyramid" );
-		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );					rt.Name( "RT" );
+		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );				rt.Name( "RT" );
 		RC<DynamicUInt>		mode		= DynamicUInt();
 		RC<DynamicFloat2>	scale_bias	= DynamicFloat2();
 		const bool			has_minmax_sampler = GetFeatureSet().hasSamplerFilterMinmax();

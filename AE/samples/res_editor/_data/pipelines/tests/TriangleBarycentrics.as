@@ -18,35 +18,33 @@
 			pl.DSLayout( "material", 1, "mtr.ds" );
 		}
 
+		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "tmpl" );
+		ppln.SetLayout( "pl" );
+		ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
+
 		{
-			RC<GraphicsPipeline>	ppln = GraphicsPipeline( "tmpl" );
-			ppln.SetLayout( "pl" );
-			ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
+			RC<Shader>	vs = Shader();
+			vs.LoadSelf();
+			ppln.SetVertexShader( vs );
+		}{
+			RC<Shader>	fs = Shader();
+			fs.LoadSelf();
+			ppln.SetFragmentShader( fs );
+		}
 
-			{
-				RC<Shader>	vs = Shader();
-				vs.LoadSelf();
-				ppln.SetVertexShader( vs );
-			}{
-				RC<Shader>	fs = Shader();
-				fs.LoadSelf();
-				ppln.SetFragmentShader( fs );
-			}
+		// specialization
+		{
+			RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "spec" );
+			spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
-			// specialization
-			{
-				RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "spec" );
-				spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
+			RenderState	rs;
 
-				RenderState	rs;
+			rs.inputAssembly.topology		= EPrimitive::TriangleList;
 
-				rs.inputAssembly.topology		= EPrimitive::TriangleList;
+			rs.rasterization.frontFaceCCW	= true;
+			rs.rasterization.cullMode		= ECullMode::None;
 
-				rs.rasterization.frontFaceCCW	= true;
-				rs.rasterization.cullMode		= ECullMode::None;
-
-				spec.SetRenderState( rs );
-			}
+			spec.SetRenderState( rs );
 		}
 	}
 
@@ -69,8 +67,12 @@
 	#include "InvocationID.glsl"
 	#include "../3party_shaders/VisibilityBuffer.glsl"
 
-	int3  GetGlobalSize() {
+	int3  GetGlobalSize () {
 		return int3( un_PerPass.resolution.xy, 1 );
+	}
+
+	float3  GetGlobalSizeRcp () {
+		return float3( un_PerPass.invResolution.xy, 1.0 );
 	}
 
 	float4  LocalToClipSpace (float3 v) {
@@ -117,20 +119,25 @@
 		float4	p2		= LocalToClipSpace( un_VBuffer.vertices[iShape*3+2] );
 		float3	ip		= CalcCurrentPos();
 
+	  #ifdef AE_fragment_shader_barycentric
 		float3	ref_bar	= gl.BaryCoord;
+	  #endif
 
 		// TODO: works only for ortho projection
 		float3	bar1	= CalcBarycentrics( p0, p1, p2, ip );
 
-		float3	bar2	= CalcFullBary( p0, p1, p2, GetGlobalCoordSNorm().xy, 2.0 / un_PerPass.resolution.xy ).m_lambda;
-
+		// v1 from 'The Forge'
+		float3	bar2	= CalcFullBary( p0, p1, p2, GetGlobalCoordSNorm().xy, 2.0 * un_PerPass.invResolution ).m_lambda;
+		
+		// v2 from 'The Forge'
 		// only for perspective projection
 		float3	bar3	= CalcRayBary( LocalToWorldSpace( un_VBuffer.vertices[iShape*3+0] ),
 									   LocalToWorldSpace( un_VBuffer.vertices[iShape*3+1] ),
 									   LocalToWorldSpace( un_VBuffer.vertices[iShape*3+2] ),
 									   float3(GetGlobalCoordSNorm().xy, 0.0), float3(0.0),
 									   f4x4_Identity(), MatInverse(un_VBuffer.projection[iProj]),
-									   2.0 / un_PerPass.resolution.xy ).m_lambda;
+									   2.0 * un_PerPass.invResolution ).m_lambda;
+
 		float	scale	= Exp10( float(iScale) );
 
 		float3	bar;
