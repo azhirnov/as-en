@@ -1,4 +1,10 @@
-## 25.02
+## 25.03
+
+- Graphics: fixed D32_S8 loading
+- Threading: enable coroutines for Clang on Windows
+
+
+## 25.02.281
 
 - rename GraphicsHL to Graphics
 - Scripting: add support for AS_MAX_PORTABILITY, it fixes some errors on Linux/Android

@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Reference implementation.
+*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	include <glsl.h>

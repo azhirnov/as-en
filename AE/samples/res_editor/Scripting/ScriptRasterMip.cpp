@@ -108,10 +108,7 @@ namespace
 		binder.AddFactoryCtor( &ScriptRasterMip_Ctor2,	{"shaderPath"} );
 		binder.AddFactoryCtor( &ScriptRasterMip_Ctor3,	{"shaderPath", "defines"} );
 
-		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &)					>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image"} );
-		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const String &)	>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image", "sampler"} );
-			
-		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const MipmapLevel &)					>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image", "baseMipmap"} );
+		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const String &)	>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image", "sampler"} );	
 		binder.AddGenericMethod< void (const String &, const String &, const ScriptImagePtr &, const MipmapLevel &, const String &)	>( &ScriptRasterMip::_Variable, "Variable", {"inName", "outName", "image", "baseMipmap", "sampler"} );
 	}
 

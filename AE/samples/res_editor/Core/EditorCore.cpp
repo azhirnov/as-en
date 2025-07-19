@@ -603,15 +603,21 @@ void main (Config &out cfg)
 	// tests //
 	/*
 	// uncomment to run tests on start
+	cfg.screenWidth  = 1600;
+	cfg.screenHeight = 900;
 	cfg.TestOutput( test_ref_path );
+	cfg.TestFolder( "screenshot-test" );
+	cfg.TestFolder( "tests" );
 	cfg.TestFolder( "callable" );
 	cfg.TestFolder( "games" );
 	cfg.TestFolder( "samples-2d" );
 	cfg.TestFolder( "samples-3d" );
 	cfg.TestFolder( "samples-rt" );
+	cfg.TestFolder( "samples-compute" );
+	cfg.TestFolder( "samples-vfx" );
 	cfg.TestFolder( "sphere" );
-	cfg.TestFolder( "tests" );
 	cfg.TestFolder( "tools" );
+	cfg.TestFolder( "perf" );
 	//*/
 }
 )";

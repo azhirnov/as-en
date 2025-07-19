@@ -238,7 +238,7 @@ namespace
 				}
 			}
 
-			ImageViewDesc	view;
+			ImageViewDesc		view;
 			view.viewType		= (min_layer_count > 1 ? EImage_2DArray : EImage_2D);
 			view.baseLayer		= src.layer;
 			view.layerCount		= ushort(min_layer_count);

@@ -82,19 +82,19 @@ namespace AE::Base
 
 		ND_ bool  Read (OUT void* buffer, Bytes size)									__NE___;
 
-		template <typename T, typename A, ENABLEIF( IsTriviallySerializable<T> )>
+		template <typename T, typename A> requires( IsTriviallySerializable<T> )
 		ND_ bool  Read (usize length, OUT BasicString<T,A> &str)						__NE___;
 
-		template <typename T, typename A, ENABLEIF( IsTriviallySerializable<T> )>
+		template <typename T, typename A> requires( IsTriviallySerializable<T> )
 		ND_ bool  Read (Bytes size, OUT BasicString<T,A> &str)							__NE___;
 
-		template <typename T, typename A, ENABLEIF( IsTriviallySerializable<T> )>
+		template <typename T, typename A> requires( IsTriviallySerializable<T> )
 		ND_ bool  Read (usize count, OUT Array<T,A> &arr)								__NE___;
 
-		template <typename T, typename A, ENABLEIF( IsTriviallySerializable<T> )>
+		template <typename T, typename A> requires( IsTriviallySerializable<T> )
 		ND_ bool  Read (Bytes size, OUT Array<T,A> &arr)								__NE___;
 
-		template <typename T, ENABLEIF( IsTriviallySerializable<T> )>
+		template <typename T> requires( IsTriviallySerializable<T> )
 		ND_ bool  Read (OUT T &data)													__NE___;
 
 		ND_ bool  Read (Bytes size, OUT MemChunkList &mem)							__NE___;
@@ -156,16 +156,16 @@ namespace AE::Base
 
 		ND_ bool  Write (const void* buffer, Bytes size)								__NE___;
 
-		template <typename T, ENABLEIF( IsTriviallySerializable<T> )>
+		template <typename T> requires( IsTriviallySerializable<T> )
 		ND_ bool  Write (ArrayView<T> buf)												__NE___;
 
-		template <typename T, typename A, ENABLEIF( IsTriviallySerializable<T> )>
+		template <typename T, typename A> requires( IsTriviallySerializable<T> )
 		ND_ bool  Write (const BasicString<T,A> &str)									__NE___;
 
-		template <typename T, ENABLEIF( IsTriviallySerializable<T> )>
+		template <typename T> requires( IsTriviallySerializable<T> )
 		ND_ bool  Write (BasicStringView<T> str)										__NE___;
 
-		template <typename T, ENABLEIF( IsTriviallySerializable<T> )>
+		template <typename T> requires( IsTriviallySerializable<T> )
 		ND_ bool  Write (const T &data)													__NE___;
 
 		ND_ bool  Write (const MemChunkList &mem)										__NE___;
@@ -221,7 +221,7 @@ namespace AE::Base
 		return ReadSeq( OUT buffer, size ) == size;
 	}
 
-	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	template <typename T, typename A> requires( IsTriviallySerializable<T> )
 	bool  RStream::Read (const usize length, OUT BasicString<T,A> &str) __NE___
 	{
 		NOTHROW_ERR( str.resize( length ));
@@ -234,14 +234,14 @@ namespace AE::Base
 		return str.length() == length;
 	}
 
-	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	template <typename T, typename A> requires( IsTriviallySerializable<T> )
 	bool  RStream::Read (const Bytes size, OUT BasicString<T,A> &str) __NE___
 	{
 		ASSERT( IsMultipleOf( size, sizeof(T) ));
 		return Read( usize(size) / sizeof(T), OUT str );
 	}
 
-	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	template <typename T, typename A> requires( IsTriviallySerializable<T> )
 	bool  RStream::Read (const usize count, OUT Array<T,A> &arr) __NE___
 	{
 		NOTHROW_ERR( arr.resize( count ));
@@ -254,14 +254,14 @@ namespace AE::Base
 		return arr.size() == count;
 	}
 
-	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	template <typename T, typename A> requires( IsTriviallySerializable<T> )
 	bool  RStream::Read (const Bytes size, OUT Array<T,A> &arr) __NE___
 	{
 		ASSERT( IsMultipleOf( size, sizeof(T) ));
 		return Read( usize(size) / sizeof(T), OUT arr );
 	}
 
-	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	template <typename T> requires( IsTriviallySerializable<T> )
 	bool  RStream::Read (OUT T &data) __NE___
 	{
 		constexpr Bytes  size {sizeof(data)};
@@ -326,20 +326,20 @@ namespace AE::Base
 		return WriteSeq( buffer, size ) == size;
 	}
 
-	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	template <typename T> requires( IsTriviallySerializable<T> )
 	bool  WStream::Write (ArrayView<T> buf) __NE___
 	{
 		const Bytes		size { sizeof(buf[0]) * buf.size() };
 		return WriteSeq( buf.data(), size ) == size;
 	}
 
-	template <typename T, typename A, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	template <typename T, typename A> requires( IsTriviallySerializable<T> )
 	bool  WStream::Write (const BasicString<T,A> &str) __NE___
 	{
 		return Write( BasicStringView<T>{ str });
 	}
 
-	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	template <typename T> requires( IsTriviallySerializable<T> )
 	bool  WStream::Write (BasicStringView<T> str) __NE___
 	{
 		if ( str.empty() )
@@ -349,7 +349,7 @@ namespace AE::Base
 		return WriteSeq( str.data(), size ) == size;
 	}
 
-	template <typename T, ENABLEIF_IMPL( IsTriviallySerializable<T> )>
+	template <typename T> requires( IsTriviallySerializable<T> )
 	bool  WStream::Write (const T &data) __NE___
 	{
 		constexpr Bytes  size {sizeof(data)};

@@ -54,8 +54,8 @@ namespace AE::Base
 		PackedPtr (const Self &)						__NE___ = default;
 		PackedPtr (Self &&)								__NE___ = default;
 
-			Self&  operator = (const Self &)			__NE___	= default;
-			Self&  operator = (Self &&)					__NE___	= default;
+			Self&		operator = (const Self &)		__NE___	= default;
+			Self&		operator = (Self &&)			__NE___	= default;
 
 		ND_ T*			Ptr ()							__NE___	{ return BitCast<T*>( (_value & _PtrMask) << _AlignPOT ); }
 		ND_ T const*	Ptr ()							C_NE___	{ return BitCast<T const*>( (_value & _PtrMask) << _AlignPOT ); }

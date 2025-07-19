@@ -129,7 +129,6 @@ void  CreatePipeline (const array<string> &passNames)
 		spec.AddToRenderTech( "UI.RTech", "UI." + passNames[i] );
 
 		RenderState	rs;
-		rs.depth.test				= false;
 		rs.inputAssembly.topology	= EPrimitive::TriangleList;
 		rs.rasterization.cullMode	= ECullMode::None;
 

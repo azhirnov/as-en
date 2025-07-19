@@ -24,7 +24,7 @@
 			RC<FPVCamera>	camera = FPVCamera();
 
 			camera.ReverseZ( true );
-			camera.ClipPlanes( 0.1f );  // infinite projection
+			camera.ClipPlanes( 0.5f );  // infinite projection
 			camera.FovY( 50.f );
 
 			const float	s = 0.8f;
@@ -84,7 +84,9 @@
 		}
 
 		Present( rt );
+
 		DbgView( ds, DbgViewFlags::Histogram );
+		DbgView( ds, DbgViewFlags::LinearDepth );
 	}
 
 #endif

@@ -609,7 +609,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ubyte > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ubyte > and IsSame< B, bool >)
 	SimdTInt128<IT>::SimdTInt128 (B v00, B v01, B v02, B v03, B v04, B v05, B v06, B v07,
 								  B v08, B v09, B v10, B v11, B v12, B v13, B v14, B v15) __NE___ :
 		SimdTInt128{ T(v00 ? 0xFF : 0), T(v01 ? 0xFF : 0), T(v02 ? 0xFF : 0), T(v03 ? 0xFF : 0),
@@ -619,20 +619,20 @@ namespace AE::Base
 	{}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ushort > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ushort > and IsSame< B, bool >)
 	SimdTInt128<IT>::SimdTInt128 (B v0, B v1, B v2, B v3, B v4, B v5, B v6, B v7) __NE___ :
 		SimdTInt128{ T(v0 ? 0xFFFF : 0), T(v1 ? 0xFFFF : 0), T(v2 ? 0xFFFF : 0), T(v3 ? 0xFFFF : 0),
 					 T(v4 ? 0xFFFF : 0), T(v5 ? 0xFFFF : 0), T(v6 ? 0xFFFF : 0), T(v7 ? 0xFFFF : 0) }
 	{}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, uint > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, uint > and IsSame< B, bool >)
 	SimdTInt128<IT>::SimdTInt128 (B v0, B v1, B v2, B v3) __NE___ :
 		SimdTInt128{ (v0 ? ~0u : 0), (v1 ? ~0u : 0), (v2 ? ~0u : 0), (v3 ? ~0u : 0) }
 	{}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ulong > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ulong > and IsSame< B, bool >)
 	SimdTInt128<IT>::SimdTInt128 (B v0, B v1) __NE___ :
 		SimdTInt128{ (v0 ? ~0ull : 0), (v1 ? ~0ull : 0) }
 	{}
@@ -788,7 +788,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	SimdTInt128<IT>  SimdTInt128<IT>::Abs () C_NE___
 	{
 	  #if AE_SIMD_SSE >= 31
@@ -1506,7 +1506,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T, ENABLEIF_IMPL( sizeof(T)==2 )>
+	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T> requires( sizeof(T)==2 )
 	SimdTInt128<IT>  SimdTInt128<IT>::Swizzle () C_NE___
 	{
 		StaticAssert( Has_Swizzle() );
@@ -1611,7 +1611,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y, uint Z, uint W,  typename T, ENABLEIF_IMPL( sizeof(T)==4 )>
+	template <uint X, uint Y, uint Z, uint W,  typename T> requires( sizeof(T)==4 )
 	SimdTInt128<IT>  SimdTInt128<IT>::Swizzle () C_NE___
 	{
 		StaticAssert( Has_Swizzle() );
@@ -1628,7 +1628,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y,  typename T, ENABLEIF_IMPL( sizeof(T)==8 )>
+	template <uint X, uint Y,  typename T> requires( sizeof(T)==8 )
 	SimdTInt128<IT>  SimdTInt128<IT>::Swizzle ()  C_NE___
 	{
 		StaticAssert( Has_Swizzle() );
@@ -1645,7 +1645,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T, ENABLEIF_IMPL( sizeof(T)==2 )>
+	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T> requires( sizeof(T)==2 )
 	SimdTInt128<IT>  SimdTInt128<IT>::Shuffle (const Self &v8) C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
@@ -1673,7 +1673,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y, uint Z, uint W,  typename T, ENABLEIF_IMPL( sizeof(T)==4 )>
+	template <uint X, uint Y, uint Z, uint W,  typename T> requires( sizeof(T)==4 )
 	SimdTInt128<IT>  SimdTInt128<IT>::Shuffle (const Self &v4567) C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
@@ -1695,7 +1695,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y,  typename T, ENABLEIF_IMPL( sizeof(T)==8 )>
+	template <uint X, uint Y,  typename T> requires( sizeof(T)==8 )
 	SimdTInt128<IT>  SimdTInt128<IT>::Shuffle (const Self &v23) C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
@@ -1774,7 +1774,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint I, typename T, ENABLEIF_IMPL( IsSame<T,int> )>
+	template <uint I, typename T> requires( IsSame<T,int> )
 	SimdDouble2  SimdTInt128<IT>::_IntToDouble2 () C_NE___
 	{
 		StaticAssert( I < 2 );
@@ -1790,7 +1790,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint I, typename T, ENABLEIF_IMPL( IsSame<T,uint> )>
+	template <uint I, typename T> requires( IsSame<T,uint> )
 	SimdDouble2  SimdTInt128<IT>::_UIntToDouble2 () C_NE___
 	{
 		StaticAssert( I < 2 );
@@ -1819,14 +1819,14 @@ namespace AE::Base
 # if AE_SIMD_AVX >= 31 // AVX512DQ, AVX512VL
 
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSame<T,slong> )>
+	template <typename T> requires( IsSame<T,slong> )
 	SimdDouble2	 SimdTInt128<IT>::_LongToDouble2 () C_NE___
 	{
 		return SimdDouble2{_mm_cvtepi64_pd( _value )};
 	}
 
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSame<T,ulong> )>
+	template <typename T> requires( IsSame<T,ulong> )
 	SimdDouble2	 SimdTInt128<IT>::_ULongToDouble2 () C_NE___
 	{
 		return SimdDouble2{_mm_cvtepu64_pd( _value )};
@@ -1840,14 +1840,14 @@ namespace AE::Base
 */
 # ifdef AE_SIMD_SimdDouble4
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSame<T,int> )>
+	template <typename T> requires( IsSame<T,int> )
 	SimdDouble4  SimdTInt128<IT>::_IntToDouble4 () C_NE___
 	{
 		return SimdDouble4{_mm256_cvtepi32_pd( _value )};
 	}
 
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSame<T,uint> )>
+	template <typename T> requires( IsSame<T,uint> )
 	SimdDouble4  SimdTInt128<IT>::_UIntToDouble4 () C_NE___
 	{
 		auto	u_lo = _mm_and_si128( _value, _mm_set1_epi32(0xFFFF) );
@@ -2150,7 +2150,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	auto  SimdTInt128<IT>::ToSigned () C_NE___
 	{
 		using S = ToSignedInteger<IT>;
@@ -2163,7 +2163,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	auto  SimdTInt128<IT>::ToUnsigned () C_NE___
 	{
 		using U = ToUnsignedInteger<IT>;

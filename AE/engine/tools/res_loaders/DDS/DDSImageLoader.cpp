@@ -9,6 +9,30 @@ namespace
 {
 /*
 =================================================
+	D32S8Rearrange
+=================================================
+*/
+	static void  D32S8Rearrange (INOUT IntermImage::Level &level)
+	{
+		for (uint z = 0; z < level.dimension.z; ++z)
+		for (uint y = 0; y < level.dimension.y; ++y)
+		{
+			uint*		dst = Cast<uint>( level.PixelData() + level.rowPitch * y + level.slicePitch * z ) + 1;
+			const uint*	src = dst + 1;
+
+			for (uint x = 0; x < level.dimension.x; ++x)
+			{
+				*dst = *src;
+				dst += 1;
+				src += 2;
+			}
+		}
+
+		level.format = EPixelFormat::Depth32F;
+	}
+
+/*
+=================================================
 	LoadDDS
 =================================================
 */
@@ -40,7 +64,9 @@ namespace
 
 
 		IntermImage::Mipmaps_t	image_data;
-		const uint3				block_dim{ (dim.x + info.TexBlockDim().x-1) / info.TexBlockDim().x, (dim.y + info.TexBlockDim().y-1) / info.TexBlockDim().y, dim.z };
+		const uint3				block_dim{	(dim.x + info.TexBlockDim().x-1) / info.TexBlockDim().x,
+											(dim.y + info.TexBlockDim().y-1) / info.TexBlockDim().y,
+											dim.z };
 
 		for (uint layer = 0; layer < arrayLayers; ++layer)
 		{
@@ -57,6 +83,12 @@ namespace
 				CHECK_ERR( image_level.SetPixelData( SharedMem::Create( allocator, image_level.slicePitch * image_level.dimension.z )));
 
 				CHECK_ERR( stream.Read( OUT image_level.PixelData(), image_level.DataSize() ));
+
+				// special case
+				switch ( format )
+				{
+					case EPixelFormat::Depth32F_Stencil8 :	D32S8Rearrange( INOUT image_level );  break;
+				}
 
 				if ( usize(mm) >= image_data.size() )
 					image_data.resize( mm + 1 );

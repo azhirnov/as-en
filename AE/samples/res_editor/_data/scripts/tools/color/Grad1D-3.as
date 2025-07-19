@@ -57,10 +57,10 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef MAIN_PASS
+	#include "SDF.glsl"
 	#include "Color.glsl"
 	#include "InvocationID.glsl"
 	#include "tools/SplineHelper.glsl"
-	#include "Geometry.glsl"
 
 	float  Wave (float x)
 	{
@@ -88,10 +88,10 @@
 			c2.a = ApplySpline( x2,  iMode, iAlpha, jAlpha ).x;
 
 			float4	d;
-			d.r = Line_MinDistance( float2(uv.x,col.r), float2(x2,c2.r), uv );
-			d.g = Line_MinDistance( float2(uv.x,col.g), float2(x2,c2.g), uv );
-			d.b = Line_MinDistance( float2(uv.x,col.b), float2(x2,c2.b), uv );
-			d.a = Line_MinDistance( float2(uv.x,col.a), float2(x2,c2.a), uv );
+			d.r = SDF2_Line( uv, float2(uv.x,col.r), float2(x2,c2.r) );
+			d.g = SDF2_Line( uv, float2(uv.x,col.g), float2(x2,c2.g) );
+			d.b = SDF2_Line( uv, float2(uv.x,col.b), float2(x2,c2.b) );
+			d.a = SDF2_Line( uv, float2(uv.x,col.a), float2(x2,c2.a) );
 
 			const float	iWidth = 0.001f;
 			if ( d.r < iWidth )	col.rgb = float3( 1.0, 0.0, 0.0 ) * Wave( uv.x );

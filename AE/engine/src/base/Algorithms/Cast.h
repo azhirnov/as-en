@@ -39,18 +39,11 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	__Cz__ void  CheckPointerCast (T const* ptr) __NE___
+	__Cx__ void  CheckPointerCast (T const* ptr) __NE___
 	{
 		if_not_consteval()
 		{
-		#if defined(AE_PLATFORM_APPLE) and AE_CXX_VER <= 17
-			if constexpr( not IsVoid<R> )
-			{
-				// don't use 'TypeNameOf'
-				CHECK( CheckPointerAlignment<R>( ptr ));
-			}
-
-		#elif defined(AE_DEBUG)
+		#if defined(AE_DEBUG)
 			if constexpr( not IsVoid<R> )
 			{
 				if ( not CheckPointerAlignment<R>( ptr ))
@@ -72,7 +65,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize Align, typename T>
-	NdCz__ T*  AssumeAligned (T* ptr) __NE___
+	NdCx__ T*  AssumeAligned (T* ptr) __NE___
 	{
 		ASSERT( CheckPointerAlignment< Align >( ptr ));
 		if constexpr( not IsVoid<T> )
@@ -205,13 +198,13 @@ namespace AE::Base
 	TimeCast (chrono)
 =================================================
 */
-	template <typename To, typename Rep, typename Period, ENABLEIF( IsDuration<To> )>
+	template <typename To, typename Rep, typename Period> requires( IsDuration<To> )
 	NdCx__ To  TimeCast (const std::chrono::duration<Rep, Period> value) __NE___
 	{
 		return std::chrono::duration_cast<To>( value );
 	}
 
-	template <typename ToDuration, typename Clock, typename Duration, ENABLEIF( IsDuration<ToDuration> )>
+	template <typename ToDuration, typename Clock, typename Duration> requires( IsDuration<ToDuration> )
 	NdCx__ std::chrono::time_point<Clock, ToDuration>  TimeCast (const std::chrono::time_point<Clock, Duration> value) __NE___
 	{
 		return std::chrono::time_point_cast<ToDuration>( value );

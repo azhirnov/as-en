@@ -68,11 +68,11 @@
 					cb.BlendOp( EBlendOp::Add );
 					rs.color.SetColorBuffer( 0, cb );
 				}
-				rs.depth.test					= false;
-				rs.depth.write					= false;
+				rs.depth.test				= false;
+				rs.depth.write				= false;
 
-				rs.inputAssembly.topology		= EPrimitive::Point;
-				rs.rasterization.cullMode		= ECullMode::None;
+				rs.inputAssembly.topology	= EPrimitive::Point;
+				rs.rasterization.cullMode	= ECullMode::None;
 
 				spec.SetRenderState( rs );
 			}

@@ -77,7 +77,7 @@
 
 	void Main ()
 	{
-		mediump float4	c0	= gl.texture.Sample( un_Texture, In.uv0 ) * 0.5;
+		mediump float4	c0	= gl.texture.Sample( un_Texture, In.uv0 ) * (4.0/8.0);
 
 		mediump float4	c1	= gl.texture.Sample( un_Texture, In.uv12.xy ) * (1.0/8.0);
 		mediump float4	c2	= gl.texture.Sample( un_Texture, In.uv12.zw ) * (1.0/8.0);

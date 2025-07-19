@@ -184,7 +184,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, uint C, uint R, glm::qualifier Q>
-	ND_ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const EnabledBitCount bitCount) __NE___
+	ND_ bool  BitEqual (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const EnabledBitCount bitCount) __NE___
 	{
 		uint	eq = 1;
 		for (uint i = 0; i < C; ++i) {
@@ -194,7 +194,7 @@ namespace AE::Base
 	}
 
 	template <typename T, uint C, uint R, glm::qualifier Q>
-	ND_ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs) __NE___
+	ND_ bool  BitEqual (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs) __NE___
 	{
 		uint	eq = 1;
 		for (uint i = 0; i < C; ++i) {

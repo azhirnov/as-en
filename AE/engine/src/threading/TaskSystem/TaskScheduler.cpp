@@ -54,8 +54,9 @@ namespace {
 */
 	void  IAsyncTask::OutputChunk::Init () __NE___
 	{
-		next	= null;
-		count	= 0;
+		StaticAssert( alignof(OutputChunk) >= _mask+1 );
+
+		_packed	= 0;
 	}
 //-----------------------------------------------------------------------------
 
@@ -243,7 +244,7 @@ DEBUG_ONLY(
 
 		for (OutputChunk* chunk = _output.get();  chunk != null; )
 		{
-			for (uint i = 0; i < chunk->count; ++i)
+			for (uint i = 0, cnt = chunk->Count(); i < cnt; ++i)
 			{
 				auto&		dep			= chunk->tasks[i];
 				const uint	idx			= chunk->deps[i].bitIndex;
@@ -264,12 +265,12 @@ DEBUG_ONLY(
 
 				dep = null;
 			}
-			chunk->count = 0;
 
 			OutputChunk*	old_chunk = chunk;
+			chunk = old_chunk->Next();
 
-			chunk			= old_chunk->next;
-			old_chunk->next = null;
+			old_chunk->_packed = 0;
+
 			CHECK( chunk_pool.Unassign( old_chunk ));
 		}
 
@@ -951,36 +952,35 @@ DEBUG_ONLY(
 		{
 			OutputChunk_t*	root = dep->_output.get();
 
-			for (OutputChunk_t** chunk_ref = &root;;)
+			for (OutputChunk_t* chunk = root, *prev = null;;)
 			{
-				if ( *chunk_ref == null )
+				if ( chunk == null )
 				{
 					uint	idx;
 					CHECK_ERR( _chunkPool.Assign( OUT idx ));
 
-					*chunk_ref = &_chunkPool[ idx ];
-					(*chunk_ref)->Init();
+					chunk = &_chunkPool[ idx ];
+					chunk->Init();
+
+					if ( prev )		prev->SetNext( chunk );
+					else			root = chunk;
 				}
 
-				if ( (*chunk_ref)->next != null )
+				if ( uint cnt = chunk->Count(); cnt < IAsyncTask::ElemInChunk )
 				{
-					chunk_ref = &(*chunk_ref)->next;
-					continue;
-				}
+					const uint	i = cnt++;
 
-				if ( (*chunk_ref)->count < IAsyncTask::ElemInChunk )
-				{
-					const uint	i = (*chunk_ref)->count++;
+					chunk->SetCount( cnt );
+					chunk->tasks[i]	= task;
+					chunk->deps[i]	= IAsyncTask::TaskDependency{ bitIndex, isStrong };
 
-					(*chunk_ref)->tasks[i]	= task;
-					(*chunk_ref)->deps[i]	= IAsyncTask::TaskDependency{ bitIndex, isStrong };
-
-					ASSERT( bitIndex == (*chunk_ref)->deps[i].bitIndex );
+					ASSERT( bitIndex == chunk->deps[i].bitIndex );
 					++bitIndex;
 					break;
 				}
-
-				chunk_ref = &(*chunk_ref)->next;
+				
+				prev	= chunk;
+				chunk	= chunk->Next();
 			}
 
 			dep->_output.set( root );
@@ -1189,7 +1189,7 @@ DEBUG_ONLY(
 			io._self = task;
 			for (const OutputChunk_t* chunk = task->_output.get();  chunk != null; )
 			{
-				for (uint i = 0; i < chunk->count; ++i)
+				for (uint i = 0, cnt = chunk->Count(); i < cnt; ++i)
 				{
 					io.out.emplace_back( chunk->tasks[i], chunk->deps[i] );
 
@@ -1199,7 +1199,7 @@ DEBUG_ONLY(
 					io2._self = task2;
 					io2.in.emplace_back( task, chunk->deps[i] );
 				}
-				chunk = chunk->next;
+				chunk = chunk->Next();
 			}
 		}};
 

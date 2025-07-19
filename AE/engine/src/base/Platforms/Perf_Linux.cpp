@@ -77,8 +77,8 @@ namespace
 	ReadInt
 =================================================
 */
-	template <typename T>
-	ND_ static EnableIf<IsInteger<T>, bool>  ReadInt (const String &path, OUT T &result) __NE___
+	template <typename T> requires(IsInteger<T>)
+	ND_ bool  ReadInt (const String &path, OUT T &result) __NE___
 	{
 		result = 0;
 

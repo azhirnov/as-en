@@ -114,14 +114,6 @@
 #endif
 
 
-// helper for 'template <..., EnableIf<..., bool>=true >'
-#define ENABLEIF( ... )			EnableIf< (__VA_ARGS__), bool > = true
-#define ENABLEIF_IMPL( ... )	EnableIf< (__VA_ARGS__), bool >
-
-#define DISABLEIF( ... )		DisableIf< (__VA_ARGS__), bool > = true
-#define DISABLEIF_IMPL( ... )	DisableIf< (__VA_ARGS__), bool >
-
-
 // offsetof without warnings
 #if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	define AE_DISABLE_OFFSETOF_WARNINGS( ... )						\

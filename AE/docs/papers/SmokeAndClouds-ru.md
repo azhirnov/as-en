@@ -29,6 +29,9 @@
 [Realistic smoke lighting with 6-way lighting in VFX Graph](https://blog.unity.com/engine-platform/realistic-smoke-with-6-way-lighting-in-vfx-graph)<br/>
 Запекание освещения с трех сторон в RGB каналы, иногда называют DLUT. Подходит для серого дыма. На мобилках увеличивает нагрузку на текстурный кэш.
 
+[Battlefront II: Layered Explosion](https://simonschreibt.de/gat/battlefront-ii-layered-explosion/)<br/>
+Запекание освещения и эмиссии для эффекта взрыва и дыма.
+
 
 # Туман
 

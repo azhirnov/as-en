@@ -132,21 +132,21 @@ namespace AE::Base
 		RC (Self &&other)									__NE___ : _ptr{other.release()}	{}
 		RC (const Self &other)								__NE___ : _ptr{other._ptr}		{ _IncSelf(); }
 
-		template <typename B,
-				  ENABLEIF( IsBaseOfNotSame< T, B >)>
+		template <typename B>
+				  requires( IsBaseOfNotSame< T, B >)
 		RC (RC<B> &&other)									__NE___ : _ptr{other.release()}	{}
 
-		template <typename B,
-				  ENABLEIF( IsBaseOfNotSame< T, B >)>
+		template <typename B>
+				  requires( IsBaseOfNotSame< T, B >)
 		RC (const RC<B> &other)								__NE___ : _ptr{other.get()}		{ _IncSelf(); }
 
 
-		template <typename B,
-				  ENABLEIF( IsBaseOfNotSame< B, T >)>
+		template <typename B>
+				  requires( IsBaseOfNotSame< B, T >)
 		explicit RC (RC<B> &&other)							__NE___ : _ptr{static_cast<T*>(other.release())}	{}
 
-		template <typename B,
-				  ENABLEIF( IsBaseOfNotSame< B, T >)>
+		template <typename B>
+				  requires( IsBaseOfNotSame< B, T >)
 		explicit RC (const RC<B> &other)					__NE___ : _ptr{static_cast<T*>(other.get())}		{ _IncSelf(); }
 
 
@@ -161,12 +161,12 @@ namespace AE::Base
 
 		Self&  operator = (Self &&rhs)						__NE___ { ASSERT( this != &rhs );	_Dec();  _ptr = rhs.release();	return *this; }
 
-		template <typename B,
-				  ENABLEIF( IsBaseOfNotSame< T, B >)>
+		template <typename B>
+				  requires( IsBaseOfNotSame< T, B >)
 		Self&  operator = (RC<B> &&rhs)						__NE___ { _Dec();  _ptr = static_cast<T*>(rhs.release());  return *this; }
 
-		template <typename B,
-				  ENABLEIF( IsBaseOfNotSame< T, B >)>
+		template <typename B>
+				  requires( IsBaseOfNotSame< T, B >)
 		Self&  operator = (const RC<B> &rhs)				__NE___ { _Inc( static_cast<T*>(rhs.get()) );  _Dec();  _ptr = static_cast<T*>(rhs.get());	return *this; }
 
 		ND_ bool  operator == (const T* rhs)				C_NE___ { return _ptr == rhs; }

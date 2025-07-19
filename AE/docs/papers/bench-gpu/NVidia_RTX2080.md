@@ -88,6 +88,12 @@ Subgroup occupancy, red - full subgroup, blue - very low number of threads per s
 ![](img/full-subgroup/nv-turing-large-inst.png)
 
 
+### Subgroups and independent thread scheduling
+
+In [UniqueIDs sample](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/UniqueIDs-1.as) only on NV `subgroupElect()` may executes multiple times per subgroup.
+Possible explanation is: each branch create independent set of threads so `subgroupElect()` affects only this threads instead of whole subgroup.
+
+
 ### Subgroup threads order
 
 Result of `Rainbow( gl_SubgroupInvocationID / gl_SubgroupSize )` in fragment shader, gl_SubgroupSize: 32. [[6](../GPU_Benchmarks.md#6-Subgroups)]

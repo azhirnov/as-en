@@ -150,7 +150,7 @@ namespace AE::Graphics
 
 	// methods
 		__Cx__ NinePatchBatch () __NE___ {}
-		__Cz__ NinePatchBatch (const RectF &pos, const RectF &posOffset, const RectF &uv, const RectF &texcOffset, RGBA8u color = HtmlColor::White) __NE___ :
+		__Cx__ NinePatchBatch (const RectF &pos, const RectF &posOffset, const RectF &uv, const RectF &texcOffset, RGBA8u color = HtmlColor::White) __NE___ :
 			position{pos}, posOffsets{posOffset}, texcoord{uv}, texcOffsets{texcOffset}, color{color}
 		{
 			ASSERT( posOffsets.left		>= 0.0f and
@@ -360,7 +360,7 @@ namespace AE::Graphics
 		__Cx__ CircleBatch () __NE___ {}
 		__Cx__ CircleBatch (uint segments, const RectF &pos, RGBA8u color) __NE___ : CircleBatch{segments, pos, RectF{}, color} {}
 
-		__Cz__ CircleBatch (uint segments, const RectF &pos, const RectF &uv, RGBA8u color) __NE___ :
+		__Cx__ CircleBatch (uint segments, const RectF &pos, const RectF &uv, RGBA8u color) __NE___ :
 			position{pos}, texcoord{uv}, color{color}, segments{segments}
 		{
 			ASSERT( segments >= 4 );

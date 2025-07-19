@@ -356,15 +356,18 @@ namespace
 					auto*	img = _resMngr.GetResource( view->ImageId() );
 					CHECK_ERR( img != null );
 
-					const auto&	desc		= img->Description();
+					const auto&	img_desc	= img->Description();
+					const auto&	view_desc	= view->Description();
+
 					const bool	is_sampled	= un->type == DT::SampledImage and un->type == DT::CombinedImage_ImmutableSampler;
 					const bool	is_storage	= un->type == DT::StorageImage;
 					const bool	is_sp_input	= un->type == DT::SubpassInput;
-					const auto	img_type	= GetImageType( desc, view->Description() );
+					const auto	img_type	= GetImageType( img_desc, view_desc );
 
-					CHECK( not is_sampled  or is_sampled  == AllBits( desc.usage, EImageUsage::Sampled ));
-					CHECK( not is_storage  or is_storage  == AllBits( desc.usage, EImageUsage::Storage ));
-					CHECK( not is_sp_input or is_sp_input == AllBits( desc.usage, EImageUsage::InputAttachment ));
+					CHECK( not is_sampled  or is_sampled  == AllBits( img_desc.usage, EImageUsage::Sampled ));
+					CHECK( not is_storage  or is_storage  == AllBits( img_desc.usage, EImageUsage::Storage ));
+					CHECK( not is_sp_input or is_sp_input == AllBits( img_desc.usage, EImageUsage::InputAttachment ));
+					CHECK( IsSingleBitSet( view_desc.aspectMask ));
 
 					Unused( img_type );
 					ASSERT_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),
@@ -480,11 +483,13 @@ namespace
 				GFX_DBG_ONLY(
 					auto*	img = _resMngr.GetResource( view->ImageId() );
 					CHECK_ERR( img != null );
+					
+					const auto&	img_desc	= img->Description();
+					const auto&	view_desc	= view->Description();
+					const auto	img_type	= GetImageType( img_desc, view_desc );
 
-					const auto&	desc		= img->Description();
-					const auto	img_type	= GetImageType( desc, view->Description() );
-
-					CHECK( AllBits( desc.usage, EImageUsage::Sampled ));
+					CHECK( AllBits( img_desc.usage, EImageUsage::Sampled ));
+					CHECK( IsSingleBitSet( view_desc.aspectMask ));
 
 					Unused( img_type );
 					ASSERT_MSG( PipelineCompiler::EImageType_IsCompatible( img_type, un->image.type ),

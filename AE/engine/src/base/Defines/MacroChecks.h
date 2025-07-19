@@ -5,8 +5,33 @@
 #ifndef __cplusplus
 #	error Requires C++ compiler!
 #endif
-#if (__cplusplus != 199711L) and (__cplusplus < 201703L)
-#	error Requires at least C++17 support
+#if (__cplusplus < 202002L)
+#	error Requires at least C++20 support
+#endif
+
+#ifndef __cpp_impl_coroutine
+#   error coroutines are not supported by compiler
+#endif
+#ifndef __cpp_lib_coroutine
+#   error coroutines are not implemented in std
+#endif
+#ifndef __cpp_concepts
+#   error concepts are not supported by compiler
+#endif
+#ifndef __cpp_consteval
+#   error consteval is not supported by compiler
+#endif
+#ifndef __cpp_lib_is_constant_evaluated
+#   error is_constant_evaluated is not supported by compiler
+#endif
+#ifndef __cpp_constinit
+#   error constinit is not supported by compiler
+#endif
+#ifndef __cpp_char8_t
+#   error char8_t is not supported by compiler
+#endif
+#ifndef __cpp_lib_source_location
+#   error source_location is not supported by compiler
 #endif
 
 #if defined(AE_CFG_DEBUG)
@@ -391,6 +416,16 @@
 #	pragma detect_mismatch( "AE_CPU_ARCH_i686", "1" )
 #  else
 #	pragma detect_mismatch( "AE_CPU_ARCH_i686", "0" )
+#  endif
+
+
+// C++ standard
+#  if AE_CXX_VER == 20
+#	pragma detect_mismatch( "AE_CXX_VER", "20" )
+#  elif AE_CXX_VER == 23
+#	pragma detect_mismatch( "AE_CXX_VER", "23" )
+#  else
+#	pragma detect_mismatch( "AE_CXX_VER", "0" )
 #  endif
 
 

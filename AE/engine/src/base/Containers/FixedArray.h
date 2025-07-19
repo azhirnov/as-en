@@ -46,13 +46,13 @@ namespace AE::Base
 
 	// methods
 	public:
-		__Cz__ FixedArray ()								__NE___;
-		__Cz__ FixedArray (std::initializer_list<T> list)	__NE___;		// TODO: use Args... to allow move ctor
-		__Cz__ FixedArray (ArrayView<T> view)				__NE___;
-		__Cz__ FixedArray (const Self &other)				__NE___;
-		__Cz__ FixedArray (Self &&other)					__NE___;
+		__Cx__ FixedArray ()								__NE___;
+		__Cx__ FixedArray (std::initializer_list<T> list)	__NE___;		// TODO: use Args... to allow move ctor
+		__Cx__ FixedArray (ArrayView<T> view)				__NE___;
+		__Cx__ FixedArray (const Self &other)				__NE___;
+		__Cx__ FixedArray (Self &&other)					__NE___;
 
-		__Cz__ ~FixedArray ()								__NE___	{ clear(); }
+		__Cx__ ~FixedArray ()								__NE___	{ clear(); }
 
 		NdCx__ operator ArrayView<T> ()						C_NE___	{ return ArrayView<T>{ data(), size() }; }
 		NdCx__ ArrayView<T>		ToArrayView()				C_NE___	{ return *this; }
@@ -63,18 +63,18 @@ namespace AE::Base
 		NdCx__ T *				data ()						__NE___	{ return _array; }
 		NdCx__ T const *		data ()						C_NE___	{ return _array; }
 
-		NdCz__ T &				operator [] (usize i)		__NE___	{ ASSERT( i < _count );  return _array[i]; }
-		NdCz__ T const &		operator [] (usize i)		C_NE___	{ ASSERT( i < _count );  return _array[i]; }
+		NdCx__ T &				operator [] (usize i)		__NE___	{ ASSERT( i < _count );  return _array[i]; }
+		NdCx__ T const &		operator [] (usize i)		C_NE___	{ ASSERT( i < _count );  return _array[i]; }
 
 		NdCx__ iterator			begin ()					__NE___	{ return data(); }
 		NdCx__ const_iterator	begin ()					C_NE___	{ return data(); }
 		NdCx__ iterator			end ()						__NE___	{ return data() + _count; }
 		NdCx__ const_iterator	end ()						C_NE___	{ return data() + _count; }
 
-		NdCz__ T &				front ()					__NE___	{ ASSERT( _count > 0 );  return _array[0]; }
-		NdCz__ T const&			front ()					C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
-		NdCz__ T &				back ()						__NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
-		NdCz__ T const&			back ()						C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
+		NdCx__ T &				front ()					__NE___	{ ASSERT( _count > 0 );  return _array[0]; }
+		NdCx__ T const&			front ()					C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
+		NdCx__ T &				back ()						__NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
+		NdCx__ T const&			back ()						C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
 
 		NdCx__ static usize		capacity ()					__NE___	{ return ArraySize; }
 
@@ -87,45 +87,45 @@ namespace AE::Base
 
 
 		template <typename B, usize S, typename C>
-		__Cz__ Self&  operator = (const FixedArray<B,S,C> &)__NE___;
-		__Cz__ Self&  operator = (const Self &rhs)			__NE___	{ return operator=( ArrayView<T>{rhs} ); }
-		__Cz__ Self&  operator = (Self &&rhs)				__NE___;
+		__Cx__ Self&  operator = (const FixedArray<B,S,C> &)__NE___;
+		__Cx__ Self&  operator = (const Self &rhs)			__NE___	{ return operator=( ArrayView<T>{rhs} ); }
+		__Cx__ Self&  operator = (Self &&rhs)				__NE___;
 		template <typename B>
-		__Cz__ Self&  operator = (ArrayView<B> rhs)			__NE___;
+		__Cx__ Self&  operator = (ArrayView<B> rhs)			__NE___;
 
 		template <typename B>
-		__Cz__ void  assign (B* beginIter, B* endIter)		__NE___;
+		__Cx__ void  assign (B* beginIter, B* endIter)		__NE___;
 		template <typename B>
-		__Cz__ void  append (B* beginIter, B* endIter)		__NE___;
+		__Cx__ void  append (B* beginIter, B* endIter)		__NE___;
 
-		__Cz__ void  push_back (const T &value)				__NE___;
-		__Cz__ void  push_back (T &&value)					__NE___;
+		__Cx__ void  push_back (const T &value)				__NE___;
+		__Cx__ void  push_back (T &&value)					__NE___;
 
 		template <typename ...Args>
-		__Cz__ T&	emplace_back (Args&& ...args)			__NE___;
+		__Cx__ T&	emplace_back (Args&& ...args)			__NE___;
 
-		__Cz__ void  pop_back ()							__NE___;
+		__Cx__ void  pop_back ()							__NE___;
 
-		__Cz__ bool  try_push_back (const T &value)			__NE___;
-		__Cz__ bool  try_push_back (T&& value)				__NE___;
+		__Cx__ bool  try_push_back (const T &value)			__NE___;
+		__Cx__ bool  try_push_back (T&& value)				__NE___;
 
 		template <typename ...Args>
-		__Cz__ bool  try_emplace_back (Args&& ...args)		__NE___;
+		__Cx__ bool  try_emplace_back (Args&& ...args)		__NE___;
 
-		__Cz__ void  insert (usize pos, T &&value)			__NE___;
+		__Cx__ void  insert (usize pos, T &&value)			__NE___;
 
-		__Cz__ void  resize (usize newSize)					__NE___;
-		__Cz__ void  resize (usize newSize, const T &defaultValue) __NE___;
+		__Cx__ void  resize (usize newSize)					__NE___;
+		__Cx__ void  resize (usize newSize, const T &defaultValue) __NE___;
 
-		__Cz__ void  reserve (usize newCapacity)			__NE___	{ ASSERT( newCapacity <= capacity() );  Unused( newCapacity ); }
+		__Cx__ void  reserve (usize newCapacity)			__NE___	{ ASSERT( newCapacity <= capacity() );  Unused( newCapacity ); }
 
-		__Cz__ void  clear ()								__NE___;
+		__Cx__ void  clear ()								__NE___;
 
-		__Cz__ void  erase (usize index)					__NE___;
-		__Cz__ void  fast_erase (usize index)				__NE___;
+		__Cx__ void  erase (usize index)					__NE___;
+		__Cx__ void  fast_erase (usize index)				__NE___;
 
 	private:
-		NdCz__ bool  _IsMemoryAliased (const void* beginIter, const void* endIter) C_NE___
+		NdCx__ bool  _IsMemoryAliased (const void* beginIter, const void* endIter) C_NE___
 		{
 			return IsIntersects<const void*>( begin(), end(), beginIter, endIter );
 		}
@@ -138,7 +138,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	__Cz__ FixedArray<T,S,CS>::FixedArray () __NE___
+	__Cx__ FixedArray<T,S,CS>::FixedArray () __NE___
 	{
 		DEBUG_ONLY( DbgInitMem( data(), SizeOf<T> * capacity() ));
 
@@ -146,27 +146,27 @@ namespace AE::Base
 	}
 
 	template <typename T, usize S, typename CS>
-	__Cz__ FixedArray<T,S,CS>::FixedArray (std::initializer_list<T> list) __NE___ : FixedArray()
+	__Cx__ FixedArray<T,S,CS>::FixedArray (std::initializer_list<T> list) __NE___ : FixedArray()
 	{
 		ASSERT( list.size() <= capacity() );
 		assign( list.begin(), list.end() );
 	}
 
 	template <typename T, usize S, typename CS>
-	__Cz__ FixedArray<T,S,CS>::FixedArray (ArrayView<T> view) __NE___ : FixedArray()
+	__Cx__ FixedArray<T,S,CS>::FixedArray (ArrayView<T> view) __NE___ : FixedArray()
 	{
 		ASSERT( view.size() <= capacity() );
 		assign( view.begin(), view.end() );
 	}
 
 	template <typename T, usize S, typename CS>
-	__Cz__ FixedArray<T,S,CS>::FixedArray (const Self &other) __NE___ : FixedArray()
+	__Cx__ FixedArray<T,S,CS>::FixedArray (const Self &other) __NE___ : FixedArray()
 	{
 		assign( other.begin(), other.end() );
 	}
 
 	template <typename T, usize S, typename CS>
-	__Cz__ FixedArray<T,S,CS>::FixedArray (Self &&other) __NE___ : _count{other._count}
+	__Cx__ FixedArray<T,S,CS>::FixedArray (Self &&other) __NE___ : _count{other._count}
 	{
 		ASSERT( not _IsMemoryAliased( other.begin(), other.end() ));
 		CheckNothrow( IsNothrowMoveCtor<T> );
@@ -182,7 +182,7 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	template <typename T2, usize S2, typename CS2>
-	__Cz__ FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (const FixedArray<T2,S2,CS2> &rhs) __NE___
+	__Cx__ FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (const FixedArray<T2,S2,CS2> &rhs) __NE___
 	{
 		assign( rhs.begin(), rhs.end() );
 		return *this;
@@ -190,7 +190,7 @@ namespace AE::Base
 
 	template <typename T, usize S, typename CS>
 	template <typename B>
-	__Cz__ FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<B> rhs) __NE___
+	__Cx__ FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<B> rhs) __NE___
 	{
 		ASSERT( rhs.size() <= capacity() );
 		assign( rhs.begin(), rhs.end() );
@@ -198,7 +198,7 @@ namespace AE::Base
 	}
 
 	template <typename T, usize S, typename CS>
-	__Cz__ FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (Self &&rhs) __NE___
+	__Cx__ FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (Self &&rhs) __NE___
 	{
 		ASSERT( not _IsMemoryAliased( rhs.begin(), rhs.end() ));
 		CheckNothrow( IsNothrowMoveCtor<T> );
@@ -219,7 +219,7 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	template <typename B>
-	__Cz__ void  FixedArray<T,S,CS>::assign (B* beginIter, B* endIter) __NE___
+	__Cx__ void  FixedArray<T,S,CS>::assign (B* beginIter, B* endIter) __NE___
 	{
 		StaticAssert( IsConstructible< T, B >);
 
@@ -241,7 +241,7 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	template <typename B>
-	__Cz__ void  FixedArray<T,S,CS>::append (B* beginIter, B* endIter) __NE___
+	__Cx__ void  FixedArray<T,S,CS>::append (B* beginIter, B* endIter) __NE___
 	{
 		StaticAssert( IsConstructible< T, B >);
 
@@ -260,7 +260,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	__Cz__ void  FixedArray<T,S,CS>::push_back (const T &value) __NE___
+	__Cx__ void  FixedArray<T,S,CS>::push_back (const T &value) __NE___
 	{
 		ASSERT( _count < capacity() );
 		PlacementNew<T>( OUT data() + _count, value );
@@ -268,7 +268,7 @@ namespace AE::Base
 	}
 
 	template <typename T, usize S, typename CS>
-	__Cz__ void  FixedArray<T,S,CS>::push_back (T &&value) __NE___
+	__Cx__ void  FixedArray<T,S,CS>::push_back (T &&value) __NE___
 	{
 		ASSERT( _count < capacity() );
 		PlacementNew<T>( OUT data() + _count, RVRef(value) );
@@ -282,7 +282,7 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	template <typename ...Args>
-	__Cz__ T&  FixedArray<T,S,CS>::emplace_back (Args&& ...args) __NE___
+	__Cx__ T&  FixedArray<T,S,CS>::emplace_back (Args&& ...args) __NE___
 	{
 		StaticAssert( IsConstructible< T, Args... >);
 		ASSERT( _count < capacity() );
@@ -299,7 +299,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	__Cz__ void  FixedArray<T,S,CS>::pop_back () __NE___
+	__Cx__ void  FixedArray<T,S,CS>::pop_back () __NE___
 	{
 		ASSERT( _count > 0 );
 		--_count;
@@ -313,7 +313,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	__Cz__ bool  FixedArray<T,S,CS>::try_push_back (const T &value) __NE___
+	__Cx__ bool  FixedArray<T,S,CS>::try_push_back (const T &value) __NE___
 	{
 		if_likely( _count < capacity() )
 		{
@@ -325,7 +325,7 @@ namespace AE::Base
 	}
 
 	template <typename T, usize S, typename CS>
-	__Cz__ bool  FixedArray<T,S,CS>::try_push_back (T&& value) __NE___
+	__Cx__ bool  FixedArray<T,S,CS>::try_push_back (T&& value) __NE___
 	{
 		if_likely( _count < capacity() )
 		{
@@ -343,7 +343,7 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	template <typename ...Args>
-	__Cz__ bool  FixedArray<T,S,CS>::try_emplace_back (Args&& ...args) __NE___
+	__Cx__ bool  FixedArray<T,S,CS>::try_emplace_back (Args&& ...args) __NE___
 	{
 		StaticAssert( IsConstructible< T, Args... >);
 
@@ -362,7 +362,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	__Cz__ void  FixedArray<T,S,CS>::insert (usize pos, T &&value) __NE___
+	__Cx__ void  FixedArray<T,S,CS>::insert (usize pos, T &&value) __NE___
 	{
 		ASSERT( _count < capacity() );
 		CheckNothrow( IsNothrowMoveCtor<T> );
@@ -380,7 +380,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	__Cz__ void  FixedArray<T,S,CS>::resize (usize newSize) __NE___
+	__Cx__ void  FixedArray<T,S,CS>::resize (usize newSize) __NE___
 	{
 		ASSERT( newSize <= capacity() );
 		newSize = Min( newSize, capacity() );
@@ -400,7 +400,7 @@ namespace AE::Base
 	}
 
 	template <typename T, usize S, typename CS>
-	__Cz__ void  FixedArray<T,S,CS>::resize (usize newSize, const T &defaultValue) __NE___
+	__Cx__ void  FixedArray<T,S,CS>::resize (usize newSize, const T &defaultValue) __NE___
 	{
 		ASSERT( newSize <= capacity() );
 		newSize = Min( newSize, capacity() );
@@ -425,7 +425,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	__Cz__ void  FixedArray<T,S,CS>::clear () __NE___
+	__Cx__ void  FixedArray<T,S,CS>::clear () __NE___
 	{
 		CPolicy_t::Destroy( INOUT _array, _count );
 
@@ -438,7 +438,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	__Cz__ void  FixedArray<T,S,CS>::fast_erase (usize index) __NE___
+	__Cx__ void  FixedArray<T,S,CS>::fast_erase (usize index) __NE___
 	{
 		ASSERT( index < _count );
 
@@ -463,7 +463,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	__Cz__ void  FixedArray<T,S,CS>::erase (usize index) __NE___
+	__Cx__ void  FixedArray<T,S,CS>::erase (usize index) __NE___
 	{
 		ASSERT( index < _count );
 

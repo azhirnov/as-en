@@ -65,10 +65,8 @@ namespace AE::RG::_hidden_
 		ND_ RenderTaskBuilder	Task (Tuple<Ctor...>&&	ctor,
 									  DebugLabel		dbg = Default)	C_NE___;
 
-	  #ifdef AE_HAS_COROUTINE
 		ND_ RenderTaskBuilder	Task (RenderTaskCoro	coro,
 									  DebugLabel		dbg	= Default)	C_NE___;
-	  #endif
 
 		template <typename ...Deps>
 		AsyncTask  SubmitAsTask (const Tuple<Deps...>&	deps = Default)	__NE___;
@@ -416,7 +414,6 @@ namespace AE::RG::_hidden_
 	Task
 =================================================
 */
-#ifdef AE_HAS_COROUTINE
 	inline RGCommandBatchPtr::RenderTaskBuilder  RGCommandBatchPtr::Task (RenderTaskCoro coro, DebugLabel dbg) C_NE___
 	{
 		GFX_DBG_ONLY(
@@ -430,7 +427,6 @@ namespace AE::RG::_hidden_
 
 		return RenderTaskBuilder{ *AsBatch(), RVRef(task) };
 	}
-#endif
 
 /*
 =================================================

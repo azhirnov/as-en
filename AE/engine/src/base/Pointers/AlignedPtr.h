@@ -32,22 +32,22 @@ namespace AE::Base
 		__Cx__ AlignedPtr (std::nullptr_t)			__NE___ {}
 		__Cx__ explicit AlignedPtr (void* ptr)		__NE___ : _value{ AssumeAligned< Align >( ptr )} {}
 
-		NdCz__ void*		get ()					__NE___	{ NonNull( _value );  return AssumeAligned< Align >( _value ); }
-		NdCz__ void const*	get ()					C_NE___	{ NonNull( _value );  return AssumeAligned< Align >( _value ); }
+		NdCx__ void*		get ()					__NE___	{ NonNull( _value );  return AssumeAligned< Align >( _value ); }
+		NdCx__ void const*	get ()					C_NE___	{ NonNull( _value );  return AssumeAligned< Align >( _value ); }
 
-		NdCz__ operator void* ()					__NE___	{ NonNull( _value );  return AssumeAligned< Align >( _value ); }
-		NdCz__ operator void const* ()				C_NE___	{ NonNull( _value );  return AssumeAligned< Align >( _value ); }
-
-		template <typename T>
-		NdCz__ T*		Cast ()						__NE___	{ NonNull( _value );  return AssumeAligned< Align >( Base::Cast<T>( _value )); }
+		NdCx__ operator void* ()					__NE___	{ NonNull( _value );  return AssumeAligned< Align >( _value ); }
+		NdCx__ operator void const* ()				C_NE___	{ NonNull( _value );  return AssumeAligned< Align >( _value ); }
 
 		template <typename T>
-		NdCz__ T const*	Cast ()						C_NE___	{ NonNull( _value );  return AssumeAligned< Align >( Base::Cast<T>( _value )); }
+		NdCx__ T*		Cast ()						__NE___	{ NonNull( _value );  return AssumeAligned< Align >( Base::Cast<T>( _value )); }
+
+		template <typename T>
+		NdCx__ T const*	Cast ()						C_NE___	{ NonNull( _value );  return AssumeAligned< Align >( Base::Cast<T>( _value )); }
 
 		NdCx__ explicit operator bool ()			C_NE___	{ return _value != null; }
 
-		NdCz__ Self		operator +  (Bytes offset)	C_NE___	{ ASSERT( IsMultipleOf( offset, Align ));  return Self{ _value + offset }; }
-		__Cz__ Self&	operator += (Bytes offset)	__NE___	{ ASSERT( IsMultipleOf( offset, Align ));  _value += offset;  return *this; }
+		NdCx__ Self		operator +  (Bytes offset)	C_NE___	{ ASSERT( IsMultipleOf( offset, Align ));  return Self{ _value + offset }; }
+		__Cx__ Self&	operator += (Bytes offset)	__NE___	{ ASSERT( IsMultipleOf( offset, Align ));  _value += offset;  return *this; }
 
 		NdCx__ Self		operator +  (usize offset)	C_NE___	{ return Self{ _value + (PtrAlign() * offset) }; }
 		__Cx__ Self&	operator += (usize offset)	__NE___	{ _value += PtrAlign() * offset;  return *this; }

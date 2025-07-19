@@ -38,7 +38,7 @@ namespace AE::Base
 		__Cx__ TRadian (const Self &)						__NE___	= default;
 		__Cx__ TRadian (Self &&)							__NE___	= default;
 
-		template <typename B=T, ENABLEIF( IsSame< B, float >)>
+		template <typename B=T> requires( IsSame< B, float >)
 		NdCx__ explicit operator double ()					C_NE___	{ return double(_value); }
 		NdCx__ explicit operator T ()						C_NE___	{ return _value; }
 
@@ -364,14 +364,14 @@ namespace AE::Base
 	BitEqual
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TRadian<T> &lhs, const TRadian<T> &rhs, const EnabledBitCount bitCount) __NE___
+	template <typename T> requires(IsFloatPoint<T>)
+	NdCx__ bool  BitEqual (const TRadian<T> &lhs, const TRadian<T> &rhs, const EnabledBitCount bitCount) __NE___
 	{
 		return BitEqual( T{lhs}, T{rhs}, bitCount );
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const TRadian<T> &lhs, const TRadian<T> &rhs) __NE___
+	template <typename T> requires(IsFloatPoint<T>)
+	NdCx__ bool  BitEqual (const TRadian<T> &lhs, const TRadian<T> &rhs) __NE___
 	{
 		return BitEqual( T{lhs}, T{rhs} );
 	}
@@ -381,14 +381,14 @@ namespace AE::Base
 	IsZero / IsNotZero
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, bool>  IsZero (const TRadian<T> &x) __NE___
+	template <typename T> requires(IsScalar<T>)
+	NdCx__ bool  IsZero (const TRadian<T> &x) __NE___
 	{
 		return IsZero( T{x} );
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, bool>  IsNotZero (const TRadian<T> &x) __NE___
+	template <typename T> requires(IsScalar<T>)
+	NdCx__ bool  IsNotZero (const TRadian<T> &x) __NE___
 	{
 		return IsNotZero( T{x} );
 	}

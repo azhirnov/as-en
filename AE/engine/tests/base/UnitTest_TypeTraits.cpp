@@ -1,8 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#if AE_CXX_VER >= 20
-# include <span>
-#endif
 #include "UnitTest_Common.h"
 
 namespace
@@ -340,8 +337,28 @@ namespace
 		}
 	}
 
+
+	template <typename T>
+	ND_ int  Test_Requires_1 (T &&fn)
+	{
+		constexpr bool	has_operatorBool = requires(const T& t) { t.operator bool(); };
+
+		if constexpr( has_operatorBool )
+		{
+			if ( not fn )
+				return -1;
+		}
+
+		return fn();
+	}
+
+	static void  Test_Requires ()
+	{
+		TEST_Eq( Test_Requires_1( [](){ return 1; }), 1 );
+		TEST_Eq( Test_Requires_1( std::function<int()>{} ), -1 );
+	}
+
 	
-#ifdef __cpp_lib_is_constant_evaluated
 	ND_ static constexpr bool  CxFunction (uint value) __NE___
 	{
 		ASSERT_Cx( value != 3 );
@@ -377,7 +394,23 @@ namespace
 			TEST( not d );
 		#endif
 	}
-#endif
+
+
+	constexpr int  ConstInitFunc1 (bool b)
+	{
+		return int(b);
+	}
+
+	int  ConstInitFunc2 (bool b)
+	{
+		return int(b);
+	}
+
+	static int				s_ConstInit1 = 0;
+//	static constinit int	s_ConstInit2 = s_ConstInit1;						// error
+	static constinit int	s_ConstInit3 = ConstInitFunc1( true );
+//	static constinit int	s_ConstInit4 = ConstInitFunc2( true );				// error
+//	static constinit int	s_ConstInit5 = ConstInitFunc1( s_ConstInit3 == 0 );	// error
 }
 
 
@@ -398,10 +431,8 @@ extern void UnitTest_TypeTraits ()
 	Test_IsNothrowInvocable();
 
 	Test_Attributes();
-	
-	#ifdef __cpp_lib_is_constant_evaluated
-		Test_IsConstEvaluated();
-	#endif
+	Test_Requires();
+	Test_IsConstEvaluated();
 
 	TEST_PASSED();
 }

@@ -117,7 +117,7 @@ namespace AE::Base
 	} // _hidden_
 
 
-	template <typename Container, ENABLEIF( IsClass<Container> )>
+	template <typename Container> requires( IsClass<Container> )
 	NdCx__ auto  IndicesOnly (const Container& container) __NE___
 	{
 		return Base::_hidden_::IndicesOnlyRange<usize>{ 0, container.size() };
@@ -134,7 +134,7 @@ namespace AE::Base
 		return Base::_hidden_::IndicesOnlyRange<usize>{ 0, count };
 	}
 
-	template <typename T, ENABLEIF( IsEnum<T> )>
+	template <typename T> requires( IsEnum<T> )
 	NdCx__ auto  IndicesOnly () __NE___
 	{
 		return Base::_hidden_::IndicesOnlyRange<T>{ T{0}, T::_Count };
@@ -194,7 +194,7 @@ namespace AE::Base
 	} // _hidden_
 
 
-	template <typename Container, ENABLEIF( IsClass<Container> )>
+	template <typename Container> requires( IsClass<Container> )
 	NdCx__ auto  ReverseIndices (const Container& container) __NE___
 	{
 		return Base::_hidden_::ReverseIndicesRange{ container.size()-1, container.size() };
@@ -314,8 +314,7 @@ namespace AE::Base
 
 	} // _hidden_
 
-	template <typename T,
-			  ENABLEIF( IsEnum<T> or IsUnsignedInteger<T> )>
+	template <typename T> requires( IsEnum<T> or IsUnsignedInteger<T> )
 	NdCx__ auto  BitfieldIterate (const T &bits) __NE___
 	{
 		return Base::_hidden_::BitfieldIterateView<T>{ bits };
@@ -331,8 +330,7 @@ namespace AE::Base
 			return Base::_hidden_::BitfieldIterateView<ulong>{ bits.to_ullong() };
 	}
 
-	template <typename T,
-			  ENABLEIF( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	NdCx__ auto  BitfieldIterate (const Bitfield<T> &bits) __NE___
 	{
 		return Base::_hidden_::BitfieldIterateView<T>{ T{bits} };
@@ -394,22 +392,19 @@ namespace AE::Base
 
 	} // _hidden_
 
-	template <typename T,
-			  ENABLEIF( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	NdCx__ auto  BitIndexIterate (const T &bits) __NE___
 	{
 		return Base::_hidden_::BitIndexIterateView< uint, T >{ bits };
 	}
 
-	template <typename T,
-			  ENABLEIF( IsEnum<T> )>
+	template <typename T> requires( IsEnum<T> )
 	NdCx__ auto  BitIndexIterate (const T &bits) __NE___
 	{
 		return Base::_hidden_::BitIndexIterateView< T, T >{ bits };
 	}
 
-	template <typename R, typename T,
-			  ENABLEIF( IsEnum<T> or IsUnsignedInteger<T> )>
+	template <typename R, typename T> requires( IsEnum<T> or IsUnsignedInteger<T> )
 	NdCx__ auto  BitIndexIterate (const T &bits) __NE___
 	{
 		return Base::_hidden_::BitIndexIterateView< R, T >{ bits };
@@ -425,8 +420,7 @@ namespace AE::Base
 			return Base::_hidden_::BitIndexIterateView< uint, ulong >{ bits.to_ullong() };
 	}
 
-	template <typename T,
-			  ENABLEIF( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	NdCx__ auto  BitIndexIterate (const Bitfield<T> &bits) __NE___
 	{
 		return Base::_hidden_::BitIndexIterateView< uint, T >{ T{bits} };

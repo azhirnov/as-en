@@ -39,7 +39,7 @@ namespace AE::Base
 			__Cx__ ElemArray ()						__NE___	{ DEBUG_ONLY( DbgInitMem( arr )); }
 			__Cx__ ElemArray (ElemArray &&)			= delete;
 			__Cx__ ElemArray (const ElemArray &)	= delete;
-			__Cz__ ~ElemArray ()					__NE___	{ DEBUG_ONLY( DbgFreeMem( arr )); }
+			__Cx__ ~ElemArray ()					__NE___	{ DEBUG_ONLY( DbgFreeMem( arr )); }
 		};
 
 		using Array_t	= Tuple< ElemArray<Types>... >;
@@ -69,7 +69,7 @@ namespace AE::Base
 			__Cx__ TIterator ()								__NE___ {}
 			__Cx__ TIterator (const Iter &)					__NE___ = default;
 			__Cx__ TIterator (Iter &&)						__NE___ = default;
-			__Cz__ TIterator (ArrPtr ptr, usize idx)		__NE___ : _ptr{ptr}, _index{idx} { NonNull( _ptr ); }
+			__Cx__ TIterator (ArrPtr ptr, usize idx)		__NE___ : _ptr{ptr}, _index{idx} { NonNull( _ptr ); }
 
 			__Cx__ Iter&	operator = (const Iter &)		__NE___ = default;
 			__Cx__ Iter&	operator = (Iter &&)			__NE___ = default;
@@ -77,12 +77,12 @@ namespace AE::Base
 			NdCx__ bool		operator != (const Iter &rhs)	C_NE___	{ return not (*this == rhs); }
 			NdCx__ bool		operator == (const Iter &rhs)	C_NE___	{ return _ptr == rhs._ptr and _index == rhs._index; }
 
-			__Cz__ Iter&	operator ++ ()					__NE___	{ NonNull( _ptr );		_index = Min( _index + 1, _ptr->size() );	return *this; }
-			__Cz__ Iter		operator ++ (int)				__NE___	{ Iter res{ *this };	this->operator++();							return res; }
-			__Cz__ Iter&	operator += (usize x)			__NE___	{ NonNull( _ptr );		_index = Min( _index + x, _ptr->size() );	return *this; }
+			__Cx__ Iter&	operator ++ ()					__NE___	{ NonNull( _ptr );		_index = Min( _index + 1, _ptr->size() );	return *this; }
+			__Cx__ Iter		operator ++ (int)				__NE___	{ Iter res{ *this };	this->operator++();							return res; }
+			__Cx__ Iter&	operator += (usize x)			__NE___	{ NonNull( _ptr );		_index = Min( _index + x, _ptr->size() );	return *this; }
 
-			NdCz__ Iter		operator + (usize x)			C_NE___	{ return (Iter{*this} += x); }
-			NdCz__ Res_t	operator * ()					C_NE___	{ NonNull( _ptr );  return (*_ptr)[_index]; }
+			NdCx__ Iter		operator + (usize x)			C_NE___	{ return (Iter{*this} += x); }
+			NdCx__ Res_t	operator * ()					C_NE___	{ NonNull( _ptr );  return (*_ptr)[_index]; }
 		};
 
 	public:
@@ -103,7 +103,7 @@ namespace AE::Base
 		__Cx__ FixedTupleArray (Self &&)					__NE___;
 		__Cx__ FixedTupleArray (const Self &)				__NE___;
 
-		__Cz__ ~FixedTupleArray ()							__NE___	{ clear(); }
+		__Cx__ ~FixedTupleArray ()							__NE___	{ clear(); }
 
 		__Cx__ Self&  operator = (Self &&)					__NE___;
 		__Cx__ Self&  operator = (const Self &)				__NE___;
@@ -131,11 +131,11 @@ namespace AE::Base
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		NdCz__ T&			at (usize i)					__NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
+		NdCx__ T&			at (usize i)					__NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		NdCz__ T const&		at (usize i)					C_NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
+		NdCx__ T const&		at (usize i)					C_NE___	{ ASSERT( i < size() );  return _Data<I>()[i]; }
 
 		template <typename T>
 		NdCx__ T&			at (usize i)					__NE___	{ return at< Types_t::template Index<T>, T >( i ); }
@@ -154,29 +154,29 @@ namespace AE::Base
 
 		NdCx__ static usize		capacity ()					__NE___	{ return ArraySize; }
 
-		NdCz__ Result_t			operator [] (usize index)	__NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
-		NdCz__ CResult_t		operator [] (usize index)	C_NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
+		NdCx__ Result_t			operator [] (usize index)	__NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
+		NdCx__ CResult_t		operator [] (usize index)	C_NE___	{ ASSERT( index < size() );  return _Elem( index, IdxSeq_t{} ); }
 
-		__Cz__ Result_t		emplace_back ()					__NE___;
+		__Cx__ Result_t		emplace_back ()					__NE___;
 
 		template <typename ...Args>
 		__Cx__ bool  set (usize index, Args&&... values)	__NE___;
 
 		template <typename ...Args>
-		__Cz__ void  push_back (Args&&... values)			__NE___;
+		__Cx__ void  push_back (Args&&... values)			__NE___;
 
 		template <typename ...Args>
 		__Cx__ bool  try_push_back (Args&&... values)		__NE___;
 
-		__Cz__ void  pop_back ()							__NE___;
+		__Cx__ void  pop_back ()							__NE___;
 
 		template <typename ...Args>
-		__Cz__ void  insert (usize pos, Args&&... values)	__NE___;
+		__Cx__ void  insert (usize pos, Args&&... values)	__NE___;
 
 		__Cx__ void  resize (usize newSize)					__NE___;
 
-		__Cz__ void  erase (usize pos)						__NE___;
-		__Cz__ void  fast_erase (usize pos)					__NE___;
+		__Cx__ void  erase (usize pos)						__NE___;
+		__Cx__ void  fast_erase (usize pos)					__NE___;
 
 		__Cx__ void  clear ()								__NE___;
 
@@ -305,7 +305,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	__Cz__ void  FixedTupleArray<S, Types...>::push_back (Args&&... values) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::push_back (Args&&... values) __NE___
 	{
 		StaticAssert( sizeof...(Args) == Types_t::Count );
 		ASSERT( _count < capacity() );
@@ -338,7 +338,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	__Cz__ typename FixedTupleArray<S, Types...>::Result_t
+	__Cx__ typename FixedTupleArray<S, Types...>::Result_t
 		FixedTupleArray<S, Types...>::emplace_back () __NE___
 	{
 		ASSERT( _count < capacity() );
@@ -375,7 +375,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	__Cz__ void  FixedTupleArray<S, Types...>::pop_back () __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::pop_back () __NE___
 	{
 		ASSERT( _count > 0 );
 		--_count;
@@ -389,7 +389,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	__Cz__ void  FixedTupleArray<S, Types...>::insert (usize pos, Args&&... values) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::insert (usize pos, Args&&... values) __NE___
 	{
 		StaticAssert( sizeof...(Args) == Types_t::Count );
 		ASSERT( _count < capacity() );
@@ -431,7 +431,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	__Cz__ void  FixedTupleArray<S, Types...>::erase (usize pos) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::erase (usize pos) __NE___
 	{
 		ASSERT( _count > 0 );
 		--_count;
@@ -447,7 +447,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize S, typename ...Types>
-	__Cz__ void  FixedTupleArray<S, Types...>::fast_erase (usize pos) __NE___
+	__Cx__ void  FixedTupleArray<S, Types...>::fast_erase (usize pos) __NE___
 	{
 		ASSERT( _count > 0 );
 		--_count;

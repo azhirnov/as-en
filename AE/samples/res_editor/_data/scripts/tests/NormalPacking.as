@@ -1,6 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Compare accuracy of normal packing for G-Buffer
+	Compare accuracy of normal packing for G-Buffer.
+
+	* RG16_UNorm has better accuracy than RG16F.
+	* 'Stalker' packing is better for RG8_UNorm.
+	* 'Signed Octahedron' has stable accuracy.
 */
 #ifdef __INTELLISENSE__
 #	define SH_COMPUTE

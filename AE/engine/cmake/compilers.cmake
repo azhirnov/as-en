@@ -412,7 +412,7 @@ if ( MSVC )
 			-Werror=backslash-newline-escape -Werror=array-bounds -Werror=c++14-extensions -Werror=c++17-extensions -Werror=c++20-extensions
 			# warnings
 			-Wunused-parameter -Wnarrowing -Wlogical-op-parentheses  -Wunused  -Wloop-analysis -Wincrement-bool
-			-Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Wincrement-bool
+			-Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion
 			-Wunused-lambda-capture -Wundef -Wformat-security
 			-Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow
 			-Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsizeof-pointer-memaccess
@@ -429,7 +429,7 @@ if ( MSVC )
 		set( CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS} -Wno-comment -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-undefined-inline -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-switch -Wno-deprecated-copy-with-user-provided-copy -Wno-unknown-argument -Wno-deprecated-declarations -Wno-deprecated-non-prototype -Wno-deprecated-copy" )
 	endif()
 
-	set( MSVC_SHARED_OPTS /MP /Gm- /Zc:inline /Gy- /JMC /volatile:iso
+	set( MSVC_SHARED_OPTS /MP /Gm- /Zc:inline /Gy- /JMC /volatile:iso /Zc:__cplusplus
 		 ${COMPILER_FLAGS} ${MSVC_WARNING_LIST} )
 
 	if (${AE_USE_SANITIZER})
@@ -1013,11 +1013,6 @@ endif()
 
 # C++ standard
 if (TRUE)
-	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_17" HAS_CPP17 )
-	if ( ${HAS_CPP17} LESS 0 )
-		message( FATAL_ERROR "C++17 is required" )
-	endif()
-
 	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_20" HAS_CPP20 )
 	if ( ${HAS_CPP20} LESS 0 )
 		message( STATUS "C++20 is NOT supported" )
@@ -1027,27 +1022,32 @@ if (TRUE)
 	if ( ${HAS_CPP23} LESS 0 )
 		message( STATUS "C++23 is NOT supported" )
 	endif()
-
-	# use C++ 17
-	if ( ${AE_FORCE_CXX17} OR ((${HAS_CPP20} LESS 0) AND (${HAS_CPP23} LESS 0)) )
-		set( AE_CXX_17	ON	CACHE INTERNAL "" FORCE )
-		set( AE_CXX_20	OFF	CACHE INTERNAL "" FORCE )
-		set( AE_CXX_23	OFF	CACHE INTERNAL "" FORCE )
-		message( STATUS "Used C++17" )
+	
+	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_26" HAS_CPP26 )
+	if ( ${HAS_CPP26} LESS 0 )
+		message( STATUS "C++26 is NOT supported" )
+	endif()
 
 	# use C++ 20
-	elseif( ${AE_FORCE_CXX20} OR ((${HAS_CPP20} GREATER_EQUAL 0) AND (${HAS_CPP23} LESS 0)) )
-		set( AE_CXX_17	OFF	CACHE INTERNAL "" FORCE )
+	if( ${AE_FORCE_CXX20} OR ((${HAS_CPP20} GREATER_EQUAL 0) AND (${HAS_CPP23} LESS 0)) )
 		set( AE_CXX_20	ON	CACHE INTERNAL "" FORCE )
 		set( AE_CXX_23	OFF	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_26	OFF	CACHE INTERNAL "" FORCE )
 		message( STATUS "Used C++20" )
 
 	# use C++ 23
-	elseif( ${HAS_CPP23} GREATER_EQUAL 0 )
-		set( AE_CXX_17	OFF	CACHE INTERNAL "" FORCE )
+	elseif( ${AE_FORCE_CXX23} OR ((${HAS_CPP23} GREATER_EQUAL 0) AND (${HAS_CPP26} LESS 0)) )
 		set( AE_CXX_20	OFF	CACHE INTERNAL "" FORCE )
 		set( AE_CXX_23	ON	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_26	OFF	CACHE INTERNAL "" FORCE )
 		message( STATUS "Used C++23" )
+		
+	# use C++ 26
+	elseif( ${HAS_CPP26} GREATER_EQUAL 0 )
+		set( AE_CXX_20	OFF	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_23	OFF	CACHE INTERNAL "" FORCE )
+		set( AE_CXX_26	ON 	CACHE INTERNAL "" FORCE )
+		message( STATUS "Used C++26" )
 
 	endif()
 endif()

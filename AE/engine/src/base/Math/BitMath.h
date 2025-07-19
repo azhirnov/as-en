@@ -3,7 +3,7 @@
 #include "base/Algorithms/Cast.h"
 
 #ifdef __cpp_lib_int_pow2
-# if __cpp_lib_int_pow2 == 202002L
+# if __cpp_lib_int_pow2 >= 202002L
 #	define AE_cpp_lib_int_pow2
 # endif
 #endif
@@ -16,11 +16,9 @@ namespace AE::Base
 	ToNearUInt
 =================================================
 */
-	template <typename T>
-	ND_ AE_INTRINSIC constexpr EnableIf<IsInteger<T> or IsEnum<T>, ToUnsignedInteger<T>>  ToNearUInt (const T value) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	ND_ AE_INTRINSIC constexpr ToUnsignedInteger<T>  ToNearUInt (const T value) __NE___
 	{
-		StaticAssert( IsScalarOrEnum<T> );
-		StaticAssert( not IsFloatPoint<T> );
 		StaticAssert( sizeof(value) <= sizeof(ToUnsignedInteger<T>) );
 
 		return static_cast< ToUnsignedInteger<T> >( value );
@@ -31,11 +29,9 @@ namespace AE::Base
 	ToNearInt
 =================================================
 */
-	template <typename T>
-	ND_ AE_INTRINSIC constexpr EnableIf<IsInteger<T> or IsEnum<T>, ToSignedInteger<T>>  ToNearInt (const T value) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	ND_ AE_INTRINSIC constexpr ToSignedInteger<T>  ToNearInt (const T value) __NE___
 	{
-		StaticAssert( IsScalarOrEnum<T> );
-		StaticAssert( not IsFloatPoint<T> );
 		StaticAssert( sizeof(value) <= sizeof(ToSignedInteger<T>) );
 
 		return static_cast< ToSignedInteger<T> >( value );
@@ -48,9 +44,8 @@ namespace AE::Base
 	returns 'true' if 'lhs' has ALL bits that presented in 'rhs'
 =================================================
 */
-	template <typename T1, typename T2,
-			  ENABLEIF( IsScalarOrEnum< T1 > and IsScalarOrEnum< T2 >)
-			 >
+	template <typename T1, typename T2>
+		requires(HasScalarBitOp<T1> and HasScalarBitOp<T2>)
 	NdCx__ bool  AllBits (const T1 lhs, const T2 rhs) __NE___
 	{
 		StaticAssert( not (IsEnum<T1> and IsEnum<T2>) or IsSame<T1, T2> );
@@ -70,10 +65,9 @@ namespace AE::Base
 	AllBits
 =================================================
 */
-	template <typename T1, typename T2, typename T3,
-			  ENABLEIF( IsScalarOrEnum< T1 > and IsScalarOrEnum< T2 > and IsScalarOrEnum< T3 >)
-			 >
-	NdCz__ bool  AllBits (const T1 lhs, const T2 rhs, const T3 mask) __NE___
+	template <typename T1, typename T2, typename T3>
+		requires(HasScalarBitOp<T1> and HasScalarBitOp<T2> and HasScalarBitOp<T3>)
+	NdCx__ bool  AllBits (const T1 lhs, const T2 rhs, const T3 mask) __NE___
 	{
 		StaticAssert( not (IsEnum<T1> and IsEnum<T2>) or IsSame<T1, T2> );
 		StaticAssert( not (IsEnum<T1> and IsEnum<T3>) or IsSame<T1, T3> );
@@ -89,9 +83,8 @@ namespace AE::Base
 	returns 'true' if 'lhs' has ANY bit that presented in 'rhs'
 =================================================
 */
-	template <typename T1, typename T2,
-			  ENABLEIF( IsScalarOrEnum< T1 > and IsScalarOrEnum< T2 >)
-			 >
+	template <typename T1, typename T2>
+		requires(HasScalarBitOp<T1> and HasScalarBitOp<T2>)
 	NdCx__ bool  AnyBits (const T1 lhs, const T2 rhs) __NE___
 	{
 		StaticAssert( not (IsEnum<T1> and IsEnum<T2>) or IsSame<T1, T2> );
@@ -114,9 +107,8 @@ namespace AE::Base
 	same as 'not AnyBits()'
 =================================================
 */
-	template <typename T1, typename T2,
-			  ENABLEIF( IsScalarOrEnum< T1 > and IsScalarOrEnum< T2 >)
-			 >
+	template <typename T1, typename T2>
+		requires(HasScalarBitOp<T1> and HasScalarBitOp<T2>)
 	NdCx__ bool  NoBits (const T1 lhs, const T2 rhs) __NE___
 	{
 		StaticAssert( not (IsEnum<T1> and IsEnum<T2>) or IsSame<T1, T2> );
@@ -132,11 +124,9 @@ namespace AE::Base
 	returns zero if 'value' is zero.
 =================================================
 */
-	template <typename T>
-	NdCz__ EnableIf<IsScalar<T>, T>  ExtractBit (INOUT T& value) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  ExtractBit (INOUT T& value) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
-
 		using U = ToUnsignedInteger<T>;
 		ASSERT( U(value) > 0 );
 
@@ -146,22 +136,46 @@ namespace AE::Base
 		return T(result);
 	}
 
-	template <typename Dst, typename T>
-	NdCx__ EnableIf<IsScalar<T>, Dst>  ExtractBit (INOUT T& value)
+	template <typename Dst, typename T> requires(HasScalarBitOp<T>)
+	NdCx__ Dst  ExtractBit (INOUT T& value)
 	{
 		return static_cast<Dst>( ExtractBit( INOUT value ));
 	}
+	
+/*
+=================================================
+	ExtractHighBit
+----
+	extract highest non-zero bit.
+	returns zero if 'value' is zero.
+=================================================
+*/
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  ExtractHighBit (INOUT T& value) __NE___
+	{
+		using U = ToUnsignedInteger<T>;
+		ASSERT( U(value) > 0 );
 
+		const U	result = U(value) & ~(U(value) >> 1);
+		value = T(U(value) & ~result);
+
+		return T(result);
+	}
+	
+	template <typename Dst, typename T> requires(HasScalarBitOp<T>)
+	NdCx__ Dst  ExtractHighBit (INOUT T& value)
+	{
+		return static_cast<Dst>( ExtractHighBit( INOUT value ));
+	}
+	
 /*
 =================================================
 	IsPowerOfTwo / IsPowerOf2 / IsSingleBitSet
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, bool>  IsPowerOfTwo (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ bool  IsPowerOfTwo (const T x) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
-
 		using U = ToUnsignedInteger<T>;
 
 	  #ifdef AE_cpp_lib_int_pow2
@@ -188,11 +202,9 @@ namespace AE::Base
 	   ^
 =================================================
 */
-	template <typename T>
-	NdCz__ EnableIf<IsScalar<T>, int>  IntLog2 (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ int  IntLog2 (const T x) __NE___
 	{
-		StaticAssert( IsInteger<T> or IsEnum<T> );
-
 		constexpr int	INVALID_INDEX = -1;
 
 	  #ifdef AE_cpp_lib_int_pow2
@@ -220,8 +232,8 @@ namespace AE::Base
 	  #endif
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, int>  BitScanReverse (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ int  BitScanReverse (const T x) __NE___
 	{
 		return IntLog2( x );
 	}
@@ -233,14 +245,14 @@ namespace AE::Base
 	return 'UMax' if empty
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, uint>  HighBit (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ uint  HighBit (const T x) __NE___
 	{
 		return uint(IntLog2( x ));
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, uint>  HighZeroBit (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ uint  HighZeroBit (const T x) __NE___
 	{
 		return uint(HighBit( ~ToNearUInt( x )));
 	}
@@ -252,8 +264,8 @@ namespace AE::Base
 	returns < 0 if x == 0
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, int>  CeilIntLog2 (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ int  CeilIntLog2 (const T x) __NE___
 	{
 		int	i = IntLog2( x );
 		return i >= 0 ? i + int(not IsPowerOfTwo( x )) : -1;
@@ -266,14 +278,14 @@ namespace AE::Base
 	extract index of lowest non-zero bit.
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, int>  ExtractBitIndex (INOUT T& value) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ int  ExtractBitIndex (INOUT T& value) __NE___
 	{
 		return IntLog2( ExtractBit( INOUT value ));
 	}
 
-	template <typename Dst, typename T>
-	NdCx__ EnableIf<IsScalar<T>, Dst>  ExtractBitIndex (INOUT T& value) __NE___
+	template <typename Dst, typename T> requires(HasScalarBitOp<T>)
+	NdCx__ Dst  ExtractBitIndex (INOUT T& value) __NE___
 	{
 		return static_cast<Dst>( ExtractBitIndex( INOUT value ));
 	}
@@ -288,11 +300,9 @@ namespace AE::Base
 	        ^
 =================================================
 */
-	template <typename T>
-	ND_ EnableIf<IsScalar<T>, int>  BitScanForward (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	ND_ int  BitScanForward (const T x) __NE___
 	{
-		StaticAssert( IsInteger<T> or IsEnum<T> );
-
 	#ifdef AE_COMPILER_MSVC
 		constexpr int	INVALID_INDEX = -1;
 		unsigned long	index;
@@ -325,8 +335,8 @@ namespace AE::Base
 	        ^
 =================================================
 */
-	template <typename T>
-	NdCz__ EnableIf<IsScalar<T>, uint>  CountRZero (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ uint  CountRZero (const T x) __NE___
 	{
 	#ifdef __cpp_lib_bitops  // C++20
 		return uint( std::countr_zero( ToUnsignedInteger<T>(x) ));
@@ -361,14 +371,14 @@ namespace AE::Base
 	return 'UMax' if empty
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, uint>  LowBit (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ uint  LowBit (const T x) __NE___
 	{
 		return BitScanForward( x );
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, uint>  LowZeroBit (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ uint  LowZeroBit (const T x) __NE___
 	{
 		return LowBit( ~ToNearUInt( x ));
 	}
@@ -381,11 +391,9 @@ namespace AE::Base
 	slow implementation!
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, uint>  IntLog10 (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ uint  IntLog10 (const T x) __NE___
 	{
-		StaticAssert( IsInteger<T> or IsEnum<T> );
-
 		using U		= ToUnsignedInteger< T >;
 		using NL	= std::numeric_limits< U >;
 		StaticAssert( NL::is_specialized );
@@ -406,11 +414,9 @@ namespace AE::Base
 	BitCount
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, usize>  BitCount (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ usize  BitCount (const T x) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
-
 	  #ifdef __cpp_lib_bitops
 		return usize( std::popcount( ToUnsignedInteger<T>(x) ));
 
@@ -443,11 +449,9 @@ namespace AE::Base
 	counts the number of consecutive 0 bits, starting from the most significant bit
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, usize>  CountLZero (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ usize  CountLZero (const T x) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
-
 	  #ifdef __cpp_lib_bitops
 		return usize( std::countl_zero( ToUnsignedInteger<T>(x) ));
 	  #else
@@ -462,11 +466,9 @@ namespace AE::Base
 	counts the number of consecutive 1 bits, starting from the most significant bit
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, usize>  CountLOne (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ usize  CountLOne (const T x) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
-
 	  #ifdef __cpp_lib_bitops
 		return usize( std::countl_one( ToUnsignedInteger<T>(x) ));
 	  #else
@@ -479,28 +481,24 @@ namespace AE::Base
 	SafeLeftBitShift / SafeRightBitShift
 ----
 	in specs:
-	  For negative 'x' the behaviour of << is undefined (until C++20).
+	  For negative 'x' the behavior of << is undefined (until C++20).
 	  In any case, if the value of the right operand is negative or is greater or equal
 	  to the number of bits in the promoted left operand, the behavior is undefined.
 =================================================
 */
-	template <typename T>
-	NdCz__ EnableIf<IsScalar<T>, T>  SafeLeftBitShift (const T x, const usize shift) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  SafeLeftBitShift (const T x, const usize shift) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
 		ASSERT( x >= T(0) );
-
 		return	shift >= CT_SizeofInBits(x) ?
 					T(0) :
 					T( ToNearUInt(x) << shift );
 	}
 
-	template <typename T>
-	NdCz__ EnableIf<IsScalar<T>, T>  SafeRightBitShift (const T x, const usize shift) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  SafeRightBitShift (const T x, const usize shift) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
 		ASSERT( x >= T(0) );
-
 		return	shift >= CT_SizeofInBits(x) ?
 					T(0) :
 					T( ToNearUInt(x) >> shift );
@@ -523,11 +521,9 @@ namespace AE::Base
 		}
 	} // _hidden_
 
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, T>  BitRotateLeft (const T x, const usize shift) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  BitRotateLeft (const T x, const usize shift) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
-
 	  #ifdef __cpp_lib_bitops
 		return T( std::rotl( ToNearUInt(x), int(shift) ));
 
@@ -559,11 +555,9 @@ namespace AE::Base
 		}
 	} // _hidden_
 
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, T>  BitRotateRight (const T x, const usize shift) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  BitRotateRight (const T x, const usize shift) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
-
 	  #ifdef __cpp_lib_bitops
 		return T( std::rotr( ToNearUInt(x), int(shift) ));
 
@@ -585,10 +579,9 @@ namespace AE::Base
 	returns < 0 if x == 0
 =================================================
 */
-	template <typename T>
-	ND_ EnableIf<IsScalar<T>, int>  ShuffleBitScan (const T x, const usize shuffle) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	ND_ int  ShuffleBitScan (const T x, const usize shuffle) __NE___
 	{
-		StaticAssert( IsInteger<T> or IsEnum<T> );
 		ASSERT( shuffle >= 0 );
 
 		int off = int(shuffle & (CT_SizeofInBits(x) - 1));
@@ -607,7 +600,8 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	NdCx__ EnableIf<IsUnsignedInteger<R>, R>  ToBitMask (const T count) __NE___
+		requires(IsUnsignedInteger<R> and HasScalarBitOp<T>)
+	NdCx__ R  ToBitMask (const T count) __NE___
 	{
 		if constexpr( IsUnsignedInteger<T> )
 		{
@@ -622,8 +616,8 @@ namespace AE::Base
 		}
 	}
 
-	template <typename T>
-	NdCz__ EnableIf<IsUnsignedInteger<T>, T>  ToBitMask (const usize firstBit, const usize count) __NE___
+	template <typename T> requires(IsUnsignedInteger<T>)
+	NdCx__ T  ToBitMask (const usize firstBit, const usize count) __NE___
 	{
 		ASSERT( firstBit < CT_SizeOfInBits<T> );
 		return SafeLeftBitShift( ToBitMask<T>( count ), firstBit );
@@ -634,15 +628,15 @@ namespace AE::Base
 	HasBit
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, bool>  HasBit (const T x, const usize index) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ bool  HasBit (const T x, const usize index) __NE___
 	{
 		using U = ToUnsignedInteger<T>;
 		return (static_cast<U>(x) & (U{1} << index)) != 0;
 	}
 
-	template <uint Index, typename T>
-	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, bool>  HasBit (const T x) __NE___
+	template <uint Index, typename T> requires(HasScalarBitOp<T>)
+	NdCx__ bool  HasBit (const T x) __NE___
 	{
 		StaticAssert( Index < CT_SizeOfInBits<T> );
 		return HasBit( x, Index );
@@ -653,8 +647,8 @@ namespace AE::Base
 	SetBit
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, T>  SetBit (const T x, const bool bit, const usize index) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  SetBit (const T x, const bool bit, const usize index) __NE___
 	{
 		using U = ToUnsignedInteger<T>;
 		if ( bit )
@@ -663,8 +657,8 @@ namespace AE::Base
 			return static_cast<T>( static_cast<U>(x) & ~(U{1} << index) );
 	}
 
-	template <uint Index, typename T>
-	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, T>  SetBit (const T x, const bool bit) __NE___
+	template <uint Index, typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  SetBit (const T x, const bool bit) __NE___
 	{
 		StaticAssert( Index < CT_SizeOfInBits<T> );
 		SetBit( x, bit, Index );
@@ -675,14 +669,14 @@ namespace AE::Base
 	ToBit
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsUnsignedInteger<T>, T>  ToBit (const usize index) __NE___
+	template <typename T> requires(IsUnsignedInteger<T>)
+	NdCx__ T  ToBit (const usize index) __NE___
 	{
 		return T{1} << index;
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsUnsignedInteger<T>, T>  ToBit (const bool bit, const usize index) __NE___
+	template <typename T> requires(IsUnsignedInteger<T>)
+	NdCx__ T  ToBit (const bool bit, const usize index) __NE___
 	{
 		return T{bit} << index;
 	}
@@ -692,8 +686,8 @@ namespace AE::Base
 	ReadBits
 =================================================
 *
-	template <typename T>
-	NdCx__ EnableIf<IsUnsignedInteger<T>, T>  ReadBits (const T bits, usize offset, usize bitCount) __NE___
+	template <typename T> requires(IsUnsignedInteger<T>)
+	NdCx__ T  ReadBits (const T bits, usize offset, usize bitCount) __NE___
 	{
 		return (bits >> offset) & ((T{1} << bitCount) - 1);
 	}
@@ -705,11 +699,9 @@ namespace AE::Base
 	Little Endian <-> Big Endian
 =================================================
 */
-	template <typename T>
-	ND_ EnableIf<IsScalar<T>, T>  ByteSwap (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	ND_ T  ByteSwap (const T x) __NE___
 	{
-		StaticAssert( IsEnum<T> or IsInteger<T> );
-
 		if constexpr( sizeof(x) == 1 )
 			return x;
 		else
@@ -747,22 +739,22 @@ namespace AE::Base
 	FloorPOT / CeilPOT / NearPOT
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, T>  FloorPOT (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  FloorPOT (const T x) __NE___
 	{
 		int	i = IntLog2( x );
 		return i >= 0 ? (T{1} << i) : T{0};
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, T>  CeilPOT (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  CeilPOT (const T x) __NE___
 	{
 		int	i = IntLog2( x );
 		return i >= 0 ? (T{1} << (i + int(not IsPowerOfTwo( x )))) : T{0};
 	}
 	
-	template <typename T>
-	NdCx__ EnableIf<IsScalar<T>, T>  NearPOT (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ T  NearPOT (const T x) __NE___
 	{
 		int	i		= IntLog2( x );
 		T	floor	= i >= 0 ? (T{1} << i) : T{0};
@@ -777,14 +769,14 @@ namespace AE::Base
 	IsOdd / IsEven
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, bool>  IsOdd (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ bool  IsOdd (const T x) __NE___
 	{
 		return ( x & T(1) ) == T(1);
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsInteger<T> or IsEnum<T>, bool>  IsEven (const T x) __NE___
+	template <typename T> requires(HasScalarBitOp<T>)
+	NdCx__ bool  IsEven (const T x) __NE___
 	{
 		return ( x & T(1) ) == T(0);
 	}
@@ -796,8 +788,8 @@ namespace AE::Base
 */
 	enum class EnabledBitCount : uint {};
 
-	template <typename T>
-	NdCz__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const T lhs, const T rhs, const EnabledBitCount bitCount) __NE___
+	template <typename T> requires(IsFloatPoint<T>)
+	NdCx__ bool  BitEqual (const T lhs, const T rhs, const EnabledBitCount bitCount) __NE___
 	{
 		ASSERT( uint(bitCount) <= sizeof(T)*8 );
 
@@ -814,8 +806,8 @@ namespace AE::Base
 		return dif < ac;
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const T lhs, const T rhs) __NE___
+	template <typename T> requires(IsFloatPoint<T>)
+	NdCx__ bool  BitEqual (const T lhs, const T rhs) __NE___
 	{
 		if constexpr( IsSame< T, float >)
 			return BitEqual( lhs, rhs, EnabledBitCount(28) );
@@ -829,8 +821,8 @@ namespace AE::Base
 	BitDiff
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsFloatPoint<T>, int>  BitDiff (const T lhs, const T rhs) __NE___
+	template <typename T> requires(IsFloatPoint<T>)
+	NdCx__ int  BitDiff (const T lhs, const T rhs) __NE___
 	{
 		using I = ToSignedInteger<T>;
 		using U = ToUnsignedInteger<T>;

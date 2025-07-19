@@ -46,7 +46,9 @@ void  CreatePipeline ()
 		ds.SampledImage( EShaderStages::Fragment, "un_Depth", EImageType::Float_2D );
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "LinearDepth.draw.pc" );
-		st.Set( "float2		clipPlanes;" );
+		st.Set( "float4x4	proj;" +
+				"float		nearPlane;" +
+				"float		invDistance;" );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "LinearDepth.draw.pl" );
 		pl.DSLayout( "ds0", 0, "LinearDepth.draw.ds0" );
@@ -74,10 +76,8 @@ void  CreatePipeline ()
 		spec.AddToRenderTech( "LinearDepth.RTech", "Graphics" );
 
 		RenderState	rs;
-
-		rs.inputAssembly.topology = EPrimitive::TriangleStrip;
-
-		rs.rasterization.cullMode = ECullMode::Back;
+		rs.inputAssembly.topology	= EPrimitive::TriangleStrip;
+		rs.rasterization.cullMode	= ECullMode::None;
 
 		spec.SetRenderState( rs );
 	}

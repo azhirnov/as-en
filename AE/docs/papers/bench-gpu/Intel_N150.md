@@ -4,7 +4,7 @@
 ## Specs
 
 * CPU Arch: Twin Lake
-* GPU: UHD Graphics 730? (Xe-LP, Alder Lake-N, Gen 12.2)
+* GPU: UHD Graphics 730 (Xe-LP, Alder Lake-N, Gen 12.1)
 * Clock: 1000 MHz
 * Execution Units: 24
 * warp size: 32 *(16 with dual issue)*
@@ -14,7 +14,7 @@
 * FP32 GFLOPS: 384
 * FP64 GFLOPS:
 * Memory: 16GB DDR4-3200
-
+* [Vulkan features](https://vulkan.gpuinfo.org/displayreport.php?id=39319)
 
 Theoretical performance:
 ```

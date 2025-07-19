@@ -276,7 +276,7 @@ namespace AE::PipelineCompiler
 	{
 		for (auto& [name, src_rp] : compatibleRPs)
 		{
-			if ( HashTable_NotContains( serializedRPs, name ))
+			if ( not serializedRPs.contains( name ))
 			{
 				CHECK_ERR( src_rp->Validate() );
 

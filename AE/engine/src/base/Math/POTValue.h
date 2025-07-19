@@ -41,10 +41,10 @@ namespace AE::Base
 
 		__Cx__ explicit TPowerOf2Value (UMax_t)						__NE___ : _pot{_MaxPOT} {}
 
-		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
-		__Cz__ explicit TPowerOf2Value (IT val)						__NE___	: _pot{POT_t( Base::Max( IntLog2( val ), 0 ))}  { ASSERT( val == IT(0) or val == Cast<IT>() ); }
+		template <typename IT> requires( IsUnsignedInteger<IT> )
+		__Cx__ explicit TPowerOf2Value (IT val)						__NE___	: _pot{POT_t( Base::Max( IntLog2( val ), 0 ))}  { ASSERT( val == IT(0) or val == Cast<IT>() ); }
 
-		template <typename IT, typename B=T, ENABLEIF( IsBytes<B> )>
+		template <typename IT, typename B=T> requires( IsBytes<B> )
 		explicit TPowerOf2Value (TByte<IT> val)						__NE___ : TPowerOf2Value{IT{val}} {}
 
 		__Cx__ TPowerOf2Value (PowerOfTwo pot)						__NE___	: _pot{POT_t(pot)} {}
@@ -58,7 +58,7 @@ namespace AE::Base
 		NdCx__ explicit operator IT ()								C_NE___	{ return Cast<IT>(); }
 
 		NdCx__ Self		operator *  (Self rhs)						C_NE___	{ return Self{PowerOfTwo( _pot + rhs._pot )}; }
-		NdCz__ Self		operator /  (Self rhs)						C_NE___	{ ASSERT( _pot >= rhs._pot );  return Self{PowerOfTwo( Max( _pot - rhs._pot, 0 ))}; }
+		NdCx__ Self		operator /  (Self rhs)						C_NE___	{ ASSERT( _pot >= rhs._pot );  return Self{PowerOfTwo( Max( _pot - rhs._pot, 0 ))}; }
 		NdCx__ T		operator +  (Self rhs)						C_NE___	{ return T{*this} + T{rhs}; }
 
 		NdCx__ bool		operator == (Self rhs)						C_NE___	{ return _pot == rhs._pot; }
@@ -74,19 +74,19 @@ namespace AE::Base
 		NdCx__ int		GetPOT ()									C_NE___	{ return _pot; }
 		NdCx__ bool		IsInvalid ()								C_NE___	{ return _pot == -1; }
 
-		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		template <typename IT> requires( IsUnsignedInteger<IT> )
 		NdCx__ IT		BitMask ()									C_NE___	{ return Base::ToBitMask<IT>( _pot ); }
 
-		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		template <typename IT> requires( IsUnsignedInteger<IT> )
 		NdCx__ IT		InvBitMask ()								C_NE___	{ return ~BitMask(); }
 
-		NdCz__ float	AsFloat ()									C_NE___;
+		NdCx__ float	AsFloat ()									C_NE___;
 
 		template <typename IT>
-		NdCz__ IT		Cast ()										C_NE___;
+		NdCx__ IT		Cast ()										C_NE___;
 
-		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
-		NdCz__ static Self  FromCeil (IT value)						__NE___;
+		template <typename IT> requires( IsUnsignedInteger<IT> )
+		NdCx__ static Self  FromCeil (IT value)						__NE___;
 
 		NdCx__ static Self  Invalid ()								__NE___	{ return Self{PowerOfTwo(-1)}; }
 	};
@@ -114,11 +114,11 @@ namespace AE::Base
 		__Cx__ explicit TPowerOf2ValueVec (UMax_t)			__NE___ : x{UMax}, y{UMax} {}
 		__Cx__ TPowerOf2ValueVec (Value_t X, Value_t Y)		__NE___ : x{X}, y{Y} {}
 
-		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		template <typename IT> requires( IsUnsignedInteger<IT> )
 		__Cx__ explicit TPowerOf2ValueVec (IT X, IT Y)		__NE___ : x{X}, y{Y} {}
 
-		NdCz__ Value_t const&	operator [] (usize idx)		C_NE___	{ ASSERT( idx < 2 );  return (&x)[idx]; }
-		NdCz__ Value_t &		operator [] (usize idx)		__NE___	{ ASSERT( idx < 2 );  return (&x)[idx]; }
+		NdCx__ Value_t const&	operator [] (usize idx)		C_NE___	{ ASSERT( idx < 2 );  return (&x)[idx]; }
+		NdCx__ Value_t &		operator [] (usize idx)		__NE___	{ ASSERT( idx < 2 );  return (&x)[idx]; }
 
 	// constants
 		NdCx__ static Self		c_1_1 ()					__NE___	{ return Self{ 1u, 1u }; }
@@ -146,11 +146,11 @@ namespace AE::Base
 		__Cx__ explicit TPowerOf2ValueVec (UMax_t)					__NE___ : x{UMax}, y{UMax}, z{UMax} {}
 		__Cx__ TPowerOf2ValueVec (Value_t X, Value_t Y, Value_t Z)	__NE___ : x{X}, y{Y}, z{Z} {}
 
-		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		template <typename IT> requires( IsUnsignedInteger<IT> )
 		__Cx__ explicit TPowerOf2ValueVec (IT X, IT Y, IT Z)		__NE___ : x{X}, y{Y}, z{Z} {}
 
-		NdCz__ Value_t const&	operator [] (usize idx)				C_NE___	{ ASSERT( idx < 3 );  return (&x)[idx]; }
-		NdCz__ Value_t &		operator [] (usize idx)				__NE___	{ ASSERT( idx < 3 );  return (&x)[idx]; }
+		NdCx__ Value_t const&	operator [] (usize idx)				C_NE___	{ ASSERT( idx < 3 );  return (&x)[idx]; }
+		NdCx__ Value_t &		operator [] (usize idx)				__NE___	{ ASSERT( idx < 3 );  return (&x)[idx]; }
 	};
 
 
@@ -172,11 +172,11 @@ namespace AE::Base
 		__Cx__ explicit TPowerOf2ValueVec (UMax_t)								__NE___ : x{UMax}, y{UMax}, z{UMax}, w{UMax} {}
 		__Cx__ TPowerOf2ValueVec (Value_t X, Value_t Y, Value_t Z, Value_t W)	__NE___ : x{X}, y{Y}, z{Z}, w{W} {}
 
-		template <typename IT, ENABLEIF( IsUnsignedInteger<IT> )>
+		template <typename IT> requires( IsUnsignedInteger<IT> )
 		__Cx__ explicit TPowerOf2ValueVec (IT X, IT Y, IT Z, IT W)				__NE___ : x{X}, y{Y}, z{Z}, w{W} {}
 
-		NdCz__ Value_t const&	operator [] (usize idx)							C_NE___	{ ASSERT( idx < 4 );  return (&x)[idx]; }
-		NdCz__ Value_t &		operator [] (usize idx)							__NE___	{ ASSERT( idx < 4 );  return (&x)[idx]; }
+		NdCx__ Value_t const&	operator [] (usize idx)							C_NE___	{ ASSERT( idx < 4 );  return (&x)[idx]; }
+		NdCx__ Value_t &		operator [] (usize idx)							__NE___	{ ASSERT( idx < 4 );  return (&x)[idx]; }
 	};
 
 
@@ -229,7 +229,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	__Cz__ float  TPowerOf2Value<T>::AsFloat () C_NE___
+	__Cx__ float  TPowerOf2Value<T>::AsFloat () C_NE___
 	{
 		ASSERT( _pot >= 0 );
 		ASSERT( _pot <= int(Float32Bits::_NaNExp/2) );
@@ -245,7 +245,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename IT>
-	__Cz__ IT  operator * (const TPowerOf2Value<T> lhs, const IT rhs) __NE___
+	__Cx__ IT  operator * (const TPowerOf2Value<T> lhs, const IT rhs) __NE___
 	{
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( lhs.GetPOT() >= 0 );
@@ -266,7 +266,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename IT>
-	__Cz__ IT  operator * (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
+	__Cx__ IT  operator * (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
 	{
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( rhs.GetPOT() >= 0 );
@@ -287,7 +287,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename IT>
-	__Cz__ IT  operator / (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
+	__Cx__ IT  operator / (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
 	{
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( rhs.GetPOT() >= 0 );
@@ -308,7 +308,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename IT>
-	__Cz__ IT  operator % (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
+	__Cx__ IT  operator % (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
 	{
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( rhs.GetPOT() >= 0 );
@@ -332,7 +332,7 @@ namespace AE::Base
 */
 	template <typename T>
 	template <typename IT>
-	__Cz__ IT  TPowerOf2Value<T>::Cast () C_NE___
+	__Cx__ IT  TPowerOf2Value<T>::Cast () C_NE___
 	{
 		if constexpr( IsSignedInteger<IT> )
 		{
@@ -372,8 +372,8 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	template <typename IT, ENABLEIF_IMPL( IsUnsignedInteger<IT> )>
-	__Cz__ TPowerOf2Value<T>  TPowerOf2Value<T>::FromCeil (IT value) __NE___
+	template <typename IT> requires( IsUnsignedInteger<IT> )
+	__Cx__ TPowerOf2Value<T>  TPowerOf2Value<T>::FromCeil (IT value) __NE___
 	{
 		int pot = Max( IntLog2( value ) + int(not Base::IsPowerOfTwo( value )), 0 );
 		return Self{PowerOfTwo(pot)};
@@ -541,15 +541,13 @@ namespace AE::Base
 	DivCeil
 =================================================
 */
-	template <typename T, typename P>
-	NdCx__ EnableIf<IsInteger<T>, T>  DivCeil (const T &x, const TPowerOf2Value<P> &divider) __NE___
+	template <typename T, typename P> requires(IsUnsignedInteger<T>)
+	NdCx__ T  DivCeil (const T &x, const TPowerOf2Value<P> &divider) __NE___
 	{
-		StaticAssert( IsUnsignedInteger<T> );
-
 		return (x + (T(1) << divider.GetPOT()) - T(1)) >> divider.GetPOT();
 	}
 
-	template <typename T, int I, glm::qualifier Q, typename P>
+	template <typename T, int I, glm::qualifier Q, typename P> requires(IsUnsignedInteger<T>)
 	NdCx__ TVec<T,I,Q>  DivCeil (const TVec<T,I,Q> &x, const TPowerOf2Value<P> &divider) __NE___
 	{
 		TVec<T,I,Q>	res;
@@ -558,7 +556,7 @@ namespace AE::Base
 		return res;
 	}
 
-	template <typename T, int I, glm::qualifier Q, typename P>
+	template <typename T, int I, glm::qualifier Q, typename P> requires(IsUnsignedInteger<T>)
 	NdCx__ TVec<T,I,Q>  DivCeil (const TVec<T,I,Q> &x, const TVec<TPowerOf2Value<P>,I,Q> &divider) __NE___
 	{
 		TVec<T,I,Q>	res;

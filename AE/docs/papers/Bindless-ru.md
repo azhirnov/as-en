@@ -283,7 +283,7 @@ Bindless техники позволяют перенести больше ло�
 Сделаны примитивные объекты в виде повернутых прямоугольников, вытянутые формы приводят к тому, что больше треугольников попадают в варп и сильнее проявляется неоднородность индексов.
 Показывает разницу в производительности между использованием `nonuniform()` и выбором слоя из Texture2DArray.
 Можно менять детализацию текстур, чтобы определить насколько bindless влияет на производительность при нормальной нагрузке на память и при пониженой, когда читаются нижние мип-уровни.<br/>
-Исходники: [скрипт](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform.as), [шейдер](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/NonUniform-shared.as).
+Исходники: [скрипт](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-DPP.as), [шейдер](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/NonUniform-shared.as).
 
 1.3. Nonuniform with visibility buffer<br/>
 Аналогично предыдущему, но вызывается меньше фрагментных шейдеров и больше уникальных индексов в варпе.<br/>

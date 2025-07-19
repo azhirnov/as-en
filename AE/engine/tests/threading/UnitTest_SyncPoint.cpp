@@ -31,6 +31,7 @@ namespace
 
 		void  Run () __Th_OV
 		{
+			// keep reference to 'syncObj'
 			TEST( syncObj );
 
 			++data.counter;
@@ -53,6 +54,7 @@ namespace
 
 		void  Run () __Th_OV
 		{
+			// make sure that all 'SPTest1_Task' tasks are complete
 			TEST_Eq( data.counter.load(), data.repeat_count * data.task_count );
 
 			++data.finalCnt;
@@ -72,16 +74,23 @@ namespace
 		RC<SyncPoint>		sync = MakeRC<SyncPoint>();
 		SPTest1_SharedData	data;
 
+		// execute 'SPTest1_Task' multiple times and increment 'data.counter'
+		// keep reference to 'sync' while task is alive
 		for (uint i = 0; i < SPTest1_SharedData::task_count; ++i)
 		{
 			scheduler->Run<SPTest1_Task>( Tuple{ ArgRef(data), sync });
 		}
 
+		// execute 'SPTest1_FinalTask' after all 'SPTest1_Task' tasks
+		// 'sync' used instead of 'CV.wait()'
 		Array<AsyncTask>	last_tasks;
 		for (uint i = 0; i < SPTest1_SharedData::last_task_count; ++i)
 		{
 			last_tasks.push_back( scheduler->Run<SPTest1_FinalTask>( Tuple{ArgRef(data)}, Tuple{sync->OnComplete()} ));
 		}
+
+		// all references to 'sync' must be released to trigger event
+		// equal to 'CV.notify_all()'
 		sync = null;
 
 		TEST( scheduler->Wait( last_tasks, c_MaxTimeout ));

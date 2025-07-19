@@ -35,7 +35,7 @@ namespace AE::Base::_hidden_
 		__Cx__ explicit MSBMask (int x)						__NE___	: _value{Value_t(x)} {}
 		__Cx__ explicit MSBMask (uint x)					__NE___	: _value{x} {}
 
-		template <typename T=Value_t, ENABLEIF( sizeof(T)==sizeof(ulong) )>
+		template <typename T=Value_t> requires( sizeof(T)==sizeof(ulong) )
 		__Cx__ explicit MSBMask (ulong x)					__NE___ : _value{x} {}
 
 		template <typename T>
@@ -45,11 +45,11 @@ namespace AE::Base::_hidden_
 
 		template <uint Bit>
 		NdCx__ bool		get ()								C_NE___	{ StaticAssert( Bit < Count() );	return Base::HasBit< Value_t{Bit}<<Step >( _value ); }
-		NdCz__ bool		get (uint bit)						C_NE___	{ ASSERT( bit < Count() );			return Base::HasBit( _value, Value_t(bit)<<Step ); }
+		NdCx__ bool		get (uint bit)						C_NE___	{ ASSERT( bit < Count() );			return Base::HasBit( _value, Value_t(bit)<<Step ); }
 
 		template <uint Bit>
 		__Cx__ void		set (bool value = true)				__NE___	{ StaticAssert( Bit < Count() );	_value = Base::SetBit( _value, value, Value_t(Bit)<<Step ); }
-		__Cz__ void		set (uint bit, bool value = true)	__NE___	{ ASSERT( bit < Count() );			_value = Base::SetBit( _value, value, Value_t(bit)<<Step ); }
+		__Cx__ void		set (uint bit, bool value = true)	__NE___	{ ASSERT( bit < Count() );			_value = Base::SetBit( _value, value, Value_t(bit)<<Step ); }
 
 		NdCx__ bool		All ()								C_NE___	{ auto m = _Mask();  return (_value & m) == m; }
 		NdCx__ bool		Any ()								C_NE___	{ auto m = _Mask();  return (_value & m) != 0; }

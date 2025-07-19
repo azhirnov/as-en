@@ -164,6 +164,7 @@ namespace
 		using Rect_t	= typename T::Rect_t;
 		using Vec2_t	= typename T::Vec2_t;
 		using Vec3_t	= typename T::Vec3_t;
+		using Vec4_t	= typename T::Vec4_t;
 
 
 		static Mat_t	Add_m_s (const Mat_t& lhs, Scalar_t rhs)					{ return lhs + rhs; }
@@ -189,13 +190,15 @@ namespace
 		static Mat_t	Perspective2 (const Mat_t&, Scalar_t fovY, const Vec2_t &viewport, const Vec2_t &range)	{return Mat_t::Perspective( Rad{fovY}, viewport, range ); }
 		static Mat_t	Frustum (const Mat_t&, const Rect_t &viewport, const Vec2_t &range)						{ return Mat_t::Frustum( viewport, range ); }
 		static Mat_t	InfiniteFrustum (const Mat_t&, const Rect_t &viewport, Scalar_t zNear)					{ return Mat_t::InfiniteFrustum( viewport, zNear ); }
+		static Mat_t	ReverseZTransform (const Mat_t&)														{ return Mat_t::ReverseZTransform(); }
+
 		static Mat_t	Translate (const Mat_t& m, const Vec3_t &translation)									{ return m.Translate( translation ); }
 		static Mat_t	Scale1 (const Mat_t&, const Vec3_t &scale)												{ return Mat_t::Scale( scale ); }
 		static Mat_t	Scale2 (const Mat_t&, const Scalar_t scale)												{ return Mat_t::Scale( scale ); }
 
 		static Mat_t	LookAt (const Mat_t &, const Vec3_t &eye, const Vec3_t &center, const Vec3_t &up)		{ return Mat_t::LookAt( eye, center, up ); }
 
-		static Vec3_t	Project (const Mat_t &self, const Vec3_t &pos, const Rect_t &viewport)					{ return self.Project( pos, viewport ); }
+		static Vec4_t	Project (const Mat_t &self, const Vec3_t &pos, const Rect_t &viewport)					{ return self.Project( pos, viewport ); }
 		static Vec3_t	UnProject (const Mat_t &self, const Vec3_t &pos, const Rect_t &viewport)				{ return self.UnProject( pos, viewport ); }
 
 		template <uint C1, uint R2>
@@ -253,6 +256,7 @@ namespace
 			AS_METHOD_T( binder, F::Perspective2,		"Perspective",		{"fovY", "viewport", "range"} );
 			AS_METHOD_T( binder, F::Frustum,			"Frustum",			{"viewport", "range"} );
 			AS_METHOD_T( binder, F::InfiniteFrustum,	"InfiniteFrustum",	{"viewport", "zNear"} );
+			AS_METHOD_T( binder, F::ReverseZTransform,	"ReverseZTransform",{} );
 			AS_METHOD_T( binder, F::Translate,			"Translate",		{"translation"} );
 			AS_METHOD_T( binder, F::Scale1,				"Scale",			{"scale"} );
 			AS_METHOD_T( binder, F::Scale2,				"Scale",			{"scale"} );

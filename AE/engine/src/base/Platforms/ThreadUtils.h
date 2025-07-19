@@ -65,11 +65,11 @@ namespace AE::Base
 		ND_	static uint		LogicalCoreIndex ()												__NE___	{ return PlatformUtils::GetLogicalCoreIndex(); }
 
 		ND_ static auto		GetID ()														__NE___	{ return std::this_thread::get_id(); }
-		ND_ static usize	GetIntID ()														__NE___	{ return usize(HashOf( std::this_thread::get_id() )); }
+		ND_ static usize	GetIntID ()														__NE___;
 
 		#ifndef AE_DISABLE_THREADS
 		ND_ static auto		GetID (const StdThread &t)										__NE___	{ return t.get_id(); }
-		ND_ static usize	GetIntID (const StdThread &t)									__NE___	{ return usize(HashOf( t.get_id() )); }
+		ND_ static usize	GetIntID (const StdThread &t)									__NE___;
 		#endif
 
 		ND_ static uint		MaxThreadCount ()												__NE___	{ return std::thread::hardware_concurrency(); }
@@ -118,6 +118,24 @@ namespace AE::Base
 			Sleep_15ms();
 		}
 	}
-
+	
+/*
+=================================================
+	GetIntID
+=================================================
+*/
+	inline usize  ThreadUtils::GetIntID () __NE___
+	{
+		auto	id = std::this_thread::get_id();
+		return usize{BitCast< ToUnsignedInteger<decltype(id)> >( id )};
+	}
+	
+#ifndef AE_DISABLE_THREADS
+	inline usize  ThreadUtils::GetIntID (const StdThread &t) __NE___
+	{
+		auto	id = t.get_id();
+		return usize{BitCast< ToUnsignedInteger<decltype(id)> >( id )};
+	}
+#endif
 
 } // AE::Base

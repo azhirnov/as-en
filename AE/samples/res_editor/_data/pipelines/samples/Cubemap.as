@@ -50,9 +50,6 @@
 
 				RenderState	rs;
 
-				rs.depth.test					= true;
-				rs.depth.write					= true;
-
 				rs.inputAssembly.topology		= EPrimitive::TriangleList;
 
 				rs.rasterization.frontFaceCCW	= true;
@@ -69,7 +66,7 @@
 	#include "Transform.glsl"
 
 	#ifndef iUVMode
-	# define iUVMode	0
+	# define iUVMode	1
 	#endif
 
 	void Main ()

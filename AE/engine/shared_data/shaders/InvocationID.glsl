@@ -95,25 +95,25 @@ ND_ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 src
 
 float2  MapPixCoordToUNormCorrected (const float2 posPx, const float2 sizePx)
 {
-	return (posPx+0.5f) / Max( sizePx.x, sizePx.y );
+	return Saturate( (posPx+0.5f) / Max( sizePx.x, sizePx.y ));
 }
 
 float3  MapPixCoordToUNormCorrected (const float3 posPx, const float3 sizePx)
 {
-	return (posPx+0.5f) / Max( sizePx.x, sizePx.y );
+	return Saturate( (posPx+0.5f) / Max( sizePx.x, sizePx.y ));
 }
 
 
 float2  MapPixCoordToSNormCorrected (const float2 posPx, const float2 sizePx)
 {
 	const float2	hsize = sizePx * 0.5f;
-	return (posPx - hsize) / Max( hsize.x, hsize.y );
+	return Clamp( (posPx - hsize) / Max( hsize.x, hsize.y ), -1.0, 1.0 );
 }
 
 float3  MapPixCoordToSNormCorrected (const float3 posPx, const float3 sizePx)
 {
 	const float3	hsize = sizePx * 0.5f;
-	return (posPx - hsize) / Max( hsize.x, hsize.y );
+	return Clamp( (posPx - hsize) / Max( hsize.x, hsize.y ), -1.0, 1.0 );
 }
 
 float2  MapPixCoordToSNormCorrected2 (const float2 posPx, const float2 sizePx)

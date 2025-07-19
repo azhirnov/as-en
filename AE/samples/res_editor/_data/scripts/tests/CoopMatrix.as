@@ -21,7 +21,7 @@
 		{
 			RC<ComputePass>		pass = ComputePass();
 			pass.ArgOut( "un_OutImage", rt );
-			pass.LocalSize( 32, 1 );	// TODO: get subgroup size
+			pass.LocalSize( GetSubgroupSize(), 1 );
 			pass.DispatchThreads( rt.Dimension() );
 		}
 		Present( rt );

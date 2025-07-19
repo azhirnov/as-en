@@ -5,12 +5,13 @@
 
 #ifdef AE_ENABLE_UNKNOWN_LICENSE
 
-
 /*
 =================================================
 	Stalker version
 ----
-	Best accuracy, requires signed format for negative Z.
+	Best accuracy, but requires signed format for negative Z.
+	Has low accuracy when Z near to 1.
+	Compatible with RG8 format.
 =================================================
 */
 float2  Stalker_EncodeNormal (const float3 norm)
@@ -56,6 +57,7 @@ float3  Octahedron_DecodeNormal (const float2 f)
 	Signed Octahedron
 ----
 	from https://johnwhite3d.blogspot.com/2017/10/signed-octahedron-normal-encoding.html
+	Best accuracy on whole range.
 =================================================
 */
 float3  SigOctahedron_EncodeNormal (float3 n)

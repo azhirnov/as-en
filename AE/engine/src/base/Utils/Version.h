@@ -105,16 +105,16 @@ namespace AE::Base
 		NdCx__ uint				ToUInt ()					C_NE___	{ return (uint{major} << 16) | uint{minor}; }
 		NdCx__ static Self		FromUInt (uint val)			__NE___	{ return Self{ val >> 16, val & 0xFFFF }; }
 
-		NdCz__ uint				To100 ()					C_NE___	{ ASSERT( minor < 10 );  return (uint(major) * 100) + (uint(minor) * 10); }
+		NdCx__ uint				To100 ()					C_NE___	{ ASSERT( minor < 10 );  return (uint(major) * 100) + (uint(minor) * 10); }
 		NdCx__ static Self		From100 (uint val)			__NE___	{ return Self{ val / 100, (val / 10) % 10 }; }
 
-		NdCz__ uint				To10 ()						C_NE___	{ ASSERT( minor < 10 );  return (uint(major) * 10) + uint(minor); }
+		NdCx__ uint				To10 ()						C_NE___	{ ASSERT( minor < 10 );  return (uint(major) * 10) + uint(minor); }
 		NdCx__ static Self		From10 (uint val)			__NE___	{ return Self{ val / 10, val % 10 }; }
 
-		NdCz__ uint				ToHex ()					C_NE___	{ ASSERT( minor < 0xF );  return (uint(major) << 4) | (uint(minor) & 0xF); }
+		NdCx__ uint				ToHex ()					C_NE___	{ ASSERT( minor < 0xF );  return (uint(major) << 4) | (uint(minor) & 0xF); }
 		NdCx__ static Self		FromHex (uint val)			__NE___	{ return Self{ val >> 4, val & 0xF }; }
 
-		NdCz__ float			ToFloat ()					C_NE___	{ ASSERT( minor < 100 );  return float(major) + (float(minor) * 0.01f); }
+		NdCx__ float			ToFloat ()					C_NE___	{ ASSERT( minor < 100 );  return float(major) + (float(minor) * 0.01f); }
 		NdCx__ static Self		FromFloat (float val)		__NE___	{ uint f = uint(Fract(val) * 100.f);  return Self{ uint(Floor(val)), f }; }
 	};
 

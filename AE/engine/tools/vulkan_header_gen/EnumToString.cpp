@@ -59,7 +59,7 @@ namespace
 
 			for (auto it = fields.begin(); it != fields.end();)
 			{
-				if ( HashTable_Contains( names, it->value ))
+				if ( names.contains( it->value ))
 				{
 					AE_LOGI( "Removed duplicated enum: "s << it->name << " = " << it->value );
 					it = fields.erase( it );
@@ -93,7 +93,7 @@ namespace
 
 			for (auto it = const_set.second.begin(); it != const_set.second.end();)
 			{
-				if ( HashTable_Contains( names, it->value ))
+				if ( names.contains( it->value ))
 				{
 					AE_LOGI( "Removed duplicated const: "s << it->name << " = " << it->value );
 					it = const_set.second.erase( it );

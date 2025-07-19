@@ -123,7 +123,7 @@ namespace
 
 				for (auto& un_name : ptr->_uniqueNames)
 				{
-					CHECK_THROW_MSG( HashTable_NotContains( dsPtr->_uniqueNames, un_name ),
+					CHECK_THROW_MSG( not dsPtr->_uniqueNames.contains( un_name ),
 						"uniform with name '"s << un_name << "' is already exists in DescSet '" << ptr->_name << "'" );
 				}
 			}

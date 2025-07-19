@@ -67,8 +67,6 @@
 #	define ASSERT_LE								CHECK_LE	// <=
 #	define ASSERT_MSG								CHECK_MSG
 # else
-#	define ASSERT_Cx( /* expr */... )				{}
-#	define ASSERT_MSG_Cx( /* expr, msg */... )		{}
 #	define ASSERT( /* expr */... )					{}
 #	define ASSERT_Eq( /* lhs, rhs */... )			{}			// ==
 #	define ASSERT_NE( /* lhs, rhs */... )			{}			// !=

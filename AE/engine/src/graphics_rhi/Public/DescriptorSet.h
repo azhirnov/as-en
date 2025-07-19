@@ -95,21 +95,21 @@ namespace AE::Graphics
 
 		Nd____ bool		operator == (MetalBindingPerStage rhs)	C_NE___	{ return std::memcmp( _data, rhs._data, sizeof(_data) ) == 0; }
 
-		NdCz__ bool		IsDefined ()							C_NE___	{ return (_data[0] != UMax) or (_data[1] != UMax) or (_data[2] != UMax); }
-		NdCz__ bool		Has (usize idx)							C_NE___	{ ASSERT( idx < _count );	return _data[idx] != UMax; }
-		NdCz__ ubyte	Get (usize idx)							C_NE___	{ ASSERT( Has( idx ));		return _data[idx]; }
+		NdCx__ bool		IsDefined ()							C_NE___	{ return (_data[0] != UMax) or (_data[1] != UMax) or (_data[2] != UMax); }
+		NdCx__ bool		Has (usize idx)							C_NE___	{ ASSERT( idx < _count );	return _data[idx] != UMax; }
+		NdCx__ ubyte	Get (usize idx)							C_NE___	{ ASSERT( Has( idx ));		return _data[idx]; }
 		Nd____ ubyte&	GetRef (usize idx)						__NE___	{ ASSERT( idx < _count );	return _data[idx]; }
 
-		NdCz__ ubyte	Vertex	 ()								C_NE___	{ return Get(0); }
-		NdCz__ ubyte	Tile	 ()								C_NE___	{ return Get(0); }
-		NdCz__ ubyte	Compute	 ()								C_NE___	{ return Get(0); }
-		NdCz__ ubyte	Mesh	 ()								C_NE___	{ return Get(0); }
-		NdCz__ ubyte	Fragment ()								C_NE___	{ return Get(1); }
-		NdCz__ ubyte	MeshTask ()								C_NE___	{ return Get(2); }
+		NdCx__ ubyte	Vertex	 ()								C_NE___	{ return Get(0); }
+		NdCx__ ubyte	Tile	 ()								C_NE___	{ return Get(0); }
+		NdCx__ ubyte	Compute	 ()								C_NE___	{ return Get(0); }
+		NdCx__ ubyte	Mesh	 ()								C_NE___	{ return Get(0); }
+		NdCx__ ubyte	Fragment ()								C_NE___	{ return Get(1); }
+		NdCx__ ubyte	MeshTask ()								C_NE___	{ return Get(2); }
 
 		// binding index is same for all stages
 		// used only for DS caching
-		NdCz__ ubyte	BindingIndex ()							C_NE___	{ ASSERT( _data[3] != UMax );  return _data[3]; }
+		NdCx__ ubyte	BindingIndex ()							C_NE___	{ ASSERT( _data[3] != UMax );  return _data[3]; }
 		Nd____ ubyte&	BindingIndex ()							__NE___	{ return _data[3]; }
 
 		Nd____ HashVal	CalcHash ()								C_NE___	{ return HashOf( ArrayView<ubyte>{ _data }); }
@@ -128,7 +128,7 @@ namespace AE::Graphics
 			return -1;
 		}
 
-		NdCz__ static int	StageToIndex (EShaderStages stage) __NE___
+		NdCx__ static int	StageToIndex (EShaderStages stage) __NE___
 		{
 			ASSERT( IsSingleBitSet( stage ));
 			switch ( stage ) {

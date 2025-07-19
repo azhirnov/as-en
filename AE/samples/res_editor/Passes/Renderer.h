@@ -102,6 +102,7 @@ namespace AE::ResEditor
 
 		ND_ bool			FreezeTime ()										C_NE___	{ return _freeze.load(); }
 			void			SetFreezeTime (bool freeze)							__NE___	{ _freeze.store( freeze ); }
+		ND_ RC<IController>	GetController ()									C_NE___	{ return _controller; }
 
 
 	// api for ScriptExe

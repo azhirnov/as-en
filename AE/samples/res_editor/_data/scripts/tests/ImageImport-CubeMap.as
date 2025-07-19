@@ -9,7 +9,6 @@
 void ASmain ()
 {
 	RC<Image>		rt				= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
-	RC<Image>		ds				= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 
 	RC<Image>		cubemap			= Image( EImageType::Float_Cube, "res/tex/perlin-fbm7-cm.aeimg" );
 	RC<Image>		cubemap_view	= cubemap.CreateView( EImage::Cube );
@@ -46,7 +45,6 @@ void ASmain ()
 		RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "main pass" );
 		draw.AddPipeline( "samples/Cubemap.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Cubemap.as)
 		draw.Output( "out_Color", rt, RGBA32f(0.0) );
-		draw.Output( ds, DepthStencil(1.f, 0) );
 		draw.Slider( "iUVMode", 0, 1, 0 );
 	}
 	Present( rt );

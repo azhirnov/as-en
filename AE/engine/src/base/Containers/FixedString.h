@@ -43,7 +43,7 @@ namespace AE::Base
 		__Cx__ TFixedString ()								__NE___	= default;
 		__Cx__ TFixedString (const View_t &view)			__NE___ : TFixedString{ view.data(), view.length() } {}
 		__Cx__ TFixedString (const CharT* str)				__NE___;
-		__Cz__ TFixedString (const CharT* str, usize length)__NE___;
+		__Cx__ TFixedString (const CharT* str, usize length)__NE___;
 
 		__Cx__ TFixedString (Self &&)						__NE___ = default;
 		__Cx__ TFixedString (const Self &)					__NE___ = default;
@@ -62,8 +62,8 @@ namespace AE::Base
 		NdCx__ CharT const*	data ()							C_NE___	{ return _array; }
 		NdCx__ CharT *		data ()							__NE___	{ return _array; }
 
-		NdCz__ CharT &		operator [] (usize i)			__NE___	{ ASSERT( i < _length );  return _array[i]; }
-		NdCz__ CharT const&	operator [] (usize i)			C_NE___	{ ASSERT( i < _length );  return _array[i]; }
+		NdCx__ CharT &		operator [] (usize i)			__NE___	{ ASSERT( i < _length );  return _array[i]; }
+		NdCx__ CharT const&	operator [] (usize i)			C_NE___	{ ASSERT( i < _length );  return _array[i]; }
 
 		NdCx__ bool	operator == (const View_t &rhs)			C_NE___	{ return View_t(*this) == rhs; }
 		NdCx__ bool	operator != (const View_t &rhs)			C_NE___	{ return not (*this == rhs); }
@@ -78,8 +78,8 @@ namespace AE::Base
 		NdCx__ const_iterator	end ()						C_NE___	{ return std::addressof(_array[_length]); }
 
 		__Cx__ void  clear ()								__NE___;
-		__Cz__ void  resize (usize newSize)					__NE___;
-		__Cz__ void  push_back (CharT value)				__NE___;
+		__Cx__ void  resize (usize newSize)					__NE___;
+		__Cx__ void  push_back (CharT value)				__NE___;
 	};
 
 
@@ -103,7 +103,7 @@ namespace AE::Base
 	}
 
 	template <typename T, usize S>
-	__Cz__ TFixedString<T,S>::TFixedString (const T* str, usize length) __NE___
+	__Cx__ TFixedString<T,S>::TFixedString (const T* str, usize length) __NE___
 	{
 		ASSERT( length < capacity() );
 
@@ -131,7 +131,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S>
-	__Cz__ void  TFixedString<T,S>::resize (usize newSize) __NE___
+	__Cx__ void  TFixedString<T,S>::resize (usize newSize) __NE___
 	{
 		ASSERT( newSize < capacity() );
 
@@ -151,7 +151,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S>
-	__Cz__ void  TFixedString<T,S>::push_back (T value) __NE___
+	__Cx__ void  TFixedString<T,S>::push_back (T value) __NE___
 	{
 		ASSERT( usize{_length} + 1u < capacity() );
 

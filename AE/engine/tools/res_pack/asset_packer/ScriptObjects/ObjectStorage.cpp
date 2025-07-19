@@ -46,7 +46,7 @@ namespace AE::AssetPacker
 
 	void  ObjectStorage::ImageAtlasInfo::Contains (const String &imgName) C_Th___
 	{
-		CHECK_THROW_MSG( HashTable_Contains( _set, imgName ),
+		CHECK_THROW_MSG( _set.contains( imgName ),
 			"ImageAtlas (file '"s << _fileName << "' / meta '" << _metaRes << "') does not contains image '" << imgName << "'" );
 	}
 //-----------------------------------------------------------------------------
@@ -96,7 +96,7 @@ namespace AE::AssetPacker
 	{
 		AddName<FileName>( name ); // throw
 
-		CHECK_THROW_MSG( HashTable_NotContains( _tempFiles, name ),
+		CHECK_THROW_MSG( not _tempFiles.contains( name ),
 			"File '"s << name << "' already exists in archive" );
 
 		CHECK_THROW_MSG( _archive.Add( FileName::WithString_t{name}, stream, fileType ),
@@ -272,7 +272,7 @@ namespace AE::AssetPacker
 	{
 		CHECK_THROW_MSG( not nameInArchive.empty() );
 
-		CHECK_THROW_MSG( HashTable_Contains( _fontMap, nameInArchive ),
+		CHECK_THROW_MSG( _fontMap.contains( nameInArchive ),
 			"Font '"s << nameInArchive << "' is not exists" );
 	}
 
@@ -281,7 +281,7 @@ namespace AE::AssetPacker
 		CHECK_THROW_MSG( not metaArchive.empty() );
 		CHECK_THROW_MSG( not nameInMeta.empty() );
 
-		CHECK_THROW_MSG( HashTable_Contains( _fontMap, String{metaArchive} << '%' << nameInMeta ),
+		CHECK_THROW_MSG( _fontMap.contains( String{metaArchive} << '%' << nameInMeta ),
 			"Font meta '"s << nameInMeta << "' with meta file '" << metaArchive << "' is not exists" );
 	}
 

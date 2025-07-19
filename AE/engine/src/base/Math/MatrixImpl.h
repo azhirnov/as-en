@@ -142,70 +142,80 @@ namespace AE::Base
 
 
 	#if Columns == 2 and Rows == 2
-		ND_ static Self  Rotate (Rad_t angle)											__NE___;
-		ND_ static Self  Scale (const Vec2_t &scale)									__NE___;
-		ND_ static Self  Scale (const T scale)											__NE___	{ return Scale( Vec2_t{ scale }); }
+		ND_ static Self  Rotate (Rad_t angle)												__NE___;
+		ND_ static Self  Scale (const Vec2_t &scale)										__NE___;
+		ND_ static Self  Scale (const T scale)												__NE___	{ return Scale( Vec2_t{ scale }); }
 	#endif
 
 	#if Columns == 3 and Rows == 2
-		ND_ static Self	 Translate (const Vec2_t &translation)							__NE___	{ return Identity().SetTranslation( translation ); }
-			Self&		 SetTranslation (const Vec2_t &translation)						__NE___;
-			Self&		 AddTranslation (const Vec2_t &translation)						__NE___;
+		ND_ static Self	 Translate (const Vec2_t &translation)								__NE___	{ return Identity().SetTranslation( translation ); }
+			Self&		 SetTranslation (const Vec2_t &translation)							__NE___;
+			Self&		 AddTranslation (const Vec2_t &translation)							__NE___;
 	#endif
 
 	#if Columns == 3 and Rows == 3
-		ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up)			__NE___;
-		ND_ static Self  Scale (const Vec3_t &scale)									__NE___;
-		ND_ static Self  Scale (const T scale)											__NE___	{ return Scale( Vec3_t{ scale }); }
-		ND_ static Self  LookAt (const Vec3_t &dir, const Vec3_t &up)					__NE___;
+		ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up)				__NE___;
+		ND_ static Self  Scale (const Vec3_t &scale)										__NE___;
+		ND_ static Self  Scale (const T scale)												__NE___	{ return Scale( Vec3_t{ scale }); }
+		ND_ static Self  LookAt (const Vec3_t &dir, const Vec3_t &up)						__NE___;
 	#endif
 
 	#if Columns == 4 and (Rows == 3 or Rows == 4)
-		ND_ static Self	 Translate (const Vec3_t &translation)							__NE___	{ return Identity().SetTranslation( translation ); }
-			Self&		 SetTranslation (const Vec3_t &translation)						__NE___;
-			Self&		 AddTranslation (const Vec3_t &translation)						__NE___;
+		ND_ static Self	 Translate (const Vec3_t &translation)								__NE___	{ return Identity().SetTranslation( translation ); }
+			Self&		 SetTranslation (const Vec3_t &translation)							__NE___;
+			Self&		 AddTranslation (const Vec3_t &translation)							__NE___;
 	#endif
 
 	#if Columns == 4 and Rows == 4
-		ND_ static Self  Ortho (const Rect_t &viewport, const Vec2_t &range)			__NE___	{ return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
-		ND_ static Self  InfinitePerspective (Rad_t fovY, T aspectRatio, T zNear)		__NE___;
-		ND_ static Self  Perspective (Rad_t fovY, T aspectRatio, const Vec2_t &range)	__NE___	{ return Self{ glm::perspective( T(fovY), aspectRatio, range[0], range[1] )}; }
+		ND_ static Self  Ortho (const Rect_t &viewport, const Vec2_t &range)				__NE___	{ return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
+		ND_ static Self  InfinitePerspective (Rad_t fovY, T aspectRatio, T zNear)			__NE___;
+		ND_ static Self  Perspective (Rad_t fovY, T aspectRatio, const Vec2_t &range)		__NE___	{ return Self{ glm::perspective( T(fovY), aspectRatio, range[0], range[1] )}; }
+		ND_ static Self  Ortho (const Rect_t &viewport)									__NE___	{ return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom )}; }
 		ND_ static Self  Perspective (Rad_t fovY, const Vec2_t &viewport, const Vec2_t &range)	__NE___	{ return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
-		ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)			__NE___	{ return Self{ glm::frustum( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
-		ND_ static Self  InfiniteFrustum (const Rect_t &viewport, T zNear)				__NE___;
+		ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)				__NE___	{ return Self{ glm::frustum( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
+		ND_ static Self  InfiniteFrustum (const Rect_t &viewport, T zNear)					__NE___;
 
 		ND_ static Self  LookAt (const Vec3_t &eye, const Vec3_t &center, const Vec3_t &up)	__NE___	{ return Self{ glm::lookAt( eye, center, up )}; }
 
-		ND_ static Self  Scale (const Vec3_t &scale)									__NE___;
-		ND_ static Self  Scale (const T scale)											__NE___	{ return Scale( Vec3_t{ scale }); }
+		ND_ static Self  Scale (const Vec3_t &scale)										__NE___;
+		ND_ static Self  Scale (const T scale)												__NE___	{ return Scale( Vec3_t{ scale }); }
 
-		ND_ Vec3_t		 Project (const Vec3_t &pos, const Rect_t &viewport)			C_NE___;
-		ND_ Vec3_t		 UnProject (const Vec3_t &pos, const Rect_t &viewport)			C_NE___;
+		ND_ Vec4_t		 Project (const Vec3_t &pos, const Rect_t &viewport)				C_NE___	{ return ProjectToScreenSpace( pos, viewport ); }
+		ND_ Vec4_t		 ProjectToScreenSpace (const Vec3_t &pos, const Rect_t &viewport)	C_NE___;
+		ND_ Vec4_t		 ProjectToNormClipSpace (const Vec3_t &pos)							C_NE___;
+		ND_ T			 FastProjectZ (T z)													C_NE___;
+		ND_ static T	 FastProjectZInf (T zNear, T z)										__NE___;
+		ND_ static T	 FastProjectRevZInf (T zNear, T z)									__NE___;
+		
+		ND_ Vec3_t		 UnProject (const Vec3_t &pos, const Rect_t &viewport)				C_NE___;
+		ND_ T			 FastUnProjectZ (T zw)												C_NE___;
+		ND_ static T	 FastUnProjectZInf (T zNear, T zw)									__NE___;
+		ND_ static T	 FastUnProjectRevZInf (T zNear, T zw)								__NE___;
 
-		ND_ static Self  Rotate  (Rad_t angle, const Vec3_t &axis)						__NE___;
+		ND_ static Self  Rotate  (Rad_t angle, const Vec3_t &axis)							__NE___;
 
-		ND_ static Self  ReverseZTransform ()											__NE___;
+		ND_ static Self  ReverseZTransform ()												__NE___;
 	#endif
 
 	#if Columns >= 3 and Rows >= 3
-		ND_ static Self  RotateX (Rad_t angle)											__NE___;	// pitch
-		ND_ static Self  RotateY (Rad_t angle)											__NE___;	// yaw
-		ND_ static Self  RotateZ (Rad_t angle)											__NE___;	// roll
+		ND_ static Self  RotateX (Rad_t angle)												__NE___;	// pitch
+		ND_ static Self  RotateY (Rad_t angle)												__NE___;	// yaw
+		ND_ static Self  RotateZ (Rad_t angle)												__NE___;	// roll
 
-		ND_ Vec3_t		 AxisX ()														C_NE___	{ return Vec3_t{ _value[0][0], _value[1][0], _value[2][0] }; }	// right
-		ND_ Vec3_t		 AxisY ()														C_NE___	{ return Vec3_t{ _value[0][1], _value[1][1], _value[2][1] }; }	// up
-		ND_ Vec3_t		 AxisZ ()														C_NE___	{ return Vec3_t{ _value[0][2], _value[1][2], _value[2][2] }; }	// forward
+		ND_ Vec3_t		 AxisX ()															C_NE___	{ return Vec3_t{ _value[0][0], _value[1][0], _value[2][0] }; }	// right
+		ND_ Vec3_t		 AxisY ()															C_NE___	{ return Vec3_t{ _value[0][1], _value[1][1], _value[2][1] }; }	// up
+		ND_ Vec3_t		 AxisZ ()															C_NE___	{ return Vec3_t{ _value[0][2], _value[1][2], _value[2][2] }; }	// forward
 
-		ND_ static Self  ToCubeFace (uint face)											__NE___;
+		ND_ static Self  ToCubeFace (uint face)												__NE___;
 	#endif
 
 	private:
 	  #if Rows == 3
-		ND_ static Col_t  _CreateCol0 (T x, T y, T z)									__NE___	{ return Col_t{ x, y, z }; }
-		ND_ static Col_t  _CreateCol1 (T x, T y, T z)									__NE___	{ return Col_t{ x, y, z }; }
+		ND_ static Col_t  _CreateCol0 (T x, T y, T z)										__NE___	{ return Col_t{ x, y, z }; }
+		ND_ static Col_t  _CreateCol1 (T x, T y, T z)										__NE___	{ return Col_t{ x, y, z }; }
 	  #elif Rows == 4
-		ND_ static Col_t  _CreateCol0 (T x, T y, T z)									__NE___	{ return Col_t{ x, y, z, T(0) }; }
-		ND_ static Col_t  _CreateCol1 (T x, T y, T z)									__NE___	{ return Col_t{ x, y, z, T(1) }; }
+		ND_ static Col_t  _CreateCol0 (T x, T y, T z)										__NE___	{ return Col_t{ x, y, z, T(0) }; }
+		ND_ static Col_t  _CreateCol1 (T x, T y, T z)										__NE___	{ return Col_t{ x, y, z, T(1) }; }
 	  #endif
 	};
 
@@ -481,22 +491,72 @@ namespace AE::Base
 
 /*
 =================================================
-	Project
+	ProjectToScreenSpace
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	typename TMatrix<T, Columns, Rows, Q>::Vec3_t
-		TMatrix<T, Columns, Rows, Q>::Project (const Vec3_t &pos, const Rect_t &viewport) C_NE___
+	typename TMatrix<T, Columns, Rows, Q>::Vec4_t
+		TMatrix<T, Columns, Rows, Q>::ProjectToScreenSpace (const Vec3_t &pos, const Rect_t &viewport) C_NE___
 	{
 		Vec4_t			temp	= (*this) * Vec4_t( pos, T(1) );
 		Vec2_t const	size	= viewport.Size();
 
-		temp  /= temp.w;
-		temp   = temp * T(0.5) + T(0.5);
-		temp.x = temp.x * size.x + viewport.left;
-		temp.y = temp.y * size.y + viewport.bottom;
+		temp   = Vec4_t{ Vec3_t{temp} / temp.w, temp.w };
 
-		return Vec3_t{ temp };
+		// Vulkan specs: 27.4. Primitive Clipping
+		// -w <= x <= w
+		// -w <= y <= w
+		// 0 <= z <= w
+		// 0 < w
+
+		temp.x = ToUNorm( temp.x ) * size.x + viewport.left;
+		temp.y = ToUNorm( temp.x ) * size.y + viewport.bottom;
+
+		return temp;
+	}
+	
+/*
+=================================================
+	ProjectToNormClipSpace
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	typename TMatrix<T, Columns, Rows, Q>::Vec4_t
+		TMatrix<T, Columns, Rows, Q>::ProjectToNormClipSpace (const Vec3_t &pos) C_NE___
+	{
+		Vec4_t	temp = (*this) * Vec4_t{ pos, T(1) };
+		return	Vec4_t{ Vec3_t{temp} / temp.w, temp.w };	// xy - snorm, z - unorm
+	}
+	
+/*
+=================================================
+	FastProjectZ
+----
+	assume that only (0,0), (1,1), (2,2), (2,3), (3,2) are not zero as in perspective projection matrix
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	T  TMatrix<T, Columns, Rows, Q>::FastProjectZ (T z) C_NE___
+	{
+		T	p23 = (*this)[2][3];	// 1
+		T	p22	= (*this)[2][2];	// zFar / (zNear - zFar)
+		T	p32	= (*this)[3][2];	// -(zFar * zNear) / (zFar - zNear)
+
+		T	w = p23 * z;
+			z = (p22 * z) + p32;
+		return	z / w;
+	}
+
+	template <typename T, glm::qualifier Q>
+	T  TMatrix<T, Columns, Rows, Q>::FastProjectZInf (const T zNear, T z) __NE___
+	{
+		return	T(1) - zNear / z;
+	}
+
+	template <typename T, glm::qualifier Q>
+	T  TMatrix<T, Columns, Rows, Q>::FastProjectRevZInf (const T zNear, T z) __NE___
+	{
+		return	zNear / z;
 	}
 
 /*
@@ -511,14 +571,40 @@ namespace AE::Base
 		Vec4_t			temp	= Vec4_t{ pos, T(1) };
 		Vec2_t const	size	= viewport.Size();
 
-		temp.x	= (temp.x - viewport.left) / size.x;
-		temp.y	= (temp.y - viewport.bottom) / size.y;
-		temp	= temp * T(2) - T(1);
+		temp.x	= ToSNorm( (temp.x - viewport.left) / size.x );
+		temp.y	= ToSNorm( (temp.y - viewport.bottom) / size.y );
 
 		temp	 = (*this) * temp;
 		temp	/= temp.w;
 
 		return Vec3_t{ temp };
+	}
+	
+/*
+=================================================
+	FastUnProjectZ
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	T  TMatrix<T, Columns, Rows, Q>::FastUnProjectZ (T zw) C_NE___
+	{
+		T	p23 = (*this)[2][3];	// 1
+		T	p22	= (*this)[2][2];	// zFar / (zNear - zFar)
+		T	p32	= (*this)[3][2];	// -(zFar * zNear) / (zFar - zNear)
+
+		return p32 / (zw * p23 - p22);
+	}
+	
+	template <typename T, glm::qualifier Q>
+	T  TMatrix<T, Columns, Rows, Q>::FastUnProjectZInf (T zNear, T zw) __NE___
+	{
+		return	-zNear / (zw - T(1));
+	}
+	
+	template <typename T, glm::qualifier Q>
+	T  TMatrix<T, Columns, Rows, Q>::FastUnProjectRevZInf (T zNear, T zw) __NE___
+	{
+		return	zNear / zw;
 	}
 
 /*

@@ -46,7 +46,7 @@ namespace AE::Base
 		__Cx__ HandleTmpl ()										__NE___ = default;
 		__Cx__ HandleTmpl (const Self &other)						__NE___ : _value{other._value} {}
 
-		__Cz__ HandleTmpl (Value_t index, Value_t gen)				__NE___ :
+		__Cx__ HandleTmpl (Value_t index, Value_t gen)				__NE___ :
 			_value{Value_t(index) | (Value_t(gen) << _GenOffset)}
 		{
 			ASSERT( _packed.index == index );
@@ -135,12 +135,12 @@ namespace AE::Base
 		__Cx__ Strong (Self &&other)						__NE___ : _id{other._id}	{ other._id = Default; }
 		__Cx__ explicit Strong (const ID_t &id)				__NE___ : _id{id}			{}
 		__Cx__ Strong (Value_t index, Value_t gen)			__NE___ : _id{index, gen}	{}
-		__Cz__ ~Strong ()									__NE___	{ ASSERT_MSG( not IsValid(), "handle must be released" ); }
+		__Cx__ ~Strong ()									__NE___	{ ASSERT_MSG( not IsValid(), "handle must be released" ); }
 
 		__Cx__ Self			Attach (ID_t id)				__NE___	{ ID_t  temp{_id};  _id = id;  return Self{temp}; }
 
-		__Cz__ Self&		operator = (Self &&rhs)			__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
-		__Cz__ Self&		operator = (const Self &rhs)	__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
+		__Cx__ Self&		operator = (Self &&rhs)			__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
+		__Cx__ Self&		operator = (const Self &rhs)	__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
 
 		NdCx__ ID_t			Get ()							C_NE___	{ return _id; }
 		NdCx__ ID_t			Release ()						__NE___	{ ID_t temp{_id};  _id = Default;  return temp; }

@@ -37,9 +37,8 @@ namespace AE::Base
 
 		AnyTypeRef&  operator = (const AnyTypeRef &rhs)		__NE___	= default;
 
-		template <typename T,
-				  DISABLEIF( IsConst<T> or IsSame< T, AnyTypeRef > or IsSame< T, AnyTypeCRef >)
-				 >
+		template <typename T>
+				  requires(not( IsConst<T> or IsSame< T, AnyTypeRef > or IsSame< T, AnyTypeCRef >))
 		AnyTypeRef (T &value)								__NE___ : _typeId{ TypeIdOf<T>() }, _ref{ std::addressof(value) } {}
 
 
@@ -84,14 +83,12 @@ namespace AE::Base
 
 		AnyTypeCRef&  operator = (const AnyTypeCRef &rhs)		__NE___	= default;
 
-		template <typename T,
-				  DISABLEIF( IsConst<T> or IsSame< T, AnyTypeRef > or IsSame< T, AnyTypeCRef >)
-				 >
+		template <typename T>
+				  requires(not( IsConst<T> or IsSame< T, AnyTypeRef > or IsSame< T, AnyTypeCRef >))
 		AnyTypeCRef (T &value)									__NE___ : _typeId{ TypeIdOf<T>() }, _ref{ std::addressof(value) } {}
 
-		template <typename T,
-				  DISABLEIF( IsSame< T, AnyTypeRef > or IsSame< T, AnyTypeCRef >)
-				 >
+		template <typename T>
+				  requires(not( IsSame< T, AnyTypeRef > or IsSame< T, AnyTypeCRef >))
 		explicit AnyTypeCRef (const T &value)					__NE___ : _typeId{ TypeIdOf<T>() }, _ref{ std::addressof(value) } {}
 
 

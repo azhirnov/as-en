@@ -54,7 +54,6 @@
 			pass.Slider( "iTexQuad",			0,				1,				1 );
 			pass.Constant( "iScaleBias",		scale_bias );
 			pass.EnableIfEqual( mode, 1 );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}
 		Present( rt );
 	}

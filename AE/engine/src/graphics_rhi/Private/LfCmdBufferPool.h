@@ -42,21 +42,21 @@ namespace AE::Graphics
 		NdCx__ EMode	Mode ()											C_NE___	{ return EMode(_packed & 0xFF); }
 		NdCx__ uint		Index ()										C_NE___	{ return _packed >> 8; }
 
-		NdCz__ static CmdBufExeIndex  SearchFrontToBack (uint front)	__NE___	{ ASSERT_Lt( front,  _MaxIdx );  return CmdBufExeIndex{ front, EMode::FrontToBack }; }
-		NdCz__ static CmdBufExeIndex  SearchBackToFront (uint back)		__NE___	{ ASSERT_Lt( back,   _MaxIdx );  return CmdBufExeIndex{ back,  EMode::BackToFront }; }
-		NdCz__ static CmdBufExeIndex  Exact (uint index)				__NE___	{ ASSERT_Lt( index,  _MaxIdx );  return CmdBufExeIndex{ index, EMode::Exact }; }
-		NdCz__ static CmdBufExeIndex  Anywhere ()						__NE___	{ return CmdBufExeIndex{}; }
+		NdCx__ static CmdBufExeIndex  SearchFrontToBack (uint front)	__NE___	{ ASSERT_Lt( front,  _MaxIdx );  return CmdBufExeIndex{ front, EMode::FrontToBack }; }
+		NdCx__ static CmdBufExeIndex  SearchBackToFront (uint back)		__NE___	{ ASSERT_Lt( back,   _MaxIdx );  return CmdBufExeIndex{ back,  EMode::BackToFront }; }
+		NdCx__ static CmdBufExeIndex  Exact (uint index)				__NE___	{ ASSERT_Lt( index,  _MaxIdx );  return CmdBufExeIndex{ index, EMode::Exact }; }
+		NdCx__ static CmdBufExeIndex  Anywhere ()						__NE___	{ return CmdBufExeIndex{}; }
 
 		template <uint Front = 0>
-		NdCz__ static CmdBufExeIndex  SearchFrontToBack ()				__NE___	{ StaticAssert( Front < _MaxIdx );  return CmdBufExeIndex{ Front, EMode::FrontToBack }; }
+		NdCx__ static CmdBufExeIndex  SearchFrontToBack ()				__NE___	{ StaticAssert( Front < _MaxIdx );  return CmdBufExeIndex{ Front, EMode::FrontToBack }; }
 		template <uint Back = _MaxIdx-1>
-		NdCz__ static CmdBufExeIndex  SearchBackToFront ()				__NE___	{ StaticAssert( Back  < _MaxIdx );  return CmdBufExeIndex{ Back,  EMode::BackToFront }; }
+		NdCx__ static CmdBufExeIndex  SearchBackToFront ()				__NE___	{ StaticAssert( Back  < _MaxIdx );  return CmdBufExeIndex{ Back,  EMode::BackToFront }; }
 		template <uint Middle = _MaxIdx/2>
-		NdCz__ static CmdBufExeIndex  SearchMiddleToFront ()			__NE___	{ return SearchBackToFront<Middle>(); }
+		NdCx__ static CmdBufExeIndex  SearchMiddleToFront ()			__NE___	{ return SearchBackToFront<Middle>(); }
 		template <uint Middle = _MaxIdx/2>
-		NdCz__ static CmdBufExeIndex  SearchMiddleToBack ()				__NE___	{ return SearchFrontToBack<Middle>(); }
+		NdCx__ static CmdBufExeIndex  SearchMiddleToBack ()				__NE___	{ return SearchFrontToBack<Middle>(); }
 		template <uint Index>
-		NdCz__ static CmdBufExeIndex  Exact ()							__NE___	{ StaticAssert( Index < _MaxIdx );  return CmdBufExeIndex{ Index, EMode::Exact }; }
+		NdCx__ static CmdBufExeIndex  Exact ()							__NE___	{ StaticAssert( Index < _MaxIdx );  return CmdBufExeIndex{ Index, EMode::Exact }; }
 	};
 
 

@@ -5,8 +5,6 @@
 #include "threading/Primitives/CoroutineHandle.h"
 #include "threading/TaskSystem/AsyncTask.h"
 
-#ifdef AE_HAS_COROUTINE
-
 namespace AE::Threading
 {
 namespace _hidden_
@@ -167,10 +165,8 @@ namespace _hidden_
 	public:
 		explicit CoroutineImpl_Awaiter (const Coroutine<T> &coro)	__NE___ : _dep{coro} {}
 
-		ND_ bool	await_ready ()									C_NE___	{ return false; }
-
-		// return promise result
-		ND_ T		await_resume ()									__NE___	{ return _dep._Result(); }
+		ND_ bool	await_ready ()									C_NE___	{ return false; }			// call 'await_suspend()' to get coroutine handle
+		ND_ T		await_resume ()									__NE___	{ return _dep._Result(); }	// return result of 'co_await'
 
 		// return task to scheduler with new dependencies
 		template <typename P>
@@ -194,10 +190,9 @@ namespace _hidden_
 	public:
 		explicit CoroutineImpl_Awaiter (const Tuple<Coroutine<Types>...> &deps)	__NE___ : _deps{deps} {}
 
-		ND_ bool  await_ready ()												C_NE___	{ return false; }
+		ND_ bool  await_ready ()												C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
 
-		// return promise results
-		ND_ Tuple< Types... >  await_resume ()									__NE___
+		ND_ Tuple< Types... >  await_resume ()									__NE___	// return result of 'co_await'
 		{
 			return	_deps.Apply( [] (auto&& ...args) __NE___ {
 						return Tuple<Types...>{ args._Result() ... };
@@ -247,5 +242,3 @@ namespace _hidden_
 
 
 } // AE::Threading
-
-#endif // AE_HAS_COROUTINE

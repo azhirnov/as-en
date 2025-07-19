@@ -34,7 +34,7 @@ private:
 	template <typename T, uint Flags>
 	struct _DefaultImpl : public Noninstanceable
 	{
-		__Cz__ static void  Create (OUT T* ptr, const usize count) __NE___
+		__Cx__ static void  Create (OUT T* ptr, const usize count) __NE___
 		{
 			ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
 
@@ -52,7 +52,7 @@ private:
 			}
 		}
 
-		__Cz__ static void  Destroy (INOUT T* ptr, const usize count) __NE___
+		__Cx__ static void  Destroy (INOUT T* ptr, const usize count) __NE___
 		{
 			ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
 
@@ -70,7 +70,7 @@ private:
 			DEBUG_ONLY( DbgInitMem( OUT ptr, SizeOf<T> * count ));
 		}
 
-		__Cz__ static void  Copy (OUT T* dst, const T * const src, const usize count)  NoExcept(IsNothrowCopyCtor<T> or !!(Flags & NonTrivialCopyCtor))
+		__Cx__ static void  Copy (OUT T* dst, const T * const src, const usize count)  NoExcept(IsNothrowCopyCtor<T> or !!(Flags & NonTrivialCopyCtor))
 		{
 			NonNull( src );
 			NonNull( dst );
@@ -87,7 +87,7 @@ private:
 			}
 		}
 
-		__Cz__ static void  Move (OUT T* dst, INOUT T* src, const usize count) __NE___
+		__Cx__ static void  Move (OUT T* dst, INOUT T* src, const usize count) __NE___
 		{
 			NonNull( src );
 			NonNull( dst );
@@ -104,7 +104,7 @@ private:
 			}
 		}
 
-		__Cz__ static void  Replace (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
+		__Cx__ static void  Replace (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
 		{
 			NonNull( src );
 			NonNull( dst );
@@ -142,7 +142,7 @@ private:
 			})
 		}
 
-		__Cz__ static void  ReplaceRev (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
+		__Cx__ static void  ReplaceRev (OUT T* dst, INOUT T* src, const usize count, Bool inSingleMemBlock = False{}) __NE___
 		{
 			NonNull( src );
 			NonNull( dst );

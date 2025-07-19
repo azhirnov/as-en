@@ -158,32 +158,24 @@ namespace AE::Base
 
 
 	// only for time units //
-		template <typename Rep, typename Period,
-				  ENABLEIF( IsScalar<Rep> and _IsTimeUnit )
-				 >
+		template <typename Rep, typename Period> requires( IsScalar<Rep> and _IsTimeUnit )
 		__Cx__ explicit PhysicalQuantity (const std::chrono::duration< Rep, Period > &other) __NE___ :
 			_value{ TimeCast< std::chrono::duration< Value_t >>( other ).count() / Scale_t::Value }
 		{}
 
-		template <typename Rep, typename Period,
-				  ENABLEIF( IsScalar<Rep> and _IsTimeUnit )
-				 >
+		template <typename Rep, typename Period> requires( IsScalar<Rep> and _IsTimeUnit )
 		NdCx__ explicit operator std::chrono::duration< Rep, Period > () __NE___ {
 			return TimeCast< std::chrono::duration< Rep, Period >>( std::chrono::duration< Value_t >{ GetScaled() });
 		}
 
 
 	// only for information units //
-		template <typename T,
-				  ENABLEIF( IsScalar<T> and _IsInfoUnit )
-				 >
+		template <typename T> requires( IsScalar<T> and _IsInfoUnit )
 		__Cx__ explicit PhysicalQuantity (const TByte<T> &other) __NE___ :
 			_value{ T{other} * (Value_t{8} / Scale_t::Value) }
 		{}
 
-		template <typename T,
-				  ENABLEIF( IsScalar<T> and _IsInfoUnit )
-				 >
+		template <typename T> requires( IsScalar<T> and _IsInfoUnit )
 		NdCx__ explicit operator TByte<T> () __NE___ {
 			return TByte<T>{ T( GetScaled() / Value_t{8} )};
 		}
@@ -362,17 +354,17 @@ namespace AE::Base
 	BitEqual
 =================================================
 */
-	template <typename T, typename Dimension, typename Scale>
-	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
-													  const PhysicalQuantity<T, Dimension, Scale> &b,
-													  const EnabledBitCount bitCount) __NE___
+	template <typename T, typename Dimension, typename Scale> requires(IsFloatPoint<T>)
+	NdCx__ bool  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
+						   const PhysicalQuantity<T, Dimension, Scale> &b,
+						   const EnabledBitCount bitCount) __NE___
 	{
 		return Base::BitEqual( a.GetNonScaled(), b.GetNonScaled(), bitCount );
 	}
 
-	template <typename T, typename Dimension, typename Scale>
-	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
-													  const PhysicalQuantity<T, Dimension, Scale> &b) __NE___
+	template <typename T, typename Dimension, typename Scale> requires(IsFloatPoint<T>)
+	NdCx__ bool  BitEqual (const PhysicalQuantity<T, Dimension, Scale> &a,
+						   const PhysicalQuantity<T, Dimension, Scale> &b) __NE___
 	{
 		return Base::BitEqual( a.GetNonScaled(), b.GetNonScaled() );
 	}

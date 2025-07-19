@@ -197,9 +197,9 @@ namespace AE::PipelineCompiler
 			case EImageType::UInt :			str << "UInt_";		break;
 			case EImageType::SLong :		str << "Long_";		break;
 			case EImageType::ULong :		str << "ULong_";	break;
-			case EImageType::Depth :		break;
-			case EImageType::Stencil :		break;
-			case EImageType::DepthStencil :	break;
+			case EImageType::Depth :		str << "Depth_";	break;
+			case EImageType::Stencil :		str << "Stencil_";	break;
+			case EImageType::DepthStencil :	str << "DepthStencil_";	break;
 			default :						RETURN_ERR( "unknown value type" );
 		}
 		switch ( type & EImageType::_DimMask )

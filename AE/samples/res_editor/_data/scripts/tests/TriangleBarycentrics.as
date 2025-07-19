@@ -75,7 +75,6 @@
 			pass.Slider( "iProj",		0,		proj_count-1 );
 			pass.Slider( "iCameraPos",	float3(-10.f),	float3(10.f, 10.f, 100.f),	float3(0.f, 0.f, 0.f) );
 			pass.EnableIfEqual( mode, 1 );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}
 
 		Present( rt );

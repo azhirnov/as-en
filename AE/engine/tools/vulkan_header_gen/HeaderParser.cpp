@@ -541,11 +541,11 @@ namespace AE::Vulkan
 
 
 			// alias
-			if ( tokens.size() == 4									and
-				 tokens[0] == "typedef"								and
-				 tokens[3] == ";"									and
-				 HashTable_NotContains( _basicTypes, tokens[1] )	and
-				 HashTable_NotContains( _resourceTypes, tokens[1] ))
+			if ( tokens.size() == 4						and
+				 tokens[0] == "typedef"					and
+				 tokens[3] == ";"						and
+				 not _basicTypes.contains( tokens[1] )	and
+				 not _resourceTypes.contains( tokens[1] ))
 			{
 				if ( StartsWith( tokens[2], tokens[1] ))
 				{
@@ -1014,7 +1014,7 @@ namespace AE::Vulkan
 			if ( ext.empty() )
 				continue;
 
-			if ( HashTable_Contains( skip_ext, ext ))
+			if ( skip_ext.contains( ext ))
 				continue;
 
 			if ( not StartsWith( st_name, "VkPhysicalDevice" ))
@@ -1065,7 +1065,7 @@ namespace AE::Vulkan
 			if ( ext.empty() )
 				continue;
 
-			if ( HashTable_Contains( skip_ext, ext ))
+			if ( skip_ext.contains( ext ))
 				continue;
 
 			if ( not StartsWith( new_name, "VkPhysicalDevice" ))

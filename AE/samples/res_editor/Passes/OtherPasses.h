@@ -123,12 +123,13 @@ namespace AE::ResEditor
 			PushConstantIndex		_pcIdx;
 			DescSetBinding			_pplnDSIdx;
 			PerFrameDescSet_t		_pplnDS;
+			RC<IController>			_camera;
 
 		public:
-			LinearDepth (const Image &src, const Image &copy)						__Th___;
+			LinearDepth (const Image &src, const Image &copy, RC<IController> camera)	__Th___;
 			~LinearDepth ();
 
-			bool  Execute (const Image &src, const Image &copy, SyncPassData &)		C_Th_OV;
+			bool  Execute (const Image &src, const Image &copy, SyncPassData &)			C_Th_OV;
 		};
 
 

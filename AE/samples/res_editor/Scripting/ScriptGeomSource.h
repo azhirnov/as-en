@@ -33,7 +33,6 @@ namespace AE::ResEditor
 			EShaderStages	dbgStages	= Default;
 
 			PplnNameAndObjectId ()										= default;
-			PplnNameAndObjectId (const PplnNameAndObjectId &)			= default;
 			explicit PplnNameAndObjectId (PipelineName::Ref name)		: pplnName{name} {}
 			PplnNameAndObjectId (PipelineName::Ref name, usize objId)	: pplnName{name}, objId{objId} {}
 			PplnNameAndObjectId (PipelineName::Ref name, usize objId,

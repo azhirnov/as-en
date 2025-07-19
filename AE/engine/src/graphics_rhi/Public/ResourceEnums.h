@@ -223,7 +223,7 @@ namespace AE::Graphics
 	};
 	AE_BIT_OPERATORS( EImageAspect );
 
-	NdCzIn EImageAspect  EImageAspect_Plane (usize i) __NE___
+	NdCxIn EImageAspect  EImageAspect_Plane (usize i) __NE___
 	{
 		ASSERT( i < 3 );
 		return EImageAspect( uint(EImageAspect::Plane_0) << i );

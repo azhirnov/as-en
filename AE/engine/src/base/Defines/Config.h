@@ -5,12 +5,6 @@
 
 #pragma once
 
-#if defined(AE_COMPILER_MSVC) && (AE_CXX_VER <= 17)
-#	define and		&&
-#	define or		||
-#	define not		!
-#endif
-
 // mem leak check
 #if defined(AE_COMPILER_MSVC) and defined(AE_ENABLE_MEMLEAK_CHECKS) and defined(_DEBUG)
 #	define _CRTDBG_MAP_ALLOC

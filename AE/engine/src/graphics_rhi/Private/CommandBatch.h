@@ -44,10 +44,7 @@
 //-----------------------------------------------------------------------------
 
 namespace AE::RG::_hidden_ { class RGCommandBatchPtr; }
-
-#ifdef AE_HAS_COROUTINE
 namespace AE::Threading::_hidden_ { class RenderTaskCoro; }
-#endif
 
 namespace AE::Graphics::_hidden_
 {
@@ -213,9 +210,7 @@ namespace AE::Graphics
 			Completed,		// after _OnComplete()	// command batch has been executed on the GPU
 		};
 
-	  #ifdef AE_HAS_COROUTINE
 		using RenderTaskCoro_t = AE::Threading::_hidden_::RenderTaskCoro;
-	  #endif
 
 	public:
 		using AccumBarriers_t	= Graphics::_hidden_:: AE_PRIVATE_UNITE_RAW( SUFFIX, AccumBarriersForTask );
@@ -325,7 +320,6 @@ namespace AE::Graphics
 							 Bool					submitBatchAtTheEnd)		__NE___;
 
 
-	  #ifdef AE_HAS_COROUTINE
 		template <typename ...Deps>
 		AsyncTask	Run (RenderTaskCoro_t		coro,
 						 const Tuple<Deps...>&	deps,
@@ -345,7 +339,6 @@ namespace AE::Graphics
 		AsyncTask	Run (RenderTaskCoro_t		coro,
 						 const Tuple<Deps...>&	deps	= Default,
 						 DebugLabel				dbg		= Default)				__NE___;
-	  #endif
 
 
 		template <typename ...Deps>
@@ -565,7 +558,6 @@ namespace AE::Graphics
 	Run
 =================================================
 */
-# ifdef AE_HAS_COROUTINE
 	template <typename ...Deps>
 	AsyncTask  CMDBATCH::Run (RenderTaskCoro		coro,
 							  const Tuple<Deps...>&	deps,
@@ -611,7 +603,6 @@ namespace AE::Graphics
 	{
 		return Run( RVRef(coro), deps, null, null, False{}, Default, dbg );
 	}
-# endif
 
 /*
 =================================================

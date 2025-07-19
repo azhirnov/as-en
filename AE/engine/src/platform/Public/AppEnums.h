@@ -23,6 +23,7 @@ namespace AE::App
 		Move,				// params: f1/2/3/4					|
 		LongPress_Move,		// params: f3(pos, 0..1)			|	long press to start gesture, then move - only for mouse or touch
 		ScaleRotate2D,		// params: f2/4(delta, absolute)	|	2 pointer gesture
+		//EdgeSwipe,		// params: f2(0..1, side)
 
 		_Count,
 		Unknown	= 0xF,

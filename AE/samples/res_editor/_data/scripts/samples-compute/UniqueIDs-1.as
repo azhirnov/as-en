@@ -2,12 +2,17 @@
 /*
 	Each warp will find set of unique IDs and store it to the dst buffer.
 	This is similar as some GPUs handle non-uniform indices, it also known as waterfall loop.
+
+	Warning: version with 'subgroupElect()' (mode=0) works only on NV RTX because of independent thread scheduling (?)
+
+	https://github.com/KhronosGroup/Vulkan-Guide/blob/main/chapters/extensions/VK_KHR_shader_subgroup_uniform_control_flow.adoc
+	https://docs.vulkan.org/features/latest/features/proposals/VK_KHR_shader_maximal_reconvergence.html
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	include <glsl.h>
 #	define INIT_IDs
-#	define WARERFALL_LOOP
+#	define WARERFALL_LOOP	2
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -15,13 +20,15 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Buffer>		id_buf		= Buffer();
-		RC<DynamicUInt>	max_id		= DynamicUInt();
-		RC<DynamicUInt>	row_count	= DynamicUInt();
-		const uint		local_size	= 32;	// TODO: get subgroup size
-		const uint		col_count	= local_size;
-		RC<DynamicUInt>	id_count	= row_count.Mul( col_count );
+		RC<Image>		rt					= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
+		RC<Buffer>		id_buf				= Buffer();
+		RC<DynamicUInt>	max_id				= DynamicUInt();
+		RC<DynamicUInt>	row_count			= DynamicUInt();
+		const bool		has_subgroup_size	= GetFeatureSet().hasSubgroupSizeControl();
+		const uint		local_size			= has_subgroup_size ? GetFeatureSet().getMaxSubgroupSize() : GetSubgroupSize();
+		const uint		col_count			= local_size;
+		RC<DynamicUInt>	id_count			= row_count.Mul( col_count );
+		RC<DynamicUInt>	mode				= DynamicUInt();
 
 		id_buf.ArrayLayout(
 			"IdBuffer",
@@ -30,6 +37,7 @@
 		
 		Slider( row_count,	"Count",	1,	32,		20 );
 		Slider( max_id,		"MaxID",	8,	64,		16 );
+		Slider( mode,		"Mode",		0,	1,		1 );
 
 		// render loop
 		{
@@ -40,11 +48,19 @@
 			pass.LocalSize( col_count );
 			pass.DispatchGroups( row_count );
 		}{
-			RC<ComputePass>		pass = ComputePass( "", "WARERFALL_LOOP" );
+			RC<ComputePass>		pass = ComputePass( "", "WARERFALL_LOOP=1" );
 			pass.ArgInOut(	"un_IdBuf",		id_buf );
 			pass.LocalSize( col_count );
 			pass.DispatchGroups( row_count );
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
+			if ( has_subgroup_size ) pass.SubgroupSize( local_size );
+			pass.EnableIfEqual( mode, 0 );
+		}{
+			RC<ComputePass>		pass = ComputePass( "", "WARERFALL_LOOP=2" );
+			pass.ArgInOut(	"un_IdBuf",		id_buf );
+			pass.LocalSize( col_count );
+			pass.DispatchGroups( row_count );
+			if ( has_subgroup_size ) pass.SubgroupSize( local_size );
+			pass.EnableIfEqual( mode, 1 );
 		}{
 			RC<Postprocess>		pass = Postprocess();
 			pass.ArgIn(		"un_IdBuf",		id_buf );
@@ -100,18 +116,20 @@
 
 		if ( src_id < 0 )
 			return;
-
+			
 		// find unique IDs using waterfall loop
+	#if WARERFALL_LOOP == 1
 		for (;;)
 		{
 			// get unique ID per subgroup
 			int		id = gl.subgroup.BroadcastFirst( src_id );
 
 			// if current lane equal to unique ID
-			[[branch]]
+			//[[branch]]  // by default all 'if' is a branch
 			if ( id == src_id )
+			//if ( gl.subgroup.Any( id == src_id ))		// NV will works as other GPUs
 			{
-				// only one lane which equal to unique ID
+				// only one lane which is equal to unique ID
 				if ( gl.subgroup.Elect() )
 				{
 					uint	pos = gl.AtomicAdd( INOUT s_Pos, 1 );
@@ -124,6 +142,31 @@
 				break;
 			}
 		}
+	#else
+		for (;;)
+		{
+			// get unique ID per subgroup
+			int		id = gl.subgroup.BroadcastFirst( src_id );
+
+			// fix for AMD, used instead of Elect() in branch
+			uint4	active_threads	= gl.subgroup.Ballot( id == src_id );
+			uint	first_thread	= gl.subgroup.BallotFindLSB( active_threads );
+
+			// only one lane which is equal to unique ID
+			if ( gl.subgroup.Index == first_thread )
+			{
+				uint	pos = gl.AtomicAdd( INOUT s_Pos, 1 );
+					
+				// select column
+				pos += (src_idx & ~(gl.subgroup.Size-1));
+
+				un_IdBuf.elements[ pos + off ].id = src_id;
+			}
+
+			if ( id == src_id )
+				break;
+		}
+	#endif
 	}
 
 #endif

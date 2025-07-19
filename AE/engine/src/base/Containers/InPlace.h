@@ -37,26 +37,28 @@ namespace AE::Base
 
 	// methods
 	public:
-		InPlace ()											__NE___
+		__Cx__ InPlace ()									__NE___
 		{
-			DEBUG_ONLY( DbgFreeMem( OUT _value ));
+			if_not_consteval() {
+				DEBUG_ONLY( DbgFreeMem( OUT _value ));
+			}
 		}
 
-		InPlace (const Self &other)							__NE___ :
+		__Cx__ InPlace (const Self &other)					__NE___ :
 			_value{ other.Ref() }
 			DEBUG_ONLY(, _isCreated{ true })
 		{
 			CheckNothrow( IsNothrowCopyCtor< T >);
 		}
 
-		InPlace (Self &&other)								__NE___ :
+		__Cx__ InPlace (Self &&other)						__NE___ :
 			_value{ other.AsRVRef() }
 			DEBUG_ONLY(, _isCreated{ true })
 		{
 			CheckNothrow( IsNothrowMoveCtor< T >);
 		}
 
-		~InPlace ()											__NE___
+		__Cx__ ~InPlace ()									__NE___
 		{
 			StaticAssert( alignof(Self) >= alignof(T) );
 			ASSERT( not _isCreated );
@@ -68,7 +70,7 @@ namespace AE::Base
 
 
 		template <typename ...Args>
-		Self&  Create (Args&& ...args)						__NE___
+		__Cx__ Self&  Create (Args&& ...args)				__NE___
 		{
 			ASSERT( not _isCreated );
 
@@ -94,7 +96,7 @@ namespace AE::Base
 			return *this;
 		}
 
-		void  Destroy ()									__NE___
+		__Cx__ void  Destroy ()								__NE___
 		{
 			Ref().~T();
 
@@ -106,7 +108,7 @@ namespace AE::Base
 
 
 		template <typename Fn>
-		Self&  CustomCtor (const Fn &fn)					__NE___
+		__Cx__ Self&  CustomCtor (const Fn &fn)				__NE___
 		{
 			CheckNothrow( IsNoExcept( fn( _value )));
 			ASSERT( not _isCreated );
@@ -118,7 +120,7 @@ namespace AE::Base
 		}
 
 		template <typename Fn>
-		void  CustomDtor (const Fn &fn)						__NE___
+		__Cx__ void  CustomDtor (const Fn &fn)				__NE___
 		{
 			CheckNothrow( IsNoExcept( fn( _value )));
 
@@ -130,28 +132,28 @@ namespace AE::Base
 			)
 		}
 
-		ND_ T *			Ptr ()								__NE___	{ ASSERT( _isCreated );  return std::launder( &_value ); }
-		ND_ T const*	Ptr ()								C_NE___	{ ASSERT( _isCreated );  return std::launder( &_value ); }
-		ND_ T const*	ConstPtr ()							C_NE___	{ ASSERT( _isCreated );  return std::launder( &_value ); }
+		NdCx__ T *			Ptr ()							__NE___	{ ASSERT( _isCreated );  return std::launder( &_value ); }
+		NdCx__ T const*		Ptr ()							C_NE___	{ ASSERT( _isCreated );  return std::launder( &_value ); }
+		NdCx__ T const*		ConstPtr ()						C_NE___	{ ASSERT( _isCreated );  return std::launder( &_value ); }
 
-		ND_ T &			Ref ()								__NE___	{ return *Ptr(); }
-		ND_ T const&	Ref ()								C_NE___	{ return *Ptr(); }
+		NdCx__ T &			Ref ()							__NE___	{ return *Ptr(); }
+		NdCx__ T const&		Ref ()							C_NE___	{ return *Ptr(); }
 
-		ND_ T &&		AsRVRef ()							rvNE___	{ return RVRef(*Ptr()); }
+		NdCx__ T &&			AsRVRef ()						rvNE___	{ return RVRef(*Ptr()); }
 
 
-		ND_ T *			operator -> ()						__NE___	{ return Ptr(); }
-		ND_ T const*	operator -> ()						C_NE___	{ return Ptr(); }
+		NdCx__ T *			operator -> ()					__NE___	{ return Ptr(); }
+		NdCx__ T const*		operator -> ()					C_NE___	{ return Ptr(); }
 
-		ND_ T &			operator * ()						__NE___	{ return *Ptr(); }
-		ND_ T const&	operator * ()						C_NE___	{ return *Ptr(); }
+		NdCx__ T &			operator * ()					__NE___	{ return *Ptr(); }
+		NdCx__ T const&		operator * ()					C_NE___	{ return *Ptr(); }
 
-		ND_ T *			operator & ()						__NE___	{ return Ref(); }
-		ND_ T const*	operator & ()						C_NE___	{ return Ref(); }
+		NdCx__ T *			operator & ()					__NE___	{ return Ref(); }
+		NdCx__ T const*		operator & ()					C_NE___	{ return Ref(); }
 
 
 		DEBUG_ONLY(
-			ND_ bool	IsCreated ()						C_NE___	{ return _isCreated; }
+			NdCx__ bool		IsCreated ()					C_NE___	{ return _isCreated; }
 		)
 	};
 

@@ -34,3 +34,11 @@ Notes:
 * Same as [Copy Memory](#Copy-Memory):
 	- 4x unrolling is fast.
 
+
+# Floating Point SIMD Performance
+
+* CPU can execute 1 FMA SIMD instruction per cycle.
+	- Except: 256bit native vector for AVX512.
+	- Theoretical performance: 2FLOPS * clock * core_count
+
+# Vertical SIMD

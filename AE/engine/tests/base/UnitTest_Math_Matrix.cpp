@@ -351,6 +351,30 @@ namespace
 
 	static void  Matrix_Test4 ()
 	{
+		float2	a0 = float2x2{} * float2{};
+		float2	a1 = float3x2{} * float3{};
+		float2	a2 = float4x2{} * float4{};
+		
+		float3	a3 = float2x3{} * float2{};
+		float3	a4 = float3x3{} * float3{};
+		float3	a5 = float4x3{} * float4{};
+		
+		float4	a6 = float2x4{} * float2{};
+		float4	a7 = float3x4{} * float3{};
+		float4	a8 = float4x4{} * float4{};
+		
+		float2	b0 = float2{} * float2x2{};
+		float3	b1 = float2{} * float3x2{};
+		float4	b2 = float2{} * float4x2{};
+		
+		float2	b3 = float3{} * float2x3{};
+		float3	b4 = float3{} * float3x3{};
+		float4	b5 = float3{} * float4x3{};
+		
+		float2	b6 = float4{} * float2x4{};
+		float3	b7 = float4{} * float3x4{};
+		float4	b8 = float4{} * float4x4{};
+
 		Unused( float3x2::Translate( float2{} ));
 		Unused( float4x4::Translate( float3{} ));
 		Unused( float4x3::Translate( float3{} ));
@@ -455,6 +479,221 @@ namespace
 		TEST( All( Equal( g5, g1.AxisY(), 1_pct )));
 		TEST( All( Equal( g6, g1.AxisZ(), 1_pct )));
 	}
+
+	
+	static float  ToLinearDepth (float nonLinearUnormDepth, float near, float far)
+	{
+		// based on FastUnProjectZ
+		float	a	= far / (far - near);
+		float	b	= -near / (far - near);
+		return	(a / (nonLinearUnormDepth - a) + 1.f) * b;
+	}
+
+	static float  ToNonlinearDepth (float linearUnormDepth, float near, float far)
+	{
+		// based on FastProjectZ
+		float	a	= far - near;
+		float	b	= far / a;
+		float	c	= 1.0f - near / (linearUnormDepth * a + near);
+		return	b * c;
+	}
+
+
+	static float  ToLinearDepthRevZ (float nonLinearUnormDepth, float near, float far)
+	{
+		// based on FastUnProjectZ
+		nonLinearUnormDepth -= 1.0f;
+		float	p22	= -far / (far - near);
+		float	p32	= (far * near) / (far - near);
+		float	world = p32 / (nonLinearUnormDepth - p22);
+		return	(world - near) / (far - near);
+	}
+
+	static float  ToNonlinearDepthRevZ (float linearUnormDepth, float near, float far)
+	{
+		// based on FastProjectZ
+		float	p22	= -far / (far - near);
+		float	p32	= (far * near) / (far - near);
+		float	world_z = linearUnormDepth * (far - near) + near;
+		float	z = (p22 * world_z) + p32;
+		return 1.0f + z / world_z;
+	}
+
+
+	static void  Matrix_Test6 ()
+	{
+		const float	n	= 1.0f;
+		const float	f	= 100.f;
+
+		for (float norm_z = 0.0f; norm_z < 1.0f; norm_z += 0.01f)
+		{
+			float	a = ToNonlinearDepth( norm_z, n, f );
+			float	b = ToLinearDepth( a, n, f );
+			CHECK( Equal( norm_z, b, 0.1_pct ));
+		}
+		for (float norm_z = 0.0f; norm_z < 1.0f; norm_z += 0.01f)
+		{
+			float	a = ToLinearDepth( norm_z, n, f );
+			float	b = ToNonlinearDepth( a, n, f );
+			CHECK( Equal( norm_z, b, 0.1_pct ));
+		}
+		
+		for (float norm_z = 0.0f; norm_z < 1.0f; norm_z += 0.01f)
+		{
+			float	a = ToNonlinearDepthRevZ( norm_z, n, f );
+			float	b = ToLinearDepthRevZ( a, n, f );
+			CHECK( Equal( norm_z, b, 0.1_pct ));
+		}
+		for (float norm_z = 0.0f; norm_z < 1.0f; norm_z += 0.01f)
+		{
+			float	a = ToLinearDepthRevZ( norm_z, n, f );
+			float	b = ToNonlinearDepthRevZ( a, n, f );
+			CHECK( Equal( norm_z, b, 0.1_pct ));
+		}
+
+		const auto	Test = [n, f] (const float4x4 &p)
+		{{
+			for (float linear_norm = 0.0f; linear_norm <= 1.0f; linear_norm += 0.01f)
+			{
+				float	world_z = Lerp( n, f, linear_norm );
+				float	a		= p.FastProjectZ( world_z );
+				float	b		= p.FastUnProjectZ( a );
+				CHECK( Equal( world_z, b, 0.1_pct ));
+			}
+
+			for (float linear_norm = -0.1f; linear_norm < 1.1f; linear_norm += 0.01f)
+			{
+				float	linear			= Lerp( n, f, linear_norm );
+				float	non_linear		= p.ProjectToNormClipSpace( float3{ 0.f, 0.f, linear }).z;
+				float	non_linear1		= p.FastProjectZ( linear );
+				float	non_linear2		= ToNonlinearDepth( linear_norm, n, f );
+				float	linear_norm2	= ToLinearDepth( non_linear, n, f );
+				float	linear2			= p.FastUnProjectZ( non_linear );
+			
+				CHECK( Equal( non_linear, non_linear1, 0.1_pct ));
+				CHECK( Equal( non_linear, non_linear2, 0.1_pct ));
+				CHECK( Equal( linear_norm, linear_norm2, 0.1_pct ));
+				CHECK( Equal( linear, linear2, 0.1_pct ));
+			}
+		}};
+
+		auto	p0 = float4x4::Perspective( 60_deg, 1.5f, float2{n, f} );
+		Test( p0 );
+
+
+		const auto	TestInf = [n] (const float4x4 &p)
+		{{
+			const float	f = 2.0e+6f;
+
+			for (float linear_norm = 0.0f; linear_norm <= 1.0f; linear_norm += 0.01f)
+			{
+				float	world_z = Lerp( n, f, linear_norm );
+				float	a		= float4x4::FastProjectZInf( n, world_z );
+				float	b		= float4x4::FastUnProjectZInf( n, a );
+
+				if ( world_z < 1.0e+4f ){
+					CHECK( Equal( world_z, b, 0.1_pct ));
+				}else{
+					CHECK( Equal( world_z, b, 10_pct ));
+				}
+			}
+
+			for (float linear_norm = -0.01f; linear_norm < 1.01f; linear_norm += 0.01f)
+			{
+				float	linear			= Lerp( n, f, linear_norm );
+				float	non_linear		= p.ProjectToNormClipSpace( float3{ 0.f, 0.f, linear }).z;
+				float	non_linear1		= float4x4::FastProjectZInf( n, linear );
+				float	non_linear2		= ToNonlinearDepth( linear_norm, n, f );
+			//	float	linear_norm2	= ToLinearDepth( non_linear, n, f );
+				float	linear2			= float4x4::FastUnProjectZInf( n, non_linear );
+			
+				CHECK( Equal( non_linear, non_linear1, 0.1_pct ));
+				CHECK( Equal( non_linear, non_linear2, 0.1_pct ));
+			//	CHECK( Equal( linear_norm, linear_norm2, 20_pct ));
+
+				if ( linear > 0.0f and linear < 1.0e+4f ){
+					CHECK( Equal( linear, linear2, 0.1_pct ));
+				}else{
+					CHECK( Equal( linear, linear2, 10_pct ));
+				}
+			}
+		}};
+
+		auto	p1 = float4x4::InfinitePerspective( 60_deg, 1.5f, n );
+		TestInf( p1 );
+
+		
+		const auto	TestRevZ = [n, f] (const float4x4 &p)
+		{{
+			for (float linear_norm = 0.0f; linear_norm <= 1.0f; linear_norm += 0.01f)
+			{
+				float	world_z = Lerp( n, f, linear_norm );
+				float	a		= p.FastProjectZ( world_z );
+				float	b		= p.FastUnProjectZ( a );
+				CHECK( Equal( world_z, b, 0.1_pct ));
+			}
+
+			for (float linear_norm = -0.1f; linear_norm < 1.1f; linear_norm += 0.01f)
+			{
+				float	linear			= Lerp( n, f, linear_norm );
+				float	non_linear		= p.ProjectToNormClipSpace( float3{ 0.f, 0.f, linear }).z;
+				float	non_linear1		= p.FastProjectZ( linear );
+				float	non_linear2		= ToNonlinearDepthRevZ( linear_norm, n, f );
+				float	linear_norm2	= ToLinearDepthRevZ( non_linear, n, f );
+				float	linear2			= p.FastUnProjectZ( non_linear );
+			
+				CHECK( Equal( non_linear, non_linear1, 0.1_pct ));
+				CHECK( Equal( non_linear, non_linear2, 0.1_pct ));
+				CHECK( Equal( linear_norm, linear_norm2, 0.1_pct ));
+				CHECK( Equal( linear, linear2, 0.1_pct ));
+			}
+		}};
+
+		auto	p2 = float4x4::ReverseZTransform() * float4x4::Perspective( 60_deg, 1.5f, float2{n, f} );
+		TestRevZ( p2 );
+
+
+		const auto	TestRevZInf = [n] (const float4x4 &p)
+		{{
+			const float	f = 2.0e+6f;
+
+			for (float linear_norm = 0.0f; linear_norm <= 1.0f; linear_norm += 0.01f)
+			{
+				float	world_z = Lerp( n, f, linear_norm );
+				float	a		= float4x4::FastProjectRevZInf( n, world_z );
+				float	b		= float4x4::FastUnProjectRevZInf( n, a );
+
+				if ( world_z < 1.0e+4f ){
+					CHECK( Equal( world_z, b, 0.1_pct ));
+				}else{
+					CHECK( Equal( world_z, b, 10_pct ));
+				}
+			}
+
+			for (float linear_norm = -0.01f; linear_norm < 1.01f; linear_norm += 0.01f)
+			{
+				float	linear			= Lerp( n, f, linear_norm );
+				float	non_linear		= p.ProjectToNormClipSpace( float3{ 0.f, 0.f, linear }).z;
+				float	non_linear1		= float4x4::FastProjectRevZInf( n, linear );
+			//	float	non_linear2		= ToNonlinearDepthRevZ( linear_norm, n, f );
+			//	float	linear_norm2	= ToLinearDepthRevZ( non_linear, n, f );
+				float	linear2			= float4x4::FastUnProjectRevZInf( n, non_linear );
+			
+				CHECK( Equal( non_linear, non_linear1, 0.1_pct ));
+			//	CHECK( Equal( non_linear, non_linear2, 0.1_pct ));
+			//	CHECK( Equal( linear_norm, linear_norm2, 20_pct ));
+
+				if ( linear > 0.0f and linear < 1.0e+4f ){
+					CHECK( Equal( linear, linear2, 0.1_pct ));
+				}else{
+					CHECK( Equal( linear, linear2, 10_pct ));
+				}
+			}
+		}};
+
+		auto	p3 = float4x4::ReverseZTransform() * float4x4::InfinitePerspective( 60_deg, 1.5f, n );
+		TestRevZInf( p3 );
+	}
 }
 
 
@@ -474,6 +713,7 @@ extern void UnitTest_Math_Matrix ()
 	Matrix_Test3();
 	Matrix_Test4();
 	Matrix_Test5();
+	Matrix_Test6();
 
 	TEST_PASSED();
 }

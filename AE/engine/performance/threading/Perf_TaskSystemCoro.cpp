@@ -1,10 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#ifdef AE_HAS_COROUTINE
-# include "Perf_Common.h"
-# include "threading/TaskSystem/TaskScheduler.h"
-# include "threading/TaskSystem/ThreadManager.h"
-# include "PerlinNoise.hpp"
+#include "Perf_Common.h"
+#include "threading/TaskSystem/TaskScheduler.h"
+#include "threading/TaskSystem/ThreadManager.h"
+#include "PerlinNoise.hpp"
 
 namespace
 {
@@ -311,11 +310,3 @@ extern void  PerfTest_TaskSystemCoro ()
 
 	TEST_PASSED();
 }
-
-#else
-
-extern void  PerfTest_TaskSystemCoro ()
-{
-}
-
-#endif // AE_HAS_COROUTINE

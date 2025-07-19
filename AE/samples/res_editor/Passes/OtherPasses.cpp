@@ -461,6 +461,9 @@ namespace AE::ResEditor
 			view_desc.baseMipmap	= mipmap;
 			view_desc.layerCount	= 1;
 
+			auto	aspect = EPixelFormat_ToImageAspect( src->GetViewDesc().format );
+			view_desc.aspectMask	= ExtractBit( aspect );
+
 			_src = src->CreateView( view_desc, dbg_name );
 			CHECK_THROW( _src );
 		}
@@ -547,7 +550,7 @@ namespace AE::ResEditor
 				break;
 
 			case EFlags::LinearDepth :
-				_pass.reset( new LinearDepth{ *_src, *_copy });			// throw
+				_pass.reset( new LinearDepth{ *_src, *_copy, renderer->GetController() });			// throw
 				break;
 
 			case EFlags::Stencil :
@@ -716,12 +719,14 @@ namespace AE::ResEditor
 	LinearDepth ctor
 =================================================
 */
-	DebugView::LinearDepth::LinearDepth (const Image &src, const Image &copy) __Th___
+	DebugView::LinearDepth::LinearDepth (const Image &src, const Image &copy, RC<IController> camera) __Th___ :
+		_camera{ RVRef(camera) }
 	{
 		constexpr auto&	RTech = RenderTechs::LinearDepth_RTech;
 
 		CHECK_THROW( &src != &copy );
 		CHECK_THROW( copy.GetImageDesc().format == EPixelFormat::R32F );
+		CHECK_THROW( _camera );
 
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
 		const auto	max_frames	= GraphicsScheduler().GetMaxFrames();
@@ -781,9 +786,20 @@ namespace AE::ResEditor
 								.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() )
 								.DefaultViewport() );
 
+			ShaderTypes::LinearDepth_draw_pc	pc_data;
+			const float2						clip_planes = _camera->GetClipPlanes();
+
+			pc_data.proj		= _camera->GetProj();
+			pc_data.nearPlane	= clip_planes.x; 
+
+			if ( IsInfinity( clip_planes.y ))
+				pc_data.invDistance = 1.0e-2f;
+			else
+				pc_data.invDistance	= 1.0f / (clip_planes.y - clip_planes.x);
+
 			dctx.BindPipeline( _ppln );
 			dctx.BindDescriptorSet( _pplnDSIdx, ds );
-			dctx.PushConstant( _pcIdx, ShaderTypes::LinearDepth_draw_pc{float2{ 0.1f, 1.1f }} );
+			dctx.PushConstant( _pcIdx, pc_data );
 			dctx.Draw( 3 );
 
 			ctx.EndRenderPass( dctx );

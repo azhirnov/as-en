@@ -93,17 +93,17 @@ namespace AE::Base
 
 		__Cx__ Self&	set (E value, bool bit)						__NE___;
 		__Cx__ Self&	insert (E value)							__NE___;
-		__Cz__ Self&	InsertRange (E first, E last)				__NE___;
+		__Cx__ Self&	InsertRange (E first, E last)				__NE___;
 
 		__Cx__ Self&	erase (E value)								__NE___;
-		__Cz__ Self&	EraseRange (E first, E last)				__NE___;
+		__Cx__ Self&	EraseRange (E first, E last)				__NE___;
 
 		__Cx__ Self&	clear ()									__NE___	{ std::memset( OUT _bits.data(), 0,    sizeof(_bits) );  return *this; }
 		__Cx__ Self&	SetAll ()									__NE___	{ std::memset( OUT _bits.data(), 0xFF, sizeof(_bits) );	return *this; }
 
 		NdCx__ bool		contains (E value)							C_NE___;
 
-		NdCz__ bool		All ()										C_NE___	{ return BitCount() == _BitCount; }
+		NdCx__ bool		All ()										C_NE___	{ return BitCount() == _BitCount; }
 		NdCx__ bool		Any ()										C_NE___;
 
 		NdCx__ bool		AnyBits (const Self &rhs)					C_NE___;
@@ -112,8 +112,8 @@ namespace AE::Base
 		NdCx__ bool		None ()										C_NE___	{ return not Any(); }
 		NdCx__ usize	size ()										C_NE___	{ return _BitCount; }
 
-		NdCz__ bool		AnyInRange (E first, E last)				C_NE___;
-		NdCz__ bool		AllInRange (E first, E last)				C_NE___;
+		NdCx__ bool		AnyInRange (E first, E last)				C_NE___;
+		NdCx__ bool		AllInRange (E first, E last)				C_NE___;
 
 		__Cx__ Self&	operator |= (E rhs)							__NE___	{ return insert( rhs ); }
 		__Cx__ Self&	operator &= (E rhs)							__NE___	{ return erase( rhs ); }
@@ -139,8 +139,8 @@ namespace AE::Base
 		NdCx__ BitArr_t const&	AsArray ()							C_NE___	{ return _bits; }
 		NdCx__ Elem_t const&	AsBits ()							C_NE___	{ if constexpr( _ArraySize == 1 ) return _bits[0]; }
 
-		NdCz__ usize	BitCount ()									C_NE___;
-		NdCz__ usize	ZeroCount ()								C_NE___	{ return size() - BitCount(); }
+		NdCx__ usize	BitCount ()									C_NE___;
+		NdCx__ usize	ZeroCount ()								C_NE___	{ return size() - BitCount(); }
 
 		// returns 'E::_Count' if empty
 		NdCx__ E		ExtractFirst ()								__NE___;
@@ -217,7 +217,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	__Cz__ EnumSet<E>&  EnumSet<E>::InsertRange (E first, E last) __NE___
+	__Cx__ EnumSet<E>&  EnumSet<E>::InsertRange (E first, E last) __NE___
 	{
 		ASSERT( first <= last );
 		ASSERT( Index_t(last) < size() );
@@ -241,7 +241,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	__Cz__ EnumSet<E>&  EnumSet<E>::EraseRange (E first, E last) __NE___
+	__Cx__ EnumSet<E>&  EnumSet<E>::EraseRange (E first, E last) __NE___
 	{
 		ASSERT( first <= last );
 		ASSERT( Index_t(last) < size() );
@@ -384,7 +384,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	__Cz__ bool  EnumSet<E>::AnyInRange (E first, E last) C_NE___
+	__Cx__ bool  EnumSet<E>::AnyInRange (E first, E last) C_NE___
 	{
 		ASSERT( first <= last );
 		ASSERT( Index_t(last) < size() );
@@ -411,7 +411,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	__Cz__ bool  EnumSet<E>::AllInRange (E first, E last) C_NE___
+	__Cx__ bool  EnumSet<E>::AllInRange (E first, E last) C_NE___
 	{
 		ASSERT( first <= last );
 		ASSERT( Index_t(last) < size() );
@@ -486,7 +486,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	__Cz__ usize  EnumSet<E>::BitCount () C_NE___
+	__Cx__ usize  EnumSet<E>::BitCount () C_NE___
 	{
 		usize	cnt = 0;
 		for (uint i = 0; i < _ArraySize - 1; ++i)

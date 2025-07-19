@@ -84,14 +84,14 @@ namespace AE::Threading
 	//
 	// Async Task interface
 	//
-	class alignas(AE_CACHE_LINE) IAsyncTask : public EnableRC< IAsyncTask >
+	class IAsyncTask : public EnableRC< IAsyncTask >
 	{
 		friend class LfTaskQueue;				// can change '_status'
 		friend class TaskScheduler;				// can change '_status'
 
 	// types
 	public:
-		enum class EStatus : uint
+		enum class EStatus : ushort
 		{
 			Initial,
 			Pending,		// task has been added to the queue and is waiting until input dependencies complete
@@ -117,20 +117,28 @@ namespace AE::Threading
 		};
 
 	private:
-		static constexpr uint	ElemInChunk	= 12;
+		static constexpr uint	ElemInChunk	= 13;
 
-		struct OutputChunk
+		struct alignas(16) OutputChunk
 		{
 		// variables
-			OutputChunk *								next		= null;
-			uint										count		= 0;	// TODO: align OutputChunk by 64/128 and use 4 bits for 'count'
+			usize										_packed		= 0;
 			StaticArray< AsyncTask, ElemInChunk >		tasks		{};		// TODO: align IAsyncTask by 128 and use 7 bits for TaskDependency
 			StaticArray< TaskDependency, ElemInChunk >	deps		{};
 
-		// methods
-			OutputChunk ()	__NE___ {}
+			static constexpr usize						_mask		= CT_ToBitMask< usize, CeilIntLog2( ElemInChunk )>; 
+			
 
-			void  Init ()	__NE___;
+		// methods
+			OutputChunk ()									__NE___ {}
+
+				void			Init ()						__NE___;
+
+			ND_ uint			Count ()					C_NE___	{ return _packed & _mask; }
+			ND_ OutputChunk*	Next ()						C_NE___	{ return std::launder( BitCast<OutputChunk *>( _packed & ~_mask )); }
+
+				void			SetCount (uint value)		__NE___	{ _packed = (_packed & ~_mask) | (value & _mask);				ASSERT( value == Count() ); }
+				void			SetNext (OutputChunk* ptr)	__NE___	{ _packed = (_packed & _mask) | (BitCast<usize>(ptr) & ~_mask);	ASSERT( ptr == Next() ); }
 		};
 
 		StaticAssert64( sizeof(OutputChunk) == 128 );
@@ -146,18 +154,19 @@ namespace AE::Threading
 
 	// variables
 	private:
-		ETaskQueue						_queueType			= ETaskQueue::PerFrame;	// packed with atomic counter in 'EnableRC<>'
-		Atomic< EStatus >				_status				{EStatus::Initial};
-		Atomic< uint >					_canceledDepsCount	{0};					// > 0 if canceled		// TODO: pack with '_status'
 		Atomic< WaitBits_t >			_waitBits			{~WaitBits_t{0}};		// 0 - all complete, otherwise - has uncomplete dependencies
+		Atomic< uint >					_canceledDepsCount	{0};					// > 0 if canceled
+		Atomic< EStatus >				_status				{EStatus::Initial};
+		ETaskQueue						_queueType			= ETaskQueue::PerFrame;
+
+		DEBUG_ONLY(
+			Atomic<bool>				_isRunning			{false};
+		)
 
 		PtrWithSpinLock< OutputChunk >	_output				{null};
 
 		PROFILE_ONLY(
 			RC<ITaskProfiler>			_profiler;
-		)
-		DEBUG_ONLY(
-			Atomic<bool>				_isRunning			{false};
 		)
 
 
@@ -205,7 +214,7 @@ namespace AE::Threading
 
 		// Call this only inside 'Run()' method.
 		// 'OnCancel()' method is not called, user can override 'OnFailure()'
-		// to implement custom behaviour.
+		// to implement custom behavior.
 		//
 			void  OnFailure ()							__NE___;
 
@@ -230,7 +239,7 @@ namespace AE::Threading
 		// Only in constructor!
 			void  _MakeCompletedUnsafe ()				__NE___;
 
-		// Allowed anywere, before enqueue.
+		// Allowed anywhere, before enqueue.
 			void  _MakeCompletedSafe ()					__NE___;
 
 			bool  _SetCancellationState ()				__NE___;
@@ -300,7 +309,6 @@ namespace AE::Threading
 
 
 
-# ifdef AE_HAS_COROUTINE
   namespace _hidden_
   {
 	template <typename DepsType>
@@ -624,7 +632,7 @@ namespace AE::Threading
 
 		ND_ bool	await_ready ()										C_NE___	{ return false; }
 
-			void	await_resume ()										__NE___	{}
+			void	await_resume ()										__NE___	{}	// return result of 'co_await'
 
 		// return task to scheduler with new dependencies
 		template <typename P>
@@ -649,7 +657,7 @@ namespace AE::Threading
 
 		ND_ bool	await_ready ()										C_NE___	{ return false; }
 
-			void	await_resume ()										__NE___	{}
+			void	await_resume ()										__NE___	{}	// return result of 'co_await'
 
 		// return task to scheduler with new dependencies
 		template <typename P>
@@ -669,7 +677,7 @@ namespace AE::Threading
 		struct Awaiter
 		{
 			ND_ bool	await_ready ()									C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-				void	await_resume ()									__NE___	{}
+				void	await_resume ()									__NE___	{}					// return result of 'co_await'
 
 			template <typename P>
 			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)__NE___
@@ -701,8 +709,8 @@ namespace AE::Threading
 			bool	_isCanceled = false;
 
 		public:
-			ND_ bool	await_ready ()									C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-			ND_ bool	await_resume ()									__NE___	{ return _isCanceled; }
+			ND_ bool	await_ready ()									C_NE___	{ return false; }		// call 'await_suspend()' to get coroutine handle
+			ND_ bool	await_resume ()									__NE___	{ return _isCanceled; }	// return result of 'co_await'
 
 			template <typename P>
 			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)__NE___
@@ -735,7 +743,7 @@ namespace AE::Threading
 
 		public:
 			ND_ bool	await_ready ()									C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-			ND_ auto	await_resume ()									__NE___	{ return _status; }
+			ND_ auto	await_resume ()									__NE___	{ return _status; }	// return result of 'co_await'
 
 			template <typename P>
 			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)__NE___
@@ -768,7 +776,7 @@ namespace AE::Threading
 
 		public:
 			ND_ bool	await_ready ()									C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-			ND_ auto	await_resume ()									__NE___	{ return _queue; }
+			ND_ auto	await_resume ()									__NE___	{ return _queue; }	// return result of 'co_await'
 
 			template <typename P>
 			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)__NE___
@@ -817,8 +825,6 @@ namespace AE::Threading
 	{
 		return Threading::_hidden_::AsyncTaskCoro_Awaiter< Tuple<Deps...> >{ deps };
 	}
-
-# endif // AE_HAS_COROUTINE
 //-----------------------------------------------------------------------------
 
 } // AE::Threading

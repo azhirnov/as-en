@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLoaders") AND AE_HAS_CXX_COROUTINE)
+if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLoaders"))
 
 	file( GLOB_RECURSE LIB_SOURCES "*.h" "*.cpp" "*.md" )
 	file( GLOB_RECURSE DATA_FILES  "_ui_data/*.*" )

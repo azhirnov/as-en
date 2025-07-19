@@ -100,7 +100,9 @@
 
 	ND_ inline String  EValueType_ToStr (PipelineCompiler::EValueType type, uint rows)
 	{
-		rows = Min( rows, 3 );
+		ASSERT( rows >= 1 );
+		ASSERT( rows <= 4 );
+		rows = Clamp( rows, 1u, 4u ) - 1;
 		const char  rows_str[] = { '\0', '2', '3', '4' };
 		switch ( type ) {
 			case PipelineCompiler::EValueType::Int32 :		return "int"s + rows_str[rows];
@@ -179,7 +181,7 @@
 
 					CHECK_THROW_MSG( field->type == type and field->rows == rows,
 						"Field '"s << fieldName << "' in buffer '" << buffer->GetName() << "' has '" << EValueType_ToStr( field->type, field->rows ) <<
-						"' but destination type is '" << EValueType_ToStr( type, rows ) << "'" );
+						"'type, but destination type is '" << EValueType_ToStr( type, rows ) << "'" );
 
 					CHECK_THROW_MSG( field->cols == 1 );  // matrix type is not supported
 

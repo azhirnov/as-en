@@ -2,8 +2,8 @@
 
 set( ENGINE_CMAKE_FOLDER		"${MAIN_SOURCE_DIR}/engine/cmake"	)
 set( AE_ENGINE_EXTERNAL_CMAKE	"${MAIN_SOURCE_DIR}/engine/external" CACHE INTERNAL "" FORCE )
-set( AE_FORCE_CXX17				OFF CACHE BOOL "use C++17 even if C++20 supported" )
 set( AE_FORCE_CXX20				OFF CACHE BOOL "use C++20 even if C++23 supported" )
+set( AE_FORCE_CXX23				OFF CACHE BOOL "use C++23 even if C++26 supported" )
 
 include( "${ENGINE_CMAKE_FOLDER}/compilers.cmake" )
 include( "${ENGINE_CMAKE_FOLDER}/compiler_tests.cmake" )
@@ -78,14 +78,8 @@ if (PROJECTS_SHARED_LINKER_FLAGS_RELEASE)
 	set_target_properties( "ProjectTemplate" PROPERTIES LINK_FLAGS_RELEASE ${PROJECTS_SHARED_LINKER_FLAGS_RELEASE} )
 endif()
 
-# use C++ 17
-if ( ${AE_CXX_17} )
-	set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
-	target_compile_features( "ProjectTemplate" PUBLIC cxx_std_17 )
-	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=17" )
-
 # use C++ 20
-elseif( ${AE_CXX_20} )
+if( ${AE_CXX_20} )
 	set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED YES )
 	target_compile_features( "ProjectTemplate" PUBLIC cxx_std_20 )
 	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=20" )

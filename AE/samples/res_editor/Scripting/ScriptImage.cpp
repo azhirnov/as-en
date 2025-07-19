@@ -429,16 +429,21 @@ namespace
 		if ( _desc.imageDim == EImageDim_3D or viewType == EImage_2DArray )
 			_desc.options |= EImageOpt::Array2DCompatible;
 
-		if ( format != Default and format != _desc.format )
+		if ( format == Default )
+			format = _desc.format;
+
+		if ( format != _desc.format )
 			_desc.options |= EImageOpt::MutableFormat;	// TODO: use format list
 
 		ScriptImagePtr	result {new ScriptImage{0}};
 
 		result->_base		= ScriptImagePtr{this};
 		result->_viewDesc	= ImageViewDesc{ viewType, format, baseMipmap, mipmapCount, baseLayer, layerCount };
-		result->_viewDesc.Validate( _desc );
 
-		result->_imageType	= GetDescriptorImageType( _desc, result->_viewDesc );
+		ImageViewDesc	temp = result->_viewDesc;
+		temp.Validate( _desc );
+
+		result->_imageType	= GetDescriptorImageType( _desc, temp );
 
 		return result.Detach();
 	}
@@ -624,9 +629,7 @@ namespace
 		CHECK_THROW_MSG( layer < _desc.arrayLayers,
 			"Image array layer ("s << ToString(layer.Get()) << ") is out of bounds [0," << ToString(_desc.arrayLayers.Get()) << ")" );
 		CHECK_THROW_MSG( mipmap < _desc.mipLevels,
-			"Image mipmap level ("s << ToString(mipmap.Get()) << ") is out of bounds [0," << ToString(_desc.mipLevels.Get()) << ")" )
-		CHECK_THROW_MSG( not AllBits( flags, ELoadOpFlags::GenMipmaps ) or _desc.mipLevels.Get() > 1,
-			"Flag 'GenMipmaps' can be used when image has mipmaps" );
+			"Image mipmap level ("s << ToString(mipmap.Get()) << ") is out of bounds [0," << ToString(_desc.mipLevels.Get()) << ")" );
 
 		if ( _dbgName.empty() )
 			_dbgName = Path{filename}.stem().string().substr( 0, ResNameMaxLen );

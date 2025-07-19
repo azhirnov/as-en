@@ -28,12 +28,15 @@ namespace {
 	constructor
 =================================================
 */
-	Image::Image (Renderer&		renderer,
-				  StringView	dbgName) :
+	Image::Image (const ImageDesc &		desc,
+			      const ImageViewDesc&	viewDesc,
+				  Renderer&				renderer,
+				  StringView			dbgName) :
 		IResource{ renderer },
+		_requiredImageDesc{ desc },
+		_requiredViewDesc{ viewDesc },
 		_dbgName{ dbgName }
-	{
-	}
+	{}
 
 	Image::Image (Strong<ImageID>		id,
 				  Strong<ImageViewID>	view,
@@ -54,11 +57,10 @@ namespace {
 		_inDynSize{ RVRef(inDynSize) },
 		_outDynSize{ RVRef(outDynSize) },
 		_loadOps{ loadOps.begin(), loadOps.end() },
+		_requiredImageDesc{ desc },
+		_requiredViewDesc{ viewDesc },
 		_dbgName{ dbgName }
 	{
-		_imageDesc.Write( desc );
-		_imageDesc.Write( viewDesc );
-
 		if ( isDummy )
 		{
 			CHECK_THROW( not _inDynSize );
@@ -110,6 +112,21 @@ namespace {
 		if ( _base )
 			_base->_Remove( this );
 	}
+	
+/*
+=================================================
+	GetImageDesc / GetViewDesc
+=================================================
+*/
+	ImageDesc  Image::GetImageDesc () C_NE___
+	{
+		return GraphicsScheduler().GetResourceManager().GetDescription( _id.Get() );
+	}
+
+	ImageViewDesc  Image::GetViewDesc () C_NE___
+	{
+		return GraphicsScheduler().GetResourceManager().GetDescription( _view.Get() );
+	}
 
 /*
 =================================================
@@ -121,18 +138,16 @@ namespace {
 		ImageDesc	desc;
 		desc.imageDim	= EImageDim_2D;
 
+		auto&		res_mngr	 = GraphicsScheduler().GetResourceManager();
 		auto		img_and_view = renderer.GetDummyImage( desc );
 		CHECK_THROW( img_and_view );
-
-		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
-		RC<Image>	result		{new Image{ renderer, dbgName }};
 
 		desc			= res_mngr.GetDescription( img_and_view.image );
 		desc.usage		= EImageUsage::Transfer | EImageUsage::Sampled;
 		desc.options	= EImageOpt::BlitSrc | EImageOpt::BlitDst;
 
-		result->_imageDesc.Write( desc );
-		// don't change image view description
+		RC<Image>	result	{new Image{ desc, ImageViewDesc{}, renderer, dbgName }};
+
 		result->_isDummy.store( true );
 
 		Unused( result->_id.Attach( RVRef(img_and_view.image) ));
@@ -291,15 +306,11 @@ namespace {
 														ctx.GetCommandBatchRC() ));
 			ctx.ResourceState( image, EResourceState::Invalidate );
 
-			_imageDesc.Write( res_mngr.GetDescription( image ));
-
 			auto	old_img	= _id.Attach( RVRef(image) );
 			res_mngr.ReleaseResource( old_img );	// release previous resource
 		}{
 			auto	view = res_mngr.CreateImageView( viewDesc, _id.Get(), _dbgName );
 			CHECK_ERR( view );
-
-			_imageDesc.Write( res_mngr.GetDescription( view ));
 
 			auto	old_view = _view.Attach( RVRef(view) );
 			res_mngr.ReleaseResource( old_view );	// release previous resource
@@ -314,7 +325,7 @@ namespace {
 		auto	derived = _derived.ReadLock();
 
 		for (auto* img : *derived) {
-			CHECK( img->_UpdateView( img->GetViewDesc() ));
+			CHECK( img->_UpdateView() );
 		}
 
 		return true;
@@ -335,15 +346,13 @@ namespace {
 		bool	all_complete	= true;
 		bool	failed			= false;
 
-		auto&	fmt_info	= EPixelFormat_GetInfo( _imageDesc.ConstPtr<0>()->format );
-
 		for (auto& op : _loadOps)
 		{
 			if ( op.IsCompleted() )
 				continue;
 
 			op.loaded.WithResult(
-				[this, &ctx, &op, &failed, &fmt_info] (const IntermImageRC &imageData)
+				[this, &ctx, &op, &failed] (const IntermImageRC &imageData)
 				{
 					if ( not imageData )
 					{
@@ -354,26 +363,27 @@ namespace {
 					if_unlikely( _isDummy.load() )
 					{
 						CHECK_THROW( _CreateImage( *imageData, op.mipmap, op.layer, AllBits( op.flags, ELoadOpFlags::GenMipmaps ), ctx ));
-						_isDummy.store( false );
 					}
 
 					for (;;)
 					{
+						ImageMemView	src_mem = imageData->ToView( op.curMipmap, op.curLayer );
+						ImageMemView	dst_mem;
+
 						if_unlikely( not op.stream.IsInitialized() )
 						{
+							auto&	fmt_info	= EPixelFormat_GetInfo( src_mem.Format() );
+
 							UploadImageDesc		upload;
 							upload.imageDim		= ImageDim_t{ImageUtils::MipmapDimension( imageData->Dimension(), op.curMipmap.Get(), fmt_info.TexBlockDim() )};
 							upload.arrayLayer	= op.layer + op.curLayer;
 							upload.mipLevel		= op.mipmap + op.curMipmap;
 							upload.heapType		= EStagingHeapType::Dynamic;
-							upload.aspectMask	= EImageAspect::Color;
+							upload.aspectMask	= src_mem.Aspect();
 							op.stream			= ImageStream{ _id, upload };
 						}
 
 						ASSERT( op.stream.ImageId() == _id );
-
-						ImageMemView	src_mem = imageData->ToView( op.curMipmap, op.curLayer );
-						ImageMemView	dst_mem;
 						ctx.UploadImage( op.stream, OUT dst_mem );
 
 						if ( dst_mem.Empty() )
@@ -489,22 +499,18 @@ namespace {
 		CHECK_ERR( not storeOps.empty() );
 
 		auto&		res_mngr	= GraphicsScheduler().GetResourceManager();
-		RC<Image>	result		{new Image{ src._Renderer(), dbgName }};
+		RC<Image>	result		{new Image{ ImageDesc{}, ImageViewDesc{}, src._Renderer(), dbgName }};
 
 		Unused( result->_id.Attach( res_mngr.AcquireResource( src._id.Get() )));
 		Unused( result->_view.Attach( res_mngr.AcquireResource( src._view.Get() )));
-
-		const auto	img_desc	= res_mngr.GetDescription( result->_id.Get() );
-		const auto	view_desc	= res_mngr.GetDescription( result->_view.Get() );
-
-		result->_imageDesc.Write( img_desc );
-		result->_imageDesc.Write( view_desc );
 
 		result->_uploadStatus.store( EUploadStatus::InProgress );
 
 		for (auto& op : storeOps) {
 			result->_storeOps.emplace_back( StoreOp2{ op });
 		}
+		
+		const auto	view_desc = res_mngr.GetDescription( result->_view.Get() );
 
 		for (auto& op : result->_storeOps)
 		{
@@ -553,10 +559,11 @@ namespace {
 
 			if_unlikely( not op.stream.IsInitialized() )
 			{
-				const auto	[img_desc, view_desc]	= _imageDesc.ReadAll();
-				const auto&	fmt_info				= EPixelFormat_GetInfo( view_desc.format );
-				const auto	mipmap					= view_desc.baseMipmap + op.curMipmap;
-				const auto	layer					= view_desc.baseLayer + op.curLayer;
+				const auto	img_desc	= GetImageDesc();
+				const auto	view_desc	= GetViewDesc();
+				const auto&	fmt_info	= EPixelFormat_GetInfo( view_desc.format );
+				const auto	mipmap		= view_desc.baseMipmap + op.curMipmap;
+				const auto	layer		= view_desc.baseLayer + op.curLayer;
 
 				ReadbackImageDesc	read;
 				read.imageDim	= ImageDim_t{ImageUtils::MipmapDimension( img_desc.Dimension(), mipmap.Get(), fmt_info.TexBlockDim() )};
@@ -570,11 +577,12 @@ namespace {
 			ctx.ReadbackImage( INOUT op.stream )
 				.Then(	[self = GetRC<Image>(), cur_layer = op.curLayer, cur_mipmap = op.curMipmap, file = op.file] (const ImageMemView &memView) __Th___
 						{
-							const auto		[img_desc, view_desc]	= self->_imageDesc.ReadAll();
-							const auto		mipmap					= view_desc.baseMipmap + cur_mipmap;
-							const auto		layer					= view_desc.baseLayer + cur_layer;
-							const auto&		fmt_info				= EPixelFormat_GetInfo( view_desc.format );
-							const auto		mip_dim					= ImageDim_t{ImageUtils::MipmapDimension( img_desc.Dimension(), mipmap.Get(), fmt_info.TexBlockDim() )};
+							const auto		img_desc	= self->GetImageDesc();
+							const auto		view_desc	= self->GetViewDesc();
+							const auto		mipmap		= view_desc.baseMipmap + cur_mipmap;
+							const auto		layer		= view_desc.baseLayer + cur_layer;
+							const auto&		fmt_info	= EPixelFormat_GetInfo( view_desc.format );
+							const auto		mip_dim		= ImageDim_t{ImageUtils::MipmapDimension( img_desc.Dimension(), mipmap.Get(), fmt_info.TexBlockDim() )};
 
 							AssetPacker::ImagePacker::Header	header;
 							header.dimension	= view_desc.dimension;
@@ -608,7 +616,7 @@ namespace {
 
 			if ( op.stream.IsCompleted() )
 			{
-				const auto	view_desc = _imageDesc.Read<ImageViewDesc>();
+				const auto	view_desc = GetViewDesc();
 
 				// invalidate
 				op.stream = Default;
@@ -672,8 +680,19 @@ namespace {
 	RC<Image>  Image::CreateView (const ImageViewDesc &viewDesc, StringView dbgName) __NE___
 	{
 		//CHECK_ERR( _uploadStatus == EUploadStatus::Completed );
+		//CHECK_ERR( not _base );
 
-		RC<Image>	result	{new Image{ _Renderer(), dbgName }};
+		if ( _base )
+		{
+			ImageViewDesc	new_view = viewDesc;
+
+			new_view.baseMipmap = new_view.baseMipmap + _requiredViewDesc.baseMipmap;
+			new_view.baseLayer	= new_view.baseLayer + _requiredViewDesc.baseLayer;
+
+			return _base->CreateView( new_view, dbgName );
+		}
+
+		RC<Image>	result	{new Image{ ImageDesc{}, viewDesc, _Renderer(), dbgName }};
 
 		result->_flags		= _flags;
 		result->_inDynSize	= _inDynSize;
@@ -682,7 +701,7 @@ namespace {
 
 		_derived->insert( result.get() );
 
-		CHECK_ERR( result->_UpdateView( viewDesc ));
+		CHECK_ERR( result->_UpdateView() );
 		return result;
 	}
 
@@ -691,7 +710,7 @@ namespace {
 	_UpdateView
 =================================================
 */
-	bool  Image::_UpdateView (const ImageViewDesc &viewDesc)
+	bool  Image::_UpdateView () __NE___
 	{
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
 		auto&	base		= *_base;
@@ -702,15 +721,11 @@ namespace {
 		auto	old_img		= _id.Attach( RVRef(image) );
 		res_mngr.ReleaseResource( old_img );
 
-		auto	view		= res_mngr.CreateImageView( viewDesc, _id.Get(), _dbgName );
+		auto	view		= res_mngr.CreateImageView( _requiredViewDesc, _id.Get(), _dbgName );
 		CHECK_ERR( view );
 
 		auto	old_view	= _view.Attach( RVRef(view) );
 		res_mngr.ReleaseResource( old_view );
-
-		_imageDesc.WriteAll(
-			res_mngr.GetDescription( _id ),
-			res_mngr.GetDescription( _view ));
 
 		return true;
 	}
@@ -740,8 +755,8 @@ namespace {
 
 		const auto	Create	 = [&] () -> bool
 		{{
-			ImageDesc		desc		= GetImageDesc();
-			ImageViewDesc	view_desc	= GetViewDesc();
+			ImageDesc		desc		= _requiredImageDesc;
+			ImageViewDesc	view_desc	= _requiredViewDesc;
 			CHECK_ERR( CompareImageTypes( desc, intermImg ));
 
 			desc.dimension		= CheckCast<ImageDim_t>( intermImg.Dimension() << baseMipmap.Get() );
@@ -778,8 +793,6 @@ namespace {
 															 ctx.GetCommandBatchRC() ));
 				ctx.ResourceState( image, EResourceState::Invalidate );
 
-				_imageDesc.Write( res_mngr.GetDescription( image ));
-
 				auto	old_img	= _id.Attach( RVRef(image) );
 				res_mngr.ReleaseResource( old_img );	// release dummy resource
 			}
@@ -792,8 +805,6 @@ namespace {
 				auto	view = res_mngr.CreateImageView( view_desc, _id.Get(), _dbgName );
 				CHECK_ERR( view );
 
-				_imageDesc.Write( res_mngr.GetDescription( view ));
-
 				auto	old_view = _view.Attach( RVRef(view) );
 				res_mngr.ReleaseResource( old_view );	// release dummy resource
 			}
@@ -804,23 +815,26 @@ namespace {
 
 		if ( res )
 		{
+			_isDummy.store( false );
+
 			if ( _outDynSize )
 			{
 				ASSERT( intermImg.GetImageDim() == _outDynSize->NumDimensions() );
 				_outDynSize->Resize( intermImg.Dimension() );
 			}
+
+			auto	derived = _derived.ReadLock();
+
+			for (auto* img : *derived) {
+				CHECK( img->_UpdateView() );
+			}
 		}
 		else
 		{
-			auto	view	= _view.Release();
-			auto	id		= _id.Release();
-			res_mngr.ImmediatelyReleaseResources( view, id );
-		}
-
-		auto	derived = _derived.ReadLock();
-
-		for (auto* img : *derived) {
-			CHECK( img->_UpdateView( img->GetViewDesc() ));
+			auto	dummy		= _Renderer().GetDummyImage( _requiredImageDesc );
+			auto	old_img		= _id.Attach( RVRef(dummy.image) );
+			auto	old_view	= _view.Attach( RVRef(dummy.view) );
+			res_mngr.ImmediatelyReleaseResources( old_view, old_img );
 		}
 
 		return res;

@@ -415,10 +415,10 @@ namespace
 	struct VecFunc2
 	{
 		template <typename V, typename R>
-		using FloatOnly		= EnableIf<IsFloatPoint<typename V::value_type>, R>;
+		using FloatOnly		= std::enable_if_t< IsFloatPoint<typename V::value_type>, R >;
 
 		template <typename V, typename R>
-		using ExceptFloat	= EnableIf<not IsFloatPoint<typename V::value_type>, R>;
+		using ExceptFloat	= std::enable_if_t< not IsFloatPoint<typename V::value_type>, R >;
 
 		template <typename V> static FloatOnly<V, V&>  Mod_a_v (V& lhs, const V &rhs)							{ return lhs = glm::mod( lhs, rhs ); }
 		template <typename V> static FloatOnly<V, V&>  Mod_a_s (V& lhs, typename V::value_type rhs)				{ return lhs = glm::mod( lhs, rhs ); }

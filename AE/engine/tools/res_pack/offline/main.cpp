@@ -456,7 +456,7 @@ namespace
 
 			CHECK_THROW_MSG( _fnPackAssets( &info ));
 
-			FileSystem::DeleteFile( ToPath( _tempFile ));
+			FileSystem::DeleteFile( _tempFile );
 
 			_files.clear();
 			_tempFile.clear();

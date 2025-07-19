@@ -229,7 +229,7 @@ namespace AE::ResLoader
 		_visit_( DXGI_FORMAT_R32G32_FLOAT,				EPixelFormat::RG32F ) \
 		_visit_( DXGI_FORMAT_R32G32_UINT,				EPixelFormat::RG32U ) \
 		_visit_( DXGI_FORMAT_R32G32_SINT,				EPixelFormat::RG32I ) \
-		_visit_( DXGI_FORMAT_D32_FLOAT_S8X24_UINT,		EPixelFormat::Depth24 ) \
+		_visit_( DXGI_FORMAT_D32_FLOAT_S8X24_UINT,		EPixelFormat::Depth32F_Stencil8 ) /* 64bits: fp32 + s8 + unused24*/\
 		_visit_( DXGI_FORMAT_R10G10B10A2_UNORM,			EPixelFormat::RGB10_A2_UNorm ) \
 		_visit_( DXGI_FORMAT_R10G10B10A2_UINT,			EPixelFormat::RGB10_A2U ) \
 		_visit_( DXGI_FORMAT_R11G11B10_FLOAT,			EPixelFormat::R11G11B10F ) \
@@ -247,7 +247,7 @@ namespace AE::ResLoader
 		_visit_( DXGI_FORMAT_R32_FLOAT,					EPixelFormat::R32F ) \
 		_visit_( DXGI_FORMAT_R32_UINT,					EPixelFormat::R32U ) \
 		_visit_( DXGI_FORMAT_R32_SINT,					EPixelFormat::R32I ) \
-		_visit_( DXGI_FORMAT_D24_UNORM_S8_UINT,			EPixelFormat::Depth24_Stencil8 ) \
+		_visit_( DXGI_FORMAT_D24_UNORM_S8_UINT,			EPixelFormat::Depth24_Stencil8 ) /* 32bits: d24 + s8 */\
 		_visit_( DXGI_FORMAT_R8G8_UNORM,				EPixelFormat::RG8_UNorm ) \
 		_visit_( DXGI_FORMAT_R8G8_UINT,					EPixelFormat::RG8U ) \
 		_visit_( DXGI_FORMAT_R8G8_SNORM,				EPixelFormat::RG8_SNorm ) \

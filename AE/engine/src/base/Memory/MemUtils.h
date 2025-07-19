@@ -94,16 +94,14 @@ namespace AE::Base
 		return ( ::new(ptr) T{ FwdArg<Args>(args)... });
 	}
 
-#if AE_CXX_VER >= 20
 	template <typename T, typename ...Args>
-	__Cz__ T*  PlacementNew (OUT T* ptr, Args&&... args)  NoExcept(IsNothrowCtor< T, Args... >)
+	__Cx__ T*  PlacementNew (OUT T* ptr, Args&&... args)  NoExcept(IsNothrowCtor< T, Args... >)
 	{
 		NonNull( ptr );
 		CheckPointerCast<T>( ptr );
 
 		return std::construct_at( OUT ptr, FwdArg<Args>(args)... );
 	}
-#endif
 
 /*
 =================================================
@@ -125,7 +123,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Args>
-	cxx20_constexpr T*  Reconstruct (INOUT T &value, Args&& ...args) __NE___
+	constexpr T*  Reconstruct (INOUT T &value, Args&& ...args) __NE___
 	{
 		CheckPointerCast<T>( &value );
 
@@ -137,11 +135,7 @@ namespace AE::Base
 			value.~T();
 			DEBUG_ONLY( DbgFreeMem( value ));
 
-		  #if AE_CXX_VER >= 20
 			return std::construct_at( OUT &value, FwdArg<Args>(args)... );
-		  #else
-			return ( ::new(&value) T{ FwdArg<Args>(args)... });
-		  #endif
 		}
 		else
 		{
@@ -150,11 +144,7 @@ namespace AE::Base
 				value.~T();
 				DEBUG_ONLY( DbgFreeMem( value ));
 
-			  #if AE_CXX_VER >= 20
 				return std::construct_at( OUT &value, FwdArg<Args>(args)... );
-			  #else
-				return ( ::new(&value) T{ FwdArg<Args>(args)... });
-			  #endif
 			}
 			else
 			{
@@ -162,11 +152,7 @@ namespace AE::Base
 					value.~T();
 					DEBUG_ONLY( DbgFreeMem( value ));
 
-				  #if AE_CXX_VER >= 20
 					return std::construct_at( OUT &value, FwdArg<Args>(args)... );
-				  #else
-					return ( ::new(&value) T{ FwdArg<Args>(args)... });
-				  #endif
 				}
 				CATCH_ALL(
 					DBG_WARNING( "exception in ctor!" );

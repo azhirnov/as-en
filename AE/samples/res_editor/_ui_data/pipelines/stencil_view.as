@@ -82,9 +82,7 @@ void  CreatePipeline ()
 		spec.AddToRenderTech( "StencilView.RTech", "Graphics" );
 
 		RenderState	rs;
-
 		rs.inputAssembly.topology = EPrimitive::TriangleStrip;
-
 		rs.rasterization.cullMode = ECullMode::Back;
 
 		spec.SetRenderState( rs );

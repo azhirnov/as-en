@@ -232,7 +232,7 @@ namespace AE::App
 	ValueType_ElementCount
 =================================================
 */
-	NdCzIn uint  ValueType_ElementCount (IInputActions::EValueType type) __NE___
+	NdCxIn uint  ValueType_ElementCount (IInputActions::EValueType type) __NE___
 	{
 		using EValueType = IInputActions::EValueType;
 		switch_enum( type )

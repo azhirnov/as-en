@@ -32,12 +32,12 @@ namespace AE::ECS
 	public:
 		__Cx__ ArchetypeDesc ()											__NE___	{}
 
-		template <typename Comp>	__Cz__ ArchetypeDesc&	Add ()		__NE___	{ return Add( ComponentTypeInfo<Comp>::id ); }
-		template <typename Comp>	__Cz__ ArchetypeDesc&	Remove ()	__NE___	{ return Remove( ComponentTypeInfo<Comp>::id ); }
-		template <typename Comp>	NdCz__ bool				Exists ()	C_NE___	{ return Exists( ComponentTypeInfo<Comp>::id ); }
+		template <typename Comp>	__Cx__ ArchetypeDesc&	Add ()		__NE___	{ return Add( ComponentTypeInfo<Comp>::id ); }
+		template <typename Comp>	__Cx__ ArchetypeDesc&	Remove ()	__NE___	{ return Remove( ComponentTypeInfo<Comp>::id ); }
+		template <typename Comp>	NdCx__ bool				Exists ()	C_NE___	{ return Exists( ComponentTypeInfo<Comp>::id ); }
 
-		__Cz__ ArchetypeDesc&		Add (ComponentID id)				__NE___;
-		__Cz__ ArchetypeDesc&		Remove (ComponentID id)				__NE___;
+		__Cx__ ArchetypeDesc&		Add (ComponentID id)				__NE___;
+		__Cx__ ArchetypeDesc&		Remove (ComponentID id)				__NE___;
 
 		__Cx__ ArchetypeDesc&		Add (const ArchetypeDesc &other)	__NE___;
 		__Cx__ ArchetypeDesc&		Remove (const ArchetypeDesc &other)	__NE___;
@@ -46,7 +46,7 @@ namespace AE::ECS
 
 		Nd____ ComponentIDs_t		GetIDs ()							C_NE___;
 
-		NdCz__ bool		Exists (ComponentID id)							C_NE___;
+		NdCx__ bool		Exists (ComponentID id)							C_NE___;
 		NdCx__ bool		All (const ArchetypeDesc &)						C_NE___;
 		NdCx__ bool		Any (const ArchetypeDesc &)						C_NE___;
 		NdCx__ bool		AnyOrEmpty (const ArchetypeDesc &)				C_NE___;
@@ -82,10 +82,10 @@ namespace AE::ECS
 
 		NdCx__ bool  Equal (const Archetype &rhs)				C_NE___	{ return _desc.Equal( rhs._desc ); }
 		NdCx__ bool  Contains (const Archetype &rhs)			C_NE___	{ return _desc.All( rhs._desc ); }
-		NdCz__ bool	 Exists (ComponentID id)					C_NE___	{ return _desc.Exists( id ); }
+		NdCx__ bool	 Exists (ComponentID id)					C_NE___	{ return _desc.Exists( id ); }
 
 		template <typename T>
-		NdCz__ bool  Exists ()									C_NE___	{ return Exists( ComponentTypeInfo<T>::id ); }
+		NdCx__ bool  Exists ()									C_NE___	{ return Exists( ComponentTypeInfo<T>::id ); }
 	};
 
 
@@ -117,7 +117,7 @@ namespace AE::ECS
 	Add
 =================================================
 */
-	__CzIn ArchetypeDesc&  ArchetypeDesc::Add (ComponentID id) __NE___
+	__CxIn ArchetypeDesc&  ArchetypeDesc::Add (ComponentID id) __NE___
 	{
 		ASSERT( id.value < ECS_Config::MaxComponents );
 		_bits[ id.value / BitsPerChunk ].Set( id.value % BitsPerChunk );
@@ -129,7 +129,7 @@ namespace AE::ECS
 	Remove
 =================================================
 */
-	__CzIn ArchetypeDesc&  ArchetypeDesc::Remove (ComponentID id) __NE___
+	__CxIn ArchetypeDesc&  ArchetypeDesc::Remove (ComponentID id) __NE___
 	{
 		ASSERT( id.value < ECS_Config::MaxComponents );
 		_bits[ id.value / BitsPerChunk ].Erase( id.value % BitsPerChunk );
@@ -167,7 +167,7 @@ namespace AE::ECS
 	Exists
 =================================================
 */
-	__CzIn bool  ArchetypeDesc::Exists (ComponentID id) C_NE___
+	__CxIn bool  ArchetypeDesc::Exists (ComponentID id) C_NE___
 	{
 		ASSERT( id.value < ECS_Config::MaxComponents );
 		return _bits[ id.value / BitsPerChunk ].Has( id.value % BitsPerChunk );

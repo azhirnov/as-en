@@ -2,7 +2,7 @@
 
 #include "UnitTest_Common.h"
 
-#if defined(AE_HAS_COROUTINE) and not defined(AE_DISABLE_THREADS)
+#ifndef AE_DISABLE_THREADS
 namespace
 {
 	using EStatus = IAsyncTask::EStatus;
@@ -30,7 +30,7 @@ namespace
 
 		AsyncTask	task1 = [] (ExeOrder &val) -> CoroTask
 							{
-								TEST( not co_await Coro_IsCanceled );
+								TEST( not (co_await Coro_IsCanceled) );
 								TEST( (co_await Coro_Status) == EStatus::InProgress );
 								TEST( (co_await Coro_TaskQueue) == ETaskQueue::PerFrame );
 
@@ -246,7 +246,7 @@ namespace
 							{
 								TEST( (co_await Coro_Status) == EStatus::InProgress );
 								TEST( (co_await Coro_TaskQueue) == ETaskQueue::PerFrame );
-								TEST( not co_await Coro_IsCanceled );
+								TEST( not (co_await Coro_IsCanceled) );
 								{
 									String	s0 = co_await t0;
 
@@ -255,7 +255,7 @@ namespace
 									val.str += s0;
 								}
 
-								TEST( not co_await Coro_IsCanceled );
+								TEST( not (co_await Coro_IsCanceled) );
 								{
 									String	s1 = co_await t1;
 
@@ -264,7 +264,7 @@ namespace
 									val.str += s1;
 								}
 
-								TEST( not co_await Coro_IsCanceled );
+								TEST( not (co_await Coro_IsCanceled) );
 								{
 									uint	u2 = co_await t2;
 
@@ -273,7 +273,7 @@ namespace
 									val.str += ToString(u2);
 								}
 
-								TEST( not co_await Coro_IsCanceled );
+								TEST( not (co_await Coro_IsCanceled) );
 								co_return "";
 							}
 							( value, p0, p1, p2 ));
@@ -331,4 +331,4 @@ extern void UnitTest_Coroutine ()
 extern void UnitTest_Coroutine ()
 {}
 
-#endif // AE_HAS_COROUTINE and not AE_DISABLE_THREADS
+#endif // not AE_DISABLE_THREADS

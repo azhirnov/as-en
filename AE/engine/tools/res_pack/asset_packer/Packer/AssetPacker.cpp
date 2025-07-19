@@ -39,7 +39,7 @@ namespace
 			if ( NoBits( item.flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
 				continue;
 
-			Path	path = ToPath( item.path );
+			Path	path{ item.path };
 
 			if ( not FileSystem::IsDirectory( path ))
 			{
@@ -83,7 +83,7 @@ namespace
 			if ( AnyBits( info->inFiles[i].flags, EPathParamsFlags::Folder | EPathParamsFlags::RecursiveFolder ))
 				continue;
 
-			Path	path = ToPath( info->inFiles[i].path );
+			Path	path{ info->inFiles[i].path };
 
 			if ( not FileSystem::IsFile( path ))
 			{
@@ -125,13 +125,13 @@ namespace
 		ObjectStorage		obj_storage;
 		ObjectStorage::SetInstance( &obj_storage );
 
-		CHECK_ERR( obj_storage.Initialize( ToPath( info->tempFile )));
+		CHECK_ERR( obj_storage.Initialize( info->tempFile ));
 		NOTHROW_ERR( ObjectStorage::Bind( script_engine ));
 
 		Array<Path>		script_include_dirs;
 		for (usize i = 0; i < info->inIncludeFolderCount; ++i)
 		{
-			Path	path  = ToPath( info->inIncludeFolders[i] );
+			Path	path{ info->inIncludeFolders[i] };
 			if ( FileSystem::IsDirectory( path ))
 				script_include_dirs.push_back( RVRef(path) );
 			else
@@ -188,12 +188,12 @@ namespace
 		}
 		CHECK_ERR_MSG( not obj_storage.HasHashCollisions(), "Hash collision detected!" );
 
-		const Path	arch_fname	= FileSystem::ToAbsolute( ToPath( info->outputArchive ));
+		const Path	arch_fname	= FileSystem::ToAbsolute( info->outputArchive );
 		CHECK_ERR( obj_storage.SaveArchive( arch_fname ));
 
 		if ( info->outputScriptFile != null )
 		{
-			CHECK_ERR( script_engine->SaveCppHeader( ToPath( info->outputScriptFile )));
+			CHECK_ERR( script_engine->SaveCppHeader( info->outputScriptFile ));
 		}
 
 		ObjectStorage::SetInstance( null );

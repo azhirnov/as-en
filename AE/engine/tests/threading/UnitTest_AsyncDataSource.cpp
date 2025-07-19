@@ -188,7 +188,6 @@ namespace
 	}
 
 
-#ifdef AE_HAS_COROUTINE
 	template <typename RFile, typename WFile>
 	static CoroTask  AsyncReadDS_Test3_Coro ()
 	{
@@ -263,8 +262,6 @@ namespace
 		TEST( scheduler->Wait( {AsyncTask{task}}, c_MaxTimeout ));
 		TEST( AsyncTask{task}->Status() == EStatus::Completed );
 	}
-
-#endif // AE_HAS_COROUTINE
 
 
 	template <typename RFile, typename WFile>
@@ -363,9 +360,7 @@ extern void UnitTest_AsyncDataSource (const Path &curr)
 
 	AsyncReadDS_Test1< FileAsyncRDataSource, StdFileWDataSource >();
 	AsyncReadDS_Test2< FileAsyncRDataSource, StdFileWDataSource >();
-  # ifdef AE_HAS_COROUTINE
 	AsyncReadDS_Test3< FileAsyncRDataSource, StdFileWDataSource >();
-  # endif
 	AsyncWriteDS_Test1< StdFileRDataSource, FileAsyncWDataSource >();
 
 	// TODO: async stream

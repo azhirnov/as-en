@@ -80,6 +80,7 @@ namespace AE::ResEditor
 		ND_ ImageViewDesc		ViewDescription ()									C_NE___	{ return _viewDesc; }
 		ND_ EImageType			ImageType ()										C_NE___	{ return _imageType; }
 		ND_ EPixelFormat		PixelFormat ()										C_NE___	{ return _viewDesc.format == Default ? _desc.format : _viewDesc.format; }
+		ND_ Image::EImageFlags	Flags ()											C_NE___	{ return _flags; }
 
 		ND_ StringView			GetName ()											C_NE___	{ return _dbgName; }
 

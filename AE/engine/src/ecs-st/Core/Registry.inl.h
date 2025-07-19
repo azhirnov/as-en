@@ -164,8 +164,8 @@ DEBUG_ONLY(
 	AssignComponent
 =================================================
 */
-	template <typename T>
-	EnableIf<not IsEmpty<T>, T&>  Registry::AssignComponent (EntityID entId) __NE___
+	template <typename T> requires(not IsEmpty<T>)
+	T&  Registry::AssignComponent (EntityID entId) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -211,8 +211,8 @@ DEBUG_ONLY(
 	AssignComponent
 =================================================
 */
-	template <typename T>
-	EnableIf<IsEmpty<T>, void>  Registry::AssignComponent (EntityID entId) __NE___
+	template <typename T> requires(IsEmpty<T>)
+	void  Registry::AssignComponent (EntityID entId) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

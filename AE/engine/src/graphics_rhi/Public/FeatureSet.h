@@ -140,11 +140,11 @@ namespace AE::Graphics
 
 			KiBytes ()								__NE___ {}
 
-			template <typename T, ENABLEIF( IsInteger<T> )>
+			template <typename T> requires( IsInteger<T> )
 			explicit KiBytes (T value)				__NE___	: _value{ushort( value >> 10 )}			{ ASSERT( T{*this}  == value ); }
 			explicit KiBytes (Bytes value)			__NE___	: _value{ushort( ulong{value} >> 10 )}	{ ASSERT( Bytes{*this} == value ); }
 
-			template <typename T, ENABLEIF( IsInteger<T> )>
+			template <typename T> requires( IsInteger<T> )
 			ND_ explicit operator T ()				C_NE___	{ return T{_value} << 10; }
 			ND_ explicit operator Bytes ()			C_NE___	{ return Bytes{_value} << 10; }
 

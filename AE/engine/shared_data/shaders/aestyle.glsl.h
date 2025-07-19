@@ -21,6 +21,8 @@
 #define WGShared	// workgroup shared variable qualifier
 #define invariant	// all shaders must output same result on same input, only for shader IO
 
+#define coherent
+
 #define out
 #define inout
 #define in
@@ -47,6 +49,14 @@
 #define slong_vec_t		slong
 #define ulong_vec_t		ulong
 
+
+#if 1 //def AE_bfloat16
+	enum class bfloat : short {};
+#endif
+#if 1 //def AE_float8_e5m2_e4m3
+	enum class floatE5M2 : char {};
+	enum class floatE4M3 : char {};
+#endif
 
 // Math types
 #if 1
@@ -266,6 +276,85 @@ template <int I>				ND_ _Vec<ulong,I>	doubleBitsToUint64 (const _Vec<double,I>);
 template <int I>				ND_ _Vec<double,I>	int64BitsToDouble (const _Vec<slong,I>);	// inverse doubleBitsToInt64
 								ND_ double			uint64BitsToDouble (const ulong);			// inverse doubleBitsToUint64
 template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);	// inverse doubleBitsToUint64
+
+
+#ifdef AE_bfloat16
+	template <int I>			ND_ bfloat			dot (_Vec<bfloat,I> x, _Vec<bfloat,I> y);
+
+								ND_ short			bfloat16BitsToInt (const bfloat);			// inverse intBitsToBFloat16
+								ND_ ushort			bfloat16BitsToUint (const bfloat);			// inverse uintBitsToBFloat16
+								ND_ bfloat			intBitsToBFloat16 (const short);			// inverse bfloat16BitsToInt
+								ND_ bfloat			uintBitsToBFloat16 (const ushort);			// inverse bfloat16BitsToUint
+								
+	template <int I>			ND_ _Vec<short,I>	bfloat16BitsToInt (const bfloat);			// inverse intBitsToBFloat16
+	template <int I>			ND_ _Vec<ushort,I>	bfloat16BitsToUint (const bfloat);			// inverse uintBitsToBFloat16
+	template <int I>			ND_ _Vec<bfloat,I>	intBitsToBFloat16 (const short);			// inverse bfloat16BitsToInt
+	template <int I>			ND_ _Vec<bfloat,I>	uintBitsToBFloat16 (const ushort);			// inverse bfloat16BitsToUint
+
+//									void			coopMatLoad (out coopmat &m, volatile coherent bfloat buf[], uint element, uint stride, int matrixLayout);
+//	template <int I>				void			coopMatLoad (out coopmat &m, volatile coherent _Vec<bfloat,I> buf[], uint element, uint stride, int matrixLayout);
+
+//									void			coopMatStore (coopmat m, volatile coherent out bfloat buf[], uint element, uint stride, int matrixLayout);
+//	template <int I>				void			coopMatStore (coopmat m, volatile coherent out _Vec<bfloat,I> buf[], uint element, uint stride, int matrixLayout);
+#endif
+
+#ifdef AE_float8_e5m2_e4m3
+								ND_ sbyte				floate5m2BitsToInt (const floatE5M2);			// inverse intBitsToFloate5m2
+								ND_ ubyte				floate5m2BitsToUint (const floatE5M2);			// inverse uintBitsToFloate5m2
+								ND_ floatE5M2			intBitsToFloate5m2 (const sbyte);				// inverse floate5m2BitsToInt
+								ND_ floatE5M2			uintBitsToFloate5m2 (const ubyte);				// inverse floate5m2BitsToUint
+								
+	template <int I>			ND_ _Vec<sbyte,I>		floate5m2BitsToInt (const _Vec<floatE5M2,I>);	// inverse intBitsToFloate5m2
+	template <int I>			ND_ _Vec<ubyte,I>		floate5m2BitsToUint (const _Vec<floatE5M2,I>);	// inverse uintBitsToFloate5m2
+	template <int I>			ND_ _Vec<floatE5M2,I>	intBitsToFloate5m2 (const _Vec<sbyte,I>);		// inverse floate5m2BitsToInt
+	template <int I>			ND_ _Vec<floatE5M2,I>	uintBitsToFloate5m2 (const _Vec<ubyte,I>);		// inverse floate5m2BitsToUint
+
+								ND_ sbyte				floate4m3BitsToInt (const floatE4M3);			// inverse intBitsToFloate4m3
+								ND_ ubyte				floate4m3BitsToUint (const floatE4M3);			// inverse uintBitsToFloate4m3
+								ND_ floatE4M3			intBitsToFloate4m3 (const sbyte);				// inverse floate4m3BitsToInt
+								ND_ floatE4M3			uintBitsToFloate4m3 (const ubyte);				// inverse floate4m3BitsToUint
+								
+	template <int I>			ND_ _Vec<sbyte,I>		floate4m3BitsToInt (const _Vec<floatE4M3,I>);	// inverse intBitsToFloate4m3
+	template <int I>			ND_ _Vec<ubyte,I>		floate4m3BitsToUint (const _Vec<floatE4M3,I>);	// inverse uintBitsToFloate4m3
+	template <int I>			ND_ _Vec<floatE4M3,I>	intBitsToFloate4m3 (const _Vec<sbyte,I>);		// inverse floate4m3BitsToInt
+	template <int I>			ND_ _Vec<floatE4M3,I>	uintBitsToFloate4m3 (const _Vec<ubyte,I>);		// inverse floate4m3BitsToUint
+
+# ifdef AE_ENABLE_HALF_TYPE
+									void			saturatedConvert (out floatE5M2 result, half value);
+									void			saturatedConvert (out floatE4M3 result, half value);
+	template <int I>				void			saturatedConvert (out _Vec<floatE5M2,I> &result, const _Vec<half,I> value);
+	template <int I>				void			saturatedConvert (out _Vec<floatE4M3,I> &result, const _Vec<half,I> value);
+# endif
+# ifdef AE_bfloat16
+									void			saturatedConvert (out floatE5M2 result, bfloat value);
+									void			saturatedConvert (out floatE4M3 result, bfloat value);
+	template <int I>				void			saturatedConvert (out _Vec<floatE5M2,I> &result, const _Vec<bfloat,I> value);
+	template <int I>				void			saturatedConvert (out _Vec<floatE4M3,I> &result, const _Vec<bfloat,I> value);
+# endif
+# ifdef AE_ENABLE_DOUBLE_TYPE
+									void			saturatedConvert (out floatE5M2 result, double value);
+									void			saturatedConvert (out floatE4M3 result, double value);
+	template <int I>				void			saturatedConvert (out _Vec<floatE5M2,I> &result, const _Vec<double,I> value);
+	template <int I>				void			saturatedConvert (out _Vec<floatE4M3,I> &result, const _Vec<double,I> value);
+# endif
+									void			saturatedConvert (out floatE5M2 result, float value);
+									void			saturatedConvert (out floatE4M3 result, float value);
+	template <int I>				void			saturatedConvert (out _Vec<floatE5M2,I> &result, const _Vec<float,I> value);
+	template <int I>				void			saturatedConvert (out _Vec<floatE4M3,I> &result, const _Vec<float,I> value);
+	/*
+									void			saturatedConvert (out coopmat &result, coopmat value);
+	
+									void			coopMatLoad (out coopmat m, volatile coherent floatE5M2 buf[], uint element, uint stride, int matrixLayout);
+									void			coopMatLoad (out coopmat m, volatile coherent floatE4M3 buf[], uint element, uint stride, int matrixLayout);
+									void			coopMatLoad (out coopmat m, volatile coherent _Vec<floatE5M2,I> buf[], uint element, uint stride, int matrixLayout);
+									void			coopMatLoad (out coopmat m, volatile coherent _Vec<floatE4M3,I> buf[], uint element, uint stride, int matrixLayout);
+
+									void			coopMatStore (coopmat m, volatile coherent out floatE5M2 buf[], uint element, uint stride, int matrixLayout);
+									void			coopMatStore (coopmat m, volatile coherent out floatE4M3 buf[], uint element, uint stride, int matrixLayout);
+									void			coopMatStore (coopmat m, volatile coherent out _Vec<floatE5M2,I> buf[], uint element, uint stride, int matrixLayout);
+									void			coopMatStore (coopmat m, volatile coherent out _Vec<floatE4M3,I> buf[], uint element, uint stride, int matrixLayout);
+	*/
+#endif
 
 # ifdef AE_COMPILER_CLANG
 #	pragma clang diagnostic pop
@@ -843,8 +932,8 @@ public:
 	  #endif
 
 	  #ifdef AE_shader_subgroup_vote
-		ND_ bool	All (bool) const;										// returns true if any active invocation has 'value == true'
-		ND_ bool	Any (bool) const;										// returns true if all active invocation have 'value == true'
+		ND_ bool	All (bool) const;										// returns true if all active invocation has 'value == true'
+		ND_ bool	Any (bool) const;										// returns true if any active invocation have 'value == true'
 
 		template <typename T>	ND_ bool	AllEqual (const T) const;		// returns true if all active invocation have a 'value' that is equal
 	  #endif

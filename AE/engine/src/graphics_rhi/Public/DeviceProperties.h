@@ -122,6 +122,8 @@ namespace AE::Graphics
 
 			uint		meshTotalGroups			= 0;
 			uint		meshGroupCount [3]		= {};
+
+			uint		subgroupSize			= 0;
 			
 			bool		prefersLocalInvocationVertexOutput		: 1;
 			bool		prefersLocalInvocationPrimitiveOutput	: 1;
@@ -215,7 +217,7 @@ namespace AE::Graphics
 		{
 			constexpr CT_DeviceProperties ()
 			{
-				StaticAssert( sizeof(DeviceProperties) == 168 );
+				StaticAssert( sizeof(DeviceProperties) == 176 );
 
 				StaticAssert( sizeof(res) == 24 );
 				{

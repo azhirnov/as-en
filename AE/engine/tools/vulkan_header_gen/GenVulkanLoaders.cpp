@@ -47,10 +47,10 @@ namespace AE::Vulkan
 			if ( not EndsWith( fn.data.name, "KHR" ) and
 				 not EndsWith( fn.data.name, "EXT" ))
 			{
-				if ( HashTable_Contains( _funcs, SearchableFunc{ String{fn.data.name} + "KHR" }))
+				if ( _funcs.contains( SearchableFunc{ String{fn.data.name} + "KHR" }))
 					exclude_fn.insert( fn.data.name );
 
-				if ( HashTable_Contains( _funcs, SearchableFunc{ String{fn.data.name} + "EXT" }))
+				if ( _funcs.contains( SearchableFunc{ String{fn.data.name} + "EXT" }))
 					exclude_fn.insert( fn.data.name );
 			}
 		}
@@ -156,12 +156,12 @@ namespace AE::Vulkan
 				default :						RETURN_ERR( "" );
 			}
 
-			if ( HashTable_Contains( exclude_fn, fn.data.name ))
+			if ( exclude_fn.contains( fn.data.name ))
 				continue;
 
-			if ( not (fn.data.extension.empty() or HashTable_Contains( feats.enabledExt, fn.data.extension )) )
+			if ( not (fn.data.extension.empty() or feats.enabledExt.contains( fn.data.extension )) )
 			{
-				if ( HashTable_NotContains( include_fn, fn.data.name ))
+				if ( not include_fn.contains( fn.data.name ))
 					continue;
 			}
 
@@ -730,7 +730,7 @@ namespace AE::Vulkan
 		{
 			feat.propsType = EPropsType::Instance;
 
-			if ( not feat.extension.empty() and HashTable_NotContains( _extensions, feat.extension ))
+			if ( not feat.extension.empty() and not _extensions.contains( feat.extension ))
 				continue; // feature is not exists in headers
 
 			feat.enabled = true;
@@ -738,7 +738,7 @@ namespace AE::Vulkan
 
 		for (auto& feat : set.device)
 		{
-			if ( not feat.extension.empty() and HashTable_NotContains( _extensions, feat.extension ))
+			if ( not feat.extension.empty() and not _extensions.contains( feat.extension ))
 				continue; // feature is not exists in headers
 
 			feat.enabled = true;
@@ -846,7 +846,7 @@ namespace AE::Vulkan
 			<< "\t\tVkPhysicalDeviceMemoryProperties   memoryProperties;\n"
 			<< "\t\tVkPhysicalDeviceSubgroupProperties subgroupProperties;\n";
 
-		CHECK( HashTable_Contains( _extInfo, "VK_KHR_portability_subset" ));
+		CHECK( _extInfo.contains( "VK_KHR_portability_subset" ));
 
 		for (auto& feat : feats.device)
 		{

@@ -14,12 +14,13 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Buffer>		id_buf		= Buffer();
-		RC<DynamicUInt>	row_count	= DynamicUInt();
-		const uint		local_size	= 32;	// TODO: get subgroup size
-		const uint		col_count	= local_size * 4;
-		RC<DynamicUInt>	id_count	= row_count.Mul( col_count );
+		RC<Image>		rt					= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
+		RC<Buffer>		id_buf				= Buffer();
+		RC<DynamicUInt>	row_count			= DynamicUInt();
+		const bool		has_subgroup_size	= GetFeatureSet().hasSubgroupSizeControl();
+		const uint		local_size			= has_subgroup_size ? GetFeatureSet().getMaxSubgroupSize() : GetSubgroupSize();
+		const uint		col_count			= local_size * 4;
+		RC<DynamicUInt>	id_count			= row_count.Mul( col_count );
 
 		id_buf.ArrayLayout(
 			"IdBuffer",
@@ -40,6 +41,7 @@
 			pass.ArgInOut( "un_IdBuf",		id_buf );
 			pass.LocalSize( local_size );
 			pass.DispatchGroups( row_count );
+			if ( has_subgroup_size ) pass.SubgroupSize( local_size );
 		}{
 			RC<Postprocess>		pass = Postprocess();
 			pass.ArgIn(  "un_IdBuf",		id_buf );

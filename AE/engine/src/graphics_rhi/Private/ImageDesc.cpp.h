@@ -396,9 +396,13 @@ namespace AE::Graphics
 
 		// validate aspect mask
 		EImageAspect	mask = EPixelFormat_ToImageAspect( format );
-		aspectMask			 = (aspectMask == Default ? mask : (aspectMask & mask));
-		ASSERT( aspectMask != Default );
-
+		if ( aspectMask == Default ) {
+			aspectMask = mask;
+		}else{
+			aspectMask = (aspectMask & mask);
+			if ( aspectMask == Default )
+				aspectMask = mask;
+		}
 
 		// choose view type
 		if ( viewType == Default )

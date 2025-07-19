@@ -2500,7 +2500,7 @@ namespace {
 	  #ifdef AE_CFG_RELEASE
 		ext.memoryReport			= false;
 		ext.debugMarker				= false;
-		ext.shaderClock				= false;
+	//	ext.shaderClock				= false;	// in FeatureSet
 		ext.pplnExecProps			= false;
 		ext.performanceQuery		= false;
 	//	ext.toolingInfo				= false;

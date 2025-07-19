@@ -109,13 +109,11 @@ namespace AE::Graphics
 		explicit CmdBatchOnSubmit (CMDBATCH* batch)		__NE___ : ptr{batch}			{ ASSERT( ptr == null or ptr->_submitMode != ESubmitMode::Deferred ); }
 		explicit CmdBatchOnSubmit (RC<CMDBATCH> batch)	__NE___ : ptr{RVRef(batch)}		{ ASSERT( ptr == null or ptr->_submitMode != ESubmitMode::Deferred ); }
 
-		#ifdef AE_HAS_COROUTINE
 		ND_ auto  operator co_await () C_NE___
 		{
 			// use global operator with 'CoroutineRunnerAwaiter'
 			return AE::Threading::operator co_await( Tuple{ *this });
 		}
-		#endif
 	};
 
 
@@ -315,7 +313,6 @@ namespace AE::Graphics
 
 
 
-# ifdef AE_HAS_COROUTINE
 namespace AE::Threading::_hidden_
 {
 
@@ -441,8 +438,8 @@ namespace AE::Threading::_hidden_
 				RC<RenderTask>	_rtask;
 
 			public:
-				ND_ bool			await_ready ()	C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-				ND_ RC<RenderTask>	await_resume ()	__NE___	{ return RVRef(_rtask); }
+				ND_ bool			await_ready ()	C_NE___	{ return false; }			// call 'await_suspend()' to get coroutine handle
+				ND_ RC<RenderTask>	await_resume ()	__NE___	{ return RVRef(_rtask); }	// return result of 'co_await'
 
 				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
 				{
@@ -473,8 +470,8 @@ namespace AE::Threading::_hidden_
 				RenderTask *	_rtask	= null;
 
 			public:
-				ND_ bool			await_ready ()	C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-				ND_ RenderTask &	await_resume ()	__NE___	{ NonNull( _rtask );  return *_rtask; }
+				ND_ bool			await_ready ()	C_NE___	{ return false; }						// call 'await_suspend()' to get coroutine handle
+				ND_ RenderTask &	await_resume ()	__NE___	{ NonNull( _rtask );  return *_rtask; }	// return result of 'co_await'
 
 				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
 				{
@@ -523,7 +520,7 @@ namespace AE::Graphics
 				explicit Awaiter (CMDBATCH const* ptr) __NE___ : _ptr{ptr} {}
 
 				ND_ bool  await_ready ()	C_NE___	{ return _ptr == null; }
-					void  await_resume ()	C_NE___	{}
+					void  await_resume ()	C_NE___	{}						// return result of 'co_await'
 
 				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) C_NE___
 				{
@@ -559,7 +556,7 @@ namespace AE::Graphics
 				CmdBufType &	_cmdbuf2;
 
 				ND_ bool	await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-					void	await_resume ()		C_NE___	{}
+					void	await_resume ()		C_NE___	{}					// return result of 'co_await'
 
 				ND_ bool	await_suspend (std::coroutine_handle< Promise_t > curCoro) __Th___
 				{
@@ -587,7 +584,7 @@ namespace AE::Graphics
 			struct Awaiter
 			{
 				ND_ bool	await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-					void	await_resume ()		C_NE___	{}
+					void	await_resume ()		C_NE___	{}					// return result of 'co_await'
 
 				ND_ bool	await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
 				{
@@ -601,4 +598,3 @@ namespace AE::Graphics
 	};
 
 } // AE::Graphics
-# endif // AE_HAS_COROUTINE

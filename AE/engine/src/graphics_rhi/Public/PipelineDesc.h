@@ -101,7 +101,7 @@ namespace AE::Graphics
 		_SamplesMask		= 0x0F,
 	};
 
-	NdCzIn EShadingRate  operator | (EShadingRate lhs, EShadingRate rhs) __NE___
+	NdCxIn EShadingRate  operator | (EShadingRate lhs, EShadingRate rhs) __NE___
 	{
 		ASSERT( AnyBits( lhs, EShadingRate::_SizeMask ) != AnyBits( rhs, EShadingRate::_SizeMask ));	// can not combine size with size
 		return EShadingRate(uint(lhs) | uint(rhs));

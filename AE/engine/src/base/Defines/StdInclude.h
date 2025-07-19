@@ -16,9 +16,16 @@
 #include "base/Defines/MacroChecks.h"
 
 
-#include <type_traits>
 #include <cstdint>
+#include <cmath>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+
+#include <type_traits>
 #include <utility>
+#include <typeindex>
+
 #include <tuple>
 #include <variant>
 #include <vector>
@@ -29,33 +36,30 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <bitset>
-#include <cstring>
-#include <cmath>
 #include <optional>
 #include <string_view>
-#include <typeindex>
-#include <type_traits>
 #include <chrono>
 #include <algorithm>
 #include <functional>
 #include <random>
-#include <atomic>
-#include <thread>
 #include <exception>
-#include <cstdlib>
 
-#include <cstdio>
 #include <streambuf>
 #include <sstream>
 
 #include <atomic>
+#include <thread>
 #include <mutex>
 #include <shared_mutex>
-#include <thread>
 #include <condition_variable>
 
-#include <sstream>
 #include <charconv>
+
+// C++20
+#include <bit>
+#include <source_location>
+#include <coroutine>
+#include <concepts>
 
 #ifdef __cpp_lib_barrier
 #  include <barrier>
@@ -63,17 +67,10 @@
 #ifdef __cpp_lib_semaphore
 #	include <semaphore>
 #endif
-#ifdef __cpp_lib_coroutine
-#	include <coroutine>
-#endif
-
 #ifdef __cpp_lib_stacktrace
 #	include <stacktrace>
 #endif
 
-#if AE_HAS_INCLUDE(<bit>) and AE_CXX_VER >= 20
-#	include <bit>
-#endif
 
 #ifdef AE_COMPILER_MSVC
 # include <excpt.h>								// GetExceptionCode()

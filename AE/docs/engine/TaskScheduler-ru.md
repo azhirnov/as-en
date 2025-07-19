@@ -26,6 +26,9 @@ EStatus     co_await Coro_Status
 ETaskQueue  co_await Coro_TaskQueue
 ```
 
+`CancelledCoro` - специальная задача, которая выполняется если хотя бы одна из сильных зависимостей была отменена.
+Работает аналогично `AsyncTask::OnCancel()` который иначе не сделать на корутинах.
+
 Исходник: [AsyncTask.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/AsyncTask.h#L287)
 
 
@@ -117,7 +120,50 @@ ThreadManager также распределяет потоки по ядрам �
 * Разблокируется только после выполнения всего метода `IAsyncTask::Run()`.
 * Планировщик потоков решает когда запустить следующую задачу, поэтому между ними может быть большой интервал бездействия.
 
-Исходник: [AsyncMutex.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/AsyncMutex.h)
+Исходники: [AsyncMutex.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/AsyncMutex.h), [Тесты](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/threading/UnitTest_AsyncMutex.cpp)
+
+### SyncPoint
+
+Заменяет блокирующий Conditional variable и семафор.
+
+Если раньше писали:
+```cpp
+// signal
+{
+    unique_lock  lock {mutex};
+    if ( --counter == 0 )
+        cv.notify_all();
+}
+
+// wait all
+{
+    unique_lock  lock {mutex};
+    while ( counter > 0 )
+        cv.wait( lock );
+}
+```
+
+То на тасках это сделано через `SyncPoint` объект:
+* Одни задачи держат ссылку на `SyncPoint`.
+* Другие задачи подписываются на `SyncPoint::OnComplete()`.
+* Как только счетчик ссылок равен нулю, то все ожидающие задачи могут начать выполняться.
+
+Исходники: 
+[SyncPoint.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/SyncPoint.h), [Тесты](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/threading/UnitTest_SyncPoint.cpp)
+
+### Старый способ
+
+У многих блокирующих примитивов есть вариант с `try_***`, это можно использовать внутри любой задачи, если заблокировать примитив синхронизации не получилось, то вызывается `return Continue()`.
+Это очень неэффективный способ и его следует избегать.
+Есть вариант сделать его более оптимальным - добавить `ReadWriteLock` он же `shared_mutex` и с его помощью делать общий массив с задачами, которые зависят от примитива синхронизации.
+Тогда в `Continue()` можно передать список задач и ожидание станет намного эффективнее, но в случае ошибки задача может заблокироваться навсегда.
+
+
+## Поиск блокировок
+
+Система задач не избавляет от проблем повисания на блокировках (deadlock).
+Только причины блокировок становятся другими:
+* Задача не может стартовать. Обычно это проблемы с зависимостями.
 
 
 ## Производительность

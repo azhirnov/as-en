@@ -77,8 +77,7 @@ namespace AE::ResEditor
 		const Bytes					_staticSize;
 		const Bytes					_elemSize;
 
-		Synchronized< RWSpinLock,
-			BufferDesc >			_bufDesc;
+		const BufferDesc			_requiredBufDesc;
 		RC<DynamicUInt>				_inDynCount;
 		RC<DynamicUInt>				_outDynCount;
 
@@ -114,15 +113,18 @@ namespace AE::ResEditor
 
 		ND_ BufferID				GetBufferId (uint fid)			const	{ return _ids[ fid ].Get(); }
 		ND_ BufferID				GetBufferId (FrameUID fid)		const	{ return _ids[ fid.Index() ].Get(); }
+		
+		// Warning: sync problem - '_id' may be changed between GetBufferId() and GetBufferDesc(),
+		// so prefer to use 'GetDescription( GetBufferId() )' instead.
+		ND_ BufferDesc				GetBufferDesc ()				const;
 
-		ND_ BufferDesc				GetBufferDesc ()				const	{ return _bufDesc.Read(); }
 		ND_ ShaderStructName		GetContentType ()				const	{ return _typeName; }
 
 		ND_ ulong					GetDeviceAddress (uint fid)		const	{ return _address[ fid ]; }
 		ND_ ulong					GetDeviceAddress (FrameUID fid)	const	{ return _address[ fid.Index() ]; }
 
 		ND_ Bytes					ElementSize ()					const	{ return _elemSize; }
-		ND_ ulong					ArraySize ()					const	{ return ulong((_bufDesc->size - _staticSize) / _elemSize); }
+		ND_ ulong					ArraySize ()					const	{ return ulong((GetBufferDesc().size - _staticSize) / _elemSize); }
 
 		ND_ StringView				Name ()							const	{ return _dbgName; }
 		ND_ bool					HasHistory ()					const	{ return AllBits( _flags, EBufferFlags::WithHistory ); }

@@ -248,7 +248,7 @@ namespace AE::Base
 		IAllocatorAdaptor ()											__NE___ {}
 		IAllocatorAdaptor (IAllocatorAdaptor &&other)					__NE___ : _alloc{ RVRef(other._alloc) } {}
 
-		template <typename ...Args, ENABLEIF( IsConstructible< T, Args... >)>
+		template <typename ...Args> requires( IsConstructible< T, Args... >)
 		explicit IAllocatorAdaptor (Args&& ... args)					__Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
 		using IAllocator::Allocate;
@@ -276,7 +276,7 @@ namespace AE::Base
 		IAllocatorAdaptor (IAllocatorAdaptor &&other)					__NE___ : _alloc{ RVRef(other._alloc) } {}
 		explicit IAllocatorAdaptor (const AllocatorRef<T> &ref)			__NE___ : _alloc{ ref.GetAllocatorRef() } {}
 
-		template <typename ...Args, ENABLEIF( IsConstructible< T, Args... >)>
+		template <typename ...Args> requires( IsConstructible< T, Args... >)
 		explicit IAllocatorAdaptor (Args&& ... args)					__Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
 		using IAllocator::Allocate;

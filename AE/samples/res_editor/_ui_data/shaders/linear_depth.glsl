@@ -16,12 +16,13 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
-	#include "Geometry.glsl"
+	#include "Matrix.glsl"
 
 	void Main ()
 	{
 		float	depth	= gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), 0 ).r;
-				depth	= ToLinearDepth( depth, pc.clipPlanes );
+				depth	= FastUnProjectZ( pc.proj, depth );
+				depth	= (depth - pc.nearPlane) * pc.invDistance;
 		out_Color		= float4(depth);
 	}
 

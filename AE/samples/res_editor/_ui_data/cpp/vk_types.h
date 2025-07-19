@@ -275,14 +275,18 @@
 
 #ifndef LinearDepth_draw_pc_DEFINED
 #	define LinearDepth_draw_pc_DEFINED
-	// size: 8, align: 8 (16)
-	struct LinearDepth_draw_pc
+	// size: 72 (80), align: 16
+	struct alignas(16) LinearDepth_draw_pc
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xb92984e8u}};
 
-		float2  clipPlanes;
+		float4x4_storage  proj;
+		float             nearPlane;
+		float             invDistance;
 	};
 #endif
-	StaticAssert( offsetof(LinearDepth_draw_pc, clipPlanes) == 0 );
-	StaticAssert( sizeof(LinearDepth_draw_pc) == 8 );
+	StaticAssert( offsetof(LinearDepth_draw_pc, proj) == 0 );
+	StaticAssert( offsetof(LinearDepth_draw_pc, nearPlane) == 64 );
+	StaticAssert( offsetof(LinearDepth_draw_pc, invDistance) == 68 );
+	StaticAssert( sizeof(LinearDepth_draw_pc) == 80 );
 

@@ -382,38 +382,38 @@ namespace AE::Base
 		explicit SimdTInt64 (Scalar_t val)					__NE___;
 
 	  #ifdef AE_SIMD_SimdHalf4
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==2 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==2 )
 		explicit SimdTInt64 (const SimdHalf4::Bool4 &v)		__NE___ : _value{ v.Ref() } {}
 	  #endif
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==1 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==1 )
 		SimdTInt64 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3,
 					Scalar_t v4, Scalar_t v5, Scalar_t v6, Scalar_t v7) __NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==2 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==2 )
 		SimdTInt64 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3) __NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==4 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==4 )
 		SimdTInt64 (Scalar_t v0, Scalar_t v1)				__NE___;
 
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		explicit SimdTInt64 (bool v)						__NE___ : SimdTInt64{ v ? Scalar_t{UMax} : Scalar_t{0} } {}
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, ubyte > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, ubyte > and IsSame< B, bool >)
 		SimdTInt64 (B v0, B v1, B v2, B v3, B v4, B v5, B v6, B v7)	__NE___;
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, ushort > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, ushort > and IsSame< B, bool >)
 		SimdTInt64 (B v0, B v1, B v2, B v3)					__NE___;
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, uint > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, uint > and IsSame< B, bool >)
 		SimdTInt64 (B v0, B v1)								__NE___;
 
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	operator -  ()							C_NE___	{ return Negative(); }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ Bool_t	operator !  ()							C_NE___	{ return BitInverse(); }
 
 		ND_ Self	operator ~  ()							C_NE___	{ return BitInverse(); }
@@ -460,13 +460,13 @@ namespace AE::Base
 		ND_ Scalar_t	PrefixMin ()						C_NE___;
 	  #endif
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	Negative ()								C_NE___;	// -x
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	NegativeSat ()							C_NE___;	// -x
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	Abs ()									C_NE___;	// abs(x)
 
 		ND_ Self	Add (const Self &rhs)					C_NE___;
@@ -505,16 +505,16 @@ namespace AE::Base
 
 		ND_ friend Self  Select (const Bool_t &condition, const Self &ifTrue, const Self &ifFalse) __NE___ { return _Select( condition, ifTrue, ifFalse ); }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ Mask_t	ToBitfield ()							C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ bool	All ()									C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ bool	Any ()									C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ bool	None ()									C_NE___;
 
 
@@ -572,10 +572,10 @@ namespace AE::Base
 		template <uint Idx>
 		ND_ Self	Lane ()									C_NE___ { StaticAssert( Idx < lanes );  return *this; }
 
-		template <uint X, uint Y, uint Z, uint W,  typename T = Scalar_t, ENABLEIF( sizeof(T)==2 )>
+		template <uint X, uint Y, uint Z, uint W,  typename T = Scalar_t> requires( sizeof(T)==2 )
 		ND_ Self	Swizzle ()								C_NE___;
 
-		template <uint X, uint Y,  typename T = Scalar_t, ENABLEIF( sizeof(T)==4 )>
+		template <uint X, uint Y,  typename T = Scalar_t> requires( sizeof(T)==4 )
 		ND_ Self	Swizzle ()								C_NE___;
 
 		template <typename DstScalar>
@@ -587,10 +587,10 @@ namespace AE::Base
 		void		ToArray (OUT Scalar_t* dst)				C_NE___;
 		ND_ Array_t	ToArray ()								C_NE___	{ Array_t arr;  ToArray( OUT arr.data() );  return arr; }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ auto	ToSigned ()								C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ auto	ToUnsigned ()							C_NE___;
 
 		template <uint I=0>	ND_ auto	ToFloat ()			C_NE___;
@@ -600,7 +600,7 @@ namespace AE::Base
 		template <uint I=0>	ND_ auto	ToInt ()			C_NE___;
 		template <uint I=0>	ND_ auto	ToLong ()			C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)>=2 )>
+		template <typename T = Scalar_t> requires( sizeof(T)>=2 )
 		ND_ explicit operator PackedVec<T,count> ()			C_NE___
 		{
 			StaticAssert( count <= 4 );
@@ -715,52 +715,52 @@ namespace AE::Base
 		explicit SimdTInt128 (const Scalar_t* ptr)			__NE___;
 		explicit SimdTInt128 (Scalar_t val)					__NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)<=4 )>
+		template <typename T = Scalar_t> requires( sizeof(T)<=4 )
 		explicit SimdTInt128 (const SimdTInt64<IntType> &low)	__NE___ : SimdTInt128{ low, SimdTInt64<IntType>{} } {}
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)<=4 )>
+		template <typename T = Scalar_t> requires( sizeof(T)<=4 )
 		explicit SimdTInt128 (const SimdTInt64<IntType> &low,
 							  const SimdTInt64<IntType> &high)	__NE___;
 
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==1 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==1 )
 		SimdTInt128 (Scalar_t v00, Scalar_t v01, Scalar_t v02, Scalar_t v03,
 					 Scalar_t v04, Scalar_t v05, Scalar_t v06, Scalar_t v07,
 					 Scalar_t v08, Scalar_t v09, Scalar_t v10, Scalar_t v11,
 					 Scalar_t v12, Scalar_t v13, Scalar_t v14, Scalar_t v15) __NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==2 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==2 )
 		SimdTInt128 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3,
 					 Scalar_t v4, Scalar_t v5, Scalar_t v6, Scalar_t v7) __NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==4 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==4 )
 		SimdTInt128 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3) __NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==8 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==8 )
 		SimdTInt128 (Scalar_t v0, Scalar_t v1)				__NE___;
 
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		explicit SimdTInt128 (bool v)						__NE___ : SimdTInt128{ v ? Scalar_t{UMax} : Scalar_t{0} } {}
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, ubyte > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, ubyte > and IsSame< B, bool >)
 		SimdTInt128 (B v00, B v01, B v02, B v03, B v04, B v05, B v06, B v07,
 					 B v08, B v09, B v10, B v11, B v12, B v13, B v14, B v15) __NE___;
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, ushort > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, ushort > and IsSame< B, bool >)
 		SimdTInt128 (B v0, B v1, B v2, B v3, B v4, B v5, B v6, B v7) __NE___;
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, uint > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, uint > and IsSame< B, bool >)
 		SimdTInt128 (B v0, B v1, B v2, B v3)				__NE___;
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, ulong > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, ulong > and IsSame< B, bool >)
 		SimdTInt128 (B v0, B v1)							__NE___;
 
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	operator - ()							C_NE___	{ return Negative(); }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ Bool_t	operator ! ()							C_NE___	{ return BitInverse(); }
 
 		ND_ Self	operator ~ ()							C_NE___	{ return BitInverse(); }
@@ -838,13 +838,13 @@ namespace AE::Base
 		ND_ Bool_t	IsZero ()								C_NE___;
 		ND_ Bool_t	IsNotZero ()							C_NE___	{ return ~IsZero(); }
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	Abs ()									C_NE___;	// abs(x)
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	Negative ()								C_NE___;	// -x
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	NegativeSat ()							C_NE___;	// -x
 
 		friend Self  MulAdd    (const Self &a, const Self &b, const Self &c) __NE___;	// (a * b) + c
@@ -854,16 +854,16 @@ namespace AE::Base
 
 		ND_ friend Self  Select (const Bool_t &condition, const Self &ifTrue, const Self &ifFalse) __NE___ { return _Select( condition, ifTrue, ifFalse ); }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ Mask_t	ToBitfield ()							C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ bool	All ()									C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ bool	Any ()									C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ bool	None ()									C_NE___;
 
 
@@ -921,10 +921,10 @@ namespace AE::Base
 		template <uint Idx>
 		ND_ auto	Lane ()									C_NE___;
 
-		template <uint X, uint Y, uint Z, uint W,  typename T = Scalar_t, ENABLEIF( sizeof(T)==4 )>
+		template <uint X, uint Y, uint Z, uint W,  typename T = Scalar_t> requires( sizeof(T)==4 )
 		ND_ Self	Swizzle ()								C_NE___;
 
-		template <uint X, uint Y,  typename T = Scalar_t, ENABLEIF( sizeof(T)==8 )>
+		template <uint X, uint Y,  typename T = Scalar_t> requires( sizeof(T)==8 )
 		ND_ Self	Swizzle ()								C_NE___;
 
 		void		ToArray (OUT Scalar_t* dst)				C_NE___;
@@ -936,10 +936,10 @@ namespace AE::Base
 		template <typename DstType>
 		ND_ DstType	BitCast ()								C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ auto	ToSigned ()								C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ auto	ToUnsigned ()							C_NE___;
 
 		template <uint I=0>	ND_ auto	ToHalf ()			C_NE___;
@@ -950,7 +950,7 @@ namespace AE::Base
 		template <uint I=0>	ND_ auto	ToInt ()			C_NE___;
 		template <uint I=0>	ND_ auto	ToLong ()			C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)>=4 )>
+		template <typename T = Scalar_t> requires( sizeof(T)>=4 )
 		ND_ explicit operator PackedVec<T,count> ()			C_NE___
 		{
 			StaticAssert( count <= 4 );

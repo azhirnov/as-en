@@ -43,13 +43,13 @@ namespace AE::Base
 		__Cx__ RstPtr (std::nullptr_t)						__NE___ {}
 		__Cx__ explicit RstPtr (T* ptr)						__NE___ : _ptr{ptr} {}
 
-		template <typename B, ENABLEIF( not IsVoid<B> )>
+		template <typename B> requires( not IsVoid<B> )
 		__Cx__ explicit RstPtr (Ptr<B> ptr)					__NE___ : _ptr{ptr.get()} {}
 
-		template <typename B, ENABLEIF( not IsVoid<B> and not IsConst<B> )>
+		template <typename B> requires( not IsVoid<B> and not IsConst<B> )
 		__Cx__ explicit RstPtr (Ref<B> ref)					__NE___ : _ptr{&ref} {}
 
-		template <typename B, ENABLEIF( not IsConst<B> and IsSame< B, RemoveConst<T> >)>
+		template <typename B> requires( not IsConst<B> and IsSame< B, RemoveConst<T> >)
 		__Cx__ RstPtr (RstPtr<B> other)						__NE___ : _ptr{other.get()} {}
 
 		__Cx__ RstPtr (Self &&)								__NE___	= default;
@@ -63,6 +63,12 @@ namespace AE::Base
 
 		NdCx__ Self		operator +  (Bytes offset)			C_NE___	{ return Self{ _ptr + offset }; }
 		__Cx__ Self&	operator += (Bytes offset)			__NE___	{ _ptr += offset;  return *this; }
+		
+		//template <typename B=T> requires( not IsVoid<B> and not IsConst<B> )
+		//NdCx__ T&		operator [] (usize idx)				__NE___	{ return _ptr[idx]; }
+		
+		//template <typename B=T> requires( not IsVoid<B> )
+		//NdCx__ T const&	operator [] (usize idx)				C_NE___	{ return _ptr[idx]; }
 
 
 	  #if defined(AE_COMPILER_MSVC)

@@ -66,9 +66,9 @@ namespace AE::Threading
 
 	// methods
 	public:
-		__Cz__ EThreadArray ()								__NE___	{}
-		__Cz__ EThreadArray (EThreadArray &&)				__NE___	= default;
-		__Cz__ EThreadArray (const EThreadArray &)			__NE___	= default;
+		__Cx__ EThreadArray ()								__NE___	{}
+		__Cx__ EThreadArray (EThreadArray &&)				__NE___	= default;
+		__Cx__ EThreadArray (const EThreadArray &)			__NE___	= default;
 
 		EThreadArray&  operator = (EThreadArray &&)			__NE___	= default;
 		EThreadArray&  operator = (const EThreadArray &)	__NE___	= default;

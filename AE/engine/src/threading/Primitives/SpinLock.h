@@ -100,7 +100,7 @@ namespace AE::Threading
 			void  shared_to_exclusive ()									__NE___;
 
 		ND_ bool  try_exclusive_to_shared ()								__NE___;
-		ND_ bool  try_exclusive_to_shared (uint numAttempts, int minReaders)__NE___;
+		ND_ bool  try_exclusive_to_shared (uint numAttempts)				__NE___;
 			void  exclusive_to_shared ()									__NE___;
 	};
 
@@ -140,7 +140,7 @@ namespace AE::Threading
 	// methods
 	public:
 		TValueWithSpinLockBit ()								__NE___ {}
-		explicit TValueWithSpinLockBit (Value_t v)				__NE___ : _value{v} { ASSERT( not _HasLockBit( _value.load() )); }
+		explicit TValueWithSpinLockBit (Value_t v)				__NE___ : _value{v} { ASSERT( is_unlocked() ); }
 		~TValueWithSpinLockBit ()								__NE___;
 
 		ND_ bool		try_lock ()								__NE___;
@@ -458,12 +458,12 @@ namespace AE::Threading
 	}
 
 	template <bool A, bool B>
-	bool  TRWSpinLock<A,B>::try_exclusive_to_shared (const uint numAttempts, const int minReaders) __NE___
+	bool  TRWSpinLock<A,B>::try_exclusive_to_shared (const uint numAttempts) __NE___
 	{
 		ASSERT( numAttempts > 0 );
 
 		int	exp = -1;
-		for (uint i = 0; (i < numAttempts) and (exp < minReaders); ++i)
+		for (uint i = 0; (i < numAttempts); ++i)
 		{
 			if ( _flag.CAS( INOUT exp, 1 ))
 				return true;
@@ -485,7 +485,7 @@ namespace AE::Threading
 	{
 		for (uint p = 0;; ++p)
 		{
-			if_likely( try_exclusive_to_shared( ThreadUtils::SpinBeforeLock(), _MaxReadLocks ))
+			if_likely( try_exclusive_to_shared( ThreadUtils::SpinBeforeLock() ))
 				return;
 
 			ThreadUtils::ProgressiveSleep( p );

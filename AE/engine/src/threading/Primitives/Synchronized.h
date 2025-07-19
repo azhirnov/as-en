@@ -233,7 +233,7 @@ namespace _hidden_
 		{}
 
 		Synchronized (Self &&other)			__NE___ :
-			_values{ RVRef(other).Extract() }
+			_values{ RVRef(other).Extract() }	// can not move synchronized primitive (SyncObj)
 		{}
 
 		explicit Synchronized (T0 &&arg0, T1 &&arg1, Types&&... args) __NE___ :
@@ -482,7 +482,7 @@ namespace _hidden_
 		{}
 
 		Synchronized (Self &&other)				__NE___ :
-			_value{ RVRef(other).Extract() }
+			_value{ RVRef(other).Extract() }	// can not move synchronized primitive (SyncObj)
 		{}
 
 		explicit Synchronized (T &&value)		__NE___ :
@@ -497,7 +497,7 @@ namespace _hidden_
 			_value{ value }  // throw
 		{}
 
-		template <typename ...Args, ENABLEIF( IsConstructible< T, Args... >)>
+		template <typename ...Args> requires( IsConstructible< T, Args... >)
 		explicit Synchronized (Args&& ...args)	__Th___ :
 			_value{ FwdArg<Args>(args)... }
 		{}

@@ -310,7 +310,6 @@ namespace AE::Threading
 							   const Tuple<Deps...> &	deps = Default)				__NE___;
 
 
-	  #ifdef AE_HAS_COROUTINE
 		template <typename ...Deps>
 			AsyncTask     Run (ETaskQueue				queueType,
 							   CoroTask					coro,
@@ -344,7 +343,6 @@ namespace AE::Threading
 				 >
 		ND_ Coroutine<T>  Run (Coroutine<T>				coro,
 							   const Tuple<Deps...>	&	deps	= Default)			__NE___;
-	  #endif // AE_HAS_COROUTINE
 
 
 			bool  Cancel (const AsyncTask &task)									__NE___;
@@ -500,8 +498,6 @@ namespace AE::Threading
 	always return non-null task
 =================================================
 */
-#ifdef AE_HAS_COROUTINE
-
 	template <typename ...Deps>
 	AsyncTask  TaskScheduler::Run (ETaskQueue queueType, CoroTask coro, const Tuple<Deps...> &deps, StringView dbgName) __NE___
 	{
@@ -569,8 +565,6 @@ namespace AE::Threading
 	{
 		return Run( ETaskQueue::PerFrame, RVRef(coro), deps );
 	}
-
-#endif // AE_HAS_COROUTINE
 
 /*
 =================================================

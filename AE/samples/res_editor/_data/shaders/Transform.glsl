@@ -2,11 +2,14 @@
 /*
 	local_pos * model_mat	= world_pos (world space)
 	world_pos * view_mat	= view_pos  (view space)
-	view_pos  * proj_mat	= clip_pos  (clip space)	- range [-1,+1] after /W
-	clip_pos  * viewport_tr	= scr_pos   (screen space)	- happens before FS
+	view_pos  * proj_mat	= clip_pos  (clip space)			- before /W
+	norm( clip_pos )		= ndc_pos	(NDC, norm clip space)	- after /W:  XY range [-1,+1], Z range [0, +1]
+	norm( ndc_pos )			= unorm_scr	(unorm screen pos)		- range [0,1]
+	unorm_scr * viewport	= scr_pos   (screen space in px)	- happens before FS
 */
 
 #include "Math.glsl"
+#include "Matrix.glsl"
 
 
 #ifdef DISABLE_un_PerObject
@@ -55,12 +58,17 @@ ND_ float3  LocalVecToWorldSpace (const float3 dir)
 
 /*
 =================================================
-	LocalPosToViewSpace
+	WorldPosToViewSpace / LocalPosToViewSpace
 =================================================
 */
+ND_ float4  WorldPosToViewSpace (const float4 pos)
+{
+	return un_PerPass.camera.view * pos;
+}
+
 ND_ float4  LocalPosToViewSpace (const float4 pos)
 {
-	return un_PerPass.camera.view * LocalPosToWorldSpace( pos );
+	return WorldPosToViewSpace( LocalPosToWorldSpace( pos ));
 }
 
 ND_ float4  LocalPosToViewSpace (const float3 pos)
@@ -70,25 +78,19 @@ ND_ float4  LocalPosToViewSpace (const float3 pos)
 
 /*
 =================================================
-	WorldPosToViewSpace
+	WorldPosToClipSpace / LocalPosToClipSpace
+----
+	result in coordinates before /w
 =================================================
 */
-ND_ float4  WorldPosToViewSpace (const float4 pos)
+ND_ float4  WorldPosToClipSpace (const float4 pos)
 {
-	return un_PerPass.camera.view * pos;
+	return un_PerPass.camera.viewProj * pos;
 }
 
-/*
-=================================================
-	LocalPosToClipSpace
-----
-	result in normalized coordinates before /w
-	and without viewport scaling.
-=================================================
-*/
 ND_ float4  LocalPosToClipSpace (const float4 pos)
 {
-	return un_PerPass.camera.viewProj * LocalPosToWorldSpace( pos );
+	return WorldPosToClipSpace( LocalPosToWorldSpace( pos ));
 }
 
 ND_ float4  LocalPosToClipSpace (const float3 pos)
@@ -98,11 +100,47 @@ ND_ float4  LocalPosToClipSpace (const float3 pos)
 
 /*
 =================================================
-	WorldPosToClipSpace
+	WorldPosToNormClipSpace / LocalPosToNormClipSpace
+----
+	result in normalized coordinates after /w.
+	W component contains 1/w as in 'gl.FragCoord.w'.
 =================================================
 */
-ND_ float4  WorldPosToClipSpace (const float4 pos)
+ND_ float4  WorldPosToNormClipSpace (const float4 pos)
 {
-	return un_PerPass.camera.viewProj * pos;
+	return ProjectToNormClipSpace( un_PerPass.camera.viewProj, pos );
 }
 
+ND_ float4  LocalPosToNormClipSpace (const float4 pos)
+{
+	return WorldPosToNormClipSpace( LocalPosToWorldSpace( pos ));
+}
+
+ND_ float4  LocalPosToNormClipSpace (const float3 pos)
+{
+	return LocalPosToNormClipSpace( float4( pos, 1.0f ));
+}
+
+/*
+=================================================
+	WorldPosToScreenSpace / LocalPosToScreenSpace
+----
+	XY in screen coordinates (pixels).
+	Z - non-linear depth in range [0, 1].
+	W - contains 1/w as in 'gl.FragCoord.w'.
+=================================================
+*/
+ND_ float4  WorldPosToScreenSpace (const float4 pos, float4 viewport)
+{
+	return ProjectToScreenSpace( un_PerPass.camera.viewProj, pos, viewport );
+}
+
+ND_ float4  LocalPosToScreenSpace (const float4 pos, float4 viewport)
+{
+	return WorldPosToScreenSpace( LocalPosToWorldSpace( pos ), viewport );
+}
+
+ND_ float4  LocalPosToScreenSpace (const float3 pos, float4 viewport)
+{
+	return LocalPosToScreenSpace( float4( pos, 1.0f ), viewport );
+}

@@ -57,14 +57,14 @@ namespace AE::Base
 		template <usize Bit>
 		NdCx__ bool		Has ()								C_NE___	{ StaticAssert( Bit < _BitCount );  return !!(_bits & (T{1} << Bit)); }
 
-		template <typename IT, ENABLEIF( IsInteger<IT> )>
-		__Cz__ Self&	Set (IT bit)						__NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  _bits |= T{1} << bit;  return *this; }
+		template <typename IT> requires( IsInteger<IT> )
+		__Cx__ Self&	Set (IT bit)						__NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  _bits |= T{1} << bit;  return *this; }
 
-		template <typename IT, ENABLEIF( IsInteger<IT> )>
-		__Cz__ Self&	Erase (IT bit)						__NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  _bits &= ~(T{1} << bit);  return *this; }
+		template <typename IT> requires( IsInteger<IT> )
+		__Cx__ Self&	Erase (IT bit)						__NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  _bits &= ~(T{1} << bit);  return *this; }
 
-		template <typename IT, ENABLEIF( IsInteger<IT> )>
-		NdCz__ bool		Has (IT bit)						C_NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  return !!(_bits & (T{1} << bit)); }
+		template <typename IT> requires( IsInteger<IT> )
+		NdCx__ bool		Has (IT bit)						C_NE___	{ ASSERT( bit >= 0 and bit < IT(_BitCount) );  return !!(_bits & (T{1} << bit)); }
 
 
 		// bit range //
@@ -77,14 +77,14 @@ namespace AE::Base
 		template <usize Bit, usize Count>
 		NdCx__ bool		HasRange ()							C_NE___;
 
-		template <typename IT, ENABLEIF( IsInteger<IT> )>
-		__Cz__ Self&	SetRange (IT first, IT count)		__NE___;
+		template <typename IT> requires( IsInteger<IT> )
+		__Cx__ Self&	SetRange (IT first, IT count)		__NE___;
 
-		template <typename IT, ENABLEIF( IsInteger<IT> )>
-		__Cz__ Self&	EraseRange (IT first, IT count)		__NE___;
+		template <typename IT> requires( IsInteger<IT> )
+		__Cx__ Self&	EraseRange (IT first, IT count)		__NE___;
 
-		template <typename IT, ENABLEIF( IsInteger<IT> )>
-		NdCz__ bool		HasRange (IT first, IT count)		C_NE___;
+		template <typename IT> requires( IsInteger<IT> )
+		NdCx__ bool		HasRange (IT first, IT count)		C_NE___;
 
 
 		NdCx__ explicit	operator T ()						C_NE___	{ return _bits; }
@@ -214,8 +214,8 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	template <typename IT, ENABLEIF_IMPL( IsInteger<IT> )>
-	__Cz__ Bitfield<T>&  Bitfield<T>::SetRange (IT first, IT count) __NE___
+	template <typename IT> requires( IsInteger<IT> )
+	__Cx__ Bitfield<T>&  Bitfield<T>::SetRange (IT first, IT count) __NE___
 	{
 		ASSERT( first < _BitCount );
 		ASSERT( first+count <= _BitCount );
@@ -225,8 +225,8 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	template <typename IT, ENABLEIF_IMPL( IsInteger<IT> )>
-	__Cz__ Bitfield<T>&  Bitfield<T>::EraseRange (IT first, IT count) __NE___
+	template <typename IT> requires( IsInteger<IT> )
+	__Cx__ Bitfield<T>&  Bitfield<T>::EraseRange (IT first, IT count) __NE___
 	{
 		ASSERT( first < _BitCount );
 		ASSERT( first+count <= _BitCount );
@@ -236,8 +236,8 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	template <typename IT, ENABLEIF_IMPL( IsInteger<IT> )>
-	__Cz__ bool  Bitfield<T>::HasRange (IT first, IT count) C_NE___
+	template <typename IT> requires( IsInteger<IT> )
+	__Cx__ bool  Bitfield<T>::HasRange (IT first, IT count) C_NE___
 	{
 		ASSERT( first < _BitCount );
 		ASSERT( first+count <= _BitCount );

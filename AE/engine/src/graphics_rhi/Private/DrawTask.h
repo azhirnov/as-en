@@ -251,7 +251,6 @@ namespace AE::Graphics
 
 
 
-# ifdef AE_HAS_COROUTINE
 namespace AE::Threading::_hidden_
 {
 
@@ -373,8 +372,8 @@ namespace AE::Threading::_hidden_
 				RC<DrawTask>	_dtask;
 
 			public:
-				ND_ bool			await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-				ND_ RC<DrawTask>	await_resume ()		__NE___	{ return RVRef(_dtask); }
+				ND_ bool			await_ready ()		C_NE___	{ return false; }			// call 'await_suspend()' to get coroutine handle
+				ND_ RC<DrawTask>	await_resume ()		__NE___	{ return RVRef(_dtask); }	// return result of 'co_await'
 
 				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
 				{
@@ -405,8 +404,8 @@ namespace AE::Threading::_hidden_
 				DrawTask*	_dtask = null;
 
 			public:
-				ND_ bool		await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-				ND_ DrawTask &	await_resume ()		__NE___	{ NonNull( _dtask );  return *_dtask; }
+				ND_ bool		await_ready ()		C_NE___	{ return false; }						// call 'await_suspend()' to get coroutine handle
+				ND_ DrawTask &	await_resume ()		__NE___	{ NonNull( _dtask );  return *_dtask; }	// return result of 'co_await'
 
 				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
 				{
@@ -448,7 +447,7 @@ namespace AE::Graphics
 				CmdBufType &	_cmdbuf2;
 
 				ND_ bool	await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-					void	await_resume ()		C_NE___	{}
+					void	await_resume ()		C_NE___	{}					// return result of 'co_await'
 
 				ND_ bool	await_suspend (std::coroutine_handle< Promise_t > curCoro) __Th___
 				{
@@ -463,5 +462,4 @@ namespace AE::Graphics
 
 
 } // AE::Graphics
-# endif // AE_HAS_COROUTINE
 //-----------------------------------------------------------------------------

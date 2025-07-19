@@ -162,64 +162,6 @@ namespace AE::Base
 		rhs.insert( rhs.begin(), lhs );
 		return rhs;
 	}
-
-/*
-=================================================
-	operator << (String &,		CStyleString)
-	operator << (String &,		char)
-	operator >> (CStyleString,	String &)
-	operator >> (char,			String &)
-=================================================
-*/
-#if not defined(__cpp_char8_t)
-	inline U8String&&  operator << (U8String &&lhs, char const * const rhs) __Th___
-	{
-		return	rhs != null ?
-					RVRef( RVRef(lhs).append( Cast<CharUtf8>(rhs) )) :
-					RVRef(lhs);
-	}
-
-	inline U8String&  operator << (U8String &lhs, char const * const rhs) __Th___
-	{
-		return	rhs != null ?
-					lhs.append( Cast<CharUtf8>(rhs) ) :
-					lhs;
-	}
-
-	inline U8String&&  operator << (U8String &&lhs, const char rhs) __Th___
-	{
-		return RVRef( RVRef(lhs) += CharUtf8(rhs) );
-	}
-
-	inline U8String&  operator << (U8String &lhs, const char rhs) __Th___
-	{
-		return (lhs += CharUtf8(rhs));
-	}
-
-	inline U8String&&  operator >> (char const * const lhs, U8String &&rhs) __Th___
-	{
-		rhs.insert( 0u, Cast<CharUtf8>(lhs) );
-		return RVRef(rhs);
-	}
-
-	inline U8String&  operator >> (char const * const lhs, U8String &rhs) __Th___
-	{
-		rhs.insert( 0u, Cast<CharUtf8>(lhs) );
-		return rhs;
-	}
-
-	inline U8String&&  operator >> (const char lhs, U8String &&rhs) __Th___
-	{
-		rhs.insert( rhs.begin(), CharUtf8(lhs) );
-		return RVRef(rhs);
-	}
-
-	inline U8String&  operator >> (const char lhs, U8String &rhs) __Th___
-	{
-		rhs.insert( rhs.begin(), CharUtf8(lhs) );
-		return rhs;
-	}
-#endif
 //-----------------------------------------------------------------------------
 
 
@@ -658,7 +600,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	__Cz__ bool  WCharToAnsi (OUT CharAnsi* dst, const T* src, usize len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
+	__Cx__ bool  WCharToAnsi (OUT CharAnsi* dst, const T* src, usize len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
 	{
 		NonNull( dst );
 		NonNull( src );
@@ -681,7 +623,7 @@ namespace AE::Base
 =================================================
 */
 #ifdef AE_ENABLE_UTF8PROC
-	__CzIn bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
+	__CxIn bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
 	{
 		NonNull( dst );
 		NonNull( src );
@@ -836,7 +778,7 @@ namespace AE::Base
 	  #endif
 	}
 
-	template <typename T, ENABLEIF( IsInteger<T> )>
+	template <typename T> requires( IsInteger<T> )
 	ND_ FromCharsResult  FromChars (OUT T &val, StringView str, int base) __NE___
 	{
 		ASSERT( base == 10 or base == 16 );

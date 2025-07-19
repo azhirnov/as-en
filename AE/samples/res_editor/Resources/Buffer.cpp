@@ -51,7 +51,7 @@ namespace
 		_typeName{ typeName },
 		_staticSize{ staticSize },
 		_elemSize{ elemSize },
-		_bufDesc{ desc },
+		_requiredBufDesc{ desc },
 		_inDynCount{ RVRef(inDynCount) },
 		_outDynCount{ RVRef(outDynCount) },
 		_loadOp{ RVRef(loadOp) },
@@ -175,7 +175,7 @@ namespace
 		if_likely( not _inDynCount->IsChanged( INOUT count ) or count == 0 )
 			return false;
 
-		BufferDesc	desc = _bufDesc.Read();
+		BufferDesc	desc = _requiredBufDesc;
 		desc.size = _staticSize + Max( count, 1u ) * _elemSize;
 
 		auto&	res_mngr	= GraphicsScheduler().GetResourceManager();
@@ -183,10 +183,6 @@ namespace
 
 		auto	buf = res_mngr.CreateBuffer( desc, _dbgName, _Renderer().ChooseAllocator( True{"dynamic"}, desc.size ));
 		CHECK_ERR( buf );
-
-		// TODO: sync problem: _bufDesc updated before _id
-		// possible fix: don't allow to access '_bufDesc', use 'GetDescription( _id )' instead
-		_bufDesc.Write( desc );
 
 		rs_track.AddResource( buf.Get(),
 							  EResourceState::_InvalidState,	// current is not used
@@ -249,14 +245,16 @@ namespace
 
 		if ( _loadOp.clear )
 		{
+			const Bytes	size = GetBufferDesc().size;
+
 			if ( HasHistory() )
 			{
 				for (auto& id : _ids) {
-					ctx.FillBuffer( id.Get(), 0_b, _bufDesc->size, 0 );
+					ctx.FillBuffer( id.Get(), 0_b, size, 0 );
 				}
 			}
 			else
-				ctx.FillBuffer( _ids[0].Get(), 0_b, _bufDesc->size, 0 );
+				ctx.FillBuffer( _ids[0].Get(), 0_b, size, 0 );
 
 			_SetUploadStatus( EUploadStatus::Completed );
 			return _uploadStatus.load();
@@ -285,8 +283,10 @@ namespace
 
 		if_unlikely( not _loadOp.stream.IsInitialized() )
 		{
-			CHECK( loaded_data.size() == _bufDesc->size );
-			_loadOp.stream = BufferStream{ _ids[0].Get(), UploadBufferDesc{ 0_b, _bufDesc->size }.DynamicHeap() };
+			const Bytes	size = GetBufferDesc().size;
+
+			CHECK( loaded_data.size() == size );
+			_loadOp.stream = BufferStream{ _ids[0].Get(), UploadBufferDesc{ 0_b, size }.DynamicHeap() };
 
 			ctx.ResourceState( _ids[0].Get(), EResourceState::Invalidate );
 		}
@@ -340,8 +340,6 @@ namespace
 			Unused( dst.Attach( res_mngr.AcquireResource( src._ids[0].Get() )));
 		}
 
-		result->_bufDesc.Write( res_mngr.GetDescription( result->_ids[0] ));
-
 		result->_uploadStatus.store( EUploadStatus::InProgress );
 
 		result->_storeOp = StoreOp2{storeOp};
@@ -386,6 +384,16 @@ namespace
 		}
 
 		return _uploadStatus.load();
+	}
+	
+/*
+=================================================
+	GetBufferDesc
+=================================================
+*/
+	BufferDesc  Buffer::GetBufferDesc () const
+	{
+		return GraphicsScheduler().GetResourceManager().GetDescription( _ids[0].Get() );
 	}
 
 

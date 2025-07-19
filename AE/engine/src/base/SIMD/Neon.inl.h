@@ -187,7 +187,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( sizeof(T)==1 )>
+	template <typename T> requires( sizeof(T)==1 )
 	SimdTInt64<IT>::SimdTInt64 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3,
 								Scalar_t v4, Scalar_t v5, Scalar_t v6, Scalar_t v7) __NE___
 	{
@@ -200,7 +200,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( sizeof(T)==2 )>
+	template <typename T> requires( sizeof(T)==2 )
 	SimdTInt64<IT>::SimdTInt64 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3) __NE___
 	{
 		Scalar_t a[] = {v0, v1, v2, v3};
@@ -212,7 +212,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( sizeof(T)==4 )>
+	template <typename T> requires( sizeof(T)==4 )
 	SimdTInt64<IT>::SimdTInt64 (Scalar_t v0, Scalar_t v1) __NE___
 	{
 		Scalar_t a[] = {v0, v1};
@@ -224,7 +224,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ubyte > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ubyte > and IsSame< B, bool >)
 	SimdTInt64<IT>::SimdTInt64 (B v0, B v1, B v2, B v3, B v4, B v5, B v6, B v7) __NE___
 	{
 		ubyte  a[] = {	T(v0 ? 0xFF : 0), T(v1 ? 0xFF : 0), T(v2 ? 0xFF : 0), T(v3 ? 0xFF : 0),
@@ -234,7 +234,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ushort > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ushort > and IsSame< B, bool >)
 	SimdTInt64<IT>::SimdTInt64 (B v0, B v1, B v2, B v3) __NE___
 	{
 		ushort  a[] = { T(v0 ? 0xFFFF : 0), T(v1 ? 0xFFFF : 0), T(v2 ? 0xFFFF : 0), T(v3 ? 0xFFFF : 0) };
@@ -243,7 +243,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, uint > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, uint > and IsSame< B, bool >)
 	SimdTInt64<IT>::SimdTInt64 (B v0, B v1) __NE___
 	{
 		uint  a[] = { (v0 ? ~0u : 0), (v1 ? ~0u : 0) };
@@ -288,7 +288,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	SimdTInt64<IT>  SimdTInt64<IT>::Abs ()  C_NE___
 	{
 		if constexpr( isI8 )	return Self{ vabs_s8( _value )};
@@ -302,7 +302,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	SimdTInt64<IT>  SimdTInt64<IT>::Negative ()  C_NE___
 	{
 		if constexpr( isI8 )	return Self{ vneg_s8(  _value )};
@@ -316,7 +316,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	SimdTInt64<IT>  SimdTInt64<IT>::NegativeSat ()  C_NE___
 	{
 		if constexpr( isI8 )	return Self{ vqneg_s8(  _value )};
@@ -904,7 +904,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	typename SimdTInt64<IT>::Mask_t  SimdTInt64<IT>::ToBitfield ()  C_NE___
 	{
 		if constexpr( isU8 )
@@ -956,7 +956,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	bool  SimdTInt64<IT>::All ()  C_NE___
 	{
 	#if AE_SIMD_NEON64
@@ -976,7 +976,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	bool  SimdTInt64<IT>::Any ()  C_NE___
 	{
 	#if AE_SIMD_NEON64
@@ -996,7 +996,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	bool  SimdTInt64<IT>::None ()  C_NE___
 	{
 	#if AE_SIMD_NEON64
@@ -1101,7 +1101,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y, uint Z, uint W,  typename T, ENABLEIF_IMPL( sizeof(T)==2 )>
+	template <uint X, uint Y, uint Z, uint W,  typename T> requires( sizeof(T)==2 )
 	SimdTInt64<IT>  SimdTInt64<IT>::Swizzle () C_NE___
 	{
 		StaticAssert( Has_Swizzle() );
@@ -1118,7 +1118,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y,  typename T, ENABLEIF_IMPL( sizeof(T)==4 )>
+	template <uint X, uint Y,  typename T> requires( sizeof(T)==4 )
 	SimdTInt64<IT>  SimdTInt64<IT>::Swizzle ()  C_NE___
 	{
 		StaticAssert( Has_Swizzle() );
@@ -1133,7 +1133,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	auto  SimdTInt64<IT>::ToSigned () C_NE___
 	{
 		using S = ToSignedInteger<IT>;
@@ -1146,7 +1146,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	auto  SimdTInt64<IT>::ToUnsigned () C_NE___
 	{
 		using U = ToUnsignedInteger<IT>;
@@ -1584,7 +1584,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( sizeof(T)==1 )>
+	template <typename T> requires( sizeof(T)==1 )
 	SimdTInt128<IT>::SimdTInt128 (Scalar_t v00, Scalar_t v01, Scalar_t v02, Scalar_t v03,
 								  Scalar_t v04, Scalar_t v05, Scalar_t v06, Scalar_t v07,
 								  Scalar_t v08, Scalar_t v09, Scalar_t v10, Scalar_t v11,
@@ -1599,7 +1599,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( sizeof(T)==2 )>
+	template <typename T> requires( sizeof(T)==2 )
 	SimdTInt128<IT>::SimdTInt128 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3,
 								  Scalar_t v4, Scalar_t v5, Scalar_t v6, Scalar_t v7) __NE___
 	{
@@ -1612,7 +1612,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( sizeof(T)==4 )>
+	template <typename T> requires( sizeof(T)==4 )
 	SimdTInt128<IT>::SimdTInt128 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3) __NE___
 	{
 		Scalar_t a[] = {v0, v1, v2, v3};
@@ -1624,7 +1624,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( sizeof(T)==8 )>
+	template <typename T> requires( sizeof(T)==8 )
 	SimdTInt128<IT>::SimdTInt128 (Scalar_t v0, Scalar_t v1) __NE___
 	{
 		Scalar_t a[] = {v0, v1};
@@ -1640,7 +1640,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ubyte > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ubyte > and IsSame< B, bool >)
 	SimdTInt128<IT>::SimdTInt128 (B v00, B v01, B v02, B v03, B v04, B v05, B v06, B v07,
 								  B v08, B v09, B v10, B v11, B v12, B v13, B v14, B v15) __NE___
 	{
@@ -1653,7 +1653,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ushort > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ushort > and IsSame< B, bool >)
 	SimdTInt128<IT>::SimdTInt128 (B v0, B v1, B v2, B v3, B v4, B v5, B v6, B v7) __NE___
 	{
 		ushort  a[] = { T(v0 ? 0xFFFF : 0), T(v1 ? 0xFFFF : 0), T(v2 ? 0xFFFF : 0), T(v3 ? 0xFFFF : 0),
@@ -1663,7 +1663,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, uint > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, uint > and IsSame< B, bool >)
 	SimdTInt128<IT>::SimdTInt128 (B v0, B v1, B v2, B v3) __NE___
 	{
 		uint  a[] = { (v0 ? ~0u : 0), (v1 ? ~0u : 0), (v2 ? ~0u : 0), (v3 ? ~0u : 0) };
@@ -1672,7 +1672,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ulong > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ulong > and IsSame< B, bool >)
 	SimdTInt128<IT>::SimdTInt128 (B v0, B v1) __NE___
 	{
 		ulong  a[] = { (v0 ? ~0ull : 0), (v1 ? ~0ull : 0) };
@@ -1686,7 +1686,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( sizeof(T)<=4 )>
+	template <typename T> requires( sizeof(T)<=4 )
 	SimdTInt128<IT>::SimdTInt128 (const SimdTInt64<IT> &low, const SimdTInt64<IT> &high) __NE___
 	{
 		if constexpr( isU8  )	_value = vcombine_u8(  low.Ref(), high.Ref() );
@@ -2378,7 +2378,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	SimdTInt128<IT>  SimdTInt128<IT>::Abs ()  C_NE___
 	{
 		if constexpr( isI8 )	return Self{ vabsq_s8( _value )};
@@ -2395,7 +2395,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	SimdTInt128<IT>  SimdTInt128<IT>::Negative ()  C_NE___
 	{
 		if constexpr( isI8 )	return Self{ vnegq_s8(  _value )};
@@ -2414,7 +2414,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	SimdTInt128<IT>  SimdTInt128<IT>::NegativeSat ()  C_NE___
 	{
 		if constexpr( isI8 )	return Self{ vqnegq_s8(  _value )};
@@ -2464,7 +2464,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y, uint Z, uint W,  typename T, ENABLEIF_IMPL( sizeof(T)==4 )>
+	template <uint X, uint Y, uint Z, uint W,  typename T> requires( sizeof(T)==4 )
 	SimdTInt128<IT>  SimdTInt128<IT>::Swizzle () C_NE___
 	{
 		StaticAssert( Has_Swizzle() );
@@ -2481,7 +2481,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y,  typename T, ENABLEIF_IMPL( sizeof(T)==8 )>
+	template <uint X, uint Y,  typename T> requires( sizeof(T)==8 )
 	SimdTInt128<IT>  SimdTInt128<IT>::Swizzle ()  C_NE___
 	{
 		StaticAssert( Has_Swizzle() );
@@ -2566,7 +2566,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	typename SimdTInt128<IT>::Mask_t  SimdTInt128<IT>::ToBitfield ()  C_NE___
 	{
 		if constexpr( isU8 )
@@ -2634,7 +2634,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	bool  SimdTInt128<IT>::All ()  C_NE___
 	{
 	#if AE_SIMD_NEON64
@@ -2659,7 +2659,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	bool  SimdTInt128<IT>::Any ()  C_NE___
 	{
 	#if AE_SIMD_NEON64
@@ -2683,7 +2683,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	bool  SimdTInt128<IT>::None ()  C_NE___
 	{
 	#if AE_SIMD_NEON64
@@ -2726,7 +2726,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	auto  SimdTInt128<IT>::ToSigned () C_NE___
 	{
 		using S = ToSignedInteger<IT>;
@@ -2739,7 +2739,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	auto  SimdTInt128<IT>::ToUnsigned () C_NE___
 	{
 		using U = ToUnsignedInteger<IT>;

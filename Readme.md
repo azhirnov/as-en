@@ -9,7 +9,7 @@
 
 __AsEn__ - is a totally asynchronous engine for desktop and mobile.
 
-Language: minimal C++ 17, preferred C++ 20/23<br/>
+Language: minimal C++ 20<br/>
 Platforms: Windows, Android, Linux, MacOS, Emscripten (without graphics)<br/>
 GraphicsAPI: Vulkan, Metal<br/>
 Shaders: GLSL, MSL<br/>
@@ -72,7 +72,7 @@ Notes:
 
 __AsEn__ - полностью асинхронный движок.
 
-Язык: минимально C++ 17, рекомендуется C++ 20/23<br/>
+Язык: C++ 20<br/>
 Платформы: Windows, Android, Linux, MacOS, Emscripten (без графики)<br/>
 Графика: Vulkan, Metal<br/>
 Шейдеры: GLSL, MSL<br/>

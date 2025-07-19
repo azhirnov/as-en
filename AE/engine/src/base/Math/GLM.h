@@ -10,11 +10,7 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_ENABLE_EXPERIMENTAL		// for gtx
-#if AE_CXX_VER >= 20
-# define GLM_FORCE_CXX20
-#else
-# define GLM_FORCE_CXX17
-#endif
+#define GLM_FORCE_CXX20
 #define GLM_FORCE_EXPLICIT_CTOR
 //#define GLM_FORCE_XYZW_ONLY		// will disable SIMD
 #define GLM_FORCE_CTOR_INIT

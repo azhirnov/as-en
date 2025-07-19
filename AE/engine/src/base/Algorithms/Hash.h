@@ -114,8 +114,8 @@ namespace AE::Base
 	HashOf
 =================================================
 */
-	template <typename T>
-	ND_ forceinline EnableIf<not IsFloatPoint<T>, HashVal>  HashOf (const T &value) __NE___
+	template <typename T> requires(not IsFloatPoint<T>)
+	ND_ forceinline HashVal  HashOf (const T &value) __NE___
 	{
 		return HashVal{ std::hash<T>{}( value )};
 	}

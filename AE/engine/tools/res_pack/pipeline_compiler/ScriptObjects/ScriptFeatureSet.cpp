@@ -65,6 +65,8 @@ namespace
 
 	template <typename T>	struct FS_ReplaceOutType					{ using dst = T;	static T	Cast (T src)		{ return src; }};
 	template <>				struct FS_ReplaceOutType< EFeature >		{ using dst = bool;	static dst	Cast (EFeature src)	{ return src == EFeature::RequireTrue; }};
+	template <>				struct FS_ReplaceOutType< POTValue >		{ using dst = uint;	static dst	Cast (POTValue src)	{ return uint{src}; }};
+	template <>				struct FS_ReplaceOutType< POTBytes >		{ using dst = uint;	static dst	Cast (POTBytes src)	{ return uint{src}; }};
 
 
 	#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )															\
@@ -456,7 +458,7 @@ namespace
 				if constexpr( IsSame< _type_, EFeature >)														\
 					AS_METHOD( binder, Get_FS_ ## _name_, ToMethodName2( "has", AE_TOSTRING( _name_ )), {} );	\
 																												\
-				if constexpr( IsInteger< _type_ >)																\
+				if constexpr( IsInteger< _type_ > or IsPowerOf2Value< _type_ >)									\
 					AS_METHOD( binder, Get_FS_ ## _name_, ToMethodName2( "get", AE_TOSTRING( _name_ )), {} );	\
 
 			AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )

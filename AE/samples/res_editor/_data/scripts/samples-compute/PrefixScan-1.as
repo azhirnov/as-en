@@ -2,6 +2,8 @@
 /*
 	Move random distributed IDs to the left.
 	Limited to subgroup size (16 - 64 threads depends on GPU).
+
+	Bug in Intel driver: subgroup size in vulkan - 32, but gl.subgroup.Size = 16. Can be fixed by subgroup size control.
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -15,12 +17,13 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Buffer>		id_buf		= Buffer();
-		RC<DynamicUInt>	row_count	= DynamicUInt();
-		const uint		local_size	= 32;	// TODO: get subgroup size
-		const uint		col_count	= local_size;
-		RC<DynamicUInt>	id_count	= row_count.Mul( col_count );
+		RC<Image>		rt					= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
+		RC<Buffer>		id_buf				= Buffer();
+		RC<DynamicUInt>	row_count			= DynamicUInt();
+		const bool		has_subgroup_size	= GetFeatureSet().hasSubgroupSizeControl();
+		const uint		local_size			= has_subgroup_size ? GetFeatureSet().getMaxSubgroupSize() : GetSubgroupSize();
+		const uint		col_count			= local_size;
+		RC<DynamicUInt>	id_count			= row_count.Mul( col_count );
 
 		id_buf.ArrayLayout(
 			"IdBuffer",
@@ -41,6 +44,7 @@
 			pass.ArgInOut( "un_IdBuf",		id_buf );
 			pass.LocalSize( col_count );
 			pass.DispatchGroups( row_count );
+			if ( has_subgroup_size ) pass.SubgroupSize( local_size );
 		}{
 			RC<Postprocess>		pass = Postprocess();
 			pass.ArgIn(  "un_IdBuf",		id_buf );

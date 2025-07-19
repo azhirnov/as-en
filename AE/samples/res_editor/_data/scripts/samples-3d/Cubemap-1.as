@@ -9,7 +9,6 @@
 void ASmain ()
 {
 	RC<Image>		rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );	rt.Name( "RT-Color" );
-	RC<Image>		ds			= Image( EPixelFormat::Depth32F, SurfaceSize() );		ds.Name( "RT-Depth" );
 
 	const string	cm_addr		= "res/humus/LancellottiChapel/";	const string  cm_ext = ".jpg";	const uint2	cm_dim (2048);
 
@@ -58,7 +57,6 @@ void ASmain ()
 		RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "main pass" );
 		draw.AddPipeline( "samples/Cubemap.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Cubemap.as)
 		draw.Output( "out_Color", rt, RGBA32f(0.0) );
-		draw.Output( ds, DepthStencil(1.f, 0) );
 		draw.Slider( "iUVMode", 0, 1, 1 );
 	}
 	Present( rt );

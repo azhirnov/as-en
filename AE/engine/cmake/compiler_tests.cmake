@@ -2,16 +2,16 @@
 
 include( CheckCXXSourceCompiles )
 
-if (NOT DEFINED AE_CXX_17)
+if (NOT DEFINED AE_CXX_20)
 	message( FATAL_ERROR "'compiler_tests.cmake' included before C++ version check" )
 endif()
 
-if ( ${AE_CXX_17} )
-	set( AE_DEFAULT_CPPFLAGS "-std=c++17" )
-elseif( ${AE_CXX_20} )
+if( ${AE_CXX_20} )
 	set( AE_DEFAULT_CPPFLAGS "-std=c++20" )
 elseif( ${AE_CXX_23} )
 	set( AE_DEFAULT_CPPFLAGS "-std=c++23" )
+elseif( ${AE_CXX_26} )
+	set( AE_DEFAULT_CPPFLAGS "-std=c++26" )
 endif()
 
 string( FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" outPos )
@@ -44,7 +44,7 @@ else()
 		try_compile(
 			STD_FILESYSTEM_SUPPORTED
 			SOURCE_FROM_VAR 		"main.cpp" STD_FILESYSTEM_SUPPORTED_SRC
-			CXX_STANDARD  			17
+			CXX_STANDARD  			20
 			CXX_STANDARD_REQUIRED 	YES
 		)
 		set( AE_STD_FILESYSTEM_SUPPORTED ${STD_FILESYSTEM_SUPPORTED} CACHE INTERNAL "" FORCE )
@@ -75,7 +75,7 @@ else()
 		try_compile(
 			STD_CACHELINESIZE_SUPPORTED
 			SOURCE_FROM_VAR 		"main.cpp" STD_CACHELINESIZE_SUPPORTED_SRC
-			CXX_STANDARD  			17
+			CXX_STANDARD  			20
 			CXX_STANDARD_REQUIRED 	YES
 		)
 		set( STD_CACHELINESIZE_SUPPORTED ${STD_CACHELINESIZE_SUPPORTED} CACHE INTERNAL "" FORCE )
@@ -162,62 +162,6 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (HAS_HASHFN_HashArrayRepresentation OR HAS_HASHFN_Murmur2OrCityhash OR HAS_HASHFN_HashBytes))
 	message( STATUS "Warning: used fallback hash function" )
-endif()
-
-#==============================================================================
-set( CPP_COROUTINE_SUPPORTED_SRC
-	"#include <coroutine>
-	#ifndef __cpp_impl_coroutine
-	#   error coroutines are not supported by compiler
-	#endif
-	#ifndef __cpp_lib_coroutine
-	#   error coroutines are not implemented in std
-	#endif
-	int main () {
-		return 0;
-	}"
-)
-
-if (${CMAKE_VERSION} VERSION_LESS "3.25.0")
-	check_cxx_source_compiles(
-		"${CPP_COROUTINE_SUPPORTED_SRC}"
-		CPP_COROUTINE_SUPPORTED )
-	set( AE_HAS_CXX_COROUTINE ${CPP_COROUTINE_SUPPORTED} CACHE INTERNAL "" FORCE )
-else()
-	# use CXX_STANDARD instead of flags
-	if (NOT DEFINED AE_HAS_CXX_COROUTINE)
-		message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED" )
-		try_compile(
-			CPP_COROUTINE_SUPPORTED
-			SOURCE_FROM_VAR 		"main.cpp" CPP_COROUTINE_SUPPORTED_SRC
-			CXX_STANDARD  			20
-			CXX_STANDARD_REQUIRED 	YES
-		)
-		set( AE_HAS_CXX_COROUTINE ${CPP_COROUTINE_SUPPORTED} CACHE INTERNAL "" FORCE )
-		if (CPP_COROUTINE_SUPPORTED)
-			message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED - Success" )
-		else()
-			message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED - Failed" )
-		endif()
-	endif()
-endif()
-
-# disable coroutines for MSVC + Clang
-if (${AE_HAS_CXX_COROUTINE})
-	string( FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" outPos )
-	if ( MSVC AND (outPos GREATER -1) )
-		set( AE_HAS_CXX_COROUTINE OFF CACHE INTERNAL "" FORCE )
-		message( STATUS "Disable Coroutines for MSVC Clang" )
-	endif()
-endif()
-
-# disable coroutines for C++17
-if (${AE_FORCE_CXX17})
-	set( AE_HAS_CXX_COROUTINE OFF CACHE INTERNAL "" FORCE )
-endif()
-
-if (${AE_HAS_CXX_COROUTINE})
-	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_HAS_COROUTINE" )
 endif()
 
 #==============================================================================

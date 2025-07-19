@@ -49,15 +49,15 @@ namespace _hidden_
 
 
 	// Uniform //
-		template <typename T>
-		ND_ EnableIf<IsFloatPoint<T>, T>  Uniform (T min, T max)			__NE___
+		template <typename T> requires(IsFloatPoint<T>)
+		ND_ T  Uniform (T min, T max)										__NE___
 		{
 			StaticAssert( IsScalar<T> );
 			return std::uniform_real_distribution<T>{ min, max }( _gen );
 		}
 
-		template <typename T>
-		ND_ EnableIf<IsInteger<T>, T>  Uniform (T min, T max)				__NE___
+		template <typename T> requires(IsInteger<T>)
+		ND_ T  Uniform (T min, T max)										__NE___
 		{
 			StaticAssert( IsScalar<T> );
 			return std::uniform_int_distribution<T>{ min, max }( _gen );
@@ -73,14 +73,14 @@ namespace _hidden_
 			return ret;
 		}
 
-		template <typename T>
-		ND_ EnableIf<IsFloatPoint<T>, T>  Uniform ()						__NE___
+		template <typename T> requires(IsFloatPoint<T>)
+		ND_ T  Uniform ()													__NE___
 		{
 			return Uniform( T{0}, T{1} );
 		}
 
-		template <typename T>
-		ND_ EnableIf<IsInteger<T>, T>  Uniform ()							__NE___
+		template <typename T> requires(IsInteger<T>)
+		ND_ T  Uniform ()													__NE___
 		{
 			using IT = typename Base::_hidden_::Random_Uniform_IntType<T>::type;
 			return T( Uniform<IT>( Base::MinValue<T>(), Base::MaxValue<T>() ));

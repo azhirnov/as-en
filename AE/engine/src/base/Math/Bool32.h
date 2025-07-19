@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Math/GLM.h"
+#include "base/Common.h"
 
 namespace AE::Base
 {
@@ -51,5 +51,8 @@ namespace AE::Base
 	template <>	struct TMemCopyAvailable< Bool32 >		: CT_True {};
 	template <>	struct TZeroMemAvailable< Bool32 >		: CT_True {};
 	template <>	struct TTriviallySerializable< Bool32 >	: CT_True {};
+	
+	template <typename T>
+	static constexpr bool  IsBool = IsSame<T, bool> or IsSame<T, Bool32>;
 
 } // AE::Base

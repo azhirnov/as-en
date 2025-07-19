@@ -1981,6 +1981,14 @@ static void  RecordBasicShaderInfo (TIntermAggregate* body, const TSourceLoc &lo
 		if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
 			body->getSequence().push_back( fncall );
 	}
+	
+	// "dbg_AppendToTrace( gl_SubgroupSize, location )"
+	if ( auto*  invocation = dbgInfo.GetCachedSymbolNode( "gl_SubgroupSize" ))
+	{
+		const uint	loc_id = dbgInfo.GetCustomSourceLocation( invocation, loc );
+		if ( auto* fncall = CreateAppendToTrace( invocation, loc_id, dbgInfo ))
+			body->getSequence().push_back( fncall );
+	}
 }
 
 /*

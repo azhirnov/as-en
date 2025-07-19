@@ -42,8 +42,8 @@ namespace AE::Base
 		NdCx__ T	GetPercent ()									C_NE___	{ return _value * T(100.0); }			// 0..100%
 		NdCx__ T	GetFraction ()									C_NE___	{ return _value; }						// 0..1
 
-		template <typename B>
-		NdCx__ EnableIf<IsFloatPoint<B>, B>  Of (const B &value)	C_NE___	{ return value * B{GetFraction()}; }
+		template <typename B> requires(IsFloatPoint<B>)
+		NdCx__ B	Of (const B &value)								C_NE___	{ return value * B{GetFraction()}; }
 
 		template <typename B>
 		NdCx__ static Self	FromPercent (B value)					__NE___	{ return Self{ T(value) * T(0.01) }; }

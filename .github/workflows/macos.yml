@@ -37,6 +37,7 @@ jobs:
       working-directory: ${{github.workspace}}
       run: |
         mkdir _res_editor
+        cp -R "${{github.workspace}}/AE-Temp/samples/res_editor" "_res_editor/ui"
         cp -R "${{github.workspace}}/AE/samples/res_editor/_data" "_res_editor/data"
         cp -R "${{github.workspace}}/AE/engine/shared_data" "_res_editor/shared_data"
         cp ${{github.workspace}}/_build/bin/ResourceEditor.app _res_editor/ResourceEditor.app
@@ -108,14 +109,14 @@ jobs:
      
         
         
-  build-cxx17:
+  build-cxx20:
     strategy:
       matrix:
         config: [Debug]
       fail-fast: false
     
     runs-on: macos-latest
-    name: MacOS ARM64, C++17, ${{matrix.config}}
+    name: MacOS ARM64, C++20, ${{matrix.config}}
     timeout-minutes: 90
     
     steps:
@@ -131,7 +132,7 @@ jobs:
       
     - name: Configure CMake
       working-directory: ${{github.workspace}}
-      run: cmake -DCMAKE_BUILD_TYPE=${{matrix.config}} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DAE_ENABLE_VULKAN=ON -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -DAE_FORCE_CXX17=ON -DAE_EXCLUDE_PACK_RES=ON -S "AE" -B "_build"
+      run: cmake -DCMAKE_BUILD_TYPE=${{matrix.config}} -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 -DAE_ENABLE_VULKAN=ON -DAE_USE_PCH=OFF -DAE_CI_BUILD_TEST=ON -DAE_ENABLE_LOGS=ON -DAE_FORCE_CXX20=ON -DAE_EXCLUDE_PACK_RES=ON -S "AE" -B "_build"
     
     - name: Build
       id: build

@@ -58,7 +58,7 @@ namespace AE::CICD
 
 		ND_ bool  _Send (const void* data, Bytes dataSize);
 
-		template <typename T, ENABLEIF( IsBaseOf< Msg::BaseMsg, T >)>
+		template <typename T> requires( IsBaseOf< Msg::BaseMsg, T >)
 		ND_ bool  _Send (T &);
 
 		ND_ bool  _Receive ();
@@ -172,7 +172,7 @@ namespace AE::CICD
 	_Send
 =================================================
 */
-	template <typename T, ENABLEIF_IMPL( IsBaseOf< Msg::BaseMsg, T >)>
+	template <typename T> requires( IsBaseOf< Msg::BaseMsg, T >)
 	bool  NetBase::_Send (T &msg)
 	{
 		if constexpr( IsBaseOf< Msg::SessionMsg, T > and not IsSame< Msg::Log, T >)

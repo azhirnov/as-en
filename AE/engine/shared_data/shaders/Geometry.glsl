@@ -10,19 +10,37 @@
 #include "Math.glsl"
 
 
-	void	Ray_GetPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp);		// 3D
+// 2D
+ND_ float3	Line_GetEquation (const float2 begin, const float2 end);
 
-ND_ float	Line_MinDistance (const float2 begin, const float2 end, const float2 point);		// 2D
-ND_ float3	Line_GetEquation (const float2 begin, const float2 end);							// 2D
+ND_ bool	Line_RayIntersection (const float2 begin0, const float2 end0,
+								  const float2 begin1, const float2 end1,
+								  out float2 intersection);
 
-ND_ float	Ray_MinDistance (const float3 dir, const float3 point);								// 3D
-ND_ float	Line_MinDistance (const float3 begin, const float3 end, const float3 point);		// 3D
+ND_ bool	Line_Perpendicular (const float2 pos, const float2 begin, const float2 end, out float2 pointOnLine);
+ND_ bool	Line_PointInside (const float2 begin, const float2 end, const float2 projectedPoint);
+ND_ bool	Line_PointOnLine (const float2 begin, const float2 end, const float2 point);
+ND_ float2	Line_ProjectPoint (const float2 begin, const float2 end, const float2 point);
 
-ND_ float4	Plane_PointPerpendicular (const float3 point, const float4 planeNormDist);			// 3D
-ND_ float2	Plane_ProjectPoint (const float3 point, const float3 planeNorm);					// 3D
+ND_ bool	Line_PointOnLeftSide (const float2 begin, const float2 end, const float2 point);
+ND_ bool	Line_PointOnRightSide (const float2 begin, const float2 end, const float2 point);
+
+ND_ bool	Quadrilateral_PointInside (float2 v0, float2 v1, float2 v2, float2 v3, float2 point);
 //-----------------------------------------------------------------------------
 
 
+// 3D
+	void	Ray_GetPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp);
+
+ND_ float	Ray_MinDistance (const float3 dir, const float3 point);
+ND_ float	Line_MinDistance (const float3 begin, const float3 end, const float3 point);
+
+ND_ float4	Plane_PointPerpendicular (const float3 point, const float4 planeNormDist);
+ND_ float2	Plane_ProjectPoint (const float3 point, const float3 planeNorm);
+//-----------------------------------------------------------------------------
+
+
+// perspective projection
 ND_ float	ToLinearDepth (const float nonLinearDepth, const float2 clipPlanes);
 ND_ float	ToNonlinearDepth (const float linearDepth, const float2 clipPlanes);
 //-----------------------------------------------------------------------------
@@ -71,6 +89,9 @@ ND_ float3	RightVectorXZ (const float3 v)													{ return float3(  v.z, v.y
 
 ND_ float	TriangleArea (const float3 a, const float3 b, const float3 c)					{ return Length( Cross( b - a, c - a )) * 0.5f; }
 ND_ float	TriangleArea (const float2 a, const float2 b, const float2 c)					{ return TriangleArea( float3(a, 0.f), float3(b, 0.f), float3(c, 0.f) ); }
+
+ND_ bool	TriangleFrontFace (const float2 v0, const float2 v1, const float2 v2)			{ return Cross( float3(v1 - v0, 0.0), float3(v2 - v0, 0.0) ).z <= 0.0; }
+ND_ bool	TriangleBackFace (const float2 v0, const float2 v1, const float2 v2)			{ return ! TriangleFrontFace( v0, v1, v2 ); }
 //-----------------------------------------------------------------------------
 
 
@@ -131,13 +152,11 @@ float3  GetAbsMinorAxis (const float3 dir)
 	return float3( 0.0f, 0.0f, 1.0f );
 }
 
-void  Ray_GetPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp)
-{
-	float3	axis = GetAbsMinorAxis( dir );
-	outLeft = Normalize( Cross( dir, axis ));
-	outUp   = Normalize( Cross( dir, outLeft ));
-}
-
+/*
+=================================================
+	2D Line
+=================================================
+*/
 float3  Line_GetEquation (const float2 begin, const float2 end)
 {
 	// Ax + By + C = 0
@@ -149,11 +168,100 @@ float3  Line_GetEquation (const float2 begin, const float2 end)
 	return abc;
 }
 
-float  Line_MinDistance (const float2 begin, const float2 end, const float2 point)
+bool  Line_RayIntersection (const float2 begin0, const float2 end0,
+							const float2 begin1, const float2 end1,
+							out float2 intersection)
 {
-	float3	abc  = Line_GetEquation( begin, end );
-	float	dist = ( abc.x * point.x + abc.y * point.y + abc.z ) * InvDiagonal( abc.x, abc.y );
-	return Min( Abs(dist), Min( Distance( point, begin ), Distance( point, end )) );
+	float2	v0	= begin0 - end0;
+	float2	v1	= begin1 - end1;
+	float	c	= v0.x * v1.y - v0.y * v1.x;
+
+	if ( IsZero( c ))
+	{
+		intersection = float2(float_max);
+		return false;
+	}
+
+	float	a = begin0.x * end0.y - begin0.y * end0.x;
+	float	b = begin1.x * end1.y - begin1.y * end1.x;
+			c = Rcp( c );
+
+	intersection.x = (a * v1.x - b * v0.x) * c;
+	intersection.y = (a * v1.y - b * v0.y) * c;
+	return true;
+}
+
+float2  Line_ProjectPoint (const float2 begin, const float2 end, const float2 point)
+{
+	float2	lvec	= end - begin;
+	float2	pvec	= point - begin;
+
+	float	pdl		= Dot( pvec, lvec );
+	float	len_sq	= LengthSq( lvec );
+	float	proj	= pdl / len_sq;
+
+	return	begin + lvec * proj;
+}
+
+bool  Line_PointInside (const float2 begin, const float2 end, const float2 projectedPoint)
+{
+	float2	min = Min( begin, end );
+	float2	max = Max( begin, end );
+	return	AllGreater( projectedPoint, min ) and AllLess( projectedPoint, max );
+}
+
+bool  Line_Perpendicular (const float2 pos, const float2 begin, const float2 end, out float2 pointOnLine)
+{
+	pointOnLine = Line_ProjectPoint( begin, end, pos );
+	return Line_PointInside( begin, end, pointOnLine );
+}
+
+bool  Line_PointOnLine (const float2 begin, const float2 end, const float2 point)
+{
+	float2	proj = Line_ProjectPoint( begin, end, point );
+	return	Line_PointInside( begin, end, proj ) and
+			DistanceSq( proj, point ) < 1.0e-4;
+}
+
+bool  Line_PointOnLeftSide (const float2 begin, const float2 end, const float2 point)
+{
+	float2	vec  = LeftVector( end - begin );
+	float	sign = Dot( vec, point - begin );
+	return	sign > 0.0;
+}
+
+bool  Line_PointOnRightSide (const float2 begin, const float2 end, const float2 point)
+{
+	float2	vec  = RightVector( end - begin );
+	float	sign = Dot( vec, point - begin );
+	return	sign > 0.0;
+}
+
+/*
+=================================================
+	Quadrilateral_PointInside
+----
+	points must be in clockwise order
+=================================================
+*/
+bool Quadrilateral_PointInside (float2 v0, float2 v1, float2 v2, float2 v3, float2 point)
+{
+	return	Line_PointOnRightSide( v0, v1, point ) and
+			Line_PointOnRightSide( v1, v2, point ) and
+			Line_PointOnRightSide( v2, v3, point ) and
+			Line_PointOnRightSide( v3, v0, point );
+}
+
+/*
+=================================================
+	3D Line
+=================================================
+*/
+void  Ray_GetPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp)
+{
+	float3	axis = GetAbsMinorAxis( dir );
+	outLeft = Normalize( Cross( dir, axis ));
+	outUp   = Normalize( Cross( dir, outLeft ));
 }
 
 float  Ray_MinDistance (const float3 dir, const float3 point)
@@ -205,21 +313,38 @@ float2  Plane_ProjectPoint (const float3 point, const float3 planeNorm)
 
 /*
 =================================================
-	ToLinearDepth, ToNonlinearDepth
+	ToLinearDepth
+----
+	result in range [0, 1] which equal to '(worldZ - near) / far'
+	only for perspective projection!
+	use FastUnProjectZ() for any projection.
 =================================================
 */
-float  ToLinearDepth (const float nonLinearDepth, const float2 clipPlanes)
+float  ToLinearDepth (const float nonLinearUnormDepth, const float2 clipPlanes)
 {
-	float	near = clipPlanes.x;
-	float	far  = clipPlanes.y;
-	return (2.0f * near) / ((far + near) - nonLinearDepth * (far - near));
+	float	near	= clipPlanes.x;
+	float	far		= clipPlanes.y;
+	float	a		= far / (far - near);
+	float	b		= -near / (far - near);
+	return	(a / (nonLinearUnormDepth - a) + 1.0) * b;
 }
 
-float  ToNonlinearDepth (const float linearDepth, const float2 clipPlanes)
+/*
+=================================================
+	ToNonlinearDepth
+----
+	only for perspective projection!
+	use FastProjectZ() for any projection.
+=================================================
+*/
+float  ToNonlinearDepth (const float linearUnormDepth, const float2 clipPlanes)
 {
-	float	near = clipPlanes.x;
-	float	far  = clipPlanes.y;
-	return ((far + near) - 2.0f * near / linearDepth) / (far - near);
+	float	near	= clipPlanes.x;
+	float	far		= clipPlanes.y;
+	float	a		= far - near;
+	float	b		= far / a;
+	float	c		= 1.0 - near / (linearUnormDepth * a + near);
+	return	b * c;
 }
 
 /*

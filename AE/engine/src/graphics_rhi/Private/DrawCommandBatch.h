@@ -17,9 +17,7 @@
 #endif
 //-----------------------------------------------------------------------------
 
-#ifdef AE_HAS_COROUTINE
 namespace AE::Threading::_hidden_ { class DrawTaskCoro; }
-#endif
 
 namespace AE::Graphics
 {
@@ -81,9 +79,7 @@ namespace AE::Graphics
 			Submitted,		// Vulkan: after GetCmdBuffers(), Metal: after EndAllSecondary()
 		};
 
-	  #ifdef AE_HAS_COROUTINE
 		using DrawTaskCoro_t = AE::Threading::_hidden_::DrawTaskCoro;
-	  #endif
 
 	public:
 		using Viewports_t	= FixedArray< Viewport_t, GraphicsConfig::MaxViewports >;
@@ -127,7 +123,6 @@ namespace AE::Graphics
 						 const Tuple<Deps...>&	deps = Default,
 						 DebugLabel				dbg  = Default)	__NE___;
 
-	  #ifdef AE_HAS_COROUTINE
 		template <typename ...Deps>
 		AsyncTask	Run (DrawTaskCoro_t			coro,
 						 const Tuple<Deps...>&	deps,
@@ -138,7 +133,6 @@ namespace AE::Graphics
 		AsyncTask	Run (DrawTaskCoro_t			coro,
 						 const Tuple<Deps...>&	deps = Default,
 						 DebugLabel				dbg  = Default)	__NE___;
-	  #endif
 
 		void  EndRecording ()									__NE___;
 
@@ -257,7 +251,6 @@ namespace AE::Graphics
 	Run
 =================================================
 */
-# ifdef AE_HAS_COROUTINE
 	template <typename ...Deps>
 	AsyncTask  DRAWCMDBATCH::Run (DrawTaskCoro			coro,
 								  const Tuple<Deps...>&	deps,
@@ -290,7 +283,6 @@ namespace AE::Graphics
 	{
 		return Run( RVRef(coro), deps, Default, dbg );
 	}
-# endif
 
 /*
 =================================================

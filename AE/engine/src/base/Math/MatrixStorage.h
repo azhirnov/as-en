@@ -213,8 +213,8 @@ namespace AE::Base
 
 
 		// return scalar
-		NdCz__ const T	operator () (usize c, usize r)		C_NE___	{ ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
-		NdCz__ T &		operator () (usize c, usize r)		__NE___	{ ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
+		NdCx__ const T	operator () (usize c, usize r)		C_NE___	{ ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
+		NdCx__ T &		operator () (usize c, usize r)		__NE___	{ ASSERT( c < Columns and r < Rows );  return _columns[c].data[r]; }
 
 		template <uint C, uint R>	NdCx__ const T	get ()	C_NE___	{ StaticAssert( C < Columns and R < Rows );  return _columns[C].data[R]; }
 		template <uint C, uint R>	NdCx__ T &		get ()	__NE___	{ StaticAssert( C < Columns and R < Rows );  return _columns[C].data[R]; }
@@ -435,8 +435,8 @@ namespace AE::Base
 
 
 		// return scalar
-		NdCz__ const T		operator () (usize r, usize c)		C_NE___	{ ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
-		NdCz__ T &			operator () (usize r, usize c)		__NE___	{ ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
+		NdCx__ const T		operator () (usize r, usize c)		C_NE___	{ ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
+		NdCx__ T &			operator () (usize r, usize c)		__NE___	{ ASSERT( c < Columns and r < Rows );  return _rows[r].data[c]; }
 
 		template <uint R, uint C>	NdCx__ const T	get ()		C_NE___	{ StaticAssert( C < Columns and R < Rows );  return _rows[R].data[C]; }
 		template <uint R, uint C>	NdCx__ T &		get ()		__NE___	{ StaticAssert( C < Columns and R < Rows );  return _rows[R].data[C]; }

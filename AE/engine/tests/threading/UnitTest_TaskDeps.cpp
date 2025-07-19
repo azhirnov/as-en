@@ -381,7 +381,7 @@ namespace
 
 extern void UnitTest_TaskDeps ()
 {
-	StaticAssert( alignof(IAsyncTask) == AE_CACHE_LINE );
+	//StaticAssert( alignof(IAsyncTask) == AE_CACHE_LINE );
 
 	TaskDeps_Test1();
 	TaskDeps_Test2();

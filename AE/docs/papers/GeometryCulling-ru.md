@@ -1,6 +1,24 @@
 
 Содержание:
 * [Техники отсечения невидимой геометрии](#Техники-отсечения-невидимой-геометрии)
+	- [Depth Pre-Pass](#Depth-Pre-Pass-DPP)
+	- [Depth reprojection](#Depth-reprojection)
+	- [Deferred Texturing](#Deferred-Texturing)
+	- [Visibility Buffer](#Visibility-Buffer-VisBuf)
+	- [Hierarchy Z-Buffer](#Hierarchy-Z-Buffer-HZB-HiZ)
+	- [Raster Occlusion](#Raster-Occlusion)
+	- [Cone Culling](#Cone-Cluster-Culling)
+	- [Per Triangle Culling](#Per-Triangle-Culling)
+	- [Potentially Visible Set](#Potentially-Visible-Set-PVS)
+	- [Аппаратная реализация](#Аппаратная-реализация)
+		* [Early ZS, Hierarchy Z-Buffer](#Early-ZS-Hierarchy-Z-Buffer)
+		* [Facing test, XY plane test, Z plane test, Sample test](#Facing-test-XY-plane-test-Z-plane-test-Sample-test)
+		* [AMD Vega Deferred pixel processing](#AMD-Vega-Deferred-pixel-processing)
+		* [Adreno Low Resolution Z-Pass](#Adreno-Low-Resolution-Z-Pass-LRZ)
+		* [Mali Forward Pixel Kill](#Mali-Forward-Pixel-Kill-FPK)
+		* [Mali Fragment Prepass](#Mali-Fragment-Prepass-FPP)
+		* [Mali Deferred Vertex Shading](#Mali-Deferred-Vertex-Shading-DVS)
+		* [PowerVR Hierarchical Scheduling Technology](#PowerVR-Hierarchical-Scheduling-Technology-HST)
 * [Тесты производительности](#Тесты-производительности)
 * [Итоги тестов](#Итоги-тестов)
 * [Исходники](#Исходники)
@@ -85,6 +103,7 @@
   А размер тайла может зависить от количества регистров в фрагментном шейдере, то есть для тяжелого шейдера эффективность падает сильнее.
 * Классификация в компьют шейдере как в [Horizon Forbidden West](https://www.gdcvault.com/play/1027553/Adventures-with-Deferred-Texturing-in).<br/>
   Размер тайла задается вручную, что позволяет лучше сгруппировать пиксели, также в компьют шейдере нет quad overdraw.
+* Классификация на воркграфах как в [Simple Classify demo](https://github.com/GPUOpen-LibrariesAndSDKs/WorkGraphsDirectX-Graphics-Samples/tree/main/Samples/Desktop/D3D12GPUWorkGraphs/SimpleClassify).
 
 [Discover Metal enhancements for A14 Bionic: Visibility buffer with barycentric coordinates and primitiveID (6:24 - 14:40)](https://developer.apple.com/videos/play/tech-talks/10858/?time=384)<br/>
 Альтернативный вариант G-буфера куда дополнительно записываются барицентрические координаты треугольника.
@@ -193,6 +212,12 @@ Cluster Culling описан в [Optimizing the Graphics Pipeline with Compute](
 * Для больших локаций занимает много места.
 * Может не содержать данных для всех возможных положений камеры. Например, если обычное поведение - камера на земле и все предрасчитано, то в режиме полета уже не получится все расчитать. 
 
+**Umbra3D dPVS**<br/>
+Библиотека для расчета PVS в рантайме. Использует растеризацию упрощенной геометрии на ЦП.
+
+Ссылки:
+* [Improving Geometry Culling for 'Deus Ex: Mankind Divided'](https://www.gdcvault.com/play/1023678/)
+* [Solving Visibility and Streaming in the The Witcher 3: Wild Hunt with Umbra 3](https://gdcvault.com/play/1020231/Solving-Visibility-and-Streaming-in)
 
 ## Специфичные оптимизации
 
@@ -200,7 +225,7 @@ Cluster Culling описан в [Optimizing the Graphics Pipeline with Compute](
 Видео с описанием техники: [I Optimised My Game Engine Up To 12000 FPS](https://youtu.be/40JzyaOYJeY).
 
 
-## Реализация в железе
+## Аппаратная реализация
 
 Во всех случаях приходится платить за вызов отрисовки и вершинный шейдер, а дальше влияет только эффективность реализации в железе.
 
@@ -1647,6 +1672,7 @@ DPP уменьшает количество FS, из-за чего второй 
 | early ZS, discard         | 1.13   | 1.38   | 1.75  |
 |**early ZS, front to back**| 1.0    | 1.0    |**1.0**|
 | depth pre-pass            | 1.74   | 1.78   | 1.52  |
+| vis buf                   | 0.96   | 1.22   | 1.28  |
 | raster culling            | 0.72   | 1.87   | 2.7   |
 | HiZ + pyramid             |**0.59**|**0.95**| 1.3   |
 | HiZ + dpp + pyramid       | 0.99   | 1.34   | 1.53  |
@@ -1767,6 +1793,7 @@ PERF_LEVEL = 3
 | early ZS, discard         | 1.03   | 1.1    | 1.03  |
 |**early ZS, front to back**| 1.0    | 1.0    | 1.0   |
 | depth pre-pass            | 1.78   | 1.77   | 1.38  |
+| vis buf                   | 1.12   | 1.45   | 1.54  |
 | raster culling            |**0.29**|**0.58**|**0.9**|
 | HiZ + pyramid             | 0.47   | 0.9    | 1.36  |
 | HiZ + dpp + pyramid       | 0.65   | 1.07   | 1.36  |
@@ -1873,7 +1900,7 @@ PERF_LEVEL = 2
 
 # Итоги тестов
 
-## Растеризация
+### Растеризация
 
 При одинаковой детализации геометрии растеризация в 1К и 2К занимает схожее время, а на некоторых ГП 1К разрешение даже медленее за счет большего количества треугольников на пиксель.
 Получается, что техники понижения разрешения при пременном снижении производительности хуже работают без понижения детализации геометрии.
@@ -1881,7 +1908,7 @@ PERF_LEVEL = 2
 Переход от 2К к 4К дает всего вдвое большее время растеризации, хотя пикселей закрашивается в 4 раза больше.
 
 
-## Сортировка по расстоянию от камеры
+### Сортировка по расстоянию от камеры
 
 Производительность без нагрузки на FS важна для Depth pre-pass и Visibility buffer. При минимальных потерях можно избавиться от этапа точной сортировки.
 Хороший результат показали AMD RDNA, NV RTX, Mali, Adreno, Intel gen9, PowerVR.
@@ -1890,7 +1917,7 @@ PERF_LEVEL = 2
 С тяжелым FS ситуация меняется и только Adreno 600 за счет LRZ не теряет производительность. Остальные замедляются в 2-4 раза.
 
 
-## Оптимизация в железе
+### Оптимизация в железе
 
 Mali FPK не работает на мелких треугольниках, поэтому в тестах он показывает нестабильный результат. Так на G57 в 4К неотсортированная геометрия дает всего 15% замедление, но аналогичный тест на G610 всегда в 2-2.5 раза медленее.
 
@@ -1905,7 +1932,7 @@ Mali FPK, PowerVR HST и Apple хорошо оптимизирует вариа�
 На других ГП в 4К нагрузка растет, как и ожидалось.
 
 
-## Depth pre-pass vs Visibility buffer
+### Depth pre-pass vs Visibility buffer
 
 VisBuf как и ожидалось уменьшает quad overdraw, что особенно важно при нагрузке на ALU.
 При чтении текстур quad overdraw менее заметен, так как соседние тексели попадают в кэш.
@@ -1921,10 +1948,10 @@ DPP сильнее зависит от предварительного отсе
 Трансформация трех вершин на пиксель очень затратна для слабых мобилок.
 
 
-## HiZ vs Raster occlusion
+### HiZ vs Raster occlusion
 
 Строить пирамиду глубины для HiZ становится дороже с увеличением разрешения, это особенно важно для мобилок и встроеных ГП, где используется медленная LPDDR или DDR.
-Исключение только Apple M-серия в варианте Max/Ultra, где увеличенно количество каналов к памяти и пропускная способность не уступает GDDR памяти.
+Исключение только Apple M-серия в варианте Max/Ultra, где увеличенно количество каналов к памяти и пропускная способность не уступает GDDR.
 Можно расчитать нагрузку на память без учета компрессии как 4/3 от количества пикселей. Для 4К получаем 44МБ или 2.6ГБ/с при 60фпс.
 Компрессия и min sampler снижают нагрузку в 2-3 раза.
 
@@ -1936,7 +1963,7 @@ Raster occlusion также нагружает память, но больше �
 Raster occlusion выигрывает, когда форма геометрии плохо описывается квадратами и сферами, также выигрывает когда тест глубины проходит немного пикселей, что не нагружает память в отличие от HiZ, который строится для всего размера экрана.
 
 
-## Discard
+### Discard
 
 Предполагалось, что discard в шейдере не включит режим LateZS с большой потерей производительности.
 На большинстве ГП так и произошло, исключение Adreno 500.
@@ -1944,23 +1971,23 @@ Raster occlusion выигрывает, когда форма геометрии 
 Нет изменений в производительности у Intel N150, AMD 780M, AMD RX570, NV RTX, Mali G610 (в 2К), Apple.
 
 
-## Intel N150 vs UHD620 vs AMD RX570
+### Intel N150 vs UHD620 vs AMD RX570
 Похожее по производительности железо, но разное поколение.<br/>
 Большое отличие показал Raster occlusion: 2.1мс на N150 и 12.5мс на UHD620, а причина в больших задержках у DDR3/LPDDR3.
 
-AMD RX570 имеет схожую производительность растеризатора, но вдвое быстрее в ALU и в 4 раза лучшую пропускную способность памяти.
+AMD RX570 имеет схожую производительность растеризатора, но вдвое быстрее в ALU и в 4 раза лучше пропускная способность памяти.
 
 
-## AMD vs NV
+### AMD vs NV
 
 AMD 780M и NV RTX2080 отличаются в 2 раза по TFLOPS и в 6 раз по пропускной способности памяти. В тестах растеризация отличается в 2.5 раза.
 
 Обе ГП одинаково реагируют на разную нагрузку и не требуют специфичных оптимизаций.
 
 
-## Мобилки
+### Мобилки
 
-Старые ГП типа Adreno 505 и Mali T830 долго строят пирамиду глубины (10-20мс). (Проверить D16 и генерацию в FS ?)
+Старые ГП типа Adreno 505 и Mali T830 долго строят пирамиду глубины (10-20мс). TODO (Проверить D16 и генерацию в FS ?)
 Adreno 505 плохо справляется со случайным чтением из буфера, что плохо влияет на отсечение на стороне ГП.
 
 Более свежие мобилки уже имеют встроенную оптимизацию, поэтому depth pre-pass и visibility buffer слабо влияют на производительность.

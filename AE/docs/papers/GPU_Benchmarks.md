@@ -690,7 +690,7 @@ Used 6 branches.
 ### 14. Nonuniform
 
 1. [Stress test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-Stress.as)
-2. [Depth pre-pass](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform.as)
+2. [Depth pre-pass](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-DPP.as)
 3. [Visibility buffer](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-VB.as)
 
 

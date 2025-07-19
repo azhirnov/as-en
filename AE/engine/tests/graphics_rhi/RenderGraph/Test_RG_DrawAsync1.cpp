@@ -128,7 +128,7 @@ namespace
 				cmdbuf		= ctx.ReleaseCommandBuffer();
 				lock.unlock();
 
-				#ifdef AE_HAS_COROUTINE
+				#if 1
 					const auto	CreateDrawTask = [] (DA1_TestData &t, const uint firstVertex) -> DrawTaskCoro
 					{{
 						{

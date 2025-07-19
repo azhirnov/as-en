@@ -36,11 +36,11 @@ namespace AE::Base
 	// methods
 	public:
 		__Cx__ MutableArrayView ()								__NE___ : _array{null} {}
-		__Cz__ MutableArrayView (T* ptr, usize count)			__NE___ : _array{ptr}, _count{count}  {	ASSERT( (_count == 0) or (_array != null) ); }
-		__Cz__ MutableArrayView (T* begin, T* end)				__NE___ : _array{begin}, _count{usize(std::distance( begin, end ))}  { ASSERT( begin <= end ); }
+		__Cx__ MutableArrayView (T* ptr, usize count)			__NE___ : _array{ptr}, _count{count}  {	ASSERT( (_count == 0) or (_array != null) ); }
+		__Cx__ MutableArrayView (T* begin, T* end)				__NE___ : _array{begin}, _count{usize(std::distance( begin, end ))}  { ASSERT( begin <= end ); }
 
 		template <typename AllocT>
-		__Cz__ MutableArrayView (Array<T,AllocT> &vec)			__NE___ : _array{vec.data()}, _count{vec.size()}  { ASSERT( (_count == 0) or (_array != null) ); }
+		__Cx__ MutableArrayView (Array<T,AllocT> &vec)			__NE___ : _array{vec.data()}, _count{vec.size()}  { ASSERT( (_count == 0) or (_array != null) ); }
 
 		template <usize S>
 		__Cx__ MutableArrayView (StaticArray<T,S> &arr)			__NE___ : _array{arr.data()}, _count{arr.size()} {}
@@ -53,7 +53,7 @@ namespace AE::Base
 
 		__Cx__ MutableArrayView (T &singleElement)				__NE___ : _array{&singleElement}, _count{1} {}
 
-		NdCz__ explicit operator Array<T> ()					C_NE___	{ return Array<T>{ begin(), end() }; }
+		NdCx__ explicit operator Array<T> ()					C_NE___	{ return Array<T>{ begin(), end() }; }
 		NdCx__ operator ArrayView<T> ()							C_NE___	{ return _AV(); }
 
 		NdCx__ usize			size ()							C_NE___	{ return _count; }
@@ -63,10 +63,10 @@ namespace AE::Base
 
 		NdCx__ Bytes			DataSize ()						C_NE___	{ return Bytes{ sizeof(T) * _count }; }
 
-		__Cz__ void				resize (usize newSize)			__NE___	{ ASSERT( newSize <= _count );  _count = Min( _count, newSize ); }
+		__Cx__ void				resize (usize newSize)			__NE___	{ ASSERT( newSize <= _count );  _count = Min( _count, newSize ); }
 
-		NdCz__ T const &		operator [] (usize i)			C_NE___	{ ASSERT( i < _count );  return _array[i]; }
-		NdCz__ T &				operator [] (usize i)			__NE___	{ ASSERT( i < _count );  return _array[i]; }
+		NdCx__ T const &		operator [] (usize i)			C_NE___	{ ASSERT( i < _count );  return _array[i]; }
+		NdCx__ T &				operator [] (usize i)			__NE___	{ ASSERT( i < _count );  return _array[i]; }
 
 		NdCx__ iterator			begin ()						__NE___	{ return _array; }
 		NdCx__ iterator			end ()							__NE___	{ return _array + _count; }
@@ -74,10 +74,10 @@ namespace AE::Base
 		NdCx__ const_iterator	begin ()						C_NE___	{ return _array; }
 		NdCx__ const_iterator	end ()							C_NE___	{ return _array + _count; }
 
-		NdCz__ T const&			front ()						C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
-		NdCz__ T &				front ()						__NE___	{ ASSERT( _count > 0 );  return _array[0]; }
-		NdCz__ T const&			back ()							C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
-		NdCz__ T &				back ()							__NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
+		NdCx__ T const&			front ()						C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
+		NdCx__ T &				front ()						__NE___	{ ASSERT( _count > 0 );  return _array[0]; }
+		NdCx__ T const&			back ()							C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
+		NdCx__ T &				back ()							__NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
 
 		NdCx__ bool  operator == (ArrayView<T> rhs)				C_NE___	{ return _AV() == rhs; }
 		NdCx__ bool  operator >  (ArrayView<T> rhs)				C_NE___	{ return _AV() >  rhs; }
@@ -97,14 +97,14 @@ namespace AE::Base
 		NdCx__ ArrayView<T>			section (usize first, usize count)	C_NE___	{ return _AV().section( first, count ); }
 		NdCx__ MutableArrayView<T>	section (usize first, usize count)	__NE___;
 
-		template <typename R>
-		NdCx__ EnableIf<IsTrivial<T> and IsTrivial<R>, MutableArrayView<R>>  Cast () __NE___;
+		template <typename R> requires(IsTrivial<T> and IsTrivial<R>)
+		NdCx__ MutableArrayView<R>  Cast ()						__NE___;
 
-		template <typename R>
-		NdCx__ EnableIf<IsTrivial<T> and IsTrivial<R>, ArrayView<R>>  Cast () C_NE___ { return _AV().template Cast<R>(); }
+		template <typename R> requires(IsTrivial<T> and IsTrivial<R>)
+		NdCx__ ArrayView<R>			Cast ()						C_NE___ { return _AV().template Cast<R>(); }
 
 	private:
-		NdCx__ ArrayView<T>	_AV ()								C_NE___	{ return ArrayView<T>{ data(), size() }; }
+		NdCx__ ArrayView<T>			_AV ()						C_NE___	{ return ArrayView<T>{ data(), size() }; }
 	};
 
 
@@ -134,8 +134,8 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	template <typename R>
-	__Cx__ EnableIf<IsTrivial<T> and IsTrivial<R>, MutableArrayView<R>>  MutableArrayView<T>::Cast () __NE___
+	template <typename R> requires(IsTrivial<T> and IsTrivial<R>)
+	__Cx__ MutableArrayView<R>  MutableArrayView<T>::Cast () __NE___
 	{
 		StaticAssert( alignof(R) >= alignof(T) );
 		StaticAssert( sizeof(R) > sizeof(T) ? IsMultipleOf( sizeof(R), sizeof(T) ) : IsMultipleOf( sizeof(T), sizeof(R) ));

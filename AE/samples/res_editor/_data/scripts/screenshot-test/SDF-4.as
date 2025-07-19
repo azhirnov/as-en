@@ -16,8 +16,6 @@
 		{
 			RC<Postprocess>		pass = Postprocess();
 			pass.Output( "out_Color", rt );
-
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}
 		Present( rt );
 	}
@@ -39,12 +37,12 @@
 
 		switch ( idx )
 		{
-			case 0 :	return SDF_Cylinder( pos, float2(0.4, 0.6) );
-			case 1 :	return -SDF_Cone( pos, Normalize(float2( 0.5, 0.7 )) );
-			case 2 :	return SDF_Plane( pos, Normalize(float3(0.2, -1.0, 0.0)), 0.1 );
-			case 3 :	return SDF_HexagonalPrism( pos, float2(0.5, 0.7) );
-			case 4 :	return SDF_TriangularPrism( pos, float2(0.5, 0.7) );
-			case 5 :	return SDF_Capsule( pos, float3(-0.5), float3(0.5), 0.5 );
+			case 0 :	return SDF_Sphere( pos, 1.0 );
+			case 1 :	return SDF_Ellipsoid( pos, float3(0.4, 0.8, 1.2) );
+			case 2 :	return SDF_Box( pos, float3(0.3, 0.7, 1.1) );
+			case 3 :	return SDF_RoundedBox( pos, float3(0.2, 0.6, 1.0), 0.2 );
+			case 4 :	return SDF_BoxFrame( pos, float3(0.3, 0.7, 1.1), 0.05 );
+			case 5 :	return SDF_Torus( pos, float2(0.7, 0.5) );
 		}
 	}
 

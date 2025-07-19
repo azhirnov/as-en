@@ -219,10 +219,8 @@ namespace _hidden_
 		template <typename B>
 		friend class Promise;
 
-	  #ifdef AE_HAS_COROUTINE
 		template <typename B>
 		friend class Threading::_hidden_::PromiseAwaiter;
-	  #endif
 	};
 
 
@@ -288,7 +286,6 @@ namespace _hidden_
 
 
 
-#ifdef AE_HAS_COROUTINE
 namespace _hidden_
 {
 	//
@@ -332,7 +329,7 @@ namespace _hidden_
 	public:
 		explicit PromiseAwaiter (const Tuple<Promise<Types>...> &deps) __NE___ : _deps{deps} {}
 
-		ND_ bool  await_ready ()										C_NE___	{ return false; }
+		ND_ bool  await_ready ()										C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
 
 		// return promise results
 		ND_ Tuple< Types... >  await_resume ()							__NE___
@@ -367,8 +364,6 @@ namespace _hidden_
 	{
 		return Threading::_hidden_::PromiseAwaiter<Tuple<Types...>>{ deps };
 	}
-
-#endif // AE_HAS_COROUTINE
 //-----------------------------------------------------------------------------
 
 

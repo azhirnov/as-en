@@ -106,17 +106,18 @@ namespace AE::ResEditor
 		Array<LoadOp2>				_loadOps;
 		Array<StoreOp2>				_storeOps;
 
-		Synchronized< RWSpinLock,
-			ImageDesc,
-			ImageViewDesc >			_imageDesc;
+		const ImageDesc				_requiredImageDesc;
+		const ImageViewDesc			_requiredViewDesc;
 
 		const String				_dbgName;
 
 
 	// methods
 	private:
-		Image (Renderer&	renderer,
-			   StringView	dbgName);
+		Image (const ImageDesc &	desc,
+			   const ImageViewDesc&	viewDesc,
+			   Renderer&			renderer,
+			   StringView			dbgName);
 
 		void  _Remove (Image* derived);
 
@@ -140,9 +141,12 @@ namespace AE::ResEditor
 
 		ND_ ImageID			GetImageId ()											C_NE___	{ return _id.Get(); }
 		ND_ ImageViewID		GetViewId ()											C_NE___	{ return _view.Get(); }
-		ND_ ImageDesc		GetImageDesc ()											C_NE___	{ return _imageDesc.Read<0>(); }
-		ND_ ImageViewDesc	GetViewDesc ()											C_NE___	{ return _imageDesc.Read<1>(); }
 		ND_ StringView		GetName ()												C_NE___	{ return _dbgName; }
+
+		// Warning: sync problem - '_id' may be changed between GetImageId() and GetImageDesc(),
+		// so prefer to use 'GetDescription( GetImageId() )' instead.
+		ND_ ImageDesc		GetImageDesc ()											C_NE___;
+		ND_ ImageViewDesc	GetViewDesc ()											C_NE___;
 
 		ND_ RC<Image>		CreateView (const ImageViewDesc &, StringView dbgName)	__NE___;
 
@@ -174,7 +178,7 @@ namespace AE::ResEditor
 
 
 	private:
-		ND_ bool  _UpdateView (const ImageViewDesc &);
+		ND_ bool  _UpdateView ()													__NE___;
 
 		template <typename CtxType>
 		ND_ bool  _CreateImage (const ResLoader::IntermImage &, MipmapLevel, ImageLayer,

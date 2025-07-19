@@ -69,9 +69,6 @@ namespace AE::Base
 	static constexpr bool	IsEnum					= std::is_enum_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsScalarOrEnum			= IsScalar<T> or IsEnum<T>;
-
-	template <typename T>
 	static constexpr bool	IsTrivial				= std::is_trivially_destructible_v<T>			and
 													  std::is_trivially_move_assignable_v<T>		and
 													  std::is_trivially_move_constructible_v<T>;
@@ -297,13 +294,6 @@ namespace AE::Base
 	template <typename T>	constexpr InPlaceType<T> InPlaceObj {};
 
 
-	template <bool Test, typename Type = void>
-	using EnableIf			= std::enable_if_t< Test, Type >;
-
-	template <bool Test, typename Type = void>
-	using DisableIf			= std::enable_if_t< !Test, Type >;
-
-
 	template <bool Test, typename IfTrue, typename IfFalse>
 	using Conditional		= std::conditional_t< Test, IfTrue, IfFalse >;
 
@@ -484,6 +474,14 @@ namespace AE::Base
 	static constexpr bool	AllAreSameTypes		= (... and Base::_hidden_::AreSameTypes<T>::template Impl<Types>::value);
 //-----------------------------------------------------------------------------
 
+	
+
+	template <typename T>
+	static constexpr bool	IsScalarOrEnum		= IsScalar<T> or IsEnum<T>;
+
+	template <typename T>
+	static constexpr bool	HasScalarBitOp		= (IsScalar<T> and IsInteger<T>) or IsEnum<T>;
+//-----------------------------------------------------------------------------
 
 
 /*
@@ -569,20 +567,20 @@ namespace AE::Base
 	IsInfinity / IsNaN / IsFinite (scalar)
 =================================================
 */
-	template <typename T>
-	ND_ EnableIf<IsFloatPoint<T>, bool>  IsInfinity (const T x) __NE___
+	template <typename T> requires(IsFloatPoint<T>)
+	ND_ bool  IsInfinity (const T x) __NE___
 	{
 		return std::isinf( x );
 	}
 
-	template <typename T>
-	ND_ EnableIf<IsFloatPoint<T>, bool>  IsNaN (const T x) __NE___
+	template <typename T> requires(IsFloatPoint<T>)
+	ND_ bool  IsNaN (const T x) __NE___
 	{
 		return std::isnan( x );
 	}
 
-	template <typename T>
-	ND_ EnableIf<IsFloatPoint<T>, bool>  IsFinite (const T x) __NE___
+	template <typename T>  requires(IsFloatPoint<T>)
+	ND_ bool  IsFinite (const T x) __NE___
 	{
 		return std::isfinite( x );
 	}
@@ -592,20 +590,20 @@ namespace AE::Base
 	IsInfinity / IsNaN / IsFinite (chrono)
 =================================================
 */
-	template <typename Rep, typename Period>
-	ND_ EnableIf<IsFloatPoint<Rep>, bool>  IsInfinity (const std::chrono::duration<Rep, Period> x) __NE___
+	template <typename Rep, typename Period> requires(IsFloatPoint<Rep>)
+	ND_ bool  IsInfinity (const std::chrono::duration<Rep, Period> x) __NE___
 	{
 		return IsInfinity( x.count() );
 	}
 
-	template <typename Rep, typename Period>
-	ND_ EnableIf<IsFloatPoint<Rep>, bool>  IsNaN (const std::chrono::duration<Rep, Period> x) __NE___
+	template <typename Rep, typename Period> requires(IsFloatPoint<Rep>)
+	ND_ bool  IsNaN (const std::chrono::duration<Rep, Period> x) __NE___
 	{
 		return IsNaN( x.count() );
 	}
 
-	template <typename Rep, typename Period>
-	ND_ EnableIf<IsFloatPoint<Rep>, bool>  IsFinite (const std::chrono::duration<Rep, Period> x) __NE___
+	template <typename Rep, typename Period> requires(IsFloatPoint<Rep>)
+	ND_ bool  IsFinite (const std::chrono::duration<Rep, Period> x) __NE___
 	{
 		return IsFinite( x.count() );
 	}

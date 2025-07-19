@@ -40,8 +40,8 @@ namespace AE::Base
 		return String{value};
 	}
 
-	template <typename T>
-	ND_ EnableIf<not IsEnum<T>, String>  ToString (const T &value) __Th___
+	template <typename T> requires(not IsEnum<T>)
+	ND_ String  ToString (const T &value) __Th___
 	{
 		return std::to_string( value );
 	}
@@ -56,8 +56,8 @@ namespace AE::Base
 	ToString
 =================================================
 */
-	template <int Radix, typename T>
-	ND_ EnableIf<IsEnum<T> or IsInteger<T>, String>  ToString (const T &value) __Th___
+	template <int Radix, typename T> requires(IsEnum<T> or IsInteger<T>)
+	ND_ String  ToString (const T &value) __Th___
 	{
 		if constexpr( Radix == 10 )
 		{
@@ -250,8 +250,8 @@ namespace _hidden_
 		return str;
 	}
 
-	template <typename T>
-	ND_ EnableIf<IsFloatPoint<T>, String>  ToString (const RGBAColor<T> &value, uint fractParts) __Th___
+	template <typename T> requires(IsFloatPoint<T>)
+	ND_ String  ToString (const RGBAColor<T> &value, uint fractParts) __Th___
 	{
 		String	str = "( "s;
 		for (uint i = 0; i < 4; ++i)
@@ -489,20 +489,20 @@ namespace _hidden_
 	ToString (PhysicalQuantity)
 =================================================
 */
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsInteger<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value) __Th___
+	template <typename V, typename D, typename S> requires(IsInteger<V>)
+	ND_ String  ToString (const PhysicalQuantity<V,D,S> &value) __Th___
 	{
 		return ToString( value.GetScaled() ) << '[' << ToString( D{} ) << ']';
 	}
 
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsFloatPoint<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value, uint fractParts, Bool exponent = True{}) __Th___
+	template <typename V, typename D, typename S> requires(IsFloatPoint<V>)
+	ND_ String  ToString (const PhysicalQuantity<V,D,S> &value, uint fractParts, Bool exponent = True{}) __Th___
 	{
 		return ToString( value.GetScaled(), fractParts, exponent ) << '[' << ToString( D{} ) << ']';
 	}
 
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsFloatPoint<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value) __Th___
+	template <typename V, typename D, typename S> requires(IsFloatPoint<V>)
+	ND_ String  ToString (const PhysicalQuantity<V,D,S> &value) __Th___
 	{
 		return ToString( value, 2 );
 	}
@@ -512,14 +512,14 @@ namespace _hidden_
 	ToString (PhysicalQuantity)
 =================================================
 */
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsInteger<V>, String>  ToDebugString (const PhysicalQuantity<V,D,S> &value) __Th___
+	template <typename V, typename D, typename S> requires(IsInteger<V>)
+	ND_ String  ToDebugString (const PhysicalQuantity<V,D,S> &value) __Th___
 	{
 		return ToString( value.GetNonScaled() ) << '*' << ToString( S::Value ) << '[' << ToString( D{} ) << ']';
 	}
 
-	template <typename V, typename D, typename S>
-	ND_ EnableIf<IsFloatPoint<V>, String>  ToDebugString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
+	template <typename V, typename D, typename S> requires(IsFloatPoint<V>)
+	ND_ String  ToDebugString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
 	{
 		return ToString( value.GetNonScaled(), fractParts, exponent ) << '*' << ToString( S::Value, fractParts, exponent ) << '[' << ToString( D{} ) << ']';
 	}
@@ -669,8 +669,8 @@ namespace _hidden_
 	ToStringSfx
 =================================================
 */
-	template <typename T>
-	ND_ EnableIf< IsUnsignedInteger<T>, String >  ToStringSfx (T v) __Th___
+	template <typename T> requires(IsUnsignedInteger<T>)
+	ND_ String  ToStringSfx (T v) __Th___
 	{
 		char	suffix = 0;
 		if ( v < T(10'000) )			{}																else
@@ -682,8 +682,8 @@ namespace _hidden_
 		return str;
 	}
 
-	template <typename T>
-	ND_ EnableIf< IsSignedInteger<T>, String >  ToStringSfx (const T value) __Th___
+	template <typename T> requires(IsSignedInteger<T>)
+	ND_ String  ToStringSfx (const T value) __Th___
 	{
 		T		v		= Abs(value);
 		char	suffix	= 0;
@@ -697,8 +697,8 @@ namespace _hidden_
 		return str;
 	}
 
-	template <typename T>
-	ND_ EnableIf< IsFloatPoint<T>, String >  ToStringSfx (T value, const uint addFractPart = 0) __Th___
+	template <typename T> requires(IsFloatPoint<T>)
+	ND_ String  ToStringSfx (T value, const uint addFractPart = 0) __Th___
 	{
 		const T	v			= Abs(value);
 		char	suffix		= 0;

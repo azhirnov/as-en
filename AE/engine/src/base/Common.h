@@ -17,12 +17,7 @@ namespace AE
 	using ulong		= uint64_t;		// ull
 	using ssize		= intptr_t;
 	using usize		= size_t;
-
-	#if defined(__cpp_char8_t)
-		using CharUtf8	= char8_t;		// u8''  (C++20)
-	#else
-		enum class CharUtf8 : char {};
-	#endif
+	using CharUtf8	= char8_t;		// u8''  (C++20)
 
 	using CharAnsi	= char;
 	using CharUtf16	= char16_t;		// u''
@@ -36,12 +31,9 @@ namespace AE
 		using CharType			= CharAnsi;
 	#	define TXT( _text_ )	("" _text_)
 	# endif
-	#elif defined(__cpp_char8_t)
-		using CharType			= CharUtf8;
-	#	define TXT( _text_ )	(u8"" _text_)
 	#else
 		using CharType			= CharUtf8;
-	#	define TXT( _text_ )	static_cast<const CharUtf8 *>(static_cast<const void *>( u8"" _text_ ))
+	#	define TXT( _text_ )	(u8"" _text_)
 	#endif
 
 	namespace Base {}
@@ -50,6 +42,7 @@ namespace AE
 #include "base/Log/Log.h"
 #include "base/CompileTime/TemplateUtils.h"
 #include "base/CompileTime/TypeTraits.h"
+#include "base/CompileTime/Concepts.h"
 #include "base/CompileTime/Constants.h"
 
 namespace AE::Base

@@ -406,11 +406,11 @@ Gen_FPBOOL( float, float_vec_t )
 	SelectFSat
 ----
 	T  SelectF (T x, T y, T ifLess, T ifNot)
-	T  SelectFSet (T x, T y, T ifLess, T ifNot)
+	T  SelectFSat (T x, T y, T ifLess, T ifNot)
 ----
 	Same as per component 'x < y ? ifLess : ifNot', both branches are always executed (branchless technique).
 	May return NaN if one of branches returns NaN, even if it is inactive branch.
-	'SelectFSet()' convert 'ifLess' and 'ifNot' to unorm to avoid NaNs.
+	'SelectFSat()' convert 'ifLess' and 'ifNot' to unorm to avoid NaNs.
 	GLSL specs: both 'if' and '?' are branches.
 =================================================
 */
@@ -973,6 +973,31 @@ Gen_SIGN( int,		int_vec_t )
 #endif
 #undef Gen_SIGN1
 #undef Gen_SIGN
+		
+/*
+=================================================
+	SignBit
+----
+	bool  SignBit (T x)
+=================================================
+*/
+ND_ bool	SignBit (float  x)	{ return (floatBitsToUint( x ) & 0x80000000u) != 0; }
+ND_ bool2	SignBit (float2 v)	{ return bool2( SignBit( v.x ), SignBit( v.y )); }
+ND_ bool3	SignBit (float3 v)	{ return bool3( SignBit( v.x ), SignBit( v.y ), SignBit( v.z )); }
+ND_ bool4	SignBit (float4 v)	{ return bool4( SignBit( v.x ), SignBit( v.y ), SignBit( v.z ), SignBit( v.w )); }
+
+#if AE_ENABLE_HALF_TYPE
+	ND_ bool	SignBit (half  x)	{ return (halfBitsToUint16( x ) & 0x8000us) != 0; }
+	ND_ bool2	SignBit (half2 v)	{ return bool2( SignBit( v.x ), SignBit( v.y )); }
+	ND_ bool3	SignBit (half3 v)	{ return bool3( SignBit( v.x ), SignBit( v.y ), SignBit( v.z )); }
+	ND_ bool4	SignBit (half4 v)	{ return bool4( SignBit( v.x ), SignBit( v.y ), SignBit( v.z ), SignBit( v.w )); }
+#endif
+#if AE_ENABLE_DOUBLE_TYPE
+	ND_ bool	SignBit (double  x)	{ return (doubleBitsToUint64( x ) & 0x8000000000000000ul) != 0; }
+	ND_ bool2	SignBit (double2 v)	{ return bool2( SignBit( v.x ), SignBit( v.y )); }
+	ND_ bool3	SignBit (double3 v)	{ return bool3( SignBit( v.x ), SignBit( v.y ), SignBit( v.z )); }
+	ND_ bool4	SignBit (double4 v)	{ return bool4( SignBit( v.x ), SignBit( v.y ), SignBit( v.z ), SignBit( v.w )); }
+#endif
 
 /*
 =================================================

@@ -65,7 +65,7 @@
 
 ## Примеры
 
-* [Panini](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/Panini.as) - сцена рисуется с перспективной проекцией, затем применяется пост-процесс с Panini проекцией.
+* [Panini](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-posteffects/Panini.as) - сцена рисуется с перспективной проекцией, затем применяется пост-процесс с Panini проекцией.
 * [RenderToCubemap](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/RenderToCubemap.as) - сцена рисуется в кубическую карту, затем нужный тексель выбирается по 3D координатам, аналогично трассировке лучей.
 
 ## Ссылки

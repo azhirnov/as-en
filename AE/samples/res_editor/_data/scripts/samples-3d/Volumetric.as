@@ -44,8 +44,6 @@
 			pass.Slider( "iLightDir",	float3(-1.0),	float3(1.0),	float3(0.0, 1.0, 0.0) );
 			pass.Slider( "iLightStep",	0.01,			0.6,			0.4 );
 			pass.EnableIfEqual( mode, 1 );
-
-			pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 		}
 		Present( rt );
 	}

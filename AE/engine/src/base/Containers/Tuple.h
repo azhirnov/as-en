@@ -201,25 +201,25 @@ namespace _hidden_
 
 
 		template <usize I>
-		NdCzIA exact_t			Get ()				r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCxIA exact_t			Get ()				r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 		template <usize I>
-		NdCzIA exact_t			Get ()				CrNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCxIA exact_t			Get ()				CrNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 		template <usize I>
-		NdCzIA exact_t			Get ()				rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCxIA exact_t			Get ()				rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 
 		// for structured bindings
 	  #if 1
 		template <usize I>
-		NdCzIA exact_t			get ()				r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCxIA exact_t			get ()				r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 		template <usize I>
-		NdCzIA exact_t			get ()				CrNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCxIA exact_t			get ()				CrNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 
 		template <usize I>
-		NdCzIA exact_t			get ()				rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		NdCxIA exact_t			get ()				rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
 	  #endif
 
 

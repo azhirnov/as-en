@@ -756,13 +756,13 @@ namespace AE::Base
 		explicit SimdTInt256 (const SimdTInt128<Scalar_t> &low) __NE___;
 		SimdTInt256 (const SimdTInt128<Scalar_t> &low, const SimdTInt128<Scalar_t> &high) __NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==2 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==2 )
 		explicit SimdTInt256 (const SimdDouble4::Bool4 &v)	__NE___ : _value{ _mm256_castpd_si256( v.Ref() )} {}
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==4 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==4 )
 		explicit SimdTInt256 (const SimdFloat8::Bool8 &v)	__NE___ : _value{ _mm256_castps_si256( v.Ref() )} {}
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==1 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==1 )
 		SimdTInt256 (Scalar_t v00, Scalar_t v01, Scalar_t v02, Scalar_t v03,
 					 Scalar_t v04, Scalar_t v05, Scalar_t v06, Scalar_t v07,
 					 Scalar_t v08, Scalar_t v09, Scalar_t v10, Scalar_t v11,
@@ -776,7 +776,7 @@ namespace AE::Base
 									 v15, v14, v13, v12, v11, v10, v09, v08,
 									 v07, v06, v05, v04, v03, v02, v01, v00)} {}
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==2 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==2 )
 		SimdTInt256 (Scalar_t v00, Scalar_t v01, Scalar_t v02, Scalar_t v03,
 					 Scalar_t v04, Scalar_t v05, Scalar_t v06, Scalar_t v07,
 					 Scalar_t v08, Scalar_t v09, Scalar_t v10, Scalar_t v11,
@@ -784,45 +784,45 @@ namespace AE::Base
 			_value{ _mm256_set_epi16( v15, v14, v13, v12, v11, v10, v09, v08,
 									  v07, v06, v05, v04, v03, v02, v01, v00 )} {}
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==4 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==4 )
 		SimdTInt256 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3,
 					 Scalar_t v4, Scalar_t v5, Scalar_t v6, Scalar_t v7) __NE___ :
 			_value{ _mm256_set_epi32( v7, v6, v5, v4, v3, v2, v1, v0 )} {}
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==8 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==8 )
 		SimdTInt256 (Scalar_t v0, Scalar_t v1, Scalar_t v2, Scalar_t v3) __NE___ :
 			_value{ _mm256_set_epi64x( v3, v2, v1, v0 )} {}
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==16 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==16 )
 		SimdTInt256 (Scalar_t v0, Scalar_t v1)				__NE___	:
 			_value{ _mm256_set_m128( v1, v0 )} {}
 
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		explicit SimdTInt256 (bool v)						__NE___ : SimdTInt256{ v ? Scalar_t{UMax} : Scalar_t{0} } {}
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, ubyte > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, ubyte > and IsSame< B, bool >)
 		SimdTInt256 (B v00, B v01, B v02, B v03, B v04, B v05, B v06, B v07,
 					 B v08, B v09, B v10, B v11, B v12, B v13, B v14, B v15,
 					 B v16, B v17, B v18, B v19, B v20, B v21, B v22, B v23,
 					 B v24, B v25, B v26, B v27, B v28, B v29, B v30, B v31) __NE___;
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, ushort > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, ushort > and IsSame< B, bool >)
 		SimdTInt256 (B v00, B v01, B v02, B v03, B v04, B v05, B v06, B v07,
 					 B v08, B v09, B v10, B v11, B v12, B v13, B v14, B v15) __NE___;
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, uint > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, uint > and IsSame< B, bool >)
 		SimdTInt256 (B v0, B v1, B v2, B v3, B v4, B v5, B v6, B v7)		__NE___;
 
-		template <typename B, typename T=Scalar_t, ENABLEIF( IsSame< T, ulong > and IsSame< B, bool >)>
+		template <typename B, typename T=Scalar_t> requires( IsSame< T, ulong > and IsSame< B, bool >)
 		SimdTInt256 (B v0, B v1, B v2, B v3)				__NE___;
 
 
 	  #if AE_SIMD_AVX >= 2
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	operator - ()							C_NE___	{ return Negative(); }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ Bool_t	operator ! ()							C_NE___	{ return BitInverse(); }
 
 		ND_ Self	operator ~ ()							C_NE___	{ return BitInverse(); }
@@ -870,10 +870,10 @@ namespace AE::Base
 
 
 	  #if AE_SIMD_AVX >= 2
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	Negative ()								C_NE___	{ return Self{0}.Sub( *this ); }		// TODO: optimize ?
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ Self	Abs ()									C_NE___;	// abs(x)
 
 		ND_ Self	Add (const Scalar_t rhs)				C_NE___	{ return Add( Self{rhs} ); }
@@ -916,13 +916,13 @@ namespace AE::Base
 
 		ND_ Mask_t	ToBitfield ()							C_NE___	{ return Mask_t{_mm256_movemask_epi8( _value )}; }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ bool	All ()									C_NE___	{ return _mm256_movemask_epi8( _value ) == -1; }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ bool	Any ()									C_NE___	{ return _mm256_movemask_epi8( _value ) != 0; }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ bool	None ()									C_NE___	{ return _mm256_movemask_epi8( _value ) == 0; }
 
 
@@ -973,15 +973,15 @@ namespace AE::Base
 
 
 	// conversion //
-		template <uint X, uint Y, uint Z, uint W,  typename T=Scalar_t, ENABLEIF( sizeof(T)==8 )>
+		template <uint X, uint Y, uint Z, uint W,  typename T=Scalar_t> requires( sizeof(T)==8 )
 		ND_ Self	Swizzle ()								C_NE___;
 
 		template <uint V0, uint V1, uint V2, uint V3,
 				  uint V4, uint V5, uint V6, uint V7,
-				  typename T=Scalar_t, ENABLEIF( sizeof(T)==4 )>
+				  typename T=Scalar_t> requires( sizeof(T)==4 )
 		ND_ Self	Shuffle (const Self &v8)				C_NE___;
 
-		template <uint X, uint Y, uint Z, uint W,  typename T=Scalar_t, ENABLEIF( sizeof(T)==8 )>
+		template <uint X, uint Y, uint Z, uint W,  typename T=Scalar_t> requires( sizeof(T)==8 )
 		ND_ Self	Shuffle (const Self &v4567)				C_NE___;
 
 		template <uint Low, uint High>
@@ -1005,16 +1005,16 @@ namespace AE::Base
 		template <uint Idx>
 		ND_ auto	Lane ()									C_NE___	{ StaticAssert( Idx < lanes );  return SimdTInt128<Scalar_t>{_mm256_extractf128_si256( _value, Idx )}; }
 
-		template <typename T = Scalar_t, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsUnsignedInteger<T> )
 		ND_ auto	ToSigned ()								C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsSignedInteger<T> )>
+		template <typename T = Scalar_t> requires( IsSignedInteger<T> )
 		ND_ auto	ToUnsigned ()							C_NE___;
 
 		template <uint I=0>	ND_ auto	ToFloat ()			C_NE___;
 		template <uint I=0>	ND_ auto	ToDouble ()			C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( sizeof(T)==8 )>
+		template <typename T = Scalar_t> requires( sizeof(T)==8 )
 		ND_ explicit operator PackedVec<T,count> ()			C_NE___
 		{
 			StaticAssert( IsSame< T, Scalar_t >);
@@ -1051,16 +1051,16 @@ namespace AE::Base
 
 	private:
 	  #if 0 //AE_SIMD_AVX >= 30 // ???
-		template <typename T = Scalar_t, ENABLEIF( IsSame<T,int> )>
+		template <typename T = Scalar_t> requires( IsSame<T,int> )
 		ND_ SimdDouble8  _IntToDouble8 ()					C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsSame<T,uint> )>
+		template <typename T = Scalar_t> requires( IsSame<T,uint> )
 		ND_ SimdDouble8  _UIntToDouble8 ()					C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsSame<T,slong> )>
+		template <typename T = Scalar_t> requires( IsSame<T,slong> )
 		ND_ SimdDouble4  _LongToDouble4 ()					C_NE___;
 
-		template <typename T = Scalar_t, ENABLEIF( IsSame<T,ulong> )>
+		template <typename T = Scalar_t> requires( IsSame<T,ulong> )
 		ND_ SimdDouble4  _ULongToDouble4 ()					C_NE___;
 	  #endif
 

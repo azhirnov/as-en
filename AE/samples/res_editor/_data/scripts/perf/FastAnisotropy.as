@@ -8,7 +8,6 @@
 #	include <glsl.h>
 #	define GENTEX
 #	define RAYTRACE
-#	define GEN_DBG_MIP
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -38,12 +37,6 @@
 			pass.Output( "out_Color",	tex );
 
 			GenMipmaps( tex );
-		}{
-		/*	for (uint mip = 0; mip < tex.MipmapCount(); ++mip)
-			{
-				RC<Postprocess>		pass = Postprocess( "", "GEN_DBG_MIP="+mip );
-				pass.Output( "out_Color",	dbg_tex,	MipmapLevel(mip) );
-			}*/
 		}{
 			RC<Postprocess>		pass = Postprocess( "", "RAYTRACE" );
 			pass.Set( camera );
@@ -77,19 +70,10 @@
 
 #endif
 //-----------------------------------------------------------------------------
-#ifdef GEN_DBG_MIP
-	#include "Color.glsl"
-	
-	void Main ()
-	{
-		out_Color = Rainbow( float(GEN_DBG_MIP) / 7.0 );
-	}
-
-#endif
-//-----------------------------------------------------------------------------
 #ifdef RAYTRACE
 	#include "Ray.glsl"
 	#include "Color.glsl"
+	#include "TexSampling.glsl"
 	#include "Intersectors.glsl"
 
 	void Main ()

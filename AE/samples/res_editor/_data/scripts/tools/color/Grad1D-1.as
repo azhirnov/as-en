@@ -65,7 +65,6 @@
 	#include "SDF.glsl"
 	#include "Color.glsl"
 	#include "Easing.glsl"
-	#include "Geometry.glsl"
 	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
@@ -146,7 +145,7 @@
 	{
 		if ( iColorMask == 0 or iColorMask == id+1 )
 		{
-			float	d = Line_MinDistance( float2(p0.x, p0.col[id]), float2(p1.x, p1.col[id]), uv );
+			float	d = SDF2_Line( uv, float2(p0.x, p0.col[id]), float2(p1.x, p1.col[id]) );
 			return d < 0.0015f;
 		}
 		return false;

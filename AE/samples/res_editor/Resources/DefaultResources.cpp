@@ -134,6 +134,7 @@ namespace AE::ResEditor
 		desc.SetFormat( EPixelFormat::R8_UNorm );
 		desc.SetDimension( uint2{2} );
 		desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
+		desc.SetOptions( EImageOpt::BlitSrc );
 
 		dst.image = res_mngr.CreateImage( desc, "dummy image 2D", gfxAlloc );
 		CHECK_ERRV( dst.image );
@@ -161,6 +162,7 @@ namespace AE::ResEditor
 		desc.SetFormat( EPixelFormat::R8_UNorm );
 		desc.SetDimension( uint3{2} );
 		desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
+		desc.SetOptions( EImageOpt::BlitSrc );
 
 		dst.image = res_mngr.CreateImage( desc, "dummy image 3D", gfxAlloc );
 		CHECK_ERRV( dst.image );
@@ -188,6 +190,7 @@ namespace AE::ResEditor
 		desc.SetFormat( EPixelFormat::R8_UNorm );
 		desc.SetDimension( uint2{2} );
 		desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
+		desc.SetOptions( EImageOpt::BlitSrc );
 		desc.SetArrayLayers( 6 );
 
 		if ( cubemap )

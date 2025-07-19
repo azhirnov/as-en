@@ -26,7 +26,7 @@ namespace AE::Graphics
 		__Cx__ MipmapLevel (Default_t)							__NE___ {}
 		__Cx__ MipmapLevel (const MipmapLevel &)				__NE___ = default;
 
-		template <typename T, ENABLEIF( IsInteger<T> )>
+		template <typename T> requires( IsInteger<T> )
 		__Cx__ explicit MipmapLevel (T value)					__NE___	: _value( CheckCast<MipmapCount_t>(value)) {}
 
 		NdCx__ uint	 Get ()										C_NE___	{ return _value; }

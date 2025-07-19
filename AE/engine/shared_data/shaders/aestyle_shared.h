@@ -6,12 +6,6 @@
 # error Only for C++ code!
 #endif
 
-#if defined(AE_COMPILER_MSVC) && (AE_CXX_VER <= 17)
-#	define and		&&
-#	define or		||
-#	define not		!
-#endif
-
 #define ND_		[[nodiscard]]
 
 #define AE_ENABLE_BYTE_TYPE		1

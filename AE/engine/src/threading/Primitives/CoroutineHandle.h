@@ -2,7 +2,7 @@
 
 #pragma once
 
-#ifdef AE_HAS_COROUTINE
+#if 0 //def AE_HAS_COROUTINE
 # include "threading/Common.h"
 
 namespace AE::Threading

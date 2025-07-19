@@ -25,7 +25,7 @@ namespace AE::Graphics
 		__Cx__ ImageLayer (Default_t)							__NE___ {}
 		__Cx__ ImageLayer (const ImageLayer &)					__NE___ = default;
 
-		template <typename T, ENABLEIF( IsUnsignedInteger<T> )>
+		template <typename T> requires( IsUnsignedInteger<T> )
 		__Cx__ explicit ImageLayer (T value)					__NE___	: _value( CheckCast<LayerCount_t>(value)) {}
 
 		NdCx__ uint	 Get ()										C_NE___	{ return _value; }

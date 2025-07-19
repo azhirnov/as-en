@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Draw particles as rays.
+	Used triangle strip to build oriented quad and instancing to draw multiple quads.
 */
 #ifdef __INTELLISENSE__
 #	include <pipeline_compiler.as>
@@ -55,11 +56,11 @@
 					cb.BlendOp( EBlendOp::Add );
 					rs.color.SetColorBuffer( 0, cb );
 				}
-				rs.depth.test					= false;
-				rs.depth.write					= false;
+				rs.depth.test				= false;
+				rs.depth.write				= false;
 
-				rs.inputAssembly.topology		= EPrimitive::TriangleList;
-				rs.rasterization.cullMode		= ECullMode::None;
+				rs.inputAssembly.topology	= EPrimitive::TriangleList;
+				rs.rasterization.cullMode	= ECullMode::None;
 
 				spec.SetRenderState( rs );
 			}

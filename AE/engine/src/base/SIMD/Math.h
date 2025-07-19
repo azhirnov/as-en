@@ -268,7 +268,7 @@ namespace _hidden_
 	used high precision version if supported
 =================================================
 */
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> )>
+	template <typename SimdType> requires( HasSimdType<SimdType> )
 	ND_ SimdType  Sqrt (const SimdType &v) __NE___
 	{
 		if constexpr( SimdType::Has_PreciseSqrt() )
@@ -290,7 +290,7 @@ namespace _hidden_
 	used low precision version if supported
 =================================================
 */
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> )>
+	template <typename SimdType> requires( HasSimdType<SimdType> )
 	ND_ SimdType  FastSqrt (const SimdType &v) __NE___
 	{
 		if constexpr( SimdType::Has_ApproxInvSqrt() )
@@ -315,7 +315,7 @@ namespace _hidden_
 	used low precision version if supported
 =================================================
 */
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> )>
+	template <typename SimdType> requires( HasSimdType<SimdType> )
 	ND_ SimdType  InvSqrt (const SimdType &v) __NE___
 	{
 		if constexpr( SimdType::Has_ApproxInvSqrt() )
@@ -338,7 +338,7 @@ namespace _hidden_
 	Abs
 =================================================
 */
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> and IsSigned<typename SimdType::Scalar_t> )>
+	template <typename SimdType> requires( HasSimdType<SimdType> and IsSigned<typename SimdType::Scalar_t> )
 	ND_ SimdType  Abs (const SimdType &v) __NE___
 	{
 		return v.Abs();
@@ -349,13 +349,13 @@ namespace _hidden_
 	Min, Max
 =================================================
 */
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> and SimdType::Has_MinMax() )>
+	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_MinMax() )
 	ND_ SimdType  Min (const SimdType &a, const SimdType &b) __NE___
 	{
 		return a.Min( b );
 	}
 
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> and SimdType::Has_MinMax() )>
+	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_MinMax() )
 	ND_ SimdType  Max (const SimdType &a, const SimdType &b) __NE___
 	{
 		return a.Max( b );
@@ -366,31 +366,31 @@ namespace _hidden_
 	Floor, Ceil, Trunc, Round, RoundEven
 =================================================
 */
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> and SimdType::Has_Rounding() )>
+	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  Floor (const SimdType &v) __NE___
 	{
 		return v.Floor();
 	}
 
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> and SimdType::Has_Rounding() )>
+	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  Ceil (const SimdType &v) __NE___
 	{
 		return v.Ceil();
 	}
 
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> and SimdType::Has_Rounding() )>
+	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  Trunc (const SimdType &v) __NE___
 	{
 		return v.Trunc();
 	}
 
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> and SimdType::Has_Rounding() )>
+	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  Round (const SimdType &v) __NE___
 	{
 		return v.Round();
 	}
 
-	template <typename SimdType, ENABLEIF( HasSimdType<SimdType> and SimdType::Has_Rounding() )>
+	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  RoundEven (const SimdType &v) __NE___
 	{
 		return v.RoundEven();

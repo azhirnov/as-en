@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if ((TARGET "Graphics") AND AE_HAS_CXX_COROUTINE)
+if (TARGET "Graphics")
 	file( GLOB_RECURSE SOURCES "*.*" )
 	if (ANDROID)
 		set( TEST_NAME "PerfGraphics" )

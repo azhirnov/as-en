@@ -196,7 +196,7 @@ namespace AE::App
 
 	protected:
 		template <typename T>
-		NdCz__ static InputKey	_Pack (T key, EGestureType gesture, EGestureState state = EGestureState::Update) __NE___;
+		NdCx__ static InputKey	_Pack (T key, EGestureType gesture, EGestureState state = EGestureState::Update) __NE___;
 
 		NdCx__ static auto		_Unpack (InputKey key)			__NE___ -> Tuple< InputType_t, EGestureType, EGestureState >;
 
@@ -210,7 +210,7 @@ namespace AE::App
 =================================================
 */
 	template <typename T>
-	__Cz__ SerializableInputActions::InputKey
+	__Cx__ SerializableInputActions::InputKey
 		SerializableInputActions::_Pack (T key, EGestureType gesture, EGestureState state) __NE___
 	{
 		StaticAssert( sizeof(key) == sizeof(InputType_t) );

@@ -94,42 +94,36 @@
 				pass.Output( "out_Color",	down_rt1 );
 				pass.EnableIfGreater( down_passes, 0 );
 				pass.SetDebugLabel( "downsample 1/2", RGBA32f(1.0, 0.0, 0.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "DOWNSAMPLE_PASS" );
 				pass.ArgIn( "un_Texture",	down_rt1,		Sampler_LinearClamp );
 				pass.Output( "out_Color",	down_rt2 );
 				pass.EnableIfGreater( down_passes, 1 );
 				pass.SetDebugLabel( "downsample 1/4", RGBA32f(0.5, 1.0, 0.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "DOWNSAMPLE_PASS" );
 				pass.ArgIn( "un_Texture",	down_rt2,		Sampler_LinearClamp );
 				pass.Output( "out_Color",	down_rt3 );
 				pass.EnableIfGreater( down_passes, 2 );
 				pass.SetDebugLabel( "downsample 1/8", RGBA32f(0.5, 1.0, 0.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "DOWNSAMPLE_PASS" );
 				pass.ArgIn( "un_Texture",	down_rt3,		Sampler_LinearClamp );
 				pass.Output( "out_Color",	down_rt4 );
 				pass.EnableIfGreater( down_passes, 3 );
 				pass.SetDebugLabel( "downsample 1/16", RGBA32f(0.5, 1.0, 0.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "DOWNSAMPLE_PASS" );
 				pass.ArgIn( "un_Texture",	down_rt4,		Sampler_LinearClamp );
 				pass.Output( "out_Color",	down_rt5 );
 				pass.EnableIfGreater( down_passes, 4 );
 				pass.SetDebugLabel( "downsample 1/32", RGBA32f(0.5, 1.0, 0.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "DOWNSAMPLE_PASS" );
 				pass.ArgIn( "un_Texture",	down_rt5,		Sampler_LinearClamp );
 				pass.Output( "out_Color",	down_rt6 );
 				pass.EnableIfGreater( down_passes, 5 );
 				pass.SetDebugLabel( "downsample 1/64", RGBA32f(0.5, 1.0, 0.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}
 
 
@@ -142,7 +136,6 @@
 				pass.Constant( "iBlurFactor",	blur_factor.X() );
 				pass.EnableIfGreater( up_passes, 0 );
 				pass.SetDebugLabel( "upsample 1/32", RGBA32f(0.0, 0.5, 1.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "UPSAMPLE_PASS" );
 				pass.Output( "out_Color",		up_rt4 );
@@ -151,7 +144,6 @@
 				pass.Constant( "iBlurFactor",	blur_factor.Y() );
 				pass.EnableIfGreater( up_passes, 1 );
 				pass.SetDebugLabel( "upsample 1/16", RGBA32f(0.0, 0.5, 1.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "UPSAMPLE_PASS" );
 				pass.Output( "out_Color",		up_rt3 );
@@ -160,7 +152,6 @@
 				pass.Constant( "iBlurFactor",	blur_factor.Z() );
 				pass.EnableIfGreater( up_passes, 2 );
 				pass.SetDebugLabel( "upsample 1/8", RGBA32f(0.0, 0.5, 1.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "UPSAMPLE_PASS" );
 				pass.Output( "out_Color",		up_rt2 );
@@ -169,7 +160,6 @@
 				pass.Constant( "iBlurFactor",	blur_factor.W() );
 				pass.EnableIfGreater( up_passes, 3 );
 				pass.SetDebugLabel( "upsample 1/4", RGBA32f(0.0, 0.5, 1.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "UPSAMPLE_PASS" );
 				pass.Output( "out_Color",		up_rt1 );
@@ -178,7 +168,6 @@
 				pass.Constant( "iBlurFactor",	blur_factor2.X() );
 				pass.EnableIfGreater( up_passes, 4 );
 				pass.SetDebugLabel( "upsample 1/2", RGBA32f(0.0, 0.5, 1.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}{
 				RC<Postprocess>		pass = Postprocess( "", "UPSAMPLE_PASS" );
 				pass.Output( "out_Color",		up_rt0 );
@@ -187,7 +176,6 @@
 				pass.Constant( "iBlurFactor",	blur_factor2.Y() );
 				pass.EnableIfGreater( up_passes, 5 );
 				pass.SetDebugLabel( "upsample 1/1", RGBA32f(0.0, 1.0, 0.0, 1.0) );
-				pass.AddFlag( EPassFlags::Enable_ShaderTrace );
 			}
 		}
 

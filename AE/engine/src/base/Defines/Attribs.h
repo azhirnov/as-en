@@ -62,30 +62,22 @@
 #define	NdCxIn		ND_					inline			constexpr
 #define	NdCxIF		ND_					forceinline		constexpr
 #define	NdCxIA		ND_	AE_FLATTEN_FN	forceinline		constexpr
-#define __Cz__											cxx20_constexpr
-#define	__CzIn							inline			cxx20_constexpr
-#define	__CzIF							forceinline		cxx20_constexpr
-#define	__CzIA			AE_FLATTEN_FN	forceinline		cxx20_constexpr
-#define NdCz__		ND_									cxx20_constexpr
-#define	NdCzIn		ND_					inline			cxx20_constexpr
-#define	NdCzIF		ND_					forceinline		cxx20_constexpr
-#define	NdCzIA		ND_	AE_FLATTEN_FN	forceinline		cxx20_constexpr
 #define	Nd__In		ND_					inline
 #define	Nd__IF		ND_					forceinline
 #define	Nd__IA		ND_	AE_FLATTEN_FN	forceinline
-#define __Ce__											cxx20_consteval
-#define NdCe__		ND_									cxx20_consteval
+#define __Ce__											consteval
+#define NdCe__		ND_									consteval
 
 
 // has attribute (C++20)
-#if defined(__has_cpp_attribute) and AE_CXX_VER >= 20
+#if defined(__has_cpp_attribute)
 #	define AE_HAS_ATTRIB		__has_cpp_attribute
 #else
 #	define AE_HAS_ATTRIB(...)	(0)
 #endif
 
 // has include (C++20)
-#if defined(__has_include) and AE_CXX_VER >= 17
+#if defined(__has_include)
 #	define AE_HAS_INCLUDE		__has_include
 #else
 #	define AE_HAS_INCLUDE(...)	(0)
@@ -94,11 +86,7 @@
 
 // no discard
 #ifndef ND_
-#  if AE_CXX_VER >= 17
 #	define ND_					[[nodiscard]]
-#  else
-#	define ND_
-#  endif
 #endif // ND_
 
 
@@ -131,39 +119,8 @@
 
 
 // C++20 is constant evaluated
-#ifdef __cpp_lib_is_constant_evaluated
-#	define cxx20_constexpr		constexpr								// allow 'is_constant_evaluated()' inside
-#	define if_consteval()		if ( std::is_constant_evaluated() )		// warning: don't use in 'if constexpr()' it is always 'true'
-#	define if_not_consteval()	if ( not std::is_constant_evaluated() )
-#else
-#	define cxx20_constexpr
-#	define if_consteval()		if constexpr( false )
-#	define if_not_consteval()	if constexpr( true )
-#endif
-
-
-// C++20 consteval specifier
-// forces all calls to happen at compile time
-#ifdef __cpp_consteval
-#	define cxx20_consteval		consteval
-#else
-#	define cxx20_consteval		constexpr
-#endif
-
-
-// C++20 constinit specifier
-// not constant, can be used with 'static' and 'thread_local'
-#ifdef __cpp_constinit
-#	define cxx20_constinit		constinit
-#else
-#	define cxx20_constinit
-#endif
-
-
-// C++20 concepts
-#ifdef __cpp_concepts
-#	define if_requires( ... )	if constexpr( requires{ __VA_ARGS___ })
-#endif
+#define if_consteval()			if ( std::is_constant_evaluated() )		// warning: don't use in 'if constexpr()' it is always 'true'
+#define if_not_consteval()		if ( not std::is_constant_evaluated() )
 
 
 // returns true for constant (constexpr) variable or function argument
@@ -297,12 +254,6 @@
 # endif
 #else
 #	define AE_VCALL
-#endif
-
-
-// native source location (C++20) instead of __FILE__, __LINE__
-#ifdef __cpp_lib_source_location
-#	define AE_HAS_SOURCE_LOCATION
 #endif
 
 
@@ -457,10 +408,6 @@
 #	define AE_HAS_BUILTIN(...)	(0)
 #endif
 
-// function argument name
-#define NAMED_ARG( _name_, /*arg*/... )		(__VA_ARGS__)
-//#define NAMED_ARG( _name_, /*arg*/... )	._name_ = (__VA_ARGS__)		// not supported yet
-
 
 #ifdef AE_CPU_ARCH_ARM_BASED
 # ifndef __ARM_FP
@@ -607,14 +554,14 @@ example of variable initialization:
 	int i;
 	int&& f();
 
-	auto x3a = i;					// decltype(x3a) is int
-	decltype(auto) x3d = i;			// decltype(x3d) is int
-	auto x4a = (i);					// decltype(x4a) is int
-	decltype(auto) x4d = (i);		// decltype(x4d) is int&
-	auto x5a = f();					// decltype(x5a) is int
-	decltype(auto) x5d = f();		// decltype(x5d) is int&&
-	auto x6a = { 1, 2 };			// decltype(x6a) is std::initializer_list<int>
-	decltype(auto) x6d = { 1, 2 };	// error, { 1, 2 } is not an expression
-	auto *x7a = &i;					// decltype(x7a) is int*
-	decltype(auto)* x7d = &i;		// error, declared type is not plain decltype(auto)
+	auto	x3a = i;		// decltype(x3a) is int
+	exact_t	x3d = i;		// decltype(x3d) is int
+	auto	x4a = (i);		// decltype(x4a) is int
+	exact_t	x4d = (i);		// decltype(x4d) is int&
+	auto	x5a = f();		// decltype(x5a) is int
+	exact_t	x5d = f();		// decltype(x5d) is int&&
+	auto	x6a = { 1, 2 };	// decltype(x6a) is std::initializer_list<int>
+	exact_t	x6d = { 1, 2 };	// error, { 1, 2 } is not an expression
+	auto*	 x7a = &i;		// decltype(x7a) is int*
+	exact_t* x7d = &i;		// error, declared type is not plain decltype(auto)
 */

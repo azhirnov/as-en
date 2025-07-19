@@ -27,6 +27,24 @@ namespace
 	}
 
 
+	static void  ExtractBit_Test1 ()
+	{
+		{
+			uint	bits = 0x7;
+			uint	a0 = ExtractHighBit( INOUT bits );	TEST_Eq( a0, 0x4 );
+			uint	a1 = ExtractHighBit( INOUT bits );	TEST_Eq( a1, 0x2 );
+			uint	a2 = ExtractHighBit( INOUT bits );	TEST_Eq( a2, 0x1 );
+					TEST_Eq( bits, 0 );
+		}{
+			uint	bits = 0x7;
+			uint	a0 = ExtractBit( INOUT bits );		TEST_Eq( a0, 0x1 );
+			uint	a1 = ExtractBit( INOUT bits );		TEST_Eq( a1, 0x2 );
+			uint	a2 = ExtractBit( INOUT bits );		TEST_Eq( a2, 0x4 );
+					TEST_Eq( bits, 0 );
+		}
+	}
+
+
 	static void  BitScanForward_Test1 ()
 	{
 		int	val;
@@ -161,6 +179,7 @@ namespace
 extern void UnitTest_Math_BitMath ()
 {
 	IntLog2_Test1();
+	ExtractBit_Test1();
 	BitScanForward_Test1();
 	CountRZero_Test1();
 	SafeBitShift_Test1();

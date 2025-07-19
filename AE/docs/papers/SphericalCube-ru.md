@@ -21,7 +21,7 @@
 
 Наилучшая точность у методов: Tangential, Everitt, Arvo.<br/>
 В тесте берется развертка сферы и применяются обратная и прямая проекции, сравниваются вектора и выводится погрешность.<br/>
-[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/CubeMapTest-1.as)
+[Код](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/screenshot-test/CubeMapTest-1.as)
 
 Наилучшая производительность у Everitt, там используется один Sqrt, что быстро работает на ГП.
 Затем идет 5thPoly, где используется только FMA.<br/>

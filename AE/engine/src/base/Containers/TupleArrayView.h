@@ -86,7 +86,7 @@ namespace AE::Base
 			_arrays{ ArrayPtr<Types>{args} ... }
 		{}
 
-		__Cz__ explicit TupleArrayView (ArrayView<Types> ...args)	__NE___
+		__Cx__ explicit TupleArrayView (ArrayView<Types> ...args)	__NE___
 		{
 			_InitCount( args... );
 			if_unlikely( not _InitPtr<0>( args... ))
@@ -112,10 +112,10 @@ namespace AE::Base
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		NdCz__ T const&			at (usize i)					C_NE___	{ ASSERT( i < _count );  return _Data<I>()[i]; }
+		NdCx__ T const&			at (usize i)					C_NE___	{ ASSERT( i < _count );  return _Data<I>()[i]; }
 
 		template <typename T>
-		NdCz__ T const&			at (usize i)					C_NE___	{ return at< Types_t::template Index<T>, T >( i ); }
+		NdCx__ T const&			at (usize i)					C_NE___	{ return at< Types_t::template Index<T>, T >( i ); }
 
 		template <typename T>
 		__Cx__ void				set (const T* ptr)				__NE___	{ set< Types_t::template Index<T>, T >( ptr ); }
@@ -129,7 +129,7 @@ namespace AE::Base
 
 		template <usize I,
 				  typename T = typename Types_t::template Get<I> >
-		__Cz__ void				set (ArrayView<T> arr)			__NE___	{ ASSERT( arr.empty() or arr.size() == size() );  _arrays.template Get<I>().ptr = arr.data(); }
+		__Cx__ void				set (ArrayView<T> arr)			__NE___	{ ASSERT( arr.empty() or arr.size() == size() );  _arrays.template Get<I>().ptr = arr.data(); }
 
 		template <usize I>
 		NdCx__ usize			size ()							C_NE___	{ return _Data<I>() != null ? _count : 0; }
@@ -171,7 +171,7 @@ namespace AE::Base
 		}
 
 		template <usize I, typename Arg0, typename ...Args>
-		NdCz__ bool  _InitPtr (Arg0 arg0, Args ...args)			__NE___
+		NdCx__ bool  _InitPtr (Arg0 arg0, Args ...args)			__NE___
 		{
 			if_unlikely( not (arg0.empty() or arg0.size() == _count) )
 			{

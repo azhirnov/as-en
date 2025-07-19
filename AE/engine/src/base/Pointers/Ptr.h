@@ -30,8 +30,8 @@ namespace AE::Base
 		template <typename B>
 		__Cx__ Ptr (Ptr<B> other)					__NE___ : _value{static_cast<T*>( other.get() )} {}
 
-		NdCz__ T *		operator -> ()				C_NE___	{ NonNull( _value );  return _value; }
-		NdCz__ T &		operator *  ()				C_NE___	{ NonNull( _value );  return *_value; }
+		NdCx__ T *		operator -> ()				C_NE___	{ NonNull( _value );  return _value; }
+		NdCx__ T &		operator *  ()				C_NE___	{ NonNull( _value );  return *_value; }
 		NdCx__ T *		get ()						C_NE___	{ return _value; }
 
 		NdCx__ explicit operator T * ()				C_NE___	{ return _value; }

@@ -202,31 +202,6 @@ namespace AE::Base
 	}
 #endif
 
-/*
-=================================================
-	HashTable_Contains
-=================================================
-*/
-	template <typename HashTable, typename Key>
-	ND_ bool  HashTable_Contains (const HashTable &ht, const Key &key) __NE___
-	{
-	  #if AE_CXX_VER <= 17
-		return ht.find( key ) != ht.end();
-	  #else
-		return ht.contains( key );
-	  #endif
-	}
-
-	template <typename HashTable, typename Key>
-	ND_ bool  HashTable_NotContains (const HashTable &ht, const Key &key) __NE___
-	{
-	  #if AE_CXX_VER <= 17
-		return ht.find( key ) == ht.end();
-	  #else
-		return not ht.contains( key );
-	  #endif
-	}
-
 } // AE::Base
 
 

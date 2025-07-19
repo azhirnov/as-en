@@ -139,12 +139,12 @@ namespace AE::Base
 		{
 			static constexpr int GetIndex ()										__NE___
 			{
-				return	_IsEnumWithUnknown<T>  ? 1 :
+				return	_IsEnumWithUnknown<T>		? 1 :
 							std::is_floating_point<T>::value or
 							std::is_integral<T>::value		 or
 							std::is_pointer<T>::value		 or
 							std::is_enum<T>::value  ? 2 :
-								0;
+													  0;
 			}
 
 			NdCx__ static T  GetDefault ()											__NE___
@@ -256,6 +256,14 @@ namespace AE::Base
 	using False = Base::_hidden_::NamedBoolean<false>;
 	using True  = Base::_hidden_::NamedBoolean<true>;
 	using Bool  = Base::_hidden_::BoolType;
+
+
+
+	//
+	// Math
+	//
+	template <typename T>
+	static constexpr T EulerNumber = T( 2.71828182845904523536 );
 
 
 } // AE::Base

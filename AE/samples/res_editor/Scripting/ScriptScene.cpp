@@ -625,7 +625,7 @@ namespace AE::ResEditor
 					break;
 				}
 				
-				if ( HashTable_NotContains( att->usageMap, Graphics::SubpassName{sp_name} ))
+				if ( not att->usageMap.contains( Graphics::SubpassName{sp_name} ))
 					att->AddUsage( sp_name, EAttachment::Preserve );
 			}
 		}
@@ -689,7 +689,7 @@ namespace AE::ResEditor
 					break;
 				}
 
-				if ( HashTable_NotContains( att->layouts, Graphics::SubpassName{sp_name} ))
+				if ( not att->layouts.contains( Graphics::SubpassName{sp_name} ))
 					att->AddLayout( sp_name, EResourceState::Preserve );
 			}
 		}

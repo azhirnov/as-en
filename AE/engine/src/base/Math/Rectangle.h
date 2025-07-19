@@ -110,8 +110,8 @@ namespace AE::Base
 		__Cx__ Self&		Join (const Vec2_t &point)			__NE___;
 
 		__Cx__ Self&		Stretch (const Self &size)			__NE___;
-		__Cz__ Self&		Stretch (const Vec2_t &size)		__NE___;
-		__Cz__ Self&		Stretch (T size)					__NE___	{ return Stretch( Vec2_t{ size }); }
+		__Cx__ Self&		Stretch (const Vec2_t &size)		__NE___;
+		__Cx__ Self&		Stretch (T size)					__NE___	{ return Stretch( Vec2_t{ size }); }
 
 		__Cx__ Self&		Stretch2 (const Vec2_t &size)		__NE___;
 		__Cx__ Self&		Stretch2 (T size)					__NE___	{ return Stretch2( Vec2_t{ size }); }
@@ -390,7 +390,7 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	__Cz__ Rectangle<T>&  Rectangle<T>::Stretch (const Vec2_t &size) __NE___
+	__Cx__ Rectangle<T>&  Rectangle<T>::Stretch (const Vec2_t &size) __NE___
 	{
 		if constexpr( IsInteger<T> )
 			ASSERT( Any(Abs(size) > Vec2_t{T{1}}) );
@@ -455,8 +455,8 @@ namespace AE::Base
 	BitEqual
 =================================================
 */
-	template <typename T>
-	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const EnabledBitCount bitCount) __NE___
+	template <typename T> requires(IsFloatPoint<T>)
+	NdCx__ bool  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const EnabledBitCount bitCount) __NE___
 	{
 		return bool4{ Base::BitEqual( lhs.left,   rhs.left,   bitCount ),
 					  Base::BitEqual( lhs.top,    rhs.top,    bitCount ),
@@ -464,8 +464,8 @@ namespace AE::Base
 					  Base::BitEqual( lhs.bottom, rhs.bottom, bitCount )};
 	}
 
-	template <typename T>
-	NdCx__ EnableIf<IsFloatPoint<T>, bool>  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs) __NE___
+	template <typename T> requires(IsFloatPoint<T>)
+	NdCx__ bool  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs) __NE___
 	{
 		return bool4{ Base::BitEqual( lhs.left,   rhs.left   ),
 					  Base::BitEqual( lhs.top,    rhs.top    ),

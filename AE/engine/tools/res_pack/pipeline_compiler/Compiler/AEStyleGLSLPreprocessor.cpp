@@ -752,6 +752,26 @@ namespace AE::PipelineCompiler
 
 		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_debug_printf.txt
 		_typeMap.emplace( "gl.Printf",					"debugPrintfEXT" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GL_EXT_bfloat16.txt
+		_typeMap.emplace( "bfloat16_t",					"bfloat16" );
+		_typeMap.emplace( "bfloat16BitsToIntEXT",		"bfloat16BitsToInt" );
+		_typeMap.emplace( "bfloat16BitsToUintEXT",		"bfloat16BitsToUint" );
+		_typeMap.emplace( "intBitsToBFloat16EXT",		"intBitsToBFloat16" );
+		_typeMap.emplace( "uintBitsToBFloat16EXT",		"uintBitsToBFloat16" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GL_EXT_float8_e5m2_e4m3.txt
+		_typeMap.emplace( "floate5m2_t",				"floatE5M2" );
+		_typeMap.emplace( "floate4m3_t",				"floatE4M3" );
+		_typeMap.emplace( "floate5m2BitsToIntEXT",		"floate5m2BitsToInt" );
+		_typeMap.emplace( "floate5m2BitsToUintEXT",		"floate5m2BitsToUint" );
+		_typeMap.emplace( "intBitsToFloate5m2EXT",		"intBitsToFloate5m2" );
+		_typeMap.emplace( "uintBitsToFloate5m2EXT",		"uintBitsToFloate5m2" );
+		_typeMap.emplace( "floate4m3BitsToIntEXT",		"floate4m3BitsToInt" );
+		_typeMap.emplace( "floate4m3BitsToUintEXT",		"floate4m3BitsToUint" );
+		_typeMap.emplace( "intBitsToFloate4m3EXT",		"intBitsToFloate4m3" );
+		_typeMap.emplace( "uintBitsToFloate4m3EXT",		"uintBitsToFloate4m3" );
+		_typeMap.emplace( "saturatedConvertEXT",		"saturatedConvert" );
 	}
 
 /*

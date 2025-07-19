@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if ((TARGET "Scripting") AND (TARGET "AssetPacker") AND AE_HAS_CXX_COROUTINE AND (NOT AE_ENABLE_REMOTE_GRAPHICS))
+if ((TARGET "Scripting") AND (TARGET "AssetPacker") AND (NOT AE_ENABLE_REMOTE_GRAPHICS))
 
 	file( GLOB_RECURSE CPP_SOURCES "*.h" "*.cpp" "*.md" )
 	file( GLOB_RECURSE DATA_FILES  "_ui_data/*.*" )

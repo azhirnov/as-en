@@ -132,7 +132,7 @@ namespace
 */
 	bool  DeviceProperties::CompareWithConstant (AnyTypeCRef vkExt_mtlFS) C_NE___
 	{
-		StaticAssert( sizeof(DeviceProperties) == 168 );
+		StaticAssert( sizeof(DeviceProperties) == 176 );
 
 		const auto	CheckLimitLess = [] (auto curr, auto constant, const char* name)
 		{{
@@ -339,7 +339,7 @@ namespace
 				const auto&	props = vk_props.shaderCoreBuiltinsARMProps;
 				shaderHW.cores						= props.shaderCoreCount;
 				shaderHW.warpsPerCore				= 0;	// TODO
-				shaderHW.threadsPerWarp				= 16;	// Valhall, 5thGen
+				shaderHW.threadsPerWarp				= vk_ext.subgroup ? vk_props.subgroupProperties.subgroupSize : 16;	// Valhall, 5thGen
 				shaderHW.maxConcurrentWarpsPerCore	= props.shaderWarpsPerCore;
 			}
 			else
@@ -363,7 +363,7 @@ namespace
 		}
 
 		// compute properties
-		StaticAssert( sizeof(compute) == 48 );
+		StaticAssert( sizeof(compute) == 52 );
 		{
 			const auto&		props = vk_props.properties.limits;
 			compute.computeGroupCount[0] = props.maxComputeWorkGroupCount[0];
@@ -386,6 +386,8 @@ namespace
 			compute.prefersLocalInvocationPrimitiveOutput	= props.prefersLocalInvocationPrimitiveOutput;
 			compute.prefersCompactVertexOutput				= props.prefersCompactVertexOutput;
 			compute.prefersCompactPrimitiveOutput			= props.prefersCompactPrimitiveOutput;
+		}{
+			compute.subgroupSize = vk_props.subgroupProperties.subgroupSize;
 		}
 	}
 #endif // AE_ENABLE_VULKAN
@@ -567,7 +569,7 @@ namespace
 
 			// compute
 			{
-				StaticAssert( sizeof(compute) == 48 );
+				StaticAssert( sizeof(compute) == 52 );
 				str << "\n  ComputeProperties:"
 					<< "\n    computeGroupCount: . . . . . . . . (" << ToString( compute.computeGroupCount[0] ) << ", " << ToString( compute.computeGroupCount[1] ) << ", " << ToString( compute.computeGroupCount[2] ) << ")";
 

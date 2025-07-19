@@ -299,7 +299,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef VIEW_SPLINE
-	#include "Geometry.glsl"
+	#include "SDF.glsl"
 	#include "InvocationID.glsl"
 	#include "tools/SplineHelper.glsl"
 
@@ -312,7 +312,7 @@
 
 		float	x1	= GetGlobalCoordUNorm( int3(1) ).x;
 		float	y1	= ApplySpline( x1, un_Params.Mode, un_Params.A, un_Params.B ).x;
-		float	d	= Line_MinDistance( float2(uv.x,y0), float2(x1,y1), uv );
+		float	d	= SDF2_Line( uv, float2(uv.x,y0), float2(x1,y1) );
 
 		out_Color = float4(0.0);
 		if ( d < 0.002f )
@@ -327,7 +327,6 @@
 #ifdef VIEW_1D
 	#include "SDF.glsl"
 	#include "Color.glsl"
-	#include "Geometry.glsl"
 	#include "InvocationID.glsl"
 
 	ND_ float2  Noise (const int dx)
@@ -351,7 +350,7 @@
 		float2	pos	= GetGlobalCoordUNorm().xy;		pos.y = pos.y * 1.05 - 0.025;
 		float2	p0	= Noise( 0 );
 		float2	p1	= Noise( 1 );
-		float	d	= Line_MinDistance( p0, p1, pos );
+		float	d	= SDF2_Line( pos, p0, p1 );
 		float	n	= p0.y;
 
 		out_Color = pos.y > 0.5 ? float4(0.15, 0.15, 0.2, 1.0) : float4(0.2, 0.15, 0.15, 1.0);

@@ -1,4 +1,4 @@
-//c60c0ea2
+//fcd8fc2a
 #pragma once
 #include <vector>
 #include <string>
@@ -26,62 +26,62 @@ using namespace std::string_literals;
 
 struct UIColorStyle;
 struct MultiSamples;
-struct float3;
 struct float2;
+struct float3;
 struct RasterFont;
-struct float4;
 struct ButtonController;
+struct float4;
 struct AlignedLayout;
-struct short3;
 struct ushort4;
+struct short3;
+struct sbyte4;
+struct Texture;
 struct short2;
 struct sbyte3;
-struct Texture;
-struct sbyte4;
-struct PaddingLayout;
-struct HSVColor;
-struct RGBA32f;
-struct bool3;
 struct bool2;
+struct bool3;
 struct bool4;
 struct RGBA32i;
+struct PaddingLayout;
+struct RGBA32f;
+struct HSVColor;
 struct ubyte4;
-struct ubyte2;
 struct ubyte3;
+struct ubyte2;
 struct BaseUIController;
-struct UIWidget;
 struct BaseLayout;
+struct UIWidget;
 struct UIStyleCollection;
-struct RectU;
-struct UIImageStyle;
-struct uint4;
-struct uint3;
-struct uint2;
 struct RectI;
+struct uint2;
+struct uint3;
 struct RectangleDrawable;
 struct MetaData;
+struct RectU;
+struct uint4;
+struct ImageAtlas;
+struct UIImageStyle;
+struct RGBA8u;
 struct RectF;
 struct FillStackLayout;
 struct RGBA32u;
-struct ImageAtlas;
-struct RGBA8u;
-struct ushort2;
-struct ushort3;
-struct sbyte2;
-struct SharedImage;
-struct short4;
-struct ImageDrawable;
-struct BaseUIDrawable;
 struct int2;
+struct ImageLayer;
 struct int3;
 struct int4;
-struct ImageLayer;
+struct sbyte2;
+struct short4;
+struct ushort3;
+struct ushort2;
+struct ImageDrawable;
+struct SharedImage;
+struct BaseUIDrawable;
 struct Model;
 struct MipmapLevel;
-struct FixedLayout;
 struct Material;
-struct Mesh;
 struct DepthStencil;
+struct Mesh;
+struct FixedLayout;
 
 enum class EImage : uint8
 {
@@ -2862,27 +2862,21 @@ struct RC<BaseUIController> : BaseUIController
 };
 
 template <>
-struct RC<UIWidget> : UIWidget
-{
-	RC (const UIWidget &);
-};
-
-template <>
 struct RC<BaseLayout> : BaseLayout
 {
 	RC (const BaseLayout &);
 };
 
 template <>
-struct RC<UIStyleCollection> : UIStyleCollection
+struct RC<UIWidget> : UIWidget
 {
-	RC (const UIStyleCollection &);
+	RC (const UIWidget &);
 };
 
 template <>
-struct RC<UIImageStyle> : UIImageStyle
+struct RC<UIStyleCollection> : UIStyleCollection
 {
-	RC (const UIImageStyle &);
+	RC (const UIStyleCollection &);
 };
 
 template <>
@@ -2898,27 +2892,33 @@ struct RC<MetaData> : MetaData
 };
 
 template <>
-struct RC<FillStackLayout> : FillStackLayout
-{
-	RC (const FillStackLayout &);
-};
-
-template <>
 struct RC<ImageAtlas> : ImageAtlas
 {
 	RC (const ImageAtlas &);
 };
 
 template <>
-struct RC<SharedImage> : SharedImage
+struct RC<UIImageStyle> : UIImageStyle
 {
-	RC (const SharedImage &);
+	RC (const UIImageStyle &);
+};
+
+template <>
+struct RC<FillStackLayout> : FillStackLayout
+{
+	RC (const FillStackLayout &);
 };
 
 template <>
 struct RC<ImageDrawable> : ImageDrawable
 {
 	RC (const ImageDrawable &);
+};
+
+template <>
+struct RC<SharedImage> : SharedImage
+{
+	RC (const SharedImage &);
 };
 
 template <>
@@ -2934,12 +2934,6 @@ struct RC<Model> : Model
 };
 
 template <>
-struct RC<FixedLayout> : FixedLayout
-{
-	RC (const FixedLayout &);
-};
-
-template <>
 struct RC<Material> : Material
 {
 	RC (const Material &);
@@ -2949,5 +2943,11 @@ template <>
 struct RC<Mesh> : Mesh
 {
 	RC (const Mesh &);
+};
+
+template <>
+struct RC<FixedLayout> : FixedLayout
+{
+	RC (const FixedLayout &);
 };
 

@@ -32,14 +32,14 @@ namespace AE::Base
 		__Cx__ BitView ()										__NE___	{}
 		__Cx__ BitView (const Self &)							__NE___	= default;
 		__Cx__ BitView (const BitMutableView &)					__NE___;
-		__Cz__ BitView (const Value_t* bits, usize bitCount)	__NE___;
+		__Cx__ BitView (const Value_t* bits, usize bitCount)	__NE___;
 
 		__Cx__ Self&	operator =  (const Self &)				__NE___	= default;
 		__Cx__ Self&	operator =  (const BitMutableView &)	__NE___;
 
 		NdCx__ bool		operator == (const Self &)				C_NE___;
 
-		NdCz__ bool		operator [] (usize i)					C_NE___;
+		NdCx__ bool		operator [] (usize i)					C_NE___;
 
 		NdCx__ auto*	data ()									C_NE___	{ return _bits; }
 
@@ -74,7 +74,7 @@ namespace AE::Base
 			__Cx__ _BitSetter (_BitSetter &&)					__NE___ = default;
 			__Cx__ _BitSetter (BitMutableView &ref, usize idx)	__NE___ : _self{ref}, _index{idx} {}
 		public:
-			__Cz__ void  operator = (bool value)				__NE___	{ _self.set( _index, value ); }
+			__Cx__ void  operator = (bool value)				__NE___	{ _self.set( _index, value ); }
 		};
 
 
@@ -88,17 +88,17 @@ namespace AE::Base
 	public:
 		__Cx__ BitMutableView ()								__NE___	{}
 		__Cx__ BitMutableView (const Self &)					__NE___	= default;
-		__Cz__ BitMutableView (Value_t* bits, usize bitCount)	__NE___;
+		__Cx__ BitMutableView (Value_t* bits, usize bitCount)	__NE___;
 
 		__Cx__ Self&	operator =  (const Self &)				__NE___	= default;
 
 		NdCx__ bool		operator == (const Self &rhs)			C_NE___	{ return BitView{*this} == BitView{rhs}; }
 		NdCx__ bool		operator == (const BitView &rhs)		C_NE___	{ return BitView{*this} == rhs; }
 
-		NdCz__ bool		operator [] (usize i)					C_NE___;
-		NdCz__ auto		operator [] (usize i)					__NE___	{ return _BitSetter{ *this, i }; }
+		NdCx__ bool		operator [] (usize i)					C_NE___;
+		NdCx__ auto		operator [] (usize i)					__NE___	{ return _BitSetter{ *this, i }; }
 
-		__Cz__ void		set (usize idx, bool value)				__NE___;
+		__Cx__ void		set (usize idx, bool value)				__NE___;
 
 		NdCx__ auto*	data ()									__NE___	{ return _bits; }
 		NdCx__ auto*	data ()									C_NE___	{ return _bits; }
@@ -120,7 +120,7 @@ namespace AE::Base
 		_bits{ other.data() }, _bitCount{ other.BitCount() }
 	{}
 
-	__CzIn BitView::BitView (const Value_t* bits, usize bitCount) __NE___ :
+	__CxIn BitView::BitView (const Value_t* bits, usize bitCount) __NE___ :
 		_bits{ bits }, _bitCount{ bitCount }
 	{
 		ASSERT( (bits != null) == (bitCount > 0) );
@@ -163,7 +163,7 @@ namespace AE::Base
 	operator []
 =================================================
 */
-	__CzIn bool  BitView::operator [] (const usize bitIdx) C_NE___
+	__CxIn bool  BitView::operator [] (const usize bitIdx) C_NE___
 	{
 		ASSERT( bitIdx < _bitCount );
 
@@ -181,7 +181,7 @@ namespace AE::Base
 	constructor
 =================================================
 */
-	__CzIn BitMutableView::BitMutableView (Value_t* bits, usize bitCount) __NE___ :
+	__CxIn BitMutableView::BitMutableView (Value_t* bits, usize bitCount) __NE___ :
 		_bits{ bits }, _bitCount{ bitCount }
 	{
 		ASSERT( (bits != null) == (bitCount > 0) );
@@ -192,7 +192,7 @@ namespace AE::Base
 	operator []
 =================================================
 */
-	__CzIn bool  BitMutableView::operator [] (const usize bitIdx) C_NE___
+	__CxIn bool  BitMutableView::operator [] (const usize bitIdx) C_NE___
 	{
 		ASSERT( bitIdx < _bitCount );
 
@@ -207,7 +207,7 @@ namespace AE::Base
 	set
 =================================================
 */
-	__CzIn void  BitMutableView::set (const usize bitIdx, const bool newValue) __NE___
+	__CxIn void  BitMutableView::set (const usize bitIdx, const bool newValue) __NE___
 	{
 		ASSERT( bitIdx < _bitCount );
 

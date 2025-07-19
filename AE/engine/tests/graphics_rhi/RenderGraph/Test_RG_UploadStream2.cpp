@@ -81,11 +81,11 @@ namespace
 			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream2"} );
 			CHECK_TE( t.batch );
 
-		  #ifdef AE_HAS_COROUTINE
+		  #if 1
 			AsyncTask	test = t.batch->Run(
 				[] (US2_TestData &t) -> RenderTaskCoro
 				{
-					CHECK( not co_await Coro_IsCanceled );
+					CHECK( not (co_await Coro_IsCanceled) );
 					CHECK( (co_await Coro_Status) == EStatus::InProgress );
 					CHECK( (co_await Coro_TaskQueue) == ETaskQueue::Renderer );
 

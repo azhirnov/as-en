@@ -740,7 +740,7 @@ namespace AE::Base
 	}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ubyte > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ubyte > and IsSame< B, bool >)
 	SimdTInt256<IT>::SimdTInt256 (B v00, B v01, B v02, B v03, B v04, B v05, B v06, B v07,
 								  B v08, B v09, B v10, B v11, B v12, B v13, B v14, B v15,
 								  B v16, B v17, B v18, B v19, B v20, B v21, B v22, B v23,
@@ -756,7 +756,7 @@ namespace AE::Base
 	{}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ushort > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ushort > and IsSame< B, bool >)
 	SimdTInt256<IT>::SimdTInt256 (B v00, B v01, B v02, B v03, B v04, B v05, B v06, B v07,
 								  B v08, B v09, B v10, B v11, B v12, B v13, B v14, B v15) __NE___ :
 		SimdTInt256{ T(v00 ? 0xFFFF : 0), T(v01 ? 0xFFFF : 0), T(v02 ? 0xFFFF : 0), T(v03 ? 0xFFFF : 0),
@@ -766,14 +766,14 @@ namespace AE::Base
 	{}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, uint > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, uint > and IsSame< B, bool >)
 	SimdTInt256<IT>::SimdTInt256 (B v0, B v1, B v2, B v3, B v4, B v5, B v6, B v7) __NE___ :
 		SimdTInt256{ (v0 ? ~0u : 0), (v1 ? ~0u : 0), (v2 ? ~0u : 0), (v3 ? ~0u : 0),
 					 (v4 ? ~0u : 0), (v5 ? ~0u : 0), (v6 ? ~0u : 0), (v7 ? ~0u : 0) }
 	{}
 
 	template <typename IT>
-	template <typename B, typename T, ENABLEIF_IMPL( IsSame< T, ulong > and IsSame< B, bool >)>
+	template <typename B, typename T> requires( IsSame< T, ulong > and IsSame< B, bool >)
 	SimdTInt256<IT>::SimdTInt256 (B v0, B v1, B v2, B v3) __NE___ :
 		SimdTInt256{ (v0 ? ~0ull : 0), (v1 ? ~0ull : 0), (v2 ? ~0ull : 0), (v3 ? ~0ull : 0) }
 	{}
@@ -975,7 +975,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsUnsignedInteger<T> )>
+	template <typename T> requires( IsUnsignedInteger<T> )
 	auto  SimdTInt256<IT>::ToSigned () C_NE___
 	{
 		using S = ToSignedInteger<IT>;
@@ -988,7 +988,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T, ENABLEIF_IMPL( IsSignedInteger<T> )>
+	template <typename T> requires( IsSignedInteger<T> )
 	auto  SimdTInt256<IT>::ToUnsigned () C_NE___
 	{
 		using U = ToUnsignedInteger<IT>;
@@ -1684,7 +1684,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y, uint Z, uint W,  typename T, ENABLEIF_IMPL( sizeof(T)==8 )>
+	template <uint X, uint Y, uint Z, uint W,  typename T> requires( sizeof(T)==8 )
 	SimdTInt256<IT>  SimdTInt256<IT>::Swizzle ()  C_NE___
 	{
 		StaticAssert( Has_Swizzle() );
@@ -1704,7 +1704,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T, ENABLEIF_IMPL( sizeof(T)==4 )>
+	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7, typename T> requires( sizeof(T)==4 )
 	SimdTInt256<IT>  SimdTInt256<IT>::Shuffle (const Self &) C_NE___
 	{
 		StaticAssert( Has_Shuffle() );
@@ -1726,7 +1726,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <uint X, uint Y, uint Z, uint W,  typename T, ENABLEIF_IMPL( sizeof(T)==8 )>
+	template <uint X, uint Y, uint Z, uint W,  typename T> requires( sizeof(T)==8 )
 	SimdTInt256<IT>  SimdTInt256<IT>::Shuffle (const Self &) C_NE___
 	{
 		StaticAssert( Has_Shuffle() );

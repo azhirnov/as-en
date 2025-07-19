@@ -41,20 +41,40 @@ ND_ float4x4	f4x4_RotateZ (const float angle);
 ND_ float4x4	f4x4_Rotate  (const float angle, const float3 axis);
 
 
-// Projection
+// View //
+ND_ float		FastViewSpaceZ (const float4x4 view, float3 worldPos);
+
+
+// Projection //
 ND_ float4x4	f4x4_Ortho (const float4 viewport, const float2 range);
 ND_ float4x4	f4x4_InfinitePerspective (const float fovY, const float aspectRatio, const float zNear);
 ND_ float4x4	f4x4_Perspective (float fovY, const float aspectRatio, const float2 range);
 ND_ float4x4	f4x4_Perspective (const float fovY, const float2 viewportSize, const float2 range);
+	void		f4x4_ReverseZ (inout float4x4 m);
 
-ND_ float3		ProjectToNormClipSpace (const float4x4 mvp, const float3 pos);
-ND_ float3		ProjectToScreenSpace (const float4x4 mvp, const float3 pos, const float4 viewport);
-ND_ float3		Project (const float4x4 mvp, const float3 pos, const float4 viewport) { return ProjectToScreenSpace( mvp, pos, viewport ); }
+ND_ float4		ProjectToNormClipSpace (const float4x4 mvp, const float4 pos);
+ND_ float4		ProjectToScreenSpace (const float4x4 mvp, const float4 pos, const float4 viewport);
+ND_ float4		ProjectNDC (const float4x4 mvp, const float3 pos)									{ return ProjectToNormClipSpace( mvp, float4(pos, 1.0) ); }
+ND_ float4		Project (const float4x4 mvp, const float3 pos, const float4 viewport)				{ return ProjectToScreenSpace( mvp, float4(pos, 1.0), viewport ); }
 
+ND_ bool		ClipSpacePointIsVisible (const float4 point);
+ND_ bool		NormClipSpacePointIsVisible (const float3 point);
+
+				// return world space if invViewProj provided
+				// return object space if invMVP provided
 ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordZ, const float4 viewport);
-ND_ float3		UnProject (const float4x4 invMat, const float3 screenCoordZ, const float2 invViewportSize);
+ND_ float3		UnProject (const float4x4 invMat, float3 screenCoordZ, const float2 invViewportSize);
+ND_ float3		UnProjectNDC (const float4x4 invMat, const float3 ndc);
 
-ND_ float		FastProjectZ (const float4x4 proj, float z);
+				// return /w space non-linear depth from view space Z
+ND_ float		FastProjectZ (const float4x4 proj, float z);		// perspective projection
+ND_ float		FastProjectZInf (const float zNear, float z);		// infinite perspective
+ND_ float		FastProjectRevZInf (const float zNear, float z);	// infinite perspective with reverse Z
+
+				// return view space Z from z/w
+ND_ float		FastUnProjectZ (const float4x4 proj, float zw);		// perspective projection
+ND_ float		FastProjectZInf (const float zNear, float zw);		// infinite perspective
+ND_ float		FastProjectRevZInf (const float zNear, float zw);	// infinite perspective with reverse Z
 
 
 // Scale
@@ -80,11 +100,10 @@ ND_ float3		GetAxisY (const float4x4 m);
 ND_ float3		GetAxisZ (const float3x3 m);
 ND_ float3		GetAxisZ (const float4x4 m);
 
-ND_ float3x3	LookAt (const float3 dir, const float3 up);
+ND_ float3x3	f3x3_LookAt (const float3 dir, const float3 up);
 ND_ float2		Transform2D (const float4x4 mat, const float2 point);
 
-ND_ float3		ViewDir (const float4x4 invMat, const float2 screenPos, const float2 screenSize);
-ND_ float3		ViewDir (const float4x4 invMat, const float2 unormPos);
+ND_ float3		ViewDir (const float4x4 invProj, const float2 unormPos);
 //-----------------------------------------------------------------------------
 
 
@@ -268,7 +287,7 @@ float4x4  f4x4_Scale (const float  value)	{ return f4x4_Scale( float3(value) ); 
 //-----------------------------------------------------------------------------
 
 
-float3x3  LookAt (const float3 dir, const float3 up)
+float3x3  f3x3_LookAt (const float3 dir, const float3 up)
 {
 	float3x3 m;
 	m[2] = dir;
@@ -280,25 +299,27 @@ float3x3  LookAt (const float3 dir, const float3 up)
 
 float2  Transform2D (const float4x4 mat, const float2 point)
 {
-	return ( mat * float4(point, 0.0f, 1.0f) ).xy;
+	return ( mat * float4(point, 0.0, 1.0) ).xy;
 }
 //-----------------------------------------------------------------------------
 
 
-float3  ProjectToNormClipSpace (const float4x4 mvp, const float3 pos)
+float4  ProjectToNormClipSpace (const float4x4 mvp, const float4 pos)
 {
-	float4	temp	 = mvp * float4( pos, 1.0 );
-			temp.xyz *= Rcp( temp.w );	// xy - snorm, z - unorm
-	return	temp.xyz;
+	float4	temp	 = mvp * pos;
+			temp.w	 = Rcp( temp.w );
+			temp.xyz *= temp.w;	// xy - snorm, z - unorm
+	return	temp;
 }
 
-float3  ProjectToScreenSpace (const float4x4 mvp, const float3 pos, const float4 viewport)
+float4  ProjectToScreenSpace (const float4x4 mvp, const float4 pos, const float4 viewport)
 {
-	float4	temp	 = mvp * float4( pos, 1.0 );
+	float4	temp	 = mvp * pos;
 	float2	size	 = viewport.zw - viewport.xy;
-			temp.xyz *= Rcp( temp.w );
+			temp.w	 = Rcp( temp.w );
+			temp.xyz *= temp.w;
 			temp.xy	 = ToUNorm( temp.xy ) * size + viewport.xy;
-	return	temp.xyz;
+	return	temp;
 }
 
 float  FastProjectZ (const float4x4 proj, float z)
@@ -313,34 +334,83 @@ float  FastProjectZ (const float4x4 proj, float z)
 	return	z / w;
 }
 
-// return world space if invViewProj provided
-// return local space if invMVP provided
-float3  UnProject (const float4x4 invMat, float3 screenCoordZ, const float4 viewport)
+float  FastProjectZInf (const float zNear, float z)
 {
-	screenCoordZ.xy -= viewport.xy;
-	return UnProject( invMat, screenCoordZ, 1.0 / (viewport.zw - viewport.xy) );
+//	return	(z - zNear) / z;
+	return	1.0 - zNear / z;	// better accuracy
 }
 
-float3  UnProject (const float4x4 invMat, const float3 screenCoordZ, const float2 invViewportSize)
+float  FastProjectRevZInf (const float zNear, float z)
 {
-	float4	temp	= float4( screenCoordZ, 1.0 );
-			temp.xy	= ToSNorm( temp.xy * invViewportSize );
-			temp	= invMat * temp;
-			temp	*= Rcp( temp.w );
-	return	temp.xyz;
+	return	zNear / z;
 }
 //-----------------------------------------------------------------------------
 
 
-float3  ViewDir (const float4x4 invMat, const float2 unormPos)
+bool  ClipSpacePointIsVisible (const float4 point)
 {
-	const float4	world_pos = invMat * float4(ToSNorm(unormPos), -1.0f, 1.0f);
-	return Normalize( world_pos.xyz / world_pos.w );
+	return	point.w >= 0.0								and
+			AllLessEqual( Abs( point.xy ), point.ww )	and
+			point.z >= 0.0 and point.z <= point.w;
 }
 
-float3  ViewDir (const float4x4 invMat, const float2 screenPos, const float2 screenSize)
+bool  NormClipSpacePointIsVisible (const float3 point)
 {
-	return ViewDir( invMat, screenPos / screenSize );
+	return	AllLessEqual( Abs( point.xy ), float2(1.0) ) and
+			point.z >= 0.0 and point.z <= 1.0;
+}
+//-----------------------------------------------------------------------------
+
+
+float3  UnProject (const float4x4 invMat, float3 screenCoordZ, const float4 viewport)
+{
+	screenCoordZ.xy = ToSNorm( (screenCoordZ.xy - viewport.xy) * Rcp(viewport.zw - viewport.xy) );
+	return UnProjectNDC( invMat, screenCoordZ );
+}
+
+float3  UnProject (const float4x4 invMat, float3 screenCoordZ, const float2 invViewportSize)
+{
+	screenCoordZ.xy = ToSNorm( screenCoordZ.xy * invViewportSize );
+	return UnProjectNDC( invMat, screenCoordZ );
+}
+
+float3  UnProjectNDC (const float4x4 invMat, const float3 ndc)
+{
+	float4	temp = float4( ndc, 1.0 );
+			temp = invMat * temp;
+			temp *= Rcp( temp.w );
+	return	temp.xyz;	// xy - snorm, z - unorm
+}
+
+float  FastUnProjectZ (const float4x4 proj, float zw)
+{
+	float	p23 = 1.0;			// proj[2][3]
+	float	p22	= proj[2][2];
+	float	p32	= proj[3][2];
+	return	p32 / (zw * p23 - p22);
+}
+
+float  FastUnProjectZInf (const float zNear, float zw)
+{
+	return	-zNear / (zw - 1.0);
+}
+
+float  FastUnProjectRevZInf (const float zNear, float zw)
+{
+	return	zNear / zw;
+}
+//-----------------------------------------------------------------------------
+
+
+float  FastViewSpaceZ (const float4x4 view, float3 worldPos)
+{
+	return Dot( float3(view[0][2], view[1][2], view[2][2]), worldPos );
+}
+
+float3  ViewDir (const float4x4 invProj, const float2 unormPos)
+{
+	const float4	world_pos = invProj * float4(ToSNorm(unormPos), 1.0f, 1.0f);
+	return Normalize( world_pos.xyz / world_pos.w );
 }
 //-----------------------------------------------------------------------------
 
@@ -366,12 +436,28 @@ float3  GetAxisZ (const float4x4 m)		{ return float3( m[0][2], m[1][2], m[2][2] 
 //-----------------------------------------------------------------------------
 
 
+void  f4x4_ReverseZ (inout float4x4 m)
+{
+#if 0
+	const float4x4	revz = float4x4( float4( 1.0, 0.0,  0.0, 0.0 ),
+									 float4( 0.0, 1.0,  0.0, 0.0 ),
+									 float4( 0.0, 0.0, -1.0, 0.0 ),
+									 float4( 0.0, 0.0,  1.0, 1.0 ));
+	m = revz * m;
+#else
+	m[2][2] = -m[2][2];
+	m[3][2] = -m[3][2];
+#endif
+}
+
 #ifdef AE_LICENSE_MIT
 
 	// based on code from GLM (MIT license) https://github.com/g-truc/glm
 
 	float4x4  f4x4_InfinitePerspective (const float fovY, const float aspectRatio, const float zNear)
 	{
+		// https://www.terathon.com/gdc07_lengyel.pdf
+
 		const float		range	= Tan( fovY * 0.5 ) * zNear;
 		const float		left	= -range * aspectRatio;
 		const float		right	= range * aspectRatio;
@@ -432,6 +518,15 @@ float3  GetAxisZ (const float4x4 m)		{ return float3( m[0][2], m[1][2], m[2][2] 
 
 // for debugging
 #if 1
+	
+	// col = mat * row
+	float3  Mul (const float3x3 lhs, const float3 rhs)
+	{
+		float3	m0  = lhs[0] * rhs[0];
+		float3	m1  = lhs[1] * rhs[1];
+		float3	m2  = lhs[2] * rhs[2];
+		return	(m0 + m1) + m2;
+	}
 
 	// col = mat * row
 	float4  Mul (const float4x4 lhs, const float4 rhs)

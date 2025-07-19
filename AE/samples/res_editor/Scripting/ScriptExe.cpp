@@ -491,7 +491,7 @@ namespace {
 	void  ScriptExe::_GenMipmaps (const ScriptImagePtr &rt) __Th___
 	{
 		CHECK_THROW_MSG( rt );
-		CHECK_THROW_MSG( rt->MipmapCount() > 1 );
+		CHECK_THROW_MSG( rt->MipmapCount() > 1 or AllBits( rt->Flags(), Image::EImageFlags::AllMipmaps ));
 
 		rt->AddUsage( EResourceUsage::GenMipmaps );
 
@@ -1122,10 +1122,10 @@ namespace {
 	void  ScriptExe::_ReadBufferU3 (const ScriptDynamicUInt3Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 3 ); }
 	void  ScriptExe::_ReadBufferU4 (const ScriptDynamicUInt4Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 4 ); }
 
-	void  ScriptExe::_ReadBufferF1 (const ScriptDynamicFloatPtr  &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 1 ); }
-	void  ScriptExe::_ReadBufferF2 (const ScriptDynamicFloat2Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 2 ); }
-	void  ScriptExe::_ReadBufferF3 (const ScriptDynamicFloat3Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 3 ); }
-	void  ScriptExe::_ReadBufferF4 (const ScriptDynamicFloat4Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::UInt32, 4 ); }
+	void  ScriptExe::_ReadBufferF1 (const ScriptDynamicFloatPtr  &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::Float32, 1 ); }
+	void  ScriptExe::_ReadBufferF2 (const ScriptDynamicFloat2Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::Float32, 2 ); }
+	void  ScriptExe::_ReadBufferF3 (const ScriptDynamicFloat3Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::Float32, 3 ); }
+	void  ScriptExe::_ReadBufferF4 (const ScriptDynamicFloat4Ptr &dyn, const ScriptBufferPtr &buf, const String &field) __Th___ { _ReadBuffer( dyn, buf, field, PipelineCompiler::EValueType::Float32, 4 ); }
 
 	template <typename D, typename T>
 	void  ScriptExe::_ReadBuffer (const D &dyn, const ScriptBufferPtr &buf, const String &fieldName, T type, uint count) __Th___
@@ -1297,40 +1297,39 @@ namespace {
 		return GraphicsScheduler().GetFeatureSet().samplerAnisotropy == FeatureSet::EFeature::RequireTrue;
 	}
 
-	// TODO:
-	//	Supports_AttachmentFormat
-	//	Supports_AttachmentBlendFormat
-	//	Supports_LinearSampledFormat
-	//	Supports_StorageImageFormat
-	//	Supports_TexelBufferFormat
-
-	static bool  _Supports_Format (const EPixelFormat fmt)
+	static bool  _Supports_AttachmentFormat (const EPixelFormat fmt)
 	{
 		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		return fs.attachmentFormats.contains( fmt );
+	}
+	
+	static bool  _Supports_AttachmentBlendFormat (const EPixelFormat fmt)
+	{
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		return fs.attachmentBlendFormats.contains( fmt );
+	}
+	
+	static bool  _Supports_LinearSampledFormat (const EPixelFormat fmt)
+	{
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		return fs.linearSampledFormats.contains( fmt );
+	}
+	
+	static bool  _Supports_StorageImageFormat (const EPixelFormat fmt)
+	{
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		return fs.storageImageFormats.contains( fmt );
+	}
+	
+	static bool  _Supports_StorageImageAtomicFormat (const EPixelFormat fmt)
+	{
+		auto&	fs = GraphicsScheduler().GetFeatureSet();
+		return fs.storageImageAtomicFormats.contains( fmt );
+	}
 
-		if ( EPixelFormat_IsBC( fmt ))
-		{
-			return fs.textureCompressionBC == FeatureSet::EFeature::RequireTrue;
-		}
-		else
-		if ( EPixelFormat_IsETC( fmt ) or EPixelFormat_IsEAC( fmt ))
-		{
-			return fs.textureCompressionETC2 == FeatureSet::EFeature::RequireTrue;
-		}
-		else
-		if ( EPixelFormat_IsASTC_LDR( fmt ) or EPixelFormat_IsASTC_LDR_sRGB( fmt ))
-		{
-			return fs.textureCompressionASTC_LDR == FeatureSet::EFeature::RequireTrue;
-		}
-		else
-		if ( EPixelFormat_IsASTC_HDR( fmt ))
-		{
-			return fs.textureCompressionASTC_HDR == FeatureSet::EFeature::RequireTrue;
-		}
-		else
-		{
-			return fs.linearSampledFormats.contains( fmt );
-		}
+	static uint _GetSubgroupSize ()
+	{
+		return GraphicsScheduler().GetDevice().GetDeviceProperties().compute.subgroupSize;	
 	}
 
 	static ScriptFeatureSet*  _GetFeatureSet ()
@@ -1615,17 +1614,22 @@ namespace {
 		AS_GLOBAL_FN( se, ScriptExe::_CM_IdentitySC_Forward,	"CM_IdentitySC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using identity projection (normalization)." );
 		AS_GLOBAL_FN( se, ScriptExe::_CM_TangentialSC_Forward,	"CM_TangentialSC_Forward",	{"snormCoord_cubeFace"},	"Convert 2D regular grid on cube face to 3D position on sphere using tangential projection." );
 		
-		AS_GLOBAL_FN( se, _GetGPUVendor,									"GPUVendor",					{} );
-		AS_GLOBAL_FN( se, _IsDiscreteGPU,									"IsDiscreteGPU",				{} );
-		AS_GLOBAL_FN( se, _IsRemoteGPU,										"IsRemoteGPU",					{} );
-		AS_GLOBAL_FN( se, _Supports_GeometryShader,							"Supports_GeometryShader",		{} );
-		AS_GLOBAL_FN( se, _Supports_MeshShader,								"Supports_MeshShader",			{} );
-		AS_GLOBAL_FN( se, _Supports_TessellationShader,						"Supports_TessellationShader",	{} );
-		AS_GLOBAL_FN( se, _Supports_SamplerAnisotropy,						"Supports_SamplerAnisotropy",	{} );
-		AS_GLOBAL_FN( se, ScriptResourceApi::Supported_DepthFormat,			"Supported_DepthFormat",		{} );
-		AS_GLOBAL_FN( se, ScriptResourceApi::Supported_DepthStencilFormat,	"Supported_DepthStencilFormat",	{} );
-		AS_GLOBAL_FN( se, _Supports_Format,									"Supports_Format",				{} );
-		AS_GLOBAL_FN( se, _GetFeatureSet,									"GetFeatureSet",				{} );
+		AS_GLOBAL_FN( se, _GetGPUVendor,									"GPUVendor",						{} );
+		AS_GLOBAL_FN( se, _IsDiscreteGPU,									"IsDiscreteGPU",					{} );
+		AS_GLOBAL_FN( se, _IsRemoteGPU,										"IsRemoteGPU",						{} );
+		AS_GLOBAL_FN( se, _Supports_GeometryShader,							"Supports_GeometryShader",			{} );
+		AS_GLOBAL_FN( se, _Supports_MeshShader,								"Supports_MeshShader",				{} );
+		AS_GLOBAL_FN( se, _Supports_TessellationShader,						"Supports_TessellationShader",		{} );
+		AS_GLOBAL_FN( se, _Supports_SamplerAnisotropy,						"Supports_SamplerAnisotropy",		{} );
+		AS_GLOBAL_FN( se, ScriptResourceApi::Supported_DepthFormat,			"Supported_DepthFormat",			{} );
+		AS_GLOBAL_FN( se, ScriptResourceApi::Supported_DepthStencilFormat,	"Supported_DepthStencilFormat",		{} );
+		AS_GLOBAL_FN( se, _Supports_AttachmentFormat,						"Supports_AttachmentFormat",		{} );
+		AS_GLOBAL_FN( se, _Supports_AttachmentBlendFormat,					"Supports_AttachmentBlendFormat",	{} );
+		AS_GLOBAL_FN( se, _Supports_LinearSampledFormat,					"Supports_LinearSampledFormat",		{} );
+		AS_GLOBAL_FN( se, _Supports_StorageImageFormat,						"Supports_StorageImageFormat",		{} );
+		AS_GLOBAL_FN( se, _Supports_StorageImageAtomicFormat,				"Supports_StorageImageAtomicFormat",{} );
+		AS_GLOBAL_FN( se, _GetSubgroupSize,									"GetSubgroupSize",					{} );
+		AS_GLOBAL_FN( se, _GetFeatureSet,									"GetFeatureSet",					{} );
 
 		// TODO:
 		//	PresentVR( left, left_layer, left_mipmap,  right, right_layer, right_mipmap )
@@ -2526,8 +2530,16 @@ namespace {
 		const auto	[lhs_t0, lhs_t1]	= GetDescriptorImageTypeRelaxed( lhs );
 		const auto	rhs_t0				= GetDescriptorImageTypeRelaxed( rhs.PixelFormat(), rhs.GetType(), False{"non-MS"}, False{"non-CubeMap"} );
 		const auto	rhs_t1				= GetDescriptorImageTypeRelaxed( rhs.PixelFormat(), rhs.GetType(), False{"non-MS"}, True{"CubeMap"} );
-		return	lhs_t0 == rhs_t0 or lhs_t1 == rhs_t0 or
-				lhs_t0 == rhs_t1 or lhs_t1 == rhs_t1;
+
+		bool		is_equal			= lhs_t0 == rhs_t0 or lhs_t1 == rhs_t0 or
+										  lhs_t0 == rhs_t1 or lhs_t1 == rhs_t1;
+		if ( is_equal )
+			return true;
+
+		AE_LOGE( "Image description supports types: "s << PipelineCompiler::EImageType_ToString(lhs_t0) << ", " << PipelineCompiler::EImageType_ToString(lhs_t1) << ".\n"
+				 "Intermediate image supports types: " << PipelineCompiler::EImageType_ToString(rhs_t0) << ", " << PipelineCompiler::EImageType_ToString(rhs_t1) << ".\n"
+				 "But non of them are match." );
+		return false;
 	}
 
 } // AE::ResEditor

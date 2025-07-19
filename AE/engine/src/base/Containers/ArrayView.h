@@ -62,7 +62,7 @@ namespace AE::Base
 		__Cx__ ArrayView (value_type &&elem)				__NE___ : _array{&elem}, _count{1} {}
 
 		template <typename AllocT>
-		__Cz__ ArrayView (const Array<T,AllocT> &vec)		__NE___ : _array{vec.data()}, _count{vec.size()}  { ASSERT( (_count == 0) or (_array != null) ); }
+		__Cx__ ArrayView (const Array<T,AllocT> &vec)		__NE___ : _array{vec.data()}, _count{vec.size()}  { ASSERT( (_count == 0) or (_array != null) ); }
 
 		template <usize S>
 		__Cx__ ArrayView (const StaticArray<T,S> &arr)		__NE___ : _array{arr.data()}, _count{arr.size()} {}
@@ -78,7 +78,7 @@ namespace AE::Base
 
 		NdCx__ Bytes			DataSize ()					C_NE___	{ return Bytes{ sizeof(T) * _count }; }
 
-		NdCz__ T const &		operator [] (usize i)		C_NE___	{ ASSERT( i < _count );  return _array[i]; }
+		NdCx__ T const &		operator [] (usize i)		C_NE___	{ ASSERT( i < _count );  return _array[i]; }
 
 		NdCx__ const_iterator	begin ()					C_NE___	{ return _array; }
 		NdCx__ const_iterator	end ()						C_NE___	{ return _array + _count; }
@@ -86,8 +86,8 @@ namespace AE::Base
 		NdCx__ auto				rbegin ()					C_NE___	{ return reverse_iterator{_array + _count-1}; }
 		NdCx__ auto				rend ()						C_NE___	{ return reverse_iterator{_array - 1}; }
 
-		NdCz__ T const&			front ()					C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
-		NdCz__ T const&			back ()						C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
+		NdCx__ T const&			front ()					C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
+		NdCx__ T const&			back ()						C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
 
 		NdCx__ bool  operator == (ArrayView<T> rhs)			C_NE___;
 		NdCx__ bool  operator >  (ArrayView<T> rhs)			C_NE___;
@@ -102,12 +102,12 @@ namespace AE::Base
 		NdCx__ bool  AllLess (const T &rhs)					C_NE___	{ return _All( rhs, std::less<T>{} ); }
 		NdCx__ bool  AllLessEqual (const T &rhs)			C_NE___	{ return _All( rhs, std::less_equal<T>{} ); }
 
-		NdCz__ usize  IndexOf (const_iterator it)			C_NE___;
+		NdCx__ usize  IndexOf (const_iterator it)			C_NE___;
 
-		NdCx__ ArrayView<T> section (usize first, usize count) C_NE___;
+		NdCx__ ArrayView<T>  section (usize first, usize count) C_NE___;
 
-		template <typename R>
-		NdCx__ EnableIf<IsTrivial<R>, ArrayView<R>>  Cast () C_NE___;
+		template <typename R> requires(IsTrivial<R>)
+		NdCx__ ArrayView<R>  Cast ()						C_NE___;
 
 
 	private:
@@ -244,8 +244,8 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	template <typename R>
-	__Cx__ EnableIf<IsTrivial<R>, ArrayView<R>>  ArrayView<T>::Cast () C_NE___
+	template <typename R> requires(IsTrivial<R>)
+	__Cx__ ArrayView<R>  ArrayView<T>::Cast () C_NE___
 	{
 		StaticAssert( IsTrivial<T> );
 		StaticAssert( alignof(R) >= alignof(T) );
@@ -260,7 +260,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	__Cz__ usize  ArrayView<T>::IndexOf (const_iterator it) C_NE___
+	__Cx__ usize  ArrayView<T>::IndexOf (const_iterator it) C_NE___
 	{
 		ASSERT( it >= begin() and it < end() );
 		return it - begin();
