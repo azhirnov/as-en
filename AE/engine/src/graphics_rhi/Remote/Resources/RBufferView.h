@@ -30,9 +30,9 @@ namespace AE::Graphics
 		RBufferView ()									__NE___	{}
 		~RBufferView ()									__NE___;
 
-		ND_ bool  Create (RResourceManager &, const BufferViewDesc &, BufferID, StringView dbgName)	__NE___;
-		ND_ bool  Create (RResourceManager &, const RemoteBufferViewDesc &, BufferID, StringView)	__NE___;
-			void  Destroy (RResourceManager &)														__NE___;
+		ND_ bool  Create (ResourceManager &, const BufferViewDesc &, BufferID, StringView dbgName)	__NE___;
+		ND_ bool  Create (ResourceManager &, const RemoteBufferViewDesc &, BufferID, StringView)	__NE___;
+			void  Destroy (ResourceManager &)														__NE___;
 
 		ND_ RmBufferViewID			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _viewId; }
 

@@ -3,15 +3,15 @@
 #pragma once
 
 #include "graphics_rhi/Public/RenderPassDesc.h"
-#include "Packer/PackCommon.h"
-
-#ifdef AE_BUILD_PIPELINE_COMPILER
-# include "ScriptObjects/ScriptRenderPass.h"
-#endif
+#include "res_pack/pipeline_compiler/Packer/PackCommon.h"
 
 namespace AE::PipelineCompiler
 {
 	using namespace AE::Graphics;
+
+	struct RenderPassSpec;
+	struct CompatibleRenderPassDesc;
+
 
 	//
 	// Serializable Render Pass
@@ -81,14 +81,11 @@ namespace AE::PipelineCompiler
 	public:
 		SerializableVkRenderPass () {}
 
-		#ifdef AE_BUILD_PIPELINE_COMPILER
 		ND_ bool  Create (const CompatibleRenderPassDesc &compat);
 		ND_ bool  Create (const CompatibleRenderPassDesc &compat, const RenderPassSpec &rp);
 		ND_ static bool  MakeCompatible (INOUT Array<SerializableVkRenderPass> &);
-		#endif
-		#ifdef AE_TEST_PIPELINE_COMPILER
+
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		ND_ VkRenderPassCreateInfo2 *		operator -> ()				{ return &_ci; }
 		ND_ VkRenderPassCreateInfo2 const*	operator -> ()		const	{ return &_ci; }
@@ -100,12 +97,10 @@ namespace AE::PipelineCompiler
 		ND_ bool  Deserialize (EPixelFormat fmt, Serializing::Deserializer &) __NE___;
 
 	private:
-		#ifdef AE_BUILD_PIPELINE_COMPILER
 		bool  _Create (const CompatibleRenderPassDesc &compat, const RenderPassSpec &rp, bool withDeps);
 		bool  _ConvertAttachments (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec);
 		bool  _ConvertSubpasses (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec);
 		bool  _ConvertDependencies (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec);
-		#endif
 	};
 
 } // AE::PipelineCompiler
@@ -114,7 +109,7 @@ namespace AE::PipelineCompiler
 //-----------------------------------------------------------------------------
 
 
-#include "Packer/MetalEnums.h"
+#include "res_pack/pipeline_compiler/Packer/MetalEnums.h"
 
 namespace AE::PipelineCompiler
 {
@@ -151,13 +146,10 @@ namespace AE::PipelineCompiler
 	public:
 		SerializableMtlRenderPass () {}
 
-		#ifdef AE_BUILD_PIPELINE_COMPILER
 		ND_ bool  Create (const CompatibleRenderPassDesc &compat);
 		ND_ bool  Create (const CompatibleRenderPassDesc &compat, const RenderPassSpec &rp);
-		#endif
-		#ifdef AE_TEST_PIPELINE_COMPILER
+
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		ND_ MtlAttachments_t const&		MtlAttachments ()	const	{ return _mtlAtt; }
 
@@ -172,10 +164,8 @@ namespace AE::PipelineCompiler
 		ND_ bool  Deserialize (EPixelFormat fmt, Serializing::Deserializer &) __NE___;
 
 	private:
-		#ifdef AE_BUILD_PIPELINE_COMPILER
 		bool  _ConvertAttachments (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec);
 		bool  _ValidateSubpasses (const CompatibleRenderPassDesc &compat, const RenderPassSpec &spec);
-		#endif
 	};
 
 } // AE::PipelineCompiler
@@ -258,35 +248,13 @@ namespace AE::PipelineCompiler
 	public:
 		SerializableRenderPassInfo () {}
 
-		#ifdef AE_BUILD_PIPELINE_COMPILER
 		ND_ bool  Create (const CompatibleRenderPassDesc &compat);
-		#endif
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
 		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
-
-
-
-#ifdef AE_BUILD_PIPELINE_COMPILER
-
-	//
-	// Render Pass Packer
-	//
-
-	class RenderPassPacker
-	{
-	// methods
-	public:
-		ND_ static bool  Serialize (Serializing::Serializer &ser) __NE___;
-	};
-
-#endif
-
 
 } // AE::PipelineCompiler
 

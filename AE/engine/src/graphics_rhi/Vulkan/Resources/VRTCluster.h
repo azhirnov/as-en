@@ -30,16 +30,16 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		ND_ static RTASBuildSizes	GetBuildSizes (const VResourceManager &, const RTClusterInfo &desc)						__NE___;
+		ND_ static RTASBuildSizes	GetBuildSizes (const ResourceManager &, const RTClusterInfo &desc)						__NE___;
 
-		ND_ static bool				ConvertBuildInfo (const VResourceManager &, const RTClusterBuild &,
+		ND_ static bool				ConvertBuildInfo (const ResourceManager &, const RTClusterBuild &,
 													  OUT VkClusterAccelerationStructureCommandsInfoNV &buildInfo,
 													  OUT InputStorage_t &storage)											__NE___;
 
-		ND_ static bool				IsSupported (const VResourceManager &, const RTClusterInfo &build)						__NE___;
+		ND_ static bool				IsSupported (const ResourceManager &, const RTClusterInfo &build)						__NE___;
 
 	private:
-		ND_ static bool  _Convert (const VResourceManager &, const RTClusterInfo &desc,
+		ND_ static bool  _Convert (const ResourceManager &, const RTClusterInfo &desc,
 								   OUT VkClusterAccelerationStructureInputInfoNV &inputInfo, OUT InputStorage_t &storage)	__NE___;
 	};
 

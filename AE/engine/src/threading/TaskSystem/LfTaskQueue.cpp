@@ -74,28 +74,8 @@ namespace AE::Threading
 				const auto	start_time = TimePoint_t::clock::now();
 			)
 
-			DEBUG_ONLY( task->_isRunning.store( true ));
-			PROFILE_ONLY(
-				if ( task->_profiler )
-					task->_profiler->Begin( *task );
-			)
-			//AE_LOG_DBG( "begin: "s << task->DbgName() );
-
-			TRY{
-				task->Run();	// throw
-			}
-			CATCH_ALL(
-				task->_SetCancellationState();
-			)
-
-			DEBUG_ONLY( task->_isRunning.store( false ));
-			PROFILE_ONLY(
-				if ( task->_profiler )
-					task->_profiler->End( *task );
-			)
-
 			bool	rerun = false;
-			task->_OnFinish( OUT rerun );	// TODO
+			task->Run( OUT rerun );
 
 			#ifdef AE_DEBUG
 			{
@@ -122,7 +102,6 @@ namespace AE::Threading
 				switch_end
 			}
 			#endif
-			//AE_LOG_DBG( "--end: "s << task->DbgName() );
 
 			if_unlikely( rerun )
 			{
@@ -145,14 +124,19 @@ namespace AE::Threading
 		ASSERT( pos < count );
 		ASSERT( task == null );
 
-		auto&		curr		= arr[ pos ];
-		const uint	canceled	= curr->_canceledDepsCount.load();
+		using EFlags = TaskApi::EFlags;
+
+		auto&			curr			= arr[ pos ];
+		const EFlags	flags			= TaskApi::GetFlags( *curr );
+		const bool		will_cancel		= TaskApi::WillBeCanceled( *curr );
+		const bool		fast_cancel		= will_cancel and NoBits( flags, EFlags::RunCancelled );
+		const bool		do_not_run		= AllBits( flags, EFlags::DoNotRun );	// TODO
 
 		// check input dependencies
-		if_unlikely( (canceled == 0) and (curr->_waitBits.load() != 0) )
+		if_unlikely( (not fast_cancel) and TaskApi::InputDepsAreNotFinished( *curr ))
 		{
 			// input dependencies is not complete
-			return true;
+			return true;	// continue search
 		}
 
 		// remove task
@@ -162,26 +146,34 @@ namespace AE::Threading
 			curr.Swap( arr[ count ]);
 
 		// try to start task
-		EStatus		status = task->Status();
-		if_likely( status == EStatus::Pending	and
-				   canceled == 0				and
-				   task->_status.CAS_Loop( INOUT status, EStatus::InProgress ))
+		ETaskStatus		status	= task->Status();
+		
+		if_likely( status == ETaskStatus::Pending								and
+				   (not fast_cancel)											and
+				   TaskApi::SetInProgress( *task, will_cancel, INOUT status )	and	// Pending -> InProgress / Cancellation
+				   not do_not_run )
 		{
-			return false;	// stop search
+			return false;	// stop search and run task
 		}
 
-		// task was canceled
-		if_unlikely( (status == EStatus::Cancellation) or (canceled > 0) )
+		// fast cancellation, task will not resume
+		// calls 'OnCancel()' and free output dependencies
+		if_unlikely( (status == ETaskStatus::Cancellation) or will_cancel )
 		{
 			// TODO: cancel used with locked chunk - bad for performance
 			// TODO: check if task has overloaded 'OnCancel()' method, or add task to queue inside '_Cancel()' ?
-			task->_Cancel();
+			TaskApi::Cancel( *task );
+		}
+		else
+		if ( do_not_run )
+		{
+			TaskApi::MakeComplete( *task );
 		}
 		else
 		// task was or will be run in another thread
 		{
-			ASSERT( status == EStatus::InProgress or
-					status >  EStatus::_Finished );
+			ASSERT( status == ETaskStatus::InProgress or
+					status >  ETaskStatus::_Finished );
 		}
 
 		task = null;

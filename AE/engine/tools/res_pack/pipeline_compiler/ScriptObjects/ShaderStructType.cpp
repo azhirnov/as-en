@@ -5,9 +5,9 @@
 		std430	- https://registry.khronos.org/OpenGL/extensions/ARB/ARB_shader_storage_buffer_object.txt
 */
 
-#include "ScriptObjects/ShaderStructType.h"
-#include "ScriptObjects/Common.inl.h"
-#include "Compiler/MetalCompiler.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ShaderStructType.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/Compiler/MetalCompiler.h"
 
 namespace AE::PipelineCompiler
 {
@@ -1792,6 +1792,7 @@ namespace {
 				case EFlags::Padding_MSL :
 				case EFlags::Address :
 				case EFlags::Pointer :
+				case EFlags::_BITOPS_ :
 				default :				RETURN_ERR( "unsupported qualifier" );
 			}
 			switch_end

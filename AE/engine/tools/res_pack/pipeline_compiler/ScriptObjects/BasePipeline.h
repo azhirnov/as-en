@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "ScriptObjects/ScriptFeatureSet.h"
-#include "ScriptObjects/ScriptShader.h"
-#include "ScriptObjects/ScriptRenderPass.h"
-#include "ScriptObjects/PipelineLayout.h"
-#include "ScriptObjects/ScriptRenderState.h"
-#include "ScriptObjects/ScriptVertexBufferInput.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptFeatureSet.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptShader.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptRenderPass.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/PipelineLayout.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptRenderState.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptVertexBufferInput.h"
 
 namespace AE::PipelineCompiler
 {
@@ -31,6 +31,7 @@ namespace AE::PipelineCompiler
 			Include		= 1 << 2,
 			HasSpec		= 1 << 3,
 			HasFeatures	= 1 << 4,
+			_BITOPS_
 		};
 
 		using FragOutput_t = Array< RPAttachment::ShaderIO >;
@@ -102,7 +103,6 @@ namespace AE::PipelineCompiler
 
 		ND_ EShaderVersion		_GetShaderVersion ()																						const;
 	};
-	AE_BIT_OPERATORS( BasePipelineTmpl::EStateBits );
 
 
 

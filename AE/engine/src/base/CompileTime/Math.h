@@ -97,34 +97,8 @@ namespace _hidden_
 	CT_BitCount
 =================================================
 */
-#ifdef __cpp_lib_bitops
 	template <auto X>
 	static constexpr usize		CT_BitCount = std::popcount(ulong( X ));	// C++20
-
-#else
-namespace _hidden_
-{
-	template <typename T>
-	NdCx__ uint  NumberOfSetBits (T input) __NE___
-	{
-		auto	i = ToUnsignedInteger<T>( input );
-
-		if constexpr (sizeof(T) <= 4)
-		{
-			i = i - ((i >> 1) & 0x55555555);
-			i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-			i = (i + (i >> 4)) & 0x0F0F0F0F;
-			return (i * 0x01010101) >> 24;
-		}
-		else
-		{
-			return NumberOfSetBits( uint( i & 0xFFFFFFFF )) + NumberOfSetBits( uint( i >> 32 ));
-		}
-	}
-}
-	template <auto X>
-	static constexpr usize		CT_BitCount = Base::_hidden_::NumberOfSetBits( X );
-#endif
 
 /*
 =================================================

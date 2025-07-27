@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Resources/IResource.h"
+#include "Resources/IResource.h"
 
 namespace AE::ResEditor
 {

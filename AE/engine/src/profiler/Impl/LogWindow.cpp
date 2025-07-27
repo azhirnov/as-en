@@ -86,8 +86,8 @@ namespace
 
 			CHECK_Lt( _lastLine, _maxLines );
 
-			const auto		path	= FileSystem::ToShortPath( info.file );
-			const auto		line	= ToString( info.line );
+			const auto		path	= FileSystem::ToShortPath( info.loc.file_name() );
+			const auto		line	= ToString( info.loc.line() );
 			const usize		len		= Min( path.length() + line.length() + 1 + after_line.length() + info.message.length(), c_MaxMsgLen );
 			const usize		begin	= _lines[_lastLine] >> c_LevelBits;
 			usize			offset	= 0;

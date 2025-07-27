@@ -18,11 +18,11 @@ namespace {
 //   Using Acquire/Present in different threads may cause a long synchronization, so use single thread.
 
 # if 1 //def AE_PLATFORM_ANDROID
-	static constexpr auto	AcquireAndPresentQueue	= ETaskQueue::Main;
+	static constexpr auto	c_AcquireAndPresentQueue	= ETaskQueue::Main;
 # else
-	static constexpr auto	AcquireAndPresentQueue	= ETaskQueue::PerFrame;
+	static constexpr auto	c_AcquireAndPresentQueue	= ETaskQueue::PerFrame;
 # endif
-	static constexpr auto	RecreateSwapchainQueue	= ETaskQueue::Main;
+	static constexpr auto	c_RecreateSwapchainQueue	= ETaskQueue::Main;
 }
 
 /*
@@ -302,51 +302,45 @@ namespace {
 
 /*
 =================================================
-	RecreateSwapchainTask
+	_RecreateSwapchainTask
 =================================================
 */
-	class WindowSurface::RecreateSwapchainTask final : public Threading::IAsyncTask
+	AsyncTask  WindowSurface::_RecreateSwapchainTask (WindowSurface &surface) __NE___
 	{
-	private:
-		WindowSurface &		_surface;
-
-	public:
-		RecreateSwapchainTask (WindowSurface* surf) __NE___ :
-			IAsyncTask{ RecreateSwapchainQueue },
-			_surface{ *surf }
-		{}
-
-		void  Run () __Th_OV
-		{
-			auto	data = _surface._surfData.WriteLock();
-
-			auto&			swapchain	= _surface._swapchain;
-			SwapchainDesc	new_desc	= data->desc;
-			uint2			new_size	= data->window->GetSurfaceSize();
-
-			if_unlikely( not _surface._recreate.exchange( false ))
-				return;  // already recreated
-
-			if_unlikely( Any( IsZero( new_size )))
+		return Scheduler().Run(
+			c_RecreateSwapchainQueue,
+			[] (WindowSurface &surface) -> AsyncCoro
 			{
-				// recreate later
-				return;
-			}
+				auto	data = surface._surfData.WriteLock();
 
-			if_likely( swapchain.Create( new_size, new_desc ))
-			{
-				_surface._UpdateDesc( data );
-			}
-			else
-			{
-				DBG_WARNING( "failed to create swapchain" );
-				_surface._initialized.store( false );
-				return OnFailure();
-			}
-		}
+				auto&			swapchain	= surface._swapchain;
+				SwapchainDesc	new_desc	= data->desc;
+				uint2			new_size	= data->window->GetSurfaceSize();
 
-		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::RecreateSwapchain"; }
-	};
+				if_unlikely( not surface._recreate.exchange( false ))
+					co_return;  // already recreated
+
+				if_unlikely( Any( IsZero( new_size )))
+				{
+					// recreate later
+					co_return;
+				}
+
+				if_likely( swapchain.Create( new_size, new_desc ))
+				{
+					surface._UpdateDesc( data );
+				}
+				else
+				{
+					DBG_WARNING( "failed to create swapchain" );
+					surface._initialized.store( false );
+					Coro_Error();
+				}
+			}( surface ),
+			Tuple{},
+			"WindowSurface::RecreateSwapchain"
+		);
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -354,34 +348,22 @@ namespace {
 #ifdef AE_ENABLE_VULKAN
 /*
 =================================================
-	AcquireNextImageTask
+	_AcquireNextImageTask
 =================================================
 */
-	class WindowSurface::AcquireNextImageTask final : public Threading::IAsyncTask
+	AsyncCoro  WindowSurface::_AcquireNextImageTask (WindowSurface &	surface,
+													 CommandBatchPtr	beginCmdBatch,
+													 CommandBatchPtr	endCmdBatch) __NE___
 	{
-	private:
-		WindowSurface &		_surface;
-		CommandBatchPtr		_beginCmdBatch;
-		CommandBatchPtr		_endCmdBatch;
-
-	public:
-		AcquireNextImageTask (WindowSurface* surf, CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch) __NE___ :
-			IAsyncTask{ AcquireAndPresentQueue },
-			_surface{ *surf },
-			_beginCmdBatch{ RVRef(beginCmdBatch) },
-			_endCmdBatch{ RVRef(endCmdBatch) }
-		{}
-
-		void  Run () __Th_OV
+		for (;;)
 		{
-			if_unlikely( _surface._recreate.load() )
+			for (; surface._recreate.load(); )
 			{
-				auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
-
-				return Continue( Tuple{RVRef(task)} );
+				auto	task = _RecreateSwapchainTask( surface );
+				Coro_Continue( task );
 			}
 
-			auto&		swapchain	= _surface._swapchain;
+			auto&		swapchain	= surface._swapchain;
 			VkResult	err			= swapchain.AcquireNextImage();
 
 			switch ( err )
@@ -390,264 +372,193 @@ namespace {
 					break;
 
 				case VK_SUBOPTIMAL_KHR :		// acquired, but should be recreated later
-					_surface._recreate.store( true );
+					surface._recreate.store( true );
 					break;
 
 				case VK_ERROR_OUT_OF_DATE_KHR :	// recreate immediately
 				{
-					_surface._recreate.store( true );
+					surface._recreate.store( true );
 
-					auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
-
-					return Continue( Tuple{RVRef(task)} );
+					auto	task = _RecreateSwapchainTask( surface );
+					Coro_Continue( task );
+					break;
 				}
 
 				case VK_TIMEOUT :				// should never happens
 				case VK_NOT_READY :				// no available images
 				case VK_ERROR_SURFACE_LOST_KHR :
 				default :
-					Unused( __vk_CheckErrors( err, "Failed to acquire next swapchain image", AE_FUNCTION_NAME, SourceLoc_Current() ));
-					CHECK_TE( false, "Failed to acquire next swapchain image" );
+					Unused( __vk_CheckErrors( err, "Failed to acquire next swapchain image", AE_FUNCTION_NAME, SourceLoc::current() ));
+					CHECK_CE( false, "Failed to acquire next swapchain image" );
 			}
 
-			CHECK_TE( _beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore(), 0 ));
-			CHECK_TE( _endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore(), 0 ));
+			if ( not AnyEqual( err, VK_SUCCESS, VK_SUBOPTIMAL_KHR ))
+				continue;
+			
+			CHECK_CE( beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore(), 0 ));
+			CHECK_CE( endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore(), 0 ));
+			co_return;
 		}
-
-		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::AcquireNextImage"; }
-	};
+	}
 
 /*
 =================================================
-	PresentImageTask
+	_PresentImageTask
 =================================================
 */
-	class WindowSurface::PresentImageTask final : public Threading::IAsyncTask
+	AsyncCoro  WindowSurface::_PresentImageTask (WindowSurface &	surface,
+												 const FrameUID		frameId,
+												 const EQueueType	presentQueue) __NE___
 	{
-	private:
-		WindowSurface &		_surface;
-		const FrameUID		_frameId;
-		const EQueueType	_presentQueue;
+		auto&		rts	= GraphicsScheduler();
+		auto		q	= rts.GetDevice().GetQueue( presentQueue );
+		VkResult	err	= surface._swapchain.Present( q, Default, frameId );
 
-	public:
-		PresentImageTask (WindowSurface* surf, FrameUID fid, EQueueType presentQueue) __NE___ :
-			IAsyncTask{ AcquireAndPresentQueue },
-			_surface{ *surf }, _frameId{ fid },
-			_presentQueue{ presentQueue }
-		{}
-
-		void  Run () __Th_OV
+		switch ( err )
 		{
-			auto&		rts	= GraphicsScheduler();
-			auto		q	= rts.GetDevice().GetQueue( _presentQueue );
-			VkResult	err	= _surface._swapchain.Present( q, Default, _frameId );
+			case_likely VK_SUCCESS :
+				break;
 
-			switch ( err )
-			{
-				case_likely VK_SUCCESS :
-					break;
+			case VK_ERROR_SURFACE_LOST_KHR :
+			case VK_ERROR_OUT_OF_DATE_KHR :
+				surface._recreate.store( true );	// recreate later
+				break;
 
-				case VK_ERROR_SURFACE_LOST_KHR :
-				case VK_ERROR_OUT_OF_DATE_KHR :
-					_surface._recreate.store( true );	// recreate later
-					break;
+			// Android: always returned if used custom rotation
+			// Other: returned when swapchain size != surface size
+			case VK_SUBOPTIMAL_KHR :
+				surface._recreate.store( true );	// recreate later
+				break;
 
-				// Android: always returned if used custom rotation
-				// Other: returned when swapchain size != surface size
-				case VK_SUBOPTIMAL_KHR :
-					_surface._recreate.store( true );	// recreate later
-					break;
-
-				default :
-					Unused( __vk_CheckErrors( err, "Presentation failed", AE_FUNCTION_NAME, SourceLoc_Current() ));
-					CHECK_TE( false, "Presentation failed" );
-			}
+			default :
+				Unused( __vk_CheckErrors( err, "Presentation failed", AE_FUNCTION_NAME, SourceLoc::current() ));
+				CHECK_CE( false, "Presentation failed" );
 		}
-
-		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::PresentImage"; }
-	};
+		co_return;
+	}
 //-----------------------------------------------------------------------------
 
 
 #elif defined(AE_ENABLE_METAL)
 /*
 =================================================
-	AcquireNextImageTask
+	_AcquireNextImageTask
 =================================================
-*/
-	class WindowSurface::AcquireNextImageTask final : public Threading::IAsyncTask
+*
+	AsyncCoro  WindowSurface::_AcquireNextImageTask (WindowSurface &	surface,
+													 CommandBatchPtr	beginCmdBatch,
+													 CommandBatchPtr	endCmdBatch) __NE___
 	{
-	private:
-		WindowSurface &		_surface;
-		CommandBatchPtr		_beginCmdBatch;
-		CommandBatchPtr		_endCmdBatch;
+		auto&	swapchain = surface._swapchain;
 
-	public:
-		AcquireNextImageTask (WindowSurface* surf, CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch) :
-			IAsyncTask{ AcquireAndPresentQueue },
-			_surface{ *surf },
-			_beginCmdBatch{ RVRef(beginCmdBatch) },
-			_endCmdBatch{ RVRef(endCmdBatch) }
-		{}
-
-		void  Run () __Th_OV
+		if_unlikely( surface._recreate.load() )
 		{
-			auto&	swapchain = _surface._swapchain;
-
-			if_unlikely( _surface._recreate.load() )
-			{
-				// TODO
-			}
-
-			CHECK_TE( swapchain.AcquireNextImage() );
-
-			CHECK_TE( _beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore() ));
-			CHECK_TE( _endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore() ));
+			// TODO
 		}
 
-		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::AcquireNextImage"; }
-	};
+		CHECK_CE( swapchain.AcquireNextImage() );
+
+		CHECK_CE( beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore() ));
+		CHECK_CE( endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore() ));
+	}
 
 /*
 =================================================
-	PresentImageTask
+	_PresentImageTask
 =================================================
 */
-	class WindowSurface::PresentImageTask final : public Threading::IAsyncTask
+	AsyncCoro  WindowSurface::_PresentImageTask (WindowSurface &	surface,
+												 const FrameUID		frameId,
+												 const EQueueType	presentQueue) __NE___
 	{
-	private:
-		WindowSurface &		_surface;
-		const FrameUID		_frameId;
-		const EQueueType	_presentQueue;
+		auto&	rts	= GraphicsScheduler();
+		auto	q	= rts.GetDevice().GetQueue( presentQueue );
 
-	public:
-		PresentImageTask (WindowSurface* surf, FrameUID fid, EQueueType presentQueue) :
-			IAsyncTask{ AcquireAndPresentQueue },
-			_surface{ *surf }, _frameId{ fid },
-			_presentQueue{ presentQueue }
-		{}
-
-		void  Run () __Th_OV
-		{
-			auto&	rts	= GraphicsScheduler();
-			auto	q	= rts.GetDevice().GetQueue( _presentQueue );
-
-			CHECK_TE( _surface._swapchain.Present( q, Default, _frameId ));
-		}
-
-		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::PresentImage"; }
-	};
+		CHECK_CE( surface._swapchain.Present( q, Default, frameId ));
+	}
 //-----------------------------------------------------------------------------
 
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 /*
 =================================================
-	AcquireNextImageTask
+	_AcquireNextImageTask
 =================================================
-*/
-	class WindowSurface::AcquireNextImageTask final : public Threading::IAsyncTask
+*
+	AsyncCoro  WindowSurface::_AcquireNextImageTask (WindowSurface &	surface,
+													 CommandBatchPtr	beginCmdBatch,
+													 CommandBatchPtr	endCmdBatch) __NE___
 	{
-	private:
-		WindowSurface &		_surface;
-		CommandBatchPtr		_beginCmdBatch;
-		CommandBatchPtr		_endCmdBatch;
-
-	public:
-		AcquireNextImageTask (WindowSurface* surf, CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch) __NE___ :
-			IAsyncTask{ AcquireAndPresentQueue },
-			_surface{ *surf },
-			_beginCmdBatch{ RVRef(beginCmdBatch) },
-			_endCmdBatch{ RVRef(endCmdBatch) }
-		{}
-
-		void  Run () __Th_OV
+		// TODO
+		if_unlikely( _surface._recreate.load() )
 		{
-			if_unlikely( _surface._recreate.load() )
+			auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
+
+			Coro_Continue( Tuple{RVRef(task)} );
+		}
+
+		auto&	swapchain	= _surface._swapchain;
+		auto	err			= swapchain.AcquireNextImage();
+
+		switch_enum( err )
+		{
+			case_likely RSwapchain::EAcquireResult::OK :
+				break;
+
+			case RSwapchain::EAcquireResult::OK_RecreateLater :
+				_surface._recreate.store( true );
+				break;
+
+			case RSwapchain::EAcquireResult::Error_RecreateImmediately :
 			{
+				_surface._recreate.store( true );
+
 				auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
 
 				return Continue( Tuple{RVRef(task)} );
 			}
 
-			auto&	swapchain	= _surface._swapchain;
-			auto	err			= swapchain.AcquireNextImage();
-
-			switch_enum( err )
-			{
-				case_likely RSwapchain::EAcquireResult::OK :
-					break;
-
-				case RSwapchain::EAcquireResult::OK_RecreateLater :
-					_surface._recreate.store( true );
-					break;
-
-				case RSwapchain::EAcquireResult::Error_RecreateImmediately :
-				{
-					_surface._recreate.store( true );
-
-					auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
-
-					return Continue( Tuple{RVRef(task)} );
-				}
-
-				case RSwapchain::EAcquireResult::Error :
-				default :
-					CHECK_TE( false, "Failed to acquire next swapchain image" );
-			}
-			switch_end
-
-			CHECK_TE( _beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore(), 0 ));
-			CHECK_TE( _endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore(), 0 ));
+			case RSwapchain::EAcquireResult::Error :
+			default :
+				CHECK_CE( false, "Failed to acquire next swapchain image" );
 		}
+		switch_end
 
-		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::AcquireNextImage"; }
-	};
+		CHECK_CE( _beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore(), 0 ));
+		CHECK_CE( _endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore(), 0 ));
+	}
 
 /*
 =================================================
-	PresentImageTask
+	_PresentImageTask
 =================================================
 */
-	class WindowSurface::PresentImageTask final : public Threading::IAsyncTask
+	AsyncCoro  WindowSurface::_PresentImageTask (WindowSurface &	surface,
+												 const FrameUID		frameId,
+												 const EQueueType	presentQueue) __NE___
 	{
-	private:
-		WindowSurface &		_surface;
-		const FrameUID		_frameId;
-		const EQueueType	_presentQueue;
+		auto&	rts	= GraphicsScheduler();
+		auto	q	= rts.GetDevice().GetQueue( presentQueue );
+		auto	err	= surface._swapchain.Present( q, frameId );
 
-	public:
-		PresentImageTask (WindowSurface* surf, FrameUID fid, EQueueType presentQueue) __NE___ :
-			IAsyncTask{ AcquireAndPresentQueue },
-			_surface{ *surf }, _frameId{ fid },
-			_presentQueue{ presentQueue }
-		{}
-
-		void  Run () __Th_OV
+		switch_enum( err )
 		{
-			auto&	rts	= GraphicsScheduler();
-			auto	q	= rts.GetDevice().GetQueue( _presentQueue );
-			auto	err	= _surface._swapchain.Present( q, _frameId );
+			case_likely RSwapchain::EPresentResult::OK :
+				break;
 
-			switch_enum( err )
-			{
-				case_likely RSwapchain::EPresentResult::OK :
-					break;
+			case RSwapchain::EPresentResult::OK_RecreateLater :
+			case RSwapchain::EPresentResult::Error_RecreateImmediately :
+				surface._recreate.store( true );
+				break;
 
-				case RSwapchain::EPresentResult::OK_RecreateLater :
-				case RSwapchain::EPresentResult::Error_RecreateImmediately :
-					_surface._recreate.store( true );
-					break;
-
-				case RSwapchain::EPresentResult::Error :
-				default :
-					CHECK_TE( false, "Presentation failed" );
-			}
-			switch_end
+			case RSwapchain::EPresentResult::Error :
+			default :
+				CHECK_CE( false, "Presentation failed" );
 		}
+		switch_end
 
-		StringView  DbgName ()	C_NE_OV	{ return "WindowSurface::PresentImage"; }
-	};
+		co_return;
+	}
 //-----------------------------------------------------------------------------
 
 #else
@@ -677,12 +588,12 @@ namespace {
 		CHECK_ERR( _initialized.load() );
 
 		AsyncTask	present = RVRef(data->prevTask);	// can be null
-		ASSERT( present == null or CastAllowed<PresentImageTask>( present.get() ));
-
-		AsyncTask	task = Scheduler().Run<AcquireNextImageTask>(
-								Tuple{ this, RVRef(beginCmdBatch), endCmdBatch },
-								Tuple{ WeakDep{RVRef(present)}, deps });	// don't use strong dependency from 'present' !
-
+		AsyncTask	task	= Scheduler().Run(
+								c_AcquireAndPresentQueue,
+								_AcquireNextImageTask( *this, RVRef(beginCmdBatch), endCmdBatch ),
+								Tuple{ WeakDep{RVRef(present)}, deps },	// don't use strong dependency from 'present' !
+								"WindowSurface::AcquireNextImage"
+							);
 		data->prevTask		= task;
 		data->endCmdBatch	= RVRef(endCmdBatch);
 
@@ -702,14 +613,14 @@ namespace {
 		CHECK_ERR( data->endCmdBatch );
 
 		AsyncTask	acquire = RVRef(data->prevTask);	// can be null
-		ASSERT( acquire == null or CastAllowed<AcquireNextImageTask>( acquire.get() ));
-
 		auto		queue	= data->endCmdBatch->GetQueueType();
 		auto		fid		= data->endCmdBatch->GetFrameId();
-		AsyncTask	task	= Scheduler().Run<PresentImageTask>(
-									Tuple{ this, fid, queue },
-									Tuple{ RVRef(acquire), CmdBatchOnSubmit{RVRef(data->endCmdBatch)}, deps });
-
+		AsyncTask	task	= Scheduler().Run(
+								c_AcquireAndPresentQueue,
+								_PresentImageTask( *this, fid, queue ),
+								Tuple{ RVRef(acquire), CmdBatchOnSubmit{RVRef(data->endCmdBatch)}, deps },
+								"WindowSurface::PresentImage"
+							);
 		data->prevTask		= task;
 		data->endCmdBatch	= null;
 

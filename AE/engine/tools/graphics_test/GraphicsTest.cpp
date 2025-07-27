@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/DataSource/File.h"
-#include "GraphicsTest.h"
+#include "graphics_test/GraphicsTest.h"
 #include "res_loaders/STB/STBImageLoader.h"
 #include "res_loaders/STB/STBImageSaver.h"
 

@@ -27,6 +27,7 @@ namespace AE::Base
 			UsePowerShell		= 1 << 3,
 		//	UseWSL				= 1 << 4,	// windows subsystem for linux	// TODO
 			Unknown				= None,
+			_BITOPS_
 		};
 
 
@@ -77,8 +78,6 @@ namespace AE::Base
 
 		bool  _WaitAndClose (INOUT String *output, OUT bool &isSuccess, milliseconds timeout);
 	};
-
-	AE_BIT_OPERATORS( WindowsProcess::EFlags );
 
 
 } // AE::Base

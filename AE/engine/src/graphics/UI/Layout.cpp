@@ -7,8 +7,6 @@ namespace AE::UI
 {
 	using namespace AE::Serializing;
 
-	AE_BIT_OPERATORS( ILayout::_EFlags );
-
 /*
 =================================================
 	constructor

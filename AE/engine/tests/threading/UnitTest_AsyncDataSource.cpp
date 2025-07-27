@@ -4,15 +4,123 @@
 
 #include "threading/DataSource/FileAsyncDataSource.h"
 
-#ifndef AE_DISABLE_THREADS
 namespace
 {
-	using EStatus		= IAsyncTask::EStatus;
 	using ESourceType	= IDataSource::ESourceType;
+	
+	static const EThreadArray	c_ThreadArr	{ EThread::PerFrame, EThread::Background, EThread::FileIO };
+	
+	static constexpr ulong	c_RFileSize		= 32ull << 20;	// MiB
+	static constexpr uint	c_RBufSize		= 4u << 10;		// KiB
+	StaticAssert( IsMultipleOf( c_RFileSize, c_RBufSize ));
 
-	static const auto			c_QueueType		= ETaskQueue::Background;
-	static const EThreadArray	c_ThreadArr		{ EThread::PerFrame, EThread::Background, EThread::FileIO };
 
+	template <typename RFile, typename WFile>
+	static AsyncCoro  AsyncReadDS_Impl (const Path fname, AsyncCoro (*fn)(RC<AsyncRDataSource> rfile))
+	{
+		{
+			WFile	wfile {fname};
+			TEST( wfile.IsOpen() );
+			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
+
+			ulong	buf [c_RBufSize / sizeof(ulong)];
+			ulong	pos = 0;
+
+			while ( pos < c_RFileSize )
+			{
+				for (uint i = 0; i < CountOf(buf); ++i) {
+					buf[i] = pos + i;
+				}
+
+				TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == c_RBufSize );
+				pos += c_RBufSize;
+			}
+
+			TEST( wfile.Capacity() == c_RFileSize );
+		}
+		{
+			RC<AsyncRDataSource>	rfile = MakeRC<RFile>( fname );
+			TEST( rfile->IsOpen() );
+			TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
+			TEST_Eq( rfile->Size(), c_RFileSize );
+
+			auto	task = Scheduler().Run( ETaskQueue::Background, fn( rfile ));
+			co_await task;
+			task = null;
+
+			TEST_Eq( rfile.use_count(), 1 );
+		}
+		co_return;
+	}
+//-----------------------------------------------------------------------------
+
+
+	
+	static auto  CanceledRequest_Test1_Coro () -> InlineCoro<>
+	{
+		auto&	static_req = _Coro_::IAsyncDataSourceRequest::CanceledRequest::s_canceled;
+		TEST_Eq( static_req.use_count(), 1 );
+
+		auto	request = static_req.GetRC();
+		TEST( request );
+		TEST( request->Status() == EAsyncDSRequestStatus::Canceled );
+		TEST_Eq( request.use_count(), 2 );
+
+		auto	res = co_await WeakAsyncDSRequest{ RVRef(request) };
+		TEST( not res );
+		TEST( res.status == EAsyncDSRequestStatus::Canceled );
+
+		//co_return;	// optional
+	}
+
+	static void  CanceledRequest_Test1 ()
+	{
+		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
+		TEST( scheduler->GetFileIOService() );
+		
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{ c_ThreadArr, "worker" }));
+
+		AsyncTask	task = CanceledRequest_Test1_Coro();
+
+		TEST( scheduler->Wait( {task}, c_MaxTimeout ));
+		TEST( task->Status() == ETaskStatus::Completed );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+	static AsyncCoro  AsyncReadDS_Test1_Coro (RC<AsyncRDataSource> rfile)
+	{
+		ulong	pos = 0;
+		while ( pos < c_RFileSize + c_RBufSize )
+		{
+			auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{c_RBufSize} );
+			TEST( req );	// always non-null
+
+			{
+				auto	res = co_await req;
+
+				req = null;		// request is not used anymore, but memory in 'res' must be alive
+					
+				TEST( res );
+				TEST( res.data != null );
+				TEST( res.status == EAsyncDSRequestStatus::Completed );
+				TEST_Eq( res.dataSize, (pos < c_RFileSize ? c_RBufSize : 0) );
+				TEST_Eq( res.pos, pos );
+				TEST_Gt( res.rc.use_count(), 0 );	// is alive
+
+				ulong	ref_buf [c_RBufSize / sizeof(ulong)];
+
+				for (uint i = 0; i < CountOf(ref_buf); ++i) {
+					ref_buf[i] = pos + i;
+				}
+				TEST( MemEqual( res.data, ref_buf, res.dataSize ));
+			}
+
+			pos += c_RBufSize;
+		}
+		co_return;
+	}
 
 	template <typename RFile, typename WFile>
 	static void  AsyncReadDS_Test1 ()
@@ -20,81 +128,50 @@ namespace
 		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
 		TEST( scheduler->GetFileIOService() );
 
-		static constexpr ulong	file_size	= 128ull << 20;	// MiB
-		static constexpr uint	buf_size	= 4u << 10;		// KiB
-		StaticAssert( IsMultipleOf( file_size, buf_size ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{ c_ThreadArr, "worker" }));
 
-		const Path		fname {"ds11_data.bin"};
-		{
-			WFile	wfile {fname};
-			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
+		auto	fn		= &AsyncReadDS_Test1_Coro;
+		auto	task	= scheduler->Run( ETaskQueue::Background,
+										  AsyncReadDS_Impl< RFile, WFile >( Path{"ds11_data.bin"}, fn ));
 
-			ulong	buf [buf_size / sizeof(ulong)];
-			ulong	pos = 0;
+		TEST( scheduler->Wait( {AsyncTask{task}}, c_MaxTimeout ));
+		TEST( task->Status() == ETaskStatus::Completed );
+	}
+//-----------------------------------------------------------------------------
 
-			while ( pos < file_size )
-			{
-				for (uint i = 0; i < CountOf(buf); ++i) {
-					buf[i] = pos + i;
-				}
 
-				TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
-				pos += buf_size;
-			}
 
-			TEST( wfile.Capacity() == file_size );
-		}
-		{
-			RC<AsyncRDataSource>	rfile = MakeRC<RFile>( fname );
-			TEST( rfile->IsOpen() );
-			TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
-			TEST_Eq( rfile->Size(), file_size );
+	template <typename RFile>
+	static auto  AsyncReadDS_Test2_Coro () -> InlineCoro<>
+	{
+		RC<AsyncRDataSource>	rfile	= MakeRC<RFile>( Path{ "ds99_data.bin" });
+		TEST( not rfile->IsOpen() );
 
-			ulong	pos = 0;
-			while ( pos < file_size + buf_size )
-			{
-				auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
-				TEST( req );	// always non-null
-				TEST_GE( req.use_count(), 1 );
+		StaticLogger::Deinitialize( false );
 
-				auto	task = AsyncTask{req->AsPromise( c_QueueType )
-								.Then(	[pos] (const AsyncRDataSource::Result_t &res)
-										{
-											TEST( res.data != null );
-											TEST_Eq( res.dataSize, (pos < file_size ? buf_size : 0) );
-											TEST_Eq( res.pos, pos );
-											TEST_Gt( res.rc.use_count(), 0 );		// because executed sequentially and synchronously
+		auto	req = rfile->ReadBlock( Bytes{c_RBufSize}, Bytes{c_RBufSize} );
 
-											ulong	ref_buf [buf_size / sizeof(ulong)];
+		StaticLogger::InitDefault();
 
-											for (uint i = 0; i < CountOf(ref_buf); ++i) {
-												ref_buf[i] = pos + i;
-											}
-											TEST( MemEqual( res.data, ref_buf, res.dataSize ));
-										})};
-				TEST( task );
+		TEST( req );	// always non-null
 
-				for (;;)
-				{
-					if ( scheduler->GetFileIOService()->ProcessEvents() or req->IsFinished() )
-						break;
-				}
+		TEST( req->Status() == EAsyncDSRequestStatus::Canceled );
 
-				TEST( req->IsCompleted() );
-				req = null;
+		auto	res = co_await req;
 
-				TEST( scheduler->Wait( {task}, c_ThreadArr, c_MaxTimeout ));
-				TEST( task->Status() == EStatus::Completed );
+		req = null;		// request is not used anymore
 
-				pos += buf_size;
-			}
-			TEST( rfile.use_count() == 1 );
-		}
+		TEST( not res );
+		TEST( res.status == EAsyncDSRequestStatus::Canceled );
+		TEST( res.data == null );
+		TEST( res.rc == null );
+
+		TEST_Eq( rfile.use_count(), 1 );
+		
+		co_return;
 	}
 
-
-	template <typename RFile, typename WFile>
+	template <typename RFile>
 	static void  AsyncReadDS_Test2 ()
 	{
 		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
@@ -102,152 +179,60 @@ namespace
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{ c_ThreadArr, "worker" }));
 
-		static constexpr ulong	file_size	= 32ull << 20;	// MiB
-		static constexpr uint	buf_size	= 4u << 10;		// KiB
-		StaticAssert( IsMultipleOf( file_size, buf_size ));
+		AsyncTask	task = AsyncReadDS_Test2_Coro< RFile >();
 
-		const Path		fname {"ds12_data.bin"};
-		{
-			WFile	wfile {fname};
-			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
-
-			ulong	buf [buf_size / sizeof(ulong)];
-			ulong	pos = 0;
-
-			while ( pos < file_size )
-			{
-				for (uint i = 0; i < CountOf(buf); ++i) {
-					buf[i] = pos + i;
-				}
-
-				TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
-				pos += buf_size;
-			}
-
-			TEST_Eq( wfile.Capacity(), file_size );
-		}
-		{
-			RC<AsyncRDataSource>	rfile = MakeRC<RFile>( fname );
-			TEST( rfile->IsOpen() );
-			TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
-			TEST_Eq( rfile->Size(), file_size );
-
-			class ReadFileTask final : public IAsyncTask
-			{
-			private:
-				RC<AsyncRDataSource>	rfile;
-				ulong					pos		= 0;
-
-			public:
-				ReadFileTask (RC<AsyncRDataSource> rfile) __NE___ : IAsyncTask{c_QueueType}, rfile{RVRef(rfile)} {}
-
-				void  Run () __Th_OV
-				{
-					if ( pos < file_size + buf_size )
-					{
-						auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
-						TEST( req );	// always non-null
-
-						auto	task = AsyncTask{req->AsPromise( c_QueueType )
-										.Then(	[cur_pos = pos] (const AsyncRDataSource::Result_t &res)
-												{
-													TEST( res.data != null );
-													TEST_Eq( res.dataSize, (cur_pos < file_size ? buf_size : 0) );
-													TEST_Eq( res.pos, cur_pos );
-													TEST_Gt( res.rc.use_count(), 0 );	// is alive
-
-													ulong	ref_buf [buf_size / sizeof(ulong)];
-
-													for (uint i = 0; i < CountOf(ref_buf); ++i) {
-														ref_buf[i] = cur_pos + i;
-													}
-													TEST( MemEqual( res.data, ref_buf, res.dataSize ));
-												})};
-						TEST( task );
-
-						req = null;
-
-						pos += buf_size;
-
-						return Continue( Tuple{ task });
-					}
-					// complete
-				}
-
-				StringView	DbgName ()	C_NE_OV	{ return "ReadFileTask"; }
-			};
-
-			auto	task = scheduler->Run<ReadFileTask>( Tuple{rfile} );
-			TEST( scheduler->Wait( {task}, c_MaxTimeout ));
-			TEST( task->Status() == EStatus::Completed );
-
-			task = null;
-			TEST_Eq( rfile.use_count(), 1 );
-		}
+		TEST( scheduler->Wait( {task}, c_MaxTimeout ));
+		TEST( task->Status() == ETaskStatus::Completed );
 	}
+//-----------------------------------------------------------------------------
 
 
-	template <typename RFile, typename WFile>
-	static CoroTask  AsyncReadDS_Test3_Coro ()
+
+	static AsyncCoro  AsyncReadDS_Test3_Coro (RC<AsyncRDataSource> rfile)
 	{
-		static constexpr ulong	file_size	= 32ull << 20;	// MiB
-		static constexpr uint	buf_size	= 4u << 10;		// KiB
-		StaticAssert( IsMultipleOf( file_size, buf_size ));
+		const auto	TestResult = [] (auto& res, ulong pos)
+		{{
+			TEST( res.data != null );
+			TEST( res.status == EAsyncDSRequestStatus::Completed );
+			TEST_Eq( res.dataSize, (pos < c_RFileSize ? c_RBufSize : 0) );
+			TEST_Eq( res.pos, pos );
+			TEST_Gt( res.rc.use_count(), 0 );	// is alive
 
-		const Path		fname {"ds13_data.bin"};
-		{
-			WFile	wfile {fname};
-			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
+			ulong	ref_buf [c_RBufSize / sizeof(ulong)];
 
-			ulong	buf [buf_size / sizeof(ulong)];
-			ulong	pos = 0;
-
-			while ( pos < file_size )
-			{
-				for (uint i = 0; i < CountOf(buf); ++i) {
-					buf[i] = pos + i;
-				}
-
-				TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
-				pos += buf_size;
+			for (uint i = 0; i < CountOf(ref_buf); ++i) {
+				ref_buf[i] = pos + i;
 			}
+			TEST( MemEqual( res.data, ref_buf, res.dataSize ));
+		}};
 
-			TEST( wfile.Capacity() == file_size );
-		}
+		ulong	pos = 0;
+		while ( pos < c_RFileSize + c_RBufSize )
 		{
-			RC<AsyncRDataSource>	rfile = MakeRC<RFile>( fname );
-			TEST( rfile->IsOpen() );
-			TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
-			TEST_Eq( rfile->Size(), file_size );
+			auto	pos1	= pos;
+			auto	req1	= rfile->ReadBlock( Bytes{pos1}, Bytes{c_RBufSize} );
+			TEST( req1 );	// always non-null
+			
+			pos += c_RBufSize;
+			
+			auto	pos2	= pos;
+			auto	req2	= rfile->ReadBlock( Bytes{pos2}, Bytes{c_RBufSize} );
+			TEST( req2 );	// always non-null
+			
+			pos += c_RBufSize;
 
-			ulong	pos = 0;
-			while ( pos < file_size + buf_size )
-			{
-				auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
-				TEST( req );	// always non-null
+			auto	res12 = Coro_WaitResult( req1, req2 );
+				
+			TEST( res12 );
+			TEST( not req1 );
+			TEST( not req2 );
 
-				auto	res = co_await req->AsPromise( c_QueueType );
+			auto& [res1, res2] = res12;
 
-				req = null;		// request is not used anymore, but memory in 'res' must be alive
-
-				TEST( res.data != null );
-				TEST_Eq( res.dataSize, (pos < file_size ? buf_size : 0) );
-				TEST_Eq( res.pos, pos );
-				TEST_Gt( res.rc.use_count(), 0 );	// is alive
-
-				ulong	ref_buf [buf_size / sizeof(ulong)];
-
-				for (uint i = 0; i < CountOf(ref_buf); ++i) {
-					ref_buf[i] = pos + i;
-				}
-				TEST( MemEqual( res.data, ref_buf, res.dataSize ));
-
-				pos += buf_size;
-			}
-			TEST_Eq( rfile.use_count(), 1 );
+			TestResult( res1, pos1 );
+			TestResult( res2, pos2 );
 		}
+		co_return;
 	}
 
 	template <typename RFile, typename WFile>
@@ -258,18 +243,66 @@ namespace
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{ c_ThreadArr, "worker" }));
 
-		auto	task = scheduler->Run( AsyncReadDS_Test3_Coro< RFile, WFile >() );
+		auto	fn		= &AsyncReadDS_Test3_Coro;
+		auto	task	= scheduler->Run( ETaskQueue::Background,
+										  AsyncReadDS_Impl< RFile, WFile >( Path{"ds13_data.bin"}, fn ));
+
 		TEST( scheduler->Wait( {AsyncTask{task}}, c_MaxTimeout ));
-		TEST( AsyncTask{task}->Status() == EStatus::Completed );
+		TEST( task->Status() == ETaskStatus::Completed );
+	}
+//-----------------------------------------------------------------------------
+	
+
+
+	static AsyncCoro  AsyncReadDS_Test4_Coro (RC<AsyncRDataSource> rfile)
+	{
+		auto	canceled_req = _Coro_::IAsyncDataSourceRequest::CanceledRequest::s_canceled.GetRC();
+
+		ulong	pos = 0;
+		while ( pos < c_RFileSize + c_RBufSize )
+		{
+			auto	pos1	= pos;
+			auto	req1	= rfile->ReadBlock( Bytes{pos1}, Bytes{c_RBufSize} );
+			TEST( req1 );	// always non-null
+			
+			pos += c_RBufSize;
+
+			auto	res12 = Coro_WaitResultOrCancel( req1, canceled_req );
+			
+			TEST( false );
+			TEST( not res12 );
+
+			AsyncDSRequest::Value_t::Result	res1 = res12.get<0>();
+			AsyncDSRequest::Value_t::Result	res2 = res12.get<1>();
+
+			TEST( res1 );
+			TEST( res2 );
+		}
+		co_return;
 	}
 
-
 	template <typename RFile, typename WFile>
-	static void  AsyncWriteDS_Test1 ()
+	static void  AsyncReadDS_Test4 ()
 	{
 		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
 		TEST( scheduler->GetFileIOService() );
 
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{ c_ThreadArr, "worker" }));
+
+		auto	fn		= &AsyncReadDS_Test4_Coro;
+		auto	task	= scheduler->Run( ETaskQueue::Background,
+										  AsyncReadDS_Impl< RFile, WFile >( Path{"ds14_data.bin"}, fn ));
+
+		TEST( scheduler->Wait( {AsyncTask{task}}, c_MaxTimeout ));
+		TEST( task->Status() == ETaskStatus::Canceled );
+	}
+//-----------------------------------------------------------------------------
+
+
+	
+	template <typename RFile, typename WFile>
+	static AsyncCoro  AsyncWriteDS_Test1_Coro ()
+	{
 		static constexpr ulong	file_size	= 128ull << 20;	// MiB
 		static constexpr uint	buf_size	= 4u << 10;		// KiB
 		StaticAssert( IsMultipleOf( file_size, buf_size ));
@@ -298,27 +331,18 @@ namespace
 				TEST( req );	// always non-null
 				TEST_GE( req.use_count(), 1 );
 
-				auto	task = AsyncTask{req->AsPromise( c_QueueType )
-								.Then(	[pos] (const AsyncWDataSource::Result_t &res)
-										{
-											TEST_Eq( pos, res.pos );
-											TEST_Eq( buf_size, res.dataSize );
-											TEST( res.data == null );
-											TEST( res.rc == null );
-										})};
-				TEST( task );
-
-				for (;;)
 				{
-					if ( scheduler->GetFileIOService()->ProcessEvents() or req->IsFinished() )
-						break;
+					auto	res = co_await req;
+
+					req = null;		// request is not used anymore
+
+					TEST( res );
+					TEST( res.status == EAsyncDSRequestStatus::Completed );
+					TEST_Eq( pos, res.pos );
+					TEST_Eq( buf_size, res.dataSize );
+					TEST( res.data == null );
+					TEST( res.rc == null );
 				}
-
-				TEST( req->IsCompleted() );
-				req = null;
-
-				TEST( scheduler->Wait( {task}, c_ThreadArr, c_MaxTimeout ));
-				TEST( task->Status() == EStatus::Completed );
 
 				pos += buf_size;
 			}
@@ -346,7 +370,22 @@ namespace
 				pos += buf_size;
 			}
 		}
+		co_return;
 	}
+
+	template <typename RFile, typename WFile>
+	static void  AsyncWriteDS_Test1 ()
+	{
+		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
+		TEST( scheduler->GetFileIOService() );
+
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{ c_ThreadArr, "worker" }));
+
+		auto	task = scheduler->Run( ETaskQueue::Background, AsyncWriteDS_Test1_Coro< RFile, WFile >() );
+		TEST( scheduler->Wait( {AsyncTask{task}}, c_MaxTimeout ));
+		TEST( task->Status() == ETaskStatus::Completed );
+	}
+//-----------------------------------------------------------------------------
 }
 
 
@@ -358,9 +397,13 @@ extern void UnitTest_AsyncDataSource (const Path &curr)
 	FileSystem::CreateDirectories( folder );
 	TEST( FileSystem::SetCurrentPath( folder ));
 
+	CanceledRequest_Test1();
+
 	AsyncReadDS_Test1< FileAsyncRDataSource, StdFileWDataSource >();
-	AsyncReadDS_Test2< FileAsyncRDataSource, StdFileWDataSource >();
+	AsyncReadDS_Test2< FileAsyncRDataSource >();
 	AsyncReadDS_Test3< FileAsyncRDataSource, StdFileWDataSource >();
+	AsyncReadDS_Test4< FileAsyncRDataSource, StdFileWDataSource >();
+
 	AsyncWriteDS_Test1< StdFileRDataSource, FileAsyncWDataSource >();
 
 	// TODO: async stream
@@ -370,10 +413,3 @@ extern void UnitTest_AsyncDataSource (const Path &curr)
 
 	TEST_PASSED();
 }
-
-#else
-
-extern void UnitTest_AsyncDataSource ()
-{}
-
-#endif // AE_DISABLE_THREADS

@@ -35,9 +35,18 @@ namespace AE::Base
 		return RVRef(value);
 	}
 
-	ND_ inline String  ToString (const char value[]) __Th___
+	template <usize C>
+	ND_ inline String  ToString (const char (&value)[C]) __Th___
 	{
-		return String{value};
+		return String{value, C-1};
+	}
+	
+	ND_ inline String  ToString (const char* value) __Th___
+	{
+		if ( value != null )
+			return String{value};
+		else
+			return String{};
 	}
 
 	template <typename T> requires(not IsEnum<T>)

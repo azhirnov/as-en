@@ -8,7 +8,9 @@
 		"AE_SIMD_F16C": 0,
 		"AE_ENABLE_VULKAN": "ON",
 		"AE_ENABLE_REMOTE_GRAPHICS": "OFF",
-		"AE_GRAPHICS_STRONG_VALIDATION": "OFF"
+		"AE_GRAPHICS_STRONG_VALIDATION": "OFF",
+		"AE_WHOLE_ENGINE_PCH": "ON",
+		"AE_EXCLUDE_PACK_RES": "ON"
 	},
 	"files.associations": {
 		"*.as": "cpp",

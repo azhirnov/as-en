@@ -99,7 +99,7 @@ private:
 			}
 			else
 			{
-				StaticAssert( IsMemCopyAvailable<T> );
+				StaticAssert( IsTriviallyMovable<T> );
 				MemMove( OUT dst, src, SizeOf<T> * count );
 			}
 		}
@@ -128,7 +128,7 @@ private:
 			}
 			else
 			{
-				StaticAssert( IsMemCopyAvailable<T> );
+				StaticAssert( IsTriviallyMovable<T> );
 				MemMove( OUT dst, src, SizeOf<T> * count );
 			}
 
@@ -167,7 +167,7 @@ private:
 			}
 			else
 			{
-				StaticAssert( IsMemCopyAvailable<T> );
+				StaticAssert( IsTriviallyMovable<T> );
 				MemMove( OUT dst, src, SizeOf<T> * count );
 			}
 
@@ -186,6 +186,7 @@ private:
 	struct _AutoDetect
 	{
 		static constexpr uint	Flags = (IsMemCopyAvailable<T>		? 0 : (NonTrivialCopyCtor | NonTrivialMoveCtor))	|
+										(IsTriviallyMovable<T>		? 0 : NonTrivialMoveCtor)							|
 										(IsTriviallyDestructible<T>	? 0 : NonTrivialDtor)								|
 										(IsZeroMemAvailable<T>		? 0 : NonTrivialCtor);
 		using type = _DefaultImpl< T, Flags >;

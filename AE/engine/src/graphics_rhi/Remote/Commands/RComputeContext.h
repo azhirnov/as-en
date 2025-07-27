@@ -24,7 +24,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit RComputeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
+		explicit RComputeContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)				__Th___;
 
 		RComputeContext ()																								= delete;
 		RComputeContext (const RComputeContext &)																		= delete;

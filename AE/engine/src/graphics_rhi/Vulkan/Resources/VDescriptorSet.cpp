@@ -23,7 +23,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VDescriptorSet::Create (VResourceManager &resMngr, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VDescriptorSet::Create (ResourceManager &resMngr, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -55,7 +55,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VDescriptorSet::Destroy (VResourceManager &resMngr) __NE___
+	void  VDescriptorSet::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

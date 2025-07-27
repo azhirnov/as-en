@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-# include "profiler/Profiler.pch.h"
+# include "profiler/Common.h"
 # include "profiler/Profilers/PowerVRProfiler.h"
 
 namespace AE::Profiler

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #if defined(AE_ENABLE_IMGUI) and defined(AE_ENABLE_AUDIO)
-# include "demo/Examples/Audio.h"
+# include "Examples/Audio.h"
 # include "imgui.h"
 
 # include "res_loaders/WAV/WaveSoundSaver.h"
@@ -15,195 +15,91 @@ namespace AE::Samples::Demo
 	INTERNAL_LINKAGE( constexpr auto&	IA		= InputActions::imGUI );
 
 
-	//
-	// Process Input Task
-	//
-	class AudioSample::ProcessInputTask final : public IAsyncTask
-	{
-	public:
-		RC<AudioSample>		t;
-		ActionQueueReader	reader;
-
-		ProcessInputTask (AudioSample* p, ActionQueueReader reader) __NE___ :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			t{ p }, reader{ RVRef(reader) }
-		{}
-
-		void  Run () __Th_OV;
-
-		StringView	DbgName ()	C_NE_OV	{ return "Audio::ProcessInput"; }
-	};
-
 /*
 =================================================
-	ProcessInputTask::Run
+	_SaveSoundTask
 =================================================
 */
-	void  AudioSample::ProcessInputTask::Run () __Th___
-	{
-		t->imgui.mouseLBDown	= false;
-		t->imgui.mouseWheel		= {};
-
-		ActionQueueReader::Header	hdr;
-		for (; reader.ReadHeader( OUT hdr );)
-		{
-			switch_IA2( IA.Desktop, hdr.name )
-			{
-				case IA.Desktop.MousePos :
-					t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );	break;
-
-				case IA.Desktop.MouseWheel :
-					t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset );	break;
-
-				case IA.Desktop.MouseLBDown :
-					t->imgui.mouseLBDown = true;									break;
-			}
-			switch_end
-			switch_IA( hdr.name )
-			{
-				case IA.Touch_Move :
-					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-					t->imgui.touchActive = hdr.state != EGestureState::End;			break;
-
-				case IA.Touch_Click :
-					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-					t->imgui.mouseLBDown = true;									break;
-			}
-			switch_end
-		}
-	}
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Save Sound Task
-	//
-	class AudioSample::SaveSoundTask final : public IAsyncTask
-	{
-	// variables
-	private:
-		RC<ArrayWStream>	stream;
-		AudioDataDesc		desc;
-
-
-	// methods
-	public:
-		SaveSoundTask (RC<ArrayWStream> s, AudioDataDesc d) __NE___ :
-			IAsyncTask{ ETaskQueue::Background },
-			stream{ RVRef(s) }, desc{ d }
-		{}
-
-		void  Run () __Th_OV;
-
-		StringView	DbgName ()	C_NE_OV	{ return "Audio::SaveSound"; }
-	};
-
-/*
-=================================================
-	SaveSoundTask::Run
-=================================================
-*/
-	void  AudioSample::SaveSoundTask::Run () __Th___
+	AsyncCoro  AudioSample::_SaveSoundTask (RC<ArrayWStream> stream, AudioDataDesc desc) __NE___
 	{
 		ResLoader::IntermSound	interm;
-		CHECK_TE( interm.SetData( desc, stream->GetData().data() ));
+		CHECK_CE( interm.SetData( desc, stream->GetData().data() ));
 
 		ResLoader::WaveSoundSaver	saver;
-		CHECK_TE( saver.SaveSound( R"(C:\Projects\sound.wav)", interm ));
+		CHECK_CE( saver.SaveSound( R"(C:\Projects\sound.wav)", interm ));
+		co_return;
 	}
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Draw Task
-	//
-	class AudioSample::DrawTask final : public RenderTask
-	{
-	// variables
-	private:
-		RC<AudioSample>		t;
-		IOutputSurface &	surface;
-
-
-	// methods
-	public:
-		DrawTask (AudioSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ batch, {"AudioUI::Draw"} },
-			t{ p }, surface{ surf }
-		{}
-
-		void  Run () __Th_OV
-		{
-			CHECK_TE( t->imgui.Draw( *this, surface, [this](){ _Update(); }, Default ));
-		}
-
-		void  _Update ();
-	};
 
 /*
 =================================================
-	DrawTask::_Update
+	_DrawTask
 =================================================
 */
-	void  AudioSample::DrawTask::_Update ()
+	RenderCoro  AudioSample::_DrawTask (RC<AudioSample> t, IOutputSurface &surface) __NE___
 	{
-		ImGui::Begin( "Player" );
+		const auto	UpdateUI = [t] ()
+		{{
+			ImGui::Begin( "Player" );
 
-		if ( ImGui::Button( "Play" ))
-			t->sound->Play();
+			if ( ImGui::Button( "Play" ))
+				t->sound->Play();
 
-		ImGui::SameLine();
-		if ( ImGui::Button( "Pause" ))
-			t->sound->Pause();
+			ImGui::SameLine();
+			if ( ImGui::Button( "Pause" ))
+				t->sound->Pause();
 
-		ImGui::SameLine();
-		if ( ImGui::Button( "Stop" ))
-			t->sound->Stop();
+			ImGui::SameLine();
+			if ( ImGui::Button( "Stop" ))
+				t->sound->Stop();
 
-		ImGui::NewLine();
+			ImGui::NewLine();
 
-		if ( t->recorder->IsStarted() )
-		{
-			if ( ImGui::Button( "Stop Recording" ))
+			if ( t->recorder->IsStarted() )
 			{
-				RC<WStream>				stream;
-				Audio::AudioDataDesc	desc;
-				CHECK( t->recorder->End( OUT stream, OUT desc ));
-				CHECK( stream == t->inStream );
+				if ( ImGui::Button( "Stop Recording" ))
+				{
+					RC<WStream>				stream;
+					Audio::AudioDataDesc	desc;
+					CHECK( t->recorder->End( OUT stream, OUT desc ));
+					CHECK( stream == t->inStream );
 
-				Scheduler().Run< SaveSoundTask >( Tuple{ t->inStream, desc });
+					Scheduler().Run(
+						ETaskQueue::Background,
+						_SaveSoundTask( t->inStream, desc ),
+						{},
+						"Audio::SaveSound"
+					);
+				}
 			}
-		}
-		else
-		{
-			if ( ImGui::Button( "Start Recording" ))
-				CHECK( t->recorder->Begin( t->inStream ));
-		}
+			else
+			{
+				if ( ImGui::Button( "Start Recording" ))
+					CHECK( t->recorder->Begin( t->inStream ));
+			}
 
-		ImGui::NewLine();
+			ImGui::NewLine();
 
-		float	vol = t->sound->Volume();
-		ImGui::SliderFloat( "Volume", &vol, 0.f, 10.f );
-		t->sound->SetVolume( vol );
+			float	vol = t->sound->Volume();
+			ImGui::SliderFloat( "Volume", &vol, 0.f, 10.f );
+			t->sound->SetVolume( vol );
 
-		ImGui::NewLine();
+			ImGui::NewLine();
 
-		auto		pos = t->sound->Position().GetNonScaledRef();
-		const float	max_pos = 3.f;
-		ImGui::SliderFloat( "PosX", &pos.x, -max_pos, max_pos );
-		ImGui::SliderFloat( "PosY", &pos.y, -max_pos, max_pos );
-		ImGui::SliderFloat( "PosZ", &pos.z, -max_pos, max_pos );
-		t->sound->SetPosition( pos );
+			auto		pos = t->sound->Position().GetNonScaledRef();
+			const float	max_pos = 3.f;
+			ImGui::SliderFloat( "PosX", &pos.x, -max_pos, max_pos );
+			ImGui::SliderFloat( "PosY", &pos.y, -max_pos, max_pos );
+			ImGui::SliderFloat( "PosZ", &pos.z, -max_pos, max_pos );
+			t->sound->SetPosition( pos );
 
-		ImGui::End();
+			ImGui::End();
 
-		AudioSystem().Apply3D();
+			AudioSystem().Apply3D();
+		}};
+		
+		CHECK_CE( t->imgui.Draw( RenderCoro_Get(), surface, UpdateUI, Default ));
+		co_return;
 	}
-//-----------------------------------------------------------------------------
-
-
 
 /*
 =================================================
@@ -255,7 +151,52 @@ namespace AE::Samples::Demo
 */
 	AsyncTask  AudioSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE___
 	{
-		return Scheduler().Run< ProcessInputTask >( Tuple{ this, reader }, Tuple{deps} );
+		return Scheduler().Run(
+					ETaskQueue::PerFrame,
+					_ProcessInputTask( GetRC<AudioSample>(), reader ),
+					Tuple{deps},
+					"Audio::ProcessInput"
+				);
+	}
+	
+/*
+=================================================
+	_ProcessInputTask
+=================================================
+*/
+	AsyncCoro  AudioSample::_ProcessInputTask (RC<AudioSample> t, ActionQueueReader reader) __NE___
+	{
+		t->imgui.mouseLBDown	= false;
+		t->imgui.mouseWheel		= {};
+
+		ActionQueueReader::Header	hdr;
+		for (; reader.ReadHeader( OUT hdr );)
+		{
+			switch_IA2( IA.Desktop, hdr.name )
+			{
+				case IA.Desktop.MousePos :
+					t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );	break;
+
+				case IA.Desktop.MouseWheel :
+					t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset );	break;
+
+				case IA.Desktop.MouseLBDown :
+					t->imgui.mouseLBDown = true;									break;
+			}
+			switch_end
+			switch_IA( hdr.name )
+			{
+				case IA.Touch_Move :
+					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+					t->imgui.touchActive = hdr.state != EGestureState::End;			break;
+
+				case IA.Touch_Click :
+					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+					t->imgui.mouseLBDown = true;									break;
+			}
+			switch_end
+		}
+		co_return;
 	}
 
 /*
@@ -281,7 +222,7 @@ namespace AE::Samples::Demo
 		auto	surf_acquire = rg.BeginOnSurface( batch, deps );
 		CHECK_ERR( surf_acquire );
 
-		return batch->Run< DrawTask >( Tuple{ this, rg.GetSurfaceArg() }, Tuple{surf_acquire}, True{"Last"}, Default );
+		return batch->Run( _DrawTask( GetRC<AudioSample>(), rg.GetSurfaceArg() ), Tuple{surf_acquire}, True{"Last"}, Default );
 	}
 
 

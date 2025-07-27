@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Passes/IPass.h"
+#include "Passes/IPass.h"
 
 namespace AE::ResEditor
 {
@@ -89,6 +89,8 @@ namespace AE::ResEditor
 		ND_ Block*	_GetBlockToUpload ();
 
 		ND_ bool	_Initialize ();
+
+		static AsyncCoro  _CompressBlockTask (CoSafe<Block*> block, RC<ImageCompressionPass> pass) __NE___;
 	};
 
 

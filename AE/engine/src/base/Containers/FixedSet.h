@@ -44,7 +44,7 @@ namespace AE::Base
 	// variables
 	private:
 		Index_t			_count		= 0;
-		Index_t			_indices [ArraySize];
+		Index_t			_indices [ArraySize] = {};
 		union {
 			value_type	_array  [ArraySize];
 			char		_buffer [sizeof(value_type) * ArraySize];		// don't use this field!

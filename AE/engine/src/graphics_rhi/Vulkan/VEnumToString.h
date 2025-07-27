@@ -149,6 +149,8 @@ namespace AE::Graphics
 				case VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM :
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR :
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR :
+				case VK_IMAGE_USAGE_TENSOR_ALIASING_BIT_ARM :
+				case VK_IMAGE_USAGE_TILE_MEMORY_BIT_QCOM :
 				default :											DBG_WARNING( "unsupported image usage" ); break;
 			}
 			switch_end

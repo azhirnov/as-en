@@ -36,7 +36,7 @@ extern "C"
 
 } // extern "C"
 
-# include "video/Video.pch.h"
+# include "pch/Platform.h"
 
 #ifdef AE_ENABLE_VULKAN
 extern "C"
@@ -214,18 +214,20 @@ namespace AE::Video
 #	define FF_CHECK( /*expr*/... )	{AE::Base::Unused(__VA_ARGS__);}
 
 # else
-#	define FF_CHECK( /*expr*/... )																												\
-	{																																			\
-		int __ff_err__ = (__VA_ARGS__);																											\
-		Unused( _ffmpeg_CheckError( _ffmpeg->av_strerror, __ff_err__, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, SourceLoc_Current() ));		\
+#	define FF_CHECK( /*expr*/... )																	\
+	{																								\
+		int __ff_err__ = (__VA_ARGS__);																\
+		Unused( _ffmpeg_CheckError( _ffmpeg->av_strerror, __ff_err__, AE_TOSTRING( __VA_ARGS__ ),	\
+									AE_FUNCTION_NAME, AE::Base::SourceLoc::current() ));			\
 	}
 # endif
 
-# define FG_PRIVATE_FF_CHECK_R( _func_, _ret_ )																							\
-	{																																			\
-		int __ff_err__ = (_func_);																												\
-		if_unlikely( not _ffmpeg_CheckError( _ffmpeg->av_strerror, __ff_err__, AE_TOSTRING( _func_ ), AE_FUNCTION_NAME, SourceLoc_Current() ))	\
-			return _ret_;																														\
+# define FG_PRIVATE_FF_CHECK_R( _func_, _ret_ )														\
+	{																								\
+		int __ff_err__ = (_func_);																	\
+		if_unlikely( not _ffmpeg_CheckError( _ffmpeg->av_strerror, __ff_err__, AE_TOSTRING( _func_ ),\
+											 AE_FUNCTION_NAME, AE::Base::SourceLoc::current() ))	\
+			return _ret_;																			\
 	}
 
 # define FF_CHECK_ERR( ... ) \

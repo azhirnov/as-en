@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "AtlasTools.pch.h"
+#include "pch/Base.h"
 
 namespace AE::AtlasTools
 {

@@ -97,9 +97,8 @@ namespace AE::Graphics
 		Float16		= 1 << 5,
 
 		_Last,
-		All			= ((_Last - 1) << 1) - 1
+		All			= ((_Last - 1) << 1) - 1,
 	};
-	AE_BIT_OPERATORS( ESubgroupTypes );
 
 
 	//

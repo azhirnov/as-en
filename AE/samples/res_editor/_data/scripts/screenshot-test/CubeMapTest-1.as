@@ -10,7 +10,7 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>	rt = Image( EPixelFormat::RGBA16F, SurfaceSize() );		rt.Name( "RT" );
+		RC<Image>	rt = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );		rt.Name( "RT" );
 
 		// render loop
 		{
@@ -118,6 +118,8 @@
 				break;
 			}
 		}
+		
+		col.a = 1.0;
 
 		gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
 	}

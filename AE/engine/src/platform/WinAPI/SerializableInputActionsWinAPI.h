@@ -238,7 +238,7 @@ namespace AE::App
 	  #ifdef AE_ENABLE_SCRIPTING
 		bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
 							  ArrayView<Path> includeDirs, const SourceLoc &loc,
-							  INOUT Reflection &refl)					__NE_OV;
+							  INOUT Reflection &refl)					__NE___;
 
 		static void  Bind (const Scripting::ScriptEnginePtr &se)		__Th___;
 	  #endif

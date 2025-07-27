@@ -8,8 +8,6 @@
 
 namespace
 {
-	using EStatus	= IAsyncTask::EStatus;
-
   #ifdef AE_PLATFORM_ANDROID
 	const auto	rflags	= FileRDataSource::EMode::Direct | FileRDataSource::EMode::RandomAccess;
 	const auto	wflags	= FileWDataSource::EMode::Unknown;	// WriteSeq/WriteBlock returns 0, WriteBlock crashes

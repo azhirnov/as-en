@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_KTX
-# include "KTXUtils.cpp.h"
+# include "res_loaders/KTX/KTXUtils.cpp.h"
 # include "res_loaders/KTX/KTXImageSaver.h"
 
 namespace AE::ResLoader
@@ -65,57 +65,59 @@ namespace
 
 		Unused( &CreateKtxRStream, &VkFormatToEPixelFormat, &GLFormatToEPixelFormat );
 
-		Unique< ktxTexture2, Function< void (ktxTexture2 *) >>		ktx_tex;
+		
+		const EPixelFormat		format	= image.PixelFormat();
+		const uint3				dim		= image.Dimension();
+		ktxTextureCreateInfo	ci		= {};
+
+		ci.glInternalformat	= EPixelFormatToGLFormat( format );
+		ci.vkFormat			= EPixelFormatToVkFormat( format );
+		ci.baseWidth		= dim.x;
+		ci.baseHeight		= dim.y;
+		ci.baseDepth		= dim.z;
+		ci.numLevels		= image.MipLevels();
+		ci.numLayers		= image.ArrayLayers();
+		ci.numFaces			= 1;
+		ci.generateMipmaps	= false;
+
+		switch_enum( image.GetType() )
 		{
-			const EPixelFormat		format	= image.PixelFormat();
-			const uint3				dim		= image.Dimension();
-			ktxTextureCreateInfo	ci		= {};
+			case EImage_1D :		ci.numDimensions = 1;	ci.isArray = false;		break;
+			case EImage_2D :		ci.numDimensions = 2;	ci.isArray = false;		break;
+			case EImage_3D :		ci.numDimensions = 3;	ci.isArray = false;		break;
+			case EImage_1DArray :	ci.numDimensions = 1;	ci.isArray = true;		break;
+			case EImage_2DArray :	ci.numDimensions = 2;	ci.isArray = true;		break;
+			case EImage_Cube :		ci.numDimensions = 2;	ci.isArray = false;		ci.numFaces = 6;	ci.numLayers = 1;	break;
+			case EImage_CubeArray :	ci.numDimensions = 2;	ci.isArray = true;		ci.numFaces = 6;	ci.numLayers /= 6;	break;
+			case EImage::Unknown :
+			case EImage::_Count :
+			default :				RETURN_ERR( "unsupported image type" );
+		}
+		switch_end
 
-			ci.glInternalformat	= EPixelFormatToGLFormat( format );
-			ci.vkFormat			= EPixelFormatToVkFormat( format );
-			ci.baseWidth		= dim.x;
-			ci.baseHeight		= dim.y;
-			ci.baseDepth		= dim.z;
-			ci.numLevels		= image.MipLevels();
-			ci.numLayers		= image.ArrayLayers();
-			ci.numFaces			= 1;
-			ci.generateMipmaps	= false;
+		Unique< ktxTexture1, Function< void (ktxTexture1 *) >>		ktx_tex;
+		{
+			ktxTexture1*	temp_tex = null;
+			CHECK_ERR( ktxTexture1_Create( &ci, KTX_TEXTURE_CREATE_ALLOC_STORAGE, OUT &temp_tex ) == KTX_SUCCESS );
 
-			switch_enum( image.GetType() )
-			{
-				case EImage_1D :		ci.numDimensions = 1;	ci.isArray = false;		break;
-				case EImage_2D :		ci.numDimensions = 2;	ci.isArray = false;		break;
-				case EImage_3D :		ci.numDimensions = 3;	ci.isArray = false;		break;
-				case EImage_1DArray :	ci.numDimensions = 1;	ci.isArray = true;		break;
-				case EImage_2DArray :	ci.numDimensions = 2;	ci.isArray = true;		break;
-				case EImage_Cube :		ci.numDimensions = 2;	ci.isArray = false;		ci.numFaces = 6;	break;
-				case EImage_CubeArray :	ci.numDimensions = 2;	ci.isArray = true;		ci.numFaces = 6;	break;
-				case EImage::Unknown :
-				case EImage::_Count :
-				default :				RETURN_ERR( "unsupported image type" );
-			}
-			switch_end
-
-			ktxTexture2*	temp_tex2 = null;
-			CHECK_ERR( ktxTexture2_Create( &ci, KTX_TEXTURE_CREATE_ALLOC_STORAGE, OUT &temp_tex2 ) == KTX_SUCCESS );
-
-			ktx_tex = { temp_tex2, [](ktxTexture2 *tex){ ktxTexture_Destroy(ktxTexture(tex)); }};
+			ktx_tex = { temp_tex, [](ktxTexture1 *tex){ ktxTexture_Destroy(ktxTexture(tex)); }};
 		}
 
 		// SetPrimaries()
 
-		const uint	array_layers	= image.ArrayLayers();
-		const uint	mipmaps			= image.MipLevels();
-
-		for (uint layer = 0; layer < array_layers; ++layer)
+		for (uint layer = 0; layer < ci.numLayers; ++layer)
 		{
-			for (uint mm = 0; mm < mipmaps; ++mm)
+			for (uint face = 0; face < ci.numFaces; ++face)
 			{
-				auto*	level = image.GetLevel( MipmapLevel{mm}, ImageLayer{layer} );
-				CHECK_ERR( level != null );
+				for (uint mm = 0; mm < ci.numLevels; ++mm)
+				{
+					auto*	level = image.GetLevel( MipmapLevel{mm}, ImageLayer{layer * ci.numFaces + face} );
+					CHECK_ERR( level != null );
 
-				CHECK_ERR( ktxTexture_SetImageFromMemory( ktxTexture(ktx_tex.get()), mm, layer, 0,
-														  Cast<ubyte>(level->PixelData()), usize{level->DataSize()} ) == KTX_SUCCESS );
+					auto	err = ktxTexture_SetImageFromMemory( ktxTexture(ktx_tex.get()), mm, layer, face,
+																 Cast<ubyte>(level->PixelData()), usize{level->DataSize()} );
+					CHECK_ERR( err == KTX_SUCCESS );
+				}
 			}
 		}
 

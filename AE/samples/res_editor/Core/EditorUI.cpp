@@ -2,12 +2,12 @@
 
 #include "video/Private/EnumToString.cpp.h"
 
-#include "res_editor/Core/EditorUI.h"
-#include "res_editor/Core/EditorCore.h"
+#include "Core/EditorUI.h"
+#include "Core/EditorCore.h"
 
-#include "res_editor/Resources/Image.h"
+#include "Resources/Image.h"
 
-#include "res_editor/_ui_data/cpp/types.h"
+#include "_ui_data/cpp/types.h"
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -384,7 +384,7 @@ namespace
 	//
 	// Draw Task
 	//
-	class EditorUI::DrawTask final : public RenderTask
+	class EditorUI::DrawTask final : public EnableRC<DrawTask>
 	{
 	// types
 	private:
@@ -419,16 +419,17 @@ namespace
 
 	// methods
 	public:
-		DrawTask (EditorUI* t, IOutputSurface &surf, bool isFirst, bool hasSurface, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ RVRef(batch), {"UI::Draw", HtmlColor::Aqua} },
-			t{ *t }, surface{ surf },
+		static RenderCoro  Run (EditorUI &t, IOutputSurface &surf, bool isFirst, bool hasSurface);
+
+		DrawTask (EditorUI &t, IOutputSurface &surf, bool isFirst, bool hasSurface) __NE___ :
+			t{ t }, surface{ surf },
 			imgui{ this->t._imgui.WriteNoLock() },
 			isFirst{ isFirst }, hasSurface{ hasSurface }
 		{}
 
-		void  Run () __Th_OV;
-
 	private:
+		RenderCoro  _Execute (RC<DrawTask>);
+
 		ND_ bool  _Update ();
 			void  _UpdateMain (OUT float2 &wnd_pos);
 			void  _UpdateEditorTab ();
@@ -449,28 +450,40 @@ namespace
 			void  _RecursiveVisitFolder (const Path &rootPath, const ScriptFolder &);
 			void  _LoadScript (const Path &rootPath);
 	};
+	
+/*
+=================================================
+	ImGuiDrawTask::Run
+=================================================
+*/
+	RenderCoro  EditorUI::DrawTask::Run (EditorUI &t, IOutputSurface &surf, bool isFirst, bool hasSurface)
+	{
+		auto task = MakeRC<DrawTask>( t, surf, isFirst, hasSurface );
+		return task->_Execute( task );
+	}
 
 /*
 =================================================
-	DrawTask::Run
+	DrawTask::_Execute
 =================================================
 */
-	void  EditorUI::DrawTask::Run ()
+	RenderCoro  EditorUI::DrawTask::_Execute (RC<DrawTask>)
 	{
-		ASSERT( IsFirstInBatch() == isFirst );
+		auto	rtask = RenderCoro_Get();
+		ASSERT( rtask.IsFirstInBatch() == isFirst );
 
 		t._CheckScriptDir( t._scriptDir );
 		EXLOCK( imgui );
 
 	  #if RmG_UI_ON_HOST
 		auto			glib = GetGraphicsLib();
-		CHECK_TE( glib->BeginFrame() );
+		CHECK_CE( glib->BeginFrame() );
 
 		auto			copy_ctx_rc = glib->BeginTransferContext();
 		TransferCtx&	copy_ctx	= *copy_ctx_rc;
 
 	  #else
-		CHECK_TE( hasSurface );
+		CHECK_CE( hasSurface );
 
 		CommandBuffer	cmdbuf;
 	  #endif
@@ -479,7 +492,7 @@ namespace
 		if_unlikely( not t._uploaded.load() )
 		{
 		  #if not RmG_UI_ON_HOST
-			TransferCtx		copy_ctx{ *this };
+			TransferCtx		copy_ctx{ rtask };
 		  #endif
 
 			ubyte*	pixels;
@@ -517,23 +530,23 @@ namespace
 		auto			gfx_ctx_rc	= glib->BeginGraphicsContext( copy_ctx_rc );
 		GraphicsCtx&	gfx_ctx		= *gfx_ctx_rc;
 
-		CHECK_TE( glib->GetTargets( OUT targets ));
+		CHECK_CE( glib->GetTargets( OUT targets ));
 
 	  #else
 		const bool		clear_surf	= isFirst;
-		GraphicsCtx		gfx_ctx		{ *this, RVRef(cmdbuf) };
+		GraphicsCtx		gfx_ctx		{ rtask, RVRef(cmdbuf) };
 
-		CHECK_TE( surface.GetTargets( OUT targets ));
+		CHECK_CE( surface.GetTargets( OUT targets ));
 	  #endif
 
-		CHECK_TE( targets.size() >= 1 );
+		CHECK_CE( targets.size() >= 1 );
 
 		const auto&		rt = targets[0];
 		rtSize = rt.RegionSize();
 
-		CHECK_TE( _Update() );
+		CHECK_CE( _Update() );
 
-		CHECK_TE( _UpdateDS( gfx_ctx, GetFrameId() ));
+		CHECK_CE( _UpdateDS( gfx_ctx, rtask.FrameId() ));
 
 		if_unlikely( auto [fmt, cs] = ESurfaceFormat_Cast( imgui->reqSurfFormat );
 					 fmt != Default or cs != Default )
@@ -554,7 +567,7 @@ namespace
 		PipelineSet	ps;
 		{
 			auto	it = t._res.pplns.find( targets[0].format );
-			CHECK_TE( it != t._res.pplns.end(),
+			CHECK_CE( it != t._res.pplns.end(),
 					  "Failed to find pipeline for surface format "s << ToString(targets[0].format) );
 			ps = it->second;
 		}
@@ -564,7 +577,7 @@ namespace
 										.AddTarget( AttachmentName{"Color"}, rt.viewId,
 													(clear_surf ? rt.initialState | EResourceState::Invalidate : rt.finalState),
 													rt.finalState ),
-									DebugLabel{ DbgName(), DbgColor() });
+									DebugLabel{ rtask.DbgName(), rtask.DbgColor() });
 
 		// same as ImGui::GetDrawData()
 		auto*	viewport = imgui->ctx->Viewports[0];
@@ -582,12 +595,12 @@ namespace
 		_TransitDbgViewToDefaultState( gfx_ctx );
 
 	  #if RmG_UI_ON_HOST
-		CHECK_TE( glib->EndFrame( gfx_ctx_rc ));
+		CHECK_CE( glib->EndFrame( gfx_ctx_rc ));
 
 		Graphics::DirectCtx::Transfer	tctx {*this};
 		if ( hasSurface )
 		{
-			CHECK_TE( surface.GetTargets( OUT targets ));
+			CHECK_CE( surface.GetTargets( OUT targets ));
 
 			// clear screen on device
 			if ( isFirst )
@@ -608,10 +621,10 @@ namespace
 			#endif
 			}
 		}
-		Execute( tctx );
+		RenderCoro_Execute( tctx );
 
 	  #else
-		Execute( gfx_ctx );
+		RenderCoro_Execute( gfx_ctx );
 	  #endif
 	}
 
@@ -1430,7 +1443,7 @@ namespace
 
 		Scheduler().Run(
 			ETaskQueue::Background,
-			[] (RC<ResEditorCore> core, Path inPath, Atomic<bool> &compiling, Atomic<bool> &pauseRendering) -> CoroTask
+			[] (RC<ResEditorCore> core, Path inPath, Atomic<bool> &compiling, Atomic<bool> &pauseRendering) -> AsyncCoro
 			{
 				Unused( core->RunRenderScriptAsync( inPath ));
 				compiling.store( false );
@@ -1600,7 +1613,7 @@ namespace
 			for (int j = 0; j < cmd_list.CmdBuffer.Size; ++j)
 			{
 				ImDrawCmd const&	cmd = cmd_list.CmdBuffer[j];
-				const uint			tex	= uint(usize(cmd.TextureId));
+				const uint			tex	= uint(BitCast<ulong>(cmd.GetTexID()));
 
 				if ( tex != cur_tex )
 				{
@@ -1864,7 +1877,7 @@ namespace
 		AsyncTask	upload;
 		const bool	is_first	= batch.CmdPool_IsEmpty();
 
-		return batch.Task< DrawTask >( Tuple{ this, rg.GetSurfaceArg(), is_first, bool{surf_acquire} }, {"MainUI pass"} )
+		return batch.Task( DrawTask::Run( *this, *rg.GetSurface(), is_first, bool{surf_acquire} ), {"MainUI pass"} )
 						.Run( Tuple{surf_acquire, deps} );
 	}
 

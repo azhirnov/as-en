@@ -242,6 +242,20 @@ namespace {
 		CHECK_ERR( _featureSet.surfaceFormats == surface_formats );
 		return true;
 	}
+	
+/*
+=================================================
+	RenderTaskSchedulerApi::New
+=================================================
+*/
+	auto  ResourceManager::RenderTaskSchedulerApi::New (Device_t const& dev, const GraphicsCreateInfo &ci) __NE___ -> Unique<ResourceManager>
+	{
+		Unique<ResourceManager>	result{ new ResourceManager{ dev }};
+		if ( result->Initialize( ci ))
+			return RVRef(result);
+		else
+			return {};
+	}
 
 /*
 =================================================
@@ -1313,13 +1327,13 @@ namespace {
 
 /*
 =================================================
-	ReleaseExpiredResourcesTask::Run
+	RenderTaskSchedulerApi::ReleaseExpiredResources
 =================================================
 */
-	void  ResourceManager::ReleaseExpiredResourcesTask::Run ()
+	AsyncCoro  ResourceManager::RenderTaskSchedulerApi::ReleaseExpiredResources (const FrameUID frameId) __NE___
 	{
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
-		auto&	list	 = res_mngr._expiredResources.Get( _frameId );
+		auto&	list	 = res_mngr._expiredResources.Get( frameId );
 
 		ASSERT_MSG( not list.guard.is_locked(), "should not be locked" );
 		EXLOCK( list.guard );
@@ -1331,7 +1345,9 @@ namespace {
 		list.resources.clear();
 
 	  #ifdef AE_ENABLE_VULKAN
-		res_mngr._ReleaseFramebuffers( _frameId, INOUT list.framebuffers );
+		res_mngr._ReleaseFramebuffers( frameId, INOUT list.framebuffers );
 	  #endif
+
+		co_return;
 	}
 //-----------------------------------------------------------------------------

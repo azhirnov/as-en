@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Passes/BuildRTAS.h"
-#include "res_editor/Resources/Buffer.h"
-#include "res_editor/Resources/RTScene.h"
+#include "Passes/BuildRTAS.h"
+#include "Resources/Buffer.h"
+#include "Resources/RTScene.h"
 
 namespace AE::ResEditor
 {

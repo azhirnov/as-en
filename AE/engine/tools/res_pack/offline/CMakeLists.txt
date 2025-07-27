@@ -11,7 +11,6 @@ if (TARGET "Scripting")
 	set_property( TARGET "OfflinePacker" PROPERTY FOLDER "Engine/ResPack" )
 
 	target_link_libraries( "OfflinePacker" PRIVATE "Scripting" "VFS" )
-	target_include_directories( "OfflinePacker" PRIVATE ".." )
 
 	set( CANVAS_VERTS_PATH	"${MAIN_SOURCE_DIR}/engine/src/graphics/Canvas/VertexTypes.as" )
 	set( UI_BINDINGS_PATH	"${MAIN_SOURCE_DIR}/engine/src/graphics/UI" )
@@ -31,6 +30,8 @@ if (TARGET "Scripting")
 		AE_BUILD_INPUT_ACTIONS_BINDING
 		AE_BUILD_PIPELINE_COMPILER
 	)
+	
+	UseEnginePCH2( "OfflinePacker" )
 
 	set( OFFLINE_PACKER_USE_STATIC_LIBS ON CACHE BOOL "use static libs instead of dynamic" FORCE )
 	if (${OFFLINE_PACKER_USE_STATIC_LIBS})
@@ -63,8 +64,6 @@ if (TARGET "Scripting")
 	endif()
 
 	#------------------------------------------------------
-
-	set( AE_EXCLUDE_PACK_RES OFF CACHE BOOL "don't pack resources when build all" )
 
 	if (${AE_EXCLUDE_PACK_RES})
 		add_executable( "PACK_RES" EXCLUDE_FROM_ALL "empty.cpp" )

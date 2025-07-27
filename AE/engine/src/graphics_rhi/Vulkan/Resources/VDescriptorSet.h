@@ -37,9 +37,9 @@ namespace AE::Graphics
 		VDescriptorSet ()												__NE___	{}
 		~VDescriptorSet ()												__NE___;
 
-		ND_ bool  Create (VResourceManager &, DescriptorSetLayoutID,
+		ND_ bool  Create (ResourceManager &, DescriptorSetLayoutID,
 						  DescriptorAllocatorPtr, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)							__NE___;
+			void  Destroy (ResourceManager &)							__NE___;
 
 		ND_ VkDescriptorSet				Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descrSet.handle; }
 		ND_ DescriptorSetLayoutID		LayoutId ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }

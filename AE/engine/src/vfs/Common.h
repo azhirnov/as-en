@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "vfs/VFS.pch.h"
+#include "pch/Threading.h"
+#include "pch/Networking.h"
 
 namespace AE::VFS::_hidden_
 {
@@ -23,7 +24,8 @@ namespace AE::VFS
 {
 	using namespace AE::Base;
 
-	using AE::Threading::Promise;
+	ImportBitOperators;
+
 	using AE::Threading::AsyncRDataSource;
 	using AE::Threading::AsyncWDataSource;
 	using AE::Threading::AsyncRStream;

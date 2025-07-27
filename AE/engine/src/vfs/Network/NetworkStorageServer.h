@@ -63,30 +63,6 @@ namespace AE::VFS
 		};
 
 
-		class SendReadResultTask final : public IAsyncTask
-		{
-		// variables
-		private:
-			const NDSRequestID		_id;
-			const EClientLocalID	_clientId;
-			AsyncDSRequest			_req;
-			Bytes					_sent;
-			uint					_partIdx	= 0;
-
-		// methods
-		public:
-			SendReadResultTask (NDSRequestID id, EClientLocalID cid, AsyncDSRequest req) __NE___ :
-				IAsyncTask{ ETaskQueue::Background },
-				_id{id}, _clientId{cid}, _req{ RVRef(req) }
-			{}
-
-			void  Run ()			__Th_OV;
-			void  OnCancel ()		__NE_OV;
-
-			StringView	DbgName ()	C_NE_OV	{ return "SendReadResultTask"; }
-		};
-
-
 		struct ClientData
 		{
 			RDataSourcePool_t		readDSPool;		// -.
@@ -189,6 +165,9 @@ namespace AE::VFS
 		void  _WriteBegin (CSMsg_VFS_WriteBegin const&)							__NE___;
 		void  _WritePart (CSMsg_VFS_WritePart const&)							__NE___;
 		void  _WriteEnd (CSMsg_VFS_WriteEnd const&)								__NE___;
+
+		static InlineCoro<ETaskQueue::Background>
+			_SendReadResultCoro (const NDSRequestID id, const EClientLocalID clientId, AsyncDSRequest request) __NE___;
 	};
 
 

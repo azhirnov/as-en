@@ -10,7 +10,7 @@
 	void ASmain ()
 	{
 		// initialize
-		RC<Image>	rt = Image( EPixelFormat::RGBA16F, SurfaceSize() );		rt.Name( "RT" );
+		RC<Image>	rt = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );		rt.Name( "RT" );
 
 		// render loop
 		{
@@ -89,6 +89,8 @@
 
 		if ( Fract(uv.x) > Fract(GetUV(1).x) )
 			col = float4(1.0);
+
+		col.a = 1.0;
 
 		gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
 	}

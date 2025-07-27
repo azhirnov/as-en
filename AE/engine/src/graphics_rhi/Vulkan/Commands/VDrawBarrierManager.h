@@ -24,9 +24,9 @@ namespace AE::Graphics::_hidden_
 	// variables
 	private:
 		const VPrimaryCmdBufState	_primaryState;
-		Ptr<VDrawCommandBatch>		_batch;			// can be null
+		Ptr<DrawCommandBatch>		_batch;			// can be null
 
-		VResourceManager &			_resMngr;
+		ResourceManager &			_resMngr;
 
 		VkDependencyInfo			_barrier		= {};
 		ImageMemoryBarriers_t		_imageBarriers;
@@ -34,20 +34,20 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VDrawBarrierManager (Ptr<VDrawCommandBatch> batch)					__Th___;
+		explicit VDrawBarrierManager (Ptr<DrawCommandBatch> batch)					__Th___;
 		explicit VDrawBarrierManager (const VPrimaryCmdBufState &primaryState)		__Th___;
 
 		template <typename ...IDs>
 		ND_ decltype(auto)				Get (IDs ...ids)							__Th___	{ return _resMngr.GetResourcesOrThrow( ids... ); }
 
 		ND_ VDevice const&				GetDevice ()								C_NE___	{ return _resMngr.GetDevice(); }
-		ND_ VResourceManager&			GetResourceManager ()						C_NE___	{ return _resMngr; }
+		ND_ ResourceManager&			GetResourceManager ()						C_NE___	{ return _resMngr; }
 		ND_ FrameUID					GetFrameId ()								C_NE___	{ return _primaryState.frameId; }
 		ND_ EQueueType					GetQueueType ()								C_NE___	{ return EQueueType::Graphics; }
 		ND_ auto const&					GetPrimaryCtxState ()						C_NE___	{ return _primaryState; }
 
 		ND_ bool						IsSecondary ()								C_NE___	{ return _batch != null; }
-		ND_ Ptr<VDrawCommandBatch>		GetBatchPtr ()								C_NE___	{ return _batch.get(); }
+		ND_ Ptr<DrawCommandBatch>		GetBatchPtr ()								C_NE___	{ return _batch.get(); }
 
 		ND_ VkPipelineStageFlagBits2	GetSupportedStages ()						C_NE___	{ return GetDevice().GetQueue( GetQueueType() )->supportedStages; }
 

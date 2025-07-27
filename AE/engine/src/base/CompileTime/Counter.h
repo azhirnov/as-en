@@ -3,7 +3,7 @@
 #pragma once
 
 #ifdef AE_ENABLE_FAMETA_COUNTER
-# include "external/shared/fameta-counter/counter.hpp"
+# include "shared/fameta-counter/counter.hpp"
 # include "base/Common.h"
 
 namespace AE::Base

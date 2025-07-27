@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Common.h"
+#include "Common.h"
 
 namespace AE::ResEditor
 {
@@ -42,7 +42,6 @@ namespace AE::ResEditor
 		ND_ FrameUID	GetPrevFrameId ()	const	{ return _rg.GetPrevFrameId(); }
 		ND_ FrameUID	GetNextFrameId ()	const	{ return _rg.GetNextFrameId(); }
 		ND_ auto		GetSurface ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _surface; }
-		ND_ auto		GetSurfaceArg ()	const	{ DRC_SHAREDLOCK( _drCheck );  return ArgRef( *_surface ); }
 
 
 		// thread safe

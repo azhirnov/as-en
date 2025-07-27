@@ -10,7 +10,8 @@ if ( (TARGET "GLSLang-lib") AND WIN32 )
 	target_include_directories( "ShaderTrace" PUBLIC "Public" )
 	target_compile_definitions( "ShaderTrace" PUBLIC "AE_ENABLE_GLSL_TRACE" )
 	target_link_libraries( "ShaderTrace" PUBLIC "Serializing" "GLSLang-lib" )
-
+	
+	UseEnginePCH2( "ShaderTrace" )
 endif()
 
 if (TRUE)
@@ -24,6 +25,8 @@ if (TRUE)
 	set_property( TARGET "ShaderTraceParser" PROPERTY FOLDER "Engine/ResPack" )
 
 	target_include_directories( "ShaderTraceParser" PUBLIC "Public" )
-	target_compile_definitions( "ShaderTraceParser" PUBLIC "AE_ENABLE_GLSL_TRACE" )
+	#target_compile_definitions( "ShaderTraceParser" PUBLIC "AE_ENABLE_GLSL_TRACE" )	# already defined in EnginePCH
 	target_link_libraries( "ShaderTraceParser" PUBLIC "Serializing" )
+
+	UseEnginePCH2( "ShaderTraceParser" )
 endif()

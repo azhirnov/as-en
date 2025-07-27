@@ -15,7 +15,7 @@ namespace AE::Graphics
 	GetBuildSizes
 =================================================
 */
-	RTASBuildSizes	VRTCluster::GetBuildSizes (const VResourceManager &resMngr, const RTClusterInfo &desc) __NE___
+	RTASBuildSizes	VRTCluster::GetBuildSizes (const ResourceManager &resMngr, const RTClusterInfo &desc) __NE___
 	{
 		GRES_CHECK( IsSupported( resMngr, desc ));
 
@@ -40,7 +40,7 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  VRTCluster::IsSupported (const VResourceManager &resMngr, const RTClusterInfo &) __NE___
+	bool  VRTCluster::IsSupported (const ResourceManager &resMngr, const RTClusterInfo &) __NE___
 	{
 		if ( resMngr.GetFeatureSet().accelerationStructure() != FeatureSet::EFeature::RequireTrue )
 			return false;
@@ -57,7 +57,7 @@ namespace AE::Graphics
 	_Convert
 =================================================
 */
-	bool  VRTCluster::_Convert (const VResourceManager &resMngr, const RTClusterInfo &desc,
+	bool  VRTCluster::_Convert (const ResourceManager &resMngr, const RTClusterInfo &desc,
 								OUT VkClusterAccelerationStructureInputInfoNV &inputInfo, OUT InputStorage_t &storage) __NE___
 	{
 		inputInfo.sType	= VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_INPUT_INFO_NV;
@@ -152,7 +152,7 @@ namespace AE::Graphics
 	ConvertBuildInfo
 =================================================
 */
-	bool  VRTCluster::ConvertBuildInfo (const VResourceManager &resMngr, const RTClusterBuild &cmd,
+	bool  VRTCluster::ConvertBuildInfo (const ResourceManager &resMngr, const RTClusterBuild &cmd,
 										OUT VkClusterAccelerationStructureCommandsInfoNV &buildInfo, OUT InputStorage_t &storage) __NE___
 	{
 		buildInfo.sType	= VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_COMMANDS_INFO_NV;

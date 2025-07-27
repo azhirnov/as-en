@@ -2,12 +2,19 @@
 
 #pragma once
 
-#include "TestsGraphics.pch.h"
+#include "pch/Graphics.h"
+#include "graphics_test/GraphicsTest.h"
+
+#ifdef AE_ENABLE_VULKAN
+# include "vulkan_sync_log/VulkanSyncLog.h"
+#endif
+#include "DrawTests/cpp/types.h"
+
+#include "../shared/UnitTest_Shared.h"
 
 using namespace AE;
 using namespace AE::Threading;
-
-using EStatus = AE::Threading::IAsyncTask::EStatus;
+using namespace AE::Graphics;
 
 using ImageComparator = GraphicsTest::ImageComparator;
 

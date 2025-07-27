@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "RenderPassPack.h"
+#include "res_pack/pipeline_compiler/Packer/RenderPassPack.h"
 #include "graphics_rhi/Private/EnumUtils.h"
 #include "graphics_rhi/Private/EnumToString.h"
-#include "Packer/VulkanEnums.h"
+#include "res_pack/pipeline_compiler/Packer/VulkanEnums.h"
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/VEnumCast.h"
@@ -11,8 +11,12 @@
 #endif
 
 #ifdef AE_BUILD_PIPELINE_COMPILER
-# include "ScriptObjects/ObjectStorage.h"
+# include "res_pack/pipeline_compiler/ScriptObjects/ScriptRenderPass.h"
+# include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
+# include "res_pack/pipeline_compiler/Packer/RenderPassPacker.h"
 #endif
+
+#include "res_pack/pipeline_compiler/Packer/MetalEnumsToString.h"
 
 namespace AE::PipelineCompiler
 {

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "res_editor/Core/EditorUI.h"
-#include "res_editor/Passes/Renderer.h"
+#include "Core/EditorUI.h"
+#include "Passes/Renderer.h"
 
 namespace AE::ResEditor
 {
@@ -238,8 +238,8 @@ namespace AE::ResEditor
 
 	// main loop
 	private:
-		ND_ static CoroTask  _ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader);
-		ND_ static CoroTask  _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
+		ND_ static AsyncCoro  _ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader);
+		ND_ static AsyncCoro  _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
 
 		void  _UpdateTests (RC<Renderer> renderer);
 

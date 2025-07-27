@@ -63,7 +63,7 @@ namespace
 
 			msg = msg + ", in " + nvcall + ", function: " + func;
 
-			AE_LOGE( msg, loc.file, loc.line );
+			AE_LOGE( msg, loc );
 		}
 		CATCH_ALL()
 	  #else
@@ -73,11 +73,12 @@ namespace
 		return false;
 	}
 
-#	define NVP_CHECK_ERR( ... )																							\
-	{																													\
-		auto	_err_ = (__VA_ARGS__);																					\
-		if_unlikely( not _NvPerfCheckError( _err_, AE_TOSTRING(__VA_ARGS__), AE_FUNCTION_NAME, SourceLoc_Current() ))	\
-			return Default;																								\
+#	define NVP_CHECK_ERR( ... )														\
+	{																				\
+		auto	_err_ = (__VA_ARGS__);												\
+		if_unlikely( not _NvPerfCheckError( _err_, AE_TOSTRING(__VA_ARGS__),		\
+								AE_FUNCTION_NAME, AE::Base::SourceLoc::current() ))	\
+			return Default;															\
 	}
 
 } // namespace

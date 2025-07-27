@@ -15,58 +15,35 @@ namespace
 	};
 
 
-	class FC_TestTask final : public RenderTask
+	static RenderCoro  FC_TestTask (FC_TestData& t)
 	{
-	public:
-		FC_TestData&	t;
+		DirectCtx::Transfer	ctx{ RenderCoro_Get() };
 
-		FC_TestTask (FC_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		const uint	id = t.counter.fetch_add( 1 );
+		ctx.FillBuffer( t.buf, Bytes{id} * 4_b, 4_b, uint(RenderCoro_Get().FrameId().Unique()) );
 
-		void  Run () __Th_OV
-		{
-			DirectCtx::Transfer	ctx{ *this };
+		RenderCoro_Execute( ctx );
+	}
 
-			const uint	id = t.counter.fetch_add( 1 );
-			ctx.FillBuffer( t.buf, Bytes{id} * 4_b, 4_b, uint(GetFrameId().Unique()) );
 
-			Execute( ctx );
-		}
-	};
-
-	class FC_FrameTask final : public Threading::IAsyncTask
+	static AsyncCoro  FC_FrameTask (FC_TestData& t)
 	{
-	public:
-		FC_TestData&	t;
-
-		FC_FrameTask (FC_TestData& t) __NE___ :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			t{ t }
-		{}
-
-		void  Run () __Th_OV
+		for (; t.counter.load() < t.maxCount; )
 		{
-			if ( t.counter.load() >= t.maxCount )
-				return;
-
 			auto&	rts = GraphicsScheduler();
 
-			CHECK_TE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
-			CHECK_TE( rts.BeginFrame() );
+			CHECK_CE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+			CHECK_CE( rts.BeginFrame() );
 
 			t.batch	 = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"FrameCounter"} );
-			CHECK_TE( t.batch );
+			CHECK_CE( t.batch );
 
-			AsyncTask	test	= t.batch->Run< FC_TestTask >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"test task"} );
+			AsyncTask	test	= t.batch->Run( FC_TestTask(t), Tuple{}, True{"Last"}, {"test task"} );
 			AsyncTask	end		= rts.EndFrame( Tuple{test} );
 
-			return Continue( Tuple{end} );
+			Coro_Continue( end );
 		}
-
-		StringView  DbgName ()	C_NE_OV	{ return "FC_FrameTask"; }
-	};
+	}
 
 
 	static bool  FrameCounterTest ()
@@ -79,7 +56,7 @@ namespace
 		t.buf		= res_mngr.CreateBuffer( BufferDesc{ t.buf_size, EBufferUsage::Transfer }.SetMemory( EMemoryType::DeviceLocal ), "dst_buf", t.gfxAlloc );
 		CHECK_ERR( t.buf );
 
-		auto	task = Scheduler().Run<FC_FrameTask>( Tuple{ArgRef(t)} );
+		AsyncTask	task = Scheduler().Run( FC_FrameTask( t ));
 
 		CHECK_ERR( Scheduler().Wait( {task}, c_MaxTimeout ));
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));

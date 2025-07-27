@@ -139,7 +139,7 @@ namespace AE::Networking
 } // AE::Networking
 
 #ifdef AE_DEBUG
-#	define NET_CHECK( _error_, _msg_ )	{PlatformUtils::CheckNetworkError( (_error_), (_msg_), SourceLoc_Current(), ELogLevel::Info );}
+#	define NET_CHECK( _error_, _msg_ )	{PlatformUtils::CheckNetworkError( (_error_), (_msg_), AE::Base::SourceLoc::current(), ELogLevel::Info );}
 #	define NET_CHECK2( _msg_ )			NET_CHECK( PlatformUtils::GetNetworkErrorCode(), (_msg_) )
 #else
 #	define NET_CHECK( _error_, _msg_ )	{}

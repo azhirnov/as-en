@@ -166,6 +166,8 @@ namespace
 
 				ImGui::SetCursorScreenPos( ImVec2{ wnd_pos.x, region1.bottom });
 			}
+
+			ImGui::Dummy( ImVec2{1,1} );
 		}
 		ImGui::End();
 	}
@@ -464,29 +466,19 @@ namespace
 
 /*
 =================================================
-	ReadResultsTask
+	_ReadResultsTask
 =================================================
 */
-	class GraphicsProfiler::ReadResultsTask final : public Threading::IAsyncTask
+	AsyncCoro  GraphicsProfiler::_ReadResultsTask (RC<GraphicsProfiler> self)
 	{
-	private:
-		RC<GraphicsProfiler>	_self;
+		if ( self->_pvrProfiler and self->_pvrProfiler->IsInitialized() )
+			self->_ReadResultsPVR();
+		else
+			self->_ReadResults();
 
-	public:
-		ReadResultsTask (GraphicsProfiler &self) __NE___ : IAsyncTask{ETaskQueue::PerFrame}, _self{&self} {}
-
-		void  Run () __Th_OV
-		{
-			if ( _self->_pvrProfiler and _self->_pvrProfiler->IsInitialized() )
-				_self->_ReadResultsPVR();
-			else
-				_self->_ReadResults();
-
-			_self = null;
-		}
-
-		StringView	DbgName () C_NE_OV { return "GraphicsProfiler::ReadResults"; }
-	};
+		self = null;
+		co_return;
+	}
 
 /*
 =================================================
@@ -504,9 +496,8 @@ namespace
 			_readIndex	= idx[0];
 			_writeIndex	= idx[1];
 		}{
-			auto	task = MakeRC<ReadResultsTask>( *this );
-			if ( Scheduler().Run( task ))
-				rts.AddNextFrameDeps( task );
+			auto	task = Scheduler().Run( _ReadResultsTask( GetRC<GraphicsProfiler>() ));
+			rts.AddNextFrameDeps( task );
 		}{
 			auto	stat = rts.GetResourceManager().GetStagingBufferFrameStat( frameId.Sub(1).value() );
 
@@ -818,7 +809,7 @@ namespace
 		auto&		rts		= GraphicsScheduler();
 		auto&		dev		= rts.GetDevice();
 		auto&		qm		= rts.GetResourceManager().GetQueryManager();
-		auto*		batch	= Cast<VCommandBatch>(batchPtr);
+		auto*		batch	= Cast<CommandBatch>(batchPtr);
 		const auto	queue	= batch->GetQueueType();
 		Pass		pass;
 
@@ -998,7 +989,7 @@ namespace
 		ASSERT( not taskName.empty() );
 
 		auto&		qm		= GraphicsScheduler().GetResourceManager().GetQueryManager();
-		auto*		batch	= Cast<RCommandBatch>(batchPtr);
+		auto*		batch	= Cast<CommandBatch>(batchPtr);
 		const auto	queue	= batch->GetQueueType();
 		Pass		pass;
 

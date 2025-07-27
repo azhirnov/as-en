@@ -130,6 +130,7 @@ namespace {
 */
 	struct VAMDPerfProfiler::Impl
 	{
+		GpaSessionId		sessionId	= null;
 		GpaContextId		ctxId		= null;
 		GpaFunctionTable	fnTable		= {};
 		HWInfo				info;
@@ -277,6 +278,7 @@ namespace {
 					case kGpaHwGenerationGfx10 :	_impl->info.gen = EHwGeneration::RDNA1;		break;
 					case kGpaHwGenerationGfx103 :	_impl->info.gen = EHwGeneration::RDNA2;		break;
 					case kGpaHwGenerationGfx11 :	_impl->info.gen = EHwGeneration::RDNA3;		break;
+					case kGpaHwGenerationGfx12 :	_impl->info.gen = EHwGeneration::RDNA4;		break;
 					case kGpaHwGenerationCdna :		_impl->info.gen = EHwGeneration::CDNA1;		break;
 					case kGpaHwGenerationCdna2 :	_impl->info.gen = EHwGeneration::CDNA2;		break;
 					case kGpaHwGenerationCdna3 :	_impl->info.gen = EHwGeneration::CDNA3;		break;
@@ -341,7 +343,7 @@ namespace {
 		String	str;
 
 		if ( uint count = 0;
-			 _impl->fnTable.GpaGetNumCounters( _impl->ctxId, OUT &count ) == kGpaStatusOk )
+			 _impl->fnTable.GpaGetNumCounters( _impl->sessionId, OUT &count ) == kGpaStatusOk )
 		{
 			for (uint i = 0; i < count; ++i)
 			{
@@ -349,9 +351,9 @@ namespace {
 				const char*	group	= null;
 				const char*	desc	= null;
 
-				auto	name_stat	= _impl->fnTable.GpaGetCounterName( _impl->ctxId, i, OUT &name );
-				auto	group_stat	= _impl->fnTable.GpaGetCounterGroup( _impl->ctxId, i, OUT &group );
-				auto	desc_stat	= _impl->fnTable.GpaGetCounterDescription( _impl->ctxId, i, OUT &desc );
+				auto	name_stat	= _impl->fnTable.GpaGetCounterName( _impl->sessionId, i, OUT &name );
+				auto	group_stat	= _impl->fnTable.GpaGetCounterGroup( _impl->sessionId, i, OUT &group );
+				auto	desc_stat	= _impl->fnTable.GpaGetCounterDescription( _impl->sessionId, i, OUT &desc );
 
 				if ( name_stat == kGpaStatusOk and group_stat == kGpaStatusOk and desc_stat == kGpaStatusOk )
 				{

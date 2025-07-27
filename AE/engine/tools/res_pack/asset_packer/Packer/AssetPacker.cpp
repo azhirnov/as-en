@@ -3,15 +3,13 @@
 #include "base/DataSource/File.h"
 #include "scripting/Impl/ScriptFn.h"
 #include "scripting/Impl/ScriptEngine.inl.h"
-#include "ScriptObjects/ObjectStorage.h"
-#include "AssetPacker.h"
+#include "res_pack/asset_packer/ScriptObjects/ObjectStorage.h"
+#include "res_pack/asset_packer/AssetPacker.h"
 
 namespace AE::AssetPacker
 {
 namespace
 {
-	AE_BIT_OPERATORS( EPathParamsFlags );
-
 	using namespace AE::Scripting;
 
 /*
@@ -164,7 +162,7 @@ namespace
 				}
 			}
 
-			src.dbgLocation		= SourceLoc{ ansi_path, 0 };
+			src.dbgLocation		= SourceLoc{ ansi_path.c_str(), 0 };
 			src.usePreprocessor	= true;
 
 			ScriptModulePtr		module = script_engine->CreateModule( {src}, {"SCRIPT"}, script_include_dirs );
@@ -208,7 +206,7 @@ namespace
 	PackAssets
 =================================================
 */
-	extern "C" bool AE_AP_API  PackAssets (const AssetInfo* info)
+	extern "C" bool AE_DLL_EXPORT  PackAssets (const AssetInfo* info)
 	{
 		AE::Base::StaticLogger::LoggerScope log{};
 

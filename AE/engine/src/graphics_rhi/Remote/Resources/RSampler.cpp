@@ -24,7 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RSampler::Create (const RResourceManager &, RmSamplerID id) __NE___
+	bool  RSampler::Create (const ResourceManager &, RmSamplerID id) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _sampId );
@@ -40,7 +40,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RSampler::Destroy (RResourceManager &) __NE___
+	void  RSampler::Destroy (ResourceManager &) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

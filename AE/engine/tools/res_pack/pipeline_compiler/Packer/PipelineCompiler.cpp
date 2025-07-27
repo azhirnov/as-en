@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "PipelineCompiler.h"
+#include "res_pack/pipeline_compiler/PipelineCompiler.h"
 
 #include "base/DataSource/MemStream.h"
 #include "base/DataSource/File.h"
@@ -16,16 +16,13 @@
 
 #include "graphics_rhi/Scripting/GraphicsBindings.h"
 
-#include "ScriptObjects/ObjectStorage.h"
-
-#include "PipelineCompilerImpl.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
+#include "res_pack/pipeline_compiler/PipelineCompilerImpl.h"
 
 namespace AE::PipelineCompiler
 {
 namespace
 {
-	AE_BIT_OPERATORS( EPathParamsFlags );
-
 	using namespace AE::Scripting;
 
 /*
@@ -260,7 +257,7 @@ namespace
 	CompilePipelines
 =================================================
 */
-	extern "C" bool AE_PC_API  CompilePipelines (const PipelinesInfo* info)
+	extern "C" bool AE_DLL_EXPORT  CompilePipelines (const PipelinesInfo* info)
 	{
 		AE::Base::StaticLogger::LoggerScope log{};
 

@@ -95,7 +95,8 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsIndirectContext = true;
 
-		using CmdBuf_t = RSoftwareCmdBufPtr;
+		using CmdBuf_t		= RSoftwareCmdBufPtr;
+		using RenderCoroRef	= _Coro_::RenderTaskImpl::UserApi;
 
 
 	// variables
@@ -150,7 +151,7 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		RBaseContext (const RenderTask &, CmdBuf_t, DebugLabel, ECtxType)					__Th___;
+		RBaseContext (RenderCoroRef, CmdBuf_t, DebugLabel, ECtxType)						__Th___;
 		~RBaseContext ()																	__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
@@ -166,7 +167,7 @@ namespace AE::Graphics::_hidden_
 		ND_ CmdBuf_t			_ReleaseCommandBuffer (ECtxType)							__Th___;
 
 	private:
-		RBaseContext (const RenderTask &, CmdBuf_t, DebugLabel, ECtxType, int)				__Th___;
+		RBaseContext (RenderCoroRef, CmdBuf_t, DebugLabel, ECtxType, int)					__Th___;
 	};
 
 

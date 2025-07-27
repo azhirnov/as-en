@@ -18,51 +18,30 @@ namespace
 	static constexpr Bytes	upload_limit = 1_MiB;
 
 
-	class US1_UploadStreamTask final : public RenderTask
+	static RenderCoro  US1_UploadStreamTask (US1_TestData& t)
 	{
-	public:
-		US1_TestData&	t;
+		DirectCtx::Transfer	ctx{ RenderCoro_Get() };
 
-		US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg }, t{ t }
-		{}
+		const Bytes	pos = t.stream.pos;
 
-		void  Run () __Th_OV
-		{
-			DirectCtx::Transfer	ctx{ *this };
+		BufferMemView	mem_view;
+		ctx.UploadBuffer( INOUT t.stream, OUT mem_view );
 
-			const Bytes	pos = t.stream.pos;
+		auto	arr = ArrayView<ubyte>{t.buffer_data}.section( usize(pos), UMax );
+		CHECK_CE( mem_view.CopyFrom( arr ) == mem_view.DataSize() );
 
-			BufferMemView	mem_view;
-			ctx.UploadBuffer( INOUT t.stream, OUT mem_view );
+		RenderCoro_Execute( ctx );
 
-			auto	arr = ArrayView<ubyte>{t.buffer_data}.section( usize(pos), UMax );
-			CHECK_TE( mem_view.CopyFrom( arr ) == mem_view.DataSize() );
-
-			Execute( ctx );
-
-			const auto	stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
-			CHECK( stat.dynamicWrite > 0 );
-			CHECK( stat.dynamicWrite <= upload_limit );
-		}
-	};
+		const auto	stat = GraphicsScheduler().GetResourceManager().GetStagingBufferFrameStat( ctx.GetFrameId() );
+		CHECK( stat.dynamicWrite > 0 );
+		CHECK( stat.dynamicWrite <= upload_limit );
+	}
 
 
-	class US1_FrameTask final : public Threading::IAsyncTask
+	static AsyncCoro  US1_FrameTask (US1_TestData& t)
 	{
-	public:
-		US1_TestData&	t;
-
-		US1_FrameTask (US1_TestData& t) __NE___ :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			t{ t }
-		{}
-
-		void  Run () __Th_OV
+		for (; not t.stream.IsCompleted();)
 		{
-			if ( t.stream.IsCompleted() )
-				return;
-
 			++t.counter;
 
 			auto&	rts = GraphicsScheduler();
@@ -70,20 +49,18 @@ namespace
 			BeginFrameConfig	cfg;
 			cfg.stagingBufferPerFrameLimits.write = upload_limit;
 
-			CHECK_TE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
-			CHECK_TE( rts.BeginFrame( cfg ));
+			CHECK_CE( rts.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+			CHECK_CE( rts.BeginFrame( cfg ));
 
 			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream1"} );
-			CHECK_TE( t.batch );
+			CHECK_CE( t.batch );
 
-			AsyncTask	test	= t.batch->Run< US1_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"test task"} );
+			AsyncTask	test	= t.batch->Run( US1_UploadStreamTask( t ), Tuple{}, True{"Last"}, {"test task"} );
 			AsyncTask	end		= rts.EndFrame( Tuple{test} );
 
-			return Continue( Tuple{end} );
+			Coro_Continue( end );
 		}
-
-		StringView  DbgName ()	C_NE_OV	{ return "US1_FrameTask"; }
-	};
+	}
 
 
 	static bool  UploadStream1Test ()
@@ -103,7 +80,7 @@ namespace
 
 		t.stream = BufferStream{ t.buf, UploadBufferDesc{ 0_b, t.buf_size }.DynamicHeap() };
 
-		auto	task = Scheduler().Run<US1_FrameTask>( Tuple{ArgRef(t)} );
+		AsyncTask	task = Scheduler().Run( US1_FrameTask( t ));
 
 		CHECK_ERR( Scheduler().Wait( {task}, c_MaxTimeout ));
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));

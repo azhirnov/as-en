@@ -2,27 +2,18 @@
 
 #pragma once
 
-#ifndef AE_UI_NO_GRAPHICS
-# include "graphics/Canvas/Canvas.h"
-# include "graphics/Canvas/Primitives.h"
-#endif
+#include "graphics/Canvas/Canvas.h"
+#include "graphics/Canvas/Primitives.h"
 
 #include "graphics/UI/LayoutEnums.h"
 #include "graphics/UI/StyleCollection.h"
 
 namespace AE::UI
 {
-
-# ifndef AE_UI_NO_GRAPHICS
 	using AE::Graphics::Canvas;
 	using AE::Graphics::SurfaceDimensions;
 	using TransferContext_t	= Graphics::DirectCtx::Transfer;
 	using DrawContext_t		= Graphics::DirectCtx::Draw;
-# else
-	struct Canvas;
-	struct TransferContext_t;
-	struct DrawContext_t;
-# endif
 
 
 

@@ -1,10 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/GeomSource/SphericalCube.h"
-#include "res_editor/Passes/Renderer.h"
+#include "GeomSource/SphericalCube.h"
+#include "Passes/Renderer.h"
 
-#include "res_editor/_data/cpp/types.h"
-#include "res_editor/_ui_data/cpp/types.h"
+#include "_data/cpp/types.h"
+#include "_ui_data/cpp/types.h"
 
 namespace AE::ResEditor
 {

@@ -20,64 +20,54 @@ namespace
 
 
 	template <typename Ctx>
-	class CI1_CopyImageTask final : public RenderTask
+	static RenderCoro  CI1_CopyImageTask (CI1_TestData& t)
 	{
-	public:
-		CI1_TestData&	t;
+		Ctx		ctx{ RenderCoro_Get() };
 
-		CI1_CopyImageTask (CI1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img_1, EResourceState::Invalidate, EResourceState::CopyDst );
 
-		void  Run () __Th_OV
-		{
-			Ctx		ctx{ *this };
+		UploadImageDesc	upload;
+		upload.aspectMask	= EImageAspect::Color;
+		upload.heapType		= EStagingHeapType::Static;
 
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img_1, EResourceState::Invalidate, EResourceState::CopyDst );
+		ImageMemView	upload_mem;
+		ctx.UploadImage( t.img_1, upload, OUT upload_mem );
 
-			UploadImageDesc	upload;
-			upload.aspectMask	= EImageAspect::Color;
-			upload.heapType		= EStagingHeapType::Static;
+		Bytes	copied;
+		CHECK_CE( upload_mem.CopyFrom( t.img_view, OUT copied ) and
+				  copied == t.img_view.Image2DSize() );
 
-			ImageMemView	upload_mem;
-			ctx.UploadImage( t.img_1, upload, OUT upload_mem );
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img_1, EResourceState::CopyDst, EResourceState::CopySrc )
+			.ImageBarrier( t.img_2, EResourceState::Invalidate, EResourceState::CopyDst );
 
-			Bytes	copied;
-			CHECK_TE( upload_mem.CopyFrom( t.img_view, OUT copied ) and
-					  copied == t.img_view.Image2DSize() );
+		ImageCopy	copy;
+		copy.srcOffset				= uint3{ t.src_offset, 0u };
+		copy.dstOffset				= uint3{ t.dst_offset, 0u };
+		copy.extent					= uint3{ t.copy_dim,   1u };
+		copy.srcSubres.aspectMask	= EImageAspect::Color;
+		copy.dstSubres.aspectMask	= EImageAspect::Color;
+		ctx.CopyImage( t.img_1, t.img_2, {copy} );
 
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img_1, EResourceState::CopyDst, EResourceState::CopySrc )
-				.ImageBarrier( t.img_2, EResourceState::Invalidate, EResourceState::CopyDst );
+		ctx.AccumBarriers().ImageBarrier( t.img_2, EResourceState::CopyDst, EResourceState::CopySrc );
 
-			ImageCopy	copy;
-			copy.srcOffset				= uint3{ t.src_offset, 0u };
-			copy.dstOffset				= uint3{ t.dst_offset, 0u };
-			copy.extent					= uint3{ t.copy_dim,   1u };
-			copy.srcSubres.aspectMask	= EImageAspect::Color;
-			copy.dstSubres.aspectMask	= EImageAspect::Color;
-			ctx.CopyImage( t.img_1, t.img_2, {copy} );
+		ReadbackImageDesc	read;
+		read.imageOffset	= ImageDim_t{copy.dstOffset};	// TODO: must be same type
+		read.imageDim		= ImageDim_t{copy.extent};
+		read.heapType		= EStagingHeapType::Static;
+		
+		t.result = ctx.ReadbackImage( t.img_2, read ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<CI1_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK = (view == t->img_view);
+							});
+		
+		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-			ctx.AccumBarriers().ImageBarrier( t.img_2, EResourceState::CopyDst, EResourceState::CopySrc );
-
-			ReadbackImageDesc	read;
-			read.imageOffset	= ImageDim_t{copy.dstOffset};	// TODO: must be same type
-			read.imageDim		= ImageDim_t{copy.extent};
-			read.heapType		= EStagingHeapType::Static;
-
-			t.result = AsyncTask{ ctx.ReadbackImage( t.img_2, read )
-						.Then(	[p = &t] (const ImageMemView &view)
-								{
-									p->isOK = (view == p->img_view);
-								})};
-
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename Ctx>
@@ -124,17 +114,17 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"CopyImage2"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Run< CI1_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"Copy image task"} );
+		AsyncTask	task1	= batch->Run( CI1_CopyImageTask<Ctx>(t), Tuple{}, True{"Last"}, {"Copy image task"} );
 		AsyncTask	end		= rts.EndFrame( Tuple{task1} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
+		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK );
 		return true;

@@ -3,15 +3,13 @@
 #pragma once
 
 #include "graphics_rhi/Public/FeatureSet.h"
-#include "Packer/PackCommon.h"
-
-#ifdef AE_BUILD_PIPELINE_COMPILER
-# include "ScriptObjects/ScriptFeatureSet.h"
-#endif
+#include "res_pack/pipeline_compiler/Packer/PackCommon.h"
 
 namespace AE::PipelineCompiler
 {
 	using namespace AE::Graphics;
+
+	struct ScriptFeatureSet;
 
 
 	//
@@ -36,33 +34,13 @@ namespace AE::PipelineCompiler
 
 		ND_ FeatureSet const&  Get ()	const	{ return _fs; }
 
-		#ifdef AE_BUILD_PIPELINE_COMPILER
 		bool  Create (const ScriptFeatureSet &fs);
-		#endif
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString () const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
 		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
-
-
-#ifdef AE_BUILD_PIPELINE_COMPILER
-
-	//
-	// Feature Set Packer
-	//
-
-	class FeatureSetPacker
-	{
-	// methods
-	public:
-		static bool  Serialize (Serializing::Serializer &ser) __NE___;
-	};
-
-#endif
 
 } // AE::PipelineCompiler

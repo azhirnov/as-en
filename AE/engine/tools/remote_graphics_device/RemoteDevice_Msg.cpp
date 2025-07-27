@@ -1805,15 +1805,22 @@ namespace AE::RemoteGraphics
 		switch_end
 	}
 
-	void  RmGAppListener::RenderTaskImpl::Execute () __Th___
+
+	RmGAppListener::RenderTask2::RenderTask2 (RmGAppListener &rmdev, CommandBatchPtr batch, uint exeIndex) __NE___ :
+		ctx{ *this, rmdev }
+	{
+		Unused( _Coro_::RenderTaskImpl::BatchApi::Init( baseTask, RVRef(batch), CmdBufExeIndex::Exact(exeIndex), Default ));
+	}
+
+	void  RmGAppListener::RenderTask2::Execute () __Th___
 	{
 		switch_enum( ctx.type )
 		{
-			case EContextType::Transfer :		RenderTask::Execute( ctx.transfer );	PlacementDelete( ctx.transfer );	break;
-			case EContextType::Compute :		RenderTask::Execute( ctx.compute );		PlacementDelete( ctx.compute );		break;
-			case EContextType::Graphics :		RenderTask::Execute( ctx.graphics );	PlacementDelete( ctx.graphics );	break;
-			case EContextType::ASBuild :		RenderTask::Execute( ctx.asBuild );		PlacementDelete( ctx.asBuild );		break;
-			case EContextType::RayTracing :		RenderTask::Execute( ctx.rayTracing );	PlacementDelete( ctx.rayTracing );	break;
+			case EContextType::Transfer :		baseTask.Execute( ctx.transfer );		PlacementDelete( ctx.transfer );	break;
+			case EContextType::Compute :		baseTask.Execute( ctx.compute );		PlacementDelete( ctx.compute );		break;
+			case EContextType::Graphics :		baseTask.Execute( ctx.graphics );		PlacementDelete( ctx.graphics );	break;
+			case EContextType::ASBuild :		baseTask.Execute( ctx.asBuild );		PlacementDelete( ctx.asBuild );		break;
+			case EContextType::RayTracing :		baseTask.Execute( ctx.rayTracing );		PlacementDelete( ctx.rayTracing );	break;
 			case EContextType::RenderPass :
 			case EContextType::VideoDecode :
 			case EContextType::VideoEncode :
@@ -1824,9 +1831,16 @@ namespace AE::RemoteGraphics
 		ctx.type = EContextType::Unknown;
 	}
 
-	void  RmGAppListener::DrawTaskImpl::Execute () __Th___
+
+	RmGAppListener::DrawTask2::DrawTask2 (RmGAppListener &rmdev, DrawCommandBatchPtr batch, uint drawIndex) __NE___ :
+		ctx{ *this, rmdev }
 	{
-		DrawTask::Execute( ctx.draw );
+		Unused( _Coro_::DrawTaskImpl::BatchApi::Init( baseTask, RVRef(batch), CmdBufExeIndex::Exact(drawIndex), Default ));
+	}
+
+	void  RmGAppListener::DrawTask2::Execute () __Th___
+	{
+		baseTask.Execute( ctx.draw );
 		PlacementDelete( ctx.draw );
 		ctx.type = EContextType::Unknown;
 	}
@@ -1931,12 +1945,12 @@ namespace AE::RemoteGraphics
 
 	void  RmGAppListener::_Cb_CmdBuf_Bake (const Msg::CmdBuf_Bake &msg)
 	{
-		_CmdBuf_Bake< Msg::CmdBuf_Bake_Response, RmCommandBufferID, RenderTaskImpl >( msg );
+		_CmdBuf_Bake< Msg::CmdBuf_Bake_Response, RmCommandBufferID, RenderTask2 >( msg );
 	}
 
 	void  RmGAppListener::_Cb_CmdBuf_BakeDraw (const Msg::CmdBuf_BakeDraw &msg)
 	{
-		_CmdBuf_Bake< Msg::CmdBuf_BakeDraw_Response, RmDrawCommandBufferID, DrawTaskImpl >( msg );
+		_CmdBuf_Bake< Msg::CmdBuf_BakeDraw_Response, RmDrawCommandBufferID, DrawTask2 >( msg );
 	}
 //-----------------------------------------------------------------------------
 
@@ -1992,12 +2006,14 @@ namespace AE::RemoteGraphics::Msg
 	}
 	//-------------------------------------------------
 
+	
+	using RenderCoroRef = _Coro_::RenderTaskImpl::UserApi;
 
 	void  CmdBuf_Bake::BeginGraphics::Execute (void* inCtx) __Th___
 	{
 		auto&	ctx = *Cast<CmdCtx>(inCtx);
 		ctx.End();
-		PlacementNew<DirectCtx::Graphics>( INOUT &ctx.graphics, *ctx.rtask, RVRef(ctx.cmdbuf), dbgLabel );
+		PlacementNew<DirectCtx::Graphics>( INOUT &ctx.graphics, RenderCoroRef{&ctx.rtask->baseTask}, RVRef(ctx.cmdbuf), dbgLabel );
 		ctx.type = EContextType::Graphics;
 	}
 
@@ -2005,7 +2021,7 @@ namespace AE::RemoteGraphics::Msg
 	{
 		auto&	ctx = *Cast<CmdCtx>(inCtx);
 		ctx.End();
-		PlacementNew<DirectCtx::Compute>( INOUT &ctx.compute, *ctx.rtask, RVRef(ctx.cmdbuf), dbgLabel );
+		PlacementNew<DirectCtx::Compute>( INOUT &ctx.compute, RenderCoroRef{&ctx.rtask->baseTask}, RVRef(ctx.cmdbuf), dbgLabel );
 		ctx.type = EContextType::Compute;
 	}
 
@@ -2013,7 +2029,7 @@ namespace AE::RemoteGraphics::Msg
 	{
 		auto&	ctx = *Cast<CmdCtx>(inCtx);
 		ctx.End();
-		PlacementNew<DirectCtx::Transfer>( INOUT &ctx.transfer, *ctx.rtask, RVRef(ctx.cmdbuf), dbgLabel );
+		PlacementNew<DirectCtx::Transfer>( INOUT &ctx.transfer, RenderCoroRef{&ctx.rtask->baseTask}, RVRef(ctx.cmdbuf), dbgLabel );
 		ctx.type = EContextType::Transfer;
 	}
 
@@ -2021,7 +2037,7 @@ namespace AE::RemoteGraphics::Msg
 	{
 		auto&	ctx = *Cast<CmdCtx>(inCtx);
 		ctx.End();
-		PlacementNew<DirectCtx::ASBuild>( INOUT &ctx.asBuild, *ctx.rtask, RVRef(ctx.cmdbuf), dbgLabel );
+		PlacementNew<DirectCtx::ASBuild>( INOUT &ctx.asBuild, RenderCoroRef{&ctx.rtask->baseTask}, RVRef(ctx.cmdbuf), dbgLabel );
 		ctx.type = EContextType::ASBuild;
 	}
 
@@ -2029,7 +2045,7 @@ namespace AE::RemoteGraphics::Msg
 	{
 		auto&	ctx = *Cast<CmdCtx>(inCtx);
 		ctx.End();
-		PlacementNew<DirectCtx::RayTracing>( INOUT &ctx.rayTracing, *ctx.rtask, RVRef(ctx.cmdbuf), dbgLabel );
+		PlacementNew<DirectCtx::RayTracing>( INOUT &ctx.rayTracing, RenderCoroRef{&ctx.rtask->baseTask}, RVRef(ctx.cmdbuf), dbgLabel );
 		ctx.type = EContextType::RayTracing;
 	}
 

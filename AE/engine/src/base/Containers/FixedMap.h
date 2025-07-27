@@ -113,7 +113,7 @@ namespace AE::Base
 	// variables
 	private:
 		Index_t			_count		= 0;
-		Index_t			_indices [ArraySize];
+		Index_t			_indices [ArraySize] = {};
 		union {
 			key_type	_keyArray  [ArraySize];
 			char		_keyBuffer [sizeof(key_type) * ArraySize];		// don't use this field!
@@ -126,15 +126,15 @@ namespace AE::Base
 
 	// methods
 	public:
-		FixedMap ()														__NE___;
+		__Cx__ FixedMap ()												__NE___;
 		FixedMap (Self &&)												__NE___;
 		FixedMap (const Self &)											__NE___;
 
-		~FixedMap ()													__NE___	{ clear(); }
+		__Cx__ ~FixedMap ()												__NE___	{ clear(); }
 
-		ND_ usize			size ()										C_NE___	{ return _count; }
-		ND_ bool			empty ()									C_NE___	{ return _count == 0; }
-		ND_ bool			IsFull ()									C_NE___	{ return size() >= capacity(); }
+		NdCx__ usize		size ()										C_NE___	{ return _count; }
+		NdCx__ bool			empty ()									C_NE___	{ return _count == 0; }
+		NdCx__ bool			IsFull ()									C_NE___	{ return size() >= capacity(); }
 
 		ND_ iterator		begin ()									__NE___	{ return iterator{ this, 0 }; }
 		ND_ const_iterator	begin ()									C_NE___	{ return const_iterator{ this, 0 }; }
@@ -189,8 +189,8 @@ namespace AE::Base
 		ND_ HashVal			CalcHash ()									C_NE___;
 		ND_ HashVal			CalcKeyHash ()								C_NE___;
 
-			void			clear ()									__NE___;
-			void			reserve (usize)								__NE___	{} // ignore
+		__Cx__ void			clear ()									__NE___;
+		__Cx__ void			reserve (usize)								__NE___	{} // ignore
 
 		// cache friendly access to unsorted data
 
@@ -222,7 +222,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	FixedMap<K,V,S,KS,VS>::FixedMap () __NE___
+	__Cx__ FixedMap<K,V,S,KS,VS>::FixedMap () __NE___
 	{
 		DEBUG_ONLY( DbgInitMem( _indices  ));
 		DEBUG_ONLY( DbgInitMem( _keyArray ));
@@ -657,7 +657,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	void  FixedMap<K,V,S,KS,VS>::clear () __NE___
+	__Cx__ void  FixedMap<K,V,S,KS,VS>::clear () __NE___
 	{
 		KPolicy_t::Destroy( INOUT _keyArray, _count );
 		VPolicy_t::Destroy( INOUT _valArray, _count );

@@ -18,10 +18,9 @@ namespace AE::UI
 		Moving		= 1 << 5,	// layout moving, align to pixels must be disabled
 		Focused		= 1 << 6,	//
 		_Last,
-		_All		= ((_Last - 1) << 1) - 1,
+		All			= ((_Last - 1) << 1) - 1,
 		_Inherited	= Invisible | Disabled | Moving,
 	};
-	AE_BIT_OPERATORS( EStyleState );
 
 
 	enum class EStyleIndex : ubyte
@@ -64,14 +63,13 @@ namespace AE::UI
 		Top			= 1 << 4,
 		CenterY		= 1 << 5,
 		_Last,
-		_All		= ((_Last - 1) << 1) - 1,
+		All			= ((_Last - 1) << 1) - 1,
 
 		FillX		= Left | Right,
 		FillY		= Bottom | Top,
 		Center		= CenterX | CenterY,
 		Fill		= FillX | FillY,
 	};
-	AE_BIT_OPERATORS( ELayoutAlign );
 
 
 	enum class EEdge : ubyte

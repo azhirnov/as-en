@@ -35,7 +35,6 @@ namespace AE::Graphics
 		_PrivateMask		= MaybeUnsupported,
 		All					= ((_Last - 1) << 1) - 1,
 	};
-	AE_BIT_OPERATORS( EDescSetUsage );
 
 
 	enum class EDescriptorType : ubyte

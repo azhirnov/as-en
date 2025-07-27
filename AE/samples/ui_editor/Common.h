@@ -2,15 +2,19 @@
 
 #pragma once
 
-#include "UIEditor.pch.h"
+#include "pch/Platform.h"
+#include "pch/Graphics.h"
+#include "pch/Profiler.h"
+#include "pch/VFS.h"
+#include "pch/Scripting.h"
 
 namespace AE::UIEditor
 {
 	using namespace AE::Graphics;
 	using namespace AE::App;
+	using namespace AE::ImportCoroutines;
 
-	using AE::Threading::AsyncTask;
-	using AE::Threading::CoroTask;
+	ImportBitOperators;
 
 	using ActionQueueReader = IInputActions::ActionQueueReader;
 

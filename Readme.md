@@ -9,14 +9,14 @@
 
 __AsEn__ - is a totally asynchronous engine for desktop and mobile.
 
-Language: minimal C++ 20<br/>
-Platforms: Windows, Android, Linux, MacOS, Emscripten (without graphics)<br/>
+Language: C++ 20<br/>
+Platforms: Windows, Android, Linux, MacOS<br/>
 GraphicsAPI: Vulkan, Metal<br/>
 Shaders: GLSL, MSL<br/>
 Stable version: see [Tags](https://github.com/azhirnov/as-en/tags)<br/>
 
 Key features:
- * Scalable task system with optional C++20 coroutine support.
+ * Scalable task system with stackless coroutines.
  * Multi-threaded command buffer recording.
  * Staging buffer memory manager, per-frame limits for stable FPS.
  * Async file IO on all platforms.
@@ -58,14 +58,9 @@ Tools:
 
 Papers:
  * [HDR Display](AE/docs/papers/HDR_Display.md)
- * [Projection on Sphere (ru)](AE/docs/papers/SphericalCube-ru.md)
- * [Ultra-wide Screen Projection (ru)](AE/docs/papers/ScreenProjections-ru.md)
  * [GPU Benchmarks](AE/docs/papers/GPU_Benchmarks.md)
+ * [CPU Benchmarks](AE/docs/papers/CPU_Benchmarks.md)
 
-Notes:
- * [Async Programming (ru)](AE/docs/papers/AsyncProgramming-ru.md)
- * [Architecture (ru)](AE/docs/papers/ArchitectureNotes-ru.md)
- * [ECS/DOD (ru)](AE/docs/papers/ECSNotes-ru.md)
 
 
 ## rus
@@ -73,7 +68,7 @@ Notes:
 __AsEn__ - полностью асинхронный движок.
 
 Язык: C++ 20<br/>
-Платформы: Windows, Android, Linux, MacOS, Emscripten (без графики)<br/>
+Платформы: Windows, Android, Linux, MacOS<br/>
 Графика: Vulkan, Metal<br/>
 Шейдеры: GLSL, MSL<br/>
 Стабильная версия: [помечена тэгом](https://github.com/azhirnov/as-en/tags)<br/>
@@ -88,12 +83,16 @@ __AsEn__ - полностью асинхронный движок.
  * [HDR дисплеи](AE/docs/papers/HDR_Display-ru.md)
  * [Проекция на сферу](AE/docs/papers/SphericalCube-ru.md)
  * [Проекции на ультра широкий экран](AE/docs/papers/ScreenProjections-ru.md)
+ * [Отсечение невидимой геометриии](AE/docs/papers/GeometryCulling-ru.md)
+ * [Рендеринг облаков](AE/docs/papers/SmokeAndClouds-ru.md)
+ * [Биндлесс](AE/docs/papers/Bindless-ru.md)
 
 Заметки:
  * [Асинхронное программирование](AE/docs/papers/AsyncProgramming-ru.md)
  * [Заметки по архитектуре](AE/docs/papers/ArchitectureNotes-ru.md)
  * [Заметки по программированию графики](AE/docs/papers/GraphicsNotes-ru.md)
  * [Заметки по ECS/DOD](AE/docs/papers/ECSNotes-ru.md)
+ * [Примеры по С++](AE/docs/papers/CPP_Snipets-ru.md)
 
 Обсуждение:
  * [форум gamedev](https://gamedev.ru/flame/forum/?id=277212)

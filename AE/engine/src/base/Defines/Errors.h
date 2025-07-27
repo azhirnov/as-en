@@ -135,75 +135,69 @@
 
 // log info
 #ifndef AE_LOGI
-#	define AE_LOGI( /* msg, file, line */... )										\
-			AE_PRIVATE_LOG_I( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),				\
-							  AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__, ),		\
-							  AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__, ))
+#	define AE_LOGI( /* msg, file, line */... )														\
+			AE_PRIVATE_LOG_I( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),								\
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, std::source_location::current(), ))
 #endif
 
 // log error
 #ifndef AE_LOGE
-#	define AE_LOGE( /* msg, file, line */... )										\
-			AE_PRIVATE_LOG_E( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),				\
-							  AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__, ),		\
-							  AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__, ))
+#	define AE_LOGE( /* msg, file, line */... )														\
+			AE_PRIVATE_LOG_E( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),								\
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, std::source_location::current(), ))
 #endif
 
 // log warning (silent)
 #ifndef AE_LOGW
-#	define AE_LOGW( /* msg, file, line */... )										\
-			AE_PRIVATE_LOG_W( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),				\
-							  AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__, ),		\
-							  AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__, ))
+#	define AE_LOGW( /* msg, file, line */... )														\
+			AE_PRIVATE_LOG_W( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),								\
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, std::source_location::current(), ))
 #endif
 
 
 // check function return value
 #if 1
-#	define CHECK_MSG( _expr_, _text_ )												\
-		{if_likely( bool{_expr_} ) {}												\
-		 else{																		\
-			AE_LOGE( _text_ );														\
+#	define CHECK_MSG( _expr_, _text_ )	\
+		{cold_if_not( _expr_ ){			\
+			AE_LOGE( _text_ );			\
 		}}
 
-#   define CHECK( /*expr*/... )														\
+#   define CHECK( /*expr*/... )\
 		CHECK_MSG( (__VA_ARGS__), AE_TOSTRING( __VA_ARGS__ ))
 #endif
 
 
 // check function return value and return error code
 #if 1
-#	define AE_PRIVATE_CHECK_ERR2( _expr_, _ret_, _text_ )							\
-		{if_likely( bool{_expr_} ) {}												\
-		 else{																		\
-			AE_LOGE( _text_ );														\
-			return (_ret_);															\
+#	define AE_PRIVATE_CHECK_ERR2( _expr_, _ret_, _text_ )	\
+		{cold_if_not( _expr_ ){								\
+			AE_LOGE( _text_ );								\
+			return (_ret_);									\
 		}}
 
-#	define AE_PRIVATE_CHECK_ERR( _expr_, _ret_ )									\
+#	define AE_PRIVATE_CHECK_ERR( _expr_, _ret_ )						\
 		AE_PRIVATE_CHECK_ERR2( _expr_, _ret_, AE_TOSTRING( _expr_ ))
 
-#	define CHECK_ERR( /* expr, return_if_false */... )								\
-		AE_PRIVATE_CHECK_ERR(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),				\
+#	define CHECK_ERR( /* expr, return_if_false */... )					\
+		AE_PRIVATE_CHECK_ERR(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),	\
 								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default, ))
 
-#	define CHECK_ERR_MSG( /* expr, message */... )									\
-		AE_PRIVATE_CHECK_ERR2(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),					\
-								AE::Base::Default,									\
+#	define CHECK_ERR_MSG( /* expr, message */... )						\
+		AE_PRIVATE_CHECK_ERR2(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),	\
+								AE::Base::Default,						\
 								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( AE_PRIVATE_GETARG_0( __VA_ARGS__, )), ))
 
-#	define CHECK_ERRV( /* expr */... )												\
+#	define CHECK_ERRV( /* expr */... )\
 		AE_PRIVATE_CHECK_ERR( (__VA_ARGS__), void() )
 #endif
 
 
 // check function return value and exit
 #if 1
-#	define CHECK_FATAL_MSG( _expr_, _text_ )										\
-		{if_likely( bool{_expr_} ) {}												\
-		 else{																		\
-			AE_LOGE( _text_ );														\
-			AE_PRIVATE_EXIT();														\
+#	define CHECK_FATAL_MSG( _expr_, _text_ )	\
+		{cold_if_not( _expr_ ){					\
+			AE_LOGE( _text_ );					\
+			AE_PRIVATE_EXIT();					\
 		}}
 
 #	define CHECK_FATAL( /* expr, message */... )									\
@@ -214,60 +208,28 @@
 
 // return error code
 #if 1
-#	define AE_PRIVATE_RETURN_ERR( _text_, _ret_ )									\
+#	define AE_PRIVATE_RETURN_ERR( _text_, _ret_ )\
 		{ AE_LOGE( _text_ );  return (_ret_); }
 
 #	define RETURN_ERR( /* msg, return */... )										\
 		AE_PRIVATE_RETURN_ERR(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),				\
 								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default, ))
 
-#	define RETURN_ERRV( _text_ )													\
+#	define RETURN_ERRV( _text_ )\
 		{ AE_LOGE( _text_ );  return; }
-#endif
-
-
-// CHECK_ERR for using inside task
-#if 1
-#	define AE_PRIVATE_CHECK_TASK( _expr_, _text_ )															\
-		{if_likely( bool{_expr_} ) {}																		\
-		 else{																								\
-			AE_LOGE( AE_TOSTRING( _text_ ));																\
-			StaticAssert( AE::Base::IsBaseOfNoQual< AE::Threading::IAsyncTask, decltype(*this) >);			\
-			ASSERT( AE::Base::StringView{"Run"} == AE_FUNCTION_NAME );										\
-			return this->OnFailure(); /* call 'IAsyncTask::OnFailure()' */									\
-		}}
-
-#	define CHECK_TE( /* expr, message */... )																\
-		AE_PRIVATE_CHECK_TASK(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),										\
-								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ ), ))
-#endif
-
-
-// CHECK_ERR for using inside promise
-#if 1
-#	define CHECK_PE( /* expr, return_if_false */... )														\
-		AE_PRIVATE_CHECK_ERR(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),										\
-								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Threading::CancelPromise, ))
-
-#	define CHECK_PE_MSG( /* expr, message */... )															\
-		AE_PRIVATE_CHECK_ERR2(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),										\
-								AE::Threading::CancelPromise,												\
-								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( AE_PRIVATE_GETARG_0( __VA_ARGS__, )), ))
 #endif
 
 
 // same as CHECK_ERR for using inside coroutine
 #if 1
-#	define AE_PRIVATE_CHECK_CORO( _expr_, _text_ )															\
-		{if_likely( bool{_expr_} ) {}																		\
-		 else{																								\
-			AE_LOGE( AE_TOSTRING( _text_ ));																\
-			co_await AE::Threading::_hidden_::AsyncTaskCoro_Error{};	/* call 'IAsyncTask::OnFailure()' */\
-			co_return;	/* exit from coroutine */															\
+#	define AE_PRIVATE_CHECK_CORO( _expr_, _text_ )	\
+		{cold_if_not( _expr_ ){						\
+			AE_LOGE( AE_TOSTRING( _text_ ));		\
+			Coro_Error();							\
 		}}
 
-#	define CHECK_CE( /* expr, message */... )																\
-		AE_PRIVATE_CHECK_CORO(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),										\
+#	define CHECK_CE( /* expr, message */... )													\
+		AE_PRIVATE_CHECK_CORO(	AE_PRIVATE_GETARG_0( __VA_ARGS__, ),							\
 								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ ), ))
 #endif
 
@@ -344,11 +306,10 @@
 
 // check and throw exception
 #ifdef AE_ENABLE_EXCEPTIONS
-#	define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ )													\
-		{if_likely( bool{_expr_} ) {}																	\
-		 else{																							\
-			AE_LOGW( _text_ );																			\
-			throw AE::Exception{ _text_ };																\
+#	define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ )		\
+		{cold_if_not( _expr_ ){								\
+			AE_LOGW( _text_ );								\
+			throw AE::Exception{ _text_ };					\
 		}}
 
 #	define CHECK_THROW_MSG( /* expr, msg */... )														\
@@ -356,11 +317,10 @@
 									AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ ), ))
 
 
-#	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ )												\
-		{if_likely( bool{_expr_} ) {}																	\
-		 else{																							\
-			AE_LOGW( AE_TOSTRING( _expr_ ));															\
-			throw (_exception_);																		\
+#	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ )	\
+		{cold_if_not( _expr_ ){								\
+			AE_LOGW( AE_TOSTRING( _expr_ ));				\
+			throw (_exception_);							\
 		}}
 
 #	define CHECK_THROW( /*expr, exception*/... )														\

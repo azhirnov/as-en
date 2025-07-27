@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "PipelineCompiler.h"
+#include "res_pack/pipeline_compiler/PipelineCompiler.h"
 
-#include "Packer/FeatureSetPack.h"
-#include "Packer/RenderPassPack.h"
-#include "Packer/SamplerPack.h"
-#include "Packer/PipelinePack.h"
+#include "res_pack/pipeline_compiler/Packer/FeatureSetPack.h"
+#include "res_pack/pipeline_compiler/Packer/RenderPassPack.h"
+#include "res_pack/pipeline_compiler/Packer/SamplerPack.h"
+#include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
 
 namespace AE::PipelineCompiler
 {

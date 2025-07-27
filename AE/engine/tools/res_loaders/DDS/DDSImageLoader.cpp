@@ -42,31 +42,14 @@ namespace
 	{
 		CHECK_ERR( imgType != Default );
 
-		const auto&		info	= EPixelFormat_GetInfo( format );
-		usize			pitch	= 0;
+		const auto&		info			= EPixelFormat_GetInfo( format );
+		usize			dds_pitch		= 0;
+		const uint2		texel_block		= info.TexBlockDim();
 
-		if ( All( info.TexBlockDim() == uint2{1} ))
-		{
-			// uncompressed texture
-			if ( AllBits( header.dwFlags, DDSD_PITCH ))
-				pitch = header.dwPitchOrLinearSize;
-			else
-				pitch = (dim.x * info.bitsPerBlock + 7) / 8;
-		}
-		else
-		{
-			// compressed texture
-			if ( AllBits( header.dwFlags, DDSD_LINEARSIZE ))
-				pitch = header.dwPitchOrLinearSize;
-			else
-				pitch = Max( 1u, (dim.x + 3) / 4 ) * (info.bitsPerBlock / 8);
-		}
-
+		if ( AllBits( header.dwFlags, DDSD_PITCH ))
+			dds_pitch = header.dwPitchOrLinearSize;
 
 		IntermImage::Mipmaps_t	image_data;
-		const uint3				block_dim{	(dim.x + info.TexBlockDim().x-1) / info.TexBlockDim().x,
-											(dim.y + info.TexBlockDim().y-1) / info.TexBlockDim().y,
-											dim.z };
 
 		for (uint layer = 0; layer < arrayLayers; ++layer)
 		{
@@ -74,11 +57,13 @@ namespace
 			{
 				IntermImage::Level	image_level;
 				image_level.format		= format;
-				image_level.dimension	= Max( dim >> mm, uint3{1} );
+				image_level.dimension	= Max( dim >> mm, uint3{texel_block, 1} );
 				image_level.mipmap		= MipmapLevel{ uint(mm) };
 				image_level.layer		= ImageLayer{ uint(layer) };
-				image_level.rowPitch	= Bytes{pitch};
-				image_level.slicePitch	= image_level.rowPitch * dim.y;
+				image_level.rowPitch	= ImageUtils::RowSize( image_level.dimension.x, info.bitsPerBlock, texel_block );
+				image_level.slicePitch	= ImageUtils::SliceSize( image_level.dimension.y, image_level.rowPitch, texel_block );
+
+				ASSERT( dds_pitch == 0 or Bytes32u{uint(dds_pitch >> mm)} == image_level.rowPitch );
 
 				CHECK_ERR( image_level.SetPixelData( SharedMem::Create( allocator, image_level.slicePitch * image_level.dimension.z )));
 
@@ -104,6 +89,7 @@ namespace
 			}
 		}
 
+		ASSERT( stream.RemainingSize() == 0 );
 		CHECK_ERR( image.SetData( RVRef(image_data), imgType ));
 		return true;
 	}

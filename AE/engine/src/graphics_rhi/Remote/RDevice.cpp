@@ -8,7 +8,7 @@
 # include "graphics_rhi/Remote/Descriptors/RDescriptorAllocator.h"
 # include "graphics_rhi/Remote/Resources/RPipelinePack.h"
 
-# include "GraphicsLib.h"
+# include "graphics_rhi_shared/GraphicsLib.h"
 
 namespace AE::Graphics
 {
@@ -79,7 +79,7 @@ namespace {
 			auto&	log = RefCast<Msg::Log>( *msg );
 			if ( log.level >= ELogLevel::Error )
 				log.level = ELogLevel::Warning;
-			AE_PRIVATE_LOGX( log.level, log.scope, log.message, log.file, log.line );
+			AE_PRIVATE_LOGX( log.level, log.scope, log.message, SourceLoc( log.file.data(), log.line ));
 		}
 		else
 		{

@@ -173,6 +173,47 @@ namespace
 		TEST( BitEqual( 1.f, 1.00001f, EnabledBitCount(32-a0) ));
 		TEST( not BitEqual( 1.f, 1.00001f, EnabledBitCount(32-a0+1) ));
 	}
+
+
+	static void  EnumBitOperators_Test1 ()
+	{
+		enum class EE1
+		{
+			Unknown = 0,
+			Bit1 = 1 << 1,
+			Bit2 = 1 << 3,
+			_Last,
+			All = ((_Last - 1) << 1) - 1
+		};
+		StaticAssert( AllowEnumBitOps< EE1 >);
+
+		enum class EE2
+		{
+		};
+		StaticAssert( not AllowEnumBitOps< EE2 >);
+	}
+}
+
+namespace AE::Graphics
+{
+	enum class EE5
+	{
+	};
+
+	EE5 operator | (EE5, EE5);
+
+	ImportBitOperators;	// fix compilation error
+
+	enum class EE3
+	{
+		Unknown = 0,
+		Bit1 = 1 << 1,
+		Bit2 = 1 << 3,
+		_Last,
+		_BITOPS_
+	};
+
+	constexpr EE3  EE3_12 = EE3::Bit1 | EE3::Bit2;
 }
 
 
@@ -190,6 +231,7 @@ extern void UnitTest_Math_BitMath ()
 	IntLog10_Test1();
 	ShuffleBitScan_Test1();
 	BitDiff_Test1();
+	EnumBitOperators_Test1();
 
 	TEST_PASSED();
 }

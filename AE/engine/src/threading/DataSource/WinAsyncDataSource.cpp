@@ -16,8 +16,6 @@ namespace AE::Threading
 
 namespace
 {
-	using RWReqPromise_t = AsyncDSRequest::Value_t::Promise_t;
-
 	static constexpr uint	c_CompletionKey = 0xAE0024;
 
 /*
@@ -166,7 +164,7 @@ namespace
 		_memRC = null;
 		_actualSize.store( 0_b );
 
-		ASSERT( AnyEqual( _status.load(), EStatus::Cancelled, EStatus::Completed ));
+		ASSERT( AnyEqual( _status.load(), EStatus::Canceled, EStatus::Completed ));
 		_status.store( EStatus::Destroyed );
 
 		DEBUG_ONLY({
@@ -186,7 +184,7 @@ namespace
 
 		const auto*		ov			= _overlapped.Ptr<OVERLAPPED>();
 		const bool		complete	= HasOverlappedIoCompleted( ov ) and AnyEqual( err, ERROR_SUCCESS, ERROR_HANDLE_EOF );
-		const EStatus	stat		= _status.exchange( complete ? EStatus::Completed : EStatus::Cancelled );
+		const EStatus	stat		= _status.exchange( complete ? EStatus::Completed : EStatus::Canceled );
 
 		ASSERT( complete );
 		ASSERT( stat == EStatus::InProgress );	Unused( stat );
@@ -195,7 +193,7 @@ namespace
 		_SetDependencyCompleteStatus( complete );
 
 		// Ref count was increased in '_Init()' to keep request alive until it is complete.
-		// Cancelled request may be destroyed here, successfully completed request should not be destroyed here!
+		// Canceled request may be destroyed here, successfully completed request should not be destroyed here!
 		{
 			auto*	ptr = this;
 			auto	cnt	= RefCounterUtils::DecRefAndRelease( ptr );
@@ -268,42 +266,17 @@ namespace
 	{
 		ASSERT( IsFinished() );
 
-		Result	res;
-		res.pos			= GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
-		res.dataSize	= _actualSize.load();
-		res.data		= IsCompleted() ? _data : null;
+		Result		res;
+		res.pos		= GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
+		res.status	= _status.load();
+		
+		if ( res.status == EStatus::Completed )
+		{
+			res.dataSize	= _actualSize.load();
+			res.data		= _data;
+			res.rc			= _memRC;
+		}
 		return res;
-	}
-
-/*
-=================================================
-	_GetResult
-=================================================
-*/
-	WindowsIOService::ReadRequest::ResultWithRC  WindowsIOService::ReadRequest::_GetResult () __NE___
-	{
-		ASSERT( IsFinished() );
-
-		ResultWithRC	res;
-		res.pos			= GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
-		res.dataSize	= _actualSize.load();
-		res.data		= IsCompleted() ? _data : null;
-		res.rc			= _memRC;
-		return res;
-	}
-
-/*
-=================================================
-	AsPromise
-=================================================
-*/
-	RWReqPromise_t  WindowsIOService::ReadRequest::AsPromise (ETaskQueue queueType) __NE___
-	{
-		auto	result = MakeDelayedPromise( [self = GetRC<ReadRequest>()] () { return self->_GetResult(); }, "AsyncReadRequest", queueType );
-		if_likely( Scheduler().Run( AsyncTask{result}, Tuple{GetRC()} ))
-			return result;
-		else
-			return Default;
 	}
 
 /*
@@ -388,37 +361,8 @@ namespace
 		Result	res;
 		res.pos			= GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
 		res.dataSize	= _actualSize.load();
-		res.data		= null;
+		res.status		= _status.load();
 		return res;
-	}
-
-/*
-=================================================
-	_GetResult
-=================================================
-*/
-	WindowsIOService::WriteRequest::ResultWithRC  WindowsIOService::WriteRequest::_GetResult () __NE___
-	{
-		ASSERT( IsFinished() );
-
-		ResultWithRC	res;
-		res.pos			= GetOverlappedOffset( _overlapped.Ref<OVERLAPPED>() );
-		res.dataSize	= _actualSize.load();
-		return res;
-	}
-
-/*
-=================================================
-	AsPromise
-=================================================
-*/
-	RWReqPromise_t  WindowsIOService::WriteRequest::AsPromise (ETaskQueue queueType) __NE___
-	{
-		auto	result = MakeDelayedPromise( [self = GetRC<WriteRequest>()] () { return self->_GetResult(); }, "AsyncWriteRequest", queueType );
-		if_likely( Scheduler().Run( AsyncTask{result}, Tuple{GetRC()} ))
-			return result;
-		else
-			return Default;
 	}
 
 /*
@@ -524,7 +468,7 @@ namespace
 		AsyncDSRequest	req;
 		if_likely( WindowsIOService::AsyncRDataSourceApi::CreateResult( OUT req, GetRC<WinAsyncRDataSource>(), pos, data, dataSize, RVRef(mem) ));
 		else
-			req = AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			req = TaskScheduler::GetCanceledDSRequest();
 		return req;
 	}
 
@@ -638,7 +582,7 @@ namespace
 		AsyncDSRequest	req;
 		if_likely( WindowsIOService::AsyncWDataSourceApi::CreateResult( OUT req, GetRC<WinAsyncWDataSource>(), pos, data, dataSize, RVRef(mem) ));
 		else
-			req = AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			req = TaskScheduler::GetCanceledDSRequest();
 		return req;
 	}
 

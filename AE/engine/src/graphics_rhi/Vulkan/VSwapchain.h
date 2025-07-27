@@ -172,7 +172,7 @@ namespace AE::Graphics
 
 	private:
 		ND_ bool  _Create (const VSwapchainDesc& desc, StringView dbgName)													__NE___;
-		ND_ bool  _CreateColorAttachment (VResourceManager &resMngr, const VkSwapchainCreateInfoKHR &, EImageOpt options)	__NE___;
+		ND_ bool  _CreateColorAttachment (ResourceManager &resMngr, const VkSwapchainCreateInfoKHR &, EImageOpt options)	__NE___;
 			void  _PrintInfo (const VkSwapchainCreateInfoKHR &)																C_NE___;
 
 		ND_ bool  _ChooseColorFormat (INOUT VkFormat &colorFormat, INOUT VkColorSpaceKHR &colorSpace)						C_NE___;

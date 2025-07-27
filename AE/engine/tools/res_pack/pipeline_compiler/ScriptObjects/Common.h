@@ -2,9 +2,31 @@
 
 #pragma once
 
-#include "PipelineCompiler.pch.h"
-#include "Packer/PipelinePack.h"
-#include "Compiler/IShaderPreprocessor.h"
+#include "pch/Serializing.h"
+#include "pch/Scripting.h"
+
+#include "graphics_rhi/Public/FeatureSet.h"
+#include "graphics_rhi/Public/ResourceEnums.h"
+#include "graphics_rhi/Public/SamplerDesc.h"
+#include "graphics_rhi/Public/PipelineDesc.h"
+#include "graphics_rhi/Public/RenderPassDesc.h"
+#include "graphics_rhi/Public/IDs.h"
+#include "graphics_rhi/Public/EResourceState.h"
+#include "graphics_rhi/Public/ShaderEnums.h"
+#include "graphics_rhi/Public/RenderStateEnums.h"
+#include "graphics_rhi/Public/VertexEnums.h"
+#include "graphics_rhi/Public/DescriptorSet.h"
+
+#include "graphics_rhi/Private/EnumUtils.h"
+#include "graphics_rhi/Private/EnumToString.h"
+#include "graphics_rhi/Private/PixelFormatDefines.h"
+
+#include "graphics_rhi/Scripting/GraphicsBindings.h"
+
+#include "res_pack/pipeline_compiler/PipelineCompiler.h"
+
+#include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
+#include "res_pack/pipeline_compiler/Compiler/IShaderPreprocessor.h"
 
 namespace AE::PipelineCompiler
 {
@@ -115,8 +137,8 @@ namespace AE::PipelineCompiler
 		_Metal_Mac_Last	= Metal_Mac_3_2,
 
 		Unknown			= 0,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EShaderVersion );
 
 
 	ND_ inline Version2  EShaderVersion_Ver2 (EShaderVersion value)
@@ -151,7 +173,6 @@ namespace AE::PipelineCompiler
 		All					= ((_Last - 1) << 1) - 1,
 		Unknown				= 0,
 	};
-	AE_BIT_OPERATORS( EShaderOpt );
 
 
 	//

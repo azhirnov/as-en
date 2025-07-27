@@ -13,10 +13,10 @@ namespace AE::Graphics
 	constructor
 =================================================
 */
-	RTransferContext::RTransferContext (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+	RTransferContext::RTransferContext (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
 		RBaseContext{ task, RVRef(cmdbuf), dbg, ECtxType::Transfer }
 	{
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 	}
 
 /*
@@ -412,7 +412,7 @@ namespace AE::Graphics
 	ReadHostBuffer
 =================================================
 */
-	Promise<ArrayView<ubyte>>  RTransferContext::ReadHostBuffer (BufferID bufferId, Bytes offset, Bytes size) __Th___
+	ITransferContext::ReadHostBufferResult  RTransferContext::ReadHostBuffer (BufferID bufferId, Bytes offset, Bytes size) __Th___
 	{
 		auto&	buf = _GetResourcesOrThrow( bufferId );
 		CHECK_ERR( buf.IsMapped() );
@@ -427,12 +427,14 @@ namespace AE::Graphics
 		_cmdbuf->AddCommand( cmd );
 
 		ArrayView<ubyte>	mem_view = ArrayView<ubyte>{ Cast<ubyte>(ptr + offset), usize(size) };
-
-		return Threading::MakePromiseFromValue(	mem_view,
-												Tuple{ this->_mngr.GetBatchRC() },
-												"RTransferContext::ReadHostBuffer",
-												ETaskQueue::PerFrame
-											   );
+		
+		return	ReadHostBufferResult{
+					Scheduler().Run(
+						ETaskQueue::PerFrame,
+						DeferResult< ArrayView<ubyte> >( mem_view ),
+						Tuple{ this->_mngr.GetBatchRC() },
+						"RTransferContext::ReadHostBuffer"
+					)};
 	}
 
 

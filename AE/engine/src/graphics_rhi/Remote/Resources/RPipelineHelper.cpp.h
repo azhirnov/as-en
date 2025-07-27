@@ -8,7 +8,7 @@
 # ifdef AE_ENABLE_GLSL_TRACE
 #	include "ShaderTrace.h"
 # else
-#	include "Packer/ShaderTraceDummy.h"
+#	include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 # endif
 
 namespace AE::Graphics

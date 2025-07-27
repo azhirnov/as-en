@@ -51,8 +51,8 @@ namespace AE::Graphics
 		RGraphicsPipeline ()											__NE___	{}
 		~RGraphicsPipeline ()											__NE___;
 
-		ND_ bool  Create (RResourceManager &, const CreateInfo &ci)		__NE___;
-			void  Destroy (RResourceManager &)							__NE___;
+		ND_ bool  Create (ResourceManager &, const CreateInfo &ci)		__NE___;
+			void  Destroy (ResourceManager &)							__NE___;
 
 		ND_ uint  GetVertexBufferIndex (VertexBufferName::Ref name)		C_NE___;
 

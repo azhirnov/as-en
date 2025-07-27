@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ComputePipeline.h"
-#include "ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ComputePipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
 
 namespace AE::PipelineCompiler
 {

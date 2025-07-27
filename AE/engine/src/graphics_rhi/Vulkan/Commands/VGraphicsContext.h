@@ -30,11 +30,11 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VDirectGraphicsCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)			__Th___	: VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Graphics } {}
+		_VDirectGraphicsCtx (RenderCoroRef task, VCommandBuffer cmdbuf, DebugLabel dbg)				__Th___	: VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Graphics } {}
 
-		ND_ RC<VDrawCommandBatch>  _BeginFirstAsyncPass (const VPrimaryCmdBufState &,
-														 const RenderPassDesc &, DebugLabel)		__Th___;
-		ND_ RC<VDrawCommandBatch>  _BeginNextAsyncPass (const VDrawCommandBatch &, DebugLabel)		__Th___;
+		ND_ RC<DrawCommandBatch>  _BeginFirstAsyncPass (const VPrimaryCmdBufState &,
+														const RenderPassDesc &, DebugLabel)			__Th___;
+		ND_ RC<DrawCommandBatch>  _BeginNextAsyncPass (const DrawCommandBatch &, DebugLabel)		__Th___;
 
 		ND_ bool  _BeginRenderPass (const RenderPassDesc &desc, const VPrimaryCmdBufState &state,
 									VkSubpassContents content, DebugLabel)							__Th___;
@@ -66,11 +66,11 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VIndirectGraphicsCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)	__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Graphics } {}
+		_VIndirectGraphicsCtx (RenderCoroRef task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)		__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Graphics } {}
 
-		ND_ RC<VDrawCommandBatch>  _BeginFirstAsyncPass (const VPrimaryCmdBufState &,
-														 const RenderPassDesc &, DebugLabel)		__Th___;
-		ND_ RC<VDrawCommandBatch>  _BeginNextAsyncPass (const VDrawCommandBatch &, DebugLabel)		__Th___;
+		ND_ RC<DrawCommandBatch>  _BeginFirstAsyncPass (const VPrimaryCmdBufState &,
+														const RenderPassDesc &, DebugLabel)			__Th___;
+		ND_ RC<DrawCommandBatch>  _BeginNextAsyncPass (const DrawCommandBatch &, DebugLabel)		__Th___;
 
 		ND_ bool  _BeginRenderPass (const RenderPassDesc &, const VPrimaryCmdBufState &,
 									VkSubpassContents, DebugLabel)									__Th___;
@@ -95,6 +95,7 @@ namespace AE::Graphics::_hidden_
 	public:
 		using DrawCtx		= typename CtxImpl::_DrawCtx;
 		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
+		using RenderCoroRef	= typename CtxImpl::RenderCoroRef;
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumBarriers< _VGraphicsContextImpl< CtxImpl >>;
@@ -111,10 +112,10 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___;
+		explicit _VGraphicsContextImpl (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
 
 		// continue render pass
-		_VGraphicsContextImpl (const RenderTask &, const VDrawCommandBatch &, CmdBuf_t)										__Th___;
+		_VGraphicsContextImpl (RenderCoroRef, const DrawCommandBatch &, CmdBuf_t)											__Th___;
 
 		_VGraphicsContextImpl ()																							= delete;
 		_VGraphicsContextImpl (const _VGraphicsContextImpl &)																= delete;
@@ -133,17 +134,17 @@ namespace AE::Graphics::_hidden_
 
 
 		// asynchronous rendering api
-		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default, void* userData = null)			__Th___ -> RC<VDrawCommandBatch>;
-		ND_ auto	NextMtSubpass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg = Default, void* userData = null)	__Th___ -> RC<VDrawCommandBatch>;
+		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default, void* userData = null)			__Th___ -> RC<DrawCommandBatch>;
+		ND_ auto	NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg = Default, void* userData = null)	__Th___ -> RC<DrawCommandBatch>;
 			void	EndMtRenderPass ()																						__Th___;
-			void	ExecuteSecondary (VDrawCommandBatch &batch)																__Th___;
+			void	ExecuteSecondary (DrawCommandBatch &batch)																__Th___;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
 
 
 	void  ConvertViewports (ArrayView<Viewport> inViewports, ArrayView<RectI> inScissors, const int2 &areaSize,
-							OUT VDrawCommandBatch::Viewports_t &outViewports, OUT VDrawCommandBatch::Scissors_t &outScissors) __NE___;
+							OUT DrawCommandBatch::Viewports_t &outViewports, OUT DrawCommandBatch::Scissors_t &outScissors) __NE___;
 
 } // AE::Graphics::_hidden_
 //-----------------------------------------------------------------------------
@@ -216,20 +217,20 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VGraphicsContextImpl<C>::_VGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+	_VGraphicsContextImpl<C>::_VGraphicsContextImpl (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) :
 		RawCtx{ task, RVRef(cmdbuf), dbg }  // throw
 	{
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 		ZeroMem( _finalStates );
 	}
 
 	template <typename C>
-	_VGraphicsContextImpl<C>::_VGraphicsContextImpl (const RenderTask &task, const VDrawCommandBatch &batch, CmdBuf_t cmdbuf) :
+	_VGraphicsContextImpl<C>::_VGraphicsContextImpl (RenderCoroRef task, const DrawCommandBatch &batch, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf), Default },  // throw
 		_primaryState{ batch.GetPrimaryCtxState() }
 	{
 		GCTX_CHECK( IsInsideRenderPass() );
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 		ZeroMem( _finalStates );
 	}
 
@@ -331,7 +332,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	auto  _VGraphicsContextImpl<C>::BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg, void* userData) -> RC<VDrawCommandBatch>
+	auto  _VGraphicsContextImpl<C>::BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg, void* userData) -> RC<DrawCommandBatch>
 	{
 		ASSERT( this->_NoPendingBarriers() );
 
@@ -358,7 +359,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	auto  _VGraphicsContextImpl<C>::NextMtSubpass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg, void* userData) -> RC<VDrawCommandBatch>
+	auto  _VGraphicsContextImpl<C>::NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg, void* userData) -> RC<DrawCommandBatch>
 	{
 		ASSERT( this->_NoPendingBarriers() );
 		GCTX_CHECK( _primaryState.IsValid() );
@@ -405,7 +406,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VGraphicsContextImpl<C>::ExecuteSecondary (VDrawCommandBatch &batch)
+	void  _VGraphicsContextImpl<C>::ExecuteSecondary (DrawCommandBatch &batch)
 	{
 		ASSERT( this->_NoPendingBarriers() );
 		GCTX_CHECK( IsInsideRenderPass() );

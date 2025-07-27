@@ -1,16 +1,16 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
 
-#include "Packer/FeatureSetPack.h"
-#include "Packer/RenderPassPack.h"
-#include "Packer/SamplerPack.h"
-#include "Packer/PipelinePack.h"
+#include "res_pack/pipeline_compiler/Packer/FeatureSetPacker.h"
+#include "res_pack/pipeline_compiler/Packer/RenderPassPacker.h"
+#include "res_pack/pipeline_compiler/Packer/SamplerPacker.h"
+#include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
 #else
-# include "Packer/ShaderTraceDummy.h"
+# include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 #endif
 
 namespace AE::PipelineCompiler
@@ -774,7 +774,7 @@ namespace AE::PipelineCompiler
 		ScriptEngine::ModuleSource	src;
 		src.name			= ToString( path.stem() );
 		src.script			= source;
-		src.dbgLocation		= SourceLoc{ ansi_path, 0 };
+		src.dbgLocation		= SourceLoc{ ansi_path.c_str(), 0 };
 		src.usePreprocessor	= true;
 
 		Array<Path>		tmp_include;

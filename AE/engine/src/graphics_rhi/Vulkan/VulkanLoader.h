@@ -23,7 +23,7 @@
 #	include <vulkan/vulkan.h>
 # endif
 
-# include "graphics_rhi/GraphicsRHI.pch.h"
+# include "graphics_rhi/Public/Common.h"
 
 namespace AE::Graphics
 {

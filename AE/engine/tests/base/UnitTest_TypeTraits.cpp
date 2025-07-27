@@ -12,7 +12,10 @@ namespace
 	StaticAssert( sizeof(CharUtf8)	 == 1 );
 	StaticAssert( sizeof(CharUtf16)	 == 2 );
 	StaticAssert( sizeof(CharUtf32)	 == 4 );
-	//StaticAssert( sizeof(wchar_t)	 == 2 );
+
+	#ifdef AE_PLATFORM_WINDOWS
+	StaticAssert( sizeof(wchar_t) == 2 );
+	#endif
 
 	StaticAssert( sizeof(char)  == 1 );			StaticAssert( IsInteger<         char >);
 	StaticAssert( sizeof(sbyte) == 1 );			StaticAssert( IsSignedInteger<   sbyte >);
@@ -321,6 +324,105 @@ namespace
 	}
 
 
+	static void  Test_IsPointer ()
+	{
+		class Class {};
+
+		StaticAssert(     IsPointer< int* >);
+		StaticAssert(     IsPointer< int const* >);
+		StaticAssert(     IsPointer< int const* const >);
+		StaticAssert( not IsPointer< int >);
+		StaticAssert( not IsPointer< int* &>);
+		StaticAssert( not IsPointer< int* const& >);
+		StaticAssert( not IsPointer< int (*) (int) >);
+		StaticAssert( not IsPointer< int (Class::*) (int) >);
+		StaticAssert( not IsPointer< int (Class::*) (int) const >);
+		StaticAssert( not IsPointer< int (Class::*) >);
+		
+		StaticAssert(     IsAnyPointer< int* >);
+		StaticAssert(     IsAnyPointer< int const* >);
+		StaticAssert(     IsAnyPointer< int const* const >);
+		StaticAssert( not IsAnyPointer< int >);
+		StaticAssert( not IsAnyPointer< int* &>);
+		StaticAssert( not IsAnyPointer< int* const& >);
+		StaticAssert(     IsAnyPointer< int (*) (int) >);
+		StaticAssert(     IsAnyPointer< int (Class::*) (int) >);
+		StaticAssert(     IsAnyPointer< int (Class::*) (int) const >);
+		StaticAssert(     IsAnyPointer< int (Class::*) >);
+		
+		StaticAssert( not IsFunctionPointer< int* >);
+		StaticAssert( not IsFunctionPointer< int const* >);
+		StaticAssert( not IsFunctionPointer< int const* const >);
+		StaticAssert( not IsFunctionPointer< int >);
+		StaticAssert( not IsFunctionPointer< int* &>);
+		StaticAssert( not IsFunctionPointer< int* const& >);
+		StaticAssert(     IsFunctionPointer< int (*) (int) >);
+		StaticAssert( not IsFunctionPointer< int (Class::*) (int) >);
+		StaticAssert( not IsFunctionPointer< int (Class::*) (int) const >);
+		StaticAssert( not IsFunctionPointer< int (Class::*) >);
+		
+		StaticAssert( not IsMemberPointer< int* >);
+		StaticAssert( not IsMemberPointer< int const* >);
+		StaticAssert( not IsMemberPointer< int const* const >);
+		StaticAssert( not IsMemberPointer< int >);
+		StaticAssert( not IsMemberPointer< int* &>);
+		StaticAssert( not IsMemberPointer< int* const& >);
+		StaticAssert( not IsMemberPointer< int (*) (int) >);
+		StaticAssert(     IsMemberPointer< int (Class::*) (int) >);
+		StaticAssert(     IsMemberPointer< int (Class::*) (int) const >);
+		StaticAssert(     IsMemberPointer< int (Class::*) >);
+
+		StaticAssert( not IsMemberObjectPointer< int* >);
+		StaticAssert( not IsMemberObjectPointer< int const* >);
+		StaticAssert( not IsMemberObjectPointer< int const* const >);
+		StaticAssert( not IsMemberObjectPointer< int >);
+		StaticAssert( not IsMemberObjectPointer< int* &>);
+		StaticAssert( not IsMemberObjectPointer< int* const& >);
+		StaticAssert( not IsMemberObjectPointer< int (*) (int) >);
+		StaticAssert( not IsMemberObjectPointer< int (Class::*) (int) >);
+		StaticAssert( not IsMemberObjectPointer< int (Class::*) (int) const >);
+		StaticAssert(     IsMemberObjectPointer< int (Class::*) >);
+		
+		StaticAssert( not IsMemberFunctionPointer< int* >);
+		StaticAssert( not IsMemberFunctionPointer< int const* >);
+		StaticAssert( not IsMemberFunctionPointer< int const* const >);
+		StaticAssert( not IsMemberFunctionPointer< int >);
+		StaticAssert( not IsMemberFunctionPointer< int* &>);
+		StaticAssert( not IsMemberFunctionPointer< int* const& >);
+		StaticAssert( not IsMemberFunctionPointer< int (*) (int) >);
+		StaticAssert(     IsMemberFunctionPointer< int (Class::*) (int) >);
+		StaticAssert(     IsMemberFunctionPointer< int (Class::*) (int) const >);
+		StaticAssert( not IsMemberFunctionPointer< int (Class::*) >);
+	}
+	//-----------------------------------------------------
+
+
+	AE_FLATTEN_FN void Test_Attributes_InlineFn ()
+	{}
+
+	static bool  g_Var1_NoSideEffects = true;
+
+	AE_NOSIDEEFFECTS bool  NoSideEffects_Test1 (int in)
+	{
+		return in == 0 and g_Var1_NoSideEffects;
+	}
+	
+	AE_NOSIDEEFFECTS bool  NoSideEffects_Test2 (int in)
+	{
+		if ( in == 1 )
+			g_Var1_NoSideEffects ^= false;
+
+		return in == 0 and g_Var1_NoSideEffects;
+	}
+
+	AE_NOSIDEEFFECTS bool  NoSideEffects_Test3 (int* in)
+	{
+		if ( *in == 1 )
+			g_Var1_NoSideEffects ^= false;
+
+		return *in == 0 and g_Var1_NoSideEffects;
+	}
+
 	static void  Test_Attributes ()
 	{
 		AE_INLINE_ALL	Unused( TupleConcat( Tuple{ 1u, 2.2f }, Tuple{ 0.9, -10, "aa"s }, Tuple{ 9ull }));
@@ -335,11 +437,20 @@ namespace
 			auto	t = TupleConcat( Tuple{ 1u, 2.2f }, Tuple{ 0.9, -10, "aa"s }, Tuple{ 9ull });
 			Unused( t.Get<0>() );
 		}
+
+		Test_Attributes_InlineFn();
+
+		Unused( NoSideEffects_Test1( 0 ));
+		Unused( NoSideEffects_Test2( 1 ));
+
+		int i = 0;
+		Unused( NoSideEffects_Test3( &i ));
 	}
+	//-----------------------------------------------------
 
 
 	template <typename T>
-	ND_ int  Test_Requires_1 (T &&fn)
+	ND_ int  Test_Requires1 (T &&fn)
 	{
 		constexpr bool	has_operatorBool = requires(const T& t) { t.operator bool(); };
 
@@ -351,12 +462,115 @@ namespace
 
 		return fn();
 	}
+	
 
-	static void  Test_Requires ()
+	template <typename T1, typename T2>
+	concept Test_RequiresAdd = requires(T1 a, T2 b)
 	{
-		TEST_Eq( Test_Requires_1( [](){ return 1; }), 1 );
-		TEST_Eq( Test_Requires_1( std::function<int()>{} ), -1 );
+		{a + b} -> SameAs<T1>;
+	};
+
+	template <typename T>
+	concept Test_HasIntMember1 = requires(T obj)
+	{
+		{ obj.m } -> SameAs<int>;
+	};
+
+	template <typename T>
+	concept Test_HasIntMember2 = requires(T obj)
+	{
+		{ obj.m } -> SameAs<int &>;
+	};
+
+#ifdef __cpp_auto_cast
+	template <typename T>
+	concept Test_HasIntMember3 = requires(T obj)
+	{
+		{auto{ obj.m }} -> SameAs<int>;
+	};
+#endif
+
+	template <typename T>
+	concept Test_HasIntMember4 = requires(T obj)
+	{
+		{ &obj.m } -> SameAs<int *>;
+	};
+	
+	template <typename T>
+	concept Test_HasIntMember5 = requires
+	{
+		{ &T::m } -> SameAs< int T::* >;
+	};
+
+
+	static void  Test_Concepts1 ()
+	{
+		TEST_Eq( Test_Requires1( [](){ return 1; }), 1 );
+		TEST_Eq( Test_Requires1( std::function<int()>{} ), -1 );
+
+		StaticAssert( Test_RequiresAdd< int, int >);
+		StaticAssert( Test_RequiresAdd< uint, int >);
+		StaticAssert( Test_RequiresAdd< int, short >);
+		StaticAssert( not Test_RequiresAdd< int, uint >);
+
+		struct ClassA {
+			int			m;
+		};
+		struct ClassB {
+			const int	m;
+		};
+		struct ClassC {
+			int&		m;
+		};
+
+		StaticAssert( not Test_HasIntMember1< ClassA >);
+		StaticAssert( Test_HasIntMember2< ClassA >);
+		#ifdef __cpp_auto_cast
+			StaticAssert( Test_HasIntMember3< ClassA >);
+		#endif
+		StaticAssert( Test_HasIntMember4< ClassA >);
+		StaticAssert( Test_HasIntMember5< ClassA >);
+			
+		StaticAssert( not Test_HasIntMember1< ClassB >);
+		StaticAssert( not Test_HasIntMember2< ClassB >); // const int&
+		#ifdef __cpp_auto_cast
+			StaticAssert( Test_HasIntMember3< ClassB >);
+		#endif
+		StaticAssert( not Test_HasIntMember4< ClassB >); // const int*
+		StaticAssert( not Test_HasIntMember5< ClassB >);
+			
+		StaticAssert( not Test_HasIntMember1< ClassC >);
+		StaticAssert( Test_HasIntMember2< ClassC >);
+		#ifdef __cpp_auto_cast
+			StaticAssert( Test_HasIntMember3< ClassC >);
+		#endif
+		StaticAssert( Test_HasIntMember4< ClassC >);
+		StaticAssert( not Test_HasIntMember5< ClassC >);
 	}
+
+#if 1
+	template <typename T>
+	constexpr bool  Test_RequiresInIfConstexpr ()
+	{
+		static_assert( requires{ typename T::type; });
+
+		if constexpr( requires{ typename T::type; })
+		{
+			Unused( typename T::type{1} );
+			return true;
+		}else
+			return false;
+	}
+
+	static void  Test_Concepts2 ()
+	{
+		struct TypeWithType {
+			using type = int;
+		};
+		StaticAssert( Test_RequiresInIfConstexpr<TypeWithType>() );
+	}
+#endif
+	//-----------------------------------------------------
 
 	
 	ND_ static constexpr bool  CxFunction (uint value) __NE___
@@ -385,6 +599,9 @@ namespace
 		const bool	b = fn( *tmp2 );
 		TEST( b );
 
+		StaticAssert( IsConstExpr( Unused(CxFunction( 1 )); ));
+		StaticAssert( not IsConstExpr( Unused(CxFunction( 3 )) ));
+
 		#if 0
 			constexpr bool	c = CxFunction( 3 );	// must be compile-time error
 		#endif
@@ -394,6 +611,7 @@ namespace
 			TEST( not d );
 		#endif
 	}
+	//-----------------------------------------------------
 
 
 	constexpr int  ConstInitFunc1 (bool b)
@@ -411,7 +629,186 @@ namespace
 	static constinit int	s_ConstInit3 = ConstInitFunc1( true );
 //	static constinit int	s_ConstInit4 = ConstInitFunc2( true );				// error
 //	static constinit int	s_ConstInit5 = ConstInitFunc1( s_ConstInit3 == 0 );	// error
+	//-----------------------------------------------------
+
+
+	struct Test_ResultOf_Class
+	{
+		int		Get1 ();
+		auto	Get2 ();
+	};
+
+	auto  Test_ResultOf_Class::Get2 () { return 1.f; }
+
+	static void  Test_ResultOf ()
+	{
+		using A = std::invoke_result_t< decltype(&Test_ResultOf_Class::Get1), Test_ResultOf_Class >;
+		using B = std::invoke_result_t< decltype(&Test_ResultOf_Class::Get2), Test_ResultOf_Class >;
+		StaticAssert( IsSame< A, int >);
+		StaticAssert( IsSame< B, float >);
+
+	}
 }
+//-----------------------------------------------------
+
+	struct StructBind
+	{
+		template <usize I>
+		auto  get () C_NE___
+		{
+			if constexpr( I == 0 )	return int(1);			else
+			if constexpr( I == 1 )	return String{"1234"};	else
+			if constexpr( I == 2 )	return 2.0f;
+		}
+	};
+
+	template <>
+	struct std::tuple_size< StructBind >
+	{
+		static constexpr usize	value = 3;
+	};
+
+	template <usize I>
+	struct std::tuple_element< I, StructBind >
+	{
+		using type = std::invoke_result_t< decltype(&StructBind::get<I>), StructBind >;
+	};
+
+namespace
+{
+	static void  Test_StructuredBinding ()
+	{
+		auto [a, b, c] = StructBind{};
+		TEST( a == 1 );
+		TEST( b == "1234" );
+		TEST( c == 2.0f );
+	}
+
+
+	static void  Test_Lambda ()
+	{
+		struct EmptyClass1 {};
+		struct EmptyClass2 { void operator () (int); };
+		struct NotEmptyClass { char c; };
+
+		StaticAssert( IsEmpty< EmptyClass1 >);
+		StaticAssert( IsEmpty< EmptyClass2 >);
+		StaticAssert( not IsEmpty< NotEmptyClass >);
+
+		const auto	Lambda1 = [] (int) {};
+		const auto	Lambda2 = [j = 0u] (int) { Unused(j); };
+		
+		StaticAssert( IsEmpty< decltype(Lambda1) >);
+		StaticAssert( not IsEmpty< decltype(Lambda2) >);
+
+		StaticAssert( IsClass< decltype(Lambda1) >);
+		StaticAssert( IsClass< decltype(Lambda2) >);
+	}
+
+
+	template <typename T0> struct Tmpl1;
+	template <typename T0, typename T1> struct Tmpl2;
+	template <typename T0, typename T1, typename T2> struct Tmpl3;
+	
+	static void  Test_GetNumberOfTemplateArgs ()
+	{
+		StaticAssert( GetNumberOfTemplateArgs< Tmpl1 >() == 1 );
+		StaticAssert( GetNumberOfTemplateArgs< Tmpl2 >() == 2 );
+		StaticAssert( GetNumberOfTemplateArgs< Tmpl3 >() == 3 );
+	}
+
+
+	template <typename ExpectedType>
+	struct Test_ReferenceCollapsing_St
+	{
+		template <typename T>
+		static void  Test (T&& arg)
+		{
+			using R = decltype( FwdArg<T>(arg) );
+			StaticAssert( IsSame< R, ExpectedType >);
+
+			using E = ReferenceCollapsing<T&&>;
+			StaticAssert( IsSame< R, E >);
+		}
+
+		template <typename ...Args>
+		static void  Test2 (Args&& ...args)
+		{
+			using E = TypeList< ReferenceCollapsing<Args&&> ... >;
+			StaticAssert( IsSame< E, ExpectedType >);
+
+			Unused( args... );
+		}
+	};
+
+	static void  Test_ReferenceCollapsing ()
+	{
+		int	value = 0;
+		const int c_value = 0;
+		int& ref = value;
+		const int& c_ref = c_value;
+
+		Test_ReferenceCollapsing_St< int& >::Test( value );
+		Test_ReferenceCollapsing_St< const int& >::Test( c_value );
+		Test_ReferenceCollapsing_St< int& >::Test( ref );
+		Test_ReferenceCollapsing_St< const int& >::Test( c_ref );
+		Test_ReferenceCollapsing_St< int&& >::Test( RVRef(value) );
+
+		Test_ReferenceCollapsing_St< TypeList< int&, const int&, int&, const int&, int&& >>::Test2( value, c_value, ref, c_ref, RVRef(value) );
+	}
+
+
+	static void  Test_CheckTemplateArgs ()
+	{
+		{
+			const auto	Lambda1 = [](auto, auto) {};
+
+			StaticAssert( IsCallOperatorSpecializationWith< decltype(Lambda1), TypeList<int, int>, TypeList<float, float> >);
+			StaticAssert( not IsCallOperatorSpecializationWith< decltype(Lambda1), TypeList<int>, TypeList<float, float> >);
+			StaticAssert( not IsCallOperatorSpecializationWith< decltype(Lambda1), TypeList<int, int>, TypeList<float, float, float> >);
+		}{
+			const auto	Lambda1 = [](auto, auto) {};
+			const auto	Lambda2 = [](const auto&, const auto&) {};
+			const auto	Lambda3 = [](auto&, auto&) {};
+			const auto	Lambda4 = [](auto&&, auto&&) {};
+			const auto	Lambda5 = [](const auto, const auto) {};
+			const auto	Lambda6 = [](auto, auto, auto) {};
+
+			// IsTemplateArgConstRef
+			StaticAssert(	not	IsTemplateArgConstRef< decltype(Lambda1), 2 >);
+			StaticAssert(		IsTemplateArgConstRef< decltype(Lambda2), 2 >);
+			StaticAssert(	not	IsTemplateArgConstRef< decltype(Lambda3), 2 >);
+			StaticAssert(	not	IsTemplateArgConstRef< decltype(Lambda4), 2 >);
+			StaticAssert(	not	IsTemplateArgConstRef< decltype(Lambda5), 2 >);
+			StaticAssert(	not	IsTemplateArgConstRef< decltype(Lambda6), 1 >);
+			
+			// IsTemplateArgRef
+			StaticAssert(	not	IsTemplateArgRef< decltype(Lambda1), 2 >);
+			StaticAssert(	not	IsTemplateArgRef< decltype(Lambda2), 2 >);
+			StaticAssert(		IsTemplateArgRef< decltype(Lambda3), 2 >);
+			StaticAssert(	not	IsTemplateArgRef< decltype(Lambda4), 2 >);
+			StaticAssert(	not	IsTemplateArgRef< decltype(Lambda5), 2 >);
+			StaticAssert(	not	IsTemplateArgRef< decltype(Lambda6), 1 >);
+
+			// IsTemplateArgRValueRef
+			StaticAssert(	not	IsTemplateArgRValueRef< decltype(Lambda1), 2 >);
+			StaticAssert(	not	IsTemplateArgRValueRef< decltype(Lambda2), 2 >);
+			StaticAssert(	not	IsTemplateArgRValueRef< decltype(Lambda3), 2 >);
+			StaticAssert(		IsTemplateArgRValueRef< decltype(Lambda4), 2 >);
+			StaticAssert(	not	IsTemplateArgRValueRef< decltype(Lambda5), 2 >);
+			StaticAssert(	not	IsTemplateArgRValueRef< decltype(Lambda6), 1 >);
+
+			// IsTemplateArgWithoutRef
+			StaticAssert(		IsTemplateArgWithoutRef< decltype(Lambda1), 2 >);
+			StaticAssert(	not	IsTemplateArgWithoutRef< decltype(Lambda2), 2 >);
+			StaticAssert(	not	IsTemplateArgWithoutRef< decltype(Lambda3), 2 >);
+			StaticAssert(	not	IsTemplateArgWithoutRef< decltype(Lambda4), 2 >);
+			StaticAssert(		IsTemplateArgWithoutRef< decltype(Lambda5), 2 >);
+			StaticAssert(	not	IsTemplateArgWithoutRef< decltype(Lambda6), 1 >);
+		}
+	}
+}
+//-----------------------------------------------------
 
 
 extern void UnitTest_TypeTraits ()
@@ -429,10 +826,20 @@ extern void UnitTest_TypeTraits ()
 	Test_ArrayView();
 	Test_IsConst();
 	Test_IsNothrowInvocable();
+	Test_IsPointer();
 
 	Test_Attributes();
-	Test_Requires();
+	Test_Concepts1();
+	Test_Concepts2();
 	Test_IsConstEvaluated();
+	Test_ResultOf();
+	Test_StructuredBinding();
+	Test_Lambda();
+	Test_GetNumberOfTemplateArgs();
+	Test_ReferenceCollapsing();
+	Test_CheckTemplateArgs();
+
+	Unused( s_ConstInit1, s_ConstInit3 );
 
 	TEST_PASSED();
 }

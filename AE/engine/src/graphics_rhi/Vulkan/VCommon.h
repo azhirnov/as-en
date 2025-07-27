@@ -1,11 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	docs:
-		[Vulkan spec](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html)
+		[Vulkan spec](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html), [[backup](https://github.com/azhirnov/as-en/blob/dev/AE-Data/_docs/vkspec.pdf)]
 		[GLSL ref](https://registry.khronos.org/OpenGL-Refpages/gl4/)
 		[GLSL ext](https://github.com/KhronosGroup/GLSL/extensions)
-		[GLSL spec](https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.pdf)
-		[SPIRV spec](https://registry.khronos.org/SPIR-V/specs/unified1/SPIRV.html)
+		[GLSL spec](https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.pdf), [[backup](https://github.com/azhirnov/as-en/blob/dev/AE-Data/_docs/glsl.pdf)]
+		[SPIRV spec](https://registry.khronos.org/SPIR-V/specs/unified1/SPIRV.html), [[backup](https://github.com/azhirnov/as-en/blob/dev/AE-Data/_docs/spirv.pdf)]
 
 	[supported features](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/VulkanRHI.md)
 */
@@ -39,11 +39,7 @@ namespace AE::Graphics
 	class VRenderPass;
 	class VFramebuffer;
 	class VCommandPoolManager;
-	class VCommandBatch;
 
-	class ResourceManager;
-	class RenderTaskScheduler;
-	using VResourceManager = ResourceManager;
 
 	GFX_DBG_ONLY(
 		using DebugName_t = FixedString<64>;
@@ -76,12 +72,12 @@ namespace AE::Graphics
 
 
 	// debugger can't show enum names for VkFlags, so use enum instead
-#define VULKAN_ENUM_BIT_OPERATORS( _type_ )																															\
-			__CxIn _type_&  operator |= (_type_ &lhs, _type_ rhs) __NE___	{ return lhs = _type_( Base::ToNearUInt( lhs ) | Base::ToNearUInt( rhs )); }	\
+#define VULKAN_ENUM_BIT_OPERATORS( _type_ )																												\
+		__CxIn _type_&  operator |= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( Base::ToNearUInt( lhs ) | Base::ToNearUInt( rhs )); }	\
 		NdCxIn _type_   operator |  (_type_  lhs, _type_ rhs)	__NE___	{ return _type_( Base::ToNearUInt( lhs ) | Base::ToNearUInt( rhs )); }			\
-			__CxIn _type_&  operator &= (_type_ &lhs, _type_ rhs) __NE___	{ return lhs = _type_( Base::ToNearUInt( lhs ) & Base::ToNearUInt( rhs )); }	\
+		__CxIn _type_&  operator &= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( Base::ToNearUInt( lhs ) & Base::ToNearUInt( rhs )); }	\
 		NdCxIn _type_   operator &  (_type_  lhs, _type_ rhs)	__NE___	{ return _type_( Base::ToNearUInt( lhs ) & Base::ToNearUInt( rhs )); }			\
-		NdCxIn _type_   operator ~  (_type_ value)			__NE___	{ return _type_( ~Base::ToNearUInt( value )); }									\
+		NdCxIn _type_   operator ~  (_type_ value)				__NE___	{ return _type_( ~Base::ToNearUInt( value )); }									\
 
 	VULKAN_ENUM_BIT_OPERATORS( VkDependencyFlagBits );
 	VULKAN_ENUM_BIT_OPERATORS( VkImageAspectFlagBits );

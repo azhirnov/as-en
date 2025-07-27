@@ -49,187 +49,142 @@ namespace
 
 
 	template <typename CtxTypes>
-	class AC3_GraphicsTask final : public RenderTask
+	static RenderCoro  AC3_GraphicsTask (AC3_TestData& t, const uint frameIdx)
 	{
-	public:
-		AC3_TestData&	t;
-		const uint		fi;
+		const uint	fi = frameIdx & 1;
+		CHECK( RenderCoro_Get().QueueType() == Graphics::EQueueType::Graphics );
 
-		AC3_GraphicsTask (AC3_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ batch, dbg },
-			t{ t },
-			fi{ frameIdx & 1 }
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
+
+		typename CtxTypes::Graphics		ctx{ RenderCoro_Get() };
+
+		// draw
 		{
-			CHECK( batch->GetQueueType() == EQueueType::Graphics );
+			constexpr auto&		rtech_pass = RTech.Draw_1;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
+
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.imageDim }
+								.AddViewport( t.imageDim )
+								.AddTarget( rtech_pass.att_Color, t.view[fi], RGBA32f{1.0f} ));
+
+			dctx.BindPipeline( t.gppln );
+			dctx.Draw( 3 );
+
+			ctx.EndRenderPass( dctx );
 		}
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			typename CtxTypes::Graphics		ctx{ *this };
-
-			// draw
-			{
-				constexpr auto&		rtech_pass = RTech.Draw_1;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.imageDim }
-									.AddViewport( t.imageDim )
-									.AddTarget( rtech_pass.att_Color, t.view[fi], RGBA32f{1.0f} ));
-
-				dctx.BindPipeline( t.gppln );
-				dctx.Draw( 3 );
-
-				ctx.EndRenderPass( dctx );
-			}
-
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CtxTypes>
-	class AC3_ComputeTask final : public RenderTask
+	static RenderCoro  AC3_ComputeTask (AC3_TestData& t, const uint frameIdx)
 	{
-	public:
-		AC3_TestData&	t;
-		const uint		fi;
+		const uint	fi = frameIdx & 1;
+		CHECK( RenderCoro_Get().QueueType() == Graphics::EQueueType::AsyncCompute );
 
-		AC3_ComputeTask (AC3_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ batch, dbg },
-			t{ t },
-			fi{ frameIdx & 1 }
-		{
-			CHECK( batch->GetQueueType() == EQueueType::AsyncCompute );
-		}
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+		typename CtxTypes::Compute	ctx{ RenderCoro_Get() };
 
-			typename CtxTypes::Compute	ctx{ *this };
+		ctx.BindPipeline( t.cppln );
+		ctx.BindDescriptorSet( t.cpplnDSIndex, t.cpplnDS[fi] );
+		ctx.Dispatch( DivCeil( t.imageDim, 4u ));
 
-			ctx.BindPipeline( t.cppln );
-			ctx.BindDescriptorSet( t.cpplnDSIndex, t.cpplnDS[fi] );
-			ctx.Dispatch( DivCeil( t.imageDim, 4u ));
-
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename Ctx>
-	class AC3_CopyTask final : public RenderTask
+	static RenderCoro  AC3_CopyTask (AC3_TestData& t)
 	{
-	public:
-		AC3_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		AC3_CopyTask (AC3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		Ctx		ctx{ RenderCoro_Get() };
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			Ctx		ctx{ *this };
-
-			ReadbackImageDesc	readback;
-			readback.heapType = EStagingHeapType::Dynamic;
-
-			t.result[0] = AsyncTask{ ctx.ReadbackImage( t.image[0], readback )
-							.Then( [p = &t] (const ImageMemView &view)
-									{
-										p->isOK[0] = p->imgCmp->Compare( view );
-									})};
-			t.result[1] = AsyncTask{ ctx.ReadbackImage( t.image[1], readback )
-							.Then( [p = &t] (const ImageMemView &view)
-									{
-										p->isOK[1] = p->imgCmp->Compare( view );
-									})};
-
-			Execute( ctx );
-		}
-	};
+		ReadbackImageDesc	readback;
+		readback.heapType = EStagingHeapType::Dynamic;
+		
+		t.result[0] = ctx.ReadbackImage( t.image[0], readback ).Then( t,
+								[] (Promise<ImageMemView> readRes, CoSafe<AC3_TestData &> t) -> InlineCoro<>
+								{
+									auto view = co_await readRes;
+									t->isOK[0] = t->imgCmp->Compare( view );
+								});
+		t.result[1] = ctx.ReadbackImage( t.image[1], readback ).Then( t,
+								[] (Promise<ImageMemView> readRes, CoSafe<AC3_TestData &> t) -> InlineCoro<>
+								{
+									auto view = co_await readRes;
+									t->isOK[1] = t->imgCmp->Compare( view );
+								});
+		
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CtxTypes, typename CopyCtx>
-	class AC3_FrameTask final : public Threading::IAsyncTask
+	static AsyncCoro  AC3_FrameTask (AC3_TestData& t)
 	{
-	public:
-		AC3_TestData&		t;
+		auto&	rg = GraphicsScheduler().GetRenderGraph();
 
-		AC3_FrameTask (AC3_TestData& t) __NE___ :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			t{ t }
-		{}
-
-		void  Run () __Th_OV
+		for (; t.frameIdx.load() < 3;)
 		{
-			auto&	rg = GraphicsScheduler().GetRenderGraph();
-
-			if ( t.frameIdx.load() == 3 )
-			{
-				// frame 3
-				CHECK_TE( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
-				CHECK_TE( rg.BeginFrame() );
-
-				auto	batch	= rg.CmdBatch( EQueueType::AsyncCompute, {"copy task"} )
-										.UseResource( t.image[0] )
-										.UseResource( t.image[1] )
-										.ReadbackMemory()
-										.Begin();
-				CHECK_TE( batch );
-
-				auto	read_task	= batch.template Task< AC3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
-												.SubmitBatch().Run();
-				auto	end			= rg.EndFrame( Tuple{read_task} );
-
-				++t.frameIdx;
-				return Continue( Tuple{end} );
-			}
-
-			if ( t.frameIdx.load() > 3 )
-				return;	// frame 4+
-
 			// frames [0..2]:
 			const uint	fi = t.frameIdx.load() & 1;
 
-			CHECK_TE( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
-			CHECK_TE( rg.BeginFrame() );
+			CHECK_CE( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+			CHECK_CE( rg.BeginFrame() );
 
 
 			// batch graph
 			auto	batch_gfx = rg.CmdBatch( EQueueType::Graphics, {"graphics batch"} )
 									.UseResource( t.image[fi], EResourceState::ShaderSample | EResourceState::FragmentShader )
 									.Begin();
-			CHECK_TE( batch_gfx );
+			CHECK_CE( batch_gfx );
 
 			auto	batch_ac = rg.CmdBatch( EQueueType::AsyncCompute, {"compute batch"} )
 									.UseResource( t.image[fi], EResourceState::ShaderStorage_RW | EResourceState::ComputeShader )
 									.Begin();
-			CHECK_TE( batch_ac );
+			CHECK_CE( batch_ac );
 
 
 			// add tasks to cmd batches
-			auto	gfx_task	= batch_gfx.template Task< AC3_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"graphics task"} )
+			auto	gfx_task	= batch_gfx.Task( AC3_GraphicsTask<CtxTypes>( t, t.frameIdx.load() ), {"graphics task"} )
 										.SubmitBatch().Run();
-			auto	comp_task	= batch_ac .template Task< AC3_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"async compute task"} )
+			auto	comp_task	= batch_ac .Task( AC3_ComputeTask<CtxTypes>( t, t.frameIdx.load() ), {"async compute task"} )
 										.SubmitBatch().Run( Tuple{gfx_task} );
 
 			auto	end			= rg.EndFrame( Tuple{ gfx_task, comp_task });
 
 			++t.frameIdx;
-			return Continue( Tuple{end} );
+			Coro_Continue( end );
 		}
+		{
+			CHECK( t.frameIdx.load() == 3 );
 
-		StringView  DbgName ()	C_NE_OV	{ return "AC3_FrameTask"; }
-	};
+			// frame 3
+			CHECK_CE( rg.WaitNextFrame( c_ThreadArr, c_MaxTimeout ));
+			CHECK_CE( rg.BeginFrame() );
+
+			auto	batch	= rg.CmdBatch( EQueueType::AsyncCompute, {"copy task"} )
+									.UseResource( t.image[0] )
+									.UseResource( t.image[1] )
+									.ReadbackMemory()
+									.Begin();
+			CHECK_CE( batch );
+
+			auto	read_task	= batch.Task( AC3_CopyTask<CopyCtx>(t), {"Readback task"} )
+										.SubmitBatch().Run();
+			auto	end			= rg.EndFrame( Tuple{read_task} );
+
+			++t.frameIdx;
+			Coro_Continue( end );
+		}
+		co_return;
+	}
 
 
 	template <typename CtxTypes, typename CopyCtx>
@@ -285,7 +240,7 @@ namespace
 		}
 
 		// draw 3 frames
-		auto	task = Scheduler().Run< AC3_FrameTask<CtxTypes, CopyCtx> >( Tuple{ArgRef(t)} );
+		AsyncTask	task = Scheduler().Run( AC3_FrameTask<CtxTypes, CopyCtx>( t ));
 
 		CHECK_ERR( Scheduler().Wait( {task}, c_MaxTimeout ));
 		CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
@@ -293,8 +248,8 @@ namespace
 		CHECK_ERR( t.frameIdx.load() == 4 );
 
 		CHECK_ERR( Scheduler().Wait( List{ t.result[0], t.result[1] }, c_MaxTimeout ));
-		CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
-		CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
+		CHECK_ERR( t.result[0]->Status() == ETaskStatus::Completed );
+		CHECK_ERR( t.result[1]->Status() == ETaskStatus::Completed );
 		CHECK_ERR( t.isOK[0] );
 		CHECK_ERR( t.isOK[1] );
 

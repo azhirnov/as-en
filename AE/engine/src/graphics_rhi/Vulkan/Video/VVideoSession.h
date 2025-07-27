@@ -41,8 +41,8 @@ namespace AE::Graphics
 		VVideoSession ()									__NE___	{}
 		~VVideoSession ()									__NE___;
 
-		ND_ bool  Create (VResourceManager &, const VideoSessionDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)																					__NE___;
+		ND_ bool  Create (ResourceManager &, const VideoSessionDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+			void  Destroy (ResourceManager &)																					__NE___;
 
 		ND_ VkVideoSessionKHR			Session ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _session; }
 		ND_ VkVideoSessionParametersKHR	Parameters ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _params; }
@@ -52,7 +52,7 @@ namespace AE::Graphics
 
 
 		ND_ static bool  Validate (const VDevice &dev, INOUT VideoSessionDesc &desc)			__NE___;
-		ND_ static bool  IsSupported (const VResourceManager &, const VideoSessionDesc &desc)	__NE___;
+		ND_ static bool  IsSupported (const ResourceManager &, const VideoSessionDesc &desc)	__NE___;
 	};
 
 

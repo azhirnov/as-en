@@ -27,79 +27,59 @@ namespace
 
 
 	template <typename CtxType>
-	class D1_DrawTask final : public RenderTask
+	static RenderCoro  D1_DrawTask (D1_TestData& t)
 	{
-	public:
-		D1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		D1_DrawTask (D1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 
-		void  Run () __Th_OV
+		typename CtxType::Graphics	ctx{ RenderCoro_Get() };
+
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+
+		// draw
 		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+			constexpr auto&		rtech_pass = RTech.Draw_1;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( t.viewSize )
+								.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
 
-			typename CtxType::Graphics	ctx{ *this };
+			dctx.BindPipeline( t.ppln );
+			dctx.Draw( 3 );
 
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
-
-			// draw
-			{
-				constexpr auto&		rtech_pass = RTech.Draw_1;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
-
-				dctx.BindPipeline( t.ppln );
-				dctx.Draw( 3 );
-
-				ctx.EndRenderPass( dctx );
-			}
-
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
-
-			Execute( ctx );
+			ctx.EndRenderPass( dctx );
 		}
-	};
+
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+
+		RenderCoro_Execute( ctx );
+	}
+
 
 	template <typename Ctx>
-	class D1_CopyTask final : public RenderTask
+	static RenderCoro  D1_CopyTask (D1_TestData& t)
 	{
-	public:
-		D1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		D1_CopyTask (D1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		Ctx		ctx{ RenderCoro_Get() };
+		
+		t.result = ctx.ReadbackImage( t.img, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<D1_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK = t->imgCmp->Compare( view );
+							});
+		
+		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			Ctx		ctx{ *this };
-
-			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then(	[p = &t] (const ImageMemView &view)
-								{
-									p->isOK = p->imgCmp->Compare( view );
-								})};
-
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CtxType, typename CopyCtx>
@@ -135,19 +115,19 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Draw1"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Run< D1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},					{"Draw task"} );
-		AsyncTask	task2	= batch->Run< D1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+		AsyncTask	task1	= batch->Run( D1_DrawTask<CtxType>(t), Tuple{},						{"Draw task"} );
+		AsyncTask	task2	= batch->Run( D1_CopyTask<CopyCtx>(t), Tuple{task1}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
+		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK );
 		return true;

@@ -191,6 +191,7 @@ void ASmain ()
 		EPixelFormat::ASTC_sRGB8_A8_8x6, EPixelFormat::ASTC_sRGB8_A8_8x8, EPixelFormat::ASTC_sRGB8_A8_10x5, EPixelFormat::ASTC_sRGB8_A8_10x6, 
 		EPixelFormat::ASTC_sRGB8_A8_10x8, EPixelFormat::ASTC_sRGB8_A8_10x10, EPixelFormat::ASTC_sRGB8_A8_12x10, EPixelFormat::ASTC_sRGB8_A8_12x12
 	});
+	/*
 	fset.AddTexelFormats( EFormatFeature::HWCompressedAttachment, {
 		// full support in Bifrost gen3
 		EPixelFormat::RGBA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::BGRA8_UNorm, EPixelFormat::sBGR8_A8,
@@ -205,6 +206,7 @@ void ASmain ()
 		// in Valhall gen3
 		EPixelFormat::RGBA16_UNorm, EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA16F
 	});
+	*/
 	fset.samplerMipLodBias (True);
 	fset.maxSamplerAnisotropy (1.00);
 	fset.maxSamplerLodBias (2.00);

@@ -40,6 +40,7 @@ if (TARGET "Graphics")
 	if (NOT (${AE_CI_BUILD_TEST} OR ANDROID))
 		target_compile_definitions( ${TEST_NAME} PRIVATE AE_RESULT_PATH="${AE_DATA_FOLDER}/perf/graphics/" )
 	endif()
-
+	
+	UseEnginePCH2( ${TEST_NAME} )
 	#add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
 endif()

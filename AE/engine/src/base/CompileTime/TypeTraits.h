@@ -74,7 +74,25 @@ namespace AE::Base
 													  std::is_trivially_move_constructible_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsPointer				= std::is_pointer_v<T>;
+	concept					IsPointer				=     std::is_pointer_v<T>						and
+													  not std::is_function_v< std::remove_pointer_t<T> >;
+
+	template <typename T>
+	static constexpr bool	IsAnyPointer			= std::is_pointer_v<T>		or
+													  std::is_member_pointer_v<T>;
+
+	template <typename T>
+	static constexpr bool	IsFunctionPointer		= std::is_pointer_v<T>							and		// global or static function
+													  std::is_function_v< std::remove_pointer_t<T> >;
+
+	template <typename T>
+	static constexpr bool	IsMemberPointer			= std::is_member_pointer_v<T>;			// object or method
+
+	template <typename T>
+	static constexpr bool	IsMemberObjectPointer	= std::is_member_object_pointer_v<T>;	// only class field
+
+	template <typename T>
+	static constexpr bool	IsMemberFunctionPointer	= std::is_member_function_pointer_v<T>;	// only class method
 
 	template <typename T>
 	static constexpr bool	IsNullPtr				= std::is_null_pointer_v<T>;
@@ -342,6 +360,11 @@ namespace AE::Base
 	using ToFloatPoint		= BitSizeToInt< CT_SizeOfInBits<T> >;
 
 
+	template <typename T>
+	using ReferenceCollapsing	= Conditional< IsRValueRef<T>, T,
+									Conditional< IsLValueRef<T>, T&, void >>;
+
+
 	namespace _hidden_
 	{
 		template <typename T>
@@ -428,10 +451,6 @@ namespace AE::Base
 	static constexpr bool	IsDuration = IsSpecializationOf< T, std::chrono::duration >;
 
 
-	template <typename Fn, typename ...Args>
-	using ResultOf	= std::invoke_result_t< Fn, Args... >;
-
-
 	namespace _hidden_
 	{
 		template <typename T>
@@ -472,6 +491,14 @@ namespace AE::Base
 
 	template <typename T, typename ...Types>
 	static constexpr bool	AllAreSameTypes		= (... and Base::_hidden_::AreSameTypes<T>::template Impl<Types>::value);
+
+	namespace _hidden_
+	{
+		template <typename Lambda, int=(Lambda{}(), 0)>
+		constexpr bool  _is_constexpr (Lambda)	{ return true; }
+		constexpr bool  _is_constexpr (...)		{ return false; }
+	}
+	#define IsConstExpr( ... )	(AE::Base::_hidden_::_is_constexpr([]{ __VA_ARGS__; }))
 //-----------------------------------------------------------------------------
 
 	
@@ -658,7 +685,7 @@ namespace AE::Base
 	template <typename T>
 	struct TTriviallySerializable : CT_Bool<
 										IsTrivial<T>		and
-										not IsPointer<T>	and
+										not IsAnyPointer<T>	and
 										not IsReference<T>	>{};
 
 	template <typename T, usize I>
@@ -700,6 +727,25 @@ namespace AE::Base
 
 	template <typename T>
 	static constexpr bool	IsTriviallyConstructible = TTriviallyConstructible< RemoveCV<T> >::value;
+	
+/*
+=================================================
+	IsTriviallyMovable
+----
+	allow to use MemCopy and MemMove only for move operation
+=================================================
+*/
+	template <typename T>
+	struct TTriviallyMovable				: CT_Bool< IsMemCopyAvailable<T> >{};
+
+	template <typename T, usize I>
+	struct TTriviallyMovable< T[I] >		: CT_Bool< TTriviallyMovable<T>::value >{};
+
+	template <typename T, usize I>
+	struct TTriviallyMovable< const T[I] >	: CT_Bool< TTriviallyMovable<T>::value >{};
+
+	template <typename T>
+	static constexpr bool	IsTriviallyMovable = TTriviallyMovable<T>::value;
 
 
 } // AE::Base

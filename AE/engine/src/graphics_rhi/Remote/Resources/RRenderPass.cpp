@@ -43,7 +43,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RRenderPass::Destroy (RResourceManager &) __NE___
+	void  RRenderPass::Destroy (ResourceManager &) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

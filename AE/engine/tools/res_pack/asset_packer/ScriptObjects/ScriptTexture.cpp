@@ -4,8 +4,8 @@
 #include "graphics_rhi/Private/EnumUtils.h"
 #include "graphics_rhi/Private/EnumToString.h"
 
-#include "ScriptObjects/ScriptTexture.h"
-#include "Packer/ImagePacker.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptTexture.h"
+#include "res_pack/asset_packer/Packer/ImagePacker.h"
 
 #include "scripting/Impl/ClassBinder.h"
 
@@ -17,7 +17,7 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptTexture,	"Texture" );
 namespace AE::AssetPacker
 {
 namespace {
-#	include "Packer/ImagePacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
 
 	ND_ inline uint  CompressionThreadCount ()
 	{
@@ -460,7 +460,7 @@ namespace {
 namespace AE::AssetPacker
 {
 namespace {
-#	include "Utils/Compressonator.cpp.h"
+#	include "res_pack/asset_packer/Utils/Compressonator.cpp.h"
 }
 
 /*
@@ -521,7 +521,7 @@ namespace AE::AssetPacker
 namespace AE::AssetPacker
 {
 namespace {
-#	include "Utils/AstcEncoder.cpp.h"
+#	include "res_pack/asset_packer/Utils/AstcEncoder.cpp.h"
 }
 
 /*

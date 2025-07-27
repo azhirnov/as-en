@@ -46,7 +46,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VDirectComputeCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)							__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Compute } {}
+		_VDirectComputeCtx (RenderCoroRef task, VCommandBuffer cmdbuf, DebugLabel dbg)								__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Compute } {}
 
 		void  _Dispatch (const uint3 &groupCount)																	__Th___;
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)										__Th___;
@@ -87,7 +87,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VIndirectComputeCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)					__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Compute } {}
+		_VIndirectComputeCtx (RenderCoroRef task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)						__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Compute } {}
 
 		void  _Dispatch (const uint3 &groupCount)																	__Th___;
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)										__Th___;
@@ -107,6 +107,7 @@ namespace AE::Graphics::_hidden_
 	// types
 	public:
 		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
+		using RenderCoroRef	= typename CtxImpl::RenderCoroRef;
 	private:
 		static constexpr uint	_LocalArraySize			= 16;
 
@@ -118,7 +119,7 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
+		explicit _VComputeContextImpl (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)				__Th___;
 
 		_VComputeContextImpl ()																								= delete;
 		_VComputeContextImpl (const _VComputeContextImpl &)																	= delete;
@@ -164,10 +165,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VComputeContextImpl<C>::_VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+	_VComputeContextImpl<C>::_VComputeContextImpl (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
 		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 	}
 
 /*

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Impl/ObjectStorage.h"
+#include "res_pack/input_actions/Impl/ObjectStorage.h"
 
 namespace AE::InputActions
 {
@@ -76,7 +76,7 @@ namespace
 	ConvertInputActions
 =================================================
 */
-	extern "C" bool AE_IA_API ConvertInputActions (const InputActionsInfo* info)
+	extern "C" bool AE_DLL_EXPORT ConvertInputActions (const InputActionsInfo* info)
 	{
 		AE::Base::StaticLogger::LoggerScope log{};
 

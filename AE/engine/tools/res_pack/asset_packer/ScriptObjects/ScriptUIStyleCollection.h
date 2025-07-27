@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ScriptObjects/ObjectStorage.h"
+#include "res_pack/asset_packer/ScriptObjects/ObjectStorage.h"
 
 #include "graphics/UI/StyleCollection.h"
 

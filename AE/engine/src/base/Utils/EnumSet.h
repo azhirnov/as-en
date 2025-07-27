@@ -25,8 +25,12 @@ namespace AE::Base
 											  AlignUp( _BitCount, 32 ) < AlignUp( _BitCount, 64 ) ? 32 : 64;
 		static constexpr uint	_ArraySize	= (_BitCount + _ElemSize - 1) / _ElemSize;
 
+	public:
 		using Self		= EnumSet<E>;
+		using Value_t	= E;
 		using Elem_t	= BitSizeToUInt< _ElemSize >;
+		
+	private:
 		using BitArr_t	= StaticArray< Elem_t, _ArraySize >;
 		using Index_t	= ByteSizeToUInt< Max( sizeof(E), sizeof(usize) )>;
 

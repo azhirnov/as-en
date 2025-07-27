@@ -12,7 +12,7 @@ namespace AE::Graphics
 	// Remote Graphics Descriptor Updater
 	//
 
-	class RDescriptorUpdater final : public IDescriptorUpdater
+	class DescriptorUpdater final : public IDescriptorUpdater
 	{
 	// types
 	private:
@@ -22,7 +22,7 @@ namespace AE::Graphics
 
 	// variables
 	private:
-		RResourceManager &				_resMngr;
+		ResourceManager &				_resMngr;
 		Ptr<const RDescriptorSetLayout>	_dsLayout;		// strong ref in '_descSetId'
 		Strong< DescriptorSetID >		_descSetId;
 
@@ -35,8 +35,8 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RDescriptorUpdater ()																													__NE___;
-		~RDescriptorUpdater ()																													__NE_OV;
+		DescriptorUpdater ()																													__NE___;
+		~DescriptorUpdater ()																													__NE_OV;
 
 		bool  Set (DescriptorSetID descrSetId, EDescUpdateMode mode)																			__NE_OV;
 		bool  Flush ()																															__NE_OV;

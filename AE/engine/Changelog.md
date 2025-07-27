@@ -1,7 +1,17 @@
-## 25.03
+## 25.04.285
+
+- Threading: coroutines everywhere, remove tasks
+- Threading: improved task system
+- CMake: single PCH (x5 compilation speedup on slow RAM)
+- Android: use NDK 29
+
+
+## 25.03.282
 
 - Graphics: fixed D32_S8 loading
 - Threading: enable coroutines for Clang on Windows
+- All: remove C++17
+- All: remove EnableIf, used `requires` instead
 
 
 ## 25.02.281

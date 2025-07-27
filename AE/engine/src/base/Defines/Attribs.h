@@ -67,6 +67,9 @@
 #define	Nd__IA		ND_	AE_FLATTEN_FN	forceinline
 #define __Ce__											consteval
 #define NdCe__		ND_									consteval
+#define __SE__											AE_NOSIDEEFFECTS
+#define NdSE__		ND_									AE_NOSIDEEFFECTS
+#define NdSEIn		ND_					inline			AE_NOSIDEEFFECTS
 
 
 // has attribute (C++20)
@@ -359,7 +362,10 @@
 
 // mark function that has no side effects.
 // function can operate only on arguments and can not read global memory.
-#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
+#	define AE_NOSIDEEFFECTS		__declspec(noalias)		// same as 'pure'
+
+#elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 # if AE_HAS_ATTRIB( gnu::const )
 #	define AE_NOSIDEEFFECTS		[[gnu::const]]
 # else
@@ -367,6 +373,35 @@
 # endif
 #else
 #	define AE_NOSIDEEFFECTS
+#endif
+
+
+// mark function that has no alias.
+// function can operate on arguments, can read global memory and can make one level indirection.
+#if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL)
+#	define AE_NOALIAS			__declspec(noalias)
+
+#elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+# if AE_HAS_ATTRIB( gnu::pure )
+#	define AE_NOALIAS			[[gnu::pure]]
+# else
+#	define AE_NOALIAS			__attribute__ ((pure))
+# endif
+#else
+#	define AE_NOALIAS
+#endif
+
+// cache line size
+#ifdef __cpp_lib_hardware_interference_size
+#	define AE_CACHE_LINE	std::hardware_destructive_interference_size
+
+#elif defined(AE_PLATFORM_APPLE) and defined(AE_CPU_ARCH_ARM_BASED)
+#	define AE_CACHE_LINE	std::size_t(128)
+
+#elif defined(AE_CPU_ARCH_X86_64) or defined(AE_CPU_ARCH_ARM_BASED)
+#	define AE_CACHE_LINE	std::size_t(64)
+#else
+#	error unsupported platform
 #endif
 
 

@@ -58,7 +58,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RDescriptorSetLayout::Destroy (RResourceManager &) __NE___
+	void  RDescriptorSetLayout::Destroy (ResourceManager &) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

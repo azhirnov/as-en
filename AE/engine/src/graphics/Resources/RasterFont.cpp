@@ -9,8 +9,8 @@ namespace AE::Graphics
 	using namespace AE::AssetPacker;
 
 namespace {
-#	include "Packer/ImagePacker.cpp.h"
-#	include "Packer/RasterFontPacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/RasterFontPacker.cpp.h"
 }
 
 /*
@@ -162,32 +162,18 @@ namespace {
 
 /*
 =================================================
-	Loader::OnUploadCompleteTask
+	Loader::_OnUploadComplete
 =================================================
 */
-	class RasterFont::Loader::OnUploadCompleteTask final : public Threading::IAsyncTask
+	AsyncCoro  RasterFont::Loader::_OnUploadComplete (RC<RasterFont> font, ResourceUploadManager::UploadResult upload) __NE___
 	{
-	private:
-		RC<RasterFont>							_font;
-		ResourceUploadManager::UploadResult		_upload;
+		bool	ok = upload ? upload->IsCompleted() : true;
+		font->_SetLoadingStatus( ok ? ELoadingStatus::Complete : ELoadingStatus::Failed );
 
-	public:
-		OnUploadCompleteTask (RC<RasterFont> font, ResourceUploadManager::UploadResult upload) __NE___ :
-			IAsyncTask{ ETaskQueue::Background }, _font{RVRef(font)}, _upload{RVRef(upload)} {}
-
-		void  Run () __Th_OV
-		{
-			bool	ok = _upload ? _upload->IsCompleted() : true;
-			_font->_SetLoadingStatus( ok ? ELoadingStatus::Complete : ELoadingStatus::Failed );
-
-			_font   = null;
-			_upload = null;
-		}
-
-		DEBUG_ONLY( void  OnCancel ()	__NE_OV { DBG_WARNING("should never happens"); })
-
-		StringView  DbgName ()			C_NE_OV { return "on image loading complete"; }
-	};
+		font   = null;
+		upload = null;
+		co_return;
+	}
 
 /*
 =================================================
@@ -239,7 +225,7 @@ namespace {
 		// update status after uploading
 		if ( upload )
 		{
-			Scheduler().Run<OnUploadCompleteTask>( Tuple{font, upload}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+			Scheduler().Run( _OnUploadComplete( font, upload ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
 		}
 		else
 		{
@@ -274,10 +260,11 @@ namespace {
 
 		if ( _Load( des, resCache, selfName, OUT font, OUT &upload ))
 		{
-			return MakePromiseFromValue( RVRef(font),
-										 Tuple{RVRef(upload)},
-										 "RasterFont.LoadAsync",
-										 ETaskQueue::Background );
+			return Scheduler().Run(
+						ETaskQueue::Background,
+						DeferResult< RC<RasterFont> >( RVRef(font) ),
+						Tuple{RVRef(upload)}
+					);
 		}else
 			return Default;
 	}
@@ -329,7 +316,7 @@ namespace {
 
 		font->_ConvertPixelsToUNorm( 1.0f / float2{img_header.dimension} );
 
-		Scheduler().Run<OnUploadCompleteTask>( Tuple{font, upload}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+		Scheduler().Run( _OnUploadComplete( font, upload ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
 		return font;
 	}
 

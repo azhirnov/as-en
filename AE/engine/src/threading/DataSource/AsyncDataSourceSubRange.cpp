@@ -43,7 +43,7 @@ namespace AE::Threading
 		dataSize = Min( _end - Min( pos, _end ), dataSize );
 
 		if_unlikely( pos >= _end or dataSize == 0 or not _ds )
-			return AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			return TaskScheduler::GetCanceledDSRequest();
 
 		return _ds->ReadBlock( pos, OUT data, dataSize, RVRef(mem) );
 	}
@@ -56,7 +56,7 @@ namespace AE::Threading
 		size = Min( _end - Min( pos, _end ), size );
 
 		if_unlikely( pos >= _end or size == 0 or not _ds )
-			return AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			return TaskScheduler::GetCanceledDSRequest();
 
 		return _ds->ReadBlock( pos, size );
 	}
@@ -113,7 +113,7 @@ namespace AE::Threading
 		dataSize = Min( _end - Min( pos, _end ), dataSize );
 
 		if_unlikely( pos >= _end or dataSize == 0 or not _ds )
-			return AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			return TaskScheduler::GetCanceledDSRequest();
 
 		return _ds->ReadBlock( pos, OUT data, dataSize, RVRef(mem) );
 	}
@@ -124,7 +124,7 @@ namespace AE::Threading
 		size = Min( _end - Min( pos, _end ), size );
 
 		if_unlikely( pos >= _end or size == 0 or not _ds )
-			return AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			return TaskScheduler::GetCanceledDSRequest();
 
 		return _ds->ReadBlock( pos, size );
 	}

@@ -18,6 +18,9 @@ namespace
 		EbtFloat,
 		EbtDouble,
 		EbtFloat16,
+		EbtBFloat16,
+		EbtFloatE5M2,
+		EbtFloatE4M3,
 		EbtInt8,
 		EbtUint8,
 		EbtInt16,
@@ -40,12 +43,13 @@ namespace
 		EbtTensorLayoutNV,
 		EbtTensorViewNV,
 		EbtCoopvecNV,
+		EbtTensorARM,
 		EbtSpirvType,
 		EbtString,
 		EbtNumTypes
 	};
 #endif
-	StaticAssert( uint(TBasicType::EbtNumTypes) == 28 );
+	StaticAssert( uint(TBasicType::EbtNumTypes) == 32 );
 
 
 	//

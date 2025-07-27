@@ -5,7 +5,9 @@
 
 #pragma once
 
-#include "platform/Platform.pch.h"
+#include "pch/Threading.h"
+#include "pch/VFS.h"
+#include "pch/Serializing.h"
 
 namespace AE::App::_hidden_
 {
@@ -18,11 +20,12 @@ namespace AE::App::_hidden_
 namespace AE::App
 {
 	using namespace AE::Base;
+	using namespace AE::ImportCoroutines;
+
+	ImportBitOperators;
 
 	using Threading::Atomic;
 	using Threading::AtomicBytes;
-	using Threading::AsyncTask;
-	using Threading::Promise;
 
 	#if AE_ENABLE_DATA_RACE_CHECK
 	using Threading::DataRaceCheck;

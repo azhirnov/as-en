@@ -45,14 +45,17 @@ namespace AE::Base
 =================================================
 */
 #ifdef AE_DEBUG
-	inline void  DbgInitMem (OUT void* ptr, Bytes size) __NE___
+	__CxIn void  DbgInitMem (OUT void* ptr, Bytes size) __NE___
 	{
-		ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
-		std::memset( OUT ptr, 0xCD, usize{size} );
+		if_not_consteval()
+		{
+			ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
+			std::memset( OUT ptr, 0xCD, usize{size} );
+		}
 	}
 
 	template <typename T>
-	void  DbgInitMem (OUT T& value) __NE___
+	__CxIn void  DbgInitMem (OUT T& value) __NE___
 	{
 		DbgInitMem( OUT std::addressof(value), SizeOf<T> );
 	}
@@ -64,14 +67,17 @@ namespace AE::Base
 =================================================
 */
 #ifdef AE_DEBUG
-	inline void  DbgFreeMem (OUT void* ptr, Bytes size) __NE___
+	__CxIn void  DbgFreeMem (OUT void* ptr, Bytes size) __NE___
 	{
-		ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
-		std::memset( OUT ptr, 0xFE, usize{size} );
+		if_not_consteval()
+		{
+			ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
+			std::memset( OUT ptr, 0xFE, usize{size} );
+		}
 	}
 
 	template <typename T>
-	void  DbgFreeMem (OUT T& value) __NE___
+	__CxIn void  DbgFreeMem (OUT T& value) __NE___
 	{
 		DbgFreeMem( OUT std::addressof(value), SizeOf<T> );
 	}

@@ -34,9 +34,9 @@ namespace AE::Graphics
 		VBuffer ()										__NE___	{}
 		~VBuffer ()										__NE___;
 
-		ND_ bool  Create (VResourceManager &, const BufferDesc &, GfxMemAllocatorPtr, StringView dbgName)		__NE___;
-		ND_ bool  Create (VResourceManager &, const VulkanBufferDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)																	__NE___;
+		ND_ bool  Create (ResourceManager &, const BufferDesc &, GfxMemAllocatorPtr, StringView dbgName)		__NE___;
+		ND_ bool  Create (ResourceManager &, const VulkanBufferDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
+			void  Destroy (ResourceManager &)																	__NE___;
 
 		ND_ VulkanBufferDesc	GetNativeDescription () C_NE___;
 
@@ -52,13 +52,13 @@ namespace AE::Graphics
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
-		ND_ static bool	 IsSupported (const VResourceManager &, const BufferDesc &desc)		__NE___;
-		ND_ static bool	 IsSupported (const VResourceManager &, const BufferDesc &, const BufferViewDesc &)	__NE___;
+		ND_ static bool	 IsSupported (const ResourceManager &, const BufferDesc &desc)		__NE___;
+		ND_ static bool	 IsSupported (const ResourceManager &, const BufferDesc &, const BufferViewDesc &)	__NE___;
 
 		ND_ static Bytes GetMemoryAlignment (const VDevice &dev, const BufferDesc &desc)	__NE___;
 
-		ND_ static bool  IsSupportedForVertex (const VResourceManager &, EVertexType type)	__NE___;
-		ND_ static bool  IsSupportedForASVertex (const VResourceManager &, EVertexType type)__NE___;
+		ND_ static bool  IsSupportedForVertex (const ResourceManager &, EVertexType type)	__NE___;
+		ND_ static bool  IsSupportedForASVertex (const ResourceManager &, EVertexType type)__NE___;
 
 	private:
 		ND_ bool  _InitDeviceAddress (const VDevice &dev) __NE___;

@@ -1,10 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Compiler/AEStyleGLSLPreprocessor.h"
-#include "Compiler/AEStyleMSLPreprocessor.h"
+#include "res_pack/pipeline_compiler/Compiler/AEStyleGLSLPreprocessor.h"
+#include "res_pack/pipeline_compiler/Compiler/AEStyleMSLPreprocessor.h"
 
-#include "ScriptObjects/ScriptConfig.h"
-#include "ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptConfig.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
 
 namespace AE::PipelineCompiler
 {

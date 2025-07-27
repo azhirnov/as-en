@@ -28,6 +28,8 @@ public:
 		ExcludeDelta	= 1 << 8,		// difference from previous to current, depends on sorting
 		ExcludeTime		= 1 << 9,
 		ExcludePerfDiff	= 1 << 10,		// difference from fastest to current
+		
+		_BITOPS_
 	};
 
 private:
@@ -73,8 +75,6 @@ public:
 private:
 	static void  _FormatTable (ArrayView<String> lines, INOUT String &str);
 };
-
-AE_BIT_OPERATORS( IntervalProfiler::EFlags );
 
 using TsIntervalProfiler = AE::Threading::Synchronized< Mutex, IntervalProfiler >;
 

@@ -23,7 +23,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RGraphicsPipeline::Create (RResourceManager &resMngr, const CreateInfo &ci) __NE___
+	bool  RGraphicsPipeline::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _pplnId );
@@ -50,7 +50,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RGraphicsPipeline::Destroy (RResourceManager &resMngr) __NE___
+	void  RGraphicsPipeline::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

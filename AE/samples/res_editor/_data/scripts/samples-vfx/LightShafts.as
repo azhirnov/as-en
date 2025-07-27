@@ -19,7 +19,7 @@
 	void  ASmain ()
 	{
 		// initialize
-		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );
+		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
 		RC<Image>			light_mask	= Image( EImageType::Float_2D, "res/hzd/c2-light.dds" );
 		RC<Image>			scene_color	= Image( EImageType::Float_2D, "res/hzd/c2-color.dds" );
 		RC<Image>			ref_blur	= Image( EImageType::Float_2D, "res/hzd/c2-light-shaft.dds" );
@@ -64,7 +64,7 @@
 			pass.ArgIn(  "un_RefBlur",		ref_blur,		Sampler_LinearClamp );
 			pass.Slider( "iColScale",		1.0,	10.0,	1.0 );
 			pass.Slider( "iUVScale",		0.5,	3.0,	1.5 );
-			pass.Slider( "iDbgView",		0,		6 );
+			pass.Slider( "iDbgView",		0,		6,		4 );
 		}
 
 		Present( rt );
@@ -144,6 +144,7 @@
 					  );
 
 		out_Color = float4(0.0);
+		out_Color.a = 1.0;
 
 		if ( IsUNorm( uv ))
 		{

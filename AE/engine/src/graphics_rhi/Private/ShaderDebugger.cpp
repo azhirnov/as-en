@@ -267,11 +267,15 @@ namespace {
 	_Parse
 =================================================
 */
-	Array<String>  ShaderDebugger::_Parse (ArrayView<ubyte> view, const void* ppln, ParseTraceFn_t fn, ELogFormat format)
+	InlinePromise<Array<String>>  ShaderDebugger::_Parse (Promise<ArrayView<ubyte>> readback, CoSafe<const void*> ppln, ParseTraceFn_t fn, ELogFormat format)
 	{
-		Array<String>	result;
+		using namespace AE::Threading;
+
+		ArrayView<ubyte>	view = co_await readback;
+		Array<String>		result;
+
 		Unused( fn( ppln, view.data(), ArraySizeOf(view), format, OUT result ));
-		return result;
+		co_return result;
 	}
 
 /*
@@ -281,7 +285,18 @@ namespace {
 */
 	Promise<Array<String>>  ShaderDebugger::_Merge (Array< Promise< Array<String> >> tasks)
 	{
-		return MakePromiseFromArray( RVRef(tasks) );
+		return	[] (Array< Promise< Array<String> >> promises) -> InlinePromise< Array<String> >
+				{
+					auto res = co_await promises;
+					Array<String> result;
+					for (auto& arr : res)
+					{
+						for (auto& s : arr)
+							result.push_back( RVRef(s) );
+					}
+					co_return RVRef(result);
+				}
+				( RVRef(tasks) );
 	}
 
 /*
@@ -408,13 +423,8 @@ namespace {
 		ctx.BufferBarrier( request._hostBuf, EResourceState::CopyDst, EResourceState::Host_Read );
 		ctx.CommitBarriers();
 
-		auto	p = ctx.ReadHostBuffer( request._hostBuf, request._offset, request._size )
-							.Then(	[ppln = request._ppln, fn = request._fn, format] (const ArrayView<ubyte> &view)
-									{
-										return _Parse( view, ppln, fn, format );
-									});
-		GraphicsScheduler().AddNextCycleEndDeps( AsyncTask{p} );
-		return p;
+		return ctx.ReadHostBuffer( request._hostBuf, request._offset, request._size )
+					.Then( CoSafe<const void*>{request._ppln}, request._fn, format, _Parse );
 	}
 
 /*
@@ -455,11 +465,7 @@ namespace {
 		for (auto& res : *pending)
 		{
 			temp.push_back( ctx.ReadHostBuffer( res._hostBuf, res._offset, res._size )
-				.Then(	[ppln = res._ppln, fn = res._fn, format] (const ArrayView<ubyte> &view)
-						{
-							return _Parse( view, ppln, fn, format );
-						}
-					));
+								.Then( CoSafe<const void*>{res._ppln}, res._fn, format, _Parse ));
 
 			if_unlikely( temp.size() >= 32 )
 			{
@@ -477,7 +483,7 @@ namespace {
 		else
 			result = _Merge( RVRef(temp) );
 
-		GraphicsScheduler().AddNextCycleEndDeps( AsyncTask{result} );
+		GraphicsScheduler().AddNextCycleEndDeps( AsyncTask{result} );	// TODO: is it needed?
 		return result;
 	}
 

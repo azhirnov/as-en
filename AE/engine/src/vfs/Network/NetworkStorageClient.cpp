@@ -5,8 +5,6 @@
 
 namespace AE::VFS
 {
-	using RWReqPromise_t = AsyncDSRequest::Value_t::Promise_t;
-
 	INTERNAL_LINKAGE( Ptr<NetworkStorageClient>  s_NetVFS_Client );
 //-----------------------------------------------------------------------------
 
@@ -21,7 +19,7 @@ namespace AE::VFS
 	{
 		_actualSize.store( 0_b );
 
-		ASSERT( AnyEqual( _status.load(), EStatus::Cancelled, EStatus::Completed ));
+		ASSERT( AnyEqual( _status.load(), EStatus::Canceled, EStatus::Completed ));
 		_status.store( EStatus::Destroyed );
 
 		DEBUG_ONLY({
@@ -67,7 +65,7 @@ namespace AE::VFS
 
 		const auto		hash		= XXHash64( _data, usize(_actualSize.load()) );
 		const bool		complete	= (Bytes{_actualSize.load()} == inSize) and (inHash == hash) and (inSize > 0) and (inHash != HashVal64{0});
-		const EStatus	stat		= _status.exchange( complete ? EStatus::Completed : EStatus::Cancelled );
+		const EStatus	stat		= _status.exchange( complete ? EStatus::Completed : EStatus::Canceled );
 
 		ASSERT( complete );
 		ASSERT( stat == EStatus::InProgress );	Unused( stat );
@@ -102,10 +100,11 @@ namespace AE::VFS
 		SHAREDLOCK( _guard );
 		ASSERT( IsFinished() );
 
-		Result	res;
+		Result		res;
 		res.pos			= _pos;
 		res.dataSize	= _actualSize.load();
 		res.data		= IsCompleted() ? _data : null;
+		res.rc			= _memRC;
 		return res;
 	}
 
@@ -118,38 +117,6 @@ namespace AE::VFS
 	{
 		// TODO ?
 		return false;
-	}
-
-/*
-=================================================
-	_GetResult
-=================================================
-*/
-	NetworkStorageClient::NetReadRequest::ResultWithRC  NetworkStorageClient::NetReadRequest::_GetResult () __NE___
-	{
-		SHAREDLOCK( _guard );
-		ASSERT( IsFinished() );
-
-		ResultWithRC	res;
-		res.pos			= _pos;
-		res.dataSize	= _actualSize.load();
-		res.data		= IsCompleted() ? _data : null;
-		res.rc			= _memRC;
-		return res;
-	}
-
-/*
-=================================================
-	AsPromise
-=================================================
-*/
-	RWReqPromise_t  NetworkStorageClient::NetReadRequest::AsPromise (Threading::ETaskQueue queueType) __NE___
-	{
-		auto	result = MakeDelayedPromise( [self = GetRC<NetReadRequest>()] () { return self->_GetResult(); }, "AsyncReadRequest", queueType );
-		if_likely( Scheduler().Run( AsyncTask{result}, Tuple{GetRC()} ))
-			return result;
-		else
-			return Default;
 	}
 
 /*
@@ -168,95 +135,6 @@ namespace AE::VFS
 		_Cleanup();
 
 		s_NetVFS_Client->_readResultPool.Unassign( this );
-	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	AsyncWriteBlockTask::Run
-=================================================
-*/
-	void  NetworkStorageClient::AsyncWriteBlockTask::Run () __Th___
-	{
-		// is alive
-		{
-			auto	req = s_NetVFS_Client->_GetWriteReq( _id );
-			if_unlikely( not req )
-				return OnFailure();
-		}
-
-		for (uint i = 0; (i < _maxParts) and (_dataSize > _sent); ++i)
-		{
-			const Bytes	size	= Min( _dataSize - _sent, _partSize );
-			auto		msg		= s_NetVFS_Client->_CreateMsgOpt< CSMsg_VFS_WritePart >( size-1 );
-
-			if_likely( msg )
-			{
-				msg->reqId	= _id;
-				msg->size	= size;
-				msg->index	= ushort(_partIdx);
-				msg.Put( &CSMsg_VFS_WritePart::data, _data + _sent, size );
-
-				if_likely( s_NetVFS_Client->_AddMessage( msg ))
-				{
-					_sent += size;
-					_partIdx ++;
-					continue;
-				}
-			}
-			break;
-		}
-
-		if ( _dataSize > _sent )
-			return Continue();  // try again
-
-		ASSERT( _dataSize == _sent );
-		_memRC = null;
-
-		// send completion message
-		auto	msg = s_NetVFS_Client->_CreateMsgOpt< CSMsg_VFS_WriteEnd >();
-		if_likely( msg )
-		{
-			msg->reqId	= _id;
-			msg->hash	= XXHash64( _data, usize(_dataSize) );
-			msg->pos	= _pos;
-
-			if_likely( s_NetVFS_Client->_AddMessage( msg ))
-			{
-				return;  // complete
-			}
-		}
-
-		return Continue();  // try again
-	}
-
-/*
-=================================================
-	AsyncWriteBlockTask::OnCancel
-=================================================
-*/
-	void  NetworkStorageClient::AsyncWriteBlockTask::OnCancel () __NE___
-	{
-		DEBUG_ONLY( IAsyncTask::OnCancel();)
-
-		_memRC = null;
-
-		{
-			Exclusive<NetWriteRequest>	req {s_NetVFS_Client->_GetWriteReq( _id )};
-			if_likely( req )
-				req->Failed();
-		}
-
-		auto	msg = s_NetVFS_Client->_CreateMsg< CSMsg_VFS_WriteEnd >();
-		CHECK_ERRV( msg );
-
-		msg->reqId	= _id;
-		msg->hash	= HashVal64{0};  // error
-		msg->pos	= _pos;
-
-		CHECK( s_NetVFS_Client->_AddMessage( msg ));
 	}
 //-----------------------------------------------------------------------------
 
@@ -291,7 +169,7 @@ namespace AE::VFS
 
 		const bool		complete = written > 0_b;
 		EStatus			exp		 = EStatus::InProgress;
-		const EStatus	des		 = complete ? EStatus::Completed : EStatus::Cancelled;
+		const EStatus	des		 = complete ? EStatus::Completed : EStatus::Canceled;
 
 		if ( complete )
 			_actualSize.store( written );
@@ -303,7 +181,7 @@ namespace AE::VFS
 			if_likely( _status.CAS( INOUT exp, des ))
 				break;
 
-			if_likely( AnyEqual( exp, EStatus::Completed, EStatus::Cancelled ))
+			if_likely( AnyEqual( exp, EStatus::Completed, EStatus::Canceled ))
 				break;  // already complete
 		}
 
@@ -348,37 +226,6 @@ namespace AE::VFS
 	{
 		// TODO ?
 		return false;
-	}
-
-/*
-=================================================
-	_GetResult
-=================================================
-*/
-	NetworkStorageClient::NetWriteRequest::ResultWithRC  NetworkStorageClient::NetWriteRequest::_GetResult () __NE___
-	{
-		SHAREDLOCK( _guard );
-		ASSERT( IsFinished() );
-
-		ResultWithRC	res;
-		res.pos			= _pos;
-		res.dataSize	= _actualSize.load();
-		res.data		= null;
-		return res;
-	}
-
-/*
-=================================================
-	AsPromise
-=================================================
-*/
-	RWReqPromise_t  NetworkStorageClient::NetWriteRequest::AsPromise (Threading::ETaskQueue queueType) __NE___
-	{
-		auto	result = MakeDelayedPromise( [self = GetRC<NetWriteRequest>()] () { return self->_GetResult(); }, "AsyncWriteRequest", queueType );
-		if_likely( Scheduler().Run( AsyncTask{result}, Tuple{GetRC()} ))
-			return result;
-		else
-			return Default;
 	}
 
 /*
@@ -456,7 +303,7 @@ namespace AE::VFS
 		AsyncDSRequest	req;
 		if_likely( _ReadBlockImpl( OUT req, pos, data, dataSize, RVRef(mem) ));
 		else
-			req = AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			req = TaskScheduler::GetCanceledDSRequest();
 		return req;
 	}
 
@@ -552,13 +399,8 @@ namespace AE::VFS
 		RC<NetWriteRequest>  req{ &s_NetVFS_Client->_writeResultPool[ idx ]};
 		EXLOCK( req->Guard() );
 
-		auto	task = Scheduler().Run<AsyncWriteBlockTask>(
-							Tuple{	NDSRequestID{ idx, req->Generation() },
-									data,
-									dataSize,
-									pos,
-									RVRef(mem) },
-							Tuple{} );
+		auto	task = Scheduler().Run(
+						_AsyncWriteBlock( NDSRequestID{ idx, req->Generation() }, data, dataSize, pos, RVRef(mem) ));
 
 		if_unlikely( not req->Init( RVRef(task), pos ))
 		{
@@ -587,7 +429,7 @@ namespace AE::VFS
 		AsyncDSRequest	req;
 		if_likely( _WriteBlockImpl( OUT req, pos, data, dataSize, RVRef(mem) ));
 		else
-			req = AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			req = TaskScheduler::GetCanceledDSRequest();
 		return req;
 	}
 
@@ -881,6 +723,113 @@ namespace AE::VFS
 			return ds;
 
 		return null;
+	}
+
+/*
+=================================================
+	_AsyncWriteBlock
+=================================================
+*/
+	AsyncCoro  NetworkStorageClient::_AsyncWriteBlock (NDSRequestID id, const void* data, const Bytes dataSize, const Bytes pos, RC<> memRC) __NE___
+	{
+		const auto	Cancel = [id, pos, &memRC] ()
+		{{
+			AE_LOGW( "failed to write data" );
+
+			memRC = null;
+
+			{
+				Exclusive<NetWriteRequest>	req {s_NetVFS_Client->_GetWriteReq( id )};
+				if_likely( req )
+					req->Failed();
+			}
+
+			auto	msg = s_NetVFS_Client->_CreateMsg< CSMsg_VFS_WriteEnd >();
+			CHECK_ERRV( msg );
+
+			msg->reqId	= id;
+			msg->hash	= HashVal64{0};  // error
+			msg->pos	= pos;
+
+			CHECK( s_NetVFS_Client->_AddMessage( msg ));
+		}};
+		
+		const uint	max_failed		= 1'000;
+		const uint	max_attempts	= 10;
+		const auto	hash			= XXHash64( data, usize(dataSize) );
+
+		Bytes	sent;
+		uint	part_idx	= 0;
+		
+		for (uint fail_cnt = 0; dataSize > sent;)
+		{
+			// is alive
+			{
+				auto	req = s_NetVFS_Client->_GetWriteReq( id );
+				if_unlikely( not req )
+				{
+					Cancel();
+					Coro_Error();  // failed
+				}
+			}
+			
+			if_unlikely( Coro_IsCanceled or fail_cnt > max_failed )
+			{
+				Cancel();
+				Coro_Error();  // failed
+			}
+
+			// write part
+			for (uint i = 0; (i < _maxParts) and (dataSize > sent); ++i)
+			{
+				const Bytes	size	= Min( dataSize - sent, _partSize );
+				auto		msg		= s_NetVFS_Client->_CreateMsgOpt< CSMsg_VFS_WritePart >( size-1 );
+
+				if_unlikely( not msg )
+				{
+					++fail_cnt;
+					break;
+				}
+
+				msg->reqId	= id;
+				msg->size	= size;
+				msg->index	= ushort(part_idx);
+				msg.Put( &CSMsg_VFS_WritePart::data, data + sent, size );
+
+				if_likely( s_NetVFS_Client->_AddMessage( msg ))
+				{
+					sent += size;
+					part_idx ++;
+					continue;
+				}
+			}
+
+			if ( dataSize > sent )
+				Coro_Continue();  // try again after delay
+		}
+
+		ASSERT( dataSize == sent );
+		data	= null;
+		memRC	= null;
+		
+		for (uint attempt = 0; attempt < max_attempts; ++attempt)
+		{
+			// send completion message
+			auto	msg = s_NetVFS_Client->_CreateMsgOpt< CSMsg_VFS_WriteEnd >();
+			if_likely( msg )
+			{
+				msg->reqId	= id;
+				msg->hash	= hash;
+				msg->pos	= pos;
+
+				if_likely( s_NetVFS_Client->_AddMessage( msg ))
+				{
+					co_return;  // complete
+				}
+			}
+		
+			Coro_Continue();  // try again
+		}
 	}
 
 /*

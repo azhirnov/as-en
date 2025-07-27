@@ -32,89 +32,70 @@ namespace
 
 
 	template <typename CtxType>
-	class Db3_DrawTask final : public RenderTask
+	static RenderCoro  Db3_DrawTask (Db3_TestData& t)
 	{
-	public:
-		Db3_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		Db3_DrawTask (Db3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 
-		void  Run () __Th_OV
+		typename CtxType::Transfer	copy_ctx{ RenderCoro_Get() };
+
+		ShaderDebugger::Result	dbg;
+		CHECK_CE( t.debugger.AllocForGraphics( OUT dbg, copy_ctx, t.ppln ));
+
+		typename CtxType::Graphics	ctx{ RenderCoro_Get(), copy_ctx.ReleaseCommandBuffer() };
+
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+
+		// draw
 		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+			constexpr auto&		rtech_pass = RTech.DrawMeshes_1;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( t.viewSize )
+								.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
 
-			typename CtxType::Transfer	copy_ctx{ *this };
+			dctx.BindPipeline( t.ppln );
+			dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
+			dctx.DrawMeshTasks( uint3{1} );
 
-			ShaderDebugger::Result	dbg;
-			CHECK_TE( t.debugger.AllocForGraphics( OUT dbg, copy_ctx, t.ppln ));
-
-			typename CtxType::Graphics	ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
-
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
-
-			// draw
-			{
-				constexpr auto&		rtech_pass = RTech.DrawMeshes_1;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
-
-				dctx.BindPipeline( t.ppln );
-				dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
-				dctx.DrawMeshTasks( uint3{1} );
-
-				ctx.EndRenderPass( dctx );
-			}
-
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
-
-			Execute( ctx );
+			ctx.EndRenderPass( dctx );
 		}
-	};
+
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+
+		RenderCoro_Execute( ctx );
+	}
+
 
 	template <typename Ctx>
-	class Db3_CopyTask final : public RenderTask
+	static RenderCoro  Db3_CopyTask (Db3_TestData& t)
 	{
-	public:
-		Db3_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		Db3_CopyTask (Db3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		Ctx		ctx{ RenderCoro_Get() };
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+		auto	task1 = ctx.ReadbackImage( t.img, Default );
+		auto	task2 = t.debugger.ReadAll( ctx );
+		
+		t.result =
+			[] (auto readOp, auto dbgRes, auto& t) -> InlineCoro<>
+			{
+				auto	res = Coro_WaitResultOrCancel( readOp, dbgRes );
+				auto& [view, trace_str] = res;
 
-			Ctx		ctx{ *this };
+				bool	ok = t.imgCmp->Compare( view );
+				ASSERT( ok );
+				ASSERT( trace_str.size() == 1 );
 
-			auto	task1 = ctx.ReadbackImage( t.img, Default );
-			auto	task2 = t.debugger.ReadAll( ctx );
-
-			t.result = AsyncTask{ MakePromiseFrom( task1.readOp, task2 )
-				.Then( [p = &t] (const Tuple<ImageMemView, Array<String>> &view_and_str)
+				if ( trace_str.size() == 1 )
 				{
-					bool	ok = p->imgCmp->Compare( view_and_str.Get<ImageMemView>() );
-					ASSERT( ok );
-
-					Array<String>	trace_str = view_and_str.Get<Array<String>>();
-					ASSERT( trace_str.size() == 1 );
-
-					if ( trace_str.size() == 1 )
-					{
-						const StringView	ms_ref_str =
+					const StringView	ms_ref_str =
 R"(//> gl_GlobalInvocationID: uint3 {0, 0, 0}
 //> gl_LocalInvocationID: uint3 {0, 0, 0}
 //> gl_WorkGroupID: uint3 {0, 0, 0}
@@ -136,20 +117,19 @@ no source
 34. 			SetMeshOutputsEXT( 3, 1 );
 
 )";
-						ok &= (trace_str[0] == ms_ref_str);
-						ASSERT( ok );
+					ok &= (trace_str[0] == ms_ref_str);
+					ASSERT( ok );
 
-						p->isOK = ok;
-					}
-				})};
+					t.isOK = ok;
+				}
+			}( task1.readOp, task2, t );
+		
+		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
+		RenderCoro_Execute( ctx );
 
-			Execute( ctx );
-
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
-		}
-	};
+		GraphicsScheduler().AddNextCycleEndDeps( t.result );
+	}
 
 
 	template <typename CtxType, typename CopyCtx>
@@ -185,19 +165,19 @@ no source
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Debugger3"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Run< Db3_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},					 {"Draw mesh task"} );
-		AsyncTask	task2	= batch->Run< Db3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+		AsyncTask	task1	= batch->Run( Db3_DrawTask<CtxType>(t), Tuple{},					{"Draw mesh task"} );
+		AsyncTask	task2	= batch->Run( Db3_CopyTask<CopyCtx>(t), Tuple{task1}, True{"Last"}, {"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
+		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK );
 		return true;

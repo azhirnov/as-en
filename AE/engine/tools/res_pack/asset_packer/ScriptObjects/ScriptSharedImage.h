@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ScriptObjects/ScriptTexture.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptTexture.h"
 
 namespace AE::AssetPacker
 {

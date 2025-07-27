@@ -8,7 +8,7 @@ namespace AE::Graphics
 	using namespace AE::AssetPacker;
 
 namespace {
-#	include "Packer/ImagePacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
 }
 
 /*
@@ -29,10 +29,11 @@ namespace {
 */
 	Promise<RC<LoadableImage>>  LoadableImage::GetWhenUploadComplete () __NE___
 	{
-		return MakePromiseFromValue( GetRC<LoadableImage>(),
-									 Tuple{OnUploadComplete()},
-									 "GetWhenUploadComplete",
-									 ETaskQueue::Background );
+		return Scheduler().Run(
+					ETaskQueue::Background,
+					DeferResult< RC<LoadableImage> >( GetRC<LoadableImage>() ),
+					Tuple{OnUploadComplete()}
+				);
 	}
 
 /*
@@ -60,30 +61,19 @@ namespace {
 
 /*
 =================================================
-	Loader::OnUploadCompleteTask
+	Loader::_OnUploadComplete
 =================================================
 */
-	class LoadableImage::Loader::OnUploadCompleteTask final : public Threading::IAsyncTask
+	AsyncCoro  LoadableImage::Loader::_OnUploadComplete (RC<LoadableImage> image) __NE___
 	{
-	private:
-		RC<LoadableImage>	_image;
+		auto	upload	= image->_uploadResult.release();
+		bool	ok		= upload ? upload->IsCompleted() : true;
 
-	public:
-		OnUploadCompleteTask (RC<LoadableImage> img) __NE___ : IAsyncTask{ ETaskQueue::Background }, _image{RVRef(img)} {}
+		image->_SetLoadingStatus( ok ? ELoadingStatus::Complete : ELoadingStatus::Failed );
+		image = null;
 
-		void  Run () __Th_OV
-		{
-			auto	upload	= _image->_uploadResult.release();
-			bool	ok		= upload ? upload->IsCompleted() : true;
-
-			_image->_SetLoadingStatus( ok ? ELoadingStatus::Complete : ELoadingStatus::Failed );
-			_image = null;
-		}
-
-		DEBUG_ONLY( void  OnCancel ()	__NE_OV { DBG_WARNING("should never happens"); })
-
-		StringView  DbgName ()			C_NE_OV { return "on image loading complete"; }
-	};
+		co_return;
+	}
 
 /*
 =================================================
@@ -129,8 +119,7 @@ namespace {
 
 		image->_SetLoadingStatus( ELoadingStatus::Uploading );
 
-		Scheduler().Run<OnUploadCompleteTask>( Tuple{image}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
-
+		Scheduler().Run( _OnUploadComplete( image ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
 		return image;
 	}
 
@@ -187,8 +176,7 @@ namespace {
 
 		image->_SetLoadingStatus( ELoadingStatus::Uploading );
 
-		Scheduler().Run<OnUploadCompleteTask>( Tuple{image}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
-
+		Scheduler().Run( _OnUploadComplete( image ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
 		return image;
 	}
 

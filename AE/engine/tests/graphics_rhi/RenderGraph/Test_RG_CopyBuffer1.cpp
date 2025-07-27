@@ -18,41 +18,32 @@ namespace
 
 
 	template <typename Ctx>
-	class CB1_CopyBufferTask final : public RenderTask
+	static RenderCoro  CB1_CopyBufferTask (CB1_TestData& t)
 	{
-	public:
-		CB1_TestData&	t;
+		Ctx		ctx{ RenderCoro_Get() };
 
-		CB1_CopyBufferTask (CB1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		CHECK_CE( ctx.UpdateHostBuffer( t.buf_1, 0_b, t.buffer_data ));
 
-		void  Run () __Th_OV
-		{
-			Ctx		ctx{ *this };
+		ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }});
 
-			CHECK_TE( ctx.UpdateHostBuffer( t.buf_1, 0_b, t.buffer_data ));
+		ctx.AccumBarriers()
+			.BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::CopySrc );
 
-			ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }});
+		auto	read_res = ctx.ReadbackBuffer( t.buf_2, ReadbackBufferDesc{}.DataSize( t.buf_size ));
+		CHECK_CE( read_res.IsCompleted() );
+		
+		t.result = read_res.Then( t,
+						[] (Promise<BufferMemView> readRes, CoSafe<CB1_TestData&> t) -> InlineCoro<>
+						{
+							BufferMemView view = co_await readRes;
+							t->isOK = (view == ArrayView<ubyte>{ t->buffer_data });
+						});
+		
+		ctx.AccumBarriers()
+			.MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-			ctx.AccumBarriers()
-				.BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::CopySrc );
-
-			auto	read_res = ctx.ReadbackBuffer( t.buf_2, ReadbackBufferDesc{}.DataSize( t.buf_size ));
-			CHECK_TE( read_res.IsCompleted() );
-
-			t.result = AsyncTask{ read_res.Then( [p = &t] (const BufferMemView &view)
-								{
-									p->isOK = (view == ArrayView<ubyte>{ p->buffer_data });
-								})};
-
-			ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename Ctx>
@@ -90,17 +81,17 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"CopyBuffer1"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Run< CB1_CopyBufferTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{}, True{"Last"}, {"Copy buffer task"} );
+		AsyncTask	task1	= batch->Run( CB1_CopyBufferTask<Ctx>(t), Tuple{}, True{"Last"}, {"Copy buffer task"} );
 		AsyncTask	end		= rts.EndFrame( Tuple{task1} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
+		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK );
 		return true;

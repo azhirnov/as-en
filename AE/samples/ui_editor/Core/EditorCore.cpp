@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ui_editor/Core/EditorCore.h"
+#include "Core/EditorCore.h"
 
-#include "ui_editor/_ui_data/cpp/types.h"
+#include "_ui_data/cpp/types.h"
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -72,7 +72,7 @@ namespace
 	//
 	// Draw Task
 	//
-	class UIEditorCore::ImGuiDrawTask final : public RenderTask
+	class UIEditorCore::ImGuiDrawTask final : public EnableRC<ImGuiDrawTask>
 	{
 	// variables
 	private:
@@ -87,17 +87,18 @@ namespace
 
 	// methods
 	public:
-		ImGuiDrawTask (UIEditorCore* core, Ptr<IOutputSurface> surf, RC<UIScreen> screen, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ batch, {"ImGui::Draw", HtmlColor::Aqua} },
+		static RenderCoro  Run (UIEditorCore* core, Ptr<IOutputSurface> surf, RC<UIScreen> screen);
+
+		ImGuiDrawTask (UIEditorCore* core, Ptr<IOutputSurface> surf, RC<UIScreen> screen) __NE___ :
 			core{ core }, surface{ *surf },
 			ui{ core->_imguiSync.WriteNoLock() },
 			isFirst{ screen == null },
 			uiScreen{ RVRef(screen) }
 		{}
 
-		void  Run () __Th_OV;
-
 	private:
+		RenderCoro  _Execute (RC<ImGuiDrawTask>);
+
 		void  _Update ();
 		void  _UpdateMain (OUT float2 &wnd_pos);
 		void  _UpdateEditorTab ();
@@ -110,43 +111,56 @@ namespace
 			ImGui::PushStyleColor( idx, AE::Base::BitCast<ImU32>(color) );
 		}
 	};
-
+	
 /*
 =================================================
 	ImGuiDrawTask::Run
 =================================================
 */
-	void  UIEditorCore::ImGuiDrawTask::Run ()
+	RenderCoro  UIEditorCore::ImGuiDrawTask::Run (UIEditorCore* core, Ptr<IOutputSurface> surf, RC<UIScreen> screen)
+	{
+		auto task = MakeRC<ImGuiDrawTask>( core, surf, screen );
+		return task->_Execute( task );
+	}
+
+/*
+=================================================
+	ImGuiDrawTask::_Execute
+=================================================
+*/
+	RenderCoro  UIEditorCore::ImGuiDrawTask::_Execute (RC<ImGuiDrawTask>)
 	{
 		EXLOCK( ui );
 		core->_CheckScriptDir( ui->scriptDir );
+		
+		auto	rtask = RenderCoro_Get();
 
-		DirectCtx::Transfer		copy_ctx {*this};
-		CHECK_TE( ui->imgui.Upload( copy_ctx.GetBaseContext() ));
+		DirectCtx::Transfer		copy_ctx {rtask};
+		CHECK_CE( ui->imgui.Upload( copy_ctx.GetBaseContext() ));
 
 		IOutputSurface::RenderTargets_t		targets;
-		CHECK_TE( surface.GetTargets( OUT targets ));
+		CHECK_CE( surface.GetTargets( OUT targets ));
 
 		const auto&		rt = targets[0];
 
-		DirectCtx::Graphics		gfx_ctx { *this, copy_ctx.ReleaseCommandBuffer() };
+		DirectCtx::Graphics		gfx_ctx { rtask, copy_ctx.ReleaseCommandBuffer() };
 		{
 			gfx_ctx.AddSurfaceTargets( targets );
 
 			auto	draw_ctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *ui->rtech, RTech.Main, rt.RegionSize() }
 										.AddViewport( rt.RegionSize() )
 										.AddTarget( RTech.Main.att_Color, rt.viewId, (isFirst ? EResourceState::Invalidate : Default), Default ),
-									{DbgName(), DbgColor()} );
+									DebugLabel{ rtask.DbgName(), rtask.DbgColor() });
 
 			if ( isFirst )
 				draw_ctx.ClearAttachment( RTech.Main.att_Color, RGBA32f{0.f}, rt.region, rt.layer, 1 );
 
-			CHECK_TE( ui->imgui.Render( draw_ctx.GetBaseContext(), rt, [this](){ _Update(); }));
+			CHECK_CE( ui->imgui.Render( draw_ctx.GetBaseContext(), rt, [this](){ _Update(); }));
 
 			gfx_ctx.EndRenderPass( draw_ctx );
 		}
 
-		Execute( gfx_ctx );
+		RenderCoro_Execute( gfx_ctx );
 	}
 
 /*
@@ -276,7 +290,7 @@ namespace
 
 		Scheduler().Run(
 			ETaskQueue::Background,
-			[] (RC<UIEditorCore> core, Path inPath) -> CoroTask
+			[] (RC<UIEditorCore> core, Path inPath) -> AsyncCoro
 			{
 				Unused( core->RunUIScriptAsync( inPath ));
 				co_return;
@@ -661,8 +675,8 @@ namespace
 			AsyncTask	draw_ui;
 			if ( input->GetMode() == IA )
 			{
-				draw_ui = batch.Task< ImGuiDrawTask >( Tuple{ this, output, _uiScreen }, {"EditorUI pass"} )
-									.Run( Tuple{surf_acquire, proc_input} );
+				draw_ui = batch.Task( ImGuiDrawTask::Run( this, output, _uiScreen ), {"EditorUI pass"} )
+								.Run( Tuple{surf_acquire, proc_input} );
 			}
 			submit = batch.SubmitAsTask( Tuple{ draw_ui, draw_screen, upload });
 		}
@@ -677,7 +691,7 @@ namespace
 	_ProcessInput
 =================================================
 */
-	CoroTask  UIEditorCore::_ProcessInput1 (TsInputActions input, RC<UIScreen> ui, ActionQueueReader reader)
+	AsyncCoro  UIEditorCore::_ProcessInput1 (TsInputActions input, RC<UIScreen> ui, ActionQueueReader reader)
 	{
 		bool	switch_mode = false;
 		ui->ProcessInput( reader, OUT switch_mode );
@@ -691,7 +705,7 @@ namespace
 		co_return;
 	}
 
-	CoroTask  UIEditorCore::_ProcessInput2 (TsInputActions input, RC<UIEditorCore> core, ActionQueueReader reader)
+	AsyncCoro  UIEditorCore::_ProcessInput2 (TsInputActions input, RC<UIEditorCore> core, ActionQueueReader reader)
 	{
 		auto	ui_sync		= core->_imguiSync.WriteLock();
 		auto&	imgui		= ui_sync->imgui;
@@ -739,7 +753,7 @@ namespace
 	_SetInputMode
 =================================================
 */
-	CoroTask  UIEditorCore::_SetInputMode (Ptr<IInputActions> input, InputModeName mode)
+	AsyncCoro  UIEditorCore::_SetInputMode (Ptr<IInputActions> input, InputModeName mode)
 	{
 		CHECK( input->SetMode( mode ));
 		co_return;

@@ -2,11 +2,13 @@
 
 #pragma once
 
-#include "networking/Networking.pch.h"
+#include "pch/Threading.h"
 
 namespace AE::Networking
 {
 	using namespace AE::Base;
+
+	ImportBitOperators;
 
 
 	//

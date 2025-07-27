@@ -27,8 +27,8 @@ namespace AE::Graphics
 		RSampler ()														__NE___	{}
 		~RSampler ()													__NE___;
 
-		ND_ bool  Create (const RResourceManager &, RmSamplerID id)		__NE___;
-			void  Destroy (RResourceManager &)							__NE___;
+		ND_ bool  Create (const ResourceManager &, RmSamplerID id)		__NE___;
+			void  Destroy (ResourceManager &)							__NE___;
 
 		ND_ RmSamplerID					Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sampId; }
 		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()					C_NE___	{ return Default; })

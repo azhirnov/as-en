@@ -146,7 +146,7 @@ namespace AE::Graphics
 		ND_ bool  _AllocStorage (Bytes size, INOUT Result &result);
 		ND_ bool  _InitDS (const Result &info) const;
 
-		ND_ static Array<String>  _Parse (ArrayView<ubyte> view, const void* ppln, ParseTraceFn_t fn, ELogFormat format);
+		ND_ static InlinePromise<Array<String>>  _Parse (Promise<ArrayView<ubyte>>, CoSafe<const void*> ppln, ParseTraceFn_t fn, ELogFormat format);
 
 		ND_ static Promise<Array<String>>  _Merge (Array<Promise<Array<String>>> tasks);
 	};

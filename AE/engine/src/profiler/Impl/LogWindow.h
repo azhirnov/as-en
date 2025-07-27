@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "profiler/Profiler.pch.h"
+#include "profiler/Common.h"
 
 namespace AE::Profiler
 {

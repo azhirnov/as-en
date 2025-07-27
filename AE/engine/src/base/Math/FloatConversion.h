@@ -30,6 +30,8 @@ namespace AE::Base
 
 			Floor		= CheckNanInf | CheckOverflow | Normalize | AllowDenorm,
 			Round		= Floor | RoundToNearest,
+
+			_BITOPS_
 		};
 
 
@@ -61,8 +63,6 @@ namespace AE::Base
 		template <typename Bits>
 		__Cx__ static Bits	Next (Bits x)											__NE___;	// x + ulp
 	};
-
-	AE_BIT_OPERATORS( FloatConversion::EMode );
 //-----------------------------------------------------------------------------
 
 

@@ -27,7 +27,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit RASBuildContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___;
+		explicit RASBuildContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
 
 		RASBuildContext ()																							= delete;
 		RASBuildContext (const RASBuildContext &)																	= delete;
@@ -114,12 +114,16 @@ namespace AE::Graphics
 		WriteProperty( property, as.Handle(), buffers[0].bufferHandle, buffers[0].bufferOffset, size );
 
 		const void*	ptr = _ReadbackAlloc( buffers[0].devicePtr, size );
-
-		return Threading::MakePromise(	[ptr] () { return *Cast<Bytes>(ptr); },
-										Tuple{ this->_mngr.GetBatchRC() },
-										"RASBuildContext::ReadProperty",
-										ETaskQueue::PerFrame
-									 );
+		
+		return Scheduler().Run(
+					ETaskQueue::PerFrame,
+					[](auto ptr) -> Promise<Bytes>
+					{
+						co_return *Cast<Bytes>(ptr);
+					}( ptr ),
+					Tuple{ this->_mngr.GetBatchRC() },
+					"RASBuildContext::ReadProperty"
+				);
 	}
 
 } // AE::Graphics

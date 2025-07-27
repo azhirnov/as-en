@@ -50,7 +50,6 @@ namespace AE::Graphics
 		All								= ((_Last - 1) << 1) - 1,
 		Unknown							= 0,
 	};
-	AE_BIT_OPERATORS( EPipelineOpt );
 
 
 
@@ -68,7 +67,6 @@ namespace AE::Graphics
 		_Last,
 		All				= ((_Last - 1) << 1) - 1,
 	};
-	AE_BIT_OPERATORS( EPipelinePackOpt );
 
 
 

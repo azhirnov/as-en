@@ -64,7 +64,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VMemoryObject::Destroy (VResourceManager &) __NE___
+	void  VMemoryObject::Destroy (ResourceManager &) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

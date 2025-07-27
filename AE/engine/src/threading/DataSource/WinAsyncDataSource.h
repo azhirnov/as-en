@@ -39,7 +39,7 @@ namespace AE::Threading
 		//
 		// Request Base
 		//
-		class _RequestBase : public Threading::_hidden_::IAsyncDataSourceRequest
+		class _RequestBase : public _Coro_::IAsyncDataSourceRequest
 		{
 		// variables
 		protected:
@@ -79,17 +79,14 @@ namespace AE::Threading
 		// methods
 		public:
 			// IAsyncDataSourceRequest //
-			Result		GetResult ()					C_NE_OV;
-			bool		Cancel ()						__NE_OV;
-			Promise_t	AsPromise (ETaskQueue)			__NE_OV;
+			Result		GetResult ()				C_NE_OV;
+			bool		Cancel ()					__NE_OV;
 
 		private:
 			friend class AsyncRDataSourceApi;
 			ND_ bool  _Create (RC<WinAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___;
 
-			ND_ ResultWithRC  _GetResult ()				__NE___;
-
-				void  _ReleaseObject ()					__NE_OV;
+				void  _ReleaseObject ()				__NE_OV;
 		};
 
 
@@ -108,17 +105,14 @@ namespace AE::Threading
 		// methods
 		public:
 			// IAsyncDataSourceRequest //
-			Result		GetResult ()					C_NE_OV;
-			bool		Cancel ()						__NE_OV;
-			Promise_t	AsPromise (ETaskQueue)			__NE_OV;
+			Result		GetResult ()				C_NE_OV;
+			bool		Cancel ()					__NE_OV;
 
 		private:
 			friend class AsyncWDataSourceApi;
 			ND_ bool  _Create (RC<WinAsyncWDataSource> file, Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___;
 
-			ND_ ResultWithRC  _GetResult ()				__NE___;
-
-				void  _ReleaseObject ()					__NE_OV;
+				void  _ReleaseObject ()				__NE_OV;
 		};
 
 

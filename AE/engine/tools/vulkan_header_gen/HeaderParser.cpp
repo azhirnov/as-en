@@ -641,7 +641,8 @@ namespace AE::Vulkan
 		const VkHeaderFile  file_names[] = {
 			{ "vulkan_core.h",			{ "VK_NO_PROTOTYPES" },		{ "VULKAN_CORE_H_",			"__cplusplus" },	false },
 			{ "vulkan_beta.h",			{ "VK_NO_PROTOTYPES" },		{ "VULKAN_BETA_H_",			"__cplusplus" },	false },
-			{ "vulkan_android.h",		{ "VK_NO_PROTOTYPES" },		{ "VULKAN_ANDROID_H_",		"__cplusplus" },	false }
+			{ "vulkan_android.h",		{ "VK_NO_PROTOTYPES" },		{ "VULKAN_ANDROID_H_",		"__cplusplus" },	false },
+			{ "vulkan_win32.h",			{ "VK_NO_PROTOTYPES" },		{ "VULKAN_WIN32_H_",		"__cplusplus" },	false },
 			/*,
 			{ "vulkan_fuchsia.h",		{ "VK_NO_PROTOTYPES" },		{ "VULKAN_FUCHSIA_H_",		"__cplusplus" },	false },
 			{ "vulkan_ios.h",			{ "VK_NO_PROTOTYPES" },		{ "VULKAN_IOS_H_",			"__cplusplus" },	false },
@@ -649,7 +650,6 @@ namespace AE::Vulkan
 			{ "vulkan_metal.h",			{ "VK_NO_PROTOTYPES" },		{ "VULKAN_METAL_H_",		"__cplusplus" },	false },
 			{ "vulkan_vi.h",			{ "VK_NO_PROTOTYPES" },		{ "VULKAN_VI_H_",			"__cplusplus" },	false },
 			{ "vulkan_wayland.h",		{ "VK_NO_PROTOTYPES" },		{ "VULKAN_WAYLAND_H_",		"__cplusplus" },	false },
-			{ "vulkan_win32.h",			{ "VK_NO_PROTOTYPES" },		{ "VULKAN_WIN32_H_",		"__cplusplus" },	false },
 			{ "vulkan_xcb.h",			{ "VK_NO_PROTOTYPES" },		{ "VULKAN_XCB_H_",			"__cplusplus" },	false },
 			{ "vulkan_xlib.h",			{ "VK_NO_PROTOTYPES" },		{ "VULKAN_XLIB_H_",			"__cplusplus" },	false },
 			{ "vulkan_directfb.h",		{ "VK_NO_PROTOTYPES" },		{ "VULKAN_DIRECTFB_H_",		"__cplusplus" },	false },

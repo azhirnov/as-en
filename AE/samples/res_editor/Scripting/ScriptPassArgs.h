@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptCommon.h"
-#include "res_editor/Scripting/ScriptBuffer.h"
-#include "res_editor/Scripting/ScriptImage.h"
-#include "res_editor/Scripting/ScriptVideoImage.h"
-#include "res_editor/Scripting/ScriptRTScene.h"
-#include "res_editor/Passes/IPass.h"
+#include "Scripting/ScriptCommon.h"
+#include "Scripting/ScriptBuffer.h"
+#include "Scripting/ScriptImage.h"
+#include "Scripting/ScriptVideoImage.h"
+#include "Scripting/ScriptRTScene.h"
+#include "Passes/IPass.h"
 
 namespace AE::ResEditor
 {

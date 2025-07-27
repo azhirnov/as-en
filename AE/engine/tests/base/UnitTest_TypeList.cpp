@@ -250,5 +250,12 @@ extern void UnitTest_TypeList ()
 		StaticAssert(( IsSame< TL2, TypeList< ulong, char, int, float > >));
 	}
 
+	// TypeListFill
+	{
+		using TL1 = TypeListFill< int, 4 >;
+		using TL2 = TypeList< int, int, int, int >;
+		StaticAssert( IsSame< TL1, TL2 >);
+	}
+
 	TEST_PASSED();
 }

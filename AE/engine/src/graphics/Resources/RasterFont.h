@@ -5,8 +5,6 @@
 #include "graphics/Resources/LoadableImage.h"
 #include "graphics/Resources/FormattedText.h"
 
-#include "AssetPackerImpl.h"
-
 namespace AE::Graphics
 {
 
@@ -37,7 +35,7 @@ namespace AE::Graphics
 			ND_ static Promise<RC<RasterFont>>  LoadAsync (Serializing::Deserializer &des, ResourceCache&, CachedResourceName::Ref selfName = Default) __NE___;
 
 		private:
-			class OnUploadCompleteTask;
+			ND_ static AsyncCoro  _OnUploadComplete (RC<RasterFont>, ResourceUploadManager::UploadResult) __NE___;
 			ND_ static bool  _Load (Serializing::Deserializer &des, ResourceCache&, CachedResourceName::Ref selfName,
 									OUT RC<RasterFont> &, OUT ResourceUploadManager::UploadResult *) __NE___;
 		};

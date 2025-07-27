@@ -2,13 +2,20 @@
 
 #pragma once
 
-#include "graphics_rhi/GraphicsRHI.pch.h"
+#include "pch/Serializing.h"
+#include "pch/Threading.h"
+
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+# include "pch/Networking.h"
+#endif
 
 namespace AE::Graphics
 {
 	using namespace AE::Base;
 
-	using AE::Threading::Promise;
+	ImportBitOperators;
+	using namespace AE::ImportCoroutines;
+
 	using AE::Threading::Atomic;
 	using AE::Threading::AtomicBytes;
 	using AE::Threading::DeferExLock;
@@ -17,15 +24,10 @@ namespace AE::Graphics
 	using AE::Threading::MemoryBarrier;
 	using AE::Threading::Synchronized;
 	using AE::Threading::EThreadArray;
-	using AE::Threading::ETaskQueue;
-	using AE::Threading::AsyncTask;
 
 	#if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::RWDataRaceCheck;
 	#endif
-
-	class RenderTask;
-	class DrawTask;
 
 	using ImageDim_t		= packed_ushort3;
 	using ImageDim2_t		= packed_ushort2;
@@ -121,6 +123,18 @@ namespace AE::Graphics
 
 		ND_ explicit operator bool ()							C_NE___	{ return not label.empty(); }
 	};
+
+	
+	
+	class ResourceManager;
+	class RenderTaskScheduler;
+	class DescriptorUpdater;
+
+	class CommandBatch;
+	using CommandBatchPtr		= RC< CommandBatch >;
+	
+	class DrawCommandBatch;
+	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
 
 
 } // AE::Graphics

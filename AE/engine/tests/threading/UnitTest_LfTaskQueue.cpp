@@ -3,23 +3,40 @@
 #include "UnitTest_Common.h"
 #include "threading/TaskSystem/LfTaskQueue.h"
 
-#ifndef AE_DISABLE_THREADS
 namespace
 {
-	class DummyTask final : public IAsyncTask
+	class DummyTask final : public _Coro_::AsyncTaskImpl
 	{
 	public:
-		DummyTask (uint id) __NE___ : IAsyncTask{ETaskQueue::PerFrame}
+		DummyTask ()
 		{
-			Unused( id );
 			_DbgSet( EStatus::Pending );
 		}
 
-		void  Run () __Th_OV
-		{}
-
-		StringView  DbgName () C_NE_OV { return "DummyTask"; }
+		ND_ auto		get_return_object ();
+		ND_ static auto	get_return_object_on_allocation_failure ();
+			void		return_void () {}
+		ND_ auto		initial_suspend ()	const	{ return std::suspend_always{}; }	// delayed start
 	};
+
+	struct DummyCoro
+	{
+		using promise_type = DummyTask;
+
+		RC<DummyTask>	_coro;
+
+		DummyCoro () {}
+		explicit DummyCoro (DummyTask &p)								: _coro{ p.GetRC<DummyTask>() } {}
+		explicit DummyCoro (std::coroutine_handle<DummyTask> handle)	: _coro{ handle.promise().GetRC<DummyTask>() } {}
+		
+		operator AsyncTask ()											{ return _coro; }
+	};
+
+	auto  DummyTask::get_return_object ()						{ return DummyCoro{*this}; }
+	auto  DummyTask::get_return_object_on_allocation_failure ()	{ return DummyCoro{}; }
+
+	static DummyCoro  CreateTask (uint i)	{ co_return; }
+//-----------------------------------------------------------------------------
 
 
 	static void  LfTaskQueue_Test1 ()
@@ -31,7 +48,7 @@ namespace
 		const auto		seed	= scheduler->GetDefaultSeed();
 
 		for (uint i = 0; i < count; ++i) {
-			q.Add( MakeRC<DummyTask>( i ), seed );
+			q.Add( CreateTask( i ), seed );
 		}
 
 		for (; q.Process( seed );) {}
@@ -59,7 +76,7 @@ namespace
 						const uint	count = (tid & 0xF) * 10;
 
 						for (uint i = 0; i < count; ++i) {
-							q.Add( MakeRC<DummyTask>( i ), seed );
+							q.Add( CreateTask( i ), seed );
 						}
 
 						for (uint i = 0; i < 100; ++i) {
@@ -87,10 +104,3 @@ extern void UnitTest_LfTaskQueue ()
 
 	TEST_PASSED();
 }
-
-#else
-
-extern void UnitTest_LfTaskQueue ()
-{}
-
-#endif

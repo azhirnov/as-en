@@ -8,8 +8,8 @@ namespace AE::Graphics::_hidden_
 namespace
 {
 	using ClearValues_t = StaticArray< VkClearValue, GraphicsConfig::MaxAttachments >;
-	using Viewports_t	= VDrawCommandBatch::Viewports_t;
-	using Scissors_t	= VDrawCommandBatch::Scissors_t;
+	using Viewports_t	= DrawCommandBatch::Viewports_t;
+	using Scissors_t	= DrawCommandBatch::Scissors_t;
 
 /*
 =================================================
@@ -98,7 +98,7 @@ namespace
 =================================================
 */
 	void  ConvertViewports (ArrayView<Viewport> inViewports, ArrayView<RectI> inScissors, const int2 &areaSize,
-							OUT VDrawCommandBatch::Viewports_t &outViewports, OUT VDrawCommandBatch::Scissors_t &outScissors) __NE___
+							OUT DrawCommandBatch::Viewports_t &outViewports, OUT DrawCommandBatch::Scissors_t &outScissors) __NE___
 	{
 		ASSERT( inScissors.empty() or inScissors.size() == inViewports.size() );
 
@@ -143,12 +143,12 @@ namespace
 	_BeginFirstAsyncPass
 =================================================
 */
-	RC<VDrawCommandBatch>  _VDirectGraphicsCtx::_BeginFirstAsyncPass (const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc, DebugLabel dbg)
+	RC<DrawCommandBatch>  _VDirectGraphicsCtx::_BeginFirstAsyncPass (const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc, DebugLabel dbg)
 	{
 		return RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch( GraphicsScheduler(), primaryState, desc, dbg );
 	}
 
-	RC<VDrawCommandBatch>  _VDirectGraphicsCtx::_BeginNextAsyncPass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg)
+	RC<DrawCommandBatch>  _VDirectGraphicsCtx::_BeginNextAsyncPass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg)
 	{
 		return RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch( GraphicsScheduler(), prevPassBatch, dbg );
 	}
@@ -243,12 +243,12 @@ namespace
 	_BeginFirstAsyncPass
 =================================================
 */
-	RC<VDrawCommandBatch>  _VIndirectGraphicsCtx::_BeginFirstAsyncPass (const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc, DebugLabel dbg)
+	RC<DrawCommandBatch>  _VIndirectGraphicsCtx::_BeginFirstAsyncPass (const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc, DebugLabel dbg)
 	{
 		return RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch( GraphicsScheduler(), primaryState, desc, dbg );
 	}
 
-	RC<VDrawCommandBatch>  _VIndirectGraphicsCtx::_BeginNextAsyncPass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg)
+	RC<DrawCommandBatch>  _VIndirectGraphicsCtx::_BeginNextAsyncPass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg)
 	{
 		return RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch( GraphicsScheduler(), prevPassBatch, dbg );
 	}

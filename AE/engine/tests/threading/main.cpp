@@ -3,13 +3,14 @@
 #include "UnitTest_Common.h"
 
 extern void UnitTest_AsyncMutex ();
-extern void UnitTest_SyncPoint ();
+extern void UnitTest_AsyncDataSource (const Path &curr);
 extern void UnitTest_Barrier ();
-extern void UnitTest_Coroutine ();
 extern void UnitTest_Promise ();
 extern void UnitTest_Semaphore ();
-extern void UnitTest_TaskDeps ();
-extern void UnitTest_TaskUsage ();
+extern void UnitTest_SyncPoint ();
+extern void UnitTest_SpinLock ();
+extern void UnitTest_Synchronized ();
+extern void UnitTest_Task ();
 
 extern void UnitTest_LfChunkList ();
 extern void UnitTest_LfIndexedPool ();
@@ -21,10 +22,6 @@ extern void UnitTest_LfFixedBlockAllocator3 ();
 extern void UnitTest_LfLinearAllocator ();
 extern void UnitTest_LfStaticBlockAllocator ();
 
-extern void UnitTest_SpinLock ();
-extern void UnitTest_Synchronized ();
-
-extern void UnitTest_AsyncDataSource (const Path &curr);
 extern void UnitTest_TsSharedMem ();
 
 
@@ -35,7 +32,9 @@ int main (const int argc, char* argv[])
 #endif
 {
 	BEGIN_TEST();
-
+	
+	UnitTest_Task();
+	UnitTest_Promise();
 	UnitTest_AsyncDataSource( curr );
 
 	UnitTest_TsSharedMem();
@@ -55,12 +54,8 @@ int main (const int argc, char* argv[])
 	UnitTest_Barrier();
 	UnitTest_Semaphore();
 
-	UnitTest_TaskDeps();
-	UnitTest_TaskUsage();
 	UnitTest_AsyncMutex();
 	UnitTest_SyncPoint();
-	UnitTest_Promise();
-	UnitTest_Coroutine();
 
 	AE_LOGI( "Tests.Threading finished" );
 	return 0;

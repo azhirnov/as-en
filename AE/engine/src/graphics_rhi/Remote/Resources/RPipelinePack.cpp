@@ -9,7 +9,7 @@
 # ifdef AE_ENABLE_GLSL_TRACE
 #	include "ShaderTrace.h"
 # else
-#	include "Packer/ShaderTraceDummy.h"
+#	include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 # endif
 
 namespace AE::PipelineCompiler
@@ -45,7 +45,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RPipelinePack::RenderTech::Create (RResourceManager &resMngr, const RemoteGraphics::Msg::ResMngr_LoadRenderTech_Response &inMsg) __NE___
+	bool  RPipelinePack::RenderTech::Create (ResourceManager &resMngr, const RemoteGraphics::Msg::ResMngr_LoadRenderTech_Response &inMsg) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _rtechId );
@@ -141,6 +141,7 @@ namespace AE::Graphics
 				}
 
 				case PipelineSpecUID::_Mask :
+				case PipelineSpecUID::_BITOPS_ :
 				case PipelineSpecUID::Unknown :
 				default_unlikely :					break;
 			}
@@ -167,7 +168,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RPipelinePack::RenderTech::Destroy (RResourceManager &resMngr) __NE___
+	void  RPipelinePack::RenderTech::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -181,6 +182,7 @@ namespace AE::Graphics
 				case PipelineSpecUID::RayTracing :	{ Strong<RayTracingPipelineID>	id {info.Cast<RayTracingPipelineID>()};	resMngr.ImmediatelyRelease( INOUT id );		break; }
 				case PipelineSpecUID::Tile :		{ Strong<TilePipelineID>		id {info.Cast<TilePipelineID>()};		resMngr.ImmediatelyRelease( INOUT id );		break; }
 				case PipelineSpecUID::_Mask :
+				case PipelineSpecUID::_BITOPS_ :
 				case PipelineSpecUID::Unknown :
 				default_unlikely :					DBG_WARNING( "unknown pipeline type" ); break;
 			}
@@ -230,7 +232,8 @@ namespace AE::Graphics
 			case PipelineSpecUID::Compute :		"Available compute pipelines:\n"	 >> str;	break;
 			case PipelineSpecUID::RayTracing :	"Available ray tracing pipelines:\n" >> str;	break;
 			case PipelineSpecUID::Tile :		"Available tile pipelines:\n"		 >> str;	break;
-			case PipelineSpecUID::_Mask :		break;
+			case PipelineSpecUID::_Mask :
+			case PipelineSpecUID::_BITOPS_ :
 			case PipelineSpecUID::Unknown :		break;
 		}
 		switch_end
@@ -450,7 +453,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RPipelinePack::Create (RResourceManager &resMngr, const PipelinePackDesc &desc, PipelinePackID selfId) __NE___
+	bool  RPipelinePack::Create (ResourceManager &resMngr, const PipelinePackDesc &desc, PipelinePackID selfId) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( desc.stream );
@@ -527,7 +530,7 @@ namespace AE::Graphics
 	_LoadPipelineBlock
 =================================================
 */
-	bool  RPipelinePack::_LoadPipelineBlock (RResourceManager &resMngr, const PipelinePackDesc &desc,
+	bool  RPipelinePack::_LoadPipelineBlock (ResourceManager &resMngr, const PipelinePackDesc &desc,
 											 ArrayView<RmDescriptorSetLayoutID> rmDSLayouts,
 											 ArrayView<RmPipelineLayoutID> pplnLayouts,
 											 const Bytes baseOffset) __NE___
@@ -583,7 +586,7 @@ namespace AE::Graphics
 	_LoadDescrSetLayouts
 =================================================
 */
-	bool  RPipelinePack::_LoadDescrSetLayouts (RResourceManager &resMngr, ArrayRStream &memStream,
+	bool  RPipelinePack::_LoadDescrSetLayouts (ResourceManager &resMngr, ArrayRStream &memStream,
 											   ArrayView<RmDescriptorSetLayoutID> rmDSLayouts, const Bytes blockOffset) __NE___
 	{
 		using StackAllocator_t	= StackAllocator< UntypedAllocator, 16, false >;
@@ -688,7 +691,7 @@ namespace AE::Graphics
 	_LoadPipelineLayouts
 =================================================
 */
-	bool  RPipelinePack::_LoadPipelineLayouts (RResourceManager &resMngr, ArrayRStream &memStream,
+	bool  RPipelinePack::_LoadPipelineLayouts (ResourceManager &resMngr, ArrayRStream &memStream,
 												ArrayView<RmDescriptorSetLayoutID> rmDSLayouts,
 												ArrayView<RmPipelineLayoutID> rmPplnLayouts, Bytes blockOffset) __NE___
 	{
@@ -753,7 +756,7 @@ namespace AE::Graphics
 	_CreateRenderPasses
 =================================================
 */
-	bool  RPipelinePack::_CreateRenderPasses (RResourceManager &resMngr, ArrayView<RenderPassName::Optimized_t> rpNames) __NE___
+	bool  RPipelinePack::_CreateRenderPasses (ResourceManager &resMngr, ArrayView<RenderPassName::Optimized_t> rpNames) __NE___
 	{
 		for (auto name : rpNames)
 		{
@@ -779,7 +782,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RPipelinePack::Destroy (RResourceManager &resMngr) __NE___
+	void  RPipelinePack::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

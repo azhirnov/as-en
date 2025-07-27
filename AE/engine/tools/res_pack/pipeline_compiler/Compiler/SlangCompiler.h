@@ -2,9 +2,9 @@
 
 #pragma once
 
-# include "Packer/PipelinePack.h"
-# include "Packer/RenderPassPack.h"
-# include "Compiler/IShaderPreprocessor.h"
+#include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
+#include "res_pack/pipeline_compiler/Packer/RenderPassPack.h"
+#include "res_pack/pipeline_compiler/Compiler/IShaderPreprocessor.h"
 
 namespace slang {
 	struct IGlobalSession;

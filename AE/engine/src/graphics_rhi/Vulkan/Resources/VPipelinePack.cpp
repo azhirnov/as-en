@@ -11,7 +11,7 @@
 # ifdef AE_ENABLE_GLSL_TRACE
 #	include "ShaderTrace.h"
 # else
-#	include "Packer/ShaderTraceDummy.h"
+#	include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 # endif
 
 # include "graphics_rhi/Private/PipelinePack.cpp.h"
@@ -23,7 +23,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VPipelinePack::Create (VResourceManager &resMngr, const PipelinePackDesc &desc, PipelinePackID selfId) __NE___
+	bool  VPipelinePack::Create (ResourceManager &resMngr, const PipelinePackDesc &desc, PipelinePackID selfId) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -39,7 +39,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VPipelinePack::Destroy (VResourceManager &resMngr) __NE___
+	void  VPipelinePack::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -66,7 +66,7 @@ namespace AE::Graphics
 	_LoadDepthStencilStates
 =================================================
 */
-	bool  VPipelinePack::_LoadDepthStencilStates (VResourceManager &, Serializing::Deserializer &des) __NE___
+	bool  VPipelinePack::_LoadDepthStencilStates (ResourceManager &, Serializing::Deserializer &des) __NE___
 	{
 		return _LoadDepthStencilStatesImpl( des );
 	}
@@ -76,7 +76,7 @@ namespace AE::Graphics
 	_LoadRenderPasses
 =================================================
 */
-	bool  VPipelinePack::_LoadRenderPasses (VResourceManager &resMngr, Bytes offset, Bytes size) __Th___
+	bool  VPipelinePack::_LoadRenderPasses (ResourceManager &resMngr, Bytes offset, Bytes size) __Th___
 	{
 		CHECK_ERR( _file->SeekSet( offset ));
 
@@ -192,7 +192,7 @@ namespace AE::Graphics
 	_GetShader
 =================================================
 */
-	VPipelinePack::ShaderModuleRef  VPipelinePack::_GetShader (const VResourceManager &resMngr, ShaderUID uid, EShader shaderType) C_NE___
+	VPipelinePack::ShaderModuleRef  VPipelinePack::_GetShader (const ResourceManager &resMngr, ShaderUID uid, EShader shaderType) C_NE___
 	{
 		CHECK_ERR( (uid & ShaderUID::_Mask) == ShaderUID::SPIRV );
 
@@ -239,7 +239,7 @@ namespace AE::Graphics
 	_CreateSampler
 =================================================
 */
-	SamplerID  VPipelinePack::_CreateSampler (VResourceManager &resMngr, const SamplerDesc &desc,
+	SamplerID  VPipelinePack::_CreateSampler (ResourceManager &resMngr, const SamplerDesc &desc,
 											  const Optional<SamplerYcbcrConversionDesc> &ycbcrDesc, StringView dbgName) __NE___
 	{
 		VkSamplerYcbcrConversionCreateInfo	conv_ci;
@@ -262,7 +262,7 @@ namespace AE::Graphics
 	_CreateDescriptorSetLayout
 =================================================
 */
-	Strong<DescriptorSetLayoutID>  VPipelinePack::_CreateDescriptorSetLayout (VResourceManager			&resMngr,
+	Strong<DescriptorSetLayoutID>  VPipelinePack::_CreateDescriptorSetLayout (ResourceManager			&resMngr,
 																			  const Uniforms_t			&uniforms,
 																			  ArrayView<SamplerID>		 samplers,
 																			  const UniformOffsets_t	&offsets,
@@ -305,7 +305,7 @@ namespace AE::Graphics
 	_CreateRTShaderBinding
 =================================================
 */
-	RTShaderBindingID  VPipelinePack::RenderTech::_CreateRTShaderBinding (ResMngr_t													&resMngr,
+	RTShaderBindingID  VPipelinePack::RenderTech::_CreateRTShaderBinding (ResourceManager											&resMngr,
 																		  const PipelineCompiler::SerializableRTShaderBindingTable	&desc,
 																		  StringView												 dbgName) __NE___
 	{

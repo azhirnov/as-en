@@ -21,12 +21,14 @@ namespace AE::Base
 	public:
 		enum class EMode : uint
 		{
-			Unknown			= 0,
 			RandomAccess	= 1 << 0,	// access is intended to be random
 			SequentialScan	= 1 << 1,	// access is intended to be sequential from beginning to end
 			Direct			= 1 << 2,	// Try to minimize cache effects of the I/O to and from this file.
 
 			Unix_LargeFile	= 1 << 16,	// 64 bit address
+
+			Unknown			= 0,
+			_BITOPS_
 		};
 
 	private:
@@ -70,8 +72,6 @@ namespace AE::Base
 		ND_ Bytes  _Position ()															C_NE___;
 	};
 
-	AE_BIT_OPERATORS( UnixFileRStream::EMode );
-
 
 
 	//
@@ -83,7 +83,6 @@ namespace AE::Base
 	public:
 		enum class EMode : uint
 		{
-			Unknown			= 0,
 			Direct			= 1 << 0,	// Try to minimize cache effects of the I/O to and from this file.
 
 			OpenRewrite		= 0,		// create new or discard previous file	// default
@@ -93,6 +92,9 @@ namespace AE::Base
 			SharedRead		= 1 << 5,	// other process can read file
 
 			Unix_LargeFile	= 1 << 16,	// 64 bit address
+
+			Unknown			= 0,
+			_BITOPS_
 		};
 
 	private:
@@ -132,8 +134,6 @@ namespace AE::Base
 		Bytes		WriteSeq (const void*, Bytes)										__NE_OV;
 		void		Flush ()															__NE_OV;
 	};
-
-	AE_BIT_OPERATORS( UnixFileWStream::EMode );
 //-----------------------------------------------------------------------------
 
 

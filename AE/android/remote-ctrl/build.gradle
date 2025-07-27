@@ -9,13 +9,14 @@ android {
 		targetSdkVersion 	33
 
 		ndk {
-			abiFilters "arm64-v8a", "armeabi-v7a"
+			abiFilters "arm64-v8a" //, "armeabi-v7a"
 		}
 		externalNativeBuild {
 			cmake {
-				arguments '-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
-						  '-DANDROID_ARM_NEON=ON',
-						  '-DAE_ENABLE_VULKAN=ON'
+				arguments 	'-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
+							'-DANDROID_ARM_NEON=ON',
+							'-DAE_ENABLE_VULKAN=ON',
+							'-DAE_ENGINE_BASE_PCH=ON'
 				targets 'AndroidRemoteControl'
 			}
 		}
@@ -30,7 +31,7 @@ android {
 		}
 	}
 
-	ndkVersion "26.3.11579264"
+	ndkVersion "29.0.13599879"
 	externalNativeBuild {
 		cmake {
 			version '3.22.1+'

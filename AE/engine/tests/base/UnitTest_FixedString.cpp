@@ -14,6 +14,7 @@ namespace
 		TEST( str1 == str2 );
 	}
 
+
 	static void  FixedString_Test2 ()
 	{
 		String				str2 = "12345678";
@@ -23,6 +24,17 @@ namespace
 		TEST( str1.size() == str2.size() );
 		TEST( str1 == str2 );
 	}
+
+
+	static void  FixedString_Test3 ()
+	{
+		constexpr FixedString<64>	str1;
+		constexpr FixedString<64>	str2 {"ssdoncks"};
+
+		StaticAssert( str1.empty() );
+		StaticAssert( not str2.empty() );
+		StaticAssert( str2.size() == 8 );
+	}
 }
 
 
@@ -30,6 +42,7 @@ extern void UnitTest_FixedString ()
 {
 	FixedString_Test1();
 	FixedString_Test2();
+	FixedString_Test3();
 
 	TEST_PASSED();
 }

@@ -12,7 +12,7 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	RDrawBarrierManager::RDrawBarrierManager (Ptr<RDrawCommandBatch> batch, uint drawIdx) __Th___ :
+	RDrawBarrierManager::RDrawBarrierManager (Ptr<DrawCommandBatch> batch, uint drawIdx) __Th___ :
 		_primaryState{ batch->GetPrimaryCtxState() },
 		_batch{ batch },  _drawIndex{ drawIdx },
 		_resMngr{ GraphicsScheduler().GetResourceManager() }

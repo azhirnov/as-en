@@ -26,7 +26,7 @@ namespace glm
 	{
 		TVec<T,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
-			res[i] = !value[i];	// TODO: optimize
+			res[i] = !value[i];
 		}
 		return res;
 	}

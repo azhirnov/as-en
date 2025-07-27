@@ -4,7 +4,7 @@
 #include "graphics_rhi/GraphicsImpl.h"
 
 #ifdef AE_ENABLE_VULKAN
-# include "VulkanSyncLog.h"
+# include "vulkan_sync_log/VulkanSyncLog.h"
 #endif
 #define ENABLE_SYNC_LOG		0
 
@@ -25,7 +25,8 @@ namespace
 {
 	using namespace AE::Threading;
 
-	using CtxAlloc_t = LinearAllocator<>;
+	using CtxAlloc_t	= LinearAllocator<>;
+	using RenderTaskRef	= _Coro_::RenderTaskImpl::UserApi;
 
 	static const EThreadArray	c_ThreadArr { ETaskQueue::Renderer, ETaskQueue::PerFrame };
 
@@ -43,7 +44,7 @@ namespace
 
 	// methods
 	public:
-		GraphicsContext2Impl (const RenderTask &task, DirectCtx::CommandBuffer cmdbuf, CtxAlloc_t &alloc) __NE___ : _ctx{ task, RVRef(cmdbuf) }, _alloc{alloc} {}
+		GraphicsContext2Impl (RenderTaskRef task, DirectCtx::CommandBuffer cmdbuf, CtxAlloc_t &alloc) __NE___ : _ctx{ task, RVRef(cmdbuf) }, _alloc{alloc} {}
 
 		ND_ DirectCtx::CommandBuffer	ReleaseCommandBuffer ()							__Th___	{ return _ctx.ReleaseCommandBuffer(); }
 		ND_ auto						EndCommandBuffer ()								__Th___	{ return _ctx.EndCommandBuffer(); }
@@ -106,10 +107,10 @@ namespace
 
 	// methods
 	public:
-		TransferContext2Impl (const RenderTask &task, DirectCtx::CommandBuffer cmdbuf)	__NE___ : _ctx{ task, RVRef(cmdbuf) } {}
+		TransferContext2Impl (RenderTaskRef task, DirectCtx::CommandBuffer cmdbuf)							__NE___ : _ctx{ task, RVRef(cmdbuf) } {}
 
-		ND_ DirectCtx::CommandBuffer	ReleaseCommandBuffer ()							__Th___	{ return _ctx.ReleaseCommandBuffer(); }
-		ND_ auto						EndCommandBuffer ()								__Th___	{ return _ctx.EndCommandBuffer(); }
+		ND_ DirectCtx::CommandBuffer	ReleaseCommandBuffer ()												__Th___	{ return _ctx.ReleaseCommandBuffer(); }
+		ND_ auto						EndCommandBuffer ()													__Th___	{ return _ctx.EndCommandBuffer(); }
 
 
 		// GLibBase //
@@ -149,7 +150,7 @@ namespace
 		bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)			__Th_OV	{ return _ctx.MapHostBuffer( buffer, offset, INOUT size, OUT mapped ); }
 		)
 
-		Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)				__Th_OV	{ Unused( buffer, offset, size );  return Default; }
+		ReadHostBufferResult	ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)					__Th_OV	{ Unused( buffer, offset, size );  return Default; }
 
 		uint3  MinImageTransferGranularity ()																C_NE_OV	{ return _ctx.MinImageTransferGranularity(); }
 
@@ -217,7 +218,7 @@ namespace
 
 	// methods
 	public:
-		ComputeContext2Impl (const RenderTask &task, DirectCtx::CommandBuffer cmdbuf)	__NE___ : _ctx{ task, RVRef(cmdbuf) } {}
+		ComputeContext2Impl (RenderTaskRef task, DirectCtx::CommandBuffer cmdbuf)		__NE___ : _ctx{ task, RVRef(cmdbuf) } {}
 
 		ND_ DirectCtx::CommandBuffer	ReleaseCommandBuffer ()							__Th___	{ return _ctx.ReleaseCommandBuffer(); }
 		ND_ auto						EndCommandBuffer ()								__Th___	{ return _ctx.EndCommandBuffer(); }
@@ -485,24 +486,6 @@ namespace
 	//
 	class GraphicsLibImpl final : public IGraphicsLib
 	{
-	// types
-	private:
-		class RenderTaskImpl final : public Graphics::RenderTask
-		{
-		public:
-			GraphicsLibImpl&	_glib;
-
-		public:
-			RenderTaskImpl (GraphicsLibImpl &glib, CommandBatchPtr batch) __NE___ :
-				RenderTask{ RVRef(batch), CmdBufExeIndex::Exact(0), Default },
-				_glib{ glib }
-			{}
-
-				void  Run ()			__Th_OV {}
-			ND_ bool  IsSubmitted ()	C_NE___	{ return not IsValid(); }
-		};
-
-
 	// variables
 	private:
 	  #if defined(AE_ENABLE_VULKAN)
@@ -521,7 +504,8 @@ namespace
 		Ptr<Graphics::ResourceManager>		_resMngr;
 		ResourceManager2					_resMngr2;
 
-		RC<RenderTaskImpl>					_rtask;
+		AsyncTask							_rtask;
+		_Coro_::RenderTaskImpl::UserApi		_rtaskApi;
 		CommandBatchPtr						_cmdBatch;
 
 		CtxAlloc_t							_ctxAllocator;
@@ -559,6 +543,8 @@ namespace
 
 	private:
 		ND_ bool  _AcquireSwapchainImage ()															__NE___;
+
+		ND_ static RenderCoro  _CreateEmptyTask ()													__NE___ { co_return; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -788,8 +774,8 @@ namespace
 */
 	TransferContextPtr  GraphicsLibImpl::BeginTransferContext (IBaseContext* prev) __NE___
 	{
-		CHECK_ERR( _rtask );
-		return new TransferContext2Impl{ *_rtask, ReleaseCmdBuf(prev) };
+		CHECK_ERR( _rtaskApi );
+		return new TransferContext2Impl{ _rtaskApi, ReleaseCmdBuf(prev) };
 	}
 
 /*
@@ -799,8 +785,8 @@ namespace
 */
 	ComputeContextPtr  GraphicsLibImpl::BeginComputeContext (IBaseContext* prev) __NE___
 	{
-		CHECK_ERR( _rtask );
-		return new ComputeContext2Impl{ *_rtask, ReleaseCmdBuf(prev) };
+		CHECK_ERR( _rtaskApi );
+		return new ComputeContext2Impl{ _rtaskApi, ReleaseCmdBuf(prev) };
 	}
 
 /*
@@ -810,8 +796,8 @@ namespace
 */
 	GraphicsContextPtr  GraphicsLibImpl::BeginGraphicsContext (IBaseContext* prev) __NE___
 	{
-		CHECK_ERR( _rtask );
-		return new GraphicsContext2Impl{ *_rtask, ReleaseCmdBuf(prev), _ctxAllocator };
+		CHECK_ERR( _rtaskApi );
+		return new GraphicsContext2Impl{ _rtaskApi, ReleaseCmdBuf(prev), _ctxAllocator };
 	}
 
 /*
@@ -837,13 +823,12 @@ namespace
 		CHECK_ERR( _cmdBatch->AddInputSemaphore(  _swapchain.GetImageAvailableSemaphore(), 0 ));
 		CHECK_ERR( _cmdBatch->AddOutputSemaphore( _swapchain.GetRenderFinishedSemaphore(), 0 ));
 
-		_rtask = MakeRC<RenderTaskImpl>( ArgRef(*this), _cmdBatch );
-
-		_cmdBatch->RunTask( _rtask, Tuple{}, null, null, False{} );
+		_rtask = _cmdBatch->Run( _CreateEmptyTask(), Tuple{}, null, null, False{"don't submit"}, CmdBufExeIndex::Exact(0) );
 		CHECK_ERR( not _rtask->IsInterrupted() );
 
-		_ctxAllocator.Discard();
+		_rtaskApi = _Coro_::RenderTaskImpl::UserApi{ Cast<_Coro_::RenderTaskImpl>( _rtask.get() )};
 
+		_ctxAllocator.Discard();
 		return true;
 	}
 
@@ -926,9 +911,11 @@ namespace
 		CHECK_ERR( _rtask );
 		CHECK_ERR( _cmdBatch );
 
-		if ( auto* gctx = dynamic_cast<GraphicsContext2Impl *>(ctx) )	_rtask->Execute( *gctx );	else
-		if ( auto* tctx = dynamic_cast<TransferContext2Impl *>(ctx) )	_rtask->Execute( *tctx );	else
-		if ( auto* cctx = dynamic_cast<ComputeContext2Impl *>(ctx) )	_rtask->Execute( *cctx );	else
+		auto& rtask = *Cast<_Coro_::RenderTaskImpl>( _rtask.get() );
+
+		if ( auto* gctx = dynamic_cast<GraphicsContext2Impl *>(ctx) )	{ CHECK_ERR( rtask.Execute( *gctx )); }	else
+		if ( auto* tctx = dynamic_cast<TransferContext2Impl *>(ctx) )	{ CHECK_ERR( rtask.Execute( *tctx )); }	else
+		if ( auto* cctx = dynamic_cast<ComputeContext2Impl *>(ctx) )	{ CHECK_ERR( rtask.Execute( *cctx )); }	else
 																		DBG_WARNING( "unknown context type" );
 		CHECK_ERR( _cmdBatch->EndRecordingAndSubmit() );
 
@@ -938,6 +925,7 @@ namespace
 		CHECK_ERR( end->IsCompleted() );
 
 		_rtask		= null;
+		_rtaskApi	= {};
 		_cmdBatch	= null;
 
 	  #if defined(AE_ENABLE_VULKAN)

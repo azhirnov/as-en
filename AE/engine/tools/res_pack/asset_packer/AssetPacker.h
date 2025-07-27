@@ -4,13 +4,6 @@
 
 #include "base/Common.h"
 
-#ifdef AE_BUILD_ASSET_PACKER
-#	define AE_AP_API	AE_DLL_EXPORT
-#else
-#	define AE_AP_API	AE_DLL_IMPORT
-#endif
-
-
 namespace AE::AssetPacker
 {
 	using AE::uint;
@@ -57,8 +50,7 @@ namespace AE::AssetPacker
 		const CharType *		outputScriptFile		= null;
 	};
 
-
-	extern "C" bool AE_AP_API PackAssets (const AssetInfo* info);
-
+	// "PackAssets"
+	using PackAssetsFn_t = bool (*) (const AssetInfo* info);
 
 } // AE::AssetPacker

@@ -25,7 +25,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VRenderPass::Create (VResourceManager& resMngr, const SerializableRenderPassInfo &compatInfo, const SerializableVkRenderPass &vkInfo,
+	bool  VRenderPass::Create (ResourceManager& resMngr, const SerializableRenderPassInfo &compatInfo, const SerializableVkRenderPass &vkInfo,
 							   RenderPassID compatId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
@@ -80,7 +80,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VRenderPass::Destroy (VResourceManager& resMngr) __NE___
+	void  VRenderPass::Destroy (ResourceManager& resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

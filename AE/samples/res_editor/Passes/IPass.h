@@ -3,10 +3,10 @@
 #pragma once
 
 #include "graphics_rhi/Public/ShaderDebugger.h"
-#include "res_editor/Core/RenderGraph.h"
-#include "res_editor/Controllers/IController.h"
-#include "res_editor/Dynamic/DynamicVec.h"
-#include "res_editor/Resources/ResourceArray.h"
+#include "Core/RenderGraph.h"
+#include "Controllers/IController.h"
+#include "Dynamic/DynamicVec.h"
+#include "Resources/ResourceArray.h"
 
 namespace AE::ResEditor
 {
@@ -26,13 +26,14 @@ namespace AE::ResEditor
 
 		enum class EPassType : uint
 		{
-			Unknown				= 0,
 			Sync				= 1 << 0,
 			Async				= 1 << 1,	// for heavy tasks
 			Present				= 1 << 2,
 			//SeparateBatch		= 1 << 3,	// for async compute
 			Update				= 1 << 16,
 			Export				= 1 << 17,	// will pause rendering
+			Unknown				= 0,
+			_BITOPS_
 		};
 
 		enum class EDebugMode : uint
@@ -67,11 +68,11 @@ namespace AE::ResEditor
 
 		struct SyncPassData
 		{
-			RenderTask const&			rtask;
+			RenderTaskApi				rtask;
 			DirectCtx::CommandBuffer	cmdbuf;
 			Debugger					dbg;
 
-			explicit SyncPassData (RenderTask const& rtask) : rtask{rtask} {}
+			explicit SyncPassData (RenderTaskApi rtask) : rtask{rtask} {}
 		};
 
 		struct AsyncPassData
@@ -200,8 +201,6 @@ namespace AE::ResEditor
 		ND_ bool  _IsEnabled ()																const;
 		ND_ uint  _GetRepeatCount ()														const;
 	};
-
-	AE_BIT_OPERATORS( IPass::EPassType );
 
 
 } // AE::ResEditor

@@ -31,9 +31,9 @@ namespace AE::Graphics
 		VBufferView ()									__NE___	{}
 		~VBufferView ()									__NE___;
 
-		ND_ bool  Create (VResourceManager &, const BufferViewDesc &, BufferID, StringView dbgName)			__NE___;
-		ND_ bool  Create (VResourceManager &, const VulkanBufferViewDesc &, BufferID, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)																__NE___;
+		ND_ bool  Create (ResourceManager &, const BufferViewDesc &, BufferID, StringView dbgName)			__NE___;
+		ND_ bool  Create (ResourceManager &, const VulkanBufferViewDesc &, BufferID, StringView dbgName)	__NE___;
+			void  Destroy (ResourceManager &)																__NE___;
 
 		ND_ VkBufferView			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferView; }
 		ND_ BufferViewDesc const&	Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }

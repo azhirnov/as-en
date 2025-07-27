@@ -3,7 +3,8 @@
 #pragma once
 
 #ifdef AE_ENABLE_STB
-# include "AtlasTools.pch.h"
+# include "pch/Base.h"
+# include "stb_rect_pack.h"
 
 namespace AE::AtlasTools
 {

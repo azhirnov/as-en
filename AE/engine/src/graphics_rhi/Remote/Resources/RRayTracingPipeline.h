@@ -46,8 +46,8 @@ namespace AE::Graphics
 		RRayTracingPipeline ()												__NE___	{}
 		~RRayTracingPipeline ()												__NE___;
 
-		ND_ bool  Create (RResourceManager &, const CreateInfo &ci)			__NE___;
-			void  Destroy (RResourceManager &)								__NE___;
+		ND_ bool  Create (ResourceManager &, const CreateInfo &ci)			__NE___;
+			void  Destroy (ResourceManager &)								__NE___;
 
 		ND_ bool  ParseShaderTrace (const void*					ptr,
 									Bytes						maxSize,

@@ -61,10 +61,6 @@ namespace AE::App
 		//
 		class VRRenderSurface final : public VRSurface
 		{
-		// types
-		private:
-			class SubmitImageTask;
-
 		// variables
 		private:
 			OpenVRDevice &	_vrDev;
@@ -83,6 +79,9 @@ namespace AE::App
 			SurfaceFormats_t	GetSurfaceFormats ()											C_NE_OV	{ return Default; }
 			PresentModes_t		GetPresentModes ()												C_NE_OV	{ return Default; }
 			SurfaceInfo			GetSurfaceInfo ()												C_NE_OV	{ return Default; }
+
+		private:
+			static AsyncCoro	_SubmitImageTask (VRRenderSurface &surface, const Graphics::EQueueType lastQueue) __NE___;
 		};
 
 

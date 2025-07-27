@@ -36,9 +36,9 @@ namespace AE::Graphics
 		VImage ()											__NE___	{}
 		~VImage ()											__NE___;
 
-		ND_ bool  Create (VResourceManager &, const ImageDesc &, GfxMemAllocatorPtr, StringView dbgName)		__NE___;
-		ND_ bool  Create (VResourceManager &, const VulkanImageDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)																	__NE___;
+		ND_ bool  Create (ResourceManager &, const ImageDesc &, GfxMemAllocatorPtr, StringView dbgName)		__NE___;
+		ND_ bool  Create (ResourceManager &, const VulkanImageDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
+			void  Destroy (ResourceManager &)																	__NE___;
 
 		ND_ VulkanImageDesc		GetNativeDescription ()		C_NE___;
 
@@ -61,8 +61,8 @@ namespace AE::Graphics
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
-		ND_ static bool	 IsSupported (const VResourceManager &, const ImageDesc &desc)						__NE___;
-		ND_ static bool	 IsSupported (const VResourceManager &, const ImageDesc &, const ImageViewDesc &)	__NE___;
+		ND_ static bool	 IsSupported (const ResourceManager &, const ImageDesc &desc)						__NE___;
+		ND_ static bool	 IsSupported (const ResourceManager &, const ImageDesc &, const ImageViewDesc &)	__NE___;
 
 		ND_ static Bytes  GetMemoryAlignment (const VDevice &dev, const ImageDesc &desc)					__NE___;
 	};

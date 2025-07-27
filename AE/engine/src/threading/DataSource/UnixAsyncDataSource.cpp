@@ -34,8 +34,6 @@ namespace AE::Threading
 {
 #	include "base/DataSource/UnixFileHelper.cpp.h"
 
-	using RWReqPromise_t = AsyncDSRequest::Value_t::Promise_t;
-
 	class UnixIOService::ReadRequestApi
 	{
 		friend class ReadRequest;
@@ -89,7 +87,7 @@ namespace AE::Threading
 		_memRC = null;
 		_actualSize.store( 0_b );
 
-		ASSERT( AnyEqual( _status.load(), EStatus::Cancelled, EStatus::Completed ));
+		ASSERT( AnyEqual( _status.load(), EStatus::Canceled, EStatus::Completed ));
 		_status.store( EStatus::Destroyed );
 
 		DEBUG_ONLY({
@@ -107,7 +105,7 @@ namespace AE::Threading
 	{
 		_actualSize.store( size );
 
-		const EStatus	stat = _status.exchange( complete ? EStatus::Completed : EStatus::Cancelled );
+		const EStatus	stat = _status.exchange( complete ? EStatus::Completed : EStatus::Canceled );
 
 		ASSERT( complete );
 		ASSERT( stat == EStatus::InProgress );	Unused( stat );
@@ -116,7 +114,7 @@ namespace AE::Threading
 		_SetDependencyCompleteStatus( complete );
 
 		// Ref count was increased in '_Init()' to keep request alive until it is complete.
-		// Cancelled request may be destroyed here, successfully completed request should not be destroyed here!
+		// Canceled request may be destroyed here, successfully completed request should not be destroyed here!
 		{
 			auto*	ptr = this;
 			auto	cnt	= RefCounterUtils::DecRefAndRelease( ptr );
@@ -137,20 +135,6 @@ namespace AE::Threading
 	bool  UnixIOService::ReadRequest::Cancel () __NE___
 	{
 		return _dataSource and _Cancel();
-	}
-
-/*
-=================================================
-	AsPromise
-=================================================
-*/
-	RWReqPromise_t  UnixIOService::ReadRequest::AsPromise (ETaskQueue queueType) __NE___
-	{
-		auto	result = MakeDelayedPromise( [self = GetRC<ReadRequest>()] () { return self->_GetResult(); }, "AsyncReadRequest", queueType );
-		if_likely( Scheduler().Run( AsyncTask{result}, Tuple{GetRC()} ))
-			return result;
-		else
-			return Default;
 	}
 
 /*
@@ -181,20 +165,6 @@ namespace AE::Threading
 	bool  UnixIOService::WriteRequest::Cancel () __NE___
 	{
 		return _dataSource and _Cancel();
-	}
-
-/*
-=================================================
-	AsPromise
-=================================================
-*/
-	RWReqPromise_t  UnixIOService::WriteRequest::AsPromise (ETaskQueue queueType) __NE___
-	{
-		auto	result = MakeDelayedPromise( [self = GetRC<WriteRequest>()] () { return self->_GetResult(); }, "AsyncWriteRequest", queueType );
-		if_likely( Scheduler().Run( AsyncTask{result}, Tuple{GetRC()} ))
-			return result;
-		else
-			return Default;
 	}
 
 /*
@@ -274,7 +244,7 @@ namespace AE::Threading
 		AsyncDSRequest	req;
 		if_likely( UnixIOService::AsyncRDataSourceApi::CreateResult( OUT req, GetRC<UnixAsyncRDataSource>(), pos, data, dataSize, RVRef(mem) ));
 		else
-			req = AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			req = TaskScheduler::GetCanceledDSRequest();
 		return req;
 	}
 
@@ -340,7 +310,7 @@ namespace AE::Threading
 		AsyncDSRequest	req;
 		if_likely( UnixIOService::AsyncWDataSourceApi::CreateResult( OUT req, GetRC<UnixAsyncWDataSource>(), pos, data, dataSize, RVRef(mem) ));
 		else
-			req = AsyncDSRequest{Scheduler().GetCanceledDSRequest()};
+			req = TaskScheduler::GetCanceledDSRequest();
 		return req;
 	}
 

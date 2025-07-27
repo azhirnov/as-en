@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-#include "TestsGraphicsRHI.pch.h"
+#include "UnitTest_Common.h"
 
 using namespace AE::Networking;
 using namespace AE::Threading;

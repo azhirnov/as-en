@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptBaseRenderPass.h"
-#include "res_editor/Scripting/ScriptGeomSource.h"
-#include "res_editor/Scripting/ScriptRayTracingPass.h"
-#include "res_editor/Passes/Scene.h"
+#include "Scripting/ScriptBaseRenderPass.h"
+#include "Scripting/ScriptGeomSource.h"
+#include "Scripting/ScriptRayTracingPass.h"
+#include "Passes/Scene.h"
 
 namespace AE::ResEditor
 {

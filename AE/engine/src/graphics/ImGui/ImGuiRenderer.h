@@ -6,7 +6,7 @@
 #pragma once
 
 #ifdef AE_ENABLE_IMGUI
-# include "graphics/Graphics.pch.h"
+# include "graphics/Common.h"
 
 struct ImGuiContext;
 struct ImDrawData;
@@ -66,6 +66,7 @@ namespace AE::Graphics
 			GraphicsPipelineID					ppln;
 		};
 		using PipelineMap_t	= FixedMap< EPixelFormat, PipelineSet, 8 >;
+		using RenderTaskRef	= _Coro_::RenderTaskImpl::UserApi;
 
 
 	// variables
@@ -114,13 +115,13 @@ namespace AE::Graphics
 
 
 		// v1
-		ND_ bool  Draw (RenderTask									&rtask,
+		ND_ bool  Draw (RenderTaskRef								rtask,
 						App::IOutputSurface							&surface,
 						const Function< void () >					&updateUI,
 						const Function< void (DirectCtx::Draw &) >	&drawBefore = Default,
 						const RenderPassDesc::ClearValue_t			&clearValue = RGBA32f{})	__Th___;
 
-		ND_ bool  Draw (RenderTask									&rtask,
+		ND_ bool  Draw (RenderTaskRef								rtask,
 						DirectCtx::CommandBuffer					cmdbuf,
 						const App::IOutputSurface::RenderTarget		&rt,
 						const Function< void () >					&updateUI,

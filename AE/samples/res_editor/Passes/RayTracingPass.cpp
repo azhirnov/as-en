@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Passes/RayTracingPass.h"
-#include "res_editor/Resources/Buffer.h"
-#include "res_editor/Core/EditorUI.h"
-#include "res_editor/_data/cpp/types.h"
+#include "Passes/RayTracingPass.h"
+#include "Resources/Buffer.h"
+#include "Core/EditorUI.h"
+#include "_data/cpp/types.h"
 
 namespace AE::ResEditor
 {

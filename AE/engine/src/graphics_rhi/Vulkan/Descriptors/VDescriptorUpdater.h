@@ -12,7 +12,7 @@ namespace AE::Graphics
 	// Vulkan Descriptor Updater
 	//
 
-	class VDescriptorUpdater final : public IDescriptorUpdater
+	class DescriptorUpdater final : public IDescriptorUpdater
 	{
 	// types
 	private:
@@ -41,7 +41,7 @@ namespace AE::Graphics
 
 	// variables
 	private:
-		VResourceManager &				_resMngr;
+		ResourceManager &				_resMngr;
 		Ptr<const VDescriptorSetLayout>	_dsLayout;		// strong ref in '_descSetId'
 		VkDescriptorSet					_dsHandle		= Default;
 
@@ -58,8 +58,8 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VDescriptorUpdater ()																													__NE___;
-		~VDescriptorUpdater ()																													__NE_OV;
+		DescriptorUpdater ()																													__NE___;
+		~DescriptorUpdater ()																													__NE_OV;
 
 		bool  Set (DescriptorSetID descrSetId, EDescUpdateMode mode)																			__NE_OV;
 		bool  Flush ()																															__NE_OV;

@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Resources/Buffer.h"
-#include "res_editor/Core/RenderGraph.h"
-#include "res_editor/Passes/Renderer.h"
+#include "Resources/Buffer.h"
+#include "Core/RenderGraph.h"
+#include "Passes/Renderer.h"
 
 namespace AE::ResEditor
 {
@@ -364,18 +364,18 @@ namespace
 		const Bytes	offset = _storeOp.stream.pos;
 
 		ctx.ReadbackBuffer( INOUT _storeOp.stream )
-			.Then(	[self = GetRC<Buffer>(), file = _storeOp.file, offset] (const BufferMemView &memView) __Th___
+			.Then(	GetRC<Buffer>(), _storeOp.file, offset,
+					[] (Promise<BufferMemView> readOp, RC<Buffer> self, RC<AsyncWDataSource> file, Bytes offset)
+						-> InlineCoro<ETaskQueue::Background>
 					{
-						auto	mem = file->Alloc( memView.DataSize() );
-						CHECK_THROW( mem );
+						BufferMemView	mem_view	= co_await readOp;
+						auto			mem			= file->Alloc( mem_view.DataSize() );
+						CHECK_CE( mem );
 
-						CHECK( memView.CopyTo( OUT mem->Data(), mem->Size() ) == mem->Size() );
+						CHECK( mem_view.CopyTo( OUT mem->Data(), mem->Size() ) == mem->Size() );
 
 						Unused( file->WriteBlock( offset, mem->Size(), mem ));
-					},
-					"Buffer::Readback",
-					ETaskQueue::Background
-				);
+					});
 
 		if ( _storeOp.stream.IsCompleted() )
 		{

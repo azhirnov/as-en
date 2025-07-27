@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ScriptObjects/ScriptFeatureSet.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptFeatureSet.h"
 
 namespace AE::PipelineCompiler
 {

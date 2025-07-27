@@ -38,4 +38,6 @@ if ( (${AE_ENABLE_METAL} OR ${AE_ENABLE_VULKAN}) AND (TARGET "GraphicsRHI") )
 
 	target_include_directories( "RemoteGraphicsDevice" PUBLIC ".." )
 	set_property( TARGET "RemoteGraphicsDevice" PROPERTY FOLDER "Engine/ToolApps" )
+	
+	UseEnginePCH2( "RemoteGraphicsDevice" )
 endif()

@@ -301,7 +301,7 @@ namespace AE::CICD
 
 			ScriptEngine::ModuleSource	src;
 			src.name			= ToString( path.stem() );
-			src.dbgLocation		= SourceLoc{ ansi_path, 0 };
+			src.dbgLocation		= SourceLoc{ ansi_path.c_str(), 0u };
 			src.usePreprocessor	= true;
 
 			FileRStream		file {path};
@@ -497,7 +497,7 @@ namespace AE::CICD
 
 		ScriptEngine::ModuleSource	src;
 		src.name			= ToString( path.stem() );
-		src.dbgLocation		= SourceLoc{ ansi_path, 0 };
+		src.dbgLocation		= SourceLoc{ ansi_path.c_str(), 0 };
 		src.usePreprocessor	= true;
 
 		FileRStream		file {path};

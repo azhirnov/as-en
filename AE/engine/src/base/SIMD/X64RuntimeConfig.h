@@ -35,6 +35,7 @@ namespace AE::Base
 			Overflow	= 1 << 3,
 			Underflow	= 1 << 4,
 			Inexact		= 1 << 5,
+			_BITOPS_
 		};
 
 		struct State
@@ -59,8 +60,6 @@ namespace AE::Base
 		ND_ static State			GetState			()					__NE___;
 			static void				SetState			(State)				__NE___;
 	};
-
-	AE_BIT_OPERATORS( SimdRuntimeConfig::ExceptionFlags );
 //-----------------------------------------------------------------------------
 
 
@@ -143,7 +142,8 @@ namespace AE::Base
 				case ExceptionFlags::Overflow :		m |= _MM_EXCEPT_OVERFLOW;	break;
 				case ExceptionFlags::Underflow :	m |= _MM_EXCEPT_UNDERFLOW;	break;
 				case ExceptionFlags::Inexact :		m |= _MM_EXCEPT_INEXACT;	break;
-				case ExceptionFlags::Unknown :		break;
+				case ExceptionFlags::Unknown :
+				case ExceptionFlags::_BITOPS_ :		break;
 			}
 			switch_end
 		}

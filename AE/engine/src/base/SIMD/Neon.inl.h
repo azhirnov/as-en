@@ -1686,7 +1686,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename IT>
-	template <typename T> requires( sizeof(T)<=4 )
+	template <typename T, std::enable_if_t< sizeof(T)<=4, bool >>
 	SimdTInt128<IT>::SimdTInt128 (const SimdTInt64<IT> &low, const SimdTInt64<IT> &high) __NE___
 	{
 		if constexpr( isU8  )	_value = vcombine_u8(  low.Ref(), high.Ref() );

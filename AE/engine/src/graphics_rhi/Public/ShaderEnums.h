@@ -73,8 +73,8 @@ namespace AE::Graphics
 		AllGraphics				= GraphicsPipeStages | MeshPipeStages,
 		AllRayTracing			= RayGen | RayAnyHit | RayClosestHit | RayMiss | RayIntersection | RayCallable,
 		Unknown					= 0,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EShaderStages );
 
 	NdCx__ EShaderStages  operator |  (EShaderStages lhs, EShader rhs)	__NE___	{ return lhs | EShaderStages(1 << uint(rhs)); }
 	__Cx__ EShaderStages  operator |= (EShaderStages &lhs, EShader rhs)	__NE___	{ return (lhs |= EShaderStages(1 << uint(rhs))); }

@@ -13,8 +13,8 @@ namespace
 {
 	using namespace AE::App;
 
-	const bool						force_update			= true;
-	decltype(&ConvertInputActions)	convert_input_actions	= null;
+	const bool					force_update			= true;
+	ConvertInputActionsFn_t		convert_input_actions	= null;
 
 
 	static void  InputActions_Test1 ()

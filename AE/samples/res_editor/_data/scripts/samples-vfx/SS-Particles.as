@@ -187,7 +187,7 @@
 	void  CheckCollisions (inout Particle outParticle, const float3 prev_pos, const float dt)
 	{
 		const float4	p1_snorm	= LocalPosToNormClipSpace( outParticle.position_size.xyz );
-		const float2	p1			= ToUNorm( p1_snorm ) * iResolution.xy;
+		const float2	p1			= ToUNorm( p1_snorm.xy ) * iResolution.xy;
 		const int2		coord		= int2(p1);
 
 		if ( AnyLess( coord, int2(0) ) or AnyGreaterEqual( coord, iResolution.xy ) or p1_snorm.z < 0.0 )

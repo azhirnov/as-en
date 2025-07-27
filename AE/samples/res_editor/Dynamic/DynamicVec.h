@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Dynamic/DynamicScalar.h"
+#include "Dynamic/DynamicScalar.h"
 
 namespace AE::ResEditor
 {

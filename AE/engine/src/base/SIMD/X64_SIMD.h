@@ -38,6 +38,8 @@
 # endif
 
 # include "base/Common.h"
+# include "base/CompileTime/Math.h"
+# include "base/Utils/Helpers.h"
 
 # include "base/SIMD/X64RuntimeConfig.h"
 

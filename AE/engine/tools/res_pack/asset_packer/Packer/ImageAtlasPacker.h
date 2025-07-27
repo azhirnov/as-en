@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ImagePacker.h"
+#include "res_pack/asset_packer/Packer/ImagePacker.h"
 
 namespace AE::AssetPacker
 {
@@ -29,6 +29,7 @@ namespace AE::AssetPacker
 			HasImage		= 1 << 0,	// image data in current file
 			SeparateData	= 1 << 1,	// load image data from another file
 			HasResName		= 1 << 2,	// get image from cache
+			_BITOPS_
 		};
 
 		struct FileHeader
@@ -57,8 +58,6 @@ namespace AE::AssetPacker
 		ND_ auto	ImageResourceName ()	C_NE___	{ return _imageResName; }
 		ND_ auto	ImageFileName ()		C_NE___	{ return _imageFileName; }
 	};
-
-	AE_BIT_OPERATORS( ImageAtlasPacker::EFileFlags );
 
 
 	Nd__In auto*  ImageAtlasPacker::ImageHeader () C_NE___

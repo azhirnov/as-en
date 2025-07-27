@@ -118,7 +118,12 @@ namespace _hidden_
 
 		template <typename Fn>
 		__CxIA void				ForEach (Fn &fn)					C_Th___	{ _ForEach<0>( fn ); }
-
+		
+		template <typename Fn>
+		__CxIA void 			Visit (Fn &fn)						C_NE___	{ _RecursiveVisit<0>( fn, *this ); }
+		
+		template <typename Fn>
+		__CxIA void 			Visit (Fn &fn)						__NE___	{ _RecursiveVisit<0>( fn, *this ); }
 
 	private:
 		template <usize I>
@@ -131,7 +136,7 @@ namespace _hidden_
 		}
 
 		template <usize I, typename Arg0, typename ...Args>
-		constexpr void  _RecursiveSet (Arg0 &&arg0, Args&& ...args)	__NE___
+		__Cx__ void  _RecursiveSet (Arg0 &&arg0, Args&& ...args)	__NE___
 		{
 			CheckNothrow( IsNoExcept( Get<I>() = FwdArg<Arg0>(arg0) ));
 			Get<I>() = FwdArg<Arg0>(arg0);
@@ -141,11 +146,27 @@ namespace _hidden_
 		}
 
 		template <usize I, typename Fn>
-		constexpr void  _ForEach (Fn &fn)							C_Th___
+		__Cx__ void  _ForEach (Fn &fn)								C_Th___
 		{
-			fn( Get<I>() );
-			if constexpr( I+1 < sizeof... (Types) )
+			if constexpr( I < sizeof... (Types) )
+			{
+				fn( Get<I>() );
 				_ForEach<I+1>( fn );
+			}
+			Unused( fn );
+		}
+
+		template <usize I, typename Fn, typename SelfT>
+		__Cx__ static void  _RecursiveVisit (Fn &fn, SelfT &self)	__NE___
+		{
+			if constexpr( I < sizeof... (Types) )
+			{
+				CheckNothrow( IsNoExcept( fn.template operator()<I>( self.template Get<I>() )));
+
+				fn.template operator()<I>( self.template Get<I>() );
+				_RecursiveVisit< I+1 >( fn, self );
+			}
+			Unused( fn );
 		}
 	};
 

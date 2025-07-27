@@ -11,11 +11,10 @@
 
 #pragma once
 
-#include "ScriptObjects/Common.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.h"
 
 namespace AE::PipelineCompiler
 {
-
 	struct ScriptFeatureSet;
 	using ScriptFeatureSetPtr = ScriptRC< ScriptFeatureSet >;
 

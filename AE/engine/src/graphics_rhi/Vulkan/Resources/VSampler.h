@@ -29,9 +29,9 @@ namespace AE::Graphics
 		VSampler ()																			__NE___	{}
 		~VSampler ()																		__NE___;
 
-		ND_ bool  Create (const VResourceManager &, const SamplerDesc &,
+		ND_ bool  Create (const ResourceManager &, const SamplerDesc &,
 						  const VkSamplerYcbcrConversionCreateInfo *, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)												__NE___;
+			void  Destroy (ResourceManager &)												__NE___;
 
 		ND_ VkSampler					Handle ()											C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sampler; }
 		ND_ VkSamplerYcbcrConversion	YcbcrConversion ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _ycbcrConversion; }

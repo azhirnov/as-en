@@ -27,6 +27,7 @@ namespace
 			auto&	vm = VirtualMachine::Instance();
 			vm.ThreadFenceAcquireRelease();
 
+			// TODO
 		}
 		VirtualMachine::DestroyInstance();
 		TEST( T::CheckStatistic() );

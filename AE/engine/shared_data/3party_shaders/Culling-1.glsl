@@ -7,6 +7,7 @@
 	//
 	// P00 - projection matrix [0][0]
 	// P11 - projection matrix [1][1]
+	// returns min/max XY coords
 	
 	float4  ProjectSphere (float3 center, float radius, float P00, float P11)
 	{

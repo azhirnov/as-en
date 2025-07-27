@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptDynamicVars.h"
-#include "res_editor/Resources/Image.h"
+#include "Scripting/ScriptDynamicVars.h"
+#include "Resources/Image.h"
 
 namespace AE::ResEditor
 {

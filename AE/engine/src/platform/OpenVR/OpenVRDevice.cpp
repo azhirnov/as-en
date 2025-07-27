@@ -74,68 +74,50 @@ namespace
 
 /*
 =================================================
-	SubmitImageTask
+	_SubmitImageTask
 =================================================
 */
-	class OpenVRDevice::VRRenderSurface::SubmitImageTask final : public Threading::IAsyncTask
+	AsyncCoro  OpenVRDevice::VRRenderSurface::_SubmitImageTask (VRRenderSurface &surface, const EQueueType lastQueue) __NE___
 	{
-	private:
-		VRRenderSurface &	_surface;
-		const EQueueType	_lastQueue;
+		EXLOCK( surface._guard );
 
-	public:
-		SubmitImageTask (VRRenderSurface* surf, EQueueType lastQueue) :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			_surface{ *surf },
-			_lastQueue{ lastQueue }
-		{}
+		auto&			rts			= GraphicsScheduler();
+		const auto&		res_mngr	= rts.GetResourceManager();
+		const auto&		dev			= rts.GetDevice();
+		const auto&		vr_dev		= surface._vrDev;
+		auto			q			= dev.GetQueue( lastQueue );
+		const auto&		desc		= surface._desc;
+		const EVREye	vr_eye[]	= { EVREye_Eye_Left, EVREye_Eye_Right };
 
-	  #ifdef AE_ENABLE_VULKAN
-		void  Run () __Th_OV
+		VRTextureBounds_t	bounds;
+		bounds.uMin = 0.0f;
+		bounds.uMax = 1.0f;
+		bounds.vMin = 0.0f;
+		bounds.vMax = 1.0f;
+
+		VRVulkanTextureData_t	vk_data;
+		vk_data.m_pDevice			= dev.GetVkDevice();
+		vk_data.m_pPhysicalDevice	= dev.GetVkPhysicalDevice();
+		vk_data.m_pInstance			= dev.GetVkInstance();
+		vk_data.m_pQueue			= q->handle;
+		vk_data.m_nQueueFamilyIndex	= uint(q->familyIndex);
+		vk_data.m_nWidth			= desc.dimension.x;
+		vk_data.m_nHeight			= desc.dimension.y;
+		vk_data.m_nFormat			= BitCast<uint>( VEnumCast( desc.format ));
+		vk_data.m_nSampleCount		= desc.samples.Get();
+
+		for (usize i = 0; i < surface._images.size(); ++i)
 		{
-			EXLOCK( _surface._guard );
+			auto*	img = res_mngr.GetResource( surface._images[i] );
+			CHECK_CE( img != null );
 
-			auto&			rts			= GraphicsScheduler();
-			const auto&		res_mngr	= rts.GetResourceManager();
-			const auto&		dev			= rts.GetDevice();
-			const auto&		vr_dev		= _surface._vrDev;
-			auto			q			= dev.GetQueue( _lastQueue );
-			const auto&		desc		= _surface._desc;
-			const EVREye	vr_eye[]	= { EVREye_Eye_Left, EVREye_Eye_Right };
+			vk_data.m_nImage	= BitCast<ulong>( img->Handle() );
 
-			VRTextureBounds_t	bounds;
-			bounds.uMin = 0.0f;
-			bounds.uMax = 1.0f;
-			bounds.vMin = 0.0f;
-			bounds.vMax = 1.0f;
-
-			VRVulkanTextureData_t	vk_data;
-			vk_data.m_pDevice			= dev.GetVkDevice();
-			vk_data.m_pPhysicalDevice	= dev.GetVkPhysicalDevice();
-			vk_data.m_pInstance			= dev.GetVkInstance();
-			vk_data.m_pQueue			= q->handle;
-			vk_data.m_nQueueFamilyIndex	= uint(q->familyIndex);
-			vk_data.m_nWidth			= desc.dimension.x;
-			vk_data.m_nHeight			= desc.dimension.y;
-			vk_data.m_nFormat			= BitCast<uint>( VEnumCast( desc.format ));
-			vk_data.m_nSampleCount		= desc.samples.Get();
-
-			for (usize i = 0; i < _surface._images.size(); ++i)
-			{
-				auto*	img = res_mngr.GetResource( _surface._images[i] );
-				CHECK_TE( img != null );
-
-				vk_data.m_nImage	= BitCast<ulong>( img->Handle() );
-
-				Texture_t	texture	= { &vk_data, ETextureType_TextureType_Vulkan, EColorSpace_ColorSpace_Auto };
-				auto		err		= vr_dev._vrCompositor->Submit( vr_eye[i], &texture, &bounds, EVRSubmitFlags_Submit_Default );
-				Unused( err );
-			}
+			Texture_t	texture	= { &vk_data, ETextureType_TextureType_Vulkan, EColorSpace_ColorSpace_Auto };
+			auto		err		= vr_dev._vrCompositor->Submit( vr_eye[i], &texture, &bounds, EVRSubmitFlags_Submit_Default );
+			Unused( err );
 		}
-	  #endif
-
-		StringView  DbgName ()	C_NE_OV	{ return "VRRenderSurface::SubmitImage"; }
-	};
+	}
 
 /*
 =================================================
@@ -155,16 +137,16 @@ namespace
 =================================================
 */
 	AsyncTask  OpenVRDevice::VRRenderSurface::End (ArrayView<AsyncTask>) __NE___
-	{/*
+	{
 		EXLOCK( _guard );
 
-		AsyncTask	task = Scheduler().Run<SubmitImageTask>( Tuple{ this, cmdBatch->GetQueueType() },
-															 Tuple{ CmdBatchOnSubmit{cmdBatch}, deps });
+		//AsyncTask	task = Scheduler().Run( _SubmitImageTask( *this, cmdBatch->GetQueueType() ),
+		//									Tuple{ CmdBatchOnSubmit{cmdBatch}, deps });
 
 		// next frame will wait for present task
 		//GraphicsScheduler().AddNextFrameDeps( task );
 
-		return task;*/
+		//return task;
 		return null;
 	}
 //-----------------------------------------------------------------------------

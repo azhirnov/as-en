@@ -21,21 +21,21 @@ namespace AE::Graphics
 	GetMemoryInfo
 =================================================
 */
-	bool  VResourceManager::GetMemoryInfo (ImageID id, OUT VulkanMemoryObjInfo &info) C_NE___
+	bool  ResourceManager::GetMemoryInfo (ImageID id, OUT VulkanMemoryObjInfo &info) C_NE___
 	{
 		auto*	image = GetResource( id );
 		CHECK_ERR( image != null );
 		return GetMemoryInfo( image->MemoryId(), OUT info );
 	}
 
-	bool  VResourceManager::GetMemoryInfo (BufferID id, OUT VulkanMemoryObjInfo &info) C_NE___
+	bool  ResourceManager::GetMemoryInfo (BufferID id, OUT VulkanMemoryObjInfo &info) C_NE___
 	{
 		auto*	buffer = GetResource( id );
 		CHECK_ERR( buffer != null );
 		return GetMemoryInfo( buffer->MemoryId(), OUT info );
 	}
 
-	bool  VResourceManager::GetMemoryInfo (MemoryID id, OUT VulkanMemoryObjInfo &info) C_NE___
+	bool  ResourceManager::GetMemoryInfo (MemoryID id, OUT VulkanMemoryObjInfo &info) C_NE___
 	{
 		auto*	mem = GetResource( id );
 		CHECK_ERR( mem != null );
@@ -50,7 +50,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <>
-	void  VResourceManager::_DestroyResource (VkSwapchainKHR handle) __NE___
+	void  ResourceManager::_DestroyResource (VkSwapchainKHR handle) __NE___
 	{
 		_device.vkDestroySwapchainKHR( _device.GetVkDevice(), handle, null );
 	}
@@ -62,17 +62,17 @@ namespace AE::Graphics
 	Create*
 =================================================
 */
-	Strong<MemoryID>  VResourceManager::CreateMemoryObj (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	Strong<MemoryID>  ResourceManager::CreateMemoryObj (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		return _CreateResource<MemoryID>( ERR_MSG( "failed when creating memory object", dbgName ), buffer, desc, _ChooseMemAllocator( RVRef(allocator) ), dbgName );
 	}
 
-	Strong<MemoryID>  VResourceManager::CreateMemoryObj (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	Strong<MemoryID>  ResourceManager::CreateMemoryObj (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		return _CreateResource<MemoryID>( ERR_MSG( "failed when creating memory object", dbgName ), image, desc, _ChooseMemAllocator( RVRef(allocator) ), dbgName );
 	}
 
-	Strong<RenderPassID>  VResourceManager::CreateRenderPass (const SerializableRenderPassInfo &info, const SerializableVkRenderPass &vkInfo, RenderPassID compatId, StringView dbgName) __NE___
+	Strong<RenderPassID>  ResourceManager::CreateRenderPass (const SerializableRenderPassInfo &info, const SerializableVkRenderPass &vkInfo, RenderPassID compatId, StringView dbgName) __NE___
 	{
 		return _CreateResource<RenderPassID>( ERR_MSG( "failed when creating render pass", dbgName ), *this, info, vkInfo, compatId, dbgName );
 	}
@@ -82,7 +82,7 @@ namespace AE::Graphics
 	CreateDescriptorSets
 =================================================
 */
-	bool  VResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
+	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
 												  PipelinePackID packId, DSLayoutName::Ref dslName,
 												  DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
 	{
@@ -95,7 +95,7 @@ namespace AE::Graphics
 		return CreateDescriptorSets( OUT dst, count, layout_id, RVRef(allocator), dbgName );
 	}
 
-	bool  VResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
+	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
 												  DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		CHECK_ERR( dst != null and count > 0 );
@@ -129,7 +129,7 @@ namespace AE::Graphics
 	CreateSampler
 =================================================
 */
-	Strong<SamplerID>  VResourceManager::CreateSampler (const SamplerDesc &info, StringView dbgName, const VkSamplerYcbcrConversionCreateInfo* ycbcrInfo) __NE___
+	Strong<SamplerID>  ResourceManager::CreateSampler (const SamplerDesc &info, StringView dbgName, const VkSamplerYcbcrConversionCreateInfo* ycbcrInfo) __NE___
 	{
 		return _CreateResource<SamplerID>( ERR_MSG( "failed when creating sampler", dbgName ), *this, info, ycbcrInfo, dbgName );
 	}
@@ -139,7 +139,7 @@ namespace AE::Graphics
 	GetVkSampler
 =================================================
 */
-	VkSampler  VResourceManager::GetVkSampler (PipelinePackID packId, SamplerName::Ref name) C_NE___
+	VkSampler  ResourceManager::GetVkSampler (PipelinePackID packId, SamplerName::Ref name) C_NE___
 	{
 		auto*	res = GetResource( GetSampler( packId, name ));
 		CHECK_ERR( res != null );
@@ -154,7 +154,7 @@ namespace AE::Graphics
 	CreateFramebuffer
 =================================================
 */
-	VFramebufferID  VResourceManager::CreateFramebuffer (const RenderPassDesc &desc) __NE___
+	VFramebufferID  ResourceManager::CreateFramebuffer (const RenderPassDesc &desc) __NE___
 	{
 		RenderPassID	rp_id = GetCompatibleRenderPass( desc.packId, desc.renderPassName );
 		CHECK_ERR( rp_id );
@@ -233,7 +233,7 @@ namespace AE::Graphics
 	_DelayedReleaseFramebuffer
 =================================================
 */
-	inline void  VResourceManager::_DelayedReleaseFramebuffer (VFramebufferID id) __NE___
+	inline void  ResourceManager::_DelayedReleaseFramebuffer (VFramebufferID id) __NE___
 	{
 		ASSERT( id != Default );
 
@@ -250,7 +250,7 @@ namespace AE::Graphics
 	_ReleaseFramebuffers
 =================================================
 */
-	inline void  VResourceManager::_ReleaseFramebuffers (const FrameUID frameId, INOUT RingBuffer<uint> &framebuffers) __NE___
+	inline void  ResourceManager::_ReleaseFramebuffers (const FrameUID frameId, INOUT RingBuffer<uint> &framebuffers) __NE___
 	{
 		constexpr uint	idx_mask	= 0x7FFF;
 		constexpr uint	gen_mask	= 0xFFFF;
@@ -293,7 +293,7 @@ namespace AE::Graphics
 	_AddFrameIDtoFramebufferList
 =================================================
 */
-	inline void  VResourceManager::_AddFrameIDtoFramebufferList (const FrameUID frameId, INOUT RingBuffer<uint> &framebuffers) __NE___
+	inline void  ResourceManager::_AddFrameIDtoFramebufferList (const FrameUID frameId, INOUT RingBuffer<uint> &framebuffers) __NE___
 	{
 		constexpr uint	gen_mask	= 0xFFFF;
 		StaticAssert( VFramebufferID::MaxGeneration() == gen_mask );
@@ -309,7 +309,7 @@ namespace AE::Graphics
 	LoadPipelineCache
 =================================================
 */
-	Strong<PipelineCacheID>  VResourceManager::LoadPipelineCache (RC<RStream> stream) __NE___
+	Strong<PipelineCacheID>  ResourceManager::LoadPipelineCache (RC<RStream> stream) __NE___
 	{
 		PipelineCacheID		id;
 		CHECK_ERR( _Assign( OUT id ));
@@ -336,17 +336,17 @@ namespace AE::Graphics
 	Create***Allocator
 =================================================
 */
-	GfxMemAllocatorPtr  VResourceManager::CreateLinearGfxMemAllocator (Bytes pageSize) C_NE___
+	GfxMemAllocatorPtr  ResourceManager::CreateLinearGfxMemAllocator (Bytes pageSize) C_NE___
 	{
 		return MakeRC<VLinearMemAllocator>( pageSize );
 	}
 
-	GfxMemAllocatorPtr  VResourceManager::CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize) C_NE___
+	GfxMemAllocatorPtr  ResourceManager::CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize) C_NE___
 	{
 		return MakeRC<VBlockMemAllocator>( blockSize, pageSize );
 	}
 
-	GfxMemAllocatorPtr  VResourceManager::CreateUnifiedGfxMemAllocator (Bytes pageSize) C_NE___
+	GfxMemAllocatorPtr  ResourceManager::CreateUnifiedGfxMemAllocator (Bytes pageSize) C_NE___
 	{
 		return MakeRC<VUniMemAllocator>( pageSize );
 	}

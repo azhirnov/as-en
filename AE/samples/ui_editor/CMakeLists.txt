@@ -14,9 +14,9 @@ if ((TARGET "Scripting") AND (TARGET "AssetPacker") AND (NOT AE_ENABLE_REMOTE_GR
 
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${CPP_SOURCES} ${DATA_FILES} )
 	set_property( TARGET ${APP_NAME} PROPERTY FOLDER "Samples" )
-	target_include_directories( ${APP_NAME} PUBLIC ".." )
 
 	target_include_directories( ${APP_NAME} PUBLIC
+		"."
 		"${AE_ENGINE_SHARED_DATA}/scripts"
 		"${AE_ENGINE_SHARED_DATA}/shaders"
 		"${CMAKE_CURRENT_SOURCE_DIR}/_data/ui_styles"
@@ -33,8 +33,8 @@ if ((TARGET "Scripting") AND (TARGET "AssetPacker") AND (NOT AE_ENABLE_REMOTE_GR
 	set_property( SOURCE "${PipelineCompiler.trigger}" PROPERTY GENERATED 1 )
 	set_property( SOURCE "${AssetPacker.trigger}" PROPERTY GENERATED 1 )
 
-	EnablePCH( ${APP_NAME} )
-	EnableUnitBuild( ${APP_NAME} )
+	UseEnginePCH2( ${APP_NAME} )
+	EnableUnityBuild( ${APP_NAME} )
 
 	set( AE_TEMP_FOLDER_UIEDITOR "${AE_TEMP_FOLDER}/samples/ui_editor/ui" )
 	target_compile_definitions( ${APP_NAME} PUBLIC
@@ -44,7 +44,6 @@ if ((TARGET "Scripting") AND (TARGET "AssetPacker") AND (NOT AE_ENABLE_REMOTE_GR
 		AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
 		AE_LIBRARY_FOLDER="${MAIN_BINARY_DIR}"
 	)
-
 	#----------------------------------------------------------
 
 	if (TARGET "OfflinePacker")

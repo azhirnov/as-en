@@ -23,7 +23,8 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsIndirectContext = false;
 
-		using CmdBuf_t = VCommandBuffer;
+		using CmdBuf_t		= VCommandBuffer;
+		using RenderCoroRef	= _Coro_::RenderTaskImpl::UserApi;
 
 
 	// variables
@@ -56,10 +57,10 @@ namespace AE::Graphics::_hidden_
 		ND_ VkCommandBuffer	_EndCommandBuffer ()										__Th___;
 		ND_ VCommandBuffer  _ReleaseCommandBuffer ()									__Th___;
 
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)						__NE___;
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, const RenderTask &task, DebugLabel dbg)	__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const DrawCommandBatch &, VCommandBuffer, DebugLabel)					__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const CommandBatch &, VCommandBuffer, RenderCoroRef, DebugLabel)		__NE___;
 	private:
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg, bool firstInQueue)		__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const CommandBatch &, VCommandBuffer, DebugLabel, bool firstInQueue)	__NE___;
 	};
 
 
@@ -72,7 +73,7 @@ namespace AE::Graphics::_hidden_
 	{
 	// types
 	protected:
-		using ECtxType = IGraphicsProfiler::EContextType;
+		using ECtxType	= IGraphicsProfiler::EContextType;
 
 
 	// variables
@@ -82,15 +83,15 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		VBaseDirectContext (const RenderTask &, VCommandBuffer, DebugLabel, ECtxType)		__Th___;
-		~VBaseDirectContext ()																__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
+		VBaseDirectContext (RenderCoroRef, VCommandBuffer, DebugLabel, ECtxType)		__Th___;
+		~VBaseDirectContext ()															__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-			void  _CommitBarriers ()														__NE___;
+			void  _CommitBarriers ()													__NE___;
 
-		ND_ bool  _NoPendingBarriers ()														C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ bool  _NoPendingBarriers ()													C_NE___	{ return _mngr.NoPendingBarriers(); }
 
-		ND_ VkCommandBuffer	_EndCommandBuffer ()											__Th___;
+		ND_ VkCommandBuffer	_EndCommandBuffer ()										__Th___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -139,8 +140,8 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg, ECtxType ctxType) __Th___ :
-		_VBaseDirectContext{ _ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf), task, dbg )},  // throw
+	inline VBaseDirectContext::VBaseDirectContext (RenderCoroRef task, VCommandBuffer cmdbuf, DebugLabel dbg, ECtxType ctxType) __Th___ :
+		_VBaseDirectContext{ _ReuseOrCreateCommandBuffer( *task.BatchPtr(), RVRef(cmdbuf), task, dbg )},  // throw
 		_mngr{ task }
 	{
 		GCTX_CHECK( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
@@ -152,7 +153,7 @@ namespace AE::Graphics::_hidden_
 		)
 		Unused( ctxType );
 
-		if ( auto bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractInitialBarriers( task.ExecutionIndex() ))
 		{
 			PipelineBarrier( *bar );
 			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.InitialBarriers"});)
@@ -181,7 +182,7 @@ namespace AE::Graphics::_hidden_
 */
 	inline VkCommandBuffer  VBaseDirectContext::_EndCommandBuffer () __Th___
 	{
-		if ( auto bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().ExecutionIndex() ))
 		{
 			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.FinalBarriers"});)
 			PipelineBarrier( *bar );

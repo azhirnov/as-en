@@ -27,3 +27,5 @@ using namespace LFAS::CPP;
 #include "base/Math/Vec.h"
 #include "base/Memory/UntypedAllocator.h"
 #include "base/Memory/IAllocator.h"
+
+static constexpr secondsf	c_TestDuration {100.f * 60.f};

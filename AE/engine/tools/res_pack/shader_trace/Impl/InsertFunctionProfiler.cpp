@@ -1111,6 +1111,10 @@ ND_ static TIntermAggregate*  CreateAddTimeToTrace (TIntermTyped* exprNode, TInt
 		case TBasicType::EbtTensorLayoutNV :
 		case TBasicType::EbtTensorViewNV :
 		case TBasicType::EbtCoopvecNV :
+		case TBasicType::EbtBFloat16 :
+		case TBasicType::EbtFloatE5M2 :
+		case TBasicType::EbtFloatE4M3 :
+		case TBasicType::EbtTensorARM :
 		default :						RETURN_ERR( "not supported" );
 	}
 	switch_end

@@ -26,7 +26,8 @@ namespace AE::Networking
 {
 	DECL_CSMSG( Log,  Debug,
 		StringView		msg;
-		SourceLoc		loc;
+		StringView		file;
+		uint			line;
 		ELogLevel		level	= ELogLevel::Debug;
 		ELogScope		scope	= ELogScope::Unknown;
 
@@ -43,11 +44,11 @@ namespace AE::Networking
 
 
 
-	CSMSG_ENC_DEC( Log,  msg, loc.file, loc.line, level, scope );
+	CSMSG_ENC_DEC( Log,  msg, file, line, level, scope );
 
 	inline void  CSMsg_Log::Execute () C_NE___
 	{
-		AE_PRIVATE_LOGX( level, scope, msg, loc.file, loc.line );
+		AE_PRIVATE_LOGX( level, scope, msg, SourceLoc( NtStringView{file}.c_str(), line ) );
 	}
 
 

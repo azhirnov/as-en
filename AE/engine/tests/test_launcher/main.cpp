@@ -24,7 +24,9 @@ public:
 		_thread = StdThread{ [this, a = &app]()
 					{
 						ThreadUtils::SetName( "--test--" );
+						AE_LOGW( "---- begin tests ----" );
 						_RunTests( *a );
+						AE_LOGW( "---- end tests ----" );
 						_complete.store( true );
 					}};
 	}
@@ -41,13 +43,18 @@ public:
 	void  _LoadAndRun (StringView libName, StringView fnName, Args ...args) const
 	{
 		Library	lib;
+		AE_LOGI( "Try load "s << libName );
+
 		if ( lib.Load( libName ))
 		{
+			AE_LOGI( "Try get function address "s << fnName );
+
 			int (*fn) (Args...);
 			if ( lib.GetProcAddr( fnName, OUT fn ))
 			{
-				AE_LOGI( "-- Begin "s << libName );
+				AE_LOGW( "-- Begin "s << libName );
 				fn( args... );
+				AE_LOGW( "-- End "s << libName );
 			}
 			else
 				AE_LOGE( "Failed to get fn "s << fnName << " from " << libName );
@@ -69,10 +76,10 @@ public:
 			_LoadAndRun( "libTestsSerializing.so",		"Tests_Serializing",	cache_path.c_str() );
 			_LoadAndRun( "libTestsThreading.so",		"Tests_Threading",		cache_path.c_str() );
 			_LoadAndRun( "libTestsNetworking.so",		"Tests_Networking",		cache_path.c_str() );
-			_LoadAndRun( "libTestsECS-st.so",			"Tests_ECSst",			cache_path.c_str() );
+			_LoadAndRun( "libTestsECS.so",				"Tests_ECS",			cache_path.c_str() );
 			_LoadAndRun( "libTestsVFS.so",				"Tests_VFS",			cache_path.c_str() );
 			_LoadAndRun( "libTestsHuLang.so",			"Tests_HuLang",			cache_path.c_str() );
-			_LoadAndRun( "libTestsLogic.so",			"Tests_Logic",			cache_path.c_str() );
+		//	_LoadAndRun( "libTestsLogic.so",			"Tests_Logic",			cache_path.c_str() );
 			_LoadAndRun( "libTestsGraphicsRHI.so",		"Tests_GraphicsRHI2",	asset_storage.get(), cache_storage.get() );
 			_LoadAndRun( "libTestsGraphics.so",			"Tests_Graphics2",		asset_storage.get(), cache_storage.get() );
 

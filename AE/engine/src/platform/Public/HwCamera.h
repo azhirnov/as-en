@@ -366,15 +366,15 @@ namespace AE::App
 
 		// TODO
 		//
-		ND_ virtual Promise< ArrayView< CameraInfo >>  GetInfoAsync ()			__NE___ = 0;
+		ND_ virtual auto  GetInfoAsync ()										__NE___ -> Promise< ArrayView< CameraInfo >> = 0;
 
 
 		// TODO
 		//
-		ND_ virtual Promise< RC< CameraCapture >>	OpenCamera (const CameraID			&id,
-																uint2					dim,
-																EImageFormat			format,
-																const CaptureRequest	&params)	__NE___ = 0;
+		ND_ virtual auto  OpenCamera (const CameraID		&id,
+									  uint2					dim,
+									  EImageFormat			format,
+									  const CaptureRequest	&params)			__NE___ -> Promise< RC< CameraCapture >> = 0;
 	};
 
 

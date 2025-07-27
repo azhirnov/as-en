@@ -17,5 +17,7 @@ if (TARGET "AtlasTools")
 	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/Tests" )
 	target_link_libraries( ${TEST_NAME} PUBLIC "AtlasTools" )
 
+	UseEnginePCH2( ${TEST_NAME} )
+	
 	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
 endif()

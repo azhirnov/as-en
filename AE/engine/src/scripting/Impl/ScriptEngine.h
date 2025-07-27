@@ -10,8 +10,30 @@
 #ifndef AE_ENABLE_ANGELSCRIPT
 #	error AngelScript is not available
 #endif
+#ifndef AE_ENABLE_SCRIPTING
+#	error AE_ENABLE_SCRIPTING must be defined
+#endif
 
-#include "scripting/Scripting.pch.h"
+// AngelScript + Addons //
+#ifdef AE_ENABLE_ANGELSCRIPT
+# include "base/Defines/StdInclude.h"
+
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wunused-parameter"
+# endif
+
+# include "angelscript.h"
+# include "scriptarray.h"
+# include "scriptstdstring.h"
+
+# if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	pragma clang diagnostic pop
+# endif
+
+#endif
+
+#include "pch/Base.h"
 
 #ifdef AE_DEBUG
 # define AE_DBG_SCRIPTS		1
@@ -32,6 +54,8 @@
 namespace AE::Scripting
 {
 	using namespace AE::Base;
+
+	ImportBitOperators;
 
 	using ScriptModulePtr = RC< class ScriptModule >;
 	using ScriptEnginePtr = RC< class ScriptEngine >;
@@ -73,7 +97,7 @@ namespace AE::Scripting
 		};
 
 	private:
-		using DbgLocationMap_t = FlatHashMap< /*section*/String, SourceLoc2 >;
+		using DbgLocationMap_t = FlatHashMap< /*section*/String, SourceLocCopy >;
 
 
 	// variables
@@ -257,26 +281,30 @@ namespace AE::Scripting
 #	define AS_CHECK( /* expr */... )	{AE::Base::Unused( __VA_ARGS__ );}
 
 # else
-#	define AS_CHECK( /* expr */... )																															\
-	{																																							\
-		int __as_result = ( __VA_ARGS__ );																														\
-		AE::Base::Unused( AE::Scripting::ScriptEngine::_CheckError( __as_result, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, SourceLoc_Current() ));			\
+#	define AS_CHECK( /* expr */... )																			\
+	{																											\
+		int __as_result = ( __VA_ARGS__ );																		\
+		AE::Base::Unused( AE::Scripting::ScriptEngine::_CheckError( __as_result,								\
+							AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, AE::Base::SourceLoc::current() ));	\
 	}
 # endif
 
 
-#	define AS_CHECK_ERR( /* expr */... )																														\
-	{																																							\
-		int __as_result = ( __VA_ARGS__ );																														\
-		if_unlikely( not AE::Scripting::ScriptEngine::_CheckError( __as_result, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, SourceLoc_Current() ))			\
-			return Default;																																		\
+#	define AS_CHECK_ERR( /* expr */... )																		\
+	{																											\
+		int __as_result = ( __VA_ARGS__ );																		\
+		if_unlikely( not AE::Scripting::ScriptEngine::_CheckError( __as_result,									\
+							AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, AE::Base::SourceLoc::current() ))		\
+			return Default;																						\
 	}
 
-#	define AS_CHECK_THROW( /*expr*/... )																														\
-	{																																							\
-		int __as_result = ( __VA_ARGS__ );																														\
-		AE_PRIVATE_CHECK_THROW( (AE::Scripting::ScriptEngine::_CheckError( __as_result, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, SourceLoc_Current() )),	\
-								AE::Scripting::AngelScriptException(0) );																						\
+#	define AS_CHECK_THROW( /*expr*/... )																		\
+	{																											\
+		int __as_result = ( __VA_ARGS__ );																		\
+		AE_PRIVATE_CHECK_THROW( (AE::Scripting::ScriptEngine::_CheckError( __as_result,							\
+											AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME,						\
+											AE::Base::SourceLoc::current() )),									\
+								AE::Scripting::AngelScriptException(0) );										\
 	}
 
 

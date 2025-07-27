@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "base/Utils/Bitfield.h"
+
 namespace AE::Base::_hidden_
 {
 

@@ -24,7 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VVideoBuffer::Create (VResourceManager &resMngr, const VideoBufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VVideoBuffer::Create (ResourceManager &resMngr, const VideoBufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _buffer == Default );
@@ -108,7 +108,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VVideoBuffer::Destroy (VResourceManager &resMngr) __NE___
+	void  VVideoBuffer::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -125,7 +125,7 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  VVideoBuffer::IsSupported (const VResourceManager &, const VideoBufferDesc &) __NE___
+	bool  VVideoBuffer::IsSupported (const ResourceManager &, const VideoBufferDesc &) __NE___
 	{
 		// TODO
 		return true;

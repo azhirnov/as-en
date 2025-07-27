@@ -37,7 +37,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VVideoSession::Create (VResourceManager &resMngr, const VideoSessionDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VVideoSession::Create (ResourceManager &resMngr, const VideoSessionDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _session == Default and _params == Default );
@@ -208,6 +208,9 @@ namespace AE::Graphics
 			case VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR :
 				// TODO
 
+			case VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR :
+				// TODO
+
 			case VK_VIDEO_CODEC_OPERATION_NONE_KHR :
 			case VK_VIDEO_CODEC_OPERATION_FLAG_BITS_MAX_ENUM_KHR :
 			default_unlikely :
@@ -237,7 +240,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VVideoSession::Destroy (VResourceManager &resMngr) __NE___
+	void  VVideoSession::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -475,6 +478,9 @@ namespace
 						case VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR :
 							// TODO
 
+						case VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR :
+							// TODO
+
 						case VK_VIDEO_CODEC_OPERATION_NONE_KHR :
 						case VK_VIDEO_CODEC_OPERATION_FLAG_BITS_MAX_ENUM_KHR :
 							break;
@@ -489,7 +495,7 @@ namespace
 	IsSupported
 =================================================
 */
-	bool  VVideoSession::IsSupported (const VResourceManager &, const VideoSessionDesc &) __NE___
+	bool  VVideoSession::IsSupported (const ResourceManager &, const VideoSessionDesc &) __NE___
 	{
 		// TODO
 		return true;

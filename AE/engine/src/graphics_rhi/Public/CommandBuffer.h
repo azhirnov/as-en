@@ -211,7 +211,7 @@ namespace AE::Graphics
 			DeferredBar				DeferredBarriers ()																						__NE___;
 			IResourceManager &		GetResourceManager ()																					C_NE___;
 			IDevice const&			GetDevice ()																							C_NE___;
-			RenderTask const&		GetRenderTask ()																						C_NE___;
+			RenderCoroRef			GetRenderTask ()																						C_NE___;
 		)
 	};
 
@@ -228,58 +228,64 @@ namespace AE::Graphics
 		struct _ReadbackResult
 		{
 		protected:
-			void  _AddNextCycleEndDeps (AsyncTask task)												__NE___;
+			template <typename ...Args>		auto  _Then (Args&& ...args)		__NE___ -> CoroCtorResult<Args...>;
 		};
 
 		struct ReadbackBufferResult : _ReadbackResult
 		{
-			Promise<BufferMemView>	readOp;
+			Promise<BufferMemView>		readOp;
 
-			ReadbackBufferResult ()																	__NE___ = default;
-			explicit ReadbackBufferResult (Promise<BufferMemView> readOp)							__NE___ : readOp{RVRef(readOp)} {}
+			ReadbackBufferResult ()												__NE___ = default;
+			explicit ReadbackBufferResult (Promise<BufferMemView> readOp)		__NE___ : readOp{RVRef(readOp)} {}
 
-			template <typename Fn>
-			auto  Then (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)		__NE___ { auto p = readOp.Then( FwdArg<Fn>(fn), dbgName, queueType );  _AddNextCycleEndDeps( AsyncTask{p} );  return p; }
-
-			template <typename Fn>
-			auto  Except (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)	__NE___ { return readOp.Except( FwdArg<Fn>(fn), dbgName, queueType ); }
+			template <typename ...Args>		auto  Then (Args&& ...args)			__NE___	{ return _Then( readOp, FwdArg<Args>(args)... ); }
 		};
 
 
 		struct ReadbackImageResult : _ReadbackResult
 		{
-			Promise<ImageMemView>	readOp;
+			Promise<ImageMemView>		readOp;
 
-			ReadbackImageResult ()																	__NE___ = default;
-			explicit ReadbackImageResult (Promise<ImageMemView> readOp)								__NE___ : readOp{RVRef(readOp)} {}
+			ReadbackImageResult ()												__NE___ = default;
+			explicit ReadbackImageResult (Promise<ImageMemView> readOp)			__NE___ : readOp{RVRef(readOp)} {}
 
-			template <typename Fn>
-			auto  Then (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)		__NE___ { auto p = readOp.Then( FwdArg<Fn>(fn), dbgName, queueType );  _AddNextCycleEndDeps( AsyncTask{p} );  return p; }
-
-			template <typename Fn>
-			auto  Except (Fn &&fn, StringView dbgName = Default, ETaskQueue queueType = Default)	__NE___ { return readOp.Except( FwdArg<Fn>(fn), dbgName, queueType ); }
+			template <typename ...Args>		auto  Then (Args&& ...args)			__NE___	{ return _Then( readOp, FwdArg<Args>(args)... ); }
 		};
 
 
 		struct ReadbackBufferResult2 : ReadbackBufferResult
 		{
-			Bytes		remain;		// non-zero if not enough space to read whole buffer
+			Bytes						remain;		// non-zero if not enough space to read whole buffer
 
-			ReadbackBufferResult2 ()																__NE___ = default;
-			ReadbackBufferResult2 (Promise<BufferMemView> readOp, Bytes remain)						__NE___ : ReadbackBufferResult{RVRef(readOp)}, remain{remain} {}
+			ReadbackBufferResult2 ()											__NE___ = default;
+			ReadbackBufferResult2 (Promise<BufferMemView> readOp, Bytes remain)	__NE___ : ReadbackBufferResult{RVRef(readOp)}, remain{remain} {}
 
-			ND_ bool  IsCompleted ()																C_NE___	{ return remain == 0; }
+			ND_ bool  IsCompleted ()											C_NE___	{ return remain == 0; }
+
+			template <typename ...Args>		auto  Then (Args&& ...args)			__NE___	{ return _Then( readOp, FwdArg<Args>(args)... ); }
 		};
 
 
 		struct ReadbackImageResult2 : ReadbackImageResult
 		{
-			uint3		remain;		// non-zero if not enough space to read whole image
+			uint3						remain;		// non-zero if not enough space to read whole image
 
-			ReadbackImageResult2 ()																	__NE___ = default;
-			ReadbackImageResult2 (Promise<ImageMemView> readOp, uint3 remain)						__NE___ : ReadbackImageResult{RVRef(readOp)}, remain{remain} {}
+			ReadbackImageResult2 ()												__NE___ = default;
+			ReadbackImageResult2 (Promise<ImageMemView> readOp, uint3 remain)	__NE___ : ReadbackImageResult{RVRef(readOp)}, remain{remain} {}
 
-			ND_ bool  IsCompleted ()																C_NE___	{ return All( IsZero( remain )); }
+			ND_ bool  IsCompleted ()											C_NE___	{ return All( IsZero( remain )); }
+
+			template <typename ...Args>		auto  Then (Args&& ...args)			__NE___	{ return _Then( readOp, FwdArg<Args>(args)... ); }
+		};
+
+		struct ReadHostBufferResult : _ReadbackResult
+		{
+			Promise<ArrayView<ubyte>>	readOp;
+
+			ReadHostBufferResult ()												__NE___ = default;
+			explicit ReadHostBufferResult (Promise<ArrayView<ubyte>> readOp)	__NE___ : readOp{RVRef(readOp)} {}
+
+			template <typename ...Args>		auto  Then (Args&& ...args)			__NE___	{ return _Then( readOp, FwdArg<Args>(args)... ); }
 		};
 
 
@@ -335,7 +341,7 @@ namespace AE::Graphics
 		ND_	virtual bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)				__Th___ = 0;
 
 		//		buffer: EResourceState::Host_Read
-		ND_ virtual Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)				__Th___ = 0;
+		ND_ virtual ReadHostBufferResult	ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)					__Th___ = 0;
 
 		ND_ virtual uint3  MinImageTransferGranularity ()																C_NE___ = 0;
 

@@ -213,7 +213,7 @@ namespace AE::Video
 
 		msg = msg + buf + ", in " + ffcall + ", function: " + func;
 
-		AE_LOGW( msg, loc.file, loc.line );
+		AE_LOGW( msg, loc );
 		return false;
 	}
 

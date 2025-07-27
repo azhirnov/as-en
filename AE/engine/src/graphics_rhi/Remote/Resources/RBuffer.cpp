@@ -26,7 +26,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RBuffer::Create (RResourceManager &resMngr, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  RBuffer::Create (ResourceManager &resMngr, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _bufferId );
@@ -71,7 +71,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RBuffer::Create (RResourceManager &resMngr, const RemoteBufferDesc &desc, GfxMemAllocatorPtr, StringView dbgName) __NE___
+	bool  RBuffer::Create (ResourceManager &resMngr, const RemoteBufferDesc &desc, GfxMemAllocatorPtr, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _bufferId );
@@ -104,7 +104,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RBuffer::Destroy (RResourceManager &resMngr) __NE___
+	void  RBuffer::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -141,7 +141,7 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  RBuffer::IsSupported (const RResourceManager &resMngr, const BufferDesc &desc) __NE___
+	bool  RBuffer::IsSupported (const ResourceManager &resMngr, const BufferDesc &desc) __NE___
 	{
 		if ( not Buffer_IsSupported( resMngr, desc ))
 			return false;
@@ -160,7 +160,7 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  RBuffer::IsSupported (const RResourceManager &resMngr, const BufferDesc &desc, const BufferViewDesc &viewDesc) __NE___
+	bool  RBuffer::IsSupported (const ResourceManager &resMngr, const BufferDesc &desc, const BufferViewDesc &viewDesc) __NE___
 	{
 		if ( not BufferView_IsSupported( resMngr, desc, viewDesc ))
 			return false;
@@ -180,7 +180,7 @@ namespace AE::Graphics
 	IsSupportedForVertex
 =================================================
 */
-	bool  RBuffer::IsSupportedForVertex (const RResourceManager &resMngr, EVertexType type) __NE___
+	bool  RBuffer::IsSupportedForVertex (const ResourceManager &resMngr, EVertexType type) __NE___
 	{
 		return resMngr.GetFeatureSet().vertexFormats.contains( type );
 	}
@@ -190,7 +190,7 @@ namespace AE::Graphics
 	IsSupportedForASVertex
 =================================================
 */
-	bool  RBuffer::IsSupportedForASVertex (const RResourceManager &resMngr, EVertexType type) __NE___
+	bool  RBuffer::IsSupportedForASVertex (const ResourceManager &resMngr, EVertexType type) __NE___
 	{
 		return resMngr.GetFeatureSet().accelStructVertexFormats.contains( type );
 	}

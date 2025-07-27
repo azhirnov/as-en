@@ -2,26 +2,26 @@
 
 #pragma once
 
-#include "ScriptObjects/ScriptConfig.h"
-#include "ScriptObjects/ScriptFeatureSet.h"
-#include "ScriptObjects/DescriptorSetLayout.h"
-#include "ScriptObjects/PipelineLayout.h"
-#include "ScriptObjects/RenderTechnique.h"
-#include "ScriptObjects/GraphicsPipeline.h"
-#include "ScriptObjects/ComputePipeline.h"
-#include "ScriptObjects/MeshPipeline.h"
-#include "ScriptObjects/TilePipeline.h"
-#include "ScriptObjects/RayTracingPipeline.h"
-#include "ScriptObjects/ScriptRenderPass.h"
-#include "ScriptObjects/ScriptSampler.h"
-#include "ScriptObjects/ScriptShader.h"
-#include "ScriptObjects/RayTracingShaderBinding.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptConfig.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptFeatureSet.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/DescriptorSetLayout.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/PipelineLayout.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/RenderTechnique.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/GraphicsPipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ComputePipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/MeshPipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/TilePipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/RayTracingPipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptRenderPass.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptSampler.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptShader.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/RayTracingShaderBinding.h"
 
-#include "Packer/HashToName.h"
+#include "res_pack/pipeline_compiler/Packer/HashToName.h"
 
-#include "Compiler/SpirvCompiler.h"
-#include "Compiler/MetalCompiler.h"
-#include "Compiler/SlangCompiler.h"
+#include "res_pack/pipeline_compiler/Compiler/SpirvCompiler.h"
+#include "res_pack/pipeline_compiler/Compiler/MetalCompiler.h"
+#include "res_pack/pipeline_compiler/Compiler/SlangCompiler.h"
 
 namespace AE::PipelineCompiler
 {

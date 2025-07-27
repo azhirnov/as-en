@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Controllers/RemoteCamera.h"
-#include "res_editor/_data/cpp/types.h"
+#include "Controllers/RemoteCamera.h"
+#include "_data/cpp/types.h"
 
 namespace AE::ResEditor
 {

@@ -36,7 +36,7 @@ namespace AE::Base
 				ubyte	_data [sizeof(T) * ArraySize];	// unused
 			};
 
-			__Cx__ ElemArray ()						__NE___	{ DEBUG_ONLY( DbgInitMem( arr )); }
+			__Cx__ ElemArray ()						__NE___	{ DEBUG_ONLY( DbgInitMem( arr ); )}
 			__Cx__ ElemArray (ElemArray &&)			= delete;
 			__Cx__ ElemArray (const ElemArray &)	= delete;
 			__Cx__ ~ElemArray ()					__NE___	{ DEBUG_ONLY( DbgFreeMem( arr )); }

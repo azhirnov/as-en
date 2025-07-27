@@ -35,8 +35,8 @@ namespace AE::Graphics
 		RRTScene ()																									__NE___	{}
 		~RRTScene ()																								__NE___;
 
-		ND_ bool  Create (RResourceManager &, const RTSceneDesc &, GfxMemAllocatorPtr, StringView dbgName)			__NE___;
-			void  Destroy (RResourceManager &)																		__NE___;
+		ND_ bool  Create (ResourceManager &, const RTSceneDesc &, GfxMemAllocatorPtr, StringView dbgName)			__NE___;
+			void  Destroy (ResourceManager &)																		__NE___;
 
 		ND_ RmRTSceneID				Handle ()																		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sceneId; }
 		ND_ DeviceAddress			GetDeviceAddress ()																C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _address; }
@@ -49,12 +49,12 @@ namespace AE::Graphics
 
 		ND_ static bool				IsSerializedMemoryCompatible (const RDevice &dev, const void* ptr, Bytes size)	__NE___;
 
-		ND_ static RTASBuildSizes	GetBuildSizes (const RResourceManager &, const RTSceneBuild &desc)				__NE___;
+		ND_ static RTASBuildSizes	GetBuildSizes (const ResourceManager &, const RTSceneBuild &desc)				__NE___;
 
-		ND_ static bool				IsSupported (const RResourceManager &, const RTSceneDesc &desc)					__NE___;
-		ND_ static bool				IsSupported (const RResourceManager &, const RTSceneBuild &build)				__NE___;
+		ND_ static bool				IsSupported (const ResourceManager &, const RTSceneDesc &desc)					__NE___;
+		ND_ static bool				IsSupported (const ResourceManager &, const RTSceneBuild &build)				__NE___;
 
-		ND_ static bool				ConvertBuildInfo (const RResourceManager &, INOUT RTSceneBuild &)				__NE___;
+		ND_ static bool				ConvertBuildInfo (const ResourceManager &, INOUT RTSceneBuild &)				__NE___;
 	};
 
 

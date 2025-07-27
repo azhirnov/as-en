@@ -26,7 +26,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VBuffer::Create (VResourceManager &resMngr, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VBuffer::Create (ResourceManager &resMngr, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _buffer == Default );
@@ -91,7 +91,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VBuffer::Create (VResourceManager &resMngr, const VulkanBufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VBuffer::Create (ResourceManager &resMngr, const VulkanBufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _buffer == Default );
@@ -161,7 +161,7 @@ namespace AE::Graphics
 	For more info see 'ResourceManager::ReleaseExpiredResourcesTask'.
 =================================================
 */
-	void  VBuffer::Destroy (VResourceManager &resMngr) __NE___
+	void  VBuffer::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -203,7 +203,7 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  VBuffer::IsSupported (const VResourceManager &resMngr, const BufferDesc &desc) __NE___
+	bool  VBuffer::IsSupported (const ResourceManager &resMngr, const BufferDesc &desc) __NE___
 	{
 		return Buffer_IsSupported( resMngr, desc );
 		/*
@@ -221,7 +221,7 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  VBuffer::IsSupported (const VResourceManager &resMngr, const BufferDesc &desc, const BufferViewDesc &view) __NE___
+	bool  VBuffer::IsSupported (const ResourceManager &resMngr, const BufferDesc &desc, const BufferViewDesc &view) __NE___
 	{
 		StaticAssert( uint(EBufferUsage::All) == 0x3FFF );
 		StaticAssert( uint(EBufferOpt::All) == 0x1F );
@@ -340,7 +340,7 @@ namespace AE::Graphics
 	IsSupportedForVertex
 =================================================
 */
-	bool  VBuffer::IsSupportedForVertex (const VResourceManager &resMngr, EVertexType type) __NE___
+	bool  VBuffer::IsSupportedForVertex (const ResourceManager &resMngr, EVertexType type) __NE___
 	{
 	#if 1
 		return resMngr.GetFeatureSet().vertexFormats.contains( type );
@@ -358,7 +358,7 @@ namespace AE::Graphics
 	IsSupportedForASVertex
 =================================================
 */
-	bool  VBuffer::IsSupportedForASVertex (const VResourceManager &resMngr, EVertexType type) __NE___
+	bool  VBuffer::IsSupportedForASVertex (const ResourceManager &resMngr, EVertexType type) __NE___
 	{
 	#if 1
 		return resMngr.GetFeatureSet().accelStructVertexFormats.contains( type );

@@ -1,8 +1,0 @@
-rm -rf "../../../../../AE-Bin/external/source/FileSystem"
-rm -rf "temp"
-git clone --branch "v1.5.14" "../../../../../3party/filesystem" "temp"
-mkdir "../../../../../AE-Bin/external/source/FileSystem"
-cp -R "temp/include" "../../../../../AE-Bin/external/source/FileSystem/include"
-cp "temp/LICENSE" "../../../../../AE-Bin/external/source/FileSystem/LICENSE.txt"
-rm -rf "temp"
-read -p "press any key..."

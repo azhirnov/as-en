@@ -430,11 +430,11 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	RBaseContext::RBaseContext (const RenderTask &task, RSoftwareCmdBufPtr cmdbuf, DebugLabel dbg, ECtxType ctxType) __Th___ :
+	RBaseContext::RBaseContext (RenderCoroRef task, RSoftwareCmdBufPtr cmdbuf, DebugLabel dbg, ECtxType ctxType) __Th___ :
 		RBaseContext{ task, RVRef(cmdbuf), (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType, 0 }
 	{}
 
-	inline RBaseContext::RBaseContext (const RenderTask &task, RSoftwareCmdBufPtr cmdbuf, DebugLabel dbg, ECtxType ctxType, int) __Th___ :
+	inline RBaseContext::RBaseContext (RenderCoroRef task, RSoftwareCmdBufPtr cmdbuf, DebugLabel dbg, ECtxType ctxType, int) __Th___ :
 		_RBaseContext{ dbg, RVRef(cmdbuf) },
 		_mngr{ task }
 	{
@@ -455,7 +455,7 @@ namespace AE::Graphics::_hidden_
 
 		GFX_DBG_ONLY( _mngr.ProfilerBeginContext( *_cmdbuf, dbg, ctxType );)
 
-		if ( auto bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractInitialBarriers( task.ExecutionIndex() ))
 		{
 			_cmdbuf->PipelineBarrier( *bar );
 			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.InitialBarriers"});)
@@ -471,14 +471,14 @@ namespace AE::Graphics::_hidden_
 	{
 		ASSERT( _NoPendingBarriers() );
 
-		if ( auto bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().ExecutionIndex() ))
 		{
 			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.FinalBarriers"});)
 			_cmdbuf->PipelineBarrier( *bar );
 		}
 		GFX_DBG_ONLY( _mngr.ProfilerEndContext( *_cmdbuf, ctxType ));
 
-		return _RBaseContext::_EndCommandBuffer( _mngr.GetRenderTask().GetExecutionIndex(), _mngr.GetBatch().Handle() );
+		return _RBaseContext::_EndCommandBuffer( _mngr.GetRenderTask().ExecutionIndex(), _mngr.GetBatch().Handle() );
 	}
 
 /*

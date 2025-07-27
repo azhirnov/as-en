@@ -25,7 +25,6 @@ if (NOT ${AE_ENABLE_REMOTE_GRAPHICS})
 	set_source_files_properties( ${ANDROID_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 
 	target_link_libraries( "AndroidRemoteControl" PUBLIC "Networking" )
-	target_include_directories( "AndroidRemoteControl" PUBLIC ".." )
 	set_property( TARGET "AndroidRemoteControl" PROPERTY FOLDER "Samples" )
 
 	if (TARGET "Mali-HWCPipe-lib")
@@ -37,4 +36,6 @@ if (NOT ${AE_ENABLE_REMOTE_GRAPHICS})
 	if (ANDROID)
 		target_compile_definitions( "AndroidRemoteControl" PUBLIC "AE_ENABLE_ADRENO_PERFCOUNTER" "AE_ENABLE_ARM_PMU" )
 	endif()
+	
+	UseEnginePCH2( "AndroidRemoteControl" )
 endif()

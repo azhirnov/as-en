@@ -158,9 +158,9 @@ namespace AE::Profiler
 
 
 	  // ITaskProfiler //
-		void  Begin (const Threading::IAsyncTask &)				__NE_OV;
-		void  End (const Threading::IAsyncTask &)				__NE_OV;
-		void  Enqueue (const Threading::IAsyncTask &)			__NE_OV;
+		void  Begin (const AsyncTaskImpl &)						__NE_OV;
+		void  End (const AsyncTaskImpl &)						__NE_OV;
+		void  Enqueue (const AsyncTaskImpl &)					__NE_OV;
 		void  AddThread (ThreadPtr)								__NE_OV;
 
 		void  BeginNonTaskWork (const void* id, StringView name)__NE_OV;

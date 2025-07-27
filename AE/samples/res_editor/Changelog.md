@@ -1,3 +1,7 @@
+## xx.2025
+- Sample: Bindless
+
+
 ## 04.2025
 - Add subpasses to SceneGraphicsPass
 - Sample: HiZ, Geometry culling

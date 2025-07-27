@@ -10,7 +10,7 @@
 #include "graphics_rhi/Public/VertexEnums.h"
 #include "graphics_rhi/Public/DescriptorSet.h"
 #include "graphics_rhi/Public/PipelineDesc.h"
-#include "Packer/PackCommon.h"
+#include "res_pack/pipeline_compiler/Packer/PackCommon.h"
 
 namespace AE::PipelineCompiler
 {
@@ -62,9 +62,9 @@ namespace AE::PipelineCompiler
 		Metal_iOS	= 2u << 28,
 		Metal_Mac	= 3u << 28,
 		_Mask		= 7u << 28,
+		_BITOPS_,
 		Unknown		= ~0u
 	};
-	AE_BIT_OPERATORS( ShaderUID );
 
 
 	enum class PipelineTemplUID : uint
@@ -75,9 +75,9 @@ namespace AE::PipelineCompiler
 		RayTracing		= 4u << 28,
 		Tile			= 5u << 28,
 		_Mask			= 0xFu << 28,
+		_BITOPS_,
 		Unknown			= ~0u
 	};
-	AE_BIT_OPERATORS( PipelineTemplUID );
 
 
 	enum class PipelineSpecUID : uint
@@ -88,15 +88,13 @@ namespace AE::PipelineCompiler
 		RayTracing		= uint(PipelineTemplUID::RayTracing),
 		Tile			= uint(PipelineTemplUID::Tile),
 		_Mask			= uint(PipelineTemplUID::_Mask),
-		Unknown			= uint(PipelineTemplUID::Unknown),
+		_BITOPS_,
+		Unknown			= uint(PipelineTemplUID::Unknown)
 	};
-	AE_BIT_OPERATORS( PipelineSpecUID );
 
 
 	enum class EImageType : ushort
 	{
-		Unknown				= 0,
-
 		_DimMask			= 0xF,
 		Dim1D				= 1,
 		Dim1DArray			= 2,
@@ -129,8 +127,10 @@ namespace AE::PipelineCompiler
 		Shadow				= 1 << 8,
 		sRGB				= 1 << 9,		// indicates that image has color in sRGB space and conversion to linear space required
 		_LastQual,
+
+		Unknown				= 0,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EImageType );
 
 	StaticAssert( EImageType::_DimCount < EImageType::_DimMask );
 	StaticAssert( EImageType::_LastVal  < EImageType::_ValMask );
@@ -276,9 +276,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const DescriptorSetLayoutDesc &rhs) const;
 		ND_ HashVal	CalcHash () const;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -326,9 +324,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const PushConstants &rhs) const	{ return items == rhs.items; }
 		ND_ HashVal	CalcHash () const								{ return HashOf(items); }
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -369,9 +365,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const PipelineLayoutDesc &rhs) const;
 		ND_ HashVal	CalcHash () const;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -397,9 +391,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableRenderState &rhs) const	{ return rs == rhs.rs; }
 		ND_ HashVal	CalcHash () const										{ return rs.CalcHash(); }
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -426,9 +418,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableDepthStencilState &rhs) const	{ return ds == rhs.ds; }
 		ND_ HashVal	CalcHash () const												{ return ds.CalcHash(); }
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -474,9 +464,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableGraphicsPipeline &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -505,9 +493,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableGraphicsPipelineSpec &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -542,9 +528,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableComputePipeline &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -571,9 +555,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableComputePipelineSpec &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -616,9 +598,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableMeshPipeline &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -647,9 +627,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableMeshPipelineSpec &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -723,9 +701,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableRayTracingPipeline &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -752,9 +728,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableRayTracingPipelineSpec &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -784,9 +758,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableTilePipeline &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -813,9 +785,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableTilePipelineSpec &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -861,9 +831,7 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const SerializableRTShaderBindingTable &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()							C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -919,9 +887,7 @@ namespace AE::PipelineCompiler
 	public:
 		SerializableRenderTechnique () {}
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -967,10 +933,8 @@ namespace AE::PipelineCompiler
 		ND_ bool	operator == (const ShaderBytecode &rhs) C_NE___;
 		ND_ HashVal	CalcHash ()								C_NE___;
 
-		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &)			const;
 		ND_ String  ToString2 (const HashToName &)			const;
-		#endif
 
 		ND_ Bytes	GetDataSize ()							C_NE___	{ return dataSize + data2Size; }
 		ND_ bool	WriteData (WStream &)					C_NE___;

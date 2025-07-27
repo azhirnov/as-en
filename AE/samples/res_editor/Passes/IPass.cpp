@@ -1,11 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Resources/Buffer.h"
-#include "res_editor/Resources/RTScene.h"
-#include "res_editor/Resources/Image.h"
-#include "res_editor/Resources/VideoImage.h"
-#include "res_editor/Resources/VideoImage2.h"
-#include "res_editor/Core/EditorUI.h"
+#include "Resources/Buffer.h"
+#include "Resources/RTScene.h"
+#include "Resources/Image.h"
+#include "Resources/VideoImage.h"
+#include "Resources/VideoImage2.h"
+#include "Core/EditorUI.h"
 
 namespace AE::ResEditor
 {

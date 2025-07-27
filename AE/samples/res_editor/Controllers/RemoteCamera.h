@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Controllers/IController.h"
+#include "Controllers/IController.h"
 
 namespace AE::ResEditor
 {

@@ -5,7 +5,7 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Public/RenderPassDesc.h"
 # include "graphics_rhi/Vulkan/VCommon.h"
-# include "Packer/RenderPassPack.h"
+# include "res_pack/pipeline_compiler/Packer/RenderPassPack.h"
 
 namespace AE::Graphics
 {
@@ -71,10 +71,10 @@ namespace AE::Graphics
 		VRenderPass ()																		__NE___	{}
 		~VRenderPass ()																		__NE___;
 
-		ND_ bool  Create (VResourceManager&, const SerializableRenderPassInfo &compatInfo,
+		ND_ bool  Create (ResourceManager&, const SerializableRenderPassInfo &compatInfo,
 						  const SerializableVkRenderPass &vkInfo, RenderPassID compatId,
 						  StringView dbgName)												__NE___;
-			void  Destroy (VResourceManager &)												__NE___;
+			void  Destroy (ResourceManager &)												__NE___;
 
 		ND_ bool  GetMaxTileWorkgroupSize (const VDevice &dev, OUT uint2 &tileSize)			C_NE___;
 		ND_ uint2 GetTileSizeGranularity (const VDevice &dev)								C_NE___;

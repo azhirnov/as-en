@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Dynamic/DynamicDimension.h"
+#include "Dynamic/DynamicDimension.h"
 
 namespace AE::ShaderTypes {
 	struct CameraData;

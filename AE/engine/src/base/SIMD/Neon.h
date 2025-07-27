@@ -715,10 +715,10 @@ namespace AE::Base
 		explicit SimdTInt128 (const Scalar_t* ptr)			__NE___;
 		explicit SimdTInt128 (Scalar_t val)					__NE___;
 
-		template <typename T = Scalar_t> requires( sizeof(T)<=4 )
+		template <typename T = Scalar_t, std::enable_if_t< sizeof(T)<=4, bool > = true>
 		explicit SimdTInt128 (const SimdTInt64<IntType> &low)	__NE___ : SimdTInt128{ low, SimdTInt64<IntType>{} } {}
 
-		template <typename T = Scalar_t> requires( sizeof(T)<=4 )
+        template <typename T = Scalar_t, std::enable_if_t< sizeof(T)<=4, bool > = true>
 		explicit SimdTInt128 (const SimdTInt64<IntType> &low,
 							  const SimdTInt64<IntType> &high)	__NE___;
 

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ScriptUIStyleCollection.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptUIStyleCollection.h"
 
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection,								"UIStyleCollection" );
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIStyleCollection::ScriptColorStyle,				"UIColorStyle" );
@@ -477,13 +477,3 @@ namespace AE::AssetPacker
 
 
 } // AE::AssetPacker
-
-
-namespace AE::UI
-{
-	bool  StyleCollection::ColorStyle::Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE___ { return false; }
-	bool  StyleCollection::ImageStyle::Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE___ { return false; }
-	bool  StyleCollection::ImageAnimationStyle::Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE___ { return false; }
-	//bool  StyleCollection::FontStyle::Deserialize (const StyleCollection &, const Graphics::ResourceCache &, Serializing::Deserializer &) __NE___ { return false; }
-
-} // AE::UI

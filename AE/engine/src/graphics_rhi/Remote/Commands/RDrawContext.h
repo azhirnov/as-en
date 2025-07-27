@@ -23,6 +23,8 @@ namespace AE::Graphics
 	private:
 		using AccumBar		= Graphics::_hidden_::RAccumDrawBarriers< RDrawContext >;
 		using Validator_t	= Graphics::_hidden_::DrawContextValidation;
+	public:
+		using DrawCoroRef	= _Coro_::DrawTaskImpl::UserApi;
 
 
 	// variables
@@ -34,7 +36,7 @@ namespace AE::Graphics
 	// methods
 	public:
 		RDrawContext (const RPrimaryCmdBufState &state, CmdBuf_t cmdbuf)													__Th___;
-		explicit RDrawContext (const DrawTask &task)																		__Th___;
+		explicit RDrawContext (DrawCoroRef task)																			__Th___;
 		explicit RDrawContext (RDrawContext &&other)																		__Th___;
 		~RDrawContext ()																									__NE___;
 

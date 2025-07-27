@@ -26,7 +26,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RBufferView::Create (RResourceManager &resMngr, const BufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
+	bool  RBufferView::Create (ResourceManager &resMngr, const BufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _viewId );
@@ -64,7 +64,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RBufferView::Create (RResourceManager &resMngr, const RemoteBufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
+	bool  RBufferView::Create (ResourceManager &resMngr, const RemoteBufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _viewId );
@@ -90,7 +90,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RBufferView::Destroy (RResourceManager &resMngr) __NE___
+	void  RBufferView::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

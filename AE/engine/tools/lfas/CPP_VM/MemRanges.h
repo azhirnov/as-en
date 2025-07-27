@@ -36,7 +36,7 @@ namespace LFAS
 
 		using Ranges_t	= Array< RangeWithVersion >;
 
-		static constexpr Version_t	InitialVer = 0;
+		static constexpr Version_t	c_InitialVer = 0;
 
 
 	// variables
@@ -56,13 +56,17 @@ namespace LFAS
 		void  Release (ThreadID_t tid);
 		void  AcquireRelease (ThreadID_t tid);
 
-		void  CheckUnreleased (ThreadID_t tid) const;
+		// returns 'true' if has unreleased changes
+		bool  CheckUnreleased (ThreadID_t tid) const;
 
 		ND_ uint  UniqueThreadCount () const;
 
 		ND_ typename Ranges_t::iterator  FindFirst (const Range &otherRange);
 
 		ND_ static bool  IsIntersects (const Range &lhs, const Range &rhs);
+
+	private:
+		ND_ bool  _IsDataAvailable (const RangeWithVersion &curRange, ThreadID_t tid) const;
 	};
 
 
@@ -128,14 +132,48 @@ namespace LFAS
 
 		CHECK_ERR( size > 0 );
 
-		auto&		r	= _ranges.emplace_back();
+		auto&		r		= _ranges.emplace_back();
 		r.begin				= 0_b;
 		r.end				= size;
-		r.globalVersion		= InitialVer;
-		r.verCounter		= InitialVer + 1;
+		r.globalVersion		= c_InitialVer;
+		r.verCounter		= c_InitialVer + 1;
 		r.visible[tid]		= r.verCounter;
 		r.unavailable[tid]	= r.verCounter;
 
+		return true;
+	}
+	
+/*
+=================================================
+	_IsDataAvailable
+=================================================
+*/
+	template <typename TID>
+	bool  MemRangesTempl<TID>::_IsDataAvailable (const RangeWithVersion &curRange, ThreadID_t tid) const
+	{
+		const bool	is_local = curRange.unavailable.contains( tid );
+
+		if ( (curRange.unavailable.size() - usize{is_local}) > 0 )
+		{
+			RETURN_ERR( "data race detected: changes in another thread must be flushed before reading!" );
+		}
+
+		auto	tid_iter = curRange.visible.find( tid );
+
+		if ( tid_iter == curRange.visible.end() )
+		{
+			RETURN_ERR( "data is not visible!" );
+		}
+		else
+		if ( (not is_local) and (tid_iter->second != curRange.globalVersion) )
+		{
+			RETURN_ERR( "local data is different from global memory!" );
+		}
+
+		if ( tid_iter->second == c_InitialVer )
+		{
+			RETURN_ERR( "reading from uninitialized memory!" );
+		}
 		return true;
 	}
 
@@ -169,6 +207,8 @@ namespace LFAS
 			//  |00|...
 			if ( iter->begin < range.begin )
 			{
+				CHECK_ERR( _IsDataAvailable( *iter, tid ));
+				
 				RangeWithVersion	part = *iter;
 				part.begin	= range.begin;
 				part.end	= iter->end;
@@ -180,6 +220,8 @@ namespace LFAS
 
 			if ( iter->begin == range.begin )
 			{
+				CHECK_ERR( _IsDataAvailable( *iter, tid ));
+
 				//  |00000|...  +    (iter)
 				//  |********|  =    (range)
 				//  |*****|...
@@ -249,30 +291,8 @@ namespace LFAS
 		for (; iter != _ranges.end() and iter->begin < range.end; ++iter)
 		{
 			ASSERT( IsIntersects( *iter, range ));
-
-			const usize	is_local = iter->unavailable.count( tid );
-
-			if ( (iter->unavailable.size() - is_local) > 0 )
-			{
-				RETURN_ERR( "data race detected: changes in another thread must be flushed before reading!" );
-			}
-
-			auto	tid_iter = iter->visible.find( tid );
-
-			if ( tid_iter == iter->visible.end() )
-			{
-				RETURN_ERR( "data is not visible!" );
-			}
-			else
-			if ( (not is_local) and (tid_iter->second != iter->globalVersion) )
-			{
-				RETURN_ERR( "local data is different from global memory!" );
-			}
-
-			if ( tid_iter->second == InitialVer )
-			{
-				RETURN_ERR( "reading from uninitialized memory!" );
-			}
+			
+			CHECK_ERR( _IsDataAvailable( *iter, tid ));
 		}
 
 		return true;
@@ -290,13 +310,13 @@ namespace LFAS
 		{
 			auto	iter = r.unavailable.find( tid );
 
-			auto[r_iter, inserted] = r.visible.insert({ tid, r.globalVersion });
+			auto [r_iter, inserted] = r.visible.emplace( tid, r.globalVersion );
 
 			if ( iter != r.unavailable.end() )
 			{
 				if ( r.globalVersion > iter->second )
 				{
-					AE_LOGE( "data race detected: global memory will override uncommited local changes!" );
+					AE_LOGE( "data race detected: global memory will override uncommitted local changes!" );
 
 					r_iter->second = r.globalVersion;
 				}
@@ -343,7 +363,7 @@ namespace LFAS
 				r.unavailable.erase( iter );
 			}
 
-			CHECK( r.globalVersion != InitialVer );
+			CHECK( r.globalVersion != c_InitialVer );
 
 			r.visible[tid] = r.globalVersion;
 		}
@@ -355,15 +375,19 @@ namespace LFAS
 =================================================
 */
 	template <typename TID>
-	inline void  MemRangesTempl<TID>::CheckUnreleased (ThreadID_t tid) const
+	inline bool  MemRangesTempl<TID>::CheckUnreleased (ThreadID_t tid) const
 	{
+		bool	found = false;
+
 		for (auto& r : _ranges)
 		{
 			if ( auto iter = r.unavailable.find( tid );  iter != r.unavailable.end() )
 			{
 				AE_LOGE( "local changes must be flushed!" );
+				found = true;
 			}
 		}
+		return found;
 	}
 
 /*

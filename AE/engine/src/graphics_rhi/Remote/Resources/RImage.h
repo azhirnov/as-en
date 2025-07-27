@@ -35,9 +35,9 @@ namespace AE::Graphics
 		RImage ()											__NE___	{}
 		~RImage ()											__NE___;
 
-		ND_ bool  Create (RResourceManager &, const ImageDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
-		ND_ bool  Create (RResourceManager &, const RemoteImageDesc &, GfxMemAllocatorPtr, StringView)		__NE___;
-			void  Destroy (RResourceManager &)																__NE___;
+		ND_ bool  Create (ResourceManager &, const ImageDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
+		ND_ bool  Create (ResourceManager &, const RemoteImageDesc &, GfxMemAllocatorPtr, StringView)		__NE___;
+			void  Destroy (ResourceManager &)																__NE___;
 
 		ND_ bool  GetMemoryInfo (OUT RemoteMemoryObjInfo &)	C_NE___;
 
@@ -59,8 +59,8 @@ namespace AE::Graphics
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
-		ND_ static bool	 IsSupported (const RResourceManager &, const ImageDesc &desc)		__NE___;
-		ND_ static bool	 IsSupported (const RResourceManager &, const ImageDesc &, const ImageViewDesc &) __NE___;
+		ND_ static bool	 IsSupported (const ResourceManager &, const ImageDesc &desc)		__NE___;
+		ND_ static bool	 IsSupported (const ResourceManager &, const ImageDesc &, const ImageViewDesc &) __NE___;
 
 		ND_ static Bytes  GetMemoryAlignment (const RDevice &dev, const ImageDesc &desc)	__NE___;
 	};

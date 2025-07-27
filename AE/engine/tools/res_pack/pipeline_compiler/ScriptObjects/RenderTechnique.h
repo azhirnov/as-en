@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "ScriptObjects/ScriptFeatureSet.h"
-#include "ScriptObjects/DescriptorSetLayout.h"
-#include "ScriptObjects/BasePipeline.h"
-#include "ScriptObjects/RayTracingShaderBinding.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptFeatureSet.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/DescriptorSetLayout.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/BasePipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/RayTracingShaderBinding.h"
 
 namespace AE::PipelineCompiler
 {

@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "res_editor/Common.h"
-#include "res_editor/Dynamic/DynamicDimension.h"
-#include "res_editor/Dynamic/DynamicVec.h"
-#include "res_editor/Dynamic/DynamicScalar.h"
+#include "Common.h"
+#include "Dynamic/DynamicDimension.h"
+#include "Dynamic/DynamicVec.h"
+#include "Dynamic/DynamicScalar.h"
 
 namespace AE::ResEditor
 {

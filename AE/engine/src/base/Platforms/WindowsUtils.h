@@ -4,7 +4,6 @@
 
 #ifdef AE_PLATFORM_WINDOWS
 # include "base/Containers/NtStringView.h"
-# include "base/Utils/SourceLoc.h"
 # include "base/Utils/Version.h"
 # include "base/Utils/Threading.h"
 # include "base/Platforms/CPUInfo.h"
@@ -139,20 +138,20 @@ namespace AE::Base
 
 #ifdef AE_DEBUG
 #	define WIN_CHECK_DEV( _msg_ ) \
-		AE::Base::WindowsUtils::CheckError( (_msg_), SourceLoc_Current(), AE::ELogLevel::Debug )
+		AE::Base::WindowsUtils::CheckError( (_msg_), AE::Base::SourceLoc::current(), AE::ELogLevel::Debug )
 
 #	define WIN_CHECK_DEV2( _err_, _msg_ ) \
-		AE::Base::WindowsUtils::CheckError( (_err_), (_msg_), SourceLoc_Current(), AE::ELogLevel::Debug )
+		AE::Base::WindowsUtils::CheckError( (_err_), (_msg_), AE::Base::SourceLoc::current(), AE::ELogLevel::Debug )
 #else
 #	define WIN_CHECK_DEV( _msg_ )			{}
 #	define WIN_CHECK_DEV2( _err_, _msg_ )	{}
 #endif
 
 #define WIN_CHECK( _msg_ ) \
-	AE::Base::WindowsUtils::CheckError( (_msg_), SourceLoc_Current(), AE::ELogLevel::Error )
+	AE::Base::WindowsUtils::CheckError( (_msg_), AE::Base::SourceLoc::current(), AE::ELogLevel::Error )
 
 #define WIN_CHECK2( _err_, _msg_ ) \
-	AE::Base::WindowsUtils::CheckError( (_err_), (_msg_), SourceLoc_Current(), AE::ELogLevel::Error )
+	AE::Base::WindowsUtils::CheckError( (_err_), (_msg_), AE::Base::SourceLoc::current(), AE::ELogLevel::Error )
 
 
 #endif // AE_PLATFORM_WINDOWS

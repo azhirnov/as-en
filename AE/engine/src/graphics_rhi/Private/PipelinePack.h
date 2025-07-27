@@ -105,7 +105,6 @@ namespace AE::Graphics
 		using LinearAllocator_t		= Threading::LfLinearAllocator< usize(SmallAllocationSize * 64), usize{16_b} >;
 
 		using Device_t				= AE_PRIVATE_UNITE_RAW( SUFFIX, Device				);
-		using ResMngr_t				= AE_PRIVATE_UNITE_RAW( SUFFIX, ResourceManager		);
 		using TempLinearAllocator_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, TempLinearAllocator	);
 
 		using PipelineLayout_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, PipelineLayout		);
@@ -231,10 +230,10 @@ namespace AE::Graphics
 			explicit RenderTech (PPLNPACK& pack)																	__NE___;
 			~RenderTech ()																							__NE_OV;
 
-			ND_	bool  Deserialize (ResMngr_t &, Serializing::Deserializer &)										__Th___;
-			ND_ auto  LoadAsync (ResMngr_t &, const RenderTechDesc &, PipelineCacheID)								__NE___ -> Promise<RenderTechPipelinesPtr>;
-			ND_ bool  Load (ResMngr_t &, const RenderTechDesc &, PipelineCacheID)									__NE___;
-				void  Destroy (ResMngr_t &)																			__NE___;
+			ND_	bool  Deserialize (ResourceManager &, Serializing::Deserializer &)									__Th___;
+			ND_ auto  LoadAsync (ResourceManager &, const RenderTechDesc &, PipelineCacheID)						__NE___ -> Promise<RenderTechPipelinesPtr>;
+			ND_ bool  Load (ResourceManager &, const RenderTechDesc &, PipelineCacheID)								__NE___;
+				void  Destroy (ResourceManager &)																	__NE___;
 
 			ND_ RenderTechName::Optimized_t	Name ()																	C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _name; }
 			ND_ PipelinePackID				GetPipelinePack ()														C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _pack._selfId; }
@@ -257,9 +256,9 @@ namespace AE::Graphics
 
 
 		private:
-			ND_ bool  _PreloadShaders (const ResMngr_t &)															__NE___;
-			ND_ bool  _CompilePipelines (ResMngr_t &, PipelineCacheID, PplnSpecIter_t begin, PplnSpecIter_t end)	__NE___;
-			ND_ bool  _CreateSBTs (ResMngr_t &resMngr)																__NE___;
+			ND_ bool  _PreloadShaders (const ResourceManager &)															__NE___;
+			ND_ bool  _CompilePipelines (ResourceManager &, PipelineCacheID, PplnSpecIter_t begin, PplnSpecIter_t end)	__NE___;
+			ND_ bool  _CreateSBTs (ResourceManager &resMngr)															__NE___;
 
 			void  _PrintPipelines (PipelineName::Ref name, PipelineCompiler::PipelineSpecUID mask)					C_NE___;
 			void  _PrintSBTs (RTShaderBindingName::Ref reqName)														C_NE___;
@@ -272,16 +271,16 @@ namespace AE::Graphics
 					  typename SpecType,
 					  typename TemplType>
 			ND_ Pair< const typename SpecType::value_type*, const typename TemplType::value_type* >
-				_Extract (const ResMngr_t &, PipelineCompiler::PipelineSpecUID uid, SpecType &specArr, TemplType &templArr,
+				_Extract (const ResourceManager &, PipelineCompiler::PipelineSpecUID uid, SpecType &specArr, TemplType &templArr,
 						  const FeatureNames_t &unsupportedFS GFX_DBG_ONLY(, const FeatureNames_t &allFeatureSets )) __NE___;
 
-			ND_ PipelineID  _CompileGraphicsPipeline   (ResMngr_t &, const PipelineCompiler::SerializableGraphicsPipelineSpec  &, const PipelineCompiler::SerializableGraphicsPipeline  &, PipelineCacheID, StringView) __NE___;
-			ND_ PipelineID  _CompileMeshPipeline       (ResMngr_t &, const PipelineCompiler::SerializableMeshPipelineSpec      &, const PipelineCompiler::SerializableMeshPipeline      &, PipelineCacheID, StringView) __NE___;
-			ND_ PipelineID  _CompileComputePipeline    (ResMngr_t &, const PipelineCompiler::SerializableComputePipelineSpec   &, const PipelineCompiler::SerializableComputePipeline   &, PipelineCacheID, StringView) __NE___;
-			ND_ PipelineID  _CompileRayTracingPipeline (ResMngr_t &, const PipelineCompiler::SerializableRayTracingPipelineSpec&, const PipelineCompiler::SerializableRayTracingPipeline&, PipelineCacheID, StringView) __NE___;
-			ND_ PipelineID  _CompileTilePipeline       (ResMngr_t &, const PipelineCompiler::SerializableTilePipelineSpec	   &, const PipelineCompiler::SerializableTilePipeline		&, PipelineCacheID, StringView) __NE___;
+			ND_ PipelineID  _CompileGraphicsPipeline   (ResourceManager &, const PipelineCompiler::SerializableGraphicsPipelineSpec  &, const PipelineCompiler::SerializableGraphicsPipeline  &, PipelineCacheID, StringView) __NE___;
+			ND_ PipelineID  _CompileMeshPipeline       (ResourceManager &, const PipelineCompiler::SerializableMeshPipelineSpec      &, const PipelineCompiler::SerializableMeshPipeline      &, PipelineCacheID, StringView) __NE___;
+			ND_ PipelineID  _CompileComputePipeline    (ResourceManager &, const PipelineCompiler::SerializableComputePipelineSpec   &, const PipelineCompiler::SerializableComputePipeline   &, PipelineCacheID, StringView) __NE___;
+			ND_ PipelineID  _CompileRayTracingPipeline (ResourceManager &, const PipelineCompiler::SerializableRayTracingPipelineSpec&, const PipelineCompiler::SerializableRayTracingPipeline&, PipelineCacheID, StringView) __NE___;
+			ND_ PipelineID  _CompileTilePipeline       (ResourceManager &, const PipelineCompiler::SerializableTilePipelineSpec	     &, const PipelineCompiler::SerializableTilePipeline      &, PipelineCacheID, StringView) __NE___;
 
-			ND_ RTShaderBindingID  _CreateRTShaderBinding (ResMngr_t &, const PipelineCompiler::SerializableRTShaderBindingTable &, StringView) __NE___;
+			ND_ RTShaderBindingID  _CreateRTShaderBinding (ResourceManager &, const PipelineCompiler::SerializableRTShaderBindingTable &, StringView) __NE___;
 		};
 
 		struct _ForInternalUsage;
@@ -356,8 +355,8 @@ namespace AE::Graphics
 		PPLNPACK ()																								__NE___	{}
 		~PPLNPACK ()																							__NE___	{}
 
-		ND_ bool  Create (ResMngr_t &, const PipelinePackDesc &desc, PipelinePackID selfId)						__NE___;
-			void  Destroy (ResMngr_t &)																			__NE___;
+		ND_ bool  Create (ResourceManager &, const PipelinePackDesc &desc, PipelinePackID selfId)				__NE___;
+			void  Destroy (ResourceManager &)																	__NE___;
 
 		ND_ RenderPassID					GetRenderPass (RenderPassName::Ref name)							C_NE___;
 		ND_ RenderPassID					GetRenderPass (CompatRenderPassName::Ref name)						C_NE___;
@@ -367,49 +366,49 @@ namespace AE::Graphics
 
 		ND_ DescriptorSetLayoutID			GetDSLayout (DSLayoutName::Ref name)								C_NE___;
 
-		ND_ Strong<GraphicsPipelineID>		CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const GraphicsPipelineDesc   &, PipelineCacheID)	C_NE___;
-		ND_ Strong<ComputePipelineID>		CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const ComputePipelineDesc    &, PipelineCacheID)	C_NE___;
-		ND_ Strong<MeshPipelineID>			CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const MeshPipelineDesc       &, PipelineCacheID)	C_NE___;
-		ND_ Strong<TilePipelineID>			CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const TilePipelineDesc       &, PipelineCacheID)	C_NE___;
-		ND_ Strong<RayTracingPipelineID>	CreatePipeline (ResMngr_t &, PipelineTmplName::Ref, const RayTracingPipelineDesc &, PipelineCacheID)	C_NE___;
+		ND_ Strong<GraphicsPipelineID>		CreatePipeline (ResourceManager &, PipelineTmplName::Ref, const GraphicsPipelineDesc   &, PipelineCacheID)	C_NE___;
+		ND_ Strong<ComputePipelineID>		CreatePipeline (ResourceManager &, PipelineTmplName::Ref, const ComputePipelineDesc    &, PipelineCacheID)	C_NE___;
+		ND_ Strong<MeshPipelineID>			CreatePipeline (ResourceManager &, PipelineTmplName::Ref, const MeshPipelineDesc       &, PipelineCacheID)	C_NE___;
+		ND_ Strong<TilePipelineID>			CreatePipeline (ResourceManager &, PipelineTmplName::Ref, const TilePipelineDesc       &, PipelineCacheID)	C_NE___;
+		ND_ Strong<RayTracingPipelineID>	CreatePipeline (ResourceManager &, PipelineTmplName::Ref, const RayTracingPipelineDesc &, PipelineCacheID)	C_NE___;
 
-		ND_ Promise<RenderTechPipelinesPtr>	LoadRenderTechAsync (ResMngr_t &, RenderTechName::Ref, const RenderTechDesc &, PipelineCacheID)			C_NE___;
-		ND_ RenderTechPipelinesPtr			LoadRenderTech (ResMngr_t &, RenderTechName::Ref, const RenderTechDesc &, PipelineCacheID)				C_NE___;
+		ND_ Promise<RenderTechPipelinesPtr>	LoadRenderTechAsync (ResourceManager &, RenderTechName::Ref, const RenderTechDesc &, PipelineCacheID)		C_NE___;
+		ND_ RenderTechPipelinesPtr			LoadRenderTech (ResourceManager &, RenderTechName::Ref, const RenderTechDesc &, PipelineCacheID)			C_NE___;
 
 		ND_ EPixelFormat					GetSurfaceFormat ()													C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _surfaceFormat; }
 		GFX_DBG_ONLY( ND_ StringView		GetDebugName ()														C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
 	private:
-		ND_ bool  _Create (ResMngr_t &, const PipelinePackDesc &desc, PipelinePackID selfId)					__Th___;
-			void  _Destroy (ResMngr_t &)																		__NE___;
+		ND_ bool  _Create (ResourceManager &, const PipelinePackDesc &desc, PipelinePackID selfId)				__Th___;
+			void  _Destroy (ResourceManager &)																	__NE___;
 
 		ND_ bool  _LoadDepthStencilStatesImpl (Serializing::Deserializer &)										__NE___;
 
-		ND_ bool  _LoadDepthStencilStates (ResMngr_t &, Serializing::Deserializer &)							__NE___;
-		ND_ bool  _LoadRenderPasses (ResMngr_t &, Bytes offset, Bytes size)										__Th___;
+		ND_ bool  _LoadDepthStencilStates (ResourceManager &, Serializing::Deserializer &)						__NE___;
+		ND_ bool  _LoadRenderPasses (ResourceManager &, Bytes offset, Bytes size)								__Th___;
 
-		ND_ SamplerID		_CreateSampler (ResMngr_t &, const SamplerDesc &,
+		ND_ SamplerID		_CreateSampler (ResourceManager &, const SamplerDesc &,
 											const Optional<SamplerYcbcrConversionDesc> &, StringView dbgName)	__NE___;
-		ND_ ShaderModuleRef	_GetShader (const ResMngr_t &, PipelineCompiler::ShaderUID uid, EShader type)		C_NE___;
+		ND_ ShaderModuleRef	_GetShader (const ResourceManager &, PipelineCompiler::ShaderUID uid, EShader type)	C_NE___;
 		ND_ bool			_CreateShader (const Device_t &dev, INOUT const ShaderModule &shader)				C_NE___;
 
-		ND_ auto  _CreateDescriptorSetLayout (ResMngr_t &, const Uniforms_t &, ArrayView<SamplerID>,
+		ND_ auto  _CreateDescriptorSetLayout (ResourceManager &, const Uniforms_t &, ArrayView<SamplerID>,
 											  const UniformOffsets_t &, EDescSetUsage,
 											  EShaderStages, StackAllocator_t &)								__NE___ -> Strong<DescriptorSetLayoutID>;
 
-		ND_ bool  _LoadNameMapping (ResMngr_t &, Bytes offset, Bytes size)										__Th___;
-		ND_ bool  _LoadFeatureSets (ResMngr_t &, Bytes offset, Bytes size)										__Th___;
+		ND_ bool  _LoadNameMapping (ResourceManager &, Bytes offset, Bytes size)								__Th___;
+		ND_ bool  _LoadFeatureSets (ResourceManager &, Bytes offset, Bytes size)								__Th___;
 		ND_ bool  _CopyFeatureSets ()																			__Th___;
-		ND_ bool  _LoadSamplers (ResMngr_t &, Bytes offset, Bytes size)											__Th___;
-		ND_ bool  _LoadPipelineBlock (ResMngr_t &, Bytes offset, Bytes size)									__Th___;
+		ND_ bool  _LoadSamplers (ResourceManager &, Bytes offset, Bytes size)									__Th___;
+		ND_ bool  _LoadPipelineBlock (ResourceManager &, Bytes offset, Bytes size)								__Th___;
 
 		ND_ bool  _LoadRenderStates (Serializing::Deserializer &)												__NE___;
 
-		ND_ bool  _LoadDescrSetLayouts (ResMngr_t &, Serializing::Deserializer &,
+		ND_ bool  _LoadDescrSetLayouts (ResourceManager &, Serializing::Deserializer &,
 										StackAllocator_t &, OUT DSLayoutMap_t &)								__Th___;
-		ND_ bool  _LoadPipelineLayouts (ResMngr_t &, Serializing::Deserializer &)								__NE___;
-		ND_ bool  _LoadRenderTechniques (ResMngr_t &, Serializing::Deserializer &)								__Th___;
+		ND_ bool  _LoadPipelineLayouts (ResourceManager &, Serializing::Deserializer &)							__NE___;
+		ND_ bool  _LoadRenderTechniques (ResourceManager &, Serializing::Deserializer &)						__Th___;
 		ND_ bool  _LoadRTShaderBindingTable (Serializing::Deserializer &)										__NE___;
 		ND_ bool  _LoadShaders (Serializing::Deserializer &)													__NE___;
 
@@ -423,7 +422,7 @@ namespace AE::Graphics
 
 		template <PipelineCompiler::PipelineTemplUID TemplMask, typename TemplType>
 		ND_ const typename TemplType::value_type*
-			_Extract (ResMngr_t &, PipelineTmplName::Ref name, const TemplType &templArr)						C_NE___;
+			_Extract (ResourceManager &, PipelineTmplName::Ref name, const TemplType &templArr)					C_NE___;
 
 		ND_ RenderState const*  _GetRenderState (PipelineCompiler::RenderStateUID uid)							C_NE___;
 	};

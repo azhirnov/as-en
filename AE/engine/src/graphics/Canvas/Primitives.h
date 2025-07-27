@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "graphics/Graphics.pch.h"
+#include "graphics/Common.h"
 #include "graphics/Canvas/SurfaceDimensions.h"
 
 namespace AE::Graphics

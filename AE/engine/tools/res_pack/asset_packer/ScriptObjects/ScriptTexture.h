@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ScriptObjects/ObjectStorage.h"
+#include "res_pack/asset_packer/ScriptObjects/ObjectStorage.h"
 #include "graphics_rhi/Public/ResourceEnums.h"
 #include "res_loaders/Intermediate/IntermImage.h"
 

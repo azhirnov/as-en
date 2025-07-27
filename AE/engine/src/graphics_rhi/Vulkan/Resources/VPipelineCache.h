@@ -35,9 +35,9 @@ namespace AE::Graphics
 		VPipelineCache ()																			__NE___	{}
 		~VPipelineCache ()																			__NE___;
 
-		ND_ bool  Create (const VResourceManager& resMngr, StringView dbgName)						__NE___;
-		ND_ bool  Create (const VResourceManager& resMngr, StringView dbgName, RC<RStream> stream)	__NE___;
-			void  Destroy (VResourceManager &)														__NE___;
+		ND_ bool  Create (const ResourceManager& resMngr, StringView dbgName)						__NE___;
+		ND_ bool  Create (const ResourceManager& resMngr, StringView dbgName, RC<RStream> stream)	__NE___;
+			void  Destroy (ResourceManager &)														__NE___;
 
 		ND_ bool  GetData (const VDevice &dev, OUT Array<char> &data)								C_NE___;
 
@@ -46,7 +46,7 @@ namespace AE::Graphics
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()												C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 	private:
-		bool  _Create (const VResourceManager&, StringView dbgName, ArrayView<char> initialData)	__NE___;
+		bool  _Create (const ResourceManager&, StringView dbgName, ArrayView<char> initialData)	__NE___;
 	};
 
 

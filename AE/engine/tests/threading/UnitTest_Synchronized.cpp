@@ -63,6 +63,11 @@ namespace
 //-----------------------------------------------------------------------------
 
 
+	template <typename T>
+	concept PtrDereference = requires (T obj)
+	{
+		*obj.Ptr();		// error
+	};
 
 	static void  Synchronized_Test1 ()
 	{
@@ -107,6 +112,8 @@ namespace
 				TEST( p.Get() == 1 );
 			}
 			CmpEvents({ Event::Lock, Event::ObjGet, Event::Unlock });
+		  #else
+			StaticAssert( not PtrDereference< decltype(obj) >);
 		  #endif
 
 			obj->Set( 2 );

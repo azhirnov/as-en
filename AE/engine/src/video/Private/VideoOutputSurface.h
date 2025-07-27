@@ -15,11 +15,6 @@ namespace AE::Video
 
 	class VideoOutputSurface : public IOutputSurface
 	{
-	// types
-	private:
-		class ReadbackImageTask;
-
-
 	// variables
 	private:
 		Unique<IVideoEncoder>	_encoder;

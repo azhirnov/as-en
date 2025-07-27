@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "TestsGraphics.pch.h"
+#include "../shared/UnitTest_Shared.h"
+#include "pch/VFS.h"
 
 using namespace AE;
-using namespace AE::App;
 using namespace AE::Threading;
 
 extern void UnitTest_FormattedText ();

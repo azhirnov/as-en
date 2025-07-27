@@ -96,8 +96,7 @@ template <typename T, int I>	ND_ _Vec<T,I>		clamp (const _Vec<T,I> x, const T mi
 template <typename T, int I>	ND_ _Vec<T,I>		clamp (const _Vec<T,I> x, const _Vec<T,I> minVal, const _Vec<T,I> maxVal);
 template <typename T>			ND_ T				cos (const T);
 template <typename T>			ND_ T				cosh (const T);
-template <typename T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
-								ND_ _Vec<T,3>		cross (const _Vec<T,3> x, const _Vec<T,3> y);
+template <typename T>			ND_ _Vec<T,3>		cross (const _Vec<T,3> x, const _Vec<T,3> y) requires(std::is_floating_point_v<T>);
 template <typename T>			ND_ T				degrees (const T);
 template <typename T, int I>	ND_ T				distance (const _Vec<T,I>, const _Vec<T,I>);
 template <typename T, int I>	ND_ T				dot (const _Vec<T,I>, const _Vec<T,I>);
@@ -142,11 +141,7 @@ template <typename T, int I>	ND_ _Vec<T,I>		max (const _Vec<T,I> x, const T y);
 template <typename T>			ND_ T				max (const T x, const T y);
 template <typename T, int I>	ND_ _Vec<T,I>		min (const _Vec<T,I> x, const _Vec<T,I> y);
 template <typename T, int I>	ND_ _Vec<T,I>		min (const _Vec<T,I> x, const T y);
-
-template <typename A, typename B,
-		  std::enable_if_t< (std::is_scalar_v<A> and std::is_scalar_v<B>), bool > = true>
-								ND_ auto			min (const A x, const B y) -> decltype(A(1) + B(1));
-
+template <typename A, typename B> ND_ auto			min (const A x, const B y) -> decltype(A(1) + B(1)) requires(std::is_scalar_v<A> and std::is_scalar_v<B>);
 template <typename T, int I>	ND_ _Vec<T,I>		mix (const _Vec<T,I> x, const _Vec<T,I> y, const T a);
 template <typename T>			ND_ T				mix (const T x, const T y, const T a);
 template <typename T, int I>	ND_ _Vec<T,I>		mod (const _Vec<T,I> x, const _Vec<T,I> y);

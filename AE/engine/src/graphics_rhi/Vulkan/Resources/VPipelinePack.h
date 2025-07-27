@@ -6,7 +6,7 @@
 # include "graphics_rhi/Public/ResourceManager.h"
 # include "graphics_rhi/Public/ShaderDebugger.h"
 
-# include "PipelineCompilerImpl.h"
+# include "res_pack/pipeline_compiler/PipelineCompilerImpl.h"
 
 # include "graphics_rhi/Vulkan/VCommon.h"
 # include "graphics_rhi/Vulkan/Resources/VSampler.h"

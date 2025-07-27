@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Passes/Renderer.h"
-#include "res_editor/Core/EditorUI.h"
-#include "res_editor/Core/EditorCore.h"
-#include "res_editor/_data/cpp/types.h"
+#include "Passes/Renderer.h"
+#include "Core/EditorUI.h"
+#include "Core/EditorCore.h"
+#include "_data/cpp/types.h"
 
 namespace AE::ResEditor
 {
@@ -310,9 +310,9 @@ namespace AE::ResEditor
 	_SyncPasses
 =================================================
 */
-	RenderTaskCoro  Renderer::_SyncPasses (PassArr_t updatePasses, PassArr_t passes, IPass::Debugger dbg, IPass::UpdatePassData updatePD) __Th___
+	RenderCoro  Renderer::_SyncPasses (PassArr_t updatePasses, PassArr_t passes, IPass::Debugger dbg, IPass::UpdatePassData updatePD) __Th___
 	{
-		auto&				rtask	= co_await RenderTask_GetRef;
+		auto				rtask	= RenderCoro_Get();
 		IPass::SyncPassData	pd		{ rtask };
 
 		pd.dbg = dbg;
@@ -338,7 +338,7 @@ namespace AE::ResEditor
 		// end
 		{
 			DirectCtx::Transfer		ctx{ rtask, RVRef(pd.cmdbuf) };
-			co_await RenderTask_Execute{ ctx };
+			RenderCoro_Execute( ctx );
 		}
 	}
 
@@ -347,16 +347,15 @@ namespace AE::ResEditor
 	_ResizeRes
 =================================================
 */
-	RenderTaskCoro  Renderer::_ResizeRes (Array<RC<IResource>> resources) __Th___
+	RenderCoro  Renderer::_ResizeRes (Array<RC<IResource>> resources) __Th___
 	{
-		auto&					rtask	= co_await RenderTask_GetRef;
-		DirectCtx::Transfer		ctx		{ rtask };
+		DirectCtx::Transfer		ctx	{ RenderCoro_Get() };
 
 		for (auto& res : resources) {
 			res->Resize( ctx );
 		}
 
-		co_await RenderTask_Execute{ ctx };
+		RenderCoro_Execute( ctx );
 	}
 
 /*
@@ -412,11 +411,10 @@ namespace AE::ResEditor
 	_ExportPasses
 =================================================
 */
-	RenderTaskCoro  Renderer::_ExportPasses (PassArr_t passes, RC<Renderer> self, IPass::UpdatePassData updatePD) __Th___
+	RenderCoro  Renderer::_ExportPasses (PassArr_t passes, RC<Renderer> self, IPass::UpdatePassData updatePD) __Th___
 	{
-		auto&					rtask		= co_await RenderTask_GetRef;
 		bool					complete	= true;
-		DirectCtx::Transfer		ctx			{ rtask };
+		DirectCtx::Transfer		ctx			{ RenderCoro_Get() };
 
 		for (auto& pass : passes)
 		{
@@ -427,7 +425,7 @@ namespace AE::ResEditor
 		if ( complete )
 			self->_resExport.store( EExportState::Completed );
 
-		co_await RenderTask_Execute{ ctx };
+		RenderCoro_Execute( ctx );
 	}
 
 /*
@@ -506,21 +504,21 @@ namespace AE::ResEditor
 	_ReadShaderTrace
 =================================================
 */
-	RenderTaskCoro  Renderer::_ReadShaderTrace () __Th___
+	RenderCoro  Renderer::_ReadShaderTrace () __Th___
 	{
-		auto&				rtask	= co_await RenderTask_GetRef;
-		DirectCtx::Transfer	ctx		{rtask};
+		DirectCtx::Transfer	ctx	{RenderCoro_Get()};
 
-		_shaderDebugger->ReadAll( ctx, ShaderDebugger::ELogFormat::VS )
-			.Then(	[this] (const Array<String> &output)
-					{
-						_PrintDbgTrace( output );
-					},
-					"Renderer::_ReadShaderTrace",
-					ETaskQueue::Background
-				  );
+		CreateInlineRev(
+			_shaderDebugger->ReadAll( ctx, ShaderDebugger::ELogFormat::VS ),
+			GetRC<Renderer>(),
+			[](Promise<Array<String>> readOp, RC<Renderer> self) -> InlineCoro<ETaskQueue::Background>
+			{
+				Array<String>  output = co_await readOp;
+				self->_PrintDbgTrace( output );
+				co_return;
+			});
 
-		co_await RenderTask_Execute( ctx );
+		RenderCoro_Execute( ctx );
 	}
 
 /*
@@ -546,7 +544,7 @@ namespace AE::ResEditor
 			StringView		str		= output[trace_idx];
 			FileWStream		file	{fname};
 			if ( file.IsOpen() and file.Write( str ))
-				AE_LOGI( "trace saved", ToString(fname), 1u );
+				AE_LOGI( "trace saved", SourceLoc( ToString(fname).c_str(), 1u ));
 
 			++trace_idx;
 			return not (trace_idx < output.size());

@@ -1,7 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-// TODO: NSThread
-
 #pragma once
 
 #include "base/Common.h"

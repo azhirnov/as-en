@@ -72,11 +72,7 @@ namespace AE::Base
 
 namespace AE::Base
 {
-#  ifndef AE_DISABLE_THREADS
 	using StdThread				= std::thread;
-#  else
-	using StdThread				= void;
-#  endif
 	using ThreadID				= std::thread::id;
 	using ThreadHandle			= std::thread::native_handle_type;
 

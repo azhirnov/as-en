@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ScriptObjects/BasePipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/BasePipeline.h"
 
 namespace AE::PipelineCompiler
 {

@@ -957,7 +957,7 @@ namespace AE::Graphics
 	_CreateColorAttachment
 =================================================
 */
-	bool  VSwapchainInitializer::_CreateColorAttachment (VResourceManager &resMngr, const VkSwapchainCreateInfoKHR &info, EImageOpt options) __NE___
+	bool  VSwapchainInitializer::_CreateColorAttachment (ResourceManager &resMngr, const VkSwapchainCreateInfoKHR &info, EImageOpt options) __NE___
 	{
 		uint	count = uint(_vkImages.size());
 		VK_CHECK_ERR( _device->vkGetSwapchainImagesKHR( _device->GetVkDevice(), _vkSwapchain, OUT &count, OUT _vkImages.data() ));

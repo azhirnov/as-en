@@ -18,13 +18,13 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 	set_property( TARGET ${APP_NAME} PROPERTY FOLDER "Samples" )
 
 	target_include_directories( ${APP_NAME} PUBLIC
-		".."
+		"."
 		"${MAIN_SOURCE_DIR}/engine/tools/res_pack/asset_packer/Utils"
 		"${AE_ENGINE_SHARED_DATA}/scripts"
 	)
-
-	EnablePCH( ${APP_NAME} )
-	EnableUnitBuild( ${APP_NAME} )
+	
+	UseEnginePCH2( ${APP_NAME} )
+	EnableUnityBuild( ${APP_NAME} )
 
 	if (${AE_USE_UNITY_BUILD})
 		set( NON_UNITY_BUILD_SRC

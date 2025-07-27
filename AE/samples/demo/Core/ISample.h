@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "demo/Common.h"
-#include "demo/_data/cpp/types.h"
-#include "demo/Core/RenderGraph.h"
+#include "Common.h"
+#include "_data/cpp/types.h"
+#include "Core/RenderGraph.h"
 
 namespace AE::Samples::Demo
 {

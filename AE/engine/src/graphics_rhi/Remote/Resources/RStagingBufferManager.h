@@ -73,7 +73,7 @@ namespace AE::Graphics
 
 	// variables
 	private:
-		RResourceManager&	_resMngr;
+		ResourceManager&	_resMngr;
 		Bytes				_uploadBlockSize;
 		UpAllocator_t		_upload;
 		VStreamArr_t		_vstream;
@@ -86,7 +86,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit RStagingBufferManager (RResourceManager &resMngr)																__NE___ : _resMngr{resMngr} {}
+		explicit RStagingBufferManager (ResourceManager &resMngr)																__NE___ : _resMngr{resMngr} {}
 		~RStagingBufferManager ()																								__NE___ {}
 
 		ND_ bool  Initialize (const GraphicsCreateInfo &)																		__NE___;

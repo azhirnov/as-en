@@ -54,6 +54,11 @@
 #	define GLM_FORCE_ARCH_UNKNOWN
 #endif
 
+// disable warnings
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wexplicit-specialization-storage-class"
+#endif
 
 #include "glm.hpp"
 
@@ -68,7 +73,6 @@
 #include "gtc/quaternion.hpp"
 #include "gtc/round.hpp"
 #include "gtc/type_precision.hpp"
-//#include "gtc/ulp.hpp"
 
 #include "gtx/matrix_decompose.hpp"
 #include "gtx/matrix_major_storage.hpp"
@@ -77,16 +81,13 @@
 #include "gtx/rotate_vector.hpp"
 #include "gtx/quaternion.hpp"
 #include "gtx/dual_quaternion.hpp"
-//#include "gtx/intersect.hpp"
-//#include "gtx/fast_exponential.hpp"
-//#include "gtx/fast_square_root.hpp"
-//#include "gtx/fast_trigonometry.hpp"
 
 #include "ext/quaternion_geometric.hpp"
 #include "ext/quaternion_relational.hpp"
-//#include "ext/vector_relational.hpp"
-//#include "ext/matrix_relational.hpp"
 
+#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
+#	pragma clang diagnostic pop
+#endif
 
 #if GLM_CONFIG_ALIGNED_GENTYPES != GLM_ENABLE
 #	error required GLM_CONFIG_ALIGNED_GENTYPES = GLM_ENABLE

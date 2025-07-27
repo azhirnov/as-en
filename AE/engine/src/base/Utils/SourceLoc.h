@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Common.h"
+#include "base/Algorithms/ToString.h"
 
 namespace AE::Base
 {
@@ -10,47 +10,36 @@ namespace AE::Base
 	//
 	// Source Code Location
 	//
-	struct SourceLoc
+	struct SourceLocCopy
 	{
-		StringView	file;
-		uint		line	= 0;
+	// variables
+	private:
+		String		_file;
+		String		_fn;
+		uint		_line		= 0;
+		uint		_column		= 0;
 
-		// TODO: file_name, column ?
+	// methods
+	public:
+		SourceLocCopy ()									__NE___	{}
+		SourceLocCopy (String file, uint line)				__NE___	: _file{RVRef(file)}, _line{line} {}
+		explicit SourceLocCopy (const SourceLoc &loc)		__Th___	: _file{ToString(loc.file_name())}, _fn{ToString(loc.function_name())}, _line{loc.line()}, _column{loc.column()} {}
 
-		constexpr SourceLoc ()											__NE___	{}
-		explicit constexpr SourceLoc (StringView file, uint line = 0)	__NE___	: file{file}, line{line} {}
-		explicit constexpr SourceLoc (const std::source_location &loc)	__NE___	: file{loc.file_name()}, line{loc.line()} {}
+		SourceLocCopy (const SourceLocCopy &)				__Th___ = default;
+		SourceLocCopy (SourceLocCopy &&)					__NE___	= default;
 
-		SourceLoc (const SourceLoc &)									__NE___ = default;
-		SourceLoc (SourceLoc &&)										__NE___	= default;
+		SourceLocCopy&  operator = (const SourceLocCopy &)	__Th___	= default;
+		SourceLocCopy&  operator = (SourceLocCopy &&)		__NE___	= default;
 
-		SourceLoc&  operator = (const SourceLoc &)						__NE___	= default;
-		SourceLoc&  operator = (SourceLoc &&)							__NE___	= default;
+		operator SourceLoc ()								C_NE___	{ return SourceLoc{ _file.c_str(), _fn.c_str(), _line, _column }; }
+
+		ND_ const char*		function_name ()				C_NE___	{ return _fn.c_str(); }
+		ND_ const char*		file_name ()					C_NE___	{ return _file.c_str(); }
+		ND_ uint			column ()						C_NE___	{ return _column; }
+		ND_ uint			line ()							C_NE___	{ return _line; }
+
+		ND_ static SourceLocCopy  current (const SourceLoc &loc = SourceLoc::current()) __Th___	{ return SourceLocCopy{loc}; }
 	};
-
-	#define SourceLoc_Current()		AE::Base::SourceLoc{ std::source_location::current() }
-
-
-
-	//
-	// Source Code Location
-	//
-	struct SourceLoc2
-	{
-		String		file;
-		uint		line	= 0;
-
-		SourceLoc2 ()									__NE___	{}
-		SourceLoc2 (String file, uint line)				__NE___	: file{RVRef(file)}, line{line} {}
-		explicit SourceLoc2 (const SourceLoc &loc)		__Th___	: file{loc.file}, line{loc.line} {}
-
-		SourceLoc2 (const SourceLoc2 &)					__Th___ = default;
-		SourceLoc2 (SourceLoc2 &&)						__NE___	= default;
-
-		SourceLoc2&  operator = (const SourceLoc2 &)	__NE___	= default;
-		SourceLoc2&  operator = (SourceLoc2 &&)			__NE___	= default;
-	};
-
 
 
 	template <> struct TTriviallyDestructible< SourceLoc > : CT_True {};

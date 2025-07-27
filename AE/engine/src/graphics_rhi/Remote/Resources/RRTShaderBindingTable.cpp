@@ -23,7 +23,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RRTShaderBindingTable::Create (RResourceManager &, const CreateInfo &ci) __NE___
+	bool  RRTShaderBindingTable::Create (ResourceManager &, const CreateInfo &ci) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _sbt.id );
@@ -39,7 +39,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RRTShaderBindingTable::Destroy (RResourceManager &) __NE___
+	void  RRTShaderBindingTable::Destroy (ResourceManager &) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

@@ -149,7 +149,7 @@ namespace AE::Profiler
 	Begin
 =================================================
 */
-	void  TaskProfiler::Begin (const IAsyncTask &task) __NE___
+	void  TaskProfiler::Begin (const AsyncTaskImpl &task) __NE___
 	{
 		BeginNonTaskWork( &task, task.DbgName() );
 	}
@@ -159,7 +159,7 @@ namespace AE::Profiler
 	End
 =================================================
 */
-	void  TaskProfiler::End (const IAsyncTask &task) __NE___
+	void  TaskProfiler::End (const AsyncTaskImpl &task) __NE___
 	{
 		EndNonTaskWork( &task, task.DbgName() );
 	}
@@ -221,7 +221,7 @@ namespace AE::Profiler
 	Enqueue
 =================================================
 */
-	void  TaskProfiler::Enqueue (const IAsyncTask &) __NE___
+	void  TaskProfiler::Enqueue (const AsyncTaskImpl &) __NE___
 	{
 	}
 

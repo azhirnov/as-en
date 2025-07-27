@@ -1,13 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "demo/Core/SampleCore.h"
+#include "Core/SampleCore.h"
 #include "threading/DataSource/FileAsyncDataSource.h"
 
 // samples
-#include "demo/Examples/Canvas2D.h"
-#include "demo/Examples/Camera3D.h"
-#include "demo/Examples/ImGuiSample.h"
-#include "demo/Examples/Audio.h"
+#include "Examples/Canvas2D.h"
+#include "Examples/Camera3D.h"
+#include "Examples/ImGuiSample.h"
+#include "Examples/Audio.h"
 
 namespace AE::Samples::Demo
 {

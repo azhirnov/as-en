@@ -2,8 +2,6 @@
 
 set( ENGINE_CMAKE_FOLDER		"${MAIN_SOURCE_DIR}/engine/cmake"	)
 set( AE_ENGINE_EXTERNAL_CMAKE	"${MAIN_SOURCE_DIR}/engine/external" CACHE INTERNAL "" FORCE )
-set( AE_FORCE_CXX20				OFF CACHE BOOL "use C++20 even if C++23 supported" )
-set( AE_FORCE_CXX23				OFF CACHE BOOL "use C++23 even if C++26 supported" )
 
 include( "${ENGINE_CMAKE_FOLDER}/compilers.cmake" )
 include( "${ENGINE_CMAKE_FOLDER}/compiler_tests.cmake" )
@@ -102,18 +100,13 @@ if (${AE_ENABLE_MEMLEAK_CHECKS})
 	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_ENABLE_MEMLEAK_CHECKS" )
 endif()
 
-if (NOT ${AE_STD_FILESYSTEM_SUPPORTED})
-	if (${AE_ENABLE_FILESYSTEM})
-		target_link_libraries( "ProjectTemplate" PUBLIC "FileSystem-lib" )
-		message( STATUS "used alternative std::filesystem implementation" )
-	else()
-		message( FATAL_ERROR "requires 'std::filesystem' or fallback implementation" )
-	endif()
+if (${AE_GRAPHICS_STRONG_VALIDATION})
+	target_compile_definitions( "ProjectTemplate" PUBLIC AE_GRAPHICS_STRONG_VALIDATION=1 )
+else()
+	target_compile_definitions( "ProjectTemplate" PUBLIC AE_GRAPHICS_STRONG_VALIDATION=0 )
 endif()
 
 target_compile_definitions( "ProjectTemplate" PUBLIC
 	"AE_ENGINE_NAME=\"AsEn\""
 	"AE_VERSION=(AE::Base::Tuple{ ${PROJECT_VERSION_MAJOR}, ${PROJECT_VERSION_MINOR}, ${PROJECT_VERSION_PATCH}, \"${AE_COMMIT_HASH}\" })"
 )
-
-target_include_directories( "ProjectTemplate" PUBLIC "${MAIN_SOURCE_DIR}/engine" )

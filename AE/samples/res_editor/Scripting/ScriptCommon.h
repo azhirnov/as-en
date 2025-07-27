@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/ResourceEditor.pch.h"
+#include "Common.h"
 
 #ifndef AE_ENABLE_SCRIPTING
 # error requires scripting
@@ -77,8 +77,6 @@ namespace AE::ResEditor
 
 	enum class EResourceUsage : uint
 	{
-		Unknown					= 0,
-
 		ComputeRead				= 1 << 0,
 		ComputeWrite			= 1 << 1,
 		ComputeRW				= ComputeRead | ComputeWrite,
@@ -106,9 +104,10 @@ namespace AE::ResEditor
 		FragShadingRate			= 1 << 16,
 		FragDensityMap			= 1 << 17,
 		SubsampledAttachment	= 1 << 18,
-	};
-	AE_BIT_OPERATORS( EResourceUsage );
 
+		Unknown					= 0,
+		_BITOPS_
+	};
 
 } // AE::ResEditor
 

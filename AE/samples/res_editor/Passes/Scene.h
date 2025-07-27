@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "res_editor/Passes/Postprocess.h"
-#include "res_editor/Passes/RayTracingPass.h"
-#include "res_editor/GeomSource/IGeomSource.h"
+#include "Passes/Postprocess.h"
+#include "Passes/RayTracingPass.h"
+#include "GeomSource/IGeomSource.h"
 
 namespace AE::ResEditor
 {

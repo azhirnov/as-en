@@ -32,7 +32,7 @@ namespace
 
 	StaticAssert( FrameUID::MaxFramesLimit() == GraphicsConfig::MaxFrames );
 
-	StaticAssert( VK_HEADER_VERSION == 309 );
+	StaticAssert( VK_HEADER_VERSION == 321 );
 
 	static constexpr usize	c_MaxMemTypes = List<EMemoryType>{
 												EMemoryType::DeviceLocal,	EMemoryType::Transient,		EMemoryType::HostCoherent,
@@ -143,6 +143,10 @@ namespace
 			case VK_OBJECT_TYPE_PIPELINE_BINARY_KHR :
 			case VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_EXT :
 			case VK_OBJECT_TYPE_INDIRECT_EXECUTION_SET_EXT :
+			case VK_OBJECT_TYPE_TENSOR_ARM :
+			case VK_OBJECT_TYPE_TENSOR_VIEW_ARM :
+			case VK_OBJECT_TYPE_DATA_GRAPH_PIPELINE_SESSION_ARM :
+			case VK_OBJECT_TYPE_EXTERNAL_COMPUTE_QUEUE_NV :
 			case VK_OBJECT_TYPE_MAX_ENUM :	break;
 		}
 		switch_end
@@ -239,6 +243,10 @@ namespace
 			case VK_OBJECT_TYPE_PIPELINE_BINARY_KHR :
 			case VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_EXT :
 			case VK_OBJECT_TYPE_INDIRECT_EXECUTION_SET_EXT :
+			case VK_OBJECT_TYPE_TENSOR_ARM :
+			case VK_OBJECT_TYPE_TENSOR_VIEW_ARM :
+			case VK_OBJECT_TYPE_DATA_GRAPH_PIPELINE_SESSION_ARM :
+			case VK_OBJECT_TYPE_EXTERNAL_COMPUTE_QUEUE_NV :
 			case VK_OBJECT_TYPE_MAX_ENUM :
 				break;
 		}

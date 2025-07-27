@@ -52,8 +52,8 @@ namespace AE::Graphics
 		RPipelineLayout ()												__NE___	{}
 		~RPipelineLayout ()												__NE___;
 
-		ND_ bool  Create (RResourceManager &, const CreateInfo &ci)		__NE___;
-			void  Destroy (RResourceManager &)							__NE___;
+		ND_ bool  Create (ResourceManager &, const CreateInfo &ci)		__NE___;
+			void  Destroy (ResourceManager &)							__NE___;
 
 		ND_ bool  GetDescriptorSetLayout (DescriptorSetName::Ref,
 										  OUT DescriptorSetLayoutID &,

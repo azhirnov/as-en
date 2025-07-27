@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Resources/DataTransferQueue.h"
+#include "Resources/DataTransferQueue.h"
 
 namespace AE::ResEditor
 {

@@ -28,7 +28,6 @@ namespace AE::Graphics
 		UnifiedCached		= HostCachedCoherent | DeviceLocal,
 		Unknown				= 0,
 	};
-	AE_BIT_OPERATORS( EMemoryType );
 
 
 	enum class EBufferUsage : uint
@@ -55,7 +54,6 @@ namespace AE::Graphics
 		Transfer			= TransferDst | TransferSrc,
 		Unknown				= 0,
 	};
-	AE_BIT_OPERATORS( EBufferUsage );
 
 	static constexpr EBufferUsage	EBufferUsage_AllowBufferView	= EBufferUsage::UniformTexel | EBufferUsage::StorageTexel;
 	static constexpr EBufferUsage	EBufferUsage_RequireDevAddress	= EBufferUsage::ShaderAddress | EBufferUsage::ShaderBindingTable | EBufferUsage::ASBuild_ReadOnly |
@@ -78,7 +76,6 @@ namespace AE::Graphics
 		All						= ((_Last-1) << 1) - 1,
 		Unknown					= 0,
 	};
-	AE_BIT_OPERATORS( EBufferOpt );
 
 
 	enum class EImageDim : ubyte
@@ -142,7 +139,6 @@ namespace AE::Graphics
 		RWAttachment				= ColorAttachment | InputAttachment,
 		Unknown						= 0,
 	};
-	AE_BIT_OPERATORS( EImageUsage );
 
 	static constexpr EImageUsage	EImageUsage_MutableResource = EImageUsage::TransferDst | EImageUsage::Storage |
 																  EImageUsage::ColorAttachment | EImageUsage::DepthStencilAttachment;
@@ -189,7 +185,6 @@ namespace AE::Graphics
 
 		Unknown						= 0,
 	};
-	AE_BIT_OPERATORS( EImageOpt );
 
 
 	enum class EImageViewOpt : ubyte
@@ -201,7 +196,6 @@ namespace AE::Graphics
 		All							= ((_Last-1) << 1) - 1,
 		Unknown						= 0,
 	};
-	AE_BIT_OPERATORS( EImageViewOpt );
 
 
 	enum class EImageAspect : ubyte
@@ -216,12 +210,12 @@ namespace AE::Graphics
 		Plane_2			= 1 << 6,
 
 		_Last,
+		All				= ((_Last-1) << 1) - 1,
 
 		DepthStencil	= Depth | Stencil,
 		_PlaneMask		= Plane_0 | Plane_1 | Plane_2,
 		Unknown			= 0,
 	};
-	AE_BIT_OPERATORS( EImageAspect );
 
 	NdCxIn EImageAspect  EImageAspect_Plane (usize i) __NE___
 	{

@@ -4,12 +4,8 @@
 
 #include "UnitTest_Common.h"
 
-#ifndef AE_DISABLE_THREADS
 namespace
 {
-	using EStatus = IAsyncTask::EStatus;
-//-----------------------------------------------------------------------------
-
 
 	struct AMTest1_SharedData
 	{
@@ -22,31 +18,21 @@ namespace
 	};
 
 
-	class AMTest1_Task : public IAsyncTask
+	static AsyncCoro  CreateAMTest1Task (AMTest1_SharedData &data)
 	{
-	public:
-		AMTest1_SharedData&		data;
-		uint					counter	= 0;
-
-		AMTest1_Task (AMTest1_SharedData &d) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, data{d} {}
-
-		void  Run () __Th_OV
+		for (uint counter = 0; counter < AMTest1_SharedData::repeat_count; ++counter)
 		{
 			{
 				ASYNC_EXLOCK( data.mutex );
-				TEST( data.mutexCheck.try_lock() );
+				
+				DeferExLock lock {data.mutexCheck};
+				TEST( lock.try_lock() );
 
 				++data.counter;
-
-				data.mutexCheck.unlock();
 			}
-
-			if ( ++counter < AMTest1_SharedData::repeat_count )
-				return Continue();
+			Coro_Continue();
 		}
-
-		StringView  DbgName () C_NE_OV { return "AMTest1_Task"; }
-	};
+	}
 
 
 	static void  AsyncMutex_Test1 ()
@@ -61,7 +47,7 @@ namespace
 
 		for (uint i = 0; i < AMTest1_SharedData::task_count; ++i)
 		{
-			tasks.push_back( scheduler->Run<AMTest1_Task>( Tuple{ArgRef(data)} ));
+			tasks.push_back( scheduler->Run( CreateAMTest1Task( data )));
 		}
 
 		TEST( scheduler->Wait( tasks, c_MaxTimeout ));
@@ -70,7 +56,7 @@ namespace
 		TEST_Eq( data.counter, data.repeat_count * data.task_count );
 
 		for (auto& task : tasks) {
-			TEST( task->Status() == EStatus::Completed );
+			TEST( task->Status() == ETaskStatus::Completed );
 		}
 	}
 //-----------------------------------------------------------------------------
@@ -83,11 +69,3 @@ extern void UnitTest_AsyncMutex ()
 
 	TEST_PASSED();
 }
-
-#else
-
-
-extern void UnitTest_AsyncMutex ()
-{}
-
-#endif // AE_DISABLE_THREADS

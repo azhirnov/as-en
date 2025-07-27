@@ -308,7 +308,7 @@ robocopy "GPUPerfAPI/.git" "../public/AMD-GPUPerfAPI" /S
 :: download nvml
 mkdir nvml
 cd nvml
-wget "https://raw.githubusercontent.com/nvpro-samples/nvpro_core/master/third_party/binaries/nvml/nvml.h"
+wget "https://raw.githubusercontent.com/nvpro-samples/nvpro_core/9cabfaab3ba7ae8857504bcfc7b326dec953bb2c/third_party/binaries/nvml/nvml.h"
 git init
 git add -A
 git commit -m "init"

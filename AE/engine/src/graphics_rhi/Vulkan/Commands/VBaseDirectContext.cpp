@@ -62,7 +62,7 @@ namespace AE::Graphics::_hidden_
 	_ReuseOrCreateCommandBuffer
 =================================================
 */
-	VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg, bool firstInQueue) __NE___
+	VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const CommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg, bool firstInQueue) __NE___
 	{
 		if_likely( cmdbuf.IsValid() )
 		{
@@ -85,14 +85,14 @@ namespace AE::Graphics::_hidden_
 		return RVRef(cmdbuf);
 	}
 
-	VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, const RenderTask &task, DebugLabel dbg) __NE___
+	VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const CommandBatch &batch, VCommandBuffer cmdbuf, RenderCoroRef task, DebugLabel dbg) __NE___
 	{
 		return _ReuseOrCreateCommandBuffer( batch, RVRef(cmdbuf),
 											dbg ? dbg : DebugLabel{ task.DbgFullName(), task.DbgColor() },
 											(batch.IsResetQueryRequired() and task.IsFirstInBatch()) );
 	}
 
-	VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg) __NE___
+	VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const DrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg) __NE___
 	{
 		if_likely( cmdbuf.IsValid() )
 		{

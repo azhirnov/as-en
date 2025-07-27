@@ -138,7 +138,7 @@ namespace
 
 		if ( ::RegisterRawInputDevices( devices.data(), UINT(devices.size()), sizeof(devices[0]) ) == FALSE )  // winxp
 		{
-			Unused( WindowsUtils::CheckError( "RegisterRawInputDevices failed: ", SourceLoc_Current() ));
+			Unused( WindowsUtils::CheckError( "RegisterRawInputDevices failed: ", SourceLoc::current() ));
 			return false;
 		}
 	  #endif

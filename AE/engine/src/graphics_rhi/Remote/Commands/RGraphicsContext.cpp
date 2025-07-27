@@ -57,18 +57,18 @@ namespace {
 	constructor
 =================================================
 */
-	RGraphicsContext::RGraphicsContext (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+	RGraphicsContext::RGraphicsContext (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
 		RBaseContext{ task, RVRef(cmdbuf), dbg, ECtxType::Graphics }
 	{
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 	}
 
-	RGraphicsContext::RGraphicsContext (const RenderTask &task, const RDrawCommandBatch &batch, CmdBuf_t cmdbuf) __Th___ :
+	RGraphicsContext::RGraphicsContext (RenderCoroRef task, const DrawCommandBatch &batch, CmdBuf_t cmdbuf) __Th___ :
 		RBaseContext{ task, RVRef(cmdbuf), Default, ECtxType::Graphics },
 		_primaryState{ batch.GetPrimaryCtxState() }
 	{
 		GCTX_CHECK( IsInsideRenderPass() );
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 	}
 
 /*
@@ -76,12 +76,12 @@ namespace {
 	_BeginFirstAsyncPass
 =================================================
 */
-	RC<RDrawCommandBatch>  RGraphicsContext::_BeginFirstAsyncPass (const RPrimaryCmdBufState &primaryState, const RenderPassDesc &desc, DebugLabel dbg)
+	RC<DrawCommandBatch>  RGraphicsContext::_BeginFirstAsyncPass (const RPrimaryCmdBufState &primaryState, const RenderPassDesc &desc, DebugLabel dbg)
 	{
 		return RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch( GraphicsScheduler(), primaryState, desc, dbg );
 	}
 
-	RC<RDrawCommandBatch>  RGraphicsContext::_BeginNextAsyncPass (const RDrawCommandBatch &prevPassBatch, DebugLabel dbg)
+	RC<DrawCommandBatch>  RGraphicsContext::_BeginNextAsyncPass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg)
 	{
 		return RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch( GraphicsScheduler(), prevPassBatch, dbg );
 	}
@@ -161,7 +161,7 @@ namespace {
 	BeginMtRenderPass
 =================================================
 */
-	auto  RGraphicsContext::BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg, void* userData) __Th___ -> RC<RDrawCommandBatch>
+	auto  RGraphicsContext::BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg, void* userData) __Th___ -> RC<DrawCommandBatch>
 	{
 		ASSERT( _NoPendingBarriers() );
 
@@ -194,7 +194,7 @@ namespace {
 	NextMtSubpass
 =================================================
 */
-	auto  RGraphicsContext::NextMtSubpass (const RDrawCommandBatch &prevPassBatch, DebugLabel dbg, void* userData) __Th___ -> RC<RDrawCommandBatch>
+	auto  RGraphicsContext::NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg, void* userData) __Th___ -> RC<DrawCommandBatch>
 	{
 		ASSERT( _NoPendingBarriers() );
 		GCTX_CHECK( _primaryState.IsValid() );
@@ -243,7 +243,7 @@ namespace {
 	ExecuteSecondary
 =================================================
 */
-	void  RGraphicsContext::ExecuteSecondary (RDrawCommandBatch &batch) __Th___
+	void  RGraphicsContext::ExecuteSecondary (DrawCommandBatch &batch) __Th___
 	{
 		ASSERT( _NoPendingBarriers() );
 		GCTX_CHECK( IsInsideRenderPass() );

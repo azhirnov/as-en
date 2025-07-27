@@ -1,15 +1,15 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptExe.h"
+#include "Scripting/ScriptExe.h"
 
-#include "res_editor/GeomSource/SphericalCube.h"
-#include "res_editor/GeomSource/UnifiedGeometry.h"
-#include "res_editor/GeomSource/ModelGeomSource.h"
+#include "GeomSource/SphericalCube.h"
+#include "GeomSource/UnifiedGeometry.h"
+#include "GeomSource/ModelGeomSource.h"
 
-#include "res_editor/_data/cpp/types.h"
-#include "res_editor/_ui_data/cpp/types.h"
+#include "_data/cpp/types.h"
+#include "_ui_data/cpp/types.h"
 
-#include "res_editor/Scripting/PipelineCompiler.inl.h"
+#include "Scripting/PipelineCompiler.inl.h"
 
 #include "res_loaders/Intermediate/IntermScene.h"
 #include "res_loaders/Public/ModelLoader.h"

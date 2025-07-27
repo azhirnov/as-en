@@ -504,9 +504,9 @@ namespace AE::RemoteGraphics
 		return _Get2<RenderTechPipelinesPtr>( id, _res.rtechPplnPool );
 	}
 
-	RC<RmGAppListener::RenderTaskImpl>  RmGAppListener::_Get (RmCommandBufferID id)
+	RC<RmGAppListener::RenderTask2>  RmGAppListener::_Get (RmCommandBufferID id)
 	{
-		return _Get2<RC<RenderTaskImpl>>( id, _res.cmdbufPool );
+		return _Get2<RC<RenderTask2>>( id, _res.cmdbufPool );
 	}
 
 	CommandBatchPtr  RmGAppListener::_Get (RmCommandBatchID id)
@@ -514,9 +514,9 @@ namespace AE::RemoteGraphics
 		return _Get2<CommandBatchPtr>( id, _res.batchPool );
 	}
 
-	RC<RmGAppListener::DrawTaskImpl>  RmGAppListener::_Get (RmDrawCommandBufferID id)
+	RC<RmGAppListener::DrawTask2>  RmGAppListener::_Get (RmDrawCommandBufferID id)
 	{
-		return _Get2<RC<DrawTaskImpl>>( id, _res.drawCmdbufPool );
+		return _Get2<RC<DrawTask2>>( id, _res.drawCmdbufPool );
 	}
 
 	RmGAppListener::GpuSemaphore  RmGAppListener::_GetSemaphore (RmSemaphoreID id)
@@ -564,7 +564,7 @@ namespace AE::RemoteGraphics
 		return _Set2<RmRenderTechPipelinesID>( RVRef(ptr), _res.rtechPplnPool );
 	}
 
-	RmCommandBufferID  RmGAppListener::_Set (RC<RenderTaskImpl> ptr)
+	RmCommandBufferID  RmGAppListener::_Set (RC<RenderTask2> ptr)
 	{
 		CHECK_ERR( ptr );
 		return _Set2<RmCommandBufferID>( RVRef(ptr), _res.cmdbufPool );
@@ -576,7 +576,7 @@ namespace AE::RemoteGraphics
 		return _Set2<RmCommandBatchID>( RVRef(ptr), _res.batchPool );
 	}
 
-	RmDrawCommandBufferID  RmGAppListener::_Set (RC<DrawTaskImpl> ptr)
+	RmDrawCommandBufferID  RmGAppListener::_Set (RC<DrawTask2> ptr)
 	{
 		CHECK_ERR( ptr );
 		return _Set2<RmDrawCommandBufferID>( RVRef(ptr), _res.drawCmdbufPool );
@@ -808,9 +808,9 @@ namespace AE::RemoteGraphics
 
 		Msg::Log	msg;
 		msg.message	= text;
-		msg.func	= info.func;
-		msg.file	= info.file;
-		msg.line	= info.line;
+		msg.func	= info.loc.function_name();
+		msg.file	= info.loc.file_name();
+		msg.line	= info.loc.line();
 		msg.level	= info.level;
 		msg.scope	= info.scope;
 

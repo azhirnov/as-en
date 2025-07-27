@@ -47,7 +47,6 @@ namespace
 		All						= ((_Last-1) << 1) - 1,
 		Unknown					= 0,
 	};
-	AE_BIT_OPERATORS( Extension );
 
 	enum class SyncScope
 	{
@@ -63,8 +62,8 @@ namespace
 		Task			= 1 << 3,
 		Timeline		= 1 << 4,
 		Unknown			= 0,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EFeatures );
 
 	using SemaphoreID	= HandleTmpl< 32, 32, 0x654145 >;
 	StaticAssert( sizeof(SemaphoreID) == sizeof(VkSemaphore) );

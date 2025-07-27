@@ -147,8 +147,8 @@ namespace AE::Graphics
 		#undef AE_VERTEXTYPE_VISIT
 
 		Unknown				= 0,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EVertexType );
 
 
 	enum class EVertexInputRate : ubyte

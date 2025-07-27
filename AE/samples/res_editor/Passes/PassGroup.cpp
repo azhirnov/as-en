@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Passes/PassGroup.h"
-#include "res_editor/Resources/DataTransferQueue.h"
+#include "Passes/PassGroup.h"
+#include "Resources/DataTransferQueue.h"
 
 namespace AE::ResEditor
 {

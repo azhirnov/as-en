@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptBasePass.h"
-#include "res_editor/Passes/RasterMip.h"
+#include "Scripting/ScriptBasePass.h"
+#include "Passes/RasterMip.h"
 
 namespace AE::ResEditor
 {

@@ -50,7 +50,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)		__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
+		_VDirectRayTracingCtx (RenderCoroRef task, VCommandBuffer cmdbuf, DebugLabel dbg)			__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
 
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout)								__Th___;
 		void  _PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)	__Th___;
@@ -101,7 +101,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)	__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
+		_VIndirectRayTracingCtx (RenderCoroRef task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)		__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
 
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout)								__Th___;
 		void  _PushConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)	__Th___;
@@ -127,6 +127,7 @@ namespace AE::Graphics::_hidden_
 	// types
 	public:
 		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
+		using RenderCoroRef	= typename CtxImpl::RenderCoroRef;
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumBarriers< _VRayTracingContextImpl< CtxImpl >>;
@@ -136,7 +137,7 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___;
+		explicit _VRayTracingContextImpl (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
 
 		_VRayTracingContextImpl ()																							= delete;
 		_VRayTracingContextImpl (const _VRayTracingContextImpl &)															= delete;
@@ -188,10 +189,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VRayTracingContextImpl<C>::_VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+	_VRayTracingContextImpl<C>::_VRayTracingContextImpl (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
 		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 	}
 
 /*

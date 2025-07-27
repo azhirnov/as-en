@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Compiler/AEStyleMSLPreprocessor.h"
+#include "res_pack/pipeline_compiler/Compiler/AEStyleMSLPreprocessor.h"
 
 namespace AE::PipelineCompiler
 {

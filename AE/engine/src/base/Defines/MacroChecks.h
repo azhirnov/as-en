@@ -33,6 +33,27 @@
 #ifndef __cpp_lib_source_location
 #   error source_location is not supported by compiler
 #endif
+#ifndef __cpp_structured_bindings
+#	error structured bindings is not supported by compiler
+#endif
+#ifndef __cpp_lib_bit_cast
+#	error bit_cast is not supported by compiler
+#endif
+#ifndef __cpp_lib_filesystem
+#	error filesystem is not supported by compiler
+#endif
+#if __cpp_static_assert < 201411L
+#	error Single-argument static_assert is not supported by compiler
+#endif
+#ifndef __cpp_fold_expressions
+#	error fold expressions is not supported by compiler
+#endif
+#ifndef __cpp_deduction_guides
+#	error deduction guides are not supported by compiler
+#endif
+#ifndef __cpp_lib_bitops
+#	error bitops are not supported by compiler
+#endif
 
 #if defined(AE_CFG_DEBUG)
 #  if defined(AE_CFG_DEVELOP) or defined(AE_CFG_PROFILE) or defined(AE_CFG_RELEASE)
@@ -308,12 +329,6 @@
 #	pragma detect_mismatch( "AE_PLATFORM_EMSCRIPTEN", "1" )
 #  else
 #	pragma detect_mismatch( "AE_PLATFORM_EMSCRIPTEN", "0" )
-#  endif
-
-#  ifdef AE_DISABLE_THREADS
-#	pragma detect_mismatch( "AE_DISABLE_THREADS", "1" )
-#  else
-#	pragma detect_mismatch( "AE_DISABLE_THREADS", "0" )
 #  endif
 
 #  ifdef AE_PLATFORM_TARGET_VERSION_MAJOR

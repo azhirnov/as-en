@@ -1,11 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/UI/Widget.h"
-
-#ifndef AE_UI_NO_GRAPHICS
-# include "graphics/Canvas/Primitives.h"
-# include "graphics/UI/System.h"
-#endif
+#include "graphics/Canvas/Primitives.h"
+#include "graphics/UI/System.h"
 
 namespace AE::UI
 {
@@ -280,7 +277,6 @@ namespace AE::UI
 //-----------------------------------------------------------------------------
 
 
-#ifndef AE_UI_NO_GRAPHICS
 /*
 =================================================
 	Update
@@ -406,7 +402,5 @@ namespace AE::UI
 			canvas.Draw( Graphics::Rectangle2D{ ldata.ClipRect(idx), col });
 		}
 	}
-
-#endif // AE_UI_NO_GRAPHICS
 
 } // AE::UI

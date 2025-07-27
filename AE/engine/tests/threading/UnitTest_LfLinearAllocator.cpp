@@ -2,7 +2,6 @@
 
 #include "UnitTest_Common.h"
 
-#ifndef AE_DISABLE_THREADS
 namespace
 {
 	static void  LfLinearAllocator_Test1 ()
@@ -60,10 +59,3 @@ extern void UnitTest_LfLinearAllocator ()
 
 	TEST_PASSED();
 }
-
-#else
-
-extern void UnitTest_LfLinearAllocator ()
-{}
-
-#endif

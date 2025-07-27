@@ -1,4 +1,4 @@
-#include "../AssetPacker.h"
+#include "res_pack/asset_packer/AssetPacker.h"
 
 #ifdef AE_PLATFORM_UNIX_BASED
 	extern "C" AE_DLL_EXPORT void* GetPackAssets ()

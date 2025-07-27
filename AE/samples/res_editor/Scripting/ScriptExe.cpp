@@ -1,13 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Passes/BuildRTAS.h"
-#include "res_editor/Passes/Export.h"
-#include "res_editor/Passes/ImageCompression.h"
+#include "Scripting/ScriptExe.h"
+#include "Passes/BuildRTAS.h"
+#include "Passes/Export.h"
+#include "Passes/ImageCompression.h"
 
-#include "res_editor/Core/EditorCore.h"
-#include "res_editor/Core/EditorUI.h"
-#include "res_editor/Scripting/PipelineCompiler.inl.h"
+#include "Core/EditorCore.h"
+#include "Core/EditorUI.h"
+#include "Scripting/PipelineCompiler.inl.h"
 
 
 AE_DECL_SCRIPT_OBJ( AE::ResEditor::ScriptExe::EnableLabel,  "EnableLabel" );
@@ -22,7 +22,7 @@ namespace {
 	using namespace AE::Scripting;
 	using namespace AE::PipelineCompiler;
 
-	#include "res_editor/Scripting/ScriptExe_Passes.inl.h"
+	#include "Scripting/ScriptExe_Passes.inl.h"
 
 
 	//
@@ -197,7 +197,7 @@ namespace {
 		// in VS: click in console to open script
 	  #ifdef AE_COMPILER_MSVC
 		if ( result and PlatformUtils::IsUnderDebugger() )
-			AE_LOGI( "<<<<< Loaded script >>>>>", ToString(filePath), 1 );
+			AE_LOGI( "<<<<< Loaded script >>>>>", SourceLoc( ToString(filePath).c_str(), 1 ));
 	  #endif
 
 		_tempData.reset();
@@ -357,7 +357,7 @@ namespace {
 				RETURN_ERR( "Failed to read script file: '"s << ansi_path << "'" );
 		}
 
-		src.dbgLocation		= SourceLoc{ ansi_path, 0 };
+		src.dbgLocation		= SourceLoc{ ansi_path.c_str(), 0 };
 		src.usePreprocessor	= true;
 
 		ScriptModulePtr		module = _engine->CreateModule( {src}, {"SCRIPT"}, _config.scriptIncludeDirs );

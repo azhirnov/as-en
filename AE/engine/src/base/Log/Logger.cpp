@@ -128,7 +128,7 @@ namespace
 #ifdef AE_COMPILER_MSVC
 	ILogger::EResult  VisualStudioLogOutput::Process (const MessageInfo &info)
 	{
-		const String	str = String{info.file} << '(' << ToString( info.line ) << "): "
+		const String	str = String{info.loc.file_name()} << '(' << ToString( info.loc.line() ) << "): "
 							<< ScopeToString( info.scope ) << LevelToString( info.level )
 							<< ": " << info.message << '\n';
 
@@ -145,9 +145,9 @@ namespace
 #ifdef AE_PLATFORM_LINUX
 	ILogger::EResult  VSCodeLogOutput::Process (const MessageInfo &info)
 	{
-		const String	str = String{info.file} << ':' << ToString( info.line ) << ": "
+		const String	str = String{info.loc.file_name()} << ':' << ToString( info.loc.line() ) << ": "
 							<< ScopeToString( info.scope ) << LevelToString( info.level )
-							<< ": " << info.message << '\n';
+							<< ": in " << info.loc.function_name() << ": " << info.message << '\n';
 
 		{
 			EXLOCK( _guard );
@@ -200,9 +200,9 @@ namespace
 
 		const String	caption	= "Error message";
 
-		String	str	= "File:      "s << FileSystem::ToShortPath( info.file ) <<
-					  "\nLine:     " << ToString( info.line ) <<
-					  "\nFunction: " << info.func <<
+		String	str	= "File:      "s << FileSystem::ToShortPath( info.loc.file_name() ) <<
+					  "\nLine:     " << ToString( info.loc.line() ) <<
+					  "\nFunction: " << info.loc.function_name() <<
 					  "\nScope:    " << ScopeToString( info.scope ) <<
 					//"\nLevel     " << LevelToString( info.level ) <<
 					  "\n\nMessage:\n";
@@ -286,7 +286,7 @@ namespace
 		#elif defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE)
 			return MakeUnique<DialogLogOutput>( levelBits, scopeBits );
 
-		#elif defined(AE_PLATFORM_EMSCRIPTEN) and defined(AE_DISABLE_THREADS)
+		#elif defined(AE_PLATFORM_EMSCRIPTEN)
 			return MakeUnique<DialogLogOutputEms>( levelBits, scopeBits );
 
 		#else
@@ -323,7 +323,7 @@ namespace
 
 		char	buf [800];
 		usize	offset		= 0;
-		String	short_path	{ FileSystem::ToShortPath( info.file )};
+		String	short_path	{ FileSystem::ToShortPath( info.loc.file_name() )};
 		String	tid			= ToString<16>( MinimizeThreadID( ThreadUtils::GetIntID() ));
 
 		for (; offset < info.message.size();)
@@ -338,7 +338,7 @@ namespace
 
 			// thread safe
 			if ( offset == 0 ){
-				Unused( __android_log_print( log_level, _tag.c_str(), "[%s] %s (%i): %s", tid.c_str(), short_path.c_str(), info.line, buf ));
+				Unused( __android_log_print( log_level, _tag.c_str(), "[%s] %s (%i): %s", tid.c_str(), short_path.c_str(), info.loc.line(), buf ));
 			}else{
 				Unused( __android_log_write( log_level, _tag.c_str(), buf ));
 			}
@@ -370,7 +370,7 @@ namespace
 */
 	ILogger::EResult  ConsoleLogOutput::Process (const MessageInfo &info)
 	{
-		String	str = String{ FileSystem::ToShortPath( info.file )} << '(' << ToString( info.line ) << "): " << info.message;
+		String	str = String{ FileSystem::ToShortPath( info.loc.file_name() )} << '(' << ToString( info.loc.line() ) << "): " << info.message;
 
 	  #if defined(AE_PLATFORM_WINDOWS) and not (defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF))
 		switch_enum( info.level )
@@ -412,7 +412,7 @@ namespace
 			::SetConsoleMode( hnd, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING );
 		}
 		#endif
-		
+
 		#if defined(AE_PLATFORM_LINUX) and not defined(AE_CI_BUILD_TEST)
 			// use 'CreateIDEOutput()' instead
 			return {};
@@ -464,7 +464,7 @@ namespace
 
 			str << info.message;
 
-			str << "\n\t{" << FileSystem::ToShortPath( info.file ) << '(' << ToString( info.line ) << ")}";
+			str << "\n\t{" << FileSystem::ToShortPath( info.loc.file_name() ) << '(' << ToString( info.loc.line() ) << ")}";
 
 			Unused( _file->Write( str ));
 			_file->Flush();
@@ -652,15 +652,15 @@ namespace
 		if ( add_file )
 		{
 			_SetColor( EColor::Silver, bg_col, INOUT str );
-			str << "  (file: '" << FileSystem::ToShortPath( info.file ) << "', line: " << ToString( info.line ) << ")</font>";
+			str << "  (file: '" << FileSystem::ToShortPath( info.loc.file_name() ) << "', line: " << ToString( info.loc.line() ) << ")</font>";
 		}
-		
+
 	  #if defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
 		if_unlikely( info.level >= ELevel::Warning )
 		{
 			"<details><summary>" >> str;
 			str << "</summary>  callstack:\n";
-			
+
 			_SetColor( EColor::DarkGrey, bg_col, INOUT str );
 
 			#ifdef AE_PLATFORM_WINDOWS

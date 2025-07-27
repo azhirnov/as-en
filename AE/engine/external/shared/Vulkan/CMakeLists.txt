@@ -12,7 +12,7 @@ install( FILES "${VULKAN_PATH}/LICENSE.txt" DESTINATION "3party_license" RENAME 
 
 if (ANDROID)
 	add_custom_target( "Android-Vulkan-copy-so"
-		COMMAND ${CMAKE_COMMAND} -E copy_directory "${AE_DST_SHARED_PATH}/Vulkan/${ANDROID_ABI}" "${AE_ANDROID_JNILIB_PATH}/${ANDROID_ABI}"
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${AE_DST_PATH}/Vulkan/${ANDROID_ABI}" "${AE_ANDROID_JNILIB_PATH}/${ANDROID_ABI}"
 		COMMENT "Copying Android Vulkan shared libs..." )
 	set_property( TARGET "Android-Vulkan-copy-so" PROPERTY FOLDER "Engine/External" )
 	add_dependencies( "Vulkan-lib" "Android-Vulkan-copy-so" )

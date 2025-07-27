@@ -5,7 +5,7 @@
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Public/RenderPassDesc.h"
 # include "graphics_rhi/Remote/RCommon.h"
-# include "Packer/RenderPassPack.h"
+# include "res_pack/pipeline_compiler/Packer/RenderPassPack.h"
 
 namespace AE::Graphics
 {
@@ -39,7 +39,7 @@ namespace AE::Graphics
 		~RRenderPass ()															__NE___;
 
 		ND_ bool  Create (const CreateInfo &ci)									__NE___;
-			void  Destroy (RResourceManager &)									__NE___;
+			void  Destroy (ResourceManager &)									__NE___;
 
 		ND_ usize						SubpassCount ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassCount; }
 		ND_ EPixelFormat				GetPixelFormat (AttachmentName::Ref)	C_NE___;

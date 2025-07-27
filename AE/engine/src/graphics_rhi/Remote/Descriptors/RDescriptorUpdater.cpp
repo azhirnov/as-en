@@ -14,7 +14,7 @@ namespace AE::Graphics
 	constructor
 =================================================
 */
-	RDescriptorUpdater::RDescriptorUpdater () __NE___ :
+	DescriptorUpdater::DescriptorUpdater () __NE___ :
 		_resMngr{GraphicsScheduler().GetResourceManager()}
 	{}
 
@@ -23,7 +23,7 @@ namespace AE::Graphics
 	destructor
 =================================================
 */
-	RDescriptorUpdater::~RDescriptorUpdater () __NE___
+	DescriptorUpdater::~DescriptorUpdater () __NE___
 	{
 		_resMngr.ImmediatelyRelease( INOUT _descSetId );
 	}
@@ -33,7 +33,7 @@ namespace AE::Graphics
 	Set
 =================================================
 */
-	bool  RDescriptorUpdater::Set (DescriptorSetID descrSetId, EDescUpdateMode mode) __NE___
+	bool  DescriptorUpdater::Set (DescriptorSetID descrSetId, EDescUpdateMode mode) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -72,7 +72,7 @@ namespace AE::Graphics
 	Flush
 =================================================
 */
-	bool  RDescriptorUpdater::Flush () __NE___
+	bool  DescriptorUpdater::Flush () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -106,7 +106,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <EDescriptorType DescType>
-	const RDescriptorUpdater::Uniform_t*  RDescriptorUpdater::_FindUniform (UniformName::Ref name) C_NE___
+	const DescriptorUpdater::Uniform_t*  DescriptorUpdater::_FindUniform (UniformName::Ref name) C_NE___
 	{
 		const auto	uniforms	= _dsLayout->GetUniformRange<DescType>();
 		const usize	count		= uniforms.template Get<0>();
@@ -140,43 +140,43 @@ namespace AE::Graphics
 =================================================
 */
 	template <EDescriptorType DescType>
-	uint  RDescriptorUpdater::_GetArraySize (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::_GetArraySize (UniformName::Ref name) C_NE___
 	{
 		auto*	un = _FindUniform< DescType >( name );
 		return un->arraySize;
 	}
 
-	uint  RDescriptorUpdater::ImageCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::ImageCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::StorageImage>( name );
 	}
 
-	uint  RDescriptorUpdater::TextureCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::TextureCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::StorageImage>( name );
 	}
 
-	uint  RDescriptorUpdater::SamplerCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::SamplerCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::Sampler>( name );
 	}
 
-	uint  RDescriptorUpdater::BufferCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::BufferCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::UniformBuffer>( name );
 	}
 
-	uint  RDescriptorUpdater::TexelBufferCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::TexelBufferCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::UniformTexelBuffer>( name );
 	}
 
-	uint  RDescriptorUpdater::RayTracingSceneCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::RayTracingSceneCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::RayTracingScene>( name );
 	}
 
-	uint  RDescriptorUpdater::RayTracingPartitionedSceneCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::RayTracingPartitionedSceneCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::RayTracingPartitionedScene>( name );
 	}
@@ -186,12 +186,12 @@ namespace AE::Graphics
 	BindImage
 =================================================
 */
-	bool  RDescriptorUpdater::BindImage (UniformName::Ref name, ImageViewID image, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindImage (UniformName::Ref name, ImageViewID image, uint elementIndex) __NE___
 	{
 		return BindImages( name, {image}, elementIndex );
 	}
 
-	bool  RDescriptorUpdater::BindImages (UniformName::Ref name, ArrayView<ImageViewID> images, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindImages (UniformName::Ref name, ArrayView<ImageViewID> images, uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -222,7 +222,7 @@ namespace AE::Graphics
 	BindVideoImage
 =================================================
 */
-	bool  RDescriptorUpdater::BindVideoImage (UniformName::Ref name, VideoImageID image, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindVideoImage (UniformName::Ref name, VideoImageID image, uint elementIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -243,12 +243,12 @@ namespace AE::Graphics
 	BindTexture
 =================================================
 */
-	bool  RDescriptorUpdater::BindTexture (UniformName::Ref name, ImageViewID image, SamplerName::Ref sampler, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindTexture (UniformName::Ref name, ImageViewID image, SamplerName::Ref sampler, uint elementIndex) __NE___
 	{
 		return BindTextures( name, {image}, sampler, elementIndex );
 	}
 
-	bool  RDescriptorUpdater::BindTextures (UniformName::Ref name, ArrayView<ImageViewID> images, SamplerName::Ref sampler, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindTextures (UniformName::Ref name, ArrayView<ImageViewID> images, SamplerName::Ref sampler, uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -280,12 +280,12 @@ namespace AE::Graphics
 	BindSampler
 =================================================
 */
-	bool  RDescriptorUpdater::BindSampler (UniformName::Ref name, SamplerName::Ref sampler, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindSampler (UniformName::Ref name, SamplerName::Ref sampler, uint elementIndex) __NE___
 	{
 		return BindSamplers( name, {&sampler, 1}, elementIndex );
 	}
 
-	bool  RDescriptorUpdater::BindSamplers (UniformName::Ref name, ArrayView<SamplerName> samplers, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindSamplers (UniformName::Ref name, ArrayView<SamplerName> samplers, uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -313,7 +313,7 @@ namespace AE::Graphics
 	BindBuffer
 =================================================
 */
-	bool  RDescriptorUpdater::BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, BufferID buffer, Bytes offset, Bytes size, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, BufferID buffer, Bytes offset, Bytes size, uint elementIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -343,12 +343,12 @@ namespace AE::Graphics
 	BindBuffers
 =================================================
 */
-	bool  RDescriptorUpdater::BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, BufferID buffer, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, BufferID buffer, uint elementIndex) __NE___
 	{
 		return BindBuffers( name, typeName, {buffer}, elementIndex );
 	}
 
-	bool  RDescriptorUpdater::BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<BufferID> buffers, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<BufferID> buffers, uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -381,12 +381,12 @@ namespace AE::Graphics
 	BindTexelBuffer
 =================================================
 */
-	bool  RDescriptorUpdater::BindTexelBuffer (UniformName::Ref name, BufferViewID view, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindTexelBuffer (UniformName::Ref name, BufferViewID view, uint elementIndex) __NE___
 	{
 		return BindTexelBuffers( name, {view}, elementIndex );
 	}
 
-	bool  RDescriptorUpdater::BindTexelBuffers (UniformName::Ref name, ArrayView<BufferViewID> views, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindTexelBuffers (UniformName::Ref name, ArrayView<BufferViewID> views, uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -417,12 +417,12 @@ namespace AE::Graphics
 	BindRayTracingScene
 =================================================
 */
-	bool  RDescriptorUpdater::BindRayTracingScene (UniformName::Ref name, RTSceneID scene, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingScene (UniformName::Ref name, RTSceneID scene, uint elementIndex) __NE___
 	{
 		return BindRayTracingScenes( name, {scene}, elementIndex );
 	}
 
-	bool  RDescriptorUpdater::BindRayTracingScenes (UniformName::Ref name, ArrayView<RTSceneID> scenes, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingScenes (UniformName::Ref name, ArrayView<RTSceneID> scenes, uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -453,13 +453,13 @@ namespace AE::Graphics
 	BindRayTracingPartitionedScene
 =================================================
 */
-	bool  RDescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref, DeviceAddress, uint) __NE___
+	bool  DescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref, DeviceAddress, uint) __NE___
 	{
 		UNTESTED;
 		return false;
 	}
 
-	bool  RDescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref, BufferID, Bytes, uint) __NE___
+	bool  DescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref, BufferID, Bytes, uint) __NE___
 	{
 		UNTESTED;
 		return false;
@@ -470,7 +470,7 @@ namespace AE::Graphics
 	GetBufferStructName
 =================================================
 */
-	ShaderStructName  RDescriptorUpdater::GetBufferStructName (UniformName::Ref name) C_NE___
+	ShaderStructName  DescriptorUpdater::GetBufferStructName (UniformName::Ref name) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -485,7 +485,7 @@ namespace AE::Graphics
 	_AddCommand
 =================================================
 */
-	inline bool  RDescriptorUpdater::_AddCommand (const RemoteGraphics::Msg::DescUpd_Flush::BaseUpdCmd &msg) __NE___
+	inline bool  DescriptorUpdater::_AddCommand (const RemoteGraphics::Msg::DescUpd_Flush::BaseUpdCmd &msg) __NE___
 	{
 		CHECK_ERR( _ser );
 		++_descCount;

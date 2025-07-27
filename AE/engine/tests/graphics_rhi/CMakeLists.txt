@@ -21,8 +21,7 @@ if (TARGET "GraphicsRHI")
 	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/Tests" )
 	target_link_libraries( ${TEST_NAME} PUBLIC "Platform" "GraphicsTestUtils" )
 
-	target_include_directories( ${TEST_NAME} PUBLIC "." )
-	target_include_directories( ${TEST_NAME} PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
+	target_include_directories( ${TEST_NAME} PUBLIC "." "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
 
 	# disable if pipelines are compiled on linux
 	# enable on all platforms if pipelines are precompiled
@@ -57,8 +56,8 @@ if (TARGET "GraphicsRHI")
 			AE_REF_IMG_PATH="${AE_DATA_FOLDER}/tests/graphics_rhi/"
 			AE_RES_PACK_FOLDER="${AE_TEMP_FOLDER}/engine/graphics_rhi/" )
 	endif()
-
-	EnablePCH2( ${TEST_NAME} "TestsGraphicsRHI" )
+	
+	UseEnginePCH2( ${TEST_NAME} )
 
 	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
 endif()

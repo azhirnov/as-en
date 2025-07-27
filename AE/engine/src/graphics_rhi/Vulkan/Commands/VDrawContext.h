@@ -27,6 +27,8 @@ namespace AE::Graphics::_hidden_
 	// types
 	private:
 		using Validator_t	= DrawContextValidation;
+	public:
+		using DrawCoroRef	= _Coro_::DrawTaskImpl::UserApi;
 
 
 	// variables
@@ -98,7 +100,7 @@ namespace AE::Graphics::_hidden_
 		ND_ VCommandBuffer  ReleaseCommandBuffer ()																	__Th___;
 
 	protected:
-		explicit _VDirectDrawCtx (const DrawTask &task)																__Th___;
+		explicit _VDirectDrawCtx (DrawCoroRef task)																	__Th___;
 		_VDirectDrawCtx (const VPrimaryCmdBufState &state, VCommandBuffer cmdbuf)									__Th___;
 
 		void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline, VkPipelineLayout, EPipelineDynamicState)	__Th___;
@@ -152,6 +154,8 @@ namespace AE::Graphics::_hidden_
 	// types
 	private:
 		using Validator_t	= DrawContextValidation;
+	public:
+		using DrawCoroRef	= _Coro_::DrawTaskImpl::UserApi;
 
 
 	// variables
@@ -220,7 +224,7 @@ namespace AE::Graphics::_hidden_
 		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()																__Th___;
 
 	protected:
-		explicit _VIndirectDrawCtx (const DrawTask &task)															__Th___;
+		explicit _VIndirectDrawCtx (DrawCoroRef task)																__Th___;
 		_VIndirectDrawCtx (const VPrimaryCmdBufState &state, VSoftwareCmdBufPtr cmdbuf)								__Th___;
 
 		void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState dynStates);
@@ -275,6 +279,7 @@ namespace AE::Graphics::_hidden_
 	// types
 	public:
 		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
+		using DrawCoroRef	= typename CtxImpl::DrawCoroRef;
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumDrawBarriers< _VDrawContextImpl< CtxImpl >>;
@@ -284,7 +289,7 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		_VDrawContextImpl (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf)												__Th___;
-		explicit _VDrawContextImpl (const DrawTask &task)																	__Th___;
+		explicit _VDrawContextImpl (DrawCoroRef task)																		__Th___;
 		explicit _VDrawContextImpl (_VDrawContextImpl &&other)																__Th___;
 
 		_VDrawContextImpl ()																								= delete;
@@ -467,10 +472,10 @@ namespace AE::Graphics::_hidden_
 	{}
 
 	template <typename C>
-	_VDrawContextImpl<C>::_VDrawContextImpl (const DrawTask &task) __Th___ :
+	_VDrawContextImpl<C>::_VDrawContextImpl (DrawCoroRef task) __Th___ :
 		RawCtx{ task }	// throw
 	{
-		if_likely( auto* batch = task.GetDrawBatchPtr() )
+		if_likely( auto* batch = task.DrawBatchPtr() )
 		{
 			if_likely( not batch->GetViewports().empty() )
 				RawCtx::SetViewport( 0, batch->GetViewports() );

@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "res_editor/Passes/IPass.h"
-#include "res_editor/Core/RenderGraph.h"
-#include "res_editor/Dynamic/DynamicDimension.h"
+#include "Passes/IPass.h"
+#include "Core/RenderGraph.h"
+#include "Dynamic/DynamicDimension.h"
 
 struct ImGuiContext;
 

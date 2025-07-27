@@ -1,12 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Core/EditorUI.h"
+#include "Scripting/ScriptExe.h"
+#include "Core/EditorUI.h"
 
-#include "res_editor/Scripting/ScriptBasePass.cpp.h"
-#include "res_editor/_data/cpp/types.h"
+#include "Scripting/ScriptBasePass.cpp.h"
+#include "_data/cpp/types.h"
 
-#include "res_editor/Scripting/PipelineCompiler.inl.h"
+#include "Scripting/PipelineCompiler.inl.h"
 
 namespace AE::ResEditor
 {

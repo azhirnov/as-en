@@ -4,8 +4,10 @@
 
 extern void  PerfTest_AsyncMutex ();
 extern void  PerfTest_AsyncFile (const AE::Base::Path &curr);
-extern void  PerfTest_TaskSystem ();
 extern void  PerfTest_TaskSystemCoro ();
+extern void  PerfTest_TaskOrder1 ();
+extern void  PerfTest_TaskOrder2 ();
+
 extern void  PerfTest_MtAllocator ();
 
 extern void  PerfTest_Raw_Atomic ();
@@ -23,8 +25,10 @@ int main (const int argc, char* argv[])
 
 	PerfTest_AsyncFile( curr );
 	PerfTest_AsyncMutex();
-	PerfTest_TaskSystem();
 	PerfTest_TaskSystemCoro();
+
+	PerfTest_TaskOrder1();
+	PerfTest_TaskOrder2();
 
 	//PerfTest_MtAllocator();
 

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "demo/Common.h"
-#include "demo/Core/ISample.h"
+#include "Common.h"
+#include "Core/ISample.h"
 
 namespace AE::Samples::Demo
 {

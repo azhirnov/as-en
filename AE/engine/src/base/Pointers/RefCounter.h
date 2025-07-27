@@ -36,6 +36,9 @@ namespace AE::Base
 
 	// methods
 	public:
+		enum class _ConstInitStaticRC {};
+		__Cx__ explicit EnableRCBase (_ConstInitStaticRC)					__NE___ : _counter{1}, _unused{0} {}
+
 		EnableRCBase ()														__NE___	{}
 		virtual ~EnableRCBase ()											__NE___ { ASSERT_Eq( _counter.load(), 0 ); }
 
@@ -101,7 +104,6 @@ namespace AE::Base
 	//
 	// Reference Counter Pointer
 	//
-
 	template <typename T = EnableRCBase>
 	struct RC
 	{
@@ -118,14 +120,19 @@ namespace AE::Base
 
 	// methods
 	public:
-		RC ()												__NE___ {}
-		RC (std::nullptr_t)									__NE___ {}
-		RC (Default_t)										__NE___ {}
+		__Cx__ RC ()										__NE___ {}
+		__Cx__ RC (std::nullptr_t)							__NE___ {}
+		__Cx__ RC (Default_t)								__NE___ {}
 
 		enum class DontIncRef {};
-		explicit RC (T* ptr, DontIncRef)					__NE___ : _ptr{ptr}				{}
+		template <typename B>
+				  requires( IsBaseOf< B, T >)
+		__Cx__ explicit RC (B* ptr, DontIncRef)				__NE___ : _ptr{static_cast<T*>(ptr)}	{}
+		
+		template <typename B>
+				  requires( IsBaseOf< B, T >)
+		explicit RC (B* ptr)								__NE___ : _ptr{static_cast<T*>(ptr)}	{ _IncSelf(); }
 
-		explicit RC (T* ptr)								__NE___ : _ptr{ptr}				{ _IncSelf(); }
 		explicit RC (Ptr<T> ptr)							__NE___ : _ptr{ptr}				{ _IncSelf(); }
 		explicit RC (Ref<T> ref)							__NE___ : _ptr{&ref}			{ _IncSelf(); }
 
@@ -134,7 +141,7 @@ namespace AE::Base
 
 		template <typename B>
 				  requires( IsBaseOfNotSame< T, B >)
-		RC (RC<B> &&other)									__NE___ : _ptr{other.release()}	{}
+		__Cx__ RC (RC<B> &&other)							__NE___ : _ptr{other.release()}	{}
 
 		template <typename B>
 				  requires( IsBaseOfNotSame< T, B >)
@@ -169,32 +176,33 @@ namespace AE::Base
 				  requires( IsBaseOfNotSame< T, B >)
 		Self&  operator = (const RC<B> &rhs)				__NE___ { _Inc( static_cast<T*>(rhs.get()) );  _Dec();  _ptr = static_cast<T*>(rhs.get());	return *this; }
 
-		ND_ bool  operator == (const T* rhs)				C_NE___ { return _ptr == rhs; }
-		ND_ bool  operator == (Ptr<T> rhs)					C_NE___ { return _ptr == rhs.get(); }
-		ND_ bool  operator == (Ref<T> rhs)					C_NE___ { return _ptr == &rhs; }
-		ND_ bool  operator == (const Self &rhs)				C_NE___ { return _ptr == rhs._ptr; }
-		ND_ bool  operator == (std::nullptr_t)				C_NE___ { return _ptr == null; }
-		ND_ bool  operator == (Default_t)					C_NE___ { return _ptr == null; }
+		NdCx__ bool  operator == (const T* rhs)				C_NE___ { return _ptr == rhs; }
+		NdCx__ bool  operator == (Ptr<T> rhs)				C_NE___ { return _ptr == rhs.get(); }
+		NdCx__ bool  operator == (Ref<T> rhs)				C_NE___ { return _ptr == &rhs; }
+		NdCx__ bool  operator == (const Self &rhs)			C_NE___ { return _ptr == rhs._ptr; }
+		NdCx__ bool  operator == (std::nullptr_t)			C_NE___ { return _ptr == null; }
+		NdCx__ bool  operator == (Default_t)				C_NE___ { return _ptr == null; }
 
 		template <typename B>
-		ND_ bool  operator != (const B& rhs)				C_NE___ { return not (*this == rhs); }
+		NdCx__ bool  operator != (const B& rhs)				C_NE___ { return not (*this == rhs); }
 
-		ND_ bool  operator <  (const Self &rhs)				C_NE___ { return _ptr <  rhs._ptr; }
-		ND_ bool  operator >  (const Self &rhs)				C_NE___ { return _ptr >  rhs._ptr; }
-		ND_ bool  operator <= (const Self &rhs)				C_NE___ { return _ptr <= rhs._ptr; }
-		ND_ bool  operator >= (const Self &rhs)				C_NE___ { return _ptr >= rhs._ptr; }
+		NdCx__ bool  operator <  (const Self &rhs)			C_NE___ { return _ptr <  rhs._ptr; }
+		NdCx__ bool  operator >  (const Self &rhs)			C_NE___ { return _ptr >  rhs._ptr; }
+		NdCx__ bool  operator <= (const Self &rhs)			C_NE___ { return _ptr <= rhs._ptr; }
+		NdCx__ bool  operator >= (const Self &rhs)			C_NE___ { return _ptr >= rhs._ptr; }
 
-		ND_ T *		operator -> ()							C_NE___ { NonNull( _ptr );  return _ptr; }
-		ND_ T &		operator *  ()							C_NE___	{ NonNull( _ptr );  return *_ptr; }
+		NdCx__ T *		operator -> ()						C_NE___ { NonNull( _ptr );  return _ptr; }
+		NdCx__ T &		operator *  ()						C_NE___	{ NonNull( _ptr );  return *_ptr; }
 
-		ND_ T *		get ()									C_NE___ { return _ptr; }
-		ND_ T *		release ()								__NE___ { T* p = _ptr;  _ptr = null;  return p; }	// TODO: detach?
-		ND_ int		use_count ()							C_NE___ { return _ptr != null ? RefCounterUtils::UseCount( *_ptr ) : 0; }
+		NdCx__ T *		get ()								C_NE___ { return _ptr; }
+		NdCx__ T *		release ()							__NE___ { T* p = _ptr;  _ptr = null;  return p; }	// TODO: detach?
+		Nd____ int		use_count ()						C_NE___ { return _ptr != null ? RefCounterUtils::UseCount( *_ptr ) : 0; }
 
-		ND_ explicit operator bool ()						C_NE___ { return _ptr != null; }
+		NdCx__ explicit operator bool ()					C_NE___ { return _ptr != null; }
 
 			void	attach (T* ptr)							__NE___ {				_Dec();  _ptr = ptr; }
 			void	reset (T* ptr)							__NE___ { _Inc( ptr );	_Dec();  _ptr = ptr; }
+			void	reset ()								__NE___ {				_Dec();  _ptr = null; }
 
 			void	Swap (INOUT Self &rhs)					__NE___;
 
@@ -203,6 +211,10 @@ namespace AE::Base
 				void	_IncSelf ()							__NE___;
 				void	_Dec ()								__NE___;
 	};
+
+
+	template <typename T>
+	RC (T*) -> RC<T>;
 
 
 
@@ -215,6 +227,9 @@ namespace AE::Base
 	{
 	// methods
 	public:
+		EnableRC ()											__NE___ = default;
+		__Cx__ explicit EnableRC (_ConstInitStaticRC cisr)	__NE___ : EnableRCBase{cisr} {}
+
 		ND_ RC<T>  GetRC ()		__NE___	{ return RC<T>{ static_cast<T*>(this) }; }
 
 		template <typename B>
@@ -238,20 +253,27 @@ namespace AE::Base
 	// methods
 	public:
 		template <typename ...Args>
+		__Cx__ explicit StaticRC (EnableRCBase::_ConstInitStaticRC, Args&& ...args)	__NE___ :
+			_value{ FwdArg<Args>( args )... }
+		{
+			StaticAssert( IsBaseOf< EnableRCBase, T > );
+		}
+
+		template <typename ...Args>
 		explicit StaticRC (Args&& ...args)	__NE___ :
 			_value{ FwdArg<Args>( args )... }
 		{
 			StaticAssert( IsBaseOf< EnableRCBase, T > );
 			CheckNothrow( IsNothrowCtor< T, Args... >);
 
-			MaybeUnused int  cnt = RefCounterUtils::IncRef( _value );
+			int  cnt = RefCounterUtils::IncRef( _value );
 			ASSERT_Eq( cnt, 0 );
 			Unused( cnt );
 		}
 
 		~StaticRC ()						__NE___
 		{
-			MaybeUnused int  cnt = RefCounterUtils::DecRef( _value );
+			int  cnt = RefCounterUtils::DecRef( _value );
 			ASSERT_Eq( cnt, 1 );
 			Unused( cnt );
 		}
@@ -263,6 +285,7 @@ namespace AE::Base
 		ND_ T const&	operator * ()		C_NE___	{ return _value; }
 
 		ND_ RC<T>		GetRC ()			__NE___	{ return _value.template GetRC<T>(); }
+		ND_ int			use_count ()		__NE___ { return RefCounterUtils::UseCount( _value ); }
 	};
 
 
@@ -403,7 +426,7 @@ namespace AE::Base
 		StaticAssert( IsConstructible< T, Args... >);
 
 		CheckNothrow( IsNothrowCtor< T, Args... >);
-		//CheckNothrow( IsNoExcept( new T{ FwdArg<Args>(args)... }));
+		CheckNothrow( IsNoExcept( T{ FwdArg<Args>(args)... }));
 
 		return RC<T>{ new T{ FwdArg<Args>(args)... }};
 	}
@@ -427,7 +450,7 @@ namespace AE::Base
 		StaticAssert( not std::is_abstract_v< T >);
 		StaticAssert( IsConstructible< T, Args... >);
 
-		if constexpr( IsNoExcept( new T{ FwdArg<Args>(args)... }))
+		if constexpr( IsNoExcept( T{ FwdArg<Args>(args)... }))
 		{
 			return RC<T>{ new T{ FwdArg<Args>(args)... }};
 		}else{

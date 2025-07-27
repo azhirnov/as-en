@@ -1,13 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Controllers/ScaleBiasCamera.h"
-#include "res_editor/Controllers/TopDownCamera.h"
-#include "res_editor/Controllers/OrbitalCamera.h"
-#include "res_editor/Controllers/FlightCamera.h"
-#include "res_editor/Controllers/FPSCamera.h"
-#include "res_editor/Controllers/FPVCamera.h"
-#include "res_editor/Controllers/RemoteCamera.h"
+#include "Scripting/ScriptExe.h"
+#include "Controllers/ScaleBiasCamera.h"
+#include "Controllers/TopDownCamera.h"
+#include "Controllers/OrbitalCamera.h"
+#include "Controllers/FlightCamera.h"
+#include "Controllers/FPSCamera.h"
+#include "Controllers/FPVCamera.h"
+#include "Controllers/RemoteCamera.h"
 
 namespace AE::ResEditor
 {

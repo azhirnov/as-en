@@ -2,13 +2,11 @@
 
 #pragma once
 
-#include "TestsGraphicsRHI.pch.h"
+#include "UnitTest_Common.h"
 
 using namespace AE;
 using namespace AE::Threading;
 using namespace AE::Graphics;
-
-using EStatus = AE::Threading::IAsyncTask::EStatus;
 
 using ImageComparator = GraphicsTest::ImageComparator;
 

@@ -1,11 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ScriptResourceMeta.h"
-#include "ScriptObjects/ScriptTexture.h"
-#include "ScriptObjects/ScriptImageAtlas.h"
-#include "ScriptObjects/ScriptRasterFont.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptResourceMeta.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptTexture.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptImageAtlas.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptRasterFont.h"
 
-#include "Packer/ImageAtlasPacker.h"
+#include "res_pack/asset_packer/Packer/ImageAtlasPacker.h"
 
 namespace AE::AssetPacker
 {

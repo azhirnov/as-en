@@ -26,10 +26,6 @@ namespace AE::App
 	{
 	// types
 	private:
-		class AcquireNextImageTask;
-		class PresentImageTask;
-		class RecreateSwapchainTask;
-
 	  #if defined(AE_ENABLE_VULKAN)
 		using Swapchain_t = Graphics::VSwapchainInitializer;
 	  #elif defined(AE_ENABLE_METAL)
@@ -97,6 +93,16 @@ namespace AE::App
 		void  _UpdateDesc (SurfaceDataSync_t::WriteNoLock_t &)								__NE___;
 
 		bool  _CreateSwapchain (SurfaceDataSync_t::WriteNoLock_t &)							__NE___;
+		
+		ND_ static AsyncCoro  _AcquireNextImageTask (WindowSurface &	surface,
+													 CommandBatchPtr	beginCmdBatch,
+													 CommandBatchPtr	endCmdBatch)		__NE___;
+
+		ND_ static AsyncCoro  _PresentImageTask (WindowSurface &		surface,
+												 const FrameUID			frameId,
+												 Graphics::EQueueType	presentQueue)		__NE___;
+
+		ND_ static AsyncTask  _RecreateSwapchainTask (WindowSurface &surface)				__NE___;
 	};
 
 

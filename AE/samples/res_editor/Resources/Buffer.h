@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "res_editor/Resources/IResource.h"
-#include "res_editor/Resources/DataTransferQueue.h"
+#include "Resources/IResource.h"
+#include "Resources/DataTransferQueue.h"
 
 namespace AE::ResEditor
 {
@@ -20,6 +20,7 @@ namespace AE::ResEditor
 		{
 			Unknown			= 0,
 			WithHistory		= 1 << 0,	// unique buffer for frame cycle with content history
+			_BITOPS_
 		};
 
 		struct LoadOp
@@ -143,8 +144,6 @@ namespace AE::ResEditor
 											   const StoreOp &storeOp,
 											   StringView    dbgName) __Th___;
 	};
-
-	AE_BIT_OPERATORS( Buffer::EBufferFlags );
 
 
 } // AE::ResEditor

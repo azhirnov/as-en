@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/GeomSource/UnifiedGeometry.h"
-#include "res_editor/Resources/Buffer.h"
+#include "GeomSource/UnifiedGeometry.h"
+#include "Resources/Buffer.h"
 
-#include "res_editor/_data/cpp/types.h"
+#include "_data/cpp/types.h"
 
 namespace AE::ResEditor
 {

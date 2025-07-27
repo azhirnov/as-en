@@ -110,6 +110,8 @@
 
 ### Nonuniform
 
+Однородными являются данные, которые не меняются в пределах вызова команды рисования `vkCmdDraw***`.
+
 Какие данные являются однородными:
 * Данные из uniform buffer и push constant.
 * `gl_DrawID`.
@@ -117,15 +119,17 @@
 
 Неоднородные данные:
 * `gl_VertexIndex`, `gl_PrimitiveID`, вершинные аттрибуты и тд.
+* `gl_LocalInvocationID` и `gl_GlobalInvocationID`.
 * `gl_InstanceIndex` на TBDR архитектуре, так как фрагментные шейдеры примитивов из разных инстансов могут попасть в один варп.
+* `gl_BaseInstance`, `gl_BaseVertex`, `gl_ViewIndex` ???
 
-При использовании `nonuniform()` компилятор может добавить дополнительные инструкции.<br/>
+При использовании `nonuniform()` компилятор может добавить дополнительные инструкции, но если компилятор знает, что переменная только `uniform`, то проигнорирует `nonuniform()` и лишних инструкций не будет.<br/>
 Пример [UniqueIDs](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/UniqueIDs-1.as) показывает как компилятор превращает неоднородный доступ к ресурсам в однородный.
 
 Пример [BrokenNonuniform](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/BrokenNonuniform.as) показывает, что будет если не использовать `nonuniform()`.
 Почти на всех протестированных ГП драйвер сам обнаруживает неоднородность и `nonuniform()` ни на что не влияет, поэтому такие ошибки сложно отловить. Только на AMD GCN берется один индекс на варп и ошибки сразу проявляются.
 
-Хорошо разобрано в [Vulkan Samples: descriptor indexing](https://github.com/KhronosGroup/Vulkan-Samples/tree/main/samples/extensions/descriptor_indexing#non-uniform-indexing-enabling-advanced-algorithms).
+Подробнее можно почитать в [Vulkan Samples: descriptor indexing](https://github.com/KhronosGroup/Vulkan-Samples/tree/main/samples/extensions/descriptor_indexing#non-uniform-indexing-enabling-advanced-algorithms).
 
 Также есть параметр `quadDivergentImplicitLod`, который показывает может ли драйвер рассчитать LOD для текстуры, когда индекс меняется в пределах квадрата.
 
@@ -133,6 +137,7 @@
 
 Проблем не возникает при одинаковых индексах на треугольник, так как даже на мобилках при объединении нескольких треугольников в один варп, всегда закрашивание идет квадратами.
 Для visibility buffer производные и так считаются попиксельно.
+Но остаются рельефное текстурирование и постпроцессы с трассировкой, в которых возможно попиксельное вырождение.
 
 Если все же нужно менять индекс попиксельно, то требуется явно посчитать производные:
 ```
@@ -191,6 +196,41 @@ dstAccess = VK_ACCESS_2_DESCRIPTOR_BUFFER_READ_BIT_EXT
 В расширении `VK_EXT_robustness2` появилась возможность использовать нулевые дескрипторы, для этого требуется опция `nullDescriptor`.
 Говорят, что именно `nullDescriptor` на производительность [не влияет](https://github.com/KhronosGroup/Vulkan-Docs/issues/1971#issuecomment-1308974805).
 Тогда как другие опции из robustness расширений могут сильно влиять на производительность.
+
+<details><summary>Поддерживается начиная с</summary>
+
+* Adreno 800/X1 (начиная с 512.800.0 драйвера)
+* Adreno Turnip 600 (открытый драйвер)
+* AMD GCN4
+* Intel Xe-HP
+* Intel Xe-LP
+* Mali Valhall gen3 (начиная с 53.0.0 драйвера)
+* NVidia Kepler/GTX7xx
+
+</details>
+
+
+### Лимиты
+
+Более новые ГП поддерживают сотни текстур на шейдер и часто такие ГП хорошо совместимы с bindless подходом.
+Но встречаются еще старые модели, где ограничение в 16-32 текстуры.
+
+<details><summary>Сотни текстур поддерживаются:</summary>
+
+* Adreno 500 (128 текстур, 158 ресурсов всего)
+* Adreno 600 (по 524'288 каждого ресурса, 1'572'864 в сумме)
+* AMD GCN1 (по 4'294'967'295 каждого ресурса)
+* Apple M1 (128 текстур, 159 ресурсов всего) ???
+* Intel gen9 (200 текстур, 200 ресурсов всего)
+* Intel Xe-HP, Xe+ LP (по 33'554'432 каждого ресурса)
+* Mali Bifrost gen1 (256 текстур, 361 ресурсов всего)
+* Mali Valhall gen1 (по 500'000 каждого ресурса, 500'000 в сумме)
+* Maleoon 9xx (по 500'000 каждого ресурса, 2'000'016 в сумме)
+* NVidia Kepler/GTX600 (по 1'048'576 каждого ресурса)
+* PowerVR Series 9 (48 текстур, 224 ресурсов всего)
+* PowerVR B Series (по 4'294'967'295 каждого ресурса)
+
+</details>
 
 
 ## Bindless в Metal
@@ -269,10 +309,19 @@ Bindless техники позволяют перенести больше ло�
 Так геометрия разбивается на мешлеты одинакового размера, если нужно меньше вершин, то лишние вершины пишут NaN в позицию.
 
 
+## Per Instance Vertex Rate
+
+Также известный как Vertex Attribute Divisor.
+Позволяет передавать данные инстанса через вершинный буфер, что может быть быстрее на старом железе, где медленно работает storage buffer.
+
+Такой подход описан в [Optimizing the Graphics Pipeline with Compute](https://ubm-twvideo01.s3.amazonaws.com/o1/vault/gdc2016/Presentations/Wihlidal_Graham_OptimizingTheGraphics.pdf) (слайд 23).
+
 
 # Тесты производительности
 
-1.1. Nonuniform stress test<br/>
+<details><summary>Старые тесты</summary>
+
+1.1. Nonuniform stress test v2<br/>
 Разница в производительности между использованием `nonuniform()` и выбором слоя из Texture2DArray.
 Чтобы в варп попадали разные индексы используется хэш от `gl_FragCoord` с двумя режимами: квадрат 2х2 и попиксельно.<br/>
 Вариант per object больше приближен к реальному использованию, тогда как per quad и per pixel это стресс-тест, но могут возникнуть: per quad для микротреугольников, per pixel в visibility buffer.<br/>
@@ -286,9 +335,23 @@ Bindless техники позволяют перенести больше ло�
 Исходники: [скрипт](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-DPP.as), [шейдер](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/NonUniform-shared.as).
 
 1.3. Nonuniform with visibility buffer<br/>
-Аналогично предыдущему, но вызывается меньше фрагментных шейдеров и больше уникальных индексов в варпе.<br/>
+Аналогично depth pre-pass, но вызывается меньше фрагментных шейдеров и больше уникальных индексов в варпе.
+На слабом железе сильно нагружается ALU из-за чего нагрузка на текстуры оказалась минимальной.<br/>
 Исходники: [скрипт](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/NonUniform-VB.as), [шейдер](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipeline_inc/NonUniform-VB-shared.as).
 
+Все три теста оказались не достаточно информативными, хватило данных чтобы разбить ГП по группам, но сложно оценить как влияет увеличение общего количества текстур, увеличение количества чтений текстур для PBR, parallax mapping, ландшафта, где нагрузка увеличивается в 4 раза.
+
+</details>
+
+1.1. Nonuniform PBR<br/>
+Разница в производительности между использованием `nonuniform()` и выбором слоя из Texture2DArray.
+Чтобы в варп попадали разные индексы используется хэш от `gl_FragCoord` с двумя режимами: квадрат 2х2 и попиксельно.<br/>
+Для имитации PBR используются LODы с разным количеством текстур.
+
+1.2. Nonuniform parallax<br/>
+Разница в производительности между использованием `nonuniform()` и выбором слоя из Texture2DArray.
+Чтобы в варп попадали разные индексы используется хэш от `gl_FragCoord` с двумя режимами: квадрат 2х2 и попиксельно.<br/>
+Используется цикл до 64 шагов по одной текстуре для имитации рельефного текстурирования.
 
 
 **Результаты**
@@ -519,6 +582,8 @@ Valhall gen3 архитектура уже лучше справляется с 
 
 
 ## Intel UHD 620
+
+Вариант с bindless texture в разы медленее, скорее всего компилятор сопоставлял immutable sampler с динамической индексацией и получилось очень плохо.
 
 **Nonuniform, depth pre-pass**
 

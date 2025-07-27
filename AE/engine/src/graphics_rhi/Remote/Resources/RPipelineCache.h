@@ -27,9 +27,9 @@ namespace AE::Graphics
 		RPipelineCache ()																	__NE___	{}
 		~RPipelineCache ()																	__NE___;
 
-		ND_ bool  Create (const RResourceManager&, StringView dbgName)						__NE___;
-		ND_ bool  Create (const RResourceManager&, StringView dbgName, RC<RStream> stream)	__NE___;
-			void  Destroy (const RResourceManager &)										__NE___;
+		ND_ bool  Create (const ResourceManager&, StringView dbgName)						__NE___;
+		ND_ bool  Create (const ResourceManager&, StringView dbgName, RC<RStream> stream)	__NE___;
+			void  Destroy (const ResourceManager &)										__NE___;
 
 		ND_ bool  GetData (const RDevice &, OUT Array<char> &data)							C_NE___;
 

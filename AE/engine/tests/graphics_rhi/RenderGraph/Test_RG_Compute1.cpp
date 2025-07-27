@@ -66,90 +66,72 @@ namespace
 
 
 	template <typename Ctx>
-	class C1_ComputeTask final : public RenderTask
+	static RenderCoro  C1_ComputeTask (C1_TestData& t)
 	{
-	public:
-		C1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		C1_ComputeTask (C1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		Ctx		ctx{ RenderCoro_Get() };
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+		const auto	img_state = EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
 
-			Ctx		ctx{ *this };
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img0, EResourceState::Invalidate, img_state )
+			.ImageBarrier( t.img1, EResourceState::Invalidate, img_state )
+			.ImageBarrier( t.img2, EResourceState::Invalidate, img_state );
 
-			const auto	img_state = EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
+		ctx.BindPipeline( t.ppln0 );
+		ctx.BindDescriptorSet( t.ds_index, t.ds0 );
+		ctx.Dispatch({ 2, 2, 1 });
 
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img0, EResourceState::Invalidate, img_state )
-				.ImageBarrier( t.img1, EResourceState::Invalidate, img_state )
-				.ImageBarrier( t.img2, EResourceState::Invalidate, img_state );
+		ctx.BindPipeline( t.ppln1 );
+		ctx.BindDescriptorSet( t.ds_index, t.ds1 );
+		ctx.Dispatch({ 4, 4, 1 });
 
-			ctx.BindPipeline( t.ppln0 );
-			ctx.BindDescriptorSet( t.ds_index, t.ds0 );
-			ctx.Dispatch({ 2, 2, 1 });
+		ctx.BindPipeline( t.ppln2 );
+		ctx.BindDescriptorSet( t.ds_index, t.ds2 );
+		ctx.Dispatch({ 1, 1, 1 });
 
-			ctx.BindPipeline( t.ppln1 );
-			ctx.BindDescriptorSet( t.ds_index, t.ds1 );
-			ctx.Dispatch({ 4, 4, 1 });
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img0, img_state, EResourceState::CopySrc )
+			.ImageBarrier( t.img1, img_state, EResourceState::CopySrc )
+			.ImageBarrier( t.img2, img_state, EResourceState::CopySrc );
 
-			ctx.BindPipeline( t.ppln2 );
-			ctx.BindDescriptorSet( t.ds_index, t.ds2 );
-			ctx.Dispatch({ 1, 1, 1 });
+		RenderCoro_Execute( ctx );
+	}
 
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img0, img_state, EResourceState::CopySrc )
-				.ImageBarrier( t.img1, img_state, EResourceState::CopySrc )
-				.ImageBarrier( t.img2, img_state, EResourceState::CopySrc );
-
-			Execute( ctx );
-		}
-	};
 
 	template <typename Ctx>
-	class C1_CopyTask final : public RenderTask
+	static RenderCoro  C1_CopyTask (C1_TestData& t)
 	{
-	public:
-		C1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		C1_CopyTask (C1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		Ctx		ctx{ RenderCoro_Get() };
+		
+		t.result0 = ctx.ReadbackImage( t.img0, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<C1_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK_0 = C1_CheckImageData( view, 8 );
+							});
+		t.result1 = ctx.ReadbackImage( t.img1, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<C1_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK_1 = C1_CheckImageData( view, 4 );
+							});
+		t.result2 = ctx.ReadbackImage( t.img2, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<C1_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK_2 = C1_CheckImageData( view, 16 );
+							});
+		
+		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			Ctx		ctx{ *this };
-
-			t.result0 = AsyncTask{ ctx.ReadbackImage( t.img0, Default )
-						.Then( [p = &t] (const ImageMemView &view)
-								{
-									p->isOK_0 = C1_CheckImageData( view, 8 );
-								})};
-			t.result1 = AsyncTask{ ctx.ReadbackImage( t.img1, Default )
-						.Then( [p = &t] (const ImageMemView &view)
-								{
-									p->isOK_1 = C1_CheckImageData( view, 4 );
-								})};
-			t.result2 = AsyncTask{ ctx.ReadbackImage( t.img2, Default )
-						.Then( [p = &t] (const ImageMemView &view)
-								{
-									p->isOK_2 = C1_CheckImageData( view, 16 );
-								})};
-
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CompCtx, typename CopyCtx>
@@ -224,21 +206,21 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Compute1"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Run< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{},		 				{"Compute task"} );
-		AsyncTask	task2	= batch->Run< C1_CopyTask<CopyCtx>    >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},	{"Readback task"} );
+		AsyncTask	task1	= batch->Run( C1_ComputeTask<CompCtx>(t),	Tuple{},		 			{"Compute task"} );
+		AsyncTask	task2	= batch->Run( C1_CopyTask<CopyCtx>(t),		Tuple{task1}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( List{ t.result0, t.result1, t.result2 }, c_MaxTimeout ));
-		CHECK_ERR( t.result0->Status() == EStatus::Completed );
-		CHECK_ERR( t.result1->Status() == EStatus::Completed );
-		CHECK_ERR( t.result2->Status() == EStatus::Completed );
+		CHECK_ERR( t.result0->Status() == ETaskStatus::Completed );
+		CHECK_ERR( t.result1->Status() == ETaskStatus::Completed );
+		CHECK_ERR( t.result2->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK_0 );
 		CHECK_ERR( t.isOK_1 );

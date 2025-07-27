@@ -31,9 +31,9 @@ namespace AE::Graphics
 		VImageView ()									__NE___	{}
 		~VImageView ()									__NE___;
 
-		ND_ bool  Create (VResourceManager &, const ImageViewDesc &, ImageID, StringView dbgName)		__NE___;
-		ND_ bool  Create (VResourceManager &, const VulkanImageViewDesc &, ImageID, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)															__NE___;
+		ND_ bool  Create (ResourceManager &, const ImageViewDesc &, ImageID, StringView dbgName)		__NE___;
+		ND_ bool  Create (ResourceManager &, const VulkanImageViewDesc &, ImageID, StringView dbgName)	__NE___;
+			void  Destroy (ResourceManager &)															__NE___;
 
 		ND_ VkImageView				Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageView; }
 		ND_ ImageViewDesc const&	Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }

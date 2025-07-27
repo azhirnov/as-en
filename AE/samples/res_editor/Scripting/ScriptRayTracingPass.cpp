@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Core/EditorUI.h"
-#include "res_editor/Scripting/ScriptBasePass.cpp.h"
+#include "Scripting/ScriptExe.h"
+#include "Core/EditorUI.h"
+#include "Scripting/ScriptBasePass.cpp.h"
 
 AE_DECL_SCRIPT_OBJ(	AE::ResEditor::RTInstanceIndex,	"InstanceIndex"	);
 AE_DECL_SCRIPT_OBJ(	AE::ResEditor::RTRayIndex,		"RayIndex"		);
@@ -583,13 +583,13 @@ namespace
 } // AE::ResEditor
 
 
-#include "res_editor/Scripting/PipelineCompiler.inl.h"
+#include "Scripting/PipelineCompiler.inl.h"
 
 #include "base/DataSource/File.h"
 #include "base/Algorithms/Parser.h"
 
-#include "res_editor/Scripting/ScriptImage.h"
-#include "res_editor/Scripting/ScriptVideoImage.h"
+#include "Scripting/ScriptImage.h"
+#include "Scripting/ScriptVideoImage.h"
 
 namespace AE::ResEditor
 {

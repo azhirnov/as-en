@@ -45,8 +45,8 @@ namespace AE::Graphics
 		VRTShaderBindingTable ()									__NE___	{}
 		~VRTShaderBindingTable ()									__NE___;
 
-		ND_ bool  Create (VResourceManager &, const CreateInfo &ci)	__NE___;
-			void  Destroy (VResourceManager &)						__NE___;
+		ND_ bool  Create (ResourceManager &, const CreateInfo &ci)	__NE___;
+			void  Destroy (ResourceManager &)						__NE___;
 
 		ND_ RTShaderBindingTable const&	GetSBT ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sbt; }
 		ND_ BufferID					BufferId ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferId; }

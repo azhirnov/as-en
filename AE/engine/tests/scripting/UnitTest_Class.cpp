@@ -70,9 +70,9 @@ namespace
 		Value1	= 1 << 0,
 		Value2	= 1 << 2,
 		Value3	= 1 << 3,
-		Value4	= 1 << 5
+		Value4	= 1 << 5,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EEnumBit );
 
 
 	struct Test5_CL : AngelScriptHelper::SimpleRefCounter

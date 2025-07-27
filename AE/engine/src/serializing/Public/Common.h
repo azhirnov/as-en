@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "serializing/Serializing.pch.h"
+#include "pch/Base.h"
 #include "serializing/Public/PackedBits.h"
 
 // for NamedID
@@ -12,6 +12,8 @@
 namespace AE::Serializing
 {
 	using namespace AE::Base;
+
+	ImportBitOperators;
 
 	using SerializedID = NamedID< 32, 0x400, AE_OPTIMIZE_IDS, UMax >;
 

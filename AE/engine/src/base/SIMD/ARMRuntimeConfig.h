@@ -40,6 +40,7 @@ namespace AE::Base
 			Underflow	= 1 << 4,
 			Inexact		= 1 << 5,
 			IntSat		= 1 << 6,
+			_BITOPS_
 		};
 
 	  #ifdef AE_CPU_ARCH_ARM64
@@ -54,14 +55,14 @@ namespace AE::Base
 		struct State
 		{
 			FPCR_t		_fpcr	= 0;
-			
+
 			ND_ bool  		DenormalFlushToZero ()						C_NE___;
 			ND_ ERounding	RoundingMode ()								C_NE___;
 
-			ND_ bool		Fp3264DenormalFlushToZero ()				C_NE___;	// non-portable			
-			ND_ bool		Fp16DenormalFlushToZero	()					C_NE___;	// non-portable			
+			ND_ bool		Fp3264DenormalFlushToZero ()				C_NE___;	// non-portable
+			ND_ bool		Fp16DenormalFlushToZero	()					C_NE___;	// non-portable
 			ND_ bool		Fp3264DenormalFlushToZero_InputAndOutput ()	C_NE___;	// non-portable, input and output or only output
-			
+
 			ND_ bool		Fp16AlternativeFormat ()					C_NE___;	// non-portable
 		};
 
@@ -83,8 +84,6 @@ namespace AE::Base
 		ND_ static State			GetState					()					__NE___;
 			static void				SetState					(State)				__NE___;
 	};
-
-	AE_BIT_OPERATORS( SimdRuntimeConfig::ExceptionFlags );
 
 
 /*
@@ -125,7 +124,7 @@ namespace AE::Base
 		// never happens
 		return ERounding::Nearest;
 	}
-			
+
 /*
 =================================================
 	DenormalFlushToZero
@@ -136,7 +135,7 @@ namespace AE::Base
 		auto	s 	 = GetState();
 		uint	fz 	 = /*fp32-64*/(1 << 24) | /*fp16*/(1 << 19);
 		uint	ah 	 = 1 << 1;
-		
+
 		s._fpcr &= ~(fz | ah);
 		s._fpcr |= (flushToZero ? fz : 0) | ah;
 
@@ -196,7 +195,7 @@ namespace AE::Base
 	{
 		return HasBit<19>( _fpcr );
 	}
-	
+
 /*
 =================================================
 	Fp3264DenormalFlushToZero_InputAndOutput
@@ -206,7 +205,7 @@ namespace AE::Base
 	{
 		return not HasBit<1>( _fpcr );
 	}
-			
+
 /*
 =================================================
 	Fp16AlternativeFormat
@@ -306,7 +305,8 @@ namespace AE::Base
 				case ExceptionFlags::Overflow :		add |= 1u << 10;	break;
 				case ExceptionFlags::Underflow :	add |= 1u << 11;	break;
 				case ExceptionFlags::Inexact :		add |= 1u << 12;	break;
-				case ExceptionFlags::IntSat :		break;
+				case ExceptionFlags::IntSat :
+                case ExceptionFlags::_BITOPS_ :
 				case ExceptionFlags::Unknown :		break;
 			}
 			switch_end

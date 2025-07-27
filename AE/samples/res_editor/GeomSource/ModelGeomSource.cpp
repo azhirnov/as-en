@@ -1,14 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/GeomSource/ModelGeomSource.h"
-#include "res_editor/Passes/Renderer.h"
-#include "res_editor/Resources/Buffer.h"
-#include "res_editor/Resources/Image.h"
-#include "res_editor/Resources/RTScene.h"
+#include "GeomSource/ModelGeomSource.h"
+#include "Passes/Renderer.h"
+#include "Resources/Buffer.h"
+#include "Resources/Image.h"
+#include "Resources/RTScene.h"
 
 #include "res_loaders/Intermediate/IntermScene.h"
 
-#include "res_editor/_ui_data/cpp/types.h"
+#include "_ui_data/cpp/types.h"
 
 namespace AE::ResEditor
 {

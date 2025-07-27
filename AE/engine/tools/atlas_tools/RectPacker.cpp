@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "RectPacker.h"
+#include "atlas_tools/RectPacker.h"
 
 namespace AE::AtlasTools
 {

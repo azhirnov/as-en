@@ -65,11 +65,11 @@ namespace AE::Graphics
 		VFramebuffer ()									__NE___	{}
 		~VFramebuffer ()								__NE___;
 
-		ND_ bool  Create (VResourceManager &, const RenderPassDesc &desc, RenderPassID rpId, StringView dbgName = Default) __NE___;
-			void  Destroy (VResourceManager &)			__NE___;
+		ND_ bool  Create (ResourceManager &, const RenderPassDesc &desc, RenderPassID rpId, StringView dbgName = Default) __NE___;
+			void  Destroy (ResourceManager &)			__NE___;
 		ND_ bool  SetCachePtr (CachePtr_t ptr)			__NE___;
 
-		ND_ bool  IsAllResourcesAlive (const VResourceManager &) C_NE___;
+		ND_ bool  IsAllResourcesAlive (const ResourceManager &) C_NE___;
 
 		ND_ VkFramebuffer			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _framebuffer; }
 		ND_ RenderPassID			RenderPass ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderPassId; }

@@ -3,32 +3,32 @@
 #pragma once
 
 // resources
-#include "res_editor/Scripting/ScriptImage.h"
-#include "res_editor/Scripting/ScriptVideoImage.h"
-#include "res_editor/Scripting/ScriptBuffer.h"
-#include "res_editor/Scripting/ScriptRTScene.h"
-#include "res_editor/Scripting/ScriptDynamicVars.h"
+#include "Scripting/ScriptImage.h"
+#include "Scripting/ScriptVideoImage.h"
+#include "Scripting/ScriptBuffer.h"
+#include "Scripting/ScriptRTScene.h"
+#include "Scripting/ScriptDynamicVars.h"
 
 // pass/view
-#include "res_editor/Passes/IPass.h"
-#include "res_editor/Passes/OtherPasses.h"
-#include "res_editor/Passes/PassGroup.h"
-#include "res_editor/Scripting/ScriptPostprocess.h"
-#include "res_editor/Scripting/ScriptComputePass.h"
-#include "res_editor/Scripting/ScriptComputeMip.h"
-#include "res_editor/Scripting/ScriptRasterMip.h"
-#include "res_editor/Scripting/ScriptRayTracingPass.h"
-#include "res_editor/Scripting/ScriptScene.h"
+#include "Passes/IPass.h"
+#include "Passes/OtherPasses.h"
+#include "Passes/PassGroup.h"
+#include "Scripting/ScriptPostprocess.h"
+#include "Scripting/ScriptComputePass.h"
+#include "Scripting/ScriptComputeMip.h"
+#include "Scripting/ScriptRasterMip.h"
+#include "Scripting/ScriptRayTracingPass.h"
+#include "Scripting/ScriptScene.h"
 
 // geometry source
-#include "res_editor/Scripting/ScriptGeomSource.h"
+#include "Scripting/ScriptGeomSource.h"
 
 // controller
-#include "res_editor/Scripting/ScriptController.h"
+#include "Scripting/ScriptController.h"
 
-#include "res_editor/Scripting/ScriptCollection.h"
+#include "Scripting/ScriptCollection.h"
 
-#include "res_editor/Passes/Renderer.h"
+#include "Passes/Renderer.h"
 
 
 namespace AE::PipelineCompiler

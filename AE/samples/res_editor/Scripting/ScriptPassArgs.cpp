@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptPassArgs.h"
-#include "res_editor/Scripting/ScriptExe.h"
+#include "Scripting/ScriptPassArgs.h"
+#include "Scripting/ScriptExe.h"
 
 namespace AE::ResEditor
 {

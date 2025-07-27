@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Resources/RTScene.h"
-#include "res_editor/Scripting/PipelineCompiler.inl.h"
+#include "Scripting/ScriptExe.h"
+#include "Resources/RTScene.h"
+#include "Scripting/PipelineCompiler.inl.h"
 
 namespace AE::ResEditor
 {

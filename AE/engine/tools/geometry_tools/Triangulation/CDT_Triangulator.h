@@ -3,12 +3,10 @@
 #pragma once
 
 #ifdef AE_ENABLE_CDT
-# include "geometry_tools/GeometryTools.pch.h"
+# include "geometry_tools/Common.h"
 
 namespace AE::GeometryTools
 {
-	using namespace AE::Base;
-
 
 	//
 	// CDT Triangulator
@@ -20,8 +18,6 @@ namespace AE::GeometryTools
 	public:
 		enum class EFlags : uint
 		{
-			Unknown								= 0,
-
 			// set only one triangulation mode
 			DelaunayTriangulation				= 1 << 0,	// convex hull
 			ConstrainedDelaunayTriangulation	= 1 << 1,
@@ -37,6 +33,9 @@ namespace AE::GeometryTools
 			LineStrip							= 1 << 6,	// only vertices
 			//LineList							= 1 << 7,	// duplicate vertices are not supported
 			_IndicesMode						= IndexedLineStrip | IndexedLineList | LineStrip,
+
+			Unknown								= 0,
+			_BITOPS_
 		};
 
 		using Index_t				= uint;
@@ -81,8 +80,6 @@ namespace AE::GeometryTools
 									   OUT OutIndices_t			&outIndices,
 									   OUT OutBoundaryEdges_t*	optBoundary)	__Th___;
 	};
-
-	AE_BIT_OPERATORS( CDT_Triangulator::EFlags );
 
 
 } // AE::GeometryTools

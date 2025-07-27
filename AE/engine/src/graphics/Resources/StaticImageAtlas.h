@@ -5,8 +5,6 @@
 #include "graphics/Resources/ResourceCache.h"
 #include "graphics/Resources/ResourceUploadManager.h"
 
-#include "AssetPackerImpl.h"
-
 namespace AE::Graphics
 {
 	class ITransferContext;
@@ -39,7 +37,7 @@ namespace AE::Graphics
 			ND_ static Promise<RC<StaticImageAtlas>>  LoadAsync (Serializing::Deserializer &des, ResourceCache &, CachedResourceName::Ref selfName = Default) __NE___;
 
 		private:
-			class OnUploadCompleteTask;
+			ND_ static AsyncCoro  _OnUploadComplete (RC<StaticImageAtlas>, ResourceUploadManager::UploadResult) __NE___;
 			ND_ static bool  _Load (Serializing::Deserializer &des, ResourceCache&, CachedResourceName::Ref selfName,
 									OUT RC<StaticImageAtlas> &, OUT ResourceUploadManager::UploadResult *) __NE___;
 		};

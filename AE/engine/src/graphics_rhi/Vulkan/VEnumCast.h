@@ -546,6 +546,7 @@ namespace AE::Graphics
 				case EImageAspect::Plane_2 :	flags |= VK_IMAGE_ASPECT_PLANE_2_BIT;	break;
 
 				case EImageAspect::_Last :
+				case EImageAspect::All :
 				case EImageAspect::_PlaneMask :
 				case EImageAspect::DepthStencil :
 				case EImageAspect::Unknown :
@@ -872,6 +873,8 @@ namespace AE::Graphics
 				case VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT :
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR :
 				case VK_IMAGE_USAGE_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR :
+				case VK_IMAGE_USAGE_TENSOR_ALIASING_BIT_ARM :
+				case VK_IMAGE_USAGE_TILE_MEMORY_BIT_QCOM :
 				default_unlikely :									RETURN_ERRV( "not supported" );
 			}
 			switch_end
@@ -985,6 +988,7 @@ namespace AE::Graphics
 				case VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT :
 				case VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM :
 				case VK_BUFFER_USAGE_EXECUTION_GRAPH_SCRATCH_BIT_AMDX :
+				case VK_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM :
 				default_unlikely :									RETURN_ERR( "invalid buffer usage" );
 			}
 			switch_end
@@ -1158,6 +1162,7 @@ namespace AE::Graphics
 				case ERTASOptions::AllowDataAccess :	result |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_DATA_ACCESS_KHR;		break;
 
 				case ERTASOptions::_Last :
+				case ERTASOptions::All :
 				case ERTASOptions::Unknown :
 				default_unlikely :						RETURN_ERR( "unknown RTAS options", Zero );
 			}
@@ -1183,6 +1188,7 @@ namespace AE::Graphics
 				case ERTGeometryOpt::NoDuplicateAnyHitInvocation :	result |= VK_GEOMETRY_NO_DUPLICATE_ANY_HIT_INVOCATION_BIT_KHR;	break;
 
 				case ERTGeometryOpt::_Last :
+				case ERTGeometryOpt::_BITOPS_ :
 				case ERTGeometryOpt::Unknown :
 				default_unlikely :									RETURN_ERR( "unknown RT geometry options", Zero );
 			}
@@ -1442,7 +1448,7 @@ namespace AE::Graphics
 			case VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT :			return EPresentScaling::OneToOne;
 			case VK_PRESENT_SCALING_ASPECT_RATIO_STRETCH_BIT_EXT :	return EPresentScaling::AspectRatioStretch;
 			case VK_PRESENT_SCALING_STRETCH_BIT_EXT :				return EPresentScaling::Stretch;
-			case VK_PRESENT_SCALING_FLAG_BITS_MAX_ENUM_EXT :		break;
+			case VK_PRESENT_SCALING_FLAG_BITS_MAX_ENUM_KHR :		break;
 		}
 		switch_end
 		RETURN_ERR( "unknown present scaling" );

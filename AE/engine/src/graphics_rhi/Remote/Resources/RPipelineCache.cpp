@@ -24,7 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RPipelineCache::Create (const RResourceManager &resMngr, StringView dbgName) __NE___
+	bool  RPipelineCache::Create (const ResourceManager &resMngr, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _cacheId );
@@ -46,7 +46,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RPipelineCache::Create (const RResourceManager &resMngr, StringView dbgName, RC<RStream> stream) __NE___
+	bool  RPipelineCache::Create (const ResourceManager &resMngr, StringView dbgName, RC<RStream> stream) __NE___
 	{
 		// TODO
 		return false;
@@ -57,7 +57,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RPipelineCache::Destroy (const RResourceManager &resMngr) __NE___
+	void  RPipelineCache::Destroy (const ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

@@ -19,7 +19,7 @@ const array<string>	c_ConfigList		= { "Debug", /*"Develop", "Profile",*/ "Releas
 const array<string>	c_AndroidConfigs	= {"Debug", "Release"};
 
 const array<string>	c_TargetList		= { "Tests.Base", "Tests.Serializing", "Tests.Scripting", "Tests.Threading",
-											"Tests.Networking", "Tests.ECS-st", "Tests.GraphicsRHI", "Tests.Graphics", "Tests.VFS",
+											"Tests.Networking", "Tests.ECS", "Tests.GraphicsRHI", "Tests.Graphics", "Tests.VFS",
 											"Tests.GeometryTools", "Tests.AtlasTools", "Tests.HuLang" };
 const array<string>	c_GraphicsTargets	= { "Tests.GraphicsRHI", "Tests.Graphics" };
 const array<string>	c_DesktopTargets	= { "Tests.ShaderTrace", "Tests.PipelineCompiler" };

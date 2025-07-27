@@ -52,6 +52,8 @@
 
 Такое разделение нужно так как bloom дает однообразную размытую картинку, а заранее подготовленные четкие спрайты придают более красивый вид и имитируют рассеивание света на линзе.
 
+Что бывает при использовании только блура можно увидеть в Unreal Tornament 3 и других играх того времени, когда картинка была слишком мыльной.
+
 
 Другой вариант эффекта разбирается в [Doom 3 – Volumetric Glow](https://simonschreibt.de/gat/doom-3-volumetric-glow/).
 Более дешевый эффект строится геометрией и накладывается текстура с градиентом, либо рассчитывается затухание в FS, но тут стоит учитывать, что интерполяция может давать артефакты на стыках геометрии, поэтому нужно считать расстояние после интерполяции.
@@ -76,6 +78,11 @@
 
 ![](img/Effect_VolumetricFog2.jpg)
 
+Эффект разобран в видео [A Game Engine Built For Optimisation](https://www.youtube.com/watch?v=i6VVegoRuy0).<br/>
+Здесь лучи солнца пробивающиеся через крону деревьев заданы вытянутыми спрайтами.
+Для леса спрайты раскиданы случайным образом, плотность зависит от прозрачности кроны деревьев.
+
+![](img/Effect_LightShaftSprite.jpg)
 
 
 ## Light Bulbs
@@ -86,7 +93,7 @@
 
 
 
-## Light Shafts
+## Screenspace Light Shafts
 
 Быстрая версия эффекта выглядит так:
 * Создаем маску по буферу глубины, небо считается за 1, остальное за 0. Для оптимизации работают в 1/4 от разрешения экрана.
@@ -118,12 +125,12 @@
 ![](https://d29g4g2dyqv443.cloudfront.net/sites/default/files/akamai/gameworks/images/VolumetricLighting/shafts_debug2.jpg)
 
 
-## Screen-space Reflections
+## Screen-space Reflections (SSR)
 
 В Doom 2016 происходит после заполнения G-буфера, поэтому не происходит отставания на кадр и картинка не содержит тумана.
 
 
-## Screen-space Ambient Occlusion
+## Screen-space Ambient Occlusion (SSAO)
 
 В Doom 2016 используется вариант SSDO с темпоральными техниками.
 Глубина конвертируется в R16F линейную глубину для более быстрего доступа (?).
@@ -140,7 +147,9 @@ bilateral blur for upscaling SSAO
 
 ### Screen Space Particles
 
-Искры и другие короткоживущие частицы симулируются в экранном пространсве, для обработки столкновений берется буфер глубины и нормали.
+Искры, гильзы, осколки и другие короткоживущие частицы симулируются в экранном пространсве, для обработки столкновений берется буфер глубины и нормали.
+
+Эффект появился еще в Infiltrator Demo: [Infiltrator Breakdown: Visual Effects 01](https://youtu.be/-VANuJCM29E?t=243), [Infiltrator Breakdown: Visual Effects 02](https://www.youtube.com/watch?v=RURQSR788Dg).
 
 [Пример](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-vfx/SS-Particles.as)
 
@@ -169,7 +178,10 @@ R канал хранит яркость, а G - прозрачность.
 ![](https://simonschreibt.de/wp-content/uploads/2023/04/bf2_explosion_wireframe_01.mp4)
 
 
-[Fallout 4 – The Mushroom Case](https://simonschreibt.de/gat/fallout-4-the-mushroom-case/).
+[Fallout 4 – The Mushroom Case](https://simonschreibt.de/gat/fallout-4-the-mushroom-case/) - как сделан ядерный взрыв в F4.
+Используется атлас с покадровой анимацией, а для задания цвета - градиентная текстура.
+
+![](https://data.simonschreibt.de/gat056/fo4_mushroomTexture_02_gradientMap.webm)
 
 
 ### Splash

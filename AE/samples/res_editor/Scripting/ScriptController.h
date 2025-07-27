@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptCommon.h"
-#include "res_editor/Controllers/IController.h"
+#include "Scripting/ScriptCommon.h"
+#include "Controllers/IController.h"
 
 namespace AE::ResEditor
 {

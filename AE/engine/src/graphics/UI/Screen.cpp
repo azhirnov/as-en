@@ -246,38 +246,22 @@ namespace AE::UI
 
 /*
 =================================================
-	ProcessInputTask
-=================================================
-*/
-	class Screen::ProcessInputTask final : public Threading::IAsyncTask
-	{
-	public:
-		Screen&				scr;
-		ActionQueueReader	reader;
-
-		ProcessInputTask (Screen* scr, ActionQueueReader reader) __NE___ :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			scr{ *scr },
-			reader{ RVRef(reader) }
-		{}
-
-		void  Run () __Th_OV
-		{
-			scr.ProcessInput( reader );
-		}
-
-		StringView	DbgName ()	C_NE_OV	{ return "Screen::ProcessInput"; }
-	};
-
-/*
-=================================================
 	ProcessInputAsync
 =================================================
 */
 	AsyncTask  Screen::ProcessInputAsync (ActionQueueReader reader, ArrayView<AsyncTask> deps) __NE___
 	{
 		CHECK_ERR( _IsInitialized() );
-		return Scheduler().Run< ProcessInputTask >( Tuple{ this, reader }, Tuple{deps} );
+		return Scheduler().Run(
+					ETaskQueue::PerFrame,
+					[] (Screen& scr, ActionQueueReader reader) -> AsyncCoro
+					{
+						scr.ProcessInput( reader );
+						co_return;
+					}
+					( *this, RVRef(reader) ),
+					Tuple{deps}
+				);
 	}
 
 /*

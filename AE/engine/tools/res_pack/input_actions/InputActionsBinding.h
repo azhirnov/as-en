@@ -13,12 +13,6 @@
 
 #include "base/Common.h"
 
-#ifdef AE_BUILD_INPUT_ACTIONS_BINDING
-#	define AE_IA_API	AE_DLL_EXPORT
-#else
-#	define AE_IA_API	AE_DLL_IMPORT
-#endif
-
 namespace AE::InputActions
 {
 	using AE::usize;
@@ -41,6 +35,7 @@ namespace AE::InputActions
 		const CharType *		outputCppFile		= null;		// reflection
 	};
 
-	extern "C" bool AE_IA_API ConvertInputActions (const InputActionsInfo* info);
+	// "ConvertInputActions"
+	using ConvertInputActionsFn_t = bool (*) (const InputActionsInfo* info);
 
 } // AE::InputActions

@@ -25,7 +25,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit RTransferContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___;
+		explicit RTransferContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
 
 		RTransferContext ()																							= delete;
 		RTransferContext (const RTransferContext &)																	= delete;
@@ -89,7 +89,7 @@ namespace AE::Graphics
 		bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)						__Th_OV;
 		bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)					__Th_OV;
 
-		Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)						__Th_OV;
+		ReadHostBufferResult	ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)							__Th_OV;
 
 		void  GenerateMipmaps (ImageID image, EResourceState state)													__Th_OV;
 		void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges, EResourceState state)		__Th_OV;

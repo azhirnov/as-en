@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/GeomSource/IGeomSource.h"
+#include "GeomSource/IGeomSource.h"
 
 namespace AE::ResLoader {
 	class IntermScene;

@@ -3,11 +3,10 @@
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Remote/Commands/RDrawCommandBatch.h"
 # include "graphics_rhi/Remote/RRenderTaskScheduler.h"
+# include "graphics_rhi/Private/DrawCommandBatch.cpp.h"
 
 namespace AE::Graphics
 {
-#	include "graphics_rhi/Private/DrawCommandBatch.cpp.h"
-
 	using namespace AE::RemoteGraphics;
 
 /*
@@ -17,7 +16,7 @@ namespace AE::Graphics
 	not thread safe !!!
 =================================================
 */
-	void  RDrawCommandBatch::CmdBufPool::GetCommands (OUT RmDrawCommandBufferID* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___
+	void  DrawCommandBatch::CmdBufPool::GetCommands (OUT RmDrawCommandBufferID* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___
 	{
 		Unused( _GetBakedCommands( OUT cmdbufs, OUT cmdbufCount, maxCount,
 			[](OUT RmDrawCommandBufferID& dst, auto& src, uint)
@@ -37,7 +36,7 @@ namespace AE::Graphics
 	same as 'EndAllSecondary()' for Metal
 =================================================
 */
-	bool  RDrawCommandBatch::GetCmdBuffers (OUT uint &count, INOUT StaticArray< RmDrawCommandBufferID, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___
+	bool  DrawCommandBatch::GetCmdBuffers (OUT uint &count, INOUT StaticArray< RmDrawCommandBufferID, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___
 	{
 		EStatus	old_status = _status.Set( EStatus::Submitted );
 		CHECK_ERR( AnyEqual( old_status, EStatus::Recording, EStatus::Submitted, EStatus::Pending ));
@@ -54,7 +53,7 @@ namespace AE::Graphics
 	_Create
 =================================================
 *
-	bool  RDrawCommandBatch::_Create (const PrimaryCmdBufState_t &primaryState,
+	bool  DrawCommandBatch::_Create (const PrimaryCmdBufState_t &primaryState,
 									  ArrayView<Viewport_t> viewports, ArrayView<Scissor_t> scissors,
 									  DebugLabel dbg) __NE___
 	{

@@ -37,93 +37,73 @@ namespace
 
 
 	template <typename CtxTypes>
-	class VA1_DrawTask final : public RenderTask
+	static RenderCoro  VA1_DrawTask (VA1_TestData& t)
 	{
-	public:
-		VA1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		VA1_DrawTask (VA1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 
-		void  Run () __Th_OV
+		// upload vertices
+		typename CtxTypes::Transfer		copy_ctx{ RenderCoro_Get() };
+
+		CHECK_CE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(vertices), vertices, EStagingHeapType::Static ));
+
+		typename CtxTypes::Graphics	ctx{ RenderCoro_Get(), copy_ctx.ReleaseCommandBuffer() };
+
+		ctx.AccumBarriers()
+			.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
+			.MemoryBarrier( EResourceState::CopyDst, EResourceState::IndexBuffer )
+			.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+
+		// draw
 		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+			constexpr auto&		rtech_pass = RTech.ViewportArray;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( RectU{ uint2{0},		t.viewSize/2 })
+								.AddViewport( RectU{ t.viewSize/2,	t.viewSize	})
+								.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::White} ));
 
-			// upload vertices
-			typename CtxTypes::Transfer		copy_ctx{ *this };
+			CHECK_CE( dctx.BindVertexBuffer( t.ppln, VertexBufferName{"vb"}, t.vb, 0_b ));
 
-			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(vertices), vertices, EStagingHeapType::Static ));
+			DrawCmd	cmd;
+			cmd.vertexCount		= 3;
+			cmd.instanceCount	= 2;
 
-			typename CtxTypes::Graphics	ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
+			dctx.BindPipeline( t.ppln );
+			dctx.Draw( cmd );
 
-			ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
-				.MemoryBarrier( EResourceState::CopyDst, EResourceState::IndexBuffer )
-				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
-
-			// draw
-			{
-				constexpr auto&		rtech_pass = RTech.ViewportArray;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( RectU{ uint2{0},		t.viewSize/2 })
-									.AddViewport( RectU{ t.viewSize/2,	t.viewSize	})
-									.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::White} ));
-
-				CHECK_TE( dctx.BindVertexBuffer( t.ppln, VertexBufferName{"vb"}, t.vb, 0_b ));
-
-				DrawCmd	cmd;
-				cmd.vertexCount		= 3;
-				cmd.instanceCount	= 2;
-
-				dctx.BindPipeline( t.ppln );
-				dctx.Draw( cmd );
-
-				ctx.EndRenderPass( dctx );
-			}
-
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
-
-			Execute( ctx );
+			ctx.EndRenderPass( dctx );
 		}
-	};
+
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+
+		RenderCoro_Execute( ctx );
+	}
+	
 
 	template <typename Ctx>
-	class VA1_CopyTask final : public RenderTask
+	static RenderCoro  VA1_CopyTask (VA1_TestData& t)
 	{
-	public:
-		VA1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		VA1_CopyTask (VA1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		Ctx		ctx{ RenderCoro_Get() };
+		
+		t.result = ctx.ReadbackImage( t.img, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<VA1_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK = t->imgCmp->Compare( view );
+							});
+		
+		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			Ctx		ctx{ *this };
-			
-			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then(	[p = &t] (const ImageMemView &view)
-								{
-									p->isOK = p->imgCmp->Compare( view );
-								})};
-
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CtxTypes, typename CopyCtx>
@@ -163,19 +143,19 @@ namespace
 		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"ViewportArray"} );
 		CHECK_ERR( t.batch );
 
-		AsyncTask	task1	= t.batch->Run< VA1_DrawTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{},					{"Draw task"} );
-		AsyncTask	task2	= t.batch->Run< VA1_CopyTask<CopyCtx>  >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},	{"Readback task"} );
+		AsyncTask	task1	= t.batch->Run( VA1_DrawTask<CtxTypes>(t), Tuple{},						{"Draw task"} );
+		AsyncTask	task2	= t.batch->Run( VA1_CopyTask<CopyCtx>(t),  Tuple{task1}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
+		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK );
 		return true;

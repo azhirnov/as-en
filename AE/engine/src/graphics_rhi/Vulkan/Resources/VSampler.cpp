@@ -29,7 +29,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VSampler::Create (const VResourceManager &resMngr, const SamplerDesc &desc, const VkSamplerYcbcrConversionCreateInfo* ycbcrDesc, StringView dbgName) __NE___
+	bool  VSampler::Create (const ResourceManager &resMngr, const SamplerDesc &desc, const VkSamplerYcbcrConversionCreateInfo* ycbcrDesc, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _sampler == Default );
@@ -98,7 +98,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VSampler::Destroy (VResourceManager &resMngr) __NE___
+	void  VSampler::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

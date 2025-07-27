@@ -165,7 +165,6 @@ namespace AE::Graphics
 		_Last,
 		All			= ((_Last - 1) << 1) - 1
 	};
-	AE_BIT_OPERATORS( EVideoBufferUsage );
 
 
 	enum class EVideoImageUsage : ubyte
@@ -183,7 +182,6 @@ namespace AE::Graphics
 		_Last,
 		All			= ((_Last - 1) << 1) - 1
 	};
-	AE_BIT_OPERATORS( EVideoImageUsage );
 
 
 } // AE::Graphics

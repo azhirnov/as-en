@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptCommon.h"
+#include "Scripting/ScriptCommon.h"
 
 namespace AE::ResEditor
 {

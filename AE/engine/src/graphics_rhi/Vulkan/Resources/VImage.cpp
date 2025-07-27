@@ -36,7 +36,7 @@ namespace {
 	CheckFormatFeatures
 =================================================
 */
-	ND_ static bool  CheckFormatFeatures (const VResourceManager &resMngr, VkFormat format, EImageUsage usage, EImageOpt options, bool optTiling) __NE___
+	ND_ static bool  CheckFormatFeatures (const ResourceManager &resMngr, VkFormat format, EImageUsage usage, EImageOpt options, bool optTiling) __NE___
 	{
 		if ( AllBits( options, EImageOpt::ExtendedUsage ))
 			return true;
@@ -148,7 +148,7 @@ namespace {
 	Create
 =================================================
 */
-	bool  VImage::Create (VResourceManager &resMngr, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VImage::Create (ResourceManager &resMngr, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _image == Default );
@@ -263,7 +263,7 @@ namespace {
 	Create
 =================================================
 */
-	bool  VImage::Create (VResourceManager &resMngr, const VulkanImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VImage::Create (ResourceManager &resMngr, const VulkanImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _image == Default );
@@ -320,7 +320,7 @@ namespace {
 	For more info see 'ResourceManager::ReleaseExpiredResourcesTask'.
 =================================================
 */
-	void  VImage::Destroy (VResourceManager &resMngr) __NE___
+	void  VImage::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -370,7 +370,7 @@ namespace {
 	IsSupported
 =================================================
 */
-	bool  VImage::IsSupported (const VResourceManager &resMngr, const ImageDesc &desc) __NE___
+	bool  VImage::IsSupported (const ResourceManager &resMngr, const ImageDesc &desc) __NE___
 	{
 		const auto&		dev			= resMngr.GetDevice();
 		const auto&		dev_props	= dev.GetVProperties();
@@ -522,7 +522,7 @@ namespace {
 	IsSupported
 =================================================
 */
-	bool  VImage::IsSupported (const VResourceManager &resMngr, const ImageDesc &desc, const ImageViewDesc &view) __NE___
+	bool  VImage::IsSupported (const ResourceManager &resMngr, const ImageDesc &desc, const ImageViewDesc &view) __NE___
 	{
 		if_unlikely( not ImageView_IsSupported( resMngr, desc, view ))
 			return false;

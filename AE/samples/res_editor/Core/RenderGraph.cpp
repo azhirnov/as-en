@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Core/RenderGraph.h"
+#include "Core/RenderGraph.h"
 
 namespace AE::ResEditor
 {

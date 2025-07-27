@@ -2,7 +2,12 @@
 
 #pragma once
 
-#include "cicd/CICD.pch.h"
+#include "pch/Base.h"
+#include "pch/Serializing.h"
+#include "pch/Networking.h"
+
+#include "graphics_rhi/Public/FeatureSetEnums.h"
+#include "graphics_rhi/Private/EnumToString.h"
 
 namespace AE::CICD
 {

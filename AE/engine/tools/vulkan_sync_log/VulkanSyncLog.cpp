@@ -4,7 +4,7 @@
 #	error AE_ENABLE_LOGS must be enabled
 #endif
 
-#include "VulkanSyncLog.h"
+#include "vulkan_sync_log/VulkanSyncLog.h"
 #include "base/Algorithms/StringUtils.h"
 #include "graphics_rhi/Public/ImageUtils.h"
 
@@ -1157,6 +1157,7 @@ namespace
 				case VK_DESCRIPTOR_TYPE_SAMPLE_WEIGHT_IMAGE_QCOM :
 				case VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM :
 				case VK_DESCRIPTOR_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_NV :
+				case VK_DESCRIPTOR_TYPE_TENSOR_ARM :
 				default :
 					DBG_WARNING( "unsupported descriptor type" );
 					break;
@@ -4124,6 +4125,7 @@ namespace
 
 			case VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI :
 			case VK_PIPELINE_BIND_POINT_EXECUTION_GRAPH_AMDX :
+			case VK_PIPELINE_BIND_POINT_DATA_GRAPH_ARM :
 			case VK_PIPELINE_BIND_POINT_MAX_ENUM :
 			default :
 				DBG_WARNING( "unknown pipeline bind point" );
@@ -4972,6 +4974,7 @@ namespace
 
 			case VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI :
 			case VK_PIPELINE_BIND_POINT_EXECUTION_GRAPH_AMDX :
+			case VK_PIPELINE_BIND_POINT_DATA_GRAPH_ARM :
 			case VK_PIPELINE_BIND_POINT_MAX_ENUM :
 			default :
 				DBG_WARNING( "unknown pipeline bind point" );
@@ -5116,6 +5119,7 @@ namespace
 					case VK_DESCRIPTOR_TYPE_SAMPLE_WEIGHT_IMAGE_QCOM :
 					case VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM :
 					case VK_DESCRIPTOR_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_NV :
+					case VK_DESCRIPTOR_TYPE_TENSOR_ARM :
 					default :
 						DBG_WARNING( "unsupported descriptor type" );
 						break;

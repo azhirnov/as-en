@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "graphics/Graphics.pch.h"
-#include "AssetPackerImpl.h"
+#include "graphics/Common.h"
+#include "res_pack/asset_packer/AssetPackerImpl.h"
 
 namespace AE::Graphics
 {
@@ -18,8 +18,9 @@ namespace AE::Graphics
 		// User must transit resource to 'finalState' before commands from 'Upload()' will be executed on GPU.
 		// If flag is not enabled, single barrier will be issued when uploading complete or failed.
 		UsedWhileUploading		= 1 << 0,
+
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EUploadFlags );
 
 
 
@@ -71,8 +72,7 @@ namespace AE::Graphics
 			};
 
 		private:
-			using TaskDependency	= Threading::IAsyncTask::TaskDependency;
-			using Dependencies_t	= FixedTupleArray< 4, AsyncTask, TaskDependency >;		// TODO: use IAsyncTask::OutputChunk
+			using Dependencies_t	= FixedArray< TaskDependency, 4 >;		// TODO: use AsyncTaskImpl::OutputChunk
 			using ReadResult_t		= Threading::AsyncDSRequest::Value_t::Result;
 
 			struct BufferInfo
@@ -144,36 +144,19 @@ namespace AE::Graphics
 
 		private:
 			template <typename TransferContext>
-			ND_ auto  _Upload (TransferContext &, EStagingHeapType)									__NE___ -> EUploadRes;
+			ND_ auto  _Upload (TransferContext &, EStagingHeapType)								__NE___ -> EUploadRes;
 
 			template <typename TransferContext>
-			ND_ auto  _UploadImage (const ReadResult_t &,TransferContext &, EStagingHeapType)		__NE___ -> EUploadRes;
+			ND_ auto  _UploadImage (const ReadResult_t &,TransferContext &, EStagingHeapType)	__NE___ -> EUploadRes;
 
 			template <typename TransferContext>
-			ND_ auto  _UploadBuffer (const ReadResult_t &,TransferContext &, EStagingHeapType)		__NE___ -> EUploadRes;
+			ND_ auto  _UploadBuffer (const ReadResult_t &,TransferContext &, EStagingHeapType)	__NE___ -> EUploadRes;
 
-			ND_ bool  _AddOnCompleteDependency (AsyncTask task, INOUT uint &index, Bool isStrong)	__NE___;
-				void  _SetDependencyCompleteStatus (Bool complete)									__NE___;
+			ND_ bool  _AddOnCompleteDependency (_Coro_::AsyncTaskImpl&, Bool isStrong)			__NE___;
+				void  _SetDependencyCompleteStatus (Bool complete)								__NE___;
 
 				void  _ReadNextImageBlock ()			__NE___;
 				void  _ReadNextBufferBlock ()			__NE___;
-		};
-
-
-		//
-		// Upload Render Task
-		//
-		class UploadRenderTask final : public RenderTask
-		{
-		private:
-			RC<ResourceUploadManager>	_self;
-			const EStagingHeapType		_heapType;
-			const bool					_isFirst;
-
-		public:
-			UploadRenderTask (ResourceUploadManager* p, EStagingHeapType heapType, bool isFirst, CommandBatchPtr batch, DebugLabel) __NE___;
-
-			void  Run () __Th_OV;
 		};
 
 
@@ -197,7 +180,7 @@ namespace AE::Graphics
 	public:
 		using UploadResult			= RC<UploadTask>;	// TODO
 		using AtomicUploadResult	= AtomicRC<UploadTask>;
-		using WeakUploadResult		= Threading::_hidden_::_TaskDependency< UploadResult, False{"weak"} >;
+		using WeakUploadResult		= _Coro_::_TaskDependency< UploadResult, False{"weak"} >;
 
 		// For better performance user should issue barrier as later as possible.
 		// 'CopyDst' is same state as used to upload resource data, so no additional barrier where issued by 'ResourceUploadManager'
@@ -298,7 +281,7 @@ namespace AE::Graphics
 
 	private:
 		// ITaskDependencyManager //
-		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)		__NE_OV;
+		bool  Resolve (AnyTypeCRef dep, Task &task, Bool defaultIsStrongDep)		__NE_OV;
 
 		ND_ static EResourceState  _DetectImageFinalState (ImageID)					__NE___;
 		ND_ static EResourceState  _DetectBufferFinalState (BufferID)				__NE___;
@@ -308,6 +291,8 @@ namespace AE::Graphics
 
 		template <typename TransferContext>
 		void  _Upload (TransferContext &ctx, EStagingHeapType heapType)				__NE___;
+
+		ND_ static RenderCoro  _UploadRenderTask (RC<ResourceUploadManager>, EStagingHeapType, bool) __NE___;
 	};
 
 

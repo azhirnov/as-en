@@ -32,12 +32,6 @@
 #include "glslang/SPIRV/GlslangToSpv.h"
 #include "glslang/SPIRV/GLSL.std.450.h"
 
-// spirv cross
-#ifdef AE_ENABLE_SPIRV_CROSS
-#	include "spirv_cross/spirv_cross.hpp"
-#	include "spirv_cross/spirv_glsl.hpp"
-#endif
-
 #ifdef ENABLE_OPT
 #	include "spirv-tools/optimizer.hpp"
 #	include "spirv-tools/libspirv.h"
@@ -451,34 +445,6 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 
 	CHECK_ERR( not spirvData.empty() );
 
-	// for debugging
-	const auto	Decompile = [&spirvData]()
-	{{
-	#ifdef AE_ENABLE_SPIRV_CROSS
-	
-		spirv_cross::CompilerGLSL			compiler {spirvData.data(), spirvData.size()};
-		spirv_cross::CompilerGLSL::Options	opt = {};
-
-		opt.version						= 460;
-		opt.es							= false;
-		opt.vulkan_semantics			= true;
-		opt.separate_shader_objects		= true;
-		opt.enable_420pack_extension	= true;
-
-		opt.vertex.fixup_clipspace		= false;
-		opt.vertex.flip_vert_y			= false;
-		opt.vertex.support_nonzero_base_instance = true;
-
-		opt.fragment.default_float_precision	= spirv_cross::CompilerGLSL::Options::Precision::Highp;
-		opt.fragment.default_int_precision		= spirv_cross::CompilerGLSL::Options::Precision::Highp;
-
-		compiler.set_common_options( opt );
-
-		String	glsl_src = compiler.compile();	// throw
-		AE_LOGI( glsl_src );
-	#endif
-	}};
-
 	#ifdef ENABLE_OPT
 	{
 		String						log;
@@ -530,7 +496,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 		}
 		
 		if ( not is_valid )
-			Decompile();
+			_Decompile( spirvData );
 
 		CHECK_ERR_MSG( is_valid, "SPIRV validation error: "s << log );
 	}

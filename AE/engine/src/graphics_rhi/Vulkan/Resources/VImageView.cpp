@@ -24,7 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VImageView::Create (VResourceManager &resMngr, const ImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
+	bool  VImageView::Create (ResourceManager &resMngr, const ImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _imageView == Default );
@@ -79,7 +79,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VImageView::Create (VResourceManager &resMngr, const VulkanImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
+	bool  VImageView::Create (ResourceManager &resMngr, const VulkanImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _imageView == Default );
@@ -115,7 +115,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VImageView::Destroy (VResourceManager &resMngr) __NE___
+	void  VImageView::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

@@ -19,9 +19,9 @@ namespace
 	NanTestTask
 =================================================
 */
-	static RenderTaskCoro  NanTestTask (ImageViewID view, GraphicsPipelineID ppln, Function<void (const ImageMemView &)> fn)
+	static RenderCoro  NanTestTask (ImageViewID view, GraphicsPipelineID ppln, Function<void (const ImageMemView &)> fn)
 	{
-		RenderTask&		self = co_await RenderTask_GetRef;
+		auto	self = RenderCoro_Get();
 
 		DirectCtx::Graphics	ctx{ self };
 
@@ -48,12 +48,17 @@ namespace
 			.ImageBarrier( rt, EResourceState::ColorAttachment, EResourceState::CopySrc );
 
 		tctx.ReadbackImage( rt, ReadbackImageDesc{} )
-			.Then( [proc = RVRef(fn)] (const ImageMemView &mem) { proc( mem ); });
+			.Then(	RVRef(fn),
+					[] (Promise<ImageMemView> readOp, Function<void (const ImageMemView &)> fn) -> InlineCoro<>
+					{
+						auto mem = co_await readOp;
+						fn( mem );
+					});
 
 		tctx.AccumBarriers()
 			.MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-		co_await RenderTask_Execute( tctx );
+		RenderCoro_Execute( tctx );
 	}
 
 /*

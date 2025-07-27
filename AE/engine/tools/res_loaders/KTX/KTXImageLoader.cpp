@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_KTX
-# include "KTXUtils.cpp.h"
+# include "res_loaders/KTX/KTXUtils.cpp.h"
 # include "res_loaders/KTX/KTXImageLoader.h"
 
 #define PRELOAD_DATA	0

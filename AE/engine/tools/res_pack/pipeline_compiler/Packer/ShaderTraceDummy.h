@@ -4,7 +4,7 @@
 
 namespace AE::PipelineCompiler
 {
-	struct ShaderTrace
+	struct ShaderTrace : public Serializing::ISerializable
 	{
 		enum class ELogFormat : uint
 		{

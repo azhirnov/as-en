@@ -236,6 +236,13 @@ namespace
 		}
 		TEST( T::CheckStatistic() );
 	}
+
+	
+	static void  FixedTupleArray_Test8 ()
+	{
+		constexpr FixedTupleArray< 32, int, bool >	arr;
+		StaticAssert( arr.empty() );
+	}
 }
 
 
@@ -248,6 +255,7 @@ extern void UnitTest_FixedTupleArray ()
 	FixedTupleArray_Test5();
 	FixedTupleArray_Test6();
 	FixedTupleArray_Test7();
+	FixedTupleArray_Test8();
 
 	TEST_PASSED();
 }

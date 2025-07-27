@@ -210,6 +210,7 @@ void ASmain ()
 		EPixelFormat::ASTC_sRGB8_A8_10x6, EPixelFormat::ASTC_sRGB8_A8_10x8, EPixelFormat::ASTC_sRGB8_A8_10x10, EPixelFormat::ASTC_sRGB8_A8_12x10, 
 		EPixelFormat::ASTC_sRGB8_A8_12x12
 	});
+	/*
 	fset.AddTexelFormats( EFormatFeature::HWCompressedAttachment, {
 		// all float/normalized (integer?) formats in B-Series
 		EPixelFormat::RGBA16_SNorm, EPixelFormat::RGBA8_SNorm, EPixelFormat::RGB16_SNorm, EPixelFormat::RG16_SNorm, 
@@ -228,6 +229,7 @@ void ASmain ()
 		EPixelFormat::R11G11B10F, EPixelFormat::Depth16, EPixelFormat::Depth24, EPixelFormat::Depth32F, 
 		EPixelFormat::Depth24_Stencil8
 	});
+	*/
 	fset.samplerMipLodBias (True);
 	fset.maxSamplerAnisotropy (1.00);
 	fset.maxSamplerLodBias (15.00);

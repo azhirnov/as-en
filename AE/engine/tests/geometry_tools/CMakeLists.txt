@@ -16,6 +16,8 @@ if (TARGET "GeometryTools")
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/Tests" )
 	target_link_libraries( ${TEST_NAME} PUBLIC "GeometryTools" )
+	
+	UseEnginePCH2( ${TEST_NAME} )
 
 	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
 endif()

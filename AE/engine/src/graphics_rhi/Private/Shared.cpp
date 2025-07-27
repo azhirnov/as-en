@@ -12,4 +12,6 @@
 
 #include "../Vulkan/VEnumCast.cpp.h"
 
-#include "../Scripting/GraphicsBindings.cpp.h"
+#if defined(AE_BUILD_PIPELINE_COMPILER) or defined(AE_BUILD_ASSET_PACKER)
+#	include "../Scripting/GraphicsBindings.cpp.h"
+#endif

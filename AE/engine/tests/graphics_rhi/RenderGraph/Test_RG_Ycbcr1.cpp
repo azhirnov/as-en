@@ -40,119 +40,98 @@ namespace
 
 
 	template <typename CtxTypes>
-	class Y1_DrawTask final : public RenderTask
+	static RenderCoro  Y1_DrawTask (Y1_TestData& t)
 	{
-	public:
-		Y1_TestData&	t;
+		auto&	ycbcr = *GraphicsScheduler().GetResourceManager().GetResource( t.ycbcrImg.Get() );
 
-		Y1_DrawTask (Y1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
-
-		void  Run () __Th_OV
+		typename CtxTypes::Transfer		tctx{ RenderCoro_Get() };
 		{
-			auto&	ycbcr = *GraphicsScheduler().GetResourceManager().GetResource( t.ycbcrImg.Get() );
+			tctx.AccumBarriers()
+				.ImageBarrier( ycbcr.GetImageID(), EResourceState::Invalidate, EResourceState::CopyDst );
 
-			typename CtxTypes::Transfer		tctx{ *this };
-			{
-				tctx.AccumBarriers()
-					.ImageBarrier( ycbcr.GetImageID(), EResourceState::Invalidate, EResourceState::CopyDst );
+			EPixelFormat	plane0_fmt, plane1_fmt;
+			POTVec2			plane0_dim, plane1_dim;
 
-				EPixelFormat	plane0_fmt, plane1_fmt;
-				POTVec2			plane0_dim, plane1_dim;
+			CHECK( EPixelFormat_GetPlaneInfo( ycbcrFormat, EImageAspect::Plane_0, OUT plane0_fmt, OUT plane0_dim ));
+			CHECK( EPixelFormat_GetPlaneInfo( ycbcrFormat, EImageAspect::Plane_1, OUT plane1_fmt, OUT plane1_dim ));
 
-				CHECK( EPixelFormat_GetPlaneInfo( ycbcrFormat, EImageAspect::Plane_0, OUT plane0_fmt, OUT plane0_dim ));
-				CHECK( EPixelFormat_GetPlaneInfo( ycbcrFormat, EImageAspect::Plane_1, OUT plane1_fmt, OUT plane1_dim ));
+			CHECK( All( plane0_dim == POTVec2::c_1_1() ));
+			CHECK( All( plane1_dim == POTVec2::c_2_2() ));
 
-				CHECK( All( plane0_dim == POTVec2::c_1_1() ));
-				CHECK( All( plane1_dim == POTVec2::c_2_2() ));
+			const ubyte3	yuv		{178, 43, 129};  //= RGBtoYCbCr( RGBA32f{ 1.f, 1.f, 0.f, 1.f });
+			ubyte			g_pixels  [ imgDim[0] * imgDim[1] ];
+			ubyte			rb_pixels [ (imgDim[0] * imgDim[1] * 2) / 4 ];
 
-				const ubyte3	yuv		{178, 43, 129};  //= RGBtoYCbCr( RGBA32f{ 1.f, 1.f, 0.f, 1.f });
-				ubyte			g_pixels  [ imgDim[0] * imgDim[1] ];
-				ubyte			rb_pixels [ (imgDim[0] * imgDim[1] * 2) / 4 ];
-
-				for (ubyte& c : g_pixels) {
-					c = yuv[0];
-				}
-				for (usize i = 0; i < CountOf(rb_pixels); i += 2) {
-					rb_pixels[i+0] = yuv[1];
-					rb_pixels[i+1] = yuv[2];
-				}
-
-				UploadImageDesc			upload;
-				upload.imageDim			= ImageDim_t{uint3{ imgDim[0], imgDim[1], 1u }};
-				upload.dataRowPitch		= 1_b * imgDim[0];
-				upload.dataSlicePitch	= Bytes{CountOf(g_pixels)};
-				upload.aspectMask		= EImageAspect::Plane_0;
-
-				Unused( tctx.UploadImage( t.ycbcrImg, upload, ArrayView<ubyte>{g_pixels} ));
-
-				upload.imageDim			= ImageDim_t{uint3{ imgDim[0]/2, imgDim[1]/2, 1u }};
-				upload.dataRowPitch		= 2_b * (imgDim[0]/2);
-				upload.dataSlicePitch	= Bytes{CountOf(rb_pixels)};
-				upload.aspectMask		= EImageAspect::Plane_1;
-
-				Unused( tctx.UploadImage( t.ycbcrImg, upload, ArrayView<ubyte>{rb_pixels} ));
+			for (ubyte& c : g_pixels) {
+				c = yuv[0];
+			}
+			for (usize i = 0; i < CountOf(rb_pixels); i += 2) {
+				rb_pixels[i+0] = yuv[1];
+				rb_pixels[i+1] = yuv[2];
 			}
 
-			typename CtxTypes::Graphics		gctx{ *this, tctx.ReleaseCommandBuffer() };
+			UploadImageDesc			upload;
+			upload.imageDim			= ImageDim_t{uint3{ imgDim[0], imgDim[1], 1u }};
+			upload.dataRowPitch		= 1_b * imgDim[0];
+			upload.dataSlicePitch	= Bytes{CountOf(g_pixels)};
+			upload.aspectMask		= EImageAspect::Plane_0;
 
-			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
+			Unused( tctx.UploadImage( t.ycbcrImg, upload, ArrayView<ubyte>{g_pixels} ));
 
-			gctx.AccumBarriers()
-				.ImageBarrier( t.img, EResourceState::Invalidate, img_state )
-				.ImageBarrier( ycbcr.GetImageID(), EResourceState::ClearDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
+			upload.imageDim			= ImageDim_t{uint3{ imgDim[0]/2, imgDim[1]/2, 1u }};
+			upload.dataRowPitch		= 2_b * (imgDim[0]/2);
+			upload.dataSlicePitch	= Bytes{CountOf(rb_pixels)};
+			upload.aspectMask		= EImageAspect::Plane_1;
 
-			constexpr auto&	rtech_pass = RTech.Main;
-			StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-			auto	dctx = gctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
-			{
-				dctx.BindPipeline( t.ppln );
-				dctx.BindDescriptorSet( t.dsIndex, t.descSet );
-
-				dctx.Draw( 3 );
-
-				gctx.EndRenderPass( dctx );
-			}
-
-			gctx.AccumBarriers()
-				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
-
-			Execute( gctx );
+			Unused( tctx.UploadImage( t.ycbcrImg, upload, ArrayView<ubyte>{rb_pixels} ));
 		}
-	};
+
+		typename CtxTypes::Graphics		gctx{ RenderCoro_Get(), tctx.ReleaseCommandBuffer() };
+
+		const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
+
+		gctx.AccumBarriers()
+			.ImageBarrier( t.img, EResourceState::Invalidate, img_state )
+			.ImageBarrier( ycbcr.GetImageID(), EResourceState::ClearDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
+
+		constexpr auto&	rtech_pass = RTech.Main;
+		StaticAssert( rtech_pass.attachmentsCount == 1 );
+
+		auto	dctx = gctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( t.viewSize )
+								.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
+		{
+			dctx.BindPipeline( t.ppln );
+			dctx.BindDescriptorSet( t.dsIndex, t.descSet );
+
+			dctx.Draw( 3 );
+
+			gctx.EndRenderPass( dctx );
+		}
+
+		gctx.AccumBarriers()
+			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+
+		RenderCoro_Execute( gctx );
+	}
 
 
 	template <typename Ctx>
-	class Y1_CopyTask final : public RenderTask
+	static RenderCoro  Y1_CopyTask (Y1_TestData& t)
 	{
-	public:
-		Y1_TestData&	t;
+		Ctx		ctx{ RenderCoro_Get() };
+		
+		t.result = ctx.ReadbackImage( t.img, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<Y1_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK = t->imgCmp->Compare( view );
+							});
+		
+		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-		Y1_CopyTask (Y1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
-
-		void  Run () __Th_OV
-		{
-			Ctx		ctx{ *this };
-
-			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then(	[p = &t] (const ImageMemView &view)
-								{
-									p->isOK = p->imgCmp->Compare( view );
-								})};
-
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CtxTypes, typename CopyCtx>
@@ -205,19 +184,19 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Ycbcr1"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Run< Y1_DrawTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{},					 {"Draw"} );
-		AsyncTask	task2	= batch->Run< Y1_CopyTask<CopyCtx>  >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+		AsyncTask	task1	= batch->Run( Y1_DrawTask<CtxTypes>(t), Tuple{},					{"Draw"} );
+		AsyncTask	task2	= batch->Run( Y1_CopyTask<CopyCtx>(t),  Tuple{task1}, True{"Last"}, {"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task1, task2} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
+		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK );
 		return true;

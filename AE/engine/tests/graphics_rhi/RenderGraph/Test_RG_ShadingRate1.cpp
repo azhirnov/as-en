@@ -60,164 +60,143 @@ namespace
 
 
 	template <typename CtxType>
-	class SR1_DrawTask final : public RenderTask
+	static RenderCoro  SR1_DrawTask (SR1_TestData& t)
 	{
-	public:
-		SR1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		SR1_DrawTask (SR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		const auto		img_state	= EResourceState::ShaderSample | EResourceState::FragmentShader;
+		uint			i			= 0;
+		const uint2		vrs_size	= t.viewSize / t.texelSize;
+		Array<ubyte>	vrs_data;
 
-		void  Run () __Th_OV
+		vrs_data.resize( vrs_size.x * vrs_size.y );
+
+		for (uint y = 0; y < vrs_size.y; ++y)
 		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			const auto		img_state	= EResourceState::ShaderSample | EResourceState::FragmentShader;
-			uint			i			= 0;
-			const uint2		vrs_size	= t.viewSize / t.texelSize;
-			Array<ubyte>	vrs_data;
-
-			vrs_data.resize( vrs_size.x * vrs_size.y );
-
-			for (uint y = 0; y < vrs_size.y; ++y)
+			for (uint x = 0; x < vrs_size.x; ++x)
 			{
-				for (uint x = 0; x < vrs_size.x; ++x)
-				{
-					ubyte	rate	= GenTexture( x, y, vrs_size.x, vrs_size.y );
-					uint	idx		= x + y * vrs_size.x;
-					vrs_data[idx] = rate;
-				}
+				ubyte	rate	= GenTexture( x, y, vrs_size.x, vrs_size.y );
+				uint	idx		= x + y * vrs_size.x;
+				vrs_data[idx] = rate;
 			}
-
-
-			typename CtxType::Transfer	tctx{ *this };
-
-			tctx.AccumBarriers()
-				.ImageBarrier( t.vrsImg, EResourceState::Invalidate, EResourceState::CopyDst );
-
-			UploadImageDesc	upload;
-			upload.aspectMask	= EImageAspect::Color;
-			upload.heapType		= EStagingHeapType::Static;
-
-			CHECK_TE( tctx.UploadImage( t.vrsImg, upload, vrs_data.data(), ArraySizeOf(vrs_data) ) == ArraySizeOf(vrs_data) );
-
-
-			typename CtxType::Graphics	gfx_ctx{ *this, tctx.ReleaseCommandBuffer() };
-
-			gfx_ctx.AccumBarriers()
-					.ImageBarrier( t.img[0], EResourceState::Invalidate, img_state )
-					.ImageBarrier( t.img[1], EResourceState::Invalidate, img_state )
-					.ImageBarrier( t.img[2], EResourceState::Invalidate, img_state )
-					.ImageBarrier( t.vrsImg, EResourceState::CopyDst, EResourceState::ShadingRateImage );
-
-			// per draw
-			{
-				constexpr auto&		rtech_pass = RTech.nonVRS;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-				auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color, t.view[i], RGBA32f{HtmlColor::Black} ));
-
-				dctx.BindPipeline( t.ppln[i] );
-				dctx.SetFragmentShadingRate( EShadingRate::Size2x2, EShadingRateCombinerOp::Keep, EShadingRateCombinerOp::Keep );
-
-				dctx.Draw( 3 );
-
-				gfx_ctx.EndRenderPass( dctx );
-			}
-			++i;
-
-			// per primitive
-			{
-				constexpr auto&		rtech_pass = RTech.nonVRS;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-				auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color, t.view[i], RGBA32f{HtmlColor::Black} ));
-
-				VertexStream	vstream;
-				CHECK_TE( dctx.AllocVStream( Sizeof(vertices), OUT vstream ));
-				MemCopy( OUT vstream.mappedPtr, vertices, vstream.size );
-
-				dctx.BindPipeline( t.ppln[i] );
-				dctx.BindVertexBuffer( 0, vstream.bufferHandle, vstream.offset );
-
-				dctx.SetFragmentShadingRate( EShadingRate::Size1x1, EShadingRateCombinerOp::Replace, EShadingRateCombinerOp::Keep );
-
-				dctx.Draw( uint(CountOf(vertices)) );
-
-				gfx_ctx.EndRenderPass( dctx );
-			}
-			++i;
-
-			// VRS attachment
-			{
-				constexpr auto&		rtech_pass = RTech.VRS;
-				StaticAssert( rtech_pass.attachmentsCount == 2 );
-
-				auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color,		t.view[i], RGBA32f{HtmlColor::Black} )
-									.AddTarget( rtech_pass.att_ShadingRate,	t.vrsView ));
-
-				dctx.BindPipeline( t.ppln[i] );
-				dctx.SetFragmentShadingRate( EShadingRate::Size1x1, EShadingRateCombinerOp::Keep, EShadingRateCombinerOp::Replace );
-
-				dctx.Draw( 3 );
-
-				gfx_ctx.EndRenderPass( dctx );
-			}
-			++i;
-
-			// TODO: per pipeline
-
-			gfx_ctx.AccumBarriers()
-					.ImageBarrier( t.img[0], img_state, EResourceState::CopySrc )
-					.ImageBarrier( t.img[1], img_state, EResourceState::CopySrc )
-					.ImageBarrier( t.img[2], img_state, EResourceState::CopySrc );
-
-			Execute( gfx_ctx );
 		}
-	};
+
+
+		typename CtxType::Transfer	tctx{ RenderCoro_Get() };
+
+		tctx.AccumBarriers()
+			.ImageBarrier( t.vrsImg, EResourceState::Invalidate, EResourceState::CopyDst );
+
+		UploadImageDesc	upload;
+		upload.aspectMask	= EImageAspect::Color;
+		upload.heapType		= EStagingHeapType::Static;
+
+		CHECK_CE( tctx.UploadImage( t.vrsImg, upload, vrs_data.data(), ArraySizeOf(vrs_data) ) == ArraySizeOf(vrs_data) );
+
+
+		typename CtxType::Graphics	gfx_ctx{ RenderCoro_Get(), tctx.ReleaseCommandBuffer() };
+
+		gfx_ctx.AccumBarriers()
+				.ImageBarrier( t.img[0], EResourceState::Invalidate, img_state )
+				.ImageBarrier( t.img[1], EResourceState::Invalidate, img_state )
+				.ImageBarrier( t.img[2], EResourceState::Invalidate, img_state )
+				.ImageBarrier( t.vrsImg, EResourceState::CopyDst, EResourceState::ShadingRateImage );
+
+		// per draw
+		{
+			constexpr auto&		rtech_pass = RTech.nonVRS;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
+
+			auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( t.viewSize )
+								.AddTarget( rtech_pass.att_Color, t.view[i], RGBA32f{HtmlColor::Black} ));
+
+			dctx.BindPipeline( t.ppln[i] );
+			dctx.SetFragmentShadingRate( EShadingRate::Size2x2, EShadingRateCombinerOp::Keep, EShadingRateCombinerOp::Keep );
+
+			dctx.Draw( 3 );
+
+			gfx_ctx.EndRenderPass( dctx );
+		}
+		++i;
+
+		// per primitive
+		{
+			constexpr auto&		rtech_pass = RTech.nonVRS;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
+
+			auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( t.viewSize )
+								.AddTarget( rtech_pass.att_Color, t.view[i], RGBA32f{HtmlColor::Black} ));
+
+			VertexStream	vstream;
+			CHECK_CE( dctx.AllocVStream( Sizeof(vertices), OUT vstream ));
+			MemCopy( OUT vstream.mappedPtr, vertices, vstream.size );
+
+			dctx.BindPipeline( t.ppln[i] );
+			dctx.BindVertexBuffer( 0, vstream.bufferHandle, vstream.offset );
+
+			dctx.SetFragmentShadingRate( EShadingRate::Size1x1, EShadingRateCombinerOp::Replace, EShadingRateCombinerOp::Keep );
+
+			dctx.Draw( uint(CountOf(vertices)) );
+
+			gfx_ctx.EndRenderPass( dctx );
+		}
+		++i;
+
+		// VRS attachment
+		{
+			constexpr auto&		rtech_pass = RTech.VRS;
+			StaticAssert( rtech_pass.attachmentsCount == 2 );
+
+			auto	dctx = gfx_ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( t.viewSize )
+								.AddTarget( rtech_pass.att_Color,		t.view[i], RGBA32f{HtmlColor::Black} )
+								.AddTarget( rtech_pass.att_ShadingRate,	t.vrsView ));
+
+			dctx.BindPipeline( t.ppln[i] );
+			dctx.SetFragmentShadingRate( EShadingRate::Size1x1, EShadingRateCombinerOp::Keep, EShadingRateCombinerOp::Replace );
+
+			dctx.Draw( 3 );
+
+			gfx_ctx.EndRenderPass( dctx );
+		}
+		++i;
+
+		// TODO: per pipeline
+
+		gfx_ctx.AccumBarriers()
+				.ImageBarrier( t.img[0], img_state, EResourceState::CopySrc )
+				.ImageBarrier( t.img[1], img_state, EResourceState::CopySrc )
+				.ImageBarrier( t.img[2], img_state, EResourceState::CopySrc );
+
+		RenderCoro_Execute( gfx_ctx );
+	}
 
 
 	template <typename Ctx>
-	class SR1_CopyTask final : public RenderTask
+	static RenderCoro  SR1_CopyTask (SR1_TestData& t)
 	{
-	public:
-		SR1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		SR1_CopyTask (SR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
-
-		void  Run () __Th_OV
+		Ctx		ctx{ RenderCoro_Get() };
+		
+		for (uint i = 0; i < 3; ++i)
 		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			Ctx		ctx{ *this };
-
-			for (uint i = 0; i < 3; ++i)
-			{
-				t.result[i] = AsyncTask{ ctx.ReadbackImage( t.img[i], Default )
-							.Then(	[p = &t, i] (const ImageMemView &view)
-									{
-										p->isOK[i] = p->imgCmps[i]->Compare( view );
-									})};
-			}
-
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-			Execute( ctx );
+			t.result[i] = ctx.ReadbackImage( t.img[i], Default ).Then( t, i,
+								[] (Promise<ImageMemView> readRes, CoSafe<SR1_TestData &> t, const uint i) -> InlineCoro<>
+								{
+									auto view = co_await readRes;
+									t->isOK[i] = t->imgCmps[i]->Compare( view );
+								});
 		}
-	};
+		
+		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
+
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CtxType, typename CopyCtx>
@@ -268,21 +247,21 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Draw1"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Run< SR1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},					 {"Draw task"} );
-		AsyncTask	task2	= batch->Run< SR1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+		AsyncTask	task1	= batch->Run( SR1_DrawTask<CtxType>(t), Tuple{},					{"Draw task"} );
+		AsyncTask	task2	= batch->Run( SR1_CopyTask<CopyCtx>(t), Tuple{task1}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
-		CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
-		CHECK_ERR( t.result[2]->Status() == EStatus::Completed );
+		CHECK_ERR( t.result[0]->Status() == ETaskStatus::Completed );
+		CHECK_ERR( t.result[1]->Status() == ETaskStatus::Completed );
+		CHECK_ERR( t.result[2]->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK[0] and t.isOK[1] and t.isOK[2] );
 		return true;

@@ -1,47 +1,26 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ui_editor/Core/UIScreen.h"
-#include "ui_editor/Core/EditorCore.h"
+#include "Core/UIScreen.h"
+#include "Core/EditorCore.h"
 
-#include "ui_editor/_data/cpp/types.h"
-#include "ui_editor/_ui_data/cpp/types.h"
+#include "_data/cpp/types.h"
+#include "_ui_data/cpp/types.h"
 
 namespace AE::UIEditor
 {
 	static constexpr auto&	IA	= InputActions::Screen_UI;
 
-
-	//
-	// Draw Task
-	//
-	class UIScreen::DrawTask final : public RenderTask
-	{
-	public:
-		RC<UIScreen>		self;
-		IOutputSurface &	surface;
-
-		DRC_ONLY( std::shared_lock<RWDataRaceCheck>  _lock;)
-
-
-		DrawTask (UIScreen* p, Ptr<IOutputSurface> surf, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ batch, {"UIScreen::Draw"} },
-			self{ p }, surface{ *surf }  DRC_ONLY(, _lock{ self->_drCheck })
-		{}
-
-		void  Run () __Th_OV;
-	};
-
 /*
 =================================================
-	DrawTask::Run
+	_DrawTask
 =================================================
 */
-	void  UIScreen::DrawTask::Run ()
+	RenderCoro  UIScreen::_DrawTask (RC<UIScreen> self, IOutputSurface &surface)
 	{
 		const secondsf	dt = GraphicsScheduler().GetFrameTimeDelta();
 
 		IOutputSurface::RenderTargets_t		targets;
-		CHECK_TE( surface.GetTargets( OUT targets ));
+		CHECK_CE( surface.GetTargets( OUT targets ));
 
 		auto&	rt		= targets[0];
 		auto&	screen	= *self->_screen;
@@ -53,7 +32,7 @@ namespace AE::UIEditor
 		screen.SetDimensions( canvas.Dimensions() );
 		screen.Update();
 
-		UI::TransferContext_t	tfr_ctx{ *this };
+		UI::TransferContext_t	tfr_ctx{ RenderCoro_Get() };
 
 		{
 			UI::Screen::PreDrawParams	params;
@@ -62,11 +41,11 @@ namespace AE::UIEditor
 			screen.PreDraw( params, tfr_ctx );
 		}
 
-		DirectCtx::Graphics		gfx_ctx{ *this, tfr_ctx.ReleaseCommandBuffer() };
+		DirectCtx::Graphics		gfx_ctx{ RenderCoro_Get(), tfr_ctx.ReleaseCommandBuffer() };
 
 		// draw
 		{
-			canvas.NextFrame( GetFrameId() );
+			canvas.NextFrame( RenderCoro_Get().FrameId() );
 
 			gfx_ctx.AddSurfaceTargets( targets );
 
@@ -103,7 +82,7 @@ namespace AE::UIEditor
 			gfx_ctx.EndRenderPass( draw_ctx );
 		}
 
-		Execute( gfx_ctx );
+		RenderCoro_Execute( gfx_ctx );
 	}
 //-----------------------------------------------------------------------------
 
@@ -230,7 +209,7 @@ namespace AE::UIEditor
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		return batch.Task< DrawTask >( Tuple{ this, output }, {"UIScreen pass"} )
+		return batch.Task( _DrawTask( GetRC<UIScreen>(), *output ), {"UIScreen pass"} )
 						.Run( Tuple{deps} );
 	}
 

@@ -4,7 +4,6 @@
 
 #if defined(AE_ENABLE_VULKAN)
 #	define SUFFIX					V
-#	define CMDBATCH					VCommandBatch
 #	if AE_VK_TIMELINE_SEMAPHORE
 #	  define AE_TIMELINE_SEMAPHORE	1
 #	else
@@ -14,12 +13,10 @@
 
 #elif defined(AE_ENABLE_METAL)
 #	define SUFFIX					M
-#	define CMDBATCH					MCommandBatch
 #	define AE_TIMELINE_SEMAPHORE	1
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 #	define SUFFIX					R
-#	define CMDBATCH					RCommandBatch
 #	define AE_TIMELINE_SEMAPHORE	1
 
 #else
@@ -29,29 +26,14 @@
 
 
 
-/*
-=================================================
-	DbgFullName
-=================================================
-*/
-#if AE_DBG_GRAPHICS
-	String  RenderTask::DbgFullName () C_NE___
-	{
-		String	str;
-		str << _batch->DbgName() << " |" << ToString(GetExecutionIndex()) << "| " << _dbgName;
-		return str;
-	}
-#endif
-//-----------------------------------------------------------------------------
-
-
-
+namespace AE::Graphics
+{
 /*
 =================================================
 	SetSubmissionMode
 =================================================
 */
-	void  CMDBATCH::SetSubmissionMode (ESubmitMode mode) __NE___
+	void  CommandBatch::SetSubmissionMode (ESubmitMode mode) __NE___
 	{
 		_submitMode = mode;
 
@@ -64,7 +46,7 @@
 =================================================
 */
 #ifndef AE_ENABLE_REMOTE_GRAPHICS
-	void  CMDBATCH::_ReleaseObject () __NE___
+	void  CommandBatch::_ReleaseObject () __NE___
 	{
 		MemoryBarrier( EMemoryOrder::Acquire );
 
@@ -97,7 +79,7 @@
 	EndRecordingAndSubmit
 =================================================
 */
-	bool  CMDBATCH::EndRecordingAndSubmit () __NE___
+	bool  CommandBatch::EndRecordingAndSubmit () __NE___
 	{
 		CHECK_ERR( _EndRecording() );
 		return _Submit();
@@ -108,7 +90,7 @@
 	_Submit
 =================================================
 */
-	bool  CMDBATCH::_Submit () __NE___
+	bool  CommandBatch::_Submit () __NE___
 	{
 		CHECK_ERR( _status.Set( EStatus::Recorded, EStatus::Pending ));
 
@@ -134,7 +116,7 @@
 	_AddOnSubmitDependency
 =================================================
 */
-	bool  CMDBATCH::_AddOnSubmitDependency (AsyncTask task, INOUT uint &index) __NE___
+	bool  CommandBatch::_AddOnSubmitDependency (AsyncTaskImpl &task, Bool defaultIsStrongDep) __NE___
 	{
 		EXLOCK( _onSubmitDepsGuard );
 
@@ -144,9 +126,9 @@
 
 		CHECK_ERR( not _onSubmitDeps.IsFull() );
 
-		_onSubmitDeps.push_back( RVRef(task), TaskDependency{ index, True{"strong ref"} });
-		++index;
+		_onSubmitDeps.emplace_back( task.GetRC() ).SetExtra( uint{defaultIsStrongDep} );
 
+		AsyncTaskImpl::TaskDependencyManagerApi::IncWaitCounter( task );
 		return true;
 	}
 
@@ -155,7 +137,7 @@
 	_AddOnCompleteDependency
 =================================================
 */
-	bool  CMDBATCH::_AddOnCompleteDependency (AsyncTask task, INOUT uint &index) __NE___
+	bool  CommandBatch::_AddOnCompleteDependency (AsyncTaskImpl &task, Bool defaultIsStrongDep) __NE___
 	{
 		EXLOCK( _onCompleteDepsGuard );
 
@@ -165,9 +147,9 @@
 
 		CHECK_ERR( not _onCompleteDeps.IsFull() );
 
-		_onCompleteDeps.push_back( RVRef(task), TaskDependency{ index, True{"strong ref"} });
-		++index;
-
+		_onCompleteDeps.emplace_back( task.GetRC() ).SetExtra( uint{defaultIsStrongDep} );
+		
+		AsyncTaskImpl::TaskDependencyManagerApi::IncWaitCounter( task );
 		return true;
 	}
 
@@ -176,7 +158,7 @@
 	_OnSubmit2
 =================================================
 */
-	void  CMDBATCH::_OnSubmit2 () __NE___
+	void  CommandBatch::_OnSubmit2 () __NE___
 	{
 		CHECK( _status.Set( EStatus::Pending, EStatus::Submitted ));
 		_cmdPool.Reset();
@@ -185,7 +167,7 @@
 		{
 			EXLOCK( _onSubmitDepsGuard );
 			for (auto dep : _onSubmitDeps) {
-				Threading::IAsyncTask::Helper::SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, False{"not canceled"} );
+				_Coro_::AsyncTaskImpl::TaskDependencyManagerApi::SetDependencyCompletionStatus( *dep, False{"not canceled"} );
 			}
 			_onSubmitDeps.clear();
 		}
@@ -196,7 +178,7 @@
 	_OnComplete
 =================================================
 */
-	void  CMDBATCH::_OnComplete () __NE___
+	void  CommandBatch::_OnComplete () __NE___
 	{
 		#if AE_TIMELINE_SEMAPHORE
 			++_tlSemaphoreVal;
@@ -218,7 +200,7 @@
 		{
 			EXLOCK( _onCompleteDepsGuard );
 			for (auto dep : _onCompleteDeps) {
-				Threading::IAsyncTask::Helper::SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, False{"not canceled"} );
+				_Coro_::AsyncTaskImpl::TaskDependencyManagerApi::SetDependencyCompletionStatus( *dep, False{"not canceled"} );
 			}
 			_onCompleteDeps.clear();
 		}
@@ -237,7 +219,7 @@
 	_SetTaskBarriers
 =================================================
 */
-	void  CMDBATCH::_SetTaskBarriers (const TaskBarriersPtr_t pBarriers, uint index) __NE___
+	inline void  CommandBatch::_SetTaskBarriers (const TaskBarriersPtr_t pBarriers, uint index) __NE___
 	{
 		if ( pBarriers == null )
 			return;
@@ -249,13 +231,35 @@
 
 		_perTaskBarriers[ index ] = pBarriers.get();
 	}
+	
+
+/*
+=================================================
+	_InitTask
+=================================================
+*/
+	bool  CommandBatch::_InitTask (_Coro_::RenderTaskImpl	&rtask,
+								   TaskBarriersPtr_t		initialBarriers,
+								   TaskBarriersPtr_t		finalBarriers,
+								   Bool						submitBatchAtTheEnd) __NE___
+	{
+		_SetTaskBarriers( initialBarriers, rtask.GetExecutionIndex()*2+0 );
+		_SetTaskBarriers( finalBarriers,   rtask.GetExecutionIndex()*2+1 );
+
+		if_unlikely( submitBatchAtTheEnd )
+		{
+			_Coro_::RenderTaskImpl::BatchApi::SetSubmitAtTheEnd( rtask );
+			_EndRecording();
+		}
+		return true;
+	}
 
 /*
 =================================================
 	AddInputSemaphore
 =================================================
 */
-	bool  CMDBATCH::AddInputSemaphore (GpuSyncObj_t sem, ulong value) __NE___
+	bool  CommandBatch::AddInputSemaphore (GpuSyncObj_t sem, ulong value) __NE___
 	{
 	  #if not AE_TIMELINE_SEMAPHORE
 		ASSERT( value == 0 );
@@ -278,7 +282,7 @@
 		return true;
 	}
 
-	bool  CMDBATCH::AddInputSemaphore (const CmdBatchDependency_t &dep) __NE___
+	bool  CommandBatch::AddInputSemaphore (const CmdBatchDependency_t &dep) __NE___
 	{
 		return AddInputSemaphore( dep.semaphore, dep.value );
 	}
@@ -291,7 +295,7 @@
 	returns 'false' on overflow or if batch is already completed.
 =================================================
 */
-	bool  CMDBATCH::AddInputDependency (RC<CMDBATCH> batch) __NE___
+	bool  CommandBatch::AddInputDependency (RC<CommandBatch> batch) __NE___
 	{
 		if_unlikely( not batch )
 			return true;
@@ -299,7 +303,7 @@
 		return AddInputDependency( *batch );
 	}
 
-	bool  CMDBATCH::AddInputDependency (const CMDBATCH &batch) __NE___
+	bool  CommandBatch::AddInputDependency (const CommandBatch &batch) __NE___
 	{
 		CHECK_ERR( not IsSubmitted() );
 
@@ -321,7 +325,7 @@
 	AddOutputSemaphore
 =================================================
 */
-	bool  CMDBATCH::AddOutputSemaphore (GpuSyncObj_t sem, ulong value) __NE___
+	bool  CommandBatch::AddOutputSemaphore (GpuSyncObj_t sem, ulong value) __NE___
 	{
 	  #if not AE_TIMELINE_SEMAPHORE
 		ASSERT( value == 0 );
@@ -344,22 +348,43 @@
 		return true;
 	}
 
-	bool  CMDBATCH::AddOutputSemaphore (const CmdBatchDependency_t &dep) __NE___
+	bool  CommandBatch::AddOutputSemaphore (const CmdBatchDependency_t &dep) __NE___
 	{
 		return AddOutputSemaphore( dep.semaphore, dep.value );
 	}
+
+} // AE::Graphics
 //-----------------------------------------------------------------------------
 
 
 
+namespace AE::_Coro_
+{
 /*
 =================================================
 	_DbgCheckFrameId
 =================================================
 */
 #if AE_DBG_GRAPHICS
-	void  RenderTask::_DbgCheckFrameId () C_NE___
+	void  RenderTaskImpl::_DbgCheckFrameId () C_NE___
 	{
-		GraphicsScheduler().DbgCheckFrameId( GetFrameId(), DbgFullName() );
+		GraphicsScheduler().DbgCheckFrameId( _batch->GetFrameId(), DbgFullName() );
 	}
 #endif
+
+/*
+=================================================
+	DbgFullName
+=================================================
+*/
+#if AE_DBG_GRAPHICS
+	String  RenderTaskImpl::DbgFullName () C_NE___
+	{
+		String	str;
+		str << _batch->DbgName() << " |" << ToString(GetExecutionIndex()) << "| " << DbgName();
+		return str;
+	}
+#endif
+
+} // AE::_Coro_
+//-----------------------------------------------------------------------------

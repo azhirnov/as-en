@@ -27,7 +27,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VRTScene::Create (VResourceManager &resMngr, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VRTScene::Create (ResourceManager &resMngr, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _buffer == Default );
@@ -83,7 +83,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VRTScene::Destroy (VResourceManager &resMngr) __NE___
+	void  VRTScene::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -111,7 +111,7 @@ namespace AE::Graphics
 	GetBuildSizes
 =================================================
 */
-	RTASBuildSizes  VRTScene::GetBuildSizes (const VResourceManager &resMngr, const RTSceneBuild &desc) __NE___
+	RTASBuildSizes  VRTScene::GetBuildSizes (const ResourceManager &resMngr, const RTSceneBuild &desc) __NE___
 	{
 		GRES_CHECK( IsSupported( resMngr, desc ));
 
@@ -154,7 +154,7 @@ namespace AE::Graphics
 	ConvertBuildInfo
 =================================================
 */
-	bool  VRTScene::ConvertBuildInfo (const VResourceManager &resMngr, const RTSceneBuild &desc,
+	bool  VRTScene::ConvertBuildInfo (const ResourceManager &resMngr, const RTSceneBuild &desc,
 									  OUT VkAccelerationStructureGeometryKHR &outGeometry,
 									  OUT VkAccelerationStructureBuildRangeInfoKHR &outRange,
 									  OUT VkAccelerationStructureBuildGeometryInfoKHR &outBuildInfo) __NE___
@@ -214,7 +214,7 @@ namespace AE::Graphics
 	IsSupported (RTSceneDesc)
 =================================================
 */
-	bool  VRTScene::IsSupported (const VResourceManager &resMngr, const RTSceneDesc &desc) __NE___
+	bool  VRTScene::IsSupported (const ResourceManager &resMngr, const RTSceneDesc &desc) __NE___
 	{
 		return RTScene_IsSupported( resMngr, desc );
 	}
@@ -224,7 +224,7 @@ namespace AE::Graphics
 	IsSupported (RTSceneBuild)
 =================================================
 */
-	bool  VRTScene::IsSupported (const VResourceManager &resMngr, const RTSceneBuild &build) __NE___
+	bool  VRTScene::IsSupported (const ResourceManager &resMngr, const RTSceneBuild &build) __NE___
 	{
 		auto&	dev		= resMngr.GetDevice();
 		auto&	props	= dev.GetDeviceProperties().rayTracing;

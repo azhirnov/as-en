@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptDynamicVars.h"
-#include "res_editor/Resources/VideoImage.h"
-#include "res_editor/Resources/VideoImage2.h"
+#include "Scripting/ScriptDynamicVars.h"
+#include "Resources/VideoImage.h"
+#include "Resources/VideoImage2.h"
 
 namespace AE::ResEditor
 {

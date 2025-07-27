@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "graphics/Graphics.pch.h"
+#include "graphics/Common.h"
 
 namespace AE::Graphics
 {

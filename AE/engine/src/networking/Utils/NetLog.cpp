@@ -14,7 +14,7 @@ namespace AE::Networking
 	{
 		const usize	max_size	= usize(NetConfig::TCP_MaxMsgSize - 32);
 		usize		offset		= 0;
-		StringView	short_path	= FileSystem::ToShortPath( info.file );
+		StringView	short_path	= FileSystem::ToShortPath( info.loc.file_name() );
 
 		// send first
 		{
@@ -27,11 +27,11 @@ namespace AE::Networking
 
 				MemCopy( OUT msg.Extra<char>() + StringSizeOf(short_path), info.message.data(), Min( extra_size, StringSizeOf(info.message) ));
 
-				msg->msg		= StringView{ msg.Extra<char>() + StringSizeOf(short_path), usize(extra_size) };
-				msg->loc.file	= StringView{ msg.Extra<char>(), short_path.size() };
-				msg->loc.line	= info.line;
-				msg->level		= info.level;
-				msg->scope		= info.scope;
+				msg->msg	= StringView{ msg.Extra<char>() + StringSizeOf(short_path), usize(extra_size) };
+				msg->file	= StringView{ msg.Extra<char>(), short_path.size() };
+				msg->line	= info.loc.line();
+				msg->level	= info.level;
+				msg->scope	= info.scope;
 
 				if ( not _msgProducer->AddMessage( msg ))
 					return EResult::Unknown;

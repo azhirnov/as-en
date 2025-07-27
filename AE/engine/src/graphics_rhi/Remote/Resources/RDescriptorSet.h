@@ -33,8 +33,8 @@ namespace AE::Graphics
 		RDescriptorSet ()									__NE___	{}
 		~RDescriptorSet ()									__NE___;
 
-		ND_ bool  Create (RResourceManager &, RmDescriptorSetID, DescriptorSetLayoutID, DescriptorAllocatorPtr, StringView dbgName)	__NE___;
-			void  Destroy (RResourceManager &)																							__NE___;
+		ND_ bool  Create (ResourceManager &, RmDescriptorSetID, DescriptorSetLayoutID, DescriptorAllocatorPtr, StringView dbgName)	__NE___;
+			void  Destroy (ResourceManager &)																							__NE___;
 
 		ND_ DescriptorSetLayoutID		LayoutId ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ RmDescriptorSetID			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descSetId; }

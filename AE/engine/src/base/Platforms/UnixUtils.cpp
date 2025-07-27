@@ -82,7 +82,7 @@ namespace AE::Base
 		else
 			str << "unknown error";
 
-		AE_PRIVATE_LOGX( level, scope, str, loc.file, loc.line );
+		AE_PRIVATE_LOGX( level, scope, str, loc );
 		return false;
 	}
 

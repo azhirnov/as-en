@@ -18,10 +18,10 @@ namespace AE::Graphics::_hidden_
 	// variables
 	private:
 		const RPrimaryCmdBufState			_primaryState;
-		const Ptr<RDrawCommandBatch>		_batch;			// can be null
+		const Ptr<DrawCommandBatch>			_batch;			// can be null
 		const uint							_drawIndex	= UMax;
 
-		RResourceManager &					_resMngr;
+		ResourceManager &					_resMngr;
 
 		RC<ArrayWStream>					_memStream;
 		Unique<Serializing::Serializer>		_ser;
@@ -30,20 +30,20 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		RDrawBarrierManager (Ptr<RDrawCommandBatch> batch, uint drawIdx)		__Th___;
+		RDrawBarrierManager (Ptr<DrawCommandBatch> batch, uint drawIdx)		__Th___;
 		explicit RDrawBarrierManager (const RPrimaryCmdBufState &primaryState)	__Th___;
 
 		template <typename ...IDs>
 		ND_ exact_t					Get (IDs ...ids)							__Th___	{ return _resMngr.GetResourcesOrThrow( ids... ); }
 
 		ND_ RDevice const&			GetDevice ()								C_NE___	{ return _resMngr.GetDevice(); }
-		ND_ RResourceManager&		GetResourceManager ()						C_NE___	{ return _resMngr; }
+		ND_ ResourceManager&		GetResourceManager ()						C_NE___	{ return _resMngr; }
 		ND_ FrameUID				GetFrameId ()								C_NE___	{ return _primaryState.frameId; }
 		ND_ EQueueType				GetQueueType ()								C_NE___	{ return EQueueType::Graphics; }
 		ND_ auto const&				GetPrimaryCtxState ()						C_NE___	{ return _primaryState; }
 
 		ND_ bool					IsSecondary ()								C_NE___	{ return _batch != null; }
-		ND_ Ptr<RDrawCommandBatch>	GetBatchPtr ()								C_NE___	{ return _batch.get(); }
+		ND_ Ptr<DrawCommandBatch>	GetBatchPtr ()								C_NE___	{ return _batch.get(); }
 		ND_ uint					GetDrawOrderIndex ()						C_NE___	{ return _drawIndex; }
 
 		ND_ RDependencyInfo			GetBarriers ()								__NE___;

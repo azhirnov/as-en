@@ -23,11 +23,13 @@ if (TARGET "Base")
 
 	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/Tests" )
 	target_link_libraries( ${TEST_NAME} PUBLIC "Base" )
-	target_include_directories( ${TEST_NAME} PUBLIC "." )
 
 	if (EXISTS "${EXP_DIR}")
+		target_include_directories( ${TEST_NAME} PUBLIC "." )
 		target_compile_definitions( ${TEST_NAME} PUBLIC AE_EXPERIMENTAL )
 	endif()
 
 	add_test( NAME ${TEST_NAME} COMMAND ${TEST_NAME} )
+	
+	UseEnginePCH2( ${TEST_NAME} )
 endif()

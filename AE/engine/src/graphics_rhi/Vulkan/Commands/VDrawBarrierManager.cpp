@@ -15,7 +15,7 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	VDrawBarrierManager::VDrawBarrierManager (Ptr<VDrawCommandBatch> batch) __Th___ :
+	VDrawBarrierManager::VDrawBarrierManager (Ptr<DrawCommandBatch> batch) __Th___ :
 		_primaryState{ batch->GetPrimaryCtxState() },
 		_batch{ batch },
 		_resMngr{ GraphicsScheduler().GetResourceManager() }

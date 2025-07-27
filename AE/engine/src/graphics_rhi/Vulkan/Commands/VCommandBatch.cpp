@@ -4,11 +4,10 @@
 # include "graphics_rhi/Vulkan/Commands/VBaseIndirectContext.h"
 # include "graphics_rhi/Vulkan/Commands/VCommandBatch.h"
 # include "graphics_rhi/Vulkan/VRenderTaskScheduler.h"
+# include "graphics_rhi/Private/CommandBatch.cpp.h"
 
 namespace AE::Graphics
 {
-#	include "graphics_rhi/Private/CommandBatch.cpp.h"
-
 /*
 =================================================
 	GetCommands
@@ -16,7 +15,7 @@ namespace AE::Graphics
 	not thread safe !!!
 =================================================
 */
-	void  VCommandBatch::CmdBufPool::GetCommands (VkCommandBufferSubmitInfoKHR* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___
+	void  CommandBatch::CmdBufPool::GetCommands (VkCommandBufferSubmitInfoKHR* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___
 	{
 		_GetNativeCommands( OUT cmdbufs, OUT cmdbufCount, maxCount,
 			[](OUT VkCommandBufferSubmitInfoKHR& dst, VkCommandBuffer src)
@@ -35,8 +34,8 @@ namespace AE::Graphics
 	not thread safe !!!
 =================================================
 */
-	bool  VCommandBatch::CmdBufPool::CommitIndirectBuffers (VCommandPoolManager &cmdPoolMngr, EQueueType queue, ECommandBufferType cmdbufType,
-															const VPrimaryCmdBufState* primaryState) __NE___
+	bool  CommandBatch::CmdBufPool::CommitIndirectBuffers (VCommandPoolManager &cmdPoolMngr, EQueueType queue, ECommandBufferType cmdbufType,
+														   const VPrimaryCmdBufState* primaryState) __NE___
 	{
 		uint	cmd_types = _cmdTypes.load();
 		if ( cmd_types == 0 )
@@ -57,8 +56,8 @@ namespace AE::Graphics
 	_CommitIndirectBuffers_Ordered
 =================================================
 */
-	bool  VCommandBatch::CmdBufPool::_CommitIndirectBuffers_Ordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue,
-																	 ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState) __NE___
+	bool  CommandBatch::CmdBufPool::_CommitIndirectBuffers_Ordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue,
+																	ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState) __NE___
 	{
 		auto&			dev		= cmdPoolMngr.GetDevice();
 		VCommandBuffer	cmdbuf;
@@ -100,8 +99,8 @@ namespace AE::Graphics
 	_CommitIndirectBuffers_Unordered
 =================================================
 *
-	bool  VCommandBatch::CmdBufPool::_CommitIndirectBuffers_Unordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue,
-																	   ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState) __NE___
+	bool  CommandBatch::CmdBufPool::_CommitIndirectBuffers_Unordered (uint cmdTypes, VCommandPoolManager &cmdPoolMngr, EQueueType queue,
+																	  ECommandBufferType cmdbufType, const VPrimaryCmdBufState* primaryState) __NE___
 	{
 		auto&			dev		= cmdPoolMngr.GetDevice();
 		VCommandBuffer	cmdbuf;
@@ -141,7 +140,7 @@ namespace AE::Graphics
 	destructor
 =================================================
 */
-	VCommandBatch::VirtualFence::~VirtualFence () __NE___
+	CommandBatch::VirtualFence::~VirtualFence () __NE___
 	{
 		if ( _fence != Default )
 		{
@@ -156,7 +155,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VCommandBatch::VirtualFence::Create (const VDevice &dev) __NE___
+	bool  CommandBatch::VirtualFence::Create (const VDevice &dev) __NE___
 	{
 		_complete.store( false );
 
@@ -179,7 +178,7 @@ namespace AE::Graphics
 	_ReleaseObject
 =================================================
 */
-	void  VCommandBatch::VirtualFence::_ReleaseObject () __NE___
+	void  CommandBatch::VirtualFence::_ReleaseObject () __NE___
 	{
 		MemoryBarrier( EMemoryOrder::Acquire );
 
@@ -193,7 +192,7 @@ namespace AE::Graphics
 	IsCompleted
 =================================================
 */
-	bool  VCommandBatch::VirtualFence::IsCompleted (const VDevice &dev) __NE___
+	bool  CommandBatch::VirtualFence::IsCompleted (const VDevice &dev) __NE___
 	{
 		if_likely( _complete.load() )
 			return true;
@@ -217,7 +216,7 @@ namespace AE::Graphics
 	Wait
 =================================================
 */
-	bool  VCommandBatch::VirtualFence::Wait (const VDevice &dev, nanoseconds timeout) __NE___
+	bool  CommandBatch::VirtualFence::Wait (const VDevice &dev, nanoseconds timeout) __NE___
 	{
 		if_likely( _complete.load() )
 			return true;
@@ -242,7 +241,7 @@ namespace AE::Graphics
 	constructor
 =================================================
 */
-	VCommandBatch::VCommandBatch () __NE___
+	CommandBatch::CommandBatch () __NE___
 	{
 		#if AE_VK_TIMELINE_SEMAPHORE
 		{
@@ -270,7 +269,7 @@ namespace AE::Graphics
 	destructor
 =================================================
 */
-	VCommandBatch::~VCommandBatch () __NE___
+	CommandBatch::~CommandBatch () __NE___
 	{
 		#if AE_VK_TIMELINE_SEMAPHORE
 			auto&	dev = GraphicsScheduler().GetDevice();
@@ -283,7 +282,7 @@ namespace AE::Graphics
 	_Create
 =================================================
 */
-	bool  VCommandBatch::_Create (FrameUID frameId, const CmdBatchDesc &desc) __NE___
+	bool  CommandBatch::_Create (FrameUID frameId, const CmdBatchDesc &desc) __NE___
 	{
 		#if AE_VK_TIMELINE_SEMAPHORE
 			CHECK_ERR( _tlSemaphore != Default );
@@ -322,7 +321,7 @@ namespace AE::Graphics
 	Wait
 =================================================
 */
-	bool  VCommandBatch::Wait (nanoseconds timeout) __NE___
+	bool  CommandBatch::Wait (nanoseconds timeout) __NE___
 	{
 		if_likely( IsCompleted() )
 			return true;
@@ -355,7 +354,7 @@ namespace AE::Graphics
 	GetSemaphore
 =================================================
 */
-	VulkanCmdBatchDependency  VCommandBatch::GetSemaphore () C_NE___
+	VulkanCmdBatchDependency  CommandBatch::GetSemaphore () C_NE___
 	{
 	#if AE_VK_TIMELINE_SEMAPHORE
 		return { _tlSemaphore, _tlSemaphoreVal.load() };
@@ -369,12 +368,12 @@ namespace AE::Graphics
 =================================================
 */
 #if AE_VK_TIMELINE_SEMAPHORE
-	void  VCommandBatch::_OnSubmit () __NE___
+	void  CommandBatch::_OnSubmit () __NE___
 	{
 		_OnSubmit2();
 	}
 #else
-	void  VCommandBatch::_OnSubmit (RC<VirtualFence> fence) __NE___
+	void  CommandBatch::_OnSubmit (RC<VirtualFence> fence) __NE___
 	{
 		_OnSubmit2();
 		_fence = RVRef(fence);
@@ -387,7 +386,7 @@ namespace AE::Graphics
 =================================================
 */
 #if AE_VK_TIMELINE_SEMAPHORE
-	bool  VCommandBatch::_GetWaitSemaphores (VTempStackAllocator &allocator, OUT VkSemaphoreSubmitInfoKHR const* &semInfos, OUT uint &count) __NE___
+	bool  CommandBatch::_GetWaitSemaphores (VTempStackAllocator &allocator, OUT VkSemaphoreSubmitInfoKHR const* &semInfos, OUT uint &count) __NE___
 	{
 		semInfos = null;
 		count	 = 0;
@@ -431,7 +430,7 @@ namespace AE::Graphics
 =================================================
 */
 #if AE_VK_TIMELINE_SEMAPHORE
-	bool  VCommandBatch::_GetSignalSemaphores (VTempStackAllocator &allocator, OUT VkSemaphoreSubmitInfoKHR const* &semInfos, OUT uint &count) __NE___
+	bool  CommandBatch::_GetSignalSemaphores (VTempStackAllocator &allocator, OUT VkSemaphoreSubmitInfoKHR const* &semInfos, OUT uint &count) __NE___
 	{
 		count = 1;
 
@@ -482,7 +481,7 @@ namespace AE::Graphics
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-	bool  VCommandBatch::_GetWaitSemaphores (VTempStackAllocator &allocator, OUT VkSemaphore const* &outSems, OUT VkPipelineStageFlags const* &outStages, OUT uint &count) __NE___
+	bool  CommandBatch::_GetWaitSemaphores (VTempStackAllocator &allocator, OUT VkSemaphore const* &outSems, OUT VkPipelineStageFlags const* &outStages, OUT uint &count) __NE___
 	{
 		outSems		= null;
 		outStages	= null;
@@ -521,7 +520,7 @@ namespace AE::Graphics
 =================================================
 */
 #if not AE_VK_TIMELINE_SEMAPHORE
-	bool  VCommandBatch::_GetSignalSemaphores (VTempStackAllocator &allocator, OUT VkSemaphore const* &outSems, OUT uint &count) __NE___
+	bool  CommandBatch::_GetSignalSemaphores (VTempStackAllocator &allocator, OUT VkSemaphore const* &outSems, OUT uint &count) __NE___
 	{
 		outSems	= null;
 		count	= 0;

@@ -26,36 +26,6 @@ namespace AE::VFS
 
 
 		//
-		// Async Write Block Task
-		//
-		class AsyncWriteBlockTask final : public IAsyncTask
-		{
-		// variables
-		private:
-			const NDSRequestID	_id;
-			const void *		_data;
-			const Bytes			_dataSize;
-			Bytes				_sent;
-			uint				_partIdx	= 0;
-			Bytes				_pos;
-			RC<>				_memRC;				// keep memory alive
-
-		// methods
-		public:
-			AsyncWriteBlockTask (NDSRequestID id, const void* data, Bytes dataSize, Bytes pos, RC<> mem) __NE___ :
-				IAsyncTask{ ETaskQueue::Background },
-				_id{id}, _data{data}, _dataSize{dataSize},
-				_pos{pos}, _memRC{RVRef(mem)}
-			{}
-
-			void		Run ()			__Th_OV;
-			void		OnCancel ()		__NE_OV;
-			StringView	DbgName ()		C_NE_OV	{ return "AsyncWriteBlockTask"; }
-		};
-
-
-
-		//
 		// Protected Pointer for Request
 		//
 		template <typename T>
@@ -92,7 +62,7 @@ namespace AE::VFS
 		//
 		// Request Base
 		//
-		class _RequestBase : public Threading::_hidden_::IAsyncDataSourceRequest
+		class _RequestBase : public _Coro_::IAsyncDataSourceRequest
 		{
 		// variables
 		protected:
@@ -126,19 +96,16 @@ namespace AE::VFS
 
 		// methods
 		public:
-			ND_ bool	Init (Bytes pos, Bytes size, void* data, RC<> mem)		__NE___;
-				void	Complete (Bytes size, HashVal64 hash)					__NE___;
-				void	Update (ushort partIdx, const void* data, Bytes size)	__NE___;
+			ND_ bool		Init (Bytes pos, Bytes size, void* data, RC<> mem)		__NE___;
+				void		Complete (Bytes size, HashVal64 hash)					__NE___;
+				void		Update (ushort partIdx, const void* data, Bytes size)	__NE___;
 
 			// IAsyncDataSourceRequest //
-			Result		GetResult ()						C_NE_OV;
-			bool		Cancel ()							__NE_OV;
-			Promise_t	AsPromise (ETaskQueue)				__NE_OV;
+			Result			GetResult ()						C_NE_OV;
+			bool			Cancel ()							__NE_OV;
 
 		private:
-				void	_ReleaseObject ()					__NE_OV;
-
-			ND_ ResultWithRC  _GetResult ()					__NE___;
+				void		_ReleaseObject ()					__NE_OV;
 		};
 
 
@@ -154,19 +121,16 @@ namespace AE::VFS
 
 		// methods
 		public:
-			ND_ bool	Init (AsyncTask task, Bytes pos)	__NE___;
-				void	Complete (Bytes written)			__NE___;
-				void	Failed ()							__NE___	{ Complete( 0_b ); }
+			ND_ bool		Init (AsyncTask task, Bytes pos)	__NE___;
+				void		Complete (Bytes written)			__NE___;
+				void		Failed ()							__NE___	{ Complete( 0_b ); }
 
 			// IAsyncDataSourceRequest //
-			Result		GetResult ()						C_NE_OV;
-			bool		Cancel ()							__NE_OV;
-			Promise_t	AsPromise (ETaskQueue)				__NE_OV;
+			Result			GetResult ()						C_NE_OV;
+			bool			Cancel ()							__NE_OV;
 
 		private:
-				void	_ReleaseObject ()					__NE_OV;
-
-			ND_ ResultWithRC  _GetResult ()					__NE___;
+				void		_ReleaseObject ()					__NE_OV;
 		};
 
 
@@ -322,6 +286,8 @@ namespace AE::VFS
 		void  _ReadComplete (CSMsg_VFS_ReadComplete const&)				__NE___;
 
 		void  _WriteComplete (CSMsg_VFS_WriteComplete const&)			__NE___;
+
+		static AsyncCoro  _AsyncWriteBlock (NDSRequestID id, const void* data, Bytes dataSize, Bytes pos, RC<> mem) __NE___;
 	};
 
 

@@ -8,7 +8,7 @@
 #include "graphics_rhi/Remote/RConnection.h"
 
 #ifdef AE_ENABLE_VULKAN
-# include "VulkanSyncLog.h"
+# include "vulkan_sync_log/VulkanSyncLog.h"
 #endif
 
 namespace AE::RemoteGraphics
@@ -89,6 +89,9 @@ namespace AE::RemoteGraphics
 			Array<RC<SharedMem>>	memStack;
 		};
 		using ThreadArr_t = StaticArray< PerThreadData, RmNetConfig::socketCount >;
+		
+		class RenderTask2;
+		class DrawTask2;
 
 
 	public:
@@ -113,8 +116,8 @@ namespace AE::RemoteGraphics
 				char					_unused2	= 0;
 			};
 			DirectCtx::CommandBuffer	cmdbuf;
-			Ptr<const RenderTask>		rtask;
-			Ptr<const DrawTask>			dtask;
+			Ptr<const RenderTask2>		rtask;
+			Ptr<const DrawTask2>		dtask;
 
 			GetDeviceMem_t				getMem;
 			AddHostMem_t				addMem;
@@ -122,8 +125,8 @@ namespace AE::RemoteGraphics
 			RmGAppListener &			rmdev;
 
 		// methods
-			CmdCtx (RenderTask &task, RmGAppListener &rmdev) : rtask{&task}, rmdev{rmdev} {}
-			CmdCtx (DrawTask &task, RmGAppListener &rmdev)   : dtask{&task}, rmdev{rmdev} {}
+			CmdCtx (RenderTask2 &task, RmGAppListener &rmdev) : rtask{&task}, rmdev{rmdev} {}
+			CmdCtx (DrawTask2 &task, RmGAppListener &rmdev)   : dtask{&task}, rmdev{rmdev} {}
 			~CmdCtx ();
 
 			void  End () __Th___;
@@ -133,45 +136,47 @@ namespace AE::RemoteGraphics
 
 
 	private:
-		class RenderTaskImpl final : public Graphics::RenderTask
+		class RenderTask2 : public EnableRC<RenderTask2>
 		{
 		public:
-			CmdCtx		ctx;
+			_Coro_::RenderTaskImpl	baseTask;
+			CmdCtx					ctx;
 
 		public:
-			RenderTaskImpl (RmGAppListener &rmdev, CommandBatchPtr batch, uint exeIndex) __NE___ :
-				RenderTask{ RVRef(batch), CmdBufExeIndex::Exact(exeIndex), Default }, ctx{ *this, rmdev } {}
+			RenderTask2 (RmGAppListener &rmdev, CommandBatchPtr batch, uint exeIndex) __NE___;
 
-				void  Run ()			__Th_OV {}
 				void  Execute ()		__Th___;
-			ND_ bool  IsSubmitted ()	C_NE___	{ return not IsValid(); }
+			ND_ bool  IsSubmitted ()	C_NE___	{ return not baseTask.IsValid(); }
+			ND_ bool  IsValid ()		C_NE___	{ return baseTask.IsValid(); }
 		};
 
-		class DrawTaskImpl final : public Graphics::DrawTask
+
+		class DrawTask2 : public EnableRC<DrawTask2>
 		{
 		public:
-			CmdCtx		ctx;
+			_Coro_::DrawTaskImpl	baseTask;
+			CmdCtx					ctx;
 
 		public:
-			DrawTaskImpl (RmGAppListener &rmdev, DrawCommandBatchPtr batch, uint drawIndex) __NE___ :
-				DrawTask{ RVRef(batch), CmdBufExeIndex::Exact(drawIndex), Default }, ctx{ *this, rmdev } {}
+			DrawTask2 (RmGAppListener &rmdev, DrawCommandBatchPtr batch, uint drawIndex) __NE___;
 
-				void  Run ()			__Th_OV {}
 				void  Execute ()		__Th___;
-			ND_ bool  IsSubmitted ()	C_NE___	{ return not IsValid(); }
+			ND_ bool  IsSubmitted ()	C_NE___	{ return not baseTask.IsValid(); }
+			ND_ bool  IsValid ()		C_NE___	{ return baseTask.IsValid(); }
 		};
 
-		using RenderTaskPool_t		= LfStaticIndexedPool< PtrAndGen< RC<RenderTaskImpl> >,		Index_t, 64 >;
+
+		using RenderTaskPool_t		= LfStaticIndexedPool< PtrAndGen< RC<RenderTask2> >,		Index_t, 64 >;
 		using CmdBatchPool_t		= LfStaticIndexedPool< PtrAndGen< CommandBatchPtr >,		Index_t, 64 >;
 
-		using DrawTaskPool_t		= LfStaticIndexedPool< PtrAndGen< RC<DrawTaskImpl> >,		Index_t, 64 >;
+		using DrawTaskPool_t		= LfStaticIndexedPool< PtrAndGen< RC<DrawTask2> >,			Index_t, 64 >;
 		using DrawCmdBatchPool_t	= LfStaticIndexedPool< PtrAndGen< DrawCommandBatchPtr >,	Index_t, 64 >;
 
 		using GpuSemaphorePool_t	= LfStaticIndexedPool< PtrAndGen< GpuSemaphore >,			Index_t, 256 >;
-		using GpuSemaphoreMap_t		= Synchronized< SharedMutex, FlatHashMap< GpuSemaphore,  RmSemaphoreID >>;
+		using GpuSemaphoreMap_t		= Synchronized< SharedMutex, FlatHashMap< GpuSemaphore, RmSemaphoreID >>;
 
 		using GpuQueryPool_t		= LfStaticIndexedPool< PtrAndGen< GpuQuery >,				Index_t, 64 >;
-		using GpuQueryMap_t			= Synchronized< SharedMutex, FlatHashMap< GpuQuery,  RmQueryID >>;
+		using GpuQueryMap_t			= Synchronized< SharedMutex, FlatHashMap< GpuQuery, RmQueryID >>;
 
 		struct DevToHostCopy
 		{
@@ -303,8 +308,8 @@ namespace AE::RemoteGraphics
 		ND_ GfxMemAllocatorPtr		_Get (RmGfxMemAllocatorID);
 		ND_ DescriptorAllocatorPtr	_Get (RmDescriptorAllocatorID);
 		ND_ RenderTechPipelinesPtr	_Get (RmRenderTechPipelinesID);
-		ND_ RC<RenderTaskImpl>		_Get (RmCommandBufferID);
-		ND_ RC<DrawTaskImpl>		_Get (RmDrawCommandBufferID);
+		ND_ RC<RenderTask2>		_Get (RmCommandBufferID);
+		ND_ RC<DrawTask2>		_Get (RmDrawCommandBufferID);
 		ND_ CommandBatchPtr			_Get (RmCommandBatchID);
 		ND_ DrawCommandBatchPtr		_Get (RmDrawCommandBatchID);
 		ND_ GpuSemaphore			_GetSemaphore (RmSemaphoreID);
@@ -313,8 +318,8 @@ namespace AE::RemoteGraphics
 		ND_ RmGfxMemAllocatorID		_Set (GfxMemAllocatorPtr);
 		ND_ RmDescriptorAllocatorID	_Set (DescriptorAllocatorPtr);
 		ND_ RmRenderTechPipelinesID	_Set (RenderTechPipelinesPtr);
-		ND_ RmCommandBufferID		_Set (RC<RenderTaskImpl>);
-		ND_ RmDrawCommandBufferID	_Set (RC<DrawTaskImpl>);
+		ND_ RmCommandBufferID		_Set (RC<RenderTask2>);
+		ND_ RmDrawCommandBufferID	_Set (RC<DrawTask2>);
 		ND_ RmCommandBatchID		_Set (CommandBatchPtr);
 		ND_ RmSemaphoreID			_SetSemaphore (GpuSemaphore);
 		ND_ RmQueryID				_SetQuery (GpuQuery);

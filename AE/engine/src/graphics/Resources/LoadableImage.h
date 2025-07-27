@@ -30,7 +30,7 @@ namespace AE::Graphics
 			ND_ static Promise<RC<LoadableImage>>  LoadAsync (Serializing::Deserializer &des, GfxMemAllocatorPtr alloc,
 															  ResourceCache &, ResourceUploadManager &, CachedResourceName::Ref selfName = Default) __NE___;
 		private:
-			class OnUploadCompleteTask;
+			ND_ static AsyncCoro  _OnUploadComplete (RC<LoadableImage>) __NE___;
 		};
 
 		using UploadResult = ResourceUploadManager::AtomicUploadResult;

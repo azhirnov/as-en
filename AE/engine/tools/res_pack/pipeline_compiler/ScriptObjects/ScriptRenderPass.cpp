@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ScriptRenderPass.h"
-#include "ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptRenderPass.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
 
 AE_DECL_SCRIPT_TYPE(	AE::PipelineCompiler::EAttachment,				"EAttachment"			);
 AE_DECL_SCRIPT_TYPE(	AE::PipelineCompiler::EAttachmentLoadOp,		"EAttachmentLoadOp"		);

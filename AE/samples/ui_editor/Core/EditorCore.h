@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "ui_editor/Core/UIScreen.h"
-#include "ui_editor/Core/ScriptExe.h"
+#include "Core/UIScreen.h"
+#include "Core/ScriptExe.h"
 
 namespace AE::UIEditor
 {
@@ -113,9 +113,9 @@ namespace AE::UIEditor
 	private:
 		ND_ bool  _LoadPipelinePack (IOutputSurface &);
 
-		ND_ static CoroTask  _ProcessInput1 (TsInputActions input, RC<UIScreen> ui, ActionQueueReader reader);
-		ND_ static CoroTask  _ProcessInput2 (TsInputActions input, RC<UIEditorCore> core, ActionQueueReader reader);
-		ND_ static CoroTask  _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
+		ND_ static AsyncCoro  _ProcessInput1 (TsInputActions input, RC<UIScreen> ui, ActionQueueReader reader);
+		ND_ static AsyncCoro  _ProcessInput2 (TsInputActions input, RC<UIEditorCore> core, ActionQueueReader reader);
+		ND_ static AsyncCoro  _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
 
 		static void  _CheckScriptDir (INOUT ScriptDirData &);
 		static void  _RecursiveCheckScriptDir (INOUT ScriptFolder &dst, INOUT usize &nodeID, const Path &dir, uint depth, uint maxDepth);

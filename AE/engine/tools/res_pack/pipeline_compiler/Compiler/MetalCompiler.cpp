@@ -27,7 +27,7 @@
 #	pragma GCC diagnostic pop
 # endif
 
-# include "Compiler/MetalCompiler.h"
+# include "res_pack/pipeline_compiler/Compiler/MetalCompiler.h"
 
 namespace AE::PipelineCompiler
 {

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ui_editor/Core/UIScreen.h"
+#include "Core/UIScreen.h"
 
 namespace AE::VFS
 {

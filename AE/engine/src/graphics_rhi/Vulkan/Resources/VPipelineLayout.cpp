@@ -24,7 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VPipelineLayout::Create (VResourceManager &resMngr, const CreateInfo &ci) __NE___
+	bool  VPipelineLayout::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
 		using VkDescriptorSetLayouts_t	= StaticArray< VkDescriptorSetLayout, GraphicsConfig::MaxDescriptorSets >;
 		using VkPushConstantRanges_t	= FixedArray< VkPushConstantRange, GraphicsConfig::MaxPushConstants >;
@@ -91,7 +91,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VPipelineLayout::Destroy (VResourceManager &resMngr) __NE___
+	void  VPipelineLayout::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

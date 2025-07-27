@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "Packer/PipelinePack.h"
-#include "Compiler/SpirvCompiler.h"
+#include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
+#include "res_pack/pipeline_compiler/Compiler/SpirvCompiler.h"
 
 namespace AE::PipelineCompiler
 {

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptDynamicVars.h"
-#include "res_editor/Scripting/ScriptExe.h"
+#include "Scripting/ScriptDynamicVars.h"
+#include "Scripting/ScriptExe.h"
 
 namespace AE::ResEditor
 {

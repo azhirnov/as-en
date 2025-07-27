@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "res_editor/Resources/IResource.h"
-#include "res_editor/Resources/DataTransferQueue.h"
+#include "Resources/IResource.h"
+#include "Resources/DataTransferQueue.h"
 
 namespace AE::ResEditor
 {
@@ -70,7 +70,7 @@ namespace AE::ResEditor
 			LoadOp2 () {}
 			LoadOp2 (const LoadOp &other) : LoadOp{other} {}
 
-			ND_ bool  IsCompleted ()	const	{ return complete; }
+			ND_ bool  IsUploadComplete ()	const	{ return complete; }
 		};
 
 
@@ -188,9 +188,6 @@ namespace AE::ResEditor
 
 		ND_ static IntermImageRC  _Load (const AsyncDSRequestResult &in, EImageFormat fileFormat);
 	};
-
-
-	AE_BIT_OPERATORS( Image::ELoadOpFlags );
 
 
 } // AE::ResEditor

@@ -117,6 +117,12 @@ namespace
 		StaticAssert( b1 == (8 + 8*8) );
 		StaticAssert( b2 == 8 );
 	#endif
+
+		using T = int;
+		constexpr FixedArray< T, 8 >	arr1;
+
+		StaticAssert( arr1.empty() );
+		StaticAssert( arr1 == arr1.ToArrayView() );
 	}
 
 

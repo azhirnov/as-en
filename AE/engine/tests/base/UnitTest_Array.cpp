@@ -103,6 +103,16 @@ namespace
 		}
 		TEST( it1 == view.rend() );
 	}
+
+
+	static void  ArrayView_Test2 ()
+	{
+		constexpr ArrayView<int>	view0;
+		//constexpr ArrayView<int>	view1{ List{ 1, 2, 3 }};
+
+		StaticAssert( view0.size() == 0 );
+		//StaticAssert( view1.size() == 3 );
+	}
 }
 
 
@@ -115,6 +125,7 @@ extern void UnitTest_Array ()
 	ExponentialSearch_Test1();
 
 	ArrayView_Test1();
+	ArrayView_Test2();
 
 	TEST_PASSED();
 }

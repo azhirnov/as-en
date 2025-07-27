@@ -1,9 +1,8 @@
 
 * [HDR Display](papers/HDR_Display.md)
 * [GPU Benchmarks](papers/GPU_Benchmarks.md)
+* [CPU Benchmarks](papers/CPU_Benchmarks.md)
 * [Collection of CPU and GPU architecture details](https://github.com/azhirnov/cpu-gpu-arch)
-* [Projection on Sphere (ru)](papers/SphericalCube-ru.md)
-* [Ultra-wide Screen Projection (ru)](papers/ScreenProjections-ru.md)
 
 ## rus
 
@@ -12,6 +11,7 @@
 * [Асинхронное программирование](papers/AsyncProgramming-ru.md)
 * [Заметки по архитектуре](papers/ArchitectureNotes-ru.md)
 * [Заметки по ECS/DOD](papers/ECSNotes-ru.md)
+* [Примеры по С++](papers/CPP_Snipets-ru.md)
 * [Проекция на сферу](papers/SphericalCube-ru.md)
 * [Проекции на ультра широкий экран](papers/ScreenProjections-ru.md)
 * [Отсечение невидимой геометриии](papers/GeometryCulling-ru.md)

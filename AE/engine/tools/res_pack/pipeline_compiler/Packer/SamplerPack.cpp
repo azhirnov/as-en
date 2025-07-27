@@ -1,10 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "SamplerPack.h"
+#include "res_pack/pipeline_compiler/Packer/SamplerPack.h"
 #include "graphics_rhi/Private/EnumToString.h"
 
 #ifdef AE_BUILD_PIPELINE_COMPILER
-# include "ScriptObjects/ObjectStorage.h"
+# include "res_pack/pipeline_compiler/ScriptObjects/ScriptSampler.h"
+# include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
+# include "res_pack/pipeline_compiler/Packer/SamplerPacker.h"
 #endif
 
 

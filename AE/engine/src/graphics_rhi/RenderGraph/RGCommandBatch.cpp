@@ -129,7 +129,7 @@ namespace AE::RG::_hidden_
 */
 	void  RGCommandBatchPtr::RenderTaskBuilder::_BeforeRun () __NE___
 	{
-		const bool	is_first	= _rtask->IsFirstInBatch();
+		const bool	is_first	= RenderTaskImpl::UserApi{_rtask.get()}.IsFirstInBatch();
 		auto&		rg_batch	= *Cast<RGBatchData>( _cmdBatch.GetUserData() );
 		DRC_EXLOCK( rg_batch._drCheck );
 

@@ -27,7 +27,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RImage::Create (RResourceManager &resMngr, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  RImage::Create (ResourceManager &resMngr, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _imageId );
@@ -70,7 +70,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RImage::Create (RResourceManager &resMngr, const RemoteImageDesc &desc, GfxMemAllocatorPtr, StringView dbgName) __NE___
+	bool  RImage::Create (ResourceManager &resMngr, const RemoteImageDesc &desc, GfxMemAllocatorPtr, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _imageId );
@@ -92,7 +92,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RImage::Destroy (RResourceManager &resMngr) __NE___
+	void  RImage::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -125,7 +125,7 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  RImage::IsSupported (const RResourceManager &resMngr, const ImageDesc &desc) __NE___
+	bool  RImage::IsSupported (const ResourceManager &resMngr, const ImageDesc &desc) __NE___
 	{
 		if ( not Image_IsSupported( resMngr, desc, True{"imageFormatList"} ))
 			return false;
@@ -144,7 +144,7 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  RImage::IsSupported (const RResourceManager &resMngr, const ImageDesc &desc, const ImageViewDesc &viewDesc) __NE___
+	bool  RImage::IsSupported (const ResourceManager &resMngr, const ImageDesc &desc, const ImageViewDesc &viewDesc) __NE___
 	{
 		if ( not ImageView_IsSupported( resMngr, desc, viewDesc ))
 			return false;

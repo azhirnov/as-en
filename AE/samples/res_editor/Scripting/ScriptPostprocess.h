@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptBaseRenderPass.h"
+#include "Scripting/ScriptBaseRenderPass.h"
 
 namespace AE::ResEditor
 {
@@ -63,8 +63,6 @@ namespace AE::ResEditor
 	// ScriptBasePass //
 		void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)											C_Th_OV;
 	};
-
-	AE_BIT_OPERATORS( ScriptPostprocess::EPostprocess );
 
 
 } // AE::ResEditor

@@ -4,7 +4,7 @@
 # include "graphics_rhi/Remote/RSwapchain.h"
 # include "graphics_rhi/Remote/RRenderTaskScheduler.h"
 
-# include "GraphicsLib.h"
+# include "graphics_rhi_shared/GraphicsLib.h"
 
 namespace AE::Graphics
 {

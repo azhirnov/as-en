@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ui_editor/Core/ScriptExe.h"
+#include "Core/ScriptExe.h"
 #include "vfs/Archive/ReloadableArchiveStorage.h"
 
 #include "res_pack/pipeline_compiler/PipelineCompiler.h"
@@ -156,7 +156,7 @@ namespace
 		CHECK_ERR( _vfStorage->Open( OUT screen->styleStream, VFS::FileName{"ui-editor.style"} ));
 		CHECK_ERR( _vfStorage->Open( OUT screen->widgetStream, VFS::FileName{"ui-editor.widget"} ));
 
-		AE_LOGI( "<<<<< Loaded script >>>>>", ToString(scriptPath), 1 );
+		AE_LOGI( "<<<<< Loaded script >>>>>", SourceLoc( ToString(scriptPath).c_str(), 1 ));
 		return screen;
 	}
 
@@ -212,7 +212,7 @@ namespace
 
 		info.flags					= EPipelineCompilerFlags::AddNameMapping;
 
-		return BitCast<decltype(&CompilePipelines)>(_compilePipelines)( &info );
+		return BitCast<CompilePipelinesFn_t>(_compilePipelines)( &info );
 	}
 
 /*
@@ -252,7 +252,7 @@ namespace
 		info.tempFile				= temp_file.c_str();
 		info.outputArchive			= output.c_str();
 
-		return BitCast<decltype(&PackAssets)>(_packAssets)( &info );
+		return BitCast<PackAssetsFn_t>(_packAssets)( &info );
 	}
 
 /*

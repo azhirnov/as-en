@@ -1,12 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ScriptUIWidget.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptUIWidget.h"
 
 #include "graphics/UI/Widget.h"
 
-#include "ScriptObjects/ScriptUIWidget_Controller.cpp.h"
-#include "ScriptObjects/ScriptUIWidget_Drawable.cpp.h"
-#include "ScriptObjects/ScriptUIWidget_Layout.cpp.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptUIWidget_Controller.cpp.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptUIWidget_Drawable.cpp.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptUIWidget_Layout.cpp.h"
 
 
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptUIWidget,			"UIWidget"			);
@@ -137,7 +137,7 @@ namespace AE::AssetPacker
 			switch_enum( ELayoutAlign::Unknown )
 			{
 				case ELayoutAlign::_Last :
-				case ELayoutAlign::_All :
+				case ELayoutAlign::All :
 				case ELayoutAlign::Unknown :
 				#define CASE( _name_ )		case ELayoutAlign::_name_ :  binder.AddValue( #_name_, ELayoutAlign::_name_ );
 				CASE( Left )

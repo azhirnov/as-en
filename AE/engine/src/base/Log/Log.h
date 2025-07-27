@@ -6,6 +6,38 @@ namespace AE::Base
 {
 
 	//
+	// Source Code Location
+	//
+	struct SourceLoc
+	{
+	// variables
+	private:
+		const char*		_file	= null;
+		const char*		_fn		= null;
+		unsigned int	_line	= 0;
+		unsigned int	_column	= 0;
+		
+	// methods
+	public:
+		__Cx__ SourceLoc ()											__NE___	{}
+		__Cx__ SourceLoc (const std::source_location &loc)			__NE___	: _file{loc.file_name()}, _fn{loc.function_name()}, _line{loc.line()}, _column{loc.column()} {}
+		__Cx__ explicit SourceLoc (const char* file,
+								   unsigned int line = 0,
+								   unsigned int column = 0)			__NE___	: _file{file}, _line{line}, _column{column} {}
+		__Cx__ SourceLoc (const char* file, const char* fn,
+						  unsigned int line, unsigned int column)	__NE___	: _file{file}, _fn{fn}, _line{line}, _column{column} {}
+
+		NdCe__ static SourceLoc  current (const std::source_location &loc = std::source_location::current()) __NE___ { return SourceLoc{loc}; }
+			
+		NdCx__ const char*		function_name ()					C_NE___	{ return _fn; }
+		NdCx__ const char*		file_name ()						C_NE___	{ return _file; }
+		NdCx__ unsigned int		column ()							C_NE___	{ return _column; }
+		NdCx__ unsigned int		line ()								C_NE___	{ return _line; }
+	};
+
+
+
+	//
 	// Logger interface
 	//
 
@@ -46,9 +78,7 @@ namespace AE::Base
 		struct MessageInfo
 		{
 			std::string_view	message;
-			std::string_view	func;
-			std::string_view	file;
-			unsigned int		line		= 0;
+			SourceLoc			loc;
 			size_t				threadId	= 0;
 			ELevel				level		= ELevel::Debug;
 			EScope				scope		= EScope::Unknown;
@@ -99,7 +129,7 @@ namespace AE::Base
 
 
 	// methods
-		ND_ static EResult  Process (std::string_view msg, std::string_view func, std::string_view file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)	__Th___;
+		ND_ static EResult  Process (std::string_view msg, const SourceLoc &loc, ILogger::ELevel level, ILogger::EScope scope) __Th___;
 
 			static void		SetFilter (LevelBits levelBits, ScopeBits scopeBits)__NE___;
 
@@ -133,18 +163,17 @@ namespace AE
 } // AE
 
 #ifdef AE_ENABLE_LOGS
-# define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ )							\
-	if_not_consteval () {																								\
-		TRY{																											\
-			{switch_enum( AE::Base::StaticLogger::Process(	std::string_view{_msg_}, (AE_FUNCTION_NAME),				\
-															std::string_view{_file_}, (_line_), (_level_), (_scope_) ))	\
-			{																											\
-				case_likely	AE::Base::StaticLogger::EResult::Continue :		break;										\
-				case		AE::Base::StaticLogger::EResult::Break :		AE_PRIVATE_BREAK_POINT();	break;			\
-				case		AE::Base::StaticLogger::EResult::Abort :		AE_PRIVATE_EXIT();			break;			\
-			}}																											\
-			switch_end																									\
-		}CATCH_ALL();	/* to catch exceptions in string formatting */													\
+# define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _srcLoc_ )									\
+	if_not_consteval () {																									\
+		TRY{																												\
+			{switch_enum( AE::Base::StaticLogger::Process(	std::string_view{_msg_}, (_srcLoc_), (_level_), (_scope_) ))	\
+			{																												\
+				case_likely	AE::Base::StaticLogger::EResult::Continue :		break;											\
+				case		AE::Base::StaticLogger::EResult::Break :		AE_PRIVATE_BREAK_POINT();	break;				\
+				case		AE::Base::StaticLogger::EResult::Abort :		AE_PRIVATE_EXIT();			break;				\
+			}}																												\
+			switch_end																										\
+		}CATCH_ALL();	/* to catch exceptions in string formatting */														\
 	}
 
 #else
@@ -152,6 +181,6 @@ namespace AE
 #endif
 
 
-#define AE_PRIVATE_LOG_I(  _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Info,	 AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
-#define AE_PRIVATE_LOG_E(  _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Error,	 AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
-#define AE_PRIVATE_LOG_W( _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Warning, AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
+#define AE_PRIVATE_LOG_I( _msg_, _srcLoc_ )		AE_PRIVATE_LOGX( AE::ELogLevel::Info,	 AE::ELogScope::Unknown, (_msg_), (_srcLoc_) )
+#define AE_PRIVATE_LOG_E( _msg_, _srcLoc_ )		AE_PRIVATE_LOGX( AE::ELogLevel::Error,	 AE::ELogScope::Unknown, (_msg_), (_srcLoc_) )
+#define AE_PRIVATE_LOG_W( _msg_, _srcLoc_ )		AE_PRIVATE_LOGX( AE::ELogLevel::Warning, AE::ELogScope::Unknown, (_msg_), (_srcLoc_) )

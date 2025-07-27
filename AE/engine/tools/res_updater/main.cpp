@@ -23,3 +23,5 @@ int main (const int argc, char* argv[])
 
 	return 0;
 }
+
+#include "graphics_rhi/Private/ImageMemView.cpp"

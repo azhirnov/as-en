@@ -23,12 +23,12 @@
 #include "profiler/Profilers/PowerVRProfiler.h"
 #include "profiler/Profilers/GeneralProfiler.h"
 
-#include "PipelineCompilerImpl.h"
+#include "res_pack/pipeline_compiler/PipelineCompilerImpl.h"
 
 # ifdef AE_ENABLE_GLSL_TRACE
 #	include "ShaderTrace.h"
 # else
-#	include "Packer/ShaderTraceDummy.h"
+#	include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 # endif
 
 namespace AE::RemoteGraphics::Msg

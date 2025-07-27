@@ -24,7 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VRTShaderBindingTable::Create (VResourceManager &resMngr, const CreateInfo &ci) __NE___
+	bool  VRTShaderBindingTable::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -47,7 +47,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VRTShaderBindingTable::Destroy (VResourceManager &resMngr) __NE___
+	void  VRTShaderBindingTable::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

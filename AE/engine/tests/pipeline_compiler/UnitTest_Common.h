@@ -4,8 +4,8 @@
 
 #include "../shared/UnitTest_Shared.h"
 
-#include "ScriptObjects/DescriptorSetLayout.h"
-#include "ScriptObjects/ObjectStorage.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/DescriptorSetLayout.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
 using namespace AE::PipelineCompiler;
 
 

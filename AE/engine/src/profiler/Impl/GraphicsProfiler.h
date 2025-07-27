@@ -7,6 +7,8 @@
 
 namespace AE::Profiler
 {
+	using namespace AE::ImportCoroutines;
+
 	using AE::Graphics::EQueueType;
 
 	class PowerVRProfiler;
@@ -127,8 +129,6 @@ namespace AE::Profiler
 
 		using TimeScopeArr_t	= PowerVRProfiler::TimeScopeArr_t;
 
-		class ReadResultsTask;
-
 
 	// variables
 	private:
@@ -222,6 +222,8 @@ namespace AE::Profiler
 		void  _ReadResultsPVR ();
 
 		void  _InitImGUI (const ImLineGraph::ColorStyle &style4, const ImLineGraph::ColorStyle &style1);
+
+		static AsyncCoro  _ReadResultsTask (RC<GraphicsProfiler>);
 	};
 
 

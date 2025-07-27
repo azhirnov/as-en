@@ -27,7 +27,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VRTGeometry::Create (VResourceManager &resMngr, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VRTGeometry::Create (ResourceManager &resMngr, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _buffer == Default );
@@ -83,7 +83,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VRTGeometry::Destroy (VResourceManager &resMngr) __NE___
+	void  VRTGeometry::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -112,7 +112,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <bool IsForBuilding>
-	bool  VRTGeometry::_Convert (const VResourceManager &resMngr, const RTGeometryBuild &desc, IAllocatorRef allocator,
+	bool  VRTGeometry::_Convert (const ResourceManager &resMngr, const RTGeometryBuild &desc, IAllocatorRef allocator,
 								 OUT uint* &outPrimitiveCount, OUT VkAccelerationStructureBuildRangeInfoKHR* &outRanges,
 								 OUT VkAccelerationStructureBuildGeometryInfoKHR &outBuildInfo) __NE___
 	{
@@ -260,7 +260,7 @@ namespace AE::Graphics
 	GetBuildSizes
 =================================================
 */
-	RTASBuildSizes  VRTGeometry::GetBuildSizes (const VResourceManager &resMngr, const RTGeometryBuild &desc) __NE___
+	RTASBuildSizes  VRTGeometry::GetBuildSizes (const ResourceManager &resMngr, const RTGeometryBuild &desc) __NE___
 	{
 		GRES_CHECK( IsSupported( resMngr, desc ));
 
@@ -293,7 +293,7 @@ namespace AE::Graphics
 	ConvertBuildInfo
 =================================================
 */
-	bool  VRTGeometry::ConvertBuildInfo (const VResourceManager &resMngr, IAllocatorRef allocator, const RTGeometryBuild &desc,
+	bool  VRTGeometry::ConvertBuildInfo (const ResourceManager &resMngr, IAllocatorRef allocator, const RTGeometryBuild &desc,
 										 OUT VkAccelerationStructureBuildRangeInfoKHR* &ranges, OUT VkAccelerationStructureBuildGeometryInfoKHR &buildInfo) __NE___
 	{
 		GRES_CHECK( IsSupported( resMngr, desc ));
@@ -304,7 +304,7 @@ namespace AE::Graphics
 		return true;
 	}
 
-	bool  VRTGeometry::ConvertBuildInfo (const VResourceManager &resMngr, IAllocatorRef allocator, const RTGeometryBuild &desc,
+	bool  VRTGeometry::ConvertBuildInfo (const ResourceManager &resMngr, IAllocatorRef allocator, const RTGeometryBuild &desc,
 										 OUT uint* &maxPrimitiveCounts, OUT VkAccelerationStructureBuildGeometryInfoKHR &buildInfo) __NE___
 	{
 		GRES_CHECK( IsSupported( resMngr, desc ));
@@ -340,7 +340,7 @@ namespace AE::Graphics
 	IsSupported (RTGeometryDesc)
 =================================================
 */
-	bool  VRTGeometry::IsSupported (const VResourceManager &resMngr, const RTGeometryDesc &desc) __NE___
+	bool  VRTGeometry::IsSupported (const ResourceManager &resMngr, const RTGeometryDesc &desc) __NE___
 	{
 		return RTGeometry_IsSupported( resMngr, desc );
 	}
@@ -350,7 +350,7 @@ namespace AE::Graphics
 	IsSupported (RTGeometryBuild)
 =================================================
 */
-	bool  VRTGeometry::IsSupported (const VResourceManager &resMngr, const RTGeometryBuild &build) __NE___
+	bool  VRTGeometry::IsSupported (const ResourceManager &resMngr, const RTGeometryBuild &build) __NE___
 	{
 		auto&		props		= resMngr.GetDevice().GetDeviceProperties().rayTracing;
 		const usize	geom_count	= build.triangles.size() + build.aabbs.size();

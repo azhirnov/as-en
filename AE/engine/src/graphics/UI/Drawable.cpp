@@ -1,10 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/UI/Drawable.h"
-
-#ifndef AE_UI_NO_GRAPHICS
-# include "graphics/UI/System.h"
-#endif
+#include "graphics/UI/System.h"
 
 namespace AE::UI
 {
@@ -16,18 +13,16 @@ namespace AE::UI
 	_GetColorAnimSpeed
 =================================================
 */
-#ifndef AE_UI_NO_GRAPHICS
-# ifdef AE_CFG_RELEASE
+#ifdef AE_CFG_RELEASE
 	inline float  IDrawable::_GetColorAnimSpeed () C_NE___
 	{
 		return 10.f;
 	}
-# else
+#else
 	inline float  IDrawable::_GetColorAnimSpeed () C_NE___
 	{
 		return UIStyleCollection().GetSettings().colorAnimSpeed;
 	}
-# endif
 #endif
 
 /*
@@ -51,7 +46,6 @@ namespace AE::UI
 	SetStyle
 =================================================
 */
-#ifndef AE_UI_NO_GRAPHICS
 	bool  RectangleDrawable::SetStyle (StyleName::Ref name) __NE___
 	{
 		_data.stylePtr	= UIStyleCollection().GetStyle( name );
@@ -72,20 +66,12 @@ namespace AE::UI
 
 		return true;
 	}
-#else
-	bool  RectangleDrawable::SetStyle (StyleName::Ref name) __NE___
-	{
-		_style = name;
-		return true;
-	}
-#endif
 
 /*
 =================================================
 	Draw
 =================================================
 */
-#ifndef AE_UI_NO_GRAPHICS
 	void  RectangleDrawable::Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx) __Th___
 	{
 		// flush canvas if different materials
@@ -124,10 +110,6 @@ namespace AE::UI
 
 		canvas.Draw( Rectangle2D{ params.clipRect.Scale( scale ), RectF{}, color });
 	}
-#else
-	void  RectangleDrawable::Draw (const DrawParams &, Canvas &, DrawContext_t &) __Th___
-	{}
-#endif
 
 /*
 =================================================
@@ -155,7 +137,6 @@ namespace AE::UI
 	SetStyle
 =================================================
 */
-#ifndef AE_UI_NO_GRAPHICS
 	bool  ImageDrawable::SetStyle (StyleName::Ref name) __NE___
 	{
 		_data.stylePtr	= UIStyleCollection().GetStyle( name );
@@ -177,20 +158,12 @@ namespace AE::UI
 
 		return true;
 	}
-#else
-	bool  ImageDrawable::SetStyle (StyleName::Ref name) __NE___
-	{
-		_style = name;
-		return true;
-	}
-#endif
 
 /*
 =================================================
 	Draw
 =================================================
 */
-#ifndef AE_UI_NO_GRAPHICS
 	void  ImageDrawable::Draw (const DrawParams &params, Canvas &canvas, DrawContext_t &ctx) __Th___
 	{
 		// flush canvas if different materials
@@ -229,10 +202,6 @@ namespace AE::UI
 
 		canvas.Draw( Rectangle2D{ params.clipRect.Scale( scale ), _data.uv, color });
 	}
-#else
-	void  ImageDrawable::Draw (const DrawParams &, Canvas &, DrawContext_t &) __Th___
-	{}
-#endif
 
 /*
 =================================================

@@ -120,8 +120,8 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 		set_property( SOURCE "${InputActionsBinding.trigger}" PROPERTY GENERATED 1 )
 	endif()
 
-	target_compile_definitions( "Tests.AssetPacker" PRIVATE AE_GRAPHICS_STRONG_VALIDATION=0 )
-
+	UseEnginePCH2( "Tests.AssetPacker" )
+	
 	add_test( NAME "Tests.AssetPacker" COMMAND "Tests.AssetPacker" )
 
 endif()

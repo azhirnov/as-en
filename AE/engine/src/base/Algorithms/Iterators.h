@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "base/Common.h"
+#include "base/Utils/Bitfield.h"
+#include "base/Utils/EnumSet.h"
 
 namespace AE::Base
 {
@@ -391,20 +392,23 @@ namespace AE::Base
 		};
 
 	} // _hidden_
-
-	template <typename T> requires( IsUnsignedInteger<T> )
+	
+	template <typename T>
+	  requires( IsUnsignedInteger<T> )
 	NdCx__ auto  BitIndexIterate (const T &bits) __NE___
 	{
 		return Base::_hidden_::BitIndexIterateView< uint, T >{ bits };
 	}
 
-	template <typename T> requires( IsEnum<T> )
+	template <typename R, typename T>
+	  requires( IsUnsignedInteger<R> and IsUnsignedInteger<T> )
 	NdCx__ auto  BitIndexIterate (const T &bits) __NE___
 	{
-		return Base::_hidden_::BitIndexIterateView< T, T >{ bits };
+		return Base::_hidden_::BitIndexIterateView< R, T >{ bits };
 	}
-
-	template <typename R, typename T> requires( IsEnum<T> or IsUnsignedInteger<T> )
+	
+	template <typename R, typename T = R>
+	  requires( IsEnum<R> and IsEnum<T> )
 	NdCx__ auto  BitIndexIterate (const T &bits) __NE___
 	{
 		return Base::_hidden_::BitIndexIterateView< R, T >{ bits };
@@ -419,11 +423,22 @@ namespace AE::Base
 		if constexpr( C <= 64 )
 			return Base::_hidden_::BitIndexIterateView< uint, ulong >{ bits.to_ullong() };
 	}
-
-	template <typename T> requires( IsUnsignedInteger<T> )
-	NdCx__ auto  BitIndexIterate (const Bitfield<T> &bits) __NE___
+	
+	template <typename BF>
+	  requires( IsSpecializationOf< BF, Bitfield >)
+	NdCx__ auto  BitIndexIterate (const BF &bits) __NE___
 	{
+		using T = typename BF::Value_t;
 		return Base::_hidden_::BitIndexIterateView< uint, T >{ T{bits} };
+	}
+	
+	template <typename ES>
+	  requires( IsSpecializationOf< ES, EnumSet >)
+	NdCx__ auto  BitIndexIterate (const ES &bitArray) __NE___
+	{
+		using T = typename ES::Elem_t;
+		using R = typename ES::Value_t;
+		return Base::_hidden_::BitIndexIterateView< R, T >{ bitArray.AsBits() };
 	}
 
 } // AE::Base

@@ -11,9 +11,9 @@
 
 #include "vfs/Archive/ArchivePacker.h"
 
-#include "pipeline_compiler/PipelineCompiler.h"
-#include "input_actions/InputActionsBinding.h"
-#include "asset_packer/AssetPacker.h"
+#include "res_pack/pipeline_compiler/PipelineCompiler.h"
+#include "res_pack/input_actions/InputActionsBinding.h"
+#include "res_pack/asset_packer/AssetPacker.h"
 
 #ifdef AE_OFFLINE_PACKER_USE_STATIC_LIBS
 #	define STATIC_LIBS	1
@@ -25,6 +25,17 @@ using namespace AE;
 using namespace AE::Base;
 using namespace AE::Scripting;
 
+#ifdef STATIC_LIBS
+namespace AE::AssetPacker {
+	extern "C" bool PackAssets (const AssetInfo* info);
+}
+namespace AE::PipelineCompiler {
+	extern "C" bool CompilePipelines (const PipelinesInfo* info);
+}
+namespace AE::InputActions {
+	extern "C" bool ConvertInputActions (const InputActionsInfo* info);
+}
+#endif
 
 namespace
 {
@@ -165,8 +176,8 @@ namespace
 		Path								_outputCppStructsFile;
 		Path								_outputCppNamesFile;
 
-		Library												_lib;
-		decltype(&AE::PipelineCompiler::CompilePipelines)	_fnCompilePipelines	= null;
+		Library									_lib;
+		PipelineCompiler::CompilePipelinesFn_t	_fnCompilePipelines	= null;
 
 
 	public:
@@ -317,8 +328,8 @@ namespace
 		Array< BasicString<CharType> >	_include;
 		Path							_outputCppFile;
 
-		Library												_lib;
-		decltype(&AE::InputActions::ConvertInputActions)	_fnConvertInputActions	= null;
+		Library									_lib;
+		InputActions::ConvertInputActionsFn_t	_fnConvertInputActions	= null;
 
 	public:
 		void  Add (const String &filename) __Th___
@@ -384,8 +395,8 @@ namespace
 		BasicString<CharType>			_tempFile;
 		Array< BasicString<CharType> >	_include;
 
-		Library									_lib;
-		decltype(&AE::AssetPacker::PackAssets)	_fnPackAssets	= null;
+		Library							_lib;
+		AssetPacker::PackAssetsFn_t		_fnPackAssets	= null;
 
 	public:
 		void  Add (const String &filename) __Th___
@@ -771,7 +782,7 @@ namespace
 
 		NOTHROW_ERR( Bind( se ));
 
-		auto	mod = se->CreateModule({ScriptEngine::ModuleSource{ "def"s, RVRef(script), SourceLoc{ansi_path}, True{"preprocessor"} }});
+		auto	mod = se->CreateModule({ScriptEngine::ModuleSource{ "def"s, RVRef(script), SourceLoc{ansi_path.c_str()}, True{"preprocessor"} }});
 		CHECK_ERR( mod );
 
 		auto	scr = se->CreateScript< void () >( "ASmain", mod );

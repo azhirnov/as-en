@@ -8,7 +8,7 @@
 # include "graphics_rhi/Vulkan/Utils/VNvPerfProfiler.h"
 # include "graphics_rhi/Vulkan/Utils/VAMDPerfProfiler.h"
 # include "graphics_rhi/Vulkan/Utils/RenderDocApi.h"
-# include "VulkanExtEmulation.h"
+# include "vulkan_ext_emulator/VulkanExtEmulation.h"
 
 namespace AE::Graphics
 {

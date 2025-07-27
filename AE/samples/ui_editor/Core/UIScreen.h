@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ui_editor/Common.h"
+#include "Common.h"
 
 namespace AE::UIEditor
 {
@@ -61,6 +61,8 @@ namespace AE::UIEditor
 
 	private:
 		static void		_DummyCb (UI::ILayout::LayoutState const&, AnyTypeRef);
+
+		ND_ static RenderCoro  _DrawTask (RC<UIScreen> self, IOutputSurface &surface);
 	};
 
 

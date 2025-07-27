@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-# include "profiler/Profiler.pch.h"
+# include "profiler/Common.h"
 # include "profiler/Profilers/MaliProfiler.h"
 
 namespace AE::Profiler
@@ -431,6 +431,17 @@ namespace
 				switch_end
 				outCounters.emplace( c, val );
 			}
+		}
+
+		// fix sign
+		{
+			auto it = outCounters.find( ECounter::FragFPKKillRate );
+			if ( it != outCounters.end() )
+				it->second = Abs( it->second );
+		}{
+			auto it = outCounters.find( ECounter::FragLZSKillQd );
+			if ( it != outCounters.end() )
+				it->second = Abs( it->second );
 		}
 
 		// add custom counters

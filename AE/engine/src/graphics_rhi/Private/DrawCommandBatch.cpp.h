@@ -2,45 +2,35 @@
 
 #pragma once
 
-#if defined(AE_ENABLE_VULKAN)
-#	define DRAWCMDBATCH		VDrawCommandBatch
-
-#elif defined(AE_ENABLE_METAL)
-#	define DRAWCMDBATCH		MDrawCommandBatch
-
-#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#	define DRAWCMDBATCH		RDrawCommandBatch
-
-#else
-#	error not implemented
-#endif
-//-----------------------------------------------------------------------------
-
-
-
+namespace AE::_Coro_
+{
 /*
 =================================================
 	DbgFullName
 =================================================
 */
 #if AE_DBG_GRAPHICS
-	String  DrawTask::DbgFullName () C_NE___
+	String  DrawTaskImpl::DbgFullName () C_NE___
 	{
-		return String{_batch->DbgName()} << " |" << ToString(GetDrawOrderIndex()) << "| " << _dbgName;
+		return String{_batch->DbgName()} << " |" << ToString(_drawIndex) << "| " << DbgName();
 	}
 #endif
+	
+} // AE::_Coro_
 //-----------------------------------------------------------------------------
 
 
-
+	
+namespace AE::Graphics
+{
 /*
 =================================================
 	_Create
 =================================================
 */
-	bool  DRAWCMDBATCH::_Create (const PrimaryCmdBufState_t &primaryState,
-								 ArrayView<Viewport_t> viewports, ArrayView<Scissor_t> scissors,
-								 DebugLabel dbg) __NE___
+	bool  DrawCommandBatch::_Create (const PrimaryCmdBufState_t &primaryState,
+									 ArrayView<Viewport_t> viewports, ArrayView<Scissor_t> scissors,
+									 DebugLabel dbg) __NE___
 	{
 		CHECK_ERR( primaryState.IsValid() );
 		ASSERT( primaryState.useSecondaryCmdbuf != 0 );
@@ -70,7 +60,7 @@
 	_ReleaseObject
 =================================================
 */
-	void  DRAWCMDBATCH::_ReleaseObject () __NE___
+	void  DrawCommandBatch::_ReleaseObject () __NE___
 	{
 		MemoryBarrier( EMemoryOrder::Acquire );
 
@@ -99,3 +89,5 @@
 		MemoryBarrier( EMemoryOrder::Release );
 		RenderTaskScheduler::DrawCommandBatchApi::Recycle( this );
 	}
+	
+} // AE::Graphics

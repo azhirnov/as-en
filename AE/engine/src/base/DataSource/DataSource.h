@@ -50,6 +50,7 @@ namespace AE::Base
 			WriteAccess			= 1 << 6,
 			Async				= 1 << 7,		// must be 'ThreadSafe' too
 			DeferredOpen		= 1 << 8,		// async file can be opened even if it not exists, but read/write request will fail
+			_BITOPS_
 		};
 
 
@@ -65,8 +66,6 @@ namespace AE::Base
 
 		ND_ bool					IsThreadSafe ()		C_NE___	{ return AllBits( GetSourceType(), ESourceType::ThreadSafe ); }
 	};
-
-	AE_BIT_OPERATORS( IDataSource::ESourceType );
 
 
 

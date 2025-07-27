@@ -6,7 +6,7 @@
 #include "geometry_tools/SphericalCube/SphericalCubeGen.h"
 #include "geometry_tools/Triangulation/CDT_Triangulator.h"
 
-#include "res_editor/Scripting/ScriptExe.h"
+#include "Scripting/ScriptExe.h"
 
 namespace AE::ResEditor
 {

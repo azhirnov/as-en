@@ -6,7 +6,7 @@
 # include "graphics_rhi/Public/DescriptorSet.h"
 # include "graphics_rhi/Private/EnumUtils.h"
 # include "graphics_rhi/Remote/RCommon.h"
-# include "PipelineCompilerImpl.h"
+# include "res_pack/pipeline_compiler/PipelineCompilerImpl.h"
 
 namespace AE::Graphics
 {
@@ -47,7 +47,7 @@ namespace AE::Graphics
 
 		ND_ bool  Create (const RDevice &dev, StringView dbgName)	__NE___;
 		ND_ bool  Create (const RDevice &dev, const CreateInfo &ci)	__NE___;
-			void  Destroy (RResourceManager &)						__NE___;
+			void  Destroy (ResourceManager &)						__NE___;
 
 		ND_ RmDescriptorSetLayoutID		Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dslId; }
 	};

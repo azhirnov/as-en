@@ -511,7 +511,7 @@ namespace AE::AssetPacker
 */
 	void  ScriptAlignedLayout::SetAlign1 (ELayoutAlign value) __Th___
 	{
-		StaticAssert( uint(ELayoutAlign::_All) == 63 );
+		StaticAssert( uint(ELayoutAlign::All) == 63 );
 		constexpr ELayoutAlign	x_mask	= ELayoutAlign::Left | ELayoutAlign::Right | ELayoutAlign::CenterX;
 		constexpr ELayoutAlign	y_mask	= ELayoutAlign::Bottom | ELayoutAlign::Top | ELayoutAlign::CenterY;
 

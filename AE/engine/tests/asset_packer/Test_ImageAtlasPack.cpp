@@ -10,8 +10,8 @@ namespace
 #	include "Packer/ImagePacker.cpp.h"
 #	include "Packer/ImageAtlasPacker.cpp.h"
 
-	const bool				force_update	= true;
-	decltype(&PackAssets)	pack_assets		= null;
+	const bool		force_update	= true;
+	PackAssetsFn_t	pack_assets		= null;
 
 
 	static void  ImageAtlasPack_Test1 ()

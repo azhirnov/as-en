@@ -3,8 +3,8 @@
 #pragma once
 
 #include "base/Memory/IAllocator.h"
-#include "HashToName.h"
-#include "../shared/DefaultPackHeader.h"
+#include "res_pack/pipeline_compiler/Packer/HashToName.h"
+#include "res_pack/shared/DefaultPackHeader.h"
 
 namespace AE::PipelineCompiler
 {

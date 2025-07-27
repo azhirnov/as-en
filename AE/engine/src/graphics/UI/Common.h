@@ -39,6 +39,9 @@ namespace AE::UI
 {
 	using namespace AE::Base;
 
+	ImportBitOperators;
+	using namespace AE::ImportCoroutines;
+
 	#if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::RWDataRaceCheck;
 	#endif
@@ -54,8 +57,6 @@ namespace AE::UI
 	using AE::Graphics::IRenderTechPipelines;
 	using AE::Graphics::RenderTechPipelinesPtr;
 	using AE::Graphics::DescSetBinding;
-
-	using AE::Threading::AsyncTask;
 
 	class ILayout;
 	class IDrawable;
@@ -73,15 +74,3 @@ namespace AE::UI
 	//using ResourceName	= NamedID< 64, UI::_hidden_::NamedIDs_Start + 5, true >;
 
 } // AE::UI
-
-
-
-#ifdef AE_CPP_DETECT_MISMATCH
-
-# ifdef AE_UI_NO_GRAPHICS
-#	pragma detect_mismatch( "AE_UI_NO_GRAPHICS", "1" )
-# else
-#	pragma detect_mismatch( "AE_UI_NO_GRAPHICS", "0" )
-# endif
-
-#endif // AE_CPP_DETECT_MISMATCH

@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Passes/Postprocess.h"
-#include "res_editor/Core/EditorUI.h"
-#include "res_editor/Scripting/ScriptBasePass.cpp.h"
+#include "Scripting/ScriptExe.h"
+#include "Passes/Postprocess.h"
+#include "Core/EditorUI.h"
+#include "Scripting/ScriptBasePass.cpp.h"
 
 namespace AE::ResEditor
 {
@@ -264,7 +264,7 @@ namespace
 } // AE::ResEditor
 
 
-#include "res_editor/Scripting/PipelineCompiler.inl.h"
+#include "Scripting/PipelineCompiler.inl.h"
 #include "base/Algorithms/Parser.h"
 
 namespace AE::ResEditor

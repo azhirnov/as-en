@@ -1,16 +1,16 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ObjectStorage.h"
-#include "ScriptObjects/ScriptTexture.h"
-#include "ScriptObjects/ScriptSharedImage.h"
-#include "ScriptObjects/ScriptImageAtlas.h"
-#include "ScriptObjects/ScriptRasterFont.h"
-#include "ScriptObjects/ScriptMesh.h"
-#include "ScriptObjects/ScriptModel.h"
-#include "ScriptObjects/ScriptMaterial.h"
-#include "ScriptObjects/ScriptResourceMeta.h"
-#include "ScriptObjects/ScriptUIStyleCollection.h"
-#include "ScriptObjects/ScriptUIWidget.h"
+#include "res_pack/asset_packer/ScriptObjects/ObjectStorage.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptTexture.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptSharedImage.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptImageAtlas.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptRasterFont.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptMesh.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptModel.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptMaterial.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptResourceMeta.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptUIStyleCollection.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptUIWidget.h"
 
 #include "scripting/Impl/EnumBinder.h"
 

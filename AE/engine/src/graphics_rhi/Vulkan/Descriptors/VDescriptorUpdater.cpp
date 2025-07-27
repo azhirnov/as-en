@@ -49,7 +49,7 @@ namespace
 	constructor
 =================================================
 */
-	VDescriptorUpdater::VDescriptorUpdater () __NE___ :
+	DescriptorUpdater::DescriptorUpdater () __NE___ :
 		_resMngr{GraphicsScheduler().GetResourceManager()}
 	{}
 
@@ -58,7 +58,7 @@ namespace
 	destructor
 =================================================
 */
-	VDescriptorUpdater::~VDescriptorUpdater () __NE___
+	DescriptorUpdater::~DescriptorUpdater () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -72,7 +72,7 @@ namespace
 	_Reset
 =================================================
 */
-	void  VDescriptorUpdater::_Reset () __NE___
+	void  DescriptorUpdater::_Reset () __NE___
 	{
 		_resMngr.ImmediatelyRelease( INOUT _descSetId );
 
@@ -91,7 +91,7 @@ namespace
 	Set
 =================================================
 */
-	bool  VDescriptorUpdater::Set (DescriptorSetID descrSetId, EDescUpdateMode mode) __NE___
+	bool  DescriptorUpdater::Set (DescriptorSetID descrSetId, EDescUpdateMode mode) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -104,7 +104,7 @@ namespace
 		return false;
 	}
 
-	bool  VDescriptorUpdater::_Set (DescriptorSetID descrSetId, EDescUpdateMode mode) __NE___
+	bool  DescriptorUpdater::_Set (DescriptorSetID descrSetId, EDescUpdateMode mode) __NE___
 	{
 		// flush if:
 		//	- previous mode is 'UpdateTemplate'
@@ -163,14 +163,14 @@ namespace
 	Flush
 =================================================
 */
-	bool  VDescriptorUpdater::Flush () __NE___
+	bool  DescriptorUpdater::Flush () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
 		return _Flush();
 	}
 
-	bool  VDescriptorUpdater::_Flush () __NE___
+	bool  DescriptorUpdater::_Flush () __NE___
 	{
 		if ( _dsLayout == null )
 			return true;
@@ -203,8 +203,8 @@ namespace
 =================================================
 */
 	template <EDescriptorType DescType>
-	Tuple< const VDescriptorUpdater::Uniform_t*, const Bytes16u* >
-		VDescriptorUpdater::_FindUniform (UniformName::Ref name) C_NE___
+	Tuple< const DescriptorUpdater::Uniform_t*, const Bytes16u* >
+		DescriptorUpdater::_FindUniform (UniformName::Ref name) C_NE___
 	{
 		const auto	uniforms	= _dsLayout->GetUniformRange<DescType>();
 		const usize	count		= uniforms.template Get<0>();
@@ -239,43 +239,43 @@ namespace
 =================================================
 */
 	template <EDescriptorType DescType>
-	uint  VDescriptorUpdater::_GetArraySize (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::_GetArraySize (UniformName::Ref name) C_NE___
 	{
 		auto [un, off] = _FindUniform< DescType >( name );
 		return un->arraySize;
 	}
 
-	uint  VDescriptorUpdater::ImageCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::ImageCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::StorageImage>( name );
 	}
 
-	uint  VDescriptorUpdater::TextureCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::TextureCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::StorageImage>( name );
 	}
 
-	uint  VDescriptorUpdater::SamplerCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::SamplerCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::Sampler>( name );
 	}
 
-	uint  VDescriptorUpdater::BufferCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::BufferCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::UniformBuffer>( name );
 	}
 
-	uint  VDescriptorUpdater::TexelBufferCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::TexelBufferCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::UniformTexelBuffer>( name );
 	}
 
-	uint  VDescriptorUpdater::RayTracingSceneCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::RayTracingSceneCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::RayTracingScene>( name );
 	}
 
-	uint  VDescriptorUpdater::RayTracingPartitionedSceneCount (UniformName::Ref name) C_NE___
+	uint  DescriptorUpdater::RayTracingPartitionedSceneCount (UniformName::Ref name) C_NE___
 	{
 		return _GetArraySize<DT::RayTracingPartitionedScene>( name );
 	}
@@ -285,28 +285,28 @@ namespace
 	BindImage
 =================================================
 */
-	bool  VDescriptorUpdater::BindImage (UniformName::Ref name, ImageViewID image, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindImage (UniformName::Ref name, ImageViewID image, uint elementIndex) __NE___
 	{
 		return _BindImages<ImageViewID>( name, {image}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindImage  (UniformName::Ref name, VkImageView image, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindImage  (UniformName::Ref name, VkImageView image, uint elementIndex) __NE___
 	{
 		return _BindImages<VkImageView>( name, {image}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindImages (UniformName::Ref name, ArrayView<ImageViewID> images, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindImages (UniformName::Ref name, ArrayView<ImageViewID> images, uint firstIndex) __NE___
 	{
 		return _BindImages( name, images, firstIndex );
 	}
 
-	bool  VDescriptorUpdater::BindImages (UniformName::Ref name, ArrayView<VkImageView> images, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindImages (UniformName::Ref name, ArrayView<VkImageView> images, uint firstIndex) __NE___
 	{
 		return _BindImages( name, images, firstIndex );
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindImages (UniformName::Ref name, ArrayView<T> images, const uint firstIndex) __NE___
+	bool  DescriptorUpdater::_BindImages (UniformName::Ref name, ArrayView<T> images, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -401,7 +401,7 @@ namespace
 	BindVideoImage
 =================================================
 */
-	bool  VDescriptorUpdater::BindVideoImage (UniformName::Ref name, VideoImageID image, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindVideoImage (UniformName::Ref name, VideoImageID image, uint elementIndex) __NE___
 	{
 		auto*	res = _resMngr.GetResource( image );
 		CHECK_ERR( res != null );
@@ -414,28 +414,28 @@ namespace
 	BindTexture
 =================================================
 */
-	bool  VDescriptorUpdater::BindTexture (UniformName::Ref name, ImageViewID image, SamplerName::Ref sampler, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindTexture (UniformName::Ref name, ImageViewID image, SamplerName::Ref sampler, uint elementIndex) __NE___
 	{
 		return _BindTextures<ImageViewID>( name, {image}, sampler, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindTexture  (UniformName::Ref name, VkImageView image, VkSampler sampler, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindTexture  (UniformName::Ref name, VkImageView image, VkSampler sampler, uint elementIndex) __NE___
 	{
 		return _BindTextures<VkImageView>( name, {image}, sampler, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindTextures (UniformName::Ref name, ArrayView<ImageViewID> images, SamplerName::Ref sampler, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindTextures (UniformName::Ref name, ArrayView<ImageViewID> images, SamplerName::Ref sampler, uint firstIndex) __NE___
 	{
 		return _BindTextures( name, images, sampler, firstIndex );
 	}
 
-	bool  VDescriptorUpdater::BindTextures (UniformName::Ref name, ArrayView<VkImageView> images, VkSampler sampler, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindTextures (UniformName::Ref name, ArrayView<VkImageView> images, VkSampler sampler, uint firstIndex) __NE___
 	{
 		return _BindTextures( name, images, sampler, firstIndex );
 	}
 
 	template <typename T1, typename T2>
-	bool  VDescriptorUpdater::_BindTextures (UniformName::Ref name, ArrayView<T1> images, const T2 &sampler, const uint firstIndex) __NE___
+	bool  DescriptorUpdater::_BindTextures (UniformName::Ref name, ArrayView<T1> images, const T2 &sampler, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -525,28 +525,28 @@ namespace
 	BindSampler
 =================================================
 */
-	bool  VDescriptorUpdater::BindSampler (UniformName::Ref name, SamplerName::Ref sampler, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindSampler (UniformName::Ref name, SamplerName::Ref sampler, uint elementIndex) __NE___
 	{
 		return _BindSamplers<SamplerName>( name, {&sampler, 1}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindSampler  (UniformName::Ref name, VkSampler sampler, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindSampler  (UniformName::Ref name, VkSampler sampler, uint elementIndex) __NE___
 	{
 		return _BindSamplers<VkSampler>( name, {sampler}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindSamplers (UniformName::Ref name, ArrayView<SamplerName> samplers, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindSamplers (UniformName::Ref name, ArrayView<SamplerName> samplers, uint firstIndex) __NE___
 	{
 		return _BindSamplers( name, samplers, firstIndex );
 	}
 
-	bool  VDescriptorUpdater::BindSamplers (UniformName::Ref name, ArrayView<VkSampler> samplers, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindSamplers (UniformName::Ref name, ArrayView<VkSampler> samplers, uint firstIndex) __NE___
 	{
 		return _BindSamplers( name, samplers, firstIndex );
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindSamplers (UniformName::Ref name, ArrayView<T> samplers, const uint firstIndex) __NE___
+	bool  DescriptorUpdater::_BindSamplers (UniformName::Ref name, ArrayView<T> samplers, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -613,28 +613,28 @@ namespace
 	BindBuffer
 =================================================
 */
-	bool  VDescriptorUpdater::BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, BufferID buffer, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, BufferID buffer, uint elementIndex) __NE___
 	{
 		return _BindBuffers<BufferID>( name, typeName, {buffer}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindBuffer  (UniformName::Ref name, ShaderStructName::Ref typeName, VkBuffer buffer, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindBuffer  (UniformName::Ref name, ShaderStructName::Ref typeName, VkBuffer buffer, uint elementIndex) __NE___
 	{
 		return _BindBuffers<VkBuffer>( name, typeName, {buffer}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<BufferID> buffers, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<BufferID> buffers, uint firstIndex) __NE___
 	{
 		return _BindBuffers( name, typeName, buffers, firstIndex );
 	}
 
-	bool  VDescriptorUpdater::BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<VkBuffer> buffers, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<VkBuffer> buffers, uint firstIndex) __NE___
 	{
 		return _BindBuffers( name, typeName, buffers, firstIndex );
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<T> buffers, const uint firstIndex) __NE___
+	bool  DescriptorUpdater::_BindBuffers (UniformName::Ref name, ShaderStructName::Ref typeName, ArrayView<T> buffers, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -721,7 +721,7 @@ namespace
 =================================================
 */
 	template <typename T>
-	bool  VDescriptorUpdater::_BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, T buffer,
+	bool  DescriptorUpdater::_BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, T buffer,
 										   const Bytes bufferOffset, const Bytes bufferSize, const uint elementIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
@@ -802,12 +802,12 @@ namespace
 		}
 	}
 
-	bool  VDescriptorUpdater::BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, BufferID buffer, Bytes bufferOffset, Bytes bufferSize, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindBuffer (UniformName::Ref name, ShaderStructName::Ref typeName, BufferID buffer, Bytes bufferOffset, Bytes bufferSize, uint elementIndex) __NE___
 	{
 		return _BindBuffer( name, typeName, buffer, bufferOffset, bufferSize, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindBuffer  (UniformName::Ref name, ShaderStructName::Ref typeName, VkBuffer buffer, Bytes bufferOffset, Bytes bufferSize, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindBuffer  (UniformName::Ref name, ShaderStructName::Ref typeName, VkBuffer buffer, Bytes bufferOffset, Bytes bufferSize, uint elementIndex) __NE___
 	{
 		return _BindBuffer( name, typeName, buffer, bufferOffset, bufferSize, elementIndex );
 	}
@@ -817,7 +817,7 @@ namespace
 	GetBufferStructName
 =================================================
 */
-	ShaderStructName  VDescriptorUpdater::GetBufferStructName (UniformName::Ref name) C_NE___
+	ShaderStructName  DescriptorUpdater::GetBufferStructName (UniformName::Ref name) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -832,28 +832,28 @@ namespace
 	BindTexelBuffer
 =================================================
 */
-	bool  VDescriptorUpdater::BindTexelBuffer (UniformName::Ref name, BufferViewID view, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindTexelBuffer (UniformName::Ref name, BufferViewID view, uint elementIndex) __NE___
 	{
 		return _BindTexelBuffers<BufferViewID>( name, {view}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindTexelBuffer (UniformName::Ref name, VkBufferView view, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindTexelBuffer (UniformName::Ref name, VkBufferView view, uint elementIndex) __NE___
 	{
 		return _BindTexelBuffers<VkBufferView>( name, {view}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindTexelBuffers (UniformName::Ref name, ArrayView<BufferViewID> views, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindTexelBuffers (UniformName::Ref name, ArrayView<BufferViewID> views, uint firstIndex) __NE___
 	{
 		return _BindTexelBuffers( name, views, firstIndex );
 	}
 
-	bool  VDescriptorUpdater::BindTexelBuffers (UniformName::Ref name, ArrayView<VkBufferView> views, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindTexelBuffers (UniformName::Ref name, ArrayView<VkBufferView> views, uint firstIndex) __NE___
 	{
 		return _BindTexelBuffers( name, views, firstIndex );
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindTexelBuffers (UniformName::Ref name, ArrayView<T> views, const uint firstIndex) __NE___
+	bool  DescriptorUpdater::_BindTexelBuffers (UniformName::Ref name, ArrayView<T> views, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -936,28 +936,28 @@ namespace
 	BindRayTracingScene
 =================================================
 */
-	bool  VDescriptorUpdater::BindRayTracingScene (UniformName::Ref name, RTSceneID scene, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingScene (UniformName::Ref name, RTSceneID scene, uint elementIndex) __NE___
 	{
 		return _BindRayTracingScenes<RTSceneID>( name, {scene}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindRayTracingScene (UniformName::Ref name, VkAccelerationStructureKHR scene, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingScene (UniformName::Ref name, VkAccelerationStructureKHR scene, uint elementIndex) __NE___
 	{
 		return _BindRayTracingScenes<VkAccelerationStructureKHR>( name, {scene}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindRayTracingScenes (UniformName::Ref name, ArrayView<RTSceneID> scenes, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingScenes (UniformName::Ref name, ArrayView<RTSceneID> scenes, uint firstIndex) __NE___
 	{
 		return _BindRayTracingScenes( name, scenes, firstIndex );
 	}
 
-	bool  VDescriptorUpdater::BindRayTracingScenes (UniformName::Ref name, ArrayView<VkAccelerationStructureKHR> scenes, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingScenes (UniformName::Ref name, ArrayView<VkAccelerationStructureKHR> scenes, uint firstIndex) __NE___
 	{
 		return _BindRayTracingScenes( name, scenes, firstIndex );
 	}
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindRayTracingScenes (UniformName::Ref name, ArrayView<T> scenes, const uint firstIndex) __NE___
+	bool  DescriptorUpdater::_BindRayTracingScenes (UniformName::Ref name, ArrayView<T> scenes, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -1026,29 +1026,29 @@ namespace
 	BindRayTracingPartitionedScene
 =================================================
 */
-	bool  VDescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref name, VkDeviceAddress scene, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref name, VkDeviceAddress scene, uint elementIndex) __NE___
 	{
 		return _BindRayTracingPartitionedScenes<VkDeviceAddress>( name, {scene}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindRayTracingPartitionedScenes (UniformName::Ref name, ArrayView<VkDeviceAddress> scenes, uint firstIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingPartitionedScenes (UniformName::Ref name, ArrayView<VkDeviceAddress> scenes, uint firstIndex) __NE___
 	{
 		return _BindRayTracingPartitionedScenes( name, scenes, firstIndex );
 	}
 
-	bool  VDescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref name, DeviceAddress scene, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref name, DeviceAddress scene, uint elementIndex) __NE___
 	{
 		return _BindRayTracingPartitionedScenes<DeviceAddress>( name, {scene}, elementIndex );
 	}
 
-	bool  VDescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref name, BufferID buffer, Bytes offset, uint elementIndex) __NE___
+	bool  DescriptorUpdater::BindRayTracingPartitionedScene (UniformName::Ref name, BufferID buffer, Bytes offset, uint elementIndex) __NE___
 	{
 		return _BindRayTracingPartitionedScenes< Pair< BufferID, Bytes >>( name, {MakePair(buffer, offset)}, elementIndex );
 	}
 
 
 	template <typename T>
-	bool  VDescriptorUpdater::_BindRayTracingPartitionedScenes (UniformName::Ref name, ArrayView<T> scenes, const uint firstIndex) __NE___
+	bool  DescriptorUpdater::_BindRayTracingPartitionedScenes (UniformName::Ref name, ArrayView<T> scenes, const uint firstIndex) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 

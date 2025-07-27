@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptCommon.h"
-#include "res_editor/Scripting/ScriptController.h"
-#include "res_editor/Scripting/ScriptPassArgs.h"
-#include "res_editor/Passes/IPass.h"
+#include "Scripting/ScriptCommon.h"
+#include "Scripting/ScriptController.h"
+#include "Scripting/ScriptPassArgs.h"
+#include "Passes/IPass.h"
 
 namespace AE::ResEditor
 {
@@ -262,8 +262,6 @@ namespace AE::ResEditor
 
 		ND_ Strong<BufferID>  _CreateUBuffer (Bytes size, StringView dbgName, EResourceState defaultState)	C_Th___;
 	};
-
-	AE_BIT_OPERATORS( ScriptBasePass::EFlags );
 
 
 } // AE::ResEditor

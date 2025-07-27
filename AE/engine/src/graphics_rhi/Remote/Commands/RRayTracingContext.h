@@ -25,7 +25,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit RRayTracingContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
+		explicit RRayTracingContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)				__Th___;
 
 		RRayTracingContext ()																								= delete;
 		RRayTracingContext (const RRayTracingContext &)																		= delete;

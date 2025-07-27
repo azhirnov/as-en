@@ -3,6 +3,11 @@
 	AsyncRDataSource / AsyncWDataSource and AsyncRStream / AsyncWStream must be created only as RC<> object,
 	because Request may internally keep reference to it data source object.
 
+	compatible with:
+		Result	co_await request
+		Result	Coro_WaitResult (request1, request2, ...)
+		Result	Coro_WaitResultOrCancel (request1, ...)
+
 	Synchronous DataSource defined in 'base' module:
 	  [DataSource](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/base/DataSource/DataSource.h)
 
@@ -14,19 +19,19 @@
 #pragma once
 
 #include "threading/TaskSystem/TaskScheduler.h"
-#include "threading/TaskSystem/Promise.h"
 
 namespace AE::Threading
 {
 	class AsyncDSRequestDependencyManager;
+}
 
-namespace _hidden_
+namespace AE::_Coro_
 {
 
 	//
 	// Async Data Source Request interface
 	//
-	class alignas(AE_CACHE_LINE) IAsyncDataSourceRequest : public EnableRC<IAsyncDataSourceRequest>
+	class IAsyncDataSourceRequest : public EnableRC<IAsyncDataSourceRequest>
 	{
 	// types
 	public:
@@ -35,41 +40,43 @@ namespace _hidden_
 			Destroyed,
 			Pending,		// waiting to allocate memory
 			InProgress,		// request in progress by OS
+
 			_Finished,
 			Completed,		// successfully completed
-			Cancelled,		// cancelled or has error
+			Canceled,		// cancelled or has error
 		};
 
 		struct Result
 		{
+		// variables
 			Bytes			pos;					// 'pos' argument from 'ReadBlock()' or 'WriteBlock()'.
 			Bytes			dataSize;				// actually readn / written.
 			void const*		data		= null;		// non-null pointer if read request is successfully completed,
 													// always null for write request.
-
-			template <typename T>
-			ND_ ArrayView<T>	AsArray ()	C_NE___	{ return ArrayView<T>{ Cast<T>(data), usize(dataSize)/sizeof(T) }; }
-			ND_ FastRStream		AsStream ()	C_NE___	{ NonNull( data );  return FastRStream{ data, data + dataSize }; }
-		};
-
-		struct ResultWithRC : Result
-		{
 			RC<>			rc;						// to keep alive mem object for read request,
 													// same as 'RC<> mem' which passed to 'ReadBlock()' or 'ReadSeq()',
 													// always null for write request.
-		};
+			EStatus			status		= EStatus::Canceled;
 
-		using Promise_t	= Promise< ResultWithRC >;
+		// methods
+			template <typename T>
+			ND_ ArrayView<T>	AsArray ()	C_NE___	{ return ArrayView<T>{ Cast<T>(data), usize(dataSize)/sizeof(T) }; }
+			ND_ FastRStream		AsStream ()	C_NE___	{ NonNull( data );  return FastRStream{ data, data + dataSize }; }
+
+			ND_ explicit operator bool ()	C_NE___	{ return status == EStatus::Completed; }
+		};
+		
+		struct CanceledRequest;
 
 	protected:
-		using TaskDependency	= IAsyncTask::TaskDependency;
-		using Dependencies_t	= FixedTupleArray< 4, AsyncTask, TaskDependency >;	// TODO: use 'IAsyncTask::OutputChunk'
+		using TaskDependency	= AsyncTaskImpl::TaskDependencyManagerApi::TaskDependency;
+		using Dependencies_t	= FixedArray< TaskDependency, 4 >;		// TODO: use 'AsyncTask::OutputChunk'
 
 
 	// variables
 	protected:
 		Atomic<EStatus>			_status			{EStatus::Destroyed};
-		AtomicBytes<Bytes32u>	_actualSize;	// readn / written
+		AtomicBytes<Bytes32u>	_actualSize		{0_b};	// read / written
 
 		SpinLock				_depsGuard;
 		Dependencies_t			_deps;
@@ -78,32 +85,75 @@ namespace _hidden_
 	// interface
 	public:
 		// Returns 'true' if cancelled, 'false' if already completed/cancelled or on error.
-			virtual bool		Cancel ()											__NE___	= 0;
+			virtual bool		Cancel ()				__NE___	{ return false; }
 
-		ND_ EStatus				Status ()											C_NE___ { return _status.load(); }
+		ND_ virtual Result		GetResult ()			C_NE___ { return {}; }
 
-		ND_ bool				IsCompleted ()										C_NE___	{ return Status() == EStatus::Completed; }
-		ND_ bool				IsCancelled ()										C_NE___	{ return Status() == EStatus::Cancelled; }
-		ND_ bool				IsFinished ()										C_NE___	{ return Status() >  EStatus::_Finished; }
+		ND_ EStatus				Status ()				C_NE___ { return _status.load(); }
 
-		ND_ virtual Result		GetResult ()										C_NE___ = 0;
-
-		// Use 'promise.Then()' to process result of async IO.
-		// Or use 'result = co_await request->AsPromise()'.
-		ND_ virtual Promise_t	AsPromise (ETaskQueue q = ETaskQueue::Background)	__NE___ = 0;
+		ND_ bool				IsCompleted ()			C_NE___	{ return Status() == EStatus::Completed; }
+		ND_ bool				IsCancelled ()			C_NE___	{ return Status() == EStatus::Canceled; }
+		ND_ bool				IsFinished ()			C_NE___	{ return Status() >  EStatus::_Finished; }
 
 	protected:
+		IAsyncDataSourceRequest ()						__NE___ = default;
+
+		friend class Base::StaticRC<IAsyncDataSourceRequest>;
+		__Cx__ explicit IAsyncDataSourceRequest (EStatus status) __NE___ : EnableRC{_ConstInitStaticRC(0)}, _status{status} {}
+
 		friend class Threading::AsyncDSRequestDependencyManager;
-		ND_ bool  _AddOnCompleteDependency (AsyncTask task, INOUT uint &index, Bool isStrong)	__NE___;
-			void  _SetDependencyCompleteStatus (bool complete)									__NE___;
+		ND_ bool  _AddOnCompleteDependency (AsyncTaskImpl &task, Bool isStrong)	__NE___;
+			void  _SetDependencyCompleteStatus (bool complete)					__NE___;
 	};
 
-} // _hidden_
+	
+	struct IAsyncDataSourceRequest::CanceledRequest
+	{
+		static constinit StaticRC<IAsyncDataSourceRequest>	s_canceled;
+	};
 
-	using AsyncDSRequestResult		= Threading::_hidden_::IAsyncDataSourceRequest::ResultWithRC;
-	using AsyncDSRequest			= RC< Threading::_hidden_::IAsyncDataSourceRequest >;
-	using WeakAsyncDSRequest		= Threading::_hidden_::_TaskDependency< AsyncDSRequest, False{"weak"} >;
 
+	//
+	// Async DataSource Request Awaiter
+	//
+	struct IAsyncDataSourceRequest_Awaiter
+	{
+	private:
+		IAsyncDataSourceRequest &	_req;
+
+	public:
+		IAsyncDataSourceRequest_Awaiter (IAsyncDataSourceRequest &req)	__NE___	: _req{req} {}
+
+		ND_ bool	await_ready ()										C_NE___	{ return _req.IsFinished(); }	// call 'await_suspend()' to get coroutine handle
+		ND_ auto	await_resume ()										__NE___	{ return _req.GetResult(); }	// return result of 'co_await'
+
+		template <typename P>
+		ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)	__NE___
+		{
+			return CoroAwaiterImpl::AwaitSuspendImpl2( curCoro, Tuple{_req.GetRC()} );
+		}
+	};
+	
+	template <>
+	struct CoroTraits< RC< _Coro_::IAsyncDataSourceRequest >>
+	{
+		using type		= RC< _Coro_::IAsyncDataSourceRequest >;
+		using Result	= IAsyncDataSourceRequest::Result;
+
+	//	Nd__IF static Result*		GetResultPtr (const type &p)	__NE___	// not supported
+		Nd__IF static Result		GetResultCopy (const type &p)	__NE___ { return p->GetResult(); }
+		Nd__IF static Result		MoveResult (const type &p)		__NE___ { return p->GetResult(); }
+	};
+
+} // AE::_Coro_
+
+
+namespace AE::Threading
+{
+	using EAsyncDSRequestStatus	= _Coro_::IAsyncDataSourceRequest::EStatus;
+	using AsyncDSRequest		= RC< _Coro_::IAsyncDataSourceRequest >;
+	using AsyncDSRequestResult	= _Coro_::IAsyncDataSourceRequest::Result;
+	using WeakAsyncDSRequest	= _Coro_::_TaskDependency< AsyncDSRequest, False{"weak"} >;
 
 
 
@@ -115,7 +165,6 @@ namespace _hidden_
 	// types
 	public:
 		using ReadRequestPtr	= AsyncDSRequest;
-		using Result_t			= AsyncDSRequest::Value_t::ResultWithRC;
 
 
 	// interface
@@ -191,7 +240,6 @@ namespace _hidden_
 	// types
 	public:
 		using WriteRequestPtr	= AsyncDSRequest;
-		using Result_t			= AsyncDSRequest::Value_t::ResultWithRC;
 
 
 	// interface
@@ -248,7 +296,6 @@ namespace _hidden_
 	// types
 	public:
 		using ReadRequestPtr	= AsyncDSRequest;
-		using Result_t			= AsyncDSRequest::Value_t::ResultWithRC;
 		using PosAndSize		= RStream::PosAndSize;
 
 
@@ -292,7 +339,6 @@ namespace _hidden_
 	// types
 	public:
 		using WriteRequestPtr	= AsyncDSRequest;
-		using Result_t			= AsyncDSRequest::Value_t::ResultWithRC;
 
 
 	// interface
@@ -354,12 +400,38 @@ namespace _hidden_
 	public:
 
 		// ITaskDependencyManager //
-		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)	__NE_OV;
+		bool  Resolve (AnyTypeCRef dep, Task &task, Bool defaultIsStrongDep) __NE_OV;
 
 	private:
 		friend class TaskScheduler;
-		AsyncDSRequestDependencyManager ()										__NE___ = default;
+		AsyncDSRequestDependencyManager () __NE___ = default;
 	};
 
 
+
+/*
+=================================================
+	operator co_await (AsyncDSRequest)
+=================================================
+*/
+	inline auto  operator co_await (const AsyncDSRequest &req) __NE___
+	{
+		return _Coro_::IAsyncDataSourceRequest_Awaiter{ *req };
+	}
+
+	inline auto  operator co_await (const WeakAsyncDSRequest &req) __NE___
+	{
+		return _Coro_::IAsyncDataSourceRequest_Awaiter{ *req };
+	}
+	
+	forceinline auto  TaskScheduler::GetCanceledDSRequest () __NE___
+	{
+		return _Coro_::IAsyncDataSourceRequest::CanceledRequest::s_canceled.GetRC();
+	}
+
 } // AE::Threading
+
+namespace AE::ImportCoroutines
+{
+	using AE::Threading::operator co_await;
+}

@@ -26,7 +26,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VVideoImage::Create (VResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VVideoImage::Create (ResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _image == Default );
@@ -44,7 +44,7 @@ namespace AE::Graphics
 	_CreateForVideo
 =================================================
 */
-	bool  VVideoImage::_CreateForVideo (VResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VVideoImage::_CreateForVideo (ResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		ASSERT( desc.profile.IsDefined() );
 		CHECK_ERR( desc.videoUsage != Default );
@@ -194,7 +194,7 @@ namespace AE::Graphics
 	_CreateForYcbcr
 =================================================
 */
-	bool  VVideoImage::_CreateForYcbcr (VResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  VVideoImage::_CreateForYcbcr (ResourceManager &resMngr, const VideoImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		ASSERT( not desc.profile.IsDefined() );
 		CHECK_ERR( desc.videoUsage == Default );
@@ -341,7 +341,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VVideoImage::Destroy (VResourceManager &resMngr) __NE___
+	void  VVideoImage::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -525,7 +525,7 @@ namespace
 	IsSupported
 =================================================
 */
-	bool  VVideoImage::IsSupported (const VResourceManager &resMngr, const VideoImageDesc &desc) __NE___
+	bool  VVideoImage::IsSupported (const ResourceManager &resMngr, const VideoImageDesc &desc) __NE___
 	{
 		const auto&		dev				= resMngr.GetDevice();
 		const uint2		dim_granularity = EPixelFormat_DimGranularity( desc.format );

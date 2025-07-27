@@ -70,9 +70,9 @@ namespace AE::Base
 
 	// methods
 	public:
-		TAtomic ()												__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
-		explicit TAtomic (T value)								__NE___ : _value{ IT{value} } {}
-		explicit TAtomic (Default_t)							__NE___ : _value{ IT{Default} } {}
+		__Cx__ TAtomic ()										__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
+		__Cx__ explicit TAtomic (T value)						__NE___ : _value{ IT{value} } {}
+		__Cx__ explicit TAtomic (Default_t)						__NE___ : _value{ IT{Default} } {}
 
 		TAtomic (const Self &)									= delete;
 		TAtomic (Self &&)										= delete;
@@ -191,9 +191,9 @@ namespace AE::Base
 
 	// methods
 	public:
-		TStructAtomic ()												__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
-		explicit TStructAtomic (T value)								__NE___ : _value{ _Cast( value ) } {}
-		explicit TStructAtomic (Default_t)								__NE___ : _value{ _Cast( IT{Default} ) } {}
+		__Cx__ TStructAtomic ()											__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
+		__Cx__ explicit TStructAtomic (T value)							__NE___ : _value{ _Cast( value ) } {}
+		__Cx__ explicit TStructAtomic (Default_t)						__NE___ : _value{ _Cast( IT{Default} ) } {}
 
 		TStructAtomic (const Self &)									= delete;
 		TStructAtomic (Self &&)											= delete;
@@ -274,8 +274,8 @@ namespace AE::Base
 
 	// methods
 	public:
-		TBitfieldAtomic ()													__NE___ DEBUG_ONLY(: _value{ T(BitCast<usize>(&_value)) }) {}
-		explicit TBitfieldAtomic (BF value)									__NE___ : _value{ value.Get() } {}
+		__Cx__ TBitfieldAtomic ()											__NE___ DEBUG_ONLY(: _value{ T(BitCast<usize>(&_value)) }) {}
+		__Cx__ explicit TBitfieldAtomic (BF value)							__NE___ : _value{ value.Get() } {}
 
 		TBitfieldAtomic (const Self &)										= delete;
 		TBitfieldAtomic (Self &&)											= delete;
@@ -405,8 +405,8 @@ namespace AE::Base
 
 	// methods
 	public:
-		TAtomicFloat ()										__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
-		explicit TAtomicFloat (T value)						__NE___ : _value{ _Cast(value) } {}
+		__Cx__ TAtomicFloat ()								__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
+		__Cx__ explicit TAtomicFloat (T value)				__NE___ : _value{ _Cast(value) } {}
 
 		TAtomicFloat (const Self &)							= delete;
 		TAtomicFloat (Self &&)								= delete;
@@ -508,8 +508,8 @@ namespace AE::Base
 
 	// methods
 	public:
-		TAtomic ()												__NE___ DEBUG_ONLY(: _value{ BitCast<value_type>(&_value) }) {}
-		explicit TAtomic (T* value)								__NE___ : _value{ value } {}
+		__Cx__ TAtomic ()										__NE___ DEBUG_ONLY(: _value{ BitCast<value_type>(&_value) }) {}
+		__Cx__ explicit TAtomic (T* value)						__NE___ : _value{ value } {}
 
 		TAtomic (const Self &)									= delete;
 		TAtomic (Self &&)										= delete;
@@ -590,8 +590,8 @@ namespace AE::Base
 
 	// methods
 	public:
-		AtomicState ()								__NE___ DEBUG_ONLY(: _value{ T(BitCast<usize>(&_value)) }) {}
-		explicit AtomicState (T state)				__NE___ : _value{ state } {}
+		__Cx__ AtomicState ()						__NE___ DEBUG_ONLY(: _value{ T(BitCast<usize>(&_value)) }) {}
+		__Cx__ explicit AtomicState (T state)		__NE___ : _value{ state } {}
 
 			void	store (T desired)				__NE___ { _value.store( desired, OnSuccess ); }
 		ND_ T		load ()							C_NE___ { return _value.load( OnSuccess ); }
@@ -607,7 +607,7 @@ namespace AE::Base
 	using Atomic = TAtomic< T, T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
 
 	template <typename T>
-	using FAtomic = TAtomicFloat< T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;	// TODO: tests
+	using FAtomic = TAtomicFloat< T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;	// TODO: C++20 float atomic
 
 	template <typename T>
 	using StructAtomic = TStructAtomic< T, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed >;
@@ -667,7 +667,7 @@ namespace AE::Base
 	static constexpr bool  IsAtomic = Base::_hidden_::_IsAtomic< T >::value;
 
 	template <typename T>
-	using AtomicInternalType = typename Base::_hidden_::_IsAtomic< T >::type;
+	using AtomicInternalType = typename Base::_hidden_::_IsAtomic< T >::type;	// TODO: Unwrap
 //-----------------------------------------------------------------------------
 
 

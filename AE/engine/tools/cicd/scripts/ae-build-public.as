@@ -9,7 +9,7 @@ const string	c_GitAddress	= c_GitServer+"as-en-dev.git"; // "https://github.com/
 const string	c_GitBranch		= "dev-github";
 
 const array<string>	c_Targets	= { "Tests.Base", "Tests.Serializing", "Tests.Scripting", "Tests.Threading",
-									"Tests.Networking", "Tests.ECS-st", "Tests.GraphicsRHI", "Tests.Graphics", "Tests.VFS",
+									"Tests.Networking", "Tests.ECS", "Tests.GraphicsRHI", "Tests.Graphics", "Tests.VFS",
 									"Tests.GeometryTools", "Tests.AtlasTools", "CICD", "RemoteGraphicsDevice", "GraphicsRHI-shared" };
 const array<string>	c_Samples	= { "Sample.Demo", "ResourceEditor" };
 

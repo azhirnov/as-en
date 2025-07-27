@@ -1,17 +1,17 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "tools/graphics_test/GraphicsTest.h"
+#include "graphics_test/GraphicsTest.h"
 
-#include "res_editor/Passes/Renderer.h"
-#include "res_editor/Passes/OtherPasses.h"
-#include "res_editor/Core/EditorUI.h"
-#include "res_editor/Core/EditorCore.h"
+#include "Passes/Renderer.h"
+#include "Passes/OtherPasses.h"
+#include "Core/EditorUI.h"
+#include "Core/EditorCore.h"
 
 #include "res_loaders/AllImages/AllImageSavers.h"
 #include "res_loaders/STB/STBImageLoader.h"
 #include "res_loaders/STB/STBImageSaver.h"
 
-#include "res_editor/_ui_data/cpp/types.h"
+#include "_ui_data/cpp/types.h"
 
 namespace AE::ResEditor
 {
@@ -76,7 +76,7 @@ namespace AE::ResEditor
 	_Blit
 =================================================
 */
-	RenderTaskCoro  Present::_Blit (RC<Present> self, IOutputSurface &surface)
+	RenderCoro  Present::_Blit (RC<Present> self, IOutputSurface &surface)
 	{
 		using EGraphicsFlags = UIInteraction::EGraphicsFlags;
 
@@ -89,7 +89,7 @@ namespace AE::ResEditor
 		const uint2	src_dim		= src_view.Dimension2();
 
 		auto&		dst			= targets[0];
-		RenderTask&	rtask		= co_await RenderTask_GetRef;
+		auto		rtask		= RenderCoro_Get();
 		const auto	flags		= Bitfield<uint>{ self->_filterMode->Get() };
 
 		const auto	filter		= flags.Has< uint(EGraphicsFlags::LinearFilter) >() ? EBlitFilter::Linear : EBlitFilter::Nearest;
@@ -135,9 +135,11 @@ namespace AE::ResEditor
 			readback.imageOffset	= Min( readback.imageOffset, ImageDim_t{uint3{ src_dim - 1u, 0u }} );
 
 			ctx.ReadbackImage( src->GetImageId(), readback )
-				.Then(	[fid = ctx.GetFrameId()] (const ImageMemView &inView)
+				.Then(	ctx.GetFrameId(),
+						[] (Promise<ImageMemView> readOp, FrameUID fid) -> InlineCoro<ETaskQueue::PerFrame>
 						{
-							RWImageMemView	view {inView};
+							ImageMemView	in_view	= co_await readOp;
+							RWImageMemView	view	{in_view};
 							RGBA32f			color;
 							view.Load( uint3{}, OUT color );
 
@@ -145,10 +147,7 @@ namespace AE::ResEditor
 							sp->frame	= fid;
 							sp->pos		= uint2{view.Offset()};
 							sp->color	= color;
-						},
-						"Read color under cursor",
-						ETaskQueue::PerFrame
-					);
+						});
 		}
 
 		// read image for screenshot / video
@@ -183,12 +182,17 @@ namespace AE::ResEditor
 				readback.imageDim	= ImageDim_t{uint3{ src_dim, 1u }};
 
 				ctx.ReadbackImage( src->GetImageId(), readback )
-					.Then(	[self, capture, encoder = self->_videoEncoder.load()] (const ImageMemView &inView)
+					.Then(	self, capture, self->_videoEncoder.load(),
+							[] (Promise<ImageMemView> readOp, RC<Present> self,
+								UIInteraction::Capture capture, RC<IVideoEncoder> encoder)
+									-> InlineCoro<ETaskQueue::PerFrame>
 							{
+								ImageMemView  in_view = co_await readOp;
+
 								if ( capture.screenshot or capture.testScreenshot )
 								{
 									auto	image = MakeRC<ResLoader::IntermImage>();
-									CHECK_ERRV( image->Copy( inView ));
+									CHECK_CE( image->Copy( in_view ));
 
 									Scheduler().Run(
 										ETaskQueue::Background,
@@ -199,15 +203,12 @@ namespace AE::ResEditor
 								}
 
 								if ( capture.video and encoder )
-									Unused( encoder->AddFrame( inView, True{"end encoding on error"} ));
-							},
-							"Screen capture",
-							ETaskQueue::PerFrame
-						);
+									Unused( encoder->AddFrame( in_view, True{"end encoding on error"} ));
+							});
 			}
 		}
 
-		co_await RenderTask_Execute( ctx );
+		RenderCoro_Execute( ctx );
 	}
 
 /*
@@ -215,7 +216,7 @@ namespace AE::ResEditor
 	_SaveScreenshot
 =================================================
 */
-	CoroTask  Present::_SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt)
+	AsyncCoro  Present::_SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt)
 	{
 		CHECK_CE( image );
 
@@ -261,7 +262,7 @@ namespace AE::ResEditor
 	_ScreenshotTest
 =================================================
 */
-	CoroTask  Present::_ScreenshotTest (RC<ResLoader::IntermImage> image, EImageFormat fmt)
+	AsyncCoro  Present::_ScreenshotTest (RC<ResLoader::IntermImage> image, EImageFormat fmt)
 	{
 		using namespace AE::ResLoader;
 		CHECK_CE( image );
@@ -1292,8 +1293,12 @@ namespace AE::ResEditor
 		readback.heapType	= EStagingHeapType::Static;
 
 		ctx.ReadbackBuffer( id, readback )
-			.Then(	[dst = _dstValue] (const BufferMemView &mem)
+			.Then(	_dstValue,
+					[] (Promise<BufferMemView> readOp, AnyDynVecOrScalar_t dst)
+						-> InlineCoro< ETaskQueue::Background >
 					{
+						BufferMemView  mem = co_await readOp;
+
 						const void*	ptr = mem.begin()->ptr;
 
 						std::visit( [ptr] (auto& d) {

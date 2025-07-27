@@ -1,9 +1,7 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
-if (NOT (DEFINED ENGINE_LIBS_PATH))
-	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
-endif()
+file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
 if (MSVC OR APPLE)
 	file( GLOB_RECURSE OBJC_SOURCES "*.mm" )
 endif()
@@ -18,7 +16,7 @@ if (${AE_INCLUDE_ANDROID_SRC})
 	list( APPEND ANDROID_SOURCES "${ANDROID_SRC_PATH}/../../build.gradle" )
 endif()
 
-add_library( "Platform" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} ${ANDROID_SOURCES} )
+add_library( "Platform" STATIC ${SOURCES} ${ANDROID_SOURCES} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( "Android/Apk" FILES ${ANDROID_SOURCES} )
 
@@ -36,51 +34,15 @@ if (NOT APPLE)
 	set_source_files_properties( ${OBJC_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 endif()
 if (WIN32)
-	target_include_directories( "Platform" PRIVATE "${ANDROID_NDK_INCLUDE}/sysroot/usr" )
+	target_include_directories( "Platform" PRIVATE "${ANDROID_NDK_INCLUDE}/sysroot/usr" )	# for IDE
 	set_source_files_properties( ${ANDROID_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 endif()
 
-# choose window library
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
-	target_link_libraries( "Platform" PUBLIC "android" "camera2ndk" "mediandk" )	# "nativewindow" for API 30+
-
-elseif (${AE_ENABLE_GLFW})
-	target_link_libraries( "Platform" PUBLIC "GLFW-lib" )
-
-	if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-		target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_COCOA )
-
-	elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-		target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_WIN32 )
-
-	elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-		target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_X11 )	# GLFW_EXPOSE_NATIVE_WAYLAND
-	endif()
-
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-	# Raw WinAPI is supported
-	target_link_libraries( "Platform" PUBLIC "Dxva2.lib" )
-	target_compile_definitions( "Platform" PUBLIC AE_WINAPI_WINDOW )
-
-else()
-	message( FATAL_ERROR "At least one window library must be supported" )
-endif()
-
 if (${AE_ENABLE_VULKAN})
-	if (TARGET "OpenVR-lib")
-		target_link_libraries( "Platform" PUBLIC "OpenVR-lib" )
-	endif()
-	if (TARGET "OpenXR-lib")
-		target_link_libraries( "Platform" PUBLIC "OpenXR-lib" )
-	endif()
 	target_link_libraries( "Platform" PUBLIC "VulkanSyncLog" )
 endif()
-if (TARGET "NVAPI-lib")
-	target_link_libraries( "Platform" PUBLIC "NVAPI-lib" )
-endif()
 
-EnablePCH( "Platform" )
-EnablePrebuild( "Platform" )
-EnableUnitBuild( "Platform" )
+UseEnginePCH( "Platform" )
+EnableUnityBuild( "Platform" )
 
 install( TARGETS "Platform" ARCHIVE DESTINATION "lib" )

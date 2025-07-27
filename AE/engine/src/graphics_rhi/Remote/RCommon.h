@@ -24,11 +24,6 @@ namespace AE::Graphics
 	using AE::Threading::ETaskQueue;
 
 	class RDevice;
-	class RCommandBatch;
-
-	class ResourceManager;
-	class RenderTaskScheduler;
-	using RResourceManager = ResourceManager;
 
 	GFX_DBG_ONLY(
 		using DebugName_t = FixedString<64>;

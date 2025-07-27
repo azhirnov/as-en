@@ -4,13 +4,6 @@
 
 #include "base/Math/BitMath.h"
 
-#ifdef AE_BUILD_PIPELINE_COMPILER
-#	define AE_PC_API	AE_DLL_EXPORT
-#else
-#	define AE_PC_API	AE_DLL_IMPORT
-#endif
-
-
 namespace AE::PipelineCompiler
 {
 	using AE::uint;
@@ -38,7 +31,6 @@ namespace AE::PipelineCompiler
 		_Last,
 		All							= ((_Last - 1) << 1) - 1,
 	};
-	AE_BIT_OPERATORS( EReflectionFlags );
 
 
 	enum class EPipelineCompilerFlags : uint
@@ -47,8 +39,8 @@ namespace AE::PipelineCompiler
 		AddNameMapping					= 1 << 0,	// for debugging
 		IncludePipelinesFromCurrentDir	= 1 << 1,
 		SearchShadersInCurrentDir		= 1 << 2,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EPipelineCompilerFlags );
 
 
 	struct PathParams
@@ -96,7 +88,7 @@ namespace AE::PipelineCompiler
 	};
 
 
-	extern "C" bool AE_PC_API CompilePipelines (const PipelinesInfo* info);
-
+	// "CompilePipelines"
+	using CompilePipelinesFn_t = bool (*) (const PipelinesInfo* info);
 
 } // AE::PipelineCompiler

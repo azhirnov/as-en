@@ -49,7 +49,6 @@ namespace AE::Graphics
 		_NvApiMask				= SetStableClock | EnablePerfCounters,
 		_AmdApiMask				= SetStableClock | SetStableMemClock | EnablePerfCounters,
 	};
-	AE_BIT_OPERATORS( EDeviceFlags );
 
 
 	enum class EDriver : ubyte

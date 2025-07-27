@@ -123,7 +123,7 @@
 
 	void  Main ()
 	{
-		float3	view_dir = -ViewDir( un_PerPass.camera.invViewProj, gl.FragCoord.xy, un_PerPass.resolution.xy );
+		float3	view_dir = -ViewDir( un_PerPass.camera.invViewProj, gl.FragCoord.xy * un_PerPass.invResolution );
 
 		out_Color = float4( ReliefMapping( In.texcoord, view_dir, In.worldPos, iLightDir ), 1.0 );
 	}

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ScriptObjects/ShaderStructType.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ShaderStructType.h"
 
 namespace AE::PipelineCompiler
 {

@@ -327,6 +327,7 @@ namespace
 			_DrawProfilerAdrenoImGui();
 			_DrawProfilerNVidiaImGui();
 			_DrawProfilerPowerVRImGui();
+			ImGui::Dummy( ImVec2{1,1} );
 		}
 		ImGui::End();
 	}

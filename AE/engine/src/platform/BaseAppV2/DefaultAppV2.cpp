@@ -100,9 +100,16 @@ namespace AE::AppV2
 */
 	AsyncTask  AppCore::OpenViewAsync (ViewModeName::Ref name) __NE___
 	{
-		return MakeTask( [name, app = GetRC()]() { app->OpenView( name ); }, {},
-						 "OpenViewAsync",
-						 ETaskQueue::Main );
+		return Scheduler().Run(
+				ETaskQueue::Main,
+				[] (ViewModeName viewName, RC<AppCore> app) -> AsyncCoro
+				{
+					app->OpenView( viewName );
+					co_return;
+				}( name, GetRC() ),
+				Tuple{},
+				"OpenViewAsync"
+			);
 	}
 
 /*

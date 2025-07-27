@@ -30,28 +30,52 @@ namespace AE::Threading
 	{
 	// types
 	private:
-		class Task final : public IAsyncTask
+		struct Coro
 		{
-		public:
-			explicit Task (ETaskQueue type)	__NE___	: IAsyncTask{ type } {}
-			void  Run ()					__Th_OV	{ DBG_WARNING("never used"); }
-			StringView  DbgName ()			C_NE_OV	{ return "SyncPointV1"; }
-			void  MakeCompleted ()			__NE___	{ _MakeCompletedSafe(); }
+			class promise_type final : public _Coro_::AsyncTaskImpl
+			{
+			public:
+					void		SetQueue (ETaskQueue type)					__NE___	{ _SetQueueType( type ); }
+					void		MakeCompleted ()							__NE___	{ _MakeCompletedSafe(); }
+
+				ND_ auto		initial_suspend ()							C_NE___	{ return std::suspend_never{}; }	// start immediately
+				ND_ auto		final_suspend ()							C_NE___	{ return std::suspend_always{}; }
+					void		return_void ()								C_NE___	{}
+
+				ND_ auto		get_return_object ()						__NE___	{ return Coro{*this}; }
+				ND_ static auto	get_return_object_on_allocation_failure ()	__NE___	{ return Coro{}; }
+			};
+			using CoroHandle_t = std::coroutine_handle< promise_type >;
+
+			RC<promise_type>	_coro;
+
+			Coro ()									__NE___	{}
+			explicit Coro (promise_type &p)			__NE___ : _coro{ p.GetRC<promise_type>() } {}
+			explicit Coro (CoroHandle_t handle)		__NE___ : _coro{ handle.promise().GetRC<promise_type>() } {}
+			
+			ND_ operator AsyncTask ()				C_NE___	{ return _coro; }
+
+			ND_ auto*	operator -> ()				C_NE___	{ return _coro.operator->(); }
 		};
 
 
 	// variables
 	private:
-		RC<Task>	_task;
+		Coro	_task;
 
 
 	// methods
+	private:
+		static Coro  _CreateTask () { co_return; }
+
 	public:
-		explicit SyncPoint (ETaskQueue type = ETaskQueue::PerFrame)	__NE___	: _task{ new Task{ type }} {}
+		explicit SyncPoint (ETaskQueue type = ETaskQueue::PerFrame)	__NE___	: _task{_CreateTask()} { _task->SetQueue( type ); }
 
 		~SyncPoint ()												__NE_OV	{ _task->MakeCompleted(); }
 
-		ND_ StrongDep  OnComplete ()								C_NE___	{ return StrongDep{_task}; }
+		ND_ StrongDep  OnComplete ()								C_NE___	{ return StrongDep{_task._coro}; }
+
+		// TODO co_await
 	};
 
 

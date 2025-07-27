@@ -21,11 +21,13 @@ namespace AE::Base
 	public:
 		enum class EMode : uint
 		{
-			Unknown			= 0,
 			RandomAccess	= 1 << 0,	// access is intended to be random
 			SequentialScan	= 1 << 1,	// access is intended to be sequential from beginning to end
 			Win_NoBuffering	= 1 << 2,	// file or device is being opened with no system caching for data reads and writes
 			Direct			= Win_NoBuffering,
+
+			Unknown			= 0,
+			_BITOPS_
 		};
 
 	private:
@@ -74,8 +76,6 @@ namespace AE::Base
 		ND_ Bytes  _Position ()															C_NE___;
 	};
 
-	AE_BIT_OPERATORS( WinFileRStream::EMode );
-
 
 
 	//
@@ -87,7 +87,6 @@ namespace AE::Base
 	public:
 		enum class EMode : uint
 		{
-			Unknown			= 0,
 			Win_NoBuffering	= 1 << 0,	// file or device is being opened with no system caching for data reads and writes
 			Win_NoCaching	= 1 << 1,	// write operations will not go through any intermediate cache, they will go directly to disk.
 			Direct			= Win_NoBuffering | Win_NoCaching,
@@ -97,6 +96,9 @@ namespace AE::Base
 			OpenAppend		= 1 << 4,	// write operations will not overwrite existing data
 
 			SharedRead		= 1 << 5,	// other process can read file
+
+			Unknown			= 0,
+			_BITOPS_
 		};
 
 	private:
@@ -141,8 +143,6 @@ namespace AE::Base
 		Bytes		WriteSeq (const void*, Bytes)										__NE_OV;
 		void		Flush ()															__NE_OV;
 	};
-
-	AE_BIT_OPERATORS( WinFileWStream::EMode );
 //-----------------------------------------------------------------------------
 
 

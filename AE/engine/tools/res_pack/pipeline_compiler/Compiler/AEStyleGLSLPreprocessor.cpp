@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Compiler/AEStyleGLSLPreprocessor.h"
+#include "res_pack/pipeline_compiler/Compiler/AEStyleGLSLPreprocessor.h"
 
 namespace AE::PipelineCompiler
 {
@@ -820,7 +820,9 @@ namespace AE::PipelineCompiler
 
 					Parser::ReadCurrLine( source, INOUT pos, OUT line_str );
 
-					AE_LOG_DBG( String{line_str} << " - use '" << src << "' instead of '" << dst << "'", ToString(fileLoc.path), uint(line) );
+					const String	ansi_path = ToString( fileLoc.path );
+
+					AE_LOG_DBG( String{line_str} << " - use '" << src << "' instead of '" << dst << "'", SourceLoc( ansi_path.c_str(), uint(line) ));
 					i = pos;
 				}
 			}};

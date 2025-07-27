@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #if defined(AE_ENABLE_IMGUI) and defined(AE_ENABLE_AUDIO)
-# include "demo/Core/ISample.h"
+# include "Core/ISample.h"
 
 namespace AE::Samples::Demo
 {
@@ -12,13 +12,6 @@ namespace AE::Samples::Demo
 
 	class AudioSample final : public ISample
 	{
-	// types
-	private:
-		class DrawTask;
-		class ProcessInputTask;
-		class SaveSoundTask;
-
-
 	// variables
 	public:
 		ImGuiRenderer				imgui;
@@ -39,6 +32,11 @@ namespace AE::Samples::Demo
 		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	__NE_OV;
 		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					__NE_OV;
 		InputModeName	GetInputMode ()														C_NE_OV;
+
+	private:
+		static AsyncCoro   _SaveSoundTask (RC<ArrayWStream>, Audio::AudioDataDesc)			__NE___;
+		static RenderCoro  _DrawTask (RC<AudioSample>, IOutputSurface &)					__NE___;
+		static AsyncCoro   _ProcessInputTask (RC<AudioSample>, ActionQueueReader)			__NE___;
 	};
 
 

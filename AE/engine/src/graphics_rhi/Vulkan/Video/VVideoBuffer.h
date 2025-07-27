@@ -35,8 +35,8 @@ namespace AE::Graphics
 		VVideoBuffer ()													__NE___	{}
 		~VVideoBuffer ()												__NE___;
 
-		ND_ bool  Create (VResourceManager &, const VideoBufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)__NE___;
-			void  Destroy (VResourceManager &)																				__NE___;
+		ND_ bool  Create (ResourceManager &, const VideoBufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)__NE___;
+			void  Destroy (ResourceManager &)																				__NE___;
 
 		ND_ VkBuffer				Handle ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _buffer; }
 		ND_ BufferID				GetBufferID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
@@ -47,7 +47,7 @@ namespace AE::Graphics
 
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
-		ND_ static bool  IsSupported (const VResourceManager &, const VideoBufferDesc &desc) __NE___;
+		ND_ static bool  IsSupported (const ResourceManager &, const VideoBufferDesc &desc) __NE___;
 	};
 
 

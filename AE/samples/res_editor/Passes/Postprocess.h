@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "res_editor/Passes/IPass.h"
-#include "res_editor/Resources/Buffer.h"
-#include "res_editor/Resources/Image.h"
+#include "Passes/IPass.h"
+#include "Resources/Buffer.h"
+#include "Resources/Image.h"
 
 namespace AE::ResEditor
 {

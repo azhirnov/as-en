@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ScriptTexture.h"
-#include "ScriptObjects/ScriptRasterFont.h"
-#include "ScriptObjects/ScriptResourceMeta.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptTexture.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptRasterFont.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptResourceMeta.h"
 
 #include "scripting/Impl/ClassBinder.h"
 #include "scripting/Impl/EnumBinder.h"
@@ -16,8 +16,8 @@ AE_DECL_SCRIPT_TYPE(	AE::AssetPacker::ScriptRasterFont::ERasterFontMode,	"ERaste
 namespace AE::AssetPacker
 {
 namespace {
-#	include "Packer/ImagePacker.cpp.h"
-#	include "Packer/RasterFontPacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/RasterFontPacker.cpp.h"
 
 
 	ND_ inline bool  IsWhiteSpace (CharUtf32 c)

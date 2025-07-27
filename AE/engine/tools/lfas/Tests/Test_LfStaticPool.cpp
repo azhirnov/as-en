@@ -85,7 +85,7 @@ namespace
 				std::atomic_thread_fence( std::memory_order_release );
 			});
 
-			vm.RunParallel({ sc1 }, secondsf{30.0f} );
+			vm.RunParallel({ sc1 }, c_TestDuration );
 
 
 			// unassign all

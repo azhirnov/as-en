@@ -25,6 +25,7 @@ namespace AE::Graphics::_hidden_
 		using BufferMemoryBarriers_t	= Array< VkBufferMemoryBarrier2 >;
 	public:
 		using RPassFinalStates_t		= StaticArray< EResourceState, GraphicsConfig::MaxAttachments >;
+		using RenderCoroRef				= _Coro_::RenderTaskImpl::UserApi;
 
 
 	// variables
@@ -32,21 +33,21 @@ namespace AE::Graphics::_hidden_
 		VkPipelineStageFlagBits2	_supportedStages	= Zero;		// all supported pipeline stages, except HOST and ALL
 		VkAccessFlagBits2			_supportedAccess	= Zero;		// all supported memory access types, except HOST and ALL
 
-		VResourceManager &			_resMngr;
-		VCommandBatch &				_batch;
+		ResourceManager &			_resMngr;
+		CommandBatch &				_batch;
 
 		VkMemoryBarrier2			_memoryBarrier		= {};
 		VkDependencyInfo			_barrier			= {};
 		ImageMemoryBarriers_t		_imageBarriers;
 		BufferMemoryBarriers_t		_bufferBarriers;
 
-		RenderTask const*			_task;
+		RenderCoroRef				_task;
 
 
 	// methods
 	public:
-		explicit VBarrierManager (const RenderTask &task)			__NE___;
-		explicit VBarrierManager (VCommandBatch &batch)				__NE___;
+		explicit VBarrierManager (RenderCoroRef task)				__NE___;
+		explicit VBarrierManager (CommandBatch &batch)				__NE___;
 		VBarrierManager (VBarrierManager &&)						__NE___ = default;
 
 		ND_ Ptr<const VkDependencyInfo>	AllocBarriers ()			__NE___;
@@ -56,14 +57,14 @@ namespace AE::Graphics::_hidden_
 
 		ND_ VDevice const&				GetDevice ()				C_NE___	{ return _resMngr.GetDevice(); }
 		ND_ VStagingBufferManager&		GetStagingManager ()		C_NE___	{ return _resMngr.GetStagingManager(); }
-		ND_ VResourceManager&			GetResourceManager ()		C_NE___	{ return _resMngr; }
+		ND_ ResourceManager&			GetResourceManager ()		C_NE___	{ return _resMngr; }
 		ND_ VQueryManager&				GetQueryManager ()			C_NE___	{ return _resMngr.GetQueryManager(); }
-		ND_ VCommandBatch &				GetBatch ()					C_NE___	{ return _batch; }
-		ND_ RC<VCommandBatch>			GetBatchRC ()				C_NE___	{ return _batch.GetRC<VCommandBatch>(); }
+		ND_ CommandBatch &				GetBatch ()					C_NE___	{ return _batch; }
+		ND_ RC<CommandBatch>			GetBatchRC ()				C_NE___	{ return _batch.GetRC<CommandBatch>(); }
 		ND_ FrameUID					GetFrameId ()				C_NE___	{ return _batch.GetFrameId(); }
 		ND_ EQueueType					GetQueueType ()				C_NE___	{ return _batch.GetQueueType(); }
 		ND_ VQueuePtr					GetQueue ()					C_NE___	{ return GetDevice().GetQueue( GetQueueType() ); }
-		ND_ RenderTask const&			GetRenderTask ()			C_NE___	{ NonNull( _task );  return *_task; }
+		ND_ auto						GetRenderTask ()			C_NE___	{ ASSERT( _task );  return _task; }
 		ND_ VkPipelineStageFlagBits2	GetSupportedStages ()		C_NE___	{ return _supportedStages; }
 		ND_ VkAccessFlagBits2			GetSupportedAccess ()		C_NE___	{ return _supportedAccess; }
 
@@ -181,12 +182,12 @@ namespace AE::Graphics::_hidden_
 		ND_ DeferredBar				DeferredBarriers ()																			__NE___ { return DeferredBar{ this->_mngr.GetBatch(), *this }; } \
 		\
 		ND_ FrameUID				GetFrameId ()																				C_NE_OF { return this->_mngr.GetFrameId(); } \
-		ND_ VCommandBatch const&	GetCommandBatch ()																			C_NE___ { return this->_mngr.GetBatch(); } \
-		ND_ RC<VCommandBatch>		GetCommandBatchRC ()																		C_NE___ { return this->_mngr.GetBatchRC(); } \
+		ND_ CommandBatch const&		GetCommandBatch ()																			C_NE___ { return this->_mngr.GetBatch(); } \
+		ND_ RC<CommandBatch>		GetCommandBatchRC ()																		C_NE___ { return this->_mngr.GetBatchRC(); } \
 		\
-		ND_	VResourceManager &		GetResourceManager ()																		C_NE___ { return this->_mngr.GetResourceManager(); } \
+		ND_	ResourceManager &		GetResourceManager ()																		C_NE___ { return this->_mngr.GetResourceManager(); } \
 		ND_	VDevice const&			GetDevice ()																				C_NE___ { return this->_mngr.GetDevice(); } \
-		ND_	RenderTask const&		GetRenderTask ()																			C_NE___ { return this->_mngr.GetRenderTask(); } \
+		ND_	auto					GetRenderTask ()																			C_NE___ { return this->_mngr.GetRenderTask(); } \
 		\
 		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									__Th_OV { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  return this->_mngr.BufferBarrier( buffer, srcState, dstState ); } \
 		\

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ScriptObjects/RayTracingPipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/RayTracingPipeline.h"
 
 namespace AE::PipelineCompiler
 {

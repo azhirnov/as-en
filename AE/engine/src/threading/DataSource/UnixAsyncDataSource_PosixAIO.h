@@ -117,10 +117,15 @@ namespace AE::Threading
 		auto&	cb		= _aioCb.Ref< aiocb >();
 
 		Result	res;
-		res.dataSize	= _actualSize.load();
 		res.pos			= _offset;
-		res.data		= IsCompleted() ? const_cast<void*>(cb.aio_buf) : null;
-
+		res.status		= _status.load();
+		
+		if ( res.status == EStatus::Completed )
+		{
+			res.dataSize	= _actualSize.load();
+			res.data		= const_cast<void*>(cb.aio_buf);
+			res.rc			= _memRC;
+		}
 		return res;
 	}
 
@@ -218,9 +223,9 @@ namespace AE::Threading
 		ASSERT( IsFinished() );
 
 		ResultWithRC	res;
-		res.dataSize	= _actualSize.load();
 		res.pos			= _offset;
-
+		res.dataSize	= _actualSize.load();
+		res.status		= _status.load();
 		return res;
 	}
 //-----------------------------------------------------------------------------

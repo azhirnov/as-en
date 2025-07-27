@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ScriptObjects/DescriptorSetLayout.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/DescriptorSetLayout.h"
 
 namespace AE::PipelineCompiler
 {

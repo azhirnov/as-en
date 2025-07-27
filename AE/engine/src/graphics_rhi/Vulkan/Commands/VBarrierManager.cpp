@@ -16,20 +16,20 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	VBarrierManager::VBarrierManager (const RenderTask &task) __NE___ :
+	VBarrierManager::VBarrierManager (RenderCoroRef task) __NE___ :
 		_resMngr{ GraphicsScheduler().GetResourceManager() },
-		_batch{ *task.GetBatchPtr() },
-		_task{ &task }
+		_batch{ *task.BatchPtr() },
+		_task{ task }
 	{
 		auto	queue		= GetDevice().GetQueue( GetQueueType() );
 		_supportedStages	= queue->supportedStages;
 		_supportedAccess	= queue->supportedAccess;
 	}
 
-	VBarrierManager::VBarrierManager (VCommandBatch &batch) __NE___ :
+	VBarrierManager::VBarrierManager (CommandBatch &batch) __NE___ :
 		_resMngr{ GraphicsScheduler().GetResourceManager() },
 		_batch{ batch },
-		_task{ null }
+		_task{}
 	{
 		auto	queue		= GetDevice().GetQueue( GetQueueType() );
 		_supportedStages	= queue->supportedStages;

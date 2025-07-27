@@ -29,7 +29,7 @@ namespace AE::RG::_hidden_
 		\
 		ND_ CommandBatch &					_Batch ()																			__NE___ { return _ctx._GetBarrierMngr().GetBatch(); } \
 		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																			__NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _Batch().GetUserData() ); } \
-		ND_ uint							_ExeIdx ()																			__NE___ { return _ctx._GetBarrierMngr().GetRenderTask().GetExecutionIndex(); } \
+		ND_ uint							_ExeIdx ()																			__NE___ { return _ctx._GetBarrierMngr().GetRenderTask().ExecutionIndex(); } \
 		ND_ auto&							_ResMngr ()																			C_NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
 		\
 	public: \
@@ -54,7 +54,7 @@ namespace AE::RG::_hidden_
 		ND_ RGCommandBatchPtr::RGBatchData const&	GetRGBatchData ()															C_NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _ctx._GetBarrierMngr().GetBatch().GetUserData() ); } \
 		ND_ auto&									GetResourceManager ()														C_NE___ { return _ResMngr(); } \
 		ND_ auto&									GetDevice ()																C_NE___ { return _ctx.GetDevice(); } \
-		ND_ RenderTask const&						GetRenderTask ()															C_NE___ { return _ctx.GetRenderTask(); } \
+		ND_ auto									GetRenderTask ()															C_NE___ { return _ctx.GetRenderTask(); } \
 		\
 		void  ResourceState (BufferID      id, EResourceState state)															__Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
 		void  ResourceState (ImageID       id, EResourceState state)															__Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
@@ -113,7 +113,8 @@ namespace AE::RG::_hidden_
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
 
-		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
+		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
 
 	// variables
@@ -123,7 +124,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit TransferContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
+		explicit TransferContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
 		TransferContext ()																						= delete;
 		TransferContext (const TransferContext &)																= delete;
@@ -158,7 +159,7 @@ namespace AE::RG::_hidden_
 
 		bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)					__Th_OV;
 
-		Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)					__Th_OV;
+		ReadHostBufferResult	ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)						__Th_OV;
 
 		uint3  MinImageTransferGranularity ()																	C_NE_OV	{ return _ctx.MinImageTransferGranularity(); }
 
@@ -201,8 +202,9 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IComputeContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-
-		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+		
+		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
+		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
 
 	// variables
@@ -212,7 +214,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit ComputeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)				__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
+		explicit ComputeContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)					__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
 		ComputeContext ()																									= delete;
 		ComputeContext (const ComputeContext &)																				= delete;
@@ -252,7 +254,9 @@ namespace AE::RG::_hidden_
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
 
-		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
+		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
+		using DrawCoroRef	= typename BaseCtx::DrawCoroRef;
 
 
 	// variables
@@ -262,7 +266,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit DrawContext (const DrawTask &task)																			__Th___	: _ctx{ task } {}
+		explicit DrawContext (DrawCoroRef task)																				__Th___	: _ctx{ task } {}
 		explicit DrawContext (BaseCtx &&ctx)																				__Th___	: _ctx{ RVRef(ctx) } {}
 		explicit DrawContext (DrawContext &&ctx)																			__Th___	= default;
 
@@ -407,9 +411,9 @@ namespace AE::RG::_hidden_
 		ND_ bool  HasReadbackMemoryBarrier (EResourceState srcState)														__NE___ { return _RGBatch().HasReadbackMemoryBarrier( _ExeIdx(), srcState ); } \
 
 	private:
-		ND_ uint							_ExeIdx ()																		__NE___ { return _RTask().GetExecutionIndex(); }
-		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																		__NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _RTask().GetBatchPtr()->GetUserData() ); }
-		ND_ RenderTask const&				_RTask ()																		__NE___	{ NonNull( _ctx.GetPrimaryCtxState().userData );  return *Cast<RenderTask>( _ctx.GetPrimaryCtxState().userData ); }
+		ND_ uint							_ExeIdx ()																		__NE___ { return _RTask().ExecutionIndex(); }
+		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																		__NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _RTask().BatchPtr()->GetUserData() ); }
+		ND_ RenderCoroRef					_RTask ()																		__NE___	{ NonNull( _ctx.GetPrimaryCtxState().userData );  return BitCast<RenderCoroRef>( _ctx.GetPrimaryCtxState().userData ); }
 	};
 
 
@@ -427,8 +431,9 @@ namespace AE::RG::_hidden_
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
 
-		using DrawCtx	= DrawContext< typename BaseCtx::DrawCtx >;
-		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+		using DrawCtx		= DrawContext< typename BaseCtx::DrawCtx >;
+		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
+		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
 
 	// variables
@@ -438,10 +443,10 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit GraphicsContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
+		explicit GraphicsContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
 		// continue render pass
-		GraphicsContext (const RenderTask &task, const DrawCommandBatch &batch, CmdBuf_t cmdbuf)				__Th___ : _ctx{ task, batch, RVRef(cmdbuf) } {}
+		GraphicsContext (RenderCoroRef task, const DrawCommandBatch &batch, CmdBuf_t cmdbuf)					__Th___ : _ctx{ task, batch, RVRef(cmdbuf) } {}
 
 		GraphicsContext ()																						= delete;
 		GraphicsContext (const GraphicsContext &)																= delete;
@@ -483,8 +488,9 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IRayTracingContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-
-		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+		
+		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
+		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
 
 	// variables
@@ -494,7 +500,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit RayTracingContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___	: _ctx{ task, RVRef(cmdbuf), dbg } {}
+		explicit RayTracingContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)				__Th___	: _ctx{ task, RVRef(cmdbuf), dbg } {}
 
 		RayTracingContext ()																								= delete;
 		RayTracingContext (const RayTracingContext &)																		= delete;
@@ -545,8 +551,9 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IASBuildContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-
-		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+		
+		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
+		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
 
 	// variables
@@ -556,7 +563,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit ASBuildContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)				__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
+		explicit ASBuildContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)					__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
 		ASBuildContext ()																									= delete;
 		ASBuildContext (const ASBuildContext &)																				= delete;
@@ -628,8 +635,9 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IVideoDecodeContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-
-		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+		
+		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
+		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
 
 	// variables
@@ -639,12 +647,12 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit VideoDecodeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
+		explicit VideoDecodeContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
-		VideoDecodeContext ()																						= delete;
-		VideoDecodeContext (const VideoDecodeContext &)																= delete;
+		VideoDecodeContext ()																							= delete;
+		VideoDecodeContext (const VideoDecodeContext &)																	= delete;
 
-		ND_ BaseCtx&  GetBaseContext ()																				__NE___	{ return _ctx; }
+		ND_ BaseCtx&  GetBaseContext ()																					__NE___	{ return _ctx; }
 
 		RG_INHERIT_BARRIERS
 	};
@@ -663,8 +671,9 @@ namespace AE::RG::_hidden_
 		StaticAssert( IsBaseOf< IVideoEncodeContext, BaseCtx >);
 
 		static constexpr bool	IsIndirectContext = BaseCtx::IsIndirectContext;
-
-		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+		
+		using CmdBuf_t		= typename BaseCtx::CmdBuf_t;
+		using RenderCoroRef	= typename BaseCtx::RenderCoroRef;
 
 
 	// variables
@@ -674,12 +683,12 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit VideoEncodeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
+		explicit VideoEncodeContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
-		VideoEncodeContext ()																						= delete;
-		VideoEncodeContext (const VideoEncodeContext &)																= delete;
+		VideoEncodeContext ()																							= delete;
+		VideoEncodeContext (const VideoEncodeContext &)																	= delete;
 
-		ND_ BaseCtx&  GetBaseContext ()																				__NE___	{ return _ctx; }
+		ND_ BaseCtx&  GetBaseContext ()																					__NE___	{ return _ctx; }
 
 		RG_INHERIT_BARRIERS
 	};
@@ -897,7 +906,7 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	Promise<ArrayView<ubyte>>  TransferContext<C>::ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size) __Th___
+	ITransferContext::ReadHostBufferResult  TransferContext<C>::ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size) __Th___
 	{
 		ResourceState( buffer, EResourceState::Host_Read );
 		_ctx.CommitBarriers();
@@ -1151,13 +1160,13 @@ namespace AE::RG::_hidden_
 	{
 		RenderPassDesc	desc = inDesc;
 		_RGBatch().SetRenderPassInitialStates( _ExeIdx(), INOUT desc );
-		return DrawCtx{ _ctx.BeginRenderPass( desc, dbg, BitCast<void*>(&GetRenderTask()) )};
+		return DrawCtx{ _ctx.BeginRenderPass( desc, dbg, BitCast<void*>(GetRenderTask()) )};
 	}
 
 	template <typename C>
 	typename GraphicsContext<C>::DrawCtx  GraphicsContext<C>::NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg) __Th___
 	{
-		return DrawCtx{ _ctx.NextSubpass( prevPassCtx.GetBaseContext(), dbg, BitCast<void*>(&GetRenderTask()) )};
+		return DrawCtx{ _ctx.NextSubpass( prevPassCtx.GetBaseContext(), dbg, BitCast<void*>(GetRenderTask()) )};
 	}
 
 	template <typename C>
@@ -1172,13 +1181,13 @@ namespace AE::RG::_hidden_
 	{
 		RenderPassDesc	desc = inDesc;
 		_RGBatch().SetRenderPassInitialStates( _ExeIdx(), INOUT desc );
-		return _ctx.BeginMtRenderPass( desc, dbg, BitCast<void*>(&GetRenderTask()) );
+		return _ctx.BeginMtRenderPass( desc, dbg, BitCast<void*>(GetRenderTask()) );
 	}
 
 	template <typename C>
 	auto  GraphicsContext<C>::NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg) __Th___
 	{
-		return _ctx.NextMtSubpass( prevPassBatch, dbg, BitCast<void*>(&GetRenderTask()) );
+		return _ctx.NextMtSubpass( prevPassBatch, dbg, BitCast<void*>(GetRenderTask()) );
 	}
 
 	template <typename C>

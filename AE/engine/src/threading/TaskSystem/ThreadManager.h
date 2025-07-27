@@ -28,7 +28,7 @@ namespace AE::Threading
 			ThreadConfig (ThreadConfig &&)								__NE___	= default;
 			ThreadConfig (const ThreadConfig &)							__NE___	= default;
 			ThreadConfig (const EThreadArray &threads, StringView name)	__NE___ : threads{threads},  name{name} {}
-			ThreadConfig ()												__NE___	: ThreadConfig{ EThreadArray{ ETaskQueue::PerFrame }, "worker" } {}
+			ThreadConfig ()												__NE___	: ThreadConfig{ EThreadArray{ ETaskQueue::PerFrame, ETaskQueue::Background }, "worker" } {}
 		};
 
 

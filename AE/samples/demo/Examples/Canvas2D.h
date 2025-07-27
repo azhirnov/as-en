@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "demo/Core/ISample.h"
+#include "Core/ISample.h"
 
 namespace AE::Samples::Demo
 {
@@ -11,12 +11,6 @@ namespace AE::Samples::Demo
 
 	class Canvas2DSample final : public ISample
 	{
-	// types
-	public:
-		class DrawTask;
-		class ProcessInputTask;
-
-
 	// variables
 	public:
 		RC<ResourceUploadManager>	uploadMngr;
@@ -60,6 +54,10 @@ namespace AE::Samples::Demo
 		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	__NE_OV;
 		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					__NE_OV;
 		InputModeName	GetInputMode ()														C_NE_OV;
+
+	private:
+		static AsyncCoro   _ProcessInputTask (RC<Canvas2DSample>, ActionQueueReader)		__NE___;
+		static RenderCoro  _DrawTask (RC<Canvas2DSample>, IOutputSurface &)					__NE___;
 	};
 
 } // AE::Samples::Demo

@@ -1,7 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Passes/ImageCompression.h"
-#include "res_editor/Resources/Image.h"
+#include "Passes/ImageCompression.h"
+#include "Resources/Image.h"
+#include "graphics_rhi/Private/EnumToString.h"
 
 #ifdef AE_ENABLE_COMPRESSONATOR
 # include "compressonator.h"
@@ -36,74 +37,6 @@ namespace AE::ResEditor
 	{
 		return ImageMemView{ DstData(), dstSize, offset, dim, 0_b, 0_b, fmt, EImageAspect::Color };
 	}
-
-/*
-=================================================
-	CompressBlockTask
-=================================================
-*/
-	class ImageCompressionPass::CompressBlockTask final : public Threading::IAsyncTask
-	{
-	// variables
-	private:
-		Ptr<Block>					_block;
-		RC<ImageCompressionPass>	_pass;
-
-	// methods
-	public:
-		CompressBlockTask (RC<ImageCompressionPass> pass, Block* block) __NE___ :
-			IAsyncTask{ ETaskQueue::Background },
-			_block{block}, _pass{pass}
-		{}
-
-		~CompressBlockTask ()
-		{
-			if ( _block and _pass )
-				_pass->_FreeBlock( _block.get() );
-		}
-
-		void  Run () __Th_OV
-		{
-			CHECK_TE( _block and _pass );
-
-			const EPixelFormat	src_fmt			= _pass->_srcFormat;
-			const EPixelFormat	dst_fmt			= _pass->_dstFormat;
-			const uint			thread_count	= 0;	// current thread
-			const float			quality			= 1.f;	// best
-
-		  #ifdef AE_ENABLE_COMPRESSONATOR
-			if ( EPixelFormat_IsETC( dst_fmt ) or EPixelFormat_IsBC( dst_fmt ))
-			{
-				CHECK_TE( Compressonator_Compress( _block->SrcImage(src_fmt), _block->DstImage(dst_fmt), thread_count, quality ));
-
-				if ( _pass->_decompress )
-					CHECK_TE( Compressonator_Compress( _block->DstImage(dst_fmt), _block->SrcImage(src_fmt), thread_count, quality ));
-			}
-			else
-		  #endif
-
-		  #ifdef AE_ENABLE_ASTC_ENCODER
-			if ( EPixelFormat_IsASTC( dst_fmt ))
-			{
-				CHECK_TE( AstcEncode( _block->SrcImage(src_fmt), _block->DstImage(dst_fmt), thread_count, quality ));
-
-				if ( _pass->_decompress )
-					CHECK_TE( AstcDecode( _block->DstImage(dst_fmt), _block->SrcImage(src_fmt), thread_count ));
-			}
-			else
-		  #endif
-			{
-				CHECK_TE( false );
-			}
-
-			_pass->_toUpload->push_back( _block.get() );
-
-			_block	= null;
-			_pass	= null;
-		}
-
-		StringView  DbgName () C_NE_OV	{ return "CompressImageBlock"; }
-	};
 
 /*
 =================================================
@@ -251,16 +184,25 @@ namespace AE::ResEditor
 
 			if_likely( read_res.IsCompleted() )
 			{
-				read_res.Then( [self = GetRC<ImageCompressionPass>(), block] (const ImageMemView &view)
-				{
-					CHECK( view.CopyTo( OUT block->SrcData(), block->srcSize ));
-					block->offset		= view.Offset();
-					block->dim			= view.Dimension();
-					block->arrayLayer	= 0;
-					block->mipmap		= 0;
+				read_res.Then(
+					CoSafe{block}, GetRC<ImageCompressionPass>(),
+					[] (Promise<ImageMemView> readOp, CoSafe<Block*> block, RC<ImageCompressionPass> self)
+						-> InlineCoro<ETaskQueue::Background>
+					{
+						ImageMemView  view = co_await readOp;
 
-					Scheduler().Run<CompressBlockTask>( Tuple{ RVRef(self), block });
-				});
+						CHECK( view.CopyTo( OUT block->SrcData(), block->srcSize ));
+						block->offset		= view.Offset();
+						block->dim			= view.Dimension();
+						block->arrayLayer	= 0;
+						block->mipmap		= 0;
+
+						Scheduler().Run(
+							ETaskQueue::Background,
+							CreateAsync( _CompressBlockTask, block, self ),
+							Tuple{},
+							"CompressImageBlock" );
+					});
 			}
 			else
 			{
@@ -295,6 +237,53 @@ namespace AE::ResEditor
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
+	}
+
+/*
+=================================================
+	_CompressBlockTask
+=================================================
+*/
+	AsyncCoro  ImageCompressionPass::_CompressBlockTask (CoSafe<Block*>				block,
+														 RC<ImageCompressionPass>	pass) __NE___
+	{
+		//if ( block and pass )
+		//	pass->_FreeBlock( block.get() );	// TODO
+
+		CHECK_CE( block and pass );
+
+		const EPixelFormat	src_fmt			= pass->_srcFormat;
+		const EPixelFormat	dst_fmt			= pass->_dstFormat;
+		const uint			thread_count	= 0;	// current thread
+		const float			quality			= 1.f;	// best
+
+		#ifdef AE_ENABLE_COMPRESSONATOR
+		if ( EPixelFormat_IsETC( dst_fmt ) or EPixelFormat_IsBC( dst_fmt ))
+		{
+			CHECK_CE( Compressonator_Compress( block->SrcImage(src_fmt), block->DstImage(dst_fmt), thread_count, quality ));
+
+			if ( pass->_decompress )
+				CHECK_CE( Compressonator_Compress( block->DstImage(dst_fmt), block->SrcImage(src_fmt), thread_count, quality ));
+		}
+		else
+		#endif
+
+		#ifdef AE_ENABLE_ASTC_ENCODER
+		if ( EPixelFormat_IsASTC( dst_fmt ))
+		{
+			CHECK_CE( AstcEncode( block->SrcImage(src_fmt), block->DstImage(dst_fmt), thread_count, quality ));
+
+			if ( pass->_decompress )
+				CHECK_CE( AstcDecode( block->DstImage(dst_fmt), block->SrcImage(src_fmt), thread_count ));
+		}
+		else
+		#endif
+		{
+			CHECK_CE( false );
+		}
+
+		pass->_toUpload->push_back( block );
+		pass = null;
 	}
 
 /*

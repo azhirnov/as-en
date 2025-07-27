@@ -175,6 +175,9 @@ namespace
 		using Set_t = FixedSet< Elem, 8 >;
 
 		StaticAssert( alignof(Set_t) == alignof(Elem) );
+
+		constexpr FixedSet< int, 8 >	set;
+		StaticAssert( set.empty() );
 	}
 }
 

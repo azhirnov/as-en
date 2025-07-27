@@ -1,15 +1,12 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
-if (NOT (DEFINED ENGINE_LIBS_PATH))
-	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
-endif()
+file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
-add_library( "ResourceLoaders" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} )
+add_library( "ResourceLoaders" STATIC ${SOURCES} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 target_link_libraries( "ResourceLoaders" PUBLIC "Base" )
-target_include_directories( "ResourceLoaders" PUBLIC ".." )
 set_property( TARGET "ResourceLoaders" PROPERTY FOLDER "Engine/Tools" )
 
 if ( TARGET "DevIL-lib" )
@@ -35,6 +32,5 @@ if ( TARGET "TinyglTF-lib" )
 	target_link_libraries( "ResourceLoaders" PUBLIC "TinyglTF-lib" )
 endif()
 
-EnablePCH( "ResourceLoaders" )
-EnablePrebuild( "ResourceLoaders" )
-EnableUnitBuild( "ResourceLoaders" )
+UseEnginePCH2( "ResourceLoaders" )
+EnableUnityBuild( "ResourceLoaders" )

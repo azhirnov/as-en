@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/DescriptorSetLayout.h"
-#include "ScriptObjects/Common.inl.h"
-#include "Compiler/MetalCompiler.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/DescriptorSetLayout.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/Compiler/MetalCompiler.h"
 
 namespace AE::PipelineCompiler
 {

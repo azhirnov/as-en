@@ -30,8 +30,8 @@ namespace AE::Graphics
 		RVideoSession ()								__NE___	{}
 		~RVideoSession ()								__NE___	{}
 
-		ND_ bool  Create (RResourceManager &, const VideoSessionDesc &, GfxMemAllocatorPtr, StringView)	__NE___	{ return false; }
-			void  Destroy (RResourceManager &)															__NE___	{}
+		ND_ bool  Create (ResourceManager &, const VideoSessionDesc &, GfxMemAllocatorPtr, StringView)	__NE___	{ return false; }
+			void  Destroy (ResourceManager &)															__NE___	{}
 
 		ND_ VideoSessionDesc const&		Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 
@@ -39,7 +39,7 @@ namespace AE::Graphics
 
 
 		ND_ static bool  Validate (const RDevice &, INOUT VideoSessionDesc &)				__NE___	{ return false; }
-		ND_ static bool  IsSupported (const RResourceManager &, const VideoSessionDesc &)	__NE___	{ return false; }
+		ND_ static bool  IsSupported (const ResourceManager &, const VideoSessionDesc &)	__NE___	{ return false; }
 	};
 
 

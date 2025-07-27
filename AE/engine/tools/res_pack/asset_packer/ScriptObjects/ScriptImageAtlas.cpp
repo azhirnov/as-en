@@ -1,20 +1,15 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics_rhi/Private/EnumUtils.h"
-
 #include "serializing/Public/ObjectFactory.h"
-
 #include "scripting/Impl/ClassBinder.h"
-
-#include "ScriptObjects/ScriptImageAtlas.h"
-#include "ScriptObjects/ScriptResourceMeta.h"
-#include "ScriptObjects/ScriptSharedImage.h"
-
 #include "atlas_tools/RectPackerSTB.h"
-
-#include "Packer/ImageAtlasPacker.h"
-
 #include "res_loaders/AllImages/AllImageLoaders.h"
+
+#include "res_pack/asset_packer/ScriptObjects/ScriptImageAtlas.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptResourceMeta.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptSharedImage.h"
+#include "res_pack/asset_packer/Packer/ImageAtlasPacker.h"
 
 AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptImageAtlas,	"ImageAtlas" );
 
@@ -22,8 +17,8 @@ AE_DECL_SCRIPT_OBJ_RC(	AE::AssetPacker::ScriptImageAtlas,	"ImageAtlas" );
 namespace AE::AssetPacker
 {
 namespace {
-#	include "Packer/ImagePacker.cpp.h"
-#	include "Packer/ImageAtlasPacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImageAtlasPacker.cpp.h"
 }
 	using namespace AE::Graphics;
 	using namespace AE::ResLoader;

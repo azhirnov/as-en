@@ -1,10 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Passes/ComputeMip.h"
-#include "res_editor/Resources/Buffer.h"
-#include "res_editor/Resources/Image.h"
-#include "res_editor/Core/EditorUI.h"
-#include "res_editor/_data/cpp/types.h"
+#include "Passes/ComputeMip.h"
+#include "Resources/Buffer.h"
+#include "Resources/Image.h"
+#include "Core/EditorUI.h"
+#include "_data/cpp/types.h"
 
 namespace AE::ResEditor
 {

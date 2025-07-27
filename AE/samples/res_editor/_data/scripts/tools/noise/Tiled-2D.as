@@ -93,13 +93,14 @@
 		switch ( iColor )
 		{
 			case 0 :
-				out_Color  = float4( n );
-				border_col = float3(1.0, 0.0, 0.0);
+				out_Color	= float4( n );
+				out_Color.a	= 1.0;
+				border_col	= float3(1.0, 0.0, 0.0);
 				break;
 
 			case 1 :
-				out_Color  = Rainbow( 1.0 - n );
-				border_col = float3(0.0);
+				out_Color	= Rainbow( 1.0 - n );
+				border_col	= float3(0.0);
 				break;
 
 			case 2 :

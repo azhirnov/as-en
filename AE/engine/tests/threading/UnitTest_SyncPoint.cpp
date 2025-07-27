@@ -2,12 +2,8 @@
 
 #include "UnitTest_Common.h"
 
-#ifndef AE_DISABLE_THREADS
 namespace
 {
-	using EStatus = IAsyncTask::EStatus;
-
-
 	struct SPTest1_SharedData
 	{
 		Atomic<ulong>		counter		{0};
@@ -19,49 +15,28 @@ namespace
 	};
 
 
-	class SPTest1_Task : public IAsyncTask
+	static AsyncCoro  CreateSPTest1Task (SPTest1_SharedData& data, RC<SyncPoint> syncObj)
 	{
-	public:
-		SPTest1_SharedData&		data;
-		RC<SyncPoint>			syncObj;
-		uint					counter	= 0;
-
-		SPTest1_Task (SPTest1_SharedData &d, RC<SyncPoint> sync) __NE___ :
-			IAsyncTask{ ETaskQueue::PerFrame }, data{d}, syncObj{RVRef(sync)} {}
-
-		void  Run () __Th_OV
+		for (uint counter = 0; counter < SPTest1_SharedData::repeat_count; ++counter)
 		{
 			// keep reference to 'syncObj'
 			TEST( syncObj );
 
 			++data.counter;
 
-			if ( ++counter < SPTest1_SharedData::repeat_count )
-				return Continue();
+			Coro_Continue();
 		}
-
-		StringView  DbgName () C_NE_OV { return "SPTest1_Task"; }
-	};
-
-
-	class SPTest1_FinalTask : public IAsyncTask
+		co_return;
+	}
+	
+	static AsyncCoro  CreateSPTest1Final (SPTest1_SharedData& data)
 	{
-	public:
-		SPTest1_SharedData&		data;
+		// make sure that all 'SPTest1Task' tasks are complete
+		TEST_Eq( data.counter.load(), data.repeat_count * data.task_count );
 
-		SPTest1_FinalTask (SPTest1_SharedData &d) __NE___ :
-			IAsyncTask{ ETaskQueue::PerFrame }, data{d} {}
-
-		void  Run () __Th_OV
-		{
-			// make sure that all 'SPTest1_Task' tasks are complete
-			TEST_Eq( data.counter.load(), data.repeat_count * data.task_count );
-
-			++data.finalCnt;
-		}
-
-		StringView  DbgName () C_NE_OV { return "SPTest1_FinalTask"; }
-	};
+		++data.finalCnt;
+		co_return;
+	}
 
 
 	static void  SyncPoint_Test1 ()
@@ -74,19 +49,19 @@ namespace
 		RC<SyncPoint>		sync = MakeRC<SyncPoint>();
 		SPTest1_SharedData	data;
 
-		// execute 'SPTest1_Task' multiple times and increment 'data.counter'
+		// execute 'SPTest1Task' multiple times and increment 'data.counter'
 		// keep reference to 'sync' while task is alive
 		for (uint i = 0; i < SPTest1_SharedData::task_count; ++i)
 		{
-			scheduler->Run<SPTest1_Task>( Tuple{ ArgRef(data), sync });
+			scheduler->Run( CreateSPTest1Task( data, sync ));
 		}
 
-		// execute 'SPTest1_FinalTask' after all 'SPTest1_Task' tasks
+		// execute 'SPTest1Final' after all 'SPTest1Task' tasks
 		// 'sync' used instead of 'CV.wait()'
 		Array<AsyncTask>	last_tasks;
 		for (uint i = 0; i < SPTest1_SharedData::last_task_count; ++i)
 		{
-			last_tasks.push_back( scheduler->Run<SPTest1_FinalTask>( Tuple{ArgRef(data)}, Tuple{sync->OnComplete()} ));
+			last_tasks.push_back( scheduler->Run( CreateSPTest1Final( data ), Tuple{sync->OnComplete()} ));
 		}
 
 		// all references to 'sync' must be released to trigger event
@@ -98,7 +73,7 @@ namespace
 		TEST_Eq( data.finalCnt.load(), data.last_task_count );
 
 		for (auto& task : last_tasks) {
-			TEST( task->Status() == EStatus::Completed );
+			TEST( task->Status() == ETaskStatus::Completed );
 		}
 	}
 }
@@ -109,11 +84,3 @@ extern void UnitTest_SyncPoint ()
 
 	TEST_PASSED();
 }
-
-#else
-
-
-extern void UnitTest_SyncPoint ()
-{}
-
-#endif // AE_DISABLE_THREADS

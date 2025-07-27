@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "res_editor/Passes/IPass.h"
-#include "res_editor/Resources/Image.h"
-#include "res_editor/Resources/Buffer.h"
+#include "Passes/IPass.h"
+#include "Resources/Image.h"
+#include "Resources/Buffer.h"
 
 namespace AE::ResEditor
 {
@@ -45,10 +45,10 @@ namespace AE::ResEditor
 		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
 
 	private:
-		ND_ static RenderTaskCoro  _Blit (RC<Present> self, IOutputSurface &);
+		ND_ static RenderCoro  _Blit (RC<Present> self, IOutputSurface &);
 
-		static CoroTask  _SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt);
-		static CoroTask  _ScreenshotTest (RC<ResLoader::IntermImage> image, EImageFormat fmt);
+		static AsyncCoro  _SaveScreenshot (RC<ResLoader::IntermImage> image, EImageFormat fmt);
+		static AsyncCoro  _ScreenshotTest (RC<ResLoader::IntermImage> image, EImageFormat fmt);
 
 		RC<IVideoEncoder>  _CreateEncoder (float bitrate, EVideoFormat, EVideoCodec, EVideoColorPreset) const;
 	};

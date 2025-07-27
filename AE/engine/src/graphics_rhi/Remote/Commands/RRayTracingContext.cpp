@@ -12,10 +12,10 @@ namespace AE::Graphics
 	constructor
 =================================================
 */
-	RRayTracingContext::RRayTracingContext (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+	RRayTracingContext::RRayTracingContext (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
 		RBaseContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing }
 	{
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 	}
 
 /*

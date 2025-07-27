@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptCommon.h"
-#include "res_editor/Resources/RTScene.h"
+#include "Scripting/ScriptCommon.h"
+#include "Resources/RTScene.h"
 
 namespace AE::ResEditor
 {

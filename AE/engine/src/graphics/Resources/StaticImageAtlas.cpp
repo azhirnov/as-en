@@ -10,8 +10,8 @@ namespace AE::Graphics
 	using namespace AE::AssetPacker;
 
 namespace {
-#	include "Packer/ImagePacker.cpp.h"
-#	include "Packer/ImageAtlasPacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImageAtlasPacker.cpp.h"
 }
 
 /*
@@ -82,32 +82,18 @@ namespace {
 
 /*
 =================================================
-	Loader::OnUploadCompleteTask
+	Loader::_OnUploadComplete
 =================================================
 */
-	class StaticImageAtlas::Loader::OnUploadCompleteTask final : public Threading::IAsyncTask
+	AsyncCoro  StaticImageAtlas::Loader::_OnUploadComplete (RC<StaticImageAtlas> atlas, ResourceUploadManager::UploadResult upload) __NE___
 	{
-	private:
-		RC<StaticImageAtlas>					_atlas;
-		ResourceUploadManager::UploadResult		_upload;
+		bool	ok = upload ? upload->IsCompleted() : true;
+		atlas->_SetLoadingStatus( ok ? ELoadingStatus::Complete : ELoadingStatus::Failed );
 
-	public:
-		OnUploadCompleteTask (RC<StaticImageAtlas> atlas, ResourceUploadManager::UploadResult upload) __NE___ :
-			IAsyncTask{ ETaskQueue::Background }, _atlas{RVRef(atlas)}, _upload{RVRef(upload)} {}
-
-		void  Run () __Th_OV
-		{
-			bool	ok = _upload ? _upload->IsCompleted() : true;
-			_atlas->_SetLoadingStatus( ok ? ELoadingStatus::Complete : ELoadingStatus::Failed );
-
-			_atlas  = null;
-			_upload = null;
-		}
-
-		DEBUG_ONLY( void  OnCancel ()	__NE_OV { DBG_WARNING("should never happens"); })
-
-		StringView  DbgName ()			C_NE_OV { return "on image loading complete"; }
-	};
+		atlas  = null;
+		upload = null;
+		co_return;
+	}
 
 /*
 =================================================
@@ -157,7 +143,7 @@ namespace {
 		// update status after uploading
 		if ( upload )
 		{
-			Scheduler().Run<OnUploadCompleteTask>( Tuple{atlas, upload}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+			Scheduler().Run( _OnUploadComplete( atlas, upload ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
 		}
 		else
 		{
@@ -192,10 +178,11 @@ namespace {
 
 		if ( _Load( des, resCache, selfName, OUT atlas, OUT &upload ))
 		{
-			return MakePromiseFromValue( RVRef(atlas),
-										 Tuple{RVRef(upload)},
-										 "StaticImageAtlas.LoadAsync",
-										 ETaskQueue::Background );
+			return Scheduler().Run(
+						ETaskQueue::Background,
+						DeferResult< RC<StaticImageAtlas> >( RVRef(atlas) ),
+						Tuple{RVRef(upload)}
+					);
 		}else
 			return Default;
 	}
@@ -245,7 +232,7 @@ namespace {
 		atlas->_nameToIdx	 = RVRef(unpacker.map);
 		atlas->_imageRects	 = RVRef(unpacker.rects);
 
-		Scheduler().Run<OnUploadCompleteTask>( Tuple{atlas, upload}, Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+		Scheduler().Run( _OnUploadComplete( atlas, upload ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
 		return atlas;
 	}
 

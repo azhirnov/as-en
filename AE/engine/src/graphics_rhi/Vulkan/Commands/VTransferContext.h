@@ -49,7 +49,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VDirectTransferCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)									__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Transfer } {}
+		_VDirectTransferCtx (RenderCoroRef task, VCommandBuffer cmdbuf, DebugLabel dbg)										__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Transfer } {}
 	};
 
 
@@ -88,7 +88,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VIndirectTransferCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)							__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Transfer } {}
+		_VIndirectTransferCtx (RenderCoroRef task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)								__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Transfer } {}
 	};
 
 
@@ -103,6 +103,7 @@ namespace AE::Graphics::_hidden_
 	// types
 	public:
 		using CmdBuf_t			= typename CtxImpl::CmdBuf_t;
+		using RenderCoroRef		= typename CtxImpl::RenderCoroRef;
 	private:
 		static constexpr uint	_LocalArraySize			= 16;
 
@@ -114,7 +115,7 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___;
+		explicit _VTransferContextImpl (RenderCoroRef, CmdBuf_t = Default, DebugLabel = Default)					__Th___;
 
 		_VTransferContextImpl ()																					= delete;
 		_VTransferContextImpl (const _VTransferContextImpl &)														= delete;
@@ -173,7 +174,7 @@ namespace AE::Graphics::_hidden_
 		bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)					__Th_OV;
 		bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)						__Th_OV;
 
-		Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)						__Th_OV;
+		ReadHostBufferResult	ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)							__Th_OV;
 
 		using RawCtx::GenerateMipmaps;
 
@@ -233,10 +234,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VTransferContextImpl<C>::_VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+	_VTransferContextImpl<C>::_VTransferContextImpl (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
 		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 	}
 
 /*
@@ -349,7 +350,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	Promise<ArrayView<ubyte>>  _VTransferContextImpl<C>::ReadHostBuffer (BufferID bufferId, Bytes offset, Bytes size) __Th___
+	ITransferContext::ReadHostBufferResult  _VTransferContextImpl<C>::ReadHostBuffer (BufferID bufferId, Bytes offset, Bytes size) __Th___
 	{
 		VulkanMemoryObjInfo	mem_info;
 		CHECK_ERR( _MapHostBuffer( bufferId, INOUT offset, INOUT size, OUT mem_info ));
@@ -362,11 +363,13 @@ namespace AE::Graphics::_hidden_
 			this->_mngr.GetStagingManager().AcquireMappedMemory( GetFrameId(), mem_info.memory, mem_info.offset + offset, size );
 		}
 
-		return Threading::MakePromiseFromValue(	mem_view,
-												Tuple{ OnFrameNextCycle{ GetFrameId() }},
-												"VTransferContext::ReadHostBuffer",
-												ETaskQueue::PerFrame
-											   );
+		return	ReadHostBufferResult{
+					Scheduler().Run(
+						ETaskQueue::PerFrame,
+						DeferResult<ArrayView<ubyte>>( mem_view ),
+						Tuple{ OnFrameNextCycle{ GetFrameId() }},
+						"VTransferContext::ReadHostBuffer"
+					)};
 	}
 
 /*

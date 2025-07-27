@@ -3,16 +3,13 @@
 #pragma once
 
 #include "graphics_rhi/Public/SamplerDesc.h"
-#include "Packer/PackCommon.h"
-
-#ifdef AE_BUILD_PIPELINE_COMPILER
-# include "ScriptObjects/ScriptSampler.h"
-#endif
-
+#include "res_pack/pipeline_compiler/Packer/PackCommon.h"
 
 namespace AE::PipelineCompiler
 {
 	using namespace AE::Graphics;
+
+	struct ScriptSampler;
 
 
 	//
@@ -46,34 +43,15 @@ namespace AE::PipelineCompiler
 		ND_ bool								HasYcbcr ()			const	{ return _ycbcrDesc.has_value(); }
 		ND_ auto const&							YcbcrDescOpt ()		const	{ return _ycbcrDesc; }
 
-		#ifdef AE_BUILD_PIPELINE_COMPILER
 		ND_ bool  Create (const ScriptSampler &samp);
 		ND_ bool  operator == (const ScriptSampler &rhs) const;
-		#endif
-		#ifdef AE_TEST_PIPELINE_COMPILER
+
 		ND_ String  ToString (const HashToName &) const;
-		#endif
 
 		// ISerializable
 		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
 		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
-
-
-#ifdef AE_BUILD_PIPELINE_COMPILER
-
-	//
-	// Sampler Packer
-	//
-
-	class SamplerPacker
-	{
-	// methods
-	public:
-		static bool  Serialize (Serializing::Serializer &ser) __NE___;
-	};
-
-#endif
 
 } // AE::PipelineCompiler
 

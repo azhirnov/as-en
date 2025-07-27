@@ -10,26 +10,29 @@
 #	include <nvapi.h>
 #	include "platform/Private/NvAPILib.h"
 
-#	define NVAPI_CHECK( /* expr */... )																				\
-	{																												\
-		const NvAPI_Status	_nv_err_ = (__VA_ARGS__);																\
-		Unused( _CheckNvAPIError( _nv_err_, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, SourceLoc_Current() ));	\
+#	define NVAPI_CHECK( /* expr */... )														\
+	{																						\
+		const NvAPI_Status	_nv_err_ = (__VA_ARGS__);										\
+		Unused( _CheckNvAPIError(	_nv_err_, AE_TOSTRING( __VA_ARGS__ ),					\
+									AE_FUNCTION_NAME, AE::Base::SourceLoc::current() ));	\
 	}
 
-#	define PRIVATE_NVAPI_CHECK_R( _expr_, _msg_, _ret_ )															\
-	{																												\
-		const NvAPI_Status	_nv_err_ = (_expr_);																	\
-		if_unlikely( not _CheckNvAPIError( _nv_err_, _msg_, AE_FUNCTION_NAME, SourceLoc_Current() ))				\
-			return _ret_;																							\
+#	define PRIVATE_NVAPI_CHECK_R( _expr_, _msg_, _ret_ )									\
+	{																						\
+		const NvAPI_Status	_nv_err_ = (_expr_);											\
+		if_unlikely( not _CheckNvAPIError( _nv_err_, _msg_, AE_FUNCTION_NAME,				\
+											AE::Base::SourceLoc::current() ))				\
+			return _ret_;																	\
 	}
 
-# define PRIVATE_NVAPI_CHECK2_R( _func_, _ret_ )																	\
+# define PRIVATE_NVAPI_CHECK2_R( _func_, _ret_ )											\
 		PRIVATE_NVAPI_CHECK_R( (_func_), AE_TOSTRING( _func_ ), (_ret_) )
 
-#	define NVAPI_CHECK_ERR( /* expr, return_on_error */... )														\
-		PRIVATE_NVAPI_CHECK2_R( AE_PRIVATE_GETARG_0( __VA_ARGS__, ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default, ))
+#	define NVAPI_CHECK_ERR( /* expr, return_on_error */... )								\
+		PRIVATE_NVAPI_CHECK2_R( AE_PRIVATE_GETARG_0( __VA_ARGS__, ),						\
+								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default, ))
 
-# define NVAPI_CHECK_ERRV( _expr_ )																					\
+# define NVAPI_CHECK_ERRV( _expr_ )															\
 		PRIVATE_NVAPI_CHECK2_R( (_expr_), void() )
 
 
@@ -375,7 +378,7 @@ namespace AE::App
 
 			String	msg;
 			msg << "NvAPI error: " << dec_str << ", in " << fnCall << ", function: " << func;
-			AE_LOGE( msg, loc.file, loc.line );
+			AE_LOGE( msg, loc );
 		}
 		CATCH_ALL()
 	  #else

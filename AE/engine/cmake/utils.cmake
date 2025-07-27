@@ -25,33 +25,7 @@ endfunction()
 
 #----------------------------------------------------------
 
-function( EnablePrebuild projName )
-if (DEFINED ENGINE_LIBS_PATH)
-	if (ANDROID)
-		set( LIB_PATH "${ENGINE_LIBS_PATH}/${ANDROID_ABI}/lib${projName}.a" )
-		if (NOT EXISTS "${LIB_PATH}")
-			message( FATAL_ERROR "Lib '${LIB_PATH}' is not exists" )
-		endif()
-		target_link_libraries( "${projName}" PUBLIC "${LIB_PATH}" )
-	else()
-		foreach( CFG CMAKE_CONFIGURATION_TYPES )
-			set( LIB_PATH "${ENGINE_LIBS_PATH}/${CFG}/${CMAKE_STATIC_LIBRARY_PREFIX}${projName}${CMAKE_STATIC_LIBRARY_SUFFIX}" )
-			if (NOT EXISTS "${LIB_PATH}")
-				message( FATAL_ERROR "Lib '${LIB_PATH}' is not exists" )
-			endif()
-		endforeach()
-		target_link_libraries( "${projName}" PUBLIC
-			$<$<CONFIG:Release>: "${ENGINE_LIBS_PATH}/Release/${CMAKE_STATIC_LIBRARY_PREFIX}${projName}${CMAKE_STATIC_LIBRARY_SUFFIX}" >
-			$<$<CONFIG:Profile>: "${ENGINE_LIBS_PATH}/Profile/${CMAKE_STATIC_LIBRARY_PREFIX}${projName}${CMAKE_STATIC_LIBRARY_SUFFIX}" >
-			$<$<CONFIG:Develop>: "${ENGINE_LIBS_PATH}/Develop/${CMAKE_STATIC_LIBRARY_PREFIX}${projName}${CMAKE_STATIC_LIBRARY_SUFFIX}" >
-			$<$<CONFIG:Debug>:   "${ENGINE_LIBS_PATH}/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}${projName}${CMAKE_STATIC_LIBRARY_SUFFIX}" > )
-	endif()
-endif()
-endfunction()
-
-#----------------------------------------------------------
-
-function( EnableUnitBuild projName )
+function( EnableUnityBuild projName )
 if (${AE_USE_UNITY_BUILD})
 	set_target_properties( "${projName}" PROPERTIES
 		UNITY_BUILD				ON

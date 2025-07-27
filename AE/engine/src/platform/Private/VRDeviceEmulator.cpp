@@ -6,45 +6,27 @@ namespace AE::App
 {
 	using namespace AE::Graphics;
 
-
-	//
-	// Blit Image Task
-	//
-	class VRDeviceEmulator::VRRenderSurface::BlitImageTask final : public RenderTask
-	{
-	private:
-		VRRenderSurface &	t;
-
-	public:
-		BlitImageTask (VRRenderSurface* t, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ batch, {"VRDeviceEmulator::BlitImage"} },
-			t{ *t }
-		{}
-
-		void  Run () __Th_OV;
-	};
-
 /*
 =================================================
-	BlitImageTask::Run
+	_BlitImageTask
 =================================================
 */
-	void  VRDeviceEmulator::VRRenderSurface::BlitImageTask::Run () __Th___
+	RenderCoro  VRDeviceEmulator::VRRenderSurface::_BlitImageTask (VRRenderSurface &t) __NE___
 	{
 		RenderTargets_t	src_targets;
-		CHECK_TE( t.GetTargets( OUT src_targets ) and src_targets.size() == 2 );
+		CHECK_CE( t.GetTargets( OUT src_targets ) and src_targets.size() == 2 );
 
 		RenderTargets_t	dst_targets;
-		CHECK_TE( t._GetDstTargets( OUT dst_targets ) and dst_targets.size() == 1 );
+		CHECK_CE( t._GetDstTargets( OUT dst_targets ) and dst_targets.size() == 1 );
 
 		auto&	src_rt0	= src_targets[0];
 		auto&	src_rt1	= src_targets[1];
 		auto&	dst_rt	= dst_targets[0];
 
-		ASSERT( src_rt0.colorSpace == dst_rt.colorSpace );
-		ASSERT( src_rt1.colorSpace == dst_rt.colorSpace );
+	//	ASSERT( src_rt0.colorSpace == dst_rt.colorSpace );
+	//	ASSERT( src_rt1.colorSpace == dst_rt.colorSpace );
 
-		DirectCtx::Transfer		ctx{ *this };
+		DirectCtx::Transfer		ctx{ RenderCoro_Get() };
 
 		ctx.AccumBarriers()
 			.ImageBarrier( dst_rt.imageId,	dst_rt.initialState | EResourceState::Invalidate,	EResourceState::BlitDst )
@@ -75,11 +57,8 @@ namespace AE::App
 			.ImageBarrier( src_rt0.imageId,	EResourceState::BlitSrc,	src_rt0.finalState )
 			.ImageBarrier( src_rt1.imageId,	EResourceState::BlitSrc,	src_rt1.finalState );
 
-		Execute( ctx );
+		RenderCoro_Execute( ctx );
 	}
-//-----------------------------------------------------------------------------
-
-
 
 /*
 =================================================
@@ -118,7 +97,7 @@ namespace AE::App
 		CHECK_ERR( _presentBatch );
 
 		AsyncTask	acquire		= RVRef(_acquireImg);
-		AsyncTask	draw_task	= _presentBatch->Run<BlitImageTask>( Tuple{this}, Tuple{acquire}, True{"Last"}, {"VR emulator blit"} );
+		AsyncTask	draw_task	= _presentBatch->Run( _BlitImageTask( *this ), Tuple{acquire}, True{"Last"}, {"VR emulator blit"} );
 		AsyncTask	end_task	= _vrDev._window->GetSurface().End( deps );
 
 		_presentBatch = null;

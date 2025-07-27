@@ -8,6 +8,9 @@
 # endif
 #endif
 
+template <typename T>
+constexpr bool _enable_bitmask_operators (T);
+
 namespace AE::Base
 {
 
@@ -338,30 +341,7 @@ namespace AE::Base
 	template <typename T> requires(HasScalarBitOp<T>)
 	NdCx__ uint  CountRZero (const T x) __NE___
 	{
-	#ifdef __cpp_lib_bitops  // C++20
 		return uint( std::countr_zero( ToUnsignedInteger<T>(x) ));
-
-	#elif defined(AE_COMPILER_MSVC)
-		constexpr uint	INVALID_INDEX = CT_SizeOfInBits<T>;
-		unsigned long	index;
-
-		if constexpr( sizeof(x) == 8 )
-			return _BitScanForward64( OUT &index, ulong(x) ) ? index : INVALID_INDEX;
-		else
-		if constexpr( sizeof(x) <= 4 )
-			return _BitScanForward( OUT &index, uint(x) ) ? index : INVALID_INDEX;
-
-	#elif defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG)
-
-		if constexpr( sizeof(x) == 8 )
-			return x == 0 ? CT_SizeOfInBits<T> : __builtin_ffsll( ulong(x) ) - 1;
-		else
-		if constexpr( sizeof(x) <= 4 )
-			return x == 0 ? CT_SizeOfInBits<T> : __builtin_ffs( uint(x) ) - 1;
-
-	#else
-		#error add CountRZero implementation
-	#endif
 	}
 
 /*
@@ -417,29 +397,7 @@ namespace AE::Base
 	template <typename T> requires(HasScalarBitOp<T>)
 	NdCx__ usize  BitCount (const T x) __NE___
 	{
-	  #ifdef __cpp_lib_bitops
 		return usize( std::popcount( ToUnsignedInteger<T>(x) ));
-
-	  #elif defined(AE_COMPILER_MSVC)
-		// requires CPUInfo::POPCNT
-	  # if AE_PLATFORM_BITS == 64
-		if constexpr( sizeof(x) == 8 )
-			return usize( __popcnt64( ulong(x) ));
-		else
-	  # endif
-		if constexpr( sizeof(x) == 4 )
-			return usize( __popcnt( uint(x) ));
-		else
-		if constexpr( sizeof(x) <= 2 )
-			return usize( __popcnt16( ushort(x) ));
-
-	  #else // clang & gcc
-		if constexpr( sizeof(x) == 8 )
-			return usize( std::bitset<64>{ ulong(x) }.count() );
-		else
-		if constexpr( sizeof(x) <= 4 )
-			return usize( std::bitset<32>{ uint(x) }.count() );
-	  #endif
 	}
 
 /*
@@ -452,11 +410,7 @@ namespace AE::Base
 	template <typename T> requires(HasScalarBitOp<T>)
 	NdCx__ usize  CountLZero (const T x) __NE___
 	{
-	  #ifdef __cpp_lib_bitops
 		return usize( std::countl_zero( ToUnsignedInteger<T>(x) ));
-	  #else
-		Unused( x ); // TODO
-	  #endif
 	}
 
 /*
@@ -469,11 +423,7 @@ namespace AE::Base
 	template <typename T> requires(HasScalarBitOp<T>)
 	NdCx__ usize  CountLOne (const T x) __NE___
 	{
-	  #ifdef __cpp_lib_bitops
 		return usize( std::countl_one( ToUnsignedInteger<T>(x) ));
-	  #else
-		Unused( x ); // TODO
-	  #endif
 	}
 
 /*
@@ -507,69 +457,23 @@ namespace AE::Base
 /*
 =================================================
 	BitRotateLeft
-----
-	from https://en.wikipedia.org/wiki/Circular_shift#Implementing_circular_shifts
 =================================================
 */
-	namespace _hidden_
-	{
-		template <typename T>
-		constexpr T _BitRotateLeft (const T x, const usize shift) __NE___
-		{
-			constexpr usize	mask = (CT_SizeofInBits(x) - 1);
-			return (x << (shift & mask)) | (x >> ( ~(shift-1) & mask ));
-		}
-	} // _hidden_
-
 	template <typename T> requires(HasScalarBitOp<T>)
 	NdCx__ T  BitRotateLeft (const T x, const usize shift) __NE___
 	{
-	  #ifdef __cpp_lib_bitops
 		return T( std::rotl( ToNearUInt(x), int(shift) ));
-
-	  #elif defined(AE_COMPILER_MSVC)
-		if constexpr( sizeof(x) > sizeof(uint) )
-			return T( _rotl64( ulong(x), int(shift) ));
-		else
-			return T( _rotl( uint(x), int(shift) ));
-
-	  #else // clang & gcc
-		return T( Base::_hidden_::_BitRotateLeft( ToNearUInt(x), shift ));
-	  #endif
 	}
 
 /*
 =================================================
 	BitRotateRight
-----
-	from https://en.wikipedia.org/wiki/Circular_shift#Implementing_circular_shifts
 =================================================
 */
-	namespace _hidden_
-	{
-		template <typename T>
-		constexpr T _BitRotateRight (const T x, const usize shift) __NE___
-		{
-			constexpr usize	mask = (CT_SizeofInBits(x) - 1);
-			return (x >> (shift & mask)) | (x << ( ~(shift-1) & mask ));
-		}
-	} // _hidden_
-
 	template <typename T> requires(HasScalarBitOp<T>)
 	NdCx__ T  BitRotateRight (const T x, const usize shift) __NE___
 	{
-	  #ifdef __cpp_lib_bitops
 		return T( std::rotr( ToNearUInt(x), int(shift) ));
-
-	  #elif defined(AE_COMPILER_MSVC)
-		if constexpr( sizeof(x) > sizeof(uint) )
-			return T( _rotr64( ulong(x), int(shift) ));
-		else
-			return T( _rotr( uint(x), int(shift) ));
-
-	  #else // clang & gcc
-		return T( Base::_hidden_::_BitRotateRight( ToNearUInt(x), shift ));
-	  #endif
 	}
 
 /*
@@ -836,5 +740,48 @@ namespace AE::Base
 		return CeilIntLog2( dif );
 	}
 
+/*
+=================================================
+	bit operators for enum
+=================================================
+*/
+namespace EnumBitOperators
+{
+	template <AllowEnumBitOps T>
+	NdCx__ T	operator |  (T lhs, T rhs)			__NE___	{ return static_cast<T>( ToNearUInt(lhs) | ToNearUInt(rhs) ); }
+	
+	template <AllowEnumBitOps T>
+	NdCx__ T	operator &  (T lhs, T rhs)			__NE___	{ return static_cast<T>( ToNearUInt(lhs) & ToNearUInt(rhs) ); }
+	
+	template <AllowEnumBitOps T>
+	NdCx__ T	operator ^  (T lhs, T rhs)			__NE___	{ return static_cast<T>( ToNearUInt(lhs) ^ ToNearUInt(rhs) ); }
 
+	template <AllowEnumBitOps T>
+	__Cx__ T&	operator |= (INOUT T &lhs, T rhs)	__NE___	{ return lhs = static_cast<T>( ToNearUInt(lhs) | ToNearUInt(rhs) ); }
+	
+	template <AllowEnumBitOps T>
+	__Cx__ T&	operator &= (INOUT T &lhs, T rhs)	__NE___	{ return lhs = static_cast<T>( ToNearUInt(lhs) & ToNearUInt(rhs) ); }
+	
+	template <AllowEnumBitOps T>
+	__Cx__ T&	operator ^= (INOUT T &lhs, T rhs)	__NE___	{ return lhs = static_cast<T>( ToNearUInt(lhs) ^ ToNearUInt(rhs) ); }
+
+	template <AllowEnumBitOps T>
+	NdCx__ T	operator ~ (T lhs)					__NE___	{ return static_cast<T>( ~ToNearUInt(lhs)); }
+	
+	template <AllowEnumBitOps T>
+	NdCx__ bool	operator ! (T lhs)					__NE___	{ return not ToNearUInt(lhs); }
+}
+
+#define ImportBitOperators \
+	using AE::Base::EnumBitOperators::operator |; \
+	using AE::Base::EnumBitOperators::operator &; \
+	using AE::Base::EnumBitOperators::operator ^; \
+	using AE::Base::EnumBitOperators::operator |=; \
+	using AE::Base::EnumBitOperators::operator &=; \
+	using AE::Base::EnumBitOperators::operator ^=; \
+	using AE::Base::EnumBitOperators::operator ~; \
+	using AE::Base::EnumBitOperators::operator !
+
+	ImportBitOperators;
+	
 } // AE::Base

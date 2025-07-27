@@ -2,7 +2,10 @@
 
 #pragma once
 
-#include "InputActionsBinding.pch.h"
+#include "pch/Serializing.h"
+#include "pch/Scripting.h"
+
+#include "res_pack/input_actions/InputActionsBinding.h"
 #include "platform/Private/SerializableInputActions.h"
 
 namespace AE::InputActions

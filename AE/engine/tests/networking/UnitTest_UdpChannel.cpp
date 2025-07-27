@@ -66,7 +66,8 @@ namespace
 			{
 				if ( auto* msg = CSMessageCtor< CSMsg_Log >::CreateForEncode( alloc ))
 				{
-					msg->loc	= loc;
+					msg->file	= loc.file_name();
+					msg->line	= loc.line();
 					msg->msg	= text;
 
 					last_chunk->emplace_back( msg );
@@ -129,7 +130,7 @@ namespace
 
 				TEST( server.AddChannel( server_port ));
 
-				server.Add( MakeRC<LogMsgProducer>( msg_count, mf, "from server"sv, SourceLoc_Current(), server_sent_msgs ));
+				server.Add( MakeRC<LogMsgProducer>( msg_count, mf, "from server"sv, SourceLoc::current(), server_sent_msgs ));
 				server.Add( MakeRC<LogMsgConsumer>( "from client"sv, sever_recv_msgs ));
 
 				for (uint i = 0; i < frame_count; ++i)
@@ -157,7 +158,7 @@ namespace
 
 				TEST( client.AddChannel( client_port ));
 
-				client.Add( MakeRC<LogMsgProducer>( msg_count, mf, "from client"sv, SourceLoc_Current(), client_sent_msgs ));
+				client.Add( MakeRC<LogMsgProducer>( msg_count, mf, "from client"sv, SourceLoc::current(), client_sent_msgs ));
 				client.Add( MakeRC<LogMsgConsumer>( "from server"sv, client_recv_msgs ));
 
 				for (uint i = 0; i < frame_count; ++i)

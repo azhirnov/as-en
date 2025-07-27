@@ -37,7 +37,7 @@ namespace AE::Graphics
 	IsAllResourcesAlive
 =================================================
 */
-	bool  VFramebuffer::IsAllResourcesAlive (const VResourceManager &resMngr) C_NE___
+	bool  VFramebuffer::IsAllResourcesAlive (const ResourceManager &resMngr) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -54,7 +54,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VFramebuffer::Create (VResourceManager &resMngr, const RenderPassDesc &rpDesc, RenderPassID rpId, StringView dbgName) __NE___
+	bool  VFramebuffer::Create (ResourceManager &resMngr, const RenderPassDesc &rpDesc, RenderPassID rpId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _framebuffer );
@@ -175,7 +175,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VFramebuffer::Destroy (VResourceManager &resMngr) __NE___
+	void  VFramebuffer::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

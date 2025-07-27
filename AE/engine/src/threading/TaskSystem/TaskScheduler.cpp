@@ -44,15 +44,20 @@ namespace {
 		return EThreadSeed(seed);
 	}
 }
+} // AE::Threading
 //-----------------------------------------------------------------------------
 
+
+namespace AE::_Coro_
+{
+	constinit StaticRC<AsyncTaskImpl>  AsyncTaskImpl::CanceledTask::s_canceled { _ConstInitStaticRC(0), ETaskStatus::Canceled };
 
 /*
 =================================================
 	OutputChunk::Init
 =================================================
 */
-	void  IAsyncTask::OutputChunk::Init () __NE___
+	void  AsyncTaskImpl::OutputChunk::Init () __NE___
 	{
 		StaticAssert( alignof(OutputChunk) >= _mask+1 );
 
@@ -69,17 +74,16 @@ namespace {
 DEBUG_ONLY(
 	INTERNAL_LINKAGE( Atomic<slong>  asyncTaskCounter {0} );
 
-	slong  IAsyncTask::_AsyncTaskTotalCount () __NE___		{ return asyncTaskCounter.load(); }
+	slong  AsyncTaskImpl::TaskSchedulerApi::AsyncTaskTotalCount () __NE___ { return asyncTaskCounter.load(); }
 )
 /*
 =================================================
 	constructor
 =================================================
 */
-	IAsyncTask::IAsyncTask (ETaskQueue type) __NE___ :
-		_queueType{ type }
+	AsyncTaskImpl::AsyncTaskImpl (EFlags flags) __NE___ :
+		_flags{flags}
 	{
-		ASSERT( _queueType < ETaskQueue::_Count );
 		DEBUG_ONLY( ++asyncTaskCounter );
 	}
 
@@ -88,10 +92,10 @@ DEBUG_ONLY(
 	_SetQueueType
 =================================================
 */
-	void  IAsyncTask::_SetQueueType (ETaskQueue type) __NE___
+	void  AsyncTaskImpl::_SetQueueType (ETaskQueue type) __NE___
 	{
-		ASSERT( Status() == EStatus::Initial );
-		ASSERT( _queueType < ETaskQueue::_Count );
+		ASSERT( AnyEqual( Status(), EStatus::Initial, EStatus::InProgress, EStatus::Continue ));
+		ASSERT( type < ETaskQueue::_Count );
 
 		_queueType = type;
 	}
@@ -101,7 +105,7 @@ DEBUG_ONLY(
 	destructor
 =================================================
 */
-	IAsyncTask::~IAsyncTask () __NE___
+	AsyncTaskImpl::~AsyncTaskImpl () __NE___
 	{
 		ASSERT( _output.get() == null );
 		DEBUG_ONLY(
@@ -113,12 +117,113 @@ DEBUG_ONLY(
 
 /*
 =================================================
-	_SetCancellationState
-----
-	set 'Cancellation' state, 'Canceled' state will be set later
+	Run
 =================================================
 */
-	bool  IAsyncTask::_SetCancellationState () __NE___
+	void  AsyncTaskImpl::Run (OUT bool& rerun) __NE___
+	{
+		DEBUG_ONLY(
+			ASSERT( Status() == EStatus::InProgress );
+			_isRunning.store( true );
+			++_resumeCount;
+		)
+		PROFILE_ONLY(
+			if ( _profiler )
+				_profiler->Begin( *this );
+		)
+
+		// resume coroutine
+		auto	coro_handle = CoroHandle_t::from_promise( *this );
+
+		ASSERT( bool{coro_handle} and not coro_handle.done() );
+		ASSERT( NoBits( _flags, EFlags::DoNotRun ));
+
+		coro_handle.resume();	// throw
+
+		if_unlikely( bool{coro_handle} and not coro_handle.done() )
+			ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Error ));
+
+
+		PROFILE_ONLY(
+			if ( _profiler )
+				_profiler->End( *this );
+		)
+		DEBUG_ONLY(
+			_isRunning.store( false );
+		)
+
+		_OnFinish( OUT rerun );
+	}
+
+/*
+=================================================
+	_Inline_OnStart
+=================================================
+*/
+	void  AsyncTaskImpl::_Inline_OnStart () __NE___
+	{
+		ASSERT( _status.load() == EStatus::Initial );
+		ASSERT( _output.get() == null );
+
+		_waitCount.store( 0 );
+		_status.store( EStatus::InProgress );
+		_queueType = ETaskQueue::Unknown;
+
+		DEBUG_ONLY(
+			_isRunning.store( true );
+		)
+	}
+
+/*
+=================================================
+	_Inline_MakeCompletedOnReturn
+=================================================
+*/
+	void  AsyncTaskImpl::_Inline_MakeCompletedOnReturn () __NE___
+	{
+		auto	coro_handle = CoroHandle_t::from_promise( *this );
+
+		ASSERT( bool{coro_handle} and not coro_handle.done() );
+
+		DEBUG_ONLY(
+			_isRunning.store( false );
+		)
+
+		bool	rerun;
+		_OnFinish( OUT rerun );
+		ASSERT( not rerun );
+	}
+
+/*
+=================================================
+	_ReleaseObject
+=================================================
+*/
+	void  AsyncTaskImpl::_ReleaseObject () __NE___
+	{
+		MemoryBarrier( EMemoryOrder::Acquire );
+		ASSERT( IsFinished() );
+
+		if_unlikely( AllBits( _flags, EFlags::DoNotRun ))
+		{
+			delete this;
+			return;  // coroutine is not created
+		}
+
+		auto	coro_handle = CoroHandle_t::from_promise( *this );
+
+		// internally calls 'promise_type' dtor
+		coro_handle.destroy();
+	}
+
+/*
+=================================================
+	_SetCancellationState
+----
+	set 'Cancellation' state, 'Canceled' state will be set later during '_Cancel()' call.
+=================================================
+*/
+	bool  AsyncTaskImpl::_SetCancellationState () __NE___
 	{
 		for (EStatus expected = EStatus::Pending;
 			 not _status.CAS( INOUT expected, EStatus::Cancellation );)
@@ -137,21 +242,24 @@ DEBUG_ONLY(
 
 /*
 =================================================
-	OnFailure
+	_Error
+----
+	set 'Error' state, immediately free output dependencies.
+	'OnCancel()' will not be called.
 =================================================
 */
-	void  IAsyncTask::OnFailure () __NE___
+	void  AsyncTaskImpl::_Error () __NE___
 	{
 		ASSERT( _isRunning.load() );
 
 		for (EStatus expected = EStatus::InProgress;
-			 not _status.CAS( INOUT expected, EStatus::Failed );)
+			 not _status.CAS( INOUT expected, EStatus::Error );)
 		{
 			// status has been changed in another thread
 			if_unlikely( expected > EStatus::_Finished )
 				return;
 
-			ASSERT( expected != EStatus::Cancellation );	// TODO: Failed or Canceled ?
+			ASSERT( expected != EStatus::Cancellation );	// TODO: Error or Canceled ?
 			ThreadUtils::Pause();
 		}
 
@@ -164,7 +272,7 @@ DEBUG_ONLY(
 	_OnFinish
 =================================================
 */
-	void  IAsyncTask::_OnFinish (OUT bool& rerun) __NE___
+	void  AsyncTaskImpl::_OnFinish (OUT bool& rerun) __NE___
 	{
 		ASSERT( not _isRunning.load() );
 		rerun = false;
@@ -178,9 +286,10 @@ DEBUG_ONLY(
 
 		// try to set completed state
 		EStatus	expected = EStatus::InProgress;
-		if ( _status.CAS_Loop( INOUT expected, EStatus::Completed ) or expected == EStatus::Failed )
+		if ( _status.CAS_Loop( INOUT expected, EStatus::Completed )	or
+			 AnyEqual( expected, EStatus::Completed, EStatus::Error ))
 		{
-			ASSERT( _waitBits.load() == 0 );	// all input dependencies must complete
+			ASSERT( _waitCount.load() == 0 );	// all input dependencies must complete
 
 			_FreeOutputChunks( False{"NOT canceled"} );
 			return;
@@ -212,7 +321,7 @@ DEBUG_ONLY(
 	_Cancel
 =================================================
 */
-	void  IAsyncTask::_Cancel () __NE___
+	void  AsyncTaskImpl::_Cancel () __NE___
 	{
 		ASSERT( not _isRunning.load() );
 
@@ -236,29 +345,28 @@ DEBUG_ONLY(
 	_FreeOutputChunks
 =================================================
 */
-	void  IAsyncTask::_FreeOutputChunks (Bool isCanceled) __NE___
+	void  AsyncTaskImpl::_FreeOutputChunks (Bool isCanceled) __NE___
 	{
 		ASSERT( _output.is_locked() );
 
-		auto&	chunk_pool = Scheduler()._GetChunkPool();
+		auto&	chunk_pool = TaskScheduler::AsyncTaskApi::GetChunkPool();
 
 		for (OutputChunk* chunk = _output.get();  chunk != null; )
 		{
 			for (uint i = 0, cnt = chunk->Count(); i < cnt; ++i)
 			{
-				auto&		dep			= chunk->tasks[i];
-				const uint	idx			= chunk->deps[i].bitIndex;
-				const uint	is_strong	= chunk->deps[i].isStrong;
-				const auto	mask		= WaitBits_t{1} << idx;
+				auto&			dep			= chunk->tasks[i];
+				AsyncTaskImpl*	task		= dep.get();
+				const bool		is_strong	= dep.Extra() == 1;
 
 				if_unlikely( isCanceled and is_strong )
-					dep->_canceledDepsCount.fetch_add( 1 );
+					task->_willBeCanceled.store( true );
 
-				WaitBits_t	old_bits = dep->_waitBits.fetch_and( ~mask ); // 1 -> 0
-				Unused( old_bits );
-				ASSERT( AllBits( old_bits, mask ));
+				auto	count = task->_waitCount.fetch_sub( 1 );
+				ASSERT_Gt( count, 0 );
+				Unused( count );
 
-				//if ( bits == 0 )
+				//if ( count == 1 )
 				//{
 					// TODO: add ready to run tasks to list
 				//}
@@ -279,46 +387,15 @@ DEBUG_ONLY(
 
 /*
 =================================================
-	_ResetState
-=================================================
-*/
-	bool  IAsyncTask::_ResetState () __NE___
-	{
-		ASSERT( not _isRunning.load() );
-		EXLOCK( _output );
-
-		for (EStatus expected = EStatus::Completed;
-			 not _status.CAS( INOUT expected, EStatus::Initial );)
-		{
-			if ( expected == EStatus::Completed	or
-				 expected == EStatus::Failed	or
-				 expected == EStatus::Canceled )
-			{
-				ThreadUtils::Pause();
-				continue;
-			}
-
-			RETURN_ERR( "can't reset task which is not finished" );
-		}
-
-		_waitBits.store( UMax );
-		_canceledDepsCount.store( 0 );
-		ASSERT( _output.get() == null );
-
-		return true;
-	}
-
-/*
-=================================================
 	_DbgSet
 -----
 	Only for debugging!
 =================================================
 */
-	void  IAsyncTask::_DbgSet (EStatus status) __NE___
+	void  AsyncTaskImpl::_DbgSet (EStatus status) __NE___
 	{
 		_status.store( status );
-		_waitBits.store( 0 );
+		_waitCount.store( 0 );
 	}
 
 /*
@@ -326,13 +403,13 @@ DEBUG_ONLY(
 	_MakeCompletedUnsafe
 =================================================
 */
-	void  IAsyncTask::_MakeCompletedUnsafe () __NE___
+	void  AsyncTaskImpl::_MakeCompletedUnsafe () __NE___
 	{
 		ASSERT( _status.load() == EStatus::Initial );
 		ASSERT( _output.get() == null );	// use '_MakeCompletedSafe()' instead
 
 		_status.store( EStatus::Completed );
-		_waitBits.store( 0 );
+		_waitCount.store( 0 );
 	}
 
 /*
@@ -340,12 +417,12 @@ DEBUG_ONLY(
 	_MakeCompletedSafe
 =================================================
 */
-	void  IAsyncTask::_MakeCompletedSafe () __NE___
+	void  AsyncTaskImpl::_MakeCompletedSafe () __NE___
 	{
 		ASSERT( _status.load() == EStatus::Initial );
 
 		// enqueue
-		_waitBits.store( 0 );
+		_waitCount.store( 0 );
 		_status.store( EStatus::InProgress );
 
 		// skip 'Run()'
@@ -362,133 +439,143 @@ DEBUG_ONLY(
 
 /*
 =================================================
-	SetDependencyCompletionStatus
+	_SetDebugName
 =================================================
 */
-	void  IAsyncTask::Helper::SetDependencyCompletionStatus (IAsyncTask &task, uint depIndex, Bool isCanceled) __NE___
+#ifdef AE_DEBUG
+	void  AsyncTaskImpl::_SetDebugName (StringView dbgName) __NE___
+	{
+		if ( dbgName.empty() )
+			return;
+
+		ASSERT( not _dbgName );
+
+		_dbgName.reset( new char[dbgName.size()+1] );
+		std::memcpy( OUT _dbgName.get(), dbgName.data(), dbgName.size() );
+		_dbgName.get()[ dbgName.size() ] = 0;
+	}
+#endif
+/*
+=================================================
+	_SetDebugName
+=================================================
+*/
+#ifdef AE_DEBUG
+	void  AsyncTaskImpl::_SetDebugName (const SourceLoc &loc) __NE___
+	{
+		usize	len = strlen(loc.function_name()) + 32;
+		_dbgName.reset( new char[len] );
+
+	  #ifdef AE_COMPILER_MSVC
+		if ( sprintf_s( OUT _dbgName.get(), len, "%s (%i)", loc.function_name(), loc.line() ) > 0 )
+			return;
+	  #else
+		if ( sprintf( OUT _dbgName.get(), "%s (%i)", loc.function_name(), loc.line() ) > 0 )
+			return;
+	  #endif
+
+		_dbgName.reset();
+	}
+#endif
+/*
+=================================================
+	TaskDependencyManagerApi::SetDependencyCompletionStatus
+=================================================
+*/
+	void  AsyncTaskImpl::TaskDependencyManagerApi::SetDependencyCompletionStatus (AsyncTaskImpl &task, Bool isCanceled) __NE___
 	{
 		if_unlikely( isCanceled )
-			task._canceledDepsCount.fetch_add( 1 );
+			task._willBeCanceled.store( true );
 
-		const auto	mask		= IAsyncTask::WaitBits_t{1} << depIndex;
-		const auto	old_bits	= task._waitBits.fetch_and( ~mask ); // 1 -> 0
-
-		Unused( old_bits );
-		ASSERT( AllBits( old_bits, mask ));
+		const auto	count = task._waitCount.fetch_sub( 1 );
+		ASSERT_Gt( count, 0 );
+		Unused( count );
 	}
-//-----------------------------------------------------------------------------
-
-
 
 /*
 =================================================
-	Wakeup
-----
-	Windows: 5..20us to wakeup thread
+	TaskSchedulerApi::Init
 =================================================
 */
-	void  TaskScheduler::ThreadWakeup::Wakeup (EThreadBits bits) __NE___
+#ifdef AE_DEBUG
+	void  AsyncTaskImpl::TaskSchedulerApi::Init (AsyncTaskImpl &self, ETaskQueue queue, StringView dbgName, const SourceLoc &loc) __NE___
 	{
+		if ( queue != Default )
+			self._SetQueueType( queue );
+
+		if ( self._dbgName )
+			return;
+
+		if ( dbgName.empty() )
 		{
-			std::unique_lock	lock {_mutex};
-			_activeThreads = bits;
-		}
-		_cv.notify_all();
-	}
+		#if 1
+			self._SetDebugName( loc );
 
-	void  TaskScheduler::ThreadWakeup::Wakeup (ETaskQueueBits bits) __NE___
-	{
-		EThreadBits		threads;
-		for (ETaskQueue q : bits) {
-			threads.insert( EThread(q) );
-		}
-		return Wakeup( threads );
-	}
+		#else //defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)
+			auto		stack	= std::stacktrace::current();
+			auto		it		= stack.begin() + 2;
+			const usize	cnt		= Min( 7u, stack.size() );
+			String		tmp;
 
-/*
-=================================================
-	WakeupAndDetach
-=================================================
-*/
-	void  TaskScheduler::ThreadWakeup::WakeupAndDetach (LoopingFlag_t &looping) __NE___
-	{
+			for (usize i = 2; i < cnt; ++i, ++it)
+			{
+				if ( it->source_file().empty() )
+					break;
+
+				tmp << FileSystem::ToShortPath( it->source_file() ) << '(' << ToString( it->source_line() ) << "): " << it->description() << '\n';
+			}
+			self._SetDebugName( tmp );
+		#endif
+		}
+		else
 		{
-			std::unique_lock	lock {_mutex};	// TODO: not needed?
-			looping.store( 0 );
+			self._SetDebugName( dbgName );
 		}
-		_cv.notify_all();
+		Unused( dbgName );
 	}
-
+#endif
 /*
 =================================================
-	Suspend
+	_ResetCancellationState
 =================================================
 */
-	void  TaskScheduler::ThreadWakeup::Suspend (EThreadBits waitThreads, LoopingFlag_t &looping) __NE___
+	bool  AsyncTaskImpl::_ResetCancellationState () __NE___
 	{
-		std::unique_lock	lock {_mutex};
+		ASSERT( _isRunning.load() );
 
+		EStatus	expected = EStatus::Cancellation;
 		for (;;)
 		{
-			if ( (waitThreads & _activeThreads).Any() )
-			{
-				_activeThreads &= waitThreads;
-				return;
-			}
+			if ( _status.CAS( INOUT expected, EStatus::InProgress ) or
+				 expected == EStatus::InProgress )
+				return true;
 
-			// wakeup if thread will be terminated (joined)
-			if ( looping.load() == 0 )
-				return;
+			ASSERT( AnyEqual( expected, EStatus::Cancellation, EStatus::Canceled ));
 
-			_cv.wait( lock );
+			if ( expected > EStatus::_Finished )
+				break;
 		}
+		return false;
 	}
 
-	void  TaskScheduler::ThreadWakeup::Suspend (ETaskQueueBits waitQueues, LoopingFlag_t &looping) __NE___
-	{
-		EThreadBits		wait_threads;
-		for (ETaskQueue q : waitQueues) {
-			wait_threads.insert( EThread(q) );
-		}
-		return Suspend( wait_threads, looping );
-	}
-
-	void  TaskScheduler::ThreadWakeup::Suspend (const EThreadArray &waitThreads, LoopingFlag_t &looping) __NE___
-	{
-		return Suspend( waitThreads.ToThreadMask(), looping );
-	}
+} // AE::_Coro_
 //-----------------------------------------------------------------------------
 
 
 
-	//
-	// Canceled Task
-	//
-	class TaskScheduler::_CanceledTask final : public IAsyncTask
+namespace AE::Threading
+{
+/*
+=================================================
+	GetChunkPool
+=================================================
+*/
+	TaskScheduler::OutputChunkPool_t&  TaskScheduler::AsyncTaskApi::GetChunkPool () __NE___
 	{
-	public:
-		_CanceledTask ()		__NE___	: IAsyncTask{ETaskQueue::PerFrame} { _DbgSet( EStatus::Canceled ); }
-
-		void		Run ()		__Th_OV {}
-		StringView  DbgName ()	C_NE_OV	{ return "canceled"; }
-	};
-
-
-	//
-	// Dummy Request
-	//
-	class TaskScheduler::_DummyRequest final : public Threading::_hidden_::IAsyncDataSourceRequest
-	{
-	// methods
-	public:
-		_DummyRequest ()					__NE___	{ _status.store( EStatus::Cancelled ); }
-
-		// IAsyncDataSourceRequest //
-		Result		GetResult ()			C_NE_OV	{ return Default; }
-		bool		Cancel ()				__NE_OV	{ return false; }
-		Promise_t	AsPromise (ETaskQueue)	__NE_OV	{ return Default; }
-	};
+		return Scheduler()._chunkPool;
+	}
 //-----------------------------------------------------------------------------
+
 
 
 /*
@@ -532,9 +619,7 @@ DEBUG_ONLY(
 	constructor
 =================================================
 */
-	TaskScheduler::TaskScheduler () __NE___ :
-		_canceledTask{ MakeRC<_CanceledTask>() },
-		_cancelledRequest{ MakeRC<_DummyRequest>() }
+	TaskScheduler::TaskScheduler () __NE___
 	{
 		DEBUG_ONLY(
 			_deadlockCheck.lastUpdate.store( TimePoint_t::clock::now() );
@@ -652,9 +737,7 @@ DEBUG_ONLY(
 			_taskDepsMngrs.clear();
 		}
 
-		_canceledTask		= null;
-		_cancelledRequest	= null;
-		ASSERT_Eq( IAsyncTask::_AsyncTaskTotalCount(), 0 );
+		ASSERT_Eq( TaskApi::AsyncTaskTotalCount(), 0 );
 
 		_chunkPool.Release( True{"check for assigned"} );
 
@@ -795,24 +878,6 @@ DEBUG_ONLY(
 
 /*
 =================================================
-	PullTask
-----
-	Extract one task from specified queue 'type'.
-	Canceled tasks processed immediately.
-	Cache is already invalidated when non-null task is returned.
-	The 'seed' is used only to distribute access from different threads to different chunks
-	to avoid access to the same atomic value from multiple threads.
-=================================================
-*/
-	AsyncTask  TaskScheduler::PullTask (const ETaskQueue type, const EThreadSeed seed) __NE___
-	{
-		CHECK_ERR( type < ETaskQueue::_Count );
-
-		return _queues[ uint(type) ].ptr->Pull( seed );
-	}
-
-/*
-=================================================
 	Wait
 ----
 	Warning: deadlock may occur if 'Wait()' is called in all threads,
@@ -917,12 +982,17 @@ DEBUG_ONLY(
 	returns 'false' if task is already canceled or can not be canceled, check task status for additional info.
 =================================================
 */
-	bool  TaskScheduler::Cancel (const AsyncTask &task) __NE___
+	bool  TaskScheduler::Cancel (const AsyncTask &task, Bool fastCancel) __NE___
 	{
 		if_unlikely( task == null )
 			return false;
 
-		return task->_SetCancellationState();
+		if ( fastCancel )
+			return TaskApi::SetCancellationState( *task );
+		else{
+			TaskApi::CancelAsDependency( *task );
+			return task->Status() < ETaskStatus::_Finished;
+		}
 	}
 
 /*
@@ -930,27 +1000,25 @@ DEBUG_ONLY(
 	_AddTaskDependencies
 -----
 	returns 'false':
-		- on bits overflow
 		- on allocation error
 =================================================
 */
-	bool  TaskScheduler::_AddTaskDependencies (const AsyncTask &task, const AsyncTask &dep, Bool isStrong, INOUT uint &bitIndex) __NE___
+	bool  TaskScheduler::_AddTaskDependencies (Task &task, const AsyncTask &dep, Bool isStrong) __NE___
 	{
 		if_unlikely( dep == null )
 			return true;
 
-		CHECK_ERR( bitIndex + 1 < CT_SizeOfInBits<IAsyncTask::WaitBits_t> );	// TODO: add dummy task with dependencies
-
-		EXLOCK( dep->_output );	// TODO: optimize
+		auto&	output_chunks = TaskApi::OutputChunkRef( *dep );
+		EXLOCK( output_chunks );	// TODO: optimize
 
 		// if we have lock and task is not finished then we can add output dependency
 		// even if status has been changed in another thread
-		const EStatus	status	= dep->Status();
+		const ETaskStatus	status	= dep->Status();
 
 		// add to output
-		if ( status < EStatus::_Finished )
+		if ( status < ETaskStatus::_Finished )
 		{
-			OutputChunk_t*	root = dep->_output.get();
+			OutputChunk_t*	root = output_chunks.get();
 
 			for (OutputChunk_t* chunk = root, *prev = null;;)
 			{
@@ -966,28 +1034,27 @@ DEBUG_ONLY(
 					else			root = chunk;
 				}
 
-				if ( uint cnt = chunk->Count(); cnt < IAsyncTask::ElemInChunk )
+				if ( uint cnt = chunk->Count(); cnt < OutputChunk_t::_chunkSize )
 				{
 					const uint	i = cnt++;
 
 					chunk->SetCount( cnt );
-					chunk->tasks[i]	= task;
-					chunk->deps[i]	= IAsyncTask::TaskDependency{ bitIndex, isStrong };
-
-					ASSERT( bitIndex == chunk->deps[i].bitIndex );
-					++bitIndex;
+					chunk->tasks[i]	= task.GetRC();
+					chunk->tasks[i].SetExtra( uint{isStrong} );
 					break;
 				}
-				
+
 				prev	= chunk;
 				chunk	= chunk->Next();
 			}
 
-			dep->_output.set( root );
+			output_chunks.set( root );
+
+			TaskApi::IncWaitCounter( task );
 		}
 
 		// cancel current task
-		if_unlikely( isStrong and status > EStatus::_Interrupted )
+		if_unlikely( isStrong and status > ETaskStatus::_Interrupted )
 			return false;
 
 		return true;
@@ -995,24 +1062,9 @@ DEBUG_ONLY(
 
 /*
 =================================================
-	_InsertTask
-=================================================
-*/
-	bool  TaskScheduler::_InsertTask (AsyncTask task, uint bitIndex) __NE___
-	{
-		ASSERT( task );
-
-		// some dependencies may already be completed, so merge bit mask with current
-		task->_waitBits.fetch_and( ToBitMask<WaitBits_t>( bitIndex ));
-
-		return Enqueue( RVRef(task) );
-	}
-
-/*
-=================================================
 	Enqueue
 ----
-	warning: 'task->_waitBits' is not changed, use 'Run()' instead
+	warning: 'task->_waitCount' will not be changed, use 'EnqueueNew()' instead
 
 	returns 'false' on:
 		- task is null
@@ -1024,32 +1076,23 @@ DEBUG_ONLY(
 		CHECK_ERR( task != null );
 		ASSERT( task->QueueType() < ETaskQueue::_Count );
 
-		for (EStatus expected = EStatus::Initial;
-			 not task->_status.CAS( INOUT expected, EStatus::Pending );)
+		for (ETaskStatus expected = ETaskStatus::Initial;
+			 not TaskApi::SetPending( *task, INOUT expected );)
 		{
 			// status has been changed in another thread
-			if_unlikely( expected > EStatus::_Finished )
+			if_unlikely( expected > ETaskStatus::_Finished )
 				return false;
 
 			// one of dependency is already cancelled, so current task is marked as cancelled before enqueue
-			if_unlikely( expected == EStatus::Cancellation )
+			if_unlikely( expected == ETaskStatus::Cancellation )
 				break;
 
 			// 'CAS' can return 'false' even if expected value is the same as current value in atomic
-			ASSERT( expected == EStatus::Initial or expected == EStatus::Continue );
+			ASSERT( expected == ETaskStatus::Initial or expected == ETaskStatus::Continue );
 			ThreadUtils::Pause();
 		}
 
-		PROFILE_ONLY(
-			if ( auto prof =_profiler.load() )
-			{
-				task->_profiler = prof;
-				prof->Enqueue( *task );
-			})
-
-	  #if AE_USE_THREAD_WAKEUP
-		_wakeup.Wakeup( task->QueueType() );
-	  #endif
+		PROFILE_ONLY( TaskApi::SetProfiler( *task, _profiler.load() ));
 
 		const uint	tid = uint(task->QueueType());
 
@@ -1057,26 +1100,12 @@ DEBUG_ONLY(
 		return true;
 	}
 
-/*
-=================================================
-	SuspendThread
-=================================================
-*/
-	void  TaskScheduler::SuspendThread (const EThreadArray &threads, LoopingFlag_t &looping, uint iteration) __NE___
+	bool  TaskScheduler::Enqueue (AsyncTask task, ETaskQueue queue) __NE___
 	{
-	  #if AE_USE_THREAD_WAKEUP
+		if ( task )
+			TaskApi::SetQueueType( *task, queue );
 
-		if_likely( iteration < 4 )
-			ThreadUtils::Sleep_500us();
-		else
-			_wakeup.Suspend( threads, looping );
-
-	  #else
-
-		Unused( threads, looping );
-		ThreadUtils::ProgressiveSleepInf( iteration );
-
-	  #endif
+		return Enqueue( RVRef(task) );
 	}
 
 /*
@@ -1084,15 +1113,9 @@ DEBUG_ONLY(
 	SuspendThread
 =================================================
 */
-	void  TaskScheduler::WakeupAndDetach (LoopingFlag_t &looping) __NE___
+	void  TaskScheduler::SuspendThread (uint iteration) __NE___
 	{
-	  #if AE_USE_THREAD_WAKEUP
-		_wakeup.WakeupAndDetach( looping );
-
-	  #else
-		Unused( looping );
-
-	  #endif
+		ThreadUtils::ProgressiveSleepInf( iteration );
 	}
 
 /*
@@ -1168,8 +1191,8 @@ DEBUG_ONLY(
 			_deadlockCheck.numLocks.store( 0 );
 		}
 
-		using TaskArr_t		= Array< Tuple< AsyncTask, IAsyncTask::TaskDependency >>;
-		using TaskArr2_t	= Array< Tuple< String, IAsyncTask::TaskDependency >>;
+		using TaskArr_t		= Array< AsyncTask >;
+		using TaskArr2_t	= Array< String >;
 
 		struct InOutDeps
 		{
@@ -1178,26 +1201,28 @@ DEBUG_ONLY(
 			TaskArr2_t	in2;
 			TaskArr_t	out;
 		};
-		HashMap< const IAsyncTask*, InOutDeps >		map;
+		HashMap< const Task*, InOutDeps >	map;
 
 		const auto	CheckTask = [&map] (AsyncTask task)
 		{{
 			ASSERT( task );
-			EXLOCK( task->_output );
+
+			auto&	output_chunks = TaskApi::OutputChunkRef( *task );
+			EXLOCK( output_chunks );
 
 			auto&	io = map[ task.get() ];
 			io._self = task;
-			for (const OutputChunk_t* chunk = task->_output.get();  chunk != null; )
+			for (const OutputChunk_t* chunk = output_chunks.get();  chunk != null; )
 			{
 				for (uint i = 0, cnt = chunk->Count(); i < cnt; ++i)
 				{
-					io.out.emplace_back( chunk->tasks[i], chunk->deps[i] );
+					io.out.emplace_back( chunk->tasks[i].get() );
 
-					AsyncTask	task2	= chunk->tasks[i];
+					AsyncTask	task2	{chunk->tasks[i].get()};
 					auto&		io2		= map[ task2.get() ];
 
 					io2._self = task2;
-					io2.in.emplace_back( task, chunk->deps[i] );
+					io2.in.emplace_back( task );
 				}
 				chunk = chunk->Next();
 			}
@@ -1210,11 +1235,11 @@ DEBUG_ONLY(
 		}
 
 
-		const auto	CheckTask2 = [&map] (StringView name, AsyncTask task, IAsyncTask::TaskDependency dep)
+		const auto	CheckTask2 = [&map] (StringView name, AsyncTask task)
 		{{
 			auto&	io = map[ task.get() ];
 			io._self = task;
-			io.in2.emplace_back( String{name}, dep );
+			io.in2.emplace_back( String{name} );
 		}};
 
 		{
@@ -1226,64 +1251,47 @@ DEBUG_ONLY(
 
 		String	log;
 
-		const auto	LogDep = [&log] (const ulong idx, const InOutDeps &io)
-		{{
-			for (auto& dep : io.in)
-			{
-				if ( dep.Get<1>().bitIndex == idx )
-				{
-					auto&	task = dep.Get<0>();
-					log << "'" << task->DbgName() << "' (" << ToString<16>(usize(task.get())) << ")";
-					return;
-				}
-			}
-			for (auto& dep : io.in2)
-			{
-				if ( dep.Get<1>().bitIndex == idx )
-				{
-					log << "'" << dep.Get<0>() << "'";
-					return;
-				}
-			}
-
-			// When it happens:
-			//	- task is currently executed, so it removed from queue, but not yet marked as completed
-			//	- error when checked custom dependency
-			log << "not found";
-		}};
-
 		for (auto& [task, io] : map)
 		{
+			const int	wait_count = TaskApi::GetWaitCounter( *task );
+
 			log << "\n\n  '" << task->DbgName() << "' (" << ToString<16>(usize(task)) << ")"
-				//<< " wait for (" << ToString(BitCount(task->_waitBits.load())) << ")"
-				<< (task->_canceledDepsCount.load() > 0 ? ", canceled" : "");
+				<< " wait for (" << ToString( wait_count ) << ")"
+				<< (TaskApi::IsFastCancellation( *task ) ? ", fast canceled" : "");
 
 			switch_enum( task->Status() )
 			{
-				case EStatus::Pending :			break;
+				case ETaskStatus::Pending :			break;
 
-				case EStatus::Initial :			log << ", status: Initial";		break;
-				case EStatus::InProgress :		log << ", status: InProgress";	break;
-				case EStatus::Cancellation :	log << ", status: Cancellation";break;
-				case EStatus::Continue :		log << ", status: Continue";	break;
-				case EStatus::Completed :		log << ", status: Completed";	break;
-				case EStatus::Canceled :		log << ", status: Canceled";	break;
-				case EStatus::Failed :			log << ", status: Failed";		break;
+				case ETaskStatus::Initial :			log << ", status: Initial";		break;
+				case ETaskStatus::InProgress :		log << ", status: InProgress";	break;
+				case ETaskStatus::Cancellation :	log << ", status: Cancellation";break;
+				case ETaskStatus::Continue :		log << ", status: Continue";	break;
+				case ETaskStatus::Completed :		log << ", status: Completed";	break;
+				case ETaskStatus::Canceled :		log << ", status: Canceled";	break;
+				case ETaskStatus::Error :			log << ", status: Error";		break;
 
-				case EStatus::_Interrupted :
-				case EStatus::_Finished :
-				default :						log << ", status: Unknown";		break;
+				case ETaskStatus::_Interrupted :
+				case ETaskStatus::_Finished :
+				default :							log << ", status: Unknown";		break;
 			}
 			switch_end
 
-			if ( auto bits = task->_waitBits.load() )
+			if ( wait_count != 0 )
 			{
 				log	<< ", in:";
-				for (uint i : BitIndexIterate( bits ))
+				int	i = 0;
+				for (auto& dep : io.in)
 				{
-					log << "\n      [" << ToString(i) << "] ";
-					LogDep( i, io );
+					log << "\n      [" << ToString(i++) << "] ";
+					log << "'" << dep->DbgName() << "' (" << ToString<16>(usize(dep.get())) << ")";
 				}
+				for (auto& dep : io.in2)
+				{
+					log << "\n      [" << ToString(i++) << "] ";
+					log << "'" << dep << "'";
+				}
+				//CHECK( i == wait_count );
 			}
 
 			if ( not io.out.empty() )
@@ -1292,8 +1300,7 @@ DEBUG_ONLY(
 
 				for (auto& dep : io.out)
 				{
-					log << "\n      '" << dep.Get<0>()->DbgName() << "' (" << ToString<16>(usize(dep.Get<0>().get())) << ") ["
-						<< ToString(dep.Get<1>().bitIndex) << "]";
+					log << "\n      '" << dep->DbgName() << "' (" << ToString<16>(usize(dep.get())) << ")";
 				}
 			}
 		}
@@ -1306,6 +1313,5 @@ DEBUG_ONLY(
 
 	#endif // AE_DEBUG
 	}
-
 
 } // AE::Threading

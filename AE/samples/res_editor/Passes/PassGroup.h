@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Passes/IPass.h"
+#include "Passes/IPass.h"
 
 namespace AE::ResEditor
 {

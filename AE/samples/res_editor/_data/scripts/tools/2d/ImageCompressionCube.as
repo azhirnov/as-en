@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Load cube image from file and compare different compression methods.
+*/
 #ifdef __INTELLISENSE__
 #	define SH_COMPUTE
 # 	include <res_editor.as>
@@ -16,8 +19,8 @@
 		const EPixelFormat	comp1_req	= EPixelFormat::BC7_RGBA8_UNorm;
 		const EPixelFormat	comp2_req	= EPixelFormat::ASTC_RGBA8_4x4;
 
-		const EPixelFormat	comp1_fmt	= Supports_Format( comp1_req ) ? comp1_req : src_fmt;
-		const EPixelFormat	comp2_fmt	= Supports_Format( comp2_req ) ? comp2_req : src_fmt;
+		const EPixelFormat	comp1_fmt	= Supports_LinearSampledFormat( comp1_req ) ? comp1_req : src_fmt;
+		const EPixelFormat	comp2_fmt	= Supports_LinearSampledFormat( comp2_req ) ? comp2_req : src_fmt;
 
 		const string		cm_addr		= "res/humus/LancellottiChapel/";	const string  cm_ext = ".jpg";	const uint2	cm_dim (2048);
 
@@ -80,7 +83,7 @@
 		float4	col2	= Swizzle( gl.texture.SampleLod( un_Comp1, float3(uv, iCubeFace), iLevel ));
 		float4	col3	= Swizzle( gl.texture.SampleLod( un_Comp2, float3(uv, iCubeFace), iLevel ));
 
-		if ( ! IsUNorm( uv ))
+		if ( IsNotUNorm( uv ))
 		{
 			out_Color = float4(0.0);
 			return;

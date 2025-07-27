@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "SpirvCompiler.h"
+#include "res_pack/pipeline_compiler/Compiler/SpirvCompiler.h"
 
 // glslang includes
 #ifdef AE_COMPILER_MSVC
@@ -39,17 +39,12 @@
 #ifdef AE_ENABLE_GLSL_TRACE
 #	include "ShaderTrace.h"
 #else
-#	include "Packer/ShaderTraceDummy.h"
+#	include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 #	pragma message("GLSL-Trace library is missing, shader debugging and profiling will be disabled")
 #endif
 
-#if GLSLANG_VERSION_MAJOR != 15 or GLSLANG_VERSION_MINOR != 2
+#if GLSLANG_VERSION_MAJOR != 15 or GLSLANG_VERSION_MINOR != 4
 #	pragma message("invalid glslang version")
-#endif
-
-#ifdef AE_ENABLE_SPIRV_CROSS
-#	include "spirv_cross/spirv_cross.hpp"
-#	include "spirv_cross/spirv_glsl.hpp"
 #endif
 
 #ifdef AE_COMPILER_MSVC
@@ -62,7 +57,7 @@
 #	pragma GCC diagnostic pop
 #endif
 
-#include "ScriptObjects/ObjectStorage.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
 
 
 #define PRIVATE_COMP_RETURN_ERR( _text_, _ret_ )				\
@@ -802,30 +797,10 @@ namespace AE::PipelineCompiler
 				#endif
 
 				#ifdef AE_ENABLE_SPIRV_CROSS
-				try{
-					spirv_cross::CompilerGLSL			compiler {spirv.data(), spirv.size()};
-					spirv_cross::CompilerGLSL::Options	opt = {};
-
-					opt.version						= 460;
-					opt.es							= false;
-					opt.vulkan_semantics			= true;
-					opt.separate_shader_objects		= true;
-					opt.enable_420pack_extension	= true;
-
-					opt.vertex.fixup_clipspace		= false;
-					opt.vertex.flip_vert_y			= false;
-					opt.vertex.support_nonzero_base_instance = true;
-
-					opt.fragment.default_float_precision	= spirv_cross::CompilerGLSL::Options::Precision::Highp;
-					opt.fragment.default_int_precision		= spirv_cross::CompilerGLSL::Options::Precision::Highp;
-
-					compiler.set_common_options( opt );
-
-					String	glsl_src = compiler.compile();	// throw
+				{
+					String	glsl_src = _SpirvToGLSL( spirv );
 					AE_LOGI( glsl_src );
 				}
-				catch (...)
-				{}
 				#endif
 			}
 			#endif
@@ -1199,6 +1174,10 @@ namespace AE::PipelineCompiler
 			case TBasicType::EbtTensorLayoutNV :
 			case TBasicType::EbtTensorViewNV :
 			case TBasicType::EbtCoopvecNV :
+			case TBasicType::EbtBFloat16 :
+			case TBasicType::EbtFloatE5M2 :
+			case TBasicType::EbtFloatE4M3 :
+			case TBasicType::EbtTensorARM :
 			default :
 				COMP_RETURN_ERR( "unknown basic type!" );
 		}
@@ -1477,6 +1456,10 @@ namespace AE::PipelineCompiler
 			case TBasicType::EbtTensorLayoutNV :
 			case TBasicType::EbtTensorViewNV :
 			case TBasicType::EbtCoopvecNV :
+			case TBasicType::EbtBFloat16 :
+			case TBasicType::EbtFloatE5M2 :
+			case TBasicType::EbtFloatE4M3 :
+			case TBasicType::EbtTensorARM :
 			default :						COMP_RETURN_ERR( "unsupported basic type!" );
 		}
 		switch_end

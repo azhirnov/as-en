@@ -21,7 +21,7 @@ namespace AE::Threading
 
 		using TimePoint_t	= std::chrono::high_resolution_clock::time_point;
 		using TaskArr_t		= StaticArray< AsyncTask, TasksPerChunk >;
-		using EStatus		= IAsyncTask::EStatus;
+		using TaskApi		= _Coro_::AsyncTaskImpl::LfTaskQueueApi;
 
 		union PackedBits
 		{
@@ -57,8 +57,6 @@ namespace AE::Threading
 	// variables
 	private:
 		ChunkArray_t	_chunks		{};
-
-		//POTValue		_seedMask;
 
 		DEBUG_ONLY(
 			ETaskQueue		_queueType;

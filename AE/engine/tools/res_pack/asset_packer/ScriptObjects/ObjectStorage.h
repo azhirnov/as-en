@@ -3,8 +3,8 @@
 #pragma once
 
 #include "vfs/Archive/ArchivePacker.h"
-#include "../pipeline_compiler/Packer/HashToName.h"
-#include "Common.h"
+#include "res_pack/pipeline_compiler/Packer/HashToName.h"
+#include "res_pack/asset_packer/Common.h"
 
 namespace AE::AssetPacker
 {

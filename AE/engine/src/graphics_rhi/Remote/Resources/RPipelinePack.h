@@ -6,7 +6,7 @@
 # include "graphics_rhi/Public/ResourceManager.h"
 # include "graphics_rhi/Public/ShaderDebugger.h"
 
-# include "PipelineCompilerImpl.h"
+# include "res_pack/pipeline_compiler/PipelineCompilerImpl.h"
 
 # include "graphics_rhi/Remote/RCommon.h"
 # include "graphics_rhi/Remote/Resources/RSampler.h"
@@ -77,9 +77,9 @@ namespace AE::Graphics
 			RenderTech (const RPipelinePack &pack)														__NE___;
 			~RenderTech ()																				__NE_OV;
 
-			ND_ bool  Create (RResourceManager&,
+			ND_ bool  Create (ResourceManager&,
 							  const RemoteGraphics::Msg::ResMngr_LoadRenderTech_Response &)				__NE___;
-				void  Destroy (RResourceManager &)														__NE___;
+				void  Destroy (ResourceManager &)														__NE___;
 
 			ND_ RenderTechName::Optimized_t	Name ()														C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _name; }
 			ND_ PipelinePackID				GetPipelinePack ()											C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _pack._selfId; }
@@ -157,33 +157,33 @@ namespace AE::Graphics
 
 		ND_ bool  ConvertDescSetsLayouts (const RmDSLMap_t &, OUT DSLMap_t &)	C_NE___;
 
-		ND_ bool  Create (RResourceManager &, const PipelinePackDesc &,
+		ND_ bool  Create (ResourceManager &, const PipelinePackDesc &,
 						  PipelinePackID selfId)								__NE___;
-			void  Destroy (RResourceManager &)									__NE___;
+			void  Destroy (ResourceManager &)									__NE___;
 
 		ND_ SamplerID	GetSampler (SamplerName::Ref name)						C_NE___;
 
 		ND_ DescriptorSetLayoutID	GetDSLayout (DSLayoutName::Ref name)		C_NE___;
 
 	private:
-		ND_ bool  _LoadPipelineBlock (RResourceManager &,
+		ND_ bool  _LoadPipelineBlock (ResourceManager &,
 									  const PipelinePackDesc &,
 									  ArrayView<RmDescriptorSetLayoutID>,
 									  ArrayView<RmPipelineLayoutID>,
 									  Bytes baseOffset)							__NE___;
 
-		ND_ bool  _LoadDescrSetLayouts (RResourceManager &,
+		ND_ bool  _LoadDescrSetLayouts (ResourceManager &,
 										ArrayRStream &memStream,
 										ArrayView<RmDescriptorSetLayoutID>,
 										Bytes blockOffset)						__NE___;
 
-		ND_ bool  _LoadPipelineLayouts (RResourceManager &,
+		ND_ bool  _LoadPipelineLayouts (ResourceManager &,
 										ArrayRStream &memStream,
 										ArrayView<RmDescriptorSetLayoutID>,
 										ArrayView<RmPipelineLayoutID>,
 										Bytes blockOffset)						__NE___;
 
-		ND_ bool  _CreateRenderPasses (RResourceManager &,
+		ND_ bool  _CreateRenderPasses (ResourceManager &,
 									   ArrayView<RenderPassName::Optimized_t>)	__NE___;
 	};
 

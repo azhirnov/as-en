@@ -26,7 +26,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RImageView::Create (RResourceManager &resMngr, const ImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
+	bool  RImageView::Create (ResourceManager &resMngr, const ImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _viewId );
@@ -66,7 +66,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RImageView::Create (RResourceManager &resMngr, const RemoteImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
+	bool  RImageView::Create (ResourceManager &resMngr, const RemoteImageViewDesc &desc, ImageID imageId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _viewId );
@@ -94,7 +94,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RImageView::Destroy (RResourceManager &resMngr) __NE___
+	void  RImageView::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

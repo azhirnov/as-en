@@ -24,8 +24,6 @@ namespace AE::Graphics
 
 	class ResourceManager final : public IResourceManager
 	{
-		friend class RenderTaskScheduler;
-
 	// types
 	private:
 		template <typename T, typename ID, usize ChunkSize, usize MaxChunks>
@@ -106,11 +104,6 @@ namespace AE::Graphics
 												MemoryID		// must be in the end
 											>;
 
-		//---- Expired resources ----//
-	public:
-		class ReleaseExpiredResourcesTask;
-
-	private:
 	  #ifdef AE_ENABLE_VULKAN
 		using ExpResourceTypes_t	= TypeListUtils::Merge<
 											AllResourceIDs_t::EraseType< VFramebufferID >,
@@ -159,6 +152,20 @@ namespace AE::Graphics
 			ND_ ExpiredResArray&		GetCurrent ()		__NE___	{ return Get( GetFrameId() ); }
 			ND_ FrameUID				GetFrameId ()		C_NE___	{ return _currentFrameId.load(); }
 			ND_ ExpiredResources_t&		All ()				__NE___	{ return _list; }
+		};
+
+	public:
+		class RenderTaskSchedulerApi
+		{
+			friend class RenderTaskScheduler;
+			
+			static constexpr uint	ExpiredResFrameOffset	= ResourceManager::ExpiredResFrameOffset;
+
+				static AsyncCoro	ReleaseExpiredResources (FrameUID)													__NE___;
+			ND_ static auto			New (Device_t const&, const GraphicsCreateInfo &)									__NE___ -> Unique<ResourceManager>;
+				static void			Deinitialize (ResourceManager &rm)													__NE___	{ rm.Deinitialize(); }
+				static void			OnBeginFrame (ResourceManager &rm, FrameUID frameId, const BeginFrameConfig &cfg)	__NE___	{ rm._OnBeginFrame( frameId, cfg ); }
+				static void			OnEndFrame (ResourceManager &rm, FrameUID frameId)									__NE___	{ rm._OnEndFrame( frameId ); }
 		};
 
 
@@ -699,23 +706,6 @@ namespace AE::Graphics
 
 		dst.resources.push_back( expired );
 	}
-
-/*
-=================================================
-	Release Expired Resources Task
-=================================================
-*/
-	class ResourceManager::ReleaseExpiredResourcesTask final : public Threading::IAsyncTask
-	{
-	private:
-		const FrameUID	_frameId;
-
-	public:
-		explicit ReleaseExpiredResourcesTask (FrameUID frameId) __NE___;
-
-		void		Run ()		__Th_OV;
-		StringView	DbgName ()	C_NE_OV { return "ReleaseExpiredResources"; }
-	};
 
 /*
 =================================================

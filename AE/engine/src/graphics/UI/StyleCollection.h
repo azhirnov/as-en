@@ -135,7 +135,7 @@ namespace AE::UI
 
 		struct CreateInfoAsync
 		{
-			Threading::Promise<RenderTechPipelinesPtr>	rtech;
+			Promise<RenderTechPipelinesPtr>				rtech;
 			RC<RStream>									stream;
 			Ref<Graphics::ResourceCache>				resCache;
 			Ref<Graphics::ResourceUploadManager>		uploadMngr;

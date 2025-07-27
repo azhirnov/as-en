@@ -10,8 +10,8 @@ namespace
 #	include "Packer/ImagePacker.cpp.h"
 #	include "Packer/RasterFontPacker.cpp.h"
 
-	const bool				force_update	= true;
-	decltype(&PackAssets)	pack_assets		= null;
+	const bool		force_update	= true;
+	PackAssetsFn_t	pack_assets		= null;
 
 
 	static void  RasterFontPack_Test1 ()

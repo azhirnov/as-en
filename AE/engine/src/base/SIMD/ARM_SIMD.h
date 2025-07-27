@@ -16,6 +16,7 @@
 # endif
 
 # include "base/Common.h"
+# include "base/Algorithms/Iterators.h"
 
 # include "base/SIMD/ARMRuntimeConfig.h"
 

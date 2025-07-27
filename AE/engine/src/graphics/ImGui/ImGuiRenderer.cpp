@@ -201,7 +201,7 @@ namespace AE::Graphics
 	Draw
 =================================================
 */
-	bool  ImGuiRenderer::Draw (RenderTask									&rtask,
+	bool  ImGuiRenderer::Draw (RenderTaskRef								rtask,
 							   App::IOutputSurface							&surface,
 							   const Function< void () >					&updateUI,
 							   const Function< void (DirectCtx::Draw &) >	&drawBefore,
@@ -216,7 +216,7 @@ namespace AE::Graphics
 		return Draw( rtask, DirectCtx::CommandBuffer{}, rt, updateUI, drawBefore, clearValue );
 	}
 
-	bool  ImGuiRenderer::Draw (RenderTask									&rtask,
+	bool  ImGuiRenderer::Draw (RenderTaskRef								rtask,
 							   DirectCtx::CommandBuffer						cmdbuf,
 							   const IOutputSurface::RenderTarget			&rt,
 							   const Function< void () >					&updateUI,
@@ -264,8 +264,7 @@ namespace AE::Graphics
 
 		gfx_ctx.EndRenderPass( dctx );
 
-		rtask.Execute( gfx_ctx );
-		return true;
+		return ConstCast( rtask.Raw() )->Execute( gfx_ctx );
 	}
 
 /*

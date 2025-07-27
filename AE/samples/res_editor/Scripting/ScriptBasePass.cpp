@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Core/EditorUI.h"
+#include "Scripting/ScriptExe.h"
+#include "Core/EditorUI.h"
 
 namespace AE::ResEditor
 {

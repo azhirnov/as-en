@@ -986,13 +986,13 @@ ND_ bool2	SignBit (float2 v)	{ return bool2( SignBit( v.x ), SignBit( v.y )); }
 ND_ bool3	SignBit (float3 v)	{ return bool3( SignBit( v.x ), SignBit( v.y ), SignBit( v.z )); }
 ND_ bool4	SignBit (float4 v)	{ return bool4( SignBit( v.x ), SignBit( v.y ), SignBit( v.z ), SignBit( v.w )); }
 
-#if AE_ENABLE_HALF_TYPE
+#if AE_ENABLE_HALF_TYPE and AE_ENABLE_SHORT_TYPE
 	ND_ bool	SignBit (half  x)	{ return (halfBitsToUint16( x ) & 0x8000us) != 0; }
 	ND_ bool2	SignBit (half2 v)	{ return bool2( SignBit( v.x ), SignBit( v.y )); }
 	ND_ bool3	SignBit (half3 v)	{ return bool3( SignBit( v.x ), SignBit( v.y ), SignBit( v.z )); }
 	ND_ bool4	SignBit (half4 v)	{ return bool4( SignBit( v.x ), SignBit( v.y ), SignBit( v.z ), SignBit( v.w )); }
 #endif
-#if AE_ENABLE_DOUBLE_TYPE
+#if AE_ENABLE_DOUBLE_TYPE and AE_ENABLE_LONG_TYPE
 	ND_ bool	SignBit (double  x)	{ return (doubleBitsToUint64( x ) & 0x8000000000000000ul) != 0; }
 	ND_ bool2	SignBit (double2 v)	{ return bool2( SignBit( v.x ), SignBit( v.y )); }
 	ND_ bool3	SignBit (double3 v)	{ return bool3( SignBit( v.x ), SignBit( v.y ), SignBit( v.z )); }
@@ -1004,8 +1004,8 @@ ND_ bool4	SignBit (float4 v)	{ return bool4( SignBit( v.x ), SignBit( v.y ), Sig
 	LinearStep
 ----
 	T  LinearStep (T x, T edge0, T edge1)
-----
-	returns value in range [0, 1], pattern __/'''
+----                                          ___
+	returns value in range [0, 1], pattern __/
 =================================================
 */
 #define Gen_LINEARSTEP1( _vtype_, _stype_ )													\

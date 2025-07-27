@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "ScriptObjects/ScriptSharedImage.h"
-#include "Packer/ImagePacker.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptSharedImage.h"
+#include "res_pack/asset_packer/Packer/ImagePacker.h"
 
 namespace AE::AssetPacker
 {

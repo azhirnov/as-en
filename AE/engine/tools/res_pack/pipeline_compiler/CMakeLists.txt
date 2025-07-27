@@ -16,29 +16,27 @@ if (TARGET "GLSLang-lib")
 		"${GRAPHICS_DIR}/Private/EnumToString.h"
 		"${GRAPHICS_DIR}/Public/IDs.h"
 		"${GRAPHICS_DIR}/Vulkan/VEnumCast.h" )
-	if (NOT (DEFINED ENGINE_LIBS_PATH))
-		set( GRAPHICS_CPP_SRC
-			"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp.h"
-			"${GRAPHICS_DIR}/Private/FeatureSet.cpp.h"
-			"${GRAPHICS_DIR}/Private/RenderState.cpp.h"
-			"${GRAPHICS_DIR}/Private/EnumUtils.cpp.h"
-			"${GRAPHICS_DIR}/Private/ImageDesc.cpp.h"
-			"${GRAPHICS_DIR}/Private/BufferDesc.cpp.h"
-			"${GRAPHICS_DIR}/Private/Shared.cpp" )
-		if (${HAS_VULKAN_HEADERS})
-			set( GRAPHICS_CPP_SRC ${GRAPHICS_CPP_SRC} "${GRAPHICS_DIR}/Vulkan/VEnumCast.cpp.h" )
-		endif()
-		set_property( SOURCE ${GRAPHICS_CPP_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
+	set( GRAPHICS_CPP_SRC
+		"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp.h"
+		"${GRAPHICS_DIR}/Private/FeatureSet.cpp.h"
+		"${GRAPHICS_DIR}/Private/RenderState.cpp.h"
+		"${GRAPHICS_DIR}/Private/EnumUtils.cpp.h"
+		"${GRAPHICS_DIR}/Private/ImageDesc.cpp.h"
+		"${GRAPHICS_DIR}/Private/BufferDesc.cpp.h"
+		"${GRAPHICS_DIR}/Private/Shared.cpp" )
+	if (${HAS_VULKAN_HEADERS})
+		set( GRAPHICS_CPP_SRC ${GRAPHICS_CPP_SRC} "${GRAPHICS_DIR}/Vulkan/VEnumCast.cpp.h" )
 	endif()
+	set_property( SOURCE ${GRAPHICS_CPP_SRC} PROPERTY SKIP_UNITY_BUILD_INCLUSION ON )
+
 	file( GLOB_RECURSE SOURCES "*.*" )
 
-	add_library( "PipelineCompiler" STATIC ${SOURCES} ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} ${PREBUILD_CPP_FILE} )
+	add_library( "PipelineCompiler" STATIC ${SOURCES} ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} )
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 	source_group( "external/graphics" FILES ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} )
 
 	target_link_libraries( "PipelineCompiler" PUBLIC "Serializing" "Scripting" "Threading" )
 	target_compile_definitions( "PipelineCompiler" PRIVATE "AE_BUILD_PIPELINE_COMPILER" "AE_TEST_PIPELINE_COMPILER" )
-	target_include_directories( "PipelineCompiler" PUBLIC "." )
 
 	if ( WIN32 AND (TARGET "SPIRV-Cross-lib") )
 		target_link_libraries( "PipelineCompiler" PUBLIC "SPIRV-Cross-lib" )
@@ -65,20 +63,8 @@ if (TARGET "GLSLang-lib")
 		target_link_libraries( "PipelineCompiler" PUBLIC "SLang-lib" )
 	endif()
 
-	# must be same as in 'Graphics' module
-	if (DEFINED AE_GRAPHICS_STRONG_VALIDATION)
-		if (${AE_GRAPHICS_STRONG_VALIDATION})
-			target_compile_definitions( "PipelineCompiler" PRIVATE AE_GRAPHICS_STRONG_VALIDATION=1 )
-		else()
-			target_compile_definitions( "PipelineCompiler" PRIVATE AE_GRAPHICS_STRONG_VALIDATION=0 )
-		endif()
-	else()
-		message( FATAL_ERROR "AE_GRAPHICS_STRONG_VALIDATION is not defined" )
-	endif()
-
-	EnablePCH( "PipelineCompiler" )
-	EnablePrebuild( "PipelineCompiler" )
-	EnableUnitBuild( "PipelineCompiler" )
+	UseEnginePCH2( "PipelineCompiler" )
+	EnableUnityBuild( "PipelineCompiler" )
 
 	add_library( "PipelineCompiler-shared" SHARED
 		"PipelineCompiler.h"

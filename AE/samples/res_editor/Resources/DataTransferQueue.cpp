@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Resources/DataTransferQueue.h"
-#include "res_editor/Resources/Image.h"
+#include "Resources/DataTransferQueue.h"
+#include "Resources/Image.h"
 
 namespace AE::ResEditor
 {
@@ -116,13 +116,11 @@ namespace AE::ResEditor
 		}
 
 		// TODO: multiple tasks
-		return batch.Task(	[] (RC<DataTransferQueue> dtq) -> RenderTaskCoro
+		return batch.Task(	[] (RC<DataTransferQueue> dtq) -> RenderCoro
 							{
-								auto&					rtask	= co_await RenderTask_GetRef;
-								DirectCtx::Transfer		ctx		{rtask};
-
+								DirectCtx::Transfer		ctx {RenderCoro_Get()};
 								_Upload( ctx, dtq->_upload );
-								co_await RenderTask_Execute( ctx );
+								RenderCoro_Execute( ctx );
 							}( GetRC() ),
 							DebugLabel{"Upload"} )
 						.UseResources( ArrayView{img_arr} )		// from initial to default state
@@ -227,13 +225,11 @@ namespace AE::ResEditor
 		}
 
 		// TODO: multiple tasks
-		return batch.Task(	[] (RC<DataTransferQueue> dtq) -> RenderTaskCoro
+		return batch.Task(	[] (RC<DataTransferQueue> dtq) -> RenderCoro
 							{
-								auto&					rtask	= co_await RenderTask_GetRef;
-								DirectCtx::Transfer		ctx		{rtask};
-
+								DirectCtx::Transfer		ctx {RenderCoro_Get()};
 								_Readback( ctx, dtq->_readback );
-								co_await RenderTask_Execute( ctx );
+								RenderCoro_Execute( ctx );
 							}( GetRC() ),
 							DebugLabel{"Readback"} )
 						//.UseResources( ArrayView{img_arr}, EResourceState::Invalidate, Default )

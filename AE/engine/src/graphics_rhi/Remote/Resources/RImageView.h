@@ -30,9 +30,9 @@ namespace AE::Graphics
 		RImageView ()									__NE___	{}
 		~RImageView ()									__NE___;
 
-		ND_ bool  Create (RResourceManager &, const ImageViewDesc &, ImageID, StringView dbgName)	__NE___;
-		ND_ bool  Create (RResourceManager &, const RemoteImageViewDesc &, ImageID, StringView)		__NE___;
-			void  Destroy (RResourceManager &)														__NE___;
+		ND_ bool  Create (ResourceManager &, const ImageViewDesc &, ImageID, StringView dbgName)	__NE___;
+		ND_ bool  Create (ResourceManager &, const RemoteImageViewDesc &, ImageID, StringView)		__NE___;
+			void  Destroy (ResourceManager &)														__NE___;
 
 		ND_ RmImageViewID			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _viewId; }
 

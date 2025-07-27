@@ -377,7 +377,7 @@ namespace AE::Graphics
 				// in viewport space
 				const float  pos_x1 = line_start.x		* px_to_vp.x - 1.0f;
 				const float  pos_x2 = line_px.x			* px_to_vp.x - 1.0f;
-				const float  pos_y1 = (line_px.y - 1.f)	* px_to_vp.y - 1.0f;	// TODO
+				const float  pos_y1 = (line_px.y - 1.f)	* px_to_vp.y - 1.0f;
 				const float  pos_y2 = (line_px.y + 1.f)	* px_to_vp.y - 1.0f;
 
 				AddGlyph( pos_x1, pos_x2, pos_y1, pos_y2, Default, 0, color );

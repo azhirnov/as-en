@@ -12,7 +12,7 @@ namespace AE::Graphics
 	constructor
 =================================================
 */
-	RASBuildContext::RASBuildContext (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+	RASBuildContext::RASBuildContext (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
 		RBaseContext{ task, RVRef(cmdbuf), dbg, ECtxType::ASBuild }
 	{}
 

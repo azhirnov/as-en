@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "SpirvCompiler.h"
+#include "res_pack/pipeline_compiler/Compiler/SpirvCompiler.h"
 
 
 namespace AE::PipelineCompiler

@@ -4,7 +4,7 @@
 
 	(x.x) - link to counter description in docs.
 
-	[Performance counters description](https://github.com/azhirnov/cpu-gpu-arch/blob/main/gpu/PowerVR_PC.md)
+	[Performance counters description](https://github.com/azhirnov/as-en/blob/dev/AE/docs/_cpu-gpu-arch/gpu/PowerVR_PC.md)
 */
 
 #pragma once

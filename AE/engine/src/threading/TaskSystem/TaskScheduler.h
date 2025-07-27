@@ -54,7 +54,6 @@
 #pragma once
 
 #include "threading/TaskSystem/AsyncTask.h"
-#include "threading/TaskSystem/Coroutine.h"
 #include "threading/Containers/LfIndexedPool.h"
 #include "threading/Memory/GlobalLinearAllocator.h"
 
@@ -114,18 +113,20 @@ namespace AE::Threading
 	{
 	// types
 	public:
-		using CheckDepFn_t	= Function< void (StringView, AsyncTask, IAsyncTask::TaskDependency) >;
+		using Task				= AE::_Coro_::AsyncTaskImpl;
+		using TaskDependency	= Task::TaskDependency;
+		using CheckDepFn_t		= Function< void (StringView, AsyncTask) >;
 
 
 	// interface
 	public:
 		// returns 'true' if added dependency to task.
 		// returns 'false' if dependency is cancelled or on error.
-		ND_ virtual bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)	__NE___ = 0;
+		ND_ virtual bool  Resolve (AnyTypeCRef dep, Task &, Bool defaultIsStrongDep) __NE___ = 0;
 
 		// only for debugging
 		DEBUG_ONLY(
-			virtual void  DbgDetectDeadlock (const CheckDepFn_t &)							__NE___ {};)
+			virtual void  DbgDetectDeadlock (const CheckDepFn_t &) __NE___ {};)
 	};
 //-----------------------------------------------------------------------------
 
@@ -159,7 +160,6 @@ namespace AE::Threading
 	//
 	class TaskScheduler final : public Noncopyable
 	{
-		friend class IAsyncTask;	// calls '_AddDependencies()', '_GetChunkPool()'
 		friend struct InPlace<TaskScheduler>;
 
 	// types
@@ -182,36 +182,10 @@ namespace AE::Threading
 		using LoopingFlag_t	= Atomic<uint>;
 		using TimePoint_t	= std::chrono::high_resolution_clock::time_point;
 
-
-		struct ThreadWakeup : Noncopyable
-		{
-		// variables
-		private:
-			ConditionVariable	_cv;
-			Mutex				_mutex;
-			EThreadBits			_activeThreads;
-
-		// methods
-		public:
-			ThreadWakeup ()											__NE___	{}
-
-			void  Wakeup (ETaskQueueBits)							__NE___;
-			void  Wakeup (EThreadBits)								__NE___;
-
-			void  Wakeup (ETaskQueue type)							__NE___	{ Wakeup( ETaskQueueBits{ type }); }
-			void  Wakeup (EThread type)								__NE___	{ Wakeup( EThreadBits{ type }); }
-
-			void  WakeupAndDetach (LoopingFlag_t &)					__NE___;
-
-			void  Suspend (ETaskQueueBits, LoopingFlag_t &)			__NE___;
-			void  Suspend (EThreadBits, LoopingFlag_t &)			__NE___;
-			void  Suspend (const EThreadArray &, LoopingFlag_t &)	__NE___;
-		};
-
 	private:
-		using EStatus			= IAsyncTask::EStatus;
-		using OutputChunk_t		= IAsyncTask::OutputChunk;
-		using WaitBits_t		= IAsyncTask::WaitBits_t;
+		using Task				= _Coro_::AsyncTaskImpl;
+		using TaskApi			= Task::TaskSchedulerApi;
+		using OutputChunk_t		= TaskApi::OutputChunk;
 
 		struct PerQueue
 		{
@@ -222,22 +196,12 @@ namespace AE::Threading
 
 		using TaskQueues_t		= StaticArray< PerQueue, uint(ETaskQueue::_Count) >;
 		using TaskDepsMngr_t	= FlatHashMap< TypeId, RC<ITaskDependencyManager> >;
-		using OutputChunkPool_t	= LfIndexedPool< IAsyncTask::OutputChunk, uint, 64*64, 64, GlobalLinearAllocatorRef >;
-
-		class _CanceledTask;
-		class _WaitAsyncTask;
-		class _DummyRequest;
+		using OutputChunkPool_t	= LfIndexedPool< OutputChunk_t, uint, 64*64, 64, GlobalLinearAllocatorRef >;
 
 
 	// variables
 	private:
-	  #if AE_USE_THREAD_WAKEUP
-		ThreadWakeup		_wakeup;
-	  #endif
 		TaskQueues_t		_queues;
-
-		AsyncTask			_canceledTask;			//					readonly
-		RC<>				_cancelledRequest;		// (AsyncDSRequest)	readonly
 
 		OutputChunkPool_t	_chunkPool;
 
@@ -284,70 +248,35 @@ namespace AE::Threading
 								uint maxTasks)										__NE___;
 			bool  ProcessFileIO ()													__NE___;
 
-		ND_ AsyncTask  PullTask (ETaskQueue type, EThreadSeed seed)					__NE___;
+			void  SuspendThread (uint iteration)									__NE___;
 
-			void  SuspendThread (const EThreadArray	&,
-								 LoopingFlag_t		&,
-								 uint				iteration)						__NE___;
-			void  WakeupAndDetach (LoopingFlag_t &)									__NE___;
-
-	  #if AE_USE_THREAD_WAKEUP
-		ND_ Ptr<ThreadWakeup>	GetThreadWakeup ()									__NE___	{ return &_wakeup; }
-	  #endif
 		ND_ static EThreadSeed	GetDefaultSeed ()									__NE___;
 
 
 	// task api //
-		template <typename TaskType,
-				  typename ...Ctor,
-				  typename ...Deps
-				 >
-			AsyncTask     Run (Tuple<Ctor...>		&&	ctor = Default,
-							   const Tuple<Deps...> &	deps = Default)				__NE___;
+		template <typename CoroType, typename ...Deps>
+			CoroType	Run (CoroType				task,
+							 const Tuple<Deps...> &	deps	= Default,
+							 const SourceLoc &		loc		= SourceLoc::current())	__NE___;
 
-		template <typename ...Deps>
-			bool		  Run (AsyncTask				task,
-							   const Tuple<Deps...> &	deps = Default)				__NE___;
+		template <typename CoroType, typename ...Deps>
+			CoroType    Run (ETaskQueue				queueType,
+							 CoroType				task,
+							 const Tuple<Deps...> &	deps	= Default,
+							 StringView				dbgName	= Default,
+							 const SourceLoc &		loc		= SourceLoc::current())	__NE___;
+			
+		template <typename TaskType, typename ...Deps>
+		ND_	bool  EnqueueNew (ETaskQueue			queueType,
+							  TaskType				task,
+							  const Tuple<Deps...>&	deps	= Default,
+							  StringView			dbgName	= Default,
+							  Bool					defaultIsStrongDep = True{},
+							  const SourceLoc &		loc		= SourceLoc::current())	__NE___;
 
-
-		template <typename ...Deps>
-			AsyncTask     Run (ETaskQueue				queueType,
-							   CoroTask					coro,
-							   const Tuple<Deps...> &	deps	= Default,
-							   StringView				dbgName	= Default)			__NE___;
-
-		template <typename ...Deps>
-			AsyncTask     Run (CoroTask					coro,
-							   const Tuple<Deps...> &	deps	= Default)			__NE___;
-
-		template <typename ...Deps>
-			AsyncTask     Run (ETaskQueue				queueType,
-							   CancelledCoro			coro,
-							   const Tuple<Deps...> &	deps	= Default,
-							   StringView				dbgName	= Default)			__NE___;
-
-		template <typename ...Deps>
-			AsyncTask     Run (CancelledCoro			coro,
-							   const Tuple<Deps...> &	deps	= Default)			__NE___;
-
-		template <typename T,
-				  typename ...Deps
-				 >
-		ND_ Coroutine<T>  Run (ETaskQueue				queueType,
-							   Coroutine<T>				coro,
-							   const Tuple<Deps...> &	deps	= Default,
-							   StringView				dbgName	= Default)			__NE___;
-
-		template <typename T,
-				  typename ...Deps
-				 >
-		ND_ Coroutine<T>  Run (Coroutine<T>				coro,
-							   const Tuple<Deps...>	&	deps	= Default)			__NE___;
-
-
-			bool  Cancel (const AsyncTask &task)									__NE___;
-
+			bool  Cancel (const AsyncTask &task, Bool fastCancel = False{})			__NE___;
 			bool  Enqueue (AsyncTask task)											__NE___;
+			bool  Enqueue (AsyncTask task, ETaskQueue queue)						__NE___;
 
 
 	// synchronizations //
@@ -369,12 +298,10 @@ namespace AE::Threading
 
 
 	// other //
-		ND_ Ptr<IOService>		GetFileIOService ()									C_NE___ { return _fileIOService.get(); }
+		Nd__IF Ptr<IOService>	GetFileIOService ()									C_NE___ { return _fileIOService.get(); }
 
-		ND_ AsyncTask			GetCanceledTask ()									C_NE___	{ return _canceledTask; }
-		ND_ RC<>				GetCanceledDSRequest ()								C_NE___	{ return _cancelledRequest; }
-
-		ND_ IThread const*		GetMainThread ()									C_NE___	{ return _mainThread.get(); }
+		Nd__IF static auto		GetCanceledTask ()									__NE___	{ return _Coro_::AsyncTaskImpl::CanceledTask::s_canceled.GetRC(); }
+		Nd__IF static auto		GetCanceledDSRequest ()								__NE___;
 
 		friend TaskScheduler&	AE::Scheduler ()									__NE___;
 
@@ -387,6 +314,17 @@ namespace AE::Threading
 			void  DbgDetectDeadlock ()												__NE___;
 
 
+		class AsyncTaskApi
+		{
+			friend class _Coro_::AsyncTaskImpl;
+
+			ND_ static OutputChunkPool_t&  GetChunkPool ()							__NE___;
+
+			template <typename ...Args>
+			NdCx__ static bool  AddDependencies (Task &task, const Tuple<Args...> &args,
+												 Bool defaultIsStrongDep)			__NE___;
+		};
+
 	private:
 		TaskScheduler ()															__NE___;
 		~TaskScheduler ()															__NE___;
@@ -395,19 +333,18 @@ namespace AE::Threading
 
 		ND_ bool  _InitIOServices (const Config &cfg)								__NE___;
 
-		ND_ bool  _InsertTask (AsyncTask task, uint bitIndex)						__NE___;
-
-		ND_ OutputChunkPool_t&  _GetChunkPool ()									__NE___	{ return _chunkPool; }
+		ND_ bool  _InsertTask (AsyncTask task)										__NE___;
 
 		ND_ static bool	 _IsAllComplete (ArrayView<AsyncTask> tasks)				__NE___;
 
 		template <usize I, typename ...Args>
-		NdCx__ bool  _AddDependencies (const AsyncTask &task, const Tuple<Args...> &args, INOUT uint &bitIndex)		__NE___;
+		NdCx__ bool  _AddDependencies (Task &task, const Tuple<Args...> &args,
+										Bool defaultIsStrongDep)					__NE___;
 
 		template <typename T>
-		ND_ bool  _AddCustomDependency (const AsyncTask &task, const T &dep, INOUT uint &bitIndex)							__NE___;
+		ND_ bool  _AddCustomDependency (Task &task, const T &dep, Bool defaultIsStrongDep)	__NE___;
 
-		ND_ bool  _AddTaskDependencies (const AsyncTask &task, const AsyncTask &deps, Bool isStrong, INOUT uint &bitIndex)	__NE___;
+		ND_ bool  _AddTaskDependencies (Task &task, const AsyncTask &deps, Bool isStrong)	__NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -445,125 +382,62 @@ namespace AE::Threading
 	always return non-null task
 =================================================
 */
-	template <typename TaskType, typename ...Ctor, typename ...Deps>
-	AsyncTask  TaskScheduler::Run (Tuple<Ctor...> &&ctorArgs, const Tuple<Deps...> &deps) __NE___
+	template <typename CoroType, typename ...Deps>
+	forceinline CoroType  TaskScheduler::Run (CoroType task, const Tuple<Deps...> &deps, const SourceLoc &loc) __NE___
 	{
-		StaticAssert( IsBaseOf< IAsyncTask, TaskType > );
-
-		uint		bit_index	= 0;
-		AsyncTask	task		= ctorArgs.Apply([] (auto&& ...args) __NE___
-												{ return MakeRCNe<TaskType>( FwdArg<decltype(args)>(args)... ); });
-		if_unlikely( not task )
-			return GetCanceledTask();
-
-		if_unlikely( not _AddDependencies<0>( task, deps, INOUT bit_index ))
-		{
-			// add task to queue only to call 'OnCancel()'
-			task->_SetCancellationState();
-			bit_index = 0;	// no dependencies
-		}
-
-		CHECK_ERR( _InsertTask( task, bit_index ), GetCanceledTask() );
-		return task;
+		return Run<CoroType>( Default, RVRef(task), deps, Default, loc );
 	}
 
+	template <typename CoroType, typename ...Deps>
+	forceinline CoroType  TaskScheduler::Run (ETaskQueue queueType, CoroType task, const Tuple<Deps...> &deps,
+											  StringView dbgName, const SourceLoc &loc) __NE___
+	{
+		if_likely( EnqueueNew( queueType, task, deps, dbgName, True{"strong deps"}, loc ));
+		else
+			task = CoroType{_Coro_::AsyncTaskImpl::CanceledTask::s_canceled.operator->()};
+		return RVRef(task);
+	}
+	
 /*
 =================================================
-	Run
-----
-	returns 'true' if task added to queue
+	EnqueueNew
 =================================================
 */
-	template <typename ...Deps>
-	bool  TaskScheduler::Run (AsyncTask task, const Tuple<Deps...> &deps) __NE___
+	template <typename TaskType, typename ...Deps>
+	bool  TaskScheduler::EnqueueNew (ETaskQueue queueType, TaskType task, const Tuple<Deps...> &deps,
+									 StringView dbgName, Bool defaultIsStrongDep, const SourceLoc &loc) __NE___
 	{
+		StaticAssert( IsBaseOf< Task, RemoveAllQualifiers<decltype(*task)> >);
+		if constexpr( IsCoroutine< TaskType >){
+			StaticAssert( not IsInlineCoroutine< TaskType >);  // inline coroutine is not allowed here, use 'Enqueue()'
+		}
+
 		CHECK_ERR( task );
+		CHECK_ERR( task->Status() == ETaskStatus::Initial );
 
-		uint	bit_index = 0;
+		#ifdef AE_DEBUG
+			TaskApi::Init( *task, queueType, dbgName, loc );
+		#else
+			TaskApi::Init( *task, queueType );
+			Unused( dbgName, loc );
+		#endif
+		
+		// in 'AddDependencies()' current task has been added to the input dependencies
+		// and they may decrease counter '_waitCount' at any time, so set +1 to forbid state changing
+		TaskApi::SetWaitCounter( *task, 1 );
 
-		if_unlikely( not _AddDependencies<0>( task, deps, INOUT bit_index ))
+		if_unlikely( not _AddDependencies<0>( *task, deps, defaultIsStrongDep ))
 		{
 			// add task to queue only to call 'OnCancel()'
-			task->_SetCancellationState();
-			bit_index = 0;	// no dependencies
+			Unused( TaskApi::SetCancellationState( *task ));
 		}
+		
+		// remove +1 and check
+		auto	count = TaskApi::DecWaitCounter( *task );
+		ASSERT_Gt( count, 0 );
+		Unused( count );
 
-		return _InsertTask( RVRef(task), bit_index );
-	}
-
-/*
-=================================================
-	Run (coroutine)
-----
-	always return non-null task
-=================================================
-*/
-	template <typename ...Deps>
-	AsyncTask  TaskScheduler::Run (ETaskQueue queueType, CoroTask coro, const Tuple<Deps...> &deps, StringView dbgName) __NE___
-	{
-		CHECK_ERR( coro );
-		coro._InitCoro( queueType, dbgName );
-
-		AsyncTask	task = AsyncTask{coro};
-
-		CHECK_ERR( Run( task, deps ), GetCanceledTask() );
-		return task;
-	}
-
-	template <typename ...Deps>
-	AsyncTask  TaskScheduler::Run (CoroTask coro, const Tuple<Deps...> &deps) __NE___
-	{
-		return Run( ETaskQueue::PerFrame, RVRef(coro), deps );
-	}
-
-
-	template <typename ...Deps>
-	AsyncTask  TaskScheduler::Run (ETaskQueue queueType, CancelledCoro coro, const Tuple<Deps...> &deps, StringView dbgName) __NE___
-	{
-		CHECK_ERR( coro );
-		coro._InitCoro( queueType, dbgName );
-
-		AsyncTask	task = AsyncTask{coro};
-
-		CHECK_ERR( Run( task, deps ), GetCanceledTask() );
-		return task;
-	}
-
-	template <typename ...Deps>
-	AsyncTask  TaskScheduler::Run (CancelledCoro coro, const Tuple<Deps...> &deps) __NE___
-	{
-		return Run( ETaskQueue::PerFrame, RVRef(coro), deps );
-	}
-
-
-	template <typename T, typename ...Deps>
-	Coroutine<T>  TaskScheduler::Run (ETaskQueue queueType, Coroutine<T> coro, const Tuple<Deps...> &deps, StringView dbgName) __NE___
-	{
-		CHECK_ERR( coro );
-		coro._InitCoro( queueType, dbgName );
-
-		AsyncTask	task		= AsyncTask{coro};
-		uint		bit_index	= 0;
-
-		ASSERT( task->Status() == EStatus::Initial );
-
-		if_unlikely( not _AddDependencies<0>( task, deps, INOUT bit_index ))
-		{
-			// add task to queue only to call 'OnCancel()'
-			task->_SetCancellationState();
-			bit_index = 0;	// no dependencies
-		}
-
-		// TODO: return canceled coroutine
-		CHECK_ERR( _InsertTask( RVRef(task), bit_index ));
-
-		return coro;
-	}
-
-	template <typename T, typename ...Deps>
-	Coroutine<T>  TaskScheduler::Run (Coroutine<T> coro, const Tuple<Deps...> &deps) __NE___
-	{
-		return Run( ETaskQueue::PerFrame, RVRef(coro), deps );
+		return Enqueue( AsyncTask{RVRef(task)} );
 	}
 
 /*
@@ -572,7 +446,7 @@ namespace AE::Threading
 =================================================
 */
 	template <usize I, typename ...Args>
-	constexpr bool  TaskScheduler::_AddDependencies (const AsyncTask &task, const Tuple<Args...> &args, INOUT uint &bitIndex) __NE___
+	__CxIF bool  TaskScheduler::_AddDependencies (Task &task, const Tuple<Args...> &args, Bool defaultIsStrongDep) __NE___
 	{
 		if constexpr( I < CountOf<Args...>() )
 		{
@@ -580,36 +454,59 @@ namespace AE::Threading
 
 			// current task will start anyway, regardless of whether dependent tasks are canceled
 			if constexpr( IsSame< T, WeakDep >) {
-				if_unlikely( not _AddTaskDependencies( task, args.template Get<I>()._task, False{"weak"}, INOUT bitIndex )) return false;
+				if_unlikely( not _AddTaskDependencies( task, args.template Get<I>()._task, False{"weak"} )) return false;
 			}else
-			if constexpr( IsSame< T, WeakDepArray >)
-				for (auto& dep : args.template Get<I>()) {
-					if_unlikely( not _AddTaskDependencies( task, dep, False{"weak"}, INOUT bitIndex )) return false;
-				}
-			else
+			if constexpr( IsSame< T, WeakDepArray >) {
+				for (auto& dep : args.template Get<I>())
+					if_unlikely( not _AddTaskDependencies( task, dep, False{"weak"} )) return false;
+			}else
+			if constexpr( IsSame< T, ArrayView<WeakDep> >) {
+				for (auto& dep : args.template Get<I>())
+					if_unlikely( not _AddTaskDependencies( task, dep._task, False{"weak"} )) return false;
+			}else
+
 			// current task will be canceled if one of dependent task are canceled
 			if constexpr( IsSame< T, StrongDep >) {
-				if_unlikely( not _AddTaskDependencies( task, args.template Get<I>()._task, True{"strong"}, INOUT bitIndex )) return false;
+				if_unlikely( not _AddTaskDependencies( task, args.template Get<I>()._task, True{"strong"} )) return false;
 			}else
-			if constexpr( IsSame< T, StrongDepArray > or IsSame< T, ArrayView<AsyncTask> >)
-				for (auto& dep : args.template Get<I>()) {
-					if_unlikely( not _AddTaskDependencies( task, dep, True{"strong"}, INOUT bitIndex )) return false;
-				}
-			else
-			// implicitly it is strong dependency
-			if constexpr( IsSpecializationOf< T, RC > and IsBaseOf< IAsyncTask, RemoveRC<T> >) {
-				if_unlikely( not _AddTaskDependencies( task, args.template Get<I>(), True{"strong"}, INOUT bitIndex )) return false;
-			}else{
-				if_unlikely( not _AddCustomDependency( task, args.template Get<I>(), INOUT bitIndex )) return false;
+			if constexpr( IsSame< T, StrongDepArray >) {
+				for (auto& dep : args.template Get<I>())
+					if_unlikely( not _AddTaskDependencies( task, dep, True{"strong"} )) return false;
+			}else
+			if constexpr( IsSame< T, ArrayView<StrongDep> >) {
+				for (auto& dep : args.template Get<I>())
+					if_unlikely( not _AddTaskDependencies( task, dep._task, True{"strong"} )) return false;
+			}else
+
+			// default weak/strong
+			if constexpr( IsSpecializationOf< T, ArrayView >				and
+						  requires{ AsyncTask{ typename T::value_type{} }; })
+			{
+				for (auto& dep : args.template Get<I>())
+					if_unlikely( not _AddTaskDependencies( task, AsyncTask{dep}, defaultIsStrongDep )) return false;
+			}else
+			if constexpr( IsConstructible< AsyncTask, T >) {
+				if_unlikely( not _AddTaskDependencies( task, AsyncTask{args.template Get<I>()}, defaultIsStrongDep )) return false;
+			}else
+
+			// custom
+			{
+				if_unlikely( not _AddCustomDependency( task, args.template Get<I>(), defaultIsStrongDep )) return false;
 			}
 
-			return _AddDependencies<I+1>( task, args, INOUT bitIndex );
+			return _AddDependencies<I+1>( task, args, defaultIsStrongDep );
 		}
 		else
 		{
-			Unused( task, args, bitIndex );
+			Unused( task, args, defaultIsStrongDep );
 			return true;
 		}
+	}
+	
+	template <typename ...Args>
+	__CxIF bool  TaskScheduler::AsyncTaskApi::AddDependencies (Task &task, const Tuple<Args...> &args, Bool defaultIsStrongDep) __NE___
+	{
+		return Scheduler()._AddDependencies<0>( task, args, defaultIsStrongDep );
 	}
 
 /*
@@ -618,7 +515,7 @@ namespace AE::Threading
 =================================================
 */
 	template <typename T>
-	bool  TaskScheduler::_AddCustomDependency (const AsyncTask &task, const T &dep, INOUT uint &bitIndex) __NE___
+	bool  TaskScheduler::_AddCustomDependency (Task &task, const T &dep, Bool defaultIsStrongDep) __NE___
 	{
 		StaticAssert( not IsConst<T> );
 		SHAREDLOCK( _taskDepsMngrsGuard );
@@ -627,92 +524,23 @@ namespace AE::Threading
 		CHECK_ERR_MSG( iter != _taskDepsMngrs.end(),
 			"Can't find dependency manager for type: "s << TypeNameOf<T>() );
 
-		return iter->second->Resolve( AnyTypeCRef{dep}, task, INOUT bitIndex );
+		return iter->second->Resolve( AnyTypeCRef{dep}, task, defaultIsStrongDep );
 	}
-
+	
 /*
 =================================================
 	WaitAsync
 =================================================
 */
-	class TaskScheduler::_WaitAsyncTask final : public IAsyncTask
-	{
-	public:
-		explicit _WaitAsyncTask (ETaskQueue type) __NE___ : IAsyncTask{type} {}
-
-		void		Run ()		__Th_OV {}
-		StringView  DbgName ()	C_NE_OV	{ return "WaitAsync"; }
-	};
-
 	template <typename ...Deps>
 	AsyncTask  TaskScheduler::WaitAsync (ETaskQueue queue, const Tuple<Deps...> &deps) __NE___
 	{
-		return Run<_WaitAsyncTask>( Tuple{queue}, deps );
-	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	Continue
-=================================================
-*/
-	template <typename ...Deps>
-	void  IAsyncTask::Continue (const Tuple<Deps...> &deps) __NE___
-	{
-		ASSERT( _isRunning.load() );
-		ASSERT( _waitBits.load() == 0 );	// all input dependencies must complete
-
-		if constexpr( CountOf<Deps...>() > 0 )
-		{
-			// in '_AddDependencies()' current task has been added to the input dependencies
-			// and they may remove bits from '_waitBits' at any time
-			_waitBits.store( UMax );
-
-			uint	bit_index = 0;
-			if_unlikely( not Scheduler()._AddDependencies<0>( GetRC(), deps, INOUT bit_index ))
-			{
-				// cancel task
-				Unused( _SetCancellationState() );
-				return;
-			}
-
-			// some dependencies may already be completed, so merge bit mask with current
-			_waitBits.fetch_and( ToBitMask<WaitBits_t>( bit_index ));
-		}
-		Unused( deps );
-
-		for (EStatus expected = EStatus::InProgress;
-			 not _status.CAS( INOUT expected, EStatus::Continue );)
-		{
-			// status has been changed in another thread
-			if_unlikely( (expected == EStatus::Cancellation) or (expected > EStatus::_Finished) )
-				return;
-
-			// 'CAS' can return 'false' even if expected value is the same as current value in atomic
-			ASSERT( expected == EStatus::InProgress );
-			ThreadUtils::Pause();
-		}
-	}
-
-/*
-=================================================
-	MakeTask
-=================================================
-*/
-	template <typename Fn, typename ...Deps>
-	AsyncTask  MakeTask (Fn &&					fn,
-						 const Tuple<Deps...> &	dependsOn,
-						 StringView				dbgName,
-						 ETaskQueue				queueType) __NE___
-	{
-		auto	task = MakeRC< AsyncTaskFn >( FwdArg<Fn>(fn), dbgName, queueType );
-		Scheduler().Run( AsyncTask{task}, dependsOn );
-		return RVRef(task);
+		// TODO: remove?
+		return Run( queue, AsyncTask{DeferResult<bool>( false )}, deps, "WaitAsync" );
 	}
 
 } // AE::Threading
+//-----------------------------------------------------------------------------
 
 
 namespace AE
@@ -722,9 +550,153 @@ namespace AE
 	Scheduler
 =================================================
 */
-	ND_ inline Threading::TaskScheduler&  Scheduler () __NE___
+	Nd__IF Threading::TaskScheduler&  Scheduler () __NE___
 	{
 		return Threading::TaskScheduler::_Instance();
 	}
 
 } // AE
+
+namespace AE::_Coro_
+{
+/*
+=================================================
+	ScheduledCoroImpl::get_return_object
+=================================================
+*/
+	template <ETaskQueue Queue>
+	forceinline auto  ScheduledCoroImpl<Queue>::get_return_object (const SourceLoc &loc) __NE___
+	{
+		return Scheduler().Run( Queue, Coroutine_t{ *this }, Tuple{}, Default, loc );
+	}
+	
+	template <typename ResultType, ETaskQueue Queue>
+	forceinline auto  ScheduledPromiseImpl<ResultType,Queue>::get_return_object (const SourceLoc &loc) __NE___
+	{
+		return Scheduler().Run( Queue, Coroutine_t{ *this }, Tuple{}, Default, loc );
+	}
+
+/*
+=================================================
+	ScheduledInlineCoro::_AddToScheduler
+=================================================
+*/
+	template <ETaskQueue Queue>
+	forceinline void  ScheduledInlineCoro<Queue>::_AddToScheduler () __NE___
+	{
+		// inline coro without 'co_await' must finish at this point
+		if ( _coro != null							and
+			 _coro->Status() == ETaskStatus::Continue )
+		{
+			Scheduler().Enqueue( AsyncTask{_coro}, Queue );
+		}
+		_coro = null;
+	}
+	
+/*
+=================================================
+	ScheduledInlineCoro::_AddToScheduler
+=================================================
+*/
+	template <typename ResultType, ETaskQueue Queue>
+	forceinline void  ScheduledInlinePromise<ResultType, Queue>::_AddToScheduler () __NE___
+	{
+		// inline coro without 'co_await' must finish at this point
+		if ( _coro != null							and
+			 _coro->Status() == ETaskStatus::Continue )
+		{
+			Scheduler().Enqueue( AsyncTask{_coro}, Queue );
+		}
+		_coro = null;
+	}
+
+/*
+=================================================
+	AsyncTaskImpl::yield_value
+=================================================
+*/
+	forceinline auto  AsyncTaskImpl::yield_value (AsyncTaskCoro_ChangeQueue newQueue) __NE___
+	{
+		_queueType = newQueue.value;
+
+		Unused( _Continue( Tuple{} ));	// TODO ?
+		return std::suspend_always{};
+	}
+
+/*
+=================================================
+	AsyncTaskImpl::_Continue
+----
+	if 'deps' is empty then always return 'true' to suspend.
+	if 'deps' is not empty and is complete or cancelled then return 'false' to resume.
+	if 'deps' is not complete or cancelled then return 'true' to suspend.
+=================================================
+*/
+	template <typename ...Deps>
+	forceinline bool  AsyncTaskImpl::_Continue (const Tuple<Deps...> &deps, Bool defaultIsStrongDep) __NE___
+	{
+		ASSERT( _isRunning.load() );
+		ASSERT( _waitCount.load() == 0 or AllBits( _flags, EFlags::RunCancelled ));	// all input dependencies must complete
+
+		if constexpr( CountOf<Deps...>() > 0 )
+		{
+			// in 'AddDependencies()' current task has been added to the input dependencies
+			// and they may decrease counter '_waitCount' at any time, so set +1 to forbid state changing
+			_waitCount.store( 1 );
+
+			if_unlikely( not TaskScheduler::AsyncTaskApi::AddDependencies( *this, deps, defaultIsStrongDep ))
+			{
+				// cancel task
+				Unused( _SetCancellationState() );
+				bool suspend = defaultIsStrongDep and NoBits( _flags, EFlags::RunCancelled );
+				return suspend;
+			}
+
+			// remove +1 and check
+			auto	count = _waitCount.fetch_sub( 1 );
+			ASSERT_Gt( count, 0 );
+
+			if_unlikely( count == 1 )
+			{
+				const EStatus	stat = _status.load();
+				ASSERT( AnyEqual( stat, EStatus::InProgress, EStatus::Cancellation ));
+
+				if ( stat == EStatus::Cancellation			and
+					 NoBits( _flags, EFlags::RunCancelled ))
+					return true;  // suspend
+
+				return false;  // resume
+			}
+		}
+		else
+		{
+			Unused( deps );
+
+			const EStatus	stat = _status.load();
+			ASSERT( AnyEqual( stat, EStatus::InProgress, EStatus::Cancellation ));
+
+			if ( stat == EStatus::Cancellation			and
+				 AllBits( _flags, EFlags::RunCancelled ))
+				return false;  // resume
+		}
+
+
+		EStatus expected = EStatus::InProgress;
+		for (; not _status.CAS( INOUT expected, EStatus::Continue );)
+		{
+			// status has been changed in another thread
+			if_unlikely( (expected == EStatus::Cancellation) or (expected > EStatus::_Finished) )
+				break;
+
+			// 'CAS' can return 'false' even if expected value is the same as current value in atomic
+			ASSERT( expected == EStatus::InProgress );
+			ThreadUtils::Pause();
+		}
+
+		ASSERT( expected != EStatus::Completed );	// no way to this may happens
+		DEBUG_ONLY( _isRunning.store( false );)
+
+		return true; // suspend
+	}
+
+} // AE::_Coro_

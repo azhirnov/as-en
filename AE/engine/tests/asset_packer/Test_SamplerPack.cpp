@@ -5,8 +5,8 @@ using namespace AE::PipelineCompiler;
 
 namespace
 {
-	const bool						force_update		= true;
-	decltype(&CompilePipelines)		compile_pipelines	= null;
+	const bool				force_update		= true;
+	CompilePipelinesFn_t	compile_pipelines	= null;
 
 
 	static void  SamplerPack_Test1 ()

@@ -30,10 +30,10 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit RGraphicsContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)				__Th___;
+		explicit RGraphicsContext (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)					__Th___;
 
 		// continue render pass
-		RGraphicsContext (const RenderTask &, const RDrawCommandBatch &, CmdBuf_t)											__Th___;
+		RGraphicsContext (RenderCoroRef, const DrawCommandBatch &, CmdBuf_t)												__Th___;
 
 		RGraphicsContext ()																									= delete;
 		RGraphicsContext (const RGraphicsContext &)																			= delete;
@@ -52,10 +52,10 @@ namespace AE::Graphics
 
 
 		// asynchronous rendering api
-		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default, void* userData = null)			__Th___ -> RC<RDrawCommandBatch>;
-		ND_ auto	NextMtSubpass (const RDrawCommandBatch &prevPassBatch, DebugLabel dbg = Default, void* userData = null)	__Th___ -> RC<RDrawCommandBatch>;
+		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default, void* userData = null)			__Th___ -> RC<DrawCommandBatch>;
+		ND_ auto	NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg = Default, void* userData = null)	__Th___ -> RC<DrawCommandBatch>;
 			void	EndMtRenderPass ()																						__Th___;
-			void	ExecuteSecondary (RDrawCommandBatch &batch)																__Th___;
+			void	ExecuteSecondary (DrawCommandBatch &batch)																__Th___;
 
 		ND_ RmCommandBufferID	EndCommandBuffer ()																			__Th___	{ return _EndCommandBuffer( ECtxType::Graphics ); }
 		ND_ CmdBuf_t			ReleaseCommandBuffer ()																		__Th___	{ return _ReleaseCommandBuffer( ECtxType::Graphics ); }
@@ -63,8 +63,8 @@ namespace AE::Graphics
 		RBARRIERMNGR_INHERIT_BARRIERS
 
 	private:
-		ND_ RC<RDrawCommandBatch>  _BeginFirstAsyncPass (const RPrimaryCmdBufState &state, const RenderPassDesc &desc, DebugLabel);
-		ND_ RC<RDrawCommandBatch>  _BeginNextAsyncPass (const RDrawCommandBatch &prevPassBatch, DebugLabel);
+		ND_ RC<DrawCommandBatch>  _BeginFirstAsyncPass (const RPrimaryCmdBufState &state, const RenderPassDesc &desc, DebugLabel);
+		ND_ RC<DrawCommandBatch>  _BeginNextAsyncPass (const DrawCommandBatch &prevPassBatch, DebugLabel);
 
 		void  _Convert (const RenderPassDesc &srcDesc, OUT RemoteGraphics::Msg::CmdBuf_Bake::Graphics_BeginRenderPass::SerRenderPassDesc &dstDesc) __Th___;
 	};

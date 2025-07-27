@@ -17,22 +17,26 @@ namespace AE::Graphics::_hidden_
 
 	class RBarrierManager
 	{
+	// types
+	public:
+		using RenderCoroRef	= _Coro_::RenderTaskImpl::UserApi;
+
 	// variables
 	private:
-		RResourceManager &					_resMngr;
-		RCommandBatch &						_batch;
+		ResourceManager &					_resMngr;
+		CommandBatch &						_batch;
 
 		RC<ArrayWStream>					_memStream;
 		Unique<Serializing::Serializer>		_ser;
 		uint								_cmdCount	= 0;
 
-		RenderTask const*					_task;
+		RenderCoroRef						_task;
 
 
 	// methods
 	public:
-		explicit RBarrierManager (const RenderTask &task)			__NE___;
-		explicit RBarrierManager (RCommandBatch &batch)				__NE___;
+		explicit RBarrierManager (RenderCoroRef task)				__NE___;
+		explicit RBarrierManager (CommandBatch &batch)				__NE___;
 		RBarrierManager (RBarrierManager &&)						__NE___ = default;
 
 		ND_ Ptr<const RDependencyInfo>	AllocBarriers ()			__NE___;
@@ -42,14 +46,14 @@ namespace AE::Graphics::_hidden_
 
 		ND_ RDevice const&				GetDevice ()				C_NE___	{ return _resMngr.GetDevice(); }
 		ND_ RStagingBufferManager&		GetStagingManager ()		C_NE___	{ return _resMngr.GetStagingManager(); }
-		ND_ RResourceManager&			GetResourceManager ()		C_NE___	{ return _resMngr; }
+		ND_ ResourceManager&			GetResourceManager ()		C_NE___	{ return _resMngr; }
 		ND_ RQueryManager&				GetQueryManager ()			C_NE___	{ return _resMngr.GetQueryManager(); }
-		ND_ RCommandBatch &				GetBatch ()					C_NE___	{ return _batch; }
-		ND_ RC<RCommandBatch>			GetBatchRC ()				C_NE___	{ return _batch.GetRC<RCommandBatch>(); }
+		ND_ CommandBatch &				GetBatch ()					C_NE___	{ return _batch; }
+		ND_ RC<CommandBatch>			GetBatchRC ()				C_NE___	{ return _batch.GetRC<CommandBatch>(); }
 		ND_ FrameUID					GetFrameId ()				C_NE___	{ return _batch.GetFrameId(); }
 		ND_ EQueueType					GetQueueType ()				C_NE___	{ return _batch.GetQueueType(); }
 		ND_ RQueuePtr					GetQueue ()					C_NE___	{ return GetDevice().GetQueue( GetQueueType() ); }
-		ND_ RenderTask const&			GetRenderTask ()			C_NE___	{ NonNull( _task );  return *_task; }
+		ND_ RenderCoroRef				GetRenderTask ()			C_NE___	{ ASSERT( _task );  return _task; }
 
 	  #if AE_DBG_GRAPHICS
 		void  ProfilerBeginContext (RSoftwareCmdBuf &cmdbuf, DebugLabel dbg, IGraphicsProfiler::EContextType type)					C_Th___;
@@ -94,12 +98,12 @@ namespace AE::Graphics::_hidden_
 		ND_ DeferredBar				DeferredBarriers ()																			__NE___ { return DeferredBar{ _mngr.GetBatch(), *this }; } \
 		\
 		ND_ FrameUID				GetFrameId ()																				C_NE_OF { return _mngr.GetFrameId(); } \
-		ND_ RCommandBatch const&	GetCommandBatch ()																			C_NE___ { return _mngr.GetBatch(); } \
-		ND_ RC<RCommandBatch>		GetCommandBatchRC ()																		C_NE___ { return _mngr.GetBatchRC(); } \
+		ND_ CommandBatch const&		GetCommandBatch ()																			C_NE___ { return _mngr.GetBatch(); } \
+		ND_ RC<CommandBatch>		GetCommandBatchRC ()																		C_NE___ { return _mngr.GetBatchRC(); } \
 		\
-		ND_	RResourceManager &		GetResourceManager ()																		C_NE___ { return _mngr.GetResourceManager(); } \
+		ND_	ResourceManager &		GetResourceManager ()																		C_NE___ { return _mngr.GetResourceManager(); } \
 		ND_	RDevice const&			GetDevice ()																				C_NE___ { return _mngr.GetDevice(); } \
-		ND_	RenderTask const&		GetRenderTask ()																			C_NE___ { return _mngr.GetRenderTask(); } \
+		ND_	RenderCoroRef			GetRenderTask ()																			C_NE___ { return _mngr.GetRenderTask(); } \
 		\
 		ND_ auto&					_GetBarrierMngr ()																			__NE___ { return _mngr; } \
 		ND_ const auto&				_GetBarrierMngr ()																			C_NE___ { return _mngr; } \

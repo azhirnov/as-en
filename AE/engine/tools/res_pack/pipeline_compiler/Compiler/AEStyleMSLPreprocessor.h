@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Compiler/IShaderPreprocessor.h"
+#include "res_pack/pipeline_compiler/Compiler/IShaderPreprocessor.h"
 
 namespace AE::PipelineCompiler
 {

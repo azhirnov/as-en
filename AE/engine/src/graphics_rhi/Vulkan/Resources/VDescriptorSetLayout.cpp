@@ -122,7 +122,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VDescriptorSetLayout::Destroy (VResourceManager &resMngr) __NE___
+	void  VDescriptorSetLayout::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "graphics/Graphics.pch.h"
+#include "graphics/Common.h"
 #include "graphics/Resources/FormattedText.h"
 
 #ifndef AE_ENABLE_UTF8PROC

@@ -10,15 +10,13 @@ if (TARGET "PipelineCompiler")
 	target_link_libraries( "Tests.PipelineCompiler" PUBLIC "PipelineCompiler" )
 	target_compile_definitions( "Tests.PipelineCompiler" PRIVATE "AE_TEST_PIPELINE_COMPILER" )
 
-	if (${AE_USE_PCH})
-		target_precompile_headers( "Tests.PipelineCompiler" PRIVATE "../../tools/res_pack/pipeline_compiler/PipelineCompiler.pch.h" )
-	endif()
-
 	# same as for 'PipelineCompiler'
 	if ( (TARGET "Vulkan-lib") OR (EXISTS "${AE_EXTERNAL_SHARED_PATH}/Vulkan/vulkan/vulkan.h") )
 		target_include_directories( "Tests.PipelineCompiler" PRIVATE "${AE_EXTERNAL_SHARED_PATH}/Vulkan" )
 		target_compile_definitions( "Tests.PipelineCompiler" PRIVATE "AE_ENABLE_VULKAN" )
 	endif()
+	
+	UseEnginePCH2( "Tests.PipelineCompiler" )
 
 	add_test( NAME "Tests.PipelineCompiler" COMMAND "Tests.PipelineCompiler" )
 endif()

@@ -27,7 +27,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RRTGeometry::Create (RResourceManager &resMngr, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  RRTGeometry::Create (ResourceManager &resMngr, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _geomId );
@@ -63,7 +63,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RRTGeometry::Destroy (RResourceManager &resMngr) __NE___
+	void  RRTGeometry::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -88,7 +88,7 @@ namespace AE::Graphics
 	GetBuildSizes
 =================================================
 */
-	RTASBuildSizes  RRTGeometry::GetBuildSizes (const RResourceManager &resMngr, const RTGeometryBuild &build) __NE___
+	RTASBuildSizes  RRTGeometry::GetBuildSizes (const ResourceManager &resMngr, const RTGeometryBuild &build) __NE___
 	{
 		Msg::ResMngr_GetRTGeometrySizes					msg;
 		RC<Msg::ResMngr_GetRTGeometrySizes_Response>	res;
@@ -119,7 +119,7 @@ namespace AE::Graphics
 	IsSupported (RTGeometryDesc)
 =================================================
 */
-	bool  RRTGeometry::IsSupported (const RResourceManager &resMngr, const RTGeometryDesc &desc) __NE___
+	bool  RRTGeometry::IsSupported (const ResourceManager &resMngr, const RTGeometryDesc &desc) __NE___
 	{
 		return RTGeometry_IsSupported( resMngr, desc );
 	}
@@ -129,7 +129,7 @@ namespace AE::Graphics
 	IsSupported (RTGeometryBuild)
 =================================================
 */
-	bool  RRTGeometry::IsSupported (const RResourceManager &resMngr, const RTGeometryBuild &build) __NE___
+	bool  RRTGeometry::IsSupported (const ResourceManager &resMngr, const RTGeometryBuild &build) __NE___
 	{
 		Msg::ResMngr_IsSupported_RTGeometryBuild	msg;
 		RC<Msg::ResMngr_IsSupported_Response>		res;
@@ -147,7 +147,7 @@ namespace AE::Graphics
 	ConvertBuildInfo
 =================================================
 */
-	bool  RRTGeometry::ConvertBuildInfo (const RResourceManager &resMngr, INOUT RTGeometryBuild &build, RTempLinearAllocator &alloc) __NE___
+	bool  RRTGeometry::ConvertBuildInfo (const ResourceManager &resMngr, INOUT RTGeometryBuild &build, RTempLinearAllocator &alloc) __NE___
 	{
 		if ( not build.triangles.empty() )
 		{

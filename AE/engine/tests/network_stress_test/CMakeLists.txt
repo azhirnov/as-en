@@ -17,4 +17,6 @@ if (TARGET "Networking")
 	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 	set_property( TARGET ${TEST_NAME} PROPERTY FOLDER "Engine/Tests" )
 	target_link_libraries( ${TEST_NAME} PUBLIC "Networking" )
+	
+	UseEnginePCH2( ${TEST_NAME} )
 endif()

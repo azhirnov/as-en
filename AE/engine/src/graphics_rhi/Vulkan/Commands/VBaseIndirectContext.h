@@ -660,7 +660,8 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsIndirectContext = true;
 
-		using CmdBuf_t = VSoftwareCmdBufPtr;
+		using CmdBuf_t		= VSoftwareCmdBufPtr;
+		using RenderCoroRef	= _Coro_::RenderTaskImpl::UserApi;
 
 	protected:
 		#define AE_BASE_IND_CTX_VISIT( _name_ )		using _name_ = VSoftwareCmdBuf::_name_;
@@ -721,15 +722,15 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		VBaseIndirectContext (const RenderTask &, VSoftwareCmdBufPtr, DebugLabel, ECtxType)	__Th___;
-		~VBaseIndirectContext ()															__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
+		VBaseIndirectContext (RenderCoroRef, VSoftwareCmdBufPtr, DebugLabel, ECtxType)	__Th___;
+		~VBaseIndirectContext ()														__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-			void  _CommitBarriers ()														__Th___;
+			void  _CommitBarriers ()													__Th___;
 
-		ND_ bool  _NoPendingBarriers ()														C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ bool  _NoPendingBarriers ()													C_NE___	{ return _mngr.NoPendingBarriers(); }
 
-		ND_ VBakedCommands		_EndCommandBuffer ()										__Th___;
+		ND_ VBakedCommands		_EndCommandBuffer ()									__Th___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -754,7 +755,7 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg, ECtxType ctxType) __Th___ :
+	inline VBaseIndirectContext::VBaseIndirectContext (RenderCoroRef task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg, ECtxType ctxType) __Th___ :
 		_VBaseIndirectContext{
 			dbg ? dbg : DebugLabel{ task.DbgFullName(), task.DbgColor() },
 			RVRef(cmdbuf)
@@ -768,7 +769,7 @@ namespace AE::Graphics::_hidden_
 		)
 		Unused( ctxType );
 
-		if ( auto bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractInitialBarriers( task.ExecutionIndex() ))
 		{
 			PipelineBarrier( *bar );  // throw
 			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.InitialBarriers"});)
@@ -797,7 +798,7 @@ namespace AE::Graphics::_hidden_
 */
 	inline VBakedCommands  VBaseIndirectContext::_EndCommandBuffer () __Th___
 	{
-		if ( auto bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+		if ( auto bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().ExecutionIndex() ))
 		{
 			GRAPHICS_DBG_SYNC( _DebugMarker({"Task.FinalBarriers"});)
 			PipelineBarrier( *bar );  // throw

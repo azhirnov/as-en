@@ -48,7 +48,7 @@
 		}{
 			RC<SceneGraphicsPass>	draw = scene.AddGraphicsPass( "draw" );
 			draw.SetDebugLabel( "draw", RGBA32f(1.f, 0.f, 0.f, 1.f) );
-			draw.AddPipeline( "my/2d/Smoke-2.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Smoke-2.as)
+			draw.AddPipeline( "samples/Smoke-2.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Smoke-2.as)
 			draw.Output( "out_Color",	rt, RGBA32f(0.2f, 0.3f, 0.7f, 1.f) );
 		//	draw.Output( "out_Color",	rt, RGBA32f(0.f) );
 			draw.ColorSelector( "iColor" );

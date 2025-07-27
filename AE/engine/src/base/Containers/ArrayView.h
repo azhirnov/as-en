@@ -12,7 +12,7 @@ namespace AE::Base
 	// Array View
 	//
 
-	template <typename T>
+	template <typename T, typename IndexT = usize>
 	struct ArrayView
 	{
 	// types
@@ -20,6 +20,8 @@ namespace AE::Base
 		using value_type		= RemoveConst<T>;
 		using iterator			= T const *;
 		using const_iterator	= T const *;
+		using Index_t			= IndexT;
+		using Self				= ArrayView< T, IndexT >;
 
 		struct reverse_iterator
 		{
@@ -78,7 +80,7 @@ namespace AE::Base
 
 		NdCx__ Bytes			DataSize ()					C_NE___	{ return Bytes{ sizeof(T) * _count }; }
 
-		NdCx__ T const &		operator [] (usize i)		C_NE___	{ ASSERT( i < _count );  return _array[i]; }
+		NdCx__ T const &		operator [] (Index_t i)		C_NE___	{ ASSERT( usize(i) < _count );  return _array[usize(i)]; }
 
 		NdCx__ const_iterator	begin ()					C_NE___	{ return _array; }
 		NdCx__ const_iterator	end ()						C_NE___	{ return _array + _count; }
@@ -89,12 +91,12 @@ namespace AE::Base
 		NdCx__ T const&			front ()					C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
 		NdCx__ T const&			back ()						C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
 
-		NdCx__ bool  operator == (ArrayView<T> rhs)			C_NE___;
-		NdCx__ bool  operator >  (ArrayView<T> rhs)			C_NE___;
-		NdCx__ bool  operator != (ArrayView<T> rhs)			C_NE___	{ return not (*this == rhs); }
-		NdCx__ bool  operator <  (ArrayView<T> rhs)			C_NE___	{ return (rhs > *this); }
-		NdCx__ bool  operator >= (ArrayView<T> rhs)			C_NE___	{ return not (*this < rhs); }
-		NdCx__ bool  operator <= (ArrayView<T> rhs)			C_NE___	{ return not (*this > rhs); }
+		NdCx__ bool  operator == (Self rhs)					C_NE___;
+		NdCx__ bool  operator >  (Self rhs)					C_NE___;
+		NdCx__ bool  operator != (Self rhs)					C_NE___	{ return not (*this == rhs); }
+		NdCx__ bool  operator <  (Self rhs)					C_NE___	{ return (rhs > *this); }
+		NdCx__ bool  operator >= (Self rhs)					C_NE___	{ return not (*this < rhs); }
+		NdCx__ bool  operator <= (Self rhs)					C_NE___	{ return not (*this > rhs); }
 
 		NdCx__ bool  AllEqual (const T &rhs)				C_NE___	{ return _All( rhs, std::equal_to<T>{} ); }
 		NdCx__ bool  AllGreater (const T &rhs)				C_NE___	{ return _All( rhs, std::greater<T>{} ); }
@@ -104,7 +106,7 @@ namespace AE::Base
 
 		NdCx__ usize  IndexOf (const_iterator it)			C_NE___;
 
-		NdCx__ ArrayView<T>  section (usize first, usize count) C_NE___;
+		NdCx__ Self   section (usize first, usize count)	C_NE___;
 
 		template <typename R> requires(IsTrivial<R>)
 		NdCx__ ArrayView<R>  Cast ()						C_NE___;
@@ -168,13 +170,14 @@ namespace AE::Base
 	template <typename A0, typename ...Args>
 	List (A0, A0, Args...) -> List<A0>;
 
+
 /*
 =================================================
 	operator ==
 =================================================
 */
-	template <typename T>
-	__Cx__ bool  ArrayView<T>::operator == (ArrayView<T> rhs) C_NE___
+	template <typename T, typename I>
+	__Cx__ bool  ArrayView<T,I>::operator == (ArrayView<T,I> rhs) C_NE___
 	{
 		if ( (_array == rhs._array) and (_count == rhs._count) )
 			return true;
@@ -195,8 +198,8 @@ namespace AE::Base
 	operator >
 =================================================
 */
-	template <typename T>
-	__Cx__ bool  ArrayView<T>::operator >  (ArrayView<T> rhs) C_NE___
+	template <typename T, typename I>
+	__Cx__ bool  ArrayView<T,I>::operator >  (ArrayView<T,I> rhs) C_NE___
 	{
 		if ( size() != rhs.size() )
 			return size() > rhs.size();
@@ -214,9 +217,9 @@ namespace AE::Base
 	_All
 =================================================
 */
-	template <typename T>
+	template <typename T, typename I>
 	template <typename Op>
-	__Cx__ bool  ArrayView<T>::_All (const T &rhs, const Op &op) C_NE___
+	__Cx__ bool  ArrayView<T,I>::_All (const T &rhs, const Op &op) C_NE___
 	{
 		for (usize i = 0; i < size(); ++i) {
 			if_unlikely( not op( _array[i], rhs ))
@@ -230,8 +233,8 @@ namespace AE::Base
 	section
 =================================================
 */
-	template <typename T>
-	__Cx__ ArrayView<T>  ArrayView<T>::section (usize first, usize count) C_NE___
+	template <typename T, typename I>
+	__Cx__ ArrayView<T,I>  ArrayView<T,I>::section (usize first, usize count) C_NE___
 	{
 		return first < size() ?
 				ArrayView<T>{ data() + first, Base::Min( size() - first, count )} :
@@ -243,9 +246,9 @@ namespace AE::Base
 	Cast
 =================================================
 */
-	template <typename T>
+	template <typename T, typename I>
 	template <typename R> requires(IsTrivial<R>)
-	__Cx__ ArrayView<R>  ArrayView<T>::Cast () C_NE___
+	__Cx__ ArrayView<R>  ArrayView<T,I>::Cast () C_NE___
 	{
 		StaticAssert( IsTrivial<T> );
 		StaticAssert( alignof(R) >= alignof(T) );
@@ -259,8 +262,8 @@ namespace AE::Base
 	IndexOf
 =================================================
 */
-	template <typename T>
-	__Cx__ usize  ArrayView<T>::IndexOf (const_iterator it) C_NE___
+	template <typename T, typename I>
+	__Cx__ usize  ArrayView<T,I>::IndexOf (const_iterator it) C_NE___
 	{
 		ASSERT( it >= begin() and it < end() );
 		return it - begin();
@@ -268,16 +271,16 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-	template <typename T>	struct TMemCopyAvailable< ArrayView<T> >	: CT_True {};
-	template <typename T>	struct TZeroMemAvailable< ArrayView<T> >	: CT_True {};
+	template <typename T, typename I>	struct TMemCopyAvailable< ArrayView<T,I> >	: CT_True {};
+	template <typename T, typename I>	struct TZeroMemAvailable< ArrayView<T,I> >	: CT_True {};
 
 } // AE::Base
 
 
-template <typename T>
-struct std::hash< AE::Base::ArrayView<T> >
+template <typename T, typename I>
+struct std::hash< AE::Base::ArrayView<T,I> >
 {
-	ND_ size_t  operator () (const AE::Base::ArrayView<T> &value) C_NE___
+	ND_ size_t  operator () (const AE::Base::ArrayView<T,I> &value) C_NE___
 	{
 		if constexpr( AE_FAST_HASH and AE::Base::IsTrivial<T> )
 		{

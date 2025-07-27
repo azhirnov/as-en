@@ -103,8 +103,10 @@ namespace LFAS::CPP
 			case EMemoryOrder::SequentiallyConsistent :
 			case EMemoryOrder::AcquireRelease :			vm.ThreadFenceAcquireRelease();		break;
 			case EMemoryOrder::Relaxed :				vm.ThreadFenceRelaxed();			break;
-			case std::memory_order_consume :
-			default :									CHECK( !"unknown memory order" );	break;
+		  #if AE_CXX_VER < 26
+			case std::memory_order_consume :			// deprecated in C++26
+		  #endif
+			default :									CHECK_MSG( false, "unknown memory order" );	break;
 		}
 		switch_end
 		vm.Yield();

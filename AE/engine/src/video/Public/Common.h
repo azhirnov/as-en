@@ -12,6 +12,9 @@
 namespace AE::Video
 {
 	using namespace AE::Base;
+	using namespace AE::ImportCoroutines;
+
+	ImportBitOperators;
 
 	using App::IInputSurface;
 	using App::IOutputSurface;
@@ -25,7 +28,6 @@ namespace AE::Video
 	using AE::Graphics::ESamplerChromaLocation;
 	using AE::Graphics::ESamplerYcbcrRange;
 
-	using AE::Threading::AsyncTask;
 	using AE::Threading::Atomic;
 
   #ifdef AE_ENABLE_AUDIO

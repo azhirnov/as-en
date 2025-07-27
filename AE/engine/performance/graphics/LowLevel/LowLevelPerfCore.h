@@ -138,8 +138,8 @@ namespace AE::Graphics
 		template <typename PplnType>
 		ND_ bool  _IBenchmarkFrame (PplnType ppln, DescriptorSetID ds, StringView mode, uint iterCount, OUT BenchResult &) const;
 
-		ND_ RenderTaskCoro  _IBenchmarkTask (GraphicsPipelineID ppln, DescriptorSetID ds, Query& q, uint qIndex, bool isLast) const;
-		ND_ RenderTaskCoro  _IBenchmarkTask (ComputePipelineID ppln, DescriptorSetID ds, Query& q, uint qIndex, bool isLast) const;
+		ND_ RenderCoro  _IBenchmarkTask (GraphicsPipelineID ppln, DescriptorSetID ds, Query& q, uint qIndex, bool isLast) const;
+		ND_ RenderCoro  _IBenchmarkTask (ComputePipelineID ppln, DescriptorSetID ds, Query& q, uint qIndex, bool isLast) const;
 
 
 	// NaN

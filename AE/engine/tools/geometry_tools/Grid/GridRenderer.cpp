@@ -2,7 +2,7 @@
 
 #ifdef AE_GEOMTOOLS_HAS_GRAPHICS
 
-#include "geometry_tools/Grid/GridRenderer.h"
+# include "geometry_tools/Grid/GridRenderer.h"
 
 namespace AE::GeometryTools
 {

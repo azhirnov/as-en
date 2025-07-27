@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/RayTracingShaderBinding.h"
-#include "ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/RayTracingShaderBinding.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
 
 AE_DECL_SCRIPT_OBJ(	AE::PipelineCompiler::InstanceIndex,	"InstanceIndex"	);
 AE_DECL_SCRIPT_OBJ(	AE::PipelineCompiler::RayIndex,			"RayIndex"		);

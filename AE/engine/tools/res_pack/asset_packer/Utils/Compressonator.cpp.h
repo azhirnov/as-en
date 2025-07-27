@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "MtCompression.h"
+#include "res_pack/asset_packer/Utils/MtCompression.h"
 
 /*
 =================================================

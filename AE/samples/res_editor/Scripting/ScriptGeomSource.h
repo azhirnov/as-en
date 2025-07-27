@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptCommon.h"
-#include "res_editor/Scripting/ScriptDynamicVars.h"
-#include "res_editor/Scripting/ScriptPassArgs.h"
+#include "Scripting/ScriptCommon.h"
+#include "Scripting/ScriptDynamicVars.h"
+#include "Scripting/ScriptPassArgs.h"
 
-#include "res_editor/GeomSource/IGeomSource.h"
+#include "GeomSource/IGeomSource.h"
 
 namespace AE::ResLoader {
 	class IntermScene;

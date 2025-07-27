@@ -9,9 +9,6 @@
 
 namespace
 {
-	using EStatus = IAsyncTask::EStatus;
-
-
 	struct Test2_SharedData
 	{
 		AsyncMutex		mutex;
@@ -23,31 +20,21 @@ namespace
 	};
 
 
-	class Test2_Task : public IAsyncTask
+	static AsyncCoro  Test2_Task (Test2_SharedData& data)
 	{
-	public:
-		Test2_SharedData&	data;
-		uint				counter	= 0;
-
-		Test2_Task (Test2_SharedData &d) __NE___ : IAsyncTask{ ETaskQueue::PerFrame }, data{d} {}
-
-		void  Run () __Th_OV
+		for (uint counter = 0; counter < Test2_SharedData::repeat_count; ++counter)
 		{
 			{
 				ASYNC_EXLOCK( data.mutex );
-				CHECK_TE( DeferExLock{data.mutexCheck}.try_lock() );
+
+				DeferExLock lock {data.mutexCheck};
+				CHECK_CE( lock.try_lock() );
 
 				++data.counter;
-
-				data.mutexCheck.unlock();
 			}
-
-			if ( ++counter < Test2_SharedData::repeat_count )
-				return Continue();
+			Coro_Continue();
 		}
-
-		StringView  DbgName () C_NE_OV { return "Test2_Task"; }
-	};
+	}
 
 
 	static void  AsyncMutex_Test2 (IntervalProfiler &profiler)
@@ -66,7 +53,7 @@ namespace
 
 		for (uint i = 0; i < Test2_SharedData::task_count; ++i)
 		{
-			tasks.push_back( scheduler->Run<Test2_Task>( Tuple{ArgRef(data)} ));
+			tasks.push_back( scheduler->Run( Test2_Task( data )));
 		}
 
 		TEST( scheduler->Wait( tasks, seconds{10} ));
@@ -77,7 +64,7 @@ namespace
 		TEST( data.counter == (data.repeat_count * data.task_count) );
 
 		for (auto& task : tasks) {
-			TEST( task->Status() == EStatus::Completed );
+			TEST( task->Status() == ETaskStatus::Completed );
 		}
 	}
 

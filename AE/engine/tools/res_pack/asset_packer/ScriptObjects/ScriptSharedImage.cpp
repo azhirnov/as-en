@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ScriptSharedImage.h"
-#include "ScriptObjects/ScriptImageAtlas.h"
-#include "ScriptObjects/ScriptRasterFont.h"
-#include "ScriptObjects/ScriptResourceMeta.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptSharedImage.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptImageAtlas.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptRasterFont.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptResourceMeta.h"
 
 #include "atlas_tools/RectPackerSTB.h"
 
@@ -14,7 +14,7 @@
 namespace AE::AssetPacker
 {
 namespace {
-#	include "Packer/ImagePacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
 }
 	using namespace AE::Graphics;
 	using namespace AE::ResLoader;

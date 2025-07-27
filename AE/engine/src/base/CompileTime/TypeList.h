@@ -78,31 +78,31 @@ namespace AE::Base
 		using							Transform			= Tmpl< Types... >;
 
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Or ()		__NE___	{ return (... or Tmpl<Types>::value); }
+		static __Cx__ auto				ForEach_Or ()		__NE___	{ return (... or Tmpl<Types>::value); }		// any
 
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_And ()		__NE___	{ return (... and Tmpl<Types>::value); }
+		static __Cx__ auto				ForEach_And ()		__NE___	{ return (... and Tmpl<Types>::value); }	// all
 
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Add	()		__NE___	{ return (... + Tmpl<Types>::value); }
+		static __Cx__ auto				ForEach_Add	()		__NE___	{ return (... + Tmpl<Types>::value); }
 
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Max	()		__NE___	{ return Base::Max( Tmpl<Types>::value... ); }
+		static __CxIA auto				ForEach_Max	()		__NE___	{ return Base::Max( Tmpl<Types>::value... ); }
 
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Min	()		__NE___	{ return Base::Min( Tmpl<Types>::value... ); }
+		static __CxIA auto				ForEach_Min	()		__NE___	{ return Base::Min( Tmpl<Types>::value... ); }
 
 
 		template <typename FN>
-		static constexpr void 			Visit (FN&& fn)		__NE___	{ return _RecursiveVisit<0>( FwdArg<FN>(fn) ); }
+		static __CxIA void 				Visit (FN&& fn)		__NE___	{ return _RecursiveVisit<0>( FwdArg<FN>(fn) ); }
 
 		template <typename FN>
-		static constexpr void 			VisitTh (FN&& fn)	__Th___	{ return _RecursiveVisit2<0>( FwdArg<FN>(fn) ); }
+		static __CxIA void 				VisitTh (FN&& fn)	__Th___	{ return _RecursiveVisit2<0>( FwdArg<FN>(fn) ); }
 
 
 	private:
 		template <usize I, typename FN>
-		static constexpr void  _RecursiveVisit (FN&& fn)	__NE___
+		static __Cx__ void  _RecursiveVisit (FN&& fn)	__NE___
 		{
 			if constexpr( I < Count )
 			{
@@ -116,7 +116,7 @@ namespace AE::Base
 		}
 
 		template <usize I, typename FN>
-		static constexpr void  _RecursiveVisit2 (FN&& fn)	__Th___
+		static __Cx__ void  _RecursiveVisit2 (FN&& fn)	__Th___
 		{
 			if constexpr( I < Count )
 			{
@@ -139,7 +139,12 @@ namespace AE::Base
 	struct TypeList< Tuple<Types...> > final : TypeList< Types... >
 	{};
 
-
+	
+/*
+=================================================
+	IsTypeList
+=================================================
+*/
 namespace _hidden_
 {
 	template <typename T>
@@ -157,11 +162,32 @@ namespace _hidden_
 	{
 		using type = TypeList< LeftTypes..., RightTypes... >;
 	};
-
-} // _hidden_
-
+}
 	template <typename T>
 	static constexpr bool	IsTypeList = Base::_hidden_::_IsTypeList< T >::value;
+												
+/*
+=================================================
+	TypeListFill
+=================================================
+*/
+namespace _hidden_
+{
+	template <typename T, usize Count>
+	struct _TypeListFill
+	{
+		using type = typename _TypeListFill< T, Count-1 >::type::template PushBack< T >;
+	};
+	
+	template <typename T>
+	struct _TypeListFill< T, 0 >
+	{
+		using type = TypeList<>;
+	};
+}
+	template <typename T, usize Count>
+	using TypeListFill = typename Base::_hidden_::_TypeListFill< T, Count >::type;
+
 
 } // AE::Base
 

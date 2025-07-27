@@ -16,7 +16,8 @@ namespace AE::Threading
 
 		Renderer,		// Same as 'PerFrame', used to limit number of threads which can access to graphics command pools.
 						// Allowed:
-						//		- RenderTask, RenderTaskCoro
+						//		- RenderCoro
+						//		- DrawCoro
 						// Note:
 						//		Command pool allocated per thread, so number of threads with active command pools should be small
 						//		to minimize memory usage. Software command buffers can be used in any thread.
@@ -42,6 +43,7 @@ namespace AE::Threading
 
 		FileIO,			// Thread can not process tasks.
 						// Used only to check if OS complete async IO and mark task dependency as complete.
+						// TODO: ExtrnalHighFreq, ExternalLowFreq
 		_Count
 	};
 	StaticAssert( sizeof(EThread) == sizeof(ETaskQueue) );

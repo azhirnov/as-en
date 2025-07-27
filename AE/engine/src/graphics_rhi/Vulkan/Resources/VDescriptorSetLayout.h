@@ -6,7 +6,7 @@
 # include "graphics_rhi/Public/DescriptorSet.h"
 # include "graphics_rhi/Private/EnumUtils.h"
 # include "graphics_rhi/Vulkan/VCommon.h"
-# include "PipelineCompilerImpl.h"
+# include "res_pack/pipeline_compiler/PipelineCompilerImpl.h"
 
 namespace AE::Graphics
 {
@@ -62,7 +62,7 @@ namespace AE::Graphics
 
 		ND_ bool  Create (const VDevice &dev, StringView dbgName)	__NE___;
 		ND_ bool  Create (const VDevice &dev, const CreateInfo &ci)	__NE___;
-			void  Destroy (VResourceManager &)						__NE___;
+			void  Destroy (ResourceManager &)						__NE___;
 
 		ND_ VkDescriptorSetLayout		Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
 		ND_ VkDescriptorUpdateTemplate	GetUpdateTemplate ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _updateTmpl; }

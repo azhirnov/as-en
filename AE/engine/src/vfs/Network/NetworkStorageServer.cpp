@@ -13,78 +13,91 @@ namespace AE::VFS
 
 /*
 =================================================
-	SendReadResultTask::Run
+	_SendReadResultCoro
 =================================================
 */
-	void  NetworkStorageServer::SendReadResultTask::Run () __Th___
+	auto  NetworkStorageServer::_SendReadResultCoro (const NDSRequestID id, const EClientLocalID clientId, AsyncDSRequest request) __NE___
+			-> InlineCoro<ETaskQueue::Background>
 	{
-		auto	res = _req->GetResult();
+		const auto	Cancel = [clientId, id] ()
+		{{
+			AE_LOGW( "failed to read data" );
 
-		for (uint i = 0; (i < _maxParts) and (res.dataSize > _sent); ++i)
+			auto	msg = s_NetVFS_Server->_CreateMsg< CSMsg_VFS_ReadComplete >( clientId );
+			CHECK_ERRV( msg );
+
+			msg->reqId	= id;
+			msg->size	= 0_b;  // error
+			msg->hash	= HashVal64{0};
+
+			CHECK( s_NetVFS_Server->_AddMessage( msg ));
+		}};
+
+		const uint	max_failed		= 1'000;
+		const uint	max_attempts	= 10;
+
+		Bytes	sent;
+		uint	part_idx	= 0;
+		auto	res			= co_await request;
+
+		request = null;
+
+		for (uint fail_cnt = 0; res.dataSize > sent;)
 		{
-			const Bytes	size	= Min( res.dataSize - _sent, _partSize );
-			auto		msg		= s_NetVFS_Server->_CreateMsgOpt< CSMsg_VFS_ReadResult >( _clientId, size-1 );
-
-			if_likely( msg )
+			if_unlikely( Coro_IsCanceled or fail_cnt > max_failed )
 			{
-				msg->reqId	= _id;
+				Cancel();
+				Coro_Error();  // failed
+			}
+
+			for (uint i = 0; (i < _maxParts) and (res.dataSize > sent); ++i)
+			{
+				const Bytes	size	= Min( res.dataSize - sent, _partSize );
+				auto		msg		= s_NetVFS_Server->_CreateMsgOpt< CSMsg_VFS_ReadResult >( clientId, size-1 );
+
+				if_unlikely( not msg )
+				{
+					++fail_cnt;
+					break; // failed to send
+				}
+				
+				msg->reqId	= id;
 				msg->size	= size;
-				msg->index	= ushort(_partIdx);
-				MemCopy( OUT msg->data, res.data + _sent, size );
+				msg->index	= ushort(part_idx);
+				MemCopy( OUT msg->data, res.data + sent, size );
 
 				if_likely( s_NetVFS_Server->_AddMessage( msg ))
 				{
-					_sent += size;
-					_partIdx ++;
+					sent += size;
+					part_idx ++;
 					continue;
 				}
 			}
-			break;
+
+			if ( res.dataSize > sent )
+				Coro_Continue();  // try again after delay
 		}
 
-		if ( res.dataSize > _sent )
-			return Continue();  // try again
+		ASSERT( res.dataSize == sent );
 
-		ASSERT( res.dataSize == _sent );
-
-		// complete
-		auto	msg = s_NetVFS_Server->_CreateMsgOpt< CSMsg_VFS_ReadComplete >( _clientId );
-		if_likely( msg )
+		for (uint attempt = 0; attempt < max_attempts; ++attempt)
 		{
-			msg->reqId	= _id;
-			msg->size	= res.dataSize;
-			msg->hash	= XXHash64( res.data, usize(res.dataSize) );
-
-			if_likely( s_NetVFS_Server->_AddMessage( msg ))
+			// complete
+			auto	msg = s_NetVFS_Server->_CreateMsgOpt< CSMsg_VFS_ReadComplete >( clientId );
+			if_likely( msg )
 			{
-				_req = null;
-				return;  // complete
+				msg->reqId	= id;
+				msg->size	= res.dataSize;
+				msg->hash	= XXHash64( res.data, usize(res.dataSize) );
+
+				if_likely( s_NetVFS_Server->_AddMessage( msg ))
+				{
+					co_return;  // complete
+				}
 			}
+
+			Coro_Continue();  // try again
 		}
-
-		return Continue();  // try again
-	}
-
-/*
-=================================================
-	SendReadResultTask::OnCancel
-=================================================
-*/
-	void  NetworkStorageServer::SendReadResultTask::OnCancel () __NE___
-	{
-		DEBUG_ONLY( IAsyncTask::OnCancel();)
-		AE_LOGI( "failed to read data" );
-
-		_req = null;
-
-		auto	msg = s_NetVFS_Server->_CreateMsg< CSMsg_VFS_ReadComplete >( _clientId );
-		CHECK_ERRV( msg );
-
-		msg->reqId	= _id;
-		msg->size	= 0_b;  // error
-		msg->hash	= HashVal64{0};
-
-		CHECK( s_NetVFS_Server->_AddMessage( msg ));
 	}
 //-----------------------------------------------------------------------------
 
@@ -501,7 +514,7 @@ namespace AE::VFS
 
 		auto	req = dst->ds->ReadBlock( inMsg.pos, inMsg.size );
 
-		Scheduler().Run<SendReadResultTask>( Tuple{ inMsg.reqId, inMsg.ClientId(), req }, Tuple{req} );
+		_SendReadResultCoro( inMsg.reqId, inMsg.ClientId(), req );
 	}
 
 /*
@@ -598,18 +611,21 @@ namespace AE::VFS
 			return;
 		}
 
-		auto	p = file->ds->WriteBlock( inMsg.pos, req->recv, RVRef(req->dst) )->AsPromise( ETaskQueue::Background );
+		auto	p = file->ds->WriteBlock( inMsg.pos, req->recv, RVRef(req->dst) );
 
-		p.Then(	[req_id = inMsg.reqId, cid = inMsg.ClientId()] (const AsyncWDataSource::Result_t &res)
-				{
-					if ( s_NetVFS_Server )
-						s_NetVFS_Server->_WriteRequestComplete( req_id, res.dataSize, cid );
-				});
-		p.Except( [req_id = inMsg.reqId, cid = inMsg.ClientId()] ()
-				{
-					if ( s_NetVFS_Server )
-						s_NetVFS_Server->_WriteRequestFailed( req_id, cid );
-				});
+		[](auto writeReq, NDSRequestID reqId, EClientLocalID clientId) -> InlineCoro<ETaskQueue::Background>
+		{
+			auto	res = co_await writeReq;
+				
+			if ( s_NetVFS_Server )
+			{
+				if ( not Coro_IsCanceled )
+					s_NetVFS_Server->_WriteRequestComplete( reqId, res.dataSize, clientId );
+				else
+					s_NetVFS_Server->_WriteRequestFailed( reqId, clientId );
+			}
+		}
+		( RVRef(p), inMsg.reqId, inMsg.ClientId() );
 	}
 
 /*

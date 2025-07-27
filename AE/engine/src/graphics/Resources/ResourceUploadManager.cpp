@@ -7,7 +7,7 @@ namespace AE::Graphics
 	using namespace AE::AssetPacker;
 
 namespace {
-#	include "Packer/ImagePacker.cpp.h"
+#	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
 }
 
 /*
@@ -51,10 +51,10 @@ namespace {
 	Resolve
 =================================================
 */
-	bool  ResourceUploadManager::Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE___
+	bool  ResourceUploadManager::Resolve (AnyTypeCRef dep, Task &task, Bool defaultIsStrongDep) __NE___
 	{
 		// only 'Background' task should depends on UploadTask
-		ASSERT( task->QueueType() == ETaskQueue::Background );
+		ASSERT( task.QueueType() == ETaskQueue::Background );
 
 		if_likely( auto* res_pp = dep.GetIf< UploadResult >() )
 		{
@@ -63,7 +63,7 @@ namespace {
 
 			auto*	res = (*res_pp).get();	// non-null
 
-			return res->_AddOnCompleteDependency( RVRef(task), INOUT bitIndex, True{"strong"} );
+			return res->_AddOnCompleteDependency( task, defaultIsStrongDep );
 		}
 
 		if_likely( auto* weak_res_pp = dep.GetIf< WeakUploadResult >() )
@@ -73,7 +73,7 @@ namespace {
 
 			auto*	res = weak_res_pp->_task.get();	// non-null
 
-			Unused( res->_AddOnCompleteDependency( RVRef(task), INOUT bitIndex, False{"weak"} ));
+			Unused( res->_AddOnCompleteDependency( task, False{"weak"} ));
 			return true;	// always return 'true' because it is weak dependency
 		}
 
@@ -312,7 +312,7 @@ namespace {
 
 		for (uint i = 0; i < taskCount; ++i)
 		{
-			tasks.push_back( batch.Run< UploadRenderTask >( Tuple{ this, heapType, i==0 }, Tuple{deps} ));
+			tasks.push_back( batch.Run( _UploadRenderTask( GetRC<ResourceUploadManager>(), heapType, i==0 ), Tuple{deps} ));
 		}
 
 		if ( taskCount == 1 )
@@ -320,39 +320,25 @@ namespace {
 		else
 			return Scheduler().WaitAsync( ETaskQueue::PerFrame, Tuple{ArrayView<AsyncTask>{tasks}} );
 	}
-//-----------------------------------------------------------------------------
-
-
-
+	
 /*
 =================================================
-	UploadRenderTask ctor
+	UploadAsync
 =================================================
 */
-	inline ResourceUploadManager::UploadRenderTask::UploadRenderTask
-		(ResourceUploadManager* p, EStagingHeapType heapType, bool isFirst, CommandBatchPtr batch, DebugLabel) __NE___ :
-		RenderTask{ batch, {"UploadRenderTask"} },
-		_self{ p }, _heapType{ heapType }, _isFirst{ isFirst }
-	{}
-
-/*
-=================================================
-	UploadRenderTask::Run
-=================================================
-*/
-	void  ResourceUploadManager::UploadRenderTask::Run () __Th___
+	RenderCoro  ResourceUploadManager::_UploadRenderTask (RC<ResourceUploadManager> self, const EStagingHeapType heapType, const bool isFirst) __NE___
 	{
-		DirectCtx::Transfer		ctx{ *this };
+		DirectCtx::Transfer		ctx{ RenderCoro_Get() };
 
-		if ( _isFirst )
-			_self->_RecordFirstTransitions( ctx );
+		if ( isFirst )
+			self->_RecordFirstTransitions( ctx );
 
-		_self->_Upload( ctx, _heapType );
-		_self = null;
+		self->_Upload( ctx, heapType );
+		self = null;
 
 		ctx.CommitBarriers();
 
-		Execute( ctx );
+		RenderCoro_Execute( ctx );
 	}
 //-----------------------------------------------------------------------------
 
@@ -363,7 +349,7 @@ namespace {
 	_AddOnCompleteDependency
 =================================================
 */
-	bool  ResourceUploadManager::UploadTask::_AddOnCompleteDependency (AsyncTask task, INOUT uint &index, const Bool isStrong) __NE___
+	bool  ResourceUploadManager::UploadTask::_AddOnCompleteDependency (_Coro_::AsyncTaskImpl &task, const Bool isStrong) __NE___
 	{
 		EXLOCK( _depsGuard );
 
@@ -373,11 +359,7 @@ namespace {
 
 		CHECK_ERR( not _deps.IsFull() );	// check for overflow
 
-		TaskDependency	bits;
-		bits.bitIndex	= index++;
-		bits.isStrong	= isStrong;
-
-		_deps.push_back( RVRef(task), bits );
+		_deps.emplace_back( task.GetRC() ).SetExtra( uint{isStrong} );
 		return true;
 	}
 
@@ -404,7 +386,7 @@ namespace {
 
 			case EStatus::Destroyed :
 			case EStatus::_Finished :
-			case EStatus::Cancelled :
+			case EStatus::Canceled :
 			default :
 				return EUploadRes::Failed;
 		}
@@ -641,9 +623,10 @@ namespace {
 			//	weak/strong	& complete	-> complete
 			//	strong		& cancelled	-> cancelled
 			//	weak		& cancelled	-> complete
-			const bool	is_canceled = dep.Get<1>().isStrong and (not complete);
+			const bool	is_strong	= dep.Extra() != 0;
+			const bool	is_canceled = is_strong and (not complete);
 
-			Threading::IAsyncTask::Helper::SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, Bool{is_canceled} );
+			_Coro_::AsyncTaskImpl::TaskDependencyManagerApi::SetDependencyCompletionStatus( *dep, Bool{is_canceled} );
 		}
 		_deps.clear();
 	}

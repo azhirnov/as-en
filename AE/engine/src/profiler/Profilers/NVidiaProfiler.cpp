@@ -6,7 +6,7 @@
 */
 
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
-# include "profiler/Profiler.pch.h"
+# include "profiler/Common.h"
 # include "profiler/Profilers/NVidiaProfiler.h"
 
 namespace AE::Profiler
@@ -85,7 +85,7 @@ namespace AE::Profiler
 
 #elif defined(AE_ENABLE_NVML)
 # include "nvml.h"
-# include "profiler/Profiler.pch.h"
+# include "profiler/Common.h"
 # include "profiler/Profilers/NVidiaProfiler.h"
 
 namespace AE::Profiler

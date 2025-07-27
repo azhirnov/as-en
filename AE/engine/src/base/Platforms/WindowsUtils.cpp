@@ -119,7 +119,7 @@ namespace AE::Base
 			else
 				str << "code:" << ToString<10>( err );
 
-			AE_PRIVATE_LOGX( level, scope, str, loc.file, loc.line );
+			AE_PRIVATE_LOGX( level, scope, str, loc );
 		}
 		CATCH_ALL()
 	  #else

@@ -15,7 +15,7 @@ namespace AE::Graphics
 	GetBuildSizes
 =================================================
 */
-	RTASBuildSizes  VRTPartitionedScene::GetBuildSizes (const VResourceManager &resMngr, const RTPartitionedSceneInfo &desc) __NE___
+	RTASBuildSizes  VRTPartitionedScene::GetBuildSizes (const ResourceManager &resMngr, const RTPartitionedSceneInfo &desc) __NE___
 	{
 		GRES_CHECK( IsSupported( resMngr, desc ));
 
@@ -39,7 +39,7 @@ namespace AE::Graphics
 	IsSupported
 =================================================
 */
-	bool  VRTPartitionedScene::IsSupported (const VResourceManager &, const RTPartitionedSceneInfo &) __NE___
+	bool  VRTPartitionedScene::IsSupported (const ResourceManager &, const RTPartitionedSceneInfo &) __NE___
 	{
 		// TODO
 		return true;
@@ -51,7 +51,7 @@ namespace AE::Graphics
 =================================================
 */
 namespace {
-	ND_ static bool  ConvertBufferOrAddress (const VResourceManager &resMngr, const RTPartitionedSceneBuild::BufferOrAddress &un,
+	ND_ static bool  ConvertBufferOrAddress (const ResourceManager &resMngr, const RTPartitionedSceneBuild::BufferOrAddress &un,
 											 OUT VkDeviceAddress &result, EBufferUsage reqUsage) __NE___
 	{
 		return Visit( un,
@@ -88,7 +88,7 @@ namespace {
 	_Convert
 =================================================
 */
-	bool  VRTPartitionedScene::_Convert (const VResourceManager &resMngr, const RTPartitionedSceneInfo &desc,
+	bool  VRTPartitionedScene::_Convert (const ResourceManager &resMngr, const RTPartitionedSceneInfo &desc,
 										 OUT VkPartitionedAccelerationStructureInstancesInputNV &inputInfo) __NE___
 	{
 		const auto&	props = resMngr.GetDevice().GetDeviceProperties();
@@ -113,7 +113,7 @@ namespace {
 	ConvertBuildInfo
 =================================================
 */
-	bool  VRTPartitionedScene::ConvertBuildInfo (const VResourceManager &resMngr, const RTPartitionedSceneBuild &build,
+	bool  VRTPartitionedScene::ConvertBuildInfo (const ResourceManager &resMngr, const RTPartitionedSceneBuild &build,
 												 OUT VkBuildPartitionedAccelerationStructureInfoNV &buildInfo) __NE___
 	{
 		const auto&	props = resMngr.GetDevice().GetDeviceProperties();

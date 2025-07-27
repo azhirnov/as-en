@@ -228,6 +228,34 @@ namespace
 				++i;
 			}
 			TEST_Eq( i, 0 );
+		}{
+			enum class EShader : uint
+			{
+				Vs, FS, GS
+			};
+			enum class EShaderStages : uint
+			{
+				VS = 1 << 0,
+				FS = 1 << 1,
+				GS = 1 << 2,
+			};
+
+			uint	i = 0;
+			for (EShader e : BitIndexIterate<EShader>( EShaderStages(1 | 2 | 4) ))
+			{
+				TEST( e == EShader(i) );
+				++i;
+			}
+		}{
+			Bitfield<uint>	bits;
+			uint			i		= 0;
+			
+			for (uint idx : BitIndexIterate(bits))
+			{
+				Unused( idx );
+				++i;
+			}
+			TEST_Eq( i, 0 );
 		}
 	}
 }

@@ -203,19 +203,23 @@ namespace
 			TEST( req );
 
 			bool	ok   = false;
-			auto	task = AsyncTask{req->AsPromise().Then(
-							[&a1_data, &ok] (const AsyncRDataSource::Result_t &res)
-							{
-								TEST( res.pos == 0_b );
-								TEST( res.dataSize == ArraySizeOf(a1_data) );
-								TEST( res.AsArray<ubyte>() == a1_data );
-								ok = true;
-							})};
+			auto	task = AsyncTask{Scheduler().Run(
+								ETaskQueue::Background,
+								[] (OUT bool &ok, const auto &a1Data, auto request) -> AsyncCoro
+								{
+									auto	res = co_await request;
+									TEST( res.pos == 0_b );
+									TEST( res.dataSize == ArraySizeOf(a1Data) );
+									TEST( res.template AsArray<ubyte>() == a1Data );
+									ok = true;
+									co_return;
+								}( OUT ok, a1_data, req ))};
 
 			TEST( Scheduler().Wait( {task}, c_MaxTimeout ));
 
 			TEST( req->IsCompleted() );
 			TEST( ok );
+			AE_LOGI( "... OK" );
 		}
 
 		AE_LOGI( "write to server" );
@@ -227,19 +231,23 @@ namespace
 			TEST( req );
 
 			bool	ok   = false;
-			auto	task = AsyncTask{req->AsPromise().Then(
-							[&a2_data, &ok] (const AsyncWDataSource::Result_t &res)
-							{
-								TEST( res.pos == 0_b );
-								TEST( res.dataSize == ArraySizeOf(a2_data) );
-								TEST( res.data == null );
-								ok = true;
-							})};
+			auto	task = AsyncTask{Scheduler().Run(
+								ETaskQueue::Background,
+								[] (OUT bool &ok, const auto &a2Data, auto request) -> AsyncCoro
+								{
+									auto	res = co_await request;
+									TEST( res.pos == 0_b );
+									TEST( res.dataSize == ArraySizeOf(a2Data) );
+									TEST( res.data == null );
+									ok = true;
+									co_return;
+								}( OUT ok, a2_data, req ))};
 
 			TEST( Scheduler().Wait( {task}, c_MaxTimeout ));
 
 			TEST( req->IsCompleted() );
 			TEST( ok );
+			AE_LOGI( "... OK" );
 		}{
 			// need some time to process close file request
 			ThreadUtils::MilliSleep( milliseconds{1000} );

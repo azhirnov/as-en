@@ -3,10 +3,10 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Commands/VDrawCommandBatch.h"
 # include "graphics_rhi/Vulkan/VRenderTaskScheduler.h"
+# include "graphics_rhi/Private/DrawCommandBatch.cpp.h"
 
 namespace AE::Graphics
 {
-#	include "graphics_rhi/Private/DrawCommandBatch.cpp.h"
 
 /*
 =================================================
@@ -15,7 +15,7 @@ namespace AE::Graphics
 	same as 'EndAllSecondary()' for Metal
 =================================================
 */
-	bool  DRAWCMDBATCH::GetCmdBuffers (OUT uint &count, INOUT StaticArray< VkCommandBuffer, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___
+	bool  DrawCommandBatch::GetCmdBuffers (OUT uint &count, INOUT StaticArray< VkCommandBuffer, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___
 	{
 		EStatus	old_status = _status.Set( EStatus::Submitted );
 		CHECK_ERR( AnyEqual( old_status, EStatus::Recording, EStatus::Submitted, EStatus::Pending ));

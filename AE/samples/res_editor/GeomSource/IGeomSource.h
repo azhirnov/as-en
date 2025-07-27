@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "res_editor/Resources/IResource.h"
-#include "res_editor/Passes/IPass.h"
-#include "res_editor/Dynamic/DynamicDimension.h"
+#include "Resources/IResource.h"
+#include "Passes/IPass.h"
+#include "Dynamic/DynamicDimension.h"
 
 namespace AE::ResEditor
 {

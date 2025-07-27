@@ -40,7 +40,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VDirectASBuildCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)			__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::ASBuild } {}
+		_VDirectASBuildCtx (RenderCoroRef task, VCommandBuffer cmdbuf, DebugLabel dbg)				__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::ASBuild } {}
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst)								__Th___;
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)				__Th___;
@@ -90,7 +90,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		_VIndirectASBuildCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)	__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::ASBuild } {}
+		_VIndirectASBuildCtx (RenderCoroRef task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)		__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::ASBuild } {}
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst)								__Th___;
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)				__Th___;
@@ -130,6 +130,7 @@ namespace AE::Graphics::_hidden_
 	// types
 	public:
 		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
+		using RenderCoroRef	= typename CtxImpl::RenderCoroRef;
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumBarriers< _VASBuildContextImpl< CtxImpl >>;
@@ -139,7 +140,7 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___;
+		explicit _VASBuildContextImpl (RenderCoroRef task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___;
 
 		_VASBuildContextImpl ()																						= delete;
 		_VASBuildContextImpl (const _VASBuildContextImpl &)															= delete;
@@ -242,10 +243,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VASBuildContextImpl<C>::_VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+	_VASBuildContextImpl<C>::_VASBuildContextImpl (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
 		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 	}
 
 /*
@@ -357,17 +358,18 @@ namespace AE::Graphics::_hidden_
 
 		RawCtx::_WriteProperty( src_as.Handle(), query );
 
-		return Threading::MakePromise(	[query] () -> Threading::PromiseResult<Bytes>
-										{
-											auto&	query_mngr	= GraphicsScheduler().GetQueryManager();
-											Bytes	size;
-											CHECK_PE( query_mngr.GetRTASProperty( query, OUT &size, Sizeof(size) ));
-											return size;
-										},
-										Tuple{ this->_mngr.GetBatchRC() },
-										"VASBuildContext::ReadProperty",
-										ETaskQueue::PerFrame
-									 );
+		return Scheduler().Run(
+					ETaskQueue::PerFrame,
+					[](auto query) -> Promise<Bytes>
+					{
+						auto&	query_mngr	= GraphicsScheduler().GetQueryManager();
+						Bytes	size;
+						CHECK_CE( query_mngr.GetRTASProperty( query, OUT &size, Sizeof(size) ));
+						co_return size;
+					}( query ),
+					Tuple{ this->_mngr.GetBatchRC() },
+					"VASBuildContext::ReadProperty"
+				);
 	}
 
 /*

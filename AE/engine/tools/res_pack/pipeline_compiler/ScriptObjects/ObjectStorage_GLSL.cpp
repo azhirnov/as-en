@@ -1,12 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Compiler/MetalCompiler.h"
-#include "ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/Compiler/MetalCompiler.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
 #else
-# include "Packer/ShaderTraceDummy.h"
+# include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 #endif
 
 namespace AE::PipelineCompiler

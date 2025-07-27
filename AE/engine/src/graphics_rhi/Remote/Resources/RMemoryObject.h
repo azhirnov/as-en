@@ -29,7 +29,7 @@ namespace AE::Graphics
 		RMemoryObject ()									__NE___	{}
 		~RMemoryObject ()									__NE___	{}
 
-			void  Destroy (RResourceManager &)				__NE___	{}
+			void  Destroy (ResourceManager &)				__NE___	{}
 
 	//	ND_ bool  GetMemoryInfo (OUT RemoteMemoryObjInfo &)	C_NE___	{ return false; }
 

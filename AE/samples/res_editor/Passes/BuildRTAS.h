@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "res_editor/Passes/IPass.h"
-#include "res_editor/Resources/RTScene.h"
+#include "Passes/IPass.h"
+#include "Resources/RTScene.h"
 
 namespace AE::ResEditor
 {

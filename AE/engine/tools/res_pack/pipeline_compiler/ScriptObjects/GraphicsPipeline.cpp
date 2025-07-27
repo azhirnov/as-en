@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/GraphicsPipeline.h"
-#include "ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/GraphicsPipeline.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
 
 namespace AE::PipelineCompiler
 {

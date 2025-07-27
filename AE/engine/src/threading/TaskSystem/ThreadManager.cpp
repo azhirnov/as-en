@@ -59,7 +59,6 @@ namespace
 */
 	bool  WorkerThread::Attach (const uint uid, const ECpuCoreId coreId) __NE___
 	{
-	  #ifndef AE_DISABLE_THREADS
 		_looping.store( 1 );
 
 		_thread = StdThread{ [this, uid, coreId] ()
@@ -88,7 +87,7 @@ namespace
 				if_likely( processed )
 					p = 0;
 				else
-					scheduler.SuspendThread( _cfg.threads, _looping, p++ );
+					scheduler.SuspendThread( p++ );
 
 				_UpdateProfilingInfo();
 			}
@@ -96,10 +95,6 @@ namespace
 			// TODO: objc: print objects in autorelease pool
 		}};
 		return true;
-
-	  #else
-		return false;
-	  #endif
 	}
 
 /*
@@ -141,16 +136,10 @@ namespace
 */
 	void  WorkerThread::Detach () __NE___
 	{
-	#ifndef AE_DISABLE_THREADS
-
 		if ( _looping.exchange( 0 ))
 		{
-			Scheduler().WakeupAndDetach( _looping );
-
 			_thread.join();
 		}
-
-	#endif
 	}
 //-----------------------------------------------------------------------------
 

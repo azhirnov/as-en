@@ -20,4 +20,4 @@ namespace AE::ShaderTypes
 
 } // AE::ShaderTypes
 
-#include "res_editor/_ui_data/cpp/types.h"
+#include "_ui_data/cpp/types.h"

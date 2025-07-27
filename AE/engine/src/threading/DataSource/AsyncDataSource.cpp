@@ -2,15 +2,16 @@
 
 #include "threading/DataSource/AsyncDataSource.h"
 
-namespace AE::Threading
+namespace AE::_Coro_
 {
+	constinit StaticRC<IAsyncDataSourceRequest>  IAsyncDataSourceRequest::CanceledRequest::s_canceled { _ConstInitStaticRC(0), EStatus::Canceled };
 
 /*
 =================================================
 	_AddOnCompleteDependency
 =================================================
 */
-	bool  _hidden_::IAsyncDataSourceRequest::_AddOnCompleteDependency (AsyncTask task, INOUT uint &index, const Bool isStrong) __NE___
+	bool  IAsyncDataSourceRequest::_AddOnCompleteDependency (AsyncTaskImpl &task, const Bool isStrong) __NE___
 	{
 		EXLOCK( _depsGuard );
 
@@ -20,11 +21,9 @@ namespace AE::Threading
 
 		CHECK_ERR( not _deps.IsFull() );	// check for overflow
 
-		TaskDependency	bits;
-		bits.bitIndex	= index++;
-		bits.isStrong	= isStrong;
+		AsyncTaskImpl::TaskDependencyManagerApi::IncWaitCounter( task );
 
-		_deps.push_back( RVRef(task), bits );
+		_deps.emplace_back( task.GetRC() ).SetExtra( uint{isStrong} );
 		return true;
 	}
 
@@ -36,7 +35,7 @@ namespace AE::Threading
 	'complete' - indicates that request is successfully complete or canceled/failed.
 =================================================
 */
-	void  _hidden_::IAsyncDataSourceRequest::_SetDependencyCompleteStatus (const bool complete) __NE___
+	void  IAsyncDataSourceRequest::_SetDependencyCompleteStatus (const bool complete) __NE___
 	{
 		EXLOCK( _depsGuard );
 		for (auto dep : _deps)
@@ -44,22 +43,28 @@ namespace AE::Threading
 			//	weak/strong	& complete	-> complete
 			//	strong		& cancelled	-> cancelled
 			//	weak		& cancelled	-> complete
-			const bool	is_canceled = dep.Get<1>().isStrong and (not complete);
+			const bool	is_strong	= dep.Extra() != 0;
+			const bool	is_canceled = is_strong and (not complete);
 
-			IAsyncTask::Helper::SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, Bool{is_canceled} );
+			AsyncTaskImpl::TaskDependencyManagerApi::SetDependencyCompletionStatus( *dep, Bool{is_canceled} );
 		}
 		_deps.clear();
 	}
 
+} // AE::_Coro_
+
+
+namespace AE::Threading
+{
 /*
 =================================================
 	Resolve
 =================================================
 */
-	bool  AsyncDSRequestDependencyManager::Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE___
+	bool  AsyncDSRequestDependencyManager::Resolve (AnyTypeCRef dep, Task &task, Bool defaultIsStrongDep) __NE___
 	{
 		// only 'Background' task should depends on AsyncDSRequest
-		ASSERT( task->QueueType() == ETaskQueue::Background );
+		ASSERT( AnyEqual( task.QueueType(), ETaskQueue::Background, ETaskQueue::Unknown ));
 
 		if_likely( auto* request_pp = dep.GetIf< AsyncDSRequest >() )
 		{
@@ -70,7 +75,7 @@ namespace AE::Threading
 
 			// 'true'	- dependency added or successfully complete.
 			// 'false'	- dependency is cancelled or on an error.
-			return request->_AddOnCompleteDependency( RVRef(task), INOUT bitIndex, True{"strong"} );
+			return request->_AddOnCompleteDependency( task, defaultIsStrongDep );
 		}
 
 		if_likely( auto* weak_req_pp = dep.GetIf< WeakAsyncDSRequest >() )
@@ -80,7 +85,7 @@ namespace AE::Threading
 
 			auto*	request = weak_req_pp->_task.get();	// non-null
 
-			Unused( request->_AddOnCompleteDependency( RVRef(task), INOUT bitIndex, False{"weak"} ));
+			Unused( request->_AddOnCompleteDependency( task, False{"weak"} ));
 			return true;	// always return 'true' because it is weak dependency
 		}
 

@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "res_editor/GeomSource/IGeomSource.h"
-#include "res_editor/Dynamic/DynamicScalar.h"
-#include "res_editor/Dynamic/DynamicVec.h"
+#include "GeomSource/IGeomSource.h"
+#include "Dynamic/DynamicScalar.h"
+#include "Dynamic/DynamicVec.h"
 
 namespace AE::ResEditor
 {

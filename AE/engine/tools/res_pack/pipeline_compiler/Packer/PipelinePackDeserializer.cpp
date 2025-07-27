@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "PipelinePack.h"
+#include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
 #include "graphics_rhi/Private/EnumUtils.h"
 
 #ifdef AE_TEST_PIPELINE_COMPILER
@@ -10,7 +10,7 @@
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
 #else
-# include "Packer/ShaderTraceDummy.h"
+# include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 #endif
 
 namespace AE::PipelineCompiler
@@ -1289,7 +1289,7 @@ namespace {
 	ND_ inline String  TopologyBitsToString (const SerializableGraphicsPipeline::TopologyBits_t topology)
 	{
 		String	str;
-		for (auto value : BitIndexIterate<EPrimitive>( topology.AsBits() ))
+		for (EPrimitive value : BitIndexIterate( topology ))
 		{
 			if ( not str.empty() )
 				str << " | ";

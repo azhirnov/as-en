@@ -61,12 +61,8 @@ namespace AE::RG::_hidden_
 
 	// render task api //
 
-		template <typename TaskType, typename ...Ctor>
-		ND_ RenderTaskBuilder	Task (Tuple<Ctor...>&&	ctor,
-									  DebugLabel		dbg = Default)	C_NE___;
-
-		ND_ RenderTaskBuilder	Task (RenderTaskCoro	coro,
-									  DebugLabel		dbg	= Default)	C_NE___;
+		ND_ RenderTaskBuilder	Task (RenderCoro	coro,
+									  DebugLabel	dbg	= Default)		C_NE___;
 
 		template <typename ...Deps>
 		AsyncTask  SubmitAsTask (const Tuple<Deps...>&	deps = Default)	__NE___;
@@ -79,6 +75,7 @@ namespace AE::RG::_hidden_
 	//
 	class RGCommandBatchPtr::RGBatchData
 	{
+		// TODO
 		friend class  RenderGraph;
 		friend class  RGCommandBatchPtr;
 		friend struct RGCommandBatchPtr::RenderTaskBuilder;
@@ -197,7 +194,7 @@ namespace AE::RG::_hidden_
 	// variables
 	private:
 		CommandBatch &		_cmdBatch;
-		RC<RenderTask>		_rtask;
+		RC<RenderTaskImpl>	_rtask;
 		bool				_last			= false;
 
 		AccumBarriers_t		_initialBarriers;
@@ -206,7 +203,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	private:
-		RenderTaskBuilder (CommandBatch &batch, RC<RenderTask> task)					__NE___;
+		RenderTaskBuilder (CommandBatch &batch, RC<RenderTaskImpl> task)				__NE___;
 
 			void  _UseResource (ResourceKey key, EResourceState, EResourceState)		__NE___;
 			void  _BeforeRun ()															__NE___;
@@ -252,7 +249,8 @@ namespace AE::RG::_hidden_
 		ND_ RenderTaskBuilder &&	SubmitBatch ()																rvNE___	{ _last = true;  return RVRef(*this); }
 
 		template <typename ...Deps>
-		ND_ AsyncTask				Run (const Tuple<Deps...>& deps = Default)									rvNE___;
+		ND_ AsyncTask				Run (const Tuple<Deps...>&	deps = Default,
+										 const SourceLoc &		loc  = SourceLoc::current())					rvNE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -395,37 +393,17 @@ namespace AE::RG::_hidden_
 	Task
 =================================================
 */
-	template <typename TaskType, typename ...Ctor>
-	RGCommandBatchPtr::RenderTaskBuilder  RGCommandBatchPtr::Task (Tuple<Ctor...>&& ctorArgs, DebugLabel dbg) C_NE___
+	inline RGCommandBatchPtr::RenderTaskBuilder  RGCommandBatchPtr::Task (RenderCoro coro, DebugLabel dbg) C_NE___
 	{
 		GFX_DBG_ONLY(
 			if ( dbg.color == DebugLabel::ColorTable::Undefined )
 				dbg.color = AsBatch()->DbgColor();
 		)
 
-		auto	task = ctorArgs.Apply([this, dbg] (auto&& ...args) __NE___
-									  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., AsBatchRC(), dbg ); });
+		if_unlikely( not _Coro_::RenderTaskImpl::BatchApi::Init( *coro.UnsafeCast(), AsBatchRC(), Default, dbg ))
+			coro = null;
 
-		return RenderTaskBuilder{ *AsBatch(), RVRef(task) };
-	}
-
-/*
-=================================================
-	Task
-=================================================
-*/
-	inline RGCommandBatchPtr::RenderTaskBuilder  RGCommandBatchPtr::Task (RenderTaskCoro coro, DebugLabel dbg) C_NE___
-	{
-		GFX_DBG_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable::Undefined )
-				dbg.color = AsBatch()->DbgColor();
-		)
-
-		RC<RenderTask>	task;
-		if_likely( coro and coro.Promise()._Init( AsBatchRC(), Default, dbg ))
-			task = RC<RenderTask>{coro};
-
-		return RenderTaskBuilder{ *AsBatch(), RVRef(task) };
+		return RenderTaskBuilder{ *AsBatch(), RVRef(coro).CastRC() };
 	}
 
 /*
@@ -455,7 +433,7 @@ namespace AE::RG::_hidden_
 	constructor
 =================================================
 */
-	inline RGCommandBatchPtr::RenderTaskBuilder::RenderTaskBuilder (CommandBatch &batch, RC<RenderTask> task) __NE___ :
+	inline RGCommandBatchPtr::RenderTaskBuilder::RenderTaskBuilder (CommandBatch &batch, RC<RenderTaskImpl> task) __NE___ :
 		_cmdBatch{ batch },
 		_rtask{ RVRef(task) },
 		_initialBarriers{ batch.DeferredBarriers() },
@@ -468,10 +446,10 @@ namespace AE::RG::_hidden_
 =================================================
 */
 	template <typename ...Deps>
-	AsyncTask  RGCommandBatchPtr::RenderTaskBuilder::Run (const Tuple<Deps...>& deps) rvNE___
+	AsyncTask  RGCommandBatchPtr::RenderTaskBuilder::Run (const Tuple<Deps...>& deps, const SourceLoc &loc) rvNE___
 	{
 		_BeforeRun();
-		return _cmdBatch.RunTask( RVRef(_rtask), deps, _initialBarriers.Get(), _finalBarriers.Get(), Bool{_last} );
+		return _cmdBatch.RunTask( RVRef(_rtask), deps, _initialBarriers.Get(), _finalBarriers.Get(), Bool{_last}, loc );
 	}
 
 /*

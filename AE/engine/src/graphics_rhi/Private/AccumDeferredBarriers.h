@@ -1,21 +1,18 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #if defined(AE_ENABLE_VULKAN)
-#	define COMMANDBATCH					VCommandBatch
 #	define BARRIERMANAGER				VBarrierManager
 #	define ACCUMDEFERREDBARRIERS		VAccumDeferredBarriers
 #	define ACCUMDEFERREDBARRIERSFORCTX	VAccumDeferredBarriersForCtx
 #	define ACCUMBARRIERSFORTASK			VAccumBarriersForTask
 
 #elif defined(AE_ENABLE_METAL)
-#	define COMMANDBATCH					MCommandBatch
 #	define BARRIERMANAGER				MBarrierManager
 #	define ACCUMDEFERREDBARRIERS		MAccumDeferredBarriers
 #	define ACCUMDEFERREDBARRIERSFORCTX	MAccumDeferredBarriersForCtx
 #	define ACCUMBARRIERSFORTASK			MAccumBarriersForTask
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#	define COMMANDBATCH					RCommandBatch
 #	define BARRIERMANAGER				RBarrierManager
 #	define ACCUMDEFERREDBARRIERS		RAccumDeferredBarriers
 #	define ACCUMDEFERREDBARRIERSFORCTX	RAccumDeferredBarriersForCtx
@@ -48,7 +45,7 @@ namespace _hidden_
 
 	// methods
 	protected:
-		ACCUMDEFERREDBARRIERS (COMMANDBATCH &batch)		__NE___ : _mngr{batch} {}
+		ACCUMDEFERREDBARRIERS (CommandBatch &batch)		__NE___ : _mngr{batch} {}
 
 	public:
 		ACCUMDEFERREDBARRIERS ()								= delete;
@@ -108,7 +105,7 @@ namespace _hidden_
 
 	// methods
 	private:
-		ACCUMDEFERREDBARRIERSFORCTX (COMMANDBATCH &batch, Ctx &ctx) __NE___ : ACCUMDEFERREDBARRIERS{batch}, _ctx{ctx} {}
+		ACCUMDEFERREDBARRIERSFORCTX (CommandBatch &batch, Ctx &ctx) __NE___ : ACCUMDEFERREDBARRIERS{batch}, _ctx{ctx} {}
 	public:
 		void  Commit () __Th___
 		{
@@ -130,7 +127,7 @@ namespace _hidden_
 	{
 	// methods
 	public:
-		explicit ACCUMBARRIERSFORTASK (COMMANDBATCH &batch)	__NE___ : ACCUMDEFERREDBARRIERS{batch} {}
+		explicit ACCUMBARRIERSFORTASK (CommandBatch &batch)	__NE___ : ACCUMDEFERREDBARRIERS{batch} {}
 
 		ACCUMBARRIERSFORTASK (ACCUMBARRIERSFORTASK &&)		__NE___	= default;
 
@@ -145,7 +142,7 @@ namespace _hidden_
 	DeferredBarriers
 =================================================
 */
-	inline _hidden_::ACCUMBARRIERSFORTASK  COMMANDBATCH::DeferredBarriers () __NE___
+	inline _hidden_::ACCUMBARRIERSFORTASK  CommandBatch::DeferredBarriers () __NE___
 	{
 		ASSERT( IsRecording() );
 		return _hidden_::ACCUMBARRIERSFORTASK{ *this };

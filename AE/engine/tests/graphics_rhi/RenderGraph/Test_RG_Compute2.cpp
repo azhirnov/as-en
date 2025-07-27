@@ -66,76 +66,58 @@ namespace
 
 
 	template <typename Ctx>
-	class C2_ComputeTask final : public RenderTask
+	static RenderCoro  C2_ComputeTask (C2_TestData& t)
 	{
-	public:
-		C2_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		C2_ComputeTask (C2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		Ctx		ctx{ RenderCoro_Get() };
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+		ctx.BindPipeline( t.ppln0 );
+		ctx.BindDescriptorSet( t.ds_index, t.ds0 );
+		ctx.Dispatch({ 2, 2, 1 });
 
-			Ctx		ctx{ *this };
+		ctx.BindPipeline( t.ppln1 );
+		ctx.BindDescriptorSet( t.ds_index, t.ds1 );
+		ctx.Dispatch({ 4, 4, 1 });
 
-			ctx.BindPipeline( t.ppln0 );
-			ctx.BindDescriptorSet( t.ds_index, t.ds0 );
-			ctx.Dispatch({ 2, 2, 1 });
+		ctx.BindPipeline( t.ppln2 );
+		ctx.BindDescriptorSet( t.ds_index, t.ds2 );
+		ctx.Dispatch({ 1, 1, 1 });
 
-			ctx.BindPipeline( t.ppln1 );
-			ctx.BindDescriptorSet( t.ds_index, t.ds1 );
-			ctx.Dispatch({ 4, 4, 1 });
+		RenderCoro_Execute( ctx );
+	}
 
-			ctx.BindPipeline( t.ppln2 );
-			ctx.BindDescriptorSet( t.ds_index, t.ds2 );
-			ctx.Dispatch({ 1, 1, 1 });
-
-			Execute( ctx );
-		}
-	};
 
 	template <typename Ctx>
-	class C2_CopyTask final : public RenderTask
+	static RenderCoro  C2_CopyTask (C2_TestData& t)
 	{
-	public:
-		C2_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		C2_CopyTask (C2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
-
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			Ctx		ctx{ *this };
-
-			t.result0 = AsyncTask{ ctx.ReadbackImage( t.img0, Default )
-						.Then( [p = &t] (const ImageMemView &view)
-								{
-									p->isOK_0 = C2_CheckImageData( view, 8 );
-								})};
-			t.result1 = AsyncTask{ ctx.ReadbackImage( t.img1, Default )
-						.Then( [p = &t] (const ImageMemView &view)
-								{
-									p->isOK_1 = C2_CheckImageData( view, 4 );
-								})};
-			t.result2 = AsyncTask{ ctx.ReadbackImage( t.img2, Default )
-						.Then( [p = &t] (const ImageMemView &view)
-								{
-									p->isOK_2 = C2_CheckImageData( view, 16 );
-								})};
-
-			Execute( ctx );
-		}
-	};
+		Ctx		ctx{ RenderCoro_Get() };
+		
+		t.result0 = ctx.ReadbackImage( t.img0, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<C2_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK_0 = C2_CheckImageData( view, 8 );
+							});
+		t.result1 = ctx.ReadbackImage( t.img1, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<C2_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK_1 = C2_CheckImageData( view, 4 );
+							});
+		t.result2 = ctx.ReadbackImage( t.img2, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<C2_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK_2 = C2_CheckImageData( view, 16 );
+							});
+		
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CompCtx, typename CopyCtx>
@@ -216,10 +198,10 @@ namespace
 									.Begin();
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch.Task< C2_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, {"Compute task"} )
+		AsyncTask	task1	= batch.Task( C2_ComputeTask<CompCtx>(t), {"Compute task"} )
 									.Run();
 
-		AsyncTask	task2	= batch.Task< C2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
+		AsyncTask	task2	= batch.Task( C2_CopyTask<CopyCtx>(t), {"Readback task"} )
 									.UseResources( List<ImageID>{ t.img0, t.img1, t.img2 }, EResourceState::CopySrc )
 									.SubmitBatch()
 									.Run( Tuple{task1} );
@@ -228,14 +210,14 @@ namespace
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( List{ t.result0, t.result1, t.result2 }, c_MaxTimeout ));
-		CHECK_ERR( t.result0->Status() == EStatus::Completed );
-		CHECK_ERR( t.result1->Status() == EStatus::Completed );
-		CHECK_ERR( t.result2->Status() == EStatus::Completed );
+		CHECK_ERR( t.result0->Status() == ETaskStatus::Completed );
+		CHECK_ERR( t.result1->Status() == ETaskStatus::Completed );
+		CHECK_ERR( t.result2->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK_0 );
 		CHECK_ERR( t.isOK_1 );

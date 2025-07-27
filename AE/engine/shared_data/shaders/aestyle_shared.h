@@ -119,10 +119,10 @@ struct _Vec <T,2> : _VecBase<T,2>
 	template <typename T2> explicit _Vec (const _Vec<T2,2> &);
 	//_Vec&  operator = (const _Vec<T,2> &);
 
-	template <typename B=T, std::enable_if_t< (std::is_same_v<B, bool>), bool > = true>
+	template <typename B=T> requires(std::is_same_v<B, bool>)
 	ND_ _Vec  operator ! () const;
 
-	template <typename I=T, std::enable_if_t< (std::is_integral_v<I>), bool > = true>
+	template <typename I=T> requires(std::is_integral_v<I>)
 	ND_ _Vec  operator % (const _Vec &b) const;
 };
 
@@ -140,11 +140,11 @@ struct _Vec <T,3> : _VecBase<T,3>
 	_Vec (const T x, const _Vec<T,2> &yz);
 	template <typename T2> explicit _Vec (const _Vec<T2,3> &);
 	//_Vec&  operator = (const _Vec<T,3> &);
-
-	template <typename B=T, std::enable_if_t< (std::is_same_v<B, bool>), bool > = true>
+	
+	template <typename B=T> requires(std::is_same_v<B, bool>)
 	ND_ _Vec  operator ! () const;
-
-	template <typename I=T, std::enable_if_t< (std::is_integral_v<I>), bool > = true>
+	
+	template <typename I=T> requires(std::is_integral_v<I>)
 	ND_ _Vec  operator % (const _Vec &b) const;
 };
 
@@ -165,11 +165,11 @@ struct _Vec <T,4> : _VecBase<T,4>
 	_Vec (const T x, const _Vec<T,3> &yzw);
 	template <typename T2> explicit _Vec (const _Vec<T2,4> &);
 	//_Vec&  operator = (const _Vec<T,4>);
-
-	template <typename B=T, std::enable_if_t< (std::is_same_v<B, bool>), bool > = true>
+	
+	template <typename B=T> requires(std::is_same_v<B, bool>)
 	ND_ _Vec  operator ! () const;
-
-	template <typename I=T, std::enable_if_t< (std::is_integral_v<I>), bool > = true>
+	
+	template <typename I=T> requires(std::is_integral_v<I>)
 	ND_ _Vec  operator % (const _Vec &b) const;
 };
 

@@ -412,6 +412,7 @@ namespace
 		{
 			case EImageAspect::Unknown :
 			case EImageAspect::Metadata :
+			case EImageAspect::All :
 			case EImageAspect::_Last :
 			case EImageAspect::_PlaneMask :
 			#define BIND( _name_ )			case EImageAspect::_name_ : binder.AddValue( AE_TOSTRING(_name_), EImageAspect::_name_ );

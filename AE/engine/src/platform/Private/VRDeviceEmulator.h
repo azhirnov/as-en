@@ -16,7 +16,8 @@
 
 namespace AE::App
 {
-	using AE::Threading::RWSpinLock;
+	using Threading::RWSpinLock;
+	using Graphics::RenderCoro;
 
 
 	//
@@ -33,10 +34,6 @@ namespace AE::App
 		//
 		class VRRenderSurface final : public VRSurface
 		{
-		// types
-		private:
-			class BlitImageTask;
-
 		// variables
 		private:
 			VRDeviceEmulator &		_vrDev;
@@ -61,6 +58,8 @@ namespace AE::App
 
 		private:
 			ND_ bool			_GetDstTargets (OUT RenderTargets_t &targets)					C_NE___;
+
+			static RenderCoro	_BlitImageTask (VRRenderSurface &)								__NE___;
 		};
 
 

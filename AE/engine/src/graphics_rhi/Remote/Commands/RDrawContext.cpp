@@ -17,11 +17,11 @@ namespace AE::Graphics
 		_mngr{ state }
 	{}
 
-	RDrawContext::RDrawContext (const DrawTask &task) __Th___ :
+	RDrawContext::RDrawContext (DrawCoroRef task) __Th___ :
 		_RBaseContext{
 			_ReuseOrCreateCommandBuffer( Default, DebugLabel{ task.DbgFullName(), task.DbgColor() })
 		},
-		_mngr{ task.GetDrawBatchPtr(), task.GetDrawOrderIndex() }
+		_mngr{ task.DrawBatchPtr(), task.DrawOrderIndex() }
 	{
 		CHECK_THROW( task.IsValid() );
 	}

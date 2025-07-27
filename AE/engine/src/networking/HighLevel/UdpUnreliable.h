@@ -6,7 +6,7 @@
 #pragma once
 
 #include "networking/HighLevel/IChannel.h"
-#include "networking/LowLevel/UdpDbgSocket.h"
+#include "networking/LowLevel/UdpSocket.h"
 
 namespace AE::Networking
 {
@@ -19,12 +19,6 @@ namespace AE::Networking
 	{
 	// types
 	protected:
-		#if 0 //def AE_DEBUG
-		using Socket_t	= UdpDbgSocket;
-		#else
-		using Socket_t	= UdpSocket;
-		#endif
-
 		static constexpr char		_magicByte		= '\x2A';
 		static constexpr Bytes		_maxPacketSize	= NetConfig::UDP_MaxMsgSize;
 
@@ -40,7 +34,7 @@ namespace AE::Networking
 
 	// variables
 	protected:
-		Socket_t				_socket;
+		UdpSocket				_socket;
 		RC<MessageFactory>		_msgFactory;
 
 		QueueAndStorage			_output;

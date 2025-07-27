@@ -182,7 +182,9 @@ namespace
 			case aiTextureType_MAYA_BASE :
 			case aiTextureType_MAYA_SPECULAR :
 			case aiTextureType_MAYA_SPECULAR_COLOR :
-			case aiTextureType_MAYA_SPECULAR_ROUGHNESS :	// TODO
+			case aiTextureType_MAYA_SPECULAR_ROUGHNESS :
+			case aiTextureType_GLTF_METALLIC_ROUGHNESS :
+			case aiTextureType_ANISOTROPY :	// TODO
 
 			case aiTextureType_NONE :
 			case aiTextureType_UNKNOWN :
@@ -254,7 +256,9 @@ namespace
 			case aiTextureType_MAYA_BASE :
 			case aiTextureType_MAYA_SPECULAR :
 			case aiTextureType_MAYA_SPECULAR_COLOR :
-			case aiTextureType_MAYA_SPECULAR_ROUGHNESS :	// TODO
+			case aiTextureType_MAYA_SPECULAR_ROUGHNESS :
+			case aiTextureType_GLTF_METALLIC_ROUGHNESS :
+			case aiTextureType_ANISOTROPY :			// TODO
 
 			case aiTextureType_NONE :
 			case aiTextureType_UNKNOWN :

@@ -26,8 +26,6 @@ namespace AE::UI
 		using DrawQueue_t		= Array< Widget* >;
 		using ActionQueueReader	= App::IInputActions::ActionQueueReader;
 
-		class ProcessInputTask;
-
 
 	// variables
 	private:

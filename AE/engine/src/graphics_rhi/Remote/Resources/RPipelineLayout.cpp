@@ -23,7 +23,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RPipelineLayout::Create (RResourceManager &resMngr, const CreateInfo &ci) __NE___
+	bool  RPipelineLayout::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _plId );
@@ -56,7 +56,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RPipelineLayout::Destroy (RResourceManager &) __NE___
+	void  RPipelineLayout::Destroy (ResourceManager &) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

@@ -24,7 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VBufferView::Create (VResourceManager &resMngr, const BufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
+	bool  VBufferView::Create (ResourceManager &resMngr, const BufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _bufferView == Default );
@@ -63,7 +63,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VBufferView::Create (VResourceManager &resMngr, const VulkanBufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
+	bool  VBufferView::Create (ResourceManager &resMngr, const VulkanBufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _bufferView == Default );
@@ -93,7 +93,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VBufferView::Destroy (VResourceManager &resMngr) __NE___
+	void  VBufferView::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

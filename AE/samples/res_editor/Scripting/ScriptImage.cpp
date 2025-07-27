@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/PipelineCompiler.inl.h"
-#include "res_editor/Scripting/ScriptExe.h"
+#include "Scripting/PipelineCompiler.inl.h"
+#include "Scripting/ScriptExe.h"
 
 namespace AE::ResEditor
 {
@@ -442,6 +442,9 @@ namespace
 
 		ImageViewDesc	temp = result->_viewDesc;
 		temp.Validate( _desc );
+
+		if ( _descDefined )
+			result->_viewDesc = temp;
 
 		result->_imageType	= GetDescriptorImageType( _desc, temp );
 

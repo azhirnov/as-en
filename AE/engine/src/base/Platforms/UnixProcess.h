@@ -25,6 +25,7 @@ namespace AE::Base
 			NoWindow		= 1 << 0,
 			ReadOutput		= 1 << 1,	// optional for sync execution, not compatible with 'NoWindow' flag
 			Unknown			= None,
+			_BITOPS_
 		};
 
 
@@ -63,8 +64,6 @@ namespace AE::Base
 	private:
 		bool  _ExecuteAsync (StringView commandLine, const Path* currentDir, EFlags flags);
 	};
-
-	AE_BIT_OPERATORS( UnixProcess::EFlags );
 
 
 } // AE::Base

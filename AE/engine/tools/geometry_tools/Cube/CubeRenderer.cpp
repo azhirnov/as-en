@@ -2,7 +2,7 @@
 
 #ifdef AE_GEOMTOOLS_HAS_GRAPHICS
 
-#include "geometry_tools/Cube/CubeRenderer.h"
+# include "geometry_tools/Cube/CubeRenderer.h"
 
 namespace AE::GeometryTools
 {

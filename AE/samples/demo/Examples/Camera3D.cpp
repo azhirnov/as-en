@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "demo/Examples/Camera3D.h"
+#include "Examples/Camera3D.h"
 
 namespace AE::Samples::Demo
 {
@@ -10,93 +10,15 @@ namespace AE::Samples::Demo
 	INTERNAL_LINKAGE( constexpr auto&	RTech	= RenderTechs::Scene3D_RTech );
 	INTERNAL_LINKAGE( constexpr auto&	IA		= InputActions::Camera3D );
 
-
-	//
-	// Process Input Task
-	//
-	class Camera3DSample::ProcessInputTask final : public IAsyncTask
-	{
-	public:
-		RC<Camera3DSample>	t;
-		ActionQueueReader	reader;
-
-		ProcessInputTask (Camera3DSample* p, ActionQueueReader reader) __NE___ :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			t{ p }, reader{ RVRef(reader) }
-		{}
-
-		void  Run () __Th_OV
-		{
-			float3	move;
-			float2	rotation;
-			Quat	rot_quat {Zero};
-			float3	sensor3f;
-
-			ActionQueueReader::Header	hdr;
-			for (; reader.ReadHeader( OUT hdr );)
-			{
-				StaticAssert( IA.actionCount == 1 );
-				StaticAssert( IA.Desktop.actionCount == 1 );
-				StaticAssert( IA.Mobile.actionCount == 1 );
-
-				switch ( uint{hdr.name} )
-				{
-					case IA.Camera_Rotate :
-						rotation += reader.DataCopy<float2>( hdr.offset );		break;
-
-					case IA.Desktop.Camera_Move :
-						move += reader.DataCopy<float3>( hdr.offset );			break;
-
-					//case IA.Mobile.Camera_Rotate3D :
-					//	rot_quat = Quat{reader.DataCopy<Quat>( hdr.offset )};	break;
-
-					case IA.Mobile.Camera_Sensor3f :
-						sensor3f = reader.DataCopy<float3>( hdr.offset );		break;
-				}
-			}
-
-			//AE_LOGI( "Sensor3f: "s << ToString(sensor3f) );
-
-			if ( rot_quat.LengthSq() > 0.f )
-				t->camera.SetOrientation( rot_quat );
-			else
-				t->camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
-
-			t->camera.Move3D( move );
-		}
-
-		StringView	DbgName ()	C_NE_OV	{ return "Camera3D::ProcessInput"; }
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Draw Task
-	//
-	class Camera3DSample::DrawTask final : public RenderTask
-	{
-	public:
-		RC<Camera3DSample>	t;
-		IOutputSurface &	surface;
-
-		DrawTask (Camera3DSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ batch, {"Camera3D::Draw"} },
-			t{ p }, surface{ surf }
-		{}
-
-		void  Run () __Th_OV;
-	};
-
 /*
 =================================================
-	DrawTask::Run
+	_DrawTask
 =================================================
 */
-	void  Camera3DSample::DrawTask::Run ()
+	RenderCoro  Camera3DSample::_DrawTask (RC<Camera3DSample> t, IOutputSurface &surface) __NE___
 	{
 		IOutputSurface::RenderTargets_t		targets;
-		CHECK_TE( surface.GetTargets( OUT targets ));
+		CHECK_CE( surface.GetTargets( OUT targets ));
 
 		const uint2		view_size	= targets[0].RegionSize();
 		auto&			res_mngr	= GraphicsScheduler().GetResourceManager();
@@ -108,22 +30,22 @@ namespace AE::Samples::Demo
 			res_mngr.DelayedReleaseResources( t->depthBuf.image, t->depthBuf.view );
 
 			t->depthBuf.image = res_mngr.CreateImage( ImageDesc::CreateDepthAttachment( view_size, EPixelFormat::Depth16 ), "Sample3D depth" );
-			CHECK_TE( t->depthBuf.image );
+			CHECK_CE( t->depthBuf.image );
 
 			t->depthBuf.view = res_mngr.CreateImageView( ImageViewDesc{}, t->depthBuf.image, "Sample3D depth view" );
-			CHECK_TE( t->depthBuf.view );
+			CHECK_CE( t->depthBuf.view );
 
 			t->camera.SetPerspective( 90_deg, float(view_size.x) / view_size.y, 0.1f, 100.0f );
 		}
 
 
-		DirectCtx::Transfer		copy_ctx{ *this };
+		DirectCtx::Transfer		copy_ctx{ RenderCoro_Get() };
 
 		// create cube
 		if_unlikely( not t->cube1.IsCreated() and not t->cube2.IsCreated() )
 		{
-			CHECK_TE( t->cube1.Create( res_mngr, copy_ctx, True{"cubeMap"}, t->gfxAlloc ));
-			CHECK_TE( t->cube2.Create( res_mngr, copy_ctx, t->lod, t->lod, False{"tris"}, True{"cubeMap"}, Default, t->gfxAlloc ));
+			CHECK_CE( t->cube1.Create( res_mngr, copy_ctx, True{"cubeMap"}, t->gfxAlloc ));
+			CHECK_CE( t->cube2.Create( res_mngr, copy_ctx, t->lod, t->lod, False{"tris"}, True{"cubeMap"}, Default, t->gfxAlloc ));
 
 			copy_ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
@@ -144,14 +66,14 @@ namespace AE::Samples::Demo
 				ub.mvp = t->camera.ToModelViewProjMatrix();
 
 			// barrier is not needed because of semaphore
-			CHECK_TE( copy_ctx.UploadBuffer( t->uniformBuf, off, Sizeof(ub), &ub ));
+			CHECK_CE( copy_ctx.UploadBuffer( t->uniformBuf, off, Sizeof(ub), &ub ));
 
 			copy_ctx.AccumBarriers()
 				.BufferBarrier( t->uniformBuf, EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::PreRasterizationShaders );
 		}
 
 
-		DirectCtx::Graphics		gfx_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
+		DirectCtx::Graphics		gfx_ctx{ RenderCoro_Get(), copy_ctx.ReleaseCommandBuffer() };
 
 		// draw
 		for (usize i = 0; i < targets.size(); ++i)
@@ -178,11 +100,8 @@ namespace AE::Samples::Demo
 			gfx_ctx.EndRenderPass( dctx );
 		}
 
-		Execute( gfx_ctx );
+		RenderCoro_Execute( gfx_ctx );
 	}
-//-----------------------------------------------------------------------------
-
-
 
 /*
 =================================================
@@ -235,7 +154,58 @@ namespace AE::Samples::Demo
 */
 	AsyncTask  Camera3DSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE___
 	{
-		return Scheduler().Run< ProcessInputTask >( Tuple{ this, RVRef(reader) }, Tuple{deps} );
+		return Scheduler().Run(
+					ETaskQueue::PerFrame,
+					_ProcessInputTask( GetRC<Camera3DSample>(), RVRef(reader) ),
+					Tuple{deps},
+					"Camera3D::ProcessInput"
+				);
+	}
+	
+/*
+=================================================
+	_ProcessInputTask
+=================================================
+*/
+	AsyncCoro   Camera3DSample::_ProcessInputTask (RC<Camera3DSample> t, ActionQueueReader reader) __NE___
+	{
+		float3	move;
+		float2	rotation;
+		Quat	rot_quat {Zero};
+		float3	sensor3f;
+
+		ActionQueueReader::Header	hdr;
+		for (; reader.ReadHeader( OUT hdr );)
+		{
+			StaticAssert( IA.actionCount == 1 );
+			StaticAssert( IA.Desktop.actionCount == 1 );
+			StaticAssert( IA.Mobile.actionCount == 1 );
+
+			switch ( uint{hdr.name} )
+			{
+				case IA.Camera_Rotate :
+					rotation += reader.DataCopy<float2>( hdr.offset );		break;
+
+				case IA.Desktop.Camera_Move :
+					move += reader.DataCopy<float3>( hdr.offset );			break;
+
+				//case IA.Mobile.Camera_Rotate3D :
+				//	rot_quat = Quat{reader.DataCopy<Quat>( hdr.offset )};	break;
+
+				case IA.Mobile.Camera_Sensor3f :
+					sensor3f = reader.DataCopy<float3>( hdr.offset );		break;
+			}
+		}
+
+		//AE_LOGI( "Sensor3f: "s << ToString(sensor3f) );
+
+		if ( rot_quat.LengthSq() > 0.f )
+			t->camera.SetOrientation( rot_quat );
+		else
+			t->camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
+
+		t->camera.Move3D( move );
+		co_return;
 	}
 
 /*
@@ -262,7 +232,7 @@ namespace AE::Samples::Demo
 		CHECK_ERR( surf_acquire );
 
 		auto	upload	= uploadMngr->UploadAsync( *batch, 1 );
-		auto	draw	= batch->Run< DrawTask >( Tuple{ this, rg.GetSurfaceArg() }, Tuple{surf_acquire} );
+		auto	draw	= batch->Run( _DrawTask( GetRC<Camera3DSample>(), rg.GetSurfaceArg() ), Tuple{surf_acquire} );
 
 		return batch->SubmitAsTask( Tuple{ upload, draw });
 	}

@@ -20,14 +20,14 @@ namespace AE::Graphics
 	GetMemoryInfo
 =================================================
 */
-	bool  RResourceManager::GetMemoryInfo (ImageID id, OUT RemoteMemoryObjInfo &info) C_NE___
+	bool  ResourceManager::GetMemoryInfo (ImageID id, OUT RemoteMemoryObjInfo &info) C_NE___
 	{
 		auto*	image = GetResource( id );
 		CHECK_ERR( image != null );
 		return image->GetMemoryInfo( OUT info );
 	}
 
-	bool  RResourceManager::GetMemoryInfo (BufferID id, OUT RemoteMemoryObjInfo &info) C_NE___
+	bool  ResourceManager::GetMemoryInfo (BufferID id, OUT RemoteMemoryObjInfo &info) C_NE___
 	{
 		auto*	buffer = GetResource( id );
 		CHECK_ERR( buffer != null );
@@ -43,7 +43,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename PplnID>
-	bool  RResourceManager::_CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, const usize count,
+	bool  ResourceManager::_CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, const usize count,
 												   PplnID pplnId, DescriptorSetName::Ref dsName,
 												   DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
 	{
@@ -64,7 +64,7 @@ namespace AE::Graphics
 	CreateDescriptorSets
 =================================================
 */
-	bool  RResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
+	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count,
 												  PipelinePackID packId, DSLayoutName::Ref dslName,
 												  DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
 	{
@@ -82,7 +82,7 @@ namespace AE::Graphics
 	CreateDescriptorSets
 =================================================
 */
-	bool  RResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, const usize count,
+	bool  ResourceManager::CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, const usize count,
 												  DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		Msg::ResMngr_CreateDescriptorSets3				msg;
@@ -126,7 +126,7 @@ namespace AE::Graphics
 	CreateSampler
 =================================================
 */
-	Strong<SamplerID>  RResourceManager::CreateSampler (RmSamplerID id) __NE___
+	Strong<SamplerID>  ResourceManager::CreateSampler (RmSamplerID id) __NE___
 	{
 		return _CreateResource<SamplerID>( "failed when creating sampler", *this, id );
 	}
@@ -136,7 +136,7 @@ namespace AE::Graphics
 	CreateRenderPass
 =================================================
 */
-	Strong<RenderPassID>  RResourceManager::CreateRenderPass (const RRenderPass::CreateInfo &ci) __NE___
+	Strong<RenderPassID>  ResourceManager::CreateRenderPass (const RRenderPass::CreateInfo &ci) __NE___
 	{
 		return _CreateResource<RenderPassID>( "failed when creating render pass", ci );
 	}
@@ -149,7 +149,7 @@ namespace AE::Graphics
 	_ForceReleaseResources
 =================================================
 */
-	bool  RResourceManager::_ForceReleaseResources () __NE___
+	bool  ResourceManager::_ForceReleaseResources () __NE___
 	{
 		Msg::ResMngr_ForceReleaseResources	msg;
 		RC<Msg::DefaultResponse>			res;
@@ -166,7 +166,7 @@ namespace AE::Graphics
 	Create***Allocator
 =================================================
 */
-	GfxMemAllocatorPtr  RResourceManager::CreateLinearGfxMemAllocator (Bytes pageSize) C_NE___
+	GfxMemAllocatorPtr  ResourceManager::CreateLinearGfxMemAllocator (Bytes pageSize) C_NE___
 	{
 		Msg::ResMngr_CreateLinearGfxMemAllocator			msg;
 		RC<Msg::ResMngr_CreateGfxMemAllocator_Response>		res;
@@ -179,7 +179,7 @@ namespace AE::Graphics
 		return MakeRC<RGfxMemAllocator>( res->id, res->minAlign, res->maxSize );
 	}
 
-	GfxMemAllocatorPtr  RResourceManager::CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize) C_NE___
+	GfxMemAllocatorPtr  ResourceManager::CreateBlockGfxMemAllocator (Bytes blockSize, Bytes pageSize) C_NE___
 	{
 		Msg::ResMngr_CreateBlockGfxMemAllocator				msg;
 		RC<Msg::ResMngr_CreateGfxMemAllocator_Response>		res;
@@ -193,7 +193,7 @@ namespace AE::Graphics
 		return MakeRC<RGfxMemAllocator>( res->id, res->minAlign, res->maxSize );
 	}
 
-	GfxMemAllocatorPtr  RResourceManager::CreateUnifiedGfxMemAllocator (Bytes pageSize) C_NE___
+	GfxMemAllocatorPtr  ResourceManager::CreateUnifiedGfxMemAllocator (Bytes pageSize) C_NE___
 	{
 		Msg::ResMngr_CreateUnifiedGfxMemAllocator			msg;
 		RC<Msg::ResMngr_CreateGfxMemAllocator_Response>		res;
@@ -213,7 +213,7 @@ namespace AE::Graphics
 	LoadRenderTech
 =================================================
 */
-	RenderTechPipelinesPtr  RResourceManager::LoadRenderTech (PipelinePackID packId, RenderTechName::Ref name, const RenderTechDesc &desc, PipelineCacheID cacheId) __NE___
+	RenderTechPipelinesPtr  ResourceManager::LoadRenderTech (PipelinePackID packId, RenderTechName::Ref name, const RenderTechDesc &desc, PipelineCacheID cacheId) __NE___
 	{
 		auto*	cache	= GetResource( cacheId, False{"don't inc ref"}, True{"quiet"} );
 		auto*	pack	= GetResource( packId ? packId : _defaultPack.Get() );
@@ -243,14 +243,18 @@ namespace AE::Graphics
 	LoadRenderTechAsync
 =================================================
 */
-	Promise<RenderTechPipelinesPtr>  RResourceManager::LoadRenderTechAsync (PipelinePackID packId, RenderTechName::Ref name, const RenderTechDesc &desc, PipelineCacheID cacheId) __NE___
+	Promise<RenderTechPipelinesPtr>  ResourceManager::LoadRenderTechAsync (PipelinePackID packId, RenderTechName::Ref name, const RenderTechDesc &desc, PipelineCacheID cacheId) __NE___
 	{
-		return MakePromise(	[this, packId, name, desc, cacheId] () {
-								return LoadRenderTech( packId, name, desc, cacheId );
-							},
-							Tuple{},
-							"RResourceManager::LoadRenderTechAsync",
-							ETaskQueue::Background );
+		return Scheduler().Run(
+					ETaskQueue::Background,
+					[](auto* self, PipelinePackID packId, RenderTechName name, RenderTechDesc desc, PipelineCacheID cacheId)
+						-> Promise<RenderTechPipelinesPtr>
+					{
+						co_return self->LoadRenderTech( packId, name, desc, cacheId );
+					}( this, packId, name, desc, cacheId ),
+					Tuple{},
+					"ResourceManager::LoadRenderTechAsync"
+				);
 	}
 
 /*
@@ -258,7 +262,7 @@ namespace AE::Graphics
 	CreateGraphicsPipeline
 =================================================
 */
-	Strong<GraphicsPipelineID>  RResourceManager::CreateGraphicsPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const GraphicsPipelineDesc &desc, PipelineCacheID cacheId) __NE___
+	Strong<GraphicsPipelineID>  ResourceManager::CreateGraphicsPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const GraphicsPipelineDesc &desc, PipelineCacheID cacheId) __NE___
 	{
 		auto*	cache	= GetResource( cacheId, False{"don't inc ref"}, True{"quiet"} );
 		auto*	pack	= GetResource( packId ? packId : _defaultPack.Get() );
@@ -282,7 +286,7 @@ namespace AE::Graphics
 	CreateMeshPipeline
 =================================================
 */
-	Strong<MeshPipelineID>  RResourceManager::CreateMeshPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const MeshPipelineDesc &desc, PipelineCacheID cacheId) __NE___
+	Strong<MeshPipelineID>  ResourceManager::CreateMeshPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const MeshPipelineDesc &desc, PipelineCacheID cacheId) __NE___
 	{
 		auto*	cache	= GetResource( cacheId, False{"don't inc ref"}, True{"quiet"} );
 		auto*	pack	= GetResource( packId ? packId : _defaultPack.Get() );
@@ -306,7 +310,7 @@ namespace AE::Graphics
 	CreateComputePipeline
 =================================================
 */
-	Strong<ComputePipelineID>  RResourceManager::CreateComputePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const ComputePipelineDesc &desc, PipelineCacheID cacheId) __NE___
+	Strong<ComputePipelineID>  ResourceManager::CreateComputePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const ComputePipelineDesc &desc, PipelineCacheID cacheId) __NE___
 	{
 		auto*	cache	= GetResource( cacheId, False{"don't inc ref"}, True{"quiet"} );
 		auto*	pack	= GetResource( packId ? packId : _defaultPack.Get() );
@@ -330,7 +334,7 @@ namespace AE::Graphics
 	CreateRayTracingPipeline
 =================================================
 */
-	Strong<RayTracingPipelineID>  RResourceManager::CreateRayTracingPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const RayTracingPipelineDesc &desc, PipelineCacheID cacheId) __NE___
+	Strong<RayTracingPipelineID>  ResourceManager::CreateRayTracingPipeline (PipelinePackID packId, PipelineTmplName::Ref name, const RayTracingPipelineDesc &desc, PipelineCacheID cacheId) __NE___
 	{
 		auto*	cache	= GetResource( cacheId, False{"don't inc ref"}, True{"quiet"} );
 		auto*	pack	= GetResource( packId ? packId : _defaultPack.Get() );
@@ -354,7 +358,7 @@ namespace AE::Graphics
 	CreateTilePipeline
 =================================================
 */
-	Strong<TilePipelineID>  RResourceManager::CreateTilePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const TilePipelineDesc &desc, PipelineCacheID cacheId) __NE___
+	Strong<TilePipelineID>  ResourceManager::CreateTilePipeline (PipelinePackID packId, PipelineTmplName::Ref name, const TilePipelineDesc &desc, PipelineCacheID cacheId) __NE___
 	{
 		auto*	cache	= GetResource( cacheId, False{"don't inc ref"}, True{"quiet"} );
 		auto*	pack	= GetResource( packId ? packId : _defaultPack.Get() );
@@ -378,7 +382,7 @@ namespace AE::Graphics
 	GetSupportedRenderTechs
 =================================================
 */
-	Array<RenderTechName>  RResourceManager::GetSupportedRenderTechs (PipelinePackID packId) C_NE___
+	Array<RenderTechName>  ResourceManager::GetSupportedRenderTechs (PipelinePackID packId) C_NE___
 	{
 		auto*	pack	= GetResource( packId ? packId : _defaultPack.Get() );
 		CHECK_ERR( pack != null );
@@ -397,7 +401,7 @@ namespace AE::Graphics
 	InitializeResources
 =================================================
 */
-	bool  RResourceManager::InitializeResources (Strong<PipelinePackID> defaultPackId) __NE___
+	bool  ResourceManager::InitializeResources (Strong<PipelinePackID> defaultPackId) __NE___
 	{
 		CHECK_ERR( defaultPackId );
 

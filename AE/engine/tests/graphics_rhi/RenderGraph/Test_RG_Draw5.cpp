@@ -44,116 +44,94 @@ namespace
 
 
 	template <typename CtxTypes>
-	class D5_DrawTask final : public RenderTask
+	static RenderCoro  D5_DrawTask (D5_TestData& t, const uint mode)
 	{
-	public:
-		D5_TestData&	t;
-		const uint		mode;
+		typename CtxTypes::Graphics	ctx{ RenderCoro_Get() };
 
-		D5_DrawTask (D5_TestData& t, uint mode, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }, mode{ mode }
-		{}
-
-		void  Run () __Th_OV
+		// pass 1
+		if ( mode == 0 )
 		{
-			typename CtxTypes::Graphics	ctx{ *this };
+			constexpr auto&		rtech_pass = RTech.Test4_1;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
 
-			// pass 1
-			if ( mode == 0 )
-			{
-				constexpr auto&		rtech_pass = RTech.Test4_1;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( t.viewSize )
+								.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::White} ));
 
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::White} ));
+			VertexStream	vstream;
+			CHECK_CE( dctx.AllocVStream( Sizeof(vertices1), OUT vstream ));
+			MemCopy( OUT vstream.mappedPtr, vertices1, Sizeof(vertices1) );
 
-				VertexStream	vstream;
-				CHECK_TE( dctx.AllocVStream( Sizeof(vertices1), OUT vstream ));
-				MemCopy( OUT vstream.mappedPtr, vertices1, Sizeof(vertices1) );
+			CHECK_CE( dctx.BindVertexBuffer( t.ppln0, VertexBufferName{"vb"}, vstream.id, vstream.offset ));
 
-				CHECK_TE( dctx.BindVertexBuffer( t.ppln0, VertexBufferName{"vb"}, vstream.id, vstream.offset ));
+			dctx.BindPipeline( t.ppln0 );
+			dctx.Draw( 4 );
 
-				dctx.BindPipeline( t.ppln0 );
-				dctx.Draw( 4 );
-
-				ctx.EndRenderPass( dctx );
-			}
-
-			// pass 2
-			if ( mode == 0 )
-			{
-				constexpr auto&		rtech_pass = RTech.Test4_2;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color, t.view ));
-
-				VertexStream	vstream;
-				CHECK_TE( dctx.AllocVStream( Sizeof(vertices2), OUT vstream ));
-				MemCopy( OUT vstream.mappedPtr, vertices2, Sizeof(vertices2) );
-
-				dctx.BindVertexBuffer( 0, vstream.id, vstream.offset );
-
-				dctx.BindPipeline( t.ppln1 );
-				dctx.Draw( 4 );
-
-				ctx.EndRenderPass( dctx );
-			}
-
-			// pass 1 v2
-			if ( mode == 1 )
-			{
-				constexpr auto&		rtech_pass = RTech.Test4_2;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
-
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( rtech_pass.att_Color, t.view ));
-
-				VertexStream	vstream;
-				CHECK_TE( dctx.AllocVStream( Sizeof(vertices3), OUT vstream ));
-				MemCopy( OUT vstream.mappedPtr, vertices3, Sizeof(vertices3) );
-
-				dctx.BindVertexBuffer( 0, vstream.id, vstream.offset );
-
-				dctx.BindPipeline( t.ppln1 );
-				dctx.Draw( 3 );
-
-				ctx.EndRenderPass( dctx );
-			}
-
-			Execute( ctx );
+			ctx.EndRenderPass( dctx );
 		}
-	};
+
+		// pass 2
+		if ( mode == 0 )
+		{
+			constexpr auto&		rtech_pass = RTech.Test4_2;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
+
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( t.viewSize )
+								.AddTarget( rtech_pass.att_Color, t.view ));
+
+			VertexStream	vstream;
+			CHECK_CE( dctx.AllocVStream( Sizeof(vertices2), OUT vstream ));
+			MemCopy( OUT vstream.mappedPtr, vertices2, Sizeof(vertices2) );
+
+			dctx.BindVertexBuffer( 0, vstream.id, vstream.offset );
+
+			dctx.BindPipeline( t.ppln1 );
+			dctx.Draw( 4 );
+
+			ctx.EndRenderPass( dctx );
+		}
+
+		// pass 1 v2
+		if ( mode == 1 )
+		{
+			constexpr auto&		rtech_pass = RTech.Test4_2;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
+
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+								.AddViewport( t.viewSize )
+								.AddTarget( rtech_pass.att_Color, t.view ));
+
+			VertexStream	vstream;
+			CHECK_CE( dctx.AllocVStream( Sizeof(vertices3), OUT vstream ));
+			MemCopy( OUT vstream.mappedPtr, vertices3, Sizeof(vertices3) );
+
+			dctx.BindVertexBuffer( 0, vstream.id, vstream.offset );
+
+			dctx.BindPipeline( t.ppln1 );
+			dctx.Draw( 3 );
+
+			ctx.EndRenderPass( dctx );
+		}
+
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename Ctx>
-	class D5_CopyTask final : public RenderTask
+	static RenderCoro  D5_CopyTask (D5_TestData& t)
 	{
-	public:
-		D5_TestData&	t;
-
-		D5_CopyTask (D5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
-
-		void  Run () __Th_OV
-		{
-			Ctx		ctx{ *this };
-
-			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then(	[p = &t] (const ImageMemView &view)
-								{
-									p->isOK = p->imgCmp->Compare( view );
-								})};
-
-			Execute( ctx );
-		}
-	};
+		Ctx		ctx{ RenderCoro_Get() };
+		
+		t.result = ctx.ReadbackImage( t.img, Default ).Then( t,
+							[] (Promise<ImageMemView> readRes, CoSafe<D5_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK = t->imgCmp->Compare( view );
+							});
+		
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CtxTypes, typename CopyCtx>
@@ -193,9 +171,9 @@ namespace
 									.Begin();
 		CHECK_ERR( batch1 );
 
-		AsyncTask	task1	= batch1.template Task< D5_DrawTask<CtxTypes> >( Tuple{ArgRef(t), 0u}, {"Draw task1"} )
+		AsyncTask	task1	= batch1.Task( D5_DrawTask<CtxTypes>(t, 0u), {"Draw task1"} )
 									.Run();
-		AsyncTask	task2	= batch1.template Task< D5_DrawTask<CtxTypes> >( Tuple{ArgRef(t), 1u}, {"Draw task2"} )
+		AsyncTask	task2	= batch1.Task( D5_DrawTask<CtxTypes>(t, 1u), {"Draw task2"} )
 									.SubmitBatch()
 									.Run( Tuple{task1} );
 
@@ -207,7 +185,7 @@ namespace
 									.Begin();
 		CHECK_ERR( batch2 );
 
-		AsyncTask	task3	= batch2.template Task< D5_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
+		AsyncTask	task3	= batch2.Task( D5_CopyTask<CopyCtx>(t), {"Readback task"} )
 									.UseResource( t.img, EResourceState::CopySrc )
 									.SubmitBatch().Run();
 
@@ -216,12 +194,12 @@ namespace
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rg.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
+		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK );
 		return true;

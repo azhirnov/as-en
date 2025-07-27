@@ -34,6 +34,7 @@ namespace AE::Graphics
 			RDNA1,
 			RDNA2,
 			RDNA3,
+			RDNA4,
 
 			CDNA1,
 			CDNA2,

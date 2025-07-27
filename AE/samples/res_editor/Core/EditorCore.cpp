@@ -4,8 +4,8 @@
 #include "vfs/Disk/DiskDynamicStorage.h"
 #include "vfs/Network/Messages.h"
 
-#include "res_editor/Core/EditorCore.h"
-#include "res_editor/Scripting/ScriptExe.h"
+#include "Core/EditorCore.h"
+#include "Scripting/ScriptExe.h"
 
 AE_DECL_SCRIPT_OBJ(	AE::ResEditor::ResEditorAppConfig,	"Config" );
 
@@ -89,6 +89,10 @@ namespace
 			cfg.vr.format		= EPixelFormat::BGRA8_UNorm;
 			cfg.vr.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;	// default
 			cfg.vr.options		= EImageOpt::BlitDst;
+
+		//	cfg.vrDevices.push_back( IVRDevice::EDeviceType::OpenXR );
+		//	cfg.vrDevices.push_back( IVRDevice::EDeviceType::OpenVR );
+			cfg.vrDevices.push_back( IVRDevice::EDeviceType::Emulator );
 		}
 
 		cfg.enableNetwork = true;
@@ -614,6 +618,7 @@ void main (Config &out cfg)
 	cfg.TestFolder( "samples-3d" );
 	cfg.TestFolder( "samples-rt" );
 	cfg.TestFolder( "samples-compute" );
+	cfg.TestFolder( "samples-posteffects" );
 	cfg.TestFolder( "samples-vfx" );
 	cfg.TestFolder( "sphere" );
 	cfg.TestFolder( "tools" );
@@ -820,7 +825,7 @@ void main (Config &out cfg)
 	{
 		return	Scheduler().Run(
 					ETaskQueue::Background,
-					[] (RC<VFSClient> client) -> CoroTask
+					[] (RC<VFSClient> client) -> AsyncCoro
 					{
 						auto	stat = client->Update( client->_frameId );
 						if ( stat )
@@ -872,7 +877,7 @@ void main (Config &out cfg)
 
 		return	Scheduler().Run(
 					ETaskQueue::Background,
-					[] (RC<RemoteInputServer> server) -> CoroTask
+					[] (RC<RemoteInputServer> server) -> AsyncCoro
 					{
 						auto	stat = server->Update( server->_frameId );
 						if ( stat )
@@ -1081,14 +1086,15 @@ void main (Config &out cfg)
 		if ( _test.isActive.load() )
 			renderer->SetFreezeTime( true );
 
-		MakeTask( [this, renderer] ()
-				{
-					_ui.SetHelpText( renderer->GetHelpText() );
-					_ui.SetSurfaceFormat( renderer->GetSurfaceFormat() );
-					_mainLoop->renderer = RVRef(renderer);
-				}, {},
-				"StartRendering",
-				ETaskQueue::Main );
+		CreateAsyncRev(
+			GetRC<ResEditorCore>(), renderer,
+			[] (RC<ResEditorCore> self, RC<Renderer> renderer) -> ScheduledCoro<ETaskQueue::Main>
+			{
+				self->_ui.SetHelpText( renderer->GetHelpText() );
+				self->_ui.SetSurfaceFormat( renderer->GetSurfaceFormat() );
+				self->_mainLoop->renderer = RVRef(renderer);
+				co_return;
+			});
 
 		return true;
 	}
@@ -1098,7 +1104,7 @@ void main (Config &out cfg)
 	_ProcessInput
 =================================================
 */
-	CoroTask  ResEditorCore::_ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader)
+	AsyncCoro  ResEditorCore::_ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader)
 	{
 		if ( ui )
 		{
@@ -1134,7 +1140,7 @@ void main (Config &out cfg)
 	_SetInputMode
 =================================================
 */
-	CoroTask  ResEditorCore::_SetInputMode (Ptr<IInputActions> input, InputModeName mode)
+	AsyncCoro  ResEditorCore::_SetInputMode (Ptr<IInputActions> input, InputModeName mode)
 	{
 		CHECK( input->SetMode( mode ));
 		co_return;
@@ -1237,7 +1243,7 @@ void main (Config &out cfg)
 
 				Scheduler().Run(
 					ETaskQueue::Background,
-					[] (RC<ResEditorCore> core, Path inPath) -> CoroTask
+					[] (RC<ResEditorCore> core, Path inPath) -> AsyncCoro
 					{
 						if ( not core->RunRenderScriptAsync( inPath ))
 							core->_test.status.store( ETestStatus::Complete );

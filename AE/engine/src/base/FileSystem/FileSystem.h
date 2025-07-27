@@ -298,8 +298,8 @@ namespace AE::Base
 
 		PathAndLine ()									__NE___	{}
 		explicit PathAndLine (Path path, uint line = 0)	__Th___	: path{RVRef(path)}, line{line} {}
-		explicit PathAndLine (const SourceLoc &loc)		__Th___ : path{loc.file}, line{loc.line} {}
-		explicit PathAndLine (const SourceLoc2 &loc)	__Th___ : path{loc.file}, line{loc.line} {}
+		explicit PathAndLine (const SourceLoc &loc)		__Th___ : path{loc.file_name()}, line{loc.line()} {}
+		explicit PathAndLine (const SourceLocCopy &loc)	__Th___ : path{loc.file_name()}, line{loc.line()} {}
 
 		PathAndLine (const PathAndLine &)				__Th___ = default;
 		PathAndLine (PathAndLine &&)					__NE___	= default;

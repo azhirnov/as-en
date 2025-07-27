@@ -195,40 +195,43 @@ namespace {
 		CHECK_ERR( AllBits( ci.stream->GetSourceType(), IDataSource::ESourceType::Buffered ));
 		CHECK_ERR( ci.dummyImage );
 
-		auto	p1 = MakePromise(
-						[this, stream = ci.stream, rc = &ci.resCache, um = &ci.uploadMngr] () -> PromiseResult<bool>
-						{
-							Serializing::Deserializer	des	{stream};
-							CHECK_PE( _DeserializeResources( des, *rc, *um ));
-							return true;
-						},
-						Tuple{},
-						"UI.StyleCollection.LoadResource",
-						ETaskQueue::Background
-					);
+		AsyncTask	load_res = Scheduler().Run(
+			ETaskQueue::Background,
+			[] (StyleCollection &self, auto stream, auto& resCache, auto& uploadMngr) -> AsyncCoro
+			{
+				Serializing::Deserializer	des	{RVRef(stream)};
+				CHECK_CE( self._DeserializeResources( des, resCache, uploadMngr ));
+				co_return;
+			}
+			( *this, ci.stream, ci.resCache, ci.uploadMngr ),
+			Tuple{},
+			"UI.StyleCollection.LoadResource" );
 
-		auto	p2 = MakePromiseFrom( ci.rtech, p1 ).Then(
-						[this, ub = ci.ubSize, img = ci.dummyImage] (const Tuple< RenderTechPipelinesPtr, bool> &rtech_loadRes) -> PromiseResult<bool>
-						{
-							CHECK_PE( _InitGraphics( rtech_loadRes.Get<0>(), img, ub ));
-							return true;
-						},
-						"UI.StyleCollection.InitGraphics",
-						ETaskQueue::Background
-					);
+		AsyncTask	init_gfx =
+			[] (StyleCollection &self, auto loadRTech, auto loadRes, const Bytes ubSize, auto dummyImg)
+				-> InlineCoro<ETaskQueue::Background>
+			{
+				auto	res		= Coro_WaitResultOrCancel( loadRTech, loadRes );
+				auto&	rtech	= res.template get<0>();
+				
+				CHECK_CE( self._InitGraphics( rtech, dummyImg, ubSize ));
+				co_return;
+			}
+			( *this, ci.rtech, load_res, ci.ubSize, ci.dummyImage );
 
-		auto	p3 = p1.Then(
-						[this, stream = ci.stream, rc = &ci.resCache] (const bool &) -> PromiseResult<bool>
-						{
-							Serializing::Deserializer	des	{stream};
-							CHECK_PE( _DeserializeStyles( des, *rc ));  // throw
-							return true;
-						},
-						"UI.StyleCollection.LoadStyles",
-						ETaskQueue::Background
-					);
+		AsyncTask	load_styles = Scheduler().Run(
+			ETaskQueue::Background,
+			[] (StyleCollection &self, auto stream, auto& resCache) -> AsyncCoro
+			{
+				Serializing::Deserializer	des	{stream};
+				CHECK_CE( self._DeserializeStyles( des, resCache ));  // throw
+				co_return;
+			}
+			( *this, ci.stream, ci.resCache ),
+			Tuple{ load_res },
+			"UI.StyleCollection.LoadStyles" );
 
-		return Scheduler().WaitAsync( ETaskQueue::Background, Tuple{ AsyncTask{p2}, AsyncTask{p3} });
+		return Scheduler().WaitAsync( ETaskQueue::Background, Tuple{ init_gfx, load_styles });
 	}
 
 /*

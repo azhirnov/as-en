@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ScriptSampler.h"
-#include "ScriptObjects/Common.inl.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptSampler.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.inl.h"
 
 AE_DECL_SCRIPT_OBJ_RC( AE::PipelineCompiler::ScriptSampler, "Sampler" );
 

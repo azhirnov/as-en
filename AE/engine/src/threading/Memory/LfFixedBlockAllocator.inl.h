@@ -107,7 +107,7 @@ namespace AE::Threading
 						{
 							auto&	dbg = dbg_info[ low_idx + j * HiLevel_Count ];
 
-							AE_LOGI( "Leaked memory block: "s << ToString( BlockSize() ), dbg.file, dbg.line );
+							AE_LOGI( "Leaked memory block: "s << ToString( BlockSize() ), dbg );
 
 							low_idx = old_low_level.ExtractBitIndex();
 						}

@@ -37,9 +37,9 @@ namespace AE::Graphics
 		RBuffer ()											__NE___	{}
 		~RBuffer ()											__NE___;
 
-		ND_ bool  Create (RResourceManager &, const BufferDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
-		ND_ bool  Create (RResourceManager &, const RemoteBufferDesc &, GfxMemAllocatorPtr, StringView)		__NE___;
-			void  Destroy (RResourceManager &)																__NE___;
+		ND_ bool  Create (ResourceManager &, const BufferDesc &, GfxMemAllocatorPtr, StringView dbgName)	__NE___;
+		ND_ bool  Create (ResourceManager &, const RemoteBufferDesc &, GfxMemAllocatorPtr, StringView)		__NE___;
+			void  Destroy (ResourceManager &)																__NE___;
 
 		ND_ bool  GetMemoryInfo (OUT RemoteMemoryObjInfo &)	C_NE___;
 
@@ -59,11 +59,11 @@ namespace AE::Graphics
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
-		ND_ static bool	 IsSupported (const RResourceManager &, const BufferDesc &desc)		__NE___;
-		ND_ static bool	 IsSupported (const RResourceManager &, const BufferDesc &, const BufferViewDesc &) __NE___;
+		ND_ static bool	 IsSupported (const ResourceManager &, const BufferDesc &desc)		__NE___;
+		ND_ static bool	 IsSupported (const ResourceManager &, const BufferDesc &, const BufferViewDesc &) __NE___;
 
-		ND_ static bool  IsSupportedForVertex (const RResourceManager &, EVertexType type)	__NE___;
-		ND_ static bool  IsSupportedForASVertex (const RResourceManager &, EVertexType type)__NE___;
+		ND_ static bool  IsSupportedForVertex (const ResourceManager &, EVertexType type)	__NE___;
+		ND_ static bool  IsSupportedForASVertex (const ResourceManager &, EVertexType type)__NE___;
 	};
 
 

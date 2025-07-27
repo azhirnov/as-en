@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ScriptObjects/ScriptFeatureSet.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ScriptFeatureSet.h"
 
 namespace AE::PipelineCompiler
 {
@@ -65,6 +65,7 @@ namespace AE::PipelineCompiler
 		enum class EFlags : ushort
 		{
 			Unknown						= 0,
+			_BITOPS_,
 
 			// precision
 			HighPrecision				= 0,
@@ -268,9 +269,6 @@ namespace AE::PipelineCompiler
 		ND_ static bool  _CreatePackedTypeGLSL2 (INOUT String &outTypes, StringView packedTypeName, StringView memberTypeName, StringView dstType, const Field &);
 		ND_ static bool  _CreatePackedTypeMSL (INOUT String &outTypes, StringView packedTypeName, StringView memberTypeName, StringView dstType, const Field &);
 	};
-
-	AE_BIT_OPERATORS( ShaderStructType::EUsage );
-	AE_BIT_OPERATORS( ShaderStructType::EFlags );
 
 
 	inline void  ShaderStructType::AddUsage (EUsage usage)	{ _usage |= usage; }

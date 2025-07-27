@@ -23,7 +23,7 @@ namespace AE::Graphics
 	_Create
 =================================================
 */
-	bool  VPipelineCache::_Create (const VResourceManager& resMngr, StringView dbgName, ArrayView<char> initialData) __NE___
+	bool  VPipelineCache::_Create (const ResourceManager& resMngr, StringView dbgName, ArrayView<char> initialData) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _cache == Default );
@@ -72,7 +72,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VPipelineCache::Create (const VResourceManager& resMngr, StringView dbgName, RC<RStream> stream) __NE___
+	bool  VPipelineCache::Create (const ResourceManager& resMngr, StringView dbgName, RC<RStream> stream) __NE___
 	{
 		Array<char>	data;
 
@@ -84,7 +84,7 @@ namespace AE::Graphics
 		return _Create( resMngr, dbgName, data );
 	}
 
-	bool  VPipelineCache::Create (const VResourceManager& resMngr, StringView dbgName) __NE___
+	bool  VPipelineCache::Create (const ResourceManager& resMngr, StringView dbgName) __NE___
 	{
 		return _Create( resMngr, dbgName, Default );
 	}
@@ -94,7 +94,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VPipelineCache::Destroy (VResourceManager &resMngr) __NE___
+	void  VPipelineCache::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

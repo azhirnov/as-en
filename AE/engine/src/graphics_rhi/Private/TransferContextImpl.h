@@ -317,12 +317,13 @@ namespace AE::Graphics {
 		}
 
 		ASSERT( buffers.size() == mem_view.Parts().size() );
-
+		
 		return	ReadbackBufferResult2{
-					Threading::MakePromiseFromValue( mem_view,
-													 Tuple{ OnFrameNextCycle{ GetFrameId() }},
-													 "TransferContext::ReadbackBuffer",
-													 ETaskQueue::PerFrame ),
+					Scheduler().Run(
+						ETaskQueue::PerFrame,
+						DeferResult<BufferMemView>( mem_view ),
+						Tuple{ OnFrameNextCycle{ GetFrameId() }},
+						"TransferContext::ReadbackBuffer" ),
 					data_size - mem_view.DataSize()
 				};
 	}
@@ -370,13 +371,13 @@ namespace AE::Graphics {
 		}
 		ASSERT( buffers.size() == mem_view.Parts().size() );
 
-		return ReadbackBufferResult{
-				Threading::MakePromiseFromValue(
-					mem_view,
-					Tuple{ OnFrameNextCycle{ GetFrameId() }},
-					"TransferContext::ReadbackBuffer",
-					ETaskQueue::PerFrame
-				)};
+		return	ReadbackBufferResult{
+					Scheduler().Run(
+						ETaskQueue::PerFrame,
+						DeferResult<BufferMemView>( mem_view ),
+						Tuple{ OnFrameNextCycle{ GetFrameId() }},
+						"TransferContext::ReadbackBuffer"
+					)};
 	}
 
 /*
@@ -454,11 +455,11 @@ namespace AE::Graphics {
 		ASSERT( res.buffers.size() == mem_view.Parts().size() );
 
 		return	ReadbackImageResult2{
-					Threading::MakePromiseFromValue(
-						ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, readDesc.aspectMask },
+					Scheduler().Run(
+						ETaskQueue::PerFrame,
+						DeferResult<ImageMemView>( mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, readDesc.aspectMask ),
 						Tuple{ OnFrameNextCycle{ GetFrameId() }},
-						"TransferContext::ReadbackImage",
-						ETaskQueue::PerFrame
+						"TransferContext::ReadbackImage"
 					),
 					res.regionDim - (max - min)
 				};
@@ -558,12 +559,12 @@ namespace AE::Graphics {
 			stream.posYZ[1] ++;
 		}
 
-		return ReadbackImageResult{
-					Threading::MakePromiseFromValue(
-						ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, read_desc.aspectMask },
+		return	ReadbackImageResult{
+					Scheduler().Run(
+						ETaskQueue::PerFrame,
+						DeferResult<ImageMemView>( mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, res.format, read_desc.aspectMask ),
 						Tuple{ OnFrameNextCycle{ GetFrameId() }},
-						"TransferContext::ReadbackImage",
-						ETaskQueue::PerFrame
+						"TransferContext::ReadbackImage"
 					)};
 	}
 

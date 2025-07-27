@@ -20,7 +20,7 @@
 	Recycle
 =================================================
 */
-	void  RenderTaskScheduler::CommandBatchApi::Recycle (CommandBatch_t* ptr) __NE___
+	void  RenderTaskScheduler::CommandBatchApi::Recycle (CommandBatch* ptr) __NE___
 	{
 		auto&	rts = GraphicsScheduler();
 		CHECK( rts._batchPool.Unassign( ptr ));
@@ -31,7 +31,7 @@
 	Submit
 =================================================
 */
-	void  RenderTaskScheduler::CommandBatchApi::Submit (CommandBatch_t &batch, const ESubmitMode mode) __NE___
+	void  RenderTaskScheduler::CommandBatchApi::Submit (CommandBatch &batch, const ESubmitMode mode) __NE___
 	{
 		// TODO: return AsyncMutex instead of lock per-queue mutex
 
@@ -77,7 +77,7 @@
 	Recycle
 =================================================
 */
-	void  RenderTaskScheduler::DrawCommandBatchApi::Recycle (DrawCommandBatch_t* ptr) __NE___
+	void  RenderTaskScheduler::DrawCommandBatchApi::Recycle (DrawCommandBatch* ptr) __NE___
 	{
 		auto&	rts = GraphicsScheduler();
 		CHECK( rts._drawBatchPool.Unassign( ptr ));
@@ -91,14 +91,14 @@
 	Resolve
 =================================================
 */
-	bool  RenderTaskScheduler::BatchSubmitDepsManager::Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE___
+	bool  RenderTaskScheduler::BatchSubmitDepsManager::Resolve (AnyTypeCRef dep, Task &task, Bool defaultIsStrongDep) __NE___
 	{
 		if_likely( auto* batch_pp = dep.GetIf< CmdBatchOnSubmit >() )
 		{
 			if_unlikely( batch_pp->ptr == null )
 				return true;
 
-			CHECK_ERR( (*batch_pp->ptr)._AddOnSubmitDependency( RVRef(task), INOUT bitIndex ));
+			CHECK_ERR( (*batch_pp->ptr)._AddOnSubmitDependency( task, defaultIsStrongDep ));
 			return true;
 		}
 
@@ -125,14 +125,14 @@
 	Resolve
 =================================================
 */
-	bool  RenderTaskScheduler::BatchCompleteDepsManager::Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE___
+	bool  RenderTaskScheduler::BatchCompleteDepsManager::Resolve (AnyTypeCRef dep, Task &task, Bool defaultIsStrongDep) __NE___
 	{
-		if_likely( auto* batch_pp = dep.GetIf< RC<CommandBatch_t> >() )
+		if_likely( auto* batch_pp = dep.GetIf< RC<CommandBatch> >() )
 		{
 			if_unlikely( *batch_pp == null )
 				return true;
 
-			CHECK_ERR( (**batch_pp)._AddOnCompleteDependency( RVRef(task), INOUT bitIndex ));
+			CHECK_ERR( (**batch_pp)._AddOnCompleteDependency( task, defaultIsStrongDep ));
 			return true;
 		}
 		return false;
@@ -164,7 +164,7 @@
 		EXLOCK( f.guard );
 
 		for (auto dep : f.deps) {
-			Threading::IAsyncTask::Helper::SetDependencyCompletionStatus( *dep.Get<0>(), dep.Get<1>().bitIndex, False{"not canceled"} );
+			_Coro_::AsyncTaskImpl::TaskDependencyManagerApi::SetDependencyCompletionStatus( *dep, False{"not canceled"} );
 		}
 
 		f.deps.clear();
@@ -175,16 +175,16 @@
 	Resolve
 =================================================
 */
-	bool  RenderTaskScheduler::FrameNextCycleDepsManager::Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE___
+	bool  RenderTaskScheduler::FrameNextCycleDepsManager::Resolve (AnyTypeCRef dep, Task &task, Bool defaultIsStrongDep) __NE___
 	{
 		if_likely( auto* frame_p = dep.GetIf< OnFrameNextCycle >() )
 		{
 			auto&	f = _frames[ frame_p->frameId.Index() ];
 			EXLOCK( f.guard );
 
-			f.deps.push_back( RVRef(task), TaskDependency{ bitIndex, True{"strong ref"} });
-
-			++bitIndex;
+			f.deps.emplace_back( task.GetRC() ).SetExtra( uint{defaultIsStrongDep} );
+			
+			_Coro_::AsyncTaskImpl::TaskDependencyManagerApi::IncWaitCounter( task );
 			return true;
 		}
 
@@ -206,34 +206,36 @@
 //-----------------------------------------------------------------------------
 
 
-
+	
 /*
 =================================================
-	EndFrameTask::Run
+	_EndFrameRun
 =================================================
 */
-	void  RenderTaskScheduler::EndFrameTask::Run () __Th___
+	AsyncCoro  RenderTaskScheduler::_EndFrameRun (const FrameUID frameId) __NE___
 	{
-		if_unlikely( not _RunImpl() )
+		auto&	rts = GraphicsScheduler();
+
+		if_unlikely( Coro_IsCanceled or not _EndFrame_Impl( rts, frameId ))
 		{
-			_ResetStates();
-			CHECK_TE( false, "EndFrame - failed" );
+			_EndFrame_ResetStates( rts, frameId );
+			CHECK_CE( false, "EndFrame - failed" );
+			co_return;
 		}
 
-		MemoryManager().GetGraphicsFrameAllocator().EndFrame( _frameId );
+		MemoryManager().GetGraphicsFrameAllocator().EndFrame( frameId );
+		co_return;
 	}
 
 /*
 =================================================
-	EndFrameTask::_RunImpl
+	_EndFrame_Impl
 =================================================
 */
-	bool  RenderTaskScheduler::EndFrameTask::_RunImpl () __Th___
+	bool  RenderTaskScheduler::_EndFrame_Impl (RenderTaskScheduler &rts, const FrameUID frameId) __NE___
 	{
-		auto&	rts = GraphicsScheduler();
-
 		// check frame UID
-		CHECK_ERR_MSG( rts._perFrameUID[ _frameId.Index() ].load() == _frameId,
+		CHECK_ERR_MSG( rts._perFrameUID[ frameId.Index() ].load() == frameId,
 			"Invalid frame UID, task will be canceled" );
 
 		const auto	q_mask = rts.GetDevice().GetAvailableQueues();
@@ -242,7 +244,7 @@
 		// Timeline semaphore allow to submit commands without strict ordering.
 		for (auto q = q_mask; q != Zero;)
 		{
-			rts._FlushQueue( ExtractBitIndex<EQueueType>( INOUT q ), _frameId, True{"force flush"} );
+			rts._FlushQueue( ExtractBitIndex<EQueueType>( INOUT q ), frameId, True{"force flush"} );
 		}
 
 		for (auto& q : rts._queueMap)
@@ -256,18 +258,18 @@
 			q.pending.fill( Default );
 		}
 
-		rts._resMngr->_OnEndFrame( _frameId );
+		ResMngrApi::OnEndFrame( *rts._resMngr, frameId );
 
-		CHECK_ERR_MSG( rts._status.Set( RTS_EStatus::RecordFrame, RTS_EStatus::Idle ),
+		CHECK_ERR_MSG( rts._status.Set( EStatus::RecordFrame, EStatus::Idle ),
 			"Incorrect render task scheduler status, must be 'EStatus::RecordFrame'" );
 
 		GFX_DBG_ONLY(
-			CHECK( _frameId == rts.DbgFrameId() );
+			CHECK( frameId == rts.DbgFrameId() );
 			rts._dbgFrameId.store( Default );
 		)
 
 	  #ifdef AE_ENABLE_REMOTE_GRAPHICS
-		CHECK_ERR( rts._EndFrame( _frameId ));
+		CHECK_ERR( rts._EndFrame( frameId ));
 	  #endif
 
 		return true;
@@ -275,25 +277,13 @@
 
 /*
 =================================================
-	EndFrameTask::OnCancel
+	_EndFrame_ResetStates
 =================================================
 */
-	void  RenderTaskScheduler::EndFrameTask::OnCancel () __NE___
+	inline void  RenderTaskScheduler::_EndFrame_ResetStates (RenderTaskScheduler &rts, const FrameUID frameId) __NE___
 	{
-		_ResetStates();
-	}
-
-/*
-=================================================
-	EndFrameTask::_ResetStates
-=================================================
-*/
-	inline void  RenderTaskScheduler::EndFrameTask::_ResetStates () __NE___
-	{
-		auto&	rts = GraphicsScheduler();
-
 		// check frame UID
-		CHECK_MSG( rts._perFrameUID[ _frameId.Index() ].load() == _frameId, "Invalid frame UID" );
+		CHECK_MSG( rts._perFrameUID[ frameId.Index() ].load() == frameId, "Invalid frame UID" );
 
 		for (auto& q : rts._queueMap)
 		{
@@ -301,7 +291,7 @@
 			q.pending.fill( Default );
 		}
 
-		Unused( rts._status.Set( RTS_EStatus::Idle ));
+		Unused( rts._status.Set( EStatus::Idle ));
 	}
 //-----------------------------------------------------------------------------
 
@@ -397,8 +387,8 @@
 			_perFrame[i].submitted.reserve( _MaxSubmittedBatches );		// throw
 		}
 
-		_resMngr.reset( new ResourceManager{ _device });
-		CHECK_ERR( _resMngr->Initialize( info ));
+		_resMngr = ResMngrApi::New( _device, info );
+		CHECK_ERR( _resMngr );
 
 	  #ifdef AE_ENABLE_VULKAN
 		_cmdPoolMngr.reset( new VCommandPoolManager{ _device });
@@ -409,7 +399,7 @@
 		_nextCycleDepMngr	= MakeRC<FrameNextCycleDepsManager>();
 
 		Scheduler().RegisterDependency< CmdBatchOnSubmit >( _submitDepMngr );
-		Scheduler().RegisterDependency< RC<CommandBatch_t> >( _completeDepMngr );
+		Scheduler().RegisterDependency< RC<CommandBatch> >( _completeDepMngr );
 		Scheduler().RegisterDependency< OnFrameNextCycle >( _nextCycleDepMngr );
 
 		if ( info.useRenderGraph )
@@ -441,12 +431,12 @@
 
 		if ( _resMngr )
 		{
-			_resMngr->Deinitialize();
+			ResMngrApi::Deinitialize( *_resMngr );
 			_resMngr = null;
 		}
 
 		Scheduler().UnregisterDependency< CmdBatchOnSubmit >();
-		Scheduler().UnregisterDependency< RC<CommandBatch_t> >();
+		Scheduler().UnregisterDependency< RC<CommandBatch> >();
 		Scheduler().UnregisterDependency< OnFrameNextCycle >();
 
 	  #ifdef AE_ENABLE_VULKAN
@@ -468,7 +458,7 @@
 
 		const auto	end_time = TimePoint_t::clock::now() + timeout;
 
-		// wait for 'EndFrameTask' and other dependencies
+		// wait for 'EndFrame' and other dependencies
 		const auto	frame_id = _frameId.load().Inc();
 		{
 			auto	begin_deps = _beginDeps[ frame_id.Remap( _FrameDepsHistory )].WriteLock();
@@ -533,7 +523,7 @@
 		MemoryManager().GetGraphicsFrameAllocator().BeginFrame( frame_id );
 
 		// staging buffer host-visible memory invalidated here
-		_resMngr->_OnBeginFrame( frame_id, cfg );
+		ResMngrApi::OnBeginFrame( *_resMngr, frame_id, cfg );
 
 		// allow to run tasks which depends on 'OnFrameNextCycle'
 		_nextCycleDepMngr->OnNextFrame( frame_id );
@@ -543,12 +533,12 @@
 	  #endif
 
 		// release expired resources before next frame
-		const uint	frame_offset = frame_id.MaxFrames() + ResourceManager::ExpiredResFrameOffset;
+		const uint	frame_offset = frame_id.MaxFrames() + ResMngrApi::ExpiredResFrameOffset;
 
 		if_likely( auto prev_id = frame_id.Sub( frame_offset );  prev_id.has_value() )
 		{
-			AsyncTask	task = MakeRC< ResourceManager::ReleaseExpiredResourcesTask >( *prev_id );
-			if_likely( Scheduler().Run( task ))
+			AsyncTask	task = ResMngrApi::ReleaseExpiredResources( *prev_id );
+			if_likely( Scheduler().Enqueue( task ))
 				AddNextFrameDeps( RVRef(task) );
 		}
 
@@ -566,15 +556,6 @@
 		CHECK( _status.Set( EStatus::BeginFrame, EStatus::RecordFrame ));
 		return true;
 	}
-
-/*
-=================================================
-	ReleaseExpiredResourcesTask ctor
-=================================================
-*/
-	inline ResourceManager::ReleaseExpiredResourcesTask::ReleaseExpiredResourcesTask (FrameUID frameId) __NE___ :
-		IAsyncTask{ETaskQueue::PerFrame}, _frameId{frameId}
-	{}
 
 /*
 =================================================
@@ -764,7 +745,7 @@
 	returns 'null' on error
 =================================================
 */
-	RC<RenderTaskScheduler::CommandBatch_t>  RenderTaskScheduler::BeginCmdBatch (const CmdBatchDesc &desc) __NE___
+	RC<CommandBatch>  RenderTaskScheduler::BeginCmdBatch (const CmdBatchDesc &desc) __NE___
 	{
 		CHECK_ERR( desc.submitIdx < _MaxPendingBatches );
 		CHECK_ERR( AnyEqual( _status.load(), EStatus::Idle, EStatus::BeginFrame, EStatus::RecordFrame ));
@@ -790,7 +771,7 @@
 		// 'GetFrameId()' may not equal to 'DbgFrameId()'
 
 		if_likely( batch._Create( GetFrameId(), desc ))
-			return RC<CommandBatch_t>{ &batch };
+			return RC<CommandBatch>{ &batch };
 
 		_batchPool.Unassign( index );
 		RETURN_ERR( "failed to allocate command batch" );
@@ -840,7 +821,7 @@
 
 		for (uint f = 0; f < cnt; ++f, frame_id.Inc())
 		{
-			// as in 'EndFrameTask'
+			// as in 'EndFrame'
 			//----
 
 			for (auto q = q_mask; q != Zero;) {
@@ -850,7 +831,7 @@
 			// as 'WaitNextFrame()'
 			//----
 
-			// wait for 'EndFrameTask' and other dependencies
+			// wait for 'EndFrame' and other dependencies
 			if ( not threads.empty() )
 			{
 				auto	begin_deps = _beginDeps[ frame_id.Remap( _FrameDepsHistory )].WriteLock();
@@ -954,9 +935,9 @@
 #ifdef AE_DEBUG
 	void  RenderTaskScheduler::DbgForEachBatch (const Threading::ITaskDependencyManager::CheckDepFn_t &fn, Bool) __NE___
 	{
-		using EStatus = CommandBatch_t::EStatus;
+		using EStatus = CommandBatch::EStatus;
 
-		const auto	CheckBatch = [&fn] (CommandBatch_t &batch)
+		const auto	CheckBatch = [&fn] (CommandBatch &batch)
 		{{
 			String	info;
 			info << "cmdbatch '" << batch.DbgName() << "' (" << ToString<16>(usize(&batch)) << "), status: ";
@@ -976,13 +957,13 @@
 
 			{
 				EXLOCK( batch._onSubmitDepsGuard );
-				for (auto [task, idx] : batch._onSubmitDeps) {
-					fn( info, task, idx );
+				for (auto dep : batch._onSubmitDeps) {
+					fn( info, AsyncTask{dep} );
 				}
 			}{
 				EXLOCK( batch._onCompleteDepsGuard );
-				for (auto [task, idx] : batch._onCompleteDeps) {
-					fn( info, task, idx );
+				for (auto dep : batch._onCompleteDeps) {
+					fn( info, AsyncTask{dep} );
 				}
 			}
 		}};
@@ -991,23 +972,10 @@
 		{
 			if ( _batchPool.IsAssigned( uint(i) ))
 			{
-				auto	batch = RC<CommandBatch_t>{ &_batchPool[ uint(i) ]};
+				auto	batch = RC<CommandBatch>{ &_batchPool[ uint(i) ]};
 
 				CheckBatch( *batch );
 			}
 		}
 	}
 #endif // AE_DEBUG
-//----------------------------------------------------------------------------
-
-
-/*
-=================================================
-	_AddNextCycleEndDeps
-=================================================
-*/
-	void  ITransferContext::_ReadbackResult::_AddNextCycleEndDeps (AsyncTask task) __NE___
-	{
-		GraphicsScheduler().AddNextCycleEndDeps( RVRef(task) );
-	}
-

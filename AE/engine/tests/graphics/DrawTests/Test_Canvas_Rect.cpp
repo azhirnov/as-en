@@ -33,103 +33,84 @@ namespace
 
 
 	template <typename CtxType>
-	class CR1_DrawTask final : public RenderTask
+	static RenderCoro  CR1_DrawTask (CR1_TestData& t) __NE___
 	{
-	public:
-		CR1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		CR1_DrawTask (CR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ batch, dbg },
-			t{ t }
-		{}
+		typename CtxType::Graphics	ctx{ RenderCoro_Get() };
 
-		void  Run () __Th_OV
+		Canvas	canvas;
+		canvas.NextFrame( RenderCoro_Get().FrameId() );
+
+		// draw
 		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+			constexpr auto&		rtech_pass = RTech.Draw_1;
+			StaticAssert( rtech_pass.attachmentsCount == 1 );
+			StaticAssert( RenderTechPassName{rtech_pass} == DeskRTech.Draw_1 );
 
-			typename CtxType::Graphics	ctx{ *this };
-
-			Canvas	canvas;
-			canvas.NextFrame( GetFrameId() );
-
-			// draw
+			auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
+									.AddViewport( t.viewSize )
+									.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black}, EResourceState::Invalidate, EResourceState::CopySrc ));
 			{
-				constexpr auto&		rtech_pass = RTech.Draw_1;
-				StaticAssert( rtech_pass.attachmentsCount == 1 );
-				StaticAssert( RenderTechPassName{rtech_pass} == DeskRTech.Draw_1 );
+				canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.9f, -0.5f, -0.5f}, HtmlColor::BlueViolet });
+				canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.4f, -0.5f,  0.0f}, HtmlColor::Green });
+				canvas.Draw( Rectangle2DStrip{ RectF{-0.9f,  0.1f, -0.5f,  0.5f}, HtmlColor::Red });
 
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ *t.rtech, rtech_pass, t.viewSize }
-										.AddViewport( t.viewSize )
-										.AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black}, EResourceState::Invalidate, EResourceState::CopySrc ));
-				{
-					canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.9f, -0.5f, -0.5f}, HtmlColor::BlueViolet });
-					canvas.Draw( Rectangle2DStrip{ RectF{-0.9f, -0.4f, -0.5f,  0.0f}, HtmlColor::Green });
-					canvas.Draw( Rectangle2DStrip{ RectF{-0.9f,  0.1f, -0.5f,  0.5f}, HtmlColor::Red });
+				dctx.BindPipeline( t.ppln_tristrip );
+				canvas.Flush( dctx, EPrimitive::TriangleStrip );
+			}
+			{
+				canvas.Draw( Rectangle2D{ RectF{0.5f, -0.9f, 0.9f, -0.5f}, HtmlColor::Blue });
+				canvas.Draw( FilledCircle2D{ 16, RectF{0.5f, -0.4f, 0.9f, 0.0f}, RectF{0.f, 0.f, 1.f, 1.f}, HtmlColor::Red });
 
-					dctx.BindPipeline( t.ppln_tristrip );
-					canvas.Flush( dctx, EPrimitive::TriangleStrip );
-				}
-				{
-					canvas.Draw( Rectangle2D{ RectF{0.5f, -0.9f, 0.9f, -0.5f}, HtmlColor::Blue });
-					canvas.Draw( FilledCircle2D{ 16, RectF{0.5f, -0.4f, 0.9f, 0.0f}, RectF{0.f, 0.f, 1.f, 1.f}, HtmlColor::Red });
+				canvas.Draw( NinePatch2D{ RectF{-0.4f, -0.9f, 0.4f, -0.1f},	RectF{0.2f, 0.2f, 0.2f, 0.2f},
+											RectF{0.f, 0.f, 1.f, 1.f},		RectF{0.25f, 0.25f, 0.25f, 0.25f},
+											HtmlColor::Orange });
 
-					canvas.Draw( NinePatch2D{ RectF{-0.4f, -0.9f, 0.4f, -0.1f},	RectF{0.2f, 0.2f, 0.2f, 0.2f},
-											  RectF{0.f, 0.f, 1.f, 1.f},		RectF{0.25f, 0.25f, 0.25f, 0.25f},
-											  HtmlColor::Orange });
-
-					dctx.BindPipeline( t.ppln_trilist );
-					canvas.Flush( dctx, EPrimitive::TriangleList );
-				}
-
-				// desktop only
-				if ( t.ppln_trilist_lines )
-				{
-					canvas.Draw( FilledCircle2D{ 16, RectF{0.5f, 0.5f, 0.9f, 0.9f}, RectF{0.f, 0.f, 1.f, 1.f}, HtmlColor::Red });
-					canvas.Draw( NinePatch2D{ RectF{-0.4f, 0.1f, 0.4f, 0.9f},	RectF{0.2f, 0.2f, 0.2f, 0.2f},
-											  RectF{0.f, 0.f, 1.f, 1.f},		RectF{0.25f, 0.25f, 0.25f, 0.25f},
-											  HtmlColor::Orange });
-
-					dctx.BindPipeline( t.ppln_trilist_lines );
-					canvas.Flush( dctx, EPrimitive::TriangleList );
-				}
-
-				ctx.EndRenderPass( dctx );
+				dctx.BindPipeline( t.ppln_trilist );
+				canvas.Flush( dctx, EPrimitive::TriangleList );
 			}
 
-			Execute( ctx );
+			// desktop only
+			if ( t.ppln_trilist_lines )
+			{
+				canvas.Draw( FilledCircle2D{ 16, RectF{0.5f, 0.5f, 0.9f, 0.9f}, RectF{0.f, 0.f, 1.f, 1.f}, HtmlColor::Red });
+				canvas.Draw( NinePatch2D{ RectF{-0.4f, 0.1f, 0.4f, 0.9f},	RectF{0.2f, 0.2f, 0.2f, 0.2f},
+											RectF{0.f, 0.f, 1.f, 1.f},		RectF{0.25f, 0.25f, 0.25f, 0.25f},
+											HtmlColor::Orange });
+
+				dctx.BindPipeline( t.ppln_trilist_lines );
+				canvas.Flush( dctx, EPrimitive::TriangleList );
+			}
+
+			ctx.EndRenderPass( dctx );
 		}
-	};
+
+		RenderCoro_Execute( ctx );
+	}
+
 
 	template <typename Ctx>
-	class CR1_CopyTask final : public RenderTask
+	static RenderCoro  CR1_CopyTask (CR1_TestData& t) __NE___
 	{
-	public:
-		CR1_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		CR1_CopyTask (CR1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ batch, dbg },
-			t{ t }
-		{}
+		Ctx		ctx{ RenderCoro_Get() };
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+		t.result = ctx.ReadbackImage( t.img, Default )
+					.Then(	t,
+							[] (Promise<ImageMemView> readRes, CoSafe<CR1_TestData &> t) -> InlineCoro<>
+							{
+								auto view = co_await readRes;
+								t->isOK = t->imgCmp->Compare( view );
+							});
 
-			Ctx		ctx{ *this };
+		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then(	[p = &t] (const ImageMemView &view)
-								{
-									p->isOK = p->imgCmp->Compare( view );
-								})};
-
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename CtxType, typename CopyCtx>
@@ -170,19 +151,19 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Canvas batch"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Run< CR1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{},					 {"Draw task"} );
-		AsyncTask	task2	= batch->Run< CR1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+		AsyncTask	task1	= batch->Run( CR1_DrawTask<CtxType>( t ), Tuple{},					  {"Draw task"} );
+		AsyncTask	task2	= batch->Run( CR1_CopyTask<CopyCtx>( t ), Tuple{task1}, True{"Last"}, {"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
+		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK );
 		return true;

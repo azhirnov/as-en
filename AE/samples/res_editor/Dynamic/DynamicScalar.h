@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Common.h"
+#include "Common.h"
 
 namespace AE::ResEditor
 {

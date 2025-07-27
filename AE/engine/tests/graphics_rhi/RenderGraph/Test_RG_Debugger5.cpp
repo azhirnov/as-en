@@ -48,151 +48,120 @@ namespace
 
 
 	template <typename CtxTypes>
-	class Db5_UploadTask final : public RenderTask
+	static RenderCoro  Db5_UploadTask (Db5_TestData& t)
 	{
-	public:
-		Db5_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		Db5_UploadTask (Db5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		typename CtxTypes::Transfer	copy_ctx{ RenderCoro_Get() };
 
-		void  Run () __Th_OV
+		RTSceneBuild	scene_build{ 1u, Default };
+		scene_build.SetScratchBuffer( t.scratch );
+		scene_build.SetInstanceData( t.instances );
+
+		CHECK_CE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
+		CHECK_CE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
+
+		switch_enum( copy_ctx.GetDevice().GetGraphicsAPI() )
 		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			typename CtxTypes::Transfer	copy_ctx{ *this };
-
-			RTSceneBuild	scene_build{ 1u, Default };
-			scene_build.SetScratchBuffer( t.scratch );
-			scene_build.SetInstanceData( t.instances );
-
-			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
-			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
-
-			switch_enum( copy_ctx.GetDevice().GetGraphicsAPI() )
+			case EGraphicsAPI::Vulkan :
 			{
-				case EGraphicsAPI::Vulkan :
-				{
-					RTSceneBuild::InstanceVk	inst;
-					inst.Init();
-					CHECK_TE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
-					CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
-					break;
-				}
-				case EGraphicsAPI::Metal :
-				{
-					RTSceneBuild::InstanceMtl	inst;
-					inst.Init();
-					CHECK_TE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
-					CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
-					break;
-				}
+				RTSceneBuild::InstanceVk	inst;
+				inst.Init();
+				CHECK_CE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
+				CHECK_CE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+				break;
 			}
-			switch_end
-
-			typename CtxTypes::ASBuild	as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
-
-			as_ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::CopyDst, EResourceState::BuildRTAS_Read );
-
-			as_ctx.Build(
-				RTGeometryBuild{
-					ArrayView<RTGeometryBuild::TrianglesInfo>{ &t.triangleInfo, 1 },
-					ArrayView<RTGeometryBuild::TrianglesData>{ &t.triangleData, 1 },
-					Default, Default,
-					Default
-				}.SetScratchBuffer( t.scratch ),
-				t.rtGeom );
-
-			as_ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::BuildRTAS_Read );
-
-			as_ctx.Build( scene_build, t.rtScene );
-
-			Execute( as_ctx );
+			case EGraphicsAPI::Metal :
+			{
+				RTSceneBuild::InstanceMtl	inst;
+				inst.Init();
+				CHECK_CE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
+				CHECK_CE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+				break;
+			}
 		}
-	};
+		switch_end
+
+		typename CtxTypes::ASBuild	as_ctx{ RenderCoro_Get(), copy_ctx.ReleaseCommandBuffer() };
+
+		as_ctx.AccumBarriers()
+			.MemoryBarrier( EResourceState::CopyDst, EResourceState::BuildRTAS_Read );
+
+		as_ctx.Build(
+			RTGeometryBuild{
+				ArrayView<RTGeometryBuild::TrianglesInfo>{ &t.triangleInfo, 1 },
+				ArrayView<RTGeometryBuild::TrianglesData>{ &t.triangleData, 1 },
+				Default, Default,
+				Default
+			}.SetScratchBuffer( t.scratch ),
+			t.rtGeom );
+
+		as_ctx.AccumBarriers()
+			.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::BuildRTAS_Read );
+
+		as_ctx.Build( scene_build, t.rtScene );
+
+		RenderCoro_Execute( as_ctx );
+	}
 
 
 	template <typename CtxTypes>
-	class Db5_RayTracingTask final : public RenderTask
+	static RenderCoro  Db5_RayTracingTask (Db5_TestData& t)
 	{
-	public:
-		Db5_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		Db5_RayTracingTask (Db5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		const auto	img_state	= EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+		typename CtxTypes::Transfer		copy_ctx{ RenderCoro_Get() };
 
-			const auto	img_state	= EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
-
-			typename CtxTypes::Transfer		copy_ctx{ *this };
-
-			ShaderDebugger::Result	dbg;
-			CHECK_TE( t.debugger.AllocForCompute( OUT dbg, copy_ctx, t.ppln, uint3{t.viewSize/2, 0} ));
+		ShaderDebugger::Result	dbg;
+		CHECK_CE( t.debugger.AllocForCompute( OUT dbg, copy_ctx, t.ppln, uint3{t.viewSize/2, 0} ));
 
 
-			typename CtxTypes::Compute		ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
+		typename CtxTypes::Compute		ctx{ RenderCoro_Get(), copy_ctx.ReleaseCommandBuffer() };
 
-			ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS | EResourceState::ComputeShader )
-				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+		ctx.AccumBarriers()
+			.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS | EResourceState::ComputeShader )
+			.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 
-			ctx.BindPipeline( t.ppln );
-			ctx.BindDescriptorSet( t.ds_index, t.ds );
-			ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
-			ctx.Dispatch( DivCeil( t.viewSize, 8u ));
+		ctx.BindPipeline( t.ppln );
+		ctx.BindDescriptorSet( t.ds_index, t.ds );
+		ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
+		ctx.Dispatch( DivCeil( t.viewSize, 8u ));
 
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+		ctx.AccumBarriers()
+			.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
 
-			Execute( ctx );
-		}
-	};
+		RenderCoro_Execute( ctx );
+	}
 
 
 	template <typename Ctx>
-	class Db5_CopyTask final : public RenderTask
+	static RenderCoro  Db5_CopyTask (Db5_TestData& t)
 	{
-	public:
-		Db5_TestData&	t;
+		DeferExLock	lock {t.guard};
+		CHECK_CE( lock.try_lock() );
 
-		Db5_CopyTask (Db5_TestData& t, CommandBatchPtr batch, DebugLabel dbg) __NE___ :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+		Ctx		ctx{ RenderCoro_Get() };
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+		auto	task1 = ctx.ReadbackImage( t.img, Default );
+		auto	task2 = t.debugger.ReadAll( ctx );
 
-			Ctx		ctx{ *this };
+		t.result =
+			[] (auto readOp, auto dbgRes, auto& t) -> InlineCoro<>
+			{
+				auto	res = Coro_WaitResultOrCancel( readOp, dbgRes );
+				auto& [view, trace_str] = res;
 
-			auto	task1 = ctx.ReadbackImage( t.img, Default );
-			auto	task2 = t.debugger.ReadAll( ctx );
+				bool	ok = t.imgCmp->Compare( view );
+				ASSERT( ok );
+				ASSERT( trace_str.size() == 1 );
 
-			t.result = AsyncTask{ MakePromiseFrom( task1.readOp, task2 )
-				.Then( [p = &t] (const Tuple<ImageMemView, Array<String>> &view_and_str)
+				if ( trace_str.size() == 1 )
 				{
-					bool	ok = p->imgCmp->Compare( view_and_str.Get<ImageMemView>() );
-					ASSERT( ok );
-
-					Array<String>	trace_str = view_and_str.Get<Array<String>>();
-					ASSERT( trace_str.size() == 1 );
-
-					if ( trace_str.size() == 1 )
-					{
-						const StringView	ref_str =
+					const StringView	ref_str =
 R"(//> gl_GlobalInvocationID: uint3 {400, 300, 0}
 //> gl_LocalInvocationID: uint3 {0, 4, 0}
 //> gl_WorkGroupID: uint3 {50, 37, 0}
@@ -251,19 +220,18 @@ no source
 34. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 )";
-						ok &= (trace_str[0] == ref_str);
-						ASSERT( ok );
-						p->isOK = ok;
-					}
-				})};
+					ok &= (trace_str[0] == ref_str);
+					ASSERT( ok );
+					t.isOK = ok;
+				}
+			}( task1.readOp, task2, t );
 
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
+		ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-			Execute( ctx );
+		RenderCoro_Execute( ctx );
 
-			GraphicsScheduler().AddNextCycleEndDeps( t.result );
-		}
-	};
+		GraphicsScheduler().AddNextCycleEndDeps( t.result );
+	}
 
 
 	template <typename CtxTypes, typename CopyCtx>
@@ -346,20 +314,20 @@ no source
 		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Debugger5"} );
 		CHECK_ERR( t.batch );
 
-		AsyncTask	task1	= t.batch->Run< Db5_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{},						{"Upload RTAS task"} );
-		AsyncTask	task2	= t.batch->Run< Db5_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},					{"Ray tracing task"} );
-		AsyncTask	task3	= t.batch->Run< Db5_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},	{"Readback task"} );
+		AsyncTask	task1	= t.batch->Run( Db5_UploadTask<CtxTypes>(t),	 Tuple{},						{"Upload RTAS task"} );
+		AsyncTask	task2	= t.batch->Run( Db5_RayTracingTask<CtxTypes>(t), Tuple{task1},					{"Ray tracing task"} );
+		AsyncTask	task3	= t.batch->Run( Db5_CopyTask<CopyCtx>(t),		 Tuple{task2}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task3} );
 
 
 		CHECK_ERR( Scheduler().Wait( {end}, c_MaxTimeout ));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+		CHECK_ERR( end->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( rts.WaitAll( c_MaxTimeout ));
 
 		CHECK_ERR( Scheduler().Wait( {t.result}, c_MaxTimeout ));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
+		CHECK_ERR( t.result->Status() == ETaskStatus::Completed );
 
 		CHECK_ERR( t.isOK );
 		return true;

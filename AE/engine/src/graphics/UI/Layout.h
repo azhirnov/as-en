@@ -92,6 +92,7 @@ namespace AE::UI
 			Drawable	= 1 << 0,
 			Controller	= 1 << 1,
 			Childs		= 1 << 2,
+			_BITOPS_
 		};
 
 

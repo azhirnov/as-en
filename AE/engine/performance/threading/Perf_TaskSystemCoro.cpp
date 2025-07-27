@@ -30,7 +30,7 @@ namespace
 	};
 
 
-	static CoroTask  FinalTask (HashVal h)
+	static AsyncCoro  FinalTask (HashVal h)
 	{
 		Unused( h );
 		task_complete.fetch_add( 1 );
@@ -41,7 +41,7 @@ namespace
 
 namespace
 {
-	static CoroTask  LargeTask1 (const uint2 cell, const uint level, HashVal h = Default)
+	static AsyncCoro  LargeTask1 (const uint2 cell, const uint level, HashVal h = Default)
 	{
 		auto				result	= MakeRC<HeightMap>();
 		const TimePoint_t	start	= TimePoint_t::clock::now();
@@ -124,7 +124,7 @@ namespace
 
 namespace
 {
-	static CoroTask  LargeTask2 (const uint2 cell, const uint level, HashVal h = Default)
+	static AsyncCoro  LargeTask2 (const uint2 cell, const uint level, HashVal h = Default)
 	{
 		auto				result	= MakeRC<HeightMap>();
 		const TimePoint_t	start	= TimePoint_t::clock::now();
@@ -209,7 +209,7 @@ namespace
 
 namespace
 {
-	static CoroTask  LargeTask3 (const uint2 cell, const uint level, HashVal h = Default)
+	static AsyncCoro  LargeTask3 (const uint2 cell, const uint level, HashVal h = Default)
 	{
 		auto	result = MakeRC<HeightMap>();
 		if ( level < max_levels2 )

@@ -24,7 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VRayTracingPipeline::Create (VResourceManager &resMngr, const CreateInfo &ci) __NE___
+	bool  VRayTracingPipeline::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( (ci.specCI.dynamicState & ~EPipelineDynamicState::RayTracingPipelineMask) == Zero );
@@ -195,7 +195,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VRayTracingPipeline::Destroy (VResourceManager &resMngr) __NE___
+	void  VRayTracingPipeline::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

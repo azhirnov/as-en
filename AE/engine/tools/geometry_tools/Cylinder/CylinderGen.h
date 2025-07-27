@@ -2,12 +2,10 @@
 
 #pragma once
 
-#include "geometry_tools/GeometryTools.pch.h"
+#include "geometry_tools/Common.h"
 
 namespace AE::GeometryTools
 {
-	using namespace AE::Base;
-
 
 	//
 	// Cylinder Generator

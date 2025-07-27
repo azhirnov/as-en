@@ -1,37 +1,37 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 set( PLATFORM_DIR "${MAIN_SOURCE_DIR}/engine/src/platform" )
-set( PLATFORM_HPP_SRC
+set( PLATFORM_SRC
 	"${PLATFORM_DIR}/Private/SerializableInputActions.h"
-	"${PLATFORM_DIR}/GLFW/SerializableInputActionsGLFW.h"
-	"${PLATFORM_DIR}/WinAPI/SerializableInputActionsWinAPI.h"
-	"${PLATFORM_DIR}/Android/SerializableInputActionsAndroid.h"
-	"${PLATFORM_DIR}/OpenVR/SerializableInputActionsOpenVR.h" )
-
-set( PLATFORM_CPP_SRC
 	"${PLATFORM_DIR}/Private/SerializableInputActions.cpp"
+	"${PLATFORM_DIR}/Private/SerializableInputActions.cpp.h"
+	"${PLATFORM_DIR}/GLFW/SerializableInputActionsGLFW.h"
 	"${PLATFORM_DIR}/GLFW/SerializableInputActionsGLFW.cpp"
+	"${PLATFORM_DIR}/GLFW/SerializableInputActionsGLFW.cpp.h"
+	"${PLATFORM_DIR}/WinAPI/SerializableInputActionsWinAPI.h"
 	"${PLATFORM_DIR}/WinAPI/SerializableInputActionsWinAPI.cpp"
+	"${PLATFORM_DIR}/WinAPI/SerializableInputActionsWinAPI.cpp.h"
+	"${PLATFORM_DIR}/Android/SerializableInputActionsAndroid.h"
 	"${PLATFORM_DIR}/Android/SerializableInputActionsAndroid.cpp"
-	"${PLATFORM_DIR}/OpenVR/SerializableInputActionsOpenVR.cpp" )
+	"${PLATFORM_DIR}/Android/SerializableInputActionsAndroid.cpp.h"
+	"${PLATFORM_DIR}/OpenVR/SerializableInputActionsOpenVR.h"
+	"${PLATFORM_DIR}/OpenVR/SerializableInputActionsOpenVR.cpp"
+	"${PLATFORM_DIR}/OpenVR/SerializableInputActionsOpenVR.cpp.h" )
 
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
-if (NOT (DEFINED ENGINE_LIBS_PATH))
-	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
-endif()
+file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
+
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
-add_library( "InputActionsBinding" STATIC ${SOURCES} ${PLATFORM_HPP_SRC} ${PLATFORM_CPP_SRC} ${PREBUILD_CPP_FILE} )
+add_library( "InputActionsBinding" STATIC ${SOURCES} ${PLATFORM_SRC} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-source_group( "external/platform" FILES ${PLATFORM_HPP_SRC} ${PLATFORM_CPP_SRC} )
+source_group( "external/platform" FILES ${PLATFORM_SRC} )
 
 target_link_libraries( "InputActionsBinding" PUBLIC "Serializing" "Scripting" )
 target_compile_definitions( "InputActionsBinding" PRIVATE "AE_BUILD_INPUT_ACTIONS_BINDING" )
-target_include_directories( "InputActionsBinding" PUBLIC "." )
 
-EnablePCH( "InputActionsBinding" )
-EnablePrebuild( "InputActionsBinding" )
-EnableUnitBuild( "InputActionsBinding" )
+UseEnginePCH2( "InputActionsBinding" )
+EnableUnityBuild( "InputActionsBinding" )
 
 add_library( "InputActionsBinding-shared" SHARED
 	"InputActionsBinding.h"

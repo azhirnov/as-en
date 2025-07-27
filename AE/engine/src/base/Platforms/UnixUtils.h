@@ -8,7 +8,6 @@
 
 # include "base/Math/Byte.h"
 # include "base/Utils/Helpers.h"
-# include "base/Utils/SourceLoc.h"
 # include "base/Utils/Threading.h"
 # include "base/Utils/Version.h"
 # include "base/Platforms/CPUInfo.h"
@@ -164,20 +163,20 @@ namespace AE::Base
 
 #ifdef AE_DEBUG
 #	define UNIX_CHECK_DEV( _msg_ ) \
-		AE::Base::UnixUtils::CheckError( (_msg_), SourceLoc_Current(), AE::ELogLevel::Debug )
+		AE::Base::UnixUtils::CheckError( (_msg_), AE::Base::SourceLoc::current(), AE::ELogLevel::Debug )
 
 #	define UNIX_CHECK_DEV2( _err_, _msg_ ) \
-		AE::Base::UnixUtils::CheckError( (_err_), (_msg_), SourceLoc_Current(), AE::ELogLevel::Debug )
+		AE::Base::UnixUtils::CheckError( (_err_), (_msg_), AE::Base::SourceLoc::current(), AE::ELogLevel::Debug )
 #else
 #	define UNIX_CHECK_DEV( _msg_ )			{}
 #	define UNIX_CHECK_DEV2( _err_, _msg_ )	{}
 #endif
 
 #define UNIX_CHECK( _msg_ ) \
-	AE::Base::UnixUtils::CheckError( (_msg_), SourceLoc_Current(), AE::ELogLevel::Error )
+	AE::Base::UnixUtils::CheckError( (_msg_), AE::Base::SourceLoc::current(), AE::ELogLevel::Error )
 
 #define UNIX_CHECK2( _err_, _msg_ ) \
-	AE::Base::UnixUtils::CheckError( (_err_), (_msg_), SourceLoc_Current(), AE::ELogLevel::Error )
+	AE::Base::UnixUtils::CheckError( (_err_), (_msg_), AE::Base::SourceLoc::current(), AE::ELogLevel::Error )
 
 
 } // AE::Base

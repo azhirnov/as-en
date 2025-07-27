@@ -1067,3 +1067,5 @@ struct std::hash< AE::Scripting::AngelScriptHelper::SharedPtr<T> > {
 		return size_t(key.Get());
 	}
 };
+
+//AE_DECL_SCRIPT_OBJ_RC( AE::Scripting::AngelScriptHelper::SimpleRefCounter, "" );

@@ -11,11 +11,11 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	_VDirectDrawCtx::_VDirectDrawCtx (const DrawTask &task) __Th___ :
+	_VDirectDrawCtx::_VDirectDrawCtx (DrawCoroRef task) __Th___ :
 		_VBaseDirectContext{	// throw
-			_ReuseOrCreateCommandBuffer( *task.GetDrawBatchPtr(), Default, DebugLabel{ task.DbgFullName(), task.DbgColor() })
+			_ReuseOrCreateCommandBuffer( *task.DrawBatchPtr(), Default, DebugLabel{ task.DbgFullName(), task.DbgColor() })
 		},
-		_mngr{ task.GetDrawBatchPtr() }	// throw
+		_mngr{ task.DrawBatchPtr() }	// throw
 	{
 		CHECK_THROW( task.IsValid() );
 
@@ -78,9 +78,9 @@ namespace AE::Graphics::_hidden_
 		GFX_DBG_ONLY( GraphicsScheduler().DbgCheckFrameId( _mngr.GetFrameId(), "DrawTask" );)
 	}
 
-	_VIndirectDrawCtx::_VIndirectDrawCtx (const DrawTask &task) __Th___ :
+	_VIndirectDrawCtx::_VIndirectDrawCtx (DrawCoroRef task) __Th___ :
 		_VBaseIndirectContext{ DebugLabel{ task.DbgFullName(), task.DbgColor() }},	// throw
-		_mngr{ task.GetDrawBatchPtr() }												// throw
+		_mngr{ task.DrawBatchPtr() }												// throw
 	{
 		CHECK_THROW( task.IsValid() );
 

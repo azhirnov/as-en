@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/PipelineCompiler.inl.h"
-#include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Scripting/ScriptBuffer.h"
+#include "Scripting/PipelineCompiler.inl.h"
+#include "Scripting/ScriptExe.h"
+#include "Scripting/ScriptBuffer.h"
 
 namespace AE::ResEditor
 {
@@ -40,20 +40,18 @@ namespace
 
 		_outDynSize = ScriptDynamicDimPtr{ new ScriptDynamicDim{ MakeRC<DynamicDim>( uint3{}, EImageDim_2D )}};
 
-		_videoInfo = MakePromise(
-			[fname = _videoFile] () -> PromiseResult< VideoStreamInfo >
+		_videoInfo = CreateAsyncRev(
+			_videoFile,
+			[] (VFS::FileName fname) -> ScheduledPromise< VideoStreamInfo, ETaskQueue::Background >
 			{
 				auto	rstream = GetVFS().Open<RStream>( fname );
-				CHECK_PE( rstream );
+				CHECK_CE( rstream );
 
 				auto	decoder = Video::VideoFactory::CreateFFmpegDecoder();
-				CHECK_PE( decoder );
+				CHECK_CE( decoder );
 
-				return decoder->GetFileProperties( RVRef(rstream), VideoImage::GetHwConfig() ).videoStream;
-			},
-			Tuple{},
-			"async read video props",
-			ETaskQueue::Background );
+				co_return decoder->GetFileProperties( RVRef(rstream), VideoImage::GetHwConfig() ).videoStream;
+			});
 	}
 
 /*
@@ -250,7 +248,7 @@ namespace
 		Renderer&	renderer = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 
 		VideoStreamInfo		video_stream_info;
-		CHECK_ERR( _videoInfo.WithResult( [&video_stream_info] (const VideoStreamInfo &info){ video_stream_info = info; }));
+		CHECK_ERR( WithResult( _videoInfo, [&video_stream_info] (const VideoStreamInfo &info){ video_stream_info = info; }));
 
 		_outDynSize->Get()->Resize( video_stream_info.dimension );
 
@@ -277,7 +275,8 @@ namespace
 
 		if ( HasYcbcrSampler() )
 		{
-			_videoInfo.WithResult(
+			WithResult(
+				_videoInfo,
 				[this] (const VideoStreamInfo &info)
 				{
 					CHECK_THROW( info.IsValid() );
@@ -295,7 +294,8 @@ namespace
 		}
 		else
 		{
-			_videoInfo.WithResult(
+			WithResult(
+				_videoInfo,
 				[this] (const VideoStreamInfo &info)
 				{
 					_dim = info.dimension;

@@ -17,15 +17,15 @@ namespace AE::Graphics
 
 	struct VRTPartitionedScene : Noninstanceable
 	{
-		ND_ static RTASBuildSizes	GetBuildSizes (const VResourceManager &, const RTPartitionedSceneInfo &)		__NE___;
+		ND_ static RTASBuildSizes	GetBuildSizes (const ResourceManager &, const RTPartitionedSceneInfo &)		__NE___;
 
-		ND_ static bool				ConvertBuildInfo (const VResourceManager &, const RTPartitionedSceneBuild &,
+		ND_ static bool				ConvertBuildInfo (const ResourceManager &, const RTPartitionedSceneBuild &,
 													  OUT VkBuildPartitionedAccelerationStructureInfoNV &)			__NE___;
 
-		ND_ static bool				IsSupported (const VResourceManager &, const RTPartitionedSceneInfo &)			__NE___;
+		ND_ static bool				IsSupported (const ResourceManager &, const RTPartitionedSceneInfo &)			__NE___;
 
 	private:
-		ND_ static bool  _Convert (const VResourceManager &, const RTPartitionedSceneInfo &desc,
+		ND_ static bool  _Convert (const ResourceManager &, const RTPartitionedSceneInfo &desc,
 								   OUT VkPartitionedAccelerationStructureInstancesInputNV &inputInfo)				__NE___;
 	};
 

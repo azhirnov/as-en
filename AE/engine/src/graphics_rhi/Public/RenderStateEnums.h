@@ -156,8 +156,8 @@ namespace AE::Graphics
 
 		FontAndBack	= Front | Back,
 		Unknown		= None,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( ECullMode );
 
 
 	enum class EPipelineDynamicState : ushort
@@ -191,7 +191,6 @@ namespace AE::Graphics
 		TilePipelineMask		= 0,
 		RayTracingPipelineMask	= RTStackSize,
 	};
-	AE_BIT_OPERATORS( EPipelineDynamicState );
 
 
 } // AE::Graphics

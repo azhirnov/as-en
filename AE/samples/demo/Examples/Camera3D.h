@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "demo/Core/ISample.h"
+#include "Core/ISample.h"
 
 namespace AE::Samples::Demo
 {
@@ -13,9 +13,6 @@ namespace AE::Samples::Demo
 	{
 	// types
 	private:
-		class DrawTask;
-		class ProcessInputTask;
-
 		using Camera				= TFPVCamera<float>;
 		using CubeRenderer			= GeometryTools::CubeRenderer;
 		using SphericalCubeRenderer	= GeometryTools::SphericalCubeRenderer;
@@ -55,6 +52,10 @@ namespace AE::Samples::Demo
 		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	__NE_OV;
 		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					__NE_OV;
 		InputModeName	GetInputMode ()														C_NE_OV;
+
+	private:
+		static AsyncCoro   _ProcessInputTask (RC<Camera3DSample>, ActionQueueReader)		__NE___;
+		static RenderCoro  _DrawTask (RC<Camera3DSample>, IOutputSurface &)					__NE___;
 	};
 
 

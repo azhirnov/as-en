@@ -9,7 +9,6 @@
 
 namespace AE::App
 {
-	using AE::Threading::Promise;
 	using AE::VFS::FileName;
 	using AE::VFS::FileGroupName;
 

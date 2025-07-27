@@ -14,7 +14,7 @@
 #	pragma warning (pop)
 # endif
 
-# include "CDT_Triangulator.h"
+# include "geometry_tools/Triangulation/CDT_Triangulator.h"
 
 namespace AE::GeometryTools
 {

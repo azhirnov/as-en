@@ -193,10 +193,15 @@ namespace LFAS::CPP
 			delay = _random.Uniform( 0, 20 );
 		}
 
-		if ( delay > 4 )
-			return;
+		//if ( delay > 4 )
+		//	return;
 
-		std::this_thread::sleep_for( milliseconds{delay} );	// TODO
+		//std::this_thread::sleep_for( milliseconds{delay} );	// TODO
+
+		for (uint i = 0; i < delay; ++i)
+		{
+			ThreadUtils::Pause();
+		}
 	}
 
 /*
@@ -227,7 +232,7 @@ namespace LFAS::CPP
 	{
 		EXLOCK( _atomicMapGuard );
 
-		auto[iter, inserted] = _atomicMap.insert({ ptr, AtomicInfo{} });
+		auto[iter, inserted] = _atomicMap.emplace( ptr, AtomicInfo{} );
 
 		if ( not inserted )
 		{
@@ -282,7 +287,7 @@ namespace LFAS::CPP
 	{
 		EXLOCK( _storageMapGuard );
 
-		auto[iter, insert] = _storageMap.insert({ ptr, StorageInfo{size} });
+		auto [iter, insert] = _storageMap.emplace( ptr, StorageInfo{size} );
 
 		if ( not insert )
 		{
@@ -388,7 +393,7 @@ namespace LFAS::CPP
 	{
 		CHECK_ERRV( not scripts.empty() );
 
-		const usize	max_threads	= Max( 8u, std::thread::hardware_concurrency() );	// 1.5x of hw threads for more chaos
+		const usize	max_threads	= Max( 8u, std::thread::hardware_concurrency()*3/2 );	// 1.5x of hw threads for more chaos
 
 		std::atomic<bool>	break_all {false};
 		Array<std::thread>	threads;
@@ -413,7 +418,7 @@ namespace LFAS::CPP
 			}
 		}
 
-		std::this_thread::sleep_for( timeout );		// TODO: random sleep time Nano/Micor/Milli
+		std::this_thread::sleep_for( timeout );
 
 		break_all.store( true );
 		AE_LOGI( "RunParallel - wait" );

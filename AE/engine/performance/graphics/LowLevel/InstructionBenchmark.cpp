@@ -6,7 +6,7 @@ namespace AE::Graphics
 {
 namespace
 {
-	#include "performance/graphics/Resources/cpp/InstructionBenchmark.cpp.h"
+	#include "InstructionBenchmark.cpp.h"
 
 	using namespace AE::Threading;
 
@@ -782,9 +782,9 @@ namespace
 	_IBenchmarkTask
 =================================================
 */
-	RenderTaskCoro  LowLevelPerfCore::_IBenchmarkTask (GraphicsPipelineID ppln, DescriptorSetID, Query& q, uint qIndex, bool isLast) const
+	RenderCoro  LowLevelPerfCore::_IBenchmarkTask (GraphicsPipelineID ppln, DescriptorSetID, Query& q, uint qIndex, bool isLast) const
 	{
-		RenderTask&		self = co_await RenderTask_GetRef;
+		auto	self = RenderCoro_Get();
 
 		DirectCtx::Graphics	ctx{ self };
 
@@ -831,14 +831,12 @@ namespace
 			tctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-			co_await RenderTask_Execute( tctx );
+			RenderCoro_Execute( tctx );
 		}
 		else
 		{
-			co_await RenderTask_Execute( ctx );
+			RenderCoro_Execute( ctx );
 		}
-
-		co_return;
 	}
 
 /*
@@ -846,10 +844,10 @@ namespace
 	_IBenchmarkTask
 =================================================
 */
-	RenderTaskCoro  LowLevelPerfCore::_IBenchmarkTask (ComputePipelineID ppln, DescriptorSetID ds, Query& q, uint qIndex, bool isLast) const
+	RenderCoro  LowLevelPerfCore::_IBenchmarkTask (ComputePipelineID ppln, DescriptorSetID ds, Query& q, uint qIndex, bool isLast) const
 	{
-		RenderTask&		self	= co_await RenderTask_GetRef;
-		const auto		state	= EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
+		auto		self	= RenderCoro_Get();
+		const auto	state	= EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
 
 		DirectCtx::Compute	ctx{ self };
 
@@ -893,14 +891,12 @@ namespace
 			tctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-			co_await RenderTask_Execute( tctx );
+			RenderCoro_Execute( tctx );
 		}
 		else
 		{
-			co_await RenderTask_Execute( ctx );
+			RenderCoro_Execute( ctx );
 		}
-
-		co_return;
 	}
 
 /*

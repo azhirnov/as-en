@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "TestsGraphicsRHI.pch.h"
+#include "UnitTest_Common.h"
 
 using namespace AE;
 using namespace AE::App;

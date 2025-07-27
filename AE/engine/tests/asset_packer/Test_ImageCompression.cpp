@@ -5,8 +5,8 @@ using namespace AE::AssetPacker;
 
 namespace
 {
-	const bool				force_update	= true;
-	decltype(&PackAssets)	pack_assets		= null;
+	const bool		force_update	= true;
+	PackAssetsFn_t	pack_assets		= null;
 
 
 	static void  ImageCompression_Test1 ()

@@ -5,7 +5,7 @@
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
 #else
-# include "Packer/ShaderTraceDummy.h"
+# include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 #endif
 
 namespace AE::Graphics
@@ -19,14 +19,14 @@ namespace
 	{
 	// variables
 	private:
-		VResourceManager *			_resMngr	= null;
+		ResourceManager *			_resMngr	= null;
 		VPipelineCache const*		_cachePtr	= null;
 		Strong<PipelineCacheID>		_cacheId;
 
 
 	// methods
 	public:
-		AutoreleasePplnCache (VResourceManager &resMngr, PipelineCacheID cacheId)	__NE___	:
+		AutoreleasePplnCache (ResourceManager &resMngr, PipelineCacheID cacheId)	__NE___	:
 			_resMngr{&resMngr}
 		{
 			_cachePtr = _resMngr->GetResource( cacheId, True{"incRef"}, True{"quiet"} );

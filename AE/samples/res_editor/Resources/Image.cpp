@@ -7,9 +7,9 @@
 	* Add imageId to the RG state tracker before updating '_id' and '_view'.
 */
 
-#include "res_editor/Resources/Image.h"
-#include "res_editor/Core/RenderGraph.h"
-#include "res_editor/Passes/Renderer.h"
+#include "Resources/Image.h"
+#include "Core/RenderGraph.h"
+#include "Passes/Renderer.h"
 
 #include "res_pack/asset_packer/Packer/ImagePacker.h"
 
@@ -85,9 +85,14 @@ namespace {
 				auto	req = op.file->ReadRemaining( 0_b );	// TODO: read by blocks
 				CHECK_THROW( req );
 
-				op.loaded = req->AsPromise().Then( [fmt = op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); },
-													"Image::Load",
-													ETaskQueue::Background );
+				op.loaded = CreateInlineRev(
+					req, op.imgFormat,
+					[] (AsyncDSRequest req, EImageFormat fmt)
+						-> InlinePromise< IntermImageRC, ETaskQueue::Background >
+					{
+						auto  in = co_await req;
+						co_return _Load( in, fmt );
+					});
 			}
 
 			_DtTrQueue().EnqueueForUpload( GetRC() );
@@ -193,9 +198,13 @@ namespace {
 			auto	req			= load_op.file->ReadRemaining( 0_b );	// TODO: read by blocks
 			CHECK_THROW( req );
 
-			load_op.loaded	= req->AsPromise().Then( [fmt = load_op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); },
-													 "Image::Load",
-													 ETaskQueue::Background );
+			load_op.loaded	= CreateInlineRev(
+				req, load_op.imgFormat,
+				[] (AsyncDSRequest req, EImageFormat fmt) -> InlinePromise< IntermImageRC, ETaskQueue::Background >
+				{
+					auto res = co_await req;
+					co_return _Load( res, fmt );
+				});
 
 			result->_DtTrQueue().EnqueueForUpload( result );
 		}
@@ -224,7 +233,7 @@ namespace {
 			auto&	load_op = result->_loadOps.emplace_back();
 
 			load_op.flags	= flags;
-			load_op.loaded	= Threading::MakePromiseFromValue( RVRef(imageData) );
+			load_op.loaded	= DeferResult< IntermImageRC >( RVRef(imageData) );
 
 			result->_DtTrQueue().EnqueueForUpload( result );
 		}
@@ -348,10 +357,11 @@ namespace {
 
 		for (auto& op : _loadOps)
 		{
-			if ( op.IsCompleted() )
+			if ( op.IsUploadComplete() )
 				continue;
 
-			op.loaded.WithResult(
+			WithResult(
+				op.loaded,
 				[this, &ctx, &op, &failed] (const IntermImageRC &imageData)
 				{
 					if ( not imageData )
@@ -411,7 +421,7 @@ namespace {
 					}
 				});
 
-			all_complete &= op.IsCompleted();
+			all_complete &= op.IsUploadComplete();
 		}
 
 		if ( failed )
@@ -469,7 +479,7 @@ namespace {
 
 		for (auto& op : _loadOps)
 		{
-			ASSERT( op.IsCompleted() );
+			ASSERT( op.IsUploadComplete() );
 
 			if ( AllBits( op.flags, ELoadOpFlags::GenMipmaps ))
 			{
@@ -575,8 +585,12 @@ namespace {
 			}
 
 			ctx.ReadbackImage( INOUT op.stream )
-				.Then(	[self = GetRC<Image>(), cur_layer = op.curLayer, cur_mipmap = op.curMipmap, file = op.file] (const ImageMemView &memView) __Th___
+				.Then(	GetRC<Image>(), op.curLayer, op.curMipmap, op.file,
+						[] (Promise<ImageMemView> readOp, RC<Image> self, ImageLayer cur_layer, MipmapLevel cur_mipmap, RC<AsyncWDataSource> file)
+							-> InlineCoro< ETaskQueue::PerFrame >
 						{
+							ImageMemView	mem_view	= co_await readOp;
+
 							const auto		img_desc	= self->GetImageDesc();
 							const auto		view_desc	= self->GetViewDesc();
 							const auto		mipmap		= view_desc.baseMipmap + cur_mipmap;
@@ -594,25 +608,22 @@ namespace {
 							ImageDim_t	dim;
 							Bytes		off, slice_size;
 							Bytes32u	row_size;
-							ImagePacker_GetOffset( header, layer, mipmap, memView.OffsetRef(),
+							ImagePacker_GetOffset( header, layer, mipmap, mem_view.OffsetRef(),
 												   OUT dim, OUT off, OUT row_size, OUT slice_size );
 
 							CHECK( All( dim == mip_dim ));
-							CHECK_Eq( row_size, memView.RowPitch() );
+							CHECK_Eq( row_size, mem_view.RowPitch() );
 
-							if ( All( uint2{memView.Offset()} == uint2{0} ))
-								CHECK_Eq( slice_size, memView.SlicePitch() );
+							if ( All( uint2{mem_view.Offset()} == uint2{0} ))
+								CHECK_Eq( slice_size, mem_view.SlicePitch() );
 
-							auto	mem = file->Alloc( memView.ContentSize() );
+							auto	mem = file->Alloc( mem_view.ContentSize() );
 							CHECK_THROW( mem );
 
-							CHECK( memView.CopyTo( OUT mem->Data(), memView.ContentSize() ));
+							CHECK( mem_view.CopyTo( OUT mem->Data(), mem_view.ContentSize() ));
 
-							Unused( file->WriteBlock( off + SizeOf<AssetPacker::ImagePacker::FileHeader>, memView.ContentSize(), RVRef(mem) ));
-						},
-						"Image::Readback",
-						ETaskQueue::PerFrame
-					);
+							Unused( file->WriteBlock( off + SizeOf<AssetPacker::ImagePacker::FileHeader>, mem_view.ContentSize(), RVRef(mem) ));
+						});
 
 			if ( op.stream.IsCompleted() )
 			{
@@ -661,7 +672,7 @@ namespace {
 		for (auto& op : _loadOps)
 		{
 			if ( op.file )		op.file->CancelAllRequests();
-			if ( op.loaded )	op.loaded.Cancel();
+			if ( op.loaded )	Scheduler().Cancel( AsyncTask{op.loaded} );
 		}
 		Reconstruct( _loadOps );
 

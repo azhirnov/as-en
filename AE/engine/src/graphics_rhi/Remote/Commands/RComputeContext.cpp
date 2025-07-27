@@ -12,10 +12,10 @@ namespace AE::Graphics
 	constructor
 =================================================
 */
-	RComputeContext::RComputeContext (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+	RComputeContext::RComputeContext (RenderCoroRef task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
 		RBaseContext{ task, RVRef(cmdbuf), dbg, ECtxType::Compute }
 	{
-		Validator_t::CtxInit( task.GetQueueMask() );
+		Validator_t::CtxInit( task.QueueMask() );
 	}
 
 /*

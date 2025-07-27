@@ -92,7 +92,6 @@ namespace AE::Graphics
 		_Last,
 		All								= ((_Last - 1) << 1) - 1
 	};
-	AE_BIT_OPERATORS( ESamplerOpt );
 
 
 

@@ -15,9 +15,9 @@ namespace AE::Graphics
 		Opaque						= 1 << 0,	// indicates that this geometry does not invoke the any-hit shaders even if present in a hit group
 		NoDuplicateAnyHitInvocation	= 1 << 1,
 		_Last,
-		Unknown						= 0,
+		_BITOPS_,
+		Unknown						= 0
 	};
-	AE_BIT_OPERATORS( ERTGeometryOpt );
 
 
 
@@ -36,7 +36,6 @@ namespace AE::Graphics
 		TriangleCullBack			= 0,		// default
 		TriangleFrontCW				= 0,		// default
 	};
-	AE_BIT_OPERATORS( ERTInstanceOpt );
 
 
 
@@ -53,9 +52,9 @@ namespace AE::Graphics
 		AllowDataAccess				= 1 << 5,
 		//MotionNV
 		_Last,
+		All							= ((_Last-1) << 1) - 1,
 		Unknown						= 0,
 	};
-	AE_BIT_OPERATORS( ERTASOptions );
 
 
 
@@ -117,7 +116,6 @@ namespace AE::Graphics
 		TriangleCullBack			= 0,		// default
 		TriangleFrontCW				= 0,		// default
 	};
-	AE_BIT_OPERATORS( EPartitionedInstanceOpt );
 
 
 	//
@@ -196,7 +194,6 @@ namespace AE::Graphics
 		_Last,
 		All					= ((_Last - 1) << 1) - 1,
 	};
-	AE_BIT_OPERATORS( ERTClusterAddressResolution );
 
 
 	//
@@ -206,8 +203,8 @@ namespace AE::Graphics
 	{
 		Unknown							= 0,
 		AllowDisableOpacityMicromaps	= 1 << 0,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EClusterFlags );
 
 
 

@@ -31,7 +31,7 @@ namespace AE::Threading
 
 	// methods
 	public:
-		TSpinLock ()							__NE___ {}
+		__Cx__ TSpinLock ()						__NE___ {}
 		~TSpinLock ()							__NE___;
 
 		ND_ bool  is_unlocked ()				C_NE___	{ return _flag.load() == 0; }
@@ -69,7 +69,7 @@ namespace AE::Threading
 
 	// methods
 	public:
-		TRWSpinLock ()														__NE___ {}
+		__Cx__ TRWSpinLock ()												__NE___ {}
 		~TRWSpinLock ()														__NE___;
 
 		ND_ bool  is_unlocked ()											C_NE___	{ return _flag.load() == 0; }
@@ -139,8 +139,8 @@ namespace AE::Threading
 
 	// methods
 	public:
-		TValueWithSpinLockBit ()								__NE___ {}
-		explicit TValueWithSpinLockBit (Value_t v)				__NE___ : _value{v} { ASSERT( is_unlocked() ); }
+		__Cx__ TValueWithSpinLockBit ()							__NE___ {}
+		__Cx__ explicit TValueWithSpinLockBit (Value_t v)		__NE___ : _value{v} {} // ASSERT( is_unlocked() ); }
 		~TValueWithSpinLockBit ()								__NE___;
 
 		ND_ bool		try_lock ()								__NE___;

@@ -1,7 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 # External dependencies
-set( AE_ENABLE_FILESYSTEM  		ON  CACHE BOOL "enable alternative std::filesystem" )
 set( AE_ENABLE_ARM_HWCPIPE 		ON  CACHE BOOL "enable ARM (Mali) performance counters" )
 set( AE_ENABLE_PVRCOUNTER 		ON  CACHE BOOL "enable PowerVR performance counters" )
 
@@ -35,10 +34,6 @@ if (${AE_ENABLE_EXTERNAL_TESTS})
 endif()
 
 #----------------------------------------------------------
-
-if (${AE_ENABLE_FILESYSTEM})
-	add_subdirectory( "FileSystem" )
-endif()
 
 if (${AE_ENABLE_ARM_HWCPIPE})
 	add_subdirectory( "HWCPipe" )

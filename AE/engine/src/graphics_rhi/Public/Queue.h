@@ -33,8 +33,8 @@ namespace AE::Graphics
 		VideoDecode		= 1 << uint(EQueueType::VideoDecode),
 		All				= (1 << uint(EQueueType::_Count)) - 1,
 		Unknown			= 0,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( EQueueMask );
 
 
 	enum class EPipelineScope : ubyte
@@ -66,6 +66,7 @@ namespace AE::Graphics
 			Unknown		= 0,
 			ResetQuery	= 1 << 0,
 			FrameEnd	= 1 << 1,
+			_BITOPS_
 		};
 
 	// variables
@@ -93,9 +94,6 @@ namespace AE::Graphics
 	};
 //-----------------------------------------------------------------------------
 
-
-
-	AE_BIT_OPERATORS( CmdBatchDesc::EFlags );
 
 
 	inline CmdBatchDesc&  CmdBatchDesc::ResetQuery () __NE___

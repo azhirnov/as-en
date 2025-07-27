@@ -95,28 +95,15 @@ namespace AE::Threading
 		ASSERT( IsFinished() );
 
 		Result	res;
-		res.dataSize	= _actualSize.load();
 		res.pos			= _offset;
-		res.data		= IsCompleted() ? _data : null;
-
-		return res;
-	}
-
-/*
-=================================================
-	_GetResult
-=================================================
-*/
-	UnixIOService::ReadRequest::ResultWithRC  UnixIOService::ReadRequest::_GetResult () __NE___
-	{
-		ASSERT( IsFinished() );
-
-		ResultWithRC	res;
-		res.dataSize	= _actualSize.load();
-		res.rc			= _memRC;
-		res.pos			= _offset;
-		res.data		= IsCompleted() ? _data : null;
-
+		res.status		= _status.load();
+		
+		if ( res.status == EStatus::Completed )
+		{
+			res.dataSize	= _actualSize.load();
+			res.data		= _data;
+			res.rc			= _memRC;
+		}
 		return res;
 	}
 //-----------------------------------------------------------------------------
@@ -166,26 +153,9 @@ namespace AE::Threading
 		ASSERT( IsFinished() );
 
 		Result	res;
-		res.dataSize	= _actualSize.load();
-		res.data		= null;
 		res.pos			= _offset;
-
-		return res;
-	}
-
-/*
-=================================================
-	_GetResult
-=================================================
-*/
-	UnixIOService::WriteRequest::ResultWithRC  UnixIOService::WriteRequest::_GetResult () __NE___
-	{
-		ASSERT( IsFinished() );
-
-		ResultWithRC	res;
 		res.dataSize	= _actualSize.load();
-		res.pos			= _offset;
-
+		res.status		= _status.load();
 		return res;
 	}
 //-----------------------------------------------------------------------------

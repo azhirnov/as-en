@@ -11,7 +11,7 @@ using namespace AE::Threading;
 enum class WorkerQueueCount	: uint {};
 enum class IOThreadCount	: uint {};
 
-static constexpr seconds  c_MaxTimeout {100};
+static constexpr seconds  c_MaxTimeout {30};
 
 
 struct LocalTaskScheduler

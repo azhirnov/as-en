@@ -166,9 +166,9 @@ namespace AE::App
 		ND_ virtual String		SensorBitsToString (ESensorBits)		C_Th___ = 0;
 
 	  #ifdef AE_ENABLE_SCRIPTING
-		ND_ virtual bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
-										  ArrayView<Path> includeDirs, const SourceLoc &loc,
-										  INOUT Reflection &refl)		__NE___ = 0;
+		//ND_ virtual bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
+		//								  ArrayView<Path> includeDirs, const SourceLoc &loc,
+		//								  INOUT Reflection &refl)		__NE___ = 0;
 
 		static bool  BindBase (const Scripting::ScriptEnginePtr &se)	__Th___;
 	  #endif

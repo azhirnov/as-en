@@ -14,8 +14,8 @@
 #	pragma clang diagnostic pop
 # endif
 
-# include "SlangCompiler.h"
-# include "ScriptObjects/ObjectStorage.h"
+# include "res_pack/pipeline_compiler/Compiler/SlangCompiler.h"
+# include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
 
 # define SLANG_CHECK( _fn_ )		CHECK( SLANG_SUCCEEDED(_fn_) )
 # define SLANG_CHECK_ERR( _fn_ )	CHECK_ERR( SLANG_SUCCEEDED(_fn_) )

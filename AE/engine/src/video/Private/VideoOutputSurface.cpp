@@ -6,47 +6,6 @@ namespace AE::Video
 {
 	using namespace AE::Graphics;
 
-	//
-	// Readback Image Task
-	//
-	class VideoOutputSurface::ReadbackImageTask final : public RenderTask
-	{
-		VideoOutputSurface &	p;
-
-		ReadbackImageTask (VideoOutputSurface* parent, CommandBatchPtr batch, StringView dbgName, RGBA8u) :
-			RenderTask{ batch, dbgName },	// throw
-			p{ *parent }
-		{}
-
-		void  Run () __Th_OV;
-		/*{
-			DirectCtx::Transfer		ctx{ GetBatchPtr() };
-
-			//ctx.AccumBarriers()
-			//	.ImageBarrier( t.img_1, EResourceState::ColorAttachment_Write, EResourceState::CopySrc );
-
-
-			ReadbackImageDesc	read;
-			//read.imageOffset	= copy.dstOffset;
-			//read.imageDim		= copy.extent;
-			read.heapType		= EStagingHeapType::Dynamic;
-
-			auto	task = AsyncTask{ctx.ReadbackImage( p.img_2, read )
-								.Then( [t = &p] (const ImageMemView &view)
-										{
-											t->_encoder->AddFrame( view );
-									  })};
-			GraphicsScheduler().AddNextFrameDeps( task );
-
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-
-			Execute( ctx );
-		}*/
-	};
-//-----------------------------------------------------------------------------
-
-
-
 /*
 =================================================
 	Begin

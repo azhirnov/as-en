@@ -40,7 +40,7 @@ namespace AE::Graphics
 	_Destroy
 =================================================
 */
-	void  PPLNPACK::_Destroy (ResMngr_t &resMngr) __NE___
+	void  PPLNPACK::_Destroy (ResourceManager &resMngr) __NE___
 	{
 		if ( _allocator == null )
 			return;
@@ -125,7 +125,7 @@ namespace AE::Graphics
 	_Create
 =================================================
 */
-	bool  PPLNPACK::_Create (ResMngr_t &resMngr, const PipelinePackDesc &desc, PipelinePackID selfId) __Th___
+	bool  PPLNPACK::_Create (ResourceManager &resMngr, const PipelinePackDesc &desc, PipelinePackID selfId) __Th___
 	{
 		CHECK_ERR( desc.stream );
 		CHECK_ERR( desc.stream->IsOpen() );
@@ -317,7 +317,7 @@ namespace AE::Graphics
 */
 	template <PipelineCompiler::PipelineTemplUID TemplMask, typename TemplType>
 	const typename TemplType::value_type*
-		PPLNPACK::_Extract (ResMngr_t &resMngr, PipelineTmplName::Ref name, const TemplType &templArr) C_NE___
+		PPLNPACK::_Extract (ResourceManager &resMngr, PipelineTmplName::Ref name, const TemplType &templArr) C_NE___
 	{
 		auto	it = _pplnTemplMap->find( name );
 		CHECK_ERR( it != _pplnTemplMap->end() );
@@ -354,7 +354,7 @@ namespace AE::Graphics
 	CreatePipeline
 =================================================
 */
-	Strong<ComputePipelineID>  PPLNPACK::CreatePipeline (ResMngr_t &resMngr, PipelineTmplName::Ref name,
+	Strong<ComputePipelineID>  PPLNPACK::CreatePipeline (ResourceManager &resMngr, PipelineTmplName::Ref name,
 														 const ComputePipelineDesc &desc, PipelineCacheID cacheId) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
@@ -374,7 +374,7 @@ namespace AE::Graphics
 	CreatePipeline
 =================================================
 */
-	Strong<GraphicsPipelineID>  PPLNPACK::CreatePipeline (ResMngr_t &resMngr, PipelineTmplName::Ref name,
+	Strong<GraphicsPipelineID>  PPLNPACK::CreatePipeline (ResourceManager &resMngr, PipelineTmplName::Ref name,
 														  const GraphicsPipelineDesc &desc, PipelineCacheID cacheId) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
@@ -401,7 +401,7 @@ namespace AE::Graphics
 	CreatePipeline
 =================================================
 */
-	Strong<MeshPipelineID>  PPLNPACK::CreatePipeline (ResMngr_t &resMngr, PipelineTmplName::Ref name,
+	Strong<MeshPipelineID>  PPLNPACK::CreatePipeline (ResourceManager &resMngr, PipelineTmplName::Ref name,
 													  const MeshPipelineDesc &desc, PipelineCacheID cacheId) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
@@ -428,7 +428,7 @@ namespace AE::Graphics
 	CreatePipeline
 =================================================
 */
-	Strong<RayTracingPipelineID>  PPLNPACK::CreatePipeline (ResMngr_t &resMngr, PipelineTmplName::Ref name,
+	Strong<RayTracingPipelineID>  PPLNPACK::CreatePipeline (ResourceManager &resMngr, PipelineTmplName::Ref name,
 															const RayTracingPipelineDesc &desc, PipelineCacheID cacheId) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
@@ -461,7 +461,7 @@ namespace AE::Graphics
 	CreatePipeline
 =================================================
 */
-	Strong<TilePipelineID>  PPLNPACK::CreatePipeline (ResMngr_t &resMngr, PipelineTmplName::Ref name,
+	Strong<TilePipelineID>  PPLNPACK::CreatePipeline (ResourceManager &resMngr, PipelineTmplName::Ref name,
 													  const TilePipelineDesc &desc, PipelineCacheID cacheId) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
@@ -499,7 +499,7 @@ namespace AE::Graphics
 	LoadRenderTechAsync
 =================================================
 */
-	Promise<RenderTechPipelinesPtr>  PPLNPACK::LoadRenderTechAsync (ResMngr_t &resMngr, RenderTechName::Ref name, const RenderTechDesc &desc, PipelineCacheID cacheId) C_NE___
+	Promise<RenderTechPipelinesPtr>  PPLNPACK::LoadRenderTechAsync (ResourceManager &resMngr, RenderTechName::Ref name, const RenderTechDesc &desc, PipelineCacheID cacheId) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		ASSERT( not _renTechMap->empty() );
@@ -519,7 +519,7 @@ namespace AE::Graphics
 	LoadRenderTech
 =================================================
 */
-	RenderTechPipelinesPtr  PPLNPACK::LoadRenderTech (ResMngr_t &resMngr, RenderTechName::Ref name, const RenderTechDesc &desc, PipelineCacheID cacheId) C_NE___
+	RenderTechPipelinesPtr  PPLNPACK::LoadRenderTech (ResourceManager &resMngr, RenderTechName::Ref name, const RenderTechDesc &desc, PipelineCacheID cacheId) C_NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		ASSERT( not _renTechMap->empty() );
@@ -541,7 +541,7 @@ namespace AE::Graphics
 	_LoadNameMapping
 =================================================
 */
-	bool  PPLNPACK::_LoadNameMapping (ResMngr_t &resMngr, Bytes offset, Bytes size) __Th___
+	bool  PPLNPACK::_LoadNameMapping (ResourceManager &resMngr, Bytes offset, Bytes size) __Th___
 	{
 	#if AE_DBG_GRAPHICS
 		CHECK_ERR( _file->SeekSet( offset ));
@@ -573,7 +573,7 @@ namespace AE::Graphics
 	_LoadFeatureSets
 =================================================
 */
-	bool  PPLNPACK::_LoadFeatureSets (ResMngr_t &resMngr, Bytes offset, Bytes size) __Th___
+	bool  PPLNPACK::_LoadFeatureSets (ResourceManager &resMngr, Bytes offset, Bytes size) __Th___
 	{
 		CHECK_ERR( _file->SeekSet( offset ));
 
@@ -668,7 +668,7 @@ namespace AE::Graphics
 	_LoadSamplers
 =================================================
 */
-	bool  PPLNPACK::_LoadSamplers (ResMngr_t &resMngr, Bytes offset, Bytes size) __Th___
+	bool  PPLNPACK::_LoadSamplers (ResourceManager &resMngr, Bytes offset, Bytes size) __Th___
 	{
 		CHECK_ERR( _file->SeekSet( offset ));
 
@@ -765,7 +765,7 @@ namespace AE::Graphics
 	_LoadPipelineBlock
 =================================================
 */
-	bool  PPLNPACK::_LoadPipelineBlock (ResMngr_t &resMngr, Bytes offset, Bytes size) __Th___
+	bool  PPLNPACK::_LoadPipelineBlock (ResourceManager &resMngr, Bytes offset, Bytes size) __Th___
 	{
 		CHECK_ERR( _file->SeekSet( offset ));
 
@@ -919,7 +919,7 @@ namespace AE::Graphics
 	_LoadDescrSetLayouts
 =================================================
 */
-	bool  PPLNPACK::_LoadDescrSetLayouts (ResMngr_t &resMngr, Serializing::Deserializer &des, StackAllocator_t &stackAlloc, OUT DSLayoutMap_t &layoutMap) __Th___
+	bool  PPLNPACK::_LoadDescrSetLayouts (ResourceManager &resMngr, Serializing::Deserializer &des, StackAllocator_t &stackAlloc, OUT DSLayoutMap_t &layoutMap) __Th___
 	{
 		uint	count = 0;
 		CHECK_ERR( des( OUT count ));
@@ -1042,7 +1042,7 @@ namespace AE::Graphics
 	_LoadPipelineLayouts
 =================================================
 */
-	bool  PPLNPACK::_LoadPipelineLayouts (ResMngr_t &resMngr, Serializing::Deserializer &des) __NE___
+	bool  PPLNPACK::_LoadPipelineLayouts (ResourceManager &resMngr, Serializing::Deserializer &des) __NE___
 	{
 		uint	count = 0;
 		CHECK_ERR( des( OUT count ));
@@ -1173,7 +1173,7 @@ namespace AE::Graphics
 	_LoadRenderTechniques
 =================================================
 */
-	bool  PPLNPACK::_LoadRenderTechniques (ResMngr_t &resMngr, Serializing::Deserializer &des) __Th___
+	bool  PPLNPACK::_LoadRenderTechniques (ResourceManager &resMngr, Serializing::Deserializer &des) __Th___
 	{
 		uint	count = 0;
 		CHECK_ERR( des( OUT count ));
@@ -1294,7 +1294,7 @@ namespace AE::Graphics
 	Deserialize
 =================================================
 */
-	bool  PPLNPACK::RenderTech::Deserialize (ResMngr_t &resMngr, Serializing::Deserializer &des) __Th___
+	bool  PPLNPACK::RenderTech::Deserialize (ResourceManager &resMngr, Serializing::Deserializer &des) __Th___
 	{
 		DRC_EXLOCK( _drCheck );
 		Unused( resMngr );
@@ -1397,52 +1397,8 @@ namespace AE::Graphics
 	LoadAsync
 =================================================
 */
-	auto  PPLNPACK::RenderTech::LoadAsync (ResMngr_t &resMngr, const RenderTechDesc &desc, PipelineCacheID cacheid) __NE___ -> Promise<RenderTechPipelinesPtr>
+	auto  PPLNPACK::RenderTech::LoadAsync (ResourceManager &resMngr, const RenderTechDesc &desc, PipelineCacheID cacheid) __NE___ -> Promise<RenderTechPipelinesPtr>
 	{
-		class PreloadShadersTask final : public Threading::IAsyncTask
-		{
-		public:
-			RC<RenderTech>	rtech;
-			ResMngr_t &		resMngr;
-
-			PreloadShadersTask (RC<RenderTech> rt, ResMngr_t& rm) __NE___ :
-				IAsyncTask{ ETaskQueue::Background }, rtech{rt}, resMngr{rm} {}
-
-			void		Run ()		__Th_OV { CHECK_TE( rtech->_PreloadShaders( resMngr )); }
-			StringView  DbgName ()	C_NE_OV	{ return "PreloadShadersTask"; }
-		};
-
-		class CompilePipelinesTask final : public Threading::IAsyncTask
-		{
-		public:
-			RC<RenderTech>		rtech;
-			ResMngr_t &			resMngr;
-			PipelineCacheID		cacheId;
-			PplnSpecIter_t		beginIt;
-			PplnSpecIter_t		endIt;
-
-			CompilePipelinesTask (RC<RenderTech> rt, ResMngr_t& rm, PipelineCacheID cache, PplnSpecIter_t begin, PplnSpecIter_t end) __NE___ :
-				IAsyncTask{ ETaskQueue::Background }, rtech{rt}, resMngr{rm}, cacheId{cache}, beginIt{begin}, endIt{end} {}
-
-			void		Run ()		__Th_OV { CHECK_TE( rtech->_CompilePipelines( resMngr, cacheId, beginIt, endIt )); }
-			StringView  DbgName ()	C_NE_OV	{ return "CompilePipelinesTask"; }
-		};
-
-		class CreateSBTsTask final : public Threading::IAsyncTask
-		{
-		public:
-			RC<RenderTech>	rtech;
-			ResMngr_t &		resMngr;
-
-			CreateSBTsTask (RC<RenderTech> rt, ResMngr_t& rm) __NE___ :
-				IAsyncTask{ ETaskQueue::Background }, rtech{rt}, resMngr{rm} {}
-
-			void		Run ()		__Th_OV { CHECK_TE( rtech->_PreloadShaders( resMngr )); }
-			StringView  DbgName ()	C_NE_OV	{ return "CreateSBTsTask"; }
-		};
-		//-------------------------------------------------
-
-
 		ASSERT( _isSupported );
 
 		_taskLocalSize		= desc.taskLocalSize;
@@ -1451,7 +1407,16 @@ namespace AE::Graphics
 
 
 		RC<RenderTech>	rt				= this->GetRC<RenderTech>();
-		AsyncTask		preload			= Scheduler().Run<PreloadShadersTask>( Tuple{ rt, ArgRef(resMngr) });
+		AsyncTask		preload			= Scheduler().Run(
+												ETaskQueue::Background,
+												[] (RC<RenderTech> rtech, ResourceManager& resMngr) -> AsyncCoro
+												{
+													CHECK_CE( rtech->_PreloadShaders( resMngr ));
+													co_return;
+												}( rt, resMngr ),
+												Tuple{},
+												"PreloadShaders"
+											);
 
 		const usize		max_tasks		= 16;
 		const usize		min_ppln_count	= 32;
@@ -1471,27 +1436,42 @@ namespace AE::Graphics
 			begin_it = it;
 			for (usize i = 0; (i < ppln_per_task) and (it != _pipelines.end()); ++i, ++it) {}
 
-			compile_tasks[task_count] = Scheduler().Run<CompilePipelinesTask>(
-											Tuple{ rt, ArgRef(resMngr), cacheid, begin_it, it },
-											Tuple{ preload });
+			compile_tasks[task_count] =
+				Scheduler().Run(
+					ETaskQueue::Background,
+					[] (RC<RenderTech> rtech, ResourceManager &resMngr, PipelineCacheID cacheId, PplnSpecIter_t beginIt, PplnSpecIter_t endIt) -> AsyncCoro
+					{
+						CHECK_CE( rtech->_CompilePipelines( resMngr, cacheId, beginIt, endIt ));
+						co_return;
+					}( rt, resMngr, cacheid, begin_it, it ),
+					Tuple{ preload },
+					"CompilePipelines"
+				);
 		}
 		ASSERT( it == _pipelines.end() );
 		ASSERT( task_count > 0 );
 
 		if ( not _rtSbtMap.empty() )
 		{
-			auto	task = Scheduler().Run<CreateSBTsTask>(
-								Tuple{ rt, ArgRef(resMngr) },
-								Tuple{ArrayView<AsyncTask>{ compile_tasks, task_count }} );
+			auto	task = Scheduler().Run(
+								ETaskQueue::Background,
+								[] (RC<RenderTech> rtech, ResourceManager &resMngr) -> AsyncCoro
+								{
+									CHECK_CE( rtech->_PreloadShaders( resMngr ));
+									co_return;
+								}( rt, resMngr ),
+								Tuple{ArrayView<AsyncTask>{ compile_tasks, task_count }},
+								"CreateSBTs"
+							);
 			task_count		 = 1;
 			compile_tasks[0] = RVRef(task);
 		}
 
-		return MakePromiseFromValue(
-					RenderTechPipelinesPtr{ rt },
-					Tuple{ArrayView<AsyncTask>{ compile_tasks, task_count }},
-					"RenderTech::LoadAsync",
-					ETaskQueue::Background );
+		return Scheduler().Run(
+					ETaskQueue::Background,
+					DeferResult<RenderTechPipelinesPtr>( RVRef(rt) ),
+					Tuple{ ArrayView<AsyncTask>{ compile_tasks, task_count }},
+					"RenderTech::LoadAsync" );
 	}
 
 /*
@@ -1499,7 +1479,7 @@ namespace AE::Graphics
 	Load
 =================================================
 */
-	bool  PPLNPACK::RenderTech::Load (ResMngr_t &resMngr, const RenderTechDesc &desc, PipelineCacheID cacheid) __NE___
+	bool  PPLNPACK::RenderTech::Load (ResourceManager &resMngr, const RenderTechDesc &desc, PipelineCacheID cacheid) __NE___
 	{
 		{
 			DRC_SHAREDLOCK( _drCheck );
@@ -1538,7 +1518,7 @@ namespace AE::Graphics
 	May be slow because of pipeline optimization in driver.
 =================================================
 */
-	bool  PPLNPACK::RenderTech::_CompilePipelines (ResMngr_t &resMngr, PipelineCacheID cacheid,
+	bool  PPLNPACK::RenderTech::_CompilePipelines (ResourceManager &resMngr, PipelineCacheID cacheid,
 												   const PplnSpecIter_t beginIt, const PplnSpecIter_t endIt) __NE___
 	{
 		for (auto it = beginIt; it != endIt; ++it)
@@ -1603,6 +1583,7 @@ namespace AE::Graphics
 				}
 
 				case PipelineSpecUID::_Mask :
+				case PipelineSpecUID::_BITOPS_ :
 				case PipelineSpecUID::Unknown :
 				default_unlikely :					break;
 			}
@@ -1619,7 +1600,7 @@ namespace AE::Graphics
 	Internally use RT pipeline, so should not run in parallel with '_CompilePipelines()'.
 =================================================
 */
-	bool  PPLNPACK::RenderTech::_CreateSBTs (ResMngr_t &resMngr) __NE___
+	bool  PPLNPACK::RenderTech::_CreateSBTs (ResourceManager &resMngr) __NE___
 	{
 		for (auto& [name, info] : _rtSbtMap)
 		{
@@ -1642,7 +1623,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  PPLNPACK::RenderTech::Destroy (ResMngr_t &resMngr) __NE___
+	void  PPLNPACK::RenderTech::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -1664,6 +1645,7 @@ namespace AE::Graphics
 					case PipelineSpecUID::RayTracing :	{ Strong<RayTracingPipelineID>	id {info.Cast<RayTracingPipelineID>()};	DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));  break; }
 					case PipelineSpecUID::Tile :		{ Strong<TilePipelineID>		id {info.Cast<TilePipelineID>()};		DEV_CHECK( resMngr.ImmediatelyRelease2( INOUT id ));  break; }
 					case PipelineSpecUID::_Mask :
+					case PipelineSpecUID::_BITOPS_ :
 					case PipelineSpecUID::Unknown :
 					default_unlikely :					DBG_WARNING( "unknown pipeline type" ); break;
 				}
@@ -1685,7 +1667,7 @@ namespace AE::Graphics
 */
 	template <PipelineSpecUID SpecMask, PipelineTemplUID TemplMask, typename SpecType, typename TemplType>
 	Pair< const typename SpecType::value_type*, const typename TemplType::value_type* >
-		PPLNPACK::RenderTech::_Extract (const ResMngr_t &resMngr, PipelineSpecUID specUID, SpecType &specArr, TemplType &templArr,
+		PPLNPACK::RenderTech::_Extract (const ResourceManager &resMngr, PipelineSpecUID specUID, SpecType &specArr, TemplType &templArr,
 										const FeatureNames_t &unsupportedFS
 										GFX_DBG_ONLY(, const FeatureNames_t &allFeatureSets )) __NE___
 	{
@@ -1731,7 +1713,7 @@ namespace AE::Graphics
 	* sort shaders to load them in single read op
 =================================================
 */
-	bool  PPLNPACK::RenderTech::_PreloadShaders (const ResMngr_t &resMngr) __NE___
+	bool  PPLNPACK::RenderTech::_PreloadShaders (const ResourceManager &resMngr) __NE___
 	{
 		FlatHashSet< ShaderUID >	shaders;
 		shaders.reserve( _pipelines.size() * 2 );
@@ -1789,6 +1771,7 @@ namespace AE::Graphics
 					break;
 				}
 				case PipelineSpecUID::_Mask :
+				case PipelineSpecUID::_BITOPS_ :
 				case PipelineSpecUID::Unknown :
 				default_unlikely :					break;
 			}
@@ -1809,7 +1792,7 @@ namespace AE::Graphics
 =================================================
 */
 	PPLNPACK::RenderTech::PipelineID
-		PPLNPACK::RenderTech::_CompileGraphicsPipeline (ResMngr_t &resMngr,
+		PPLNPACK::RenderTech::_CompileGraphicsPipeline (ResourceManager &resMngr,
 														const PipelineCompiler::SerializableGraphicsPipelineSpec &inSpec,
 														const PipelineCompiler::SerializableGraphicsPipeline &tmpl,
 														PipelineCacheID cacheId,
@@ -1868,7 +1851,7 @@ namespace AE::Graphics
 =================================================
 */
 	PPLNPACK::RenderTech::PipelineID
-		PPLNPACK::RenderTech::_CompileMeshPipeline (ResMngr_t &resMngr,
+		PPLNPACK::RenderTech::_CompileMeshPipeline (ResourceManager &resMngr,
 													const PipelineCompiler::SerializableMeshPipelineSpec &inSpec,
 													const PipelineCompiler::SerializableMeshPipeline &tmpl,
 													PipelineCacheID cacheId,
@@ -1902,7 +1885,7 @@ namespace AE::Graphics
 =================================================
 */
 	PPLNPACK::RenderTech::PipelineID
-		PPLNPACK::RenderTech::_CompileComputePipeline (ResMngr_t &resMngr,
+		PPLNPACK::RenderTech::_CompileComputePipeline (ResourceManager &resMngr,
 													   const PipelineCompiler::SerializableComputePipelineSpec &inSpec,
 													   const PipelineCompiler::SerializableComputePipeline &tmpl,
 													   PipelineCacheID cacheId,
@@ -1927,7 +1910,7 @@ namespace AE::Graphics
 =================================================
 */
 	PPLNPACK::RenderTech::PipelineID
-		PPLNPACK::RenderTech::_CompileTilePipeline (ResMngr_t &resMngr,
+		PPLNPACK::RenderTech::_CompileTilePipeline (ResourceManager &resMngr,
 													const PipelineCompiler::SerializableTilePipelineSpec &inSpec,
 													const PipelineCompiler::SerializableTilePipeline &tmpl,
 													PipelineCacheID cacheId,
@@ -1951,7 +1934,7 @@ namespace AE::Graphics
 =================================================
 */
 	PPLNPACK::RenderTech::PipelineID
-		PPLNPACK::RenderTech::_CompileRayTracingPipeline (ResMngr_t &resMngr,
+		PPLNPACK::RenderTech::_CompileRayTracingPipeline (ResourceManager &resMngr,
 														  const PipelineCompiler::SerializableRayTracingPipelineSpec &inSpec,
 														  const PipelineCompiler::SerializableRayTracingPipeline &tmpl,
 														  PipelineCacheID cacheId,
@@ -2011,7 +1994,8 @@ namespace AE::Graphics
 			case PipelineSpecUID::Compute :		"Available compute pipelines:\n"	 >> str;	break;
 			case PipelineSpecUID::RayTracing :	"Available ray tracing pipelines:\n" >> str;	break;
 			case PipelineSpecUID::Tile :		"Available tile pipelines:\n"		 >> str;	break;
-			case PipelineSpecUID::_Mask :		break;
+			case PipelineSpecUID::_Mask :
+			case PipelineSpecUID::_BITOPS_ :
 			case PipelineSpecUID::Unknown :		break;
 		}
 		switch_end

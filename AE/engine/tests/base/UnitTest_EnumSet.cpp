@@ -206,6 +206,34 @@ namespace
 		TEST( it == bits.end() );
 	}
 
+	
+	static void  EnumSet_Test6 ()
+	{
+		constexpr TestBits	bits0;
+
+		StaticAssert( bits0.None() );
+		
+		constexpr TestBits	bits = TestBits{}.InsertRange( ETest::Bit2, ETest::Bit4 );
+
+		StaticAssert( not bits.None() );
+		StaticAssert( not bits.All() );
+		StaticAssert( bits.Any() );
+
+		StaticAssert( not bits.contains( ETest::Bit0 ));
+		StaticAssert( not bits.contains( ETest::Bit1 ));
+		StaticAssert( bits.contains( ETest::Bit2 ));
+		StaticAssert( bits.contains( ETest::Bit3 ));
+		StaticAssert( bits.contains( ETest::Bit4 ));
+		StaticAssert( not bits.contains( ETest::Bit5 ));
+
+		StaticAssert( bits.AnyInRange( ETest::Bit0, ETest::Bit2 ));
+		StaticAssert( not bits.AnyInRange( ETest::Bit0, ETest::Bit1 ));
+		StaticAssert( bits.AnyInRange( ETest::Bit2, ETest::Bit4 ));
+		StaticAssert( bits.AllInRange( ETest::Bit2, ETest::Bit4 ));
+		StaticAssert( not bits.AllInRange( ETest::Bit1, ETest::Bit4 ));
+		StaticAssert( not bits.AllInRange( ETest::Bit2, ETest::Bit5 ));
+	}
+
 
 	static void  Bitfield_Test1 ()
 	{
@@ -241,6 +269,7 @@ extern void UnitTest_EnumSet ()
 	EnumSet_Test3();
 	EnumSet_Test4();
 	EnumSet_Test5();
+	EnumSet_Test6();
 
 	Bitfield_Test1();
 

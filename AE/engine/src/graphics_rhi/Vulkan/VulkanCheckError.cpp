@@ -83,7 +83,7 @@ namespace AE::Graphics
 			switch_end
 
 			msg << ", in " << vkcall << ", function: " << func;
-			AE_LOGE( msg, loc.file, loc.line );
+			AE_LOGE( msg, loc );
 		}
 		CATCH_ALL()
 	  #else

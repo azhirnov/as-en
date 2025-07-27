@@ -22,17 +22,15 @@ types:
 	IndirectCtx::VideoDecode
 	IndirectCtx::VideoEncode
 
-	RenderTask
-	RenderTaskCoro
-	RenderTask_Get, RenderTask_GetRef
-	RenderTask_Execute()
-	RenderTask_AddInputDependency()
-	RenderTask_SkipCommandBuffer()
+	RenderCoro
+	RenderCoro_Get()
+	RenderCoro_Execute()
+	RenderCoro_AddInputDependency()
+	RenderCoro_SkipCommands()
 
-	DrawTask
-	DrawTaskCoro
-	DrawTask_Get, DrawTask_GetRef
-	DrawTask_Execute()
+	DrawCoro
+	DrawCoro_Get()
+	DrawCoro_Execute()
 
 	CommandBatch
 	CommandBatchPtr
@@ -87,14 +85,6 @@ namespace AE::Graphics
 	//	using VideoEncode	= VIndirectVideoEncodeContext;
 	};
 
-	using CommandBatch			= VCommandBatch;
-	using CommandBatchPtr		= RC< CommandBatch >;
-
-	using DrawCommandBatch		= VDrawCommandBatch;
-	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
-
-	using DescriptorUpdater		= VDescriptorUpdater;
-
 } // AE::Graphics
 
 #endif // AE_ENABLE_VULKAN
@@ -142,14 +132,6 @@ namespace AE::Graphics
 	//	using VideoEncode	= MIndirectVideoEncodeContext;
 	};
 
-	using CommandBatch			= MCommandBatch;
-	using CommandBatchPtr		= RC< CommandBatch >;
-
-	using DrawCommandBatch		= MDrawCommandBatch;
-	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
-
-	using DescriptorUpdater		= MDescriptorUpdater;
-
 } // AE::Graphics
 
 #endif // AE_ENABLE_METAL
@@ -185,14 +167,6 @@ namespace AE::Graphics
 	};
 
 	using IndirectCtx			= DirectCtx;
-
-	using CommandBatch			= RCommandBatch;
-	using CommandBatchPtr		= RC< CommandBatch >;
-
-	using DrawCommandBatch		= RDrawCommandBatch;
-	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
-
-	using DescriptorUpdater		= RDescriptorUpdater;
 
 } // AE::Graphics
 

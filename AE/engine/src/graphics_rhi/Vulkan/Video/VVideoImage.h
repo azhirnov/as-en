@@ -46,9 +46,9 @@ namespace AE::Graphics
 		VVideoImage ()												__NE___	{}
 		~VVideoImage ()												__NE___;
 
-		ND_ bool  Create (VResourceManager &, const VideoImageDesc &,
+		ND_ bool  Create (ResourceManager &, const VideoImageDesc &,
 						  GfxMemAllocatorPtr, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)						__NE___;
+			void  Destroy (ResourceManager &)						__NE___;
 
 		ND_ VkImage					GetImageHandle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _image; }
 		ND_ VkImageView				GetViewHandle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _view; }
@@ -61,15 +61,15 @@ namespace AE::Graphics
 		GFX_DBG_ONLY( ND_ StringView  GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
-		ND_ static bool  IsSupported (const VResourceManager &, const VideoImageDesc &desc)	__NE___;
+		ND_ static bool  IsSupported (const ResourceManager &, const VideoImageDesc &desc)	__NE___;
 		ND_ static bool  Validate (const VDevice &dev, INOUT VideoImageDesc &desc)			__NE___;
 		ND_ static bool  Validate (const VDevice &dev, INOUT VideoImageDesc &desc,
 								   OUT VkImageCreateInfo &, OUT VkImageViewCreateInfo &,
 								   OUT ushort2 &pictureAccessGranularity)					__NE___;
 
 	private:
-		ND_ bool  _CreateForYcbcr (VResourceManager &, const VideoImageDesc &, GfxMemAllocatorPtr, StringView dbgName) __NE___;
-		ND_ bool  _CreateForVideo (VResourceManager &, const VideoImageDesc &, GfxMemAllocatorPtr, StringView dbgName) __NE___;
+		ND_ bool  _CreateForYcbcr (ResourceManager &, const VideoImageDesc &, GfxMemAllocatorPtr, StringView dbgName) __NE___;
+		ND_ bool  _CreateForVideo (ResourceManager &, const VideoImageDesc &, GfxMemAllocatorPtr, StringView dbgName) __NE___;
 	};
 
 

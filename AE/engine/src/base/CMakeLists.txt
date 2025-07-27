@@ -4,11 +4,9 @@ set( EXP_DIR "${MAIN_SOURCE_DIR}/engine/_experimental/base" )
 
 file( GLOB_RECURSE HPP_SOURCES	"*.h" )
 file( GLOB_RECURSE HPP_EXP		"${EXP_DIR}/*.h" )
+file( GLOB_RECURSE CPP_SOURCES	"*.cpp" )
+file( GLOB_RECURSE CPP_EXP		"${EXP_DIR}/*.cpp" )
 
-if (NOT (DEFINED ENGINE_LIBS_PATH))
-	file( GLOB_RECURSE CPP_SOURCES	"*.cpp" )
-	file( GLOB_RECURSE CPP_EXP		"${EXP_DIR}/*.cpp" )
-endif()
 if (MSVC OR APPLE)
 	file( GLOB_RECURSE OBJC_SOURCES "*.mm" )
 	file( GLOB_RECURSE OBJC_EXP		"${EXP_DIR}/*.mm" )
@@ -17,78 +15,26 @@ endif()
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} ${OBJC_SOURCES} )
 set( EXP_SOURCES ${HPP_EXP} ${CPP_EXP} ${OBJC_EXP} )
 
-add_library( "Base" STATIC ${SOURCES} ${EXP_SOURCES} ${PREBUILD_CPP_FILE} )
+add_library( "Base" STATIC ${SOURCES} ${EXP_SOURCES} )
 
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( TREE ${EXP_DIR} FILES ${EXP_SOURCES} )
 
-target_include_directories( "Base" PUBLIC ".." "${EXP_DIR}/.." )
-
 set_property( TARGET "Base" PROPERTY FOLDER "Engine" )
-target_link_libraries( "Base" PUBLIC "ProjectTemplate" )
 
-if (TARGET "GLM-lib")
-	target_link_libraries( "Base" PUBLIC "GLM-lib" )
-else()
-	message( FATAL_ERROR "GLM target is not exists" )
-endif()
-
-if (TARGET "Brotli-lib")
-	target_link_libraries( "Base" PUBLIC "Brotli-lib" )
-endif()
-if (TARGET "zstd-lib")
-	target_link_libraries( "Base" PUBLIC "zstd-lib" )
-endif()
-if (TARGET "lz4-lib")
-	target_link_libraries( "Base" PUBLIC "lz4-lib" )
-endif()
-
-if (TARGET "Utf8Proc-lib")
-	target_link_libraries( "Base" PUBLIC "Utf8Proc-lib" )
-endif()
-
-if (TARGET "Abseil-lib")
-	target_link_libraries( "Base" PUBLIC "Abseil-lib" )
-endif()
-
-if (TARGET "xxHash-lib")
-	target_link_libraries( "Base" PUBLIC "xxHash-lib" )
-endif()
-
-target_link_libraries( "Base" PUBLIC "FametaCounter-lib" )
-
-if (WIN32)
-	# for sockets
-	target_link_libraries( "Base" PUBLIC "ws2_32" )
-endif()
 
 # for IDE
 if (FALSE) #WIN32)
-	target_include_directories( "Base" PRIVATE "${ANDROID_NDK_INCLUDE}/sysroot/usr/include" "${ANDROID_NDK_INCLUDE}/lib/clang/17.0.2/include" )
+	target_include_directories( "Base" PRIVATE
+		"${ANDROID_NDK_INCLUDE}/sysroot/usr/include"
+		"${ANDROID_NDK_INCLUDE}/lib/clang/17.0.2/include" )	# for IDE
 endif()
 
 if (MSVC)
 	set_source_files_properties( ${OBJC_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 endif()
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	target_link_libraries( "Base" PUBLIC "dl" "pthread" )
-	target_compile_definitions( "Base" PUBLIC _LARGEFILE_SOURCE _LARGE_FILES _FILE_OFFSET_BITS=64 _LARGEFILE64_SOURCE )
-endif()
-
-if (ANDROID)
-	target_link_libraries( "Base" PUBLIC "log" )
-endif()
-
-if (APPLE)
-	find_library( COCOA_LIBRARY Cocoa REQUIRED )
-	target_link_libraries( "Base" PRIVATE ${COCOA_LIBRARY} )
-endif()
-
-target_compile_definitions( "Base" PUBLIC FP_FAST_FMA FP_FAST_FMAF FP_FAST_FMAL )	# TODO: remove
-
-EnablePCH( "Base" )
-EnablePrebuild( "Base" )
-EnableUnitBuild( "Base" )
+UseEnginePCH( "Base" )
+EnableUnityBuild( "Base" )
 
 install( TARGETS "Base" ARCHIVE DESTINATION "lib" )

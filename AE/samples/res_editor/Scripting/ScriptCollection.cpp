@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Scripting/ScriptExe.h"
+#include "Scripting/ScriptExe.h"
 
 namespace AE::ResEditor
 {

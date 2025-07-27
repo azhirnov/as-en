@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_STB
-# include "RectPackerSTB.h"
+# include "atlas_tools/RectPackerSTB.h"
 
 namespace AE::AtlasTools
 {

@@ -30,21 +30,21 @@ namespace AE::Graphics
 	GraphicsContextApi
 =================================================
 */
-	RC<VDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch (RenderTaskScheduler &rts,
-																						   const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc,
-																						   DebugLabel dbg) __NE___
+	RC<DrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch (RenderTaskScheduler &rts,
+																						 const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc,
+																						 DebugLabel dbg) __NE___
 	{
 		ASSERT( primaryState.subpassIndex == 0 );
 
-		VDrawCommandBatch::Viewports_t	viewports;
-		VDrawCommandBatch::Scissors_t	scissors;
+		DrawCommandBatch::Viewports_t	viewports;
+		DrawCommandBatch::Scissors_t	scissors;
 		Graphics::_hidden_::ConvertViewports( desc.viewports, Default, desc.area.Size(), OUT viewports, OUT scissors );
 
 		return rts._CreateDrawBatch( primaryState, viewports, scissors, dbg );
 	}
 
-	RC<VDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch (RenderTaskScheduler &rts,
-																						  const VDrawCommandBatch &prevBatch, DebugLabel dbg) __NE___
+	RC<DrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch (RenderTaskScheduler &rts,
+																						const DrawCommandBatch &prevBatch, DebugLabel dbg) __NE___
 	{
 		VPrimaryCmdBufState	draw_state = prevBatch.GetPrimaryCtxState();
 
@@ -331,7 +331,7 @@ namespace AE::Graphics
 	_CreateDrawBatch
 =================================================
 */
-	RC<VDrawCommandBatch>  RenderTaskScheduler::_CreateDrawBatch (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports,
+	RC<DrawCommandBatch>  RenderTaskScheduler::_CreateDrawBatch (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports,
 																   ArrayView<VkRect2D> scissors, DebugLabel dbg) __NE___
 	{
 		ASSERT( primaryState.IsValid() );
@@ -343,7 +343,7 @@ namespace AE::Graphics
 		auto&	batch = _drawBatchPool[ index ];
 
 		if_likely( batch._Create( primaryState, viewports, scissors, dbg ))
-			return RC<VDrawCommandBatch>{ &batch };
+			return RC<DrawCommandBatch>{ &batch };
 
 		_drawBatchPool.Unassign( index );
 		RETURN_ERR( "failed to allocate draw command batch" );

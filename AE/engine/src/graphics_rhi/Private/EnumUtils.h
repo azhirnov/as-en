@@ -206,7 +206,8 @@ namespace AE::Graphics
 			BGR			= 1 << 14,
 			sRGB		= 1 << 15,
 
-			Unknown		= 0
+			Unknown		= 0,
+			_BITOPS_
 		};
 
 		EType				valueType		= Default;
@@ -263,7 +264,6 @@ namespace AE::Graphics
 
 		ND_ uint	PlaneCount ()					C_NE___	{ return uint(BitCount( uint(aspectMask & EImageAspect::_PlaneMask) )); }
 	};
-	AE_BIT_OPERATORS( PixelFormatInfo::EType );
 
 
 	ND_ PixelFormatInfo const&  EPixelFormat_GetInfo (EPixelFormat value) __NE___;

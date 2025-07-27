@@ -4,9 +4,11 @@
 
 #include "glslang/Include/ResourceLimits.h"
 
-#include "Packer/PipelinePack.h"
-#include "Packer/RenderPassPack.h"
-#include "Compiler/IShaderPreprocessor.h"
+#include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
+#include "res_pack/pipeline_compiler/Packer/RenderPassPack.h"
+#include "res_pack/pipeline_compiler/Compiler/IShaderPreprocessor.h"
+
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.h"
 
 class TIntermNode;
 
@@ -172,6 +174,8 @@ namespace AE::PipelineCompiler
 			void  _OnCompilationFailed (const Input &in, const ShaderIncluder &includer, INOUT String &log) const;
 
 		static void  _GenerateResources (OUT TBuiltInResource& res);
+
+		ND_ static String  _SpirvToGLSL (const SpirvBytecode_t &);
 
 
 	// GLSL deserializer

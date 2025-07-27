@@ -15,7 +15,7 @@ namespace AE::Graphics
 	GraphicsContextApi
 =================================================
 */
-	RC<RDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch (RenderTaskScheduler &rts,
+	RC<DrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateFirstPassBatch (RenderTaskScheduler &rts,
 																						   const RPrimaryCmdBufState &primaryState, const RenderPassDesc &desc,
 																						   DebugLabel dbg) __NE___
 	{
@@ -23,8 +23,8 @@ namespace AE::Graphics
 		return null;
 	}
 
-	RC<RDrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch (RenderTaskScheduler &rts,
-																						  const RDrawCommandBatch &prevBatch, DebugLabel dbg) __NE___
+	RC<DrawCommandBatch>  RenderTaskScheduler::GraphicsContextApi::CreateNextPassBatch (RenderTaskScheduler &rts,
+																						  const DrawCommandBatch &prevBatch, DebugLabel dbg) __NE___
 	{
 		// TODO
 		return null;
@@ -188,7 +188,7 @@ namespace AE::Graphics
 } // AE::Graphics
 
 
-# include "GraphicsLib.h"
+# include "graphics_rhi_shared/GraphicsLib.h"
 
 namespace AE::Graphics
 {

@@ -33,6 +33,8 @@ namespace _hidden_
 	#	error not implemented
 	#endif
 
+	using _Coro_::RenderTaskImpl;
+
 } // _hidden_
 
 	using namespace AE::Base;

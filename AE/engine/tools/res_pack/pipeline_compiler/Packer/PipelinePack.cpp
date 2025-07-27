@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "PipelinePack.h"
+#include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/DataSource/MemStream.h"
 #include "serializing/Public/Serializer.h"
@@ -10,7 +10,7 @@
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
 #else
-# include "ShaderTraceDummy.h"
+# include "res_pack/pipeline_compiler/Packer/ShaderTraceDummy.h"
 #endif
 
 using namespace AE::Base;

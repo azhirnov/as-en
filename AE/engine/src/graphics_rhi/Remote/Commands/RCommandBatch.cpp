@@ -3,11 +3,10 @@
 #ifdef AE_ENABLE_REMOTE_GRAPHICS
 # include "graphics_rhi/Remote/Commands/RCommandBatch.h"
 # include "graphics_rhi/Remote/RRenderTaskScheduler.h"
+# include "graphics_rhi/Private/CommandBatch.cpp.h"
 
 namespace AE::Graphics
 {
-#	include "graphics_rhi/Private/CommandBatch.cpp.h"
-
 	using namespace AE::RemoteGraphics;
 
 /*
@@ -17,7 +16,7 @@ namespace AE::Graphics
 	not thread safe !!!
 =================================================
 */
-	void  RCommandBatch::CmdBufPool::GetCommands (OUT RmCommandBufferID* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___
+	void  CommandBatch::CmdBufPool::GetCommands (OUT RmCommandBufferID* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___
 	{
 		Unused( _GetBakedCommands( OUT cmdbufs, OUT cmdbufCount, maxCount,
 			[](OUT RmCommandBufferID& dst, auto& src, uint)
@@ -38,10 +37,10 @@ namespace AE::Graphics
 	constructor / destructor
 =================================================
 */
-	RCommandBatch::RCommandBatch () __NE___
+	CommandBatch::CommandBatch () __NE___
 	{}
 
-	RCommandBatch::~RCommandBatch () __NE___
+	CommandBatch::~CommandBatch () __NE___
 	{
 		CHECK( not _batchId );
 		CHECK( not _tlSemaphore );
@@ -52,7 +51,7 @@ namespace AE::Graphics
 	_Create
 =================================================
 */
-	bool  RCommandBatch::_Create (FrameUID frameId, const CmdBatchDesc &desc) __NE___
+	bool  CommandBatch::_Create (FrameUID frameId, const CmdBatchDesc &desc) __NE___
 	{
 		ASSERT( _batchId == Default );
 
@@ -97,7 +96,7 @@ namespace AE::Graphics
 	_ReleaseObject
 =================================================
 */
-	void  RCommandBatch::_ReleaseObject () __NE___
+	void  CommandBatch::_ReleaseObject () __NE___
 	{
 		MemoryBarrier( EMemoryOrder::Acquire );
 
@@ -140,7 +139,7 @@ namespace AE::Graphics
 	Wait
 =================================================
 */
-	bool  RCommandBatch::Wait (nanoseconds timeout) __NE___
+	bool  CommandBatch::Wait (nanoseconds timeout) __NE___
 	{
 		CHECK_ERR( _batchId );
 
@@ -159,7 +158,7 @@ namespace AE::Graphics
 	GetSemaphore
 =================================================
 */
-	RemoteCmdBatchDependency  RCommandBatch::GetSemaphore () C_NE___
+	RemoteCmdBatchDependency  CommandBatch::GetSemaphore () C_NE___
 	{
 		return { _tlSemaphore, _tlSemaphoreVal.load() };
 	}
@@ -169,7 +168,7 @@ namespace AE::Graphics
 	_GetInputDependencies
 =================================================
 */
-	bool  RCommandBatch::_GetInputDependencies (OUT Pair<RmSemaphoreID, ulong>* deps, OUT uint &count, const usize maxCount) __NE___
+	bool  CommandBatch::_GetInputDependencies (OUT Pair<RmSemaphoreID, ulong>* deps, OUT uint &count, const usize maxCount) __NE___
 	{
 		count = 0;
 
@@ -195,7 +194,7 @@ namespace AE::Graphics
 	_GetOutputDependencies
 =================================================
 */
-	bool  RCommandBatch::_GetOutputDependencies (OUT Pair<RmSemaphoreID, ulong>* deps, OUT uint &count, usize maxCount) __NE___
+	bool  CommandBatch::_GetOutputDependencies (OUT Pair<RmSemaphoreID, ulong>* deps, OUT uint &count, usize maxCount) __NE___
 	{
 		count = 0;
 

@@ -45,7 +45,9 @@ namespace AE::Base
 
 		NdCx__ bool		empty ()								C_NE___	{ return _bitCount == 0; }
 		NdCx__ bool		BitCount ()								C_NE___	{ return _bitCount; }
-		NdCx__ Bytes	DataSize ()								C_NE___	{ return Bytes{ (_bitCount+7) >> 3 }; }		// TODO: align up
+		NdCx__ Bytes	DataSize ()								C_NE___	{ return Bytes{ AlignUp( (_bitCount+7) >> 3, sizeof(Value_t) )}; }
+
+		// TODO: lowest bit, highest bit
 	};
 
 
@@ -105,7 +107,7 @@ namespace AE::Base
 
 		NdCx__ bool		empty ()								C_NE___	{ return _bitCount == 0; }
 		NdCx__ bool		BitCount ()								C_NE___	{ return _bitCount; }
-		NdCx__ Bytes	DataSize ()								C_NE___	{ return Bytes{ (_bitCount+7) >> 3 }; }		// TODO: align up
+		NdCx__ Bytes	DataSize ()								C_NE___	{ return Bytes{ AlignUp( (_bitCount+7) >> 3, sizeof(Value_t) )}; }
 	};
 //-----------------------------------------------------------------------------
 

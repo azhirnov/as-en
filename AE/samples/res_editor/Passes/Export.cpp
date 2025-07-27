@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "res_editor/Passes/Export.h"
-#include "res_editor/Resources/Buffer.h"
-#include "res_editor/Resources/Image.h"
+#include "Passes/Export.h"
+#include "Resources/Buffer.h"
+#include "Resources/Image.h"
 
 namespace AE::ResEditor
 {
@@ -88,20 +88,24 @@ namespace AE::ResEditor
 				CHECK_MSG( read_res.IsCompleted(), "Buffer is too large" );
 
 				read_res.Then(
-					[stream, self = GetRC<ExportBuffer>()] (const BufferMemView &memView)
+					GetRC<ExportBuffer>(), RVRef(stream),
+					[] (Promise<BufferMemView> readOp, RC<ExportBuffer> self, RC<WStream> stream)
+						-> InlineCoro<ETaskQueue::Background>
 					{
-						self->_parser( memView, *stream );  // throw
+						auto  read_result = Coro_WaitResult( readOp );
+						if ( not read_result )
+						{
+							self->_complete.store( true );
+							co_return;
+						}
+
+						self->_parser( *read_result, *stream );  // throw
 						stream->Flush();
 
 						AE_LOGI( "Buffer exported to '"s << ToString(self->_currPath) << "'" );
 
 						self->_complete.store( true );
-					},
-					"ExportBuffer",
-					ETaskQueue::Background );
-
-				read_res.Except(
-					[self = GetRC<ExportBuffer>()] () { self->_complete.store( true ); });
+					});
 			}
 			else
 			{

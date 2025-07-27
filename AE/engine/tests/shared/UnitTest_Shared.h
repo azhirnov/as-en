@@ -10,6 +10,17 @@ using namespace AE::Base;
 
 #define TEST( ... )		CHECK_FATAL_MSG( (__VA_ARGS__), AE_TOSTRING(__VA_ARGS__) )
 
+#define TEST_NO_LOG( ... )										\
+	{															\
+		StaticLogger::Deinitialize( false );					\
+																\
+		bool	_res_ = (__VA_ARGS__);							\
+																\
+		StaticLogger::InitDefault();							\
+																\
+		CHECK_FATAL_MSG( _res_, AE_TOSTRING(__VA_ARGS__) );		\
+	}
+
 #define __PRIVATE_TEST_OP( _lhs_, _op_, _rhs_ )															\
 	{																									\
 		const auto	_tmp_lhs_ = (_lhs_);																\

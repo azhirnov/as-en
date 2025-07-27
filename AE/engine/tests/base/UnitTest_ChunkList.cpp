@@ -8,7 +8,8 @@ namespace
 	{
 		using C = ChunkList< void* >::Chunk;
 		StaticAssert( alignof(C) == AE_CACHE_LINE );
-		TEST( C::CalcChunkSize( 62 ) == sizeof(void*)*64 );
+		StaticAssert( C::CalcChunkSize( 62 ) == sizeof(void*)*64 );
+		StaticAssert( C::CalcChunkSize( 63 ) > sizeof(void*)*64 );
 	}
 
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Packer/PipelinePack.h"
+#include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
 
 namespace AE::PipelineCompiler
 {

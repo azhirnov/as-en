@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "res_editor/Scripting/ScriptBasePass.h"
-#include "res_editor/Passes/ComputePass.h"
+#include "Scripting/ScriptBasePass.h"
+#include "Passes/ComputePass.h"
 
 namespace AE::ResEditor
 {

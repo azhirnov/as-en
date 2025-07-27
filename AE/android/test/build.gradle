@@ -10,14 +10,15 @@ android {
 		targetSdkVersion 	34
 
 		ndk {
-			abiFilters "arm64-v8a", "armeabi-v7a" //, "x86", "x86_64"
+			abiFilters "arm64-v8a" //, "armeabi-v7a", "x86", "x86_64"
 		}
 		externalNativeBuild {
 			cmake {
-				arguments '-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
-						  '-DANDROID_ARM_NEON=ON',
-						  '-DAE_ENABLE_VULKAN=ON',
-						  '-DAE_SIMD_NEON_HALF=1'
+				arguments 	'-DANDROID_STL=c++_static',  // see https://developer.android.com/ndk/guides/cpp-support#static_runtimes
+						  	'-DANDROID_ARM_NEON=ON',
+						  	'-DAE_ENABLE_VULKAN=ON',
+						  	'-DAE_SIMD_NEON_HALF=1',
+						  	'-DAE_ENGINE_BASE_PCH=ON'
 				targets 'TestLauncher'
 			}
 		}
@@ -32,7 +33,7 @@ android {
 		}
 	}
 
-	ndkVersion "26.3.11579264"
+	ndkVersion "29.0.13599879"
 
 	externalNativeBuild {
 		cmake {
@@ -53,7 +54,7 @@ android {
 			pickFirsts += ['lib/**/libTestLauncher.so',		'lib/**/libTestsBase.so',			'lib/**/libTestsScripting.so',
 						   'lib/**/libTestsThreading.so',	'lib/**/libTestsNetworking.so',		'lib/**/libTestsSerializing.so',
 						   'lib/**/libTestsPlatform.so',	'lib/**/libTestsGraphicsRHI.so',	'lib/**/libTestsGraphics.so',
-						   'lib/**/libTestsECS-st.so',		'lib/**/libTestsVFS.so',			'lib/**/libTestsHuLang.so',
+						   'lib/**/libTestsECS.so',			'lib/**/libTestsVFS.so',			'lib/**/libTestsHuLang.so',
 						   'lib/**/libTestsAtlasTools.so',	'lib/**/libTestsGeometryTools.so',
 						   'lib/**/libPerfBase.so',			'lib/**/libPerfThreading.so',		'lib/**/libPerfGraphics.so',
 						   'lib/**/libNetworkStressTest.so' ]

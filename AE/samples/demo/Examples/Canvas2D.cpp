@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "demo/Examples/Canvas2D.h"
+#include "Examples/Canvas2D.h"
 
 namespace AE::Samples::Demo
 {
@@ -8,83 +8,19 @@ namespace AE::Samples::Demo
 	INTERNAL_LINKAGE( constexpr auto&	IA		= InputActions::Canvas2D );
 
 
-	//
-	// Process Input Task
-	//
-	class Canvas2DSample::ProcessInputTask final : public IAsyncTask
-	{
-	public:
-		RC<Canvas2DSample>	t;
-		ActionQueueReader	reader;
-
-		ProcessInputTask (Canvas2DSample* p, ActionQueueReader reader) __NE___ :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			t{ p },
-			reader{ RVRef(reader) }
-		{}
-
-		void  Run () __Th_OV;
-
-		StringView	DbgName ()	C_NE_OV	{ return "Canvas2D::ProcessInput"; }
-	};
-
 /*
 =================================================
-	ProcessInputTask::Run
+	_DrawTask
 =================================================
 */
-	void  Canvas2DSample::ProcessInputTask::Run ()
-	{
-		t->enter = false;
-
-		ActionQueueReader::Header	hdr;
-		for (; reader.ReadHeader( OUT hdr );)
-		{
-			switch_IA( hdr.name )
-			{
-				case IA.Cursor :
-					t->cursorPos = reader.Data<packed_float2>( hdr.offset );	break;
-
-				case IA.Enter :
-					t->enter = true;											break;
-			}
-			switch_end
-		}
-	}
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Draw Task
-	//
-	class Canvas2DSample::DrawTask final : public RenderTask
-	{
-	public:
-		RC<Canvas2DSample>	t;
-		IOutputSurface &	surface;
-
-		DrawTask (Canvas2DSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) __NE___ :
-			RenderTask{ batch, {"Canvas2D::Draw"} },
-			t{ p }, surface{ surf }
-		{}
-
-		void  Run () __Th_OV;
-	};
-
-/*
-=================================================
-	DrawTask::Run
-=================================================
-*/
-	void  Canvas2DSample::DrawTask::Run ()
+	RenderCoro  Canvas2DSample::_DrawTask (RC<Canvas2DSample> t, IOutputSurface &surface) __NE___
 	{
 		IOutputSurface::RenderTargets_t		targets;
-		CHECK_TE( surface.GetTargets( OUT targets ));
+		CHECK_CE( surface.GetTargets( OUT targets ));
 
 		auto&	rt = targets[0];
 
-		DirectCtx::Transfer		copy_ctx{ *this };
+		DirectCtx::Transfer		copy_ctx{ RenderCoro_Get() };
 
 		// update
 		{
@@ -109,14 +45,14 @@ namespace AE::Samples::Demo
 			copy_ctx.UpdateBuffer( t->ublock, AlignUp( SizeOf<ShaderTypes::sdf_font_ublock>, DeviceLimits.res.minUniformBufferOffsetAlign ), Sizeof(ublock_data), &ublock_data );
 		}
 
-		DirectCtx::Graphics		gfx_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
+		DirectCtx::Graphics		gfx_ctx{ RenderCoro_Get(), copy_ctx.ReleaseCommandBuffer() };
 
 		gfx_ctx.AccumBarriers()
 			.MemoryBarrier( EResourceState::CopyDst, EResourceState::UniformRead | EResourceState::PreRasterizationShaders | EResourceState::FragmentShader );
 
 		Canvas	canvas;
 		canvas.SetDimensions( rt );
-		canvas.NextFrame( GetFrameId() );
+		canvas.NextFrame( RenderCoro_Get().FrameId() );
 
 		// draw
 		{
@@ -173,7 +109,7 @@ namespace AE::Samples::Demo
 				canvas.Flush( dctx, EPrimitive::TriangleList );
 			}{
 				RectF	rect_uv;
-				CHECK_TE( t->atlas->Get( ImageInAtlasName{"Blue"}, OUT rect_uv ));
+				CHECK_CE( t->atlas->Get( ImageInAtlasName{"Blue"}, OUT rect_uv ));
 				canvas.Draw( Rectangle2D{ RectF{float2{ 0.2f }} + float2{0.5f, -0.6f}, rect_uv, HtmlColor::White });
 
 				dctx.BindPipeline( t->ppln3 );
@@ -232,11 +168,8 @@ namespace AE::Samples::Demo
 			gfx_ctx.EndRenderPass( dctx );
 		}
 
-		Execute( gfx_ctx );
+		RenderCoro_Execute( gfx_ctx );
 	}
-//-----------------------------------------------------------------------------
-
-
 
 /*
 =================================================
@@ -327,7 +260,37 @@ namespace AE::Samples::Demo
 */
 	AsyncTask  Canvas2DSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps) __NE___
 	{
-		return Scheduler().Run< ProcessInputTask >( Tuple{ this, RVRef(reader) }, Tuple{ deps });
+		return Scheduler().Run(
+					ETaskQueue::PerFrame,
+					_ProcessInputTask( GetRC<Canvas2DSample>(), RVRef(reader) ),
+					Tuple{ deps },
+					"Canvas2D::ProcessInput"
+				);
+	}
+	
+/*
+=================================================
+	_ProcessInputTask
+=================================================
+*/
+	AsyncCoro  Canvas2DSample::_ProcessInputTask (RC<Canvas2DSample> t, ActionQueueReader reader) __NE___
+	{
+		t->enter = false;
+
+		ActionQueueReader::Header	hdr;
+		for (; reader.ReadHeader( OUT hdr );)
+		{
+			switch_IA( hdr.name )
+			{
+				case IA.Cursor :
+					t->cursorPos = reader.Data<packed_float2>( hdr.offset );	break;
+
+				case IA.Enter :
+					t->enter = true;											break;
+			}
+			switch_end
+		}
+		co_return;
 	}
 
 /*
@@ -344,7 +307,7 @@ namespace AE::Samples::Demo
 		CHECK_ERR( surf_acquire );
 
 		auto	upload	= uploadMngr->UploadAsync( *batch, 1 );
-		auto	draw	= batch->Run< DrawTask >( Tuple{ this, rg.GetSurfaceArg() }, Tuple{surf_acquire} );
+		auto	draw	= batch->Run( _DrawTask( GetRC<Canvas2DSample>(), rg.GetSurfaceArg() ), Tuple{surf_acquire} );
 
 		return batch->SubmitAsTask( Tuple{ upload, draw });
 	}

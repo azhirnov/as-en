@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ScriptObjects/ObjectStorage.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
 
 namespace AE::PipelineCompiler
 {

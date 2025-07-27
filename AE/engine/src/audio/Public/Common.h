@@ -2,11 +2,14 @@
 
 #pragma once
 
-#include "audio/Audio.pch.h"
+#include "pch/Threading.h"
+#include "pch/Serializing.h"
 
 namespace AE::Audio
 {
 	using namespace AE::Base;
+
+	ImportBitOperators;
 
 	using KBitPerSec	= DefaultPhysicalQuantity< float >::KibiBitPerSecond;
 	using Seconds		= DefaultPhysicalQuantity< float >::Second;
@@ -21,8 +24,8 @@ namespace AE::Audio
 		Async			= 1 << 1,
 		MultiChannel	= 1 << 2,
 		Unknown			= 0,
+		_BITOPS_
 	};
-	AE_BIT_OPERATORS( ESoundFlags );
 
 
 	enum class EAudioFormat : ubyte

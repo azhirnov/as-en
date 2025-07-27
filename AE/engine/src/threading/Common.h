@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "threading/Threading.pch.h"
+#include "pch/Base.h"
 
 #ifdef AE_CI_BUILD_PERF
 #	define AE_ENABLE_DATA_RACE_CHECK	0
@@ -23,19 +23,21 @@
 #	define AE_ENABLE_DATA_RACE_CHECK	0
 #endif
 
-// TODO: ThreadWakeup is slow
-#define AE_USE_THREAD_WAKEUP	0
-
+namespace AE::_Coro_
+{
+	class AsyncTaskImpl;
+}
 
 namespace AE::Threading
 {
 	using namespace AE::Base;
 
-
-	class IAsyncTask;
-	using AsyncTask = RC< IAsyncTask >;
+	ImportBitOperators;
+	
+	using AsyncTask = RC< AE::_Coro_::AsyncTaskImpl >;
 
 	class IThread;
+	class LfTaskQueue;
 	class TaskScheduler;
 
 } // AE::Threading
@@ -48,12 +50,6 @@ namespace AE::Threading
 #	pragma detect_mismatch( "AE_ENABLE_DATA_RACE_CHECK", "1" )
 #  else
 #	pragma detect_mismatch( "AE_ENABLE_DATA_RACE_CHECK", "0" )
-#  endif
-
-#  if AE_USE_THREAD_WAKEUP
-#	pragma detect_mismatch( "AE_USE_THREAD_WAKEUP", "1" )
-#  else
-#	pragma detect_mismatch( "AE_USE_THREAD_WAKEUP", "0" )
 #  endif
 
 #endif // AE_CPP_DETECT_MISMATCH

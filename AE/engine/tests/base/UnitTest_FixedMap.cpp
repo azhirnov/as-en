@@ -185,6 +185,10 @@ namespace
 		using Map_t = FixedMap< int, Elem, 8 >;
 
 		StaticAssert( alignof(Map_t) == alignof(Elem) );
+
+		
+		constexpr FixedMap< int, uint, 32 >		map;
+		StaticAssert( map.empty() );
 	}
 }
 

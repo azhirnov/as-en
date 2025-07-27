@@ -32,8 +32,8 @@ namespace AE::Graphics
 		RVideoImage ()										__NE___	{}
 		~RVideoImage ()										__NE___	{}
 
-		ND_ bool  Create (RResourceManager &, const VideoImageDesc &, GfxMemAllocatorPtr, StringView)	__NE___	{ return false; }
-			void  Destroy (RResourceManager &)															__NE___	{}
+		ND_ bool  Create (ResourceManager &, const VideoImageDesc &, GfxMemAllocatorPtr, StringView)	__NE___	{ return false; }
+			void  Destroy (ResourceManager &)															__NE___	{}
 
 		ND_ RmVideoImageID				Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ RmImageID					GetImageHandle ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageHandle; }
@@ -43,7 +43,7 @@ namespace AE::Graphics
 		GFX_DBG_ONLY( ND_ StringView	GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
-		ND_ static bool  IsSupported (const RResourceManager &, const VideoImageDesc &)	__NE___	{ return false; }
+		ND_ static bool  IsSupported (const ResourceManager &, const VideoImageDesc &)	__NE___	{ return false; }
 		ND_ static bool  Validate (const RDevice &, INOUT VideoImageDesc &)				__NE___	{ return false; }
 	};
 

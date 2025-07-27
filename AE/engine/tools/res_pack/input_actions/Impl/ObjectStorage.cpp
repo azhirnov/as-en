@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ObjectStorage.h"
+#include "res_pack/input_actions/Impl/ObjectStorage.h"
 
 #include "platform/GLFW/SerializableInputActionsGLFW.h"
 #include "platform/WinAPI/SerializableInputActionsWinAPI.h"
@@ -80,19 +80,19 @@ namespace
 			CHECK_ERR( file.Read( file.RemainingSize(), OUT script ));
 		}
 
-		if ( TryLoadFromScript< SerializableInputActionsGLFW >( INOUT _glfw, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
+		if ( TryLoadFromScript< SerializableInputActionsGLFW >( INOUT _glfw, se, script, includeDirs, SourceLoc{ansi_path.c_str()}, INOUT _refl ))
 			return true;
 
-		if ( TryLoadFromScript< SerializableInputActionsWinAPI >( INOUT _winapi, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
+		if ( TryLoadFromScript< SerializableInputActionsWinAPI >( INOUT _winapi, se, script, includeDirs, SourceLoc{ansi_path.c_str()}, INOUT _refl ))
 			return true;
 
-		if ( TryLoadFromScript< SerializableInputActionsAndroid >( INOUT _android, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
+		if ( TryLoadFromScript< SerializableInputActionsAndroid >( INOUT _android, se, script, includeDirs, SourceLoc{ansi_path.c_str()}, INOUT _refl ))
 			return true;
 
-		if ( TryLoadFromScript< SerializableInputActionsOpenVR >( INOUT _openvr, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
+		if ( TryLoadFromScript< SerializableInputActionsOpenVR >( INOUT _openvr, se, script, includeDirs, SourceLoc{ansi_path.c_str()}, INOUT _refl ))
 			return true;
 
-		//if ( TryLoadFromScript< SerializableInputActionsOpenXR >( INOUT _openxr, se, script, includeDirs, SourceLoc{ansi_path}, INOUT _refl ))
+		//if ( TryLoadFromScript< SerializableInputActionsOpenXR >( INOUT _openxr, se, script, includeDirs, SourceLoc{ansi_path.c_str()}, INOUT _refl ))
 		//	return true;
 
 		RETURN_ERR( "can't find suitable input actions type" );
@@ -420,3 +420,10 @@ namespace
 
 
 } // AE::InputActions
+
+#include "platform/Private/EnumToString.h"
+#include "platform/Private/SerializableInputActions.cpp.h"
+#include "platform/GLFW/SerializableInputActionsGLFW.cpp.h"
+#include "platform/WinAPI/SerializableInputActionsWinAPI.cpp.h"
+#include "platform/Android/SerializableInputActionsAndroid.cpp.h"
+#include "platform/OpenVR/SerializableInputActionsOpenVR.cpp.h"

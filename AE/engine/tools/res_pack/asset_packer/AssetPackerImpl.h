@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "AssetPacker.h"
-#include "Packer/ImageAtlasPacker.h"
-#include "Packer/RasterFontPacker.h"
+#include "res_pack/asset_packer/AssetPacker.h"
+#include "res_pack/asset_packer/Packer/ImageAtlasPacker.h"
+#include "res_pack/asset_packer/Packer/RasterFontPacker.h"
 
 namespace AE::AssetPacker
 {

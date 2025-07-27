@@ -2,22 +2,19 @@
 
 #if defined(AE_ENABLE_VULKAN)
 #	define SUFFIX			V
-#	define DRAWCMDBATCH		VDrawCommandBatch
 
 #elif defined(AE_ENABLE_METAL)
 #	define SUFFIX			M
-#	define DRAWCMDBATCH		MDrawCommandBatch
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 #	define SUFFIX			R
-#	define DRAWCMDBATCH		RDrawCommandBatch
 
 #else
 #	error not implemented
 #endif
 //-----------------------------------------------------------------------------
 
-namespace AE::Threading::_hidden_ { class DrawTaskCoro; }
+namespace AE::_Coro_ { class DrawTaskImpl; }
 
 namespace AE::Graphics
 {
@@ -26,9 +23,10 @@ namespace AE::Graphics
 	// Draw Command Batch
 	//
 
-	class DRAWCMDBATCH final : public EnableRC< DRAWCMDBATCH >
+	class DrawCommandBatch final : public EnableRC< DrawCommandBatch >
 	{
-		friend class DrawTask;
+		// TODO
+		friend class _Coro_::DrawTaskImpl;
 		friend class RenderTaskScheduler;
 
 	// types
@@ -36,7 +34,7 @@ namespace AE::Graphics
 		using PrimaryCmdBufState_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, PrimaryCmdBufState );
 
 	  #if defined(AE_ENABLE_VULKAN)
-		using CmdBufPool	= VCommandBatch::CmdBufPool;
+		using CmdBufPool	= CommandBatch::CmdBufPool;
 		using Viewport_t	= VkViewport;
 		using Scissor_t		= VkRect2D;
 
@@ -79,7 +77,7 @@ namespace AE::Graphics
 			Submitted,		// Vulkan: after GetCmdBuffers(), Metal: after EndAllSecondary()
 		};
 
-		using DrawTaskCoro_t = AE::Threading::_hidden_::DrawTaskCoro;
+		using DrawTaskCoro_t = _Coro_::BaseCoro< _Coro_::DrawTaskImpl >;
 
 	public:
 		using Viewports_t	= FixedArray< Viewport_t, GraphicsConfig::MaxViewports >;
@@ -116,23 +114,20 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		DRAWCMDBATCH ()											__NE___ {}
-
-		template <typename TaskType, typename ...Ctor, typename ...Deps>
-		AsyncTask	Run (Tuple<Ctor...>	&&		ctor = Default,
-						 const Tuple<Deps...>&	deps = Default,
-						 DebugLabel				dbg  = Default)	__NE___;
+		DrawCommandBatch ()										__NE___ {}
 
 		template <typename ...Deps>
 		AsyncTask	Run (DrawTaskCoro_t			coro,
 						 const Tuple<Deps...>&	deps,
 						 CmdBufExeIndex			drawIndex,
-						 DebugLabel				dbg = Default)	__NE___;
+						 DebugLabel				dbg = Default,
+						 const SourceLoc &		loc = SourceLoc::current()) __NE___;
 
 		template <typename ...Deps>
 		AsyncTask	Run (DrawTaskCoro_t			coro,
 						 const Tuple<Deps...>&	deps = Default,
-						 DebugLabel				dbg  = Default)	__NE___;
+						 DebugLabel				dbg  = Default,
+						 const SourceLoc &		loc  = SourceLoc::current()) __NE___;
 
 		void  EndRecording ()									__NE___;
 
@@ -220,43 +215,15 @@ namespace AE::Graphics
 	Run
 =================================================
 */
-	template <typename TaskType, typename ...Ctor, typename ...Deps>
-	AsyncTask  DRAWCMDBATCH::Run (Tuple<Ctor...> &&		ctorArgs,
-								  const Tuple<Deps...>&	deps,
-								  DebugLabel			dbg) __NE___
-	{
-		StaticAssert( IsBaseOf< DrawTask, TaskType >);
-		ASSERT( IsRecording() );
-
-		if_likely( IsRecording() )
-		{
-			GFX_DBG_ONLY(
-				if ( dbg.color == DebugLabel::ColorTable::Undefined )
-					dbg.color = _dbgColor;
-			)
-
-			auto	task = ctorArgs.Apply([this, dbg] (auto&& ...args) __NE___
-										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });
-
-			if_likely(	task						and
-						task->IsValid()				and
-						Scheduler().Run( task, deps ))
-				return task;
-		}
-		return Scheduler().GetCanceledTask();
-	}
-
-/*
-=================================================
-	Run
-=================================================
-*/
 	template <typename ...Deps>
-	AsyncTask  DRAWCMDBATCH::Run (DrawTaskCoro			coro,
-								  const Tuple<Deps...>&	deps,
-								  CmdBufExeIndex		drawIndex,
-								  DebugLabel			dbg) __NE___
+	AsyncTask  DrawCommandBatch::Run (DrawCoro				coro,
+									  const Tuple<Deps...>&	deps,
+									  CmdBufExeIndex		drawIndex,
+									  DebugLabel			dbg,
+									  const SourceLoc &		loc) __NE___
 	{
+		using TaskApi = _Coro_::DrawTaskImpl::BatchApi;
+
 		ASSERT( IsRecording() );
 		ASSERT( coro );
 
@@ -265,23 +232,28 @@ namespace AE::Graphics
 			GFX_DBG_ONLY(
 				if ( dbg.color == DebugLabel::ColorTable::Undefined )
 					dbg.color = _dbgColor;
+
+				if ( dbg.label.empty() )
+					dbg.label = loc.function_name();
 			)
 
-			auto&	task = coro.AsDrawTask();
+			auto&	task = *coro.UnsafeCast();
 
-			if_likely(	task._Init( GetRC<DRAWCMDBATCH>(), drawIndex, dbg ) and
-						Scheduler().Run( AsyncTask{coro}, deps ))
-				return coro;
+			if_likely( TaskApi::Init( task, GetRC<DrawCommandBatch>(), drawIndex, dbg ))
+			{
+				return Scheduler().Run( ETaskQueue::Renderer, AsyncTask{coro}, deps, dbg.label, loc );
+			}
 		}
 		return Scheduler().GetCanceledTask();
 	}
 
 	template <typename ...Deps>
-	AsyncTask  DRAWCMDBATCH::Run (DrawTaskCoro			coro,
-								  const Tuple<Deps...>&	deps,
-								  DebugLabel			dbg) __NE___
+	AsyncTask  DrawCommandBatch::Run (DrawCoro				coro,
+									  const Tuple<Deps...>&	deps,
+									  DebugLabel			dbg,
+									  const SourceLoc &		loc) __NE___
 	{
-		return Run( RVRef(coro), deps, Default, dbg );
+		return Run( RVRef(coro), deps, Default, dbg, loc );
 	}
 
 /*
@@ -291,7 +263,7 @@ namespace AE::Graphics
 	helper method - prevent new draw tasks on this batch
 =================================================
 */
-	inline void  DRAWCMDBATCH::EndRecording () __NE___
+	inline void  DrawCommandBatch::EndRecording () __NE___
 	{
 		bool	res	= _status.Set( EStatus::Recording, EStatus::Pending );
 		Unused( res );
@@ -303,4 +275,3 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 #undef SUFFIX
-#undef DRAWCMDBATCH

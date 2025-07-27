@@ -24,7 +24,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  VTilePipeline::Create (VResourceManager &resMngr, const CreateInfo &ci) __NE___
+	bool  VTilePipeline::Create (ResourceManager &resMngr, const CreateInfo &ci) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -144,7 +144,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  VTilePipeline::Destroy (VResourceManager &resMngr) __NE___
+	void  VTilePipeline::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 

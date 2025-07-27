@@ -27,7 +27,7 @@ namespace AE::Graphics
 	Create
 =================================================
 */
-	bool  RRTScene::Create (RResourceManager &resMngr, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
+	bool  RRTScene::Create (ResourceManager &resMngr, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( not _sceneId );
@@ -63,7 +63,7 @@ namespace AE::Graphics
 	Destroy
 =================================================
 */
-	void  RRTScene::Destroy (RResourceManager &resMngr) __NE___
+	void  RRTScene::Destroy (ResourceManager &resMngr) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -88,7 +88,7 @@ namespace AE::Graphics
 	GetBuildSizes
 =================================================
 */
-	RTASBuildSizes  RRTScene::GetBuildSizes (const RResourceManager &resMngr, const RTSceneBuild &build) __NE___
+	RTASBuildSizes  RRTScene::GetBuildSizes (const ResourceManager &resMngr, const RTSceneBuild &build) __NE___
 	{
 		Msg::ResMngr_GetRTSceneSizes				msg;
 		RC<Msg::ResMngr_GetRTSceneSizes_Response>	res;
@@ -116,7 +116,7 @@ namespace AE::Graphics
 	IsSupported (RTSceneDesc)
 =================================================
 */
-	bool  RRTScene::IsSupported (const RResourceManager &resMngr, const RTSceneDesc &desc) __NE___
+	bool  RRTScene::IsSupported (const ResourceManager &resMngr, const RTSceneDesc &desc) __NE___
 	{
 		return RTScene_IsSupported( resMngr, desc );
 	}
@@ -126,7 +126,7 @@ namespace AE::Graphics
 	IsSupported (RTSceneBuild)
 =================================================
 */
-	bool  RRTScene::IsSupported (const RResourceManager &resMngr, const RTSceneBuild &build) __NE___
+	bool  RRTScene::IsSupported (const ResourceManager &resMngr, const RTSceneBuild &build) __NE___
 	{
 		Msg::ResMngr_IsSupported_RTSceneBuild	msg;
 		RC<Msg::ResMngr_IsSupported_Response>	res;
@@ -143,7 +143,7 @@ namespace AE::Graphics
 	ConvertBuildInfo
 =================================================
 */
-	bool  RRTScene::ConvertBuildInfo (const RResourceManager &resMngr, INOUT RTSceneBuild &build) __NE___
+	bool  RRTScene::ConvertBuildInfo (const ResourceManager &resMngr, INOUT RTSceneBuild &build) __NE___
 	{
 		if ( build.scratch.id )
 		{

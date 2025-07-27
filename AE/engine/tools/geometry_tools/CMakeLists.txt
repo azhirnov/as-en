@@ -1,15 +1,12 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
-if (NOT (DEFINED ENGINE_LIBS_PATH))
-	file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
-endif()
+file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
-add_library( "GeometryTools" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} )
+add_library( "GeometryTools" STATIC ${SOURCES} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 target_link_libraries( "GeometryTools" PUBLIC "Base" )
-target_include_directories( "GeometryTools" PUBLIC ".." )
 set_property( TARGET "GeometryTools" PROPERTY FOLDER "Engine/Tools" )
 
 if (TARGET "GraphicsRHI")
@@ -20,6 +17,5 @@ if (TARGET "CDT-lib")
 	target_link_libraries( "GeometryTools" PUBLIC "CDT-lib" )
 endif()
 
-EnablePCH( "GeometryTools" )
-EnablePrebuild( "GeometryTools" )
-EnableUnitBuild( "GeometryTools" )
+UseEnginePCH2( "GeometryTools" )
+EnableUnityBuild( "GeometryTools" )

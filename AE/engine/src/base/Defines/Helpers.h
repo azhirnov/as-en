@@ -35,19 +35,6 @@
 #endif
 
 
-// bit operators
-// requires '#include "base/Math/BitMath.h"'
-#define AE_BIT_OPERATORS( _type_ )																														\
-	NdCx__ _type_	operator |  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); }			\
-	NdCx__ _type_	operator &  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); }			\
-																																						\
-	__Cx__ _type_&	operator |= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); }	\
-	__Cx__ _type_&	operator &= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); }	\
-																																						\
-	NdCx__ _type_	operator ~ (_type_ lhs)					__NE___	{ return _type_(~AE::Base::ToNearUInt(lhs)); }										\
-	NdCx__ bool		operator ! (_type_ lhs)					__NE___	{ return not AE::Base::ToNearUInt(lhs); }											\
-
-
 // enable/disable checks for enums
 #if defined(AE_COMPILER_MSVC)
 #	define AE_BEGIN_ENUM_CHECKS()																												\

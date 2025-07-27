@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "ScriptObjects/ScriptMesh.h"
+#include "res_pack/asset_packer/ScriptObjects/ScriptMesh.h"
 
 #include "scripting/Impl/ClassBinder.h"
 

@@ -137,6 +137,8 @@ namespace AE::PipelineCompiler
 
 		ND_ bool  _GetDebugOutput (VkShaderModule shaderModule, const void* ptr, VkDeviceSize maxSize, OUT Array<String> &result) const;
 
+		static void  _Decompile (const Array<uint> &);
+
 		ND_ bool  _Compile (OUT Array<uint> &		spirvData,
 							OUT ShaderTrace *		dbgInfo,
 							uint					dbgBufferSetIndex,

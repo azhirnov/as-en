@@ -37,8 +37,8 @@ namespace
 		{
 			if_unlikely( not s_loggers.has_value() )
 			{
-				if ( PlatformUtils::IsUnderDebugger() )
-					AE_PRIVATE_BREAK_POINT();
+				//if ( PlatformUtils::IsUnderDebugger() )
+				//	AE_PRIVATE_BREAK_POINT();
 
 				return StaticLogger::EResult::Continue;
 			}
@@ -149,9 +149,7 @@ namespace
 			{
 				ILogger::MessageInfo	info;
 				info.message	= "AE_DUMP_MEMLEAKS failed";
-				info.func		= "";
-				info.file		= __FILE__;
-				info.line		= __LINE__;
+				info.loc		= std::source_location::current();
 				info.threadId	= 0;
 				info.level		= ILogger::ELevel::Fatal;
 				info.scope		= ILogger::EScope::Engine;
@@ -239,14 +237,12 @@ namespace
 	Process
 =================================================
 */
-	StaticLogger::EResult  StaticLogger::Process (StringView msg, StringView func, StringView file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope) __Th___
+	StaticLogger::EResult  StaticLogger::Process (StringView msg, const SourceLoc &loc, ILogger::ELevel level, ILogger::EScope scope) __Th___
 	{
 	  #ifdef AE_ENABLE_LOGS
 		ILogger::MessageInfo	info;
 		info.message	= msg;
-		info.func		= func;
-		info.file		= file;
-		info.line		= line;
+		info.loc		= loc;
 		info.threadId	= ThreadUtils::GetIntID();
 		info.level		= level;
 		info.scope		= scope;

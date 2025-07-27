@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "res_editor/Passes/IPass.h"
-#include "res_editor/Resources/IResource.h"
-#include "res_editor/GeomSource/IGeomSource.h"
-#include "res_editor/Resources/DefaultResources.h"
+#include "Passes/IPass.h"
+#include "Resources/IResource.h"
+#include "GeomSource/IGeomSource.h"
+#include "Resources/DefaultResources.h"
 
 namespace AE::ResEditor
 {
@@ -117,12 +117,12 @@ namespace AE::ResEditor
 
 
 	private:
-		ND_ static RenderTaskCoro	_SyncPasses (PassArr_t updatePasses, PassArr_t passes, IPass::Debugger, IPass::UpdatePassData) __Th___;
-		ND_ static RenderTaskCoro	_ResizeRes (Array<RC<IResource>>)			__Th___;
-		ND_ RenderTaskCoro			_ReadShaderTrace ()							__Th___;
+		ND_ static RenderCoro	_SyncPasses (PassArr_t updatePasses, PassArr_t passes, IPass::Debugger, IPass::UpdatePassData) __Th___;
+		ND_ static RenderCoro	_ResizeRes (Array<RC<IResource>>)			__Th___;
+		ND_ RenderCoro			_ReadShaderTrace ()							__Th___;
 
 		ND_ AsyncTask				_Export (ArrayView<AsyncTask> deps);
-		ND_ static RenderTaskCoro	_ExportPasses (PassArr_t, RC<Renderer>, IPass::UpdatePassData)		__Th___;
+		ND_ static RenderCoro	_ExportPasses (PassArr_t, RC<Renderer>, IPass::UpdatePassData)		__Th___;
 
 		void  _PrintDbgTrace (const Array<String> &) const;
 		void  _UpdateDynSliders ();

@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "res_editor/Resources/IResource.h"
-#include "res_editor/Resources/DataTransferQueue.h"
-#include "res_editor/Resources/ContentVersion.h"
+#include "Resources/IResource.h"
+#include "Resources/DataTransferQueue.h"
+#include "Resources/ContentVersion.h"
 
 namespace AE::ResEditor
 {

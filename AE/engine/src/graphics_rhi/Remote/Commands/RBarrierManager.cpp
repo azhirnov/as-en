@@ -15,15 +15,15 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	RBarrierManager::RBarrierManager (const RenderTask &task) __NE___ :
+	RBarrierManager::RBarrierManager (RenderCoroRef task) __NE___ :
 		_resMngr{ GraphicsScheduler().GetResourceManager() },
-		_batch{ *task.GetBatchPtr() },
-		_task{ &task }
+		_batch{ *task.BatchPtr() },
+		_task{ task }
 	{
 		ClearBarriers();
 	}
 
-	RBarrierManager::RBarrierManager (RCommandBatch &batch) __NE___ :
+	RBarrierManager::RBarrierManager (CommandBatch &batch) __NE___ :
 		_resMngr{ GraphicsScheduler().GetResourceManager() },
 		_batch{ batch },
 		_task{ null }
