@@ -67,7 +67,6 @@ namespace
 			case EAddressMode::ClampToEdge :		return "clamp_to_edge";
 			case EAddressMode::ClampToBorder :		return "clamp_to_border";
 			case EAddressMode::MirrorClampToEdge :
-			case EAddressMode::_Count :
 			case EAddressMode::Unknown :			break;
 		}
 		switch_end
@@ -85,7 +84,6 @@ namespace
 			case EBorderColor::IntOpaqueBlack :			return "opaque_black";
 			case EBorderColor::FloatOpaqueWhite :
 			case EBorderColor::IntOpaqueWhite :			return "opaque_white";
-			case EBorderColor::_Count :
 			case EBorderColor::Unknown :				break;
 		}
 		switch_end
@@ -98,7 +96,6 @@ namespace
 		{
 			case EFilter::Nearest :	return "nearest";
 			case EFilter::Linear :	return "linear";
-			case EFilter::_Count :
 			case EFilter::Unknown :	break;
 		}
 		switch_end
@@ -112,7 +109,6 @@ namespace
 			case EMipmapFilter::None :		return "none";
 			case EMipmapFilter::Nearest :	return "nearest";
 			case EMipmapFilter::Linear :	return "linear";
-			case EMipmapFilter::_Count :
 			case EMipmapFilter::Unknown :	break;
 		}
 		switch_end
@@ -131,7 +127,6 @@ namespace
 			case ECompareOp::NotEqual :	return "not_equal";
 			case ECompareOp::GEqual :	return "greater_equal";
 			case ECompareOp::Always :	return "always";
-			case ECompareOp::_Count :
 			case ECompareOp::Unknown :	break;
 		}
 		switch_end
@@ -377,7 +372,8 @@ namespace
 						<< "\n  // size: " << ToString( un.buffer.staticSize );
 					if ( un.buffer.HasDynamicOffset() )
 						str << ", dynamic offset";
-					str << "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", std140) uniform AE_Type_" << aux_info->type->Typename() << " {\n"
+					str << "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", std140) "
+						<< "uniform AE_Type_" << aux_info->type->Typename() << '_' << name_str << " {\n"
 						<< fields << "  } " << name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
 				}
@@ -395,7 +391,7 @@ namespace
 					if ( un.buffer.HasDynamicOffset() )
 						str << ", dynamic offset";
 					str << "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", std430) " << AccessToStr( aux_info->access, un.buffer.state )
-						<< " buffer AE_Type_" << aux_info->type->Typename() << " {\n"
+						<< " buffer AE_Type_" << aux_info->type->Typename() << '_' << name_str << " {\n"
 						<< fields << "  } " << name_str << ArraySizeToStr( un.arraySize ) << ";\n";
 					break;
 				}
@@ -480,7 +476,332 @@ namespace
 					break;
 				}
 				case EDescriptorType::Unknown :
-				case EDescriptorType::_Count :
+				default :
+					CHECK_THROW_MSG( false, "unknown descriptor type" );
+			}
+			switch_end
+		}
+
+		if ( not single_stage and prev_stages != Default )
+			str << "#endif\n";
+	}
+	
+/*
+=================================================
+	ToHLSL
+=================================================
+*/
+	void  DescriptorSetLayout::ToHLSL (EShaderStages stages, const uint dsBinding, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes) C_Th___
+	{
+		const auto	ArraySizeToStr = [] (ArraySize_t arraySize)
+		{{
+			CHECK_THROW( arraySize != 0 );
+			return	arraySize == 1 ? ""s : (" [" + ToString(arraySize) + ']');
+		}};
+
+		const auto	ImageFormatToStr = [] (EImageType type)
+		{{
+			String	str = "vector<";
+			switch ( type & EImageType::_ValMask )
+			{
+				case EImageType::Depth :
+				case EImageType::DepthStencil :
+				case EImageType::Float :		str << "float";		break;
+				case EImageType::UFloat :
+				case EImageType::SNorm :
+				case EImageType::UNorm :
+				case EImageType::Half :			str << "half";		break;
+				case EImageType::Int :			str << "int32_t";	break;
+				case EImageType::Stencil :
+				case EImageType::UInt :			str << "uint32_t";	break;
+				case EImageType::SLong :		str << "int64_t";	break;
+				case EImageType::ULong :		str << "uint64_t";	break;
+				default :						CHECK_MSG( false, "unknown image data type" );
+			}
+			str << ",4>";
+			return str;
+		}};
+
+		const auto	ImageTypeToStr = [] (EImageType type)
+		{{
+			String	str = "Texture";
+			switch ( type & EImageType::_DimMask )
+			{
+				case EImageType::Dim1D :		str << "1D";		break;
+				case EImageType::Dim1DArray :	str << "1DArray";	break;
+				case EImageType::Dim2D :		str << "2D";		break;
+				case EImageType::Dim2DArray :	str << "2DArray";	break;
+				case EImageType::Dim2DMS :		str << "2DMS";		break;
+				case EImageType::Dim2DMSArray :	str << "2DMSArray";	break;
+				case EImageType::DimCube :		str << "Cube";		break;
+				case EImageType::DimCubeArray :	str << "CubeArray";	break;
+				case EImageType::Dim3D :		str << "3D";		break;
+				case EImageType::Buffer :
+				default :						CHECK_MSG( false, "unknown image dimension" );
+			}
+			switch ( type & EImageType::_QualMask )
+			{
+				case EImageType::Shadow :	str << "Shadow";	break;
+				case EImageType::Unknown :	break;
+				default :					CHECK_MSG( false, "unknown image qualifier type" );
+			}
+			return str;
+		}};
+		
+		const auto	StorageFormatToStr = [] (EPixelFormat fmt) -> StringView
+		{{
+			switch ( fmt )
+			{
+				case EPixelFormat::RGBA32F :			return "rgba32f";
+				case EPixelFormat::RGBA16F :			return "rgba16f";
+				case EPixelFormat::RG32F :				return "rg32f";
+				case EPixelFormat::RG16F :				return "rg16f";
+				case EPixelFormat::R11G11B10F :			return "r11f_g11f_b10f";
+				case EPixelFormat::R32F :				return "r32f";
+				case EPixelFormat::R16F :				return "r16f";
+				case EPixelFormat::RGBA16_UNorm :		return "rgba16";
+				case EPixelFormat::RGB10_A2_UNorm :		return "rgb10_a2";
+				case EPixelFormat::RGBA8_UNorm :		return "rgba8";
+				case EPixelFormat::RG16_UNorm :			return "rg16";
+				case EPixelFormat::RG8_UNorm :			return "rg8";
+				case EPixelFormat::R16_UNorm :			return "r16";
+				case EPixelFormat::R8_UNorm :			return "r8";
+				case EPixelFormat::RGBA16_SNorm :		return "rgba16_snorm";
+				case EPixelFormat::RGBA8_SNorm :		return "rgba8_snorm";
+				case EPixelFormat::RG16_SNorm :			return "rg16_snorm";
+				case EPixelFormat::RG8_SNorm :			return "rg8_snorm";
+				case EPixelFormat::R16_SNorm :			return "r16_snorm";
+				case EPixelFormat::R8_SNorm :			return "r8_snorm";
+				case EPixelFormat::RGBA32I :			return "rgba32i";
+				case EPixelFormat::RGBA16I :			return "rgba16i";
+				case EPixelFormat::RGBA8I :				return "rgba8i";
+				case EPixelFormat::RG32I :				return "rg32i";
+				case EPixelFormat::RG16I :				return "rg16i";
+				case EPixelFormat::RG8I :				return "rg8i";
+				case EPixelFormat::R32I :				return "r32i";
+				case EPixelFormat::R16I :				return "r16i";
+				case EPixelFormat::R8I :				return "r8i";
+				case EPixelFormat::RGBA32U :			return "rgba32ui";
+				case EPixelFormat::RGBA16U :			return "rgba16ui";
+				case EPixelFormat::RGB10_A2U :			return "rgb10_a2ui";
+				case EPixelFormat::RGBA8U :				return "rgba8ui";
+				case EPixelFormat::RG32U :				return "rg32ui";
+				case EPixelFormat::RG16U :				return "rg16ui";
+				case EPixelFormat::RG8U :				return "rg8ui";
+				case EPixelFormat::R32U :				return "r32ui";
+				case EPixelFormat::R16U :				return "r16ui";
+				case EPixelFormat::R8U :				return "r8ui";
+				case EPixelFormat::R64U :				return "r64ui";
+				case EPixelFormat::R64I :				return "r64i";
+				case EPixelFormat::BGRA8_UNorm :		return "bgra8";
+			}
+			CHECK_THROW_MSG( false, "unsupported pixel format" );
+		}};
+
+		CHECK_THROW_MSG( not _dsLayout.uniforms.empty() );
+		CHECK_THROW_MSG( IsCompatibleWithVulkan() );
+		
+		if ( NoBits( _dsLayout.stages, stages ))
+			return;
+		
+		auto&			storage			= *ObjectStorage::Instance();
+		const String	space_idx		= ToString( dsBinding );
+		const String	space_str		= ", space"s << space_idx;
+		String&			str				= outDecl;
+		EShaderStages	prev_stages		= Default;
+		const bool		single_stage	= IsSingleBitSet( stages );
+		HLSLBindings	bindings;
+		
+		for (auto& [name, un] : _dsLayout.uniforms)
+		{
+			const String	name_str = storage.GetName( name );
+
+			CHECK_THROW_MSG( not name_str.empty() );
+			CHECK_THROW_MSG( un.binding.IsVkDefined() );
+			
+			if ( NoBits( stages, un.stages ))
+				continue;
+			
+			const String	idx_str		= ToString( un.binding.vkIndex );
+
+			const AuxInfo*	aux_info	= null;
+			auto			aux_info_it = _infoMap.find( name );
+			if ( aux_info_it != _infoMap.end() )
+				aux_info = &aux_info_it->second;
+			
+			ASSERT( un.stages != Default );
+			if ( not single_stage and prev_stages != un.stages )
+			{
+				if ( prev_stages != Default )
+					str << "#endif\n";
+				str << "#if " << StagesToStr( un.stages ) << "\n";
+				prev_stages = un.stages;
+			}
+			
+			switch_enum( un.type )
+			{
+				case EDescriptorType::UniformBuffer :
+				{
+					CHECK_THROW_MSG( aux_info != null and aux_info->type );
+					
+					if ( uniqueTypes.insert( String{aux_info->type->Typename()} ).second )
+					{
+						aux_info->type->AddUsage( ShaderStructType::EUsage::BufferLayout );
+						CHECK_THROW_MSG( aux_info->type->ToHLSL( INOUT outTypes, INOUT uniqueTypes, null ));
+					}			
+					str << "  // state: " << ToString( un.buffer.state )
+						<< "\n  // size: " << ToString( un.buffer.staticSize );
+					if ( un.buffer.HasDynamicOffset() )
+						str << ", dynamic offset";
+					str << "\n  [[vk::binding(" << idx_str << ", " << space_idx << ")]] ConstantBuffer< " << aux_info->type->Typename()
+						<< " >  " << name_str << ArraySizeToStr( un.arraySize )
+						<< " : register(b" << ToString( bindings.constBufferIdx ) << space_str << ");\n";
+
+					bindings.constBufferIdx += un.arraySize;
+					break;
+				}
+				case EDescriptorType::StorageBuffer :
+				{
+					CHECK_THROW_MSG( aux_info != null and aux_info->type );
+					
+					if ( uniqueTypes.insert( String{aux_info->type->Typename()} ).second )
+					{
+						aux_info->type->AddUsage( ShaderStructType::EUsage::BufferLayout );
+						CHECK_THROW_MSG( aux_info->type->ToHLSL( INOUT outTypes, INOUT uniqueTypes, null ));
+					}
+					const bool	read_only = (ToEResState( un.buffer.state ) == _EResState::ShaderStorage_Read);
+
+					str << "  // state: " << ToString( un.buffer.state )
+						<< "\n  // static size: " << ToString( un.buffer.staticSize )
+						<< ", array stride: " << ToString( un.buffer.arrayStride );
+					if ( un.buffer.HasDynamicOffset() )
+						str << ", dynamic offset";
+					str << "\n  [[vk::binding(" << idx_str << ", " << space_idx << ")]] " << (read_only ? "" : "RW")
+						<< "StructuredBuffer< " << aux_info->type->Typename() << " >  "
+						<< name_str << ArraySizeToStr( un.arraySize ) << " : register(";
+
+					if ( read_only )
+					{
+						str << "t" << ToString( bindings.textureIdx );
+						bindings.textureIdx += un.arraySize;
+					}
+					else
+					{
+						str << "u" << ToString( bindings.unorderedAccessViewIdx );
+						bindings.unorderedAccessViewIdx += un.arraySize;
+					}
+					str << space_str << ");\n";
+					break;
+				}
+				case EDescriptorType::UniformTexelBuffer :
+				{
+					str << "  // state: " << ToString( un.texelBuffer.state )
+						<< "\n  [[vk::binding(" << idx_str << ", " << space_idx << ")]] "
+						<< "Buffer< " << ImageFormatToStr( un.texelBuffer.type ) << " >  "
+						<< name_str << ArraySizeToStr( un.arraySize )
+						<< " : register(t" << ToString( bindings.textureIdx ) << space_str << ");\n";
+					
+					bindings.textureIdx += un.arraySize;
+					break;
+				}
+				case EDescriptorType::StorageTexelBuffer :
+				{
+					CHECK_THROW_MSG( aux_info != null );
+					const bool	read_only = (ToEResState( un.buffer.state ) == _EResState::ShaderStorage_Read);
+
+					str << "  // state: " << ToString( un.texelBuffer.state )
+						<< "\n  [[vk::binding(" << idx_str << ", " << space_idx << ")]] " << (read_only ? "" : "RW")
+						<< "Buffer< " << ImageFormatToStr( un.texelBuffer.type ) << " >  "
+						<< name_str << ArraySizeToStr( un.arraySize )
+						<< " : register(u" << ToString( bindings.unorderedAccessViewIdx ) << space_str << ");\n";
+					
+					bindings.unorderedAccessViewIdx += un.arraySize;
+					break;
+				}
+				case EDescriptorType::StorageImage :
+				{
+					CHECK_THROW_MSG( aux_info != null );
+					const bool	read_only = (ToEResState( un.buffer.state ) == _EResState::ShaderStorage_Read);
+
+					str << "  // state: " << ToString( un.image.state )
+						<< "\n  [[vk::binding(" << idx_str << ", " << space_idx << ")]] ";
+
+					if ( un.image.format != Default )
+						str << "[format(\"" << StorageFormatToStr( un.image.format ) << "\")] ";
+
+					str	<< (read_only ? "" : "RW") << ImageTypeToStr( un.image.type ) << "< "
+						<< ImageFormatToStr( un.texelBuffer.type ) << " >  " << name_str << ArraySizeToStr( un.arraySize )
+						<< " : register(u" << ToString( bindings.unorderedAccessViewIdx ) << space_str << ");\n";
+					
+					bindings.unorderedAccessViewIdx += un.arraySize;
+					break;
+				}
+				case EDescriptorType::SampledImage :
+				{
+					str << "  // state: " << ToString( un.image.state )
+						<< "\n  [[vk::binding(" << idx_str << ", " << space_idx << ")]] "
+						<< ImageTypeToStr( un.image.type ) << "< " << ImageFormatToStr( un.image.type ) << " >  "
+						<< name_str << ArraySizeToStr( un.arraySize )
+						<< " : register(t" << ToString( bindings.textureIdx ) << space_str << ");\n";
+
+					bindings.textureIdx += un.arraySize;
+					break;
+				}
+				case EDescriptorType::CombinedImage :
+				case EDescriptorType::CombinedImage_ImmutableSampler :
+				{
+					str << "  // state: " << ToString( un.image.state );
+					if ( un.type == EDescriptorType::CombinedImage_ImmutableSampler )
+						str << ", immutable sampler";
+					str	<< "\n  [[vk::binding(" << idx_str << ", " << space_idx << ")]] "
+						<< ImageTypeToStr( un.image.type ) << "< " << ImageFormatToStr( un.image.type ) << " >  "
+						<< name_str << ArraySizeToStr( un.arraySize )
+						<< " : register(t" << ToString( bindings.textureIdx ) << space_str << ");\n";
+
+					bindings.textureIdx += un.arraySize;
+					break;
+				}
+				case EDescriptorType::SubpassInput :
+				{
+					CHECK_THROW_MSG( un.image.subpassInputIdx != UMax, "'subpassInputIdx' is not valid" );
+
+					str << "  // state: " << ToString( un.image.state )
+						<< "\n  [[vk::binding(" << idx_str << ", " << space_idx << ")]] "
+						<< ImageTypeToStr( un.image.type ) << "< " << ImageFormatToStr( un.image.type ) << " >  "
+						<< name_str << ArraySizeToStr( un.arraySize )
+						<< " : register(t" << ToString( bindings.textureIdx ) << space_str
+						<< ", InputAttachmentIndex(" << ToString( un.image.subpassInputIdx ) << "));\n";
+
+					bindings.textureIdx += un.arraySize;
+					break;
+				}
+				case EDescriptorType::Sampler :
+				case EDescriptorType::ImmutableSampler :
+				{
+					if ( un.type == EDescriptorType::ImmutableSampler )
+						str << "  // immutable sampler\n";
+					str	<< "  [[vk::binding(" << idx_str << ", " << space_idx << ")]] SamplerState  "
+						<< name_str << ArraySizeToStr( un.arraySize )
+						<< " : register(s" << ToString( bindings.samplerIdx ) << space_str << ");\n";
+
+					bindings.samplerIdx += un.arraySize;
+					break;
+				}
+				case EDescriptorType::RayTracingScene :
+				{
+					str	<< "  [[vk::binding(" << idx_str << ", " << space_idx << ")]] RaytracingAccelerationStructure  "
+						<< name_str << ArraySizeToStr( un.arraySize )
+						<< " : register(t" << ToString( bindings.textureIdx ) << space_str << ");\n";
+					
+					bindings.textureIdx += un.arraySize;
+					break;
+				}
+				case EDescriptorType::RayTracingPartitionedScene :
+				{
+					CHECK_THROW_MSG( false, "not supported" );
+					break;
+				}
+				case EDescriptorType::Unknown :
 				default :
 					CHECK_THROW_MSG( false, "unknown descriptor type" );
 			}
@@ -755,7 +1076,6 @@ namespace
 				}
 				case EDescriptorType::RayTracingPartitionedScene :
 				case EDescriptorType::Unknown :
-				case EDescriptorType::_Count :
 				default :
 					CHECK_THROW_MSG( false, "unknown descriptor type" );
 			}
@@ -854,7 +1174,6 @@ namespace
 					break;
 				}
 				case EDescriptorType::Unknown :
-				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -991,7 +1310,6 @@ namespace
 							un.binding.mtlIndex = DescriptorSetLayoutDesc::InvalidIdx;
 							break;	// skip
 
-						case EDescriptorType::_Count :
 						case EDescriptorType::Unknown :
 						default :						RETURN_ERR( "unknown descriptor type" );
 					}
@@ -1045,7 +1363,6 @@ namespace
 							un.binding.mtlIndex = DescriptorSetLayoutDesc::InvalidIdx;
 							break;	// skip
 
-						case EDescriptorType::_Count :
 						case EDescriptorType::Unknown :
 						default :									RETURN_ERR( "unknown descriptor type" );
 					}
@@ -1106,7 +1423,6 @@ namespace
 			case EDescriptorType::RayTracingPartitionedScene :
 				rayTracingScenes += count;			break;
 
-			case EDescriptorType::_Count :
 			case EDescriptorType::Unknown :
 				break;
 		}

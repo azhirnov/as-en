@@ -185,7 +185,6 @@ namespace AE::Video
 			case EVideoCodec::AV1 :		format_name = "av1";	break;
 
 			case EVideoCodec::Unknown :
-			case EVideoCodec::_Count :
 			default :					RETURN_ERR( "codec is not supported" );
 		}
 		switch_end
@@ -328,7 +327,6 @@ namespace AE::Video
 			}
 
 			case EVideoCodec::Unknown :
-			case EVideoCodec::_Count :
 				break;
 		}
 		switch_end
@@ -905,7 +903,7 @@ namespace AE::Video
 				return "webm";
 
 			case EVideoCodec::Unknown :
-			case EVideoCodec::_Count :	break;
+				break;
 		}
 		switch_end
 		RETURN_ERR( "unknown codec" );

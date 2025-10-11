@@ -92,7 +92,7 @@ namespace AE::ResEditor
 	private:
 		ND_ uint			_CurrentIdx	()						C_NE___	{ return _imageIdx % _MaxGpuImages; }
 
-			static AsyncCoro	_DecodeFrameTask (RC<VideoImage2>)	__NE___;
+			static AsyncCoro _DecodeFrameTask (RC<VideoImage2>)	__NE___;
 		ND_	uint			_DecodeFrame ()						__NE___;
 			void			_StartDecoding ()					__NE___;
 

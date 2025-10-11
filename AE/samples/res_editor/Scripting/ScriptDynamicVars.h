@@ -132,6 +132,7 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicUInt3*	XXX ()									__Th___;
 
 		ND_ ScriptDynamicFloat*	ToFloat ()								__Th___;
+		ND_ ScriptDynamicFloat*	AsFloat ()								__Th___;
 		ND_ ScriptDynamicFloat*	Percent (const ScriptDynamicUIntPtr &)	__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)					__Th___;
@@ -402,6 +403,8 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicFloat*		Div1 (const ScriptDynamicFloatPtr &)	__Th___;
 		ND_ ScriptDynamicFloat*		Min1 (const ScriptDynamicFloatPtr &)	__Th___;
 		ND_ ScriptDynamicFloat*		Max1 (const ScriptDynamicFloatPtr &)	__Th___;
+
+		ND_ ScriptDynamicUInt*		AsUInt ()								__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};

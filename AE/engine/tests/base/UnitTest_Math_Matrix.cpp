@@ -354,26 +354,32 @@ namespace
 		float2	a0 = float2x2{} * float2{};
 		float2	a1 = float3x2{} * float3{};
 		float2	a2 = float4x2{} * float4{};
+		Unused( a0, a1, a2 );
 		
 		float3	a3 = float2x3{} * float2{};
 		float3	a4 = float3x3{} * float3{};
 		float3	a5 = float4x3{} * float4{};
+		Unused( a3, a4, a5 );
 		
 		float4	a6 = float2x4{} * float2{};
 		float4	a7 = float3x4{} * float3{};
 		float4	a8 = float4x4{} * float4{};
-		
+		Unused( a6, a7, a8 );
+
 		float2	b0 = float2{} * float2x2{};
 		float3	b1 = float2{} * float3x2{};
 		float4	b2 = float2{} * float4x2{};
+		Unused( b0, b1, b2 );
 		
 		float2	b3 = float3{} * float2x3{};
 		float3	b4 = float3{} * float3x3{};
 		float4	b5 = float3{} * float4x3{};
+		Unused( b3, b4, b5 );
 		
 		float2	b6 = float4{} * float2x4{};
 		float3	b7 = float4{} * float3x4{};
 		float4	b8 = float4{} * float4x4{};
+		Unused( b6, b7, b8 );
 
 		Unused( float3x2::Translate( float2{} ));
 		Unused( float4x4::Translate( float3{} ));

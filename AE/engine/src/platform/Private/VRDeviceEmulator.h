@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "platform/Public/IWindow.h"
+#include "platform/Public/Window.h"
+#include "platform/Private/WindowBase.h"
 #include "platform/Private/InputActionsBase.h"
-#include "platform/Private/VRDeviceBase.h"
 #include "platform/Private/ProjectionImpl.h"
 #include "platform/Private/VRSurface.h"
 
@@ -21,10 +21,10 @@ namespace AE::App
 
 
 	//
-	// VR Device Emulator
+	// VR Session Emulator
 	//
 
-	class VRDeviceEmulator final : public VRDeviceBase
+	class VRDeviceEmulator final : public VRSessionBase
 	{
 	// types
 	private:
@@ -36,14 +36,14 @@ namespace AE::App
 		{
 		// variables
 		private:
-			VRDeviceEmulator &		_vrDev;
+			VRDeviceEmulator &		_vrSession;
 			CommandBatchPtr			_presentBatch;
 			AsyncTask				_acquireImg;
 			Atomic<uint>			_projIdx		{0};
 
 		// methods
 		public:
-			explicit VRRenderSurface (VRDeviceEmulator &vr)										__NE___	: _vrDev{vr} {}
+			explicit VRRenderSurface (VRDeviceEmulator &vr)										__NE___	: _vrSession{vr} {}
 
 			// IOutputSurface //
 			AsyncTask			Begin (CommandBatchPtr, CommandBatchPtr, ArrayView<AsyncTask>)	__NE_OV;
@@ -70,12 +70,12 @@ namespace AE::App
 		{
 		// variables
 		private:
-			VRDeviceEmulator &			_vrDev;
+			VRDeviceEmulator &			_vrSession;
 
 		// methods
 		public:
 			InputActions (VRDeviceEmulator &vr, TsDoubleBufferedQueue* q)								__NE___	:
-				InputActionsBase{ q }, _vrDev{vr}
+				InputActionsBase{ q }, _vrSession{vr}
 			{}
 
 			// IInputActions //
@@ -102,15 +102,15 @@ namespace AE::App
 		{
 		// variables
 		private:
-			VRDeviceEmulator &	_vrDev;
+			VRDeviceEmulator &	_vrSession;
 
 		// methods
 		public:
-			explicit WindowEventListener (VRDeviceEmulator &vr)		__NE___	: _vrDev{vr} {}
+			explicit WindowEventListener (VRDeviceEmulator &vr)		__NE___	: _vrSession{vr} {}
 			~WindowEventListener ()									__NE_OV {}
 
-			void  OnSurfaceCreated (IWindow &)						__NE_OV {}
-			void  OnSurfaceDestroyed (IWindow &)					__NE_OV {}
+			void  OnSurfaceCreated (IWindow &)						__NE_OV;
+			void  OnSurfaceDestroyed (IWindow &)					__NE_OV;
 
 			void  OnStateChanged (IWindow &, EState)				__NE_OV;
 		};
@@ -120,9 +120,6 @@ namespace AE::App
 
 	// variables
 	private:
-		IApplication &				_app;
-
-		WindowEventListener*		_wndListener	= null;
 		WindowPtr					_window;
 
 		VRRenderSurface				_surface;
@@ -138,26 +135,40 @@ namespace AE::App
 
 	// methods
 	public:
-		VRDeviceEmulator (IApplication &app, VRDeviceListener, IInputActions*)	__NE___;
+		VRDeviceEmulator (ApplicationBase&, Unique<IWndListener>, IInputActions*)__NE___;
 		~VRDeviceEmulator ()													__NE___;
 
 		ND_ bool  Create ()														__NE___;
 
-	// VRDeviceBase //
-		bool  Update (Duration_t timeSinceStart)								__NE_OV;
 
-	// IVRDevice //
-		bool  Setup (const Settings &)											__NE_OV;
+	// IWindow //
+		void  Close ()															__NE_OV;
+		bool  CreateRenderSurface (const Graphics::SwapchainDesc &desc)			__NE_OV;
+		bool  SetBrightness (Percent level)										__NE_OV	{ return _window->SetBrightness( level ); }
+		bool  SetColorSpace (EColorSpace value)									C_NE_OV	{ return _window->SetColorSpace( value ); }
 
-		StringView			GetApiName ()										C_NE_OV	{ return "vremulator"; }
+		uint2				GetSurfaceSize ()									C_NE_OV	{ return _window->GetSurfaceSize(); }
+		Monitor				GetMonitor ()										C_NE_OV	{ return _window->GetMonitor(); }
+		NativeWindow		GetNative ()										C_NE_OV	{ return _window->GetNative(); }
+
 		IInputActions&		InputActions ()										__NE_OV	{ return _input; }
 		IOutputSurface&		GetSurface ()										__NE_OV	{ return _surface; }
 
-		bool  CreateRenderSurface (const VRImageDesc &desc)						__NE_OV;
+
+	// IVRSession //
+		EDeviceType			GetDeviceType ()									C_NE_OV	{ return EDeviceType::Emulator; }
+
+		bool  Setup (const Settings &)											__NE_OV;
+
 
 	private:
 		void  _Destroy ()														__NE___;
 		void  _ProcessInput ()													__NE___;
+
+	// WindowBase //
+		bool  ProcessMessages ()												__NE_OV;
+		void  _CreateSwapchain ()												__NE_OV;
+		void  _DestroySwapchain ()												__NE_OV;
 	};
 
 

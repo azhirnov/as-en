@@ -67,5 +67,6 @@ android {
 }
 
 dependencies {
-	implementation project(path: ':engine')
+	implementation project(path: ':engine_java')
+	implementation 'androidx.appcompat:appcompat:1.6.1'
 }

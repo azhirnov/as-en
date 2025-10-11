@@ -25,20 +25,21 @@ namespace AE::PipelineCompiler
 		{
 			case ECompilationTarget::Vulkan :
 			{
-				CHECK_THROW_MSG( AllBits( storage.shaderVersion, EShaderVersion::_SPIRV, EShaderVersion::_Mask ));
+				CHECK_THROW_MSG( AllBits( storage.shaderVersion, EShaderVersion::_GLSL_SPIRV, EShaderVersion::_Mask ) or
+								 AllBits( storage.shaderVersion, EShaderVersion::_Slang_SPIRV, EShaderVersion::_Mask ));
 				CHECK_THROW_MSG( storage.sprvToMslVersion == Default );
 				break;
 			}
 			case ECompilationTarget::Metal_iOS :
 			{
-				CHECK_THROW_MSG( (AllBits( storage.shaderVersion, EShaderVersion::_SPIRV, EShaderVersion::_Mask ) and
+				CHECK_THROW_MSG( (AllBits( storage.shaderVersion, EShaderVersion::_GLSL_SPIRV, EShaderVersion::_Mask ) and
 								  AllBits( storage.sprvToMslVersion, EShaderVersion::_Metal_iOS, EShaderVersion::_Mask )) or
 								 AllBits( storage.shaderVersion, EShaderVersion::_Metal_iOS, EShaderVersion::_Mask ));
 				break;
 			}
 			case ECompilationTarget::Metal_Mac :
 			{
-				CHECK_THROW_MSG( (AllBits( storage.shaderVersion, EShaderVersion::_SPIRV, EShaderVersion::_Mask ) and
+				CHECK_THROW_MSG( (AllBits( storage.shaderVersion, EShaderVersion::_GLSL_SPIRV, EShaderVersion::_Mask ) and
 								  AllBits( storage.sprvToMslVersion, EShaderVersion::_Metal_Mac, EShaderVersion::_Mask )) or
 								 AllBits( storage.shaderVersion, EShaderVersion::_Metal_Mac, EShaderVersion::_Mask ));
 				break;

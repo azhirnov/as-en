@@ -57,7 +57,9 @@
 // disable warnings
 #if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	pragma clang diagnostic push
+# if __clang_major__ >= 19
 #	pragma clang diagnostic ignored "-Wexplicit-specialization-storage-class"
+# endif
 #endif
 
 #include "glm.hpp"

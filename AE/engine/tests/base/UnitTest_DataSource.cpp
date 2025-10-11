@@ -150,6 +150,50 @@ namespace
 			TEST( dst_mem.GetData() == uncompressed );
 		}
 	}
+
+
+	static void  BrotliStream_Test4 ()
+	{
+		const auto		uncompressed = GenRandomArray( 2_MiB );
+		Array<ubyte>	file_data;
+
+		// compress
+		{
+			file_data.resize( uncompressed.size() );
+
+			Bytes	size = ArraySizeOf(file_data);
+			TEST( BrotliUtils::Compress( OUT file_data.data(), INOUT size, uncompressed.data(), ArraySizeOf(uncompressed) ));
+
+			file_data.resize( usize{size} );
+		}
+
+		const Bytes	compressed_size {file_data.size()};
+		
+		// decompress v1
+		{
+			Array<ubyte>	decoded;
+			decoded.resize( uncompressed.size() + 1024 );
+
+			Bytes	dec_size = ArraySizeOf(decoded);
+
+			TEST( BrotliUtils::Decompress( OUT decoded.data(), INOUT dec_size, file_data.data(), ArraySizeOf(file_data) ));
+
+			TEST_Eq( dec_size, ArraySizeOf(uncompressed) );
+			TEST( ArrayView{decoded}.section( 0, usize{dec_size} ) == uncompressed );
+		}
+
+		// decompress v2
+		{
+			BrotliRStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
+			TEST( decoder.IsOpen() );
+
+			ArrayWStream	dst_mem;
+			const Bytes		size = DataSourceUtils::BufferedCopy( dst_mem, decoder );
+
+			TEST_Eq( size, ArraySizeOf(uncompressed) );
+			TEST( dst_mem.GetData() == uncompressed );
+		}
+	}
 #endif // AE_ENABLE_BROTLI
 
 
@@ -290,8 +334,21 @@ namespace
 		}
 
 		const Bytes	compressed_size {file_data.size()};
+		
+		// decompress v1
+		{
+			Array<ubyte>	decoded;
+			decoded.resize( uncompressed.size() + 1024 );
 
-		// uncompress
+			Bytes	dec_size = ArraySizeOf(decoded);
+
+			TEST( ZStdUtils::Decompress( OUT decoded.data(), INOUT dec_size, file_data.data(), ArraySizeOf(file_data) ));
+
+			TEST_Eq( dec_size, ArraySizeOf(uncompressed) );
+			TEST( ArrayView{decoded}.section( 0, usize{dec_size} ) == uncompressed );
+		}
+
+		// decompress v2
 		{
 			ZStdRStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
 			TEST( decoder.IsOpen() );
@@ -304,6 +361,211 @@ namespace
 		}
 	}
 #endif // AE_ENABLE_ZSTD
+
+	
+#ifdef AE_ENABLE_LZ4
+	static void  Lz4Stream_Test1 ()
+	{
+		for (uint i = 0; i < 2; ++i)
+		{
+			const auto		uncompressed = GenRandomArray( 1_MiB );
+			Array<ubyte>	file_data;
+
+			// compress
+			{
+				auto	stream = MakeRC<ArrayWStream>();
+				{
+					Lz4WStream::Config	cfg;	cfg.hc = (i == 1);
+					Lz4WStream			encoder{ stream, cfg };
+
+					TEST( encoder.IsOpen() );
+					TEST( encoder.Write( ArrayView<ubyte>{uncompressed} ));
+				}
+				file_data = stream->ReleaseData();
+			}
+
+			const Bytes	compressed_size {file_data.size()};
+			TEST( compressed_size < uncompressed.size() );
+
+			// uncompress
+			{
+				Lz4RStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
+				Array<ubyte>	data2, data3;
+
+				TEST( decoder.IsOpen() );
+				TEST( decoder.Read( uncompressed.size() / 2, OUT data2 ));
+				TEST( decoder.Read( uncompressed.size() - data2.size(), OUT data3 ));
+				TEST_Eq( decoder.Position(), compressed_size );
+
+				TEST_Eq( uncompressed.size(), (data2.size() + data3.size()) );
+				TEST( ArrayView<ubyte>{uncompressed}.section( 0, data2.size() ) == data2 );
+				TEST( ArrayView<ubyte>{uncompressed}.section( data2.size(), data3.size() ) == data3 );
+			}
+		}
+	}
+
+
+	static void  Lz4Stream_Test2 ()
+	{
+		const auto		uncompressed = GenRandomArray( 2_MiB );
+		const Bytes		block_size	 = 64_KiB;
+		Array<ubyte>	file_data;
+
+		// compress
+		{
+			auto	stream = MakeRC<ArrayWStream>();
+			{
+				Lz4WStream::Config	cfg;
+				Lz4WStream			encoder{ stream, cfg };
+
+				TEST( encoder.IsOpen() );
+				for (Bytes pos, size = ArraySizeOf(uncompressed); pos < size;)
+				{
+					Bytes	wr_size	= Min( block_size, size - pos );
+					Bytes	written = encoder.WriteSeq( uncompressed.data() + pos, wr_size );
+
+					TEST( written > 0 );
+					pos += written;
+				}
+			}
+			file_data = stream->ReleaseData();
+		}
+
+		const Bytes	compressed_size {file_data.size()};
+		TEST( compressed_size < uncompressed.size() );
+
+		// uncompress
+		{
+			Lz4RStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
+			Array<ubyte>	data2, data3;
+
+			TEST( decoder.IsOpen() );
+			TEST( decoder.Read( uncompressed.size() / 2, OUT data2 ));
+			TEST( decoder.Read( uncompressed.size() - data2.size(), OUT data3 ));
+			TEST_Eq( decoder.Position(), compressed_size );
+
+			TEST_Eq( uncompressed.size(), (data2.size() + data3.size()) );
+			TEST( ArrayView<ubyte>{uncompressed}.section( 0, data2.size() ) == data2 );
+			TEST( ArrayView<ubyte>{uncompressed}.section( data2.size(), data3.size() ) == data3 );
+		}
+	}
+
+
+	static void  Lz4Stream_Test3 ()
+	{
+		const auto		uncompressed = GenRandomArray( 2_MiB );
+		Array<ubyte>	file_data;
+
+		// compress
+		{
+			auto	stream = MakeRC<ArrayWStream>();
+			{
+				Lz4WStream		encoder{ stream };
+
+				TEST( encoder.IsOpen() );
+				TEST( encoder.Write( ArrayView<ubyte>{uncompressed} ));
+			}
+			file_data = stream->ReleaseData();
+		}
+
+		const Bytes	compressed_size {file_data.size()};
+
+		// uncompress
+		{
+			Lz4RStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
+			TEST( decoder.IsOpen() );
+
+			Array<char>		buffer;
+			buffer.resize( usize{ 64_KiB });
+
+			DataSourceUtils::TempBuffer	buf{ buffer.data(), ArraySizeOf(buffer) };
+
+			ArrayWStream	dst_mem;
+			const Bytes		size = DataSourceUtils::BufferedCopy( dst_mem, decoder, buf );
+
+			TEST_Eq( size, ArraySizeOf(uncompressed) );
+			TEST( dst_mem.GetData() == uncompressed );
+		}
+	}
+
+
+	static void  Lz4Stream_Test4 ()
+	{
+		const auto		uncompressed = GenRandomArray( 2_MiB );
+		Array<ubyte>	file_data;
+
+		// compress
+		{
+			file_data.resize( usize{Lz4Utils::MaxCompressedSize( 2_MiB )} );
+
+			Bytes	size = ArraySizeOf(file_data);
+			TEST( Lz4Utils::CompressFrame( OUT file_data.data(), INOUT size, uncompressed.data(), ArraySizeOf(uncompressed) ));
+
+			file_data.resize( usize{size} );
+		}
+
+		const Bytes	compressed_size {file_data.size()};
+		
+		// decompress v1
+		{
+			Array<ubyte>	decoded;
+			decoded.resize( uncompressed.size() );
+
+			Bytes	dec_size = ArraySizeOf(decoded);
+
+			TEST( Lz4Utils::DecompressFrame( OUT decoded.data(), INOUT dec_size, file_data.data(), ArraySizeOf(file_data) ));
+
+			TEST_Eq( dec_size, ArraySizeOf(uncompressed) );
+			TEST( ArrayView{decoded}.section( 0, usize{dec_size} ) == uncompressed );
+		}
+
+		// decompress v2
+		{
+			Lz4RStream		decoder{ MakeRC<ArrayRStream>( RVRef(file_data) )};
+			TEST( decoder.IsOpen() );
+
+			ArrayWStream	dst_mem;
+			const Bytes		size = DataSourceUtils::BufferedCopy( dst_mem, decoder );
+
+			TEST_Eq( size, ArraySizeOf(uncompressed) );
+			TEST( dst_mem.GetData() == uncompressed );
+		}
+	}
+
+
+	static void  Lz4Stream_Test5 ()
+	{
+		const auto		uncompressed = GenRandomArray( 2_MiB );
+		Array<ubyte>	file_data;
+
+		// compress
+		{
+			file_data.resize( usize{Lz4Utils::MaxCompressedSize( 2_MiB )} );
+
+			Bytes	size = ArraySizeOf(file_data);
+			TEST( Lz4Utils::Compress( OUT file_data.data(), INOUT size, uncompressed.data(), ArraySizeOf(uncompressed) ));
+
+			file_data.resize( usize{size} );
+		}
+
+		const Bytes	compressed_size {file_data.size()};
+		
+		// decompress v1
+		{
+			Array<ubyte>	decoded;
+			decoded.resize( uncompressed.size() );
+
+			Bytes	dec_size = ArraySizeOf(decoded);
+
+			TEST( Lz4Utils::Decompress( OUT decoded.data(), INOUT dec_size, file_data.data(), ArraySizeOf(file_data) ));
+
+			TEST_Eq( dec_size, ArraySizeOf(uncompressed) );
+			TEST( ArrayView{decoded}.section( 0, usize{dec_size} ) == uncompressed );
+		}
+
+		// not compatible with Lz4RStream
+	}
+#endif // AE_ENABLE_LZ4
 
 
 	static void  StdStream_Test1 ()
@@ -659,6 +921,7 @@ extern void UnitTest_DataSource (const Path &curr)
 	BrotliStream_Test1();
 	BrotliStream_Test2();
 	BrotliStream_Test3();
+	BrotliStream_Test4();
 	#endif
 
 	#ifdef AE_ENABLE_ZSTD
@@ -666,6 +929,14 @@ extern void UnitTest_DataSource (const Path &curr)
 	ZStdStream_Test2();
 	ZStdStream_Test3();
 	ZStdStream_Test4();
+	#endif
+	
+	#ifdef AE_ENABLE_LZ4
+	Lz4Stream_Test1();
+	Lz4Stream_Test2();
+	Lz4Stream_Test3();
+	Lz4Stream_Test4();
+	Lz4Stream_Test5();
 	#endif
 
 	StdStream_Test1();

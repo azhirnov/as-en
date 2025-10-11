@@ -9,12 +9,12 @@ if (NOT EXISTS "${SLANG_PATH}/lib")
 endif()
 
 if (AE_TARGET_PLATFORM_LINUX AND AE_CPU_ARCH_X64 )
-	if (NOT EXISTS "${SLANG_PATH}/lib/slang.so")
+	if (NOT EXISTS "${SLANG_PATH}/lib/libslang.so")
 		message( FATAL_ERROR "'${SLANG_PATH}/lib/slang.so' is not found" )
 	endif()
 
 elseif (AE_TARGET_PLATFORM_LINUX AND AE_CPU_ARCH_ARM64 )
-	if (NOT EXISTS "${SLANG_PATH}/lib/slang.so")
+	if (NOT EXISTS "${SLANG_PATH}/lib/libslang.so")
 		message( FATAL_ERROR "'${SLANG_PATH}/lib/slang.so' is not found" )
 	endif()
 
@@ -35,7 +35,10 @@ endif()
 
 add_library( "SLang-lib" INTERFACE )
 target_include_directories( "SLang-lib" INTERFACE "${SLANG_PATH}/include" )
-target_compile_definitions( "SLang-lib" INTERFACE "AE_ENABLE_SLANG" "AE_LICENSE_APACHE_2" "SLANG_DYNAMIC" )
+target_compile_definitions( "SLang-lib" INTERFACE
+	"AE_ENABLE_SLANG" "AE_LICENSE_APACHE_2"
+	"SLANG_STATIC" # actually it is dynamic, but for dynamic loading it is better to use 'SLANG_STATIC'
+)
 
 add_custom_target( "SLang-copy-dll"
 	COMMAND ${CMAKE_COMMAND} -E copy_directory "${SLANG_PATH}/lib" "${MAIN_BINARY_DIR}${AE_RUNTIME_CONFIG}"

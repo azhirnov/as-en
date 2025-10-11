@@ -33,7 +33,7 @@ namespace AE::PipelineCompiler
 		ND_ bool  Has (EFeature feat)	const	{ return _bits.contains( feat ); }
 		ND_ bool  IsFalse ()			const	{ return Has( EFeature::RequireFalse ); }
 		ND_ bool  IsTrue ()				const	{ return Has( EFeature::RequireTrue ); }
-		ND_ bool  IsEnable ()			const	{ return IsTrue() or not IsFalse(); }
+		ND_ bool  IsEnabled ()			const	{ return IsTrue() or not IsFalse(); }
 	};
 
 
@@ -64,7 +64,7 @@ namespace AE::PipelineCompiler
 	StagesToStr
 =================================================
 */
-	ND_ inline String  ShaderToStr (EShader shader)
+	Nd__In String  ShaderToStr (EShader shader)
 	{
 		switch_enum( shader )
 		{
@@ -83,14 +83,13 @@ namespace AE::PipelineCompiler
 			case EShader::RayMiss :				return "SH_RAY_MISS";
 			case EShader::RayIntersection :		return "SH_RAY_INT";
 			case EShader::RayCallable :			return "SH_RAY_CALL";
-			case EShader::_Count :
 			case EShader::Unknown :				break;
 		}
 		switch_end
 		RETURN_ERR( "unknown shader type" );
 	}
 
-	ND_ inline String  StagesToStr (EShaderStages stages)
+	Nd__In String  StagesToStr (EShaderStages stages)
 	{
 		String	str;
 		for (auto sh : BitIndexIterate<EShader>( stages ))

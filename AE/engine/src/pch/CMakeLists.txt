@@ -73,7 +73,7 @@ function( EngineDeps_GraphicsRHI projName )
 	# Vulkan
 	if (${AE_ENABLE_VULKAN})
 		target_link_libraries( ${projName} PUBLIC "Vulkan-lib" )
-		target_compile_definitions( ${projName} PUBLIC "AE_ENABLE_GLSL_TRACE" )
+		target_compile_definitions( ${projName} PUBLIC AE_ENABLE_GLSL_TRACE )
 	
 		if (${AE_ENABLE_VMA})
 			target_link_libraries( ${projName} PUBLIC "VMA-lib" )
@@ -106,6 +106,7 @@ function( EngineDeps_GraphicsRHI projName )
 	# Remote Graphics
 	if (${AE_ENABLE_REMOTE_GRAPHICS})
 		target_compile_definitions( ${projName} PUBLIC AE_ENABLE_REMOTE_GRAPHICS )
+		target_compile_definitions( ${projName} PUBLIC AE_ENABLE_GLSL_TRACE )
 	endif()
 
 endfunction()
@@ -134,6 +135,7 @@ function( EngineDeps_Platform projName )
 	if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
 		target_link_libraries( ${projName} PUBLIC "android" "camera2ndk" "mediandk" )	# "nativewindow" for API 30+
 
+		target_include_directories( ${projName} PUBLIC "${ANDROID_NDK}/sources/android/native_app_glue" )
 	elseif (${AE_ENABLE_GLFW})
 		target_link_libraries( ${projName} PUBLIC "GLFW-lib" )
 
@@ -144,12 +146,12 @@ function( EngineDeps_Platform projName )
 			target_compile_definitions( ${projName} PUBLIC GLFW_EXPOSE_NATIVE_WIN32 )
 
 		elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-			target_compile_definitions( ${projName} PUBLIC GLFW_EXPOSE_NATIVE_X11 )	# GLFW_EXPOSE_NATIVE_WAYLAND
+			target_compile_definitions( ${projName} PUBLIC GLFW_EXPOSE_NATIVE_X11 GLFW_EXPOSE_NATIVE_WAYLAND )
 		endif()
 
 	elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 		# Raw WinAPI is supported
-		target_link_libraries( "Platform" PUBLIC "Dxva2.lib" )
+		target_link_libraries( ${projName} PUBLIC "Dxva2.lib" )
 		target_compile_definitions( ${projName} PUBLIC AE_WINAPI_WINDOW )
 
 	else()
@@ -162,6 +164,9 @@ function( EngineDeps_Platform projName )
 		endif()
 		if (TARGET "OpenXR-lib")
 			target_link_libraries( ${projName} PUBLIC "OpenXR-lib" )
+		endif()
+		if (ANDROID AND TARGET "PicoOpenXR-lib")
+			target_link_libraries( ${projName} PUBLIC "PicoOpenXR-lib" )
 		endif()
 	endif()
 	if (TARGET "NVAPI-lib")
@@ -298,6 +303,13 @@ function( EngineDeps_ECS projName )
 endfunction()
 
 #----------------------------------------------------------
+# LangModel
+
+function( EngineDeps_LangModel projName )
+
+endfunction()
+
+#----------------------------------------------------------
 
 if (${AE_WHOLE_ENGINE_PCH} OR ${AE_ENGINE_BASE_PCH})
 	set( AE_ENGINE_PCH_DIR "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/EnginePCH.dir" CACHE INTERNAL "" FORCE )
@@ -343,6 +355,8 @@ if (${AE_WHOLE_ENGINE_PCH})
 	EngineDeps_Video( "EnginePCH" )
 	EngineDeps_HuLang( "EnginePCH" )
 	EngineDeps_Profiler( "EnginePCH" )
+	EngineDeps_ECS( "EnginePCH" )
+	EngineDeps_LangModel( "EnginePCH" )
 endif()
 #----------------------------------------------------------
 

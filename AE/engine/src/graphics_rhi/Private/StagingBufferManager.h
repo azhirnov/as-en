@@ -301,7 +301,7 @@ namespace AE::Graphics
 
 		void  _AllocDynamicImage (FrameUID frameId, Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign,
 								  const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &imageDataDim, bool upload,
-								  INOUT StagingImageResultRanges &result)														C_NE___;
+								  usize maxParts, INOUT StagingImageResultRanges &result)										C_NE___;
 	};
 
 

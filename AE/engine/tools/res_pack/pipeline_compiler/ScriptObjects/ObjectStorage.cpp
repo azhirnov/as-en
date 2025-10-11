@@ -1013,6 +1013,20 @@ namespace {
 		binder.Comment( "Vulkan 1.3" );
 		binder.AddValue( "SPIRV_1_6",		EShaderVersion::SPIRV_1_6 );
 		StaticAssert( EShaderVersion::_SPIRV_Last == EShaderVersion::SPIRV_1_6 );
+		
+		binder.Comment( "Vulkan 1.0" );
+		binder.AddValue( "Slang_SPIRV_1_0",		EShaderVersion::Slang_SPIRV_1_0 );
+		binder.AddValue( "Slang_SPIRV_1_1",		EShaderVersion::Slang_SPIRV_1_1 );
+		binder.AddValue( "Slang_SPIRV_1_2",		EShaderVersion::Slang_SPIRV_1_2 );
+		binder.Comment( "Vulkan 1.1" );
+		binder.AddValue( "Slang_SPIRV_1_3",		EShaderVersion::Slang_SPIRV_1_3 );
+		binder.Comment( "Vulkan 1.1 extension" );
+		binder.AddValue( "Slang_SPIRV_1_4",		EShaderVersion::Slang_SPIRV_1_4 );
+		binder.Comment( "Vulkan 1.2" );
+		binder.AddValue( "Slang_SPIRV_1_5",		EShaderVersion::Slang_SPIRV_1_5 );
+		binder.Comment( "Vulkan 1.3" );
+		binder.AddValue( "Slang_SPIRV_1_6",		EShaderVersion::Slang_SPIRV_1_6 );
+		StaticAssert( EShaderVersion::Slang_SPIRV_Last == EShaderVersion::Slang_SPIRV_1_6 );
 
 		binder.Comment( "Metal API" );
 		binder.AddValue( "Metal_2_0",		EShaderVersion::Metal_2_0 );
@@ -1025,7 +1039,8 @@ namespace {
 		binder.AddValue( "Metal_3_0",		EShaderVersion::Metal_3_0 );
 		binder.AddValue( "Metal_3_1",		EShaderVersion::Metal_3_1 );
 		binder.AddValue( "Metal_3_2",		EShaderVersion::Metal_3_2 );
-		StaticAssert( EShaderVersion::_Metal_Last == EShaderVersion::Metal_3_2 );
+		binder.AddValue( "Metal_4_0",		EShaderVersion::Metal_4_0 );
+		StaticAssert( EShaderVersion::_Metal_Last == EShaderVersion::Metal_4_0 );
 
 		binder.Comment( "Compile for iOS." );
 		binder.AddValue( "Metal_iOS_2_0",	EShaderVersion::Metal_iOS_2_0 );
@@ -1228,9 +1243,9 @@ namespace {
 	{
 		EnumBinder<EStructLayout>	binder{ se };
 		binder.Create();
-		binder.Comment( "Apply GLSL std140 rules but structure must be compatible with Metal otherwise will throw exception." );
+		binder.Comment( "Apply GLSL std140 rules but structure must be compatible with Metal and HLSL cbuffer, otherwise will throw exception." );
 		binder.AddValue( "Compatible_Std140",	EStructLayout::Compatible_Std140 );
-		binder.Comment( "Apply GLSL std430 rules but structure must be compatible with Metal otherwise will throw exception." );
+		binder.Comment( "Apply GLSL std430 rules but structure must be compatible with Metal and HLSL StructBuffer, otherwise will throw exception." );
 		binder.AddValue( "Compatible_Std430",	EStructLayout::Compatible_Std430 );
 		binder.Comment( "Apply MSL rules." );
 		binder.AddValue( "Metal",				EStructLayout::Metal );
@@ -1240,7 +1255,11 @@ namespace {
 		binder.AddValue( "Std430",				EStructLayout::Std430 );
 		binder.Comment( "Platform depended layout." );
 		binder.AddValue( "InternalIO",			EStructLayout::InternalIO );
-		StaticAssert( uint(EStructLayout::_Count) == 6 );
+		binder.Comment( "Apply HLSL cbuffer rules." );
+		binder.AddValue( "HLSL_Const",			EStructLayout::HLSL_Const );
+		binder.Comment( "Apply HLSL structured buffer rules." );
+		binder.AddValue( "HLSL_Struct",			EStructLayout::HLSL_Struct );
+		StaticAssert( uint(EStructLayout::_Count) == 8 );
 	}
 
 	void  ObjectStorage::Bind_EValueType (const ScriptEnginePtr &se)

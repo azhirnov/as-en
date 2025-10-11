@@ -941,7 +941,7 @@ namespace AE::Base
 	{
 		ASSERT( not empty() );
 
-		idx = _WrapIndex( idx + _first );
+				idx = _WrapIndex( idx + _first );
 		auto	dst = _WrapIndex( ssize(_end) - 1 );
 
 		if ( _first	!= _end		and

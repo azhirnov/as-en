@@ -4,6 +4,7 @@
 # include "graphics_rhi/Vulkan/Resources/VRayTracingPipeline.h"
 # include "graphics_rhi/Vulkan/VResourceManager.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 # include "VPipelineHelper.cpp.h"
 
 namespace AE::Graphics
@@ -48,7 +49,7 @@ namespace AE::Graphics
 		VkPipelineDynamicStateCreateInfo		dynamic_state_info	= {};
 		VkPipelineRobustnessCreateInfoEXT		robustness_ci;
 		//VkPipelineCreateFlags2CreateInfoKHR	flags_ci;
-		void const**							p_next				= &pipeline_info.pNext;
+		VNextChain								p_next				{pipeline_info};
 
 		const uint	group_count	= uint(ci.templCI.generalShaders.size() + ci.templCI.triangleGroups.size() + ci.templCI.proceduralGroups.size());
 		auto*		groups		= ci.tempAllocator->Allocate<VkRayTracingShaderGroupCreateInfoKHR>( group_count );
@@ -70,33 +71,26 @@ namespace AE::Graphics
 
 		if ( ext.pipelineRobustness )
 		{
-			*p_next	= &robustness_ci;
-			p_next	= &robustness_ci.pNext;
+			p_next.Add( robustness_ci );
 			SetRobustness( OUT robustness_ci );
 		}
 
 		/*if ( ext.maintenance5 )
 		{
-			*p_next	= &flags_ci;
-			p_next	= &flags_ci.pNext;
+			p_next.Add( flags_ci );
 
 			flags_ci.sType	= VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
-			flags_ci.pNext	= null;
 			flags_ci.flags	= 0;	// TODO
 		}*/
 
 		VkRayTracingPipelineClusterAccelerationStructureCreateInfoNV	cluster;
 		if ( AllBits( ci.specCI.options, EPipelineOpt::RT_AllowClusterAccelStruct ))
 		{
-			*p_next = &cluster;
-			p_next	= const_cast< const void** >( &cluster.pNext );
+			p_next.AddConst( cluster );
 
 			cluster.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CLUSTER_ACCELERATION_STRUCTURE_CREATE_INFO_NV;
-			cluster.pNext = null;
 			cluster.allowClusterAccelerationStructure = true;
 		}
-
-		p_next = null;
 
 		TRY{
 			const auto	ToGroupIndex = [] (auto* lhs, auto* rhs) __NE___

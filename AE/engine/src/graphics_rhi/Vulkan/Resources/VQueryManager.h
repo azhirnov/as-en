@@ -13,7 +13,7 @@ namespace AE::Graphics
 	// Vulkan Query Manager
 	//
 
-	class VQueryManager final : public IQueryManager
+	class VQueryManager final : public IQueryManager, private VulkanInstanceFn
 	{
 	// types
 	public:

@@ -62,7 +62,7 @@ namespace AE::ResLoader
 	ILEnumCast
 =================================================
 */
-	ND_ inline ILenum  ILEnumCast (EImageFormat fileFormat)
+	Nd__In ILenum  ILEnumCast (EImageFormat fileFormat)
 	{
 		switch_enum( fileFormat )
 		{

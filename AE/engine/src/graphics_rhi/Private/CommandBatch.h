@@ -194,10 +194,10 @@ namespace AE::Graphics
 	// variables
 	private:
 		// for render tasks
-		alignas(AE_CACHE_LINE)
+		//alignas(AE_CACHE_LINE)
 		  CmdBufPool				_cmdPool;
 
-		alignas(AE_CACHE_LINE)
+		//alignas(AE_CACHE_LINE)
 		  AtomicState<EStatus>		_status			{EStatus::Destroyed};
 
 		FrameUID					_frameId;
@@ -228,23 +228,27 @@ namespace AE::Graphics
 		#	error not implemented
 		#endif
 
+		#if defined(AE_ENABLE_VULKAN) and defined(AE_PLATFORM_WINDOWS)
+			void *					_keyedMutexAcqRel = null;		// VkWin32KeyedMutexAcquireReleaseInfoKHR
+		#endif
+
 		// dependencies from another batches on another queue
 		// or dependencies for swapchain image
-		alignas(AE_CACHE_LINE)
+		//alignas(AE_CACHE_LINE)
 		  SpinLock					_gpuInDepsGuard;
 		GpuDependencies_t			_gpuInDeps;
 
-		alignas(AE_CACHE_LINE)
+		//alignas(AE_CACHE_LINE)
 		  SpinLock					_gpuOutDepsGuard;
 		GpuDependencies_t			_gpuOutDeps;
 
 		// tasks which wait for batch to be submitted to the GPU
-		alignas(AE_CACHE_LINE)
+		//alignas(AE_CACHE_LINE)
 		  SpinLock					_onSubmitDepsGuard;
 		OutDependencies_t			_onSubmitDeps;
 
 		// tasks which wait for batch to complete on the GPU side
-		alignas(AE_CACHE_LINE)
+		//alignas(AE_CACHE_LINE)
 		  SpinLock					_onCompleteDepsGuard;
 		OutDependencies_t			_onCompleteDeps;
 
@@ -330,6 +334,11 @@ namespace AE::Graphics
 
 			bool  AddOutputSemaphore (GpuSyncObj_t syncObj, ulong value)		__NE___;
 			bool  AddOutputSemaphore (const CmdBatchDependency_t &dep)			__NE___;
+			
+		#if defined(AE_ENABLE_VULKAN) and defined(AE_PLATFORM_WINDOWS)
+			void   SetKeyedMutexAcquireRelease (void* ptr)						__NE___	{ CHECK( _keyedMutexAcqRel == null );  _keyedMutexAcqRel = ptr; }
+		ND_ void*  ExtractKeyedMutexAcquireRelease ()							__NE___	{ auto tmp = _keyedMutexAcqRel;  _keyedMutexAcqRel = null;  return tmp; }
+		#endif
 
 		ND_ CmdBatchDependency_t	GetSemaphore ()								C_NE___;
 
@@ -498,7 +507,7 @@ namespace AE::Graphics
 					dbg.color = _dbgColor;
 
 				if ( dbg.label.empty() )
-					dbg.label = loc.function_name();
+					dbg.label = loc.FunctionName();
 			)
 
 			auto&	task = *coro.UnsafeCast();

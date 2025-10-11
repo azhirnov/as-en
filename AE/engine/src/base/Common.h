@@ -39,7 +39,6 @@ namespace AE
 	namespace Base {}
 }
 
-#include "base/Log/Log.h"
 #include "base/CompileTime/TemplateUtils.h"
 #include "base/CompileTime/TypeTraits.h"
 #include "base/CompileTime/Concepts.h"
@@ -74,6 +73,9 @@ namespace AE::Base
 	using U8StringView		= BasicStringView< CharUtf8 >;
 	using U16StringView		= BasicStringView< CharUtf16 >;
 	using U32StringView		= BasicStringView< CharUtf32 >;
+
+	
+	using Path				= std::filesystem::path;
 
 
 	template <typename T>	using SharedPtr		= std::shared_ptr< T >;
@@ -120,6 +122,18 @@ namespace AE::Base
 	using nanosecondsd	= std::chrono::duration<double, std::nano>;
 	using minutes		= std::chrono::minutes;
 
+
+	// MSVC: same as 'high_resolution_clock', used 'QueryPerformanceCounter()' inside.
+	// Warning: EASTL use 'system_clock' with lower resolution as a 'high_resolution_clock'.
+	// TODO: check other implementations.
+	//
+	using HighResClock	= std::chrono::steady_clock;
+}
+
+#include "base/Log/Log.h"
+
+namespace AE::Base
+{
 /*
 =================================================
 	TypeNameOf

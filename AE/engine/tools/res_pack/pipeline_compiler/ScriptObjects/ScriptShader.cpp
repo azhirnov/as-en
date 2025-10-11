@@ -629,6 +629,157 @@ namespace
 		str << "//------------------------\n\n";
 		return str;
 	}
+	
+/*
+=================================================
+	SpecToHLSL
+=================================================
+*/
+	String  ScriptShader::SpecToHLSL () C_Th___
+	{
+		_Validate();  // throw
+		
+		String	str;
+
+		str << "\t[shader(\"";
+		switch_enum( type )
+		{
+			case EShader::Vertex :			str << "vertex";		break;
+			case EShader::TessControl :		str << "hull";			break;
+			case EShader::TessEvaluation :	str << "domain";		break;
+			case EShader::Geometry :		str << "geometry";		break;
+			case EShader::Fragment :		str << "fragment";		break;
+
+			case EShader::Compute :			str << "compute";		break;
+
+			case EShader::MeshTask :		str << "task";			break;
+			case EShader::Mesh :			str << "mesh";			break;
+
+			case EShader::RayGen :			str << "raygeneration";	break;
+			case EShader::RayAnyHit :		str << "anyhit";		break;
+			case EShader::RayClosestHit :	str << "closesthit";	break;
+			case EShader::RayMiss :			str << "miss";			break;
+			case EShader::RayIntersection :	str << "intersection";	break;
+			case EShader::RayCallable :		str << "callable";		break;
+				
+			case EShader::Tile :
+			case EShader::_Count :
+			default :						CHECK_THROW_MSG( false, "unsupported shader stage" );
+		}
+		switch_end
+		str << "\")] \\\n";
+
+		CHECK_THROW_MSG( _specId == 0,
+			"Specialization is not supported yet" );
+		
+		if ( AnyBits( _requiredStages, EShaderStages::Compute | EShaderStages::Mesh | EShaderStages::MeshTask ))
+		{
+			CHECK_THROW_MSG( AnyEqual( type, EShader::Compute, EShader::Mesh, EShader::MeshTask ));
+			
+			uint3	size = Max( _defaultLocalSize, uint3{1} );
+			
+			str << "\t[numthreads(" << ToString( size.x ) << ", " << ToString( size.y )
+				<< ", " << ToString( size.z ) << ")] \\\n";
+
+			const String	prefix = "static const uint3 hl_WorkGroupSize = uint3("s << ToString( size.x ) << ", " <<
+									 ToString( size.y ) << ", " << ToString( size.z ) << ");\\\n";
+			prefix >> str;
+		}
+
+
+		// hull shader
+		// [maxtessfactor(factor: float)]
+		// [outputcontrolpoints(count: int)]
+		// [outputtopology(topology)]		"triangle_cw"
+		// [partitioning(mode)]
+		// [patchconstantfunc(name)]
+		// [domain(patchType)]
+
+		// geometry
+		// [maxvertexcount(count: int)]
+		// [instance(count: int)]
+
+		// fragment
+		// [earlydepthstencil]
+
+		// compute
+		// [WaveSize(numLanes: int)]
+		// [DerivativeGroupQuad]
+		// [DerivativeGroupLinear]
+
+		// ???
+		// [MaximallyReconverges]
+		// [QuadDerivatives]
+		// [RequireFullQuads]
+
+		// mesh
+		// [outputtopology("triangle")] "point" "line"
+		// out vertices
+		// out indices
+		// out primitives
+
+
+		"#define SLANG_ENTRY_OUT \\\n" >> str;
+		return str;
+	}
+	
+/*
+=================================================
+	InputToHLSL
+=================================================
+*/
+	String  ScriptShader::InputToHLSL () C_Th___
+	{
+		String	str = "#define SLANG_ENTRY_IN \\\n";
+		
+		switch_enum( type )
+		{
+			case EShader::Compute :
+			case EShader::Mesh :
+			case EShader::MeshTask :
+			{
+				str << "\tconst uint3 hl_DispatchThreadID : SV_DispatchThreadID, \\\n"	// gl_GlobalInvocationID
+					<< "\tconst uint3 hl_GroupID : SV_GroupID, \\\n"					// gl_WorkGroupID
+					<< "\tconst uint3 hl_GroupThreadID : SV_GroupThreadID \\\n";		// gl_LocalInvocationID
+				break;
+			}
+			case EShader::TessControl :
+			{
+				str << "\tconst float[4] hl_TessFactor : SV_TessFactor, \\\n"
+					<< "\tconst float[2] hl_InsideTessFactor : SV_InsideTessFactor, \\\n"	// TODO: float[2] - 'quad', float - 'tri', unused - 'isoline'
+					<< "\tconst uint hl_OutputControlPointID : SV_OutputControlPointID, \\\n";
+				break;
+			}
+			case EShader::TessEvaluation :
+			{
+				str << "\tconst float3 hl_DomainLocation : SV_DomainLocation, \\\n";		// TODO: float2 for 'quad' & 'isoline', float3 for 'tri'
+				break;
+			}
+			case EShader::Geometry :
+			{
+				str << "\tconst uint hl_GSInstanceID : SV_GSInstanceID, \\\n";
+				break;
+			}
+			
+			case EShader::Vertex :
+			case EShader::Fragment :
+
+			case EShader::RayGen :
+			case EShader::RayAnyHit :
+			case EShader::RayClosestHit :
+			case EShader::RayMiss :
+			case EShader::RayIntersection :
+			case EShader::RayCallable :		break;
+				
+			case EShader::Tile :
+			case EShader::_Count :
+			default :						CHECK_THROW_MSG( false, "unsupported shader stage" );
+		}
+		switch_end
+
+		str << '\n';
+		return str;
+	}
 
 /*
 =================================================

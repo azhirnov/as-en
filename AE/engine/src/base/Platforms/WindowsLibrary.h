@@ -7,6 +7,7 @@
 # include "base/Containers/NtStringView.h"
 # include "base/Utils/Helpers.h"
 # include "base/Algorithms/ArrayUtils.h"
+# include "base/CompileTime/FunctionInfo.h"
 
 namespace AE::Base
 {
@@ -20,11 +21,13 @@ namespace AE::Base
 	// variables
 	private:
 		void*		_handle	= null;		// HMODULE
+		bool		_loaded	= false;
 
 
 	// methods
 	public:
 		WindowsLibrary ()											__NE___	{}
+		explicit WindowsLibrary (WindowsLibrary &&)					__NE___;
 		~WindowsLibrary ()											__NE___	{ Unload(); }
 
 		// open already loaded library to avoid conflicts
@@ -43,12 +46,15 @@ namespace AE::Base
 		template <typename T>
 		ND_ bool  GetProcAddr (NtStringView name, OUT T &result)	C_NE___;
 
+		template <typename T>
+		ND_ bool  GetVarAddr (NtStringView name, OUT T* &result)	C_NE___;
+
 		ND_ Path  GetPath ()										C_NE___;
 
 		ND_ explicit operator bool ()								C_NE___	{ return _handle != null; }
 
 	private:
-		ND_ void*  _GetProcAddress (NtStringView name)				C_NE___;
+		ND_ void*  _GetProcAddress (const char* name)				C_NE___;
 	};
 
 
@@ -58,15 +64,32 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline bool  WindowsLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
+	bool  WindowsLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
 	{
+		if constexpr( not IsSame< T, void* >)
+			StaticAssert( IsGlobalFunction< T >);
+
 		NonNull( _handle );
 		ASSERT( not name.empty() );
 
 		result = BitCast<T>( _GetProcAddress( name.c_str() ));
 		return result != null;
 	}
+	
+/*
+=================================================
+	GetVarAddr
+=================================================
+*/
+	template <typename T>
+	bool  WindowsLibrary::GetVarAddr (NtStringView name, OUT T* &result) C_NE___
+	{
+		NonNull( _handle );
+		ASSERT( not name.empty() );
 
+		result = BitCast<T*>( _GetProcAddress( name.c_str() ));
+		return result != null;
+	}
 
 } // AE::Base
 

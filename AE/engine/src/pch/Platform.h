@@ -8,9 +8,10 @@
 #include "platform/Public/InputActions.h"
 #include "platform/Public/InputSurface.h"
 #include "platform/Public/OutputSurface.h"
-#include "platform/Public/IWindow.h"
-#include "platform/Public/VRDevice.h"
-#include "platform/Public/IApplication.h"
+#include "platform/Public/Window.h"
+#include "platform/Public/VRSession.h"
+#include "platform/Public/DesktopWindow.h"
+#include "platform/Public/Application.h"
 
 #include "platform/BaseAppV1/DefaultAppV1.h"
 #include "platform/BaseAppV2/DefaultAppV2.h"

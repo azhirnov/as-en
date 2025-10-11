@@ -13,7 +13,7 @@ namespace AE::Graphics
 	// Vulkan Sampler immutable data
 	//
 
-	class VSampler final
+	class VSampler final : private VulkanInstanceFn
 	{
 	// variables
 	private:
@@ -51,8 +51,6 @@ namespace AE::Graphics
 										 const SamplerYcbcrConversionDesc &ycbcrDesc,
 										 const VDevice &dev,
 										 IAllocator &alloc)									__NE___;
-
-	private:
 	};
 
 

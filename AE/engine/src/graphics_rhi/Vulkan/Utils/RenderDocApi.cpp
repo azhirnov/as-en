@@ -92,8 +92,6 @@ namespace
 */
 	void  RenderDocApi::Deinitialize () __NE___
 	{
-		//_lib.Unload();
-
 		_api = null;
 		_device	= null;
 		_wndHandle.store( null );
@@ -220,16 +218,13 @@ namespace
 	TriggerFrameCapture
 =================================================
 */
-	bool  RenderDocApi::TriggerFrameCapture (NtStringView name) C_NE___
+	bool  RenderDocApi::TriggerFrameCapture () C_NE___
 	{
 		if ( _api == null )
 			return false;
 		
 		auto*	rdoc_api = Cast<RDocApi_t>(_api);
 		rdoc_api->TriggerCapture();
-
-		if ( not name.empty() )
-			rdoc_api->SetCaptureTitle( name.c_str() );
 
 		_captureIdx.Inc();
 		return true;
@@ -284,7 +279,7 @@ namespace AE::Graphics
 	bool  RenderDocApi::CancelFrame ()									C_NE___	{ return false; }
 	bool  RenderDocApi::EndFrame ()										C_NE___	{ return false; }
 	bool  RenderDocApi::IsFrameCapturing ()								C_NE___	{ return false; }
-	bool  RenderDocApi::TriggerFrameCapture (NtStringView)				C_NE___	{ return false; }
+	bool  RenderDocApi::TriggerFrameCapture ()							C_NE___	{ return false; }
 	bool  RenderDocApi::TriggerMultiFrameCapture (uint)					C_NE___	{ return false; }
 
 } // AE::Graphics

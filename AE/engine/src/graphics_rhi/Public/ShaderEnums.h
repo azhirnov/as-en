@@ -36,7 +36,7 @@ namespace AE::Graphics
 
 		ClusterCulling	= MeshTask,	// VK_HUAWEI_cluster_culling_shader
 		SubpassShading	= Tile,		// VK_HUAWEI_subpass_shading
-		Unknown			= 0xFF,
+		Unknown			= _Count,
 	};
 
 

@@ -66,8 +66,8 @@ namespace
 			{
 				if ( auto* msg = CSMessageCtor< CSMsg_Log >::CreateForEncode( alloc ))
 				{
-					msg->file	= loc.file_name();
-					msg->line	= loc.line();
+					msg->file	= loc.FileName();
+					msg->line	= loc.Line();
 					msg->msg	= text;
 
 					last_chunk->emplace_back( msg );

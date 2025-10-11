@@ -97,7 +97,6 @@ namespace
 				break;
 
 			case EImage::Unknown :
-			case EImage::_Count :
 			default :
 				RETURN_ERR( "unsupported image type" );
 		}

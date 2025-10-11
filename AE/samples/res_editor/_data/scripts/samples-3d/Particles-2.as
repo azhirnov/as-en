@@ -170,11 +170,6 @@
 					pass.SetDebugLabel( "Dots, trilist", RGBA8u(200, 200, 0, 255) );
 					pass.AddPipeline( "particles/Dots-tl-fp16.as" );	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-tl-fp16.as)
 					break;
-
-			//	case Mode_MS :
-			//		pass.AddPipeline( "particles/Rays-ms-fp16.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Rays-ms-fp16.as)
-			//	case Mode_MS + Mode_Count :
-			//		pass.AddPipeline( "particles/Dots-ms-fp16.as" );	break;	// [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/particles/Dots-ms-fp16.as)
 			}
 
 			pass.Output( "out_Color", rt, RGBA32f(0.0) );

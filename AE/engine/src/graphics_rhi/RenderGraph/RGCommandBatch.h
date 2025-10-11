@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	RGCommandBatchPtr
-		thread-safe:  no (only single thread)
+		Thread-safe:  no (only single thread)
 
 	Warning: CmdBufExeIndex is not compatible with RenderGraph !
 */

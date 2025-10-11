@@ -2,40 +2,10 @@
 
 #pragma once
 
+#include "base/Log/SourceLoc.h"
+
 namespace AE::Base
 {
-
-	//
-	// Source Code Location
-	//
-	struct SourceLoc
-	{
-	// variables
-	private:
-		const char*		_file	= null;
-		const char*		_fn		= null;
-		unsigned int	_line	= 0;
-		unsigned int	_column	= 0;
-		
-	// methods
-	public:
-		__Cx__ SourceLoc ()											__NE___	{}
-		__Cx__ SourceLoc (const std::source_location &loc)			__NE___	: _file{loc.file_name()}, _fn{loc.function_name()}, _line{loc.line()}, _column{loc.column()} {}
-		__Cx__ explicit SourceLoc (const char* file,
-								   unsigned int line = 0,
-								   unsigned int column = 0)			__NE___	: _file{file}, _line{line}, _column{column} {}
-		__Cx__ SourceLoc (const char* file, const char* fn,
-						  unsigned int line, unsigned int column)	__NE___	: _file{file}, _fn{fn}, _line{line}, _column{column} {}
-
-		NdCe__ static SourceLoc  current (const std::source_location &loc = std::source_location::current()) __NE___ { return SourceLoc{loc}; }
-			
-		NdCx__ const char*		function_name ()					C_NE___	{ return _fn; }
-		NdCx__ const char*		file_name ()						C_NE___	{ return _file; }
-		NdCx__ unsigned int		column ()							C_NE___	{ return _column; }
-		NdCx__ unsigned int		line ()								C_NE___	{ return _line; }
-	};
-
-
 
 	//
 	// Logger interface
@@ -45,7 +15,7 @@ namespace AE::Base
 	{
 	// types
 	public:
-		enum class EResult : unsigned int
+		enum class EResult : uint
 		{
 			Continue,
 			Break,
@@ -53,7 +23,7 @@ namespace AE::Base
 			Unknown	= Continue,
 		};
 
-		enum class ELevel : unsigned char
+		enum class ELevel : ubyte
 		{
 			Debug,
 			Info,
@@ -63,7 +33,7 @@ namespace AE::Base
 			_Count
 		};
 
-		enum class EScope : unsigned char
+		enum class EScope : ubyte
 		{
 			Unknown,
 			GraphicsDriver,
@@ -77,11 +47,11 @@ namespace AE::Base
 
 		struct MessageInfo
 		{
-			std::string_view	message;
-			SourceLoc			loc;
-			size_t				threadId	= 0;
-			ELevel				level		= ELevel::Debug;
-			EScope				scope		= EScope::Unknown;
+			StringView		message;
+			SourceLoc		loc;
+			size_t			threadId	= 0;
+			ELevel			level		= ELevel::Debug;
+			EScope			scope		= EScope::Unknown;
 		};
 
 		using LevelBits		= std::bitset< size_t(ELevel::_Count) >;
@@ -94,21 +64,21 @@ namespace AE::Base
 		virtual ~ILogger ()											__NE___	{}
 
 		ND_ virtual EResult	Process (const MessageInfo &info)		__Th___ = 0;
-			virtual void	SetCurrentThreadName (std::string_view)	__NE___ {}
+			virtual void	SetCurrentThreadName (StringView)		__NE___ {}
 
 
 	// default loggers
 	public:
-		using LoggerPtr	= std::unique_ptr< ILogger >;
+		using LoggerPtr	= Unique< ILogger >;
 
 		ND_ static LevelBits	GetDialogLevelBits ()				__NE___;
 		ND_ static ScopeBits	GetDialogScopeBits ()				__NE___;
 
 		ND_ static LoggerPtr	CreateIDEOutput ()												__NE___;	// VS only
-		ND_ static LoggerPtr	CreateConsoleOutput (std::string_view tag = {})					__NE___;	// cross platform
-		ND_ static LoggerPtr	CreateFileOutput (std::string_view fileName)					__NE___;
-		ND_ static LoggerPtr	CreateHtmlOutput (std::string_view fileName)					__NE___;
-		ND_ static LoggerPtr	CreateHtmlOutputPerThread (std::string_view prefix)				__NE___;
+		ND_ static LoggerPtr	CreateConsoleOutput (StringView tag = {})						__NE___;	// cross platform
+		ND_ static LoggerPtr	CreateFileOutput (StringView fileName)							__NE___;
+		ND_ static LoggerPtr	CreateHtmlOutput (StringView fileName)							__NE___;
+		ND_ static LoggerPtr	CreateHtmlOutputPerThread (StringView prefix)					__NE___;
 		ND_ static LoggerPtr	CreateDialogOutput (LevelBits levelBits = GetDialogLevelBits(),
 													ScopeBits scopeBits = GetDialogScopeBits())	__NE___;
 		ND_ static LoggerPtr	CreateBreakOnError ()											__NE___;
@@ -129,18 +99,18 @@ namespace AE::Base
 
 
 	// methods
-		ND_ static EResult  Process (std::string_view msg, const SourceLoc &loc, ILogger::ELevel level, ILogger::EScope scope) __Th___;
+		ND_ static EResult  Process (StringView msg, const SourceLoc &loc, ILogger::ELevel level, ILogger::EScope scope) __Th___;
 
 			static void		SetFilter (LevelBits levelBits, ScopeBits scopeBits)__NE___;
 
 			static void		ClearLoggers ()										__NE___;
-			static void		AddLogger (std::unique_ptr<ILogger> ptr)			__NE___;
+			static void		AddLogger (Unique<ILogger> ptr)						__NE___;
 
 			static void		InitDefault ()										__NE___;
 			static void		Initialize ()										__NE___;
 			static void		Deinitialize (bool checkMemLeaks = false)			__NE___;
 
-			static void		SetCurrentThreadName (std::string_view name)		__NE___;
+			static void		SetCurrentThreadName (StringView name)				__NE___;
 
 		template <bool checkMemLeaks>
 		struct _LoggerScope
@@ -149,7 +119,7 @@ namespace AE::Base
 			_LoggerScope ()		__NE___ { InitDefault(); }
 			~_LoggerScope ()	__NE___ { Deinitialize( checkMemLeaks ); }
 		};
-		using LoggerDbgScope	= _LoggerScope<true>;
+		using LoggerDbgScope	= _LoggerScope<true>;	// with mem leak check
 		using LoggerScope		= _LoggerScope<false>;
 	};
 
@@ -166,7 +136,7 @@ namespace AE
 # define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _srcLoc_ )									\
 	if_not_consteval () {																									\
 		TRY{																												\
-			{switch_enum( AE::Base::StaticLogger::Process(	std::string_view{_msg_}, (_srcLoc_), (_level_), (_scope_) ))	\
+			{switch_enum( AE::Base::StaticLogger::Process( AE::Base::StringView{_msg_}, (_srcLoc_), (_level_), (_scope_) ))	\
 			{																												\
 				case_likely	AE::Base::StaticLogger::EResult::Continue :		break;											\
 				case		AE::Base::StaticLogger::EResult::Break :		AE_PRIVATE_BREAK_POINT();	break;				\

@@ -17,10 +17,6 @@
 #define switch_IA2( _ia_, _name_ )		switch_enum( RemoveReference<decltype(_ia_)>::Bindings(uint{_name_}) )
 #define switch_IA( _name_ )				switch_IA2( IA, (_name_) )
 
-namespace AE::Base
-{
-	class MemRefRStream;
-}
 namespace AE::App
 {
 

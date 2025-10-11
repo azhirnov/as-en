@@ -26,6 +26,8 @@ namespace AE::ResLoader
 		switch_enum( fmt )
 		{
 			case EModelFormat::GLTF :		return ".gltf";
+			case EModelFormat::CSV :		return ".csv";
+			case EModelFormat::_Count :
 			case EModelFormat::Unknown :	break;
 		}
 		switch_end

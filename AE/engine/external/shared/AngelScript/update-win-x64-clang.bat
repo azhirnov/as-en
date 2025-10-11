@@ -5,7 +5,6 @@ rmdir /Q /S "temp"
 mkdir "build"
 git clone "..\..\..\..\..\3party\AngelScript" "temp"
 copy /Y "patch\angelscript_CMakeLists.txt" "temp\CMakeLists.txt"
-copy /Y "patch\scriptarray.h" "temp\add_on\scriptarray\scriptarray.h"
 rmdir /Q /S "temp\add_on\scriptstdstring"
 robocopy "patch\scriptstdstring" "temp\add_on\scriptstdstring" /S 
 cmake -S temp -B build -G "Visual Studio 17 2022" -T ClangCL -A x64 -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DAE_SIMD_SSE=20 -DAE_SIMD_AES=0 -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/win-x64-clang19/AngelScript" 

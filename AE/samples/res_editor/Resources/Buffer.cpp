@@ -279,7 +279,8 @@ namespace
 		if ( not _loadOp.request->IsCompleted() )
 			return EUploadStatus::InProgress;
 
-		auto	loaded_data = _loadOp.request->GetResult().AsArray<ubyte>();
+		// extract data
+		ArrayView<ubyte>	loaded_data = _loadOp.request->GetResult().AsArray<ubyte>();
 
 		if_unlikely( not _loadOp.stream.IsInitialized() )
 		{
@@ -292,7 +293,8 @@ namespace
 		}
 		ASSERT( _loadOp.stream.BufferId() == _ids[0] );
 
-		auto	pending = loaded_data.section( usize(_loadOp.stream.pos), UMax );
+		// upload
+		ArrayView<ubyte>	pending = loaded_data.section( usize(_loadOp.stream.pos), UMax );
 
 		BufferMemView	dst_mem;
 		ctx.UploadBuffer( INOUT _loadOp.stream, OUT dst_mem );
@@ -309,6 +311,7 @@ namespace
 				return EUploadStatus::NoMemory;
 		}
 
+		// streaming complete
 		if ( _loadOp.stream.IsCompleted() )
 		{
 			_loadOp = Default;

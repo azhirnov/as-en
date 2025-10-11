@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "base/FileSystem/Path.h"
 #include "serializing/Public/ISerializable.h"
 
 namespace glslang {

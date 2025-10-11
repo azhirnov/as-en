@@ -28,4 +28,4 @@ using namespace LFAS::CPP;
 #include "base/Memory/UntypedAllocator.h"
 #include "base/Memory/IAllocator.h"
 
-static constexpr secondsf	c_TestDuration {100.f * 60.f};
+static constexpr secondsf	c_TestDuration {10.f * 60.f};

@@ -5,7 +5,6 @@
 #include "platform/GLFW/GLFWCommon.h"
 
 #ifdef AE_ENABLE_GLFW
-# include "platform/Public/IApplication.h"
 # include "platform/GLFW/WindowGLFW.h"
 # include "platform/Private/ApplicationBase.h"
 
@@ -18,17 +17,8 @@ namespace AE::App
 
 	class ApplicationGLFW final : public ApplicationBase
 	{
-	// types
-	private:
-		using Window		= WeakPtr< WindowGLFW >;
-		using WindowArray_t	= FixedArray< Window, PlatformConfig::MaxWindows >;
-
-
 	// variables
 	private:
-		RecursiveMutex		_windowsGuard;		// TODO: can be removed
-		WindowArray_t		_windows;
-
 		Monitors_t			_cachedMonitors;
 
 		Locales_t			_locales;
@@ -42,13 +32,16 @@ namespace AE::App
 
 	// IApplication //
 		WindowPtr	CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)	__NE_OV;
-		StringView	GetApiName ()														C_NE_OV	{ return "glfw"; }
+		StringView	GetApiName ()														C_NE_OV	{ return "GLFW"; }
 		Locales_t	GetLocales ()														C_NE_OV	{ return _locales; }
 
-		ArrayView<Monitor>		GetMonitors (bool update = false)						__NE_OV;
+		MonitorsView_t			GetMonitors (bool update = false)						__NE_OV;
+		MonitorsView_t			GetCachedMonitors ()									C_NE_OV;
 		RC<IVirtualFileStorage> OpenStorage (EAppStorage)								__NE_OV { return null; }
 		Path					GetStoragePath (EAppStorage)							__NE_OV	{ return {}; }
 		ArrayView<const char*>	GetVulkanInstanceExtensions ()							__NE_OV;
+		RC<IScreenCapture>		StartScreenCapture (const IScreenCapture::Config &)		__NE_OV;
+		Unique<ISendInput>		CreateInputSender ()									__NE_OV;
 
 
 	private:

@@ -7,6 +7,29 @@
 
 namespace AE::Base
 {
+# if 1
+#	define PUSH_ERRORMODE \
+		const DWORD		old_mode = ::SetErrorMode( SEM_FAILCRITICALERRORS ); \
+		::SetErrorMode( old_mode | SEM_FAILCRITICALERRORS );
+
+#	define POP_ERRORMODE \
+		::SetErrorMode( old_mode );
+# else
+#	define PUSH_ERRORMODE
+#	define POP_ERRORMODE
+# endif
+	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	WindowsLibrary::WindowsLibrary (WindowsLibrary &&other) __NE___ :
+		_handle{ other._handle }, _loaded{ other._loaded }
+	{
+		other._handle = null;
+		other._loaded = false;
+	}
 
 /*
 =================================================
@@ -17,6 +40,7 @@ namespace AE::Base
 	{
 		CHECK_ERR( _handle == null and lib != null );
 		_handle = lib;
+		_loaded = false;
 		return true;
 	}
 	
@@ -27,7 +51,8 @@ namespace AE::Base
 		
 		if_unlikely( _handle == null )
 			WIN_CHECK_DEV( "Error when opening shared library '"s << libName << "': " );
-
+		
+		_loaded = false;
 		return _handle != null;
 	}
 
@@ -39,23 +64,31 @@ namespace AE::Base
 	bool  WindowsLibrary::Load (NtStringView libName) __NE___
 	{
 		CHECK_ERR( _handle == null );
+
+		PUSH_ERRORMODE;
 		_handle = ::LoadLibraryA( libName.c_str() );
+		POP_ERRORMODE;
 
 		if_unlikely( _handle == null )
 			WIN_CHECK_DEV( "Error when loading shared library '"s << libName << "': " );
-
-		return _handle != null;
+		
+		_loaded = (_handle != null);
+		return _loaded;
 	}
 
 	bool  WindowsLibrary::Load (const Path &libName) __NE___
 	{
 		CHECK_ERR( _handle == null );
+		
+		PUSH_ERRORMODE;
 		_handle = ::LoadLibraryW( libName.c_str() );
+		POP_ERRORMODE;
 
 		if_unlikely( _handle == null )
 			WIN_CHECK_DEV( "Error when loading shared library '"s << ToString(libName) << "': " );
-
-		return _handle != null;
+		
+		_loaded = (_handle != null);
+		return _loaded;
 	}
 
 /*
@@ -65,11 +98,12 @@ namespace AE::Base
 */
 	void  WindowsLibrary::Unload () __NE___
 	{
-		if ( _handle != null )
+		if ( _handle != null and _loaded )
 		{
 			::FreeLibrary( BitCast<HMODULE>(_handle) );
-			_handle = null;
 		}
+		_handle = null;
+		_loaded = false;
 	}
 
 /*
@@ -92,9 +126,9 @@ namespace AE::Base
 	_GetProcAddress
 =================================================
 */
-	void*  WindowsLibrary::_GetProcAddress (NtStringView name) C_NE___
+	void*  WindowsLibrary::_GetProcAddress (const char* name) C_NE___
 	{
-		return BitCast<void*>(::GetProcAddress( BitCast<HMODULE>(_handle), name.c_str() ));
+		return BitCast<void*>(::GetProcAddress( BitCast<HMODULE>(_handle), name ));
 	}
 
 

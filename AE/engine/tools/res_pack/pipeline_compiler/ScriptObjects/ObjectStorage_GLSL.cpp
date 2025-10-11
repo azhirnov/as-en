@@ -155,6 +155,8 @@ namespace AE::PipelineCompiler
 */
 	String  ObjectStorage::GetShaderExtensionsGLSL (INOUT Version2 &spirvVer, const EShaderStages stage, bool hasDebugInfo, ArrayView<ScriptFeatureSetPtr> features) __Th___
 	{
+		StaticAssert( Graphics::FeatureSet::GetFeatureCount() == 271 );
+
 		ASSERT( IsSingleBitSet( stage ));
 
 		String	def =
@@ -382,6 +384,7 @@ namespace AE::PipelineCompiler
 		}
 
 		// atomic
+		// TODO: add define for each feature
 		{
 			FeatureSetCounter	has_atomics;
 			FeatureSetCounter	storage_i64;
@@ -807,9 +810,132 @@ namespace AE::PipelineCompiler
 			for (auto& ptr : features) {
 				supported.Add( ptr->fs.fragmentDensityMap );
 			}
-			if ( supported.IsEnable() ) {
+			if ( supported.IsTrue() ) {
 				ext << "#extension GL_EXT_fragment_invocation_density              : require\n";
 				def << "#define AE_fragment_invocation_density 1\n";
+			}
+		}
+
+		// integer dot product
+		{
+			FeatureSetCounter		supported;
+			bool					first	= true;
+			EIntegerDotProductFeats	bits;
+
+			for (auto& ptr : features)
+			{
+				supported.Add( ptr->fs.shaderIntegerDotProduct );
+				if ( not first )
+				{
+					bits ^= features.front()->fs.integerDotProductFeatures;
+				}
+				if ( first and ptr->fs.shaderIntegerDotProduct == FeatureSet::EFeature::RequireTrue )
+				{
+					bits  = features.front()->fs.integerDotProductFeatures;
+					first = false;
+				}
+			}
+			if ( supported.IsTrue() )
+			{
+				ext << "#extension GL_EXT_integer_dot_product                      : require\n";
+				def << "#define AE_integer_dot_product 1\n";
+				//CHECK_THROW( bits.Any() );	// TODO
+
+				for (EIntegerDotProductFeat e : bits)
+				{
+					switch_enum( e )
+					{
+						#define CASE( _name_ )	case EIntegerDotProductFeat::_name_ : def << "#define AE_integer_dot_product_" AE_TOSTRING(_name_) " 1\n"; break;
+						CASE( Unsigned8bit )
+						CASE( Signed8bit )
+						CASE( MixedSignedness8bit )
+						CASE( Unsigned4x8bit )
+						CASE( Signed4x8bit )
+						CASE( MixedSignedness4x8bit )
+						CASE( Unsigned16bit )
+						CASE( Signed16bit )
+						CASE( MixedSignedness16bit )
+						CASE( Unsigned32bit )
+						CASE( Signed32bit )
+						CASE( MixedSignedness32bit )
+						CASE( Unsigned64bit )
+						CASE( Signed64bit )
+						CASE( MixedSignedness64bit )
+						CASE( AccSat_Unsigned8bit )
+						CASE( AccSat_Signed8bit )
+						CASE( AccSat_MixedSignedness8bit )
+						CASE( AccSat_Unsigned4x8bit )
+						CASE( AccSat_Signed4x8bit )
+						CASE( AccSat_MixedSignedness4x8bit )
+						CASE( AccSat_Unsigned16bit )
+						CASE( AccSat_Signed16bit )
+						CASE( AccSat_MixedSignedness16bit )
+						CASE( AccSat_Unsigned32bit )
+						CASE( AccSat_Signed32bit )
+						CASE( AccSat_MixedSignedness32bit )
+						CASE( AccSat_Unsigned64bit )
+						CASE( AccSat_Signed64bit )
+						CASE( AccSat_MixedSignedness64bit )
+						#undef CASE
+						case EIntegerDotProductFeat::_Count : break;
+					}
+					switch_end
+				}
+			}
+		}
+
+		// float8
+		{
+			FeatureSetCounter	supported;
+			FeatureSetCounter	coop_mat;
+			for (auto& ptr : features) {
+				supported.Add( ptr->fs.shaderFloat8 );
+				coop_mat.Add( ptr->fs.shaderFloat8CooperativeMatrix );
+			}
+			if ( supported.IsTrue() ) {
+				ext << "#extension GL_EXT_float_e5m2                               : require\n";
+				ext << "#extension GL_EXT_float_e4m3                               : require\n";
+				def << "#define AE_float8 1\n";
+				if ( coop_mat.IsTrue() ) {
+					def << "#define AE_float8_coopmatrix 1\n";
+				}
+			}
+		}
+
+		// bfloat16
+		{
+			FeatureSetCounter	supported;
+			FeatureSetCounter	dot_product;
+			FeatureSetCounter	coop_mat;
+			for (auto& ptr : features) {
+				supported.Add( ptr->fs.shaderBFloat16Type );
+				dot_product.Add( ptr->fs.shaderBFloat16DotProduct );
+				coop_mat.Add( ptr->fs.shaderBFloat16CooperativeMatrix );
+			}
+			if ( supported.IsTrue() )
+			{
+				ext << "#extension GL_EXT_bfloat16                                 : require\n";
+				def << "#define AE_bfloat16 1\n";
+
+				if ( dot_product.IsTrue() ){
+					def << "#define AE_bfloat16_dotprod 1\n";
+				}
+				if ( coop_mat.IsTrue() ){
+					def << "#define AE_bfloat16_coopmatrix 1\n";
+				}
+			}
+		}
+
+		// float16x2 atomic
+		{
+			FeatureSetCounter	supported;
+			FeatureSetCounter	coop_mat;
+			for (auto& ptr : features) {
+				supported.Add( ptr->fs.shaderAtomicPackedFp16 );
+			}
+			if ( supported.IsTrue() ) {
+				ext << "#extension GL_NV_shader_atomic_fp16_vector                 : require\n";
+				def << "#define AE_shader_atomic_fp16_vector 1\n";
 			}
 		}
 

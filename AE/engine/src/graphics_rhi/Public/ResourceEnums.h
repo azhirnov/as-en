@@ -83,10 +83,12 @@ namespace AE::Graphics
 		_1D,
 		_2D,
 		_3D,
+		_Count,
+
 		OneDim		= _1D,
 		TwoDim		= _2D,
 		ThreeDim	= _3D,
-		Unknown		= 0xFF,
+		Unknown		= _Count,
 	};
 
 	static constexpr auto	EImageDim_1D	= EImageDim::_1D;
@@ -109,7 +111,7 @@ namespace AE::Graphics
 		ThreeDim		= _3D,
 		OneDimArray		= _1DArray,
 		TwoDimArray		= _2DArray,
-		Unknown			= 0xFF,
+		Unknown			= _Count,
 	};
 
 	static constexpr auto	EImage_1D			= EImage::_1D;
@@ -243,7 +245,7 @@ namespace AE::Graphics
 		Extended_sRGB_nonlinear,	// scRGB, backward compatible with sRGB, {1,1,1} = 80 nit, {7.83} = 10'000 nit.
 
 		_Count,
-		Unknown		= 0xFF,
+		Unknown		= _Count,
 	};
 
 
@@ -257,18 +259,18 @@ namespace AE::Graphics
 		SharedContinuousRefresh,
 
 		_Count,
-		Unknown		= 0xFF,
+		Unknown		= _Count,
 	};
 
 
 	enum class EPresentScaling : ubyte
 	{
+		Unknown		= 0,
 		OneToOne,					// Present() return 'suboptimal' if swapchain doesn't match the surface size
 		AspectRatioStretch,			// image can be minified or magnified, aspect ratio must match to original swapchain image 
 		Stretch,					// 
 		
 		_Count,
-		Unknown		= 0xFF,
 	};
 
 
@@ -298,7 +300,7 @@ namespace AE::Graphics
 		_visitor_( RGB10_A2_UNorm	)\
 		_visitor_( RGBA4_UNorm		)\
 		_visitor_( RGB5_A1_UNorm	)\
-		_visitor_( RGB_5_6_5_UNorm	)\
+		_visitor_( R5G6B5_UNorm		)\
 		\
 		/* BGRA */\
 		_visitor_( BGR8_UNorm		)\
@@ -501,7 +503,7 @@ namespace AE::Graphics
 		// special value which will be replaced by current swapchain color format.
 		SwapchainColor	= 0xFE,
 
-		Unknown			= 0xFF,
+		Unknown			= _Count,
 	};
 	StaticAssert( uint(EPixelFormat::_Count) < uint(EPixelFormat::SwapchainColor) );
 
@@ -532,7 +534,7 @@ namespace AE::Graphics
 		_Android_End,
 
 		_Count,
-		Unknown		= 0xFF
+		Unknown		= _Count
 	};
 
 

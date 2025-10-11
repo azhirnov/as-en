@@ -17,7 +17,7 @@ namespace
 {
 	static StaticLogger::LevelBits				s_levelBits		{ ~0u };
 	static StaticLogger::ScopeBits				s_scopeBits		{ ~0u };
-	static std::shared_mutex					s_loggersGuard;
+	static SharedMutex							s_loggersGuard;
 	static Optional< Array< Unique<ILogger> >>	s_loggers;
 	static int									s_refCounter	= 0;
 	static thread_local Atomic<int>				s_recursion		{0};
@@ -149,7 +149,7 @@ namespace
 			{
 				ILogger::MessageInfo	info;
 				info.message	= "AE_DUMP_MEMLEAKS failed";
-				info.loc		= std::source_location::current();
+				info.loc		= SourceLoc::current();
 				info.threadId	= 0;
 				info.level		= ILogger::ELevel::Fatal;
 				info.scope		= ILogger::EScope::Engine;
@@ -259,7 +259,7 @@ namespace
 	SetCurrentThreadName
 =================================================
 */
-	void  StaticLogger::SetCurrentThreadName (std::string_view name) __NE___
+	void  StaticLogger::SetCurrentThreadName (StringView name) __NE___
 	{
 		ASSERT( not name.empty() );
 
@@ -291,7 +291,7 @@ namespace AE::Base
 	void  StaticLogger::ClearLoggers ()							__NE___	{}
 	void  StaticLogger::AddLogger (Unique<ILogger>)				__NE___	{}
 	void  StaticLogger::InitDefault ()							__NE___	{}
-	void  StaticLogger::SetCurrentThreadName (std::string_view) __NE___ {}
+	void  StaticLogger::SetCurrentThreadName (StringView) 		__NE___ {}
 
 	StaticLogger::EResult  StaticLogger::Process (StringView, StringView, StringView, unsigned int, ILogger::ELevel, ILogger::EScope) __Th___ { return StaticLogger::EResult::Continue; }
 	StaticLogger::EResult  StaticLogger::Process (const char*, const char*, const char*, unsigned int, ILogger::ELevel, ILogger::EScope) __Th___ { return StaticLogger::EResult::Continue; }

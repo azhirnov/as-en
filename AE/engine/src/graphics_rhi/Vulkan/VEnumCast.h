@@ -27,7 +27,7 @@ namespace AE::Graphics
 	VEnumCast (EBlitFilter)
 =================================================
 */
-	ND_ inline VkFilter  VEnumCast (EBlitFilter value) __NE___
+	Nd__In VkFilter  VEnumCast (EBlitFilter value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -43,7 +43,7 @@ namespace AE::Graphics
 	VEnumCast (MultiSamples)
 =================================================
 */
-	ND_ inline VkSampleCountFlagBits  VEnumCast (MultiSamples value) __NE___
+	Nd__In VkSampleCountFlagBits  VEnumCast (MultiSamples value) __NE___
 	{
 		return Clamp( VkSampleCountFlagBits(value.Get()), VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_64_BIT );
 	}
@@ -53,7 +53,7 @@ namespace AE::Graphics
 	VEnumCast (ELogicOp)
 =================================================
 */
-	ND_ inline VkLogicOp  VEnumCast (ELogicOp value) __NE___
+	Nd__In VkLogicOp  VEnumCast (ELogicOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -74,7 +74,6 @@ namespace AE::Graphics
 			case ELogicOp::OrReverse :		return VK_LOGIC_OP_OR_REVERSE;
 			case ELogicOp::OrInverted :		return VK_LOGIC_OP_OR_INVERTED;
 			case ELogicOp::None :
-			case ELogicOp::_Count :
 			case ELogicOp::Unknown :		break;	// not supported
 		}
 		switch_end
@@ -86,7 +85,7 @@ namespace AE::Graphics
 	VEnumCast (EBlendFactor)
 =================================================
 */
-	ND_ inline VkBlendFactor  VEnumCast (EBlendFactor value) __NE___
+	Nd__In VkBlendFactor  VEnumCast (EBlendFactor value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -109,7 +108,6 @@ namespace AE::Graphics
 			case EBlendFactor::OneMinusSrc1Color :	return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
 			case EBlendFactor::Src1Alpha :			return VK_BLEND_FACTOR_SRC1_ALPHA;
 			case EBlendFactor::OneMinusSrc1Alpha :	return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
-			case EBlendFactor::_Count :
 			case EBlendFactor::Unknown :			break;
 		}
 		switch_end
@@ -121,7 +119,7 @@ namespace AE::Graphics
 	VEnumCast (EBlendOp)
 =================================================
 */
-	ND_ inline VkBlendOp  VEnumCast (EBlendOp value) __NE___
+	Nd__In VkBlendOp  VEnumCast (EBlendOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -130,7 +128,6 @@ namespace AE::Graphics
 			case EBlendOp::RevSub : return VK_BLEND_OP_REVERSE_SUBTRACT;
 			case EBlendOp::Min :	return VK_BLEND_OP_MIN;
 			case EBlendOp::Max :	return VK_BLEND_OP_MAX;
-			case EBlendOp::_Count :
 			case EBlendOp::Unknown:	break;
 		}
 		switch_end
@@ -142,7 +139,7 @@ namespace AE::Graphics
 	VEnumCast (EVertexType)
 =================================================
 */
-	ND_ inline VkFormat  VEnumCast (EVertexType value) __NE___
+	Nd__In VkFormat  VEnumCast (EVertexType value) __NE___
 	{
 		#define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
 			case EVertexType::_engineFmt_ : return _vkFormat_;
@@ -160,14 +157,13 @@ namespace AE::Graphics
 	VEnumCast (EVertexInputRate)
 =================================================
 */
-	ND_ inline VkVertexInputRate  VEnumCast (EVertexInputRate value) __NE___
+	Nd__In VkVertexInputRate  VEnumCast (EVertexInputRate value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EVertexInputRate::Vertex :		return VK_VERTEX_INPUT_RATE_VERTEX;
 			case EVertexInputRate::Instance :	return VK_VERTEX_INPUT_RATE_INSTANCE;
-			case EVertexInputRate::Unknown :
-			case EVertexInputRate::_Count :		break;
+			case EVertexInputRate::Unknown :	break;
 		}
 		switch_end
 		RETURN_ERR( "unknown vertex input rate", VK_VERTEX_INPUT_RATE_MAX_ENUM );
@@ -178,7 +174,7 @@ namespace AE::Graphics
 	VEnumCast (EShader)
 =================================================
 */
-	ND_ inline VkShaderStageFlagBits  VEnumCast (EShader value) __NE___
+	Nd__In VkShaderStageFlagBits  VEnumCast (EShader value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -197,8 +193,7 @@ namespace AE::Graphics
 			case EShader::RayIntersection :	return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
 			case EShader::RayCallable :		return VK_SHADER_STAGE_CALLABLE_BIT_KHR;
 			case EShader::Tile :			return VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI;
-			case EShader::Unknown :
-			case EShader::_Count :			break;
+			case EShader::Unknown :			break;
 		}
 		switch_end
 		RETURN_ERR( "unknown shader type!", VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM );
@@ -209,7 +204,7 @@ namespace AE::Graphics
 	VEnumCast (EShaderStages)
 =================================================
 */
-	ND_ inline VkShaderStageFlagBits  VEnumCast (EShaderStages values) __NE___
+	Nd__In VkShaderStageFlagBits  VEnumCast (EShaderStages values) __NE___
 	{
 		if ( values == EShaderStages::GraphicsPipeStages )
 			return VK_SHADER_STAGE_ALL_GRAPHICS;
@@ -260,7 +255,7 @@ namespace AE::Graphics
 	VEnumCast (EPipelineDynamicState)
 =================================================
 */
-	ND_ inline VkDynamicState  VEnumCast (EPipelineDynamicState value) __NE___
+	Nd__In VkDynamicState  VEnumCast (EPipelineDynamicState value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -292,7 +287,7 @@ namespace AE::Graphics
 	VEnumCast (ECompareOp)
 =================================================
 */
-	ND_ inline VkCompareOp  VEnumCast (ECompareOp value) __NE___
+	Nd__In VkCompareOp  VEnumCast (ECompareOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -304,7 +299,6 @@ namespace AE::Graphics
 			case ECompareOp::NotEqual :	return VK_COMPARE_OP_NOT_EQUAL;
 			case ECompareOp::GEqual :	return VK_COMPARE_OP_GREATER_OR_EQUAL;
 			case ECompareOp::Always :	return VK_COMPARE_OP_ALWAYS;
-			case ECompareOp::_Count :
 			case ECompareOp::Unknown :	break;
 		}
 		switch_end
@@ -316,7 +310,7 @@ namespace AE::Graphics
 	VEnumCast (EStencilOp)
 =================================================
 */
-	ND_ inline VkStencilOp  VEnumCast (EStencilOp value) __NE___
+	Nd__In VkStencilOp  VEnumCast (EStencilOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -328,7 +322,6 @@ namespace AE::Graphics
 			case EStencilOp::Decr :		return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
 			case EStencilOp::DecrWrap :	return VK_STENCIL_OP_DECREMENT_AND_WRAP;
 			case EStencilOp::Invert :	return VK_STENCIL_OP_INVERT;
-			case EStencilOp::_Count :
 			case EStencilOp::Unknown :	break;
 		}
 		switch_end
@@ -340,14 +333,13 @@ namespace AE::Graphics
 	VEnumCast (EPolygonMode)
 =================================================
 */
-	ND_ inline VkPolygonMode  VEnumCast (EPolygonMode value) __NE___
+	Nd__In VkPolygonMode  VEnumCast (EPolygonMode value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EPolygonMode::Point :		return VK_POLYGON_MODE_POINT;
 			case EPolygonMode::Line :		return VK_POLYGON_MODE_LINE;
 			case EPolygonMode::Fill :		return VK_POLYGON_MODE_FILL;
-			case EPolygonMode::_Count :
 			case EPolygonMode::Unknown :	break;
 		}
 		switch_end
@@ -359,7 +351,7 @@ namespace AE::Graphics
 	VEnumCast (ECullMode)
 =================================================
 */
-	ND_ inline VkCullModeFlagBits  VEnumCast (ECullMode value) __NE___
+	Nd__In VkCullModeFlagBits  VEnumCast (ECullMode value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -377,7 +369,7 @@ namespace AE::Graphics
 	VEnumCast (EImageOpt)
 =================================================
 */
-	ND_ inline VkImageCreateFlagBits  VEnumCast (EImageOpt values) __NE___
+	Nd__In VkImageCreateFlagBits  VEnumCast (EImageOpt values) __NE___
 	{
 		VkImageCreateFlagBits	flags = Zero;
 
@@ -426,7 +418,7 @@ namespace AE::Graphics
 	VEnumCast (EImageDim)
 =================================================
 */
-	ND_ inline VkImageType  VEnumCast (EImageDim value) __NE___
+	Nd__In VkImageType  VEnumCast (EImageDim value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -444,7 +436,7 @@ namespace AE::Graphics
 	VEnumCast (EImage)
 =================================================
 */
-	ND_ inline VkImageViewType  VEnumCast (EImage value) __NE___
+	Nd__In VkImageViewType  VEnumCast (EImage value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -455,8 +447,7 @@ namespace AE::Graphics
 			case EImage_Cube :			return VK_IMAGE_VIEW_TYPE_CUBE;
 			case EImage_CubeArray :		return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
 			case EImage_3D :			return VK_IMAGE_VIEW_TYPE_3D;
-			case EImage::Unknown :
-			case EImage::_Count :		break;	// not supported
+			case EImage::Unknown :		break;	// not supported
 		}
 		switch_end
 		RETURN_ERR( "unsupported image view type", VK_IMAGE_VIEW_TYPE_MAX_ENUM );
@@ -467,7 +458,7 @@ namespace AE::Graphics
 	AEEnumCast (VkImageViewType)
 =================================================
 */
-	ND_ inline EImage  AEEnumCast (VkImageViewType value) __NE___
+	Nd__In EImage  AEEnumCast (VkImageViewType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -489,7 +480,7 @@ namespace AE::Graphics
 	VEnumCast (EImageUsage)
 =================================================
 */
-	ND_ inline VkImageUsageFlagBits  VEnumCast (EImageUsage usage, EMemoryType memType) __NE___
+	Nd__In VkImageUsageFlagBits  VEnumCast (EImageUsage usage, EMemoryType memType) __NE___
 	{
 		VkImageUsageFlagBits	flags = Zero;
 
@@ -529,7 +520,7 @@ namespace AE::Graphics
 	VEnumCast (EImageAspect)
 =================================================
 */
-	ND_ inline VkImageAspectFlagBits  VEnumCast (EImageAspect values) __NE___
+	Nd__In VkImageAspectFlagBits  VEnumCast (EImageAspect values) __NE___
 	{
 		VkImageAspectFlagBits	flags = Zero;
 
@@ -563,7 +554,7 @@ namespace AE::Graphics
 	AEEnumCast (VkImageAspectFlagBits)
 =================================================
 */
-	ND_ inline EImageAspect  AEEnumCast (VkImageAspectFlagBits values) __NE___
+	Nd__In EImageAspect  AEEnumCast (VkImageAspectFlagBits values) __NE___
 	{
 		EImageAspect	flags = Zero;
 
@@ -598,7 +589,7 @@ namespace AE::Graphics
 	VEnumCast (EBufferUsage)
 =================================================
 */
-	ND_ inline VkBufferUsageFlagBits  VEnumCast (EBufferUsage values) __NE___
+	Nd__In VkBufferUsageFlagBits  VEnumCast (EBufferUsage values) __NE___
 	{
 		VkBufferUsageFlagBits	result = Zero;
 
@@ -637,14 +628,13 @@ namespace AE::Graphics
 	VEnumCast (EIndex)
 =================================================
 */
-	ND_ inline VkIndexType  VEnumCast (EIndex value) __NE___
+	Nd__In VkIndexType  VEnumCast (EIndex value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EIndex::UShort :	return VK_INDEX_TYPE_UINT16;
 			case EIndex::UInt :		return VK_INDEX_TYPE_UINT32;
-			case EIndex::Unknown :
-			case EIndex::_Count :	break;
+			case EIndex::Unknown :	break;
 		}
 		switch_end
 		RETURN_ERR( "invalid index type", VK_INDEX_TYPE_MAX_ENUM );
@@ -655,7 +645,7 @@ namespace AE::Graphics
 	VEnumCast (EPrimitive)
 =================================================
 */
-	ND_ inline VkPrimitiveTopology  VEnumCast (EPrimitive value) __NE___
+	Nd__In VkPrimitiveTopology  VEnumCast (EPrimitive value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -670,8 +660,7 @@ namespace AE::Graphics
 			case EPrimitive::TriangleListAdjacency	: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
 			case EPrimitive::TriangleStripAdjacency	: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
 			case EPrimitive::Patch					: return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
-			case EPrimitive::Unknown				:
-			case EPrimitive::_Count					: break;
+			case EPrimitive::Unknown				: break;
 		}
 		switch_end
 		RETURN_ERR( "invalid primitive type", VK_PRIMITIVE_TOPOLOGY_MAX_ENUM );
@@ -682,9 +671,9 @@ namespace AE::Graphics
 	EResourceState_ToShaderStages
 =================================================
 */
-	ND_ inline VkShaderStageFlags  EResourceState_ToShaderStages (EResourceState value) __NE___
+	Nd__In VkShaderStageFlags  EResourceState_ToShaderStages (EResourceState value) __NE___
 	{
-		ASSERT( AnyBits( value, EResourceState::AllShaders ));
+		ASSERT( AnyBits( value, EResourceState::AllShaderStages ));
 
 		constexpr auto VertexProcessingShaders =
 			VK_SHADER_STAGE_VERTEX_BIT |
@@ -730,7 +719,7 @@ namespace AE::Graphics
 		EResourceState_ToDstStageAccessLayout( value, OUT outStage, OUT outAccess, OUT layout );
 	}
 
-	ND_ inline VkPipelineStageFlagBits2  EResourceState_ToPipelineStages (EResourceState value) __NE___
+	Nd__In VkPipelineStageFlagBits2  EResourceState_ToPipelineStages (EResourceState value) __NE___
 	{
 		VkPipelineStageFlagBits2	stage;
 		VkAccessFlagBits2			access;
@@ -739,7 +728,7 @@ namespace AE::Graphics
 		return stage;
 	}
 
-	ND_ inline VkAccessFlagBits2  EResourceState_ToAccessMask (EResourceState value) __NE___
+	Nd__In VkAccessFlagBits2  EResourceState_ToAccessMask (EResourceState value) __NE___
 	{
 		VkPipelineStageFlagBits2	stage;
 		VkAccessFlagBits2			access;
@@ -748,7 +737,7 @@ namespace AE::Graphics
 		return access;
 	}
 
-	ND_ inline VkImageLayout  EResourceState_ToSrcImageLayout (EResourceState value) __NE___
+	Nd__In VkImageLayout  EResourceState_ToSrcImageLayout (EResourceState value) __NE___
 	{
 		VkPipelineStageFlagBits2	stage;
 		VkAccessFlagBits2			access;
@@ -757,7 +746,7 @@ namespace AE::Graphics
 		return layout;
 	}
 
-	ND_ inline VkImageLayout  EResourceState_ToDstImageLayout (EResourceState value) __NE___
+	Nd__In VkImageLayout  EResourceState_ToDstImageLayout (EResourceState value) __NE___
 	{
 		VkPipelineStageFlagBits2	stage;
 		VkAccessFlagBits2			access;
@@ -771,7 +760,7 @@ namespace AE::Graphics
 	VEnumCast (EPixelFormat)
 =================================================
 */
-	ND_ inline VkFormat  VEnumCast (EPixelFormat value) __NE___
+	Nd__In VkFormat  VEnumCast (EPixelFormat value) __NE___
 	{
 		#define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
 			case EPixelFormat::_engineFmt_ : return _vkFormat_;
@@ -779,7 +768,6 @@ namespace AE::Graphics
 		switch_enum( value )
 		{
 			AE_PRIVATE_VKPIXELFORMATS( FMT_BUILDER )
-			case EPixelFormat::_Count :
 			case EPixelFormat::SwapchainColor :
 			case EPixelFormat::Unknown :		break;
 		}
@@ -794,7 +782,7 @@ namespace AE::Graphics
 	AEEnumCast (VkFormat)
 =================================================
 */
-	ND_ inline EPixelFormat  AEEnumCast (VkFormat value) __NE___
+	Nd__In EPixelFormat  AEEnumCast (VkFormat value) __NE___
 	{
 		#define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
 			case _vkFormat_ : return EPixelFormat::_engineFmt_;
@@ -814,7 +802,7 @@ namespace AE::Graphics
 	AEEnumCast (VkImageType)
 =================================================
 */
-	ND_ inline EImageDim  AEEnumCast (VkImageType value) __NE___
+	Nd__In EImageDim  AEEnumCast (VkImageType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -892,7 +880,7 @@ namespace AE::Graphics
 	AEEnumCast (VkSampleCountFlagBits)
 =================================================
 */
-	ND_ inline  MultiSamples  AEEnumCast (VkSampleCountFlagBits samples) __NE___
+	Nd__In  MultiSamples  AEEnumCast (VkSampleCountFlagBits samples) __NE___
 	{
 		if ( samples == 0 )
 			return 1_samples;
@@ -906,7 +894,7 @@ namespace AE::Graphics
 	AEEnumCast (VkImageCreateFlagBits)
 =================================================
 */
-	ND_ inline EImageOpt  AEEnumCast (VkImageCreateFlagBits values) __NE___
+	Nd__In EImageOpt  AEEnumCast (VkImageCreateFlagBits values) __NE___
 	{
 		EImageOpt	result = Zero;
 
@@ -951,7 +939,7 @@ namespace AE::Graphics
 	AEEnumCast (VkBufferUsageFlagBits)
 =================================================
 */
-	ND_ inline EBufferUsage  AEEnumCast (VkBufferUsageFlagBits values) __NE___
+	Nd__In EBufferUsage  AEEnumCast (VkBufferUsageFlagBits values) __NE___
 	{
 		EBufferUsage	result = Default;
 
@@ -1001,7 +989,7 @@ namespace AE::Graphics
 	VEnumCast (EMemoryType)
 =================================================
 */
-	ND_ inline VkMemoryPropertyFlagBits  VEnumCast (EMemoryType values) __NE___
+	Nd__In VkMemoryPropertyFlagBits  VEnumCast (EMemoryType values) __NE___
 	{
 		VkMemoryPropertyFlagBits	result = Zero;
 
@@ -1034,7 +1022,7 @@ namespace AE::Graphics
 	AEEnumCast (VkMemoryPropertyFlagBits)
 =================================================
 */
-	ND_ inline EMemoryType  AEEnumCast (VkMemoryPropertyFlagBits values, bool isExternal) __NE___
+	Nd__In EMemoryType  AEEnumCast (VkMemoryPropertyFlagBits values, bool isExternal) __NE___
 	{
 		EMemoryType	result = Default;
 
@@ -1068,7 +1056,7 @@ namespace AE::Graphics
 	AEEnumCast (VkShaderStageFlagBits)
 =================================================
 */
-	ND_ inline EShaderStages  AEEnumCast (VkShaderStageFlagBits stages) __NE___
+	Nd__In EShaderStages  AEEnumCast (VkShaderStageFlagBits stages) __NE___
 	{
 		if ( stages == VK_SHADER_STAGE_ALL )
 			return EShaderStages::All;
@@ -1110,7 +1098,7 @@ namespace AE::Graphics
 	VEnumCast (EPipelineOpt)
 =================================================
 */
-	ND_ inline VkPipelineCreateFlagBits  VEnumCast (EPipelineOpt values) __NE___
+	Nd__In VkPipelineCreateFlagBits  VEnumCast (EPipelineOpt values) __NE___
 	{
 		VkPipelineCreateFlagBits	result = VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;
 
@@ -1146,7 +1134,7 @@ namespace AE::Graphics
 	VEnumCast (ERTASOptions)
 =================================================
 */
-	ND_ inline VkBuildAccelerationStructureFlagBitsKHR  VEnumCast (ERTASOptions values) __NE___
+	Nd__In VkBuildAccelerationStructureFlagBitsKHR  VEnumCast (ERTASOptions values) __NE___
 	{
 		VkBuildAccelerationStructureFlagBitsKHR		result = Zero;
 
@@ -1176,7 +1164,7 @@ namespace AE::Graphics
 	VEnumCast (ERTGeometryOpt)
 =================================================
 */
-	ND_ inline VkGeometryFlagBitsKHR  VEnumCast (ERTGeometryOpt values) __NE___
+	Nd__In VkGeometryFlagBitsKHR  VEnumCast (ERTGeometryOpt values) __NE___
 	{
 		VkGeometryFlagBitsKHR	result = Zero;
 
@@ -1202,7 +1190,7 @@ namespace AE::Graphics
 	VEnumCast (ERTASCopyMode)
 =================================================
 */
-	ND_ inline VkCopyAccelerationStructureModeKHR  VEnumCast (ERTASCopyMode value) __NE___
+	Nd__In VkCopyAccelerationStructureModeKHR  VEnumCast (ERTASCopyMode value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1219,7 +1207,7 @@ namespace AE::Graphics
 	VEnumCast (ERTClusterType)
 =================================================
 */
-	ND_ inline VkClusterAccelerationStructureTypeNV  VEnumCast (ERTClusterType value) __NE___
+	Nd__In VkClusterAccelerationStructureTypeNV  VEnumCast (ERTClusterType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1237,7 +1225,7 @@ namespace AE::Graphics
 	VEnumCast (ERTClusterOpType)
 =================================================
 */
-	ND_ inline VkClusterAccelerationStructureOpTypeNV  VEnumCast (ERTClusterOpType value) __NE___
+	Nd__In VkClusterAccelerationStructureOpTypeNV  VEnumCast (ERTClusterOpType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1257,7 +1245,7 @@ namespace AE::Graphics
 	VEnumCast (ERTClusterOpMode)
 =================================================
 */
-	ND_ inline VkClusterAccelerationStructureOpModeNV  VEnumCast (ERTClusterOpMode value) __NE___
+	Nd__In VkClusterAccelerationStructureOpModeNV  VEnumCast (ERTClusterOpMode value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1275,7 +1263,7 @@ namespace AE::Graphics
 	VEnumCast (ERTClusterAddressResolution)
 =================================================
 */
-	ND_ inline VkClusterAccelerationStructureAddressResolutionFlagBitsNV  VEnumCast (ERTClusterAddressResolution bits) __NE___
+	Nd__In VkClusterAccelerationStructureAddressResolutionFlagBitsNV  VEnumCast (ERTClusterAddressResolution bits) __NE___
 	{
 		VkClusterAccelerationStructureAddressResolutionFlagBitsNV	result = Zero;
 		for (auto t : BitfieldIterate( bits ))
@@ -1305,7 +1293,7 @@ namespace AE::Graphics
 	VEnumCast (EColorSpace)
 =================================================
 */
-	ND_ inline VkColorSpaceKHR  VEnumCast (EColorSpace value) __NE___
+	Nd__In VkColorSpaceKHR  VEnumCast (EColorSpace value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1326,8 +1314,6 @@ namespace AE::Graphics
 			case EColorSpace::AdobeRGB_nonlinear :		return VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT;
 			case EColorSpace::PassThrough :				return VK_COLOR_SPACE_PASS_THROUGH_EXT;
 			case EColorSpace::Extended_sRGB_nonlinear :	return VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT;
-
-			case EColorSpace::_Count :
 			case EColorSpace::Unknown :					break;
 		}
 		switch_end
@@ -1339,7 +1325,7 @@ namespace AE::Graphics
 	AEEnumCast (VkColorSpaceKHR)
 =================================================
 */
-	ND_ inline EColorSpace  AEEnumCast (VkColorSpaceKHR value) __NE___
+	Nd__In EColorSpace  AEEnumCast (VkColorSpaceKHR value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1373,7 +1359,7 @@ namespace AE::Graphics
 	VEnumCast (EPresentMode)
 =================================================
 */
-	ND_ inline VkPresentModeKHR  VEnumCast (EPresentMode value) __NE___
+	Nd__In VkPresentModeKHR  VEnumCast (EPresentMode value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1383,8 +1369,6 @@ namespace AE::Graphics
 			case EPresentMode::FIFO_Relaxed :			return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
 			case EPresentMode::SharedDemandRefresh :	return VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR;
 			case EPresentMode::SharedContinuousRefresh:	return VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR;
-
-			case EPresentMode::_Count :
 			case EPresentMode::Unknown :				break;
 		}
 		switch_end
@@ -1396,7 +1380,7 @@ namespace AE::Graphics
 	AEEnumCast (VkPresentModeKHR)
 =================================================
 */
-	ND_ inline EPresentMode  AEEnumCast (VkPresentModeKHR value) __NE___
+	Nd__In EPresentMode  AEEnumCast (VkPresentModeKHR value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1419,7 +1403,7 @@ namespace AE::Graphics
 	VEnumCast (EPresentScaling)
 =================================================
 */
-	ND_ inline VkPresentScalingFlagBitsEXT  VEnumCast (EPresentScaling value) __NE___
+	Nd__In VkPresentScalingFlagBitsEXT  VEnumCast (EPresentScaling value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1438,7 +1422,7 @@ namespace AE::Graphics
 	AEEnumCast ()
 =================================================
 */
-	ND_ inline EPresentScaling  AEEnumCast (VkPresentScalingFlagBitsEXT value) __NE___
+	Nd__In EPresentScaling  AEEnumCast (VkPresentScalingFlagBitsEXT value) __NE___
 	{
 		if ( value == VkPresentScalingFlagBitsEXT(0) )
 			return Default;
@@ -1459,7 +1443,7 @@ namespace AE::Graphics
 	VEnumCast (EQueryType)
 =================================================
 */
-	ND_ inline VkQueryType  VEnumCast (EQueryType value) __NE___
+	Nd__In VkQueryType  VEnumCast (EQueryType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1473,7 +1457,6 @@ namespace AE::Graphics
 			case EQueryType::AccelStructSerializationSize :	return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_SIZE_KHR;
 			// TODO: VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_BOTTOM_LEVEL_POINTERS_KHR				// require 'VK_KHR_ray_tracing_maintenance1'
 
-			case EQueryType::_Count :
 			case EQueryType::Unknown :						break;
 		}
 		switch_end
@@ -1485,7 +1468,7 @@ namespace AE::Graphics
 	VEnumCast (EVideoCodec)
 =================================================
 */
-	ND_ inline VkVideoCodecOperationFlagBitsKHR  VEnumCast (EVideoCodecMode mode, EVideoCodec codec)
+	Nd__In VkVideoCodecOperationFlagBitsKHR  VEnumCast (EVideoCodecMode mode, EVideoCodec codec)
 	{
 		switch_enum( mode )
 		{
@@ -1501,7 +1484,6 @@ namespace AE::Graphics
 					case EVideoCodec::VP8 :
 					case EVideoCodec::VP9 :
 					case EVideoCodec::AV1 :
-					case EVideoCodec::_Count :
 					case EVideoCodec::Unknown :
 					default_unlikely :
 						RETURN_ERR( "unsupported EVideoCodec for Decode mode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
@@ -1520,14 +1502,12 @@ namespace AE::Graphics
 					case EVideoCodec::VP8 :
 					case EVideoCodec::VP9 :
 					case EVideoCodec::AV1 :
-					case EVideoCodec::_Count :
 					case EVideoCodec::Unknown :
 					default_unlikely :
 						RETURN_ERR( "unsupported EVideoCodec for Encode mode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
 				}
 				break;
 
-			case EVideoCodecMode::_Count :
 			case EVideoCodecMode::Unknown :
 			default_unlikely :
 				RETURN_ERR( "unsupported EVideoCodecMode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
@@ -1540,7 +1520,7 @@ namespace AE::Graphics
 	VEnumCast (EVideoChromaSubsampling)
 =================================================
 */
-	ND_ inline VkVideoChromaSubsamplingFlagBitsKHR  VEnumCast (EVideoChromaSubsampling value)
+	Nd__In VkVideoChromaSubsamplingFlagBitsKHR  VEnumCast (EVideoChromaSubsampling value)
 	{
 		switch_enum( value )
 		{
@@ -1560,7 +1540,7 @@ namespace AE::Graphics
 	VEnumCast_VideoComponentBitDepth
 =================================================
 */
-	ND_ inline VkVideoComponentBitDepthFlagBitsKHR  VEnumCast_VideoComponentBitDepth (uint value)
+	Nd__In VkVideoComponentBitDepthFlagBitsKHR  VEnumCast_VideoComponentBitDepth (uint value)
 	{
 		switch ( value )
 		{
@@ -1576,7 +1556,7 @@ namespace AE::Graphics
 	VEnumCast (EStdVideoH264ProfileIdc)
 =================================================
 */
-	ND_ inline StdVideoH264ProfileIdc  VEnumCast (EStdVideoH264ProfileIdc value)
+	Nd__In StdVideoH264ProfileIdc  VEnumCast (EStdVideoH264ProfileIdc value)
 	{
 		switch_enum( value )
 		{
@@ -1584,8 +1564,6 @@ namespace AE::Graphics
 			case EStdVideoH264ProfileIdc::Main :					return STD_VIDEO_H264_PROFILE_IDC_MAIN;
 			case EStdVideoH264ProfileIdc::High :					return STD_VIDEO_H264_PROFILE_IDC_HIGH;
 			case EStdVideoH264ProfileIdc::Hight444_Predictive :		return STD_VIDEO_H264_PROFILE_IDC_HIGH_444_PREDICTIVE;
-
-			case EStdVideoH264ProfileIdc::_Count :
 			case EStdVideoH264ProfileIdc::Unknown :					break;
 		}
 		switch_end
@@ -1597,7 +1575,7 @@ namespace AE::Graphics
 	VEnumCast (EStdVideoH265ProfileIdc)
 =================================================
 */
-	ND_ inline StdVideoH265ProfileIdc  VEnumCast (EStdVideoH265ProfileIdc value)
+	Nd__In StdVideoH265ProfileIdc  VEnumCast (EStdVideoH265ProfileIdc value)
 	{
 		switch_enum( value )
 		{
@@ -1606,8 +1584,6 @@ namespace AE::Graphics
 			case EStdVideoH265ProfileIdc::MainStillPicture :	return STD_VIDEO_H265_PROFILE_IDC_MAIN_STILL_PICTURE;
 			case EStdVideoH265ProfileIdc::RangeExtensions :		return STD_VIDEO_H265_PROFILE_IDC_FORMAT_RANGE_EXTENSIONS;
 			case EStdVideoH265ProfileIdc::SCC_Extensions :		return STD_VIDEO_H265_PROFILE_IDC_SCC_EXTENSIONS;
-
-			case EStdVideoH265ProfileIdc::_Count :
 			case EStdVideoH265ProfileIdc::Unknown :				break;
 		}
 		switch_end
@@ -1619,15 +1595,13 @@ namespace AE::Graphics
 	VEnumCast (EVideoDecodeH264PictureLayout)
 =================================================
 */
-	ND_ inline VkVideoDecodeH264PictureLayoutFlagBitsKHR  VEnumCast (EVideoDecodeH264PictureLayout value)
+	Nd__In VkVideoDecodeH264PictureLayoutFlagBitsKHR  VEnumCast (EVideoDecodeH264PictureLayout value)
 	{
 		switch_enum( value )
 		{
 			case EVideoDecodeH264PictureLayout::Progressive :					return VK_VIDEO_DECODE_H264_PICTURE_LAYOUT_PROGRESSIVE_KHR;
 			case EVideoDecodeH264PictureLayout::InterlacedInterleavedLines :	return VK_VIDEO_DECODE_H264_PICTURE_LAYOUT_INTERLACED_INTERLEAVED_LINES_BIT_KHR;
 			case EVideoDecodeH264PictureLayout::InterlacedSeparatePlanes :		return VK_VIDEO_DECODE_H264_PICTURE_LAYOUT_INTERLACED_SEPARATE_PLANES_BIT_KHR;
-
-			case EVideoDecodeH264PictureLayout::_Count :
 			case EVideoDecodeH264PictureLayout::Unknown :						break;
 		}
 		switch_end
@@ -1639,7 +1613,7 @@ namespace AE::Graphics
 	VEnumCast (EVideoBufferUsage)
 =================================================
 */
-	ND_ inline VkBufferUsageFlagBits  VEnumCast (EVideoBufferUsage usage)
+	Nd__In VkBufferUsageFlagBits  VEnumCast (EVideoBufferUsage usage)
 	{
 		VkBufferUsageFlagBits	flags = Zero;
 
@@ -1668,7 +1642,7 @@ namespace AE::Graphics
 	VEnumCast (EVideoImageUsage)
 =================================================
 */
-	ND_ inline VkImageUsageFlagBits  VEnumCast (EVideoImageUsage usage)
+	Nd__In VkImageUsageFlagBits  VEnumCast (EVideoImageUsage usage)
 	{
 		VkImageUsageFlagBits	flags = Zero;
 
@@ -1699,7 +1673,7 @@ namespace AE::Graphics
 	VEnumCast (EImageViewOpt)
 =================================================
 */
-	ND_ inline VkImageViewCreateFlagBits  VEnumCast (EImageViewOpt options)
+	Nd__In VkImageViewCreateFlagBits  VEnumCast (EImageViewOpt options)
 	{
 		VkImageViewCreateFlagBits	flags = Zero;
 
@@ -1724,14 +1698,13 @@ namespace AE::Graphics
 	VEnumCast (EFilter)
 =================================================
 */
-	ND_ inline VkFilter  VEnumCast (EFilter value) __NE___
+	Nd__In VkFilter  VEnumCast (EFilter value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EFilter::Nearest :	return VK_FILTER_NEAREST;
 			case EFilter::Linear :	return VK_FILTER_LINEAR;
-			case EFilter::Unknown :
-			case EFilter::_Count :	break;
+			case EFilter::Unknown :	break;
 		}
 		switch_end
 		RETURN_ERR( "unknown filter mode", VK_FILTER_MAX_ENUM );
@@ -1742,15 +1715,14 @@ namespace AE::Graphics
 	VEnumCast (ESamplerMipmapMode)
 =================================================
 */
-	ND_ inline VkSamplerMipmapMode  VEnumCast (EMipmapFilter value) __NE___
+	Nd__In VkSamplerMipmapMode  VEnumCast (EMipmapFilter value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EMipmapFilter::None :
 			case EMipmapFilter::Nearest :	return VK_SAMPLER_MIPMAP_MODE_NEAREST;
 			case EMipmapFilter::Linear :	return VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			case EMipmapFilter::Unknown :
-			case EMipmapFilter::_Count :	break;
+			case EMipmapFilter::Unknown :	break;
 		}
 		switch_end
 		RETURN_ERR( "unknown sampler mipmap mode", VK_SAMPLER_MIPMAP_MODE_MAX_ENUM );
@@ -1761,7 +1733,7 @@ namespace AE::Graphics
 	VEnumCast (ESamplerAddressMode)
 =================================================
 */
-	ND_ inline VkSamplerAddressMode  VEnumCast (EAddressMode value) __NE___
+	Nd__In VkSamplerAddressMode  VEnumCast (EAddressMode value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1770,8 +1742,7 @@ namespace AE::Graphics
 			case EAddressMode::ClampToEdge :		return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 			case EAddressMode::ClampToBorder :		return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 			case EAddressMode::MirrorClampToEdge :	return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
-			case EAddressMode::Unknown :
-			case EAddressMode::_Count :				break;
+			case EAddressMode::Unknown :			break;
 		}
 		switch_end
 		RETURN_ERR( "unknown sampler address mode", VK_SAMPLER_ADDRESS_MODE_MAX_ENUM );
@@ -1782,7 +1753,7 @@ namespace AE::Graphics
 	VEnumCast (EBorderColor)
 =================================================
 */
-	ND_ inline VkBorderColor  VEnumCast (EBorderColor value) __NE___
+	Nd__In VkBorderColor  VEnumCast (EBorderColor value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1792,8 +1763,7 @@ namespace AE::Graphics
 			case EBorderColor::IntTransparentBlack :	return VK_BORDER_COLOR_INT_TRANSPARENT_BLACK;
 			case EBorderColor::IntOpaqueBlack :			return VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 			case EBorderColor::IntOpaqueWhite :			return VK_BORDER_COLOR_INT_OPAQUE_WHITE;
-			case EBorderColor::Unknown :
-			case EBorderColor::_Count :					break;
+			case EBorderColor::Unknown :				break;
 		}
 		switch_end
 		RETURN_ERR( "unknown border color type", VK_BORDER_COLOR_MAX_ENUM );
@@ -1804,14 +1774,13 @@ namespace AE::Graphics
 	VEnumCast (EReductionMode)
 =================================================
 */
-	ND_ inline VkSamplerReductionMode  VEnumCast (EReductionMode value) __NE___
+	Nd__In VkSamplerReductionMode  VEnumCast (EReductionMode value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EReductionMode::Average :	return VK_SAMPLER_REDUCTION_MODE_WEIGHTED_AVERAGE;
 			case EReductionMode::Min :		return VK_SAMPLER_REDUCTION_MODE_MIN;
 			case EReductionMode::Max :		return VK_SAMPLER_REDUCTION_MODE_MAX;
-			case EReductionMode::_Count :
 			case EReductionMode::Unknown :	break;
 		}
 		switch_end
@@ -1823,7 +1792,7 @@ namespace AE::Graphics
 	VEnumCast (ESamplerOpt)
 =================================================
 */
-	ND_ inline VkSamplerCreateFlagBits  VEnumCast (ESamplerOpt value) __NE___
+	Nd__In VkSamplerCreateFlagBits  VEnumCast (ESamplerOpt value) __NE___
 	{
 		VkSamplerCreateFlagBits	flags	= Zero;
 		const ESamplerOpt		mask	= ~(ESamplerOpt::ArgumentBuffer | ESamplerOpt::UnnormalizedCoordinates);
@@ -1856,15 +1825,13 @@ namespace AE::Graphics
 	VEnumCast (ESamplerChromaLocation)
 =================================================
 */
-	ND_ inline VkChromaLocation  VEnumCast (ESamplerChromaLocation value) __NE___
+	Nd__In VkChromaLocation  VEnumCast (ESamplerChromaLocation value) __NE___
 	{
 		switch_enum( value )
 		{
 			case ESamplerChromaLocation::CositedEven :	return VK_CHROMA_LOCATION_COSITED_EVEN;
 			case ESamplerChromaLocation::Midpoint :		return VK_CHROMA_LOCATION_MIDPOINT;
-
-			case ESamplerChromaLocation::Unknown :
-			case ESamplerChromaLocation::_Count :		break;
+			case ESamplerChromaLocation::Unknown :		break;
 		}
 		switch_end
 		RETURN_ERR( "unknown ycbcr sampler chroma location", VK_CHROMA_LOCATION_MAX_ENUM );
@@ -1875,7 +1842,7 @@ namespace AE::Graphics
 	VEnumCast (ESamplerYcbcrModelConversion)
 =================================================
 */
-	ND_ inline VkSamplerYcbcrModelConversion  VEnumCast (ESamplerYcbcrModelConversion value) __NE___
+	Nd__In VkSamplerYcbcrModelConversion  VEnumCast (ESamplerYcbcrModelConversion value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1884,9 +1851,7 @@ namespace AE::Graphics
 			case ESamplerYcbcrModelConversion::Ycbcr_709 :		return VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_709;
 			case ESamplerYcbcrModelConversion::Ycbcr_601 :		return VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601;
 			case ESamplerYcbcrModelConversion::Ycbcr_2020 :		return VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_2020;
-
-			case ESamplerYcbcrModelConversion::Unknown :
-			case ESamplerYcbcrModelConversion::_Count :			break;
+			case ESamplerYcbcrModelConversion::Unknown :		break;
 		}
 		switch_end
 		RETURN_ERR( "unknown sampler ycbcr model", VK_SAMPLER_YCBCR_MODEL_CONVERSION_MAX_ENUM );
@@ -1897,15 +1862,13 @@ namespace AE::Graphics
 	VEnumCast (ESamplerYcbcrRange)
 =================================================
 */
-	ND_ inline VkSamplerYcbcrRange  VEnumCast (ESamplerYcbcrRange value) __NE___
+	Nd__In VkSamplerYcbcrRange  VEnumCast (ESamplerYcbcrRange value) __NE___
 	{
 		switch_enum( value )
 		{
 			case ESamplerYcbcrRange::ITU_Full :		return VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
 			case ESamplerYcbcrRange::ITU_Narrow :	return VK_SAMPLER_YCBCR_RANGE_ITU_NARROW;
-
-			case ESamplerYcbcrRange::Unknown :
-			case ESamplerYcbcrRange::_Count :		break;
+			case ESamplerYcbcrRange::Unknown :		break;
 		}
 		switch_end
 		RETURN_ERR( "unknown sampler ycbcr range", VK_SAMPLER_YCBCR_RANGE_MAX_ENUM );
@@ -1916,7 +1879,7 @@ namespace AE::Graphics
 	VEnumCast (ImageSwizzle)
 =================================================
 */
-	ND_ inline VkComponentMapping  VEnumCast (const ImageSwizzle &value) __NE___
+	Nd__In VkComponentMapping  VEnumCast (const ImageSwizzle &value) __NE___
 	{
 		constexpr StaticArray< VkComponentSwizzle, 8 >	components = {
 			VK_COMPONENT_SWIZZLE_IDENTITY,	// unknown
@@ -1938,7 +1901,7 @@ namespace AE::Graphics
 	VEnumCast (EShadingRateCombinerOp)
 =================================================
 */
-	ND_ inline  VkFragmentShadingRateCombinerOpKHR  VEnumCast (EShadingRateCombinerOp value) __NE___
+	Nd__In  VkFragmentShadingRateCombinerOpKHR  VEnumCast (EShadingRateCombinerOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1948,8 +1911,6 @@ namespace AE::Graphics
 			case EShadingRateCombinerOp::Max :		return VK_FRAGMENT_SHADING_RATE_COMBINER_OP_MAX_KHR;
 			case EShadingRateCombinerOp::Sum :		return VK_FRAGMENT_SHADING_RATE_COMBINER_OP_MUL_KHR;
 			case EShadingRateCombinerOp::Mul :		return VK_FRAGMENT_SHADING_RATE_COMBINER_OP_MUL_KHR;
-
-			case EShadingRateCombinerOp::_Count :
 			case EShadingRateCombinerOp::Unknown :	break;
 		}
 		switch_end
@@ -1961,7 +1922,7 @@ namespace AE::Graphics
 	VEnumCast (ERTShaderGroup)
 =================================================
 */
-	ND_ inline  VkShaderGroupShaderKHR  VEnumCast (ERTShaderGroup value) __NE___
+	Nd__In  VkShaderGroupShaderKHR  VEnumCast (ERTShaderGroup value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1969,8 +1930,6 @@ namespace AE::Graphics
 			case ERTShaderGroup::ClosestHit :	return VK_SHADER_GROUP_SHADER_CLOSEST_HIT_KHR;
 			case ERTShaderGroup::AnyHit :		return VK_SHADER_GROUP_SHADER_ANY_HIT_KHR;
 			case ERTShaderGroup::Intersection :	return VK_SHADER_GROUP_SHADER_INTERSECTION_KHR;
-
-			case ERTShaderGroup::_Count :
 			case ERTShaderGroup::Unknown :		break;
 		}
 		switch_end
@@ -1982,7 +1941,7 @@ namespace AE::Graphics
 	VEnumCast (ESurfaceTransform)
 =================================================
 */
-	ND_ inline  VkSurfaceTransformFlagBitsKHR  VEnumCast (ESurfaceTransform value) __NE___
+	Nd__In  VkSurfaceTransformFlagBitsKHR  VEnumCast (ESurfaceTransform value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1996,7 +1955,6 @@ namespace AE::Graphics
 			case ESurfaceTransform::HorizontalMirror_180 :	return VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR;
 			case ESurfaceTransform::HorizontalMirror_270 :	return VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR;
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end
@@ -2008,7 +1966,7 @@ namespace AE::Graphics
 	AEEnumCast (ESurfaceTransform)
 =================================================
 */
-	ND_ inline ESurfaceTransform   AEEnumCast (VkSurfaceTransformFlagBitsKHR value) __NE___
+	Nd__In ESurfaceTransform   AEEnumCast (VkSurfaceTransformFlagBitsKHR value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -2026,7 +1984,61 @@ namespace AE::Graphics
 		switch_end
 		RETURN_ERR( "unknown surface transform" );
 	}
+	
+/*
+=================================================
+	VEnumCast (ECoopMatrixComponentType)
+=================================================
+*/
+	Nd__In  VkComponentTypeKHR  VEnumCast (ECoopMatrixComponentType value) __NE___
+	{
+		switch_enum( value )
+		{
+			case ECoopMatrixComponentType::Float16 :		return VK_COMPONENT_TYPE_FLOAT16_KHR;
+			case ECoopMatrixComponentType::Float32 :		return VK_COMPONENT_TYPE_FLOAT32_KHR;
+			case ECoopMatrixComponentType::Float64 :		return VK_COMPONENT_TYPE_FLOAT64_KHR;
+			case ECoopMatrixComponentType::BFloat16 :		return VK_COMPONENT_TYPE_BFLOAT16_KHR;
+			case ECoopMatrixComponentType::Float8_E4M3 :	return VK_COMPONENT_TYPE_FLOAT8_E4M3_EXT;
+			case ECoopMatrixComponentType::Float8_E5M2 :	return VK_COMPONENT_TYPE_FLOAT8_E5M2_EXT;
 
+			case ECoopMatrixComponentType::SInt8 :			return VK_COMPONENT_TYPE_SINT8_KHR;
+			case ECoopMatrixComponentType::SInt16 :			return VK_COMPONENT_TYPE_SINT16_KHR;
+			case ECoopMatrixComponentType::SInt32 :			return VK_COMPONENT_TYPE_SINT32_KHR;
+			case ECoopMatrixComponentType::SInt64 :			return VK_COMPONENT_TYPE_SINT64_KHR;
+			case ECoopMatrixComponentType::SInt8x4 :		return VK_COMPONENT_TYPE_SINT8_PACKED_NV;
+
+			case ECoopMatrixComponentType::UInt8 :			return VK_COMPONENT_TYPE_UINT8_KHR;
+			case ECoopMatrixComponentType::UInt16 :			return VK_COMPONENT_TYPE_UINT16_KHR;
+			case ECoopMatrixComponentType::UInt32 :			return VK_COMPONENT_TYPE_UINT32_KHR;
+			case ECoopMatrixComponentType::UInt64 :			return VK_COMPONENT_TYPE_UINT64_KHR;
+			case ECoopMatrixComponentType::UInt8x4 :		return VK_COMPONENT_TYPE_UINT8_PACKED_NV;
+
+			case ECoopMatrixComponentType::_Count :
+			case ECoopMatrixComponentType::Unknown :		break;
+		}
+		switch_end
+		RETURN_ERR( "unknown cooperative matrix/vector component type", VK_COMPONENT_TYPE_MAX_ENUM_KHR );
+	}
+	
+/*
+=================================================
+	VEnumCast (ECoopVecMatrixLayout)
+=================================================
+*/
+	Nd__In  VkCooperativeVectorMatrixLayoutNV  VEnumCast (ECoopVecMatrixLayout value) __NE___
+	{
+		switch_enum( value )
+		{
+			case ECoopVecMatrixLayout::RowMajor :			return VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_ROW_MAJOR_NV;
+			case ECoopVecMatrixLayout::ColumnMajor :		return VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_COLUMN_MAJOR_NV;
+			case ECoopVecMatrixLayout::InferencingOptimal :	return VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_INFERENCING_OPTIMAL_NV;
+			case ECoopVecMatrixLayout::TrainingOptimal :	return VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_TRAINING_OPTIMAL_NV;
+			case ECoopVecMatrixLayout::_Count :
+			case ECoopVecMatrixLayout::Unknown :			break;
+		}
+		switch_end
+		RETURN_ERR( "unknown cooperative matrix layout", VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
+	}
 
 } // AE::Graphics
 

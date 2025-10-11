@@ -3,7 +3,7 @@
 #include "base/Containers/InPlace.h"
 #include "base/DataSource/File.h"
 #include "threading/TaskSystem/TaskScheduler.h"
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 
 #if defined(AE_ENABLE_GLFW)
 #	define ENABLE_TEST	1

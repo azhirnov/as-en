@@ -238,7 +238,6 @@ namespace AE::Graphics
 				break;
 
 			case EDescriptorType::Unknown :
-			case EDescriptorType::_Count :
 			default_unlikely :
 				RETURN_ERR( "unsupported descriptor type" );
 		}

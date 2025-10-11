@@ -24,9 +24,9 @@ namespace AE::Graphics
 #	 include "vulkan_loader/fn_vulkan_dev.h"
 #	undef  VKLOADER_STAGE_DUMMYFN
 
-	PFN_vkGetInstanceProcAddr  _var_vkGetInstanceProcAddr = null;
+	PFN_vkGetInstanceProcAddr  VulkanInstanceFn::_var_vkGetInstanceProcAddr = null;
 
-	VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL Dummy_vkGetInstanceProcAddr (VkInstance , const char * ) {  VK_LOG( "used dummy function 'vkGetInstanceProcAddr'" );  return null;  }
+	VKAPI_ATTR static PFN_vkVoidFunction VKAPI_CALL Dummy_vkGetInstanceProcAddr (VkInstance , const char * ) {  VK_LOG( "used dummy function 'vkGetInstanceProcAddr'" );  return null;  }
 
 /*
 =================================================
@@ -107,15 +107,17 @@ namespace {
 		if ( not lib.module  )
 			return false;
 
+	  #ifndef AE_PLATFORM_ANDROID
 		// write library path to log
 		AE_LOG_DBG( "Vulkan library path: \""s << ToString(lib.module.GetPath()) << '"' );
+	  #endif
 
 	  #if defined(AE_DEBUG) and (defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX))
 		if ( String vk_icd; PlatformUtils::GetEnvironmentVariable( "VK_DRIVER_FILES", OUT vk_icd ))
 			AE_LOGI( "VK_DRIVER_FILES = "s << vk_icd );
 	  #endif
 
-		_var_vkGetInstanceProcAddr = &Dummy_vkGetInstanceProcAddr;
+		VulkanInstanceFn::_var_vkGetInstanceProcAddr = &Dummy_vkGetInstanceProcAddr;
 
 		// all global functions can be loaded using 'vkGetInstanceProcAddr', so we need to import only this function address.
 		if_unlikely( not lib.module.GetProcAddr( "vkGetInstanceProcAddr", OUT lib.getInstanceProcAddr ))
@@ -133,10 +135,13 @@ namespace {
 						 "   - use 'vulkan-1.*' from archive" );
 			}
 			else
+			{
+				AE_LOGI( "'vkGetInstanceProcAddr' is not found" );
 				return false;
+			}
 		}
 
-		_var_vkGetInstanceProcAddr = lib.getInstanceProcAddr;
+		VulkanInstanceFn::_var_vkGetInstanceProcAddr = lib.getInstanceProcAddr;
 
 		++lib.refCounter;
 
@@ -152,7 +157,7 @@ namespace {
 		#include "vulkan_loader/fn_vulkan_lib.h"
 		#undef  VKLOADER_STAGE_GETADDRESS
 
-		CHECK_ERR( _var_vkCreateInstance != &Dummy_vkCreateInstance );
+		CHECK_ERR( VulkanInstanceFn::_var_vkCreateInstance != &Dummy_vkCreateInstance );
 		return true;
 	}
 
@@ -182,7 +187,7 @@ namespace {
 		const auto	Load =	[&lib] (OUT auto& outResult, const char* procName, auto dummy)
 							{{
 								using FN = decltype(dummy);
-								FN	result = BitCast<FN>( vkGetInstanceProcAddr( lib.instance, procName ));
+								FN	result = BitCast<FN>( VulkanInstanceFn::vkGetInstanceProcAddr( lib.instance, procName ));
 								outResult = result ? result : dummy;
 							}};
 
@@ -216,7 +221,6 @@ namespace {
 		#undef  VKLOADER_STAGE_GETADDRESS
 	}
 
-
 /*
 =================================================
 	LoadDevice
@@ -226,12 +230,12 @@ namespace {
 */
 	bool  VulkanLoader::LoadDevice (VkDevice device, OUT VulkanDeviceFnTable &table) __NE___
 	{
-		CHECK_ERR( _var_vkGetDeviceProcAddr != &Dummy_vkGetDeviceProcAddr );
+		CHECK_ERR( VulkanInstanceFn::_var_vkGetDeviceProcAddr != &Dummy_vkGetDeviceProcAddr );
 
 		const auto	Load =	[device] (OUT auto& outResult, const char* procName, auto dummy)
 							{{
 								using FN = decltype(dummy);
-								FN	result = BitCast<FN>( vkGetDeviceProcAddr( device, procName ));
+								FN	result = BitCast<FN>( VulkanInstanceFn::vkGetDeviceProcAddr( device, procName ));
 								outResult = result ? result : dummy;
 							}};
 
@@ -287,6 +291,8 @@ namespace {
 		#include "vulkan_loader/fn_vulkan_lib.h"
 		#include "vulkan_loader/fn_vulkan_inst.h"
 		#undef  VKLOADER_STAGE_GETADDRESS
+
+		VulkanInstanceFn::_var_vkGetInstanceProcAddr = &Dummy_vkGetInstanceProcAddr;
 	}
 	
 /*
@@ -325,9 +331,9 @@ namespace {
 */
 	void  VulkanLoader::SetupInstanceBackwardCompatibility (Version2 version) __NE___
 	{
-	#define VK_COMPAT( _dst_, _src_ )	\
-		ASSERT( _var_##_src_ != null );	\
-		_var_##_dst_ = _var_##_src_
+	#define VK_COMPAT( _dst_, _src_ )									\
+		ASSERT( VulkanInstanceFn::_var_##_src_ != null );				\
+		VulkanInstanceFn::_var_##_dst_ = VulkanInstanceFn::_var_##_src_
 
 		if ( version >= Version2{1,1} )
 		{

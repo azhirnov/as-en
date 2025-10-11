@@ -16,7 +16,7 @@ namespace AE::Graphics::_hidden_
 	dst layout:  transfer_src (all other mips)
 =================================================
 */
-	static void  GenerateMipmapsImpl (VulkanDeviceFn fn, VkCommandBuffer cmdbuf,
+	inline void  GenerateMipmapsImpl (VulkanDeviceFn fn, VkCommandBuffer cmdbuf,
 									  VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges,
 									  VkPipelineStageFlags2 srcStageMask, VkAccessFlags2 srcAccessMask, VkImageLayout oldLayout) __NE___
 	{
@@ -94,6 +94,62 @@ namespace AE::Graphics::_hidden_
 			}
 		}
 	}
+	
+/*
+=================================================
+	ConvertCooperativeVectorMatrixImpl
+=================================================
+*/
+	inline void  ConvertCooperativeVectorMatrixImpl (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, ArrayView<ConvertCoopMatrixCmd> inCommands) __NE___
+	{
+		CHECK_ERRV( not inCommands.empty() );
+
+		StaticAssert( sizeof(ConvertCoopMatrixCmd::dstSize) == sizeof(RemovePointer<decltype(VkConvertCooperativeVectorMatrixInfoNV::pDstSize)>) );
+
+		FixedArray< VkConvertCooperativeVectorMatrixInfoNV, 16 >	vk_cmds;
+
+		for (usize i = 0; i < inCommands.size(); ++i)
+		{
+			const auto&	src	= inCommands[i];
+			auto&		dst = vk_cmds.emplace_back();
+
+			// TODO: move to ContextValidation ?
+			CHECK_ERRV( src.srcSize > 0 and src.dstSize > 0 );
+			CHECK_ERRV( src.srcAddress != Default and src.dstAddress != Default );
+			CHECK_ERRV( IsMultipleOf( BitCast<ulong>(src.srcAddress), 64_b ) and IsMultipleOf( BitCast<ulong>(src.dstAddress), 64_b ));
+			// TODO: check srcSize, dstSize, srcStride, dstStride
+
+			dst.sType					= VK_STRUCTURE_TYPE_CONVERT_COOPERATIVE_VECTOR_MATRIX_INFO_NV;
+			dst.pNext					= null;
+			dst.srcSize					= usize{src.srcSize};
+			dst.srcData.deviceAddress	= BitCast<VkDeviceAddress>( src.srcAddress );
+			dst.pDstSize				= Cast<usize>( ConstCast( &src.dstSize ));		// not modified
+			dst.dstData.deviceAddress	= BitCast<VkDeviceAddress>( src.dstAddress );
+			dst.srcComponentType		= VEnumCast( src.srcType );
+			dst.dstComponentType		= VEnumCast( src.dstType );
+			dst.numRows					= src.numRows;
+			dst.numColumns				= src.numColumns;
+			dst.srcLayout				= VEnumCast( src.srcLayout );
+			dst.srcStride				= usize{src.srcStride};
+			dst.dstLayout				= VEnumCast( src.dstLayout );
+			dst.dstStride				= usize{src.dstStride};
+			
+			CHECK_ERRV( dst.srcComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
+			CHECK_ERRV( dst.dstComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
+			CHECK_ERRV( dst.srcLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
+			CHECK_ERRV( dst.dstLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
+
+			if_unlikely( vk_cmds.IsFull() )
+			{
+				fn.vkCmdConvertCooperativeVectorMatrixNV( cmdbuf, uint(vk_cmds.size()), vk_cmds.data() );
+				vk_cmds.clear();
+			}
+		}
+		
+		if ( not vk_cmds.empty() )
+			fn.vkCmdConvertCooperativeVectorMatrixNV( cmdbuf, uint(vk_cmds.size()), vk_cmds.data() );
+	}
+
 
 } // AE::Graphics::_hidden_
 

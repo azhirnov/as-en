@@ -15,19 +15,19 @@ namespace AE::App
 	// GLFW Window
 	//
 
-	class WindowGLFW final : public WindowBase
+	class WindowGLFW final : public WindowBaseWithSurface, public IDesktopWindow
 	{
 		friend class ApplicationGLFW;
 
 	// variables
 	private:
 		GLFWwindow *		_window			= null;
-		float2				_contentScale;	// TODO: remove
+		float2				_contentScale;
 
 		InputActionsGLFW	_input;
 		bool				_lockAndHideCursor	= false;
 
-		RectI				_lastWindowSize;	// before switching to fullscreen
+		RectI				_lastWindowRect;	// before switching to fullscreen
 
 
 	// methods
@@ -46,16 +46,18 @@ namespace AE::App
 		IInputActions&	InputActions ()								__NE_OV	{ return _input; }
 		NativeWindow	GetNative ()								C_NE_OV;
 
+		bool  SetBrightness (Percent)								__NE_OV	{ return false; }
+		bool  SetColorSpace (EColorSpace value)						C_NE_OV;
+
+
+	// IDesktopWindow //
 		void  SetSize (const uint2 &size)							__NE_OV;
+		void  SetSize (const uint2 &size, float targetPPI)			__NE_OV;
 		void  SetPosition (const int2 &pos)							__NE_OV;
 		void  SetPosition (Monitor::ID monitor, const int2 &pos)	__NE_OV;
 		void  SetTitle (NtStringView title)							__NE_OV;
 		void  SetFocus ()											C_NE_OV;
 		bool  SetMode (EWindowMode mode, Monitor::ID monitor)		__NE_OV;
-
-		bool  SetBrightness (Percent)								__NE_OV	{ return false; }
-
-		bool  SetColorSpace (EColorSpace value)						C_NE_OV;
 
 
 	private:
@@ -63,8 +65,10 @@ namespace AE::App
 
 		ND_ bool  _Create (const WindowDesc &desc)					__NE___;
 			void  _Destroy ()										__NE___;
-		ND_ bool  _ProcessMessages ()								__NE___;
 			void  _LockAndHideCursor (bool value)					__NE___;
+
+	// WindowBase //
+		ND_ bool  ProcessMessages ()								__NE_OV;
 
 		static void  _GLFW_RefreshCallback (GLFWwindow* wnd)										__NE___;
 		static void  _GLFW_ResizeCallback (GLFWwindow* wnd, int w, int h)							__NE___;

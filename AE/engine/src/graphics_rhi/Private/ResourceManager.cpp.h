@@ -953,9 +953,21 @@ namespace {
 
 		auto&	pc = layout->GetPushConstants();
 		auto	it = pc.find( pcName );
+
+	  #if AE_DBG_GRAPHICS
+		if ( it == pc.end() )
+			RETURN_ERR( "Failed to find push constant '"s << HashToName( pcName ) << "'" );
+		
+		if ( typeName != it->second.typeName )
+			RETURN_ERR( "Type mismatch: '"s << HashToName( typeName ) << "' != '" << HashToName( it->second.typeName ) << "'" );
+
+		if ( dataSize != Bytes{it->second.size} )
+			RETURN_ERR( "Push constant size mismatch: "s << ToString(dataSize) << " != " << ToString(it->second.size) );
+	  #else
 		CHECK_ERR( it != pc.end() );
 		CHECK_ERR( typeName == it->second.typeName );
 		CHECK_ERR( dataSize == Bytes{it->second.size} );
+	  #endif
 
 		#if defined(AE_ENABLE_VULKAN)
 			return PushConstantIndex{ it->second.vulkanOffset, it->second.stage, it->second.typeName, it->second.size };

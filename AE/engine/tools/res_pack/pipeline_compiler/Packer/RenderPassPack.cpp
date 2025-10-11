@@ -8,6 +8,7 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/VEnumCast.h"
 # include "graphics_rhi/Vulkan/VQueue.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 #endif
 
 #ifdef AE_BUILD_PIPELINE_COMPILER
@@ -23,12 +24,12 @@ namespace AE::PipelineCompiler
 #ifdef AE_BUILD_PIPELINE_COMPILER
 namespace
 {
-	ND_ inline bool  IsValidInitialLayout (EResourceState state)
+	Nd__In bool  IsValidInitialLayout (EResourceState state)
 	{
 		return not AnyEqual( state, EResourceState::Preserve );
 	}
 
-	ND_ inline bool  IsValidLayout (EResourceState state)
+	Nd__In bool  IsValidLayout (EResourceState state)
 	{
 		return not AnyEqual( state, EResourceState::Invalidate, EResourceState::Preserve );
 	}
@@ -443,7 +444,7 @@ namespace
 			const auto&				sp			= compat._subpasses[i];
 			const auto&				sp_name		= sp.name;
 			VkSubpassDescription2&	dst			= dst_subpasses[i];
-			void const * *			sp_p_next	= &dst.pNext;
+			VNextChain				sp_p_next	{dst};
 
 			dst						= {};
 			dst.sType				= VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2;
@@ -586,8 +587,7 @@ namespace
 
 							InitAttachmentRef( name, rt->index, OUT *sra_ref, rt->format );
 
-							*sp_p_next	= sra;
-							sp_p_next	= &sra->pNext;
+							sp_p_next.Add( *sra );
 
 							sra->sType	= VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR;
 							sra->pNext	= null;
@@ -655,8 +655,6 @@ namespace
 				dst.preserveAttachmentCount	= uint(preserve_attachments.size());
 				dst.pPreserveAttachments	= ptr;
 			}
-
-			*sp_p_next = null;
 		}
 
 		*ci_p_next = null;

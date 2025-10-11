@@ -7,7 +7,7 @@
 	IsValid
 =================================================
 */
-	ND_ inline bool  ImageAtlasPacker_IsValid (const ImageAtlasPacker &self) __NE___
+	Nd__In bool  ImageAtlasPacker_IsValid (const ImageAtlasPacker &self) __NE___
 	{
 		using EFileFlags = ImageAtlasPacker::EFileFlags;
 
@@ -31,7 +31,7 @@
 =================================================
 */
 #ifdef AE_BUILD_ASSET_PACKER
-	ND_ inline bool  ImageAtlasPacker_Serialize (const ImageAtlasPacker &self, Serializing::Serializer &ser) __NE___
+	Nd__In bool  ImageAtlasPacker_Serialize (const ImageAtlasPacker &self, Serializing::Serializer &ser) __NE___
 	{
 		using EFileFlags = ImageAtlasPacker::EFileFlags;
 
@@ -57,7 +57,7 @@
 	Deserialize
 =================================================
 */
-	ND_ inline bool  ImageAtlasPacker_Deserialize (OUT ImageAtlasPacker &self, Serializing::Deserializer &des) __NE___
+	Nd__In bool  ImageAtlasPacker_Deserialize (OUT ImageAtlasPacker &self, Serializing::Deserializer &des) __NE___
 	{
 		using EFileFlags = ImageAtlasPacker::EFileFlags;
 
@@ -92,7 +92,7 @@
 =================================================
 *
 #ifdef AE_BUILD_ASSET_PACKER
-	ND_ inline bool  ImageAtlasPacker_SaveImage (const ImageAtlasPacker &self, WStream &stream, const ResLoader::IntermImage &src) __NE___
+	Nd__In bool  ImageAtlasPacker_SaveImage (const ImageAtlasPacker &self, WStream &stream, const ResLoader::IntermImage &src) __NE___
 	{
 		return ImagePacker_SaveImage( stream, self._header.hdr, src );
 	}

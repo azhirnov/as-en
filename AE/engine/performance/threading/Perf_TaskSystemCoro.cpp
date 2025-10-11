@@ -18,7 +18,7 @@ namespace
 	static constexpr uint			W					= 4;
 	static constexpr uint			H					= 4;
 
-	using TimePoint_t	= std::chrono::high_resolution_clock::time_point;
+	using TimePoint_t	= HighResClock::time_point;
 
 
 	class HeightMap : public EnableRC<HeightMap>

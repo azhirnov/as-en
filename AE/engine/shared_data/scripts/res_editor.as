@@ -1,4 +1,4 @@
-//d814fd9b
+//66a37df8
 #pragma once
 #include <vector>
 #include <string>
@@ -24,123 +24,123 @@ using array = std::vector<T>;
 
 using namespace std::string_literals;
 
-struct DynamicDim;
-struct FPSCamera;
-struct RayTracingPass;
-struct uint4;
-struct RectU;
-struct RectI;
-struct uint3;
-struct uint2;
-struct RTInstanceMask;
-struct DynamicFloat;
-struct RectF;
-struct SphericalCube;
-struct RGBA32u;
-struct UnifiedGeometry_DrawMeshTasks;
-struct VertexAttribDivisor;
-struct UnifiedGeometry_DrawMeshTasksIndirectCount;
-struct OrbitalCamera;
-struct RGBA8u;
-struct Buffer;
-struct CallableIndex;
-struct UnifiedGeometry_DrawIndirectCount;
-struct UnifiedGeometry;
-struct RasterMip;
-struct SceneRayTracingPass;
-struct Postprocess;
-struct EnableLabel;
-struct UnifiedGeometry_DrawMeshTasksIndirect;
-struct ComputePass;
-struct FeatureSet;
-struct MipmapLevel;
-struct FlightCamera;
-struct BaseController;
-struct ScaleBiasCamera;
-struct TopDownCamera;
-struct DepthStencil;
-struct short4;
-struct sbyte2;
-struct ushort3;
-struct ushort2;
-struct Scene;
-struct int4;
-struct ImageLayer;
-struct int3;
-struct int2;
-struct float4x4;
-struct float4x2;
-struct DynamicUInt;
-struct float4x3;
-struct VertexStride;
-struct float3x2;
-struct float3x3;
-struct Model;
-struct float3x4;
-struct DynamicFloat2;
-struct DynamicUInt4;
-struct RTGeometry;
-struct float4;
-struct DynamicFloat3;
-struct DynamicFloat4;
-struct DynamicUInt3;
-struct RTShader;
-struct DynamicUInt2;
-struct DynamicInt4;
-struct DynamicInt2;
-struct DynamicInt3;
-struct UnifiedGeometry_DrawIndirect;
-struct GeomSource;
-struct Image;
-struct UnifiedGeometry_DrawIndexedIndirectCount;
-struct sbyte4;
-struct sbyte3;
-struct short2;
-struct Quat;
-struct ushort4;
-struct UnifiedGeometry_DrawIndexed;
-struct short3;
-struct Random;
-struct Random_Binomial4;
+struct RTScene;
+struct Collection;
+struct RayIndex;
+struct RGBA32i;
+struct bool4;
+struct SceneGraphicsPass;
+struct DynamicULong;
+struct bool2;
+struct bool3;
+struct RGBA32f;
+struct HSVColor;
+struct ComputeMip;
+struct Random_Normal3;
+struct Random_Normal2;
+struct Random_Normal1;
+struct UnifiedGeometry_Draw;
+struct Random_Normal4;
+struct VideoImage;
+struct ubyte3;
+struct ubyte2;
+struct FPVCamera;
+struct RemoteCamera;
+struct RTInstanceCustomIndex;
+struct ubyte4;
+struct RTInstanceSBTOffset;
+struct InstanceIndex;
+struct float2;
+struct float3;
+struct DynamicInt;
+struct RTInstanceTransform;
+struct float2x2;
+struct float2x3;
+struct float2x4;
+struct UnifiedGeometry_DrawIndexedIndirect;
 struct MultiSamples;
 struct Random_Binomial2;
 struct IPass;
 struct Random_Binomial1;
 struct Random_Binomial3;
-struct UnifiedGeometry_DrawIndexedIndirect;
-struct float2x2;
-struct float2x4;
-struct float2x3;
-struct RTInstanceTransform;
-struct InstanceIndex;
-struct float2;
-struct float3;
-struct DynamicInt;
-struct RTInstanceSBTOffset;
-struct RTInstanceCustomIndex;
-struct ubyte4;
-struct RemoteCamera;
-struct VideoImage;
-struct FPVCamera;
-struct ubyte3;
-struct ubyte2;
-struct Random_Normal4;
-struct ComputeMip;
-struct Random_Normal3;
-struct Random_Normal1;
-struct Random_Normal2;
-struct UnifiedGeometry_Draw;
-struct RGBA32f;
-struct HSVColor;
-struct DynamicULong;
-struct bool2;
-struct bool3;
-struct RGBA32i;
-struct bool4;
-struct SceneGraphicsPass;
-struct Collection;
-struct RayIndex;
-struct RTScene;
+struct Random_Binomial4;
+struct sbyte4;
+struct sbyte3;
+struct ushort4;
+struct short2;
+struct Quat;
+struct short3;
+struct Random;
+struct UnifiedGeometry_DrawIndexed;
+struct Image;
+struct UnifiedGeometry_DrawIndexedIndirectCount;
+struct UnifiedGeometry_DrawIndirect;
+struct GeomSource;
+struct DynamicInt4;
+struct DynamicInt2;
+struct DynamicInt3;
+struct DynamicFloat4;
+struct DynamicUInt3;
+struct DynamicUInt2;
+struct RTShader;
+struct DynamicFloat2;
+struct DynamicUInt4;
+struct RTGeometry;
+struct float4;
+struct DynamicFloat3;
+struct Model;
+struct float3x4;
+struct float3x2;
+struct float3x3;
+struct float4x3;
+struct VertexStride;
+struct float4x4;
+struct float4x2;
+struct DynamicUInt;
+struct ImageLayer;
+struct int4;
+struct int3;
+struct int2;
+struct Scene;
+struct short4;
+struct sbyte2;
+struct ushort3;
+struct ushort2;
+struct DepthStencil;
+struct TopDownCamera;
+struct ScaleBiasCamera;
+struct MipmapLevel;
+struct BaseController;
+struct FlightCamera;
+struct UnifiedGeometry_DrawMeshTasksIndirect;
+struct ComputePass;
+struct FeatureSet;
+struct SceneRayTracingPass;
+struct RasterMip;
+struct Postprocess;
+struct EnableLabel;
+struct UnifiedGeometry;
+struct UnifiedGeometry_DrawIndirectCount;
+struct Buffer;
+struct CallableIndex;
+struct RGBA8u;
+struct VertexAttribDivisor;
+struct UnifiedGeometry_DrawMeshTasksIndirectCount;
+struct OrbitalCamera;
+struct RGBA32u;
+struct UnifiedGeometry_DrawMeshTasks;
+struct RectF;
+struct SphericalCube;
+struct RTInstanceMask;
+struct DynamicFloat;
+struct RectI;
+struct uint2;
+struct uint3;
+struct RayTracingPass;
+struct uint4;
+struct RectU;
+struct DynamicDim;
+struct FPSCamera;
 
 enum class EImageType : uint16
 {
@@ -314,7 +314,7 @@ enum class EPixelFormat : uint8
 	RGB10_A2_UNorm,
 	RGBA4_UNorm,
 	RGB5_A1_UNorm,
-	RGB_5_6_5_UNorm,
+	R5G6B5_UNorm,
 	BGR8_UNorm,
 	BGRA8_UNorm,
 	sRGB8,
@@ -819,7 +819,9 @@ enum class EResourceState : uint32
 	ComputeShader,
 	RayTracingShaders,
 	AllGraphicsShaders,
-	AllShaders,
+	AllShaderStages,
+	AllStages,
+	CoopVecConvertStage,
 	BuildRTAS_ScratchBuffer,
 	InputDepthAttachment,
 	DepthStencilAttachment,
@@ -1510,6 +1512,43 @@ uint8  operator | (EShadingRateCombinerOp lhs, EShadingRateCombinerOp rhs);
 uint8  operator | (uint8 lhs, EShadingRateCombinerOp rhs);
 uint8  operator | (EShadingRateCombinerOp lhs, uint8 rhs);
 
+enum class EIntegerDotProductFeat : uint8
+{
+	Unsigned8bit,
+	Signed8bit,
+	MixedSignedness8bit,
+	Unsigned4x8bit,
+	Signed4x8bit,
+	MixedSignedness4x8bit,
+	Unsigned16bit,
+	Signed16bit,
+	MixedSignedness16bit,
+	Unsigned32bit,
+	Signed32bit,
+	MixedSignedness32bit,
+	Unsigned64bit,
+	Signed64bit,
+	MixedSignedness64bit,
+	AccSat_Unsigned8bit,
+	AccSat_Signed8bit,
+	AccSat_MixedSignedness8bit,
+	AccSat_Unsigned4x8bit,
+	AccSat_Signed4x8bit,
+	AccSat_MixedSignedness4x8bit,
+	AccSat_Unsigned16bit,
+	AccSat_Signed16bit,
+	AccSat_MixedSignedness16bit,
+	AccSat_Unsigned32bit,
+	AccSat_Signed32bit,
+	AccSat_MixedSignedness32bit,
+	AccSat_Unsigned64bit,
+	AccSat_Signed64bit,
+	AccSat_MixedSignedness64bit,
+};
+uint8  operator | (EIntegerDotProductFeat lhs, EIntegerDotProductFeat rhs);
+uint8  operator | (uint8 lhs, EIntegerDotProductFeat rhs);
+uint8  operator | (EIntegerDotProductFeat lhs, uint8 rhs);
+
 enum class EColorSpace : uint8
 {
 	sRGB_nonlinear,
@@ -1600,6 +1639,9 @@ enum class EPassFlags : uint8
 
 	// Enable all debug features.
 	Enable_AllShaderDbg,
+
+	// Compile shader using Slang compiler.
+	UseSLang,
 };
 uint8  operator | (EPassFlags lhs, EPassFlags rhs);
 uint8  operator | (uint8 lhs, EPassFlags rhs);
@@ -3120,6 +3162,7 @@ struct DynamicUInt
 	RC<DynamicUInt3>  X11 ();
 	RC<DynamicUInt3>  XXX ();
 	RC<DynamicFloat>  ToFloat ();
+	RC<DynamicFloat>  AsFloat ();
 	RC<DynamicFloat>  Percent (const RC<DynamicUInt> &);
 	RC<DynamicDim>  Dimension2 ();
 	RC<DynamicDim>  Dimension3 ();
@@ -3250,6 +3293,7 @@ struct DynamicFloat
 	RC<DynamicFloat>  Sub (const RC<DynamicFloat> &);
 	RC<DynamicFloat>  Min (const RC<DynamicFloat> &);
 	RC<DynamicFloat>  Max (const RC<DynamicFloat> &);
+	RC<DynamicUInt>  AsUInt ();
 };
 
 struct DynamicFloat2
@@ -5343,6 +5387,7 @@ struct FeatureSet
 	void  requiredQueues (EQueueMask);
 	void  AddShadingRate (const array<uint> &, const array<uint> &);
 	void  fragmentShadingRateTexelSize (const array<uint> &, const array<uint> &, uint);
+	void  AddIntegerDotProduct (const array<EIntegerDotProductFeat> &);
 	void  alphaToOne (EFeature);
 	bool  hasAlphaToOne ();
 	void  depthBiasClamp (EFeature);
@@ -5401,6 +5446,16 @@ struct FeatureSet
 	bool  hasShaderFloat16 ();
 	void  shaderFloat64 (EFeature);
 	bool  hasShaderFloat64 ();
+	void  shaderBFloat16Type (EFeature);
+	bool  hasShaderBFloat16Type ();
+	void  shaderBFloat16DotProduct (EFeature);
+	bool  hasShaderBFloat16DotProduct ();
+	void  shaderBFloat16CooperativeMatrix (EFeature);
+	bool  hasShaderBFloat16CooperativeMatrix ();
+	void  shaderFloat8 (EFeature);
+	bool  hasShaderFloat8 ();
+	void  shaderFloat8CooperativeMatrix (EFeature);
+	bool  hasShaderFloat8CooperativeMatrix ();
 	void  storageBuffer16BitAccess (EFeature);
 	bool  hasStorageBuffer16BitAccess ();
 	void  uniformAndStorageBuffer16BitAccess (EFeature);
@@ -5475,6 +5530,8 @@ struct FeatureSet
 	bool  hasShaderImageFloat32AtomicMinMax ();
 	void  sparseImageFloat32AtomicMinMax (EFeature);
 	bool  hasSparseImageFloat32AtomicMinMax ();
+	void  shaderAtomicPackedFp16 (EFeature);
+	bool  hasShaderAtomicPackedFp16 ();
 	void  shaderOutputViewportIndex (EFeature);
 	bool  hasShaderOutputViewportIndex ();
 	void  shaderOutputLayer (EFeature);
@@ -5490,6 +5547,8 @@ struct FeatureSet
 	bool  hasCooperativeVector ();
 	void  cooperativeVectorTraining (EFeature);
 	bool  hasCooperativeVectorTraining ();
+	void  shaderIntegerDotProduct (EFeature);
+	bool  hasShaderIntegerDotProduct ();
 	void  shaderClipDistance (EFeature);
 	bool  hasShaderClipDistance ();
 	void  shaderCullDistance (EFeature);
@@ -6091,123 +6150,111 @@ RC<FeatureSet>  GetFeatureSet ();
 #define SCRIPT
 
 template <>
-struct RC<DynamicDim> : DynamicDim
+struct RC<RTScene> : RTScene
 {
-	RC (const DynamicDim &);
+	RC (const RTScene &);
 };
 
 template <>
-struct RC<FPSCamera> : FPSCamera
+struct RC<Collection> : Collection
 {
-	RC (const FPSCamera &);
+	RC (const Collection &);
 };
 
 template <>
-struct RC<RayTracingPass> : RayTracingPass
+struct RC<SceneGraphicsPass> : SceneGraphicsPass
 {
-	RC (const RayTracingPass &);
+	RC (const SceneGraphicsPass &);
 };
 
 template <>
-struct RC<DynamicFloat> : DynamicFloat
+struct RC<DynamicULong> : DynamicULong
 {
-	RC (const DynamicFloat &);
+	RC (const DynamicULong &);
 };
 
 template <>
-struct RC<SphericalCube> : SphericalCube
+struct RC<ComputeMip> : ComputeMip
 {
-	RC (const SphericalCube &);
+	RC (const ComputeMip &);
 };
 
 template <>
-struct RC<OrbitalCamera> : OrbitalCamera
+struct RC<VideoImage> : VideoImage
 {
-	RC (const OrbitalCamera &);
+	RC (const VideoImage &);
 };
 
 template <>
-struct RC<Buffer> : Buffer
+struct RC<FPVCamera> : FPVCamera
 {
-	RC (const Buffer &);
+	RC (const FPVCamera &);
 };
 
 template <>
-struct RC<UnifiedGeometry> : UnifiedGeometry
+struct RC<RemoteCamera> : RemoteCamera
 {
-	RC (const UnifiedGeometry &);
+	RC (const RemoteCamera &);
 };
 
 template <>
-struct RC<RasterMip> : RasterMip
+struct RC<DynamicInt> : DynamicInt
 {
-	RC (const RasterMip &);
+	RC (const DynamicInt &);
 };
 
 template <>
-struct RC<SceneRayTracingPass> : SceneRayTracingPass
+struct RC<IPass> : IPass
 {
-	RC (const SceneRayTracingPass &);
+	RC (const IPass &);
 };
 
 template <>
-struct RC<Postprocess> : Postprocess
+struct RC<Image> : Image
 {
-	RC (const Postprocess &);
+	RC (const Image &);
 };
 
 template <>
-struct RC<ComputePass> : ComputePass
+struct RC<GeomSource> : GeomSource
 {
-	RC (const ComputePass &);
+	RC (const GeomSource &);
 };
 
 template <>
-struct RC<FeatureSet> : FeatureSet
+struct RC<DynamicInt4> : DynamicInt4
 {
-	RC (const FeatureSet &);
+	RC (const DynamicInt4 &);
 };
 
 template <>
-struct RC<FlightCamera> : FlightCamera
+struct RC<DynamicInt2> : DynamicInt2
 {
-	RC (const FlightCamera &);
+	RC (const DynamicInt2 &);
 };
 
 template <>
-struct RC<BaseController> : BaseController
+struct RC<DynamicInt3> : DynamicInt3
 {
-	RC (const BaseController &);
+	RC (const DynamicInt3 &);
 };
 
 template <>
-struct RC<ScaleBiasCamera> : ScaleBiasCamera
+struct RC<DynamicFloat4> : DynamicFloat4
 {
-	RC (const ScaleBiasCamera &);
+	RC (const DynamicFloat4 &);
 };
 
 template <>
-struct RC<TopDownCamera> : TopDownCamera
+struct RC<DynamicUInt3> : DynamicUInt3
 {
-	RC (const TopDownCamera &);
+	RC (const DynamicUInt3 &);
 };
 
 template <>
-struct RC<Scene> : Scene
+struct RC<DynamicUInt2> : DynamicUInt2
 {
-	RC (const Scene &);
-};
-
-template <>
-struct RC<DynamicUInt> : DynamicUInt
-{
-	RC (const DynamicUInt &);
-};
-
-template <>
-struct RC<Model> : Model
-{
-	RC (const Model &);
+	RC (const DynamicUInt2 &);
 };
 
 template <>
@@ -6235,110 +6282,122 @@ struct RC<DynamicFloat3> : DynamicFloat3
 };
 
 template <>
-struct RC<DynamicFloat4> : DynamicFloat4
+struct RC<Model> : Model
 {
-	RC (const DynamicFloat4 &);
+	RC (const Model &);
 };
 
 template <>
-struct RC<DynamicUInt3> : DynamicUInt3
+struct RC<DynamicUInt> : DynamicUInt
 {
-	RC (const DynamicUInt3 &);
+	RC (const DynamicUInt &);
 };
 
 template <>
-struct RC<DynamicUInt2> : DynamicUInt2
+struct RC<Scene> : Scene
 {
-	RC (const DynamicUInt2 &);
+	RC (const Scene &);
 };
 
 template <>
-struct RC<DynamicInt4> : DynamicInt4
+struct RC<TopDownCamera> : TopDownCamera
 {
-	RC (const DynamicInt4 &);
+	RC (const TopDownCamera &);
 };
 
 template <>
-struct RC<DynamicInt2> : DynamicInt2
+struct RC<ScaleBiasCamera> : ScaleBiasCamera
 {
-	RC (const DynamicInt2 &);
+	RC (const ScaleBiasCamera &);
 };
 
 template <>
-struct RC<DynamicInt3> : DynamicInt3
+struct RC<BaseController> : BaseController
 {
-	RC (const DynamicInt3 &);
+	RC (const BaseController &);
 };
 
 template <>
-struct RC<GeomSource> : GeomSource
+struct RC<FlightCamera> : FlightCamera
 {
-	RC (const GeomSource &);
+	RC (const FlightCamera &);
 };
 
 template <>
-struct RC<Image> : Image
+struct RC<ComputePass> : ComputePass
 {
-	RC (const Image &);
+	RC (const ComputePass &);
 };
 
 template <>
-struct RC<IPass> : IPass
+struct RC<FeatureSet> : FeatureSet
 {
-	RC (const IPass &);
+	RC (const FeatureSet &);
 };
 
 template <>
-struct RC<DynamicInt> : DynamicInt
+struct RC<SceneRayTracingPass> : SceneRayTracingPass
 {
-	RC (const DynamicInt &);
+	RC (const SceneRayTracingPass &);
 };
 
 template <>
-struct RC<RemoteCamera> : RemoteCamera
+struct RC<RasterMip> : RasterMip
 {
-	RC (const RemoteCamera &);
+	RC (const RasterMip &);
 };
 
 template <>
-struct RC<VideoImage> : VideoImage
+struct RC<Postprocess> : Postprocess
 {
-	RC (const VideoImage &);
+	RC (const Postprocess &);
 };
 
 template <>
-struct RC<FPVCamera> : FPVCamera
+struct RC<UnifiedGeometry> : UnifiedGeometry
 {
-	RC (const FPVCamera &);
+	RC (const UnifiedGeometry &);
 };
 
 template <>
-struct RC<ComputeMip> : ComputeMip
+struct RC<Buffer> : Buffer
 {
-	RC (const ComputeMip &);
+	RC (const Buffer &);
 };
 
 template <>
-struct RC<DynamicULong> : DynamicULong
+struct RC<OrbitalCamera> : OrbitalCamera
 {
-	RC (const DynamicULong &);
+	RC (const OrbitalCamera &);
 };
 
 template <>
-struct RC<SceneGraphicsPass> : SceneGraphicsPass
+struct RC<SphericalCube> : SphericalCube
 {
-	RC (const SceneGraphicsPass &);
+	RC (const SphericalCube &);
 };
 
 template <>
-struct RC<Collection> : Collection
+struct RC<DynamicFloat> : DynamicFloat
 {
-	RC (const Collection &);
+	RC (const DynamicFloat &);
 };
 
 template <>
-struct RC<RTScene> : RTScene
+struct RC<RayTracingPass> : RayTracingPass
 {
-	RC (const RTScene &);
+	RC (const RayTracingPass &);
+};
+
+template <>
+struct RC<DynamicDim> : DynamicDim
+{
+	RC (const DynamicDim &);
+};
+
+template <>
+struct RC<FPSCamera> : FPSCamera
+{
+	RC (const FPSCamera &);
 };
 

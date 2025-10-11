@@ -3,7 +3,7 @@
 #pragma once
 
 #include "platform/Public/OutputSurface.h"
-#include "platform/Public/IWindow.h"
+#include "platform/Public/Window.h"
 
 #if defined(AE_ENABLE_VULKAN)
 #	include "graphics_rhi/Vulkan/VSwapchain.h"

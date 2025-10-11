@@ -13,9 +13,9 @@ namespace AE::App
 =================================================
 */
 	WindowWinAPI::WindowWinAPI (ApplicationWinAPI &app, Unique<IWndListener> listener, IInputActions* dstActions) __NE___ :
-		WindowBase{ app, RVRef(listener) },
+		WindowBaseWithSurface{ app, RVRef(listener) },
 		_input{ InputActionsBase::GetQueue( dstActions )},
-		_lastWindowSize{100, 100, 800, 600}  // default size
+		_lastWindowRect{100, 100, 800, 600}  // default size
 	{}
 
 /*
@@ -48,7 +48,7 @@ namespace AE::App
 												   OUT uint &wndStyle, OUT uint &wndExtStyle, INOUT int2 &wndSize, OUT int2 &wndPos) C_NE___
 	{
 		Monitor const*	cur_mon		= null;
-		const auto		monitors	= _app.GetMonitors();
+		const auto		monitors	= _app.GetCachedMonitors();
 		CHECK_ERR( not monitors.empty() );
 
 		for (auto& mon : monitors) {
@@ -79,6 +79,11 @@ namespace AE::App
 			default :																			break;
 		}
 		switch_end
+		
+	  #ifdef AE_DEBUG
+		if ( PlatformUtils::IsUnderDebugger() )
+			always_on_top = false;
+	  #endif
 
 		if ( resizable )
 			wndStyle |= WS_OVERLAPPEDWINDOW;
@@ -128,13 +133,18 @@ namespace AE::App
 		RECT		old_rect;
 		::GetWindowRect( hwnd, OUT &old_rect );	// win2000
 
+		if ( monitorId == Default )
+		{
+			monitorId = _app.GetMonitor( int2{ old_rect.left, old_rect.top });
+		}
+
 		uint	wnd_style, wnd_ext_style;
 		int2	wnd_pos, wnd_size;
 		CHECK_ERR( _WindowModeToStyle( mode, monitorId, OUT wnd_style, OUT wnd_ext_style, INOUT wnd_size, OUT wnd_pos ));
 
 		if ( was_fullscreen )
 		{
-			if ( Any(IsZero( _lastWindowSize.Size() )))
+			if ( Any(IsZero( _lastWindowRect.Size() )))
 			{
 				wnd_pos		= int2{ old_rect.left, old_rect.top };
 				wnd_size	= int2{ old_rect.right - old_rect.left, old_rect.bottom - old_rect.top };
@@ -142,11 +152,11 @@ namespace AE::App
 				wnd_size	= Max( wnd_size/3, Min( wnd_size, int2{800,600} ));
 				wnd_pos		-= wnd_size/2;
 			}else{
-				wnd_pos		= _lastWindowSize.LeftTop();
-				wnd_size	= _lastWindowSize.Size();
+				wnd_pos		= _lastWindowRect.LeftTop();
+				wnd_size	= _lastWindowRect.Size();
 			}
 		}else{
-			_lastWindowSize = RectI{ old_rect.left, old_rect.top, old_rect.right, old_rect.bottom };
+			_lastWindowRect = RectI{ old_rect.left, old_rect.top, old_rect.right, old_rect.bottom };
 		}
 
 		::SetWindowLongA( hwnd, GWL_STYLE, wnd_style );			// win2000

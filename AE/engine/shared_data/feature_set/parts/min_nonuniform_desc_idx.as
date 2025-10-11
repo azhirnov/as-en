@@ -23,6 +23,7 @@ void ASmain ()
 	//	Intel(R) Arc(tm) A770M Graphics (DG2) driver 24.3.1 on Endeavouros unknown
 	//	Intel(R) Arc(tm) A770 Graphics (DG2) driver 23.3.3 on Arch unknown
 	//	Intel(R) Arc(TM) B580 Graphics driver 0.405.2156 on Windows 11
+	//	Intel(R) Graphics driver 0.405.1984 on Windows 11
 	//	Intel(R) HD Graphics 520 (SKL GT2) driver 24.2.4 on Arch unknown
 	//	Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
 	//	Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2

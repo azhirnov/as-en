@@ -267,6 +267,16 @@ namespace
 	{
 		return String{_glsl} << "\n";
 	}
+	
+/*
+=================================================
+	ToHLSL
+=================================================
+*/
+	String  ScriptVertexBufferInput::ToHLSL () const
+	{
+		return String{_hlsl} << "\n";
+	}
 
 /*
 =================================================

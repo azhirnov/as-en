@@ -20,13 +20,12 @@ namespace AE::Graphics
 	EIndex_SizeOf
 =================================================
 */
-	ND_ inline Bytes  EIndex_SizeOf (EIndex value) __NE___
+	Nd__In Bytes  EIndex_SizeOf (EIndex value) __NE___
 	{
 		switch_enum( value ) {
 			case EIndex::UShort :	return SizeOf<ushort>;
 			case EIndex::UInt :		return SizeOf<uint>;
-			case EIndex::Unknown :
-			case EIndex::_Count :	break;
+			case EIndex::Unknown :	break;
 		}
 		switch_end
 		RETURN_ERR( "unknown index type!" );
@@ -39,7 +38,7 @@ namespace AE::Graphics
 	EShaderStages_FromShader
 =================================================
 */
-	ND_ inline EShaderStages  EShaderStages_FromShader (EShader value) __NE___
+	Nd__In EShaderStages  EShaderStages_FromShader (EShader value) __NE___
 	{
 		auto	result = EShaderStages( 1 << uint(value) );
 		ASSERT( NoBits( result, ~EShaderStages::All ));
@@ -53,8 +52,14 @@ namespace AE::Graphics
 	EVertexType_*
 =================================================
 */
-	ND_ Bytes		EVertexType_SizeOf (EVertexType type)		__NE___;
-	ND_ EVertexType	EVertexType_ToAttribType (EVertexType type) __NE___;
+	Nd____ Bytes		EVertexType_SizeOf (EVertexType type)				__NE___;
+	Nd____ EVertexType	EVertexType_ToAttribType (EVertexType type)			__NE___;
+	Nd____ EVertexType	EVertexType_SetVec (EVertexType type, uint count)	__NE___;
+	Nd____ uint			EVertexType_GetVec (EVertexType type)				__NE___;
+	Nd____ bool			EVertexType_IsFloat (EVertexType type)				__NE___;
+	Nd__In bool			EVertexType_IsInteger (EVertexType type)			__NE___	{ return not EVertexType_IsFloat( type ); }	// include normalized and scaled
+	Nd____ bool			EVertexType_IsUnsignedInteger (EVertexType type)	__NE___;
+	Nd____ bool			EVertexType_IsScaledOrNormalized (EVertexType type)	__NE___;
 //-----------------------------------------------------------------------------
 
 
@@ -169,7 +174,7 @@ namespace AE::Graphics
 	EResourceState_IsUnnecessaryBarrier
 =================================================
 */
-	ND_ inline bool  EResourceState_IsUnnecessaryBarrier (EResourceState srcState, EResourceState dstState)	__NE___
+	Nd__In bool  EResourceState_IsUnnecessaryBarrier (EResourceState srcState, EResourceState dstState)	__NE___
 	{
 		// skip 'CopyDst -> CopyDst', 'BlitDst -> BlitDst' barriers,
 		// user must explicitly add this barrier, otherwise it is intended that regions are not intersects.
@@ -277,7 +282,7 @@ namespace AE::Graphics
 	EPixelFormat_BitPerPixel
 =================================================
 */
-	ND_ inline uint  EPixelFormat_BitPerPixel (EPixelFormat value, EImageAspect aspect) __NE___
+	Nd__In uint  EPixelFormat_BitPerPixel (EPixelFormat value, EImageAspect aspect) __NE___
 	{
 		auto	info = EPixelFormat_GetInfo( value );
 		ASSERT( AllBits( info.aspectMask, aspect ));
@@ -293,11 +298,11 @@ namespace AE::Graphics
 	EPixelFormat_Is***
 =================================================
 */
-	ND_ inline bool  EPixelFormat_IsDepth (EPixelFormat value)			__NE___	{ return EPixelFormat_GetInfo( value ).IsDepth(); }
-	ND_ inline bool  EPixelFormat_IsStencil (EPixelFormat value)		__NE___	{ return EPixelFormat_GetInfo( value ).IsStencil(); }
-	ND_ inline bool  EPixelFormat_IsDepthStencil (EPixelFormat value)	__NE___	{ return EPixelFormat_GetInfo( value ).IsDepthStencil(); }
-	ND_ inline bool  EPixelFormat_IsColor (EPixelFormat value)			__NE___	{ return EPixelFormat_GetInfo( value ).IsColor(); }
-	ND_ inline bool  EPixelFormat_IsCompressed (EPixelFormat value)		__NE___	{ return EPixelFormat_GetInfo( value ).IsCompressed(); }
+	Nd__In bool  EPixelFormat_IsDepth (EPixelFormat value)			__NE___	{ return EPixelFormat_GetInfo( value ).IsDepth(); }
+	Nd__In bool  EPixelFormat_IsStencil (EPixelFormat value)		__NE___	{ return EPixelFormat_GetInfo( value ).IsStencil(); }
+	Nd__In bool  EPixelFormat_IsDepthStencil (EPixelFormat value)	__NE___	{ return EPixelFormat_GetInfo( value ).IsDepthStencil(); }
+	Nd__In bool  EPixelFormat_IsColor (EPixelFormat value)			__NE___	{ return EPixelFormat_GetInfo( value ).IsColor(); }
+	Nd__In bool  EPixelFormat_IsCompressed (EPixelFormat value)		__NE___	{ return EPixelFormat_GetInfo( value ).IsCompressed(); }
 
 	NdCxIn bool  EPixelFormat_IsBC (EPixelFormat format) __NE___
 	{
@@ -350,16 +355,16 @@ namespace AE::Graphics
 	EPixelFormat_Has***
 =================================================
 */
-	ND_ inline bool  EPixelFormat_HasDepth (EPixelFormat value)				__NE___	{ return EPixelFormat_GetInfo( value ).HasDepth(); }
-	ND_ inline bool  EPixelFormat_HasStencil (EPixelFormat value)			__NE___	{ return EPixelFormat_GetInfo( value ).HasStencil(); }
-	ND_ inline bool  EPixelFormat_HasDepthOrStencil (EPixelFormat value)	__NE___	{ return EPixelFormat_GetInfo( value ).HasDepthOrStencil(); }
+	Nd__In bool  EPixelFormat_HasDepth (EPixelFormat value)				__NE___	{ return EPixelFormat_GetInfo( value ).HasDepth(); }
+	Nd__In bool  EPixelFormat_HasStencil (EPixelFormat value)			__NE___	{ return EPixelFormat_GetInfo( value ).HasStencil(); }
+	Nd__In bool  EPixelFormat_HasDepthOrStencil (EPixelFormat value)	__NE___	{ return EPixelFormat_GetInfo( value ).HasDepthOrStencil(); }
 
 /*
 =================================================
 	EPixelFormat_ToImageAspect
 =================================================
 */
-	ND_ inline EImageAspect  EPixelFormat_ToImageAspect (EPixelFormat format) __NE___
+	Nd__In EImageAspect  EPixelFormat_ToImageAspect (EPixelFormat format) __NE___
 	{
 		return EPixelFormat_GetInfo( format ).aspectMask;
 	}
@@ -369,7 +374,7 @@ namespace AE::Graphics
 	EPixelFormat_ToShaderIO
 =================================================
 */
-	ND_ inline EShaderIO  EPixelFormat_ToShaderIO (EPixelFormat format) __NE___
+	Nd__In EShaderIO  EPixelFormat_ToShaderIO (EPixelFormat format) __NE___
 	{
 		using EType = PixelFormatInfo::EType;
 
@@ -446,7 +451,7 @@ namespace AE::Graphics
 	EShaderIO_IsConvertible
 =================================================
 */
-	ND_ inline bool  EShaderIO_IsConvertible (EShaderIO src, EShaderIO dst) __NE___
+	Nd__In bool  EShaderIO_IsConvertible (EShaderIO src, EShaderIO dst) __NE___
 	{
 		if ( src == dst )
 			return true;
@@ -520,7 +525,12 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
-
+	
+/*
+=================================================
+	VideoFormatToPixelFormat / PixelFormatToVideoFormat
+=================================================
+*/
 	ND_ EPixelFormat  VideoFormatToPixelFormat (EVideoFormat fmt, uint planeCount = 0)	__NE___;
 	ND_ EVideoFormat  PixelFormatToVideoFormat (EPixelFormat fmt)						__NE___;
 

@@ -262,7 +262,7 @@ Simd Double2 - Mul         : 0.84 s  +8913.7%    - 477.6MFLOPS    ???
 * Notes:
 	- 4x128b NEON [ref](https://www.anandtech.com/show/15813/arm-cortex-a78-cortex-x1-cpu-ip-diverging/3)
 * Theoretical performance (FMA):<br/>
-  2 FLOPS * 4*4 Op/cy * 2.8 GHz = 89.6 GFLOPS per core<br/>
+  2 FLOPS * 4*2 Op/cy * 2.8 GHz = 44.8 GFLOPS per core<br/>
 
 ## Float SIMD
 

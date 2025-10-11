@@ -219,6 +219,9 @@ namespace
 			desc.taskDefaultLocalSize	= WGLocalSize_t{ task->reflection.mesh.taskGroupSize };
 			desc.taskLocalSizeSpec		= WGLocalSizeSpec_t{ task->reflection.mesh.taskGroupSpec };
 			CHECK( desc.shaders.insert_or_assign( EShader::MeshTask, task->uid ).second );
+			
+			CHECK_THROW_MSG( All( (desc.taskDefaultLocalSize > WGLocalSize_t{0}) or (desc.taskLocalSizeSpec != WGLocalSizeSpec_t{SerializableMeshPipeline::UndefinedSpecConst}) ),
+				"'taskDefaultLocalSize' is zero and specialization is not defined" );
 		}
 
 		if ( mesh )
@@ -229,6 +232,9 @@ namespace
 			desc.meshDefaultLocalSize	= WGLocalSize_t{ mesh->reflection.mesh.meshGroupSize };
 			desc.meshLocalSizeSpec		= WGLocalSizeSpec_t{ mesh->reflection.mesh.meshGroupSpec };
 			CHECK( desc.shaders.insert_or_assign( EShader::Mesh, mesh->uid ).second );
+			
+			CHECK_THROW_MSG( All( (desc.meshDefaultLocalSize > WGLocalSize_t{0}) or (desc.meshLocalSizeSpec != WGLocalSizeSpec_t{SerializableMeshPipeline::UndefinedSpecConst}) ),
+				"'meshDefaultLocalSize' is zero and specialization is not defined" );
 		}
 
 		if ( fragment )

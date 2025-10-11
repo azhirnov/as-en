@@ -60,6 +60,8 @@ namespace AE::Java
 		ND_ JNIEnv*  Env ()								C_NE___	{ NonNull( _env );  return _env; }
 		ND_ JNIEnv*  operator -> ()						C_NE___	{ NonNull( _env );  return _env; }
 
+		ND_ static JavaVM*  GetJavaVM ()				__NE___;
+
 			static void  SetVM (JavaVM* ptr)			__NE___;
 	};
 
@@ -1050,9 +1052,9 @@ namespace AE::Java
 		DECL_METHOD_CALLER( jdouble,	Double	);
 		#undef DECL_METHOD_CALLER
 
-		#define DECL_TYPE_TO_JAVATYPE( _javatype_, _cpptype_ )				\
-			ND_ inline _javatype_  TypeToJava (const _cpptype_ &x) __NE___ {\
-				return _javatype_(x);										\
+		#define DECL_TYPE_TO_JAVATYPE( _javatype_, _cpptype_ )			\
+			Nd__In _javatype_  TypeToJava (const _cpptype_ &x) __NE___ {\
+				return _javatype_(x);									\
 			}
 		DECL_TYPE_TO_JAVATYPE( jobject,		jobject	 );
 		DECL_TYPE_TO_JAVATYPE( jstring,		jstring	 );
@@ -1069,16 +1071,16 @@ namespace AE::Java
 		DECL_TYPE_TO_JAVATYPE( jlong,		ulong	 );
 		#undef DECL_TYPE_TO_JAVATYPE
 
-		ND_ inline jobject  TypeToJava (const JavaObj &obj) __NE___ {
+		Nd__In jobject  TypeToJava (const JavaObj &obj) __NE___ {
 			return obj.Get();
 		}
 
-		ND_ inline jstring  TypeToJava (const JavaString& jstr) __NE___ {
+		Nd__In jstring  TypeToJava (const JavaString& jstr) __NE___ {
 			return jstr.Get();
 		}
 
 		template <typename T>
-		ND_ inline auto  TypeToJava (const JavaArray<T>& arr) __NE___ {
+		Nd__In auto  TypeToJava (const JavaArray<T>& arr) __NE___ {
 			return arr.Get();
 		}
 

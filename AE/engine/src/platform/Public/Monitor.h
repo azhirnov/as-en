@@ -60,7 +60,7 @@ namespace AE::App
 		bool				isExternal			= false;
 
 		Name_t				name;
-		NativeMonitor_t		native				= null;
+		NativeMonitor_t		native				= null;		// HMONITOR, RROutput, wl_surface*, CGDirectDisplayID, ...
 
 		CutoutRects_t		cutout;
 
@@ -123,9 +123,15 @@ namespace AE::App
 		ND_ Meters2f	ClampMeters (const Meters2f &c)			C_NE___	{ return Meters2f{ Base::Clamp( c.meters,	float2{0},	physicalSize.meters		)}; }
 		ND_ Dips2f		ClampDips (const Dips2f &c)				C_NE___	{ return Dips2f{   Base::Clamp( c.dips,		float2{0},	PixelsToDips( Pixels2f{RegionSize()} ).dips )}; }
 
+		ND_ Rad2		FieldOfView (float distInMeters)		C_NE___;
+		ND_ float2		FieldOfViewDeg (float distInMeters)		C_NE___	{ return float2{FieldOfView( distInMeters )} * Rad::RadToDeg(); }
+
+		ND_ float2		PixelsPerDegree (float distInMeters)	C_NE___;  // pix / deg
+		ND_ float		MaxPixelsPerDegree (float distInMeters)	C_NE___	{ float2 ppd = PixelsPerDegree( distInMeters );  return Max( ppd.x, ppd.y ); }
+
 		NdCx__ static float	_MetersInInch ()					__NE___	{ return 0.0254f; }
 		NdCx__ static float	_InchsInMillimeter ()				__NE___	{ return 0.0393700787f; }
-		NdCx__ static float	_DipToPixel ()						__NE___	{ return 160.0f; }	// Android
+		NdCx__ static float	_DipToPixel ()						__NE___	{ return 160.0f; }	// Device Independent Pixels in Android
 
 			void		Print ()								C_NE___;
 

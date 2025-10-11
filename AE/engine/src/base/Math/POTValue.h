@@ -208,7 +208,7 @@ namespace AE::Base
 	inline static constexpr POTBytes	POTBytes_From	{PowerOfTwo( CT_IntLog2<X> )};
 
 
-	NdCxIn POTValue operator "" _pot (unsigned long long value) __NE___	{ return POTValue{ CheckCast<PowerOfTwo>(value) }; }
+	NdCxIn POTValue operator ""_pot (unsigned long long value) __NE___	{ return POTValue{ CheckCast<PowerOfTwo>(value) }; }
 
 	namespace _hidden_
 	{

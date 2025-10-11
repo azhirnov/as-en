@@ -402,7 +402,7 @@ extern void UnitTest_AsyncDataSource (const Path &curr)
 	AsyncReadDS_Test1< FileAsyncRDataSource, StdFileWDataSource >();
 	AsyncReadDS_Test2< FileAsyncRDataSource >();
 	AsyncReadDS_Test3< FileAsyncRDataSource, StdFileWDataSource >();
-	AsyncReadDS_Test4< FileAsyncRDataSource, StdFileWDataSource >();
+	AsyncReadDS_Test4< FileAsyncRDataSource, StdFileWDataSource >();	// TODO: problem on Mac/Linux
 
 	AsyncWriteDS_Test1< StdFileRDataSource, FileAsyncWDataSource >();
 

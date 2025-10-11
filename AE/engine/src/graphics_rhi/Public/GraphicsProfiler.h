@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	thread-safe: yes
+	Thread-safe: yes
 
 	Warning: delay destruction on 1 frame, because software command buffer hold raw pointer.
 */

@@ -46,16 +46,6 @@ void ASmain (GLFW_ActionBindings& bindings)
 				  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
 	}
 
-	// HwCamera bindings
-	{
-		RC<GLFW_BindingsMode>	bind = bindings.CreateMode( "HwCamera" );
-
-		bind.Add( GLFW_Input::TouchPos,
-				  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
-		bind.Add( GLFW_Input::TouchPos,
-				  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
-	}
-
 	// Camera3D bindings
 	{
 		RC<GLFW_BindingsMode>	bind = bindings.CreateMode( "Camera3D" );

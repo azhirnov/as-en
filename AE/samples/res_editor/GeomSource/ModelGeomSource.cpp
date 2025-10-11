@@ -801,7 +801,7 @@ namespace AE::ResEditor
 
 		for (auto& [mtr, idx] : scene->Materials())
 		{
-			if ( auto albedo = mtr->Get( EKey::PBR_BaseColor);
+			if ( auto albedo = mtr->Get( EKey::PBR_BaseColor );
 				 albedo != null and albedo->image and idx < _albedoMaps.size() )
 			{
 				_albedoMaps[idx] = Image::CreateAndLoad( r, albedo->image, albedo->name, Image::ELoadOpFlags::GenMipmaps, texSearchDirs );  // throw

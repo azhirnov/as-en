@@ -4,5 +4,5 @@
 
 #include "pch/Base.h"
 
-#include "../shared/UnitTest_Shared.h"
-#include "../shared/DebugInstanceCounter.h"
+#include "../tests/shared/UnitTest_Shared.h"
+#include "../tests/shared/DebugInstanceCounter.h"

@@ -24,7 +24,6 @@ namespace
 		switch_enum( EImage::Unknown )
 		{
 			case EImage::Unknown :
-			case EImage::_Count :
 			#define BIND( _name_ )	case EImage_ ## _name_ : binder.AddValue( AE_TOSTRING(_name_), EImage_ ## _name_ );
 			BIND( 1D )
 			BIND( 2D )
@@ -51,7 +50,6 @@ namespace
 		switch_enum( EIndex::Unknown )
 		{
 			case EIndex::Unknown :
-			case EIndex::_Count :
 			#define BIND( _name_ )	case EIndex::_name_ : binder.AddValue( AE_TOSTRING(_name_), EIndex::_name_ );
 			BIND( UShort )
 			BIND( UInt )
@@ -93,7 +91,6 @@ namespace
 			case EPixelFormatExternal::Android_Private :
 			case EPixelFormatExternal::Android_RawPrivate :
 			case EPixelFormatExternal::_Android_End :
-			case EPixelFormatExternal::_Count :
 			#define BIND( _name_ )	case EPixelFormatExternal::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPixelFormatExternal::_name_ );
 			BIND( Android_Depth16 )
 			BIND( Android_DepthJPEG )
@@ -131,7 +128,6 @@ namespace
 		switch_enum( ECompareOp::Unknown )
 		{
 			case ECompareOp::Unknown :
-			case ECompareOp::_Count :
 			#define BIND( _name_ )	case ECompareOp::_name_ : binder.AddValue( AE_TOSTRING(_name_), ECompareOp::_name_ );
 			BIND( Never )
 			BIND( Less )
@@ -169,7 +165,6 @@ namespace
 		switch_enum( EBlendFactor::Unknown )
 		{
 			case EBlendFactor::Unknown :
-			case EBlendFactor::_Count :
 			#define BIND( _name_, _comment_ )	case EBlendFactor::_name_ :  binder.Comment( _comment_ );  binder.AddValue( AE_TOSTRING(_name_), EBlendFactor::_name_ );
 			BIND( Zero,					"0" )
 			BIND( One,					"1" )
@@ -212,7 +207,6 @@ namespace
 		switch_enum( EBlendOp::Unknown )
 		{
 			case EBlendOp::Unknown :
-			case EBlendOp::_Count :
 			#define BIND( _name_, _comment_ )	case EBlendOp::_name_ :  binder.Comment( _comment_ );  binder.AddValue( AE_TOSTRING(_name_), EBlendOp::_name_ );
 			BIND( Add,		"S + D" )
 			BIND( Sub,		"S - D" )
@@ -240,7 +234,6 @@ namespace
 		switch_enum( ELogicOp::Unknown )
 		{
 			case ELogicOp::Unknown :
-			case ELogicOp::_Count :
 			#define BIND( _name_, _comment_ )	case ELogicOp::_name_ :  binder.Comment( _comment_ );  binder.AddValue( AE_TOSTRING(_name_), ELogicOp::_name_ );
 			BIND( None,			"disabled" )
 			BIND( Clear,		"0" )
@@ -277,7 +270,6 @@ namespace
 		switch_enum( EStencilOp::Unknown )
 		{
 			case EStencilOp::Unknown :
-			case EStencilOp::_Count :
 			#define BIND( _name_, _comment_ )	case EStencilOp::_name_ : binder.Comment( _comment_ );  binder.AddValue( AE_TOSTRING(_name_), EStencilOp::_name_ );
 			BIND( Keep,		"src" )
 			BIND( Zero,		"0" )
@@ -305,7 +297,6 @@ namespace
 		switch_enum( EPolygonMode::Unknown )
 		{
 			case EPolygonMode::Unknown :
-			case EPolygonMode::_Count :
 			#define BIND( _name_ )	case EPolygonMode::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPolygonMode::_name_ );
 			BIND( Point )
 			BIND( Line )
@@ -328,7 +319,6 @@ namespace
 		switch_enum( EPrimitive::Unknown )
 		{
 			case EPrimitive::Unknown :
-			case EPrimitive::_Count :
 			#define BIND( _name_ )	case EPrimitive::_name_ : binder.AddValue( AE_TOSTRING(_name_), EPrimitive::_name_ );
 			BIND( Point )
 			BIND( LineList )
@@ -620,7 +610,6 @@ namespace
 		switch_enum( EShader::Unknown )
 		{
 			case EShader::Unknown :
-			case EShader::_Count :
 			#define BIND( _name_ )		case EShader::_name_ : binder.AddValue( AE_TOSTRING(_name_), EShader::_name_ );
 			BIND( Vertex )
 			BIND( TessControl )
@@ -759,7 +748,6 @@ namespace
 		switch_enum( EFilter::Unknown )
 		{
 			case EFilter::Unknown :
-			case EFilter::_Count :
 			#define BIND( _name_ )		case EFilter::_name_ : binder.AddValue( AE_TOSTRING(_name_), EFilter::_name_ );
 			BIND( Nearest )
 			BIND( Linear )
@@ -781,7 +769,6 @@ namespace
 		switch_enum( EMipmapFilter::Unknown )
 		{
 			case EMipmapFilter::Unknown :
-			case EMipmapFilter::_Count :
 			#define BIND( _name_ )		case EMipmapFilter::_name_ : binder.AddValue( AE_TOSTRING(_name_), EMipmapFilter::_name_ );
 			BIND( None )
 			BIND( Nearest )
@@ -804,7 +791,6 @@ namespace
 		switch_enum( EAddressMode::Unknown )
 		{
 			case EAddressMode::Unknown :
-			case EAddressMode::_Count :
 			#define BIND( _name_ )		case EAddressMode::_name_ : binder.AddValue( AE_TOSTRING(_name_), EAddressMode::_name_ );
 			BIND( Repeat )
 			BIND( MirrorRepeat )
@@ -833,7 +819,6 @@ namespace
 		switch_enum( EBorderColor::Unknown )
 		{
 			case EBorderColor::Unknown :
-			case EBorderColor::_Count :
 			#define BIND( _name_ )		case EBorderColor::_name_ : binder.AddValue( AE_TOSTRING(_name_), EBorderColor::_name_ );
 			BIND( FloatTransparentBlack )
 			BIND( FloatOpaqueBlack )
@@ -859,7 +844,6 @@ namespace
 		switch_enum( EReductionMode::Unknown )
 		{
 			case EReductionMode::Unknown :
-			case EReductionMode::_Count :
 			#define BIND( _name_ )		case EReductionMode::_name_ : binder.AddValue( AE_TOSTRING(_name_), EReductionMode::_name_ );
 			BIND( Average )
 			BIND( Min )
@@ -908,7 +892,6 @@ namespace
 		switch_enum( EVertexInputRate::Unknown )
 		{
 			case EVertexInputRate::Unknown :
-			case EVertexInputRate::_Count :
 			#define BIND( _name_ )		case EVertexInputRate::_name_ : binder.AddValue( AE_TOSTRING(_name_), EVertexInputRate::_name_ );
 			BIND( Vertex )
 			BIND( Instance )
@@ -1020,7 +1003,6 @@ namespace
 		switch_enum( ESamplerChromaLocation::Unknown )
 		{
 			case ESamplerChromaLocation::Unknown :
-			case ESamplerChromaLocation::_Count :
 			#define BIND( _name_ )		case ESamplerChromaLocation::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESamplerChromaLocation::_name_ );
 			BIND( CositedEven )
 			BIND( Midpoint )
@@ -1042,7 +1024,6 @@ namespace
 		switch_enum( ESamplerYcbcrModelConversion::Unknown )
 		{
 			case ESamplerYcbcrModelConversion::Unknown :
-			case ESamplerYcbcrModelConversion::_Count :
 			#define BIND( _name_ )		case ESamplerYcbcrModelConversion::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESamplerYcbcrModelConversion::_name_ );
 			BIND( RGB_Identity )
 			BIND( Ycbcr_Identity )
@@ -1067,7 +1048,6 @@ namespace
 		switch_enum( ESamplerYcbcrRange::Unknown )
 		{
 			case ESamplerYcbcrRange::Unknown :
-			case ESamplerYcbcrRange::_Count :
 			#define BIND( _name_ )		case ESamplerYcbcrRange::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESamplerYcbcrRange::_name_ );
 			BIND( ITU_Full )
 			BIND( ITU_Narrow )
@@ -1089,7 +1069,6 @@ namespace
 		switch_enum( ESurfaceFormat::Unknown )
 		{
 			case ESurfaceFormat::Unknown :
-			case ESurfaceFormat::_Count :
 			#define BIND( _name_ )		case ESurfaceFormat::_name_ : binder.AddValue( AE_TOSTRING(_name_), ESurfaceFormat::_name_ );
 			BIND( BGRA8_sRGB_nonlinear )
 			BIND( RGBA8_sRGB_nonlinear )
@@ -1336,9 +1315,8 @@ namespace
 		switch_enum( EShadingRateCombinerOp::Unknown )
 		{
 			case EShadingRateCombinerOp::Unknown :
-			case EShadingRateCombinerOp::_Count :
-			#define BIND( _name_, _comment_ )		case EShadingRateCombinerOp::_name_ : \
-														binder.Comment( _comment_ ); \
+			#define BIND( _name_, _comment_ )		case EShadingRateCombinerOp::_name_ :	\
+														binder.Comment( _comment_ );		\
 														binder.AddValue( AE_TOSTRING(_name_), EShadingRateCombinerOp::_name_ );
 			BIND( Keep,		"S" )
 			BIND( Replace,	"D" )
@@ -1346,6 +1324,55 @@ namespace
 			BIND( Max,		"max( S, D )" )
 			BIND( Sum,		"S + D  -- check 'fragmentShadingRateStrictMultiplyCombiner' feature" )
 			BIND( Mul,		"S * D  -- check 'fragmentShadingRateStrictMultiplyCombiner' feature" )
+			#undef BIND
+		}
+		switch_end
+	}
+	
+/*
+=================================================
+	Bind_EIntegerDotProductFeat
+=================================================
+*/
+	static void  Bind_EIntegerDotProductFeat (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<EIntegerDotProductFeat>	binder{ se };
+		binder.Create();
+		
+		switch_enum( EIntegerDotProductFeat::_Count )
+		{
+			case EIntegerDotProductFeat::_Count :
+			#define BIND( _name_ )		case EIntegerDotProductFeat::_name_ :	binder.AddValue( AE_TOSTRING(_name_), EIntegerDotProductFeat::_name_ );
+			BIND( Unsigned8bit )
+			BIND( Signed8bit )
+			BIND( MixedSignedness8bit )
+			BIND( Unsigned4x8bit )
+			BIND( Signed4x8bit )
+			BIND( MixedSignedness4x8bit )
+			BIND( Unsigned16bit )
+			BIND( Signed16bit )
+			BIND( MixedSignedness16bit )
+			BIND( Unsigned32bit )
+			BIND( Signed32bit )
+			BIND( MixedSignedness32bit )
+			BIND( Unsigned64bit )
+			BIND( Signed64bit )
+			BIND( MixedSignedness64bit )
+			BIND( AccSat_Unsigned8bit )
+			BIND( AccSat_Signed8bit )
+			BIND( AccSat_MixedSignedness8bit )
+			BIND( AccSat_Unsigned4x8bit )
+			BIND( AccSat_Signed4x8bit )
+			BIND( AccSat_MixedSignedness4x8bit )
+			BIND( AccSat_Unsigned16bit )
+			BIND( AccSat_Signed16bit )
+			BIND( AccSat_MixedSignedness16bit )
+			BIND( AccSat_Unsigned32bit )
+			BIND( AccSat_Signed32bit )
+			BIND( AccSat_MixedSignedness32bit )
+			BIND( AccSat_Unsigned64bit )
+			BIND( AccSat_Signed64bit )
+			BIND( AccSat_MixedSignedness64bit )
 			#undef BIND
 		}
 		switch_end
@@ -1417,7 +1444,9 @@ namespace
 			BIND( ComputeShader )
 			BIND( RayTracingShaders )
 			BIND( AllGraphicsShaders )
-			BIND( AllShaders )
+			BIND( AllShaderStages )
+			BIND( AllStages )
+			BIND( CoopVecConvertStage )
 			#undef BIND
 			// helpers:
 			default :
@@ -1877,6 +1906,7 @@ namespace
 		Bind_EBufferOpt( se );
 		Bind_EShadingRate( se );
 		Bind_EShadingRateCombinerOp( se );
+		Bind_EIntegerDotProductFeat( se );
 	}
 
 /*

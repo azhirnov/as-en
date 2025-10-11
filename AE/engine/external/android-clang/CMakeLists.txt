@@ -3,6 +3,7 @@
 # External dependencies
 set( AE_ENABLE_ARM_HWCPIPE 		ON  CACHE BOOL "enable ARM (Mali) performance counters" )
 set( AE_ENABLE_PVRCOUNTER 		ON  CACHE BOOL "enable PowerVR performance counters" )
+set( AE_ENABLE_PICO_OPENXR 		ON  CACHE BOOL "enable PICO OpenXR SDK" )
 
 set( AE_ENABLE_ASSIMP			OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_ASTC_ENCODER	 	OFF CACHE INTERNAL "" FORCE )
@@ -13,12 +14,14 @@ set( AE_ENABLE_GLSLANG			OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_SPIRV_CROSS 		OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_GLFW				OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_FREETYPE			OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_LLAMA			OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_MSDFGEN			OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_MESH_OPTIMIZER	OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_NVML				OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_KTX				OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_TINYGLTF			OFF CACHE INTERNAL "" FORCE )
 set( AE_ENABLE_SLANG			OFF CACHE INTERNAL "" FORCE )
+set( AE_ENABLE_OPENXR			OFF CACHE INTERNAL "" FORCE )
 
 #----------------------------------------------------------
 
@@ -41,4 +44,8 @@ endif()
 
 if (${AE_ENABLE_PVRCOUNTER})
 	add_subdirectory( "PowerVRScopeStats" )
+endif()
+
+if (${AE_ENABLE_PICO_OPENXR})
+	add_subdirectory( "PicoOpenXR" )
 endif()

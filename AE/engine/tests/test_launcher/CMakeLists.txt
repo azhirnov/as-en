@@ -63,6 +63,8 @@ if (ANDROID)
 	if (TARGET "NetworkStressTest")
 		add_dependencies( "TestLauncher" "NetworkStressTest" )
 	endif()
+	
+	set_target_properties( "TestLauncher" PROPERTIES LINK_FLAGS "-u ANativeActivity_onCreate" )
 
 elseif (${AE_INCLUDE_ANDROID_SRC})
 	set( ANDROID_SRC_PATH "${MAIN_SOURCE_DIR}/android/test/src/main" )

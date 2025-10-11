@@ -86,7 +86,17 @@ namespace AE::Base
 
 	ND_ String  ToString (FeatureSet::SampleCountBits bits)
 	{
-		return Base::ToString<16>( uint(bits) );
+		if (uint(bits) == 0)
+			return "";
+
+		String	str;
+		for (uint bit : Base::BitfieldIterate(uint(bits)))
+		{
+			str << ToString( bit ) << ", ";
+		}
+		str.pop_back();
+		str.pop_back();
+		return str;
 	}
 
 	ND_ String  ToString (const FeatureSet::VRSTexelSize &size)
@@ -169,6 +179,53 @@ namespace AE::Base
 		}
 		switch_end
 		return "";
+	}
+
+	ND_ StringView  EIntegerDotProductFeat_ToString (EIntegerDotProductFeat type)
+	{
+		switch_enum( type )
+		{
+			#define CASE( _name_ )	case EIntegerDotProductFeat::_name_: return AE_TOSTRING( _name_ );
+			CASE( Unsigned8bit )
+			CASE( Signed8bit )
+			CASE( MixedSignedness8bit )
+			CASE( Unsigned4x8bit )
+			CASE( Signed4x8bit )
+			CASE( MixedSignedness4x8bit )
+			CASE( Unsigned16bit )
+			CASE( Signed16bit )
+			CASE( MixedSignedness16bit )
+			CASE( Unsigned32bit )
+			CASE( Signed32bit )
+			CASE( MixedSignedness32bit )
+			CASE( Unsigned64bit )
+			CASE( Signed64bit )
+			CASE( MixedSignedness64bit )
+			CASE( AccSat_Unsigned8bit )
+			CASE( AccSat_Signed8bit )
+			CASE( AccSat_MixedSignedness8bit )
+			CASE( AccSat_Unsigned4x8bit )
+			CASE( AccSat_Signed4x8bit )
+			CASE( AccSat_MixedSignedness4x8bit )
+			CASE( AccSat_Unsigned16bit )
+			CASE( AccSat_Signed16bit )
+			CASE( AccSat_MixedSignedness16bit )
+			CASE( AccSat_Unsigned32bit )
+			CASE( AccSat_Signed32bit )
+			CASE( AccSat_MixedSignedness32bit )
+			CASE( AccSat_Unsigned64bit )
+			CASE( AccSat_Signed64bit )
+			CASE( AccSat_MixedSignedness64bit )
+			case EIntegerDotProductFeat::_Count : break;
+			#undef CASE
+		}
+		switch_end
+		return "";
+	}
+	
+	ND_ String  ToString (EIntegerDotProductFeats bits)
+	{
+		return Base::ToString( bits, &EIntegerDotProductFeat_ToString );
 	}
 
 	template <typename E>
@@ -1294,7 +1351,6 @@ namespace
 				case EBlendFactor::OneMinusSrc1Alpha :
 					return dual_src;
 
-				case EBlendFactor::_Count :
 				case EBlendFactor::Unknown :
 				default_unlikely :
 					return false;
@@ -1866,7 +1922,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0xaed9cdabf6cd9bf0ull};
+		return HashVal64{0x0a6462a2cfa86953ull};
 	}
 
 

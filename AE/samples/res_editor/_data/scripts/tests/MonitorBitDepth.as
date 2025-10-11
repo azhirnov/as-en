@@ -13,20 +13,28 @@
 
 	void ASmain ()
 	{
-		RC<Image>	rt = Image( EPixelFormat::RGBA16F, SurfaceSize() );
+		RC<Image>			rt			= Image( EPixelFormat::RGBA16F, SurfaceSize() );
+		RC<DynamicFloat>	range		= DynamicFloat();
+		RC<DynamicUInt>		grid_size	= DynamicUInt();
+
+		Slider( range,		"Range",		0.0,	0.1,	0.059 );
+		Slider( grid_size,	"GridSize",		8,		16,		15 );
 
 		// render loop
 		{
 			RC<Postprocess>		pass = Postprocess();
 			pass.Output( "out_Color",	rt,		RGBA32f(0.0) );
-			pass.Slider( "iBegin",		0.0,	1.0,	0.15 );
-			pass.Slider( "iRange",		0.0,	0.1,	0.05 );
+			pass.Slider( "iBegin",		0.0,	1.0,	0.222 );
 			pass.Slider( "iSRGB",		0,		1 );				// set 1 for sRGB swapchain image
-			pass.Slider( "iGridSize",	8,		16,		8 );
-			pass.Slider( "iGridOffset",	0.0,	0.1,	0.0 );
+			pass.Slider( "iGridOffset",	0.0,	0.1,	0.071 );
+			pass.Constant( "iRange",	range );
+			pass.Constant( "iGridSize",	grid_size );
 			pass.ColorSelector( "iColor", RGBA8u(255) );
 		}
 		Present( rt );
+
+		RC<DynamicFloat>	bit_depth = grid_size.ToFloat().Div( range );
+		Label( bit_depth, "bit depth" );
 	}
 
 #endif

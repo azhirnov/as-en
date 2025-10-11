@@ -8,6 +8,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 endif()
 
 set( AE_EXCLUDE_PACK_RES			OFF CACHE BOOL "don't pack resources when build all" )
+set( AE_PORTABLE_APP				OFF CACHE BOOL "create portable version, must not include absolute paths" )
 
 #----------------------------------------------------------
 # C++
@@ -21,7 +22,9 @@ set( AE_FORCE_CXX23					OFF CACHE BOOL "use C++23 even if C++26 supported" )
 set( AE_WHOLE_ENGINE_PCH			OFF CACHE BOOL "use precompiled headers for whole engine" )
 set( AE_ENGINE_BASE_PCH				OFF CACHE BOOL "use precompiled headers only for engine base module" )
 set( AE_USE_UNITY_BUILD				OFF CACHE BOOL "use unity build" )
-set( AE_USE_PCH						OFF CACHE INTERNAL "" FORCE )	# TODO: remove
+set( AE_ENABLE_ENGINE_TESTS			ON  CACHE BOOL "enable engine tests" )
+set( AE_ENABLE_ENGINE_PERF_TESTS	ON  CACHE BOOL "enable engine performance tests" )
+set( AE_ENABLE_COMPILER_WARNINGS	ON  CACHE INTERNAL "" FORCE )
 
 if (${AE_WHOLE_ENGINE_PCH} AND ${AE_ENGINE_BASE_PCH})
 	message( FATAL_ERROR "select one of AE_WHOLE_ENGINE_PCH or AE_ENGINE_BASE_PCH" )
@@ -42,20 +45,26 @@ set( AE_CI_BUILD_TEST				OFF CACHE BOOL "CI settings for tests" )
 set( AE_CI_BUILD_PERF				OFF CACHE BOOL "CI settings for performance tests" )
 set( AE_ENABLE_EXCEPTIONS			ON  CACHE BOOL "enable exception and RTTI" )
 set( AE_ENABLE_LOGS					ON  CACHE BOOL "enable logging, disable to remove a lot of strings" )
-set( AE_INCLUDE_ANDROID_SRC			ON  CACHE BOOL "" )
+set( AE_ENABLE_EXTERNAL_TESTS		OFF CACHE BOOL "" )
 
 if (MSVC)
-	set( AE_MSVC_JUSTMYCODE	ON  CACHE BOOL "disable STL debugging" )
+	set( AE_MSVC_JUSTMYCODE			ON  CACHE BOOL "disable STL debugging" )
 endif()
 
 if (ANDROID)
-	set( AE_VK_TIMELINE_SEMAPHORE OFF CACHE BOOL "Use Vulkan timeline semaphore" )
+	set( AE_INCLUDE_ANDROID_SRC		OFF CACHE INTERNAL "" FORCE )
 else()
-	set( AE_VK_TIMELINE_SEMAPHORE ON  CACHE BOOL "Use Vulkan timeline semaphore" )
+	set( AE_INCLUDE_ANDROID_SRC		ON  CACHE BOOL "" )
+endif()
+
+if (ANDROID)
+	set( AE_VK_TIMELINE_SEMAPHORE	OFF CACHE BOOL "Use Vulkan timeline semaphore" )
+else()
+	set( AE_VK_TIMELINE_SEMAPHORE	ON  CACHE BOOL "Use Vulkan timeline semaphore" )
 endif()
 
 mark_as_advanced( AE_USE_SANITIZER AE_CI_BUILD_TEST AE_CI_BUILD_PERF AE_ENABLE_EXCEPTIONS AE_ENABLE_LOGS AE_INCLUDE_ANDROID_SRC
-				  AE_MSVC_JUSTMYCODE AE_VK_TIMELINE_SEMAPHORE )
+				  AE_MSVC_JUSTMYCODE AE_VK_TIMELINE_SEMAPHORE AE_ENABLE_EXTERNAL_TESTS )
 
 #----------------------------------------------------------
 # internal constants

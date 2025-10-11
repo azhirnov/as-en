@@ -105,10 +105,10 @@ namespace AE::Graphics
 		return EShadingRate(uint(lhs) | uint(rhs));
 	}
 
-	ND_ inline EShadingRate	EShadingRate_FromSize (uint2 size)				__NE___	{ return EShadingRate( (IntLog2(size.x)*3 + IntLog2(size.y) + 1) << 4 ); }
-	ND_ inline EShadingRate	EShadingRate_FromSampleBits (uint bits)			__NE___	{ return EShadingRate( (bits >> 1) & 0x0F ); }
-	ND_ inline uint2		EShadingRate_Size (EShadingRate size)			__NE___	{ uint s = ((uint(size) & 0xF0) >> 4) - 1;  return uint2{ 1u<<(s/3), 1u<<(s%3) }; }
-	ND_ inline uint			EShadingRate_SampleBits (EShadingRate samples)	__NE___	{ return (uint(samples) & 0x0F); }
+	Nd__In EShadingRate	EShadingRate_FromSize (uint2 size)				__NE___	{ return EShadingRate( (IntLog2(size.x)*3 + IntLog2(size.y) + 1) << 4 ); }
+	Nd__In EShadingRate	EShadingRate_FromSampleBits (uint bits)			__NE___	{ return EShadingRate( (bits >> 1) & 0x0F ); }
+	Nd__In uint2		EShadingRate_Size (EShadingRate size)			__NE___	{ uint s = ((uint(size) & 0xF0) >> 4) - 1;  return uint2{ 1u<<(s/3), 1u<<(s%3) }; }
+	Nd__In uint			EShadingRate_SampleBits (EShadingRate samples)	__NE___	{ return (uint(samples) & 0x0F); }
 
 
 
@@ -126,7 +126,7 @@ namespace AE::Graphics
 		Sum,				// S + D		// \__ check 'fragmentShadingRateStrictMultiplyCombiner' feature
 		Mul,				// S * D		// /
 		_Count,
-		Unknown		= 0xFF,
+		Unknown		= _Count,
 	};
 
 

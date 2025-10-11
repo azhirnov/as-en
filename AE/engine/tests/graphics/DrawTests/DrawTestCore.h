@@ -10,7 +10,7 @@
 #endif
 #include "DrawTests/cpp/types.h"
 
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 
 using namespace AE;
 using namespace AE::Threading;
@@ -91,7 +91,7 @@ private:
 
 
 
-ND_ inline String  _GetFuncName (StringView src)
+Nd__In String  _GetFuncName (StringView src)
 {
 	usize	pos = src.find_last_of( "::" );
 

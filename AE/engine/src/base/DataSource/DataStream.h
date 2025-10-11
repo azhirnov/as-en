@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "base/Containers/ArrayView.h"
+#include "base/Memory/MemoryView.h"
 #include "base/Memory/MemUtils.h"
 #include "base/DataSource/DataSource.h"
 

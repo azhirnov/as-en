@@ -11,7 +11,7 @@ endif()
 
 add_library( "GLSLang-lib" INTERFACE )
 target_include_directories( "GLSLang-lib" INTERFACE "${GLSLANG_PATH}/include" )
-target_compile_definitions( "GLSLang-lib" INTERFACE "AE_ENABLE_GLSLANG" "ENABLE_OPT" "AE_LICENSE_BSD" )
+target_compile_definitions( "GLSLang-lib" INTERFACE "AE_ENABLE_GLSLANG" "AE_ENABLE_SPIRV_TOOLS" "AE_LICENSE_BSD" )
 
 install( FILES "${GLSLANG_PATH}/glslang-LICENSE.txt" DESTINATION "3party_license" RENAME "glslang-LICENSE" )
 install( FILES "${GLSLANG_PATH}/SPIRV-Tools-LICENSE.txt" DESTINATION "3party_license" RENAME "SPIRV-Tools-LICENSE" )
@@ -56,7 +56,6 @@ set_property( TARGET "GLSLang-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.GLSLang" "tests/main.cpp" )
 	set_property( TARGET "Tests.GLSLang" PROPERTY FOLDER "Engine/External/Tests" )
-	target_link_libraries( "Tests.GLSLang" PUBLIC "GLSLang-lib" )
+	target_link_libraries( "Tests.GLSLang" PUBLIC "ProjectTemplate" "GLSLang-lib" )
 	#add_test( NAME "Tests.GLSLang" COMMAND "Tests.GLSLang" )
-	set_target_properties( "Tests.GLSLang" PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
 endif ()

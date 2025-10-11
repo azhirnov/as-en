@@ -156,7 +156,7 @@ namespace AE::Graphics
 		Vertex,
 		Instance,
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -165,7 +165,7 @@ namespace AE::Graphics
 		UShort,
 		UInt,
 		_Count,
-		Unknown = 0xFF,
+		Unknown = _Count,
 	};
 
 

@@ -17,7 +17,7 @@ namespace AE::Base
 	ToString (EGestureType)
 =================================================
 */
-	ND_ inline StringView  ToString (EGestureType value) __NE___
+	Nd__In StringView  ToString (EGestureType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -45,7 +45,7 @@ namespace AE::Base
 	ToString (EGestureState)
 =================================================
 */
-	ND_ inline StringView  ToString (EGestureState value) __NE___
+	Nd__In StringView  ToString (EGestureState value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -65,7 +65,7 @@ namespace AE::Base
 	ToString (EInputActionValueType)
 =================================================
 */
-	ND_ inline StringView  ToString (EInputActionValueType value) __NE___
+	Nd__In StringView  ToString (EInputActionValueType value) __NE___
 	{
 		switch_enum( value )
 		{

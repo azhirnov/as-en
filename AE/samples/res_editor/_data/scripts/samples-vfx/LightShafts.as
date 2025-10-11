@@ -20,9 +20,9 @@
 	{
 		// initialize
 		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-		RC<Image>			light_mask	= Image( EImageType::Float_2D, "res/hzd/c2-light.dds" );
-		RC<Image>			scene_color	= Image( EImageType::Float_2D, "res/hzd/c2-color.dds" );
-		RC<Image>			ref_blur	= Image( EImageType::Float_2D, "res/hzd/c2-light-shaft.dds" );
+		RC<Image>			light_mask	= Image( EImageType::Float_2D, "res/hzd/light.dds" );
+		RC<Image>			scene_color	= Image( EImageType::Float_2D, "res/hzd/color.dds" );
+		RC<Image>			ref_blur	= Image( EImageType::Float_2D, "res/hzd/light-shaft.dds" );
 		RC<Image>			blur		= Image( EPixelFormat::RGBA16F, light_mask.Dimension() );
 		RC<Image>			blur2		= Image( EPixelFormat::RGBA16F, light_mask.Dimension() );
 		RC<Image>			blur3		= Image( EPixelFormat::RGBA16F, light_mask.Dimension() );

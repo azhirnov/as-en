@@ -52,6 +52,21 @@ namespace
 
 		return POTBytes{PowerOfTwo(pot)};
 	}
+	
+/*
+=================================================
+	CastSat
+=================================================
+*/
+	template <typename To, typename From>
+	ND_ static To  CastSat (const From src)
+	{
+		if ( static_cast<From>(static_cast<To>(src)) == src )
+			return static_cast<To>(src);
+
+		AE_LOGW( "Saturated cast from ("s << ToString( src ) << ") to (" << ToString( static_cast<To>(src) ) << ")" );
+		return static_cast<To>(src);
+	}
 
 /*
 =================================================
@@ -278,12 +293,12 @@ namespace
 
 	ND_ static ubyte  FS_ParseJSON (ubyte prev, StringView json, StringView name)
 	{
-		return CheckCast<ubyte>( FS_ParseJSON( uint(prev), json, name ));
+		return CastSat<ubyte>( FS_ParseJSON( uint(prev), json, name ));
 	}
 
 	ND_ static ushort  FS_ParseJSON (ushort prev, StringView json, StringView name)
 	{
-		return CheckCast<ushort>( FS_ParseJSON( uint(prev), json, name ));
+		return CastSat<ushort>( FS_ParseJSON( uint(prev), json, name ));
 	}
 
 /*
@@ -657,7 +672,64 @@ namespace
 		CHECK( prev != Default );
 		return prev;
 	}
+	
+/*
+=================================================
+	FS_ParseJSON (EIntegerDotProductFeats)
+=================================================
+*/
+	ND_ static EIntegerDotProductFeats  FS_ParseJSON (const EIntegerDotProductFeats &prev, StringView json, StringView name)
+	{
+		#define INTDOT_FEATS( _visitor_ )\
+			_visitor_( integerDotProduct8BitUnsignedAccelerated,										Unsigned8bit )\
+			_visitor_( integerDotProduct8BitSignedAccelerated,											Signed8bit )\
+			_visitor_( integerDotProduct8BitMixedSignednessAccelerated,									MixedSignedness8bit )\
+			_visitor_( integerDotProduct4x8BitPackedUnsignedAccelerated,								Unsigned4x8bit )\
+			_visitor_( integerDotProduct4x8BitPackedSignedAccelerated,									Signed4x8bit )\
+			_visitor_( integerDotProduct4x8BitPackedMixedSignednessAccelerated,							MixedSignedness4x8bit )\
+			_visitor_( integerDotProduct16BitUnsignedAccelerated,										Unsigned16bit )\
+			_visitor_( integerDotProduct16BitSignedAccelerated,											Signed16bit )\
+			_visitor_( integerDotProduct16BitMixedSignednessAccelerated,								MixedSignedness16bit )\
+			_visitor_( integerDotProduct32BitUnsignedAccelerated,										Unsigned32bit )\
+			_visitor_( integerDotProduct32BitSignedAccelerated,											Signed32bit )\
+			_visitor_( integerDotProduct32BitMixedSignednessAccelerated,								MixedSignedness32bit )\
+			_visitor_( integerDotProduct64BitUnsignedAccelerated,										Unsigned64bit )\
+			_visitor_( integerDotProduct64BitSignedAccelerated,											Signed64bit )\
+			_visitor_( integerDotProduct64BitMixedSignednessAccelerated,								MixedSignedness64bit )\
+			_visitor_( integerDotProductAccumulatingSaturating8BitUnsignedAccelerated,					AccSat_Unsigned8bit )\
+			_visitor_( integerDotProductAccumulatingSaturating8BitSignedAccelerated,					AccSat_Signed8bit )\
+			_visitor_( integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated,			AccSat_MixedSignedness8bit )\
+			_visitor_( integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated,			AccSat_Unsigned4x8bit )\
+			_visitor_( integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated,			AccSat_Signed4x8bit )\
+			_visitor_( integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated,	AccSat_MixedSignedness4x8bit )\
+			_visitor_( integerDotProductAccumulatingSaturating16BitUnsignedAccelerated,					AccSat_Unsigned16bit )\
+			_visitor_( integerDotProductAccumulatingSaturating16BitSignedAccelerated,					AccSat_Signed16bit )\
+			_visitor_( integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated,			AccSat_MixedSignedness16bit )\
+			_visitor_( integerDotProductAccumulatingSaturating32BitUnsignedAccelerated,					AccSat_Unsigned32bit )\
+			_visitor_( integerDotProductAccumulatingSaturating32BitSignedAccelerated,					AccSat_Signed32bit )\
+			_visitor_( integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated,			AccSat_MixedSignedness32bit )\
+			_visitor_( integerDotProductAccumulatingSaturating64BitUnsignedAccelerated,					AccSat_Unsigned64bit )\
+			_visitor_( integerDotProductAccumulatingSaturating64BitSignedAccelerated,					AccSat_Signed64bit )\
+			_visitor_( integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated,			AccSat_MixedSignedness64bit )
 
+		#define INTDOT_VISIT( _vkFeat_, _aeEnum_ )\
+			if ( FS_ParseJSON( FeatureSet::EFeature::Ignore, json, AE_TOSTRING(_vkFeat_) ) == FeatureSet::EFeature::RequireTrue )\
+				new_feats.insert( EIntegerDotProductFeat::_aeEnum_ );
+		
+		EIntegerDotProductFeats		new_feats = prev;
+
+		INTDOT_FEATS( INTDOT_VISIT )
+
+		#undef INTDOT_VISIT
+		#undef INTDOT_FEATS
+		return new_feats;
+	}
+	
+/*
+=================================================
+	FS_ParseJSON (other)
+=================================================
+*/
 	ND_ static EnumSet<EPixelFormat>  FS_ParseJSON (const EnumSet<EPixelFormat> &prev, StringView json, StringView name)
 	{
 		Unused( json, name );
@@ -1268,9 +1340,9 @@ namespace
 			CHECK( sb <= outFeatureSet.perPipeline_maxStorageBuffersDynamic );
 			CHECK( Max( ub, sb ) <= outFeatureSet.perPipeline_maxTotalBuffersDynamic );
 
-			outFeatureSet.perPipeline_maxUniformBuffersDynamic = CheckCast<ubyte>( ub );
-			outFeatureSet.perPipeline_maxStorageBuffersDynamic = CheckCast<ubyte>( sb );
-			outFeatureSet.perPipeline_maxTotalBuffersDynamic   = CheckCast<ubyte>( total );
+			outFeatureSet.perPipeline_maxUniformBuffersDynamic = CastSat<ubyte>( ub );
+			outFeatureSet.perPipeline_maxStorageBuffersDynamic = CastSat<ubyte>( sb );
+			outFeatureSet.perPipeline_maxTotalBuffersDynamic   = CastSat<ubyte>( total );
 		}
 		else
 		{
@@ -1281,7 +1353,7 @@ namespace
 		{
 			int	min_off = 0;
 			min_off = FS_ParseJSON( min_off, json, "\"minTexelOffset\"" );
-			outFeatureSet.maxTexelOffset = CheckCast<ubyte>( Min( outFeatureSet.maxTexelOffset, Abs(min_off)-1 ));
+			outFeatureSet.maxTexelOffset = CastSat<ubyte>( Min( outFeatureSet.maxTexelOffset, Abs(min_off)-1 ));
 		}
 
 		// minTexelGatherOffset
@@ -1290,7 +1362,7 @@ namespace
 			min_off = FS_ParseJSON( min_off, json, "\"minTexelGatherOffset\"" );
 			min_off = Abs(min_off);
 			min_off += min_off != 0 ? -1 : 0;
-			outFeatureSet.maxTexelGatherOffset = CheckCast<ubyte>( Min( outFeatureSet.maxTexelGatherOffset, min_off ));
+			outFeatureSet.maxTexelGatherOffset = CastSat<ubyte>( Min( outFeatureSet.maxTexelGatherOffset, min_off ));
 		}
 
 		// compute shader
@@ -1878,6 +1950,7 @@ namespace
 */
 	static void  FS_ToString (INOUT String &, const FeatureSet::ShadingRateSet_t &, StringView)
 	{
+		// properties are not presented
 	}
 
 /*
@@ -1887,6 +1960,7 @@ namespace
 */
 	static void  FS_ToString (INOUT String &, const FeatureSet::CoopMatrixSet_t &, StringView)
 	{
+		// properties are not presented
 	}
 
 /*
@@ -1896,6 +1970,70 @@ namespace
 */
 	static void  FS_ToString (INOUT String &, const FeatureSet::CoopVecSet_t &, StringView)
 	{
+		// properties are not presented
+	}
+	
+/*
+=================================================
+	FS_ToString (EIntegerDotProductFeats)
+=================================================
+*/
+	static void  FS_ToString (INOUT String &str, const EIntegerDotProductFeats &feats, StringView)
+	{
+		if ( feats.None() )
+			return;
+
+		str << "\tfset.AddIntegerDotProduct({\n\t\t\t";
+
+		uint	count = 0;
+		for (EIntegerDotProductFeat e : feats)
+		{
+			++count;
+			if ( count > 5 )
+			{
+				str << "\n\t\t\t";
+			}
+
+			switch_enum( e )
+			{
+				#define CASE( _name_ )	case EIntegerDotProductFeat::_name_ : str << "EIntegerDotProductFeat::" AE_TOSTRING(_name_);  break;
+				CASE( Unsigned8bit )
+				CASE( Signed8bit )
+				CASE( MixedSignedness8bit )
+				CASE( Unsigned4x8bit )
+				CASE( Signed4x8bit )
+				CASE( MixedSignedness4x8bit )
+				CASE( Unsigned16bit )
+				CASE( Signed16bit )
+				CASE( MixedSignedness16bit )
+				CASE( Unsigned32bit )
+				CASE( Signed32bit )
+				CASE( MixedSignedness32bit )
+				CASE( Unsigned64bit )
+				CASE( Signed64bit )
+				CASE( MixedSignedness64bit )
+				CASE( AccSat_Unsigned8bit )
+				CASE( AccSat_Signed8bit )
+				CASE( AccSat_MixedSignedness8bit )
+				CASE( AccSat_Unsigned4x8bit )
+				CASE( AccSat_Signed4x8bit )
+				CASE( AccSat_MixedSignedness4x8bit )
+				CASE( AccSat_Unsigned16bit )
+				CASE( AccSat_Signed16bit )
+				CASE( AccSat_MixedSignedness16bit )
+				CASE( AccSat_Unsigned32bit )
+				CASE( AccSat_Signed32bit )
+				CASE( AccSat_MixedSignedness32bit )
+				CASE( AccSat_Unsigned64bit )
+				CASE( AccSat_Signed64bit )
+				CASE( AccSat_MixedSignedness64bit )
+				#undef CASE
+				case EIntegerDotProductFeat::_Count : break;
+			}
+			switch_end
+		}
+
+		str << " });\n";
 	}
 
 /*

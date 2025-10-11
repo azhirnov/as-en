@@ -139,15 +139,15 @@ namespace AE::Base
 
 	enum class ECoreType : ubyte
 	{
-		// ARM: Cortex X1, X2, X3
+		// ARM: Cortex X1, X2, X925, ...
 		HighPerformance,
 
-		// ARM: Cortex A72 - A78
+		// ARM: Cortex A72 - A78, A720, ... 
 		// All cores on x64 type processors.
 		Performance,
 
-		// ARM: Cortex A52 - A57
-		// E-cores on new Intel processors.
+		// ARM: Cortex A52 - A57, A520, ...
+		// E-cores on new Intel processors, AMD ZenC.
 		EnergyEfficient,
 
 		// Intel LP core
@@ -181,47 +181,51 @@ namespace AE::Base
 			bool	SSSE3			: 1;	// AE_SIMD_SSE	31
 			bool	SSE41			: 1;	// AE_SIMD_SSE	41
 			bool	SSE42			: 1;	// AE_SIMD_SSE	42
-		//	bool	SSE4A			: 1;	// AE_SIMD_SSE	50	- not available on Intel
+		//	bool	SSE4A			: 1;	// AE_SIMD_SSE	50		- not available on Intel
 
 			bool	AVX				: 1;	// AE_SIMD_AVX	1
 			bool	AVX2			: 1;	// AE_SIMD_AVX	2
-		//	bool	AVX_VNNI		: 1;
-			bool	AVX512F			: 1;	// AE_SIMD_AVX	30	- Foundation
+
+			// Twin Lake //
+			bool	AVX_VNNI		: 1;	// AE_SIMD_AVX	21		- 256bit vector neural network instructions
+
+			bool	AVX512F			: 1;	// AE_SIMD_AVX	30		- Foundation
 
 			// Cannon Lake //
-			//		AVX512_CD				// AE_SIMD_AVX	31	-
-		//	bool	AVX512_VL		: 1;	// AE_SIMD_AVX	31	- Vector Length Extensions
-		//	bool	AVX512_DQ		: 1;	// AE_SIMD_AVX	31	- Doubleword and Quadword Instructions
-		//	bool	AVX512_BW		: 1;	// AE_SIMD_AVX	31	- Byte and Word Instructions
-		//	bool	AVX512_IFMA		: 1;	// AE_SIMD_AVX	31	- Integer Fused Multiply-Add Instructions
-		//	bool	AVX512_VBMI		: 1;	// AE_SIMD_AVX	31	- Vector Bit Manipulation Instructions
+			bool	AVX512_CD		: 1;	// AE_SIMD_AVX	31		-
+			bool	AVX512_VL		: 1;	// AE_SIMD_AVX	31		- Vector Length Extensions
+			bool	AVX512_DQ		: 1;	// AE_SIMD_AVX	31		- Doubleword and Quadword Instructions
+			bool	AVX512_BW		: 1;	// AE_SIMD_AVX	31		- Byte and Word Instructions
+			bool	AVX512_IFMA		: 1;	// AE_SIMD_AVX	31		- Integer Fused Multiply-Add Instructions
+			bool	AVX512_VBMI		: 1;	// AE_SIMD_AVX	31		- Vector Bit Manipulation Instructions
 
 			// Ice Lake //
-		//	bool	AVX512_VBMI2	: 1;	// AE_SIMD_AVX	32	- Vector Bit Manipulation Instructions 2
-		//	bool	AVX512_VPOPCNTDQ: 1;	// AE_SIMD_AVX	32	- Vector Population Count Double and Quad-word
-		//	bool	AVX512_BITALG	: 1;	// AE_SIMD_AVX	32	- BITALG instructions
-			//		AVX512_VNNI				// AE_SIMD_AVX	32	-
-			//		AVX512_VPCLMULQDQ		// AE_SIMD_AVX	32	-
-			//		AVX512_GFNI				// AE_SIMD_AVX	32	-
+			bool	AVX512_VBMI2	: 1;	// AE_SIMD_AVX	32		- Vector Bit Manipulation Instructions 2
+			bool	AVX512_VPOPCNTDQ: 1;	// AE_SIMD_AVX	32		- Vector Population Count Double and Quad-word
+			bool	AVX512_BITALG	: 1;	// AE_SIMD_AVX	32		- BITALG instructions
+			bool	AVX512_VNNI		: 1;	// AE_SIMD_AVX	32		- vector neural network instructions
+			bool	AVX512_VPCLMULQDQ: 1;	// AE_SIMD_AVX	32		-
+			bool	AVX512_GFNI		: 1;	// AE_SIMD_AVX	32		-
 			bool	VAES			: 1;	// AE_SIMD_AVX	32	or AE_SIMD_AES	2	- AVX512-VAES
 
 			// Zen4 //
-			//		AVX512_BF16		: 1;	// AE_SIMD_AVX	33	-
+			bool	AVX512_BF16		: 1;	// AE_SIMD_AVX	33		- bfloat16 type
 
-		//	bool	AMX_BF16		: 1;	// matrices with bfloat16 type
-		//	bool	AMX_Tile		: 1;	// tile load/store
-		//	bool	AMX_I8			: 1;	// matrices with 8bit int type
-		//	bool	AMX_FP16		: 1;	// matrices with float16 type
+		//	bool	AMX_BF16		: 1;	// AE_SIMD_AMX	1		- matrices with bfloat16 type
+		//	bool	AMX_Tile		: 1;	// AE_SIMD_AMX	1		- tile load/store
+		//	bool	AMX_I8			: 1;	// AE_SIMD_AMX	1		- matrices with 8bit int type
+		//	bool	AMX_FP16		: 1;	// AE_SIMD_AMX	1		- matrices with float16 type
 
-			bool	FP16C			: 1;	// AE_SIMD_F16C	1			- half-precision conversion
+		//	bool	BMI2			: 1;
+			bool	FP16C			: 1;	// AE_SIMD_F16C	1		- half-precision conversion
 			bool	FMA				: 1;	// AE_SIMD_FMA	1
 			bool	POPCNT			: 1;
 
 			bool	AES				: 1;	// AE_SIMD_AES	1
-			bool	AESKL			: 1;	// AE_SIMD_AES	3			- AES Key Locker
+			bool	AESKL			: 1;	// AE_SIMD_AES	3		- AES Key Locker
 
-			bool	SHA2_256		: 1;	// AE_SIMD_SHA	20			- SHA2-256 and SHA-1
-			bool	SHA512			: 1;	// AE_SIMD_SHA	21			- SHA2-512 ?
+			bool	SHA2_256		: 1;	// AE_SIMD_SHA	20		- SHA2-256 and SHA-1
+			bool	SHA512			: 1;	// AE_SIMD_SHA	21		- SHA2-512 ?
 		#endif
 
 		// ARM features
@@ -377,7 +381,7 @@ namespace AE::Base
 	ToString (ECPUArch)
 =================================================
 */
-	ND_ inline StringView  ToString (ECPUArch value) __NE___
+	Nd__In StringView  ToString (ECPUArch value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -401,7 +405,7 @@ namespace AE::Base
 	ToString (ECoreType)
 =================================================
 */
-	ND_ inline StringView  ToString (ECoreType value) __NE___
+	Nd__In StringView  ToString (ECoreType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -421,7 +425,7 @@ namespace AE::Base
 	ToString (ECacheType)
 =================================================
 */
-	ND_ inline StringView  ToString (CpuArchInfo::ECacheType value) __NE___
+	Nd__In StringView  ToString (CpuArchInfo::ECacheType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -440,7 +444,7 @@ namespace AE::Base
 	ToString (ECPUVendor)
 =================================================
 */
-	ND_ inline StringView  ToString (ECPUVendor value) __NE___
+	Nd__In StringView  ToString (ECPUVendor value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -472,7 +476,7 @@ namespace AE::Base
 	ToString (ECPUMicroArch)
 =================================================
 */
-	ND_ inline StringView  ToString (ECPUMicroArch value) __NE___
+	Nd__In StringView  ToString (ECPUMicroArch value) __NE___
 	{
 		switch ( value )
 		{

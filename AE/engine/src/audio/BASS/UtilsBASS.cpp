@@ -11,12 +11,8 @@ namespace AE::Audio
 	BASS_CheckError
 =================================================
 */
-	bool  BASS_CheckError () __NE___
+	bool  BASS_CheckError (int err) __NE___
 	{
-		int	err = bass.ErrorGetCode();
-		if_likely( err == BASS_OK )
-			return true;
-
 	  #ifdef AE_ENABLE_LOGS
 		String	msg = "BASS error: ";
 
@@ -70,6 +66,16 @@ namespace AE::Audio
 
 		return false;
 	}
+
+	bool  BASS_CheckError () __NE___
+	{
+		int	err = bass.ErrorGetCode();
+		if_likely( err == BASS_OK )
+			return true;
+
+		return BASS_CheckError( err );
+	}
+
 //-----------------------------------------------------------------------------
 
 

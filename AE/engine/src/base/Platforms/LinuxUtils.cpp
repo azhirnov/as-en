@@ -8,12 +8,21 @@
 # include <sys/prctl.h>
 # include <pthread.h>
 # include <sched.h>
+# include <signal.h>
 
 #include <sys/utsname.h>
 
 # include "base/Platforms/LinuxUtils.h"
 # include "base/Algorithms/ArrayUtils.h"
 # include "base/Algorithms/ToString.h"
+
+namespace AE
+{
+	void FastCloseApp ()
+	{
+        raise( SIGABRT );
+	}
+}
 
 namespace AE::Base
 {
@@ -213,6 +222,8 @@ namespace AE::Base
 /*
 =================================================
 	SetEnvironmentVariable
+----
+	for current process
 =================================================
 */
 	bool  LinuxUtils::SetEnvironmentVariable (NtStringView name, NtStringView value) __NE___

@@ -36,7 +36,7 @@ namespace AE::Graphics
 	// Graphics Device interface
 	//
 
-	class NO_VTABLE IDevice : public Noncopyable
+	class IDevice : public Noncopyable
 	{
 	// types
 	public:

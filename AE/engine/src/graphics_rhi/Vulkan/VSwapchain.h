@@ -18,7 +18,7 @@ namespace AE::Graphics
 	// Vulkan Swapchain
 	//
 
-	class VSwapchain : public Noncopyable
+	class VSwapchain : public Noncopyable, public VulkanInstanceFn
 	{
 	// types
 	protected:

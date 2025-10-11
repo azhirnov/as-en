@@ -19,7 +19,7 @@ namespace AE::Base
 	ToString (MtlPixelFormat)
 =================================================
 */
-	ND_ inline StringView  ToString (MtlPixelFormat value)
+	Nd__In StringView  ToString (MtlPixelFormat value)
 	{
 #		define FMT_BUILDER( _engineFmt_, _mtlFormat_, ... ) \
 			case MtlPixelFormat::_mtlFormat_ : return AE_TOSTRING( MTLPixelFormat ## _mtlFormat_ );
@@ -40,7 +40,7 @@ namespace AE::Base
 	ToString (MtlLoadAction)
 =================================================
 */
-	ND_ inline StringView  ToString (MtlLoadAction value)
+	Nd__In StringView  ToString (MtlLoadAction value)
 	{
 		switch_enum( value )
 		{
@@ -57,7 +57,7 @@ namespace AE::Base
 	ToString (MtlStoreAction)
 =================================================
 */
-	ND_ inline StringView  ToString (MtlStoreAction value)
+	Nd__In StringView  ToString (MtlStoreAction value)
 	{
 		switch_enum( value )
 		{
@@ -77,7 +77,7 @@ namespace AE::Base
 	ToString (MtlStoreActionOptions)
 =================================================
 */
-	ND_ inline StringView  ToString (MtlStoreActionOptions value)
+	Nd__In StringView  ToString (MtlStoreActionOptions value)
 	{
 		switch_enum( value )
 		{
@@ -93,7 +93,7 @@ namespace AE::Base
 	ToString (MtlMultisampleDepthResolveFilter)
 =================================================
 */
-	ND_ inline StringView  ToString (MtlMultisampleDepthResolveFilter value)
+	Nd__In StringView  ToString (MtlMultisampleDepthResolveFilter value)
 	{
 		switch_enum( value )
 		{
@@ -110,7 +110,7 @@ namespace AE::Base
 	ToString (MtlMultisampleStencilResolveFilter)
 =================================================
 */
-	ND_ inline StringView  ToString (MtlMultisampleStencilResolveFilter value)
+	Nd__In StringView  ToString (MtlMultisampleStencilResolveFilter value)
 	{
 		switch_enum( value )
 		{
@@ -126,7 +126,7 @@ namespace AE::Base
 	ToString (MtlAttachmentFlags)
 =================================================
 */
-	ND_ inline String  ToString (MtlAttachmentFlags values)
+	Nd__In String  ToString (MtlAttachmentFlags values)
 	{
 		String	str;
 		for (auto t : BitfieldIterate( values ))

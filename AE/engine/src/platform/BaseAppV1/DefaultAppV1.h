@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "platform/Public/IApplication.h"
+#include "platform/Public/Application.h"
 #include "platform/BaseAppV1/AppConfig.h"
 #include "platform/BaseAppV1/IBaseApp.h"
 
@@ -32,7 +32,6 @@ namespace AE::AppV1
 	// types
 	private:
 		class WindowEventListener;
-		class VRDeviceEventListener;
 
 
 	// variables
@@ -51,7 +50,6 @@ namespace AE::AppV1
 	  #endif
 
 		Array<WindowPtr>			_windows;
-		VRDevicePtr					_vrDevice;
 		RC<IBaseApp>				_impl;
 
 		const AppConfig				_config;
@@ -79,7 +77,8 @@ namespace AE::AppV1
 
 
 	protected:
-		ND_ bool  _OnStartImpl (IApplication &app)			__NE___;
+		ND_ bool  _OnStartImpl (IApplication &)				__NE___;
+			void  _CreateVRDevice (IApplication &)			__NE___;
 
 	private:
 		ND_ bool  _InitGraphics (IApplication &)			__NE___;
@@ -111,31 +110,6 @@ namespace AE::AppV1
 		void  OnStateChanged (IWindow &, EState)	__NE_OV;
 		void  OnSurfaceCreated (IWindow &)			__NE_OV;
 		void  OnSurfaceDestroyed (IWindow &)		__NE_OV;
-	};
-
-
-
-	//
-	// VR Device Listener
-	//
-
-	class AppCoreV1::VRDeviceEventListener final : public IVRDevice::IVRDeviceEventListener
-	{
-	// variables
-	private:
-		RC<IBaseApp>		_impl;
-		AppCoreV1 &			_app;
-
-
-	// methods
-	public:
-		VRDeviceEventListener (RC<IBaseApp> impl, AppCoreV1 &app)	__NE___ :
-			_impl{RVRef(impl)}, _app{app}
-		{}
-
-
-	// IVRDeviceEventListener //
-		void  OnStateChanged (IVRDevice &, EState state)			__NE_OV;
 	};
 
 

@@ -86,46 +86,55 @@ namespace
 
 			CHECK_Lt( _lastLine, _maxLines );
 
-			const auto		path	= FileSystem::ToShortPath( info.loc.file_name() );
-			const auto		line	= ToString( info.loc.line() );
-			const usize		len		= Min( path.length() + line.length() + 1 + after_line.length() + info.message.length(), c_MaxMsgLen );
-			const usize		begin	= _lines[_lastLine] >> c_LevelBits;
-			usize			offset	= 0;
+			const auto		path		= FileSystem::ToShortPath( info.loc.FileName() );
+			const auto		line		= ToString( info.loc.Line() );
+			const usize		len			= Min( path.length() + line.length() + 1 + after_line.length() + info.message.length(), c_MaxMsgLen );
+			const usize		begin		= _lines[_lastLine] >> c_LevelBits;
+			char*			write_ptr	= &_buffer[begin];
+			const char*		buf_end		= &_buffer[_bufSize];
+			const char*		msg_end		= Min( write_ptr + len, buf_end );
+			usize			offset		= 0;
 
-			CHECK_Lt( begin, _bufSize );
-			CHECK_Lt( begin + len, _bufSize );
+			ASSERT( write_ptr < buf_end );
+			ASSERT( write_ptr + len < buf_end );
 
 			_lastLine = (_lastLine + 1) % _maxLines;
 
 			// copy file path
-			MemCopy( OUT &_buffer[begin], path.data(), Bytes{Min( len, path.length() )} );
-			offset = Min( len, offset + path.length() );
+			MemCopy( OUT write_ptr, path.data(), Bytes{Min( len, path.length() )} );
+			write_ptr += Min( len, offset + path.length() );
 
-			// copy line number
-			if ( offset+1 < len ) {
-				CHECK_Lt( begin + len, _bufSize );
-				_buffer[begin + offset] = '(';
-				offset += 1;
-				MemCopy( OUT &_buffer[begin + offset], line.data(), Bytes{Min( len - offset, line.length() )} );
-				offset = Min( len, offset + line.length() );
+			// copy line number and delimiter between file+line and message body
+			if ( write_ptr + 1 + line.length() + after_line.length() < msg_end )
+			{
+				*write_ptr = '(';
+				write_ptr += 1;
+
+				MemCopy( OUT write_ptr, line.data(), Bytes{line.length()} );
+				write_ptr += line.length();
+
+				MemCopy( OUT write_ptr, after_line.data(), Bytes{after_line.length()} );
+				write_ptr += after_line.length();
+
+				// copy message body
+				if ( write_ptr < msg_end )
+				{
+					usize	size = Min( msg_end - write_ptr, info.message.length() );
+
+					MemCopy( OUT write_ptr, info.message.data(), Bytes{size} );
+					write_ptr += size;
+				}
 			}
+			ASSERT( write_ptr <= msg_end );
 
-			// copy delimiter between file+line and message body
-			if ( offset < len ) {
-				CHECK_Lt( begin + len, _bufSize );
-				MemCopy( OUT &_buffer[begin + offset], after_line.data(), Bytes{Min( len - offset, after_line.length() )} );
-				offset = Min( len, offset + after_line.length() );
-			}
+			usize	new_pos = write_ptr - (&_buffer[0]);
+			ASSERT( new_pos < _bufSize );
 
-			// copy message body
-			if ( offset < len ) {
-				CHECK_Lt( begin + len, _bufSize );
-				MemCopy( OUT &_buffer[begin + offset], info.message.data(), Bytes{Min( len - offset, info.message.length() )} );
-				offset = Min( len, offset + info.message.length() );
-			}
-			ASSERT( offset == len );
+			new_pos = Min( new_pos, _bufSize );
+			new_pos <<= c_LevelBits;
+			ASSERT( uint(new_pos) == new_pos );
 
-			_lines[_lastLine] = (uint(info.level) & c_LevelMask) | (uint(begin + len) << c_LevelBits);
+			_lines[_lastLine] = (uint(info.level) & c_LevelMask) | uint(new_pos);
 
 			if ( info.level >= ELevel::Error )
 				_hasError.store( true );

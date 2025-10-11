@@ -19,7 +19,7 @@ namespace AE::Graphics
 		Linear,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -30,7 +30,7 @@ namespace AE::Graphics
 		Linear,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -43,7 +43,7 @@ namespace AE::Graphics
 		MirrorClampToEdge,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -58,7 +58,7 @@ namespace AE::Graphics
 		IntOpaqueWhite,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -69,7 +69,7 @@ namespace AE::Graphics
 		Max,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -144,7 +144,7 @@ namespace AE::Graphics
 		Midpoint,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -157,7 +157,7 @@ namespace AE::Graphics
 		Ycbcr_2020,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -167,7 +167,7 @@ namespace AE::Graphics
 		ITU_Narrow,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 

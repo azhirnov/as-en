@@ -15,7 +15,7 @@ namespace AE::Graphics
 	// NVidia Performance Profiler for Vulkan
 	//
 
-	class VNvPerfProfiler
+	class VNvPerfProfiler : public VulkanInstanceFn
 	{
 		friend class VDevice;
 		friend class VDeviceInitializer;

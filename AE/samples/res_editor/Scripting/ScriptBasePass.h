@@ -40,6 +40,8 @@ namespace AE::ResEditor
 			Enable_ShaderFnProf		= 1 << 1,
 			Enable_ShaderTmProf		= 1 << 2,
 
+			UseSLang				= 1 << 3,
+
 			_Last,
 			All						= ((_Last - 1) << 1) - 1,
 

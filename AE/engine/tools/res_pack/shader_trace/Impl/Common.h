@@ -64,7 +64,7 @@ namespace AE::PipelineCompiler
 	TSourceLoc::operator ==
 =================================================
 */
-	ND_ inline bool  operator == (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
+	Nd__In bool  operator == (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
 	{
 		if ( lhs.name != rhs.name )
 		{
@@ -79,12 +79,12 @@ namespace AE::PipelineCompiler
 				lhs.column	== rhs.column;
 	}
 
-	ND_ inline bool  operator != (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
+	Nd__In bool  operator != (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
 	{
 		return not (lhs == rhs);
 	}
 
-	ND_ inline bool  operator < (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
+	Nd__In bool  operator < (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
 	{
 		if ( lhs.name != rhs.name )
 		{

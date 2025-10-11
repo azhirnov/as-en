@@ -206,29 +206,29 @@ namespace
 {
 	using namespace Serializing;
 
-	ND_ inline bool  Serialize_SourcePoint (Serializer &ser, const ShaderTrace::SourcePoint &x) {
+	Nd__In bool  Serialize_SourcePoint (Serializer &ser, const ShaderTrace::SourcePoint &x) {
 		return ser( x._ul );
 	}
 
-	ND_ inline bool  Deserialize_SourcePoint (Deserializer &des, OUT ShaderTrace::SourcePoint &x) {
+	Nd__In bool  Deserialize_SourcePoint (Deserializer &des, OUT ShaderTrace::SourcePoint &x) {
 		return des( OUT x._ul );
 	}
 
 
-	ND_ inline bool  Serialize_SourceLocation (Serializer &ser, const ShaderTrace::SourceLocation &x) {
+	Nd__In bool  Serialize_SourceLocation (Serializer &ser, const ShaderTrace::SourceLocation &x) {
 		return	ser( x.sourceId )								and
 				Serialize_SourcePoint( ser, x.begin )			and
 				Serialize_SourcePoint( ser, x.end );
 	}
 
-	ND_ inline bool  Deserialize_SourceLocation (Deserializer &des, OUT ShaderTrace::SourceLocation &x) {
+	Nd__In bool  Deserialize_SourceLocation (Deserializer &des, OUT ShaderTrace::SourceLocation &x) {
 		return	des( OUT x.sourceId )							and
 				Deserialize_SourcePoint( des, OUT x.begin )		and
 				Deserialize_SourcePoint( des, OUT x.end );
 	}
 
 
-	ND_ inline bool  Serialize_ExprInfo (Serializer &ser, const ShaderTrace::ExprInfo &x) {
+	Nd__In bool  Serialize_ExprInfo (Serializer &ser, const ShaderTrace::ExprInfo &x) {
 		return	ser( x.varID )									and
 				ser( x.swizzle )								and
 				Serialize_SourceLocation( ser, x.range )		and
@@ -236,7 +236,7 @@ namespace
 				ser( x.vars );
 	}
 
-	ND_ inline bool  Deserialize_ExprInfo (Deserializer &des, OUT ShaderTrace::ExprInfo &x) {
+	Nd__In bool  Deserialize_ExprInfo (Deserializer &des, OUT ShaderTrace::ExprInfo &x) {
 		return	des( OUT x.varID )								and
 				des( OUT x.swizzle )							and
 				Deserialize_SourceLocation( des, OUT x.range )	and
@@ -245,11 +245,11 @@ namespace
 	}
 
 
-	ND_ inline bool  Serialize_SourceInfo (Serializer &ser, const ShaderTrace::SourceInfo &x) {
+	Nd__In bool  Serialize_SourceInfo (Serializer &ser, const ShaderTrace::SourceInfo &x) {
 		return	ser( x.filename, x.code, x.firstLine, x.lines );
 	}
 
-	ND_ inline bool  Deserialize_SourceInfo (Deserializer &des, OUT ShaderTrace::SourceInfo &x) {
+	Nd__In bool  Deserialize_SourceInfo (Deserializer &des, OUT ShaderTrace::SourceInfo &x) {
 		return	des( OUT x.filename, OUT x.code, OUT x.firstLine, OUT x.lines );
 	}
 

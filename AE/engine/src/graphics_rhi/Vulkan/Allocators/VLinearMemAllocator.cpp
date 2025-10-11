@@ -186,7 +186,8 @@ namespace
 			if_likely( dev.AllocateMemory( mem_alloc, OUT memory.Ref() ) == VK_SUCCESS )
 				break;
 		}
-		CHECK_ERR( memory.Get() != Default );
+		CHECK_ERR_MSG( memory.Get() != Default,
+			"Failed to allocate memory: "s << ToString(Bytes{mem_alloc.allocationSize}) << ", bits: " << ToString<2>(memBits) );
 
 
 		// map memory

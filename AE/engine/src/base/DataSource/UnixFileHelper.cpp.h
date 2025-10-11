@@ -163,7 +163,7 @@ namespace
 	GetPositionInFile
 =================================================
 */
-	ND_ inline slong  GetPositionInFile (int file) __NE___
+	Nd__In slong  GetPositionInFile (int file) __NE___
 	{
 	#ifdef AE_PLATFORM_APPLE
 		return ::lseek( file, 0, SEEK_CUR );
@@ -177,7 +177,7 @@ namespace
 	ExtendFile
 =================================================
 */
-	ND_ inline off_t  ExtendFile (int file, off_t offset, off_t length) __NE___
+	Nd__In off_t  ExtendFile (int file, off_t offset, off_t length) __NE___
 	{
 	#ifdef AE_PLATFORM_APPLE
 		// https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/fcntl.2.html

@@ -1,9 +1,5 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-set( AE_ENABLE_ENGINE_TESTS			ON  CACHE BOOL "enable engine tests" )
-set( AE_ENABLE_ENGINE_PERF_TESTS	ON  CACHE BOOL "enable engine performance tests" )
-set( AE_ENABLE_COMPILER_WARNINGS	ON  CACHE INTERNAL "" FORCE )
-
 set( AE_EXTERNAL_BIN_PATH	"${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Bin"	CACHE INTERNAL "" FORCE )
 set( AE_DATA_FOLDER			"${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Data" CACHE INTERNAL "" FORCE )
 set( AE_TEMP_FOLDER			"${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Temp"	CACHE INTERNAL "" FORCE )
@@ -48,6 +44,10 @@ add_subdirectory( "src/pch" )
 include( "tools/EngineTools.cmake" )
 add_subdirectory( "src" )
 add_subdirectory( "tools" )
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/_experimental/CMakeLists.txt")
+	add_subdirectory( "_experimental" )
+endif()
 
 if (${AE_ENABLE_ENGINE_PERF_TESTS})
 	add_subdirectory( "performance" )

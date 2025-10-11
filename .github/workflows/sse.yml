@@ -3,14 +3,14 @@ name: Linux-SSE
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
-  build-clang-16:
+  build-clang-18:
     strategy:
       matrix:
         config: [Debug]
       fail-fast: false
         
     runs-on: ubuntu-24.04
-    name: Linux x64, Clang 16, SSE/AVX, ${{matrix.config}}
+    name: Linux x64, Clang 18, SSE/AVX, ${{matrix.config}}
     
     steps:
     - uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
     - name: Configure dependencies
       run: |
         sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libudev-dev \
+          libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev \
           libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
           libxkbcommon-dev libc++-dev libc++abi-dev
  
@@ -27,15 +27,16 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/Q3YGfAA9OoMukg"
+        wget -O external.zip "https://getfile.dokpub.com/yandex/get/<linux-x64-clang16-external-binaries>"
         unzip external.zip
+        mv external/linux-x64-clang20 external/linux-x64-clang18
     
     - name: AVX512 (Zen4)
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -46,10 +47,10 @@ jobs:
       
     - name: AVX512 (Ice Lake)
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -60,10 +61,10 @@ jobs:
       
     - name: AVX512 (Cannon Lake)
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -74,10 +75,10 @@ jobs:
       
     - name: AVX512 (basic)
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -88,10 +89,10 @@ jobs:
       
     - name: AVX2
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -102,10 +103,10 @@ jobs:
       
     - name: AVX1
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -116,10 +117,10 @@ jobs:
       
     - name: SSE 4.2
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -130,10 +131,10 @@ jobs:
       
     - name: SSE 4.1
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -144,10 +145,10 @@ jobs:
       
     - name: SSSE 3
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -158,10 +159,10 @@ jobs:
         
     - name: SSE 3
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -172,10 +173,10 @@ jobs:
         
     - name: SSE 2.0
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()
@@ -186,10 +187,10 @@ jobs:
         
     - name: SSE 2.0 & SHA2
       env:
-        CC: clang-16
-        CXX: clang++-16
-        CPP: clang-cpp-16
-        LD: ld.lld-16
+        CC: clang-18
+        CXX: clang++-18
+        CPP: clang-cpp-18
+        LD: ld.lld-18
       shell: bash
       working-directory: ${{github.workspace}}
       if: success() || failure()

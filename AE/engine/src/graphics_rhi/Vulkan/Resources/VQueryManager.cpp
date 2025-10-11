@@ -413,7 +413,6 @@ Supported queue types: Graphics / Compute
 					return Default;
 				break;
 
-			case EQueryType::_Count :
 			case EQueryType::Unknown : break;
 		}
 		switch_end

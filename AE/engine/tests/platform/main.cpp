@@ -1,9 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "platform/Public/IApplication.h"
+#include "platform/Public/Application.h"
 
 using namespace AE::App;
-
 
 
 #ifdef AE_PLATFORM_ANDROID

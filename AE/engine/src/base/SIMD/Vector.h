@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Static array of SIMD types.
-	Can be used as SIMT.
+	Can be used as SIMT or SoA SIMD.
 */
 
 #pragma once
@@ -265,6 +265,8 @@ namespace _hidden_
 			   const SimdVector<T,C> &aX, const SimdVector<T,C> &aY,
 			   const SimdVector<T,C> &bX, const SimdVector<T,C> &bY) __NE___
 	{
+		StaticAssert( IsAnyFloatPoint< typename SimdVector<T,C>::Scalar_t >);
+
 		for (usize i = 0; i < dst.Count(); ++i)
 			dst[i] = (aX[i] * bX[i]) + (aY[i] * bY[i]);
 	}
@@ -279,6 +281,8 @@ namespace _hidden_
 			   const SimdVector<T,C> &aX, const SimdVector<T,C> &aY, const SimdVector<T,C> &aZ,
 			   const SimdVector<T,C> &bX, const SimdVector<T,C> &bY, const SimdVector<T,C> &bZ) __NE___
 	{
+		StaticAssert( IsAnyFloatPoint< typename SimdVector<T,C>::Scalar_t >);
+
 		using V			= SimdVector<T,C>;
 		using SIMD_t	= typename V::SIMD_t;
 
@@ -313,6 +317,8 @@ namespace _hidden_
 				 const SimdVector<T,C> &aX, const SimdVector<T,C> &aY, const SimdVector<T,C> &aZ,
 				 const SimdVector<T,C> &bX, const SimdVector<T,C> &bY, const SimdVector<T,C> &bZ) __NE___
 	{
+		StaticAssert( IsAnyFloatPoint< typename SimdVector<T,C>::Scalar_t >);
+
 		using SIMD_t	= typename SimdVector<T,C>::SIMD_t;
 
 		if constexpr( SIMD_t::Has_FusedMulAdd() )

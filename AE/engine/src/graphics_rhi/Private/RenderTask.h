@@ -58,8 +58,7 @@ namespace AE::_Coro_
 			Nd__IF EQueueMask			QueueMask ()				C_NE___	{ return EQueueMask(0) | QueueType(); }
 			Nd__IF bool					IsFirstInBatch ()			C_NE___	{ return _rt->_batch->CmdPool_IsFirst( ExecutionIndex() ); }
 			
-			DEBUG_ONLY(
-				Nd__IF StringView		DbgName ()					C_NE___	{ return _rt->DbgName(); })
+			Nd__IF StringView			DbgName ()					C_NE___	{ return _rt->DbgName(); }
 			Nd__IF String				DbgFullName ()				C_NE___	{ return _rt->DbgFullName(); }
 			Nd__IF RGBA8u				DbgColor ()					C_NE___	{ return _rt->DbgColor(); }
 
@@ -293,10 +292,10 @@ namespace AE::_Coro_
 	{
 		self._batch		= RVRef(batch);
 		self._exeIndex	= self._GetPool().Acquire( exeIndex );
-
-		DEBUG_ONLY(
+		
+		#if AE_ENABLE_TASK_NAME
 			self._SetDebugName( dbg.label );
-		)
+		#endif
 		GFX_DBG_ONLY(
 			self._dbgColor = _ValidateDbgColor( self.GetQueueType(), dbg.color );
 		)
@@ -320,8 +319,7 @@ namespace AE::_Coro_
 				case EQueueType::AsyncTransfer :	return DebugLabel::ColorTable::AsyncTransfersQueue;
 				case EQueueType::VideoEncode :
 				case EQueueType::VideoDecode :
-				case EQueueType::Unknown :
-				case EQueueType::_Count :			break;
+				case EQueueType::Unknown :			break;
 			}
 			switch_end
 		}

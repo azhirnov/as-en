@@ -107,6 +107,11 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 * [Ray tracing](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-rt/OIT-4.as)
 
 
+## Neural Shader
+
+* [MLP Training](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/MLPTraining.as)
+
+
 ## Games
 
 ResEditor allows to create game prototypes.

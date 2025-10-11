@@ -11,7 +11,7 @@ namespace
 	GetFirstTouch
 =================================================
 */
-	ND_ inline ubyte  GetFirstTouch (uint activeTouches)
+	Nd__In ubyte  GetFirstTouch (uint activeTouches)
 	{
 		int		idx	= BitScanForward( activeTouches );
 		return idx >= 0 ? ubyte(idx) : UMax;

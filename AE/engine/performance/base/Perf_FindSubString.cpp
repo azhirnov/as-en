@@ -6,13 +6,13 @@
 
 namespace
 {
-	ND_ inline size_t  FindSubString1 (StringView str, StringView substr, usize offset)
+	Nd__In size_t  FindSubString1 (StringView str, StringView substr, usize offset)
 	{
 		size_t i = str.find( substr, offset );
 		return i != StringView::npos ? i : 0;
 	}
 
-	ND_ inline size_t  FindSubString2 (StringView str, StringView substr, const usize offset)
+	Nd__In size_t  FindSubString2 (StringView str, StringView substr, const usize offset)
 	{
 		const usize	cnt = str.length() - substr.length() + 1;
 
@@ -98,7 +98,7 @@ namespace
 	}
 
 
-	ND_ inline size_t  FindSubString3 (StringView str, StringView substr, usize offset)
+	Nd__In size_t  FindSubString3 (StringView str, StringView substr, usize offset)
 	{
 		const usize	cnt	= str.length() - substr.length() + 1;
 
@@ -124,7 +124,7 @@ namespace
 
 
 #define FINDSUBSTRING( _name_, _findChar_ )\
-	ND_ inline size_t  _name_ (StringView str, StringView substr, usize offset) __NE___	\
+	Nd__In size_t  _name_ (StringView str, StringView substr, usize offset) __NE___	\
 	{																					\
 		const auto*	end = str.data() + str.size() - substr.size() + 1;					\
 		const auto*	ptr = str.data() + offset;											\

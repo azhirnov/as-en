@@ -154,9 +154,9 @@ namespace AE::Base
 		ND_ Self	FastSqrt ()									C_NE___	{ return Self{ _mm_mul_ps( _value, _mm_rsqrt_ps( _value ))}; }	// approx (x / sqrt(x))
 		ND_ Self	FastDiv (const Self &rhs)					C_NE___	{ return Self{ _mm_mul_ps( _value, _mm_rcp_ps( rhs._value ))}; }// approx (a / b)
 
-		ND_ Self	Sum ()										C_NE___;
-		ND_ Self	Max ()										C_NE___;
-		ND_ Self	Min ()										C_NE___;
+		ND_ Self	Sum ()										C_NE___;	// vector with PrefixSum()
+		ND_ Self	Max ()										C_NE___;	// vector with PrefixMax()
+		ND_ Self	Min ()										C_NE___;	// vector with PrefixMin()
 
 		ND_ Scalar_t	PrefixSum ()							C_NE___;
 		ND_ Scalar_t	PrefixMax ()							C_NE___;
@@ -465,9 +465,9 @@ namespace AE::Base
 		ND_ Self	Min (const Scalar_t rhs)					C_NE___	{ return Self{ _mm_min_pd( _value, _mm_set1_pd( rhs ))}; }
 		ND_ Self	Max (const Scalar_t rhs)					C_NE___	{ return Self{ _mm_max_pd( _value, _mm_set1_pd( rhs ))}; }
 
-		ND_ Self	Sum ()										C_NE___;
-		ND_ Self	Max ()										C_NE___;
-		ND_ Self	Min ()										C_NE___;
+		ND_ Self	Sum ()										C_NE___;	// vector with PrefixSum()
+		ND_ Self	Max ()										C_NE___;	// vector with PrefixMax()
+		ND_ Self	Min ()										C_NE___;	// vector with PrefixMin()
 
 		ND_ Scalar_t	PrefixSum ()							C_NE___;
 		ND_ Scalar_t	PrefixMax ()							C_NE___;
@@ -929,10 +929,10 @@ namespace AE::Base
 		ND_ friend Self  Select (const Bool_t &condition, const Self &ifTrue, const Self &ifFalse) __NE___ { return _Select( condition, ifTrue, ifFalse ); }
 
 
-		ND_ Self	Sum ()									C_NE___;
-		ND_ auto	SumExt ()								C_NE___;
-		ND_ Self	Max ()									C_NE___;
-		ND_ Self	Min ()									C_NE___;
+		ND_ Self	Sum ()									C_NE___;	// vector with PrefixSum()
+		ND_ auto	SumExt ()								C_NE___;	// vector with PrefixSumExt()
+		ND_ Self	Max ()									C_NE___;	// vector with PrefixMax()
+		ND_ Self	Min ()									C_NE___;	// vector with PrefixMin()
 
 		ND_ Scalar_t	PrefixSum ()						C_NE___;
 		ND_ auto		PrefixSumExt ()						C_NE___;
@@ -1000,6 +1000,13 @@ namespace AE::Base
 	// conversion //
 		template <uint Idx>
 		ND_ Self	Lane ()									C_NE___ { StaticAssert( Idx < lanes );  return *this; }
+		
+		template <uint V0, uint V1, uint V2, uint V3,
+				  uint V4, uint V5, uint V6, uint V7,
+				  uint V8, uint V9, uint V10, uint V11,
+				  uint V12, uint V13, uint V14, uint V15,
+				  typename T=Scalar_t> requires( sizeof(T)==1 )
+		ND_ Self	Swizzle ()								C_NE___;
 
 		template <uint V0, uint V1, uint V2, uint V3,
 				  uint V4, uint V5, uint V6, uint V7,

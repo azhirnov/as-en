@@ -10,6 +10,136 @@ namespace
 								Conditional< (IsAnyFloatPoint<T> and sizeof(T) < sizeof(float)), float, void >>>;
 
 	#define AB(x)	A{B(x)}		// half{float( x )}
+	
+	template <uint X, uint Y, typename Fn, typename Simd>
+	void  TestAllSwizzles2 (const Fn &checkSwizzle, const Simd &v)
+	{
+		checkSwizzle( v.template Swizzle<X,Y>(), X, Y );
+
+		constexpr uint Max = 1;
+
+		if constexpr( Y < Max )
+			TestAllSwizzles2< X, Y + 1 >( checkSwizzle, v );
+		else
+		if constexpr( X < Max )
+			TestAllSwizzles2< X + 1, 0 >( checkSwizzle, v );
+	}
+
+	template <uint X, uint Y, uint Z, uint W,
+			  typename Fn, typename Simd>
+	void  TestAllSwizzles4 (const Fn &checkSwizzle, const Simd &v)
+	{
+		checkSwizzle( v.template Swizzle<X,Y,Z,W>(), X, Y, Z, W );
+	
+		constexpr uint Max = 3;
+
+		if constexpr( W < Max )
+			TestAllSwizzles4< X, Y, Z, W + 1 >( checkSwizzle, v );
+		else
+		if constexpr( Z < Max )
+			TestAllSwizzles4< X, Y, Z + 1, 0 >( checkSwizzle, v );
+		else
+		if constexpr( Y < Max )
+			TestAllSwizzles4< X, Y + 1, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( X < Max )
+			TestAllSwizzles4< X + 1, 0, 0, 0 >( checkSwizzle, v );
+	}
+	
+	// too complex to compile it
+#if 0
+	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7,
+			  typename Fn, typename Simd>
+	void  TestAllSwizzles8 (const Fn &checkSwizzle, const Simd &v)
+	{
+		checkSwizzle( v.template Swizzle<V0,V1,V2,V3, V4,V5,V6,V7>(), V0,V1,V2,V3, V4,V5,V6,V7 );
+	
+		constexpr uint Max = 7;
+
+		if constexpr( V7 < Max )
+			TestAllSwizzles8< V0, V1, V2, V3, V4, V5, V6, V7 + 1 >( checkSwizzle, v );
+		else
+		if constexpr( V6 < Max )
+			TestAllSwizzles8< V0, V1, V2, V3, V4, V5, V6 + 1, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V5 < Max )
+			TestAllSwizzles8< V0, V1, V2, V3, V4, V5 + 1, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V4 < Max )
+			TestAllSwizzles8< V0, V1, V2, V3, V4 + 1, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V3 < Max )
+			TestAllSwizzles8< V0, V1, V2, V3 + 1, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V2 < Max )
+			TestAllSwizzles8< V0, V1, V2 + 1, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V1 < Max )
+			TestAllSwizzles8< V0, V1 + 1, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V0 < Max )
+			TestAllSwizzles8< V0 + 1, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+	}
+
+	template <uint V0, uint V1, uint V2,  uint V3,  uint V4,  uint V5,  uint V6,  uint V7,
+			  uint V8, uint V9, uint V10, uint V11, uint V12, uint V13, uint V14, uint V15,
+			  typename Fn, typename Simd>
+	void  TestAllSwizzles16 (const Fn &checkSwizzle, const Simd &v)
+	{
+		checkSwizzle( v.template Swizzle<V0,V1,V2,V3, V4,V5,V6,V7, V8,V9,V10,V11, V12,V13,V14,V15>(), V0,V1,V2,V3, V4,V5,V6,V7, V8,V9,V10,V11, V12,V13,V14,V15 );
+	
+		constexpr uint Max = 15;
+
+		if constexpr( V15 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15 + 1 >( checkSwizzle, v );
+		else
+		if constexpr( V14 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14 + 1, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V13 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13 + 1, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V12 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12 + 1, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V11 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11 + 1, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V10 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10 + 1, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V9 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8, V9 + 1, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V8 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7, V8 + 1, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V7 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6, V7 + 1, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V6 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5, V6 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V5 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4, V5 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V4 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3, V4 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V3 < Max )
+			TestAllSwizzles16< V0, V1, V2, V3 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V2 < Max )
+			TestAllSwizzles16< V0, V1, V2 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V1 < Max )
+			TestAllSwizzles16< V0, V1 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+		else
+		if constexpr( V0 < Max )
+			TestAllSwizzles16< V0 + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 >( checkSwizzle, v );
+	}
+#endif
+//-----------------------------------------------------------------------------
 
 
 	template <typename Simd>
@@ -87,13 +217,8 @@ namespace
 			}};
 
 			Simd	v {arr.data()};
-
-			#define CHECK_SWIZZLE( x,y )	CheckSwizzle( v.template Swizzle<x,y>(), x,y );
-			CHECK_SWIZZLE( 0,0 );
-			CHECK_SWIZZLE( 0,1 );
-			CHECK_SWIZZLE( 1,0 );
-			CHECK_SWIZZLE( 1,1 );
-			#undef CHECK_SWIZZLE
+			
+			TestAllSwizzles2< 0, 0 >( CheckSwizzle, v );
 		}
 
 		// shuffle
@@ -188,15 +313,7 @@ namespace
 
 			Simd	v {arr.data()};
 
-			#define CHECK_SWIZZLE( x,y,z,w )	CheckSwizzle( v.template Swizzle<x,y,z,w>(), x,y,z,w );
-			CHECK_SWIZZLE( 0,0,0,0 );
-			CHECK_SWIZZLE( 0,1,0,1 );
-			CHECK_SWIZZLE( 2,0,1,0 );
-			CHECK_SWIZZLE( 0,1,2,3 );
-			CHECK_SWIZZLE( 3,2,1,0 );
-			CHECK_SWIZZLE( 1,0,3,2 );
-			CHECK_SWIZZLE( 2,3,0,1 );
-			#undef CHECK_SWIZZLE
+			TestAllSwizzles4< 0, 0, 0, 0 >( CheckSwizzle, v );
 		}
 
 		// shuffle
@@ -306,6 +423,8 @@ namespace
 			}};
 
 			Simd	v {arr.data()};
+			
+			//TestAllSwizzles8< 0,0,0,0, 0,0,0,0 >( CheckSwizzle, v );  // TODO
 
 			#define CHECK_SWIZZLE( v0,v1,v2,v3,v4,v5,v6,v7 )	CheckSwizzle( v.template Swizzle<v0,v1,v2,v3,v4,v5,v6,v7>(), v0,v1,v2,v3,v4,v5,v6,v7 );
 			CHECK_SWIZZLE( 0,0,0,0, 0,0,0,0 );
@@ -318,11 +437,11 @@ namespace
 			CHECK_SWIZZLE( 4,5,4,5, 0,1,0,1 );
 			CHECK_SWIZZLE( 4,5,6,7, 0,1,2,3 );
 
-		//	CHECK_SWIZZLE( 0,0,1,1, 2,2,3,3 );
-		//	CHECK_SWIZZLE( 4,4,5,5, 6,6,7,7 );
-		//	CHECK_SWIZZLE( 0,4,1,5, 2,6,3,7 );
-		//	CHECK_SWIZZLE( 4,7,6,5, 2,3,1,0 );
-		//	CHECK_SWIZZLE( 0,1,4,5, 2,3,6,7 );
+			CHECK_SWIZZLE( 0,0,1,1, 2,2,3,3 );
+			CHECK_SWIZZLE( 4,4,5,5, 6,6,7,7 );
+			CHECK_SWIZZLE( 0,4,1,5, 2,6,3,7 );
+			CHECK_SWIZZLE( 4,7,6,5, 2,3,1,0 );
+			CHECK_SWIZZLE( 0,1,4,5, 2,3,6,7 );
 			#undef CHECK_SWIZZLE
 		}
 
@@ -457,7 +576,34 @@ namespace
 		// swizzle
 		if constexpr( Simd::Has_Swizzle() )
 		{
-			// TODO
+			Arr_t	arr;
+			for (usize i = 0; i < arr.size(); ++i)
+				arr[i] = AB(i+1);
+
+			const auto	CheckSwizzle = [&arr](Simd v, uint v0, uint v1, uint v2, uint v3, uint v4, uint v5, uint v6, uint v7,
+											  uint v8, uint v9, uint v10, uint v11, uint v12, uint v13, uint v14, uint v15)
+			{{
+				auto	a = v.ToArray();
+				Arr_t	b = {arr[v0], arr[v1], arr[v2], arr[v3], arr[v4], arr[v5], arr[v6], arr[v7],
+							 arr[v8], arr[v9], arr[v10], arr[v11], arr[v12], arr[v13], arr[v14], arr[v15]};
+				TEST( a == b );
+			}};
+
+			Simd	v {arr.data()};
+			
+			//TestAllSwizzles16< 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 >( CheckSwizzle, v );  // TODO
+			
+			#define CHECK_SWIZZLE( v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15 )\
+				CheckSwizzle( v.template Swizzle< v0,v1,v2,v3, v4,v5,v6,v7, v8,v9,v10,v11, v12,v13,v14,v15 >(), \
+							  v0,v1,v2,v3, v4,v5,v6,v7, v8,v9,v10,v11, v12,v13,v14,v15 );
+
+			CHECK_SWIZZLE( 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 );
+			CHECK_SWIZZLE( 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1 );
+			CHECK_SWIZZLE( 4,4,4,4, 4,4,4,4, 4,4,4,4, 4,4,4,4 );
+			CHECK_SWIZZLE( 7,7,7,7, 7,7,7,7, 7,7,7,7, 7,7,7,7 );
+			CHECK_SWIZZLE( 0,1,2,3, 4,5,6,7, 4,4,4,4, 0,1,0,1 );
+
+			#undef CHECK_SWIZZLE
 		}
 
 		// shuffle

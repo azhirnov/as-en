@@ -1,4 +1,2 @@
 
-set( AE_ENABLE_EXTERNAL_TESTS OFF CACHE INTERNAL "" FORCE )
-
 include( "${AE_ENGINE_EXTERNAL_CMAKE}/AddFolder.cmake" )

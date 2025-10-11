@@ -1,8 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "platform/Android/ApplicationAndroid.h"
-#include "platform/GLFW/ApplicationGLFW.h"
-#include "platform/WinAPI/ApplicationWinAPI.h"
+#include "platform/Public/Application.h"
 #include "vfs/VirtualFileSystem.h"
 
 using namespace AE::VFS;
@@ -93,7 +91,7 @@ public:
 
 		AE_LOGI( ">> Begin performance tests" );
 		{
-			_LoadAndRun( "libPerfGraphics.so",			"Perf_Graphics2",	asset_storage.get() );
+			_LoadAndRun( "libPerfGraphics.so",			"Perf_Graphics2",		asset_storage.get() );
 		  #ifdef AE_RELEASE
 			_LoadAndRun( "libPerfBase.so",				"Perf_Base",			cache_path.c_str() );
 			_LoadAndRun( "libPerfThreading.so",			"Perf_Threading",		cache_path.c_str() );
@@ -103,7 +101,11 @@ public:
 	}
 };
 
-
+/*
+=================================================
+	AE_OnAppCreated / AE_OnAppDestroyed
+=================================================
+*/
 Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 {
 	AE::Base::StaticLogger::InitDefault();
@@ -116,7 +118,13 @@ void  AE_OnAppDestroyed ()
 	AE::Base::StaticLogger::Deinitialize( True{"checkMemLeaks"} );
 }
 
+/*
+=================================================
+	JNI_OnLoad / JNI_OnUnload
+=================================================
+*/
 #ifdef AE_PLATFORM_ANDROID
+#	include "platform/Android/ApplicationAndroid.h"
 
 	extern "C" JNIEXPORT jint  JNI_OnLoad (JavaVM* vm, void*)
 	{

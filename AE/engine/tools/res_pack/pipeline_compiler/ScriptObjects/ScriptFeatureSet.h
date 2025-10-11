@@ -62,7 +62,7 @@ namespace AE::Base
 	Max (ShaderVersion)
 =================================================
 */
-	ND_ inline Graphics::FeatureSet::ShaderVersion
+	Nd__In Graphics::FeatureSet::ShaderVersion
 		Max (const Graphics::FeatureSet::ShaderVersion &lhs, const Graphics::FeatureSet::ShaderVersion &rhs) __NE___
 	{
 		Graphics::FeatureSet::ShaderVersion	result;

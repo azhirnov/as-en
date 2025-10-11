@@ -48,14 +48,19 @@ namespace AE::Base
 	public:
 		__Cx__ FixedArray ()								__NE___;
 		__Cx__ FixedArray (std::initializer_list<T> list)	__NE___;		// TODO: use Args... to allow move ctor
-		__Cx__ FixedArray (ArrayView<T> view)				__NE___;
 		__Cx__ FixedArray (const Self &other)				__NE___;
 		__Cx__ FixedArray (Self &&other)					__NE___;
 
 		__Cx__ ~FixedArray ()								__NE___	{ clear(); }
-
-		NdCx__ operator ArrayView<T> ()						C_NE___	{ return ArrayView<T>{ data(), size() }; }
-		NdCx__ ArrayView<T>		ToArrayView()				C_NE___	{ return *this; }
+		
+		template <typename I>
+		__Cx__ FixedArray (ArrayView<T,I> view)				__NE___;
+		
+		template <typename I>
+		NdCx__ operator ArrayView<T,I> ()					C_NE___	{ return ArrayView<T,I>{ data(), size() }; }
+		
+		template <typename I = usize>
+		NdCx__ ArrayView<T,I>	ToArrayView()				C_NE___	{ return *this; }
 
 		NdCx__ usize			size ()						C_NE___	{ return _count; }
 		NdCx__ bool				empty ()					C_NE___	{ return _count == 0; }
@@ -90,8 +95,8 @@ namespace AE::Base
 		__Cx__ Self&  operator = (const FixedArray<B,S,C> &)__NE___;
 		__Cx__ Self&  operator = (const Self &rhs)			__NE___	{ return operator=( ArrayView<T>{rhs} ); }
 		__Cx__ Self&  operator = (Self &&rhs)				__NE___;
-		template <typename B>
-		__Cx__ Self&  operator = (ArrayView<B> rhs)			__NE___;
+		template <typename B, typename I>
+		__Cx__ Self&  operator = (ArrayView<B,I> rhs)		__NE___;
 
 		template <typename B>
 		__Cx__ void  assign (B* beginIter, B* endIter)		__NE___;
@@ -102,7 +107,7 @@ namespace AE::Base
 		__Cx__ void  push_back (T &&value)					__NE___;
 
 		template <typename ...Args>
-		__Cx__ T&	emplace_back (Args&& ...args)			__NE___;
+		__Cx__ T&	 emplace_back (Args&& ...args)			__NE___;
 
 		__Cx__ void  pop_back ()							__NE___;
 
@@ -153,7 +158,8 @@ namespace AE::Base
 	}
 
 	template <typename T, usize S, typename CS>
-	__Cx__ FixedArray<T,S,CS>::FixedArray (ArrayView<T> view) __NE___ : FixedArray()
+	template <typename I>
+	__Cx__ FixedArray<T,S,CS>::FixedArray (ArrayView<T,I> view) __NE___ : FixedArray()
 	{
 		ASSERT( view.size() <= capacity() );
 		assign( view.begin(), view.end() );
@@ -189,8 +195,8 @@ namespace AE::Base
 	}
 
 	template <typename T, usize S, typename CS>
-	template <typename B>
-	__Cx__ FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<B> rhs) __NE___
+	template <typename B, typename I>
+	__Cx__ FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<B,I> rhs) __NE___
 	{
 		ASSERT( rhs.size() <= capacity() );
 		assign( rhs.begin(), rhs.end() );

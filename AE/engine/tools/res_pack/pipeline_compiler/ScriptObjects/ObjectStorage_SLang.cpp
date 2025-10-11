@@ -62,8 +62,30 @@ namespace AE::PipelineCompiler
 	{
 		CHECK_THROW_MSG( slangCompiler );
 		
-		String	header;
+		// check SPIRV version
 		{
+			const uint	ver			= GetMaxValueFromFeatures( features, &FeatureSet::maxShaderVersion ).spirv;
+			Version2	max_spv_ver = Version2::From100( ver );
+			CHECK_THROW_MSG(( max_spv_ver >= Version2{1,0} ));
+			
+			Version2	req_spv_ver = EShaderVersion_Ver2( info.version );
+			CHECK_THROW_MSG( req_spv_ver <= max_spv_ver );
+		}
+
+		String	header;
+
+		// add header
+		{
+			header << "\n#define " << ShaderToStr( info.type ) << " 1\n";
+			header << "#define ND_\n"
+					  "#define or ||\n"
+					  "#define and &&\n";
+
+			for (auto& def : info.defines) {
+				header << def << '\n';
+			}
+			header << '\n';
+
 			for (auto& inc : info.include) {
 				header << "#include \"" << inc << "\"\n";
 			}
@@ -74,12 +96,12 @@ namespace AE::PipelineCompiler
 
 		SLangCompiler::Output	out;
 		SLangCompiler::Input	in;
-	//	in.shaderType			= info.type;
-	//	in.spirvVersion			= EShaderVersion_Ver2( info.version );
+		in.shaderType			= info.type;
+		in.options				= info.options;
+		in.dstVersion			= info.version;
 		in.entry				= entry.c_str();
 		in.header				= header;
 		in.source				= info.source;
-	//	in.options				= info.options;
 		in.fileLoc				= shaderPath;
 			
 		if_unlikely( not slangCompiler->Compile( in, OUT out ))
@@ -95,9 +117,8 @@ namespace AE::PipelineCompiler
 			
 		compiled.version	= info.version;
 		compiled.type		= info.type;
-	//	compiled.reflection	= RVRef(out.reflection);	// TODO
+		compiled.reflection	= RVRef(out.reflection);
 		compiled.data		= RVRef(out.spirv);
-
 	}
 
 } // AE::PipelineCompiler

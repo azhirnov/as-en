@@ -15,10 +15,17 @@ namespace
 	}
 
 	template <typename Dst, typename Src>
-	static float  DynamicT_Cast (EnableRCBase* base) __NE___
+	static Dst  DynamicT_Cast (EnableRCBase* base) __NE___
 	{
 		Src	x = Cast<TDynamicScalar<Src>>(base)->Get();
 		return Dst(x);
+	}
+	
+	template <typename Dst, typename Src>
+	static Dst  DynamicT_BitCast (EnableRCBase* base) __NE___
+	{
+		Src	x = Cast<TDynamicScalar<Src>>(base)->Get();
+		return BitCast<Dst>(x);
 	}
 
 } // namespace
@@ -554,6 +561,19 @@ namespace
 		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
 		return result.Detach();
 	}
+	
+/*
+=================================================
+	ScriptDynamicUInt::AsFloat
+=================================================
+*/
+	ScriptDynamicFloat*  ScriptDynamicUInt::AsFloat () __Th___
+	{
+		auto	du = MakeRC<DynamicFloat>( _value, &DynamicT_BitCast<float,uint> );
+
+		ScriptDynamicFloatPtr	result{ new ScriptDynamicFloat{ RVRef(du) }};
+		return result.Detach();
+	}
 
 /*
 =================================================
@@ -641,6 +661,8 @@ namespace
 		AS_METHOD( binder, ScriptDynamicUInt::Sub1,		"Sub",			{} );
 		AS_METHOD( binder, ScriptDynamicUInt::Min1,		"Min",			{} );
 		AS_METHOD( binder, ScriptDynamicUInt::Max1,		"Max",			{} );
+
+		// ToFloat, AsFloat defined in ScriptDynamicFloat binding 
 	}
 //-----------------------------------------------------------------------------
 
@@ -1845,6 +1867,19 @@ namespace
 
 /*
 =================================================
+	ScriptDynamicFloat::AsUInt
+=================================================
+*/
+	ScriptDynamicUInt*  ScriptDynamicFloat::AsUInt () __Th___
+	{
+		auto	du = MakeRC<DynamicUInt>( _value, &DynamicT_BitCast<uint, float> );
+
+		ScriptDynamicUIntPtr	result{ new ScriptDynamicUInt{ RVRef(du) }};
+		return result.Detach();
+	}
+
+/*
+=================================================
 	ScriptDynamicFloat::Bind
 =================================================
 */
@@ -1872,9 +1907,12 @@ namespace
 			AS_METHOD( binder, ScriptDynamicFloat::Sub1,	"Sub",			{} );
 			AS_METHOD( binder, ScriptDynamicFloat::Min1,	"Min",			{} );
 			AS_METHOD( binder, ScriptDynamicFloat::Max1,	"Max",			{} );
+			
+			AS_METHOD( binder, ScriptDynamicFloat::AsUInt,	"AsUInt",		{} );
 		}{
 			ClassBinder<ScriptDynamicUInt>		binder{ se };
 			AS_METHOD( binder, ScriptDynamicUInt::ToFloat,		"ToFloat",		{} );
+			AS_METHOD( binder, ScriptDynamicUInt::AsFloat,		"AsFloat",		{} );
 			AS_METHOD( binder, ScriptDynamicUInt::Percent,		"Percent",		{} );
 		}
 	}

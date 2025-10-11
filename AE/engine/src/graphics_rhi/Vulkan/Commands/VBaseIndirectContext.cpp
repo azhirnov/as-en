@@ -479,6 +479,12 @@ namespace AE::Graphics::_hidden_
 		{
 			fn.vkCmdDispatchIndirect( cmdbuf, cmd.buffer, VkDeviceSize(cmd.offset) );
 		}
+		
+		static void  Fn_ConvertCooperativeVectorMatrixCmd (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, const ConvertCooperativeVectorMatrixCmd &cmd) __NE___
+		{
+			auto*	ptr	= Cast<ConvertCoopMatrixCmd>( AlignUp( static_cast< const void *>(&cmd + 1), AlignOf<ConvertCoopMatrixCmd> ));
+			ConvertCooperativeVectorMatrixImpl( fn, cmdbuf, ArrayView<ConvertCoopMatrixCmd>{ ptr, cmd.count });
+		}
 
 
 	// graphics commands

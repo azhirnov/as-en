@@ -45,7 +45,7 @@ namespace AE::ResEditor
 				[&] (const RC<Buffer> &buf) {
 					ctx.ResourceState( buf->GetBufferId( fid ), state );
 
-					const auto	ref_state = EResourceState::ShaderAddress_RW | (state & EResourceState::AllShaders);
+					const auto	ref_state = EResourceState::ShaderAddress_RW | (state & EResourceState::AllShaderStages);
 					for (auto& ref : buf->GetRefBuffers()) {
 						ctx.ResourceState( ref->GetBufferId( fid ), ref_state );
 					}

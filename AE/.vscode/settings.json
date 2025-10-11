@@ -3,13 +3,14 @@
 		"AE_SIMD_AVX": 1,
 		"AE_SIMD_SSE": 0,
 		"AE_SIMD_AES": 0,
-		"AE_SIMD_SHA": 0,
 		"AE_SIMD_FMA": 0,
 		"AE_SIMD_F16C": 0,
+		"AE_SIMD_SHA": 0,  // 0, 20(SHA2-256), 21(SHA2-512), 30(SHA3)
 		"AE_ENABLE_VULKAN": "ON",
 		"AE_ENABLE_REMOTE_GRAPHICS": "OFF",
 		"AE_GRAPHICS_STRONG_VALIDATION": "OFF",
-		"AE_WHOLE_ENGINE_PCH": "ON",
+        "AE_ENGINE_BASE_PCH": "ON",   // enable it for Engine development, disable for Base module development
+		"AE_WHOLE_ENGINE_PCH": "OFF", // enable it for App/Game development
 		"AE_EXCLUDE_PACK_RES": "ON"
 	},
 	"files.associations": {
@@ -19,6 +20,8 @@
 	},
 	"editor.inlayHints.enabled": "off",
 	"editor.fontSize": 12,
+    
+//    "clangd.arguments": [ "--header-insertion" ],
 
 	// https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/variants.md
 	// https://github.com/microsoft/vscode-cmake-tools/issues/3351 - build types are merged instead of replacing, so override default types

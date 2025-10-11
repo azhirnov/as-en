@@ -12,6 +12,7 @@ extern void PerfTest_SIMD ();
 extern void PerfTest_VertSIMD ();
 extern void PerfTest_MemCopy ();
 extern void PerfTest_CacheSize ();
+extern void PerfTest_Compression ();
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -36,6 +37,8 @@ int main (const int argc, char* argv[])
 
 	//PerfTest_MemCopy();
 	//PerfTest_CacheSize();
+
+	//PerfTest_Compression();
 
 	AE_LOGI( "PerformanceTests.Base finished" );
 

@@ -407,6 +407,22 @@ namespace AE::Base
 		auto	rng	= std::default_random_engine{ rd() };
 		std::shuffle( std::begin(arr), std::end(arr), rng );
 	}
+	
+/*
+=================================================
+	FastErase
+=================================================
+*/
+	template <typename T>
+	void  FastErase (INOUT Array<T> &arr, usize idx) __NE___
+	{
+		ASSERT( idx < arr.size() );
+
+		if ( idx+1 < arr.size() )
+			std::swap( arr[idx], arr.back() );
+		
+		arr.pop_back();
+	}
 
 
 } // AE::Base

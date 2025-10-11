@@ -65,6 +65,8 @@ namespace AE::PipelineCompiler
 		String			_msl;
 		uint			_mslIndex	= 0;
 
+		String			_hlsl;
+
 
 	// methods
 	public:
@@ -96,6 +98,7 @@ namespace AE::PipelineCompiler
 
 		ND_ uint			GlslLocations ()																const	{ return _glslLoc; }
 		ND_ String			ToGLSL ()																		const;
+		ND_ String			ToHLSL ()																		const;
 		ND_ String			ToMSL ()																		const;
 
 		ND_ StringView		Name ()																			const	{ return _name; }

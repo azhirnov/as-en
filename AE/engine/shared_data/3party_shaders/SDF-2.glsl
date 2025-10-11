@@ -65,7 +65,7 @@
 		float2	B = c - b - A;
 		float2	C = p - a;
 		float2	D = A * 2.0;
-		float2	T = Saturate( SolveCubic2( vec3(-3.0 * Dot(A,B), Dot(C,B) - 2.0 * LengthSq(A), Dot(C,A) ) / -LengthSq(B) ));
+		float2	T = Saturate( SolveCubic2( float3(-3.0 * Dot(A,B), Dot(C,B) - 2.0 * LengthSq(A), Dot(C,A) ) / -LengthSq(B) ));
 		return Sqrt( Min( LengthSq( C - (D + B * T.x) * T.x ), LengthSq( C - (D + B * T.y) * T.y )));
 	}
 

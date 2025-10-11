@@ -29,34 +29,44 @@ namespace AE::Graphics
 {
 	using namespace AE::Base;
 
-#	define VKLOADER_STAGE_DECLFNPOINTER
-#	 include "vulkan_loader/fn_vulkan_lib.h"
-#	 include "vulkan_loader/fn_vulkan_inst.h"
-#	undef  VKLOADER_STAGE_DECLFNPOINTER
 
-#	define VKLOADER_STAGE_INLINEFN
-#	 include "vulkan_loader/fn_vulkan_lib.h"
-#	 include "vulkan_loader/fn_vulkan_inst.h"
-#	undef  VKLOADER_STAGE_INLINEFN
+	//
+	// Vulkan Instance Functions
+	//
+	class VulkanInstanceFn
+	{
+	public:
+		#define VKLOADER_STAGE_DECLFNPOINTER
+		# include "vulkan_loader/fn_vulkan_lib.h"
+		# include "vulkan_loader/fn_vulkan_inst.h"
+		#undef  VKLOADER_STAGE_DECLFNPOINTER
 
-	extern PFN_vkGetInstanceProcAddr  _var_vkGetInstanceProcAddr;
-	ND_ VKAPI_ATTR inline PFN_vkVoidFunction vkGetInstanceProcAddr (VkInstance instance, const char * pName) __NE___ { return _var_vkGetInstanceProcAddr( instance, pName ); }
+		#define VKLOADER_STAGE_INLINEFN
+		# include "vulkan_loader/fn_vulkan_lib.h"
+		# include "vulkan_loader/fn_vulkan_inst.h"
+		#undef  VKLOADER_STAGE_INLINEFN
+		
+		static PFN_vkGetInstanceProcAddr  _var_vkGetInstanceProcAddr;
+		
+		ND_ VKAPI_ATTR static PFN_vkVoidFunction vkGetInstanceProcAddr (VkInstance instance, const char * pName) __NE___ { return _var_vkGetInstanceProcAddr( instance, pName ); }
+	};
+	StaticAssert( sizeof(VulkanInstanceFn) == 1 );
 
 
 
 	//
 	// Vulkan Device Functions Table
 	//
-	struct VulkanDeviceFnTable final : Noncopyable
+	class VulkanDeviceFnTable final : Noncopyable
 	{
 		friend struct VulkanLoader;
 		friend class VulkanDeviceFn;
 
 	// variables
 	public:
-#		define VKLOADER_STAGE_FNPOINTER
-#		 include "vulkan_loader/fn_vulkan_dev.h"
-#		undef  VKLOADER_STAGE_FNPOINTER
+		#define VKLOADER_STAGE_FNPOINTER
+		# include "vulkan_loader/fn_vulkan_dev.h"
+		#undef  VKLOADER_STAGE_FNPOINTER
 
 
 	// methods
@@ -69,7 +79,7 @@ namespace AE::Graphics
 	//
 	// Vulkan Device Functions
 	//
-	class VulkanDeviceFn
+	class VulkanDeviceFn : public VulkanInstanceFn
 	{
 	// variables
 	private:
@@ -85,12 +95,13 @@ namespace AE::Graphics
 		VulkanDeviceFn (const VulkanDeviceFn &)							__NE___	= default;
 		explicit VulkanDeviceFn (VulkanDeviceFnTable* table)			__NE___	: _table{table} {}
 
-		ND_ VulkanDeviceFnTable const* _GetVkTable ()					C_NE___	{ return _table; }
+		ND_ VulkanDeviceFnTable const*  _GetVkTable ()					C_NE___	{ return _table; }
 
-#		define VKLOADER_STAGE_INLINEFN
-#		 include "vulkan_loader/fn_vulkan_dev.h"
-#		undef  VKLOADER_STAGE_INLINEFN
+		#define VKLOADER_STAGE_INLINEFN
+		# include "vulkan_loader/fn_vulkan_dev.h"
+		#undef  VKLOADER_STAGE_INLINEFN
 	};
+	StaticAssert( sizeof(VulkanDeviceFn) == sizeof(void*) );
 
 
 
@@ -114,8 +125,6 @@ namespace AE::Graphics
 	};
 
 } // AE::Graphics
-
-#undef VULKAN_ENUM_BIT_OPERATORS
 
 
 // check for 'VulkanDeviceFnTable' structure size mismatch

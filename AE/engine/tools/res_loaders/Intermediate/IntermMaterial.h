@@ -158,7 +158,7 @@ namespace AE::ResLoader
 			bool  Set (EKey key, float value)						__Th___;
 			bool  Set (EKey key, const float4 &value)				__Th___;
 			bool  Set (EKey key, const RGBA32f &value)				__Th___	{ return Set( key, float4(value) ); }
-			bool  Set (EKey key, MtrTexture &&value)				__Th___;
+			bool  Set (EKey key, MtrTexture value)					__Th___;
 
 		ND_ bool  Get (EKey key, OUT float &value)					C_NE___;
 		ND_ bool  Get (EKey key, OUT float4 &value)					C_NE___;

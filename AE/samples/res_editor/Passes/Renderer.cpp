@@ -87,6 +87,7 @@ namespace AE::ResEditor
 				// ui_IA.UI_ShowHide		- ignore
 				// ui_IA.UI_Screenshot		- ignore
 				// ui_IA.UI_ReloadScript	- ignore
+				// ui_IA.UI_FrameCapture	- ignore
 				// ui_IA.FullscreenOnOff	- ignore
 
 

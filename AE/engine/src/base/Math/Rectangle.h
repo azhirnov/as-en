@@ -456,7 +456,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T> requires(IsFloatPoint<T>)
-	NdCx__ bool4  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const EnabledBitCount bitCount) __NE___
+	ND_ bool4  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const EnabledBitCount bitCount) __NE___
 	{
 		return bool4{ Base::BitEqual( lhs.left,   rhs.left,   bitCount ),
 					  Base::BitEqual( lhs.top,    rhs.top,    bitCount ),
@@ -465,7 +465,7 @@ namespace AE::Base
 	}
 
 	template <typename T> requires(IsFloatPoint<T>)
-	NdCx__ bool4  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs) __NE___
+	ND_ bool4  BitEqual (const Rectangle<T> &lhs, const Rectangle<T> &rhs) __NE___
 	{
 		return bool4{ Base::BitEqual( lhs.left,   rhs.left   ),
 					  Base::BitEqual( lhs.top,    rhs.top    ),

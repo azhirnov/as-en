@@ -16,7 +16,7 @@ namespace AE::App
 	// WinAPI Window
 	//
 
-	class WindowWinAPI final : public WindowBase
+	class WindowWinAPI final : public WindowBaseWithSurface
 	{
 		friend class ApplicationWinAPI;
 
@@ -41,7 +41,7 @@ namespace AE::App
 
 		InputActionsWinAPI	_input;
 
-		RectI				_lastWindowSize;	// before switching to fullscreen
+		RectI				_lastWindowRect;	// before switching to fullscreen
 
 
 	// methods

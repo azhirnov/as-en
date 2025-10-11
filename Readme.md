@@ -12,7 +12,7 @@ __AsEn__ - is a totally asynchronous engine for desktop and mobile.
 Language: C++ 20<br/>
 Platforms: Windows, Android, Linux, MacOS<br/>
 GraphicsAPI: Vulkan, Metal<br/>
-Shaders: GLSL, MSL<br/>
+Shaders: GLSL, MSL, SLang<br/>
 Stable version: see [Tags](https://github.com/azhirnov/as-en/tags)<br/>
 
 Key features:
@@ -50,7 +50,7 @@ Tools:
  * [Lock-Free Algorithms Sandbox](AE/engine/tools/lfas/Readme.md)
  * [GLSL-Trace](AE/engine/tools/res_pack/shader_trace/Readme.md)
  * [Detect Image Z-Curve](AE/engine/tools/vulkan_image_zcurve/Readme.md)
- * [Vulkan Header Generator](AE/engine/tools/vulkan_header_gen/Readme.md)
+ * [Vulkan/OpenXR Header Generator](AE/engine/tools/header_gen/Readme.md)
  * [Vulkan Synchronizations Logger](AE/engine/tools/vulkan_sync_log/Readme.md)
  * [FeatureSet Generator](AE/engine/tools/feature_set_gen/Readme.md)
  * [Remote Graphics Device](AE/engine/tools/remote_graphics_device/Readme.md)
@@ -62,7 +62,6 @@ Papers:
  * [CPU Benchmarks](AE/docs/papers/CPU_Benchmarks.md)
 
 
-
 ## rus
 
 __AsEn__ - полностью асинхронный движок.
@@ -70,8 +69,8 @@ __AsEn__ - полностью асинхронный движок.
 Язык: C++ 20<br/>
 Платформы: Windows, Android, Linux, MacOS<br/>
 Графика: Vulkan, Metal<br/>
-Шейдеры: GLSL, MSL<br/>
 Стабильная версия: [помечена тэгом](https://github.com/azhirnov/as-en/tags)<br/>
+Шейдеры: GLSL, MSL, SLang<br/>
 
 Документация по движку:
  * [Планировщик асинхронных задач](AE/docs/engine/TaskScheduler-ru.md)

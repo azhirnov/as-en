@@ -268,7 +268,25 @@ namespace _hidden_
 	{
 		return utf8proc_totitle( c );
 	}
-
+	
+/*
+=================================================
+	IsUtf8BOM / SkipUtf8BOM
+=================================================
+*/
+	Nd__IF bool  IsUtf8BOM (StringView str) __NE___
+	{
+		return	str.size() >= 3			and
+				str[0] == char(0xEF)	and
+				str[1] == char(0xBB)	and
+				str[2] == char(0xBF);
+	}
+	
+	____IF void  SkipUtf8BOM (INOUT StringView &str) __NE___
+	{
+		if ( IsUtf8BOM( str ))
+			str = str.substr( 3 );
+	}
 
 } // AE::Base
 

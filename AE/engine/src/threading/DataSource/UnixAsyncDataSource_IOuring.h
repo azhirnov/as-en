@@ -244,6 +244,8 @@ namespace AE::Threading
 			if ( per_thread.created )
 				::io_uring_queue_exit( per_thread.ring.Ptr< io_uring >() );
 		}
+
+		_Release();
 	}
 
 /*

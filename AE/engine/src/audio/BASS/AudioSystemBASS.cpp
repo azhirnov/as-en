@@ -23,7 +23,17 @@ namespace AE::Audio
 	//	CHECK_ERR( HIWORD(bass.Encode_OGG_GetVersion()) == BASSVERSION );
 
 		BASS_CHECK_ERR( bass.Init( -1, 44100u, BASS_DEVICE_3D, null, null ));
-		BASS_CHECK_ERR( bass.RecordInit( -1 ));
+
+		if ( not bass.RecordInit( -1 ))
+		{
+			auto err = bass.ErrorGetCode();
+			if ( err == BASS_ERROR_DRIVER ){
+				AE_LOGW( "bass.RecordInit: no available device driver" );
+			}else
+			if ( err != BASS_OK ){
+				CHECK_ERR_MSG( BASS_CheckError( err ), "bass.RecordInit" );
+			}
+		}
 
 		BASS_CHECK( bass.SetConfig( BASS_CONFIG_UPDATETHREADS,		cfg.updateThreads ));
 		BASS_CHECK( bass.SetConfig( BASS_CONFIG_ASYNCFILE_BUFFER,	uint(cfg.asyncFileBuffer) ));

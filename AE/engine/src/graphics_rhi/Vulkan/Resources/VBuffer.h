@@ -15,7 +15,7 @@ namespace AE::Graphics
 	// Vulkan Buffer immutable data
 	//
 
-	class VBuffer final
+	class VBuffer final : private VulkanInstanceFn
 	{
 	// variables
 	private:

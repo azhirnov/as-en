@@ -123,12 +123,12 @@ void ASmain ()
 	});
 	fset.AddTexelFormats( EFormatFeature::AttachmentBlend, {
 		EPixelFormat::RGBA8_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RGB10_A2_UNorm, 
-		EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, 
+		EPixelFormat::R5G6B5_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, 
 		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F
 	});
 	fset.AddTexelFormats( EFormatFeature::Attachment, {
 		EPixelFormat::RGBA8_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RGB10_A2_UNorm, 
-		EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, 
+		EPixelFormat::R5G6B5_UNorm, EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, 
 		EPixelFormat::R8I, EPixelFormat::RG8I, EPixelFormat::RGBA8I, EPixelFormat::R16I, 
 		EPixelFormat::RG16I, EPixelFormat::RGBA16I, EPixelFormat::R32I, EPixelFormat::RG32I, 
 		EPixelFormat::RGBA32I, EPixelFormat::R8U, EPixelFormat::RG8U, EPixelFormat::RGBA8U, 
@@ -139,7 +139,7 @@ void ASmain ()
 	});
 	fset.AddTexelFormats( EFormatFeature::LinearSampled, {
 		EPixelFormat::RGBA8_SNorm, EPixelFormat::RG8_SNorm, EPixelFormat::R8_SNorm, EPixelFormat::RGBA8_UNorm, 
-		EPixelFormat::RG8_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RGB10_A2_UNorm, EPixelFormat::RGB_5_6_5_UNorm, 
+		EPixelFormat::RG8_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RGB10_A2_UNorm, EPixelFormat::R5G6B5_UNorm, 
 		EPixelFormat::BGRA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::sBGR8_A8, EPixelFormat::R16F, 
 		EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R11G11B10F, EPixelFormat::RGB9F_E5, 
 		EPixelFormat::Depth24, EPixelFormat::Depth24_Stencil8, EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ETC2_sRGB8, 
@@ -158,7 +158,7 @@ void ASmain ()
 		// Adreno 500
 		EPixelFormat::RGBA8_UNorm, EPixelFormat::sRGB8_A8, EPixelFormat::BGRA8_UNorm, EPixelFormat::sBGR8_A8,
 		EPixelFormat::RGB10_A2_UNorm, EPixelFormat::R8_UNorm, EPixelFormat::RG8_UNorm, EPixelFormat::RGB8_UNorm,
-		EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGBA4_UNorm,
+		EPixelFormat::R5G6B5_UNorm, EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGBA4_UNorm,
 		EPixelFormat::Depth16, EPixelFormat::Depth24_Stencil8, EPixelFormat::Depth32F,
 
 		// Adreno 600

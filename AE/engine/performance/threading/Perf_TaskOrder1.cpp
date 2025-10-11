@@ -9,7 +9,7 @@ namespace
 	constexpr uint	c_threadCount	= 1'000;
 	constexpr uint	c_repeatCount	= 1;
 	
-	using TimePoint_t	= std::chrono::high_resolution_clock::time_point;
+	using TimePoint_t	= HighResClock::time_point;
 //-----------------------------------------------------------------------------
 
 

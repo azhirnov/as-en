@@ -8,9 +8,6 @@
 # endif
 #endif
 
-template <typename T>
-constexpr bool _enable_bitmask_operators (T);
-
 namespace AE::Base
 {
 

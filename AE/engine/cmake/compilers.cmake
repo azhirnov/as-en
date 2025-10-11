@@ -15,9 +15,9 @@
 #	AE_ENABLE_EXCEPTIONS			BOOL :		TRUE - enable,		FALSE - disable exception and RTTI
 #	AE_ENABLE_LOGS					BOOL
 #	AE_SIMD_AVX						STRING :	0, 1, 2, 30(AVX512F), 31(Cannon Lake), 32(Ice Lake), 33(Zen4)
-#	AE_SIMD_SSE						STRING :	0, 20, 30, 31, 41, 42
-#	AE_SIMD_AES						STRING :	0, 1, 2, 3
-#	AE_SIMD_SHA						STRING :	0, 20, 21, 30
+#	AE_SIMD_SSE						STRING :	0, 20, 30, 31(SSSE3), 41, 42
+#	AE_SIMD_AES						STRING :	0, 1, 2(VAES), 3(AESKL)
+#	AE_SIMD_SHA						STRING :	0, 20(SHA2-256), 21(SHA2-512), 30(SHA3)
 
 
 # detect target platform
@@ -195,12 +195,12 @@ if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") 
 												  -mavx512vbmi2 -mavx512vpopcntdq -mavx512bitalg -mavx512vnni ) # -mavx512vpclmulqdq -mavx512gfni -mavx512vaes )
 		elseif (${AE_SIMD_AVX} EQUAL 31)	# Cannon Lake
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx512f -mavx512cd -mavx512vl -mavx512dq -mavx512bw -mavx512ifma -mavx512vbmi )
-		elseif (${AE_SIMD_AVX} EQUAL 30)
+		elseif (${AE_SIMD_AVX} EQUAL 30)	# base AVX512
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx512f )
-		elseif (${AE_SIMD_AVX} EQUAL 2)
+		elseif (${AE_SIMD_AVX} EQUAL 2)		# AVX2
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-avx512f )
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx2 )
-		elseif (${AE_SIMD_AVX} EQUAL 1)
+		elseif (${AE_SIMD_AVX} EQUAL 1)		# AVX
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mno-avx512f )
 			set( COMPILER_FLAGS ${COMPILER_FLAGS} -mavx -mno-avx2 )
 		elseif (${AE_SIMD_AVX} EQUAL 0)
@@ -395,7 +395,7 @@ if ( MSVC )
 		 "_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS"	# for Abseil
 		 "AE_COMPILER_MSVC" "AE_PLATFORM_TARGET_VERSION_MAJOR=${WINDOWS_TARGET_VERSION_MAJ}" "AE_PLATFORM_TARGET_VERSION_MINOR=${WINDOWS_TARGET_VERSION_MIN}"
 		 "UNICODE=1"
-		 "_USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION=0" # only function name
+		 "_USE_DETAILED_FUNCTION_NAME_IN_SOURCE_LOCATION=1" # function signature for compatibility with clang
 	)
 
 	if (${COMPILER_MSVC_CLANG})
@@ -410,16 +410,17 @@ if ( MSVC )
 			-Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Werror=invalid-pch -Werror=defaulted-function-deleted
 			-Werror=ignored-qualifiers -Werror=microsoft-template -Werror=nonportable-include-path -Werror=inconsistent-missing-override
 			-Werror=microsoft-cast -Werror=invalid-token-paste -Werror=sign-compare -Werror=bitwise-instead-of-logical -Werror=bitwise-conditional-parentheses
-			-Werror=backslash-newline-escape -Werror=array-bounds -Werror=c++14-extensions -Werror=c++17-extensions -Werror=c++20-extensions
+			-Werror=backslash-newline-escape -Werror=array-bounds -Werror=c++14-extensions -Werror=c++17-extensions -Werror=c++20-extensions -Werror=typename-missing
 			# warnings
 			-Wunused-parameter -Wnarrowing -Wlogical-op-parentheses  -Wunused  -Wloop-analysis -Wincrement-bool
 			-Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion
 			-Wunused-lambda-capture -Wundef -Wformat-security
-			-Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow
+			-Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wunknown-pragmas -Wpragmas -Wstrict-overflow
 			-Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsizeof-pointer-memaccess
 			# disable warnings
 			-Wno-comment -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-undefined-inline -Wno-unused-private-field
 			-Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wno-switch -Wno-missing-braces -Wno-constant-evaluated
+			-Wno-missing-include-dirs
 		)
 	else()
 		set( COMPILER_FLAGS ${COMPILER_FLAGS} /fp:strict /fp:except- )
@@ -487,7 +488,7 @@ endif()
 #	local  - only for AE projects
 #==================================================================================================
 set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX "-Wno-unused -Wno-switch -Wno-undef -Wno-comment -fPIC -Wno-missing-braces -fno-math-errno" )
-set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wno-missing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Warray-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC )
+set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX  -Wdouble-promotion -Wchar-subscripts -Werror=format -Wmain -Wno-missing-braces -Werror=uninitialized -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Warray-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC )
 
 if (${AE_ENABLE_EXCEPTIONS})
 	set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_CXX "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX} -frtti -fexceptions" )
@@ -503,6 +504,7 @@ endif()
 #	-ffp-contract=fast
 #	-ffunction-sections -fdata-sections
 #	-no-canonical-prefixes
+#	-Wmissing-include-dirs	- too noisy
 
 #==================================================================================================
 # Elbrus LCC Compilation settings
@@ -515,7 +517,7 @@ if ( COMPILER_LCC )
 	#--------------------------------------------
 	set( AE_CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 
-	set( LCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=sign-compare -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=multichar -Winvalid-offsetof -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wno-missing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Warray-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC )
+	set( LCC_SHARED_OPTS         ${COMPILER_FLAGS} -Wmaybe-uninitialized -Wfree-nonheap-object -Wcast-align -Wlogical-op -Waddress -Wno-non-template-friend -Werror=return-local-addr -Werror=sign-compare -Werror=shadow=local -Werror=delete-incomplete -Werror=odr -Werror=multichar -Winvalid-offsetof -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wno-missing-braces -Werror=uninitialized -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Warray-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch -Wformat-security -fvisibility-inlines-hidden -fvisibility=hidden -fPIC )
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_LCC" "AE_COMPILER_GCC" )
 
 	# Release  TODO: -Ofast ?
@@ -621,7 +623,7 @@ endif()
 # https://clang.llvm.org/docs/DiagnosticsReference.html
 #==================================================================================================
 set( CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST_C_CXX} -Wnarrowing -stdlib=libc++" ) # -Wno-deprecated-builtins
-set( CLANG_SHARED_LOCAL_WARNING_LIST_CXX  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -Wnarrowing -Wlogical-op-parentheses  -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch -Werror=range-loop-bind-reference -Wno-assume -Wno-constant-evaluated -Werror=c++20-extensions )
+set( CLANG_SHARED_LOCAL_WARNING_LIST_CXX  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST_CXX} -Wnarrowing -Wlogical-op-parentheses  -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch -Werror=range-loop-bind-reference -Wno-assume -Wno-constant-evaluated -Werror=c++20-extensions -Werror=extra-tokens )
 
 #==================================================================================================
 # Linux Clang Compilation settings
@@ -889,7 +891,7 @@ if ( COMPILER_CLANG_ANDROID )
 	set( CMAKE_EXE_LINKER_FLAGS_RELEASE "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_RELEASE ${CLANG_SHARED_OPTS} -O3 -Ofast -fomit-frame-pointer -finline-functions CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_RELEASE ${CLANG_SHARED_OPTS} -O3 -ffast-math -fomit-frame-pointer -finline-functions CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_RELEASE " -static" CACHE INTERNAL "" FORCE )
 	# Profile
 	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Profile>: > )

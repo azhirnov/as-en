@@ -23,6 +23,7 @@ set( AE_ENABLE_IMGUI 				ON  CACHE BOOL "use ImGUI" )
 set( AE_ENABLE_KTX	 				ON  CACHE BOOL "use KTX" )
 
 set( AE_ENABLE_LZ4	 				ON  CACHE BOOL "use lz4" )
+set( AE_ENABLE_LLAMA				ON  CACHE BOOL "use llama" )
 
 set( AE_ENABLE_MSDFGEN 				ON  CACHE BOOL "use msdfgen" )
 set( AE_ENABLE_METAL 				OFF CACHE BOOL "enable Metal API" )
@@ -30,11 +31,13 @@ set( AE_ENABLE_MESH_OPTIMIZER		ON  CACHE BOOL "use MeshOptimizer" )
 
 set( AE_ENABLE_NVML					ON  CACHE BOOL "use NVIDIA Management Library" )
 
+set( AE_ENABLE_OPENXR				OFF CACHE BOOL "enable OpenXR (headers only)" )
+
 set( AE_ENABLE_REMOTE_GRAPHICS		OFF CACHE BOOL "enable Remote Graphics" )
 
 set( AE_ENABLE_SPIRV_CROSS 			ON  CACHE BOOL "use SPIRV-Cross" )
 set( AE_ENABLE_STB 					ON  CACHE BOOL "use STB" )
-set( AE_ENABLE_SLANG				OFF CACHE BOOL "use SLang" )
+set( AE_ENABLE_SLANG				ON  CACHE BOOL "use SLang" )
 
 set( AE_ENABLE_TINYGLTF 			ON  CACHE BOOL "use tinygltf" )
 
@@ -126,8 +129,17 @@ if (${AE_ENABLE_NVML})
 	add_subdirectory( "nvml" )
 endif()
 
+if (${AE_ENABLE_OPENXR})
+	add_subdirectory( "OpenXR" )
+endif()
+
 if (${AE_ENABLE_LZ4})
 	add_subdirectory( "lz4" )
+endif()
+
+
+if (${AE_ENABLE_LLAMA})
+	add_subdirectory( "llama" )
 endif()
 
 if (${AE_ENABLE_MSDFGEN})

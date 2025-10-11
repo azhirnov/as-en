@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Common.h"
+#include "base/Utils/EnumSet.h"
 
 namespace AE::Base
 {
@@ -20,6 +21,7 @@ namespace AE::Base
 		_Count
 	};
 
+
 	enum class EThreadPriority : ubyte
 	{
 		PerFrame,		// high priority for per frame tasks, should be used for 'EThread::PerFrame' and 'EThread::Renderer'.
@@ -30,6 +32,25 @@ namespace AE::Base
 		Highest,		// only for special use case.
 		_Count
 	};
+
+
+	enum class EThreadPowerThrottling : ubyte
+	{
+		Auto,
+		Enable,
+		Disable,
+	};
+
+
+	enum class ESystemSleepState : ubyte
+	{
+		AllowSleep,
+		AllowLowPowerMode,				// allow to enter to low power mode, but never sleep
+		DontSleep_AllowTurnDisplayOff,
+		DisplayAlwaysOn,
+
+		Default		= AllowSleep,
+	};
 //-----------------------------------------------------------------------------
 
 
@@ -39,7 +60,7 @@ namespace AE::Base
 	ToString (EOperationSystem)
 =================================================
 */
-	ND_ inline StringView  ToString (EOperationSystem value)
+	Nd__In StringView  ToString (EOperationSystem value)
 	{
 		switch_enum( value )
 		{

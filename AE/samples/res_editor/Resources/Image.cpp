@@ -233,7 +233,9 @@ namespace {
 			auto&	load_op = result->_loadOps.emplace_back();
 
 			load_op.flags	= flags;
-			load_op.loaded	= DeferResult< IntermImageRC >( RVRef(imageData) );
+			load_op.loaded	= Scheduler().Run(
+									ETaskQueue::Background,
+									DeferResult< IntermImageRC >( RVRef(imageData) ));
 
 			result->_DtTrQueue().EnqueueForUpload( result );
 		}
@@ -359,6 +361,8 @@ namespace {
 		{
 			if ( op.IsUploadComplete() )
 				continue;
+
+			ASSERT( op.loaded->IsInQueue() or op.loaded->IsFinished() );
 
 			WithResult(
 				op.loaded,
@@ -799,8 +803,8 @@ namespace {
 				CHECK_ERR( image );
 
 				CHECK( RenderGraph().GetStateTracker().AddResource( image,
-															 EResourceState::_InvalidState,								// current is not used
-															 EResourceState::ShaderSample | EResourceState::AllShaders,	// default
+															 EResourceState::_InvalidState,										// current is not used
+															 EResourceState::ShaderSample | EResourceState::AllShaderStages,	// default
 															 ctx.GetCommandBatchRC() ));
 				ctx.ResourceState( image, EResourceState::Invalidate );
 

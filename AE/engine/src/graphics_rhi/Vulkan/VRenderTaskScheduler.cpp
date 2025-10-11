@@ -3,7 +3,14 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Vulkan/Commands/VGraphicsContext.h"
 # include "graphics_rhi/Vulkan/VRenderTaskScheduler.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 # include "graphics_rhi/RenderGraphImpl.h"
+
+#ifdef AE_PLATFORM_WINDOWS
+#	include "base/Platforms/WindowsHeader.cpp.h"
+#	include "vulkan/vulkan_win32.h"
+#	include "base/Defines/Undef.h"
+#endif
 
 namespace AE::Graphics
 {
@@ -103,9 +110,10 @@ namespace AE::Graphics
 
 		for (auto& batch : pending)
 		{
-			auto&	submit	= submits [submits_count++];
+			auto&		submit	= submits [submits_count++];
+			VNextChain	next	{submit};
+
 			submit.sType	= VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			submit.pNext	= null;
 
 			// command buffers
 			{
@@ -124,10 +132,21 @@ namespace AE::Graphics
 
 			// signal semaphores
 			CHECK_ERR( batch->_GetSignalSemaphores( allocator, OUT submit.pSignalSemaphores, OUT submit.signalSemaphoreCount ));
-
+			
+			// extensions
+		  #ifdef AE_PLATFORM_WINDOWS
+			if ( void* keyed_mtx = batch->ExtractKeyedMutexAcquireRelease() )
+				next.Add( *Cast<VkWin32KeyedMutexAcquireReleaseInfoKHR>(keyed_mtx) );
+		  #endif
+			
 		  #ifdef AE_DEBUG
 			if ( dev.GetVExtensions().frameBoundary )
-				submit.pNext = AllBits( batch->_flags, CmdBatchDesc::EFlags::FrameEnd ) ? &frame_boundary_end : &frame_boundary;
+			{
+				if ( AllBits( batch->_flags, CmdBatchDesc::EFlags::FrameEnd ))
+					next.Add( frame_boundary_end );
+				else
+					next.Add( frame_boundary );
+			}
 		  #endif
 		}
 
@@ -182,9 +201,10 @@ namespace AE::Graphics
 
 		for (auto& batch : pending)
 		{
-			auto&	submit	= submits [submits_count++];
+			auto&		submit	= submits [submits_count++];
+			VNextChain	next	{submit};
+
 			submit.sType	= VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
-			submit.pNext	= null;
 			submit.flags	= 0;
 
 			// command buffers
@@ -205,9 +225,20 @@ namespace AE::Graphics
 			// signal semaphores
 			CHECK_ERR( batch->_GetSignalSemaphores( allocator, OUT submit.pSignalSemaphoreInfos, OUT submit.signalSemaphoreInfoCount ));
 
+			// extensions
+		  #ifdef AE_PLATFORM_WINDOWS
+			if ( void* keyed_mtx = batch->ExtractKeyedMutexAcquireRelease() )
+				next.Add( *Cast<VkWin32KeyedMutexAcquireReleaseInfoKHR>(keyed_mtx) );
+		  #endif
+
 		  #ifdef AE_DEBUG
 			if ( dev.GetVExtensions().frameBoundary )
-				submit.pNext = AllBits( batch->_flags, CmdBatchDesc::EFlags::FrameEnd ) ? &frame_boundary_end : &frame_boundary;
+			{
+				if ( AllBits( batch->_flags, CmdBatchDesc::EFlags::FrameEnd ))
+					next.Add( frame_boundary_end );
+				else
+					next.Add( frame_boundary );
+			}
 		  #endif
 		}
 

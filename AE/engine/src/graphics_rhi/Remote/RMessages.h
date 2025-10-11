@@ -145,7 +145,7 @@ namespace AE::RemoteGraphics::Msg
 			DeserializeFromMemory,
 
 			// All contexts (Vulkan / Metal)
-			WriteTimestamp,		// on Metal with ARM HW supported time query only on begin/end of encoder
+			WriteTimestamp,		// on Metal, with ARM HW, supported time query only on begin/end of encoder
 			Query,
 
 			// Device

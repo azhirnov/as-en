@@ -4,6 +4,7 @@
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics_rhi/Public/IDevice.h"
+# include "graphics_rhi/Public/CoopVector.h"
 # include "graphics_rhi/Vulkan/VQueue.h"
 # include "graphics_rhi/Vulkan/Utils/VNvPerfProfiler.h"
 # include "graphics_rhi/Vulkan/Utils/VAMDPerfProfiler.h"
@@ -28,7 +29,15 @@ namespace AE::Graphics
 		#define VKFEATS_STRUCT
 		#include "vulkan_loader/vk_features.h"
 		#undef  VKFEATS_STRUCT
-
+		
+		static constexpr VkDebugUtilsMessageSeverityFlagsEXT	c_DefaultDebugMessageSeverity =	//VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+																								//VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+																								VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+																								VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		static constexpr VkDebugUtilsMessageTypeFlagsEXT		c_DefaultDebugMessageTypes	=	VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+																								VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+																								VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
+																								VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
 
 	protected:
 		using Queues_t			= StaticArray< VQueue, uint(EQueueType::_Count) >;
@@ -178,6 +187,11 @@ namespace AE::Graphics
 
 		ND_ bool  GetMemoryRequirements (const VkBufferCreateInfo &, OUT VkMemoryRequirements2*)	C_NE___;
 		ND_ bool  GetMemoryRequirements (const VkImageCreateInfo &, OUT VkMemoryRequirements2*)		C_NE___;
+
+		// requires 'FeatureSet::cooperativeVector'
+		ND_ bool  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixOnHost>)			C_NE___;
+		ND_ bool  GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost>,
+													 MutableArrayView<BytesUSize> dstSizeArray)	C_NE___;
 	};
 
 
@@ -285,6 +299,8 @@ namespace AE::Graphics
 
 		Synchronized< SharedMutex,
 			MemoryReportData >		_memoryReport;
+
+		Atomic<bool>				_hasError				{false};
 	  #endif
 
 		bool						_enableInfoLog			= false;
@@ -305,6 +321,8 @@ namespace AE::Graphics
 			bool  LoadNvPerf ()																		__NE___;
 			bool  LoadAmdPerf ()																	__NE___;
 			bool  LoadRenderDoc ()																	__NE___;
+
+		ND_ bool  HasValidationError ()																__NE___	{ return _hasError.exchange(false); }
 		#endif
 
 			bool  ChooseDriver (ArrayView<EDriver> driverList)										C_NE___;
@@ -314,6 +332,7 @@ namespace AE::Graphics
 			bool  DestroyInstance ()																__NE___;
 
 			bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT	severity,
+									   VkDebugUtilsMessageTypeFlagsEXT		types,
 									   DebugReport_t						callback = Default)		__NE___;
 			void  DestroyDebugCallback ()															__NE___;
 		ND_ bool  IsEnabledDebugCallback ()															C_NE___;
@@ -403,13 +422,9 @@ namespace AE::Graphics
 			_DeviceMemoryReportCallback (const VkDeviceMemoryReportCallbackDataEXT*  pCallbackData,
 										 void*                                       pUserData)							__NE___;
 
-		void  _DebugReport (INOUT String &, bool breakOnError, DebugReport_t &cb, const DebugReport &)					__Th___;
+		void  _DebugReport (INOUT String &, DebugReport_t &cb, const DebugReport &)										__Th___;
 	};
 
-	static constexpr VkDebugUtilsMessageSeverityFlagsEXT	DefaultDebugMessageSeverity =	//VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-																							//VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-																							VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-																							VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 
 /*
 =================================================

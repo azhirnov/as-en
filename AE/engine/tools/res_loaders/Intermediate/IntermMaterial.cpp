@@ -104,7 +104,7 @@ namespace AE::ResLoader
 	Set (MtrTexture)
 =================================================
 */
-	bool  IntermMaterial::Set (EKey key, MtrTexture &&value) __Th___
+	bool  IntermMaterial::Set (EKey key, MtrTexture value) __Th___
 	{
 		CHECK_ERR( key < EKey::_Count );
 		auto&	param = _params[ uint(key) ];

@@ -54,8 +54,7 @@ namespace AE::Samples::Demo
 
 		ND_ FrameUID	GetPrevFrameId ()	const	{ return _prevFrameId; }
 		ND_ FrameUID	GetNextFrameId ()	const	{ return _prevFrameId.Next(); }
-		ND_ auto		GetSurface ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _surface; }
-		ND_ auto		GetSurfaceArg ()	const	{ DRC_SHAREDLOCK( _drCheck );  return ArgRef( *_surface ); }
+		ND_ auto&		GetSurface ()		const	{ DRC_SHAREDLOCK( _drCheck );  return *_surface; }
 
 
 		// thread safe

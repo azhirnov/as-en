@@ -8,6 +8,7 @@ include( "${AE_EXTERNAL_PATH}/config.cmake" )
 file( GLOB_RECURSE HEADERS "*.h" )
 set( SOURCES
 	"absl/container/internal/raw_hash_set.cc"
+	"absl/container/internal/hashtablez_sampler.cc"
 	"absl/hash/internal/hash.cc"
 	"absl/hash/internal/low_level_hash.cc"
 	"absl/hash/internal/city.cc"
@@ -20,6 +21,7 @@ target_include_directories( "Abseil" PRIVATE "." )
 
 set_target_properties( "Abseil" PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
 target_compile_features( "Abseil" PUBLIC cxx_std_17 )
+target_compile_definitions( "Abseil" PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS _ENABLE_EXTENDED_ALIGNED_STORAGE )
 
 install( TARGETS "Abseil" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib" )
 install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/absl" DESTINATION "." FILES_MATCHING PATTERN "*.h" PATTERN "*.inc" )

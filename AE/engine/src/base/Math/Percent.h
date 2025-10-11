@@ -54,8 +54,8 @@ namespace AE::Base
 	using Percent	= TPercent< float >;
 	using PercentD	= TPercent< double >;
 
-	NdCx__ Percent operator "" _pct (long double value)				__NE___ { return Percent{ Percent::FromPercent( Percent::Value_t( value ))}; }
-	NdCx__ Percent operator "" _pct (unsigned long long value)		__NE___ { return Percent{ Percent::FromPercent( Percent::Value_t( value ))}; }
+	NdCx__ Percent operator ""_pct (long double value)				__NE___ { return Percent{ Percent::FromPercent( Percent::Value_t( value ))}; }
+	NdCx__ Percent operator ""_pct (unsigned long long value)		__NE___ { return Percent{ Percent::FromPercent( Percent::Value_t( value ))}; }
 //-----------------------------------------------------------------------------
 
 

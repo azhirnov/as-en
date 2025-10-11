@@ -5,10 +5,13 @@
 #include "res_pack/pipeline_compiler/Packer/PipelinePack.h"
 #include "res_pack/pipeline_compiler/Packer/RenderPassPack.h"
 #include "res_pack/pipeline_compiler/Compiler/IShaderPreprocessor.h"
+#include "res_pack/pipeline_compiler/ScriptObjects/Common.h"
+#include "res_pack/pipeline_compiler/Compiler/SpirvCompiler.h"
 
 namespace slang {
 	struct IGlobalSession;
 	struct ISession;
+	struct ShaderReflection;
 }
 
 namespace AE::PipelineCompiler
@@ -22,11 +25,13 @@ namespace AE::PipelineCompiler
 	{
 	// types
 	public:
+		using ShaderReflection = SpirvCompiler::ShaderReflection;
+
 		struct Input
 		{
-		//	EShader				shaderType		= Default;
-		//	Version2			spirvVersion;
-		//	EShaderOpt			options			= Default;
+			EShader				shaderType		= Default;
+			EShaderOpt			options			= Default;
+			EShaderVersion		dstVersion		= Default;
 			StringView			entry;
 			StringView			header;
 			StringView			source;
@@ -37,7 +42,9 @@ namespace AE::PipelineCompiler
 		{
 			SpirvBytecode_t		spirv;
 			MetalBytecode_t		metal;
+			String				source;
 			String				log;
+			ShaderReflection	reflection;
 		};
 		
 		using slang_shutdown_t = void (*) ();
@@ -51,6 +58,10 @@ namespace AE::PipelineCompiler
 		Library						_lib;
 		slang_shutdown_t			_shutdown		= null;
 
+		Array<String>				_includeDirs;
+		
+		static constexpr bool		_quietWarnings		= true;
+
 
 	// methods
 	public:
@@ -59,11 +70,18 @@ namespace AE::PipelineCompiler
 
 		ND_ bool  IsInitialized ()									C_NE___	{ return _session != null; }
 
-		ND_ bool  Compile (const Input &in, OUT Output &out);
+		ND_ bool  Compile (const Input &in, OUT Output &out)		__NE___;
 
 	private:
 		ND_ bool  _Initialize (ArrayView<Path> includeDirs);
 			void  _Deinitialize ();
+
+		ND_ bool  _BeginSession (const Input &in);
+			void  _EndSession ();
+			
+		ND_ bool  _CompileImpl (const Input &in, OUT Output &out)	__Th___;
+
+		ND_ bool  _ParseReflection (slang::ShaderReflection &layout, OUT ShaderReflection &result) __Th___;
 	};
 
 

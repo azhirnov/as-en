@@ -274,6 +274,13 @@ namespace
 		ptr->fs.fragmentShadingRateTexelSize.aspectRatio= POTValue{ aspect }.GetPOT();
 	}
 
+	static void  FS_AddIntegerDotProduct (ScriptFeatureSet* ptr,  const ScriptArray<EIntegerDotProductFeat> &idotFeats) __Th___
+	{
+		for (auto value : idotFeats) {
+			ptr->fs.integerDotProductFeatures.insert( value );
+		}
+	}
+
 	static void  FS_MergeMin (ScriptFeatureSet* ptr, ScriptFeatureSet* from) __Th___
 	{
 		CHECK_THROW_MSG( from != null );
@@ -437,6 +444,7 @@ namespace
 			AS_METHOD( binder, FS_requiredQueues,				"requiredQueues",				{} );
 			AS_METHOD( binder, FS_AddShadingRate,				"AddShadingRate",				{} );
 			AS_METHOD( binder, FS_fragmentShadingRateTexelSize,	"fragmentShadingRateTexelSize",	{} );
+			AS_METHOD( binder, FS_AddIntegerDotProduct,			"AddIntegerDotProduct",			{} );
 
 			#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )					\
 				if constexpr( (not IsSame< _type_, PerDescriptorSet			>)	and \
@@ -452,6 +460,7 @@ namespace
 							  (not IsSame< _type_, ShadingRateSet_t			>)	and	\
 							  (not IsSame< _type_, CoopMatrixSet_t			>)	and	\
 							  (not IsSame< _type_, CoopVecSet_t				>)	and	\
+							  (not IsSame< _type_, EIntegerDotProductFeats	>)	and	\
 							  (not IsSame< _type_, VRSTexelSize				>))		\
 					AS_METHOD( binder, Set_FS_ ## _name_, ToMethodName( "", AE_TOSTRING( _name_ )), {} );		\
 																												\

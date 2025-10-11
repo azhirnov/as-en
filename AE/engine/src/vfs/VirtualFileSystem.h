@@ -228,7 +228,7 @@ namespace AE
 	GetVFS
 =================================================
 */
-	ND_ inline VFS::VirtualFileSystem&  GetVFS () __NE___
+	Nd__In VFS::VirtualFileSystem&  GetVFS () __NE___
 	{
 		return VFS::VirtualFileSystem::_Instance();
 	}

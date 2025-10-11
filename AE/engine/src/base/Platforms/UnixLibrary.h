@@ -8,7 +8,7 @@
 # include "base/Utils/Helpers.h"
 # include "base/Algorithms/ArrayUtils.h"
 # include "base/Containers/NtStringView.h"
-# include "base/FileSystem/Path.h"
+# include "base/CompileTime/FunctionInfo.h"
 
 namespace AE::Base
 {
@@ -27,14 +27,15 @@ namespace AE::Base
 	// methods
 	public:
 		UnixLibrary ()												__NE___	{}
+		explicit UnixLibrary (UnixLibrary &&)						__NE___;
 		~UnixLibrary ()												__NE___	{ Unload(); }
-		
+
 		// open already loaded library to avoid conflicts
 		ND_ bool  Open (void* lib)									__NE___;
 		ND_ bool  Open (NtStringView libName)						__NE___;
 		ND_ bool  Open (StringView libName)							__NE___	{ return Open( NtStringView{libName} ); }
 		ND_ bool  Open (const char* libName)						__NE___	{ return Open( NtStringView{libName} ); }
-		
+
 		// load new library
 		ND_ bool  Load (NtStringView libName)						__NE___;
 		ND_ bool  Load (StringView libName)							__NE___	{ return Load( NtStringView{libName} ); }
@@ -62,6 +63,9 @@ namespace AE::Base
 	template <typename T>
 	inline bool  UnixLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
 	{
+		StaticAssert( IsGlobalFunction< T >);
+
+		NonNull( _handle );
 		ASSERT( not name.empty() );
 
 		result = BitCast<T>( _GetProcAddr( name.c_str() ));

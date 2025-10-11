@@ -4,7 +4,6 @@
 
 #include "base/DataSource/DataStream.h"
 #include "base/Containers/NtStringView.h"
-#include "base/FileSystem/Path.h"
 
 namespace AE::Base
 {

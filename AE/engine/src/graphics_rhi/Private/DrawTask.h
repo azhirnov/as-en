@@ -195,9 +195,9 @@ namespace AE::_Coro_
 		self._batch		= RVRef(batch);
 		self._drawIndex	= self._GetPool().Acquire( drawIndex );
 
-		DEBUG_ONLY(
+		#if AE_ENABLE_TASK_NAME
 			self._SetDebugName( dbg.label );
-		)
+		#endif
 		GFX_DBG_ONLY(
 			self._dbgColor = _ValidateDbgColor( dbg.color );
 		)

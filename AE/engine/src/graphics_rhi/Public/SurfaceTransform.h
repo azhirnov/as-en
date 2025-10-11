@@ -35,7 +35,7 @@ namespace AE::Graphics
 
 		_Count,
 		Identity	= Deg_0,
-		Unknown		= 0xFF,
+		Unknown		= _Count,
 	};
 
 
@@ -87,7 +87,6 @@ namespace AE::Graphics
 			case ESurfaceTransform::HorizontalMirror_180 :	return float2x2{ { 1.f,  0.f}, { 0.f, -1.f} };
 			case ESurfaceTransform::HorizontalMirror_270 :	return float2x2{ { 0.f,  1.f}, { 1.f,  0.f} };
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end
@@ -130,7 +129,6 @@ namespace AE::Graphics
 			case_likely ESurfaceTransform::Deg_270 :
 			case ESurfaceTransform::HorizontalMirror_270 :	return Quat{ 0.707106769f, 0.f, 0.f, 0.707106769f };	// RotateZ( 90_deg )
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end
@@ -158,7 +156,6 @@ namespace AE::Graphics
 			case_likely ESurfaceTransform::Deg_270 :
 			case ESurfaceTransform::HorizontalMirror_270 :	return Quat{ -0.707106769f, 0.f, 0.f, 0.707106769f };	// RotateZ( 270_deg )
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end
@@ -186,7 +183,6 @@ namespace AE::Graphics
 				case ESurfaceTransform::HorizontalMirror_90 :
 				case ESurfaceTransform::HorizontalMirror_270 :	ASSERT( res );  break;
 
-				case ESurfaceTransform::_Count :
 				case ESurfaceTransform::Unknown :
 				default :										DBG_WARNING( "unknown surface transform" );  break;
 			}
@@ -230,7 +226,6 @@ namespace AE::Graphics
 			case ESurfaceTransform::HorizontalMirror_90 :
 			case ESurfaceTransform::HorizontalMirror_270 :	return Vec<T,2>{ size.y, size.x };
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end
@@ -252,7 +247,6 @@ namespace AE::Graphics
 			case ESurfaceTransform::HorizontalMirror_180 :	return Vec<T,2>{ pos.x,				size.y - pos.y };
 			case ESurfaceTransform::HorizontalMirror_270 :	return Vec<T,2>{ size.y - pos.y,	size.x - pos.x };
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end
@@ -274,7 +268,6 @@ namespace AE::Graphics
 			case ESurfaceTransform::HorizontalMirror_180 :	return Rectangle<T>{ pos.left,            size.y - pos.bottom, pos.right,          size.y - pos.top  };
 			case ESurfaceTransform::HorizontalMirror_270 :	return Rectangle<T>{ pos.top,             pos.left,            pos.bottom,         pos.right         };
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end
@@ -301,7 +294,6 @@ namespace AE::Graphics
 			case ESurfaceTransform::HorizontalMirror_90 :
 			case ESurfaceTransform::HorizontalMirror_270 :	return Vec<T,2>{ size.y, size.x };
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end
@@ -323,7 +315,6 @@ namespace AE::Graphics
 			case ESurfaceTransform::HorizontalMirror_180 :	return Vec<T,2>{ pos.x,				size.y - pos.y };
 			case ESurfaceTransform::HorizontalMirror_270 :	return Vec<T,2>{ size.y - pos.y,	size.x - pos.x };
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end
@@ -345,7 +336,6 @@ namespace AE::Graphics
 			case ESurfaceTransform::HorizontalMirror_180 :	return Rectangle<T>{ pos.left,            size.y - pos.bottom, pos.right,          size.y - pos.top  };
 			case ESurfaceTransform::HorizontalMirror_90 :	return Rectangle<T>{ size.y - pos.bottom, size.x - pos.right,  size.y - pos.top,   size.x - pos.left };
 
-			case ESurfaceTransform::_Count :
 			case ESurfaceTransform::Unknown :				break;
 		}
 		switch_end

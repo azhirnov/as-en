@@ -19,7 +19,7 @@ namespace AE::App
 =================================================
 */
 	WindowGLFW::WindowGLFW (ApplicationGLFW &app, Unique<IWndListener> listener, IInputActions* dstActions) __NE___ :
-		WindowBase{ app, RVRef(listener) },
+		WindowBaseWithSurface{ app, RVRef(listener) },
 		_input{ InputActionsBase::GetQueue( dstActions )}
 	{}
 
@@ -125,12 +125,29 @@ namespace AE::App
 		if_likely( _window != null )
 		{
 		#ifdef AE_PLATFORM_WINDOWS
-			result.hInstance	= ::GetModuleHandle( null );
+			result.hInstance	= ::GetModuleHandleA( null );
 			result.hWnd			= glfwGetWin32Window( _window );
 
 		#elif defined(AE_PLATFORM_LINUX)
-			result.x11Window	= BitCast<void*>(glfwGetX11Window( _window ));
-			result.x11Display	= glfwGetX11Display();
+			switch ( glfwGetPlatform() )
+			{
+				case GLFW_PLATFORM_X11 :
+				{
+					auto&	x11 = result.impl.emplace< NativeWindow::X11 >();
+					x11.window	= BitCast<void*>(glfwGetX11Window( _window ));
+					x11.display	= glfwGetX11Display();
+					break;
+				}
+				case GLFW_PLATFORM_WAYLAND :
+				{
+					auto&	wl	= result.impl.emplace< NativeWindow::Wayland >();
+					wl.surface	= glfwGetWaylandWindow( _window );
+					wl.display	= glfwGetWaylandDisplay();
+					break;
+				}
+				default :
+					AE_LOG_DBG( "Unknown window system" );
+			}
 
 		#elif defined(AE_PLATFORM_MACOS)
 			CHECK( GetNSWindowView( _window, OUT result.nsView, OUT result.metalLayer ));
@@ -159,6 +176,12 @@ namespace AE::App
 		{
 			glfwSetWindowSize( _window, int(size.x), int(size.y) );
 		}
+	}
+	
+	void  WindowGLFW::SetSize (const uint2 &size, float targetPPI) __NE___
+	{
+		ASSERT( targetPPI > 0.f );
+		return SetSize( uint2{ float2{size} * GetMonitor().ppi / targetPPI + 0.5f });
 	}
 
 /*
@@ -239,7 +262,7 @@ namespace AE::App
 	SetMode
 =================================================
 */
-	bool  WindowGLFW::SetMode (const EWindowMode mode, const Monitor::ID monitorId) __NE___
+	bool  WindowGLFW::SetMode (const EWindowMode mode, Monitor::ID monitorId) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
@@ -270,11 +293,21 @@ namespace AE::App
 		// save last window location
 		if ( not was_fullscreen )
 		{
-			glfwGetWindowPos( _window, OUT &_lastWindowSize.left, OUT &_lastWindowSize.top );
-			glfwGetWindowSize( _window, OUT &_lastWindowSize.right, OUT &_lastWindowSize.bottom );
-			_lastWindowSize.right	+= _lastWindowSize.left;
-			_lastWindowSize.bottom	+= _lastWindowSize.top;
+			glfwGetWindowPos( _window, OUT &_lastWindowRect.left, OUT &_lastWindowRect.top );
+			glfwGetWindowSize( _window, OUT &_lastWindowRect.right, OUT &_lastWindowRect.bottom );
+			_lastWindowRect.right	+= _lastWindowRect.left;
+			_lastWindowRect.bottom	+= _lastWindowRect.top;
 		}
+
+		if ( monitorId == Default )
+		{
+			monitorId = _app.GetMonitor( _lastWindowRect.LeftTop() );
+		}
+
+	  #ifdef AE_DEBUG
+		if ( PlatformUtils::IsUnderDebugger() )
+			always_on_top = false;
+	  #endif
 
 		glfwSetWindowAttrib( _window, GLFW_DECORATED,	borderless ? GLFW_FALSE : GLFW_TRUE );
 		glfwSetWindowAttrib( _window, GLFW_RESIZABLE,	resizable ? GLFW_TRUE : GLFW_FALSE );
@@ -283,7 +316,7 @@ namespace AE::App
 		// set windowed mode
 		if ( not fullscreen and was_fullscreen )
 		{
-			if ( Any(IsZero( _lastWindowSize.Size() )))
+			if ( Any(IsZero( _lastWindowRect.Size() )))
 			{
 				if ( monitor == null )
 					monitor = glfwGetPrimaryMonitor();
@@ -292,12 +325,12 @@ namespace AE::App
 				glfwGetMonitorWorkarea( monitor, OUT &work_area_pos.x, OUT &work_area_pos.y, OUT &work_area_size.x, OUT &work_area_size.y );
 
 				int2	wnd_size = Max( work_area_size/3, Min( work_area_size, int2(800, 600) ));
-				_lastWindowSize = RectI{ wnd_size };
-				_lastWindowSize += work_area_pos + (work_area_size - wnd_size)/2;
+				_lastWindowRect = RectI{ wnd_size };
+				_lastWindowRect += work_area_pos + (work_area_size - wnd_size)/2;
 			}
 
 			glfwSetWindowMonitor( _window, null,
-								  _lastWindowSize.left, _lastWindowSize.top, _lastWindowSize.Width(), _lastWindowSize.Height(),
+								  _lastWindowRect.left, _lastWindowRect.top, _lastWindowRect.Width(), _lastWindowRect.Height(),
 								  GLFW_DONT_CARE );
 		}
 
@@ -502,10 +535,10 @@ namespace AE::App
 
 /*
 =================================================
-	_ProcessMessages
+	ProcessMessages
 =================================================
 */
-	bool  WindowGLFW::_ProcessMessages () __NE___
+	bool  WindowGLFW::ProcessMessages () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -626,6 +659,19 @@ namespace AE::App
 
 /*
 =================================================
+	_GLFW_WindowContentScaleCallback
+=================================================
+*/
+	void  WindowGLFW::_GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float xscale, float yscale) __NE___
+	{
+		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
+		DRC_EXLOCK( self->_drCheck );
+
+		self->_contentScale = float2{ xscale, yscale };
+	}
+
+/*
+=================================================
 	_GLFW_CursorEnterCallback
 =================================================
 */
@@ -663,19 +709,6 @@ namespace AE::App
 		DRC_EXLOCK( self->_drCheck );
 
 		self->_SetStateV2( iconified == GLFW_TRUE ? EState::InBackground : EState::InForeground );
-	}
-
-/*
-=================================================
-	_GLFW_WindowContentScaleCallback
-=================================================
-*/
-	void  WindowGLFW::_GLFW_WindowContentScaleCallback (GLFWwindow* wnd, float xscale, float yscale) __NE___
-	{
-		auto*	self = Cast<WindowGLFW>( glfwGetWindowUserPointer( wnd ));
-		DRC_EXLOCK( self->_drCheck );
-
-		self->_contentScale = float2{ xscale, yscale };
 	}
 
 /*

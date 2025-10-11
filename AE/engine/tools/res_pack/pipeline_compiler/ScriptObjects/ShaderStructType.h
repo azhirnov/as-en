@@ -86,15 +86,16 @@ namespace AE::PipelineCompiler
 			Invariant					= 1 << 7,	// all shaders must output same result on same input
 
 			Packed						= 1 << 8,	// align of vec/mat is same as for scalar
-			PackedAlias					= 1 << 9,	// GLSL allows to pack 'float3' with scalar, MSL and C++ doesn't allow this.
+			PackedAlias					= 1 << 9,	// GLSL and HLSL allows to pack 'float3' with scalar, MSL and C++ doesn't allow this.
 
 			Padding_GLSL				= 1 << 10,	// field used for padding
 			Padding_MSL					= 1 << 11,
+			Padding_HLSL				= 1 << 12,
 
-			Address						= 1 << 12,	// typed device address
-			Pointer						= 1 << 13,
+			Address						= 1 << 13,	// typed device address
+			Pointer						= 1 << 14,
 
-			//Atomic					= 1 << 14,
+			Atomic						= 1 << 15,
 		};
 
 		struct Field
@@ -121,7 +122,8 @@ namespace AE::PipelineCompiler
 			ND_ bool	IsPointer ()					const	{ return AllBits( flags, EFlags::Pointer ); }
 			ND_ bool	IsAddress ()					const	{ return AllBits( flags, EFlags::Address ); }
 			ND_ bool	IsAnyPadding ()					const;
-			ND_ bool	IsPacked ()						const	{ return AllBits( flags, EFlags::Packed ); }
+			ND_ bool	IsPacked ()						const	{ return AnyBits( flags, EFlags::Packed ); }
+			ND_ bool	IsAtomic ()						const	{ return AnyBits( flags, EFlags::Atomic ); }
 
 			ND_ bool	IsDeviceAddress ()				const	{ return IsAddress() or (type == EValueType::DeviceAddress); }		// typed or untyped
 			ND_ bool	IsUntypedDeviceAddress ()		const	{ return (not IsAddress()) and (type == EValueType::DeviceAddress); }
@@ -129,6 +131,8 @@ namespace AE::PipelineCompiler
 			ND_ bool	IsArray ()						const	{ return arraySize != 0; }
 			ND_ bool	IsStaticArray ()				const	{ return (arraySize != 0) and (not IsDynamicArray()); }
 			ND_ bool	operator == (const Field &rhs)	const;
+
+			ND_ Bytes	RowSize ()						const	{ return size / cols; }
 		};
 
 	private:
@@ -142,6 +146,7 @@ namespace AE::PipelineCompiler
 			// mutable
 			Bytes		mslOffset;
 			Bytes		glslOffset;
+			Bytes		hlslOffset;
 			Bytes		cppOffset;
 
 			ValidationData (ArrayView<ScriptFeatureSetPtr> inFeatures, EStructLayout inLayout) :
@@ -173,7 +178,7 @@ namespace AE::PipelineCompiler
 		const String	_typeName;
 
 		Array<Field>	_fields;
-		Bytes			_align;
+		Bytes			_maxAlign;
 		Bytes			_structAlign;	// align for array or ...
 		Bytes			_size;
 		EStructLayout	_layout		= EStructLayout::Compatible_Std140;
@@ -198,7 +203,7 @@ namespace AE::PipelineCompiler
 		ND_ bool			HasDynamicArray ()															const	{ return _fields.size() > 0 and _fields.back().IsDynamicArray(); }
 
 		ND_ Bytes			TotalSize (uint arraySize)													const;
-		ND_ Bytes			StaticSize ()																const	{ return AlignUp( _size, _align ); }
+		ND_ Bytes			StaticSize ()																const	{ return AlignUp( _size, _maxAlign ); }
 		ND_ Bytes			ArrayStride ()																const	{ return HasDynamicArray() ? _fields.back().size : 0_b; }
 		ND_ Bytes			Align ()																	const	{ return _structAlign; }
 		ND_ EStructLayout	Layout ()																	const	{ return _layout; }
@@ -222,12 +227,16 @@ namespace AE::PipelineCompiler
 
 		ND_ bool  ToCPP (INOUT String &types, INOUT UniqueTypes_t &uniqueTypes)							const;
 		ND_ bool  ToCPP (INOUT String &types)															const;
+		
+		ND_ bool  ToHLSL (INOUT String &types, INOUT UniqueTypes_t &uniqueTypes, INOUT String* sizeCheck = null) const;
+		ND_ bool  ToHLSL (INOUT String &types, INOUT String* sizeCheck = null)							const;
 
 		ND_ String  VertexInputToGLSL (const String &prefix, INOUT uint &loc)							C_Th___;
 		ND_ String  VertexInputToMSL (const String &prefix, INOUT uint &index)							C_Th___;
 
 		ND_ String  ToShaderIO_GLSL (EShader shaderType, bool input, INOUT UniqueTypes_t &uniqueTypes)	C_Th___;
 		ND_ String  ToShaderIO_MSL (EShader shaderType, bool input, INOUT UniqueTypes_t &uniqueTypes)	C_Th___;
+		ND_ String  ToShaderIO_HLSL (EShader shaderType, bool input, INOUT UniqueTypes_t &uniqueTypes)	C_Th___;
 
 		void  GetVertexInput (INOUT uint &loc, INOUT Array<VertexInput> &arr)							C_Th___;
 
@@ -256,14 +265,14 @@ namespace AE::PipelineCompiler
 		void  _ToShaderIO_MSL (EShader, const String &prefix,
 								INOUT Array<Tuple< String, String, String >> &fieldParts)				C_Th___;
 
-		ND_ static SizeAndAlign  _GetCPPSizeAndAlign2 (const Field &field);
+		ND_ static SizeAndAlign  _GetCPPSizeAndAlign2 (const Field &field, bool std140);
 		ND_ static SizeAndAlign  _GetCPPSizeAndAlign (const Field &field, EStructLayout layout);
 
 		ND_ static SizeAndAlign  _GetMSLSizeAndAlign2 (const Field &field);
 		ND_ static SizeAndAlign  _GetMSLSizeAndAlign (const Field &field, EStructLayout layout);
 
-		ND_ static SizeAndAlign  _GetGLSLSizeAndAlign2 (const Field &field);
 		ND_ static SizeAndAlign  _GetGLSLSizeAndAlign (const Field &field, EStructLayout layout);
+		ND_ static SizeAndAlign  _GetHLSLSizeAndAlign (const Field &field, EStructLayout layout);
 
 		ND_ static bool  _CreatePackedTypeGLSL1 (INOUT String &outTypes, StringView packedTypeName, StringView memberTypeName, StringView dstType, const Field &);
 		ND_ static bool  _CreatePackedTypeGLSL2 (INOUT String &outTypes, StringView packedTypeName, StringView memberTypeName, StringView dstType, const Field &);

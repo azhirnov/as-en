@@ -128,26 +128,6 @@ namespace AE::Threading
 		}
 		return res;
 	}
-
-/*
-=================================================
-	_GetResult
-=================================================
-*/
-	UnixIOService::ReadRequest::ResultWithRC  UnixIOService::ReadRequest::_GetResult () __NE___
-	{
-		ASSERT( IsFinished() );
-
-		auto&	cb		= _aioCb.Ref< aiocb >();
-
-		ResultWithRC	res;
-		res.dataSize	= _actualSize.load();
-		res.rc			= _memRC;
-		res.pos			= _offset;
-		res.data		= IsCompleted() ? const_cast<void*>(cb.aio_buf) : null;
-
-		return res;
-	}
 //-----------------------------------------------------------------------------
 
 
@@ -206,23 +186,6 @@ namespace AE::Threading
 		ASSERT( IsFinished() );
 
 		Result	res;
-		res.dataSize	= _actualSize.load();
-		res.data		= null;
-		res.pos			= _offset;
-
-		return res;
-	}
-
-/*
-=================================================
-	_GetResult
-=================================================
-*/
-	UnixIOService::WriteRequest::ResultWithRC  UnixIOService::WriteRequest::_GetResult () __NE___
-	{
-		ASSERT( IsFinished() );
-
-		ResultWithRC	res;
 		res.pos			= _offset;
 		res.dataSize	= _actualSize.load();
 		res.status		= _status.load();
@@ -300,6 +263,12 @@ namespace AE::Threading
 */
 	UnixIOService::~UnixIOService () __NE___
 	{
+		EXLOCK( _queueGuard );
+
+		if ( not _queue.empty() )
+			AE_LOG_DBG( "IOqueue has pending requests" );
+
+		_Release();
 	}
 
 /*

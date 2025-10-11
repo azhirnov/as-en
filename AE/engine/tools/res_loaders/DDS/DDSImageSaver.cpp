@@ -40,6 +40,10 @@ namespace
 		header10.dxgiFormat		= PixelFormatToDDSFormat( level.format );
 		header10.arraySize		= 1;
 
+		CHECK_ERR( arr_layers > 0 );
+		CHECK_ERR( mipmap_count > 0 );
+		CHECK_ERR( header10.dxgiFormat != 0 );
+
 		switch ( image.GetType() )
 		{
 			case EImage_1D :
@@ -85,9 +89,9 @@ namespace
 
 			case EImage_3D :
 			{
-				header10.resourceDimension = D3D11_RESOURCE_DIMENSION_TEXTURE3D;
-				header.dwFlags	= DDS_FLAGS(header.dwFlags | DDSD_DEPTH);
-				header.dwDepth	= dim.z;
+				header10.resourceDimension	= D3D11_RESOURCE_DIMENSION_TEXTURE3D;
+				header.dwFlags				= DDS_FLAGS(header.dwFlags | DDSD_DEPTH);
+				header.dwDepth				= dim.z;
 				break;
 			}
 		}

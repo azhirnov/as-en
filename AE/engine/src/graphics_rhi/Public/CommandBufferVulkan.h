@@ -116,6 +116,13 @@ namespace AE::Graphics
 	// interface
 	public:
 
+		//  requires 'cooperativeVector' feature
+		//		srcAddress: EResourceState::ShaderAddress_Read  | CoopVecConvertStage
+		//		dstAddress: EResourceState::ShaderAddress_Write | CoopVecConvertStage
+		virtual void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)									__Th___ = 0;
+		virtual void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)									__Th___ = 0;
+
+
 	// for debugging //
 		virtual void  WriteTimestamp (const IQueryManager::IQuery &, uint index, EPipelineScope srcScope)				__Th___ = 0;
 	};

@@ -4,7 +4,6 @@
 
 #include "base/Common.h"
 #include "base/Containers/NtStringView.h"
-#include "base/FileSystem/Path.h"
 
 namespace AE::NS
 {

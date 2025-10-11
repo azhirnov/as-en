@@ -2,10 +2,9 @@
 
 #pragma once
 
-#include "base/Containers/UntypedStorage.h"
+#include "base/Memory/UntypedStorage.h"
 #include "base/DataSource/DataStream.h"
 #include "base/Containers/NtStringView.h"
-#include "base/FileSystem/Path.h"
 
 #ifdef AE_PLATFORM_WINDOWS
 

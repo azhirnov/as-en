@@ -18,17 +18,8 @@ namespace AE::App
 
 	class ApplicationWinAPI final : public ApplicationBase
 	{
-	// types
-	private:
-		using Window		= WeakPtr< WindowWinAPI >;
-		using WindowArray_t	= FixedArray< Window, PlatformConfig::MaxWindows >;
-
-
 	// variables
 	private:
-		RecursiveMutex		_windowsGuard;		// TODO: can be removed
-		WindowArray_t		_windows;
-
 		void *				_instance;		// HMODULE
 		String				_className;
 
@@ -48,13 +39,16 @@ namespace AE::App
 
 	// IApplication //
 		WindowPtr	CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)	__NE_OV;
-		StringView	GetApiName ()														C_NE_OV	{ return "winapi"; }
+		StringView	GetApiName ()														C_NE_OV	{ return "WinAPI"; }
 		Locales_t	GetLocales ()														C_NE_OV	{ return _locales; }
 
-		ArrayView<Monitor>		GetMonitors (bool update = false)						__NE_OV;
+		MonitorsView_t			GetMonitors (bool update = false)						__NE_OV;
+		MonitorsView_t			GetCachedMonitors ()									C_NE_OV;
 		RC<IVirtualFileStorage> OpenStorage (EAppStorage)								__NE_OV { return null; }	// TODO: use GetTempPathW(), GetTempPath2W()
 		Path					GetStoragePath (EAppStorage)							__NE_OV	{ return {}; }
 		ArrayView<const char*>  GetVulkanInstanceExtensions ()							__NE_OV;
+		RC<IScreenCapture>		StartScreenCapture (const IScreenCapture::Config &)		__NE_OV;
+		Unique<ISendInput>		CreateInputSender ()									__NE_OV;
 
 
 	private:

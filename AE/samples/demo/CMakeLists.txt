@@ -32,12 +32,22 @@ if (TARGET "Graphics")
 	if (TARGET "Profiler")
 		target_link_libraries( ${APP_NAME} PUBLIC "Profiler" )
 	endif()
-	target_include_directories( ${APP_NAME} PUBLIC "." )
-	target_include_directories( ${APP_NAME} PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
 
-	set( AE_TEMP_FOLDER_DEMO "${AE_TEMP_FOLDER}/samples/demo" )
-	set( AE_DATA_FOLDER_DEMO "${AE_DATA_FOLDER}/samples/demo" )
-	target_compile_definitions( ${APP_NAME} PUBLIC AE_RES_FOLDER="${AE_TEMP_FOLDER_DEMO}" )
+	target_include_directories( ${APP_NAME} PUBLIC
+		"."
+		"${AE_ENGINE_SHARED_DATA}/scripts"
+		"${AE_ENGINE_SHARED_DATA}/shaders"
+	)
+	
+	set( AE_RES_FOLDER			"samples/demo" )
+	set( AE_TEMP_FOLDER_DEMO	"${AE_TEMP_FOLDER}/${AE_RES_FOLDER}" )
+	set( AE_DATA_FOLDER_DEMO	"${AE_DATA_FOLDER}/${AE_RES_FOLDER}" )
+	
+	if (${AE_PORTABLE_APP})
+		target_compile_definitions( ${APP_NAME} PUBLIC AE_RES_FOLDER="" )
+	else()
+		target_compile_definitions( ${APP_NAME} PUBLIC AE_RES_FOLDER="${AE_TEMP_FOLDER_DEMO}" )
+	endif()
 
 	UseEnginePCH2( ${APP_NAME} )
 	#----------------------------------------------------------

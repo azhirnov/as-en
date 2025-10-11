@@ -77,7 +77,7 @@ namespace
 =================================================
 */
 	template <typename T>
-	ND_ inline BasicString<CharType>  ConvertString (const BasicString<T> &src)
+	Nd__In BasicString<CharType>  ConvertString (const BasicString<T> &src)
 	{
 		constexpr bool	conv1 = IsSame< CharType, CharUtf8 > and
 								(IsSame< T, char > or IsSame< T, wchar_t >);

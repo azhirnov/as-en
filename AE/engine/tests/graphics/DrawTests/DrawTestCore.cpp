@@ -263,7 +263,8 @@ bool  DrawTestCore::_Create (FStorage_t refStorage)
 	CHECK_ERR( _device.CreateInstance( inst_ci ));
 
 	// this is a test and the test should fail for any validation error
-	_device.CreateDebugCallback( DefaultDebugMessageSeverity,
+	_device.CreateDebugCallback( VDeviceInitializer::c_DefaultDebugMessageSeverity,
+                                 VDeviceInitializer::c_DefaultDebugMessageTypes,
 								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK_FATAL(not rep.isError); });
 
 	CHECK_ERR( _device.ChooseHighPerformanceDevice() );

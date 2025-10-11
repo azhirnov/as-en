@@ -154,8 +154,13 @@ namespace AE::Base
 		ND_ Native_t const&	Ref ()								C_NE___	{ return _value; }
 
 	  #if AE_SIMD_NEON64
+		#pragma clang diagnostic push
+		#pragma clang diagnostic ignored "-Wdouble-promotion"
+
 		ND_ Scalar_t	PrefixMax ()							C_NE___	{ return Scalar_t{ vmaxv_f16( _value )}; }
 		ND_ Scalar_t	PrefixMin ()							C_NE___	{ return Scalar_t{ vminv_f16( _value )}; }
+
+		#pragma clang diagnostic pop
 	  #endif
 
 		ND_ Self	Add (const Self &rhs)						C_NE___	{ return Self{ vadd_f16( _value, rhs._value )}; }
@@ -677,7 +682,7 @@ namespace AE::Base
 													Conditional< IsSame< IntType, ulong >, uint64x2_t, void >>>>>>>>;
 		StaticAssert( CT_SizeOfInBits<Native_t> == 128 );
 
-		static constexpr uint	lanes	= sizeof(IntType) >= sizeof(ulong) ? 1 : 2;
+		static constexpr uint	lanes	= sizeof(IntType) >= sizeof(ulong) ? 1 : 2;	// number of NEON vectors, cross lane operations may have additional cost
 		static constexpr uint	count	= sizeof(Native_t) / sizeof(IntType);
 		using Array_t					= StaticArray< Scalar_t, count >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
@@ -1013,7 +1018,7 @@ namespace AE::Base
 	{
 	// types
 	public:
-		static constexpr uint	lanes	= 2;
+		static constexpr uint	lanes	= 2;	// number of NEON vectors, cross lane operations may have additional cost
 		static constexpr uint	count	= 8;
 
 		using Scalar_t		= half;
@@ -1135,8 +1140,13 @@ namespace AE::Base
 		ND_ Native_t const&	Ref ()								C_NE___	{ return _value; }
 
 	  #if AE_SIMD_NEON64
+		#pragma clang diagnostic push
+		#pragma clang diagnostic ignored "-Wdouble-promotion"
+
 		ND_ Scalar_t	PrefixMax ()							C_NE___	{ return Scalar_t{ vmaxvq_f16( _value )}; }
 		ND_ Scalar_t	PrefixMin ()							C_NE___	{ return Scalar_t{ vminvq_f16( _value )}; }
+
+		#pragma clang diagnostic pop
 	  #endif
 
 		ND_ Self	Add (const Self &rhs)						C_NE___	{ return Self{ vaddq_f16( _value, rhs._value )}; }
@@ -1811,8 +1821,8 @@ namespace AE::Base
 		NdCe__ static bool  Has_ApproxInvSqrt ()				{ return true; }
 		NdCe__ static bool  Has_Trigonometry ()					{ return false; }
 		NdCe__ static bool  Has_Exponential ()					{ return false; }
-		NdCe__ static bool  Has_PrefixSum ()					{ return false; }
-		NdCe__ static bool  Has_PrefixMinMax ()					{ return false; }
+		NdCe__ static bool  Has_PrefixSum ()					{ return true; }
+		NdCe__ static bool  Has_PrefixMinMax ()					{ return true; }
 		NdCe__ static bool  Has_BitEqual ()						{ return false; }
 		NdCe__ static bool  Has_Swizzle ()						{ return true; }
 		NdCe__ static bool  Has_Shuffle ()						{ return true; }

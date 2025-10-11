@@ -97,6 +97,25 @@
 	StaticAssert( offsetof(ModelNode, materialIdx) == 116 );
 	StaticAssert( sizeof(ModelNode) == 128 );
 
+#ifndef ModelNode_DEFINED
+#	define ModelNode_DEFINED
+	// size: 120 (128), align: 16
+	struct alignas(16) ModelNode
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xbf14b6ddu}};
+
+		float4x4_storage  transform;
+		float3x3_storage  normalMat;
+		uint              meshIdx;
+		uint              materialIdx;
+	};
+#endif
+	StaticAssert( offsetof(ModelNode, transform) == 0 );
+	StaticAssert( offsetof(ModelNode, normalMat) == 64 );
+	StaticAssert( offsetof(ModelNode, meshIdx) == 112 );
+	StaticAssert( offsetof(ModelNode, materialIdx) == 116 );
+	StaticAssert( sizeof(ModelNode) == 128 );
+
 #ifndef ModelNode_Array_DEFINED
 #	define ModelNode_Array_DEFINED
 	// size: 4 (16), align: 16
@@ -111,6 +130,25 @@
 #endif
 	StaticAssert( offsetof(ModelNode_Array, instanceCount) == 0 );
 	StaticAssert( sizeof(ModelNode_Array) == 16 );
+
+#ifndef ModelRTMesh_DEFINED
+#	define ModelRTMesh_DEFINED
+	// size: 32, align: 8
+	struct ModelRTMesh
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x6fe9689cu}};
+
+		TDeviceAddress< packed_float3 *>  positions;
+		TDeviceAddress< packed_float3 *>  normals;
+		TDeviceAddress< float2 *>         texcoords;
+		TDeviceAddress< uint *>           indices;
+	};
+#endif
+	StaticAssert( offsetof(ModelRTMesh, positions) == 0 );
+	StaticAssert( offsetof(ModelRTMesh, normals) == 8 );
+	StaticAssert( offsetof(ModelRTMesh, texcoords) == 16 );
+	StaticAssert( offsetof(ModelRTMesh, indices) == 24 );
+	StaticAssert( sizeof(ModelRTMesh) == 32 );
 
 #ifndef ModelRTMesh_DEFINED
 #	define ModelRTMesh_DEFINED
@@ -187,6 +225,61 @@
 	StaticAssert( offsetof(SceneConeLight, cone) == 48 );
 	StaticAssert( offsetof(SceneConeLight, colorRGBM) == 56 );
 	StaticAssert( sizeof(SceneConeLight) == 64 );
+
+#ifndef SceneDirectionalLight_DEFINED
+#	define SceneDirectionalLight_DEFINED
+	// size: 36 (48), align: 16
+	struct alignas(16) SceneDirectionalLight
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xbbb7657au}};
+
+		float3  direction;
+		float3  attenuation;
+		uint    colorRGBM;
+	};
+#endif
+	StaticAssert( offsetof(SceneDirectionalLight, direction) == 0 );
+	StaticAssert( offsetof(SceneDirectionalLight, attenuation) == 16 );
+	StaticAssert( offsetof(SceneDirectionalLight, colorRGBM) == 32 );
+	StaticAssert( sizeof(SceneDirectionalLight) == 48 );
+
+#ifndef SceneConeLight_DEFINED
+#	define SceneConeLight_DEFINED
+	// size: 60 (64), align: 16
+	struct alignas(16) SceneConeLight
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xbde8e869u}};
+
+		float3  position;
+		float3  direction;
+		float3  attenuation;
+		float2  cone;
+		uint    colorRGBM;
+	};
+#endif
+	StaticAssert( offsetof(SceneConeLight, position) == 0 );
+	StaticAssert( offsetof(SceneConeLight, direction) == 16 );
+	StaticAssert( offsetof(SceneConeLight, attenuation) == 32 );
+	StaticAssert( offsetof(SceneConeLight, cone) == 48 );
+	StaticAssert( offsetof(SceneConeLight, colorRGBM) == 56 );
+	StaticAssert( sizeof(SceneConeLight) == 64 );
+
+#ifndef SceneOmniLight_DEFINED
+#	define SceneOmniLight_DEFINED
+	// size: 36 (48), align: 16
+	struct alignas(16) SceneOmniLight
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x6e3bdc7bu}};
+
+		float3  position;
+		float3  attenuation;
+		uint    colorRGBM;
+	};
+#endif
+	StaticAssert( offsetof(SceneOmniLight, position) == 0 );
+	StaticAssert( offsetof(SceneOmniLight, attenuation) == 16 );
+	StaticAssert( offsetof(SceneOmniLight, colorRGBM) == 32 );
+	StaticAssert( sizeof(SceneOmniLight) == 48 );
 
 #ifndef SceneLights_DEFINED
 #	define SceneLights_DEFINED
@@ -280,9 +373,9 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xb92984e8u}};
 
-		float4x4_storage  proj;
-		float             nearPlane;
-		float             invDistance;
+		float4x4_storage_std140  proj;
+		float                    nearPlane;
+		float                    invDistance;
 	};
 #endif
 	StaticAssert( offsetof(LinearDepth_draw_pc, proj) == 0 );

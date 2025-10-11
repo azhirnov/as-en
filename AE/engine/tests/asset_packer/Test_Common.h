@@ -8,8 +8,8 @@
 
 #include "asset_packer/AssetPackerImpl.h"
 
-#include "../shared/UnitTest_Shared.h"
-#include "../threading/UnitTest_Common.h"
+#include "../tests/shared/UnitTest_Shared.h"
+#include "../tests/threading/UnitTest_Common.h"
 
 using namespace AE::Base;
 
@@ -17,7 +17,7 @@ using LinearAlloc_t = IAllocatorAdaptor< LinearAllocator<> >;
 
 
 template <typename T>
-ND_ inline String  ArrayToString (StringView name, const T &arr, const HashToName &hashToName)
+Nd__In String  ArrayToString (StringView name, const T &arr, const HashToName &hashToName)
 {
 	String	str;
 	str << "\n" << name << " {";
@@ -31,7 +31,7 @@ ND_ inline String  ArrayToString (StringView name, const T &arr, const HashToNam
 }
 
 
-ND_ inline bool  CompareWithDump (StringView serializedStr, const Path &refFilename, bool forceUpdate)
+Nd__In bool  CompareWithDump (StringView serializedStr, const Path &refFilename, bool forceUpdate)
 {
 	bool		is_ok	= true;
 	bool		update	= forceUpdate;

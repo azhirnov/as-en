@@ -12,6 +12,8 @@ Content:
 
 ## Features
 
+![](docs/img/ResEditor.png)
+
 * Renderer is written in scripts.
 * Hot reloading for scripts.
 * Sliders and color pickers for passing data to the shader.

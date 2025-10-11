@@ -114,6 +114,7 @@ namespace AE::Threading
 	// types
 	public:
 		using Task				= AE::_Coro_::AsyncTaskImpl;
+		using TaskApi			= Task::TaskDependencyManagerApi;
 		using TaskDependency	= Task::TaskDependency;
 		using CheckDepFn_t		= Function< void (StringView, AsyncTask) >;
 
@@ -146,7 +147,7 @@ namespace AE::Threading
 	// interface
 	public:
 		// returns number of processed events.
-		//		thread-safe: yes
+		//		Thread-safe: yes
 		ND_ virtual usize			ProcessEvents ()	__NE___ = 0;
 
 		ND_ virtual EIOServiceType	GetIOServiceType () C_NE___ = 0;
@@ -180,7 +181,7 @@ namespace AE::Threading
 		};
 
 		using LoopingFlag_t	= Atomic<uint>;
-		using TimePoint_t	= std::chrono::high_resolution_clock::time_point;
+		using TimePoint_t	= HighResClock::time_point;
 
 	private:
 		using Task				= _Coro_::AsyncTaskImpl;
@@ -414,8 +415,8 @@ namespace AE::Threading
 
 		CHECK_ERR( task );
 		CHECK_ERR( task->Status() == ETaskStatus::Initial );
-
-		#ifdef AE_DEBUG
+		
+		#if AE_ENABLE_TASK_NAME
 			TaskApi::Init( *task, queueType, dbgName, loc );
 		#else
 			TaskApi::Init( *task, queueType );

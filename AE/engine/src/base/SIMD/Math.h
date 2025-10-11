@@ -79,8 +79,8 @@ namespace AE::Base
 =================================================
 */
 #ifdef AE_SIMD_SimdHalf4
-	ND_ inline bool  All (const SimdHalf4::Bool4 &v)				__NE___	{ return v.All(); }
-	ND_ inline bool  Any (const SimdHalf4::Bool4 &v)				__NE___	{ return v.Any(); }
+	Nd__In bool  All (const SimdHalf4::Bool4 &v)					__NE___	{ return v.All(); }
+	Nd__In bool  Any (const SimdHalf4::Bool4 &v)					__NE___	{ return v.Any(); }
 #endif
 #ifdef AE_SIMD_SimdTInt64
 	template <typename T> ND_ bool  All (const SimdTInt64<T> &v)	__NE___	{ return v.All(); }
@@ -91,44 +91,44 @@ namespace AE::Base
 	template <typename T> ND_ bool  Any (const SimdTInt128<T> &v)	__NE___	{ return v.Any(); }
 #endif
 #ifdef AE_SIMD_SimdHalf8
-	ND_ inline bool  All (const SimdHalf8::Bool8 &v)				__NE___	{ return v.All(); }
-	ND_ inline bool  Any (const SimdHalf8::Bool8 &v)				__NE___	{ return v.Any(); }
+	Nd__In bool  All (const SimdHalf8::Bool8 &v)					__NE___	{ return v.All(); }
+	Nd__In bool  Any (const SimdHalf8::Bool8 &v)					__NE___	{ return v.Any(); }
 #endif
 #ifdef AE_SIMD_SimdFloat4
-	ND_ inline bool  All (const SimdFloat4::Bool4 &v)				__NE___	{ return v.All(); }
-	ND_ inline bool  Any (const SimdFloat4::Bool4 &v)				__NE___	{ return v.Any(); }
+	Nd__In bool  All (const SimdFloat4::Bool4 &v)					__NE___	{ return v.All(); }
+	Nd__In bool  Any (const SimdFloat4::Bool4 &v)					__NE___	{ return v.Any(); }
 #endif
 #ifdef AE_SIMD_SimdDouble2
-	ND_ inline bool  All (const SimdDouble2::Bool2 &v)				__NE___	{ return v.All(); }
-	ND_ inline bool  Any (const SimdDouble2::Bool2 &v)				__NE___	{ return v.Any(); }
+	Nd__In bool  All (const SimdDouble2::Bool2 &v)					__NE___	{ return v.All(); }
+	Nd__In bool  Any (const SimdDouble2::Bool2 &v)					__NE___	{ return v.Any(); }
 #endif
 #ifdef AE_SIMD_SimdTInt256
 	template <typename T> ND_ bool  All (const SimdTInt256<T> &v)	__NE___	{ return v.All(); }
 	template <typename T> ND_ bool  Any (const SimdTInt256<T> &v)	__NE___	{ return v.Any(); }
 #endif
 #ifdef AE_SIMD_SimdFloat8
-	ND_ inline bool  All (const SimdFloat8::Bool8 &v)				__NE___	{ return v.All(); }
-	ND_ inline bool  Any (const SimdFloat8::Bool8 &v)				__NE___	{ return v.Any(); }
+	Nd__In bool  All (const SimdFloat8::Bool8 &v)					__NE___	{ return v.All(); }
+	Nd__In bool  Any (const SimdFloat8::Bool8 &v)					__NE___	{ return v.Any(); }
 #endif
 #ifdef AE_SIMD_SimdDouble4
-	ND_ inline bool  All (const SimdDouble4::Bool4 &v)				__NE___	{ return v.All(); }
-	ND_ inline bool  Any (const SimdDouble4::Bool4 &v)				__NE___	{ return v.Any(); }
+	Nd__In bool  All (const SimdDouble4::Bool4 &v)					__NE___	{ return v.All(); }
+	Nd__In bool  Any (const SimdDouble4::Bool4 &v)					__NE___	{ return v.Any(); }
 #endif
 #ifdef AE_SIMD_SimdHalf16
-	ND_ inline bool  All (const SimdHalf16::Bool16 &v)				__NE___	{ return v.All(); }
-	ND_ inline bool  Any (const SimdHalf16::Bool16 &v)				__NE___	{ return v.Any(); }
+	Nd__In bool  All (const SimdHalf16::Bool16 &v)					__NE___	{ return v.All(); }
+	Nd__In bool  Any (const SimdHalf16::Bool16 &v)					__NE___	{ return v.Any(); }
 #endif
 #ifdef AE_SIMD_SimdTInt512
 	template <typename T> ND_ bool  All (const SimdTInt512<T> &v)	__NE___	{ return v.All(); }
 	template <typename T> ND_ bool  Any (const SimdTInt512<T> &v)	__NE___	{ return v.Any(); }
 #endif
 #if 0 //def AE_SIMD_SimdFloat16
-	ND_ inline bool  All (const SimdFloat16::Bool16 &v)				__NE___	{ return v.All(); }
-	ND_ inline bool  Any (const SimdFloat16::Bool16 &v)				__NE___	{ return v.Any(); }
+	Nd__In bool  All (const SimdFloat16::Bool16 &v)					__NE___	{ return v.All(); }
+	Nd__In bool  Any (const SimdFloat16::Bool16 &v)					__NE___	{ return v.Any(); }
 #endif
 #if 0 //def AE_SIMD_SimdDouble8
-	ND_ inline bool  All (const SimdDouble8::Bool8 &v)				__NE___	{ return v.All(); }
-	ND_ inline bool  Any (const SimdDouble8::Bool8 &v)				__NE___	{ return v.Any(); }
+	Nd__In bool  All (const SimdDouble8::Bool8 &v)					__NE___	{ return v.All(); }
+	Nd__In bool  Any (const SimdDouble8::Bool8 &v)					__NE___	{ return v.Any(); }
 #endif
 
 /*
@@ -338,7 +338,8 @@ namespace _hidden_
 	Abs
 =================================================
 */
-	template <typename SimdType> requires( HasSimdType<SimdType> and IsSigned<typename SimdType::Scalar_t> )
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> and IsSigned<typename SimdType::Scalar_t> )
 	ND_ SimdType  Abs (const SimdType &v) __NE___
 	{
 		return v.Abs();
@@ -349,16 +350,30 @@ namespace _hidden_
 	Min, Max
 =================================================
 */
-	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_MinMax() )
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> and SimdType::Has_MinMax() )
 	ND_ SimdType  Min (const SimdType &a, const SimdType &b) __NE___
 	{
 		return a.Min( b );
 	}
 
-	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_MinMax() )
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> and SimdType::Has_MinMax() )
 	ND_ SimdType  Max (const SimdType &a, const SimdType &b) __NE___
 	{
 		return a.Max( b );
+	}
+	
+/*
+=================================================
+	Clamp
+=================================================
+*/
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> and SimdType::Has_MinMax() )
+	ND_ SimdType  Clamp (const SimdType &value, const SimdType &minValue, const SimdType &maxValue) __NE___
+	{
+		return Max( Min( value, minValue ), maxValue );
 	}
 
 /*
@@ -366,35 +381,41 @@ namespace _hidden_
 	Floor, Ceil, Trunc, Round, RoundEven
 =================================================
 */
-	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  Floor (const SimdType &v) __NE___
 	{
 		return v.Floor();
 	}
 
-	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  Ceil (const SimdType &v) __NE___
 	{
 		return v.Ceil();
 	}
 
-	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  Trunc (const SimdType &v) __NE___
 	{
 		return v.Trunc();
 	}
 
-	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  Round (const SimdType &v) __NE___
 	{
 		return v.Round();
 	}
 
-	template <typename SimdType> requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
+	template <typename SimdType>
+		requires( HasSimdType<SimdType> and SimdType::Has_Rounding() )
 	ND_ SimdType  RoundEven (const SimdType &v) __NE___
 	{
 		return v.RoundEven();
 	}
+
 //-----------------------------------------------------------------------------
 	
 # ifdef AE_COMPILER_GCC

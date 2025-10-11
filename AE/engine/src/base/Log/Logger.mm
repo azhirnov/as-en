@@ -42,10 +42,10 @@ namespace
 
 /*
 =================================================
-	DialogLogOutput
+	_ProcessImpl (Apple)
 =================================================
 */
-	ILogger::EResult  DialogLogOutput::_ProcessImpl (const String &caption, const String &msg, ELevel level) __Th___
+	ILogger::EResult  DialogLogOutput::_ProcessImpl (const String &caption, String &msg, ELevel level) __Th___
 	{
 		if ( _mainThread != std::this_thread::get_id() )
 		{

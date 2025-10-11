@@ -1,10 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	FrameUID
-		thread-safe:	no
+		Thread-safe:	no
 
 	AtomicFrameUID
-		thread-safe:	yes
+		Thread-safe:	yes
 */
 
 #pragma once

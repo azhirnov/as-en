@@ -9,6 +9,7 @@
 
 #include "_ui_data/cpp/types.h"
 
+//#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS	// TODO
 #include "imgui.h"
 #include "imgui_internal.h"
 
@@ -516,6 +517,7 @@ namespace
 			copy_ctx.ImageBarrier( t._res.fontImg, EResourceState::CopyDst, EResourceState::FragmentShader | EResourceState::ShaderSample );
 			copy_ctx.CommitBarriers();
 
+			imgui->ctx->IO.Fonts->SetTexID( BitCast<ImTextureID>( 0ull ));
 			imgui->ctx->IO.Fonts->ClearTexData();
 
 		  #if not RmG_UI_ON_HOST
@@ -600,8 +602,6 @@ namespace
 		Graphics::DirectCtx::Transfer	tctx {*this};
 		if ( hasSurface )
 		{
-			CHECK_CE( surface.GetTargets( OUT targets ));
-
 			// clear screen on device
 			if ( isFirst )
 			{
@@ -1294,7 +1294,8 @@ namespace
 					ImGui::SetScrollY( ImGui::GetScrollY() + delta.y );
 				}*/
 
-				ImGui::Image( BitCast<ImTextureID>(usize(i+1)), img_size );
+				ImTextureRef	tex{ BitCast<ImTextureID>(usize(i+1)) };
+				ImGui::Image( tex, img_size );
 			}
 			ImGui::End();
 		}
@@ -1613,7 +1614,7 @@ namespace
 			for (int j = 0; j < cmd_list.CmdBuffer.Size; ++j)
 			{
 				ImDrawCmd const&	cmd = cmd_list.CmdBuffer[j];
-				const uint			tex	= uint(BitCast<ulong>(cmd.GetTexID()));
+				const uint			tex	= uint(BitCast<ulong>(cmd.TexRef.GetTexID()));
 
 				if ( tex != cur_tex )
 				{
@@ -2097,6 +2098,8 @@ R"(UI controls:
 	{
 		if ( not scriptDir.timer.Tick() )
 			return;
+
+		// TODO: use FileWatch
 
 		scriptDir.rootInfo	= Default;
 

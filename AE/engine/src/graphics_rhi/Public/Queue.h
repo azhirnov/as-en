@@ -20,7 +20,7 @@ namespace AE::Graphics
 		//	- async graphics (Metal)
 
 		_Count,
-		Unknown			= 0xFF,
+		Unknown			= _Count,
 	};
 
 

@@ -7,7 +7,7 @@
 	IsValid
 =================================================
 */
-	ND_ inline bool  RasterFontPacker_IsValid (const RasterFontPacker &self) __NE___
+	Nd__In bool  RasterFontPacker_IsValid (const RasterFontPacker &self) __NE___
 	{
 		using EFileFlags = RasterFontPacker::EFileFlags;
 
@@ -39,7 +39,7 @@
 =================================================
 */
 #ifdef AE_BUILD_ASSET_PACKER
-	ND_ inline bool  RasterFontPacker_Serialize (const RasterFontPacker &self, Serializing::Serializer &ser) __NE___
+	Nd__In bool  RasterFontPacker_Serialize (const RasterFontPacker &self, Serializing::Serializer &ser) __NE___
 	{
 		using EFileFlags = RasterFontPacker::EFileFlags;
 
@@ -65,7 +65,7 @@
 	Deserialize
 =================================================
 */
-	ND_ inline bool  RasterFontPacker_Deserialize (OUT RasterFontPacker &self, Serializing::Deserializer &des) __NE___
+	Nd__In bool  RasterFontPacker_Deserialize (OUT RasterFontPacker &self, Serializing::Deserializer &des) __NE___
 	{
 		using EFileFlags = RasterFontPacker::EFileFlags;
 

@@ -42,7 +42,7 @@ namespace AE::Base
 
 		NdCx__ static VecSwizzle  VecDefault (usize size)									__NE___;
 
-		friend __Cx__ VecSwizzle  operator "" _vecSwizzle (const char* str, const usize len)__NE___;
+		friend __Cx__ VecSwizzle  operator ""_vecSwizzle (const char* str, const usize len)__NE___;
 
 
 	private:
@@ -74,7 +74,7 @@ namespace AE::Base
 	operator ""
 =================================================
 */
-	NdCx__ VecSwizzle  operator "" _vecSwizzle (const char* str, const usize len) __NE___
+	NdCx__ VecSwizzle  operator ""_vecSwizzle (const char* str, const usize len) __NE___
 	{
 		ASSERT_Cx( len > 0 and len <= 4 );
 

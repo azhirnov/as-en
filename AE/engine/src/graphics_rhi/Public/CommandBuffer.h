@@ -3,7 +3,7 @@
 	Interfaces should be used only for some low CPU bound code!
 
 	IDrawContext, ITransferContext, IComputeContext, IGraphicsContext, IRayTracingContext, IASBuildContext
-		thread-safe:	no
+		Thread-safe:	no
 
 		exceptions:
 			- for direct/indirect command buffers, if resource is not alive.
@@ -39,7 +39,7 @@ namespace AE::Graphics
 	// Draw Context interface
 	//
 
-	class NO_VTABLE IDrawContext
+	class IDrawContext
 	{
 	// interface
 	public:
@@ -166,7 +166,7 @@ namespace AE::Graphics
 	// Base Context interface
 	//
 
-	class NO_VTABLE IBaseContext
+	class IBaseContext
 	{
 	// interface
 	public:

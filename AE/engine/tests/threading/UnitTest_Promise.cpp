@@ -402,7 +402,10 @@ namespace
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{} ));
 
-		TEST( scheduler->Wait( List{ AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2}, AsyncTask{p3} }, c_MaxTimeout ));
+		Array<Promise<String>>	arr = { p0, p1, p2, p3 };
+		auto	t0 = scheduler->WaitAsync( ETaskQueue::PerFrame, Tuple{ArrayView{arr}} );
+
+		TEST( scheduler->Wait( {t0}, c_MaxTimeout ));
 		TEST( p0->Status() == ETaskStatus::Completed );
 		TEST( p1->Status() == ETaskStatus::Canceled );
 		TEST( p2->Status() == ETaskStatus::Canceled );

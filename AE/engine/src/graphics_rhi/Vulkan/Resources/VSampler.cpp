@@ -7,6 +7,7 @@
 # include "graphics_rhi/Vulkan/Resources/VSampler.h"
 # include "graphics_rhi/Vulkan/VResourceManager.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 
 namespace AE::Graphics
@@ -38,7 +39,7 @@ namespace AE::Graphics
 		VkSamplerCreateInfo						sampler_ci;
 		VkSamplerYcbcrConversionInfo			conv_info;
 		VkSamplerReductionModeCreateInfoEXT		reduction_ci;
-		void const**							p_next			= &sampler_ci.pNext;
+		VNextChain								p_next		{sampler_ci};
 
 		sampler_ci.sType			= VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		sampler_ci.flags			= VEnumCast( desc.options );
@@ -64,8 +65,7 @@ namespace AE::Graphics
 		if ( dev.GetVExtensions().samplerFilterMinmax and
 			 desc.reductionMode != EReductionMode::Average )
 		{
-			*p_next						= &reduction_ci;
-			p_next						= &reduction_ci.pNext;
+			p_next.Add( reduction_ci );
 
 			reduction_ci.sType			= VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO;
 			reduction_ci.reductionMode	= VEnumCast( desc.reductionMode );
@@ -76,16 +76,13 @@ namespace AE::Graphics
 			VK_CHECK_ERR( dev.vkCreateSamplerYcbcrConversionKHR( dev.GetVkDevice(), ycbcrDesc, null, OUT &_ycbcrConversion ));
 			dev.SetObjectName( _ycbcrConversion, dbgName, VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION );
 
-			*p_next					= &conv_info;
-			p_next					= &conv_info.pNext;
+			p_next.Add( conv_info );
 
 			conv_info.sType			= VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO;
 			conv_info.conversion	= _ycbcrConversion;
 
 			_ycbcrFormat			= ycbcrDesc->format;
 		}
-
-		*p_next = null;
 
 		VK_CHECK_ERR( dev.vkCreateSampler( dev.GetVkDevice(), &sampler_ci, null, OUT &_sampler ));
 		dev.SetObjectName( _sampler, dbgName, VK_OBJECT_TYPE_SAMPLER );
@@ -237,6 +234,10 @@ namespace AE::Graphics
 			return true;
 		}
 	  #else
+
+		if ( desc.extFormat != Default )
+			return false;
+
 		Unused( dev, allocator );
 	  #endif
 

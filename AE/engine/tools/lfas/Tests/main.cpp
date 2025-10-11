@@ -12,8 +12,11 @@ extern void Test_LfLinearAllocator ();
 
 int main ()
 {
-	AE::Base::StaticLogger::LoggerDbgScope	log{};
+	#ifdef AE_CFG_DEBUG
+	return 0;
+	#endif
 
+	AE::Base::StaticLogger::LoggerDbgScope	log{};
 
 	UnitTest_Ranges();
 	Test_SpinLock();

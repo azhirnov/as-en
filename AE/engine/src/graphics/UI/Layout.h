@@ -527,7 +527,7 @@ namespace AE::UI
 	returns rectangle intersection or point of 'other'
 =================================================
 */
-	ND_ inline RectF  Crop (const RectF &self, const RectF &other) __NE___
+	Nd__In RectF  Crop (const RectF &self, const RectF &other) __NE___
 	{
 		ASSERT( self.IsNormalized() and other.IsNormalized() );
 

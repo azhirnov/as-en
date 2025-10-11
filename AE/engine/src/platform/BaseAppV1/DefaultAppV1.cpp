@@ -6,6 +6,7 @@
 #include "platform/GLFW/GLFWCommon.h"
 #include "platform/WinAPI/WinAPICommon.h"
 #include "platform/OpenVR/OpenVRCommon.h"
+#include "platform/OpenXR/OpenXRCommon.h"
 
 #ifdef AE_ENABLE_AUDIO
 # include "audio/Public/IAudioSystem.h"
@@ -16,7 +17,7 @@
 #define ENABLE_SYNC_LOG		0
 
 #if ENABLE_SYNC_LOG and defined(AE_ENABLE_VULKAN)
-#	include "VulkanSyncLog.h"
+#	include "vulkan_sync_log/VulkanSyncLog.h"
 #endif
 
 namespace AE::AppV1
@@ -102,17 +103,13 @@ namespace AE::AppV1
 
 
 		Ptr<IWindow>	active_wnd;
-		Ptr<IVRDevice>	active_vr;
 
 		for (auto& wnd : _windows) {
 			if ( wnd->GetState() == IWindow::EState::Focused )
 				active_wnd = wnd.get();
 		}
 
-		if ( _vrDevice and _vrDevice->GetState() == IWindow::EState::Focused )
-			active_vr = _vrDevice.get();
-
-		_impl->WaitFrame( GetMainThreadMask(), active_wnd, active_vr );
+		_impl->WaitFrame( GetMainThreadMask(), active_wnd );
 	}
 
 /*
@@ -129,7 +126,7 @@ namespace AE::AppV1
 		{
 			String	log;
 			VulkanSyncLog::GetLog( OUT log );
-			log.clear();
+			CHECK( not _device.HasValidationError() );
 		}
 		# elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		{
@@ -149,9 +146,6 @@ namespace AE::AppV1
 		// terminate application if main window has been closed
 		if_unlikely( _windows.empty() or _windows[0]->GetState() == IWindow::EState::Destroyed )
 		{
-			if ( _vrDevice )
-				_vrDevice.reset();
-
 			app.Terminate();
 		}
 	}
@@ -173,6 +167,15 @@ namespace AE::AppV1
 */
 	bool  AppCoreV1::_OnStartImpl (IApplication &app) __NE___
 	{
+		// create VR device without window
+		if ( _config.enableVR and _config.onlyVR )
+		{
+			_CreateVRDevice( app );
+
+			if ( not _windows.empty() )
+				return true;
+		}
+
 		// create window
 		{
 			auto	wnd = app.CreateWindow( MakeUnique<AppCoreV1::WindowEventListener>( _impl, *this ), _config.window );
@@ -192,31 +195,46 @@ namespace AE::AppV1
 		}
 		#endif
 
-		// create VR device
+		// create VR device with window
 		if ( _config.enableVR and _windows.size() >= 1 )
 		{
-			const auto	CreateVR = [this, &app] (IVRDevice::EDeviceType type) -> bool
-			{{
-				_vrDevice = app.CreateVRDevice( MakeUnique<AppCoreV1::VRDeviceEventListener>( _impl, *this ), &_windows[0]->InputActions(), type );
-				return _vrDevice and _vrDevice->CreateRenderSurface( _config.vr );
-			}};
-
-			ASSERT( not _config.vrDevices.empty() );
-
-			for (auto type : _config.vrDevices) {
-				if ( CreateVR( type )) break;
-			}
-
-			if ( _vrDevice )
-			{
-				IVRDevice::Settings		settings;
-				settings.cameraClipPlanes	= { 0.1f, 100.f };
-
-				Unused( _vrDevice->Setup( settings ));
-			}
+			_CreateVRDevice( app );
 		}
 
 		return true;
+	}
+
+/*
+=================================================
+	_CreateVRDevice
+=================================================
+*/
+	void  AppCoreV1::_CreateVRDevice (IApplication &app) __NE___
+	{
+		ASSERT( not _config.vrDevices.empty() );
+
+		IInputActions*	ia = null;
+
+		if ( not _windows.empty() )
+			ia = &_windows[0]->InputActions();
+		
+		for (auto type : _config.vrDevices)
+		{
+			WindowPtr	vr_wnd = app.CreateVRSession( MakeUnique<AppCoreV1::WindowEventListener>( _impl, *this ), ia, type );
+			if ( vr_wnd )
+			{
+				IVRSession*	vr_dev = vr_wnd->AsVRSession();
+				CHECK_ERRV( vr_dev != null );
+
+				IVRSession::Settings		settings;
+				settings.cameraClipPlanes	= { 0.1f, 100.f };
+
+				Unused( vr_dev->Setup( settings ));
+
+				_windows.push_back( vr_wnd );
+				return;
+			}
+		}
 	}
 
 /*
@@ -228,7 +246,7 @@ namespace AE::AppV1
 	{
 		if ( _impl )
 		{
-			_impl->WaitFrame( GetMainThreadMask(), null, null );
+			_impl->WaitFrame( GetMainThreadMask(), null );
 			_impl = null;
 		}
 		_windows.clear();
@@ -326,7 +344,7 @@ namespace AE::AppV1
 			case EState::Stopped :
 			case EState::Destroyed :
 				_impl->StopRendering( &wnd.GetSurface() );
-				_impl->WaitFrame( _app.GetMainThreadMask(), null, null );
+				_impl->WaitFrame( _app.GetMainThreadMask(), null );
 				break;
 
 			case EState::Created :
@@ -350,7 +368,7 @@ namespace AE::AppV1
 	{
 		// create render surface
 		CHECK_FATAL( wnd.CreateRenderSurface( _app.GetConfig().graphics.swapchain ));
-
+		
 		_impl->StartRendering( &wnd.InputActions(), &wnd.GetSurface(), EState::InForeground );
 
 		CHECK_FATAL( _impl->OnSurfaceCreated( wnd ));
@@ -364,49 +382,12 @@ namespace AE::AppV1
 	void  AppCoreV1::WindowEventListener::OnSurfaceDestroyed (IWindow &) __NE___
 	{
 		_impl->StopRendering( null );
-		_impl->WaitFrame( _app.GetMainThreadMask(), null, null );
+		_impl->WaitFrame( _app.GetMainThreadMask(), null );
 
 		// 'WaitFrame' may not process any task, so we need to process them here too.
 		Unused( Scheduler().ProcessTasks( _app.GetMainThreadMask(), Scheduler().GetDefaultSeed() ));
 
 		Unused( GraphicsScheduler().WaitAll( AE::DefaultTimeout ));
 	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	OnStateChanged
-=================================================
-*/
-	void  AppCoreV1::VRDeviceEventListener::OnStateChanged (IVRDevice &vr, EState state) __NE___
-	{
-		switch_enum( state )
-		{
-			case EState::InForeground :
-			case EState::Focused :
-				_impl->StartRendering( &vr.InputActions(), &vr.GetSurface(), state );
-				break;
-
-			case EState::InBackground :
-			case EState::Stopped :
-			case EState::Destroyed :
-				_impl->StopRendering( &vr.GetSurface() );
-				_impl->WaitFrame( _app.GetMainThreadMask(), null, null );
-				break;
-
-			case EState::Created :
-			case EState::Unknown :
-			case EState::Started :
-				break;
-
-			default :
-				DBG_WARNING( "unsupported VR state" );
-				break;
-		}
-		switch_end
-	}
-
 
 } // AE::AppV1

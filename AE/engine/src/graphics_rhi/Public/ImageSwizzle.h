@@ -42,7 +42,7 @@ namespace AE::Graphics
 		// 4..7 - src1
 		ND_ static uint4  Mix (ImageSwizzle src0, ImageSwizzle src1)						__NE___;
 
-		__Cx__ friend ImageSwizzle  operator "" _swizzle (const char* str, const usize len)	__NE___;
+		__Cx__ friend ImageSwizzle  operator ""_swizzle (const char* str, const usize len)	__NE___;
 
 
 	private:
@@ -55,7 +55,7 @@ namespace AE::Graphics
 	operator ""
 =================================================
 */
-	NdCx__ ImageSwizzle  operator "" _swizzle (const char* str, const usize len) __NE___
+	NdCx__ ImageSwizzle  operator ""_swizzle (const char* str, const usize len) __NE___
 	{
 		return ImageSwizzle::FromString( str, len );
 	}

@@ -4,7 +4,6 @@
 
 #ifdef AE_PLATFORM_WINDOWS
 # include "base/Math/BitMath.h"
-# include "base/FileSystem/Path.h"
 # include "base/Utils/Threading.h"
 
 namespace AE::Base

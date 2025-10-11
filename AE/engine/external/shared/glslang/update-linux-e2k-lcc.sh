@@ -6,9 +6,9 @@ mkdir "build"
 export PATH=$PATH:/opt/mcst/lcc-1.27.21.e2k-v6.5.10-e2c3/bin/
 export CC=lcc
 export CXX=l++
-git clone --branch "vulkan-sdk-1.4.309.0" "../../../../../3party/glslang" "temp"
-git clone --branch "vulkan-sdk-1.4.309.0" "../../../../../3party/SPIRV-Tools" "temp/External/spirv-tools"
-git clone --branch "vulkan-sdk-1.4.309.0" "../../../../../3party/SPIRV-Headers" "temp/External/spirv-tools/external/spirv-headers"
+git clone --branch "vulkan-sdk-1.4.321.0" "../../../../../3party/glslang" "temp"
+git clone --branch "vulkan-sdk-1.4.321.0" "../../../../../3party/SPIRV-Tools" "temp/External/spirv-tools"
+git clone --branch "vulkan-sdk-1.4.321.0" "../../../../../3party/SPIRV-Headers" "temp/External/spirv-tools/external/spirv-headers"
 cp "temp/CMakeLists.txt" "temp/origin_CMakeLists.txt"
 cp "glslang_CMakeLists.txt" "temp/CMakeLists.txt"
 cmake -S temp -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-e2k-lcc9/glslang" 

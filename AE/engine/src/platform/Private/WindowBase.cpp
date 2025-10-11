@@ -2,6 +2,7 @@
 
 #include "platform/Private/WindowBase.h"
 #include "platform/Private/ApplicationBase.h"
+#include "platform/Public/DesktopWindow.h"
 
 namespace AE::App
 {
@@ -45,26 +46,6 @@ namespace
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK( _wndState == EState::Destroyed );
-		ASSERT(	not _surface.IsInitialized() );
-	}
-
-/*
-=================================================
-	CreateRenderSurface
-=================================================
-*/
-	bool  WindowBase::CreateRenderSurface (const Graphics::SwapchainDesc &desc) __NE___
-	{
-		DRC_EXLOCK( _drCheck );
-		DRC_EXLOCK( _app.GetSingleThreadCheck() );
-
-		CHECK_ERR( _surface.Init( *this, desc ));
-
-		if ( auto state = GetState();  state >= EState::Started and state < EState::Stopped )
-		{
-			_surface.CreateSwapchain();
-		}
-		return true;
 	}
 
 /*
@@ -103,37 +84,37 @@ namespace
 
 		_wndState = newState;
 
-		if_likely( _listener )
+		if_unlikely( not _listener )
+			return;
+		
+		switch_enum( _wndState )
 		{
-			switch_enum( _wndState )
-			{
-				case EState::Started :
-					_listener->OnStateChanged( *this, _wndState );
-					_surface.CreateSwapchain();
-					_listener->OnSurfaceCreated( *this );
-					break;
+			case EState::Started :
+				_listener->OnStateChanged( *this, _wndState );
+				_CreateSwapchain();
+				_listener->OnSurfaceCreated( *this );
+				break;
 
-				case EState::Stopped :
-					_listener->OnSurfaceDestroyed( *this );
-					_surface.DestroySwapchain();
-					_listener->OnStateChanged( *this, _wndState );
-					break;
+			case EState::Stopped :
+				_listener->OnSurfaceDestroyed( *this );
+				_DestroySwapchain();
+				_listener->OnStateChanged( *this, _wndState );
+				break;
 
-				case EState::Created :
-				case EState::Destroyed :
-				case EState::InForeground :
-				case EState::InBackground :
-				case EState::Focused :
-					_listener->OnStateChanged( *this, _wndState );
-					break;
+			case EState::Created :
+			case EState::Destroyed :
+			case EState::InForeground :
+			case EState::InBackground :
+			case EState::Focused :
+				_listener->OnStateChanged( *this, _wndState );
+				break;
 
-				case EState::Unknown :
-				default :
-					DBG_WARNING( "unknown state" );
-					break;
-			}
-			switch_end
+			case EState::Unknown :
+			default :
+				DBG_WARNING( "unknown state" );
+				break;
 		}
+		switch_end
 	}
 
 /*
@@ -152,24 +133,59 @@ namespace
 
 		_listener.reset();
 	}
+//-----------------------------------------------------------------------------
+
+
+	
+/*
+=================================================
+	destructor
+=================================================
+*/
+	WindowBaseWithSurface::~WindowBaseWithSurface () __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		CHECK( _wndState == EState::Destroyed );
+		ASSERT(	not _surface.IsInitialized() );
+	}
+
+/*
+=================================================
+	CreateRenderSurface
+=================================================
+*/
+	bool  WindowBaseWithSurface::CreateRenderSurface (const Graphics::SwapchainDesc &desc) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+		DRC_EXLOCK( _app.GetSingleThreadCheck() );
+
+		CHECK_ERR( _surface.Init( *this, desc ));
+
+		if ( auto state = GetState();  state >= EState::Started and state < EState::Stopped )
+		{
+			_surface.CreateSwapchain();
+		}
+		return true;
+	}
 
 /*
 =================================================
 	_ResizeWindowToSurface
 =================================================
 */
-	void  WindowBase::_ResizeWindowToSurface () __NE___
+	void  WindowBaseWithSurface::_ResizeWindowToSurface () __NE___
 	{
 		if ( not _surface.IsInitialized() )
 			return;
 
 		auto	info = _surface.GetTargetInfo();
-		ASSERT( info.size() == 1 );
+		ASSERT_Eq( info.size(), 1 );
 
 		if ( info.size() > 0 and
 			 Any( info[0].Dimension() != GetSurfaceSize() ))
 		{
-			SetSize( info[0].Dimension() );
+			if ( auto* wnd = AsDesktopWindow() )
+				wnd->SetSize( info[0].Dimension() );
 		}
 	}
 

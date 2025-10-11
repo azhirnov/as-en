@@ -49,7 +49,7 @@ namespace AE::Graphics
 	AndroidFormatCast
 =================================================
 */
-	ND_ inline EPixelFormatExternal  AndroidFormatCast (AImageFormat format) __NE___
+	Nd__In EPixelFormatExternal  AndroidFormatCast (AImageFormat format) __NE___
 	{
 		switch_enum( format )
 		{
@@ -86,7 +86,7 @@ namespace AE::Graphics
 		return Default;
 	}
 
-	ND_ inline EPixelFormatExternal  AndroidFormatCast (int format) __NE___
+	Nd__In EPixelFormatExternal  AndroidFormatCast (int format) __NE___
 	{
 		return AndroidFormatCast( AImageFormat(format) );
 	}
@@ -96,7 +96,7 @@ namespace AE::Graphics
 	AndroidFormatCast
 =================================================
 */
-	ND_ inline AImageFormat  AndroidFormatCast (EPixelFormatExternal format) __NE___
+	Nd__In AImageFormat  AndroidFormatCast (EPixelFormatExternal format) __NE___
 	{
 		switch_enum( format )
 		{
@@ -127,7 +127,6 @@ namespace AE::Graphics
 			case EPixelFormatExternal::Android_HEIC :			return AImageFormat::HEIC;
 
 			case EPixelFormatExternal::_Android_End :
-			case EPixelFormatExternal::_Count :
 			case EPixelFormatExternal::Unknown :				break;
 		}
 		switch_end

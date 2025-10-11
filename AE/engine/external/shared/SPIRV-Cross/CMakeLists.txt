@@ -36,6 +36,6 @@ set_property( TARGET "SPIRV-Cross-lib" PROPERTY INTERFACE_LINK_LIBRARIES
 if (${AE_ENABLE_EXTERNAL_TESTS})
 	add_executable( "Tests.SPIRV-Cross" "tests/main.cpp" )
 	set_property( TARGET "Tests.SPIRV-Cross" PROPERTY FOLDER "Engine/External/Tests" )
-	target_link_libraries( "Tests.SPIRV-Cross" PUBLIC "SPIRV-Cross-lib" )
+	target_link_libraries( "Tests.SPIRV-Cross" PUBLIC "ProjectTemplate" "SPIRV-Cross-lib" )
 	#add_test( NAME "Tests.SPIRV-Cross" COMMAND "Tests.SPIRV-Cross" )
 endif ()

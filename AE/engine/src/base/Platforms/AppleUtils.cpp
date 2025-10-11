@@ -15,6 +15,14 @@
 # include "base/Platforms/AppleUtils.h"
 # include "base/Algorithms/ToString.h"
 
+namespace AE
+{
+	void FastCloseApp ()
+	{
+		std::abort();
+	}
+}
+
 namespace AE::Base
 {
 /*

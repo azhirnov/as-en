@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 #include "pch/VFS.h"
 
 using namespace AE;

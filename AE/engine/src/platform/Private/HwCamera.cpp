@@ -289,6 +289,7 @@ namespace AE::App
 	Print
 =================================================
 */
+#ifdef AE_ENABLE_LOGS
 	void  IHwCamera::CameraStaticInfo::Print () C_NE___
 	{
 		TRY{
@@ -360,7 +361,7 @@ namespace AE::App
 		}
 		CATCH_ALL();
 	}
-
+#endif
 /*
 =================================================
 	Validate
@@ -434,6 +435,7 @@ namespace AE::App
 	Print
 =================================================
 */
+#ifdef AE_ENABLE_LOGS
 	void  IHwCamera::CameraInfo::Print () C_NE___
 	{
 		CameraStaticInfo::Print();
@@ -454,7 +456,7 @@ namespace AE::App
 		}
 		CATCH_ALL();
 	}
-
+#endif
 /*
 =================================================
 	Validate
@@ -595,6 +597,7 @@ namespace AE::App
 	Print
 =================================================
 */
+#ifdef AE_ENABLE_LOGS
 	void  IHwCamera::CaptureRequest::Print () C_NE___
 	{
 		TRY{
@@ -622,7 +625,7 @@ namespace AE::App
 		}
 		CATCH_ALL();
 	}
-
+#endif
 /*
 =================================================
 	Validate

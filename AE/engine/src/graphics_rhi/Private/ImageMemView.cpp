@@ -965,7 +965,7 @@ namespace
 				_storeU4 = &WriteUInt<5,5,5,1>;
 				break;
 
-			case EPixelFormat::RGB_5_6_5_UNorm :
+			case EPixelFormat::R5G6B5_UNorm :
 				REQ_COLOR_ASPECT();
 				ASSERT( _bitsPerBlock == 5+6+5 );
 				_loadF4 = &ReadUNorm<5,6,5,0>;
@@ -1404,7 +1404,6 @@ namespace
 				DBG_WARNING( "use separate ImageMemView per plane" );
 				break;
 
-			case EPixelFormat::_Count :
 			case EPixelFormat::SwapchainColor :
 			case EPixelFormat::Unknown :
 			default_unlikely:

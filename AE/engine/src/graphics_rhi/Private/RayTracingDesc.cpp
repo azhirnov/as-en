@@ -83,7 +83,7 @@ namespace
 	VEnumCast (ERTInstanceOpt)
 =================================================
 */
-	ND_ inline VkGeometryInstanceFlagBitsKHR  VEnumCast (ERTInstanceOpt values) __NE___
+	Nd__In VkGeometryInstanceFlagBitsKHR  VEnumCast (ERTInstanceOpt values) __NE___
 	{
 		VkGeometryInstanceFlagBitsKHR	result = Zero;
 
@@ -111,7 +111,7 @@ namespace
 	VEnumCast (EPartitionedInstanceOpt)
 =================================================
 */
-	ND_ inline VkPartitionedAccelerationStructureInstanceFlagBitsNV  VEnumCast (EPartitionedInstanceOpt values) __NE___
+	Nd__In VkPartitionedAccelerationStructureInstanceFlagBitsNV  VEnumCast (EPartitionedInstanceOpt values) __NE___
 	{
 		VkPartitionedAccelerationStructureInstanceFlagBitsNV	result = Zero;
 

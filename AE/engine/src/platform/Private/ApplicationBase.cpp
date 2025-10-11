@@ -2,7 +2,8 @@
 
 #include "platform/Private/ApplicationBase.h"
 
-#include "platform/OpenVR/OpenVRDevice.h"
+#include "platform/OpenVR/VRSessionOpenVR.h"
+#include "platform/OpenXR/VRSessionOpenXR.h"
 #include "platform/Private/VRDeviceEmulator.h"
 
 namespace AE::App
@@ -22,18 +23,32 @@ namespace AE::App
 		Unused( _nvapi.Load() );
 	  #endif
 	}
+		
+/*
+=================================================
+	destructor
+=================================================
+*/
+	ApplicationBase::~ApplicationBase () __NE___
+	{
+		CHECK( not _isRunning.load() );
+		CHECK( not _listener );
+		CHECK( _windows.empty() );
+	}
 
 /*
 =================================================
-	CreateVRDevice
+	CreateVRSession
 =================================================
 */
-	VRDevicePtr  ApplicationBase::CreateVRDevice (VRDevListenerPtr listener, IInputActions* dst, IVRDevice::EDeviceType type) __NE___
+	WindowPtr  ApplicationBase::CreateVRSession (WndListenerPtr listener, IInputActions* dst, IVRSession::EDeviceType type) __NE___
 	{
-		using EDeviceType = IVRDevice::EDeviceType;
+		using EDeviceType = IVRSession::EDeviceType;
 
 		CHECK_ERR( _isRunning.load() );
 		CHECK_ERR( listener );
+
+		DRC_EXLOCK( _stCheck );
 
 		switch_enum( type )
 		{
@@ -41,12 +56,10 @@ namespace AE::App
 			{
 			#if 1
 				SharedPtr<VRDeviceEmulator>	vr{ new VRDeviceEmulator{ *this, RVRef(listener), dst }};
-				if ( not vr->Create() ) return Default;
-				{
-					EXLOCK( _vrDeviceGuard );
-					CHECK_ERR( _vrDevice.lock() == null );
-					_vrDevice = vr;
-				}
+				if ( not vr->Create() )
+					return Default;
+				
+				_AddWindow( vr );
 				return vr;
 			#else
 				break;
@@ -56,13 +69,11 @@ namespace AE::App
 			case EDeviceType::OpenVR :
 			{
 			#ifdef AE_ENABLE_OPENVR
-				SharedPtr<OpenVRDevice>	vr{ new OpenVRDevice{ RVRef(listener), dst }};
-				if ( not vr->Create() ) return Default;
-				{
-					EXLOCK( _vrDeviceGuard );
-					CHECK_ERR( _vrDevice.lock() == null );
-					_vrDevice = vr;
-				}
+				SharedPtr<VRSessionOpenVR>	vr{ new VRSessionOpenVR{ RVRef(listener), dst }};
+				if ( not vr->Create() )
+					return Default;
+				
+				_AddWindow( vr );
 				return vr;
 			#else
 				break;
@@ -71,10 +82,16 @@ namespace AE::App
 
 			case EDeviceType::OpenXR :
 			{
-			//#ifdef AE_ENABLE_OPENXR
-			//#else
+			#ifdef AE_ENABLE_OPENXR
+				SharedPtr<VRSessionOpenXR>	vr{ new VRSessionOpenXR{ *this, RVRef(listener), dst }};
+				if ( not vr->Create() )
+					return Default;
+
+				_AddWindow( vr );
+				return vr;
+			#else
 				break;
-			//#endif
+			#endif
 			}
 
 			case EDeviceType::Unknown : break;
@@ -83,6 +100,7 @@ namespace AE::App
 
 		return Default;
 	}
+
 /*
 =================================================
 	_BeforeUpdate
@@ -96,15 +114,24 @@ namespace AE::App
 
 		if_likely( _listener )
 			_listener->BeforeWndUpdate( *this );
-
-		// update VR
+	}
+	
+/*
+=================================================
+	_Update
+=================================================
+*/
+	void  ApplicationBase::_Update () __NE___
+	{
+		ASSERT( _isRunning.load() );
+		
+		for (usize i = 0; i < _windows.size();)
 		{
-			EXLOCK( _vrDeviceGuard );
-
-			SharedPtr<VRDeviceBase>	vr = _vrDevice.lock();
-
-			if ( vr )
-				vr->Update( GetTimeSinceStart() );
+			// ProcessMessages() will return 'false' if window is closed
+			if_likely( auto wnd = _windows[i].lock();  wnd and wnd->ProcessMessages() )
+				++i;
+			else
+				_windows.fast_erase( i );
 		}
 	}
 
@@ -128,11 +155,6 @@ namespace AE::App
 	{
 		_isRunning.store( false );
 
-		{
-			EXLOCK( _vrDeviceGuard );
-			_vrDevice.reset();
-		}
-
 		if ( _listener )
 		{
 			_listener->OnStop( *this );
@@ -149,6 +171,66 @@ namespace AE::App
 	{
 		_isRunning.store( false );
 	}
+	
+/*
+=================================================
+	GetMonitor
+=================================================
+*/
+	Monitor::ID  ApplicationBase::GetMonitor (const int2 pos) C_NE___
+	{
+		MonitorsView_t	monitors = GetCachedMonitors();
 
+		for (const Monitor& monitor : monitors)
+		{
+			if ( Base::IsIntersects( monitor.region.pixels.LeftTop(), monitor.region.pixels.RightBottom(), pos, pos+1 ))
+				return monitor.id;
+		}
+		return Default;
+	}
+	
+/*
+=================================================
+	GetMonitorFromNative
+=================================================
+*/
+	Monitor::ID  ApplicationBase::GetMonitorFromNative (Monitor::NativeMonitor_t handle) C_NE___
+	{
+		MonitorsView_t	monitors = GetCachedMonitors();
+		
+		for (const Monitor& monitor : monitors)
+		{
+			if ( monitor.native == handle )
+				return monitor.id;
+		}
+		return Default;
+	}
+	
+/*
+=================================================
+	_AddWindow
+=================================================
+*/
+	void  ApplicationBase::_AddWindow (SharedPtr<WindowBase> wnd) __NE___
+	{
+		_windows.emplace_back( wnd );
+	}
+//-----------------------------------------------------------------------------
+
+	
+/*
+=================================================
+	StartScreenCapture
+=================================================
+*/
+	Promise<RC<IScreenCapture>>  IApplicationTS::StartScreenCapture (const IScreenCapture::Config &cfg) __NE___
+	{
+		return Scheduler().Run(
+					ETaskQueue::Main,
+					[](auto app, auto config) -> Promise<RC<IScreenCapture>>
+					{
+						co_return app->StartScreenCapture( config );
+					}( _app, cfg ));
+	}
 
 } // AE::App

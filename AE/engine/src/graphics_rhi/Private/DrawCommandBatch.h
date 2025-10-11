@@ -234,7 +234,7 @@ namespace AE::Graphics
 					dbg.color = _dbgColor;
 
 				if ( dbg.label.empty() )
-					dbg.label = loc.function_name();
+					dbg.label = loc.FunctionName();
 			)
 
 			auto&	task = *coro.UnsafeCast();

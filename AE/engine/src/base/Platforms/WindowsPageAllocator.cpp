@@ -5,7 +5,7 @@
 # include "base/Platforms/WindowsPageAllocator.h"
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Algorithms/StringUtils.h"
-# include "base/Containers/UntypedStorage.h"
+# include "base/Memory/DynUntypedStorage.h"
 
 namespace AE::Base
 {

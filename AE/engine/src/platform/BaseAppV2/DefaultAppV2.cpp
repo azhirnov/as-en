@@ -7,6 +7,7 @@
 #include "platform/GLFW/GLFWCommon.h"
 #include "platform/WinAPI/WinAPICommon.h"
 #include "platform/OpenVR/OpenVRCommon.h"
+#include "platform/OpenXR/OpenXRCommon.h"
 
 #ifdef AE_ENABLE_AUDIO
 # include "audio/Public/IAudioSystem.h"
@@ -16,7 +17,7 @@
 // When Vulkan validation reports error put breakpoint in 'log.clear();' and check 'log' content.
 #define ENABLE_SYNC_LOG		0
 #if ENABLE_SYNC_LOG
-#	include "VulkanSyncLog.h"
+#	include "vulkan_sync_log/VulkanSyncLog.h"
 #endif
 
 namespace AE::AppV2
@@ -142,6 +143,10 @@ namespace AE::AppV2
 #else
 	bool  AppCore::_InitVFS (const Path &archivePath) __NE___
 	{
+	  #if AE_PORTABLE_APP
+		CHECK( archivePath.is_relative() );
+	  #endif
+
 		auto	storage = VFS::VirtualFileStorageFactory::CreateStaticArchive( archivePath );
 
 		CHECK_ERR( storage );
@@ -186,15 +191,10 @@ namespace AE::AppV2
 */
 	void  AppCore::StartRendering (IWindow &wnd, IWindow::EState wndState) __NE___
 	{
-		_StartRendering( wnd.InputActions(), wnd.GetSurface(), wndState, WindowOrVR_t{&wnd} );
+		_StartRendering( wnd.InputActions(), wnd.GetSurface(), wndState, &wnd );
 	}
 
-	void  AppCore::StartRendering (IVRDevice &vr, IVRDevice::EState wndState) __NE___
-	{
-		_StartRendering( vr.InputActions(), vr.GetSurface(), wndState, WindowOrVR_t{&vr} );
-	}
-
-	inline void  AppCore::_StartRendering (IInputActions &input, IOutputSurface &output, const IWindow::EState wndState, WindowOrVR_t wndOrVR) __NE___
+	inline void  AppCore::_StartRendering (IInputActions &input, IOutputSurface &output, const IWindow::EState wndState, IWindow* wnd) __NE___
 	{
 		DRC_EXLOCK( Cast< App::ApplicationBase >( GetApplication() )->GetSingleThreadCheck() );
 
@@ -209,12 +209,12 @@ namespace AE::AppV2
 			if ( not focused and state->output != null )
 				return;
 
-			ia_changed			= (state->input != &input);
-			has_view			= output.IsInitialized() and (state->view != null);
+			ia_changed		= (state->input != &input);
+			has_view		= output.IsInitialized() and (state->view != null);
 
-			state->input		= &input;
-			state->output		= &output;
-			state->windowOrVR	= wndOrVR;
+			state->input	= &input;
+			state->output	= &output;
+			state->window	= wnd;
 		}
 
 		if_unlikely( ia_changed )
@@ -414,7 +414,7 @@ namespace AE::AppV2
 		{
 			String	log;
 			VulkanSyncLog::GetLog( OUT log );
-			log.clear();
+			CHECK( not _device.HasValidationError() );
 		}
 		# elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		{
@@ -476,15 +476,7 @@ namespace AE::AppV2
 		// create VR device
 		if ( cfg.enableVR )
 		{
-			const auto	CreateVR = [this, &app, &cfg] (IVRDevice::EDeviceType type) -> bool
-			{{
-				_vrDevice = app.CreateVRDevice( MakeUnique<AppMainV2::VRDeviceEventListener>( _core ), &_windows[0]->InputActions(), type );
-				return _vrDevice and _vrDevice->CreateRenderSurface( cfg.vr );
-			}};
-
-			for (auto type : cfg.vrDevices) {
-				if ( CreateVR( type )) break;
-			}
+			// TODO
 		}
 
 		return true;
@@ -646,44 +638,6 @@ namespace AE::AppV2
 	{
 		_core->StopRendering( null );
 		_core->WaitFrame();
-	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	OnStateChanged
-----
-	Thread-safe:  main thread only
-=================================================
-*/
-	void  AppMainV2::VRDeviceEventListener::OnStateChanged (IVRDevice &vr, EState state) __NE___
-	{
-		switch_enum( state )
-		{
-			case EState::InForeground :
-			case EState::Focused :
-				_core->StartRendering( vr, state );
-				break;
-
-			case EState::InBackground :
-			case EState::Stopped :
-			case EState::Destroyed :
-				_core->StopRendering( &vr.GetSurface() );
-				_core->WaitFrame();
-				break;
-
-			case EState::Created :
-			case EState::Unknown :
-			case EState::Started :
-				break;
-
-			default :
-				DBG_WARNING( "unsupported VR state" );
-				break;
-		}
-		switch_end
 	}
 
 

@@ -98,6 +98,27 @@ namespace AE::Threading
 
 /*
 =================================================
+	_ForceCleanup
+=================================================
+*/
+	void  UnixIOService::_RequestBase::_ForceCleanup () __NE___
+	{
+		_memRC = null;
+		_status.store( EStatus::Destroyed );
+
+		{
+			EXLOCK( _depsGuard );
+			_deps.clear();
+		}
+
+		// one reference in queue, other must be released by owners
+		auto	cnt = RefCounterUtils::DecRef( *this );
+		Unused( cnt );
+		ASSERT( cnt == 1 );
+	}
+
+/*
+=================================================
 	_Complete
 =================================================
 */
@@ -411,6 +432,24 @@ namespace AE::Threading
 		ASSERT( not self->_readResultPool.IsAssigned( index ));
 
 		return false;
+	}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	_Release
+=================================================
+*/
+	void  UnixIOService::_Release () __NE___
+	{
+		const auto	op = [] (auto& req) __NE___
+		{{
+			req._ForceCleanup();
+		}};
+
+		_readResultPool.ForEachAssignedAndRelease( op );
+		_writeResultPool.ForEachAssignedAndRelease( op );
 	}
 
 

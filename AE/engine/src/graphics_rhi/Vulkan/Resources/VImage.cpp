@@ -5,6 +5,7 @@
 # include "graphics_rhi/Vulkan/Resources/VImage.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
 # include "graphics_rhi/Vulkan/VResourceManager.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 namespace AE::Graphics
 {
@@ -45,7 +46,7 @@ namespace {
 		const auto&		fs	= resMngr.GetFeatureSet();
 
 		VkFormatProperties	fmt_props = {};
-		vkGetPhysicalDeviceFormatProperties( dev.GetVkPhysicalDevice(), format, OUT &fmt_props );
+		VulkanInstanceFn::vkGetPhysicalDeviceFormatProperties( dev.GetVkPhysicalDevice(), format, OUT &fmt_props );
 		// TODO: VK_KHR_format_feature_flags2
 
 		VkFormatFeatureFlags		required	= 0;
@@ -171,7 +172,7 @@ namespace {
 
 		// create image
 		VkImageCreateInfo	info;
-		void const**		p_next = &info.pNext;
+		VNextChain			p_next	{info};
 		info.sType			= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		info.flags			= VEnumCast( _desc.options );
 		info.imageType		= VEnumCast( _desc.imageDim );
@@ -222,8 +223,7 @@ namespace {
 
 			if ( dev.GetVExtensions().imageFormatList )
 			{
-				*p_next = &fmt_list_info;
-				p_next  = &fmt_list_info.pNext;
+				p_next.Add( fmt_list_info );
 			}
 			else
 				AE_LOG_DBG( "'VK_KHR_image_format_list' extension is not supported" );
@@ -236,14 +236,10 @@ namespace {
 			compress_info.sType		= VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_CONTROL_EXT;
 			compress_info.flags		= VK_IMAGE_COMPRESSION_FIXED_RATE_DEFAULT_EXT;	// lossy compression
 										// VK_IMAGE_COMPRESSION_DEFAULT_EXT - lossless compression
-
-			*p_next = &compress_info;
-			p_next  = &compress_info.pNext;
+			p_next.Add( compress_info );
 		}
 
 		// TODO: VkImageStencilUsageCreateInfo  (VK_EXT_separate_stencil_usage)
-
-		*p_next = null;
 
 		VK_CHECK_ERR( dev.vkCreateImage( dev.GetVkDevice(), &info, null, OUT &_image ));
 
@@ -464,8 +460,8 @@ namespace {
 
 			if ( ext.deviceProps2 )
 			{
-				void**			p_next_prop		= &props2.pNext;
-				void const**	p_next_info		= &info.pNext;
+				VNextChain	p_next_prop		{props2};
+				VNextChain	p_next_info		{info};
 
 				if ( AllBits( desc.options, EImageOpt::LossyRTCompression ))
 				{
@@ -474,15 +470,9 @@ namespace {
 					// enable fixed-rate (lossy) compression, otherwise it will be lossless compression
 					compress_info.flags	= VK_IMAGE_COMPRESSION_FIXED_RATE_DEFAULT_EXT;
 
-					*p_next_info	= &compress_info;
-					p_next_info		= &compress_info.pNext;
-
-					*p_next_prop	= &compress_props;
-					p_next_prop		= &compress_props.pNext;
+					p_next_info.Add( compress_info );
+					p_next_prop.Add( compress_props );
 				}
-
-				p_next_prop = null;
-				p_next_info = null;
 
 				err = vkGetPhysicalDeviceImageFormatProperties2KHR( dev.GetVkPhysicalDevice(), &info, OUT &props2 );
 			}else{

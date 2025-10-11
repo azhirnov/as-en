@@ -128,7 +128,8 @@ namespace
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
 					[this, &ubSize] (ScriptEnginePtr) {
 						_CompilePipeline2( OUT ubSize );	// throw
-					});
+					},
+					_baseFlags );
 	}
 
 /*
@@ -285,7 +286,7 @@ namespace AE::ResEditor
 			return it->second;
 
 		ShaderStructTypePtr	st{ new ShaderStructType{"PostprocessPassUB"}};
-		st->Set( EStructLayout::Std140, R"#(
+		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float3		resolution;				// viewport resolution (in pixels)
 				float		time;					// shader playback time (in seconds)
 				float2		invResolution;			// 1.0/resolution, used for optimization

@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "platform/Private/VRDeviceEmulator.h"
+#include "platform/Private/ApplicationBase.h"
 
 namespace AE::App
 {
@@ -70,7 +71,7 @@ namespace AE::App
 		EXLOCK( _guard );
 		CHECK_ERR( not _presentBatch );
 
-		auto&	surf = _vrDev._window->GetSurface();
+		auto&	surf = _vrSession._window->GetSurface();
 		if_unlikely( not surf.IsInitialized() )
 			return null;
 
@@ -98,7 +99,7 @@ namespace AE::App
 
 		AsyncTask	acquire		= RVRef(_acquireImg);
 		AsyncTask	draw_task	= _presentBatch->Run( _BlitImageTask( *this ), Tuple{acquire}, True{"Last"}, {"VR emulator blit"} );
-		AsyncTask	end_task	= _vrDev._window->GetSurface().End( deps );
+		AsyncTask	end_task	= _vrSession._window->GetSurface().End( deps );
 
 		_presentBatch = null;
 		return end_task;
@@ -119,7 +120,7 @@ namespace AE::App
 			{
 				targets[i].initialState = EResourceState::BlitSrc;
 				targets[i].finalState	= EResourceState::BlitSrc;
-				targets[i].projection	= &_vrDev._projections[i + idx];
+				targets[i].projection	= &_vrSession._projections[i + idx];
 			}
 			return true;
 		}
@@ -133,7 +134,7 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::VRRenderSurface::_GetDstTargets (OUT RenderTargets_t &targets) C_NE___
 	{
-		return _vrDev._window->GetSurface().GetTargets( OUT targets );
+		return _vrSession._window->GetSurface().GetTargets( OUT targets );
 	}
 
 /*
@@ -143,7 +144,7 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::VRRenderSurface::SetSurfaceMode (const SurfaceInfo &info) __NE___
 	{
-		return _vrDev._window->GetSurface().SetSurfaceMode( info );
+		return _vrSession._window->GetSurface().SetSurfaceMode( info );
 	}
 
 /*
@@ -153,7 +154,7 @@ namespace AE::App
 */
 	IOutputSurface::SurfaceFormats_t  VRDeviceEmulator::VRRenderSurface::GetSurfaceFormats () C_NE___
 	{
-		return _vrDev._window->GetSurface().GetSurfaceFormats();
+		return _vrSession._window->GetSurface().GetSurfaceFormats();
 	}
 
 /*
@@ -163,7 +164,7 @@ namespace AE::App
 */
 	IOutputSurface::PresentModes_t  VRDeviceEmulator::VRRenderSurface::GetPresentModes () C_NE___
 	{
-		return _vrDev._window->GetSurface().GetPresentModes();
+		return _vrSession._window->GetSurface().GetPresentModes();
 	}
 
 /*
@@ -173,7 +174,7 @@ namespace AE::App
 */
 	IOutputSurface::SurfaceInfo  VRDeviceEmulator::VRRenderSurface::GetSurfaceInfo () C_NE___
 	{
-		auto	result	= _vrDev._window->GetSurface().GetSurfaceInfo();
+		auto	result	= _vrSession._window->GetSurface().GetSurfaceInfo();
 		result.type		= ESurfaceType::VR;
 		return result;
 	}
@@ -188,14 +189,14 @@ namespace AE::App
 */
 	VRDeviceEmulator::InputActions::ActionQueueReader  VRDeviceEmulator::InputActions::ReadInput (FrameUID frameId) C_NE___
 	{
-		if_likely( _vrDev._window )
+		if_likely( _vrSession._window )
 		{
-			auto	reader = _vrDev._window->InputActions().ReadInput( frameId );
+			auto	reader = _vrSession._window->InputActions().ReadInput( frameId );
 
 			bool	update_rotation = false;
 			{
-				SHAREDLOCK( _vrDev._hmdRotationGuard );
-				update_rotation = (_vrDev._lastFrameId != frameId);
+				SHAREDLOCK( _vrSession._hmdRotationGuard );
+				update_rotation = (_vrSession._lastFrameId != frameId);
 			}
 
 			if ( update_rotation )
@@ -211,10 +212,10 @@ namespace AE::App
 
 				if ( Any( not IsZero( accum_rotation )))
 				{
-					EXLOCK( _vrDev._hmdRotationGuard );
-					_vrDev._lastFrameId	 = frameId;
-					_vrDev._hmdRotation	+= float2{accum_rotation.x, -accum_rotation.y};
-					_vrDev._hmdRotation  = Wrap( _vrDev._hmdRotation, float(-Pi), float(Pi) );
+					EXLOCK( _vrSession._hmdRotationGuard );
+					_vrSession._lastFrameId	 = frameId;
+					_vrSession._hmdRotation	+= float2{accum_rotation.x, -accum_rotation.y};
+					_vrSession._hmdRotation  = Wrap( _vrSession._hmdRotation, float(-Pi), float(Pi) );
 				}
 			}
 			return reader;
@@ -230,8 +231,8 @@ namespace AE::App
 */
 	void  VRDeviceEmulator::InputActions::NextFrame (FrameUID frameId) __NE___
 	{
-		if_likely( _vrDev._window )
-			_vrDev._window->InputActions().NextFrame( frameId );
+		if_likely( _vrSession._window )
+			_vrSession._window->InputActions().NextFrame( frameId );
 		else
 			_dbQueue._NextFrame( frameId );
 	}
@@ -243,8 +244,8 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::InputActions::SetMode (InputModeName::Ref value) __NE___
 	{
-		if_likely( _vrDev._window )
-			return _vrDev._window->InputActions().SetMode( value );
+		if_likely( _vrSession._window )
+			return _vrSession._window->InputActions().SetMode( value );
 		else
 			return InputActionsBase::SetMode( value );
 	}
@@ -256,12 +257,12 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::InputActions::LoadSerialized (MemRefRStream &stream) __NE___
 	{
-		if_likely( _vrDev._window )
+		if_likely( _vrSession._window )
 		{
-			ASSERT( CastAllowed<InputActionsBase>( &_vrDev._window->InputActions() ));
-			Cast<InputActionsBase>( &_vrDev._window->InputActions() )->EnableVREmulation();
+			ASSERT( CastAllowed<InputActionsBase>( &_vrSession._window->InputActions() ));
+			Cast<InputActionsBase>( &_vrSession._window->InputActions() )->EnableVREmulation();
 
-			return _vrDev._window->InputActions().LoadSerialized( stream );
+			return _vrSession._window->InputActions().LoadSerialized( stream );
 		}
 		return false;
 	}
@@ -273,8 +274,8 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::InputActions::GetReflection (InputModeName::Ref mode, InputActionName::Ref action, OUT Reflection &result) C_NE___
 	{
-		if_likely( _vrDev._window )
-			return _vrDev._window->InputActions().GetReflection( mode, action, OUT result );
+		if_likely( _vrSession._window )
+			return _vrSession._window->InputActions().GetReflection( mode, action, OUT result );
 		else
 			return InputActionsBase::GetReflection( mode, action, OUT result );
 	}
@@ -286,8 +287,8 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::InputActions::BeginBindAction (InputModeName::Ref mode, InputActionName::Ref action, EValueType type, EGestureType gesture) __NE___
 	{
-		if_likely( _vrDev._window )
-			return _vrDev._window->InputActions().BeginBindAction( mode, action, type, gesture );
+		if_likely( _vrSession._window )
+			return _vrSession._window->InputActions().BeginBindAction( mode, action, type, gesture );
 		else
 			return InputActionsBase::BeginBindAction( mode, action, type, gesture );
 	}
@@ -299,8 +300,8 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::InputActions::EndBindAction () __NE___
 	{
-		if_likely( _vrDev._window )
-			return _vrDev._window->InputActions().EndBindAction();
+		if_likely( _vrSession._window )
+			return _vrSession._window->InputActions().EndBindAction();
 		else
 			return InputActionsBase::EndBindAction();
 	}
@@ -312,8 +313,8 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::InputActions::IsBindActionActive () C_NE___
 	{
-		if_likely( _vrDev._window )
-			return _vrDev._window->InputActions().IsBindActionActive();
+		if_likely( _vrSession._window )
+			return _vrSession._window->InputActions().IsBindActionActive();
 		else
 			return InputActionsBase::IsBindActionActive();
 	}
@@ -325,8 +326,8 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::InputActions::Serialize (Serializing::Serializer &ser) C_NE___
 	{
-		if_likely( _vrDev._window )
-			return _vrDev._window->InputActions().Serialize( ser );
+		if_likely( _vrSession._window )
+			return _vrSession._window->InputActions().Serialize( ser );
 		else
 			return false;
 	}
@@ -338,8 +339,8 @@ namespace AE::App
 */
 	bool  VRDeviceEmulator::InputActions::Deserialize (Serializing::Deserializer &des) __NE___
 	{
-		if_likely( _vrDev._window )
-			return _vrDev._window->InputActions().Deserialize( des );
+		if_likely( _vrSession._window )
+			return _vrSession._window->InputActions().Deserialize( des );
 		else
 			return false;
 	}
@@ -352,13 +353,47 @@ namespace AE::App
 	OnStateChanged
 =================================================
 */
-	void  VRDeviceEmulator::WindowEventListener::OnStateChanged (IWindow &, EState state) __NE___
+	void  VRDeviceEmulator::WindowEventListener::OnStateChanged (IWindow &wnd, EState state) __NE___
 	{
-		if_unlikely( not _vrDev._window )
+		if_unlikely( not _vrSession._window )
 			return;
 
-		if_likely( _vrDev._listener )
-			_vrDev._listener->OnStateChanged( _vrDev, state );
+		ASSERT( &wnd == _vrSession._window.get() );
+
+		if_likely( _vrSession._listener )
+			_vrSession._listener->OnStateChanged( _vrSession, state );
+	}
+	
+/*
+=================================================
+	OnSurfaceCreated
+=================================================
+*/
+	void  VRDeviceEmulator::WindowEventListener::OnSurfaceCreated (IWindow &wnd) __NE___
+	{
+		if_unlikely( not _vrSession._window )
+			return;
+		
+		ASSERT( &wnd == _vrSession._window.get() );
+
+		if_likely( _vrSession._listener )
+			_vrSession._listener->OnSurfaceCreated( _vrSession );
+	}
+	
+/*
+=================================================
+	OnSurfaceDestroyed
+=================================================
+*/
+	void  VRDeviceEmulator::WindowEventListener::OnSurfaceDestroyed (IWindow &wnd) __NE___
+	{
+		if_unlikely( not _vrSession._window )
+			return;
+		
+		ASSERT( &wnd == _vrSession._window.get() );
+
+		if_likely( _vrSession._listener )
+			_vrSession._listener->OnSurfaceDestroyed( _vrSession );
 	}
 //-----------------------------------------------------------------------------
 
@@ -369,9 +404,8 @@ namespace AE::App
 	constructor
 =================================================
 */
-	VRDeviceEmulator::VRDeviceEmulator (IApplication &app, VRDeviceListener listener, IInputActions* dstActions) __NE___ :
-		VRDeviceBase{ RVRef(listener) },
-		_app{ app },
+	VRDeviceEmulator::VRDeviceEmulator (ApplicationBase &app, Unique<IWndListener> listener, IInputActions* dstActions) __NE___ :
+		VRSessionBase{ app, RVRef(listener) },
 		_surface{ *this },
 		_input{ *this, InputActionsBase::GetQueue( dstActions )}
 	{
@@ -485,17 +519,27 @@ namespace AE::App
 		desc.mode	= EWindowMode::NonResizable;
 
 		Unique<WindowEventListener>	listener{ new WindowEventListener{ *this }};
-		_wndListener = listener.get();
 
 		_window = _app.CreateWindow( RVRef(listener), desc, &_input );
 		CHECK_ERR( _window );
 
 		for (uint s = uint(EState::Created), dst = uint(_window->GetState()); s <= dst; ++s)
 		{
-			_SetState( EState(s) );
+			_SetStateV2( EState(s) );
 		}
 
 		return true;
+	}
+	
+/*
+=================================================
+	Close
+=================================================
+*/
+	void  VRDeviceEmulator::Close () __NE___
+	{
+		if ( _window )
+			_window->Close();
 	}
 
 /*
@@ -507,9 +551,6 @@ namespace AE::App
 	{
 		DRC_EXLOCK( _drCheck );
 
-		_isRunning.store( false );
-
-		_wndListener = null;
 		_window.reset();
 
 		_surface.Destroy();
@@ -519,21 +560,21 @@ namespace AE::App
 
 /*
 =================================================
-	Update
+	ProcessMessages
 =================================================
 */
-	bool  VRDeviceEmulator::Update (Duration_t timeSinceStart) __NE___
+	bool  VRDeviceEmulator::ProcessMessages () __NE___
 	{
-		if_unlikely( not _isRunning.load() )
-			return false;
-
 		DRC_EXLOCK( _drCheck );
+
+		if_unlikely( not _window )
+			return false;
 
 		// update state
 		{
 			auto	wnd_state = _window->GetState();
-			if ( wnd_state != _hmdState )
-				_SetState( wnd_state );
+			if ( wnd_state != _wndState )
+				_SetStateV2( wnd_state );
 
 			if_unlikely( wnd_state >= EState::Destroyed )
 			{
@@ -557,7 +598,7 @@ namespace AE::App
 		//	_projections[i + idx].invView	= _projections[i + idx].view.Inversed();
 		}
 
-		_input.Update( timeSinceStart );
+		_input.Update( _app.GetTimeSinceStart() );
 
 		return true;
 	}
@@ -567,12 +608,12 @@ namespace AE::App
 	CreateRenderSurface
 =================================================
 */
-	bool  VRDeviceEmulator::CreateRenderSurface (const VRImageDesc &desc) __NE___
+	bool  VRDeviceEmulator::CreateRenderSurface (const SwapchainDesc &desc) __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 		CHECK_ERR( _window );
 
-		switch ( desc.format )
+		switch ( desc.colorFormat )
 		{
 			case EPixelFormat::RGBA8_UNorm :
 			case EPixelFormat::sRGB8_A8 :
@@ -591,17 +632,31 @@ namespace AE::App
 		// create window render surface
 		{
 			SwapchainDesc		sw_desc;
-			sw_desc.colorFormat	= desc.format;
+			sw_desc.colorFormat	= desc.colorFormat;
 			sw_desc.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
 			sw_desc.options		= EImageOpt::BlitDst;
 
 			CHECK_ERR( _window->CreateRenderSurface( sw_desc ));
 		}
 
-		VRImageDesc	desc2 = desc;
-		desc2.options |= EImageOpt::BlitSrc;
+		VRImageDesc		desc2 = desc;
+		desc2.options	|= EImageOpt::BlitSrc;
+		desc2.dimension	= ImageDim2_t{ 1024, 1024 };
 
 		return _surface.Create( desc2 );
+	}
+	
+/*
+=================================================
+	_CreateSwapchain / _DestroySwapchain
+=================================================
+*/
+	void  VRDeviceEmulator::_CreateSwapchain () __NE___
+	{
+	}
+
+	void  VRDeviceEmulator::_DestroySwapchain () __NE___
+	{
 	}
 
 

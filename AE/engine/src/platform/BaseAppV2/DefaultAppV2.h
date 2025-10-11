@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "platform/Public/IApplication.h"
+#include "platform/Public/Application.h"
 #include "platform/BaseAppV1/AppConfig.h"
 #include "platform/BaseAppV2/IViewMode.h"
 
@@ -36,15 +36,13 @@ namespace AE::AppV2
 	{
 	// types
 	private:
-		using WindowOrVR_t = Union< NullUnion, IWindow*, IVRDevice* >;
-
 		struct CurrentState
 		{
 			Ptr<IInputActions>		input;		// lifetime is same as Window/VRDevice lifetime
 			Ptr<IOutputSurface>		output;		// lifetime is same as Window/VRDevice lifetime
 			RC<IViewMode>			view;
 			Ptr<IApplication>		app;
-			WindowOrVR_t			windowOrVR;
+			IWindow*				window;
 		};
 		using CurrentStateSync	= Threading::DRCSynchronized< CurrentState >;
 
@@ -93,8 +91,8 @@ namespace AE::AppV2
 		ND_ Ptr<IInputActions>	GetInputActions ()									C_NE___	{ return _curState->input; }
 		ND_ Ptr<IOutputSurface>	GetOutputSurface ()									C_NE___	{ return _curState->output; }
 		ND_ Ptr<IApplication>	GetApplication ()									C_NE___	{ return _curState->app; }
-		ND_ Ptr<IWindow>		GetActiveWindow ()									C_NE___;
-		ND_ Ptr<IVRDevice>		GetActiveVRDevice ()								C_NE___;
+		ND_ Ptr<IWindow>		GetActiveWindow ()									C_NE___	{ return _curState->window; }
+		ND_ Ptr<IVRSession>		GetActiveVRDevice ()								C_NE___;
 
 		ND_ auto const&			GetMainThreadMask ()								C_NE___	{ return _allowProcessInMain; }
 		ND_ AppConfig const&	Config ()											C_NE___	{ return _config; }
@@ -102,7 +100,6 @@ namespace AE::AppV2
 
 	// for DefaultIWndListener & DefaultVRDeviceListener
 			void  StartRendering (IWindow &, IWindow::EState)						__NE___;
-			void  StartRendering (IVRDevice &, IVRDevice::EState)					__NE___;
 			void  StopRendering (Ptr<IOutputSurface>)								__NE___;
 
 					void  WaitFrame ()												__NE___;
@@ -131,7 +128,7 @@ namespace AE::AppV2
 
 	private:
 			void  _StartRendering (IInputActions&, IOutputSurface&,
-								   IWindow::EState, WindowOrVR_t)					__NE___;
+								   IWindow::EState, IWindow*)						__NE___;
 	};
 
 
@@ -144,7 +141,6 @@ namespace AE::AppV2
 	// types
 	private:
 		class WindowEventListener;
-		class VRDeviceEventListener;
 
 		using WindowArray_t	= FixedArray< WindowPtr, App::PlatformConfig::MaxWindows >;
 
@@ -216,46 +212,21 @@ namespace AE::AppV2
 		void  OnSurfaceCreated (IWindow &)			__NE_OV;
 		void  OnSurfaceDestroyed (IWindow &)		__NE_OV;
 	};
-
-
-
-	//
-	// VR Device Listener
-	//
-	class AppMainV2::VRDeviceEventListener final : public IVRDevice::IVRDeviceEventListener
-	{
-	// variables
-	private:
-		RC<AppCore>		_core;
-
-
-	// methods
-	public:
-		VRDeviceEventListener (RC<AppCore> core)			__NE___ : _core{RVRef(core)} {}
-
-
-	// IVRDeviceEventListener //
-		void  OnStateChanged (IVRDevice &, EState state)	__NE_OV;
-	};
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-	GetActiveWindow / GetActiveVRDevice
+	GetActiveVRDevice
 =================================================
 */
-	inline Ptr<IWindow>  AppCore::GetActiveWindow () C_NE___
+	inline Ptr<IVRSession>  AppCore::GetActiveVRDevice () C_NE___
 	{
-		auto*	wnd_pp = UnionGet< IWindow* >( _curState->windowOrVR );
-		return wnd_pp != null ? *wnd_pp : null;
-	}
+		if ( _curState->window != null )
+			return _curState->window->AsVRSession();
 
-	inline Ptr<IVRDevice>  AppCore::GetActiveVRDevice () C_NE___
-	{
-		auto*	vr_pp = UnionGet< IVRDevice* >( _curState->windowOrVR );
-		return vr_pp != null ? *vr_pp : null;
+		return null;
 	}
 
 

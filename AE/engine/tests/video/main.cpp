@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/FileSystem/FileSystem.h"
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 
 extern void  Test_FFmpeg ();
 

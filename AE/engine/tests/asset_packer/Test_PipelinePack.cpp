@@ -10,46 +10,9 @@ namespace
 
 	using EMarker = PipelineStorage::EMarker;
 
-	static void  PipelinePack_Test (bool isVk, StringView refName)
+
+	static void  PrintPipelinePack (const Path &output, const Path &ref_dump_fname)
 	{
-		TEST( FileSystem::SetCurrentPath( Path{AE_CURRENT_DIR} / "pipeline_test" ));
-
-		const PathParams	pipelines[]			= { {isVk ? TXT("config_vk.as") : TXT("config_mac.as"), 1},
-													{TXT("../sampler_test/samplers.as"), 2},
-													{TXT("../rp_test/rpass.as"), 3},
-													{TXT("pipelines"), 10, EPathParamsFlags::Folder},
-												    {TXT( AE_SHARED_DATA "/feature_set" ), 0, EPathParamsFlags::RecursiveFolder},
-													{TXT("rtech"), 5, EPathParamsFlags::Folder},
-												    {TXT("layouts"), 4, EPathParamsFlags::Folder} };
-		const CharType *	shader_folder[]		= { TXT("shaders_glsl"), TXT("shaders_msl") };
-		const CharType *	include_dir[]		= { TXT("shaders_glsl/include"), TXT("shaders_msl/include") };
-		const Path			output_folder		{"_output"};
-		const Path			output_script		{ AE_SHARED_DATA "/scripts/pipeline_compiler.as" };
-		const Path			ref_dump_fname		= FileSystem::ToAbsolute( refName );
-
-		FileSystem::DeleteDirectory( output_folder );
-		TEST( FileSystem::CreateDirectories( output_folder ));
-
-		const Path	output			= FileSystem::ToAbsolute( output_folder / "pipelines.bin" );
-		const Path	output_cpp		= FileSystem::ToAbsolute( output_folder / ".." / (isVk ? "vk_types.h" : "mtl_types.h" ));
-		const Path	output_names	= FileSystem::ToAbsolute( output_folder / ".." / (isVk ? "vk_names.h" : "mtl_names.h" ));
-
-		PipelinesInfo	info		= {};
-		info.inPipelines			= pipelines;
-		info.inPipelineCount		= CountOf( pipelines );
-		info.shaderIncludeDirs		= include_dir;
-		info.shaderIncludeDirCount	= CountOf( include_dir );
-		info.shaderFolders			= shader_folder;
-		info.shaderFolderCount		= CountOf( shader_folder );
-		info.outputPackName			= Cast<CharType>(output.c_str());
-		info.outputCppStructsFile	= Cast<CharType>(output_cpp.c_str());
-		info.outputCppNamesFile		= Cast<CharType>(output_names.c_str());
-		info.outputScriptFile		= Cast<CharType>(output_script.c_str());
-		info.cppReflectionFlags		= EReflectionFlags::All;
-		info.flags					= EPipelineCompilerFlags::AddNameMapping;
-
-		TEST( compile_pipelines( &info ));
-
 		auto	file = MakeRC<FileRStream>( output );
 		TEST( file->IsOpen() );
 
@@ -376,15 +339,114 @@ namespace
 	}
 
 
+	static void  PipelinePack_BaseTest1 (bool isVk, const String refName)
+	{
+		TEST( FileSystem::SetCurrentPath( Path{AE_CURRENT_DIR} / "pipeline_test" ));
+
+		const PathParams	pipelines[]			= { {isVk ? TXT("config_vk.as") : TXT("config_mac.as"), 1},
+													{TXT("../sampler_test/samplers.as"), 2},
+													{TXT("../rp_test/rpass.as"), 3},
+													{TXT("pipelines"), 10, EPathParamsFlags::Folder},
+												    {TXT( AE_SHARED_DATA "/feature_set" ), 0, EPathParamsFlags::RecursiveFolder},
+													{TXT("rtech"), 5, EPathParamsFlags::Folder},
+												    {TXT("layouts"), 4, EPathParamsFlags::Folder} };
+		const CharType *	shader_folder[]		= { TXT("shaders_glsl"), TXT("shaders_msl") };
+		const CharType *	include_dir[]		= { TXT("shaders_glsl/include"), TXT("shaders_msl/include") };
+		const Path			output_folder		{"_output"};
+		const Path			output_script		{ AE_SHARED_DATA "/scripts/pipeline_compiler.as" };
+		const Path			ref_dump_fname		= FileSystem::ToAbsolute( refName + "_ref.txt" );
+
+		FileSystem::DeleteDirectory( output_folder );
+		TEST( FileSystem::CreateDirectories( output_folder ));
+
+		const Path	output			= FileSystem::ToAbsolute( output_folder / "pipelines.bin" );
+		const Path	output_cpp		= FileSystem::ToAbsolute( output_folder / ".." / (refName + (isVk ? "vk_types.h" : "mtl_types.h" )));
+		const Path	output_names	= FileSystem::ToAbsolute( output_folder / ".." / (refName + (isVk ? "vk_names.h" : "mtl_names.h" )));
+
+		PipelinesInfo	info		= {};
+		info.inPipelines			= pipelines;
+		info.inPipelineCount		= CountOf( pipelines );
+		info.shaderIncludeDirs		= include_dir;
+		info.shaderIncludeDirCount	= CountOf( include_dir );
+		info.shaderFolders			= shader_folder;
+		info.shaderFolderCount		= CountOf( shader_folder );
+		info.outputPackName			= Cast<CharType>(output.c_str());
+		info.outputCppStructsFile	= Cast<CharType>(output_cpp.c_str());
+		info.outputCppNamesFile		= Cast<CharType>(output_names.c_str());
+		info.outputScriptFile		= Cast<CharType>(output_script.c_str());
+		info.cppReflectionFlags		= EReflectionFlags::All;
+		info.flags					= EPipelineCompilerFlags::AddNameMapping;
+
+		TEST( compile_pipelines( &info ));
+
+		PrintPipelinePack( output, ref_dump_fname );
+	}
+
 	static void  PipelinePack_Test1 ()
 	{
-		PipelinePack_Test( true, "test1_ref.txt" );
+		PipelinePack_BaseTest1( true, "test1" );
 	}
 
 	static void  PipelinePack_Test2 ()
 	{
 	#ifdef AE_METAL_TOOLS
-		PipelinePack_Test( false, "test2_ref.txt" );
+		PipelinePack_BaseTest1( false, "test2" );
+	#endif
+	}
+
+
+	static void  PipelinePack_BaseTest2 (bool isVk, const String refName)
+	{
+		TEST( FileSystem::SetCurrentPath( Path{AE_CURRENT_DIR} / "pipeline_test" ));
+
+		const PathParams	pipelines[]			= { {isVk ? TXT("config_vk2.as") : TXT("config_mac2.as"), 1},
+													{TXT("../sampler_test/samplers.as"), 2},
+													{TXT("../rp_test/rpass.as"), 3},
+													{TXT("pipelines_slang"), 10, EPathParamsFlags::Folder},
+												    {TXT( AE_SHARED_DATA "/feature_set" ), 0, EPathParamsFlags::RecursiveFolder},
+													{TXT("rtech"), 5, EPathParamsFlags::Folder},
+												    {TXT("layouts"), 4, EPathParamsFlags::Folder} };
+		const CharType *	shader_folder[]		= { TXT("shaders_slang") };
+		const CharType *	include_dir[]		= { TXT("shaders_slang/include") };
+		const Path			output_folder		{"_output"};
+		const Path			output_script		{ AE_SHARED_DATA "/scripts/pipeline_compiler.as" };
+		const Path			ref_dump_fname		= FileSystem::ToAbsolute( refName );
+
+		FileSystem::DeleteDirectory( output_folder );
+		TEST( FileSystem::CreateDirectories( output_folder ));
+
+		const Path	output			= FileSystem::ToAbsolute( output_folder / "pipelines.bin" );
+		const Path	output_cpp		= FileSystem::ToAbsolute( output_folder / ".." / (isVk ? "vk_types.h" : "mtl_types.h" ));
+		const Path	output_names	= FileSystem::ToAbsolute( output_folder / ".." / (isVk ? "vk_names.h" : "mtl_names.h" ));
+
+		PipelinesInfo	info		= {};
+		info.inPipelines			= pipelines;
+		info.inPipelineCount		= CountOf( pipelines );
+		info.shaderIncludeDirs		= include_dir;
+		info.shaderIncludeDirCount	= CountOf( include_dir );
+		info.shaderFolders			= shader_folder;
+		info.shaderFolderCount		= CountOf( shader_folder );
+		info.outputPackName			= Cast<CharType>(output.c_str());
+		info.outputCppStructsFile	= Cast<CharType>(output_cpp.c_str());
+		info.outputCppNamesFile		= Cast<CharType>(output_names.c_str());
+		info.outputScriptFile		= Cast<CharType>(output_script.c_str());
+		info.cppReflectionFlags		= EReflectionFlags::All;
+		info.flags					= EPipelineCompilerFlags::AddNameMapping;
+
+		TEST( compile_pipelines( &info ));
+
+		PrintPipelinePack( output, ref_dump_fname );
+	}
+
+	static void  PipelinePack_Test3 ()
+	{
+		PipelinePack_BaseTest2( true, "test3" );
+	}
+
+	static void  PipelinePack_Test4 ()
+	{
+	#ifdef AE_METAL_TOOLS
+		PipelinePack_BaseTest2( false, "test4" );
 	#endif
 	}
 }
@@ -400,6 +462,9 @@ extern void Test_PipelinePack ()
 
 		PipelinePack_Test1();
 		PipelinePack_Test2();
+		
+	//	PipelinePack_Test3();
+	//	PipelinePack_Test4();
 	}
 	TEST_PASSED();
 #endif
@@ -411,9 +476,15 @@ extern void Test_PipelinePack ()
 #include "base/Math/MatrixStorage.h"
 using namespace AE::Base;
 
-namespace VkTypes {
-# include "pipeline_test/vk_types.h"
+namespace VkTypes1 {
+# include "pipeline_test/test1_vk_types.h"
 }
-namespace MtlTypes {
-# include "pipeline_test/mtl_types.h"
+namespace MtlTypes2 {
+# include "pipeline_test/test2_mtl_types.h"
+}
+namespace VkTypes3 {
+//# include "pipeline_test/test3_vk_types.h"
+}
+namespace MtlTypes4 {
+//# include "pipeline_test/test4_mtl_types.h"
 }

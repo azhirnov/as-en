@@ -98,7 +98,7 @@
 
 
 
-	ND_ inline String  EValueType_ToStr (PipelineCompiler::EValueType type, uint rows)
+	Nd__In String  EValueType_ToStr (PipelineCompiler::EValueType type, uint rows)
 	{
 		ASSERT( rows >= 1 );
 		ASSERT( rows <= 4 );
@@ -276,7 +276,8 @@
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
 					[this] (ScriptEnginePtr) {
 						_CompilePipeline2();	// throw
-					});
+					},
+					_baseFlags );
 	}
 	
 	void  ScriptExe::ScriptCopyImage2::_CompilePipeline2 () C_Th___
@@ -560,6 +561,8 @@
 			case EStructLayout::Compatible_Std430 :
 			case EStructLayout::Std430 :			str << "(std430) ";	break;
 			case EStructLayout::Metal :				str << "(metal) ";	break;
+			case EStructLayout::HLSL_Const :		str << "(cbuffer)";	break;
+			case EStructLayout::HLSL_Struct :		str << "(hlsl)";	break;
 			case EStructLayout::InternalIO :		break;
 			case EStructLayout::_Count :
 			case EStructLayout::Unknown :			break;

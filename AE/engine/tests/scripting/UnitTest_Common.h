@@ -3,12 +3,12 @@
 #pragma once
 
 #include "pch/Scripting.h"
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 
 using namespace AE::Scripting;
 
 template <typename Fn, typename R, typename ...Args> requires( not IsVoid< typename FunctionInfo<Fn>::result >)
-ND_ inline bool  Run (const ScriptEnginePtr &se, StringView script, const String &entry, const SourceLoc &dbgLocation, OUT R &result, Args&& ...args)
+Nd__In bool  Run (const ScriptEnginePtr &se, StringView script, const String &entry, const SourceLoc &dbgLocation, OUT R &result, Args&& ...args)
 {
 	auto mod = se->CreateModule({ScriptEngine::ModuleSource{ "def", script, dbgLocation }});
 	auto scr = se->CreateScript<Fn>( entry, mod );
@@ -28,13 +28,13 @@ ND_ inline bool  Run (const ScriptEnginePtr &se, StringView script, const String
 }
 
 template <typename Fn, typename R, typename ...Args> requires( not IsVoid< typename FunctionInfo<Fn>::result >)
-ND_ inline bool  Run (const ScriptEnginePtr &se, StringView script, const String &entry, OUT R &result, Args&& ...args)
+Nd__In bool  Run (const ScriptEnginePtr &se, StringView script, const String &entry, OUT R &result, Args&& ...args)
 {
 	return Run< Fn, R >( se, script, entry, SourceLoc{}, OUT result, FwdArg<Args>(args)... );
 }
 
 template <typename Fn, typename ...Args> requires( IsVoid< typename FunctionInfo<Fn>::result >)
-ND_ inline bool  Run (const ScriptEnginePtr &se, StringView script, const String &entry, Args&& ...args)
+Nd__In bool  Run (const ScriptEnginePtr &se, StringView script, const String &entry, Args&& ...args)
 {
 	auto mod = se->CreateModule({ ScriptEngine::ModuleSource{"def", script} });
 	auto scr = se->CreateScript<Fn>( entry, mod );

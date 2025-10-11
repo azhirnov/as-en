@@ -171,7 +171,7 @@ namespace
 	GetPositionInFile
 =================================================
 */
-	ND_ inline slong  GetPositionInFile (HANDLE file) __NE___
+	Nd__In slong  GetPositionInFile (HANDLE file) __NE___
 	{
 		LARGE_INTEGER	offset	= {};
 		LARGE_INTEGER	current	= {};
@@ -201,7 +201,7 @@ namespace
 	GetOverlappedOffset
 =================================================
 */
-	ND_ inline Bytes  GetOverlappedOffset (const OVERLAPPED &ov)
+	Nd__In Bytes  GetOverlappedOffset (const OVERLAPPED &ov)
 	{
 		LARGE_INTEGER	li;
 		li.LowPart		= ov.Offset;

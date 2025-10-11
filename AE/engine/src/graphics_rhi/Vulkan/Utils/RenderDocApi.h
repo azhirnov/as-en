@@ -52,7 +52,7 @@ namespace AE::Graphics
 		ND_ bool  IsFrameCapturing ()							C_NE___;
 
 		// next frame
-			bool  TriggerFrameCapture (NtStringView name = {})	C_NE___;
+			bool  TriggerFrameCapture ()						C_NE___;
 			bool  TriggerMultiFrameCapture (uint count)			C_NE___;
 	};
 

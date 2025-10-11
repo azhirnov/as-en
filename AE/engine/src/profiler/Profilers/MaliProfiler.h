@@ -3,8 +3,8 @@
 	API for Mali GPU hardware performance counters.
 	(x.x.x) - link to counter description in docs.
 	By default it it link to 5th Gen performance counters guide, special key like V (Valhall), B (Bifrost) used for links to other architectures.
-
-	[Performance counters description](https://github.com/azhirnov/as-en/blob/dev/AE/docs/_cpu-gpu-arch/gpu/ARM-Mali_PC.md)
+	
+	[Performance counters description](https://github.com/azhirnov/cpu-gpu-arch/blob/main/gpu/ARM-Mali_PC.md)
 */
 
 #pragma once

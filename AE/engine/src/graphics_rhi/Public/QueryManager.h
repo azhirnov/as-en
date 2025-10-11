@@ -21,7 +21,7 @@ namespace AE::Graphics
 		AccelStructSize,				// require 'VK_KHR_ray_tracing_maintenance1'	// TODO: add to FeatureSet ?
 		AccelStructSerializationSize,
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -30,7 +30,7 @@ namespace AE::Graphics
 	// Query Manager interface
 	//
 
-	class NO_VTABLE IQueryManager
+	class IQueryManager
 	{
 	// types
 	public:

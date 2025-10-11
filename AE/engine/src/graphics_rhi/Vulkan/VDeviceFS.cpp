@@ -11,14 +11,14 @@ namespace
 	// https://vulkan.gpuinfo.org/displayextensionproperty.php?extensionname=VK_KHR_maintenance3&extensionproperty=maxPerSetDescriptors&platform=all
 	static constexpr uint	c_MaxPerSetDescriptors = 512;
 
-	ND_ inline POTValue  CastPOT (uint src) __NE___
+	Nd__In POTValue  CastPOT (uint src) __NE___
 	{
 		POTValue	dst {PowerOfTwo( Max( IntLog2( src ), 0 ))};
 		DEBUG_ONLY( if ( uint{dst} != src ) AE_LOG_DBG( "Not a POT value ("s << ToString(src) << ")" );)
 		return dst;
 	}
 
-	ND_ inline POTBytes  CastPOTBytes (uint src) __NE___
+	Nd__In POTBytes  CastPOTBytes (uint src) __NE___
 	{
 		POTBytes	dst {PowerOfTwo( Max( IntLog2( src ), 0 ))};
 		DEBUG_ONLY( if ( uint{dst} != src ) AE_LOG_DBG( "Not a POT value ("s << ToString(src) << ")" );)
@@ -37,7 +37,7 @@ namespace
 */
 	void  VDevice::InitFeatureSet (OUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 263 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
 
 		using EFeature	= FeatureSet::EFeature;
 		using KiBytes	= FeatureSet::KiBytes;
@@ -208,6 +208,10 @@ namespace
 			SET_FEAT2( shaderImageFloat32AtomicMinMax,	_properties.shaderAtomicFloat2Feats );
 		}
 
+
+		if ( _extensions.shaderAtomicPackedFp16 )
+			outFeatureSet.shaderAtomicPackedFp16 = True;
+
 		if ( _extensions.shaderViewportIndexLayer )
 		{
 			outFeatureSet.shaderOutputViewportIndex	= True; // same as in VkPhysicalDeviceVulkan12Features
@@ -303,13 +307,13 @@ namespace
 					 vp.resultType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.transpose )
 					outFeatureSet.cooperativeVectorConfig.insert( ECoopVecCfg::Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp );
 				else
-				if ( vp.inputType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.inputInterpretation == VK_COMPONENT_TYPE_FLOAT_E4M3_NV and
-					 vp.matrixInterpretation == VK_COMPONENT_TYPE_FLOAT_E4M3_NV and vp.biasInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and
+				if ( vp.inputType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.inputInterpretation == VK_COMPONENT_TYPE_FLOAT8_E4M3_EXT and
+					 vp.matrixInterpretation == VK_COMPONENT_TYPE_FLOAT8_E4M3_EXT and vp.biasInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and
 					 vp.resultType == VK_COMPONENT_TYPE_FLOAT16_KHR )
 					outFeatureSet.cooperativeVectorConfig.insert( ECoopVecCfg::Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16 );
 				else
-				if ( vp.inputType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.inputInterpretation == VK_COMPONENT_TYPE_FLOAT_E5M2_NV and
-					 vp.matrixInterpretation == VK_COMPONENT_TYPE_FLOAT_E5M2_NV and vp.biasInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and
+				if ( vp.inputType == VK_COMPONENT_TYPE_FLOAT16_KHR and vp.inputInterpretation == VK_COMPONENT_TYPE_FLOAT8_E5M2_EXT and
+					 vp.matrixInterpretation == VK_COMPONENT_TYPE_FLOAT8_E5M2_EXT and vp.biasInterpretation == VK_COMPONENT_TYPE_FLOAT16_KHR and
 					 vp.resultType == VK_COMPONENT_TYPE_FLOAT16_KHR )
 					outFeatureSet.cooperativeVectorConfig.insert( ECoopVecCfg::Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16 );
 				else
@@ -658,6 +662,59 @@ namespace
 			SET_FEAT2( rasterizationOrderStencilAttachmentAccess,	_properties.rasterOrderAttachmentFeats );
 		}
 
+		if ( _extensions.shaderIntegerDotProduct							and
+			 _properties.shaderIntegerDotProductFeats.shaderIntegerDotProduct )
+		{
+			auto&	props = _properties.shaderIntegerDotProductProps;
+			if ( props.integerDotProduct8BitUnsignedAccelerated )										outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Unsigned8bit );
+			if ( props.integerDotProduct8BitSignedAccelerated )											outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Signed8bit );
+			if ( props.integerDotProduct8BitMixedSignednessAccelerated )								outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::MixedSignedness8bit );
+			if ( props.integerDotProduct4x8BitPackedUnsignedAccelerated )								outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Unsigned4x8bit );
+			if ( props.integerDotProduct4x8BitPackedSignedAccelerated )									outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Signed4x8bit );
+			if ( props.integerDotProduct4x8BitPackedMixedSignednessAccelerated )						outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::MixedSignedness4x8bit );
+			if ( props.integerDotProduct16BitUnsignedAccelerated )										outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Unsigned16bit );
+			if ( props.integerDotProduct16BitSignedAccelerated )										outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Signed16bit );
+			if ( props.integerDotProduct16BitMixedSignednessAccelerated )								outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::MixedSignedness16bit );
+			if ( props.integerDotProduct32BitUnsignedAccelerated )										outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Unsigned32bit );
+			if ( props.integerDotProduct32BitSignedAccelerated )										outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Signed32bit );
+			if ( props.integerDotProduct32BitMixedSignednessAccelerated )								outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::MixedSignedness32bit );
+			if ( props.integerDotProduct64BitUnsignedAccelerated )										outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Unsigned64bit );
+			if ( props.integerDotProduct64BitSignedAccelerated )										outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::Signed64bit );
+			if ( props.integerDotProduct64BitMixedSignednessAccelerated )								outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::MixedSignedness64bit );
+			if ( props.integerDotProductAccumulatingSaturating8BitUnsignedAccelerated )					outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Unsigned8bit );
+			if ( props.integerDotProductAccumulatingSaturating8BitSignedAccelerated )					outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Signed8bit );
+			if ( props.integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated )			outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_MixedSignedness8bit );
+			if ( props.integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated )			outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Unsigned4x8bit );
+			if ( props.integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated )			outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Signed4x8bit );
+			if ( props.integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated )	outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_MixedSignedness4x8bit );
+			if ( props.integerDotProductAccumulatingSaturating16BitUnsignedAccelerated )				outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Unsigned16bit );
+			if ( props.integerDotProductAccumulatingSaturating16BitSignedAccelerated )					outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Signed16bit );
+			if ( props.integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated )			outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_MixedSignedness16bit );
+			if ( props.integerDotProductAccumulatingSaturating32BitUnsignedAccelerated )				outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Unsigned32bit );
+			if ( props.integerDotProductAccumulatingSaturating32BitSignedAccelerated )					outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Signed32bit );
+			if ( props.integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated )			outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_MixedSignedness32bit );
+			if ( props.integerDotProductAccumulatingSaturating64BitUnsignedAccelerated )				outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Unsigned64bit );
+			if ( props.integerDotProductAccumulatingSaturating64BitSignedAccelerated )					outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_Signed64bit );
+			if ( props.integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated )			outFeatureSet.integerDotProductFeatures.insert( EIntegerDotProductFeat::AccSat_MixedSignedness64bit );
+			outFeatureSet.shaderIntegerDotProduct = True;
+
+			constexpr uint	vk_feats_count = (sizeof(props) - offsetof(VkPhysicalDeviceShaderIntegerDotProductProperties, integerDotProduct8BitUnsignedAccelerated)) / sizeof(VkBool32);
+			StaticAssert( vk_feats_count == uint(EIntegerDotProductFeat::_Count) );
+		}
+
+		if ( _extensions.shaderFloat8 )
+		{
+			SET_FEAT2( shaderFloat8,					_properties.shaderFloat8Feats );
+			SET_FEAT2( shaderFloat8CooperativeMatrix,	_properties.shaderFloat8Feats );
+		}
+
+		if ( _extensions.shaderBFloat16 )
+		{
+			SET_FEAT2( shaderBFloat16Type,				_properties.shaderBFloat16Feats );
+			SET_FEAT2( shaderBFloat16DotProduct,		_properties.shaderBFloat16Feats );
+			SET_FEAT2( shaderBFloat16CooperativeMatrix,	_properties.shaderBFloat16Feats );
+		}
+
 		constexpr usize	max_samples = CT_SizeOfInBits< FeatureSet::SampleCountBits >;
 		for (usize i = 0; i < max_samples; ++i)
 		{
@@ -799,7 +856,7 @@ namespace
 		#define SET_FEAT( _name_ )			feats10._name_ = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 		#define SET_FEAT2( _name_, _feat_ )	_feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 		
-		StaticAssert( FeatureSet::GetFeatureCount() == 263 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
 		using EFeature = FeatureSet::EFeature;
 
 		auto&			feats10		= _properties.features;
@@ -984,6 +1041,8 @@ namespace
 		SET_FEAT2( shaderSharedFloat32AtomicMinMax,	_properties.shaderAtomicFloat2Feats );
 		SET_FEAT2( shaderSharedFloat64AtomicMinMax,	_properties.shaderAtomicFloat2Feats );
 		SET_FEAT2( shaderImageFloat32AtomicMinMax,	_properties.shaderAtomicFloat2Feats );
+
+		_extensions.shaderAtomicPackedFp16	= (inFS.shaderAtomicPackedFp16 == True);
 
 		_extensions.shaderViewportIndexLayer =	(inFS.shaderOutputViewportIndex	== True)	or
 												(inFS.shaderOutputLayer			== True);

@@ -82,6 +82,7 @@ namespace AE::ResEditor
 
 		IOutputSurface::RenderTargets_t		targets;
 		CHECK_CE( surface.GetTargets( OUT targets ));
+		CHECK_Eq( targets.size(), 1 );
 
 		auto&		src			= self->_src[0];
 		const auto	src_desc	= src->GetImageDesc();

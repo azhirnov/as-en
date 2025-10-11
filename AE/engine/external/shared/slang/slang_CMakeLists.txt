@@ -3,6 +3,9 @@ cmake_minimum_required( VERSION 3.22 FATAL_ERROR )
 
 project( "slang-main" LANGUAGES CXX )
 
+set( AE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../.." )
+include( "${AE_EXTERNAL_PATH}/config.cmake" )
+
 set( SLANG_ENABLE_SLANG_GLSLANG	ON  CACHE BOOL "" FORCE )
 
 set( SLANG_ENABLE_CUDA			OFF  CACHE BOOL "" FORCE )

@@ -21,9 +21,9 @@ namespace AE::Samples::Demo
 */
 	SampleCore::SampleCore () __NE___
 	{
-        _sample = MakeRC< ImGuiSample >();
-        //_sample = MakeRC< Canvas2DSample >();
-		//_sample = MakeRC< Camera3DSample >();
+		//_sample = MakeRC< ImGuiSample >();
+		//_sample = MakeRC< Canvas2DSample >();
+		_sample = MakeRC< Camera3DSample >();
 		//_sample = MakeRC< AudioSample >();
 	}
 //-----------------------------------------------------------------------------
@@ -65,7 +65,7 @@ namespace
 		  #else
 			cfg.graphics.swapchain.colorFormat	= EPixelFormat::RGBA8_UNorm;
 		  #endif
-			cfg.graphics.swapchain.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
+			cfg.graphics.swapchain.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;
 			cfg.graphics.swapchain.options		= EImageOpt::BlitDst;
 			cfg.graphics.swapchain.presentMode	= EPresentMode::FIFO;
 			cfg.graphics.swapchain.minImageCount= ubyte(cfg.graphics.maxFrames);
@@ -81,14 +81,15 @@ namespace
 
 		// VR
 		{
-			cfg.enableVR		= false;
+			cfg.enableVR		= true;
+			cfg.onlyVR			= true;
 			cfg.vr.dimension	= {1024, 1024};
-			cfg.vr.format		= EPixelFormat::BGRA8_UNorm;
+			cfg.vr.colorFormat	= EPixelFormat::RGBA8_UNorm;
 			cfg.vr.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;	// default
 
-		//	cfg.vrDevices.push_back( IVRDevice::EDeviceType::OpenXR );
-		//	cfg.vrDevices.push_back( IVRDevice::EDeviceType::OpenVR );
-			cfg.vrDevices.push_back( IVRDevice::EDeviceType::Emulator );
+		//	cfg.vrDevices.push_back( IVRSession::EDeviceType::OpenXR );
+		//	cfg.vrDevices.push_back( IVRSession::EDeviceType::OpenVR );
+			cfg.vrDevices.push_back( IVRSession::EDeviceType::Emulator );
 		}
 
 		cfg.enableAudio = true;
@@ -117,8 +118,7 @@ namespace
 		AppCoreV1{ GetAppConfig(), MakeRC<SampleCore>() }
 	{
 	  #ifndef AE_PLATFORM_ANDROID
-		if ( not FileSystem::SetCurrentPath( AE_RES_FOLDER ))
-			FileSystem::FindAndSetCurrent( "samples/demo", 5 );
+		CHECK_FATAL( FileSystem::SetCurrentPath( AE_RES_FOLDER ));
 	  #endif
 	}
 
@@ -139,7 +139,7 @@ namespace
 		auto	storage = VFS::VirtualFileStorageFactory::CreateStaticArchive( RVRef(ds) );
 	#else
 		Unused( app );
-		
+
 		auto	ads = MakeRC<FileAsyncRDataSource>( "resources.bin" );
 		auto	ds	= MakeRC<FileRDataSource>( "resources.bin" );
 
@@ -331,7 +331,7 @@ namespace
 		ASSERT( bool{input} == bool{output} );
 
 		const bool	focused	= (state == EWndState::Focused);
-		bool		ia_changed;
+		bool		input_changed;
 
 		{
 			auto	main_loop = _mainLoop.WriteLock();
@@ -339,13 +339,13 @@ namespace
 			if ( not focused and main_loop->output != null )
 				return;
 
-			ia_changed = (main_loop->input != input) and (input != null);
+			input_changed = (main_loop->input != input) and (input != null);
 
 			main_loop->input  = input;
 			main_loop->output = output;
 		}
 
-		if ( ia_changed )
+		if ( input_changed )
 			_InitInputActions( *input );
 	}
 
@@ -368,8 +368,7 @@ namespace
 =================================================
 */
 	void  SampleCore::WaitFrame (const Threading::EThreadArray	&threadMask,
-								 Ptr<IWindow>					,
-								 Ptr<IVRDevice>					) __NE___
+								 Ptr<IWindow>					) __NE___
 	{
 		CHECK( GraphicsScheduler().WaitNextFrame( threadMask, AE::DefaultTimeout ));
 	}
@@ -384,6 +383,9 @@ namespace
 		Ptr<IInputActions>		input;
 		Ptr<IOutputSurface>		output;
 		RenderGraph				rg;
+
+		if ( not _initialized.load() )
+			return;
 
 		{
 			auto	main_loop = _mainLoop.ReadLock();
@@ -422,7 +424,11 @@ using namespace AE::Samples::Demo;
 #define REQUIRE_APACHE_2
 //#include "base/Defines/DetectLicense.inl.h"
 
-
+/*
+=================================================
+	AE_OnAppCreated / AE_OnAppDestroyed
+=================================================
+*/
 Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 {
 	StaticLogger::InitDefault();
@@ -436,9 +442,12 @@ void  AE_OnAppDestroyed ()
 {
 	StaticLogger::Deinitialize( True{"checkMemLeaks"} );
 }
-//-----------------------------------------------------------------------------
 
-
+/*
+=================================================
+	JNI_OnLoad / JNI_OnUnload
+=================================================
+*/
 #ifdef AE_PLATFORM_ANDROID
 #	include "platform/Android/ApplicationAndroid.h"
 

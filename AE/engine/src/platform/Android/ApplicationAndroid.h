@@ -6,7 +6,7 @@
 
 #ifdef AE_PLATFORM_ANDROID
 # include "platform/Public/Common.h"
-# include "platform/Public/IApplication.h"
+# include "platform/Public/Application.h"
 # include "platform/Android/WindowAndroid.h"
 # include "platform/Private/ApplicationBase.h"
 
@@ -21,9 +21,9 @@ namespace AE::App
 	{
 	// types
 	private:
-		using Window		= SharedPtr< WindowAndroid >;
+		using AWindow		= SharedPtr< WindowAndroid >;
 		using WinID			= WindowAndroid::WinID;
-		using AWindows_t	= FixedArray<Pair< WinID, Window >, PlatformConfig::MaxWindows >;
+		using AWindows_t	= FixedArray<Pair< WinID, AWindow >, PlatformConfig::MaxWindows >;
 
 		struct StoragePath
 		{
@@ -38,8 +38,7 @@ namespace AE::App
 
 	// variables
 	private:
-		RecursiveMutex				_windowsGuard;
-		AWindows_t					_windows;
+		AWindows_t					_andWindows;		// windows that created from java, may not match to 'ApplicationBase::_windows'
 
 		Monitor						_displayInfo;
 		WinID						_windowCounter	= 0;
@@ -67,9 +66,10 @@ namespace AE::App
 	private:
 		explicit ApplicationAndroid (Unique<IAppListener>)								__NE___;
 
-		void _OnDestroy ()																__NE___;
+		void  _OnDestroy ()																__NE___;
 
-		ND_ WinID  _AddWindow (SharedPtr<WindowAndroid> wnd)							__NE___;
+		ND_ WinID  _AddAndroidWindow (SharedPtr<WindowAndroid> wnd)						__NE___;
+			void   _AddWindow (SharedPtr<WindowBase>)									__NE_OV;
 
 	public:
 		~ApplicationAndroid ()															__NE___;
@@ -80,20 +80,21 @@ namespace AE::App
 		void  SetRotation (int)															__NE___;
 		void  ShowToast (NtStringView msg, bool longTime = false)						__NE___;
 
-		ND_ static ApplicationAndroid*&						_GetAppInstance ()			__NE___;
+		ND_ static ApplicationAndroid*						_GetAppInstance ()			__NE___;
 		ND_ static SharedPtr<WindowAndroid>					_GetAppWindow (WinID id)	__NE___;
-		ND_ static Pair< SharedPtr<WindowAndroid>, WinID >	_GetNewWindow ()			__NE___;
+		ND_ static Pair< SharedPtr<WindowAndroid>, WinID >	_NewWindow ()				__NE___;
 
 
 	// IApplication //
 		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)__NE_OV;
 
 		void			Terminate ()													__NE_OV;
-		StringView		GetApiName ()													C_NE_OV	{ return "android"; }
+		StringView		GetApiName ()													C_NE_OV	{ return "Android"; }
 		Locales_t		GetLocales ()													C_NE_OV	{ return _locales; }
 		RC<IHwCamera>	GetHwCamera ()													__NE_OV	{ return null; }
 
-		ArrayView<Monitor>		GetMonitors (bool update = false)						__NE_OV;
+		MonitorsView_t			GetMonitors (bool update = false)						__NE_OV;
+		MonitorsView_t			GetCachedMonitors ()									C_NE_OV;
 		RC<IVirtualFileStorage> OpenStorage (EAppStorage type)							__NE_OV;
 		Path					GetStoragePath (EAppStorage type)						__NE_OV;
 		ArrayView<const char*>	GetVulkanInstanceExtensions ()							__NE_OV;

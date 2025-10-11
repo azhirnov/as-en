@@ -1,4 +1,4 @@
-//adac0dcd
+//1d6e1909
 #ifndef CameraData_DEFINED
 #	define CameraData_DEFINED
 	// size: 400, align: 16
@@ -6,10 +6,39 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x8142e66cu}};
 
-		float4x4_storage            viewProj;
-		float4x4_storage            invViewProj;
-		float4x4_storage            proj;
-		float4x4_storage            view;
+		float4x4_storage_std140     viewProj;
+		float4x4_storage_std140     invViewProj;
+		float4x4_storage_std140     proj;
+		float4x4_storage_std140     view;
+		float3                      pos;
+		float2                      clipPlanes;
+		float2                      fov;
+		float                       zoom;
+		StaticArray< float4, 6 >    frustum;
+	};
+#endif
+	StaticAssert( offsetof(CameraData, viewProj) == 0 );
+	StaticAssert( offsetof(CameraData, invViewProj) == 64 );
+	StaticAssert( offsetof(CameraData, proj) == 128 );
+	StaticAssert( offsetof(CameraData, view) == 192 );
+	StaticAssert( offsetof(CameraData, pos) == 256 );
+	StaticAssert( offsetof(CameraData, clipPlanes) == 272 );
+	StaticAssert( offsetof(CameraData, fov) == 280 );
+	StaticAssert( offsetof(CameraData, zoom) == 288 );
+	StaticAssert( offsetof(CameraData, frustum) == 304 );
+	StaticAssert( sizeof(CameraData) == 400 );
+
+#ifndef CameraData_DEFINED
+#	define CameraData_DEFINED
+	// size: 400, align: 16
+	struct CameraData
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x8142e66cu}};
+
+		float4x4_storage_std140     viewProj;
+		float4x4_storage_std140     invViewProj;
+		float4x4_storage_std140     proj;
+		float4x4_storage_std140     view;
 		float3                      pos;
 		float2                      clipPlanes;
 		float2                      fov;
@@ -126,16 +155,70 @@
 
 #ifndef ComputePassPC_DEFINED
 #	define ComputePassPC_DEFINED
-	// size: 4, align: 4 (16)
+	// size: 16, align: 16
 	struct ComputePassPC
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa1d3ae84u}};
 
-		uint  dispatchIndex;
+		uint4  wgCount_dispatchIndex;
 	};
 #endif
-	StaticAssert( offsetof(ComputePassPC, dispatchIndex) == 0 );
-	StaticAssert( sizeof(ComputePassPC) == 4 );
+	StaticAssert( offsetof(ComputePassPC, wgCount_dispatchIndex) == 0 );
+	StaticAssert( sizeof(ComputePassPC) == 16 );
+
+#ifndef ComputeMipUB_DEFINED
+#	define ComputeMipUB_DEFINED
+	// size: 704, align: 16
+	struct ComputeMipUB
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x62b2bd2du}};
+
+		float                       time;
+		float                       timeDelta;
+		uint                        frame;
+		uint                        passFrameId;
+		uint                        seed;
+		float4                      mouse;
+		float2                      customKeys;
+		float                       pixPerMm;
+		float                       mmPerPix;
+		StaticArray< float4, 8 >    floatSliders;
+		StaticArray< int4, 8 >      intSliders;
+		StaticArray< float4, 8 >    colors;
+		StaticArray< float4, 8 >    floatConst;
+		StaticArray< int4, 8 >      intConst;
+	};
+#endif
+	StaticAssert( offsetof(ComputeMipUB, time) == 0 );
+	StaticAssert( offsetof(ComputeMipUB, timeDelta) == 4 );
+	StaticAssert( offsetof(ComputeMipUB, frame) == 8 );
+	StaticAssert( offsetof(ComputeMipUB, passFrameId) == 12 );
+	StaticAssert( offsetof(ComputeMipUB, seed) == 16 );
+	StaticAssert( offsetof(ComputeMipUB, mouse) == 32 );
+	StaticAssert( offsetof(ComputeMipUB, customKeys) == 48 );
+	StaticAssert( offsetof(ComputeMipUB, pixPerMm) == 56 );
+	StaticAssert( offsetof(ComputeMipUB, mmPerPix) == 60 );
+	StaticAssert( offsetof(ComputeMipUB, floatSliders) == 64 );
+	StaticAssert( offsetof(ComputeMipUB, intSliders) == 192 );
+	StaticAssert( offsetof(ComputeMipUB, colors) == 320 );
+	StaticAssert( offsetof(ComputeMipUB, floatConst) == 448 );
+	StaticAssert( offsetof(ComputeMipUB, intConst) == 576 );
+	StaticAssert( sizeof(ComputeMipUB) == 704 );
+
+#ifndef ComputeMipPC_DEFINED
+#	define ComputeMipPC_DEFINED
+	// size: 16, align: 8 (16)
+	struct ComputeMipPC
+	{
+		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x68c279feu}};
+
+		float2  invResolution;
+		uint2   resolution;
+	};
+#endif
+	StaticAssert( offsetof(ComputeMipPC, invResolution) == 0 );
+	StaticAssert( offsetof(ComputeMipPC, resolution) == 8 );
+	StaticAssert( sizeof(ComputeMipPC) == 16 );
 
 #ifndef ComputeMipUB_DEFINED
 #	define ComputeMipUB_DEFINED
@@ -319,8 +402,8 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0xeb01110au}};
 
-		float4x4_storage  transform;
-		float3x3_storage  normalMat;
+		float4x4_storage_std140  transform;
+		float3x3_storage_std140  normalMat;
 	};
 #endif
 	StaticAssert( offsetof(SphericalCubeMaterialUB, transform) == 0 );
@@ -334,8 +417,8 @@
 	{
 		static constexpr auto   TypeName = ShaderStructName{HashVal32{0x6940ef36u}};
 
-		float4x4_storage  transform;
-		float3x3_storage  normalMat;
+		float4x4_storage_std140  transform;
+		float3x3_storage_std140  normalMat;
 	};
 #endif
 	StaticAssert( offsetof(UnifiedGeometryMaterialUB, transform) == 0 );

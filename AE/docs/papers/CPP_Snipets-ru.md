@@ -1,5 +1,6 @@
 Содержание:
 * [Типы](#Типы)
+* [Шаблоны](#Шаблоны)
 * [enable_if](#enable_if)
 * [Концепты](#Концепты)
 * [Constexpr](#Constexpr)
@@ -88,6 +89,26 @@ class Synchronized_Ptr
 Synchronized< Mutex, Array<int> >  sync;
 Array<int>& arr = *sync.Ptr(); // lock(), operator*, unlock()
 arr.emplace_back(); // unprotected access!
+```
+
+## Шаблоны
+
+### Специализация
+
+Определяется базовый шаблон `Type<T>`, который принимает 1 параметр.
+Затем добавляется специализация под сложные типы, например указатели на функции.
+Далее можно использовать `Type<>` для любых типов без необходимости передавать все аргументы шаблона.
+
+```cpp
+template <typename T>
+struct Type;
+
+template <typename Ret, typename ...Args>
+struct Type< Ret (*) (Args...) > {};
+
+int Foo (float, double, bool);
+
+using T = Type< decltype(&Foo) >;
 ```
 
 
@@ -508,6 +529,17 @@ __inline__ __attribute__((__always_inline__)) [[clang::flatten]] void MyFn()
 Требует `constexpr` конструктор.
 В C++20 добавили `__cpp_lib_constexpr_string` и `__cpp_lib_constexpr_vector`, но в MSVC с дебажными итераторами это не работает, что делает функционал не очень пригодным к использованию.
 
+
+## source_location
+
+В отличие от старых `__FILE__` и `__LINE__` позволяет получить информацию о месте вызова функции:
+
+```cpp
+void foo (const source_location &loc = source_location::current());
+
+foo();  // __FILE__, __LINE__ берется здесь
+```
+
 ## stacktrace
 
 Появился в C++23 и позволяет получить полный стэк вызова, но работает медленно, поэтому пригоден только для сообщений об ошибках.
@@ -745,7 +777,7 @@ export namespace NewNamespace = OldNamespace;
 ```
 Вложенные пространства имен также можно экспортировать:
 ```
-export namespace AsEn {
-    export namespace Base = AE::Base;
+export namespace NewNS {
+    export namespace Base = OldNS::Base;
 }
 ```

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	thread-safe:  no
+	Thread-safe:  no
 
 	Message and chunk with message must use the same allocator,
 	so we need to use shared_lock to allow allocations from multiple thread,

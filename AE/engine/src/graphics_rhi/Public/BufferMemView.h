@@ -113,9 +113,11 @@ namespace AE::Graphics
 		ND_ Bytes  CopyFrom (const BufferMemView &from, Bytes dstOffset = 0_b)	__NE___	{ return _Copy( from, 0_b, *this, dstOffset ); }
 
 		template <typename T>
+			requires(IsTriviallySerializable<T>)
 		ND_ Bytes  CopyFrom (ArrayView<T> from, Bytes dstOffset = 0_b)			__NE___	{ return CopyFrom( from.data(), ArraySizeOf(from), dstOffset ); }
 
 		template <typename T>
+			requires(IsTriviallySerializable<T>)
 		ND_ Bytes  CopyFrom (Array<T> &from, Bytes dstOffset = 0_b)				__NE___	{ return CopyFrom( from.data(), ArraySizeOf(from), dstOffset ); }
 
 
@@ -123,11 +125,16 @@ namespace AE::Graphics
 		ND_ Bytes  CopyTo (OUT void* dst, Bytes size, Bytes srcOffset = 0_b)	C_NE___	{ BufferMemView tmp{ dst, size };  return _Copy( *this, srcOffset, tmp, 0_b ); }
 
 		template <typename T>
+			requires(IsTriviallySerializable<T>)
 		ND_ Bytes  CopyTo (OUT T &dst, Bytes srcOffset = 0_b)					C_NE___	{ return CopyTo( OUT &dst, SizeOf<T>, srcOffset ); }
 
 		template <typename T>
+			requires(IsTriviallySerializable<T>)
 		ND_ Bytes  CopyTo (OUT Array<T> &dst, Bytes srcOffset = 0_b)			C_NE___	{ return CopyTo( OUT dst.data(), ArraySizeOf(dst), srcOffset ); }
-
+		
+		template <typename T>
+			requires(IsTriviallySerializable<T>)
+		ND_ Bytes  CopyTo (OUT MutableArrayView<T> dst, Bytes srcOffset = 0_b)	C_NE___	{ return CopyTo( OUT dst.data(), ArraySizeOf(dst), srcOffset ); }
 
 		ND_ ConstData  GetRange (Bytes offset, Bytes size)						C_NE___;
 

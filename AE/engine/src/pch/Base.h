@@ -34,9 +34,9 @@
 #include "base/Containers/NtStringView.h"
 #include "base/Containers/RingBuffer.h"
 #include "base/Containers/StructView.h"
+#include "base/Containers/StructViewTransform.h"
 #include "base/Containers/TupleArrayView.h"
 #include "base/Containers/Union.h"
-#include "base/Containers/UntypedStorage.h"
 
 // Pointers
 #include "base/Pointers/Ref.h"
@@ -46,6 +46,7 @@
 #include "base/Pointers/RestrictPtr.h"
 #include "base/Pointers/AlignedPtr.h"
 #include "base/Pointers/PackedRC.h"
+#include "base/Pointers/ComPtr.h"
 
 // DataSource
 #include "base/DataSource/DataSource.h"
@@ -58,6 +59,7 @@
 #include "base/DataSource/UnixFile.h"
 #include "base/DataSource/BrotliStream.h"
 #include "base/DataSource/ZStdStream.h"
+#include "base/DataSource/Lz4Stream.h"
 #include "base/DataSource/BufferedStream.h"
 #include "base/DataSource/DataSourceAsStream.h"
 #include "base/DataSource/DataSourceRange.h"
@@ -112,6 +114,9 @@
 #include "base/Memory/MemChunkList.h"
 #include "base/Memory/InPlaceLinearAllocator.h"
 #include "base/Memory/SmallLinearAllocator.h"
+#include "base/Memory/UntypedStorage.h"
+#include "base/Memory/DynUntypedStorage.h"
+#include "base/Memory/MemoryView.h"
 
 // SIMD
 #include "base/SIMD/MemUtils.h"
@@ -130,7 +135,6 @@
 #include "base/Time/Timer.h"
 
 // FileSystem
-#include "base/FileSystem/Path.h"
 #include "base/FileSystem/FileSystem.h"
 #include "base/FileSystem/ProtectedFileSystem.h"
 

@@ -118,7 +118,7 @@ namespace AE::Base
 		NdCx__ int		GetFirstBitIndex ()					C_NE___	{ return IntLog2( GetFirstBit() ); }
 
 		// change first 0 bit to 1
-		NdCx__ T		SetFirstZeroBit ()					__NE___;
+		NdCx__ T		SetFirstZeroBit ()					__NE___;		// TODO: ExtractZeroBit ?
 		NdCx__ int		SetFirstZeroBitIndex ()				__NE___	{ return IntLog2( SetFirstZeroBit() ); }
 
 		// returns first 0 bit

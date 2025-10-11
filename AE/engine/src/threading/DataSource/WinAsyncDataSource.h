@@ -55,6 +55,7 @@ namespace AE::Threading
 
 				void  _Init (Bytes pos, RC<> mem)		__NE___;
 				void  _Cleanup ()						__NE___;
+				void  _ForceCleanup ()					__NE___;
 			ND_ bool  _Cancel (const File_t &file)		__NE___;
 
 		private:

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	thread-safe:  ???
+	Thread-safe:  ???
 */
 
 #pragma once

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	thread-safe:  yes
+	Thread-safe:  yes
 		- used split lock: CreateMsg() - lock_shared, AddMessage() - unlock_shared.
 		- Produce() use exclusive lock.
 */

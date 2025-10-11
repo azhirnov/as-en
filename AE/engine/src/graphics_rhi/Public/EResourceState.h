@@ -98,6 +98,9 @@ namespace AE::Graphics
 		static constexpr uint	ComputeShader				= 1 << 19;
 		static constexpr uint	RayTracingShaders			= 1 << 20;
 
+		// other stages
+		static constexpr uint	CoopVecConvertStage			= 1 << 21;
+
 		StaticAssert( uint(_AccessCount) < Read );
 	};
 
@@ -185,6 +188,9 @@ namespace AE::Graphics
 		DSTestAfterFS							= _EResState::DSTestAfterFS,			// depth stencil test after fragment shader (low performance)
 		Invalidate								= _EResState::Invalidate,				// only for image
 
+		// non-shader stages
+		CoopVecConvertStage						= _EResState::CoopVecConvertStage,
+
 		// shader bits
 		MeshTaskShader							= _EResState::MeshTaskShader,			// can be executed in compute queue
 		VertexProcessingShaders					= _EResState::VertexProcessingShaders,	// executed only in graphics queue (VS, TCS, TES, GS, Mesh)
@@ -195,7 +201,9 @@ namespace AE::Graphics
 		PreRasterizationShaders					= MeshTaskShader | VertexProcessingShaders,
 		PostRasterizationShaders				= TileShader | FragmentShader,
 		AllGraphicsShaders						= PreRasterizationShaders | PostRasterizationShaders,
-		AllShaders								= PreRasterizationShaders | PostRasterizationShaders | ComputeShader | RayTracingShaders,
+		
+		AllShaderStages							= PreRasterizationShaders | PostRasterizationShaders | ComputeShader | RayTracingShaders,
+		AllStages								= AllShaderStages | CoopVecConvertStage,
 
 		_InvalidState							= ~0u,
 	};

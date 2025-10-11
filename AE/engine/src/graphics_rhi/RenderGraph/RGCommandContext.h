@@ -234,6 +234,9 @@ namespace AE::RG::_hidden_
 
 	  #if defined(AE_ENABLE_VULKAN) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		void  WriteTimestamp (const IQueryManager::IQuery &q, uint index, EPipelineScope srcScope)							__Th_OV	{ return _ctx.WriteTimestamp( q, index, srcScope ); }
+		
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd> cmds)											__Th_OV	{ _ctx.ConvertCooperativeVectorMatrix( cmds ); }
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds)										__Th_OV;
 	  #endif
 
 		RG_INHERIT_BARRIERS
@@ -1040,6 +1043,17 @@ namespace AE::RG::_hidden_
 		ResourceState( buffer, EResourceState::IndirectBuffer );
 		_ctx.CommitBarriers();
 		_ctx.DispatchIndirect( buffer, offset );
+	}
+	
+	template <typename C>
+	void  ComputeContext<C>::ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds) __Th___
+	{
+		for (auto& cmd : cmds) {
+			ResourceState( cmd.srcBuffer, EResourceState::ShaderAddress_Read  | EResourceState::CoopVecConvertStage );
+			ResourceState( cmd.dstBuffer, EResourceState::ShaderAddress_Write | EResourceState::CoopVecConvertStage );
+		}
+		_ctx.CommitBarriers();
+		_ctx.ConvertCooperativeVectorMatrix( cmds );
 	}
 //-----------------------------------------------------------------------------
 

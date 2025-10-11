@@ -484,48 +484,50 @@ namespace {
 =================================================
 	_AcquireNextImageTask
 =================================================
-*
+*/
 	AsyncCoro  WindowSurface::_AcquireNextImageTask (WindowSurface &	surface,
 													 CommandBatchPtr	beginCmdBatch,
 													 CommandBatchPtr	endCmdBatch) __NE___
 	{
-		// TODO
-		if_unlikely( _surface._recreate.load() )
+		for (;;)
 		{
-			auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
-
-			Coro_Continue( Tuple{RVRef(task)} );
-		}
-
-		auto&	swapchain	= _surface._swapchain;
-		auto	err			= swapchain.AcquireNextImage();
-
-		switch_enum( err )
-		{
-			case_likely RSwapchain::EAcquireResult::OK :
-				break;
-
-			case RSwapchain::EAcquireResult::OK_RecreateLater :
-				_surface._recreate.store( true );
-				break;
-
-			case RSwapchain::EAcquireResult::Error_RecreateImmediately :
+			for (; surface._recreate.load(); )
 			{
-				_surface._recreate.store( true );
-
-				auto	task = Scheduler().Run<RecreateSwapchainTask>( Tuple{&_surface} );
-
-				return Continue( Tuple{RVRef(task)} );
+				auto	task = _RecreateSwapchainTask( surface );
+				Coro_Continue( task );
 			}
 
-			case RSwapchain::EAcquireResult::Error :
-			default :
-				CHECK_CE( false, "Failed to acquire next swapchain image" );
-		}
-		switch_end
+			auto&	swapchain	= surface._swapchain;
+			auto	err			= swapchain.AcquireNextImage();
 
-		CHECK_CE( _beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore(), 0 ));
-		CHECK_CE( _endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore(), 0 ));
+			switch_enum( err )
+			{
+				case_likely RSwapchain::EAcquireResult::OK :
+					break;
+
+				case RSwapchain::EAcquireResult::OK_RecreateLater :
+					surface._recreate.store( true );
+					break;
+
+				case RSwapchain::EAcquireResult::Error_RecreateImmediately :
+				{
+					surface._recreate.store( true );
+
+					auto	task = _RecreateSwapchainTask( surface );
+					Coro_Continue( task );
+					break;
+				}
+
+				case RSwapchain::EAcquireResult::Error :
+				default :
+					CHECK_CE( false, "Failed to acquire next swapchain image" );
+			}
+			switch_end
+
+			CHECK_CE( beginCmdBatch->AddInputSemaphore(  swapchain.GetImageAvailableSemaphore(), 0 ));
+			CHECK_CE( endCmdBatch  ->AddOutputSemaphore( swapchain.GetRenderFinishedSemaphore(), 0 ));
+			co_return;
+		}
 	}
 
 /*

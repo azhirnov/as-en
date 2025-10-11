@@ -12,7 +12,7 @@ struct graphics_4_io
 };
 */
 
-AE_ENTRY()
+AE_ENTRY(Main)
 {
 	AE_STAGE_OUT	Out;
 	Out.position	= descSet0.drawUB.mvp * float4( In.Position, 1.0 );

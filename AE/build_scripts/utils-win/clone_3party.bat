@@ -1,5 +1,5 @@
 :: clone 3party dependencies to local server
-:: updated in 2025.04
+:: updated in 2025.08
 
 cd "../public"
 
@@ -116,6 +116,19 @@ git clone --bare "https://github.com/NVIDIA/nvapi.git" "nvapi"
 robocopy "slang" "_backup_3party/slang" /S
 rmdir /Q /S "slang"
 git clone --bare "https://github.com/shader-slang/slang.git" "slang"
+
+
+robocopy "OpenXR-SDK" "_backup_3party/OpenXR-SDK" /S
+rmdir /Q /S "OpenXR-SDK"
+git clone --bare "https://github.com/KhronosGroup/OpenXR-SDK.git" "OpenXR-SDK"
+
+robocopy "OpenXR-SDK-Source" "_backup_3party/OpenXR-SDK-Source" /S
+rmdir /Q /S "OpenXR-SDK-Source"
+git clone --bare "https://github.com/KhronosGroup/OpenXR-SDK-Source.git" "OpenXR-SDK-Source"
+
+robocopy "llama.cpp" "_backup_3party/llama.cpp" /S
+rmdir /Q /S "llama.cpp"
+git clone --bare "https://github.com/ggml-org/llama.cpp.git" "llama.cpp"
 
 ::robocopy "breakpad" "_backup_3party/breakpad" /S
 ::rmdir /Q /S "breakpad"
@@ -274,6 +287,7 @@ robocopy "AMD-Compressonator/.git" "../public/AMD-Compressonator" /S
 
 
 :: download AMD GPUPerfAPI
+:: https://github.com/GPUOpen-Tools/gpu_performance_api/releases
 powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/GPUOpen-Tools/gpu_performance_api/releases/download/v4.0-tag/GPUPerfAPI-4.0.0.39.zip', 'GPUPerfAPI-win64.zip')"
 powershell Expand-Archive "GPUPerfAPI-win64.zip" -DestinationPath "GPUPerfAPI/win-x64"
 powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/GPUOpen-Tools/gpu_performance_api/releases/download/v4.0-tag/GPUPerfAPI-Linux-4.0.0.39.tgz', 'GPUPerfAPI-linux64.tgz')"
@@ -281,16 +295,16 @@ mkdir "GPUPerfAPI/linux-x64"
 tar -xzvf "GPUPerfAPI-linux64.tgz" -C "GPUPerfAPI/linux-x64"
 cd GPUPerfAPI/win-x64
 mkdir "bin"
-copy /Y "GPUPerfAPI-4.0.0.39\4_0\Bin\x64\GPUPerfAPIVK-x64.dll" "bin"
-copy /Y "GPUPerfAPI-4.0.0.39\4_0\Bin\x64\GPUPerfAPICounters-x64.dll" "bin"
-copy /Y "GPUPerfAPI-4.0.0.39\4_0\LICENSE.txt" "."
-copy /Y "GPUPerfAPI-4.0.0.39\4_0\NOTICES.txt" "."
-robocopy "GPUPerfAPI-4.0.0.39\4_0\include" "include" /S
-rmdir /Q /S "GPUPerfAPI-4.0.0.39"
+copy /Y "4_0\bin\GPUPerfAPIVK-x64.dll" "bin"
+copy /Y "4_0\bin\GPUPerfAPICounters-x64.dll" "bin"
+copy /Y "4_0\LICENSE.txt" "."
+copy /Y "4_0\NOTICES.txt" "."
+robocopy "4_0\include" "include" /S
+rmdir /Q /S "4_0"
 cd ../linux-x64
 mkdir "bin"
-copy /Y "4_0\Bin\Linx64\libGPUPerfAPICounters.so" "bin"
-copy /Y "4_0\Bin\Linx64\libGPUPerfAPIVK.so" "bin"
+copy /Y "4_0\bin\libGPUPerfAPICounters.so" "bin"
+copy /Y "4_0\bin\libGPUPerfAPIVK.so" "bin"
 copy /Y "4_0\LICENSE.txt" "."
 copy /Y "4_0\NOTICES.txt" "."
 robocopy "4_0\include" "include" /S
@@ -316,6 +330,10 @@ cd ..
 robocopy "../public/nvml" "../public/_backup_3party/nvml" /S
 rmdir /Q /S "../public/nvml"
 robocopy "nvml/.git" "../public/nvml" /S
+
+
+:: download PICO OpenXR SDK
+:: from https://developer.picoxr.com/resources/
 
 
 :: delete 'temp'

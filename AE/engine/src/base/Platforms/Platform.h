@@ -9,11 +9,13 @@
 # include "base/Platforms/WindowsProcess.h"
 # include "base/Platforms/WindowsLibrary.h"
 # include "base/Platforms/WindowsPageAllocator.h"
+# include "base/FileSystem/WindowsFileWatch.h"
 
 #elif defined(AE_PLATFORM_ANDROID)
 # include "base/Platforms/AndroidUtils.h"
 # include "base/Platforms/UnixLibrary.h"
 # include "base/Platforms/UnixProcess.h"
+# include "base/FileSystem/LinuxFileWatch.h"
 
 #elif defined(AE_PLATFORM_EMSCRIPTEN)
 # include "base/Platforms/EmscriptenUtils.h"
@@ -22,11 +24,13 @@
 # include "base/Platforms/AppleUtils.h"
 # include "base/Platforms/UnixLibrary.h"
 # include "base/Platforms/UnixProcess.h"
+# include "base/FileSystem/AppleFileWatch.h"
 
 #elif defined(AE_PLATFORM_LINUX)
 # include "base/Platforms/LinuxUtils.h"
 # include "base/Platforms/UnixLibrary.h"
 # include "base/Platforms/UnixProcess.h"
+# include "base/FileSystem/LinuxFileWatch.h"
 
 #endif
 
@@ -36,10 +40,12 @@ namespace AE::Base
 	#if defined(AE_PLATFORM_WINDOWS)
 		using PlatformUtils = WindowsUtils;
 		using OSProcess		= WindowsProcess;
+		using FileWatch		= WindowsFileWatch;
 
 	#elif defined(AE_PLATFORM_ANDROID)
 		using PlatformUtils = AndroidUtils;
 		using OSProcess		= UnixProcess;
+		using FileWatch		= LinuxFileWatch;
 
 	#elif defined(AE_PLATFORM_EMSCRIPTEN)
 		using PlatformUtils = EmscriptenUtils;
@@ -51,6 +57,7 @@ namespace AE::Base
 	#elif defined(AE_PLATFORM_LINUX)
 		using PlatformUtils = LinuxUtils;
 		using OSProcess		= UnixProcess;
+		using FileWatch		= LinuxFileWatch;
 
 	#endif
 

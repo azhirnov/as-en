@@ -18,7 +18,7 @@ endif()
 #----------------------------------------------------------
 
 project( "AE"
-		 VERSION 25.4.286	# year, release per year, version
+		 VERSION 25.5.291	# year, release per year, version
 		 LANGUAGES C CXX
 		 DESCRIPTION "async game engine"
 		)
@@ -47,10 +47,11 @@ set( MAIN_BINARY_DIR 		"${CMAKE_BINARY_DIR}/bin"		CACHE INTERNAL "" FORCE )
 
 # for IDE
 set( ANDROID_SDK_ROOT		"$ENV{ANDROID_SDK_ROOT}" )
-set( ANDROID_NDK_INCLUDE	"${ANDROID_SDK_ROOT}/ndk/29.0.13599879/toolchains/llvm/prebuilt/windows-x86_64" CACHE INTERNAL "" FORCE )
+set( ANDROID_NDK_PATH		"${ANDROID_SDK_ROOT}/ndk/29.0.13599879" )
+set( ANDROID_NDK_INCLUDE	"${ANDROID_NDK_PATH}/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include" CACHE INTERNAL "" FORCE )
 if (WIN32)
-	if (NOT EXISTS ${ANDROID_NDK_INCLUDE})
-		message( STATUS "Android NDK is not found in '${ANDROID_NDK_INCLUDE}'" )
+	if (NOT EXISTS ${ANDROID_NDK_PATH})
+		message( STATUS "Android NDK is not found in '${ANDROID_NDK_PATH}'" )
 	endif()
 endif()
 
@@ -72,6 +73,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
 else()
 	add_subdirectory( "docs" )
 	add_subdirectory( "engine" )
+	add_subdirectory( "llm_tools" )
 	add_subdirectory( "samples" )
 
 endif()

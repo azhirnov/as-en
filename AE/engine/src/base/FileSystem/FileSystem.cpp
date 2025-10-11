@@ -310,8 +310,8 @@ namespace {
 		if ( options == ECopyOpt::FileKeep )
 		{
 			std::error_code	ec;
-			const auto		opt = _ae_fs_::copy_options::recursive | _ae_fs_::copy_options::skip_existing;
-			_ae_fs_::copy( from, to, opt, OUT ec );
+			const auto		opt = std::filesystem::copy_options::recursive | std::filesystem::copy_options::skip_existing;
+			std::filesystem::copy( from, to, opt, OUT ec );
 			ASSERT_MSG( not ec, "MergeDirectory('" + from.string() + "', '" + to.string() + "'): " + ec.message() );
 			return not ec;
 		}

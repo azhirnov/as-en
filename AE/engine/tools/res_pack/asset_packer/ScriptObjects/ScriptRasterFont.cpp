@@ -20,7 +20,7 @@ namespace {
 #	include "res_pack/asset_packer/Packer/RasterFontPacker.cpp.h"
 
 
-	ND_ inline bool  IsWhiteSpace (CharUtf32 c)
+	Nd__In bool  IsWhiteSpace (CharUtf32 c)
 	{
 		return c == ' ' or c == '\t';
 	}

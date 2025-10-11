@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	thread-safe: no
+	Thread-safe: no
 
 	Input:
 		- Receive data and accumulate it in data stream ('_received.storage').
@@ -21,7 +21,7 @@
 			- If in previous call not an all messages was sent or encode and user increase the 'frameId' then client(s) will be disconnected.
 
 		- Not an all messages will be decoded in 'ProcessMessages()'.
-			- Used the allocator from 'MessageFactory', if it runs out of memory, then decoding will stop.
+			- Used allocator from 'MessageFactory', if it runs out of memory, then decoding will stop.
 */
 
 #pragma once

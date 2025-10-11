@@ -558,7 +558,7 @@
 =================================================
 */
 	void  STBUFMNGR::_AllocDynamicImage (FrameUID frameId, Bytes reqSize, const Bytes rowPitch, const Bytes slicePitch, const Bytes memOffsetAlign,
-										 const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &regionDim, bool upload,
+										 const uint2 &texelBlockDim, const uint3 &imageOffset, const uint3 &regionDim, const bool upload, const usize maxParts,
 										 INOUT StagingImageResultRanges &result) C_NE___
 	{
 		ASSERT( rowPitch > 0 );
@@ -568,7 +568,7 @@
 		uint3	local_offset {0};
 
 		// try to allocate some slices
-		for (; (reqSize > 0) and (result.buffers.size() < ImageMemView::Count);)
+		for (; (reqSize > 0) and (result.buffers.size() < maxParts);)
 		{
 			if_likely( _AllocDynamic<true>( frameId, INOUT reqSize, slicePitch, memOffsetAlign, upload, INOUT result.buffers ))
 			{
@@ -604,7 +604,7 @@
 		}
 
 		// try to allocate some rows
-		for (; (reqSize > 0) and (result.buffers.size() < ImageMemView::Count);)
+		for (; (reqSize > 0) and (result.buffers.size() < maxParts);)
 		{
 			if_likely( _AllocDynamic<true>( frameId, INOUT reqSize, rowPitch, memOffsetAlign, upload, INOUT result.buffers ))
 			{
@@ -773,9 +773,10 @@
 		if ( AnyEqual( uploadDesc.heapType, EStagingHeapType::Dynamic, EStagingHeapType::Any ))
 		{
 			_AllocDynamicImage( frameId, total_size, row_pitch, slice_pitch, mem_offset_align, texblock_dim,
-								img_offset, region_dim, upload, INOUT result );
+								img_offset, region_dim, upload, uploadDesc.maxParts, INOUT result );
 
-			if_likely( uploadDesc.heapType == EStagingHeapType::Dynamic or not result.buffers.empty() )
+			if_likely(	uploadDesc.heapType == EStagingHeapType::Dynamic or
+						not result.buffers.empty() )
 				return;
 		}
 
@@ -848,9 +849,10 @@
 		if ( AnyEqual( uploadDesc.heapType, EStagingHeapType::Dynamic, EStagingHeapType::Any ))
 		{
 			_AllocDynamicImage( frameId, total_size, row_pitch, slice_pitch, mem_offset_align, uint2{1},
-								img_offset, uint3{region_dim,1}, upload, INOUT result );
+								img_offset, uint3{region_dim,1}, upload, uploadDesc.maxParts, INOUT result );
 
-			if_likely( uploadDesc.heapType == EStagingHeapType::Dynamic or not result.buffers.empty() )
+			if_likely(	uploadDesc.heapType == EStagingHeapType::Dynamic or
+						not result.buffers.empty() )
 				return;
 		}
 

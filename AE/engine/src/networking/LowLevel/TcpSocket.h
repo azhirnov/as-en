@@ -20,7 +20,7 @@ namespace AE::Networking
 			bool	noDelay			= true;
 
 			// Allow to open multiple sockets with same address.
-			// For TCP it allows to immediatlly reopen socket when OS waiting for incoming messages
+			// For TCP it allows to immediately reopen socket when OS waiting for incoming messages
 			// until timeout is returned on client side and socket will be closed.
 			// Warning: attacker may use it to open socket and avoid firewall.
 			// Used only for 'Listen()'.
@@ -62,6 +62,9 @@ namespace AE::Networking
 		ND_	bool  Accept (const TcpSocket &other, OUT IpAddress &clientAddr)	__NE___;
 		ND_	bool  Accept (const TcpSocket &other, OUT IpAddress6 &clientAddr)	__NE___;
 
+		// non-blocking 'Accept'
+		ND_ uint  NewConnectionCount (microseconds timeout = microseconds{0})	C_NE___;
+
 		ND_ bool  Listen (const IpAddress &addr, const Config &cfg = Default)	__NE___;
 		ND_ bool  Listen (const IpAddress6 &addr, const Config &cfg = Default)	__NE___;
 
@@ -71,6 +74,7 @@ namespace AE::Networking
 		ND_ bool  AsyncConnect (const IpAddress &, const Config &cfg = Default)	__NE___;
 		ND_ bool  AsyncConnect (const IpAddress6 &, const Config &cfg = Default)__NE___;
 
+		// returns status of async connection.
 		ND_ EStatus  ConnectionStatus ()										C_NE___;
 
 			bool  GetPeerName (OUT IpAddress &addr)								C_NE___;

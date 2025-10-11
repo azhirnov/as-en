@@ -310,6 +310,8 @@ namespace AE::Threading
 	UnixIOService::~UnixIOService () __NE___
 	{
 		::close( _kQueue );
+
+		_Release();
 	}
 
 /*

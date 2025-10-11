@@ -904,7 +904,7 @@ namespace _hidden_
 	template <typename LT, typename RT> requires(not(IsVec<LT> or IsVec<RT>))
 	NdCx__ auto  Min (const LT &lhs, const RT &rhs) __NE___
 	{
-		if constexpr( IsSame<LT, RT> )
+		if constexpr( IsSame<LT, RT> or (IsPointer<LT> and IsPointer<RT>) )
 		{
 			return lhs > rhs ? rhs : lhs;
 		}
@@ -969,7 +969,7 @@ namespace _hidden_
 	template <typename LT, typename RT> requires(not (IsVec<LT> or IsVec<RT>))
 	NdCx__ auto  Max (const LT lhs, const RT rhs) __NE___
 	{
-		if constexpr( IsSame<LT, RT> )
+		if constexpr( IsSame<LT, RT> or (IsPointer<LT> and IsPointer<RT>) )
 		{
 			return lhs > rhs ? lhs : rhs;
 		}
@@ -2301,9 +2301,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q> requires(IsFloatPoint<T>)
-	ND_ bool  IsNormalized (const TVec<T,I,Q> &v) __NE___
+	ND_ bool  IsNormalized (const TVec<T,I,Q> &v, const T err = T{1.0e-4}) __NE___
 	{
-		return Abs( Dot( v, v ) - T{1} ) < T{1.0e-4};
+		return Abs( Dot( v, v ) - T{1} ) < err;
 	}
 
 /*
@@ -2716,7 +2716,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename To, typename From, int I, glm::qualifier Q>
-	ND_ inline To  CheckCast (const TVec<From,I,Q>& src) __NE___
+	Nd__In To  CheckCast (const TVec<From,I,Q>& src) __NE___
 	{
 		using T = typename To::value_type;
 

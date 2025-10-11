@@ -4,6 +4,7 @@
 # include "base/Platforms/WindowsHeader.cpp.h"
 # include "platform/WinAPI/ApplicationWinAPI.h"
 # include "platform/WinAPI/UtilsWinAPI.h"
+# include "platform/WinAPI/ScreenCaptureDXGI.h"
 
 namespace AE::App
 {
@@ -41,8 +42,6 @@ namespace AE::App
 	{
 		DRC_EXLOCK( _stCheck );
 
-		EXLOCK( _windowsGuard );
-
 		// windows must be destroyed before destroying app
 		for (auto& wnd : _windows)
 		{
@@ -69,10 +68,7 @@ namespace AE::App
 		SharedPtr<WindowWinAPI>		wnd{ new WindowWinAPI{ *this, RVRef(listener), dstActions }};
 		CHECK_ERR( wnd->_Create( desc ));
 
-		{
-			EXLOCK( _windowsGuard );
-			_windows.push_back( wnd );
-		}
+		_windows.push_back( wnd );
 		return wnd;
 	}
 
@@ -128,7 +124,7 @@ namespace AE::App
 	TODO: CapabilitiesRequestAndCapabilitiesReply
 =================================================
 */
-	ArrayView<Monitor>  ApplicationWinAPI::GetMonitors (bool update) __NE___
+	MonitorsView_t  ApplicationWinAPI::GetMonitors (bool update) __NE___
 	{
 		DRC_EXLOCK( _stCheck );
 
@@ -263,6 +259,32 @@ namespace AE::App
 		return Default;
 	#endif
 	}
+	
+/*
+=================================================
+	StartScreenCapture
+=================================================
+*/
+	RC<IScreenCapture>  ApplicationGLFW::StartScreenCapture (const IScreenCapture::Config &config) __NE___
+	{
+		if ( config.hostImageFormat != Default )
+		{
+			auto	res = MakeRC<ScreenCaptureDXGI_HostAccess>( *this );
+			CHECK_ERR( res->Start( config ));
+			return res;
+		}
+
+	  #ifdef AE_ENABLE_VULKAN
+		else
+		{
+			auto	res = MakeRC<ScreenCaptureDXGI_Vulkan>( *this );
+			CHECK_ERR( res->Start( config ));
+			return res;
+		}
+	  #endif
+
+		return Default;
+	}
 
 /*
 =================================================
@@ -288,27 +310,11 @@ namespace AE::App
 				//::TranslateMessage( &msg );
 				::DispatchMessageA( &msg );
 			}
-
-
-			bool	wnd_is_empty;
-			{
-				EXLOCK( _windowsGuard );
-
-				for (usize i = 0; i < _windows.size();)
-				{
-					// _ProcessMessages() will return 'false' if window is closed
-					if_likely( auto wnd = _windows[i].lock(); wnd and wnd->_Update() )
-						++i;
-					else
-						_windows.fast_erase( i );
-				}
-
-				wnd_is_empty = _windows.empty();
-			}
-
+			
+			ApplicationBase::_Update();
 			ApplicationBase::_AfterUpdate();
 
-			if_unlikely( wnd_is_empty )
+			if_unlikely( _windows.empty() )
 			{
 				ThreadUtils::Sleep_15ms();
 			}

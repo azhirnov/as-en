@@ -138,7 +138,7 @@ private:
 
 
 
-ND_ inline String  _GetFuncName (StringView src)
+Nd__In String  _GetFuncName (StringView src)
 {
 	usize	pos = src.find_last_of( "::" );
 

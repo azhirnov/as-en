@@ -1,9 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Thread-safe: yes
-
-	Assimp	- locks in allocator
-	glTF	-
 */
 
 #pragma once
@@ -25,13 +22,17 @@ namespace AE::ResLoader
 	public:
 		struct Config
 		{
-			uint	maxTrianglesPerMesh	= UMax;
-			uint	maxVerticesPerMesh	= UMax;
+			uint		maxTrianglesPerMesh				= UMax;
+			uint		maxVerticesPerMesh				= UMax;
 
-			bool	calculateTBN		= false;
-			bool	smoothNormals		= false;
-			bool	splitLargeMeshes	= false;
-			bool	optimize			= false;
+			bool		calculateTBN					= false;
+			bool		smoothNormals					= false;
+			bool		splitLargeMeshes				= false;
+			bool		optimize						= false;
+			bool		convertMeshesToFloatPointFormat	= false;
+
+			Array<Path>	meshFolders;
+			Array<Path>	textureFolders;
 		};
 
 

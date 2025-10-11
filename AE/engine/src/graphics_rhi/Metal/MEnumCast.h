@@ -13,7 +13,7 @@ namespace AE::Graphics
 	MEnumCast (ERTInstanceOpt) -> MTLAccelerationStructureInstanceOptions
 =================================================
 */
-	ND_ inline uint  MEnumCast (ERTInstanceOpt value) __NE___
+	Nd__In uint  MEnumCast (ERTInstanceOpt value) __NE___
 	{
 		constexpr uint	OptionDisableTriangleCulling				= 1 << 0;
 		constexpr uint	TriangleFrontFacingWindingCounterClockwise	= 1 << 1;

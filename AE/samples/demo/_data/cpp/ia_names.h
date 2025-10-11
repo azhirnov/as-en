@@ -36,17 +36,6 @@ namespace InputActions
 		};
 	} Canvas2D = {};
 
-	static constexpr struct _HwCamera
-	{
-		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0x3be7a204u}}; }  // 'HwCamera'
-
-		static constexpr uint  actionCount = 2;
-		enum Bindings : uint {
-			Touch_Click  = 0x5fb61d88u,  // InputActionName{"Touch.Click"}
-			Touch_Move  = 0x7a5f92b5u,  // InputActionName{"Touch.Move"}
-		};
-	} HwCamera = {};
-
 	static constexpr struct _SampleSelector
 	{
 		constexpr operator InputModeName_t () const { return InputModeName_t{Hash_t{0xc682d438u}}; }  // 'SampleSelector'

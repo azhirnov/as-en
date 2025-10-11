@@ -9,17 +9,22 @@ void ASmain ()
 				"float4		color;" +
 				"float2		uv;" );
 	}{
-		RC<ShaderStructType>	st = ShaderStructType( "imgui.ub" );
+		RC<ShaderStructType>	st = ShaderStructType( "imgui.vs.pc" );
 		st.Set( EStructLayout::Compatible_Std140,
 				"float2		transform_c0;" +
 				"float2		transform_c1;" +
 				"float2		transform_c2;" );
-
+	}{
+		RC<ShaderStructType>	st = ShaderStructType( "imgui.fs.pc" );
+		st.Set( EStructLayout::Compatible_Std140,
+				"uint		texIndex;" );
+	}{
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "imgui.ds" );
-		ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::Float_2D, "LinearRepeat" );
+		ds.CombinedImage( EShaderStages::Fragment, "un_Textures", ArraySize(16), EImageType::Float_2D, "LinearRepeat" );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "imgui.pl" );
-		pl.PushConst( "imguiUB", "imgui.ub", EShader::Vertex );
+		pl.PushConst( "imguiVSpc", "imgui.vs.pc", EShader::Vertex );
+		pl.PushConst( "imguiFSpc", "imgui.fs.pc", EShader::Fragment );
 		pl.DSLayout( 0, "imgui.ds" );
 	}
 	{

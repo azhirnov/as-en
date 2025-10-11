@@ -18,7 +18,12 @@ RGTest::RGTest () :
 	_device{ True{"enable info log"}, False{"disable allocator stats"} }
 {
 	#ifdef AE_ENABLE_VULKAN
+	# ifdef AE_PLATFORM_WINDOWS
 	//	_device.ChooseDriver( List{ EDriver::LavaPipe });
+	# endif
+	# ifdef AE_PLATFORM_LINUX
+		_device.ChooseDriver( List{ EDriver::RADV });
+	# endif
 	#endif
 
 	// too slow
@@ -342,7 +347,8 @@ bool  RGTest::_Create (FStorage_t refStorage)
 	}
 
 	// this is a test and the test should fail for any validation error
-	_device.CreateDebugCallback( DefaultDebugMessageSeverity,
+	_device.CreateDebugCallback( VDeviceInitializer::c_DefaultDebugMessageSeverity,
+                                 VDeviceInitializer::c_DefaultDebugMessageTypes,
 								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK_FATAL(not rep.isError); });
 
   #if AE_VK_TIMELINE_SEMAPHORE

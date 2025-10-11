@@ -1,4 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	docs:
+	https://steamcdn-a.akamaihd.net/apps/valve/2007/SIGGRAPH2007_AlphaTestedMagnification.pdf
+	https://github.com/Chlumsky/msdfgen/files/3050967/thesis.pdf
+*/
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
 #	include <glsl.h>

@@ -15,7 +15,8 @@ namespace AE::Base
 	// variables
 	private:
 		String		_file;
-		String		_fn;
+		String		_fnName;
+		String 		_fnSign;
 		uint		_line		= 0;
 		uint		_column		= 0;
 
@@ -23,7 +24,7 @@ namespace AE::Base
 	public:
 		SourceLocCopy ()									__NE___	{}
 		SourceLocCopy (String file, uint line)				__NE___	: _file{RVRef(file)}, _line{line} {}
-		explicit SourceLocCopy (const SourceLoc &loc)		__Th___	: _file{ToString(loc.file_name())}, _fn{ToString(loc.function_name())}, _line{loc.line()}, _column{loc.column()} {}
+		explicit SourceLocCopy (const SourceLoc &loc)		__Th___	: _file{loc.FileName()}, _fnName{loc.FunctionName()}, _fnSign{loc.FunctionSignature()}, _line{loc.Line()}, _column{loc.Column()} {}
 
 		SourceLocCopy (const SourceLocCopy &)				__Th___ = default;
 		SourceLocCopy (SourceLocCopy &&)					__NE___	= default;
@@ -31,12 +32,13 @@ namespace AE::Base
 		SourceLocCopy&  operator = (const SourceLocCopy &)	__Th___	= default;
 		SourceLocCopy&  operator = (SourceLocCopy &&)		__NE___	= default;
 
-		operator SourceLoc ()								C_NE___	{ return SourceLoc{ _file.c_str(), _fn.c_str(), _line, _column }; }
+		operator SourceLoc ()								C_NE___	{ return SourceLoc{ _file, _fnName, _line, _column, _fnSign }; }
 
-		ND_ const char*		function_name ()				C_NE___	{ return _fn.c_str(); }
-		ND_ const char*		file_name ()					C_NE___	{ return _file.c_str(); }
-		ND_ uint			column ()						C_NE___	{ return _column; }
-		ND_ uint			line ()							C_NE___	{ return _line; }
+		ND_ StringView		FunctionName ()				    C_NE___	{ return _fnName; }
+		ND_ StringView		FunctionSignature ()			C_NE___	{ return _fnSign; }
+		ND_ StringView		FileName ()				    	C_NE___	{ return _file; }
+		ND_ uint			Column ()						C_NE___	{ return _column; }
+		ND_ uint			Line ()							C_NE___	{ return _line; }
 
 		ND_ static SourceLocCopy  current (const SourceLoc &loc = SourceLoc::current()) __Th___	{ return SourceLocCopy{loc}; }
 	};

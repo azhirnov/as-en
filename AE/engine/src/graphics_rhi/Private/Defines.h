@@ -21,7 +21,7 @@
 // Should be used for validation errors which may cause crash or UB.
 // Debug checks should use ASSERT() instead.
 #ifndef AE_GRAPHICS_STRONG_VALIDATION
-# error add GraphicsRHI module
+# error GraphicsRHI module is not added to dependencies
 #endif
 #if AE_GRAPHICS_STRONG_VALIDATION
 #	define GCTX_CHECK					CHECK_THROW

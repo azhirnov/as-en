@@ -11,9 +11,7 @@ if (${AE_ENABLE_AUDIO})
 	set_property( TARGET "Audio" PROPERTY FOLDER "Engine" )
 	target_link_libraries( "Audio" PUBLIC "Threading" "Serializing" )
 
-	if (WIN32)
-		set( ANDROID_SDK_ROOT "$ENV{ANDROID_SDK_ROOT}" )
-		set( ANDROID_NDK_INCLUDE "${ANDROID_SDK_ROOT}/ndk/24.0.8215888/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/SLES" )	# for IDE
+	if (FALSE) #WIN32)
 		target_include_directories( "Audio" PRIVATE "${ANDROID_NDK_INCLUDE}" )
 	endif()
 

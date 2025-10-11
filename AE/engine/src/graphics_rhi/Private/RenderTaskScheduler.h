@@ -558,7 +558,7 @@ namespace AE
 	GraphicsScheduler
 =================================================
 */
-	ND_ inline Graphics::RenderTaskScheduler&  GraphicsScheduler () __NE___
+	Nd__In Graphics::RenderTaskScheduler&  GraphicsScheduler () __NE___
 	{
 		return Graphics::RenderTaskScheduler::_Instance();
 	}

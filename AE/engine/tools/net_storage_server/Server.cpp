@@ -82,7 +82,7 @@ namespace
 
 	ND_ static bool  RunVFSServer (const ushort port, ArrayView<Path> dirs)
 	{
-		using Clock_t = std::chrono::high_resolution_clock;
+		using Clock_t = HighResClock;
 
 		NetworkStorageServer	vfs_server;
 		auto					mf			= MakeRC<MessageFactory>();

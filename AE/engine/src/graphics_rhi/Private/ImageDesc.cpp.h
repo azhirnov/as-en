@@ -19,16 +19,16 @@ namespace AE::Graphics
 		return *this;
 	}
 
-	ImageDesc&  ImageDesc::SetDimension (const uint2 &value) __NE___
+	ImageDesc&  ImageDesc::SetDimension (const ImageDim2_t value) __NE___
 	{
-		dimension	= CheckCast<ImageDim_t>(uint3{ value, 1 });
+		dimension	= ImageDim_t{ value, ushort{1} };
 		imageDim	= (imageDim == Default ? EImageDim_2D : imageDim);
 		return *this;
 	}
 
-	ImageDesc&  ImageDesc::SetDimension (const uint3 &value) __NE___
+	ImageDesc&  ImageDesc::SetDimension (const ImageDim_t value) __NE___
 	{
-		dimension	= CheckCast<ImageDim_t>( value );
+		dimension	= value;
 		imageDim	= (imageDim == Default ? EImageDim_3D : imageDim);
 		return *this;
 	}
@@ -51,7 +51,6 @@ namespace AE::Graphics
 			case EImage_3D :			imageDim = EImageDim_3D;	break;
 
 			case EImage::Unknown :
-			case EImage::_Count :
 			default_unlikely :			DBG_WARNING( "unknown image type" );	break;
 		}
 		switch_end
@@ -499,7 +498,6 @@ namespace AE::Graphics
 					break;
 
 				case EImage::Unknown :
-				case EImage::_Count :
 				default_unlikely :
 					DBG_WARNING( "unknown image view type" );
 					break;

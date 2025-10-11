@@ -22,8 +22,9 @@ namespace AE::PipelineCompiler
 
 		String  str;
 		str << "#include <metal_stdlib>\n"
-			<< "#include <simd/simd.h>\n"
-			<< "using namespace metal;\n\n";
+		//	<< "#include <metal_atomic>\n"
+		//	<< "#include <metal_texture>\n"
+			<< "#include <simd/simd.h>\n";
 
 		// ray tracing
 		{
@@ -36,7 +37,7 @@ namespace AE::PipelineCompiler
 				rt_stages |= ptr->fs.rayQueryStages;
 			}
 
-			if ( rt_supported.IsEnable() and AnyBits( rt_stages, stage ))
+			if ( rt_supported.IsEnabled() and AnyBits( rt_stages, stage ))
 			{
 				CHECK_THROW_MSG( AnyEqual( stage, EShaderStages::Compute, EShaderStages::Fragment, EShaderStages::Tile ));
 
@@ -58,13 +59,13 @@ namespace AE::PipelineCompiler
 					has_atomics.Add( ptr->fs.vertexPipelineStoresAndAtomics );
 			}
 
-			if ( has_atomics.IsEnable() ) {
+			if ( has_atomics.IsEnabled() ) {
 				str	<< "#include <metal_atomic>\n"
 					<< "#define AE_HAS_ATOMICS 1\n";
 			}
 		}
-
-		str << "\n";
+		
+		str << "using namespace metal;\n\n";
 		return str;
 	}
 

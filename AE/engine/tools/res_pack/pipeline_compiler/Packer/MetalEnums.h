@@ -273,7 +273,7 @@ namespace AE::PipelineCompiler
 	MEnumCast (EPixelFormat)
 =================================================
 */
-	ND_ inline MtlPixelFormat  MEnumCast (EPixelFormat value)
+	Nd__In MtlPixelFormat  MEnumCast (EPixelFormat value)
 	{
 		#define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_, ... ) \
 			case EPixelFormat::_engineFmt_ : return MtlPixelFormat::_mtlFormat_;
@@ -343,7 +343,6 @@ namespace AE::PipelineCompiler
 			case EPixelFormat::R12x4G12x4_UNorm :
 			case EPixelFormat::R12x4_UNorm :
 
-			case EPixelFormat::_Count :
 			case EPixelFormat::Unknown :		break;
 		}
 		switch_end
@@ -358,7 +357,7 @@ namespace AE::PipelineCompiler
 	MEnumCast (EAttachmentLoadOp)
 =================================================
 */
-	ND_ inline MtlLoadAction  MEnumCast (EAttachmentLoadOp value)
+	Nd__In MtlLoadAction  MEnumCast (EAttachmentLoadOp value)
 	{
 		switch_enum( value )
 		{
@@ -378,7 +377,7 @@ namespace AE::PipelineCompiler
 	MEnumCast (EAttachmentStoreOp)
 =================================================
 */
-	ND_ inline MtlStoreAction  MEnumCast (EAttachmentStoreOp value)
+	Nd__In MtlStoreAction  MEnumCast (EAttachmentStoreOp value)
 	{
 		switch_enum( value )
 		{

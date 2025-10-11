@@ -15,6 +15,14 @@
 # include "base/Algorithms/ArrayUtils.h"
 # include "base/Algorithms/ToString.h"
 
+namespace AE
+{
+	void FastCloseApp ()
+	{
+		std::terminate();
+	}
+}
+
 namespace AE::Base
 {
 /*

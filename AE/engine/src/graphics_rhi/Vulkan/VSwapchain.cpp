@@ -30,6 +30,7 @@
 # include "graphics_rhi/Vulkan/VRenderTaskScheduler.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
 # include "graphics_rhi/Vulkan/VEnumToString.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 namespace AE::Graphics
 {
@@ -279,8 +280,8 @@ namespace AE::Graphics
 			CHECK( ArrayContains( renderFinished, _renderFinishedSem[cur_idx.semaphoreId] ));
 		)
 
-		VkPresentInfoKHR	present_info	= {};
-		void const **		p_next			= &present_info.pNext;
+		VkPresentInfoKHR	present_info = {};
+		VNextChain			p_next		{present_info};
 		present_info.sType				= VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		present_info.swapchainCount		= uint(CountOf( swap_chains ));
 		present_info.pSwapchains		= swap_chains;
@@ -296,14 +297,11 @@ namespace AE::Graphics
 
 		if ( _device->GetVExtensions().frameBoundary and frameId.IsValid() )
 		{
-			*p_next	= &frame_boundary;
-			p_next	= &frame_boundary.pNext;
+			p_next.Add( frame_boundary );
 		}
 	  #else
-		Unused( p_next, frameId );
+		Unused( frameId );
 	  #endif
-
-		p_next = null;
 
 		cur_idx.imageIdx	= _MaxImageIndex;
 		cur_idx.semaphoreId ++;
@@ -458,18 +456,34 @@ namespace AE::Graphics
 		}
 		#elif defined(AE_PLATFORM_LINUX)
 		{
-			VkXlibSurfaceCreateInfoKHR	surface_info = {};
-			surface_info.sType	= VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-			surface_info.dpy	= BitCast< ::Display *>( window.x11Display );
-			surface_info.window	= BitCast< ::Window >( window.x11Window );
+			if ( auto* x11 = UnionGet< NativeWindow::X11 >( window.impl ))
+			{
+				VkXlibSurfaceCreateInfoKHR	surface_info = {};
+				surface_info.sType	= VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+				surface_info.dpy	= BitCast< ::Display *>( x11->display );
+				surface_info.window	= BitCast< ::Window >( x11->window );
 
-			auto  fpCreateXlibSurfaceKHR = BitCast<PFN_vkCreateXlibSurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateXlibSurfaceKHR" ));
-			CHECK_ERR( fpCreateXlibSurfaceKHR != null );
+				auto  fpCreateXlibSurfaceKHR = BitCast<PFN_vkCreateXlibSurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateXlibSurfaceKHR" ));
+				CHECK_ERR( fpCreateXlibSurfaceKHR != null );
 
-			VK_CHECK_ERR( fpCreateXlibSurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
-			AE_LOG_DBG( "Created X11 Vulkan surface" );
+				VK_CHECK_ERR( fpCreateXlibSurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
+				AE_LOG_DBG( "Created X11 Vulkan surface" );
+			}
+			else
+			if ( auto* wl = UnionGet< NativeWindow::Wayland >( window.impl ))
+			{
+				VkWaylandSurfaceCreateInfoKHR	surface_info = {};
+				surface_info.sType		= VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+				surface_info.flags		= 0;
+				surface_info.display	= BitCast< struct wl_display *>( wl->display );
+				surface_info.surface	= BitCast< struct wl_surface *>( wl->surface );
 
-			// TODO: wayland
+				auto  fpCreateWaylandSurfaceKHR = BitCast<PFN_vkCreateWaylandSurfaceKHR>( vkGetInstanceProcAddr( _device->GetVkInstance(), "vkCreateWaylandSurfaceKHR" ));
+				CHECK_ERR( fpCreateWaylandSurfaceKHR != null );
+				
+				VK_CHECK_ERR( fpCreateWaylandSurfaceKHR( _device->GetVkInstance(), &surface_info, null, OUT &_vkSurface ));
+				AE_LOG_DBG( "Created Wayland Vulkan surface" );
+			}
 		}
 		#elif defined(AE_PLATFORM_APPLE)
 		{
@@ -731,7 +745,7 @@ namespace AE::Graphics
 		VkSwapchainCreateInfoKHR				swapchain_info		= {};
 		VkSwapchainPresentScalingCreateInfoEXT	swapchain_scaling	= {};
 		VkImageCompressionControlEXT			compress_info		= {};
-		auto**									p_next				= &swapchain_info.pNext;
+		VNextChain								p_next				{swapchain_info};
 		VkSurfaceCapabilitiesKHR				surf_caps;
 
 		swapchain_info.sType			= VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -790,8 +804,7 @@ namespace AE::Graphics
 			// by the native platform surface on platforms which define surface gravity.
 
 			if ( swapchain_scaling.scalingBehavior != 0 ){
-				*p_next = &swapchain_scaling;
-				p_next  = &swapchain_scaling.pNext;
+				p_next.Add( swapchain_scaling );
 			}
 			if ( swapchain_scaling.scalingBehavior != VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT )
 			{
@@ -812,8 +825,7 @@ namespace AE::Graphics
 		{
 			compress_info.flags	= VK_IMAGE_COMPRESSION_FIXED_RATE_DEFAULT_EXT;	// lossy compression
 									// VK_IMAGE_COMPRESSION_DEFAULT_EXT - lossless compression
-			*p_next	= &compress_info;
-			p_next	= &compress_info.pNext;
+			p_next.Add( compress_info );
 		}
 
 		_GetSurfaceTransform( INOUT swapchain_info.preTransform, surf_caps );
@@ -835,7 +847,6 @@ namespace AE::Graphics
 		CHECK_ERR( _GetCompositeAlpha( INOUT swapchain_info.compositeAlpha, surf_caps ));
 
 		swapchain_info.imageUsage &= info.colorImageUsage;
-		*p_next = null;
 
 		VK_CHECK_ERR( _device->vkCreateSwapchainKHR( _device->GetVkDevice(), &swapchain_info, null, OUT &_vkSwapchain ));
 

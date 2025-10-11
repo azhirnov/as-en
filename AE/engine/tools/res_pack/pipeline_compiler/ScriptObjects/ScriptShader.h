@@ -124,8 +124,10 @@ namespace AE::PipelineCompiler
 		ND_ StringView		GetDefines ()												const	{ return _defines; }
 
 		ND_ String			SpecToGLSL ()												C_Th___;
+		ND_ String			SpecToHLSL ()												C_Th___;
 		ND_ String			SpecToMSL  ()												C_Th___;
 		ND_ String			InputToMSL ()												C_Th___;
+		ND_ String			InputToHLSL ()												C_Th___;
 		ND_ String			MeshOutToMSL (String vertex, String primitive)				C_Th___;
 		ND_ String			ThreadgroupsMSL (ArrayView<ScriptFeatureSetPtr> features)	C_Th___;
 

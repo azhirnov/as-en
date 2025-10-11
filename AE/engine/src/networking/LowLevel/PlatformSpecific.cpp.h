@@ -47,9 +47,9 @@ namespace AE::Networking
 	using NativeSoketSendBuf_t	= char;
 	using Byte_t				= int;
 
-	ND_ inline bool		ShouldPrintError (uint err)		__NE___	{ return not AnyEqual( long(err), WSAEWOULDBLOCK, WSAECONNRESET ); }
-	ND_ inline bool		IsNotConnected (uint err)		__NE___	{ return err == WSAENOTCONN; }
-	ND_ inline bool		IsInProgress (uint err)			__NE___	{ return AnyEqual( long(err), 0, WSAEINPROGRESS, WSAEWOULDBLOCK ); }
+	Nd__In bool		ShouldPrintError (uint err)		__NE___	{ return not AnyEqual( long(err), WSAEWOULDBLOCK, WSAECONNRESET ); }
+	Nd__In bool		IsNotConnected (uint err)		__NE___	{ return err == WSAENOTCONN; }
+	Nd__In bool		IsInProgress (uint err)			__NE___	{ return AnyEqual( long(err), 0, WSAEINPROGRESS, WSAEWOULDBLOCK ); }
 
 
 #elif defined(AE_UNIX_SOCKET)
@@ -58,9 +58,9 @@ namespace AE::Networking
 	using NativeSoketSendBuf_t	= void;
 	using Byte_t				= ssize;
 
-	ND_ inline bool		ShouldPrintError (int err)		__NE___	{ return not AnyEqual( err, EAGAIN, EWOULDBLOCK, ECONNRESET ); }
-	ND_ inline bool		IsNotConnected (int err)		__NE___	{ return err == ENOTCONN; }
-	ND_ inline bool		IsInProgress (int err)			__NE___	{ return AnyEqual( err, 0, EAGAIN, EWOULDBLOCK, EINPROGRESS ); }
+	Nd__In bool		ShouldPrintError (int err)		__NE___	{ return not AnyEqual( err, EAGAIN, EWOULDBLOCK, ECONNRESET ); }
+	Nd__In bool		IsNotConnected (int err)		__NE___	{ return err == ENOTCONN; }
+	Nd__In bool		IsInProgress (int err)			__NE___	{ return AnyEqual( err, 0, EAGAIN, EWOULDBLOCK, EINPROGRESS ); }
 
 	// TODO: android_setsocknetwork, android_setprocnetwork, android_tag_socket
 
@@ -69,14 +69,14 @@ namespace AE::Networking
 #endif
 
 
-	ND_ inline ushort	HostToNetwork (ushort value)	__NE___	{ return htons( value ); }
-	ND_ inline uint		HostToNetwork (uint   value)	__NE___	{ return htonl( value ); }
-	ND_ inline ushort	NetworkToHost (ushort value)	__NE___	{ return ntohs( value ); }
-	ND_ inline uint		NetworkToHost (uint   value)	__NE___	{ return ntohl( value ); }
+	Nd__In ushort	HostToNetwork (ushort value)	__NE___	{ return htons( value ); }
+	Nd__In uint		HostToNetwork (uint   value)	__NE___	{ return htonl( value ); }
+	Nd__In ushort	NetworkToHost (ushort value)	__NE___	{ return ntohs( value ); }
+	Nd__In uint		NetworkToHost (uint   value)	__NE___	{ return ntohl( value ); }
 
 #ifdef AE_PLATFORM_WINDOWS
-	ND_ inline ULONG	HostToNetwork (ULONG  value)	__NE___	{ return htonl( value ); }
-	ND_ inline ULONG	NetworkToHost (ULONG  value)	__NE___	{ return ntohl( value ); }
+	Nd__In ULONG	HostToNetwork (ULONG  value)	__NE___	{ return htonl( value ); }
+	Nd__In ULONG	NetworkToHost (ULONG  value)	__NE___	{ return ntohl( value ); }
 #endif
 
 
@@ -86,7 +86,7 @@ namespace AE::Networking
 	TranslateSocketSendError
 =================================================
 */
-	ND_ inline SocketSendError  TranslateSocketSendError (uint err)
+	Nd__In SocketSendError  TranslateSocketSendError (uint err)
 	{
 		#if defined(AE_WINDOWS_SOCKET)
 		#	define CASE( _wsa_, _unix_, _ae_ )	case _wsa_  : return SocketSendError::_ae_;
@@ -113,7 +113,7 @@ namespace AE::Networking
 	TranslateSocketReceiveError
 =================================================
 */
-	ND_ inline SocketReceiveError  TranslateSocketReceiveError (uint err)
+	Nd__In SocketReceiveError  TranslateSocketReceiveError (uint err)
 	{
 		#if defined(AE_WINDOWS_SOCKET)
 		#	define CASE( _wsa_, _unix_, _ae_ )	case _wsa_  : return SocketReceiveError::_ae_;

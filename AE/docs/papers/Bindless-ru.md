@@ -203,7 +203,7 @@ dstAccess = VK_ACCESS_2_DESCRIPTOR_BUFFER_READ_BIT_EXT
 * Adreno Turnip 600 (открытый драйвер)
 * AMD GCN4
 * Intel Xe-HP
-* Intel Xe-LP
+* Intel Xe+LP (Arc 140T)
 * Mali Valhall gen3 (начиная с 53.0.0 драйвера)
 * NVidia Kepler/GTX7xx
 

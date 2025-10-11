@@ -1,11 +1,23 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_PLATFORM_WINDOWS
+# include <signal.h>
 # include "base/Platforms/WindowsHeader.cpp.h"
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Platforms/WindowsLibrary.h"
 # include "base/Algorithms/ArrayUtils.h"
 # include "base/Algorithms/ToString.h"
+
+namespace AE
+{
+	void FastCloseApp ()
+	{
+		// close application without calling any destructors
+        raise( SIGABRT );
+
+		std::abort();
+	}
+}
 
 namespace AE::Base
 {
@@ -624,19 +636,9 @@ namespace
 #ifndef AE_RELEASE
 	String  WindowsUtils::GetOSName () __NE___
 	{
-		HKEY key;
-		if ( ::RegOpenKeyExA( HKEY_LOCAL_MACHINE, R"(SOFTWARE\Microsoft\Windows NT\CurrentVersion)", 0, KEY_READ, OUT &key ) == ERROR_SUCCESS )	// win2000
-		{
-			BYTE	buf [128];
-			DWORD	size = sizeof(buf);
-			if ( ::RegQueryValueExA( key, "ProductName", null, null, buf, INOUT &size ) == ERROR_SUCCESS )	// win2000
-			{
-				NOTHROW_ERR(
-					return String{ Cast<char>(buf) };
-				)
-			}
-		}
-		return Default;
+		String	name;
+		Unused( ReadRegistry( R"(SOFTWARE\Microsoft\Windows NT\CurrentVersion)", "ProductName", OUT name ));
+		return name;
 	}
 #endif
 
@@ -866,6 +868,8 @@ namespace
 /*
 =================================================
 	SetEnvironmentVariable
+----
+	for current process
 =================================================
 */
 	bool  WindowsUtils::SetEnvironmentVariable (NtStringView name, NtStringView value) __NE___
@@ -900,6 +904,160 @@ namespace
 
 		NOTHROW_ERR( return Path{ buf };)
 	}
+	
+/*
+=================================================
+	QueryPerformanceCounterToTimePoint
+=================================================
+*/
+	HighResClock::time_point  WindowsUtils::QueryPerformanceCounterToTimePoint (slong qpc) __NE___
+	{
+		// from '__msvc_chrono.hpp'
+
+		using time_point	= HighResClock::time_point;
+		using duration		= HighResClock::duration;
+        using period		= HighResClock::period;
+
+		const slong		freq			= _Query_perf_frequency(); // doesn't change after system boot
+		constexpr slong TenMHz			= 10'000'000;
+		constexpr slong TwentyFourMHz	= 24'000'000;
+
+		// 10 MHz is a very common QPC frequency on modern x86/x64 PCs.
+		if ( freq == TenMHz )
+		{
+			constexpr slong mul = period::den / TenMHz;
+			return time_point{ duration{ qpc * mul }};
+		}
+
+		// 24 MHz is a common frequency on ARM/ARM64, including cases where it emulates x86/x64.
+		if ( freq == TwentyFourMHz )
+		{
+			const slong	whole = (qpc / TwentyFourMHz) * period::den;
+			const slong	part  = (qpc % TwentyFourMHz) * period::den / TwentyFourMHz;
+			return time_point{ duration{ whole + part }};
+		}
+
+		const slong	whole = (qpc / freq) * period::den;
+		const slong	part  = (qpc % freq) * period::den / freq;
+		return time_point{ duration{ whole + part }};
+	}
+	
+/*
+=================================================
+	HasRegistryKey
+=================================================
+*/
+	bool  WindowsUtils::HasRegistryKey (NtStringView key) __NE___
+	{
+		HKEY	hkey;
+		DWORD	access	= KEY_QUERY_VALUE;
+		LSTATUS status	= ::RegOpenKeyExA( HKEY_LOCAL_MACHINE, key.c_str(), 0, access, OUT &hkey );
+		bool	ok		= (status == ERROR_SUCCESS);
+
+		::RegCloseKey( hkey );
+		return ok;
+	}
+	
+/*
+=================================================
+	ReadRegistry
+=================================================
+*/
+	bool  WindowsUtils::ReadRegistry (NtStringView key, NtStringView valueName, OUT String &outValue) __NE___
+	{
+		outValue.clear();
+		CHECK_ERR( not key.empty() and not valueName.empty() );
+
+		HKEY	hkey;
+		DWORD	access	= KEY_QUERY_VALUE;
+		LSTATUS status	= ::RegOpenKeyExA( HKEY_LOCAL_MACHINE, key.c_str(), 0, access, OUT &hkey );
+
+		if ( status == ERROR_SUCCESS )
+		{
+			BYTE	buf [1024];
+			DWORD	size = sizeof(buf);
+
+			//DWORD	flags = RRF_RT_REG_SZ | REG_EXPAND_SZ | RRF_ZEROONFAILURE;
+			//status = ::RegGetValueA( hkey, null, valueName.c_str(), flags, null, OUT buf, INOUT &buf_size );
+
+			status = ::RegQueryValueExA( hkey, valueName.c_str(), null, null, buf, INOUT &size );
+
+			if ( status == ERROR_SUCCESS )
+			{
+				::RegCloseKey( hkey );
+				NOTHROW_ERR( outValue.assign( Cast<char>(buf), size ));
+				return true;
+			}
+		}
+		::RegCloseKey( hkey );
+		return false;
+	}
+	
+/*
+=================================================
+	SetThreadThrottling
+=================================================
+*/
+	bool  WindowsUtils::SetThreadThrottling (const ThreadHandle &handle, EThreadPowerThrottling state) __NE___
+	{
+		THREAD_POWER_THROTTLING_STATE	throttling_state = {};
+		throttling_state.Version = THREAD_POWER_THROTTLING_CURRENT_VERSION;
+
+		switch_enum( state )
+		{
+			case EThreadPowerThrottling::Enable :
+				throttling_state.ControlMask	= THREAD_POWER_THROTTLING_EXECUTION_SPEED;
+				throttling_state.StateMask		= THREAD_POWER_THROTTLING_EXECUTION_SPEED;
+				break;
+
+			case EThreadPowerThrottling::Disable :
+				throttling_state.ControlMask	= THREAD_POWER_THROTTLING_EXECUTION_SPEED;
+				throttling_state.StateMask		= 0;
+				break;
+
+			case EThreadPowerThrottling::Auto :
+				throttling_state.ControlMask	= 0;
+				throttling_state.StateMask		= 0;
+				break;
+		}
+		switch_end
+
+		return ::SetThreadInformation( handle, ::ThreadPowerThrottling, &throttling_state, sizeof(throttling_state) ) != FALSE;
+	}
+	
+/*
+=================================================
+	SetSystemSleepState
+=================================================
+*/
+	bool  WindowsUtils::SetSystemSleepState (ESystemSleepState state) __NE___
+	{
+		EXECUTION_STATE		flags = ES_CONTINUOUS;
+
+		switch_enum( state )
+		{
+			case ESystemSleepState::AllowSleep :					break;
+			case ESystemSleepState::AllowLowPowerMode :				flags |= ES_AWAYMODE_REQUIRED;	break;
+			case ESystemSleepState::DontSleep_AllowTurnDisplayOff :	flags |= ES_SYSTEM_REQUIRED;	break;
+			case ESystemSleepState::DisplayAlwaysOn :				flags |= ES_DISPLAY_REQUIRED;	break;
+		}
+		switch_end
+
+		return ::SetThreadExecutionState( flags ) != 0;	// winxp
+	}
+
+/*
+=================================================
+	ProtectCurrentProcess
+=================================================
+*
+	void  WindowsUtils::ProtectCurrentProcess () __NE___
+	{
+		// TODO
+		//	https://www.ired.team/offensive-security/defense-evasion/preventing-3rd-party-dlls-from-injecting-into-your-processes
+		//	https://www.ired.team/offensive-security/defense-evasion/acg-arbitrary-code-guard-processdynamiccodepolicy
+	}
+*/
 
 } // AE::Base
 

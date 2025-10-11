@@ -19,13 +19,13 @@ namespace AE::AssetPacker
 namespace {
 #	include "res_pack/asset_packer/Packer/ImagePacker.cpp.h"
 
-	ND_ inline uint  CompressionThreadCount ()
+	Nd__In uint  CompressionThreadCount ()
 	{
 		// use 0 to disable multithreading
 		return Max( 1u, ThreadUtils::MaxThreadCount() / 2 );
 	}
 
-	ND_ inline float  CompressionQuality ()
+	Nd__In float  CompressionQuality ()
 	{
 		return 1.f;
 	}

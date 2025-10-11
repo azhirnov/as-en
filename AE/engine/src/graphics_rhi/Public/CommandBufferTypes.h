@@ -16,6 +16,7 @@
 #include "graphics_rhi/Public/BufferMemView.h"
 #include "graphics_rhi/Public/ImageMemView.h"
 #include "graphics_rhi/Public/RemoteGraphicsTypes.h"
+#include "graphics_rhi/Public/CoopVector.h"
 
 namespace AE::Graphics
 {
@@ -419,6 +420,7 @@ namespace AE::Graphics
 		MipmapLevel			mipLevel;
 		EImageAspect		aspectMask		= EImageAspect::Color;	// must only have a single bit set
 		EStagingHeapType	heapType		= EStagingHeapType::Dynamic;
+		ubyte				maxParts		= GraphicsConfig::MaxStagingBufferParts;	// parts in ImageMemView
 
 		UploadImageDesc ()										__NE___ = default;
 

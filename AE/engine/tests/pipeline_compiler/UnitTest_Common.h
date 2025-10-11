@@ -2,36 +2,8 @@
 
 #pragma once
 
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 
 #include "res_pack/pipeline_compiler/ScriptObjects/DescriptorSetLayout.h"
 #include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
 using namespace AE::PipelineCompiler;
-
-
-template <typename T>
-ND_ String  ToGLSL (T &ptr)
-{
-	String	hdr		= "\n";
-	String	fields	= "Buffer {\n";
-
-	CHECK_ERR( ptr->ToGLSL( true, INOUT hdr, INOUT fields ));
-	hdr << fields << "}\n";
-	return hdr;
-}
-
-template <typename T>
-ND_ String  ToMSL (T &ptr)
-{
-	String	hdr	= "\n";
-	CHECK_ERR( ptr->ToMSL( INOUT hdr ));
-	return hdr;
-}
-
-template <typename T>
-ND_ String  ToCPP (T &ptr)
-{
-	String	src = "\n";
-	CHECK_ERR( ptr->ToCPP( INOUT src ));
-	return src;
-}

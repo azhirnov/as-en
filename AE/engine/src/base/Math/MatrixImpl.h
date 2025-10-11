@@ -135,10 +135,10 @@ namespace AE::Base
 		ND_ static Self					Zero ()											__NE___	{ return Self{ _GLM_Mat_t{ T{0} }}; }
 		ND_ TMatrix<T,Rows,Columns,Q>	Transpose ()									C_NE___	{ return TMatrix<T,Rows,Columns,Q>{ glm::transpose( _value )}; }
 
-		NdCe__ static usize			size ()												__NE___	{ return Columns; }
-		NdCe__ static usize			ElementCount ()										__NE___	{ return Columns*Rows; }
-		NdCe__ static Dim_t			Dimension ()										__NE___	{ return Dim_t{ Columns, Rows }; }
-		NdCe__ static bool			IsColumnMajor ()									__NE___	{ return true; }
+		NdCx__ static usize			size ()												__NE___	{ return Columns; }
+		NdCx__ static usize			ElementCount ()										__NE___	{ return Columns*Rows; }
+		NdCx__ static Dim_t			Dimension ()										__NE___	{ return Dim_t{ Columns, Rows }; }
+		NdCx__ static bool			IsColumnMajor ()									__NE___	{ return true; }
 
 
 	#if Columns == 2 and Rows == 2
@@ -170,7 +170,7 @@ namespace AE::Base
 		ND_ static Self  Ortho (const Rect_t &viewport, const Vec2_t &range)				__NE___	{ return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
 		ND_ static Self  InfinitePerspective (Rad_t fovY, T aspectRatio, T zNear)			__NE___;
 		ND_ static Self  Perspective (Rad_t fovY, T aspectRatio, const Vec2_t &range)		__NE___	{ return Self{ glm::perspective( T(fovY), aspectRatio, range[0], range[1] )}; }
-		ND_ static Self  Ortho (const Rect_t &viewport)									__NE___	{ return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom )}; }
+		ND_ static Self  Ortho (const Rect_t &viewport)										__NE___	{ return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom )}; }
 		ND_ static Self  Perspective (Rad_t fovY, const Vec2_t &viewport, const Vec2_t &range)	__NE___	{ return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
 		ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)				__NE___	{ return Self{ glm::frustum( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
 		ND_ static Self  InfiniteFrustum (const Rect_t &viewport, T zNear)					__NE___;

@@ -112,7 +112,7 @@
 		Out.materialIdx	= node.materialIdx;	// uniform per draw call
 
 	  #ifdef VS_NORMALS
-		Out.worldNormal	= node.normalMat * in_Normal;
+		Out.worldNormal	= Normalize( float3x3(node.transform) * in_Normal );
 	  #endif
 	  #ifdef VS_TEXCOORD
 		Out.texcoord	= in_Texcoord;
@@ -127,10 +127,11 @@
 
 	void Main ()
 	{
+		// world-space normal
 	  #ifdef GEN_NORMALS
 		const float3	normal	= ComputeNormalInWS_dxdy( In.worldPos );
 	  #else
-		const float3	normal	= Normalize( In.worldNormal );
+		const float3	normal	= Normalize( In.worldNormal ) * (gl.FrontFacing ? 1.0 : -1.0);
 	  #endif
 
 		ModelMaterial	mtr		= un_Materials.elements[ In.materialIdx ];	// uniform per draw call
@@ -138,7 +139,7 @@
 
 		if ( HasBit( mtr.flags, MtrFlag_AlphaTest ))	// uniform control flow
 		{
-			if ( albedo.a < 0.5 )
+			if ( albedo.a < 0.25 )	// TODO: alpha cutoff
 			{
 			  #ifdef AE_demote_to_helper_invocation
 				gl.Demote;

@@ -200,6 +200,7 @@ namespace AE::Base
 	Swizzle
 =================================================
 */
+#if AE_SIMD_AVX >= 2
 	template <uint V0, uint V1, uint V2, uint V3, uint V4, uint V5, uint V6, uint V7>
 	SimdFloat8  SimdFloat8::Swizzle () C_NE___
 	{
@@ -212,7 +213,7 @@ namespace AE::Base
 		StaticAssert( V5 < count );
 		StaticAssert( V6 < count );
 		StaticAssert( V7 < count );
-
+		
 		using Req	= UIntSequence< V0, V1, V2, V3, V4, V5, V6, V7 >;
 		using ReqHi	= UIntSequence< V4, V5, V6, V7 >;
 		using ReqLo	= UIntSequence< V0, V1, V2, V3 >;
@@ -262,7 +263,12 @@ namespace AE::Base
 		{
 			return Self{ _mm256_moveldup_ps( _value )};
 		}
+		
+		// AVX2
+		__m256i indices = _mm256_set_epi32( V7, V6, V5, V4, V3, V2, V1, V0 );
+		return Self{ _mm256_permutevar8x32_ps( _value, indices )};
 	}
+#endif
 
 /*
 =================================================
@@ -435,6 +441,7 @@ namespace AE::Base
 	Swizzle
 =================================================
 */
+#if AE_SIMD_AVX >= 2
 	template <uint X, uint Y, uint Z, uint W>
 	SimdDouble4  SimdDouble4::Swizzle ()  C_NE___
 	{
@@ -444,61 +451,10 @@ namespace AE::Base
 		StaticAssert( Z < count );
 		StaticAssert( W < count );
 
-		// TODO: optimize
-		packed_double4	v {*this};
-		packed_double4	s{ v[X], v[Y], v[Z], v[W] };
-		return Self{ &s.x };
-
-		#if 0
-			// bits 1:0
-			_mm256_permute2f128_pd( x, y, 0 );		// x0, x1, ,
-			_mm256_permute2f128_pd( x, y, 1 );		// x2, x3, ,
-			_mm256_permute2f128_pd( x, y, 2 );		// y0, y1, ,
-			_mm256_permute2f128_pd( x, y, 3 );		// y2, y3, ,
-
-			// bits 5:4
-			_mm256_permute2f128_pd( x, y, 0 );		// , , x0, x1
-			_mm256_permute2f128_pd( x, y, 0x10 );	// , , x2, x3
-			_mm256_permute2f128_pd( x, y, 0x20 );	// , , y0, y1
-			_mm256_permute2f128_pd( x, y, 0x30 );	// , , y2, y3
-
-			_mm256_shuffle_pd( a, b, 0 );			// a0, b0, a2, b2
-			_mm256_shuffle_pd( a, b, 1 );			// a1,   ,   ,
-			_mm256_shuffle_pd( a, b, 2 );			//   , b1,   ,
-			_mm256_shuffle_pd( a, b, 4 );			//   ,   , a3,
-			_mm256_shuffle_pd( a, b, 8 );			//   ,   ,   , b3
-		#endif
-
-		#if 0
-			if constexpr( X <= 1 and Y <= 1 and Z >= 2 and W >= 2 )
-			{
-				constexpr uint	mask = (X&1) | ((Y&1)<<1) | ((Z&2)<<1) | ((W&2)<<2);
-				return Self{ _mm256_shuffle_pd( _value, _value, mask )};
-			}
-			else
-			{
-				auto	zw_xy = _mm256_permute2f128_pd( _value, _value, 0x10 );
-
-				if constexpr( Z <= 1 and W <= 1 and X >= 2 and Y >= 2 )
-				{
-					constexpr uint	mask = ((X&2)>>1) | (Y&2) | ((Z&1)<<2) | ((W&1)<<3);
-					return Self{ _mm256_shuffle_pd( zw_xy, zw_xy, mask )};
-				}
-				if constexpr( (X==0 or X==1) and (Y==2 or Y==3) and (Z==2 or Z==3) and (W==0 or W==1) )
-				{
-					// X=x|y  Y=z|w  Z=z|w  W=x|y
-					constexpr uint	mask = (X&1) | (Y&2) | ((Z&2)<<1) | ((W&1)<<3);
-					return Self{ _mm256_shuffle_pd( _value, zw_xy, mask )};
-				}
-				if constexpr( (X==2 or X==3) and (Y==0 or Y==1) and (Z==0 or Z==1) and (W==2 or W==3) )
-				{
-					// X=z|w  Y=x|y  Z=x|y  W=z|w
-					constexpr uint	mask = (X&1) | (Y&2) | ((Z&2)<<1) | ((W&1)<<3);
-					return Self{ _mm256_shuffle_pd( zw_xy, _value, mask )};
-				}
-			}
-		#endif
+		constexpr int mask = (W << 6) | (Z << 4) | (Y << 2) | X;
+		return Self{ _mm256_permute4x64_pd( _value, mask )};
 	}
+#endif
 
 /*
 =================================================

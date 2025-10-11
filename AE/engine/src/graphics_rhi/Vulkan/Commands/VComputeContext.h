@@ -52,6 +52,9 @@ namespace AE::Graphics::_hidden_
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)										__Th___;
 		void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout)										__NE___;
 		void  _PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)				__Th___;
+
+		void  _ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)										__Th___;
+		void  _ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)									__Th___;
 	};
 
 
@@ -93,6 +96,9 @@ namespace AE::Graphics::_hidden_
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)										__Th___;
 		void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout)										__Th___;
 		void  _PushComputeConstant (Bytes offset, Bytes size, const void* values, EShaderStages stages)				__Th___;
+
+		void  _ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd>)										__Th___;
+		void  _ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2>)									__Th___;
 	};
 
 
@@ -141,6 +147,9 @@ namespace AE::Graphics::_hidden_
 		using RawCtx::DispatchIndirect;
 
 		void  DispatchIndirect (BufferID buffer, Bytes offset)																__Th_OV;
+		
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd> cmds)											__Th_OV	{ RawCtx::_ConvertCooperativeVectorMatrix( cmds ); }
+		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds)										__Th_OV	{ RawCtx::_ConvertCooperativeVectorMatrix( cmds ); }
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};

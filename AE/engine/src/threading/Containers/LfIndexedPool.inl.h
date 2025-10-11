@@ -164,6 +164,59 @@ namespace AE::Threading
 
 /*
 =================================================
+	ForEachAssignedAndRelease
+=================================================
+*/
+	template <typename V, typename I, usize CS, usize MC, typename A>
+	template <typename FN>
+	void  LfIndexedPool<V,I,CS,MC,A>::ForEachAssignedAndRelease (FN &&visitor) __NE___
+	{
+		DRC_EXLOCK( _drCheck );
+
+		if_unlikely( _highLvl == null )
+			return;
+
+		EXLOCK( _allocGuard );
+
+		for (auto& hi_chunk : *_highLvl)
+		{
+			LowLvlChunkArray_t*	low_chunks = hi_chunk.chunksPtr.load();
+
+			if ( low_chunks == null )
+				continue;
+
+			for (auto& low_chunk : *low_chunks)
+			{
+				LowLvlBits_t	low_bits	= low_chunk.assigned.exchange( 0 );
+				int				idx			= BitScanForward( low_bits );		// first 1 bit
+
+				for (; idx >= 0;)
+				{
+					LowLvlBits_t	bit = LowLvlBits_t{1} << idx;
+
+					CheckNothrow( IsNoExcept( visitor( low_chunk.values[idx] )));
+					visitor( INOUT low_chunk.values[idx] );
+
+					low_bits &= ~bit;						// 1 -> 0
+					idx		 = BitScanForward( low_bits );	// first 1 bit
+				}
+			}
+
+			PlacementDelete( *low_chunks );
+
+			_allocator.Deallocate( low_chunks, SizeAndAlign{ SizeOf<LowLvlChunkArray_t>, AlignOf<LowLvlChunkArray_t> });
+		}
+
+		PlacementDelete( *_highLvl );
+
+		_allocator.Deallocate( _highLvl, SizeAndAlign{ SizeOf<HighLvlArray_t>, AlignOf<HighLvlArray_t> });
+		_highLvl = null;
+
+		_highChunkCount.store( 0 );
+	}
+
+/*
+=================================================
 	Assign
 =================================================
 */
@@ -314,7 +367,7 @@ namespace AE::Threading
 		LowLvlBits_t	old_bits	= low_chunk.assigned.fetch_and( ~mask );	// 1 -> 0
 
 		if_unlikely( not (old_bits & mask) )
-			return false;	// was not assigned
+			return false;	// is not assigned
 
 		// update high level bits
 		if_unlikely( old_bits == UMax )

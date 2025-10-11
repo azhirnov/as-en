@@ -8,7 +8,6 @@
 # include "base/Utils/Threading.h"
 # include "base/Platforms/CPUInfo.h"
 # include "base/Platforms/PlatformEnums.h"
-# include "base/FileSystem/Path.h"
 
 namespace AE::Base
 {
@@ -75,11 +74,15 @@ namespace AE::Base
 
 			static bool		SetCurrentThreadAffinity (uint logicalCoreIdx)					__NE___;
 			static bool		SetCurrentThreadPriority (EThreadPriority priority)				__NE___;
+			
+			static bool		SetThreadThrottling (const ThreadHandle &, EThreadPowerThrottling)	__NE___;
 
 		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
 
 		ND_ static Bytes	GetDefaultStackSize ()											__NE___;
 		ND_ static Bytes	GetCurrentThreadStackSize ()									__NE___;
+
+		ND_ static bool		SetSystemSleepState (ESystemSleepState)							__NE___;
 
 
 		// Process //
@@ -99,10 +102,15 @@ namespace AE::Base
 		ND_ static String		GetOSName ()												__NE___;
 		#endif
 
+		// env variable
 		ND_ static bool		GetEnvironmentVariable (NtStringView name, OUT String &value)	__NE___;
 		ND_ static bool		HasEnvironmentVariable (NtStringView name)						__NE___;
 		ND_ static bool		SetEnvironmentVariable (NtStringView name, NtStringView value)	__NE___;
 		ND_ static bool		DeleteEnvironmentVariable (NtStringView name)					__NE___;
+
+		// registry
+		ND_ static bool		HasRegistryKey (NtStringView key)								__NE___;
+		ND_ static bool		ReadRegistry (NtStringView key, NtStringView valueName, OUT String &value)	__NE___;
 
 
 		// Locale //
@@ -115,6 +123,10 @@ namespace AE::Base
 		ND_ static bool		ClipboardPut (NtWStringView str, void* wnd = null)				__NE___;
 		ND_ static bool		ClipboardPut (NtStringView str, void* wnd = null)				__NE___;
 		ND_ static bool		ClipboardClear (void* wnd = null)								__NE___;
+
+
+		// Time //
+		ND_ static HighResClock::time_point  QueryPerformanceCounterToTimePoint (slong qpc)	__NE___;
 
 
 	private:

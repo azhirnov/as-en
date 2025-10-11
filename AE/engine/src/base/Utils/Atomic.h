@@ -73,6 +73,7 @@ namespace AE::Base
 		__Cx__ TAtomic ()										__NE___ DEBUG_ONLY(: _value{ IT(BitCast<usize>(&_value)) }) {}
 		__Cx__ explicit TAtomic (T value)						__NE___ : _value{ IT{value} } {}
 		__Cx__ explicit TAtomic (Default_t)						__NE___ : _value{ IT{Default} } {}
+		__Cx__ explicit TAtomic (UMax_t)						__NE___ : _value{ IT{UMax} } {}
 
 		TAtomic (const Self &)									= delete;
 		TAtomic (Self &&)										= delete;

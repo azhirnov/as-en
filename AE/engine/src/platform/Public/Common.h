@@ -38,12 +38,13 @@ namespace AE::App
 
 	class IApplication;
 	class IWindow;
-	class IVRDevice;
+	class IVRSession;
+	class IDesktopWindow;
 	class IOutputSurface;
 
 
 	using WindowPtr		= SharedPtr< IWindow >;
-	using VRDevicePtr	= SharedPtr< IVRDevice >;
+	using VRDevicePtr	= SharedPtr< IVRSession >;
 
 
 	// Used to identify different gamepads and to send feedback actions (vibrations, ...).

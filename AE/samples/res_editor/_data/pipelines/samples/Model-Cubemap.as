@@ -101,7 +101,7 @@
 		Out.materialIdx	= node.materialIdx;	// uniform per draw call
 
 	  #ifdef VS_NORMALS
-		Out.worldNormal	= node.normalMat * in_Normal;
+		Out.worldNormal	= float3x3(node.transform) * in_Normal;
 	  #endif
 	  #ifdef VS_TEXCOORD
 		Out.texcoord	= in_Texcoord;

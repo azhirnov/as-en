@@ -22,18 +22,29 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		struct imgui_ub
+		struct imgui_vs_pc
 		{
-			static constexpr auto  TypeName = ShaderStructName{HashVal32{0xb41e4542u}};  // 'imgui_ub'
+			static constexpr auto   TypeName = ShaderStructName{HashVal32{0xc83f6c98u}};  // 'imgui.vs.pc'
 
 			float2  transform_c0;
 			float2  transform_c1;
 			float2  transform_c2;
 		};
-		StaticAssert( offsetof(imgui_ub, transform_c0) == 0 );
-		StaticAssert( offsetof(imgui_ub, transform_c1) == 8 );
-		StaticAssert( offsetof(imgui_ub, transform_c2) == 16 );
-		StaticAssert( sizeof(imgui_ub) == 24 );
+		StaticAssert( offsetof(imgui_vs_pc, transform_c0) == 0 );
+		StaticAssert( offsetof(imgui_vs_pc, transform_c1) == 8 );
+		StaticAssert( offsetof(imgui_vs_pc, transform_c2) == 16 );
+		StaticAssert( sizeof(imgui_vs_pc) == 24 );
+
+		struct imgui_fs_pc
+		{
+			static constexpr auto   TypeName = ShaderStructName{HashVal32{0xa8dffb1au}};  // 'imgui.fs.pc'
+
+			uint	texIndex;
+		};
+		StaticAssert( sizeof(imgui_fs_pc) == 4 );
+		
+	public:
+		static constexpr uint	TextureCount = 16;
 
 		using PipelineInfo_t = ArrayView< Tuple< EPixelFormat, RenderTechPassName, PipelineName >>;
 
@@ -65,8 +76,9 @@ namespace AE::Graphics
 			RenderTechPassName::Optimized_t		pass;
 			GraphicsPipelineID					ppln;
 		};
-		using PipelineMap_t	= FixedMap< EPixelFormat, PipelineSet, 8 >;
-		using RenderTaskRef	= _Coro_::RenderTaskImpl::UserApi;
+		using PipelineMap_t		= FixedMap< EPixelFormat, PipelineSet, 8 >;
+		using RenderTaskRef		= _Coro_::RenderTaskImpl::UserApi;
+		using DescSetArray_t	= FixedArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
 
 
 	// variables
@@ -87,10 +99,12 @@ namespace AE::Graphics
 
 		RenderTechPipelinesPtr		_rtech;
 		PipelineMap_t				_pplnMap;
-		Strong<DescriptorSetID>		_descSet;
+		DescSetArray_t				_descSets;
+		UniformName::Optimized_t	_texUniform;
 
-		const DescSetBinding		_dsIndex			{0};
-		const PushConstantIndex		_pcIndex			{ 0_b, EShader::Vertex };
+		DescSetBinding				_dsIndex;
+		PushConstantIndex			_vsPCIndex;						// imgui_vs_pc
+		PushConstantIndex			_fsPCIndex;						// imgui_fs_pc
 
 		StrongImageAndViewID		_font;
 
@@ -104,17 +118,23 @@ namespace AE::Graphics
 							  RenderTechPipelinesPtr	rtech,
 							  PipelineInfo_t			pplnInfo,
 							  const DescriptorSetName	&dsName   = DescriptorSetName{"imgui.ds"},
-							  UniformName::Ref			unTexture = UniformName{"un_Texture"})	__NE___;
+							  UniformName::Ref			unTexture = UniformName{"un_Textures"})	__NE___;
 			void  Deinitialize ()																__NE___;
 
 			void  SetScale (float scale)														__NE___;
 
-		ND_ bool	IsInitialized ()															C_NE___	{ return bool{_rtech}; }
-		ND_ auto	GetRenderTech ()															__NE___	{ return Ptr{_rtech.get()}; }
-		ND_ auto	GetContext ()																__NE___	{ return _imguiCtx; }
+		ND_ bool  IsInitialized ()																C_NE___	{ return bool{_rtech}; }
+		ND_ auto  GetRenderTech ()																__NE___	{ return Ptr{_rtech.get()}; }
+		ND_ auto  GetContext ()																	__NE___	{ return _imguiCtx; }
 
+		// Override all previous textures.
+		// Index '0' is reserved for font texture.
+		// Maximal size is 'TextureCount-1'.
+		//
+			bool  BindTextures (FrameUID				currentFrameId,
+								ArrayView<ImageViewID>	ids)									__NE___;
 
-		// v1
+		// v1 //
 		ND_ bool  Draw (RenderTaskRef								rtask,
 						App::IOutputSurface							&surface,
 						const Function< void () >					&updateUI,
@@ -128,12 +148,18 @@ namespace AE::Graphics
 						const Function< void (DirectCtx::Draw &) >	&drawBefore	= Default,
 						const RenderPassDesc::ClearValue_t			&clearValue = RGBA32f{})	__Th___;
 
-		// v2
+		// v2 //
 		ND_ bool  NeedUpload ()																	C_NE___	{ return not _fontInitialized; }
 		ND_ bool  Upload (DirectCtx::Transfer						&ctx)						__Th___;
+
 		ND_ bool  Render (DirectCtx::Draw							&ctx,
 						  const App::IOutputSurface::RenderTarget	&rt,
 						  const Function<void()>					&updateUI)					__Th___;
+
+		ND_ bool  Render2 (DirectCtx::Graphics						&ctx,
+						   App::IOutputSurface						&surface,
+						   const Function<void()>					&updateUI,
+						   const RenderPassDesc::ClearValue_t		&clearValue = RGBA32f{})	__Th___;
 
 
 	private:

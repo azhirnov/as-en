@@ -32,7 +32,7 @@
 #include "glslang/SPIRV/GlslangToSpv.h"
 #include "glslang/SPIRV/GLSL.std.450.h"
 
-#ifdef ENABLE_OPT
+#ifdef AE_ENABLE_SPIRV_TOOLS
 #	include "spirv-tools/optimizer.hpp"
 #	include "spirv-tools/libspirv.h"
 #endif
@@ -87,7 +87,8 @@ bool  TestDevice::Create ()
 
 	CHECK_ERR( _vulkan.CreateInstance( inst_ci ));
 
-	_vulkan.CreateDebugCallback( DefaultDebugMessageSeverity,
+	_vulkan.CreateDebugCallback( VDevice::c_DefaultDebugMessageSeverity,
+								 VDevice::c_DefaultDebugMessageTypes,
 								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
 
 	CHECK_ERR( _vulkan.ChooseHighPerformanceDevice() );
@@ -445,7 +446,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 
 	CHECK_ERR( not spirvData.empty() );
 
-	#ifdef ENABLE_OPT
+	#ifdef AE_ENABLE_SPIRV_TOOLS
 	{
 		String						log;
 		spvtools::ValidatorOptions	options;
@@ -508,7 +509,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 			AE_LOGI( logger.getAllMessages() );
 		}
 	}
-	#endif // ENABLE_OPT
+	#endif // AE_ENABLE_SPIRV_TOOLS
 	
 	return true;
 }

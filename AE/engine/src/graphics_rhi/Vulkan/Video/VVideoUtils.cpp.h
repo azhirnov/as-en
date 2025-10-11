@@ -174,7 +174,7 @@ namespace
 		}
 		switch_end
 
-		VK_CHECK_ERR( vkGetPhysicalDeviceVideoCapabilitiesKHR( dev.GetVkPhysicalDevice(), &profile_info, OUT &out_capabilities ));
+		VK_CHECK_ERR( VulkanInstanceFn::vkGetPhysicalDeviceVideoCapabilitiesKHR( dev.GetVkPhysicalDevice(), &profile_info, OUT &out_capabilities ));
 
 		return fn( profile_info, out_capabilities );
 	}

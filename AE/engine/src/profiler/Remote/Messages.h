@@ -43,7 +43,7 @@ namespace AE::Networking
 	//--------------------------------------------------------
 
 
-	ND_ inline bool  Register_ArmProfiler (MessageFactory &mf) __NE___
+	Nd__In bool  Register_ArmProfiler (MessageFactory &mf) __NE___
 	{
 		return	mf.Register<
 					CSMsg_ArmProf_InitReq,
@@ -88,7 +88,7 @@ namespace AE::Networking
 	//--------------------------------------------------------
 
 
-	ND_ inline bool  Register_MaliProfiler (MessageFactory &mf) __NE___
+	Nd__In bool  Register_MaliProfiler (MessageFactory &mf) __NE___
 	{
 		return	mf.Register<
 					CSMsg_MaliProf_InitReq,
@@ -140,7 +140,7 @@ namespace AE::Networking
 	//--------------------------------------------------------
 
 
-	ND_ inline bool  Register_PVRProfiler (MessageFactory &mf) __NE___
+	Nd__In bool  Register_PVRProfiler (MessageFactory &mf) __NE___
 	{
 		return	mf.Register<
 					CSMsg_PVRProf_InitReq,
@@ -186,7 +186,7 @@ namespace AE::Networking
 	//--------------------------------------------------------
 
 
-	ND_ inline bool  Register_AdrenoProfiler (MessageFactory &mf) __NE___
+	Nd__In bool  Register_AdrenoProfiler (MessageFactory &mf) __NE___
 	{
 		return	mf.Register<
 					CSMsg_AdrenoProf_InitReq,
@@ -231,7 +231,7 @@ namespace AE::Networking
 	//--------------------------------------------------------
 
 
-	ND_ inline bool  Register_NVidiaProfiler (MessageFactory &mf) __NE___
+	Nd__In bool  Register_NVidiaProfiler (MessageFactory &mf) __NE___
 	{
 		return	mf.Register<
 					CSMsg_NVidiaProf_InitReq,
@@ -291,7 +291,7 @@ namespace AE::Networking
 	//--------------------------------------------------------
 
 
-	ND_ inline bool  Register_GeneralProfiler (MessageFactory &mf) __NE___
+	Nd__In bool  Register_GeneralProfiler (MessageFactory &mf) __NE___
 	{
 		return	mf.Register<
 					CSMsg_GenProf_InitReq,
@@ -305,7 +305,7 @@ namespace AE::Networking
 //=============================================================================
 
 
-	ND_ inline bool  Register_RemoteProfilers (MessageFactory &mf) __NE___
+	Nd__In bool  Register_RemoteProfilers (MessageFactory &mf) __NE___
 	{
 		return	Register_ArmProfiler( mf )		and
 				Register_AdrenoProfiler( mf )	and

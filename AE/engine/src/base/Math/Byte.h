@@ -227,10 +227,10 @@ namespace AE::Base
 	NdCx__ SizeAndAlign  SizeAndAlignof (const T &) __NE___ { return Bytes::SizeAndAlignOf<T>(); }
 
 
-	NdCe__ Bytes  operator "" _b  (unsigned long long value)	__NE___	{ return Bytes{ CheckCast<Bytes::Value_t>(value) }; }
-	NdCe__ Bytes  operator "" _KiB (unsigned long long value)	__NE___	{ return Bytes::FromKiB( CheckCast<Bytes::Value_t>(value) ); }
-	NdCe__ Bytes  operator "" _MiB (unsigned long long value)	__NE___	{ return Bytes::FromMiB( CheckCast<Bytes::Value_t>(value) ); }
-	NdCe__ Bytes  operator "" _GiB (unsigned long long value)	__NE___	{ return Bytes::FromGiB( CheckCast<Bytes::Value_t>(value) ); }
+	NdCe__ Bytes  operator ""_b  (unsigned long long value)		__NE___	{ return Bytes{ CheckCast<Bytes::Value_t>(value) }; }
+	NdCe__ Bytes  operator ""_KiB (unsigned long long value)	__NE___	{ return Bytes::FromKiB( CheckCast<Bytes::Value_t>(value) ); }
+	NdCe__ Bytes  operator ""_MiB (unsigned long long value)	__NE___	{ return Bytes::FromMiB( CheckCast<Bytes::Value_t>(value) ); }
+	NdCe__ Bytes  operator ""_GiB (unsigned long long value)	__NE___	{ return Bytes::FromGiB( CheckCast<Bytes::Value_t>(value) ); }
 
 
 	namespace _hidden_

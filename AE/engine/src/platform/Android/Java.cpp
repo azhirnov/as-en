@@ -1,24 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "platform/Android/AndroidCommon.h"
-
 #ifdef AE_PLATFORM_ANDROID
+# include "platform/Android/AndroidCommon.h"
 
 namespace AE::Java
 {
-
-/*
-=================================================
-	GetJavaVM
-=================================================
-*/
-namespace {
-	ND_ JavaVM*&  GetJavaVM () __NE___
-	{
-		static JavaVM*	jvm = null;
-		return jvm;
-	}
-}
+	INTERNAL_LINKAGE( JavaVM*	s_JavaVM = null );
 
 /*
 =================================================
@@ -53,11 +40,11 @@ namespace {
 */
 	void JavaEnv::Attach () __NE___
 	{
-		if ( _env )
+		if ( _env != null )
 			return;	// already attached
 
 		JavaVM*	jvm = GetJavaVM();
-		if ( not jvm )
+		if ( jvm == null )
 		{
 			DBG_WARNING( "JavaVM is null" );
 			return;
@@ -68,7 +55,7 @@ namespace {
 
 		_env = Cast<JNIEnv>( env );
 
-		if ( status == JNI_OK and _env )
+		if ( status == JNI_OK and _env != null )
 		{
 			_mustBeDetached = false;
 			return;
@@ -76,7 +63,7 @@ namespace {
 
 		if ( status == JNI_EDETACHED )
 		{
-			if ( jvm->AttachCurrentThread( &_env, null ) < 0 )
+			if ( jvm->AttachCurrentThread( OUT &_env, null ) < 0 )
 			{
 				DBG_WARNING( "can't attach to current java thread" );
 				return;
@@ -98,7 +85,7 @@ namespace {
 		if ( _mustBeDetached )
 		{
 			JavaVM*	jvm = GetJavaVM();
-			if ( not jvm )
+			if ( jvm == null )
 			{
 				DBG_WARNING( "JavaVM is null" );
 				return;
@@ -118,9 +105,9 @@ namespace {
 */
 	void JavaEnv::SetVM (JavaVM* ptr) __NE___
 	{
-		ASSERT( GetJavaVM() == null );
+		ASSERT( s_JavaVM == null );
 
-		GetJavaVM() = ptr;
+		s_JavaVM = ptr;
 	}
 
 /*
@@ -157,6 +144,16 @@ namespace {
 	{
 		CHECK_ERR( _env != null );
 		return _env->ExceptionCheck() == JNI_TRUE;
+	}
+
+/*
+=================================================
+	GetJavaVM
+=================================================
+*/
+	JavaVM*  JavaEnv::GetJavaVM () __NE___
+	{
+		return s_JavaVM;
 	}
 
 

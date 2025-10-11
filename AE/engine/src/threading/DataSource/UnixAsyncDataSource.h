@@ -105,6 +105,7 @@ namespace AE::Threading
 
 				void  _Init (RC<> mem)					__NE___;
 				void  _Cleanup ()						__NE___;
+				void  _ForceCleanup ()					__NE___;
 			ND_ bool  _Cancel ()						__NE___;
 
 		private:
@@ -232,6 +233,8 @@ namespace AE::Threading
 	private:
 		friend class TaskScheduler;
 		explicit UnixIOService (uint maxAccessThreads)				__NE___;
+
+		void  _Release ()											__NE___;
 
 	  #ifdef AE_ASYNCIO_USE_LINUX_AIO
 		ND_ LinuxAIO_CtxPerThread&  _GetLinuxAIOContext ()			__NE___;

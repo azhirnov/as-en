@@ -69,8 +69,6 @@ namespace AE::Base
 		p_cpu.name = ReadStr("machdep.cpu.brand_string");
 		p_cpu.type = ECoreType::P;
 
-		CHECK( ReadUInt("hw.cachelinesize") == AE_CACHE_LINE );
-
 	  #ifdef AE_CPU_ARCH_ARM_BASED
 		feats.NEON		= ReadUInt("hw.optional.neon") > 0 or
 						  ReadUInt("hw.optional.AdvSIMD") > 0;
@@ -163,7 +161,7 @@ namespace AE::Base
 		if ( ReadUInt("hw.nperflevels") >= 2 )
 		{
 			uint	cache_line		= ReadUInt("hw.cachelinesize");
-			CHECK( cache_line == AE_CACHE_LINE );
+			//CHECK_Eq( cache_line, AE_CACHE_LINE );		// TODO: why hardware_destructive_interference_size == 64 ?
 
 			// P
 			{

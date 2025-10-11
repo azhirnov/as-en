@@ -73,7 +73,15 @@
 
 		docs: https://developer.android.com/guide/topics/manifest/activity-element
 	-->
-	
+
+	<!--
+		PICO VR metadata
+		https://developer.picoxr.com/document/native/metadata-setting/
+	-->
+	<meta-data android:name="pvr.app.type" android:value="vr" />
+	<meta-data android:name="pvr.sdk.version" android:value="OpenXR" />
+	<meta-data android:name="pxr.sdk.version_code" android:value="5120" />  <!-- 5.12.0 -->
+		
 	<activity
 		android:name=".DemoActivity"
 		android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"

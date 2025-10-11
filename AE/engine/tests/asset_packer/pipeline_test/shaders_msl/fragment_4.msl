@@ -1,5 +1,5 @@
 
-AE_ENTRY()
+AE_ENTRY(Main)
 {
 	AE_STAGE_OUT	Out;
 	Out.out_Color = descSet0.un_ColorTexture.sample( un_ColorTexture_sampler, In.texcoord ) * In.color;

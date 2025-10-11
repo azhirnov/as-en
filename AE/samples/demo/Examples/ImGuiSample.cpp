@@ -170,7 +170,7 @@ namespace AE::Samples::Demo
 		auto	surf_acquire = rg.BeginOnSurface( batch, deps );
 		CHECK_ERR( surf_acquire );
 
-		return batch->Run( _DrawTask( GetRC<ImGuiSample>(), rg.GetSurfaceArg() ), Tuple{surf_acquire}, True{"Last"}, Default );
+		return batch->Run( _DrawTask( GetRC<ImGuiSample>(), rg.GetSurface() ), Tuple{surf_acquire}, True{"Last"}, Default );
 	}
 
 

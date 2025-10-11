@@ -154,7 +154,7 @@ namespace AE::Networking
 	Register_NetVFS
 =================================================
 */
-	ND_ inline bool  Register_NetVFS (MessageFactory &mf) __NE___
+	Nd__In bool  Register_NetVFS (MessageFactory &mf) __NE___
 	{
 		return	mf.Register<
 					CSMsg_VFS_Init,

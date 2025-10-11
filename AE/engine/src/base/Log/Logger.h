@@ -4,7 +4,6 @@
 
 #include "base/Math/Random.h"
 #include "base/DataSource/DataStream.h"
-#include "base/FileSystem/Path.h"
 
 namespace AE::Base
 {
@@ -23,8 +22,6 @@ namespace AE::Base
 #endif
 
 
-#ifdef AE_PLATFORM_LINUX
-
 	//
 	// VS Code Log output
 	//
@@ -37,7 +34,6 @@ namespace AE::Base
 		EResult  Process (const MessageInfo &info) __Th_OV;
 	};
 
-#endif
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -73,7 +69,7 @@ namespace AE::Base
 #endif
 
 
-#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE)
+#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE) or defined(AE_PLATFORM_LINUX)
 
 	//
 	// Dialog Log output
@@ -96,7 +92,7 @@ namespace AE::Base
 		EResult  Process (const MessageInfo &info)							__Th_OV;
 
 	private:
-		EResult  _ProcessImpl (const String &caption, const String &msg, ELevel	level)	__Th___;
+		EResult  _ProcessImpl (const String &caption, String &msg, ELevel level) __Th___;
 	};
 
 #endif

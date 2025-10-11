@@ -18,7 +18,7 @@ namespace
 		const bool	has_attribs	= uint(version & ~EShaderVersion::_Mask) >= 0x23;
 
 		String	str;
-		str << "#define AE_ENTRY()\n";
+		str << "#define AE_ENTRY(_name_)\n";
 
 		if ( has_attribs )
 			str << inShader->ThreadgroupsMSL( features );
@@ -41,7 +41,6 @@ namespace
 			case EShader::RayMiss :
 			case EShader::RayIntersection :
 			case EShader::RayCallable :
-			case EShader::_Count :
 			case EShader::Unknown :
 			default :					CHECK_THROW_MSG( false, "unsupported shader type" );
 		}
@@ -55,7 +54,7 @@ namespace
 		if ( entry_res.empty() )
 			entry_res = "void";
 
-		str << entry_res << "  Main (\n" << entry_args;
+		str << entry_res << "  _name_ (\n" << entry_args;
 
 		// remove ',\n'
 		if ( not str.empty() and str.back() == '\n' )
@@ -77,7 +76,9 @@ namespace
 		str << "//----------\n\n";
 		return str;
 	}
-}
+
+} // namespace
+
 
 /*
 =================================================
@@ -148,8 +149,8 @@ namespace
 
 		const EShaderStages		stage	= EShaderStages::Unknown | inShader->type;
 		const EShaderVersion	version	= (inShader->version == Default ? _GetShaderVersion() : inShader->version);
-
-		if ( AllBits( version, EShaderVersion::_SPIRV, EShaderVersion::_Mask ))
+		
+		if ( AllBits( version, EShaderVersion::_GLSL_SPIRV, EShaderVersion::_Mask ))
 		{
 			PipelineLayout::UniqueTypes_t	unique_types;
 
@@ -190,6 +191,44 @@ namespace
 				resources << _FragOutputToGLSL( *fragOut );
 
 			ObjectStorage::Instance()->CompileShaderGLSL( INOUT outShader, inShader, version, _defines, RVRef(resources), _includes, _features, dbg_ds_idx, use_arg_buf );
+		}
+		else
+		if ( AllBits( version, EShaderVersion::_Slang_SPIRV, EShaderVersion::_Mask ))
+		{
+			PipelineLayout::UniqueTypes_t	unique_types;
+
+			String	resources;
+			String	entry_args	= inShader->InputToHLSL();	// SLANG_ENTRY_IN macros
+			String	entry_res	= inShader->SpecToHLSL();	// SLANG_ENTRY_OUT macros
+
+			if ( vbInput )
+				resources << vbInput->ToHLSL();
+
+			if ( shaderInput )
+			{
+			//	resources << shaderInput->ToShaderIO_HLSL( inShader->type, true, INOUT unique_types );
+			//	entry_args << "  " << shaderInput->Typename() << ",\n";
+			}
+
+			if ( shaderOutput )
+			{
+			//	resources << shaderOutput->ToShaderIO_HLSL( inShader->type, false, INOUT unique_types );
+			//	entry_res << '\t' << shaderOutput->Typename();
+			}
+			else
+				entry_res << "\tvoid\n";
+
+			if ( _layoutPtr )
+				resources << _layoutPtr->ToHLSL( stage, INOUT unique_types );
+
+			//if ( fragOut.has_value() )
+			//	resources << _FragOutputToHLSL( *fragOut );
+
+			resources << '\n'
+				<< entry_args << entry_res << '\n'
+				<< "#define AE_ENTRY( _name_ )  SLANG_ENTRY_OUT _name_ (SLANG_ENTRY_IN)\n\n";
+
+			ObjectStorage::Instance()->CompileShaderSLang( INOUT outShader, inShader, version, _defines, RVRef(resources), _includes, _features );
 		}
 		else
 		if ( AllBits( version, EShaderVersion::_Metal_iOS, EShaderVersion::_Mask ) or
@@ -425,7 +464,11 @@ namespace
 					}
 
 					CHECK_ERR( ds_ptr != null );
-					CHECK_ERR( DescriptorSetLayoutDesc::IsCompatible( _dsLayoutsFromReflection[i], *ds_ptr ));
+
+					// left - from shader, right - user defined
+					CHECK_ERR_MSG( DescriptorSetLayoutDesc::IsCompatible( _dsLayoutsFromReflection[i], *ds_ptr ),
+						"Pipeline '"s << GetName() << "' with layout '" << _layoutPtr->Name() << "': DSLayout '" <<
+						 storage.GetName( ds_ptr->name ) << "' is not compatible with shader reflection." );
 				}
 			}
 		}
@@ -697,7 +740,7 @@ namespace
 		if ( min_spirv != UMax )
 		{
 			ASSERT( min_spirv >= 100 and min_spirv <= 150 );
-			return ToShVer( min_spirv ) | EShaderVersion::_SPIRV;
+			return ToShVer( min_spirv ) | EShaderVersion::_GLSL_SPIRV;
 		}
 
 		if ( target == ECompilationTarget::Vulkan )
@@ -1015,7 +1058,6 @@ namespace
 					case EBlendFactor::OneMinusSrc1Alpha :
 						TEST_FEATURE( features, dualSrcBlend );  break;
 
-					case EBlendFactor::_Count :
 					case EBlendFactor::Unknown :
 					default_unlikely :	break;
 				}

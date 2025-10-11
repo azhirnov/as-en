@@ -348,7 +348,6 @@ namespace AE::RemoteGraphics
 		ND_ static PerThreadData*&  _GetThreadData ();
 
 		void  _Send (const Msg::BaseResponse &)					__Th___;
-		void  _Send (const void* data, Bytes dataSize)			__Th___;
 		void  _ReadReceived (OUT void* data, Bytes size)		__Th___;
 
 		void  _PushMemStack (RC<SharedMem>)						__Th___;

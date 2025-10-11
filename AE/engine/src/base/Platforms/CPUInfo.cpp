@@ -51,41 +51,60 @@ namespace AE::Base
 			str << "CPU features:";
 
 			#ifdef AE_CPU_ARCH_X86_64
-			str << "\n  SSE 2:       " << ToString( feats.SSE2 )
-				<< "\n  SSE 3: . . . " << ToString( feats.SSE3 )
-				<< "\n  SSSE 3:      " << ToString( feats.SSSE3 )
-				<< "\n  SSE 4.1: . . " << ToString( feats.SSE41 )
-				<< "\n  SSE 4.2:     " << ToString( feats.SSE42 )
-				<< "\n  AVX: . . . . " << ToString( feats.AVX )
-				<< "\n  AVX 2:       " << ToString( feats.AVX2 )
-				<< "\n  AVX512F: . . " << ToString( feats.AVX512F )
-				<< "\n  FMA: . . . . " << ToString( feats.FMA )
-				<< "\n  POPCNT:      " << ToString( feats.POPCNT )
-				<< "\n  AES: . . . . " << ToString( feats.AES )
-				<< "\n  VAES:        " << ToString( feats.VAES )
-				<< "\n  AESKL: . . . " << ToString( feats.AESKL )
-				<< "\n  SHA2_256:    " << ToString( feats.SHA2_256 )
-				<< "\n  SHA512:  . . " << ToString( feats.SHA512 )
-				<< "\n  FP16C:       " << ToString( feats.FP16C );
+			str << "\n  SSE 2:             " << ToString( feats.SSE2 )
+				<< "\n  SSE 3: . . . . . . " << ToString( feats.SSE3 )
+				<< "\n  SSSE 3:            " << ToString( feats.SSSE3 )
+				<< "\n  SSE 4.1: . . . . . " << ToString( feats.SSE41 )
+				<< "\n  SSE 4.2:           " << ToString( feats.SSE42 )
+				<< "\n  AVX: . . . . . . . " << ToString( feats.AVX )
+				<< "\n  AVX 2:             " << ToString( feats.AVX2 )
+				<< "\n  AVX VNNI:  . . . . " << ToString( feats.AVX_VNNI )
+
+				<< "\n  AVX512F:           " << ToString( feats.AVX512F )
+				<< "\n  AVX512 CD: . . . . " << ToString( feats.AVX512_CD )
+				<< "\n  AVX512 VL:         " << ToString( feats.AVX512_VL )
+				<< "\n  AVX512 DQ: . . . . " << ToString( feats.AVX512_DQ )
+				<< "\n  AVX512 BW:         " << ToString( feats.AVX512_BW )
+				<< "\n  AVX512 IFMA: . . . " << ToString( feats.AVX512_IFMA )
+				<< "\n  AVX512 VBMI:       " << ToString( feats.AVX512_VBMI )
+				
+				<< "\n  AVX512 VBMI2:  . . " << ToString( feats.AVX512_VBMI2 )
+				<< "\n  AVX512 VPOPCNTDQ:  " << ToString( feats.AVX512_VPOPCNTDQ )
+				<< "\n  AVX512 BITALG: . . " << ToString( feats.AVX512_BITALG )
+				<< "\n  AVX512 VNNI:       " << ToString( feats.AVX512_VNNI )
+				<< "\n  AVX512 VPCLMULQDQ: " << ToString( feats.AVX512_VPCLMULQDQ )
+				<< "\n  AVX512 GFNI:       " << ToString( feats.AVX512_GFNI )
+				
+				<< "\n  AVX512 BF16: . . . " << ToString( feats.AVX512_BF16 )
+				
+			//	<< "\n  BMI2:              " << ToString( feats.BMI2 )
+				<< "\n  FMA: . . . . . . . " << ToString( feats.FMA )
+				<< "\n  POPCNT:            " << ToString( feats.POPCNT )
+				<< "\n  AES: . . . . . . . " << ToString( feats.AES )
+				<< "\n  VAES:              " << ToString( feats.VAES )
+				<< "\n  AESKL: . . . . . . " << ToString( feats.AESKL )
+				<< "\n  SHA2_256:          " << ToString( feats.SHA2_256 )
+				<< "\n  SHA512:  . . . . . " << ToString( feats.SHA512 )
+				<< "\n  FP16C:             " << ToString( feats.FP16C );
 			#endif
 			#ifdef AE_CPU_ARCH_ARM_BASED
-			str << "\n  NEON:  . . . " << ToString( feats.NEON )
-				<< "\n  NEON_fp16:   " << ToString( feats.NEON_fp16 )
-				<< "\n  FP16C: . . . " << ToString( feats.FP16C )
-				<< "\n  SVE:         " << ToString( feats.SVE )
-				<< "\n  SVE2:  . . . " << ToString( feats.SVE2 )
-				<< "\n  BF16:        " << ToString( feats.BF16 )
-				<< "\n  AES: . . . . " << ToString( feats.AES )
-				<< "\n  SVE_AES:     " << ToString( feats.SVE_AES )
-				<< "\n  CRC32: . . . " << ToString( feats.CRC32 )
-				<< "\n  SHA2_256:    " << ToString( feats.SHA2_256 )
-				<< "\n  SHA2_512:  . " << ToString( feats.SHA2_512 )
-				<< "\n  SHA3:        " << ToString( feats.SHA3 )
-				<< "\n  Atomics: . . " << ToString( feats.Atomics );
+			str << "\n  NEON:  . . . . . . " << ToString( feats.NEON )
+				<< "\n  NEON_fp16:         " << ToString( feats.NEON_fp16 )
+				<< "\n  FP16C: . . . . . . " << ToString( feats.FP16C )
+				<< "\n  SVE:               " << ToString( feats.SVE )
+				<< "\n  SVE2:  . . . . . . " << ToString( feats.SVE2 )
+				<< "\n  BF16:              " << ToString( feats.BF16 )
+				<< "\n  AES: . . . . . . . " << ToString( feats.AES )
+				<< "\n  SVE_AES:           " << ToString( feats.SVE_AES )
+				<< "\n  CRC32: . . . . . . " << ToString( feats.CRC32 )
+				<< "\n  SHA2_256:          " << ToString( feats.SHA2_256 )
+				<< "\n  SHA2_512:  . . . . " << ToString( feats.SHA2_512 )
+				<< "\n  SHA3:              " << ToString( feats.SHA3 )
+				<< "\n  Atomics: . . . . . " << ToString( feats.Atomics );
 			#endif
 
 			// shared features
-			str	<< "\n  CmpXchg16:   " << ToString( feats.CmpXchg16 );
+			str	<< "\n  CmpXchg16:         " << ToString( feats.CmpXchg16 );
 
 			str << "\n--------------------"
 				<< "\nCPU info:"
@@ -191,24 +210,24 @@ namespace AE::Base
 			CHECK_ERR_MSG( feats.AVX512F,	"AE_SIMD_AVX=30 requires AVX512F feature" );
 		#endif
 		#if (AE_SIMD_AVX >= 31)
-		//	CHECK_ERR_MSG( feats.AVX512_CD,		"AE_SIMD_AVX=31 requires AVX512_CD feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_VL,		"AE_SIMD_AVX=31 requires AVX512_VL feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_DQ,		"AE_SIMD_AVX=31 requires AVX512_DQ feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_BW,		"AE_SIMD_AVX=31 requires AVX512_BW feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_IFMA,	"AE_SIMD_AVX=31 requires AVX512_IFMA feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_VBMI,	"AE_SIMD_AVX=31 requires AVX512_VBMI feature" );
+			CHECK_ERR_MSG( feats.AVX512_CD,		"AE_SIMD_AVX=31 requires AVX512_CD feature" );
+			CHECK_ERR_MSG( feats.AVX512_VL,		"AE_SIMD_AVX=31 requires AVX512_VL feature" );
+			CHECK_ERR_MSG( feats.AVX512_DQ,		"AE_SIMD_AVX=31 requires AVX512_DQ feature" );
+			CHECK_ERR_MSG( feats.AVX512_BW,		"AE_SIMD_AVX=31 requires AVX512_BW feature" );
+			CHECK_ERR_MSG( feats.AVX512_IFMA,	"AE_SIMD_AVX=31 requires AVX512_IFMA feature" );
+			CHECK_ERR_MSG( feats.AVX512_VBMI,	"AE_SIMD_AVX=31 requires AVX512_VBMI feature" );
 		#endif
 		#if (AE_SIMD_AVX >= 32)
-		//	CHECK_ERR_MSG( feats.AVX512_VBMI2,		"AE_SIMD_AVX=32 requires AVX512_VBMI2 feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_VPOPCNTDQ,	"AE_SIMD_AVX=32 requires AVX512_VPOPCNTDQ feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_BITALG,		"AE_SIMD_AVX=32 requires AVX512_BITALG feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_VNNI,		"AE_SIMD_AVX=32 requires AVX512_VNNI feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_VPCLMULQDQ,	"AE_SIMD_AVX=32 requires AVX512_VPCLMULQDQ feature" );
-		//	CHECK_ERR_MSG( feats.AVX512_GFNI,		"AE_SIMD_AVX=32 requires AVX512_GFNI feature" );
+			CHECK_ERR_MSG( feats.AVX512_VBMI2,		"AE_SIMD_AVX=32 requires AVX512_VBMI2 feature" );
+			CHECK_ERR_MSG( feats.AVX512_VPOPCNTDQ,	"AE_SIMD_AVX=32 requires AVX512_VPOPCNTDQ feature" );
+			CHECK_ERR_MSG( feats.AVX512_BITALG,		"AE_SIMD_AVX=32 requires AVX512_BITALG feature" );
+			CHECK_ERR_MSG( feats.AVX512_VNNI,		"AE_SIMD_AVX=32 requires AVX512_VNNI feature" );
+			CHECK_ERR_MSG( feats.AVX512_VPCLMULQDQ,	"AE_SIMD_AVX=32 requires AVX512_VPCLMULQDQ feature" );
+			CHECK_ERR_MSG( feats.AVX512_GFNI,		"AE_SIMD_AVX=32 requires AVX512_GFNI feature" );
 			CHECK_ERR_MSG( feats.VAES,				"AE_SIMD_AVX=32 requires VAES feature" );
 		#endif
 		#if (AE_SIMD_AVX >= 33)
-		//	CHECK_ERR_MSG( feats.AVX512_BF16,		"AE_SIMD_AVX=33 requires AVX512_BF16 feature" );
+			CHECK_ERR_MSG( feats.AVX512_BF16,		"AE_SIMD_AVX=33 requires AVX512_BF16 feature" );
 		#endif
 
 		#if AE_SIMD_NEON or (GLM_ARCH & GLM_ARCH_NEON_BIT)

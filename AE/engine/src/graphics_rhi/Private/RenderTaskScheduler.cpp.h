@@ -98,8 +98,7 @@
 			if_unlikely( batch_pp->ptr == null )
 				return true;
 
-			CHECK_ERR( (*batch_pp->ptr)._AddOnSubmitDependency( task, defaultIsStrongDep ));
-			return true;
+			return (*batch_pp->ptr)._AddOnSubmitDependency( task, defaultIsStrongDep );
 		}
 
 		return false;
@@ -132,8 +131,7 @@
 			if_unlikely( *batch_pp == null )
 				return true;
 
-			CHECK_ERR( (**batch_pp)._AddOnCompleteDependency( task, defaultIsStrongDep ));
-			return true;
+			return (**batch_pp)._AddOnCompleteDependency( task, defaultIsStrongDep );
 		}
 		return false;
 	}
@@ -164,7 +162,7 @@
 		EXLOCK( f.guard );
 
 		for (auto dep : f.deps) {
-			_Coro_::AsyncTaskImpl::TaskDependencyManagerApi::SetDependencyCompletionStatus( *dep, False{"not canceled"} );
+			TaskApi::SetDependencyCompletionStatus( *dep, False{"not canceled"} );
 		}
 
 		f.deps.clear();
@@ -184,7 +182,7 @@
 
 			f.deps.emplace_back( task.GetRC() ).SetExtra( uint{defaultIsStrongDep} );
 			
-			_Coro_::AsyncTaskImpl::TaskDependencyManagerApi::IncWaitCounter( task );
+			TaskApi::IncWaitCounter( task );
 			return true;
 		}
 

@@ -143,7 +143,11 @@ namespace {
 		// update status after uploading
 		if ( upload )
 		{
-			Scheduler().Run( _OnUploadComplete( atlas, upload ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+			Scheduler().Run(
+				ETaskQueue::Background,
+				_OnUploadComplete( atlas, upload ),
+				Tuple{ResourceUploadManager::WeakUploadResult{upload}}
+			);
 		}
 		else
 		{
@@ -181,10 +185,9 @@ namespace {
 			return Scheduler().Run(
 						ETaskQueue::Background,
 						DeferResult< RC<StaticImageAtlas> >( RVRef(atlas) ),
-						Tuple{RVRef(upload)}
-					);
-		}else
-			return Default;
+						Tuple{RVRef(upload)} );
+		}
+		return Default;
 	}
 
 /*
@@ -232,7 +235,11 @@ namespace {
 		atlas->_nameToIdx	 = RVRef(unpacker.map);
 		atlas->_imageRects	 = RVRef(unpacker.rects);
 
-		Scheduler().Run( _OnUploadComplete( atlas, upload ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+		Scheduler().Run(
+			ETaskQueue::Background,
+			_OnUploadComplete( atlas, upload ),
+			Tuple{ResourceUploadManager::WeakUploadResult{upload}}
+		);
 		return atlas;
 	}
 

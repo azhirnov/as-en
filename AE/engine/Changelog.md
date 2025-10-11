@@ -1,9 +1,22 @@
-## 25.04.285
+## 25.05.xxx
+## 25.05.291
+
+- Platform|Windows: Screen capture
+- Platform|Windows|Linux|Android: file system watch
+- Platform: fixed VR emulator
+- Platform: OpenXR initialization
+- Base|Linux: message box for errors
+- PipelineCompiler: Slang for compute shader
+- Graphics|Vulkan: add VK_EXT_shader_float8, VK_KHR_shader_bfloat16, VK_KHR_shader_integer_dot_product
+
+
+## 25.04.287
 
 - Threading: coroutines everywhere, remove tasks
 - Threading: improved task system
 - CMake: single PCH (x5 compilation speedup on slow RAM)
 - Android: use NDK 29
+- ResLoader: load CSV mesh (RenderDoc/NSight mesh export)
 
 
 ## 25.03.282

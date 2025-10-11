@@ -57,6 +57,8 @@ namespace AE::ResLoader
 	{
 		Unknown		= 0,
 		GLTF,		// .gltf
+		CSV,		// .csv - export from RenderDoc
+		_Count
 	};
 
 	ND_ EModelFormat	PathToModelFormat (const Path &path)		__NE___;

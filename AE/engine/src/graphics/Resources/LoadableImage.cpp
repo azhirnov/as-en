@@ -32,8 +32,7 @@ namespace {
 		return Scheduler().Run(
 					ETaskQueue::Background,
 					DeferResult< RC<LoadableImage> >( GetRC<LoadableImage>() ),
-					Tuple{OnUploadComplete()}
-				);
+					Tuple{OnUploadComplete()} );
 	}
 
 /*
@@ -119,7 +118,11 @@ namespace {
 
 		image->_SetLoadingStatus( ELoadingStatus::Uploading );
 
-		Scheduler().Run( _OnUploadComplete( image ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+		Scheduler().Run(
+			ETaskQueue::Background,
+			_OnUploadComplete( image ),
+			Tuple{ResourceUploadManager::WeakUploadResult{upload}}
+		);
 		return image;
 	}
 
@@ -176,7 +179,11 @@ namespace {
 
 		image->_SetLoadingStatus( ELoadingStatus::Uploading );
 
-		Scheduler().Run( _OnUploadComplete( image ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+		Scheduler().Run(
+			ETaskQueue::Background,
+			_OnUploadComplete( image ),
+			Tuple{ResourceUploadManager::WeakUploadResult{upload}}
+		);
 		return image;
 	}
 

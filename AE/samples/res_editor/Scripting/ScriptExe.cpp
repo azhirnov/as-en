@@ -104,8 +104,9 @@ namespace {
 				fs->fs = ScriptResourceApi::GetFeatureSet();
 
 				obj_storage.target				= ECompilationTarget::Vulkan;
-				obj_storage.shaderVersion		= EShaderVersion(Version2::From100( fs->fs.maxShaderVersion.spirv ).ToHex()) | EShaderVersion::_SPIRV;
+				obj_storage.shaderVersion		= EShaderVersion(Version2::From100( fs->fs.maxShaderVersion.spirv ).ToHex()) | EShaderVersion::_GLSL_SPIRV;
 				obj_storage.defaultFeatureSet	= fs->Name();
+				obj_storage.defaultLayout		= EStructLayout::Compatible_Std140;
 
 				obj_storage.spirvCompiler		= MakeUnique<SpirvCompiler>( Array<Path>{} );
 				obj_storage.spirvCompiler->SetDefaultResourceLimits();
@@ -1809,11 +1810,13 @@ namespace {
 	ConvertAndLoad
 =================================================
 */
-	RTechInfo  ScriptExe::ScriptPassApi::ConvertAndLoad (Function<void (ScriptEnginePtr)> fn) __Th___
+	RTechInfo  ScriptExe::ScriptPassApi::ConvertAndLoad (Function<void (ScriptEnginePtr)> fn, ScriptBasePass::EFlags passFlags) __Th___
 	{
 		CHECK_THROW( s_scriptExe != null );
+
+		const Bool	use_slang = Bool{AllBits( passFlags, ScriptBasePass::EFlags::UseSLang )};
 		
-	#ifdef AE_PLATFORM_WINDOWS
+	  #ifdef AE_METAL_TOOLS
 		try{
 			const auto	flags = UIInteraction::Instance().graphics->shaderFlags;
 			if ( flags.contains( UIInteraction::EShaderFlags::CompileMSL ))
@@ -1828,12 +1831,13 @@ namespace {
 
 						fn( s_scriptExe->_engine2 );
 					},
-					True{"compileMSL"} );
+					True{"compileMSL"},
+					use_slang );
 			}
 		}catch(...){
 			AE_LOGE( "failed to compile for Metal API" );
 		}
-	#endif
+	  #endif
 
 		RTechInfo	result;
 		s_scriptExe->_RunWithPipelineCompiler(
@@ -1846,7 +1850,10 @@ namespace {
 
 				fn( s_scriptExe->_engine2 );
 				result = s_scriptExe->_ConvertAndLoad();
-			});
+			},
+			False{"don't compile MSL"},
+			use_slang );
+
 		return result;
 	}
 
@@ -2105,7 +2112,7 @@ namespace {
 	_RunWithPipelineCompiler
 =================================================
 */
-	void  ScriptExe::_RunWithPipelineCompiler (Function<void ()> fn, const Bool compileMSL) __Th___
+	void  ScriptExe::_RunWithPipelineCompiler (Function<void ()> fn, const Bool compileMSL, const Bool useSlang) __Th___
 	{
 		try
 		{
@@ -2136,6 +2143,11 @@ namespace {
 					obj_storage.defaultDescSetUsage	= EDescSetUsage::ArgumentBuffer;
 				}
 			  #endif
+			  #ifdef AE_ENABLE_SLANG
+				{
+					obj_storage.slangCompiler = MakeUnique<SLangCompiler>( _GetTempData().cfg.includeDirs );
+				}
+			  #endif
 
 				ObjectStorage::SetInstance( &obj_storage );
 
@@ -2143,9 +2155,10 @@ namespace {
 				fs->fs = ScriptResourceApi::GetFeatureSet();
 
 				PipelineCompiler::ScriptConfig	cfg;
-				cfg.SetShaderVersion( EShaderVersion(Version2::From100( fs->fs.maxShaderVersion.spirv ).ToHex()) | EShaderVersion::_SPIRV );
+				cfg.SetShaderVersion( EShaderVersion(Version2::From100( fs->fs.maxShaderVersion.spirv ).ToHex()) |
+									  (useSlang ? EShaderVersion::_Slang_SPIRV : EShaderVersion::_GLSL_SPIRV) );
 
-				cfg.SetDefaultLayout( EStructLayout::Std140 );
+				cfg.SetDefaultLayout( EStructLayout::Compatible_Std140 );
 				cfg.SetPreprocessor( EShaderPreprocessor::AEStyle );
 				
 				const auto		flags	 = UIInteraction::Instance().graphics->shaderFlags;
@@ -2398,7 +2411,7 @@ namespace {
 		if ( not obj_storage.structTypes.contains( "CameraData" ))
 		{
 			ShaderStructTypePtr	st{ new ShaderStructType{"CameraData"}};
-			st->Set( EStructLayout::Std140, R"#(
+			st->Set( EStructLayout::Compatible_Std140, R"#(
 					float4x4	viewProj;
 					float4x4	invViewProj;
 					float4x4	proj;
@@ -2414,7 +2427,7 @@ namespace {
 		/*if ( not obj_storage.structTypes.contains( "CameraSet" ))
 		{
 			ShaderStructTypePtr	st{ new ShaderStructType{"CameraSet"}};
-			st->Set( EStructLayout::Std140, R"#(
+			st->Set( EStructLayout::Compatible_Std140, R"#(
 					float		ipd;		// for VR video
 					float3		globalPos;	// actual position: 'globalPos + data[0].localPos'
 					uint		count;
@@ -2425,7 +2438,7 @@ namespace {
 		if ( not obj_storage.structTypes.contains( "AccelStructInstance" ))
 		{
 			ShaderStructTypePtr	st{ new ShaderStructType{"AccelStructInstance"}};
-			st->Set( EStructLayout::Std430, R"#(
+			st->Set( EStructLayout::Compatible_Std430, R"#(
 					float3x4	transform;							// 3x4 row-major
 					uint		instanceCustomIndex24_mask8;
 					uint		instanceSBTOffset24_flags8;			// flags: gl::GeometryInstanceFlags
@@ -2437,7 +2450,7 @@ namespace {
 		if ( not obj_storage.structTypes.contains( "ASBuildIndirectCommand" ))
 		{
 			ShaderStructTypePtr	st{ new ShaderStructType{"ASBuildIndirectCommand"}};
-			st->Set( EStructLayout::Std430, R"#(
+			st->Set( EStructLayout::Compatible_Std430, R"#(
 					uint		primitiveCount;
 					uint		primitiveOffset;
 					uint		firstVertex;
@@ -2449,7 +2462,7 @@ namespace {
 		if ( not obj_storage.structTypes.contains( "TraceRayIndirectCommand" ))
 		{
 			ShaderStructTypePtr	st{ new ShaderStructType{"TraceRayIndirectCommand"}};
-			st->Set( EStructLayout::Std430, R"#(
+			st->Set( EStructLayout::Compatible_Std430, R"#(
 					packed_uint3	dim;
 				)#");
 			CHECK( st->StaticSize() == SizeOf<TraceRayIndirectCommand> );
@@ -2458,7 +2471,7 @@ namespace {
 		if ( not obj_storage.structTypes.contains( "DispatchIndirectCommand" ))
 		{
 			ShaderStructTypePtr	st{ new ShaderStructType{"DispatchIndirectCommand"}};
-			st->Set( EStructLayout::Std430, R"#(
+			st->Set( EStructLayout::Compatible_Std430, R"#(
 					packed_uint3	groupCount;
 				)#");
 			CHECK( st->StaticSize() == SizeOf<DispatchIndirectCommand> );
@@ -2467,7 +2480,7 @@ namespace {
 		if ( not obj_storage.structTypes.contains( "DrawIndirectCommand" ))
 		{
 			ShaderStructTypePtr	st{ new ShaderStructType{"DrawIndirectCommand"}};
-			st->Set( EStructLayout::Std430, R"#(
+			st->Set( EStructLayout::Compatible_Std430, R"#(
 					uint	vertexCount;
 					uint	instanceCount;
 					uint	firstVertex;
@@ -2479,7 +2492,7 @@ namespace {
 		if ( not obj_storage.structTypes.contains( "DrawIndexedIndirectCommand" ))
 		{
 			ShaderStructTypePtr	st{ new ShaderStructType{"DrawIndexedIndirectCommand"}};
-			st->Set( EStructLayout::Std430, R"#(
+			st->Set( EStructLayout::Compatible_Std430, R"#(
 					uint	indexCount;
 					uint	instanceCount;
 					uint	firstIndex;
@@ -2492,7 +2505,7 @@ namespace {
 		if ( not obj_storage.structTypes.contains( "DrawMeshTasksIndirectCommand" ))
 		{
 			ShaderStructTypePtr	st{ new ShaderStructType{"DrawMeshTasksIndirectCommand"}};
-			st->Set( EStructLayout::Std430, R"#(
+			st->Set( EStructLayout::Compatible_Std430, R"#(
 					packed_uint3	taskCount;
 				)#");
 			CHECK( st->StaticSize() == SizeOf<DrawMeshTasksIndirectCommand> );

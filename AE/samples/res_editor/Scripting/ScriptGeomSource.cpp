@@ -13,7 +13,7 @@
 
 #include "res_loaders/Intermediate/IntermScene.h"
 #include "res_loaders/Public/ModelLoader.h"
-#include "res_loaders/Assimp/AssimpLoader.h"
+#include "res_loaders/AllModels/AllModelLoaders.h"
 
 namespace AE::ResEditor
 {
@@ -914,7 +914,7 @@ namespace
 			return it->second;
 
 		ShaderStructTypePtr	st{ new ShaderStructType{"SphericalCubeMaterialUB"}};
-		st->Set( EStructLayout::Std140, R"#(
+		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float4x4	transform;
 				float3x3	normalMat;
 			)#");
@@ -1900,7 +1900,7 @@ namespace
 			return it->second;
 
 		ShaderStructTypePtr	st{ new ShaderStructType{"UnifiedGeometryMaterialUB"}};
-		st->Set( EStructLayout::Std140, R"#(
+		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float4x4	transform;
 				float3x3	normalMat;
 			)#");
@@ -2431,14 +2431,13 @@ namespace {
 			return _geomSrc;
 
 		IModelLoader::Config	cfg;
+		cfg.convertMeshesToFloatPointFormat = true;		// see 'ModelGeomSource::Mesh::_Convert()'
 
 		_intermScene.reset( new IntermScene{} );
 
-		#ifdef AE_ENABLE_ASSIMP
-			AssimpLoader    loader;
-			CHECK_THROW_MSG( loader.LoadModel( *_intermScene, _scenePath, cfg ),
-				"failed to load model from '"s << ToString(_scenePath) << "'" );
-		#endif
+		AllModelLoaders    loader;
+		CHECK_THROW_MSG( loader.LoadModel( *_intermScene, _scenePath, cfg ),
+			"failed to load model from '"s << ToString(_scenePath) << "'" );
 
 		const bool			has_rtas = [this](){ bool b = false;  for (auto& g : _rtGeometries) b |= (g != null);  return b; }();
 		RTGeometryTypes_t	geom_types;

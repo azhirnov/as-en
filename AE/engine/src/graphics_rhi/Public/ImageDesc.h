@@ -52,9 +52,11 @@ namespace AE::Graphics
 		ImageDesc&  SetType (EImageDim value)				__NE___	{ imageDim		= value;				return *this; }
 		ImageDesc&  SetOptions (EImageOpt value)			__NE___	{ options		= value;				return *this; }
 		ImageDesc&  SetDimension (const uint value)			__NE___;
-		ImageDesc&  SetDimension (const uint2 &value)		__NE___;
+		ImageDesc&  SetDimension (uint2 value)				__NE___	{ return SetDimension( CheckCast<ImageDim2_t>(value) ); }
+		ImageDesc&  SetDimension (ImageDim2_t value)		__NE___;
 		ImageDesc&  SetDimension (uint w, uint h)			__NE___	{ return SetDimension( uint2{w,h} ); }
-		ImageDesc&  SetDimension (const uint3 &value)		__NE___;
+		ImageDesc&  SetDimension (uint3 value)				__NE___	{ return SetDimension( CheckCast<ImageDim_t>(value) ); }
+		ImageDesc&  SetDimension (ImageDim_t value)			__NE___;
 		ImageDesc&  SetDimension (uint w, uint h, uint d)	__NE___	{ return SetDimension( uint3{w,h,d} ); }
 		ImageDesc&  SetUsage (EImageUsage value)			__NE___	{ usage			= value;				return *this; }
 		ImageDesc&  SetFormat (EPixelFormat value)			__NE___	{ format		= value;				return *this; }

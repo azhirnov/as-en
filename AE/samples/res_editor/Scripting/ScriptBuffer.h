@@ -63,7 +63,7 @@ namespace AE::ResEditor
 		uint					_staticCount	= 0;
 
 		RC<Buffer>				_resource;
-		Array<RC<Buffer>>		_refBuffers;				// if this buffer uses device address for another buffer, they must be in 'ShaderAddress' state
+		Array<ScriptBufferPtr>	_refBuffers;				// if this buffer uses device address for another buffer, they must be in 'ShaderAddress' state
 
 
 	// methods

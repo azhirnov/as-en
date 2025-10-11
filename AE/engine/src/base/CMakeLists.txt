@@ -26,7 +26,7 @@ set_property( TARGET "Base" PROPERTY FOLDER "Engine" )
 # for IDE
 if (FALSE) #WIN32)
 	target_include_directories( "Base" PRIVATE
-		"${ANDROID_NDK_INCLUDE}/sysroot/usr/include"
+		"${ANDROID_NDK_INCLUDE}"
 		"${ANDROID_NDK_INCLUDE}/lib/clang/17.0.2/include" )	# for IDE
 endif()
 

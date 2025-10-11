@@ -74,7 +74,7 @@
 
 		gl.Position		= LocalPosToClipSpace( node.transform * float4( in_Position, 1.0f ));
 		Out.texcoord	= in_Texcoord;
-		Out.worldNormal	= node.normalMat * in_Normal;
+		Out.worldNormal	= float3x3(node.transform) * in_Normal;
 		Out.materialIdx	= node.materialIdx;	// uniform per draw call
 	}
 

@@ -654,17 +654,17 @@ namespace
 
 #else
 
-	ND_ inline VkResult  CreateComputePipelines (const VDevice &device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkComputePipelineCreateInfo * pCreateInfos, const VkAllocationCallbacks * pAllocator, OUT VkPipeline * pPipelines) __NE___
+	Nd__In VkResult  CreateComputePipelines (const VDevice &device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkComputePipelineCreateInfo * pCreateInfos, const VkAllocationCallbacks * pAllocator, OUT VkPipeline * pPipelines) __NE___
 	{
 		return device.vkCreateComputePipelines( device.GetVkDevice(), pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
 	}
 
-	ND_ inline VkResult CreateGraphicsPipelines (const VDevice &device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo * pCreateInfos, const VkAllocationCallbacks * pAllocator, OUT VkPipeline * pPipelines) __NE___
+	Nd__In VkResult CreateGraphicsPipelines (const VDevice &device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo * pCreateInfos, const VkAllocationCallbacks * pAllocator, OUT VkPipeline * pPipelines) __NE___
 	{
 		return device.vkCreateGraphicsPipelines( device.GetVkDevice(), pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
 	}
 
-	ND_ inline VkResult CreateRayTracingPipelines (const VDevice &device, VkDeferredOperationKHR deferredOperation, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkRayTracingPipelineCreateInfoKHR * pCreateInfos, const VkAllocationCallbacks * pAllocator, OUT VkPipeline * pPipelines)
+	Nd__In VkResult CreateRayTracingPipelines (const VDevice &device, VkDeferredOperationKHR deferredOperation, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkRayTracingPipelineCreateInfoKHR * pCreateInfos, const VkAllocationCallbacks * pAllocator, OUT VkPipeline * pPipelines)
 	{
 		return device.vkCreateRayTracingPipelinesKHR( device.GetVkDevice(), deferredOperation, pipelineCache, createInfoCount, pCreateInfos, pAllocator, OUT pPipelines );
 	}

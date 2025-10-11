@@ -272,12 +272,14 @@ namespace AE::ResLoader
 		_visit_( DXGI_FORMAT_BC4_SNORM,					EPixelFormat::BC4_R8_SNorm ) \
 		_visit_( DXGI_FORMAT_BC5_UNORM,					EPixelFormat::BC5_RG8_UNorm ) \
 		_visit_( DXGI_FORMAT_BC5_SNORM,					EPixelFormat::BC5_RG8_SNorm ) \
-		_visit_( DXGI_FORMAT_B5G6R5_UNORM,				EPixelFormat::RGB_5_6_5_UNorm ) \
+		_visit_( DXGI_FORMAT_B5G6R5_UNORM,				EPixelFormat::R5G6B5_UNorm ) \
 		_visit_( DXGI_FORMAT_B5G5R5A1_UNORM,			EPixelFormat::RGB5_A1_UNorm ) \
 		_visit_( DXGI_FORMAT_BC6H_UF16,					EPixelFormat::BC6H_RGB16UF ) \
 		_visit_( DXGI_FORMAT_BC6H_SF16,					EPixelFormat::BC6H_RGB16F ) \
 		_visit_( DXGI_FORMAT_BC7_UNORM,					EPixelFormat::BC7_RGBA8_UNorm ) \
 		_visit_( DXGI_FORMAT_BC7_UNORM_SRGB,			EPixelFormat::BC7_sRGB8_A8 ) \
+		_visit_( DXGI_FORMAT_B8G8R8A8_UNORM,			EPixelFormat::BGRA8_UNorm ) \
+		_visit_( DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,		EPixelFormat::sBGR8_A8 ) \
 
 	enum D3D11_RESOURCE_DIMENSION : uint
 	{
@@ -347,7 +349,7 @@ namespace AE::ResLoader
 	DDSFormatToPixelFormat
 =================================================
 */
-	ND_ inline EPixelFormat  DDSFormatToPixelFormat (DXGI_FORMAT fmt)
+	Nd__In EPixelFormat  DDSFormatToPixelFormat (DXGI_FORMAT fmt)
 	{
 		switch ( fmt )
 		{
@@ -360,10 +362,10 @@ namespace AE::ResLoader
 
 /*
 =================================================
-	DDSFormatToPixelFormat
+	PixelFormatToDDSFormat
 =================================================
 */
-	ND_ inline DXGI_FORMAT  PixelFormatToDDSFormat (EPixelFormat fmt)
+	Nd__In DXGI_FORMAT  PixelFormatToDDSFormat (EPixelFormat fmt)
 	{
 		switch ( fmt )
 		{
@@ -379,7 +381,7 @@ namespace AE::ResLoader
 	DDSFormatToPixelFormat
 =================================================
 */
-	ND_ inline EPixelFormat  DDSFormatToPixelFormat (const DDS_PIXELFORMAT &ddpf)
+	Nd__In EPixelFormat  DDSFormatToPixelFormat (const DDS_PIXELFORMAT &ddpf)
 	{
 		#define ISBITMASK(r, g, b, a) (ddpf.dwRBitMask == r and ddpf.dwGBitMask == g and ddpf.dwBBitMask == b and ddpf.dwABitMask == a)
 
@@ -418,7 +420,7 @@ namespace AE::ResLoader
 						return EPixelFormat::RGB5_A1_UNorm;
 
 					if ( ISBITMASK( 0xf800, 0x07e0, 0x001f, 0x0000 ))
-						return EPixelFormat::RGB_5_6_5_UNorm;
+						return EPixelFormat::R5G6B5_UNorm;
 
 					RETURN_ERR( "unknown 16bit format" );
 				}

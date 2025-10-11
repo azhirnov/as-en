@@ -27,16 +27,6 @@ void ASmain (Android_ActionBindings& bindings)
 				  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
 	}
 
-	// HwCamera bindings
-	{
-		RC<Android_BindingsMode>	bind = bindings.CreateMode( "HwCamera" );
-
-		bind.Add( Android_Input::TouchPos,
-				  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
-		bind.Add( Android_Input::TouchPos,
-				  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
-	}
-
 	// Camera3D bindings
 	{
 		RC<Android_BindingsMode>	bind = bindings.CreateMode( "Camera3D" );

@@ -12,7 +12,7 @@ namespace AE::Base
 	CheckPointerAlignment
 =================================================
 */
-	ND_ inline bool  CheckPointerAlignment (void const* ptr, usize align) __NE___
+	Nd__In bool  CheckPointerAlignment (void const* ptr, usize align) __NE___
 	{
 		DBG_CHECK_MSG( ((align & (align - 1)) == 0), "Align must be power of 2" );
 
@@ -348,6 +348,7 @@ namespace AE::Base
 #   pragma clang diagnostic ignored "-Wimplicit-float-conversion"
 #   pragma clang diagnostic ignored "-Wimplicit-int-conversion"
 #   pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#	pragma clang diagnostic ignored "-Wredundant-consteval-if"
 #endif
 
 	template <typename To, typename From>

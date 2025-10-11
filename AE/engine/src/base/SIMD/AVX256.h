@@ -18,7 +18,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 8;
-		static constexpr uint	lanes	= 2;
+		static constexpr uint	lanes	= 2;	// number of SSE vectors, cross lane operations may have additional cost
 
 		using Scalar_t		= float;
 		using Self			= SimdFloat8;
@@ -219,9 +219,9 @@ namespace AE::Base
 		ND_ friend Self  Select  (const Bool8 &condition, const Self &ifTrue, const Self &ifFalse)		__NE___	{ return Self{ _mm256_blendv_ps( ifFalse._value, ifTrue._value, condition.Ref() )}; }
 		ND_ friend Self  SelectF (const Self &x, const Self &y, const Self &ifTrue, const Self &ifFalse)__NE___	{ return Lerp( ifFalse, ifTrue, x.LessF(y) ); }
 
-		ND_ Self		Sum ()									C_NE___;
-		ND_ Self		Max ()									C_NE___;
-		ND_ Self		Min ()									C_NE___;
+		ND_ Self		Sum ()									C_NE___;	// vector with PrefixSum()
+		ND_ Self		Max ()									C_NE___;	// vector with PrefixMax()
+		ND_ Self		Min ()									C_NE___;	// vector with PrefixMin()
 
 		ND_ Scalar_t	PrefixSum ()							C_NE___;
 		ND_ Scalar_t	PrefixMax ()							C_NE___;
@@ -297,7 +297,7 @@ namespace AE::Base
 		NdCe__ static bool  Has_PrefixSum ()					{ return true; }
 		NdCe__ static bool  Has_PrefixMinMax ()					{ return true; }
 		NdCe__ static bool  Has_BitEqual ()						{ return false; }
-		NdCe__ static bool  Has_Swizzle ()						{ return true; }
+		NdCe__ static bool  Has_Swizzle ()						{ return AE_SIMD_AVX >= 2; }
 		NdCe__ static bool  Has_Shuffle ()						{ return true; }
 
 	  #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL) // SVML library
@@ -314,7 +314,7 @@ namespace AE::Base
 		template <typename DstType>	NdCe__ static bool  Has_Convert ();
 
 	private:
-		// different behaviour for Float4 & Double4, keep private
+		// different behavior for Float4 & Double4, keep private
 		ND_ Self	HAdd (const Self &rhs)						C_NE___	{ return Self{ _mm256_hadd_ps( _value, rhs._value )}; }		// { a0 + a1, b0 + b1, a4 + a5, b4 + b5, ... }
 		ND_ Self	HSub (const Self &rhs)						C_NE___	{ return Self{ _mm256_hsub_ps( _value, rhs._value )}; }		// { a0 - a1, b0 - b1, a4 - a5, b4 - b5, ... }
 		ND_ Self	AddSub (const Self &rhs)					C_NE___	{ return Self{ _mm256_addsub_ps( _value, rhs._value )}; }	// { a0 - b0, a1 + b1, a2 - b2, a3 + b3, ... }
@@ -331,7 +331,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 4;
-		static constexpr uint	lanes	= 2;
+		static constexpr uint	lanes	= 2;	// number of SSE vectors, cross lane operations may have additional cost
 
 		using Scalar_t		= double;
 		using Self			= SimdDouble4;
@@ -526,9 +526,9 @@ namespace AE::Base
 		ND_ friend Self  SelectF (const Self &x, const Self &y, const Self &ifTrue, const Self &ifFalse)__NE___	{ return Lerp( ifFalse, ifTrue, x.LessF(y) ); }
 
 
-		ND_ Self		Sum ()									C_NE___;
-		ND_ Self		Max ()									C_NE___;
-		ND_ Self		Min ()									C_NE___;
+		ND_ Self		Sum ()									C_NE___;	// vector with PrefixSum()
+		ND_ Self		Max ()									C_NE___;	// vector with PrefixMax()
+		ND_ Self		Min ()									C_NE___;	// vector with PrefixMin()
 
 		ND_ Scalar_t	PrefixSum ()							C_NE___;
 		ND_ Scalar_t	PrefixMax ()							C_NE___;
@@ -604,7 +604,7 @@ namespace AE::Base
 		NdCe__ static bool  Has_PrefixSum ()					{ return true; }
 		NdCe__ static bool  Has_PrefixMinMax ()					{ return true; }
 		NdCe__ static bool  Has_BitEqual ()						{ return false; }
-		NdCe__ static bool  Has_Swizzle ()						{ return true; }
+		NdCe__ static bool  Has_Swizzle ()						{ return AE_SIMD_AVX >= 2; }
 		NdCe__ static bool  Has_Shuffle ()						{ return true; }
 
 	  #if defined(AE_COMPILER_MSVC) and not defined(AE_COMPILER_CLANG_CL) // SVML library
@@ -621,7 +621,7 @@ namespace AE::Base
 		template <typename DstType>	NdCe__ static bool  Has_Convert ();
 
 	private:
-		// different behaviour for Float4 & Double4, keep private
+		// different behavior for Float4 & Double4, keep private
 		ND_ Self	HAdd (const Self &rhs)						C_NE___	{ return Self{ _mm256_hadd_pd( _value, rhs._value )}; }		// { a0 + a1, b0 + b1, a2 + a3, b2 + b3 }
 		ND_ Self	HSub (const Self &rhs)						C_NE___	{ return Self{ _mm256_hsub_pd( _value, rhs._value )}; }		// { a0 - a1, b0 - b1, a2 - a3, b2 - b3 }
 		ND_ Self	AddSub (const Self &rhs)					C_NE___	{ return Self{ _mm256_addsub_pd( _value, rhs._value )}; }	// { a0 - b0, a1 + b1, a2 - b2, a3 + b3 }
@@ -710,8 +710,8 @@ namespace AE::Base
 		using Signed_t		= SimdTInt256< ToSignedInteger< IntType >>;
 		using Unsigned_t	= SimdTInt256< ToUnsignedInteger< IntType >>;
 		using Shift64_t		= SimdTInt128< slong >;
-
-		static constexpr uint	lanes	= 2;
+		
+		static constexpr uint	lanes	= 2;	// number of SSE vectors, cross lane operations may have additional cost
 		static constexpr uint	count	= sizeof(Native_t) / sizeof(IntType);
 		using Array_t					= StaticArray< Scalar_t, count >;
 		StaticAssert( sizeof(Array_t) == sizeof(Native_t) );
@@ -904,10 +904,10 @@ namespace AE::Base
 		ND_ Bool_t	IsZero ()								C_NE___	{ return Equal( Self{} ); }
 		ND_ Bool_t	IsNotZero ()							C_NE___	{ return NotEqual( Self{} ); }
 
-		ND_ Self		Sum ()								C_NE___;
-		ND_ auto		SumExt ()							C_NE___;
-		ND_ Self		Max ()								C_NE___;
-		ND_ Self		Min ()								C_NE___;
+		ND_ Self		Sum ()								C_NE___;	// vector with PrefixSum()
+		ND_ auto		SumExt ()							C_NE___;	// vector with PrefixSumExt()
+		ND_ Self		Max ()								C_NE___;	// vector with PrefixMax()
+		ND_ Self		Min ()								C_NE___;	// vector with PrefixMin()
 
 		ND_ Scalar_t	PrefixSum ()						C_NE___;
 		ND_ auto		PrefixSumExt ()						C_NE___;

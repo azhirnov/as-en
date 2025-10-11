@@ -33,9 +33,9 @@ namespace AE::Base
 	// variables
 	private:
 		T const *	_data;
-		usize		_length;
-		T			_buffer [32];
-		bool		_isAllocated	= false;
+		uint		_length			: 31;
+		uint		_isAllocated	: 1;
+		T			_buffer [28];
 
 
 	// methods
@@ -50,11 +50,11 @@ namespace AE::Base
 		template <usize S> NtBasicStringView (const TFixedString<T,S> &str)	__NE___;
 		~NtBasicStringView ()												__NE___;
 
-		Self& operator = (Self &&)											= delete;
-		Self& operator = (const Self &)										= delete;
-		Self& operator = (BasicStringView<T>)								= delete;
+		Self&  operator = (Self &&)											= delete;
+		Self&  operator = (const Self &)									= delete;
+		Self&  operator = (BasicStringView<T>)								= delete;
 		template <typename A> Self& operator = (const BasicString<T,A> &)	= delete;
-		Self& operator = (const T*)											= delete;
+		Self&  operator = (const T*)										= delete;
 
 		ND_ explicit operator BasicStringView<T> ()							C_NE___	{ return BasicStringView<T>{ _data, _length }; }
 		ND_ explicit operator BasicString<T> ()								C_NE___	{ return BasicString<T>{ _data, _length }; }
@@ -68,7 +68,7 @@ namespace AE::Base
 			void  _Validate ()												__NE___;
 		ND_ bool  _IsStatic ()												C_NE___	{ return _data == &_buffer[0]; }
 
-		ND_ static usize  _CalcLength (const T* str)						__NE___;
+		ND_ static uint  _CalcLength (const T* str)							__NE___;
 	};
 
 
@@ -85,12 +85,12 @@ namespace AE::Base
 */
 	template <typename T>
 	NtBasicStringView<T>::NtBasicStringView () __NE___ :
-		_data{ _buffer }, _length{ 0 }, _buffer{ 0 }
+		_data{ _buffer }, _length{ 0 }, _isAllocated{ false }, _buffer{ 0 }
 	{}
 
 	template <typename T>
 	NtBasicStringView<T>::NtBasicStringView (BasicStringView<T> str) __NE___ :
-		_data{ str.data() }, _length{ str.size() }
+		_data{ str.data() }, _length{uint( str.size() )}, _isAllocated{ false }
 	{
 		_Validate();
 	}
@@ -98,14 +98,14 @@ namespace AE::Base
 	template <typename T>
 	template <typename A>
 	NtBasicStringView<T>::NtBasicStringView (const BasicString<T,A> &str) __NE___ :
-		_data{ str.data() }, _length{ str.size() }
+		_data{ str.data() }, _length{uint( str.size() )}, _isAllocated{ false }
 	{
 		_Validate();
 	}
 
 	template <typename T>
 	NtBasicStringView<T>::NtBasicStringView (const Self &other) __NE___ :
-		_data{ other._data }, _length{ other._length }
+		_data{ other._data }, _length{ other._length }, _isAllocated{ false }
 	{
 		if ( other._IsStatic() )
 		{
@@ -130,14 +130,14 @@ namespace AE::Base
 
 	template <typename T>
 	NtBasicStringView<T>::NtBasicStringView (const T* str) __NE___ :
-		_data{ str }, _length{_CalcLength( str )}
+		_data{ str }, _length{_CalcLength( str )}, _isAllocated{ false }
 	{
 		_Validate();
 	}
 
 	template <typename T>
 	NtBasicStringView<T>::NtBasicStringView (const T* str, usize length) __NE___ :
-		_data{ str }, _length{ length }
+		_data{ str }, _length{uint( length )}, _isAllocated{ false }
 	{
 		_Validate();
 	}
@@ -145,7 +145,7 @@ namespace AE::Base
 	template <typename T>
 	template <usize S>
 	NtBasicStringView<T>::NtBasicStringView (const TFixedString<T,S> &str) __NE___ :
-		_data{ str.c_str() }, _length{ str.length() }	// always non-null
+		_data{ str.c_str() }, _length{uint( str.length() )}, _isAllocated{ false }	// always non-null
 	{}
 
 /*
@@ -201,16 +201,16 @@ namespace AE::Base
 	_CalcLength
 =================================================
 */	template <typename T>
-	usize  NtBasicStringView<T>::_CalcLength (const T* str) __NE___
+	uint  NtBasicStringView<T>::_CalcLength (const T* str) __NE___
 	{
 		if_unlikely( str == null )
 			return 0;
 
 		// TODO
 		if constexpr( IsSame< T, wchar_t >)
-			return std::wcslen( str );
+			return uint(std::wcslen( str ));
 		else
-			return std::strlen( str );
+			return uint(std::strlen( str ));
 	}
 
 

@@ -126,12 +126,12 @@ namespace
 
 	ND_ static bool  BuildIndirectSupported ()				__NE___	{ return _GetFeatureSet().accelerationStructureIndirectBuild == True; }
 
-	ND_ inline bool  MultiViewportSupported ()				__NE___	{ return _GetFeatureSet().multiViewport == True; }
+	ND_ static bool		MultiViewportSupported ()			__NE___	{ return _GetFeatureSet().multiViewport == True; }
 	ND_ static bool  DepthBiasClampSupported ()				__NE___	{ return _GetFeatureSet().depthBiasClamp == True; }
 	ND_ static bool  DepthBoundsSupported ()				__NE___	{ return _GetFeatureSet().depthBounds == True; }
 
 	ND_ static bool  MeshShaderSupported ()					__NE___	{ return _GetFeatureSet().meshShader == True; }
-	ND_ inline bool  TileShaderSupported ()					__NE___	{ return _GetFeatureSet().tileShader == True; }
+	ND_ static bool  TileShaderSupported ()					__NE___	{ return _GetFeatureSet().tileShader == True; }
 
 	ND_ static bool  FragmentShadingRateSupported ()		__NE___
 	{

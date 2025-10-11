@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	API for Adreno GPU hardware performance counters.
-
-	[Performance counters description](https://github.com/azhirnov/as-en/blob/dev/AE/docs/_cpu-gpu-arch/gpu/Adreno_PC.md)
+	
+	[Performance counters description](https://github.com/azhirnov/cpu-gpu-arch/blob/main/gpu/Adreno_PC.md)
 */
 
 #pragma once

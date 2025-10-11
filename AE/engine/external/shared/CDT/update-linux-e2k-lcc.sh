@@ -6,7 +6,7 @@ mkdir "build"
 export PATH=$PATH:/opt/mcst/lcc-1.27.21.e2k-v6.5.10-e2c3/bin/
 export CC=lcc
 export CXX=l++
-git clone --branch "1.4.1" "../../../../../3party/CDT" "temp"
+git clone --branch "1.4.4" "../../../../../3party/CDT" "temp"
 cp "temp/CDT/CMakeLists.txt" "temp/CDT/origin_CMakeLists.txt"
 cp "CDT_CMakeLists.txt" "temp/CDT/CMakeLists.txt"
 cmake -S temp/CDT -B build -G "Unix Makefiles" -DAE_ENABLE_COMPILER_WARNINGS=OFF -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="../../../../../AE-Bin/external/linux-e2k-lcc9/CDT" 

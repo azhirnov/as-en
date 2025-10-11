@@ -12,6 +12,8 @@
 
 namespace AE::Graphics
 {
+
+#ifdef AE_PLATFORM_APPLE
 namespace
 {
 /*
@@ -121,7 +123,9 @@ namespace
 			return;
 		}
 	}
-}
+
+} // namespace
+#endif // AE_PLATFORM_APPLE
 //-----------------------------------------------------------------------------
 
 
@@ -348,17 +352,17 @@ namespace
 			{
 				const auto&	props = vk_props.shaderSMBuiltinsNVProps;
 				shaderHW.cores						= props.shaderSMCount;
-				shaderHW.warpsPerCore				= 2;
+				shaderHW.warpsPerCore				= 2;	// TODO: turing - 2, Ampere+ - 4
 				shaderHW.threadsPerWarp				= vk_ext.subgroup ? vk_props.subgroupProperties.subgroupSize : 32;
 				shaderHW.maxConcurrentWarpsPerCore	= props.shaderWarpsPerSM;
-
-				//shadingUnits = shaderSMCount * shaderWarpsPerSM * 2	// from specs
 			}
 			else
 			// Apple
 			if ( vk_props.properties.vendorID == 0x0106B )
 			{
+			#ifdef AE_PLATFORM_APPLE
 				InitAppleShaderHWProperties( OUT shaderHW, vk_props.properties.deviceName );
+			#endif
 			}
 		}
 
@@ -564,6 +568,7 @@ namespace
 					<< "\n    totalThreads:  . . . . . . . . . . " << ToString( shaderHW.TotalThreads() )
 					<< "\n    max concurrent warps per core:     " << ToString( shaderHW.maxConcurrentWarpsPerCore )
 					<< "\n    max concurrent threads:  . . . . . " << ToString( shaderHW.MaxConcurrentThreads() )
+					<< "\n    FLOPS per 1GHz:                    " << ToStringSfx( double(shaderHW.TotalThreads()) * 2.0e+9 )
 					<< "\n  ----";
 			}
 
@@ -571,14 +576,14 @@ namespace
 			{
 				StaticAssert( sizeof(compute) == 52 );
 				str << "\n  ComputeProperties:"
-					<< "\n    computeGroupCount: . . . . . . . . (" << ToString( compute.computeGroupCount[0] ) << ", " << ToString( compute.computeGroupCount[1] ) << ", " << ToString( compute.computeGroupCount[2] ) << ")";
+					<< "\n    computeGroupCount: . . . . . . . . . . (" << ToString( compute.computeGroupCount[0] ) << ", " << ToString( compute.computeGroupCount[1] ) << ", " << ToString( compute.computeGroupCount[2] ) << ")";
 
 				if ( compute.taskTotalGroups > 0 )
 				{
-					str << "\n    taskTotalGroups:                   " << ToString( compute.taskTotalGroups )
-						<< "\n    taskGroupCount:  . . . . . . . . . (" << ToString( compute.taskGroupCount[0] ) << ", " << ToString( compute.taskGroupCount[1] ) << ", " << ToString( compute.taskGroupCount[2] ) << ")"
-						<< "\n    meshTotalGroups:                   " << ToString( compute.meshTotalGroups )
-						<< "\n    meshGroupCount:  . . . . . . . . . (" << ToString( compute.meshGroupCount[0] ) << ", " << ToString( compute.meshGroupCount[1] ) << ", " << ToString( compute.meshGroupCount[2] ) << ")"
+					str << "\n    taskTotalGroups:                       " << ToString( compute.taskTotalGroups )
+						<< "\n    taskGroupCount:  . . . . . . . . . . . (" << ToString( compute.taskGroupCount[0] ) << ", " << ToString( compute.taskGroupCount[1] ) << ", " << ToString( compute.taskGroupCount[2] ) << ")"
+						<< "\n    meshTotalGroups:                       " << ToString( compute.meshTotalGroups )
+						<< "\n    meshGroupCount:  . . . . . . . . . . . (" << ToString( compute.meshGroupCount[0] ) << ", " << ToString( compute.meshGroupCount[1] ) << ", " << ToString( compute.meshGroupCount[2] ) << ")"
 						<< "\n    prefersLocalInvocationVertexOutput:    " << ToString( compute.prefersLocalInvocationVertexOutput )
 						<< "\n    prefersLocalInvocationPrimitiveOutput: " << ToString( compute.prefersLocalInvocationPrimitiveOutput )
 						<< "\n    prefersCompactVertexOutput:            " << ToString( compute.prefersCompactVertexOutput )

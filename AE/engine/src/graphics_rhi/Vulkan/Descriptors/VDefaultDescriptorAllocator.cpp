@@ -274,7 +274,6 @@ namespace
 
 				case EDescriptorType::CombinedImage_ImmutableSampler :
 				case EDescriptorType::ImmutableSampler :
-				case EDescriptorType::_Count :
 				case EDescriptorType::Unknown :		break;
 			}
 			switch_end

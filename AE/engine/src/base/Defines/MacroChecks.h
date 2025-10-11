@@ -19,7 +19,9 @@
 #   error concepts are not supported by compiler
 #endif
 #ifndef __cpp_consteval
+# ifdef AE_COMPILER_MSVC
 #   error consteval is not supported by compiler
+# endif
 #endif
 #ifndef __cpp_lib_is_constant_evaluated
 #   error is_constant_evaluated is not supported by compiler
@@ -52,7 +54,9 @@
 #	error deduction guides are not supported by compiler
 #endif
 #ifndef __cpp_lib_bitops
+# ifdef AE_COMPILER_MSVC
 #	error bitops are not supported by compiler
+# endif
 #endif
 
 #if defined(AE_CFG_DEBUG)

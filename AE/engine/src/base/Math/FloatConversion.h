@@ -236,7 +236,7 @@ namespace AE::Base
 		__Cx__ SFloat16 (const Self &other)					__NE___	= default;
 		__Cx__ explicit SFloat16 (float f)					__NE___ { Set( f ); }
 	  #if AE_SIMD_NEON_HALF
-		__Cx__ explicit SFloat16 (float16_t f)				__NE___ : _bits{ BitCast<Bits>( f )} {}
+		//__Cx__ explicit SFloat16 (float16_t f)			__NE___ : _bits{ BitCast<Bits>( f )} {}
 	  #endif
 
 		__Cx__ Self&		operator =  (const Self &rhs)	__NE___	= default;

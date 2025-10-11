@@ -1,10 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Defines/StdInclude.h"
-
 #ifdef AE_PLATFORM_ANDROID
-# include "platform/Android/WindowAndroid.h"
 # include "platform/Android/ApplicationAndroid.h"
+# include "platform/Android/WindowAndroid.h"
 
 namespace AE::App
 {
@@ -57,32 +55,34 @@ namespace {
 	_GetAppWindow
 =================================================
 */
-	SharedPtr<WindowAndroid>  ApplicationAndroid::_GetAppWindow (WinID id) __NE___
+	SharedPtr<WindowAndroid>  ApplicationAndroid::_GetAppWindow (const WinID wndId) __NE___
 	{
 		auto*	app = _GetAppInstance();
 		NonNull( app );
 		DRC_EXLOCK( app->_drCheck );
 
-		for (auto& obj_wnd : app->_windows)
+		ASSERT( app->_windows.size() == app->_andWindows.size() );
+
+		for (auto& [id, wnd] : app->_andWindows)
 		{
-			if_likely( obj_wnd.first == id )
-				return obj_wnd.second;
+			if_likely( wndId == id )
+				return wnd;
 		}
 		return null;
 	}
 /*
 =================================================
-	_GetNewWindow
+	_NewWindow
 =================================================
 */
-	Pair< SharedPtr<WindowAndroid>, ApplicationAndroid::WinID >  ApplicationAndroid::_GetNewWindow () __NE___
+	Pair< SharedPtr<WindowAndroid>, ApplicationAndroid::WinID >  ApplicationAndroid::_NewWindow () __NE___
 	{
 		auto*	app = _GetAppInstance();
 		NonNull( app );
 		DRC_EXLOCK( app->_drCheck );
 
 		auto	wnd = MakeShared<WindowAndroid>();	// throw
-		return { wnd, app->_AddWindow( wnd )};
+		return { wnd, app->_AddAndroidWindow( wnd )};
 	}
 
 /*
@@ -103,7 +103,7 @@ namespace {
 =================================================
 */
 	WindowAndroid::WindowAndroid () __NE___ :
-		WindowBase{ *ApplicationAndroid::_GetAppInstance() }
+		WindowBaseWithSurface{ *ApplicationAndroid::_GetAppInstance() }
 	{}
 
 /*
@@ -151,7 +151,7 @@ namespace {
 	{
 		DRC_EXLOCK( _app.GetSingleThreadCheck() );
 
-		return _app.GetMonitors( false )[0];
+		return _app.GetMonitors( false ).front();
 	}
 
 /*
@@ -165,6 +165,7 @@ namespace {
 
 		NativeWindow	result;
 		result.nativeWindow	= _java.nativeWindow;
+		result.activity		= _java.activity.Get();
 		return result;
 	}
 
@@ -173,7 +174,7 @@ namespace {
 	_Init
 =================================================
 */
-	void  WindowAndroid::_Init (Unique<IWndListener> listener, IInputActions* dstActions) __NE___
+	void  WindowAndroid::_Init (Unique<IWndListener> listener, const WindowDesc &desc, IInputActions* dstActions) __NE___
 	{
 		CHECK_ERRV( not _listener );
 		CHECK_ERRV( listener );
@@ -257,24 +258,25 @@ namespace {
 */
 	WindowAndroid::WinID JNICALL  WindowAndroid::native_OnCreate (JNIEnv* env, jclass, jobject jwnd) __NE___
 	{
-		auto [window, id] = ApplicationAndroid::_GetNewWindow();
+		auto [window, id] = ApplicationAndroid::_NewWindow();
 
 		DRC_EXLOCK( window->_drCheck );
 
 		JavaEnv	je{ env };
 
-		window->_java.window = JavaObj{ jwnd, je };
+		window->_java.activity = JavaObj{ jwnd, je };
 
 		InputActionsAndroid::EnableSensorsFn_t	enable_sensors;
 
-		CHECK( window->_java.window.Method( "Close",				OUT window->_methods.close ));
-		CHECK( window->_java.window.Method( "EnableSensors",		OUT enable_sensors ));
-		CHECK( window->_java.window.Method( "SetWindowBrightness",	OUT window->_methods.setWndBrightness ));
-		CHECK( window->_java.window.Method( "SetHDRMode",			OUT window->_methods.setHDR ));
+		CHECK( window->_java.activity.Method( "Close",					OUT window->_methods.close ));
+		CHECK( window->_java.activity.Method( "EnableSensors",			OUT enable_sensors ));
+		CHECK( window->_java.activity.Method( "SetWindowBrightness",	OUT window->_methods.setWndBrightness ));
+		CHECK( window->_java.activity.Method( "SetHDRMode",				OUT window->_methods.setHDR ));
 
 		window->_SetState( EState::Created );
 		window->_input.Initialize( RVRef(enable_sensors) );
 
+		ASSERT_Eq( window.use_count(), 2 );
 		return id;
 	}
 
@@ -291,7 +293,7 @@ namespace {
 
 			window->_SetState( EState::Destroyed );
 
-			window->_java.window		= Default;
+			window->_java.activity		= Default;
 			window->_java.nativeWindow	= null;
 
 			window->_methods.close		= Default;

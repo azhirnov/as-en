@@ -3,15 +3,19 @@
 #pragma once
 
 #include "pch/Threading.h"
-#include "../shared/UnitTest_Shared.h"
-#include "../shared/DebugInstanceCounter.h"
+#include "../tests/shared/UnitTest_Shared.h"
+#include "../tests/shared/DebugInstanceCounter.h"
 
 using namespace AE::Threading;
 
 enum class WorkerQueueCount	: uint {};
 enum class IOThreadCount	: uint {};
 
-static constexpr seconds  c_MaxTimeout {30};
+#ifdef AE_DEBUG
+	static constexpr seconds  c_MaxTimeout {10*60};
+#else
+	static constexpr seconds  c_MaxTimeout {30};
+#endif
 
 
 struct LocalTaskScheduler

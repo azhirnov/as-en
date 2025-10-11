@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "platform/Public/IApplication.h"
+#include "platform/Public/Application.h"
 #include "platform/Private/InputActionsBase.h"
 
 namespace AE::App

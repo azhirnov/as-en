@@ -4,6 +4,7 @@
 # include "graphics_rhi/Vulkan/Resources/VMeshPipeline.h"
 # include "graphics_rhi/Vulkan/VResourceManager.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 # include "VPipelineHelper.cpp.h"
 
 namespace AE::Graphics
@@ -88,7 +89,7 @@ namespace AE::Graphics
 		VkPipelineViewportWScalingStateCreateInfoNV	w_scaling			= {};
 		VkPipelineRobustnessCreateInfoEXT			robustness_ci;
 		//VkPipelineCreateFlags2CreateInfoKHR		flags_ci;
-		void const**								p_next				= &pipeline_info.pNext;
+		VNextChain									p_next				{pipeline_info};
 		VTempLinearAllocator						allocator;
 
 		input_assembly_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -216,22 +217,17 @@ namespace AE::Graphics
 
 		if ( ext.pipelineRobustness )
 		{
-			*p_next	= &robustness_ci;
-			p_next	= &robustness_ci.pNext;
+			p_next.Add( robustness_ci );
 			SetRobustness( OUT robustness_ci );
 		}
 
 		/*if ( ext.maintenance5 )
 		{
-			*p_next	= &flags_ci;
-			p_next	= &flags_ci.pNext;
+			p_next.Add( flags_ci );
 
 			flags_ci.sType	= VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
-			flags_ci.pNext	= null;
 			flags_ci.flags	= 0;	// TODO
 		}*/
-
-		p_next = null;
 
 		VK_CHECK_ERR( CreateGraphicsPipelines( dev, ppln_cache, 1, &pipeline_info, null, OUT &_handle ));
 

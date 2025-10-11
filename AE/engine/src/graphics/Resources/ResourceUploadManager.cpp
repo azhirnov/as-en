@@ -360,6 +360,8 @@ namespace {
 		CHECK_ERR( not _deps.IsFull() );	// check for overflow
 
 		_deps.emplace_back( task.GetRC() ).SetExtra( uint{isStrong} );
+
+		TaskApi::IncWaitCounter( task );
 		return true;
 	}
 

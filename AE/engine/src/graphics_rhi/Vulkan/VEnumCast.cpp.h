@@ -93,6 +93,8 @@ namespace AE::Graphics
 		// ignore PostRasterizationShaders
 		sh_stages |= AnyBits( value, EResourceState::ComputeShader )			? VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT		: 0;
 		sh_stages |= AnyBits( value, EResourceState::RayTracingShaders )		? VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR: 0;
+		sh_stages |= AnyBits( value, EResourceState::CoopVecConvertStage )		? VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV: 0;
+		StaticAssert( uint(EResourceState::AllStages) == 0x3F8000 );
 
 		ds_stages |= AnyBits( value, EResourceState::DSTestBeforeFS )			? VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT	: 0;
 		ds_stages |= AnyBits( value, EResourceState::DSTestAfterFS )			? VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT	: 0;

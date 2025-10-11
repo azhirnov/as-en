@@ -22,7 +22,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 2, 3 });
+			desc.SetDimension( 2, 3 );
 
 			TEST( desc.imageDim == EImageDim_2D );
 			TEST( All( desc.dimension == ImageDim_t{2, 3, 1} ));
@@ -35,7 +35,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 2, 3, 4 });
+			desc.SetDimension( 2, 3, 4 );
 
 			TEST( desc.imageDim == EImageDim_3D );
 			TEST( All( desc.dimension == ImageDim_t{2, 3, 4} ));
@@ -69,7 +69,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 8, 8 });
+			desc.SetDimension( 8, 8 );
 			desc.SetArrayLayers( 4 );
 
 			TEST( desc.imageDim == EImageDim_2D );
@@ -87,7 +87,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 8, 8 });
+			desc.SetDimension( 8, 8 );
 			desc.SetArrayLayers( 4 );
 			desc.SetMaxMipmaps( 16 );
 
@@ -106,7 +106,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 8, 8 });
+			desc.SetDimension( 8, 8 );
 			desc.SetArrayLayers( 4 );
 			desc.SetSamples( 8 );
 
@@ -191,7 +191,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 32, 32 });
+			desc.SetDimension( 32, 32 );
 			desc.SetArrayLayers( 6 );
 			desc.Validate();
 
@@ -209,7 +209,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 32, 32 });
+			desc.SetDimension( 32, 32 );
 			desc.SetArrayLayers( 6 );
 			desc.SetOptions( EImageOpt::CubeCompatible );
 			desc.Validate();
@@ -228,7 +228,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 32, 32 });
+			desc.SetDimension( 32, 32 );
 			desc.SetArrayLayers( 6 );
 			desc.SetOptions( EImageOpt::CubeCompatible );
 			desc.Validate();
@@ -248,7 +248,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 32, 32, 32 });
+			desc.SetDimension( 32, 32, 32 );
 			desc.SetOptions( EImageOpt::Array2DCompatible );
 			desc.Validate();
 
@@ -265,7 +265,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 32, 32, 32 });
+			desc.SetDimension( 32, 32, 32 );
 			desc.SetOptions( EImageOpt::Array2DCompatible );
 			desc.Validate();
 
@@ -282,7 +282,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format = EPixelFormat::RGBA8_UNorm;
-			desc.SetDimension({ 32, 32, 32 });
+			desc.SetDimension( 32, 32, 32 );
 			desc.SetOptions( EImageOpt::Array2DCompatible );
 			desc.Validate();
 

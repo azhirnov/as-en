@@ -124,7 +124,7 @@ namespace AE::Samples::Demo
 		#endif
 
 		RC<RStream>		stream;
-		CHECK_ERR( GetVFS().Open( OUT stream, VFS::FileName{"Timewarp.mp3"} ));
+		CHECK_ERR( GetVFS().Open( OUT stream, VFS::FileName{"Sonic Revolution.mp3"} ));
 
 		RC<IAudioData>	sound_data = AudioSystem().CreateData( stream, ESoundFlags::Enable3D );
 		CHECK_ERR( sound_data );
@@ -222,7 +222,7 @@ namespace AE::Samples::Demo
 		auto	surf_acquire = rg.BeginOnSurface( batch, deps );
 		CHECK_ERR( surf_acquire );
 
-		return batch->Run( _DrawTask( GetRC<AudioSample>(), rg.GetSurfaceArg() ), Tuple{surf_acquire}, True{"Last"}, Default );
+		return batch->Run( _DrawTask( GetRC<AudioSample>(), rg.GetSurface() ), Tuple{surf_acquire}, True{"Last"}, Default );
 	}
 
 

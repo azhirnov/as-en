@@ -2,7 +2,7 @@
 
 #include "Perf_Common.h"
 
-extern void Per_Hierarchy ();
+extern void Perf_Hierarchy ();
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -14,7 +14,7 @@ int main (const int argc, char* argv[])
   #if 1 //def AE_RELEASE
 	BEGIN_TEST();
 
-	Per_Hierarchy();
+	Perf_Hierarchy();
 
 	AE_LOGI( "PerformanceTests.ECS finished" );
 

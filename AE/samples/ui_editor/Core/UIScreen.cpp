@@ -21,6 +21,7 @@ namespace AE::UIEditor
 
 		IOutputSurface::RenderTargets_t		targets;
 		CHECK_CE( surface.GetTargets( OUT targets ));
+		CHECK_Eq( targets.size(), 1 );
 
 		auto&	rt		= targets[0];
 		auto&	screen	= *self->_screen;

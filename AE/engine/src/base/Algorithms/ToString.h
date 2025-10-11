@@ -20,8 +20,6 @@
 # include "base/Utils/Version.h"
 # include "base/Utils/EnumSet.h"
 
-# include "base/FileSystem/Path.h"
-
 namespace AE::Base
 {
 
@@ -30,18 +28,23 @@ namespace AE::Base
 	ToString
 =================================================
 */
-	ND_ inline String  ToString (String value) __Th___
+	Nd__In String  ToString (String value) __Th___
 	{
 		return RVRef(value);
 	}
+	
+	Nd__In String  ToString (StringView value) __Th___
+	{
+		return String{value};
+	}
 
 	template <usize C>
-	ND_ inline String  ToString (const char (&value)[C]) __Th___
+	Nd__In String  ToString (const char (&value)[C]) __Th___
 	{
 		return String{value, C-1};
 	}
 	
-	ND_ inline String  ToString (const char* value) __Th___
+	Nd__In String  ToString (const char* value) __Th___
 	{
 		if ( value != null )
 			return String{value};
@@ -55,7 +58,7 @@ namespace AE::Base
 		return std::to_string( value );
 	}
 
-	ND_ inline StringView  ToString (const bool value) __Th___
+	Nd__In StringView  ToString (const bool value) __Th___
 	{
 		return value ? "true" : "false";
 	}
@@ -95,7 +98,7 @@ namespace AE::Base
 namespace _hidden_
 {
 	template <typename T>
-	ND_ inline bool  ShouldAddExponent (T value) __NE___
+	Nd__In bool  ShouldAddExponent (T value) __NE___
 	{
 		if constexpr( sizeof(T) >= sizeof(float) )
 		{
@@ -114,7 +117,7 @@ namespace _hidden_
 	}
 }
 
-	ND_ inline String  ToString (const double value, uint fractParts, Bool exponent = False{}) __Th___
+	Nd__In String  ToString (const double value, uint fractParts, Bool exponent = False{}) __Th___
 	{
 		ASSERT( (fractParts > 0) and (fractParts < 100) );
 		fractParts = Clamp( fractParts, 1u, 99u );
@@ -128,38 +131,38 @@ namespace _hidden_
 		return buf;
 	}
 
-	ND_ inline String  ToString (const double value) __Th___
+	Nd__In String  ToString (const double value) __Th___
 	{
 		return ToString( value, 2, Bool{_hidden_::ShouldAddExponent(value)} );
 	}
 
-	ND_ inline String  ToString (const float value, const uint fractParts, Bool exponent = False{}) __Th___
+	Nd__In String  ToString (const float value, const uint fractParts, Bool exponent = False{}) __Th___
 	{
 		return ToString( double(value), fractParts, exponent );
 	}
 
-	ND_ inline String  ToString (const float value) __Th___
+	Nd__In String  ToString (const float value) __Th___
 	{
 		return ToString( double(value), 2, Bool{_hidden_::ShouldAddExponent(value)} );
 	}
 
-	ND_ inline String  ToString (const half value, const uint fractParts, Bool exponent = False{}) __Th___
+	Nd__In String  ToString (const half value, const uint fractParts, Bool exponent = False{}) __Th___
 	{
 		return ToString( double(value), fractParts, exponent );
 	}
 
-	ND_ inline String  ToString (const half value) __Th___
+	Nd__In String  ToString (const half value) __Th___
 	{
 		return ToString( double(value), 2, Bool{_hidden_::ShouldAddExponent(value)} );
 	}
 
   #if AE_SIMD_NEON_HALF
-	ND_ inline String  ToString (const float16_t value, const uint fractParts, Bool exponent = False{}) __Th___
+	Nd__In String  ToString (const float16_t value, const uint fractParts, Bool exponent = False{}) __Th___
 	{
 		return ToString( double(value), fractParts, exponent );
 	}
 
-	ND_ inline String  ToString (const float16_t value) __Th___
+	Nd__In String  ToString (const float16_t value) __Th___
 	{
 		return ToString( double(value), 2, Bool{_hidden_::ShouldAddExponent(value)} );
 	}
@@ -233,7 +236,7 @@ namespace _hidden_
 	ToString (VecSwizzle)
 =================================================
 */
-	ND_ inline String  ToString (const VecSwizzle &value) __Th___
+	Nd__In String  ToString (const VecSwizzle &value) __Th___
 	{
 		auto		sw			= value.ToVec();
 		const char	symbols []	= "0XYZW0+-";
@@ -356,7 +359,7 @@ namespace _hidden_
 	ToString (Path)
 =================================================
 */
-	ND_ inline String  ToString (const Path &path) __Th___
+	Nd__In String  ToString (const Path &path) __Th___
 	{
 		String	str = ToAnsiString<char>( path.lexically_normal().native() );
 		FindAndReplace( INOUT str, '\\', '/' );
@@ -368,17 +371,17 @@ namespace _hidden_
 	ToString (U8String)
 =================================================
 */
-	ND_ inline String  ToString (const U8String &str) __Th___
+	Nd__In String  ToString (const U8String &str) __Th___
 	{
 		return ToAnsiString<char>( str );
 	}
 
-	ND_ inline String  ToString (const U8StringView &str) __Th___
+	Nd__In String  ToString (const U8StringView &str) __Th___
 	{
 		return ToAnsiString<char>( str );
 	}
 
-	ND_ inline String  ToString (const CharUtf8* str) __Th___
+	Nd__In String  ToString (const CharUtf8* str) __Th___
 	{
 		return ToAnsiString<char>( U8StringView{str} );
 	}
@@ -388,17 +391,17 @@ namespace _hidden_
 	ToString (WString)
 =================================================
 */
-	ND_ inline String  ToString (const WString &str) __Th___
+	Nd__In String  ToString (const WString &str) __Th___
 	{
 		return ToAnsiString<char>( str );
 	}
 
-	ND_ inline String  ToString (const WStringView &str) __Th___
+	Nd__In String  ToString (const WStringView &str) __Th___
 	{
 		return ToAnsiString<char>( str );
 	}
 
-	ND_ inline String  ToString (const wchar_t* str) __Th___
+	Nd__In String  ToString (const wchar_t* str) __Th___
 	{
 		return ToAnsiString<char>( WStringView{str} );
 	}
@@ -747,7 +750,7 @@ namespace _hidden_
 namespace _hidden_
 {
 	template <typename T>
-	ND_ inline String  SimdIntToString (const T &v) __Th___
+	Nd__In String  SimdIntToString (const T &v) __Th___
 	{
 		auto	arr = v.ToArray();
 		String	str = "{";
@@ -758,7 +761,7 @@ namespace _hidden_
 	}
 
 	template <typename T>
-	ND_ inline String  SimdFloatToString (const T &v, uint fractParts) __Th___
+	Nd__In String  SimdFloatToString (const T &v, uint fractParts) __Th___
 	{
 		auto	arr = v.ToArray();
 		String	str = "{";
@@ -770,19 +773,19 @@ namespace _hidden_
 }
 
 #ifdef AE_SIMD_SimdFloat4
-	ND_ inline String  ToString (const SimdFloat4 &v, uint fractParts = 2)	__Th___ { return Base::_hidden_::SimdFloatToString( v, fractParts ); }
+	Nd__In String  ToString (const SimdFloat4 &v, uint fractParts = 2)	__Th___ { return Base::_hidden_::SimdFloatToString( v, fractParts ); }
 #endif
 #ifdef AE_SIMD_SimdDouble2
-	ND_ inline String  ToString (const SimdDouble2 &v, uint fractParts = 2)	__Th___ { return Base::_hidden_::SimdFloatToString( v, fractParts ); }
+	Nd__In String  ToString (const SimdDouble2 &v, uint fractParts = 2)	__Th___ { return Base::_hidden_::SimdFloatToString( v, fractParts ); }
 #endif
 #ifdef AE_SIMD_SimdTInt128
 	template <typename T> ND_ String  ToString (const SimdTInt128<T> &v)	__Th___ { return Base::_hidden_::SimdIntToString( v ); }
 #endif
 #ifdef AE_SIMD_SimdFloat8
-	ND_ inline String  ToString (const SimdFloat8 &v, uint fractParts = 2)	__Th___ { return Base::_hidden_::SimdFloatToString( v, fractParts ); }
+	Nd__In String  ToString (const SimdFloat8 &v, uint fractParts = 2)	__Th___ { return Base::_hidden_::SimdFloatToString( v, fractParts ); }
 #endif
 #ifdef AE_SIMD_SimdDouble4
-	ND_ inline String  ToString (const SimdDouble4 &v, uint fractParts = 2)	__Th___ { return Base::_hidden_::SimdFloatToString( v, fractParts ); }
+	Nd__In String  ToString (const SimdDouble4 &v, uint fractParts = 2)	__Th___ { return Base::_hidden_::SimdFloatToString( v, fractParts ); }
 #endif
 #ifdef AE_SIMD_SimdTInt256
 	template <typename T> ND_ String  ToString (const SimdTInt256<T> &v)	__Th___ { return Base::_hidden_::SimdIntToString( v ); }
@@ -865,7 +868,7 @@ namespace _hidden_
 	from back to front
 =================================================
 */
-	ND_ inline String  DivStringBySteps (StringView inStr, const usize stepSize = 3, const char spaceChar = '\'') __Th___
+	Nd__In String  DivStringBySteps (StringView inStr, const usize stepSize = 3, const char spaceChar = '\'') __Th___
 	{
 		String	str;	str.resize( inStr.size() + ((inStr.size()-1) / stepSize) );  // throw
 
@@ -893,7 +896,7 @@ namespace _hidden_
 	ToString_HMS (time units)
 =================================================
 */
-	ND_ inline String  ToString_HMS (const double sec) __Th___
+	Nd__In String  ToString_HMS (const double sec) __Th___
 	{
 		return	ToString( uint(Floor( sec / 3600.0 )) ) << ':' <<
 				FormatAlignedI<10>( uint(Floor( sec / 60.0 )) % 60, 2, '0' ) << ':' <<

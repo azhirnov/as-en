@@ -54,6 +54,7 @@
 #include <condition_variable>
 
 #include <charconv>
+#include <filesystem>
 
 // C++20
 #include <bit>
@@ -79,6 +80,7 @@
 
 # include <intrin.h>
 
+// TODO: enable intrinsics in compiler
 # pragma intrinsic( _BitScanForward, _BitScanReverse )
 # pragma intrinsic( __popcnt16, __popcnt )
 # if AE_PLATFORM_BITS == 64

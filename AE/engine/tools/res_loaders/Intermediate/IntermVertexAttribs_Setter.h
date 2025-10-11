@@ -24,6 +24,8 @@ namespace AE::ResLoader
 
 		Setter&  AddBuffer (Bytes stride, EVertexInputRate rate = EVertexInputRate::Vertex);
 		Setter&  AddBuffer (const Name_t &bufferId, Bytes stride, EVertexInputRate rate = EVertexInputRate::Vertex);
+		
+		Setter&  AddVertex (const Name_t &id, EVertexType type, Bytes offset, BufferIndex bufferIdx);
 
 		// add vertex to last buffer
 		Setter&  AddVertex (const Name_t &id, EVertexType type, Bytes offset);
@@ -57,7 +59,7 @@ namespace AE::ResLoader
 	AddVertex
 =================================================
 */
-	inline IntermVertexAttribs::Setter&  IntermVertexAttribs::Setter::AddVertex (const Name_t &id, EVertexType type, Bytes offset)
+	inline IntermVertexAttribs::Setter&  IntermVertexAttribs::Setter::AddVertex (const Name_t &id, EVertexType type, Bytes offset, BufferIndex bufferIdx)
 	{
 		ASSERT( not _self._vertices.contains( id ));
 
@@ -65,9 +67,14 @@ namespace AE::ResLoader
 		dst.type			= type;
 		dst.index			= uint(_self._vertices.size()-1);
 		dst.offset			= offset;
-		dst.bufferBinding	= BufferIndex(_self._bindings.size()-1);
+		dst.bufferBinding	= bufferIdx;
 
 		return *this;
+	}
+
+	inline IntermVertexAttribs::Setter&  IntermVertexAttribs::Setter::AddVertex (const Name_t &id, EVertexType type, Bytes offset)
+	{
+		return AddVertex( id, type, offset, BufferIndex(_self._bindings.size()-1) );
 	}
 
 

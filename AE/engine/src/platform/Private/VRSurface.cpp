@@ -30,7 +30,7 @@ namespace AE::App
 */
 	bool  VRSurface::Create (const VRImageDesc &desc) __NE___
 	{
-		CHECK_ERR( desc.format != Default );
+		CHECK_ERR( desc.colorFormat != Default );
 
 		EXLOCK( _guard );
 
@@ -45,7 +45,7 @@ namespace AE::App
 		img_desc.usage			= desc.usage;
 		img_desc.options		= desc.options;
 		img_desc.samples		= desc.samples;
-		img_desc.format			= desc.format;
+		img_desc.format			= desc.colorFormat;
 
 		view_desc.viewType		= EImage_2D;
 		view_desc.aspectMask	= EImageAspect::Color;
@@ -106,7 +106,7 @@ namespace AE::App
 	IOutputSurface::RenderPassInfo  VRSurface::GetRenderPassInfo () C_NE___
 	{
 		RenderPassInfo::Attachment	att;
-		att.format		= _desc.format;
+		att.format		= _desc.colorFormat;
 		att.samples		= _desc.samples;
 
 		RenderPassInfo	result;
@@ -138,7 +138,7 @@ namespace AE::App
 			dst.pixToMm			= 1.0f;
 			dst.initialState	= EResourceState::ColorAttachment;
 			dst.finalState		= EResourceState::ColorAttachment;
-			dst.format			= _desc.format;
+			dst.format			= _desc.colorFormat;
 			dst.colorSpace		= _colorSpace;
 			dst.projection		= null;
 		}

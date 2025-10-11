@@ -236,12 +236,12 @@ namespace AE::Base
 		return glm::packUnorm2x16( value );
 	}
 
-	ND_ inline float2  UIntToUNorm16x2 (uint value) __NE___
+	Nd__In float2  UIntToUNorm16x2 (uint value) __NE___
 	{
 		return glm::unpackUnorm2x16( value );
 	}
 
-	ND_ inline float2  UIntToSNorm16x2 (uint value) __NE___
+	Nd__In float2  UIntToSNorm16x2 (uint value) __NE___
 	{
 		return glm::unpackSnorm2x16( value );
 	}
@@ -263,12 +263,12 @@ namespace AE::Base
 		return glm::packUnorm4x8( value );
 	}
 
-	ND_ inline float4  UIntToUNorm8x4 (uint value) __NE___
+	Nd__In float4  UIntToUNorm8x4 (uint value) __NE___
 	{
 		return glm::unpackUnorm4x8( value );
 	}
 
-	ND_ inline float4  UIntToSNorm8x4 (uint value) __NE___
+	Nd__In float4  UIntToSNorm8x4 (uint value) __NE___
 	{
 		return glm::unpackSnorm4x8( value );
 	}
@@ -284,7 +284,7 @@ namespace AE::Base
 		return glm::packHalf2x16( value );
 	}
 
-	ND_ inline float2  UIntToFloat16x2 (uint value) __NE___
+	Nd__In float2  UIntToFloat16x2 (uint value) __NE___
 	{
 		return glm::unpackHalf2x16( value );
 	}

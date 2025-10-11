@@ -87,7 +87,7 @@ void ASmain ()
 
 	// VFS
 	{
-       // archive.Add( "Sound.ogg", "audio/Sound.ogg" );
+		archive.Add( "Sonic Revolution.mp3", "audio/Sonic Revolution.mp3" );
 	}
 
 	archive.Store( output + "resources.bin" );

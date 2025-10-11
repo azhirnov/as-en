@@ -264,7 +264,7 @@ namespace AE::Base
 */
 	bool  WindowsProcess::_WaitAndClose (INOUT String *output, OUT bool &isSuccess, const milliseconds inTimeout)
 	{
-		using TimePoint_t = std::chrono::high_resolution_clock::time_point;
+		using TimePoint_t = HighResClock::time_point;
 
 		isSuccess = false;
 

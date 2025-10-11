@@ -3,8 +3,8 @@
 #pragma once
 
 #include "graphics_rhi/Public/GraphicsCreateInfo.h"
-#include "platform/Public/IWindow.h"
-#include "platform/Public/VRDevice.h"
+#include "platform/Public/Window.h"
+#include "platform/Public/VRSession.h"
 
 namespace AE::AppV1
 {
@@ -20,9 +20,9 @@ namespace AE::AppV1
 	// types
 	private:
 		using GraphicsCreateInfo	= Graphics::GraphicsCreateInfo;
-		using VRImageDesc			= IVRDevice::VRImageDesc;
+		using VRImageDesc			= IVRSession::VRImageDesc;
 		using EThread				= Threading::EThread;
-		using VRDeviceTypes			= FixedArray< IVRDevice::EDeviceType, 4 >;
+		using VRDeviceTypes			= FixedArray< IVRSession::EDeviceType, 4 >;
 
 		struct ThreadConfig : Threading::TaskScheduler::Config
 		{
@@ -40,6 +40,7 @@ namespace AE::AppV1
 		bool				enableAudio		= false;
 
 		bool				enableVR		= false;
+		bool				onlyVR			= true;		// don't create desktop window if created VR device
 		VRDeviceTypes		vrDevices;
 		VRImageDesc			vr;
 	};

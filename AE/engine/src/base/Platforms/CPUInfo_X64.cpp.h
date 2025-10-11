@@ -495,18 +495,18 @@ namespace
 
 			feats.AVX2				= HasBit<  5 >( cpui[1] );
 			feats.AVX512F			= HasBit< 16 >( cpui[1] );
-		//	feats.AVX512_DQ			= HasBit< 17 >( cpui[1] );
-		//	feats.AVX512_IFMA		= HasBit< 21 >( cpui[1] );
+			feats.AVX512_DQ			= HasBit< 17 >( cpui[1] );
+			feats.AVX512_IFMA		= HasBit< 21 >( cpui[1] );
 		//	feats.AVX512_ER			= HasBit< 27 >( cpui[1] );
-		//	feats.AVX512_BW			= HasBit< 30 >( cpui[1] );
-		//	feats.AVX512_VL			= HasBit< 31 >( cpui[1] );
+			feats.AVX512_BW			= HasBit< 30 >( cpui[1] );
+			feats.AVX512_VL			= HasBit< 31 >( cpui[1] );
 
-		//	feats.AVX512_VBMI		= HasBit<  1 >( cpui[2] );
-		//	feats.AVX512_VBMI2		= HasBit<  6 >( cpui[2] );
+			feats.AVX512_VBMI		= HasBit<  1 >( cpui[2] );
+			feats.AVX512_VBMI2		= HasBit<  6 >( cpui[2] );
 			feats.VAES				= HasBit<  9 >( cpui[2] );
-		//	feats.AVX512_VNNI		= HasBit< 11 >( cpui[2] );
-		//	feats.AVX512_BITALG		= HasBit< 12 >( cpui[2] );
-		//	feats.AVX512_VPOPCNTDQ	= HasBit< 14 >( cpui[2] );
+			feats.AVX512_VNNI		= HasBit< 11 >( cpui[2] );
+			feats.AVX512_BITALG		= HasBit< 12 >( cpui[2] );
+			feats.AVX512_VPOPCNTDQ	= HasBit< 14 >( cpui[2] );
 			feats.AESKL				= HasBit< 23 >( cpui[2] );
 
 		//	feats.AVX512_4FMAPS		= HasBit<  2 >( cpui[3] );
@@ -518,7 +518,7 @@ namespace
 			CPUIDExt( 0x7, 0x1, OUT cpui );
 
 			feats.SHA512			= HasBit< 0 >( cpui[0] );
-		//	feats.AVX512_BF16		= HasBit< 5 >( cpui[0] );
+			feats.AVX512_BF16		= HasBit< 5 >( cpui[0] );
 		}
 
 	//	if ( ex_count >= 0x8000'0001 and vendor == ECPUVendor::AMD )
@@ -571,9 +571,11 @@ namespace
 /*
 =================================================
 	ReadX64CPUClock
+----
+	for Intel Skylake and newer
 =================================================
 */
-	static void  ReadX64CPUClock (INOUT CpuArchInfo::Cores_t &coreTypes) __NE___
+	static bool  ReadX64CPUClock (INOUT CpuArchInfo::Cores_t &coreTypes) __NE___
 	{
 		StaticArray<uint, 4>	cpui = {};
 
@@ -589,7 +591,9 @@ namespace
 				core.baseClock	= cpui[0];
 				core.maxClock	= cpui[1];
 			}
+			return true;
 		}
+		return false;
 	}
 
 } // namespace

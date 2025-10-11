@@ -16,7 +16,7 @@ namespace AE::Base
 	{
 	// types
 	private:
-		using Clock_t		= std::chrono::high_resolution_clock;
+		using Clock_t		= HighResClock;
 		using TimePoint_t	= std::chrono::time_point< Clock_t >;
 
 
@@ -52,7 +52,7 @@ namespace AE::Base
 
 			_message << "; TIME: " << ToString( Clock_t::now() - _startTime, 3 );
 
-			if ( _srcLoc.file_name() != null ) {
+			if ( not _srcLoc.FileName().empty() ) {
 				AE_PRIVATE_LOG_I( _message, _srcLoc );
 			}else{
 				AE_LOGI( _message );

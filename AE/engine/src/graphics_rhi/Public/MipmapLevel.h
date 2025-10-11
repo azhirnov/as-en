@@ -57,7 +57,7 @@ namespace AE::Graphics
 	};
 
 
-	NdCxIn MipmapLevel operator "" _mipmap (unsigned long long value) __NE___	{ return MipmapLevel( value ); }
+	NdCxIn MipmapLevel operator ""_mipmap (unsigned long long value) __NE___	{ return MipmapLevel( value ); }
 
 
 } // AE::Graphics

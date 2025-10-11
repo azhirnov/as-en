@@ -3,7 +3,6 @@
 #pragma once
 
 #include "base/Algorithms/StringUtils.h"
-#include "base/FileSystem/Path.h"
 
 using namespace AE;
 using namespace AE::Base;
@@ -64,20 +63,20 @@ using namespace AE::Base;
 #ifdef AE_PLATFORM_ANDROID
 #	define BEGIN_TEST()									\
 		const Path	curr {path};						\
-		_ae_fs_::current_path( curr );					\
+		std::filesystem::current_path( curr );			\
 		StaticLogger::LoggerDbgScope log{};
 
 #elif defined(AE_PLATFORM_APPLE)
 #	define BEGIN_TEST()																				\
 		const Path	curr = Path{argv[0]}.parent_path().parent_path().parent_path().parent_path();	\
 		Unused( argc );																				\
-		_ae_fs_::current_path( curr );																\
+		std::filesystem::current_path( curr );														\
 		StaticLogger::LoggerDbgScope log{};
 
 #else
-#	define BEGIN_TEST()											\
-		_ae_fs_::current_path( Path{argv[0]}.parent_path() );	\
-		StaticLogger::LoggerDbgScope log{};						\
-		const Path	curr = Path{argv[0]}.parent_path();			\
+#	define BEGIN_TEST()													\
+		std::filesystem::current_path( Path{argv[0]}.parent_path() );	\
+		StaticLogger::LoggerDbgScope log{};								\
+		const Path	curr = Path{argv[0]}.parent_path();					\
 		Unused( argc );
 #endif

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "pch/VFS.h"
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 
 using namespace AE::Threading;
 using namespace AE::VFS;

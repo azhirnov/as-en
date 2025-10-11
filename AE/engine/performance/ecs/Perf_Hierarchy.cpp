@@ -7,13 +7,13 @@ namespace
 #ifdef AE_DEBUG
 	static constexpr usize	c_HierarchySize = 1'000;
 #else
-	static constexpr usize	c_HierarchySize = 10'000'000;
+	static constexpr usize	c_HierarchySize = 250;
 #endif
 	static constexpr uint	c_ToChunkIdx	= 10;
 	static constexpr usize	c_ChunkSize		= 1u << c_ToChunkIdx;
-	static constexpr uint	c_MaxIterations	= 8;
+	static constexpr uint	c_MaxIterations	= 32;
 	static constexpr uint	c_MaxDepth		= 8;
-	static constexpr uint	c_Cycles		= 1;
+	static constexpr uint	c_Cycles		= 10;
 
 
 	struct ChunkS
@@ -308,10 +308,13 @@ namespace
 
 
 		profiler.BeginTest( "scalar, best locality",
-							[s = ChunksSize( chunks )](secondsd dt)
+							[s = ChunksSize( chunks ), totalCount] (secondsd dt)
 							{
-								double	bandwidth = double(usize(s) * c_Cycles) / dt.count();
-								return ToStringSfx( bandwidth ) << "B/s";
+								double	bandwidth	= double(usize(s) * c_Cycles) / dt.count();
+								double	flops		= double(totalCount * (3+3) * c_Cycles) / dt.count();
+
+								return	ToStringSfx( bandwidth ) << "B/s | " <<
+										ToStringSfx( flops ) << "FLOPS";
 							});
 
 		for (uint i = 0; i < c_MaxIterations; ++i)
@@ -409,10 +412,13 @@ namespace
 
 
 		profiler.BeginTest( "scalar, layered",
-							[s = ChunksSize( chunks )](secondsd dt)
+							[s = ChunksSize( chunks ), totalCount] (secondsd dt)
 							{
-								double	bandwidth = double(usize(s) * c_Cycles) / dt.count();
-								return ToStringSfx( bandwidth ) << "B/s";
+								double	bandwidth	= double(usize(s) * c_Cycles) / dt.count();
+								double	flops		= double(totalCount * (3+3) * c_Cycles) / dt.count();
+
+								return	ToStringSfx( bandwidth ) << "B/s | " <<
+										ToStringSfx( flops ) << "FLOPS";
 							});
 		
 		for (uint i = 0; i < c_MaxIterations; ++i)
@@ -502,11 +508,14 @@ namespace
 		AE_LOGI( "Size: "s << ToString( ChunksSize( chunks )));
 
 
-		profiler.BeginTest( "vec3, best locality",
-							[s = ChunksSize( chunks )](secondsd dt)
+		profiler.BeginTest( "SSE2, best locality",
+							[s = ChunksSize( chunks ), totalCount] (secondsd dt)
 							{
-								double	bandwidth = double(usize(s) * c_Cycles) / dt.count();
-								return ToStringSfx( bandwidth ) << "B/s";
+								double	bandwidth	= double(usize(s) * c_Cycles) / dt.count();
+								double	flops		= double(totalCount * (3+3) * c_Cycles) / dt.count();
+
+								return	ToStringSfx( bandwidth ) << "B/s | " <<
+										ToStringSfx( flops ) << "FLOPS";
 							});
 
 		for (uint i = 0; i < c_MaxIterations; ++i)
@@ -603,11 +612,14 @@ namespace
 		CHECK( global_idx == totalCount+1 );
 
 
-		profiler.BeginTest( "vec3, layered",
-							[s = ChunksSize( chunks )](secondsd dt)
+		profiler.BeginTest( "SSE2, layered",
+							[s = ChunksSize( chunks ), totalCount] (secondsd dt)
 							{
-								double	bandwidth = double(usize(s) * c_Cycles) / dt.count();
-								return ToStringSfx( bandwidth ) << "B/s";
+								double	bandwidth	= double(usize(s) * c_Cycles) / dt.count();
+								double	flops		= double(totalCount * (3+3) * c_Cycles) / dt.count();
+
+								return	ToStringSfx( bandwidth ) << "B/s | " <<
+										ToStringSfx( flops ) << "FLOPS";
 							});
 		
 		for (uint i = 0; i < c_MaxIterations; ++i)
@@ -708,10 +720,13 @@ namespace
 
 
 		profiler.BeginTest( "AVX, best locality",
-							[s = ChunksSize( chunks )](secondsd dt)
+							[s = ChunksSize( chunks ), totalCount] (secondsd dt)
 							{
-								double	bandwidth = double(usize(s) * c_Cycles) / dt.count();
-								return ToStringSfx( bandwidth ) << "B/s";
+								double	bandwidth	= double(usize(s) * c_Cycles) / dt.count();
+								double	flops		= double(totalCount * (3+3) * c_Cycles) / dt.count();
+
+								return	ToStringSfx( bandwidth ) << "B/s | " <<
+										ToStringSfx( flops ) << "FLOPS";
 							});
 
 		for (uint i = 0; i < c_MaxIterations; ++i)
@@ -809,7 +824,7 @@ namespace
 
 				const uint	i = ch.count++;
 
-				ch.parentIds[i] = parent_ids[k];
+				ch.parentIds[i]		= parent_ids[k];
 				ch.positionX[i]		= 0.f;
 				ch.positionY[i]		= 0.f;
 				ch.positionZ[i]		= 0.f;
@@ -829,10 +844,13 @@ namespace
 
 
 		profiler.BeginTest( "AVX, layered",
-							[s = ChunksSize( chunks )](secondsd dt)
+							[s = ChunksSize( chunks ), totalCount] (secondsd dt)
 							{
-								double	bandwidth = double(usize(s) * c_Cycles) / dt.count();
-								return ToStringSfx( bandwidth ) << "B/s";
+								double	bandwidth	= double(usize(s) * c_Cycles) / dt.count();
+								double	flops		= double(totalCount * (3+3) * c_Cycles) / dt.count();
+
+								return	ToStringSfx( bandwidth ) << "B/s | " <<
+										ToStringSfx( flops ) << "FLOPS";
 							});
 
 		for (uint i = 0; i < c_MaxIterations; ++i)
@@ -882,7 +900,7 @@ namespace
 	}
 	//-----------------------------------------------
 
-
+	
 	static void  Hierarchy_Test7 (IntervalProfiler &profiler, ArrayView<uint> hierarchyDepths, const uint totalCount)
 	{
 		Array<ChunkAVX>	chunks;
@@ -896,41 +914,10 @@ namespace
 
 			if ( ch.IsEmpty() )
 				ch.Alloc( c_ChunkSize );
-
-			ch.parentIds[0]		= UMax;
-			ch.positionX[0]		= 0.f;
-			ch.positionY[0]		= 0.f;
-			ch.positionZ[0]		= 0.f;
-			ch.scaleBiasX[0]	= 0.f;
-			ch.scaleBiasY[0]	= 0.f;
-			ch.scaleBiasZ[0]	= 0.f;
-			ch.scaleBiasW[0]	= 0.f;
 			
-			ch.count += 16;
-		}
-		
-		Array<uint>		parent_ids;
-		parent_ids.resize( hierarchyDepths.size(), 0u );
-
-		for (uint depth = 0; depth < c_MaxDepth; ++depth)
-		{
-			for (usize k = 0; k < hierarchyDepths.size(); ++k)
+			for (uint i = 0; i < 8; ++i)
 			{
-				const uint	levels = hierarchyDepths[k];
-				if ( depth >= levels )
-					continue;
-				
-				if ( chunks.back().IsFull() )
-					chunks.emplace_back();
-
-				ChunkAVX&	ch = chunks.back();
-
-				if ( ch.IsEmpty() )
-					ch.Alloc( c_ChunkSize );
-
-				const uint	i = ch.count++;
-
-				ch.parentIds[i] = parent_ids[k];
+				ch.parentIds[i]		= UMax;
 				ch.positionX[i]		= 0.f;
 				ch.positionY[i]		= 0.f;
 				ch.positionZ[i]		= 0.f;
@@ -938,22 +925,79 @@ namespace
 				ch.scaleBiasY[i]	= 0.f;
 				ch.scaleBiasZ[i]	= 0.f;
 				ch.scaleBiasW[i]	= 0.f;
-				
-				uint	cur_idx	= uint((chunks.size()-1) * c_ChunkSize + i);
-				ASSERT( cur_idx == global_idx+16 );
+			}
+			ch.count += 8;
+		}
 
-				parent_ids[k] = cur_idx;
-				++global_idx;
+		// layout:
+		//	[0000][1111][2222] [0000][1111] ...
+
+		HashMap< uint, uint >	same_depth;
+		
+		for (uint depth : hierarchyDepths)
+		{
+			same_depth.emplace( depth, 0u ).first->second ++;
+		}
+
+		for (auto [levels, count] : same_depth)
+		{
+			global_idx += count * levels;
+			count = AlignUp( count, 8 );
+
+			for (uint k = 0; k < count; k += 8)
+			{
+				if ( chunks.back().count + 8*levels > chunks.back().capacity )
+					chunks.emplace_back();
+				
+				ChunkAVX&	ch = chunks.back();
+
+				if ( ch.IsEmpty() )
+					ch.Alloc( c_ChunkSize );
+
+				uint	parent_id	= 0;
+				uint	i			= ch.count;
+
+				ASSERT( i%8 == 0 );
+				ch.count += 8*levels;
+
+				for (uint depth = 0; depth < levels; ++depth)
+				{
+					for (; i < ch.count; ++i)
+					{
+						uint	id = parent_id + i%8;
+
+						ch.parentIds[i]		= id;
+						ch.positionX[i]		= 0.f;
+						ch.positionY[i]		= 0.f;
+						ch.positionZ[i]		= 0.f;
+						ch.scaleBiasX[i]	= 0.f;
+						ch.scaleBiasY[i]	= 0.f;
+						ch.scaleBiasZ[i]	= 0.f;
+						ch.scaleBiasW[i]	= 0.f;
+					
+						if ( i%8 == 7 )
+						{
+							uint	cur_idx	= uint( (chunks.size()-1) * c_ChunkSize + (i & ~7) );
+							//ASSERT( cur_idx == global_idx+8 );
+							parent_id = cur_idx;
+						}
+					}
+				}
 			}
 		}
 		CHECK( global_idx == totalCount );
+		
+		AE_LOGI( "AVX v2 Size: "s << ToString( ChunksSize( chunks )));
 
 
-		profiler.BeginTest( "AVX-2, layered",
-							[s = ChunksSize( chunks )](secondsd dt)
+		profiler.BeginTest( "AVX v2, layered",
+							[s = ChunksSize( chunks ), totalCount] (secondsd dt)
 							{
-								double	bandwidth = double(usize(s) * c_Cycles) / dt.count();
-								return ToStringSfx( bandwidth ) << "B/s";
+								double	bandwidth	= double(usize(s) * c_Cycles) / dt.count();
+								double	flops		= double(totalCount * (3+3) * c_Cycles) / dt.count();
+
+								return	ToStringSfx( bandwidth ) << "B/s | " <<
+										ToStringSfx( flops ) << "FLOPS";
 							});
 
 		for (uint i = 0; i < c_MaxIterations; ++i)
@@ -967,57 +1011,33 @@ namespace
 				{
 					ChunkAVX&	ch = chunks[c];
 
-					for (uint k = (c == 0 ? 16 : 0); k < c_ChunkSize; k += 16)
+					for (uint k = (c == 0 ? 8 : 0); k < ch.count; k += 8)
 					{
-						alignas(SimdFloat8) float	parent_pos_x [16];
-						alignas(SimdFloat8) float	parent_pos_y [16];
-						alignas(SimdFloat8) float	parent_pos_z [16];
-						const uint					cur_idx		= uint(c * c_ChunkSize + k);
+						uint		parent_idx		= ch.parentIds[k];
+						uint		chunk_id		= parent_idx >> c_ToChunkIdx;
+						uint		idx_in_chunk	= parent_idx & (c_ChunkSize-1);
+						SimdFloat8	parent_pos_x	= *Cast<SimdFloat8>(&chunks[ chunk_id ].positionX[ idx_in_chunk ]);
+						SimdFloat8	parent_pos_y	= *Cast<SimdFloat8>(&chunks[ chunk_id ].positionY[ idx_in_chunk ]);
+						SimdFloat8	parent_pos_z	= *Cast<SimdFloat8>(&chunks[ chunk_id ].positionZ[ idx_in_chunk ]);
+						SimdFloat8	scale			= *Cast<SimdFloat8>(ch.scaleBiasW + k);
+						SimdFloat8	bias_x			= *Cast<SimdFloat8>(ch.scaleBiasX + k);
+						SimdFloat8	bias_y			= *Cast<SimdFloat8>(ch.scaleBiasY + k);
+						SimdFloat8	bias_z			= *Cast<SimdFloat8>(ch.scaleBiasZ + k);
+						const uint	cur_idx			= uint(c * c_ChunkSize + k);
 
-						for (uint j = 0; j < 16; ++j)
+						ASSERT( parent_idx < cur_idx );
+						Unused( cur_idx );
+
+						#ifdef AE_DEBUG
+						for (uint j = 0; j < 8; ++j)
 						{
-							uint	parent_idx	= ch.parentIds[k + j];
-						
-							ASSERT( parent_idx < cur_idx );
-							Unused( cur_idx );
-
-							uint	chunk_id		= parent_idx >> c_ToChunkIdx;
-							uint	idx_in_chunk	= parent_idx & (c_ChunkSize-1);
-
-							parent_pos_x[j] = chunks[ chunk_id ].positionX[ idx_in_chunk ];
-							parent_pos_y[j] = chunks[ chunk_id ].positionY[ idx_in_chunk ];
-							parent_pos_z[j] = chunks[ chunk_id ].positionZ[ idx_in_chunk ];
+							ASSERT_Eq( parent_idx+j, ch.parentIds[k+j] );
 						}
+						#endif
 
-						SimdFloat8*	pos_x	= Cast<SimdFloat8>(ch.positionX + k);
-						SimdFloat8*	pos_y	= Cast<SimdFloat8>(ch.positionY + k);
-						SimdFloat8*	pos_z	= Cast<SimdFloat8>(ch.positionZ + k); 
-
-						SimdFloat8	bias_x    {ch.scaleBiasX + k};
-						SimdFloat8	bias_y    {ch.scaleBiasY + k};
-						SimdFloat8	bias_z    {ch.scaleBiasZ + k};
-						SimdFloat8	scale     {ch.scaleBiasW + k};
-
-						SimdFloat8	parent_x  {parent_pos_x};
-						SimdFloat8	parent_y  {parent_pos_y};
-						SimdFloat8	parent_z  {parent_pos_z};
-						
-						SimdFloat8	bias_x2   {ch.scaleBiasX + k + 8};
-						SimdFloat8	bias_y2   {ch.scaleBiasY + k + 8};
-						SimdFloat8	bias_z2   {ch.scaleBiasZ + k + 8};
-						SimdFloat8	scale2    {ch.scaleBiasW + k + 8};
-
-						SimdFloat8	parent_x2 {parent_pos_x + 8};
-						SimdFloat8	parent_y2 {parent_pos_y + 8};
-						SimdFloat8	parent_z2 {parent_pos_z + 8};
-
-						pos_x[0] = bias_x + (parent_x * scale);
-						pos_y[0] = bias_y + (parent_y * scale);
-						pos_z[0] = bias_z + (parent_z * scale);
-						
-						pos_x[1] = bias_x2 + (parent_x2 * scale2);
-						pos_y[1] = bias_y2 + (parent_y2 * scale2);
-						pos_z[1] = bias_z2 + (parent_z2 * scale2);
+						*Cast<SimdFloat8>(ch.positionX + k) = bias_x + (parent_pos_x * scale);
+						*Cast<SimdFloat8>(ch.positionY + k) = bias_y + (parent_pos_y * scale);
+						*Cast<SimdFloat8>(ch.positionZ + k) = bias_z + (parent_pos_z * scale);
 					}
 				}
 			}
@@ -1029,7 +1049,7 @@ namespace
 	}
 	//-----------------------------------------------
 
-
+	
 	static void  Hierarchy_Test8 (IntervalProfiler &profiler, ArrayView<uint> hierarchyDepths, const uint totalCount)
 	{
 		Array<ChunkAVX>	chunks;
@@ -1043,41 +1063,10 @@ namespace
 
 			if ( ch.IsEmpty() )
 				ch.Alloc( c_ChunkSize );
-
-			ch.parentIds[0]		= UMax;
-			ch.positionX[0]		= 0.f;
-			ch.positionY[0]		= 0.f;
-			ch.positionZ[0]		= 0.f;
-			ch.scaleBiasX[0]	= 0.f;
-			ch.scaleBiasY[0]	= 0.f;
-			ch.scaleBiasZ[0]	= 0.f;
-			ch.scaleBiasW[0]	= 0.f;
 			
-			ch.count += 32;
-		}
-		
-		Array<uint>		parent_ids;
-		parent_ids.resize( hierarchyDepths.size(), 0u );
-
-		for (uint depth = 0; depth < c_MaxDepth; ++depth)
-		{
-			for (usize k = 0; k < hierarchyDepths.size(); ++k)
+			for (uint i = 0; i < 8; ++i)
 			{
-				const uint	levels = hierarchyDepths[k];
-				if ( depth >= levels )
-					continue;
-				
-				if ( chunks.back().IsFull() )
-					chunks.emplace_back();
-
-				ChunkAVX&	ch = chunks.back();
-
-				if ( ch.IsEmpty() )
-					ch.Alloc( c_ChunkSize );
-
-				const uint	i = ch.count++;
-
-				ch.parentIds[i] = parent_ids[k];
+				ch.parentIds[i]		= UMax;
 				ch.positionX[i]		= 0.f;
 				ch.positionY[i]		= 0.f;
 				ch.positionZ[i]		= 0.f;
@@ -1085,22 +1074,80 @@ namespace
 				ch.scaleBiasY[i]	= 0.f;
 				ch.scaleBiasZ[i]	= 0.f;
 				ch.scaleBiasW[i]	= 0.f;
-				
-				uint	cur_idx	= uint((chunks.size()-1) * c_ChunkSize + i);
-				ASSERT( cur_idx == global_idx+32 );
+			}
+			ch.count += 8;
+		}
 
-				parent_ids[k] = cur_idx;
-				++global_idx;
+		// layout:
+		//	[0000][1111][2222] [0000][1111] ...
+		//  read root once
+
+		HashMap< uint, uint >	same_depth;
+		
+		for (uint depth : hierarchyDepths)
+		{
+			same_depth.emplace( depth, 0u ).first->second ++;
+		}
+
+		for (auto [levels, count] : same_depth)
+		{
+			global_idx += count * levels;
+			count = AlignUp( count, 8 );
+
+			for (uint k = 0; k < count; k += 8)
+			{
+				if ( chunks.back().count + 8*levels > chunks.back().capacity )
+					chunks.emplace_back();
+				
+				ChunkAVX&	ch = chunks.back();
+
+				if ( ch.IsEmpty() )
+					ch.Alloc( c_ChunkSize );
+
+				uint	parent_id	= 0;
+				uint	i			= ch.count;
+
+				ASSERT( i%8 == 0 );
+				ch.count += 8*levels;
+
+				for (uint depth = 0; depth < levels; ++depth)
+				{
+					for (; i < ch.count; ++i)
+					{
+						uint	id = parent_id + i%8;
+
+						ch.parentIds[i]		= id;
+						ch.positionX[i]		= 0.f;
+						ch.positionY[i]		= 0.f;
+						ch.positionZ[i]		= 0.f;
+						ch.scaleBiasX[i]	= 0.f;
+						ch.scaleBiasY[i]	= 0.f;
+						ch.scaleBiasZ[i]	= 0.f;
+						ch.scaleBiasW[i]	= 0.f;
+					
+						if ( i%8 == 7 )
+						{
+							uint	cur_idx	= uint( (chunks.size()-1) * c_ChunkSize + (i & ~7) );
+							//ASSERT( cur_idx == global_idx+8 );
+							parent_id = cur_idx;
+						}
+					}
+				}
 			}
 		}
 		CHECK( global_idx == totalCount );
+		
+		AE_LOGI( "AVX v3 Size: "s << ToString( ChunksSize( chunks )));
 
 
-		profiler.BeginTest( "AVX-3, layered",
-							[s = ChunksSize( chunks )](secondsd dt)
+		profiler.BeginTest( "AVX v3, layered",
+							[s = ChunksSize( chunks ), totalCount] (secondsd dt)
 							{
-								double	bandwidth = double(usize(s) * c_Cycles) / dt.count();
-								return ToStringSfx( bandwidth ) << "B/s";
+								double	bandwidth	= double(usize(s) * c_Cycles) / dt.count();
+								double	flops		= double(totalCount * (3+3) * c_Cycles) / dt.count();
+
+								return	ToStringSfx( bandwidth ) << "B/s | " <<
+										ToStringSfx( flops ) << "FLOPS";
 							});
 
 		for (uint i = 0; i < c_MaxIterations; ++i)
@@ -1114,83 +1161,33 @@ namespace
 				{
 					ChunkAVX&	ch = chunks[c];
 
-					for (uint k = (c == 0 ? 32 : 0); k < c_ChunkSize; k += 32)
+					for (uint k = (c == 0 ? 8 : 0); k < ch.count; k += 8)
 					{
-						alignas(SimdFloat8) float	parent_pos_x [32];
-						alignas(SimdFloat8) float	parent_pos_y [32];
-						alignas(SimdFloat8) float	parent_pos_z [32];
-						const uint					cur_idx		= uint(c * c_ChunkSize + k);
+						uint		parent_idx		= ch.parentIds[k];
+						uint		chunk_id		= parent_idx >> c_ToChunkIdx;
+						uint		idx_in_chunk	= parent_idx & (c_ChunkSize-1);
+						SimdFloat8	parent_pos_x	= *Cast<SimdFloat8>(&chunks[ chunk_id ].positionX[ idx_in_chunk ]);
+						SimdFloat8	parent_pos_y	= *Cast<SimdFloat8>(&chunks[ chunk_id ].positionY[ idx_in_chunk ]);
+						SimdFloat8	parent_pos_z	= *Cast<SimdFloat8>(&chunks[ chunk_id ].positionZ[ idx_in_chunk ]);
+						SimdFloat8	scale			= *Cast<SimdFloat8>(ch.scaleBiasW + k);
+						SimdFloat8	bias_x			= *Cast<SimdFloat8>(ch.scaleBiasX + k);
+						SimdFloat8	bias_y			= *Cast<SimdFloat8>(ch.scaleBiasY + k);
+						SimdFloat8	bias_z			= *Cast<SimdFloat8>(ch.scaleBiasZ + k);
+						const uint	cur_idx			= uint(c * c_ChunkSize + k);
 
-						for (uint j = 0; j < 32; ++j)
+						ASSERT( parent_idx < cur_idx );
+						Unused( cur_idx );
+
+						#ifdef AE_DEBUG
+						for (uint j = 0; j < 8; ++j)
 						{
-							uint	parent_idx	= ch.parentIds[k + j];
-						
-							ASSERT( parent_idx < cur_idx );
-							Unused( cur_idx );
-
-							uint	chunk_id		= parent_idx >> c_ToChunkIdx;
-							uint	idx_in_chunk	= parent_idx & (c_ChunkSize-1);
-
-							parent_pos_x[j] = chunks[ chunk_id ].positionX[ idx_in_chunk ];
-							parent_pos_y[j] = chunks[ chunk_id ].positionY[ idx_in_chunk ];
-							parent_pos_z[j] = chunks[ chunk_id ].positionZ[ idx_in_chunk ];
+							ASSERT_Eq( parent_idx+j, ch.parentIds[k+j] );
 						}
+						#endif
 
-						SimdFloat8*	pos_x	= Cast<SimdFloat8>(ch.positionX + k);
-						SimdFloat8*	pos_y	= Cast<SimdFloat8>(ch.positionY + k);
-						SimdFloat8*	pos_z	= Cast<SimdFloat8>(ch.positionZ + k); 
-
-						SimdFloat8	bias_x    {ch.scaleBiasX + k};
-						SimdFloat8	bias_y    {ch.scaleBiasY + k};
-						SimdFloat8	bias_z    {ch.scaleBiasZ + k};
-						SimdFloat8	scale     {ch.scaleBiasW + k};
-
-						SimdFloat8	parent_x  {parent_pos_x};
-						SimdFloat8	parent_y  {parent_pos_y};
-						SimdFloat8	parent_z  {parent_pos_z};
-						
-						SimdFloat8	bias_x2   {ch.scaleBiasX + k + 8};
-						SimdFloat8	bias_y2   {ch.scaleBiasY + k + 8};
-						SimdFloat8	bias_z2   {ch.scaleBiasZ + k + 8};
-						SimdFloat8	scale2    {ch.scaleBiasW + k + 8};
-
-						SimdFloat8	parent_x2 {parent_pos_x + 8};
-						SimdFloat8	parent_y2 {parent_pos_y + 8};
-						SimdFloat8	parent_z2 {parent_pos_z + 8};
-						
-						SimdFloat8	bias_x3   {ch.scaleBiasX + k + 16};
-						SimdFloat8	bias_y3   {ch.scaleBiasY + k + 16};
-						SimdFloat8	bias_z3   {ch.scaleBiasZ + k + 16};
-						SimdFloat8	scale3    {ch.scaleBiasW + k + 16};
-
-						SimdFloat8	parent_x3 {parent_pos_x + 16};
-						SimdFloat8	parent_y3 {parent_pos_y + 16};
-						SimdFloat8	parent_z3 {parent_pos_z + 16};
-						
-						SimdFloat8	bias_x4   {ch.scaleBiasX + k + 24};
-						SimdFloat8	bias_y4   {ch.scaleBiasY + k + 24};
-						SimdFloat8	bias_z4   {ch.scaleBiasZ + k + 24};
-						SimdFloat8	scale4    {ch.scaleBiasW + k + 24};
-
-						SimdFloat8	parent_x4 {parent_pos_x + 24};
-						SimdFloat8	parent_y4 {parent_pos_y + 24};
-						SimdFloat8	parent_z4 {parent_pos_z + 24};
-
-						pos_x[0] = bias_x + (parent_x * scale);
-						pos_y[0] = bias_y + (parent_y * scale);
-						pos_z[0] = bias_z + (parent_z * scale);
-						
-						pos_x[1] = bias_x2 + (parent_x2 * scale2);
-						pos_y[1] = bias_y2 + (parent_y2 * scale2);
-						pos_z[1] = bias_z2 + (parent_z2 * scale2);
-						
-						pos_x[2] = bias_x3 + (parent_x3 * scale3);
-						pos_y[2] = bias_y3 + (parent_y3 * scale3);
-						pos_z[2] = bias_z3 + (parent_z3 * scale3);
-
-						pos_x[3] = bias_x4 + (parent_x4 * scale4);
-						pos_y[3] = bias_y4 + (parent_y4 * scale4);
-						pos_z[3] = bias_z4 + (parent_z4 * scale4);
+						*Cast<SimdFloat8>(ch.positionX + k) = bias_x + (parent_pos_x * scale);
+						*Cast<SimdFloat8>(ch.positionY + k) = bias_y + (parent_pos_y * scale);
+						*Cast<SimdFloat8>(ch.positionZ + k) = bias_z + (parent_pos_z * scale);
 					}
 				}
 			}
@@ -1200,10 +1197,11 @@ namespace
 		}
 		profiler.EndTest();
 	}
+	//-----------------------------------------------
 }
 
 
-extern void Per_Hierarchy ()
+extern void Perf_Hierarchy ()
 {
 	IntervalProfiler	profiler{ "ECS Hierarchy", IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludeDelta };
 
@@ -1215,7 +1213,7 @@ extern void Per_Hierarchy ()
 	for (usize i = 0; i < c_HierarchySize; ++i)
 	{
 		hierarchy_depths[i] = rnd.Uniform( 0u, c_MaxDepth-1 );
-	//	hierarchy_depths[i] = c_MaxDepth-2;
+	//	hierarchy_depths[i] = 4; //c_MaxDepth-2;
 
 		total_count += hierarchy_depths[i];
 	}
@@ -1229,6 +1227,6 @@ extern void Per_Hierarchy ()
 	Hierarchy_Test4( profiler, hierarchy_depths, uint(total_count) );
 //	Hierarchy_Test5( profiler, hierarchy_depths, uint(total_count) );
 	Hierarchy_Test6( profiler, hierarchy_depths, uint(total_count) );
-	Hierarchy_Test7( profiler, hierarchy_depths, uint(total_count) );
-	Hierarchy_Test8( profiler, hierarchy_depths, uint(total_count) );
+	Hierarchy_Test7( profiler, hierarchy_depths, uint(total_count) );	// x3 faster
+//	Hierarchy_Test8( profiler, hierarchy_depths, uint(total_count) );
 }

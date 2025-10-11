@@ -11,6 +11,7 @@
 # include <android/native_window_jni.h>
 # include <android/keycodes.h>
 # include <android/sensor.h>
+# include <android_native_app_glue.h>
 
 # include <camera/NdkCameraManager.h>
 # include "base/Defines/Undef.h"
@@ -20,9 +21,13 @@
 
 namespace AE::App
 {
-	class ApplicationAndroid;
 	class InputActionsAndroid;
+
+	class ApplicationAndroid;
 	class WindowAndroid;
+
+	class GameAppAndroid;
+	class GameWindowAndroid;
 
 } // AE::App
 

@@ -41,7 +41,8 @@
 
 namespace AE::Audio
 {
-	bool  BASS_CheckError () __NE___;
+	bool  BASS_CheckError ()	__NE___;
+	bool  BASS_CheckError (int)	__NE___;
 
 	struct BASSFunctions
 	{

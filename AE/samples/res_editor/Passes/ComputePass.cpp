@@ -118,18 +118,21 @@ namespace AE::ResEditor
 			ctx.BindDescriptorSet( _dsIndex, ds );
 			if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
 
-			ShaderTypes::ComputePassPC	pc;
-			pc.dispatchIndex = 0;
-
+			uint	dispatch_id = 0;
 			for (const auto& it : _iterations)
 			{
+				const uint3	group_count = it.GroupCount( _localSize );	// TODO: indirect dispatch ?
+				
+				ShaderTypes::ComputePassPC	pc;
+				pc.wgCount_dispatchIndex = uint4{ group_count, dispatch_id };
+
 				ctx.PushConstant( _pcIndex, pc );
-				pc.dispatchIndex++;
+				++dispatch_id;
 
 				if ( it.indirect ){
 					ctx.DispatchIndirect( it.indirect->GetBufferId( ctx.GetFrameId() ), it.indirectOffset );
 				}else{
-					ctx.Dispatch( it.GroupCount( _localSize ));
+					ctx.Dispatch( group_count );
 				}
 
 				if ( not IsLastElement( it, _iterations ))

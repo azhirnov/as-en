@@ -1,8 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "platform/Android/FileSystemAndroid.h"
-
 #ifdef AE_PLATFORM_ANDROID
+# include "platform/Android/FileSystemAndroid.h"
 
 namespace AE::App
 {

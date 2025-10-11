@@ -22,6 +22,8 @@ namespace AE::App
 				<< "\nphysicalSize: " << ToString( physicalSize.meters ) << " meters"
 				<< "\ndensity:      " << ToString( ppi ) << " pix/inch, " << ToString( PixelsPerMillimeter() ) << " pix/mm"
 				<< "\npixel size:   " << ToString( MillimetersPerPixel() * 1000.0f ) << " um"
+				<< "\nPPD on 1m:    " << ToString( MaxPixelsPerDegree( 1.f )) << " pix/deg"
+				<< "\nFOV on 1m:    " << ToString( FieldOfViewDeg( 1.f )) << " deg"
 				<< "\nfrequency:    " << ToString( freq ) << " Hz"
 				<< "\nexternal:     " << ToString( isExternal )
 				<< "\norientation:  ";
@@ -83,6 +85,29 @@ namespace AE::App
 		}
 		switch_end
 		RETURN_ERR( "unknown surface transform" );
+	}
+	
+/*
+=================================================
+	FieldOfView
+=================================================
+*/
+	Rad2  Monitor::FieldOfView (float distInMeters) C_NE___
+	{
+		return Rad2{ ATan( physicalSize.meters.x * 0.5f, distInMeters ),
+					 ATan( physicalSize.meters.y * 0.5f, distInMeters )} * 2.0f;
+	}
+	
+/*
+=================================================
+	PixelsPerDegree
+----
+	doesn't have correction for curved screen
+=================================================
+*/
+	float2  Monitor::PixelsPerDegree (float distInMeters) C_NE___
+	{
+		return RegionSize() / FieldOfViewDeg( distInMeters );
 	}
 
 

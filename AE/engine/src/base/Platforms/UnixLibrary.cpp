@@ -9,6 +9,18 @@
 
 namespace AE::Base
 {
+	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	UnixLibrary::UnixLibrary (UnixLibrary &&other) __NE___ :
+		_handle{ other._handle }
+	{
+		other._handle = null;
+	}
+
 /*
 =================================================
 	Open
@@ -86,7 +98,6 @@ namespace AE::Base
 */
 	void*  UnixLibrary::_GetProcAddr (const char* name) C_NE___
 	{
-		NonNull( _handle );
 		return ::dlsym( _handle, name );
 	}
 

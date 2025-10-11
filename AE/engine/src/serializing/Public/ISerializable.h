@@ -13,7 +13,7 @@ namespace AE::Serializing
 	//
 	// Serializable interface
 	//
-	class NO_VTABLE ISerializable
+	class ISerializable
 	{
 	// interface
 	public:
@@ -33,9 +33,8 @@ namespace AE::Serializing
 	_prefix_ bool  _name_::Serialize (Serializing::Serializer &ser)		C_NE___	{ return ser( __VA_ARGS__ ); }		\
 	_prefix_ bool  _name_::Deserialize (Serializing::Deserializer &des)	__NE___ { return des( OUT __VA_ARGS__ ); }
 
-#define DECL_EMPTY_SERIALIZER( _name_ )																\
-	bool  _name_::Serialize (Serializing::Serializer &)					C_NE___	{ return true; }	\
+#define DECL_EMPTY_SERIALIZER( _name_ )																				\
+	bool  _name_::Serialize (Serializing::Serializer &)					C_NE___	{ return true; }					\
 	bool  _name_::Deserialize (Serializing::Deserializer &)				__NE___ { return true; }
-
 
 } // AE::Serializing

@@ -2,15 +2,14 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
-
 #ifdef AE_ENABLE_OPENVR
+# include "base/Defines/StdInclude.h"
 # include "openvr_capi.h"
 
 namespace AE::App
 {
 	class InputActionsOpenVR;
-	class OpenVRDevice;
+	class VRSessionOpenVR;
 }
 
 #endif // AE_ENABLE_OPENVR

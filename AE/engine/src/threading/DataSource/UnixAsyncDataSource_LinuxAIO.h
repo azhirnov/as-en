@@ -17,23 +17,23 @@
 
 namespace
 {
-	ND_ inline int  io_setup (unsigned nr, OUT aio_context_t* ctxp) {
+	Nd__In int  io_setup (unsigned nr, OUT aio_context_t* ctxp) {
 		return syscall( __NR_io_setup, nr, ctxp );
 	}
 
-	ND_ inline int  io_destroy (aio_context_t ctx) {
+	Nd__In int  io_destroy (aio_context_t ctx) {
 		return syscall( __NR_io_destroy, ctx );
 	}
 
-	ND_ inline int  io_cancel (aio_context_t ctx, struct iocb* iocb, OUT struct io_event* result) {
+	Nd__In int  io_cancel (aio_context_t ctx, struct iocb* iocb, OUT struct io_event* result) {
 		return syscall( __NR_io_cancel, ctx, iocb, OUT result );
 	}
 
-	ND_ inline int  io_submit (aio_context_t ctx, long nr, struct iocb **iocbpp) {
+	Nd__In int  io_submit (aio_context_t ctx, long nr, struct iocb **iocbpp) {
 		return syscall( __NR_io_submit, ctx, nr, iocbpp);
 	}
 
-	ND_ inline int  io_getevents (aio_context_t ctx, long min_nr, long max_nr, struct io_event* events, struct timespec* timeout) {
+	Nd__In int  io_getevents (aio_context_t ctx, long min_nr, long max_nr, struct io_event* events, struct timespec* timeout) {
 		return syscall( __NR_io_getevents, ctx, min_nr, max_nr, events, timeout );
 	}
 
@@ -58,7 +58,7 @@ namespace
 	io_getevents_nonblock
 =================================================
 */
-	ND_ inline int  io_getevents_nonblock (aio_context_t ctx, const long max_nr, OUT struct io_event* events)
+	Nd__In int  io_getevents_nonblock (aio_context_t ctx, const long max_nr, OUT struct io_event* events)
 	{
 		using namespace AE::Base;
 
@@ -372,6 +372,8 @@ namespace AE::Threading
 			if ( per_thread.ctx != 0 )
 				Unused( ::io_destroy( RefCast<aio_context_t>( per_thread.ctx )));
 		}
+
+		_Release();
 	}
 
 /*

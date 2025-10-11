@@ -90,7 +90,6 @@ namespace
 			case EImage_Cube :		ci.numDimensions = 2;	ci.isArray = false;		ci.numFaces = 6;	ci.numLayers = 1;	break;
 			case EImage_CubeArray :	ci.numDimensions = 2;	ci.isArray = true;		ci.numFaces = 6;	ci.numLayers /= 6;	break;
 			case EImage::Unknown :
-			case EImage::_Count :
 			default :				RETURN_ERR( "unsupported image type" );
 		}
 		switch_end
@@ -111,8 +110,8 @@ namespace
 			{
 				for (uint mm = 0; mm < ci.numLevels; ++mm)
 				{
-					auto*	level = image.GetLevel( MipmapLevel{mm}, ImageLayer{layer * ci.numFaces + face} );
-					CHECK_ERR( level != null );
+					auto	level = image.GetLevel( MipmapLevel{mm}, ImageLayer{layer * ci.numFaces + face} );
+					CHECK_ERR( level );
 
 					auto	err = ktxTexture_SetImageFromMemory( ktxTexture(ktx_tex.get()), mm, layer, face,
 																 Cast<ubyte>(level->PixelData()), usize{level->DataSize()} );

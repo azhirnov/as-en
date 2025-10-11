@@ -1,5 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+// TODO
+//NvAPI_GetDisplayPortInfo
+//NvAPI_GetHDMISupportInfo
+//NvAPI_Disp_GetOutputMode,	NvAPI_Disp_SetOutputMode
+//NvAPI_Disp_GetHdrToneMapping, NvAPI_Disp_SetHdrToneMapping
+//NvAPI_DISP_GetMonitorColorCapabilities
+//NvAPI_DISP_GetDisplayIdByDisplayName
+//NvAPI_DISP_SetAdaptiveSyncData, NvAPI_DISP_GetAdaptiveSyncData
+
 #ifdef AE_PLATFORM_WINDOWS
 # ifdef AE_ENABLE_NVAPI
 
@@ -197,7 +206,7 @@ namespace AE::App
 			++changed_disp;
 		}
 
-		CHECK( changed_disp > 0 );
+		//CHECK( changed_disp > 0 );
 		return true;
 	}
 
@@ -314,29 +323,54 @@ namespace AE::App
 		NvPhysicalGpuHandle	gpu_handles [NVAPI_MAX_PHYSICAL_GPUS];
 		NvU32				gpu_count	= 0;
 
-		NV_GPU_DISPLAYIDS	display_ids [8];
-		NvU32				disp_count	= 0;
-
 		NVAPI_CHECK_ERR( NvAPI_EnumPhysicalGPUs( OUT gpu_handles, OUT &gpu_count ));
 
 		if ( gpu_count == 0 )
 			return false;
 
 		CHECK_MSG( gpu_count == 1, "only one GPU is supported" );
+		
 
-		display_ids[0].version = NV_GPU_DISPLAYIDS_VER;
+		NV_GPU_DISPLAYIDS	display_ids [PlatformConfig::MaxMonitors];
+		NvU32				disp_count	= 0;
+
+		for (auto& disp : display_ids)
+			disp.version = NV_GPU_DISPLAYIDS_VER;
 		disp_count = NvU32(CountOf( display_ids ));
-
+		
 		NVAPI_CHECK_ERR( NvAPI_GPU_GetConnectedDisplayIds( gpu_handles[0], OUT display_ids, OUT &disp_count, 0 ));
 
 		if ( disp_count == 0 )
 			return false;
 
-		CHECK_ERR( monitors.size() == disp_count );
+		CHECK_ERR( monitors.size() >= disp_count );
 
 		for (NvU32 i = 0; i < disp_count; ++i)
 		{
-			const auto	disp_id = display_ids[i].displayId;
+			const auto	disp_id	= display_ids[i].displayId;
+			Monitor*	monitor	= null;
+
+			// find monitor
+			NV_SCANOUT_INFORMATION	scan;
+			scan.version = NV_SCANOUT_INFORMATION_VER;
+			if ( NvAPI_GPU_GetScanoutConfigurationEx( disp_id, OUT &scan ) == NVAPI_OK )
+			{
+				RectI	disp_rect{	scan.sourceDesktopRect.sX,
+									scan.sourceDesktopRect.sY,
+									scan.sourceDesktopRect.sX + scan.sourceDesktopRect.sWidth,
+									scan.sourceDesktopRect.sY + scan.sourceDesktopRect.sHeight };
+
+				for (auto& mon : monitors)
+				{
+					if ( disp_rect.Intersects( mon.region.pixels ))
+					{
+						monitor = &mon;
+						break;
+					}
+				}
+			}
+			if ( monitor == null )
+				continue;
 
 			NV_HDR_CAPABILITIES	hdr_cap;
 			hdr_cap.version = NV_HDR_CAPABILITIES_VER;
@@ -345,7 +379,7 @@ namespace AE::App
 			const auto	RemapCol = [] (NvU16 x) { return float(x) / float(0xC350); };
 			const auto	RemapLum = [] (NvU16 x) { return HDRConfig::Luminance_t{ float(x) / float(0xFFFF) }; };
 
-			auto&	dst = monitors[i].hdr;
+			auto&	dst = monitor->hdr;
 			dst.red.x	= RemapCol( hdr_cap.display_data.displayPrimary_x0 );
 			dst.red.y	= RemapCol( hdr_cap.display_data.displayPrimary_y0 );
 			dst.green.x	= RemapCol( hdr_cap.display_data.displayPrimary_x1 );

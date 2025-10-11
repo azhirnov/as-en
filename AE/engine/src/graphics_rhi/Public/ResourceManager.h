@@ -1,16 +1,16 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	IGfxMemAllocator
-		thread-safe:	yes
+		Thread-safe:	yes
 
 	IDescriptorAllocator
-		thread-safe:	yes
+		Thread-safe:	yes
 
 	IRenderTechPipelines
-		thread-safe:	yes
+		Thread-safe:	yes
 
 	IResourceManager
-		thread-safe:	yes
+		Thread-safe:	yes
 
 	if AE_GRAPHICS_STRONG_VALIDATION enabled then 'IResourceManager::Create***()' may return error if resource description is not valid or not supported.
 
@@ -220,7 +220,7 @@ namespace AE::Graphics
 	// Resource Manager interface
 	//
 
-	class NO_VTABLE IResourceManager
+	class IResourceManager
 	{
 	// types
 	public:

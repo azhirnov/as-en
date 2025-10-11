@@ -123,7 +123,10 @@ namespace
 		auto [uid, is_unique] = storage.pplnStorage->AddPipeline( _name, RVRef(desc) );
 
 		CHECK_MSG( is_unique,
-					"Pipeline name '"s << GetName() << "' is already used and will be overriden" );
+			"Pipeline name '"s << GetName() << "' is already used and will be overriden" );
+
+		CHECK_THROW_MSG( All( (desc.defaultLocalSize > WGLocalSize_t{0}) or (desc.localSizeSpec != WGLocalSizeSpec_t{SerializableComputePipeline::UndefinedSpecConst}) ),
+			"'defaultLocalSize' is zero and specialization is not defined" );
 
 		_pipelineUID	= uid;
 		_isPrepared		= true;

@@ -59,7 +59,7 @@ namespace AE::Scripting
 		auto	iter = _dbgLocation.find( String{section} );
 		if ( iter != _dbgLocation.end() )
 		{
-			AE_LOGW( str, SourceLoc( iter->second.file_name(), iter->second.line() + line, column ));
+			AE_LOGW( str, SourceLoc( iter->second.FileName(), iter->second.Line() + line, column ));
 			return true;
 		}
 		return false;
@@ -914,7 +914,7 @@ namespace
 			auto	iter = eng->_dbgLocation.find( String{msg->section} );
 			if ( iter != eng->_dbgLocation.end() )
 			{
-				AE_LOGI( str, SourceLoc( iter->second.file_name(), iter->second.line() + msg->row, msg->col ));
+				AE_LOGI( str, SourceLoc( iter->second.FileName(), iter->second.Line() + msg->row, msg->col ));
 				return;
 			}
 		}

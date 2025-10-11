@@ -40,7 +40,7 @@ namespace AE::Graphics
 		//
 		// R = I(T) * M + B
 		//
-		// s8x4		- uint32 as 4x uint8
+		// s8x4		- sint32 as 4x sint8
 		// fp8e4m3	- 8bit float point with 1bit sign, 4bit exponent, 3bit mantissa
 		// fp8e5m2	- 8bit float point with 1bit sign, 5bit exponent, 2bit mantissa
 
@@ -53,6 +53,46 @@ namespace AE::Graphics
 
 		_Count
 	};
+
+
+	//
+	// Integer Dot Product Features
+	//
+	enum class EIntegerDotProductFeat : ubyte
+	{
+		Unsigned8bit,
+		Signed8bit,
+		MixedSignedness8bit,
+		Unsigned4x8bit,			// packed
+		Signed4x8bit,			// packed
+		MixedSignedness4x8bit,	// packed
+		Unsigned16bit,
+		Signed16bit,
+		MixedSignedness16bit,
+		Unsigned32bit,
+		Signed32bit,
+		MixedSignedness32bit,
+		Unsigned64bit,
+		Signed64bit,
+		MixedSignedness64bit,
+		AccSat_Unsigned8bit,
+		AccSat_Signed8bit,
+		AccSat_MixedSignedness8bit,
+		AccSat_Unsigned4x8bit,			// packed
+		AccSat_Signed4x8bit,			// packed
+		AccSat_MixedSignedness4x8bit,	// packed
+		AccSat_Unsigned16bit,
+		AccSat_Signed16bit,
+		AccSat_MixedSignedness16bit,
+		AccSat_Unsigned32bit,
+		AccSat_Signed32bit,
+		AccSat_MixedSignedness32bit,
+		AccSat_Unsigned64bit,
+		AccSat_Signed64bit,
+		AccSat_MixedSignedness64bit,
+		_Count
+	};
+	using EIntegerDotProductFeats = EnumSet< EIntegerDotProductFeat >;
 
 
 
@@ -76,7 +116,7 @@ namespace AE::Graphics
 		RGB10A2_HDR10_ST2084,			// RGB10_A2_UNorm,	HDR10_ST2084
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 

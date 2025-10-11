@@ -6,6 +6,9 @@
 #include "serializing/Public/Serializer.h"
 #include "serializing/Public/ObjectFactory.h"
 #include "graphics_rhi/Private/EnumUtils.h"
+#include "graphics_rhi/Private/EnumToString.h"
+
+#include "res_pack/pipeline_compiler/ScriptObjects/ObjectStorage.h"
 
 #ifdef AE_ENABLE_GLSL_TRACE
 # include "ShaderTrace.h"
@@ -202,7 +205,6 @@ namespace AE::PipelineCompiler
 					break;
 
 				case EDescriptorType::Unknown :
-				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -263,18 +265,18 @@ namespace AE::PipelineCompiler
 						CHECK_ERR( dst_un.buffer.staticSize		== src_un.buffer.staticSize	 );
 						CHECK_ERR( dst_un.buffer.arrayStride	== src_un.buffer.arrayStride );
 						CHECK_ERR( dst_un.buffer.typeName		== src_un.buffer.typeName	 );
-						CHECK_ERR( AllBits( dst_un.buffer.state, src_un.buffer.state, ~EResourceState::AllShaders ));
+						CHECK_ERR( AllBits( dst_un.buffer.state, src_un.buffer.state, ~EResourceState::AllStages ));
 
-						dst_un.buffer.state |= (src_un.buffer.state & EResourceState::AllShaders);
+						dst_un.buffer.state |= (src_un.buffer.state & EResourceState::AllStages);
 						CHECK( EResourceState_Validate( dst_un.buffer.state ));
 						break;
 					}
 					case EDescriptorType::UniformTexelBuffer :
 					case EDescriptorType::StorageTexelBuffer :
 					{
-						CHECK_ERR( AllBits( dst_un.texelBuffer.state, src_un.texelBuffer.state, ~EResourceState::AllShaders ));
+						CHECK_ERR( AllBits( dst_un.texelBuffer.state, src_un.texelBuffer.state, ~EResourceState::AllStages ));
 
-						dst_un.texelBuffer.state |= (src_un.texelBuffer.state & EResourceState::AllShaders);
+						dst_un.texelBuffer.state |= (src_un.texelBuffer.state & EResourceState::AllStages);
 						CHECK( EResourceState_Validate( dst_un.texelBuffer.state ));
 						break;
 					}
@@ -282,12 +284,12 @@ namespace AE::PipelineCompiler
 					case EDescriptorType::SampledImage :
 					case EDescriptorType::CombinedImage :
 					{
-						CHECK_ERR( AllBits( dst_un.image.state, src_un.image.state, ~EResourceState::AllShaders ));
+						CHECK_ERR( AllBits( dst_un.image.state, src_un.image.state, ~EResourceState::AllStages ));
 						CHECK_ERR( dst_un.image.type == src_un.image.type );
 						CHECK_ERR( src_un.image.samplerOffsetInStorage == UMax and dst_un.image.samplerOffsetInStorage == UMax );
 						CHECK_ERR( src_un.image.subpassInputIdx == UMax and dst_un.image.subpassInputIdx == UMax );
 
-						dst_un.image.state |= (src_un.image.state & EResourceState::AllShaders);
+						dst_un.image.state |= (src_un.image.state & EResourceState::AllStages);
 						CHECK( EResourceState_Validate( dst_un.image.state ));
 						break;
 					}
@@ -296,10 +298,10 @@ namespace AE::PipelineCompiler
 						CHECK_ERR( dst_un.image.samplerOffsetInStorage + dst_un.arraySize <= samplerStorage.size() );
 						CHECK_ERR( src_un.image.samplerOffsetInStorage + src_un.arraySize <= other.samplerStorage.size() );
 
-						CHECK_ERR( AllBits( dst_un.image.state, src_un.image.state, ~EResourceState::AllShaders ));
+						CHECK_ERR( AllBits( dst_un.image.state, src_un.image.state, ~EResourceState::AllStages ));
 						CHECK_ERR( dst_un.image.type == src_un.image.type );
 
-						dst_un.image.state |= (src_un.image.state & EResourceState::AllShaders);
+						dst_un.image.state |= (src_un.image.state & EResourceState::AllStages);
 						CHECK( EResourceState_Validate( dst_un.image.state ));
 
 						// compare samplers
@@ -313,12 +315,12 @@ namespace AE::PipelineCompiler
 					}
 					case EDescriptorType::SubpassInput :
 					{
-						CHECK_ERR( AllBits( dst_un.image.state, src_un.image.state, ~EResourceState::AllShaders ));
+						CHECK_ERR( AllBits( dst_un.image.state, src_un.image.state, ~EResourceState::AllStages ));
 						CHECK_ERR( dst_un.image.type == src_un.image.type );
 						CHECK_ERR( src_un.image.samplerOffsetInStorage == UMax and dst_un.image.samplerOffsetInStorage == UMax );
 						CHECK_ERR( src_un.image.subpassInputIdx == dst_un.image.subpassInputIdx );
 
-						dst_un.image.state |= (src_un.image.state & EResourceState::AllShaders);
+						dst_un.image.state |= (src_un.image.state & EResourceState::AllStages);
 						CHECK( EResourceState_Validate( dst_un.image.state ));
 						break;
 					}
@@ -338,7 +340,6 @@ namespace AE::PipelineCompiler
 						break;
 
 					case EDescriptorType::Unknown :
-					case EDescriptorType::_Count :
 					default :
 						RETURN_ERR( "unknown descriptor type" );
 				}
@@ -407,12 +408,17 @@ namespace AE::PipelineCompiler
 		//CHECK_ERR( fromRefl.uniforms.size() == fromScript.uniforms.size() );
 		CHECK( fromRefl.samplerStorage.empty() );
 
-		const auto	ImageEqual = [] (const Image &lhs, const Image &rhs) -> bool
+		auto&	obj_storage = *ObjectStorage::Instance();
+
+		const auto	ImageEqual = [] (const Image &lhs, const Image &rhs, String &msg) -> bool
 		{{
-			CHECK_ERR(	EImageType_IsCompatible( lhs.type, rhs.type ));
-			CHECK_ERR(	lhs.format	== rhs.format	or
-						lhs.format	== Default		or
-						rhs.format	== Default );
+			CHECK_ERR_MSG(	EImageType_IsCompatible( lhs.type, rhs.type ),
+				msg << "imageType: (" << EImageType_ToString( lhs.type ) << ") != (" << EImageType_ToString( rhs.type ) << ")." );
+
+			CHECK_ERR_MSG(	lhs.format	== rhs.format	or
+							lhs.format	== Default		or
+							rhs.format	== Default,
+				msg << "format: (" << Base::ToString( lhs.format ) << ") != (" << Base::ToString( rhs.format ) << ")." );
 			return true;
 		}};
 
@@ -446,19 +452,33 @@ namespace AE::PipelineCompiler
 				case EDescriptorType::UniformBuffer :
 				case EDescriptorType::StorageBuffer :
 				{
-					CHECK_ERR( l_un.type == r_un.type );
+					String	msg = "Buffer '"s << obj_storage.GetName( l_it->first ) << "' has incompatible params: ";
+
+					CHECK_ERR_MSG( l_un.type == r_un.type,
+						msg << "type: (" << Base::ToString(l_un.type) << ") != (" << Base::ToString(r_un.type) << ")." );
+
 					//CHECK_ERR( l_un.buffer.state				== r_un.buffer.state				);
-					//CHECK_ERR( l_un.buffer.dynamicOffsetIndex	== r_un.buffer.dynamicOffsetIndex	);	// shader reflection doesn't has dynamic offset
-					CHECK_ERR( l_un.buffer.staticSize			== r_un.buffer.staticSize			);
-					CHECK_ERR( l_un.buffer.arrayStride			== r_un.buffer.arrayStride			);
-					CHECK_ERR( l_un.buffer.typeName				== r_un.buffer.typeName				);
+					//CHECK_ERR( l_un.buffer.dynamicOffsetIndex	== r_un.buffer.dynamicOffsetIndex	);	// shader reflection doesn't have dynamic offset
+
+					CHECK_ERR_MSG( l_un.buffer.staticSize == r_un.buffer.staticSize,
+						msg << "staticSize: (" << Base::ToString(l_un.buffer.staticSize) << ") != (" << Base::ToString(r_un.buffer.staticSize) << ")." );
+
+					CHECK_ERR_MSG( l_un.buffer.arrayStride == r_un.buffer.arrayStride,
+						msg << "arrayStride: (" << Base::ToString(l_un.buffer.arrayStride) << ") != (" << Base::ToString(r_un.buffer.arrayStride) << ")." );
+
+					CHECK_ERR_MSG( l_un.buffer.typeName == r_un.buffer.typeName,
+						msg << "typeName: '" << obj_storage.GetName( l_un.buffer.typeName ) << "' != '" << obj_storage.GetName( r_un.buffer.typeName ) << "'." );
 					break;
 				}
 
 				case EDescriptorType::UniformTexelBuffer :
 				case EDescriptorType::StorageTexelBuffer :
 				{
-					CHECK_ERR( l_un.type == r_un.type );
+					String	msg = "TexelBuffer '"s << obj_storage.GetName( l_it->first ) << "' has incompatible params: ";
+
+					CHECK_ERR_MSG( l_un.type == r_un.type,
+						msg << "type: (" << Base::ToString(l_un.type) << ") != (" << Base::ToString(r_un.type) << ")." );
+
 					//CHECK_ERR( l_un.texelBuffer.state == r_un.texelBuffer.state );
 					break;
 				}
@@ -467,8 +487,12 @@ namespace AE::PipelineCompiler
 				case EDescriptorType::SampledImage :
 				case EDescriptorType::SubpassInput :
 				{
-					CHECK_ERR( l_un.type == r_un.type );
-					if ( not ImageEqual( l_un.image, r_un.image ))
+					String	msg = "Image '"s << obj_storage.GetName( l_it->first ) << "' has incompatible params: ";
+
+					CHECK_ERR_MSG( l_un.type == r_un.type,
+						msg << "type: (" << Base::ToString(l_un.type) << ") != (" << Base::ToString(r_un.type) << ")." );
+
+					if ( not ImageEqual( l_un.image, r_un.image, msg ))
 						return false;
 					break;
 				}
@@ -476,31 +500,40 @@ namespace AE::PipelineCompiler
 				case EDescriptorType::CombinedImage :
 				case EDescriptorType::CombinedImage_ImmutableSampler :
 				{
-					CHECK_ERR( AnyEqual( l_un.type, EDescriptorType::CombinedImage, EDescriptorType::CombinedImage_ImmutableSampler ) or
-							   AnyEqual( r_un.type, EDescriptorType::CombinedImage, EDescriptorType::CombinedImage_ImmutableSampler ));
+					String	msg = "CombinedImage '"s << obj_storage.GetName( l_it->first ) << "' has incompatible params: ";
 
-					if ( not ImageEqual( l_un.image, r_un.image ))
+					CHECK_ERR_MSG(	AnyEqual( l_un.type, EDescriptorType::CombinedImage, EDescriptorType::CombinedImage_ImmutableSampler ) or
+									AnyEqual( r_un.type, EDescriptorType::CombinedImage, EDescriptorType::CombinedImage_ImmutableSampler ),
+						msg << "type: (" << Base::ToString(l_un.type) << ") != (" << Base::ToString(r_un.type) << ")." );
+
+					if ( not ImageEqual( l_un.image, r_un.image, msg ))
 						return false;
 					break;
 				}
 
 				case EDescriptorType::Sampler :
 				case EDescriptorType::ImmutableSampler :
-					CHECK_ERR( AnyEqual( l_un.type, EDescriptorType::Sampler, EDescriptorType::ImmutableSampler ) or
-							   AnyEqual( r_un.type, EDescriptorType::Sampler, EDescriptorType::ImmutableSampler ));
+				{
+					String	msg = "Sampler '"s << obj_storage.GetName( l_it->first ) << "' has incompatible params: ";
+
+					CHECK_ERR_MSG(	AnyEqual( l_un.type, EDescriptorType::Sampler, EDescriptorType::ImmutableSampler ) or
+									AnyEqual( r_un.type, EDescriptorType::Sampler, EDescriptorType::ImmutableSampler ),
+						msg << "type: (" << Base::ToString(l_un.type) << ") != (" << Base::ToString(r_un.type) << ")." );
 					break;
+				}
 
 				case EDescriptorType::RayTracingScene :
-					CHECK_ERR( l_un.type == r_un.type or
-							   r_un.type == EDescriptorType::RayTracingPartitionedScene );
-					break;
-
 				case EDescriptorType::RayTracingPartitionedScene :
-					CHECK_ERR( l_un.type == r_un.type );
+				{
+					String	msg = "RayTracingScene '"s << obj_storage.GetName( l_it->first ) << "' has incompatible params: ";
+
+					CHECK_ERR_MSG(	l_un.type == r_un.type or
+									r_un.type == EDescriptorType::RayTracingPartitionedScene,
+						msg << "type: (" << Base::ToString(l_un.type) << ") != (" << Base::ToString(r_un.type) << ")." );
 					break;
+				}
 
 				case EDescriptorType::Unknown :
-				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -624,7 +657,6 @@ namespace AE::PipelineCompiler
 					break;
 
 				case EDescriptorType::Unknown :
-				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -698,7 +730,6 @@ namespace AE::PipelineCompiler
 					break;
 
 				case EDescriptorType::Unknown :
-				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}

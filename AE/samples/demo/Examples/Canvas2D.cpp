@@ -307,7 +307,7 @@ namespace AE::Samples::Demo
 		CHECK_ERR( surf_acquire );
 
 		auto	upload	= uploadMngr->UploadAsync( *batch, 1 );
-		auto	draw	= batch->Run( _DrawTask( GetRC<Canvas2DSample>(), rg.GetSurfaceArg() ), Tuple{surf_acquire} );
+		auto	draw	= batch->Run( _DrawTask( GetRC<Canvas2DSample>(), rg.GetSurface() ), Tuple{surf_acquire} );
 
 		return batch->SubmitAsTask( Tuple{ upload, draw });
 	}

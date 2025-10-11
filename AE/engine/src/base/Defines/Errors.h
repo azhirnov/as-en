@@ -34,11 +34,8 @@
 
 // exit
 #ifndef AE_PRIVATE_EXIT
-# if defined(AE_PLATFORM_ANDROID)
-#	define AE_PRIVATE_EXIT()			{std::terminate();}
-# else
-#	define AE_PRIVATE_EXIT()			{::exit( EXIT_FAILURE );}
-# endif
+	namespace AE { void FastCloseApp (); }
+#	define AE_PRIVATE_EXIT()			{AE::FastCloseApp();}
 #endif
 
 
@@ -137,21 +134,21 @@
 #ifndef AE_LOGI
 #	define AE_LOGI( /* msg, file, line */... )														\
 			AE_PRIVATE_LOG_I( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),								\
-							  AE_PRIVATE_GETARG_1( __VA_ARGS__, std::source_location::current(), ))
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, ::AE::Base::SourceLoc::current(), ))
 #endif
 
 // log error
 #ifndef AE_LOGE
 #	define AE_LOGE( /* msg, file, line */... )														\
 			AE_PRIVATE_LOG_E( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),								\
-							  AE_PRIVATE_GETARG_1( __VA_ARGS__, std::source_location::current(), ))
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, ::AE::Base::SourceLoc::current(), ))
 #endif
 
 // log warning (silent)
 #ifndef AE_LOGW
 #	define AE_LOGW( /* msg, file, line */... )														\
 			AE_PRIVATE_LOG_W( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ),								\
-							  AE_PRIVATE_GETARG_1( __VA_ARGS__, std::source_location::current(), ))
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, ::AE::Base::SourceLoc::current(), ))
 #endif
 
 

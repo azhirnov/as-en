@@ -13,7 +13,7 @@ using ImageDim_t			= Graphics::ImageDim_t;
 	ImagePacker_IsValid
 =================================================
 */
-	ND_ inline bool  ImagePacker_IsValid (const ImgPackHeader_t &header) __NE___
+	Nd__In bool  ImagePacker_IsValid (const ImgPackHeader_t &header) __NE___
 	{
 		CHECK_ERR( All( uint3{header.dimension} > uint3{0} ));
 		CHECK_ERR( header.arrayLayers > 0 );
@@ -69,7 +69,7 @@ using ImageDim_t			= Graphics::ImageDim_t;
 	ImagePacker_MaxSliceSize
 =================================================
 */
-	ND_ inline Bytes  ImagePacker_MaxSliceSize (const ImgPackHeader_t &header) __NE___
+	Nd__In Bytes  ImagePacker_MaxSliceSize (const ImgPackHeader_t &header) __NE___
 	{
 		auto&	fmt_info	= EPixelFormat_GetInfo( header.format );
 		Bytes	row_size	= AlignUp( ImageUtils_t::RowSize( header.dimension.x, fmt_info.bitsPerBlock, fmt_info.TexBlockDim() ), header.rowAlignPOT );
@@ -82,7 +82,7 @@ using ImageDim_t			= Graphics::ImageDim_t;
 	ReadHeader
 =================================================
 */
-	ND_ inline bool  ImagePacker_Deserialize (Serializing::Deserializer &des, OUT ImgPackFileHeader_t &header) __NE___
+	Nd__In bool  ImagePacker_Deserialize (Serializing::Deserializer &des, OUT ImgPackFileHeader_t &header) __NE___
 	{
 		bool	res = des( OUT header );
 		res &= (header.magic == AE::AssetPacker::ImagePacker::Magic);
@@ -91,7 +91,7 @@ using ImageDim_t			= Graphics::ImageDim_t;
 		return res and ImagePacker_IsValid( header.imageHeader );
 	}
 
-	ND_ inline bool  ImagePacker_ReadHeader (RStream &stream, OUT ImgPackFileHeader_t &header) __NE___
+	Nd__In bool  ImagePacker_ReadHeader (RStream &stream, OUT ImgPackFileHeader_t &header) __NE___
 	{
 		ASSERT( stream.IsOpen() );
 
@@ -103,7 +103,7 @@ using ImageDim_t			= Graphics::ImageDim_t;
 		return res;
 	}
 
-	ND_ inline bool  ImagePacker_ReadHeader (RStream &stream, OUT ImgPackHeader_t &header) __NE___
+	Nd__In bool  ImagePacker_ReadHeader (RStream &stream, OUT ImgPackHeader_t &header) __NE___
 	{
 		ImgPackFileHeader_t	tmp;
 		bool	res = ImagePacker_ReadHeader( stream, OUT tmp );
@@ -116,14 +116,14 @@ using ImageDim_t			= Graphics::ImageDim_t;
 	ImagePacker_SaveHeader
 =================================================
 */
-	ND_ inline bool  ImagePacker_SaveHeader (WStream &stream, const ImgPackFileHeader_t &header) __NE___
+	Nd__In bool  ImagePacker_SaveHeader (WStream &stream, const ImgPackFileHeader_t &header) __NE___
 	{
 		ASSERT( stream.IsOpen() );
 		ASSERT( ImagePacker_IsValid( header.imageHeader ));
 		return stream.Write( &header, Sizeof(header) );
 	}
 
-	ND_ inline bool  ImagePacker_SaveHeader (WStream &stream, const ImgPackHeader_t &header) __NE___
+	Nd__In bool  ImagePacker_SaveHeader (WStream &stream, const ImgPackHeader_t &header) __NE___
 	{
 		return ImagePacker_SaveHeader( stream, ImgPackFileHeader_t{header} );
 	}
@@ -134,7 +134,7 @@ using ImageDim_t			= Graphics::ImageDim_t;
 =================================================
 */
 #ifdef AE_BUILD_ASSET_PACKER
-	ND_ inline bool  ImagePacker_SaveImage (WStream &stream, const ImgPackHeader_t &header, const ResLoader::IntermImage &src) __NE___
+	Nd__In bool  ImagePacker_SaveImage (WStream &stream, const ImgPackHeader_t &header, const ResLoader::IntermImage &src) __NE___
 	{
 		ASSERT( stream.IsOpen() );
 		ASSERT( ImagePacker_IsValid( header ));

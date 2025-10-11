@@ -53,11 +53,9 @@ namespace AE::AppV1
 		// which started in 'RenderFrame()', will complete.
 		//   'threadMask'	- thread types which can be passed to 'Scheduler().ProcessTasks()'
 		//   'window'		- active window or null.
-		//   'vrDevice'		- active VR device or null.
 		//
 			virtual void  WaitFrame (const Threading::EThreadArray	&threadMask,
-									 Ptr<IWindow>					window,
-									 Ptr<IVRDevice>					vrDevice)	__NE___	= 0;
+									 Ptr<IWindow>					window)		__NE___	= 0;
 	};
 
 

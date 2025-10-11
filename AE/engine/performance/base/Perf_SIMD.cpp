@@ -1170,6 +1170,7 @@ namespace
 						{
 						  #ifdef AE_PLATFORM_APPLE
 							ThreadUtils::SetPriority( EThreadPriority::Highest );
+							Unused( core_id );
 						  #else
 							ThreadUtils::SetAffinity( core_id );
 						  #endif

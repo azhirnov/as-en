@@ -491,7 +491,7 @@ namespace AE::ResEditor
 			return it->second;
 
 		ShaderStructTypePtr	st{ new ShaderStructType{"SceneGraphicsPassUB"}};
-		st->Set( EStructLayout::Std140, R"#(
+		st->Set( EStructLayout::Compatible_Std140, R"#(
 				// view //
 				float2		resolution;				// viewport resolution (in pixels)
 				float2		invResolution;			// 1.0/resolution, used for optimization
@@ -833,7 +833,8 @@ namespace AE::ResEditor
 					{
 						outScene = _scene->ToScene();												// throw
 						_CompilePipelines2( se, _output, _subpasses, *_scene, _dynamicDim.Get() );	// throw
-					});
+					},
+					_baseFlags );
 	}
 //-----------------------------------------------------------------------------
 
@@ -1120,7 +1121,7 @@ namespace AE::ResEditor
 			return it->second;
 
 		ShaderStructTypePtr	st{ new ShaderStructType{"SceneRayTracingPassUB"}};
-		st->Set( EStructLayout::Std140, R"#(
+		st->Set( EStructLayout::Compatible_Std140, R"#(
 				// view //
 				float		time;					// shader playback time (in seconds)
 				float		timeDelta;				// frame render time (in seconds), max value: 1/30s
@@ -1225,7 +1226,8 @@ namespace AE::ResEditor
 						outScene = _scene->ToScene();							// throw
 						_CompilePipelines2( se, OUT pplnName, OUT sbtName );	// throw
 						_CreateRTScene( sbtName, OUT rtScene );
-					});
+					},
+					_baseFlags );
 	}
 
 /*

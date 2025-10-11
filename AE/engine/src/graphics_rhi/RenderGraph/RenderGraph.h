@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	thread-safe:  no
+	Thread-safe:  no
 */
 
 #pragma once
@@ -91,7 +91,7 @@ namespace AE::RG::_hidden_
 			// Batch is submitted as single command and can be synchronized with host (CPU) only before and after batch command execution.
 			// So Readback sync is defined for command batch instead of specific command buffer.
 			//
-			// ReadbackMemory	- barrier: CopyDst -> HostRead
+			// ReadbackMemory	- add barrier: CopyDst -> HostRead
 			//
 			ND_ CmdBatchBuilder &&	ReadbackMemory ()															rvNE___;
 

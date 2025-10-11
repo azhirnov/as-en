@@ -91,6 +91,12 @@
 #include "threading/TaskSystem/TaskProfiler.h"
 #include "threading/TaskSystem/EThread.h"
 
+#ifdef AE_CFG_RELEASE
+#	define AE_ENABLE_TASK_NAME		0
+#else
+#	define AE_ENABLE_TASK_NAME		1
+#endif
+
 namespace AE::Threading
 {
 	enum class ETaskStatus : uint
@@ -218,13 +224,13 @@ namespace AE::_Coro_
 		const EFlags					_flags				{Default};					
 		ETaskQueue						_queueType			{ETaskQueue::PerFrame};
 
-		DEBUG_ONLY(
+		#if AE_ENABLE_TASK_NAME
 		  protected:
 			Atomic<bool>				_isRunning			{false};
 			DbgString_t					_dbgName;
 		  private:
 			uint						_resumeCount		{0};
-		)
+		#endif
 		
 		PtrWithSpinLock< OutputChunk >	_output				{null};
 
@@ -247,10 +253,12 @@ namespace AE::_Coro_
 		ND_ bool		IsCompleted ()								C_NE___	{ return Status() == EStatus::Completed; }		// status: Completed
 		ND_ bool		IsDummy ()									C_NE___;
 
-		DEBUG_ONLY(
-			ND_ StringView	DbgName ()								C_NE___	{ return _dbgName ? StringView{_dbgName.get()} : StringView{}; }
-			ND_ bool		DbgIsRunning ()							C_NE___	{ return _isRunning.load(); }
-		)
+	  #if AE_ENABLE_TASK_NAME
+		ND_ StringView	DbgName ()									C_NE___	{ return _dbgName ? StringView{_dbgName.get()} : StringView{}; }
+		ND_ bool		DbgIsRunning ()								C_NE___	{ return _isRunning.load(); }
+	  #else
+		ND_ StringView	DbgName ()									C_NE___	{ return Default; }
+	  #endif
 
 		// Coroutine //
 		ND_ auto		final_suspend ()							C_NE___	{ return std::suspend_always{}; }				// must not be 'suspend_never'
@@ -283,10 +291,10 @@ namespace AE::_Coro_
 		// Only during initialization or while executing
 			void  _SetQueueType (ETaskQueue type)					__NE___;
 			
-		DEBUG_ONLY(
+		#if AE_ENABLE_TASK_NAME
 			void  _SetDebugName (StringView dbgName)				__NE___;
 			void  _SetDebugName (const SourceLoc &loc)				__NE___;
-		)
+		#endif
 
 		// Only in constructor!
 			void  _MakeCompletedUnsafe ()							__NE___;
@@ -363,8 +371,8 @@ namespace AE::_Coro_
 		Nd__IF static auto			LoadWaitCount (const AsyncTaskImpl &self)						__NE___	{ return self._waitCount.load(); }
 		Nd__IF static bool			IsFastCancellation (const AsyncTaskImpl &self)					__NE___ { return self._willBeCanceled.load() and NoBits( self._flags, EFlags::RunCancelled ); }
 		____IF static void			SetQueueType (AsyncTaskImpl &self, ETaskQueue type)				__NE___	{ self._SetQueueType( type ); }
-
-		#ifdef AE_DEBUG
+		
+		#if AE_ENABLE_TASK_NAME
 			   static void			Init (AsyncTaskImpl&, ETaskQueue, StringView, const SourceLoc&)	__NE___;
 		#else
 			   static void			Init (AsyncTaskImpl &self, ETaskQueue queue)					__NE___	{ if ( queue != Default ) self._SetQueueType( queue ); }
@@ -690,7 +698,9 @@ namespace AE::_Coro_
 	template <ETaskQueue Q>
 	forceinline auto  InlineCoroImpl<Q>::get_return_object (const SourceLoc &loc)	__NE___
 	{
-		DEBUG_ONLY( this->_SetDebugName( loc );)
+		#if AE_ENABLE_TASK_NAME
+			this->_SetDebugName( loc );
+		#endif
 		Unused( loc );
 		return Coroutine_t{ this };
 	}
@@ -855,7 +865,9 @@ namespace AE::_Coro_
 	template <typename R, ETaskQueue Q>
 	forceinline auto  InlinePromiseImpl<R,Q>::get_return_object (const SourceLoc &loc) __NE___
 	{
-		DEBUG_ONLY( this->_SetDebugName( loc );)
+		#if AE_ENABLE_TASK_NAME
+			this->_SetDebugName( loc );
+		#endif
 		Unused( loc );
 		return Coroutine_t{ this };
 	}
@@ -1984,7 +1996,7 @@ namespace AE::_Coro_
 			// mix of template/auto and explicit types
 			else
 			{
-				StaticAssert( false, "not supported" );
+				//StaticAssert( false, "not supported" );	// TODO
 				// TODO
 				return { ESafeCoroError::OK, -1 };
 			}
@@ -2030,16 +2042,16 @@ namespace AE::_Coro_
 			"Used 'auto' or template arguments with reference.\n"
 			"Not allowed: 'auto&', 'auto&&', 'const auto&', same for template types." );
 
-		#if __cpp_static_assert >= 202306L
-			StaticAssert( err != ESafeCoroError::ArgIsReference, "\n"
-				 std::format("argument {} with reference to the object is unsafe - lifetime of object may not match with coroutine lifetime", err_idx.second ));
+		#if 0 //__cpp_static_assert >= 202306L
+			StaticAssert( err != ESafeCoroError::ArgIsReference,
+				 std::format("\nargument {} with reference to the object is unsafe - lifetime of object may not match with coroutine lifetime", idx ));
 		
-			StaticAssert( err != ESafeCoroError::ArgIsPointer, "\n"
-				std::format("argument {} with pointer to the object is unsafe - lifetime of object may not match with coroutine lifetime\n"
-					"use smart pointers instead", err_idx.second ));
+			StaticAssert( err != ESafeCoroError::ArgIsPointer,
+				std::format("\nargument {} with pointer to the object is unsafe - lifetime of object may not match with coroutine lifetime\n"
+					"use smart pointers instead", idx ));
 		
-			StaticAssert( err != ESafeCoroError::ArgIsView, "\n"
-				std::format("argument {} with view type is unsafe - lifetime of referenced memory may not match with coroutine lifetime", err_idx.second ));
+			StaticAssert( err != ESafeCoroError::ArgIsView,
+				std::format("\nargument {} with view type is unsafe - lifetime of referenced memory may not match with coroutine lifetime", idx ));
 
 		#else
 			StaticAssert( idx == -1 );

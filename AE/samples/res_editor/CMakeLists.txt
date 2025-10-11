@@ -53,12 +53,6 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
 		AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
 		AE_LOCAL_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/_data"
 	)
-
-	if (${AE_RES_EDITOR_RELEASE})
-		target_compile_definitions( ${APP_NAME} PUBLIC "AE_PUBLIC_VERSION=true" )
-	else()
-		target_compile_definitions( ${APP_NAME} PUBLIC "AE_PUBLIC_VERSION=false" )
-	endif()
 	#----------------------------------------------------------
 
 	set( AE_TEMP_FOLDER_RESEDITOR "${AE_TEMP_FOLDER}/samples/res_editor" )

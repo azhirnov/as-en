@@ -3,7 +3,7 @@
 #pragma once
 
 #include "pch/Serializing.h"
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 
 using namespace AE::Serializing;
 

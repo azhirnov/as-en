@@ -29,7 +29,7 @@ Download `AsEn-Tools-<platform>-<compiler>-<config>` archive with `RemoteGraphic
 
 ## Folder structure
 
-On CI ResourceEditor compiled with `AE_PUBLIC_VERSION=1` which requires different folder structure than in git.
+On CI ResourceEditor compiled with `AE_PORTABLE_APP=ON` which requires different folder structure than in git.
 
 ```
 data                -- git: AE/samples/res_editor/_data
@@ -50,4 +50,4 @@ GraphicsRHI-shared  -- shared lib from CI, optional, see 'Remote version'
 Minimal set of resources which required to run all samples.
 Many samples can run without it.
 
-Download: [link](https://disk.yandex.ru/d/3BpBTkqZMeIxsQ).
+Download: [link](https://disk.yandex.ru/d/GC-lD9H1kBmYKw).

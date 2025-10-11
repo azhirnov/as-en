@@ -466,7 +466,7 @@ slong  DebugInfo::GetUniqueSymbolID ()
 	IsBuiltinFunction
 =================================================
 */
-ND_ inline bool  IsBuiltinFunction (TOperator op)
+Nd__In bool  IsBuiltinFunction (TOperator op)
 {
   #if 0 // not PROFILER and HIGH_DETAIL_TRACE
 	if ( op > TOperator::EOpPreDecrement and op < TOperator::EOpAdd )
@@ -482,7 +482,7 @@ ND_ inline bool  IsBuiltinFunction (TOperator op)
 	IsDebugFunction
 =================================================
 */
-ND_ inline bool  IsDebugFunction (TIntermOperator* node)
+Nd__In bool  IsDebugFunction (TIntermOperator* node)
 {
 	auto*	aggr = node->getAsAggregate();
 

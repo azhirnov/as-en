@@ -133,7 +133,8 @@ namespace
 		return ScriptExe::ScriptPassApi::ConvertAndLoad(
 					[this, &ubSize] (ScriptEnginePtr) {
 						_CompilePipeline2( OUT ubSize );	// throw
-					});
+					},
+					_baseFlags );
 	}
 
 /*
@@ -236,7 +237,7 @@ namespace AE::ResEditor
 			return it->second;
 
 		ShaderStructTypePtr	st{ new ShaderStructType{"ComputeMipUB"}};
-		st->Set( EStructLayout::Std140, R"#(
+		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float		time;			// shader playback time (in seconds)
 				float		timeDelta;		// frame render time (in seconds), max value: 1/30s
 				uint		frame;			// shader playback frame, global frame counter
@@ -277,7 +278,7 @@ namespace AE::ResEditor
 			return it->second;
 
 		ShaderStructTypePtr	st{ new ShaderStructType{"ComputeMipPC"}};
-		st->Set( EStructLayout::Std140, R"#(
+		st->Set( EStructLayout::Compatible_Std140, R"#(
 				float2	invResolution;
 				uint2	resolution;
 			)#");

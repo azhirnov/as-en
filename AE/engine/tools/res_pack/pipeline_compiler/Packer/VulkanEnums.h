@@ -41,7 +41,7 @@ namespace
 	VEnumCast (EAttachmentLoadOp)
 =================================================
 */
-	ND_ inline VkAttachmentLoadOp  VEnumCast (EAttachmentLoadOp value) __NE___
+	Nd__In VkAttachmentLoadOp  VEnumCast (EAttachmentLoadOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -61,7 +61,7 @@ namespace
 	VEnumCast (EAttachmentStoreOp)
 =================================================
 */
-	ND_ inline VkAttachmentStoreOp  VEnumCast (EAttachmentStoreOp value) __NE___
+	Nd__In VkAttachmentStoreOp  VEnumCast (EAttachmentStoreOp value) __NE___
 	{
 		switch_enum( value )
 		{

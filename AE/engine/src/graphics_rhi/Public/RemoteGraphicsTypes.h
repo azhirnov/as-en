@@ -118,79 +118,79 @@ namespace AE::RemoteGraphics
 	RmCast
 =================================================
 */
-	ND_ inline RmBufferID				RmCast (BufferID				id)		{ return BitCast<RmBufferID>(id); }
-	ND_ inline BufferID					RmCast (RmBufferID				id)		{ return BitCast<BufferID>(id); }
+	Nd__In RmBufferID				RmCast (BufferID				id)		{ return BitCast<RmBufferID>(id); }
+	Nd__In BufferID					RmCast (RmBufferID				id)		{ return BitCast<BufferID>(id); }
 
-	ND_ inline RmImageID				RmCast (ImageID					id)		{ return BitCast<RmImageID>(id); }
-	ND_ inline ImageID					RmCast (RmImageID				id)		{ return BitCast<ImageID>(id); }
+	Nd__In RmImageID				RmCast (ImageID					id)		{ return BitCast<RmImageID>(id); }
+	Nd__In ImageID					RmCast (RmImageID				id)		{ return BitCast<ImageID>(id); }
 
-	ND_ inline RmBufferViewID			RmCast (BufferViewID			id)		{ return BitCast<RmBufferViewID>(id); }
-	ND_ inline BufferViewID				RmCast (RmBufferViewID			id)		{ return BitCast<BufferViewID>(id); }
+	Nd__In RmBufferViewID			RmCast (BufferViewID			id)		{ return BitCast<RmBufferViewID>(id); }
+	Nd__In BufferViewID				RmCast (RmBufferViewID			id)		{ return BitCast<BufferViewID>(id); }
 
-	ND_ inline RmImageViewID			RmCast (ImageViewID				id)		{ return BitCast<RmImageViewID>(id); }
-	ND_ inline ImageViewID				RmCast (RmImageViewID			id)		{ return BitCast<ImageViewID>(id); }
+	Nd__In RmImageViewID			RmCast (ImageViewID				id)		{ return BitCast<RmImageViewID>(id); }
+	Nd__In ImageViewID				RmCast (RmImageViewID			id)		{ return BitCast<ImageViewID>(id); }
 
-	ND_ inline RmRTGeometryID			RmCast (RTGeometryID			id)		{ return BitCast<RmRTGeometryID>(id); }
-	ND_ inline RTGeometryID				RmCast (RmRTGeometryID			id)		{ return BitCast<RTGeometryID>(id); }
+	Nd__In RmRTGeometryID			RmCast (RTGeometryID			id)		{ return BitCast<RmRTGeometryID>(id); }
+	Nd__In RTGeometryID				RmCast (RmRTGeometryID			id)		{ return BitCast<RTGeometryID>(id); }
 
-	ND_ inline RmRTSceneID				RmCast (RTSceneID				id)		{ return BitCast<RmRTSceneID>(id); }
-	ND_ inline RTSceneID				RmCast (RmRTSceneID				id)		{ return BitCast<RTSceneID>(id); }
+	Nd__In RmRTSceneID				RmCast (RTSceneID				id)		{ return BitCast<RmRTSceneID>(id); }
+	Nd__In RTSceneID				RmCast (RmRTSceneID				id)		{ return BitCast<RTSceneID>(id); }
 
-	ND_ inline RmRTShaderBindingID		RmCast (RTShaderBindingID		id)		{ return BitCast<RmRTShaderBindingID>(id); }
-	ND_ inline RTShaderBindingID		RmCast (RmRTShaderBindingID		id)		{ return BitCast<RTShaderBindingID>(id); }
+	Nd__In RmRTShaderBindingID		RmCast (RTShaderBindingID		id)		{ return BitCast<RmRTShaderBindingID>(id); }
+	Nd__In RTShaderBindingID		RmCast (RmRTShaderBindingID		id)		{ return BitCast<RTShaderBindingID>(id); }
 
-	ND_ inline RmMemoryID				RmCast (MemoryID				id)		{ return BitCast<RmMemoryID>(id); }
-	ND_ inline MemoryID					RmCast (RmMemoryID				id)		{ return BitCast<MemoryID>(id); }
+	Nd__In RmMemoryID				RmCast (MemoryID				id)		{ return BitCast<RmMemoryID>(id); }
+	Nd__In MemoryID					RmCast (RmMemoryID				id)		{ return BitCast<MemoryID>(id); }
 
-	ND_ inline RmPipelineCacheID		RmCast (PipelineCacheID			id)		{ return BitCast<RmPipelineCacheID>(id); }
-	ND_ inline PipelineCacheID			RmCast (RmPipelineCacheID		id)		{ return BitCast<PipelineCacheID>(id); }
+	Nd__In RmPipelineCacheID		RmCast (PipelineCacheID			id)		{ return BitCast<RmPipelineCacheID>(id); }
+	Nd__In PipelineCacheID			RmCast (RmPipelineCacheID		id)		{ return BitCast<PipelineCacheID>(id); }
 
-	ND_ inline RmDescriptorSetID		RmCast (DescriptorSetID			id)		{ return BitCast<RmDescriptorSetID>(id); }
-	ND_ inline DescriptorSetID			RmCast (RmDescriptorSetID		id)		{ return BitCast<DescriptorSetID>(id); }
+	Nd__In RmDescriptorSetID		RmCast (DescriptorSetID			id)		{ return BitCast<RmDescriptorSetID>(id); }
+	Nd__In DescriptorSetID			RmCast (RmDescriptorSetID		id)		{ return BitCast<DescriptorSetID>(id); }
 
-	ND_ inline RmPipelinePackID			RmCast (PipelinePackID			id)		{ return BitCast<RmPipelinePackID>(id); }
-	ND_ inline PipelinePackID			RmCast (RmPipelinePackID		id)		{ return BitCast<PipelinePackID>(id); }
+	Nd__In RmPipelinePackID			RmCast (PipelinePackID			id)		{ return BitCast<RmPipelinePackID>(id); }
+	Nd__In PipelinePackID			RmCast (RmPipelinePackID		id)		{ return BitCast<PipelinePackID>(id); }
 
-	ND_ inline RmGraphicsPipelineID		RmCast (GraphicsPipelineID		id)		{ return BitCast<RmGraphicsPipelineID>(id); }
-	ND_ inline GraphicsPipelineID		RmCast (RmGraphicsPipelineID	id)		{ return BitCast<GraphicsPipelineID>(id); }
+	Nd__In RmGraphicsPipelineID		RmCast (GraphicsPipelineID		id)		{ return BitCast<RmGraphicsPipelineID>(id); }
+	Nd__In GraphicsPipelineID		RmCast (RmGraphicsPipelineID	id)		{ return BitCast<GraphicsPipelineID>(id); }
 
-	ND_ inline RmMeshPipelineID			RmCast (MeshPipelineID			id)		{ return BitCast<RmMeshPipelineID>(id); }
-	ND_ inline MeshPipelineID			RmCast (RmMeshPipelineID		id)		{ return BitCast<MeshPipelineID>(id); }
+	Nd__In RmMeshPipelineID			RmCast (MeshPipelineID			id)		{ return BitCast<RmMeshPipelineID>(id); }
+	Nd__In MeshPipelineID			RmCast (RmMeshPipelineID		id)		{ return BitCast<MeshPipelineID>(id); }
 
-	ND_ inline RmComputePipelineID		RmCast (ComputePipelineID		id)		{ return BitCast<RmComputePipelineID>(id); }
-	ND_ inline ComputePipelineID		RmCast (RmComputePipelineID		id)		{ return BitCast<ComputePipelineID>(id); }
+	Nd__In RmComputePipelineID		RmCast (ComputePipelineID		id)		{ return BitCast<RmComputePipelineID>(id); }
+	Nd__In ComputePipelineID		RmCast (RmComputePipelineID		id)		{ return BitCast<ComputePipelineID>(id); }
 
-	ND_ inline RmRayTracingPipelineID	RmCast (RayTracingPipelineID	id)		{ return BitCast<RmRayTracingPipelineID>(id); }
-	ND_ inline RayTracingPipelineID		RmCast (RmRayTracingPipelineID	id)		{ return BitCast<RayTracingPipelineID>(id); }
+	Nd__In RmRayTracingPipelineID	RmCast (RayTracingPipelineID	id)		{ return BitCast<RmRayTracingPipelineID>(id); }
+	Nd__In RayTracingPipelineID		RmCast (RmRayTracingPipelineID	id)		{ return BitCast<RayTracingPipelineID>(id); }
 
-	ND_ inline RmTilePipelineID			RmCast (TilePipelineID			id)		{ return BitCast<RmTilePipelineID>(id); }
-	ND_ inline TilePipelineID			RmCast (RmTilePipelineID		id)		{ return BitCast<TilePipelineID>(id); }
+	Nd__In RmTilePipelineID			RmCast (TilePipelineID			id)		{ return BitCast<RmTilePipelineID>(id); }
+	Nd__In TilePipelineID			RmCast (RmTilePipelineID		id)		{ return BitCast<TilePipelineID>(id); }
 
-	ND_ inline RmDescriptorSetLayoutID	RmCast (DescriptorSetLayoutID	id)		{ return BitCast<RmDescriptorSetLayoutID>(id); }
-	ND_ inline DescriptorSetLayoutID	RmCast (RmDescriptorSetLayoutID	id)		{ return BitCast<DescriptorSetLayoutID>(id); }
+	Nd__In RmDescriptorSetLayoutID	RmCast (DescriptorSetLayoutID	id)		{ return BitCast<RmDescriptorSetLayoutID>(id); }
+	Nd__In DescriptorSetLayoutID	RmCast (RmDescriptorSetLayoutID	id)		{ return BitCast<DescriptorSetLayoutID>(id); }
 
-	ND_ inline RmVideoSessionID			RmCast (VideoSessionID			id)		{ return BitCast<RmVideoSessionID>(id); }
-	ND_ inline VideoSessionID			RmCast (RmVideoSessionID		id)		{ return BitCast<VideoSessionID>(id); }
+	Nd__In RmVideoSessionID			RmCast (VideoSessionID			id)		{ return BitCast<RmVideoSessionID>(id); }
+	Nd__In VideoSessionID			RmCast (RmVideoSessionID		id)		{ return BitCast<VideoSessionID>(id); }
 
-	ND_ inline RmVideoBufferID			RmCast (VideoBufferID			id)		{ return BitCast<RmVideoBufferID>(id); }
-	ND_ inline VideoBufferID			RmCast (RmVideoBufferID			id)		{ return BitCast<VideoBufferID>(id); }
+	Nd__In RmVideoBufferID			RmCast (VideoBufferID			id)		{ return BitCast<RmVideoBufferID>(id); }
+	Nd__In VideoBufferID			RmCast (RmVideoBufferID			id)		{ return BitCast<VideoBufferID>(id); }
 
-	ND_ inline RmVideoImageID			RmCast (VideoImageID			id)		{ return BitCast<RmVideoImageID>(id); }
-	ND_ inline VideoImageID				RmCast (RmVideoImageID			id)		{ return BitCast<VideoImageID>(id); }
+	Nd__In RmVideoImageID			RmCast (VideoImageID			id)		{ return BitCast<RmVideoImageID>(id); }
+	Nd__In VideoImageID				RmCast (RmVideoImageID			id)		{ return BitCast<VideoImageID>(id); }
 
-	ND_ inline SamplerID				RmCast (RmSamplerID				id)		{ return BitCast<SamplerID>(id); }
-	ND_ inline RmSamplerID				RmCast (SamplerID				id)		{ return BitCast<RmSamplerID>(id); }
+	Nd__In SamplerID				RmCast (RmSamplerID				id)		{ return BitCast<SamplerID>(id); }
+	Nd__In RmSamplerID				RmCast (SamplerID				id)		{ return BitCast<RmSamplerID>(id); }
 
-	ND_ inline PipelineLayoutID			RmCast (RmPipelineLayoutID		id)		{ return BitCast<PipelineLayoutID>(id); }
-	ND_ inline RmPipelineLayoutID		RmCast (PipelineLayoutID		id)		{ return BitCast<RmPipelineLayoutID>(id); }
+	Nd__In PipelineLayoutID			RmCast (RmPipelineLayoutID		id)		{ return BitCast<PipelineLayoutID>(id); }
+	Nd__In RmPipelineLayoutID		RmCast (PipelineLayoutID		id)		{ return BitCast<RmPipelineLayoutID>(id); }
 
-	ND_ inline Bytes					RmCast (RmDeviceOffset		offset)		{ return BitCast<Bytes>(offset); }
-	ND_ inline void*					RmCast (RmDevicePtr			ptr)		{ return BitCastRlx<void*>(ptr); }
-	ND_ inline Bytes					RmCast (RmHostOffset		offset)		{ return BitCast<Bytes>(offset); }
-	ND_ inline void*					RmCast (RmHostPtr			ptr)		{ return BitCastRlx<void*>(ptr); }
+	Nd__In Bytes					RmCast (RmDeviceOffset		offset)		{ return BitCast<Bytes>(offset); }
+	Nd__In void*					RmCast (RmDevicePtr			ptr)		{ return BitCastRlx<void*>(ptr); }
+	Nd__In Bytes					RmCast (RmHostOffset		offset)		{ return BitCast<Bytes>(offset); }
+	Nd__In void*					RmCast (RmHostPtr			ptr)		{ return BitCastRlx<void*>(ptr); }
 
 	template <typename T>
-	ND_ inline auto  RmCast (ArrayView<T> arr)
+	Nd__In auto  RmCast (ArrayView<T> arr)
 	{
 		using R = decltype(RmCast( T{} ));
 		StaticAssert( sizeof(R) == sizeof(T) );
@@ -198,7 +198,7 @@ namespace AE::RemoteGraphics
 	}
 
 	template <typename T>
-	ND_ inline auto  RmCast (const Array<T> &arr)
+	Nd__In auto  RmCast (const Array<T> &arr)
 	{
 		return RmCast( ArrayView<T>{arr} );
 	}

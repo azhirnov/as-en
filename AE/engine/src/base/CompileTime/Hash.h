@@ -83,7 +83,7 @@ namespace AE::Base
 	_Hash
 =================================================
 */
-	NdCxIn uint  operator "" _Hash (char const * const str, const usize size) __NE___
+	NdCxIn uint  operator ""_Hash (char const * const str, const usize size) __NE___
 	{
 		return uint(CT_Hash( str, size, 0x8732'9805u ));
 	}

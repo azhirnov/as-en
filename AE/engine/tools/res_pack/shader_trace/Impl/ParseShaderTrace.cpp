@@ -288,12 +288,12 @@ namespace
 	TypeToString
 =================================================
 */
-	ND_ inline String  TypeToString (bool value)
+	Nd__In String  TypeToString (bool value)
 	{
 		return value ? "true" : "false";
 	}
 
-	ND_ inline String  TypeToString (float value)
+	Nd__In String  TypeToString (float value)
 	{
 		float	f		 = std::abs(value);
 		bool	exp		 = f != 0.0f and (f < 1.0e-4f or f > 1.0e+5f);
@@ -302,7 +302,7 @@ namespace
 		return buf;
 	}
 
-	ND_ inline String  TypeToString (double value)
+	Nd__In String  TypeToString (double value)
 	{
 		double	f		 = std::abs(value);
 		bool	exp		 = f != 0.0 and (f < 1.0e-4 or f > 1.0e+5);
@@ -311,13 +311,13 @@ namespace
 		return buf;
 	}
 
-	ND_ inline String  TypeToString (half value)
+	Nd__In String  TypeToString (half value)
 	{
 		return TypeToString( value.Get() );
 	}
 
 	template <typename T>
-	ND_ inline String  TypeToString (T value)
+	Nd__In String  TypeToString (T value)
 	{
 		return ToString( value );
 	}
@@ -328,7 +328,7 @@ namespace
 =================================================
 */
 	template <typename T>
-	ND_ inline String  TypeToString (uint rows, const StaticArray<T,4> &values)
+	Nd__In String  TypeToString (uint rows, const StaticArray<T,4> &values)
 	{
 		String	str;
 
@@ -347,7 +347,7 @@ namespace
 	}
 
 	template <typename Dst, typename Src>
-	ND_ inline String  TypeToString2 (uint rows, const StaticArray<Src,4> &values)
+	Nd__In String  TypeToString2 (uint rows, const StaticArray<Src,4> &values)
 	{
 		String	str;
 
@@ -607,7 +607,7 @@ namespace
 	TypeSizeOf
 =================================================
 */
-	ND_ inline uint  TypeSizeOf (uint type)
+	Nd__In uint  TypeSizeOf (uint type)
 	{
 		switch ( type )
 		{

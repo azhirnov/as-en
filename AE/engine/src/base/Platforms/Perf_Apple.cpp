@@ -4,6 +4,7 @@
 
 #ifdef AE_PLATFORM_APPLE
 # include "base/Platforms/PerformanceStat.h"
+# include "base/Platforms/UnixProcess.h"
 
 namespace AE::Base
 {

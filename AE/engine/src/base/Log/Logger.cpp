@@ -16,10 +16,12 @@
 
 #include "base/Log/Logger.h"
 #include "base/Algorithms/ToString.h"
+#include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/Parser.h"
 #include "base/DataSource/File.h"
 #include "base/Platforms/ThreadUtils.h"
 #include "base/FileSystem/FileSystem.h"
+#include "base/Platforms/Platform.h"
 
 
 #ifdef AE_PLATFORM_EMSCRIPTEN
@@ -106,7 +108,7 @@ namespace
 	MinimizeThreadID
 =================================================
 */
-	ND_ inline usize  MinimizeThreadID (usize id) __NE___
+	Nd__In usize  MinimizeThreadID (usize id) __NE___
 	{
 		if constexpr( sizeof(id) > 4 ) {
 			id ^= (id >> 32);
@@ -128,7 +130,7 @@ namespace
 #ifdef AE_COMPILER_MSVC
 	ILogger::EResult  VisualStudioLogOutput::Process (const MessageInfo &info)
 	{
-		const String	str = String{info.loc.file_name()} << '(' << ToString( info.loc.line() ) << "): "
+		const String	str = String{info.loc.FileName()} << '(' << ToString( info.loc.Line() ) << "): "
 							<< ScopeToString( info.scope ) << LevelToString( info.level )
 							<< ": " << info.message << '\n';
 
@@ -142,12 +144,11 @@ namespace
 	VSCodeLogOutput
 =================================================
 */
-#ifdef AE_PLATFORM_LINUX
 	ILogger::EResult  VSCodeLogOutput::Process (const MessageInfo &info)
 	{
-		const String	str = String{info.loc.file_name()} << ':' << ToString( info.loc.line() ) << ": "
+		const String	str = String{info.loc.FileName()} << ':' << ToString( info.loc.Line() ) << ": "
 							<< ScopeToString( info.scope ) << LevelToString( info.level )
-							<< ": in " << info.loc.function_name() << ": " << info.message << '\n';
+							<< ": in " << info.loc.FunctionName() << ": " << info.message << '\n';
 
 		{
 			EXLOCK( _guard );
@@ -155,7 +156,7 @@ namespace
 		}
 		return EResult::Unknown;
 	}
-#endif
+
 /*
 =================================================
 	CreateIDEOutput
@@ -185,7 +186,8 @@ namespace
 =================================================
 */
 #if defined(AE_PLATFORM_WINDOWS) or \
-	defined(AE_PLATFORM_APPLE)
+	defined(AE_PLATFORM_APPLE) or \
+	defined(AE_PLATFORM_LINUX)
 
 	ILogger::EResult  DialogLogOutput::Process (const MessageInfo &info)
 	{
@@ -195,14 +197,14 @@ namespace
 		if ( not _enabled )
 			return EResult::Unknown;
 
-		// MessageBox is thread safe, but multiple messages from different thread should be disallowed
+		// MessageBox is thread safe, but multiple messages from different threads should be disallowed
 		EXLOCK( _guard );
 
 		const String	caption	= "Error message";
 
-		String	str	= "File:      "s << FileSystem::ToShortPath( info.loc.file_name() ) <<
-					  "\nLine:     " << ToString( info.loc.line() ) <<
-					  "\nFunction: " << info.loc.function_name() <<
+		String	str	= "File:      "s << FileSystem::ToShortPath( info.loc.FileName() ) <<
+					  "\nLine:     " << ToString( info.loc.Line() ) <<
+					  "\nFunction: " << info.loc.FunctionName() <<
 					  "\nScope:    " << ScopeToString( info.scope ) <<
 					//"\nLevel     " << LevelToString( info.level ) <<
 					  "\n\nMessage:\n";
@@ -219,11 +221,11 @@ namespace
 #endif
 /*
 =================================================
-	DialogLogOutput
+	_ProcessImpl (Windows)
 =================================================
 */
 #ifdef AE_PLATFORM_WINDOWS
-	ILogger::EResult  DialogLogOutput::_ProcessImpl (const String &caption, const String &msg, ELevel)
+	ILogger::EResult  DialogLogOutput::_ProcessImpl (const String &caption, String &msg, ELevel)
 	{
 		UINT	flags = MB_ICONERROR | MB_SETFOREGROUND | MB_TOPMOST;
 
@@ -244,6 +246,55 @@ namespace
 			case IDIGNORE :	return EResult::Continue;
 		};
 
+		return EResult::Unknown;
+	}
+#endif
+/*
+=================================================
+	_ProcessImpl (Linux)
+=================================================
+*/
+#ifdef AE_PLATFORM_LINUX
+	ILogger::EResult  DialogLogOutput::_ProcessImpl (const String &caption, String &msg, ELevel)
+	{
+		constexpr StringView	btn_abort	{"Abort"};
+		constexpr StringView	btn_retry	{"Retry"};
+		constexpr StringView	btn_ignore	{"Ignore"};
+
+		String	cmd;
+		cmd.reserve( 256 );
+
+		FindAndReplace( INOUT msg, '"', '\'' );
+
+		cmd << "zenity --question --switch --no-wrap --no-markup"
+			<< " --icon dialog-error"
+			<< " --title \"" << caption << '"'  // must not contains quotes ""
+			<< " --text \"" << msg << '"'
+			<< " --extra-button " << btn_abort
+			<< " --extra-button " << btn_retry
+			<< " --extra-button " << btn_ignore;
+
+		UnixProcess		process;
+		if ( not process.ExecuteAsync( cmd, UnixProcess::EFlags::NoWindow | UnixProcess::EFlags::ReadOutput ))
+		{
+			AE_PRIVATE_BREAK_POINT();
+			return EResult::Unknown;
+		}
+
+		String	res;
+		if ( not process.WaitAndClose( OUT res, seconds{60 * 60 * 24} ))
+			return EResult::Unknown;
+
+		if ( StartsWith( res, btn_abort ))
+			return EResult::Abort;
+
+		if ( StartsWith( res, btn_retry ))
+			return EResult::Break;
+
+		if ( StartsWith( res, btn_ignore ))
+			return EResult::Continue;
+
+		// unknown
 		return EResult::Unknown;
 	}
 #endif
@@ -283,7 +334,7 @@ namespace
 			Unused( levelBits, scopeBits );
 			return {};
 
-		#elif defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE)
+		#elif defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE) or defined(AE_PLATFORM_LINUX)
 			return MakeUnique<DialogLogOutput>( levelBits, scopeBits );
 
 		#elif defined(AE_PLATFORM_EMSCRIPTEN)
@@ -323,7 +374,7 @@ namespace
 
 		char	buf [800];
 		usize	offset		= 0;
-		String	short_path	{ FileSystem::ToShortPath( info.loc.file_name() )};
+		String	short_path	{ FileSystem::ToShortPath( info.loc.FileName() )};
 		String	tid			= ToString<16>( MinimizeThreadID( ThreadUtils::GetIntID() ));
 
 		for (; offset < info.message.size();)
@@ -338,7 +389,7 @@ namespace
 
 			// thread safe
 			if ( offset == 0 ){
-				Unused( __android_log_print( log_level, _tag.c_str(), "[%s] %s (%i): %s", tid.c_str(), short_path.c_str(), info.loc.line(), buf ));
+				Unused( __android_log_print( log_level, _tag.c_str(), "[%s] %s (%i): %s", tid.c_str(), short_path.c_str(), info.loc.Line(), buf ));
 			}else{
 				Unused( __android_log_write( log_level, _tag.c_str(), buf ));
 			}
@@ -370,7 +421,7 @@ namespace
 */
 	ILogger::EResult  ConsoleLogOutput::Process (const MessageInfo &info)
 	{
-		String	str = String{ FileSystem::ToShortPath( info.loc.file_name() )} << '(' << ToString( info.loc.line() ) << "): " << info.message;
+		String	str = String{ FileSystem::ToShortPath( info.loc.FileName() )} << '(' << ToString( info.loc.Line() ) << "): " << info.message;
 
 	  #if defined(AE_PLATFORM_WINDOWS) and not (defined(AE_CI_BUILD_TEST) or defined(AE_CI_BUILD_PERF))
 		switch_enum( info.level )
@@ -464,7 +515,7 @@ namespace
 
 			str << info.message;
 
-			str << "\n\t{" << FileSystem::ToShortPath( info.loc.file_name() ) << '(' << ToString( info.loc.line() ) << ")}";
+			str << "\n\t{" << FileSystem::ToShortPath( info.loc.FileName() ) << '(' << ToString( info.loc.Line() ) << ")}";
 
 			Unused( _file->Write( str ));
 			_file->Flush();
@@ -652,7 +703,7 @@ namespace
 		if ( add_file )
 		{
 			_SetColor( EColor::Silver, bg_col, INOUT str );
-			str << "  (file: '" << FileSystem::ToShortPath( info.loc.file_name() ) << "', line: " << ToString( info.loc.line() ) << ")</font>";
+			str << "  (file: '" << FileSystem::ToShortPath( info.loc.FileName() ) << "', line: " << ToString( info.loc.Line() ) << ")</font>";
 		}
 
 	  #if defined(__cpp_lib_stacktrace) and not defined(AE_COMPILER_GCC)

@@ -68,6 +68,7 @@ namespace AE::PipelineCompiler
 		bool  TryAddDebugDSLayout2 (uint index, EShaderOpt dbgMode, /*EShaderStages*/uint)		__NE___;
 
 		ND_ String  ToGLSL (EShaderStages stages, INOUT UniqueTypes_t &uniqueTypes)				C_Th___;
+		ND_ String  ToHLSL (EShaderStages stages, INOUT UniqueTypes_t &uniqueTypes)				C_Th___;
 			void	ToMSL  (EShaderStages stages, INOUT UniqueTypes_t &uniqueTypes,
 							INOUT String &typesStr, INOUT String &declStr)						C_Th___;
 

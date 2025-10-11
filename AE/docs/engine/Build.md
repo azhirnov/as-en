@@ -62,12 +62,12 @@ Currently script is written only for Windows platform, on other platforms you ca
 
 **Alternative**<br/>
 Download prebuild binaries which is used in CI and extract it to the `AE-Bin/external` folder:<br/>
-[Android](https://disk.yandex.ru/d/H9jlOAbM8Hmg8Q)<br/>
-[Linux x64 GCC-13](https://disk.yandex.ru/d/KZP1e6ujXTcgTA)<br/>
-[Linux x64 Clang-16](https://disk.yandex.ru/d/Q3YGfAA9OoMukg)<br/>
-[MacOS arm64](https://disk.yandex.ru/d/Fp1BRXACry17nQ)<br/>
-[Windows x64 MSVC 19.43](https://disk.yandex.ru/d/YVLpgUtOxas_9Q)<br/>
-[Windows x64 Clang 19](https://disk.yandex.ru/d/2cQgkCY93y10JQ)<br/>
+[Android](https://disk.yandex.ru/d/Ycs-lNV0ScSXvA)<br/>
+[Linux x64 GCC-14](https://disk.yandex.ru/d/eiE9KuhhtUms6w)<br/>
+[Linux x64 Clang-20](https://disk.yandex.ru/d/vm0rc-3_W5OXSg)<br/>
+[MacOS arm64 Clang-17](https://disk.yandex.ru/d/ESKG63jM29MmvA)<br/>
+[Windows x64 MSVC 19.44](https://disk.yandex.ru/d/IgjQjWETvP7IZA)<br/>
+[Windows x64 Clang 19](https://disk.yandex.ru/d/op06BZ1s2YxL7Q)<br/>
 
 Then [Build engine and samples](#Build-engine-and-samples)
 
@@ -97,7 +97,7 @@ You should build dependencies on PC or download them.
 `update-all-macos.sh` - to load header-only sources.<br/>
 
 **ARM64:**<br/>
-`update-all-macos-arm64-clang15.sh` - to compile static (.a) libs.
+`update-all-macos-arm64-clang.sh` - to compile static (.a) libs.
 
 **x64 on ARM64 platform:**
 <details><summary>How to install x64 compiler on ARM64</summary>
@@ -116,10 +116,10 @@ arch -x86_64 /usr/local/bin/brew install llvm
 ```
 </details>
 
-`update-all-macos-x64-onarm-clang15.sh` - to compile static (.a) libs.
+`update-all-macos-x64-onarm-clang.sh` - to compile static (.a) libs.
 
 **x64:**<br/>
-`update-all-macos-x64-clang15.sh` - to compile static (.a) libs.
+`update-all-macos-x64-clang.sh` - to compile static (.a) libs.
 
 ### Windows
 

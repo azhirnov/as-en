@@ -4,6 +4,7 @@
 # include "base/Platforms/WindowsHeader.cpp.h"
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Algorithms/ToString.h"
+# include "base/Algorithms/Iterators.h"
 # include "base/DataSource/WindowsFile.h"
 # include "base/FileSystem/FileSystem.h"
 

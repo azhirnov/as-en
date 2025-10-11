@@ -10,7 +10,7 @@ namespace AE::Base
 namespace _hidden_
 {
 
-	ND_ inline uint3  IWeylConst ()
+	Nd__In uint3  IWeylConst ()
 	{
 		return uint3{
 			0x3504f333u,	// W0 = 3*2309*128413
@@ -27,7 +27,7 @@ namespace _hidden_
 	HEHash
 =================================================
 */
-	ND_ inline float  HEHash (uint n) __NE___
+	Nd__In float  HEHash (uint n) __NE___
 	{
 		// from https://www.shadertoy.com/view/llGSzw
 		// The MIT License
@@ -46,7 +46,7 @@ namespace _hidden_
 	Integer Weylend hash
 =================================================
 */
-	ND_ inline uint  IWeylHash (const uint2 &p) __NE___
+	Nd__In uint  IWeylHash (const uint2 &p) __NE___
 	{
 		// from https://www.shadertoy.com/view/4dlcR4
 		// LICENSE: http://unlicense.org/
@@ -62,7 +62,7 @@ namespace _hidden_
 		return x;
 	}
 
-	ND_ inline uint  IWeylHash2 (const uint2 &p) __NE___
+	Nd__In uint  IWeylHash2 (const uint2 &p) __NE___
 	{
 		// from https://www.shadertoy.com/view/4dlcR4
 		// LICENSE: http://unlicense.org/

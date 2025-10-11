@@ -56,7 +56,11 @@ namespace
 
 				binder.Comment( "Enable all debug features." );
 				binder.AddValue( "Enable_AllShaderDbg",	EFlags::Enable_AllShaderDbg );
-				StaticAssert( uint(EFlags::All) == 7 );
+				
+				binder.Comment( "Compile shader using Slang compiler." );
+				binder.AddValue( "UseSLang",	EFlags::UseSLang );
+
+				StaticAssert( uint(EFlags::All) == 0xF );
 			}
 		}
 

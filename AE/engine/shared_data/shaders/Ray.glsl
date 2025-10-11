@@ -34,7 +34,7 @@ ND_ Ray		Ray_PlaneToVR360 (const float ipd, const float3 origin, const float nea
 ND_ Ray		Ray_PlaneTo360 (const float3 origin, const float nearPlane, const float2 unormCoord);
 ND_ Ray		Ray_PlaneToSphere (float2 fov, const float3 origin, const float nearPlane, const float2 snormCoord);
 
-ND_ Ray		Ray_PaniniProjection (float fov, const float3 origin, const float nearPlane, const float2 screenPos, const float2 screenSize);
+ND_ Ray		Ray_PaniniProjection (float fov, const float3 origin, const float nearPlane, const float2 screenPos, const float2 screenDim);
 
 // ray to UV
 ND_ float2  RayInverse_PlaneToVR180 (const float3 rayDir, const uint eye);
@@ -146,6 +146,8 @@ Ray  Ray_Perspective (const float4x4 invViewProj, const float3 origin, const flo
 	   * -- eye
 	   
 	used rectilinear/perspective projection.
+
+	'screenSize' and 'distanceToEye' in meters
 =================================================
 */
 Ray  Ray_PerspectiveFromFlatScreen (const float3 origin, const float distanceToEye, const float2 screenSize, const float nearPlane, const float2 snormCoord)
@@ -166,6 +168,8 @@ Ray  Ray_PerspectiveFromFlatScreen (const float3 origin, const float distanceToE
 	_____  -- curved screen
    /     \
 	  * --- eye
+	  
+	'screenSize', 'screenRadius' and 'distanceToEye' in meters
 =================================================
 */
 Ray  Ray_PerspectiveFromCurvedScreen (const float3 origin, const float distanceToEye, const float screenRadius, float2 screenSize,
@@ -412,10 +416,10 @@ float2  RayInverse_PlaneToSphere (const float2 invHalfFov, const float3 rayDir)
 	Ray_PaniniProjection
 =================================================
 */
-Ray  Ray_PaniniProjection (float fov, const float3 origin, const float nearPlane, const float2 screenPos, const float2 screenSize)
+Ray  Ray_PaniniProjection (float fov, const float3 origin, const float nearPlane, const float2 screenPos, const float2 screenDim)
 {
 	Ray		ray;
-	float2	uv = screenPos / (screenSize.xx * 0.5) - float2(1.0, screenSize.y/screenSize.x);
+	float2	uv = screenPos / (screenDim.xx * 0.5) - float2(1.0, screenDim.y/screenDim.x);
 	{
 		float	fo		= float_HalfPi - fov * 0.5;
 		float	f		= Cos(fo) / Sin(fo) * 2.0;

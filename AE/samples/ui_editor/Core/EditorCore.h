@@ -128,8 +128,7 @@ namespace AE::UIEditor
 		void  StopRendering (Ptr<IOutputSurface>)									__NE_OV;
 		void  RenderFrame ()														__NE_OV;
 		void  WaitFrame (const Threading::EThreadArray	&threadMask,
-						 Ptr<IWindow>					window,
-						 Ptr<IVRDevice>					vrDevice)					__NE_OV;
+						 Ptr<IWindow>					window)						__NE_OV;
 
 		void  _InitInputActions (IInputActions &);
 	};

@@ -14,7 +14,7 @@ namespace AE::Base
 	ToString (EMediaType)
 =================================================
 */
-	ND_ inline StringView  ToString (Video::EMediaType value) __NE___
+	Nd__In StringView  ToString (Video::EMediaType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -32,7 +32,7 @@ namespace AE::Base
 	ToString (EColorPreset)
 =================================================
 */
-	ND_ inline StringView  ToString (Video::EColorPreset value) __NE___
+	Nd__In StringView  ToString (Video::EColorPreset value) __NE___
 	{
 		switch_enum( value )
 		{

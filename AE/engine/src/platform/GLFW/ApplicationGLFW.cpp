@@ -8,6 +8,11 @@
 # include "graphics_rhi/Vulkan/VSwapchain.h"
 # include "GLFWCommon.cpp.h"
 
+# ifdef AE_PLATFORM_WINDOWS
+#	include "platform/WinAPI/ScreenCaptureDXGI.h"
+#	include "platform/WinAPI/SendInputWinAPI.h"
+# endif
+
 namespace AE::App
 {
 
@@ -54,13 +59,13 @@ namespace {
 	ApplicationGLFW::~ApplicationGLFW () __NE___
 	{
 		DRC_EXLOCK( _stCheck );
-		EXLOCK( _windowsGuard );
 
 		// windows must be destroyed before destroying app
 		for (auto& wnd : _windows)
 		{
 			CHECK( not wnd.lock() );
 		}
+		_windows.clear();
 
 		glfwTerminate();
 	}
@@ -80,10 +85,7 @@ namespace {
 		SharedPtr<WindowGLFW>	wnd{ new WindowGLFW{ *this, RVRef(listener), dstActions }};
 		CHECK_ERR( wnd->_Create( desc ));
 
-		{
-			EXLOCK( _windowsGuard );
-			_windows.push_back( wnd );
-		}
+		_AddWindow( wnd );
 		return wnd;
 	}
 
@@ -92,7 +94,7 @@ namespace {
 	GetMonitors
 =================================================
 */
-	ArrayView<Monitor>  ApplicationGLFW::GetMonitors (bool update) __NE___
+	IApplication::MonitorsView_t  ApplicationGLFW::GetMonitors (bool update) __NE___
 	{
 		DRC_EXLOCK( _stCheck );
 
@@ -100,6 +102,12 @@ namespace {
 		{
 			_UpdateMonitors( OUT _cachedMonitors );
 		}
+		return _cachedMonitors;
+	}
+	
+	IApplication::MonitorsView_t  ApplicationGLFW::GetCachedMonitors () C_NE___
+	{
+		DRC_EXLOCK( _stCheck );
 		return _cachedMonitors;
 	}
 
@@ -200,7 +208,7 @@ namespace {
 		// set native handle
 		#if defined(AE_PLATFORM_WINDOWS)
 			POINT	pt = { pos.x+1, pos.y+1 };
-			result.native = BitCast<Monitor::NativeMonitor_t>( ::MonitorFromPoint( pt, MONITOR_DEFAULTTONULL ));
+			result.native = BitCast<Monitor::NativeMonitor_t>( ::MonitorFromPoint( pt, MONITOR_DEFAULTTONULL ));  // win2000
 
 		#elif defined(AE_PLATFORM_LINUX)
 			switch ( glfwGetPlatform() )
@@ -209,7 +217,7 @@ namespace {
 					result.native = BitCast<Monitor::NativeMonitor_t>( ::glfwGetX11Monitor( ptr ));		break;
 
 				case GLFW_PLATFORM_WAYLAND :
-					// TODO
+					result.native = BitCast<Monitor::NativeMonitor_t>( ::glfwGetWaylandMonitor( ptr ));	break;
 
 				default :
 					AE_LOG_DBG( "Unknown window system" );
@@ -244,6 +252,54 @@ namespace {
 		return Default;
 	#endif
 	}
+	
+/*
+=================================================
+	StartScreenCapture
+=================================================
+*/
+	RC<IScreenCapture>  ApplicationGLFW::StartScreenCapture (const IScreenCapture::Config &config) __NE___
+	{
+	#ifdef AE_PLATFORM_WINDOWS
+		if ( config.hostImageFormat != Default )
+		{
+			auto	res = MakeRC<ScreenCaptureDXGI_HostAccess>( *this );
+			CHECK_ERR( res->Start( config ));
+			return res;
+		}
+
+	  #ifdef AE_ENABLE_VULKAN
+		else
+		{
+			auto	res = MakeRC<ScreenCaptureDXGI_Vulkan>( *this );
+			CHECK_ERR( res->Start( config ));
+			return res;
+		}
+	  #endif
+
+		return Default;
+
+	#else
+		// TODO
+		return Default;
+	#endif
+	}
+	
+/*
+=================================================
+	CreateInputSender
+=================================================
+*/
+	Unique<ISendInput>  ApplicationGLFW::CreateInputSender () __NE___
+	{
+	#ifdef AE_PLATFORM_WINDOWS
+		return MakeUnique<SendInputWinAPI>( *this );
+
+	#else
+		// TODO
+		return Default;
+	#endif
+	}
 
 /*
 =================================================
@@ -263,25 +319,10 @@ namespace {
 
 			glfwPollEvents();
 
-			bool	wnd_is_empty;
-			{
-				EXLOCK( _windowsGuard );
-
-				for (usize i = 0; i < _windows.size();)
-				{
-					// _ProcessMessages() will return 'false' if window is closed
-					if_likely( auto wnd = _windows[i].lock(); wnd and wnd->_ProcessMessages() )
-						++i;
-					else
-						_windows.fast_erase( i );
-				}
-
-				wnd_is_empty = _windows.empty();
-			}
-
+			ApplicationBase::_Update();
 			ApplicationBase::_AfterUpdate();
 
-			if_unlikely( wnd_is_empty )
+			if_unlikely( _windows.empty() )
 			{
 				ThreadUtils::Sleep_15ms();
 			}
@@ -301,8 +342,8 @@ namespace {
 		{
 			// Choose X11 or Wayland
 			#ifdef AE_PLATFORM_LINUX
-				glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_X11 );
-			//	glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND );
+			//	glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_X11 );
+				glfwInitHint( GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND );
 			#endif
 
 			CHECK_ERR( glfwInit() == GLFW_TRUE, -1 );

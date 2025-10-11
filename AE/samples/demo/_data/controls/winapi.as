@@ -46,16 +46,6 @@ void ASmain (WinAPI_ActionBindings& bindings)
 				  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
 	}
 
-	// HwCamera bindings
-	{
-		RC<WinAPI_BindingsMode>	bind = bindings.CreateMode( "HwCamera" );
-
-		bind.Add( WinAPI_Input::TouchPos,
-				  ActionInfo( "Touch.Move", EValueType::Float2, EGestureType::Move ));
-		bind.Add( WinAPI_Input::TouchPos,
-				  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
-	}
-
 	// Camera3D bindings
 	{
 		RC<WinAPI_BindingsMode>	bind = bindings.CreateMode( "Camera3D" );

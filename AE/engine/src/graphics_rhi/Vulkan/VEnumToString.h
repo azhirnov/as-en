@@ -15,7 +15,7 @@ namespace AE::Graphics
 	VkColorSpaceKHR_ToString
 =================================================
 */
-	ND_ inline StringView  VkColorSpaceKHR_ToString (VkColorSpaceKHR value) __NE___
+	Nd__In StringView  VkColorSpaceKHR_ToString (VkColorSpaceKHR value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -46,7 +46,7 @@ namespace AE::Graphics
 	VkPresentModeKHR_ToString
 =================================================
 */
-	ND_ inline String  VkPresentModeKHR_ToString (VkPresentModeKHR value)
+	Nd__In String  VkPresentModeKHR_ToString (VkPresentModeKHR value)
 	{
 		switch_enum( value )
 		{
@@ -68,7 +68,7 @@ namespace AE::Graphics
 	VkSurfaceTransformFlagBitsKHR_ToString
 =================================================
 */
-	ND_ inline String  VkSurfaceTransformFlagBitsKHR_ToString (VkSurfaceTransformFlagBitsKHR value)
+	Nd__In String  VkSurfaceTransformFlagBitsKHR_ToString (VkSurfaceTransformFlagBitsKHR value)
 	{
 		switch_enum( value )
 		{
@@ -92,7 +92,7 @@ namespace AE::Graphics
 	VkCompositeAlphaFlagBitsKHR_ToString
 =================================================
 */
-	ND_ inline String  VkCompositeAlphaFlagBitsKHR_ToString (VkCompositeAlphaFlagBitsKHR value)
+	Nd__In String  VkCompositeAlphaFlagBitsKHR_ToString (VkCompositeAlphaFlagBitsKHR value)
 	{
 		switch_enum( value )
 		{
@@ -111,7 +111,7 @@ namespace AE::Graphics
 	VkImageUsageFlags_ToString
 =================================================
 */
-	ND_ inline String  VkImageUsageFlags_ToString (VkImageUsageFlags value)
+	Nd__In String  VkImageUsageFlags_ToString (VkImageUsageFlags value)
 	{
 		String	result;
 		for (VkImageUsageFlags i = 1; i <= value; i <<= 1)
@@ -163,7 +163,7 @@ namespace AE::Graphics
 	VkFormat_ToString
 =================================================
 */
-	ND_ inline StringView  VkFormat_ToString (VkFormat value) __NE___
+	Nd__In StringView  VkFormat_ToString (VkFormat value) __NE___
 	{
 #		define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
 			case _vkFormat_ : return #_vkFormat_;

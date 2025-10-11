@@ -33,7 +33,7 @@ namespace {
 =================================================
 */
 namespace {
-	ND_ inline EThreadSeed  SeedFromThreadID () __NE___
+	Nd__In EThreadSeed  SeedFromThreadID () __NE___
 	{
 		usize	seed = ThreadUtils::GetIntID();
 	#if AE_PLATFORM_BITS >= 64
@@ -181,11 +181,11 @@ DEBUG_ONLY(
 */
 	void  AsyncTaskImpl::_Inline_MakeCompletedOnReturn () __NE___
 	{
-		auto	coro_handle = CoroHandle_t::from_promise( *this );
-
-		ASSERT( bool{coro_handle} and not coro_handle.done() );
-
 		DEBUG_ONLY(
+			auto	coro_handle = CoroHandle_t::from_promise( *this );
+
+			CHECK( bool{coro_handle} and not coro_handle.done() );
+
 			_isRunning.store( false );
 		)
 
@@ -442,7 +442,7 @@ DEBUG_ONLY(
 	_SetDebugName
 =================================================
 */
-#ifdef AE_DEBUG
+#if AE_ENABLE_TASK_NAME
 	void  AsyncTaskImpl::_SetDebugName (StringView dbgName) __NE___
 	{
 		if ( dbgName.empty() )
@@ -460,20 +460,26 @@ DEBUG_ONLY(
 	_SetDebugName
 =================================================
 */
-#ifdef AE_DEBUG
+#if AE_ENABLE_TASK_NAME
 	void  AsyncTaskImpl::_SetDebugName (const SourceLoc &loc) __NE___
 	{
-		usize	len = strlen(loc.function_name()) + 32;
+		StringView	fn_name		= loc.FunctionName();
+		StringView	file_stem	= loc.FileStem();
+		usize		len			= 32;
+		len += fn_name.size();
+		len += file_stem.size();
+
 		_dbgName.reset( new char[len] );
 
-	  #ifdef AE_COMPILER_MSVC
-		if ( sprintf_s( OUT _dbgName.get(), len, "%s (%i)", loc.function_name(), loc.line() ) > 0 )
+		if ( std::snprintf( OUT _dbgName.get(), len,
+							"%.*s(%i) %.*s",
+							int(file_stem.size()), file_stem.data(),
+							loc.Line(),
+							int(fn_name.size()), fn_name.data()
+						  ) > 0 )
+		{
 			return;
-	  #else
-		if ( sprintf( OUT _dbgName.get(), "%s (%i)", loc.function_name(), loc.line() ) > 0 )
-			return;
-	  #endif
-
+		}
 		_dbgName.reset();
 	}
 #endif
@@ -497,7 +503,7 @@ DEBUG_ONLY(
 	TaskSchedulerApi::Init
 =================================================
 */
-#ifdef AE_DEBUG
+#if AE_ENABLE_TASK_NAME
 	void  AsyncTaskImpl::TaskSchedulerApi::Init (AsyncTaskImpl &self, ETaskQueue queue, StringView dbgName, const SourceLoc &loc) __NE___
 	{
 		if ( queue != Default )
@@ -736,6 +742,8 @@ namespace AE::Threading
 			EXLOCK( _taskDepsMngrsGuard );
 			_taskDepsMngrs.clear();
 		}
+
+		_fileIOService = null;
 
 		ASSERT_Eq( TaskApi::AsyncTaskTotalCount(), 0 );
 

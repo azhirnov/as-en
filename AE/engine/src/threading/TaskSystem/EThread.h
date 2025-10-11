@@ -129,7 +129,7 @@ namespace AE::Threading
 namespace AE::Base
 {
 
-	ND_ inline StringView  ToString (Threading::ETaskQueue type)
+	Nd__In StringView  ToString (Threading::ETaskQueue type)
 	{
 		using Threading::ETaskQueue;
 		switch_enum( type )
@@ -144,7 +144,7 @@ namespace AE::Base
 		RETURN_ERR( "unknown task queue type" );
 	}
 
-	ND_ inline StringView  ToString (Threading::EThread type)
+	Nd__In StringView  ToString (Threading::EThread type)
 	{
 		using Threading::EThread;
 		switch_enum( type )

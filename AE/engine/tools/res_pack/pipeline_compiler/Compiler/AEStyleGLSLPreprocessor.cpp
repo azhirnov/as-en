@@ -717,13 +717,13 @@ namespace AE::PipelineCompiler
 		_typeMap.emplace( "gl.Expect",				"expectEXT" );
 		
 		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/nv/GLSL_NV_cooperative_vector.txt
-		_typeMap.emplace( "gl::CoopVec",					"coopvecNV" );
-		_typeMap.emplace( "gl.CoopVecMatMulAdd",				"coopVecMatMulAddNV" );
-		_typeMap.emplace( "gl.CoopVecMatMul",					"coopVecMatMulNV" );
-		_typeMap.emplace( "gl.CoopVecLoad",						"coopVecLoadNV" );
-		_typeMap.emplace( "gl.CoopVecStore",					"coopVecStoreNV" );
-		_typeMap.emplace( "gl.CoopVecOuterProductAccum",		"coopVecOuterProductAccumulateNV" );
-		_typeMap.emplace( "gl.CoopVecReduceSumAccum",			"coopVecReduceSumAccumulateNV" );
+		_typeMap.emplace( "gl::CoopVec",							"coopvecNV" );
+		_typeMap.emplace( "gl.CoopVecMatMulAdd",					"coopVecMatMulAddNV" );
+		_typeMap.emplace( "gl.CoopVecMatMul",						"coopVecMatMulNV" );
+		_typeMap.emplace( "gl.CoopVecLoad",							"coopVecLoadNV" );
+		_typeMap.emplace( "gl.CoopVecStore",						"coopVecStoreNV" );
+		_typeMap.emplace( "gl.CoopVecOuterProductAccum",			"coopVecOuterProductAccumulateNV" );
+		_typeMap.emplace( "gl.CoopVecReduceSumAccum",				"coopVecReduceSumAccumulateNV" );
 		_typeMap.emplace( "gl::ComponentType",						"int" );
 		_typeMap.emplace( "gl::ComponentType::Float16",				"gl_ComponentTypeFloat16NV" );
 		_typeMap.emplace( "gl::ComponentType::Float32",				"gl_ComponentTypeFloat32NV" );
@@ -754,24 +754,39 @@ namespace AE::PipelineCompiler
 		_typeMap.emplace( "gl.Printf",					"debugPrintfEXT" );
 
 		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GL_EXT_bfloat16.txt
-		_typeMap.emplace( "bfloat16_t",					"bfloat16" );
-		_typeMap.emplace( "bfloat16BitsToIntEXT",		"bfloat16BitsToInt" );
-		_typeMap.emplace( "bfloat16BitsToUintEXT",		"bfloat16BitsToUint" );
-		_typeMap.emplace( "intBitsToBFloat16EXT",		"intBitsToBFloat16" );
-		_typeMap.emplace( "uintBitsToBFloat16EXT",		"uintBitsToBFloat16" );
+		_typeMap.emplace( "bfloat",						"bfloat16_t" );
+		_typeMap.emplace( "bfloat2",					"bf16vec2" );
+		_typeMap.emplace( "bfloat3",					"bf16vec3" );
+		_typeMap.emplace( "bfloat4",					"bf16vec4" );
+		_typeMap.emplace( "bfloat16BitsToInt",			"bfloat16BitsToIntEXT" );
+		_typeMap.emplace( "bfloat16BitsToUint",			"bfloat16BitsToUintEXT" );
+		_typeMap.emplace( "intBitsToBFloat16",			"intBitsToBFloat16EXT" );
+		_typeMap.emplace( "uintBitsToBFloat16",			"uintBitsToBFloat16EXT" );
 
 		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GL_EXT_float8_e5m2_e4m3.txt
-		_typeMap.emplace( "floate5m2_t",				"floatE5M2" );
-		_typeMap.emplace( "floate4m3_t",				"floatE4M3" );
-		_typeMap.emplace( "floate5m2BitsToIntEXT",		"floate5m2BitsToInt" );
-		_typeMap.emplace( "floate5m2BitsToUintEXT",		"floate5m2BitsToUint" );
-		_typeMap.emplace( "intBitsToFloate5m2EXT",		"intBitsToFloate5m2" );
-		_typeMap.emplace( "uintBitsToFloate5m2EXT",		"uintBitsToFloate5m2" );
-		_typeMap.emplace( "floate4m3BitsToIntEXT",		"floate4m3BitsToInt" );
-		_typeMap.emplace( "floate4m3BitsToUintEXT",		"floate4m3BitsToUint" );
-		_typeMap.emplace( "intBitsToFloate4m3EXT",		"intBitsToFloate4m3" );
-		_typeMap.emplace( "uintBitsToFloate4m3EXT",		"uintBitsToFloate4m3" );
-		_typeMap.emplace( "saturatedConvertEXT",		"saturatedConvert" );
+		_typeMap.emplace( "floatE5M2",					"floate5m2_t" );
+		_typeMap.emplace( "Vec<floatE5M2,2>",			"fe5m2vec2" );
+		_typeMap.emplace( "Vec<floatE5M2,3>",			"fe5m2vec3" );
+		_typeMap.emplace( "Vec<floatE5M2,4>",			"fe5m2vec4" );
+		_typeMap.emplace( "floatE4M3",					"floate4m3_t" );
+		_typeMap.emplace( "Vec<floatE4M3,2>",			"fe4m3vec2" );
+		_typeMap.emplace( "Vec<floatE4M3,3>",			"fe4m3vec3" );
+		_typeMap.emplace( "Vec<floatE4M3,4>",			"fe4m3vec4" );
+		_typeMap.emplace( "floate5m2BitsToInt",			"floate5m2BitsToIntEXT" );
+		_typeMap.emplace( "floate5m2BitsToUint",		"floate5m2BitsToUintEXT" );
+		_typeMap.emplace( "intBitsToFloate5m2",			"intBitsToFloate5m2EXT" );
+		_typeMap.emplace( "uintBitsToFloate5m2",		"uintBitsToFloate5m2EXT" );
+		_typeMap.emplace( "floate4m3BitsToInt",			"floate4m3BitsToIntEXT" );
+		_typeMap.emplace( "floate4m3BitsToUint",		"floate4m3BitsToUintEXT" );
+		_typeMap.emplace( "intBitsToFloate4m3",			"intBitsToFloate4m3EXT" );
+		_typeMap.emplace( "uintBitsToFloate4m3",		"uintBitsToFloate4m3EXT" );
+		_typeMap.emplace( "saturatedConvert",			"saturatedConvertEXT" );
+
+		// https://github.com/KhronosGroup/GLSL/blob/main/extensions/ext/GLSL_EXT_integer_dot_product.txt
+		_typeMap.emplace( "IntDot",						"dotEXT" );
+		_typeMap.emplace( "IntDot4x8",					"dotPacked4x8EXT" );
+		_typeMap.emplace( "IntDotAccSat",				"dotAccSatEXT" );
+		_typeMap.emplace( "IntDotAccSat4x8",			"dotPacked4x8AccSatEXT" );
 	}
 
 /*

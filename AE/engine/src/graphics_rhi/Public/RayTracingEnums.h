@@ -94,7 +94,7 @@ namespace AE::Graphics
 		Intersection,
 
 		_Count,
-		Unknown	= 0xFF
+		Unknown	= _Count,
 	};
 //-----------------------------------------------------------------------------
 

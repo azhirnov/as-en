@@ -35,6 +35,13 @@ namespace AE::Profiler
 													 inoutRegion.left + min_width + padding * 2.f, inoutRegion.top + min_height + padding * 2.f };
 		const RectF		diag_region_pad		= RectF{diag_region}.Stretch2( -padding );
 		ImDrawList*		draw_list			= ImGui::GetWindowDrawList();
+		
+		// enable clipping
+		{
+			ImVec2	min {diag_region_pad.left - padding, diag_region_pad.top - padding};
+			ImVec2	max {diag_region_pad.left + inoutRegion.Width(), diag_region_pad.bottom + padding};
+			draw_list->PushClipRect( min, max, true );
+		}
 
 		// draw columns diagram
 		{
@@ -122,6 +129,8 @@ namespace AE::Profiler
 				++txt_idx;
 			}
 		}
+		
+		draw_list->PopClipRect();
 
 		inoutRegion = diag_region;
 	}

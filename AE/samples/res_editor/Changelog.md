@@ -1,5 +1,10 @@
 ## xx.2025
+
+
+## 10.2025
 - Sample: Bindless
+- Sample: MLPTraining
+- slang support
 
 
 ## 04.2025

@@ -98,8 +98,8 @@ namespace
 		ASSERT( IsOpen() );
 		ASSERT_Eq( _position, _stream->Position() );
 
-		BrotliDecoderResult	result	= BrotliDecoderResult(_lastResult);
-		Bytes				written;
+		auto	result	= BrotliDecoderResult(_lastResult);
+		Bytes	written;
 
 		// decompress next part
 		if ( result == BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT )

@@ -3,7 +3,7 @@
 #include "base/DataSource/File.h"
 #include "video/Public/VideoDecoder.h"
 #include "video/Public/VideoEncoder.h"
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 
 using namespace AE::Graphics;
 using namespace AE::Video;

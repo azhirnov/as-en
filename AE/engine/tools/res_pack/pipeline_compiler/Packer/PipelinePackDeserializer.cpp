@@ -171,7 +171,6 @@ namespace AE::PipelineCompiler
 			case EImage_Cube :			ASSERT( not ms );	return cm ? EImageType::DimCube : EImageType::Dim2DArray;
 			case EImage_CubeArray :		ASSERT( not ms );	return cm ? EImageType::DimCubeArray : EImageType::Dim2DArray;
 			case EImage::Unknown :
-			case EImage::_Count :
 			default :					ASSERT( not ms );	break;
 		}
 		switch_end
@@ -311,7 +310,6 @@ namespace AE::PipelineCompiler
 				break;
 
 			case EDescriptorType::Unknown :
-			case EDescriptorType::_Count :
 			default :
 				RETURN_ERR( "unknown descriptor type" );
 		}
@@ -867,7 +865,7 @@ namespace {
 	EDescriptorTypeToString
 =================================================
 */
-	ND_ inline StringView  EDescriptorTypeToString (EDescriptorType type)
+	Nd__In StringView  EDescriptorTypeToString (EDescriptorType type)
 	{
 		switch_enum( type )
 		{
@@ -885,7 +883,6 @@ namespace {
 			case EDescriptorType::RayTracingScene :					return "RayTracingScene";
 			case EDescriptorType::RayTracingPartitionedScene :		return "RayTracingPartitionedScene";
 			case EDescriptorType::Unknown :
-			case EDescriptorType::_Count :
 			default :												break;
 		}
 		switch_end
@@ -1005,7 +1002,6 @@ namespace {
 					break;
 
 				case EDescriptorType::Unknown :
-				case EDescriptorType::_Count :
 				default :
 					RETURN_ERR( "unknown descriptor type" );
 			}
@@ -1286,7 +1282,7 @@ namespace {
 	TopologyBitsToString
 =================================================
 */
-	ND_ inline String  TopologyBitsToString (const SerializableGraphicsPipeline::TopologyBits_t topology)
+	Nd__In String  TopologyBitsToString (const SerializableGraphicsPipeline::TopologyBits_t topology)
 	{
 		String	str;
 		for (EPrimitive value : BitIndexIterate( topology ))

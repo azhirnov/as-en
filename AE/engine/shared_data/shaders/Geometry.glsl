@@ -92,6 +92,12 @@ ND_ float	TriangleArea (const float2 a, const float2 b, const float2 c)					{ re
 
 ND_ bool	TriangleFrontFace (const float2 v0, const float2 v1, const float2 v2)			{ return Cross( float3(v1 - v0, 0.0), float3(v2 - v0, 0.0) ).z <= 0.0; }
 ND_ bool	TriangleBackFace (const float2 v0, const float2 v1, const float2 v2)			{ return ! TriangleFrontFace( v0, v1, v2 ); }
+
+ND_ float	TrianglePerimeter (const float3 a, const float3 b, const float3 c)				{ return Distance( a, b ) + Distance( b, c ) + Distance( c, a ); }
+ND_ float	TrianglePerimeter (const float2 a, const float2 b, const float2 c)				{ return Distance( a, b ) + Distance( b, c ) + Distance( c, a ); }
+
+ND_ float4	TriangleInnerCenterAndRadius (const float3 a, const float3 b, const float3 c);
+ND_ float3	TriangleInnerCenterAndRadius (const float2 a, const float2 b, const float2 c);
 //-----------------------------------------------------------------------------
 
 
@@ -368,6 +374,9 @@ float3  SphericalToCartesian (const float3 sphericalAndRadius)
 /*
 =================================================
 	CartesianToSpherical
+----
+	X (phi) range:   [-Pi...+Pi]
+	Y (theta) range: [0 .. Pi]
 =================================================
 */
 float3  CartesianToSpherical (const float3 cartesian)
@@ -438,4 +447,40 @@ float4  Rect_Edge (const float4 rect, const uint edge)
 		case 2:	return rect.zyzw;	// right edge {right-top, right-bottom}
 		case 3:	return rect.xyzy;	// top edge {left-top, right-top}
 	}
+}
+
+/*
+=================================================
+	TriangleInnerCenterAndRadius
+=================================================
+*/
+float4 TriangleInnerCenterAndRadius (const float3 p0, const float3 p1, const float3 p2)
+{
+	float a = Distance( p0, p1 );
+	float b = Distance( p1, p2 );
+	float c = Distance( p2, p0 );
+	float s = a + b + c;
+	float inv_s = Rcp( s );
+
+	float	x = (a * p0.x + b * p1.x + c * p2.x) * inv_s;
+	float	y = (a * p0.y + b * p1.y + c * p2.y) * inv_s;
+	float	z = (a * p0.z + b * p1.z + c * p2.z) * inv_s;
+	float	r = TriangleArea( p0, p1, p2 ) * inv_s * 2.0;
+
+	return float4( x, y, z, r );  // TODO: this is not incenter (cntroid?)
+}
+
+float3 TriangleInnerCenterAndRadius (const float2 p0, const float2 p1, const float2 p2)
+{
+	float a = Distance( p0, p1 );
+	float b = Distance( p1, p2 );
+	float c = Distance( p2, p0 );
+	float s = a + b + c;
+	float inv_s = Rcp( s );
+
+	float	x = (a * p0.x + b * p1.x + c * p2.x) * inv_s;
+	float	y = (a * p0.y + b * p1.y + c * p2.y) * inv_s;
+	float	r = TriangleArea( p0, p1, p2 ) * inv_s * 2.0;
+
+	return float3( x, y, r );
 }

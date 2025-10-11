@@ -15,7 +15,7 @@ namespace AE::Base
 =================================================
 */
 #ifdef AE_ENABLE_LOGS
-	ND_ inline String  ToString (PipelineCompiler::EImageType type) __Th___
+	Nd__In String  ToString (PipelineCompiler::EImageType type) __Th___
 	{
 		return PipelineCompiler::EImageType_ToString( type );
 	}
@@ -31,13 +31,13 @@ namespace
 	GetImageType
 =================================================
 */
-	ND_ inline PipelineCompiler::EImageType  GetImageType (const ImageDesc &desc, const ImageViewDesc &view) __NE___
+	Nd__In PipelineCompiler::EImageType  GetImageType (const ImageDesc &desc, const ImageViewDesc &view) __NE___
 	{
 		return	PipelineCompiler::EImageType_FromImage( view.viewType, desc.samples.IsEnabled() ) |
 				PipelineCompiler::EImageType_FromPixelFormat( view.format );
 	}
 
-	ND_ inline PipelineCompiler::EImageType  GetImageType (const BufferViewDesc &view) __NE___
+	Nd__In PipelineCompiler::EImageType  GetImageType (const BufferViewDesc &view) __NE___
 	{
 		return	PipelineCompiler::EImageType::Buffer |
 				PipelineCompiler::EImageType_FromPixelFormat( view.format );

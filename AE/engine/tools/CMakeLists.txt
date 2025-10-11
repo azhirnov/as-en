@@ -1,7 +1,7 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 if (${AE_DESKTOP})
-	add_subdirectory( "vulkan_header_gen" )
+	add_subdirectory( "header_gen" )
 	add_subdirectory( "vulkan_image_zcurve" )
 	add_subdirectory( "feature_set_gen" )
 	add_subdirectory( "lfas" )

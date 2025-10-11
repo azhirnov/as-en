@@ -18,7 +18,7 @@ namespace AE::Samples::Demo
 	RenderCoro  Camera3DSample::_DrawTask (RC<Camera3DSample> t, IOutputSurface &surface) __NE___
 	{
 		IOutputSurface::RenderTargets_t		targets;
-		CHECK_CE( surface.GetTargets( OUT targets ));
+		CHECK_CE( surface.GetTargets( OUT targets ));  // compatible with VR
 
 		const uint2		view_size	= targets[0].RegionSize();
 		auto&			res_mngr	= GraphicsScheduler().GetResourceManager();
@@ -232,7 +232,7 @@ namespace AE::Samples::Demo
 		CHECK_ERR( surf_acquire );
 
 		auto	upload	= uploadMngr->UploadAsync( *batch, 1 );
-		auto	draw	= batch->Run( _DrawTask( GetRC<Camera3DSample>(), rg.GetSurfaceArg() ), Tuple{surf_acquire} );
+		auto	draw	= batch->Run( _DrawTask( GetRC<Camera3DSample>(), rg.GetSurface() ), Tuple{surf_acquire} );
 
 		return batch->SubmitAsTask( Tuple{ upload, draw });
 	}

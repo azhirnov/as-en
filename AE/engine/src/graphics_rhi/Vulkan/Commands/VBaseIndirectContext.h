@@ -232,6 +232,12 @@ namespace AE::Graphics::_hidden_
 			Bytes		offset;
 		};
 
+		struct ConvertCooperativeVectorMatrixCmd : BaseCmd
+		{
+			uint					count;
+			//ConvertCoopMatrixCmd	commands [];
+		};
+
 		//-------------------------------------------------
 		// graphics commands
 
@@ -540,6 +546,7 @@ namespace AE::Graphics::_hidden_
 			_visitor_( DispatchCmd )\
 			_visitor_( DispatchBaseCmd )\
 			_visitor_( DispatchIndirectCmd )\
+			_visitor_( ConvertCooperativeVectorMatrixCmd )\
 			/* graphics commands */\
 			_visitor_( BeginRenderPassCmd )\
 			_visitor_( NextSubpassCmd )\

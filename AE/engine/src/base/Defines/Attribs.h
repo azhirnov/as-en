@@ -391,6 +391,15 @@
 #	define AE_NOALIAS
 #endif
 
+
+// modules
+#define public_import		export import
+#define private_import		import
+#define global_fragment		module;
+#define private_fragment	module : private;
+#define public_namespace	export namespace
+
+
 // cache line size
 #ifdef __cpp_lib_hardware_interference_size
 #	define AE_CACHE_LINE	std::hardware_destructive_interference_size
@@ -512,12 +521,12 @@
 #	endif
 #  endif
 
-	// AVX
+	// AVX, AVX512
 #  if AE_SIMD_AVX > 0 or AE_SIMD_FMA > 0
 #	include <immintrin.h>
 #  endif
 
-	// AVX 512
+/*	// AVX 512
 #  if AE_SIMD_AVX >= 30
 #	if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 #	  include <avx512fp16intrin.h>	// clang
@@ -526,7 +535,7 @@
 #	else
 #	  error include AVX512 header
 #	endif
-#  endif
+#  endif*/
 
 	// SSE 4.2
 #  if AE_SIMD_SSE > 0

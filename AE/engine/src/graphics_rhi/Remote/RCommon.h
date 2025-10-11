@@ -30,7 +30,7 @@ namespace AE::Graphics
 	)
 
 	// Used for temporary allocations.
-	// thread-safe: no
+	// Thread-safe: no
 	using RTempLinearAllocator	= LinearAllocator< UntypedAllocator, 8, false >;
 	using RTempStackAllocator	= StackAllocator<  UntypedAllocator, 8, false >;
 

@@ -78,6 +78,7 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::EBufferUsage,				"EBufferUsage"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EBufferOpt,					"EBufferOpt"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EShadingRate,				"EShadingRate"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EShadingRateCombinerOp,		"EShadingRateCombinerOp");
+AE_DECL_SCRIPT_TYPE( AE::Graphics::EIntegerDotProductFeat,		"EIntegerDotProductFeat");
 
 // BindTypes
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::MultiSamples,				"MultiSamples"			);

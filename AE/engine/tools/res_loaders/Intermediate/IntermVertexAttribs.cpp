@@ -76,7 +76,7 @@ namespace AE::ResLoader
 */
 	IntermVertexAttribs::BufferBinding const*  IntermVertexAttribs::FindBuffer (StringView name) C_NE___
 	{
-		auto	it = _bindings.find( Name_t{name} );
+		auto	it = _bindings.find( name );
 		if ( it != _bindings.end() )
 			return &it->second;
 		else
@@ -90,7 +90,7 @@ namespace AE::ResLoader
 */
 	IntermVertexAttribs::VertexInput const*  IntermVertexAttribs::FindVertex (StringView name) C_NE___
 	{
-		auto	it = _vertices.find( Name_t{name} );
+		auto	it = _vertices.find( name );
 		if ( it != _vertices.end() )
 			return &it->second;
 		else
@@ -123,7 +123,7 @@ namespace AE::ResLoader
 	_GetData
 =================================================
 */
-	bool  IntermVertexAttribs::_GetData (const Name_t &id, Bytes stride, EVertexType type, bool optional, OUT Bytes &offset) C_NE___
+	bool  IntermVertexAttribs::_GetData (StringView id, const Bytes stride, const EVertexType type, const Bool optional, OUT Bytes &offset) C_NE___
 	{
 		auto	it = _vertices.find( id );
 		if ( it == _vertices.end() )
@@ -132,7 +132,11 @@ namespace AE::ResLoader
 			else			RETURN_ERR( "can't find vertex attrib '"s << StringView{id} << "'" );
 		}
 
-		if ( it->second.type != type )
+		const EVertexType	mask		= ~(EVertexType::NormalizedFlag | EVertexType::ScaledFlag);
+		const EVertexType	cur_type	= it->second.type & mask;
+		const EVertexType	req_type	= type & mask;
+
+		if ( cur_type != req_type )
 		{
 			if ( optional )	return false;
 			else			RETURN_ERR( "vertex attrib type mismatch: current "s << ToString(it->second.type) << ", required " << ToString(type) );
@@ -147,6 +151,22 @@ namespace AE::ResLoader
 		offset = it->second.offset;
 		return true;
 	}
+	
+/*
+=================================================
+	GetRawData
+=================================================
+*/
+	bool  IntermVertexAttribs::GetRawData (StringView id, OUT Bytes &elemOffset, OUT Bytes &elemSize) C_NE___
+	{
+		auto	it = _vertices.find( id );
+		if ( it == _vertices.end() )
+			return false;
+		
+		elemOffset	= it->second.offset;
+		elemSize	= EVertexType_SizeOf( it->second.type );
+		return true;
+	}
 
 /*
 =================================================
@@ -155,7 +175,7 @@ namespace AE::ResLoader
 */
 	bool  IntermVertexAttribs::HasVertex (StringView name, EVertexType type) C_NE___
 	{
-		auto	it = _vertices.find( Name_t{name} );
+		auto	it = _vertices.find( name );
 		if ( it == _vertices.end() )
 			return false;
 

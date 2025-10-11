@@ -51,8 +51,8 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] VK_NV_ray_tracing_validation
 - [x] VK_NV_clip_space_w_scaling
 - [x] VK_EXT_subgroup_size_control
-- [x] VK_EXT_surface_maintenance1
-- [x] VK_EXT_swapchain_maintenance1
+- [x] VK_EXT_surface_maintenance1, VK_KHR_surface_maintenance1
+- [x] VK_EXT_swapchain_maintenance1, VK_KHR_swapchain_maintenance1
 - [x] VK_EXT_image_compression_control, VK_EXT_image_compression_control_swapchain
 - [x] VK_KHR_maintenance5
 - [x] VK_KHR_maintenance6
@@ -112,6 +112,11 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - [x] GL_EXT_multiview
 - [x] GL_EXT_fragment_invocation_density
 - [x] VK_NV_cooperative_vector, GLSL_NV_cooperative_vector
+- [x] VK_EXT_shader_float8, GL_EXT_float_e5m2, GL_EXT_float_e4m3
+- [x] GL_EXT_bfloat16, VK_KHR_shader_bfloat16
+- [x] GL_EXT_integer_dot_product, VK_KHR_shader_integer_dot_product
+- [x] VK_EXT_shader_image_atomic_int64, GL_EXT_shader_image_int64
+- [x] VK_NV_shader_atomic_float16_vector, GL_NV_shader_atomic_fp16_vector
 
 
 # Not implemented
@@ -182,7 +187,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_NV_ray_tracing_invocation_reorder, GL_NV_shader_invocation_reorder
 - VK_NV_displacement_micromap, GL_NV_displacement_micromap
 - VK_KHR_push_descriptor
-- VK_KHR_shader_integer_dot_product - ML
 - VK_KHR_pipeline_binary
 - VK_EXT_device_generated_commands (VK_NV_device_generated_commands, VK_NV_device_generated_commands_compute)
 - VK_KHR_compute_shader_derivatives (VK_NV_compute_shader_derivatives)
@@ -190,8 +194,6 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_EXT_depth_clamp_control
 - VK_EXT_external_memory_acquire_unmodified
 - VK_EXT_map_memory_placed
-- VK_EXT_present_mode_fifo_latest_ready
-- VK_EXT_vertex_attribute_robustness
 - VK_ANDROID_external_format_resolve
 - VK_HUAWEI_hdr_vivid
 - VK_NV_display_stereo
@@ -212,10 +214,26 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_EXT_pipeline_creation_cache_control
 - VK_EXT_separate_stencil_usage
 - VK_NV_fill_rectangle
+- VK_KHR_maintenance9
+- VK_KHR_present_id2
+- VK_KHR_present_mode_fifo_latest_ready
+- VK_KHR_present_wait2
+- VK_KHR_unified_image_layouts
+- VK_KHR_video_decode_vp9
+- VK_KHR_video_encode_intra_refresh
+- VK_EXT_zero_initialize_device_memory
+- VK_ARM_data_graph
+- VK_ARM_format_pack
+- VK_ARM_tensors
+- VK_NV_external_compute_queue
+- VK_QCOM_tile_memory_heap
+- VK_QCOM_tile_shading
+- VK_VALVE_fragment_density_map_layered
+- VK_VALVE_video_encode_rgb_conversion
 
 **Pending for debugging:**
 - VK_EXT_device_fault
-- VK_EXT_robustness2
+- VK_KHR_robustness2
 - VK_EXT_device_address_binding_report
 - VK_EXT_layer_settings
 - VK_NV_device_diagnostics_config
@@ -262,6 +280,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_EXT_image_robustness
 - VK_EXT_private_data
 - VK_NV_ray_tracing
+- VK_EXT_fragment_density_map_offset
 
 **Pending shader extensions:**
 - GL_EXT_null_initializer
@@ -270,10 +289,8 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_HUAWEI_subpass_shading, GL_HUAWEI_subpass_shading ???
 - VK_KHR_shader_terminate_invocation - for discard, in core 1.3
 - VK_KHR_workgroup_memory_explicit_layout
-- VK_EXT_shader_image_atomic_int64
 - VK_HUAWEI_cluster_culling_shader, GL_HUAWEI_cluster_culling_shader
 - GL_EXT_expect_assume - depends on compiler?
-- VK_NV_shader_atomic_float16_vector
 - VK_KHR_shader_float_controls, SPV_KHR_float_controls - not supported by glslang
 - VK_KHR_shader_float_controls2, SPV_KHR_float_controls2 - not supported by glslang
 - GL_EXT_spirv_intrinsics
@@ -290,7 +307,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_KHR_shader_non_semantic_info - shader debugging, in core 1.3
 - VK_KHR_storage_buffer_storage_class - ???
 - VK_KHR_variable_pointers - ???
-- GL_EXT_bfloat16 
+- VK_KHR_shader_untyped_pointers - ???
 
 **Will not be supported**
 - GL_EXT_vulkan_glsl_relaxed

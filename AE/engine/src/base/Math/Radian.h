@@ -107,11 +107,11 @@ namespace AE::Base
 
 	inline static constexpr Rad  Pi = Rad::Pi();
 
-	NdCx__ Rad  operator "" _rad (long double value)			__NE___	{ return Rad{ Rad::Value_t(value) }; }
-	NdCx__ Rad  operator "" _rad (unsigned long long value)	__NE___	{ return Rad{ Rad::Value_t(value) }; }
+	NdCx__ Rad  operator ""_rad (long double value)			__NE___	{ return Rad{ Rad::Value_t(value) }; }
+	NdCx__ Rad  operator ""_rad (unsigned long long value)	__NE___	{ return Rad{ Rad::Value_t(value) }; }
 
-	NdCx__ Rad  operator "" _deg (long double value)			__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
-	NdCx__ Rad  operator "" _deg (unsigned long long value)	__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
+	NdCx__ Rad  operator ""_deg (long double value)			__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
+	NdCx__ Rad  operator ""_deg (unsigned long long value)	__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
 
 
 /*

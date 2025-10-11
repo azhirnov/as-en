@@ -347,7 +347,6 @@
 		un_Objects.elements[idx] = obj;
 	  #else
 		// fix for Metal
-		un_Objects.elements[idx].rotation	= obj.rotation;
 		un_Objects.elements[idx].position	= obj.position;
 		un_Objects.elements[idx].color 		= obj.color;
 		un_Objects.elements[idx].scale 		= obj.scale;

@@ -5,13 +5,13 @@
 
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Platforms/WindowsLibrary.h"
-# include "base/Containers/UntypedStorage.h"
 
 # include "base/Platforms/CPUInfo.h"
 # include "base/Math/BitMath.h"
 # include "base/Memory/MemUtils.h"
 # include "base/Algorithms/StringUtils.h"
 # include "base/Containers/FixedMap.h"
+# include "base/Memory/DynUntypedStorage.h"
 
 # ifdef AE_CPU_ARCH_X86_64
 #	include "base/Platforms/CPUInfo_X64.cpp.h"
@@ -99,30 +99,36 @@ namespace AE::Base
 
 			DynUntypedStorage	info_data	{ Bytes{buf_size}, AlignOf<SYSTEM_CPU_SET_INFORMATION> };
 			auto*				infos		= info_data.Ptr<SYSTEM_CPU_SET_INFORMATION>();
-
-			CHECK( fnGetSystemCpuSetInformation( OUT infos, uint(info_data.Size()), OUT &buf_size, process, 0 ) != FALSE );	// win10
-
-			// info for each logical core
-			const uint	count = buf_size / sizeof(SYSTEM_CPU_SET_INFORMATION);
-
-			FixedMap< BYTE, Core*, MaxCoreTypes >	eff_class_map;
-
-			for (uint i = 0; i < count; ++i)
+			
+			if ( fnGetSystemCpuSetInformation( OUT infos, uint(info_data.Size()), OUT &buf_size, process, 0 ) != FALSE )	// win10
 			{
-				ASSERT( infos[i].Type == CpuSetInformation );
+				// info for each logical core
+				const uint	count = buf_size / sizeof(SYSTEM_CPU_SET_INFORMATION);
 
-				const auto&	info		= infos[i].CpuSet;
-				auto [iter, inserted]	= eff_class_map.emplace( info.EfficiencyClass, null );
+				FixedMap< BYTE, Core*, MaxCoreTypes >	eff_class_map;
 
-				if ( inserted )
+				for (uint i = 0; i < count; ++i)
 				{
-					iter->second		= &cpu.coreTypes.emplace_back();
-					iter->second->name	= cpu_name;
-					iter->second->type	= ECoreType::Performance;
-				}
+					ASSERT( infos[i].Type == CpuSetInformation );
 
-				iter->second->logicalBits.set( info.LogicalProcessorIndex );
-				iter->second->physicalBits.set( info.CoreIndex );
+					const auto&	info		= infos[i].CpuSet;
+					auto [iter, inserted]	= eff_class_map.emplace( info.EfficiencyClass, null );
+
+					if ( inserted )
+					{
+						iter->second		= &cpu.coreTypes.emplace_back();
+						iter->second->name	= cpu_name;
+						iter->second->type	= ECoreType::Performance;
+					}
+
+					iter->second->logicalBits.set( info.LogicalProcessorIndex );
+					iter->second->physicalBits.set( info.CoreIndex );
+
+					// from https://gpuopen.com/gdc-presentations/2022/GDC_AMD_Ryzen_Processor_Software_Optimization.pdf
+					// "Some AMD products have cores which are faster than other cores. The system BIOS describes the CPPC Highest Performance ranking for each logical processor.
+					//  The Windows Kernel creates a PerformanceSchedulingClass ranking based on this information and uses it during scheduling. Logical processor 0 and CCD0 may not be the fastest."
+					// TODO: use 'SchedulingClass' to detect fastest core
+				}
 			}
 
 			::CloseHandle( process );
@@ -143,8 +149,14 @@ namespace AE::Base
 
 		// read core frequency
 		{
-			/*WindowsLibrary	lib;
-			if ( lib.Load( "PowrProf.dll" ))
+			bool	has_freq = false;
+			
+			#ifdef AE_CPU_ARCH_X86_64
+				has_freq = ReadX64CPUClock( INOUT cpu.coreTypes );
+			#endif
+
+			WindowsLibrary	lib;
+			if ( not has_freq and lib.Load( "PowrProf.dll" ))
 			{
 				StaticArray< PROCESSOR_POWER_INFORMATION, 512 >		cores = {};
 				CHECK( cores.size() >= cpu.logicalCoreCount );
@@ -163,6 +175,7 @@ namespace AE::Base
 						{
 							if ( core.logicalBits.test( i ))
 							{
+								has_freq		= true;
 								core.maxClock	= info.MaxMhz;
 								core.baseClock	= info.CurrentMhz;
 								break;
@@ -170,12 +183,6 @@ namespace AE::Base
 						}
 					}
 				}
-			}
-			else*/
-			{
-			#ifdef AE_CPU_ARCH_X86_64
-				ReadX64CPUClock( INOUT cpu.coreTypes );
-			#endif
 			}
 		}
 

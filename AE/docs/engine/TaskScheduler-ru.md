@@ -1,52 +1,6 @@
 Система асинхронных задач, планировщик и менеджер потоков.
 
-
-## Асинхронные задачи (AsyncTask)
-
-Базовый интерфейс для всех асинхронных задач.<br/>
-Хранит статус выполнения задачи, зависимости, тип очереди и тд.
-
-Виртуальный метод `Run()` гарантированно выполнится только после того как все входные зависимости завершены - их методы `Run` или `OnCancel` были вызваны.
-Перед вызовом `Run()` кэш ЦП загружается (acquire), а после вызова - выгружается (release), дополнительные синхронизации не требуются.
-
-Внутри реализации метода `Run()` можно вызвать:
- * метод `OnFailure()` - ошибка при выполнении задачи, меняет статус и вызывает метод `OnCancel()` после завершения `Run()`.
- * метод `Continue()` - возвращает задачу в очередь, чтобы повторно вызвать метод `Run()`. Может принимать список зависимых задач.
-
-Исходник: [AsyncTask.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/AsyncTask.h#L88)
-
-
-### Корутины (CoroTask)
-
-Корутины из C++20 сделанные поверх AsyncTask.<br/>
-Интерфейс сделан через неблокирующие `co_await`:
-```cpp
-bool        co_await Coro_IsCanceled
-EStatus     co_await Coro_Status
-ETaskQueue  co_await Coro_TaskQueue
-```
-
-`CancelledCoro` - специальная задача, которая выполняется если хотя бы одна из сильных зависимостей была отменена.
-Работает аналогично `AsyncTask::OnCancel()` который иначе не сделать на корутинах.
-
-Исходник: [AsyncTask.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/AsyncTask.h#L287)
-
-
-### Корутины (Coroutine<>)
-
-Корутины из C++20 сделанные поверх AsyncTask, могут хранить значение внутри и возвращать его через `co_await` после выполнения задачи.
-
-Исходник: [Coroutine.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/Coroutine.h), [Тесты](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/threading/UnitTest_Coroutine.cpp)
-
-
-### Промис (Promise<>)
-
-Повторяет функционал корутин на C++17, который поддерживается многими компиляторами.
-
-`MakePromiseFromValue()` - если аргумент dependsOn пустой, то задача не добавляется в очередь.<br/>
-`MakePromiseFrom() и MakePromiseFromArray()` - объединяют результаты промисов в один.
-
-Исходник: [Promise.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/Promise.h), [Тесты](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/threading/UnitTest_Promise.cpp)
+TODO
 
 
 ### Типы очередей (ETaskQueue / EThread)
@@ -191,4 +145,4 @@ ThreadManager также распределяет потоки по ядрам �
 Время выполнения задачи: 110мкс<br/>
 Потеря времени в планировщике: 2.7%
 
-[Тесты](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/threading/Perf_TaskSystem.cpp)
+[Тесты](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/threading/Perf_TaskSystemCoro.cpp)

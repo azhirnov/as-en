@@ -145,7 +145,7 @@ namespace AE::ResEditor
 		dst.view = res_mngr.CreateImageView( view, dst.image, "dummy image 2D view" );
 		CHECK_ERRV( dst.view );
 
-		RenderGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaders );
+		RenderGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaderStages );
 		GetDataTransferQueue().EnqueueImageTransition( dst.image );
 	}
 
@@ -173,7 +173,7 @@ namespace AE::ResEditor
 		dst.view = res_mngr.CreateImageView( view, dst.image, "dummy image 3D view" );
 		CHECK_ERRV( dst.view );
 
-		RenderGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaders );
+		RenderGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaderStages );
 		GetDataTransferQueue().EnqueueImageTransition( dst.image );
 	}
 
@@ -205,7 +205,7 @@ namespace AE::ResEditor
 		dst.view = res_mngr.CreateImageView( view, dst.image, (cubemap ? "dummy image cube view" : "dummy image 2d array view") );
 		CHECK_ERRV( dst.view );
 
-		RenderGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaders );
+		RenderGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaderStages );
 		GetDataTransferQueue().EnqueueImageTransition( dst.image );
 	}
 

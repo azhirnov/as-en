@@ -19,7 +19,7 @@ namespace AE::Base
 {
 	using namespace AE::PipelineCompiler;
 
-	ND_ inline StringView  ToString (EAttachment value)
+	Nd__In StringView  ToString (EAttachment value)
 	{
 		switch_enum( value )
 		{
@@ -40,7 +40,7 @@ namespace AE::Base
 		RETURN_ERR( "unknown attachment usage" );
 	}
 
-	ND_ inline StringView  ToString (EAttachmentLoadOp value)
+	Nd__In StringView  ToString (EAttachmentLoadOp value)
 	{
 		switch_enum( value )
 		{
@@ -55,7 +55,7 @@ namespace AE::Base
 		RETURN_ERR( "unknown attachment load op" );
 	}
 
-	ND_ inline StringView  ToString (EAttachmentStoreOp value)
+	Nd__In StringView  ToString (EAttachmentStoreOp value)
 	{
 		switch_enum( value )
 		{
@@ -517,7 +517,7 @@ namespace
 
 				const auto				access		= ToEResState( state );
 				const bool				invalidate	= AllBits( state, _EResState::Invalidate );
-				const EResourceState	shaders		= state & EResourceState::AllShaders;
+				const EResourceState	shaders		= state & EResourceState::AllShaderStages;
 				const bool				is_color	= att_it->second->IsColor();
 				const bool				is_general	= access == _EResState::General;
 

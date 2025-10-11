@@ -392,7 +392,7 @@ namespace _hidden_
 	MemEqual
 =================================================
 */
-	ND_ inline bool  MemEqual (const void* lhs, const void* rhs, Bytes size) __NE___
+	Nd__In bool  MemEqual (const void* lhs, const void* rhs, Bytes size) __NE___
 	{
 		NonNull( lhs );
 		NonNull( rhs );
@@ -410,7 +410,7 @@ namespace _hidden_
 	MemLess
 =================================================
 */
-	ND_ inline bool  MemLess (const void* lhs, const void* rhs, Bytes size) __NE___
+	Nd__In bool  MemLess (const void* lhs, const void* rhs, Bytes size) __NE___
 	{
 		NonNull( lhs );
 		NonNull( rhs );

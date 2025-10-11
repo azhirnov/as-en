@@ -1,8 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "platform/Android/InputActionsAndroid.h"
-
 #ifdef AE_PLATFORM_ANDROID
+# include "platform/Android/InputActionsAndroid.h"
 
 namespace AE::App
 {

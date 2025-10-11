@@ -29,7 +29,7 @@
 #include "glslang/SPIRV/GLSL.std.450.h"
 
 // SPIRV-Tools includes
-#ifdef ENABLE_OPT
+#ifdef AE_ENABLE_SPIRV_TOOLS
 #	include "spirv-tools/optimizer.hpp"
 #	include "spirv-tools/libspirv.h"
 #else
@@ -495,8 +495,7 @@ namespace AE::PipelineCompiler
 			case EShader::RayIntersection:	return EShLangIntersect;
 			case EShader::RayCallable :		return EShLangCallable;
 			case EShader::Tile :
-			case EShader::Unknown :
-			case EShader::_Count :			break;
+			case EShader::Unknown :			break;
 		}
 		switch_end
 		RETURN_ERR( "unknown shader type", EShLangCount );
@@ -626,7 +625,7 @@ namespace AE::PipelineCompiler
 		return true;
 	}
 
-#ifdef ENABLE_OPT
+#ifdef AE_ENABLE_SPIRV_TOOLS
 /*
 =================================================
 	_DisassembleSPIRV
@@ -750,7 +749,8 @@ namespace AE::PipelineCompiler
 
 		return tools.Validate( spirv.data(), spirv.size(), options );
 	}
-#endif // ENABLE_OPT
+
+#endif // AE_ENABLE_SPIRV_TOOLS
 
 /*
 =================================================
@@ -788,7 +788,7 @@ namespace AE::PipelineCompiler
 			#ifdef AE_DEBUG
 			if ( AnyBits( options, EShaderOpt::_ShaderTrace_Mask ))
 			{
-				#ifdef ENABLE_OPT
+				#ifdef AE_ENABLE_SPIRV_TOOLS
 				{
 					String	disasm;
 					if ( _DisassembleSPIRV( spirv, OUT disasm ))
@@ -807,7 +807,7 @@ namespace AE::PipelineCompiler
 			return false;
 		}
 
-		#ifdef ENABLE_OPT
+		#ifdef AE_ENABLE_SPIRV_TOOLS
 			if ( AllBits( options, EShaderOpt::StrongOptimization ))
 				CHECK_ERR( _OptimizeSPIRV( INOUT spirv, OUT log ));
 		#endif
@@ -1398,13 +1398,20 @@ namespace AE::PipelineCompiler
 	GetShaderStructName
 =================================================
 */
-	ND_ static ShaderStructName  GetShaderStructName (const glslang::TString &str2)
+	ND_ static ShaderStructName  GetShaderStructName (const glslang::TString &str2, const String &varName)
 	{
 		StringView	str		{ str2.c_str(), str2.length() };
 		StringView	prefix	{"AE_Type_"};
 
 		if ( StartsWith( str, prefix ))
-			return ShaderStructName{ str.substr( prefix.size() )};
+		{
+			if ( EndsWith( str, varName ))
+			{
+				StringView	tmp = str.substr( prefix.size(), str.size() - prefix.size() - varName.size() - 1 );
+				return ShaderStructName{ tmp };
+			}else
+				return ShaderStructName{ str.substr( prefix.size() )};
+		}
 		else
 			return ShaderStructName{ str };
 	}
@@ -1693,7 +1700,7 @@ namespace AE::PipelineCompiler
 			const auto	name = ExtractPushConstant( node );
 			COMP_CHECK_ERR( name.IsDefined() );
 
-			const auto	type_name = GetShaderStructName( type.getTypeName() );
+			const auto	type_name = GetShaderStructName( type.getTypeName(), ExtractNodeName( node ));
 
 			COMP_CHECK_ERR( reflection.layout.pushConstants.items.insert_or_assign(
 								name,
@@ -1855,7 +1862,7 @@ namespace AE::PipelineCompiler
 				un.buffer.state				= EResourceState::ShaderUniform | EResourceState_FromShaders( _currentStage );
 				un.buffer.arrayStride		= Bytes32u{0u};
 				un.buffer.dynamicOffsetIndex= UMax;
-				un.buffer.typeName			= GetShaderStructName( type.getTypeName() );
+				un.buffer.typeName			= GetShaderStructName( type.getTypeName(), ExtractNodeName( node ));
 
 				COMP_CHECK_ERR( name.IsDefined() );
 
@@ -1878,7 +1885,7 @@ namespace AE::PipelineCompiler
 				un.buffer					= Default;
 				un.buffer.state				= ExtractShaderAccessType( qual ) | EResourceState_FromShaders( _currentStage );
 				un.buffer.dynamicOffsetIndex= UMax;
-				un.buffer.typeName			= GetShaderStructName( type.getTypeName() );
+				un.buffer.typeName			= GetShaderStructName( type.getTypeName(), ExtractNodeName( node ));
 
 				COMP_CHECK_ERR( name.IsDefined() );
 

@@ -75,7 +75,7 @@ namespace AE::GeometryTools
 	project 2D coord to cube face
 =================================================
 */
-	ND_ inline double3  RotateVec (const double3 &c, ECubeFace face) __NE___
+	Nd__In double3  RotateVec (const double3 &c, ECubeFace face) __NE___
 	{
 		return	double3( c.z, -c.y, -c.x) * double(face == ECubeFace::XPos) +	// X+
 				double3(-c.z, -c.y,  c.x) * double(face == ECubeFace::XNeg) +	// X-
@@ -92,7 +92,7 @@ namespace AE::GeometryTools
 	project 3D coord on cube/sphere to face 2D coord
 =================================================
 */
-	ND_ inline Tuple<double2, double, ECubeFace>  InverseRotation (double3 c) __NE___
+	Nd__In Tuple<double2, double, ECubeFace>  InverseRotation (double3 c) __NE___
 	{
 		c.y = -c.y;
 

@@ -374,7 +374,7 @@ namespace AE::ResLoader
 	GetLevel
 =================================================
 */
-	IntermImage::Level const*  IntermImage::GetLevel (MipmapLevel mipmap, ImageLayer layer) C_NE___
+	Ptr< const IntermImage::Level >  IntermImage::GetLevel (MipmapLevel mipmap, ImageLayer layer) C_NE___
 	{
 		CHECK_ERR( mipmap.Get() < _data.size() );
 		CHECK_ERR( layer.Get() < _data[mipmap.Get()].size() );

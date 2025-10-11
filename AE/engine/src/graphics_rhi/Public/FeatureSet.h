@@ -200,6 +200,11 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderInt64,							: 2 )	/* GL_ARB_gpu_shader_int64															*/\
 		_visitorF_( EFeature,			shaderFloat16,							: 2 )\
 		_visitorF_( EFeature,			shaderFloat64,							: 2 )	/* GL_ARB_gpu_shader_fp64															*/\
+		_visitorF_( EFeature,			shaderBFloat16Type,						: 2 )	/* -\																				*/\
+		_visitorF_( EFeature,			shaderBFloat16DotProduct,				: 2 )	/* -|-- GL_EXT_bfloat16																*/\
+		_visitorF_( EFeature,			shaderBFloat16CooperativeMatrix,		: 2 )	/* -/																				*/\
+		_visitorF_( EFeature,			shaderFloat8,							: 2 )	/* -\__ GL_EXT_float_e5m2, GL_EXT_float_e4m3										*/\
+		_visitorF_( EFeature,			shaderFloat8CooperativeMatrix,			: 2 )	/* -/																				*/\
 		/* uniform/storage buffer */\
 		_visitorF_( EFeature,			storageBuffer16BitAccess,				: 2 )\
 		_visitorF_( EFeature,			uniformAndStorageBuffer16BitAccess,		: 2 )\
@@ -240,19 +245,22 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			shaderSharedFloat64AtomicMinMax,		: 2 )	/*-|																				*/\
 		_visitorF_( EFeature,			shaderImageFloat32AtomicMinMax,			: 2 )	/*-|																				*/\
 		_visitorF_( EFeature,			sparseImageFloat32AtomicMinMax,			: 2 )	/*/																					*/\
+		_visitorF_( EFeature,			shaderAtomicPackedFp16,					: 2 )	/* VK_NV_shader_atomic_float16_vector, GL_NV_shader_atomic_fp16_vector				*/\
 		/* output */\
 		_visitorF_( EFeature,			shaderOutputViewportIndex,				: 2 )	/*\																					*/\
 		_visitorF_( EFeature,			shaderOutputLayer,						: 2 )	/*-'--GL_ARB_shader_viewport_layer_array											*/\
 		/* clock */\
 		_visitorF_( EFeature,			shaderSubgroupClock,					: 2 )	/* GL_ARB_shader_clock																*/\
 		_visitorF_( EFeature,			shaderDeviceClock,						: 2 )	/* GL_EXT_shader_realtime_clock														*/\
-		/*  */\
+		/* cooperative matrix/vector */\
 		_visitorF_( EFeature,			cooperativeMatrix,						: 2 )	/*\ 																				*/\
 		_visitor2_( EShaderStages,		cooperativeMatrixStages,					)	/*-|-- GL_KHR_cooperative_matrix													*/\
-		_visitor1_( CoopMatrixSet_t,	cooperativeMatrixConfig,					)	/*/		- can be empty is default config is not supported							*/\
+		_visitor1_( CoopMatrixSet_t,	cooperativeMatrixConfig,					)	/*/		- can be empty if default config is not supported							*/\
 		_visitorF_( EFeature,			cooperativeVector,						: 2 )	/*\																					*/\
 		_visitorF_( EFeature,			cooperativeVectorTraining,				: 2 )	/*-|-- GLSL_NV_cooperative_vector													*/\
-		_visitor1_( CoopVecSet_t,		cooperativeVectorConfig,					)	/*/		- can be empty is default config is not supported							*/\
+		_visitor1_( CoopVecSet_t,		cooperativeVectorConfig,					)	/*/		- can be empty if default config is not supported							*/\
+		_visitorF_( EFeature,			shaderIntegerDotProduct,				: 2 )	/* \__ GL_EXT_integer_dot_product													*/\
+		_visitor4_( EIntegerDotProductFeats, integerDotProductFeatures,				)	/* /																				*/\
 		\
 		\
 	/*---- shader features/limits ----*/\
@@ -576,7 +584,7 @@ namespace AE::Graphics
 		template <bool Mutable>
 		bool  _Validate ()															__NE___;
 	};
-	StaticAssert( sizeof(FeatureSet) == 568 );
+	StaticAssert( sizeof(FeatureSet) == 576 );
 
 	
 	__CxIn uint  FeatureSet::GetFeatureCount () __NE___

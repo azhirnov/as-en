@@ -3,7 +3,7 @@
 #pragma once
 
 #include "platform/Public/OutputSurface.h"
-#include "platform/Public/VRDevice.h"
+#include "platform/Public/VRSession.h"
 
 namespace AE::App
 {
@@ -18,7 +18,7 @@ namespace AE::App
 	private:
 		using Images_t		= StaticArray< Strong< ImageID >, 2 >;
 		using ImageViews_t	= StaticArray< Strong< ImageViewID >, 2 >;
-		using VRImageDesc	= IVRDevice::VRImageDesc;
+		using VRImageDesc	= IVRSession::VRImageDesc;
 
 
 

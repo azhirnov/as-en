@@ -155,7 +155,8 @@ namespace AE::ResEditor
 		ND_ bool  _Run (const Path &filePath, const ScriptCollectionPtr &collection)							__NE___;
 		ND_ bool  _Run2 (const Path &filePath)																	__NE___;
 
-			void  _RunWithPipelineCompiler (Function<void ()> fn, Bool compileMSL = False{})					__Th___;
+			void  _RunWithPipelineCompiler (Function<void ()> fn, Bool compileMSL = False{},
+											Bool useSlang = False{})											__Th___;
 
 		ND_ static TempData&  _GetTempData ()																	__Th___;
 
@@ -451,7 +452,8 @@ namespace AE::ResEditor
 		friend class ScriptSceneGraphicsPass;
 		friend class ScriptSceneRayTracingPass;
 
-			static RTechInfo	ConvertAndLoad (Function<void (ScriptEnginePtr)> fn)	__Th___;
+			static RTechInfo	ConvertAndLoad (Function<void (ScriptEnginePtr)> fn,
+												ScriptBasePass::EFlags flags)			__Th___;
 			static void			WithPipelineCompiler (Function<void()> fn)				__Th___;
 			static void			AddPass (ScriptBasePassPtr)								__Th___;
 

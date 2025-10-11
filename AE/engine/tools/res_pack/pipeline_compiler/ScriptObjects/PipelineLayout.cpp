@@ -381,10 +381,57 @@ namespace
 					pc.Get<1>()->AddUsage( ShaderStructType::EUsage::BufferLayout );
 					CHECK_THROW_MSG( pc.Get<1>()->ToGLSL( true, INOUT types, OUT fields, INOUT uniqueTypes, pc_offset ));
 
-					str << "layout(push_constant) uniform AE_Type_" << pc.Get<1>()->Typename() << " {\n" << fields << "} " << pc.Get<0>() << ";\n\n";
+					auto&	name = pc.Get<0>();
+					str << "layout(push_constant) uniform AE_Type_" << pc.Get<1>()->Typename() << '_' << name << " {\n" << fields << "} " << name << ";\n\n";
 				}
 
 				pc_offset += pc.Get<1>()->StaticSize();
+			}
+		}
+
+		return types + str;
+	}
+	
+/*
+=================================================
+	ToHLSL
+=================================================
+*/
+	String  PipelineLayout::ToHLSL (EShaderStages stages, INOUT UniqueTypes_t &uniqueTypes) C_Th___
+	{
+		String	types;
+		String	str;
+		uint	idx			= 0;
+		auto&	storage		= *ObjectStorage::Instance();
+
+		for (auto& ds : _dsLayouts)
+		{
+			if ( ds.Get<1>() == _DbgShaderTrace )
+				continue;
+
+			if ( auto ptr = ds.Get<0>() )
+			{
+				String	decl;
+				ptr->ToHLSL( stages, idx, INOUT types, OUT decl, INOUT uniqueTypes );
+
+				str << "//---------------------\n// ds[" << ToString(idx) << "], name: '" << storage.GetName( ds.Get<1>() ) << "', type: '" << ptr->_name << "'\n"
+					<< decl
+					<< "//---------------------\n\n";
+			}
+			++idx;
+		}
+
+		if ( not _pushConstants.empty() )
+		{
+			for (auto& pc : _pushConstants)
+			{
+				if ( AnyBits( EShaderStages(0) | pc.Get<2>(), stages ))
+				{
+					pc.Get<1>()->AddUsage( ShaderStructType::EUsage::BufferLayout );
+					CHECK_THROW_MSG( pc.Get<1>()->ToHLSL( INOUT types, INOUT uniqueTypes ));
+
+					str << "[[vk::push_constant]] " << pc.Get<1>()->Typename() << "  " << pc.Get<0>() << ";\n";
+				}
 			}
 		}
 

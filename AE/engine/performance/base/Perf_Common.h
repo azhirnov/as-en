@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "../../tests/shared/UnitTest_Shared.h"
-#include "../../tests/shared/IntervalProfiler.h"
+#include "../tests/shared/UnitTest_Shared.h"
+#include "../tests/shared/IntervalProfiler.h"
 
 
 template <typename FN>
@@ -50,7 +50,7 @@ inline void  ForEachCoreType (FN &&fn)
 	}
 }
 
-ND_ inline String  FindNearestCacheType (const Bytes size, const ECoreType coreType)
+Nd__In String  FindNearestCacheType (const Bytes size, const ECoreType coreType)
 {
 	auto&	cpu_info	= CpuArchInfo::Get();
 	auto	page_size	= PlatformUtils::GetMemoryPageInfo().pageSize;

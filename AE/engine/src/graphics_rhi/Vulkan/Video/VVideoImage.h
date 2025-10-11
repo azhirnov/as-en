@@ -15,7 +15,7 @@ namespace AE::Graphics
 	// Vulkan Video Image immutable data
 	//
 
-	class VVideoImage final
+	class VVideoImage final : private VulkanInstanceFn
 	{
 	// types
 	private:

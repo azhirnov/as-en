@@ -44,7 +44,7 @@ namespace AE::Graphics
 	};
 
 
-	Nd__In MultiSamples operator "" _samples (unsigned long long value) __NE___	{ return MultiSamples( uint(value) ); }
+	Nd__In MultiSamples operator ""_samples (unsigned long long value) __NE___	{ return MultiSamples( uint(value) ); }
 
 
 } // AE::Graphics

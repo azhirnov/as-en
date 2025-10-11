@@ -200,9 +200,9 @@ namespace AE::PipelineCompiler
 
 		struct Image
 		{
-			EResourceState		state;
-			EImageType			type;
-			EPixelFormat		format;								// if explicitly defined
+			EResourceState		state					= Default;
+			EImageType			type					= Default;
+			EPixelFormat		format					= Default;	// if explicitly defined
 			ubyte				subpassInputIdx			= UMax;		// only for input attachment
 			SamplerIdx_t		samplerOffsetInStorage	= UMax;
 		};

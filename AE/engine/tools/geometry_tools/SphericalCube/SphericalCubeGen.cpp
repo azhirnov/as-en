@@ -18,7 +18,7 @@ namespace
 	RotateTangent
 =================================================
 */
-	ND_ inline double3  RotateTangent (const double3 &c, ECubeFace face) __NE___
+	Nd__In double3  RotateTangent (const double3 &c, ECubeFace face) __NE___
 	{
 		switch ( face )
 		{
@@ -37,7 +37,7 @@ namespace
 	RotateBiTangent
 =================================================
 */
-	ND_ inline double3  RotateBiTangent (const double3 &c, ECubeFace face) __NE___
+	Nd__In double3  RotateBiTangent (const double3 &c, ECubeFace face) __NE___
 	{
 		switch ( face )
 		{

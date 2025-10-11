@@ -263,7 +263,6 @@ namespace AE::RemoteGraphics
 							_connectionLostTimer->Restart();
 						else
 							ThreadUtils::Sleep_1us();
-
 					}
 				}
 				catch (...)
@@ -417,13 +416,6 @@ namespace AE::RemoteGraphics
 	_Send
 =================================================
 */
-	void  RmGAppListener::_Send (const void* data, Bytes dataSize) __Th___
-	{
-		auto*	td = _GetThreadData();
-		CHECK_THROW( td != null );
-		CHECK_THROW( td->conn.Send( data, dataSize ));
-	}
-
 	void  RmGAppListener::_Send (const Msg::BaseResponse &msg) __Th___
 	{
 		auto*	td = _GetThreadData();
@@ -808,9 +800,9 @@ namespace AE::RemoteGraphics
 
 		Msg::Log	msg;
 		msg.message	= text;
-		msg.func	= info.loc.function_name();
-		msg.file	= info.loc.file_name();
-		msg.line	= info.loc.line();
+		msg.func	= info.loc.FunctionName();
+		msg.file	= info.loc.FileName();
+		msg.line	= info.loc.Line();
 		msg.level	= info.level;
 		msg.scope	= info.scope;
 
@@ -829,7 +821,11 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::RemoteGraphics;
 
-
+/*
+=================================================
+	AE_OnAppCreated / AE_OnAppDestroyed
+=================================================
+*/
 Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 {
 	StaticLogger::InitDefault();
@@ -840,9 +836,12 @@ void  AE_OnAppDestroyed ()
 {
 	StaticLogger::Deinitialize( True{"checkMemLeaks"} );
 }
-//-----------------------------------------------------------------------------
 
-
+/*
+=================================================
+	JNI_OnLoad / JNI_OnUnload
+=================================================
+*/
 #ifdef AE_PLATFORM_ANDROID
 #	include "platform/Android/ApplicationAndroid.h"
 

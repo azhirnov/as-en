@@ -173,6 +173,8 @@ inline void  IntervalProfiler::PrintAndReset ()
 /*
 =================================================
 	BeginTest
+----
+	warning: 'fn' executed in destructor, so references may expire
 =================================================
 */
 forceinline void  IntervalProfiler::BeginTest (StringView name)

@@ -1,11 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "platform/Android/ApplicationAndroid.h"
-
 #ifdef AE_PLATFORM_ANDROID
 # include "graphics_rhi/Vulkan/VSwapchain.h"
 # include "platform/Android/FileSystemAndroid.h"
-
+# include "platform/Android/ApplicationAndroid.h"
 
 // must be implemented in client code
 extern "C" JNIEXPORT jint  JNI_OnLoad   (JavaVM* vm, void *);
@@ -22,6 +20,7 @@ namespace AE::Base {
 
 namespace AE::App
 {
+	INTERNAL_LINKAGE( Unique<ApplicationAndroid>  s_AndApp )
 
 /*
 =================================================
@@ -31,9 +30,8 @@ namespace AE::App
 namespace {
 	ND_ static ApplicationAndroid&  GetApp () __NE___
 	{
-		auto*	app = ApplicationAndroid::_GetAppInstance();
-		NonNull( app );
-		return *app;
+		ASSERT( s_AndApp );
+		return *s_AndApp;
 	}
 }
 /*
@@ -41,10 +39,9 @@ namespace {
 	_GetAppInstance
 =================================================
 */
-	ApplicationAndroid*&  ApplicationAndroid::_GetAppInstance () __NE___
+	ApplicationAndroid*  ApplicationAndroid::_GetAppInstance () __NE___
 	{
-		static ApplicationAndroid*	app = new ApplicationAndroid{ AE_OnAppCreated() };	// throw
-		return app;
+		return s_AndApp.get();
 	}
 
 /*
@@ -75,21 +72,44 @@ namespace {
 	CreateWindow
 =================================================
 */
-	WindowPtr  ApplicationAndroid::CreateWindow (WndListenerPtr listener, const WindowDesc &, IInputActions* dstActions) __NE___
+	WindowPtr  ApplicationAndroid::CreateWindow (WndListenerPtr listener, const WindowDesc &desc, IInputActions* dstActions) __NE___
 	{
 		CHECK_ERR( listener );
 
 		DRC_EXLOCK( _stCheck );
-		EXLOCK( _windowsGuard );
 
-		if ( _windows.size() == 1 and not _windows.front().second->_listener )
+		WindowAndroid*	activity = null;
+
+		if ( desc.androidWndId != UMax )
 		{
-			auto&	wnd = _windows.front().second;
-			wnd->_Init( RVRef(listener), dstActions );
-			return wnd;
+			// search by id
+			for (auto& [id, wnd] : _andWindows)
+			{
+				if ( desc.androidWndId == id )
+				{
+					activity = wnd.get();
+					break;
+				}
+			}
+		}
+		else
+		{
+			// find any window
+			for (auto& [id, wnd] : _andWindows)
+			{
+				if ( not wnd->_listener )
+				{
+					activity = wnd.get();
+					break;
+				}
+			}
 		}
 
-		RETURN_ERR( "multi-window is not supported yet" );
+		CHECK_ERR( activity != null );
+		CHECK_ERR( not activity->_listener );  // already attached to engine window
+
+		activity->_Init( RVRef(listener), desc, dstActions );
+		return WindowPtr{activity};
 	}
 
 /*
@@ -148,13 +168,21 @@ namespace {
 	GetMonitors
 =================================================
 */
-	ArrayView<Monitor>  ApplicationAndroid::GetMonitors (bool update) __NE___
+	IApplication::MonitorsView_t  ApplicationAndroid::GetMonitors (bool update) __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 		DRC_EXLOCK( _stCheck );		// for compatibility
 		Unused( update );
 
-		return ArrayView<Monitor>{ &_displayInfo, 1 };
+		return MonitorsView_t{ &_displayInfo, 1 };
+	}
+
+	IApplication::MonitorsView_t  ApplicationAndroid::GetCachedMonitors () C_NE___
+	{
+		DRC_SHAREDLOCK( _drCheck );
+		DRC_EXLOCK( _stCheck );		// for compatibility
+
+		return MonitorsView_t{ &_displayInfo, 1 };
 	}
 
 /*
@@ -174,11 +202,11 @@ namespace {
 */
 	void  ApplicationAndroid::Terminate () __NE___
 	{
+		DRC_EXLOCK( _stCheck );
+
 		_isRunning.store( false );
 
-		EXLOCK( _windowsGuard );
-
-		for (auto& obj_wnd : _windows)
+		for (auto& obj_wnd : _andWindows)
 		{
 			obj_wnd.second->Close();
 		}
@@ -191,6 +219,8 @@ namespace {
 */
 	void  ApplicationAndroid::BeforeUpdate () __NE___
 	{
+		DRC_EXLOCK( _stCheck );
+
 		ApplicationBase::_BeforeUpdate();
 	}
 
@@ -201,24 +231,23 @@ namespace {
 */
 	void  ApplicationAndroid::AfterUpdate () __NE___
 	{
-		bool	wnd_is_empty;
+		DRC_EXLOCK( _stCheck );
+
+		for (usize i = 0; i < _andWindows.size();)
 		{
-			EXLOCK( _windowsGuard );
-
-			for (usize i = 0; i < _windows.size();)
+			if_likely( _andWindows[i].second->_wndState != IWindow::EState::Destroyed )
 			{
-				if_likely( _windows[i].second->_wndState != IWindow::EState::Destroyed )
-					++i;
-				else
-					_windows.fast_erase( i );
+				++i;
 			}
-
-			wnd_is_empty = _windows.empty();
+			else
+			{
+				_andWindows.fast_erase( i );
+			}
 		}
 
 		ApplicationBase::_AfterUpdate();
 
-		if_unlikely( wnd_is_empty )
+		if_unlikely( _andWindows.empty() )
 		{
 			_OnDestroy();
 		}
@@ -241,31 +270,27 @@ namespace {
 
 		//_methods.createWindow	= Default;
 
-		EXLOCK( _windowsGuard );
-
 		// windows must be destroyed before destroying app
-		for (auto& obj_wnd : _windows)
+		for (auto& obj_wnd : _andWindows)
 		{
 			CHECK( obj_wnd.second->_wndState == IWindow::EState::Destroyed );
 			CHECK( obj_wnd.second.use_count() == 1 );
 		}
+
+		_andWindows.clear();
 		_windows.clear();
 	}
 
 /*
 =================================================
-	_AddWindow
+	_AddAndroidWindow
 =================================================
 */
-	ApplicationAndroid::WinID  ApplicationAndroid::_AddWindow (SharedPtr<WindowAndroid> wnd) __NE___
+	ApplicationAndroid::WinID  ApplicationAndroid::_AddAndroidWindow (SharedPtr<WindowAndroid> wnd) __NE___
 	{
-		WinID	id;
-		{
-			EXLOCK( _windowsGuard );
+		_AddWindow( RVRef(wnd) );
 
-			id = ++_windowCounter;
-			_windows.emplace_back( id, wnd );
-		}
+		WinID	id = _andWindows.back().first;
 
 		if ( not _started and _listener )
 		{
@@ -274,6 +299,22 @@ namespace {
 		}
 
 		return id;
+	}
+
+/*
+=================================================
+	_AddWindow
+=================================================
+*/
+	void  ApplicationAndroid::_AddWindow (SharedPtr<WindowBase> wnd) __NE___
+	{
+		WinID	id = _windowCounter;
+		_andWindows.emplace_back( id, Cast<WindowAndroid>(wnd) );
+		_windows.push_back( wnd );
+
+		++_windowCounter;
+
+		ASSERT( _andWindows.size() == _windows.size() );
 	}
 
 /*
@@ -457,10 +498,14 @@ namespace {
 
 		JavaEnv::SetVM( vm );
 
+		s_AndApp.reset( new ApplicationAndroid{ AE_OnAppCreated() });
+
+		AE_LOGI( "Started java application" );
+
 		// register application native methods
 		{
 			JavaClass	app_class{ "AE/engine/BaseApplication" };
-			CHECK_ERR( app_class );
+			CHECK_ERR( app_class, -1 );
 
 			app_class.RegisterStaticMethod( "native_OnCreate",			&ApplicationAndroid::native_OnCreate );
 			app_class.RegisterStaticMethod( "native_SetDirectories",	&ApplicationAndroid::native_SetDirectories );
@@ -472,7 +517,7 @@ namespace {
 		// register activity native methods
 		{
 			JavaClass	wnd_class{ "AE/engine/BaseActivity" };
-			CHECK_ERR( wnd_class );
+			CHECK_ERR( wnd_class, -1 );
 
 			wnd_class.RegisterStaticMethod( "native_OnCreate",				&WindowAndroid::native_OnCreate );
 			wnd_class.RegisterStaticMethod( "native_OnDestroy",				&WindowAndroid::native_OnDestroy );
@@ -491,8 +536,6 @@ namespace {
 			wnd_class.RegisterStaticMethod( "native_SendBatteryStat2",		&WindowAndroid::native_SendBatteryStat2 );
 		}
 
-		CHECK( ApplicationAndroid::_GetAppInstance() != null );
-
 		return JavaEnv::Version;
 	}
 
@@ -505,16 +548,12 @@ namespace {
 	{
 		using namespace AE::Java;
 
-		auto&	app = ApplicationAndroid::_GetAppInstance();
-
-		delete app;
-		app = null;
+		s_AndApp.reset();
 
 		AE_OnAppDestroyed();
 
 		JavaEnv::SetVM( null );
 	}
-
 
 } // AE::App
 

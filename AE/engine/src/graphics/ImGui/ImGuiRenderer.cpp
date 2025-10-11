@@ -7,8 +7,8 @@
 # include "imgui.h"
 # include "imgui_internal.h"
 
-# if IMGUI_VERSION_NUM != 19190
-#	pragma message( "required ImGui version 1.91.9" )
+# if IMGUI_VERSION_NUM != 19210
+#	pragma message( "required ImGui version 1.92.1" )
 # endif
 
 namespace AE::Graphics
@@ -29,7 +29,8 @@ namespace AE::Graphics
 		CHECK_ERR( not pplnInfo.empty() );
 		CHECK_ERR( _Initialize( RVRef(gfxAlloc), RVRef(rtech) ));
 
-		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
+		auto&	rts		 = GraphicsScheduler();
+		auto&	res_mngr = rts.GetResourceManager();
 
 		for (auto& [fmt, rp, p] : pplnInfo)
 		{
@@ -39,16 +40,29 @@ namespace AE::Graphics
 			_pplnMap.insert_or_assign( fmt, PipelineSet{ RenderTechPassName::Optimized_t{rp}, ppln });
 		}
 
+		auto	default_ppln = _pplnMap.begin()->second.ppln;
+
+		_texUniform = unTexture;
+
 		// create DS
 		{
-			auto [ds, idx] = res_mngr.CreateDescriptorSet( _pplnMap.begin()->second.ppln, dsName );
-			CHECK_ERR( ds and idx == _dsIndex );
-			_descSet = RVRef(ds);
+			_descSets.resize( rts.GetMaxFrames() );
+			CHECK_ERR( res_mngr.CreateDescriptorSets( OUT _dsIndex, OUT _descSets.data(), _descSets.size(), default_ppln, dsName ));
+
+			_vsPCIndex = res_mngr.GetPushConstantIndex<imgui_vs_pc>( default_ppln, PushConstantName{"imguiVSpc"} );
+			_fsPCIndex = res_mngr.GetPushConstantIndex<imgui_fs_pc>( default_ppln, PushConstantName{"imguiFSpc"} );
+			CHECK_ERR( _vsPCIndex and _fsPCIndex );
 		}{
+			StaticArray< ImageViewID, TextureCount >	textures;
+			textures.fill( _font.view );
+
 			DescriptorUpdater	updater;
-			CHECK( updater.Set( _descSet, EDescUpdateMode::Partialy ));
-			updater.BindImage( unTexture, _font.view );
-			CHECK( updater.Flush() );
+			for (auto& ds : _descSets)
+			{
+				CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
+				CHECK_ERR( updater.BindImages( unTexture, textures ));
+				CHECK_ERR( updater.Flush() );
+			}
 		}
 		return true;
 	}
@@ -90,6 +104,8 @@ namespace AE::Graphics
 
 			_font.view = res_mngr.CreateImageView( ImageViewDesc{}, _font.image, "Imgui font image view" );
 			CHECK_ERR( _font.view );
+			
+			_imguiCtx->IO.Fonts->SetTexID( BitCast<ImTextureID>( 0ull ));
 		}
 		return true;
 	}
@@ -103,7 +119,8 @@ namespace AE::Graphics
 	{
 		auto&	res_mngr = GraphicsScheduler().GetResourceManager();
 
-		res_mngr.DelayedReleaseResources( _descSet, _font.image, _font.view );
+		res_mngr.DelayedReleaseResources( _font.image, _font.view );
+		res_mngr.ReleaseResourceArray( _descSets );
 
 		if ( _imguiCtx != null )
 		{
@@ -163,6 +180,35 @@ namespace AE::Graphics
 		}
 		return true;
 	}
+	
+/*
+=================================================
+	BindTextures
+=================================================
+*/
+	bool  ImGuiRenderer::BindTextures (FrameUID currentFrameId, ArrayView<ImageViewID> ids) __NE___
+	{
+		CHECK( ids.size() < TextureCount-1 );
+
+		StaticArray< ImageViewID, TextureCount >	textures;
+		textures.fill( _font.view );
+
+		for (usize i = 0, cnt = Min( ids.size(), textures.size()-1 ); i < cnt; ++i)
+		{
+			if ( ids[i] == Default )
+				continue;
+			
+			textures[i+1] = ids[i];
+		}
+
+		DescriptorUpdater	updater;
+
+		CHECK_ERR( updater.Set( _descSets[ currentFrameId.Index() ], EDescUpdateMode::Partialy ));
+		CHECK_ERR( updater.BindImages( UniformName{_texUniform}, textures ));
+		CHECK_ERR( updater.Flush() );
+
+		return true;
+	}
 
 /*
 =================================================
@@ -195,6 +241,52 @@ namespace AE::Graphics
 
 		return true;
 	}
+	
+/*
+=================================================
+	Render2
+=================================================
+*/
+	bool  ImGuiRenderer::Render2 (DirectCtx::Graphics					&gfxCtx,
+								  App::IOutputSurface					&surface,
+								  const Function<void()>				&updateUI,
+								  const RenderPassDesc::ClearValue_t	&clearValue) __Th___
+	{
+		IOutputSurface::RenderTargets_t		targets;
+		CHECK_ERR( surface.GetTargets( OUT targets ));
+		CHECK_Eq( targets.size(), 1 );
+
+		auto&	rt = targets[0];
+		rt.initialState |= EResourceState::Invalidate;
+
+		CHECK_ERR( _fontInitialized );
+		CHECK_ERR( _Update( rt, updateUI ));
+
+		PipelineSet	ps;
+		{
+			auto	it = _pplnMap.find( rt.format );
+			if ( it == _pplnMap.end() )
+				it = _pplnMap.find( EPixelFormat::SwapchainColor );
+
+			CHECK_ERR_MSG( it != _pplnMap.end(),
+				"Failed to find pipeline for surface format "s << ToString(rt.format) );
+			ps = it->second;
+		}
+
+		auto	dctx = gfxCtx.BeginRenderPass( RenderPassDesc{ *_rtech, RenderTechPassName{ps.pass}, rt.RegionSize() }
+													.AddViewport( rt.RegionSize() )
+													.AddTarget( AttachmentName{"Color"}, rt.viewId, clearValue, rt.initialState, rt.finalState ),
+												DebugLabel{"ImGui", HtmlColor::Yellow} );
+		
+		// same as ImGui::GetDrawData()
+		auto*	viewport = _imguiCtx->Viewports[0];
+
+		if_likely( viewport->DrawDataP.Valid )
+			_DrawUI( dctx, viewport->DrawDataP, ps.ppln, rt.transform );
+
+		gfxCtx.EndRenderPass( dctx );
+		return true;
+	}
 
 /*
 =================================================
@@ -209,6 +301,7 @@ namespace AE::Graphics
 	{
 		IOutputSurface::RenderTargets_t		targets;
 		CHECK_ERR( surface.GetTargets( OUT targets ));
+		CHECK_Eq( targets.size(), 1 );
 
 		auto&	rt = targets[0];
 		rt.initialState |= EResourceState::Invalidate;
@@ -225,9 +318,6 @@ namespace AE::Graphics
 	{
 		CHECK_ERR( IsInitialized() );
 		CHECK_ERR( _Update( rt, updateUI ));
-
-		// same as ImGui::GetDrawData()
-		auto*	viewport = _imguiCtx->Viewports[0];
 
 		if_unlikely( not _fontInitialized )
 		{
@@ -258,6 +348,9 @@ namespace AE::Graphics
 												DebugLabel{"ImGui", HtmlColor::Yellow} );
 		if ( drawBefore )
 			drawBefore( dctx );
+
+		// same as ImGui::GetDrawData()
+		auto*	viewport = _imguiCtx->Viewports[0];
 
 		if_likely( viewport->DrawDataP.Valid )
 			_DrawUI( dctx, viewport->DrawDataP, ps.ppln, rt.transform );
@@ -370,7 +463,7 @@ namespace AE::Graphics
 			return false;
 
 		dctx.BindPipeline( ppln );
-		dctx.BindDescriptorSet( _dsIndex, _descSet );
+		dctx.BindDescriptorSet( _dsIndex, _descSets[ dctx.GetFrameId().Index() ]);
 
 		{
 			float2		scale	{ drawData.DisplaySize.x + _imguiCtx->IO.DisplayFramebufferScale.x,
@@ -380,18 +473,19 @@ namespace AE::Graphics
 			auto	r = float3x3{ SurfaceTransformUtils::ToInvMatrix( orient )};
 			auto	m = float3x2{r * (t * s)};
 
-			imgui_ub	ub_data;
+			imgui_vs_pc		ub_data;
 			ub_data.transform_c0	= m.get<0>();
 			ub_data.transform_c1	= m.get<1>();
 			ub_data.transform_c2	= m.get<2>();
 
-			dctx.PushConstant( _pcIndex, ub_data );
+			dctx.PushConstant( _vsPCIndex, ub_data );
 		}
 
 		CHECK_ERR( _UploadVB( dctx, drawData ));
 
 		uint	idx_offset	= 0;
 		uint	vtx_offset	= 0;
+		uint	cur_tex		= UMax;
 		auto	scr_size	= int2{float2{	drawData.DisplaySize.x * _uiToPix + 0.5f,
 											drawData.DisplaySize.y * _uiToPix + 0.5f }};
 
@@ -402,6 +496,13 @@ namespace AE::Graphics
 			for (int j = 0; j < cmd_list.CmdBuffer.Size; ++j)
 			{
 				ImDrawCmd const&	cmd = cmd_list.CmdBuffer[j];
+				const uint			tex	= uint(BitCast<ulong>(cmd.TexRef.GetTexID()));
+				
+				if ( tex != cur_tex )
+				{
+					cur_tex = tex;
+					dctx.PushConstant( _fsPCIndex, imgui_fs_pc{tex} );
+				}
 
 				if_likely( cmd.UserCallback == null )
 				{
@@ -453,7 +554,8 @@ namespace AE::Graphics
 
 		copyCtx.AccumBarriers()
 			.ImageBarrier( _font.image, EResourceState::CopyDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
-
+		
+		_imguiCtx->IO.Fonts->ClearTexData();
 		return result;
 	}
 

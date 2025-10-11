@@ -37,7 +37,7 @@ namespace AE::Graphics
 		OneMinusSrc1Alpha,		// 1 - S1.a
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown					= _Count,
 	};
 
 
@@ -53,7 +53,7 @@ namespace AE::Graphics
 		Min,			// min( S, D )
 		Max,			// max( S, D )
 		_Count,
-		Unknown	= 0xFF,
+		Unknown			= _Count,
 	};
 
 
@@ -81,7 +81,7 @@ namespace AE::Graphics
 		OrReverse,			// S | ~D
 		OrInverted,			// ~S | D
 		_Count,
-		Unknown	= 0xFF,
+		Unknown				= _Count,
 	};
 
 
@@ -96,7 +96,7 @@ namespace AE::Graphics
 		GEqual,			// >=
 		Always,			// true
 		_Count,
-		Unknown			= ubyte(~0),
+		Unknown			= _Count,
 	};
 
 
@@ -111,7 +111,7 @@ namespace AE::Graphics
 		DecrWrap,		// --src & maxValue
 		Invert,			// ~src
 		_Count,
-		Unknown			= 0xFF,
+		Unknown			= _Count,
 	};
 
 
@@ -121,7 +121,7 @@ namespace AE::Graphics
 		Line,
 		Fill,
 		_Count,
-		Unknown	= 0xFF,
+		Unknown			= _Count,
 	};
 
 
@@ -143,7 +143,7 @@ namespace AE::Graphics
 		Patch,
 
 		_Count,
-		Unknown		= 0xFF,
+		Unknown		= _Count,
 	};
 
 

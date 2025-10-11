@@ -43,6 +43,7 @@
 #	pragma clang diagnostic ignored "-Wunused-private-field"
 #	pragma clang diagnostic ignored "-Wnullability-completeness"
 #	pragma clang diagnostic ignored "-Wunused-parameter"
+#	pragma clang diagnostic ignored "-Wundef"
 # endif
 # ifdef AE_COMPILER_GCC
 #	pragma GCC diagnostic push
@@ -139,7 +140,7 @@ namespace {
 	RequireBufferDeviceAddress
 =================================================
 */
-	ND_ inline bool  RequireBufferDeviceAddress (const BufferDesc &desc) __NE___
+	Nd__In bool  RequireBufferDeviceAddress (const BufferDesc &desc) __NE___
 	{
 		constexpr auto	mask =	EBufferUsage::ShaderBindingTable | EBufferUsage::ASBuild_ReadOnly |
 								EBufferUsage::ASBuild_Scratch | EBufferUsage::ShaderAddress;
@@ -334,10 +335,10 @@ namespace {
 		auto&					vk_fn	= *_device._GetVkTable();
 		const auto&				vk_ext	= _device.GetVExtensions();
 
-		funcs.vkGetInstanceProcAddr					= _var_vkGetInstanceProcAddr;
-		funcs.vkGetDeviceProcAddr					= _var_vkGetDeviceProcAddr;
-		funcs.vkGetPhysicalDeviceProperties			= _var_vkGetPhysicalDeviceProperties;
-		funcs.vkGetPhysicalDeviceMemoryProperties	= _var_vkGetPhysicalDeviceMemoryProperties;
+		funcs.vkGetInstanceProcAddr					= VulkanInstanceFn::_var_vkGetInstanceProcAddr;
+		funcs.vkGetDeviceProcAddr					= VulkanInstanceFn::_var_vkGetDeviceProcAddr;
+		funcs.vkGetPhysicalDeviceProperties			= VulkanInstanceFn::_var_vkGetPhysicalDeviceProperties;
+		funcs.vkGetPhysicalDeviceMemoryProperties	= VulkanInstanceFn::_var_vkGetPhysicalDeviceMemoryProperties;
 		funcs.vkAllocateMemory						= vk_fn._var_vkAllocateMemory;
 		funcs.vkFreeMemory							= vk_fn._var_vkFreeMemory;
 		funcs.vkMapMemory							= vk_fn._var_vkMapMemory;
@@ -357,7 +358,7 @@ namespace {
 		funcs.vkCmdCopyBuffer						= vk_fn._var_vkCmdCopyBuffer;
 		funcs.vkBindBufferMemory2KHR				= vk_fn._var_vkBindBufferMemory2KHR;
 		funcs.vkBindImageMemory2KHR					= vk_fn._var_vkBindImageMemory2KHR;
-		funcs.vkGetPhysicalDeviceMemoryProperties2KHR = _var_vkGetPhysicalDeviceMemoryProperties2KHR;
+		funcs.vkGetPhysicalDeviceMemoryProperties2KHR = VulkanInstanceFn::_var_vkGetPhysicalDeviceMemoryProperties2KHR;
 		funcs.vkGetDeviceBufferMemoryRequirements	= null;
 		funcs.vkGetDeviceImageMemoryRequirements	= null;
 

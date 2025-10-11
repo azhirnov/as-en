@@ -8,12 +8,9 @@
 #include "base/Math/Byte.h"
 #include "base/Utils/SourceLoc.h"
 #include "base/Pointers/RefCounter.h"
-#include "base/FileSystem/Path.h"
 
 namespace AE::Base
 {
-	using Path = _ae_fs_::path;
-
 
 	//
 	// File System
@@ -27,7 +24,7 @@ namespace AE::Base
 
 	// types
 	public:
-		using Time_t = _ae_fs_::file_time_type;
+		using Time_t = std::filesystem::file_time_type;
 
 		struct DirectoryEntry;
 		struct DirectoryIter;
@@ -35,12 +32,12 @@ namespace AE::Base
 
 		enum class ECopyOpt : ubyte
 		{
-			ReplaceAll,		// delete 'to' and put 'from'
-			FileReplace,	// use 'from' file
-			FileKeep,		// keep 'to' file
+			ReplaceAll,		// delete 'dst' and put 'src'
+			FileReplace,	// use 'src' file
+			FileKeep,		// keep 'dst' file
 			FileNewest,		// compare last modification time
 			FileLargest,	// compare file size
-			FileKeepBoth,	// keep 'to' file, rename 'from' file
+			FileKeepBoth,	// keep 'dst' file, rename 'src' file
 		};
 
 
@@ -134,7 +131,7 @@ namespace AE::Base
 		static bool  ValidateFileName (INOUT BasicString<T> &name)		__NE___;
 
 		// Calculate hash of path.
-		ND_ static HashVal  Hash (const Path &p)						__NE___	{ ASSERT( p.is_absolute() );  return HashVal{ _ae_fs_::hash_value( p )}; }
+		ND_ static HashVal  Hash (const Path &p)						__NE___	{ ASSERT( p.is_absolute() );  return HashVal{ std::filesystem::hash_value( p )}; }
 
 
 	// utils
@@ -153,17 +150,17 @@ namespace AE::Base
 		static bool  Search (const Path &base, const Path &ref, uint backwardDepth, uint forwardDepth, OUT Path &result)	__Th___;
 
 		//
-		static bool  FindUnusedFilename (const Function< void (OUT Path &, usize idx) > &	buildName,
-										 const Function< bool (const Path &) > &			consume,
-										 uint												maxStep = 1000)					__Th___;
+		static bool  FindUnusedFilename (const Function< void (OUT Path &, usize idx) >	&buildName,
+										 const Function< bool (const Path &) >			&consume,
+										 uint											maxStep = 1000)						__Th___;
 
-		static bool  MakeUniqueName (INOUT Path &p)						__Th___;
+		static bool  MakeUniqueName (INOUT Path &p)																			__Th___;
 
-		ND_ static StringView  ToShortPath (StringView file, uint maxParts = 3)	__NE___;
+		ND_ static StringView  ToShortPath (StringView file, uint maxParts = 3)												__NE___;
 
 		// Will rewrite existing file, but if file in use will try name with '-number' suffix.
 		template <typename FileType, typename ModeType>
-		ND_ static RC<FileType>  OpenUnusedFile (INOUT Path &p, ModeType mode, uint maxAttempts = 100)	__Th___;
+		ND_ static RC<FileType>  OpenUnusedFile (INOUT Path &p, ModeType mode, uint maxAttempts = 100)						__Th___;
 
 
 	// platform dependent
@@ -191,27 +188,27 @@ namespace AE::Base
 	{
 		friend class FileSystem;
 	private:
-		_ae_fs_::directory_iterator		_it;
+		std::filesystem::directory_iterator		_it;
 
-		DirectoryIter (_ae_fs_::directory_iterator it)		__NE___	: _it{it} {}
+		DirectoryIter (std::filesystem::directory_iterator it)	__NE___	: _it{it} {}
 	public:
-		DirectoryIter ()									__NE___	= default;
-		DirectoryIter (DirectoryIter &&)					__NE___	= default;
-		DirectoryIter (const DirectoryIter &)				__NE___	= default;
-		~DirectoryIter ()									__NE___	= default;
+		DirectoryIter ()										__NE___	= default;
+		DirectoryIter (DirectoryIter &&)						__NE___	= default;
+		DirectoryIter (const DirectoryIter &)					__NE___	= default;
+		~DirectoryIter ()										__NE___	= default;
 
-		DirectoryIter&  operator = (const DirectoryIter &)	__NE___ = default;
-		DirectoryIter&  operator = (DirectoryIter &&)		__NE___ = default;
+		DirectoryIter&  operator = (const DirectoryIter &)		__NE___ = default;
+		DirectoryIter&  operator = (DirectoryIter &&)			__NE___ = default;
 
-		ND_ DirectoryEntry const&	operator *  ()			C_NE___;
-		ND_ DirectoryEntry const*	operator -> ()			C_NE___;
+		ND_ DirectoryEntry const&	operator *  ()				C_NE___;
+		ND_ DirectoryEntry const*	operator -> ()				C_NE___;
 
-			DirectoryIter &			operator ++ ()			__Th___;
+			DirectoryIter &			operator ++ ()				__Th___;
 
-		ND_ bool  operator == (const DirectoryIter &rhs)	C_NE___	{ return _it == rhs._it; }
-		ND_ bool  operator != (const DirectoryIter &rhs)	C_NE___	{ return _it != rhs._it; }
+		ND_ bool  operator == (const DirectoryIter &rhs)		C_NE___	{ return _it == rhs._it; }
+		ND_ bool  operator != (const DirectoryIter &rhs)		C_NE___	{ return _it != rhs._it; }
 	};
-	StaticAssert( sizeof(FileSystem::DirectoryIter) == sizeof(_ae_fs_::directory_iterator) );
+	StaticAssert( sizeof(FileSystem::DirectoryIter) == sizeof(std::filesystem::directory_iterator) );
 
 
 
@@ -222,27 +219,27 @@ namespace AE::Base
 	{
 		friend class FileSystem;
 	private:
-		_ae_fs_::recursive_directory_iterator		_it;
+		std::filesystem::recursive_directory_iterator		_it;
 
-		RecursiveDirectoryIter (_ae_fs_::recursive_directory_iterator it)	__NE___	: _it{it} {}
+		RecursiveDirectoryIter (std::filesystem::recursive_directory_iterator it)	__NE___	: _it{it} {}
 	public:
-		RecursiveDirectoryIter ()											__NE___	= default;
-		RecursiveDirectoryIter (RecursiveDirectoryIter &&)					__NE___	= default;
-		RecursiveDirectoryIter (const RecursiveDirectoryIter &)				__NE___	= default;
-		~RecursiveDirectoryIter ()											__NE___	= default;
+		RecursiveDirectoryIter ()													__NE___	= default;
+		RecursiveDirectoryIter (RecursiveDirectoryIter &&)							__NE___	= default;
+		RecursiveDirectoryIter (const RecursiveDirectoryIter &)						__NE___	= default;
+		~RecursiveDirectoryIter ()													__NE___	= default;
 
-		RecursiveDirectoryIter&  operator = (const RecursiveDirectoryIter &)__NE___ = default;
-		RecursiveDirectoryIter&  operator = (RecursiveDirectoryIter &&)		__NE___ = default;
+		RecursiveDirectoryIter&  operator = (const RecursiveDirectoryIter &)		__NE___ = default;
+		RecursiveDirectoryIter&  operator = (RecursiveDirectoryIter &&)				__NE___ = default;
 
-		ND_ DirectoryEntry const&	operator *  ()							C_NE___;
-		ND_ DirectoryEntry const*	operator -> ()							C_NE___;
+		ND_ DirectoryEntry const&	operator *  ()									C_NE___;
+		ND_ DirectoryEntry const*	operator -> ()									C_NE___;
 
-			RecursiveDirectoryIter&	operator ++ ()							__Th___;
+			RecursiveDirectoryIter&	operator ++ ()									__Th___;
 
-		ND_ bool  operator == (const RecursiveDirectoryIter &rhs)			C_NE___	{ return _it == rhs._it; }
-		ND_ bool  operator != (const RecursiveDirectoryIter &rhs)			C_NE___	{ return _it != rhs._it; }
+		ND_ bool  operator == (const RecursiveDirectoryIter &rhs)					C_NE___	{ return _it == rhs._it; }
+		ND_ bool  operator != (const RecursiveDirectoryIter &rhs)					C_NE___	{ return _it != rhs._it; }
 	};
-	StaticAssert( sizeof(FileSystem::RecursiveDirectoryIter) == sizeof(_ae_fs_::recursive_directory_iterator) );
+	StaticAssert( sizeof(FileSystem::RecursiveDirectoryIter) == sizeof(std::filesystem::recursive_directory_iterator) );
 
 
 
@@ -255,9 +252,9 @@ namespace AE::Base
 		friend struct FileSystem::RecursiveDirectoryIter;
 
 	private:
-		_ae_fs_::directory_entry	_entry;
+		std::filesystem::directory_entry	_entry;
 
-		DirectoryEntry (_ae_fs_::directory_entry e)			__NE___	: _entry{RVRef(e)} {}
+		DirectoryEntry (std::filesystem::directory_entry e)	__NE___	: _entry{RVRef(e)} {}
 	public:
 		DirectoryEntry ()									__NE___	= default;
 		DirectoryEntry (const DirectoryEntry &)						= default;
@@ -283,7 +280,7 @@ namespace AE::Base
 		ND_ bool  operator <= (const DirectoryEntry &rhs)	C_NE___	{ return _entry <= rhs._entry; }
 		ND_ bool  operator >= (const DirectoryEntry &rhs)	C_NE___	{ return _entry >= rhs._entry; }
 	};
-	StaticAssert( sizeof(FileSystem::DirectoryEntry) == sizeof(_ae_fs_::directory_entry) );
+	StaticAssert( sizeof(FileSystem::DirectoryEntry) == sizeof(std::filesystem::directory_entry) );
 //-----------------------------------------------------------------------------
 
 
@@ -298,8 +295,8 @@ namespace AE::Base
 
 		PathAndLine ()									__NE___	{}
 		explicit PathAndLine (Path path, uint line = 0)	__Th___	: path{RVRef(path)}, line{line} {}
-		explicit PathAndLine (const SourceLoc &loc)		__Th___ : path{loc.file_name()}, line{loc.line()} {}
-		explicit PathAndLine (const SourceLocCopy &loc)	__Th___ : path{loc.file_name()}, line{loc.line()} {}
+		explicit PathAndLine (const SourceLoc &loc)		__Th___ : path{loc.FileName()}, line{loc.Line()} {}
+		explicit PathAndLine (const SourceLocCopy &loc)	__Th___ : path{loc.FileName()}, line{loc.Line()} {}
 
 		PathAndLine (const PathAndLine &)				__Th___ = default;
 		PathAndLine (PathAndLine &&)					__NE___	= default;
@@ -322,19 +319,25 @@ namespace AE::Base
 	};
 //-----------------------------------------------------------------------------
 
+	#ifdef AE_CFG_DEBUG
+	#	define FS_MSG( _expr_, _msg_ )		if(bool{_expr_}){}else{AE_LOGW( _msg_ );}
+	#else
+	#	define FS_MSG( _expr_, _msg_ )		{}
+	#endif
+
 
 
 	inline FileSystem::DirectoryEntry const&  FileSystem::DirectoryIter::operator *  ()			C_NE___ { return reinterpret_cast<DirectoryEntry const&>( _it.operator* () ); }
 	inline FileSystem::DirectoryEntry const*  FileSystem::DirectoryIter::operator -> ()			C_NE___ { return reinterpret_cast<DirectoryEntry const*>( _it.operator->() ); }
 
-	ND_ inline FileSystem::DirectoryIter  begin (FileSystem::DirectoryIter it)					__NE___ { return it; }
-	ND_ inline FileSystem::DirectoryIter  end   (FileSystem::DirectoryIter)						__NE___ { return {}; }
+	Nd__In FileSystem::DirectoryIter  begin (FileSystem::DirectoryIter it)						__NE___ { return it; }
+	Nd__In FileSystem::DirectoryIter  end   (FileSystem::DirectoryIter)							__NE___ { return {}; }
 
 	inline FileSystem::DirectoryIter&  FileSystem::DirectoryIter::operator ++ () __Th___
 	{
 		std::error_code ec;
 		_it.increment( OUT ec );	// throw 'std::bad_alloc'
-		ASSERT_MSG( not ec, "DirectoryIterator++ error: " + ec.message() );
+		FS_MSG( not ec, "DirectoryIterator++ error: " + ec.message() );
 		if_unlikely( ec ) *this = {}; // end
 		return *this;
 	}
@@ -343,14 +346,14 @@ namespace AE::Base
 	inline FileSystem::DirectoryEntry const&  FileSystem::RecursiveDirectoryIter::operator * ()	C_NE___ { return reinterpret_cast<DirectoryEntry const&>( _it.operator* () ); }
 	inline FileSystem::DirectoryEntry const*  FileSystem::RecursiveDirectoryIter::operator ->()	C_NE___ { return reinterpret_cast<DirectoryEntry const*>( _it.operator->() ); }
 
-	ND_ inline FileSystem::RecursiveDirectoryIter  begin (FileSystem::RecursiveDirectoryIter it)__NE___ { return it; }
-	ND_ inline FileSystem::RecursiveDirectoryIter  end   (FileSystem::RecursiveDirectoryIter)	__NE___ { return {}; }
+	Nd__In FileSystem::RecursiveDirectoryIter  begin (FileSystem::RecursiveDirectoryIter it)	__NE___ { return it; }
+	Nd__In FileSystem::RecursiveDirectoryIter  end   (FileSystem::RecursiveDirectoryIter)		__NE___ { return {}; }
 
 	inline FileSystem::RecursiveDirectoryIter&  FileSystem::RecursiveDirectoryIter::operator ++ () __Th___
 	{
 		std::error_code ec;
 		_it.increment( OUT ec );	// throw 'std::bad_alloc'
-		ASSERT_MSG( not ec, "RecursiveDirectoryIterator++ error: " + ec.message() );
+		FS_MSG( not ec, "RecursiveDirectoryIterator++ error: " + ec.message() );
 		if_unlikely( ec ) *this = {}; // end
 		return *this;
 	}
@@ -359,16 +362,16 @@ namespace AE::Base
 	inline bool  FileSystem::_Remove (const Path &p) __NE___
 	{
 		std::error_code	ec;
-		bool	res = _ae_fs_::remove( p, OUT ec );
-		ASSERT_MSG( not ec, "Remove('" + p.string() + "'): " + ec.message() );
+		bool	res = std::filesystem::remove( p, OUT ec );
+		FS_MSG( not ec, "Remove('" + p.string() + "'): " + ec.message() );
 		return res;
 	}
 
 	inline bool  FileSystem::_RemoveAll (const Path &p) __NE___
 	{
 		std::error_code	ec;
-		_ae_fs_::remove_all( p, OUT ec );
-		ASSERT_MSG( not ec, "RemoveAll('" + p.string() + "'): " + ec.message() );
+		std::filesystem::remove_all( p, OUT ec );
+		FS_MSG( not ec, "RemoveAll('" + p.string() + "'): " + ec.message() );
 		return not ec;
 	}
 
@@ -378,8 +381,8 @@ namespace AE::Base
 			return true;
 
 		std::error_code	ec;
-		_ae_fs_::create_directory( p, OUT ec );
-		ASSERT_MSG( not ec, "CreateDirectory('" + p.string() + "'): " + ec.message() );
+		std::filesystem::create_directory( p, OUT ec );
+		FS_MSG( not ec, "CreateDirectory('" + p.string() + "'): " + ec.message() );
 		return not ec;
 	}
 
@@ -389,8 +392,8 @@ namespace AE::Base
 			return true;
 
 		std::error_code	ec;
-		_ae_fs_::create_directories( p, OUT ec );
-		ASSERT_MSG( not ec, "CreateDirectories('" + p.string() + "'): " + ec.message() );
+		std::filesystem::create_directories( p, OUT ec );
+		FS_MSG( not ec, "CreateDirectories('" + p.string() + "'): " + ec.message() );
 		return not ec;
 	}
 
@@ -400,53 +403,53 @@ namespace AE::Base
 			return true;
 
 		std::error_code	ec;
-		_ae_fs_::current_path( p, OUT ec );
-		ASSERT_MSG( not ec, "SetCurrentPath('" + p.string() + "'): " + ec.message() );
+		std::filesystem::current_path( p, OUT ec );
+		FS_MSG( not ec, "SetCurrentPath('" + p.string() + "'): " + ec.message() );
 		return not ec;
 	}
 
 	inline bool  FileSystem::_Exists (const Path &p) __NE___
 	{
 		std::error_code	ec;
-		return _ae_fs_::exists( p, OUT ec );
+		return std::filesystem::exists( p, OUT ec );
 	}
 
 	inline FileSystem::Time_t  FileSystem::LastWriteTime (const Path &p) __NE___
 	{
 		std::error_code	ec;
-		return _ae_fs_::last_write_time( p, OUT ec );
+		return std::filesystem::last_write_time( p, OUT ec );
 	}
 
 	inline bool  FileSystem::SetLastWriteTime (const Path &p, Time_t t) __NE___
 	{
 		std::error_code	ec;
-		_ae_fs_::last_write_time( p, t, OUT ec );
-		ASSERT_MSG( not ec, "SetLastWriteTime('" + p.string() + "'): " + ec.message() );
+		std::filesystem::last_write_time( p, t, OUT ec );
+		FS_MSG( not ec, "SetLastWriteTime('" + p.string() + "'): " + ec.message() );
 		return not ec;
 	}
 
 	inline bool  FileSystem::IsDirectory (const Path &p) __NE___
 	{
 		std::error_code	ec;
-		return _ae_fs_::is_directory( p, OUT ec );
+		return std::filesystem::is_directory( p, OUT ec );
 	}
 
 	inline bool  FileSystem::IsFile (const Path &p) __NE___
 	{
 		std::error_code	ec;
-		return _ae_fs_::is_regular_file( p, OUT ec );
+		return std::filesystem::is_regular_file( p, OUT ec );
 	}
 
 	inline bool  FileSystem::_IsEmpty (const Path &p) __NE___
 	{
 		std::error_code	ec;
-		return _ae_fs_::is_empty( p, OUT ec );
+		return std::filesystem::is_empty( p, OUT ec );
 	}
 
 	inline Path  FileSystem::CurrentPath () __Th___
 	{
 		std::error_code	ec;
-		return _ae_fs_::current_path( OUT ec );
+		return std::filesystem::current_path( OUT ec );
 	}
 
 	inline Path  FileSystem::ToAbsolute (const Path &p) __Th___
@@ -455,13 +458,13 @@ namespace AE::Base
 			return CurrentPath();
 
 		std::error_code	ec;
-		return _ae_fs_::absolute( p, OUT ec ).lexically_normal();
+		return std::filesystem::absolute( p, OUT ec ).lexically_normal();
 	}
 
 	inline Path  FileSystem::ToRelative (const Path &p, const Path &base) __Th___
 	{
 		std::error_code	ec;
-		return _ae_fs_::relative( p, base, OUT ec );
+		return std::filesystem::relative( p, base, OUT ec );
 	}
 
 	inline Path  FileSystem::Normalize (const Path &p) __Th___
@@ -474,55 +477,55 @@ namespace AE::Base
 	{
 		ASSERT( not p.empty() );	// use "." instead
 		std::error_code	ec;
-		return DirectoryIter{ _ae_fs_::directory_iterator{ p, _ae_fs_::directory_options::skip_permission_denied, OUT ec }};
+		return DirectoryIter{ std::filesystem::directory_iterator{ p, std::filesystem::directory_options::skip_permission_denied, OUT ec }};
 	}
 
 	inline auto  FileSystem::EnumRecursive (const Path &p) __Th___
 	{
 		ASSERT( not p.empty() );	// use "." instead
 		std::error_code	ec;
-		return RecursiveDirectoryIter{ _ae_fs_::recursive_directory_iterator{ p, _ae_fs_::directory_options::skip_permission_denied, OUT ec }};
+		return RecursiveDirectoryIter{ std::filesystem::recursive_directory_iterator{ p, std::filesystem::directory_options::skip_permission_denied, OUT ec }};
 	}
 
 	inline bool  FileSystem::CopyFile (const Path &from, const Path &to) __NE___
 	{
 		std::error_code	ec;
-		const auto		opt = _ae_fs_::copy_options::overwrite_existing;
-		bool	res = _ae_fs_::copy_file( from, to, opt, OUT ec );
-		ASSERT_MSG( not ec, "CopyFile('" + from.string() + "', '" + to.string() + "'): " + ec.message() );
+		const auto		opt = std::filesystem::copy_options::overwrite_existing;
+		bool			res = std::filesystem::copy_file( from, to, opt, OUT ec );
+		FS_MSG( not ec, "CopyFile('" + from.string() + "', '" + to.string() + "'): " + ec.message() );
 		return res;
 	}
 
 	inline bool  FileSystem::CopyDirectory (const Path &from, const Path &to) __NE___
 	{
 		std::error_code	ec;
-		const auto		opt = _ae_fs_::copy_options::recursive | _ae_fs_::copy_options::overwrite_existing;
-		_ae_fs_::copy( from, to, opt, OUT ec );
-		ASSERT_MSG( not ec, "CopyDirectory('" + from.string() + "', '" + to.string() + "'): " + ec.message() );
+		const auto		opt = std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing;
+		std::filesystem::copy( from, to, opt, OUT ec );
+		FS_MSG( not ec, "CopyDirectory('" + from.string() + "', '" + to.string() + "'): " + ec.message() );
 		return not ec;
 	}
 
 	inline bool  FileSystem::Rename (const Path &oldName, const Path &newName) __NE___
 	{
 		std::error_code	ec;
-		_ae_fs_::rename( oldName, newName, OUT ec );
-		ASSERT_MSG( not ec, "Rename('" + oldName.string() + "', '" + newName.string() + "'): " + ec.message() );
+		std::filesystem::rename( oldName, newName, OUT ec );
+		FS_MSG( not ec, "Rename('" + oldName.string() + "', '" + newName.string() + "'): " + ec.message() );
 		return not ec;
 	}
 
 	inline Bytes  FileSystem::FileSize (const Path &p) __NE___
 	{
 		std::error_code	ec;
-		auto	size = _ae_fs_::file_size( p );
-		ASSERT_MSG( not ec, "FileSize('" + p.string() + "'): " + ec.message() );
+		auto	size = std::filesystem::file_size( p );
+		FS_MSG( not ec, "FileSize('" + p.string() + "'): " + ec.message() );
 		return not ec ? Bytes{size} : 0_b;
 	}
 
 	inline bool  FileSystem::GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available) __NE___
 	{
 		std::error_code	ec;
-		auto	space = _ae_fs_::space( path, OUT ec );
-		ASSERT_MSG( not ec, "GetSpace('" + path.string() + "'): " + ec.message() );
+		auto	space = std::filesystem::space( path, OUT ec );
+		FS_MSG( not ec, "GetSpace('" + path.string() + "'): " + ec.message() );
 
 		if_likely( not ec )
 		{
@@ -565,7 +568,7 @@ namespace AE::Base
 	}
 
 
-	ND_ inline bool  IsAnsiPath (const Path &path) __NE___
+	Nd__In bool  IsAnsiPath (const Path &path) __NE___
 	{
 		for (auto& c : path.native())
 		{
@@ -596,8 +599,10 @@ namespace AE::Base
 	inline bool  FileSystem::Equal (const Path &lhs, const Path &rhs) __NE___
 	{
 		std::error_code	ec;
-		return _ae_fs_::equivalent( lhs, rhs, OUT ec );
+		return std::filesystem::equivalent( lhs, rhs, OUT ec );
 	}
 
+
+	#undef FS_MSG
 
 } // AE::Base

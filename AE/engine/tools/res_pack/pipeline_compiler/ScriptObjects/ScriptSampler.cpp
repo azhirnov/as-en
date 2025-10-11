@@ -121,7 +121,6 @@ namespace
 			case EAddressMode::MirrorRepeat :
 			case EAddressMode::ClampToEdge :
 			case EAddressMode::ClampToBorder :
-			case EAddressMode::_Count :
 			case EAddressMode::Unknown :				break;
 		}
 		switch_end

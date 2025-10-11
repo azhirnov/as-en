@@ -225,7 +225,11 @@ namespace {
 		// update status after uploading
 		if ( upload )
 		{
-			Scheduler().Run( _OnUploadComplete( font, upload ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+			Scheduler().Run(
+				ETaskQueue::Background,
+				_OnUploadComplete( font, upload ),
+				Tuple{ResourceUploadManager::WeakUploadResult{upload}}
+			);
 		}
 		else
 		{
@@ -263,10 +267,9 @@ namespace {
 			return Scheduler().Run(
 						ETaskQueue::Background,
 						DeferResult< RC<RasterFont> >( RVRef(font) ),
-						Tuple{RVRef(upload)}
-					);
-		}else
-			return Default;
+						Tuple{RVRef(upload)} );
+		}
+		return Default;
 	}
 
 /*
@@ -316,7 +319,11 @@ namespace {
 
 		font->_ConvertPixelsToUNorm( 1.0f / float2{img_header.dimension} );
 
-		Scheduler().Run( _OnUploadComplete( font, upload ), Tuple{ResourceUploadManager::WeakUploadResult{upload}} );
+		Scheduler().Run(
+			ETaskQueue::Background,
+			_OnUploadComplete( font, upload ),
+			Tuple{ResourceUploadManager::WeakUploadResult{upload}}
+		);
 		return font;
 	}
 

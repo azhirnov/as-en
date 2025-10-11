@@ -112,7 +112,7 @@ namespace AE::Networking
 	Register_RemoteControl
 =================================================
 */
-	ND_ inline bool  Register_RemoteControl (MessageFactory &mf) __NE___
+	Nd__In bool  Register_RemoteControl (MessageFactory &mf) __NE___
 	{
 		return	mf.Register<
 					// RemoteInputActions //

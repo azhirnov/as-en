@@ -140,6 +140,7 @@ namespace
 
 		IOutputSurface::RenderTargets_t		targets;
 		CHECK_CE( surface.GetTargets( OUT targets ));
+		CHECK_Eq( targets.size(), 1 );
 
 		const auto&		rt = targets[0];
 
@@ -362,8 +363,7 @@ namespace
 	UIEditorApplication::UIEditorApplication () __NE___ :
 		AppCoreV1{ GetAppConfig(), MakeRC<UIEditorCore>() }
 	{
-		if ( not FileSystem::SetCurrentPath( AE_RES_FOLDER ))
-			FileSystem::FindAndSetCurrent( "samples/ui_editor", 5 );
+		CHECK_FATAL( FileSystem::SetCurrentPath( AE_RES_FOLDER ));
 	}
 
 /*
@@ -602,8 +602,7 @@ namespace
 =================================================
 */
 	void  UIEditorCore::WaitFrame (const Threading::EThreadArray	&threadMask,
-								   Ptr<IWindow>						,
-								   Ptr<IVRDevice>					) __NE___
+								   Ptr<IWindow>						) __NE___
 	{
 		CHECK( GraphicsScheduler().WaitNextFrame( threadMask, AE::DefaultTimeout ));
 	}

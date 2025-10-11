@@ -16,7 +16,7 @@ namespace AE::Graphics
 	// Vulkan Image immutable data
 	//
 
-	class VImage final
+	class VImage final : private VulkanInstanceFn
 	{
 	// variables
 	private:

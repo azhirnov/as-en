@@ -27,7 +27,7 @@
 		_visitor_( RGB10_A2_UNorm,		VK_FORMAT_A2B10G10R10_UNORM_PACK32 )\
 		_visitor_( RGBA4_UNorm,			VK_FORMAT_R4G4B4A4_UNORM_PACK16 )\
 		_visitor_( RGB5_A1_UNorm,		VK_FORMAT_R5G5B5A1_UNORM_PACK16 )\
-		_visitor_( RGB_5_6_5_UNorm,		VK_FORMAT_R5G6B5_UNORM_PACK16 )\
+		_visitor_( R5G6B5_UNorm,		VK_FORMAT_R5G6B5_UNORM_PACK16 )\
 		_visitor_( BGR8_UNorm,			VK_FORMAT_B8G8R8_UNORM )\
 		_visitor_( BGRA8_UNorm,			VK_FORMAT_B8G8R8A8_UNORM )\
 		_visitor_( sRGB8,				VK_FORMAT_R8G8B8_SRGB )\
@@ -300,7 +300,7 @@
 		_visitor_( RGB10_A2_UNorm,		RGB10A2Unorm,			macos 10.11, ios 8	) /* TODO: check (BGR10A2Unorm ?) */\
 		_visitor_( RGBA4_UNorm,			ABGR4Unorm,				macos 11.0,  ios 8	) /* TODO: check */ \
 		_visitor_( RGB5_A1_UNorm,		BGR5A1Unorm,			macos 11.0,  ios 8	) /* TODO: check */ \
-		_visitor_( RGB_5_6_5_UNorm,		B5G6R5Unorm,			macos 11.0,  ios 8	) /* TODO: check */ \
+		_visitor_( R5G6B5_UNorm,		B5G6R5Unorm,			macos 11.0,  ios 8	) /* TODO: check */ \
 		/*_visitor_( BGR8_UNorm,		,)*/\
 		_visitor_( BGRA8_UNorm,			BGRA8Unorm,				macos 10.11, ios 8	)\
 		/*_visitor_( sRGB8,				,)*/\

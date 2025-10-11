@@ -446,7 +446,7 @@ namespace
 	LoadMesh
 =================================================
 */
-	ND_ static bool  LoadMesh (const aiMesh* src, OUT RC<IntermMesh> &dst, INOUT VertexAttribsSet_t &attribsCache)
+	ND_ static bool  LoadMesh (const aiMesh* src, bool convertToFP, OUT RC<IntermMesh> &dst, INOUT VertexAttribsSet_t &attribsCache)
 	{
 		CHECK_ERR( src->mPrimitiveTypes == aiPrimitiveType_TRIANGLE );
 		CHECK_ERR( not src->HasBones() );
@@ -541,7 +541,15 @@ namespace
 		}
 		switch_end
 
-		dst = MakeRC<IntermMesh>( RVRef(vertices), RVRef(attribs), vert_stride, topology, RVRef(indices), EIndex::UInt );
+		dst = MakeRC<IntermMesh>();
+		dst->Set( RVRef(vertices), RVRef(attribs), vert_stride, topology, RVRef(indices), EIndex::UInt );
+
+		if ( convertToFP )
+		{
+			auto	tmp = RVRef(dst);
+			dst = MakeRC<IntermMesh>();
+			CHECK_ERR( tmp->ConvertToFloatPointFormat( OUT *dst ));
+		}
 		return true;
 	}
 
@@ -606,13 +614,13 @@ namespace
 	LoadMeshes
 =================================================
 */
-	ND_ static bool  LoadMeshes (const aiScene* scene, OUT Array<RC<IntermMesh>> &outMeshes, INOUT VertexAttribsSet_t &attribsCache)
+	ND_ static bool  LoadMeshes (const aiScene* scene, bool convertToFP, OUT Array<RC<IntermMesh>> &outMeshes, INOUT VertexAttribsSet_t &attribsCache)
 	{
 		outMeshes.resize( scene->mNumMeshes );  // throw
 
 		for (uint i = 0; i < scene->mNumMeshes; ++i)
 		{
-			CHECK_ERR( LoadMesh( scene->mMeshes[i], OUT outMeshes[i], INOUT attribsCache ));
+			CHECK_ERR( LoadMesh( scene->mMeshes[i], convertToFP, OUT outMeshes[i], INOUT attribsCache ));
 		}
 		return true;
 	}
@@ -711,18 +719,19 @@ namespace
 	LoadScene
 =================================================
 */
-	ND_ static bool  LoadScene (OUT IntermScene	&outScene,
-								const aiScene*	scene)
+	ND_ static bool  LoadScene (OUT IntermScene				&outScene,
+								const aiScene*				scene,
+								const AssimpLoader::Config	&config)
 	{
 		SceneData	scene_data;
 		CHECK_ERR( LoadMaterials( scene, OUT scene_data.materials ));
-		CHECK_ERR( LoadMeshes( scene, OUT scene_data.meshes, INOUT scene_data.attribsCache ));
+		CHECK_ERR( LoadMeshes( scene, config.convertMeshesToFloatPointFormat, OUT scene_data.meshes, INOUT scene_data.attribsCache ));
 		//CHECK_ERR( LoadAnimations( scene, OUT scene_data.animations ));	// TODO
 		CHECK_ERR( LoadLights( scene, OUT scene_data.lights ));
 		CHECK_ERR( LoadHierarchy( scene, INOUT scene_data ));
 
 		outScene.Set( scene_data.materials, scene_data.meshes,
-						RVRef(scene_data.lights), RVRef(scene_data.root) );
+					  RVRef(scene_data.lights), RVRef(scene_data.root) );
 		ASSERT( outScene.IsValid() );
 		return true;
 	}
@@ -762,7 +771,7 @@ namespace
 			CHECK_ERR( scene != null );
 			Unused( err_str );
 
-			return LoadScene( OUT outScene, scene );
+			return LoadScene( OUT outScene, scene, config );
 		}
 		CATCH_ALL(
 			return false;
@@ -791,7 +800,7 @@ namespace
 			CHECK_ERR( scene != null );
 			Unused( err_str );
 
-			return LoadScene( OUT outScene, scene );
+			return LoadScene( OUT outScene, scene, config );
 		}
 		CATCH_ALL(
 			return false;

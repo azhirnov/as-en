@@ -17,7 +17,7 @@ namespace AE::App
 	// Android Window
 	//
 
-	class WindowAndroid final : public WindowBase
+	class WindowAndroid final : public WindowBaseWithSurface
 	{
 		friend class ApplicationAndroid;
 
@@ -32,7 +32,7 @@ namespace AE::App
 		InputActionsAndroid		_input;
 
 		struct {
-			JavaObj					window;
+			JavaObj					activity;
 			ANativeWindow*			nativeWindow	= null;
 		}						_java;
 		struct {
@@ -48,7 +48,9 @@ namespace AE::App
 
 
 	// IWindow //
-		void			Close ()						__NE_OV;
+		void  Close ()									__NE_OV;
+		bool  SetBrightness (Percent)					__NE_OV;
+		bool  SetColorSpace (EColorSpace)				C_NE_OV;
 
 		uint2			GetSurfaceSize ()				C_NE_OV;
 		Monitor			GetMonitor ()					C_NE_OV;
@@ -56,24 +58,13 @@ namespace AE::App
 		IInputActions&	InputActions ()					__NE_OV	{ return _input; }
 		NativeWindow	GetNative ()					C_NE_OV;
 
-		// desktop only
-		void  SetSize (const uint2 &)					__NE_OV {}
-		void  SetPosition (const int2 &)				__NE_OV {}
-		void  SetPosition (Monitor::ID, const int2 &)	__NE_OV {}
-		void  SetTitle (NtStringView)					__NE_OV {}
-		void  SetFocus ()								C_NE_OV {}
-		bool  SetMode (EWindowMode, Monitor::ID)		__NE_OV	{ return false; }
-
-		// mobile only
-		bool  SetBrightness (Percent)					__NE_OV;
-
-		// private api
-		bool  SetColorSpace (EColorSpace)				C_NE_OV;
-
 
 	private:
 		void  _Init (Unique<IWndListener>	listener,
+					 const WindowDesc		&desc,
 					 IInputActions*			dstActions)	__NE___;
+		
+		bool  ProcessMessages ()						__NE_OV	{ DBG_WARNING("don't use it");  return false; }
 
 		ND_ ApplicationAndroid&  _App ()				__NE___;
 

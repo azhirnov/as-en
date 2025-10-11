@@ -52,7 +52,7 @@ namespace AE::Graphics
 	};
 
 
-	NdCxIn ImageLayer operator "" _layer (unsigned long long value)	__NE___	{ return ImageLayer{ value }; }
+	NdCxIn ImageLayer operator ""_layer (unsigned long long value)	__NE___	{ return ImageLayer{ value }; }
 
 
 } // AE::Graphics

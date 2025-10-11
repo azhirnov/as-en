@@ -16,3 +16,5 @@ add_subdirectory( "video" )
 
 add_subdirectory( "graphics" )
 add_subdirectory( "profiler" )
+
+add_subdirectory( "lang_model" )

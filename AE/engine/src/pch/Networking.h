@@ -13,6 +13,8 @@
 #include "networking/HighLevel/Server.h"
 #include "networking/HighLevel/Messages.h"
 
+#include "networking/HighLevel/TcpStream.h"
+
 // Utils
 #include "networking/Utils/AsyncCSMessageProducer.h"
 #include "networking/Utils/SyncCSMessageProducer.h"

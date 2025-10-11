@@ -51,6 +51,7 @@ namespace AE::ResEditor
 		// graphics settings
 		uint			screenWidth			= 0;
 		uint			screenHeight		= 0;
+		uint			monitorId			= UMax;
 		bool			setStableGPUClock	= false;
 		bool			enableRenderDoc		= false;
 		String			deviceName;
@@ -252,8 +253,7 @@ namespace AE::ResEditor
 
 		void  RenderFrame ()														__NE_OV;
 		void  WaitFrame (const Threading::EThreadArray	&threadMask,
-						 Ptr<IWindow>					window,
-						 Ptr<IVRDevice>					vrDevice)					__NE_OV;
+						 Ptr<IWindow>					window)						__NE_OV;
 
 		void  _InitInputActions (IInputActions &)									__NE___;
 	};

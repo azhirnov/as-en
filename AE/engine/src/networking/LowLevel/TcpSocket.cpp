@@ -9,6 +9,9 @@ namespace AE::Networking
 /*
 =================================================
 	Accept
+----
+	will block until has new connection if 'nonBlocking = false',
+	use 'NewConnectionCount()' to check if this function will not block
 =================================================
 */
 	template <typename NativeAddress, typename AddressType>
@@ -130,6 +133,9 @@ namespace AE::Networking
 /*
 =================================================
 	Connect
+----
+	Will block until connection is established or error returned.
+	Non-blocking status will set after connection.
 =================================================
 */
 	template <typename NativeAddress, typename AddressType>
@@ -186,7 +192,8 @@ namespace AE::Networking
 =================================================
 	AsyncConnect
 ----
-	use 'ConnectionStatus()' to check is it connected or failed.
+	Set non-blocking status before connect.
+	Use 'ConnectionStatus()' to check is it connected or failed.
 =================================================
 */
 	template <typename NativeAddress, typename AddressType>
@@ -451,8 +458,8 @@ namespace AE::Networking
 
 			if ( ::getsockopt( BitCast<NativeSocket_t>(_handle), SOL_SOCKET, SO_ERROR, OUT Cast<NativeSocketOptPtr_t>(&err), &len ) == 0 )
 			{
-				return 	err == 0 ? onSuccess :
-						IsInProgress( err ) ? EStatus::Connecting :
+				return 	err == 0			? onSuccess :
+						IsInProgress( err )	? EStatus::Connecting :
 						EStatus::Failed;
 			}
 			return EStatus::Failed;
@@ -472,7 +479,7 @@ namespace AE::Networking
 		FD_SET( BitCast<NativeSocket_t>(_handle), &socket_set );
 	  #endif
 
-		int	count = ::select( int(BitCast<NativeSocket_t>(_handle) + 1), &socket_set, &socket_set, null, &wait_time );
+		int	count = ::select( 1, &socket_set, &socket_set, null, &wait_time );
 		if ( count == 0 )
 			return CheckError( EStatus::Connecting );	// select() timeout
 
@@ -485,6 +492,34 @@ namespace AE::Networking
 			return EStatus::Connecting;
 
 		return EStatus::Failed;
+	}
+	
+/*
+=================================================
+	NewConnectionCount
+=================================================
+*/
+	uint  TcpSocket::NewConnectionCount (microseconds timeout) C_NE___
+	{
+		CHECK_ERR( IsOpen() );
+
+		fd_set	socket_set = {};
+
+	  #ifdef AE_WINDOWS_SOCKET
+		socket_set.fd_count		= 1;
+		socket_set.fd_array[0]	= BitCast<NativeSocket_t>(_handle);
+	  #else
+		FD_ZERO( &socket_set );
+		FD_SET( BitCast<NativeSocket_t>(_handle), &socket_set );
+	  #endif
+		
+		struct timeval wait_time;
+		wait_time.tv_sec	= 0;
+		wait_time.tv_usec	= int(timeout.count());
+
+		int	count = ::select( 1, &socket_set, &socket_set, null, &wait_time );
+
+		return uint(Max( count, 0 ));
 	}
 
 

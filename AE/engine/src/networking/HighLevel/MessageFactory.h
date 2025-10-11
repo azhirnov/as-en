@@ -1,13 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	ICSMessageProducer
-		thread-safe: no
+		Thread-safe: no
 
 	ICSMessageConsumer
-		thread-safe: no
+		Thread-safe: no
 
 	MessageFactory
-		thread-safe: ???
+		Thread-safe: ???
 */
 
 #pragma once

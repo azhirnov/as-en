@@ -8,16 +8,25 @@ namespace AE::ResLoader
 
 /*
 =================================================
-	constructor
+	Set
 =================================================
 */
-	IntermMesh::IntermMesh (Array<ubyte> vertices, RC<IntermVertexAttribs> attribs,
-							Bytes vertStride, EPrimitive topology,
-							Array<ubyte> indices, EIndex indexType) __NE___ :
-		_vertices{ RVRef(vertices) },	_attribs{ RVRef(attribs) },
-		_vertexStride{ vertStride },	_topology{ topology },
-		_indices{ RVRef(indices) },		_indexType{ indexType }
-	{}
+	void  IntermMesh::Set (Array<ubyte> vertices, RC<IntermVertexAttribs> attribs,
+						   Bytes vertStride, EPrimitive topology,
+						   Array<ubyte> indices, EIndex indexType,
+						   ENormalEncoding normalEncoding) __NE___
+	{
+		_vertices		= RVRef(vertices);
+		_attribs		= RVRef(attribs);
+		_vertexStride	= vertStride;
+		_topology		= topology;
+		_indices		= RVRef(indices);
+		_indexType		= indexType;
+		_normalEncoding	= normalEncoding;
+
+		_boundingBox.reset();
+		_boundingSphere.reset();
+	}
 
 /*
 =================================================
@@ -28,10 +37,8 @@ namespace AE::ResLoader
 	{
 		CHECK_ERRV( _attribs and _vertexStride > 0 and _vertices.size() );
 
-		_boundingBox = AABB{};
-
-		auto	positions = _attribs->GetData<float3>( VertexAttributeName::Position, _vertices.data(),
-													   VertexCount(), _vertexStride );
+		auto	positions = _attribs->GetData< packed_float3 >( VertexAttributeName::Position, _vertices.data(),
+																VertexCount(), _vertexStride );
 		if ( positions.empty() )
 			return;
 
@@ -43,6 +50,35 @@ namespace AE::ResLoader
 		}
 
 		_boundingBox = bbox;
+	}
+	
+/*
+=================================================
+	CalcSphere
+=================================================
+*/
+	void  IntermMesh::CalcSphere () __NE___
+	{
+		CHECK_ERRV( _attribs and _vertexStride > 0 and _vertices.size() );
+		
+		auto	positions = _attribs->GetData< packed_float3 >( VertexAttributeName::Position, _vertices.data(),
+																VertexCount(), _vertexStride );
+		if ( positions.empty() )
+			return;
+
+		if ( not _boundingBox.has_value() )
+			return;
+
+		packed_float3	center	= _boundingBox->Center();
+		float			radius	= 0.0f;
+		
+		for (size_t i = 1; i < positions.size(); ++i)
+		{
+			float	r = Distance( positions[i], center );
+			radius = Max( radius, r );
+		}
+
+		_boundingSphere = Sphere{ center, radius };
 	}
 
 /*

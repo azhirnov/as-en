@@ -29,6 +29,15 @@ namespace AE::PipelineCompiler
 
 			ND_ bool  operator == (const MSLBindings &rhs) const;
 		};
+
+		struct HLSLBindings
+		{
+			uint	constBufferIdx			= 0;	// b
+			uint	unorderedAccessViewIdx	= 0;	// u
+			uint	textureIdx				= 0;	// t
+			uint	samplerIdx				= 0;	// s
+		};
+
 		using UniqueTypes_t = ShaderStructType::UniqueTypes_t;
 
 	private:
@@ -88,6 +97,7 @@ namespace AE::PipelineCompiler
 		void  SetUsage2 (uint value)																														__Th___;
 
 		void  ToGLSL (EShaderStages stages, uint dsBinding, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes)					C_Th___;
+		void  ToHLSL (EShaderStages stages, uint dsBinding, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes)					C_Th___;
 		void  ToMSL (EShaderStages stages, INOUT MSLBindings &bindings, INOUT String &outTypes, OUT String &outDecl, INOUT UniqueTypes_t &uniqueTypes)		C_Th___;
 
 		ND_ bool  CountMSLBindings (EShaderStages stages, INOUT MSLBindings &bindings)																		C_NE___;

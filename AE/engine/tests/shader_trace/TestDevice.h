@@ -3,7 +3,7 @@
 #pragma once
 
 #include "../Impl/Common.h"
-#include "../shared/UnitTest_Shared.h"
+#include "../tests/shared/UnitTest_Shared.h"
 #include "graphics_rhi/Vulkan/VDevice.h"
 
 namespace AE::PipelineCompiler

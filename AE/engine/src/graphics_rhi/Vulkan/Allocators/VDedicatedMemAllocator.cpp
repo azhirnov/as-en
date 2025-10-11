@@ -4,6 +4,7 @@
 # include "graphics_rhi/Vulkan/Allocators/VDedicatedMemAllocator.h"
 # include "graphics_rhi/Vulkan/Allocators/VAutoreleaseMemory.h"
 # include "graphics_rhi/Vulkan/VRenderTaskScheduler.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 namespace AE::Graphics
 {
@@ -86,7 +87,8 @@ namespace AE::Graphics
 			if_likely( dev.AllocateMemory( mem_alloc, OUT memory.Ref() ) == VK_SUCCESS )
 				break;
 		}
-		CHECK_ERR( memory.Get() != Default );
+		CHECK_ERR_MSG( memory.Get() != Default,
+			"Failed to allocate memory: "s << ToString(Bytes{mem_alloc.allocationSize}) << ", bits: " << ToString<2>( mem_req.memoryRequirements.memoryTypeBits ));
 
 
 		// bind image to memory
@@ -165,7 +167,7 @@ namespace AE::Graphics
 		VkMemoryAllocateInfo			mem_alloc	= {};
 		VkMemoryAllocateFlagsInfo		mem_flag	= {};
 		VkMemoryDedicatedAllocateInfo	dedicated	= {};
-		const void **					next		= &mem_alloc.pNext;
+		VNextChain						next		{mem_alloc};
 
 		dedicated.sType		= VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_KHR;
 		dedicated.buffer	= buffer;
@@ -181,13 +183,11 @@ namespace AE::Graphics
 
 		if ( AllBits( desc.memType, EMemoryType::Dedicated ))
 		{
-			*next	= &dedicated;
-			next	= &dedicated.pNext;
+			next.Add( dedicated );
 		}
 		if ( AnyBits( desc.usage, dev_addr_mask ))
 		{
-			*next	= &mem_flag;
-			next	= &mem_flag.pNext;
+			next.Add( mem_flag );
 		}
 
 		VAutoreleaseMemory	memory {dev};
@@ -198,7 +198,8 @@ namespace AE::Graphics
 			if_likely( dev.AllocateMemory( mem_alloc, OUT memory.Ref() ) == VK_SUCCESS )
 				break;
 		}
-		CHECK_ERR( memory.Get() != Default );
+		CHECK_ERR_MSG( memory.Get() != Default,
+			"Failed to allocate memory: "s << ToString(Bytes{mem_alloc.allocationSize}) << ", bits: " << ToString<2>( mem_req.memoryRequirements.memoryTypeBits ));
 
 
 		// bind buffer to memory

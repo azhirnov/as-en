@@ -124,7 +124,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 16;
-		static constexpr uint	lanes	= 4;
+		static constexpr uint	lanes	= 4;	// number of SSE vectors, cross lane operations may have additional cost
 
 		using Scalar_t		= float;
 		using Self			= SimdFloat16;
@@ -278,7 +278,7 @@ namespace AE::Base
 	// types
 	public:
 		static constexpr uint	count	= 8;
-		static constexpr uint	lanes	= 4;
+		static constexpr uint	lanes	= 4;	// number of SSE vectors, cross lane operations may have additional cost
 
 		using Scalar_t		= double;
 		using Self			= SimdDouble8;

@@ -276,7 +276,7 @@ namespace
 */
 	void  MFeatureSet::InitFeatureSet (const MGPUFamilies &f, INOUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 263 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
 
 		using SubgroupOperationBits = FeatureSet::SubgroupOperationBits;
 		using KiBytes				= FeatureSet::KiBytes;
@@ -814,10 +814,10 @@ namespace
 				outFeatureSet.linearSampledFormats.InsertRange( EPixelFormat::ETC2_RGB8_UNorm, EPixelFormat::ETC2_sRGB8_A8 );
 				outFeatureSet.linearSampledFormats.InsertRange( EPixelFormat::EAC_R11_SNorm, EPixelFormat::EAC_RG11_UNorm );
 
-				outFeatureSet.attachmentBlendFormats	|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::RGBA4_UNorm };
-				outFeatureSet.attachmentFormats			|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB9F_E5 };
-				outFeatureSet.linearSampledFormats		|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::RGBA4_UNorm };
-				multisampleImageFormats					|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB9F_E5 };
+				outFeatureSet.attachmentBlendFormats	|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB5_A1_UNorm, EPixelFormat::R5G6B5_UNorm, EPixelFormat::RGBA4_UNorm };
+				outFeatureSet.attachmentFormats			|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB5_A1_UNorm, EPixelFormat::R5G6B5_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB9F_E5 };
+				outFeatureSet.linearSampledFormats		|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB5_A1_UNorm, EPixelFormat::R5G6B5_UNorm, EPixelFormat::RGBA4_UNorm };
+				multisampleImageFormats					|= FeatureSet::PixelFormatSet_t{ EPixelFormat::RGB5_A1_UNorm, EPixelFormat::R5G6B5_UNorm, EPixelFormat::RGBA4_UNorm, EPixelFormat::RGB9F_E5 };
 			}
 			if ( f.apple >= 3 )
 			{
@@ -833,7 +833,7 @@ namespace
 					EPixelFormat::R8_UNorm, EPixelFormat::R8_SNorm, EPixelFormat::R8U, EPixelFormat::R8I,
 					EPixelFormat::R16_UNorm, EPixelFormat::R16_SNorm, EPixelFormat::R16U, EPixelFormat::R16I,
 					EPixelFormat::R16F, EPixelFormat::RG8_UNorm, EPixelFormat::RG8_SNorm, EPixelFormat::RG8U, EPixelFormat::RG8I,
-					EPixelFormat::RGB5_A1_UNorm, EPixelFormat::RGB_5_6_5_UNorm, EPixelFormat::RGBA4_UNorm,
+					EPixelFormat::RGB5_A1_UNorm, EPixelFormat::R5G6B5_UNorm, EPixelFormat::RGBA4_UNorm,
 					EPixelFormat::R32U, EPixelFormat::R32I, EPixelFormat::R32F, EPixelFormat::RG16_UNorm, EPixelFormat::RG16_SNorm,
 					EPixelFormat::RG16U, EPixelFormat::RG16I, EPixelFormat::RG16F, EPixelFormat::RGBA8_UNorm, EPixelFormat::RGBA8_SNorm,
 					EPixelFormat::sRGB8_A8, EPixelFormat::RGBA8U, EPixelFormat::RGBA8I, EPixelFormat::BGRA8_UNorm, EPixelFormat::sBGR8_A8,

@@ -8,7 +8,7 @@ namespace AE::RemoteGraphics
 {
 	struct RmNetConfig
 	{
-		static constexpr ushort		serverPort	= 3000;		// set your TCP port number
+		static constexpr ushort		serverPort	= 3000;
 		static constexpr uint		socketCount	= 3;
 	};
 
@@ -16,47 +16,26 @@ namespace AE::RemoteGraphics
 	//
 	// Remote Graphics Connection
 	//
-	class RConnection
+	class RConnection : public Networking::TcpStream
 	{
-	// types
-	public:
-		enum class ConnectionLost {};
-
-	// variables
-	private:
-		Networking::TcpSocket			_server;
-		Networking::TcpSocket			_socket;
-		DynUntypedStorage				_sentBuffer;
-		DynUntypedStorage				_recvBuffer;
-		Bytes							_received;
-		Ptr<Serializing::ObjectFactory>	_factory;
-		LinearAllocator<>				_allocator;
-
-		bool							_recursion = false;
-
-
 	// methods
 	public:
-		ND_ bool  InitServer (ushort port, Ptr<Serializing::ObjectFactory> factory);
-		ND_ bool  InitClient (Networking::IpAddress addr, Ptr<Serializing::ObjectFactory> factory);
-			void  Close ();
+		ND_ bool  InitServer (ushort port,
+							 Ptr<Serializing::ObjectFactory> factory)	__NE___;
+		ND_ bool  InitClient (Networking::IpAddress addr,
+							  Ptr<Serializing::ObjectFactory> factory)	__NE___;
 
-		ND_ bool  WaitForClient ();
+		ND_ bool  Send (const Msg::BaseMsg &)							__NE___;
 
-		ND_ bool  Send (const Msg::BaseMsg &);
-		ND_	bool  Send (const void* data, Bytes dataSize);
+			using TcpStream::Send;
 
-		ND_ bool  Receive ()													__Th___;
-		ND_ auto  Encode () -> RC<Msg::BaseMsg>;
-
-		ND_ Bytes ReadReceived (OUT void* data, Bytes size);
-		ND_ Bytes ReadReceived (OUT void* data, Bytes minSize, Bytes maxSize, Atomic<bool> &looping)	__Th___;
+		ND_ auto  Encode ()												__NE___ -> RC<Msg::BaseMsg>		{ return _Encode<Msg::BaseMsg>(); }
 
 	private:
-		ND_ bool  _Init ();
-		ND_ bool  _SendUploadData (const Msg::UploadData &);
-		ND_ bool  _SendUploadData (const Msg::UploadDataAndCopy &);
+		ND_ bool  _SendUploadData (const Msg::UploadData &)				__NE___;
+		ND_ bool  _SendUploadData (const Msg::UploadDataAndCopy &)		__NE___;
 	};
+
 
 
 	//

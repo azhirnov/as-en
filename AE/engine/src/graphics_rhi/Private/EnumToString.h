@@ -66,7 +66,7 @@ namespace AE::Base
 	ToString (EQueueType)
 =================================================
 */
-	ND_ inline StringView  ToString (EQueueType queue) __NE___
+	Nd__In StringView  ToString (EQueueType queue) __NE___
 	{
 		switch_enum( queue )
 		{
@@ -75,7 +75,6 @@ namespace AE::Base
 			case EQueueType::AsyncTransfer:	return "AsyncTransfer";
 			case EQueueType::VideoEncode :	return "VideoEncode";
 			case EQueueType::VideoDecode :	return "VideoDecode";
-			case EQueueType::_Count :
 			case EQueueType::Unknown :		break;
 		}
 		switch_end
@@ -87,7 +86,7 @@ namespace AE::Base
 	ToString (EPixelFormat)
 =================================================
 */
-	ND_ inline StringView  ToString (EPixelFormat value) __NE___
+	Nd__In StringView  ToString (EPixelFormat value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -97,7 +96,6 @@ namespace AE::Base
 
 			case EPixelFormat::SwapchainColor : return "SwapchainColor";
 			case EPixelFormat::Unknown :		return "Unknown";
-			case EPixelFormat::_Count :			break;
 		}
 		switch_end
 		RETURN_ERR( "unknown pixel format" );
@@ -108,7 +106,7 @@ namespace AE::Base
 	ToString (EShaderIO)
 =================================================
 */
-	ND_ inline StringView  ToString (EShaderIO value) __NE___
+	Nd__In StringView  ToString (EShaderIO value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -124,8 +122,8 @@ namespace AE::Base
 			case EShaderIO::Depth :			return "Depth";
 			case EShaderIO::Stencil :		return "Stencil";
 			case EShaderIO::DepthStencil :	return "DepthStencil";
-			case EShaderIO::Unknown :
-			case EShaderIO::_Count :		break;
+			case EShaderIO::_Count :
+			case EShaderIO::Unknown :		break;
 		}
 		switch_end
 		RETURN_ERR( "unknown fragment IO type" );
@@ -136,7 +134,7 @@ namespace AE::Base
 	ToString (EShader)
 =================================================
 */
-	ND_ inline StringView  ToString (EShader value) __NE___
+	Nd__In StringView  ToString (EShader value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -155,7 +153,6 @@ namespace AE::Base
 			case EShader::RayMiss :			return "RayMiss";
 			case EShader::RayIntersection :	return "RayIntersection";
 			case EShader::RayCallable :		return "RayCallable";
-			case EShader::_Count :
 			case EShader::Unknown :			break;
 		}
 		switch_end
@@ -167,7 +164,7 @@ namespace AE::Base
 	ToString (EShaderStages)
 =================================================
 */
-	ND_ inline String  ToString (EShaderStages values) __Th___
+	Nd__In String  ToString (EShaderStages values) __Th___
 	{
 		String	str;
 
@@ -213,7 +210,7 @@ namespace AE::Base
 	ToString (EPrimitive)
 =================================================
 */
-	ND_ inline StringView  ToString (EPrimitive value) __NE___
+	Nd__In StringView  ToString (EPrimitive value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -228,8 +225,7 @@ namespace AE::Base
 			case EPrimitive::TriangleListAdjacency :	return "TriangleListAdjacency";
 			case EPrimitive::TriangleStripAdjacency :	return "TriangleStripAdjacency";
 			case EPrimitive::Patch :					return "Patch";
-			case EPrimitive::_Count :
-			case EPrimitive::Unknown :	break;
+			case EPrimitive::Unknown :					break;
 		}
 		switch_end
 		RETURN_ERR( "unknown primitive type" );
@@ -240,7 +236,7 @@ namespace AE::Base
 	ToString (EGPUVendor)
 =================================================
 */
-	ND_ inline StringView  ToString (EGPUVendor value) __NE___
+	Nd__In StringView  ToString (EGPUVendor value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -268,13 +264,12 @@ namespace AE::Base
 	ToString (EFilter)
 =================================================
 */
-	ND_ inline StringView  ToString (EFilter value) __NE___
+	Nd__In StringView  ToString (EFilter value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EFilter::Nearest :		return "Nearest";
 			case EFilter::Linear :		return "Linear";
-			case EFilter::_Count :
 			case EFilter::Unknown :
 			default :					break;
 		}
@@ -287,14 +282,13 @@ namespace AE::Base
 	ToString (EMipmapFilter)
 =================================================
 */
-	ND_ inline StringView  ToString (EMipmapFilter value) __NE___
+	Nd__In StringView  ToString (EMipmapFilter value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EMipmapFilter::None :		return "None";
 			case EMipmapFilter::Nearest :	return "Nearest";
 			case EMipmapFilter::Linear :	return "Linear";
-			case EMipmapFilter::_Count :
 			case EMipmapFilter::Unknown :
 			default :						break;
 		}
@@ -307,7 +301,7 @@ namespace AE::Base
 	ToString (EAddressMode)
 =================================================
 */
-	ND_ inline StringView  ToString (EAddressMode value) __NE___
+	Nd__In StringView  ToString (EAddressMode value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -316,7 +310,6 @@ namespace AE::Base
 			case EAddressMode::ClampToEdge :		return "ClampToEdge";
 			case EAddressMode::ClampToBorder :		return "ClampToBorder";
 			case EAddressMode::MirrorClampToEdge :	return "MirrorClampToEdge";
-			case EAddressMode::_Count :
 			case EAddressMode::Unknown :
 			default :								break;
 		}
@@ -329,7 +322,7 @@ namespace AE::Base
 	ToString (ECompareOp)
 =================================================
 */
-	ND_ inline StringView  ToString (ECompareOp value) __NE___
+	Nd__In StringView  ToString (ECompareOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -341,7 +334,6 @@ namespace AE::Base
 			case ECompareOp::NotEqual :	return "NotEqual";
 			case ECompareOp::GEqual :	return "GEqual";
 			case ECompareOp::Always :	return "Always";
-			case ECompareOp::_Count :
 			case ECompareOp::Unknown :
 			default :					break;
 		}
@@ -354,7 +346,7 @@ namespace AE::Base
 	ToString (EBorderColor)
 =================================================
 */
-	ND_ inline StringView  ToString (EBorderColor value) __NE___
+	Nd__In StringView  ToString (EBorderColor value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -364,7 +356,6 @@ namespace AE::Base
 			case EBorderColor::IntTransparentBlack :	return "IntTransparentBlack";
 			case EBorderColor::IntOpaqueBlack :			return "IntOpaqueBlack";
 			case EBorderColor::IntOpaqueWhite :			return "IntOpaqueWhite";
-			case EBorderColor::_Count :
 			case EBorderColor::Unknown :
 			default :									break;
 		}
@@ -377,14 +368,13 @@ namespace AE::Base
 	ToString (EReductionMode)
 =================================================
 */
-	ND_ inline StringView  ToString (EReductionMode value) __NE___
+	Nd__In StringView  ToString (EReductionMode value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EReductionMode::Average :		return "Average";
 			case EReductionMode::Min :			return "Min";
 			case EReductionMode::Max :			return "Max";
-			case EReductionMode::_Count :
 			case EReductionMode::Unknown :
 			default :							break;
 		}
@@ -397,7 +387,7 @@ namespace AE::Base
 	ToString (ESamplerOpt)
 =================================================
 */
-	ND_ inline String  ToString (ESamplerOpt values) __NE___
+	Nd__In String  ToString (ESamplerOpt values) __NE___
 	{
 		String	str;
 		for (auto t : BitfieldIterate( values ))
@@ -430,7 +420,7 @@ namespace AE::Base
 	ToString (EVertexType)
 =================================================
 */
-	ND_ inline StringView  ToString (EVertexType value) __NE___
+	Nd__In StringView  ToString (EVertexType value) __NE___
 	{
 		switch ( value )
 		{
@@ -446,7 +436,7 @@ namespace AE::Base
 	ToString (EGraphicsDeviceID)
 =================================================
 */
-	ND_ inline StringView  ToString (EGraphicsDeviceID value) __NE___
+	Nd__In StringView  ToString (EGraphicsDeviceID value) __NE___
 	{
 		switch ( value )
 		{
@@ -462,14 +452,13 @@ namespace AE::Base
 	ToString (EVertexInputRate)
 =================================================
 */
-	ND_ inline StringView  ToString (EVertexInputRate value) __NE___
+	Nd__In StringView  ToString (EVertexInputRate value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EVertexInputRate::Vertex :		return "Vertex";
 			case EVertexInputRate::Instance :	return "Instance";
-			case EVertexInputRate::Unknown :
-			case EVertexInputRate::_Count :		break;
+			case EVertexInputRate::Unknown :	break;
 		}
 		switch_end
 		RETURN_ERR( "unknown vertex input rate" );
@@ -480,7 +469,7 @@ namespace AE::Base
 	ToString (ELogicOp)
 =================================================
 */
-	ND_ inline StringView  ToString (ELogicOp value) __NE___
+	Nd__In StringView  ToString (ELogicOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -501,7 +490,6 @@ namespace AE::Base
 			case ELogicOp::AndInverted :	return "AndInverted";
 			case ELogicOp::OrReverse :		return "OrReverse";
 			case ELogicOp::OrInverted :		return "OrInverted";
-			case ELogicOp::_Count :
 			case ELogicOp::Unknown :		break;
 		}
 		switch_end
@@ -513,7 +501,7 @@ namespace AE::Base
 	ToString (EBlendFactor)
 =================================================
 */
-	ND_ inline StringView  ToString (EBlendFactor value) __NE___
+	Nd__In StringView  ToString (EBlendFactor value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -536,7 +524,6 @@ namespace AE::Base
 			case EBlendFactor::OneMinusSrc1Color :	return "OneMinusSrc1Color";
 			case EBlendFactor::Src1Alpha :			return "Src1Alpha";
 			case EBlendFactor::OneMinusSrc1Alpha :	return "OneMinusSrc1Alpha";
-			case EBlendFactor::_Count :
 			case EBlendFactor::Unknown :			break;
 		}
 		switch_end
@@ -548,7 +535,7 @@ namespace AE::Base
 	ToString (EBlendOp)
 =================================================
 */
-	ND_ inline StringView  ToString (EBlendOp value) __NE___
+	Nd__In StringView  ToString (EBlendOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -557,7 +544,6 @@ namespace AE::Base
 			case EBlendOp::RevSub :		return "RevSub";
 			case EBlendOp::Min :		return "Min";
 			case EBlendOp::Max :		return "Max";
-			case EBlendOp::_Count :
 			case EBlendOp::Unknown :	break;
 		}
 		switch_end
@@ -569,7 +555,7 @@ namespace AE::Base
 	ToString (EStencilOp)
 =================================================
 */
-	ND_ inline StringView  ToString (EStencilOp value) __NE___
+	Nd__In StringView  ToString (EStencilOp value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -581,7 +567,6 @@ namespace AE::Base
 			case EStencilOp::Decr :			return "Decr";
 			case EStencilOp::DecrWrap :		return "DecrWrap";
 			case EStencilOp::Invert :		return "Invert";
-			case EStencilOp::_Count :
 			case EStencilOp::Unknown :		break;
 		}
 		switch_end
@@ -593,14 +578,13 @@ namespace AE::Base
 	ToString (EPolygonMode)
 =================================================
 */
-	ND_ inline StringView  ToString (EPolygonMode value) __NE___
+	Nd__In StringView  ToString (EPolygonMode value) __NE___
 	{
 		switch_enum( value )
 		{
 			case EPolygonMode::Point :		return "Point";
 			case EPolygonMode::Line :		return "Line";
 			case EPolygonMode::Fill :		return "Fill";
-			case EPolygonMode::_Count :
 			case EPolygonMode::Unknown :	break;
 		}
 		switch_end
@@ -612,7 +596,7 @@ namespace AE::Base
 	ToString (ECullMode)
 =================================================
 */
-	ND_ inline StringView  ToString (ECullMode value) __NE___
+	Nd__In StringView  ToString (ECullMode value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -630,7 +614,7 @@ namespace AE::Base
 	ToString (EPipelineDynamicState)
 =================================================
 */
-	ND_ inline String  ToString (EPipelineDynamicState values) __Th___
+	Nd__In String  ToString (EPipelineDynamicState values) __Th___
 	{
 		String	str;
 		for (auto t : BitfieldIterate( values ))
@@ -668,7 +652,7 @@ namespace AE::Base
 	ToString (EDescSetUsage)
 =================================================
 */
-	ND_ inline String  ToString (EDescSetUsage values) __Th___
+	Nd__In String  ToString (EDescSetUsage values) __Th___
 	{
 		String	str;
 		for (auto t : BitfieldIterate( values ))
@@ -700,7 +684,7 @@ namespace AE::Base
 	ToString (EPipelineOpt)
 =================================================
 */
-	ND_ inline String  ToString (EPipelineOpt values) __Th___
+	Nd__In String  ToString (EPipelineOpt values) __Th___
 	{
 		String	str;
 		for (auto t : BitfieldIterate( values ))
@@ -739,7 +723,7 @@ namespace AE::Base
 	ToString (EMemoryType)
 =================================================
 */
-	ND_ inline String  ToString (EMemoryType values) __Th___
+	Nd__In String  ToString (EMemoryType values) __Th___
 	{
 		switch ( values )
 		{
@@ -783,7 +767,7 @@ namespace AE::Base
 	ToString (EColorSpace)
 =================================================
 */
-	ND_ inline StringView  ToString (EColorSpace value) __NE___
+	Nd__In StringView  ToString (EColorSpace value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -802,7 +786,6 @@ namespace AE::Base
 			case EColorSpace::AdobeRGB_nonlinear :		return "AdobeRGB_nonlinear";
 			case EColorSpace::PassThrough :				return "PassThrough";
 			case EColorSpace::Extended_sRGB_nonlinear :	return "Extended_sRGB_nonlinear";
-			case EColorSpace::_Count :
 			case EColorSpace::Unknown :					break;
 		}
 		switch_end
@@ -814,7 +797,7 @@ namespace AE::Base
 	ToString (EPresentMode)
 =================================================
 */
-	ND_ inline StringView  ToString (EPresentMode value) __NE___
+	Nd__In StringView  ToString (EPresentMode value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -824,7 +807,6 @@ namespace AE::Base
 			case EPresentMode::FIFO_Relaxed :				return "FIFO_Relaxed";
 			case EPresentMode::SharedDemandRefresh :		return "SharedDemandRefresh";
 			case EPresentMode::SharedContinuousRefresh :	return "SharedContinuousRefresh";
-			case EPresentMode::_Count :
 			case EPresentMode::Unknown :					break;
 		}
 		switch_end
@@ -836,7 +818,7 @@ namespace AE::Base
 	ToString (EDescriptorType)
 =================================================
 */
-	ND_ inline StringView  ToString (EDescriptorType value) __NE___
+	Nd__In StringView  ToString (EDescriptorType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -853,14 +835,13 @@ namespace AE::Base
 			case EDescriptorType::ImmutableSampler :				return "ImmutableSampler";
 			case EDescriptorType::RayTracingScene :					return "RayTracingScene";
 			case EDescriptorType::RayTracingPartitionedScene :		return "RayTracingPartitionedScene";
-			case EDescriptorType::_Count :
 			case EDescriptorType::Unknown :							break;
 		}
 		switch_end
 		RETURN_ERR( "unknown descriptor type" );
 	}
 
-	ND_ inline StringView  ToString (EDescriptorType value, int) __NE___
+	Nd__In StringView  ToString (EDescriptorType value, int) __NE___
 	{
 		switch_enum( value )
 		{
@@ -877,7 +858,6 @@ namespace AE::Base
 			case EDescriptorType::ImmutableSampler :				return "Sampler";
 			case EDescriptorType::RayTracingScene :					return "RayTracingScene";
 			case EDescriptorType::RayTracingPartitionedScene :		return "RayTracingPartitionedScene";
-			case EDescriptorType::_Count :
 			case EDescriptorType::Unknown :							break;
 		}
 		switch_end
@@ -889,7 +869,7 @@ namespace AE::Base
 	ToString (ESubgroupOperation)
 =================================================
 */
-	ND_ inline StringView  ToString (ESubgroupOperation value) __NE___
+	Nd__In StringView  ToString (ESubgroupOperation value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -958,7 +938,7 @@ namespace AE::Base
 	ToString (EResourceState)
 =================================================
 */
-	ND_ inline String  ToString (const EResourceState value) __Th___
+	Nd__In String  ToString (const EResourceState value) __Th___
 	{
 		using _EResState = Graphics::_EResState;
 
@@ -1019,12 +999,17 @@ namespace AE::Base
 
 		// stages
 		{
-			EResourceState	stages = value & EResourceState::AllShaders;
+			EResourceState	stages = value & EResourceState::AllStages;
 
-			if ( AllBits( stages, EResourceState::AllShaders ))
+			if ( AllBits( stages, EResourceState::AllStages ))
 			{
-				stages &= ~EResourceState::AllShaders;
-				str << " | AllShaders";
+				stages &= ~EResourceState::AllStages;
+				str << " | AllStages";
+			}
+			if ( AllBits( stages, EResourceState::AllShaderStages ))
+			{
+				stages &= ~EResourceState::AllShaderStages;
+				str << " | AllShaderStages";
 			}
 			if ( AllBits( stages, EResourceState::AllGraphicsShaders ))
 			{
@@ -1053,9 +1038,10 @@ namespace AE::Base
 					case EResourceState::FragmentShader :			str << "FragmentShader";			break;
 					case EResourceState::ComputeShader :			str << "ComputeShader";				break;
 					case EResourceState::RayTracingShaders :		str << "RayTracingShaders";			break;
+					case EResourceState::CoopVecConvertStage :		str << "CoopVecConvertStage";		break;
 					default :										DBG_WARNING( "unknown resource state stage" );	break;
 				}
-				StaticAssert( uint(EResourceState::AllShaders) == 0x1F8000 );
+				StaticAssert( uint(EResourceState::AllStages) == 0x3F8000 );
 			}
 		}
 
@@ -1067,7 +1053,7 @@ namespace AE::Base
 	ToString (ESurfaceFormat)
 =================================================
 */
-	ND_ inline StringView  ToString (ESurfaceFormat value)
+	Nd__In StringView  ToString (ESurfaceFormat value)
 	{
 		switch_enum( value )
 		{
@@ -1082,7 +1068,6 @@ namespace AE::Base
 			case ESurfaceFormat::RGBA16F_BT2020_linear :			return "RGBA16F_BT2020_linear";
 			case ESurfaceFormat::RGB10A2_sRGB_nonlinear :			return "RGB10A2_sRGB_nonlinear";
 			case ESurfaceFormat::RGB10A2_HDR10_ST2084 :				return "RGB10A2_HDR10_ST2084";
-			case ESurfaceFormat::_Count :
 			case ESurfaceFormat::Unknown :							break;
 		}
 		switch_end
@@ -1094,13 +1079,12 @@ namespace AE::Base
 	ToString (ESamplerChromaLocation)
 =================================================
 */
-	ND_ inline StringView  ToString (ESamplerChromaLocation value) __NE___
+	Nd__In StringView  ToString (ESamplerChromaLocation value) __NE___
 	{
 		switch_enum( value )
 		{
 			case ESamplerChromaLocation::CositedEven :	return "CositedEven";
 			case ESamplerChromaLocation::Midpoint :		return "Midpoint";
-			case ESamplerChromaLocation::_Count :
 			case ESamplerChromaLocation::Unknown :		break;
 		}
 		switch_end
@@ -1112,7 +1096,7 @@ namespace AE::Base
 	ToString (ESamplerYcbcrModelConversion)
 =================================================
 */
-	ND_ inline StringView  ToString (ESamplerYcbcrModelConversion value) __NE___
+	Nd__In StringView  ToString (ESamplerYcbcrModelConversion value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1121,7 +1105,6 @@ namespace AE::Base
 			case ESamplerYcbcrModelConversion::Ycbcr_709 :		return "Ycbcr_709";
 			case ESamplerYcbcrModelConversion::Ycbcr_601 :		return "Ycbcr_601";
 			case ESamplerYcbcrModelConversion::Ycbcr_2020 :		return "Ycbcr_2020";
-			case ESamplerYcbcrModelConversion::_Count :
 			case ESamplerYcbcrModelConversion::Unknown :		break;
 		}
 		switch_end
@@ -1133,13 +1116,12 @@ namespace AE::Base
 	ToString (ESamplerYcbcrRange)
 =================================================
 */
-	ND_ inline StringView  ToString (ESamplerYcbcrRange value) __NE___
+	Nd__In StringView  ToString (ESamplerYcbcrRange value) __NE___
 	{
 		switch_enum( value )
 		{
 			case ESamplerYcbcrRange::ITU_Full :		return "ITU_Full";
 			case ESamplerYcbcrRange::ITU_Narrow :	return "ITU_Narrow";
-			case ESamplerYcbcrRange::_Count :
 			case ESamplerYcbcrRange::Unknown :		break;
 		}
 		switch_end
@@ -1151,7 +1133,7 @@ namespace AE::Base
 	ToString (ImageSwizzle)
 =================================================
 */
-	ND_ inline String  ToString (const ImageSwizzle &value) __NE___
+	Nd__In String  ToString (const ImageSwizzle &value) __NE___
 	{
 		String			str;
 		const uint4		comp		= value.ToVec();
@@ -1168,7 +1150,7 @@ namespace AE::Base
 	ToString (EVideoFormat)
 =================================================
 */
-	ND_ inline StringView  ToString (EVideoFormat value) __NE___
+	Nd__In StringView  ToString (EVideoFormat value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1227,8 +1209,7 @@ namespace AE::Base
 			case EVideoFormat::RGB0 :			return "RGB0";
 			case EVideoFormat::RGBA :			return "RGBA";
 
-			case EVideoFormat::Unknown :
-			case EVideoFormat::_Count :			break;
+			case EVideoFormat::Unknown :		break;
 		}
 		switch_end
 		RETURN_ERR( "unknown video format" );
@@ -1239,7 +1220,7 @@ namespace AE::Base
 	ToString (EVideoCodec)
 =================================================
 */
-	ND_ inline StringView  ToString (EVideoCodec value) __NE___
+	Nd__In StringView  ToString (EVideoCodec value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1251,8 +1232,7 @@ namespace AE::Base
 			case EVideoCodec::VP8 :		return "VP8";
 			case EVideoCodec::VP9 :		return "VP9";
 			case EVideoCodec::AV1 :		return "AV1";
-			case EVideoCodec::Unknown :
-			case EVideoCodec::_Count :	break;
+			case EVideoCodec::Unknown :	break;
 		}
 		switch_end
 		RETURN_ERR( "unknown video codec" );
@@ -1263,7 +1243,7 @@ namespace AE::Base
 	ToString (EPixelFormatExternal)
 =================================================
 */
-	ND_ inline StringView  ToString (EPixelFormatExternal value) __NE___
+	Nd__In StringView  ToString (EPixelFormatExternal value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -1288,7 +1268,6 @@ namespace AE::Base
 			case EPixelFormatExternal::Android_HEIC :			return "Android_HEIC";
 
 			case EPixelFormatExternal::_Android_End :
-			case EPixelFormatExternal::_Count :
 			case EPixelFormatExternal::Unknown :				break;
 		}
 		switch_end

@@ -17,12 +17,12 @@ namespace AE::Video
 	IsVideoCodec / IsAudioCodec
 =================================================
 */
-	ND_ inline bool  IsVideoCodec (AVCodecID codec) __NE___
+	Nd__In bool  IsVideoCodec (AVCodecID codec) __NE___
 	{
 		return codec < AV_CODEC_ID_FIRST_AUDIO;
 	}
 
-	ND_ inline bool  IsAudioCodec (AVCodecID codec) __NE___
+	Nd__In bool  IsAudioCodec (AVCodecID codec) __NE___
 	{
 		return	codec >= AV_CODEC_ID_FIRST_AUDIO	and
 				codec <  AV_CODEC_ID_FIRST_SUBTITLE;
@@ -33,7 +33,7 @@ namespace AE::Video
 	CorrectPixFormat
 =================================================
 */
-	ND_ inline AVPixelFormat  CorrectPixFormat (AVPixelFormat src) __NE___
+	Nd__In AVPixelFormat  CorrectPixFormat (AVPixelFormat src) __NE___
 	{
 		switch ( src )
 		{
@@ -52,12 +52,12 @@ namespace AE::Video
 	ToAVRational
 =================================================
 */
-	ND_ inline AVRational  ToAVRational (FractionalI fact) __NE___
+	Nd__In AVRational  ToAVRational (FractionalI fact) __NE___
 	{
 		return AVRational{ fact.num, fact.den };
 	}
 
-	ND_ inline AVRational  ToAVRationalRec (FractionalI fact) __NE___
+	Nd__In AVRational  ToAVRationalRec (FractionalI fact) __NE___
 	{
 		return AVRational{ fact.den, fact.num };
 	}
@@ -67,7 +67,7 @@ namespace AE::Video
 	ToFractional
 =================================================
 */
-	ND_ inline FractionalI  ToFractional (AVRational rational) __NE___
+	Nd__In FractionalI  ToFractional (AVRational rational) __NE___
 	{
 		return FractionalI{ rational.num, rational.den };
 	}
@@ -77,7 +77,7 @@ namespace AE::Video
 	PTStoFrameIndex
 =================================================
 */
-	ND_ inline ulong  PTStoFrameIndex (const AVStream* stream, slong pts) __NE___
+	Nd__In ulong  PTStoFrameIndex (const AVStream* stream, slong pts) __NE___
 	{
 		return (pts * stream->r_frame_rate.num * stream->time_base.num) / (stream->r_frame_rate.den * stream->time_base.den);
 	}
@@ -87,7 +87,7 @@ namespace AE::Video
 	FrameIndexToPTS
 =================================================
 */
-	ND_ inline slong  FrameIndexToPTS (const AVStream* stream, ulong frameIdx) __NE___
+	Nd__In slong  FrameIndexToPTS (const AVStream* stream, ulong frameIdx) __NE___
 	{
 		return (frameIdx * stream->r_frame_rate.den * stream->time_base.den) / (stream->r_frame_rate.num * stream->time_base.num);
 	}
@@ -99,7 +99,7 @@ namespace AE::Video
 */
 	using Seconds_t = DefaultPhysicalQuantity<double>::Second;
 
-	ND_ inline slong  TimestampToPTS (const AVStream* stream, int64_t formatCtxDuration, Seconds_t) __NE___
+	Nd__In slong  TimestampToPTS (const AVStream* stream, int64_t formatCtxDuration, Seconds_t) __NE___
 	{
 		const auto	duration1	= Seconds_t{formatCtxDuration * av_q2d(AVRational{1, AV_TIME_BASE})};
 		const auto	duration	= stream->duration > 0 ? Seconds_t{ stream->duration * av_q2d( stream->time_base )} : duration1;
@@ -171,15 +171,14 @@ namespace AE::Video
 		_builder_( RGBA,		AV_PIX_FMT_RGBA			)
 
 
-	ND_ inline AVPixelFormat  EnumCast (EVideoFormat fmt) __NE___
+	Nd__In AVPixelFormat  EnumCast (EVideoFormat fmt) __NE___
 	{
 		switch_enum( fmt )
 		{
 			#define ENUM( _name_, _ffmpeg_name_ )	case EVideoFormat::_name_ :  return _ffmpeg_name_;
 			AE_VIDEO_FORMAT_TO_FFMPEG( ENUM )
 			#undef ENUM
-			case EVideoFormat::Unknown :
-			case EVideoFormat::_Count :			break;
+			case EVideoFormat::Unknown :	break;
 		}
 		switch_end
 		return AV_PIX_FMT_NONE;
@@ -190,7 +189,7 @@ namespace AE::Video
 	EnumCast (AVPixelFormat)
 =================================================
 */
-	ND_ inline EVideoFormat  EnumCast (AVPixelFormat fmt) __NE___
+	Nd__In EVideoFormat  EnumCast (AVPixelFormat fmt) __NE___
 	{
 		switch ( fmt )
 		{
@@ -210,7 +209,7 @@ namespace AE::Video
 	PixelFormatCast (EPixelFormat)
 =================================================
 */
-	ND_ inline AVPixelFormat  PixelFormatCast (EPixelFormat fmt) __NE___
+	Nd__In AVPixelFormat  PixelFormatCast (EPixelFormat fmt) __NE___
 	{
 		return EnumCast( PixelFormatToVideoFormat( fmt ));
 	}
@@ -220,7 +219,7 @@ namespace AE::Video
 	PixelFormatCast (AVPixelFormat)
 =================================================
 */
-	ND_ inline EPixelFormat  PixelFormatCast (AVPixelFormat fmt) __NE___
+	Nd__In EPixelFormat  PixelFormatCast (AVPixelFormat fmt) __NE___
 	{
 		return VideoFormatToPixelFormat( EnumCast( fmt ), 3 );
 	}
@@ -230,7 +229,7 @@ namespace AE::Video
 	EnumCast (EFilter)
 =================================================
 */
-	ND_ inline int  EnumCast (EFilter value) __NE___
+	Nd__In int  EnumCast (EFilter value) __NE___
 	{
 		StaticAssert( uint(EFilter::_Count) == 3 );
 		switch ( value )
@@ -249,7 +248,7 @@ namespace AE::Video
 	EnumCast (AVMediaType)
 =================================================
 */
-	ND_ inline EMediaType  EnumCast (AVMediaType value) __NE___
+	Nd__In EMediaType  EnumCast (AVMediaType value) __NE___
 	{
 		StaticAssert( uint(EMediaType::_Count) == 2 );
 		switch ( value )
@@ -265,7 +264,7 @@ namespace AE::Video
 	EnumCast (AVCodecID)
 =================================================
 */
-	ND_ inline EVideoCodec  EnumCast (AVCodecID value) __NE___
+	Nd__In EVideoCodec  EnumCast (AVCodecID value) __NE___
 	{
 		StaticAssert( uint(EVideoCodec::_Count) == 8 );
 		switch ( value )
@@ -287,7 +286,7 @@ namespace AE::Video
 	EnumCast (EVideoCodec)
 =================================================
 */
-	ND_ inline AVCodecID  EnumCast (EVideoCodec value) __NE___
+	Nd__In AVCodecID  EnumCast (EVideoCodec value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -300,7 +299,6 @@ namespace AE::Video
 			case EVideoCodec::VP9 :		return AV_CODEC_ID_VP9;
 			case EVideoCodec::AV1 :		return AV_CODEC_ID_AV1;
 
-			case EVideoCodec::_Count :
 			case EVideoCodec::Unknown :
 			default :					break;
 		}
@@ -313,7 +311,7 @@ namespace AE::Video
 	PixFmtToString
 =================================================
 */
-	ND_ inline StringView	PixFmtToString (AVPixelFormat fmt) __NE___
+	Nd__In StringView	PixFmtToString (AVPixelFormat fmt) __NE___
 	{
 		switch ( fmt )
 		{
@@ -343,7 +341,7 @@ namespace AE::Video
 	The RGB/XYZ matrix, in 'color_primaries'
 =================================================
 */
-	ND_ inline EColorPreset  EnumCast (AVColorRange						colorRange,
+	Nd__In EColorPreset  EnumCast (AVColorRange						colorRange,
 									   AVColorPrimaries					colorPrimaries,
 									   AVColorTransferCharacteristic	colorTrc,
 									   AVColorSpace						colorSpace,
@@ -403,7 +401,7 @@ namespace AE::Video
 	EnumCast (EColorPreset)
 =================================================
 */
-	ND_ inline bool   EnumCast (EColorPreset						preset,
+	Nd__In bool   EnumCast (EColorPreset						preset,
 								OUT AVColorRange					&colorRange,
 								OUT AVColorPrimaries				&colorPrimaries,
 								OUT AVColorTransferCharacteristic	&colorTrc,
@@ -488,7 +486,7 @@ namespace AE::Base
 	ToString (AVMediaType)
 =================================================
 */
-	ND_ inline StringView  ToString (AVMediaType value) __NE___
+	Nd__In StringView  ToString (AVMediaType value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -509,7 +507,7 @@ namespace AE::Base
 	ToString (AVPixelFormat)
 =================================================
 */
-	ND_ inline StringView  ToString (AVPixelFormat value) __NE___
+	Nd__In StringView  ToString (AVPixelFormat value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -753,7 +751,7 @@ namespace AE::Base
 	ToString (AVSampleFormat)
 =================================================
 */
-	ND_ inline StringView  ToString (AVSampleFormat value) __NE___
+	Nd__In StringView  ToString (AVSampleFormat value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -781,7 +779,7 @@ namespace AE::Base
 	ToString (AVColorSpace)
 =================================================
 */
-	ND_ inline StringView  ToString (AVColorSpace value) __NE___
+	Nd__In StringView  ToString (AVColorSpace value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -811,7 +809,7 @@ namespace AE::Base
 	ToString (AVColorRange)
 =================================================
 */
-	ND_ inline StringView  ToString (AVColorRange value) __NE___
+	Nd__In StringView  ToString (AVColorRange value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -829,7 +827,7 @@ namespace AE::Base
 	ToString (AVColorPrimaries)
 =================================================
 */
-	ND_ inline StringView  ToString (AVColorPrimaries value) __NE___
+	Nd__In StringView  ToString (AVColorPrimaries value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -858,7 +856,7 @@ namespace AE::Base
 	ToString (AVColorTransferCharacteristic)
 =================================================
 */
-	ND_ inline StringView  ToString (AVColorTransferCharacteristic value) __NE___
+	Nd__In StringView  ToString (AVColorTransferCharacteristic value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -892,7 +890,7 @@ namespace AE::Base
 	ToString (AVChromaLocation)
 =================================================
 */
-	ND_ inline StringView  ToString (AVChromaLocation value) __NE___
+	Nd__In StringView  ToString (AVChromaLocation value) __NE___
 	{
 		switch_enum( value )
 		{
@@ -914,7 +912,7 @@ namespace AE::Base
 	ToString (AVHWDeviceType)
 =================================================
 */
-	ND_ inline StringView  ToString (AVHWDeviceType value) __NE___
+	Nd__In StringView  ToString (AVHWDeviceType value) __NE___
 	{
 		switch_enum( value )
 		{

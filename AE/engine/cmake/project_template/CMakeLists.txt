@@ -16,13 +16,21 @@ set( OTHER_CMAKE
 	"${AE_ENGINE_EXTERNAL_CMAKE}/config.cmake"
 	"${AE_ENGINE_EXTERNAL_CMAKE}/External.cmake"
 )
+set( ENGINE_CMAKE
+	"${MAIN_SOURCE_DIR}/engine/CMakeLists.txt"
+	"${MAIN_SOURCE_DIR}/engine/src/CMakeLists.txt"
+	"${MAIN_SOURCE_DIR}/engine/tests/CMakeLists.txt"
+	"${MAIN_SOURCE_DIR}/engine/tools/CMakeLists.txt"
+	"${MAIN_SOURCE_DIR}/engine/performance/CMakeLists.txt"
+)
 
-add_library( "ProjectTemplate" STATIC EXCLUDE_FROM_ALL ${SOURCES} ${CMAKE_SOURCES} ${EXERNAL_CMAKE} ${OTHER_CMAKE} )
+add_library( "ProjectTemplate" STATIC EXCLUDE_FROM_ALL ${SOURCES} ${CMAKE_SOURCES} ${EXERNAL_CMAKE} ${OTHER_CMAKE} ${ENGINE_CMAKE} )
 set_property( TARGET "ProjectTemplate" PROPERTY FOLDER "Engine/Tools" )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( TREE "${ENGINE_CMAKE_FOLDER}/.." FILES ${CMAKE_SOURCES} )
 source_group( TREE "${AE_ENGINE_EXTERNAL_CMAKE}/.." FILES ${EXERNAL_CMAKE} )
 source_group( "external" FILES ${OTHER_CMAKE} )
+source_group( "engine" FILES ${ENGINE_CMAKE} )
 
 target_compile_definitions( "ProjectTemplate" PUBLIC ${AE_COMPILER_DEFINITIONS} )
 
@@ -87,6 +95,12 @@ elseif( ${AE_CXX_23} )
 	set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 23 CXX_STANDARD_REQUIRED YES )
 	target_compile_features( "ProjectTemplate" PUBLIC cxx_std_23 )
 	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=23" )
+
+# use C++ 26
+elseif( ${AE_CXX_26} )
+	set_target_properties( "ProjectTemplate" PROPERTIES CXX_STANDARD 26 CXX_STANDARD_REQUIRED YES )
+	target_compile_features( "ProjectTemplate" PUBLIC cxx_std_26 )
+	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_CXX_VER=26" )
 endif()
 
 if (${AE_CI_BUILD_TEST})
@@ -104,6 +118,12 @@ if (${AE_GRAPHICS_STRONG_VALIDATION})
 	target_compile_definitions( "ProjectTemplate" PUBLIC AE_GRAPHICS_STRONG_VALIDATION=1 )
 else()
 	target_compile_definitions( "ProjectTemplate" PUBLIC AE_GRAPHICS_STRONG_VALIDATION=0 )
+endif()
+
+if (${AE_PORTABLE_APP})
+	target_compile_definitions( "ProjectTemplate" PUBLIC AE_PORTABLE_APP=true )
+else()
+	target_compile_definitions( "ProjectTemplate" PUBLIC AE_PORTABLE_APP=false )
 endif()
 
 target_compile_definitions( "ProjectTemplate" PUBLIC

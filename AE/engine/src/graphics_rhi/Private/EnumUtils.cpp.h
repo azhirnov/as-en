@@ -87,12 +87,13 @@ namespace AE::Graphics
 */
 	bool  EResourceState_Validate (const EResourceState state) __NE___
 	{
-		const auto				access	= ToEResState( state );
-		const EResourceState	shaders	= state & EResourceState::AllShaders;
+		const auto				access		= ToEResState( state );
+		const EResourceState	stages		= state & EResourceState::AllStages;
 
-		const bool	has_any_shader			= shaders != Zero;
-		const bool	has_post_raster_shaders	= AnyBits( shaders, EResourceState::PostRasterizationShaders );
-		const bool	has_pre_raster_shaders	= AnyBits( shaders, ~EResourceState::PostRasterizationShaders );
+		const bool	has_any_stage			= stages != Zero;
+		const bool	has_any_shader			= AnyBits( stages, EResourceState::AllShaderStages );
+		const bool	has_post_raster_shaders	= AnyBits( stages, EResourceState::PostRasterizationShaders );
+		const bool	has_pre_raster_shaders	= AnyBits( stages, ~EResourceState::PostRasterizationShaders );
 		const bool	has_ds_stage			= AnyBits( state, EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS );
 
 		switch_enum( access )
@@ -100,6 +101,10 @@ namespace AE::Graphics
 			case _EResState::ShaderStorage_Read :
 			case _EResState::ShaderStorage_Write :
 			case _EResState::ShaderStorage_RW :
+				CHECK_ERR_MSG( has_any_stage,	"Resource state ("s << ToString( state ) << ") must contain shader stage." );
+				CHECK_MSG( not has_ds_stage,	"Resource state ("s << ToString( state ) << ") should not contain depth stage." );
+				break;
+
 			case _EResState::ShaderUniform :
 			case _EResState::ShaderSample :
 			case _EResState::ShaderRTAS :
@@ -123,7 +128,7 @@ namespace AE::Graphics
 
 			case _EResState::DepthStencilTest_ShaderSample :
 			case _EResState::DepthTest_DepthSample_StencilRW :
-				CHECK_ERR_MSG( AnyBits( shaders, EResourceState::AllGraphicsShaders ),  "Resource state ("s << ToString( state ) << ") must contain graphics shader stage." );
+				CHECK_ERR_MSG( AnyBits( stages, EResourceState::AllGraphicsShaders ),  "Resource state ("s << ToString( state ) << ") must contain graphics shader stage." );
 				CHECK_ERR_MSG( not has_pre_raster_shaders,  "Resource state ("s << ToString( state ) << ") should not contain pre-rasterization shaders." );
 				break;
 				
@@ -132,7 +137,7 @@ namespace AE::Graphics
 			case _EResState::DepthTest_StencilRW :
 			case _EResState::DepthRW_StencilTest :
 				CHECK_ERR_MSG( has_ds_stage,	"Resource state ("s << ToString( state ) << ") must contain depth stage." );
-				CHECK_MSG( not has_any_shader,	"Resource state ("s << ToString( state ) << ") should not contain shader stages." );
+				CHECK_MSG( not has_any_stage,	"Resource state ("s << ToString( state ) << ") should not contain shader stages." );
 				break;
 
 			case _EResState::Unknown :
@@ -156,7 +161,7 @@ namespace AE::Graphics
 			case _EResState::BuildRTAS_RW :
 			case _EResState::BuildRTAS_IndirectBuffer :
 			case _EResState::RTShaderBindingTable :
-				CHECK_MSG( not has_any_shader,	"Resource state ("s << ToString( state ) << ") should not contain shader stages." );
+				CHECK_MSG( not has_any_stage,	"Resource state ("s << ToString( state ) << ") should not contain shader stages." );
 				CHECK_MSG( not has_ds_stage,	"Resource state ("s << ToString( state ) << ") should not contain depth stage." );
 				break;
 
@@ -320,7 +325,7 @@ namespace AE::Graphics
 			{ EPixelFormat::RGB10_A2_UNorm,			10*3+2,			4,	EType::UNorm },
 			{ EPixelFormat::RGBA4_UNorm,			4*4,			4,	EType::UNorm },
 			{ EPixelFormat::RGB5_A1_UNorm,			5*3+1,			4,	EType::UNorm },
-			{ EPixelFormat::RGB_5_6_5_UNorm,		5+6+5,			3,	EType::UNorm },
+			{ EPixelFormat::R5G6B5_UNorm,			5+6+5,			3,	EType::UNorm },
 			{ EPixelFormat::BGR8_UNorm,				8*3,			3,	EType::UNorm | EType::BGR },
 			{ EPixelFormat::BGRA8_UNorm,			8*4,			4,	EType::UNorm | EType::BGR },
 			{ EPixelFormat::sRGB8,					8*3,			3,	EType::UNorm | EType::sRGB },
@@ -1936,7 +1941,6 @@ namespace AE::Graphics
 			case ESurfaceFormat::RGB10A2_HDR10_ST2084 :				return { EPixelFormat::RGB10_A2_UNorm,	EColorSpace::HDR10_ST2084			};
 
 			case ESurfaceFormat::Unknown :							return { Default, Default };
-			case ESurfaceFormat::_Count :							break;
 		}
 		switch_end
 		RETURN_ERR( "unsupported surface format" );
@@ -1976,7 +1980,7 @@ namespace AE::Graphics
 	EVertexType_SizeOf
 =================================================
 */
-	ND_ Bytes  EVertexType_SizeOf (EVertexType type) __NE___
+	Bytes  EVertexType_SizeOf (EVertexType type) __NE___
 	{
 		const EVertexType	scalar_type	= (type & EVertexType::_TypeMask);
 		const uint			vec_size	= (uint(type & EVertexType::_VecMask) >> uint(EVertexType::_VecOffset)) + 1;
@@ -2012,7 +2016,7 @@ namespace AE::Graphics
 	ULong					--> ULong
 =================================================
 */
-	ND_ EVertexType  EVertexType_ToAttribType (EVertexType type) __NE___
+	EVertexType  EVertexType_ToAttribType (EVertexType type) __NE___
 	{
 		const EVertexType	scalar_type	= (type & EVertexType::_TypeMask);
 		const EVertexType	vec_size	= (type & EVertexType::_VecMask);
@@ -2047,6 +2051,56 @@ namespace AE::Graphics
 		}
 
 		RETURN_ERR( "invalid vertex type", float_type );
+	}
+	
+/*
+=================================================
+	EVertexType_SetVec
+=================================================
+*/
+	EVertexType  EVertexType_SetVec (EVertexType type, uint count) __NE___
+	{
+		ASSERT( count >= 1 and count <= 4 );
+		count -= 1;
+
+		count >>= uint(EVertexType::_VecOffset);
+
+		const EVertexType	vec_size	= EVertexType( count & uint(EVertexType::_VecMask) );
+		ASSERT( count == uint(vec_size) );
+
+		const EVertexType	other		= (type & ~EVertexType::_VecMask);
+		return other | vec_size;
+	}
+	
+	uint  EVertexType_GetVec (EVertexType type) __NE___
+	{
+		EVertexType	vec_size	= type & EVertexType::_VecMask;
+		uint		count		= (uint(vec_size) >> uint(EVertexType::_VecOffset)) + 1;
+		ASSERT( count >= 1 and count <= 4 );
+		return count;
+	}
+
+/*
+=================================================
+	EVertexType_Is*
+=================================================
+*/
+	bool  EVertexType_IsFloat (EVertexType type) __NE___
+	{
+		EVertexType  scalar_type = (type & EVertexType::_TypeMask);
+		return scalar_type >= EVertexType::_Half and scalar_type <= EVertexType::_Double;
+	}
+
+	bool  EVertexType_IsUnsignedInteger (EVertexType type) __NE___
+	{
+		EVertexType  scalar_type = (type & EVertexType::_TypeMask);
+		return AnyEqual( scalar_type, EVertexType::_UByte, EVertexType::_UShort, EVertexType::_UInt, EVertexType::_ULong );
+	}
+
+	bool  EVertexType_IsScaledOrNormalized (EVertexType type) __NE___
+	{
+		EVertexType	flag	= (type & EVertexType::_FlagMask);
+		return AnyEqual( flag, EVertexType::ScaledFlag, EVertexType::NormalizedFlag );
 	}
 //-----------------------------------------------------------------------------
 
@@ -2118,8 +2172,8 @@ namespace AE::Graphics
 			case EVideoFormat::NV42 :
 			case EVideoFormat::NV20 :
 			case EVideoFormat::XV30 :
-			case EVideoFormat::_Count :
-			case EVideoFormat::Unknown :		break;
+
+			case EVideoFormat::Unknown :	break;
 		}
 		switch_end
 		return Default;

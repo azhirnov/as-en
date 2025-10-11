@@ -3,7 +3,7 @@
 #pragma once
 
 #include "platform/Private/SerializableInputActions.h"
-#include "platform/Public/IApplication.h"
+#include "platform/Public/Application.h"
 
 namespace AE::App
 {

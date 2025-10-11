@@ -66,8 +66,8 @@ namespace AE::ResEditor
 			CHECK_THROW( _views[i] );
 
 			rstate.AddResource( _ids[i].Get(),
-								EResourceState::Invalidate,									// current state is not used
-								EResourceState::ShaderSample | EResourceState::AllShaders,	// default
+								EResourceState::Invalidate,										// current state is not used
+								EResourceState::ShaderSample | EResourceState::AllShaderStages,	// default
 								EQueueType::Graphics );
 
 			_DtTrQueue().EnqueueImageTransition( _ids[i] );

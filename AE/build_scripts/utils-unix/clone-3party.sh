@@ -1,4 +1,5 @@
 # clone 3party dependencies to local server
+# updated in 2025.08
 
 cd "../public"
 
@@ -89,6 +90,13 @@ git clone --bare "https://github.com/NVIDIA/nvapi.git" "nvapi"
 mv "slang" "_backup_3party/slang"
 git clone --bare "https://github.com/shader-slang/slang.git" "slang"
 
+
+mv "OpenXR-SDK" "_backup_3party/OpenXR-SDK"
+git clone --bare "https://github.com/KhronosGroup/OpenXR-SDK.git" "OpenXR-SDK"
+
+mv "OpenXR-SDK-Source" "_backup_3party/OpenXR-SDK-Source"
+git clone --bare "https://github.com/KhronosGroup/OpenXR-SDK-Source.git" "OpenXR-SDK-Source"
+
 #mv "breakpad" "_backup_3party/breakpad"
 #git clone --bare "https://github.com/google/breakpad.git" "breakpad"
 
@@ -109,7 +117,7 @@ cd "temp"
 
 
 
-
+# TODO
 
 
 

@@ -457,7 +457,7 @@ namespace
 		}
 
 		VkPhysicalDeviceFeatures	dev_feat = {};
-		vkGetPhysicalDeviceFeatures( physicalDevice, OUT &dev_feat );
+		VulkanInstanceFn::vkGetPhysicalDeviceFeatures( physicalDevice, OUT &dev_feat );
 
 		if ( dev_feat.tessellationShader )
 			emulator.devFeatures |= EFeatures::Tessellation;

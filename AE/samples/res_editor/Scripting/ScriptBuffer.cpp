@@ -408,10 +408,14 @@ namespace
 		CHECK_THROW_MSG( not _resource,
 			"Resource is already created, can not add buffer reference" );
 
-		RC<Buffer>	buf2 = buf->ToResource();
-		CHECK_THROW_MSG( buf2 );
+		if ( not buf->_resource ) {
+			buf->AddUsage( EResourceUsage::ShaderAddress );
+		}else{
+			CHECK_THROW_MSG( AllBits( buf->_resUsage, EResourceUsage::ShaderAddress ),
+				"AddReference() used only to attach buffer with ShaderAddress usage" );
+		}
 
-		_refBuffers.push_back( buf2 );
+		_refBuffers.push_back( buf );
 	}
 
 /*
@@ -1219,9 +1223,16 @@ namespace
 			}
 		}
 
+		Array<RC<Buffer>>	ref_buffers;
+		ref_buffers.reserve( _refBuffers.size() );
+
+		for (auto& src : _refBuffers) {
+			ref_buffers.push_back( src->ToResource() );
+		}
+
 		_resource = MakeRCTh<Buffer>( RVRef(buf_ids), _desc, static_size, elem_size, RVRef(load_op), struct_type,
 									  renderer, (_inDynCount ? _inDynCount->Get() : null), (_outDynCount ? _outDynCount->Get() : null),
-									  _dbgName, flags, RVRef(_refBuffers) );  // throw
+									  _dbgName, flags, RVRef(ref_buffers) );  // throw
 		return _resource;
 	}
 
@@ -1257,7 +1268,7 @@ namespace
 				if ( not source.empty() )
 				{
 					ShaderStructTypePtr		tmp{ new ShaderStructType{ tmp_typename }};
-					tmp->Set( EStructLayout::Std430, source );
+					tmp->Set( EStructLayout::Compatible_Std430, source );
 
 					CHECK_MSG( it->second->Compare( *tmp ),
 						"Typename '"s << typeName << "' is already defined with different layout" );
@@ -1271,7 +1282,7 @@ namespace
 				return;
 
 			ShaderStructTypePtr		st{ new ShaderStructType{ typeName }};
-			st->Set( EStructLayout::Std430, source );
+			st->Set( EStructLayout::Compatible_Std430, source );
 		}};
 
 		if ( _IsArray() )

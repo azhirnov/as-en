@@ -4,6 +4,10 @@
 /android-clang/HWCPipe/build
 /android-clang/HWCPipe/temp
 
+/android-clang/PicoOpenXR/.gradle
+/android-clang/PicoOpenXR/build
+/android-clang/PicoOpenXR/temp
+
 /android-clang/PowerVRScopeStats/.gradle
 /android-clang/PowerVRScopeStats/build
 /android-clang/PowerVRScopeStats/temp
@@ -44,6 +48,10 @@
 /shared/MeshOptimizer/build
 /shared/MeshOptimizer/temp
 
+/shared/OpenXR/.gradle
+/shared/OpenXR/build
+/shared/OpenXR/temp
+
 /shared/SPIRV-Cross/build
 /shared/SPIRV-Cross/temp
 
@@ -60,6 +68,13 @@
 
 /shared/lavapipe/build
 /shared/lavapipe/temp
+
+/shared/libgit2/.gradle
+/shared/libgit2/build
+/shared/libgit2/temp
+
+/shared/llama/build
+/shared/llama/temp
 
 /shared/lz4/.gradle
 /shared/lz4/build

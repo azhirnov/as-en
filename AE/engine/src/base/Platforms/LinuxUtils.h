@@ -5,7 +5,6 @@
 #ifdef AE_PLATFORM_LINUX
 # include "base/Platforms/UnixUtils.h"
 # include "base/Containers/NtStringView.h"
-# include "base/FileSystem/Path.h"
 
 namespace AE::Base
 {
@@ -63,10 +62,10 @@ namespace AE::Base
 
 	inline bool  LinuxUtils::IsUnderDebugger () __NE___
 	{
-	  #if AE_CXX_VER >= 26
+	  #if 0 //AE_CXX_VER >= 26
 		return std::is_debugger_present();
 
-	  #elif defined(AE_DEBUG)
+	  #elif defined(AE_CFG_DEBUG)
 		return true;
 	  #else
 		return false;

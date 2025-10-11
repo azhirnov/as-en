@@ -50,10 +50,10 @@
 #define ulong_vec_t		ulong
 
 
-#if 1 //def AE_bfloat16
-	enum class bfloat : short {};
+#ifdef AE_bfloat16
+	enum class bfloat : short {};		// implicitly converted to float/double
 #endif
-#if 1 //def AE_float8_e5m2_e4m3
+#ifdef AE_float8_e5m2_e4m3
 	enum class floatE5M2 : char {};
 	enum class floatE4M3 : char {};
 #endif
@@ -274,7 +274,9 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 
 
 #ifdef AE_bfloat16
+# ifdef AE_bfloat16_dotprod
 	template <int I>			ND_ bfloat			dot (_Vec<bfloat,I> x, _Vec<bfloat,I> y);
+# endif
 
 								ND_ short			bfloat16BitsToInt (const bfloat);			// inverse intBitsToBFloat16
 								ND_ ushort			bfloat16BitsToUint (const bfloat);			// inverse uintBitsToBFloat16
@@ -285,12 +287,6 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 	template <int I>			ND_ _Vec<ushort,I>	bfloat16BitsToUint (const bfloat);			// inverse uintBitsToBFloat16
 	template <int I>			ND_ _Vec<bfloat,I>	intBitsToBFloat16 (const short);			// inverse bfloat16BitsToInt
 	template <int I>			ND_ _Vec<bfloat,I>	uintBitsToBFloat16 (const ushort);			// inverse bfloat16BitsToUint
-
-//									void			coopMatLoad (out coopmat &m, volatile coherent bfloat buf[], uint element, uint stride, int matrixLayout);
-//	template <int I>				void			coopMatLoad (out coopmat &m, volatile coherent _Vec<bfloat,I> buf[], uint element, uint stride, int matrixLayout);
-
-//									void			coopMatStore (coopmat m, volatile coherent out bfloat buf[], uint element, uint stride, int matrixLayout);
-//	template <int I>				void			coopMatStore (coopmat m, volatile coherent out _Vec<bfloat,I> buf[], uint element, uint stride, int matrixLayout);
 #endif
 
 #ifdef AE_float8_e5m2_e4m3
@@ -336,19 +332,17 @@ template <int I>				ND_ _Vec<double,I>	uint64BitsToDouble (const _Vec<ulong,I>);
 									void			saturatedConvert (out floatE4M3 result, float value);
 	template <int I>				void			saturatedConvert (out _Vec<floatE5M2,I> &result, const _Vec<float,I> value);
 	template <int I>				void			saturatedConvert (out _Vec<floatE4M3,I> &result, const _Vec<float,I> value);
-	/*
-									void			saturatedConvert (out coopmat &result, coopmat value);
 	
-									void			coopMatLoad (out coopmat m, volatile coherent floatE5M2 buf[], uint element, uint stride, int matrixLayout);
-									void			coopMatLoad (out coopmat m, volatile coherent floatE4M3 buf[], uint element, uint stride, int matrixLayout);
-									void			coopMatLoad (out coopmat m, volatile coherent _Vec<floatE5M2,I> buf[], uint element, uint stride, int matrixLayout);
-									void			coopMatLoad (out coopmat m, volatile coherent _Vec<floatE4M3,I> buf[], uint element, uint stride, int matrixLayout);
+	//								void			saturatedConvert (out coopmat &result, coopmat value);
+#endif // AE_float8_e5m2_e4m3
 
-									void			coopMatStore (coopmat m, volatile coherent out floatE5M2 buf[], uint element, uint stride, int matrixLayout);
-									void			coopMatStore (coopmat m, volatile coherent out floatE4M3 buf[], uint element, uint stride, int matrixLayout);
-									void			coopMatStore (coopmat m, volatile coherent out _Vec<floatE5M2,I> buf[], uint element, uint stride, int matrixLayout);
-									void			coopMatStore (coopmat m, volatile coherent out _Vec<floatE4M3,I> buf[], uint element, uint stride, int matrixLayout);
-	*/
+#ifdef AE_integer_dot_product
+	template <typename T, int I> ND_ T				IntDot (_Vec<T,I> a, _Vec<T,I> b);
+								 ND_ uint			IntDot4x8 (uint a, uint b);
+								 ND_ int			IntDot4x8 (int a, int b);
+	template <typename T, int I> ND_ T				IntDotAccSat (_Vec<T,I> a, _Vec<T,I> b, T c);
+								 ND_ uint			IntDotAccSat4x8 (uint a, uint b, uint c);
+								 ND_ int			IntDotAccSat4x8 (int a, int b, int c);
 #endif
 
 # ifdef AE_COMPILER_CLANG
@@ -1566,6 +1560,7 @@ public:
   #endif
 
 	// GL_KHR_cooperative_matrix
+	// whole subgroup / workgroup must execute same command
   #if defined(AE_cooperative_matrix) and defined(AE_memory_scope_semantics)
 
 	enum class MatrixUse
@@ -1602,16 +1597,31 @@ public:
 		ND_ T &		operator [] (int i);
 		ND_ T		operator [] (int i)		const;
 	};
-
+	
+	// read 'm' from 'buf[ firstElement * stride * rows ]' for row major or
+	// 'buf[ firstElement * stride * cols ]' to column major
 	template <typename T, Scope S, uint R, uint C, MatrixUse U, typename B>
-	void  CoopMatLoad (OUT CoopMat<T,S,R,C,U> &m, B* buf, uint element, uint stride, CooperativeMatrixLayout layout);
+	void  CoopMatLoad  (OUT CoopMat<T,S,R,C,U>	&m,
+						volatile coherent B*	buf,
+						uint					firstElement,		// in elements (B)
+						uint					stride,				// in elements (B)
+						CooperativeMatrixLayout	layout);
 
+	// write 'm' to 'buf[ firstElement * stride * rows ]' for row major or
+	// 'buf[ firstElement * stride * cols ]' to column major
 	template <typename T, Scope S, uint R, uint C, MatrixUse U, typename B>
-	void  CoopMatStore (CoopMat<T,S,R,C,U> m, OUT B* buf, uint element, uint stride, CooperativeMatrixLayout layout);
+	void  CoopMatStore (CoopMat<T,S,R,C,U>			m,
+						OUT volatile coherent B*	buf,
+						uint						firstElement,	// in elements (B)
+						uint						stride,			// in elements (B)
+						CooperativeMatrixLayout		layout);
 
-	// a * b + c
+	// r = a * b + c
 	template <typename T, Scope S, uint M, uint N, uint K>
-	ND_ CoopMat<T,S,M,N,MatrixUse::C>  CoopMatMulAdd (CoopMat<T,S,M,K,MatrixUse::A> a, CoopMat<T,S,K,N,MatrixUse::B> b, CoopMat<T,S,M,N,MatrixUse::C> c, MatrixOperands matrixOperands = MatrixOperands::None);
+	ND_ CoopMat<T,S,M,N,MatrixUse::C>  CoopMatMulAdd (CoopMat<T,S,M,K,MatrixUse::A>  a,
+													  CoopMat<T,S,K,N,MatrixUse::B>  b,
+													  CoopMat<T,S,M,N,MatrixUse::C>  c,
+													  MatrixOperands				 matrixOperands = MatrixOperands::None);
 
   #endif // AE_cooperative_matrix and AE_memory_scope_semantics
 	
@@ -1693,58 +1703,68 @@ public:
 			  typename MatrixTy,
 			  typename BiasTy
 			 >
-	void  CoopVecMatMulAdd (OUT CoopVec<ResultTy, ResultComps>	&result,	// [M]
-							CoopVec<InputTy, InputComps>		input,		// [K]
-							ComponentType			inputInterpretation,
-							const MatrixTy[]		matrix,					// [MxK]
-							uint					matrixOffset,
+	void  CoopVecMatMulAdd (OUT CoopVec<ResultTy, ResultComps>	&result,	// [M],  'ResultTy' must be: half, float, int, uint
+							CoopVec<InputTy, InputComps>		input,		// [K],  'InputTy'  must be: half, float, int, uint
+							ComponentType			inputInterpretation,	// bitcast for packed type, conversion for other
+							const MatrixTy[]		matrix,					// [MxK],  'MatrixTy' ignored, used bitcast
+							uint					matrixOffset,			// 64b align, in bytes
 							ComponentType			matrixInterpretation,
-							const BiasTy[]			bias,					// [M]
-							uint					biasOffset,
+							const BiasTy[]			bias,					// [M],  'BiasTy' ignored, used bitcast
+							uint					biasOffset,				// 16b align, in bytes
 							ComponentType			biasInterpretation,
 							uint					M,
 							uint					K,
 							CoopVectorMatrixLayout	matrixLayout,
 							bool					transpose,
-							uint					matrixStride);
+							uint					matrixStride);			// 16b align, in bytes, ignored for optimal layouts
 	
 	template <typename ResultTy, uint ResultComps,
 			  typename InputTy,  uint InputComps,
 			  typename MatrixTy
 			 >
-	void  CoopVecMatMul (OUT CoopVec<ResultTy, ResultComps> &result,	// [M]
-						 CoopVec<InputTy, InputComps>		input,		// [K]
-						 ComponentType			inputInterpretation,
-						 const MatrixTy[]		matrix,					// [MxK]
-						 uint					matrixOffset,
+	void  CoopVecMatMul (OUT CoopVec<ResultTy, ResultComps> &result,		// [M],  'ResultTy' must be: half, float, int, uint
+						 CoopVec<InputTy, InputComps>		input,			// [K],  'InputTy'  must be: half, float, int, uint
+						 ComponentType			inputInterpretation,		// bitcast for packed type, conversion for other
+						 const MatrixTy[]		matrix,						// [MxK],  'MatrixTy' ignored, used bitcast
+						 uint					matrixOffset,				// 64b align, in bytes
 						 ComponentType			matrixInterpretation,
 						 uint					M,
 						 uint					K,
 						 CoopVectorMatrixLayout	matrixLayout,
 						 bool					transpose,
-						 uint					matrixStride);
+						 uint					matrixStride);				// 16b align, in bytes, ignored for optimal layouts
 	
 	template <typename T, uint NumComps, typename ArrayElemTy>
-	void  CoopVecLoad (OUT CoopVec<T, NumComps> &v, /*volatile coherent*/ ArrayElemTy[] buf, uint offset);
+	void  CoopVecLoad (OUT CoopVec<T, NumComps>			&v,
+					   volatile coherent ArrayElemTy[]	buffer,
+					   uint								bufferOffset);		// 16b align, in bytes
 	
 	template <typename T, uint NumComps, typename ArrayElemTy>
-	void  CoopVecStore (const CoopVec<T, NumComps> &v, /*volatile coherent*/ ArrayElemTy[] buf, uint offset);
+	void  CoopVecStore (const CoopVec<T, NumComps>			&v,
+						OUT volatile coherent ArrayElemTy[]	buffer,
+						uint								bufferOffset);	// 16b align, in bytes
 
 	// requires 'cooperativeVectorTraining' feature
   # if defined(AE_cooperative_vector_training)
+
+	// The following function computes the outer product between column vectors v1
+    // and v2, i.e. v1*transpose(v2), and the resulting MxN matrix is atomically
+    // (with device scope) accumulated in memory.
 	template <typename T, uint M, uint N>
-	void  CoopVecOuterProductAccum (const coopvecNV<T, M>	&v1,
-									const coopvecNV<T, N>	&v2,
-									T[]						buf,		// 16b align
-									uint					offset,		// 16b align
-									uint					stride,		// 16b align
-									CoopVectorMatrixLayout	matrixLayout,
+	void  CoopVecOuterProductAccum (const CoopVec<T, M>		&v1,			// [M],  'T' must be half of float
+									const CoopVec<T, N>		&v2,			// [N]
+									INOUT T[]				buffer,			// matrix [MxN]
+									uint					bufferOffset,	// 16b align, in bytes
+									uint					stride,			// ignored
+									CoopVectorMatrixLayout	matrixLayout,	// must be 'gl::CoopVectorMatrixLayout::TrainingOptimal'
 									ComponentType			matrixInterpretation);
-	
+
+	// The following function component-wise atomically (with device scope) adds
+    // components of the vector 'v' to the corresponding elements of an array in memory.
 	template <typename T, uint N>
-	void  CoopVecReduceSumAccum (const coopvecNV<T, N>	&v,
-								 T[]					buf,		// 16b align
-								 uint					offset);	// 16b align
+	void  CoopVecReduceSumAccum (const CoopVec<T, N>	&v,					// [N],  'T' must be half of float
+								 INOUT T[]				buffer,				// [N]
+								 uint					bufferOffset);		// 16b align, in bytes
 
   # endif // AE_cooperative_vector_training
   #endif // AE_cooperative_vector

@@ -122,6 +122,9 @@ namespace AE::Threading
 			template <typename FN>
 			void			ForEachAssigned (FN &&fn)			C_NE___;
 
+			template <typename FN>
+			void			ForEachAssignedAndRelease (FN &&fn)	__NE___;
+
 		ND_ auto			Assign ()							__NE___	{ Index_t idx;  Unused( Assign( OUT idx ));  return idx; }
 		ND_ bool			Assign (OUT Index_t &outIndex)		__NE___;
 			bool			Unassign (Index_t index)			__NE___;

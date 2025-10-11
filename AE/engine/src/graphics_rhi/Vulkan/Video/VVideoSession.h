@@ -15,7 +15,7 @@ namespace AE::Graphics
 	// Vulkan Video Session immutable data
 	//
 
-	class VVideoSession final
+	class VVideoSession final : private VulkanInstanceFn
 	{
 	// types
 	private:

@@ -293,7 +293,7 @@ namespace
 	_visitor_( RGB10_A2_UNorm,		GL_RGB10_A2,								0x8059 )\
 	_visitor_( RGBA4_UNorm,			GL_RGBA4,									0x8056 )\
 	_visitor_( RGB5_A1_UNorm,		GL_RGB5_A1,									0x8057 )\
-	_visitor_( RGB_5_6_5_UNorm,		GL_RGB565,									0x8D62 )\
+	_visitor_( R5G6B5_UNorm,		GL_RGB565,									0x8D62 )\
 	\
 	_visitor_( sRGB8,				GL_SRGB8,									0x8C41 )\
 	_visitor_( sRGB8_A8,			GL_SRGB8_ALPHA8,							0x8C43 )\

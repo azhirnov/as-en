@@ -3,7 +3,7 @@
 	IDescriptorUpdater - helper class for descriptor updating.
 
 	IDescriptorUpdater
-		thread-safe:	no
+		Thread-safe:	no
 */
 #pragma once
 
@@ -62,7 +62,7 @@ namespace AE::Graphics
 		//ThreadgroupMemory,	// metal only
 
 		_Count,
-		Unknown		= 0xFF,
+		Unknown		= _Count,
 	};
 
 
@@ -70,8 +70,9 @@ namespace AE::Graphics
 	{
 		Partialy,
 		UpdateTemplate,		// extension 'descriptorUpdateTemplate'
+		_Count,
 
-		Unknown			= 0xFF
+		Unknown			= _Count,
 	};
 
 
@@ -222,7 +223,7 @@ namespace AE::Graphics
 	// Descriptor Updater
 	//
 
-	class NO_VTABLE IDescriptorUpdater : public EnableRC<IDescriptorUpdater>
+	class IDescriptorUpdater : public EnableRC<IDescriptorUpdater>
 	{
 	// interface
 	public:

@@ -409,7 +409,7 @@ namespace AE::Base
 	using AE::CICD::EGraphicsAPI;
 
 
-	ND_ inline StringView  ToString (EClientType value)
+	Nd__In StringView  ToString (EClientType value)
 	{
 		switch_enum( value )
 		{
@@ -422,7 +422,7 @@ namespace AE::Base
 		return Default;
 	}
 
-	ND_ inline StringView  ToString (ECompiler value)
+	Nd__In StringView  ToString (ECompiler value)
 	{
 		switch_enum( value )
 		{
@@ -439,7 +439,7 @@ namespace AE::Base
 		return Default;
 	}
 
-	ND_ inline StringView  ToString (ECPUFeatureSet value)
+	Nd__In StringView  ToString (ECPUFeatureSet value)
 	{
 		switch_enum( value )
 		{
@@ -456,7 +456,7 @@ namespace AE::Base
 		return Default;
 	}
 
-	ND_ inline StringView  ToString (EGraphicsAPI value)
+	Nd__In StringView  ToString (EGraphicsAPI value)
 	{
 		switch_enum( value )
 		{

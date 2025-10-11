@@ -37,6 +37,7 @@ Supported platforms
 	- [ ] NvProf SDK (partially)
 	- [ ] RGP (not tested)
 - [ ] Crash reporting
+- [ ] Display Cutout
 
 **ARM64**:
 - [ ] Scripting
@@ -49,10 +50,10 @@ Supported platforms
 - [x] Architecture: x64
 - [ ] Architecture: ARM64
 - [ ] Architecture: RISC-V 64
-- [x] Compiler: GCC12, 13
-- [x] Compiler: Clang15, 16
+- [x] Compiler: GCC12, 13, 14
+- [x] Compiler: Clang15, 16-20
 - [x] CPU info
-- [ ] Memory info (not tested)
+- [x] Memory info
 - [x] Thread affinity
 - [x] Thread priority
 - [x] Thread pause instruction
@@ -64,7 +65,7 @@ Supported platforms
 - [ ] Writable folder
 - [x] Input: mouse, keyboard
 - Audio:
-	- [ ] BASS (not tested)
+	- [x] BASS
 	- [ ] native
 - [x] Graphics:
 	- Vulkan (by default requires timeline semaphore)
@@ -75,7 +76,7 @@ Supported platforms
 	- [ ] AMDPRO
 - Window system:
 	- [x] X11
-	- [ ] Wayland
+	- [x] Wayland
 - [ ] HDR display (not tested)
 - [ ] Profiling
 - [ ] Distribution: Flatpack
@@ -85,11 +86,12 @@ Supported platforms
 ## Android
 
 - [x] OS: Android 7+ (SDK 24)
+- [x] OS: PicoOS (tested on 5.13)
 - [x] Architecture: ARMv8, ARMv7
 - [ ] Architecture: x86, x64 - supported but not tested
 - [x] Compiler: Clang
 - [x] CPU info
-- [ ] Memory info
+- [x] Memory info
 - [x] Thread affinity
 - [x] Thread priority
 - [x] Thread pause instruction
@@ -104,11 +106,12 @@ Supported platforms
 - [ ] Input: external keyboard, gamepad (not tested)
 - [x] Input: sensors
 - Audio:
-	- [ ] BASS (not tested)
+	- [x] BASS
 	- [ ] native
 - [x] Graphics: Vulkan (without timeline semaphore)
 - [x] Display Cutout
 - [x] HDR display
+- [ ] Multi monitor, desktop mode
 - Profiling:
 	- [x] Internal performance counters GPU: Adreno/Mali/PowerVR
 - [ ] Crash reporting
@@ -120,28 +123,29 @@ Supported platforms
 - [x] Architecture: ARM64, x64
 - [x] Compiler: Clang15 (XCode)
 - [x] CPU info
-- [ ] Memory info
-- [ ] Thread affinity
+- [x] Memory info
+- [ ] Thread affinity - not supported on ARM
 - [x] Thread priority
 - [x] Thread pause instruction
 - [x] Thread: nano/micro sleep
 - [x] Window mode: Fullscreen, Borderless
-- [x] Async file read/write (slow)
+- [x] Async file read/write
 - [x] Networking
 - [ ] Internal resources
 - [ ] Writable folder
 - [x] Input: mouse, keyboard
 - Audio:
-	- [ ] BASS (not tested)
+	- [x] BASS
 	- [ ] native
 - Graphics:
 	- [x] Metal API 2.x
 	- [x] Metal API 3.x
+	- [ ] Metal API 4.x
 	- [x] MoltenVk
 - [ ] Display Cutout
 - [x] HDR display (Vulkan)
 - [ ] HDR display (Metal, not tested)
-- [x] Offline resource packing (x64 only)
+- [x] Offline resource packing
 - Profiling:
 	- [x] XCode profiler
 - [ ] Crash reporting
@@ -161,9 +165,12 @@ same as MacOS, but not tested
 
 ## OpenVR
 
-not tested
-
+- not tested
+- deprecated
 
 ## OpenXR
 
-not implemented
+in progress
+
+- [ ] OS: PicoVR (PICO 4 Ultra since 5.12.0)
+- [ ] Input

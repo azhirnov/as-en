@@ -9,7 +9,7 @@
 
 AE_DECL_SCRIPT_OBJ(	AE::ResEditor::ResEditorAppConfig,	"Config" );
 
-#if AE_PUBLIC_VERSION and AE_GRAPHICS_STRONG_VALIDATION == 0
+#if AE_PORTABLE_APP and AE_GRAPHICS_STRONG_VALIDATION == 0
 # error AE_GRAPHICS_STRONG_VALIDATION must be enabled for public version
 #endif
 
@@ -56,7 +56,7 @@ namespace
 												  EDeviceFlags::EnablePerfCounters;
 			cfg.graphics.device.deviceName		= s_REConfig.deviceName;
 
-		  #if AE_PUBLIC_VERSION and defined(AE_RELEASE)
+		  #if AE_PORTABLE_APP and defined(AE_RELEASE)
 			cfg.graphics.device.validation		= EDeviceValidation::Disabled;
 		  #else
 			cfg.graphics.device.validation		= EDeviceValidation::Enabled;
@@ -80,19 +80,20 @@ namespace
 			cfg.window.title	= "ResourceEditor";
 			cfg.window.size		= uint2{ s_REConfig.screenWidth, s_REConfig.screenHeight };
 			cfg.window.mode		= c_WindowMode;
+			cfg.window.monitorId = Monitor::ID( s_REConfig.monitorId );
 		}
 
 		// VR
 		{
 			cfg.enableVR		= false;
 			cfg.vr.dimension	= ImageDim2_t{2048};
-			cfg.vr.format		= EPixelFormat::BGRA8_UNorm;
+			cfg.vr.colorFormat	= EPixelFormat::BGRA8_UNorm;
 			cfg.vr.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;	// default
 			cfg.vr.options		= EImageOpt::BlitDst;
 
-		//	cfg.vrDevices.push_back( IVRDevice::EDeviceType::OpenXR );
-		//	cfg.vrDevices.push_back( IVRDevice::EDeviceType::OpenVR );
-			cfg.vrDevices.push_back( IVRDevice::EDeviceType::Emulator );
+		//	cfg.vrDevices.push_back( IVRSession::EDeviceType::OpenXR );
+		//	cfg.vrDevices.push_back( IVRSession::EDeviceType::OpenVR );
+			cfg.vrDevices.push_back( IVRSession::EDeviceType::Emulator );
 		}
 
 		cfg.enableNetwork = true;
@@ -459,6 +460,7 @@ namespace
 			binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,		"enableRenderDoc"		);
 			binder.AddProperty( &ResEditorAppConfig::screenWidth,			"screenWidth"			);
 			binder.AddProperty( &ResEditorAppConfig::screenHeight,			"screenHeight"			);
+			binder.AddProperty( &ResEditorAppConfig::monitorId,				"monitorId"				);
 			binder.AddProperty( &ResEditorAppConfig::deviceName,			"deviceName"			);
 		}
 
@@ -497,7 +499,7 @@ namespace
 	ND_ static bool  _CreateDefaultResEditorAppConfig (const Path &filename)
 	{
 		String	str;
-		if ( AE_PUBLIC_VERSION )
+		if ( AE_PORTABLE_APP )
 		{
 			str << R"(
 void main (Config &out cfg)
@@ -539,6 +541,7 @@ void main (Config &out cfg)
 	//	all file paths listed at startup, new files will be accessible after app restart 
 	cfg.StaticVFSPath( vfs_path + "shadertoy_data",  "shadertoy/" );
 	cfg.StaticVFSPath( vfs_path + "res_editor_data", "res/" );
+	cfg.StaticVFSPath( vfs_path + "private_res",	 "res/" );
 	//	create directory if not exists
 	//	new files can be added at runtime
 	cfg.DynamicVFSPath( local_path + "../_export",   "export/" );
@@ -583,9 +586,10 @@ void main (Config &out cfg)
 	// graphics settings //
 	cfg.screenWidth  = 1600;
 	cfg.screenHeight = 900;
+	//cfg.monitorId  = 0;  // optional
 	//	AMD/NV only: set stable GPU clock for profiling, otherwise driver can move GPU to low power mode or use temporary boost.
 	cfg.setStableGPUClock = false;
-	//	on start attach RenderDoc to the app, this will disable some new extensions.
+	//	on start attach RenderDoc to the app, overlay is hidden, press F2 to capture frame
 	cfg.enableRenderDoc = false;
 	//	GPU index or part of name
 	//cfg.deviceName = "";
@@ -652,7 +656,7 @@ void main (Config &out cfg)
 				CHECK_FATAL( _LoadResEditorAppConfigFromScript( path ));
 			}
 
-			if ( not AE_PUBLIC_VERSION )
+			if ( not AE_PORTABLE_APP )
 			{
 				s_REConfig.scriptHeaderOutFolder	= AE_SHARED_DATA "/scripts";
 				s_REConfig.cppTypesFolder			= AE_LOCAL_DATA_FOLDER "/cpp";
@@ -1308,8 +1312,7 @@ void main (Config &out cfg)
 =================================================
 */
 	void  ResEditorCore::WaitFrame (const Threading::EThreadArray	&threadMask,
-									Ptr<IWindow>					window,
-									Ptr<IVRDevice>					) __NE___
+									Ptr<IWindow>					window) __NE___
 	{
 		milliseconds	timeout = AE::DefaultTimeout;
 
@@ -1332,7 +1335,10 @@ void main (Config &out cfg)
 			}
 
 			if ( auto new_mode = _ui.GetNewWindowMode();  new_mode.has_value() )
-				Unused( window->SetMode( *new_mode ));
+			{
+				if ( auto* desk_wnd = window->AsDesktopWindow() )
+					Unused( desk_wnd->SetMode( *new_mode ));
+			}
 		}
 	}
 
@@ -1356,7 +1362,7 @@ using namespace AE::ResEditor;
 */
 Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 {
-#if AE_PUBLIC_VERSION
+#if AE_PORTABLE_APP
 	StaticLogger::Initialize();
 	StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
 

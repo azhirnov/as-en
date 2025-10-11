@@ -19,7 +19,7 @@ namespace AE::VFS
 	// types
 	private:
 		using FileMap_t		= FlatHashMap< FileName::Optimized_t, String >;
-		using TimePoint_t	= std::chrono::high_resolution_clock::time_point;
+		using TimePoint_t	= HighResClock::time_point;
 
 		static constexpr seconds	_UpdateInterval {10};
 

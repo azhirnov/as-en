@@ -287,7 +287,7 @@ namespace AE::Base
 	Select
 =================================================
 */
-	ND_ inline SimdFloat4  Select (const SimdFloat4::Bool4 &condition, const SimdFloat4 &ifTrue, const SimdFloat4 &ifFalse) __NE___
+	Nd__In SimdFloat4  Select (const SimdFloat4::Bool4 &condition, const SimdFloat4 &ifTrue, const SimdFloat4 &ifFalse) __NE___
 	{
 	  #if AE_SIMD_SSE >= 41
 		return SimdFloat4{ _mm_blendv_ps( ifFalse._value, ifTrue._value, condition.Ref() )};
@@ -577,7 +577,7 @@ namespace AE::Base
 	Select
 =================================================
 */
-	ND_ inline SimdDouble2  Select (const SimdDouble2::Bool2 &condition, const SimdDouble2 &ifTrue, const SimdDouble2 &ifFalse) __NE___
+	Nd__In SimdDouble2  Select (const SimdDouble2::Bool2 &condition, const SimdDouble2 &ifTrue, const SimdDouble2 &ifFalse) __NE___
 	{
 	  #if AE_SIMD_SSE >= 41
 		return SimdDouble2{ _mm_blendv_pd( ifFalse._value, ifTrue._value, condition.Ref() )};
@@ -1498,6 +1498,49 @@ namespace AE::Base
 			else
 				return RShift_Logic( shift );
 		}
+	}
+	
+/*
+=================================================
+	Swizzle (Byte16)
+=================================================
+*/
+	template <typename IT>
+	template <uint V0, uint V1, uint V2,  uint V3,  uint V4,  uint V5,  uint V6,  uint V7,
+			  uint V8, uint V9, uint V10, uint V11, uint V12, uint V13, uint V14, uint V15, typename T> requires( sizeof(T)==1 )
+	SimdTInt128<IT>  SimdTInt128<IT>::Swizzle () C_NE___
+	{
+		StaticAssert( Has_Swizzle() );
+		StaticAssert( V0 < count );
+		StaticAssert( V1 < count );
+		StaticAssert( V2 < count );
+		StaticAssert( V3 < count );
+		StaticAssert( V4 < count );
+		StaticAssert( V5 < count );
+		StaticAssert( V6 < count );
+		StaticAssert( V7 < count );
+		StaticAssert( V8 < count );
+		StaticAssert( V9 < count );
+		StaticAssert( V10 < count );
+		StaticAssert( V11 < count );
+		StaticAssert( V12 < count );
+		StaticAssert( V13 < count );
+		StaticAssert( V14 < count );
+		StaticAssert( V15 < count );
+		
+	  #if AE_SIMD_SSE > 31 // SSSE3
+		const __m128i shuffle_mask = _mm_setr_epi8(
+			sbyte(V0),  sbyte(V1),  sbyte(V2),  sbyte(V3),
+			sbyte(V4),  sbyte(V5),  sbyte(V6),  sbyte(V7),
+			sbyte(V8),  sbyte(V9),  sbyte(V10), sbyte(V11),
+			sbyte(V12), sbyte(V13), sbyte(V14), sbyte(V15)
+		);
+		return SimdTInt128<IT>{ _mm_shuffle_epi8( _value, shuffle_mask )};
+	  #else
+		auto	arr = ToArray();
+		return SimdTInt128<IT>{ arr[V0], arr[V1], arr[V2], arr[V3], arr[V4], arr[V5], arr[V6], arr[V7],
+								arr[V8], arr[V9], arr[V10], arr[V11], arr[V12], arr[V13], arr[V14], arr[V15] };
+	  #endif
 	}
 
 /*

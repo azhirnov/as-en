@@ -15,7 +15,7 @@ namespace AE::Base
 	{
 	// types
 	public:
-		using Clock_t		= std::chrono::high_resolution_clock;
+		using Clock_t		= HighResClock;
 		using TimePoint_t	= typename Clock_t::time_point;
 		using Duration_t	= typename Clock_t::duration;
 

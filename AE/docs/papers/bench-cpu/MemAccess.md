@@ -26,7 +26,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 	- write to L1: 32B/cy
 	- read L1: 64B/cy
 	- L2 to L1: 32B/cy
-* Memory: DDR4, 3GHz, 24GB/s
+* Memory: DDR4, 3GHz, 24GB/s *(must be 48GB/s in dual channel mode)*
 * Theoretical performance:<br/>
   32B/cy write to L1 * 4.2GHz = 134.4 GB/s - max speed of memset<br/>
   64B/cy read from L1 * 4.2GHz = 268.8 GB/s - max speed of search<br/>
@@ -1052,7 +1052,7 @@ SIMD non-cached copy, 4 threads bound to physical cores:
 | 64 MiB  | 0.24 s   | +344% | +1%  | 44.4GB/s   | 11.1GB/s  |              | 
 | 128 MiB | 0.24 s   | +345% | -    | 44.3GB/s   | 11.1GB/s  |              |
 
-**SIMD non-cached fill**
+**SIMD non-cached fill** (if supported)
 
 | block | time | diff | delta | bandwidth | comment |
 |---------|--------|-------|------|-----------|-----------|--------------|
@@ -1138,7 +1138,7 @@ SIMD non-cached copy, 4 threads bound to physical cores:
 | 64 MiB  | 0.21 s | +28% | -    | 12.8GB/s  |              | 
 | 128 MiB | 0.21 s | +29% | +1%  | 12.8GB/s  |              |
 
-**SIMD non-cached fill**
+**SIMD non-cached fill** (if supported)
 
 | block | time | diff | delta | bandwidth | comment |
 |---------|--------|-------|------|-----------|--------------|

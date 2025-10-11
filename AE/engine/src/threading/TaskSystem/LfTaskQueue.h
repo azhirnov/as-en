@@ -19,7 +19,7 @@ namespace AE::Threading
 		static constexpr uint	MaxDepth			= 128*4;
 		static constexpr uint	SpinlockWaitCount	= 8;
 
-		using TimePoint_t	= std::chrono::high_resolution_clock::time_point;
+		using TimePoint_t	= HighResClock::time_point;
 		using TaskArr_t		= StaticArray< AsyncTask, TasksPerChunk >;
 		using TaskApi		= _Coro_::AsyncTaskImpl::LfTaskQueueApi;
 

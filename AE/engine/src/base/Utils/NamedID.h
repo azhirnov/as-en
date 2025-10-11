@@ -143,12 +143,12 @@ namespace AE::Base
 
 
 	template <usize Size, uint UID, uint Seed>
-	ND_ inline bool  operator == (const NamedID< Size, UID, false, Seed > &lhs, const NamedID< Size, UID, true, Seed > &rhs) __NE___ {
+	Nd__In bool  operator == (const NamedID< Size, UID, false, Seed > &lhs, const NamedID< Size, UID, true, Seed > &rhs) __NE___ {
 		return lhs.GetHash32() == rhs.GetHash32();
 	}
 
 	template <usize Size, uint UID, uint Seed>
-	ND_ inline bool  operator == (const NamedID< Size, UID, true, Seed > &lhs, const NamedID< Size, UID, false, Seed > &rhs) __NE___ {
+	Nd__In bool  operator == (const NamedID< Size, UID, true, Seed > &lhs, const NamedID< Size, UID, false, Seed > &rhs) __NE___ {
 		return lhs.GetHash32() == rhs.GetHash32();
 	}
 

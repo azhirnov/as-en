@@ -80,7 +80,7 @@ namespace
 	_ValidateRenderPassDebugLabel
 =================================================
 */
-	ND_ inline DebugLabel  _ValidateRenderPassDebugLabel (DebugLabel dbg)
+	Nd__In DebugLabel  _ValidateRenderPassDebugLabel (DebugLabel dbg)
 	{
 		if ( dbg.color == DebugLabel::ColorTable::Undefined )
 			dbg.color = DebugLabel::ColorTable::DrawCtx;

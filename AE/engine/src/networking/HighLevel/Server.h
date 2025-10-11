@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	thread-safe:  see ClientServerBase
+	Thread-safe:  see ClientServerBase
 */
 
 #pragma once

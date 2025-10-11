@@ -5,6 +5,7 @@
 # include "graphics_rhi/Private/EnumToString.h"
 # include "graphics_rhi/Vulkan/VDevice.h"
 # include "graphics_rhi/Vulkan/VEnumCast.h"
+# include "graphics_rhi/Vulkan/Utils/NextChain.h"
 
 namespace AE::Graphics
 {
@@ -996,6 +997,99 @@ namespace
 		vkDestroyImage( _vkLogicalDevice, img, null );
 		return true;
 	}
+	
+/*
+=================================================
+	ConvertCooperativeVectorMatrix
+=================================================
+*/
+	bool  VDevice::ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixOnHost> inCommands) C_NE___
+	{
+		CHECK_ERR( _extensions.cooperativeVectorNV );
+		CHECK_ERR( _vkLogicalDevice != Default );
+		CHECK_ERR( not inCommands.empty() );
+
+		for (auto& src : inCommands)
+		{
+			usize									dst_size	= usize{src.dstSize};
+			VkConvertCooperativeVectorMatrixInfoNV	dst			= {};
+			
+			CHECK_ERR( src.srcSize > 0 and src.dstSize > 0 );
+			CHECK_ERR( src.srcData != null and src.dstData != null );
+			// TODO: check srcSize, dstSize, srcStride, dstStride
+
+			dst.sType				= VK_STRUCTURE_TYPE_CONVERT_COOPERATIVE_VECTOR_MATRIX_INFO_NV;
+			dst.pNext				= null;
+			dst.srcSize				= usize{src.srcSize};
+			dst.srcData.hostAddress	= src.srcData;
+			dst.pDstSize			= &dst_size;
+			dst.dstData.hostAddress	= src.dstData;
+			dst.srcComponentType	= VEnumCast( src.srcType );
+			dst.dstComponentType	= VEnumCast( src.dstType );
+			dst.numRows				= src.numRows;
+			dst.numColumns			= src.numColumns;
+			dst.srcLayout			= VEnumCast( src.srcLayout );
+			dst.srcStride			= usize{src.srcStride};
+			dst.dstLayout			= VEnumCast( src.dstLayout );
+			dst.dstStride			= usize{src.dstStride};
+			
+			CHECK_ERR( dst.srcComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
+			CHECK_ERR( dst.dstComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
+			CHECK_ERR( dst.srcLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
+			CHECK_ERR( dst.dstLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
+			
+			VK_CHECK_ERR( vkConvertCooperativeVectorMatrixNV( _vkLogicalDevice, &dst ));
+		}
+		return true;
+	}
+	
+/*
+=================================================
+	GetCooperativeVectorMatrixDstSize
+=================================================
+*/
+	bool  VDevice::GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost> inCommands, MutableArrayView<BytesUSize> dstSizeArray) C_NE___
+	{
+		CHECK_ERR( _extensions.cooperativeVectorNV );
+		CHECK_ERR( _vkLogicalDevice != Default );
+		CHECK_ERR( not inCommands.empty() );
+		CHECK_ERR( inCommands.size() == dstSizeArray.size() );
+
+		StaticAssert( sizeof(dstSizeArray[0]) == sizeof(RemovePointer<decltype(VkConvertCooperativeVectorMatrixInfoNV::pDstSize)>) );
+
+		for (usize i = 0; i < inCommands.size(); ++i)
+		{
+			const auto&								src	= inCommands[i];
+			VkConvertCooperativeVectorMatrixInfoNV	dst = {};
+
+			ASSERT( src.srcSize > 0 and src.dstSize == 0 );
+			ASSERT_MSG( src.srcData == null and src.dstData == null,
+				"pointers are ignored" );
+
+			dst.sType				= VK_STRUCTURE_TYPE_CONVERT_COOPERATIVE_VECTOR_MATRIX_INFO_NV;
+			dst.pNext				= null;
+			dst.srcSize				= usize{src.srcSize};
+			dst.srcData.hostAddress	= null;
+			dst.pDstSize			= Cast<usize>( &dstSizeArray[i] );
+			dst.dstData.hostAddress	= null;
+			dst.srcComponentType	= VEnumCast( src.srcType );
+			dst.dstComponentType	= VEnumCast( src.dstType );
+			dst.numRows				= src.numRows;
+			dst.numColumns			= src.numColumns;
+			dst.srcLayout			= VEnumCast( src.srcLayout );
+			dst.srcStride			= usize{src.srcStride};
+			dst.dstLayout			= VEnumCast( src.dstLayout );
+			dst.dstStride			= usize{src.dstStride};
+			
+			CHECK_ERR( dst.srcComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
+			CHECK_ERR( dst.dstComponentType != VK_COMPONENT_TYPE_MAX_ENUM_KHR );
+			CHECK_ERR( dst.srcLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
+			CHECK_ERR( dst.dstLayout != VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );
+
+			VK_CHECK_ERR( vkConvertCooperativeVectorMatrixNV( _vkLogicalDevice, &dst ));
+		}
+		return true;
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -1608,30 +1702,25 @@ namespace {
 			if ( GetInstanceVersion() >= InstanceVersion{1,1} or HasInstanceExtension( VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME ))
 			{
 				VkPhysicalDeviceProperties2		props2		= {};
-				void **							next_props	= &props2.pNext;
+				VNextChain						next_props	{props2};
 
 				props2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
 
 				if ( shader_sm_builtins_nv )
 				{
-					*next_props = &shaderSMBuiltinsNVProps;
-					next_props  = &shaderSMBuiltinsNVProps.pNext;
+					next_props.Add( shaderSMBuiltinsNVProps );
 					shaderSMBuiltinsNVProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_PROPERTIES_NV;
 				}
 				if ( shader_core_props_amd )
 				{
-					*next_props = &shaderCorePropsAMDProps;
-					next_props  = &shaderCorePropsAMDProps.pNext;
+					next_props.Add( shaderCorePropsAMDProps );
 					shaderCorePropsAMDProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_AMD;
 				}
 				if ( shader_core_arm )
 				{
-					*next_props = &shaderCoreBuiltinsARMProps;
-					next_props  = &shaderCoreBuiltinsARMProps.pNext;
+					next_props.Add( shaderCoreBuiltinsARMProps );
 					shaderCoreBuiltinsARMProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPERTIES_ARM;
 				}
-
-				*next_props = null;
 				vkGetPhysicalDeviceProperties2KHR( dev, OUT &props2 );
 			}
 
@@ -2138,7 +2227,6 @@ namespace {
 					include_flags	= VK_QUEUE_VIDEO_DECODE_BIT_KHR;
 					break;
 
-				case EQueueType::_Count :
 				case EQueueType::Unknown :
 				default_unlikely :
 					RETURN_ERR( "unknown queue type" );
@@ -2356,7 +2444,7 @@ namespace {
 		}
 
 		// setup features
-		void**	dev_info_last_pnext = null;
+		void**	dev_info_last_pnext = null;		// TODO: VNextChain
 		{
 			_SetupDeviceExtensions( INOUT _extensions );
 
@@ -2949,12 +3037,13 @@ namespace {
 		// validate
 		for (auto iter = layers.begin(); iter != layers.end();)
 		{
-			bool	found		= false;
-			uint	spec_ver	= 0;
+			bool		found		= false;
+			uint		spec_ver	= 0;
+			StringView	req_layer	{*iter};
 
 			for (auto& prop : inst_layers)
 			{
-				if_unlikely( StringView(*iter) == prop.layerName )
+				if_unlikely( req_layer == prop.layerName )
 				{
 					found		= true;
 					spec_ver	= prop.specVersion;
@@ -3101,7 +3190,7 @@ namespace {
 		str << "Created Vulkan instance " << ToString(_vkInstanceVersion.major) << '.' << ToString(_vkInstanceVersion.minor) << '\n';
 
 		str << "Layers:\n";
-		for (auto& layer : instanceLayers)
+		for (auto* layer : instanceLayers)
 			str << "  " << layer << '\n';
 
 		str << "Extensions:\n";
@@ -3145,7 +3234,9 @@ namespace {
 	CreateDebugCallback
 =================================================
 */
-	bool  VDeviceInitializer::CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT severity, DebugReport_t callback) __NE___
+	bool  VDeviceInitializer::CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT	severity,
+												   VkDebugUtilsMessageTypeFlagsEXT		types,
+												   DebugReport_t						callback) __NE___
 	{
 	#ifndef AE_CFG_RELEASE
 		DRC_EXLOCK( _drCheck );
@@ -3160,9 +3251,7 @@ namespace {
 			VkDebugUtilsMessengerCreateInfoEXT	info = {};
 			info.sType				= VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 			info.messageSeverity	= severity;
-			info.messageType		= VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT	 |
-									  VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-									  VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+			info.messageType		= types;
 			info.pfnUserCallback	= _DebugUtilsCallback;
 			info.pUserData			= this;
 
@@ -3216,6 +3305,7 @@ namespace {
 			vkDestroyDebugReportCallbackEXT( GetVkInstance(), dbg_report->debugReportCallback, null );
 		}
 
+		dbg_report->callback			= {};
 		dbg_report->debugUtilsMessenger	= Default;
 		dbg_report->debugReportCallback	= Default;
 	#endif
@@ -3304,7 +3394,20 @@ namespace {
 			 CheckFalsePositive( pCallbackData->pMessageIdName ))
 			return VK_FALSE;
 
-		auto*	self		= static_cast<VDeviceInitializer *>(pUserData);
+		auto*	self = static_cast<VDeviceInitializer *>(pUserData);
+
+		// skip false positive if used 'VAMDPerfProfiler'
+		if ( self->_amdPerf.IsLoaded() and
+			 (HasSubString( pCallbackData->pMessage, "VkStructureType (1000133005)" ) or
+			  HasSubString( pCallbackData->pMessage, "VkStructureType (1000133001)" )))
+			return VK_FALSE;
+
+		// skip false positive
+		if ( HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityX-07772" ) or
+			 HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityY-07774" ) or
+			 HasSubString( pCallbackData->pMessage, "Here are the most recently acquired image indices:" ))
+			return VK_FALSE;
+		
 		auto	dbg_report	= self->_dbgReport.WriteLock();
 
 		TRY{
@@ -3319,27 +3422,12 @@ namespace {
 													  obj.objectHandle };
 			}
 
-			// skip false positive if used 'VAMDPerfProfiler'
-			if ( self->_amdPerf.IsLoaded() and
-				 (HasSubString( pCallbackData->pMessage, "VkStructureType (1000133005)" ) or
-				  HasSubString( pCallbackData->pMessage, "VkStructureType (1000133001)" )))
-				return VK_FALSE;
-
-			// skip false positive
-			if ( HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityX-07772" ) or
-				 HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityY-07774" ))
-				return VK_FALSE;
-
-			if ( HasSubString( pCallbackData->pMessage, "[ VUID-VkPhysicalDeviceProperties2-pNext-pNext ] | MessageID = 0xdd73dbcf" ) or
-				 HasSubString( pCallbackData->pMessage, "[ VUID-VkDeviceCreateInfo-pNext-pNext ] | MessageID = 0x901f59ec" ))
-				messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
 
 			self->_DebugReport(	INOUT dbg_report->tempString,
-								dbg_report->breakOnValidationError,
 								dbg_report->callback,
 								{ dbg_report->tempObjectDbgInfos, pCallbackData->pMessage,
-								  AllBits( messageSeverity, VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
-								});																			// throw
+								  dbg_report->breakOnValidationError and AllBits( messageSeverity, VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT )
+								});	// throw
 		}CATCH_ALL();
 
 		// The application should always return VK_FALSE.
@@ -3381,9 +3469,10 @@ namespace {
 			dbg_report->tempObjectDbgInfos[0] = { VkObjectTypeToString(DebugReportObjectTypeToObjectType( objectType )), "", object };
 
 			self->_DebugReport(	dbg_report->tempString,
-								dbg_report->breakOnValidationError,
 								dbg_report->callback,
-								{ dbg_report->tempObjectDbgInfos, pMessage, AllBits( flags, VK_DEBUG_REPORT_ERROR_BIT_EXT ) });	// throw
+								{ dbg_report->tempObjectDbgInfos, pMessage,
+								  dbg_report->breakOnValidationError and AllBits( flags, VK_DEBUG_REPORT_ERROR_BIT_EXT )
+								});	// throw
 		}
 		CATCH_ALL()
 
@@ -3395,8 +3484,11 @@ namespace {
 	_DebugReport
 =================================================
 */
-	void  VDeviceInitializer::_DebugReport (INOUT String &str, bool breakOnError, DebugReport_t &callback, const DebugReport &msg) __Th___
+	void  VDeviceInitializer::_DebugReport (INOUT String &str, DebugReport_t &callback, const DebugReport &msg) __Th___
 	{
+		if ( msg.isError )
+			_hasError.store( true );
+
 		if ( callback )
 			return callback( msg );
 
@@ -3409,7 +3501,7 @@ namespace {
 		}
 		str << "----------------------------\n";
 
-		if ( breakOnError and msg.isError ){
+		if ( msg.isError ){
 			AE_LOGE( str );
 		}else{
 			AE_LOGW( str );
@@ -3635,7 +3727,7 @@ namespace {
 
 			if ( enable_validation )
 			{
-				CreateDebugCallback( DefaultDebugMessageSeverity,
+				CreateDebugCallback( c_DefaultDebugMessageSeverity, c_DefaultDebugMessageTypes,
 									 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGW(rep.message);  CHECK(not rep.isError); });
 			}
 		}
@@ -3658,12 +3750,20 @@ namespace {
 		return true;
 	}
 
+} // AE::Graphics
 
+
+# ifdef AE_PLATFORM_WINDOWS
+#	include "base/Platforms/WindowsHeader.cpp.h"
+#	include "vulkan/vulkan_win32.h"
+#	include "base/Defines/Undef.h"
+# endif
+
+namespace AE::Graphics
+{
 #	define VKFEATS_FN_IMPL
 #	include "vulkan_loader/vk_features.h"
 #	undef  VKFEATS_FN_IMPL
-
-
-} // AE::Graphics
+}
 
 #endif // AE_ENABLE_VULKAN

@@ -13,7 +13,7 @@ namespace AE::Graphics
 		Decode,
 
 		_Count,
-		Unknown		= 0xFF,
+		Unknown		= _Count,
 	};
 
 
@@ -29,7 +29,7 @@ namespace AE::Graphics
 		AV1,
 
 		_Count,
-		Unknown		= 0xFF,
+		Unknown		= _Count,
 	};
 
 
@@ -60,7 +60,7 @@ namespace AE::Graphics
 		Hight444_Predictive,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -73,7 +73,7 @@ namespace AE::Graphics
 		SCC_Extensions,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -84,7 +84,7 @@ namespace AE::Graphics
 		InterlacedSeparatePlanes,
 
 		_Count,
-		Unknown	= 0xFF,
+		Unknown	= _Count,
 	};
 
 
@@ -148,7 +148,7 @@ namespace AE::Graphics
 		RGBA,			// 32bpp
 
 		_Count,
-		Unknown			= 0xFF,
+		Unknown			= _Count,
 	};
 
 
