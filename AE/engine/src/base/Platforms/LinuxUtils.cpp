@@ -256,6 +256,17 @@ namespace AE::Base
 
 		NOTHROW_ERR( return Path{ StringView( buf, size )};)
 	}
+	
+/*
+=================================================
+	SetSystemSleepState
+=================================================
+*/
+	bool  LinuxUtils::SetSystemSleepState (ESystemSleepState) __NE___
+	{
+		// TODO
+		return false;
+	}
 
 
 } // AE::Base

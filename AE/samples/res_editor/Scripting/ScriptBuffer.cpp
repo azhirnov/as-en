@@ -131,6 +131,10 @@ namespace
 
 		AddUsage( EResourceUsage::ShaderAddress );
 
+		// can not new usage after 'ToResource()', so add usages which may be required later
+		AddUsage( EResourceUsage::Transfer );
+		AddUsage( EResourceUsage::WillReadback );
+
 		auto	buf = ToResource();
 		CHECK_THROW( buf );
 		CHECK_THROW( not buf->HasHistory() );	// TODO: return dynamic value?
@@ -207,11 +211,7 @@ namespace
 		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::Sampled ));
 		CHECK_THROW_MSG( NoBits( usage, EResourceUsage::GenMipmaps ));
 
-		if ( AllBits( usage, EResourceUsage::UploadedData ))
-		{
-			CHECK_THROW_MSG( NoBits( usage, EResourceUsage::ComputeWrite ));
-			CHECK_THROW_MSG( NoBits( usage, EResourceUsage::ShaderAddress ));
-		}
+		// 'UploadedData' is compatible with any shader write usage.
 
 		auto&	fs = ScriptExe::ScriptResourceApi::GetFeatureSet();
 

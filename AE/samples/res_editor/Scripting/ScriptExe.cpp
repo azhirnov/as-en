@@ -682,6 +682,33 @@ namespace {
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptClearBuffer{ buffer, Bytes{offset}, Bytes{size}, value }});
 	}
+	
+/*
+=================================================
+	_ConvertCooperativeVectorMatrix
+=================================================
+*/
+	void  ScriptExe::_ConvertCooperativeVectorMatrix (
+						uint numRows, uint numColumns,
+						ECoopMatrixComponentType srcType, const ScriptBufferPtr &srcBuffer,
+						uint srcOffset, uint srcSize, uint srcStride, ECoopVecMatrixLayout srcLayout,
+						ECoopMatrixComponentType dstType, const ScriptBufferPtr &dstBuffer,
+						uint dstOffset, uint dstSize, uint dstStride, ECoopVecMatrixLayout dstLayout) __Th___
+	{
+		CHECK_THROW_MSG( srcBuffer );
+		CHECK_THROW_MSG( dstBuffer );
+		srcBuffer->AddUsage( EResourceUsage::ShaderAddress );
+		dstBuffer->AddUsage( EResourceUsage::ShaderAddress );
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptConvertCooperativeVectorMatrix{
+				numRows, numColumns,
+				srcType, srcBuffer, srcOffset, srcSize, srcStride, srcLayout,
+				dstType, dstBuffer, dstOffset, dstSize, dstStride, dstLayout
+			}});
+	}
 
 /*
 =================================================
@@ -729,6 +756,17 @@ namespace {
 		CHECK_THROW_MSG( data.passGroup );
 
 		data.passGroup->Add( ScriptBasePassPtr{ new ScriptExportBuffer{ buffer, prefix, ScriptExportBuffer::EMode::Binary }});
+	}
+	
+	void  ScriptExe::_ExportBuffer2 (const ScriptBufferPtr &buffer, const String &prefix, uint offset, uint size) __Th___
+	{
+		CHECK_THROW_MSG( buffer );
+		buffer->AddUsage( EResourceUsage::Transfer );
+
+		auto&	data = _GetTempData();
+		CHECK_THROW_MSG( data.passGroup );
+
+		data.passGroup->Add( ScriptBasePassPtr{ new ScriptExportBuffer{ buffer, prefix, Bytes{offset}, Bytes{size}, ScriptExportBuffer::EMode::Binary }});
 	}
 
 /*
@@ -1482,9 +1520,14 @@ namespace {
 		AS_GLOBAL_FN( se, ScriptExe::_ClearBuffer1,				"ClearBuffer",				{},		"Pass to clear buffer." );
 		AS_GLOBAL_FN( se, ScriptExe::_ClearBuffer2,				"ClearBuffer",				{"buffer", "offset", "size", "value"} );
 
+		AS_GLOBAL_FN( se, ScriptExe::_ConvertCooperativeVectorMatrix,	"ConvertCooperativeVectorMatrix",
+			{"numRows", "numColumns", "srcType", "srcBuffer", "srcOffset", "srcSize", "srcStride", "srcLayout",
+			 "dstType", "dstBuffer", "dstOffset", "dstSize", "dstStride", "dstLayout"} );
+
 		AS_GLOBAL_FN( se, ScriptExe::_ExportImage,				"Export",					{"image", "prefix"},	"Readback the image and save it to a file in DDS format. Rendering will be paused until the readback is completed." );
 		AS_GLOBAL_FN( se, ScriptExe::_DbgExportBuffer,			"DbgExport",				{"buffer", "prefix"},	"Readback the buffer and save it to a file in structured format. Rendering will be paused until the readback is completed." );
 		AS_GLOBAL_FN( se, ScriptExe::_ExportBuffer,				"Export",					{"buffer", "prefix"},	"Readback the buffer and save it to a file in binary format. Rendering will be paused until the readback is completed." );
+		AS_GLOBAL_FN( se, ScriptExe::_ExportBuffer2,			"Export",					{"buffer", "prefix", "offset", "size"} );
 	//	AS_GLOBAL_FN( se, ScriptExe::_ExportGeometry,			"Export",					{"geometry", "prefix"},	"Readback the geometry data (images, buffers, etc) and save it to a file in glTF format. Rendering will be paused until the readback is completed." );
 
 		AS_GLOBAL_FN( se, ScriptExe::_BuildRTGeometry,			"BuildRTGeometry",			{},		"Pass to build RTGeometry, executed every frame."			);

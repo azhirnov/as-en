@@ -21,7 +21,8 @@ namespace AE::Graphics
 		Au8_Bu8_Cu32_Ru32_M16_N16_K32,
 		As8_Bs8_Cs32_Rs32_M16_N16_K32,
 
-		_Count
+		_Count,
+		Unknown = _Count
 	};
 
 
@@ -51,7 +52,8 @@ namespace AE::Graphics
 
 		Ts8_Is8_Ms8_Bs32_Rs32,
 
-		_Count
+		_Count,
+		Unknown = _Count
 	};
 
 

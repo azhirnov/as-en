@@ -5,6 +5,7 @@
 - Sample: Bindless
 - Sample: MLPTraining
 - slang support
+- MeasureTime() function for passes
 
 
 ## 04.2025

@@ -34,7 +34,7 @@ namespace
 				
 				for (uint j = 0; j < rowA; ++j)
 				{
-					sum += float(inputB[ i + j * rowA ]) * float(inputA[j]);
+					sum += float(inputB[ i + j * rowC ]) * float(inputA[j]);
 				}
 
 				output[i] = sum;
@@ -50,7 +50,7 @@ namespace
 				
 				for (uint j = 0; j < rowA; ++j)
 				{
-					sum += float(inputB[ i * rowC + j ]) * float(inputA[j]);
+					sum += float(inputB[ i * rowA + j ]) * float(inputA[j]);
 				}
 
 				output[i] = sum;
@@ -97,7 +97,7 @@ namespace
 				
 				for (uint j = 0; j < rowA; ++j)
 				{
-					sum += float(inputB[ i + j * rowA ]) * float(inputA[j]);
+					sum += float(inputB[ i + j * rowC ]) * float(inputA[j]);
 				}
 
 				output[i] = sum;
@@ -113,7 +113,7 @@ namespace
 				
 				for (uint j = 0; j < rowA; ++j)
 				{
-					sum += float(inputB[ i * rowC + j ]) * float(inputA[j]);
+					sum += float(inputB[ i * rowA + j ]) * float(inputA[j]);
 				}
 
 				output[i] = sum;
@@ -352,7 +352,7 @@ namespace
 				cmd.srcLayout	= col_major ? Graphics::ECoopVecMatrixLayout::ColumnMajor : Graphics::ECoopVecMatrixLayout::RowMajor;
 				cmd.dstLayout	= inf_opt ? Graphics::ECoopVecMatrixLayout::InferencingOptimal : Graphics::ECoopVecMatrixLayout::TrainingOptimal;
 
-				CHECK_FATAL( ex.GetDevice().GetCooperativeVectorMatrixDstSize( {cmd}, {opt_size} ));
+				CHECK_FATAL( ex.GetDevice().GetCooperativeVectorMatrixDstSize( {cmd}, OUT {opt_size} ));
 
 				ASSERT( IsMultipleOf( opt_size, sizeof(input_b_opt[0]) ));
 				input_b_opt.resize( usize{opt_size} / sizeof(input_b_opt[0]) * vec_count );

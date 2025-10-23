@@ -209,11 +209,11 @@ namespace AE::PipelineCompiler
 					//min_size		= Max( min_size, ptr->fs.minSubgroupSize );
 					//max_size		= Max( max_size, ptr->fs.maxSubgroupSize );
 					//CHECK( min_size <= max_size );
+				}
 
-					if ( AllBits( ptr->fs.subgroupQuadStages, stage ))
-					{
-						quad_ops	|= ptr->fs.subgroupOperations;
-					}
+				if ( AllBits( ptr->fs.subgroupQuadStages, stage ))
+				{
+					quad_ops	|= ptr->fs.subgroupOperations;
 				}
 			}
 

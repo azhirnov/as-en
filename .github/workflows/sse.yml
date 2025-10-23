@@ -27,8 +27,8 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/<linux-x64-clang16-external-binaries>"
-        unzip external.zip
+        chmox +x download-linux-x64-clang.sh
+        ./download-linux-x64-clang.sh
         mv external/linux-x64-clang20 external/linux-x64-clang18
     
     - name: AVX512 (Zen4)

@@ -125,7 +125,7 @@ namespace AE::ResEditor
 		ND_ ulong					GetDeviceAddress (FrameUID fid)	const	{ return _address[ fid.Index() ]; }
 
 		ND_ Bytes					ElementSize ()					const	{ return _elemSize; }
-		ND_ ulong					ArraySize ()					const	{ return ulong((GetBufferDesc().size - _staticSize) / _elemSize); }
+		ND_ ulong					ArraySize ()					const	{ return _elemSize == 0 ? 1u : ulong((GetBufferDesc().size - _staticSize) / _elemSize); }
 
 		ND_ StringView				Name ()							const	{ return _dbgName; }
 		ND_ bool					HasHistory ()					const	{ return AllBits( _flags, EBufferFlags::WithHistory ); }
@@ -142,6 +142,8 @@ namespace AE::ResEditor
 
 		ND_ static RC<Buffer>  CreateAndStore (const Buffer  &src,
 											   const StoreOp &storeOp,
+											   Bytes		 offset,
+											   Bytes		 size,
 											   StringView    dbgName) __Th___;
 	};
 

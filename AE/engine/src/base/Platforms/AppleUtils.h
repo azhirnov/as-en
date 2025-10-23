@@ -45,6 +45,8 @@ namespace AE::Base
 			static bool		SetCurrentThreadPriority (EThreadPriority priority)				__NE___;
 
 		ND_	static uint		GetLogicalCoreIndex ()											__NE___;
+		
+		ND_ static bool		SetSystemSleepState (ESystemSleepState)							__NE___;
 
 
 		// Memory //

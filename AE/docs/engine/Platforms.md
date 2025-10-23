@@ -46,7 +46,7 @@ Supported platforms
 
 ## Linux
 
-- [x] OS: Ubuntu 23, 24
+- [x] OS: Ubuntu 23, 24, 25
 - [x] Architecture: x64
 - [ ] Architecture: ARM64
 - [ ] Architecture: RISC-V 64

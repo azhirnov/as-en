@@ -601,7 +601,9 @@ namespace
 
 		StaticAssert( IsConstExpr( Unused(CxFunction( 1 )); ));
 
-		//StaticAssert( not IsConstExpr( Unused(CxFunction( 3 )); ));  // TODO: must be false
+		#if defined(AE_PLATFORM_WINDOWS) and AE_CXX_VER >= 23
+			StaticAssert( not IsConstExpr( Unused(CxFunction( 3 )); ));  // TODO: must be false, work only with MSVC with C++23
+		#endif
 
 		#if 0
 			constexpr bool	c = CxFunction( 3 );	// must be compile-time error

@@ -36,8 +36,8 @@ namespace AE::Graphics
 																								VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		static constexpr VkDebugUtilsMessageTypeFlagsEXT		c_DefaultDebugMessageTypes	=	VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
 																								VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-																								VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
-																								VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
+																								VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+																								//VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
 
 	protected:
 		using Queues_t			= StaticArray< VQueue, uint(EQueueType::_Count) >;

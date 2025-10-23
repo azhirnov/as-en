@@ -13,6 +13,7 @@ int main (const int argc, char* argv[])
 #endif
 {
 	std::filesystem::current_path( Path{argv[0]}.parent_path() );
+	Unused( argc );
 
 	StaticLogger::LoggerScope log{0};
 	StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );

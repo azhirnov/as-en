@@ -3403,9 +3403,11 @@ namespace {
 			return VK_FALSE;
 
 		// skip false positive
-		if ( HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityX-07772" ) or
-			 HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityY-07774" ) or
-			 HasSubString( pCallbackData->pMessage, "Here are the most recently acquired image indices:" ))
+		if ( HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityX-07772" )	or
+			 HasSubString( pCallbackData->pMessage, "VUID-VkSwapchainPresentScalingCreateInfoEXT-presentGravityY-07774" )	or
+			 HasSubString( pCallbackData->pMessage, "Here are the most recently acquired image indices:" )					or
+			 HasSubString( pCallbackData->pMessage, ".dstComponentType (VK_COMPONENT_TYPE_FLOAT8_E4M3_EXT) requires the extensions VK_EXT_shader_float8" ) or
+			 HasSubString( pCallbackData->pMessage, ".dstComponentType (VK_COMPONENT_TYPE_FLOAT8_E5M2_EXT) requires the extensions VK_EXT_shader_float8" ))
 			return VK_FALSE;
 		
 		auto	dbg_report	= self->_dbgReport.WriteLock();

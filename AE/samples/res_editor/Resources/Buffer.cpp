@@ -331,6 +331,8 @@ namespace
 */
 	RC<Buffer>  Buffer::CreateAndStore (const Buffer	&src,
 										const StoreOp	&storeOp,
+										Bytes			offset,
+										Bytes			size,
 										StringView		dbgName) __Th___
 	{
 		CHECK_ERR( storeOp.file );
@@ -343,10 +345,13 @@ namespace
 			Unused( dst.Attach( res_mngr.AcquireResource( src._ids[0].Get() )));
 		}
 
+		size = Min( size, src.GetBufferDesc().size );
+
 		result->_uploadStatus.store( EUploadStatus::InProgress );
 
 		result->_storeOp = StoreOp2{storeOp};
-		result->_storeOp.stream = BufferStream{ result->_ids[0], ReadbackBufferDesc{}.DataSize( src.GetBufferDesc().size ).AnyHeap() };
+		result->_storeOp.stream = BufferStream{ result->GetBufferId(0),	// TODO: use frame id ?
+												ReadbackBufferDesc{}.Offset( offset ).DataSize( size ).AnyHeap() };
 
 		result->_DtTrQueue().EnqueueForReadback( result );
 		return result;

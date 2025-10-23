@@ -141,6 +141,8 @@ namespace
 int main ()
 {
 	AE::Base::StaticLogger::LoggerDbgScope	log{};
+	
+	PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff );
 
 	Array<Path>	dirs;
     dirs.push_back( R"(path)" );

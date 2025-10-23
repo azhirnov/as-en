@@ -52,6 +52,21 @@ namespace AE::ResEditor
 	{
 		_baseFlags |= value;
 	}
+	
+/*
+=================================================
+	MeasureTime
+=================================================
+*/
+	void  ScriptBasePass::MeasureTime (const ScriptDynamicFloatPtr &result) __Th___
+	{
+		CHECK_THROW_MSG( not _passTime,
+			"already enabled output to another dynamic value" );
+		CHECK_THROW_MSG( result,
+			"dynamic value must not be null" );
+
+		_passTime = result;
+	}
 
 /*
 =================================================
@@ -699,6 +714,15 @@ namespace AE::ResEditor
 		dst._dbgName	= this->_dbgName;
 		dst._dbgColor	= this->_dbgColor;
 
+		if ( this->_passTime )
+		{
+			dst._passTime = this->_passTime->Get();
+			CHECK_THROW( dst._passTime );
+
+			CHECK_THROW_MSG( AllBits( dst.GetType(), IPass::EPassType::Update | IPass::EPassType::Sync ),
+				"GPU time measurement requires that pass have 'Update()' and 'Execute()' methods" );
+		}
+
 		ScriptBaseControllerPtr	controller = this->_controller ? this->_controller : defaultController;
 
 		if ( controller )
@@ -749,7 +773,7 @@ namespace AE::ResEditor
 	{
 		#ifdef AE_COMPILER_MSVC
 		# if _ITERATOR_DEBUG_LEVEL == 0
-			StaticAssert64( sizeof(ScriptBasePass) == 368 );
+			StaticAssert64( sizeof(ScriptBasePass) == 376 );
 		# endif
 		#endif
 
@@ -764,6 +788,8 @@ namespace AE::ResEditor
 		dst._controller			= RVRef( this->_controller );			this->_controller	= null;
 
 		this->_args.MoveTo( OUT dst._args );
+
+		dst._passTime			= RVRef( this->_passTime );				this->_passTime		= null;
 
 		dst._enablePass.dynamic	= RVRef( this->_enablePass.dynamic );	this->_enablePass.dynamic	= null;
 		dst._enablePass.ref		= this->_enablePass.ref;				this->_enablePass.ref		= 0;

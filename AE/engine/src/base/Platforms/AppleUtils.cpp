@@ -191,6 +191,18 @@ namespace AE::Base
 		return 0;
 		//return ::sched_getcpu();
 	}
+	
+/*
+=================================================
+	SetSystemSleepState
+=================================================
+*/
+	bool  AppleUtils::SetSystemSleepState (ESystemSleepState) __NE___
+	{
+		// TODO
+		return false;
+	}
+
 
 } // AE::Base
 

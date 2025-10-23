@@ -463,6 +463,68 @@
 
 
 	//
+	// Convert Cooperative Vector Matrix Pass
+	//
+	class ScriptExe::ScriptConvertCooperativeVectorMatrix final : public ScriptBasePass
+	{
+	private:
+		uint						_numRows;
+		uint						_numColumns;
+
+		ECoopMatrixComponentType	_srcType;
+		ScriptBufferPtr				_srcBuffer;
+		uint						_srcOffset;
+		uint						_srcSize;
+		uint						_srcStride;
+		ECoopVecMatrixLayout		_srcLayout;
+
+		ECoopMatrixComponentType	_dstType;
+		ScriptBufferPtr				_dstBuffer;
+		uint						_dstOffset;
+		uint						_dstSize;
+		uint						_dstStride;
+		ECoopVecMatrixLayout		_dstLayout;
+
+	public:
+		ScriptConvertCooperativeVectorMatrix (
+			uint numRows, uint numColumns,
+			ECoopMatrixComponentType srcType, const ScriptBufferPtr &srcBuffer,
+			uint srcOffset, uint srcSize,  uint srcStride, ECoopVecMatrixLayout srcLayout,
+			ECoopMatrixComponentType dstType, const ScriptBufferPtr &dstBuffer,
+			uint dstOffset, uint dstSize,  uint dstStride, ECoopVecMatrixLayout dstLayout) __Th___ :
+			_numRows{numRows}, _numColumns{numColumns},
+			_srcType{srcType}, _srcBuffer{srcBuffer}, _srcOffset{srcOffset}, _srcSize{srcSize}, _srcStride{srcStride}, _srcLayout{srcLayout},
+			_dstType{dstType}, _dstBuffer{dstBuffer}, _dstOffset{dstOffset}, _dstSize{dstSize}, _dstStride{dstStride}, _dstLayout{dstLayout}
+		{}
+
+		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
+
+		RC<IPass>	ToPass () __Th_OV
+		{
+			RC<Buffer>	src_buf;
+			RC<Buffer>	dst_buf;
+
+			s_scriptExe->_RunWithPipelineCompiler(
+				[&] () {
+					src_buf = _srcBuffer->ToResource();
+					CHECK_THROW( src_buf );
+
+					dst_buf = _dstBuffer->ToResource();
+					CHECK_THROW( dst_buf );
+				});
+			
+			return MakeRCTh<ResEditor::ConvertCooperativeVectorMatrixPass>(
+						_numRows, _numColumns,
+						_srcType, src_buf, Bytes{_srcOffset}, Bytes{_srcSize}, Bytes{_srcStride}, _srcLayout,
+						_dstType, dst_buf, Bytes{_dstOffset}, Bytes{_dstSize}, Bytes{_dstStride}, _dstLayout
+					);
+		}
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	//
 	// Export Image
 	//
 	class ScriptExe::ScriptExportImage final : public ScriptBasePass
@@ -496,22 +558,26 @@
 			Structured,
 			Binary,
 		};
+	private:
+		struct _Utils;
 
 	private:
 		ScriptBufferPtr		buffer;
 		String				prefix;
+		Bytes				offset;
+		Bytes				size;
 		EMode				mode;
 
 	public:
 		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix, EMode mode) :
-			buffer{buffer}, prefix{prefix}, mode{mode} {}
+			buffer{buffer}, prefix{prefix}, offset{offset}, size{size}, mode{mode} {}
+		
+		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix, Bytes offset, Bytes size, EMode mode) :
+			buffer{buffer}, prefix{prefix}, offset{offset}, size{size}, mode{mode} {}
 
 		void		_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th_OV {}
 
 		RC<IPass>	ToPass () __Th_OV;
-
-	private:
-		struct _Utils;
 	};
 
 /*
@@ -783,11 +849,16 @@
 				buf = buffer->ToResource();
 				CHECK_THROW( buf );
 
-				auto&	st_types	= storage->structTypes;
-				auto	it			= st_types.find( buffer->GetTypeName() );
+				if ( mode == EMode::Structured )
+				{
+					CHECK_THROW( buffer->HasLayout() );
 
-				CHECK_THROW( it != st_types.end() );
-				st_type = it->second;
+					auto&	st_types	= storage->structTypes;
+					auto	it			= st_types.find( buffer->GetTypeName() );
+
+					CHECK_THROW( it != st_types.end() );
+					st_type = it->second;
+				}
 			});
 
 		switch_enum( mode )
@@ -799,7 +870,7 @@
 								});
 
 			case EMode::Binary :
-				return MakeRCTh<ResEditor::ExportBuffer>( buf, RVRef(prefix), Default );
+				return MakeRCTh<ResEditor::ExportBuffer>( buf, RVRef(prefix), offset, size );
 
 			default :
 				CHECK_THROW_MSG( false, "unsupported buffer export mode" );

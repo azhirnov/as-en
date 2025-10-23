@@ -101,6 +101,7 @@ namespace AE::ResEditor
 		class ScriptExportBuffer;
 		class ScriptCompressImage;
 		class ScriptReadBufferValue;
+		class ScriptConvertCooperativeVectorMatrix;
 
 		using ScriptPassGroupPtr	= ScriptRC<ScriptPassGroup>;
 		using DynSlider_t			= Renderer::DynSlider_t;
@@ -196,8 +197,16 @@ namespace AE::ResEditor
 		static void  _ClearBuffer1 (const ScriptBufferPtr &buf, uint value)										__Th___;
 		static void  _ClearBuffer2 (const ScriptBufferPtr &buf, ulong offset, ulong size, uint value)			__Th___;
 
+		static void  _ConvertCooperativeVectorMatrix (
+						uint numRows, uint numColumns,
+						ECoopMatrixComponentType srcType, const ScriptBufferPtr &srcBuffer,
+						uint srcOffset, uint srcSize, uint srcStride, ECoopVecMatrixLayout srcLayout,
+						ECoopMatrixComponentType dstType, const ScriptBufferPtr &dstBuffer,
+						uint dstOffset, uint dstSize, uint dstStride, ECoopVecMatrixLayout dstLayout)			__Th___;
+
 		static void  _ExportImage (const ScriptImagePtr &image, const String &prefix)							__Th___;
 		static void  _ExportBuffer (const ScriptBufferPtr &buffer, const String &prefix)						__Th___;
+		static void  _ExportBuffer2 (const ScriptBufferPtr &, const String &prefix, uint offset, uint size)		__Th___;
 		static void  _DbgExportBuffer (const ScriptBufferPtr &buffer, const String &prefix)						__Th___;
 		static void  _ExportGeometry (const ScriptGeomSourcePtr &geom, const String &prefix)					__Th___;
 

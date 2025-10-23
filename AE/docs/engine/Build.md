@@ -18,23 +18,22 @@ When building from Android device:
   pkg install cmake
   ```
 * Optional: github and f-droid version of **termux** can access to external storage, allow this and clone repository to public path like `/sdcard/Code`.
-* Optional: install code editor.
+* Optional: install any code editor.
 
 ### Linux
 
 In terminal run:
 ```
 sudo apt install build-essential pkg-config libx11-dev libxcursor-dev \
-    libxinerama-dev libasound2-dev libpulse-dev libudev-dev \
+    libxinerama-dev libgl1-mesa-dev libasound2-dev \
     libxi-dev libxrandr-dev yasm liburing-dev libpng-dev libbz2-dev libwayland-dev \
-    libxkbcommon-dev
+    libxkbcommon-dev libc++-dev libc++abi-dev \
+    mesa-vulkan-drivers libvulkan1 vulkan-validationlayers
 ```
 
 Optional: install clang
 ```
-sudo apt install clang
-sudo apt install libc++-dev
-sudo apt install libc++abi-dev
+sudo apt install clang libc++-dev libc++abi-dev
 ```
 
 Install [CMake](https://cmake.org/download/).<br/>
@@ -49,25 +48,18 @@ Install XCode.
 
 Install [CMake](https://cmake.org/download/).<br/>
 Install [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/).<br/>
+Alternative: install [VSCode](https://code.visualstudio.com/) with CMake and C++ plugins.<br/>
 Optional: install ClangCL in Visual Studio components.
 
 
 ## Download third party dependencies
 
-Script `AE/build_scripts/clone_3party.bat` will copy git repositories to local folder `AE/../3party`.
+Script `AE/build_scripts/utils-win/clone_3party.bat` or `AE/build_scripts/utils-unix/clone_3party.sh` will copy git repositories to local folder `AE/../3party`.
 
 You can replace path to your local git server to get stable and safe connection.
 
-Currently script is written only for Windows platform, on other platforms you can get access through your local git-server.
-
 **Alternative**<br/>
-Download prebuild binaries which is used in CI and extract it to the `AE-Bin/external` folder:<br/>
-[Android](https://disk.yandex.ru/d/Ycs-lNV0ScSXvA)<br/>
-[Linux x64 GCC-14](https://disk.yandex.ru/d/eiE9KuhhtUms6w)<br/>
-[Linux x64 Clang-20](https://disk.yandex.ru/d/vm0rc-3_W5OXSg)<br/>
-[MacOS arm64 Clang-17](https://disk.yandex.ru/d/ESKG63jM29MmvA)<br/>
-[Windows x64 MSVC 19.44](https://disk.yandex.ru/d/IgjQjWETvP7IZA)<br/>
-[Windows x64 Clang 19](https://disk.yandex.ru/d/op06BZ1s2YxL7Q)<br/>
+Use `download-<platform>-<compiler>` scripts in `AE-Bin` folder to download and extract binaries.
 
 Then [Build engine and samples](#Build-engine-and-samples)
 
@@ -139,9 +131,10 @@ lib
 
 ## Build engine and samples
 
-Open folder `AE/build_scripts`, select target platform and compiler, then call `init` script to create solution or call `build` script to build project from console.
+Open folder `AE/build_scripts`, select target platform and compiler, for example `win_x64_clang`.
+Then call `init_*` script to create solution or call `build_*` script to build project from console.
 
-Run `VulkanHeaderGen` (*VS: in 'Engine/ToolApps'*) to generate Vulkan loader from current header files.
+Run `HeaderGen` (*VS: in 'Engine/ToolApps'*) to generate Vulkan and OpenXR loader from current header files.
 
 ### Android (PC)
 

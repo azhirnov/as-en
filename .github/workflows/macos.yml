@@ -21,8 +21,8 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/OR1hu3y9uTpdtw"
-        unzip external.zip
+        chmox +x download-macos-arm64-clang.sh
+        ./download-macos-arm64-clang.sh
       
     - name: Configure CMake
       working-directory: ${{github.workspace}}
@@ -127,8 +127,8 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/OR1hu3y9uTpdtw"
-        unzip external.zip
+        chmox +x download-macos-arm64-clang.sh
+        ./download-macos-arm64-clang.sh
       
     - name: Configure CMake
       working-directory: ${{github.workspace}}

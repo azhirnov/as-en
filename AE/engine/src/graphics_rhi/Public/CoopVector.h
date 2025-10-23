@@ -3,6 +3,8 @@
 #pragma once
 
 #include "graphics_rhi/Public/FeatureSetEnums.h"
+#include "graphics_rhi/Public/BufferDesc.h"
+#include "graphics_rhi/Public/IDs.h"
 
 namespace AE::Graphics
 {
@@ -29,7 +31,7 @@ namespace AE::Graphics
 		UInt8x4,		// packed to 32bit, requires 'cooperativeVector' feature
 
 		_Count,
-		Unknown		= 0xFF
+		Unknown		= _Count
 	};
 
 
@@ -40,8 +42,13 @@ namespace AE::Graphics
 		InferencingOptimal,
 		TrainingOptimal,
 		_Count,
-		Unknown		= 0xFF
+		Unknown		= _Count
 	};
+
+
+	struct ConvertCoopMatrixCmd;
+	struct ConvertCoopMatrixCmd2;
+	struct ConvertCoopMatrixOnHost;
 
 
 
@@ -67,8 +74,14 @@ namespace AE::Graphics
 
 		ECoopVecMatrixLayout		srcLayout		= Default;
 		ECoopVecMatrixLayout		dstLayout		= Default;
+
+		ConvertCoopMatrixCmd ()											__NE___	{}
+		ConvertCoopMatrixCmd (const ConvertCoopMatrixCmd &)				__NE___	= default;
+		explicit ConvertCoopMatrixCmd (const ConvertCoopMatrixCmd2 &)	__NE___;
+		explicit ConvertCoopMatrixCmd (const ConvertCoopMatrixOnHost &)	__NE___;
 	};
-	
+
+
 	struct ConvertCoopMatrixCmd2
 	{
 		Bytes						srcSize;
@@ -90,6 +103,11 @@ namespace AE::Graphics
 
 		ECoopVecMatrixLayout		srcLayout		= Default;
 		ECoopVecMatrixLayout		dstLayout		= Default;
+		
+		ConvertCoopMatrixCmd2 ()											__NE___	{}
+		ConvertCoopMatrixCmd2 (const ConvertCoopMatrixCmd2 &)				__NE___	= default;
+		explicit ConvertCoopMatrixCmd2 (const ConvertCoopMatrixCmd &)		__NE___;
+		explicit ConvertCoopMatrixCmd2 (const ConvertCoopMatrixOnHost &)	__NE___;
 	};
 
 
@@ -116,6 +134,11 @@ namespace AE::Graphics
 
 		ECoopVecMatrixLayout		srcLayout		= Default;
 		ECoopVecMatrixLayout		dstLayout		= Default;
+
+		ConvertCoopMatrixOnHost ()											__NE___	{}
+		ConvertCoopMatrixOnHost (const ConvertCoopMatrixOnHost &)			__NE___	= default;
+		explicit ConvertCoopMatrixOnHost (const ConvertCoopMatrixCmd &)		__NE___;
+		explicit ConvertCoopMatrixOnHost (const ConvertCoopMatrixCmd2 &)	__NE___;
 	};
 
 
@@ -130,9 +153,9 @@ namespace AE::Graphics
 		ECoopMatrixComponentType	b		= Default;
 		ECoopMatrixComponentType	c		= Default;
 		ECoopMatrixComponentType	res		= Default;
-		uint						m		= 0;
-		uint						n		= 0;
-		uint						k		= 0;
+		ubyte						m		= 0;
+		ubyte						n		= 0;
+		ubyte						k		= 0;
 
 	// methods
 		CoopMatrixConfig ()							__NE___ {}
@@ -141,6 +164,8 @@ namespace AE::Graphics
 
 		explicit CoopMatrixConfig (ECoopMatrixCfg)	__NE___;
 		explicit operator ECoopMatrixCfg ()			C_NE___;
+		
+		ND_ ECoopMatrixCfg  ToECoopMatrixCfg ()		C_NE___;
 	};
 
 
@@ -163,7 +188,9 @@ namespace AE::Graphics
 		CoopVectorConfig (CoopVectorConfig &&)		__NE___ = default;
 
 		explicit CoopVectorConfig (ECoopVecCfg)		__NE___;
-		explicit operator ECoopVecCfg ()			C_NE___;
+		explicit operator ECoopVecCfg ()			C_NE___	{ return ToECoopVecCfg(); }
+
+		ND_ ECoopVecCfg  ToECoopVecCfg ()			C_NE___;
 	};
 
 } // AE::Graphics

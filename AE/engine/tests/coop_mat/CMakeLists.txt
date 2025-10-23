@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-if (TARGET "PipelineCompiler")
+if ((TARGET "PipelineCompiler") AND ${AE_ENABLE_VULKAN})
 	file( GLOB SOURCES "*.*" )
 	add_executable( "Tests.CoopMat" ${SOURCES} )
 	set_target_properties( "Tests.CoopMat" PROPERTIES SUFFIX "${AE_EXECUTABLE_SUFFIX}" )

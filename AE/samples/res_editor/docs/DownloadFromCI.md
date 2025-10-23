@@ -50,4 +50,4 @@ GraphicsRHI-shared  -- shared lib from CI, optional, see 'Remote version'
 Minimal set of resources which required to run all samples.
 Many samples can run without it.
 
-Download: [link](https://disk.yandex.ru/d/GC-lD9H1kBmYKw).
+Use script `AE-Data/download-resources`.

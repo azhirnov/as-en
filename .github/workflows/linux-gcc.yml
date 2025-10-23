@@ -29,8 +29,8 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/KAzusnOEwdPKOg"
-        unzip external.zip
+        chmox +x download-linux-x64-gcc.sh
+        ./download-linux-x64-gcc.sh
     
     - name: Configure CMake
       env:
@@ -165,8 +165,8 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/KAzusnOEwdPKOg"
-        unzip external.zip
+        chmox +x download-linux-x64-gcc.sh
+        ./download-linux-x64-gcc.sh
     
     - name: Configure CMake
       env:

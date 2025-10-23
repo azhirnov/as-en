@@ -79,7 +79,8 @@ namespace AE::PipelineCompiler
 			header << "\n#define " << ShaderToStr( info.type ) << " 1\n";
 			header << "#define ND_\n"
 					  "#define or ||\n"
-					  "#define and &&\n";
+					  "#define and &&\n"
+					  "#define SLANG 1\n";
 
 			for (auto& def : info.defines) {
 				header << def << '\n';

@@ -16,11 +16,10 @@ int main (const int argc, char* argv[])
 	Executor	ex;
 	CHECK_FATAL( ex.Initialize() );
 
-//	Test_CoopMat( ex );
-//	Test_CoopVec( ex );
-//	Test_CoopVecTraining( ex );
-//	Test_IntDotProduct( ex );
-
+	Test_CoopMat( ex );
+	Test_CoopVec( ex );
+	Test_CoopVecTraining( ex );
+	Test_IntDotProduct( ex );
 	Test_MLPTraining( ex );
 	
 	ex.Deinitialize();

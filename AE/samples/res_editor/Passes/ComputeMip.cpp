@@ -49,7 +49,9 @@ namespace AE::ResEditor
 			auto&				ctx2 = ctx.GetBaseContext();
 
 			DescriptorSetID		ds0	= _descSets[ ctx.GetFrameId().Index() ];
-		
+
+			if ( i == 0 ) _BeginTimeQuery( ctx );
+
 			_resources.SetStates( ctx, Default );
 			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
 			ctx.CommitBarriers();
@@ -107,7 +109,9 @@ namespace AE::ResEditor
 				ctx2.ImageBarrier( img_id, var.outState, var.inState, subres );
 			}
 			ctx2.CommitBarriers();
-			
+
+			if ( i+1 == cnt ) _EndTimeQuery( ctx );
+
 			pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		}
 		return true;
@@ -173,6 +177,7 @@ namespace AE::ResEditor
 			CHECK_ERR( updater.Flush() );
 		}
 
+		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
 

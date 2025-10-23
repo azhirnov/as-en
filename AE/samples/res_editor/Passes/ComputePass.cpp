@@ -109,6 +109,8 @@ namespace AE::ResEditor
 			DirectCtx::Compute	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
 			DescriptorSetID		ds	= _descSets[ ctx.GetFrameId().Index() ];
 
+			if ( i == 0 ) _BeginTimeQuery( ctx );
+
 			_resources.SetStates( ctx, Default );
 			ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::ComputeShader );
 			if ( cnt > 1 ) ctx.MemoryBarrier( EPipelineScope::All, EPipelineScope::All );	// disable overlapping, only for profiling!
@@ -141,6 +143,8 @@ namespace AE::ResEditor
 					ctx.CommitBarriers();
 				}
 			}
+
+			if ( i+1 == cnt ) _EndTimeQuery( ctx );
 
 			pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		}
@@ -195,6 +199,7 @@ namespace AE::ResEditor
 			CHECK_ERR( updater.Flush() );
 		}
 
+		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
 

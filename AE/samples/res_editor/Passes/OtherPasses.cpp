@@ -1314,5 +1314,79 @@ namespace AE::ResEditor
 	}
 //-----------------------------------------------------------------------------
 
+	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	ConvertCooperativeVectorMatrixPass::ConvertCooperativeVectorMatrixPass (
+		uint numRows, uint numColumns,
+		ECoopMatrixComponentType srcType, RC<Buffer> srcBuffer,
+		Bytes srcOffset, Bytes srcSize,  Bytes srcStride, ECoopVecMatrixLayout srcLayout,
+		ECoopMatrixComponentType dstType, RC<Buffer> dstBuffer,
+		Bytes dstOffset, Bytes dstSize,  Bytes dstStride, ECoopVecMatrixLayout dstLayout) __Th___ :
+		_srcBuffer{RVRef(srcBuffer)}, _dstBuffer{RVRef(dstBuffer)}
+	{
+		_cmd.srcSize	= srcSize;
+		_cmd.srcOffset	= srcOffset;
+		_cmd.dstSize	= dstSize;
+		_cmd.dstOffset	= dstOffset;
+		_cmd.numRows	= numRows;
+		_cmd.numColumns	= numColumns;
+		_cmd.srcStride	= srcStride;
+		_cmd.dstStride	= dstStride;
+		_cmd.srcType	= srcType;
+		_cmd.dstType	= dstType;
+		_cmd.srcLayout	= srcLayout;
+		_cmd.dstLayout	= dstLayout;
+		
+		if ( AnyEqual( _cmd.srcLayout, ECoopVecMatrixLayout::InferencingOptimal, ECoopVecMatrixLayout::TrainingOptimal ))
+		{
+			CHECK_THROW( _cmd.srcStride == 0 );
+		}
+
+		if ( AnyEqual( _cmd.dstLayout, ECoopVecMatrixLayout::InferencingOptimal, ECoopVecMatrixLayout::TrainingOptimal ))
+		{
+			CHECK_THROW( _cmd.dstStride == 0 );
+
+			if ( _cmd.dstSize == 0 )
+			{
+				ConvertCoopMatrixOnHost	cmd {_cmd};
+				BytesUSize				opt_size;
+
+				auto&	dev = GraphicsScheduler().GetDevice();
+				CHECK_THROW( dev.GetCooperativeVectorMatrixDstSize( {cmd}, OUT {opt_size} ));
+
+				_cmd.dstSize = opt_size;
+			}
+		}
+
+		CHECK_THROW( _cmd.srcSize != 0 );
+		CHECK_THROW( _cmd.dstSize != 0 );
+	}
+		
+/*
+=================================================
+	Execute
+=================================================
+*/
+	bool  ConvertCooperativeVectorMatrixPass::Execute (SyncPassData &pd) __Th___
+	{
+		if_unlikely( not _IsEnabled() )
+			return true;
+
+		DirectCtx::Compute	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ConvCoopMatrix", HtmlColor::Gray} };
+
+		ConvertCoopMatrixCmd2	cmd = _cmd;
+
+		cmd.srcBuffer	= _srcBuffer->GetBufferId( ctx.GetFrameId() );
+		cmd.dstBuffer	= _dstBuffer->GetBufferId( ctx.GetFrameId() );
+
+		ctx.ConvertCooperativeVectorMatrix( {cmd} );
+
+		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		return true;
+	}
 
 } // AE::ResEditor

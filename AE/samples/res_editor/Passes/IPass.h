@@ -112,7 +112,8 @@ namespace AE::ResEditor
 
 
 	protected:
-		using PerFrameDescSet_t	= StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
+		using PerFrameDescSet_t		= StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
+		using PerFrameTimeQuery_t	= StaticArray< QueryManager::Query, GraphicsConfig::MaxFrames >;
 
 		using ClearValue_t		= RenderPassDesc::ClearValue_t;
 
@@ -149,6 +150,9 @@ namespace AE::ResEditor
 		Constants				_shConst;
 
 		RC<DynamicUInt>			_repeatCount;
+
+		RC<DynamicFloat>		_passTime;
+		PerFrameTimeQuery_t		_timeQuery;
 
 		String					_dbgName;
 		RGBA8u					_dbgColor;
@@ -198,9 +202,61 @@ namespace AE::ResEditor
 		void  _CopyConstants (const Constants &, OUT StaticArray<float4,8> &,
 							  OUT StaticArray<int4,8> &)									const;
 
+		template <typename CtxType>
+		void  _BeginTimeQuery (CtxType &ctx);
+
+		template <typename CtxType>
+		void  _EndTimeQuery (CtxType &ctx);
+
+		void  _ReadTimeQuery (FrameUID);
+
 		ND_ bool  _IsEnabled ()																const;
 		ND_ uint  _GetRepeatCount ()														const;
 	};
+
+	
+	
+/*
+=================================================
+	_BeginTimeQuery
+=================================================
+*/
+	template <typename CtxType>
+	void  IPass::_BeginTimeQuery (CtxType &ctx)
+	{
+		if ( not _passTime )
+			return;
+
+		auto&		qm			= GraphicsScheduler().GetQueryManager();
+		FrameUID	frame_id	= ctx.GetFrameId();
+		auto&		query		= _timeQuery[ frame_id.Index() ];
+
+		query = qm.AllocQuery( frame_id, EQueueType::Graphics, EQueryType::Timestamp, 2 );
+		if ( not query )
+			return;
+
+		ctx.WriteTimestamp( query, 0, EPipelineScope::All );
+	}
+
+/*
+=================================================
+	_EndTimeQuery
+=================================================
+*/
+	template <typename CtxType>
+	void  IPass::_EndTimeQuery (CtxType &ctx)
+	{
+		if ( not _passTime )
+			return;
+		
+		FrameUID	frame_id	= ctx.GetFrameId();
+		auto&		query		= _timeQuery[ frame_id.Index() ];
+		
+		if ( not query )
+			return;
+
+		ctx.WriteTimestamp( query, 1, EPipelineScope::All );
+	}
 
 
 } // AE::ResEditor

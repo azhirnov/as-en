@@ -1877,6 +1877,32 @@ namespace
 		ScriptDynamicUIntPtr	result{ new ScriptDynamicUInt{ RVRef(du) }};
 		return result.Detach();
 	}
+	
+/*
+=================================================
+	ScriptDynamicFloat::ToUInt
+=================================================
+*/
+	ScriptDynamicUInt*  ScriptDynamicFloat::ToUInt () __Th___
+	{
+		auto	du = MakeRC<DynamicUInt>( _value, &DynamicT_Cast<uint, float> );
+
+		ScriptDynamicUIntPtr	result{ new ScriptDynamicUInt{ RVRef(du) }};
+		return result.Detach();
+	}
+	
+/*
+=================================================
+	ScriptDynamicFloat::ToInt
+=================================================
+*/
+	ScriptDynamicInt*  ScriptDynamicFloat::ToInt () __Th___
+	{
+		auto	di = MakeRC<DynamicInt>( _value, &DynamicT_Cast<int, float> );
+
+		ScriptDynamicIntPtr	result{ new ScriptDynamicInt{ RVRef(di) }};
+		return result.Detach();
+	}
 
 /*
 =================================================
@@ -1909,6 +1935,8 @@ namespace
 			AS_METHOD( binder, ScriptDynamicFloat::Max1,	"Max",			{} );
 			
 			AS_METHOD( binder, ScriptDynamicFloat::AsUInt,	"AsUInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat::ToUInt,	"ToUInt",		{} );
+			AS_METHOD( binder, ScriptDynamicFloat::ToInt,	"ToInt",		{} );
 		}{
 			ClassBinder<ScriptDynamicUInt>		binder{ se };
 			AS_METHOD( binder, ScriptDynamicUInt::ToFloat,		"ToFloat",		{} );

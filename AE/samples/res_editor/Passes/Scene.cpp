@@ -47,6 +47,8 @@ namespace AE::ResEditor
 
 		DirectCtx::Graphics		ctx	{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
 
+		_BeginTimeQuery( ctx );
+
 		for (uint it = 0, cnt = _GetRepeatCount(); it < cnt; ++it)
 		{
 			// state transition
@@ -156,6 +158,8 @@ namespace AE::ResEditor
 			}
 		}
 
+		_EndTimeQuery( ctx );
+
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
 	}
@@ -189,7 +193,8 @@ namespace AE::ResEditor
 			subpass->_dimension = cur_dim;
 			subpass->Update( ctx, pd );
 		}
-
+		
+		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
 
@@ -317,6 +322,8 @@ namespace AE::ResEditor
 			const uint				fid			= ctx.GetFrameId().Index();
 			const auto&				instances	= _scene->_geomInstances;
 
+			if ( i == 0 ) _BeginTimeQuery( ctx );
+
 			// state transition
 			{
 				for (auto& inst : instances) {
@@ -346,6 +353,8 @@ namespace AE::ResEditor
 					ctx.CommitBarriers();
 				}
 			}
+
+			if ( i+1 == cnt ) _EndTimeQuery( ctx );
 
 			pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		}
@@ -403,7 +412,8 @@ namespace AE::ResEditor
 			}
 			CHECK_ERR( updater.Flush() );
 		}
-
+		
+		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
 

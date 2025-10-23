@@ -79,8 +79,9 @@ namespace AE::ResEditor
 		~ImageCompressionPass ();
 
 	// IPass //
-		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync | EPassType::Update; }
 		bool		Execute (SyncPassData &)							__Th_OV;
+		bool		Update (TransferCtx_t &, const UpdatePassData &)	__Th_OV;
 		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV;
 
 	private:

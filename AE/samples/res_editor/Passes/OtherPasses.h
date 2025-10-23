@@ -393,4 +393,30 @@ namespace AE::ResEditor
 	};
 
 
+
+	//
+	// Convert Cooperative Vector Matrix Pass
+	//
+	class ConvertCooperativeVectorMatrixPass final : public IPass
+	{
+	private:
+		ConvertCoopMatrixCmd2		_cmd;
+		RC<Buffer>					_srcBuffer;
+		RC<Buffer>					_dstBuffer;
+		
+	// methods
+	public:
+		ConvertCooperativeVectorMatrixPass (
+			uint numRows, uint numColumns,
+			ECoopMatrixComponentType srcType, RC<Buffer> srcBuffer,
+			Bytes srcOffset, Bytes srcSize,  Bytes srcStride, ECoopVecMatrixLayout srcLayout,
+			ECoopMatrixComponentType dstType, RC<Buffer> dstBuffer,
+			Bytes dstOffset, Bytes dstSize,  Bytes dstStride, ECoopVecMatrixLayout dstLayout) __Th___;
+		
+	// IPass //
+		EPassType	GetType ()											C_NE_OV	{ return EPassType::Sync; }
+		bool		Execute (SyncPassData &)							__Th_OV;
+		void		GetResourcesToResize (INOUT Array<RC<IResource>> &)	__NE_OV	{}
+	};
+
 } // AE::ResEditor

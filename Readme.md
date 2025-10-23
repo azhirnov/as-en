@@ -1,9 +1,3 @@
-| OS | build & test |
-|---|---|
-| Windows | [![](https://github.com/azhirnov/as-en/actions/workflows/windows-msvc.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/windows-msvc.yml) [![](https://github.com/azhirnov/as-en/actions/workflows/windows-clang.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/windows-clang.yml) |
-| Linux   | [![](https://github.com/azhirnov/as-en/actions/workflows/linux-clang.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/linux-clang.yml) [![](https://github.com/azhirnov/as-en/actions/workflows/linux-gcc.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/linux-gcc.yml) [![](https://github.com/azhirnov/as-en/actions/workflows/sse.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/sse.yml) |
-| Android | [![](https://github.com/azhirnov/as-en/actions/workflows/android.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/android.yml) |
-| MacOS   | [![](https://github.com/azhirnov/as-en/actions/workflows/macos.yml/badge.svg)](https://github.com/azhirnov/as-en/actions/workflows/macos.yml) |
 
 ## Async Game Engine
 
@@ -69,8 +63,8 @@ __AsEn__ - полностью асинхронный движок.
 Язык: C++ 20<br/>
 Платформы: Windows, Android, Linux, MacOS<br/>
 Графика: Vulkan, Metal<br/>
-Стабильная версия: [помечена тэгом](https://github.com/azhirnov/as-en/tags)<br/>
 Шейдеры: GLSL, MSL, SLang<br/>
+Стабильная версия: [помечена тэгом](https://github.com/azhirnov/as-en/tags)<br/>
 
 Документация по движку:
  * [Планировщик асинхронных задач](AE/docs/engine/TaskScheduler-ru.md)

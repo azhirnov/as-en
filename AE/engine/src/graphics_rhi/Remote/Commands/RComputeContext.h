@@ -40,10 +40,10 @@ namespace AE::Graphics
 
 		void  DispatchIndirect (BufferID buffer, Bytes offset)															__Th_OV;
 		void  DispatchIndirect (RmBufferID buffer, Bytes offset)														__Th___;
-
+		
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd> cmds)										__Th_OV	{}	// TODO
 		void  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixCmd2> cmds)									__Th_OV	{}
-		
+
 		ND_ RmCommandBufferID	EndCommandBuffer ()																		__Th___	{ return _EndCommandBuffer( ECtxType::Compute ); }
 		ND_ CmdBuf_t			ReleaseCommandBuffer ()																	__Th___	{ return _ReleaseCommandBuffer( ECtxType::Compute ); }
 

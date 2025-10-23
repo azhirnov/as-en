@@ -14,6 +14,7 @@
 # include "graphics_rhi/Public/PipelineDesc.h"
 # include "graphics_rhi/Public/VideoEnums.h"
 # include "graphics_rhi/Public/RayTracingEnums.h"
+# include "graphics_rhi/Public/CoopVector.h"
 
 namespace AE::Scripting
 {
@@ -79,6 +80,8 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::EBufferOpt,					"EBufferOpt"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EShadingRate,				"EShadingRate"			);
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EShadingRateCombinerOp,		"EShadingRateCombinerOp");
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EIntegerDotProductFeat,		"EIntegerDotProductFeat");
+AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopMatrixComponentType,	"ECoopMatrixComponentType");
+AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecMatrixLayout,		"ECoopVecMatrixLayout"	);
 
 // BindTypes
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::MultiSamples,				"MultiSamples"			);

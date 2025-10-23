@@ -54,15 +54,22 @@ namespace AE::ResEditor
 		const Path		_filePath;
 		Path			_currPath;
 		VFS::FileName	_fname;
-		uint			_frameId	= UMax;
+		uint			_frameId		= UMax;
 		ParserFn_t		_parser;
-		Atomic<bool>	_complete	{false};
+		const Bytes		_bufferOffset;
+		const Bytes		_bufferSize;
+		Atomic<bool>	_complete		{false};
 
 
 	// methods
 	public:
-		ExportBuffer (RC<Buffer> src, const Path &path, ParserFn_t parser)	__Th___ :
-			_src{RVRef(src)}, _filePath{path}, _parser{RVRef(parser)} {}
+		ExportBuffer (RC<Buffer> src, const Path &path, ParserFn_t parser) __Th___ :
+			_src{RVRef(src)}, _filePath{path}, _parser{RVRef(parser)}
+		{}
+
+		ExportBuffer (RC<Buffer> src, const Path &path, Bytes offset, Bytes size) __Th___ :
+			_src{RVRef(src)}, _filePath{path}, _bufferOffset{offset}, _bufferSize{size}
+		{}
 
 	// IPass //
 		EPassType	GetType ()												C_NE_OV	{ return EPassType::Export; }

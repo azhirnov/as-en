@@ -1377,6 +1377,64 @@ namespace
 		}
 		switch_end
 	}
+	
+/*
+=================================================
+	Bind_ECoopMatrixComponentType
+=================================================
+*/
+	static void  Bind_ECoopMatrixComponentType (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<ECoopMatrixComponentType>	binder{ se };
+		binder.Create();
+		
+		switch_enum( ECoopMatrixComponentType::_Count )
+		{
+			case ECoopMatrixComponentType::_Count :
+			#define BIND( _name_ )		case ECoopMatrixComponentType::_name_ :	binder.AddValue( AE_TOSTRING(_name_), ECoopMatrixComponentType::_name_ );
+			BIND( Float16 )
+			BIND( Float32 )
+			BIND( Float64 )
+			BIND( BFloat16 )
+			BIND( Float8_E4M3 )
+			BIND( Float8_E5M2 )
+			BIND( SInt8 )
+			BIND( SInt16 )
+			BIND( SInt32 )
+			BIND( SInt64 )
+			BIND( SInt8x4 )
+			BIND( UInt8 )
+			BIND( UInt16 )
+			BIND( UInt32 )
+			BIND( UInt64 )
+			BIND( UInt8x4 )
+			#undef BIND
+		}
+		switch_end
+	}
+	
+/*
+=================================================
+	Bind_ECoopVecMatrixLayout
+=================================================
+*/
+	static void  Bind_ECoopVecMatrixLayout (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<ECoopVecMatrixLayout>	binder{ se };
+		binder.Create();
+		
+		switch_enum( ECoopVecMatrixLayout::_Count )
+		{
+			case ECoopVecMatrixLayout::_Count :
+			#define BIND( _name_ )		case ECoopVecMatrixLayout::_name_ :	binder.AddValue( AE_TOSTRING(_name_), ECoopVecMatrixLayout::_name_ );
+			BIND( RowMajor )
+			BIND( ColumnMajor )
+			BIND( InferencingOptimal )
+			BIND( TrainingOptimal )
+			#undef BIND
+		}
+		switch_end
+	}
 
 /*
 =================================================
@@ -1907,6 +1965,8 @@ namespace
 		Bind_EShadingRate( se );
 		Bind_EShadingRateCombinerOp( se );
 		Bind_EIntegerDotProductFeat( se );
+		Bind_ECoopMatrixComponentType( se );
+		Bind_ECoopVecMatrixLayout( se );
 	}
 
 /*

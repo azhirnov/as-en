@@ -491,7 +491,10 @@ namespace
 	  #if defined(AE_ENABLE_VULKAN)
 		Graphics::VDeviceInitializer		_device;
 		Graphics::VSwapchainInitializer		_swapchain;
-		//Graphics::VulkanSyncLog			_syncLog;
+		
+	    #if ENABLE_SYNC_LOG
+			Graphics::VulkanSyncLog			_syncLog;
+		#endif
 
 	  #elif defined(AE_ENABLE_METAL)
 		Graphics::MDeviceInitializer		_device;
@@ -676,7 +679,9 @@ namespace
 
 	  #elif defined(AE_ENABLE_METAL)
 		CHECK_ERR( _device.Init( msg.info ));
-
+		
+	  #else
+	  #	error unsupported Graphics backend
 	  #endif
 
 		CHECK_ERR( _device.IsInitialized() );

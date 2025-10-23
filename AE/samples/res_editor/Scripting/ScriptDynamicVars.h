@@ -405,6 +405,8 @@ namespace AE::ResEditor
 		ND_ ScriptDynamicFloat*		Max1 (const ScriptDynamicFloatPtr &)	__Th___;
 
 		ND_ ScriptDynamicUInt*		AsUInt ()								__Th___;
+		ND_ ScriptDynamicUInt*		ToUInt ()								__Th___;
+		ND_ ScriptDynamicInt*		ToInt ()								__Th___;
 
 		static void  Bind (const ScriptEnginePtr &se)						__Th___;
 	};

@@ -276,6 +276,7 @@ namespace AE::ResEditor
 		auto					tmp_enablePass	= RVRef( _enablePass );
 		String					tmp_dbgName		= RVRef( _dbgName );
 		RGBA8u					tmp_dbgColor	= _dbgColor;
+		ScriptDynamicFloatPtr	tmp_passTime	= RVRef( _passTime );
 
 		// move
 		_dbgName = this->_subpassName;
@@ -297,6 +298,7 @@ namespace AE::ResEditor
 		_enablePass		= RVRef( tmp_enablePass );
 		_dbgName		= RVRef( tmp_dbgName );
 		_dbgColor		= tmp_dbgColor;
+		_passTime		= RVRef( tmp_passTime );
 	}
 
 /*

@@ -36,17 +36,16 @@ namespace AE::Graphics
 
 
 	private:
+		using Query				= Graphics::QueryManager::Query;
+
 	  #if defined(AE_ENABLE_VULKAN)
 		using GraphicsDevice	= Graphics::VDeviceInitializer;
-		using Query				= Graphics::VQueryManager::Query;
 
 	  #elif defined(AE_ENABLE_METAL)
 		using GraphicsDevice	= Graphics::MDeviceInitializer;
-		using Query				= Graphics::MQueryManager::Query;
 
 	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		using GraphicsDevice	= Graphics::RDeviceInitializer;
-		using Query				= Graphics::RQueryManager::Query;
 
 	  #else
 	  #	error not implemented

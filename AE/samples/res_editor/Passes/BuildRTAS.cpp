@@ -48,7 +48,11 @@ namespace AE::ResEditor
 		DirectCtx::ASBuild	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
 		bool				result;
 
+		_BeginTimeQuery( ctx );
+
 		result = _dstGeometry->Build( ctx, _mode );
+
+		_EndTimeQuery( ctx );
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return result;
@@ -59,8 +63,9 @@ namespace AE::ResEditor
 	Update
 =================================================
 */
-	bool  BuildRTGeometry::Update (TransferCtx_t &, const UpdatePassData &) __Th___
+	bool  BuildRTGeometry::Update (TransferCtx_t &ctx, const UpdatePassData &) __Th___
 	{
+		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
 //-----------------------------------------------------------------------------
@@ -108,7 +113,11 @@ namespace AE::ResEditor
 		DirectCtx::ASBuild	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
 		bool				result;
 
+		_BeginTimeQuery( ctx );
+
 		result = _dstScene->Build( ctx, _mode );
+
+		_EndTimeQuery( ctx );
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return result;
@@ -119,8 +128,9 @@ namespace AE::ResEditor
 	Update
 =================================================
 */
-	bool  BuildRTScene::Update (TransferCtx_t &, const UpdatePassData &) __Th___
+	bool  BuildRTScene::Update (TransferCtx_t &ctx, const UpdatePassData &) __Th___
 	{
+		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
 

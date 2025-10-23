@@ -3,6 +3,7 @@
 #pragma once
 
 #include "pch/Platform.h"
+#include "pch/GraphicsRHI.h"
 #include "pch/Graphics.h"
 #include "pch/Profiler.h"
 #include "pch/Video.h"

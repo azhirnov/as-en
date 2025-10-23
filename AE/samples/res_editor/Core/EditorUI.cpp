@@ -599,7 +599,7 @@ namespace
 	  #if RmG_UI_ON_HOST
 		CHECK_CE( glib->EndFrame( gfx_ctx_rc ));
 
-		Graphics::DirectCtx::Transfer	tctx {*this};
+		Graphics::DirectCtx::Transfer	tctx {rtask};
 		if ( hasSurface )
 		{
 			// clear screen on device

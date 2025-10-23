@@ -166,6 +166,30 @@ namespace
 
 		return _repeatCount->Get();
 	}
+	
+/*
+=================================================
+	_ReadTimeQuery
+=================================================
+*/
+	void  IPass::_ReadTimeQuery (FrameUID frameId)
+	{
+		if ( not _passTime )
+			return;
 
+		auto&	qm		= GraphicsScheduler().GetQueryManager();
+		auto&	query	= _timeQuery[ frameId.Index() ];
+		uint	cnt		= _GetRepeatCount();
+
+		if ( not query )
+			return;
+
+		StaticArray< nanosecondsd, 2 >	time = {};
+		qm.GetTimestamp( query, OUT time.data(), Sizeof(time) );
+
+		query = Default;
+
+		_passTime->Set( float( secondsd{ time[1] - time[0] }.count() / double(cnt) ));
+	}
 
 } // AE::ResEditor

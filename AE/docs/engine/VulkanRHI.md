@@ -230,6 +230,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_QCOM_tile_shading
 - VK_VALVE_fragment_density_map_layered
 - VK_VALVE_video_encode_rgb_conversion
+- VK_NV_low_latency2
 
 **Pending for debugging:**
 - VK_EXT_device_fault
@@ -264,7 +265,7 @@ Source folder: [Vulkan backend](https://github.com/azhirnov/as-en/blob/dev/AE/en
 - VK_MSFT_layered_driver
 - VK_NV_command_buffer_inheritance
 - VK_NV_descriptor_pool_overallocation
-- VK_NV_low_latency, VK_NV_low_latency2
+- VK_NV_low_latency
 - VK_AMD_anti_lag
 - VK_QCOM_filter_cubic_clamp, VK_QCOM_filter_cubic_weights
 - VK_QCOM_image_processing, VK_QCOM_image_processing2

@@ -85,6 +85,8 @@ namespace AE::Graphics
 	//	using VideoEncode	= VIndirectVideoEncodeContext;
 	};
 
+	using QueryManager = VQueryManager;
+
 } // AE::Graphics
 
 #endif // AE_ENABLE_VULKAN
@@ -131,6 +133,8 @@ namespace AE::Graphics
 	//	using VideoDecode	= MIndirectVideoDecodeContext;
 	//	using VideoEncode	= MIndirectVideoEncodeContext;
 	};
+	
+	using QueryManager = MQueryManager;
 
 } // AE::Graphics
 
@@ -166,7 +170,9 @@ namespace AE::Graphics
 	//	using VideoEncode	= RVideoEncodeContext;
 	};
 
-	using IndirectCtx			= DirectCtx;
+	using IndirectCtx	= DirectCtx;
+	
+	using QueryManager	= RQueryManager;
 
 } // AE::Graphics
 

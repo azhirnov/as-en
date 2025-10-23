@@ -1,12 +1,5 @@
 /*
-	copied form slang examples
-	https://github.com/shader-slang/slang/tree/master/examples/mlp-training (Apache-2.0 license)
-
-	Problems and solutions with porting slang to ResEditor:
-	 * can not pass slang class as input argument - this class is not known by engine reflection system so it is break everything.
-	 * slang doesn't allow to cast pointers - I can't pass DeviceAddress to slang and convert it to 'MyNetwork' class.
-	 * used GLSL 'INIT' pass to fill 'ArgBuffer' with DeviceAddress, then same buffer passed to slang with typed pointers, and then it initialize slang classes.
-	 * shader can be much simpler when slang will support [Differentiable] for GLSL.
+	improved MLPTraining shader
 */
 #ifdef __INTELLISENSE__
 # 	include <res_editor.as>
@@ -40,17 +33,18 @@
 
 				"	uint		enable;"s +
 				"	uint		iteration;" +
+				"	uint		iteration2;" +
 
 				// LEARN_GRADIENT
-				"	half *		layer1_weights;" +
-				"	half *		layer1_weightsGrad;" +
-				"	half *		layer1_biases;" +
-				"	half *		layer1_biasesGrad;" +
+				"	float *		layer1_weights;" +
+				"	float *		layer1_weightsGrad;" +
+				"	float *		layer1_biases;" +
+				"	float *		layer1_biasesGrad;" +
 
-				"	half *		layer2_weights;" +
-				"	half *		layer2_weightsGrad;" +
-				"	half *		layer2_biases;" +
-				"	half *		layer2_biasesGrad;" +
+				"	float *		layer2_weights;" +
+				"	float *		layer2_weightsGrad;" +
+				"	float *		layer2_biases;" +
+				"	float *		layer2_biasesGrad;" +
 
 				"	float2 *	inputs;" +
 				"	uint		inputCount;" +
@@ -59,17 +53,16 @@
 				// ADJUST_PARAMETERS
 				"	uint		gradientsCount;" +
 
-				"	half *		adamState_mean;" +
-				"	half *		adamState_variance;" +
+				"	float *		adamState_mean;" +
+				"	float *		adamState_variance;" +
 				"	int *		adamState_iteration;" +
 
-				"	half *		params;" +
-				"	half *		gradients;"
+				"	float *		params;" +
+				"	float *		gradients;"
 			);
 			arg_buf.AddReference( large_buf );
 
 			cbuf.ULong( "address",	large_buf.DeviceAddress() );
-		//	cbuf.Uint(	"size",		large_buf_size );
 		}{
 			array<float>	rnd_values;
 			Random			rnd;
@@ -91,8 +84,10 @@
 			pass.ArgIn(		"un_CBuf",		cbuf );
 			pass.LocalSize( 1 );
 			pass.DispatchGroups( 1 );
-			pass.Slider(	"iMaxIter",		0,	1000,	0 );
-			pass.Slider(	"iNoLimits",	0,	1,		0 );
+			pass.Slider(	"iMaxIter",			0,	1000,	0 );
+			pass.Slider(	"iNoLimits",		0,	1,		0 );
+			pass.Slider(	"iRndInput",		0,	4,		0 );	// randomise input for each step
+			pass.Slider(	"iInUpdInterval",	1,	10,		8 );
 		}{
 			RC<ComputePass>		pass = ComputePass( "", "LEARN_GRADIENT" );
 			pass.AddFlag( EPassFlags::UseSLang );
@@ -112,9 +107,10 @@
 			pass.ArgIn(		"un_ArgBuf",	arg_buf );
 			pass.LocalSize( 8, 8 );
 			pass.DispatchThreads( rt.Dimension() );
-			pass.Slider( "iCmp",		0,		3,		2 );
-			pass.Slider( "iSlider",		0.f,	1.f,	0.5f );
-			pass.Slider( "iCmpScale",	0,		10,		3 );
+			pass.Slider(	"iCmp",			0,		3,		3 );
+			pass.Slider(	"iSlider",		0.f,	1.f,	0.5f );
+			pass.Slider(	"iCmpScale",	-2,		10,		-2 );
+			pass.Slider(	"iShowInput",	0,		1,		1 );
 		}
 
 		RC<DynamicUInt>	loss = DynamicUInt();
@@ -127,6 +123,10 @@
 		Label( iteration,		"iteration" );
 
 		Present( rt );
+		
+		const uint weights_size = 256 + 64 + 256 + 64;
+
+		Export( large_buf, "mlp-4x16-fp32-.bin", 0, weights_size );
 	}
 
 #endif
@@ -136,7 +136,26 @@
 	//-----------------------------------------------------------------------------
 	// common.slang
 
-	public typealias NFloat = half;
+	public typealias NFloat = float;
+
+
+	public void  AtomicAddF32 (float* ptr, float value)
+	{
+		uint* p = (uint*)ptr;
+		uint expected = *p;
+		for (;;)
+		{
+			float oldVal = asfloat(expected);
+			float newVal = oldVal + value;
+			uint  desired = asuint(newVal);
+			uint  prev;
+			InterlockedCompareExchange(*p, expected, desired, prev);
+			if (prev == expected)
+				break; // success
+
+			expected = prev; // retry with updated value
+		}
+	}
 
 
 	//-----------------------------------------------------------------------------
@@ -199,8 +218,7 @@
 			for (int j = 0; j < N; j++)
 			{
 				let elem = v0.data[i] * v1.data[j];
-				half original;
-				InterlockedAddF16Emulated(matrix + (i*N + j), elem, original);	// VK_NV_shader_atomic_float16_vector 
+				AtomicAddF32(matrix + (i*N + j), elem);	// GL_EXT_shader_atomic_float
 			}
 		}
 	}
@@ -208,7 +226,9 @@
 
 	//-----------------------------------------------------------------------------
 	// mlp_sw.slang
-	
+
+	static const NFloat kNegSlope = 1.0e-2f;
+
 	public struct FeedForwardLayer<int InputSize, int OutputSize>
 	{
 		public NFloat* weights;
@@ -223,10 +243,12 @@
 				input,
 				weights,
 				biases);
+
 			// ReLU activation
-			for (int i = 0; i < OutputSize; i++)
-				if (output.data[i] < 0.0)
-					output.data[i] *= 0.001h;
+			for (int i = 0; i < OutputSize; i++) {
+				if (output.data[i] < 0.0f)
+					output.data[i] *= kNegSlope;
+			}
 			return output; 
 		}
 
@@ -239,8 +261,8 @@
 			// Back-prop resultGrad through activation.
 			for (int i = 0; i < OutputSize; i++)
 			{
-				if (fwd.data[i] < 0.0)
-					resultGrad.data[i] *= 0.01h;
+				if (fwd.data[i] < 0.0f)
+					resultGrad.data[i] *= kNegSlope;
 			}
 
 			// Back-prop gradients to the weights matrix.
@@ -252,8 +274,7 @@
 			// Back-prop gradients to the biases vector.
 			for (int i = 0; i < OutputSize; i++)
 			{
-				NFloat originalValue;
-				InterlockedAddF16Emulated(biasesGrad + i, resultGrad.data[i], originalValue);	// VK_NV_shader_atomic_float16_vector 
+				AtomicAddF32(biasesGrad + i, resultGrad.data[i]);	// GL_EXT_shader_atomic_float
 			}
 
 			// Back-prop gradients to the input vector.
@@ -269,35 +290,40 @@
 	
 	public struct AdamState
 	{
-		internal NFloat mean;
-		internal NFloat variance;
+		internal float mean;
+		internal float variance;
 		internal int iteration;
 	}
 
 	public struct AdamOptimizer
 	{
 		// Adam parameters
-		public static const NFloat beta1 = 0.9h;
-		public static const NFloat beta2 = 0.999h;
-		public static const NFloat epsilon = 1e-7h;
-		public static const NFloat learningRate = 0.01h;
+		public static const float beta1 = 0.9;
+		public static const float beta2 = 0.999;
+		public static const float epsilon = 1e-7;
+		public static const float learningRate = 1e-4;
 
-		public static void step(inout AdamState state, inout NFloat param, inout NFloat grad)
+		public static void step(inout AdamState state, inout float param, inout float grad)
 		{
 			state.iteration++;
 			if (isinf(grad))
 			{
 				if (grad > 0)
-					grad = 10000.0h;
+					grad = 1.0e+5f;
 				else
-					grad = -10000.0h;
+					grad = -1.0e+5f;
 			}
-			state.mean = beta1 * state.mean + (NFloat(1.f) - beta1) * grad;
-			state.variance = beta2 * state.variance + (NFloat(1.f) - beta2) * grad * grad;
-			NFloat meanHat = state.mean / (NFloat(1.f) - pow(beta1, NFloat(state.iteration)));
-			NFloat varianceHat = state.variance / (NFloat(1.f) - pow(beta2, NFloat(state.iteration)));
-			param -= learningRate * meanHat / (sqrt(max(NFloat(0.f), varianceHat) + epsilon));
-			grad = NFloat(0.f);
+			grad = clamp(grad, -1.0, 1.0);
+
+			state.mean = beta1 * state.mean + (1.f - beta1) * grad;
+			state.variance = beta2 * state.variance + (1.f - beta2) * grad * grad;
+			float meanHat = state.mean / (1.f - pow(beta1, float(state.iteration)));
+			float varianceHat = state.variance / (1.f - pow(beta2, NFloat(state.iteration)));
+			float denom = sqrt(max(0.f, varianceHat)) + epsilon;
+			param -= learningRate * meanHat / denom;
+
+			// clear gradient
+			grad = 0.f;
 		}
 	}
 
@@ -331,26 +357,26 @@
 		}
 
 		[Differentiable]
-		public half4 eval(no_diff NFloat x, no_diff NFloat y)
+		public float4 eval(no_diff NFloat x, no_diff NFloat y)
 		{
 			let mlv = _eval(x, y);
 			let arr = mlv.toArray();
-			return half4(arr[0], arr[1], arr[2], arr[3]); // MLVec to half4
+			return float4(arr[0], arr[1], arr[2], arr[3]); // MLVec to float4
 		}
 	}
 
 	[Differentiable]
-	public half loss(inout MyNetwork network, no_diff half x, no_diff half y)
+	public NFloat loss(inout MyNetwork network, no_diff NFloat x, no_diff NFloat y)
 	{
 		let networkResult = network.eval(x, y);
 		let gt = no_diff groundtruth(x, y);
 		let diff = networkResult - gt;
 	
-		return dot(diff, diff); // Mean‑Squared Error
+		return dot(diff, diff) / 4.0; // Mean‑Squared Error
 	}
 	
 	// function which will be approximated
-	public half4 groundtruth(half x, half y)
+	public float4 groundtruth(float x, float y)
 	{
 		return {
 			(x + y) / (1 + y * y),
@@ -385,13 +411,21 @@
 		network.layer2.biases		= arg.layer2_biases;
 		network.layer2.biasesGrad	= arg.layer2_biasesGrad;
 
-		if (tid >= arg.inputCount)
+		if (tid >= 16)
 			return;
 
-		var input = (half2)arg.inputs[tid];
-		bwd_diff(loss)(network, input.x, input.y, 1.0h);
-		let thisLoss = (float)loss(network, input.x, input.y);
-		let maxLoss = WaveActiveMax(thisLoss);
+		const NFloat initialGradient = 1.0f / NFloat(arg.inputCount);
+		float thisLoss = 0.f;
+
+		// accumulate multiple input
+		for (uint i = 0; i < 4; ++i)
+		{
+			const float2 input = arg.inputs[ tid*4 + i ];
+			bwd_diff(loss)(network, input.x, input.y, initialGradient);
+			thisLoss += loss(network, input.x, input.y);
+		}
+
+		float maxLoss = WaveActiveMax(thisLoss / 4.0);
 		if (WaveIsFirstLane())
 		{
 			un_ArgBuf[0].loss.max(bit_cast<uint32_t>(maxLoss));
@@ -417,7 +451,7 @@
 
 		if ( isnan(arg.gradients[tid]) )
 		{
-			arg.gradients[tid] = 0.0h;
+			arg.gradients[tid] = 0.0f;
 			return;
 		}
 
@@ -437,7 +471,7 @@
 //-----------------------------------------------------------------------------
 #ifdef VIEW
 
-	half4  Inference (half x, half y)
+	float4  Inference (float x, float y)
 	{
 		let arg = un_ArgBuf[0];
 
@@ -455,30 +489,57 @@
 	{
 		float2	size		= float2(pc.wgCount_dispatchIndex.xy * hl_WorkGroupSize.xy);
 		float2	uv			= (float2(hl_DispatchThreadID.xy) + 0.5) / size;
+		float2	ratio		= float2( 1.0, size.y / size.x );
 
-		float4	ref_color	= float4(groundtruth( half(uv.x), half(uv.y) ));
-		float4	mlp_color	= float4(Inference( half(uv.x), half(uv.y) ));
+		float4	ref_color	= float4(groundtruth( uv.x, uv.y ));
+		float4	mlp_color	= float4(Inference( uv.x, uv.y ));
 		float4	color;
 
 		switch ( iCmp )
 		{
-			case 0 :	color = ref_color;								break;
-			case 1 :	color = mlp_color;								break;
-			case 2 :	color = uv.x < iSlider ? ref_color : mlp_color;	break;
-			case 3 :	color = abs( ref_color - mlp_color ) * exp10( float(iCmpScale) );  break;
+			case 0 :	color = ref_color;									break;
+			case 1 :	color = mlp_color;									break;
+			case 2 :	color = (uv.x < iSlider ? ref_color : mlp_color);	break;
+			case 3 :	color = abs( ref_color - mlp_color ) * exp2( float(iCmpScale) );break;
 		}
 
-		un_Image[hl_DispatchThreadID.xy] = color;
+		// tonemapping / color clamp
+		if ( iCmp == 3 )
+		{
+			float m = max(max(color.r, color.g), max(color.b, color.a));
+			if ( m > 1.0 )
+				color = float4(1.0);
+		}
+
+		if ( iShowInput == 1 && iCmp == 3 )
+		{
+			float		md		= 1.0e+20;
+			const uint	count	= un_ArgBuf[0].inputCount;
+
+			for (uint i = 0; i < count; ++i)
+			{
+				float d = distance( uv * ratio, un_ArgBuf[0].inputs[i] * ratio );
+				md = min(d, md);
+			}
+
+			md *= 2000.0;
+
+			color.rgb	*= smoothstep( 7.0, 10.0, md );			// black border
+			color.r		+= 1.0 - smoothstep( 5.0, 7.0, md );	// red dot
+		}
+		un_Image[hl_DispatchThreadID.xy] = half4(color);
 	}
 
 #endif
 //-----------------------------------------------------------------------------
 #ifdef INIT
+	#include "Hash.glsl"
 
 	// based on mlp-training.cpp (allocateNetworkParameterStorage)
 
-	const uint NFloatSize		= 2;	// half
-	const uint kLayerSizes[]	= {4, 16, 4};
+	const uint	kLayerSizes[]	= {4, 16, 4};
+	const uint	kInputDim		= 8;
+
 
 	uint  getNetworkLayerBiasCount (int i)
 	{
@@ -496,79 +557,59 @@
 	}
 
 
-	void  Main ()
+	void  Initialize ()
 	{
-		if ( un_PerPass.frame > 0 )
-		{
-			un_ArgBuf.enable = 0;
-
-			if ( iNoLimits == 1 )
-			{
-				if ( (un_PerPass.frame % 20) == 0 )
-					un_ArgBuf.enable = 1;
-			}
-			else
-			if ( un_ArgBuf.iteration < iMaxIter )
-				un_ArgBuf.enable = 1;
-
-			if ( un_ArgBuf.enable == 1 )
-			{
-				++un_ArgBuf.iteration;
-				un_ArgBuf.loss	= 0; // clear loss buffer
-			}
-			return;
-		}
-
-		const uint	input_count		= 16;
+		const uint	input_count		= kInputDim * kInputDim;
 		const uint	sizeof_float	= 4;
 		const uint	sizeof_int		= 4;
-		const uint	sizeof_NFloat	= 2;
+		const uint	sizeof_NFloat	= 4;
 
 		ulong		ptr				= un_CBuf.address;
 		const ulong	params_ptr		= ptr;
 
 		// layer1
 		{
-			uint	weights_size	= MatrixStorageSize( getNetworkLayerWeightCount( 0 ) * NFloatSize );	// 128
-			uint	bias_size		= MatrixStorageSize( getNetworkLayerBiasCount( 0 ) * NFloatSize );		// 32 aligned to 64
+			uint	weights_size	= MatrixStorageSize( getNetworkLayerWeightCount( 0 ) * sizeof_NFloat );		// 256 (float4x16)
+			uint	bias_size		= MatrixStorageSize( getNetworkLayerBiasCount( 0 ) * sizeof_NFloat );		// 64 (float16) aligned to 64
 
-			un_ArgBuf.layer1_weights	= half_AEPtr( ptr );	ptr += weights_size;
-			un_ArgBuf.layer1_biases		= half_AEPtr( ptr );	ptr += bias_size;
+			un_ArgBuf.layer1_weights	= float_AEPtr( ptr );	ptr += weights_size;
+			un_ArgBuf.layer1_biases		= float_AEPtr( ptr );	ptr += bias_size;
 		}
 
 		// layer2
 		{
-			uint	weights_size	= MatrixStorageSize( getNetworkLayerWeightCount( 1 ) * NFloatSize );	// 128
-			uint	bias_size		= MatrixStorageSize( getNetworkLayerBiasCount( 1 ) * NFloatSize );		// 8 aligned to 64
+			uint	weights_size	= MatrixStorageSize( getNetworkLayerWeightCount( 1 ) * sizeof_NFloat );		// 256 (float16x4)
+			uint	bias_size		= MatrixStorageSize( getNetworkLayerBiasCount( 1 ) * sizeof_NFloat );		// 16 (float4) aligned to 64
 
-			un_ArgBuf.layer2_weights	= half_AEPtr( ptr );	ptr += weights_size;
-			un_ArgBuf.layer2_biases		= half_AEPtr( ptr );	ptr += bias_size;
+			un_ArgBuf.layer2_weights	= float_AEPtr( ptr );	ptr += weights_size;
+			un_ArgBuf.layer2_biases		= float_AEPtr( ptr );	ptr += bias_size;
 		}
 		//-------------------------------------------------
 
 
-		const uint	grad_offset		= uint(ptr - params_ptr);	// 384
-		const ulong	gradients_ptr	= ptr;
+		const uint	grad_offset		= uint(ptr - params_ptr);		// 384
+		const ulong	grad_ptr		= ptr;
+		const uint	param_count		= grad_offset / sizeof_NFloat;	// 192
 		
 		// layer1 gradients
 		{
-			uint	weights_size	= MatrixStorageSize( getNetworkLayerWeightCount( 0 ) * NFloatSize );	// 128
-			uint	bias_size		= MatrixStorageSize( getNetworkLayerBiasCount( 0 ) * NFloatSize );		// 32 aligned to 64
+			uint	weights_size	= MatrixStorageSize( getNetworkLayerWeightCount( 0 ) * sizeof_NFloat );		// 256
+			uint	bias_size		= MatrixStorageSize( getNetworkLayerBiasCount( 0 ) * sizeof_NFloat );		// 64 aligned to 64
 
-			un_ArgBuf.layer1_weightsGrad	= half_AEPtr( ptr );	ptr += weights_size;
-			un_ArgBuf.layer1_biasesGrad		= half_AEPtr( ptr );	ptr += bias_size;
+			un_ArgBuf.layer1_weightsGrad	= float_AEPtr( ptr );	ptr += weights_size;
+			un_ArgBuf.layer1_biasesGrad		= float_AEPtr( ptr );	ptr += bias_size;
 		}
 
 		// layer2 gradients
 		{
-			uint	weights_size	= MatrixStorageSize( getNetworkLayerWeightCount( 1 ) * NFloatSize );	// 128
-			uint	bias_size		= MatrixStorageSize( getNetworkLayerBiasCount( 1 ) * NFloatSize );		// 8 aligned to 64
+			uint	weights_size	= MatrixStorageSize( getNetworkLayerWeightCount( 1 ) * sizeof_NFloat );		// 256
+			uint	bias_size		= MatrixStorageSize( getNetworkLayerBiasCount( 1 ) * sizeof_NFloat );		// 16 aligned to 64
 
-			un_ArgBuf.layer2_weightsGrad	= half_AEPtr( ptr );	ptr += weights_size;
-			un_ArgBuf.layer2_biasesGrad		= half_AEPtr( ptr );	ptr += bias_size;
+			un_ArgBuf.layer2_weightsGrad	= float_AEPtr( ptr );	ptr += weights_size;
+			un_ArgBuf.layer2_biasesGrad		= float_AEPtr( ptr );	ptr += bias_size;
 		}
 
-		const uint	param_buf_size = uint(ptr - params_ptr);	// 768
+		const uint	grad_count = uint(ptr - grad_ptr) / sizeof_NFloat;	// 192
 		//-------------------------------------------------
 
 
@@ -581,18 +622,18 @@
 
 		// adam state, see 'AdamState'
 		{
-			const uint	init_params_count	= param_buf_size / sizeof_NFloat;	// 384
+			const uint	adam_count	= param_count;
 
-			un_ArgBuf.adamState_mean		= half_AEPtr( ptr );	ptr += init_params_count * sizeof_NFloat;
-			un_ArgBuf.adamState_variance	= half_AEPtr( ptr );	ptr += init_params_count * sizeof_NFloat;
-			un_ArgBuf.adamState_iteration	= int_AEPtr( ptr );		ptr += init_params_count * sizeof_int;
+			un_ArgBuf.adamState_mean		= float_AEPtr( ptr );	ptr += adam_count * sizeof_float;
+			un_ArgBuf.adamState_variance	= float_AEPtr( ptr );	ptr += adam_count * sizeof_float;
+			un_ArgBuf.adamState_iteration	= int_AEPtr( ptr );		ptr += adam_count * sizeof_int;
 		}
 
 		// gradients
 		{
-			un_ArgBuf.params				= half_AEPtr( params_ptr );
-			un_ArgBuf.gradients				= half_AEPtr( gradients_ptr );
-			un_ArgBuf.gradientsCount		= (param_buf_size - grad_offset) / sizeof_NFloat;	// 192, must be <= 256
+			un_ArgBuf.params				= float_AEPtr( params_ptr );
+			un_ArgBuf.gradients				= float_AEPtr( grad_ptr );
+			un_ArgBuf.gradientsCount		= grad_count;				// 192, must be <= 256
 		}
 		//-------------------------------------------------
 
@@ -602,16 +643,114 @@
 		// set inputs
 		for (uint i = 0; i < un_ArgBuf.inputCount; ++i, j += 2)
 		{
-			un_ArgBuf.inputs.data[i] = float2( un_CBuf.rndValues[j+0], un_CBuf.rndValues[j+1] );
+			un_ArgBuf.inputs.data[i] = float2( un_CBuf.rndValues[j+0], un_CBuf.rndValues[j+1] );	// [0, 1]
 		}
 
 		// set init params
 		for (uint i = 0; i < grad_offset / sizeof_NFloat; ++i, ++j)
 		{
-			un_ArgBuf.params.data[i] = half( un_CBuf.rndValues[j] * 2.0 - 1.0 );
+			un_ArgBuf.params.data[i] = half( un_CBuf.rndValues[j] * 2.0 - 1.0 );	// [-1, +1]
 		}
 
 		// j must be < 1024
+	}
+
+
+	void  SetRndInput ()
+	{
+		switch ( iRndInput )
+		{
+			case 1 :
+			{
+				for (uint i = 0; i < un_ArgBuf.inputCount; ++i) {
+					un_ArgBuf.inputs.data[i] = DHash22( float2( float(un_ArgBuf.iteration * 16 + i), un_PerPass.time ) * 0.1 );
+				}
+				break;
+			}
+			case 2 :
+			{
+				// voronoise
+				uint	i		= 0;
+				float	scale	= 1.0 / float(kInputDim);
+
+				for (int y = 0; y < kInputDim; ++y)
+				for (int x = 0; x < kInputDim; ++x, ++i)
+				{
+					float2	pos = float2( x, y ) + 0.5;
+					float2	off = DHash22(float2( float(i), un_PerPass.time * 0.1 )) - 0.5;		// [-0.5, +0.5]
+					un_ArgBuf.inputs.data[i] = (pos + off) * scale;
+				}
+				break;
+			}
+			case 3 :
+			{
+				uint	i		= 0;
+				float	scale	= 1.0 / (float(kInputDim-1) + 0.2);
+
+				for (int y = 0; y < kInputDim; ++y)
+				for (int x = 0; x < kInputDim; ++x, ++i)
+				{
+					float2	pos = float2( x, y ) + 0.1;
+					float2	off = DHash22(float2( float(i), un_PerPass.time * 0.1 )) - 0.5;		// [-0.5, +0.5]
+					un_ArgBuf.inputs.data[i] = Saturate( (pos + off) * scale );
+				}
+				break;
+			}
+			case 4 :
+			{
+				// stable grid
+				uint		i		= 0;
+				const uint	j		= (un_ArgBuf.iteration2 += 3);
+				const uint	mask	= kInputDim * kInputDim - 1;
+				uint2		off		= uint2( j % kInputDim, j / kInputDim );
+
+				for (uint y = 0; y < kInputDim; ++y)
+				for (uint x = 0; x < kInputDim; ++x, ++i)
+				{
+					un_ArgBuf.inputs.data[i] = (float2( (uint2(x,y) * kInputDim + off) & mask ) + 0.5) / float(mask+1);
+				}
+				break;
+			}
+		}
+	}
+
+
+	void  Update ()
+	{
+		un_ArgBuf.enable = 0;
+
+		if ( iNoLimits == 1 )
+		{
+			un_ArgBuf.enable = 1;
+		}
+		else
+		{
+			if ( un_ArgBuf.iteration < iMaxIter )
+				un_ArgBuf.enable = 1;
+		}
+
+		if ( un_ArgBuf.enable == 1 )
+		{
+			++un_ArgBuf.iteration;
+			un_ArgBuf.loss	= 0; // clear loss buffer
+		}
+
+		if ( iRndInput > 0 and (un_PerPass.frame % (1<<iInUpdInterval)) == 0 )
+		{
+			SetRndInput();
+		}
+	}
+
+
+	void  Main ()
+	{
+		if ( un_PerPass.frame > 0 )
+		{
+			Update();
+			return;
+		}
+
+		Initialize();
 	}
 
 #endif

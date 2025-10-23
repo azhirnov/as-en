@@ -101,6 +101,8 @@ namespace AE::ResEditor
 		ScriptBaseControllerPtr	_controller;
 		ScriptPassArgs			_args;
 
+		ScriptDynamicFloatPtr	_passTime;		// in seconds
+
 		struct {
 			ScriptDynamicUIntPtr	dynamic;
 			uint					ref			= 0;
@@ -131,6 +133,8 @@ namespace AE::ResEditor
 		void  SetDebugLabel3 (const String &name, const RGBA32f &color)														__Th___;
 
 		void  AddFlag (EFlags value)																						__Th___;
+
+		void  MeasureTime (const ScriptDynamicFloatPtr &result)																__Th___;
 
 
 		void  SliderI0 (const String &name)																					__Th___;

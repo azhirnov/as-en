@@ -51,7 +51,10 @@ namespace AE::ResEditor
 			DescriptorSetID		ds0	= _descSets[ ctx.GetFrameId().Index() ];
 
 			if ( i == 0 )
+			{
+				_BeginTimeQuery( ctx );
 				ctx.ResourceState( _ubuffer, EResourceState::UniformRead | EResourceState::FragmentShader );
+			}
 
 			_resources.SetStates( ctx, Default );
 			ctx.CommitBarriers();
@@ -104,6 +107,8 @@ namespace AE::ResEditor
 
 				ctx2.EndRenderPass( dctx );
 			}
+
+			if ( i+1 == cnt ) _EndTimeQuery( ctx );
 
 			pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		}
@@ -169,7 +174,8 @@ namespace AE::ResEditor
 			CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
 			CHECK_ERR( updater.Flush() );
 		}
-
+		
+		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
 

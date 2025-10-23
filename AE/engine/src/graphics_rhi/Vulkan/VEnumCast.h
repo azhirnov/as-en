@@ -1367,6 +1367,7 @@ namespace AE::Graphics
 			case EPresentMode::Mailbox :				return VK_PRESENT_MODE_MAILBOX_KHR;
 			case EPresentMode::FIFO :					return VK_PRESENT_MODE_FIFO_KHR;
 			case EPresentMode::FIFO_Relaxed :			return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+			case EPresentMode::FIFO_LatestReady:		return VK_PRESENT_MODE_FIFO_LATEST_READY_EXT;
 			case EPresentMode::SharedDemandRefresh :	return VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR;
 			case EPresentMode::SharedContinuousRefresh:	return VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR;
 			case EPresentMode::Unknown :				break;
@@ -1388,10 +1389,9 @@ namespace AE::Graphics
 			case VK_PRESENT_MODE_MAILBOX_KHR :					return EPresentMode::Mailbox;
 			case VK_PRESENT_MODE_FIFO_KHR :						return EPresentMode::FIFO;
 			case VK_PRESENT_MODE_FIFO_RELAXED_KHR :				return EPresentMode::FIFO_Relaxed;
+			case VK_PRESENT_MODE_FIFO_LATEST_READY_EXT :		return EPresentMode::FIFO_LatestReady;
 			case VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR :	return EPresentMode::SharedDemandRefresh;
 			case VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR:	return EPresentMode::SharedContinuousRefresh;
-
-			case VK_PRESENT_MODE_FIFO_LATEST_READY_EXT :
 			case VK_PRESENT_MODE_MAX_ENUM_KHR :					break;
 		}
 		switch_end
@@ -2013,8 +2013,7 @@ namespace AE::Graphics
 			case ECoopMatrixComponentType::UInt64 :			return VK_COMPONENT_TYPE_UINT64_KHR;
 			case ECoopMatrixComponentType::UInt8x4 :		return VK_COMPONENT_TYPE_UINT8_PACKED_NV;
 
-			case ECoopMatrixComponentType::_Count :
-			case ECoopMatrixComponentType::Unknown :		break;
+			case ECoopMatrixComponentType::_Count :			break;
 		}
 		switch_end
 		RETURN_ERR( "unknown cooperative matrix/vector component type", VK_COMPONENT_TYPE_MAX_ENUM_KHR );
@@ -2033,8 +2032,7 @@ namespace AE::Graphics
 			case ECoopVecMatrixLayout::ColumnMajor :		return VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_COLUMN_MAJOR_NV;
 			case ECoopVecMatrixLayout::InferencingOptimal :	return VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_INFERENCING_OPTIMAL_NV;
 			case ECoopVecMatrixLayout::TrainingOptimal :	return VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_TRAINING_OPTIMAL_NV;
-			case ECoopVecMatrixLayout::_Count :
-			case ECoopVecMatrixLayout::Unknown :			break;
+			case ECoopVecMatrixLayout::_Count :				break;
 		}
 		switch_end
 		RETURN_ERR( "unknown cooperative matrix layout", VK_COOPERATIVE_VECTOR_MATRIX_LAYOUT_MAX_ENUM_NV );

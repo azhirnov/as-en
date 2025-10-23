@@ -133,7 +133,7 @@ namespace
 
 	static void  LLamaPerf_RunTest (const PerfTestInput &in, OUT PerfTestResult &result,
 									U8String systemMsg, U8String prompt, const Path &dstFolder,
-									ArrayView<U8String> expected = Default, ArrayView<U8String> unexpected = Default)
+									ArrayView<U8String> expected, ArrayView<U8String> unexpected)
 	{
 		AE_LOGI( "Try backend: "s << ToString(in.backend) << ", ctx: " << ToString(in.ctxSize) << ", gpuLayers: " << ToString(in.gpuLayers) );
 
@@ -502,13 +502,68 @@ public half4 groundtruth(half x, half y)
 		LLamaPerf_RunTest2(
 			Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME,
 			u8"Calculate theoretical bf16 performance of AMD Zen4 with 11 cores at 5.3GHz. Same for Zen2 with 5 cores at 4.1GHz.",
-			{ u8"AVX512" }
+			{ u8"AVX512", u8"TFLOPS" }
 		);
 
 		// answer:
 		// Zen4: AVX512, 32x fp16 per cy, 2x SIMD per core, but it is 256bit with dual issue, 11 * 5.3 * 2 * 32 = 3.73 TFLOPS
 		// Zen2: AVX2, only fp16c, so fp16 -> fp32 -> fp16, 8x fp32 per cy, 2x SIMD per core, 5 * 4.1 * 8 * 2 = 328 GFLOPS (fp32)
 	}
+
+
+	static void  LLamaPerf_Test10 ()
+	{
+		U8String	str;
+		{
+			FileRStream		file{ Path{TEST_SRC_FOLDER} / "../../samples/res_editor/_data/scripts/neural-shader/MLPTraining.as" };
+			CHECK_ERRV( file.IsOpen() );
+			CHECK_ERRV( file.Read( file.RemainingSize(), OUT str ));
+
+			const U8StringView	correct		= u8"ptr += input_count * 2 * sizeof_float;";
+			const U8StringView	incorrect	= u8"ptr += input_count * sizeof_float;";
+
+			CHECK_ERRV( FindAndReplace( INOUT str, correct, incorrect ) == 1 );
+
+			u8"Problem in MLP training shader - training doesn't work. Get list of most likely errors.\n```" >> str;
+			str << "\n```";
+		}
+
+		LLamaPerf_RunTest2(
+			Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME,
+			str,
+			List<U8String>{ u8"input_count", u8"un_ArgBuf.inputs" }
+		);
+	}
+
+
+	static void  LLamaPerf_Test11 ()
+	{
+		U8String	str;
+		{
+			FileRStream		file{ Path{TEST_SRC_FOLDER} / "../../decs/papers/GeometryCulling-ru.md" };
+			CHECK_ERRV( file.IsOpen() );
+			CHECK_ERRV( file.Read( file.RemainingSize(), OUT str ));
+
+			U8StringView	cut = u8"# Итоги тестов";
+
+			usize	pos = str.find( cut );
+			CHECK_ERRV( pos < str.size() );
+			str.resize( pos );
+
+			u8"In text below find culling method or combination of them which I should use to support all GPU types.\n```" >> str;
+			str << u8"\n```"
+		}
+
+		LLamaPerf_RunTest2(
+			Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME,
+			str
+		);
+	}
+
+	// TODO:
+	// - generics in slang
+	// - C++ refactoring
+	// - explain shader (clouds?)
 //-----------------------------------------------------------------------------
 }
 
@@ -524,4 +579,6 @@ extern void Perf_LLamaTokensPerSecond ()
 	LLamaPerf_Test7();
 	LLamaPerf_Test8();
 	LLamaPerf_Test9();
+	LLamaPerf_Test10();
+	LLamaPerf_Test11();
 }

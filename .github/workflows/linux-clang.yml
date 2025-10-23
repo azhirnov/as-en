@@ -29,8 +29,8 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/hjMLsFw3Er6zrw"
-        unzip external.zip
+        chmox +x download-linux-x64-clang.sh
+        ./download-linux-x64-clang.sh
         mv external/linux-x64-clang20 external/linux-x64-clang18
     
     - name: Configure CMake
@@ -168,8 +168,8 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/hjMLsFw3Er6zrw"
-        unzip external.zip
+        chmox +x download-linux-x64-clang.sh
+        ./download-linux-x64-clang.sh
         mv external/linux-x64-clang20 external/linux-x64-clang18
     
     - name: Configure CMake
@@ -249,8 +249,8 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        wget -O external.zip "https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/hjMLsFw3Er6zrw"
-        unzip external.zip
+        chmox +x download-linux-x64-clang.sh
+        ./download-linux-x64-clang.sh
         mv external/linux-x64-clang20 external/linux-x64-clang18
     
     - name: Configure CMake

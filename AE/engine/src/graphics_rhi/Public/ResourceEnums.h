@@ -255,6 +255,7 @@ namespace AE::Graphics
 		Mailbox,					// vsync, present last submitted
 		FIFO,						// vsync, present all in submission order
 		FIFO_Relaxed,
+		FIFO_LatestReady,
 		SharedDemandRefresh,
 		SharedContinuousRefresh,
 

@@ -805,6 +805,7 @@ namespace AE::Base
 			case EPresentMode::Mailbox :					return "Mailbox";
 			case EPresentMode::FIFO :						return "FIFO";
 			case EPresentMode::FIFO_Relaxed :				return "FIFO_Relaxed";
+			case EPresentMode::FIFO_LatestReady :			return "FIFO_LatestReady";
 			case EPresentMode::SharedDemandRefresh :		return "SharedDemandRefresh";
 			case EPresentMode::SharedContinuousRefresh :	return "SharedContinuousRefresh";
 			case EPresentMode::Unknown :					break;

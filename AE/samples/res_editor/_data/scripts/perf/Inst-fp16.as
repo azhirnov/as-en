@@ -47,7 +47,8 @@
 		RC<DynamicUInt>		count		= DynamicUInt();
 		RC<DynamicUInt>		mode		= DynamicUInt();
 		RC<DynamicFloat>	ops			= DynamicFloat( float(dim * dim) * float(iter_cnt) * /*half4*/4.0 * /*unroll*/16.0 * /*giga*/1.0e-9 );
-		RC<DynamicFloat>	flops		= ops.Div( 0.0 );	// put time (ms) from profiler
+		RC<DynamicFloat>	time		= DynamicFloat();
+		RC<DynamicFloat>	flops		= ops.Div( time );
 		const array<string>	mode_str	= {
 			"V4_ADD", "V4_ADD1", "V4_ADD2",
 			"V4_MUL", "V4_MUL1",
@@ -57,8 +58,7 @@
 
 		Slider( mode, 	"iMode", 	0,	mode_str.size()-1, 0 );
 		Slider( count,	"Repeat",	1,	32 );
-		Label(  ops,	"GOp" );		// GOp/s = TOp / ms
-		Label(  flops,	"TFLOPS" );
+		Label(  flops,	"GOPS" );	// x2 for FMA and MulAdd
 
 		// render loop
 		for (uint i = 0; i < mode_str.size(); ++i)
@@ -74,6 +74,7 @@
 		#endif
 			pass.EnableIfEqual( mode, i );
 			pass.Repeat( count );
+			pass.MeasureTime( time );
 		}
 	//	Present( rt );
 	}

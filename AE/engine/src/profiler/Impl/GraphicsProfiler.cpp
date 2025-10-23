@@ -490,7 +490,7 @@ namespace
 		auto&	rts = GraphicsScheduler();
 
 		{
-			auto&	qm	= rts.GetResourceManager().GetQueryManager();
+			auto&	qm	= rts.GetQueryManager();
 			uint2	idx = qm.ReadAndWriteIndices();
 
 			_readIndex	= idx[0];
@@ -527,7 +527,7 @@ namespace
 
 		_gpuTime.min	= nanosecondsd{MaxValue<double>()};
 
-		auto&	qm		= GraphicsScheduler().GetResourceManager().GetQueryManager();
+		auto&	qm		= GraphicsScheduler().GetQueryManager();
 
 		MeshPipelineStatistic		g_stat = {};
 		ComputePipelineStatistic	c_stat = {};
@@ -808,7 +808,7 @@ namespace
 
 		auto&		rts		= GraphicsScheduler();
 		auto&		dev		= rts.GetDevice();
-		auto&		qm		= rts.GetResourceManager().GetQueryManager();
+		auto&		qm		= rts.GetQueryManager();
 		auto*		batch	= Cast<CommandBatch>(batchPtr);
 		const auto	queue	= batch->GetQueueType();
 		Pass		pass;
@@ -988,7 +988,7 @@ namespace
 
 		ASSERT( not taskName.empty() );
 
-		auto&		qm		= GraphicsScheduler().GetResourceManager().GetQueryManager();
+		auto&		qm		= GraphicsScheduler().GetQueryManager();
 		auto*		batch	= Cast<CommandBatch>(batchPtr);
 		const auto	queue	= batch->GetQueueType();
 		Pass		pass;

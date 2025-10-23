@@ -21,8 +21,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/ONijcekKBKxbJg', 'external.zip' )"
-        powershell Expand-Archive external.zip -DestinationPath "."
+        ./download-win-x64-clang.bat
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}
@@ -143,8 +142,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        powershell -Command "(New-Object Net.WebClient).DownloadFile('https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/ONijcekKBKxbJg', 'external.zip' )"
-        powershell Expand-Archive external.zip -DestinationPath "."
+        ./download-win-x64-clang.bat
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}

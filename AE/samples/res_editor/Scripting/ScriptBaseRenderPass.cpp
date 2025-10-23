@@ -459,7 +459,7 @@ namespace AE::ResEditor
 	{
 		#ifdef AE_COMPILER_MSVC
 		# if _ITERATOR_DEBUG_LEVEL == 0
-			StaticAssert64( sizeof(ScriptBaseRenderPass) == 800 );
+			StaticAssert64( sizeof(ScriptBaseRenderPass) == 808 );
 		# endif
 		#endif
 

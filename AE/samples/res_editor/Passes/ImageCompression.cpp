@@ -134,6 +134,8 @@ namespace AE::ResEditor
 
 		DirectCtx::Transfer		ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{GetName()} };
 
+		_BeginTimeQuery( ctx );
+
 		// read new block
 		if ( auto* block = _AllocBlock() )
 		{
@@ -235,7 +237,20 @@ namespace AE::ResEditor
 			}
 		}
 
+		_EndTimeQuery( ctx );
+
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
+		return true;
+	}
+	
+/*
+=================================================
+	Update
+=================================================
+*/
+	bool  ImageCompressionPass::Update (TransferCtx_t &ctx, const UpdatePassData &) __Th___
+	{
+		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
 

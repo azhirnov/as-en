@@ -704,6 +704,8 @@ void main (Config &out cfg)
 		}
 		CHECK_FATAL( FileSystem::IsDirectory( re_cfg.scriptFolder ));
 		CHECK_FATAL( _InitVFS() );
+
+		PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn );
 	}
 
 /*
@@ -713,6 +715,7 @@ void main (Config &out cfg)
 */
 	ResEditorApplication::~ResEditorApplication () __NE___
 	{
+		PlatformUtils::SetSystemSleepState( ESystemSleepState::Default );
 	}
 
 /*

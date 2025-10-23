@@ -57,6 +57,8 @@ namespace AE::ResEditor
 
 		DirectCtx::Graphics		ctx{ pd.rtask, RVRef(pd.cmdbuf) };
 
+		_BeginTimeQuery( ctx );
+
 		for (uint i = 0, cnt = _GetRepeatCount(); i < cnt; ++i)
 		{
 			_resources.SetStates( ctx, Default );
@@ -89,6 +91,8 @@ namespace AE::ResEditor
 				ctx.EndRenderPass( dctx );
 			}
 		}
+
+		_EndTimeQuery( ctx );
 
 		pd.cmdbuf = ctx.ReleaseCommandBuffer();
 		return true;
@@ -152,6 +156,7 @@ namespace AE::ResEditor
 			CHECK_ERR( updater.Flush() );
 		}
 
+		_ReadTimeQuery( ctx.GetFrameId() );
 		return true;
 	}
 

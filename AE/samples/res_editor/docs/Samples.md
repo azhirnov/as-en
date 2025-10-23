@@ -21,11 +21,15 @@ Content:
 * [Anti aliased grid](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/AA-Grid.as)
 * [Gravity lens simulation](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/GravityLens.as)<br/>
 ![](img/GravityLens.jpg)
-
-**Extensions:**
 * [Draw to HDR display](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/HDR.as)
-* [Binary tree with buffer reference](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/BufferReference.as)<br/>
+
+
+## Compute
+
+* [Binary tree with buffer reference](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/BufferReference.as)<br/>
 ![](img/BufferReferenceBinaryTree.png)
+* [Prefix Scan](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/PrefixScan-1.as), [v2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/PrefixScan-2.as), [v3](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/PrefixScan-3.as)
+* [Unique IDs](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/UniqueIDs-1.as)
 
 
 ## 3D
@@ -74,6 +78,7 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 * [Simple mesh shader with frustum culling](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/MeshShader-Cubes.as)
 * [Fragment shading rate](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-3d/ShadingRate.as)
 
+
 ## Ray Tracing
 
 **Samples:**
@@ -109,7 +114,9 @@ Supported precalculated TBN and screen-space TBN calculation. Debug drawing for 
 
 ## Neural Shader
 
-* [MLP Training](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/MLPTraining.as)
+* [MLP Training with hardware acceleration](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/MLPTraining-fp16.as)
+* [MLP Training in fp32](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/MLPTraining-fp32.as)
+* [MLP Training in fp32 with multiple input](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/neural-shader/MLPTrainingAccum-fp32.as)
 
 
 ## Games

@@ -115,7 +115,7 @@ namespace AE::ResEditor
 				CHECK_ERR_MSG( store_op.file,
 					"Failed to open async file for writing '"s << ToString(_currPath) << "'" );
 
-				_temp = Buffer::CreateAndStore( *_src, RVRef(store_op), "" );
+				_temp = Buffer::CreateAndStore( *_src, RVRef(store_op), _bufferOffset, _bufferSize, "" );
 				CHECK_ERR( _temp );
 			}
 		}

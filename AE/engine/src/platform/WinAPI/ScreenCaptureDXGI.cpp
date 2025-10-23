@@ -15,7 +15,9 @@
 # ifdef AE_DEBUG
 #	include <dxgidebug.h>
 # endif
-# include "vulkan/vulkan_win32.h"
+# ifdef AE_ENABLE_VULKAN
+#	include "vulkan/vulkan_win32.h"
+# endif
 # include "base/Defines/Undef.h"
 
 # ifdef AE_COMPILER_MSVC
