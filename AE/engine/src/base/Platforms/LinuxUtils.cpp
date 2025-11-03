@@ -104,6 +104,33 @@ namespace AE::Base
 
 		return ::sched_setaffinity( 0, sizeof(mask), &mask ) == 0;
 	}
+	
+/*
+=================================================
+	ResetThreadAffinity
+=================================================
+*/
+	bool  LinuxUtils::ResetThreadAffinity (const ThreadHandle &handle) __NE___
+	{
+		cpu_set_t cpuset;
+		CPU_ZERO( &cpuset );
+		
+		for (uint i = 0, cnt = std::thread::hardware_concurrency(); i < cnt; ++i)
+			CPU_SET( i, &cpuset );
+
+		return ::pthread_setaffinity_np( handle, sizeof(cpu_set_t), &cpuset ) == 0;
+	}
+
+	bool  LinuxUtils::ResetCurrentThreadAffinity () __NE___
+	{
+		::cpu_set_t  mask;
+		CPU_ZERO( OUT &mask );
+
+		for (uint i = 0, cnt = std::thread::hardware_concurrency(); i < cnt; ++i)
+			CPU_SET( i, INOUT &mask );
+
+		return ::sched_setaffinity( 0, sizeof(mask), &mask ) == 0;
+	}
 
 /*
 =================================================

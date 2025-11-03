@@ -559,7 +559,7 @@ namespace {
 			fnt_packer._imageHeader		= _imageHeader;
 		}
 
-		fnt_packer.fontHeight.push_back( CheckCast<ubyte>( _fontHeight ));
+		fnt_packer.fontHeight.push_back( CheckCast{ _fontHeight });
 		fnt_packer.glyphMap.reserve( _glyphs.size() );
 
 		for (auto& glyph : _glyphs)

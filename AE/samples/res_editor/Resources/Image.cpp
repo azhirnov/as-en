@@ -774,7 +774,7 @@ namespace {
 			ImageViewDesc	view_desc	= _requiredViewDesc;
 			CHECK_ERR( CompareImageTypes( desc, intermImg ));
 
-			desc.dimension		= CheckCast<ImageDim_t>( intermImg.Dimension() << baseMipmap.Get() );
+			desc.dimension		= CheckCast{ intermImg.Dimension() << baseMipmap.Get() };
 			desc.arrayLayers	= ImageLayer{ intermImg.ArrayLayers() + baseLayer.Get() };
 			desc.mipLevels		= MipmapLevel{ intermImg.MipLevels() + baseMipmap.Get() };
 			desc.imageDim		= intermImg.GetImageDim();

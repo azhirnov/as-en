@@ -179,7 +179,7 @@ namespace AE::Threading
 					// try to acquire index
 					if_likely( chunk.assigned.CAS( INOUT bits, bits | new_bit ))	// 0 -> 1
 					{
-						outIndex = CheckCast<Index_t>( chunk_idx * ChunkSize + idx );
+						outIndex = CheckCast{ chunk_idx * ChunkSize + idx };
 						ASSERT( outIndex < capacity() );
 						return true;
 					}
@@ -324,7 +324,7 @@ namespace AE::Threading
 			auto&	ll_chunk	= (*_arr)[a];
 			usize	b			= (usize(ptr) - usize(ll_chunk.values.data())) / sizeof(Value_t);
 
-			return CheckCast<Index_t>( b + (a * ChunkSize) );
+			return CheckCast{ b + (a * ChunkSize) };
 		}
 
 		// out of bounds

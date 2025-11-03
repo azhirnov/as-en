@@ -489,6 +489,9 @@ namespace
 		StaticAssert( Alignof(a) == 8 );
 		StaticAssert( Sizeof(b) == 10 );
 		StaticAssert( Alignof(b) == 1 );
+
+		TEST( MinValue<Bytes>() == MinValue<Bytes::Value_t>() );
+		TEST( MaxValue<Bytes>() == MaxValue<Bytes::Value_t>() );
 	}
 
 
@@ -528,7 +531,7 @@ namespace
 	{
 		TEST_Eq( POTValue{ 1u << 10 }.GetPOT(),		10 );
 		TEST_Eq( POTValue{ 1u }.GetPOT(),			0 );
-		TEST_Eq( POTValue{ 0u }.GetPOT(),			0 );
+		TEST_Eq( POTValue{ 0u }.GetPOT(),			-1 );
 		TEST_Eq( POTBytes{ 256_b }.GetPOT(),		8 );
 
 		TEST_Eq( POTValue{ 1u << 9 }.Cast<uint>(),		1u<<9 );
@@ -569,6 +572,9 @@ namespace
 	  #if 0	// compilation error
 		TEST_Eq( POTValue{ 256_b }.GetPOT(),		8 );	// use 'POTBytes' instead
 	  #endif
+		
+		TEST( MinValue<POTValue>().GetPOT() == -1 );
+		TEST( MaxValue<POTValue>().GetPOT() == MaxValue<sbyte>() );
 	}
 
 

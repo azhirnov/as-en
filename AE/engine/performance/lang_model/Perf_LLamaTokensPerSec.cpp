@@ -254,9 +254,7 @@ namespace
 														U8String systemMsg, U8String prompt, const Path &dstFolder,
 														ArrayView<U8String> expected, ArrayView<U8String> unexpected)
 	{
-		const uint		max_attempts	= 10;
-		Bytes			model_size		= FileSystem::FileSize( in.modelPath );
-		uint			max_layers		= 0;
+		Bytes	model_size	= FileSystem::FileSize( in.modelPath );
 
 		if ( model_size > g_RAM )
 			return;
@@ -295,7 +293,7 @@ namespace
 			LLamaPerf_RunTest(	in, out,
 								u8"Answer as experienced programmer. By default use C++ and HLSL. Prefer snake_case style.",
 								u8"Write complex sky shader on GLSL. Add clouds with ray marching. Add effects: light shafts, lens flares, rain particles.",
-								dst_folder );
+								dst_folder, Default, Default );
 		}
 		PrintResults( requests, dst_folder );
 	}
@@ -502,7 +500,7 @@ public half4 groundtruth(half x, half y)
 		LLamaPerf_RunTest2(
 			Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME,
 			u8"Calculate theoretical bf16 performance of AMD Zen4 with 11 cores at 5.3GHz. Same for Zen2 with 5 cores at 4.1GHz.",
-			{ u8"AVX512", u8"TFLOPS" }
+			List<U8String>{ u8"AVX512", u8"TFLOPS" }
 		);
 
 		// answer:
@@ -525,7 +523,7 @@ public half4 groundtruth(half x, half y)
 			CHECK_ERRV( FindAndReplace( INOUT str, correct, incorrect ) == 1 );
 
 			u8"Problem in MLP training shader - training doesn't work. Get list of most likely errors.\n```" >> str;
-			str << "\n```";
+			str << u8"\n```";
 		}
 
 		LLamaPerf_RunTest2(
@@ -551,7 +549,7 @@ public half4 groundtruth(half x, half y)
 			str.resize( pos );
 
 			u8"In text below find culling method or combination of them which I should use to support all GPU types.\n```" >> str;
-			str << u8"\n```"
+			str << u8"\n```";
 		}
 
 		LLamaPerf_RunTest2(

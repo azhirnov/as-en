@@ -22,6 +22,8 @@ int main (const int argc, char* argv[])
 	StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
 	//StaticLogger::AddLogger( ILogger::CreateDialogOutput() );
 	
+	Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
+
 	CHECK_ERR( Networking::SocketService::Instance().Initialize(), -1 );
 
 	int ret;

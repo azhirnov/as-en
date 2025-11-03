@@ -13,6 +13,8 @@ int main (const int argc, char* argv[])
 {
   #if 1 //def AE_RELEASE
 	BEGIN_TEST();
+	
+	Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
 
 	Perf_Hierarchy();
 

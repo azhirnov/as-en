@@ -58,7 +58,7 @@ namespace AE::Graphics
 		_submitMode	= ESubmitMode::Immediately;
 		_queueType	= desc.queue;
 		_frameId	= frameId;
-		_submitIdx	= CheckCast<ubyte>(desc.submitIdx);
+		_submitIdx	= CheckCast{desc.submitIdx};
 		_userData	= desc.userData;
 
 		_perTaskBarriers.fill( null );

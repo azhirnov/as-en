@@ -142,6 +142,21 @@ namespace AE::Base
 
 /*
 =================================================
+	ResetThreadAffinity
+=================================================
+*/
+	bool  AppleUtils::ResetThreadAffinity (const ThreadHandle &) __NE___
+	{
+		return false;
+	}
+
+	bool  AppleUtils::ResetCurrentThreadAffinity () __NE___
+	{
+		return false;
+	}
+
+/*
+=================================================
 	SetThreadPriority
 ----
 	https://developer.apple.com/documentation/apple-silicon/tuning-your-code-s-performance-for-apple-silicon

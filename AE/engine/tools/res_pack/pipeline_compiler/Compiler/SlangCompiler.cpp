@@ -244,7 +244,7 @@ namespace
 	destructor
 =================================================
 */
-	SLangCompiler::~SLangCompiler ()
+	SLangCompiler::~SLangCompiler () __NE___
 	{
 		_Deinitialize();
 	}
@@ -674,7 +674,7 @@ namespace {
 		uniform.binding.vkIndex = uint(index);
 
 		ASSERT( count <= 1 );
-		uniform.arraySize = CheckCast<DescriptorSetLayoutDesc::ArraySize_t>( count );
+		uniform.arraySize = CheckCast{ count };
 
 		return &uniform;
 	}
@@ -983,8 +983,8 @@ namespace {
 
 		PushConstants::PushConst	pc;
 		pc.typeName		= buf.typeName;
-		pc.vulkanOffset	= Bytes16u{ CheckCast<ushort>( struct_var->getOffset( category ))};
-		pc.size			= Bytes16u{ CheckCast<ushort>( struct_layout->getSize( category ))};
+		pc.vulkanOffset	= CheckCast{ struct_var->getOffset( category )};
+		pc.size			= CheckCast{ struct_layout->getSize( category )};
 
 		ASSERT( buf.staticSize <= pc.size );
 
@@ -1180,9 +1180,8 @@ extern "C"
 namespace AE::PipelineCompiler
 {
 	SLangCompiler::SLangCompiler (ArrayView<Path>)				__NE___	{}
-	SLangCompiler::~SLangCompiler ()									{}
-	bool  SLangCompiler::Compile (const Input &, OUT Output &)			{ return false; }
-	bool  SLangCompiler::IsInitialized ()						C_NE___	{ return false; }
+	SLangCompiler::~SLangCompiler ()							__NE___	{}
+	bool  SLangCompiler::Compile (const Input &, OUT Output &)	__NE___	{ return false; }
 
 } // AE::PipelineCompiler
 

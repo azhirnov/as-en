@@ -1637,7 +1637,7 @@ namespace AE::PipelineCompiler
 			COMP_CHECK_ERR( qual.hasLocation(), "location for '"s << node_name << "' is not defined" );
 
 			VertexAttrib	attrib;
-			attrib.index	= CheckCast<ubyte>(qual.layoutLocation);
+			attrib.index	= CheckCast{ qual.layoutLocation };
 			attrib.type		= _ExtractVertexType( type );
 
 			//attrib.id		= ExtractVertexID( node );
@@ -1725,8 +1725,8 @@ namespace AE::PipelineCompiler
 			{
 				auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 				name				= ExtractUniformID( node );
-				un.binding.vkIndex	= CheckCast<ushort>( qual.layoutBinding );
-				un.arraySize		= CheckCast<ushort>( GetArraySize( type ));
+				un.binding.vkIndex	= CheckCast{ qual.layoutBinding };
+				un.arraySize		= CheckCast{ GetArraySize( type )};
 				un.stages			= _currentStage;
 				un.type				= EDescriptorType::StorageImage;
 
@@ -1744,15 +1744,15 @@ namespace AE::PipelineCompiler
 			{
 				auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 				name				= ExtractUniformID( node );
-				un.binding.vkIndex	= CheckCast<ushort>( qual.layoutBinding );
-				un.arraySize		= CheckCast<ushort>( GetArraySize( type ));
+				un.binding.vkIndex	= CheckCast{ qual.layoutBinding };
+				un.arraySize		= CheckCast{ GetArraySize( type )};
 				un.stages			= _currentStage;
 				un.type				= EDescriptorType::SubpassInput;
 
 				un.image			= Default;
 				un.image.type		= _ExtractImageType( type );
 				un.image.state		= EResourceState::InputColorAttachment | EResourceState_FromShaders( _currentStage );	// TODO: depth attachment
-				un.image.subpassInputIdx = CheckCast<ubyte>(qual.layoutAttachment);
+				un.image.subpassInputIdx = CheckCast{ qual.layoutAttachment };
 
 				COMP_CHECK_ERR( name.IsDefined() );
 				COMP_CHECK_ERR( qual.hasAttachment(), "attachment index for '"s << node_name << "' is not defined" );
@@ -1771,8 +1771,8 @@ namespace AE::PipelineCompiler
 			{
 				auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 				name				= ExtractUniformID( node );
-				un.binding.vkIndex	= CheckCast<ushort>( qual.layoutBinding );
-				un.arraySize		= CheckCast<ushort>( GetArraySize( type ));
+				un.binding.vkIndex	= CheckCast{ qual.layoutBinding };
+				un.arraySize		= CheckCast{ GetArraySize( type )};
 				un.stages			= _currentStage;
 				un.type				= EDescriptorType::Sampler;
 
@@ -1788,8 +1788,8 @@ namespace AE::PipelineCompiler
 
 				auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 				name				= ExtractUniformID( node );
-				un.binding.vkIndex	= CheckCast<ushort>( qual.layoutBinding );
-				un.arraySize		= CheckCast<ushort>( GetArraySize( type ));
+				un.binding.vkIndex	= CheckCast{ qual.layoutBinding };
+				un.arraySize		= CheckCast{ GetArraySize( type )};
 				un.stages			= _currentStage;
 				un.type				= (qual.storage == TStorageQualifier::EvqUniform ? EDescriptorType::UniformTexelBuffer : EDescriptorType::StorageTexelBuffer);
 
@@ -1807,8 +1807,8 @@ namespace AE::PipelineCompiler
 			{
 				auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 				name				= ExtractUniformID( node );
-				un.binding.vkIndex	= CheckCast<ushort>( qual.layoutBinding );
-				un.arraySize		= CheckCast<ushort>( GetArraySize( type ));
+				un.binding.vkIndex	= CheckCast{ qual.layoutBinding };
+				un.arraySize		= CheckCast{ GetArraySize( type )};
 				un.stages			= _currentStage;
 				un.type				= EDescriptorType::CombinedImage;
 
@@ -1825,8 +1825,8 @@ namespace AE::PipelineCompiler
 			{
 				auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 				name				= ExtractUniformID( node );
-				un.binding.vkIndex	= CheckCast<ushort>( qual.layoutBinding );
-				un.arraySize		= CheckCast<ushort>( GetArraySize( type ));
+				un.binding.vkIndex	= CheckCast{ qual.layoutBinding };
+				un.arraySize		= CheckCast{ GetArraySize( type )};
 				un.stages			= _currentStage;
 				un.type				= EDescriptorType::SampledImage;
 
@@ -1853,8 +1853,8 @@ namespace AE::PipelineCompiler
 			{
 				auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 				name				= ExtractUniformID( node );
-				un.binding.vkIndex	= CheckCast<ushort>( qual.layoutBinding );
-				un.arraySize		= CheckCast<ushort>( GetArraySize( type ));
+				un.binding.vkIndex	= CheckCast{ qual.layoutBinding };
+				un.arraySize		= CheckCast{ GetArraySize( type )};
 				un.stages			= _currentStage;
 				un.type				= EDescriptorType::UniformBuffer;
 
@@ -1877,8 +1877,8 @@ namespace AE::PipelineCompiler
 			{
 				auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 				name				= ExtractUniformID( node );
-				un.binding.vkIndex	= CheckCast<ushort>( qual.layoutBinding );
-				un.arraySize		= CheckCast<ushort>( GetArraySize( type ));
+				un.binding.vkIndex	= CheckCast{ qual.layoutBinding };
+				un.arraySize		= CheckCast{ GetArraySize( type )};
 				un.stages			= _currentStage;
 				un.type				= EDescriptorType::StorageBuffer;
 
@@ -1905,8 +1905,8 @@ namespace AE::PipelineCompiler
 
 			auto& [name, un]	= descriptor_set.layout.uniforms.emplace_back();
 			name				= ExtractUniformID( node );
-			un.binding.vkIndex	= CheckCast<ushort>( qual.layoutBinding );
-			un.arraySize		= CheckCast<ushort>( GetArraySize( type ));
+			un.binding.vkIndex	= CheckCast{ qual.layoutBinding };
+			un.arraySize		= CheckCast{ GetArraySize( type )};
 			un.stages			= _currentStage;
 			un.type				= EDescriptorType::RayTracingScene;
 			//rt_scene.state	= EResourceState::_RayTracingShader | EResourceState::ShaderRead | EResourceState_FromShaders( _currentStage );

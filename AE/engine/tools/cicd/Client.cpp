@@ -33,6 +33,7 @@ namespace AE::CICD
 		for (auto& s : _scripts) {
 			std::cout << "  '" << s << "'" << std::endl;
 		}
+		_PrintHelp();
 
 		String	user_input;
 		for (;;)
@@ -146,6 +147,12 @@ namespace AE::CICD
 
 		if ( EqualIC( cmd, "cancel" ))
 			return _CancelAll();
+		
+		if ( EqualIC( cmd, "help" ))
+		{
+			_PrintHelp();
+			return false;
+		}
 
 		// if has args
 		if ( cmd_pos+1 < userInput.size() )
@@ -193,6 +200,18 @@ namespace AE::CICD
 	{
 		Msg::ServerCancelAll	msg;
 		return _Send( msg );
+	}
+	
+/*
+=================================================
+	_PrintHelp
+=================================================
+*/
+	void  Client::_PrintHelp ()
+	{
+		std::cout << "Usage:\n"
+			"> run script-name\n -- will run script, use on from 'Available scripts' list\n"
+			"> cancel -- will cancel script execution\n";
 	}
 
 /*

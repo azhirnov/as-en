@@ -256,9 +256,9 @@ namespace AE::ResEditor
 
 						auto&		draw	= _drawCalls.emplace_back();
 						draw.nodeIdx		= uint(nodes.size()-1);
-						draw.vertexOffset	= CheckCast<uint>(mesh_info.vertexOffset);
-						draw.firstIndex		= CheckCast<uint>(mesh_info.firstIndex);
-						draw.indexCount		= CheckCast<uint>(mesh->IndexCount());
+						draw.vertexOffset	= CheckCast{ mesh_info.vertexOffset };
+						draw.firstIndex		= CheckCast{ mesh_info.firstIndex };
+						draw.indexCount		= CheckCast{ mesh->IndexCount() };
 					},
 					[] (const NullUnion &) {}
 				);

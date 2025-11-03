@@ -66,7 +66,7 @@ namespace
 */
 	AndroidRStream::AndroidRStream (AAsset* asset, const char* name) __NE___ :
 		_asset{ asset },
-		_size{ asset != null ? CheckCast<ulong>( AAsset_getLength( asset )) : 0 }
+		_size{ asset != null ? CheckCast{ AAsset_getLength( asset )} : 0 }
 		DEBUG_ONLY(, _name{ name })
 	{}
 
@@ -79,7 +79,7 @@ namespace
 	{
 		ASSERT( IsOpen() );
 
-		Bytes	remain {CheckCast<ulong>( AAsset_getRemainingLength( _asset ))};
+		Bytes	remain {CheckCast{ AAsset_getRemainingLength( _asset )}};
 		return { _size - remain, _size };
 	}
 
@@ -119,7 +119,7 @@ namespace
 	Bytes  AndroidRStream::ReadSeq (OUT void* buffer, Bytes size) __NE___
 	{
 		ASSERT( IsOpen() );
-		return Bytes{ CheckCast<ulong>( AAsset_read( _asset, OUT buffer, usize(size) ))};
+		return Bytes{ CheckCast{ AAsset_read( _asset, OUT buffer, usize(size) )}};
 	}
 
 /*
@@ -143,7 +143,7 @@ namespace
 */
 	AndroidRDataSource::AndroidRDataSource (AAsset* asset, const char* name) __NE___ :
 		_asset{ asset },
-		_size{ asset != null ? CheckCast<ulong>( AAsset_getLength( asset )) : 0 }
+		_size{ asset != null ? CheckCast{ AAsset_getLength( asset )} : 0 }
 		DEBUG_ONLY(, _name{ name })
 	{}
 
@@ -172,7 +172,7 @@ namespace
 			CHECK_ERR( AAsset_seek( _asset, usize(pos), SEEK_SET ) != 0 );
 			_pos = pos;
 		}
-		return Bytes{ CheckCast<ulong>( AAsset_read( _asset, OUT buffer, usize(size) ))};
+		return Bytes{ CheckCast{ AAsset_read( _asset, OUT buffer, usize(size) )}};
 	}
 
 /*

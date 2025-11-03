@@ -570,7 +570,7 @@ namespace
 		{
 			auto	it = t._res.pplns.find( targets[0].format );
 			CHECK_CE( it != t._res.pplns.end(),
-					  "Failed to find pipeline for surface format "s << ToString(targets[0].format) );
+				"Failed to find pipeline for surface format "s << ToString(targets[0].format) );
 			ps = it->second;
 		}
 
@@ -853,6 +853,13 @@ namespace
 				 ImGui::Checkbox( "Compile MSL", INOUT &msl ))
 				g_mode->shaderFlags.set( UIInteraction::EShaderFlags::CompileMSL, msl );
 		  #endif
+		}
+		ImGui::Separator();
+
+		// info
+		{
+			ImGui::TextUnformatted( t._info.deviceName.c_str() );
+			ImGui::TextUnformatted( t._info.driver.c_str() );
 		}
 	}
 
@@ -1702,9 +1709,24 @@ namespace
 				_windowMode.current.store( 0 | 2 );
 				_windowMode.windowedMode = wndMode;
 			}
+
+			_InitDeviceInfo();
 			return true;
 		}
 		return false;
+	}
+	
+/*
+=================================================
+	_InitDeviceInfo
+=================================================
+*/
+	void  EditorUI::_InitDeviceInfo ()
+	{
+		auto&	dev = GraphicsScheduler().GetDevice();
+		
+		_info.deviceName	= "device: "s << dev.GetDeviceName();
+		_info.driver		= "driver: "s << dev.GetDriverName();
 	}
 
 /*

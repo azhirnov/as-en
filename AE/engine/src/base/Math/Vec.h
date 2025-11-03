@@ -2715,17 +2715,27 @@ namespace _hidden_
 	CheckCast
 =================================================
 */
-	template <typename To, typename From, int I, glm::qualifier Q>
-	Nd__In To  CheckCast (const TVec<From,I,Q>& src) __NE___
+	template <typename From, int I, glm::qualifier Q>
+	struct CheckCast< TVec<From,I,Q> >
 	{
-		using T = typename To::value_type;
+	private:
+		const TVec<From,I,Q>	_src;
 
-		To	res;
-		for (int i = 0; i < I; ++i) {
-			res[i] = CheckCast<T>( src[i] );
+	public:
+		__Cx__ explicit CheckCast (const TVec<From,I,Q>& src) __NE___ : _src{src} {}
+
+		template <typename To>
+		NdCx__ operator To () C_NE___
+		{
+			using T = typename To::value_type;
+
+			To	res;
+			for (int i = 0; i < I; ++i) {
+				res[i] = CheckCast<From>{ _src[i] };
+			}
+			return res;
 		}
-		return res;
-	}
+	};
 
 /*
 =================================================

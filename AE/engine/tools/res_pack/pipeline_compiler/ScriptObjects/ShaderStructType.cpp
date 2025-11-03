@@ -3351,8 +3351,8 @@ namespace {
 
 				auto&	dst = arr.emplace_back();
 				dst.type	= type;
-				dst.index	= CheckCast<ubyte>(loc++);
-				dst.offset	= Bytes16u{field.offset};
+				dst.index	= CheckCast{ loc++ };
+				dst.offset	= Bytes16u{ field.offset };
 
 				TestFeature_VertexType( _features, &FeatureSet::vertexFormats, type, "vertexFormats" );  // throw
 			}

@@ -73,6 +73,10 @@ namespace
 		//	cfg.graphics.swapchain.scale		= 0.5f;
 
 			cfg.graphics.useRenderGraph			= true;
+
+			for (usize i = 0, cnt = Min( cfg.graphics.driverList.size(), s_REConfig.driverList.size() ); i < cnt; ++i) {
+				cfg.graphics.driverList[i] = s_REConfig.driverList[i];
+			}
 		}
 
 		// window
@@ -115,15 +119,6 @@ namespace
 	  #endif
 
 		CHECK( cfg.graphics.maxFrames <= cfg.graphics.swapchain.minImageCount );
-
-		#ifdef AE_ENABLE_VULKAN
-		# ifdef AE_PLATFORM_WINDOWS
-		//	cfg.graphics.driverList[0] = Graphics::EDriver::LavaPipe;	// enable software Vulkan
-		# endif
-		# ifdef AE_PLATFORM_LINUX
-			cfg.graphics.driverList[0] = Graphics::EDriver::RADV;
-		# endif
-		#endif
 
 		return cfg;
 	}
@@ -415,6 +410,63 @@ namespace
 	{
 		self.remoteIAPort = ushort(port);
 	}
+	
+/*
+=================================================
+	ResEditorAppConfig_AddGraphicsDriver
+=================================================
+*/
+	static void  ResEditorAppConfig_AddGraphicsDriver (ResEditorAppConfig &self, const String &driverName)
+	{
+		CHECK_THROW_MSG( not driverName.empty() );
+
+		const auto	EDriver_ToString = [](Graphics::EDriver type) -> StringView
+		{{
+			switch_enum( type )
+			{
+				case EDriver::Unknown :		break;
+				case EDriver::_Count :		break;
+				#define CASE( _name_ )		case EDriver::_name_ :	return AE_TOSTRING( _name_ );
+				CASE( LavaPipe )
+			  #ifdef AE_PLATFORM_LINUX
+				case _LinuxDrivers::Unknown : break;
+				CASE( RADV )
+				CASE( AMDVLK )
+				CASE( AMD_PRO )
+				CASE( ANV )
+				CASE( IntelPro )
+				CASE( Nouveau )
+				CASE( NVK )
+				CASE( NVPro )
+				CASE( VirtGPU )
+				CASE( GFXStream )
+			  #endif
+				#undef CASE
+			}
+			switch_end
+			return {};
+		}};
+		
+		String	supported;
+
+		for (uint i = 0, cnt = uint(Graphics::EDriver::_Count); i < cnt; ++i)
+		{
+			StringView	name = EDriver_ToString( Graphics::EDriver(i) );
+			if ( driverName == name )
+			{
+				self.driverList.push_back( Graphics::EDriver(i) );
+				return;
+			}
+
+			supported << name << ", ";
+		}
+
+		if ( not supported.empty() )
+			supported.erase( supported.end()-2, supported.end() );
+		
+		CHECK_THROW_MSG( false,
+			"Unknown graphics driver '"s << driverName << "', known drivers: " << supported );
+	}
 
 /*
 =================================================
@@ -456,6 +508,7 @@ namespace
 			AS_METHOD( binder, ResEditorAppConfig_AddTestFolder,			"TestFolder",			{} );
 			AS_METHOD( binder, ResEditorAppConfig_AddTestOutput,			"TestOutput",			{} );
 			AS_METHOD( binder, ResEditorAppConfig_SetRemoteInputServerPort,	"RemoteInputServerPort",{} );
+			AS_METHOD( binder, ResEditorAppConfig_AddGraphicsDriver,		"AddGraphicsDriver",	{} );
 			binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,		"setStableGPUClock"		);
 			binder.AddProperty( &ResEditorAppConfig::enableRenderDoc,		"enableRenderDoc"		);
 			binder.AddProperty( &ResEditorAppConfig::screenWidth,			"screenWidth"			);
@@ -705,7 +758,7 @@ void main (Config &out cfg)
 		CHECK_FATAL( FileSystem::IsDirectory( re_cfg.scriptFolder ));
 		CHECK_FATAL( _InitVFS() );
 
-		PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn );
+		Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
 	}
 
 /*
@@ -715,7 +768,7 @@ void main (Config &out cfg)
 */
 	ResEditorApplication::~ResEditorApplication () __NE___
 	{
-		PlatformUtils::SetSystemSleepState( ESystemSleepState::Default );
+		Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::Default ));
 	}
 
 /*

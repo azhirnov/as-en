@@ -92,7 +92,7 @@ namespace AE::Threading
 	// methods
 	public:
 		explicit Barrier (usize numThreads)		__NE___ :
-			_counter{Bitfield{ 0, 0, 0 }}, _numThreads{CheckCast<uint>(numThreads)}
+			_counter{Bitfield{ 0, 0, 0 }}, _numThreads{CheckCast{numThreads}}
 		{
 			ASSERT( numThreads > 0 );
 		}

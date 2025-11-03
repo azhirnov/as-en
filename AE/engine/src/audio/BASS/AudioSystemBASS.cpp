@@ -235,7 +235,7 @@ namespace AE::Audio
 			switch_end
 		}
 
-		HSAMPLE		bass_sample = bass.SampleLoad( TRUE, OUT data, 0, CheckCast<DWORD>(dataSize), _maxChannels, bass_flags );
+		HSAMPLE		bass_sample = bass.SampleLoad( TRUE, OUT data, 0, CheckCast{dataSize}, _maxChannels, bass_flags );
 
 		DEBUG_ONLY( BASS_CheckError() );
 		CHECK_ERR( bass_sample != 0 );

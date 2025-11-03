@@ -70,9 +70,11 @@ namespace AE::Base
 	  #endif
 
 			static bool		SetThreadAffinity (const ThreadHandle &, uint logicalCoreIdx)	__NE___;
+			static bool		ResetThreadAffinity (const ThreadHandle &)						__NE___;
 			static bool		SetThreadPriority (const ThreadHandle &, EThreadPriority)		__NE___;
 
 			static bool		SetCurrentThreadAffinity (uint logicalCoreIdx)					__NE___;
+			static bool		ResetCurrentThreadAffinity ()									__NE___;
 			static bool		SetCurrentThreadPriority (EThreadPriority priority)				__NE___;
 			
 			static bool		SetThreadThrottling (const ThreadHandle &, EThreadPowerThrottling)	__NE___;
@@ -101,6 +103,9 @@ namespace AE::Base
 		#else
 		ND_ static String		GetOSName ()												__NE___;
 		#endif
+
+		ND_ static String		GetComputerName ()											__NE___;
+		ND_ static String		GetUserName ()												__NE___;
 
 		// env variable
 		ND_ static bool		GetEnvironmentVariable (NtStringView name, OUT String &value)	__NE___;

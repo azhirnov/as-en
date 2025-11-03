@@ -128,7 +128,7 @@ namespace AE::Audio
 		dst.duration	= Seconds{ float( bass.ChannelBytes2Seconds( handle, src.length ))};
 		dst.freq		= Freq{ src.freq };
 		dst.size		= Bytes{ src.length };
-		dst.channels	= CheckCast<ubyte>( src.chans );
+		dst.channels	= CheckCast{ src.chans };
 
 		switch ( src.origres )
 		{
@@ -159,7 +159,7 @@ namespace AE::Audio
 
 		dst				= Default;
 		dst.freq		= Freq{ src.freq };
-		dst.channels	= CheckCast<ubyte>( src.chans );
+		dst.channels	= CheckCast{ src.chans };
 
 		switch ( src.origres )
 		{

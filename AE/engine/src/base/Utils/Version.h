@@ -29,7 +29,7 @@ namespace AE::Base
 
 	// methods
 		__Cx__ TVersion3 ()												__NE___ {}
-		__Cx__ TVersion3 (uint maj, uint min, uint patch = 0)			__NE___ : major{CheckCast<ushort>(maj)}, minor{CheckCast<ushort>(min)}, patch{patch} {}
+		__Cx__ TVersion3 (uint maj, uint min, uint patch = 0)			__NE___ : major{CheckCast{maj}}, minor{CheckCast{min}}, patch{patch} {}
 		__Cx__ explicit TVersion3 (const TVersion2<UID> &, uint path = 0)__NE___;
 
 		__Cx__ TVersion3 (const Self &)									__NE___ = default;
@@ -75,7 +75,7 @@ namespace AE::Base
 
 	// methods
 		__Cx__ TVersion2 ()									__NE___ {}
-		__Cx__ TVersion2 (uint maj, uint min)				__NE___ : major{CheckCast<ushort>(maj)}, minor{CheckCast<ushort>(min)} {}
+		__Cx__ TVersion2 (uint maj, uint min)				__NE___ : major{CheckCast{maj}}, minor{CheckCast{min}} {}
 		__Cx__ explicit TVersion2 (const TVersion3<UID> &v)	__NE___	: major{v.major}, minor{v.minor} {}
 
 		__Cx__ TVersion2 (const Self &)						__NE___ = default;

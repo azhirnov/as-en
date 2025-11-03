@@ -62,6 +62,7 @@ namespace
 	template <>				struct FS_ReplaceInType< POTValue >			{ using dst = uint;	using src = POTValue;		};
 	template <>				struct FS_ReplaceInType< POTBytes >			{ using dst = uint;	using src = POTBytes;		};
 	template <>				struct FS_ReplaceInType< KiBytes >			{ using dst = uint;	using src = KiBytes;		};
+	template <>				struct FS_ReplaceInType< Bytes32u >			{ using dst = uint;	using src = Bytes32u;		};
 
 	template <typename T>	struct FS_ReplaceOutType					{ using dst = T;	static T	Cast (T src)		{ return src; }};
 	template <>				struct FS_ReplaceOutType< EFeature >		{ using dst = bool;	static dst	Cast (EFeature src)	{ return src == EFeature::RequireTrue; }};
@@ -217,11 +218,11 @@ namespace
 	}
 
 	static void  FS_maxSpirvVersion (ScriptFeatureSet* ptr, uint val) {
-		ptr->fs.maxShaderVersion.spirv = CheckCast<ushort>(val);
+		ptr->fs.maxShaderVersion.spirv = CheckCast{val};
 	}
 
 	static void  FS_maxMetalVersion (ScriptFeatureSet* ptr, uint val) {
-		ptr->fs.maxShaderVersion.metal = CheckCast<ushort>(val);
+		ptr->fs.maxShaderVersion.metal = CheckCast{val};
 	}
 
 	static void  FS_supportedQueues (ScriptFeatureSet* ptr, EQueueMask val) {

@@ -12,6 +12,142 @@ namespace
 	static constexpr Bytes		c_BufSize	= 128_MiB;
 	static constexpr Bytes		c_BufAlign	= SmallAllocationSize;
 
+	
+#if AE_SIMD_AVX >= 30
+	static void  XorHash ((OUT void* inDst, const Bytes size)
+	{
+	}
+
+	static void  Fp32Sum (OUT void* inDst, const void* inSrc, const Bytes size)
+	{
+		float const*	src	= Cast<float>(inSrc);
+		float*			dst = Cast<float>(inDst);
+		const uint		N	= 16;
+		
+		for (auto* end = src + size; src < end;)
+		{
+			__m512	r0 = _mm512_load_ps( src + N*0 );
+			__m512	r1 = _mm512_load_ps( src + N*1 );
+			__m512	r2 = _mm512_load_ps( src + N*2 );
+			__m512	r3 = _mm512_load_ps( src + N*3 );
+
+			__m512	a0 = _mm512_add_ps( r0, r1 );
+			__m512	a1 = _mm512_add_ps( r2, r3 );
+
+			_mm512_store_ps( dst + N*0, a0 );
+			_mm512_store_ps( dst + N*2, a1 );
+
+			src += N*4;	dst += N*2;
+		}
+	}
+
+#elif AE_SIMD_AVX >= 1
+	static void  XorHash (OUT void* inDst, const Bytes size)
+	{
+		auto*		src	= static_cast<__m256i const *>( inDst );
+		__m256i		h	= _mm256_setzero_si256();
+		
+		for (auto* end = src + size; src < end;)
+		{
+			__m256i		r0 = _mm256_load_si256( src+0 );
+			__m256i		r1 = _mm256_load_si256( src+1 );
+			__m256i		r2 = _mm256_load_si256( src+2 );
+			__m256i		r3 = _mm256_load_si256( src+3 );
+
+			__m256i		h0 = _mm256_xor_si256( r0, r1 );
+			__m256i		h1 = _mm256_xor_si256( r2, r3 );
+
+			h = _mm256_xor_si256( _mm256_xor_si256( h0, h1 ), h );
+			src += 128_b;
+		}
+		
+		auto*		dst = static_cast<__m256i *>( inDst );
+		_mm256_store_si256( OUT dst, h );
+	}
+	
+	static void  Fp32Sum_Cached (OUT void* inDst, const void* inSrc, const Bytes size)
+	{
+		float const*	src	= Cast<float>(inSrc);
+		float*			dst = Cast<float>(inDst);
+		const uint		N	= 8;
+		
+		for (auto* end = src + size; src < end;)
+		{
+			__m256	r0 = _mm256_load_ps( src + N*0 );
+			__m256	r1 = _mm256_load_ps( src + N*1 );
+			__m256	r2 = _mm256_load_ps( src + N*2 );
+			__m256	r3 = _mm256_load_ps( src + N*3 );
+
+			__m256	a0 = _mm256_add_ps( r0, r1 );
+			__m256	a1 = _mm256_add_ps( r2, r3 );
+
+			_mm256_store_ps( dst + N*0, a0 );
+			_mm256_store_ps( dst + N*2, a1 );
+
+			src += N*4;	dst += N*2;
+		}
+	}
+
+#elif AE_SIMD_SSE >= 20
+	static void  XorHash ((OUT void* inDst, const Bytes size)
+	{
+	}
+	
+	static void  Fp32Sum (OUT void* inDst, const void* inSrc, const Bytes size)
+	{
+		float const*	src	= Cast<float>(inSrc);
+		float*			dst = Cast<float>(inDst);
+		const uint		N	= 4;
+		
+		for (auto* end = src + size; src < end;)
+		{
+			__m128	r0 = _mm_load_ps( src + N*0 );
+			__m128	r1 = _mm_load_ps( src + N*1 );
+			__m128	r2 = _mm_load_ps( src + N*2 );
+			__m128	r3 = _mm_load_ps( src + N*3 );
+
+			__m128	a0 = _mm_add_ps( r0, r1 );
+			__m128	a1 = _mm_add_ps( r2, r3 );
+
+			_mm_store_ps( dst + N*0, a0 );
+			_mm_store_ps( dst + N*2, a1 );
+
+			src += N*4;	dst += N*2;
+		}
+	}
+
+#elif AE_SIMD_NEON
+	static void  XorHash ((OUT void* inDst, const Bytes size)
+	{
+	}
+	
+	static void  Fp32Sum (OUT void* inDst, const void* inSrc, const Bytes size)
+	{
+		float const*	src	= Cast<float>(inSrc);
+		float*			dst = Cast<float>(inDst);
+		const uint		N	= 4;
+		
+		for (auto* end = src + size; src < end;)
+		{
+			float32x4_t		r0 = vld1q_f32( src + N*0 );
+			float32x4_t		r1 = vld1q_f32( src + N*1 );
+			float32x4_t		r2 = vld1q_f32( src + N*2 );
+			float32x4_t		r3 = vld1q_f32( src + N*3 );
+
+			float32x4_t		a0 = vaddq_f32( r0, r1 );
+			float32x4_t		a2 = vaddq_f32( r2, r3 );
+
+			vst1q_f32( OUT dst + N*0, a0 );
+			vst1q_f32( OUT dst + N*1, a1 );
+
+			src += N*4;	dst += N*2;
+		}
+	}
+
+#else
+	#error Not implemented
+#endif
+
 
 	template <uint V>
 	static void  CheckCacheSize_MemSet (IntervalProfiler &profiler, StringView str, RstPtr<void> data, const Bytes size,
@@ -32,6 +168,7 @@ namespace
 				if constexpr( V == 0 )	std::memset( OUT data, int(i), usize(size) );
 				if constexpr( V == 1 )	ZeroMem256_Cached( OUT data, size );
 				if constexpr( V == 2 )	ZeroMem256_NonCached( OUT data, size );
+				if constexpr( V == 3 )	XorHash( OUT data, size );
 			}
 
 			profiler.EndIteration();
@@ -80,6 +217,7 @@ namespace
 				if constexpr( V == 1 )	MemCopy256_Cached( OUT data1, data0, size );
 				if constexpr( V == 2 )	MemCopy256_NonCached( OUT data1, data0, size );
 				if constexpr( V == 3 )	MemCopy256_CachedLoad_NonCachedStore( OUT data1, data0, size );
+				if constexpr( V == 4 )	Fp32Sum_Cached( OUT data1, data0, size );
 
 				Swap( data1, data0 );
 			}
@@ -134,6 +272,10 @@ namespace
 					Check_MemCopy<2>( "SIMD non-cached copy", st0.Data(), st1.Data(), base_size, base_count, core_type );
 					Check_MemCopy<3>( "SIMD cached load, non-cached store", st0.Data(), st1.Data(), base_size, base_count, core_type );
 				#endif
+				#if 1
+					Check_MemCopy<4>( "SIMD fp32 sum cached", st0.Data(), st1.Data(), base_size, base_count, core_type );
+					Check_MemSet<3>( "SIMD xor cached", st0.Data(), base_size, base_count, core_type );
+				#endif
 			});
 	}
 
@@ -172,7 +314,7 @@ namespace
 			const usize	count		= usize(c_BufSize / size) * base_count * (is_fast ? 4 : 1);
 			String		cache_info	= FindNearestCacheType( size, coreType );
 
-			AE_LOGI( "MT copy, block "s << ToString(size) );
+			AE_LOGI( "MT, "s << str << ", block " << ToString(size) );
 			profiler.BeginTest( ToString(size), [s=size*count*thread_count, info=RVRef(cache_info), thread_count] (secondsd dt)
 												{
 													double	bandwidth = double(usize(s)) / dt.count();
@@ -217,10 +359,12 @@ namespace
 								if constexpr( V == 1 )	MemCopy256_Cached( OUT data1, data0, size );
 								if constexpr( V == 2 )	MemCopy256_NonCached( OUT data1, data0, size );
 								if constexpr( V == 3 )	MemCopy256_CachedLoad_NonCachedStore( OUT data1, data0, size );
+								if constexpr( V == 4 )	Fp32Sum_Cached( OUT data1, data0, size );
 
 								if constexpr( V == 10 )	std::memset( OUT data0, int(j), usize(size) );
 								if constexpr( V == 11 )	ZeroMem256_Cached( OUT data0, size );
 								if constexpr( V == 12 )	ZeroMem256_NonCached( OUT data0, size );
+								if constexpr( V == 13 )	XorHash( OUT data0, size );
 
 								Swap( data1, data0 );
 							}
@@ -251,7 +395,7 @@ extern void PerfTest_CacheSize ()
 {
 	CheckCacheSize();
 
-	#if 1
+#if 1
 	ForEachCoreType(
 		[&] (auto& core, Function<void()>)
 		{
@@ -268,9 +412,12 @@ extern void PerfTest_CacheSize ()
 				CheckCacheSizeMT<10>( "memset", core_bits, core.type, core_count );
 				CheckCacheSizeMT<11>( "SIMD cached fill", core_bits, core.type, core_count );
 				CheckCacheSizeMT<12>( "SIMD non-cached fill", core_bits, core.type, core_count );
+				
+				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );
+				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );
 			}
 			
-			if ( not core.HasVirtualCores() )
+			if ( not core.HasLogicalCores() )
 				return;
 
 			// per logical core
@@ -286,9 +433,12 @@ extern void PerfTest_CacheSize ()
 				CheckCacheSizeMT<10>( "memset", core_bits, core.type, core_count );
 				CheckCacheSizeMT<11>( "SIMD cached fill", core_bits, core.type, core_count );
 				CheckCacheSizeMT<12>( "SIMD non-cached fill", core_bits, core.type, core_count );
+				
+				CheckCacheSizeMT<4>(  "SIMD fp32 sum cached", core_bits, core.type, core_count );
+				CheckCacheSizeMT<13>( "SIMD xor cached", core_bits, core.type, core_count );
 			}
 		});
-	#endif
+#endif
 
 	TEST_PASSED();
 }

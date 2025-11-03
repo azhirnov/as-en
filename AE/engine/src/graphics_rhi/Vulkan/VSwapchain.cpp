@@ -856,7 +856,7 @@ namespace AE::Graphics
 			_desc.colorFormat	= AEEnumCast( swapchain_info.imageFormat );
 			_desc.colorSpace	= AEEnumCast( swapchain_info.imageColorSpace );
 			_desc.presentMode	= AEEnumCast( swapchain_info.presentMode );
-			_desc.minImageCount	= CheckCast<ubyte>( swapchain_info.minImageCount );
+			_desc.minImageCount	= CheckCast{ swapchain_info.minImageCount };
 			_desc.options		= info.colorImageOptions;
 			_desc.scaling		= AEEnumCast( VkPresentScalingFlagBitsEXT(swapchain_scaling.scalingBehavior) );
 			_desc.scale			= info.scale;

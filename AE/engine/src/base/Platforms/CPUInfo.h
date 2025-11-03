@@ -62,6 +62,9 @@ namespace AE::Base
 			_visitor_( Intel_RocketLake,	)\
 			_visitor_( Intel_AlderLake,		)\
 			_visitor_( Intel_ReptorLake,	)\
+			_visitor_( Intel_MeteorLake,	)\
+			_visitor_( Intel_ArrowLake,		)\
+			_visitor_( Intel_LunarLake,		)\
 			\
 			_visitor_( Intel_SandyBridge_Server,	= _Intel_Server_Begin )\
 			_visitor_( Intel_IvyBridge_Server,		)\
@@ -188,6 +191,11 @@ namespace AE::Base
 
 			// Twin Lake //
 			bool	AVX_VNNI		: 1;	// AE_SIMD_AVX	21		- 256bit vector neural network instructions
+			bool	AVX_VNNI_i8		: 1;
+			bool	AVX_VNNI_i16	: 1;
+
+			// ??? //
+			bool	AVX_10			: 1;	// AE_SIMD_AVX	23
 
 			bool	AVX512F			: 1;	// AE_SIMD_AVX	30		- Foundation
 
@@ -270,8 +278,8 @@ namespace AE::Base
 		{
 			L1_Instuction,		// per core
 			L1_Data,			// per core
-			L2,					// per core
-			L3,
+			L2,					// per core or shared
+			L3,					// shared
 			_Count,
 			Unknown = _Count,
 		};
@@ -282,7 +290,7 @@ namespace AE::Base
 		using MHz_t				= uint;
 		using CoreBits_t		= BitSet< MaxLogicalCores >;
 		using CacheKey_t		= Pair< ECacheType, ECoreType >;
-		using CacheInfoMap_t	= FixedMap< CacheKey_t, CacheGeom, 8 >;
+		using CacheInfoMap_t	= FixedMap< CacheKey_t, CacheGeom, 4*MaxCoreTypes >;
 		using CPUName_t			= FixedString<64>;
 
 		struct Core
@@ -301,7 +309,7 @@ namespace AE::Base
 			ND_ uint  LogicalCount ()		C_NE___	{ return uint(logicalBits.count()); }
 			ND_ uint  PhysicalCount ()		C_NE___	{ return uint(physicalBits.count()); }
 
-			ND_ bool  HasVirtualCores ()	C_NE___	{ return logicalBits != physicalBits; }
+			ND_ bool  HasLogicalCores ()	C_NE___	{ return logicalBits != physicalBits; }
 
 			ND_ uint  FirstLogicalCore ()	C_NE___	{ return BitScanForward( logicalBits.to_ullong() ); }
 			ND_ uint  LastLogicalCore ()	C_NE___	{ return BitScanReverse( logicalBits.to_ullong() ); }

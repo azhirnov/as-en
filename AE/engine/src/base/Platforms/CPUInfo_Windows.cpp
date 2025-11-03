@@ -40,6 +40,8 @@ namespace AE::Base
 */
 	CpuArchInfo::CpuArchInfo () __NE___
 	{
+		Unused( WindowsUtils::SetCurrentThreadAffinity( 0 ));
+
 		// read CPU architecture
 		{
 			SYSTEM_INFO		info = {};
@@ -61,7 +63,7 @@ namespace AE::Base
 	  #ifdef AE_CPU_ARCH_X86_64
 		if ( cpu.arch == ECPUArch::X64 )
 		{
-			ReadX64CPUFeatures( OUT feats, OUT cpu.microArch, OUT cpu.vendor, OUT cpu_name, OUT cache );
+			ReadX64CPUFeatures( OUT feats, OUT cpu.microArch, OUT cpu.vendor, OUT cpu_name );
 
 			feats.SSE2		= feats.SSE2	or ::IsProcessorFeaturePresent( PF_XMMI64_INSTRUCTIONS_AVAILABLE ) != 0;
 			feats.SSE3		= feats.SSE3	or ::IsProcessorFeaturePresent( PF_SSE3_INSTRUCTIONS_AVAILABLE ) != 0;
@@ -105,21 +107,21 @@ namespace AE::Base
 				// info for each logical core
 				const uint	count = buf_size / sizeof(SYSTEM_CPU_SET_INFORMATION);
 
-				FixedMap< BYTE, Core*, MaxCoreTypes >	eff_class_map;
+				FixedMap< ushort, Core*, MaxCoreTypes >	eff_class_map;
 
 				for (uint i = 0; i < count; ++i)
 				{
 					ASSERT( infos[i].Type == CpuSetInformation );
 
 					const auto&	info		= infos[i].CpuSet;
-					auto [iter, inserted]	= eff_class_map.emplace( info.EfficiencyClass, null );
+					ushort		eff_class	= cpu.vendor == ECPUVendor::Intel ? (info.EfficiencyClass << 8) | (info.SchedulingClass & 0xFF) : info.EfficiencyClass;
+					auto [iter, inserted]	= eff_class_map.emplace( eff_class, null );
+
+					if ( iter == Default )
+						break;  // overflow
 
 					if ( inserted )
-					{
-						iter->second		= &cpu.coreTypes.emplace_back();
-						iter->second->name	= cpu_name;
-						iter->second->type	= ECoreType::Performance;
-					}
+						iter->second = &cpu.coreTypes.emplace_back();
 
 					iter->second->logicalBits.set( info.LogicalProcessorIndex );
 					iter->second->physicalBits.set( info.CoreIndex );
@@ -127,7 +129,14 @@ namespace AE::Base
 					// from https://gpuopen.com/gdc-presentations/2022/GDC_AMD_Ryzen_Processor_Software_Optimization.pdf
 					// "Some AMD products have cores which are faster than other cores. The system BIOS describes the CPPC Highest Performance ranking for each logical processor.
 					//  The Windows Kernel creates a PerformanceSchedulingClass ranking based on this information and uses it during scheduling. Logical processor 0 and CCD0 may not be the fastest."
-					// TODO: use 'SchedulingClass' to detect fastest core
+				}
+
+				uint	i = 0;
+				for (auto [cl, core] : eff_class_map)
+				{
+					core->type = ECoreType(uint(ECoreType::Performance) + i);
+					core->name = cpu_name;
+					++i;
 				}
 			}
 
@@ -152,6 +161,7 @@ namespace AE::Base
 			bool	has_freq = false;
 			
 			#ifdef AE_CPU_ARCH_X86_64
+				// will change thread affinity
 				has_freq = ReadX64CPUClock( INOUT cpu.coreTypes );
 			#endif
 
@@ -187,6 +197,14 @@ namespace AE::Base
 		}
 
 		// CPU cache info
+	  #ifdef AE_CPU_ARCH_X86_64
+		if ( cpu.arch == ECPUArch::X64 )
+		{
+			// will change thread affinity
+			ReadX64CacheHierarchy( cpu.vendor, cpu.coreTypes, OUT cache );
+		}
+	  #endif
+
 	  #if AE_PLATFORM_TARGET_VERSION_MAJOR >= 7
 		if ( WindowsUtils::GetOSVersion() >= Version3{7,0,0} )
 		{
@@ -200,7 +218,7 @@ namespace AE::Base
 			const auto	AddCacheInfo = [this] (ECacheType type, const CacheGeom &c)
 			{{
 				if ( c.associativity > 0 or c.lineSize > 0 or c.size > 0 )
-					cache.emplace( CacheKey_t{ type, ECoreType::Unknown }, c );
+					cache.emplace( CacheKey_t{ type, ECoreType::Performance }, c );
 			}};
 
 			if ( ::GetLogicalProcessorInformationEx( RelationCache, OUT info_ptr, INOUT &buf_size ) == TRUE )
@@ -217,14 +235,17 @@ namespace AE::Base
 
 						if ( info.Level == 1 and info.Type == CacheInstruction )	AddCacheInfo( ECacheType::L1_Instuction, c );	else
 						if ( info.Level == 1 and info.Type == CacheData )			AddCacheInfo( ECacheType::L1_Data, c );			else
-						if ( info.Level == 2 and info.Type == CacheData )			AddCacheInfo( ECacheType::L2, c );				else
-						if ( info.Level == 3 and info.Type == CacheData )			AddCacheInfo( ECacheType::L3, c );
+						if ( info.Level == 2 and info.Type == CacheUnified )		AddCacheInfo( ECacheType::L2, c );				else
+						if ( info.Level == 3 and info.Type == CacheUnified )		AddCacheInfo( ECacheType::L3, c );				else
+																					DBG_WARNING( "unsupported cache type" );
 					}
 					info_ptr = info_ptr + Bytes{info_ptr->Size};
 				}
 			}
 		}
 	  #endif
+
+		Unused( WindowsUtils::ResetCurrentThreadAffinity() );
 
 		_Validate();
 	}

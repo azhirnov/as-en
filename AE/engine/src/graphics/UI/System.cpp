@@ -25,7 +25,7 @@ namespace AE::UI
 */
 	SystemImpl::SystemImpl () __NE___
 	{
-		_screenPool.ForEach([] (auto& scr, uint idx) __NE___ { scr._indexInPool = CheckCast<ubyte>(idx); });
+		_screenPool.ForEach([] (auto& scr, uint idx) __NE___ { scr._indexInPool = CheckCast{idx}; });
 	}
 
 /*

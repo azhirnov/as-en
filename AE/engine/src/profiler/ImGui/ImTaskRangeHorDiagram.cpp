@@ -171,12 +171,12 @@ namespace AE::Profiler
 			f.min = Min( f.min, begin );
 			f.max = Max( f.max, end );
 		}
-		auto [iter, inserted] = f.threads.emplace( ThreadID(threadId), CheckCast<InfoIndex>(f.threadInfos.size()) );
+		auto [iter, inserted] = f.threads.emplace( ThreadID(threadId), CheckCast{f.threadInfos.size()} );
 
 		if ( inserted )
 		{
 			ASSERT( not threadCaption.empty() );
-			f.sortedThreads.push_back( CheckCast<InfoIndex>(f.threadInfos.size()) );
+			f.sortedThreads.push_back( CheckCast{f.threadInfos.size()} );
 
 			RGBA8u	tcolor;
 			IntToColor( OUT tcolor, threadId );

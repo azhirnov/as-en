@@ -318,7 +318,7 @@ namespace
 			_SetUploadStatus( EUploadStatus::Completed );
 
 			if ( _outDynCount )
-				_outDynCount->Set( CheckCast<uint>( ArraySize() ));
+				_outDynCount->Set( CheckCast{ ArraySize() });
 		}
 
 		return _uploadStatus.load();

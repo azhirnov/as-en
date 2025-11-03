@@ -353,7 +353,7 @@ namespace
 			if ( p_core == null and ee_core == null )	p_core  = ee_core = cpuInfo.GetCore( 0 );
 			CHECK_ERR( p_core != null and ee_core != null );
 
-			bindThreadToPhysicalCore = bindThreadToPhysicalCore and p_core->HasVirtualCores();
+			bindThreadToPhysicalCore = bindThreadToPhysicalCore and p_core->HasLogicalCores();
 
 			p_core_bits		= bindThreadToPhysicalCore ? p_core->physicalBits : p_core->logicalBits;
 			ee_core_bits	= ee_core->logicalBits;

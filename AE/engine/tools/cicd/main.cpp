@@ -166,6 +166,10 @@ using namespace AE::CICD;
 		auto	addr		= IpAddress::FromHostPortTCP( "192.168.0.xxx", 3000 );
 		auto	provider	= MakeRC<DefaultServerProviderV1>( addr );
 		auto	work_dir	= dir.empty() ? FS::CurrentPath() : Path{dir};
+		auto	pc_name		= PlatformUtils::GetComputerName();
+
+		if ( name.empty() )
+			name = pc_name;
 
 		CHECK_ERR( FS::CreateDirectories( work_dir ));
 
@@ -236,6 +240,8 @@ using namespace AE::CICD;
 		StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
 		StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
 		//StaticLogger::AddLogger( ILogger::CreateDialogOutput() );
+		
+		Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
 
 	  #if 0
 		//	return Main( "start-build-machine", "/home/and/Documents/CICD", "Ubuntu" );

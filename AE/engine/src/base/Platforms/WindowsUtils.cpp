@@ -13,7 +13,7 @@ namespace AE
 	void FastCloseApp ()
 	{
 		// close application without calling any destructors
-        raise( SIGABRT );
+		raise( SIGABRT );
 
 		std::abort();
 	}
@@ -356,7 +356,7 @@ namespace
 		if_likely( ::SetThreadAffinityMask( handle, mask ) != FALSE )	// winxp
 			return true;
 
-		Unused( CheckError( "SetThreadAffinityMask", {}, ELogLevel::Info ));
+		Unused( CheckError( "SetThreadAffinityMask ", {}, ELogLevel::Info ));
 		return false;
 
 		// TODO
@@ -372,6 +372,37 @@ namespace
 	bool  WindowsUtils::SetCurrentThreadAffinity (uint logicalCoreIdx) __NE___
 	{
 		return SetThreadAffinity( GetCurrentThreadHandle(), logicalCoreIdx );
+	}
+
+/*
+=================================================
+	ResetThreadAffinity
+=================================================
+*/
+	bool  WindowsUtils::ResetThreadAffinity (const ThreadHandle &handle) __NE___
+	{
+		DWORD_PTR	mask;
+
+		#if AE_PLATFORM_BITS == 64
+		{
+			mask = (1ull << (std::thread::hardware_concurrency() & 63)) - 1;
+		}
+		#elif AE_PLATFORM_BITS == 32
+		{
+			mask = (1u << (std::thread::hardware_concurrency() & 31)) - 1;
+		}
+		#endif
+
+		if_likely( ::SetThreadAffinityMask( handle, mask ) != FALSE )	// winxp
+			return true;
+
+		Unused( CheckError( "SetThreadAffinityMask ", {}, ELogLevel::Info ));
+		return false;
+	}
+
+	bool  WindowsUtils::ResetCurrentThreadAffinity () __NE___
+	{
+		return ResetThreadAffinity( GetCurrentThreadHandle() );
 	}
 
 /*
@@ -424,7 +455,7 @@ namespace
 		// the extended I/O function (ReadFileEx or WriteFileEx), the function returns when either the time-out
 		// period has elapsed or when an I/O completion callback function occurs. If an I/O completion callback occurs,
 		// the I/O completion function is called.
-		return ::SleepEx( CheckCast<uint>( relativeTime.count() ), TRUE ) == WAIT_IO_COMPLETION;	// winxp
+		return ::SleepEx( CheckCast{ relativeTime.count() }, TRUE ) == WAIT_IO_COMPLETION;	// winxp
 	}
 
 /*
@@ -916,7 +947,7 @@ namespace
 
 		using time_point	= HighResClock::time_point;
 		using duration		= HighResClock::duration;
-        using period		= HighResClock::period;
+		using period		= HighResClock::period;
 
 		const slong		freq			= _Query_perf_frequency(); // doesn't change after system boot
 		constexpr slong TenMHz			= 10'000'000;
@@ -1044,6 +1075,34 @@ namespace
 		switch_end
 
 		return ::SetThreadExecutionState( flags ) != 0;	// winxp
+	}
+	
+/*
+=================================================
+	GetComputerName
+=================================================
+*/
+	String  WindowsUtils::GetComputerName () __NE___
+	{
+		char	buf [MAX_COMPUTERNAME_LENGTH+1] = {};
+		DWORD	size = sizeof(buf);
+
+		CHECK_ERR( ::GetComputerNameA( OUT buf, INOUT &size ) != 0 );  // win2000
+		return String{buf};
+	}
+	
+/*
+=================================================
+	GetUserName
+=================================================
+*/
+	String  WindowsUtils::GetUserName () __NE___
+	{
+		char	buf [128] = {};
+		DWORD	size = sizeof(buf);
+
+		CHECK_ERR( ::GetUserNameA( OUT buf, INOUT &size ) != 0 );  // win2000
+		return String{buf};
 	}
 
 /*

@@ -96,7 +96,7 @@ namespace AE::Graphics
 			const auto	ToGroupIndex = [] (auto* lhs, auto* rhs) __NE___
 			{{
 				ssize	d = Distance( lhs, rhs );
-				return CheckCast<uint>( d );
+				return CheckCast{ d };
 			}};
 
 			_nameToHandle.CreateOrThrow( NameToHandleAlloc_t{ ci.allocator });	// throw

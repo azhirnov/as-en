@@ -55,6 +55,7 @@ namespace AE::ResEditor
 		bool			setStableGPUClock	= false;
 		bool			enableRenderDoc		= false;
 		String			deviceName;
+		Array<Graphics::EDriver>	driverList;
 
 		// remote graphics device
 		ubyte4			ipAddress		{0};

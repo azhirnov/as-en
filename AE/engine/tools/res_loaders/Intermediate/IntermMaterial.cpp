@@ -74,7 +74,7 @@ namespace AE::ResLoader
 
 		_floatData.push_back( value );  // throw
 
-		param.idx	= CheckCast<ubyte>(_floatData.size()-1);
+		param.idx	= CheckCast{_floatData.size()-1};
 		param.type	= EValueType::Float;
 		return true;
 	}
@@ -94,7 +94,7 @@ namespace AE::ResLoader
 
 		_float4Data.push_back( value );  // throw
 
-		param.idx	= CheckCast<ubyte>(_float4Data.size()-1);
+		param.idx	= CheckCast{_float4Data.size()-1};
 		param.type	= EValueType::Float4;
 		return true;
 	}
@@ -114,7 +114,7 @@ namespace AE::ResLoader
 
 		_textures.push_back( RVRef(value) );  // throw
 
-		param.idx	= CheckCast<ubyte>(_textures.size()-1);
+		param.idx	= CheckCast{_textures.size()-1};
 		param.type	= EValueType::Texture;
 		return true;
 	}

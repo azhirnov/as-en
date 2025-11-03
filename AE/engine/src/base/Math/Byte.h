@@ -59,7 +59,7 @@ namespace AE::Base
 		__Cx__ explicit TByte (const void* ptr)						__NE___	: _value{BitCast<usize>(ptr)} {}
 
 		template <typename B>
-		__Cx__ TByte (const TByte<B> &other)						__NE___	: _value{CheckCast<T>(other)} {}
+		__Cx__ TByte (const TByte<B> &other)						__NE___	: _value{CheckCast{ other }} {}
 
 		NdCx__ explicit operator sbyte ()							C_NE___	{ return static_cast<sbyte >(_value); }
 		NdCx__ explicit operator sshort ()							C_NE___	{ return static_cast<sshort>(_value); }
@@ -80,11 +80,11 @@ namespace AE::Base
 	  #endif
 
 		template <typename R>
-		NdCx__ R *			AsPtr ()								C_NE___	{ return BitCast<R *>( CheckCast<usize>( _value )); }
-		NdCx__ void*		AsPtr ()								C_NE___	{ return BitCast<void *>( CheckCast<usize>( _value )); }
+		NdCx__ R *			AsPtr ()								C_NE___	{ return BitCast<R *>( usize{CheckCast{ _value }}); }
+		NdCx__ void*		AsPtr ()								C_NE___	{ return BitCast<void *>( usize{CheckCast{ _value }}); }
 
 		template <typename R>
-		NdCx__ explicit operator R * ()								C_NE___	{ return BitCast<R *>( CheckCast<usize>( _value )); }
+		NdCx__ explicit operator R * ()								C_NE___	{ return BitCast<R *>( usize{CheckCast{ _value }}); }
 
 		NdCx__ T			get ()									C_NE___	{ return _value; }
 		NdCx__ T			KiB ()									C_NE___	{ return _value >> 10; }
@@ -227,10 +227,10 @@ namespace AE::Base
 	NdCx__ SizeAndAlign  SizeAndAlignof (const T &) __NE___ { return Bytes::SizeAndAlignOf<T>(); }
 
 
-	NdCe__ Bytes  operator ""_b  (unsigned long long value)		__NE___	{ return Bytes{ CheckCast<Bytes::Value_t>(value) }; }
-	NdCe__ Bytes  operator ""_KiB (unsigned long long value)	__NE___	{ return Bytes::FromKiB( CheckCast<Bytes::Value_t>(value) ); }
-	NdCe__ Bytes  operator ""_MiB (unsigned long long value)	__NE___	{ return Bytes::FromMiB( CheckCast<Bytes::Value_t>(value) ); }
-	NdCe__ Bytes  operator ""_GiB (unsigned long long value)	__NE___	{ return Bytes::FromGiB( CheckCast<Bytes::Value_t>(value) ); }
+	NdCe__ Bytes  operator ""_b  (unsigned long long value)		__NE___	{ return Bytes{ Bytes::Value_t{ CheckCast{ value }}}; }
+	NdCe__ Bytes  operator ""_KiB (unsigned long long value)	__NE___	{ return Bytes::FromKiB( CheckCast{ value }); }
+	NdCe__ Bytes  operator ""_MiB (unsigned long long value)	__NE___	{ return Bytes::FromMiB( CheckCast{ value }); }
+	NdCe__ Bytes  operator ""_GiB (unsigned long long value)	__NE___	{ return Bytes::FromGiB( CheckCast{ value }); }
 
 
 	namespace _hidden_

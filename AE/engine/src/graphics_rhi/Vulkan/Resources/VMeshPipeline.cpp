@@ -235,7 +235,7 @@ namespace AE::Graphics
 
 		_dynamicState	= ci.specCI.dynamicState;
 		_options		= ci.specCI.options;
-		_subpassIndex	= CheckCast<ubyte>(subpass_idx);
+		_subpassIndex	= CheckCast{ subpass_idx };
 
 		CopyShaderTrace( ci.shaders, ci.allocator, OUT _dbgTrace );
 

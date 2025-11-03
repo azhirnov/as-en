@@ -120,7 +120,7 @@ namespace AE::Graphics
 			ASSERT_Cx( v != 0 );	// 'c' must be R, G, B, A, 0, 1
 			sw |= (v << (3 - i) * 4);
 		}
-		res._value = CheckCast<ushort>(sw);
+		res._value = CheckCast{ sw };
 		return res;
 	}
 

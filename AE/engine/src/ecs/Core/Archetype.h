@@ -298,7 +298,7 @@ namespace AE::ECS
 
 			for (; (j >= 0) and (not result.IsFull()); j = u.ExtractBitIndex())
 			{
-				ComponentID	id{ CheckCast<ushort>( j + i*BitsPerChunk )};
+				ComponentID	id{ CheckCast{ j + i*BitsPerChunk }};
 
 				result.push_back( id );
 			}

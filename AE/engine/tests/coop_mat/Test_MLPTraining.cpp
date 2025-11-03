@@ -63,7 +63,7 @@ namespace
 					int	d  = wg * in;
 					sum += d;
 				}
-				output[i] = CheckCast<sint>( sum );
+				output[i] = CheckCast{ sum };
 			}
 		}
 		else
@@ -79,7 +79,7 @@ namespace
 					int d  = wg * in;
 					sum += d;
 				}
-				output[i] = CheckCast<sint>( sum );
+				output[i] = CheckCast{ sum };
 			}
 		}
 	}

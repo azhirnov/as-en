@@ -127,7 +127,7 @@ namespace
 		_desc.arrayLayers	= layers;
 		_desc.mipLevels		= mipmaps;
 		_desc.imageDim		= dim.z > 1 ? EImageDim_3D : EImageDim_2D;
-		_desc.dimension		= CheckCast<ImageDim_t>(dim);
+		_desc.dimension		= CheckCast{ dim };
 		_desc.Validate();
 
 		_imageType			= GetDescriptorImageType( _desc );

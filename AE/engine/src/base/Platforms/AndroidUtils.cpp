@@ -108,6 +108,28 @@ namespace AE::Base
 
 /*
 =================================================
+	ResetThreadAffinity
+=================================================
+*/
+	bool  AndroidUtils::ResetThreadAffinity (const ThreadHandle &handle) __NE___
+	{
+		CHECK_ERR( handle == GetCurrentThreadHandle() );
+		return ResetCurrentThreadAffinity();
+	}
+
+	bool  AndroidUtils::ResetCurrentThreadAffinity () __NE___
+	{
+		::cpu_set_t  mask;
+		CPU_ZERO( OUT &mask );
+
+		for (uint i = 0, cnt = std::thread::hardware_concurrency(); i < cnt; ++i)
+			CPU_SET( i, INOUT &mask );
+
+		return ::sched_setaffinity( 0, sizeof(mask), &mask ) == 0;
+	}
+
+/*
+=================================================
 	SetThreadPriority
 =================================================
 */

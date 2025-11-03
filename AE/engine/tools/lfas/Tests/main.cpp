@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/Common.h"
+#include "base/Platforms/Platform.h"
 
 extern void UnitTest_Ranges ();
 extern void Test_SpinLock ();
@@ -12,11 +13,14 @@ extern void Test_LfLinearAllocator ();
 
 int main ()
 {
+	using namespace AE::Base;
+
 	#ifdef AE_CFG_DEBUG
 	return 0;
 	#endif
 
-	AE::Base::StaticLogger::LoggerDbgScope	log{};
+	StaticLogger::LoggerDbgScope	log{};
+	CHECK( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
 
 	UnitTest_Ranges();
 	Test_SpinLock();

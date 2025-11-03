@@ -1,11 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	docs:
-		[Vulkan spec](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html)
+		[Vulkan spec](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html), [[backup](https://github.com/azhirnov/as-en/blob/dev/AE-Data/_docs/vkspec.pdf)]
 		[GLSL ref](https://registry.khronos.org/OpenGL-Refpages/gl4/)
 		[GLSL ext](https://github.com/KhronosGroup/GLSL/extensions)
-		[GLSL spec](https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.pdf)
-		[SPIRV spec](https://registry.khronos.org/SPIR-V/specs/unified1/SPIRV.html)
+		[GLSL spec](https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.pdf), [[backup](https://github.com/azhirnov/as-en/blob/dev/AE-Data/_docs/glsl.pdf)]
+		[SPIRV spec](https://registry.khronos.org/SPIR-V/specs/unified1/SPIRV.html), [[backup](https://github.com/azhirnov/as-en/blob/dev/AE-Data/_docs/spirv.pdf)]
 
 	[supported features](https://github.com/azhirnov/as-en/blob/dev/AE/docs/engine/VulkanRHI.md)
 */

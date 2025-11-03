@@ -70,7 +70,7 @@ namespace
 
 		static KTX_error_code  GetPos (ktxStream* str, ktx_off_t* const offset) __NE___
 		{
-			*offset = CheckCast<ktx_off_t>( _Cast(str).Position() );
+			*offset = CheckCast{ _Cast(str).Position() };
 			return KTX_SUCCESS;
 		}
 
@@ -82,7 +82,7 @@ namespace
 
 		static KTX_error_code  GetSize (ktxStream* str, ktx_size_t* const size) __NE___
 		{
-			*size = CheckCast<ktx_size_t>( _Cast(str).Size() );
+			*size = CheckCast{ _Cast(str).Size() };
 			return KTX_SUCCESS;
 		}
 
@@ -125,7 +125,7 @@ namespace
 
 		static KTX_error_code  GetPos (ktxStream* str, ktx_off_t* const offset) __NE___
 		{
-			*offset = CheckCast<ktx_off_t>( _Cast(str).Position() );
+			*offset = CheckCast{ _Cast(str).Position() };
 			return KTX_SUCCESS;
 		}
 
@@ -137,7 +137,7 @@ namespace
 
 		static KTX_error_code  GetSize (ktxStream* str, ktx_size_t* const size) __NE___
 		{
-			*size = CheckCast<ktx_size_t>( _Cast(str).Position() );
+			*size = CheckCast{ _Cast(str).Position() };
 			return KTX_SUCCESS;
 		}
 

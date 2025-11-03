@@ -114,7 +114,7 @@ namespace AE::PipelineCompiler
 			CHECK_ERR( idx < offsets.size() );
 
 			ushort	max_idx;
-			CHECK_ERR( CheckCast( OUT max_idx, i+1 ));
+			CHECK_ERR( CastAndCheck( OUT max_idx, i+1 ));
 
 			offsets[idx] = Max( offsets[idx], max_idx );
 		}
@@ -357,7 +357,7 @@ namespace AE::PipelineCompiler
 
 			if ( src_un.type == EDescriptorType::CombinedImage_ImmutableSampler )
 			{
-				dst_un.image.samplerOffsetInStorage = CheckCast<SamplerIdx_t>(samplerStorage.size());
+				dst_un.image.samplerOffsetInStorage = CheckCast{samplerStorage.size()};
 
 				for (usize i = 0; i < src_un.arraySize; ++i) {
 					samplerStorage.push_back( other.samplerStorage[ src_un.image.samplerOffsetInStorage + i ]);
@@ -366,7 +366,7 @@ namespace AE::PipelineCompiler
 
 			if ( src_un.type == EDescriptorType::ImmutableSampler )
 			{
-				dst_un.immutableSampler.offsetInStorage = CheckCast<SamplerIdx_t>(samplerStorage.size());
+				dst_un.immutableSampler.offsetInStorage = CheckCast{samplerStorage.size()};
 
 				for (usize i = 0; i < src_un.arraySize; ++i) {
 					samplerStorage.push_back( other.samplerStorage[ src_un.immutableSampler.offsetInStorage + i ]);
@@ -1500,7 +1500,7 @@ namespace {
 */
 	ShaderBytecode::ShaderBytecode (SpirvBytecode_t inCode, const SpecConstants_t &inSpec) :
 		code{RVRef(inCode)},
-		typeIdx{CheckCast<ubyte>(code.index())}
+		typeIdx{CheckCast{ code.index() }}
 	{
 		_CopySpecConst( inSpec );
 		dataSize += ArraySizeOf( *UnionGet<SpirvBytecode_t>( this->code ));
@@ -1509,7 +1509,7 @@ namespace {
 
 	ShaderBytecode::ShaderBytecode (MetalBytecode_t inCode, const SpecConstants_t &inSpec) :
 		code{RVRef(inCode)},
-		typeIdx{CheckCast<ubyte>(code.index())}
+		typeIdx{CheckCast{ code.index() }}
 	{
 		_CopySpecConst( inSpec );
 		dataSize += ArraySizeOf( *UnionGet<MetalBytecode_t>( this->code ));
@@ -1518,7 +1518,7 @@ namespace {
 
 	ShaderBytecode::ShaderBytecode (SpirvWithTrace inCode, const SpecConstants_t &inSpec) :
 		code{RVRef(inCode)},
-		typeIdx{CheckCast<ubyte>(code.index())}
+		typeIdx{CheckCast{ code.index() }}
 	{
 		_CopySpecConst( inSpec );
 
@@ -1556,7 +1556,7 @@ namespace {
 	bool  ShaderBytecode::Serialize (Serializing::Serializer &ser) C_NE___
 	{
 		CHECK_ERR( GetDataSize() <= MaxBytecodeSize );
-		return ser( CheckCast<uint>(offset), dataSize, data2Size, typeIdx );
+		return ser( uint{CheckCast{ offset }}, dataSize, data2Size, typeIdx );
 	}
 
 /*
@@ -1600,7 +1600,7 @@ namespace {
 				res &= stream.Write( h );
 				res &= stream.Write( val );
 			}
-			return res and stream.Write( CheckCast<uint>(spec.size()) );
+			return res and stream.Write( uint{CheckCast{spec.size()}} );
 		}};
 
 		Visit( code,
@@ -1705,7 +1705,7 @@ namespace {
 		uint	index = 0;
 		for (auto* un : sorted)
 		{
-			un->buffer.dynamicOffsetIndex = CheckCast<ushort>( index++ );
+			un->buffer.dynamicOffsetIndex = CheckCast{ index++ };
 		}
 	}
 

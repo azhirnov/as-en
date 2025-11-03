@@ -7,6 +7,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 * [AMD Ryzen 7 8745HS](#Ryzen-7-8745HS)
 * [Intel i5 8250U](#Intel-i5-8250U)
 * [Intel N150](#Intel-N150)
+* [Intel Ultra 7 255H](#Intel-Ultra-7-255H)
 * [MediaTek Helio G96](#MediaTek-Helio-G96)
 * [MediaTek Dimensity 7020](#MediaTek-Dimensity-7020)
 * [MediaTek Dimensity 8200](#MediaTek-Dimensity-8200)
@@ -26,10 +27,11 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 	- write to L1: 32B/cy
 	- read L1: 64B/cy
 	- L2 to L1: 32B/cy
+	- L3 to L2: 32B/cy
 * Memory: DDR4, 3GHz, 24GB/s *(must be 48GB/s in dual channel mode)*
 * Theoretical performance:<br/>
   32B/cy write to L1 * 4.2GHz = 134.4 GB/s - max speed of memset<br/>
-  64B/cy read from L1 * 4.2GHz = 268.8 GB/s - max speed of search<br/>
+  64B/cy read from L1 * 4.2GHz = 268.8 GB/s - max speed of sum/hash<br/>
 
 **Results**
 
@@ -37,8 +39,8 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 |---|---|---|---|---|
 | cached copy     | <= 16 KiB      | 130 | 95 - 115 |
 | cached copy     | 32 KiB - 2 MiB |     | 45 - 65  |
-| non-cached copy | >= 64 KiB      | 19  | 19.5     |
-| non-cached copy | >= 8 KiB       | -   | 19.5     |
+| non-cached copy | => 64 KiB      | 19  | 19.5     |
+| non-cached copy | => 8 KiB       | -   | 19.5     |
 | cached fill     | <= 512 KiB     | 130 | 
 
 <details><summary><b>memcpy, single thread</b></summary>
@@ -61,7 +63,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 52.01 ms | +165% | +24%  | 51.6GB/s   |  L2, 512 KiB | 
 | 1 MiB   | 53.85 ms | +175% | +4%   | 49.8GB/s   |              | 
 | 2 MiB   | 0.14 s   | +635% | +167% | 18.6GB/s   |              | 
-| 4 MiB   | 0.14 s   | +627% | +1%   | 18.8GB/s   |              | 
+| 4 MiB   | 0.14 s   | +627% | +1%   | 18.8GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 0.14 s   | +628% | -     | 18.8GB/s   |              | 
 | 16 MiB  | 0.14 s   | +628% | -     | 18.8GB/s   |  L3, 16 MiB  | 
 | 32 MiB  | 0.14 s   | +638% | +1%   | 18.6GB/s   |              | 
@@ -86,7 +88,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 51.79 ms | +164%  | +23%  | 51.8GB/s   |  L2, 512 KiB | 
 | 1 MiB   | 53.74 ms | +174%  | +4%   | 49.9GB/s   |              | 
 | 2 MiB   | 54.09 ms | +176%  | +1%   | 49.6GB/s   |              | 
-| 4 MiB   | 54.32 ms | +177%  | -     | 49.4GB/s   |              | 
+| 4 MiB   | 54.32 ms | +177%  | -     | 49.4GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 90.27 ms | +360%  | +66%  | 29.7GB/s   |              | 
 | 16 MiB  | 0.25 s   | +1174% | +177% | 10.7GB/s   |  L3, 16 MiB  | 
 | 32 MiB  | 0.25 s   | +1192% | +1%   | 10.6GB/s   |              | 
@@ -111,7 +113,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 0.14 s | -      | +1%  | 19.5GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 0.15 s | +7%    | +7%  | 18.1GB/s  |              | 
 | 2 MiB   | 0.15 s | +5%    | +2%  | 18.5GB/s  |              | 
-| 4 MiB   | 0.14 s | +4%    | +1%  | 18.7GB/s  |              | 
+| 4 MiB   | 0.14 s | +4%    | +1%  | 18.7GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 0.14 s | +4%    | -    | 18.7GB/s  |              | 
 | 16 MiB  | 0.14 s | +4%    | -    | 18.7GB/s  |  L3, 16 MiB  | 
 | 32 MiB  | 0.14 s | +4%    | +1%  | 18.8GB/s  |              | 
@@ -139,7 +141,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 55.52 ms | +174%  | +15%  | 193.4GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 59.16 ms | +192%  | +7%   | 181.5GB/s  |              | 
 | 2 MiB   | 0.55 s   | +2639% | +838% | 19.3GB/s   |              | 
-| 4 MiB   | 0.55 s   | +2607% | +1%   | 19.6GB/s   |              | 
+| 4 MiB   | 0.55 s   | +2607% | +1%   | 19.6GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 0.55 s   | +2602% | -     | 19.6GB/s   |              | 
 | 16 MiB  | 0.55 s   | +2605% | -     | 19.6GB/s   |  L3, 16 MiB  | 
 | 32 MiB  | 0.55 s   | +2612% | -     | 19.5GB/s   |              | 
@@ -164,7 +166,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 55.69 ms | +138%  | +22%  | 192.8GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 58.26 ms | +149%  | +5%   | 184.3GB/s  |              | 
 | 2 MiB   | 58.32 ms | +149%  | -     | 184.1GB/s  |              | 
-| 4 MiB   | 0.60 s   | +2481% | +937% | 17.8GB/s   |              | 
+| 4 MiB   | 0.60 s   | +2481% | +937% | 17.8GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 0.72 s   | +2953% | +18%  | 15.0GB/s   |              | 
 | 16 MiB  | 0.89 s   | +3698% | +24%  | 12.1GB/s   |  L3, 16 MiB  | 
 | 32 MiB  | 0.89 s   | +3697% | -     | 12.1GB/s   |              | 
@@ -189,7 +191,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 0.57 s | +6%   | +2%  | 18.7GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 0.56 s | +3%   | +3%  | 19.3GB/s  |              | 
 | 2 MiB   | 0.54 s | -     | +3%  | 19.8GB/s  |              | 
-| 4 MiB   | 0.54 s | -     | -    | 19.7GB/s  |              | 
+| 4 MiB   | 0.54 s | -     | -    | 19.7GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 0.54 s | +1%   | -    | 19.7GB/s  |              | 
 | 16 MiB  | 0.55 s | +1%   | -    | 19.7GB/s  |  L3, 16 MiB  | 
 | 32 MiB  | 0.54 s | -     | -    | 19.7GB/s  |              | 
@@ -217,7 +219,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 22.09 ms | +12%  | +10%  | 121.5GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 27.75 ms | +41%  | +26%  | 96.7GB/s   |              | 
 | 2 MiB   | 27.87 ms | +42%  | -     | 96.3GB/s   |              | 
-| 4 MiB   | 28.05 ms | +43%  | +1%   | 95.7GB/s   |              | 
+| 4 MiB   | 28.05 ms | +43%  | +1%   | 95.7GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 28.09 ms | +43%  | -     | 95.6GB/s   |              | 
 | 16 MiB  | 59.35 ms | +202% | +111% | 45.2GB/s   |  L3, 16 MiB  | 
 | 32 MiB  | 0.17 s   | +757% | +184% | 15.9GB/s   |              | 
@@ -242,7 +244,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 22.13 ms | +14%  | +9%   | 121.3GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 27.47 ms | +42%  | +24%  | 97.7GB/s   |              | 
 | 2 MiB   | 27.84 ms | +44%  | +1%   | 96.4GB/s   |              | 
-| 4 MiB   | 28.07 ms | +45%  | +1%   | 95.6GB/s   |              | 
+| 4 MiB   | 28.07 ms | +45%  | +1%   | 95.6GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 27.99 ms | +45%  | -     | 95.9GB/s   |              | 
 | 16 MiB  | 59.52 ms | +208% | +113% | 45.1GB/s   |  L3, 16 MiB  | 
 | 32 MiB  | 0.17 s   | +769% | +182% | 16.0GB/s   |              | 
@@ -267,12 +269,64 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 0.11 s | +1%   | -    | 23.5GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 0.11 s | -     | -    | 23.6GB/s  |              | 
 | 2 MiB   | 0.11 s | -     | -    | 23.6GB/s  |              | 
-| 4 MiB   | 0.11 s | -     | -    | 23.7GB/s  |              | 
+| 4 MiB   | 0.11 s | -     | -    | 23.7GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 0.11 s | -     | -    | 23.7GB/s  |              | 
 | 16 MiB  | 0.11 s | -     | -    | 23.7GB/s  |  L3, 16 MiB  | 
 | 32 MiB  | 0.11 s | -     | -    | 23.7GB/s  |              | 
 | 64 MiB  | 0.11 s | -     | -    | 23.7GB/s  |              | 
 | 128 MiB | 0.11 s | -     | -    | 23.7GB/s  |              |
+
+</details>
+<details><summary><b>fp32 sum, single thread</b></summary>
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|-------|------------|-------------|
+| 256 B   | 30.04 ms | +182%  | -     | 89.4GB/s   |
+| 512 B   | 15.21 ms | +43%   | +49%  | 176.5GB/s  |
+| 1 KiB   | 12.81 ms | +20%   | +16%  | 209.6GB/s  |
+| 2 KiB   | 11.22 ms | +5%    | +12%  | 239.2GB/s  |
+| 4 KiB   | 10.80 ms | +1%    | +4%   | 248.5GB/s  | page, 4 KiB |
+| 8 KiB   | 10.65 ms | -      | +1%   | 252.2GB/s  |
+| 16 KiB  | 11.49 ms | +8%    | +8%   | 233.6GB/s  |
+| 32 KiB  | 26.11 ms | +145%  | +127% | 102.8GB/s  | L1D, 32 KiB |
+| 64 KiB  | 30.03 ms | +182%  | +15%  | 89.4GB/s   |
+| 128 KiB | 30.03 ms | +182%  | -     | 89.4GB/s   |
+| 256 KiB | 31.32 ms | +194%  | +4%   | 85.7GB/s   |
+| 512 KiB | 36.88 ms | +246%  | +18%  | 72.8GB/s   | L2, 512 KiB |
+| 1 MiB   | 37.91 ms | +256%  | +3%   | 70.8GB/s   |
+| 2 MiB   | 38.01 ms | +257%  | -     | 70.6GB/s   |
+| 4 MiB   | 38.17 ms | +259%  | -     | 70.3GB/s   | L3 slice, 4 MiB |
+| 8 MiB   | 51.76 ms | +386%  | +36%  | 51.9GB/s   |
+| 16 MiB  | 0.16 s   | +1449% | +219% | 16.3GB/s   | L3, 16 MiB  |
+| 32 MiB  | 0.18 s   | +1575% | +8%   | 15.1GB/s   |
+| 64 MiB  | 0.18 s   | +1567% | -     | 15.1GB/s   |
+| 128 MiB | 0.18 s   | +1558% | +1%   | 15.2GB/s   |
+
+</details>
+<details><summary><b>xor hash, single thread</b></summary>
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|-------|------------|-------------|
+| 256 B   | 33.37 ms | +215%  | -     | 80.4GB/s   |
+| 512 B   | 19.10 ms | +80%   | +43%  | 140.6GB/s  |
+| 1 KiB   | 12.56 ms | +19%   | +34%  | 213.7GB/s  |
+| 2 KiB   | 11.33 ms | +7%    | +10%  | 237.0GB/s  |
+| 4 KiB   | 10.83 ms | +2%    | +4%   | 247.8GB/s  | page, 4 KiB |
+| 8 KiB   | 10.58 ms | -      | +2%   | 253.7GB/s  |
+| 16 KiB  | 11.21 ms | +6%    | +6%   | 239.5GB/s  |
+| 32 KiB  | 10.82 ms | +2%    | +3%   | 248.0GB/s  | L1D, 32 KiB |
+| 64 KiB  | 20.50 ms | +94%   | +89%  | 130.9GB/s  |
+| 128 KiB | 20.21 ms | +91%   | +1%   | 132.9GB/s  |
+| 256 KiB | 20.39 ms | +93%   | +1%   | 131.7GB/s  |
+| 512 KiB | 21.12 ms | +100%  | +4%   | 127.1GB/s  | L2, 512 KiB |
+| 1 MiB   | 28.47 ms | +169%  | +35%  | 94.3GB/s   |
+| 2 MiB   | 28.84 ms | +173%  | +1%   | 93.1GB/s   |
+| 4 MiB   | 29.07 ms | +175%  | +1%   | 92.3GB/s   | L3 slice, 4 MiB |
+| 8 MiB   | 29.78 ms | +181%  | +2%   | 90.2GB/s   |
+| 16 MiB  | 56.26 ms | +432%  | +89%  | 47.7GB/s   | L3, 16 MiB  |
+| 32 MiB  | 0.12 s   | +995%  | +106% | 23.2GB/s   |
+| 64 MiB  | 0.12 s   | +1005% | +1%   | 23.0GB/s   |
+| 128 MiB | 0.11 s   | +973%  | +3%   | 23.6GB/s   |
 
 </details>
 <details><summary><b>memset, multithreading (4 threads bound to physical cores)</b></summary>
@@ -295,7 +349,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 29.64 ms | +47%   | +3%   | 362.3GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 35.76 ms | +77%   | +21%  | 300.3GB/s  |              | 
 | 2 MiB   | 35.87 ms | +77%   | -     | 299.3GB/s  |              | 
-| 4 MiB   | 0.38 s   | +1798% | +970% | 28.0GB/s   |              | 
+| 4 MiB   | 0.38 s   | +1798% | +970% | 28.0GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 0.47 s   | +2246% | +24%  | 22.6GB/s   |              | 
 | 16 MiB  | 0.61 s   | +2918% | +29%  | 17.6GB/s   |  L3, 16 MiB  | 
 | 32 MiB  | 0.61 s   | +2918% | -     | 17.6GB/s   |              | 
@@ -320,7 +374,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 32.65 ms | +48%   | +19%   | 328.9GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 35.72 ms | +62%   | +9%    | 300.6GB/s  |              | 
 | 2 MiB   | 33.86 ms | +53%   | +5%    | 317.1GB/s  |              | 
-| 4 MiB   | 0.42 s   | +1799% | +1138% | 25.6GB/s   |              | 
+| 4 MiB   | 0.42 s   | +1799% | +1138% | 25.6GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 0.49 s   | +2111% | +16%   | 22.0GB/s   |              | 
 | 16 MiB  | 0.61 s   | +2672% | +25%   | 17.5GB/s   |  L3, 16 MiB  | 
 | 32 MiB  | 0.61 s   | +2667% | -      | 17.6GB/s   |              | 
@@ -345,7 +399,7 @@ Different memcpy implementations: [src](https://github.com/azhirnov/as-en/blob/d
 | 512 KiB | 0.45 s | -     | -    | 23.7GB/s  |  L2, 512 KiB | 
 | 1 MiB   | 0.45 s | +1%   | -    | 23.6GB/s  |              | 
 | 2 MiB   | 0.45 s | -     | +1%  | 23.7GB/s  |              | 
-| 4 MiB   | 0.45 s | -     | -    | 23.8GB/s  |              | 
+| 4 MiB   | 0.45 s | -     | -    | 23.8GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 0.45 s | -     | -    | 23.8GB/s  |              | 
 | 16 MiB  | 0.45 s | -     | -    | 23.7GB/s  |  L3, 16 MiB  | 
 | 32 MiB  | 0.45 s | -     | -    | 23.8GB/s  |              | 
@@ -693,6 +747,1073 @@ SIMD non-cached copy, 4 threads bound to physical cores:
 ```
 
 </details>
+
+# Intel Ultra 7 255H
+
+<details><summary><b>Cache hierarchy from cpuid</b></summary>
+
+```
+Performance
+    base clock: 3700 MHz
+    max clock:  5100 MHz
+    threads:    6 / 6
+    IDs:        (0-1, 10-13)
+    -----
+    L1I.lineSize:      64 B
+    L1I.associativity: 16
+    L1I.cores          2
+    L1I.size:  . . . . 64 KiB
+    L1I.total:         192 KiB
+    -----
+    L1D.lineSize:      64 B
+    L1D.associativity: 12
+    L1D.cores          2
+    L1D.size:  . . . . 48 KiB
+    L1D.total:         144 KiB
+    -----
+    L2 .lineSize:      64 B
+    L2 .associativity: 12
+    L2 .cores          8
+    L2 .size:  . . . . 3 MiB
+    L2 .total:         3 MiB
+    -----
+    L3 .lineSize:      64 B
+    L3 .associativity: 12
+    L3 .cores          64
+    L3 .size:  . . . . 24 MiB
+    L3 .total:         24 MiB
+    ----------
+
+EnergyEfficient
+    base clock: 3700 MHz
+    max clock:  4400 MHz
+    threads:    8 / 8
+    IDs:        (2-9)
+    -----
+    L1I.lineSize:      64 B
+    L1I.associativity: 8
+    L1I.cores          1
+    L1I.size:  . . . . 64 KiB
+    L1I.total:         512 KiB
+    -----
+    L1D.lineSize:      64 B
+    L1D.associativity: 8
+    L1D.cores          1
+    L1D.size:  . . . . 32 KiB
+    L1D.total:         256 KiB
+    -----
+    L2 .lineSize:      64 B
+    L2 .associativity: 16
+    L2 .cores          8
+    L2 .size:  . . . . 4 MiB
+    L2 .total:         4 MiB
+    -----
+    L3 .lineSize:      64 B
+    L3 .associativity: 12
+    L3 .cores          64
+    L3 .size:  . . . . 24 MiB
+    L3 .total:         24 MiB
+    ----------
+
+LowPower
+    base clock: 3700 MHz
+    max clock:  4400 MHz
+    threads:    2 / 2
+    IDs:        (14-15)
+    -----
+    L1I.lineSize:      64 B
+    L1I.associativity: 8
+    L1I.cores          1
+    L1I.size:  . . . . 64 KiB
+    L1I.total:         128 KiB
+    -----
+    L1D.lineSize:      64 B
+    L1D.associativity: 8
+    L1D.cores          1
+    L1D.size:  . . . . 32 KiB
+    L1D.total:         64 KiB
+    -----
+    L2 .lineSize:      64 B
+    L2 .associativity: 16
+    L2 .cores          8
+    L2 .size:  . . . . 2 MiB
+    L2 .total:         2 MiB
+    ----------
+```
+
+</details>
+
+## P-core
+
+* Theoretical performance:<br/>
+  64B/cy write to L1 * 5.1GHz = 326 GB/s - max speed of memset<br/>
+  128B/cy read from L1 * 5.1GHz = 652 GB/s - max speed of sum/hash<br/>
+  32B/cy write to L2 * 5.1GHz = 163 GB/s - max speed of memset to L2<br/>
+
+<details><summary><b>memcpy, single thread</b></summary>
+
+**memcpy**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|-------|------------|--------------|
+| 256 B   | 33.82 ms | +278%  | -     | 79.4GB/s   | 
+| 512 B   | 26.64 ms | +198%  | +21%  | 100.7GB/s  | 
+| 1 KiB   | 18.54 ms | +107%  | +30%  | 144.8GB/s  | 
+| 2 KiB   | 11.13 ms | +24%   | +40%  | 241.3GB/s  | 
+| 4 KiB   | 8.94 ms  | -      | +20%  | 300.2GB/s  | page, 4 KiB  | 
+| 8 KiB   | 8.94 ms  | -      | -     | 300.1GB/s  | 
+| 16 KiB  | 9.18 ms  | +3%    | +3%   | 292.5GB/s  | 
+| 32 KiB  | 31.48 ms | +252%  | +243% | 85.3GB/s   | 
+| 64 KiB  | 33.58 ms | +275%  | +7%   | 79.9GB/s   | L1D, 48 KiB  | 
+| 128 KiB | 34.09 ms | +281%  | +2%   | 78.8GB/s   | 
+| 256 KiB | 36.07 ms | +303%  | +6%   | 74.4GB/s   | L1.5D, 192 KB |
+| 512 KiB | 37.31 ms | +317%  | +3%   | 71.9GB/s   | 
+| 1 MiB   | 36.96 ms | +313%  | +1%   | 72.6GB/s   | 
+| 2 MiB   | 0.11 s   | +1125% | +196% | 24.5GB/s   | 
+| 4 MiB   | 0.11 s   | +1125% | -     | 24.5GB/s   | L2, 3 MiB | 
+| 8 MiB   | 0.11 s   | +1123% | -     | 24.5GB/s   | 
+| 16 MiB  | 0.11 s   | +1128% | -     | 24.5GB/s   | 
+| 32 MiB  | 0.11 s   | +1147% | +2%   | 24.1GB/s   | L3, 24 MiB   | 
+| 64 MiB  | 0.11 s   | +1136% | +1%   | 24.3GB/s   | 
+| 128 MiB | 0.12 s   | +1191% | +4%   | 23.3GB/s   |
+
+**SIMD cached copy**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|-------|------------|--------------|
+| 256 B   | 34.23 ms | +293%  | -     | 78.4GB/s   | 
+| 512 B   | 20.40 ms | +134%  | +40%  | 131.6GB/s  | 
+| 1 KiB   | 16.07 ms | +85%   | +21%  | 167.1GB/s  | 
+| 2 KiB   | 10.40 ms | +20%   | +35%  | 258.0GB/s  | 
+| 4 KiB   | 8.71 ms  | -      | +16%  | 308.1GB/s  | page, 4 KiB  | 
+| 8 KiB   | 8.71 ms  | -      | -     | 308.4GB/s  | 
+| 16 KiB  | 8.71 ms  | -      | -     | 308.2GB/s  | 
+| 32 KiB  | 35.82 ms | +312%  | +311% | 74.9GB/s   | 
+| 64 KiB  | 35.30 ms | +305%  | +1%   | 76.0GB/s   | L1D, 48 KiB  | 
+| 128 KiB | 47.89 ms | +450%  | +36%  | 56.1GB/s   |
+| 256 KiB | 46.40 ms | +433%  | +3%   | 57.9GB/s   | L1.5D, 192 KB | 
+| 512 KiB | 45.82 ms | +426%  | +1%   | 58.6GB/s   | 
+| 1 MiB   | 46.27 ms | +431%  | +1%   | 58.0GB/s   | 
+| 2 MiB   | 0.10 s   | +1065% | +119% | 26.5GB/s   | 
+| 4 MiB   | 0.12 s   | +1285% | +19%  | 22.3GB/s   | L2, 3 MiB | 
+| 8 MiB   | 0.12 s   | +1268% | +1%   | 22.5GB/s   | 
+| 16 MiB  | 0.13 s   | +1433% | +12%  | 20.1GB/s   | 
+| 32 MiB  | 0.16 s   | +1763% | +22%  | 16.5GB/s   | L3, 24 MiB   | 
+| 64 MiB  | 0.18 s   | +1973% | +11%  | 14.9GB/s   | 
+| 128 MiB | 0.19 s   | +2055% | +4%   | 14.3GB/s   |
+
+**SIMD non-cached copy**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|--------|--------|------|-----------|--------------|
+| 256 B   | 2.28 s | +1571% | -    | 1.18GB/s  | 
+| 512 B   | 1.16 s | +749%  | +49% | 2.31GB/s  | 
+| 1 KiB   | 0.61 s | +345%  | +48% | 4.41GB/s  | 
+| 2 KiB   | 0.34 s | +149%  | +44% | 7.89GB/s  | 
+| 4 KiB   | 0.31 s | +127%  | +9%  | 8.66GB/s  | page, 4 KiB  | 
+| 8 KiB   | 0.24 s | +74%   | +23% | 11.3GB/s  | 
+| 16 KiB  | 0.23 s | +67%   | +4%  | 11.7GB/s  | 
+| 32 KiB  | 0.23 s | +66%   | +1%  | 11.8GB/s  | 
+| 64 KiB  | 0.22 s | +62%   | +3%  | 12.1GB/s  | L1D, 48 KiB  | 
+| 128 KiB | 0.16 s | +16%   | +28% | 17.0GB/s  | 
+| 256 KiB | 0.14 s | +3%    | +11% | 19.1GB/s  | 
+| 512 KiB | 0.14 s | +3%    | -    | 19.1GB/s  | 
+| 1 MiB   | 0.14 s | +3%    | -    | 19.1GB/s  | 
+| 2 MiB   | 0.14 s | -      | +3%  | 19.6GB/s  | 
+| 4 MiB   | 0.14 s | +2%    | +2%  | 19.3GB/s  | L2, 3 MiB | 
+| 8 MiB   | 0.14 s | +4%    | +2%  | 19.0GB/s  | 
+| 16 MiB  | 0.14 s | +4%    | +1%  | 18.8GB/s  | 
+| 32 MiB  | 0.14 s | +5%    | +1%  | 18.7GB/s  | L3, 24 MiB   | 
+| 64 MiB  | 0.14 s | +5%    | -    | 18.7GB/s  | 
+| 128 MiB | 0.14 s | +5%    | -    | 18.7GB/s  |
+
+</details>
+
+<details><summary><b>memcpy, multithreading (4 threads, 4 cores)</b></summary>
+
+**memcpy**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|------------|--------------|
+| 256 B   | 40.13 ms | +214%  | -     | 267.6GB/s  | 66.9GB/s   | 
+| 512 B   | 30.11 ms | +136%  | +25%  | 356.6GB/s  | 89.2GB/s   | 
+| 1 KiB   | 22.72 ms | +78%   | +25%  | 472.7GB/s  | 118.2GB/s  | 
+| 2 KiB   | 14.99 ms | +17%   | +34%  | 716.2GB/s  | 179.0GB/s  | 
+| 4 KiB   | 13.92 ms | +9%    | +7%   | 771.5GB/s  | 192.9GB/s  | page, 4 KiB  | 
+| 8 KiB   | 13.25 ms | +4%    | +5%   | 810.6GB/s  | 202.6GB/s  | 
+| 16 KiB  | 12.76 ms | -      | +4%   | 841.4GB/s  | 210.4GB/s  | 
+| 32 KiB  | 36.33 ms | +185%  | +185% | 295.6GB/s  | 73.9GB/s   | 
+| 64 KiB  | 39.35 ms | +208%  | +8%   | 272.8GB/s  | 68.2GB/s   | L1D, 48 KiB  | 
+| 128 KiB | 39.78 ms | +212%  | +1%   | 269.9GB/s  | 67.5GB/s   | 
+| 256 KiB | 42.28 ms | +231%  | +6%   | 254.0GB/s  | 63.5GB/s   | L1.5D, 192 KB |
+| 512 KiB | 42.91 ms | +236%  | +1%   | 250.3GB/s  | 62.6GB/s   | 
+| 1 MiB   | 53.36 ms | +318%  | +24%  | 201.2GB/s  | 50.3GB/s   | 
+| 2 MiB   | 0.30 s   | +2273% | +468% | 35.5GB/s   | 8.86GB/s   | 
+| 4 MiB   | 0.30 s   | +2266% | -     | 35.6GB/s   | 8.89GB/s   | L2, 3 MiB | 
+| 8 MiB   | 0.30 s   | +2275% | -     | 35.4GB/s   | 8.86GB/s   | 
+| 16 MiB  | 0.30 s   | +2265% | -     | 35.6GB/s   | 8.89GB/s   | 
+| 32 MiB  | 0.30 s   | +2283% | +1%   | 35.3GB/s   | 8.83GB/s   | L3, 24 MiB   | 
+| 64 MiB  | 0.30 s   | +2285% | -     | 35.3GB/s   | 8.82GB/s   | 
+| 128 MiB | 0.31 s   | +2290% | -     | 35.2GB/s   | 8.80GB/s   |
+
+**SIMD cached copy**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|------------|--------------|
+| 256 B   | 39.43 ms | +206%  | -     | 272.3GB/s  | 68.1GB/s   | 
+| 512 B   | 23.45 ms | +82%   | +41%  | 457.8GB/s  | 114.4GB/s  | 
+| 1 KiB   | 22.20 ms | +72%   | +5%   | 483.7GB/s  | 120.9GB/s  | 
+| 2 KiB   | 15.68 ms | +22%   | +29%  | 684.7GB/s  | 171.2GB/s  | 
+| 4 KiB   | 12.90 ms | -      | +18%  | 832.1GB/s  | 208.0GB/s  | page, 4 KiB  | 
+| 8 KiB   | 13.28 ms | +3%    | +3%   | 808.6GB/s  | 202.1GB/s  | 
+| 16 KiB  | 13.31 ms | +3%    | -     | 806.9GB/s  | 201.7GB/s  | 
+| 32 KiB  | 42.26 ms | +227%  | +218% | 254.1GB/s  | 63.5GB/s   | 
+| 64 KiB  | 42.38 ms | +228%  | -     | 253.3GB/s  | 63.3GB/s   | L1D, 48 KiB  | 
+| 128 KiB | 55.70 ms | +332%  | +31%  | 192.8GB/s  | 48.2GB/s   | 
+| 256 KiB | 55.69 ms | +332%  | -     | 192.8GB/s  | 48.2GB/s   | L1.5D, 192 KB |
+| 512 KiB | 53.04 ms | +311%  | +5%   | 202.4GB/s  | 50.6GB/s   | 
+| 1 MiB   | 54.67 ms | +324%  | +3%   | 196.4GB/s  | 49.1GB/s   | 
+| 2 MiB   | 0.11 s   | +741%  | +98%  | 99.0GB/s   | 24.7GB/s   | 
+| 4 MiB   | 0.14 s   | +986%  | +29%  | 76.6GB/s   | 19.2GB/s   | L2, 3 MiB | 
+| 8 MiB   | 0.30 s   | +2209% | +113% | 36.0GB/s   | 9.01GB/s   | 
+| 16 MiB  | 0.39 s   | +2888% | +29%  | 27.8GB/s   | 6.96GB/s   | 
+| 32 MiB  | 0.42 s   | +3143% | +9%   | 25.7GB/s   | 6.41GB/s   | L3, 24 MiB   | 
+| 64 MiB  | 0.43 s   | +3251% | +3%   | 24.8GB/s   | 6.21GB/s   | 
+| 128 MiB | 0.44 s   | +3300% | +1%   | 24.5GB/s   | 6.12GB/s   |
+
+**SIMD non-cached copy**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|--------|--------|------|-----------|-----------|--------------|
+| 256 B   | 9.54 s | +3000% | -    | 4.50GB/s  | 1.13GB/s  | 
+| 512 B   | 4.97 s | +1515% | +48% | 8.64GB/s  | 2.16GB/s  | 
+| 1 KiB   | 2.65 s | +761%  | +47% | 16.2GB/s  | 4.05GB/s  | 
+| 2 KiB   | 1.62 s | +428%  | +39% | 26.4GB/s  | 6.61GB/s  | 
+| 4 KiB   | 1.37 s | +344%  | +16% | 31.4GB/s  | 7.86GB/s  | page, 4 KiB  | 
+| 8 KiB   | 1.22 s | +295%  | +11% | 35.3GB/s  | 8.84GB/s  | 
+| 16 KiB  | 1.29 s | +320%  | +6%  | 33.2GB/s  | 8.30GB/s  | 
+| 32 KiB  | 1.29 s | +320%  | -    | 33.2GB/s  | 8.31GB/s  | 
+| 64 KiB  | 1.29 s | +319%  | -    | 33.3GB/s  | 8.32GB/s  | L1D, 48 KiB  | 
+| 128 KiB | 1.23 s | +301%  | +4%  | 34.8GB/s  | 8.71GB/s  | 
+| 256 KiB | 1.23 s | +298%  | +1%  | 35.1GB/s  | 8.76GB/s  | 
+| 512 KiB | 1.22 s | +298%  | -    | 35.1GB/s  | 8.77GB/s  | 
+| 1 MiB   | 1.22 s | +298%  | -    | 35.1GB/s  | 8.77GB/s  | 
+| 2 MiB   | 1.22 s | +298%  | -    | 35.1GB/s  | 8.77GB/s  | 
+| 4 MiB   | 0.31 s | -      | +75% | 34.9GB/s  | 8.72GB/s  | L2, 3 MiB | 
+| 8 MiB   | 0.31 s | +1%    | +1%  | 34.7GB/s  | 8.67GB/s  | 
+| 16 MiB  | 0.31 s | +1%    | -    | 34.7GB/s  | 8.67GB/s  | 
+| 32 MiB  | 0.31 s | +1%    | +1%  | 34.5GB/s  | 8.62GB/s  | L3, 24 MiB   | 
+| 64 MiB  | 0.31 s | +2%    | -    | 34.3GB/s  | 8.59GB/s  | 
+| 128 MiB | 0.32 s | +3%    | +2%  | 33.8GB/s  | 8.45GB/s  |
+
+</details>
+
+<details><summary><b>memset, single thread</b></summary>
+
+**memset**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|-------|------------|--------------|
+| 256 B   | 18.36 ms | +106%  | -     | 146.2GB/s  | 
+| 512 B   | 11.51 ms | +29%   | +37%  | 233.3GB/s  | 
+| 1 KiB   | 10.04 ms | +12%   | +13%  | 267.5GB/s  | 
+| 2 KiB   | 9.71 ms  | +9%    | +3%   | 276.5GB/s  | 
+| 4 KiB   | 9.33 ms  | +5%    | +4%   | 287.7GB/s  | page, 4 KiB  | 
+| 8 KiB   | 9.16 ms  | +3%    | +2%   | 293.2GB/s  | 
+| 16 KiB  | 9.01 ms  | +1%    | +2%   | 298.0GB/s  | 
+| 32 KiB  | 8.92 ms  | -      | +1%   | 300.8GB/s  | 
+| 64 KiB  | 27.08 ms | +203%  | +203% | 99.1GB/s   | L1D, 48 KiB  | 
+| 128 KiB | 28.00 ms | +214%  | +3%   | 95.9GB/s   | 
+| 256 KiB | 26.53 ms | +197%  | +5%   | 101.2GB/s  | L1.5D, 192 KB |
+| 512 KiB | 33.47 ms | +275%  | +26%  | 80.2GB/s   | 
+| 1 MiB   | 33.97 ms | +281%  | +1%   | 79.0GB/s   | 
+| 2 MiB   | 34.34 ms | +285%  | +1%   | 78.2GB/s   | 
+| 4 MiB   | 54.13 ms | +507%  | +58%  | 49.6GB/s   | L2, 3 MiB | 
+| 8 MiB   | 65.06 ms | +629%  | +20%  | 41.3GB/s   | 
+| 16 MiB  | 64.01 ms | +617%  | +2%   | 41.9GB/s   | 
+| 32 MiB  | 87.92 ms | +885%  | +37%  | 30.5GB/s   | L3, 24 MiB   | 
+| 64 MiB  | 0.13 s   | +1380% | +50%  | 20.3GB/s   | 
+| 128 MiB | 0.14 s   | +1496% | +8%   | 18.8GB/s   |
+
+**SIMD cached fill**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|-------|------------|--------------|
+| 256 B   | 8.46 ms  | -      | -     | 317.4GB/s  | 
+| 512 B   | 8.72 ms  | +3%    | +3%   | 307.9GB/s  | 
+| 1 KiB   | 8.86 ms  | +5%    | +2%   | 303.0GB/s  | 
+| 2 KiB   | 8.73 ms  | +3%    | +1%   | 307.4GB/s  | 
+| 4 KiB   | 9.02 ms  | +7%    | +3%   | 297.6GB/s  | page, 4 KiB  | 
+| 8 KiB   | 8.79 ms  | +4%    | +3%   | 305.4GB/s  | 
+| 16 KiB  | 9.17 ms  | +8%    | +4%   | 292.7GB/s  | 
+| 32 KiB  | 8.71 ms  | +3%    | +5%   | 308.2GB/s  | 
+| 64 KiB  | 26.09 ms | +209%  | +200% | 102.9GB/s  | L1D, 48 KiB  | 
+| 128 KiB | 26.47 ms | +213%  | +1%   | 101.4GB/s  | 
+| 256 KiB | 47.17 ms | +458%  | +78%  | 56.9GB/s   | L1.5D, 192 KB |
+| 512 KiB | 34.91 ms | +313%  | +26%  | 76.9GB/s   | 
+| 1 MiB   | 35.08 ms | +315%  | -     | 76.5GB/s   | 
+| 2 MiB   | 35.84 ms | +324%  | +2%   | 74.9GB/s   | 
+| 4 MiB   | 54.81 ms | +548%  | +53%  | 49.0GB/s   | L2, 3 MiB | 
+| 8 MiB   | 63.47 ms | +651%  | +16%  | 42.3GB/s   | 
+| 16 MiB  | 63.20 ms | +647%  | -     | 42.5GB/s   | 
+| 32 MiB  | 92.71 ms | +996%  | +47%  | 29.0GB/s   | L3, 24 MiB   | 
+| 64 MiB  | 0.13 s   | +1408% | +38%  | 21.1GB/s   | 
+| 128 MiB | 0.14 s   | +1606% | +13%  | 18.6GB/s   |
+
+**SIMD non-cached fill**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|------|-----------|--------------|
+| 256 B   | 1.29 s   | +3529% | -    | 2.07GB/s  | 
+| 512 B   | 0.66 s   | +1751% | +49% | 4.07GB/s  | 
+| 1 KiB   | 0.34 s   | +840%  | +49% | 8.01GB/s  | 
+| 2 KiB   | 0.18 s   | +415%  | +45% | 14.6GB/s  | 
+| 4 KiB   | 0.10 s   | +193%  | +43% | 25.7GB/s  | page, 4 KiB  | 
+| 8 KiB   | 68.05 ms | +91%   | +35% | 39.4GB/s  | 
+| 16 KiB  | 48.97 ms | +37%   | +28% | 54.8GB/s  | 
+| 32 KiB  | 39.26 ms | +10%   | +20% | 68.4GB/s  | 
+| 64 KiB  | 35.66 ms | -      | +9%  | 75.3GB/s  | L1D, 48 KiB  | 
+| 128 KiB | 40.60 ms | +14%   | +14% | 66.1GB/s  | 
+| 256 KiB | 44.53 ms | +25%   | +10% | 60.3GB/s  | 
+| 512 KiB | 44.38 ms | +24%   | -    | 60.5GB/s  | 
+| 1 MiB   | 42.89 ms | +20%   | +3%  | 62.6GB/s  | 
+| 2 MiB   | 41.20 ms | +16%   | +4%  | 65.1GB/s  | 
+| 4 MiB   | 42.13 ms | +18%   | +2%  | 63.7GB/s  | L2, 3 MiB | 
+| 8 MiB   | 41.50 ms | +16%   | +1%  | 64.7GB/s  | 
+| 16 MiB  | 40.96 ms | +15%   | +1%  | 65.5GB/s  | 
+| 32 MiB  | 40.02 ms | +12%   | +2%  | 67.1GB/s  | L3, 24 MiB   | 
+| 64 MiB  | 41.49 ms | +16%   | +4%  | 64.7GB/s  | 
+| 128 MiB | 40.69 ms | +14%   | +2%  | 66.0GB/s  |
+
+</details>
+
+<details><summary><b>memset, multithreading (4 threads, 4 cores)</b></summary>
+
+**memset**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|------------|--------------|
+| 256 B   | 22.48 ms | +82%   | -     | 477.6GB/s  | 119.4GB/s  | 
+| 512 B   | 15.17 ms | +23%   | +33%  | 708.0GB/s  | 177.0GB/s  | 
+| 1 KiB   | 14.77 ms | +20%   | +3%   | 727.1GB/s  | 181.8GB/s  | 
+| 2 KiB   | 13.07 ms | +6%    | +11%  | 821.3GB/s  | 205.3GB/s  | 
+| 4 KiB   | 12.63 ms | +2%    | +3%   | 850.2GB/s  | 212.5GB/s  | page, 4 KiB  | 
+| 8 KiB   | 13.02 ms | +6%    | +3%   | 824.8GB/s  | 206.2GB/s  | 
+| 16 KiB  | 12.33 ms | -      | +5%   | 870.9GB/s  | 217.7GB/s  | 
+| 32 KiB  | 34.95 ms | +183%  | +183% | 307.2GB/s  | 76.8GB/s   | 
+| 64 KiB  | 31.96 ms | +159%  | +9%   | 336.0GB/s  | 84.0GB/s   | L1D, 48 KiB  | 
+| 128 KiB | 33.79 ms | +174%  | +6%   | 317.8GB/s  | 79.4GB/s   | 
+| 256 KiB | 37.61 ms | +205%  | +11%  | 285.5GB/s  | 71.4GB/s   | L1.5D, 192 KB |
+| 512 KiB | 38.33 ms | +211%  | +2%   | 280.2GB/s  | 70.0GB/s   | 
+| 1 MiB   | 38.16 ms | +209%  | -     | 281.4GB/s  | 70.4GB/s   | 
+| 2 MiB   | 56.76 ms | +360%  | +49%  | 189.2GB/s  | 47.3GB/s   | 
+| 4 MiB   | 89.28 ms | +624%  | +57%  | 120.3GB/s  | 30.1GB/s   | L2, 3 MiB | 
+| 8 MiB   | 0.14 s   | +1048% | +59%  | 75.8GB/s   | 19.0GB/s   | 
+| 16 MiB  | 0.15 s   | +1132% | +7%   | 70.7GB/s   | 17.7GB/s   | 
+| 32 MiB  | 0.15 s   | +1151% | +2%   | 69.6GB/s   | 17.4GB/s   | L3, 24 MiB   | 
+| 64 MiB  | 0.16 s   | +1202% | +4%   | 66.9GB/s   | 16.7GB/s   | 
+| 128 MiB | 0.16 s   | +1198% | -     | 67.1GB/s   | 16.8GB/s   |
+
+**SIMD cached fill**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|------------|--------------|
+| 256 B   | 12.48 ms | +4%    | -     | 860.1GB/s  | 215.0GB/s  | 
+| 512 B   | 11.95 ms | -      | +4%   | 898.5GB/s  | 224.6GB/s  | 
+| 1 KiB   | 13.14 ms | +10%   | +10%  | 817.2GB/s  | 204.3GB/s  | 
+| 2 KiB   | 13.61 ms | +14%   | +4%   | 789.2GB/s  | 197.3GB/s  | 
+| 4 KiB   | 13.00 ms | +9%    | +4%   | 826.3GB/s  | 206.6GB/s  | page, 4 KiB  | 
+| 8 KiB   | 12.73 ms | +7%    | +2%   | 843.6GB/s  | 210.9GB/s  | 
+| 16 KiB  | 12.55 ms | +5%    | +1%   | 855.3GB/s  | 213.8GB/s  | 
+| 32 KiB  | 30.60 ms | +156%  | +144% | 350.9GB/s  | 87.7GB/s   | 
+| 64 KiB  | 30.84 ms | +158%  | +1%   | 348.1GB/s  | 87.0GB/s   | L1D, 48 KiB  | 
+| 128 KiB | 52.01 ms | +335%  | +69%  | 206.5GB/s  | 51.6GB/s   | 
+| 256 KiB | 40.26 ms | +237%  | +23%  | 266.7GB/s  | 66.7GB/s   | L1.5D, 192 KB |
+| 512 KiB | 40.98 ms | +243%  | +2%   | 262.0GB/s  | 65.5GB/s   | 
+| 1 MiB   | 40.68 ms | +240%  | +1%   | 263.9GB/s  | 66.0GB/s   | 
+| 2 MiB   | 60.34 ms | +405%  | +48%  | 177.9GB/s  | 44.5GB/s   | 
+| 4 MiB   | 97.91 ms | +719%  | +62%  | 109.7GB/s  | 27.4GB/s   | L2, 3 MiB | 
+| 8 MiB   | 0.16 s   | +1270% | +67%  | 65.6GB/s   | 16.4GB/s   | 
+| 16 MiB  | 0.21 s   | +1658% | +28%  | 51.1GB/s   | 12.8GB/s   | 
+| 32 MiB  | 0.18 s   | +1415% | +14%  | 59.3GB/s   | 14.8GB/s   | L3, 24 MiB   | 
+| 64 MiB  | 0.17 s   | +1361% | +4%   | 61.5GB/s   | 15.4GB/s   | 
+| 128 MiB | 0.18 s   | +1397% | +2%   | 60.0GB/s   | 15.0GB/s   |
+
+**SIMD non-cached fill**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|--------|--------|------|-----------|-----------|--------------|
+| 256 B   | 5.72 s | +3816% | -    | 7.51GB/s  | 1.88GB/s  | 
+| 512 B   | 2.66 s | +1719% | +54% | 16.2GB/s  | 4.04GB/s  | 
+| 1 KiB   | 1.41 s | +865%  | +47% | 30.5GB/s  | 7.63GB/s  | 
+| 2 KiB   | 0.77 s | +430%  | +45% | 55.5GB/s  | 13.9GB/s  | 
+| 4 KiB   | 0.55 s | +275%  | +29% | 78.4GB/s  | 19.6GB/s  | page, 4 KiB  | 
+| 8 KiB   | 0.52 s | +255%  | +5%  | 82.9GB/s  | 20.7GB/s  | 
+| 16 KiB  | 0.54 s | +268%  | +4%  | 79.9GB/s  | 20.0GB/s  | 
+| 32 KiB  | 0.56 s | +283%  | +4%  | 76.8GB/s  | 19.2GB/s  | 
+| 64 KiB  | 0.56 s | +284%  | -    | 76.6GB/s  | 19.2GB/s  | L1D, 48 KiB  | 
+| 128 KiB | 0.56 s | +284%  | -    | 76.7GB/s  | 19.2GB/s  | 
+| 256 KiB | 0.57 s | +292%  | +2%  | 75.0GB/s  | 18.8GB/s  | 
+| 512 KiB | 0.58 s | +297%  | +1%  | 74.1GB/s  | 18.5GB/s  | 
+| 1 MiB   | 0.58 s | +294%  | +1%  | 74.6GB/s  | 18.7GB/s  | 
+| 2 MiB   | 0.58 s | +297%  | +1%  | 74.2GB/s  | 18.5GB/s  | 
+| 4 MiB   | 0.15 s | -      | +75% | 73.6GB/s  | 18.4GB/s  | L2, 3 MiB | 
+| 8 MiB   | 0.15 s | -      | -    | 73.4GB/s  | 18.3GB/s  | 
+| 16 MiB  | 0.15 s | +1%    | -    | 73.0GB/s  | 18.3GB/s  | 
+| 32 MiB  | 0.15 s | +1%    | -    | 72.9GB/s  | 18.2GB/s  | L3, 24 MiB   | 
+| 64 MiB  | 0.15 s | +2%    | +1%  | 72.0GB/s  | 18.0GB/s  | 
+| 128 MiB | 0.15 s | +2%    | -    | 72.4GB/s  | 18.1GB/s  |
+
+</details>
+
+
+## E-core
+
+* Theoretical performance:<br/>
+	- 32B/cy write to L1 * 4.4GHz = 141 GB/s - max speed of memset
+	- 3x 16B/cy read from L1 * 4.4GHz = 211 GB/s - max speed of sum/hash
+	- 64B/cy per core read from L2 * 4.4GHz = 282 GB/s
+	- 128B/cy per 4 cores read from L2 * 4.4GHz = 563 GB/s
+
+<details><summary><b>memcpy, single thread</b></summary>
+
+**memcpy**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|-------|-------|------------|-------------|
+| 256 B   | 30.22 ms | +54%  | -     | 88.8GB/s   | 
+| 512 B   | 20.17 ms | +3%   | +33%  | 133.1GB/s  | 
+| 1 KiB   | 20.65 ms | +5%   | +2%   | 130.0GB/s  | 
+| 2 KiB   | 19.73 ms | +1%   | +4%   | 136.1GB/s  | 
+| 4 KiB   | 19.84 ms | +1%   | +1%   | 135.3GB/s  | page, 4 KiB | 
+| 8 KiB   | 19.58 ms | -     | +1%   | 137.1GB/s  | 
+| 16 KiB  | 40.94 ms | +109% | +109% | 65.6GB/s   | 
+| 32 KiB  | 41.92 ms | +114% | +2%   | 64.0GB/s   | L1D, 32 KiB | 
+| 64 KiB  | 41.35 ms | +111% | +1%   | 64.9GB/s   | 
+| 128 KiB | 41.96 ms | +114% | +1%   | 64.0GB/s   | 
+| 256 KiB | 41.74 ms | +113% | +1%   | 64.3GB/s   | 
+| 512 KiB | 41.73 ms | +113% | -     | 64.3GB/s   | 
+| 1 MiB   | 41.82 ms | +114% | -     | 64.2GB/s   | 
+| 2 MiB   | 0.13 s   | +546% | +202% | 21.2GB/s   | 
+| 4 MiB   | 0.13 s   | +545% | -     | 21.2GB/s   | L2, 4 MiB   | 
+| 8 MiB   | 0.13 s   | +561% | +2%   | 20.7GB/s   | 
+| 16 MiB  | 0.13 s   | +557% | +1%   | 20.9GB/s   | 
+| 32 MiB  | 0.13 s   | +563% | +1%   | 20.7GB/s   | L3, 24 MiB  | 
+| 64 MiB  | 0.13 s   | +569% | +1%   | 20.5GB/s   | 
+| 128 MiB | 0.13 s   | +578% | +1%   | 20.2GB/s   |
+
+**SIMD cached copy**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|-------|------------|-------------|
+| 256 B   | 23.85 ms | +22%   | -     | 112.5GB/s  | 
+| 512 B   | 19.71 ms | +1%    | +17%  | 136.2GB/s  | 
+| 1 KiB   | 19.80 ms | +1%    | -     | 135.6GB/s  | 
+| 2 KiB   | 20.07 ms | +3%    | +1%   | 133.8GB/s  | 
+| 4 KiB   | 19.92 ms | +2%    | +1%   | 134.7GB/s  | page, 4 KiB | 
+| 8 KiB   | 19.51 ms | -      | +2%   | 137.6GB/s  | 
+| 16 KiB  | 20.04 ms | +3%    | +3%   | 133.9GB/s  | 
+| 32 KiB  | 40.56 ms | +108%  | +102% | 66.2GB/s   | L1D, 32 KiB | 
+| 64 KiB  | 40.38 ms | +107%  | -     | 66.5GB/s   | 
+| 128 KiB | 41.15 ms | +111%  | +2%   | 65.2GB/s   | 
+| 256 KiB | 41.32 ms | +112%  | -     | 65.0GB/s   | 
+| 512 KiB | 41.63 ms | +113%  | +1%   | 64.5GB/s   | 
+| 1 MiB   | 41.38 ms | +112%  | +1%   | 64.9GB/s   | 
+| 2 MiB   | 48.24 ms | +147%  | +17%  | 55.6GB/s   | 
+| 4 MiB   | 81.25 ms | +316%  | +68%  | 33.0GB/s   | L2, 4 MiB   | 
+| 8 MiB   | 85.67 ms | +339%  | +5%   | 31.3GB/s   | 
+| 16 MiB  | 0.23 s   | +1076% | +168% | 11.7GB/s   | 
+| 32 MiB  | 0.21 s   | +975%  | +9%   | 12.8GB/s   | L3, 24 MiB  | 
+| 64 MiB  | 0.21 s   | +984%  | +1%   | 12.7GB/s   | 
+| 128 MiB | 0.22 s   | +1012% | +3%   | 12.4GB/s   |
+
+**SIMD non-cached copy**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|--------|--------|------|-----------|-------------|
+| 256 B   | 2.29 s | +1585% | -    | 1.17GB/s  | 
+| 512 B   | 1.35 s | +893%  | +41% | 1.99GB/s  | 
+| 1 KiB   | 0.72 s | +434%  | +46% | 3.71GB/s  | 
+| 2 KiB   | 0.54 s | +301%  | +25% | 4.93GB/s  | 
+| 4 KiB   | 0.49 s | +261%  | +10% | 5.48GB/s  | page, 4 KiB | 
+| 8 KiB   | 0.48 s | +253%  | +2%  | 5.61GB/s  | 
+| 16 KiB  | 0.46 s | +242%  | +3%  | 5.78GB/s  | 
+| 32 KiB  | 0.46 s | +236%  | +2%  | 5.89GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.19 s | +41%   | +58% | 14.0GB/s  | 
+| 128 KiB | 0.14 s | +6%    | +25% | 18.6GB/s  | 
+| 256 KiB | 0.14 s | +2%    | +4%  | 19.3GB/s  | 
+| 512 KiB | 0.14 s | +6%    | +4%  | 18.6GB/s  | 
+| 1 MiB   | 0.14 s | +6%    | -    | 18.7GB/s  | 
+| 2 MiB   | 0.14 s | +1%    | +4%  | 19.5GB/s  | 
+| 4 MiB   | 0.14 s | +1%    | +1%  | 19.7GB/s  | L2, 4 MiB   | 
+| 8 MiB   | 0.14 s | -      | +1%  | 19.8GB/s  | 
+| 16 MiB  | 0.14 s | +1%    | +1%  | 19.5GB/s  | 
+| 32 MiB  | 0.14 s | +3%    | +2%  | 19.2GB/s  | L3, 24 MiB  | 
+| 64 MiB  | 0.14 s | +4%    | -    | 19.1GB/s  | 
+| 128 MiB | 0.14 s | +5%    | +1%  | 18.8GB/s  |
+
+</details>
+
+<details><summary><b>memcpy, multithreading (4 threads, 4 cores)</b></summary>
+
+**memcpy**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|------------|-------------|
+| 256 B   | 36.88 ms | +53%   | -     | 291.1GB/s  | 72.8GB/s   | 
+| 512 B   | 25.88 ms | +7%    | +30%  | 414.9GB/s  | 103.7GB/s  | 
+| 1 KiB   | 25.49 ms | +6%    | +2%   | 421.3GB/s  | 105.3GB/s  | 
+| 2 KiB   | 24.68 ms | +2%    | +3%   | 435.0GB/s  | 108.8GB/s  | 
+| 4 KiB   | 24.25 ms | +1%    | +2%   | 442.8GB/s  | 110.7GB/s  | page, 4 KiB | 
+| 8 KiB   | 24.09 ms | -      | +1%   | 445.7GB/s  | 111.4GB/s  | 
+| 16 KiB  | 46.29 ms | +92%   | +92%  | 231.9GB/s  | 58.0GB/s   | 
+| 32 KiB  | 86.92 ms | +261%  | +88%  | 123.5GB/s  | 30.9GB/s   | L1D, 32 KiB | 
+| 64 KiB  | 86.64 ms | +260%  | -     | 123.9GB/s  | 31.0GB/s   | 
+| 128 KiB | 86.67 ms | +260%  | -     | 123.9GB/s  | 31.0GB/s   | 
+| 256 KiB | 86.13 ms | +258%  | +1%   | 124.7GB/s  | 31.2GB/s   | 
+| 512 KiB | 99.31 ms | +312%  | +15%  | 108.1GB/s  | 27.0GB/s   | 
+| 1 MiB   | 0.29 s   | +1085% | +188% | 37.6GB/s   | 9.40GB/s   | 
+| 2 MiB   | 0.39 s   | +1534% | +38%  | 27.3GB/s   | 6.82GB/s   | 
+| 4 MiB   | 0.39 s   | +1529% | -     | 27.4GB/s   | 6.84GB/s   | L2, 4 MiB   | 
+| 8 MiB   | 0.39 s   | +1534% | -     | 27.3GB/s   | 6.82GB/s   | 
+| 16 MiB  | 0.39 s   | +1529% | -     | 27.4GB/s   | 6.84GB/s   | 
+| 32 MiB  | 0.39 s   | +1532% | -     | 27.3GB/s   | 6.83GB/s   | L3, 24 MiB  | 
+| 64 MiB  | 0.40 s   | +1541% | +1%   | 27.2GB/s   | 6.79GB/s   | 
+| 128 MiB | 0.40 s   | +1549% | +1%   | 27.0GB/s   | 6.76GB/s   |
+
+**SIMD cached copy**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|------------|-------------|
+| 256 B   | 28.15 ms | +18%   | -     | 381.4GB/s  | 95.3GB/s   | 
+| 512 B   | 24.18 ms | +1%    | +14%  | 444.1GB/s  | 111.0GB/s  | 
+| 1 KiB   | 24.30 ms | +2%    | +1%   | 441.9GB/s  | 110.5GB/s  | 
+| 2 KiB   | 23.83 ms | -      | +2%   | 450.6GB/s  | 112.6GB/s  | 
+| 4 KiB   | 24.04 ms | +1%    | +1%   | 446.7GB/s  | 111.7GB/s  | page, 4 KiB | 
+| 8 KiB   | 24.81 ms | +4%    | +3%   | 432.7GB/s  | 108.2GB/s  | 
+| 16 KiB  | 31.52 ms | +32%   | +27%  | 340.6GB/s  | 85.2GB/s   | 
+| 32 KiB  | 91.14 ms | +282%  | +189% | 117.8GB/s  | 29.5GB/s   | L1D, 32 KiB | 
+| 64 KiB  | 87.53 ms | +267%  | +4%   | 122.7GB/s  | 30.7GB/s   | 
+| 128 KiB | 88.33 ms | +271%  | +1%   | 121.6GB/s  | 30.4GB/s   | 
+| 256 KiB | 86.89 ms | +265%  | +2%   | 123.6GB/s  | 30.9GB/s   | 
+| 512 KiB | 0.10 s   | +323%  | +16%  | 106.6GB/s  | 26.6GB/s   | 
+| 1 MiB   | 0.28 s   | +1081% | +179% | 38.2GB/s   | 9.54GB/s   | 
+| 2 MiB   | 0.28 s   | +1071% | +1%   | 38.5GB/s   | 9.62GB/s   | 
+| 4 MiB   | 0.30 s   | +1156% | +7%   | 35.9GB/s   | 8.97GB/s   | L2, 4 MiB   | 
+| 8 MiB   | 0.56 s   | +2238% | +86%  | 19.3GB/s   | 4.82GB/s   | 
+| 16 MiB  | 0.64 s   | +2567% | +14%  | 16.9GB/s   | 4.22GB/s   | 
+| 32 MiB  | 0.69 s   | +2803% | +9%   | 15.5GB/s   | 3.88GB/s   | L3, 24 MiB  | 
+| 64 MiB  | 0.69 s   | +2801% | -     | 15.5GB/s   | 3.88GB/s   | 
+| 128 MiB | 0.68 s   | +2760% | +1%   | 15.8GB/s   | 3.94GB/s   |
+
+**SIMD non-cached copy**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|--------|--------|------|-----------|-----------|-------------|
+| 256 B   | 9.22 s | +2244% | -    | 4.66GB/s  | 1.16GB/s  | 
+| 512 B   | 4.86 s | +1135% | +47% | 8.84GB/s  | 2.21GB/s  | 
+| 1 KiB   | 2.90 s | +638%  | +40% | 14.8GB/s  | 3.70GB/s  | 
+| 2 KiB   | 2.51 s | +538%  | +14% | 17.1GB/s  | 4.28GB/s  | 
+| 4 KiB   | 2.39 s | +506%  | +5%  | 18.0GB/s  | 4.50GB/s  | page, 4 KiB | 
+| 8 KiB   | 2.21 s | +461%  | +7%  | 19.4GB/s  | 4.86GB/s  | 
+| 16 KiB  | 1.96 s | +399%  | +11% | 21.9GB/s  | 5.47GB/s  | 
+| 32 KiB  | 1.74 s | +343%  | +11% | 24.7GB/s  | 6.16GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 1.64 s | +316%  | +6%  | 26.2GB/s  | 6.56GB/s  | 
+| 128 KiB | 1.63 s | +314%  | -    | 26.4GB/s  | 6.59GB/s  | 
+| 256 KiB | 1.61 s | +309%  | +1%  | 26.7GB/s  | 6.68GB/s  | 
+| 512 KiB | 1.59 s | +305%  | +1%  | 27.0GB/s  | 6.74GB/s  | 
+| 1 MiB   | 1.60 s | +308%  | +1%  | 26.8GB/s  | 6.69GB/s  | 
+| 2 MiB   | 1.58 s | +302%  | +1%  | 27.1GB/s  | 6.78GB/s  | 
+| 4 MiB   | 0.39 s | -      | +75% | 27.2GB/s  | 6.80GB/s  | L2, 4 MiB   | 
+| 8 MiB   | 0.40 s | +1%    | -    | 27.1GB/s  | 6.77GB/s  | 
+| 16 MiB  | 0.39 s | -      | +1%  | 27.3GB/s  | 6.82GB/s  | 
+| 32 MiB  | 0.40 s | +1%    | +1%  | 27.0GB/s  | 6.74GB/s  | L3, 24 MiB  | 
+| 64 MiB  | 0.40 s | +1%    | -    | 27.0GB/s  | 6.75GB/s  | 
+| 128 MiB | 0.40 s | +1%    | -    | 27.0GB/s  | 6.76GB/s  |
+
+</details>
+
+<details><summary><b>memset, single thread</b></summary>
+
+**memset**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|-------|-------|------------|-------------|
+| 256 B   | 22.27 ms | +16%  | -     | 120.6GB/s  | 
+| 512 B   | 19.81 ms | +3%   | +11%  | 135.5GB/s  | 
+| 1 KiB   | 19.56 ms | +2%   | +1%   | 137.2GB/s  | 
+| 2 KiB   | 19.36 ms | +1%   | +1%   | 138.7GB/s  | 
+| 4 KiB   | 19.43 ms | +1%   | -     | 138.1GB/s  | page, 4 KiB | 
+| 8 KiB   | 19.29 ms | -     | +1%   | 139.2GB/s  | 
+| 16 KiB  | 19.20 ms | -     | -     | 139.8GB/s  | 
+| 32 KiB  | 20.43 ms | +6%   | +6%   | 131.4GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 39.08 ms | +104% | +91%  | 68.7GB/s   | 
+| 128 KiB | 38.80 ms | +102% | +1%   | 69.2GB/s   | 
+| 256 KiB | 38.68 ms | +101% | -     | 69.4GB/s   | 
+| 512 KiB | 38.50 ms | +101% | -     | 69.7GB/s   | 
+| 1 MiB   | 39.31 ms | +105% | +2%   | 68.3GB/s   | 
+| 2 MiB   | 38.48 ms | +100% | +2%   | 69.8GB/s   | 
+| 4 MiB   | 39.76 ms | +107% | +3%   | 67.5GB/s   | L2, 4 MiB   | 
+| 8 MiB   | 52.89 ms | +175% | +33%  | 50.8GB/s   | 
+| 16 MiB  | 55.73 ms | +190% | +5%   | 48.2GB/s   | 
+| 32 MiB  | 0.13 s   | +555% | +126% | 21.4GB/s   | L3, 24 MiB  | 
+| 64 MiB  | 0.18 s   | +840% | +44%  | 14.9GB/s   | 
+| 128 MiB | 0.19 s   | +871% | +3%   | 14.4GB/s   |
+
+**SIMD cached fill**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|-------|-------|------------|-------------|
+| 256 B   | 19.24 ms | -     | -     | 139.5GB/s  | 
+| 512 B   | 19.20 ms | -     | -     | 139.8GB/s  | 
+| 1 KiB   | 19.26 ms | -     | -     | 139.4GB/s  | 
+| 2 KiB   | 19.29 ms | -     | -     | 139.2GB/s  | 
+| 4 KiB   | 19.32 ms | +1%   | -     | 138.9GB/s  | page, 4 KiB | 
+| 8 KiB   | 19.19 ms | -     | +1%   | 139.8GB/s  | 
+| 16 KiB  | 19.29 ms | -     | -     | 139.2GB/s  | 
+| 32 KiB  | 19.33 ms | +1%   | -     | 138.8GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 28.83 ms | +50%  | +49%  | 93.1GB/s   | 
+| 128 KiB | 28.98 ms | +51%  | +1%   | 92.6GB/s   | 
+| 256 KiB | 29.47 ms | +54%  | +2%   | 91.1GB/s   | 
+| 512 KiB | 29.48 ms | +54%  | -     | 91.1GB/s   | 
+| 1 MiB   | 29.50 ms | +54%  | -     | 91.0GB/s   | 
+| 2 MiB   | 29.56 ms | +54%  | -     | 90.8GB/s   | 
+| 4 MiB   | 34.35 ms | +79%  | +16%  | 78.1GB/s   | L2, 4 MiB   | 
+| 8 MiB   | 52.69 ms | +175% | +53%  | 50.9GB/s   | 
+| 16 MiB  | 56.22 ms | +193% | +7%   | 47.7GB/s   | 
+| 32 MiB  | 0.12 s   | +550% | +122% | 21.5GB/s   | L3, 24 MiB  | 
+| 64 MiB  | 0.18 s   | +846% | +46%  | 14.8GB/s   | 
+| 128 MiB | 0.19 s   | +888% | +4%   | 14.2GB/s   |
+
+**SIMD non-cached fill**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|------|-----------|-------------|
+| 256 B   | 1.36 s   | +1313% | -    | 1.98GB/s  | 
+| 512 B   | 0.71 s   | +636%  | +48% | 3.80GB/s  | 
+| 1 KiB   | 0.41 s   | +325%  | +42% | 6.57GB/s  | 
+| 2 KiB   | 0.25 s   | +156%  | +40% | 10.9GB/s  | 
+| 4 KiB   | 0.17 s   | +73%   | +32% | 16.1GB/s  | page, 4 KiB | 
+| 8 KiB   | 0.13 s   | +39%   | +20% | 20.1GB/s  | 
+| 16 KiB  | 0.12 s   | +20%   | +13% | 23.2GB/s  | 
+| 32 KiB  | 0.11 s   | +10%   | +9%  | 25.5GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.10 s   | +5%    | +5%  | 26.7GB/s  | 
+| 128 KiB | 98.74 ms | +3%    | +2%  | 27.2GB/s  | 
+| 256 KiB | 97.17 ms | +1%    | +2%  | 27.6GB/s  | 
+| 512 KiB | 96.91 ms | +1%    | -    | 27.7GB/s  | 
+| 1 MiB   | 96.51 ms | -      | -    | 27.8GB/s  | 
+| 2 MiB   | 96.06 ms | -      | -    | 27.9GB/s  | 
+| 4 MiB   | 96.54 ms | +1%    | -    | 27.8GB/s  | L2, 4 MiB   | 
+| 8 MiB   | 96.07 ms | -      | -    | 27.9GB/s  | 
+| 16 MiB  | 96.21 ms | -      | -    | 27.9GB/s  | 
+| 32 MiB  | 96.53 ms | -      | -    | 27.8GB/s  | L3, 24 MiB  | 
+| 64 MiB  | 96.05 ms | -      | -    | 27.9GB/s  | 
+| 128 MiB | 96.28 ms | -      | -    | 27.9GB/s  |
+
+</details>
+
+<details><summary><b>memset, multithreading (4 threads, 4 cores)</b></summary>
+
+**memset**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|------------|-------------|
+| 256 B   | 26.39 ms | +14%   | -     | 406.9GB/s  | 101.7GB/s  | 
+| 512 B   | 32.62 ms | +40%   | +24%  | 329.2GB/s  | 82.3GB/s   | 
+| 1 KiB   | 23.50 ms | +1%    | +28%  | 456.8GB/s  | 114.2GB/s  | 
+| 2 KiB   | 23.93 ms | +3%    | +2%   | 448.6GB/s  | 112.2GB/s  | 
+| 4 KiB   | 23.42 ms | +1%    | +2%   | 458.4GB/s  | 114.6GB/s  | page, 4 KiB | 
+| 8 KiB   | 23.22 ms | -      | +1%   | 462.3GB/s  | 115.6GB/s  | 
+| 16 KiB  | 23.27 ms | -      | -     | 461.5GB/s  | 115.4GB/s  | 
+| 32 KiB  | 63.99 ms | +176%  | +175% | 167.8GB/s  | 41.9GB/s   | L1D, 32 KiB | 
+| 64 KiB  | 63.21 ms | +172%  | +1%   | 169.9GB/s  | 42.5GB/s   | 
+| 128 KiB | 63.64 ms | +174%  | +1%   | 168.7GB/s  | 42.2GB/s   | 
+| 256 KiB | 63.24 ms | +172%  | +1%   | 169.8GB/s  | 42.4GB/s   | 
+| 512 KiB | 70.79 ms | +205%  | +12%  | 151.7GB/s  | 37.9GB/s   | 
+| 1 MiB   | 0.13 s   | +474%  | +88%  | 80.6GB/s   | 20.1GB/s   | 
+| 2 MiB   | 0.13 s   | +479%  | +1%   | 79.9GB/s   | 20.0GB/s   | 
+| 4 MiB   | 0.14 s   | +522%  | +8%   | 74.3GB/s   | 18.6GB/s   | L2, 4 MiB   | 
+| 8 MiB   | 0.31 s   | +1253% | +117% | 34.2GB/s   | 8.54GB/s   | 
+| 16 MiB  | 0.38 s   | +1540% | +21%  | 28.2GB/s   | 7.05GB/s   | 
+| 32 MiB  | 0.39 s   | +1592% | +3%   | 27.3GB/s   | 6.83GB/s   | L3, 24 MiB  | 
+| 64 MiB  | 0.40 s   | +1638% | +3%   | 26.6GB/s   | 6.65GB/s   | 
+| 128 MiB | 0.40 s   | +1623% | +1%   | 26.8GB/s   | 6.71GB/s   |
+
+**SIMD cached fill**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|------------|-------------|
+| 256 B   | 23.68 ms | +3%    | -     | 453.4GB/s  | 113.3GB/s  | 
+| 512 B   | 23.28 ms | +2%    | +2%   | 461.3GB/s  | 115.3GB/s  | 
+| 1 KiB   | 23.67 ms | +3%    | +2%   | 453.6GB/s  | 113.4GB/s  | 
+| 2 KiB   | 23.54 ms | +3%    | +1%   | 456.1GB/s  | 114.0GB/s  | 
+| 4 KiB   | 22.91 ms | -      | +3%   | 468.7GB/s  | 117.2GB/s  | page, 4 KiB | 
+| 8 KiB   | 23.71 ms | +3%    | +3%   | 452.9GB/s  | 113.2GB/s  | 
+| 16 KiB  | 24.17 ms | +5%    | +2%   | 444.3GB/s  | 111.1GB/s  | 
+| 32 KiB  | 63.48 ms | +177%  | +163% | 169.1GB/s  | 42.3GB/s   | L1D, 32 KiB | 
+| 64 KiB  | 63.68 ms | +178%  | -     | 168.6GB/s  | 42.2GB/s   | 
+| 128 KiB | 64.19 ms | +180%  | +1%   | 167.3GB/s  | 41.8GB/s   | 
+| 256 KiB | 63.19 ms | +176%  | +2%   | 169.9GB/s  | 42.5GB/s   | 
+| 512 KiB | 73.48 ms | +221%  | +16%  | 146.1GB/s  | 36.5GB/s   | 
+| 1 MiB   | 0.13 s   | +481%  | +81%  | 80.7GB/s   | 20.2GB/s   | 
+| 2 MiB   | 0.13 s   | +480%  | -     | 80.8GB/s   | 20.2GB/s   | 
+| 4 MiB   | 0.14 s   | +526%  | +8%   | 74.9GB/s   | 18.7GB/s   | L2, 4 MiB   | 
+| 8 MiB   | 0.30 s   | +1229% | +112% | 35.3GB/s   | 8.82GB/s   | 
+| 16 MiB  | 0.36 s   | +1490% | +20%  | 29.5GB/s   | 7.37GB/s   | 
+| 32 MiB  | 0.39 s   | +1589% | +6%   | 27.8GB/s   | 6.94GB/s   | L3, 24 MiB  | 
+| 64 MiB  | 0.39 s   | +1621% | +2%   | 27.2GB/s   | 6.81GB/s   | 
+| 128 MiB | 0.40 s   | +1633% | +1%   | 27.0GB/s   | 6.76GB/s   |
+
+**SIMD non-cached fill**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|--------|--------|------|-----------|-----------|-------------|
+| 256 B   | 5.93 s | +3941% | -    | 7.25GB/s  | 1.81GB/s  | 
+| 512 B   | 2.85 s | +1843% | +52% | 15.1GB/s  | 3.77GB/s  | 
+| 1 KiB   | 1.66 s | +1032% | +42% | 25.9GB/s  | 6.47GB/s  | 
+| 2 KiB   | 1.00 s | +582%  | +40% | 42.9GB/s  | 10.7GB/s  | 
+| 4 KiB   | 0.76 s | +417%  | +24% | 56.6GB/s  | 14.1GB/s  | page, 4 KiB | 
+| 8 KiB   | 0.62 s | +325%  | +18% | 68.9GB/s  | 17.2GB/s  | 
+| 16 KiB  | 0.61 s | +316%  | +2%  | 70.4GB/s  | 17.6GB/s  | 
+| 32 KiB  | 0.58 s | +294%  | +5%  | 74.4GB/s  | 18.6GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.56 s | +285%  | +2%  | 76.1GB/s  | 19.0GB/s  | 
+| 128 KiB | 0.57 s | +290%  | +1%  | 75.0GB/s  | 18.8GB/s  | 
+| 256 KiB | 0.58 s | +297%  | +2%  | 73.7GB/s  | 18.4GB/s  | 
+| 512 KiB | 0.59 s | +301%  | +1%  | 72.9GB/s  | 18.2GB/s  | 
+| 1 MiB   | 0.58 s | +296%  | +1%  | 73.9GB/s  | 18.5GB/s  | 
+| 2 MiB   | 0.58 s | +298%  | +1%  | 73.5GB/s  | 18.4GB/s  | 
+| 4 MiB   | 0.15 s | -      | +75% | 73.0GB/s  | 18.3GB/s  | L2, 4 MiB   | 
+| 8 MiB   | 0.15 s | -      | -    | 73.2GB/s  | 18.3GB/s  | 
+| 16 MiB  | 0.15 s | +3%    | +3%  | 70.8GB/s  | 17.7GB/s  | 
+| 32 MiB  | 0.15 s | +4%    | +1%  | 70.4GB/s  | 17.6GB/s  | L3, 24 MiB  | 
+| 64 MiB  | 0.15 s | +3%    | +1%  | 71.2GB/s  | 17.8GB/s  | 
+| 128 MiB | 0.15 s | +6%    | +3%  | 69.3GB/s  | 17.3GB/s  |
+
+</details>
+
+
+## LP E-core
+
+* Theoretical performance:<br/>
+  32B/cy write to L1 * 2.5GHz = 80 GB/s - max speed of memset<br/>
+  64B/cy read from L1 * 2.5GHz = 160 GB/s - max speed of search<br/>
+
+<details><summary><b>memcpy, single thread</b></summary>
+
+**memcpy**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|-------|-----------|-------------|
+| 256 B   | 69.10 ms | +89%   | -     | 38.8GB/s  | 
+| 512 B   | 47.18 ms | +29%   | +32%  | 56.9GB/s  | 
+| 1 KiB   | 43.04 ms | +18%   | +9%   | 62.4GB/s  | 
+| 2 KiB   | 39.60 ms | +8%    | +8%   | 67.8GB/s  | 
+| 4 KiB   | 37.11 ms | +1%    | +6%   | 72.3GB/s  | page, 4 KiB | 
+| 8 KiB   | 36.60 ms | -      | +1%   | 73.3GB/s  | 
+| 16 KiB  | 71.97 ms | +97%   | +97%  | 37.3GB/s  | 
+| 32 KiB  | 0.10 s   | +183%  | +44%  | 25.9GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.10 s   | +182%  | -     | 26.0GB/s  | 
+| 128 KiB | 0.10 s   | +180%  | +1%   | 26.2GB/s  | 
+| 256 KiB | 0.10 s   | +179%  | -     | 26.3GB/s  | 
+| 512 KiB | 0.10 s   | +179%  | -     | 26.3GB/s  | 
+| 1 MiB   | 0.23 s   | +529%  | +126% | 11.7GB/s  | 
+| 2 MiB   | 0.40 s   | +992%  | +74%  | 6.72GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.41 s   | +1027% | +3%   | 6.51GB/s  | 
+| 8 MiB   | 0.43 s   | +1084% | +5%   | 6.20GB/s  | 
+| 16 MiB  | 0.43 s   | +1061% | +2%   | 6.32GB/s  | 
+| 32 MiB  | 0.42 s   | +1038% | +2%   | 6.45GB/s  |
+| 64 MiB  | 0.43 s   | +1086% | +4%   | 6.18GB/s  | 
+| 128 MiB | 0.42 s   | +1044% | +4%   | 6.41GB/s  |
+
+**SIMD cached copy**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|--------|-------|-----------|-------------|
+| 256 B   | 38.13 ms | +10%   | -     | 70.4GB/s  | 
+| 512 B   | 36.71 ms | +6%    | +4%   | 73.1GB/s  | 
+| 1 KiB   | 35.55 ms | +3%    | +3%   | 75.5GB/s  | 
+| 2 KiB   | 34.63 ms | -      | +3%   | 77.5GB/s  | 
+| 4 KiB   | 34.83 ms | +1%    | +1%   | 77.1GB/s  | page, 4 KiB | 
+| 8 KiB   | 35.13 ms | +1%    | +1%   | 76.4GB/s  | 
+| 16 KiB  | 39.65 ms | +14%   | +13%  | 67.7GB/s  | 
+| 32 KiB  | 0.10 s   | +196%  | +159% | 26.2GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.10 s   | +195%  | -     | 26.2GB/s  | 
+| 128 KiB | 0.10 s   | +195%  | -     | 26.2GB/s  | 
+| 256 KiB | 0.10 s   | +195%  | -     | 26.2GB/s  | 
+| 512 KiB | 0.10 s   | +195%  | -     | 26.3GB/s  | 
+| 1 MiB   | 0.23 s   | +570%  | +127% | 11.6GB/s  | 
+| 2 MiB   | 0.46 s   | +1227% | +98%  | 5.84GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.44 s   | +1156% | +5%   | 6.17GB/s  | 
+| 8 MiB   | 0.51 s   | +1377% | +18%  | 5.25GB/s  | 
+| 16 MiB  | 0.49 s   | +1302% | +5%   | 5.53GB/s  | 
+| 32 MiB  | 0.48 s   | +1299% | -     | 5.54GB/s  |
+| 64 MiB  | 0.48 s   | +1292% | -     | 5.57GB/s  | 
+| 128 MiB | 0.49 s   | +1316% | +2%   | 5.47GB/s  |
+
+**SIMD non-cached copy**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|--------|-------|------|------------|-------------|
+| 256 B   | 3.66 s | +859% | -    | 733.0MB/s  | 
+| 512 B   | 1.88 s | +393% | +49% | 1.43GB/s   | 
+| 1 KiB   | 1.21 s | +217% | +36% | 2.22GB/s   | 
+| 2 KiB   | 1.03 s | +169% | +15% | 2.61GB/s   | 
+| 4 KiB   | 1.04 s | +172% | +1%  | 2.58GB/s   | page, 4 KiB | 
+| 8 KiB   | 0.98 s | +157% | +6%  | 2.74GB/s   | 
+| 16 KiB  | 0.96 s | +153% | +2%  | 2.78GB/s   | 
+| 32 KiB  | 0.93 s | +143% | +4%  | 2.89GB/s   | L1D, 32 KiB | 
+| 64 KiB  | 0.92 s | +141% | +1%  | 2.92GB/s   | 
+| 128 KiB | 0.39 s | +2%   | +58% | 6.90GB/s   | 
+| 256 KiB | 0.41 s | +6%   | +4%  | 6.63GB/s   | 
+| 512 KiB | 0.41 s | +8%   | +2%  | 6.49GB/s   | 
+| 1 MiB   | 0.41 s | +9%   | -    | 6.47GB/s   | 
+| 2 MiB   | 0.41 s | +8%   | +1%  | 6.53GB/s   | L2, 2 MiB   | 
+| 4 MiB   | 0.40 s | +6%   | +2%  | 6.64GB/s   | 
+| 8 MiB   | 0.41 s | +7%   | +1%  | 6.58GB/s   | 
+| 16 MiB  | 0.39 s | +3%   | +4%  | 6.84GB/s   | 
+| 32 MiB  | 0.41 s | +7%   | +4%  | 6.58GB/s   |
+| 64 MiB  | 0.38 s | -     | +6%  | 7.03GB/s   | 
+| 128 MiB | 0.40 s | +5%   | +5%  | 6.66GB/s   |
+
+</details>
+
+<details><summary><b>memcpy, multithreading (2 threads, 2 cores)</b></summary>
+
+**memcpy**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|-----------|-------------|
+| 256 B   | 87.97 ms | +128%  | -     | 61.0GB/s   | 30.5GB/s  | 
+| 512 B   | 70.43 ms | +82%   | +20%  | 76.2GB/s   | 38.1GB/s  | 
+| 1 KiB   | 50.56 ms | +31%   | +28%  | 106.2GB/s  | 53.1GB/s  | 
+| 2 KiB   | 56.93 ms | +47%   | +13%  | 94.3GB/s   | 47.1GB/s  | 
+| 4 KiB   | 41.31 ms | +7%    | +27%  | 130.0GB/s  | 65.0GB/s  | page, 4 KiB | 
+| 8 KiB   | 38.61 ms | -      | +7%   | 139.1GB/s  | 69.5GB/s  | 
+| 16 KiB  | 75.80 ms | +96%   | +96%  | 70.8GB/s   | 35.4GB/s  | 
+| 32 KiB  | 0.16 s   | +309%  | +108% | 34.0GB/s   | 17.0GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.16 s   | +319%  | +2%   | 33.2GB/s   | 16.6GB/s  | 
+| 128 KiB | 0.16 s   | +309%  | +2%   | 34.0GB/s   | 17.0GB/s  | 
+| 256 KiB | 0.16 s   | +311%  | +1%   | 33.8GB/s   | 16.9GB/s  | 
+| 512 KiB | 0.22 s   | +461%  | +36%  | 24.8GB/s   | 12.4GB/s  | 
+| 1 MiB   | 0.57 s   | +1382% | +164% | 9.38GB/s   | 4.69GB/s  | 
+| 2 MiB   | 0.37 s   | +871%  | +35%  | 14.3GB/s   | 7.16GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.37 s   | +866%  | +1%   | 14.4GB/s   | 7.20GB/s  | 
+| 8 MiB   | 0.38 s   | +890%  | +2%   | 14.1GB/s   | 7.03GB/s  | 
+| 16 MiB  | 0.38 s   | +882%  | +1%   | 14.2GB/s   | 7.08GB/s  | 
+| 32 MiB  | 0.39 s   | +905%  | +2%   | 13.8GB/s   | 6.92GB/s  |
+| 64 MiB  | 0.38 s   | +887%  | +2%   | 14.1GB/s   | 7.05GB/s  | 
+| 128 MiB | 0.39 s   | +911%  | +2%   | 13.8GB/s   | 6.88GB/s  |
+
+**SIMD cached copy**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|--------|-------|------------|-----------|-------------|
+| 256 B   | 56.33 ms | +47%   | -     | 95.3GB/s   | 47.7GB/s  | 
+| 512 B   | 47.25 ms | +23%   | +16%  | 113.6GB/s  | 56.8GB/s  | 
+| 1 KiB   | 41.68 ms | +9%    | +12%  | 128.8GB/s  | 64.4GB/s  | 
+| 2 KiB   | 38.37 ms | -      | +8%   | 139.9GB/s  | 70.0GB/s  | 
+| 4 KiB   | 39.80 ms | +4%    | +4%   | 134.9GB/s  | 67.5GB/s  | page, 4 KiB | 
+| 8 KiB   | 38.29 ms | -      | +4%   | 140.2GB/s  | 70.1GB/s  | 
+| 16 KiB  | 47.97 ms | +25%   | +25%  | 111.9GB/s  | 56.0GB/s  | 
+| 32 KiB  | 0.16 s   | +323%  | +237% | 33.2GB/s   | 16.6GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.16 s   | +314%  | +2%   | 33.9GB/s   | 16.9GB/s  | 
+| 128 KiB | 0.16 s   | +316%  | +1%   | 33.7GB/s   | 16.8GB/s  | 
+| 256 KiB | 0.16 s   | +315%  | -     | 33.8GB/s   | 16.9GB/s  | 
+| 512 KiB | 0.29 s   | +660%  | +83%  | 18.5GB/s   | 9.23GB/s  | 
+| 1 MiB   | 0.59 s   | +1429% | +101% | 9.17GB/s   | 4.59GB/s  | 
+| 2 MiB   | 0.61 s   | +1497% | +4%   | 8.78GB/s   | 4.39GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.61 s   | +1502% | -     | 8.75GB/s   | 4.38GB/s  | 
+| 8 MiB   | 0.61 s   | +1503% | -     | 8.75GB/s   | 4.37GB/s  | 
+| 16 MiB  | 0.61 s   | +1491% | +1%   | 8.81GB/s   | 4.41GB/s  | 
+| 32 MiB  | 0.61 s   | +1504% | +1%   | 8.74GB/s   | 4.37GB/s  |
+| 64 MiB  | 0.61 s   | +1504% | -     | 8.74GB/s   | 4.37GB/s  | 
+| 128 MiB | 0.61 s   | +1505% | -     | 8.74GB/s   | 4.37GB/s  |
+
+**SIMD non-cached copy**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|---------|--------|------|-----------|------------|-------------|
+| 256 B   | 14.56 s | +3867% | -    | 1.47GB/s  | 737.4MB/s  | 
+| 512 B   | 8.10 s  | +2105% | +44% | 2.65GB/s  | 1.33GB/s   | 
+| 1 KiB   | 5.24 s  | +1328% | +35% | 4.10GB/s  | 2.05GB/s   | 
+| 2 KiB   | 4.25 s  | +1057% | +19% | 5.06GB/s  | 2.53GB/s   | 
+| 4 KiB   | 4.52 s  | +1130% | +6%  | 4.75GB/s  | 2.38GB/s   | page, 4 KiB | 
+| 8 KiB   | 4.07 s  | +1009% | +10% | 5.27GB/s  | 2.64GB/s   | 
+| 16 KiB  | 4.56 s  | +1141% | +12% | 4.71GB/s  | 2.36GB/s   | 
+| 32 KiB  | 4.16 s  | +1033% | +9%  | 5.16GB/s  | 2.58GB/s   | L1D, 32 KiB | 
+| 64 KiB  | 1.63 s  | +345%  | +61% | 13.1GB/s  | 6.57GB/s   | 
+| 128 KiB | 1.61 s  | +340%  | +1%  | 13.3GB/s  | 6.65GB/s   | 
+| 256 KiB | 1.61 s  | +339%  | -    | 13.3GB/s  | 6.66GB/s   | 
+| 512 KiB | 1.62 s  | +342%  | +1%  | 13.2GB/s  | 6.61GB/s   | 
+| 1 MiB   | 1.57 s  | +328%  | +3%  | 13.7GB/s  | 6.83GB/s   | 
+| 2 MiB   | 1.50 s  | +308%  | +5%  | 14.4GB/s  | 7.18GB/s   | L2, 2 MiB   | 
+| 4 MiB   | 0.38 s  | +2%    | +75% | 14.3GB/s  | 7.14GB/s   | 
+| 8 MiB   | 0.37 s  | -      | +2%  | 14.6GB/s  | 7.31GB/s   | 
+| 16 MiB  | 0.38 s  | +4%    | +4%  | 14.1GB/s  | 7.04GB/s   | 
+| 32 MiB  | 0.37 s  | +1%    | +3%  | 14.5GB/s  | 7.26GB/s   |
+| 64 MiB  | 0.37 s  | +1%    | +1%  | 14.4GB/s  | 7.21GB/s   | 
+| 128 MiB | 0.37 s  | +1%    | +1%  | 14.5GB/s  | 7.25GB/s   |
+
+</details>
+
+<details><summary><b>memset, single thread</b></summary>
+
+**memset**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|-------|-------|-----------|-------------|
+| 256 B   | 45.42 ms | +32%  | -     | 59.1GB/s  | 
+| 512 B   | 41.99 ms | +22%  | +8%   | 63.9GB/s  | 
+| 1 KiB   | 41.48 ms | +21%  | +1%   | 64.7GB/s  | 
+| 2 KiB   | 38.03 ms | +11%  | +8%   | 70.6GB/s  | 
+| 4 KiB   | 35.98 ms | +5%   | +5%   | 74.6GB/s  | page, 4 KiB | 
+| 8 KiB   | 34.99 ms | +2%   | +3%   | 76.7GB/s  | 
+| 16 KiB  | 34.39 ms | -     | +2%   | 78.1GB/s  | 
+| 32 KiB  | 37.63 ms | +9%   | +9%   | 71.3GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 82.44 ms | +140% | +119% | 32.6GB/s  | 
+| 128 KiB | 82.36 ms | +140% | -     | 32.6GB/s  | 
+| 256 KiB | 82.18 ms | +139% | -     | 32.7GB/s  | 
+| 512 KiB | 82.17 ms | +139% | -     | 32.7GB/s  | 
+| 1 MiB   | 82.57 ms | +140% | -     | 32.5GB/s  | 
+| 2 MiB   | 0.12 s   | +238% | +41%  | 23.1GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.32 s   | +832% | +175% | 8.38GB/s  | 
+| 8 MiB   | 0.33 s   | +857% | +3%   | 8.16GB/s  | 
+| 16 MiB  | 0.34 s   | +889% | +3%   | 7.89GB/s  | 
+| 32 MiB  | 0.33 s   | +856% | +3%   | 8.17GB/s  |
+| 64 MiB  | 0.33 s   | +864% | +1%   | 8.10GB/s  | 
+| 128 MiB | 0.33 s   | +848% | +2%   | 8.24GB/s  |
+
+**SIMD cached fill**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|----------|-------|-------|-----------|-------------|
+| 256 B   | 33.79 ms | -     | -     | 79.4GB/s  | 
+| 512 B   | 33.81 ms | -     | -     | 79.4GB/s  | 
+| 1 KiB   | 33.81 ms | -     | -     | 79.4GB/s  | 
+| 2 KiB   | 33.84 ms | -     | -     | 79.3GB/s  | 
+| 4 KiB   | 33.81 ms | -     | -     | 79.4GB/s  | page, 4 KiB | 
+| 8 KiB   | 34.60 ms | +2%   | +2%   | 77.6GB/s  | 
+| 16 KiB  | 34.66 ms | +3%   | -     | 77.4GB/s  | 
+| 32 KiB  | 34.19 ms | +1%   | +1%   | 78.5GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 81.99 ms | +143% | +140% | 32.7GB/s  | 
+| 128 KiB | 82.04 ms | +143% | -     | 32.7GB/s  | 
+| 256 KiB | 82.08 ms | +143% | -     | 32.7GB/s  | 
+| 512 KiB | 82.03 ms | +143% | -     | 32.7GB/s  | 
+| 1 MiB   | 82.46 ms | +144% | +1%   | 32.6GB/s  | 
+| 2 MiB   | 0.11 s   | +233% | +36%  | 23.9GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.32 s   | +862% | +189% | 8.26GB/s  | 
+| 8 MiB   | 0.33 s   | +868% | +1%   | 8.20GB/s  | 
+| 16 MiB  | 0.34 s   | +905% | +4%   | 7.90GB/s  | 
+| 32 MiB  | 0.33 s   | +878% | +3%   | 8.12GB/s  |
+| 64 MiB  | 0.35 s   | +924% | +5%   | 7.76GB/s  | 
+| 128 MiB | 0.35 s   | +924% | -     | 7.76GB/s  |
+
+**SIMD non-cached fill**
+
+| block | time | diff | delta | bandwidth | comment |
+|---------|--------|-------|------|-----------|-------------|
+| 256 B   | 1.97 s | +959% | -    | 1.36GB/s  | 
+| 512 B   | 0.83 s | +348% | +58% | 3.23GB/s  | 
+| 1 KiB   | 0.50 s | +171% | +40% | 5.34GB/s  | 
+| 2 KiB   | 0.42 s | +127% | +16% | 6.37GB/s  | 
+| 4 KiB   | 0.28 s | +52%  | +33% | 9.54GB/s  | page, 4 KiB | 
+| 8 KiB   | 0.24 s | +31%  | +14% | 11.0GB/s  | 
+| 16 KiB  | 0.21 s | +14%  | +13% | 12.6GB/s  | 
+| 32 KiB  | 0.20 s | +6%   | +7%  | 13.6GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.19 s | +3%   | +3%  | 14.0GB/s  | 
+| 128 KiB | 0.19 s | +2%   | +2%  | 14.2GB/s  | 
+| 256 KiB | 0.19 s | +1%   | +1%  | 14.3GB/s  | 
+| 512 KiB | 0.19 s | -     | -    | 14.4GB/s  | 
+| 1 MiB   | 0.19 s | -     | -    | 14.4GB/s  | 
+| 2 MiB   | 0.19 s | -     | -    | 14.4GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.19 s | -     | -    | 14.5GB/s  | 
+| 8 MiB   | 0.19 s | -     | -    | 14.5GB/s  | 
+| 16 MiB  | 0.19 s | -     | -    | 14.4GB/s  | 
+| 32 MiB  | 0.19 s | -     | -    | 14.4GB/s  |
+| 64 MiB  | 0.19 s | -     | -    | 14.4GB/s  | 
+| 128 MiB | 0.19 s | -     | -    | 14.4GB/s  |
+
+</details>
+
+<details><summary><b>memset, multithreading (2 threads, 2 cores)</b></summary>
+
+**memset**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|-------|-------|------------|-----------|-------------|
+| 256 B   | 53.25 ms | +32%  | -     | 100.8GB/s  | 50.4GB/s  | 
+| 512 B   | 44.51 ms | +10%  | +16%  | 120.6GB/s  | 60.3GB/s  | 
+| 1 KiB   | 41.36 ms | +3%   | +7%   | 129.8GB/s  | 64.9GB/s  | 
+| 2 KiB   | 41.27 ms | +2%   | -     | 130.1GB/s  | 65.0GB/s  | 
+| 4 KiB   | 40.83 ms | +1%   | +1%   | 131.5GB/s  | 65.8GB/s  | page, 4 KiB | 
+| 8 KiB   | 42.72 ms | +6%   | +5%   | 125.7GB/s  | 62.8GB/s  | 
+| 16 KiB  | 40.32 ms | -     | +6%   | 133.2GB/s  | 66.6GB/s  | 
+| 32 KiB  | 0.14 s   | +239% | +239% | 39.3GB/s   | 19.6GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.13 s   | +233% | +2%   | 40.0GB/s   | 20.0GB/s  | 
+| 128 KiB | 0.13 s   | +234% | -     | 39.9GB/s   | 19.9GB/s  | 
+| 256 KiB | 0.13 s   | +230% | +1%   | 40.3GB/s   | 20.2GB/s  | 
+| 512 KiB | 0.15 s   | +279% | +15%  | 35.1GB/s   | 17.5GB/s  | 
+| 1 MiB   | 0.31 s   | +675% | +104% | 17.2GB/s   | 8.59GB/s  | 
+| 2 MiB   | 0.33 s   | +712% | +5%   | 16.4GB/s   | 8.19GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.33 s   | +707% | +1%   | 16.5GB/s   | 8.25GB/s  | 
+| 8 MiB   | 0.33 s   | +712% | +1%   | 16.4GB/s   | 8.20GB/s  | 
+| 16 MiB  | 0.33 s   | +722% | +1%   | 16.2GB/s   | 8.10GB/s  | 
+| 32 MiB  | 0.34 s   | +733% | +1%   | 16.0GB/s   | 7.99GB/s  |
+| 64 MiB  | 0.34 s   | +735% | -     | 16.0GB/s   | 7.98GB/s  | 
+| 128 MiB | 0.34 s   | +734% | -     | 16.0GB/s   | 7.98GB/s  |
+
+**SIMD cached fill**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|----------|-------|-------|------------|-----------|-------------|
+| 256 B   | 36.55 ms | -     | -     | 146.9GB/s  | 73.5GB/s  | 
+| 512 B   | 37.40 ms | +2%   | +2%   | 143.6GB/s  | 71.8GB/s  | 
+| 1 KiB   | 46.33 ms | +27%  | +24%  | 115.9GB/s  | 57.9GB/s  | 
+| 2 KiB   | 41.28 ms | +13%  | +11%  | 130.0GB/s  | 65.0GB/s  | 
+| 4 KiB   | 36.71 ms | -     | +11%  | 146.2GB/s  | 73.1GB/s  | page, 4 KiB | 
+| 8 KiB   | 38.10 ms | +4%   | +4%   | 140.9GB/s  | 70.5GB/s  | 
+| 16 KiB  | 38.57 ms | +6%   | +1%   | 139.2GB/s  | 69.6GB/s  | 
+| 32 KiB  | 0.14 s   | +272% | +253% | 39.4GB/s   | 19.7GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.13 s   | +269% | +1%   | 39.8GB/s   | 19.9GB/s  | 
+| 128 KiB | 0.13 s   | +269% | -     | 39.8GB/s   | 19.9GB/s  | 
+| 256 KiB | 0.14 s   | +278% | +2%   | 38.8GB/s   | 19.4GB/s  | 
+| 512 KiB | 0.19 s   | +407% | +34%  | 29.0GB/s   | 14.5GB/s  | 
+| 1 MiB   | 0.31 s   | +744% | +67%  | 17.4GB/s   | 8.70GB/s  | 
+| 2 MiB   | 0.34 s   | +825% | +10%  | 15.9GB/s   | 7.94GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.34 s   | +820% | +1%   | 16.0GB/s   | 7.99GB/s  | 
+| 8 MiB   | 0.33 s   | +812% | +1%   | 16.1GB/s   | 8.05GB/s  | 
+| 16 MiB  | 0.34 s   | +829% | +2%   | 15.8GB/s   | 7.91GB/s  | 
+| 32 MiB  | 0.34 s   | +832% | -     | 15.8GB/s   | 7.88GB/s  |
+| 64 MiB  | 0.36 s   | +880% | +5%   | 15.0GB/s   | 7.50GB/s  | 
+| 128 MiB | 0.34 s   | +819% | +6%   | 16.0GB/s   | 8.00GB/s  |
+
+**SIMD non-cached fill**
+
+| block | time | diff | delta | bandwidth | bandwidth per thread | comment |
+|---------|--------|--------|------|-----------|-----------|-------------|
+| 256 B   | 8.60 s | +4399% | -    | 2.50GB/s  | 1.25GB/s  | 
+| 512 B   | 4.54 s | +2274% | +47% | 4.73GB/s  | 2.37GB/s  | 
+| 1 KiB   | 2.77 s | +1351% | +39% | 7.75GB/s  | 3.87GB/s  | 
+| 2 KiB   | 1.65 s | +763%  | +40% | 13.0GB/s  | 6.51GB/s  | 
+| 4 KiB   | 1.10 s | +476%  | +33% | 19.5GB/s  | 9.75GB/s  | page, 4 KiB | 
+| 8 KiB   | 0.90 s | +371%  | +18% | 23.9GB/s  | 11.9GB/s  | 
+| 16 KiB  | 0.83 s | +332%  | +8%  | 26.0GB/s  | 13.0GB/s  | 
+| 32 KiB  | 0.79 s | +313%  | +4%  | 27.2GB/s  | 13.6GB/s  | L1D, 32 KiB | 
+| 64 KiB  | 0.77 s | +303%  | +3%  | 27.9GB/s  | 13.9GB/s  | 
+| 128 KiB | 0.76 s | +299%  | +1%  | 28.2GB/s  | 14.1GB/s  | 
+| 256 KiB | 0.75 s | +294%  | +1%  | 28.5GB/s  | 14.3GB/s  | 
+| 512 KiB | 0.75 s | +294%  | -    | 28.6GB/s  | 14.3GB/s  | 
+| 1 MiB   | 0.75 s | +291%  | +1%  | 28.8GB/s  | 14.4GB/s  | 
+| 2 MiB   | 0.75 s | +290%  | -    | 28.8GB/s  | 14.4GB/s  | L2, 2 MiB   | 
+| 4 MiB   | 0.19 s | -      | +74% | 28.1GB/s  | 14.0GB/s  | 
+| 8 MiB   | 0.19 s | -      | -    | 28.1GB/s  | 14.0GB/s  | 
+| 16 MiB  | 0.20 s | +5%    | +4%  | 26.9GB/s  | 13.4GB/s  | 
+| 32 MiB  | 0.19 s | -      | +4%  | 28.1GB/s  | 14.0GB/s  |
+| 64 MiB  | 0.19 s | +2%    | +2%  | 27.6GB/s  | 13.8GB/s  | 
+| 128 MiB | 0.20 s | +4%    | +2%  | 27.0GB/s  | 13.5GB/s  |
+
+</details>
+
 
 # MediaTek Helio G96
 
@@ -1673,7 +2794,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 42.86 ms | +137% | +20%  | 62.6GB/s   |             | 
 | 1 MiB   | 43.66 ms | +141% | +2%   | 61.5GB/s   | L2, 1 MiB   | 
 | 2 MiB   | 43.51 ms | +141% | -     | 61.7GB/s   |             | 
-| 4 MiB   | 43.61 ms | +141% | -     | 61.6GB/s   |             | 
+| 4 MiB   | 43.61 ms | +141% | -     | 61.6GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 71.57 ms | +296% | +64%  | 37.5GB/s   |             | 
 | 16 MiB  | 0.16 s   | +778% | +122% | 16.9GB/s   | L3, 16 MiB  | 
 | 32 MiB  | 0.16 s   | +782% | -     | 16.8GB/s   |             | 
@@ -1698,7 +2819,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 42.97 ms | +143% | +21% | 62.5GB/s   |             | 
 | 1 MiB   | 43.92 ms | +149% | +2%  | 61.1GB/s   | L2, 1 MiB   | 
 | 2 MiB   | 43.63 ms | +147% | +1%  | 61.5GB/s   |             | 
-| 4 MiB   | 43.84 ms | +148% | -    | 61.2GB/s   |             | 
+| 4 MiB   | 43.84 ms | +148% | -    | 61.2GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 72.02 ms | +308% | +64% | 37.3GB/s   |             | 
 | 16 MiB  | 0.11 s   | +527% | +54% | 24.2GB/s   | L3, 16 MiB  | 
 | 32 MiB  | 0.13 s   | +664% | +22% | 19.9GB/s   |             | 
@@ -1723,7 +2844,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 96.81 ms | +6%    | +3%  | 27.7GB/s   |             | 
 | 1 MiB   | 93.06 ms | +2%    | +4%  | 28.8GB/s   | L2, 1 MiB   | 
 | 2 MiB   | 91.31 ms | -      | +2%  | 29.4GB/s   |             | 
-| 4 MiB   | 91.23 ms | -      | -    | 29.4GB/s   |             | 
+| 4 MiB   | 91.23 ms | -      | -    | 29.4GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 95.45 ms | +5%    | +5%  | 28.1GB/s   |             | 
 | 16 MiB  | 0.10 s   | +10%   | +5%  | 26.7GB/s   | L3, 16 MiB  | 
 | 32 MiB  | 0.10 s   | +11%   | +1%  | 26.6GB/s   |             | 
@@ -1751,7 +2872,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 61.60 ms | +123%  | +23%  | 174.3GB/s  | 43.6GB/s  |             | 
 | 1 MiB   | 63.76 ms | +131%  | +4%   | 168.4GB/s  | 42.1GB/s  | L2, 1 MiB   | 
 | 2 MiB   | 92.07 ms | +234%  | +44%  | 116.6GB/s  | 29.2GB/s  |             | 
-| 4 MiB   | 0.34 s   | +1126% | +267% | 31.7GB/s   | 7.94GB/s  |             | 
+| 4 MiB   | 0.34 s   | +1126% | +267% | 31.7GB/s   | 7.94GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 0.49 s   | +1669% | +44%  | 22.0GB/s   | 5.50GB/s  |             | 
 | 16 MiB  | 0.37 s   | +1225% | +25%  | 29.4GB/s   | 7.34GB/s  | L3, 16 MiB  | 
 | 32 MiB  | 0.37 s   | +1230% | -     | 29.3GB/s   | 7.32GB/s  |             | 
@@ -1776,7 +2897,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 63.88 ms | +124%  | +32%  | 168.1GB/s  | 42.0GB/s  |             | 
 | 1 MiB   | 69.78 ms | +145%  | +9%   | 153.9GB/s  | 38.5GB/s  | L2, 1 MiB   | 
 | 2 MiB   | 93.29 ms | +227%  | +34%  | 115.1GB/s  | 28.8GB/s  |             | 
-| 4 MiB   | 0.34 s   | +1079% | +260% | 31.9GB/s   | 7.98GB/s  |             | 
+| 4 MiB   | 0.34 s   | +1079% | +260% | 31.9GB/s   | 7.98GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 0.48 s   | +1580% | +43%  | 22.4GB/s   | 5.60GB/s  |             | 
 | 16 MiB  | 0.57 s   | +1890% | +18%  | 18.9GB/s   | 4.73GB/s  | L3, 16 MiB  | 
 | 32 MiB  | 0.57 s   | +1895% | -     | 18.9GB/s   | 4.72GB/s  |             | 
@@ -1801,7 +2922,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 1.34 s  | +291%  | +1%  | 32.0GB/s  | 7.99GB/s   |             | 
 | 1 MiB   | 1.36 s  | +295%  | +1%  | 31.6GB/s  | 7.90GB/s   | L2, 1 MiB   | 
 | 2 MiB   | 1.36 s  | +295%  | -    | 31.6GB/s  | 7.90GB/s   |             | 
-| 4 MiB   | 0.35 s  | -      | +75% | 31.1GB/s  | 7.77GB/s   |             | 
+| 4 MiB   | 0.35 s  | -      | +75% | 31.1GB/s  | 7.77GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 0.34 s  | -      | -    | 31.2GB/s  | 7.81GB/s   |             | 
 | 16 MiB  | 0.35 s  | +1%    | +1%  | 31.1GB/s  | 7.76GB/s   | L3, 16 MiB  | 
 | 32 MiB  | 0.35 s  | +2%    | +2%  | 30.5GB/s  | 7.63GB/s   |             | 
@@ -1829,7 +2950,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 18.29 ms | +3%   | -    | 146.7GB/s  |             | 
 | 1 MiB   | 21.86 ms | +23%  | +20% | 122.8GB/s  | L2, 1 MiB   | 
 | 2 MiB   | 21.19 ms | +19%  | +3%  | 126.7GB/s  |             | 
-| 4 MiB   | 20.93 ms | +18%  | +1%  | 128.3GB/s  |             | 
+| 4 MiB   | 20.93 ms | +18%  | +1%  | 128.3GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 21.62 ms | +22%  | +3%  | 124.2GB/s  |             | 
 | 16 MiB  | 39.09 ms | +120% | +81% | 68.7GB/s   | L3, 16 MiB  | 
 | 32 MiB  | 64.42 ms | +263% | +65% | 41.7GB/s   |             | 
@@ -1854,7 +2975,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 18.57 ms | +6%   | +2%  | 144.6GB/s  |             | 
 | 1 MiB   | 21.72 ms | +23%  | +17% | 123.6GB/s  | L2, 1 MiB   | 
 | 2 MiB   | 22.77 ms | +29%  | +5%  | 117.9GB/s  |             | 
-| 4 MiB   | 22.48 ms | +28%  | +1%  | 119.4GB/s  |             | 
+| 4 MiB   | 22.48 ms | +28%  | +1%  | 119.4GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 22.98 ms | +31%  | +2%  | 116.8GB/s  |             | 
 | 16 MiB  | 39.70 ms | +126% | +73% | 67.6GB/s   | L3, 16 MiB  | 
 | 32 MiB  | 65.35 ms | +271% | +65% | 41.1GB/s   |             | 
@@ -1879,7 +3000,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 35.17 ms | +2%    | +1%  | 76.3GB/s  |             | 
 | 1 MiB   | 34.66 ms | +1%    | +1%  | 77.5GB/s  | L2, 1 MiB   | 
 | 2 MiB   | 34.50 ms | -      | -    | 77.8GB/s  |             | 
-| 4 MiB   | 34.47 ms | -      | -    | 77.9GB/s  |             | 
+| 4 MiB   | 34.47 ms | -      | -    | 77.9GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 34.40 ms | -      | -    | 78.0GB/s  |             | 
 | 16 MiB  | 35.49 ms | +3%    | +3%  | 75.6GB/s  | L3, 16 MiB  | 
 | 32 MiB  | 34.58 ms | +1%    | +3%  | 77.6GB/s  |             | 
@@ -1907,7 +3028,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 34.74 ms | +23%   | +21%  | 309.1GB/s  | 77.3GB/s  |             | 
 | 1 MiB   | 36.79 ms | +31%   | +6%   | 291.9GB/s  | 73.0GB/s  | L2, 1 MiB   | 
 | 2 MiB   | 50.85 ms | +81%   | +38%  | 211.2GB/s  | 52.8GB/s  |             | 
-| 4 MiB   | 0.23 s   | +707%  | +347% | 47.3GB/s   | 11.8GB/s  |             | 
+| 4 MiB   | 0.23 s   | +707%  | +347% | 47.3GB/s   | 11.8GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 0.32 s   | +1029% | +40%  | 33.8GB/s   | 8.45GB/s  |             | 
 | 16 MiB  | 0.36 s   | +1177% | +13%  | 29.9GB/s   | 7.47GB/s  | L3, 16 MiB  | 
 | 32 MiB  | 0.38 s   | +1250% | +6%   | 28.3GB/s   | 7.07GB/s  |             | 
@@ -1932,7 +3053,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 29.44 ms | +12%   | +4%   | 364.8GB/s  | 91.2GB/s   |             | 
 | 1 MiB   | 38.48 ms | +46%   | +31%  | 279.0GB/s  | 69.8GB/s   | L2, 1 MiB   | 
 | 2 MiB   | 56.25 ms | +114%  | +46%  | 190.9GB/s  | 47.7GB/s   |             | 
-| 4 MiB   | 0.22 s   | +755%  | +299% | 47.8GB/s   | 12.0GB/s   |             | 
+| 4 MiB   | 0.22 s   | +755%  | +299% | 47.8GB/s   | 12.0GB/s   | L3 slice, 4 MiB |
 | 8 MiB   | 0.30 s   | +1045% | +34%  | 35.7GB/s   | 8.92GB/s   |             | 
 | 16 MiB  | 0.35 s   | +1234% | +16%  | 30.6GB/s   | 7.66GB/s   | L3, 16 MiB  | 
 | 32 MiB  | 0.37 s   | +1320% | +6%   | 28.8GB/s   | 7.20GB/s   |             | 
@@ -1957,7 +3078,7 @@ SIMD cached load, non-cached store, multithreading, 4T:
 | 512 KiB | 0.56 s | +272%  | -    | 76.5GB/s  | 19.1GB/s  |             | 
 | 1 MiB   | 0.56 s | +272%  | -    | 76.5GB/s  | 19.1GB/s  | L2, 1 MiB   | 
 | 2 MiB   | 0.56 s | +271%  | -    | 76.7GB/s  | 19.2GB/s  |             | 
-| 4 MiB   | 0.16 s | +9%    | +71% | 65.5GB/s  | 16.4GB/s  |             | 
+| 4 MiB   | 0.16 s | +9%    | +71% | 65.5GB/s  | 16.4GB/s  | L3 slice, 4 MiB |
 | 8 MiB   | 0.15 s | -      | +8%  | 71.1GB/s  | 17.8GB/s  |             | 
 | 16 MiB  | 0.17 s | +11%   | +11% | 64.1GB/s  | 16.0GB/s  | L3, 16 MiB  | 
 | 32 MiB  | 0.16 s | +4%    | +6%  | 68.3GB/s  | 17.1GB/s  |             | 

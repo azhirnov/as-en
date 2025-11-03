@@ -88,6 +88,9 @@ namespace AE::PipelineCompiler
 		static void  Bind (const ScriptEnginePtr &se)											__Th___;
 
 		ND_ bool  Build ()																		__NE___;
+
+	private:
+		ND_ bool  _Build ()																		__Th___;
 	};
 	using PipelineLayoutPtr = ScriptRC< PipelineLayout >;
 

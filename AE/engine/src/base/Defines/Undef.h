@@ -36,3 +36,5 @@
 #undef CopyFile
 #undef GetEnvironmentVariable
 #undef SetEnvironmentVariable
+#undef GetComputerName
+#undef GetUserName

@@ -1,6 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	[results](https://github.com/azhirnov/as-en/blob/dev/AE/docs/papers/bench-cpu/SIMD_FLOPS.md)
+
+	Operations only on registers, without memory access.
 */
 
 #include "Perf_Common.h"
@@ -1099,7 +1101,7 @@ namespace
 												  IntervalProfiler::EFlags::SortByPerf | IntervalProfiler::EFlags::ExcludePerfDiff };
 
 					// Clang converts scalar to SIMD, so test is not correct
-					#if not defined(AE_COMPILER_CLANG) or not defined(AE_COMPILER_CLANG_CL)
+					#if not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
 						TestVFloat< packed_float4 >( profiler, "Scalar Float4" );
 						profiler.PrintAndReset();
 					#endif
@@ -1115,17 +1117,17 @@ namespace
 
 					#if 1
 						// Clang converts scalar to SIMD, so test is not correct
-						#if not defined(AE_COMPILER_CLANG) or not defined(AE_COMPILER_CLANG_CL)
-							TestVFloat< packed_double2 >( profiler, "Scalar Double2" );
+						#if not (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL))
+						//	TestVFloat< packed_double2 >( profiler, "Scalar Double2" );
 							TestVFloat< packed_double4 >( profiler, "Scalar Double4" );
 							profiler.PrintAndReset();
 						#endif
 
-						#ifdef AE_SIMD_SimdDouble2
-							TestVFloat< SimdDouble2 >( profiler, "Simd Double2" );
-						#endif
 						#ifdef AE_SIMD_SimdDouble4
 							TestVFloat< SimdDouble4 >( profiler, "Simd Double4" );
+
+						#elif defined(AE_SIMD_SimdDouble2)
+							TestVFloat< SimdDouble2 >( profiler, "Simd Double2" );
 						#endif
 						profiler.PrintAndReset();
 					#endif
@@ -1258,7 +1260,7 @@ namespace
 
 		static void  SIMD_MultiThread2 (const CpuArchInfo::Core &core) __NE___
 		{
-			if ( not core.HasVirtualCores() )
+			if ( not core.HasLogicalCores() )
 				return;
 
 			const auto			core_bits	 = core.logicalBits;
@@ -1288,7 +1290,7 @@ namespace
 
 extern void PerfTest_SIMD ()
 {
-	#if (defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)) and defined(AE_CFG_RELEASE)
+	#if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_CLANG_CL)
 		CHECK_MSG( false, "Clang will use aggressive optimization, results are incorrect" );
 	#endif
 

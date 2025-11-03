@@ -154,7 +154,7 @@ namespace AE::Base
 	public:
 		StructView ()									__NE___	= default;
 
-		StructView (ArrayView<T> arr)					__NE___ : _array{ arr.data() }, _count{ CheckCast<uint>( arr.size() )}, _stride{ SizeOf<T> }
+		StructView (ArrayView<T> arr)					__NE___ : _array{ arr.data() }, _count{ CheckCast{ arr.size() }}, _stride{ SizeOf<T> }
 		{
 			DEBUG_ONLY( _dbgView = _CreateView< T, sizeof(T) >( _array ));
 		}
@@ -169,20 +169,20 @@ namespace AE::Base
 			DEBUG_ONLY( std::swap( _dbgView, other._dbgView ));
 		}
 
-		StructView (const T* ptr, usize count)			__NE___ : _array{ ptr }, _count{ CheckCast<uint>( count )}, _stride{ SizeOf<T> }
+		StructView (const T* ptr, usize count)			__NE___ : _array{ ptr }, _count{ CheckCast{ count }}, _stride{ SizeOf<T> }
 		{
 			DEBUG_ONLY( _dbgView = _CreateView< T, sizeof(T) >( _array ));
 		}
 
 		template <typename Class>
 		StructView (ArrayView<Class> arr, T (Class::*member)) __NE___ :
-			_array{ arr.data() + OffsetOf(member) }, _count{ CheckCast<uint>( arr.size() )}, _stride{ SizeOf<Class> }
+			_array{ arr.data() + OffsetOf(member) }, _count{ CheckCast{ arr.size() }}, _stride{ SizeOf<Class> }
 		{
 			DEBUG_ONLY( _dbgView = _CreateView< Class, sizeof(Class) >( _array ));
 		}
 
 		StructView (const void* ptr, usize count, Bytes stride) __NE___ :
-			_array{ptr}, _count{ CheckCast<uint>( count )}, _stride{Bytes32u(stride)}
+			_array{ptr}, _count{ CheckCast{ count }}, _stride{Bytes32u(stride)}
 		{}
 
 

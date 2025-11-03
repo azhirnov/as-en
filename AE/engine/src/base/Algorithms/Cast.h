@@ -351,24 +351,33 @@ namespace AE::Base
 #	pragma clang diagnostic ignored "-Wredundant-consteval-if"
 #endif
 
-	template <typename To, typename From>
-	NdCx__ To  CheckCast (const From &src) __NE___
+	template <typename From>
+	struct CheckCast
 	{
-		StaticAssert( IsAnyInteger<To> );
+	private:
+		const From	_src;
+
+	public:
 		StaticAssert( IsAnyInteger<From> );
+		__Cx__ explicit CheckCast (const From &src) __NE___ : _src{src} {}
 
-		if constexpr( IsSigned<From> and IsUnsigned<To> )
-			ASSERT_Cx( src >= From(0) );
+		template <typename To>
+		  requires( IsAnyInteger<To> )
+		NdCx__ operator To () C_NE___
+		{
+			if constexpr( IsSigned<From> and IsUnsigned<To> )
+				ASSERT_Cx( _src >= From(0) );
 
-		ASSERT_Cx( static_cast<From>(static_cast<To>(src)) == src );
-		return static_cast<To>(src);
-	}
-
+			ASSERT_Cx( static_cast<From>(static_cast<To>(_src)) == _src );
+			return static_cast<To>(_src);
+		}
+	};
+	
 	template <typename To, typename From>
-	NdCx__ bool  CheckCast (OUT To &dst, const From &src) __NE___
+	NdCx__ bool  CastAndCheck (OUT To &dst, const From &src) __NE___
 	{
 		dst = static_cast<To>(src);
-		return static_cast<From>(static_cast<To>(src)) == src;
+		return static_cast<From>(dst) == src;
 	}
 
 #ifdef AE_COMPILER_MSVC
@@ -378,32 +387,67 @@ namespace AE::Base
 #	pragma clang diagnostic pop
 #endif
 
+	template <typename T, typename A>
+	__Cx__ T&  operator += (INOUT T &rhs, const CheckCast<A> &lhs) __NE___
+	{
+		return rhs += T{lhs};
+	}
+	
+	template <typename T, typename A>
+	__Cx__ T&  operator -= (INOUT T &rhs, const CheckCast<A> &lhs) __NE___
+	{
+		return rhs -= T{lhs};
+	}
+	
+	template <typename T, typename A>
+	__Cx__ T&  operator *= (INOUT T &rhs, const CheckCast<A> &lhs) __NE___
+	{
+		return rhs *= T{lhs};
+	}
+	
+	template <typename T, typename A>
+	__Cx__ T&  operator /= (INOUT T &rhs, const CheckCast<A> &lhs) __NE___
+	{
+		return rhs /= T{lhs};
+	}
+
 /*
 =================================================
 	LimitCast
 =================================================
 */
-	template <typename To, typename From>
-	NdCx__ To  LimitCast (const From& src) __NE___
+	template <typename From>
+	struct LimitCast
 	{
-		StaticAssert( IsAnyInteger<To> and IsAnyInteger<From> );
-		StaticAssert( MaxValue<From>() >= MaxValue<To>() );
+	private:
+		const From	_src;
 
-		if constexpr( IsSigned<From> and IsUnsigned<To> )
-		{
-			return	src < From(0)							? To(0) :
-					src > static_cast<From>(MaxValue<To>())	? MaxValue<To>() :
-															  static_cast<To>(src);
-		}
-		else
-		{
-			StaticAssert( MinValue<From>() <= MinValue<To>() );
+	public:
+		StaticAssert( IsAnyInteger<From> );
+		__Cx__ explicit LimitCast (const From &src) __NE___ : _src{src} {}
 
-			return	src > static_cast<From>(MaxValue<To>())	? MaxValue<To>() :
-					src < static_cast<From>(MinValue<To>()) ? MinValue<To>() :
-															  static_cast<To>(src);
+		template <typename To>
+		  requires( IsAnyInteger<To> )
+		NdCx__ operator To () C_NE___
+		{
+			StaticAssert( MaxValue<From>() >= MaxValue<To>() );
+
+			if constexpr( IsSigned<From> and IsUnsigned<To> )
+			{
+				return	_src < From(0)								? To(0) :
+						_src > static_cast<From>(MaxValue<To>())	? MaxValue<To>() :
+																	  static_cast<To>(_src);
+			}
+			else
+			{
+				StaticAssert( MinValue<From>() <= MinValue<To>() );
+
+				return	_src > static_cast<From>(MaxValue<To>())	? MaxValue<To>() :
+						_src < static_cast<From>(MinValue<To>())	? MinValue<To>() :
+																	  static_cast<To>(_src);
+			}
 		}
-	}
+	};
 
 /*
 =================================================

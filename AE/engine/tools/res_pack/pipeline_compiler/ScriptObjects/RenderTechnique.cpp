@@ -525,7 +525,7 @@ namespace
 		uint	ppln_spec_count = 0;
 
 		for (const auto& ptr : _passes) {
-			ppln_spec_count += CheckCast<uint>( ptr.Get()->_pipelineRefs.size() );
+			ppln_spec_count += CheckCast{ ptr.Get()->_pipelineRefs.size() };
 		}
 
 		if ( ppln_spec_count == 0 )

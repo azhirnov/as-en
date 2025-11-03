@@ -234,8 +234,8 @@ namespace AE::Base
 =================================================
 	MemCopy256_Cached
 ----
-	Copy memory with writing to cache, performance is limited by L2/L3 cache bandwidth.
-	Use it to keep result in cache for further use.
+	Copy memory with writing to cache, performance is limited by cache write bandwidth.
+	Use this function to keep result in cache for further use.
 	Faster for blocks which is less than L2/L3 cache size.
 	If cache size or block size is not known use 'MemCopy()' instead.
 ----
@@ -324,7 +324,7 @@ namespace AE::Base
 =================================================
 	ZeroMem256_Cached
 ----
-	same as 'MemCopy256_Cached', L1 cache is not used.
+	same as 'MemCopy256_Cached'.
 =================================================
 */
 	forceinline void  ZeroMem256_Cached (OUT void* inDst, const Bytes size) __NE___

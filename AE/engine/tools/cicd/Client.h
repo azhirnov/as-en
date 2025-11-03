@@ -42,6 +42,8 @@ namespace AE::CICD
 		ND_	bool  _RunScript2 (StringView name);
 		ND_ bool  _CancelAll ();
 
+			void  _PrintHelp ();
+
 			void  _OnConnected ()		override;
 			void  _OnDisconnected ()	override;
 	};

@@ -435,7 +435,7 @@ namespace AE::ECS
 		for (usize i = 0; i < _queries.size(); ++i)
 		{
 			if ( desc == _queries[i].desc )
-				return QueryID{ CheckCast<ushort>(i), 0 };
+				return QueryID{ CheckCast{i}, 0 };
 		}
 
 		auto&	q = _queries.emplace_back();	// throw
@@ -448,7 +448,7 @@ namespace AE::ECS
 		}
 
 		q.locked = false;
-		return QueryID{ CheckCast<ushort>(_queries.size()-1), 0 };
+		return QueryID{ CheckCast{ _queries.size()-1 }, 0 };
 	}
 
 /*

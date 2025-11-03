@@ -54,7 +54,7 @@ namespace AE::Profiler
 			return { null, UMax, *this };
 
 		DEBUG_ONLY( result->_magicNumber = BaseCmd::MAGIC; )
-		result->_size		= CheckCast<ushort>( size );
+		result->_size		= CheckCast{ size };
 		result->_commandID	= TaskCmdList_t::Index<CmdType>;
 
 		return { result, pos + uint(size), *this };

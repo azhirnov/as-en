@@ -97,7 +97,7 @@ namespace AE::Graphics
 		_desc.mipmapCount	= MipmapCount_t(desc.subresourceRange.levelCount);
 		_desc.baseLayer		= ImageLayer{ desc.subresourceRange.baseArrayLayer };
 		_desc.layerCount	= LayerCount_t(desc.subresourceRange.layerCount);
-		_desc.dimension		= CheckCast<ImageDim_t>( desc.dimension );
+		_desc.dimension		= CheckCast{ desc.dimension };
 		// TODO: swizzle
 		_canBeDestroyed		= desc.canBeDestroyed;
 

@@ -212,7 +212,7 @@ namespace AE::Graphics
 			uint	num_passes	= 0;
 			vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR( _device.GetVkPhysicalDevice(), OUT &perf_info, OUT &num_passes );
 
-			pool.numPasses = CheckCast<ushort>( num_passes );
+			pool.numPasses = CheckCast{ num_passes };
 		}
 
 		if ( _device.GetVExtensions().accelerationStructure )
@@ -423,14 +423,14 @@ Supported queue types: Graphics / Compute
 
 		Query	result;
 
-		result.first = CheckCast<ushort>( pool.count.fetch_add( count ));
+		result.first = CheckCast{ pool.count.fetch_add( count )};
 		if_unlikely( not (result.first + count < pool.maxCount) )
 			return Default;	// overflow
 
 		result.pool		= pool.handle;
-		result.count	= CheckCast<ushort>( count );
-		result.first	= CheckCast<ushort>( result.first + pool.maxCount * writeIdx);
-		result.numPasses= CheckCast<ushort>( pool.numPasses );
+		result.count	= CheckCast{ count };
+		result.first	= CheckCast{ result.first + pool.maxCount * writeIdx };
+		result.numPasses= CheckCast{ pool.numPasses };
 		result.type		= type;
 		result.queue	= queueType;
 

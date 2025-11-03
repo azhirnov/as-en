@@ -61,9 +61,18 @@ namespace AE::Graphics
 		RADV,			// open-source driver for AMD GPU from Mesa package
 		AMDVLK,			// AMD open-source driver
 		AMD_PRO,		// AMD proprietory driver
+		ANV,			// open-source driver for Intel GPU from Mesa package
+		IntelPro,		// Intel proprietory driver
+		Nouveau,		// open-source driver for old NVIDIA GPUs from Mesa package
+		NVK,			// open-source driver for new NVIDIA GPUs from Mesa package
+		NVPro,			// NVIDIA proprietory driver
+		VirtGPU,		// open-source driver for virtual GPU from Mesa package
+		GFXStream,		// Vulkan virtualization from Google
 	  #endif
 
 		// TODO: other
+
+		_Count
 	};
 
 

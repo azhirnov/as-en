@@ -254,7 +254,7 @@ namespace {
 			CHECK_ERR( ds );
 
 			result._ds		= ds;
-			result._dsIndex	= CheckCast<ushort>(idx.vkIndex);
+			result._dsIndex	= CheckCast{ idx.vkIndex };
 
 			_dsArray->push_back( RVRef(ds) );  // throw
 			return true;

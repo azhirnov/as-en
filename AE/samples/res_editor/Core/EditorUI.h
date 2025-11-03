@@ -283,6 +283,11 @@ namespace AE::ResEditor
 			Strong<ImageViewID>			fontView;
 		}							_res;				// read-only after '_InitUI()'
 
+		struct {
+			String						deviceName;
+			String						driver;
+		}							_info;
+
 		ImGuiDataSync				_imgui;
 		GraphicsDataSync			_graphics;
 
@@ -315,6 +320,7 @@ namespace AE::ResEditor
 		ND_ bool  _LoadPipelinePack (auto& resMngr)	const;
 		ND_ bool  _LoadPipelinePack ();
 		ND_ bool  _InitSurface (IOutputSurface &);
+			void  _InitDeviceInfo ();
 
 		ND_ bool  _InitUI (PipelinePackID pack);
 

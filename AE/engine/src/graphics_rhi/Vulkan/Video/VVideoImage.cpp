@@ -465,10 +465,10 @@ namespace
 				[&] (const VkVideoProfileInfoKHR &profileInfo, const VkVideoCapabilitiesKHR &capabilities) -> bool
 				{
 					if ( All( desc.dimension == ImageDim2_t{0} ))
-						desc.dimension = CheckCast<ImageDim2_t>(uint2{ capabilities.minCodedExtent.width, capabilities.minCodedExtent.height });
+						desc.dimension = CheckCast{uint2{ capabilities.minCodedExtent.width, capabilities.minCodedExtent.height }};
 
 					if ( All( desc.dimension == UMax ))
-						desc.dimension = CheckCast<ImageDim2_t>(uint2{ capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height });
+						desc.dimension = CheckCast{uint2{ capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height }};
 
 					CHECK_ERR( All( desc.Dimension2() >= uint2{capabilities.minCodedExtent.width, capabilities.minCodedExtent.height} ));
 					CHECK_ERR( All( desc.Dimension2() <= uint2{capabilities.maxCodedExtent.width, capabilities.maxCodedExtent.height} ));

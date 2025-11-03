@@ -276,7 +276,7 @@ namespace
 */
 	void  MFeatureSet::InitFeatureSet (const MGPUFamilies &f, INOUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
 
 		using SubgroupOperationBits = FeatureSet::SubgroupOperationBits;
 		using KiBytes				= FeatureSet::KiBytes;
@@ -594,9 +594,9 @@ namespace
 			//outFeatureSet.tessellationPointMode
 
 			// shader limits
-			outFeatureSet.maxTexelBufferElements			= POTValue{ulong{ properties.max1DTextureSize * 4_KiB }};
-			outFeatureSet.maxUniformBufferSize				= POTBytes{ properties.maxBufferSize };
-			outFeatureSet.maxStorageBufferSize				= POTBytes{ properties.maxBufferSize };
+			outFeatureSet.maxTexelBufferElements			= uint{ properties.max1DTextureSize * 4_KiB };
+			outFeatureSet.maxUniformBufferSize				= Bytes{ properties.maxBufferSize };
+			outFeatureSet.maxStorageBufferSize				= Bytes{ properties.maxBufferSize };
 			outFeatureSet.maxDescriptorSets					= GraphicsConfig::MaxDescriptorSets;
 			outFeatureSet.perPipeline_maxUniformBuffersDynamic = 8;
 			outFeatureSet.perPipeline_maxStorageBuffersDynamic = 4;
@@ -619,13 +619,13 @@ namespace
 			outFeatureSet.perStage.maxTotalResources		= outFeatureSet.maxDescriptorSets * (properties.maxNumberOfBufferInsideArgumentBuffer + properties.maxNumberOfTexturesInsideArgumentBuffer + properties.maxNumberOfSamplersInsideArgumentBuffer);
 			outFeatureSet.maxTexelOffset					= 7;	// [-8, 7]
 			outFeatureSet.maxTexelGatherOffset				= 7;	// [-8, 7]
-			outFeatureSet.maxFragmentOutputAttachments		= CheckCast<ubyte>( properties.maxNumberOfColorRenderTargetsPerRenderPassDescriptor );
+			outFeatureSet.maxFragmentOutputAttachments		= CheckCast{ properties.maxNumberOfColorRenderTargetsPerRenderPassDescriptor };
 			outFeatureSet.maxFragmentDualSrcAttachments		= features.dualSourceBlending ? 1 : 0;
 			outFeatureSet.maxFragmentCombinedOutputResources= outFeatureSet.perStage.maxTotalResources;
 			outFeatureSet.maxPushConstantsSize				= POTBytes_From< 4 << 10 >;
 			outFeatureSet.maxTotalThreadgroupSize			= KiBytes{ properties.maxThreadgroupMemoryLength };
 			outFeatureSet.maxTotalTileMemory				= KiBytes{ properties.maxTotalTileMemoryAllocation };
-			outFeatureSet.maxVertAmplification				= CheckCast<ubyte>( properties.maxVertexCountForVertexAmplification );
+			outFeatureSet.maxVertAmplification				= CheckCast{ properties.maxVertexCountForVertexAmplification };
 
 			// compute shader
 			outFeatureSet.maxComputeSharedMemorySize		= KiBytes{ Max( properties.maxTotalThreadgroupMemoryAllocation, properties.maxThreadgroupMemoryLength )};
@@ -659,7 +659,7 @@ namespace
 			}
 
 			// raster order group
-			outFeatureSet.maxRasterOrderGroups		= CheckCast<ushort>( properties.maxNumberOfRasterOrderGroupsPerFragmentFunction );
+			outFeatureSet.maxRasterOrderGroups		= CheckCast{ properties.maxNumberOfRasterOrderGroupsPerFragmentFunction };
 
 			// shaders
 			outFeatureSet.geometryShader			= False;
@@ -668,7 +668,7 @@ namespace
 			outFeatureSet.tileShader				= features.tileShaders ? True : False;
 
 			// vertex buffer
-			outFeatureSet.maxVertexAttributes		= CheckCast<ubyte>( properties.maxNumberOfVertexAttribsPerVertexDescriptor );
+			outFeatureSet.maxVertexAttributes		= CheckCast{ properties.maxNumberOfVertexAttribsPerVertexDescriptor };
 			outFeatureSet.maxVertexBuffers			= 31;	// TODO ?
 		}
 		// buffer

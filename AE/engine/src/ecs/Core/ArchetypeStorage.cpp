@@ -41,7 +41,7 @@ namespace AE::ECS
 
 			for (; j >= 0; j = u.ExtractBitIndex())
 			{
-				ComponentID	id{ CheckCast<ushort>( j + i * CT_SizeofInBits(u) )};
+				ComponentID	id{ CheckCast{ j + i * CT_SizeofInBits(u) }};
 
 				auto	info = _owner.GetComponentInfo( id );
 				CHECK_ERR( info );

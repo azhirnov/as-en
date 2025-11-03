@@ -333,11 +333,11 @@
 		if_likely( _AllocStatic( reqSize, slicePitch, memOffsetAlign, INOUT result.buffers, sb ))
 		{
 			auto&		res		= result.buffers.back();
-			const uint	z_size	= Max( 1u, CheckCast<uint>( res.size / slicePitch ));
+			const uint	z_size	= Max( 1u, uint{CheckCast{ res.size / slicePitch }});
 			ASSERT( imageDim.z >= z_size );
 
 		  #if defined(AE_ENABLE_VULKAN)
-			res.bufferImageHeight	= Max( 1u, CheckCast<uint>( (slicePitch * texelBlockDim.y) / rowPitch ));
+			res.bufferImageHeight	= Max( 1u, uint{CheckCast{ (slicePitch * texelBlockDim.y) / rowPitch }});
 
 		  #elif defined(AE_ENABLE_METAL)
 			res.bufferSlicePitch	= slicePitch;
@@ -358,7 +358,7 @@
 		if_likely( _AllocStatic( reqSize, rowPitch, memOffsetAlign, INOUT result.buffers, sb ))
 		{
 			auto&		res		= result.buffers.back();
-			const uint	y_size	= Max( 1u, CheckCast<uint>( (res.size * texelBlockDim.y) / rowPitch ));
+			const uint	y_size	= Max( 1u, uint{CheckCast{ (res.size * texelBlockDim.y) / rowPitch }});
 
 			ASSERT( imageDim.y >= y_size );
 			ASSERT( IsMultipleOf( y_size, texelBlockDim.y ));
@@ -573,14 +573,14 @@
 			if_likely( _AllocDynamic<true>( frameId, INOUT reqSize, slicePitch, memOffsetAlign, upload, INOUT result.buffers ))
 			{
 				auto&		res		= result.buffers.back();
-				const uint	z_size	= Max( 1u, CheckCast<uint>( res.size / slicePitch ));
+				const uint	z_size	= Max( 1u, uint{CheckCast{ res.size / slicePitch }});
 
 				ASSERT( res.size >= slicePitch );
 				ASSERT( regionDim.z >= z_size );
 				ASSERT( IsMultipleOf( res.size, slicePitch ));
 
 			  #if defined(AE_ENABLE_VULKAN)
-				res.bufferImageHeight	= Max( 1u, CheckCast<uint>( (slicePitch * texelBlockDim.y) / rowPitch ));
+				res.bufferImageHeight	= Max( 1u, uint{CheckCast{ (slicePitch * texelBlockDim.y) / rowPitch }});
 
 			  #elif defined(AE_ENABLE_METAL)
 				res.bufferSlicePitch	= slicePitch;
@@ -609,7 +609,7 @@
 			if_likely( _AllocDynamic<true>( frameId, INOUT reqSize, rowPitch, memOffsetAlign, upload, INOUT result.buffers ))
 			{
 				auto&		res		= result.buffers.back();
-				const uint	y_size	= Max( 1u, CheckCast<uint>( (res.size * texelBlockDim.y) / rowPitch ));
+				const uint	y_size	= Max( 1u, uint{CheckCast{ (res.size * texelBlockDim.y) / rowPitch }});
 
 				ASSERT( res.size >= rowPitch );
 				ASSERT( regionDim.y >= y_size );
@@ -749,7 +749,7 @@
 		const Bytes		min_slice_pitch		= (region_dim.y * row_pitch + texblock_dim.y-1) / texblock_dim.y;
 		const Bytes		slice_pitch			= Max( uploadDesc.dataSlicePitch, min_slice_pitch );
 			  Bytes		total_size			= region_dim.z > 1 ? slice_pitch * region_dim.z : min_slice_pitch;
-		const uint		row_length			= CheckCast<uint>((row_pitch * texblock_dim.x * 8) / texblock_bits);
+		const uint		row_length			= CheckCast{ (row_pitch * texblock_dim.x * 8) / texblock_bits };
 		const Bytes		mem_offset_align	= CeilPOT( Bytes{ (texblock_bits + 7) / 8 });
 
 		ASSERT( IsPowerOfTwo( mem_offset_align ));
@@ -824,7 +824,7 @@
 		const Bytes		min_slice_pitch		= region_dim.y * row_pitch;
 		const Bytes		slice_pitch			= Max( uploadDesc.dataSlicePitch, min_slice_pitch );
 			  Bytes		total_size			= min_slice_pitch;
-		const uint		row_length			= CheckCast<uint>( row_pitch / texblock_bytes );
+		const uint		row_length			= CheckCast{ row_pitch / texblock_bytes };
 		const Bytes		mem_offset_align	= texblock_bytes;
 		const uint3		img_offset			= uint3{uploadDesc.imageOffset};
 

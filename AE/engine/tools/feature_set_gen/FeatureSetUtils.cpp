@@ -23,32 +23,30 @@ namespace
 	CastPOT
 =================================================
 */
-	ND_ static POTValue  CastPOT (const uint src)
+	ND_ static POTValue  CastPOT (const uint src, StringView name)
 	{
 		if ( src == 0 )
 			return POTValue::Invalid();
 
 		int	pot = IntLog2( src );
-
 		CHECK( pot >= 0 );
-
+		
 		if ( (1u<<pot) != src )
-			AE_LOGW( "Not a POT value: ("s << ToString(1u<<pot) << ") != (" << ToString(src) << ")" );
+			AE_LOGW( "Not a POT value: ("s << ToString(1u<<pot) << ") != (" << ToString(src) << ") in " << name );
 
 		return POTValue{PowerOfTwo(pot)};
 	}
 
-	ND_ static POTBytes  CastPOTBytes (const uint src)
+	ND_ static POTBytes  CastPOTBytes (const uint src, StringView name)
 	{
 		if ( src == 0 )
 			return POTBytes::Invalid();
 
 		int	pot = IntLog2( src );
-
 		CHECK( pot >= 0 );
 
 		if ( (1u<<pot) != src )
-			AE_LOGW( "Not a POT value: ("s << ToString(1u<<pot) << ") != (" << ToString(src) << ")" );
+			AE_LOGW( "Not a POT value: ("s << ToString(1u<<pot) << ") != (" << ToString(src) << ") in " << name );
 
 		return POTBytes{PowerOfTwo(pot)};
 	}
@@ -59,13 +57,15 @@ namespace
 =================================================
 */
 	template <typename To, typename From>
-	ND_ static To  CastSat (const From src)
+	ND_ static To  CastSat (const From src, StringView name)
 	{
 		if ( static_cast<From>(static_cast<To>(src)) == src )
 			return static_cast<To>(src);
 
-		AE_LOGW( "Saturated cast from ("s << ToString( src ) << ") to (" << ToString( static_cast<To>(src) ) << ")" );
-		return static_cast<To>(src);
+		To	dst = LimitCast{ src };
+
+		AE_LOGW( "Saturated cast from ("s << ToString( src ) << ") to (" << ToString( dst ) << ") in " << name );
+		return dst;
 	}
 
 /*
@@ -293,12 +293,12 @@ namespace
 
 	ND_ static ubyte  FS_ParseJSON (ubyte prev, StringView json, StringView name)
 	{
-		return CastSat<ubyte>( FS_ParseJSON( uint(prev), json, name ));
+		return CastSat<ubyte>( FS_ParseJSON( uint(prev), json, name ), name );
 	}
 
 	ND_ static ushort  FS_ParseJSON (ushort prev, StringView json, StringView name)
 	{
-		return CastSat<ushort>( FS_ParseJSON( uint(prev), json, name ));
+		return CastSat<ushort>( FS_ParseJSON( uint(prev), json, name ), name );
 	}
 
 /*
@@ -314,7 +314,7 @@ namespace
 
 		uint	val;
 		Unused( FromChars( OUT val, value_str ));
-		return CastPOT( val );
+		return CastPOT( val, name );
 	}
 
 	ND_ static POTBytes  FS_ParseJSON (POTBytes prev, StringView json, StringView name)
@@ -325,7 +325,7 @@ namespace
 
 		uint	val;
 		Unused( FromChars( OUT val, value_str ));
-		return CastPOTBytes( val );
+		return CastPOTBytes( val, name );
 	}
 
 /*
@@ -345,7 +345,7 @@ namespace
 		uint	val2 = ((val >> 10) & 0xFFFF) << 10;
 
 		if ( val != val2 )
-			AE_LOGW( "Not a multiple of 1024: ("s << ToString(val) << ") != (" << ToString(val2) << ")" );
+			AE_LOGW( "Not a multiple of 1024: ("s << ToString(val) << ") != (" << ToString(val2) << ") in " << name );
 
 		return FeatureSet::KiBytes{ val2 };
 	}
@@ -1278,9 +1278,9 @@ namespace
 				outFeatureSet.subgroup			= EFeature::RequireTrue;
 				outFeatureSet.subgroupTypes		= ESubgroupTypes::Float32 | ESubgroupTypes::Int32;
 
-				const uint		subgroup_size	= FS_ParseJSON( 0u, json, "\"subgroupSize\"" );
-				outFeatureSet.minSubgroupSize	= CastPOT( subgroup_size );
-				outFeatureSet.maxSubgroupSize	= CastPOT( subgroup_size );
+				const POTValue	subgroup_size	= CastPOT( FS_ParseJSON( 0u, json, "\"subgroupSize\"" ), "subgroupSize" );
+				outFeatureSet.minSubgroupSize	= subgroup_size;
+				outFeatureSet.maxSubgroupSize	= subgroup_size;
 			}
 
 			// from https://github.com/KhronosGroup/Vulkan-Guide/blob/main/chapters/versions.adoc#spir-v
@@ -1340,9 +1340,9 @@ namespace
 			CHECK( sb <= outFeatureSet.perPipeline_maxStorageBuffersDynamic );
 			CHECK( Max( ub, sb ) <= outFeatureSet.perPipeline_maxTotalBuffersDynamic );
 
-			outFeatureSet.perPipeline_maxUniformBuffersDynamic = CastSat<ubyte>( ub );
-			outFeatureSet.perPipeline_maxStorageBuffersDynamic = CastSat<ubyte>( sb );
-			outFeatureSet.perPipeline_maxTotalBuffersDynamic   = CastSat<ubyte>( total );
+			outFeatureSet.perPipeline_maxUniformBuffersDynamic = CastSat<ubyte>( ub, "maxUniformBuffersDynamic" );
+			outFeatureSet.perPipeline_maxStorageBuffersDynamic = CastSat<ubyte>( sb, "maxStorageBuffersDynamic" );
+			outFeatureSet.perPipeline_maxTotalBuffersDynamic   = CastSat<ubyte>( total, "maxTotalBuffersDynamic" );
 		}
 		else
 		{
@@ -1353,7 +1353,7 @@ namespace
 		{
 			int	min_off = 0;
 			min_off = FS_ParseJSON( min_off, json, "\"minTexelOffset\"" );
-			outFeatureSet.maxTexelOffset = CastSat<ubyte>( Min( outFeatureSet.maxTexelOffset, Abs(min_off)-1 ));
+			outFeatureSet.maxTexelOffset = CastSat<ubyte>( Min( outFeatureSet.maxTexelOffset, Abs(min_off)-1 ), "maxTexelOffset" );
 		}
 
 		// minTexelGatherOffset
@@ -1362,7 +1362,7 @@ namespace
 			min_off = FS_ParseJSON( min_off, json, "\"minTexelGatherOffset\"" );
 			min_off = Abs(min_off);
 			min_off += min_off != 0 ? -1 : 0;
-			outFeatureSet.maxTexelGatherOffset = CastSat<ubyte>( Min( outFeatureSet.maxTexelGatherOffset, min_off ));
+			outFeatureSet.maxTexelGatherOffset = CastSat<ubyte>( Min( outFeatureSet.maxTexelGatherOffset, min_off ), "maxTexelGatherOffset" );
 		}
 
 		// compute shader
@@ -1370,9 +1370,9 @@ namespace
 			Array<StringView>	tokens = FS_ParseJSON_N( json, "\"maxComputeWorkGroupSize\"" );
 			if ( tokens.size() == 7 and tokens.front() == "[" )
 			{
-				outFeatureSet.maxComputeWorkGroupSizeX = CastPOT( StringToUInt( tokens[1] ));
-				outFeatureSet.maxComputeWorkGroupSizeY = CastPOT( StringToUInt( tokens[3] ));
-				outFeatureSet.maxComputeWorkGroupSizeZ = CastPOT( StringToUInt( tokens[5] ));
+				outFeatureSet.maxComputeWorkGroupSizeX = CastPOT( StringToUInt( tokens[1] ), "maxComputeWorkGroupSizeX" );
+				outFeatureSet.maxComputeWorkGroupSizeY = CastPOT( StringToUInt( tokens[3] ), "maxComputeWorkGroupSizeY" );
+				outFeatureSet.maxComputeWorkGroupSizeZ = CastPOT( StringToUInt( tokens[5] ), "maxComputeWorkGroupSizeZ" );
 			}
 			else
 			{
@@ -1548,6 +1548,18 @@ namespace
 	static void  FS_ToString (INOUT String &str, POTBytes value, StringView name)
 	{
 		FS_ToString( INOUT str, POTValue{value}, name );
+	}
+	
+/*
+=================================================
+	FS_ToString (Bytes)
+=================================================
+*/
+	template <typename T>
+	static void  FS_ToString (INOUT String &str, TByte<T> value, StringView name)
+	{
+		StaticAssert( sizeof(value) <= sizeof(uint) );
+		return FS_ToString( INOUT str, uint{value}, name );
 	}
 
 /*

@@ -71,6 +71,11 @@ namespace AE::Base
 		ND_ static Bytes	GetDefaultStackSize ()											__NE___;
 
 
+		// OS //
+		ND_ static String	GetComputerName ()												__NE___;
+		ND_ static String	GetUserName ()													__NE___;
+
+
 	private:
 		ND_ static bool  _CheckError (int err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope)	__NE___;
 	};

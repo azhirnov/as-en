@@ -59,6 +59,8 @@ namespace AE::Base
 				<< "\n  AVX: . . . . . . . " << ToString( feats.AVX )
 				<< "\n  AVX 2:             " << ToString( feats.AVX2 )
 				<< "\n  AVX VNNI:  . . . . " << ToString( feats.AVX_VNNI )
+				<< "\n  AVX VNNI int8:     " << ToString( feats.AVX_VNNI_i8 )
+				<< "\n  AVX VNNI int16:  . " << ToString( feats.AVX_VNNI_i16 )
 
 				<< "\n  AVX512F:           " << ToString( feats.AVX512F )
 				<< "\n  AVX512 CD: . . . . " << ToString( feats.AVX512_CD )
@@ -77,6 +79,8 @@ namespace AE::Base
 				
 				<< "\n  AVX512 BF16: . . . " << ToString( feats.AVX512_BF16 )
 				
+				<< "\n  AVX 10:            " << ToString( feats.AVX_10 )
+
 			//	<< "\n  BMI2:              " << ToString( feats.BMI2 )
 				<< "\n  FMA: . . . . . . . " << ToString( feats.FMA )
 				<< "\n  POPCNT:            " << ToString( feats.POPCNT )
@@ -123,7 +127,7 @@ namespace AE::Base
 				if ( g.size > 0 )				str << "\n    " << name << ".size:  . . . . " << ToString( g.size );
 
 				if ( g.size > 0 and g.logicalCoreCount > 0 and logicalCoreCount > 0 )
-												str << "\n    " << name << ".total:         " << ToString( g.size * (logicalCoreCount / g.logicalCoreCount) );
+												str << "\n    " << name << ".total:         " << ToString( g.size * Max( logicalCoreCount / g.logicalCoreCount, 1u ));
 			}};
 
 			uint	total_cores = 0;
@@ -134,7 +138,35 @@ namespace AE::Base
 					<< "\n    base clock: " << ToString( core.baseClock ) << " MHz"
 					<< "\n    max clock:  " << ToString( core.maxClock )  << " MHz"
 					<< "\n    threads:    " << ToString( core.PhysicalCount() ) << " / " << ToString( core.LogicalCount() )
-					<< "\n    IDs:        [" << ToString( core.FirstLogicalCore() ) << ", " << ToString( core.LastLogicalCore()+1 ) << ')';
+					<< "\n    IDs:        (";
+
+				usize	prev_one = UMax;
+				for (usize i = 0; i < cpu.logicalCoreCount; ++i)
+				{
+					bool	is_cur 		= core.logicalBits[i];
+					bool	is_unset 	= (prev_one == UMax);
+
+					if ( is_cur )
+					{
+						prev_one = i;
+					}
+					if ( is_unset and is_cur )
+					{
+						str << ToString( i ) << '-';
+						continue;
+					}
+					if ( not is_unset and not is_cur )
+					{
+						str << ToString( i-1 ) << ", ";
+						prev_one = UMax;
+						continue;
+					}
+				}
+				if ( prev_one != UMax )
+					str << ToString( prev_one );
+				else
+					str.erase( str.end()-2, str.end() );
+				str << ')';
 
 				const uint	core_cnt = core.LogicalCount();
 				total_cores += core_cnt;
@@ -206,11 +238,15 @@ namespace AE::Base
 			CHECK_ERR_MSG( feats.AVX2,		"AE_SIMD_AVX=2 requires AVX2 feature" );
 		#endif
 
+		#if (AE_SIMD_AVX >= 20 and AE_SIMD_AVX < 30)
+			CHECK_ERR_MSG( feats.AVX_VNNI,	"AE_SIMD_AVX=20 requires AVX_VNNI feature" );
+		#endif
+
 		#if (AE_SIMD_AVX >= 30)
 			CHECK_ERR_MSG( feats.AVX512F,	"AE_SIMD_AVX=30 requires AVX512F feature" );
 		#endif
 		#if (AE_SIMD_AVX >= 31)
-			CHECK_ERR_MSG( feats.AVX512_CD,		"AE_SIMD_AVX=31 requires AVX512_CD feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_CD,		"AE_SIMD_AVX=31 requires AVX512_CD feature" );
 			CHECK_ERR_MSG( feats.AVX512_VL,		"AE_SIMD_AVX=31 requires AVX512_VL feature" );
 			CHECK_ERR_MSG( feats.AVX512_DQ,		"AE_SIMD_AVX=31 requires AVX512_DQ feature" );
 			CHECK_ERR_MSG( feats.AVX512_BW,		"AE_SIMD_AVX=31 requires AVX512_BW feature" );
@@ -222,8 +258,8 @@ namespace AE::Base
 			CHECK_ERR_MSG( feats.AVX512_VPOPCNTDQ,	"AE_SIMD_AVX=32 requires AVX512_VPOPCNTDQ feature" );
 			CHECK_ERR_MSG( feats.AVX512_BITALG,		"AE_SIMD_AVX=32 requires AVX512_BITALG feature" );
 			CHECK_ERR_MSG( feats.AVX512_VNNI,		"AE_SIMD_AVX=32 requires AVX512_VNNI feature" );
-			CHECK_ERR_MSG( feats.AVX512_VPCLMULQDQ,	"AE_SIMD_AVX=32 requires AVX512_VPCLMULQDQ feature" );
-			CHECK_ERR_MSG( feats.AVX512_GFNI,		"AE_SIMD_AVX=32 requires AVX512_GFNI feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_VPCLMULQDQ,	"AE_SIMD_AVX=32 requires AVX512_VPCLMULQDQ feature" );
+		//	CHECK_ERR_MSG( feats.AVX512_GFNI,		"AE_SIMD_AVX=32 requires AVX512_GFNI feature" );
 			CHECK_ERR_MSG( feats.VAES,				"AE_SIMD_AVX=32 requires VAES feature" );
 		#endif
 		#if (AE_SIMD_AVX >= 33)

@@ -52,10 +52,10 @@ namespace AE::Graphics
 		ImageDesc&  SetType (EImageDim value)				__NE___	{ imageDim		= value;				return *this; }
 		ImageDesc&  SetOptions (EImageOpt value)			__NE___	{ options		= value;				return *this; }
 		ImageDesc&  SetDimension (const uint value)			__NE___;
-		ImageDesc&  SetDimension (uint2 value)				__NE___	{ return SetDimension( CheckCast<ImageDim2_t>(value) ); }
+		ImageDesc&  SetDimension (uint2 value)				__NE___	{ return SetDimension( ImageDim2_t{CheckCast{ value }}); }
 		ImageDesc&  SetDimension (ImageDim2_t value)		__NE___;
 		ImageDesc&  SetDimension (uint w, uint h)			__NE___	{ return SetDimension( uint2{w,h} ); }
-		ImageDesc&  SetDimension (uint3 value)				__NE___	{ return SetDimension( CheckCast<ImageDim_t>(value) ); }
+		ImageDesc&  SetDimension (uint3 value)				__NE___	{ return SetDimension( ImageDim_t{CheckCast{ value }}); }
 		ImageDesc&  SetDimension (ImageDim_t value)			__NE___;
 		ImageDesc&  SetDimension (uint w, uint h, uint d)	__NE___	{ return SetDimension( uint3{w,h,d} ); }
 		ImageDesc&  SetUsage (EImageUsage value)			__NE___	{ usage			= value;				return *this; }
@@ -121,9 +121,9 @@ namespace AE::Graphics
 		ImageViewDesc&  SetFormat (EPixelFormat value)					__NE___	{ format	= value;				return *this; }
 		ImageViewDesc&  SetOptions (EImageViewOpt value)				__NE___	{ options	= value;				return *this; }
 		ImageViewDesc&  SetBaseMipmap (uint value)						__NE___	{ baseMipmap= MipmapLevel{value};	return *this; }
-		ImageViewDesc&  SetMipLevels (uint base, uint count)			__NE___	{ baseMipmap= MipmapLevel{base};	mipmapCount = CheckCast<MipmapCount_t>(count);  return *this; }
+		ImageViewDesc&  SetMipLevels (uint base, uint count)			__NE___	{ baseMipmap= MipmapLevel{base};	mipmapCount = CheckCast{count};  return *this; }
 		ImageViewDesc&  SetBaseLayer (uint value)						__NE___	{ baseLayer	= ImageLayer{value};	return *this; }
-		ImageViewDesc&  SetArrayLayers (uint base, uint count)			__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast<LayerCount_t>(count);  return *this; }
+		ImageViewDesc&  SetArrayLayers (uint base, uint count)			__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast{count};  return *this; }
 		ImageViewDesc&  SetSwizzle (ImageSwizzle value)					__NE___	{ swizzle	= value;				return *this; }
 		ImageViewDesc&  SetAspect (EImageAspect value)					__NE___	{ aspectMask= value;				return *this; }
 		ImageViewDesc&  SetExtUsage (EImageUsage value)					__NE___	{ extUsage	= value;				return *this; }

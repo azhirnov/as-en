@@ -132,7 +132,7 @@ namespace AE::Graphics
 		dev.SetObjectName( _handle, ci.specCI.dbgName, VK_OBJECT_TYPE_PIPELINE );
 
 		_options		= ci.specCI.options;
-		_subpassIndex	= CheckCast<ubyte>(subpass_idx);
+		_subpassIndex	= CheckCast{ subpass_idx };
 		_dbgTrace		= ci.shader.dbgTrace;
 
 		GFX_DBG_ONLY( _debugName = ci.specCI.dbgName; )

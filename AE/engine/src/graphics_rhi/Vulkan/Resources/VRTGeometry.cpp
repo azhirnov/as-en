@@ -129,7 +129,7 @@ namespace AE::Graphics
 		build_info.flags		= VEnumCast( desc.options );
 		build_info.type			= VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
 		build_info.ppGeometries	= pp_geom;
-		build_info.geometryCount= CheckCast<uint>( geom_count );
+		build_info.geometryCount= CheckCast{ geom_count };
 		outPrimitiveCount		= prim_count;
 		outRanges				= ranges;
 

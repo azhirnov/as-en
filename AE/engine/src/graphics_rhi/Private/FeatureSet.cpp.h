@@ -159,8 +159,11 @@ namespace AE::Base
 		{
 			case ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 :		return "A: fp16, B: fp16, C: fp16, Res: fp16, MxNxK: 16x16x16";
 			case ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 :		return "A: fp16, B: fp16, C: fp32, Res: fp32, MxNxK: 16x16x16";
+			case ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 :		return "A: fp16, B: fp16, C: fp32, Res: fp32, MxNxK: 8x8x32";
 			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 :			return "A: u8, B: u8, C: u32, Res: u32, MxNxK: 16x16x32";
 			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 :			return "A: s8, B: s8, C: s32, Res: s32, MxNxK: 16x16x32";
+			case ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32 :				return "A: u8, B: u8, C: u32, Res: u32, MxNxK: 8x8x32";
+			case ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32 :				return "A: s8, B: s8, C: s32, Res: s32, MxNxK: 8x8x32";
 			case ECoopMatrixCfg::_Count :									break;
 		}
 		switch_end
@@ -346,6 +349,10 @@ namespace
 	}
 
 	ND_ static bool  FS_GreaterEqual (uint lhs, uint rhs, const char*) __NE___ {
+		return lhs >= rhs;
+	}
+	
+	ND_ static bool  FS_GreaterEqual (Bytes32u lhs, Bytes32u rhs, const char*) __NE___ {
 		return lhs >= rhs;
 	}
 
@@ -543,6 +550,10 @@ namespace
 	ND_ static uint  FS_MergeMin (uint lhs, uint rhs, const char*) __NE___ {
 		return Min( lhs, rhs );
 	}
+	
+	ND_ static Bytes32u  FS_MergeMin (Bytes32u lhs, Bytes32u rhs, const char*) __NE___ {
+		return Min( lhs, rhs );
+	}
 
 	ND_ static POTValue  FS_MergeMin (POTValue lhs, POTValue rhs, const char*) __NE___ {
 		return Min( lhs, rhs );
@@ -691,6 +702,10 @@ namespace
 	}
 
 	ND_ static uint  FS_MergeMax (uint lhs, uint rhs, const char*) __NE___ {
+		return Max( lhs, rhs );
+	}
+	
+	ND_ static Bytes32u  FS_MergeMax (Bytes32u lhs, Bytes32u rhs, const char*) __NE___ {
 		return Max( lhs, rhs );
 	}
 
@@ -1096,8 +1111,8 @@ namespace
 		}
 		chGreaterEq( maxViewports, 1 );
 
-		chGreaterEq( maxUniformBufferSize,	POTBytes_From<16> );
-		chGreaterEq( maxStorageBufferSize,	invalid_potb );
+		chGreaterEq( maxUniformBufferSize,	16_KiB );
+		chGreaterEq( maxStorageBufferSize,	0_b );
 
 		chGreaterEq( perPipeline.maxUniformBuffers, 1 );
 		chGreaterEq( perPipeline.maxSampledImages,  1 );
@@ -1142,7 +1157,7 @@ namespace
 			chGreaterEq( maxTaskPayloadSize,					KiBytes{ 16<<10 }	);
 			chGreaterEq( maxTaskSharedMemorySize,				KiBytes{ 16<<10 }	);
 			chGreaterEq( maxTaskPayloadAndSharedMemorySize,		KiBytes{ 16<<10 }	);
-			chGreaterEq( maxPreferredTaskWorkGroupInvocations,	POTValue_From<32>	);
+			chGreaterEq( maxPreferredTaskWorkGroupInvocations,	POTValue_From<16>	);
 			chEqual(	 meshShader,							True				);
 			if ( maxShaderVersion.spirv != 0 ) { chGreaterEq( maxShaderVersion.spirv, 140 ); }
 			if ( maxShaderVersion.metal != 0 ) { chGreaterEq( maxShaderVersion.metal, 300 ); }
@@ -1167,7 +1182,7 @@ namespace
 			chGreaterEq( maxMeshPayloadAndSharedMemorySize,		KiBytes{ 16<<10 }	);
 			chGreaterEq( maxMeshOutputMemorySize,				KiBytes{ 16<<10 }	);
 			chGreaterEq( maxMeshPayloadAndOutputMemorySize,		KiBytes{ 16<<10 }	);
-			chGreaterEq( maxPreferredMeshWorkGroupInvocations,	POTValue_From<32>	);
+			chGreaterEq( maxPreferredMeshWorkGroupInvocations,	POTValue_From<16>	);
 			// maxMeshMultiviewViewCount can be 0
 			if ( maxShaderVersion.spirv != 0 ) { chGreaterEq( maxShaderVersion.spirv, 140 ); }
 			if ( maxShaderVersion.metal != 0 ) { chGreaterEq( maxShaderVersion.metal, 300 ); }
@@ -1731,7 +1746,7 @@ namespace
 		AE_FEATURE_SET_FIELDS_ALL( AE_FEATURE_SET_VISIT )
 		#undef AE_FEATURE_SET_VISIT
 
-			#define FS_CHECK_ALIGN( _name_, _align_ )	StaticAssert( alignof(_name_) == _align_, "" #_name_ );
+		#define FS_CHECK_ALIGN( _name_, _align_ )	StaticAssert( alignof(_name_) == _align_, "" #_name_ );
 		#define FS_CHECK_ALIGN_1( _name_, ... )		FS_CHECK_ALIGN( _name_, 1 )
 		#define FS_CHECK_ALIGN_2( _name_, ... )		FS_CHECK_ALIGN( _name_, 2 )
 		#define FS_CHECK_ALIGN_4( _name_, ... )		FS_CHECK_ALIGN( _name_, 4 )
@@ -1758,7 +1773,7 @@ namespace
 
 		maxViewports	= 1;
 
-		maxUniformBufferSize				= POTBytes_From< 16 << 10 >;
+		maxUniformBufferSize				= 16_KiB;
 		maxDescriptorSets					= 1;
 		maxFragmentOutputAttachments		= 1;
 		maxFragmentCombinedOutputResources	= 1;
@@ -1922,7 +1937,7 @@ namespace {
 */
 	HashVal64  FeatureSet::GetHashOfFS_Precalculated () __NE___
 	{
-		return HashVal64{0x0a6462a2cfa86953ull};
+		return HashVal64{0x88d7baf8f3f47b8cull};
 	}
 
 

@@ -63,6 +63,12 @@ namespace AE::Base
 		return value ? "true" : "false";
 	}
 
+	template <typename T>
+	Nd__In String  ToString (const CheckCast<T> &c) __Th___
+	{
+		return ToString( T{c} );
+	}
+
 /*
 =================================================
 	ToString

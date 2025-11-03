@@ -2749,13 +2749,13 @@ namespace
 		PixelFormatInfo () {}
 
 		explicit PixelFormatInfo (uint bpp) :
-			bitsPerBlock{ CheckCast<ushort>( bpp )} {}
+			bitsPerBlock{ CheckCast{ bpp }} {}
 
 		PixelFormatInfo (uint bpp, uint bpp2) :
-			bitsPerBlock{ CheckCast<ushort>( bpp )}, bitsPerBlock2{ CheckCast<ubyte>( bpp2 )} {}
+			bitsPerBlock{ CheckCast{ bpp }}, bitsPerBlock2{ CheckCast{ bpp2 }} {}
 
 		PixelFormatInfo (uint bpp, uint2 block) :
-			bitsPerBlock{ CheckCast<ushort>( bpp )}, blockDim{ CheckCast<ubyte2>( block )} {}
+			bitsPerBlock{ CheckCast{ bpp }}, blockDim{ CheckCast{ block }} {}
 
 		ND_ uint2  BlockDim () const	{ return uint2{blockDim}; }
 	};

@@ -70,6 +70,7 @@ namespace AE::Graphics
 		ND_ RQueuePtr				GetQueue (EQueueType type)		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _queueTypes[uint(type)]; }
 		ND_ EQueueMask				GetAvailableQueues ()			C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
 		ND_ StringView				GetDeviceName ()				C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _devInfo.name; }
+		ND_ String					GetDriverName ()				C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _devInfo.driver; }
 
 		ND_ DeviceMemoryInfo		GetMemoryInfo ()				C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _devInfo.memInfo; }
 		ND_ DevMemoryUsageOpt		GetMemoryUsage ()				C_NE_OF	{ return _memUsage.Read(); }

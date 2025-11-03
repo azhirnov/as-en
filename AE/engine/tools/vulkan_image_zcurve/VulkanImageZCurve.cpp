@@ -76,10 +76,10 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
 		for (uint y = 0, i = 0; y < img_dim.y; ++y)
 		for (uint x = 0; x < img_dim.x; ++x, ++i)
 		{
-			T	val = CheckCast<T>( x | (y << 8) );	// 16bit
+			T	val = CheckCast{ x | (y << 8) };	// 16bit
 
 			if constexpr( sizeof(T) >= 4 )
-				val = CheckCast<T>( (~((x << 8) | y) << 16) | val );	// 32bit
+				val = CheckCast{ (~((x << 8) | y) << 16) | val };	// 32bit
 
 			CHECK( VecToLinear( uint2{x,y}, img_dim ) == i );
 

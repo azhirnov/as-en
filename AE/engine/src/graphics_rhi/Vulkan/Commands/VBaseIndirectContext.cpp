@@ -106,8 +106,8 @@ namespace AE::Graphics::_hidden_
 		cmd.layout				= layout;
 		cmd.destSet				= ds;
 		cmd.bindPoint			= bindPoint;
-		cmd.index				= CheckCast<ushort>( index );
-		cmd.dynamicOffsetCount	= CheckCast<ushort>( dynamicOffsets.size() );
+		cmd.index				= CheckCast{ index };
+		cmd.dynamicOffsetCount	= CheckCast{ dynamicOffsets.size() };
 		MemCopy( OUT offsets, dynamicOffsets.data(), ArraySizeOf(dynamicOffsets) );
 	}
 
@@ -262,13 +262,13 @@ namespace AE::Graphics::_hidden_
 		GFX_DBG_ONLY(
 			cmd->_magicNumber = BaseCmd::MAGIC;
 		)
-		cmd->_commandID = CheckCast<ushort>( Commands_t::template Index< PipelineBarrierCmd >);
-		cmd->_size		= CheckCast<ushort>( size );
+		cmd->_commandID = CheckCast{ Commands_t::template Index< PipelineBarrierCmd >};
+		cmd->_size		= CheckCast{ size };
 
-		cmd->memoryBarrierCount	= CheckCast<ushort>( barrier.memoryBarrierCount );
-		cmd->bufferBarrierCount	= CheckCast<ushort>( barrier.bufferMemoryBarrierCount );
-		cmd->imageBarrierCount	= CheckCast<ushort>( barrier.imageMemoryBarrierCount );
-		cmd->dependencyFlags	= CheckCast<ushort>( barrier.dependencyFlags );
+		cmd->memoryBarrierCount	= CheckCast{ barrier.memoryBarrierCount };
+		cmd->bufferBarrierCount	= CheckCast{ barrier.bufferMemoryBarrierCount };
+		cmd->imageBarrierCount	= CheckCast{ barrier.imageMemoryBarrierCount };
+		cmd->dependencyFlags	= CheckCast{ barrier.dependencyFlags };
 
 		MemCopy( OUT ptr, barrier.pMemoryBarriers, SizeOf<VkMemoryBarrier2> * barrier.memoryBarrierCount );
 		ptr = AlignUp( ptr + SizeOf<VkMemoryBarrier2> * barrier.memoryBarrierCount, align );

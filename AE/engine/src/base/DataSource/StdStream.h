@@ -83,10 +83,10 @@ namespace AE::Base
 				Bytes	new_pos;
 				switch ( dir )
 				{
-					case std::ios_base::beg :	new_pos = Bytes{CheckCast<ulong>(off)};		break;
-					case std::ios_base::end :	new_pos = _src->Size() - off;				break;
-					case std::ios_base::cur :	new_pos = _src->Position() + off;			break;
-					default :					new_pos = Bytes::Max();						break;
+					case std::ios_base::beg :	new_pos = CheckCast{ off };			break;
+					case std::ios_base::end :	new_pos = _src->Size() - off;		break;
+					case std::ios_base::cur :	new_pos = _src->Position() + off;	break;
+					default :					new_pos = Bytes::Max();				break;
 				}
 
 				if ( _src->SeekSet( new_pos ))

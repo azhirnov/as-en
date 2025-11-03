@@ -66,7 +66,7 @@ namespace AE::PipelineCompiler
 	// methods
 	public:
 		explicit SLangCompiler (ArrayView<Path> includeDirs)		__NE___;
-		~SLangCompiler ();
+		~SLangCompiler ()											__NE___;
 
 		ND_ bool  IsInitialized ()									C_NE___	{ return _session != null; }
 

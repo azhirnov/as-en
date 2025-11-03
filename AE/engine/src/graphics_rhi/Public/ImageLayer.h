@@ -26,7 +26,7 @@ namespace AE::Graphics
 		__Cx__ ImageLayer (const ImageLayer &)					__NE___ = default;
 
 		template <typename T> requires( IsUnsignedInteger<T> )
-		__Cx__ explicit ImageLayer (T value)					__NE___	: _value( CheckCast<LayerCount_t>(value)) {}
+		__Cx__ explicit ImageLayer (T value)					__NE___	: _value{ CheckCast{value}} {}
 
 		NdCx__ uint	 Get ()										C_NE___	{ return _value; }
 
@@ -46,7 +46,7 @@ namespace AE::Graphics
 			ImageLayer&		operator ++ ()						__NE___	{ ++_value;  return *this; }
 			ImageLayer		operator ++ (int)					__NE___	{ ImageLayer prev = *this;  ++_value;  return prev; }
 
-			ImageLayer&		operator *= (uint rhs)				__NE___	{ _value = CheckCast<LayerCount_t>(_value * rhs);  return *this; }
+			ImageLayer&		operator *= (uint rhs)				__NE___	{ _value = CheckCast{_value * rhs};  return *this; }
 
 		NdCx__ explicit operator LayerCount_t ()				C_NE___	{ return _value; }
 	};

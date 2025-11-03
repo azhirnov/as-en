@@ -156,8 +156,8 @@ namespace AE::Graphics
 						}
 
 						outData.page		= &pageArr;
-						outData.pageIndex	= CheckCast<ushort>(hi_lvl_idx);
-						outData.blockIndex	= CheckCast<ushort>(low_lvl_idx);
+						outData.pageIndex	= CheckCast{hi_lvl_idx};
+						outData.blockIndex	= CheckCast{low_lvl_idx};
 						return true;
 					}
 

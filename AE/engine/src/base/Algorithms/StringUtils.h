@@ -440,7 +440,7 @@ namespace _hidden_ {
 		}
 		return str.data() + str.size();
 	}
-
+	
 /*
 =================================================
 	HasChar
@@ -622,9 +622,13 @@ namespace _hidden_ {
 		return count;
 	}
 }
-	inline uint  FindAndReplace (INOUT MutableArrayView<char> str, const char oldSymb, const char newSymb)	__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
-	inline uint  FindAndReplace (INOUT String &str, const char oldSymb, const char newSymb)					__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
-	inline uint  FindAndReplace (INOUT String &str, StringView oldStr, StringView newStr)					__Th___	{ return Base::_hidden_::FindAndReplaceStringImpl( INOUT str, oldStr, newStr ); }
+	inline uint  FindAndReplace (INOUT MutableArrayView<char> str, const char oldSymb, const char newSymb)				__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
+	inline uint  FindAndReplace (INOUT String &str, const char oldSymb, const char newSymb)								__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
+	inline uint  FindAndReplace (INOUT String &str, StringView oldStr, StringView newStr)								__Th___	{ return Base::_hidden_::FindAndReplaceStringImpl( INOUT str, oldStr, newStr ); }
+	
+	inline uint  FindAndReplace (INOUT MutableArrayView<CharUtf8> str, const CharUtf8 oldSymb, const CharUtf8 newSymb)	__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
+	inline uint  FindAndReplace (INOUT U8String &str, const CharUtf8 oldSymb, const CharUtf8 newSymb)					__NE___	{ return Base::_hidden_::FindAndReplaceCharImpl( INOUT str, oldSymb, newSymb ); }
+	inline uint  FindAndReplace (INOUT U8String &str, U8StringView oldStr, U8StringView newStr)							__Th___	{ return Base::_hidden_::FindAndReplaceStringImpl( INOUT str, oldStr, newStr ); }
 
 /*
 =================================================

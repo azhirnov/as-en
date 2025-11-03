@@ -224,6 +224,34 @@ namespace AE::Base
 		}
 		return result;
 	}
+	
+/*
+=================================================
+	GetComputerName
+=================================================
+*/
+	String  UnixUtils::GetComputerName () __NE___
+	{
+		char	hostname [HOST_NAME_MAX];
+		int		result = ::gethostname( OUT hostname, HOST_NAME_MAX );
+
+		CHECK_ERR( result == 0 );
+		return String{hostname};
+	}
+
+/*
+=================================================
+	GetUserName
+=================================================
+*/
+	String  UnixUtils::GetUserName () __NE___
+	{
+		char	username [LOGIN_NAME_MAX] = {};
+		int		result = ::getlogin_r( OUT username, LOGIN_NAME_MAX );
+		
+		CHECK_ERR( result == 0 );
+		return String{username};
+	}
 //-----------------------------------------------------------------------------
 
 

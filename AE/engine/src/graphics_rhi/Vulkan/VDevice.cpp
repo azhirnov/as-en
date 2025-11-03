@@ -1090,6 +1090,55 @@ namespace
 		}
 		return true;
 	}
+	
+/*
+=================================================
+	GetDriverName
+=================================================
+*/
+	String  VDevice::GetDriverName () C_NE___
+	{
+		auto&	prop = _properties.driverPropertiesProps;
+		String	str;
+
+		str << prop.driverName << " (";
+
+		switch_enum( prop.driverID )
+		{
+			case VK_DRIVER_ID_AMD_PROPRIETARY :				str << "AMD Pro";				break;
+			case VK_DRIVER_ID_AMD_OPEN_SOURCE :				str << "AMD VLK";				break;
+			case VK_DRIVER_ID_MESA_RADV :					str << "Mesa RADV";				break;
+			case VK_DRIVER_ID_NVIDIA_PROPRIETARY :			str << "NVIDIA Pro";			break;
+			case VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS :	str << "Intel Pro Win";			break;
+			case VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA :		str << "Intel Mesa";			break;
+			case VK_DRIVER_ID_IMAGINATION_PROPRIETARY :		str << "Imagination Pro";		break;
+			case VK_DRIVER_ID_QUALCOMM_PROPRIETARY :		str << "Qualcomm Pro";			break;
+			case VK_DRIVER_ID_ARM_PROPRIETARY :				str << "ARM Pro";				break;
+			case VK_DRIVER_ID_GOOGLE_SWIFTSHADER :			str << "Swiftshader";			break;
+			case VK_DRIVER_ID_GGP_PROPRIETARY :				str << "GGP Pro";				break;
+			case VK_DRIVER_ID_BROADCOM_PROPRIETARY :		str << "Broadcom Pro";			break;
+			case VK_DRIVER_ID_MESA_LLVMPIPE :				str << "Mesa LavaPipe";			break;
+			case VK_DRIVER_ID_MOLTENVK :					str << "MoltenVk";				break;
+			case VK_DRIVER_ID_COREAVI_PROPRIETARY :			str << "CoreAVI Pro";			break;
+			case VK_DRIVER_ID_JUICE_PROPRIETARY :			str << "Juice Pro";				break;
+			case VK_DRIVER_ID_VERISILICON_PROPRIETARY :		str << "VeriSilicon Pro";		break;
+			case VK_DRIVER_ID_MESA_TURNIP :					str << "Mesa Turnip";			break;
+			case VK_DRIVER_ID_MESA_V3DV :					str << "Mesa V3DV";				break;
+			case VK_DRIVER_ID_MESA_PANVK :					str << "Mesa PanVk";			break;
+			case VK_DRIVER_ID_SAMSUNG_PROPRIETARY :			str << "Samsung Pro";			break;
+			case VK_DRIVER_ID_MESA_VENUS :					str << "Mesa Venus";			break;
+			case VK_DRIVER_ID_MESA_DOZEN :					str << "Mesa Venus";			break;
+			case VK_DRIVER_ID_MESA_NVK :					str << "Mesa NVK";				break;
+			case VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA:	str << "Imagination Mesa";		break;
+			case VK_DRIVER_ID_MESA_HONEYKRISP :				str << "Mesa HoneyKrisp";		break;
+			case VK_DRIVER_ID_VULKAN_SC_EMULATION_ON_VULKAN:str << "Vulkan SC Emulation";	break;
+			case VK_DRIVER_ID_MAX_ENUM :					break;
+		}
+		switch_end
+
+		str << ")";
+		return str;
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -1209,6 +1258,11 @@ namespace
 			static const char	radv_icd []		= "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json";
 			static const char	amdvlk_icd []	= "/opt/amdgpu/etc/vulkan/icd.d/amd_icd64.json";
 			static const char	amdpro_icd []	= "/opt/amdgpu-pro/etc/vulkan/icd.d/amd_icd64.json";
+			static const char	intel_icd []	= "/usr/share/vulkan/icd.d/intel_icd.x86_64.json";
+			static const char	gfxstream_icd []= "/usr/share/vulkan/icd.d/gfxstream_vk_icd.x86_64.json";
+			static const char 	nouveau_icd []	= "/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json";
+			static const char 	virtio_icd []	= "/usr/share/vulkan/icd.d/virtio_icd.x86_64.json";
+			//intel_hasvk - fork of ANV for Gen7/Gen8 arch
 
 			switch_enum( driver )
 			{
@@ -1223,7 +1277,7 @@ namespace
 					if ( FileSystem::IsFile( radv_icd ))
 						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", radv_icd );
 					else
-						AE_LOGW( "RADV ICD is not exist in '"s << radv_icd << "'" );
+						AE_LOGW( "RADV (Mesa for AMD) ICD is not exist in '"s << radv_icd << "'" );
 					break;
 
 				case EDriver::AMDVLK :
@@ -1240,8 +1294,40 @@ namespace
 						AE_LOGW( "AMD PRO ICD is not exist in '"s << amdpro_icd << "'" );
 					break;
 					
+				case EDriver::ANV :
+					if ( FileSystem::IsFile( intel_icd ))
+						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", intel_icd );
+					else
+						AE_LOGW( "ANV (Mesa for Intel) ICD is not exist in '"s << intel_icd << "'" );
+					break;
+				
+				case EDriver::GFXStream :
+					if ( FileSystem::IsFile( gfxstream_icd ))
+						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", gfxstream_icd );
+					else
+						AE_LOGW( "Google GFXStream ICD is not exist in '"s << gfxstream_icd << "'" );
+					break;
+
+				case EDriver::Nouveau :
+					if ( FileSystem::IsFile( nouveau_icd ))
+						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", nouveau_icd );
+					else
+						AE_LOGW( "Nouveau ICD is not exist in '"s << nouveau_icd << "'" );
+					break;
+
+				case EDriver::VirtGPU :
+					if ( FileSystem::IsFile( virtio_icd ))
+						return LinuxUtils::SetEnvironmentVariable( "VK_DRIVER_FILES", virtio_icd );
+					else
+						AE_LOGW( "Virtio-GPU ICD is not exist in '"s << virtio_icd << "'" );
+					break;
+
+				case EDriver::IntelPro :  // TODO
+				case EDriver::NVK :  // TODO
+				case EDriver::NVPro :  // TODO
 				case EDriver::_LinuxDrivers :
-				case EDriver::Unknown : break;
+				case EDriver::Unknown :
+				case EDriver::_Count : break;
 			}
 			switch_end
 			return false;
@@ -1286,7 +1372,8 @@ namespace
 						AE_LOGW( "LavaPipe ICD is not exist in '"s << ToString( FileSystem::ToAbsolute( lavapipe_icd )) << "'" );
 					break;
 
-				case EDriver::Unknown : break;
+				case EDriver::Unknown :
+				case EDriver::_Count : break;
 			}
 			switch_end
 			return false;

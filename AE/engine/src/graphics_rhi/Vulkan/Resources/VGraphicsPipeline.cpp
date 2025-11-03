@@ -146,7 +146,7 @@ namespace AE::Graphics
 		_dynamicState	= ci.specCI.dynamicState;
 		_options		= ci.specCI.options;
 		_topology		= render_state.inputAssembly.topology;
-		_subpassIndex	= CheckCast<ubyte>(subpass_idx);
+		_subpassIndex	= CheckCast{ subpass_idx };
 
 		for (auto& vb : ci.specCI.vertexBuffers) {
 			_vertexBuffers.emplace( vb.name, vb.index );

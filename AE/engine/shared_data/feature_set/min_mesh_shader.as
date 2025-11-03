@@ -160,8 +160,8 @@ void ASmain ()
 	fset.maxTaskPayloadAndSharedMemorySize (16 << 10);
 	fset.maxMeshPayloadAndSharedMemorySize (16 << 10);
 	fset.maxMeshPayloadAndOutputMemorySize (16 << 10);
-	fset.maxPreferredTaskWorkGroupInvocations (32);
-	fset.maxPreferredMeshWorkGroupInvocations (32);
+	fset.maxPreferredTaskWorkGroupInvocations (16);
+	fset.maxPreferredMeshWorkGroupInvocations (16);
 	fset.computeShader (True);
 	fset.vertexDivisor (True);
 	fset.maxVertexAttribDivisor (0xfffffff);

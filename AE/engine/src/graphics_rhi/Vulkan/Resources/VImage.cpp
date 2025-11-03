@@ -271,7 +271,7 @@ namespace {
 		_image				= desc.image;
 		_desc.imageDim		= AEEnumCast( desc.imageType );
 		_desc.options		= AEEnumCast( desc.flags ) | desc.options;
-		_desc.dimension		= CheckCast<ImageDim_t>( desc.dimension );
+		_desc.dimension		= CheckCast{ desc.dimension };
 		_desc.format		= AEEnumCast( desc.format );
 		_desc.arrayLayers	= ImageLayer{ desc.arrayLayers };
 		_desc.mipLevels		= MipmapLevel{ desc.mipLevels };

@@ -227,19 +227,19 @@ namespace AE::Graphics
 		PixelFormatInfo () __NE___ {}
 
 		PixelFormatInfo (EPixelFormat fmt, uint bpp, uint channels, EType type, EImageAspect aspect = EImageAspect::Color) __NE___ :
-			valueType{type}, bitsPerBlock{ CheckCast<ushort>( bpp )}, format{fmt}, aspectMask{aspect}, channels{ CheckCast<ubyte>( channels )} {}
+			valueType{type}, bitsPerBlock{ CheckCast{ bpp }}, format{fmt}, aspectMask{aspect}, channels{ CheckCast{ channels }} {}
 
 		PixelFormatInfo (EPixelFormat fmt, uint bpp, const uint2 &size, uint channels, EType type, uint srcBitsPerPix, EImageAspect aspect = EImageAspect::Color) __NE___ :
-			valueType{type}, bitsPerBlock{ CheckCast<ushort>( bpp )}, format{fmt}, aspectMask{aspect}, channels{ CheckCast<ubyte>( channels )},
-			blockDim{ CheckCast<ubyte2>( size )}, srcBitsPerPix{ CheckCast<ubyte>( srcBitsPerPix )} {}
+			valueType{type}, bitsPerBlock{ CheckCast{ bpp }}, format{fmt}, aspectMask{aspect}, channels{ CheckCast{ channels }},
+			blockDim{ CheckCast{ size }}, srcBitsPerPix{ CheckCast{ srcBitsPerPix }} {}
 
 		PixelFormatInfo (EPixelFormat fmt, uint2 depthStencilBPP, EType type = EType::DepthStencil, EImageAspect aspect = EImageAspect::DepthStencil) __NE___ :
-			valueType{type}, bitsPerBlock{ CheckCast<ushort>( depthStencilBPP.x )}, bitsPerBlock2{ CheckCast<ubyte>( depthStencilBPP.y )},
+			valueType{type}, bitsPerBlock{ CheckCast{ depthStencilBPP.x }}, bitsPerBlock2{ CheckCast{ depthStencilBPP.y }},
 			format{fmt}, aspectMask{aspect}, channels{0} {}
 
 		PixelFormatInfo (EPixelFormat fmt, uint bpp, uint usedBPP, uint channels, EType type, EImageAspect aspect) __NE___ :
-			valueType{type}, bitsPerBlock{ CheckCast<ushort>( bpp )}, format{fmt}, aspectMask{aspect},
-			channels{ CheckCast<ubyte>( channels )}, srcBitsPerPix{ CheckCast<ubyte>( usedBPP )} {}
+			valueType{type}, bitsPerBlock{ CheckCast{ bpp }}, format{fmt}, aspectMask{aspect},
+			channels{ CheckCast{ channels }}, srcBitsPerPix{ CheckCast{ usedBPP }} {}
 
 		ND_ bool	IsValid ()						C_NE___	{ return format != Default; }
 

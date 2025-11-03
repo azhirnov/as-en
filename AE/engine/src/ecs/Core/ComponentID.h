@@ -53,7 +53,7 @@ namespace AE::ECS
 		StaticAssert( IsTrivialComponent<Comp> );
 
 		using type	= Comp;
-		static inline const ComponentID		id		{ CheckCast<ushort>( Base::_hidden_::StaticTypeIdOf< Comp, 0x1000 >::Get().Get() ) };
+		static inline const ComponentID		id		{ CheckCast{ Base::_hidden_::StaticTypeIdOf< Comp, 0x1000 >::Get().Get() }};
 		static constexpr Bytes16u			align	{ushort( IsEmpty<Comp> ? 0 : alignof(Comp) )};
 		static constexpr Bytes16u			size	{ushort( IsEmpty<Comp> ? 0 : sizeof(Comp) )};
 
@@ -75,7 +75,7 @@ namespace AE::ECS
 		StaticAssert( IsEmpty<Comp> );
 
 		using type	= Comp;
-		static inline const MsgTagID	id {CheckCast<ushort>( Base::_hidden_::StaticTypeIdOf< Comp, 0x1002 >::Get().Get() )};
+		static inline const MsgTagID	id {CheckCast{ Base::_hidden_::StaticTypeIdOf< Comp, 0x1002 >::Get().Get() }};
 	};
 
 } // AE::ECS

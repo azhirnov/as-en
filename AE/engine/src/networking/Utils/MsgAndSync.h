@@ -231,7 +231,7 @@ namespace AE::Networking::_hidden_
 		Put( dstMember, str.data(), StringSizeOf(str) );
 
 		auto&	cnt = (_msg->*counter);
-		cnt = CheckCast<C>( str.size() );
+		cnt = CheckCast{ str.size() };
 	}
 
 	template <typename T>
@@ -242,7 +242,7 @@ namespace AE::Networking::_hidden_
 		Put( dstMember, arr.data(), ArraySizeOf(arr) );
 
 		auto&	cnt = (_msg->*counter);
-		cnt = CheckCast<C>( arr.size() );
+		cnt = CheckCast{ arr.size() };
 	}
 
 /*

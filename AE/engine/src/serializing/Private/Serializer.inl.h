@@ -86,7 +86,7 @@ namespace AE::Serializing
 	{
 		CHECK_ERR( arr.size() <= MaxArrayLength );
 
-		bool	res = stream.Write( CheckCast<uint>(arr.size()) );
+		bool	res = stream.Write( uint{CheckCast{ arr.size() }});
 
 		if constexpr( IsTriviallySerializable<T> )
 			return res and (arr.empty() or stream.Write( arr.data(), SizeOf<T> * arr.size() ));
@@ -104,7 +104,7 @@ namespace AE::Serializing
 	bool  Serializer::_Serialize (BasicStringView<T> str) __NE___
 	{
 		CHECK_ERR( str.length() <= MaxStringLength );
-		return	stream.Write( CheckCast<uint>(str.length()) )	and
+		return	stream.Write( uint{CheckCast{ str.length() }})				and
 				(str.empty() or stream.Write( str.data(), StringSizeOf(str) ));
 	}
 
@@ -160,7 +160,7 @@ namespace AE::Serializing
 	{
 		CHECK_ERR( map.size() <= MaxArrayLength );
 
-		bool	res = stream.Write( CheckCast<uint>(map.size()) );
+		bool	res = stream.Write( uint{CheckCast{ map.size() }});
 
 		for (auto iter = map.begin(); (iter != map.end()) and res; ++iter)
 		{
@@ -175,7 +175,7 @@ namespace AE::Serializing
 	{
 		CHECK_ERR( set.size() <= MaxArrayLength );
 
-		bool	res = stream.Write( CheckCast<uint>(set.size()) );
+		bool	res = stream.Write( uint{CheckCast{ set.size() }});
 
 		for (auto iter = set.begin(); (iter != set.end()) and res; ++iter)
 		{
@@ -225,7 +225,7 @@ namespace AE::Serializing
 	bool  Serializer::_Serialize (const FixedTupleArray<S,Types...> &arr) __NE___
 	{
 		CHECK_ERR( arr.size() <= MaxArrayLength );
-		return	stream.Write( CheckCast<uint>(arr.size()) )	and
+		return	stream.Write( uint{CheckCast{ arr.size() }})	and
 				_RecursiveSerializeTupleArray<0>( arr );
 	}
 
@@ -273,7 +273,7 @@ namespace AE::Serializing
 	template <typename ...Types>
 	bool  Serializer::_Serialize (const Union<Types...> &un) __NE___
 	{
-		return	stream.Write( CheckCast<uint>(un.index()) ) and	// TODO: use ubyte
+		return	stream.Write( uint{CheckCast{ un.index() }}) and	// TODO: use ubyte
 				_RecursiveSerializeUnion< Types... >( un );
 	}
 

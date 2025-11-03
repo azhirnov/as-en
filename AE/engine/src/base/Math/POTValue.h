@@ -23,10 +23,9 @@ namespace AE::Base
 	// types
 	public:
 		using Self		= TPowerOf2Value<T>;
-	private:
 		using POT_t		= sbyte;
-
-		static constexpr sbyte	_MaxPOT = MaxValue<sbyte>();
+	private:
+		static constexpr POT_t	_MaxPOT = MaxValue<POT_t>();
 
 
 	// variables
@@ -42,7 +41,7 @@ namespace AE::Base
 		__Cx__ explicit TPowerOf2Value (UMax_t)						__NE___ : _pot{_MaxPOT} {}
 
 		template <typename IT> requires( IsUnsignedInteger<IT> )
-		__Cx__ explicit TPowerOf2Value (IT val)						__NE___	: _pot{POT_t( Base::Max( IntLog2( val ), 0 ))}  { ASSERT( val == IT(0) or val == Cast<IT>() ); }
+		__Cx__ explicit TPowerOf2Value (IT val)						__NE___	: _pot{POT_t(IntLog2( val ))}  { ASSERT( val == Cast<IT>() ); }
 
 		template <typename IT, typename B=T> requires( IsBytes<B> )
 		explicit TPowerOf2Value (TByte<IT> val)						__NE___ : TPowerOf2Value{IT{val}} {}
@@ -208,7 +207,7 @@ namespace AE::Base
 	inline static constexpr POTBytes	POTBytes_From	{PowerOfTwo( CT_IntLog2<X> )};
 
 
-	NdCxIn POTValue operator ""_pot (unsigned long long value) __NE___	{ return POTValue{ CheckCast<PowerOfTwo>(value) }; }
+	NdCxIn POTValue operator ""_pot (unsigned long long value) __NE___	{ return POTValue{ PowerOfTwo{ CheckCast{ value }}}; }
 
 	namespace _hidden_
 	{
@@ -233,6 +232,13 @@ namespace AE::Base
 	{
 		ASSERT( _pot >= 0 );
 		ASSERT( _pot <= int(Float32Bits::_NaNExp/2) );
+
+		if ( _pot < 0 )
+			return 0.f;
+
+		if ( _pot > int(Float32Bits::_NaNExp/2) )
+			return NaN<float>();
+
 		uint exp = Base::Min( Float32Bits::_NaNExp/2 + _pot, Float32Bits::_NaNExp );
 		Float32Bits b;
 		b.m=0; b.e=exp; b.s=0;
@@ -251,6 +257,12 @@ namespace AE::Base
 		ASSERT( lhs.GetPOT() >= 0 );
 		ASSERT( lhs.GetPOT() < int(CT_SizeOfInBits<IT>) );
 
+		if ( lhs.GetPOT() < 0 )
+			return Zero;
+
+		if ( lhs.GetPOT() >= int(CT_SizeOfInBits<IT>) )
+			return MaxValue<IT>();
+
 		if constexpr( IsBytes<T> ){
 			if constexpr( IsBytes<IT> )
 				return rhs << lhs.GetPOT();		// returns bytes
@@ -260,25 +272,10 @@ namespace AE::Base
 		}
 	}
 
-/*
-=================================================
-	operator *
-=================================================
-*/
 	template <typename T, typename IT>
 	__Cx__ IT  operator * (const IT lhs, const TPowerOf2Value<T> rhs) __NE___
 	{
-		StaticAssert( IsUnsigned<IT> );
-		ASSERT( rhs.GetPOT() >= 0 );
-		ASSERT( rhs.GetPOT() < int(CT_SizeOfInBits<IT>) );
-
-		if constexpr( IsBytes<T> ){
-			if constexpr( IsBytes<IT> )
-				return lhs << rhs.GetPOT();		// returns bytes
-		}else{
-			if constexpr( IsInteger<IT> )
-				return lhs << rhs.GetPOT();		// return integer
-		}
+		return rhs * lhs;
 	}
 
 /*
@@ -292,6 +289,12 @@ namespace AE::Base
 		StaticAssert( IsUnsigned<IT> );
 		ASSERT( rhs.GetPOT() >= 0 );
 		ASSERT( rhs.GetPOT() < int(CT_SizeOfInBits<IT>) );
+		
+		if ( rhs.GetPOT() < 0 )
+			return MaxValue<IT>();
+
+		if ( rhs.GetPOT() >= int(CT_SizeOfInBits<IT>) )
+			return Zero;
 
 		if constexpr( IsBytes<T> ){
 			if constexpr( IsBytes<IT> )
@@ -321,7 +324,7 @@ namespace AE::Base
 			}
 		}else{
 			if constexpr( IsInteger<IT> )
-				return lhs & rhs.template BitMask<IT>();			// return integer
+				return lhs & rhs.template BitMask<IT>();		// return integer
 		}
 	}
 
@@ -337,17 +340,21 @@ namespace AE::Base
 		if constexpr( IsSignedInteger<IT> )
 		{
 			//ASSERT( _pot < POT_t(CT_SizeOfInBits<IT>-1) );
-			return	_pot < POT_t(CT_SizeOfInBits<IT>-1) ?
+			return	_pot < 0 ?
+						Zero :
+					(_pot < POT_t(CT_SizeOfInBits<IT>-1) ?
 						static_cast<IT>( IT{1} << _pot ) :
-						MaxValue<IT>();
+						MaxValue<IT>());
 		}
 		else
 		if constexpr( IsUnsignedInteger<IT> )
 		{
 			//ASSERT( _pot < POT_t(CT_SizeOfInBits<IT>) );
-			return	_pot < POT_t(CT_SizeOfInBits<IT>) ?
+			return	_pot < 0 ?
+						Zero :
+					(_pot < POT_t(CT_SizeOfInBits<IT>) ?
 						static_cast<IT>( IT{1} << _pot ) :
-						MaxValue<IT>();
+						MaxValue<IT>());
 		}
 		else
 		if constexpr( IsBytes<IT> )
@@ -658,4 +665,16 @@ struct std::hash< AE::Base::TPowerOf2Value<T> >
 	{
 		return size_t(AE::Base::HashOf( value.GetPOT() ));
 	}
+};
+
+template <typename T>
+struct std::numeric_limits< AE::Base::TPowerOf2Value<T> >
+{
+	using P  = AE::Base::TPowerOf2Value<T>;
+	using P2 = AE::Base::PowerOfTwo;
+
+	static constexpr bool	is_specialized = true;
+
+	static constexpr auto	min ()	{ return P{ P2( -1 )}; }
+	static constexpr auto	max ()	{ return P{ P2( AE::Base::MaxValue< typename P::POT_t >() )}; }
 };

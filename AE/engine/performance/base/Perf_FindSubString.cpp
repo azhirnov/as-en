@@ -153,7 +153,7 @@ namespace
 		auto*	i = b;
 		__m256i	q = _mm256_set1_epi8( c );
 		{
-			__m256i	x = _mm256_loadu_si256( Cast<__m256i>( i ));
+			__m256i	x = _mm256_loadu_si256( reinterpret_cast<__m256i const*>( i ));
 			__m256i	r = _mm256_cmpeq_epi8( x, q );
 			int		z = _mm256_movemask_epi8( r );
 
@@ -170,7 +170,7 @@ namespace
 
 		for_likely(; i < e; i += 32)
 		{
-			__m256i	x = _mm256_load_si256( Cast<__m256i>( i ));
+			__m256i	x = _mm256_load_si256( reinterpret_cast<__m256i const*>( i ));
 			__m256i	r = _mm256_cmpeq_epi8( x, q );
 			int		z = _mm256_movemask_epi8( r );
 
@@ -194,10 +194,10 @@ namespace
 			// MSVC:  always used unaligned load
 			// Clang: load ignored, used cmp with memory
 
-			__m256i		s0	= _mm256_loadu_si256( Cast<__m256i>( str ) + 0 );
-			__m256i		s1	= _mm256_loadu_si256( Cast<__m256i>( str ) + 1 );
-			__m256i		s2	= _mm256_loadu_si256( Cast<__m256i>( str ) + 2 );
-			__m256i		s3	= _mm256_loadu_si256( Cast<__m256i>( str ) + 3 );
+			__m256i		s0	= _mm256_loadu_si256( reinterpret_cast<__m256i const*>( str ) + 0 );
+			__m256i		s1	= _mm256_loadu_si256( reinterpret_cast<__m256i const*>( str ) + 1 );
+			__m256i		s2	= _mm256_loadu_si256( reinterpret_cast<__m256i const*>( str ) + 2 );
+			__m256i		s3	= _mm256_loadu_si256( reinterpret_cast<__m256i const*>( str ) + 3 );
 
 			__m256i		eq0	= _mm256_cmpeq_epi8( s0, v_ch );
 			__m256i		eq1	= _mm256_cmpeq_epi8( s1, v_ch );
@@ -256,10 +256,10 @@ namespace
 
 		for_likely (auto* const e = end - 128_b; str <= e; str += 128_b)
 		{
-			__m256i		s0	= _mm256_loadu_si256( Cast<__m256i>( str ) + 0 );
-			__m256i		s1	= _mm256_loadu_si256( Cast<__m256i>( str ) + 1 );
-			__m256i		s2	= _mm256_loadu_si256( Cast<__m256i>( str ) + 2 );
-			__m256i		s3	= _mm256_loadu_si256( Cast<__m256i>( str ) + 3 );
+			__m256i		s0	= _mm256_loadu_si256( reinterpret_cast<__m256i const*>( str ) + 0 );
+			__m256i		s1	= _mm256_loadu_si256( reinterpret_cast<__m256i const*>( str ) + 1 );
+			__m256i		s2	= _mm256_loadu_si256( reinterpret_cast<__m256i const*>( str ) + 2 );
+			__m256i		s3	= _mm256_loadu_si256( reinterpret_cast<__m256i const*>( str ) + 3 );
 
 			__m256i		eq0	= _mm256_cmpeq_epi8( s0, v_ch );
 			__m256i		eq1	= _mm256_cmpeq_epi8( s1, v_ch );
@@ -305,7 +305,7 @@ namespace
 
 		// unaligned head (overhead: 5%)
 		{
-			__m256i		s	= _mm256_loadu_si256( Cast<__m256i>( str ));
+			__m256i		s	= _mm256_loadu_si256( reinterpret_cast<__m256i const*>( str ));
 			__m256i		eq	= _mm256_cmpeq_epi8( s, v_ch );
 			int			m	= _mm256_movemask_epi8( eq );
 
@@ -458,7 +458,7 @@ namespace
 #endif
 
 
-	static void FindSubString_Test ()
+	static void FindSubString_Test (ECoreType coreType)
 	{
 	  #ifdef AE_CFG_DEBUG
 		const uint			N = 1;
@@ -466,7 +466,7 @@ namespace
 		const uint			N = 100'000;
 	  #endif
 
-		IntervalProfiler	profiler{ "FindSubString" };
+		IntervalProfiler	profiler{ "FindSubString, "s << ToString(coreType) << " core" };
 		String				large_str;
 		String				substr	= "394054890234923jsilaoskm";
 		const usize			str_size	= (1u << 17) + 111;
@@ -650,7 +650,12 @@ namespace
 
 extern void PerfTest_FindSubString ()
 {
-	FindSubString_Test();
+	ForEachCoreType(
+		[&] (auto& core, Function<void()> setAffinity)
+		{
+			setAffinity();
+			FindSubString_Test( core.type );
+		});
 
 	TEST_PASSED();
 }

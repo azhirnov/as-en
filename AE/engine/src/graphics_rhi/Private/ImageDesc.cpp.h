@@ -14,7 +14,7 @@ namespace AE::Graphics
 */
 	ImageDesc&  ImageDesc::SetDimension (const uint value) __NE___
 	{
-		dimension	= CheckCast<ImageDim_t>(uint3{ value, 1, 1 });
+		dimension	= CheckCast{ uint3{ value, 1, 1 }};
 		imageDim	= (imageDim == Default ? EImageDim_1D : imageDim);
 		return *this;
 	}
@@ -341,9 +341,9 @@ namespace AE::Graphics
 */
 	void ImageViewDesc::Validate (const ImageDesc &desc) __NE___
 	{
-		baseMipmap	= MipmapLevel{Clamp( baseMipmap.Get(), 0u, desc.mipLevels.Get()-1 )};
-		mipmapCount	= CheckCast<MipmapCount_t>( Clamp( mipmapCount, 1u, desc.mipLevels.Get() - baseMipmap.Get() ));
-		dimension	= ImageDim_t{ImageUtils::MipmapDimension( desc.Dimension(), baseMipmap.Get(), EPixelFormat_GetInfo( desc.format ).TexBlockDim() )};
+		baseMipmap	= MipmapLevel{ Clamp( baseMipmap.Get(), 0u, desc.mipLevels.Get()-1 )};
+		mipmapCount	= CheckCast{ Clamp( mipmapCount, 1u, desc.mipLevels.Get() - baseMipmap.Get() )};
+		dimension	= ImageDim_t{ ImageUtils::MipmapDimension( desc.Dimension(), baseMipmap.Get(), EPixelFormat_GetInfo( desc.format ).TexBlockDim() )};
 
 		// validate format
 		{
@@ -408,8 +408,8 @@ namespace AE::Graphics
 		{
 			const uint	max_layers	= desc.arrayLayers.Get();
 
-			baseLayer	= ImageLayer{Clamp( baseLayer.Get(), 0u, max_layers-1 )};
-			layerCount	= CheckCast<LayerCount_t>( Clamp( layerCount, 1u, max_layers - baseLayer.Get() ));
+			baseLayer	= ImageLayer{ Clamp( baseLayer.Get(), 0u, max_layers-1 )};
+			layerCount	= CheckCast{ Clamp( layerCount, 1u, max_layers - baseLayer.Get() )};
 
 			switch_enum( desc.imageDim )
 			{
@@ -459,7 +459,7 @@ namespace AE::Graphics
 
 				case EImage_1DArray :
 					ASSERT( desc.imageDim == EImageDim_1D );
-					layerCount = CheckCast<LayerCount_t>( Clamp( layerCount, 1u, max_layers - baseLayer.Get() ));
+					layerCount = CheckCast{ Clamp( layerCount, 1u, max_layers - baseLayer.Get() )};
 					break;
 
 				case EImage_2D :
@@ -472,7 +472,7 @@ namespace AE::Graphics
 				case EImage_2DArray :
 					ASSERT( desc.imageDim == EImageDim_2D or
 							(desc.imageDim == EImageDim_3D and AllBits( desc.options, EImageOpt::Array2DCompatible )));
-					layerCount = CheckCast<LayerCount_t>( Clamp( layerCount, 1u, max_layers - baseLayer.Get() ));
+					layerCount = CheckCast{ Clamp( layerCount, 1u, max_layers - baseLayer.Get() )};
 					break;
 
 				case EImage_Cube :
@@ -488,7 +488,7 @@ namespace AE::Graphics
 							(desc.imageDim == EImageDim_3D and AllBits( desc.options, EImageOpt::Array2DCompatible )));
 					ASSERT( AllBits( desc.options, EImageOpt::CubeCompatible ));
 					ASSERT( layerCount == UMax or IsMultipleOf( layerCount, 6 ));
-					layerCount = CheckCast<LayerCount_t>( Max( 1u, ((max_layers - baseLayer.Get()) / 6) ) * 6 );
+					layerCount = CheckCast{ Max( 1u, ((max_layers - baseLayer.Get()) / 6) ) * 6 };
 					break;
 
 				case EImage_3D :

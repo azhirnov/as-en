@@ -570,7 +570,7 @@
 
 	public:
 		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix, EMode mode) :
-			buffer{buffer}, prefix{prefix}, offset{offset}, size{size}, mode{mode} {}
+			buffer{buffer}, prefix{prefix}, offset{0_b}, size{UMax}, mode{mode} {}
 		
 		ScriptExportBuffer (const ScriptBufferPtr &buffer, const String &prefix, Bytes offset, Bytes size, EMode mode) :
 			buffer{buffer}, prefix{prefix}, offset{offset}, size{size}, mode{mode} {}

@@ -103,7 +103,7 @@ namespace
 		name = compat._name;
 
 		for (auto& [att_name, att] : compat._attachments) {
-			attachments.emplace( att_name, CheckCast<ubyte>(att->index) );
+			attachments.emplace( att_name, CheckCast{att->index} );
 		}
 
 		for (usize i = 0; i < compat._subpasses.size(); ++i)
@@ -111,7 +111,7 @@ namespace
 			const auto&	src_sp = compat._subpasses[i];
 
 			Subpass	dst_sp;
-			dst_sp.subpassIndex	= CheckCast<ubyte>(i);
+			dst_sp.subpassIndex	= CheckCast{i};
 
 			for (auto& [att_name, att] : compat._attachments)
 			{
@@ -1717,7 +1717,7 @@ namespace
 		CHECK_ERR( compat._attachments.size() <= GraphicsConfig::MaxAttachments );
 
 		const uint	count = uint(compat._attachments.size());
-		//_attCount = CheckCast<ubyte>( count );
+		//_attCount = CheckCast{ count };
 
 		for (auto& [name, rt] : compat._attachments)
 		{

@@ -18,8 +18,13 @@ namespace AE::Graphics
 		Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16,
 		Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16,
 
+		Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16,
+
 		Au8_Bu8_Cu32_Ru32_M16_N16_K32,
 		As8_Bs8_Cs32_Rs32_M16_N16_K32,
+
+		Au8_Bu8_Cu32_Ru32_M8_N8_K32,
+		As8_Bs8_Cs32_Rs32_M8_N8_K32,
 
 		_Count,
 		Unknown = _Count

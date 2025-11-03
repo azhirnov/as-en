@@ -67,7 +67,7 @@ namespace
 	XrObjectTypeToString
 =================================================
 */
-#  ifdef AE_ENABLE_LOGS
+#  if defined(AE_ENABLE_LOGS) and not defined(AE_CFG_RELEASE)
 	ND_ static StringView  XrObjectTypeToString (XrObjectType type) __NE___
 	{
 		switch_enum( type )
@@ -481,6 +481,7 @@ namespace
 	_DebugMessageCallback
 =================================================
 */
+#ifndef AE_CFG_RELEASE
 	XrBool32  OpenXRDeviceInitializer::_DebugMessageCallback (XrDebugUtilsMessageSeverityFlagsEXT			messageSeverity,
 															  XrDebugUtilsMessageTypeFlagsEXT				/*messageTypes*/,
 															  const XrDebugUtilsMessengerCallbackDataEXT	*callbackData,
@@ -532,6 +533,7 @@ namespace
 		// Applications should always return XR_FALSE so that they see the same behavior with and without validation layers enabled.
 		return XR_FALSE;
 	}
+#endif
 
 /*
 =================================================

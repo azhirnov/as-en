@@ -527,6 +527,11 @@ namespace
 */
 	bool  PipelineLayout::Build () __NE___
 	{
+		NOTHROW_ERR( return _Build() );
+	}
+
+	bool  PipelineLayout::_Build () __Th___
+	{
 		using MSLBindingsPerState_t = FixedMap< EShaderStages, MSLBindings, uint(EShader::_Count) >;
 
 		if ( _uid.has_value() )
@@ -562,12 +567,12 @@ namespace
 						}
 
 						auto&	msl_bindings = msl_per_stage( stage );
-						CHECK_ERR( CheckCast( OUT *dst, msl_bindings.BufferCount() ));
+						CHECK_ERR( CastAndCheck( OUT *dst, msl_bindings.BufferCount() ));
 
 						CHECK_ERR( ptr->CountMSLBindings( stage, INOUT msl_bindings ));
 					}
 
-					CHECK_ERR( CheckCast( dsl.mtlIndex.BindingIndex(), idx ));
+					CHECK_ERR( CastAndCheck( dsl.mtlIndex.BindingIndex(), idx ));
 				}
 
 				CHECK_ERR( _desc.descrSets.emplace( DescriptorSetName{ds.Get<1>()}, dsl ).second );
@@ -609,8 +614,8 @@ namespace
 
 		ASSERT( _pushConstants.size() == _desc.pushConstants.items.size() );
 
-		TestFeature_Min( _features, &FeatureSet::maxDescriptorSets,		CheckCast<ubyte>(idx),	"maxDescriptorSets",	"DescriptorLayouts" );
-		TestFeature_Min( _features, &FeatureSet::maxPushConstantsSize,	pc_offset,				"maxPushConstantsSize",	"PushConstantsSize" );
+		TestFeature_Min( _features, &FeatureSet::maxDescriptorSets,		idx,		"maxDescriptorSets",	"DescriptorLayouts" );
+		TestFeature_Min( _features, &FeatureSet::maxPushConstantsSize,	pc_offset,	"maxPushConstantsSize",	"PushConstantsSize" );
 
 		if ( is_metal )
 		{

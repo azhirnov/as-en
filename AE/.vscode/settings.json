@@ -11,7 +11,8 @@
 		"AE_GRAPHICS_STRONG_VALIDATION": "OFF",
         "AE_ENGINE_BASE_PCH": "ON",   // enable it for Engine development, disable for Base module development
 		"AE_WHOLE_ENGINE_PCH": "OFF", // enable it for App/Game development
-		"AE_EXCLUDE_PACK_RES": "ON"
+		"AE_EXCLUDE_PACK_RES": "ON",
+        "CMAKE_VS_PLATFORM_TOOLSET": "v143" // only for MSVC
 	},
 	"files.associations": {
 		"*.as": "cpp",

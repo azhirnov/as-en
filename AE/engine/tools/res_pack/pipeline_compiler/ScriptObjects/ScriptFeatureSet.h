@@ -112,7 +112,7 @@ namespace AE::PipelineCompiler
 =================================================
 */
 	template <typename A, typename B>
-	void  TestFeature_Min (ArrayView<ScriptFeatureSetPtr> features, A FeatureSet::*member, B value, StringView memberName, StringView valueName) __Th___
+	void  TestFeature_Min (ArrayView<ScriptFeatureSetPtr> features, A FeatureSet::*member, B inValue, StringView memberName, StringView valueName) __Th___
 	{
 		CHECK_THROW_MSG( not features.empty(), "empty FeatureSet array" );
 
@@ -124,6 +124,13 @@ namespace AE::PipelineCompiler
 		// 0 - limits is not specified
 		if ( max_value > Zero )
 		{
+			using T = decltype(A(1u) * B(1u));
+
+			T	value;
+			CHECK_THROW_MSG( CastAndCheck( OUT value, inValue ),
+				"Failed to cast ("s << ToString(inValue) << ") to '" << memberName << "' member type in feature set with limits: [" <<
+				ToString( MinValue<A>() ) << "; " << ToString( MaxValue<A>() ) << "]" );
+
 			CHECK_THROW_MSG( value <= max_value,
 				"Specified '"s << valueName << "' (" << ToString(value) << ") must be <= than '" << memberName << "' in feature sets, " <<
 				"maximum allowed value (" << ToString(max_value) << ")" <<

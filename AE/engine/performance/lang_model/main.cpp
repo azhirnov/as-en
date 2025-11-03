@@ -19,9 +19,7 @@ int main (const int argc, char* argv[])
 	StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
 	StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
 
-	#ifdef AE_PLATFORM_WINDOWS
-		CHECK( WindowsUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
-	#endif
+	CHECK( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
 
 	Perf_LLamaTokensPerSecond();
 //	Perf_LLamaContextSize();

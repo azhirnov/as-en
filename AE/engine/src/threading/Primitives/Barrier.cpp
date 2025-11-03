@@ -22,7 +22,7 @@ namespace AE::Threading
 */
 	Barrier::Barrier (usize numThreads) __NE___
 	{
-		CHECK( ::InitializeSynchronizationBarrier( OUT _data.Ptr<SYNCHRONIZATION_BARRIER>(), CheckCast<LONG>(numThreads), -1 ) != FALSE );  // win8
+		CHECK( ::InitializeSynchronizationBarrier( OUT _data.Ptr<SYNCHRONIZATION_BARRIER>(), CheckCast{numThreads}, -1 ) != FALSE );  // win8
 	}
 
 /*

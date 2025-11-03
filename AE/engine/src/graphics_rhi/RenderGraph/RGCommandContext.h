@@ -416,7 +416,7 @@ namespace AE::RG::_hidden_
 	private:
 		ND_ uint							_ExeIdx ()																		__NE___ { return _RTask().ExecutionIndex(); }
 		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																		__NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _RTask().BatchPtr()->GetUserData() ); }
-		ND_ RenderCoroRef					_RTask ()																		__NE___	{ NonNull( _ctx.GetPrimaryCtxState().userData );  return BitCast<RenderCoroRef>( _ctx.GetPrimaryCtxState().userData ); }
+		ND_ RenderCoroRef					_RTask ()																		__NE___	{ ASSERT( _ctx.GetPrimaryCtxState().userData != null );  return BitCast<RenderCoroRef>( _ctx.GetPrimaryCtxState().userData ); }
 	};
 
 

@@ -48,6 +48,8 @@ static void  GraphicsPerfTests (RC<VFS::IVirtualFileStorage> assetStorage)
 	int  main (const int argc, char* argv[])
 	{
 		BEGIN_TEST();
+		
+		Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
 
 	  #ifdef AE_CI_BUILD_TEST
 		const Path	asset_path	= curr;

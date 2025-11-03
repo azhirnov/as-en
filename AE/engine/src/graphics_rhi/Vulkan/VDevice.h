@@ -123,6 +123,7 @@ namespace AE::Graphics
 		ND_ VQueuePtr				GetQueue (EQueueType type)						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint(type) < _queueTypes.size() ? _queueTypes[uint(type)] : null; }
 		ND_ EQueueMask				GetAvailableQueues ()							C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
 		ND_ StringView				GetDeviceName ()								C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _properties.properties.deviceName; }
+		ND_ String					GetDriverName ()								C_NE_OF;
 
 		ND_ bool					IsInitialized ()								C_NE_OF	{ return GetVkDevice() != Default; }
 

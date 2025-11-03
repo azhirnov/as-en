@@ -132,7 +132,7 @@ void ASmain ()
 	fset.tessellationPointMode (True);
 	fset.maxTexelBufferElements (128 << 20);
 	fset.maxUniformBufferSize (64 << 10);
-	fset.maxStorageBufferSize (uint(2) << 30);
+	fset.maxStorageBufferSize (4294967295);
 	fset.perPipeline_maxUniformBuffersDynamic (15);
 	fset.perPipeline_maxStorageBuffersDynamic (16);
 	fset.perPipeline_maxTotalBuffersDynamic (31);

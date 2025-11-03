@@ -92,8 +92,8 @@ namespace AE::Graphics::_hidden_
 		GFX_DBG_ONLY( cmd->_magicNumber = BaseCmd::MAGIC; )
 		StaticAssert( CommandsList::template HasType< CmdType >);
 
-		cmd->_commandID = CheckCast<ushort>( CommandsList::template Index< CmdType >);
-		cmd->_size		= CheckCast<ushort>( size );
+		cmd->_commandID = CheckCast{ CommandsList::template Index< CmdType >};
+		cmd->_size		= CheckCast{ size };
 		return *cmd;
 	}
 

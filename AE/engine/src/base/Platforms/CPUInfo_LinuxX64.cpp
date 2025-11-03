@@ -72,6 +72,8 @@ namespace
 */
 	CpuArchInfo::CpuArchInfo () __NE___
 	{
+		Unused( LinuxUtils::SetCurrentThreadAffinity( 0 ));
+
 		// read CPU info
 		{
 			#if defined(AE_CPU_ARCH_X64)
@@ -83,7 +85,7 @@ namespace
 
 		// read CPU features (only x86/x64)
 		CPUName_t	cpu_name;
-		ReadX64CPUFeatures( OUT feats, OUT cpu.microArch, OUT cpu.vendor, OUT cpu_name, OUT cache );
+		ReadX64CPUFeatures( OUT feats, OUT cpu.microArch, OUT cpu.vendor, OUT cpu_name );
 
 		// parse processors
 		{
@@ -205,41 +207,50 @@ namespace
 		}
 
 		// read core frequency
-		ReadX64CPUClock( INOUT cpu.coreTypes );
-
+		{
+			// will change thread affinity
+			ReadX64CPUClock( INOUT cpu.coreTypes );
+		}
 
 		// CPU cache info
-		const auto	AddCacheInfo = [this] (ECacheType type, const CacheGeom &c)
-		{{
-			if ( c.associativity > 0 or c.lineSize > 0 or c.size > 0 )
-				cache.emplace( CacheKey_t{ type, ECoreType::Unknown }, c );
-		}};
-
 		{
-			CacheGeom	c;
-			c.lineSize		= ::getauxval( AT_L1I_CACHEGEOMETRY ) & 0xFFFF;
-			c.associativity	= ::getauxval( AT_L1I_CACHEGEOMETRY ) >> 16;
-			c.size			= Bytes32u{uint(::getauxval( AT_L1I_CACHESIZE ))};
-			AddCacheInfo( ECacheType::L1_Instuction, c );
-		}{
-			CacheGeom	c;
-			c.lineSize		= ::getauxval( AT_L1D_CACHEGEOMETRY ) & 0xFFFF;
-			c.associativity	= ::getauxval( AT_L1D_CACHEGEOMETRY ) >> 16;
-			c.size			= Bytes32u{uint(::getauxval( AT_L1D_CACHESIZE ))};
-			AddCacheInfo( ECacheType::L1_Data, c );
-		}{
-			CacheGeom	c;
-			c.lineSize		= ::getauxval( AT_L2_CACHEGEOMETRY ) & 0xFFFF;
-			c.associativity	= ::getauxval( AT_L2_CACHEGEOMETRY ) >> 16;
-			c.size			= Bytes32u{uint(::getauxval( AT_L2_CACHESIZE ))};
-			AddCacheInfo( ECacheType::L2, c );
-		}{
-			CacheGeom	c;
-			c.lineSize		= ::getauxval( AT_L3_CACHEGEOMETRY ) & 0xFFFF;
-			c.associativity	= ::getauxval( AT_L3_CACHEGEOMETRY ) >> 16;
-			c.size			= Bytes32u{uint(::getauxval( AT_L3_CACHESIZE ))};
-			AddCacheInfo( ECacheType::L3, c );
+			// will change thread affinity
+			ReadX64CacheHierarchy( cpu.vendor, cpu.coreTypes, OUT cache );
+
+			const auto	AddCacheInfo = [this] (ECacheType type, const CacheGeom &c)
+			{{
+				if ( c.associativity > 0 or c.lineSize > 0 or c.size > 0 )
+					cache.emplace( CacheKey_t{ type, ECoreType::Performance }, c );
+			}};
+
+			{
+				CacheGeom	c;
+				c.lineSize		= ::getauxval( AT_L1I_CACHEGEOMETRY ) & 0xFFFF;
+				c.associativity	= ::getauxval( AT_L1I_CACHEGEOMETRY ) >> 16;
+				c.size			= Bytes32u{uint(::getauxval( AT_L1I_CACHESIZE ))};
+				AddCacheInfo( ECacheType::L1_Instuction, c );
+			}{
+				CacheGeom	c;
+				c.lineSize		= ::getauxval( AT_L1D_CACHEGEOMETRY ) & 0xFFFF;
+				c.associativity	= ::getauxval( AT_L1D_CACHEGEOMETRY ) >> 16;
+				c.size			= Bytes32u{uint(::getauxval( AT_L1D_CACHESIZE ))};
+				AddCacheInfo( ECacheType::L1_Data, c );
+			}{
+				CacheGeom	c;
+				c.lineSize		= ::getauxval( AT_L2_CACHEGEOMETRY ) & 0xFFFF;
+				c.associativity	= ::getauxval( AT_L2_CACHEGEOMETRY ) >> 16;
+				c.size			= Bytes32u{uint(::getauxval( AT_L2_CACHESIZE ))};
+				AddCacheInfo( ECacheType::L2, c );
+			}{
+				CacheGeom	c;
+				c.lineSize		= ::getauxval( AT_L3_CACHEGEOMETRY ) & 0xFFFF;
+				c.associativity	= ::getauxval( AT_L3_CACHEGEOMETRY ) >> 16;
+				c.size			= Bytes32u{uint(::getauxval( AT_L3_CACHESIZE ))};
+				AddCacheInfo( ECacheType::L3, c );
+			}
 		}
+		
+		Unused( LinuxUtils::ResetCurrentThreadAffinity() );
 
 		_Validate();
 	}

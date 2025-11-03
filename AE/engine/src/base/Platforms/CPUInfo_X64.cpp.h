@@ -188,6 +188,16 @@ namespace
 			switch ( model )
 			{
 			// client
+				case 0xBC : // MX, V
+					return ECPUMicroArch::Intel_LunarLake;
+
+				case 0xC5 : // H
+				case 0xB5 : // S, U
+					return ECPUMicroArch::Intel_ArrowLake;
+
+				case 0xAA : // S, N
+					return ECPUMicroArch::Intel_MeteorLake;
+
 				case 0xB7 : // S
 				case 0xBA : // P
 					return ECPUMicroArch::Intel_ReptorLake;
@@ -305,7 +315,7 @@ namespace
 	_DetectAMDCacheHierarchy
 =================================================
 */
-	static void  _DetectAMDCacheHierarchy (OUT CpuArchInfo::CacheInfoMap_t &cacheInfo)
+	static void  _DetectAMDCacheHierarchy (ECoreType coreType, OUT CpuArchInfo::CacheInfoMap_t &cacheInfo)
 	{
 		enum class AMDCacheType
 		{
@@ -323,46 +333,51 @@ namespace
 		CPUID( 0x8000'0001, OUT cpui );
 
 		// has AMD topology extensions
-		if ( HasBit< 23 >( cpui[2] ))
+		if ( not HasBit< 23 >( cpui[2] ))
+			return;
+
+		for (uint i = 0; i < 1000; ++i)
 		{
+			CPUIDExt( 0x8000'001D, i, OUT cpui );	// cache info for Zen
 
-			for (uint i = 0; i < 1000; ++i)
+			auto	type			= AMDCacheType( cpui[0] & 0x1F );
+			uint	level			= (cpui[0] >> 5) & 0x7;
+			uint	cores			= ((cpui[0] >> 14) & 0xFFF) + 1;
+			uint	sets			= cpui[2] + 1;
+			uint	line_size		= (cpui[1] & 0xFFF) + 1;
+			uint	associativity	= (cpui[1] >> 22) + 1;
+			uint	parts			= ((cpui[1] >> 12) & 0x3FF) + 1;
+			uint	size			= associativity * parts * line_size * sets;
+
+			if ( type == Default )
+				break;
+
+			ECacheType	cache_type = Default;
+			switch ( level )
 			{
-				CPUIDExt( 0x8000'001D, i, OUT cpui );	// cache info for Zen
-
-				auto	type			= AMDCacheType( cpui[0] & 0x1F );
-				uint	level			= (cpui[0] >> 5) & 0x7;
-				uint	cores			= ((cpui[0] >> 14) & 0xFFF) + 1;
-				uint	sets			= cpui[2] + 1;
-				uint	line_size		= (cpui[1] & 0xFFF) + 1;
-				uint	associativity	= (cpui[1] >> 22) + 1;
-				uint	parts			= ((cpui[1] >> 12) & 0x3FF) + 1;
-				uint	size			= associativity * parts * line_size * sets;
-
-				if ( type == Default )
+				case 1 :
+					cache_type = (type == AMDCacheType::Instruction ? ECacheType::L1_Instuction : ECacheType::L1_Data); 
 					break;
+				case 2 :
+				case 3 :
+					ASSERT( type == AMDCacheType::Unified );
+					cache_type = (level == 2 ? ECacheType::L2 : ECacheType::L3);
+					break;
+			}
 
-				if ( type >= AMDCacheType::_Count or level > 3 )
-				{
-					AE_LOGW_DBG( "skip unknown cache type" );
-					continue;
-				}
+			if ( cache_type == Default )
+			{
+				AE_LOGW_DBG( "skip unknown cache type" );
+				continue;
+			}
 
-				ECacheType	cache_type = Default;
-				switch ( level ) {
-					case 1 :	cache_type = (type == AMDCacheType::Instruction ? ECacheType::L1_Instuction : ECacheType::L1_Data);  break;
-					case 2 :
-					case 3 :	cache_type = (level == 2 ? ECacheType::L2 : ECacheType::L3);  break;
-				}
-
-				if ( cache_type != Default )
-				{
-					auto&	c = cacheInfo( CacheKey_t{ cache_type, ECoreType::Unknown });
-					c.lineSize			= line_size;
-					c.associativity		= associativity;
-					c.logicalCoreCount	= cores;
-					c.size				= Bytes32u{size};
-				}
+			if ( cache_type != Default )
+			{
+				auto&	c = cacheInfo( CacheKey_t{ cache_type, coreType });
+				c.lineSize			= line_size;
+				c.associativity		= associativity;
+				c.logicalCoreCount	= cores;
+				c.size				= Bytes32u{size};
 			}
 		}
 
@@ -374,7 +389,7 @@ namespace
 	_DetectIntelCacheHierarchy
 =================================================
 */
-	static void  _DetectIntelCacheHierarchy (OUT CpuArchInfo::CacheInfoMap_t &cacheInfo)
+	static void  _DetectIntelCacheHierarchy (ECoreType coreType, OUT CpuArchInfo::CacheInfoMap_t &cacheInfo)
 	{
 		enum class IntelCacheType
 		{
@@ -408,22 +423,28 @@ namespace
 			if ( type == Default )
 				break;
 
-			if ( type >= IntelCacheType::_Count or level > 3 )
+			ECacheType	cache_type = Default;
+			switch ( level )
+			{
+				case 1 :
+					cache_type = (type == IntelCacheType::Instruction ? ECacheType::L1_Instuction : ECacheType::L1_Data);
+					break;
+				case 2 :
+				case 3 :
+					ASSERT( type == IntelCacheType::Unified );
+					cache_type = (level == 2 ? ECacheType::L2 : ECacheType::L3);
+					break;
+			}
+
+			if ( cache_type == Default )
 			{
 				AE_LOGW_DBG( "skip unknown cache type" );
 				continue;
 			}
 
-			ECacheType	cache_type = Default;
-			switch ( level ) {
-				case 1 :	cache_type = (type == IntelCacheType::Instruction ? ECacheType::L1_Instuction : ECacheType::L1_Data);  break;
-				case 2 :
-				case 3 :	cache_type = (level == 2 ? ECacheType::L2 : ECacheType::L3);  break;
-			}
-
 			if ( cache_type != Default )
 			{
-				auto&	c = cacheInfo( CacheKey_t{ cache_type, ECoreType::Unknown });
+				auto&	c = cacheInfo( CacheKey_t{ cache_type, coreType });
 				c.lineSize			= line_size;
 				c.associativity		= associativity;
 				c.logicalCoreCount	= cores;
@@ -438,7 +459,7 @@ namespace
 =================================================
 */
 	static void  ReadX64CPUFeatures (OUT CpuArchInfo::Features &feats, OUT ECPUMicroArch &uarch,
-									 OUT ECPUVendor &vendor, OUT CpuArchInfo::CPUName_t &cpuName, OUT CpuArchInfo::CacheInfoMap_t &cacheInfo) __NE___
+									 OUT ECPUVendor &vendor, OUT CpuArchInfo::CPUName_t &cpuName) __NE___
 	{
 		#ifdef AE_CPU_ARCH_X64
 			feats.SSE2	= true;		// always supported
@@ -458,9 +479,6 @@ namespace
 
 			vendor = _ManufacturerIDToVendor( vendor_name );
 		}
-
-		CPUID( 0x8000'0000, OUT cpui );
-		const uint ex_count = cpui[0];
 
 		if ( count >= 0x1 )
 		{
@@ -517,9 +535,19 @@ namespace
 			// ECX=1
 			CPUIDExt( 0x7, 0x1, OUT cpui );
 
-			feats.SHA512			= HasBit< 0 >( cpui[0] );
-			feats.AVX512_BF16		= HasBit< 5 >( cpui[0] );
+			feats.SHA512			= HasBit<  0 >( cpui[0] );
+			feats.AVX_VNNI			= HasBit<  4 >( cpui[0] );
+			feats.AVX512_BF16		= HasBit<  5 >( cpui[0] );
+			// archperf-­monext		 = HasBit<  8 >( cpui[0] );
+			// avx-ifma				= HasBit< 23 >( cpui[0] );
+
+			feats.AVX_VNNI_i8		= HasBit<  4 >( cpui[3] );
+			feats.AVX_VNNI_i16		= HasBit< 10 >( cpui[3] );
+			feats.AVX_10			= HasBit< 19 >( cpui[3] );
 		}
+
+		CPUID( 0x8000'0000, OUT cpui );
+		const uint ex_count = cpui[0];
 
 	//	if ( ex_count >= 0x8000'0001 and vendor == ECPUVendor::AMD )
 	//	{
@@ -527,16 +555,6 @@ namespace
 	//
 	//		feats.SSE4A				= HasBit< 6 >( cpui[2] );
 	//	}
-
-		if ( ex_count >= 0x8000'001E and vendor == ECPUVendor::AMD )
-		{
-			_DetectAMDCacheHierarchy( OUT cacheInfo );
-		}
-		else
-		if ( count >= 0x4 and vendor == ECPUVendor::Intel )
-		{
-			_DetectIntelCacheHierarchy( OUT cacheInfo );
-		}
 
 		// get CPU brand name
 		if ( ex_count >= 0x8000'0002 )
@@ -567,6 +585,44 @@ namespace
 			cpuName = cpu_name;
 		}
 	}
+	
+/*
+=================================================
+	ReadX64CacheHierarchy
+=================================================
+*/
+	static void  ReadX64CacheHierarchy (ECPUVendor vendor, const CpuArchInfo::Cores_t &coreTypes, OUT CpuArchInfo::CacheInfoMap_t &cacheInfo) __NE___
+	{
+		StaticArray<uint, 4>	cpui = {};
+		
+		CPUID( 0, OUT cpui );
+		const int count = cpui[0];
+		
+		CPUID( 0x8000'0000, OUT cpui );
+		const uint ex_count = cpui[0];
+
+		if ( ex_count >= 0x8000'001E and vendor == ECPUVendor::AMD )
+		{
+			for (auto& core : coreTypes)
+			{
+				if ( PlatformUtils::SetCurrentThreadAffinity( core.FirstLogicalCore() ))
+				{
+					_DetectAMDCacheHierarchy( core.type, OUT cacheInfo );
+				}
+			}
+		}
+		else
+		if ( count >= 0x4 and vendor == ECPUVendor::Intel )
+		{
+			for (auto& core : coreTypes)
+			{
+				if ( PlatformUtils::SetCurrentThreadAffinity( core.FirstLogicalCore() ))
+				{
+					_DetectIntelCacheHierarchy( core.type, OUT cacheInfo );
+				}
+			}
+		}
+	}
 
 /*
 =================================================
@@ -582,18 +638,23 @@ namespace
 		CPUID( 0, OUT cpui );
 		const uint	count = cpui[0];
 
-		if ( count >= 0x16 )
-		{
-			CPUID( 0x16, OUT cpui );
+		if ( count < 0x16 )
+			return false;
 
-			for (auto& core : coreTypes)
+		bool	ok = false;
+		for (auto& core : coreTypes)
+		{
+			if ( PlatformUtils::SetCurrentThreadAffinity( core.FirstLogicalCore() ))
 			{
+				CPUID( 0x16, OUT cpui );
+
 				core.baseClock	= cpui[0];
 				core.maxClock	= cpui[1];
+
+				ok = true;
 			}
-			return true;
 		}
-		return false;
+		return ok;
 	}
 
 } // namespace

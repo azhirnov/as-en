@@ -25,7 +25,7 @@ namespace AE::Graphics
 		__Cx__ explicit MultiSamples (PowerOfTwo pot)		__NE___ : _value{ubyte(pot)} {}
 
 		template <typename T> requires( IsUnsignedInteger<T> )
-		explicit MultiSamples (T samples)					__NE___ : _value{ CheckCast<ubyte>(IntLog2( samples ))}
+		explicit MultiSamples (T samples)					__NE___ : _value{ CheckCast{ IntLog2( samples )}}
 		{
 			ASSERT( IsPowerOfTwo( samples ));
 		}

@@ -53,6 +53,7 @@ namespace AE::Graphics
 
 		ND_ virtual EQueueMask					GetAvailableQueues ()				C_NE___	= 0;
 		ND_ virtual StringView					GetDeviceName ()					C_NE___	= 0;
+		ND_ virtual String						GetDriverName ()					C_NE___ = 0;
 
 		ND_ virtual DeviceMemoryInfo			GetMemoryInfo ()					C_NE___ = 0;
 		ND_ virtual DevMemoryUsageOpt			GetMemoryUsage ()					C_NE___ = 0;

@@ -514,9 +514,9 @@ namespace
 */
 	ImageMemView::ImageMemView (const BufferMemView& content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
 		_content{ content },
-		_rowPitch{ rowPitch },					_slicePitch{ slicePitch },
-		_offset{ CheckCast<ImageDim_t>(off) },	_dimension{ CheckCast<ImageDim_t>(Max( dim, 1u )) },
-		_format{ format },						_aspect{ aspect }
+		_rowPitch{ rowPitch },		_slicePitch{ slicePitch },
+		_offset{ CheckCast{ off }},	_dimension{ CheckCast{ Max( dim, 1u )}},
+		_format{ format },			_aspect{ aspect }
 	{
 		ASSERT( RowPitch() == rowPitch );
 		ASSERT( SlicePitch() == slicePitch );
@@ -530,16 +530,16 @@ namespace
 		if ( _aspect == EImageAspect::Stencil )
 		{
 			ASSERT( fmt_info.bitsPerBlock2 != 0 );
-			_bitsPerBlock = CheckCast<ushort>( fmt_info.bitsPerBlock2 );
+			_bitsPerBlock = CheckCast{ fmt_info.bitsPerBlock2 };
 		}
 		else
-			_bitsPerBlock = CheckCast<ushort>( fmt_info.bitsPerBlock );
+			_bitsPerBlock = CheckCast{ fmt_info.bitsPerBlock };
 
 		if ( _rowPitch == 0 )
-			_rowPitch = CheckCast<Bytes32u>( MinRowSize() );
+			_rowPitch = CheckCast{ MinRowSize() };
 
 		if ( _slicePitch == 0 )
-			_slicePitch = CheckCast<Bytes32u>( MinSliceSize() );
+			_slicePitch = CheckCast{ MinSliceSize() };
 
 		ASSERT( BitsPerBlock() > 0_b );
 		ASSERT_GE( RowPitch(), MinRowSize() );

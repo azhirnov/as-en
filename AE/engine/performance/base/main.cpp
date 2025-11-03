@@ -9,6 +9,8 @@ extern void PerfTest_Utf8 ();
 extern void PerfTest_FindSubString ();
 extern void PerfTest_LogicOp ();
 extern void PerfTest_SIMD ();
+extern void PerfTest_SIMD2 ();
+extern void PerfTest_SIMD3 ();
 extern void PerfTest_VertSIMD ();
 extern void PerfTest_MemCopy ();
 extern void PerfTest_CacheSize ();
@@ -23,6 +25,8 @@ int main (const int argc, char* argv[])
 {
   #ifdef AE_RELEASE
 	BEGIN_TEST();
+	
+	Unused( PlatformUtils::SetSystemSleepState( ESystemSleepState::DisplayAlwaysOn ));
 
 	//PerfTest_HashSet();
 	//PerfTest_HashMap();
@@ -33,6 +37,8 @@ int main (const int argc, char* argv[])
 	//PerfTest_LogicOp();
 
 	//PerfTest_SIMD();
+	//PerfTest_SIMD2();
+	//PerfTest_SIMD3();
 	//PerfTest_VertSIMD();
 
 	//PerfTest_MemCopy();

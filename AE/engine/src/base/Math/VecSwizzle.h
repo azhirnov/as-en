@@ -89,7 +89,7 @@ namespace AE::Base
 			ASSERT_Cx( v != 0 );	// 'c' must be X, Y, Z, W, 0, 1, +, -
 			sw |= (v << (3 - i) * 4);
 		}
-		res._value = CheckCast<ushort>(sw);
+		res._value = CheckCast{ sw };
 		return res;
 	}
 

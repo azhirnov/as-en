@@ -387,13 +387,13 @@ namespace
 		auto	c	= _impl->gpu.get_constants();
 		HWInfo	res;
 
-		res.shaderCoreCount	= CheckCast<ubyte>( c.num_shader_cores );
-		res.execEngineCount	= CheckCast<ubyte>( c.num_exec_engines );
-		res.busWidth		= CheckCast<ushort>( c.axi_bus_width );
-		res.l2Slices		= CheckCast<ushort>( c.num_l2_slices );
+		res.shaderCoreCount	= CheckCast{ c.num_shader_cores };
+		res.execEngineCount	= CheckCast{ c.num_exec_engines };
+		res.busWidth		= CheckCast{ c.axi_bus_width };
+		res.l2Slices		= CheckCast{ c.num_l2_slices };
 		res.l2SliceSize		= Bytes{ c.l2_slice_size };
-		res.tileSize		= CheckCast<ushort>( c.tile_size );
-		res.warpSize		= CheckCast<ushort>( c.warp_width );
+		res.tileSize		= CheckCast{ c.tile_size };
+		res.warpSize		= CheckCast{ c.warp_width };
 
 		return res;
 	}

@@ -1251,7 +1251,7 @@ namespace AE::Graphics::_hidden_
 	{
 		VALIDATE_GCTX( DrawIndirect( _states.pplnLayout, indirectBuffer, drawCount, stride ));
 
-		vkCmdDrawIndirect( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), drawCount, CheckCast<uint>(stride) );
+		vkCmdDrawIndirect( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), drawCount, CheckCast{stride} );
 	}
 
 /*
@@ -1266,7 +1266,7 @@ namespace AE::Graphics::_hidden_
 	{
 		VALIDATE_GCTX( DrawIndexedIndirect( _states.pplnLayout, indirectBuffer, drawCount, stride ));
 
-		vkCmdDrawIndexedIndirect( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), drawCount, CheckCast<uint>(stride) );
+		vkCmdDrawIndexedIndirect( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), drawCount, CheckCast{stride} );
 	}
 
 /*
@@ -1283,7 +1283,7 @@ namespace AE::Graphics::_hidden_
 	{
 		VALIDATE_GCTX( DrawIndirectCount( _states.pplnLayout, indirectBuffer, countBuffer, maxDrawCount, stride ));
 
-		vkCmdDrawIndirectCountKHR( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), countBuffer, VkDeviceSize(countBufferOffset), maxDrawCount, CheckCast<uint>(stride) );
+		vkCmdDrawIndirectCountKHR( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), countBuffer, VkDeviceSize(countBufferOffset), maxDrawCount, CheckCast{stride} );
 	}
 
 /*
@@ -1302,7 +1302,7 @@ namespace AE::Graphics::_hidden_
 
 		vkCmdDrawIndexedIndirectCountKHR( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset),
 										  countBuffer, VkDeviceSize(countBufferOffset),
-										  maxDrawCount, CheckCast<uint>(stride) );
+										  maxDrawCount, CheckCast{stride} );
 	}
 
 /*
@@ -1329,7 +1329,7 @@ namespace AE::Graphics::_hidden_
 	{
 		VALIDATE_GCTX( DrawMeshTasksIndirect( _states.pplnLayout, indirectBuffer, drawCount, stride ));
 
-		vkCmdDrawMeshTasksIndirectEXT( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), drawCount, CheckCast<uint>(stride) );
+		vkCmdDrawMeshTasksIndirectEXT( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), drawCount, CheckCast{stride} );
 	}
 
 /*
@@ -1348,7 +1348,7 @@ namespace AE::Graphics::_hidden_
 
 		vkCmdDrawMeshTasksIndirectCountEXT( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset),
 											countBuffer, VkDeviceSize(countBufferOffset),
-											maxDrawCount, CheckCast<uint>(stride) );
+											maxDrawCount, CheckCast{stride} );
 	}
 
 /*

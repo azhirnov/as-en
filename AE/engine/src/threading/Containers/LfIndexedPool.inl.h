@@ -238,7 +238,7 @@ namespace AE::Threading
 
 			if ( _AssignInChunk( high_chunk, OUT outIndex ))
 			{
-				outIndex = CheckCast<Index_t>( outIndex + i * ChunkSize );
+				outIndex = CheckCast{ outIndex + i * ChunkSize };
 				ASSERT( outIndex < capacity() );
 				return true;
 			}
@@ -274,7 +274,7 @@ namespace AE::Threading
 
 			if_likely( _AssignInChunk( high_chunk, OUT outIndex ))
 			{
-				outIndex = CheckCast<Index_t>( outIndex + i * ChunkSize );
+				outIndex = CheckCast{ outIndex + i * ChunkSize };
 				ASSERT( outIndex < capacity() );
 				return true;
 			}
@@ -323,7 +323,7 @@ namespace AE::Threading
 							highChunk.available.fetch_or( HighLvlBits_t{1} << chunk_idx );	// 0 -> 1
 					}
 
-					outIndex = CheckCast<Index_t>( chunk_idx * LowLvlCount + idx );
+					outIndex = CheckCast{ chunk_idx * LowLvlCount + idx };
 					return true;
 				}
 
@@ -517,7 +517,7 @@ namespace AE::Threading
 				auto&	ll_chunk	= (*chunk_arr)[a];
 				usize	b			= (usize(ptr) - usize(ll_chunk.values.data())) / sizeof(Value_t);
 
-				return CheckCast<Index_t>( b + (a * LowLvlCount) + (i * ChunkSize) );
+				return CheckCast{ b + (a * LowLvlCount) + (i * ChunkSize) };
 			}
 		}
 

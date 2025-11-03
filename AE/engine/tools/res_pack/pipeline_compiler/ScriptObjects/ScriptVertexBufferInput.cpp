@@ -181,7 +181,7 @@ namespace
 		buf.ptr			= ptr;
 		buf.glslLoc		= _glslLoc;
 		buf.mslIndex	= _mslIndex;
-		buf.index		= CheckCast<ubyte>(_buffers.size());
+		buf.index		= CheckCast{ _buffers.size() };
 		buf.stride		= Max( ptr->StaticSize(), Bytes{stride} );
 		buf.rate		= (divisor.has_value() ? EVertexInputRate::Instance : EVertexInputRate::Vertex);
 		buf.divisor		= (divisor.has_value() ? divisor->value : 0);

@@ -141,8 +141,8 @@ namespace AE::Graphics
 			KiBytes ()								__NE___ {}
 
 			template <typename T> requires( IsInteger<T> )
-			explicit KiBytes (T value)				__NE___	: _value{ushort( value >> 10 )}			{ ASSERT( T{*this}  == value ); }
-			explicit KiBytes (Bytes value)			__NE___	: _value{ushort( ulong{value} >> 10 )}	{ ASSERT( Bytes{*this} == value ); }
+			explicit KiBytes (T value)				__NE___	: _value{ushort( value >> 10 )}			{ /*ASSERT( T{*this}  == value );*/ }
+			explicit KiBytes (Bytes value)			__NE___	: _value{ushort( ulong{value} >> 10 )}	{ /*ASSERT( Bytes{*this} == value );*/ }
 
 			template <typename T> requires( IsInteger<T> )
 			ND_ explicit operator T ()				C_NE___	{ return T{_value} << 10; }
@@ -348,7 +348,7 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			rayTracingPipeline,						: 2 )	/* GL_EXT_ray_tracing, VK_KHR_ray_tracing_pipeline									*/\
 		/*_visitorF_( EFeature,			rayTracingPipelineTraceRaysIndirect,	: 2 )*/\
 		_visitorF_( EFeature,			rayTraversalPrimitiveCulling,			: 2 )	/* GL_EXT_ray_flags_primitive_culling												*/\
-		_visitor1_( ubyte,				maxRayRecursionDepth,						)\
+		_visitor2_( ushort,				maxRayRecursionDepth,						)\
 		/*_visitor2_( KiBytes,			maxRayHitAttributeSize,						)*/\
 		/* shader version */\
 		_visitor2_( ShaderVersion,		maxShaderVersion,							)\
@@ -372,9 +372,9 @@ namespace AE::Graphics
 		_visitorF_( EFeature,			tessellationIsolines,					: 2 )\
 		_visitorF_( EFeature,			tessellationPointMode,					: 2 )\
 		/* shader limits */\
-		_visitor1_( POTValue,			maxTexelBufferElements,						)\
-		_visitor1_( POTBytes,			maxUniformBufferSize,						)	/* maxUniformBufferRange															*/\
-		_visitor1_( POTBytes,			maxStorageBufferSize,						)	/* maxStorageBufferRange															*/\
+		_visitor4_( uint,				maxTexelBufferElements,						)\
+		_visitor4_( Bytes32u,			maxUniformBufferSize,						)	/* maxUniformBufferRange															*/\
+		_visitor4_( Bytes32u,			maxStorageBufferSize,						)	/* maxStorageBufferRange															*/\
 		_visitor1_( ubyte,				perPipeline_maxUniformBuffersDynamic,		)	/* maxDescriptorSetUniformBuffersDynamic, maxDescriptorSetTotalUniformBuffersDynamic*/\
 		_visitor1_( ubyte,				perPipeline_maxStorageBuffersDynamic,		)	/* maxDescriptorSetStorageBuffersDynamic, maxDescriptorSetTotalStorageBuffersDynamic*/\
 		_visitor1_( ubyte,				perPipeline_maxTotalBuffersDynamic,			)	/* maxDescriptorSetTotalBuffersDynamic												*/\
@@ -438,7 +438,7 @@ namespace AE::Graphics
 		_visitor8_( PixelFormatSet_t,	uniformTexBufferFormats,					)	/* VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT										*/\
 		_visitor8_( PixelFormatSet_t,	storageTexBufferFormats,					)	/* VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT										*/\
 		_visitor8_( PixelFormatSet_t,	storageTexBufferAtomicFormats,				)	/* VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT								*/\
-		_visitor8_( VertexFormatSet_t,	accelStructVertexFormats,					)	/* VK_FORMAT_FEATURE_ACCELERATION_STRUCTURE_VERTEX_BUFFER_BIT_KHR					*/\
+		_visitor8_( VertexFormatSet_t,	accelStructVertexFormats,					)	/* VK_FORMAT_FEATURE_ACCELERATION_STRUCTURE_VERTEX_BUFFER_BIT_KHR, TODO: use another enum to save space	*/\
 		\
 		\
 	/*---- image -----*/\
@@ -462,7 +462,7 @@ namespace AE::Graphics
 		_visitor8_( PixelFormatSet_t,	attachmentBlendFormats,						)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT										*/\
 		_visitor8_( PixelFormatSet_t,	attachmentFormats,							)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |	VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT */\
 		_visitor8_( PixelFormatSet_t,	linearSampledFormats,						)	/* VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT								*/\
-		/*_visitor8_( PixelFormatSet_t,	minmaxFilterFormats,						)	/ * VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT								*/\
+		_visitor8_( PixelFormatSet_t,	minmaxFilterFormats,						)	/* VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT								*/\
 		/*_visitor8_( PixelFormatSet_t,	sparseImageFormats,							)*/\
 		/*_visitor8_( PixelFormatSet_t,	multisampleImageFormats,					)*/\
 		_visitor8_( PixelFormatSet_t,	hwCompressedAttachmentFormats,				)	/* formats which is compatible with lossless hardware compression					*/\
@@ -584,7 +584,7 @@ namespace AE::Graphics
 		template <bool Mutable>
 		bool  _Validate ()															__NE___;
 	};
-	StaticAssert( sizeof(FeatureSet) == 576 );
+	StaticAssert( sizeof(FeatureSet) == 608 );
 
 	
 	__CxIn uint  FeatureSet::GetFeatureCount () __NE___

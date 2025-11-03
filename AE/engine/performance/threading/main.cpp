@@ -22,6 +22,8 @@ int main (const int argc, char* argv[])
 {
   #ifdef AE_RELEASE
 	BEGIN_TEST();
+	
+	CHECK( PlatformUtils::SetSystemSleepState( ESystemSleepState::DontSleep_AllowTurnDisplayOff ));
 
 	PerfTest_AsyncFile( curr );
 	PerfTest_AsyncMutex();

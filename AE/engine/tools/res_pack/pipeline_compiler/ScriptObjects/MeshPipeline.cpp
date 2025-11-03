@@ -465,7 +465,7 @@ namespace
 
 		TestFeature_Min( GetBase()->GetFeatures(), &FeatureSet::maxViewports, value, "maxViewports", "viewportCount" );
 
-		desc.viewportCount = CheckCast<ubyte>(value);
+		desc.viewportCount = CheckCast{value};
 	}
 
 /*

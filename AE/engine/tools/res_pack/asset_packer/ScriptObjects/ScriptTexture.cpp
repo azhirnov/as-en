@@ -296,8 +296,8 @@ namespace {
 			file_hdr.fileName = VFS::FileName{ _fileName };
 
 		img_hdr.dimension	= ImageDim_t{_imgData->Dimension()};
-		img_hdr.arrayLayers	= CheckCast<LayerCount_t>(_imgData->ArrayLayers());
-		img_hdr.mipmaps		= CheckCast<MipmapCount_t>(_imgData->MipLevels());
+		img_hdr.arrayLayers	= CheckCast{_imgData->ArrayLayers()};
+		img_hdr.mipmaps		= CheckCast{_imgData->MipLevels()};
 		img_hdr.format		= _dstFormat;
 		img_hdr.viewType	= _imgData->GetType();
 
@@ -319,8 +319,8 @@ namespace {
 
 		ImagePacker::Header	img_hdr;
 		img_hdr.dimension	= ImageDim_t{_imgData->Dimension()};
-		img_hdr.arrayLayers	= CheckCast<LayerCount_t>(_imgData->ArrayLayers());
-		img_hdr.mipmaps		= CheckCast<MipmapCount_t>(_imgData->MipLevels());
+		img_hdr.arrayLayers	= CheckCast{_imgData->ArrayLayers()};
+		img_hdr.mipmaps		= CheckCast{_imgData->MipLevels()};
 		img_hdr.format		= _dstFormat;
 		img_hdr.viewType	= _imgData->GetType();
 

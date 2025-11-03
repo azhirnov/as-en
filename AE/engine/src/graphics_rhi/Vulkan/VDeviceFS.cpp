@@ -37,7 +37,7 @@ namespace
 */
 	void  VDevice::InitFeatureSet (OUT FeatureSet &outFeatureSet) C_NE___
 	{
-		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
 
 		using EFeature	= FeatureSet::EFeature;
 		using KiBytes	= FeatureSet::KiBytes;
@@ -247,24 +247,38 @@ namespace
 				if ( mp.AType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.BType      == VK_COMPONENT_TYPE_FLOAT16_KHR and
 					 mp.CType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT16_KHR and
 					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 );
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 );	// NV
 				else
 				if ( mp.AType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.BType      == VK_COMPONENT_TYPE_FLOAT16_KHR and
 					 mp.CType == VK_COMPONENT_TYPE_FLOAT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT32_KHR and
 					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 16 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 );
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 );	// NV
+				else
+				if ( mp.AType == VK_COMPONENT_TYPE_FLOAT16_KHR and mp.BType      == VK_COMPONENT_TYPE_FLOAT16_KHR and
+					 mp.CType == VK_COMPONENT_TYPE_FLOAT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_FLOAT32_KHR and
+					 mp.MSize == 8 and mp.NSize == 8 and mp.KSize == 16 )
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 );		// Intel
 				else
 				if ( mp.AType == VK_COMPONENT_TYPE_UINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_UINT8_KHR  and
 					 mp.CType == VK_COMPONENT_TYPE_UINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_UINT32_KHR and
 					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 32 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 );
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M16_N16_K32 );			// NV
 				else
 				if ( mp.AType == VK_COMPONENT_TYPE_SINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_SINT8_KHR  and
 					 mp.CType == VK_COMPONENT_TYPE_SINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_SINT32_KHR and
 					 mp.MSize == 16 and mp.NSize == 16 and mp.KSize == 32 )
-					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 );
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M16_N16_K32 );			// NV
+				else
+				if ( mp.AType == VK_COMPONENT_TYPE_UINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_UINT8_KHR  and
+					 mp.CType == VK_COMPONENT_TYPE_UINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_UINT32_KHR and
+					 mp.MSize == 8 and mp.NSize == 8 and mp.KSize == 32 )
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::Au8_Bu8_Cu32_Ru32_M8_N8_K32 );			// Intel
+				else
+				if ( mp.AType == VK_COMPONENT_TYPE_SINT8_KHR  and mp.BType      == VK_COMPONENT_TYPE_SINT8_KHR  and
+					 mp.CType == VK_COMPONENT_TYPE_SINT32_KHR and mp.ResultType == VK_COMPONENT_TYPE_SINT32_KHR and
+					 mp.MSize == 8 and mp.NSize == 8 and mp.KSize == 32 )
+					outFeatureSet.cooperativeMatrixConfig.insert( ECoopMatrixCfg::As8_Bs8_Cs32_Rs32_M8_N8_K32 );			// Intel
 			}
-			ASSERT( outFeatureSet.cooperativeMatrixConfig.Any() );
 
 		  #if 0
 			String	str = "CooperativeMatrixProperties:";
@@ -280,6 +294,7 @@ namespace
 			}
 			AE_LOGI( str );
 		  #endif
+			ASSERT( outFeatureSet.cooperativeMatrixConfig.Any() );
 		}
 
 		if ( _extensions.cooperativeVectorNV and _properties.cooperativeVectorNVFeats.cooperativeVector )
@@ -458,7 +473,7 @@ namespace
 		{
 			SET_FEAT2( subsampledLoads,						_properties.fragDensityMap2Props );
 			outFeatureSet.maxSubsampledArrayLayers			= POTValue{ _properties.fragDensityMap2Props.maxSubsampledArrayLayers };
-			outFeatureSet.perPipeline_maxSubsampledSamplers	= CheckCast<ubyte>( _properties.fragDensityMap2Props.maxDescriptorSetSubsampledSamplers );
+			outFeatureSet.perPipeline_maxSubsampledSamplers	= CheckCast{ _properties.fragDensityMap2Props.maxDescriptorSetSubsampledSamplers };
 		}
 
 		if ( _extensions.rayQuery and _extensions.accelerationStructure )
@@ -471,7 +486,7 @@ namespace
 		{
 			SET_FEAT2( rayTracingPipeline,				_properties.rayTracingPipelineFeats );
 			SET_FEAT2( rayTraversalPrimitiveCulling,	_properties.rayTracingPipelineFeats );
-			outFeatureSet.maxRayRecursionDepth		=	CheckCast<ubyte>( _properties.rayTracingPipelineProps.maxRayRecursionDepth );
+			outFeatureSet.maxRayRecursionDepth		=	CheckCast{ _properties.rayTracingPipelineProps.maxRayRecursionDepth };
 		}
 
 		outFeatureSet.maxShaderVersion.spirv = (_spirvVersion.major * 100) + (_spirvVersion.minor * 10);
@@ -486,11 +501,11 @@ namespace
 			SET_FEAT2( multiview,					_properties.multiviewFeats );
 			SET_FEAT2( multiviewGeometryShader,		_properties.multiviewFeats );
 			SET_FEAT2( multiviewTessellationShader,	_properties.multiviewFeats );
-			outFeatureSet.maxMultiviewViewCount		= CheckCast<ubyte>( _properties.multiviewProps.maxMultiviewViewCount );
+			outFeatureSet.maxMultiviewViewCount		= CheckCast{ _properties.multiviewProps.maxMultiviewViewCount };
 		}
 
 		SET_FEAT( multiViewport );
-		outFeatureSet.maxViewports = CheckCast<ubyte>( limits.maxViewports );
+		outFeatureSet.maxViewports = CheckCast{ limits.maxViewports };
 
 		if ( _extensions.sampleLocations )
 		{
@@ -498,9 +513,9 @@ namespace
 			SET_FEAT2( variableSampleLocations, _properties.sampleLocationsProps );
 		}
 
-		outFeatureSet.perPipeline_maxUniformBuffersDynamic	= CheckCast<ubyte>( limits.maxDescriptorSetUniformBuffersDynamic );
-		outFeatureSet.perPipeline_maxStorageBuffersDynamic	= CheckCast<ubyte>( limits.maxDescriptorSetStorageBuffersDynamic );
-		outFeatureSet.perPipeline_maxTotalBuffersDynamic	= CheckCast<ubyte>( outFeatureSet.perPipeline_maxUniformBuffersDynamic + outFeatureSet.perPipeline_maxStorageBuffersDynamic ); // TODO: set ushort or silent worning
+		outFeatureSet.perPipeline_maxUniformBuffersDynamic	= CheckCast{ limits.maxDescriptorSetUniformBuffersDynamic };
+		outFeatureSet.perPipeline_maxStorageBuffersDynamic	= CheckCast{ limits.maxDescriptorSetStorageBuffersDynamic };
+		outFeatureSet.perPipeline_maxTotalBuffersDynamic	= CheckCast{ outFeatureSet.perPipeline_maxUniformBuffersDynamic + outFeatureSet.perPipeline_maxStorageBuffersDynamic }; // TODO: set ushort or silent warning
 		outFeatureSet.perPipeline.maxInputAttachments		= limits.maxDescriptorSetInputAttachments;
 		outFeatureSet.perPipeline.maxSampledImages			= limits.maxDescriptorSetSampledImages;
 		outFeatureSet.perPipeline.maxSamplers				= limits.maxDescriptorSetSamplers;
@@ -519,9 +534,9 @@ namespace
 
 		if ( _extensions.maintenance7 )
 		{
-			outFeatureSet.perPipeline_maxUniformBuffersDynamic	= CheckCast<ubyte>( _properties.maintenance7Props.maxDescriptorSetTotalUniformBuffersDynamic );
-			outFeatureSet.perPipeline_maxStorageBuffersDynamic	= CheckCast<ubyte>( _properties.maintenance7Props.maxDescriptorSetTotalStorageBuffersDynamic );
-			outFeatureSet.perPipeline_maxTotalBuffersDynamic	= CheckCast<ubyte>( _properties.maintenance7Props.maxDescriptorSetTotalBuffersDynamic );
+			outFeatureSet.perPipeline_maxUniformBuffersDynamic	= CheckCast{ _properties.maintenance7Props.maxDescriptorSetTotalUniformBuffersDynamic };
+			outFeatureSet.perPipeline_maxStorageBuffersDynamic	= CheckCast{ _properties.maintenance7Props.maxDescriptorSetTotalStorageBuffersDynamic };
+			outFeatureSet.perPipeline_maxTotalBuffersDynamic	= CheckCast{ _properties.maintenance7Props.maxDescriptorSetTotalBuffersDynamic };
 		}
 
 		if ( _extensions.accelerationStructure )
@@ -538,15 +553,15 @@ namespace
 		if ( _extensions.partitionedAccelStructNV )
 			outFeatureSet.partitionedAccelerationStructure = True;
 
-		outFeatureSet.maxTexelBufferElements= CastPOT( limits.maxTexelBufferElements );
-		outFeatureSet.maxUniformBufferSize	= CastPOTBytes( limits.maxUniformBufferRange );
-		outFeatureSet.maxStorageBufferSize	= CastPOTBytes( limits.maxStorageBufferRange );
-		outFeatureSet.maxDescriptorSets		= CheckCast<ubyte>( limits.maxBoundDescriptorSets );
-		outFeatureSet.maxTexelOffset		= CheckCast<ubyte>( Min( limits.maxTexelOffset, Max( Abs(limits.minTexelOffset)-1, 0 )));
-		outFeatureSet.maxTexelGatherOffset	= CheckCast<ubyte>( Min( limits.maxTexelGatherOffset, Max( Abs(limits.minTexelGatherOffset)-1, 0 )));
+		outFeatureSet.maxTexelBufferElements= CheckCast{ limits.maxTexelBufferElements };
+		outFeatureSet.maxUniformBufferSize	= CheckCast{ limits.maxUniformBufferRange };
+		outFeatureSet.maxStorageBufferSize	= CheckCast{ limits.maxStorageBufferRange };
+		outFeatureSet.maxDescriptorSets		= CheckCast{ limits.maxBoundDescriptorSets };
+		outFeatureSet.maxTexelOffset		= CheckCast{ Min( limits.maxTexelOffset, Max( Abs(limits.minTexelOffset)-1, 0 ))};
+		outFeatureSet.maxTexelGatherOffset	= CheckCast{ Min( limits.maxTexelGatherOffset, Max( Abs(limits.minTexelGatherOffset)-1, 0 ))};
 
-		outFeatureSet.maxFragmentOutputAttachments			= CheckCast<ubyte>( limits.maxFragmentOutputAttachments );
-		outFeatureSet.maxFragmentDualSrcAttachments			= CheckCast<ubyte>( limits.maxFragmentDualSrcAttachments );
+		outFeatureSet.maxFragmentOutputAttachments			= CheckCast{ limits.maxFragmentOutputAttachments };
+		outFeatureSet.maxFragmentDualSrcAttachments			= CheckCast{ limits.maxFragmentDualSrcAttachments };
 		outFeatureSet.maxFragmentCombinedOutputResources	= limits.maxFragmentCombinedOutputResources;
 		outFeatureSet.maxPushConstantsSize					= CastPOTBytes( limits.maxPushConstantsSize );
 
@@ -604,7 +619,7 @@ namespace
 			outFeatureSet.maxMeshPayloadAndSharedMemorySize		= KiBytes{ _properties.meshShaderProps.maxMeshPayloadAndSharedMemorySize };
 			outFeatureSet.maxMeshOutputMemorySize				= KiBytes{ _properties.meshShaderProps.maxMeshOutputMemorySize };
 			outFeatureSet.maxMeshPayloadAndOutputMemorySize		= KiBytes{ _properties.meshShaderProps.maxMeshPayloadAndOutputMemorySize };
-			outFeatureSet.maxMeshMultiviewViewCount				= CheckCast<ubyte>( _properties.meshShaderProps.maxMeshMultiviewViewCount );
+			outFeatureSet.maxMeshMultiviewViewCount				= CheckCast{ _properties.meshShaderProps.maxMeshMultiviewViewCount };
 			outFeatureSet.maxPreferredTaskWorkGroupInvocations	= CastPOT( _properties.meshShaderProps.maxPreferredTaskWorkGroupInvocations );
 			outFeatureSet.maxPreferredMeshWorkGroupInvocations	= CastPOT( _properties.meshShaderProps.maxPreferredMeshWorkGroupInvocations );
 		}
@@ -615,8 +630,8 @@ namespace
 			outFeatureSet.maxVertexAttribDivisor	= _properties.vertexDivisorProps.maxVertexAttribDivisor;
 		}
 
-		outFeatureSet.maxVertexAttributes	= CheckCast<ubyte>( limits.maxVertexInputAttributes );
-		outFeatureSet.maxVertexBuffers		= CheckCast<ubyte>( limits.maxVertexInputBindings );
+		outFeatureSet.maxVertexAttributes	= CheckCast{ limits.maxVertexInputAttributes };
+		outFeatureSet.maxVertexBuffers		= CheckCast{ limits.maxVertexInputBindings };
 
 		SET_FEAT( geometryShader );
 		SET_FEAT( tessellationShader );
@@ -856,7 +871,7 @@ namespace
 		#define SET_FEAT( _name_ )			feats10._name_ = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 		#define SET_FEAT2( _name_, _feat_ )	_feat_._name_  = (inFS._name_ == True ? VK_TRUE : VK_FALSE)
 		
-		StaticAssert( FeatureSet::GetFeatureCount() == 271 );
+		StaticAssert( FeatureSet::GetFeatureCount() == 272 );
 		using EFeature = FeatureSet::EFeature;
 
 		auto&			feats10		= _properties.features;

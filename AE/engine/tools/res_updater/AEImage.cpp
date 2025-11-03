@@ -83,9 +83,9 @@ namespace
 
 		CHECK_ERR( src.Read( 0_b, OUT hdr_v1 ));
 
-		hdr_v2.imageHeader.dimension	= ImageDim_t{hdr_v1.imageHeader.dimension};
-		hdr_v2.imageHeader.arrayLayers	= LayerCount_t{hdr_v1.imageHeader.arrayLayers};
-		hdr_v2.imageHeader.mipmaps		= CheckCast<MipmapCount_t>( hdr_v1.imageHeader.mipmaps );
+		hdr_v2.imageHeader.dimension	= ImageDim_t{ hdr_v1.imageHeader.dimension };
+		hdr_v2.imageHeader.arrayLayers	= LayerCount_t{ hdr_v1.imageHeader.arrayLayers };
+		hdr_v2.imageHeader.mipmaps		= CheckCast{ hdr_v1.imageHeader.mipmaps };
 		hdr_v2.imageHeader.viewType		= hdr_v1.imageHeader.viewType;
 		hdr_v2.imageHeader.format		= hdr_v1.imageHeader.format;
 		hdr_v2.imageHeader.flags		= hdr_v1.imageHeader.flags;
