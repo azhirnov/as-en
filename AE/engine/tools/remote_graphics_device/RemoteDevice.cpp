@@ -189,6 +189,9 @@ namespace AE::RemoteGraphics
 		if ( _app )
 			Cast<App::ApplicationAndroid>(_app)->ShowToast( server_addr.ToString(), False{"short"} );
 	  #endif
+	  #ifdef AE_PLATFORM_WINDOWS
+		WindowsUtils::AddExceptionToFirewall( WindowsUtils::GetExeLocation(), "AE RmG In", True{"inbound"}, True{"TCP"}, 0 );
+	  #endif
 	}
 
 /*

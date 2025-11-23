@@ -27,7 +27,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        chmox +x download-linux-x64-clang.sh
+        chmod +x download-linux-x64-clang.sh
         ./download-linux-x64-clang.sh
         mv external/linux-x64-clang20 external/linux-x64-clang18
     

@@ -98,7 +98,7 @@ namespace
 			LLama::OpenParams	params;
 			params.modelFile			= GetGGMLModelName();
 			params.enableLogger			= false;
-		//	params.gpuBackend			= LLama::EGPUBackend::CUDA;
+		//	params.backend				= LLama::EBackend::CUDA;
 			params.keepModelInMemory	= true;
 			params.gpuLayers			= 99;
 

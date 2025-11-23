@@ -13,7 +13,7 @@ namespace
 		Path				modelPath;
 		uint				ctxSize;
 		uint				gpuLayers;
-		LLama::EGPUBackend	backend;
+		LLama::EBackend	backend;
 	};
 	
 	struct PerfTestResult
@@ -89,7 +89,7 @@ namespace
 			<< ToString( secondsd{out.timeToFirstToken}.count(), 2 ) << " | "
 			<< ToString( secondsd{out.responseGeneration}.count(), 2 ) << " | ";
 
-		if ( in.backend != LLama::EGPUBackend::Disabled )
+		if ( in.backend != LLama::EBackend::CPU )
 			str << ToString(Max( in.gpuLayers, out.maxLayers )) << " / " << ToString( out.maxLayers );
 		else
 			str << "0 / " << ToString( out.maxLayers );
@@ -134,7 +134,7 @@ namespace
 			params.modelFile			= in.modelPath;
 			params.enableLogger			= true;
 			params.keepModelInMemory	= true;
-			params.gpuBackend			= in.backend;
+			params.backend				= in.backend;
 			params.gpuLayers			= in.gpuLayers;
 
 			model = LMFactory::CreateLLama( params );
@@ -242,9 +242,9 @@ extern void Perf_LLamaContextSize ()
 
 	PerfTestRequest		requests[] =
 	{
-		{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EGPUBackend::CUDA		}, PerfTestResult{}},
-		{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EGPUBackend::Vulkan		}, PerfTestResult{}},
-		{PerfTestInput{ model_1,	8 << 10,	0,		LLama::EGPUBackend::Disabled	}, PerfTestResult{}},
+		{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EBackend::CUDA	}, PerfTestResult{}},
+		{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EBackend::Vulkan	}, PerfTestResult{}},
+		{PerfTestInput{ model_1,	8 << 10,	0,		LLama::EBackend::CPU	}, PerfTestResult{}},
 	};
 
 	const U8String	prompt = GeneratePrompt( Path{TEST_SRC_FOLDER} / "base/Math", 128_KiB );

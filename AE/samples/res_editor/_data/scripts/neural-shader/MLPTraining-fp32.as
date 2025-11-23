@@ -467,7 +467,7 @@
 //-----------------------------------------------------------------------------
 #ifdef VIEW
 
-	float4  Inference (float x, float y)
+	float4  Eval (float x, float y)
 	{
 		let arg = un_ArgBuf[0];
 
@@ -488,7 +488,7 @@
 		float2	ratio		= float2( 1.0, size.y / size.x );
 
 		float4	ref_color	= float4(groundtruth( uv.x, uv.y ));
-		float4	mlp_color	= float4(Inference( uv.x, uv.y ));
+		float4	mlp_color	= float4(Eval( uv.x, uv.y ));
 		float4	color;
 
 		switch ( iCmp )

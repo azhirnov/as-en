@@ -6,16 +6,16 @@
 
 namespace AE::LangModel::LLama
 {
-	enum class EGPUBackend : ubyte
+	enum class EBackend : ubyte
 	{
-		Disabled,	// will use CPU backend which is slower
+		CPU,		// will use CPU only backend which is slower, other backend will combine CPU with GPU or NPU
 		Auto,
 		Vulkan,		// may return out-of-memory error for small VRAM
 		CUDA,		// can use RAM to increase memory size, but performance limited to PCI bandwidth
 		Metal,
-		_Count,
-
-		CPU = Disabled
+	//	SYCL,
+	//	HIP,
+		_Count
 	};
 
 
@@ -35,7 +35,7 @@ namespace AE::LangModel::LLama
 		uint			gpuLayers			= UMax;		// max - ModelInfo::layerCount
 
 		bool			enableLogger		= true;
-		EGPUBackend		gpuBackend			= EGPUBackend::Auto;
+		EBackend		backend				= EBackend::Auto;
 
 		bool			keepModelInMemory	= true;		// force system to keep model in RAM
 		bool			checkTensors		= true;		// validate model tensor data
@@ -135,14 +135,14 @@ namespace AE::Base
 	
 /*
 =================================================
-	ToString (EGPUBackend)
+	ToString (EBackend)
 =================================================
 */
-	Nd__In StringView  ToString (LangModel::LLama::EGPUBackend type) __NE___
+	Nd__In StringView  ToString (LangModel::LLama::EBackend type) __NE___
 	{
 		switch_enum( type )
 		{
-			using enum LangModel::LLama::EGPUBackend;
+			using enum LangModel::LLama::EBackend;
 			case CPU :		return "CPU";
 			case Auto :		return "Auto";
 			case Vulkan :	return "Vulkan";

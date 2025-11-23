@@ -1,6 +1,6 @@
 Performance per thread.
 
-[Source](https://github.com/azhirnov/as-en/blob/dev/C:/Projects/AllInOne/AE/engine/performance/base/Perf_FindSubString.cpp)
+[Source](https://github.com/azhirnov/as-en/blob/dev/AE/engine/performance/base/Perf_FindSubString.cpp)
 
 
 # AMD Ryzen 3900X, 4.2 GHz, 7nm (Zen2)

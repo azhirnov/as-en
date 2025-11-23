@@ -51,7 +51,6 @@ namespace AE::Base
 			template <typename T>
 			NdCx__ operator const T ()											C_NE___
 			{
-				//StaticAssert( std::is_integral_v<T> or std::is_enum_v<T> );
 				if constexpr( IsClass<T> )
 					return T{};
 				else

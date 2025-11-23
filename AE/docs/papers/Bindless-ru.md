@@ -162,7 +162,7 @@ NVidia, Intel и PowerVR показали небольшое отличие ме
 ### Device Address
 
 Расширение `VK_KHR_buffer_device_address` позволяет использовать указатели на память буфера. Адрес получается из `ulong` или `uint2` типа.<br/>
-[Пример](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-2d/BufferReference.as) с бинарным деревом.
+[Пример](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/samples-compute/BufferReference.as) с бинарным деревом.
 
 <details><summary>Поддерживается начиная с:</summary>
 

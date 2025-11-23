@@ -62,7 +62,7 @@
 
 	layout(std430, buffer_reference) buffer MLPMatrix { half data[]; };
 
-	half4  Inference (half2 v)
+	half4  Eval (half2 v)
 	{
 		#define CoopVec4	gl::CoopVec< half, 4 >
 		#define CoopVec16	gl::CoopVec< half, 16 >
@@ -117,7 +117,7 @@
 	{
 		float2	uv			= GetGlobalCoordUNorm().xy;
 		float4	ref_color	= float4(groundtruth( half2(uv) ));
-		float4	mlp_color	= float4(Inference( half2(uv) ));
+		float4	mlp_color	= float4(Eval( half2(uv) ));
 		float4	color;
 
 		switch ( iCmp )

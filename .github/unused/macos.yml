@@ -21,7 +21,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        chmox +x download-macos-arm64-clang.sh
+        chmod +x download-macos-arm64-clang.sh
         ./download-macos-arm64-clang.sh
       
     - name: Configure CMake
@@ -127,7 +127,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        chmox +x download-macos-arm64-clang.sh
+        chmod +x download-macos-arm64-clang.sh
         ./download-macos-arm64-clang.sh
       
     - name: Configure CMake

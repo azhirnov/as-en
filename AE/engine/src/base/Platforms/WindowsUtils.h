@@ -92,6 +92,12 @@ namespace AE::Base
 
 		ND_ static Path		GetExeLocation ()												__NE___;
 
+		ND_ static bool		AddExceptionToFirewall (const Path			&exePath,
+													StringView			ruleName,
+													Bool				inbound,
+													Bool				isTCP,
+													ArrayView<ushort>	ports)					__NE___;
+
 
 		// OS //
 		ND_ static Version3		GetOSVersion ()												__NE___;

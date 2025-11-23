@@ -29,7 +29,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        chmox +x download-linux-x64-gcc.sh
+        chmod +x download-linux-x64-gcc.sh
         ./download-linux-x64-gcc.sh
     
     - name: Configure CMake
@@ -165,7 +165,7 @@ jobs:
       run: |
         mkdir _build
         cd AE-Bin
-        chmox +x download-linux-x64-gcc.sh
+        chmod +x download-linux-x64-gcc.sh
         ./download-linux-x64-gcc.sh
     
     - name: Configure CMake

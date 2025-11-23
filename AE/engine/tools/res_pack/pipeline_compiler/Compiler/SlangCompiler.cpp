@@ -264,25 +264,25 @@ namespace
 		#ifdef AE_PLATFORM_WINDOWS
 		# ifdef AE_CFG_DEBUG
 			Unused( _lib.Load( "slangd.dll" ));
-		# else
-			Unused( _lib.Load( "slang.dll" ));
 		# endif
+			if ( not _lib )
+				Unused( _lib.Load( "slang.dll" ));
 		#endif
 
 		#ifdef AE_PLATFORM_LINUX
 		# ifdef AE_CFG_DEBUG
 			Unused( _lib.Load( "./libslangd.so" ));
-		# else
-			Unused( _lib.Load( "./libslang.so" ));
 		# endif
+			if ( not _lib )
+				Unused( _lib.Load( "./libslang.so" ));
 		#endif
 
 		#ifdef AE_PLATFORM_APPLE
 		# ifdef AE_CFG_DEBUG
 			Unused( _lib.Load( "slangd.dylib" ));
-		# else
-			Unused( _lib.Load( "slang.dylib" ));
 		# endif
+			if ( not _lib )
+				Unused( _lib.Load( "slang.dylib" ));
 		#endif
 
 		if ( not _lib )

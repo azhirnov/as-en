@@ -1596,6 +1596,21 @@ public:
 
 		ND_ T &		operator [] (int i);
 		ND_ T		operator [] (int i)		const;
+		
+		ND_ CoopMat		operator - ()					const;
+
+		ND_ CoopMat		operator + (const CoopMat &)	const;
+		ND_ CoopMat		operator - (const CoopMat &)	const;
+		ND_ CoopMat		operator * (const CoopMat &)	const;
+		ND_ CoopMat		operator / (const CoopMat &)	const;
+
+		ND_ CoopMat		operator * (T)					const;
+
+		// for integer types
+		ND_ CoopMat		operator & (const CoopMat &)	const;
+		ND_ CoopMat		operator ^ (const CoopMat &)	const;
+		ND_ CoopMat		operator | (const CoopMat &)	const;
+		ND_ CoopMat		operator ~ ()					const;
 	};
 	
 	// read 'm' from 'buf[ firstElement * stride * rows ]' for row major or
@@ -1748,8 +1763,8 @@ public:
   # if defined(AE_cooperative_vector_training)
 
 	// The following function computes the outer product between column vectors v1
-    // and v2, i.e. v1*transpose(v2), and the resulting MxN matrix is atomically
-    // (with device scope) accumulated in memory.
+	// and v2, i.e. v1*transpose(v2), and the resulting MxN matrix is atomically
+	// (with device scope) accumulated in memory.
 	template <typename T, uint M, uint N>
 	void  CoopVecOuterProductAccum (const CoopVec<T, M>		&v1,			// [M],  'T' must be half of float
 									const CoopVec<T, N>		&v2,			// [N]
@@ -1760,7 +1775,7 @@ public:
 									ComponentType			matrixInterpretation);
 
 	// The following function component-wise atomically (with device scope) adds
-    // components of the vector 'v' to the corresponding elements of an array in memory.
+	// components of the vector 'v' to the corresponding elements of an array in memory.
 	template <typename T, uint N>
 	void  CoopVecReduceSumAccum (const CoopVec<T, N>	&v,					// [N],  'T' must be half of float
 								 INOUT T[]				buffer,				// [N]

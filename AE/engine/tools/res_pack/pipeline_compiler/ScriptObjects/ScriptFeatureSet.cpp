@@ -64,10 +64,11 @@ namespace
 	template <>				struct FS_ReplaceInType< KiBytes >			{ using dst = uint;	using src = KiBytes;		};
 	template <>				struct FS_ReplaceInType< Bytes32u >			{ using dst = uint;	using src = Bytes32u;		};
 
-	template <typename T>	struct FS_ReplaceOutType					{ using dst = T;	static T	Cast (T src)		{ return src; }};
-	template <>				struct FS_ReplaceOutType< EFeature >		{ using dst = bool;	static dst	Cast (EFeature src)	{ return src == EFeature::RequireTrue; }};
-	template <>				struct FS_ReplaceOutType< POTValue >		{ using dst = uint;	static dst	Cast (POTValue src)	{ return uint{src}; }};
-	template <>				struct FS_ReplaceOutType< POTBytes >		{ using dst = uint;	static dst	Cast (POTBytes src)	{ return uint{src}; }};
+	template <typename T>	struct FS_ReplaceOutType					{ using dst = T;	static T	Cast (T src)				{ return src; }};
+	template <>				struct FS_ReplaceOutType< EFeature >		{ using dst = bool;	static dst	Cast (EFeature src)			{ return src == EFeature::RequireTrue; }};
+	template <>				struct FS_ReplaceOutType< POTValue >		{ using dst = uint;	static dst	Cast (POTValue src)			{ return uint{src}; }};
+	template <>				struct FS_ReplaceOutType< POTBytes >		{ using dst = uint;	static dst	Cast (POTBytes src)			{ return uint{src}; }};
+	template <>				struct FS_ReplaceOutType< SampleCountBits >	{ using dst = uint;	static dst	Cast (SampleCountBits src)	{ return uint(src); }};
 
 
 	#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )															\
@@ -299,6 +300,78 @@ namespace
 		CHECK_THROW_MSG( from != null );
 		ptr->fs = from->fs;
 	}
+
+	static bool  Has_FS_subgroupOperation (ScriptFeatureSet* ptr, ESubgroupOperation op) __Th___ {
+		return ptr->fs.subgroupOperations.contains( op );
+	}
+
+	static bool  Has_FS_uniformTexBufferFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.uniformTexBufferFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_storageTexBufferFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.storageTexBufferFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_storageTexBufferAtomicFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.storageTexBufferAtomicFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_storageImageAtomicFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.storageImageAtomicFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_storageImageFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.storageImageFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_attachmentBlendFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.attachmentBlendFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_attachmentFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.attachmentFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_linearSampledFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.linearSampledFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_minmaxFilterFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.minmaxFilterFormats.contains( fmt );
+	}
+
+	static bool  Has_FS_hwCompressedAttachmentFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.hwCompressedAttachmentFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_lossyCompressedAttachmentFormat (ScriptFeatureSet* ptr, EPixelFormat fmt) __Th___ {
+		return ptr->fs.lossyCompressedAttachmentFormats.contains( fmt );
+	}
+
+	static bool  Has_FS_vertexFormat (ScriptFeatureSet* ptr, EVertexType fmt) __Th___ {
+		return ptr->fs.vertexFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_accelStructVertexFormat (ScriptFeatureSet* ptr, EVertexType fmt) __Th___ {
+		return ptr->fs.accelStructVertexFormats.contains( fmt );
+	}
+
+	static bool  Has_FS_surfaceFormat (ScriptFeatureSet* ptr, ESurfaceFormat fmt) __Th___ {
+		return ptr->fs.surfaceFormats.contains( fmt );
+	}
+	
+	static bool  Has_FS_cooperativeMatrixConfig (ScriptFeatureSet* ptr, ECoopMatrixCfg cfg) __Th___ {
+		return ptr->fs.cooperativeMatrixConfig.contains( cfg );
+	}
+	
+	static bool  Has_FS_cooperativeVectorConfig (ScriptFeatureSet* ptr, ECoopVecCfg cfg) __Th___ {
+		return ptr->fs.cooperativeVectorConfig.contains( cfg );
+	}
+	
+	static bool  Has_FS_integerDotProductFeature (ScriptFeatureSet* ptr, EIntegerDotProductFeat feat) __Th___ {
+		return ptr->fs.integerDotProductFeatures.contains( feat );
+	}
 }
 //-----------------------------------------------------------------------------
 
@@ -447,6 +520,25 @@ namespace
 			AS_METHOD( binder, FS_fragmentShadingRateTexelSize,	"fragmentShadingRateTexelSize",	{} );
 			AS_METHOD( binder, FS_AddIntegerDotProduct,			"AddIntegerDotProduct",			{} );
 
+			AS_METHOD( binder, Has_FS_subgroupOperation,			"hasSubgroupOperation",				{} );
+			AS_METHOD( binder, Has_FS_uniformTexBufferFormat,		"hasUniformTexBufferFormat",		{} );
+			AS_METHOD( binder, Has_FS_storageTexBufferFormat,		"hasStorageTexBufferFormat",		{} );
+			AS_METHOD( binder, Has_FS_storageTexBufferAtomicFormat,	"hasStorageTexBufferAtomicFormat",	{} );
+			AS_METHOD( binder, Has_FS_storageImageAtomicFormat,		"hasStorageImageAtomicFormat",		{} );
+			AS_METHOD( binder, Has_FS_storageImageFormat,			"hasStorageImageFormat",			{} );
+			AS_METHOD( binder, Has_FS_attachmentBlendFormat,		"hasAttachmentBlendFormat",			{} );
+			AS_METHOD( binder, Has_FS_attachmentFormat,				"hasAttachmentFormat",				{} );
+			AS_METHOD( binder, Has_FS_linearSampledFormat,			"hasLinearSampledFormat",			{} );
+			AS_METHOD( binder, Has_FS_minmaxFilterFormat,			"hasMinmaxFilterFormat",			{} );
+			AS_METHOD( binder, Has_FS_hwCompressedAttachmentFormat,	"hasHwCompressedAttachmentFormat",	{} );
+			AS_METHOD( binder, Has_FS_lossyCompressedAttachmentFormat,"hasLossyCompressedAttachmentFormat",	{} );
+			AS_METHOD( binder, Has_FS_vertexFormat,					"hasVertexFormat",					{} );
+			AS_METHOD( binder, Has_FS_accelStructVertexFormat,		"hasAccelStructVertexFormat",		{} );
+			AS_METHOD( binder, Has_FS_surfaceFormat,				"hasSurfaceFormat",					{} );
+			AS_METHOD( binder, Has_FS_cooperativeMatrixConfig,		"hasCooperativeMatrixConfig",		{} );
+			AS_METHOD( binder, Has_FS_cooperativeVectorConfig,		"hasCooperativeVectorConfig",		{} );
+			AS_METHOD( binder, Has_FS_integerDotProductFeature,		"hasIntegerDotProductFeature",		{} );
+
 			#define AE_FEATURE_SET_VISIT( _type_, _name_, _bits_ )					\
 				if constexpr( (not IsSame< _type_, PerDescriptorSet			>)	and \
 							  (not IsSame< _type_, ShaderVersion			>)	and \
@@ -467,6 +559,9 @@ namespace
 																												\
 				if constexpr( IsSame< _type_, EFeature >)														\
 					AS_METHOD( binder, Get_FS_ ## _name_, ToMethodName2( "has", AE_TOSTRING( _name_ )), {} );	\
+				else																							\
+				if constexpr( IsEnum< _type_ >)																	\
+					AS_METHOD( binder, Get_FS_ ## _name_, ToMethodName2( "get", AE_TOSTRING( _name_ )), {} );	\
 																												\
 				if constexpr( IsInteger< _type_ > or IsPowerOf2Value< _type_ >)									\
 					AS_METHOD( binder, Get_FS_ ## _name_, ToMethodName2( "get", AE_TOSTRING( _name_ )), {} );	\

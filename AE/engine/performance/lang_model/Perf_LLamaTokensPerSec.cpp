@@ -16,7 +16,7 @@ namespace
 		Path				modelPath;
 		uint				ctxSize;
 		uint				gpuLayers;
-		LLama::EGPUBackend	backend;
+		LLama::EBackend	backend;
 	};
 
 	struct PerfTestResult
@@ -87,7 +87,7 @@ namespace
 			<< ToString( out.timeToFirstToken ) << " | "
 			<< ToString( out.responseGeneration ) << " | ";
 		
-		if ( in.backend != LLama::EGPUBackend::Disabled )
+		if ( in.backend != LLama::EBackend::CPU )
 			str << ToString(Min( in.gpuLayers, out.maxLayers )) << " / " << ToString( out.maxLayers );
 		else
 			str << "0 / " << ToString( out.maxLayers );
@@ -154,7 +154,7 @@ namespace
 			params.enableLogger			= true;
 			params.keepModelInMemory	= true;
 			params.useMMap				= true;
-			params.gpuBackend			= in.backend;
+			params.backend				= in.backend;
 			params.gpuLayers			= in.gpuLayers;
 
 			model = LMFactory::CreateLLama( params );
@@ -259,7 +259,7 @@ namespace
 		if ( model_size > g_RAM )
 			return;
 
-		if ( in.backend == LLama::EGPUBackend::CPU )
+		if ( in.backend == LLama::EBackend::CPU )
 		{
 			LLamaPerf_RunTest( in, OUT result, systemMsg, prompt, dstFolder, expected, unexpected );
 			return;
@@ -279,9 +279,9 @@ namespace
 
 		PerfTestRequest		requests[] =
 		{
-			{PerfTestInput{ model_1,	8 << 10,	0,		LLama::EGPUBackend::Disabled	}, PerfTestResult{}},
-			{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EGPUBackend::CUDA		}, PerfTestResult{}},
-			{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EGPUBackend::Vulkan		}, PerfTestResult{}},
+			{PerfTestInput{ model_1,	8 << 10,	0,		LLama::EBackend::CPU	}, PerfTestResult{}},
+			{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EBackend::CUDA	}, PerfTestResult{}},
+			{PerfTestInput{ model_1,	8 << 10,	999,	LLama::EBackend::Vulkan	}, PerfTestResult{}},
 		};
 		const Path	dst_folder = Path{OUTPUT_FOLDER} / AE_FUNCTION_NAME;
 
@@ -313,9 +313,9 @@ namespace
 		Array<PerfTestRequest>	requests;
 		const PerfTestInput		request_types[] =
 		{
-			PerfTestInput{ "",	c_ContextSize,	0,				LLama::EGPUBackend::CPU		},
-			PerfTestInput{ "",	c_ContextSize,	c_GPULayers,	LLama::EGPUBackend::CUDA	},
-			PerfTestInput{ "",	c_ContextSize,	c_GPULayers,	LLama::EGPUBackend::Vulkan	},
+		//	PerfTestInput{ "",	c_ContextSize,	0,				LLama::EBackend::CPU		},
+		//	PerfTestInput{ "",	c_ContextSize,	c_GPULayers,	LLama::EBackend::CUDA	},
+			PerfTestInput{ "",	c_ContextSize,	c_GPULayers,	LLama::EBackend::Vulkan	},
 		};
 
 		//FileSystem::DeleteDirectory( dstFolder );

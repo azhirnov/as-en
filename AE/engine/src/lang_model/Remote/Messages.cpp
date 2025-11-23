@@ -33,7 +33,7 @@ namespace AE::LangModel::Msg
 			auto&	obj = *Cast<LLama::OpenParams>( objPtr );
 			// ignore 'listener', 'logger'
 			return ser( obj.modelFile, obj.llamaLib, obj.ggmlLib, obj.cpuBackendLib,
-						obj.gpuBackendLib, obj.gpuLayers, obj.enableLogger, obj.gpuBackend,
+						obj.gpuBackendLib, obj.gpuLayers, obj.enableLogger, obj.backend,
 						obj.keepModelInMemory, obj.checkTensors, obj.useMMap );
 		}
 
@@ -45,7 +45,7 @@ namespace AE::LangModel::Msg
 			auto&	obj = *Cast<LLama::OpenParams>( objPtr );
 			// ignore 'listener', 'logger'
 			return des( obj.modelFile, obj.llamaLib, obj.ggmlLib, obj.cpuBackendLib,
-						obj.gpuBackendLib, obj.gpuLayers, obj.enableLogger, obj.gpuBackend,
+						obj.gpuBackendLib, obj.gpuLayers, obj.enableLogger, obj.backend,
 						obj.keepModelInMemory, obj.checkTensors, obj.useMMap );
 		}
 

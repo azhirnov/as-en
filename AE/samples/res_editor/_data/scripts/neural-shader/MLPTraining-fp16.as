@@ -602,7 +602,7 @@
 //-----------------------------------------------------------------------------
 #ifdef VIEW
 
-	half4  Inference (half x, half y)
+	half4  Eval (half x, half y)
 	{
 		let arg = un_ArgBuf[0];
 
@@ -632,7 +632,7 @@
 		float2	ratio		= float2( 1.0, size.y / size.x );
 
 		float4	ref_color	= float4(groundtruth( half(uv.x), half(uv.y) ));
-		float4	mlp_color	= float4(Inference( half(uv.x), half(uv.y) ));
+		float4	mlp_color	= float4(Eval( half(uv.x), half(uv.y) ));
 		float4	color;
 
 		switch ( iCmp )

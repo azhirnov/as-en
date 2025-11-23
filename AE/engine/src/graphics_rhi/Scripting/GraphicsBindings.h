@@ -82,6 +82,8 @@ AE_DECL_SCRIPT_TYPE( AE::Graphics::EShadingRateCombinerOp,		"EShadingRateCombine
 AE_DECL_SCRIPT_TYPE( AE::Graphics::EIntegerDotProductFeat,		"EIntegerDotProductFeat");
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopMatrixComponentType,	"ECoopMatrixComponentType");
 AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecMatrixLayout,		"ECoopVecMatrixLayout"	);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopMatrixCfg,				"ECoopMatrixCfg"		);
+AE_DECL_SCRIPT_TYPE( AE::Graphics::ECoopVecCfg,					"ECoopVecCfg"			);
 
 // BindTypes
 AE_DECL_SCRIPT_OBJ(	 AE::Graphics::MultiSamples,				"MultiSamples"			);

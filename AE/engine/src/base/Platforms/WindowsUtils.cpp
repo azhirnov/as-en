@@ -5,8 +5,10 @@
 # include "base/Platforms/WindowsHeader.cpp.h"
 # include "base/Platforms/WindowsUtils.h"
 # include "base/Platforms/WindowsLibrary.h"
+# include "base/Platforms/WindowsProcess.h"
 # include "base/Algorithms/ArrayUtils.h"
 # include "base/Algorithms/ToString.h"
+# include "base/FileSystem/FileSystem.h"
 
 namespace AE
 {
@@ -1103,6 +1105,39 @@ namespace
 
 		CHECK_ERR( ::GetUserNameA( OUT buf, INOUT &size ) != 0 );  // win2000
 		return String{buf};
+	}
+	
+/*
+=================================================
+	AddExceptionToFirewall
+=================================================
+*/
+	bool  WindowsUtils::AddExceptionToFirewall (const Path &exePath, StringView ruleName, Bool inbound, Bool isTCP, ArrayView<ushort> ports) __NE___
+	{
+		CHECK_ERR( FileSystem::IsFile( exePath ));
+		CHECK_ERR( not ruleName.empty() );
+
+		// TODO: check if rule already exists
+
+		String	cmd;
+		cmd << "Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile', '-Command', "
+			"'New-NetFirewallRule -DisplayName \""s << ruleName << "\" "
+			"-Direction " << (inbound ? "Inbound " : "Outbound ") <<
+			"-Program \"" << ToString( exePath ) << "\" "
+			"-Protocol " << (isTCP ? "TCP " : "UDP ") <<
+			"-Action Allow ";
+
+		if ( not ports.empty() )
+		{
+			cmd << "-LocalPort ";
+			for (ushort port : ports) {
+				cmd << ToString( port ) << ',';
+			}
+			cmd.pop_back();
+		}
+		cmd << '\'';  // end of 'New-NetFirewallRule'
+
+		return WindowsProcess::Execute( cmd );
 	}
 
 /*

@@ -342,26 +342,26 @@ namespace AE::LangModel
 			}
 		}
 
-		if ( not _loadedGPU and params.gpuBackend != LLama::EGPUBackend::Disabled )
+		if ( not _loadedGPU and params.backend != LLama::EBackend::CPU )
 		{
-			auto	type = params.gpuBackend;
-			if ( type == LLama::EGPUBackend::Auto )
+			auto	type = params.backend;
+			if ( type == LLama::EBackend::Auto )
 			{
 			#ifdef AE_PLATRORM_APPLE
-				type = LLama::EGPUBackend::Metal;
+				type = LLama::EBackend::Metal;
 			#else
-				type = LLama::EGPUBackend::Vulkan;
+				type = LLama::EBackend::Vulkan;
 			#endif
 			}
 
 			switch_enum( type )
 			{
-				case LLama::EGPUBackend::Vulkan :	_loadedGPU |= LoadBackend( "ggml-vulkan" );	break;
-				case LLama::EGPUBackend::CUDA :		_loadedGPU |= LoadBackend( "ggml-cuda" );	break;
-				case LLama::EGPUBackend::Metal :	_loadedGPU |= LoadBackend( "ggml-metal" );	break;
-				case LLama::EGPUBackend::Disabled :
-				case LLama::EGPUBackend::_Count :
-				case LLama::EGPUBackend::Auto :		break;
+				case LLama::EBackend::Vulkan :	_loadedGPU |= LoadBackend( "ggml-vulkan" );	break;
+				case LLama::EBackend::CUDA :	_loadedGPU |= LoadBackend( "ggml-cuda" );	break;
+				case LLama::EBackend::Metal :	_loadedGPU |= LoadBackend( "ggml-metal" );	break;
+				case LLama::EBackend::CPU :
+				case LLama::EBackend::_Count :
+				case LLama::EBackend::Auto :		break;
 			}
 			switch_end
 		}

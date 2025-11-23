@@ -16,9 +16,9 @@
 	void ASmain ()
 	{
 		// initialize
-		const uint			dim			= 4<<10;
+		const uint			dim			= 2<<10;
+		const uint			vec_size	= 128;	// must be >= 64 to hide latency for 'a += c'
 		const uint			iter_cnt	= 1<<4;
-		const uint			vec_size	= 64;	// must be >= 64 to hide latency for 'a += c'
 
 		RC<Image>			rt			= Image( EPixelFormat::RGBA8_UNorm, uint2(dim) );
 		RC<Buffer>			buf			= Buffer();
@@ -28,14 +28,25 @@
 		RC<DynamicFloat>	time		= DynamicFloat();
 		RC<DynamicFloat>	flops		= ops.Div( time );
 
-		array<float>	matrix;
-		matrix.resize( vec_size * vec_size );
+		{
+			Random	rnd;
 
-		for (uint y = 0; y < vec_size; ++y)
-		for (uint x = 0; x < vec_size; ++x)
-			matrix[x + y*vec_size] = (x == y ? 1.0 : 0.0);
+			array<float>	matrix;
+			matrix.resize( vec_size * vec_size );
 
-		buf.FloatArray( "matrix",	matrix );
+			for (uint i = 0; i < matrix.size(); ++i)
+				matrix[i] = rnd.Uniform( 0.0, 1.0 );
+
+			buf.FloatArray( "matrix",	matrix );
+		
+			array<float>	vec;
+			vec.resize( vec_size );
+
+			for (uint i = 0; i < vec.size(); ++i)
+				vec[i] = rnd.Uniform( 0.0, 1.0 );
+
+			buf.FloatArray( "vec",	vec );
+		}
 
 		Slider( mode,	"Mode",		0,	2 );
 		Slider( count,	"Repeat",	1,	32 );
@@ -85,7 +96,8 @@
 
 	void  Main ()
 	{
-		VecType		a = VecType( 1.0hf );
+		VecType		a;
+		gl.CoopVecLoad( OUT a, un_CBuf.vec, 0 );
 
 		[[unroll]] for (uint i = 0; i < COUNT; ++i)
 		{
@@ -119,7 +131,9 @@
 
 	void  Main ()
 	{
-		VecType		a = VecType( 1.0hf );
+		float		sum = 0.0;
+		VecType		a;
+		gl.CoopVecLoad( OUT a, un_CBuf.vec, 0 );
 
 		[[unroll]] for (uint i = 0; i < COUNT; ++i)
 		{
@@ -135,13 +149,12 @@
 								0													// matrixStride
 							);
 
-			// M ADDs (latency can be hidden)
-			a += c;
+			sum += c[0];
 		}
 		
 		float4	col = float4( a[0], a[1], a[2], a[3] );
 		if ( AllLess( col, float4(-1.e+20) ))
-			gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
+			gl.image.Store( un_OutImage, GetGlobalCoord().xy, col * sum );
 	}
 
 #endif
@@ -153,7 +166,9 @@
 
 	void  Main ()
 	{
-		VecType		a = VecType( 1.0hf );
+		float		sum = 0.0;
+		VecType		a;
+		gl.CoopVecLoad( OUT a, un_CBuf.vec, 0 );
 
 		[[unroll]] for (uint i = 0; i < COUNT; ++i)
 		{
@@ -168,14 +183,13 @@
 								false,												// transpose
 								0													// matrixStride
 							);
-
-			// M ADDs (latency can be hidden)
-			a += c;
+			
+			sum += c[0];
 		}
 
 		float4	col = float4( a[0], a[1], a[2], a[3] );
 		if ( AllLess( col, float4(-1.e+20) ))
-			gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
+			gl.image.Store( un_OutImage, GetGlobalCoord().xy, col * sum );
 	}
 
 #endif

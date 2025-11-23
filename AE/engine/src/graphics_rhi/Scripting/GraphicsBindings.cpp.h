@@ -1435,6 +1435,55 @@ namespace
 		}
 		switch_end
 	}
+	
+/*
+=================================================
+	Bind_ECoopMatrixCfg
+=================================================
+*/
+	static void  Bind_ECoopMatrixCfg (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<ECoopMatrixCfg>	binder{ se };
+		binder.Create();
+		
+		switch_enum( ECoopMatrixCfg::_Count )
+		{
+			case ECoopMatrixCfg::_Count :
+			#define BIND( _name_ )		case ECoopMatrixCfg::_name_ :	binder.AddValue( AE_TOSTRING(_name_), ECoopMatrixCfg::_name_ );
+			BIND( Afp16_Bfp16_Cfp16_Rfp16_M16_N16_K16 )
+			BIND( Afp16_Bfp16_Cfp32_Rfp32_M16_N16_K16 )
+			BIND( Afp16_Bfp16_Cfp32_Rfp32_M8_N8_K16 )
+			BIND( Au8_Bu8_Cu32_Ru32_M16_N16_K32 )
+			BIND( As8_Bs8_Cs32_Rs32_M16_N16_K32 )
+			BIND( Au8_Bu8_Cu32_Ru32_M8_N8_K32 )
+			BIND( As8_Bs8_Cs32_Rs32_M8_N8_K32 )
+			#undef BIND
+		}
+		switch_end
+	}
+	
+/*
+=================================================
+	Bind_ECoopVecCfg
+=================================================
+*/
+	static void  Bind_ECoopVecCfg (const ScriptEnginePtr &se) __Th___
+	{
+		EnumBinder<ECoopVecCfg>	binder{ se };
+		binder.Create();
+		
+		switch_enum( ECoopVecCfg::_Count )
+		{
+			case ECoopVecCfg::_Count :
+			#define BIND( _name_ )		case ECoopVecCfg::_name_ :	binder.AddValue( AE_TOSTRING(_name_), ECoopVecCfg::_name_ );
+			BIND( Tfp16_Ifp16_Mfp16_Bfp16_Rfp16_Tp )
+			BIND( Tfp16_Ifp8e4m3_Mfp8e4m3_Bfp16_Rfp16 )
+			BIND( Tfp16_Ifp8e5m2_Mfp8e5m2_Bfp16_Rfp16 )
+			BIND( Ts8_Is8_Ms8_Bs32_Rs32 )
+			#undef BIND
+		}
+		switch_end
+	}
 
 /*
 =================================================
@@ -1967,6 +2016,8 @@ namespace
 		Bind_EIntegerDotProductFeat( se );
 		Bind_ECoopMatrixComponentType( se );
 		Bind_ECoopVecMatrixLayout( se );
+		Bind_ECoopMatrixCfg( se );
+		Bind_ECoopVecCfg( se );
 	}
 
 /*

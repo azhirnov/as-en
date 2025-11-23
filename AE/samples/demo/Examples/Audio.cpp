@@ -26,7 +26,7 @@ namespace AE::Samples::Demo
 		CHECK_CE( interm.SetData( desc, stream->GetData().data() ));
 
 		ResLoader::WaveSoundSaver	saver;
-		CHECK_CE( saver.SaveSound( R"(C:\Projects\sound.wav)", interm ));
+		CHECK_CE( saver.SaveSound( "sound.wav", interm ));
 		co_return;
 	}
 

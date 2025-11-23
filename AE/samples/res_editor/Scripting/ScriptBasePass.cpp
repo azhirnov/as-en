@@ -502,7 +502,16 @@ namespace AE::ResEditor
 			Array<StringView>	def_tokens;
 			Parser::Tokenize( defines, ';', OUT def_tokens );
 
-			for (auto def : def_tokens) {
+			for (auto def : def_tokens)
+			{
+				bool	has_non_space = false;
+				for (char c : def) {
+					has_non_space |= (c != ' ' and c != '\t');
+				}
+
+				if ( not has_non_space )
+					continue;
+
 				header << "#define " << def << '\n';
 			}
 		}
