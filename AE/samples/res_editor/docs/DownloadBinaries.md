@@ -1,8 +1,12 @@
 **How to get release binaries from CI**
 
-## Links
+## Release 
 
-Artifacts in CI:
+AsEn-ShaderEditor project has precompiled binaries in [release](https://github.com/azhirnov/AsEn-ShaderEditor/releases) folder.
+
+
+## Artifacts in CI
+
 * [Windows](https://github.com/azhirnov/as-en/actions/workflows/windows-msvc.yml)
 * [Linux (Clang)](https://github.com/azhirnov/as-en/actions/workflows/linux-clang.yml), [Linux (GCC)](https://github.com/azhirnov/as-en/actions/workflows/linux-gcc.yml)
 * [MacOS](https://github.com/azhirnov/as-en/actions/workflows/macos.yml)

@@ -43,6 +43,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
+	#include "Geometry2D.glsl"
 
 	// forward declaration
 	layout(buffer_reference) buffer Node;
@@ -50,7 +51,7 @@
 	// binary tree node
 	layout(std430, buffer_reference) buffer Node
 	{
-		float4	rect;
+		Rect	rect;
 		float4	color;
 		Node	left;
 		Node	right;
@@ -74,7 +75,7 @@
 
 			Node	root = Node(un_CBuffer.root);
 
-			root.rect	= float4( 0.f, 0.f, 1.f, 1.f );
+			root.rect	= Rect_Create( 0.f, 0.f, 1.f, 1.f );
 			root.color	= float4( 0.f, 0.f, 0.f, 1.f );
 			root.left	= Node(ulong(0));
 			root.right	= Node(ulong(0));
@@ -112,7 +113,7 @@
 			float2	center	= Rect_Center( root.rect ) + ToSNorm( axis * DHash11( float(seed) * 0.018247f )) * (0.25f * size);
 					size	= Max( size, float2(0.001f) ) * 0.4f;
 
-			node.rect	= float4( center, center + size );
+			node.rect	= Rect_Create( center, center + size );
 			node.color	= DHash41( float(seed) * 0.02745f + 1.5442f );
 			node.left	= Node(ulong(0));
 			node.right	= Node(ulong(0));
@@ -128,7 +129,6 @@
 //-----------------------------------------------------------------------------
 #ifdef PASS2
 	#include "InvocationID.glsl"
-	#include "Geometry.glsl"
 
 	void  Main ()
 	{
@@ -137,16 +137,16 @@
 		float4	col		= float4(0.f);
 
 		// search in binary tree
-		if ( IsInsideRect( uv, node.rect ))
+		if ( Rect_IsInside( node.rect, uv ))
 		{
 			for (uint i = 0; i < MaxDepth; ++i)
 			{
 				col = node.color;
 
-				if ( ulong(node.left) != 0 and IsInsideRect( uv, node.left.rect ))
+				if ( ulong(node.left) != 0 and Rect_IsInside( node.left.rect, uv ))
 					node = node.left;
 				else
-				if ( ulong(node.right) != 0 and IsInsideRect( uv, node.right.rect ))
+				if ( ulong(node.right) != 0 and Rect_IsInside( node.right.rect, uv ))
 					node = node.right;
 				else
 					break;

@@ -71,8 +71,6 @@ int main (const int argc, char* argv[])
 		"\n\tCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
 		"\n\tOS name: " << PlatformUtils::GetOSName() <<
 		"\n\tOS ver: " << ToString(PlatformUtils::GetOSVersion()) <<
-		"\n\tPC name: " << PlatformUtils::GetComputerName() <<
-		"\n\tUser name: " << PlatformUtils::GetUserName() <<
 		"\n\tStack size: " << ToString(PlatformUtils::GetDefaultStackSize()) <<
 		"\n\tMemory page size: "s << ToString(PlatformUtils::GetMemoryPageInfo().pageSize)
 	);

@@ -32,14 +32,14 @@
 	#include "Geometry.glsl"
 	#include "InvocationID.glsl"
 
-	float3  Sphere (float2 uv, float2 duv)
+	float3  SpherePos (float2 uv, float2 duv)
 	{
 		uv = ToSNorm( uv ) * (duv.yx / duv.x);
 		return UVtoSphereNormal( uv ).xyz;
 	}
 
 	#define GetPosition( _pos_, _offset_ )\
-		Sphere( (_pos_ + (_offset_) * duv), duv )
+		SpherePos( (_pos_ + (_offset_) * duv), duv )
 
 	float3  ComputeNormalInWS2_dxdy (const float3 worldPos)
 	{
@@ -59,13 +59,13 @@
 			}
 
 			case 1 : {
-				float3	pos	= Sphere( uv, duv );
+				float3	pos	= SpherePos( uv, duv );
 				float3	n	= -ComputeNormalInWS_dxdy( pos );
 				return n;
 			}
 
 			case 2 : {
-				float3	pos	= Sphere( uv, duv );
+				float3	pos	= SpherePos( uv, duv );
 				float3	n	= ComputeNormalInWS2_dxdy( pos );
 				return n;
 			}

@@ -7,7 +7,7 @@ Content:
 * [Samples](docs/Samples.md)
 * [Scripts](docs/Scripts.md)
 * [Remote](docs/Remote.md)
-* [Download binaries](docs/DownloadFromCI.md)
+* [Download binaries](docs/DownloadBinaries.md)
 
 
 ## Features

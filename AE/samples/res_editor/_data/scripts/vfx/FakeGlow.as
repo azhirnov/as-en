@@ -126,7 +126,7 @@
 		if ( Any( IsNaN( n01 )))	n01 = -n13.yx;
 		if ( Any( IsNaN( n13 )))	n13 = -n01.yx;
 
-		if ( TriangleBackFace( areaLightPoints[0], areaLightPoints[1], areaLightPoints[2] ))
+		if ( Triangle_IsBackFace( Triangle_Create( areaLightPoints[0], areaLightPoints[1], areaLightPoints[2] )))
 		{
 			n01 = -n01;
 			n13 = -n13;

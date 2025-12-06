@@ -2159,8 +2159,11 @@ namespace {
 					f.rows		= field.rows;
 					f.cols		= 1;
 					f.arraySize	= 0;	// non-array
-					f.size		= field.RowSize();
-					f.align		= field.align;
+					f.align		= ValueTypeSizeOf( field.type );
+					f.size		= f.align * field.rows;
+
+					if ( not field.IsPointer() )
+						ASSERT( field.align == f.align );
 
 					if ( isStd140 ) {
 						CHECK_ERR( _CreatePackedTypeGLSL1( INOUT outTypes, memt, s_name, (String{v_name} << ToString( field.rows )), f ));
@@ -2172,13 +2175,24 @@ namespace {
 
 			if ( uniqueTypes.insert( packed ).second )
 			{
-				Field	field2	= field;
-				field2.flags	&= ~EFlags::Pointer;
+				Field	f;
+				f.type		= field.type;
+				f.rows		= field.rows;
+				f.cols		= field.cols;
+				f.arraySize	= 0;	// non-array
+				f.align		= ValueTypeSizeOf( field.type );
+				f.size		= f.align * f.rows * f.cols;
+				
+				if ( not field.IsPointer() )
+					ASSERT( field.align == f.align );
+
+				ASSERT( field.IsMat() == f.IsMat() );
+				ASSERT( field.IsVec() == f.IsVec() );
 
 				if ( isStd140 ) {
-					CHECK_ERR( _CreatePackedTypeGLSL1( INOUT outTypes, packed, memt, tname, field2 ));
+					CHECK_ERR( _CreatePackedTypeGLSL1( INOUT outTypes, packed, memt, tname, f ));
 				}else{
-					CHECK_ERR( _CreatePackedTypeGLSL2( INOUT outTypes, packed, memt, tname, field2 ));
+					CHECK_ERR( _CreatePackedTypeGLSL2( INOUT outTypes, packed, memt, tname, f ));
 				}
 			}
 			str << packed;
@@ -2999,8 +3013,11 @@ namespace {
 						f.rows		= field.rows;
 						f.cols		= 1;
 						f.arraySize	= 0;	// non-array
-						f.size		= field.RowSize();
-						f.align		= field.align;
+						f.align		= ValueTypeSizeOf( field.type );
+						f.size		= f.align * field.rows;
+
+						if ( not field.IsPointer() )
+							ASSERT( field.align == f.align );
 
 						if ( is_std140 ) {
 							CHECK_ERR( _CreatePackedTypeGLSL1( INOUT outTypes, vec_type, scalar, dst_vtype, f ));
@@ -3012,13 +3029,24 @@ namespace {
 
 				if ( uniqueTypes.insert( packed ).second )
 				{
-					Field	field2	= field;
-					field2.flags	&= ~EFlags::Pointer;
+					Field	f;
+					f.type		= field.type;
+					f.rows		= field.rows;
+					f.cols		= field.cols;
+					f.arraySize	= 0;	// non-array
+					f.align		= ValueTypeSizeOf( field.type );
+					f.size		= f.align * f.rows * f.cols;
+
+					if ( not field.IsPointer() )
+						ASSERT( field.align == f.align );
+					
+					ASSERT( field.IsMat() == f.IsMat() );
+					ASSERT( field.IsVec() == f.IsVec() );
 
 					if ( is_std140 ) {
-						CHECK_ERR( _CreatePackedTypeGLSL1( INOUT outTypes, packed, memt, dst_type, field2 ));
+						CHECK_ERR( _CreatePackedTypeGLSL1( INOUT outTypes, packed, memt, dst_type, f ));
 					}else{
-						CHECK_ERR( _CreatePackedTypeGLSL2( INOUT outTypes, packed, memt, dst_type, field2 ));
+						CHECK_ERR( _CreatePackedTypeGLSL2( INOUT outTypes, packed, memt, dst_type, f ));
 					}
 				}
 				str << packed;

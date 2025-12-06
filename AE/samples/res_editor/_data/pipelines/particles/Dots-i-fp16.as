@@ -71,6 +71,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_VERT
 	#include "Transform.glsl"
+	#include "CodeTemplates.glsl"
 
 	#ifndef iSize
 	# define iSize	1.f

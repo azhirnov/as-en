@@ -50,11 +50,6 @@ Tools:
  * [Remote Graphics Device](AE/engine/tools/remote_graphics_device/Readme.md)
  * [Android Remote Control](AE/samples/android_remote_control/Readme.md)
 
-Papers:
- * [HDR Display](AE/docs/papers/HDR_Display.md)
- * [GPU Benchmarks](AE/docs/papers/GPU_Benchmarks.md)
- * [CPU Benchmarks](AE/docs/papers/CPU_Benchmarks.md)
-
 
 ## rus
 
@@ -71,14 +66,6 @@ __AsEn__ - полностью асинхронный движок.
  * [Планировщик графических задач](AE/docs/engine/RenderTaskScheduler-ru.md)
  * [Рендер граф](AE/docs/engine/RenderGraph-ru.md)
  * [Файловая система](AE/docs/engine/VirtualFileSystem-ru.md)
-
-Статьи:
- * [HDR дисплеи](AE/docs/papers/HDR_Display-ru.md)
- * [Проекция на сферу](AE/docs/papers/SphericalCube-ru.md)
- * [Проекции на ультра широкий экран](AE/docs/papers/ScreenProjections-ru.md)
- * [Отсечение невидимой геометриии](AE/docs/papers/GeometryCulling-ru.md)
- * [Рендеринг облаков](AE/docs/papers/SmokeAndClouds-ru.md)
- * [Биндлесс](AE/docs/papers/Bindless-ru.md)
 
 Заметки:
  * [Асинхронное программирование](AE/docs/papers/AsyncProgramming-ru.md)

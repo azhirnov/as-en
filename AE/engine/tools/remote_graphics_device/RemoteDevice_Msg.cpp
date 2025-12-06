@@ -58,6 +58,7 @@ namespace AE::RemoteGraphics
 		{
 			res.engineVersion			= { AE_VERSION.Get<0>(), AE_VERSION.Get<1>(), AE_VERSION.Get<2>() };
 			res.name					= _device.GetDeviceName();
+			res.driver					= _device.GetDriverName();
 			res.props					= _device.GetDeviceProperties();
 			res.resFlags				= _device.GetResourceFlags();
 			res.memInfo					= _device.GetMemoryInfo();

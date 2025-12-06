@@ -813,7 +813,7 @@ struct StType5
 		const String	hlsl = ToHLSL( st );
 
 		const String	ref_glsl = R"#(
-// size: 24, align: 4
+// size: 8, align: 4
 struct packed_float2
 {
 	float  x;
@@ -822,7 +822,7 @@ struct packed_float2
 vec2  Unpack (const packed_float2 src) { return vec2( src.x, src.y ); }
 packed_float2  Pack (const vec2 src) { return packed_float2( src.x, src.y ); }
 
-// size: 24, align: 4
+// size: 12, align: 4
 struct packed_float3
 {
 	float  x;
@@ -832,7 +832,7 @@ struct packed_float3
 vec3  Unpack (const packed_float3 src) { return vec3( src.x, src.y, src.z ); }
 packed_float3  Pack (const vec3 src) { return packed_float3( src.x, src.y, src.z ); }
 
-// size: 72, align: 4
+// size: 36, align: 4
 struct packed_float3x3
 {
 	packed_float3  c0;
@@ -903,7 +903,7 @@ static_assert( sizeof(StType6) == 256, "size mismatch" );
 
 )#";
 		const String	ref_hlsl = R"#(
-// size: 24, align: 4
+// size: 8, align: 4
 struct packed_float2
 {
 	float  x;
@@ -912,7 +912,7 @@ struct packed_float2
 vector<float,2>  Unpack (const packed_float2 src) { return vector<float,2>( src.x, src.y ); }
 packed_float2  Pack (const vector<float,2> src) { return packed_float2( src.x, src.y ); }
 
-// size: 24, align: 4
+// size: 12, align: 4
 struct packed_float3
 {
 	float  x;
@@ -922,7 +922,7 @@ struct packed_float3
 vector<float,3>  Unpack (const packed_float3 src) { return vector<float,3>( src.x, src.y, src.z ); }
 packed_float3  Pack (const vector<float,3> src) { return packed_float3( src.x, src.y, src.z ); }
 
-// size: 72, align: 4
+// size: 36, align: 4
 struct packed_float3x3
 {
 	packed_float3  c0;
@@ -1679,7 +1679,7 @@ struct StType13
 		const String	hlsl = ToHLSL( st );
 
 		const String	ref_glsl = R"#(
-// size: 8, align: 8
+// size: 12, align: 4
 struct packed_float3
 {
 	float  x;
@@ -1722,7 +1722,7 @@ static_assert( sizeof(StType14) == 8, "size mismatch" );
 
 )#";
 		const String	ref_hlsl = R"#(
-// size: 8, align: 8
+// size: 12, align: 4
 struct packed_float3
 {
 	float  x;

@@ -33,13 +33,13 @@
 	#include "Geometry.glsl"
 	#include "InvocationID.glsl"
 
-	float3  Sphere (float2 uv, float2 duv)
+	float3  SpherePos (float2 uv, float2 duv)
 	{
 		uv = ToSNorm( uv ) * (duv.yx / duv.x);
 		return UVtoSphereNormal( uv ).xyz;
 	}
 
-	#define GetPosition( _pos_, _offset_ )		Sphere( ((_pos_) + (_offset_) * duv), duv )
+	#define GetPosition( _pos_, _offset_ )		SpherePos( ((_pos_) + (_offset_) * duv), duv )
 	#define GetUV( _uv_, _offset_ )				((_uv_) + (_offset_) * duv)
 
 	float3  CalcTBN (uint idx, float2 uv, float2 duv)
@@ -47,7 +47,7 @@
 		switch ( idx )
 		{
 			case 0 : {
-				float3		pos	= Sphere( uv, duv );
+				float3		pos	= SpherePos( uv, duv );
 				float3x3	tbn	= ComputeTBNinWS_dxdy( uv, pos );
 				return tbn[iTBN] * (iTBN == 2 ? -1.f : 1.f);
 			}

@@ -51,7 +51,12 @@ void  BuildMSVC (const string path, const ECompiler compiler, const string cmake
 	if ( not Server_HasFolder( path ) or c_ForceRebuild )
 	{
 		StartBuild( OS::Windows, CPUArch::x64 );
-		CloneRepository( "win-x64-msvc" );
+
+		if ( compiler == ECompiler::MSVC )
+			CloneRepository( "win-x64-msvc" );
+		
+		if ( compiler == ECompiler::MSVC_Clang )
+			CloneRepository( "win-x64-clang" );
 
 		const string	source_dir 	= "AE";
 		const string	build_dir	= "build";
@@ -198,7 +203,7 @@ void  BuildLinux (const string path, const ECompiler compiler, uint compilerVer,
 		if ( compiler == ECompiler::Linux_GCC )
 			CloneRepository( "linux-x64-gcc" );
 
-		if ( compiler == ECompiler::Linux_Clang )
+		if ( compiler == ECompiler::Linux_Clang or compiler == ECompiler::Linux_Clang_Ninja )
 			CloneRepository( "linux-x64-clang" );
 
 		const string	source_dir 	= "AE";

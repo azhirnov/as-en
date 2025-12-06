@@ -1,8 +1,5 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-cmake_minimum_required( VERSION 3.22 FATAL_ERROR )
-project( "ResourceEditor" )
-
 file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" "*.ppln" "*.md" )
 
 if (NOT DEFINED AE_ENGINE_SHARED_DATA)
@@ -37,7 +34,7 @@ if (TARGET "ResourceEditor")
 else()
 	if (WIN32)
 		add_custom_target( "ResourceEditor.App"
-			COMMAND  "../ResourceEditor.exe"
+			COMMAND  "../ResourceEditor-dev.exe"
 		)
 	else()
 		add_custom_target( "ResourceEditor.App"

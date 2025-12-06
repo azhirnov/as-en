@@ -46,6 +46,7 @@ namespace AE::Graphics
 			void  NextFrame (FrameUID frameId)																		__NE___;
 
 		ND_ Query  AllocQuery (EQueueType queue, EQueryType type, uint count = 1)									C_NE___;
+		ND_ Query  AllocQuery (FrameUID frameId, EQueueType queue, EQueryType type, uint count = 1)					C_NE___;
 
 		ND_ bool  SupportsCalibratedTimestamps ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _calibratedTs; }
 

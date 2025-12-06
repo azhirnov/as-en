@@ -64,7 +64,7 @@ namespace AE::RemoteGraphics::Msg
 
 	DECL_SERIALIZER( Device_Init,			Ser_GraphicsCreateInfo( info ), initSyncLog )
 	DECL_SERIALIZER( Device_Init_Response,
-		engineVersion, name, fs, props,
+		engineVersion, name, driver, fs, props,
 		resFlags.bufferUsage, resFlags.bufferOptions, resFlags.imageUsage,
 		resFlags.imageOptions, resFlags.descrTypes, resFlags.memTypes,
 		queues, memInfo, features, api, cpuArch, os, adapterType,

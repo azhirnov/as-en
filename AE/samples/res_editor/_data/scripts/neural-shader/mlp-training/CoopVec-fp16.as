@@ -24,7 +24,7 @@
 		cbuf.ULong( "layer2_bias",		addr );		addr += 64;
 
 		RC<DynamicUInt>		p_cmp		= DynamicUInt();
-		RC<DynamicUInt>		p_scale		= DynamicUInt();
+		RC<DynamicInt>		p_scale		= DynamicInt();
 		const uint			last_mode	= 2;
 
 		Slider(	p_cmp,		"Cmp",		0,		2,		1 );

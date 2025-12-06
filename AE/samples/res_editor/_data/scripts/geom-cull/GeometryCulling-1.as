@@ -418,7 +418,7 @@
 		}
 
 		{
-			// see [GenHiZ-1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GenHiZ-1.as) and [GenHiZ-2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/perf/GenHiZ-2.as)
+			// see [GenHiZ-1](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/perf-GenHiZ-1.as) and [GenHiZ-2](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/perf-GenHiZ-2.as)
 			// for simplification reprojection from previous frame is not used
 
 			RC<Postprocess>		pass = Postprocess( "", "MIPMAP_0" );	// non-POT to POT image
@@ -562,7 +562,7 @@
 		if ( iCullMode == 1 )
 			return true;
 
-		// see [ProjectSphere test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/ProjectSphere.as)
+		// see [ProjectSphere test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-ProjectSphere.as)
 		// and [Quad shader](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/tests/ProjectSphere.as)
 		if ( sphere_center.z - sphere_radius < znear )
 			return true;  // too close to camera
@@ -570,7 +570,7 @@
 		float4	aabb = Sphere_FastProject( Sphere_Create( sphere_center, sphere_radius ), un_PerPass.camera.proj[0][0], un_PerPass.camera.proj[1][1] );
 				aabb = ToUNorm( aabb );	// to uv space
 
-		// see [DepthPyramidCulling test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/tests/DepthPyramidCulling.as)
+		// see [DepthPyramidCulling test](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/scripts/geom-cull/test-DepthPyramidCulling.as)
 		float2	size		= float2( aabb.z - aabb.x, aabb.w - aabb.y ) * iPyramidDim;
 		float2	center		= (aabb.xy + aabb.zw) * 0.5;
 		float	level		= Ceil( Log2( MaxOf( size )));

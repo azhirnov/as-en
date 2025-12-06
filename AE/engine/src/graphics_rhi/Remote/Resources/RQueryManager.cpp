@@ -77,6 +77,13 @@ namespace AE::Graphics
 		CHECK_ERR( GraphicsScheduler().GetDevice().SendAndWait( msg, OUT res ));
 		return Query{ res->query };
 	}
+	
+	RQueryManager::Query  RQueryManager::AllocQuery (FrameUID frameId, EQueueType queue, EQueryType type, uint count) C_NE___
+	{
+		Unused( frameId );  // TODO: validate frameId
+
+		return AllocQuery( queue, type, count );
+	}
 
 /*
 =================================================

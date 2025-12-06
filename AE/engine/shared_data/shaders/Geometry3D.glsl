@@ -8,6 +8,7 @@
 #endif
 
 #include "Math.glsl"
+#include "SafeMath.glsl"
 #include "Sphere.glsl"
 
 

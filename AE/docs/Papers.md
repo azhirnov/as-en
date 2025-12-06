@@ -1,19 +1,14 @@
 
-* [HDR Display](papers/HDR_Display.md)
 * [GPU Benchmarks](papers/GPU_Benchmarks.md)
 * [CPU Benchmarks](papers/CPU_Benchmarks.md)
+* [Graphics papers](https://github.com/azhirnov/AsEn-ShaderEditor/tree/main/papers)
 * [Collection of CPU and GPU architecture details](https://github.com/azhirnov/cpu-gpu-arch)
 
 ## rus
 
-* [HDR дисплеи](papers/HDR_Display-ru.md)
 * [Заметки по программированию графики](papers/GraphicsNotes-ru.md)
 * [Асинхронное программирование](papers/AsyncProgramming-ru.md)
 * [Заметки по архитектуре](papers/ArchitectureNotes-ru.md)
 * [Заметки по ECS/DOD](papers/ECSNotes-ru.md)
 * [Примеры по С++](papers/CPP_Snipets-ru.md)
-* [Проекция на сферу](papers/SphericalCube-ru.md)
-* [Проекции на ультра широкий экран](papers/ScreenProjections-ru.md)
-* [Отсечение невидимой геометриии](papers/GeometryCulling-ru.md)
-* [Рендеринг облаков](papers/SmokeAndClouds-ru.md)
-* [Bindless](papers/Bindless-ru.md)
+* [Статьи по графике](https://github.com/azhirnov/AsEn-ShaderEditor/tree/main/papers)

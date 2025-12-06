@@ -106,7 +106,7 @@
 		float3	v0	= (un_PerPass.camera.view * float4(-1.f, 0.f, 0.f, 0.f)).xyz;	v0.y = 0.f;
 		float3	v1	= (un_PerPass.camera.view * float4( 1.f, 0.f, 0.f, 0.f)).xyz;	v1.y = 0.f;
 		float3	v2	= (un_PerPass.camera.view * float4( 0.f, 0.f, 1.f, 0.f)).xyz;	v2.y = 0.f;
-		float	lift = TriangleArea( v0, v1, v2 );	// area of triangle in XZ plane
+		float	lift = Triangle_Area( Triangle_Create( v0, v1, v2 ));	// area of triangle in XZ plane
 
 		return Pow( Saturate( 1.f - lift ), 2.0 ) * un_PerPass.timeDelta * un_CBuf.liftScale;
 	}

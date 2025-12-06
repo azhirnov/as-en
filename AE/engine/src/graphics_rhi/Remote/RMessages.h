@@ -159,6 +159,7 @@ namespace AE::RemoteGraphics::Msg
 
 		Version3				engineVersion;
 		String					name;
+		String					driver;
 		FeatureSet				fs;
 		DeviceProperties		props;
 		DeviceResourceFlags		resFlags;

@@ -105,6 +105,11 @@ namespace AE::Graphics
 		ND_ RmRenderTechPipelinesID		Cast (const RenderTechPipelinesPtr &ptr)	C_NE___;
 
 		void  _SetMemoryUsage (DevMemoryUsageOpt value)								C_NE___	{ _memUsage.Write( value ); }
+		
+		// requires 'FeatureSet::cooperativeVector'
+		ND_ bool  ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixOnHost>)			C_NE___;
+		ND_ bool  GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost>,
+													 MutableArrayView<BytesUSize> dstSizeArray)	C_NE___;
 
 	private:
 		void  _ProcessMessage (RemoteGraphics::RConnection &, RC<BaseMsg>)			C_NE___;

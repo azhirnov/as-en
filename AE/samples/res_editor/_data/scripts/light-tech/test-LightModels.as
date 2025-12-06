@@ -38,7 +38,7 @@
 	#include "InvocationID.glsl"
 	#include "ColorSpace.glsl"
 
-	float4  Sphere (float2 uv, float2 duv)
+	float4  SpherePos (float2 uv, float2 duv)
 	{
 		uv = ToSNorm( uv ) * (duv.yx / duv.x);
 		return UVtoSphereNormal( uv );
@@ -51,7 +51,7 @@
 		const float3	spec_col	= RemoveSRGBCurve( iSpecular.rgb );
 		const float3	light_col	= RemoveSRGBCurve( iLightCol.rgb );
 
-		const float4	pos		= Sphere( uv, duv );
+		const float4	pos		= SpherePos( uv, duv );
 		const float3	norm	= -ComputeNormalInWS_dxdy( pos.xyz );
 		const float3	light	= Normalize( iLightDir );
 		const float3	view	= Normalize( float3( ToSNorm(uv) * (duv.yx / duv.x), 0.7 ));

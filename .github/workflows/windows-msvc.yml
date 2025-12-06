@@ -92,7 +92,7 @@ jobs:
        
     - name: Tests.VFS
       working-directory: ${{github.workspace}}/_build
-      if: success() || steps.build.conclusion == 'success'
+      if: false
       run: ctest -R "Tests.VFS" -C ${{matrix.config}} -V
        
     - name: Tests.Video

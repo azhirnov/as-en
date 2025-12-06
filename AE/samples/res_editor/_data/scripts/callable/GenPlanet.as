@@ -87,7 +87,7 @@
 	#include "Hash.glsl"
 	#include "Noise.glsl"
 	#include "Normal.glsl"
-	#include "Geometry.glsl"
+	#include "Geometry2D.glsl"
 	#include "Color.glsl"
 
 	float2	faceDim;
@@ -151,7 +151,7 @@
 		const int3		coord		= int3( local + lsize * group, FaceIdx() );
 		const float4	pos_h		= GetPosition( coord.xy );
 		const float3	pos			= pos_h.xyz * (1.0 + pos_h.w);
-		const bool		is_active	= IsInsideRect( local, int2(0), lsize );
+		const bool		is_active	= Rect_IsInside( Rect_Create( int2(0), lsize ), local );
 
 		s_Positions[ GetLocalIndex() ] = pos;
 

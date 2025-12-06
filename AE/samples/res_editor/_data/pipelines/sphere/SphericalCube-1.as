@@ -92,7 +92,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_GEOM
 	#include "Transform.glsl"
-	#include "Geometry.glsl"
+	#include "Geometry3D.glsl"
 
 	layout (triangles) in;
 	layout (triangle_strip, max_vertices = 3) out;
@@ -104,7 +104,7 @@
 
 	void Main ()
 	{
-		float	area = TriangleArea( P0, P1, P2 );
+		float	area = Triangle_Area( Triangle_Create( P0, P1, P2 ));
 
 		for (uint i = 0; i < 3; ++i)
 		{

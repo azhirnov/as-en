@@ -1760,7 +1760,7 @@ namespace
 		_info.deviceName	= "device: "s << dev.GetDeviceName();
 		_info.driver		= "driver: "s << dev.GetDriverName();
 
-	  #ifndef AE_CFG_RELEASE
+	  #if defined(AE_ENABLE_VULKAN) and not defined(AE_CFG_RELEASE)
 		_info.renderDoc		= dev.HasRenderDocApi() ? "RenderDoc is attached"s : ""s;
 	  #endif
 	}

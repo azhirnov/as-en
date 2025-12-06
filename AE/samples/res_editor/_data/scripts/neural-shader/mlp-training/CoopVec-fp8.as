@@ -28,7 +28,7 @@
 
 		RC<DynamicUInt>		p_mode		= DynamicUInt();
 		RC<DynamicUInt>		p_cmp		= DynamicUInt();
-		RC<DynamicUInt>		p_scale		= DynamicUInt();
+		RC<DynamicInt>		p_scale		= DynamicInt();
 		const uint			last_mode	= 1;
 
 		Slider( p_mode,		"Format",	0,		last_mode );

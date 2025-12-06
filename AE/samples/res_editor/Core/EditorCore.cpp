@@ -557,11 +557,11 @@ namespace
 			str << R"(
 void main (Config &out cfg)
 {
-	const string	vfs_path 			= "..";
-	const string	local_path			= "../src/";
-	const string	shader_data_path	= "../shared_data/";
-	const string	ui_path				= "../ui";
-	const string	test_ref_path		= "../test_ref/";
+	const string	vfs_path 			= "../";
+	const string	local_path			= vfs_path + "src/";
+	const string	shader_data_path	= vfs_path + "shared_data/";
+	const string	ui_path				= vfs_path + "ui";
+	const string	test_ref_path		= vfs_path + "test_ref/";
 )";
 		}
 		else
@@ -594,7 +594,6 @@ void main (Config &out cfg)
 	//	all file paths listed at startup, new files will be accessible after app restart
 	cfg.StaticVFSPath( vfs_path + "shadertoy_data",  "shadertoy/" );
 	cfg.StaticVFSPath( vfs_path + "res_editor_data", "res/" );
-	cfg.StaticVFSPath( vfs_path + "private_res",	 "res/" );
 	//	create directory if not exists
 	//	new files can be added at runtime
 	cfg.DynamicVFSPath( local_path + "../_export",   "export/" );
@@ -670,18 +669,28 @@ void main (Config &out cfg)
 	cfg.TestOutput( test_ref_path );
 	cfg.TestFolder( "screenshot-test" );
 	cfg.TestFolder( "tests" );
+
 	cfg.TestFolder( "callable" );
+	cfg.TestFolder( "color-space" );
+	cfg.TestFolder( "compute" );
 	cfg.TestFolder( "games" );
+	cfg.TestFolder( "gbuffer-classify" );
+	cfg.TestFolder( "light-cull" );
+	cfg.TestFolder( "light-tech" );
+	cfg.TestFolder( "neural-shader" );
+	cfg.TestFolder( "neural-shader/mlp-training" );
+	cfg.TestFolder( "nonuniform" );
+	cfg.TestFolder( "packing" );
+	cfg.TestFolder( "particles" );
+	cfg.TestFolder( "perf" );
+	cfg.TestFolder( "planets" );
+	cfg.TestFolder( "posteffects" );
+	cfg.TestFolder( "ray-trace" );
 	cfg.TestFolder( "samples-2d" );
 	cfg.TestFolder( "samples-3d" );
-	cfg.TestFolder( "samples-rt" );
-	cfg.TestFolder( "compute" );
-	cfg.TestFolder( "samples-posteffects" );
-	cfg.TestFolder( "samples-vfx" );
-	cfg.TestFolder( "neural-shader" );
-	cfg.TestFolder( "sphere" );
+	cfg.TestFolder( "shadows" );
 	cfg.TestFolder( "tools" );
-	cfg.TestFolder( "perf" );
+	cfg.TestFolder( "vfx" );
 	//*/
 }
 )";

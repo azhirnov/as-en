@@ -66,7 +66,7 @@
 	#include "Geometry.glsl"
 	#include "InvocationID.glsl"
 
-	float3  Sphere (float2 uv, float2 duv)
+	float3  SpherePos (float2 uv, float2 duv)
 	{
 		uv = ToSNorm( uv ) * (duv.yx / duv.x);
 		return UVtoSphereNormal( uv ).xyz;
@@ -83,11 +83,11 @@
 
 		switch ( iShape )
 		{
-			case 0 :	return float4( -ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )), float(idx) );
-			case 1 :	return float4( ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )), float(idx) );
-			case 2 :	return float4( ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )) * float3(-1.0,  1.0, -1.0), float(idx) );
-			case 3 :	return float4( ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )) * float3(-1.0, -1.0,  1.0), float(idx) );
-			case 4 :	return float4( -ComputeNormalInWS_dxdy( Sphere( uv2, duv2 )).zxy, float(idx) );
+			case 0 :	return float4( -ComputeNormalInWS_dxdy( SpherePos( uv2, duv2 )), float(idx) );
+			case 1 :	return float4( ComputeNormalInWS_dxdy( SpherePos( uv2, duv2 )), float(idx) );
+			case 2 :	return float4( ComputeNormalInWS_dxdy( SpherePos( uv2, duv2 )) * float3(-1.0,  1.0, -1.0), float(idx) );
+			case 3 :	return float4( ComputeNormalInWS_dxdy( SpherePos( uv2, duv2 )) * float3(-1.0, -1.0,  1.0), float(idx) );
+			case 4 :	return float4( -ComputeNormalInWS_dxdy( SpherePos( uv2, duv2 )).zxy, float(idx) );
 		}
 	}
 

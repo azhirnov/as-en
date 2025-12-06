@@ -98,7 +98,7 @@ namespace
 		cfg.enableNetwork			= true;
 		cfg.window.mode				= EWindowMode::NonResizable;
 		cfg.graphics.enableSyncLog	= false;
-		cfg.graphics.deviceAddr		= AE_RMG_PORT;
+		cfg.graphics.deviceAddr		= AE_RMG_IPv4;
 	  #endif
 
 		return cfg;

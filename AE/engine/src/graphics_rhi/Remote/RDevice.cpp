@@ -143,6 +143,23 @@ namespace {
 		_connArr.Unlock( lock );
 		return ok;
 	}
+	
+/*
+=================================================
+	ConvertCooperativeVectorMatrix
+=================================================
+*/
+	bool  RDevice::ConvertCooperativeVectorMatrix (ArrayView<ConvertCoopMatrixOnHost>) C_NE___
+	{
+		// TODO
+		return false;
+	}
+
+	bool  RDevice::GetCooperativeVectorMatrixDstSize (ArrayView<ConvertCoopMatrixOnHost>, MutableArrayView<BytesUSize>) C_NE___
+	{
+		// TODO
+		return false;
+	}
 //-----------------------------------------------------------------------------
 
 
